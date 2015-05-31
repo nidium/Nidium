@@ -116,7 +116,7 @@ JSClass Canvas_Inherit_class = {
     "CanvasInherit", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, CanvasInherit_get, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSClass *NativeLocalClass = &Canvas_class;
@@ -203,42 +203,31 @@ static JSPropertySpec canvas_props[] = {
     {"coating", CANVAS_PROP_COATING, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"height", CANVAS_PROP_HEIGHT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"maxWidth", CANVAS_PROP_MAXWIDTH, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"maxHeight", CANVAS_PROP_MAXHEIGHT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"minWidth", CANVAS_PROP_MINWIDTH, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"minHeight", CANVAS_PROP_MINHEIGHT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"position", CANVAS_PROP_POSITION, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"top", CANVAS_PROP_TOP, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"left", CANVAS_PROP_LEFT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"right", CANVAS_PROP_RIGHT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"bottom", CANVAS_PROP_BOTTOM, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"visible", CANVAS_PROP_VISIBLE, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
     {"contentWidth", CANVAS_PROP_CONTENTWIDTH, NATIVE_JS_PROP | JSPROP_READONLY,
@@ -261,26 +250,20 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"ctx", CANVAS_PROP_CTX, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-
     {"staticLeft", CANVAS_PROP_STATICLEFT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
     {"staticRight", CANVAS_PROP_STATICRIGHT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"staticTop", CANVAS_PROP_STATICTOP, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
     {"staticBottom", CANVAS_PROP_STATICBOTTOM, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"fluidHeight", CANVAS_PROP_FLUIDHEIGHT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"fluidWidth", CANVAS_PROP_FLUIDWIDTH, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"id", CANVAS_PROP_ID, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-
     {"marginLeft", CANVAS_PROP_MARGINLEFT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
     {"marginRight", CANVAS_PROP_MARGINRIGHT, NATIVE_JS_PROP,
@@ -349,7 +332,7 @@ static bool CanvasInherit_get(JSContext *cx, JS::HandleObject obj, JS::HandleId 
     return true;
 }
 
-NativeCanvasHandler *HANDLER_GETTER(JSObject *obj)
+NativeCanvasHandler *HANDLER_GETTER(JS::HandleObject obj)
 {
     NativeJSCanvas *jscanvas = (class NativeJSCanvas *)JS_GetPrivate(obj);
     if (!jscanvas) {
@@ -359,7 +342,7 @@ NativeCanvasHandler *HANDLER_GETTER(JSObject *obj)
     return jscanvas->getHandler();
 }
 
-static NativeCanvasHandler *HANDLER_GETTER_SAFE(JSContext *cx, JSObject *obj, JS::Value *argv = nullptr)
+static NativeCanvasHandler *HANDLER_GETTER_SAFE(JSContext *cx, JS::HandleObject obj, JS::HandleValue argv = nullptr)
 {
     NativeJSCanvas *jscanvas = (class NativeJSCanvas *)JS_GetInstancePrivate(cx, obj, &Canvas_class, argv);
     if (!jscanvas) {
@@ -819,7 +802,7 @@ static bool native_canvas_setContext(JSContext *cx, unsigned argc,
     NativeCanvasContext *context;
 
     if (!(context = (NativeCanvasContext *)JS_GetInstancePrivate(cx,
-            obj, &Canvas2DContext_class, nullptr))) {
+            obj, &Canvas2DContext_class, &args))) {
         JS_ReportError(cx, "setContext() argument must a CanvasRenderingContext2D object");
         return false;
     }
@@ -1453,7 +1436,7 @@ static bool native_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
         return false;
     }
 
-    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Canvas_class, vp));
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Canvas_class, args));
 
     JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit",
         &Canvas_Inherit_class, nullptr,
@@ -1524,7 +1507,7 @@ static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
                 trc->debugPrinter = PrintGetTraceName;
                 trc->debugPrintArg = cur;
 #endif
-                JS_CallObjectTracer(trc, (JSObject *)cur->jsobj, "nativecanvasroot");
+                JS_CallObjectTracer(trc, (JSObject **)&cur->jsobj, "nativecanvasroot");
             }
         }
     }
@@ -1578,17 +1561,20 @@ void NativeJSCanvas::registerObject(JSContext *cx)
 void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
 {
     JSContext *cx = m_Cx;
+    JS::RootedObject ro(cx, m_JSObject);
     switch (msg.event()) {
         case NATIVE_EVENT(NativeCanvasHandler, RESIZE_EVENT):
         {
             // TODO : fireEvent
-            JSOBJ_CALLFUNCNAME(m_JSObject, "onresize", 0, nullptr);
+            JS::AutoValueArray<0> array(cx);
+            JSOBJ_CALLFUNCNAME(ro, "onresize", array);
             break;
         }
         case NATIVE_EVENT(NativeCanvasHandler, LOADED_EVENT):
         {
             // TODO : fireEvent
-            JSOBJ_CALLFUNCNAME(m_JSObject, "onload", 0, nullptr);
+        	JS::AutoValueArray<0> array(cx);
+            JSOBJ_CALLFUNCNAME(ro, "onload", array);
             break;
         }
         case NATIVE_EVENT(NativeCanvasHandler, CHANGE_EVENT):
@@ -1614,7 +1600,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
 
             arg.setObjectOrNull(ev);
             // TODO : fireEvent
-            JSOBJ_CALLFUNCNAME(m_JSObject, "onchange", 1, &arg);
+            JSOBJ_CALLFUNCNAME(ro, "onchange", &arg);
             break;
         }
         case NATIVE_EVENT(NativeCanvasHandler, DRAG_EVENT):
@@ -1634,7 +1620,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
             obj.set("clientY", msg.args[3].toInt());
             obj.set("layerX", msg.args[6].toInt());
             obj.set("layerY", msg.args[7].toInt());
-            obj.set("target", OBJECT_TO_JSVAL(target->jsobj));
+            obj.set("target", target->jsobj);
 
             int evtype = (NativeInputEvent::Type)msg.args[1].toInt();
 
@@ -1658,25 +1644,24 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
                 case NativeInputEvent::kMouseDrag_Type:
                 case NativeInputEvent::kMouseDragStart_Type:
                 case NativeInputEvent::kMouseDragEnd_Type:
-                    obj.set("source", OBJECT_TO_JSVAL(this->getJSObject()));
+                    obj.set("source", this->getJSObject());
                     break;
                 case NativeInputEvent::kMouseDragOver_Type:
                 case NativeInputEvent::kMouseDrop_Type:
-                    obj.set("source", OBJECT_TO_JSVAL(target->jsobj));
-                    obj.set("target", OBJECT_TO_JSVAL(this->getJSObject()));
+                    obj.set("source", target->jsobj);
+                    obj.set("target", this->getJSObject());
                     break;
                 default:
                     break;
             }
-
-            if (!this->fireJSEvent(NativeInputEvent::getName(msg.args[1].toInt()),
-                obj.jsval())) {
-
+            JS::RootedValue rval(cx, obj.jsval());
+            if (!this->fireJSEvent(NativeInputEvent::getName(msg.args[1].toInt()), &rval)) {
                 break;
             }
 
             JS::RootedValue cancelBubble(cx);
-            if (JS_GetProperty(cx, obj.obj(), "cancelBubble", &cancelBubble)) {
+            JS::RootedObject robj(cx, obj.obj());
+            if (JS_GetProperty(cx, robj, "cancelBubble", &cancelBubble)) {
                 if (cancelBubble.isBoolean() && cancelBubble.toBoolean()) {
                     /* TODO: sort out this dirty hack */
                     NativeSharedMessages::Message *nonconstmsg = (NativeSharedMessages::Message *)&msg;

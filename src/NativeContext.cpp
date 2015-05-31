@@ -159,7 +159,7 @@ void NativeContext::loadNativeObjects(int width, int height)
     /* Native() object */
     NativeJSNative::registerObject(cx);
     /* document() object */
-    JSObject *jsdoc = NativeJSdocument::registerObject(cx);
+    JS::RootedObject jsdoc(cx, NativeJSdocument::registerObject(cx));
     /* window() object */
     m_JSWindow = NativeJSwindow::registerObject(cx, width, height, jsdoc);
 

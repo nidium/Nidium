@@ -65,7 +65,7 @@ static JSClass window_class = {
     "Window", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Window_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 enum {
@@ -81,14 +81,14 @@ static JSClass navigator_class = {
     "Navigator", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSClass storage_class = {
     "NidiumStorage", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Storage_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 JSClass *NativeJSwindow::jsclass = &window_class;
@@ -100,14 +100,14 @@ static JSClass mouseEvent_class = {
     "MouseEvent", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSClass dragEvent_class = {
     "DragEvent", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 #if 0
@@ -115,7 +115,7 @@ static JSClass windowEvent_class = {
     "WindowEvent", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 #endif
 
@@ -123,21 +123,21 @@ static JSClass textEvent_class = {
     "TextInputEvent", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSClass keyEvent_class = {
     "keyEvent", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSClass NMLEvent_class = {
     "NMLEvent", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSFunctionSpec storage_funcs[] = {
@@ -182,8 +182,8 @@ static struct native_cursors {
 };
 
 static JSPropertySpec window_props[] = {
-    {"devicePixelRatio", WINDOW_PROP_DEVICE_PIXELRATIO, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_window_prop_get),
+    {"devicePixelRatio", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        NATIVE_JS_GETTER(WINDOW_PROP_DEVICE_PIXELRATIO, native_window_prop_get),
         JSOP_NULLWRAPPER},
     {"left", WINDOW_PROP_LEFT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_window_prop_get),
@@ -499,9 +499,9 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button, int clicks)
         ev->data[0] = button;
         nctx->addInputEvent(ev);
     }
-    JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
-    JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
-    JS::RootedValue bv(m_Cx, INT_TO_JSVAL(button));
+    JS::RootedValue xv(m_Cx, x);
+    JS::RootedValue yv(m_Cx, y);
+    JS::RootedValue bv(m_Cx, button);
     EVENT_PROP("x", xv);
     EVENT_PROP("y", yv);
     EVENT_PROP("clientX", xv);
@@ -912,7 +912,8 @@ static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
             JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_NAME "/"
                 NATIVE_VERSION_STR "(" APP_LOCALE "; rv:" NATIVE_BUILD ") "
                 NATIVE_FRAMEWORK_STR));
-            vp.set(STRING_TO_JSVAL(jStr));
+            JS::RootedValue vStr(m_Cx, STRING_TO_JSVAL(jStr));
+            vp.set(vStr);
             }
             break;
         case NAVIGATOR_PROP_PLATFORM:
@@ -1448,7 +1449,7 @@ bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     if (!JS_ReadStructuredClone(cx, aligned_data, data.length(),
-        JS_STRUCTURED_CLONE_VERSION, &ret, nullptr, nullptr)) {
+        JS_STRUCTURED_CLONE_VERSION, &ret, nullptr, NULL)) {
 
         JS_ReportError(cx, "Unable to read internal data");
         return false;

@@ -35,7 +35,7 @@ static JSClass document_class = {
     "NativeDocument", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Document_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 JSClass *NativeJSdocument::jsclass = &document_class;
@@ -83,7 +83,7 @@ static bool native_document_getElementById(JSContext *cx, unsigned argc, JS::Val
     JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &str)) {
+    if (!JS_ConvertArguments(cx, args, "S", &str)) {
         return false;
     }
 
@@ -133,8 +133,8 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
 
     JS_DefineProperty(cx, dataObject, "data", arVal,
          JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-
-    args.rval().setObject(dataObject);
+    JS::RootedValue dataVal(cx, OBJECT_TO_JSVAL(dataObject));
+    args.rval().set(dataVal);
 
     return true;
 }
@@ -188,7 +188,7 @@ static bool native_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     bool show = false;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "b", &show)) {
+    if (!JS_ConvertArguments(cx, args, "b", &show)) {
         return false;
     }
 
@@ -219,7 +219,7 @@ static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedString location(cx);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &location)) {
+    if (!JS_ConvertArguments(cx, args, "S", &location)) {
         return false;
     }
 
@@ -250,12 +250,12 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
     size_t len, const char *filename)
 {
     JS::RootedValue ret(cx);
-    if (!NativeJS::LoadScriptReturn(cx, data, len, filename, &ret)) {
+    if (!NativeJS::LoadScriptReturn(cx, data, len, filename, ret.address())) {
         return false;
     }
     JS::RootedObject jret(cx, ret.toObjectOrNull());
-
-    NativeJS::copyProperties(cx, jret, this->stylesheet);
+    JS::RootedObject style(cx, this->stylesheet);
+    NativeJS::copyProperties(cx, jret, &style);
 
     return true;
 }
@@ -336,21 +336,23 @@ static bool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp
 
     JS::RootedObject fontdef(cx);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &fontdef)) {
+    if (!JS_ConvertArguments(cx, args, "o", &fontdef)) {
         return false;
     }
 
     JSAutoByteString cfile, cname;
 
     JSGET_OPT_TYPE(fontdef, "file", String) {
-        cfile.encodeUtf8(cx, __curopt.toString());
+        JS::RootedString file(cx, __curopt.toString());
+        cfile.encodeUtf8(cx, file);
     } else {
         JS_ReportError(cx, "Missing 'file' (string) value");
         return false;
     }
 
     JSGET_OPT_TYPE(fontdef, "name", String) {
-        cname.encodeLatin1(cx, __curopt.toString());
+        JS::RootedString name(cx, __curopt.toString());
+        cname.encodeLatin1(cx, name);
     } else {
         JS_ReportError(cx, "Missing 'name' (string) value");
         return false;

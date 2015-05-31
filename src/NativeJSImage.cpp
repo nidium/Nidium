@@ -7,10 +7,12 @@
 #include <NativeFile.h>
 #include <NativeJSFileIO.h>
 
-JSObject *NativeJSImage::classe = NULL;
+JSObject *NativeJSImage::classe = nullptr;
 
 #define NATIVE_IMAGE_GETTER(obj) ((class NativeJSImage *)JS_GetPrivate(obj))
-#define IMAGE_FROM_CALLEE ((class NativeJSImage *)JS_GetPrivate(JS_GetParent(JS_CALLEE(cx, vp).toObject())))
+#define IMAGE_FROM_CALLEE(nimg) \
+    JS::RootedObject parent(cx, JS_GetParent(&args.callee())); \
+    NativeJSImage *nimg = (NativeJSImage *) JS_GetPrivate(parent);
 
 static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -18,8 +20,7 @@ static bool native_image_markColorInAlpha(JSContext *cx, unsigned argc, JS::Valu
 static bool native_image_desaturate(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_image_print(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, bool strict, JS::MutableHandleValue vp);
+static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj, JS::HandleId id, bool strict, JS::MutableHandleValue vp);
 
 extern JSClass File_class;
 
@@ -27,17 +28,15 @@ static JSClass Image_class = {
     "Image", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Image_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 template<>
 JSClass *NativeJSExposer<NativeJSImage>::jsclass = &Image_class;
 
-
 static JSPropertySpec Image_props[] = {
-    {"src", IMAGE_PROP_SRC, 0, JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_image_prop_set)},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    {"src", JSPROP_ENUMERATE|JSPROP_PERMANENT, JSOP_NULLWRAPPER, NATIVE_JS_SETTER(IMAGE_PROP_SRC, native_image_prop_set)},
+    JS_PS_END
 };
 
 static JSFunctionSpec Image_funcs[] = {
@@ -56,9 +55,9 @@ static bool native_image_print(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    NativeJSImage *nimg = IMAGE_FROM_CALLEE;
     int val;
     int color;
+    IMAGE_FROM_CALLEE(nimg);
 
     if (!JS_ConvertArguments(cx, args, "ii", &val, &color)) {
         return false;
@@ -73,7 +72,8 @@ static bool native_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_image_markColorInAlpha(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
-    NativeJSImage *nimg = IMAGE_FROM_CALLEE;
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    IMAGE_FROM_CALLEE(nimg);
     if (nimg->img) {
         nimg->img->markColorsInAlpha();
     }
@@ -84,7 +84,8 @@ static bool native_image_markColorInAlpha(JSContext *cx,
 static bool native_image_desaturate(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
-    NativeJSImage *nimg = IMAGE_FROM_CALLEE;
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    IMAGE_FROM_CALLEE(nimg);
     if (nimg->img) {
         nimg->img->desaturate();
     }
@@ -118,9 +119,8 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
                 stream->setListener(nimg);
                 stream->getContent();
             } else if (vp.isObject()) {
-                NativeFile *file = NativeJSFileIO::GetFileFromJSObject(cx,
-                    vp.toObjectOrNull());
-
+                JS::RootedObject obj(cx, vp.toObjectOrNull());
+                NativeFile *file = NativeJSFileIO::GetFileFromJSObject(cx, obj);
                 if (!file) {
                     vp.set(JSVAL_VOID);
                     return true;
@@ -165,7 +165,7 @@ void Image_Finalize(JSFreeOp *fop, JSObject *obj)
 static bool native_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Image_class, vp));
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Image_class, args));
     NativeJSImage *nimg;
 
     if (!args.isConstructing()) {

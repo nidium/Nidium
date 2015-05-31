@@ -25,7 +25,7 @@ static JSClass imageData_class = {
     "ImageData", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 JSClass *NativeCanvas2DContext::ImageData_jsclass = &imageData_class;
@@ -53,36 +53,36 @@ enum {
 
 void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
 void CanvasPattern_Finalize(JSFreeOp *fop, JSObject *obj);
-void Canvas2DContext_finalize(JSFreeOp *fop, JSObject *obj);
+void Canvas2DContext_Finalize(JSFreeOp *fop, JSObject *obj);
 
 extern JSClass Canvas_class;
 
 JSClass Canvas2DContext_class = {
     "CanvasRenderingContext2D", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas2DContext_finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas2DContext_Finalize,
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSClass canvasGradient_class = {
     "CanvasGradient", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, CanvasGradient_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSClass canvasGLProgram_class = {
     "CanvasGLProgram", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSClass canvasPattern_class = {
     "CanvasPattern", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, CanvasPattern_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
@@ -1806,7 +1806,7 @@ void CanvasPattern_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-void Canvas2DContext_finalize(JSFreeOp *fop, JSObject *obj)
+void Canvas2DContext_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeCanvas2DContext *canvasctx = CANVASCTX_GETTER(obj);
     if (canvasctx != NULL) {
