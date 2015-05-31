@@ -4,22 +4,25 @@
 #include "NativeMacros.h"
 
 #include <NativeJSProfiler.h>
-#include <jsdbgapi.h>
+#include <js/OldDebugAPI.h>
 
 #include "NativeServer.h"
 
 static bool native_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp);
+
+#ifdef NATIVE_JS_PROFILER
 static bool native_console_profile_start(JSContext *cx, unsigned argc,
     JS::Value *vp);
 static bool native_console_profile_end(JSContext *cx, unsigned argc,
     JS::Value *vp);
+#endif
 
 static JSClass console_class = {
     "Console", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSFunctionSpec console_funcs[] = {
@@ -27,11 +30,13 @@ static JSFunctionSpec console_funcs[] = {
     JS_FN("info", native_console_log, 0, 0),
     JS_FN("error", native_console_log, 0, 0),
     JS_FN("warn", native_console_log, 0, 0),
+#ifdef NATIVE_JS_PROFILER
     JS_FN("profile", native_console_profile_start, 0, 0),
     JS_FN("profileEnd", native_console_profile_end, 0, 0),
+#endif
     JS_FS_END
 };
-
+#ifdef NATIVE_JS_PROFILER
 static bool native_console_profile_start(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
@@ -53,6 +58,7 @@ static bool native_console_profile_end(JSContext *cx, unsigned argc,
 
     return true;
 }
+#endif
 
 static bool native_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp)
@@ -64,8 +70,11 @@ static bool native_console_log(JSContext *cx, unsigned argc,
     unsigned lineno;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS_DescribeScriptedCaller(cx, parent, &lineno);
-    filename_parent = JS_GetScriptFilename(cx, parent);
+
+    JS::AutoFilename af;
+    JS::DescribeScriptedCaller(cx, &af, &lineno);
+
+    filename_parent = af.get();
 
     if (filename_parent == NULL) {
         filename_parent = "(null)";
