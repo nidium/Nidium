@@ -3,7 +3,6 @@
 
 #include <NativeJSExposer.h>
 
-
 class NativeJSSystem : public NativeJSExposer<NativeJSSystem>
 {
   public:
@@ -11,3 +10,4 @@ class NativeJSSystem : public NativeJSExposer<NativeJSSystem>
 };
 
 #endif
+

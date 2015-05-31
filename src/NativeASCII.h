@@ -1,4 +1,4 @@
-const char *native_ascii = 
+const char *native_ascii =
 " _   _       _   _                ____                                     \n"
 "| \\ | | __ _| |_(_)_   _____     / ___|  ___ _ ____   _____ _ __          \n"
 "|  \\| |/ _` | __| \\ \\ / / _ \\____\\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|\n"
@@ -8,3 +8,4 @@ const char *native_ascii =
 "\033[1mBuild date\033[0m : %s %s                                          \n"
 "\033[1mPID\033[0m :        %d                                             \n"
 "\033[1mWorkers\033[0m :    %d                                           \n\n";
+

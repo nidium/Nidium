@@ -68,3 +68,4 @@ NativeREPL::~NativeREPL()
     */
     buffer_destroy(m_Buffer);
 }
+
