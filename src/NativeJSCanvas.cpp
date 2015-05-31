@@ -1695,7 +1695,7 @@ void NativeJSCanvas::onMessageLost(const NativeSharedMessages::Message &msg)
 
 }
 
-NativeJSCanvas::NativeJSCanvas(JSObject *obj, JSContext *cx,
+NativeJSCanvas::NativeJSCanvas(JS::HandleObject obj, JSContext *cx,
     NativeCanvasHandler *handler) :
     NativeJSExposer<NativeJSCanvas>(obj, cx),
     m_CanvasHandler(handler), m_Inherit(NULL)

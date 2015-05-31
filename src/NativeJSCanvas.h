@@ -16,14 +16,14 @@ public:
     static JSObject *generateJSObject(JSContext *cx, int width, int height,
         NativeCanvasHandler **out);
 
-    NativeJSCanvas(JSObject *obj, JSContext *cx, NativeCanvasHandler *handler);
+    NativeJSCanvas(JS::HandleObject obj, JSContext *cx, NativeCanvasHandler *handler);
     ~NativeJSCanvas();
 
     NativeCanvasHandler *getHandler() const {
         return m_CanvasHandler;
     }
 
-    void setInherit(JSObject *obj) {
+    void setInherit(JS::HandleObject obj) {
         m_Inherit = obj;
     }
 

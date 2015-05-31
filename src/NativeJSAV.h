@@ -45,7 +45,7 @@ struct NativeJSAVMessageCallback {
     int arg1;
     int arg2;
 
-    NativeJSAVMessageCallback(JSObject *callee, int ev, int arg1, int arg2)
+    NativeJSAVMessageCallback(JS::HandleObject callee, int ev, int arg1, int arg2)
         : callee(callee), ev(ev), arg1(arg1), arg2(arg2) {};
 };
 
@@ -73,7 +73,7 @@ class JSTransferableFunction
 class NativeJSAVSource
 {
     public:
-        static inline int open(NativeAVSource *source, JSContext *cx, unsigned argc, JS::Value *vp);
+        static inline int open(NativeAVSource *source, JSContext *cx, unsigned argc, JS::HandleValue *vp);
         static inline int play();
         static inline int pause();
         static inline int stop();
@@ -128,14 +128,14 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
 
         ~NativeJSAudio();
     private :
-        NativeJSAudio(NativeAudio *audio, JSContext *cx, JSObject *obj);
+        NativeJSAudio(NativeAudio *audio, JSContext *cx, JS::HandleObject obj);
         static NativeJSAudio *instance;
 };
 
 class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public NativeMessages
 {
     public :
-        NativeJSAudioNode(JSObject *obj, JSContext *cx,
+        NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
             NativeAudio::Node type, int in, int out, NativeJSAudio *audio)
             :   NativeJSExposer<NativeJSAudioNode>(obj, cx),
                 audio(audio), node(NULL), type(type), nodeObj(NULL), hashObj(NULL),
@@ -160,7 +160,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
             }
         }
 
-        NativeJSAudioNode(JSObject *obj, JSContext *cx,
+        NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
                NativeAudio::Node type, NativeAudioNode *node, NativeJSAudio *audio)
             :  NativeJSExposer<NativeJSAudioNode>(obj, cx), audio(audio), node(node), type(type),
                hashObj(NULL), arrayContent(NULL)
@@ -214,7 +214,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
         // Custom source node
         static void seekCallback(NativeAudioCustomSource *node, double seekTime, void *custom);
         static bool propSetter(NativeJSAudioNode *node, JSContext *cx,
-                int id, JSMutableHandleValue vp);
+                int id, JS::MutableHandleValue vp);
 
         static void registerObject(JSContext *cx);
     private :
@@ -225,7 +225,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
 class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessages
 {
     public :
-        NativeJSVideo(JSObject *obj, NativeCanvas2DContext *canvasCtx, JSContext *cx);
+        NativeJSVideo(JS::HandleObject obj, NativeCanvas2DContext *canvasCtx, JSContext *cx);
 
         NativeVideo *video;
 

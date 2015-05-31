@@ -10,7 +10,7 @@ class NativeDB;
 class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
 {
   public:
-    NativeJSwindow(JSObject *jsobj, JSContext *cx) :
+    NativeJSwindow(JS::HandleObject jsobj, JSContext *cx) :
         m_RequestedFrame(NULL), m_handler(NULL), m_Db(NULL),
         m_Dragging(false), m_DragedFiles(NULL),
         NativeJSExposer<NativeJSwindow>(jsobj, cx)
@@ -19,7 +19,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
 
     ~NativeJSwindow();
 
-    void onReady(JSObject *layout);
+    void onReady(JS::HandleObject layout);
     bool onClose();
     void assetReady(const NMLTag &tag);
     void windowFocus();
@@ -52,7 +52,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     }
 
     static NativeJSwindow *registerObject(JSContext *cx, int width,
-        int height, JSObject *doc);
+        int height, JS::HandleObject doc);
 
     static const char *getJSObjectName() {
         return "Window";
@@ -67,7 +67,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
 
     bool dragEvent(const char *name, int x, int y);
 
-    void createMainCanvas(int width, int height, JSObject *doc);
+    void createMainCanvas(int width, int height, JS::HandleObject doc);
     void createStorage();
 
     struct _requestedFrame {

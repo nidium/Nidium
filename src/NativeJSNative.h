@@ -9,7 +9,7 @@ class NativeCanvasHandler;
 class NativeJSNative : public NativeJSExposer<NativeJSNative>
 {
   public:
-    NativeJSNative(JSObject *obj, JSContext *cx) :
+    NativeJSNative(JS::HandleObject obj, JSContext *cx) :
         NativeJSExposer<NativeJSNative>(obj, cx)
     {
 

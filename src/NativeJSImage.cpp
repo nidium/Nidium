@@ -185,12 +185,12 @@ static bool native_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp
     return true;
 }
 
-bool NativeJSImage::JSObjectIs(JSContext *cx, JSObject *obj)
+bool NativeJSImage::JSObjectIs(JSContext *cx, JS::HandleObject obj)
 {
     return JS_GetClass(obj) == &Image_class;
 }
 
-NativeSkImage *NativeJSImage::JSObjectToNativeSkImage(JSObject *obj)
+NativeSkImage *NativeJSImage::JSObjectToNativeSkImage(JS::HandleObject obj)
 {
     return NATIVE_IMAGE_GETTER(obj)->img;
 }
@@ -319,7 +319,7 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
     return ret;
 }
 
-NativeJSImage::NativeJSImage(JSObject *obj, JSContext *cx) :
+NativeJSImage::NativeJSImage(JS::HandleObject obj, JSContext *cx) :
     NativeJSExposer<NativeJSImage>(obj, cx),
     img(NULL), m_Stream(NULL)
 {

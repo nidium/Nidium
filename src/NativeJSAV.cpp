@@ -651,7 +651,7 @@ NativeJSAudio *NativeJSAudio::getContext()
     return NativeJSAudio::instance;
 }
 
-NativeJSAudio::NativeJSAudio(NativeAudio *audio, JSContext *cx, JSObject *obj)
+NativeJSAudio::NativeJSAudio(NativeAudio *audio, JSContext *cx, JS::HandleObject obj)
     :
       NativeJSExposer<NativeJSAudio>(obj, cx),
       audio(audio), nodes(NULL), gbl(NULL), rt(NULL), tcx(NULL),
@@ -2136,7 +2136,7 @@ void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-NativeJSVideo::NativeJSVideo(JSObject *obj,
+NativeJSVideo::NativeJSVideo(JS::HandleObject obj,
     NativeCanvas2DContext *canvasCtx, JSContext *cx) :
     NativeJSExposer<NativeJSVideo>(obj, cx),
     video(NULL), audioNode(NULL), arrayContent(NULL),
@@ -2563,7 +2563,7 @@ bool NativeJSAVSource::propGetter(NativeAVSource *source, JSContext *cx, int id,
 }
 
 bool NativeJSAudioNode::propSetter(NativeJSAudioNode *jnode, JSContext *cx,
-        int id, JSMutableHandleValue vp)
+        int id, JS::MutableHandleValue vp)
 {
     NativeAudioCustomSource *source = static_cast<NativeAudioCustomSource*>(jnode->node);
 

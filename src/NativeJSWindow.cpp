@@ -253,7 +253,7 @@ NativeJSwindow::~NativeJSwindow()
     }
 };
 
-void NativeJSwindow::onReady(JSObject *layout)
+void NativeJSwindow::onReady(JS::HandleObject layout)
 {
     JS::AutoValueArray<1> arg(m_Cx);
     JS::RootedValue onready(m_Cx);
@@ -1362,7 +1362,7 @@ void NativeJSwindow::initDataBase()
     }
 }
 
-void NativeJSwindow::createMainCanvas(int width, int height, JSObject *doc)
+void NativeJSwindow::createMainCanvas(int width, int height, JS::HandleObject doc)
 {
     JS::RootedObject canvas(m_Cx);
 
@@ -1464,7 +1464,7 @@ bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
 }
 
 NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
-    int height, JSObject *doc)
+    int height, JS::HandleObject doc)
 {
     JS::RootedObject globalObj(cx, JS::CurrentGlobalOrNull(cx));
 #if 0

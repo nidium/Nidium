@@ -16,15 +16,15 @@ class NativeJSImage : public NativeJSExposer<NativeJSImage>,
 {
   public:
 
-    NativeJSImage(JSObject *obj, JSContext *cx);
+    NativeJSImage(JS::HandleObject obj, JSContext *cx);
     virtual ~NativeJSImage();
 
     NativeSkImage *img;
     NativeBaseStream *m_Stream;
 
-    static NativeSkImage *JSObjectToNativeSkImage(JSObject *obj);
+    static NativeSkImage *JSObjectToNativeSkImage(JS::HandleObject obj);
     static void registerObject(JSContext *cx);
-    static bool JSObjectIs(JSContext *cx, JSObject *obj);
+    static bool JSObjectIs(JSContext *cx, JS::HandleObject obj);
     static JSObject *buildImageObject(JSContext *cx, NativeSkImage *image,
         const char name[] = NULL);
     static JSObject *classe;
