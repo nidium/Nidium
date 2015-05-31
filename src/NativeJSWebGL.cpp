@@ -2620,7 +2620,7 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
                 JS_ReportError(cx, "Failed to read image data");
                 return false;
             }
-        } else if (JS_InstanceOf(cx, image, &Canvas_class, nullptr)) {
+        } else if (JS_GetClass(image) == &Canvas_class) {
             NativeCanvasHandler *handler = static_cast<NativeCanvasHandler *>
                 (static_cast<NativeJSCanvas*>(JS_GetPrivate(image))->getHandler());
             NativeCanvas2DContext *ctx = static_cast<NativeCanvas2DContext *>(handler->getContext());

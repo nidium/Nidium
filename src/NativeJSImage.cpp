@@ -187,7 +187,7 @@ static bool native_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp
 
 bool NativeJSImage::JSObjectIs(JSContext *cx, JSObject *obj)
 {
-    return JS_InstanceOf(cx, obj, &Image_class, nullptr);
+    return JS_GetClass(obj) == &Image_class;
 }
 
 NativeSkImage *NativeJSImage::JSObjectToNativeSkImage(JSObject *obj)

@@ -818,8 +818,7 @@ static bool native_canvas2dctx_putImageData(JSContext *cx,
     if (!JS_ConvertArguments(cx, args, "oii", &dataObject, &x, &y)) {
         return false;
     }
-
-    if (!JS_InstanceOf(cx, dataObject, &imageData_class, nullptr)) {
+    if (!JS_GetClass(dataObject) == &imageData_class) {
         JS_ReportError(cx, "First argument must be a imageData object");
         return false;
     }
@@ -1007,7 +1006,7 @@ static bool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value
     /*
         TODO: work with WebGL canvas
     */
-    if (JS_InstanceOf(cx, jsimage, &Canvas_class, nullptr)) {
+    if (JS_GetClass(jsimage) == &Canvas_class) {
         NativeCanvasContext *drawctx = HANDLER_GETTER(jsimage)->getContext();
 
         if (drawctx == NULL || drawctx->getContextType() != NativeCanvasContext::CONTEXT_2D) {
@@ -1646,23 +1645,20 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         break;
         case CTX_PROP(fillStyle):
         {
+            JS::RootedObject vpObj(cx, &vp.toObjectOrNull());
             if (vp.isString()) {
 
                 JSAutoByteString colorName(cx, vp.toString());
                 curSkia->setFillColor(colorName.ptr());
             } else if (!vp.isPrimitive() &&
-                JS_InstanceOf(cx, &vp.toObject(),
-                    &canvasGradient_class, nullptr)) {
-
+                JS_GetClass(&vp.toObject()) == &canvasGradient_class) {
                 NativeSkGradient *gradient = (class NativeSkGradient *)
                                             JS_GetPrivate(&vp.toObject());
 
                 curSkia->setFillColor(gradient);
 
             } else if (!vp.isPrimitive() &&
-                JS_InstanceOf(cx, &vp.toObject(),
-                    &canvasPattern_class, nullptr)) {
-
+                JS_GetClass(&vp.toObject()) == &canvasPattern_class) {
                 NativeCanvasPattern *pattern = (class NativeCanvasPattern *)
                                             JS_GetPrivate(&vp.toObject());
 
@@ -1680,9 +1676,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
                 JSAutoByteString colorName(cx, vp.toString());
                 curSkia->setStrokeColor(colorName.ptr());
             } else if (!vp.isPrimitive() &&
-                JS_InstanceOf(cx, &vp.toObject(),
-                    &canvasGradient_class, nullptr)) {
-
+                JS_GetClass(&vp.toObject()) == &canvasGradient_class) {
                 NativeSkGradient *gradient = (class NativeSkGradient *)
                                             JS_GetPrivate(&vp.toObject());
 
