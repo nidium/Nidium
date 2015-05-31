@@ -75,18 +75,27 @@ static pthread_key_t gJS = 0;
 
 size_t gMaxStackSize = DEFAULT_MAX_STACK_SIZE;
 
-struct _native_sm_timer
+struct native_sm_timer
 {
     JSContext *cx;
-    JSObject *global;
+    JS::Heap<JSObject *> global;
     ape_timer *timerng;
-    jsval *argv;
-    jsval func;
+
+    JS::PersistentRootedValue **argv;
+    JS::PersistentRootedValue func;
 
     unsigned argc;
     int ms;
     int cleared;
     struct _ticks_callback *timer;
+
+    ~native_sm_timer() {
+
+    }
+
+    native_sm_timer(JSContext *cx) : func(cx) {
+
+    }
 };
 
 enum {
@@ -553,6 +562,10 @@ void NativeJS::SetJSRuntimeOptions(JSRuntime *rt)
                              .setIon(true)
                              .setAsmJS(true);
 
+    JS_SetGCParameter(rt, JSGC_MAX_BYTES, 0xffffffff);
+    JS_SetGCParameter(rt, JSGC_SLICE_TIME_BUDGET, 15);
+    JS_SetNativeStackQuota(rt, gMaxStackSize);
+
     //rt->profilingScripts For profiling?
 }
 
@@ -586,7 +599,12 @@ NativeJS::NativeJS(ape_global *net) :
     if (gJS == 0) {
         pthread_key_create(&gJS, NULL);
     }
-    pthread_setspecific(gJS, this);    
+    pthread_setspecific(gJS, this);
+
+    if (!JS_Init()) {
+        fprintf(stderr, "Failed to init JSAPI (JS_Init())\n");
+        return;
+    }
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L,
         JS_NO_HELPER_THREADS)) == NULL) {
@@ -596,12 +614,9 @@ NativeJS::NativeJS(ape_global *net) :
     }
 
     NativeJS::SetJSRuntimeOptions(rt);
-
-    JS_SetGCParameter(rt, JSGC_MAX_BYTES, 0xffffffff);
-    JS_SetGCParameter(rt, JSGC_SLICE_TIME_BUDGET, 15);
     JS_SetGCParameterForThread(cx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
 
-    JS_SetNativeStackQuota(rt, gMaxStackSize);
+    
 
     if ((cx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
@@ -787,7 +802,7 @@ void NativeJS::bindNetObject(ape_global *net)
     //io->open();
 }
 
-void NativeJS::copyProperties(JSContext *cx, JSObject *source, JSObject *into)
+void NativeJS::copyProperties(JSContext *cx, JS::HandleObject source, JS::MutableHandleObject into)
 {
 
     JS::AutoIdArray ida(cx, JS_Enumerate(cx, source));
@@ -810,14 +825,15 @@ void NativeJS::copyProperties(JSContext *cx, JSObject *source, JSObject *into)
 
                 if (!JS_GetPropertyById(cx, into, id, &oldval) ||
                     oldval.isNullOrUndefined() || oldval.isPrimitive()) {
-                    JS_SetPropertyById(cx, into, id, &val);
+                    JS_SetPropertyById(cx, into, id, val);
                 } else {
-                    NativeJS::copyProperties(cx, &val.toObject(), &oldval.toObject());
+                    JS::RootedObject oldvalobj(cx, &oldval.toObject());
+                    NativeJS::copyProperties(cx, JS::RootedObject(cx, val.toObjectOrNull()), &oldvalobj);
                 }
                 break;
             }
             default:
-                JS_SetPropertyById(cx, into, id, &val);
+                JS_SetPropertyById(cx, into, id, val);
                 break;
         }
     }
@@ -1050,7 +1066,7 @@ void NativeJS::postMessage(void *dataPtr, int ev)
 
 static int native_timer_deleted(void *arg)
 {
-    struct _native_sm_timer *params = (struct _native_sm_timer *)arg;
+    struct native_sm_timer *params = (struct native_sm_timer *)arg;
 
     JSAutoRequest ar(params->cx);
 
@@ -1058,30 +1074,26 @@ static int native_timer_deleted(void *arg)
         return 0;
     }
 
-    JS_RemoveValueRoot(params->cx, &params->func);
-
     for (int i = 0; i < params->argc; i++) {
-        JS_RemoveValueRoot(params->cx, &params->argv[i]);
+        delete params->argv[i];
     }
 
-    if (params->argv != NULL) {
-        free(params->argv);
-    }
+    delete[] params->argv;
 
-    free(params);
+    delete params;
 
     return 1;
 }
 
 static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    struct _native_sm_timer *params;
+    struct native_sm_timer *params;
     int ms, i;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *obj = &args.thisv().toObject();
 
-    params = (struct _native_sm_timer *)malloc(sizeof(*params));
+    params = new native_sm_timer(cx);
 
     if (params == NULL || argc < 2) {
         if (params) free(params);
@@ -1096,26 +1108,30 @@ static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
     params->timerng = NULL;
     params->ms = 0;
 
-    params->argv = (argc-2 ? (JS::Value *)malloc(sizeof(*params->argv) * argc-2) : NULL);
-    JS::RootedValue args0(cx, args.array()[0]);
-    JS::RootedValue func(cx, params->func);
-    if (!JS_ConvertValue(cx, args0, JSTYPE_FUNCTION, &func)) {
+    params->argv = new JS::PersistentRootedValue*[argc-2];
+
+    for (i = 0; i < argc-2; i++) {
+        params->argv[i] = new JS::PersistentRootedValue(cx);
+    }
+
+    JS::RootedValue func(cx);
+
+    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
         free(params->argv);
         free(params);
         return true;
     }
 
-    if (!JS_ConvertArguments(cx, 1, &args.array()[1], "i", &ms)) {
+    if (!!JS::ToInt32(cx, args[1], &ms)) {
         free(params->argv);
         free(params);
         return false;
     }
 
-    JS_AddValueRoot(cx, &params->func);
+    params->func.set(func);
 
     for (i = 0; i < (int)argc-2; i++) {
-        params->argv[i] = args.array()[i+2];
-        JS_AddValueRoot(cx, &params->argv[i]);
+        params->argv[i]->set(args[i+2]);
     }
 
     params->timerng = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
@@ -1132,13 +1148,13 @@ static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    struct _native_sm_timer *params;
+    struct native_sm_timer *params;
     int ms, i;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *obj = &args.thisv().toObject();
 
-    params = (struct _native_sm_timer *)malloc(sizeof(*params));
+    params = new native_sm_timer(cx);
 
     if (params == NULL || argc < 2) {
         if (params) free(params);
@@ -1151,16 +1167,22 @@ static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
     params->cleared = 0;
     params->timer = NULL;
 
-    params->argv = (argc-2 ? (JS::Value *)malloc(sizeof(*params->argv) * argc-2) : NULL);
-    JS::RootedValue args0(cx, args.array()[0]);
-    JS::RootedValue func(cx, params->func);
-    if (!JS_ConvertValue(cx, args0, JSTYPE_FUNCTION, &func)) {
+    params->argv = new JS::PersistentRootedValue*[argc-2];
+
+    for (i = 0; i < argc-2; i++) {
+        params->argv[i] = new JS::PersistentRootedValue(cx);
+    }
+
+    JS::RootedValue func(cx);
+    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
         free(params->argv);
         free(params);
         return true;
     }
 
-    if (!JS_ConvertArguments(cx, 1, &args.array()[1], "i", &ms)) {
+    params->func.set(func);
+
+    if (!!JS::ToInt32(cx, args[1], &ms)) {
         free(params->argv);
         free(params);
         return false;
@@ -1168,11 +1190,9 @@ static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
 
     params->ms = native_max(8, ms);
 
-    JS_AddValueRoot(cx, &params->func);
 
     for (i = 0; i < (int)argc-2; i++) {
-        params->argv[i] = args.array()[i+2];
-        JS_AddValueRoot(cx, &params->argv[i]);
+        params->argv[i]->set(args.array()[i+2]);
     }
 
     params->timerng = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
@@ -1205,18 +1225,19 @@ static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static int native_timerng_wrapper(void *arg)
 {
-    struct _native_sm_timer *params = (struct _native_sm_timer *)arg;
-    size_t i;
+    struct native_sm_timer *params = (struct native_sm_timer *)arg;
 
-    JSAutoRequest ar(params->cx);
-    JS::RootedValue rval(params->cx);
-    JS::AutoValueArray <params->argc> array(params->cx);
-    JS::RootedValue func(params->cx, params->func);
-    JS::RootedObject global(params->cx, params->global);
-    for(i = 0; i< params->argc; i++) {
-    	array[i] = params->argv[i];
+    JSAutoRequest       ar(params->cx);
+    JS::RootedValue     rval(params->cx);
+    JS::AutoValueVector arr(params->cx);
+    JS::RootedValue     func(params->cx, params->func);
+    JS::RootedObject    global(params->cx, params->global);
+    
+    arr.resize(params->argc);
+    for(size_t i = 0; i< params->argc; i++) {
+    	arr[i] = params->argv[i]->get();
     }
-    JS_CallFunctionValue(params->cx, global, func, array, &rval);
+    JS_CallFunctionValue(params->cx, global, func, arr, &rval);
 
     //timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
 

@@ -126,7 +126,7 @@ class NativeJS
 
         void loadGlobalObjects();
         
-        static void copyProperties(JSContext *cx, JSObject *source, JSObject *into);
+        static void copyProperties(JSContext *cx, JS::HandleObject source, JS::MutableHandleObject into);
         static int LoadScriptReturn(JSContext *cx, const char *data,
             size_t len, const char *filename, JS::Value *ret);
         static int LoadScriptReturn(JSContext *cx,
