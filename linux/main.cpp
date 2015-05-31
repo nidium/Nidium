@@ -196,7 +196,7 @@ void resizeGLScene(int width, int height)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    //gluPerspective( 0, 640.f/480.f, 1.0, 1024.0 );
+    //gluPerspective(0, 640.f/480.f, 1.0, 1024.0);
     //gluPerspective(45.0f, (GLfloat)width/(GLfloat)height, 0.1f, 100.0f);
     glOrtho(0, width, height, 0, 0, 1024);
 
@@ -231,23 +231,23 @@ int main(int argc, char **argv)
     SDL_Window *win;
     SDL_GLContext contexteOpenGL;
 
-    if( SDL_Init( SDL_INIT_EVERYTHING | SDL_INIT_TIMER | SDL_INIT_AUDIO) == -1 )
+    if (SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_TIMER | SDL_INIT_AUDIO) == -1)
     {
-        printf( "Can't init SDL:  %s\n", SDL_GetError( ) );
+        printf("Can't init SDL:  %s\n", SDL_GetError());
         return 0;
     }
 
     //SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
-    //SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, true );
-    //SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 4 ); /* TODO check */
+    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, true);
+    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4); /* TODO check */
 
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5 );
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5 );
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5 );
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8 );
-    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
@@ -289,7 +289,7 @@ int main(int argc, char **argv)
         printf("got an error here %d\n", e);
     }
     printf("[DEBUG] OpenGL %s\n", glGetString(GL_VERSION));
-    atexit( SDL_Quit );
+    atexit(SDL_Quit);
     //glClear(GL_COLOR_BUFFER_BIT);
     //NJS->nskia->flush();
     SDL_GL_SwapWindow(win);
@@ -300,3 +300,4 @@ int main(int argc, char **argv)
     //NativeEvents(win);
     NativeRunMainLoop(gnet, win);
 }
+

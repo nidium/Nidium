@@ -20,7 +20,7 @@ static void get_dpi(int *x, int *y)
         char *displayname = NULL;
         int scr = 0; /* Screen number */
 
-        if( (NULL == x) || (NULL == y)){ return ; }
+        if ((NULL == x) || (NULL == y)) { return ; }
 
         dpy = XOpenDisplay (displayname);
 
@@ -31,10 +31,10 @@ static void get_dpi(int *x, int *y)
          *                     *         = N pixels / (M inch / 25.4)
          *                          *         = N * 25.4 pixels / M inch
          *                               */
-        xres = ((((double) DisplayWidth(dpy,scr)) * 25.4) /
-                        ((double) DisplayWidthMM(dpy,scr)));
-        yres = ((((double) DisplayHeight(dpy,scr)) * 25.4) /
-                        ((double) DisplayHeightMM(dpy,scr)));
+        xres = ((((double) DisplayWidth(dpy, scr)) * 25.4) /
+                        ((double) DisplayWidthMM(dpy, scr)));
+        yres = ((((double) DisplayHeight(dpy, scr)) * 25.4) /
+                        ((double) DisplayHeightMM(dpy, scr)));
 
         *x = (int) (xres + 0.5);
         *y = (int) (yres + 0.5);
@@ -147,3 +147,4 @@ const char *NativeSystem::pwd()
 
     return dir;
 }
+

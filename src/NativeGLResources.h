@@ -37,7 +37,7 @@ public:
 
         m_List.setAutoDelete(true);
     };
-    ~NativeGLResources(){};
+    ~NativeGLResources() {};
 
     void add(uint32_t glid, ResourceType type, const char *name = NULL);
 
@@ -61,3 +61,4 @@ private:
 };
 
 #endif
+

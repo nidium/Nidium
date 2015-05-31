@@ -122,7 +122,7 @@ class NativeSkia
         void setShadowOffsetY(double y);
         void setShadowBlur(double blur);
         void setShadowColor(const char *str);
-        void setSmooth(bool val,const  int level = 1);
+        void setSmooth(bool val, const  int level = 1);
         void setFontSize(double size);
         void setFontStyle(const char *style);
         void setFontSkew(double val) {
@@ -204,5 +204,5 @@ class NativeSkia
 #endif
 };
 
-
 #endif
+

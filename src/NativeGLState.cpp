@@ -149,3 +149,4 @@ NativeGLState::~NativeGLState()
         delete m_GLContext;
     }
 }
+

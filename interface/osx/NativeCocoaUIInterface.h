@@ -78,3 +78,4 @@ class NativeCocoaUIInterface : public NativeUIInterface
         NSStatusItem *m_StatusItem;
         NativeCocoaUIInterfaceWrapper *m_Wrapper;
 };
+

@@ -188,3 +188,4 @@ void NativeAssets::pendingListUpdate()
         assetsReady(this, readyArg);
     }
 }
+

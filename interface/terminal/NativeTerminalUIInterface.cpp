@@ -111,3 +111,4 @@ void NativeUITerminalConsole::flush()
 NativeUITerminalConsole::~NativeUITerminalConsole()
 {
 }
+

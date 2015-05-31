@@ -14,7 +14,7 @@ static JSClass Native_class = {
     "native", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Native_Finalize,
-	JSCLASS_NO_OPTIONAL_MEMBERS
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 JSClass *NativeJSNative::jsclass = &Native_class;
@@ -38,7 +38,7 @@ void Native_Finalize(JSFreeOp *fop, JSObject *obj)
 void NativeJSNative::registerObject(JSContext *cx)
 {
     //JS::RootedObject titleBar(cx);
-	JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject NativeObj(cx, JS_DefineObject(cx, global,
         NativeJSNative::getJSObjectName(), &Native_class , nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));

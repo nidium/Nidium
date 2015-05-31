@@ -35,3 +35,4 @@ class NativeUICocoaConsole : public NativeUIInterface::NativeUIConsole
         NativeConsole *window;
         bool needFlush;
 };
+

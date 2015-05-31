@@ -119,18 +119,19 @@ NativeVertices *NativeCanvasContext::buildVerticesStripe(int resolution)
     int colSteps = x * 2;
     int rowSteps = y - 1;
     int pos = 0;
+    int r, c;
 
-    for ( int r = 0; r < rowSteps; r++) {
-        for ( int c = 0; c < colSteps; c++, pos++ ) {
+    for (r = 0; r < rowSteps; r++) {
+        for (c = 0; c < colSteps; c++, pos++) {
             int t = c + r * colSteps;
 
-            if ( c == colSteps - 1 ) {
+            if (c == colSteps - 1) {
                 indices[pos] = n;
             }
             else {
                 indices[pos] = n;
 
-                if ( t%2 == 0 ) {
+                if (t % 2 == 0) {
                     n += x;
                 } else {
                     if (r%2 == 0) {
@@ -253,7 +254,7 @@ static void dump_Matrix(float *matrix)
 
     printf("==========\n");
     for (i = 0; i < 4; i++) {
-        printf("%f,%f,%f,%f\n", matrix[i*4], matrix[i*4+1], matrix[i*4+2], matrix[i*4+3]);
+        printf("%f, %f, %f, %f\n", matrix[i*4], matrix[i*4+1], matrix[i*4+2], matrix[i*4+3]);
     }
     printf("==========\n");
 }
@@ -333,9 +334,11 @@ void NativeCanvasContext::setupShader(float opacity, int width, int height,
         float padding = this->getHandler()->padding.global * ratio;
 
         if (m_GLState->m_GLObjects.uniforms.u_resolution != -1)
-            NATIVE_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_resolution, (width)-(padding*2), (height)-(padding*2)));
+            NATIVE_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_resolution
+                (width) - (padding * 2), (height) - (padding * 2)));
         if (m_GLState->m_GLObjects.uniforms.u_position  != -1)
-            NATIVE_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_position , ratio*left, ratio*wHeight - (height+ratio*top)));
+            NATIVE_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_position,
+            ratio * left, ratio * wHeight - (height + ratio * top)));
         if (m_GLState->m_GLObjects.uniforms.u_padding != -1)
             NATIVE_GL_CALL_MAIN(Uniform1f(m_GLState->m_GLObjects.uniforms.u_padding, padding));
     }
@@ -368,7 +371,8 @@ void NativeCanvasContext::preComposeOn(NativeCanvas2DContext *layer,
             SkDoubleToScalar(rclip->fRight*(double)ratio),
             SkDoubleToScalar(rclip->fBottom*(double)ratio));
         NATIVE_GL_CALL(layer->m_GLState->getNativeGLContext(), Enable(GL_SCISSOR_TEST));
-        NATIVE_GL_CALL(layer->m_GLState->getNativeGLContext(), Scissor(r.left(), layerSize.height()-(r.top()+r.height()), r.width(), r.height()));
+        NATIVE_GL_CALL(layer->m_GLState->getNativeGLContext(), Scissor(r.left(),
+           layerSize.height() - (r.top() + r.height()), r.width(), r.height()));
         revertScissor = true;
     }
 
@@ -433,3 +437,4 @@ NativeCanvasContext *NativeCanvasContext::Create(NativeContextType type)
             return NULL;
     }
 }
+

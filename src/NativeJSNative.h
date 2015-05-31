@@ -14,7 +14,7 @@ class NativeJSNative : public NativeJSExposer<NativeJSNative>
     {
 
     }
-    ~NativeJSNative(){};
+    ~NativeJSNative() {};
 
     static void registerObject(JSContext *cx);
 

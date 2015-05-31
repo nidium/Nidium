@@ -112,3 +112,4 @@ SkShader *NativeSkGradient::build()
 
     return currentShader;
 }
+

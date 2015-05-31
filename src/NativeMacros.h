@@ -13,3 +13,4 @@ extern NativeUIInterface *__NativeUI;
     __NativeUI->logf("[%s:%d] " format "\n", __FILENAME__, __LINE__, ##__VA_ARGS__)
 
 #endif
+

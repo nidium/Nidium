@@ -56,20 +56,20 @@ const uint8_t *NativeSkImage::getPixels(size_t *len)
 
 NativeSkImage::NativeSkImage(SkCanvas *canvas)
 {
-	//canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
+    //canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
 
-	isCanvas = 1;
-	canvasRef = canvas;
-	canvas->ref();
-	img = NULL;
-	
+    isCanvas = 1;
+    canvasRef = canvas;
+    canvas->ref();
+    img = NULL;
+    
 }
 
 NativeSkImage::NativeSkImage(void *data, size_t len) :
-	canvasRef(NULL)
+    canvasRef(NULL)
 {
-	img = new SkBitmap();
-	isCanvas = 0;
+    img = new SkBitmap();
+    isCanvas = 0;
 
     if (!SkImageDecoder::DecodeMemory(data, len, img)) {
         printf("failed to decode Image\n");
@@ -80,20 +80,20 @@ NativeSkImage::NativeSkImage(void *data, size_t len) :
 
 NativeSkImage::~NativeSkImage()
 {
-	if (canvasRef) canvasRef->unref();
-	if (img) {
+    if (canvasRef) canvasRef->unref();
+    if (img) {
         delete img;
     }
 }
 
 int NativeSkImage::getWidth()
 {
-	return img->width();
+    return img->width();
 }
 
 int NativeSkImage::getHeight()
 {
-	return img->height();
+    return img->height();
 }
 
 void NativeSkImage::shiftHue(int val, U8CPU alpha)
@@ -116,7 +116,7 @@ void NativeSkImage::shiftHue(int val, U8CPU alpha)
         SkScalar hsv[3];
         SkColorToHSV(pixel, hsv);
 
-        hsv[0] = native_min(native_max( SkIntToScalar(val), 0), 360);
+        hsv[0] = native_min(native_max(SkIntToScalar(val), 0), 360);
 
         pixels[i] = SkHSVToColor(SkColorGetA(pixel), hsv);
     }

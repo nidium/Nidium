@@ -208,7 +208,8 @@ void NativeContext::createDebugCanvas()
     NativeCanvas2DContext *context = (NativeCanvas2DContext *)m_RootHandler->getContext();
     static const int DEBUG_HEIGHT = 60;
     m_DebugHandler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
-    NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(m_DebugHandler, context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
+    NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(m_DebugHandler,
+         context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
     m_DebugHandler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
 
@@ -224,7 +225,8 @@ void NativeContext::createDebug2Canvas()
     NativeCanvas2DContext *context = (NativeCanvas2DContext *)m_RootHandler->getContext();
     static const int DEBUG_HEIGHT = 60;
     m_Debug2Handler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
-    NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(m_Debug2Handler, context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
+    NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(m_Debug2Handler,
+         context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
     m_Debug2Handler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
 
@@ -248,18 +250,21 @@ void NativeContext::postDraw()
 
         s->setFontType((char *)"monospace");
         s->drawTextf(5, 12, "NATiVE build %s %s", __DATE__, __TIME__);
-        s->drawTextf(5, 25, "Frame: %lld (%lldms)\n", m_Stats.nframe, m_Stats.lastdifftime/1000000LL);
+        s->drawTextf(5, 25, "Frame: %lld (%lldms)\n", m_Stats.nframe, m_Stats.lastdifftime / 1000000LL);
         s->drawTextf(5, 38, "Time : %lldns\n", m_Stats.lastmeasuredtime-m_Stats.starttime);
         s->drawTextf(5, 51, "FPS  : %.2f (%.2f)", m_Stats.fps, m_Stats.sampleminfps);
 
         s->setLineWidth(0.0);
 
-        for (int i = 0; i < sizeof(m_Stats.samples)/sizeof(float); i++) {
-            //s->drawLine(300+i*3, 55, 300+i*3, (40/60)*m_Stats.samples[i]);
+        for (int i = 0; i < sizeof(m_Stats.samples) / sizeof(float); i++) {
+            //s->drawLine(300 + i * 3, 55, 300 + i * 3, (40 / 60) * m_Stats.samples[i]);
             s->setStrokeColor(0xFF004400u);
-            s->drawLine(m_DebugHandler->getWidth()-20-i*3, 55, m_DebugHandler->getWidth()-20-i*3, 20.f);
+            s->drawLine(m_DebugHandler->getWidth() - 20 - i * 3, 55,
+                m_DebugHandler->getWidth() - 20 - i * 3, 20.f);
             s->setStrokeColor(0xFF00BB00u);
-            s->drawLine(m_DebugHandler->getWidth()-20-i*3, 55, m_DebugHandler->getWidth()-20-i*3, native_min(60-((40.f/62.f)*(float)m_Stats.samples[i]), 55));
+            s->drawLine(m_DebugHandler->getWidth() - 20 - i * 3, 55,
+                m_DebugHandler->getWidth() - 20 - i * 3,
+                native_min(60 - ((40.f / 62.f) * (float)m_Stats.samples[i]), 55));
         }
         //s->setLineWidth(1.0);
 
@@ -645,7 +650,8 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
 
             JS_ReadTypedArray(r, &arr);
 
-            JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, JS::NullPtr(), JS::NullPtr()));
+            JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass,
+                JS::NullPtr(), JS::NullPtr()));
             JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
             JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
             JS_DefineProperty(cx, dataObject, "width", widthVal,
@@ -689,3 +695,4 @@ void NativeContext::forceLinking()
     CreateWBMPImageDecoder();
 #endif
 }
+

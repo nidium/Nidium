@@ -85,7 +85,8 @@ typedef void (*NativeAVStreamReadCallback)(void *callbackPrivate);
 class NativeAVStreamReader : public NativeAVReader, public NativeMessages
 {
     public:
-        NativeAVStreamReader(const char *src, NativeAVStreamReadCallback readCallback, void *callbackPrivate, NativeAVSource *source, ape_global *net);
+        NativeAVStreamReader(const char *src, NativeAVStreamReadCallback readCallback,
+            void *callbackPrivate, NativeAVSource *source, ape_global *net);
 
         NativeAVSource *source;
         int64_t totalRead;
@@ -252,3 +253,4 @@ class NativeAVSource : public NativeMessages
 };
 
 #endif
+

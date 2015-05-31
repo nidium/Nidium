@@ -106,5 +106,5 @@ class NativeCanvasPattern
         };
 };
 
-
 #endif
+

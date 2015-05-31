@@ -585,7 +585,7 @@ void NativeSkia::clearRect(double x, double y, double width, double height)
         SkDoubleToScalar(width), SkDoubleToScalar(height));
 
     clearPaint.setStyle(SkPaint::kFill_Style);
-    clearPaint.setARGB(0,0,0,0);
+    clearPaint.setARGB(0, 0, 0, 0);
     clearPaint.setXfermodeMode(SkXfermode::kClear_Mode);
 
     m_Canvas->drawRect(r, clearPaint);
@@ -940,10 +940,14 @@ void NativeSkia::setSmooth(bool val, int level)
 
     if (val) {
         switch (level) {
-            case 0: flevel = SkPaint::kNone_FilterLevel;break;
-            case 1: flevel = SkPaint::kLow_FilterLevel;break;
-            case 2: flevel = SkPaint::kMedium_FilterLevel;break;
-            case 3: default: flevel = SkPaint::kHigh_FilterLevel;break;
+            case 0: flevel = SkPaint::kNone_FilterLevel;
+                    break;
+            case 1: flevel = SkPaint::kLow_FilterLevel;
+                    break;
+            case 2: flevel = SkPaint::kMedium_FilterLevel;
+                    break;
+            case 3: default: flevel = SkPaint::kHigh_FilterLevel;
+                    break;
         }
     }
 
@@ -1313,7 +1317,7 @@ void NativeSkia::arcTo(int x1, int y1, int x2, int y2, int r)
     SkScalar cy2 = SkIntToScalar(y2);
     SkScalar radius = SkIntToScalar(r);
 
-    currentPath->arcTo(cx1, cy1, cx2, cy2, radius );
+    currentPath->arcTo(cx1, cy1, cx2, cy2, radius);
 }
 
 void NativeSkia::quadraticCurveTo(double cpx, double cpy, double x, double y)
@@ -1798,8 +1802,8 @@ void NativeSkia::flush()
     m_Canvas->flush();
 }
 
-
 void NativeSkia::setCanvas(SkCanvas *canvas)
 {
     SkRefCnt_SafeAssign(m_Canvas, canvas);
 }
+

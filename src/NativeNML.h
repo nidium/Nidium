@@ -130,5 +130,5 @@ private:
     bool m_loadDefaultItems;
 };
 
-
 #endif
+

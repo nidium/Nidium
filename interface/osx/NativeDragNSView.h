@@ -7,3 +7,4 @@ class NativeJSwindow;
 @property (assign, nonatomic) NativeJSwindow *responder;
 
 @end
+

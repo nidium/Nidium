@@ -35,7 +35,7 @@ static JSClass document_class = {
     "NativeDocument", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Document_Finalize,
-	JSCLASS_NO_OPTIONAL_MEMBERS
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 JSClass *NativeJSdocument::jsclass = &document_class;

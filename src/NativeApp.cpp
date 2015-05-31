@@ -455,3 +455,4 @@ NativeApp::~NativeApp()
 
     free(path);
 }
+

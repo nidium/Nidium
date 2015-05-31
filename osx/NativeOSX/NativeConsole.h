@@ -22,3 +22,4 @@
 @property (retain, nonatomic) NSWindow *window;
 @property (retain, nonatomic) NSTextView *textview;
 @end
+

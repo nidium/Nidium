@@ -209,8 +209,7 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
             0,
             GR_GL_RGBA,
             GR_GL_UNSIGNED_BYTE,
-            NULL
-    ));
+            NULL));
 
     GL_CALL(BindTexture(GR_GL_TEXTURE_2D, 0));
 
@@ -286,3 +285,4 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
 
     return true;
 }
+

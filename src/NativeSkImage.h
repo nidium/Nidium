@@ -3,9 +3,7 @@
 
 #include "SkBitmap.h"
 #include "SkImage.h"
-/*
-drawImage(R,9,2,282,148,0,3,300,150)
-*/
+
 class SkCanvas;
 class SkBitmap;
 
@@ -35,3 +33,4 @@ class NativeSkImage
 };
 
 #endif
+

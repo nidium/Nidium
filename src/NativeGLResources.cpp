@@ -50,3 +50,4 @@ NativeGLResources::Resource::~Resource()
             break;
     }
 }
+

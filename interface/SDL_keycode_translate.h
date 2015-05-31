@@ -51,3 +51,4 @@ static const int32_t SDL_TO_DOM_KEYCODES[512] = {
 #undef L2
 
 #endif
+

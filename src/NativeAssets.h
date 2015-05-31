@@ -104,5 +104,5 @@ class NativeAssets
         } pending_list;
 };
 
-
 #endif
+

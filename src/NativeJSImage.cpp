@@ -27,7 +27,7 @@ static JSClass Image_class = {
     "Image", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Image_Finalize,
-	JSCLASS_NO_OPTIONAL_MEMBERS
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 template<>
@@ -218,7 +218,7 @@ void NativeJSImage::onMessage(const NativeSharedMessages::Message &msg)
                 if (JS_GetProperty(m_Cx, obj, "onload", &onload_callback) &&
                     JS_TypeOfValue(m_Cx, onload_callback) == JSTYPE_FUNCTION) {
 
-                    JS_CallFunctionValue(m_Cx,obj, onload_callback,
+                    JS_CallFunctionValue(m_Cx, obj, onload_callback,
                         JS::HandleValueArray::empty(), &rval);
                 }
             }
@@ -338,8 +338,8 @@ NativeJSImage::~NativeJSImage()
 
 void NativeJSImage::registerObject(JSContext *cx)
 {
-	JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-	JS_InitClass(cx, global, JS::NullPtr(), &Image_class,
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS_InitClass(cx, global, JS::NullPtr(), &Image_class,
         native_Image_constructor,
         0, nullptr, Image_funcs, nullptr, nullptr);
 }

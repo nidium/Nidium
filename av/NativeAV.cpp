@@ -53,7 +53,7 @@ int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
             return -1;
     }
 
-    if( pos < 0 || pos > reader->bufferSize) {
+    if (pos < 0 || pos > reader->bufferSize) {
         return -1;
     }
 
@@ -96,7 +96,8 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
         int left = size - copied;
         int copy = avail > left ? left : avail;
 
-        SPAM(("get streamBuffer=%p, totalRead=%lld, streamRead=%d, streamSize=%d, copy=%d, size=%d, avail=%d, left=%d\n", thiz->streamBuffer, thiz->totalRead, thiz->streamRead, thiz->streamPacketSize, copy, size, avail, left));
+        SPAM(("get streamBuffer = %p, totalRead = %lld, streamRead = %d, streamSize = %d, copy = %d, size = %d, avail = %d, left = %d\n", 
+            thiz->streamBuffer, thiz->totalRead, thiz->streamRead, thiz->streamPacketSize, copy, size, avail, left));
 
         memcpy(buffer + copied, thiz->streamBuffer + thiz->streamRead, copy);
 
@@ -144,7 +145,8 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                     }
                 break;
                 default:
-                    printf("received unknown error (%d) and streamBuffer is null. Returning EOF, copied = %d\n", thiz->streamErr, copied);
+                    printf("received unknown error (%d) and streamBuffer is null. Returning EOF, copied = %d\n",
+                       thiz->streamErr, copied);
                     thiz->error = AVERROR_EOF;
                     return copied > 0 ? copied : thiz->error;
             }
@@ -210,7 +212,7 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
             return -1;
     }
 
-    if( pos < 0 || pos > size) {
+    if (pos < 0 || pos > size) {
         thiz->error = AVERROR_EOF;
         return AVERROR_EOF;
     }

@@ -307,3 +307,4 @@ class NativeContext : public NativeMessages
 };
 
 #endif
+

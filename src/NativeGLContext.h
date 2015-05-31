@@ -149,4 +149,6 @@ class NativeGLContext
         NativeUIInterface *m_UI;
         bool wrapped;
 };
+
 #endif
+

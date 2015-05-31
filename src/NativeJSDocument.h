@@ -27,7 +27,7 @@ class NativeJSdocument : public NativeJSExposer<NativeJSdocument>
     NativeJSdocument(JSObject *obj, JSContext *cx) :
     NativeJSExposer<NativeJSdocument>(obj, cx, false),
         m_Fonts(256000) {};
-    ~NativeJSdocument(){};
+    ~NativeJSdocument() {};
 
     static bool showFPS;
     bool populateStyle(JSContext *cx, const char *data,

@@ -27,7 +27,7 @@ static JSClass imageData_class = {
     "ImageData", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-	JSCLASS_NO_OPTIONAL_MEMBERS
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 JSClass *NativeCanvas2DContext::ImageData_jsclass = &imageData_class;
@@ -63,28 +63,28 @@ JSClass Canvas2DContext_class = {
     "CanvasRenderingContext2D", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas2DContext_finalize,
-	JSCLASS_NO_OPTIONAL_MEMBERS
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSClass canvasGradient_class = {
     "CanvasGradient", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, CanvasGradient_Finalize,
-	JSCLASS_NO_OPTIONAL_MEMBERS
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSClass canvasGLProgram_class = {
     "CanvasGLProgram", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-	JSCLASS_NO_OPTIONAL_MEMBERS
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSClass canvasPattern_class = {
     "CanvasPattern", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, CanvasPattern_Finalize,
-	JSCLASS_NO_OPTIONAL_MEMBERS
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
@@ -1454,7 +1454,7 @@ static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigne
     for (int i = 0; i < nactives; i++) {
         int length = 0, size = 0;
         GLenum type = GL_ZERO;
-        JS::RootedObject in(cx,JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+        JS::RootedObject in(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
         glGetActiveUniform(program, i, sizeof(name)-1, &length, &size, &type, name);
         name[length] = '\0';
@@ -1949,8 +1949,7 @@ void NativeCanvas2DContext::initCopyTex()
             0,
             GL_RGBA,
             GL_UNSIGNED_BYTE,
-            NULL
-    );
+            NULL);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -2039,12 +2038,12 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
 
     glBindTexture(GL_TEXTURE_2D, textureID);
 
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
     /* Anti Aliasing */
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glEnable(GL_ALPHA_TEST);
     glAlphaFunc(GL_NOTEQUAL, 0.0f);
@@ -2094,12 +2093,12 @@ void NativeCanvas2DContext::drawTexture(uint32_t textureID, uint32_t width,
 {
     NATIVE_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, textureID));
 
-    NATIVE_GL_CALL_MAIN(TexParameteri( GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER ));
-    NATIVE_GL_CALL_MAIN(TexParameteri( GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER ));
+    NATIVE_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
+    NATIVE_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
 
     /* Anti Aliasing */
-    NATIVE_GL_CALL_MAIN(TexParameteri( GR_GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ));
-    NATIVE_GL_CALL_MAIN(TexParameteri( GR_GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ));
+    NATIVE_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    NATIVE_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
     NATIVE_GL_CALL_MAIN(DrawElements(GR_GL_TRIANGLE_STRIP, m_GLState->m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0));
 
@@ -2149,10 +2148,10 @@ void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
           glVertex3f(-1.0f, 1.0f, 1.0f);
 
         glTexCoord3i(1, 1, 1);
-          glVertex3f( 1.0f, 1.0f, 1.0f);
+          glVertex3f(1.0f, 1.0f, 1.0f);
 
         glTexCoord3i(1, 0, 1);
-          glVertex3f( 1.0f, -1.0f, 1.0f);
+          glVertex3f(1.0f, -1.0f, 1.0f);
     glEnd();
 
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -2421,7 +2420,7 @@ static bool native_Canvas2DContext_constructor(JSContext *cx,
 
 void NativeCanvas2DContext::registerObject(JSContext *cx)
 {
-	JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_InitClass(cx, global, JS::NullPtr(), &Canvas2DContext_class,
     native_Canvas2DContext_constructor, 0, canvas2dctx_props,
     canvas2dctx_funcs, nullptr, nullptr);

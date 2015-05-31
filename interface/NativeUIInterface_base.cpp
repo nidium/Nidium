@@ -306,3 +306,4 @@ NativeSystemMenu::~NativeSystemMenu()
 {
     this->deleteItems();
 }
+

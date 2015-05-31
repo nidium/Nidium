@@ -65,7 +65,7 @@ static JSClass window_class = {
     "Window", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Window_Finalize,
-	JSCLASS_NO_OPTIONAL_MEMBERS
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 enum {
@@ -81,14 +81,14 @@ static JSClass navigator_class = {
     "Navigator", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-	JSCLASS_NO_OPTIONAL_MEMBERS
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSClass storage_class = {
     "NidiumStorage", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Storage_Finalize,
-	JSCLASS_NO_OPTIONAL_MEMBERS
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 JSClass *NativeJSwindow::jsclass = &window_class;
@@ -107,7 +107,7 @@ static JSClass dragEvent_class = {
     "DragEvent", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-	JSCLASS_NO_OPTIONAL_MEMBERS
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 #if 0
@@ -115,7 +115,7 @@ static JSClass windowEvent_class = {
     "WindowEvent", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-	JSCLASS_NO_OPTIONAL_MEMBERS
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 #endif
 
@@ -317,7 +317,7 @@ void NativeJSwindow::assetReady(const NMLTag &tag)
         !onassetready.isPrimitive() &&
         JS_ObjectIsCallable(cx, &onassetready.toObject())) {
 
-        JS_CallFunctionValue(cx, event, onassetready,jevent, &rval);
+        JS_CallFunctionValue(cx, event, onassetready, jevent, &rval);
     }
 }
 
@@ -632,7 +632,7 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
 
     JS::RootedValue rval(m_Cx);
     JS::AutoValueArray<1> jevent(m_Cx);
-    JS::RootedValue onmove(m_Cx);;
+    JS::RootedValue onmove(m_Cx);
     JS::RootedObject event(m_Cx);
     JS::RootedObject obj(m_Cx, m_JSObject);
 
@@ -885,7 +885,7 @@ static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
     switch(JSID_TO_INT(id)) {
        case NAVIGATOR_PROP_LANGUAGE:
             {
-            JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_LANGUAGE ));
+            JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_LANGUAGE));
             vp.set(STRING_TO_JSVAL(jStr));
             }
             break;
@@ -897,19 +897,21 @@ static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
            break;
         case NAVIGATOR_PROP_APPVERSION:
             {
-            JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, NATIVE_VERSION_STR ));
+            JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, NATIVE_VERSION_STR));
             vp.set(STRING_TO_JSVAL(jStr));
             }
             break;
         case NAVIGATOR_PROP_APPNAME:
             {
-            JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_NAME ));
+            JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_NAME));
             vp.set(STRING_TO_JSVAL(jStr));
             }
             break;
         case NAVIGATOR_PROP_USERAGENT:
             {
-            JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_NAME "/" NATIVE_VERSION_STR "(" APP_LOCALE "; rv:" NATIVE_BUILD ") " NATIVE_FRAMEWORK_STR ));
+            JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_NAME "/"
+                NATIVE_VERSION_STR "(" APP_LOCALE "; rv:" NATIVE_BUILD ") "
+                NATIVE_FRAMEWORK_STR));
             vp.set(STRING_TO_JSVAL(jStr));
             }
             break;
@@ -917,13 +919,13 @@ static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
             {
             const char *platform;
             // http://stackoverflow.com/questions/19877924/what-is-the-list-of-possible-values-for-navigator-platform-as-of-today
-#if defined( _WIN32 ) || defined( _WIN64 )
+#if defined(_WIN32) || defined(_WIN64)
             platform = "Win32";
-#elif defined( __APPLE ) || defined( _WIN64 )
+#elif defined(__APPLE) || defined(_WIN64)
             platform = "MacOSX";
-#elif defined( __FreeBSD )
+#elif defined(__FreeBSD)
             platform = "FreeBSD";
-#elif defined( __DragonFly )
+#elif defined(__DragonFly)
             platform = "DragonFly";
 #elif __linux
             platform = "Linux";
@@ -1503,17 +1505,17 @@ NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
     JS::RootedString jFramework(cx, JS_NewStringCopyZ(cx, NATIVE_FRAMEWORK_STR));
     JS_DefineProperty(cx, nidiumObj, "build", jFramework, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    JS::RootedString jRevision(cx, JS_NewStringCopyZ(cx, NATIVE_BUILD ));
+    JS::RootedString jRevision(cx, JS_NewStringCopyZ(cx, NATIVE_BUILD));
     JS_DefineProperty(cx, nidiumObj, "revision", jRevision, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    val = OBJECT_TO_JSVAL( nidiumObj);
+    val = OBJECT_TO_JSVAL(nidiumObj);
     JS_SetProperty(cx, windowObj, "__nidium__", val);
 
     //  Set the navigator properties
     JS::RootedObject navigatorObj(cx, JS_NewObject(cx, &navigator_class, JS::NullPtr(), JS::NullPtr()));
     JS_DefineProperties(cx, navigatorObj, navigator_props);
 
-    val = OBJECT_TO_JSVAL( navigatorObj);
+    val = OBJECT_TO_JSVAL(navigatorObj);
     JS_SetProperty(cx, windowObj, "navigator", val);
 
     return jwin;

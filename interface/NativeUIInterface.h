@@ -24,7 +24,7 @@ public:
         this->title(title);
     }
 
-    ~NativeSystemMenuItem(){
+    ~NativeSystemMenuItem() {
         free(m_Title);
         free(m_Id);
     };
@@ -148,8 +148,8 @@ class NativeUIInterface
         virtual const char *getWindowTitle() const=0;
         virtual void setCursor(CURSOR_TYPE)=0;
         virtual void runLoop()=0;
-        virtual void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a){};
-        virtual void setWindowControlsOffset(double x, double y){};
+        virtual void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {};
+        virtual void setWindowControlsOffset(double x, double y) {};
         virtual void setClipboardText(const char *text)=0;
         virtual char *getClipboardText()=0;
         virtual void openFileDialog(const char *files[],
@@ -190,8 +190,8 @@ class NativeUIInterface
         virtual SDL_GLContext getCurrentGLContext();
         virtual int useOffScreenRendering(bool val);
         virtual void toggleOfflineBuffer(bool val);
-        virtual void enableSysTray(const void *imgData = NULL, size_t imageDataSize = 0){};
-        virtual void disableSysTray(){};
+        virtual void enableSysTray(const void *imgData = NULL, size_t imageDataSize = 0) {};
+        virtual void disableSysTray() {};
 
         virtual void quit();
 
@@ -231,7 +231,7 @@ class NativeUIInterface
         }
 
     protected:
-        virtual void renderSystemTray(){};
+        virtual void renderSystemTray() {};
 
         int width;
         int height;
@@ -259,3 +259,4 @@ class NativeUIInterface
 };
 
 #endif
+

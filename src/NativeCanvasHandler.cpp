@@ -1266,7 +1266,7 @@ NativeCanvasHandler::~NativeCanvasHandler()
 
     removeFromParent();
 
-    /* all children got orphaned :( */
+    /* all children got orphaned :(*/
     while(cur != NULL) {
         //printf("Warning: a canvas got orphaned (%p)\n", cur);
         cnext = cur->m_Next;
@@ -1280,3 +1280,4 @@ NativeCanvasHandler::~NativeCanvasHandler()
 
     m_NativeContext->m_CanvasPendingJobs.erase((uint64_t)this);
 }
+

@@ -7,7 +7,7 @@ class NativeSystem : public NativeSystemInterface
 {
     public:
         NativeSystem();
-        ~NativeSystem(){};
+        ~NativeSystem() {};
         float backingStorePixelRatio();
         const char *getCacheDirectory();
         const char *getPrivateDirectory();
@@ -20,3 +20,4 @@ class NativeSystem : public NativeSystemInterface
 };
 
 #endif
+

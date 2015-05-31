@@ -66,7 +66,7 @@ struct NativeLayerSiblingContext {
     double maxLineHeightPreviousLine;
 
     NativeLayerSiblingContext() :
-        maxLineHeight(0.), maxLineHeightPreviousLine(0.){}
+        maxLineHeight(0.0), maxLineHeightPreviousLine(0.0) {}
 };
 
 struct NativeLayerizeContext {
@@ -580,3 +580,4 @@ class NativeCanvasHandler : public NativeEvents
 };
 
 #endif
+

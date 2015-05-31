@@ -544,3 +544,4 @@ void NativeNML::onGetContent(const char *data, size_t len)
         free(data_nullterminated);
     }
 }
+
