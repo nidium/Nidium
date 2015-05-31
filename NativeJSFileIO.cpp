@@ -103,7 +103,7 @@ public:
 static void File_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static bool native_file_prop_get(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, JS::MutableHandleValue vp);
+    uint8_t id, JS::MutableHandleValue vp);
 
 #if 0
 static bool native_file_prop_set(JSContext *cx, JS::HandleObject obj,
@@ -135,13 +135,13 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
 static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSPropertySpec File_props[] = {
-    {"filesize", FILE_PROP_FILESIZE, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
-        JSOP_WRAPPER(native_file_prop_get),
+    {"filesize", JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+        NATIVE_JS_GETTER(FILE_PROP_FILESIZE, native_file_prop_get),
         JSOP_NULLWRAPPER},
-    {"filename", FILE_PROP_FILENAME, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
-        JSOP_WRAPPER(native_file_prop_get),
+    {"filename", JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+        NATIVE_JS_GETTER(FILE_PROP_FILENAME, native_file_prop_get),
         JSOP_NULLWRAPPER},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 };
 
 static JSFunctionSpec File_funcs[] = {
@@ -179,11 +179,11 @@ static void File_Finalize(JSFreeOp *fop, JSObject *obj)
 }
 
 static bool native_file_prop_get(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, JS::MutableHandleValue vp)
+    uint8_t id, JS::MutableHandleValue vp)
 {
     NativeFile *file = NJSFIO_GETTER(obj)->getFile();
 
-    switch(JSID_TO_INT(id)) {
+    switch(id) {
         case FILE_PROP_FILESIZE:
             vp.set(JS_NumberValue(file->getFileSize()));
             break;

@@ -172,11 +172,10 @@ class NativeJS
         WriteStructuredCloneOp getWriteStructuredCloneAddition() const {
             return m_StructuredCloneAddition.write;
         }
-        
-    private:
-        static JSObject *CreateJSGlobal(JSContext *cx);
-        static void SetJSRuntimeOptions(JSRuntime *rt);
 
+        static JSObject *CreateJSGlobal(JSContext *cx);
+        static void SetJSRuntimeOptions(JSRuntime *rt);       
+    private:
         NativeJSModules *modules;
         void *privateslot;
         bool shutdown;

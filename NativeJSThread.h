@@ -34,10 +34,11 @@ class NativeJSThread : public NativeJSExposer<NativeJSThread>, public NativeMess
     NativeJSThread(JS::HandleObject obj, JSContext *cx);
     ~NativeJSThread();
     static void registerObject(JSContext *cx);
-    void onComplete(jsval *vp);
+    void onComplete(JS::HandleValue vp);
     void onMessage(const NativeSharedMessages::Message &msg);
 
-    JSString *jsFunction;
+    JS::PersistentRootedString jsFunction;
+
     JSRuntime *jsRuntime;
     JSContext *jsCx;
     JSObject *jsObject;
@@ -51,7 +52,7 @@ class NativeJSThread : public NativeJSExposer<NativeJSThread>, public NativeMess
 
     pthread_t threadHandle;
 
-    const char *m_CallerFileName;
+    char *m_CallerFileName;
     uint32_t m_CallerLineno;
 };
 
