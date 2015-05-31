@@ -12,14 +12,13 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-static JSBool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
-    jsval *vp);
-
+static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
+    JS::Value *vp);
 
 static JSClass system_class = {
     "System", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -30,12 +29,13 @@ static JSFunctionSpec system_funcs[] = {
 };
 
 
-static JSBool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
-    jsval *vp)
+static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
+    JS::Value *vp)
 {
     struct rlimit rl;
     struct stat   stats;
     JSContext *m_Cx = cx;
+    size_t i;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -45,14 +45,14 @@ static JSBool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
         return true;
     }
 
-    JSObject *ret = JS_NewObject(cx, NULL, NULL, NULL);
+    JS::RootedObject ret(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
-    JSOBJ_SET_PROP_INT(ret, "cur", rl.rlim_cur);
-    JSOBJ_SET_PROP_INT(ret, "max", rl.rlim_max);
+    JSOBJ_SET_PROP_INT(ret, "cur", (int) rl.rlim_cur);
+    JSOBJ_SET_PROP_INT(ret, "max", (int) rl.rlim_max);
 
     int fdcounter = 0, sockcounter = 0, othercount = 0;
 
-    for (int i = 0; i <= rl.rlim_cur; i++ ) {
+    for (i = 0; i <= rl.rlim_cur; i++) {
         if (fstat(i, &stats) == 0) {
             fdcounter++;
             if ((stats.st_mode & S_IFMT) == S_IFSOCK) {
@@ -77,9 +77,9 @@ static JSBool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
 
 void NativeJSSystem::registerObject(JSContext *cx)
 {
-    JSObject *systemObj;
-    systemObj = JS_DefineObject(cx, JS_GetGlobalObject(cx), "System",
-        &system_class , NULL, 0);
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS::RootedObject systemObj(cx, JS_DefineObject(cx, global,
+        "System", &system_class , nullptr, 0));
     JS_DefineFunctions(cx, systemObj, system_funcs);
 }
 

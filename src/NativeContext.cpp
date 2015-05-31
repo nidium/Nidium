@@ -40,7 +40,7 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker) :
     NativePath::registerScheme(SCHEME_DEFINE("https://",   NativeHTTPStream,    true));
 
     NativeTaskManager::createManager();
-    NativeMessages::initReader(net);    
+    NativeMessages::initReader(net);
     m_JS->loadGlobalObjects();
 
     NativeJSconsole::registerObject(m_JS->cx);
@@ -53,3 +53,4 @@ NativeContext::~NativeContext()
 {
     delete m_JS;
 }
+

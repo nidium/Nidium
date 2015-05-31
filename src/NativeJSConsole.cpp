@@ -8,17 +8,17 @@
 
 #include "NativeServer.h"
 
-static JSBool native_console_log(JSContext *cx, unsigned argc,
-    jsval *vp);
-static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
-    jsval *vp);
-static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
-    jsval *vp);
+static bool native_console_log(JSContext *cx, unsigned argc,
+    JS::Value *vp);
+static bool native_console_profile_start(JSContext *cx, unsigned argc,
+    JS::Value *vp);
+static bool native_console_profile_end(JSContext *cx, unsigned argc,
+    JS::Value *vp);
 
 static JSClass console_class = {
     "Console", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -32,41 +32,39 @@ static JSFunctionSpec console_funcs[] = {
     JS_FS_END
 };
 
-static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
-    jsval *vp)
+static bool native_console_profile_start(JSContext *cx, unsigned argc,
+    JS::Value *vp)
 {
     NativeProfiler *tracer = NativeProfiler::getInstance(cx);
     tracer->start(NULL);
 
     return true;
 }
-static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
-    jsval *vp)
+static bool native_console_profile_end(JSContext *cx, unsigned argc,
+    JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     NativeProfiler *tracer = NativeProfiler::getInstance(cx);
     tracer->stop();
-    JS::Value val(OBJECT_TO_JSVAL(tracer->getJSObject()));
+    JS::RootedValue val(cx, OBJECT_TO_JSVAL(tracer->getJSObject()));
 
     args.rval().set(val);
 
     return true;
 }
 
-
-static JSBool native_console_log(JSContext *cx, unsigned argc,
-    jsval *vp)
+static bool native_console_log(JSContext *cx, unsigned argc,
+    JS::Value *vp)
 {
     unsigned i;
-    JSString *str;
     char *bytes;
-    JSScript *parent;
+    JS::RootedScript parent(cx);
     const char *filename_parent;
     unsigned lineno;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS_DescribeScriptedCaller(cx, &parent, &lineno);
+    JS_DescribeScriptedCaller(cx, parent, &lineno);
     filename_parent = JS_GetScriptFilename(cx, parent);
 
     if (filename_parent == NULL) {
@@ -81,7 +79,7 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
     NativeContext *nctx = NativeContext::getNativeClass(cx);
 
     for (i = 0; i < args.length(); i++) {
-        str = JS::RootedString(cx, JS_ValueToString(cx, args[i]));
+        JS::RootedString str(cx, args[i].toString());
         if (!str)
             return false;
         bytes = JS_EncodeStringToUTF8(cx, str);
@@ -105,9 +103,9 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
 
 void NativeJSconsole::registerObject(JSContext *cx)
 {
-    JSObject *consoleObj;
-    consoleObj = JS_DefineObject(cx, JS_GetGlobalObject(cx), "console",
-        &console_class , NULL, 0);
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS::RootedObject consoleObj(cx, JS_DefineObject(cx, global,
+        "console", &console_class , nullptr, 0));
     JS_DefineFunctions(cx, consoleObj, console_funcs);
 }
 

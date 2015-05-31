@@ -258,4 +258,6 @@ error:
 
 
 #endif /* __linux || __APPLE__ */
+
 #endif /* !HAVE_SETPROCTITLE */
+

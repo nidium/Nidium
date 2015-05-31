@@ -42,7 +42,7 @@ static int inc_rlimit(int nofile)
 
 void NativeServer::daemonize(int pidfile)
 {
-    if (0 != fork()) { 
+    if (0 != fork()) {
         exit(0);
     }
     if (-1 == setsid()) {
@@ -221,14 +221,14 @@ int NativeServer::init()
     return 1;
 }
 
-NativeServer::NativeServer(int argc, char **argv) : 
+NativeServer::NativeServer(int argc, char **argv) :
     m_WorkerIdx(0), m_InstanceName(NULL), m_HasREPL(true), m_NWorkers(0)
 {
     m_Args.argc = argc;
     m_Args.argv = argv;
 }
 
-NativeWorker::NativeWorker(int idx, bool repl) : 
+NativeWorker::NativeWorker(int idx, bool repl) :
     m_Idx(idx), m_RunREPL(repl)
 {
 
@@ -292,3 +292,4 @@ int NativeWorker::run(int argc, char **argv)
 
     return 0;
 }
+
