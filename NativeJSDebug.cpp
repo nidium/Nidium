@@ -22,7 +22,7 @@
 
 #include <native_netlib.h>
 #include <jsapi.h>
-#include <jsstr.h>
+
 
 static void Debug_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -64,25 +64,24 @@ static bool native_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp)
     uint64_t *data;
     size_t data_len;
 
-    if (!JS_WriteStructuredClone(cx, args.array()[0], &data, &data_len,
-        NULL, NativeJS::getNativeClass(cx), JSVAL_VOID)) {
+    if (!JS_WriteStructuredClone(cx, args[0], &data, &data_len,
+        NULL, NativeJS::getNativeClass(cx), JS::NullHandleValue)) {
         JS_ReportError(cx, "serialize() failed");
         return false;
     }
 
     void *content;
-    uint8_t *cdata;
 
-    if (!JS_AllocateArrayBufferContents(cx, data_len, &content, &cdata)) {
+    if (!(content = JS_AllocateArrayBufferContents(cx, data_len))) {
         JS_ReportOutOfMemory(cx);
         return false;
     }
 
-    memcpy(cdata, data, data_len);
+    memcpy(content, data, data_len);
 
-    JS_ClearStructuredClone(data, data_len);
+    JS_ClearStructuredClone(data, data_len, nullptr, nullptr);
 
-    JS::RootedObject arraybuffer(cx, JS_NewArrayBufferWithContents(cx, content));
+    JS::RootedObject arraybuffer(cx, JS_NewArrayBufferWithContents(cx, data_len, content));
 
     args.rval().setObjectOrNull(arraybuffer);
 
@@ -128,7 +127,7 @@ void NativeJSDebug::registerObject(JSContext *cx)
 {
     NativeJS *njs = NativeJS::getNativeClass(cx);
 
-    JS::RootedObject debugObj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx),
+    JS::RootedObject debugObj(cx, JS_DefineObject(cx, JS::CurrentGlobalOrNull(cx),
         NativeJSDebug::getJSObjectName(),
         &debug_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 

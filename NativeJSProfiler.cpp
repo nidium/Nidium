@@ -1,3 +1,4 @@
+#ifdef NATIVE_JS_PROFILER
 #include "NativeJSProfiler.h"
 #include "NativeFile.h"
 #include "NativeJS.h"
@@ -443,3 +444,4 @@ static void native_profile_finalizer(JSFreeOp *fop, JSObject *obj) {
     delete profiler;
 }
 /* }}} */
+#endif

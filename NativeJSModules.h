@@ -22,6 +22,7 @@
 #define nativejsmodules_h__
 
 #include <jspubtd.h>
+#include <jsapi.h>
 #include <NativeHash.h>
 #include <string>
 
@@ -44,7 +45,7 @@ class NativeJSModule
         int m_ModuleType;
         bool m_Cached;
 
-        JSObject *exports;
+        JS::Heap<JSObject *> exports;
 
         NativeJSModule *parent;
         NativeJSModules *modules;

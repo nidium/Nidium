@@ -1,3 +1,5 @@
+#ifdef NATIVE_JS_PROFILER
+
 #ifndef nativejstracer_h__
 #define nativejstracer_h__
 #include "NativeHash.h"
@@ -176,4 +178,5 @@ class NativeProfileEntry
         NativeHash<NativeProfileChildEntry *> m_Childs;
 };
 
+#endif
 #endif
