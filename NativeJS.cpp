@@ -763,6 +763,7 @@ NativeJS::~NativeJS()
     del_timers_unprotected(&net->timersng);
 
     JS_EndRequest(cx);
+    //JS_LeaveCompartment(cx);
 
     JS_DestroyContext(cx);
 
@@ -842,7 +843,8 @@ void NativeJS::copyProperties(JSContext *cx, JS::HandleObject source, JS::Mutabl
                     JS_SetPropertyById(cx, into, id, val);
                 } else {
                     JS::RootedObject oldvalobj(cx, &oldval.toObject());
-                    NativeJS::copyProperties(cx, JS::RootedObject(cx, val.toObjectOrNull()), &oldvalobj);
+                    JS::RootedObject newvalobj(cx, &val.toObject());
+                    NativeJS::copyProperties(cx, newvalobj, &oldvalobj);
                 }
                 break;
             }

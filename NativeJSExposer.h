@@ -514,7 +514,12 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
                 argv, &_rval); \
         } \
     }
-#define JSOBJ_SET_PROP_CSTR(where, name, val) JSOBJ_SET_PROP(where, name, JS::RootedString(m_Cx, JS_NewStringCopyZ(m_Cx, val)))
+#define JSOBJ_SET_PROP_CSTR(where, name, val) \
+    { \
+        JS::RootedString __n_rootedstring(m_Cx, JS_NewStringCopyZ(m_Cx, val)); \
+        JSOBJ_SET_PROP(where, name, __n_rootedstring); \
+    }
+    
 #define JSOBJ_SET_PROP_STR(where, name, val) JSOBJ_SET_PROP(where, name, val)
 #define JSOBJ_SET_PROP_INT(where, name, val) JSOBJ_SET_PROP(where, name, val)
 

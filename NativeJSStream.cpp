@@ -58,7 +58,7 @@ static JSFunctionSpec Stream_funcs[] = {
 
 /* STREAM_PROP_FILESIZE */
 static JSPropertySpec Stream_props[] = {
-    {"fileSize", JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+    {"fileSize", JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_GETTER(STREAM_PROP_FILESIZE, native_stream_prop_get),
         JSOP_NULLWRAPPER},
     JS_PS_END
