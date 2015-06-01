@@ -594,9 +594,9 @@ private:
     Tinyid were removed in SM31.
     This template act as a workaround (create a unique getter/setter and keep a unique identifier)
 */
-
+//JS_CAST_NATIVE_TO(getter, JSPropertyOp)
 #define NATIVE_JS_SETTER(tinyid, setter) JSOP_WRAPPER((NativeJSPropertyAccessors::Setter<tinyid, setter>))
-#define NATIVE_JS_GETTER(tinyid, getter) JSOP_WRAPPER((NativeJSPropertyAccessors::Getter<tinyid, getter>))
+#define NATIVE_JS_GETTER(tinyid, getter) {JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}
 
 struct NativeJSPropertyAccessors
 {
@@ -616,10 +616,13 @@ struct NativeJSPropertyAccessors
     }
 
     template <uint8_t TINYID, NativeJSSetterOp FN>
-    static bool Getter(JSContext *cx, JS::HandleObject obj,
-        JS::HandleId id, JS::MutableHandleValue vp) {
+    static bool Getter(JSContext *cx, unsigned argc, JS::Value *vp) {
+        JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+        JS::RootedObject obj(cx, JS_THIS_OBJECT(cx, vp));
 
-        return FN(cx, obj, TINYID, vp);
+        if (!obj) return false;
+
+        return FN(cx, obj, TINYID, args.rval());
     }
 };
 
