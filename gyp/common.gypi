@@ -33,7 +33,9 @@
                 ],
                 'xcode_settings': {
                     'OTHER_CPLUSPLUSFLAGS': [ 
-                        '-stdlib=libc++'
+                        '-stdlib=libc++',
+                        '-std=c++11',
+                        '-Wno-mismatched-tags'
                     ],
                     'ARCHS': [
                         'x86_64',
@@ -83,7 +85,9 @@
                         '-g',
                         '-O2',
                         '-Wall',
-                        '-Wno-invalid-offsetof'
+                        '-Wno-invalid-offsetof',
+                        '-std=c++11',
+                        '-Wno-mismatched-tags'
                     ],
                     'MACOSX_DEPLOYMENT_TARGET': [
                         '10.7'
