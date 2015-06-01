@@ -18,7 +18,7 @@
 #include <NativeJSFileIO.h>
 
 static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, bool strict, JS::MutableHandleValue vp);
+    JS::HandleId id, JS::MutableHandleValue vp);
 static bool native_window_prop_get(JSContext *cx, JS::HandleObject obj,
     JS::HandleId id, JS::MutableHandleValue vp);
 
@@ -185,62 +185,62 @@ static JSPropertySpec window_props[] = {
     {"devicePixelRatio", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
         NATIVE_JS_GETTER(WINDOW_PROP_DEVICE_PIXELRATIO, native_window_prop_get),
         JSOP_NULLWRAPPER},
-    {"left", WINDOW_PROP_LEFT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_WRAPPER(native_window_prop_get),
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"top", WINDOW_PROP_TOP, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_WRAPPER(native_window_prop_get),
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"innerWidth", WINDOW_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_WRAPPER(native_window_prop_get),
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"outerWidth", WINDOW_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_WRAPPER(native_window_prop_get),
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"innerHeight", WINDOW_PROP_HEIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_WRAPPER(native_window_prop_get),
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"outerHeight", WINDOW_PROP_HEIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_WRAPPER(native_window_prop_get),
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"title", WINDOW_PROP_TITLE, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_WRAPPER(native_window_prop_get),
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"cursor", WINDOW_PROP_CURSOR, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"left", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        NATIVE_JS_GETTER(WINDOW_PROP_LEFT, native_window_prop_get),
+        NATIVE_JS_SETTER(WINDOW_PROP_LEFT, native_window_prop_set)},
+    {"top", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        NATIVE_JS_GETTER(WINDOW_PROP_TOP, native_window_prop_get),
+        NATIVE_JS_SETTER(WINDOW_PROP_TOP, native_window_prop_set)},
+    {"innerWidth", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        NATIVE_JS_GETTER(WINDOW_PROP_WIDTH, native_window_prop_get),
+        NATIVE_JS_SETTER(WINDOW_PROP_WIDTH, native_window_prop_set)},
+    {"outerWidth", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        NATIVE_JS_GETTER(WINDOW_PROP_WIDTH, native_window_prop_get),
+        NATIVE_JS_SETTER(WINDOW_PROP_WIDTH, native_window_prop_set)},
+    {"innerHeight", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        NATIVE_JS_GETTER(WINDOW_PROP_HEIGHT, native_window_prop_get),
+        NATIVE_JS_SETTER(WINDOW_PROP_HEIGHT, native_window_prop_set)},
+    {"outerHeight", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        NATIVE_JS_GETTER(WINDOW_PROP_HEIGHT, native_window_prop_get),
+        NATIVE_JS_SETTER(WINDOW_PROP_HEIGHT, native_window_prop_set)},
+    {"title", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        NATIVE_JS_GETTER(WINDOW_PROP_TITLE, native_window_prop_get),
+        NATIVE_JS_SETTER(WINDOW_PROP_TITLE, native_window_prop_set)},
+    {"cursor", JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"titleBarColor", WINDOW_PROP_TITLEBAR_COLOR, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        NATIVE_JS_SETTER(WINDOW_PROP_CURSOR, native_window_prop_set)},
+    {"titleBarColor", JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"titleBarControlsOffsetX", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_COLOR, native_window_prop_set)},
+    {"titleBarControlsOffsetX", JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"titleBarControlsOffsetY", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, native_window_prop_set)},
+    {"titleBarControlsOffsetY", JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_window_prop_set)},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+        NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, native_window_prop_set)},
+    JS_PS_END
 };
 
 static JSPropertySpec navigator_props[] = {
-    {"language", NAVIGATOR_PROP_LANGUAGE, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_navigator_prop_get),
+    {"language", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        NATIVE_JS_GETTER(NAVIGATOR_PROP_LANGUAGE, native_navigator_prop_get),
         JSOP_NULLWRAPPER},
-    {"vibrate", NAVIGATOR_PROP_VIBRATE, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_navigator_prop_get),
+    {"vibrate", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        NATIVE_JS_GETTER(NAVIGATOR_PROP_VIBRATE, native_navigator_prop_get),
         JSOP_NULLWRAPPER},
-    {"appName", NAVIGATOR_PROP_APPNAME, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_navigator_prop_get),
+    {"appName", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        NATIVE_JS_GETTER(NAVIGATOR_PROP_APPNAME, native_navigator_prop_get),
         JSOP_NULLWRAPPER},
-    {"appVersion", NAVIGATOR_PROP_APPVERSION, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_navigator_prop_get),
+    {"appVersion", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        NATIVE_JS_GETTER(NAVIGATOR_PROP_APPVERSION, native_navigator_prop_get),
         JSOP_NULLWRAPPER},
-    {"platform", NAVIGATOR_PROP_PLATFORM, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_navigator_prop_get),
+    {"platform", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        NATIVE_JS_GETTER(NAVIGATOR_PROP_PLATFORM, native_navigator_prop_get),
         JSOP_NULLWRAPPER},
-    {"userAgent", NAVIGATOR_PROP_USERAGENT, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_navigator_prop_get),
+    {"userAgent", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        NATIVE_JS_GETTER(NAVIGATOR_PROP_USERAGENT, native_navigator_prop_get),
         JSOP_NULLWRAPPER},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 };
 
 NativeJSwindow::~NativeJSwindow()
@@ -303,12 +303,12 @@ void NativeJSwindow::assetReady(const NMLTag &tag)
     JS::RootedObject event(cx);
     JS::RootedObject obj(cx, m_JSObject);
 
-    event = JS_NewObject(m_Cx, &NMLEvent_class, JS::NullPtr(), JS::NullPtr());
+    event = JS_NewObject(cx, &NMLEvent_class, JS::NullPtr(), JS::NullPtr());
     jevent[0].set(OBJECT_TO_JSVAL(event));
-    JS::RootedString tagStr = STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.tag));
-    JS::RootedString idStr(m_Cx, STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.id)));
-    JS::RootedString dataStr(m_Cx,  STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(cx,
-        (const char *)tag.content.data, tag.content.len, "utf8")));
+    JS::RootedString tagStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.tag));
+    JS::RootedString idStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.id));
+    JS::RootedString dataStr(cx, NativeJSUtils::newStringWithEncoding(cx,
+        (const char *)tag.content.data, tag.content.len, "utf8"));
     EVENT_PROP("tag", tagStr);
     EVENT_PROP("id", idStr);
     EVENT_PROP("data", dataStr);
@@ -440,7 +440,7 @@ void NativeJSwindow::textInput(const char *data)
     JS::RootedObject obj(m_Cx, m_JSObject);
 
     event = JS_NewObject(m_Cx, &textEvent_class, JS::NullPtr(), JS::NullPtr());
-    JS::RootedString str(m_Cx, STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(m_Cx, data, strlen(data), "utf8")));
+    JS::RootedString str(m_Cx, NativeJSUtils::newStringWithEncoding(m_Cx, data, strlen(data), "utf8"));
     EVENT_PROP("val", str);
 
     jevent[0].set(OBJECT_TO_JSVAL(event));
@@ -461,7 +461,7 @@ void NativeJSwindow::systemMenuClicked(const char *id)
 
     JSOBJ_SET_PROP_CSTR(event, "id", id);
     JS::AutoValueArray<1> ev(cx);
-    ev[0] = OBJECT_TO_JSVAL(event);
+    ev[0].set(OBJECT_TO_JSVAL(event));
     JSOBJ_CALLFUNCNAME(obj, "_onsystemtrayclick", ev);
 }
 
@@ -499,9 +499,9 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button, int clicks)
         ev->data[0] = button;
         nctx->addInputEvent(ev);
     }
-    JS::RootedValue xv(m_Cx, x);
-    JS::RootedValue yv(m_Cx, y);
-    JS::RootedValue bv(m_Cx, button);
+    JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
+    JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
+    JS::RootedValue bv(m_Cx, INT_TO_JSVAL(button));
     EVENT_PROP("x", xv);
     EVENT_PROP("y", yv);
     EVENT_PROP("clientX", xv);
@@ -528,11 +528,12 @@ bool NativeJSwindow::dragEvent(const char *name, int x, int y)
     JS::RootedObject obj(m_Cx, m_JSObject);
 
     event = JS_NewObject(m_Cx, &dragEvent_class, JS::NullPtr(), JS::NullPtr());
-
-    EVENT_PROP("x", INT_TO_JSVAL(x));
-    EVENT_PROP("y", INT_TO_JSVAL(y));
-    EVENT_PROP("clientX", INT_TO_JSVAL(x));
-    EVENT_PROP("clientY", INT_TO_JSVAL(y));
+    JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
+    JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
+    EVENT_PROP("x", xv);
+    EVENT_PROP("y", yv);
+    EVENT_PROP("clientX", xv);
+    EVENT_PROP("clientY", yv);
 
     if (m_DragedFiles) {
         EVENT_PROP("files", OBJECT_TO_JSVAL(this->m_DragedFiles));
@@ -732,7 +733,7 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
 }
 
 static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, bool strict, JS::MutableHandleValue vp)
+    JS::HandleId id, JS::MutableHandleValue vp)
 {
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
     switch(JSID_TO_INT(id)) {
@@ -912,7 +913,7 @@ static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
             JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_NAME "/"
                 NATIVE_VERSION_STR "(" APP_LOCALE "; rv:" NATIVE_BUILD ") "
                 NATIVE_FRAMEWORK_STR));
-            JS::RootedValue vStr(m_Cx, STRING_TO_JSVAL(jStr));
+            JS::RootedValue vStr(m_Cx, jStr);
             vp.set(vStr);
             }
             break;
@@ -968,7 +969,7 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
         JS_SetElement(nof->cx, arr, i, val);
     }
 
-    JS::RootedValue global(nof->cx, JS::CurrentGlobalOrNull(nof->cx));
+    JS::RootedObject global(nof->cx, JS::CurrentGlobalOrNull(nof->cx));
     JS::AutoValueArray<1> jarr(nof->cx);
     jarr[0].set(OBJECT_TO_JSVAL(arr));
     JS_CallFunctionValue(nof->cx, global, cb, jarr, &rval);
@@ -1110,8 +1111,9 @@ static bool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS
     NATIVE_CHECK_ARGS("requestAnimationFrame", 1);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedValue cb(cx);
+    JS::RootedValue arg0(cx, args.array()[0]);
 
-    if (!JS_ConvertValue(cx, args.array()[0], JSTYPE_FUNCTION, &cb)) {
+    if (!JS_ConvertValue(cx, arg0, JSTYPE_FUNCTION, &cb)) {
         return true;
     }
     NativeJSwindow::getNativeClass(cx)->addFrameCallback(cb);
@@ -1199,7 +1201,7 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
 
-    JS::RootedValue jobj(cx, args[0]);
+    JS::RootedObject jobj(cx, args[0]);
 
     if (jobj.isNull() || !jobj.isObject()) {
 
@@ -1213,7 +1215,7 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
     NativeSystemMenu &menu = NUI->getSystemMenu();
     menu.deleteItems();
 
-    JSGET_OPT_TYPE(jobj.toObjectOrNull(), "icon", Object) {
+    JSGET_OPT_TYPE(jobj, "icon", Object) {
         JS::RootedObject jsimg(cx, __curopt.toObjectOrNull());
         NativeSkImage *skimage;
         if (NativeJSImage::JSObjectIs(cx, jsimg) &&
@@ -1224,7 +1226,7 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
         }
     }
 
-    JSGET_OPT_TYPE(jobj.toObjectOrNull(), "menu", Object) {
+    JSGET_OPT_TYPE(jobj, "menu", Object) {
         JS::RootedObject arr(cx,  __curopt.toObjectOrNull());
         if (JS_IsArrayObject(cx, arr)) {
             uint32_t len;
@@ -1239,18 +1241,21 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
                 JS_GetElement(cx, arr, i, &val);
 
                 if (val.isObject()) {
+                    JS::RootedObject valObj(cx, val);
                     NativeSystemMenuItem *menuItem = new NativeSystemMenuItem();
-                    JSGET_OPT_TYPE(val.toObjectOrNull(), "title", String) {
+                    JSGET_OPT_TYPE(valObj, "title", String) {
 
                         JSAutoByteString ctitle;
-                        ctitle.encodeUtf8(cx, __curopt.toString());
+                        JS::RootedString str(cx, __curopt.toString());
+                        ctitle.encodeUtf8(cx, str);
                         menuItem->title(ctitle.ptr());
                     } else {
                         menuItem->title("");
                     }
-                    JSGET_OPT_TYPE(val.toObjectOrNull(), "id", String) {
+                    JSGET_OPT_TYPE(valObj, "id", String) {
                         JSAutoByteString cid;
-                        cid.encodeUtf8(cx, __curopt.toString());
+                        JS::RootedString str(cx, __curopt.toString());
+                        cid.encodeUtf8(cx, str);
                         menuItem->id(cid.ptr());
                     } else {
                         menuItem->id("");

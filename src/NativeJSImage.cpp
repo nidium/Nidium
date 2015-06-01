@@ -20,7 +20,7 @@ static bool native_image_markColorInAlpha(JSContext *cx, unsigned argc, JS::Valu
 static bool native_image_desaturate(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_image_print(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj, JS::HandleId id, bool strict, JS::MutableHandleValue vp);
+static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp);
 
 extern JSClass File_class;
 
@@ -35,7 +35,7 @@ template<>
 JSClass *NativeJSExposer<NativeJSImage>::jsclass = &Image_class;
 
 static JSPropertySpec Image_props[] = {
-    {"src", JSPROP_ENUMERATE|JSPROP_PERMANENT, JSOP_NULLWRAPPER, NATIVE_JS_SETTER(IMAGE_PROP_SRC, native_image_prop_set)},
+    {"src", JSPROP_ENUMERATE | JSPROP_PERMANENT, JSOP_NULLWRAPPER, NATIVE_JS_SETTER(IMAGE_PROP_SRC, native_image_prop_set)},
     JS_PS_END
 };
 
@@ -94,7 +94,7 @@ static bool native_image_desaturate(JSContext *cx,
 }
 
 static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, bool strict, JS::MutableHandleValue vp)
+    JS::HandleId id, JS::MutableHandleValue vp)
 {
     NativeJSImage *nimg = NATIVE_IMAGE_GETTER(obj);
 
@@ -122,7 +122,7 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
                 JS::RootedObject obj(cx, vp.toObjectOrNull());
                 NativeFile *file = NativeJSFileIO::GetFileFromJSObject(cx, obj);
                 if (!file) {
-                    vp.set(JSVAL_VOID);
+                    vp.set(JS::NullHandleValue);
                     return true;
                 }
 
@@ -133,13 +133,11 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
                     break;
                 }
                 nimg->m_Stream = stream;
-
                 stream->setListener(nimg);
                 stream->getContent();
 
-
             } else {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
                 return true;
             }
         }

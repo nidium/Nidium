@@ -219,8 +219,7 @@ bool NGL_uniformxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int arg
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     uintptr_t clocation;
     JS::RootedObject location(cx);
-    JS::RootedValue argv(cx, args.array());
-    JS::RootedValue locVal(cx, argv[0]);
+    JS::RootedValue locVal(cx, args.array()[0]);
     double x;
     double y;
     double z;
@@ -229,10 +228,10 @@ bool NGL_uniformxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int arg
     JS_ValueToObject(cx, locVal, &location);
     clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, &args);
 
-    if (nb > 0) x = argv[1].toDouble();
-    if (nb > 1) y = argv[2].toDouble();
-    if (nb > 2) z = argv[3].toDouble();
-    if (nb > 3) w = argv[4].toDouble();
+    if (nb > 0) x = args.array()[1].toDouble();
+    if (nb > 1) y = args.array()[2].toDouble();
+    if (nb > 2) z = args.array()[3].toDouble();
+    if (nb > 3) w = args.array()[4].toDouble();
 
     switch (nb) {
         case 1:
@@ -306,16 +305,15 @@ bool NGL_uniformxi(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int arg
     GLint z;
     GLint w;
     JS::RootedObject location(cx);
-    JS::RootedValue argv(cx, args.array());
-    JS::RootedValue locval(cx, argv[0]);
+    JS::RootedValue locval(cx, args.array()[0]);
 
     JS_ValueToObject(cx, locval, &location);
     clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, &args);
 
-    if (nb > 0) x = (GLint) argv[1].toInt32();
-    if (nb > 1) y = (GLint) argv[2].toInt32();
-    if (nb > 2) x = (GLint) argv[3].toInt32();
-    if (nb > 3) w = (GLint) argv[4].toInt32();
+    if (nb > 0) x = (GLint) args.array()[1].toInt32();
+    if (nb > 1) y = (GLint) args.array()[2].toInt32();
+    if (nb > 2) x = (GLint) args.array()[3].toInt32();
+    if (nb > 3) w = (GLint) args.array()[4].toInt32();
 
     switch (nb) {
         case 1:
@@ -422,18 +420,17 @@ bool NGL_uniformMatrixxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned 
 bool NGL_vertexAttribxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedValue argv(cx, args.array());
     GLuint index;
     double v0;
     double v1;
     double v2;
     double v3;
 
-    index = (GLuint) argv[0].toInt32();
-    if (nb > 0) v0 = argv[1].toDouble();
-    if (nb > 1) v1 = argv[2].toDouble();
-    if (nb > 2) v2 = argv[3].toDouble();
-    if (nb > 3) v3 = argv[4].toDouble();
+    index = (GLuint) args.array()[0].toInt32();
+    if (nb > 0) v0 = args.array()[1].toDouble();
+    if (nb > 1) v1 = args.array()[2].toDouble();
+    if (nb > 2) v2 = args.array()[3].toDouble();
+    if (nb > 3) v3 = args.array()[4].toDouble();
 
     switch (nb) {
         case 1:
@@ -458,12 +455,11 @@ bool NGL_vertexAttribxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned i
     GLuint index;
     GLfloat *carray;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedValue argv(cx, args.array());
-    JS::RootedValue arg1(cx, argv[1]);
+    JS::RootedValue arg1(cx, args.array()[1]);
     JS::RootedObject tmp(cx);
     JS::RootedObject array(cx);
 
-    index = (GLuint) argv[0].toInt32();
+    index = (GLuint) args.array()[0].toInt32();
     JS_ValueToObject(cx, arg1, &array);
 
     if (JS_IsFloat32Array(array)) {
@@ -1026,7 +1022,7 @@ static JSPropertySpec WebGLActiveInfo_props[] = {
     {"name", 0,
         JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY,
         JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 };
 
 
@@ -1838,9 +1834,6 @@ NGL_JS_FN(WebGLRenderingContext_getShaderPrecisionFormat)
     }
 
     JS::RootedValue proto(cx);
-    JS::RootedValue rangeMin(cx);
-    JS::RootedValue rangeMax(cx);
-    JS::RootedValue precision(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLShaderPrecisionFormat", &proto);
     JS::RootedObject protoObj(cx, proto);
@@ -1869,13 +1862,12 @@ NGL_JS_FN(WebGLRenderingContext_getShaderPrecisionFormat)
             break;
     }
 
-    rangeMin = INT_TO_JSVAL(crange[0]);
-    rangeMax = INT_TO_JSVAL(crange[1]);
-    precision = INT_TO_JSVAL(cprecision);
-
-    SET_PROP("rangeMin", &rangeMin);
-    SET_PROP("rangeMax", &rangeMax);
-    SET_PROP("precision", &precision);
+    JS::RootedValue rangeMin(cx, crange[0]);
+    JS::RootedValue rangeMax(cx, crange[1]);
+    JS::RootedValue precision(cx, cprecision);
+    SET_PROP("rangeMin", rangeMin);
+    SET_PROP("rangeMax", rangeMax);
+    SET_PROP("precision", precision);
 
     args.rval().set(OBJECT_TO_JSVAL(obj));
 

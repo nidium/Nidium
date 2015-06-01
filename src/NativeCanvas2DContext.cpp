@@ -1510,7 +1510,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1523,7 +1523,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1536,7 +1536,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1548,7 +1548,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(shadowColor):
         {
             if (!vp.isString()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1560,7 +1560,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1572,7 +1572,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(fontStyle):
         {
             if (!vp.isString()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1585,7 +1585,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1597,7 +1597,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(textBaseline):
         {
             if (!vp.isString()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1608,7 +1608,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(textAlign):
         {
             if (!vp.isString()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1620,7 +1620,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(fontFamily):
         {
             if (!vp.isString()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1631,7 +1631,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(fontFile):
         {
             if (!vp.isString()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1664,7 +1664,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 curSkia->setFillColor(pattern);
             } else {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1683,7 +1683,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
                 curSkia->setStrokeColor(gradient);
             } else {
 
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
                 return true;
             }
         }
@@ -1692,7 +1692,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1704,7 +1704,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1716,7 +1716,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1727,7 +1727,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(globalCompositeOperation):
         {
             if (!vp.isString()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1738,7 +1738,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(lineCap):
         {
             if (!vp.isString()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }
@@ -1749,7 +1749,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(lineJoin):
         {
             if (!vp.isString()) {
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
 
                 return true;
             }

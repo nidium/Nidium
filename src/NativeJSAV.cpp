@@ -164,25 +164,25 @@ static JSPropertySpec AudioContext_props[] = {
     {"sampleRate", AUDIO_PROP_SAMPLERATE,
         JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY,
         JSOP_WRAPPER(native_audio_prop_getter), JSOP_NULLWRAPPER},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 };
 
 static JSPropertySpec AudioNode_props[] = {
     /* type, input, ouput readonly props are created in createnode function */
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 };
 
 static JSPropertySpec AudioNodeEvent_props[] = {
     {"data", NODE_EV_PROP_DATA, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
     {"size", NODE_EV_PROP_SIZE, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 };
 
 static JSPropertySpec AudioNodeCustom_props[] = {
     {"process", NODE_CUSTOM_PROP_PROCESS, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_audionode_custom_prop_setter)},
     {"init", NODE_CUSTOM_PROP_INIT, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_audionode_custom_prop_setter)},
     {"setter", NODE_CUSTOM_PROP_SETTER, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_audionode_custom_prop_setter)},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 };
 
 static JSFunctionSpec AudioContext_funcs[] = {
@@ -252,7 +252,7 @@ static JSPropertySpec AudioNodeSource_props[] = {
         JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY,
         JSOP_WRAPPER(native_audionode_source_prop_getter),
         JSOP_NULLWRAPPER},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 };
 
 static JSPropertySpec AudioNodeCustomSource_props[] = {
@@ -274,7 +274,7 @@ static JSPropertySpec AudioNodeCustomSource_props[] = {
         JSOP_WRAPPER(native_audionode_source_prop_getter),
         JSOP_NULLWRAPPER},
 #endif
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 };
 
 static JSFunctionSpec glob_funcs_threaded[] = {
@@ -357,7 +357,7 @@ static JSPropertySpec Video_props[] = {
         JSPROP_ENUMERATE|JSPROP_PERMANENT,
         JSOP_NULLWRAPPER,
         JSOP_NULLWRAPPER},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 };
 
 static int FFT(int dir, int nn, double *x, double *y)
@@ -524,8 +524,7 @@ static void native_av_thread_message(JSContext *cx, JS::HandleObject obj, const 
 
 bool JSTransferableFunction::prepare(JSContext *cx, JS::HandleValue val)
 {
-    JS::RootedValue rval(cx, JSVAL_VOID);
-    if (!JS_WriteStructuredClone(cx, val, &m_Data, &m_Bytes, nullptr, nullptr, rval)) {
+    if (!JS_WriteStructuredClone(cx, val, &m_Data, &m_Bytes, nullptr, nullptr, JS::NullHandleValue)) {
         return false;
     }
 
@@ -1724,8 +1723,7 @@ static bool native_audionode_custom_set(JSContext *cx, unsigned argc, JS::Value 
     msg->jsNode = jnode;
     JS::RootedValue args1(cx, args.array()[1]);
 
-    JS::RootedValue rval(cx, JSVAL_VOID);
-    if (!JS_WriteStructuredClone(cx, args1, &msg->clone.datap, &msg->clone.nbytes, nullptr, nullptr, rval)) {
+    if (!JS_WriteStructuredClone(cx, args1, &msg->clone.datap, &msg->clone.nbytes, nullptr, nullptr, JS::NullHandleValue)) {
         JS_ReportError(cx, "Failed to write structured clone");
 
         JS_free(cx, msg->name);
@@ -1858,8 +1856,7 @@ static bool native_audionode_custom_threaded_send(JSContext *cx, unsigned argc, 
 
     struct native_thread_msg *msg;
     JS::RootedValue args0(cx, args.array()[0]);
-    JS::RootedValue rval(cx, JSVAL_VOID);
-    if (!JS_WriteStructuredClone(cx, args0, &datap, &nbytes, nullptr, nullptr, rval)) {
+    if (!JS_WriteStructuredClone(cx, args0, &datap, &nbytes, nullptr, nullptr, JS::NullHandleValue)) {
         JS_ReportError(cx, "Failed to write structured clone");
         return false;
     }
@@ -2066,7 +2063,7 @@ static bool native_audionode_custom_prop_setter(JSContext *cx, JS::HandleObject 
 
     if (!fun->prepare(cx, vp)) {
         JS_ReportError(cx, "Failed to read custom node callback function\n");
-        vp.set(JSVAL_VOID);
+        vp.set(JS::NullHandleValue);
         delete fun;
         return false;
     }
@@ -2577,7 +2574,7 @@ bool NativeJSAudioNode::propSetter(NativeJSAudioNode *jnode, JSContext *cx,
             int funID = NativeJSAudioNode::SEEK_FN;
             if (!fun->prepare(cx, vp)) {
                 JS_ReportError(cx, "Failed to read custom node callback function\n");
-                vp.set(JSVAL_VOID);
+                vp.set(JS::NullHandleValue);
                 delete fun;
                 return false;
             }

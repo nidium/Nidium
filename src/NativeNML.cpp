@@ -141,7 +141,8 @@ void NativeNML::onAssetsBlockReady(NativeAssets *asset)
     this->nassets--;
 
     if (this->nassets == 0) {
-        NativeJSwindow::getNativeClass(njs)->onReady(m_JSObjectLayout);
+    	JS::RootedObject layoutObj(njs->cx, m_JSObjectLayout);
+        NativeJSwindow::getNativeClass(njs)->onReady(layoutObj);
         if (m_JSObjectLayout) {
             JS_RemoveObjectRoot(njs->cx, &m_JSObjectLayout);
             m_JSObjectLayout = NULL;
@@ -409,26 +410,24 @@ JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
         switch (child->type()) {
             case node_data:
             case node_cdata:
-                NODE_PROP(obj, "type", NODE_STR("textNode", 8));
-                NODE_PROP(obj, "text", NODE_STR(child->value(), child->value_size()));
+                JS::RootedString typeStr(cx, NODE_STR("textNode", 8));
+                JS::RootedString childStr(cx, NODE_STR(child->value(), child->value_size()));
+                NODE_PROP(obj, "type", typeStr);
+                NODE_PROP(obj, "text", childStr);
                 break;
             case node_element:
             {
-                /* obj.type */
-                NODE_PROP(obj, "type", NODE_STR(child->name(), child->name_size()));
-
-                /* obj.attributes */
-
+                JS::RootedString typeStr(cx, NODE_STR(child->name(), child->name_size()));
+                NODE_PROP(obj, "type", typeStr);
                 JS::RootedObject obj_attr(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
-                NODE_PROP(obj, "attributes", OBJECT_TO_JSVAL(obj_attr));
+                NODE_PROP(obj, "attributes", obj_attr);
                 for (xml_attribute<> *attr = child->first_attribute(); attr != NULL;
                     attr = attr->next_attribute()) {
-                    NODE_PROP(obj_attr, attr->name(), NODE_STR(attr->value(), attr->value_size()));
+                        JS::RootedString str(cx, NODE_STR(attr->value(), attr->value_size()));
+                        NODE_PROP(obj_attr, attr->name(), str);
                 }
-
-                /* obj.children */
                 JS::RootedObject obj_children(cx, BuildLSTFromNode(cx, *child));
-                NODE_PROP(obj, "children", OBJECT_TO_JSVAL(obj_children));
+                NODE_PROP(obj, "children", obj_children);
                 break;
             }
             default:

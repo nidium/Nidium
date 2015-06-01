@@ -275,7 +275,7 @@ static JSPropertySpec canvas_props[] = {
     {"cursor", CANVAS_PROP_CURSOR, NATIVE_JS_PROP,
         JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_canvas_prop_set)},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 };
 
 static JSFunctionSpec canvas_funcs[] = {
@@ -314,7 +314,7 @@ static bool CanvasInherit_get(JSContext *cx, JS::HandleObject obj, JS::HandleId 
 
     NativeCanvasHandler *handler = jscanvas->getHandler(), *parent;
 
-    if (vp == JSVAL_VOID) {
+    if (vp.isNull()) {
 
         if ((parent = handler->getParent()) == NULL || !parent->jsobj) {
             return true;
@@ -325,7 +325,7 @@ static bool CanvasInherit_get(JSContext *cx, JS::HandleObject obj, JS::HandleId 
 
         JS::RootedValue ret(cx);
         JS::RootedObject parent(cx, jscanvas_parent->getInherit());
-        JS_GetPropertyById(cx, parent, id, &ret.address());
+        JS_GetPropertyById(cx, parent, id, &ret);
         vp.set(ret);
     }
 
@@ -540,7 +540,7 @@ static bool native_canvas_getChildren(JSContext *cx, unsigned argc,
         jlist[i] = OBJECT_TO_JSVAL(list[i]->jsobj);
     }
 
-    args.rval().set(OBJECT_TO_JSVAL(jlist));
+    args.rval().set(jlist);
 
     return true;
 }
@@ -557,10 +557,10 @@ static bool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
     (const char *)name, val, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
 
-    SET_PROP(ret, "left", DOUBLE_TO_JSVAL(rect.fLeft));
-    SET_PROP(ret, "top", DOUBLE_TO_JSVAL(rect.fTop));
-    SET_PROP(ret, "width", DOUBLE_TO_JSVAL(native_max(0, rect.fRight-rect.fLeft)));
-    SET_PROP(ret, "height", DOUBLE_TO_JSVAL(native_max(0, rect.fBottom-rect.fTop)));
+    SET_PROP(ret, "left", rect.fLeft);
+    SET_PROP(ret, "top", rect.fTop);
+    SET_PROP(ret, "width", native_max(0, rect.fRight - rect.fLeft));
+    SET_PROP(ret, "height", native_max(0, rect.fBottom-rect.fTop));
 #undef SET_PROP
 
     args.rval().set(OBJECT_TO_JSVAL(ret));
@@ -833,8 +833,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         case CANVAS_PROP_POSITION:
         {
             if (!vp.isString()) {
-                vp.set(JSVAL_VOID);
-
+                vp.set(JS::NullHandleValue);
                 return true;
             }
             JSAutoByteString mode(cx, vp.toString());
@@ -1582,7 +1581,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
             JS::RootedObject ev(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
             const char *name = NULL;
             JS::RootedValue value(cx);
-            JS::RootedValue arg(cx);
+            JS::AutoValueArray<1> arg(cx);
 
             switch (msg.args[1].toInt()) {
                 case NativeCanvasHandler::kContentWidth_Changed:
@@ -1598,9 +1597,9 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
             JSOBJ_SET_PROP_CSTR(ev, "property", name);
             JSOBJ_SET_PROP(ev, "value", value);
 
-            arg.setObjectOrNull(ev);
+            arg[0].set(OBJECT_TO_JSVAL(ev));
             // TODO : fireEvent
-            JSOBJ_CALLFUNCNAME(ro, "onchange", &arg);
+            JSOBJ_CALLFUNCNAME(ro, "onchange", arg);
             break;
         }
         case NATIVE_EVENT(NativeCanvasHandler, DRAG_EVENT):

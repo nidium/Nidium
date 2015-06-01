@@ -20,7 +20,7 @@ static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Document_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSPropertySpec document_props[] = {
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 };
 
 static bool native_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -250,7 +250,7 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
     size_t len, const char *filename)
 {
     JS::RootedValue ret(cx);
-    if (!NativeJS::LoadScriptReturn(cx, data, len, filename, ret.address())) {
+    if (!NativeJS::LoadScriptReturn(cx, data, len, filename, &ret)) {
         return false;
     }
     JS::RootedObject jret(cx, ret.toObjectOrNull());
