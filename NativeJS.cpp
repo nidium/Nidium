@@ -139,17 +139,17 @@ static JSFunctionSpec glob_funcs[] = {
 };
 
 static JSPropertySpec glob_props[] = {
-    {"__filename", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+    {"__filename", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_GETTER(GLOBAL_PROP___FILENAME, native_global_prop_get),
         JSOP_NULLWRAPPER},
-   {"__dirname", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+   {"__dirname", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_GETTER(GLOBAL_PROP___DIRNAME, native_global_prop_get),
         JSOP_NULLWRAPPER},
-   {"global", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+   {"global", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_GETTER(GLOBAL_PROP_GLOBAL, native_global_prop_get),
         JSOP_NULLWRAPPER},
 #ifndef NATIVE_DISABLE_WINDOW_GLOBAL
-   {"window", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+   {"window", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_GETTER(GLOBAL_PROP_WINDOW, native_global_prop_get),
         JSOP_NULLWRAPPER},
 #endif
@@ -475,14 +475,13 @@ static void gccb(JSRuntime *rt, JSGCStatus status)
 }
 #endif
 
+#if 0
 #ifdef DEBUG
 static void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
 {
     snprintf(buf, bufsize, "[0x%p].mJSVal", trc->debugPrintArg);
 }
 #endif
-
-#if 0
 static void NativeTraceBlack(JSTracer *trc, void *data)
 {
     class NativeJS *self = (class NativeJS *)data;
@@ -633,8 +632,9 @@ NativeJS::NativeJS(ape_global *net) :
         printf("Failed to init JS context\n");
         return;     
     }
-    JS::RootedObject gbl(cx);
+    
     JS_BeginRequest(cx);
+    JS::RootedObject gbl(cx);
 #if 0
     #ifdef NATIVE_DEBUG
     JS_SetOptions(cx, JSOPTION_VAROBJFIX);
@@ -648,7 +648,8 @@ NativeJS::NativeJS(ape_global *net) :
 
     gbl = NativeJS::CreateJSGlobal(cx);
 
-    JSAutoCompartment ac(cx, gbl);
+    JS_EnterCompartment(cx, gbl);
+    //JSAutoCompartment ac(cx, gbl);
 #if 0
     JS_AddExtraGCRootsTracer(rt, NativeTraceBlack, this);
 #endif
