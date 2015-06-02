@@ -94,7 +94,7 @@ static bool native_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp
     JS::RootedObject objdata(cx);
     uint32_t offset = 0;
 
-    if (!JS_ConvertArguments(cx, args, "o/u", &objdata, &offset)) {
+    if (!JS_ConvertArguments(cx, args, "o/u", objdata.address(), &offset)) {
         return false;
     }
 

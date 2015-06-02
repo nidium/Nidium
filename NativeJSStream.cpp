@@ -199,7 +199,7 @@ static bool native_Stream_constructor(JSContext *cx, unsigned argc, JS::Value *v
         return false;
     }
 
-    if (!JS_ConvertArguments(cx, args, "S", &url)) {
+    if (!JS_ConvertArguments(cx, args, "S", url.address())) {
         return false;
     }
 

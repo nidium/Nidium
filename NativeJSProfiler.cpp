@@ -425,7 +425,7 @@ static bool native_profile_tocachegrind(JSContext *cx, unsigned argc, JS::Value 
 
     JS::RootedString tmp(cx);
 
-    if (!JS_ConvertArguments(cx, args, "S", tmp)) {
+    if (!JS_ConvertArguments(cx, args, "S", tmp.address())) {
         return false;
     }
 

@@ -527,7 +527,7 @@ static bool native_Socket_constructor(JSContext *cx, unsigned argc, JS::Value *v
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Socket_class, args));
 
-    if (!JS_ConvertArguments(cx, args, "Su", &host, &port)) {
+    if (!JS_ConvertArguments(cx, args, "Su", host.address(), &port)) {
         return false;
     }
 
@@ -687,7 +687,7 @@ static bool native_socket_client_sendFile(JSContext *cx,
         args.rval().setInt32(-1);
         return true;
     }
-    if (!JS_ConvertArguments(cx, args, "S", &file)) {
+    if (!JS_ConvertArguments(cx, args, "S", file.address())) {
         return false;
     }
 

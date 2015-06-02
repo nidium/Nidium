@@ -131,7 +131,7 @@ static bool native_WebSocketServer_constructor(JSContext *cx,
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &WebSocketServer_class, args));
 
-    if (!JS_ConvertArguments(cx, args, "S/S", &localhost, &protocol)) {
+    if (!JS_ConvertArguments(cx, args, "S/S", localhost.address(), protocol.address())) {
         return false;
     }
 

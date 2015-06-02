@@ -229,7 +229,7 @@ static bool native_File_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &File_class, args));
 
-    if (!JS_ConvertArguments(cx, args, "S/o", &url, &opt)) {
+    if (!JS_ConvertArguments(cx, args, "S/o", url.address(), opt.address())) {
         return false;
     }
 
@@ -530,7 +530,7 @@ static bool native_file_open(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    if (!JS_ConvertArguments(cx, args, "S", &modes)) {
+    if (!JS_ConvertArguments(cx, args, "S", modes.address())) {
         return false;
     }
 
@@ -602,7 +602,7 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
 
     JS_INITOPT();
 
-    if (!JS_ConvertArguments(cx, args, "S/o", &filename, &opt)) {
+    if (!JS_ConvertArguments(cx, args, "S/o", filename.address(), opt.address())) {
         return false;
     }
 
@@ -655,7 +655,7 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     char *cencoding = NULL;
 
-    if (!JS_ConvertArguments(cx, args, "So", &filename, &secondarg)) {
+    if (!JS_ConvertArguments(cx, args, "So", filename.address(), secondarg.address())) {
         return false;
     }
 

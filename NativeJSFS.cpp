@@ -124,7 +124,7 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NATIVE_CHECK_ARGS("readDir", 2);
 
-    if (!JS_ConvertArguments(cx, args, "S", &path)) {
+    if (!JS_ConvertArguments(cx, args, "S", path.address())) {
         return false;
     }
 

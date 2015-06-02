@@ -72,7 +72,7 @@ static bool native_Http_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Http_class, args));
 
-    if (!JS_ConvertArguments(cx, args, "S", &url)) {
+    if (!JS_ConvertArguments(cx, args, "S", url.address())) {
         return false;
     }
 
@@ -119,7 +119,7 @@ static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
 
     args.rval().setObjectOrNull(caller);
 
-    if (!JS_ConvertArguments(cx, args, "o", &options)) {
+    if (!JS_ConvertArguments(cx, args, "o", options.address())) {
         return false;
     }
     JS::RootedValue args1(cx, args.array()[1]);

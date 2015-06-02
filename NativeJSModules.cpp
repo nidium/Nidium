@@ -680,7 +680,7 @@ static bool native_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedString name(cx, NULL);
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    if (!JS_ConvertArguments(cx, args, "S", &name)) {
+    if (!JS_ConvertArguments(cx, args, "S", name.address())) {
         return false;
     }
 

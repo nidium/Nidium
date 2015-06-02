@@ -192,7 +192,7 @@ static bool native_HTTPListener_constructor(JSContext *cx,
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &HTTPListener_class, args));
 
-    if (!JS_ConvertArguments(cx, args, "c/bS", &port, &reuseport, &ip_bind)) {
+    if (!JS_ConvertArguments(cx, args, "c/bS", &port, &reuseport, ip_bind.address())) {
         return false;
     }
 
@@ -306,7 +306,7 @@ static bool native_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Valu
     JS::RootedObject headers(cx);
     JS::RootedObject caller(cx, &args.thisv().toObject());
 
-    if (!JS_ConvertArguments(cx, args, "c/o",&statuscode, &headers)) {
+    if (!JS_ConvertArguments(cx, args, "c/o", &statuscode, headers.address())) {
         return false;
     }
 

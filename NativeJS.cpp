@@ -426,7 +426,7 @@ static bool native_load(JSContext *cx, unsigned argc, JS::Value *vp)
     size_t len;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     
-    if (!JS_ConvertArguments(cx, args, "S", &script)) {
+    if (!JS_ConvertArguments(cx, args, "S", script.address())) {
         return false;
     }
     

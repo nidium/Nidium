@@ -325,7 +325,7 @@ private:
         JS::RootedString name(cx);
         JS::RootedObject evobj(cx);
 
-        if (!JS_ConvertArguments(cx, args, "So", &name, &evobj)) {
+        if (!JS_ConvertArguments(cx, args, "So", name.address(), evobj.address())) {
             return false;
         }
 
@@ -346,7 +346,7 @@ private:
         JS::RootedString name(cx);
         JS::RootedValue cb(cx);
 
-        if (!JS_ConvertArguments(cx, args, "S", &name)) {
+        if (!JS_ConvertArguments(cx, args, "S", name.address())) {
             return false;
         }
 
@@ -519,7 +519,7 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
         JS::RootedString __n_rootedstring(m_Cx, JS_NewStringCopyZ(m_Cx, val)); \
         JSOBJ_SET_PROP(where, name, __n_rootedstring); \
     }
-    
+
 #define JSOBJ_SET_PROP_STR(where, name, val) JSOBJ_SET_PROP(where, name, val)
 #define JSOBJ_SET_PROP_INT(where, name, val) JSOBJ_SET_PROP(where, name, val)
 
