@@ -252,11 +252,11 @@ static void dump_Matrix(float *matrix)
 {
     int i = 4;
 
-    printf("==========\n");
+    printf(" = = = = = \n");
     for (i = 0; i < 4; i++) {
         printf("%f, %f, %f, %f\n", matrix[i*4], matrix[i*4+1], matrix[i*4+2], matrix[i*4+3]);
     }
-    printf("==========\n");
+    printf(" = = = = = \n");
 }
 #endif
 
@@ -334,8 +334,8 @@ void NativeCanvasContext::setupShader(float opacity, int width, int height,
         float padding = this->getHandler()->padding.global * ratio;
 
         if (m_GLState->m_GLObjects.uniforms.u_resolution != -1)
-            NATIVE_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_resolution
-                (width) - (padding * 2), (height) - (padding * 2)));
+            NATIVE_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_resolution,
+               (width) - (padding * 2), (height) - (padding * 2)));
         if (m_GLState->m_GLObjects.uniforms.u_position  != -1)
             NATIVE_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_position,
             ratio * left, ratio * wHeight - (height + ratio * top)));

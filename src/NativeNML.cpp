@@ -37,7 +37,7 @@ NativeNML::NativeNML(ape_global *net) :
 NativeNML::~NativeNML()
 {
     if (m_JSObjectLayout) {
-        JS_RemoveObjectRoot(this->njs->cx, &m_JSObjectLayout);
+        JS::RemoveObjectRoot(this->njs->cx, &m_JSObjectLayout);
         m_JSObjectLayout = NULL;
     }
 
@@ -144,7 +144,7 @@ void NativeNML::onAssetsBlockReady(NativeAssets *asset)
     	JS::RootedObject layoutObj(njs->cx, m_JSObjectLayout);
         NativeJSwindow::getNativeClass(njs)->onReady(layoutObj);
         if (m_JSObjectLayout) {
-            JS_RemoveObjectRoot(njs->cx, &m_JSObjectLayout);
+            JS::RemoveObjectRoot(njs->cx, &m_JSObjectLayout);
             m_JSObjectLayout = NULL;
         }
     }
@@ -400,36 +400,34 @@ JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
     JS::RootedObject input(cx, JS_NewArrayObject(cx, 0));
 
     uint32_t idx = 0;
-    for (xml_node<> *child = node.first_node(); child != NULL;
-        child = child->next_sibling()) {
+    for (xml_node<> *child = node.first_node(); child != NULL; child = child->next_sibling()) {
+         JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+         bool skip = false;
 
-        /* obj */
-        JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
-
-        bool skip = false;
         switch (child->type()) {
             case node_data:
             case node_cdata:
-                JS::RootedString typeStr(cx, NODE_STR("textNode", 8));
-                JS::RootedString childStr(cx, NODE_STR(child->value(), child->value_size()));
+            {
+                JS::RootedValue typeStr(cx, NODE_STR("textNode", 8));
+                JS::RootedValue childStr(cx, NODE_STR(child->value(), child->value_size()));
                 NODE_PROP(obj, "type", typeStr);
                 NODE_PROP(obj, "text", childStr);
-                break;
+            }
+            break;
             case node_element:
             {
-                JS::RootedString typeStr(cx, NODE_STR(child->name(), child->name_size()));
+                JS::RootedValue typeStr(cx, NODE_STR(child->name(), child->name_size()));
                 NODE_PROP(obj, "type", typeStr);
                 JS::RootedObject obj_attr(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
                 NODE_PROP(obj, "attributes", obj_attr);
-                for (xml_attribute<> *attr = child->first_attribute(); attr != NULL;
-                    attr = attr->next_attribute()) {
-                        JS::RootedString str(cx, NODE_STR(attr->value(), attr->value_size()));
+                for (xml_attribute<> *attr = child->first_attribute(); attr != NULL; attr = attr->next_attribute()) {
+                        JS::RootedValue str(cx, NODE_STR(attr->value(), attr->value_size()));
                         NODE_PROP(obj_attr, attr->name(), str);
-                }
-                JS::RootedObject obj_children(cx, BuildLSTFromNode(cx, *child));
+                    }
+                    JS::RootedObject obj_children(cx, BuildLSTFromNode(cx, *child));
                 NODE_PROP(obj, "children", obj_children);
-                break;
             }
+            break;
             default:
                 skip = true;
                 break;
@@ -438,7 +436,6 @@ JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
         if (skip) {
             continue;
         }
-
         /* push to input array */
         JS::RootedValue jobjV(cx, OBJECT_TO_JSVAL(obj));
         JS_SetElement(cx, input, idx++, jobjV);
@@ -523,7 +520,7 @@ void NativeNML::onGetContent(const char *data, size_t len)
 
         if (m_Layout) {
             m_JSObjectLayout = this->buildLayoutTree(*m_Layout);
-            JS_AddObjectRoot(this->njs->cx, &m_JSObjectLayout);
+            JS::AddObjectRoot(this->njs->cx, &m_JSObjectLayout);
         }
     } else {
         /*

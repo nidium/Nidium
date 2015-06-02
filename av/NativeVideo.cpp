@@ -757,7 +757,7 @@ int NativeVideo::display(void *custom) {
 
             if (fabs(diff) < NATIVE_VIDEO_NOSYNC_THRESHOLD) {
                 if (diff <= -syncThreshold) {
-                    DRINT(" (diff < syncThreshold) ");
+                    DPRINT(" (diff < syncThreshold) ");
                     delay = 0;
                 } else if (diff >= syncThreshold) {
                     DPRINT(" (diff > syncThreshold) ");
@@ -1031,7 +1031,7 @@ void *NativeVideo::decode(void *args)
                 } else {
                     DPRINT("buffering\n");
                     //DPRINT("Coro space main = %d coro = %d\n", 
-                        Coro_stackSpaceAlmostGone(v->mainCoro), Coro_stackSpaceAlmostGone(v->coro));
+                    //    Coro_stackSpaceAlmostGone(v->mainCoro), Coro_stackSpaceAlmostGone(v->coro));
                     v->buffer();
                 }
             }

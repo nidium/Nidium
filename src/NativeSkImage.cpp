@@ -62,7 +62,6 @@ NativeSkImage::NativeSkImage(SkCanvas *canvas)
     canvasRef = canvas;
     canvas->ref();
     img = NULL;
-    
 }
 
 NativeSkImage::NativeSkImage(void *data, size_t len) :

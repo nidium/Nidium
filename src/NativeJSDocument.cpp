@@ -66,7 +66,7 @@ static bool native_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp
     JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    if (!JS_ConvertArguments(cx, args, "S", &str)) {
+    if (!JS_ConvertArguments(cx, args, "S", str.address())) {
         return false;
     }
 
@@ -83,7 +83,7 @@ static bool native_document_getElementById(JSContext *cx, unsigned argc, JS::Val
     JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    if (!JS_ConvertArguments(cx, args, "S", &str)) {
+    if (!JS_ConvertArguments(cx, args, "S", str.address())) {
         return false;
     }
 
@@ -144,7 +144,7 @@ static bool native_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Val
     JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    if (!JS_ConvertArguments(cx, args, "S", &str)) {
+    if (!JS_ConvertArguments(cx, args, "S", str.address())) {
         return false;
     }
 
@@ -159,26 +159,21 @@ static bool native_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Val
 
 static bool native_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    using namespace js;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
+    size_t outputlen;
+    char16_t * jsc;
     char *text = NativeContext::getNativeClass(cx)->getUI()->getClipboardText();
 
     if (text == NULL) {
         args.rval().set(JSVAL_NULL);
         return true;
     }
-
-    size_t len = strlen(text)*2;
-    jschar *jsc = new jschar[len];
-    //@FIXME: js:: is private -> use JS::
-    js::InflateUTF8StringToBufferReplaceInvalid(cx, text, strlen(text), jsc, &len);
-
-    JS::RootedString jret(cx, JS_NewUCStringCopyN(cx, jsc, len));
+    jsc = NativeUtils::Utf8ToUtf16(cx, text, strlen(text), &outputlen);
+    JS::RootedString jret(cx, JS_NewUCStringCopyN(cx, jsc, outputlen));
     args.rval().set(STRING_TO_JSVAL(jret));
 
     free(text);
-    delete[] jsc;
+    delete[] jsc; //@TODO: not shure
 
     return true;
 }
@@ -219,7 +214,7 @@ static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedString location(cx);
 
-    if (!JS_ConvertArguments(cx, args, "S", &location)) {
+    if (!JS_ConvertArguments(cx, args, "S", location.address())) {
         return false;
     }
 
@@ -336,7 +331,7 @@ static bool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp
 
     JS::RootedObject fontdef(cx);
 
-    if (!JS_ConvertArguments(cx, args, "o", &fontdef)) {
+    if (!JS_ConvertArguments(cx, args, "o", fontdef.address())) {
         return false;
     }
 

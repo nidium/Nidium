@@ -66,7 +66,7 @@ class JSTransferableFunction
         uint64_t *m_Data;
         size_t m_Bytes;
 
-        JS::Value *m_Fn;
+        JS::Heap<JS::Value> *m_Fn;
         JSContext *m_DestCx;
 };
 
@@ -78,8 +78,8 @@ class NativeJSAVSource
         static inline int pause();
         static inline int stop();
 
-        static inline bool propSetter(NativeAVSource *source, int id, JS::MutableHandleValue vp);
-        static inline bool propGetter(NativeAVSource *source, JSContext *ctx, int id, JS::MutableHandleValue vp);
+        static inline bool propSetter(NativeAVSource *source, uint8_t id, JS::MutableHandleValue vp);
+        static inline bool propGetter(NativeAVSource *source, JSContext *ctx, uint8_t id, JS::MutableHandleValue vp);
 };
 
 class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
@@ -108,7 +108,7 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
 
         NATIVE_PTHREAD_VAR_DECL(m_ShutdownWait)
 
-        JSObject *gbl;
+        JS::Heap<JSObject *>gbl;
 
         JSRuntime *rt;
         JSContext *tcx;
@@ -201,8 +201,8 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
         static void initCustomObject(NativeAudioNode *node, void *custom);
         bool createHashObj();
 
-        JSObject *nodeObj;
-        JSObject *hashObj;
+        JS::Heap<JSObject *>nodeObj;
+        JS::Heap<JSObject *>hashObj;
 
         NATIVE_PTHREAD_VAR_DECL(m_ShutdownWait)
 
@@ -214,7 +214,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
         // Custom source node
         static void seekCallback(NativeAudioCustomSource *node, double seekTime, void *custom);
         static bool propSetter(NativeJSAudioNode *node, JSContext *cx,
-                int id, JS::MutableHandleValue vp);
+                uint8_t id, JS::MutableHandleValue vp);
 
         static void registerObject(JSContext *cx);
     private :
@@ -229,7 +229,7 @@ class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessag
 
         NativeVideo *video;
 
-        JSObject *audioNode;
+        JS::Heap<JSObject *>audioNode;
         void *arrayContent;
 
         int m_Width;

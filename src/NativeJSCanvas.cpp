@@ -9,8 +9,6 @@
 
 extern JSClass Canvas2DContext_class;
 
-//#define HANDLER_GETTER(obj) ((NativeCanvasHandler *)((class NativeJSCanvas *)JS_GetPrivate(obj))->getHandler())
-
 #define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
 #define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
 
@@ -97,11 +95,11 @@ enum {
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
-static void Canvas_Trace(JSTracer *trc, JSRawObject obj);
+static void Canvas_Trace(JSTracer *trc, JSObject *obj);
 
 static bool CanvasInherit_get(JSContext *cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp);
 
-JSClass Canvas_class = {
+static JSClass Canvas_class = {
     "Canvas", JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas_Finalize,
@@ -112,7 +110,7 @@ template<>
 JSClass *NativeJSExposer<NativeJSCanvas>::jsclass = &Canvas_class;
 
 
-JSClass Canvas_Inherit_class = {
+static JSClass Canvas_Inherit_class = {
     "CanvasInherit", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, CanvasInherit_get, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
@@ -122,9 +120,9 @@ JSClass Canvas_Inherit_class = {
 static JSClass *NativeLocalClass = &Canvas_class;
 
 static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, bool strict, JS::MutableHandleValue vp);
+    uint8_t id, bool strict, JS::MutableHandleValue vp);
 static bool native_canvas_prop_get(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, JS::MutableHandleValue vp);
+    uint8_t id, JS::MutableHandleValue vp);
 
 static bool native_canvas_getContext(JSContext *cx, unsigned argc,
     JS::Value *vp);
@@ -170,111 +168,138 @@ static bool native_canvas_setScale(JSContext *cx, unsigned argc, JS::Value *vp);
 #define NATIVE_JS_PROP JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED
 
 static JSPropertySpec canvas_props[] = {
-    {"opacity", CANVAS_PROP_OPACITY, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get),
-        JSOP_WRAPPER(native_canvas_prop_set)},
-    {"overflow", CANVAS_PROP_OVERFLOW, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get),
-        JSOP_WRAPPER(native_canvas_prop_set)},
-    {"scrollLeft", CANVAS_PROP_SCROLLLEFT, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get),
-        JSOP_WRAPPER(native_canvas_prop_set)},
-    {"scrollTop", CANVAS_PROP_SCROLLTOP, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get),
-        JSOP_WRAPPER(native_canvas_prop_set)},
-    {"allowNegativeScroll", CANVAS_PROP_ALLOWNEGATIVESCROLL, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get),
-        JSOP_WRAPPER(native_canvas_prop_set)},
-    {"width", CANVAS_PROP_WIDTH, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get),
-        JSOP_WRAPPER(native_canvas_prop_set)},
-    {"clientWidth", CANVAS_PROP_CLIENTWIDTH, NATIVE_JS_PROP | JSPROP_READONLY,
-        JSOP_WRAPPER(native_canvas_prop_get),
+    {"opacity", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_OPACITY, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_OPACITY, native_canvas_prop_set)},
+    {"overflow", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_OVERFLOW, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_OVERFLOW, native_canvas_prop_set)},
+    {"scrollLeft", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_SCROLLLEFT, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_SCROLLLEFT, native_canvas_prop_set)},
+    {"scrollTop", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_SCROLLTOP, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_SCROLLTOP, native_canvas_prop_set)},
+    {"allowNegativeScroll", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_ALLOWNEGATIVESCROLL, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_ALLOWNEGATIVESCROLL, native_canvas_prop_set)},
+    {"width", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_WIDTH, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_WIDTH, native_canvas_prop_set)},
+    {"clientWidth",  NATIVE_JS_PROP | JSPROP_READONLY,
+        NATIVE_JS_GETTER(CANVAS_PROP_CLIENTWIDTH, native_canvas_prop_get),
         JSOP_NULLWRAPPER},
-    {"clientHeight", CANVAS_PROP_CLIENTHEIGHT, NATIVE_JS_PROP | JSPROP_READONLY,
-        JSOP_WRAPPER(native_canvas_prop_get),
+    {"clientHeight", NATIVE_JS_PROP | JSPROP_READONLY,
+        NATIVE_JS_GETTER(CANVAS_PROP_CLIENTHEIGHT, native_canvas_prop_get),
         JSOP_NULLWRAPPER},
-    {"clientTop", CANVAS_PROP_CLIENTTOP, NATIVE_JS_PROP | JSPROP_READONLY,
-        JSOP_WRAPPER(native_canvas_prop_get),
+    {"clientTop", NATIVE_JS_PROP | JSPROP_READONLY,
+        NATIVE_JS_GETTER(CANVAS_PROP_CLIENTTOP, native_canvas_prop_get),
         JSOP_NULLWRAPPER},
-    {"clientLeft", CANVAS_PROP_CLIENTLEFT, NATIVE_JS_PROP | JSPROP_READONLY,
-        JSOP_WRAPPER(native_canvas_prop_get),
+    {"clientLeft", NATIVE_JS_PROP | JSPROP_READONLY,
+        NATIVE_JS_GETTER(CANVAS_PROP_CLIENTLEFT, native_canvas_prop_get),
         JSOP_NULLWRAPPER},
-    {"coating", CANVAS_PROP_COATING, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get),
-        JSOP_WRAPPER(native_canvas_prop_set)},
-    {"height", CANVAS_PROP_HEIGHT, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get),
-        JSOP_WRAPPER(native_canvas_prop_set)},
-    {"maxWidth", CANVAS_PROP_MAXWIDTH, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get),
-        JSOP_WRAPPER(native_canvas_prop_set)},
-    {"maxHeight", CANVAS_PROP_MAXHEIGHT, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get),
-        JSOP_WRAPPER(native_canvas_prop_set)},
-    {"minWidth", CANVAS_PROP_MINWIDTH, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get),
-        JSOP_WRAPPER(native_canvas_prop_set)},
-    {"minHeight", CANVAS_PROP_MINHEIGHT, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get),
-        JSOP_WRAPPER(native_canvas_prop_set)},
-    {"position", CANVAS_PROP_POSITION, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"top", CANVAS_PROP_TOP, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"left", CANVAS_PROP_LEFT, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"right", CANVAS_PROP_RIGHT, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"bottom", CANVAS_PROP_BOTTOM, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"visible", CANVAS_PROP_VISIBLE, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"contentWidth", CANVAS_PROP_CONTENTWIDTH, NATIVE_JS_PROP | JSPROP_READONLY,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"contentHeight", CANVAS_PROP_CONTENTHEIGHT, NATIVE_JS_PROP | JSPROP_READONLY,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"innerWidth", CANVAS_PROP_INNERWIDTH, NATIVE_JS_PROP | JSPROP_READONLY,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"innerHeight", CANVAS_PROP_INNERHEIGHT, NATIVE_JS_PROP | JSPROP_READONLY,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"__visible", CANVAS_PROP___VISIBLE, NATIVE_JS_PROP | JSPROP_READONLY,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"__top", CANVAS_PROP___TOP, NATIVE_JS_PROP | JSPROP_READONLY,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"__left", CANVAS_PROP___LEFT, NATIVE_JS_PROP | JSPROP_READONLY,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"__fixed", CANVAS_PROP___FIXED, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_SHARED,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"__outofbound", CANVAS_PROP___OUTOFBOUND, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_SHARED,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"ctx", CANVAS_PROP_CTX, NATIVE_JS_PROP | JSPROP_READONLY,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"staticLeft", CANVAS_PROP_STATICLEFT, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"staticRight", CANVAS_PROP_STATICRIGHT, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"staticTop", CANVAS_PROP_STATICTOP, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"staticBottom", CANVAS_PROP_STATICBOTTOM, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"fluidHeight", CANVAS_PROP_FLUIDHEIGHT, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"fluidWidth", CANVAS_PROP_FLUIDWIDTH, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"id", CANVAS_PROP_ID, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"marginLeft", CANVAS_PROP_MARGINLEFT, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"marginRight", CANVAS_PROP_MARGINRIGHT, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"marginTop", CANVAS_PROP_MARGINTOP, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"marginBottom", CANVAS_PROP_MARGINBOTTOM, NATIVE_JS_PROP,
-        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"cursor", CANVAS_PROP_CURSOR, NATIVE_JS_PROP,
+    {"coating", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_COATING, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_COATING, native_canvas_prop_set)},
+    {"height", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_HEIGHT, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_HEIGHT, native_canvas_prop_set)},
+    {"maxWidth", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_MAXWIDTH, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_MAXWIDTH, native_canvas_prop_set)},
+    {"maxHeight", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_MAXHEIGHT, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_MAXHEIGHT, native_canvas_prop_set)},
+    {"minWidth", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_MINWIDTH, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_MINWIDTH, native_canvas_prop_set)},
+    {"minHeight", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_MINHEIGHT, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_MINHEIGHT, native_canvas_prop_set)},
+    {"position", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_POSITION, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_POSITION, native_canvas_prop_set)},
+    {"top", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_TOP, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_TOP, native_canvas_prop_set)},
+    {"left", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_LEFT, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_LEFT, native_canvas_prop_set)},
+    {"right", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_RIGHT, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_RIGHT, native_canvas_prop_set)},
+    {"bottom", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_BOTTOM, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_BOTTOM, native_canvas_prop_set)},
+    {"visible", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_VISIBLE, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_VISIBLE, native_canvas_prop_set)},
+    {"contentWidth", NATIVE_JS_PROP | JSPROP_READONLY,
+        NATIVE_JS_GETTER(CANVAS_PROP_CONTENTWIDTH, native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {"contentHeight", NATIVE_JS_PROP | JSPROP_READONLY,
+        NATIVE_JS_GETTER(CANVAS_PROP_CONTENTHEIGHT, native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {"innerWidth", NATIVE_JS_PROP | JSPROP_READONLY,
+        NATIVE_JS_GETTER(CANVAS_PROP_INNERWIDTH, native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {"innerHeight", NATIVE_JS_PROP | JSPROP_READONLY,
+        NATIVE_JS_GETTER(CANVAS_PROP_INNERHEIGHT, native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {"__visible", NATIVE_JS_PROP | JSPROP_READONLY,
+        NATIVE_JS_GETTER(CANVAS_PROP___VISIBLE, native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {"__top", NATIVE_JS_PROP | JSPROP_READONLY,
+        NATIVE_JS_GETTER(CANVAS_PROP___TOP, native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {"__left", NATIVE_JS_PROP | JSPROP_READONLY,
+        NATIVE_JS_GETTER(CANVAS_PROP___LEFT, native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {"__fixed", JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_SHARED,
+        NATIVE_JS_GETTER(CANVAS_PROP___FIXED, native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {"__outofbound", JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_SHARED,
+        NATIVE_JS_GETTER(CANVAS_PROP___OUTOFBOUND, native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {"ctx", NATIVE_JS_PROP | JSPROP_READONLY,
+        NATIVE_JS_GETTER(CANVAS_PROP_CTX, native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {"staticLeft", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_STATICLEFT, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_STATICLEFT, native_canvas_prop_set)},
+    {"staticRight", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_STATICRIGHT, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_STATICRIGHT, native_canvas_prop_set)},
+    {"staticTop", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_STATICTOP, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_STATICTOP, native_canvas_prop_set)},
+    {"staticBottom", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_STATICBOTTOM, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_STATICBOTTOM, native_canvas_prop_set)},
+    {"fluidHeight", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_FLUIDHEIGHT, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_FLUIDHEIGHT, native_canvas_prop_set)},
+    {"fluidWidth", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_FLUIDWIDTH, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_FLUIDWIDTH, native_canvas_prop_set)},
+    {"id", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_ID, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_ID, native_canvas_prop_set)},
+    {"marginLeft", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_MARGINLEFT, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_MARGINLEFT, native_canvas_prop_set)},
+    {"marginRight", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_MARGINRIGHT, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_MARGINRIGHT, native_canvas_prop_set)},
+    {"marginTop", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_MARGINTOP, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_MARGINTOP, native_canvas_prop_set)},
+    {"marginBottom", NATIVE_JS_PROP,
+        NATIVE_JS_GETTER(CANVAS_PROP_MARGINBOTTOM, native_canvas_prop_get),
+        NATIVE_JS_SETTER(CANVAS_PROP_MARGINBOTTOM, native_canvas_prop_set)},
+    {"cursor", NATIVE_JS_PROP,
         JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_canvas_prop_set)},
+        NATIVE_JS_SETTER(CANVAS_PROP_CURSOR, native_canvas_prop_set)},
     JS_PS_END
 };
 
@@ -332,7 +357,7 @@ static bool CanvasInherit_get(JSContext *cx, JS::HandleObject obj, JS::HandleId 
     return true;
 }
 
-NativeCanvasHandler *HANDLER_GETTER(JS::HandleObject obj)
+NativeCanvasHandler *HANDLER_GETTER(JSObject *obj)
 {
     NativeJSCanvas *jscanvas = (class NativeJSCanvas *)JS_GetPrivate(obj);
     if (!jscanvas) {
@@ -342,13 +367,13 @@ NativeCanvasHandler *HANDLER_GETTER(JS::HandleObject obj)
     return jscanvas->getHandler();
 }
 
-static NativeCanvasHandler *HANDLER_GETTER_SAFE(JSContext *cx, JS::HandleObject obj, JS::HandleValue argv = nullptr)
+static NativeCanvasHandler *HANDLER_GETTER_SAFE(JSContext *cx, JS::HandleObject obj)
 {
-    NativeJSCanvas *jscanvas = (class NativeJSCanvas *)JS_GetInstancePrivate(cx, obj, &Canvas_class, argv);
-    if (!jscanvas) {
-        JSClass *cl = JS_GetClass(obj);
-        printf("Missmatch classe %s\n", cl->name);
-        //assert(1!=1);
+    NativeJSCanvas *jscanvas = (class NativeJSCanvas *)JS_GetPrivate(obj);
+
+    const JSClass *cl = JS_GetClass(obj);
+    if (!jscanvas || cl != &Canvas_class) {
+        printf("Missmatch class %s\n", cl->name); //TODO error reporting
         return NULL;
     }
 
@@ -524,6 +549,7 @@ static bool native_canvas_getChildren(JSContext *cx, unsigned argc,
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
+    uint32_t i;
     int32_t count = NativeObject->countChildren();
 
     if (!count) {
@@ -532,15 +558,15 @@ static bool native_canvas_getChildren(JSContext *cx, unsigned argc,
     }
 
     NativeCanvasHandler *list[count];
-    JS::RootedValue jlist(cx, JS_NewArrayObject(cx, count));
+    JS::RootedObject jlist(cx, JS_NewArrayObject(cx, count));
 
     NativeObject->getChildren(list);
-
-    for (int i = 0; i < count; i++) {
-        jlist[i] = OBJECT_TO_JSVAL(list[i]->jsobj);
+    for (i = 0; i < count; i++) {
+        JS::RootedValue objVal(cx, OBJECT_TO_JSVAL(list[i]->jsobj));
+        JS_SetElement(cx, jlist, i, objVal);
     }
-
-    args.rval().set(jlist);
+    JS::RootedValue val(cx, OBJECT_TO_JSVAL(jlist));
+    args.rval().set(val);
 
     return true;
 }
@@ -609,11 +635,11 @@ static bool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     JS::RootedObject sub(cx);
     NativeCanvasHandler *handler = NULL;
 
-    if (!JS_ConvertArguments(cx, args, "o", &sub)) {
+    if (!JS_ConvertArguments(cx, args, "o", sub.address())) {
         return false;
     }
 
-    if (!JS_GetClass(sub) == &Canvas_class) {
+    if (JS_GetClass(sub) != &Canvas_class) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
@@ -644,10 +670,10 @@ static bool native_canvas_insertBefore(JSContext *cx, unsigned argc,
 
     NativeCanvasHandler *handler_insert = NULL, *handler_ref = NULL;
 
-    if (!JS_ConvertArguments(cx, args, "oo", &insert, &ref)) {
+    if (!JS_ConvertArguments(cx, args, "oo", insert.address(), ref.address())) {
         return false;
     }
-    if (!JS_GetClass(insert) == &Canvas_class) {
+    if (JS_GetClass(insert) != &Canvas_class) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
@@ -681,11 +707,11 @@ static bool native_canvas_insertAfter(JSContext *cx, unsigned argc,
     JS::RootedObject ref(cx);
     NativeCanvasHandler *handler_insert = NULL, *handler_ref = NULL;
 
-    if (!JS_ConvertArguments(cx, args, "oo", &insert, &ref)) {
+    if (!JS_ConvertArguments(cx, args, "oo", insert.address(), ref.address())) {
         return false;
     }
 
-    if (!JS_GetClass(insert) == &Canvas_class) {
+    if (JS_GetClass(insert) != &Canvas_class) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
@@ -821,15 +847,14 @@ static bool native_canvas_setContext(JSContext *cx, unsigned argc,
 
 /* TODO: do not change the value when a wrong type is set */
 static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, bool strict, JS::MutableHandleValue vp)
+    uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
     NativeCanvasHandler *handler = HANDLER_GETTER_SAFE(cx, obj);
     if (!handler) {
         return true;
     }
 
-    switch(JSID_TO_INT(id)) {
-
+    switch (id) {
         case CANVAS_PROP_POSITION:
         {
             if (!vp.isString()) {
@@ -1227,14 +1252,14 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
 }
 
 static bool native_canvas_prop_get(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, JS::MutableHandleValue vp)
+    uint8_t id, JS::MutableHandleValue vp)
 {
     NativeCanvasHandler *handler = HANDLER_GETTER_SAFE(cx, obj);
     if (!handler) {
         return true;
     }
 
-    switch(JSID_TO_INT(id)) {
+    switch (id) {
         case CANVAS_PROP_OPACITY:
             vp.set(DOUBLE_TO_JSVAL(handler->getOpacity()));
             break;
@@ -1441,7 +1466,7 @@ static bool native_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
         &Canvas_Inherit_class, nullptr,
         JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
 
-    if (!JS_ConvertArguments(cx, args, "ii/o", &width, &height, &opt)) {
+    if (!JS_ConvertArguments(cx, args, "ii/o", &width, &height, opt.address())) {
         return false;
     }
 
@@ -1493,10 +1518,9 @@ static void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
 }
 #endif
 
-static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
+static void Canvas_Trace(JSTracer *trc, JSObject *obj)
 {
     NativeCanvasHandler *handler = HANDLER_GETTER(obj);
-
     if (handler != NULL) {
         NativeCanvasHandler *cur;
 
@@ -1565,15 +1589,13 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
         case NATIVE_EVENT(NativeCanvasHandler, RESIZE_EVENT):
         {
             // TODO : fireEvent
-            JS::AutoValueArray<0> array(cx);
-            JSOBJ_CALLFUNCNAME(ro, "onresize", array);
+            JSOBJ_CALLFUNCNAME(ro, "onresize", JS::HandleValueArray::empty());
             break;
         }
         case NATIVE_EVENT(NativeCanvasHandler, LOADED_EVENT):
         {
             // TODO : fireEvent
-        	JS::AutoValueArray<0> array(cx);
-            JSOBJ_CALLFUNCNAME(ro, "onload", array);
+            JSOBJ_CALLFUNCNAME(ro, "onload", JS::HandleValueArray::empty());
             break;
         }
         case NATIVE_EVENT(NativeCanvasHandler, CHANGE_EVENT):

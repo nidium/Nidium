@@ -1035,10 +1035,10 @@ void NativeCanvasHandler::unrootHierarchy()
     for (cur = children; cur != NULL; cur = cur->next) {
         cur->unrootHierarchy();
         if (cur->context && cur->context->jsobj && cur->context->jscx) {
-            JS_RemoveObjectRoot(cur->context->jscx, &cur->context->jsobj);
+            JS::RemoveObjectRoot(cur->context->jscx, &cur->context->jsobj);
         }
         if (cur->jsobj) {
-            JS_RemoveObjectRoot(cur->jscx, &cur->jsobj);
+            JS::RemoveObjectRoot(cur->jscx, &cur->jsobj);
         }
         cur->jsobj = NULL;
         cur->context->jsobj = NULL;

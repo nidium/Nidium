@@ -20,7 +20,7 @@ static bool native_image_markColorInAlpha(JSContext *cx, unsigned argc, JS::Valu
 static bool native_image_desaturate(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_image_print(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp);
+static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj, uint8_t id, bool strict, JS::MutableHandleValue vp);
 
 extern JSClass File_class;
 
@@ -35,7 +35,9 @@ template<>
 JSClass *NativeJSExposer<NativeJSImage>::jsclass = &Image_class;
 
 static JSPropertySpec Image_props[] = {
-    {"src", JSPROP_ENUMERATE | JSPROP_PERMANENT, JSOP_NULLWRAPPER, NATIVE_JS_SETTER(IMAGE_PROP_SRC, native_image_prop_set)},
+    {"src", JSPROP_ENUMERATE | JSPROP_PERMANENT,
+        JSOP_NULLWRAPPER,
+        NATIVE_JS_SETTER(IMAGE_PROP_SRC, native_image_prop_set)},
     JS_PS_END
 };
 
@@ -94,11 +96,10 @@ static bool native_image_desaturate(JSContext *cx,
 }
 
 static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, JS::MutableHandleValue vp)
+    uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
     NativeJSImage *nimg = NATIVE_IMAGE_GETTER(obj);
-
-    switch(JSID_TO_INT(id)) {
+    switch(id) {
         case IMAGE_PROP_SRC:
         {
             if (vp.isString()) {
@@ -299,7 +300,12 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
 JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
     const char name[])
 {
-    JS::RootedObject ret(cx, JS_NewObject(cx, &Image_class, NativeJSImage::classe, JS::NullPtr()));
+    JS::RootedValue proto(cx);
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS_GetProperty(cx, global, "Image", &proto);
+    JS::RootedObject protoObj(cx);
+    protoObj.set(&proto.toObject());
+    JS::RootedObject ret(cx, JS_NewObject(cx, &Image_class, protoObj, JS::NullPtr()));
     NativeJSImage *nimg = new NativeJSImage(ret, cx);
 
     nimg->img   = image;

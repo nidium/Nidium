@@ -38,7 +38,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
 
     void textInput(const char *data);
     void keyupdown(int keycode, int mod, int state, int repeat, int location);
-    void addFrameCallback(JS::Value &cb);
+    void addFrameCallback(JS::MutableHandleValue cb);
     void callFrameCallbacks(double ts, bool garbage = false);
 
     void initDataBase();
@@ -71,7 +71,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     void createStorage();
 
     struct _requestedFrame {
-        JS::Value cb;
+        JS::Heap<JS::Value> cb;
         struct _requestedFrame *next;
     } *m_RequestedFrame;
 

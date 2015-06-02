@@ -18,13 +18,11 @@
 #include <NativeJSFileIO.h>
 
 static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, JS::MutableHandleValue vp);
+    uint8_t id, bool strict, JS::MutableHandleValue vp);
 static bool native_window_prop_get(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, JS::MutableHandleValue vp);
-
+    uint8_t id, JS::MutableHandleValue vp);
 static bool native_navigator_prop_get(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, JS::MutableHandleValue vp);
-
+    uint8_t id, JS::MutableHandleValue vp);
 static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -37,10 +35,8 @@ static bool native_window_quit(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_window_close(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_window_open(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp);
-
 static bool native_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_window_exec(JSContext *cx, unsigned argc, JS::Value *vp);
-
 static bool native_storage_set(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp);
 
@@ -536,7 +532,8 @@ bool NativeJSwindow::dragEvent(const char *name, int x, int y)
     EVENT_PROP("clientY", yv);
 
     if (m_DragedFiles) {
-        EVENT_PROP("files", OBJECT_TO_JSVAL(this->m_DragedFiles));
+    	JS::RootedObject drag(m_Cx, this->m_DragedFiles);
+        EVENT_PROP("files", drag);
     }
 
     jevent[0].set(OBJECT_TO_JSVAL(event));
@@ -654,10 +651,10 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
     nctx->addInputEvent(ev);
 
     event = JS_NewObject(m_Cx, &mouseEvent_class, JS::NullPtr(), JS::NullPtr());
-    JS::RootedValue xv(INT_TO_JSVAL(x));
-    JS::RootedValue yv(INT_TO_JSVAL(y));
-    JS::RootedValue xrelv(INT_TO_JSVAL(xrel));
-    JS::RootedValue yrelv(INT_TO_JSVAL(yrel));
+    JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
+    JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
+    JS::RootedValue xrelv(m_Cx, INT_TO_JSVAL(xrel));
+    JS::RootedValue yrelv(m_Cx, INT_TO_JSVAL(yrel));
     EVENT_PROP("x", xv);
     EVENT_PROP("y", yv);
     EVENT_PROP("xrel", xrelv);
@@ -690,11 +687,11 @@ static void Storage_Finalize(JSFreeOp *fop, JSObject *obj)
 }
 
 static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
-    JS::HandleId id, JS::MutableHandleValue vp)
+    uint8_t id, JS::MutableHandleValue vp)
 {
     NativeUIInterface *NUI = NativeContext::getNativeClass(m_Cx)->getUI();
 
-    switch(JSID_TO_INT(id)) {
+    switch (id) {
         case WINDOW_PROP_DEVICE_PIXELRATIO:
             /* TODO: Actual value */
             vp.setInt32(1);
@@ -733,10 +730,10 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
 }
 
 static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, JS::MutableHandleValue vp)
+    uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
-    switch(JSID_TO_INT(id)) {
+    switch(id) {
         case WINDOW_PROP_LEFT:
         {
             double dval;
@@ -876,14 +873,12 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
 }
 
 static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
-    JS::HandleId id, JS::MutableHandleValue vp)
+    uint8_t id, JS::MutableHandleValue vp)
 {
-    NativeUIInterface *NUI = NativeContext::getNativeClass(m_Cx)->getUI();
-
 #define APP_NAME "nidium"
 #define APP_LANGUAGE "en"
 #define APP_LOCALE APP_LANGUAGE "-US"
-    switch(JSID_TO_INT(id)) {
+    switch(id) {
        case NAVIGATOR_PROP_LANGUAGE:
             {
             JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_LANGUAGE));
@@ -913,7 +908,7 @@ static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
             JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_NAME "/"
                 NATIVE_VERSION_STR "(" APP_LOCALE "; rv:" NATIVE_BUILD ") "
                 NATIVE_FRAMEWORK_STR));
-            JS::RootedValue vStr(m_Cx, jStr);
+            JS::RootedValue vStr(m_Cx, STRING_TO_JSVAL(jStr));
             vp.set(vStr);
             }
             break;
@@ -954,7 +949,7 @@ static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
 struct _nativeopenfile
 {
     JSContext *cx;
-    JS::Value cb;//@TODO :JS::Heap<JS::Value> cb;
+    JS::Heap<JS::Value> cb;
 };
 
 static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len)
@@ -997,7 +992,7 @@ static bool native_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Val
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedString url(cx);
 
-    if (!JS_ConvertArguments(cx, args, "S", &url)) {
+    if (!JS_ConvertArguments(cx, args, "S", url.address())) {
         return false;
     }
 
@@ -1013,7 +1008,7 @@ static bool native_window_exec(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedString url(cx);
 
-    if (!JS_ConvertArguments(cx, args, "S", &url)) {
+    if (!JS_ConvertArguments(cx, args, "S", url.address())) {
         return false;
     }
 
@@ -1030,7 +1025,7 @@ static bool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedValue callback(cx);
 
-    if (!JS_ConvertArguments(cx, args, "v", &callback)) {
+    if (!JS_ConvertArguments(cx, args, "v", callback.address())) {
         return false;
     }
 
@@ -1055,7 +1050,7 @@ static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
     JS::RootedObject types(cx);
     JS::RootedValue callback(cx);
 
-    if (!JS_ConvertArguments(cx, args, "ov", &types, &callback)) {
+    if (!JS_ConvertArguments(cx, args, "ov", types.address(), callback.address())) {
         return false;
     }
 
@@ -1116,7 +1111,7 @@ static bool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS
     if (!JS_ConvertValue(cx, arg0, JSTYPE_FUNCTION, &cb)) {
         return true;
     }
-    NativeJSwindow::getNativeClass(cx)->addFrameCallback(cb);
+    NativeJSwindow::getNativeClass(cx)->addFrameCallback(&cb);
 
     return true;
 }
@@ -1153,7 +1148,7 @@ static bool native_window_notify(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedString body(cx);
     bool sound = false;
 
-    if (!JS_ConvertArguments(cx, args, "SS/b", &title, &body, &sound)) {
+    if (!JS_ConvertArguments(cx, args, "SS/b", title.address(), body.address(), &sound)) {
         return false;
     }
 
@@ -1200,13 +1195,9 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
     NATIVE_CHECK_ARGS("setSystemTray", 1);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
-
-    JS::RootedObject jobj(cx, args[0]);
-
-    if (jobj.isNull() || !jobj.isObject()) {
-
+    JS::RootedObject jobj(cx, &args[0].toObject());
+    if (!jobj.get()) {
         NUI->disableSysTray();
-
         return true;
     }
 
@@ -1241,7 +1232,7 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
                 JS_GetElement(cx, arr, i, &val);
 
                 if (val.isObject()) {
-                    JS::RootedObject valObj(cx, val);
+                    JS::RootedObject valObj(cx, &val.toObject());
                     NativeSystemMenuItem *menuItem = new NativeSystemMenuItem();
                     JSGET_OPT_TYPE(valObj, "title", String) {
 
@@ -1314,7 +1305,7 @@ static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-void NativeJSwindow::addFrameCallback(JS::Value &cb)
+void NativeJSwindow::addFrameCallback(JS::MutableHandleValue cb)
 {
     struct _requestedFrame *frame = new struct _requestedFrame;
     frame->next = this->m_RequestedFrame;
@@ -1377,7 +1368,7 @@ void NativeJSwindow::createMainCanvas(int width, int height, JS::HandleObject do
 
     NativeContext::getNativeClass(m_Cx)->getRootHandler()->addChild(m_handler);
     JS::RootedValue canval(m_Cx, OBJECT_TO_JSVAL(canvas));
-    JS::RootedObject docObj(cx, doc);
+    JS::RootedObject docObj(m_Cx, doc);
     JS_DefineProperty(m_Cx, docObj, "canvas", canval, JSPROP_READONLY | JSPROP_PERMANENT);
 }
 
