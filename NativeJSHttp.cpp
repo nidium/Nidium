@@ -107,8 +107,6 @@ static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedValue callback(cx);
     NativeHTTPRequest *req;
 
-    args.rval();
-
     NATIVE_CHECK_ARGS("request", 2);
 
     JS_INITOPT();
