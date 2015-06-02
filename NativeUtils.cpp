@@ -129,15 +129,8 @@ uint64_t NativeUtils::getTick(bool ms)
 char16_t *NativeUtils::Utf8ToUtf16(JSContext *cx,
   const char *str, size_t len, size_t *outputlen)
 {
-    *outputlen = sizeof(char16_t) * (len + 1);
-
-    JS::UTF8Chars utf8string(str, len);
-    JS::TwoByteCharsZ ret;
-    /* XXX not sure */
-    ret = JS::LossyUTF8CharsToNewTwoByteCharsZ(cx, utf8string, outputlen);
-
-    return ret.get();
-
+    return JS::LossyUTF8CharsToNewTwoByteCharsZ(cx,
+      JS::UTF8Chars(str, len), outputlen).get();
 }
 
 void NativeUtils::sha1hmac(const unsigned char *key, uint32_t keylen,
