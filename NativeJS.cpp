@@ -934,13 +934,12 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
     /* RAII helper that resets to origin options state */
     JS::AutoSaveContextOptions asco(cx);
 
-    JS::ContextOptionsRef(cx).setNoScriptRval(true)
-                             .setVarObjFix(true);
+    JS::ContextOptionsRef(cx).setVarObjFix(true);
 
     JS::CompileOptions options(cx);
     options.setUTF8(true)
            .setFileAndLine(filename, 1)
-           .setCompileAndGo(true);
+           .setCompileAndGo(true).setNoScriptRval(true);
 
     JS::RootedScript script(cx, JS::Compile(cx, gbl, options, data, len));
 

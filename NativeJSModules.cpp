@@ -251,10 +251,10 @@ bool NativeJSModule::initJS()
     JS::RootedValue exportsVal(cx, OBJECT_TO_JSVAL(exports));
     JS::RootedValue moduleVal(cx, OBJECT_TO_JSVAL(module));
 
-    TRY_OR_DIE(JS_DefineProperties(cx, gbl, native_modules_exports_props));
+    //TRY_OR_DIE(JS_DefineProperties(cx, gbl, native_modules_exports_props));
     TRY_OR_DIE(JS_SetProperty(cx, gbl, "exports", exportsVal));
 
-    TRY_OR_DIE(JS_DefineProperties(cx, module, native_modules_exports_props));
+    //TRY_OR_DIE(JS_DefineProperties(cx, module, native_modules_exports_props));
     TRY_OR_DIE(JS_SetProperty(cx, gbl, "module", moduleVal));
     TRY_OR_DIE(JS_SetProperty(cx, module, "id", id));
     TRY_OR_DIE(JS_SetProperty(cx, module, "exports", exportsVal));
@@ -601,7 +601,8 @@ JS::Value NativeJSModule::require(char *name)
                 JS::CompileOptions options(cx);
                 options.setFileAndLine(cmodule->filePath, 1)
                        .setUTF8(true);
-                fn = JS::CompileFunction(cx, expObj, options, "", 0, 0, data, strlen(data));
+
+                fn = JS::CompileFunction(cx, expObj, options, NULL, 0, NULL, data, strlen(data));
 
                 if (!fn) {
                     return ret;
