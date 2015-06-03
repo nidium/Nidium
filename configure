@@ -104,7 +104,7 @@ def angle():
 @Deps.register("breakpad")
 def breakpad():
     return {
-        "location": DEPEDENCY_REPO + "/breakpad.tar.gz"
+        "location": Deps.SvnRepo("http://google-breakpad.googlecode.com/svn/trunk/", 1435)
     }
 
 @Deps.register("SDL2")
