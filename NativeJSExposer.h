@@ -599,9 +599,9 @@ private:
     Tinyid were removed in SM31.
     This template act as a workaround (create a unique getter/setter and keep a unique identifier)
 */
-//JS_CAST_NATIVE_TO(getter, JSPropertyOp)
-#define NATIVE_JS_SETTER(tinyid, setter) JSOP_WRAPPER((NativeJSPropertyAccessors::Setter<tinyid, setter>))
+#define NATIVE_JS_SETTER(tinyid, setter) {JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}
 #define NATIVE_JS_GETTER(tinyid, getter) {JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}
+#define NATIVE_JS_STUBGETTER() {JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::NullGetter), JSPropertyOp), nullptr}
 
 struct NativeJSPropertyAccessors
 {
@@ -614,10 +614,17 @@ struct NativeJSPropertyAccessors
                            JS::MutableHandleValue vp);    
 
     template <uint8_t TINYID, NativeJSGetterOp FN>
-    static bool Setter(JSContext *cx, JS::HandleObject obj,
-        JS::HandleId id, bool strict, JS::MutableHandleValue vp) {
+    static bool Setter(JSContext *cx, unsigned argc, JS::Value *vp) {
+        JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+        JS::RootedObject obj(cx, JS_THIS_OBJECT(cx, vp));
+
+        if (!obj) return false;
+        JS::RootedValue val(cx, args.get(0));
+        bool ret = FN(cx, obj, TINYID, true, &val);
         
-        return FN(cx, obj, TINYID, strict, vp);
+        args.rval().set(val);
+
+        return ret;
     }
 
     template <uint8_t TINYID, NativeJSSetterOp FN>
@@ -629,6 +636,11 @@ struct NativeJSPropertyAccessors
 
         return FN(cx, obj, TINYID, args.rval());
     }
+
+    static bool NullGetter(JSContext *cx, unsigned argc, JS::Value *vp) {
+        return true;
+    }
+
 };
 
 
