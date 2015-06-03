@@ -84,10 +84,10 @@ static JSFunctionSpec socket_funcs[] = {
 
 
 static JSPropertySpec Socket_props[] = {
-    {"binary",   0, JSOP_NULLWRAPPER, NATIVE_JS_SETTER(SOCKET_PROP_BINARY, native_socket_prop_set)},
-    {"readline", 0, JSOP_NULLWRAPPER, NATIVE_JS_SETTER(SOCKET_PROP_READLINE, native_socket_prop_set)},
-    {"encoding", 0, JSOP_NULLWRAPPER, NATIVE_JS_SETTER(SOCKET_PROP_ENCODING, native_socket_prop_set)},
-    {"timeout",  0, JSOP_NULLWRAPPER, NATIVE_JS_SETTER(SOCKET_PROP_TIMEOUT, native_socket_prop_set)},
+    {"binary",   JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_BINARY, native_socket_prop_set)},
+    {"readline", JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_READLINE, native_socket_prop_set)},
+    {"encoding", JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_ENCODING, native_socket_prop_set)},
+    {"timeout",  JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_TIMEOUT, native_socket_prop_set)},
     JS_PS_END
 };
 
@@ -100,11 +100,11 @@ static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
         JS_ReportError(cx, "Invalid socket object");
         return false;
     }
+
     switch(id) {
         case SOCKET_PROP_BINARY:
         {
             if (vp.isBoolean()) {
-
                 nsocket->flags = (vp.toBoolean() == true ?
                     nsocket->flags | NATIVE_SOCKET_ISBINARY :
                     nsocket->flags & ~NATIVE_SOCKET_ISBINARY);
@@ -174,8 +174,6 @@ static void native_socket_wrapper_onconnected(ape_socket *s, ape_global *ape,
     void *socket_arg)
 {
     JSContext *cx;
-    JS::RootedValue onconnect(cx);
-    JS::RootedValue rval(cx);
 
     NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx;
 
@@ -184,6 +182,9 @@ static void native_socket_wrapper_onconnected(ape_socket *s, ape_global *ape,
     }
 
     cx = nsocket->getJSContext();
+    JS::RootedValue onconnect(cx);
+    JS::RootedValue rval(cx);
+
     JS::RootedObject obj(cx, nsocket->getJSObject());
     if (JS_GetProperty(cx, obj, "onconnect", &onconnect) &&
         JS_TypeOfValue(cx, onconnect) == JSTYPE_FUNCTION) {
