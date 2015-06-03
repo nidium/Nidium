@@ -179,6 +179,7 @@ class NativeJS
         void *privateslot;
         bool shutdown;
         const char *relPath;
+        JSCompartment *m_Compartment;
 
         /* argument list (...) */
         logger m_Logger;

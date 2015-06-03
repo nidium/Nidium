@@ -674,7 +674,7 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     JSAutoByteString cfilename(cx, filename);
-    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(&callback.toObject());
 
     NativeBaseStream *stream = NativeBaseStream::create(NativePath(cfilename.ptr()));
 

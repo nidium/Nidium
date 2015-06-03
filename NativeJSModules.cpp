@@ -186,7 +186,6 @@ bool NativeJSModules::init(NativeJSModule *module)
 
 bool NativeJSModule::initNative()
 {
-    /* XXX RootedObject */
     JS::RootedObject exports(this->cx, JS_NewObject(this->cx, NULL, JS::NullPtr(), JS::NullPtr()));
     NativeJS *njs = NativeJS::getNativeClass(this->cx);
     if (!exports) {

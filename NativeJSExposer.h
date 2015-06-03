@@ -441,7 +441,6 @@ public:
 
         m_JSClass = &jsclass;
 
-        /* XXX RootedObject (Heap) */
         m_JSObj = JS_NewObject(m_JSCx, m_JSClass, JS::NullPtr(), JS::NullPtr());
         JS_SetPrivate(m_JSObj, static_cast<T *>(this));
     }
@@ -536,7 +535,6 @@ class NativeJSObjectBuilder
 public:
     NativeJSObjectBuilder(JSContext *cx, JSClass *clasp = NULL) {
         m_Cx = cx;
-        /* XXX RootedObject (Heap) */
         m_Obj.set(JS_NewObject(m_Cx, clasp, JS::NullPtr(), JS::NullPtr()));
     };
 

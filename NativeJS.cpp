@@ -636,7 +636,7 @@ NativeJS::NativeJS(ape_global *net) :
         return;     
     }
 
-    JS_SetGCZeal(cx, 2, 1);
+    JS_SetGCZeal(cx, 14, 1);
     //JS_ScheduleGC(cx, 1);
     //JS_SetGCCallback(rt, _gc_callback, NULL);
     
@@ -655,7 +655,7 @@ NativeJS::NativeJS(ape_global *net) :
 
     gbl = NativeJS::CreateJSGlobal(cx);
 
-    JS_EnterCompartment(cx, gbl);
+    m_Compartment = JS_EnterCompartment(cx, gbl);
     //JSAutoCompartment ac(cx, gbl);
 #if 1
     JS_AddExtraGCRootsTracer(rt, NativeTraceBlack, this);
@@ -767,6 +767,7 @@ NativeJS::~NativeJS()
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
 
+    JS_LeaveCompartment(cx, m_Compartment);
     JS_EndRequest(cx);
     //JS_LeaveCompartment(cx);
 

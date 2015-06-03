@@ -726,7 +726,6 @@ static bool native_socket_client_write(JSContext *cx,
         args.rval().setInt32(ret);
 
     } else if (args[0].isObject()) {
-        /* XXX RootedObject (does this kind of light convertion need to be rooted?) */
         JSObject *objdata = args[0].toObjectOrNull();
 
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
@@ -772,7 +771,6 @@ static bool native_socket_write(JSContext *cx, unsigned argc, JS::Value *vp)
         args.rval().setInt32(ret);
 
     } else if (args[0].isObject()) {
-        /* XXX RootedObject (does this kind of light convertion need to be rooted?) */
         JSObject *objdata = args[0].toObjectOrNull();
 
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
