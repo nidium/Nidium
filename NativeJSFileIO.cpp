@@ -268,7 +268,7 @@ static bool native_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
@@ -329,7 +329,7 @@ static bool native_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_file_isDir(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
@@ -351,7 +351,7 @@ static bool native_file_isDir(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_file_rmrf(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
@@ -372,7 +372,7 @@ static bool native_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
@@ -411,7 +411,7 @@ static bool native_file_read(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
@@ -455,7 +455,7 @@ static bool native_file_seek(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
@@ -493,7 +493,7 @@ static bool native_file_seek(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_file_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
@@ -519,7 +519,7 @@ static bool native_file_open(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
     JS::RootedString modes(cx);
@@ -574,7 +574,7 @@ static bool native_file_writeSync(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_file_closeSync(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     NativeJSFileIO *NJSFIO;
     NativeFile *file;

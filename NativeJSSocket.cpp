@@ -826,7 +826,7 @@ static bool native_socket_close(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     NATIVE_CHECK_ARGS("sendto", 3);
 

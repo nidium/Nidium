@@ -78,9 +78,10 @@ size_t gMaxStackSize = DEFAULT_MAX_STACK_SIZE;
 struct native_sm_timer
 {
     JSContext *cx;
-    JS::Heap<JSObject *> global;
+    
     ape_timer *timerng;
 
+    JS::PersistentRootedObject global;
     JS::PersistentRootedValue **argv;
     JS::PersistentRootedValue func;
 
@@ -93,7 +94,7 @@ struct native_sm_timer
 
     }
 
-    native_sm_timer(JSContext *cx) : func(cx) {
+    native_sm_timer(JSContext *cx) : func(cx), global(cx) {
 
     }
 };
@@ -636,7 +637,7 @@ NativeJS::NativeJS(ape_global *net) :
         return;     
     }
 
-    JS_SetGCZeal(cx, 14, 1);
+    JS_SetGCZeal(cx, 2, 4);
     //JS_ScheduleGC(cx, 1);
     //JS_SetGCCallback(rt, _gc_callback, NULL);
     
@@ -1118,7 +1119,7 @@ static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
     int ms, i;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JSObject *obj = &args.thisv().toObject();
+    JSObject *obj = JS_THIS_OBJECT(cx, vp);
 
     params = new native_sm_timer(cx);
 
@@ -1149,7 +1150,7 @@ static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
         return true;
     }
 
-    if (!!JS::ToInt32(cx, args[1], &ms)) {
+    if (!JS::ToInt32(cx, args[1], &ms)) {
         free(params->argv);
         free(params);
         return false;
@@ -1179,7 +1180,8 @@ static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
     int ms, i;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JSObject *obj = &args.thisv().toObject();
+
+    JSObject *obj = JS_THIS_OBJECT(cx, vp);
 
     params = new native_sm_timer(cx);
 
@@ -1209,7 +1211,7 @@ static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
 
     params->func.set(func);
 
-    if (!!JS::ToInt32(cx, args[1], &ms)) {
+    if (!JS::ToInt32(cx, args[1], &ms)) {
         free(params->argv);
         free(params);
         return false;

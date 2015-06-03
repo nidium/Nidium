@@ -111,7 +111,7 @@ static bool native_websocketclient_send(JSContext *cx, unsigned argc, JS::Value 
 static bool native_websocketclient_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     return true;
 }

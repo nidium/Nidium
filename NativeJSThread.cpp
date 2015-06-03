@@ -225,7 +225,7 @@ static bool native_thread_start(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NativeJSThread *nthread;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     if (JS_InstanceOf(cx, caller, &Thread_class, &args) == false) {
         return true;

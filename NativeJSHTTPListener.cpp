@@ -229,7 +229,7 @@ static bool native_HTTPRequest_class_constructor(JSContext *cx,
 static bool native_httpresponse_write(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     NATIVE_CHECK_ARGS("write", 1);
 
@@ -266,7 +266,7 @@ static bool native_httpresponse_write(JSContext *cx, unsigned argc, JS::Value *v
 static bool native_httpresponse_end(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller);
     if (!resp) {
@@ -304,7 +304,7 @@ static bool native_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Valu
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject headers(cx);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     if (!JS_ConvertArguments(cx, args, "c/o", &statuscode, headers.address())) {
         return false;

@@ -100,7 +100,7 @@ static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NativeHTTP *nhttp;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx,  &args.thisv().toObject());
+    JS::RootedObject caller(cx,  JS_THIS_OBJECT(cx, vp));
     NativeJSHttp *jshttp;
     JS::RootedObject options(cx);
     JS::RootedValue curopt(cx);

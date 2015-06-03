@@ -91,7 +91,7 @@ static bool native_stream_prop_get(JSContext *cx, JS::HandleObject obj,
 static bool native_stream_stop(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     if (!JS_InstanceOf(cx, caller, &Stream_class, &args)) {
         return true;
@@ -105,7 +105,7 @@ static bool native_stream_stop(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_stream_seek(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     uint32_t pos;
 
     if (!JS_InstanceOf(cx, caller, &Stream_class, &args)) {
@@ -124,7 +124,7 @@ static bool native_stream_seek(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_stream_start(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     size_t packetlen = 4096;
 
     if (!JS_InstanceOf(cx, caller, &Stream_class, &args)) {
@@ -148,7 +148,7 @@ static bool native_stream_start(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     if (!JS_InstanceOf(cx, caller, &Stream_class, &args)) {
         return true;
