@@ -475,13 +475,8 @@ static void gccb(JSRuntime *rt, JSGCStatus status)
 }
 #endif
 
-#if 0
-#ifdef DEBUG
-static void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
-{
-    snprintf(buf, bufsize, "[0x%p].mJSVal", trc->debugPrintArg);
-}
-#endif
+#if 1
+
 static void NativeTraceBlack(JSTracer *trc, void *data)
 {
     class NativeJS *self = (class NativeJS *)data;
@@ -489,13 +484,18 @@ static void NativeTraceBlack(JSTracer *trc, void *data)
     if (self->isShuttingDown()) {
         return;
     }
-    ape_htable_item_t *item ;
+
+    ape_htable_item_t *item;
 
     for (item = self->rootedObj->first; item != NULL; item = item->lnext) {
-#ifdef DEBUG
-        JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, item, 0);
-#endif
-        JS_CallObjectTracer(trc, (JSObject *)item->content.addrs, "nativeroot");
+        uintptr_t oldaddr = (uintptr_t)item->content.addrs;
+        uintptr_t newaddr = oldaddr;
+
+        JS_CallObjectTracer(trc, (JSObject **)&newaddr, "nativeroot");
+
+        if (oldaddr != newaddr) {
+            printf("Address changed\n");
+        }
         //printf("Tracing object at %p\n", item->addrs);
     }
 }
@@ -504,15 +504,15 @@ static void NativeTraceBlack(JSTracer *trc, void *data)
 /* Use obj address as key */
 void NativeJS::rootObjectUntilShutdown(JSObject *obj)
 {
-    m_RootedSet->put(obj);
+    //m_RootedSet->put(obj);
     //JS::AutoHashSetRooter<JSObject *> rooterhash(cx, 0);
-    //hashtbl_append64(this->rootedObj, (uint64_t)obj, obj);
+    hashtbl_append64(this->rootedObj, (uint64_t)obj, obj);
 }
 
 void NativeJS::unrootObject(JSObject *obj)
 {
-    m_RootedSet->remove(obj);
-    //hashtbl_erase64(this->rootedObj, (uint64_t)obj);
+    //m_RootedSet->remove(obj);
+    hashtbl_erase64(this->rootedObj, (uint64_t)obj);
 }
 
 NativeJS *NativeJS::getNativeClass(JSContext *cx)
@@ -579,6 +579,11 @@ void NativeJS::SetJSRuntimeOptions(JSRuntime *rt)
     //rt->profilingScripts For profiling?
 }
 
+static void _gc_callback(JSRuntime *rt, JSGCStatus status, void *data)
+{
+    printf("Got gcd\n");
+}
+
 NativeJS::NativeJS(ape_global *net) :
     m_Logger(NULL), m_vLogger(NULL), m_LogClear(NULL)
 {
@@ -626,12 +631,14 @@ NativeJS::NativeJS(ape_global *net) :
     NativeJS::SetJSRuntimeOptions(rt);
     JS_SetGCParameterForThread(cx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
 
-    
-
     if ((cx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
         return;     
     }
+
+    JS_SetGCZeal(cx, 2, 1);
+    //JS_ScheduleGC(cx, 1);
+    //JS_SetGCCallback(rt, _gc_callback, NULL);
     
     JS_BeginRequest(cx);
     JS::RootedObject gbl(cx);
@@ -650,7 +657,7 @@ NativeJS::NativeJS(ape_global *net) :
 
     JS_EnterCompartment(cx, gbl);
     //JSAutoCompartment ac(cx, gbl);
-#if 0
+#if 1
     JS_AddExtraGCRootsTracer(rt, NativeTraceBlack, this);
 #endif
     if (NativeJS::jsscc == NULL) {
@@ -673,8 +680,6 @@ NativeJS::NativeJS(ape_global *net) :
     registeredMessagesIdx = 8; // The 8 first slots are reserved for Native internals messages
     registeredMessagesSize = 16;
 
-    m_RootedSet = new JS::AutoHashSetRooter<JSObject *>(cx, 0);
-    m_RootedSet->init(1024);
 #if 0
     NativeBaseStream *stream = NativeBaseStream::create("nvfs:///libs/zip.lib.js");
     char *ret;

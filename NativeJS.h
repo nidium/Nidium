@@ -82,8 +82,7 @@ class NativeJS
         NativeSharedMessages *messages;
 
         NativeHash<JSObject *> jsobjects;
-        
-        JS::AutoHashSetRooter<JSObject *> *m_RootedSet;
+
         struct _ape_htable *rootedObj;
         struct _ape_global *net;
 
