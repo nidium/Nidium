@@ -57,7 +57,7 @@ void Canvas2DContext_Finalize(JSFreeOp *fop, JSObject *obj);
 
 extern JSClass Canvas_class;
 
-static JSClass Canvas2DContext_class = {
+JSClass Canvas2DContext_class = {
     "CanvasRenderingContext2D", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas2DContext_Finalize,
@@ -183,7 +183,7 @@ static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigne
 
 static JSPropertySpec canvas2dctx_props[] = {
 #define CANVAS_2D_CTX_PROP(prop) {#prop, JSPROP_PERMANENT | JSPROP_ENUMERATE, \
-    JSOP_NULLWRAPPER, \
+    NATIVE_JS_STUBGETTER(), \
     NATIVE_JS_SETTER(CTX_PROP_ ## prop, native_canvas2dctx_prop_set)},
 #define CANVAS_2D_CTX_PROP_GET(prop) {#prop, JSPROP_PERMANENT | JSPROP_ENUMERATE, \
     NATIVE_JS_GETTER(CTX_PROP_ ## prop, native_canvas2dctx_prop_get), \
@@ -959,7 +959,7 @@ static bool native_canvas2dctxGradient_addColorStop(JSContext *cx,
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedString color(cx);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     double position;
     NativeSkGradient *gradient;
 
@@ -1184,7 +1184,7 @@ static bool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsign
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedString location(cx);
-    JS::RootedObject caller(cx,  &args.thisv().toObject());
+    JS::RootedObject caller(cx,  JS_THIS_OBJECT(cx, vp));
     uint32_t program;
 
     if (!JS_ConvertArguments(cx, args, "S", location.address())) {
@@ -1208,7 +1208,7 @@ static bool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     int location, val;
     uint32_t program;
 
@@ -1235,7 +1235,7 @@ static bool native_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     int location;
     double val;
     uint32_t program;
@@ -1266,7 +1266,7 @@ static bool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx,
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject tmp(cx);
     JS::RootedObject array(cx);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     GLsizei length;
     GLint *carray;
     int location;
@@ -1325,7 +1325,7 @@ static bool native_canvas2dctxGLProgram_uniformXfv(JSContext *cx,
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject array(cx);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     GLsizei length;
     GLfloat *carray;
     int location;
@@ -1433,7 +1433,7 @@ static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigne
     (const char *)name, val, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, &args.thisv().toObject());
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     uint32_t program;
     program = (size_t)JS_GetPrivate(caller);
 

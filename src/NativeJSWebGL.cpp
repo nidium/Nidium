@@ -135,7 +135,7 @@ public:
 static void Buffer_Finalize(JSFreeOp *fop, JSObject *obj);
 static void WebGLRenderingContext_Finalize(JSFreeOp *fop, JSObject *obj);
 
-static JSClass WebGLRenderingContext_class = {
+JSClass WebGLRenderingContext_class = {
     "WebGLRenderingContext",
     JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(WebGLResource::kResources_end),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -1014,13 +1014,13 @@ static JSFunctionSpec WebGLActiveInfo_funcs[] = {
 
 static JSPropertySpec WebGLActiveInfo_props[] = {
     {"size", JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY,
-        JSOP_NULLWRAPPER,
+        NATIVE_JS_STUBGETTER(),
         JSOP_NULLWRAPPER},
     {"type", JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY,
-        JSOP_NULLWRAPPER,
+        NATIVE_JS_STUBGETTER(),
         JSOP_NULLWRAPPER},
     {"name", JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY,
-        JSOP_NULLWRAPPER,
+        NATIVE_JS_STUBGETTER(),
         JSOP_NULLWRAPPER},
     JS_PS_END
 };
@@ -2321,7 +2321,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
                 return false;
             }
             size_t i;
-            for( i = 0; i < 4; i++) {
+            for (i = 0; i < 4; i++) {
                 JS::RootedId id(cx, INT_TO_JSID(i));
                 JS::RootedValue bVal(cx, BOOLEAN_TO_JSVAL((bool)gl_bv[i]));
                 JS_SetPropertyById(cx, obj, id, bVal);
@@ -2353,7 +2353,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
 
 NGL_JS_FN(WebGLRenderingContext_getProgramParameter)
 //{
-    GLenum param;
+    GLenum param = 0;
     GLint status;
     JS::RootedObject program(cx);
     WebGLResource *cprogram;

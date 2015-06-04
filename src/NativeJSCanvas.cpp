@@ -14,7 +14,7 @@ extern JSClass Canvas2DContext_class;
 
 #define NATIVE_PROLOGUE(ofclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
-    JS::RootedObject thisobj(cx, &args.thisv().toObject()); \
+    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
     if (!thisobj) return false; \
     if (JS_GetClass(thisobj) != NativeLocalClass) { \
         JS_ReportError(cx, "Illegal invocation");\
@@ -99,7 +99,7 @@ static void Canvas_Trace(JSTracer *trc, JSObject *obj);
 
 static bool CanvasInherit_get(JSContext *cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp);
 
-static JSClass Canvas_class = {
+JSClass Canvas_class = {
     "Canvas", JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas_Finalize,
@@ -298,7 +298,7 @@ static JSPropertySpec canvas_props[] = {
         NATIVE_JS_GETTER(CANVAS_PROP_MARGINBOTTOM, native_canvas_prop_get),
         NATIVE_JS_SETTER(CANVAS_PROP_MARGINBOTTOM, native_canvas_prop_set)},
     {"cursor", NATIVE_JS_PROP,
-        JSOP_NULLWRAPPER,
+        NATIVE_JS_STUBGETTER(),
         NATIVE_JS_SETTER(CANVAS_PROP_CURSOR, native_canvas_prop_set)},
     JS_PS_END
 };

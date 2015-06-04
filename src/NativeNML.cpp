@@ -13,9 +13,10 @@
 
 #include "NativeJSUtils.h"
 
+/*@FIXME:: refractor the constructor, so that m_JSObjectLayout get's njs'javascript context*/
 NativeNML::NativeNML(ape_global *net) :
     net(net), stream(NULL), nassets(0),
-    njs(NULL), m_Layout(NULL), m_JSObjectLayout(NULL),
+    njs(NULL), m_Layout(NULL), m_JSObjectLayout((JSContext*)nullptr),
     m_defaultItemsLoaded(false), m_loadDefaultItems(true)
 {
     assetsList.size = 0;
@@ -28,7 +29,7 @@ NativeNML::NativeNML(ape_global *net) :
     this->meta.size.height = 0;
     this->meta.identifier = NULL;
 
-    /* Make sur NativeJS already has the netlib set */
+    /* Make sure NativeJS already has the netlib set */
     NativeJS::initNet(net);
 
     memset(&this->meta, 0, sizeof(this->meta));
@@ -36,9 +37,8 @@ NativeNML::NativeNML(ape_global *net) :
 
 NativeNML::~NativeNML()
 {
-    if (m_JSObjectLayout) {
-        JS::RemoveObjectRoot(this->njs->cx, &m_JSObjectLayout);
-        m_JSObjectLayout = NULL;
+    if (m_JSObjectLayout.get()) {
+    	m_JSObjectLayout = nullptr;
     }
 
     if (stream) {
@@ -59,6 +59,13 @@ NativeNML::~NativeNML()
 void NativeNML::setNJS(NativeJS *js)
 {
     this->njs = js;
+    /*
+    if (m_JSObjectLayout.get() ) {
+        @FIXME: actually check that it is a context: even better: set the context here, and not in the constructor
+        m_JSObjectLayout.remove();
+        m_JSObjectLayout(js->getJSContext());
+    }
+    */
 }
 
 void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
@@ -143,9 +150,8 @@ void NativeNML::onAssetsBlockReady(NativeAssets *asset)
     if (this->nassets == 0) {
     	JS::RootedObject layoutObj(njs->cx, m_JSObjectLayout);
         NativeJSwindow::getNativeClass(njs)->onReady(layoutObj);
-        if (m_JSObjectLayout) {
-            JS::RemoveObjectRoot(njs->cx, &m_JSObjectLayout);
-            m_JSObjectLayout = NULL;
+        if (m_JSObjectLayout.get()) {
+            m_JSObjectLayout = nullptr;
         }
     }
 }
@@ -520,7 +526,6 @@ void NativeNML::onGetContent(const char *data, size_t len)
 
         if (m_Layout) {
             m_JSObjectLayout = this->buildLayoutTree(*m_Layout);
-            JS::AddObjectRoot(this->njs->cx, &m_JSObjectLayout);
         }
     } else {
         /*

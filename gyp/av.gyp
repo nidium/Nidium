@@ -18,6 +18,22 @@
         'defines': [
             '__STDC_CONSTANT_MACROS'
         ],
+        'conditions': [
+            ['OS=="mac"', {
+                 'cflags+': [
+                    '-Wno-c++0x-extensions',
+                    '-std=c++11',
+                  ]
+                }
+            ],
+            ['OS=="linux"', {
+                'cflags+': [
+                    '-Wno-c++0x-extensions',
+                    '-std=c++11',
+                  ]
+                }
+            ],
+        ],
         'sources': [
             '<(native_av_path)NativeAV.cpp',
             '<(native_av_path)NativeAudioNode.cpp',

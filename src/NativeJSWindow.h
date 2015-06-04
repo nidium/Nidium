@@ -71,8 +71,11 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     void createStorage();
 
     struct _requestedFrame {
-        JS::Heap<JS::Value> cb;
+        JS::PersistentRootedValue cb;
         struct _requestedFrame *next;
+        _requestedFrame(JSContext *cx): cb(cx) {
+            next = NULL;
+        }
     } *m_RequestedFrame;
 
     NativeCanvasHandler *m_handler;

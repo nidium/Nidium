@@ -53,6 +53,7 @@
                 ],
                 'cflags': [
                     '-Wno-c++0x-extensions',
+                    '-std=c++11',
                     '-Wno-invalid-offsetof'
                 ],
                 'conditions': [

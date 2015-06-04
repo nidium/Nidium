@@ -20,7 +20,8 @@ static bool native_image_markColorInAlpha(JSContext *cx, unsigned argc, JS::Valu
 static bool native_image_desaturate(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_image_print(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj, uint8_t id, bool strict, JS::MutableHandleValue vp);
+static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj, uint8_t id,
+    bool strict, JS::MutableHandleValue vp);
 
 extern JSClass File_class;
 
@@ -36,7 +37,7 @@ JSClass *NativeJSExposer<NativeJSImage>::jsclass = &Image_class;
 
 static JSPropertySpec Image_props[] = {
     {"src", JSPROP_ENUMERATE | JSPROP_PERMANENT,
-        JSOP_NULLWRAPPER,
+        NATIVE_JS_STUBGETTER(),
         NATIVE_JS_SETTER(IMAGE_PROP_SRC, native_image_prop_set)},
     JS_PS_END
 };

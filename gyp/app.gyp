@@ -38,6 +38,7 @@
                     '-DTRIMMED',
                     '-freorder-blocks',
                     '-fomit-frame-pointer',
+                    '-std=c++11',
                     '-Wno-invalid-offsetof'
                 ],
                 'link_settings': {

@@ -203,16 +203,16 @@ static JSPropertySpec window_props[] = {
         NATIVE_JS_GETTER(WINDOW_PROP_TITLE, native_window_prop_get),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLE, native_window_prop_set)},
     {"cursor", JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_NULLWRAPPER,
+        NATIVE_JS_STUBGETTER(),
         NATIVE_JS_SETTER(WINDOW_PROP_CURSOR, native_window_prop_set)},
     {"titleBarColor", JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_NULLWRAPPER,
+        NATIVE_JS_STUBGETTER(),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_COLOR, native_window_prop_set)},
     {"titleBarControlsOffsetX", JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_NULLWRAPPER,
+        NATIVE_JS_STUBGETTER(),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, native_window_prop_set)},
     {"titleBarControlsOffsetY", JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_NULLWRAPPER,
+       NATIVE_JS_STUBGETTER(),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, native_window_prop_set)},
     JS_PS_END
 };
@@ -1307,13 +1307,11 @@ static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
 
 void NativeJSwindow::addFrameCallback(JS::MutableHandleValue cb)
 {
-    struct _requestedFrame *frame = new struct _requestedFrame;
+    struct _requestedFrame *frame = new struct _requestedFrame(m_Cx);
     frame->next = this->m_RequestedFrame;
     frame->cb = cb;
 
     m_RequestedFrame = frame;
-
-    JS::AddValueRoot(m_Cx, &frame->cb);
 }
 
 void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
@@ -1333,9 +1331,6 @@ void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
             JS::RootedValue cb(m_Cx, frame->cb);
             JS_CallFunctionValue(m_Cx, global, cb, arg, &rval);
         }
-
-        JS::RemoveValueRoot(m_Cx, &frame->cb);
-
         struct _requestedFrame *tmp = frame->next;
         delete frame;
         frame = tmp;

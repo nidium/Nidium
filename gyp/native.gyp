@@ -62,17 +62,17 @@
                     'JS_THREADSAFE',
                     'GR_GL_CUSTOM_SETUP_HEADER=<../gyp/skia_gl_config.h>'
                 ],
-				'xcode_settings': {
-					'OTHER_CFLAGS': [
+                'xcode_settings': {
+                    'OTHER_CFLAGS': [
                         '-Qunused-arguments',
                         '-fvisibility=hidden',
                         '-fvisibility-inlines-hidden',
                         '-Wno-c++0x-extensions',
                         '-Wno-unused-function',
                         '-Wno-invalid-offsetof'
-					],
-				},
-			}],
+                    ],
+                },
+            }],
             ['OS=="linux"', {
                 'defines+': [
                     'EXPORT_JS_API',
@@ -106,6 +106,7 @@
                     '-fvisibility=hidden',
                     '-fvisibility-inlines-hidden',
                     '-Wno-c++0x-extensions',
+                    '-std=c++11',
                     '-Wno-invalid-offsetof'
                 ],
             }],
@@ -139,8 +140,8 @@
             '<(native_src_path)/NativeCanvas2DContext.cpp',
             '<(native_src_path)/NativeCanvas3DContext.cpp',
             '<(native_src_path)/NativeApp.cpp',
-			'<(native_src_path)/NativeNML.cpp',
-			'<(native_src_path)/NativeAssets.cpp',
+            '<(native_src_path)/NativeNML.cpp',
+            '<(native_src_path)/NativeAssets.cpp',
             '<(native_src_path)/NativeContext.cpp',
             '<(native_src_path)/NativeCanvasContext.cpp',
             '<(native_src_path)/NativeGLResources.cpp',
