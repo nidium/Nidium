@@ -22,6 +22,9 @@
             '<(native_src_path)/setproctitle.c',
         ],
         'conditions': [
+            ['nofork==1', {
+                'defines':['NATIVE_NO_FORK']
+            }],
             ['OS=="linux"', {
                 'cflags': [
                     '-fno-rtti',

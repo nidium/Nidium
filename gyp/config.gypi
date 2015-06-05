@@ -16,5 +16,6 @@
         'native_output%': '../out/',
         'asan%': 0,
         'jemalloc%': 0,
+        'nofork%': 0
     },
 }

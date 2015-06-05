@@ -24,6 +24,11 @@ def jemalloc(jemalloc):
         Deps.set("jemalloc")
         Gyp.set("jemalloc", 1)
 
+@CommandLine.option("--no-fork", default=False)
+def nofork(nofork):
+    if nofork:
+        Gyp.set("nofork", 1)
+
 @CommandLine.option("--heap-profiling", default=False)
 def heapProfiling(profiling):
     if profiling:
