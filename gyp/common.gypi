@@ -31,6 +31,9 @@
                     '-O0',
                     '-g',
                 ],
+                'cxxflags': [
+                    '-std=c++11'
+                ],
                 'xcode_settings': {
                     'OTHER_CPLUSPLUSFLAGS': [ 
                         '-stdlib=libc++',
@@ -107,6 +110,9 @@
                     '-O2',
                     '-g',
                     '-Wall',
+                ],
+                'cxxflags': [
+                    '-std=c++11'
                 ],
             }
         },
