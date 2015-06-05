@@ -105,9 +105,11 @@ int NativeServer::initWorker(int *idx)
         *idx = ++m_WorkerIdx;
     }
 
-    pid_t pid;
+    pid_t pid = 0;
     /* Execute the worker for the child process and returns 0 */
+#ifndef NATIVE_NO_FORK
     if ((pid = fork()) == 0) {
+#endif
         NativeWorker worker(*idx, (m_HasREPL && *idx == 1));
 
         setproctitle("Native-Server:<%s> (worker %d)",
@@ -116,7 +118,9 @@ int NativeServer::initWorker(int *idx)
         worker.run(m_Args.argc, m_Args.argv);
 
         return 0;
+#ifndef NATIVE_NO_FORK
     }
+#endif
 
     m_PidIdxMapper[pid] = *idx;
 

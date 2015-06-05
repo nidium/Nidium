@@ -11,7 +11,7 @@
         'configurations': {
             'Debug': {
                 'product_dir': '<(native_output)/debug/',
-                'defines': ['NATIVE_DEBUG', 'DEBUG', '_DEBUG', 'JS_DEBUG'],
+                'defines': ['NATIVE_DEBUG', 'DEBUG', '_DEBUG', 'JS_DEBUG', 'JS_GC_ZEAL'],
                 'msvs_settings': {
                     'VCCLCompilerTool': {
                         'RuntimeLibrary': 1, 
