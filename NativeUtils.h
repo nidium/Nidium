@@ -40,6 +40,7 @@ private:
 
 class NativeUserAgentUtils
 {
+public:
     enum OS {
         WINDOWS,
         MAC,
@@ -49,7 +50,7 @@ class NativeUserAgentUtils
 
     /* Fast OS detection */
     static OS getOS(const char *ua) {
-        char *paddr = strchr(ua, '(');
+        const char *paddr = strchr(ua, '(');
 
         if (!paddr || !paddr[1] || !paddr[2]) {
             return OTHER;
