@@ -250,7 +250,7 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
             JSObject *jclient = this->createClient(
                 (NativeWebSocketClientConnection *)msg.args[1].toPtr());
 
-            arg[1].setObject(*jclient);
+            arg[0].setObject(*jclient);
 
             JS::RootedObject obj(cx, this->getJSObject());
             
