@@ -350,7 +350,7 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
     
     JSOBJ_SET_PROP(event, "data", jdata);
 
-    jevent[1].setObject(*event);
+    jevent[0].setObject(*event);
 
     JS_CallFunctionValue(cx, obj, ondata_callback, jevent, &rval);
 }

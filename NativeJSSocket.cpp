@@ -472,7 +472,7 @@ static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
     JS::RootedValue rval(cx);
 
     JS::AutoValueArray<1> jparams(cx);
-    jparams[1].setObject(*csocket->getJSObject());
+    jparams[0].setObject(*csocket->getJSObject());
 
     csocket->dettach();
 
