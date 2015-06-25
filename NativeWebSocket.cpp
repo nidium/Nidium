@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <NativeJS.h>
+
 #define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
     CONST_STR_LEN(header "\0"))
 
@@ -58,6 +60,12 @@ NativeWebSocketClientConnection::~NativeWebSocketClientConnection()
     if (m_SocketClient->ctx == this) {
         m_SocketClient->ctx = NULL;
         APE_socket_shutdown_now(m_SocketClient);
+    }
+
+    if (m_PingTimer) {
+        ape_global *ape = NativeJS::getNet();
+        clear_timer_by_id(&ape->timersng, m_PingTimer, 1);
+        m_PingTimer = 0;
     }
 }
 
@@ -132,7 +140,7 @@ void NativeWebSocketClientConnection::onUpgrade(const char *to)
 void NativeWebSocketClientConnection::onContent(const char *data, size_t len)
 {
     m_LastAcitivty = NativeUtils::getTick(true);
-    
+
     ape_ws_process_frame(&m_WSState, data, len);
 }
 
