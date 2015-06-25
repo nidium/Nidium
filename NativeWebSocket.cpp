@@ -44,8 +44,10 @@ void NativeWebSocketListener::onClientConnect(ape_socket *client, ape_global *ap
 
 NativeWebSocketClientConnection::NativeWebSocketClientConnection(
         NativeHTTPListener *httpserver, ape_socket *socket) :
-    NativeHTTPClientConnection(httpserver, socket), m_Handshaked(false), m_Data(NULL)
+    NativeHTTPClientConnection(httpserver, socket), m_Handshaked(false),
+    m_Data(NULL), m_PingTimer(0)
 {
+    m_ClientTimeoutMs = 0; /* Disable HTTP timeout */
     ape_ws_init(&m_WSState);
     m_WSState.socket = socket;
     m_WSState.on_frame = native_on_ws_frame;
@@ -59,6 +61,15 @@ NativeWebSocketClientConnection::~NativeWebSocketClientConnection()
     }
 }
 
+int NativeWebSocketClientConnection::pingTimer(void *arg)
+{
+    NativeWebSocketClientConnection *con = (NativeWebSocketClientConnection *)arg;
+
+    con->ping();
+
+    return NATIVEWEBSOCKET_PING_INTERVAL;
+}
+
 void NativeWebSocketClientConnection::onHeaderEnded()
 {
     printf("WS header ended\n");
@@ -68,6 +79,11 @@ void NativeWebSocketClientConnection::onDisconnect(ape_global *ape)
 {
     NativeArgs args;
     args[0].set(this);
+
+    if (m_PingTimer) {
+        clear_timer_by_id(&ape->timersng, m_PingTimer, 1);
+        m_PingTimer = 0;
+    }
 
     m_HTTPListener->fireEvent<NativeWebSocketListener>(NativeWebSocketListener::SERVER_CLOSE, args);
 }
@@ -104,12 +120,19 @@ void NativeWebSocketClientConnection::onUpgrade(const char *to)
     NativeArgs args;
     args[0].set(this);
 
+    ape_timer *timer = add_timer(&m_SocketClient->ape->timersng, NATIVEWEBSOCKET_PING_INTERVAL,
+        NativeWebSocketClientConnection::pingTimer, this);
+
+    m_PingTimer = timer->identifier;
+
     m_HTTPListener->fireEvent<NativeWebSocketListener>(NativeWebSocketListener::SERVER_CONNECT, args);
 
 }
 
 void NativeWebSocketClientConnection::onContent(const char *data, size_t len)
 {
+    m_LastAcitivty = NativeUtils::getTick(true);
+    
     ape_ws_process_frame(&m_WSState, data, len);
 }
 
@@ -132,6 +155,14 @@ void NativeWebSocketClientConnection::close()
         return;
     }
     ape_ws_close(&m_WSState);
+}
+
+void NativeWebSocketClientConnection::ping()
+{
+    if (!m_Handshaked) {
+        return;
+    }
+    ape_ws_ping(&m_WSState);
 }
 
 void NativeWebSocketClientConnection::write(unsigned char *data,

@@ -23,6 +23,8 @@
 #include "NativeHTTPListener.h"
 #include <ape_websocket.h>
 
+
+#define NATIVEWEBSOCKET_PING_INTERVAL 5000 /* ms */
 #define NATIVEWEBSOCKET_SERVER_MESSAGE_BITS(id) ((1 << 22) | id)
 
 enum {
@@ -79,9 +81,13 @@ public:
         return m_Data;
     }
     virtual void close();
+    void ping();
+
+    static int pingTimer(void *arg);
 private:
     websocket_state m_WSState;
     bool m_Handshaked;
+    uint64_t m_PingTimer;
 
     void *m_Data;
 };
