@@ -466,7 +466,7 @@ protected:
 };
 
 
-typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
+typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 
 #define NativeJSObj(cx) (NativeJS::getNativeClass(cx))
 
@@ -490,7 +490,7 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
     }
 
 #define NATIVE_REGISTER_MODULE(constructor) \
-    extern "C" __attribute__((__visibility__("default"))) bool __NativeRegisterModule(JSContext *cx, JSObject *exports) \
+    extern "C" __attribute__((__visibility__("default"))) bool __NativeRegisterModule(JSContext *cx, JS::HandleObject exports) \
     { \
         return constructor(cx, exports); \
     }
@@ -533,12 +533,12 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 class NativeJSObjectBuilder
 {
 public:
-    NativeJSObjectBuilder(JSContext *cx, JSClass *clasp = NULL) {
+    NativeJSObjectBuilder(JSContext *cx, JSClass *clasp = NULL) : m_Obj(cx) {
         m_Cx = cx;
-        m_Obj.set(JS_NewObject(m_Cx, clasp, JS::NullPtr(), JS::NullPtr()));
+        m_Obj = JS_NewObject(m_Cx, clasp, JS::NullPtr(), JS::NullPtr());
     };
 
-    NativeJSObjectBuilder(JSContext *cx, JSObject *wrapped) {
+    NativeJSObjectBuilder(JSContext *cx, JSObject *wrapped) : m_Obj(cx) {
         m_Obj = wrapped;
         m_Cx = cx;
     };
@@ -586,10 +586,18 @@ public:
         return OBJECT_TO_JSVAL(m_Obj);
     }
 
+    operator JSObject*() {
+        return m_Obj;
+    }
+
+    operator JS::Value() {
+        return OBJECT_TO_JSVAL(m_Obj);
+    }
+
     ~NativeJSObjectBuilder(){};
 
 private:
-    JS::Heap<JSObject *>m_Obj;
+    JS::PersistentRootedObject m_Obj;
     JSContext *m_Cx;
 };
 
