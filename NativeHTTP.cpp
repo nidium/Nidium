@@ -231,6 +231,9 @@ static void native_http_connected(ape_socket *s,
 
         PACK_TCP(s->s.fd);
         APE_socket_write(s, headers->data, headers->used, APE_DATA_COPY);
+
+        /* APE_DATA_OWN? Warum? It's good as look as
+        the lifetime of the data is tied to the socket lifetime */
         APE_socket_write(s, (unsigned char *)request->getData(),
             nhttp->getRequest()->getDataLength(), APE_DATA_OWN);
         FLUSH_TCP(s->s.fd);
