@@ -247,6 +247,21 @@ public:
         return m_LastAcitivty;
     }
 
+    void increaseRequestsCount() {
+        m_RequestsCount++;
+    }
+
+    bool shouldCloseConnection() {
+        const char *header_connection = getHeader("connection");
+
+        return ((m_MaxRequestsCount && m_RequestsCount >= m_MaxRequestsCount) ||
+            (header_connection && strcasecmp(header_connection, "close") == 0));
+    }
+
+    void setMaxRequestsCount(uint64_t n) {
+        m_MaxRequestsCount = n;
+    }
+
     virtual NativeHTTPResponse *onCreateResponse();
 
     virtual void onHeaderEnded(){};
@@ -274,6 +289,8 @@ protected:
     uint64_t m_TimeoutTimer;
     uint64_t m_LastAcitivty;
     int m_ClientTimeoutMs;
+    uint64_t          m_RequestsCount;
+    uint64_t          m_MaxRequestsCount;
 };
 
 #endif

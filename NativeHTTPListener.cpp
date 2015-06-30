@@ -204,6 +204,7 @@ static int message_complete_cb(http_parser *p)
     NativeHTTPClientConnection *client = (NativeHTTPClientConnection *)p->data;
 
     client->_createResponse();
+    client->increaseRequestsCount();
 
     if (client->getHTTPListener()->onEnd(client)) {
         client->close();
@@ -377,7 +378,9 @@ int NativeHTTPClientConnection_checktimeout(void *arg)
 
 NativeHTTPClientConnection::NativeHTTPClientConnection(NativeHTTPListener *httpserver,
     ape_socket *socket) :
-    m_Ctx(NULL), m_SocketClient(socket), m_HTTPListener(httpserver), m_Response(NULL)
+    m_Ctx(NULL), m_SocketClient(socket),
+    m_HTTPListener(httpserver), m_Response(NULL),
+    m_RequestsCount(0), m_MaxRequestsCount(0)
 {
     m_HttpState.headers.prevstate = PSTATE_NOTHING;
 
@@ -592,6 +595,12 @@ void NativeHTTPResponse::send(ape_socket_data_autorelease datatype)
         only transfert the headers ownership
     */
     this->dataOwnershipTransfered(!(datatype == APE_DATA_AUTORELEASE));
+    if (m_Con->shouldCloseConnection()) {
+        /*
+            TODO: temporise to (try to) avoid active close?
+        */
+        m_Con->close();
+    }
 }
 
 void NativeHTTPResponse::end()
@@ -609,8 +618,7 @@ void NativeHTTPResponse::end()
             (char *)CONST_STR_LEN("0\r\n\r\n"), APE_DATA_STATIC);
     }
 
-    const char *header_connection = m_Con->getHeader("connection");
-    if (header_connection && strcasecmp(header_connection, "close") == 0) {
+    if (m_Con->shouldCloseConnection()) {
         /*
             TODO: temporise to (try to) avoid active close?
         */

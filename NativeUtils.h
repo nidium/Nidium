@@ -27,6 +27,7 @@
 #include <sys/syscall.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <string.h>
 #include <jsapi.h>
 
 class NativeNoncopyable {
@@ -36,6 +37,45 @@ public:
 private:
     NativeNoncopyable(const NativeNoncopyable&);
     NativeNoncopyable& operator=(const NativeNoncopyable&);
+};
+
+class NativeUserAgentUtils
+{
+    enum OS {
+        WINDOWS,
+        MAC,
+        UNIX,
+        OTHER
+    };
+
+    /* Fast OS detection */
+    static OS getOS(const char *ua) {
+        char *paddr = strchr(ua, '(');
+
+        if (!paddr || !paddr[1] || !paddr[2]) {
+            return OTHER;
+        }
+
+        switch (paddr[1]) {
+            case 'W': /* Windows */
+            case 'w': /* windows */
+            case 'c': /* compatible */
+            case 'C': /* Compatible */
+                return WINDOWS;
+            case 'X': /* X11 */
+                return UNIX;
+            case 'M':
+            {
+                if (paddr[2] == 'S') { /* MSIE */
+                    return WINDOWS;
+                } else if (paddr[2] == 'a') { /* Macintosh */
+                    return MAC;
+                }
+            }
+        }
+        return OTHER;
+    }
+
 };
 
 class NativeUtils
