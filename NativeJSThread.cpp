@@ -126,12 +126,13 @@ static void *native_thread(void *arg)
     }
 
     NativeJS::SetJSRuntimeOptions(rt);
-    JS_SetGCParameterForThread(tcx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
-
+    
     if ((tcx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
         return NULL;     
     }
+
+    JS_SetGCParameterForThread(tcx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
     JS::RootedValue rval(tcx, JSVAL_VOID);
     
     JS_SetStructuredCloneCallbacks(rt, NativeJS::jsscc);
