@@ -60,7 +60,7 @@ def mozilla():
     if Konstruct.config("mozillaci"):
         location = Deps.GitRepo("git@github.com:nidium/NativeStudio.git")
     else:
-        location = DEPEDENCY_REPO + "/mozilla-central.bz2"
+        location = DEPEDENCY_REPO + "/mozjs-31.2.0.rc0.tar.bz2"
 
     return {
         "location": location,
