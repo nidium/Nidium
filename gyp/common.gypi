@@ -11,7 +11,7 @@
         'configurations': {
             'Debug': {
                 'product_dir': '<(native_output)/debug/',
-                'defines': ['NATIVE_DEBUG', 'DEBUG', '_DEBUG', 'JS_DEBUG', 'JS_GC_ZEAL'],
+                'defines': ['NATIVE_DEBUG', 'DEBUG', '_DEBUG', 'JS_DEBUG', 'js_config_h'],
                 'msvs_settings': {
                     'VCCLCompilerTool': {
                         'RuntimeLibrary': 1, 
@@ -57,7 +57,7 @@
             },
             'Release': {
                 'product_dir': '<(native_output)/release/',
-                'defines': [ 'NDEBUG'],
+                'defines': [ 'NDEBUG', 'js_config_h', 'JS_THREADSAFE', 'JS_HAS_CTYPES', 'JS_HAVE_MACHINE_ENDIAN_H'],
                 'msvs_settings': {
                     'VCCLCompilerTool': {
                         'RuntimeLibrary': 0,

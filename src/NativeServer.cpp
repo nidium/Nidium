@@ -114,7 +114,7 @@ int NativeServer::initWorker(int *idx)
 
         setproctitle("Native-Server:<%s> (worker %d)",
             m_InstanceName ? m_InstanceName : "noname", *idx);
-
+        
         worker.run(m_Args.argc, m_Args.argv);
 
         return 0;
@@ -278,6 +278,11 @@ int NativeWorker::run(int argc, char **argv)
     printf("[Warn] Running in Debug mode\n");
 #endif
     if (argc >= 1) {
+        NativeJS *js = ctx.getNJS();
+        if (!js) {
+            fprintf(stderr, "Failed to get JS\n");
+            return 0;
+        }
         ctx.getNJS()->LoadScript(argv[0]);
     }
 
