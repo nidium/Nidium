@@ -11,7 +11,7 @@
         'configurations': {
             'Debug': {
                 'product_dir': '<(native_output)/debug/',
-                'defines': ['NATIVE_DEBUG', 'DEBUG', '_DEBUG', 'JS_DEBUG', 'js_config_h'],
+                'defines': ['NATIVE_DEBUG', 'DEBUG', '_DEBUG', 'JS_DEBUG', 'js_config_h', 'JS_HAVE_MACHINE_ENDIAN_H', 'JSGC_USE_EXACT_ROOTING'],
                 'msvs_settings': {
                     'VCCLCompilerTool': {
                         'RuntimeLibrary': 1, 
@@ -32,6 +32,9 @@
                     '-g',
                 ],
                 'cxxflags': [
+                    '-std=c++11'
+                ],
+                'cflags_cc': [
                     '-std=c++11'
                 ],
                 'xcode_settings': {
@@ -57,7 +60,7 @@
             },
             'Release': {
                 'product_dir': '<(native_output)/release/',
-                'defines': [ 'NDEBUG', 'js_config_h', 'JS_THREADSAFE', 'JS_HAS_CTYPES', 'JS_HAVE_MACHINE_ENDIAN_H'],
+                'defines': [ 'NDEBUG', 'js_config_h', 'JS_THREADSAFE', 'JS_HAS_CTYPES', 'JS_HAVE_MACHINE_ENDIAN_H', 'JSGC_USE_EXACT_ROOTING'],
                 'msvs_settings': {
                     'VCCLCompilerTool': {
                         'RuntimeLibrary': 0,
@@ -114,6 +117,9 @@
                 'cxxflags': [
                     '-std=c++11'
                 ],
+                'cflags_cc': [
+                    '-std=c++11'
+                ],                
             }
         },
         'conditions': [
