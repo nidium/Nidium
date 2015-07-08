@@ -49,7 +49,7 @@ def mozilla():
     nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/"))
     nsprFlags = "--with-nspr-cflags=\"-I" + nsprDir + "/dist/include/nspr/\" --with-nspr-libs=\"" + nsprDir + "/dist/lib/libnspr4.a " + nsprDir + "/dist/lib/libplds4.a " + nsprDir + "/dist/lib/libplc4.a\""
 
-    configure = "./configure --enable-threadsafe --enable-ctypes " + nsprFlags
+    configure = "./js/src/configure --enable-threadsafe --enable-ctypes " + nsprFlags
 
     if Konstruct.config("debug", "valgring"):
         configure += " --enable-debug --disable-optimize"
@@ -64,9 +64,9 @@ def mozilla():
 
     return {
         "location": location,
-        "chdir": "js/src/",
-        "build": ["autoconf2.13", configure, "make"],
-        "outputs": ["libjs_static.a$"]
+        "chdir": "",
+        "build": [configure, "makeSingle"],
+        "outputs": ["js/src/libjs_static.a$"]
     }
 
 @Deps.register("http-parser")

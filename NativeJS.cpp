@@ -112,7 +112,7 @@ static JSClass global_class = {
     "global", JSCLASS_GLOBAL_FLAGS,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, JS_GlobalObjectTraceHook, JSCLASS_NO_INTERNAL_MEMBERS
+    nullptr, nullptr, nullptr, JS_GlobalObjectTraceHook
 };
 
 static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
@@ -636,8 +636,9 @@ NativeJS::NativeJS(ape_global *net) :
         printf("Failed to init JS context\n");
         return;     
     }
-
+#if 0
     JS_SetGCZeal(cx, 2, 4);
+#endif
     //JS_ScheduleGC(cx, 1);
     //JS_SetGCCallback(rt, _gc_callback, NULL);
     
@@ -936,8 +937,15 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
     }
 
     uint32_t oldopts;
+
     JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
 
+    if (!gbl) {
+        fprintf(stderr, "Failed to load global object\n");
+        return 0;
+    }
+
+    JS::RootedScript script(cx);
     /* RAII helper that resets to origin options state */
     JS::AutoSaveContextOptions asco(cx);
 
@@ -948,9 +956,9 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
            .setFileAndLine(filename, 1)
            .setCompileAndGo(true).setNoScriptRval(true);
 
-    JS::RootedScript script(cx, JS::Compile(cx, gbl, options, data, len));
+    script = JS::Compile(cx, gbl, options, data, len);
 
-    if (script == NULL || !JS_ExecuteScript(cx, gbl, script)) {
+    if (!script || !JS_ExecuteScript(cx, gbl, script)) {
         if (JS_IsExceptionPending(cx)) {
             if (!JS_ReportPendingException(cx)) {
                 JS_ClearPendingException(cx);
