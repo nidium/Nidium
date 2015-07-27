@@ -553,6 +553,7 @@ JSObject *NativeJS::CreateJSGlobal(JSContext *cx)
 
     JS_InitStandardClasses(cx, glob);
     JS_DefineDebuggerObject(cx, glob);
+    JS_InitCTypesClass(cx, glob);
 
     JS_DefineFunctions(cx, glob, glob_funcs);
     JS_DefineProperties(cx, glob, glob_props);
@@ -935,8 +936,6 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
     if ((*(uint32_t *)data & 0xFFFFFF00) == 0xb973c000) {
         return this->LoadBytecode((void *)data, len, filename);
     }
-
-    uint32_t oldopts;
 
     JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
 

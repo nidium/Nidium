@@ -553,6 +553,11 @@ public:
         JSOBJ_SET_PROP_STR(obj, name, value);
     }
 
+    void set(const char *name, JSString *str) {
+        printf("NativeJSObjectBuilder using a JSString is deprecated\n");
+        exit(1);
+    }
+
     void set(const char *name, const char *value) {
         JS::RootedObject obj(m_Cx, m_Obj);
         JSOBJ_SET_PROP_CSTR(obj, name, value);
