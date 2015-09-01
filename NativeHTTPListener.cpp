@@ -595,6 +595,7 @@ void NativeHTTPResponse::send(ape_socket_data_autorelease datatype)
         only transfert the headers ownership
     */
     this->dataOwnershipTransfered(!(datatype == APE_DATA_AUTORELEASE));
+
     if (m_Con->shouldCloseConnection()) {
         /*
             TODO: temporise to (try to) avoid active close?
@@ -678,6 +679,12 @@ const buffer &NativeHTTPResponse::getHeadersString()
         this->setHeader("Transfer-Encoding", "chunked");
         this->removeHeader("Content-Length");
     }
+
+
+    if (m_Con && m_Con->shouldCloseConnection()) {
+        this->setHeader("Connection", "close");
+    }
+
     buffer *k, *v;
     if (this->getHeaders()) {
         APE_A_FOREACH(this->getHeaders(), k, v) {

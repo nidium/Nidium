@@ -211,6 +211,7 @@ public:
         return m_HttpState.url;
     }
 
+    /* Get a header value from the client request */
     const char *getHeader(const char *key);
 
     void resetData() {
