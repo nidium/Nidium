@@ -230,6 +230,10 @@ static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
       
     }
 
+    JSGET_OPT_TYPE(options, "followlocation", Boolean) {
+        nhttp->setFollowLocation(__curopt.toBoolean());
+    }
+
     JSGET_OPT_TYPE(options, "eval", Boolean) {
         jshttp->m_Eval = __curopt.toBoolean();
     }

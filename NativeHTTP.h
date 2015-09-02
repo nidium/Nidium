@@ -286,6 +286,10 @@ public:
         m_MaxRedirect = max;
     }
 
+    void setFollowLocation(bool toggle) {
+        m_FollowLocation = toggle;
+    }
+
     const char *getPath() const {
         return m_Path.c_str();
     }
@@ -304,6 +308,7 @@ private:
     HTTPError m_PendingError;
 
     int m_MaxRedirect;
+    bool m_FollowLocation;
 
     std::string m_Path;
 

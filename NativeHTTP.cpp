@@ -305,7 +305,7 @@ NativeHTTP::NativeHTTP(ape_global *n) :
     err(0), m_Timeout(HTTP_DEFAULT_TIMEOUT),
     m_TimeoutTimer(0), delegate(NULL),
     m_FileSize(0), m_isParsing(false), m_Request(NULL), m_CanDoRequest(true),
-    m_PendingError(ERROR_NOERR), m_MaxRedirect(8)
+    m_PendingError(ERROR_NOERR), m_MaxRedirect(8), m_FollowLocation(true)
 {
     memset(&http, 0, sizeof(http));
     memset(&m_Redirect, 0, sizeof(m_Redirect));
@@ -373,7 +373,7 @@ void NativeHTTP::headerEnded()
                     m_FileSize = 0;
                 }
             }
-        } else if ((http.parser.status_code == 301 ||
+        } else if (m_FollowLocation && (http.parser.status_code == 301 ||
                     http.parser.status_code == 302) &&
                 (location = REQUEST_HEADER("Location")) != NULL) {
 
