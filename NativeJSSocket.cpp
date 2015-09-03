@@ -635,6 +635,8 @@ static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
             protocol = APE_SOCKET_PT_UDP;
         } else if (strncasecmp("ssl", cproto.ptr(), 3) == 0) {
             protocol = APE_SOCKET_PT_SSL;
+        } else if (strncasecmp("unix", cproto.ptr(), 4) == 0) {
+            protocol = APE_SOCKET_PT_UNIX;
         }
 
         localport = (args.length() > 1 && args[1].isNumber() ? (uint16_t)args[1].toInt32() : 0);
