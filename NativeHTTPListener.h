@@ -223,7 +223,7 @@ public:
         }
     }
 
-    void onRead(buffer *buf, ape_global *ape);
+    void onRead(const char *data, size_t len, ape_global *ape);
     void write(char *buf, size_t len);
     void setContext(void *arg) {
         m_Ctx = arg;

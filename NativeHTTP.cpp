@@ -275,8 +275,8 @@ static void native_http_disconnect(ape_socket *s,
 
 }
 
-static void native_http_read(ape_socket *s, ape_global *ape,
-    void *socket_arg)
+static void native_http_read(ape_socket *s,
+    const uint8_t *data, size_t len, ape_global *ape, void *socket_arg)
 {
     size_t nparsed;
     NativeHTTP *nhttp = (NativeHTTP *)s->ctx;
@@ -287,10 +287,10 @@ static void native_http_read(ape_socket *s, ape_global *ape,
 
     nhttp->parsing(true);
     nparsed = http_parser_execute(&nhttp->http.parser, &settings,
-        (const char *)s->data_in.data, (size_t)s->data_in.used);
+        (const char *)data, len);
     nhttp->parsing(false);
 
-    if (nparsed != s->data_in.used && !nhttp->http.ended) {
+    if (nparsed != len && !nhttp->http.ended) {
         printf("[HTTP] (socket %p) Parser returned %ld with error %s\n", s, (unsigned long) nparsed,
             http_errno_description(HTTP_PARSER_ERRNO(&nhttp->http.parser)));
 

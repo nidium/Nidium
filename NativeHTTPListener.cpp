@@ -262,7 +262,7 @@ static void native_socket_onaccept(ape_socket *socket_server,
     http->onClientConnect(socket_client, ape);
 }
 
-static void native_socket_client_read(ape_socket *socket_client,
+static void native_socket_client_read(ape_socket *socket_client, const uint8_t *data, size_t len,
     ape_global *ape, void *socket_arg)
 {
     NativeHTTPClientConnection *con = (NativeHTTPClientConnection *)socket_client->ctx;
@@ -270,18 +270,18 @@ static void native_socket_client_read(ape_socket *socket_client,
         return;
     }
 
-    con->onRead(&socket_client->data_in, ape);
+    con->onRead((const char *)data, len, ape);
 }
 
 static void native_socket_client_read_after_upgrade(ape_socket *socket_client,
+    const uint8_t *data, size_t len,
     ape_global *ape, void *socket_arg)
 {
     NativeHTTPClientConnection *con = (NativeHTTPClientConnection *)socket_client->ctx;
     if (!con) {
         return;
     }
-    con->onContent((const char *)socket_client->data_in.data,
-        socket_client->data_in.used);  
+    con->onContent((const char *)data, len);  
 }
 
 static void native_socket_client_disconnect(ape_socket *socket_client,
@@ -404,7 +404,8 @@ NativeHTTPClientConnection::NativeHTTPClientConnection(NativeHTTPListener *https
     m_LastAcitivty = NativeUtils::getTick(true);
 }
 
-void NativeHTTPClientConnection::onRead(buffer *buf, ape_global *ape)
+void NativeHTTPClientConnection::onRead(const char *data,
+    size_t len, ape_global *ape)
 {
 #define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
     CONST_STR_LEN(header "\0"))
@@ -412,22 +413,22 @@ void NativeHTTPClientConnection::onRead(buffer *buf, ape_global *ape)
     m_LastAcitivty = NativeUtils::getTick(true);
 
     int nparsed = http_parser_execute(&m_HttpState.parser, &settings,
-        (const char *)buf->data, (size_t)buf->used);
+        data, len);
 
     if (m_HttpState.parser.upgrade) {
         buffer *upgrade_header = REQUEST_HEADER("upgrade");
 
         if (upgrade_header) {
             this->onUpgrade((const char *)upgrade_header->data);
-            if (nparsed < buf->used) {
+            if (nparsed < len) {
                 /* Non-http data in the current packet (after the header) */
-                this->onContent((const char *)&buf->data[nparsed], buf->used - nparsed);
+                this->onContent(&data[nparsed], len - nparsed);
             }
 
             /* Change the callback for the next on_read calls */
             m_SocketClient->callbacks.on_read = native_socket_client_read_after_upgrade;
         }
-    } else if (nparsed != buf->used) {
+    } else if (nparsed != len) {
         printf("Http error : %s\n", http_errno_description(HTTP_PARSER_ERRNO(&m_HttpState.parser)));
     }
 #undef REQUEST_HEADER    

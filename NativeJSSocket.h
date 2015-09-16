@@ -53,7 +53,7 @@ public:
 
     bool isJSCallable();
 
-    void onRead();
+    void onRead(const char *data, size_t len);
 
     NativeJSSocket *getParentServer() const {
         return m_ParentServer;

@@ -238,6 +238,8 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
 
     params[0].setObject(*jclient);
 
+    APE_socket_enable_lz4(socket_client, APE_LZ4_COMPRESS_TX|APE_LZ4_COMPRESS_RX);
+
     JS::RootedObject socketjs(m_Cx, nsocket->getJSObject());
 
     if (JS_GetProperty(m_Cx, socketjs, "onaccept", &onaccept) &&
@@ -358,7 +360,7 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
     }
 }
 
-void NativeJSSocket::onRead()
+void NativeJSSocket::onRead(const char *data, size_t len)
 {
     JS::RootedValue onread(m_Cx);
     JS::RootedValue rval(m_Cx);
@@ -379,40 +381,39 @@ void NativeJSSocket::onRead()
     }
 
     if (this->getFlags() & NATIVE_SOCKET_ISBINARY) {
-        JS::RootedObject arrayBuffer(m_Cx, JS_NewArrayBuffer(m_Cx, socket->data_in.used));
-        uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
-        memcpy(data, socket->data_in.data, socket->data_in.used);
+        JS::RootedObject arrayBuffer(m_Cx, JS_NewArrayBuffer(m_Cx, len));
+        uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
+        memcpy(adata, data, len);
 
         jparams[dataPosition].setObject(*arrayBuffer);
 
     } else if (this->getFlags() & NATIVE_SOCKET_READLINE) {
-        char *pBuf = (char *)socket->data_in.data;
-        size_t len = socket->data_in.used;
+        const char *pBuf = data;
+        size_t tlen = len;
         char *eol;
 
-        while (len > 0 && (eol = (char *)memchr(pBuf,
-            this->getFrameDelimiter(), len)) != NULL) {
+        while (tlen > 0 && (eol = (char *)memchr(pBuf,
+            this->getFrameDelimiter(), tlen)) != NULL) {
 
             size_t pLen = eol - pBuf;
-            len -= pLen;
-            if (len-- > 0) {
+            tlen -= pLen;
+            if (tlen-- > 0) {
                 this->readFrame(pBuf, pLen);
                 pBuf = eol+1;
             }
         }
 
-        if (len && len+this->lineBuffer.pos <= SOCKET_LINEBUFFER_MAX) {
-            memcpy(this->lineBuffer.data+this->lineBuffer.pos, pBuf, len);
-            this->lineBuffer.pos += len;
-        } else if (len) {
+        if (tlen && tlen+this->lineBuffer.pos <= SOCKET_LINEBUFFER_MAX) {
+            memcpy(this->lineBuffer.data+this->lineBuffer.pos, pBuf, tlen);
+            this->lineBuffer.pos += tlen;
+        } else if (tlen) {
             this->lineBuffer.pos = 0;
         }
 
         return;
     } else {
         JS::RootedString jstr(m_Cx, NativeJSUtils::newStringWithEncoding(m_Cx,
-            (char *)socket->data_in.data,
-            socket->data_in.used, this->getEncoding()));
+            data, len, this->getEncoding()));
 
         jparams[dataPosition].setString(jstr);
     }
@@ -427,6 +428,7 @@ void NativeJSSocket::onRead()
 }
 
 static void native_socket_wrapper_client_read(ape_socket *socket_client,
+    const uint8_t *data, size_t len,
     ape_global *ape, void *socket_arg)
 {
     NativeJSSocket *client = (NativeJSSocket *)socket_client->ctx;
@@ -435,10 +437,11 @@ static void native_socket_wrapper_client_read(ape_socket *socket_client,
         return;
     }
 
-    client->onRead();
+    client->onRead((const char *)data, len);
 }
 
-static void native_socket_wrapper_read(ape_socket *s, ape_global *ape,
+static void native_socket_wrapper_read(ape_socket *s,
+    const uint8_t *data, size_t len, ape_global *ape,
     void *socket_arg)
 {
     NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx;
@@ -447,7 +450,7 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape,
         return;
     }
 
-    nsocket->onRead();
+    nsocket->onRead((const char *)data, len);
 }
 
 static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
