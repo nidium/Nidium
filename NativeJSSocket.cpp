@@ -186,6 +186,7 @@ static void native_socket_wrapper_onconnected(ape_socket *s, ape_global *ape,
     JS::RootedValue rval(cx);
 
     JS::RootedObject obj(cx, nsocket->getJSObject());
+
     if (JS_GetProperty(cx, obj, "onconnect", &onconnect) &&
         JS_TypeOfValue(cx, onconnect) == JSTYPE_FUNCTION) {
 
@@ -238,7 +239,9 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
 
     params[0].setObject(*jclient);
 
-    APE_socket_enable_lz4(socket_client, APE_LZ4_COMPRESS_TX|APE_LZ4_COMPRESS_RX);
+    if (APE_SOCKET_IS_LZ4(socket_server, tx)) {
+        APE_socket_enable_lz4(socket_client, APE_LZ4_COMPRESS_TX|APE_LZ4_COMPRESS_RX);
+    }
 
     JS::RootedObject socketjs(m_Cx, nsocket->getJSObject());
 
@@ -557,6 +560,7 @@ static bool native_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     ape_socket *socket;
     ape_socket_proto protocol = APE_SOCKET_PT_TCP;
+    bool isLZ4 = false;
 
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
@@ -573,6 +577,8 @@ static bool native_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
 
         if (strncasecmp("udp", cproto.ptr(), 3) == 0) {
             protocol = APE_SOCKET_PT_UDP;
+        } else if (strncasecmp("tcp-lz4", cproto.ptr(), 7) == 0) {
+            isLZ4 = true;
         }
 
     }
@@ -606,6 +612,10 @@ static bool native_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
+    if (isLZ4) {
+        APE_socket_enable_lz4(socket, APE_LZ4_COMPRESS_TX|APE_LZ4_COMPRESS_RX);
+    }
+
     NativeJSObj(cx)->rootObjectUntilShutdown(thisobj);
 
     args.rval().setObjectOrNull(thisobj);
@@ -620,6 +630,7 @@ static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
     ape_socket *socket;
     ape_socket_proto protocol = APE_SOCKET_PT_TCP;
     uint16_t localport = 0;
+    bool isLZ4 = false;
 
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
@@ -640,6 +651,8 @@ static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
             protocol = APE_SOCKET_PT_SSL;
         } else if (strncasecmp("unix", cproto.ptr(), 4) == 0) {
             protocol = APE_SOCKET_PT_UNIX;
+        } else if (strncasecmp("tcp-lz4", cproto.ptr(), 7) == 0) {
+            isLZ4 = true;
         }
 
         localport = (args.length() > 1 && args[1].isNumber() ? (uint16_t)args[1].toInt32() : 0);
@@ -664,6 +677,10 @@ static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
         if (!APE_socket_setTimeout(socket, CppObj->m_TCPTimeout)) {
             JS_ReportWarning(cx, "Couldn't set TCP timeout on socket\n");
         }
+    }
+
+    if (isLZ4) {
+        APE_socket_enable_lz4(socket, APE_LZ4_COMPRESS_TX|APE_LZ4_COMPRESS_RX);
     }
 
     if (APE_socket_connect(socket, CppObj->port, CppObj->host, localport) == -1) {
