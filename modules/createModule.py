@@ -114,7 +114,7 @@ def createmodule(name, classname):
     createSource(name, classname)
     createMakefile(name, classname)
 
-    print("Now build with {0}".format('PYTHONPATH=../../ ./configure --debug --third-party=../../third-party/'))
+    print("Now build with cd {0} && make".format(name))
 
 if __name__ == '__main__':
     createmodule()
