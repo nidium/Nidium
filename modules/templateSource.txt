@@ -1,0 +1,93 @@
+#include <NativeUtils.h>
+#include <NativeJSUtils.h>
+
+#include "{classname}.h"
+
+static void {classname}_Finalize(JSFreeOp *fop, JSObject *obj);
+static bool native_{classname}_foobar(JSContext *cx, unsigned argc, jsval *vp);
+
+static JSClass {classname}_class = {{
+    "{classname}", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, {classname}_Finalize,
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
+}};
+
+template<>
+JSClass *NativeJSExposer<NativeJS{classname}>::jsclass = &{classname}_class;
+
+static JSFunctionSpec {classname}_funcs[] = {{
+    JS_FN("foobar", native_{classname}_foobar, 2, 0),
+    JS_FS_END
+}};
+
+static void {classname}_Finalize(JSFreeOp *fop, JSObject *obj)
+{{
+    NativeJS{classname} *instance = (NativeJS{classname} *)JS_GetPrivate(obj);
+    if (instance != NULL) {{
+        delete instance;
+    }}
+}}
+
+NativeJS{classname}::NativeJS{classname}(JS::HandleObject obj, JSContext *cx) :
+    NativeJSExposer<NativeJS{classname}>(obj, cx)
+{{
+
+}}
+
+NativeJS{classname}::~NativeJS{classname}()
+{{
+
+}}
+
+static bool native_{classname}_foobar(JSContext *cx, unsigned argc, jsval *vp)
+{{
+
+    JSNATIVE_PROLOGUE_CLASS(NativeJS{classname}, &{classname}_class);
+
+    NATIVE_CHECK_ARGS("foobar", 1);
+    /* CppObj == instance of NativeJS{classname} */
+
+    return true;
+}}
+
+static bool native_{classname}_constructor(JSContext *cx,
+    unsigned argc, jsval *vp)
+{{
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedString foobar(cx);
+
+    if (!args.isConstructing()) {{
+        JS_ReportError(cx, "Bad constructor");
+        return false;
+    }}
+
+    if (!JS_ConvertArguments(cx, args, "S", foobar.address())) {{
+        return false;
+    }}
+
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx,
+                            &{classname}_class, args));
+
+    NativeJS{classname} *js{classname};
+
+    js{classname} = new NativeJS{classname}(ret, cx);
+
+    NativeJSObj(cx)->rootObjectUntilShutdown(ret);
+
+    JS_SetPrivate(ret, js{classname});
+    args.rval().setObject(*ret);
+
+    return true;
+}}
+
+static bool registerCallback(JSContext *cx, JS::HandleObject exports) {{
+
+    JS_InitClass(cx, exports, JS::NullPtr(), &{classname}_class,
+                native_{classname}_constructor,
+                1, NULL, {classname}_funcs, NULL, NULL);
+  
+    return true;
+}}
+
+NATIVE_REGISTER_MODULE(registerCallback)
