@@ -31,7 +31,7 @@ static void signal_handler(int sign)
     ape_running = 0;
     for (auto it = pidList.begin(); it != pidList.end(); it++)
     {
-        kill(*it, SIGTERM);
+        kill(*it, sign);
     }
     NLOG("Signal %d received, shutting down...", sign);
 }
