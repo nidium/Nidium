@@ -5,6 +5,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <list>
 #ifdef __linux__
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -23,10 +24,15 @@
 
 int ape_running = 1;
 unsigned long _ape_seed;
+static std::list<pid_t> pidList;
 
 static void signal_handler(int sign)
 {
     ape_running = 0;
+    for (auto it = pidList.begin(); it != pidList.end(); it++)
+    {
+        kill(*it, SIGTERM);
+    }
     NLOG("Signal %d received, shutting down...", sign);
 }
 
@@ -119,6 +125,8 @@ int NativeServer::initWorker(int *idx)
 
         return 0;
 #ifndef NATIVE_NO_FORK
+    } else {
+        pidList.push_back(pid);
     }
 #endif
 
