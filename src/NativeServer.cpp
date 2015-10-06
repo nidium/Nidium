@@ -29,9 +29,8 @@ static std::list<pid_t> pidList;
 static void signal_handler(int sign)
 {
     ape_running = 0;
-    for (auto it = pidList.begin(); it != pidList.end(); it++)
-    {
-        kill(*it, sign);
+    for (auto it : pidList) {
+        kill(it, sign);
     }
     NLOG("Signal %d received, shutting down...", sign);
 }
@@ -125,9 +124,8 @@ int NativeServer::initWorker(int *idx)
 
         return 0;
 #ifndef NATIVE_NO_FORK
-    } else {
-        pidList.push_back(pid);
     }
+    pidList.push_back(pid);
 #endif
 
     m_PidIdxMapper[pid] = *idx;
