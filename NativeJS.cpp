@@ -587,7 +587,7 @@ static void _gc_callback(JSRuntime *rt, JSGCStatus status, void *data)
 }
 
 NativeJS::NativeJS(ape_global *net) :
-    m_Logger(NULL), m_vLogger(NULL), m_LogClear(NULL)
+    m_Logger(NULL), m_vLogger(NULL), m_LogClear(NULL), m_JSStrictMode(false)
 {
     JSRuntime *rt;
     this->privateslot = NULL;
@@ -948,8 +948,8 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
     /* RAII helper that resets to origin options state */
     JS::AutoSaveContextOptions asco(cx);
 
-    JS::ContextOptionsRef(cx).setVarObjFix(true);
-
+    JS::ContextOptionsRef(cx).setVarObjFix(true).setStrictMode(m_JSStrictMode);
+    
     JS::CompileOptions options(cx);
     options.setUTF8(true)
            .setFileAndLine(filename, 1)
