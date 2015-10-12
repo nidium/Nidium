@@ -125,6 +125,10 @@ class NativeJS
             m_LogClear = clearfunc;
         }
 
+        void setStrictMode(bool val) {
+            m_JSStrictMode = val;
+        }
+
         void loadGlobalObjects();
         
         static void copyProperties(JSContext *cx, JS::HandleObject source, JS::MutableHandleObject into);
@@ -180,6 +184,7 @@ class NativeJS
         bool shutdown;
         const char *relPath;
         JSCompartment *m_Compartment;
+        bool m_JSStrictMode;
 
         /* argument list (...) */
         logger m_Logger;
