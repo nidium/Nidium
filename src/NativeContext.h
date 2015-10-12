@@ -9,7 +9,7 @@ class NativeContext
 {
 public:
 
-    NativeContext(ape_global *ape, NativeWorker *worker);
+    NativeContext(ape_global *ape, NativeWorker *worker, bool jsstrict = false);
     ~NativeContext();
 
     static NativeContext *getNativeClass(struct JSContext *cx) {

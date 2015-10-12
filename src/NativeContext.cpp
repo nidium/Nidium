@@ -25,7 +25,8 @@ static int NativeContext_ping(void *arg)
     return 8;
 }
 
-NativeContext::NativeContext(ape_global *net, NativeWorker *worker) :
+NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
+    bool jsstrict) :
     m_Worker(worker)
 {
 
@@ -34,6 +35,7 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker) :
 
     m_JS = new NativeJS(net);
     m_JS->setPrivate(this);
+    m_JS->setStrictMode(jsstrict);
 
     NativePath::registerScheme(SCHEME_DEFINE("file://", NativeFileStream, false), true);
     NativePath::registerScheme(SCHEME_DEFINE("http://",    NativeHTTPStream,    true));

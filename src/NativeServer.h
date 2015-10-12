@@ -48,6 +48,7 @@ private:
 
     char *m_InstanceName;
     bool m_HasREPL;
+    bool m_JSStrictMode;
     int m_NWorkers;
 };
 
@@ -56,7 +57,7 @@ class NativeWorker
 public:
      NativeWorker(int idx, bool repl = false);
     ~NativeWorker();
-    int run(int argc, char **argv);
+    int run(int argc, char **argv, bool jsstrict = false);
 
     int getIdentifier() const {
         return m_Idx;
