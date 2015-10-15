@@ -26,6 +26,7 @@
 //#include <jsstr.h>
 #include <ape_sha1.h>
 #include <ape_base64.h>
+#include <ape_blowfish.h>
 
 #include <js/CharacterEncoding.h>
 
@@ -152,6 +153,20 @@ char *NativeUtils::b64Encode(const unsigned char *buf, size_t len)
 int NativeUtils::b64Decode(unsigned char *out, const char *in, int out_length)
 {
     return base64_decode(out, in, out_length);
+}
+
+uint64_t NativeUtils::blowfishDecrypt(uint64_t *data, const uint8_t *key, int key_len)
+{
+    struct APEBlowfish ctx;
+
+    uint32_t xl = *data >> 32;
+    uint32_t xr = *data & 0x00000000FFFFFFFFLL;
+
+    APE_blowfish_init(&ctx, key, key_len);
+
+    APE_blowfish_crypt_ecb(&ctx, &xl, &xr, 1);
+
+    return (uint64_t)xl << 32 | xr;
 }
 
 static const char  *week[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
