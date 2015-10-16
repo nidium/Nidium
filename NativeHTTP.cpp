@@ -185,7 +185,6 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
 
 static int request_url_cb(http_parser *p, const char *buf, size_t len)
 {
-    printf("Request URL cb\n");
     return 0;
 }
 
@@ -232,7 +231,7 @@ static void native_http_connected(ape_socket *s,
         PACK_TCP(s->s.fd);
         APE_socket_write(s, headers->data, headers->used, APE_DATA_COPY);
 
-        /* APE_DATA_OWN? Warum? It's good as look as
+        /* APE_DATA_OWN? Warum? It's good as long as
         the lifetime of the data is tied to the socket lifetime */
         APE_socket_write(s, (unsigned char *)request->getData(),
             nhttp->getRequest()->getDataLength(), APE_DATA_OWN);
@@ -291,7 +290,7 @@ static void native_http_read(ape_socket *s,
     nhttp->parsing(false);
 
     if (nparsed != len && !nhttp->http.ended) {
-        printf("[HTTP] (socket %p) Parser returned %ld with error %s\n", s, (unsigned long) nparsed,
+        fprintf(stderr, "[HTTP] (socket %p) Parser returned %ld with error %s\n", s, (unsigned long) nparsed,
             http_errno_description(HTTP_PARSER_ERRNO(&nhttp->http.parser)));
 
         nhttp->setPendingError(NativeHTTP::ERROR_RESPONSE);

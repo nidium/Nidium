@@ -25,18 +25,38 @@
 
 
 #define NATIVEWEBSOCKET_PING_INTERVAL 5000 /* ms */
-#define NATIVEWEBSOCKET_SERVER_MESSAGE_BITS(id) ((1 << 22) | id)
 
-enum {
-    NATIVEWEBSOCKET_SERVER_CONNECT = NATIVEWEBSOCKET_SERVER_MESSAGE_BITS(1),
-    NATIVEWEBSOCKET_SERVER_FRAME   = NATIVEWEBSOCKET_SERVER_MESSAGE_BITS(2),
-    NATIVEWEBSOCKET_SERVER_CLOSE   = NATIVEWEBSOCKET_SERVER_MESSAGE_BITS(3),
+class NativeWebSocketClient : NativeEvents
+{
+public:
+    static const uint8_t EventID = 5;
+
+    enum Events {
+        CLIENT_CONNECT,
+        CLIENT_FRAME,
+        CLIENT_CLOSE
+    };
+
+    NativeWebSocketClient(uint16_t port, const char *ip = "0.0.0.0");
+    bool connect(bool ssl, ape_global *ape);
+    ~NativeWebSocketClient();
+
+    void onConnected();
+    void onData(const uint8_t *data, size_t len);
+    void onFrame(const char *data, size_t len, bool binary);
+    void onClose();
+
+private:
+    char *m_Host;
+    uint16_t m_Port;
+    ape_socket *m_Socket;
+
+    websocket_state m_WSState;
 };
 
 class NativeWebSocketListener : public NativeHTTPListener
 {
 public:
-
     static const uint8_t EventID = 4;
 
     enum Events {
