@@ -36,7 +36,7 @@
   #include <mach/mach_time.h>
 #else
   #include <time.h>
-
+  #include <arpa/inet.h>  
 
 #ifdef __WIN32
 LARGE_INTEGER
