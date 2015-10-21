@@ -24,8 +24,6 @@ public:
         return m_JS;
     }
 
-    void loadNativeObjects();
-
     NativeWorker *getWorker() const {
         return m_Worker;
     }
@@ -35,4 +33,3 @@ private:
 };
 
 #endif
-
