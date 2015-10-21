@@ -11,7 +11,7 @@
         'configurations': {
             'Debug': {
                 'product_dir': '<(native_output)/debug/',
-                'defines': ['NATIVE_DEBUG', 'DEBUG', '_DEBUG', 'JS_DEBUG', 'js_config_h', 'JS_HAVE_MACHINE_ENDIAN_H', 'JSGC_USE_EXACT_ROOTING'],
+                'defines': ['NATIVE_DEBUG', 'DEBUG', '_DEBUG', 'JS_DEBUG', 'js_config_h','JS_THREADSAFE', 'JS_HAS_CTYPES', 'JS_HAVE_MACHINE_ENDIAN_H', 'JSGC_USE_EXACT_ROOTING'],
                 'msvs_settings': {
                     'VCCLCompilerTool': {
                         'RuntimeLibrary': 1, 
@@ -49,8 +49,8 @@
                     'MACOSX_DEPLOYMENT_TARGET': [
                         '10.7'
                     ],
-                    'SDKROOT': [
-                        'macosx10.9'
+                    'OTHER_LDFLAGS': [ 
+                        '-stdlib=libc++',
                     ],
                     'OTHER_CFLAGS': [ 
                         '-g',
@@ -98,8 +98,8 @@
                     'MACOSX_DEPLOYMENT_TARGET': [
                         '10.7'
                     ],
-                    'SDKROOT': [
-                        'macosx10.9'
+                    'OTHER_LDFLAGS': [ 
+                        '-stdlib=libc++',
                     ],
                     'OTHER_CFLAGS': [ 
                         '-g',
