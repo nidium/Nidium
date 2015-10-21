@@ -312,7 +312,7 @@ int NativeWorker::run(int argc, char **argv, bool jsstrict)
     if (repl) {
         delete repl;
     }
+    native_netlib_destroy(net);
 
     return 0;
 }
-
