@@ -1,7 +1,6 @@
 {
     'includes': [
         '../nativejscore/network/gyp/config.gypi',
-        '../nativejscore/network/gyp/common.gypi'
     ],
     'variables' : {
         'native_version': '0.1',
@@ -13,8 +12,6 @@
         'native_exec_path': '../dist/',
 
         'third_party_path%': '../third-party/',
-        'native_output%': '../out/',
-        'asan%': 0,
         'jemalloc%': 0,
         'nofork%': 0
     },

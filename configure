@@ -37,5 +37,5 @@ def heapProfiling(profiling):
 
 if __name__ == '__main__':
     Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
-    Build.add(Gyp("gyp/all.gyp"));
+    Build.add(Gyp("gyp/native-server.gyp"));
     Konstruct.start() 
