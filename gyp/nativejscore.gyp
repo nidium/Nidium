@@ -11,23 +11,30 @@
                 '<(third_party_path)/leveldb/include/',
                 '../',
             ],
+            'cflags': [
+                '-Wno-c++0x-extensions',
+                # Flags needed to silent some SM warning
+                '-Wno-invalid-offsetof',
+                '-Wno-mismatched-tags'
+            ],
             'defines': [
                 #'_FILE_OFFSET_BITS=64',
-                '__STDC_LIMIT_MACROS'
+                '__STDC_LIMIT_MACROS',
+                'JSGC_USE_EXACT_ROOTING'
             ],
+            # Include our own js-config.h so it is automatically
+            # versioned for our build flavour
             'conditions': [
                 ['OS=="mac"', {
                     'xcode_settings': {
                         'OTHER_CFLAGS': [
-                            #'-fvisibility=hidden'
+                            '-include <(native_output_third_party)/js-config.h'
                         ],
                     },
                 }],
                 ['OS=="linux"', {
                     'cflags': [
-                    #    '-fvisibility=hidden',
-                        '-Wno-c++0x-extensions',
-                        '-Wno-invalid-offsetof'
+                        '-include <(native_output_third_party)/js-config.h'
                     ],
                 }]
             ],
@@ -52,12 +59,12 @@
                 ['OS=="linux"', {
                     "link_settings": {
                         'libraries': [
-                            '-lpthread',
-                            '-lz',
-                            '-ldl',
-                            '-lrt',
                             '-ljs_static',
                             '-lnspr4',
+                            '-lpthread',
+                            '-lrt',
+                            '-ldl',
+                            '-lz',
                             '-lcares',
                             '-lhttp_parser',
                             '-lleveldb',
@@ -69,48 +76,21 @@
     }, {
         'target_name': 'nativejscore',
         'type': 'static_library',
-        'includes': [
-            '../network/gyp/config.gypi',
-            '../network/gyp/common.gypi',
-        ],
-        'include_dirs': [
-            '<(third_party_path)/mozilla-central/dist/include/',
-            '<(third_party_path)/mozilla-central/js/src/',
-            '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
-            '<(third_party_path)/leveldb/include/',
-            '<(third_party_path)/http-parser/',
-            '../',
-        ],
-        'defines': [
-            #'_FILE_OFFSET_BITS=64',
-            '__STDC_LIMIT_MACROS'
-        ],
         'dependencies': [
             '../network/gyp/network.gyp:*',
-            'jsoncpp.gyp:jsoncpp'
+            'jsoncpp.gyp:jsoncpp',
+            'nativejscore.gyp:nativejscore-includes',
         ],
         'conditions': [
             ['OS=="mac"', {
                 'defines': [
                     'DSO_EXTENSION=".dylib"'
                 ],
-                'xcode_settings': {
-                    'OTHER_CFLAGS': [
-                        '-fvisibility=hidden',
-                    	'-std=c++0x'
-                    ],
-                },
             }],
             ['OS=="linux"', {
-                'cflags': [
-                    #'-fvisibility=hidden',
-                    '-Wno-c++0x-extensions',
-                    '-Wno-invalid-offsetof',
-                    '-std=c++0x'
-                ],
                 'defines': [
                     'DSO_EXTENSION=".so"'
-                ],
+                ]
             }]
         ],
         'sources': [
@@ -144,7 +124,7 @@
             '../NativeJSConsole.cpp',
             '../NativeJSProfiler.cpp',
             '../NativeJSFS.cpp',
-            '../NativeJSProcess.cpp'
+            '../NativeJSProcess.cpp',
         ],
     }],
 }
