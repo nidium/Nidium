@@ -11,33 +11,34 @@
                 '<(third_party_path)/leveldb/include/',
                 '../',
             ],
-            'cflags': [
-                '-Wno-c++0x-extensions',
-                # Flags needed to silent some SM warning
-                '-Wno-invalid-offsetof',
-                '-Wno-mismatched-tags'
-            ],
             'defines': [
                 #'_FILE_OFFSET_BITS=64',
                 '__STDC_LIMIT_MACROS',
                 'JSGC_USE_EXACT_ROOTING'
             ],
-            # Include our own js-config.h so it is automatically
-            # versioned for our build flavour
-            'conditions': [
-                ['OS=="mac"', {
-                    'xcode_settings': {
-                        'OTHER_CFLAGS': [
-                            '-include <(native_output_third_party)/js-config.h'
-                        ],
-                    },
-                }],
-                ['OS=="linux"', {
-                    'cflags': [
-                        '-include <(native_output_third_party)/js-config.h'
-                    ],
-                }]
+            'cflags': [
+                '-Wno-c++0x-extensions',
+                # Flags needed to silent some SM warning
+                '-Wno-invalid-offsetof',
+                '-Wno-mismatched-tags',
+                # Include our own js-config.h so it is automatically
+                # versioned for our build flavour
+                '-include <(native_output_third_party)/js-config.h'
             ],
+            'xcode_settings': {
+                'OTHER_CFLAGS': [
+                    '-Wno-c++0x-extensions',
+                    '-Wno-invalid-offsetof',
+                    '-Wno-mismatched-tags',
+                    '-include <(native_output_third_party)/js-config.h',
+                ],
+                "OTHER_LDFLAGS": [
+                    '-stdlib=libc++'
+                ],
+                'OTHER_CPLUSPLUSFLAGS': [ 
+                    '$inherited',
+                ],
+            },
         },
     }, {
         'target_name': 'nativejscore-link',
