@@ -97,7 +97,8 @@ class NativeUtils
     static int b64Decode(unsigned char *out, const char *in, int out_length);
     static void blowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len);
     static int b16Decode(unsigned char *out, const char *in, int out_length);
-    
+    static uint64_t rand64();
+
     static void HTTPTime(char *buf);
 };
 

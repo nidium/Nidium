@@ -27,6 +27,7 @@
 #include <ape_sha1.h>
 #include <ape_base64.h>
 #include <ape_blowfish.h>
+#include <fcntl.h>
 
 #include <js/CharacterEncoding.h>
 
@@ -199,6 +200,24 @@ void NativeUtils::blowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len
 
     memcpy(data, &xl, sizeof(uint32_t));
     memcpy(data+sizeof(uint32_t), &xr, sizeof(uint32_t));
+}
+
+uint64_t NativeUtils::rand64()
+{
+    int random;
+    uint64_t ret = 0;
+    
+    random = open("/dev/urandom", O_RDONLY);
+    
+    if (!random) {
+        fprintf(stderr, "Cannot open /dev/urandom\n");
+        return 0;
+    }
+    
+    read(random, &ret, sizeof(uint64_t));
+    close(random);
+    
+    return ret;
 }
 
 static const char  *week[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
