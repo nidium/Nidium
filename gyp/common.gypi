@@ -1,6 +1,6 @@
 {
     'includes': [
-        '../nativejscore/network/gyp/common.gypi'
+        '../nativejscore/gyp/common.gypi'
     ],
     'target_defaults': {
         'defines': [
