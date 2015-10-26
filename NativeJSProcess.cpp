@@ -19,9 +19,11 @@
 
 #include "NativeJSProcess.h"
 #include "NativeJS.h"
+#include <native_netlib.h>
 
 static void Process_Finalize(JSFreeOp *fop, JSObject *obj);
-
+static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_process_exit(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass Process_class = {
     "NativeProcess", JSCLASS_HAS_PRIVATE,
@@ -37,9 +39,38 @@ JSClass *NativeJSExposer<NativeJSProcess>::jsclass = &Process_class;
 
 
 static JSFunctionSpec Process_funcs[] = {
-
+    JS_FN("setSignalHandler", native_setSignalHandler, 1, 0),
+    JS_FN("exit", native_process_exit, 1, 0),
     JS_FS_END
 };
+
+
+static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    ape_global *ape = NativeJS::getNet();
+
+    JSNATIVE_PROLOGUE_CLASS(NativeJSProcess, &Process_class);
+    NATIVE_CHECK_ARGS("setSignalHandler", 1);
+
+    JS::RootedValue func(cx);
+
+    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
+        JS_ReportWarning(cx, "setSignalHandler: bad callback");
+        return true;
+    }
+
+    CppObj->m_SignalFunction = func;
+
+    return true;
+}
+
+static bool native_process_exit(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
+    ape->is_running = 0;
+    
+    return true;
+}
 
 static void Process_Finalize(JSFreeOp *fop, JSObject *obj)
 {
@@ -48,6 +79,25 @@ static void Process_Finalize(JSFreeOp *fop, JSObject *obj)
     if (jProcess != NULL) {
         delete jProcess;
     }
+}
+
+static int ape_kill_handler(int code, ape_global *ape)
+{
+    NativeJS *njs = NativeJS::getNativeClass();
+    JSContext *cx = njs->cx;
+    JS::RootedValue     rval(cx);
+
+    NativeJSProcess *jProcess = NativeJSProcess::getNativeClass(njs);
+
+    JS::RootedValue func(cx, jProcess->m_SignalFunction);
+
+    if (func.isObject() && JS_ObjectIsCallable(cx, func.toObjectOrNull())) {
+        JS_CallFunctionValue(cx, JS::NullPtr(), func, JS::HandleValueArray::empty(), &rval);
+
+        return rval.isBoolean() ? !rval.toBoolean() : false;
+    }
+
+    return false;
 }
 
 void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc, int workerId)
@@ -77,5 +127,9 @@ void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc, int w
 
     JS::RootedValue workerid_v(cx, JS::Int32Value(workerId));
     JS_SetProperty(cx, ProcessObj, "workerId", workerid_v);
+
+    NativeJS::getNet()->kill_handler = ape_kill_handler;
+    jProcess->m_SignalFunction.set(JS::NullHandleValue);
+
 }
 
