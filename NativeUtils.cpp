@@ -26,6 +26,7 @@
 //#include <jsstr.h>
 #include <ape_sha1.h>
 #include <ape_base64.h>
+#include <ape_blowfish.h>
 
 #include <js/CharacterEncoding.h>
 
@@ -35,7 +36,7 @@
   #include <mach/mach_time.h>
 #else
   #include <time.h>
-
+  #include <arpa/inet.h>  
 
 #ifdef __WIN32
 LARGE_INTEGER
@@ -120,6 +121,16 @@ static __inline uint64_t mach_absolute_time()
 #endif
 #endif
 
+
+static uint8_t nibbleFromChar(char c)
+{
+    if(c >= '0' && c <= '9') return c - '0';
+    if(c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if(c >= 'A' && c <= 'F') return c - 'A' + 10;
+
+    return 255;
+}
+
 /* TODO: iOS : http://shiftedbits.org/2008/10/01/mach_absolute_time-on-the-iphone/ */
 uint64_t NativeUtils::getTick(bool ms)
 {
@@ -152,6 +163,42 @@ char *NativeUtils::b64Encode(const unsigned char *buf, size_t len)
 int NativeUtils::b64Decode(unsigned char *out, const char *in, int out_length)
 {
     return base64_decode(out, in, out_length);
+}
+
+int NativeUtils::b16Decode(unsigned char *out, const char *in, int out_length)
+{
+    int len, i;
+    int inlen = strlen(in);
+
+    if ((inlen % 2)) {
+        return 0;
+    }
+
+    len = strlen(in) / 2;
+
+    for (i = 0; i < len; i++) {
+        out[i] = nibbleFromChar(in[i * 2]) * 16 + nibbleFromChar(in[i * 2 + 1]);
+    }
+
+    return len;
+}
+
+void NativeUtils::blowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len)
+{
+    struct APEBlowfish ctx;
+
+    uint32_t xl = data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3];
+    uint32_t xr = data[4] << 24 | data[5] << 16 | data[6] << 8 | data[7];
+
+    APE_blowfish_init(&ctx, key, key_len);
+
+    APE_blowfish_crypt_ecb(&ctx, &xl, &xr, 1);
+
+    xl = ntohl(xl);
+    xr = ntohl(xr);
+
+    memcpy(data, &xl, sizeof(uint32_t));
+    memcpy(data+sizeof(uint32_t), &xr, sizeof(uint32_t));
 }
 
 static const char  *week[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
