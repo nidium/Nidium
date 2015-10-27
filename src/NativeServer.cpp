@@ -120,7 +120,7 @@ int NativeServer::initWorker(int *idx)
         setproctitle("Native-Server:<%s> (worker %d)",
             m_InstanceName ? m_InstanceName : "noname", *idx);
         
-        worker.run(m_Args.argc, m_Args.argv);
+        worker.run(m_Args.argc, m_Args.argv, m_JSStrictMode);
 
         return 0;
 #ifndef NATIVE_NO_FORK
@@ -152,6 +152,7 @@ int NativeServer::init()
 
     static struct option long_options[] =
     {
+        {"strict",     no_argument,       0, 's'},
         {"daemon",     no_argument,       0, 'd'},
         {"workers",    required_argument, 0, 'w'},
         {"name",       required_argument, 0, 'n'},
@@ -173,13 +174,14 @@ int NativeServer::init()
     */
     setenv("POSIXLY_CORRECT", "1", 1);
 
-    const char *pname = m_Args.argv[0];
-
-    while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dnw:", long_options, NULL)) != -1) {
+    while ((ch = getopt_long(m_Args.argc, m_Args.argv, "sdnw:", long_options, NULL)) != -1) {
         //printf("Got %c (%s)\n", ch, optarg);
         switch (ch) {
             case 'd':
                 daemon = true;
+                break;
+            case 's':
+                m_JSStrictMode = true;
                 break;
             case '?':
                 exit(1);
@@ -232,7 +234,8 @@ int NativeServer::init()
 }
 
 NativeServer::NativeServer(int argc, char **argv) :
-    m_WorkerIdx(0), m_InstanceName(NULL), m_HasREPL(true), m_NWorkers(0)
+    m_WorkerIdx(0), m_InstanceName(NULL), m_HasREPL(true),
+    m_NWorkers(0), m_JSStrictMode(false)
 {
     m_Args.argc = argc;
     m_Args.argv = argv;
@@ -262,7 +265,7 @@ static int NativeCheckParentAlive_ping(void *arg)
     return 1000;
 }
 
-int NativeWorker::run(int argc, char **argv)
+int NativeWorker::run(int argc, char **argv, bool jsstrict)
 {
     NativeREPL *repl = NULL;
     ape_global *net = native_netlib_init();
@@ -271,7 +274,7 @@ int NativeWorker::run(int argc, char **argv)
 
     signal(SIGPIPE, SIG_IGN);
 
-    NativeContext ctx(net, this);
+    NativeContext ctx(net, this, jsstrict);
     const NativeJS *js = ctx.getNJS();
     NativeJSProcess::registerObject(js->getJSContext(), argv, argc,
         this->getIdentifier());
@@ -281,8 +284,11 @@ int NativeWorker::run(int argc, char **argv)
     */
 
 #ifdef DEBUG
-    printf("[Warn] Running in Debug mode\n");
+    fprintf(stdout, "[Warn] Running in Debug mode\n");
 #endif
+    if (jsstrict) {
+        fprintf(stdout, "[JS] Strict mode is enabled\n");
+    }
     if (argc >= 1) {
         NativeJS *js = ctx.getNJS();
         if (!js) {
@@ -304,7 +310,7 @@ int NativeWorker::run(int argc, char **argv)
     if (repl) {
         delete repl;
     }
+    native_netlib_destroy(net);
 
     return 0;
 }
-

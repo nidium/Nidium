@@ -9,7 +9,7 @@ class NativeContext
 {
 public:
 
-    NativeContext(ape_global *ape, NativeWorker *worker);
+    NativeContext(ape_global *ape, NativeWorker *worker, bool jsstrict = false);
     ~NativeContext();
 
     static NativeContext *getNativeClass(struct JSContext *cx) {
@@ -24,8 +24,6 @@ public:
         return m_JS;
     }
 
-    void loadNativeObjects();
-
     NativeWorker *getWorker() const {
         return m_Worker;
     }
@@ -35,4 +33,3 @@ private:
 };
 
 #endif
-

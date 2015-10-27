@@ -17,7 +17,7 @@
             'Release': {
                 'product_dir': '<(native_output)/release/',
                 'defines': ['NDEBUG'],
-            }
+	    }
         },
     },
 }
