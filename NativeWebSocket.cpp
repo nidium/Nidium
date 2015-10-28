@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include <NativeJS.h>
+#include <ape_base64.h>
 
 #define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
     CONST_STR_LEN(header "\0"))
@@ -199,116 +200,5 @@ static void native_on_ws_frame(websocket_state *state,
     }
 
     con->onFrame((const char *)data, length, (bool)binary);
-}
-
-
-////////////////////////////////////////////
-/* client side */
-
-static void native_ws_connected(ape_socket *s,
-    ape_global *ape, void *arg)
-{
-    ((NativeWebSocketClient *)arg)->onConnected();
-}
-
-static void native_ws_read(ape_socket *s,
-    const uint8_t *data, size_t len, ape_global *ape, void *arg)
-{
-    ((NativeWebSocketClient *)arg)->onData(data, len);
-}
-
-static void native_ws_disconnect(ape_socket *s,
-    ape_global *ape, void *arg)
-{
-    ((NativeWebSocketClient *)arg)->onClose();
-}
-
-static void native_on_ws_client_frame(websocket_state *state,
-    const unsigned char *data, ssize_t length, int binary)
-{
-    ape_socket *sock = state->socket;
-    if (sock == NULL) {
-        return;
-    }
-
-    NativeWebSocketClient *con =
-        (NativeWebSocketClient *)sock->ctx;
-
-    if (con == NULL) {
-        return;
-    }
-
-    con->onFrame((const char *)data, length, (bool)binary);
-}
-
-
-NativeWebSocketClient::NativeWebSocketClient(uint16_t port, const char *host) :
-    m_Port(port)
-{
-    m_Host = strdup(host);
-}
-
-NativeWebSocketClient::~NativeWebSocketClient()
-{
-    free(m_Host);
-    if (m_Socket) {
-        //ape_ws_close(websocket_state *state);
-        APE_socket_remove_callbacks(m_Socket);
-        APE_socket_shutdown_now(m_Socket);
-    }
-}
-
-bool NativeWebSocketClient::connect(bool ssl, ape_global *ape)
-{
-    if (m_Socket) {
-        return false;
-    }
-
-    m_Socket = APE_socket_new(ssl ? APE_SOCKET_PT_SSL : APE_SOCKET_PT_TCP, 0, ape);
-
-    if (m_Socket == NULL) {
-        return false;
-    }
-
-    if (APE_socket_connect(m_Socket, m_Port, m_Host, 0) == -1) {
-        return false;
-    }
-
-    m_Socket->callbacks.on_connected  = native_ws_connected;
-    m_Socket->callbacks.on_read       = native_ws_read;
-    m_Socket->callbacks.on_disconnect = native_ws_disconnect;
-    m_Socket->callbacks.arg = this;
-    
-    m_Socket->ctx = this;
-
-    return true;
-}
-
-void NativeWebSocketClient::onConnected()
-{
-    ape_ws_init(&m_WSState);
-    m_WSState.socket = m_Socket;
-    m_WSState.on_frame = native_on_ws_frame;
-
-    /*
-        Write http header
-    */
-
-    
-}
-
-void NativeWebSocketClient::onData(const uint8_t *data, size_t len)
-{
-    ape_ws_process_frame(&m_WSState, (char *)data, len);
-}
-
-void NativeWebSocketClient::onFrame(const char *data, size_t len, bool binary)
-{
-
-}
-
-void NativeWebSocketClient::onClose()
-{
-    m_Socket = NULL;
 }
 

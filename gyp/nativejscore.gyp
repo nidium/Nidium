@@ -144,7 +144,8 @@
             '../NativeJSConsole.cpp',
             '../NativeJSProfiler.cpp',
             '../NativeJSFS.cpp',
-            '../NativeJSProcess.cpp'
+            '../NativeJSProcess.cpp',
+            '../NativeWebSocketClient.cpp'
         ],
     }],
 }
