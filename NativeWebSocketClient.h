@@ -22,8 +22,9 @@
 
 #include <ape_websocket.h>
 #include "NativeEvents.h"
+#include "NativeHTTPParser.h"
 
-class NativeWebSocketClient : public NativeEvents
+class NativeWebSocketClient : public NativeEvents, public NativeHTTPParser
 {
 public:
     static const uint8_t EventID = 5;
@@ -40,12 +41,18 @@ public:
     ~NativeWebSocketClient();
 
     void onConnected();
-    void onData(const uint8_t *data, size_t len);
+    void onDataHandshake(const uint8_t *data, size_t len);
+    void onDataWS(const uint8_t *data, size_t len);
     void onFrame(const char *data, size_t len, bool binary);
     void onClose();
 
+    virtual void HTTPHeaderEnded();
+    virtual void HTTPRequestEnded();
+    virtual void HTTPOnData(size_t offset, size_t len);
+
 private:
-    uint64_t m_HandShakeKey;
+    char m_HandShakeKey[32];
+    char *m_ComputedKey;
     ape_socket *m_Socket;
     char *m_Host;
     char *m_URL;

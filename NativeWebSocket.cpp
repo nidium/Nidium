@@ -122,7 +122,7 @@ void NativeWebSocketClientConnection::onUpgrade(const char *to)
     APE_socket_write(m_SocketClient,
         (void*)CONST_STR_LEN("Sec-WebSocket-Accept: "), APE_DATA_STATIC);
     APE_socket_write(m_SocketClient,
-        ws_computed_key, strlen(ws_computed_key), APE_DATA_STATIC);
+        ws_computed_key, strlen(ws_computed_key), APE_DATA_AUTORELEASE);
     APE_socket_write(m_SocketClient,
         (void *)CONST_STR_LEN("\r\nSec-WebSocket-Origin: 127.0.0.1\r\n\r\n"),
         APE_DATA_STATIC);

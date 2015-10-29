@@ -126,7 +126,8 @@
             '../NativeJSProfiler.cpp',
             '../NativeJSFS.cpp',
             '../NativeJSProcess.cpp',
-            '../NativeWebSocketClient.cpp'
+            '../NativeWebSocketClient.cpp',
+            '../NativeHTTPParser.cpp',
         ],
     }],
 }

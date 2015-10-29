@@ -10,18 +10,24 @@ static void native_ws_connected(ape_socket *s,
     ((NativeWebSocketClient *)arg)->onConnected();
 }
 
-static void native_ws_read(ape_socket *s,
+static void native_ws_read_handshake(ape_socket *s,
     const uint8_t *data, size_t len, ape_global *ape, void *arg)
 {
-    ((NativeWebSocketClient *)arg)->onData(data, len);
+    ((NativeWebSocketClient *)arg)->onDataHandshake(data, len);
+}
+
+static void native_ws_read_ws(ape_socket *s,
+    const uint8_t *data, size_t len, ape_global *ape, void *arg)
+{
+    ((NativeWebSocketClient *)arg)->onDataWS(data, len);
 }
 
 static void native_ws_disconnect(ape_socket *s,
     ape_global *ape, void *arg)
 {
-    printf("Disconnected :'(\n");
     ((NativeWebSocketClient *)arg)->onClose();
 }
+
 
 static void native_on_ws_client_frame(websocket_state *state,
     const unsigned char *data, ssize_t length, int binary)
@@ -44,18 +50,22 @@ static void native_on_ws_client_frame(websocket_state *state,
 
 NativeWebSocketClient::NativeWebSocketClient(uint16_t port, const char *url,
     const char *host) :
-    m_Port(port), m_SSL(false), m_Socket(NULL)
+    NativeHTTPParser(), m_Port(port), m_SSL(false), m_Socket(NULL)
 {
     m_Host = strdup(host);
     m_URL  = strdup(url);
 
-    m_HandShakeKey = NativeUtils::rand64();
+    uint64_t r64 = NativeUtils::rand64();
+    base64_encode_b_safe((unsigned char *)&r64, m_HandShakeKey, sizeof(uint64_t), 0);
+
+    m_ComputedKey = ape_ws_compute_key(m_HandShakeKey, strlen(m_HandShakeKey));
 }
 
 NativeWebSocketClient::~NativeWebSocketClient()
 {
     free(m_Host);
     free(m_URL);
+    free(m_ComputedKey);
     if (m_Socket) {
         //ape_ws_close(websocket_state *state);
         APE_socket_remove_callbacks(m_Socket);
@@ -72,18 +82,16 @@ bool NativeWebSocketClient::connect(bool ssl, ape_global *ape)
     m_Socket = APE_socket_new(ssl ? APE_SOCKET_PT_SSL : APE_SOCKET_PT_TCP, 0, ape);
 
     if (m_Socket == NULL) {
-        printf("fail 1\n");
         return false;
     }
 
     m_SSL = ssl;
     if (APE_socket_connect(m_Socket, m_Port, m_Host, 0) == -1) {
-        printf("Fail 2\n");
         return false;
     }
 
     m_Socket->callbacks.on_connected  = native_ws_connected;
-    m_Socket->callbacks.on_read       = native_ws_read;
+    m_Socket->callbacks.on_read       = native_ws_read_handshake;
     m_Socket->callbacks.on_disconnect = native_ws_disconnect;
     m_Socket->callbacks.arg = this;
     
@@ -94,12 +102,9 @@ bool NativeWebSocketClient::connect(bool ssl, ape_global *ape)
 
 void NativeWebSocketClient::onConnected()
 {
-    printf("COnnected !\n");
-
-    char b64Key[32];
     ape_ws_init(&m_WSState);
     m_WSState.socket = m_Socket;
-    m_WSState.on_frame = NULL;
+    m_WSState.on_frame = native_on_ws_client_frame;
 
     /*
         Write http header
@@ -128,25 +133,56 @@ void NativeWebSocketClient::onConnected()
     /*
         Send the handshake key
     */
-    base64_encode_b_safe((unsigned char *)&m_HandShakeKey, b64Key, sizeof(uint64_t), 0);
-    ret = APE_socket_write(m_Socket, b64Key, strlen(b64Key), APE_DATA_STATIC);
+    ret = APE_socket_write(m_Socket, m_HandShakeKey, strlen(m_HandShakeKey), APE_DATA_STATIC);
     ret = APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN("\r\n\r\n"), APE_DATA_STATIC);
 
     FLUSH_TCP(m_Socket->s.fd);
 }
 
-void NativeWebSocketClient::onData(const uint8_t *data, size_t len)
+void NativeWebSocketClient::onDataHandshake(const uint8_t *data, size_t len)
 {
-    printf("Data : %.*s\n", (int)len, data);
+    this->HTTPParse((char *)data, len);
+}
+
+void NativeWebSocketClient::onDataWS(const uint8_t *data, size_t len)
+{
     ape_ws_process_frame(&m_WSState, (char *)data, len);
 }
 
 void NativeWebSocketClient::onFrame(const char *data, size_t len, bool binary)
 {
-
+    printf("GOT A WS FRAME \\o/ : %s\n", data);
 }
 
 void NativeWebSocketClient::onClose()
 {
     m_Socket = NULL;
+}
+
+void NativeWebSocketClient::HTTPHeaderEnded()
+{
+    const char *swa = this->HTTPGetHeader("Sec-WebSocket-Accept");
+
+    /* Check handshake key integrity */
+    if (swa == NULL || strcmp(swa, m_ComputedKey) != 0) {
+        APE_socket_shutdown_now(m_Socket);
+        return;
+    }
+}
+
+void NativeWebSocketClient::HTTPRequestEnded()
+{
+    m_Socket->callbacks.on_read = native_ws_read_ws;
+    char data[32];
+    sprintf(data, "%s", "hello");
+
+    uint32_t key = 123456;
+    ape_ws_write(m_Socket, (unsigned char *)data, 5, 0, APE_DATA_STATIC, &key);
+
+    printf("Request ended\n");
+}
+
+void NativeWebSocketClient::HTTPOnData(size_t offset, size_t len)
+{
+
 }
