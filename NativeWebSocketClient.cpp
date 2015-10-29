@@ -55,7 +55,7 @@ NativeWebSocketClient::NativeWebSocketClient(uint16_t port, const char *url,
     m_Host = strdup(host);
     m_URL  = strdup(url);
 
-    uint64_t r64 = NativeUtils::rand64();
+    uint64_t r64 = NativeUtils::randInt<uint64_t>();
     base64_encode_b_safe((unsigned char *)&r64, m_HandShakeKey, sizeof(uint64_t), 0);
 
     m_ComputedKey = ape_ws_compute_key(m_HandShakeKey, strlen(m_HandShakeKey));
@@ -129,7 +129,15 @@ void NativeWebSocketClient::onConnected()
     }
 
     ret = APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN("\r\n"), APE_DATA_STATIC);
-    ret = APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN("Connection: Upgrade\r\nPragma: no-cache\r\nUpgrade: websocket\r\nOrigin: file://\r\nSec-WebSocket-Version: 13\r\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.71 Safari/537.36\r\nSec-WebSocket-Key: "), APE_DATA_STATIC);
+    ret = APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN(
+        "Connection: Upgrade\r\n"
+        "Pragma: no-cache\r\n"
+        "Upgrade: websocket\r\n"
+        "Origin: file://\r\n"
+        "Sec-WebSocket-Version: 13\r\n"
+        "User-Agent: Mozilla/5.0 (Unknown arch) nidium/0.1 (nidium, like Gecko) nidium/0.1\r\n"
+        "Sec-WebSocket-Key: "), APE_DATA_STATIC);
+
     /*
         Send the handshake key
     */
@@ -151,12 +159,23 @@ void NativeWebSocketClient::onDataWS(const uint8_t *data, size_t len)
 
 void NativeWebSocketClient::onFrame(const char *data, size_t len, bool binary)
 {
-    printf("GOT A WS FRAME \\o/ : %s\n", data);
+    NativeArgs args;
+    args[0].set(this);
+    args[1].set((void *)data);
+    args[2].set(len);
+    args[3].set(binary);
+
+    this->fireEvent<NativeWebSocketClient>(NativeWebSocketClient::CLIENT_FRAME, args);
 }
 
 void NativeWebSocketClient::onClose()
 {
     m_Socket = NULL;
+
+    NativeArgs args;
+    args[0].set(this);
+
+    this->fireEvent<NativeWebSocketClient>(NativeWebSocketClient::CLIENT_CLOSE, args);
 }
 
 void NativeWebSocketClient::HTTPHeaderEnded()
@@ -173,13 +192,17 @@ void NativeWebSocketClient::HTTPHeaderEnded()
 void NativeWebSocketClient::HTTPRequestEnded()
 {
     m_Socket->callbacks.on_read = native_ws_read_ws;
-    char data[32];
-    sprintf(data, "%s", "hello");
 
-    uint32_t key = 123456;
-    ape_ws_write(m_Socket, (unsigned char *)data, 5, 0, APE_DATA_STATIC, &key);
+    NativeArgs args;
+    args[0].set(this);
 
-    printf("Request ended\n");
+    this->fireEvent<NativeWebSocketClient>(NativeWebSocketClient::CLIENT_CONNECT, args);
+}
+
+void NativeWebSocketClient::write(uint8_t *data, size_t len, bool binary)
+{   
+    uint32_t r32 = NativeUtils::randInt<uint32_t>();
+    ape_ws_write(m_Socket, data, len, binary, APE_DATA_COPY, &r32);
 }
 
 void NativeWebSocketClient::HTTPOnData(size_t offset, size_t len)
