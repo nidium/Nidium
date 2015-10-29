@@ -32,7 +32,6 @@ static void signal_handler(int sign)
     for (auto it : pidList) {
         kill(it, sign);
     }
-    NLOG("Signal %d received, shutting down...", sign);
 }
 
 static int inc_rlimit(int nofile)
@@ -125,6 +124,7 @@ int NativeServer::initWorker(int *idx)
         return 0;
 #ifndef NATIVE_NO_FORK
     }
+
     pidList.push_back(pid);
 #endif
 
