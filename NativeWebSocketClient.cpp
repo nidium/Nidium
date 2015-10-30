@@ -90,6 +90,8 @@ bool NativeWebSocketClient::connect(bool ssl, ape_global *ape)
         return false;
     }
 
+    printf("Connecting to %s on %d\n", m_Host, m_Port);
+
     m_Socket->callbacks.on_connected  = native_ws_connected;
     m_Socket->callbacks.on_read       = native_ws_read_handshake;
     m_Socket->callbacks.on_disconnect = native_ws_disconnect;
@@ -145,6 +147,8 @@ void NativeWebSocketClient::onConnected()
     ret = APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN("\r\n\r\n"), APE_DATA_STATIC);
 
     FLUSH_TCP(m_Socket->s.fd);
+
+    printf("Writting data...\n");
 }
 
 void NativeWebSocketClient::onDataHandshake(const uint8_t *data, size_t len)
@@ -181,7 +185,7 @@ void NativeWebSocketClient::onClose()
 void NativeWebSocketClient::HTTPHeaderEnded()
 {
     const char *swa = this->HTTPGetHeader("Sec-WebSocket-Accept");
-
+    printf("Reading handshake...\n");
     /* Check handshake key integrity */
     if (swa == NULL || strcmp(swa, m_ComputedKey) != 0) {
         APE_socket_shutdown_now(m_Socket);

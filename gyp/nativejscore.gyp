@@ -128,6 +128,7 @@
             '../NativeJSProcess.cpp',
             '../NativeWebSocketClient.cpp',
             '../NativeHTTPParser.cpp',
+            '../NativeJSWebSocketClient.cpp',
         ],
     }],
 }

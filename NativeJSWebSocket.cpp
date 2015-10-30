@@ -139,8 +139,8 @@ static bool native_WebSocketServer_constructor(JSContext *cx,
 
     uint16_t port;
     char *url = strdup(clocalhost.ptr());
-    char *host = (char *)malloc(clocalhost.length());
-    char *path = (char *)malloc(clocalhost.length());
+    char *host = (char *)calloc(clocalhost.length(), sizeof(char));
+    char *path = (char *)calloc(clocalhost.length(), sizeof(char));
 
     if (NativeHTTP::ParseURI(url, clocalhost.length(), host,
         &port, path, "ws://") == -1) {

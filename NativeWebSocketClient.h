@@ -36,7 +36,7 @@ public:
     };
 
     NativeWebSocketClient(uint16_t port, const char *url,
-        const char *ip = "0.0.0.0");
+        const char *ip);
     bool connect(bool ssl, ape_global *ape);
     void write(uint8_t *data, size_t len, bool binary = false);
 
