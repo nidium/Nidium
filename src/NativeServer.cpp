@@ -310,7 +310,9 @@ int NativeWorker::run(int argc, char **argv, bool jsstrict)
     if (repl) {
         delete repl;
     }
+#if 0
+    TODO : heap use after free ?
     native_netlib_destroy(net);
-
+#endif
     return 0;
 }
