@@ -192,10 +192,16 @@ void NativeHTTPParser::HTTPClearState()
     m_Headers.prevstate = PSTATE_NOTHING;
 }
 
-NativeHTTPParser::NativeHTTPParser()
+NativeHTTPParser::NativeHTTPParser() :
+    m_Data(NULL), m_Ended(0), m_Contentlength(0)
 {
     http_parser_init(&m_Parser, HTTP_RESPONSE);
     m_Parser.data = this;
+
+    m_Headers.prevstate = PSTATE_NOTHING;
+    m_Headers.list = NULL;
+    m_Headers.tkey = NULL;
+    m_Headers.tval = NULL;
 }
 
 NativeHTTPParser::~NativeHTTPParser()

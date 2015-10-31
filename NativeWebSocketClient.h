@@ -39,6 +39,8 @@ public:
         const char *ip);
     bool connect(bool ssl, ape_global *ape);
     void write(uint8_t *data, size_t len, bool binary = false);
+    void close();
+    void ping();
 
     ~NativeWebSocketClient();
 
@@ -47,6 +49,10 @@ public:
     void onDataWS(const uint8_t *data, size_t len);
     void onFrame(const char *data, size_t len, bool binary);
     void onClose();
+
+    void printInfo() {
+        printf("(Socket : %d)\n", m_Socket->s.fd);
+    }
 
     virtual void HTTPHeaderEnded();
     virtual void HTTPRequestEnded();

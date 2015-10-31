@@ -30,11 +30,16 @@ class NativeJSWebSocket : public NativeJSExposer<NativeJSWebSocket>,
 {
 public:
     NativeJSWebSocket(JS::HandleObject obj, JSContext *cx,
-        const char *host, unsigned short port, const char *path);
+        const char *host, unsigned short port, const char *path, bool ssl = false);
     ~NativeJSWebSocket();
     bool start();
     static void registerObject(JSContext *cx);
     void onMessage(const NativeSharedMessages::Message &msg);
+
+    NativeWebSocketClient *ws() const {
+        return m_WebSocketClient;
+    }
+
 private:
     NativeWebSocketClient *m_WebSocketClient;
 };

@@ -54,7 +54,7 @@ NativeWebSocketClientConnection::NativeWebSocketClientConnection(
     m_Data(NULL), m_PingTimer(0)
 {
     m_ClientTimeoutMs = 0; /* Disable HTTP timeout */
-    ape_ws_init(&m_WSState);
+    ape_ws_init(&m_WSState, 0);
     m_WSState.socket = socket;
     m_WSState.on_frame = native_on_ws_frame;
 }

@@ -25,6 +25,7 @@
 static void WebSocket_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_websocket_close(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_websocket_ping(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass WebSocket_class = {
     "WebSocket", JSCLASS_HAS_PRIVATE,
@@ -39,6 +40,7 @@ JSClass *NativeJSExposer<NativeJSWebSocket>::jsclass = &WebSocket_class;
 static JSFunctionSpec ws_funcs[] = {
     JS_FN("send", native_websocket_send, 1, 0),
     JS_FN("close", native_websocket_close, 0, 0),
+    JS_FN("ping", native_websocket_ping, 0, 0),
     JS_FS_END
 };
 
@@ -55,7 +57,7 @@ static void WebSocket_Finalize(JSFreeOp *fop, JSObject *obj)
 
 static bool native_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeWebSocketClient,
+    JSNATIVE_PROLOGUE_CLASS(NativeJSWebSocket,
         &WebSocket_class);
 
     NATIVE_CHECK_ARGS("send", 1);
@@ -65,7 +67,7 @@ static bool native_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp)
         JS::RootedString str(cx, args[0].toString());
         cdata.encodeUtf8(cx, str);
 
-        CppObj->write((unsigned char *)cdata.ptr(),
+        CppObj->ws()->write((unsigned char *)cdata.ptr(),
             strlen(cdata.ptr()), false);
 
         args.rval().setInt32(0);
@@ -80,7 +82,7 @@ static bool native_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp)
         uint32_t len = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
 
-        CppObj->write((unsigned char *)data, len, true);
+        CppObj->ws()->write((unsigned char *)data, len, true);
 
         args.rval().setInt32(0);
 
@@ -94,9 +96,21 @@ static bool native_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_websocket_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    JSNATIVE_PROLOGUE_CLASS(NativeJSWebSocket,
+        &WebSocket_class);
 
+    CppObj->ws()->close();
+
+    return true;
+}
+
+static bool native_websocket_ping(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    JSNATIVE_PROLOGUE_CLASS(NativeJSWebSocket,
+        &WebSocket_class);
+
+    CppObj->ws()->ping();
+    
     return true;
 }
 
@@ -150,7 +164,7 @@ static bool native_WebSocket_constructor(JSContext *cx,
         return false;
     }
 
-    NativeJSWebSocket *wss = new NativeJSWebSocket(ret, cx, host, port, path);
+    NativeJSWebSocket *wss = new NativeJSWebSocket(ret, cx, host, port, path, isSSL);
 
     free(path);
     free(host);
@@ -170,11 +184,10 @@ static bool native_WebSocket_constructor(JSContext *cx,
 
 NativeJSWebSocket::NativeJSWebSocket(JS::HandleObject obj, JSContext *cx,
     const char *host,
-    unsigned short port, const char *path) : NativeJSExposer<NativeJSWebSocket>(obj, cx)
+    unsigned short port, const char *path, bool ssl) : NativeJSExposer<NativeJSWebSocket>(obj, cx)
 {   
-    printf("Connecting to %s:%d%s\n", host, port, path);
     m_WebSocketClient = new NativeWebSocketClient(port, path, host);
-    bool ret = m_WebSocketClient->connect(false, (ape_global *)JS_GetContextPrivate(cx));
+    bool ret = m_WebSocketClient->connect(ssl, (ape_global *)JS_GetContextPrivate(cx));
 
     if (!ret) {
         JS_ReportWarning(cx, "Failed to connect to WS endpoint\n");
