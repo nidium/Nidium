@@ -23,11 +23,15 @@
 #include <string.h>
 
 #include <NativeJS.h>
+#include <ape_base64.h>
 
 #define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
     CONST_STR_LEN(header "\0"))
 
 static void native_on_ws_frame(websocket_state *state,
+    const unsigned char *data, ssize_t length, int binary);
+
+static void native_on_ws_client_frame(websocket_state *state,
     const unsigned char *data, ssize_t length, int binary);
 
 NativeWebSocketListener::NativeWebSocketListener(uint16_t port, const char *ip) :
@@ -50,7 +54,7 @@ NativeWebSocketClientConnection::NativeWebSocketClientConnection(
     m_Data(NULL), m_PingTimer(0)
 {
     m_ClientTimeoutMs = 0; /* Disable HTTP timeout */
-    ape_ws_init(&m_WSState);
+    ape_ws_init(&m_WSState, 0);
     m_WSState.socket = socket;
     m_WSState.on_frame = native_on_ws_frame;
 }
@@ -118,7 +122,7 @@ void NativeWebSocketClientConnection::onUpgrade(const char *to)
     APE_socket_write(m_SocketClient,
         (void*)CONST_STR_LEN("Sec-WebSocket-Accept: "), APE_DATA_STATIC);
     APE_socket_write(m_SocketClient,
-        ws_computed_key, strlen(ws_computed_key), APE_DATA_STATIC);
+        ws_computed_key, strlen(ws_computed_key), APE_DATA_AUTORELEASE);
     APE_socket_write(m_SocketClient,
         (void *)CONST_STR_LEN("\r\nSec-WebSocket-Origin: 127.0.0.1\r\n\r\n"),
         APE_DATA_STATIC);
@@ -176,7 +180,8 @@ void NativeWebSocketClientConnection::ping()
 void NativeWebSocketClientConnection::write(unsigned char *data,
     size_t len, bool binary, ape_socket_data_autorelease type)
 {
-    ape_ws_write(m_SocketClient, (unsigned char *)data, len, (int)binary, type);
+    ape_ws_write(m_SocketClient, (unsigned char *)data, len,
+        (int)binary, type, NULL);
 }
 
 static void native_on_ws_frame(websocket_state *state,
@@ -196,3 +201,4 @@ static void native_on_ws_frame(websocket_state *state,
 
     con->onFrame((const char *)data, length, (bool)binary);
 }
+

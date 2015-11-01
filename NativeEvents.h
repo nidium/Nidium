@@ -68,11 +68,13 @@ public:
             msg->priv = 0;
 
             receiver->postMessage(msg, forceAsync);
-
+#if 0
+            /* TODO FIX : Use after free here */
             /* stop propagation */
             if (msg->priv) {
                 return false;
             }
+#endif
         }
 
         return true;

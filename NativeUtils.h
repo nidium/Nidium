@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <jsapi.h>
+#include <fcntl.h>
 
 class NativeNoncopyable {
 public:
@@ -81,7 +82,7 @@ public:
 
 class NativeUtils
 {
-    public:
+public:
     static uint64_t getTick(bool ms = false);
     static char16_t *Utf8ToUtf16(JSContext *cx, const char *str, size_t len, size_t *outputlen);
     static bool isMainThread()
@@ -97,7 +98,26 @@ class NativeUtils
     static int b64Decode(unsigned char *out, const char *in, int out_length);
     static void blowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len);
     static int b16Decode(unsigned char *out, const char *in, int out_length);
-    
+
+template <typename T>
+    static T randInt()
+    {
+        int random;
+        T ret = 0;
+        
+        random = open("/dev/urandom", O_RDONLY);
+        
+        if (!random) {
+            fprintf(stderr, "Cannot open /dev/urandom\n");
+            return 0;
+        }
+        
+        read(random, &ret, sizeof(T));
+        close(random);
+        
+        return ret;
+    }
+
     static void HTTPTime(char *buf);
 };
 
