@@ -201,17 +201,23 @@ void NativeWebSocketClient::HTTPRequestEnded()
 
 void NativeWebSocketClient::write(uint8_t *data, size_t len, bool binary)
 {   
+    if (!m_Socket) return;
+
     uint32_t r32 = NativeUtils::randInt<uint32_t>();
     ape_ws_write(m_Socket, data, len, binary, APE_DATA_COPY, &r32);
 }
 
 void NativeWebSocketClient::close()
 {   
+    if (!m_Socket) return;
+    
     ape_ws_close(&m_WSState);
 }
 
 void NativeWebSocketClient::ping()
 {
+    if (!m_Socket) return;
+
     ape_ws_ping(&m_WSState);
 }
 

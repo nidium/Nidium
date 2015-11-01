@@ -248,6 +248,8 @@ void NativeJSWebSocket::onMessage(const NativeSharedMessages::Message &msg)
             JS::RootedObject obj(cx, this->getJSObject());
 
             JSOBJ_CALLFUNCNAME(obj, "onclose", JS::HandleValueArray::empty());
+            
+            NativeJSObj(cx)->unrootObject(obj);
 
             break;
         }        
