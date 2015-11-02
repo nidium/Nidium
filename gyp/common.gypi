@@ -14,6 +14,7 @@
             },
             'Release': {
                 'product_dir': '<(native_output)/release/',
+            }
 	    }
-    },
+    }
 }
