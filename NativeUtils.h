@@ -139,8 +139,12 @@ class NativePthreadAutoLock {
 template <typename T = void *>
 class NativePtrAutoDelete {
   public:
-    NativePtrAutoDelete(T ptr, void (*func)(void *) = NULL)
+    NativePtrAutoDelete(T ptr = NULL, void (*func)(void *) = NULL)
       : m_Ptr(ptr), m_Free(func) {
+    }
+
+    void set(T ptr) {
+        m_Ptr = ptr;
     }
 
     T ptr() const {
@@ -156,6 +160,8 @@ class NativePtrAutoDelete {
     }
 
     ~NativePtrAutoDelete() {
+        if (!m_Ptr) return;
+        
         if (!m_Free) {
             delete m_Ptr;
         } else {
