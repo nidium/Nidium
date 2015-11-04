@@ -60,6 +60,7 @@
                 ['OS=="linux"', {
                     "link_settings": {
                         'libraries': [
+                            '-rdynamic',
                             '-ljs_static',
                             '-lnspr4',
                             '-lpthread',
