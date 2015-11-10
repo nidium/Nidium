@@ -593,6 +593,7 @@ NativeJS::NativeJS(ape_global *net) :
     JSRuntime *rt;
     this->privateslot = NULL;
     this->relPath = NULL;
+    this->modules = NULL;
 
     m_StructuredCloneAddition.read = NULL;
     m_StructuredCloneAddition.write = NULL;
@@ -781,7 +782,9 @@ NativeJS::~NativeJS()
     JS_ShutDown();
 
     delete messages;
-    delete modules;
+    if (this->modules) {
+        delete this->modules;
+    }
 
     pthread_setspecific(gJS, NULL);
     
@@ -1044,12 +1047,12 @@ void NativeJS::loadGlobalObjects()
     /* fs object */
     NativeJSFS::registerObject(cx);
 
-    modules = new NativeJSModules(cx);
-    if (!modules) {
+    this->modules = new NativeJSModules(cx);
+    if (!this->modules) {
         JS_ReportOutOfMemory(cx);
         return;
     }
-    if (!modules->init()) {
+    if (!this->modules->init()) {
         JS_ReportError(cx, "Failed to init require()");
         if (!JS_ReportPendingException(cx)) {
             JS_ClearPendingException(cx);
