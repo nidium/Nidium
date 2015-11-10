@@ -16,14 +16,22 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#include <pwd.h>
+#include <grp.h>
+
 
 #include "NativeJSProcess.h"
 #include "NativeJS.h"
 #include <native_netlib.h>
 
 static void Process_Finalize(JSFreeOp *fop, JSObject *obj);
+
+static bool native_process_setuser(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_process_exit(JSContext *cx, unsigned argc, JS::Value *vp);
+
+extern int setgroups(size_t __n, __const gid_t *__groups);
+extern int initgroups(const char * user, gid_t group);
 
 static JSClass Process_class = {
     "NativeProcess", JSCLASS_HAS_PRIVATE,
@@ -37,13 +45,57 @@ JSClass *NativeJSProcess::jsclass = &Process_class;
 template<>
 JSClass *NativeJSExposer<NativeJSProcess>::jsclass = &Process_class;
 
-
 static JSFunctionSpec Process_funcs[] = {
+    JS_FN("setUser", native_process_setuser, 1, 0),
     JS_FN("setSignalHandler", native_setSignalHandler, 1, 0),
     JS_FN("exit", native_process_exit, 1, 0),
     JS_FS_END
 };
 
+static bool native_process_setuser(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    JS::RootedString user(cx);
+    JS::RootedString group(cx);
+    JSAutoByteString cuser;
+    JSAutoByteString cgroup;
+    struct passwd *pwd;
+    struct group *grp;
+    int groupOk = 2;
+    int userOk = 2;
+
+    JSNATIVE_PROLOGUE_CLASS(NativeJSProcess, &Process_class);
+
+    if (!JS_ConvertArguments(cx, args, "S/S", user.address(), group.address())) {
+        return false;
+    }
+    if (user.get()) {
+        cuser.encodeUtf8(cx, user);
+        pwd = getpwnam(cuser.ptr());
+        if (pwd->pw_uid == 0) {
+            return false;
+        }
+        userOk = (setuid(pwd->pw_uid) != -1);
+    }
+    if (group.get()) {
+        cgroup.encodeUtf8(cx, group);
+        grp = getgrnam(cgroup.ptr());
+        if (grp->gr_gid == 0) {
+            return false;
+        }
+        //@TODO: check capabities
+        groupOk = (setgid(grp->gr_gid) != -1);
+    }
+    setgroups(0, NULL);
+    if (cuser.ptr() && cgroup.ptr()) {
+        initgroups(cuser.ptr(), grp->gr_gid);
+    }
+    if (getuid() == 0 || getgid() == 0) {
+        fprintf(stderr, "Running as root!");
+    }
+    args.rval().setBoolean(!(userOk == 0 || groupOk == 0));
+
+    return true;
+}
 
 static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
 {
