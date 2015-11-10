@@ -28,8 +28,9 @@
 
 #define JSNATIVE_PROLOGUE(ofclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
-    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp) ); \
-    ofclass *CppObj = (ofclass *)JS_GetPrivate(thisobj);
+    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
+    ofclass *CppObj = (ofclass *)JS_GetPrivate(thisobj); \
+    args.rval().setUndefined();
 
 #define JSNATIVE_PROLOGUE_CLASS(ofclass, fclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \

@@ -105,6 +105,7 @@ template <typename T>
         int random;
         T ret = 0;
         
+        /* TODO: keep open */
         random = open("/dev/urandom", O_RDONLY);
         
         if (!random) {
