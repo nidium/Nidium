@@ -114,6 +114,7 @@ public:
 
     static void registerScheme(const schemeInfo &scheme,
         bool isDefault = false);
+    static void unRegisterSchemes();
     static schemeInfo *getScheme(const char *url, const char **pURL = NULL);
 
     static char *sanitize(const char *path, bool *external = NULL, bool relative = true);
@@ -164,5 +165,5 @@ private:
     schemeInfo *m_Scheme;
 };
 
-
 #endif
+
