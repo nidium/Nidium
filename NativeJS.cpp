@@ -80,16 +80,12 @@ struct native_sm_timer
 {
     JSContext *cx;
     
-    ape_timer *timerng;
-
     JS::PersistentRootedObject global;
     JS::PersistentRootedValue **argv;
     JS::PersistentRootedValue func;
 
     unsigned argc;
     int ms;
-    int cleared;
-    struct _ticks_callback *timer;
 
     ~native_sm_timer() {
 
@@ -122,6 +118,7 @@ static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
 /******** Natives ********/
 static bool native_pwd(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_load(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -134,6 +131,7 @@ static JSFunctionSpec glob_funcs[] = {
     JS_FN("load", native_load, 2, 0),
     JS_FN("pwd", native_pwd, 0, 0),
     JS_FN("setTimeout", native_set_timeout, 2, 0),
+    JS_FN("setImmediate", native_set_immediate, 1, 0),
     JS_FN("setInterval", native_set_interval, 2, 0),
     JS_FN("clearTimeout", native_clear_timeout, 1, 0),
     JS_FN("clearInterval", native_clear_timeout, 1, 0),
@@ -1125,6 +1123,56 @@ static int native_timer_deleted(void *arg)
     return 1;
 }
 
+static bool native_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    struct native_sm_timer *params;
+    int ms = 0, i;
+
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JSObject *obj = JS_THIS_OBJECT(cx, vp);
+
+    params = new native_sm_timer(cx);
+
+    if (params == NULL || argc < 1) {
+        if (params) free(params);
+        return true;
+    }
+
+    params->cx = cx;
+    params->global = obj;
+    params->argc = argc-1;
+    params->ms = 0;
+
+    params->argv = new JS::PersistentRootedValue*[argc-1];
+
+    for (i = 0; i < argc-1; i++) {
+        params->argv[i] = new JS::PersistentRootedValue(cx);
+    }
+
+    JS::RootedValue func(cx);
+
+    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
+        free(params->argv);
+        free(params);
+        return true;
+    }
+
+    params->func.set(func);
+
+    for (i = 0; i < (int)argc-1; i++) {
+        params->argv[i]->set(args[i+1]);
+    }
+
+    ape_async *async = add_async(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
+                native_timerng_wrapper, (void *)params);
+
+    async->clearfunc = native_timer_deleted;
+
+    args.rval().setNull();
+
+    return true;
+}
+
 static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     struct native_sm_timer *params;
@@ -1143,9 +1191,6 @@ static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
     params->cx = cx;
     params->global = obj;
     params->argc = argc-2;
-    params->cleared = 0;
-    params->timer = NULL;
-    params->timerng = NULL;
     params->ms = 0;
 
     params->argv = new JS::PersistentRootedValue*[argc-2];
@@ -1174,14 +1219,14 @@ static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
         params->argv[i]->set(args[i+2]);
     }
 
-    params->timerng = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
+    ape_timer *timer = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
         native_max(ms, 8), native_timerng_wrapper,
         (void *)params);
 
-    params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;
-    params->timerng->clearfunc = native_timer_deleted;
+    timer->flags &= ~APE_TIMER_IS_PROTECTED;
+    timer->clearfunc = native_timer_deleted;
 
-    args.rval().setNumber((double)params->timerng->identifier);
+    args.rval().setNumber((double)timer->identifier);
 
     return true;
 }
@@ -1205,8 +1250,6 @@ static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
     params->cx = cx;
     params->global = obj;
     params->argc = argc-2;
-    params->cleared = 0;
-    params->timer = NULL;
 
     params->argv = new JS::PersistentRootedValue*[argc-2];
 
@@ -1231,19 +1274,18 @@ static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
 
     params->ms = native_max(8, ms);
 
-
     for (i = 0; i < (int)argc-2; i++) {
         params->argv[i]->set(args.array()[i+2]);
     }
 
-    params->timerng = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
+    ape_timer *timer = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
         params->ms, native_timerng_wrapper,
         (void *)params);
 
-    params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;
-    params->timerng->clearfunc = native_timer_deleted;
+    timer->flags &= ~APE_TIMER_IS_PROTECTED;
+    timer->clearfunc = native_timer_deleted;
 
-    args.rval().setNumber((double)params->timerng->identifier);
+    args.rval().setNumber((double)timer->identifier);
 
     return true; 
 }
@@ -1284,3 +1326,4 @@ static int native_timerng_wrapper(void *arg)
 
     return params->ms;
 }
+
