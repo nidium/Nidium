@@ -3,6 +3,11 @@
         '../network/gyp/common.gypi'
     ],
     'target_defaults': {
+        'defines': [
+            'NATIVE_VERSION_STR="<(native_version)"',
+            'NATIVE_NO_PRIVATE_DIR'
+        ],
+
         'cflags_cc': [
             '-std=c++11'
         ],
