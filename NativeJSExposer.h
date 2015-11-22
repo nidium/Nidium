@@ -428,7 +428,7 @@ class NativeJSObjectMapper
 {
 public:
     NativeJSObjectMapper(JSContext *cx, const char *name) :
-        m_JSCx(cx), m_JSObj(cx)
+        m_JSObj(cx), m_JSCx(cx)
     {
         static JSClass jsclass = {
             NULL, JSCLASS_HAS_PRIVATE,

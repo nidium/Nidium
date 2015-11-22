@@ -697,9 +697,8 @@ int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
 }
 
 NativeHTTPRequest::NativeHTTPRequest(const char *url) :
-    method(NATIVE_HTTP_GET), data(NULL), datalen(0),
-    datafree(free), headers(ape_array_new(8)),
-    m_isSSL(false), host(NULL), path(NULL)
+    method(NATIVE_HTTP_GET), host(NULL), path(NULL), data(NULL), datalen(0),
+    datafree(free), headers(ape_array_new(8)), m_isSSL(false) 
 {
     this->resetURL(url);
     this->setDefaultHeaders();
