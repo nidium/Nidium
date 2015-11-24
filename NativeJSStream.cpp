@@ -19,7 +19,7 @@
 */
 #include "NativeJSStream.h"
 
-#include <string.h>
+#include <string>
 
 #include "NativeUtils.h"
 #include "NativeStreamInterface.h"

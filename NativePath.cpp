@@ -18,7 +18,7 @@
 */
 #include "NativePath.h"
 
-#include <string.h>
+#include <string>
 
 #include <vector>
 
