@@ -20,11 +20,12 @@
 
 #ifndef nativejsthread_h__
 #define nativejsthread_h__
+
 #include <pthread.h>
 
-#include "NativeJSExposer.h"
 #include "NativeSharedMessages.h"
 #include "NativeMessages.h"
+#include "NativeJSExposer.h"
 
 class NativeJS;
 
@@ -62,3 +63,4 @@ enum {
 };
 
 #endif
+

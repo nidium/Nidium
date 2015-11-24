@@ -21,8 +21,8 @@
 #ifndef nativejssocket_h__
 #define nativejssocket_h__
 
-#include "NativeJSExposer.h"
 #include <native_netlib.h>
+#include "NativeJSExposer.h"
 
 enum {
     NATIVE_SOCKET_ISBINARY          = 1 << 0,
@@ -30,7 +30,6 @@ enum {
     NATIVE_SOCKET_ISSERVER          = 1 << 2,
     NATIVE_SOCKET_ISCONNECTEDCLIENT = 1 << 3
 };
-
 
 #define SOCKET_LINEBUFFER_MAX 8192
 
@@ -107,3 +106,4 @@ private:
 };
 
 #endif
+

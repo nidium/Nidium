@@ -21,9 +21,10 @@
 #ifndef nativemessages_h__
 #define nativemessages_h__
 
-#include <NativeSharedMessages.h>
-#include <NativeHash.h>
 #include <pthread.h>
+
+#include "NativeSharedMessages.h"
+#include "NativeHash.h"
 
 typedef struct _ape_global ape_global;
 class NativeEvents;
@@ -40,8 +41,8 @@ public:
     /*
         Derived classes must implement this in order to catch messages
     */
-    virtual void onMessage(const NativeSharedMessages::Message &msg){};
-    virtual void onMessageLost(const NativeSharedMessages::Message &msg){};
+    virtual void onMessage(const NativeSharedMessages::Message &msg) {};
+    virtual void onMessageLost(const NativeSharedMessages::Message &msg) {};
 
     void postMessage(void *dataptr, int event, bool forceAsync = false);
     void postMessage(uint64_t dataint, int event, bool forceAsync = false);
@@ -62,3 +63,4 @@ private:
 };
 
 #endif
+

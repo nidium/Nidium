@@ -20,9 +20,9 @@
 #ifndef nativejswebsocket_h__
 #define nativejswebsocket_h__
 
-#include "NativeJSExposer.h"
 #include "NativeWebSocket.h"
 #include "NativeMessages.h"
+#include "NativeJSExposer.h"
 
 class NativeJSWebSocketServer : public NativeJSExposer<NativeJSWebSocketServer>,
                                 public NativeMessages
@@ -41,3 +41,4 @@ private:
 };
 
 #endif
+

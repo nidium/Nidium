@@ -16,17 +16,17 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeHTTPStream.h"
-#include "NativeUtils.h"
-#include "NativeJS.h"
 
 #include <errno.h>
 #include <sys/mman.h>
 
+#include "NativeUtils.h"
+#include "NativeJS.h"
+
 #define MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH (1024LL*1024LL*64LL)
 
-NativeHTTPStream::NativeHTTPStream(const char *location) : 
+NativeHTTPStream::NativeHTTPStream(const char *location) :
     NativeBaseStream(location), m_StartPosition(0),
     m_BytesBuffered(0), m_LastReadUntil(0)
 {
@@ -106,7 +106,7 @@ const unsigned char *NativeHTTPStream::onGetNextPacket(size_t *len, int *err)
 
     if (m_Mapped.size == m_LastReadUntil) {
         *err = STREAM_END;
-        return NULL;        
+        return NULL;
     }
     if (!this->hasDataAvailable()) {
         m_NeedToSendUpdate = true;
@@ -198,14 +198,9 @@ void NativeHTTPStream::notifyAvailable()
 
     CREATE_MESSAGE(message_available, NATIVESTREAM_AVAILABLE_DATA);
     message_available->args[0].set(m_BytesBuffered - m_LastReadUntil);
-    
+
     this->notify(message_available);
 }
-
-//////////////////
-//////////////////
-//////////////////
-
 
 void NativeHTTPStream::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType)
 {
@@ -240,7 +235,7 @@ void NativeHTTPStream::onProgress(size_t offset, size_t len,
 
     /* Reset the data buffer, so that data doesn't grow in memory */
     m_Http->resetData();
-    
+
     CREATE_MESSAGE(msg_progress, NATIVESTREAM_PROGRESS);
     msg_progress->args[0].set(m_Http->getFileSize());
     msg_progress->args[1].set(m_StartPosition);
@@ -250,7 +245,7 @@ void NativeHTTPStream::onProgress(size_t offset, size_t len,
     this->notify(msg_progress);
 
     if (m_NeedToSendUpdate && this->hasDataAvailable()) {
-        this->notifyAvailable();      
+        this->notifyAvailable();
     }
 }
 
@@ -332,3 +327,4 @@ void NativeHTTPStream::onHeader()
         return;
     }
 }
+

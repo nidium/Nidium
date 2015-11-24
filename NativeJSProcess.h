@@ -8,7 +8,7 @@ class NativeJSProcess : public NativeJSExposer<NativeJSProcess>
   public:
     NativeJSProcess(JS::HandleObject obj, JSContext *cx) :
         NativeJSExposer<NativeJSProcess>(obj, cx), m_SignalFunction(cx) {};
-    virtual ~NativeJSProcess(){};
+    virtual ~NativeJSProcess() {};
 
     static void registerObject(JSContext *cx, char **argv, int argc, int workerId = 0);
     static const char *getJSObjectName() {
@@ -20,5 +20,5 @@ class NativeJSProcess : public NativeJSExposer<NativeJSProcess>
     JS::PersistentRootedValue m_SignalFunction;
 };
 
-
 #endif
+

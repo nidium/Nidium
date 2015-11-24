@@ -18,9 +18,9 @@
 */
 
 #include "NativeJSWebSocket.h"
-#include "NativeHTTP.h"
 
-#include <NativeJSUtils.h>
+#include "NativeHTTP.h"
+#include "NativeJSUtils.h"
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
@@ -66,7 +66,7 @@ static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj)
     if (wss != NULL) {
         delete wss;
         printf("Delete websocket server...\n");
-    }    
+    }
 }
 
 static bool native_websocketclient_send(JSContext *cx, unsigned argc, JS::Value *vp)
@@ -91,7 +91,7 @@ static bool native_websocketclient_send(JSContext *cx, unsigned argc, JS::Value 
 
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
             JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer)");
-            return false;            
+            return false;
         }
         uint32_t len = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
@@ -219,7 +219,7 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
             const char *data = (const char *)msg.args[2].toPtr();
             int len = msg.args[3].toInt();
             bool binary = msg.args[4].toBool();
-            
+
             JS::RootedObject jclient(cx, (JSObject *)((NativeWebSocketClientConnection *)msg.args[1].toPtr())->getData());
 
             if (!jclient.get()) {
@@ -253,7 +253,7 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
             arg[0].setObject(*jclient);
 
             JS::RootedObject obj(cx, this->getJSObject());
-            
+
             JSOBJ_CALLFUNCNAME(obj, "onopen", arg);
 
             break;
@@ -272,7 +272,7 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
             NativeJSObj(m_Cx)->unrootObject(jclient);
 
             break;
-        }        
+        }
         default:
             break;
     }
@@ -286,3 +286,4 @@ bool NativeJSWebSocketServer::start()
 }
 
 NATIVE_OBJECT_EXPOSE(WebSocketServer)
+

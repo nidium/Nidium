@@ -17,12 +17,10 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeJSHttp.h"
-#include "NativeJSUtils.h"
-//#include "ape_http_parser.h"
 
 #include "NativeJS.h"
+#include "NativeJSUtils.h"
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
@@ -40,7 +38,6 @@ static JSClass Http_class = {
 
 template<>
 JSClass *NativeJSExposer<NativeJSHttp>::jsclass = &Http_class;
-
 
 static JSFunctionSpec http_funcs[] = {
     JS_FN("request", native_http_request, 2, 0),
@@ -94,7 +91,6 @@ static bool native_Http_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 
     return true;
 }
-
 
 static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
 {
@@ -227,7 +223,7 @@ static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
         max = __curopt.toInt32();
 
         nhttp->setMaxRedirect(max);
-      
+
     }
 
     JSGET_OPT_TYPE(options, "followlocation", Boolean) {
@@ -284,19 +280,19 @@ void NativeJSHttp::onError(NativeHTTP::HTTPError err)
             JSOBJ_SET_PROP_CSTR(evobj, "error", "http_invalid_response");
             break;
         case NativeHTTP::ERROR_DISCONNECTED:
-            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_server_disconnected");      
+            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_server_disconnected");
             break;
         case NativeHTTP::ERROR_SOCKET:
-            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_connection_error");   
+            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_connection_error");
             break;
         case NativeHTTP::ERROR_TIMEOUT:
-            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_timedout");       
+            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_timedout");
             break;
         case NativeHTTP::ERROR_HTTPCODE:
-            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_response_code");  
+            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_response_code");
             break;
         case NativeHTTP::ERROR_REDIRECTMAX:
-            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_max_redirect_exceeded");      
+            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_max_redirect_exceeded");
             break;
         default:
             break;
@@ -335,7 +331,7 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
 
             jdata.setString(JS_NewStringCopyN(cx,
                 (const char *)&h->data->data[offset], len));
-         
+
             break;
         default:
         {
@@ -343,7 +339,7 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
             uint8_t *data = JS_GetArrayBufferData(arr);
 
             memcpy(data, &h->data->data[offset], len);
-            
+
             JSOBJ_SET_PROP_CSTR(event, "type", "binary");
 
             jdata.setObject(*arr);
@@ -351,7 +347,7 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
             break;
         }
     }
-    
+
     JSOBJ_SET_PROP(event, "data", jdata);
 
     jevent[0].setObject(*event);
@@ -381,7 +377,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
             v->used-1));
         JSOBJ_SET_PROP_FLAGS(headers, k->data, jstr, JSPROP_ENUMERATE);
     }
-    
+
     JSOBJ_SET_PROP(event, "headers", headers);
     JSOBJ_SET_PROP(event, "statusCode", h->parser.status_code);
 
@@ -398,7 +394,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 
         JS_SetReservedSlot(jsobj, 0, JSVAL_NULL);
 
-        return; 
+        return;
     }
 
     if (!m_Eval) {
@@ -429,7 +425,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 
             if (JS_ParseJSON(cx, chars, clen, &jdata) == false) {
                 jdata.setNull();
-                printf("Cant parse JSON of size %ld :\n===%.*s\n===\n",
+                printf("Cant parse JSON of size %ld :\n = %.*s\n = \n",
                     (unsigned long) h->data->used, (int)h->data->used, h->data->data);
             }
 
@@ -468,11 +464,11 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
             uint8_t *data = JS_GetArrayBufferData(arr);
 
             memcpy(data, h->data->data, h->data->used);
-            
+
             JSOBJ_SET_PROP_CSTR(event, "type", "binary");
 
             jdata.setObject(*arr);
- 
+
             break;
         }
     }
@@ -504,3 +500,4 @@ NativeJSHttp::~NativeJSHttp()
 }
 
 NATIVE_OBJECT_EXPOSE(Http)
+

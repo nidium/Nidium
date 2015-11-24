@@ -1,6 +1,6 @@
 #include "NativeJSConsole.h"
+
 #include "NativeJS.h"
-//#include "NativeContext.h"
 
 #ifdef NATIVE_JS_PROFILER
 #include "NativeJSProfiler.h"

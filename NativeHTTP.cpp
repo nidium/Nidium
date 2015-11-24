@@ -17,17 +17,17 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeHTTP.h"
-//#include "ape_http_parser.h"
-#include <http_parser.h>
-#include <native_netlib.h>
-#include "NativePath.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
-#include <string>
+#include <string.h>
+
+#include <http_parser.h>
+#include <native_netlib.h>
+
+#include "NativePath.h"
 
 #ifndef ULLONG_MAX
 # define ULLONG_MAX ((uint64_t) -1) /* 2^64-1 */
@@ -44,23 +44,23 @@ static struct native_http_mime {
     const char *str;
     NativeHTTP::DataType data_type;
 } native_mime[] = {
-    {"text/plain",              NativeHTTP::DATA_STRING},
-    {"application/x-javascript",NativeHTTP::DATA_STRING},
-    {"application/javascript",  NativeHTTP::DATA_STRING},
-    {"application/octet-stream",NativeHTTP::DATA_STRING},
-    {"image/jpeg",              NativeHTTP::DATA_IMAGE},
-    {"image/png",               NativeHTTP::DATA_IMAGE},
-    {"audio/mp3",               NativeHTTP::DATA_AUDIO},
-    {"audio/mpeg",              NativeHTTP::DATA_AUDIO},
-    {"audio/wave",              NativeHTTP::DATA_AUDIO},
-    {"audio/ogg",               NativeHTTP::DATA_AUDIO},
-    {"audio/x-wav",             NativeHTTP::DATA_AUDIO},
-    {"video/ogg",               NativeHTTP::DATA_AUDIO},
-    {"audio/webm",              NativeHTTP::DATA_AUDIO},
-    {"application/json",        NativeHTTP::DATA_JSON},
-    {"text/html",               NativeHTTP::DATA_STRING}, /* TODO: use dom.js */
-    {"application/octet-stream",NativeHTTP::DATA_BINARY},
-    {NULL,                      NativeHTTP::DATA_END}
+    {"text/plain",                  NativeHTTP::DATA_STRING},
+    {"application/x-javascript",    NativeHTTP::DATA_STRING},
+    {"application/javascript",      NativeHTTP::DATA_STRING},
+    {"application/octet-stream",    NativeHTTP::DATA_STRING},
+    {"image/jpeg",                  NativeHTTP::DATA_IMAGE},
+    {"image/png",                   NativeHTTP::DATA_IMAGE},
+    {"audio/mp3",                   NativeHTTP::DATA_AUDIO},
+    {"audio/mpeg",                  NativeHTTP::DATA_AUDIO},
+    {"audio/wave",                  NativeHTTP::DATA_AUDIO},
+    {"audio/ogg",                   NativeHTTP::DATA_AUDIO},
+    {"audio/x-wav",                 NativeHTTP::DATA_AUDIO},
+    {"video/ogg",                   NativeHTTP::DATA_AUDIO},
+    {"audio/webm",                  NativeHTTP::DATA_AUDIO},
+    {"application/json",            NativeHTTP::DATA_JSON},
+    {"text/html",                   NativeHTTP::DATA_STRING}, /* TODO: use dom.js */
+    {"application/octet-stream",    NativeHTTP::DATA_BINARY},
+    {NULL,                          NativeHTTP::DATA_END}
 };
 
 static int message_begin_cb(http_parser *p);
@@ -70,7 +70,6 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len);
 static int header_value_cb(http_parser *p, const char *buf, size_t len);
 static int request_url_cb(http_parser *p, const char *buf, size_t len);
 static int body_cb(http_parser *p, const char *buf, size_t len);
-
 
 static http_parser_settings settings =
 {
@@ -342,7 +341,7 @@ void NativeHTTP::headerEnded()
 {
 #define REQUEST_HEADER(header) ape_array_lookup(http.headers.list, \
     CONST_STR_LEN(header "\0"))
-    
+
     m_Redirect.enabled = false;
 
     if (http.headers.list != NULL) {
@@ -407,7 +406,7 @@ void NativeHTTP::headerEnded()
 */
 
     this->delegate->onHeader();
-    
+
 #undef REQUEST_HEADER
 }
 
@@ -421,7 +420,7 @@ void NativeHTTP::stopRequest(bool timeout)
 
     if (!http.ended) {
         http.ended = 1;
-        
+
         /*
             Make sur the connection is closed right now
         */
@@ -473,7 +472,6 @@ void NativeHTTP::requestEnded()
         }
     }
 }
-
 
 void NativeHTTP::clearState()
 {
@@ -665,7 +663,7 @@ int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
     }
 
     url += len;
-    
+
     memcpy(host, url, (url_len-len));
 
     p = strchr(host, '/');
@@ -741,7 +739,7 @@ bool NativeHTTPRequest::resetURL(const char *url)
         memset(host, 0, url_len+1);
         memset(path, 0, url_len+1);
         port = 0;
-        
+
         free(durl);
         return false;
     }
@@ -804,3 +802,4 @@ buffer *NativeHTTPRequest::getHeadersData() const
 
     return ret;
 }
+

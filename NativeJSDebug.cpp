@@ -16,13 +16,12 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeJSDebug.h"
-#include "NativeJS.h"
 
 #include <native_netlib.h>
 #include <jsapi.h>
 
+#include "NativeJS.h"
 
 static void Debug_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -39,7 +38,6 @@ JSClass *NativeJSDebug::jsclass = &debug_class;
 
 template<>
 JSClass *NativeJSExposer<NativeJSDebug>::jsclass = &debug_class;
-
 
 static JSFunctionSpec debug_funcs[] = {
     JS_FN("serialize", native_debug_serialize, 1, 0),
@@ -100,7 +98,7 @@ static bool native_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp
 
     if (!objdata || !JS_IsArrayBufferObject(objdata)) {
         JS_ReportError(cx, "unserialize() invalid data (not an ArrayBuffer)");
-        return false;            
+        return false;
     }
     uint32_t len = JS_GetArrayBufferByteLength(objdata);
     uint8_t *data = JS_GetArrayBufferData(objdata);
@@ -109,13 +107,13 @@ static bool native_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp
 
     if (offset >= len) {
         JS_ReportError(cx, "unserialize() offset overflow");
-        return false;              
+        return false;
     }
 
     if (!JS_ReadStructuredClone(cx, (uint64_t *)(data+offset), len-offset,
         JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NativeJS::getNativeClass(cx))) {
         JS_ReportError(cx, "unserialize() invalid data");
-        return false;             
+        return false;
     }
 
     args.rval().set(inval);

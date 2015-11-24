@@ -37,7 +37,7 @@ public:
     static const char *getBaseDir() {
         return NULL;
     }
-    
+
     static bool allowLocalFileStream() {
         return true;
     }
@@ -45,7 +45,7 @@ public:
         return true;
     }
 
-    virtual ~NativeFileStream(){};
+    virtual ~NativeFileStream() {};
 
     virtual void stop();
     virtual void getContent();
@@ -57,7 +57,7 @@ public:
     virtual bool getContentSync(char **data, size_t *len, bool mmap = false);
     virtual size_t getFileSize() const;
     virtual void seek(size_t pos);
-    
+
     virtual void onMessage(const NativeSharedMessages::Message &msg);
 protected:
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err);
@@ -67,3 +67,4 @@ private:
 };
 
 #endif
+

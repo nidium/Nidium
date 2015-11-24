@@ -17,21 +17,20 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeFile.h"
-#include "NativeUtils.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stddef.h>
+#include <errno.h>
+#include <fts.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 
 #include <ape_buffer.h>
-#include <string.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <sys/mman.h>
-#include <stdio.h>
-#include <stddef.h>
 
-#include <fts.h>
+#include "NativeUtils.h"
 
 #define NATIVE_FILE_NOTIFY(param, event, arg) \
     do {   \
@@ -135,7 +134,7 @@ void NativeFile::openTask(const char *mode, void *arg)
         if (!m_Dir) {
             printf("Failed to open dir %s : %s\n", m_Path, strerror(errno));
             NATIVE_FILE_NOTIFY(errno, NATIVEFILE_OPEN_ERROR, arg);
-            return;   
+            return;
         }
         m_isDir = true;
         m_Filesize = 0;
@@ -179,7 +178,7 @@ void NativeFile::readTask(size_t size, void *arg)
     clamped_len = native_min(m_Filesize, size);
 
     buffer *buf = buffer_new(clamped_len + 1);
-    
+
     /*
         Read an empty file
     */
@@ -189,7 +188,7 @@ void NativeFile::readTask(size_t size, void *arg)
         return;
     }
 
-    if ((buf->used = fread(buf->data, 1, clamped_len, m_Fd)) == 0) {        
+    if ((buf->used = fread(buf->data, 1, clamped_len, m_Fd)) == 0) {
         this->checkRead(true, arg);
         buffer_destroy(buf);
         return;
@@ -258,7 +257,7 @@ void NativeFile::listFilesTask(void *arg)
     DirEntries *entries = (DirEntries *)malloc(sizeof(DirEntries));
     entries->allocated = 64;
     entries->lst = (dirent *)malloc(sizeof(dirent) * entries->allocated);
-    
+
     entries->size = 0;
 
     while ((cur = readdir(m_Dir)) != NULL) {
@@ -360,7 +359,7 @@ bool NativeFile::checkEOF()
     if (m_Fd &&
         ((m_Eof = (bool)feof(m_Fd)) == true ||
         (m_Eof = (ftell(m_Fd) == this->m_Filesize)))) {
-        
+
         if (m_AutoClose) {
             this->closeTask();
         }
@@ -424,7 +423,7 @@ void NativeFile::rmrf()
     }
 
     fts_close(tree);
-    
+
     closeFd();
 }
 
@@ -504,7 +503,7 @@ int NativeFile::openSync(const char *modes, int *err)
             printf("Failed to open : %s errno=%d\n", m_Path, errno);
 
             *err = errno;
-            return 0;   
+            return 0;
         }
         m_isDir = true;
         m_Filesize = 0;
@@ -545,7 +544,7 @@ ssize_t NativeFile::writeSync(char *data, uint64_t len, int *err)
 ssize_t NativeFile::mmapSync(char **buffer, int *err)
 {
     *err = 0;
-    
+
     if (!this->isOpen() || this->isDir()) {
         return -1;
     }
@@ -633,3 +632,4 @@ int NativeFile::seekSync(size_t pos, int *err)
 
     return 0;
 }
+

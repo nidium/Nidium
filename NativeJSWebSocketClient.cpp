@@ -19,8 +19,8 @@
 
 #include "NativeJSWebSocketClient.h"
 
-#include "NativeJSUtils.h"
 #include "NativeHTTP.h"
+#include "NativeJSUtils.h"
 
 static void WebSocket_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -44,7 +44,6 @@ static JSFunctionSpec ws_funcs[] = {
     JS_FS_END
 };
 
-
 static void WebSocket_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSWebSocket *wss = (NativeJSWebSocket *)JS_GetPrivate(obj);
@@ -52,7 +51,7 @@ static void WebSocket_Finalize(JSFreeOp *fop, JSObject *obj)
     if (wss != NULL) {
         delete wss;
         printf("Delete websocket connection...\n");
-    }    
+    }
 }
 
 static bool native_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp)
@@ -77,7 +76,7 @@ static bool native_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp)
 
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
             JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer)");
-            return false;            
+            return false;
         }
         uint32_t len = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
@@ -110,7 +109,7 @@ static bool native_websocket_ping(JSContext *cx, unsigned argc, JS::Value *vp)
         &WebSocket_class);
 
     CppObj->ws()->ping();
-    
+
     return true;
 }
 
@@ -185,7 +184,7 @@ static bool native_WebSocket_constructor(JSContext *cx,
 NativeJSWebSocket::NativeJSWebSocket(JS::HandleObject obj, JSContext *cx,
     const char *host,
     unsigned short port, const char *path, bool ssl) : NativeJSExposer<NativeJSWebSocket>(obj, cx)
-{   
+{
     m_WebSocketClient = new NativeWebSocketClient(port, path, host);
     bool ret = m_WebSocketClient->connect(ssl, (ape_global *)JS_GetContextPrivate(cx));
 
@@ -238,7 +237,7 @@ void NativeJSWebSocket::onMessage(const NativeSharedMessages::Message &msg)
         case NATIVE_EVENT(NativeWebSocketClient, CLIENT_CONNECT):
         {
             JS::RootedObject obj(cx, this->getJSObject());
-            
+
             JSOBJ_CALLFUNCNAME(obj, "onopen", JS::HandleValueArray::empty());
 
             break;
@@ -248,11 +247,11 @@ void NativeJSWebSocket::onMessage(const NativeSharedMessages::Message &msg)
             JS::RootedObject obj(cx, this->getJSObject());
 
             JSOBJ_CALLFUNCNAME(obj, "onclose", JS::HandleValueArray::empty());
-            
+
             NativeJSObj(cx)->unrootObject(obj);
 
             break;
-        }        
+        }
         default:
             break;
     }
@@ -265,3 +264,4 @@ void NativeJSWebSocket::registerObject(JSContext *cx)
         native_WebSocket_constructor,
         1, NULL, ws_funcs, NULL, NULL);
 }
+

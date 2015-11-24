@@ -16,13 +16,16 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativePath.h"
-#include "NativeJS.h"
-#include <js/OldDebugAPI.h>
+
+#include <string.h>
+
 #include <vector>
-#include <string>
-#include <NativeUtils.h>
+
+#include <js/OldDebugAPI.h>
+
+#include "NativeUtils.h"
+#include "NativeJS.h"
 
 char *g_m_Root = NULL;
 char *g_m_Pwd = NULL;
@@ -94,7 +97,7 @@ NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
                 this->invalidatePath();
                 return;
             }
-            
+
             strcat(m_Path, baseDir);
             strcat(m_Path, &sanitized[2]);
             m_Scheme = scheme;
@@ -120,7 +123,6 @@ NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
 
     this->setDir();
 }
-
 
 bool NativePath::isRelative(const char *path)
 {
@@ -306,14 +308,14 @@ char *NativePath::sanitize(const char *path, bool *external, bool relative)
                             outsideRoot = true;
                         }
                         elements[counterPos].clear();
-                        minCounter = native_min(counter, minCounter);        
+                        minCounter = native_min(counter, minCounter);
                         break;
                     case PATH_STATE_SLASH:
                         break;
                     default:
                         break;
                 }
-                state = PATH_STATE_SLASH;           
+                state = PATH_STATE_SLASH;
                 break;
             default:
                 elements[counterPos] += path[i];

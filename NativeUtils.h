@@ -22,14 +22,15 @@
 #define nativeutils_h__
 
 #include <stdint.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/syscall.h>
-#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
-#include <jsapi.h>
 #include <fcntl.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <sys/types.h>
+#include <sys/syscall.h>
+
+#include <jsapi.h>
 
 class NativeNoncopyable {
 public:
@@ -104,18 +105,18 @@ template <typename T>
     {
         int random;
         T ret = 0;
-        
+
         /* TODO: keep open */
         random = open("/dev/urandom", O_RDONLY);
-        
+
         if (!random) {
             fprintf(stderr, "Cannot open /dev/urandom\n");
             return 0;
         }
-        
+
         read(random, &ret, sizeof(T));
         close(random);
-        
+
         return ret;
     }
 
@@ -162,7 +163,7 @@ class NativePtrAutoDelete {
 
     ~NativePtrAutoDelete() {
         if (!m_Ptr) return;
-        
+
         if (!m_Free) {
             delete (T) m_Ptr;
         } else {
@@ -183,3 +184,4 @@ class NativePtrAutoDelete {
 #define APE_CTX(CX) ((ape_global *)JS_GetContextPrivate(CX))
 
 #endif
+

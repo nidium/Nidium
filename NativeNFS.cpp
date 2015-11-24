@@ -16,11 +16,13 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeNFS.h"
-#include <NativePath.h>
+
 #include <string.h>
+
 #include <jsapi.h>
+
+#include "NativePath.h"
 
 NativeNFS::NativeNFS(uint8_t *content, size_t size) :
     m_ContentPtr(0)
@@ -135,7 +137,7 @@ bool NativeNFS::mkdir(const char *name_utf8, size_t name_len)
     newdir->filename_utf8[path_len] = '\0';
 
     newdir->next = parent->meta.children;
-    
+
     newdir->header.flags = NFS_FILE_DIR;
     newdir->header.filename_length = path_len;
     newdir->header.size = 0;
@@ -357,7 +359,7 @@ void NativeNFS::releaseTree(NativeNFSTree *root)
     if (root->header.flags & NFS_FILE_DIR) {
         this->releaseTree(root->meta.children);
     }
-    
+
     free(root->filename_utf8);
     free(root);
 }
@@ -368,3 +370,4 @@ NativeNFS::~NativeNFS()
 
     this->releaseTree(m_Root.meta.children);
 }
+

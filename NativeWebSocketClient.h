@@ -21,6 +21,7 @@
 #define nativewebsocketclient_h__
 
 #include <ape_websocket.h>
+
 #include "NativeEvents.h"
 #include "NativeHTTPParser.h"
 
@@ -70,6 +71,5 @@ private:
     websocket_state m_WSState;
 };
 
-
-
 #endif
+

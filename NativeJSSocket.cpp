@@ -17,8 +17,8 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeJSSocket.h"
+
 #include "NativeJS.h"
 #include "NativeJSUtils.h"
 
@@ -82,7 +82,6 @@ static JSFunctionSpec socket_funcs[] = {
     JS_FS_END
 };
 
-
 static JSPropertySpec Socket_props[] = {
     {"binary",   JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_BINARY, native_socket_prop_set)},
     {"readline", JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_READLINE, native_socket_prop_set)},
@@ -95,7 +94,7 @@ static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
-    
+
     if (nsocket == NULL) {
         JS_ReportError(cx, "Invalid socket object");
         return false;
@@ -137,7 +136,7 @@ static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
 
             } else {
                 nsocket->flags &= ~NATIVE_SOCKET_READLINE;
-                
+
                 vp.set(JSVAL_FALSE);
                 return true;
             }
@@ -196,12 +195,11 @@ static void native_socket_wrapper_onconnected(ape_socket *s, ape_global *ape,
     }
 }
 
-
 static void native_socket_wrapper_onaccept(ape_socket *socket_server,
     ape_socket *socket_client, ape_global *ape, void *socket_arg)
 {
     JSContext *m_Cx;
- 
+
     NativeJSSocket *nsocket = (NativeJSSocket *)socket_server->ctx;
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
@@ -285,7 +283,7 @@ void NativeJSSocket::readFrame(const char *buf, size_t len)
         PACK_TCP(socket->s.fd);
         JS_CallFunctionValue(m_Cx, obj, onread, jdata, &rval);
         FLUSH_TCP(socket->s.fd);
-    }  
+    }
 }
 
 static void native_socket_wrapper_client_ondrain(ape_socket *socket_server,
@@ -323,7 +321,7 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
     }
 
     cx = nsocket->getJSContext();
-    JS::AutoValueArray<2> jparams(cx);;
+    JS::AutoValueArray<2> jparams(cx);
     JS::RootedValue onmessage(cx);
     JS::RootedValue rval(cx);
 
@@ -354,7 +352,7 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
 
         JS_SetProperty(cx, remote, "ip", jip);
         JS::RootedValue jport(cx, INT_TO_JSVAL(ntohs(addr->sin_port)));
-        
+
         JS_SetProperty(cx, remote, "port", jport);
 
         jparams[1].setObject(*remote);
@@ -427,7 +425,7 @@ void NativeJSSocket::onRead(const char *data, size_t len)
         PACK_TCP(socket->s.fd);
         JS_CallFunctionValue(m_Cx, obj, onread, jparams, &rval);
         FLUSH_TCP(socket->s.fd);
-    } 
+    }
 }
 
 static void native_socket_wrapper_client_read(ape_socket *socket_client,
@@ -526,7 +524,7 @@ static bool native_Socket_constructor(JSContext *cx, unsigned argc, JS::Value *v
     NativeJSSocket *nsocket;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    
+
     if (!args.isConstructing()) {
         JS_ReportError(cx, "Bad constructor");
         return false;
@@ -699,10 +697,10 @@ static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_socket_client_sendFile(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
-	JS::RootedString file(cx);
+    JS::RootedString file(cx);
 
     NATIVE_CHECK_ARGS("sendFile", 1);
-    
+
     JSNATIVE_PROLOGUE_CLASS(NativeJSSocket, &socket_client_class);
 
     if (!CppObj->isAttached()) {
@@ -752,7 +750,7 @@ static bool native_socket_client_write(JSContext *cx,
 
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
             JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer)");
-            return false;            
+            return false;
         }
         uint32_t len = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
@@ -797,7 +795,7 @@ static bool native_socket_write(JSContext *cx, unsigned argc, JS::Value *vp)
 
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
             JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer)");
-            return false;            
+            return false;
         }
         uint32_t len = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
@@ -1000,3 +998,4 @@ void NativeJSSocket::shutdown()
 }
 
 NATIVE_OBJECT_EXPOSE(Socket)
+

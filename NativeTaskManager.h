@@ -21,11 +21,12 @@
 #ifndef nativeTaskManager_h__
 #define nativeTaskManager_h__
 
+#include <stdio.h>
 #include <pthread.h>
+
 #include "NativeMessages.h"
 #include "NativeSharedMessages.h"
 #include "NativeArgs.h"
-#include <stdio.h>
 
 #define NATIVE_TASKMANAGER_MAX_IDLE_THREAD 8
 #define NATIVE_TASKMANAGER_MAX_THREAD 16
@@ -134,3 +135,4 @@ private:
 };
 
 #endif
+

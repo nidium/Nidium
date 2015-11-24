@@ -1,8 +1,10 @@
 #include "NativeWebSocketClient.h"
-#include <ape_base64.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <ape_base64.h>
 
 static void native_ws_connected(ape_socket *s,
     ape_global *ape, void *arg)
@@ -28,7 +30,6 @@ static void native_ws_disconnect(ape_socket *s,
     ((NativeWebSocketClient *)arg)->onClose();
 }
 
-
 static void native_on_ws_client_frame(websocket_state *state,
     const unsigned char *data, ssize_t length, int binary)
 {
@@ -46,7 +47,6 @@ static void native_on_ws_client_frame(websocket_state *state,
 
     con->onFrame((const char *)data, length, (bool)binary);
 }
-
 
 NativeWebSocketClient::NativeWebSocketClient(uint16_t port, const char *url,
     const char *host) :
@@ -94,7 +94,7 @@ bool NativeWebSocketClient::connect(bool ssl, ape_global *ape)
     m_Socket->callbacks.on_read       = native_ws_read_handshake;
     m_Socket->callbacks.on_disconnect = native_ws_disconnect;
     m_Socket->callbacks.arg = this;
-    
+
     m_Socket->ctx = this;
 
     return true;
@@ -113,7 +113,7 @@ void NativeWebSocketClient::onConnected()
     PACK_TCP(m_Socket->s.fd);
 
     int ret = 0;
-    
+
     ret = APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN("GET "), APE_DATA_STATIC);
     ret = APE_socket_write(m_Socket, m_URL, strlen(m_URL), APE_DATA_OWN);
     ret = APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN(" HTTP/1.1\r\nHost: "), APE_DATA_STATIC);
@@ -200,7 +200,7 @@ void NativeWebSocketClient::HTTPRequestEnded()
 }
 
 void NativeWebSocketClient::write(uint8_t *data, size_t len, bool binary)
-{   
+{
     if (!m_Socket) return;
 
     uint32_t r32 = NativeUtils::randInt<uint32_t>();
@@ -208,9 +208,9 @@ void NativeWebSocketClient::write(uint8_t *data, size_t len, bool binary)
 }
 
 void NativeWebSocketClient::close()
-{   
+{
     if (!m_Socket) return;
-    
+
     ape_ws_close(&m_WSState);
 }
 
@@ -225,3 +225,4 @@ void NativeWebSocketClient::HTTPOnData(size_t offset, size_t len)
 {
 
 }
+

@@ -17,11 +17,21 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeJS.h"
 
-#include "NativeSharedMessages.h"
+#include <stdio.h>
+#include <stdint.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <libgen.h>
 
+#include <jsapi.h>
+#include <jsfriendapi.h>
+#include <js/OldDebugAPI.h>
+#include <jsprf.h>
+#include <ape_hash.h>
+
+#include "NativeSharedMessages.h"
 #include "NativeJSSocket.h"
 #include "NativeJSThread.h"
 #include "NativeJSHttp.h"
@@ -34,33 +44,14 @@
 #include "NativeJSDebug.h"
 #include "NativeJSConsole.h"
 #include "NativeJSFS.h"
-
 #include "NativeUtils.h"
 #include "NativeMessages.h"
-
-#include <ape_hash.h>
-
-#include <jsapi.h>
-#include <jsfriendapi.h>
-//#include <jsdbgapi.h>
-#include <js/OldDebugAPI.h>
-
-#include <jsprf.h>
-
-#include <stdio.h>
-#include <stdint.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <libgen.h>
-
 #include "NativeTaskManager.h"
 #include "NativeFile.h"
-
 #include "NativeWebSocket.h"
 #include "NativePath.h"
-
-#include <NativeNFS.h>
-#include <NativeStreamInterface.h>
+#include "NativeNFS.h"
+#include "NativeStreamInterface.h"
 
 static pthread_key_t gAPE = 0;
 static pthread_key_t gJS = 0;
@@ -79,6 +70,7 @@ size_t gMaxStackSize = DEFAULT_MAX_STACK_SIZE;
 struct native_sm_timer
 {
     JSContext *cx;
+
     
     JS::PersistentRootedObject global;
     JS::PersistentRootedValue **argv;
@@ -194,7 +186,7 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
         printf("Error reporter failed (wrong JSContext?) (%s:%d > %s)\n", report->filename, report->lineno, message);
         return;
     }
-    
+
     if (!report) {
         js->logf("%s\n", message);
         return;
@@ -380,7 +372,7 @@ bool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
         default:
         {
             if (js && type == JSTYPE_OBJECT) {
-                
+
                 WriteStructuredCloneOp op;
                 if ((op = js->getWriteStructuredCloneAddition()) &&
                     op(cx, w, obj, closure)) {
@@ -425,11 +417,11 @@ static bool native_load(JSContext *cx, unsigned argc, JS::Value *vp)
     char *content;
     size_t len;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    
+
     if (!JS_ConvertArguments(cx, args, "S", script.address())) {
         return false;
     }
-    
+
     NativeJS *njs = NativeJS::getNativeClass(cx);
     JSAutoByteString scriptstr(cx, script);
     NativePath scriptpath(scriptstr.ptr());
@@ -457,13 +449,13 @@ static bool native_load(JSContext *cx, unsigned argc, JS::Value *vp)
 
     if (!stream.ptr() || !stream.ptr()->getContentSync(&content, &len, true)) {
         JS_ReportError(cx, "load() failed read script");
-        return false;        
+        return false;
     }
 
     if (!njs->LoadScriptContent(content, len, scriptpath.path())) {
         JS_ReportError(cx, "load() failed to load script");
         return false;
-    }    
+    }
 
     return true;
 }
@@ -537,7 +529,7 @@ void NativeJS::initNet(ape_global *net)
         pthread_key_create(&gAPE, NULL);
     }
 
-    pthread_setspecific(gAPE, net); 
+    pthread_setspecific(gAPE, net);
 }
 
 JSObject *NativeJS::CreateJSGlobal(JSContext *cx)
@@ -558,7 +550,6 @@ JSObject *NativeJS::CreateJSGlobal(JSContext *cx)
     JS_DefineProperties(cx, glob, glob_props);
 
     JS_FireOnNewGlobalObject(cx, glob);
-
 
     return glob;
     //JS::RegisterPerfMeasurement(cx, glob);
@@ -597,7 +588,7 @@ NativeJS::NativeJS(ape_global *net) :
     m_StructuredCloneAddition.write = NULL;
 
     static int isUTF8 = 0;
-    
+
     /* TODO: BUG */
     if (!isUTF8) {
         //JS_SetCStringsAreUTF8();
@@ -625,7 +616,7 @@ NativeJS::NativeJS(ape_global *net) :
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L,
         JS_NO_HELPER_THREADS)) == NULL) {
-        
+
         printf("Failed to init JS runtime\n");
         return;
     }
@@ -635,14 +626,14 @@ NativeJS::NativeJS(ape_global *net) :
 
     if ((cx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
-        return;     
+        return;
     }
 #if 0
     JS_SetGCZeal(cx, 2, 4);
 #endif
     //JS_ScheduleGC(cx, 1);
     //JS_SetGCCallback(rt, _gc_callback, NULL);
-    
+
     JS_BeginRequest(cx);
     JS::RootedObject gbl(cx);
 #if 0
@@ -693,7 +684,6 @@ NativeJS::NativeJS(ape_global *net) :
         printf("ret : %s\n", ret);
     }
 
-
     NativeBaseStream *mov = NativeBaseStream::create("/tmp/test");
 
     char *content;
@@ -724,7 +714,6 @@ NativeJS::NativeJS(ape_global *net) :
 
 }
 
-
 #if 0
 static bool test_extracting(const char *buf, int len,
     size_t offset, size_t total, void *user)
@@ -734,7 +723,6 @@ static bool test_extracting(const char *buf, int len,
     printf("Got a packet of size %ld out of %ld\n", offset, total);
     return true;
 }
-
 
 int NativeJS::LoadApplication(const char *path)
 {
@@ -757,7 +745,6 @@ int NativeJS::LoadApplication(const char *path)
     return 0;
 }
 #endif
-
 
 NativeJS::~NativeJS()
 {
@@ -785,7 +772,7 @@ NativeJS::~NativeJS()
     }
 
     pthread_setspecific(gJS, NULL);
-    
+
     hashtbl_free(rootedObj);
     free(registeredMessages);
 }
@@ -812,7 +799,6 @@ static int Native_handle_messages(void *arg)
     return 8;
 #undef MAX_MSG_IN_ROW
 }
-
 
 void NativeJS::bindNetObject(ape_global *net)
 {
@@ -873,7 +859,7 @@ int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
 
     char *func = (char *)malloc(sizeof(char) * (len + 64));
     memset(func, 0, sizeof(char) * (len + 64));
-    
+
     strcat(func, "return (");
     strncat(func, data, len);
     strcat(func, ");");
@@ -898,12 +884,12 @@ int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
         return 0;
     }
 
-    return 1;    
+    return 1;
 }
 
 int NativeJS::LoadScriptReturn(JSContext *cx,
     const char *filename, JS::MutableHandleValue ret)
-{   
+{
     int err;
     char *data;
     size_t len;
@@ -951,7 +937,7 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
     JS::AutoSaveContextOptions asco(cx);
 
     JS::ContextOptionsRef(cx).setVarObjFix(true).setStrictMode(m_JSStrictMode);
-    
+
     JS::CompileOptions options(cx);
     options.setUTF8(true)
            .setFileAndLine(filename, 1)
@@ -1287,7 +1273,7 @@ static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
 
     args.rval().setNumber((double)timer->identifier);
 
-    return true; 
+    return true;
 }
 
 static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
@@ -1303,7 +1289,7 @@ static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
     clear_timer_by_id(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
         (uint64_t)identifier, 0);
 
-    return true;    
+    return true;
 }
 
 static int native_timerng_wrapper(void *arg)
@@ -1318,7 +1304,7 @@ static int native_timerng_wrapper(void *arg)
 
     arr.resize(params->argc);
     for(size_t i = 0; i< params->argc; i++) {
-    	arr[i] = params->argv[i]->get();
+        arr[i] = params->argv[i]->get();
     }
     JS_CallFunctionValue(params->cx, global, func, arr, &rval);
 

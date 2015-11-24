@@ -22,6 +22,7 @@
 #define nativejsstream_h__
 
 #include "NativeJSExposer.h"
+
 #include "NativeMessages.h"
 
 class NativeBaseStream;
@@ -43,3 +44,4 @@ class NativeJSStream :  public NativeJSExposer<NativeJSStream>,
 };
 
 #endif
+

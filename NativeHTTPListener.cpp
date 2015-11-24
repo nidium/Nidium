@@ -16,12 +16,12 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeHTTPListener.h"
-#include "NativeJS.h"
 
 #include <stdlib.h>
 #include <stdint.h>
+
+#include "NativeJS.h"
 
 #define GET_HTTP_OR_FAIL(obj) \
     (NativeHTTPListener *)obj->ctx; \
@@ -36,7 +36,6 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len);
 static int request_url_cb(http_parser *p, const char *buf, size_t len);
 static int body_cb(http_parser *p, const char *buf, size_t len);
 
-
 static http_parser_settings settings =
 {
 .on_message_begin = message_begin_cb,
@@ -47,7 +46,6 @@ static http_parser_settings settings =
 .on_headers_complete = headers_complete_cb,
 .on_message_complete = message_complete_cb
 };
-
 
 static struct {
     uint16_t code;
@@ -95,7 +93,6 @@ static struct {
     {505, "HTTP Version not support"},
     {0, NULL}
 };
-
 
 static int message_begin_cb(http_parser *p)
 {
@@ -185,7 +182,7 @@ static int headers_complete_cb(http_parser *p)
         con->onHeaderEnded();
         return 0;
     }
-    
+
     if (p->content_length > HTTP_MAX_CL) {
         return -1;
     }
@@ -281,7 +278,7 @@ static void native_socket_client_read_after_upgrade(ape_socket *socket_client,
     if (!con) {
         return;
     }
-    con->onContent((const char *)data, len);  
+    con->onContent((const char *)data, len);
 }
 
 static void native_socket_client_disconnect(ape_socket *socket_client,
@@ -298,9 +295,6 @@ static void native_socket_client_disconnect(ape_socket *socket_client,
 
     delete con;
 }
-
-////////////////////
-////////////////////
 
 NativeHTTPListener::NativeHTTPListener(uint16_t port, const char *ip)
 {
@@ -340,16 +334,11 @@ void NativeHTTPListener::stop()
     }
 }
 
-
 NativeHTTPListener::~NativeHTTPListener()
 {
     this->stop();
     free(m_IP);
 }
-
-
-////////////////////
-////////////////////
 
 void NativeHTTPListener::onClientConnect(ape_socket *client, ape_global *ape)
 {
@@ -357,10 +346,6 @@ void NativeHTTPListener::onClientConnect(ape_socket *client, ape_global *ape)
 
     this->onClientConnect((NativeHTTPClientConnection *)client->ctx);
 }
-
-
-//////////////
-//////////////
 
 int NativeHTTPClientConnection_checktimeout(void *arg)
 {
@@ -431,7 +416,7 @@ void NativeHTTPClientConnection::onRead(const char *data,
     } else if (nparsed != len) {
         printf("Http error : %s\n", http_errno_description(HTTP_PARSER_ERRNO(&m_HttpState.parser)));
     }
-#undef REQUEST_HEADER    
+#undef REQUEST_HEADER
 }
 
 void NativeHTTPClientConnection::close()
@@ -447,7 +432,7 @@ NativeHTTPClientConnection::~NativeHTTPClientConnection()
         ape_global *ape = NativeJS::getNet();
         clear_timer_by_id(&ape->timersng, m_TimeoutTimer, 1);
         m_TimeoutTimer = 0;
-    }   
+    }
 
     if (m_HttpState.headers.list) {
         ape_array_destroy(m_HttpState.headers.list);
@@ -485,7 +470,7 @@ NativeHTTPResponse *NativeHTTPClientConnection::onCreateResponse()
 
 NativeHTTPResponse::NativeHTTPResponse(uint16_t code) :
     m_Headers(ape_array_new(8)), m_Statuscode(code),
-	m_Content(NULL), m_Headers_str(NULL), m_HeaderSent(false), m_Chunked(false)
+    m_Content(NULL), m_Headers_str(NULL), m_HeaderSent(false), m_Chunked(false)
 {
     this->setHeader("Server", "nidium/" NATIVE_VERSION_STR);
 }
@@ -528,7 +513,6 @@ void NativeHTTPResponse::sendHeaders(bool chunked)
 
     this->dataOwnershipTransfered(true);
 }
-
 
 void NativeHTTPResponse::sendChunk(char *buf, size_t len,
     ape_socket_data_autorelease datatype, bool willEnd)
@@ -590,7 +574,7 @@ void NativeHTTPResponse::send(ape_socket_data_autorelease datatype)
             data->used, datatype);
     }
     FLUSH_TCP(m_Con->getSocket()->s.fd);
-    
+
     /*
         If we are not in a APE_DATA_AUTORELEASE,
         only transfert the headers ownership
@@ -681,7 +665,6 @@ const buffer &NativeHTTPResponse::getHeadersString()
         this->removeHeader("Content-Length");
     }
 
-
     if (m_Con && m_Con->shouldCloseConnection()) {
         this->setHeader("Connection", "close");
     }
@@ -731,3 +714,4 @@ void NativeHTTPResponse::dataOwnershipTransfered(bool onlyHeaders)
         m_Content = NULL;
     }
 }
+

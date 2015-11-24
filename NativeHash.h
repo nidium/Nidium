@@ -21,11 +21,11 @@
 #ifndef nativehash_h__
 #define nativehash_h__
 
-#include <ape_hash.h>
 #include <stdlib.h>
 #include <string.h>
-#include "NativeUtils.h"
 #include <iterator>
+#include <ape_hash.h>
+#include "NativeUtils.h"
 
 /*
     C++ wrapper to ape_hash
@@ -74,7 +74,6 @@ class NativeHash64 : public NativeNoncopyable
 
         struct _ape_htable *table;
 };
-   
 
 template <typename T>
 class NativeHash : public NativeNoncopyable
@@ -123,7 +122,7 @@ class NativeHash : public NativeNoncopyable
                     return *this;
                 }
                 bool operator != (iterator& other) {
-                    return  ptr != other.ptr; 
+                    return  ptr != other.ptr;
                 }
                 T operator->() {
                     return (T)ptr->content.addrs;
@@ -132,7 +131,7 @@ class NativeHash : public NativeNoncopyable
                 ape_htable_item_t *ptr;
         };
 
-        iterator begin() 
+        iterator begin()
         {
             if (!table->first) {
                 return iterator(NULL);
@@ -173,7 +172,8 @@ class NativeHash<uint32_t> : public NativeNoncopyable
             hashtbl_erase(this->table, key, strlen(key));
         }
     private:
-        struct _ape_htable *table;    
+        struct _ape_htable *table;
 };
 
 #endif
+

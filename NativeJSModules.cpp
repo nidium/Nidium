@@ -17,27 +17,26 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#include "NativeJSModules.h"
 
-#include <jsfriendapi.h>
-#include <jsapi.h>
-#include <js/OldDebugAPI.h>
 #include <libgen.h>
 #include <unistd.h>
-#include <errno.h> 
-#include <dlfcn.h> 
+#include <errno.h>
+#include <dlfcn.h>
 #include <sys/stat.h>
 
-#include <NativeJSExposer.h>
-#include <NativeJSModules.h>
-#include <NativeJS.h>
-#include <NativePath.h>
-#include <NativeStreamInterface.h>
-#include <NativeUtils.h>
+#include <algorithm>
 
 #include <jsoncpp.h>
-//#include <json.h>
+#include <jsapi.h>
+#include <jsfriendapi.h>
+#include <js/OldDebugAPI.h>
 
-#include <algorithm>
+#include "NativePath.h"
+#include "NativeStreamInterface.h"
+#include "NativeUtils.h"
+#include "NativeJS.h"
+#include "NativeJSExposer.h"
 
 #if 0
 #define DPRINT(...) printf(__VA_ARGS__)
@@ -69,13 +68,13 @@ static JSPropertySpec native_modules_exports_props[] = {
 
 static bool native_modules_require(JSContext *cx, unsigned argc, JS::Value *vp);
 
-NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name) 
-    : absoluteDir(NULL), filePath(NULL), name(strdup(name)), m_ModuleType(NONE), 
+NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name)
+    : absoluteDir(NULL), filePath(NULL), name(strdup(name)), m_ModuleType(NONE),
       m_Cached(false), exports(NULL), parent(parent), modules(modules), cx(cx)
 {
 }
 
-bool NativeJSModule::initMain() 
+bool NativeJSModule::initMain()
 {
     this->name = strdup("__MAIN__");
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
@@ -119,7 +118,7 @@ bool NativeJSModule::init()
     }
 
     this->absoluteDir = strdup(p.dir());
-    
+
     DPRINT("filepath = %s\n", this->filePath);
     DPRINT("name = %s\n", this->name);
 
@@ -147,7 +146,8 @@ bool NativeJSModules::init()
         }
 
         if (token != NULL && i == 63) {
-            fprintf(stderr, "Warning : require path ignored %s. A maximum of 63 search path is allowed. All subsequent path will be ignored.\n", token);
+            fprintf(stderr, "Warning : require path ignored %s."
+                            " A maximum of 63 search path is allowed. All subsequent paths will be ignored.\n", token);
         }
 
         m_EnvPaths[i] = NULL;
@@ -354,7 +354,7 @@ bool NativeJSModules::getFileContent(const char *file, char **content, size_t *s
     return ret;
 }
 
-std::string NativeJSModules::findModuleInPath(NativeJSModule *module, const char *path) 
+std::string NativeJSModules::findModuleInPath(NativeJSModule *module, const char *path)
 {
 #define MAX_EXT_SIZE 13
     const char *extensions[] = {NULL, ".js", DSO_EXTENSION, ".json"};
@@ -466,7 +466,7 @@ bool NativeJSModules::loadDirectoryModule(std::string &dir)
                     fprintf(stderr, "Failed to parse %s\n  %s\n", dir.c_str(), reader.getFormatedErrorMessages().c_str());
                     return false;
                 }
-                
+
                 std::string main = root.get("main", "").asString();
                 dir.erase(len);
                 dir += std::string("/") + main;
@@ -485,7 +485,7 @@ bool NativeJSModules::loadDirectoryModule(std::string &dir)
     return false;
 }
 
-#undef MAX_EXT_SIZE 
+#undef MAX_EXT_SIZE
 
 JS::Value NativeJSModule::require(char *name)
 {
@@ -498,16 +498,16 @@ JS::Value NativeJSModule::require(char *name)
     // require() have been called from the main module
     if (this == this->modules->main) {
         /*
-         * This little hack is needed to conform CommonJS : 
+         * This little hack is needed to conform CommonJS :
          *  - Cyclic deps
          *  - Finding module
-         * 
+         *
          * Since all files included with NativeJS::LoadScript();
          * share the same module we need to be aware of the real caller.
-         * So here we set the filename and path of the caller 
-         * 
+         * So here we set the filename and path of the caller
+         *
          * XXX : Another way to handle this case would be to make
-         * load() aware of his context by using the same trick 
+         * load() aware of his context by using the same trick
          * require do.
          */
         unsigned lineno;
@@ -552,7 +552,7 @@ JS::Value NativeJSModule::require(char *name)
     }
 
     // Is there is a cyclic dependency
-    for (NativeJSModule *m = cmodule->parent;;) {
+    for (NativeJSModule *m = cmodule->parent; ; ) {
         if (!m || !m->exports) break;
 
         // Found a cyclic dependency
@@ -595,8 +595,7 @@ JS::Value NativeJSModule::require(char *name)
             }
 
             if (cmodule->m_ModuleType == JS) {
-
-            	JS::RootedObject expObj(cx, cmodule->exports);
+                JS::RootedObject expObj(cx, cmodule->exports);
                 JS::CompileOptions options(cx);
                 options.setFileAndLine(cmodule->filePath, 1)
                        .setUTF8(true);
@@ -640,7 +639,7 @@ JS::Value NativeJSModule::require(char *name)
                 njs->rootObjectUntilShutdown(cmodule->exports);
             }
         }
-    } 
+    }
 
     switch (cmodule->m_ModuleType) {
         case JS:
@@ -715,3 +714,4 @@ void Exports_Finalize(JSFreeOp *fop, JSObject *obj)
         delete module;
     }
 }
+

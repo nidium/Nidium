@@ -17,13 +17,14 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeTaskManager.h"
-#include "NativeUtils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <system/native_atom.h>
+
+#include "NativeUtils.h"
 
 static pthread_key_t gManager = 0;
 
@@ -50,7 +51,7 @@ void *NativeTaskManager::workerInfo::work()
             NativeTask *task = (NativeTask *)msg->dataPtr();
             task->getFunction()(task);
             native_atomic_dec(&task->getObject()->m_TaskQueued);
-            
+
             delete task;
             delete msg;
         }
@@ -226,3 +227,4 @@ void NativeManaged::addTask(NativeTask *task)
 
     m_Worker->addTask(task);
 }
+
