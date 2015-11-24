@@ -20,8 +20,8 @@
 #ifndef nativejshttplistener_h__
 #define nativejshttplistener_h__
 
-#include "NativeJSExposer.h"
 #include "NativeHTTPListener.h"
+#include "NativeJSExposer.h"
 
 class NativeJSHTTPClientConnection;
 
@@ -68,7 +68,7 @@ public:
     virtual void onData(NativeHTTPClientConnection *client, const char *buf, size_t len);
     virtual bool onEnd(NativeHTTPClientConnection *client);
 
-    static void registerObject(JSContext *cx);    
+    static void registerObject(JSContext *cx);
 private:
 };
 

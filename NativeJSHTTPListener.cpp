@@ -16,8 +16,8 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeJSHTTPListener.h"
+
 #include "NativeJSUtils.h"
 
 static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -90,10 +90,9 @@ NativeJSHTTPListener::~NativeJSHTTPListener()
 
 }
 
-
 void NativeJSHTTPListener::onClientDisconnect(NativeHTTPClientConnection *client)
 {
-    
+
 }
 
 void NativeJSHTTPListener::onData(NativeHTTPClientConnection *client,
@@ -249,7 +248,7 @@ static bool native_httpresponse_write(JSContext *cx, unsigned argc, JS::Value *v
         JS::RootedObject objdata(cx, args[0].toObjectOrNull());
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
             JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer)");
-            return false;            
+            return false;
         }
         uint32_t len = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
@@ -259,7 +258,7 @@ static bool native_httpresponse_write(JSContext *cx, unsigned argc, JS::Value *v
         JS_ReportError(cx, "write() only accepts String or ArrayBuffer");
         return false;
     }
-    
+
     return true;
 }
 
@@ -278,13 +277,13 @@ static bool native_httpresponse_end(JSContext *cx, unsigned argc, JS::Value *vp)
             JSAutoByteString jsdata;
             JS::RootedString str(cx, args[0].toString());
             jsdata.encodeUtf8(cx, str);
-            
+
             resp->sendChunk(jsdata.ptr(), jsdata.length(), APE_DATA_COPY, true);
         } else if (args[0].isObject()) {
             JS::RootedObject objdata(cx, args[0].toObjectOrNull());
             if (!objdata || !JS_IsArrayBufferObject(objdata)) {
                 JS_ReportError(cx, "end() invalid data (must be either a string or an ArrayBuffer)");
-                return false;            
+                return false;
             }
             uint32_t len = JS_GetArrayBufferByteLength(objdata);
             uint8_t *data = JS_GetArrayBufferData(objdata);

@@ -16,8 +16,8 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeHTTPParser.h"
+
 #include <string.h>
 
 #ifndef ULLONG_MAX
@@ -33,7 +33,6 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len);
 static int header_value_cb(http_parser *p, const char *buf, size_t len);
 static int request_url_cb(http_parser *p, const char *buf, size_t len);
 static int body_cb(http_parser *p, const char *buf, size_t len);
-
 
 static http_parser_settings settings =
 {
@@ -87,7 +86,6 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
 
     return 0;
 }
-
 
 static int header_field_cb(http_parser *p, const char *buf, size_t len)
 {
@@ -214,3 +212,4 @@ const char *NativeHTTPParser::HTTPGetHeader(const char *key)
     buffer *ret = ape_array_lookup_cstr(m_Headers.list, key, strlen(key));
     return ret ? (const char *)ret->data : NULL;
 }
+

@@ -17,11 +17,11 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#include "NativeJSUtils.h"
 
 #include <jsapi.h>
 #include <jsfriendapi.h>
 
-#include "NativeJSUtils.h"
 #include "NativeUtils.h"
 
 bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::MutableHandleValue ret,
@@ -50,7 +50,7 @@ bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::M
             memcpy(adata, buf, len);
 
             ret.setObject(*arrayBuffer);
-        }        
+        }
     }
 
     return true;
@@ -76,10 +76,11 @@ JSString *NativeJSUtils::newStringWithEncoding(JSContext *cx, const char *buf,
         }
 
         content.disable(); /* JS_NewUCString took ownership */
-        
+
         return str;
 
     }
 
     return JS_NewStringCopyN(cx, buf, len);
 }
+

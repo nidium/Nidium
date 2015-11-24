@@ -21,18 +21,18 @@
 #ifndef nativehttp_h__
 #define nativehttp_h__
 
-#include <native_netlib.h>
-//#include "ape_http_parser.h"
-#include <ape_array.h>
+#include <string>
+
 #include <http_parser.h>
+
+#include <native_netlib.h>
+#include <ape_array.h>
 
 #define HTTP_MAX_CL (1024ULL*1024ULL*1024ULL*2ULL)
 #define HTTP_DEFAULT_TIMEOUT 15000
 
 #include "NativeIStreamer.h"
 #include "NativeMessages.h"
-
-#include <string>
 
 class NativeHTTPDelegate;
 
@@ -49,7 +49,7 @@ class NativeHTTPRequest
 
         explicit NativeHTTPRequest(const char *url);
 
-        ~NativeHTTPRequest(){
+        ~NativeHTTPRequest() {
             ape_array_destroy(this->headers);
             if (data != NULL && datafree != NULL) {
                 datafree(data);
@@ -273,7 +273,7 @@ public:
     void setPendingError(NativeHTTP::HTTPError err) {
         m_PendingError = err;
     }
-    
+
     void clearPendingError() {
         m_PendingError = ERROR_NOERR;
     }
@@ -330,5 +330,5 @@ class NativeHTTPDelegate
     NativeHTTP *httpref;
 };
 
-
 #endif
+

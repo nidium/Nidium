@@ -17,19 +17,16 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
-
 #include "NativeUtils.h"
 
 #include <stdlib.h>
 #include <stdio.h>
-//#include <jsstr.h>
+
+#include <js/CharacterEncoding.h>
+
 #include <ape_sha1.h>
 #include <ape_base64.h>
 #include <ape_blowfish.h>
-
-
-#include <js/CharacterEncoding.h>
 
 /* TODO : http://nadeausoftware.com/articles/2012/04/c_c_tip_how_measure_elapsed_real_time_benchmarking */
 
@@ -37,7 +34,7 @@
   #include <mach/mach_time.h>
 #else
   #include <time.h>
-  #include <arpa/inet.h>  
+  #include <arpa/inet.h>
 
 #ifdef __WIN32
 LARGE_INTEGER
@@ -121,7 +118,6 @@ static __inline uint64_t mach_absolute_time()
 }
 #endif
 #endif
-
 
 static uint8_t nibbleFromChar(char c)
 {
@@ -317,3 +313,4 @@ void NativeUtils::HTTPTime(char *buf)
                            timenow.tm_min,
                            timenow.tm_sec);
 }
+

@@ -17,16 +17,16 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeJSThread.h"
+
+#include <js/OldDebugAPI.h>
+
 #include "NativeSharedMessages.h"
 #include "NativeJS.h"
 #include "NativeJSConsole.h"
 
-#include <js/OldDebugAPI.h>
-
 extern void reportError(JSContext *cx, const char *message,
-	JSErrorReport *report);
+    JSErrorReport *report);
 static bool native_post_message(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Thread_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_thread_start(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -49,7 +49,6 @@ static JSClass Thread_class = {
 
 template<>
 JSClass *NativeJSExposer<NativeJSThread>::jsclass = &Thread_class;
-
 
 static JSClass messageEvent_class = {
     "ThreadMessageEvent", 0,
@@ -105,7 +104,6 @@ JSObject *_CreateJSGlobal(JSContext *cx)
 
     JS_FireOnNewGlobalObject(cx, glob);
 
-
     return glob;
     //JS::RegisterPerfMeasurement(cx, glob);
 
@@ -126,15 +124,15 @@ static void *native_thread(void *arg)
     }
 
     NativeJS::SetJSRuntimeOptions(rt);
-    
+
     if ((tcx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
-        return NULL;     
+        return NULL;
     }
 
     JS_SetGCParameterForThread(tcx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
     JS::RootedValue rval(tcx, JSVAL_VOID);
-    
+
     JS_SetStructuredCloneCallbacks(rt, NativeJS::jsscc);
     JS_SetInterruptCallback(rt, JSThreadCallback);
 
@@ -150,7 +148,6 @@ static void *native_thread(void *arg)
 
     JS::RootedObject gbl(tcx, _CreateJSGlobal(tcx));
 
-    
     JS_SetErrorReporter(tcx, reportError);
 
     js::SetDefaultObjectForContext(tcx, gbl);
@@ -163,12 +160,12 @@ static void *native_thread(void *arg)
     /*
         JS_CompileFunction takes a function body.
         This is a hack in order to catch the arguments name, etc...
-        
+
         function() {
             (function (a) {
                 this.send("hello" + a);
             }).apply(this, Array.prototype.slice.apply(arguments));
-        };    
+        };
     */
     sprintf(scoped, "return %c%s%s", '(', str.ptr(), ").apply(this, Array.prototype.slice.apply(arguments));");
 
@@ -182,13 +179,13 @@ static void *native_thread(void *arg)
     JS::RootedFunction cf(tcx);
     cf = JS::CompileFunction(tcx, gbl, options, NULL, 0, NULL, scoped, strlen(scoped));
     delete[] scoped;
-    
+
     if (cf == NULL) {
         printf("Cant compile function\n");
         JS_EndRequest(tcx);
         return NULL;
     }
-    
+
     JS::AutoValueVector arglst(tcx);
     arglst.resize(nthread->params.argc);
 
@@ -230,7 +227,7 @@ static bool native_thread_start(JSContext *cx, unsigned argc, JS::Value *vp)
 
     if (JS_InstanceOf(cx, caller, &Thread_class, &args) == false) {
         return true;
-    }    
+    }
 
     if ((nthread = (NativeJSThread *)JS_GetPrivate(caller)) == NULL) {
         return true;
@@ -252,7 +249,6 @@ static bool native_thread_start(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     nthread->params.argc = argc;
-
 
     /* TODO: check if already running */
     pthread_create(&nthread->threadHandle, NULL,
@@ -329,9 +325,9 @@ static bool native_Thread_constructor(JSContext *cx, unsigned argc, JS::Value *v
     JS::RootedFunction nfn(cx);
 
     if ((nfn = JS_ValueToFunction(cx, args[0])) == NULL ||
-    	(nthread->jsFunction = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
-    	printf("Failed to read Threaded function\n");
-    	return true;
+        (nthread->jsFunction = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
+        printf("Failed to read Threaded function\n");
+        return true;
     }
 
     nthread->jsObject 	= ret;
@@ -422,15 +418,15 @@ NativeJSThread::~NativeJSThread()
     }
 }
 
-NativeJSThread::NativeJSThread(JS::HandleObject obj, JSContext *cx)
-	:
+NativeJSThread::NativeJSThread(JS::HandleObject obj, JSContext *cx) :
     NativeJSExposer<NativeJSThread>(obj, cx),
     jsFunction(cx), jsRuntime(NULL), jsCx(NULL),
     jsObject(NULL), njs(NULL), markedStop(false), m_CallerFileName(NULL)
 {
-	/* cx hold the main context (caller) */
-	/* jsCx hold the newly created context (along with jsRuntime) */
-	cx = NULL;
+    /* cx hold the main context (caller) */
+    /* jsCx hold the newly created context (along with jsRuntime) */
+    cx = NULL;
 }
 
 NATIVE_OBJECT_EXPOSE(Thread)
+

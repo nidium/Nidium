@@ -17,23 +17,21 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeStreamInterface.h"
-#include "NativeMessages.h"
-
-#include "NativeFileStream.h"
-#include "NativeHTTPStream.h"
-#include "NativePath.h"
 
 #include <string.h>
 
+#include "NativePath.h"
+#include "NativeFileStream.h"
+#include "NativeHTTPStream.h"
+#include "NativeMessages.h"
 
 NativeBaseStream::NativeBaseStream(const char *location) :
     m_PacketsSize(0), m_NeedToSendUpdate(false), m_PendingSeek(false),
     m_Listener(NULL)
 {
     m_Location = strdup(location);
-    
+
     m_DataBuffer.back =         NULL;
     m_DataBuffer.front =        NULL;
     m_DataBuffer.alreadyRead =  true;
@@ -98,7 +96,7 @@ void NativeBaseStream::error(StreamErrors err, unsigned int code)
     message->args[0].set(err);
     message->args[1].set(code);
 
-    this->notify(message);    
+    this->notify(message);
 }
 
 void NativeBaseStream::swapBuffer()
@@ -127,5 +125,6 @@ void NativeBaseStream::swapBuffer()
         }
     } else if (m_DataBuffer.ended) {
         m_DataBuffer.back->used = 0;
-    } 
+    }
 }
+

@@ -18,17 +18,18 @@
 */
 
 #include "NativeNFSStream.h"
-#include "NativeUtils.h"
-#include "NativeJS.h"
-#include <NativeNFS.h>
+
 #include <native_netlib.h>
 #include <ape_buffer.h>
 
+#include "NativeUtils.h"
+#include "NativeNFS.h"
+#include "NativeJS.h"
 
 #ifdef NATIVE_EMBED_PRIVATE
   #include NATIVE_EMBED_PRIVATE
 #endif
-NativeNFSStream::NativeNFSStream(const char *location) : 
+NativeNFSStream::NativeNFSStream(const char *location) :
     NativeBaseStream(location)
 {
     static NativeNFS *nfs = NULL;
@@ -69,10 +70,10 @@ void NativeNFSStream::onStart(size_t packets, size_t seek)
     message->args[0].set(&buf);
 
     /*
-        The underlying object is notified in a sync way 
+        The underlying object is notified in a sync way
         since it's on the same thread.
     */
-    this->notify(message);    
+    this->notify(message);
 }
 
 const unsigned char *NativeNFSStream::onGetNextPacket(size_t *len, int *err)
@@ -140,7 +141,7 @@ void NativeNFSStream::_getContent()
 bool NativeNFSStream::getContentSync(char **data, size_t *len, bool mmap)
 {
     *data = NULL;
-    
+
     const char *ret = m_NFS->readFile(m_Location, len);
 
     if (!ret) {
@@ -173,3 +174,4 @@ void NativeNFSStream::seek(size_t pos)
     }
     m_File.pos = pos;
 }
+

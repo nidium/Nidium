@@ -1,4 +1,5 @@
 #include "NativeDB.h"
+
 #include <leveldb/db.h>
 #include <leveldb/filter_policy.h>
 #include <jsapi.h>
@@ -43,14 +44,14 @@ bool NativeDB::insert(const char *key, const char *string)
 {
     leveldb::Slice input(string);
     leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, input);
-    
+
     return status.ok();
 }
 
 bool NativeDB::insert(const char *key, const std::string &string)
 {
     leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, string);
-    
+
     return status.ok();
 }
 
@@ -81,3 +82,4 @@ NativeDB::~NativeDB()
 {
     delete m_Database;
 }
+

@@ -23,6 +23,7 @@
 
 #include <pthread.h>
 #include <stdint.h>
+
 #include "NativeArgs.h"
 
 /*
@@ -35,7 +36,6 @@ typedef struct _native_shared_message
     void *ptr;
     struct _native_shared_message *prev;
 } native_shared_message;
-
 
 class NativeSharedMessages
 {
@@ -58,7 +58,7 @@ class NativeSharedMessages
 
             ~Message() {}
 
-            Message(){};
+            Message() {};
 
             void *dataPtr() const {
                 return msgdata.dataptr;
@@ -108,7 +108,7 @@ class NativeSharedMessages
     void setCleaner(native_shared_message_cleaner cleaner) {
         m_Cleaner = cleaner;
     }
-    
+
     int hasPendingMessages() const {
         return (messageslist.count != 0);
     }
@@ -126,3 +126,4 @@ class NativeSharedMessages
     native_shared_message_cleaner m_Cleaner;
 };
 #endif
+

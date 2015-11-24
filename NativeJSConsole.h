@@ -3,7 +3,6 @@
 
 #include "NativeJSExposer.h"
 
-
 class NativeJSconsole : public NativeJSExposer<NativeJSconsole>
 {
   public:
@@ -11,3 +10,4 @@ class NativeJSconsole : public NativeJSExposer<NativeJSconsole>
 };
 
 #endif
+

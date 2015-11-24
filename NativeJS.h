@@ -23,13 +23,14 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "NativeHash.h"
-#include "NativeSharedMessages.h"
+
 #include <jspubtd.h>
 #include <jsapi.h>
 #include <js/StructuredClone.h>
 
-#include <NativeMessages.h>
+#include "NativeHash.h"
+#include "NativeMessages.h"
+#include "NativeSharedMessages.h"
 
 enum {
     NATIVE_SCTAG_FUNCTION = JS_SCTAG_USER_MIN+1,
@@ -130,7 +131,7 @@ class NativeJS
         }
 
         void loadGlobalObjects();
-        
+
         static void copyProperties(JSContext *cx, JS::HandleObject source, JS::MutableHandleObject into);
         static int LoadScriptReturn(JSContext *cx, const char *data,
             size_t len, const char *filename, JS::MutableHandleValue ret);
@@ -177,7 +178,7 @@ class NativeJS
         }
 
         static JSObject *CreateJSGlobal(JSContext *cx);
-        static void SetJSRuntimeOptions(JSRuntime *rt);       
+        static void SetJSRuntimeOptions(JSRuntime *rt);
     private:
         NativeJSModules *modules;
         void *privateslot;
@@ -199,4 +200,6 @@ class NativeJS
             ReadStructuredCloneOp read;
         } m_StructuredCloneAddition;
 };
+
 #endif
+

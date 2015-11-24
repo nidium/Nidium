@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <sys/param.h>
+
 #include <ape_array.h>
 
 #define NATIVE_MAX_REGISTERED_SCHEMES 1024
@@ -42,7 +43,7 @@ extern char *g_m_Root;
 extern char *g_m_Pwd;
 
 #define SCHEME_DEFINE(prefix, streamclass, keepprefix) ( \
-struct NativePath::schemeInfo){ \
+struct NativePath::schemeInfo) { \
     .str        = prefix, \
     .base       = streamclass::createStream, \
     .getBaseDir = streamclass::getBaseDir, \
@@ -103,7 +104,7 @@ public:
 
     bool isRelative(const char *path);
 
-    ~NativePath(){
+    ~NativePath() {
         if (m_Path) {
             free(m_Path);
         }
@@ -140,7 +141,7 @@ public:
     }
 
     static const char *getPwd() {
-        return g_m_Pwd;        
+        return g_m_Pwd;
     }
 
     static schemeInfo *getPwdScheme() {

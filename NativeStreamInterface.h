@@ -23,9 +23,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <NativePath.h>
-
 #include <ape_buffer.h>
+
+#include "NativePath.h"
 #include "NativeSharedMessages.h"
 
 #define NATIVESTREAM_MESSAGE_BITS(id) ((1 << 21) | id)
@@ -121,7 +121,7 @@ public:
 
 protected:
     explicit NativeBaseStream(const char *location);
-    
+
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err)=0;
     virtual void onStart(size_t packets, size_t seek)=0;
 
@@ -160,3 +160,4 @@ protected:
 };
 
 #endif
+

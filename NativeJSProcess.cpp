@@ -16,10 +16,11 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeJSProcess.h"
-#include "NativeJS.h"
+
 #include <native_netlib.h>
+
+#include "NativeJS.h"
 
 static void Process_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -37,13 +38,11 @@ JSClass *NativeJSProcess::jsclass = &Process_class;
 template<>
 JSClass *NativeJSExposer<NativeJSProcess>::jsclass = &Process_class;
 
-
 static JSFunctionSpec Process_funcs[] = {
     JS_FN("setSignalHandler", native_setSignalHandler, 1, 0),
     JS_FN("exit", native_process_exit, 1, 0),
     JS_FS_END
 };
-
 
 static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
 {
@@ -68,7 +67,7 @@ static bool native_process_exit(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
     ape->is_running = 0;
-    
+
     return true;
 }
 
@@ -101,7 +100,7 @@ static int ape_kill_handler(int code, ape_global *ape)
 }
 
 void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc, int workerId)
-{    
+{
     NativeJS *njs = NativeJS::getNativeClass(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject ProcessObj(cx, JS_DefineObject(cx, global, NativeJSProcess::getJSObjectName(),

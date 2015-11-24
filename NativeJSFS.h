@@ -20,9 +20,9 @@
 #ifndef nativejsfs_h__
 #define nativejsfs_h__
 
-#include "NativeJSExposer.h"
 #include "NativeMessages.h"
 #include "NativeTaskManager.h"
+#include "NativeJSExposer.h"
 
 class NativeJSFS :     public NativeJSExposer<NativeJSFS>,
                        public NativeManaged,
@@ -33,3 +33,4 @@ public:
 };
 
 #endif
+

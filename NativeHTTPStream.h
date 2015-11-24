@@ -30,7 +30,7 @@ class NativeHTTPStream : public NativeBaseStream,
 public:
     explicit NativeHTTPStream(const char *location);
     virtual ~NativeHTTPStream();
-    
+
     static NativeBaseStream *createStream(const char *location) {
         return new NativeHTTPStream(location);
     }
@@ -45,7 +45,7 @@ public:
     static bool allowSyncStream() {
         return false;
     }
-    
+
     virtual void stop();
     virtual void getContent();
     virtual void seek(size_t pos) override;
@@ -85,3 +85,4 @@ private:
 };
 
 #endif
+

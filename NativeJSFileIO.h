@@ -21,10 +21,11 @@
 #ifndef nativejsfileio_h__
 #define nativejsfileio_h__
 
-#include "NativeJSExposer.h"
+#include <ape_buffer.h>
+
 #include "NativeFile.h"
 #include "NativeMessages.h"
-#include <ape_buffer.h>
+#include "NativeJSExposer.h"
 
 class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
                        public NativeMessages
@@ -60,3 +61,4 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
 };
 
 #endif
+

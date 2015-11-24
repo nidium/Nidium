@@ -17,15 +17,15 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeSharedMessages.h"
-#include "NativeUtils.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-NativeSharedMessages::NativeSharedMessages() : 
+#include "NativeUtils.h"
+
+NativeSharedMessages::NativeSharedMessages() :
     m_Cleaner(NULL)
 {
     messageslist.count = 0;
@@ -165,7 +165,7 @@ void NativeSharedMessages::delMessagesForDest(void *dest, int event)
 
         if ((dest == NULL || message->dest() == dest) &&
             (event == -1 || event == message->event())) {
-            
+
             if (next != NULL) {
                 next->prev = message->prev;
             } else {
@@ -178,7 +178,7 @@ void NativeSharedMessages::delMessagesForDest(void *dest, int event)
             if (m_Cleaner) {
                 m_Cleaner(*message);
             }
-            
+
             delete message;
             messageslist.count--;
         } else {

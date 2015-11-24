@@ -17,13 +17,15 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeMessages.h"
+
+#include <stdio.h>
+
+#include <native_netlib.h>
+
+#include "NativeEvents.h"
 #include "NativeHash.h"
 #include "NativeSharedMessages.h"
-#include <native_netlib.h>
-#include <stdio.h>
-#include <NativeEvents.h>
 
 /*
     TODO: make thread local storage
@@ -91,7 +93,7 @@ void NativeMessages::postMessage(NativeSharedMessages::Message *msg, bool forceA
     msg->setDest(this);
 
     /*
-        Message sent from the same thread. Don't need 
+        Message sent from the same thread. Don't need
         to be sent in an asynchronous way
     */
     if (!forceAsync && pthread_equal(m_GenesisThread, pthread_self())) {
@@ -140,3 +142,4 @@ NativeSharedMessages *NativeMessages::getSharedMessages()
 {
     return g_MessagesList;
 }
+

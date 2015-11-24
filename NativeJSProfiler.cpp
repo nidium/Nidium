@@ -1,13 +1,14 @@
 #ifdef NATIVE_JS_PROFILER
 #include "NativeJSProfiler.h"
-#include "NativeFile.h"
-#include "NativeJS.h"
-#include "NativeJSExposer.h"
 
 #if defined(__MACH__) && defined(__APPLE__)
 #include <mach/mach_time.h>
 #endif
-#include <sstream> 
+#include <sstream>
+
+#include "NativeFile.h"
+#include "NativeJS.h"
+#include "NativeJSExposer.h"
 
 /* {{{ Utilities */
 /* XXX : Dono if Nidium should be C++11 (in that case we could use std::to_string) */
@@ -39,7 +40,7 @@ inline uint64_t getTSC()
     return mach_absolute_time();
 #elif defined(__i386__)
     uint64_t ret;
-    __asm__ volatile ("rdtsc" : "=A" (ret) );
+    __asm__ volatile ("rdtsc" : "=A" (ret));
     return ret;
 #elif defined(__x86_64__) || defined(__amd64__)
     uint64_t low, high;
@@ -88,7 +89,7 @@ NativeProfiler *NativeProfiler::getInstance(JSContext *cx) {
     return NativeProfiler::m_Instance;
 }
 
-void NativeProfiler::start(const char *name) 
+void NativeProfiler::start(const char *name)
 {
     if (m_Running) return;
     m_Running = true;
@@ -101,7 +102,7 @@ void NativeProfiler::start(const char *name)
     m_LastEntryEnter = m_MainEntry;
 }
 
-void NativeProfiler::stop() 
+void NativeProfiler::stop()
 {
     m_MainEntry->exit();
     JS_SetCallHook(JS_GetRuntime(m_Cx), NULL, NULL);
@@ -109,9 +110,9 @@ void NativeProfiler::stop()
 }
 
 void *NativeProfiler::trace(JSContext *cx, JSAbstractFramePtr frame, bool isConstructing,
-        bool before, bool *ok, void *closure) 
+        bool before, bool *ok, void *closure)
 {
-    
+
     NativeProfileEntry *entry;
     NativeProfiler *profiler = NativeProfiler::getInstance(cx);
 
@@ -178,7 +179,7 @@ void *NativeProfiler::trace(JSContext *cx, JSAbstractFramePtr frame, bool isCons
     return entry;
 }
 
-JSObject *NativeProfiler::getJSObject() 
+JSObject *NativeProfiler::getJSObject()
 {
     JS::RootedObject obj(m_Cx, JS_NewObject(m_Cx, &native_profile_class, JS::NullPtr(), JS::NullPtr()));
 
@@ -188,7 +189,7 @@ JSObject *NativeProfiler::getJSObject()
     return obj;
 }
 
-JSObject *NativeProfiler::toJSObject() 
+JSObject *NativeProfiler::toJSObject()
 {
     JS::RootedObject obj(m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
@@ -216,7 +217,7 @@ bool NativeProfiler::toCacheGrind(const char *dest)
     for (NativeHash<NativeProfileEntry *>::iterator entry = m_Entries.begin(), end = m_Entries.end(); entry != end; ++entry) {
         ret = entry->toCacheGrind() + "\n\n" + ret;
     }
-    
+
     ret = "events: Cycles\n" + ret;
 
     out->writeSync((char *)ret.c_str(), ret.length(), &err);
@@ -232,14 +233,15 @@ bool NativeProfiler::toCacheGrind(const char *dest)
 /* }}} */
 
 /* {{{ NativeProfileEntry */
-NativeProfileEntry *NativeProfiler::add(const char *script, const char *fun, int line, NativeProfileEntry *parent, unsigned parentLine)
+NativeProfileEntry *NativeProfiler::add(const char *script, const char *fun,
+    int line, NativeProfileEntry *parent, unsigned parentLine)
 {
     NativeProfileEntry *entry;
     char *signature = NativeProfileEntry::generateSignature(script, fun, line);
 
     entry = m_Entries.get(signature);
     if (!entry) {
-        entry = new NativeProfileEntry(script, fun, line, signature, parent); 
+        entry = new NativeProfileEntry(script, fun, line, signature, parent);
         m_Entries.set(signature, entry);
     }
 
@@ -306,7 +308,7 @@ JSObject *NativeProfileEntry::toJSObject(JSContext *cx)
     JS_SetPrivate(obj, this);
 
     for (NativeHash<NativeProfileChildEntry *>::iterator child = m_Childs.begin(), end = m_Childs.end(); child != end; ++child) {
-        
+
         JS::RootedValue val(cx, OBJECT_TO_JSVAL(child->toJSObject(cx)));
         JS_SetProperty(cx, childsObj, child->getEntry()->getSignature(), val);
 
@@ -400,8 +402,8 @@ std::string NativeProfileChildEntry::toCacheGrind()
     std::string ret;
 
     ret = "cfl=" + std::string(m_Entry->getScript()) + "\n" +
-          "cfn=" + std::string(m_Entry->getFunction()) + "\n" + 
-          "calls=" + number2string<int>(m_TotalCall) + "\n" + 
+          "cfn=" + std::string(m_Entry->getFunction()) + "\n" +
+          "calls=" + number2string<int>(m_TotalCall) + "\n" +
           number2string<int>(m_Entry->getLine()) + " " + number2string<uint64_t>(m_TotalTSC) + "\n";
 
     return ret;
@@ -411,7 +413,7 @@ std::string NativeProfileChildEntry::toCacheGrind()
 /* {{{ NativeProfile JS function implementation */
 static bool native_profile_tojs(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-	JSNATIVE_PROLOGUE_CLASS(NativeProfiler, &native_profile_class);
+    JSNATIVE_PROLOGUE_CLASS(NativeProfiler, &native_profile_class);
     JS::RootedObject obj(cx, CppObj->toJSObject());
 
     args.rval().setObjectOrNull(obj);
@@ -421,7 +423,7 @@ static bool native_profile_tojs(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_profile_tocachegrind(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-	JSNATIVE_PROLOGUE_CLASS(NativeProfiler, &native_profile_class);
+    JSNATIVE_PROLOGUE_CLASS(NativeProfiler, &native_profile_class);
 
     JS::RootedString tmp(cx);
 
@@ -435,7 +437,7 @@ static bool native_profile_tocachegrind(JSContext *cx, unsigned argc, JS::Value 
         JS_ReportError(cx, "Failed to export cachegrind profile");
         return false;
     }
-    
+
     return true;
 }
 
@@ -445,3 +447,4 @@ static void native_profile_finalizer(JSFreeOp *fop, JSObject *obj) {
 }
 /* }}} */
 #endif
+

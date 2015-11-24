@@ -39,7 +39,6 @@ static JSFunctionSpec FS_static_funcs[] = {
     JS_FS_END
 };
 
-
 class NativeJSFSAsyncHandler : public NativeJSAsyncHandler
 {
 public:
@@ -100,7 +99,7 @@ void NativeJSFS_readDir_Task(NativeTask *task)
     }
 
     dirent *cur;
-    
+
     while ((cur = readdir(dir)) != NULL) {
         if (strcmp(cur->d_name, ".") == 0 || strcmp(cur->d_name, "..") == 0) {
             continue;

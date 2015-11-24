@@ -21,10 +21,12 @@
 #ifndef nativejsmodules_h__
 #define nativejsmodules_h__
 
-#include <jspubtd.h>
+#include <string.h>
+
 #include <jsapi.h>
-#include <NativeHash.h>
-#include <string>
+#include <jspubtd.h>
+
+#include "NativeHash.h"
 
 #define NATIVE_MODULES_PATHS_COUNT 2
 
@@ -125,3 +127,4 @@ class NativeJSModules
 };
 
 #endif
+

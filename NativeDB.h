@@ -5,12 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+
 #include <jsapi.h>
 
 namespace leveldb {
     class DB;
 };
-
 
 class JSObject;
 struct JSContext;
@@ -45,3 +45,4 @@ class NativeDB
 };
 
 #endif
+

@@ -18,10 +18,11 @@
 */
 
 #include "NativeFileStream.h"
+
 #include "NativeFile.h"
 #include "NativeUtils.h"
 
-NativeFileStream::NativeFileStream(const char *location) : 
+NativeFileStream::NativeFileStream(const char *location) :
     NativeBaseStream(location), m_File(location)
 {
     /* We don't want the file to close when end of file is reached */
@@ -62,7 +63,7 @@ const unsigned char *NativeFileStream::onGetNextPacket(size_t *len, int *err)
         *err = (m_DataBuffer.ended && m_DataBuffer.alreadyRead && !m_PendingSeek ?
             STREAM_END : STREAM_EAGAIN);
 
-        return NULL;        
+        return NULL;
     }
 
     data = m_DataBuffer.back->data;
@@ -116,7 +117,7 @@ bool NativeFileStream::getContentSync(char **data, size_t *len, bool mmap)
         if ((slen = m_File.mmapSync(data, &err)) < 0) {
             *len = 0;
             return false;
-        }        
+        }
     }
 
     *len = slen;
@@ -201,7 +202,7 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
             message->args[0].set(buf);
 
             /*
-                The underlying object is notified in a sync way 
+                The underlying object is notified in a sync way
                 since it's on the same thread.
             */
             this->notify(message);
@@ -210,3 +211,4 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
         }
     }
 }
+

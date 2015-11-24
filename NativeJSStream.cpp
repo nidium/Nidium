@@ -17,13 +17,13 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeJSStream.h"
-#include "NativeJS.h"
+
+#include <string.h>
+
 #include "NativeUtils.h"
 #include "NativeStreamInterface.h"
-
-#include <string>
+#include "NativeJS.h"
 
 enum {
     STREAM_PROP_FILESIZE
@@ -177,7 +177,7 @@ static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value 
 
     if (len == 0 || ret == NULL) {
         args.rval().setNull();
-        return true;       
+        return true;
     }
 
     JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
@@ -282,8 +282,8 @@ void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
             }
             break;
         case NATIVESTREAM_ERROR:
-        	{
-            NativeBaseStream::StreamErrors err = 
+            {
+            NativeBaseStream::StreamErrors err =
                 (NativeBaseStream::StreamErrors)msg.args[0].toInt();
             int code = msg.args[1].toInt();
             switch (err) {
@@ -292,7 +292,7 @@ void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
                 case NativeBaseStream::NATIVESTREAM_ERROR_READ:
                     break;
                 case NativeBaseStream::NATIVESTREAM_ERROR_SEEK:
-                    
+
                     break;
                 default:
                     break;
@@ -313,3 +313,4 @@ void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
 }
 
 NATIVE_OBJECT_EXPOSE(Stream)
+

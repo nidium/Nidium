@@ -20,12 +20,15 @@
 #ifndef nativehttplistener_h__
 #define nativehttplistener_h__
 
+#include <stdio.h>
+
+#include <http_parser.h>
+
 #include <native_netlib.h>
 #include <ape_array.h>
-#include <http_parser.h>
-#include <stdio.h>
-#include <NativeMessages.h>
-#include <NativeEvents.h>
+
+#include "NativeMessages.h"
+#include "NativeEvents.h"
 
 #define HTTP_MAX_CL (1024ULL*1024ULL*1024ULL*2ULL)
 #define HTTP_DEFAULT_TIMEOUT 15000
@@ -71,12 +74,12 @@ public:
     /*
         Callbacks for subclasses
     */
-    virtual void onClientConnect(NativeHTTPClientConnection *client){};
-    virtual void onClientDisconnect(NativeHTTPClientConnection *client){};
-    virtual void onData(NativeHTTPClientConnection *client, const char *buf, size_t len){};
+    virtual void onClientConnect(NativeHTTPClientConnection *client) {};
+    virtual void onClientDisconnect(NativeHTTPClientConnection *client) {};
+    virtual void onData(NativeHTTPClientConnection *client, const char *buf, size_t len) {};
 
     /* return true to close the connection */
-    virtual bool onEnd(NativeHTTPClientConnection *client){
+    virtual bool onEnd(NativeHTTPClientConnection *client) {
         return true;
     };
 
@@ -163,7 +166,6 @@ private:
 protected:
     explicit NativeHTTPResponse(uint16_t code = 200);
 };
-
 
 class NativeHTTPClientConnection
 {
@@ -265,10 +267,10 @@ public:
 
     virtual NativeHTTPResponse *onCreateResponse();
 
-    virtual void onHeaderEnded(){};
-    virtual void onDisconnect(ape_global *ape){};
-    virtual void onUpgrade(const char *to){};
-    virtual void onContent(const char *data, size_t len){};
+    virtual void onHeaderEnded() {};
+    virtual void onDisconnect(ape_global *ape) {};
+    virtual void onUpgrade(const char *to) {};
+    virtual void onContent(const char *data, size_t len) {};
 
     virtual void close();
 
@@ -280,7 +282,7 @@ public:
         m_Response = resp;
         m_Response->m_Con = this;
     }
-    
+
     void *m_Ctx;
 protected:
     struct HTTPData m_HttpState;
@@ -295,3 +297,4 @@ protected:
 };
 
 #endif
+

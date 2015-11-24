@@ -20,9 +20,9 @@
 #ifndef nativewebsocket_h__
 #define nativewebsocket_h__
 
-#include "NativeHTTPListener.h"
 #include <ape_websocket.h>
 
+#include "NativeHTTPListener.h"
 
 #define NATIVEWEBSOCKET_PING_INTERVAL 5000 /* ms */
 
@@ -38,7 +38,7 @@ public:
     };
 
     NativeWebSocketListener(uint16_t port, const char *ip = "0.0.0.0");
-    virtual void onClientConnect(ape_socket *client, ape_global *ape);  
+    virtual void onClientConnect(ape_socket *client, ape_global *ape);
 
     virtual bool onEnd(NativeHTTPClientConnection *client) override {
         return false;
@@ -65,7 +65,7 @@ public:
     virtual void onDisconnect(ape_global *ape);
     virtual void onUpgrade(const char *to);
     virtual void onContent(const char *data, size_t len);
-    
+
     virtual void setData(void *data) {
         m_Data = data;
     }
@@ -85,3 +85,4 @@ private:
 };
 
 #endif
+

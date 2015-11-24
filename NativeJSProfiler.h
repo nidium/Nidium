@@ -2,12 +2,14 @@
 
 #ifndef nativejstracer_h__
 #define nativejstracer_h__
-#include "NativeHash.h"
-#include "NativeUtils.h"
+
+#include <string>
+
 #include <jsapi.h>
 #include <jsfriendapi.h>
-//#include <jsdbgapi.h>
-#include <string>
+
+#include "NativeHash.h"
+#include "NativeUtils.h"
 
 #define NATIVE_MAX_PROFILER 1024
 
@@ -24,8 +26,8 @@ class NativeProfiler
         JSObject *toJSObject();
         bool toCacheGrind(const char *dest);
     private:
-        NativeProfiler(JSContext *cx) 
-            : m_Cx(cx), m_Running(false), 
+        NativeProfiler(JSContext *cx)
+            : m_Cx(cx), m_Running(false),
               m_MainEntry(NULL), m_LastEntryEnter(NULL), m_LastEntryExit(NULL)
         {
             m_Entries.setAutoDelete(true);
@@ -64,7 +66,7 @@ class NativeProfileChildEntry
 
         NativeProfileEntry *getEntry()
         {
-           return m_Entry; 
+           return m_Entry;
         }
 
         unsigned getTotalTime() {
@@ -143,17 +145,17 @@ class NativeProfileEntry
         const char *getScript() {
             return m_Script;
         }
-    
+
         const char *getFunction() {
             return m_Fun;
         }
 
-        const char *getSignature() 
+        const char *getSignature()
         {
             return m_Signature;
         }
 
-        NativeProfileEntry *getParent() 
+        NativeProfileEntry *getParent()
         {
             return m_Parent;
         }
@@ -180,3 +182,4 @@ class NativeProfileEntry
 
 #endif
 #endif
+

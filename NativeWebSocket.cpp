@@ -16,14 +16,15 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeWebSocket.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <NativeJS.h>
 #include <ape_base64.h>
+
+#include "NativeJS.h"
 
 #define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
     CONST_STR_LEN(header "\0"))

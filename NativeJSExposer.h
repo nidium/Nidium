@@ -23,6 +23,7 @@
 
 #include <jsapi.h>
 #include <jsfriendapi.h>
+
 #include "NativeJS.h"
 #include "NativeTaskManager.h"
 
@@ -34,7 +35,7 @@
 
 #define JSNATIVE_PROLOGUE_CLASS(ofclass, fclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
-    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp) ); \
+    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
     if (!thisobj) { \
         JS_ReportError(cx, "Illegal invocation"); \
         return false; \
@@ -56,14 +57,12 @@
         return false;  \
     }
 
-
 static const JSClass NativeJSEvent_class = {
     "NativeJSEvent", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
-
 
 struct NativeJSEvent
 {
@@ -159,14 +158,14 @@ private:
     static bool native_jsevents_stopPropagation(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
-        JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp) );
+        JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp));
         if (!thisobj) {
             JS_ReportError(cx, "Illegal invocation");
             return false;
         }
         if (!JS_InstanceOf(cx, thisobj, &NativeJSEvent_class, NULL)) {
             JS_ReportError(cx, "Illegal invocation");
-            return false;            
+            return false;
         }
         JS::RootedValue cancelBubble(cx, JS::BooleanValue(true));
         JS_SetProperty(cx, thisobj, "cancelBubble", cancelBubble);
@@ -310,7 +309,7 @@ class NativeJSExposer
     }
 
     JS::Heap<JSObject *>m_JSObject;
-    
+
     JSContext *m_Cx;
     NativeHash<NativeJSEvents *> *m_Events;
 
@@ -466,7 +465,6 @@ protected:
     JSContext *m_JSCx;
 };
 
-
 typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 
 #define NativeJSObj(cx) (NativeJS::getNativeClass(cx))
@@ -496,7 +494,6 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
         return constructor(cx, exports); \
     }
 
-
 #define JSOBJ_SET_PROP_FLAGS(where, name, val, flags) JS_DefineProperty(m_Cx, where, \
     (const char *)name, val, flags)
 
@@ -523,13 +520,19 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 #define JSOBJ_SET_PROP_STR(where, name, val) JSOBJ_SET_PROP(where, name, val)
 #define JSOBJ_SET_PROP_INT(where, name, val) JSOBJ_SET_PROP(where, name, val)
 
-
-
 #define JS_INITOPT() JS::RootedValue __curopt(cx);
 
-#define JSGET_OPT(obj, name) if (obj && JS_GetProperty(cx, obj, name, &__curopt) && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL)
-#define JSGET_OPT_TYPE(obj, name, type) if (obj && JS_GetProperty(cx, obj, name, &__curopt) && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL && __curopt.is ## type())
-
+#define JSGET_OPT(obj, name) \
+    if (obj && \
+        JS_GetProperty(cx, obj, name, &__curopt) && \
+        __curopt != JSVAL_VOID && \
+        __curopt != JSVAL_NULL)
+#define JSGET_OPT_TYPE(obj, name, type) \
+    if (obj && \
+        JS_GetProperty(cx, obj, name, &__curopt) && \
+        __curopt != JSVAL_VOID && \
+        __curopt != JSVAL_NULL && \
+        __curopt.is ## type())
 
 class NativeJSObjectBuilder
 {
@@ -600,7 +603,7 @@ public:
         return OBJECT_TO_JSVAL(m_Obj);
     }
 
-    ~NativeJSObjectBuilder(){};
+    ~NativeJSObjectBuilder() {};
 
 private:
     JS::PersistentRootedObject m_Obj;
@@ -611,9 +614,12 @@ private:
     Tinyid were removed in SM31.
     This template act as a workaround (create a unique getter/setter and keep a unique identifier)
 */
-#define NATIVE_JS_SETTER(tinyid, setter) {JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}
-#define NATIVE_JS_GETTER(tinyid, getter) {JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}
-#define NATIVE_JS_STUBGETTER() {JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::NullGetter), JSPropertyOp), nullptr}
+#define NATIVE_JS_SETTER(tinyid, setter) \
+    {JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}
+#define NATIVE_JS_GETTER(tinyid, getter) \
+    {JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}
+#define NATIVE_JS_STUBGETTER() \
+    {JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::NullGetter), JSPropertyOp), nullptr}
 
 struct NativeJSPropertyAccessors
 {
@@ -623,7 +629,7 @@ struct NativeJSPropertyAccessors
 
     typedef bool
     (* NativeJSSetterOp)(JSContext *cx, JS::HandleObject obj, uint8_t id,
-                           JS::MutableHandleValue vp);    
+                           JS::MutableHandleValue vp);
 
     template <uint8_t TINYID, NativeJSGetterOp FN>
     static bool Setter(JSContext *cx, unsigned argc, JS::Value *vp) {
@@ -633,7 +639,7 @@ struct NativeJSPropertyAccessors
         if (!obj) return false;
         JS::RootedValue val(cx, args.get(0));
         bool ret = FN(cx, obj, TINYID, true, &val);
-        
+
         args.rval().set(val);
 
         return ret;
@@ -655,5 +661,5 @@ struct NativeJSPropertyAccessors
 
 };
 
-
 #endif
+
