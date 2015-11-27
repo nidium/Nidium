@@ -19,8 +19,11 @@
 
 #include "NativeFileStream.h"
 
-#include "NativeFile.h"
-#include "NativeUtils.h"
+#include <stdbool.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 NativeFileStream::NativeFileStream(const char *location) :
     NativeBaseStream(location), m_File(location)

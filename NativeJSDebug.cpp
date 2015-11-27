@@ -18,10 +18,7 @@
 */
 #include "NativeJSDebug.h"
 
-#include <native_netlib.h>
-#include <jsapi.h>
-
-#include "NativeJS.h"
+#include <string.h>
 
 static void Debug_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp);

@@ -2,7 +2,7 @@
 
 #include <leveldb/db.h>
 #include <leveldb/filter_policy.h>
-#include <jsapi.h>
+#include <stdbool.h>
 #include <js/StructuredClone.h>
 
 #ifndef NATIVE_NO_PRIVATE_DIR

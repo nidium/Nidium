@@ -20,18 +20,18 @@
 #include "NativeJS.h"
 
 #include <stdio.h>
-#include <stdint.h>
-#include <sys/stat.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
 #include <unistd.h>
-#include <libgen.h>
+#include <fcntl.h>
+#include <glob.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
-#include <jsapi.h>
-#include <jsfriendapi.h>
 #include <js/OldDebugAPI.h>
 #include <jsprf.h>
-#include <ape_hash.h>
 
-#include "NativeSharedMessages.h"
 #include "NativeJSSocket.h"
 #include "NativeJSThread.h"
 #include "NativeJSHttp.h"
@@ -44,13 +44,6 @@
 #include "NativeJSDebug.h"
 #include "NativeJSConsole.h"
 #include "NativeJSFS.h"
-#include "NativeUtils.h"
-#include "NativeMessages.h"
-#include "NativeTaskManager.h"
-#include "NativeFile.h"
-#include "NativeWebSocket.h"
-#include "NativePath.h"
-#include "NativeNFS.h"
 #include "NativeStreamInterface.h"
 
 static pthread_key_t gAPE = 0;

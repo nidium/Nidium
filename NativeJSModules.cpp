@@ -19,23 +19,20 @@
 */
 #include "NativeJSModules.h"
 
-#include <libgen.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 #include <unistd.h>
-#include <errno.h>
 #include <dlfcn.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #include <algorithm>
 
 #include <jsoncpp.h>
-#include <jsapi.h>
-#include <jsfriendapi.h>
-#include <js/OldDebugAPI.h>
 
-#include "NativePath.h"
 #include "NativeStreamInterface.h"
-#include "NativeUtils.h"
-#include "NativeJS.h"
 #include "NativeJSExposer.h"
 
 #if 0

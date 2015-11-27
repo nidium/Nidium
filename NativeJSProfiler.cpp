@@ -1,8 +1,15 @@
 #ifdef NATIVE_JS_PROFILER
 #include "NativeJSProfiler.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+
 #if defined(__MACH__) && defined(__APPLE__)
 #include <mach/mach_time.h>
+#else
+#include <time.h>
 #endif
 #include <sstream>
 

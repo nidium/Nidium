@@ -20,8 +20,6 @@
 
 #include <native_netlib.h>
 
-#include "NativeJS.h"
-
 static void Process_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_process_exit(JSContext *cx, unsigned argc, JS::Value *vp);
