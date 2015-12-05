@@ -31,6 +31,7 @@ public:
 private:
     NativeServer(int argc, char **argv);
     int init();
+    void usage(struct option * long_options, const char ** text_blocks);
 
     void daemonize(int pidfile = 0);
     int initWorker(int *idx);

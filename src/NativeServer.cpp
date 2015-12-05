@@ -145,11 +145,36 @@ int NativeServer::Start(int argc, char *argv[])
     return server->init();
 }
 
+void NativeServer::usage( struct option * long_options, const char ** text_blocks)
+{
+    struct option *opt;
+    char const * text;
+    size_t i;
+
+    opt = long_options;
+    i = 0;
+    NativeServer::displayVersion();
+    fprintf(stdout, "Usage: %s [options]\n\toptions: \n", "nidium-server");
+    fprintf(stdout, "\t-%c%23s\n", '?', "This text" );
+    while( opt->name != NULL) {
+        text = text_blocks[i];
+        fprintf(stdout, "\t-%c --%-10s %s\n", opt->val, opt->name, text );
+        opt++;
+        i++;
+    }
+}
+
 int NativeServer::init()
 {
     bool daemon = false;
     int workers = 1;
 
+    static char const * text_blocks[4] = {
+        "Enable Strict mode",
+        "Run as daemon",
+        "Start multiple workers",
+        "Set process name",
+        };
     static struct option long_options[] =
     {
         {"strict",     no_argument,       0, 's'},
@@ -167,15 +192,12 @@ int NativeServer::init()
     //signal(SIGCHLD, SIG_IGN);
 
     int ch;
-    //opterr = 0;
-
     /*
         Needed on macosx so that arguments doesn't fail after the .js file
     */
     setenv("POSIXLY_CORRECT", "1", 1);
 
-    while ((ch = getopt_long(m_Args.argc, m_Args.argv, "sdnw:", long_options, NULL)) != -1) {
-        //printf("Got %c (%s)\n", ch, optarg);
+    while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dsw:n:?", long_options, NULL)) != -1) {
         switch (ch) {
             case 'd':
                 daemon = true;
@@ -184,6 +206,7 @@ int NativeServer::init()
                 m_JSStrictMode = true;
                 break;
             case '?':
+                NativeServer::usage(&long_options[0], text_blocks);
                 exit(1);
                 break;
             case 'w':
