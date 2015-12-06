@@ -297,7 +297,6 @@ void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
                 default:
                     break;
             }
-            break;
             if (JS_GetProperty(m_Cx, obj, "onerror", &onerror_callback) &&
                 JS_TypeOfValue(m_Cx, onerror_callback) == JSTYPE_FUNCTION) {
                 JS::AutoValueArray<1> args(m_Cx);
