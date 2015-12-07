@@ -81,8 +81,9 @@ def zlip():
         "outputs": ["libz.a"]
     }
 
-
 if __name__ == '__main__':
+    if not Builder.Gyp._defines.has_key('native_version'):
+        Gyp.set('native_version', 'library')
     Gyp.setArgs("--depth ./ --include=network/gyp/config.gypi --include=gyp/common.gypi")
     Build.add(Gyp("gyp/nativejscore.gyp"))
     Konstruct.start()
