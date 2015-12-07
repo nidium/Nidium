@@ -1086,18 +1086,15 @@ static int native_timer_deleted(void *arg)
 {
     struct native_sm_timer *params = (struct native_sm_timer *)arg;
 
-    JSAutoRequest ar(params->cx);
-
     if (params == NULL) {
         return 0;
     }
 
+    JSAutoRequest ar(params->cx);
     for (int i = 0; i < params->argc; i++) {
         delete params->argv[i];
     }
-
     delete[] params->argv;
-
     delete params;
 
     return 1;
