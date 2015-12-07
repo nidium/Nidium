@@ -87,7 +87,6 @@ static bool native_console_log(JSContext *cx, unsigned argc,
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     unsigned i;
     char *bytes;
-    JSScript *parent;
     const char *filename_parent;
     unsigned lineno;
 

@@ -79,13 +79,8 @@ struct native_sm_timer
     unsigned argc;
     int ms;
 
-    ~native_sm_timer() {
-
-    }
-
-    native_sm_timer(JSContext *cx) : func(cx), global(cx) {
-
-    }
+    native_sm_timer(JSContext *cx) : global(cx), func(cx) { }
+    ~native_sm_timer() { }
 };
 
 enum {
@@ -154,14 +149,14 @@ static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
     switch(id) {
         case GLOBAL_PROP___FILENAME:
         {
-            char *filename = NativePath::currentJSCaller();
+            char *filename = NativePath::currentJSCaller(cx);
             vp.setString(JS_NewStringCopyZ(cx, filename));
             free(filename);
             break;
         }
         case GLOBAL_PROP___DIRNAME:
         {
-            NativePath path(NativePath::currentJSCaller(), false, true);
+            NativePath path(NativePath::currentJSCaller(cx), false, true);
             vp.setString(JS_NewStringCopyZ(cx, path.dir()));
             break;
         }
@@ -571,13 +566,15 @@ void NativeJS::SetJSRuntimeOptions(JSRuntime *rt)
     //rt->profilingScripts For profiling?
 }
 
+#if 0
 static void _gc_callback(JSRuntime *rt, JSGCStatus status, void *data)
 {
     printf("Got gcd\n");
 }
+#endif
 
 NativeJS::NativeJS(ape_global *net) :
-    m_Logger(NULL), m_vLogger(NULL), m_LogClear(NULL), m_JSStrictMode(false)
+    m_JSStrictMode(false), m_Logger(NULL), m_vLogger(NULL), m_LogClear(NULL)
 {
     JSRuntime *rt;
     this->privateslot = NULL;
@@ -632,7 +629,9 @@ NativeJS::NativeJS(ape_global *net) :
     JS_SetGCZeal(cx, 2, 4);
 #endif
     //JS_ScheduleGC(cx, 1);
-    //JS_SetGCCallback(rt, _gc_callback, NULL);
+#if 0
+    JS_SetGCCallback(rt, _gc_callback, NULL);
+#endif
 
     JS_BeginRequest(cx);
     JS::RootedObject gbl(cx);
@@ -714,6 +713,7 @@ NativeJS::NativeJS(ape_global *net) :
 
 }
 
+
 #if 0
 static bool test_extracting(const char *buf, int len,
     size_t offset, size_t total, void *user)
@@ -723,6 +723,7 @@ static bool test_extracting(const char *buf, int len,
     printf("Got a packet of size %ld out of %ld\n", offset, total);
     return true;
 }
+
 
 int NativeJS::LoadApplication(const char *path)
 {
@@ -1112,7 +1113,7 @@ static int native_timer_deleted(void *arg)
 static bool native_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     struct native_sm_timer *params;
-    int ms = 0, i;
+    int i;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *obj = JS_THIS_OBJECT(cx, vp);
