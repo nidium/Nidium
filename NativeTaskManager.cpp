@@ -21,10 +21,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <pthread.h>
 
 #include <system/native_atom.h>
-
-#include "NativeUtils.h"
 
 static pthread_key_t gManager = 0;
 

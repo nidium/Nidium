@@ -19,10 +19,18 @@
 */
 #include "NativeJSThread.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <pthread.h>
+#include <glob.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+
 #include <js/OldDebugAPI.h>
 
-#include "NativeSharedMessages.h"
-#include "NativeJS.h"
 #include "NativeJSConsole.h"
 
 extern void reportError(JSContext *cx, const char *message,

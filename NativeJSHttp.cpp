@@ -19,7 +19,11 @@
 */
 #include "NativeJSHttp.h"
 
-#include "NativeJS.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+
 #include "NativeJSUtils.h"
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
