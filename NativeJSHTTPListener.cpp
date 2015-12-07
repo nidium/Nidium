@@ -18,6 +18,9 @@
 */
 #include "NativeJSHTTPListener.h"
 
+#include <stdbool.h>
+#include <unistd.h>
+
 #include "NativeJSUtils.h"
 
 static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj);

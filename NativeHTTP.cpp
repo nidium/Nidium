@@ -20,12 +20,14 @@
 #include "NativeHTTP.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <unistd.h>
 #include <string.h>
-#include <limits.h>
-#include <string.h>
-
-#include <http_parser.h>
-#include <native_netlib.h>
+#include <strings.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 #include "NativePath.h"
 

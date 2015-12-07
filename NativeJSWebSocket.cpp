@@ -19,6 +19,11 @@
 
 #include "NativeJSWebSocket.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "NativeHTTP.h"
 #include "NativeJSUtils.h"
 

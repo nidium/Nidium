@@ -19,11 +19,9 @@
 */
 #include "NativeJSStream.h"
 
-#include <string>
+#include <string.h>
 
-#include "NativeUtils.h"
 #include "NativeStreamInterface.h"
-#include "NativeJS.h"
 
 enum {
     STREAM_PROP_FILESIZE

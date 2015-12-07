@@ -19,7 +19,9 @@
 */
 #include "NativeJSUtils.h"
 
-#include <jsapi.h>
+#include <string.h>
+#include <strings.h>
+
 #include <jsfriendapi.h>
 
 #include "NativeUtils.h"

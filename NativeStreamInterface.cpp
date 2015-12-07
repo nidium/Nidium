@@ -20,11 +20,10 @@
 #include "NativeStreamInterface.h"
 
 #include <string.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
-#include "NativePath.h"
 #include "NativeFileStream.h"
-#include "NativeHTTPStream.h"
-#include "NativeMessages.h"
 
 NativeBaseStream::NativeBaseStream(const char *location) :
     m_PacketsSize(0), m_NeedToSendUpdate(false), m_PendingSeek(false),

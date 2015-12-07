@@ -19,13 +19,11 @@
 */
 #include "NativeMessages.h"
 
-#include <stdio.h>
+#include <pthread.h>
 
 #include <native_netlib.h>
 
 #include "NativeEvents.h"
-#include "NativeHash.h"
-#include "NativeSharedMessages.h"
 
 /*
     TODO: make thread local storage
