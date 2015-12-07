@@ -155,7 +155,6 @@ void NativeServer::usage( struct option * long_options, const char ** text_block
     i = 0;
     NativeServer::displayVersion();
     fprintf(stdout, "Usage: %s [options]\n\toptions: \n", "nidium-server");
-    fprintf(stdout, "\t-%c%23s\n", '?', "This text" );
     while( opt->name != NULL) {
         text = text_blocks[i];
         fprintf(stdout, "\t-%c --%-10s %s\n", opt->val, opt->name, text );
@@ -169,11 +168,12 @@ int NativeServer::init()
     bool daemon = false;
     int workers = 1;
 
-    static char const * text_blocks[4] = {
+    static char const * text_blocks[5] = {
         "Enable Strict mode",
         "Run as daemon",
         "Start multiple workers",
         "Set process name",
+        "This text"
         };
     static struct option long_options[] =
     {
@@ -181,6 +181,7 @@ int NativeServer::init()
         {"daemon",     no_argument,       0, 'd'},
         {"workers",    required_argument, 0, 'w'},
         {"name",       required_argument, 0, 'n'},
+        {"help",       no_argument,       0, 'h'},
         {0, 0, 0, 0}
     };
 
@@ -197,7 +198,7 @@ int NativeServer::init()
     */
     setenv("POSIXLY_CORRECT", "1", 1);
 
-    while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dsw:n:?", long_options, NULL)) != -1) {
+    while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dsw:n:h?", long_options, NULL)) != -1) {
         switch (ch) {
             case 'd':
                 daemon = true;
@@ -205,6 +206,8 @@ int NativeServer::init()
             case 's':
                 m_JSStrictMode = true;
                 break;
+            case ':':
+            case 'h':
             case '?':
                 NativeServer::usage(&long_options[0], text_blocks);
                 exit(1);
