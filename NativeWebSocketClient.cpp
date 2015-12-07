@@ -50,7 +50,7 @@ static void native_on_ws_client_frame(websocket_state *state,
 
 NativeWebSocketClient::NativeWebSocketClient(uint16_t port, const char *url,
     const char *host) :
-    NativeHTTPParser(), m_Port(port), m_SSL(false), m_Socket(NULL)
+    NativeHTTPParser(), m_Socket(NULL), m_Port(port), m_SSL(false)
 {
     m_Host = strdup(host);
     m_URL  = strdup(url);

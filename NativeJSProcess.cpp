@@ -46,8 +46,6 @@ static JSFunctionSpec Process_funcs[] = {
 
 static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    ape_global *ape = NativeJS::getNet();
-
     JSNATIVE_PROLOGUE_CLASS(NativeJSProcess, &Process_class);
     NATIVE_CHECK_ARGS("setSignalHandler", 1);
 

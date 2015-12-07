@@ -60,11 +60,13 @@ static JSClass native_modules_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
+#if 0
 static JSPropertySpec native_modules_exports_props[] = {
     {"exports", 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
     {"module", 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
     JS_PS_END
 };
+#endif
 
 static bool native_modules_require(JSContext *cx, unsigned argc, JS::Value *vp);
 
@@ -249,11 +251,14 @@ bool NativeJSModule::initJS()
 
     JS::RootedValue exportsVal(cx, OBJECT_TO_JSVAL(exports));
     JS::RootedValue moduleVal(cx, OBJECT_TO_JSVAL(module));
-
-    //TRY_OR_DIE(JS_DefineProperties(cx, gbl, native_modules_exports_props));
+#if 0
+    TRY_OR_DIE(JS_DefineProperties(cx, gbl, native_modules_exports_props));
+#endif
     TRY_OR_DIE(JS_SetProperty(cx, gbl, "exports", exportsVal));
 
+#if 0
     //TRY_OR_DIE(JS_DefineProperties(cx, module, native_modules_exports_props));
+#endif
     TRY_OR_DIE(JS_SetProperty(cx, gbl, "module", moduleVal));
     TRY_OR_DIE(JS_SetProperty(cx, module, "id", id));
     TRY_OR_DIE(JS_SetProperty(cx, module, "exports", exportsVal));
