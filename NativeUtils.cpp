@@ -22,8 +22,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <js/CharacterEncoding.h>
-
 #include <ape_sha1.h>
 #include <ape_base64.h>
 #include <ape_blowfish.h>
@@ -132,13 +130,6 @@ static uint8_t nibbleFromChar(char c)
 uint64_t NativeUtils::getTick(bool ms)
 {
     return mach_absolute_time() / (ms ? 1000000LL : 1LL);
-}
-
-char16_t *NativeUtils::Utf8ToUtf16(JSContext *cx,
-  const char *str, size_t len, size_t *outputlen)
-{
-    return JS::LossyUTF8CharsToNewTwoByteCharsZ(cx,
-      JS::UTF8Chars(str, len), outputlen).get();
 }
 
 void NativeUtils::sha1hmac(const unsigned char *key, uint32_t keylen,
