@@ -109,6 +109,7 @@
             '../NativeJSStream.cpp',
             '../NativeMessages.cpp',
             '../NativeDB.cpp',
+            '../NativeJSDB.cpp',
             '../NativeTaskManager.cpp',
             '../NativeFile.cpp',
             '../NativeStreamInterface.cpp',

@@ -3,7 +3,6 @@
 #include <leveldb/db.h>
 #include <leveldb/filter_policy.h>
 #include <stdbool.h>
-#include <js/StructuredClone.h>
 
 #ifndef NATIVE_NO_PRIVATE_DIR
 #  include "../interface/NativeSystemInterface.h"
@@ -51,22 +50,6 @@ bool NativeDB::insert(const char *key, const char *string)
 bool NativeDB::insert(const char *key, const std::string &string)
 {
     leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, string);
-
-    return status.ok();
-}
-
-bool NativeDB::insert(const char *key, JSContext *cx, JS::HandleValue val)
-{
-    uint64_t *data;
-    size_t data_len;
-
-    if (!JS_WriteStructuredClone(cx, val, &data, &data_len, NULL, NULL, JS::NullHandleValue)) {
-        return false;
-    }
-    leveldb::Slice input((char *)data, data_len);
-    leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, input);
-
-    JS_ClearStructuredClone(data, data_len, nullptr, nullptr);
 
     return status.ok();
 }
