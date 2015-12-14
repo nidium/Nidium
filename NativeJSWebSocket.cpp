@@ -61,7 +61,7 @@ static JSClass WebSocketServer_client_class = {
 
 static void WebSocket_Finalize_client(JSFreeOp *fop, JSObject *obj)
 {
-    printf("Ws client finalized\n");
+
 }
 
 static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj)
@@ -70,7 +70,6 @@ static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj)
 
     if (wss != NULL) {
         delete wss;
-        printf("Delete websocket server...\n");
     }
 }
 

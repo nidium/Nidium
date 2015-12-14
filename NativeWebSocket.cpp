@@ -82,7 +82,7 @@ int NativeWebSocketClientConnection::pingTimer(void *arg)
 
 void NativeWebSocketClientConnection::onHeaderEnded()
 {
-    printf("WS header ended\n");
+
 }
 
 void NativeWebSocketClientConnection::onDisconnect(ape_global *ape)
