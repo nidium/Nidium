@@ -1086,18 +1086,15 @@ static int native_timer_deleted(void *arg)
 {
     struct native_sm_timer *params = (struct native_sm_timer *)arg;
 
-    JSAutoRequest ar(params->cx);
-
     if (params == NULL) {
         return 0;
     }
 
+    JSAutoRequest ar(params->cx);
     for (int i = 0; i < params->argc; i++) {
         delete params->argv[i];
     }
-
     delete[] params->argv;
-
     delete params;
 
     return 1;
@@ -1114,7 +1111,7 @@ static bool native_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp)
     params = new native_sm_timer(cx);
 
     if (params == NULL || argc < 1) {
-        if (params) free(params);
+        if (params) delete params;
         return true;
     }
 
@@ -1133,7 +1130,7 @@ static bool native_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp)
 
     if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
         free(params->argv);
-        free(params);
+        delete params;
         return true;
     }
 
@@ -1164,7 +1161,7 @@ static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
     params = new native_sm_timer(cx);
 
     if (params == NULL || argc < 2) {
-        if (params) free(params);
+        if (params) delete params;
         return true;
     }
 
@@ -1183,13 +1180,13 @@ static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
 
     if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
         free(params->argv);
-        free(params);
+        delete params;
         return true;
     }
 
     if (!JS::ToInt32(cx, args[1], &ms)) {
         free(params->argv);
-        free(params);
+        delete params;
         return false;
     }
 
@@ -1223,7 +1220,7 @@ static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
     params = new native_sm_timer(cx);
 
     if (params == NULL || argc < 2) {
-        if (params) free(params);
+        if (params) delete params;
         return true;
     }
 
@@ -1240,7 +1237,7 @@ static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedValue func(cx);
     if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
         free(params->argv);
-        free(params);
+        delete params;
         return true;
     }
 
@@ -1248,7 +1245,7 @@ static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
 
     if (!JS::ToInt32(cx, args[1], &ms)) {
         free(params->argv);
-        free(params);
+        delete params;
         return false;
     }
 
