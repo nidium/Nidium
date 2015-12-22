@@ -102,6 +102,7 @@ static bool native_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_btoa(JSContext *cx, unsigned argc, JS::Value *vp);
 //static bool native_readData(JSContext *cx, unsigned argc, JS::Value *vp);
 /*************************/
 //static void native_timer_wrapper(struct _native_sm_timer *params, int *last);
@@ -115,6 +116,7 @@ static JSFunctionSpec glob_funcs[] = {
     JS_FN("setInterval", native_set_interval, 2, 0),
     JS_FN("clearTimeout", native_clear_timeout, 1, 0),
     JS_FN("clearInterval", native_clear_timeout, 1, 0),
+    JS_FN("btoa", native_btoa, 1, 0),
     JS_FS_END
 };
 
@@ -1279,6 +1281,34 @@ static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
 
     clear_timer_by_id(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
         (uint64_t)identifier, 0);
+
+    return true;
+}
+
+static bool native_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    double identifier;
+
+    NATIVE_CHECK_ARGS("btoa", 1);
+
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    if (args[0].isString()) {
+
+        JSAutoByteString cdata;
+        JS::RootedString str(cx, args[0].toString());
+        cdata.encodeUtf8(cx, str);
+
+        char *ret = NativeUtils::b64Encode((unsigned char *)cdata.ptr(), cdata.length());
+
+        args.rval().setString(JS_NewStringCopyZ(cx, ret));
+
+        free(ret);
+
+    } else {
+        args.rval().setNull();
+        JS_ReportWarning(cx, "btoa() non-string given");
+    }
 
     return true;
 }
