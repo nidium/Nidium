@@ -60,7 +60,7 @@ void NativeNML::setNJS(NativeJS *js)
 {
     this->njs = js;
     /*
-    if (m_JSObjectLayout.get() ) {
+    if (m_JSObjectLayout.get()) {
         @FIXME: actually check that it is a context: even better: set the context here, and not in the constructor
         m_JSObjectLayout.remove();
         m_JSObjectLayout(js->getJSContext());

@@ -79,7 +79,7 @@ int NativeVideo::open(void *buffer, int size)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 
+    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE,
         0, this->reader, NativeAVBufferReader::read, NULL, NativeAVBufferReader::seek);
     if (!this->container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
@@ -988,8 +988,8 @@ void NativeVideo::bufferInternal()
         if (packet.stream_index == this->videoStream) {
             this->addPacket(this->videoQueue, &packet);
             needVideo--;
-        } else if (packet.stream_index == this->audioStream && 
-            ((this->audioSource != NULL && this->audioSource->isConnected) || 
+        } else if (packet.stream_index == this->audioStream &&
+            ((this->audioSource != NULL && this->audioSource->isConnected) ||
               this->getClock() == 0)) {
                 this->addPacket(this->audioQueue, &packet);
                 needAudio--;
@@ -1030,7 +1030,7 @@ void *NativeVideo::decode(void *args)
                     DPRINT("done seeking\n");
                 } else {
                     DPRINT("buffering\n");
-                    //DPRINT("Coro space main = %d coro = %d\n", 
+                    //DPRINT("Coro space main = %d coro = %d\n",
                     //    Coro_stackSpaceAlmostGone(v->mainCoro), Coro_stackSpaceAlmostGone(v->coro));
                     v->buffer();
                 }

@@ -1631,7 +1631,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
         case NATIVE_EVENT(NativeCanvasHandler, MOUSE_EVENT):
         {
             JS::RootedObject eventObj(m_Cx, NativeJSEvents::CreateEventObject(m_Cx));
-            NativeJSObjectBuilder obj(m_Cx, eventObj );
+            NativeJSObjectBuilder obj(m_Cx, eventObj);
 
             NativeCanvasHandler *target = (NativeCanvasHandler *)msg.args[8].toPtr();
 

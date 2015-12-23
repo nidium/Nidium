@@ -219,8 +219,7 @@ void *NativeAudio::decodeThread(void *args)
     NativeAudioSource *source;
     int haveEnought, sourcesCount;
 
-    for(;;)
-    {
+    for(;;) {
         // Go through all the sources that need data to be decoded
         pthread_mutex_lock(&audio->sourcesLock);
 
@@ -351,7 +350,7 @@ int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuf
     PaUtil_ReadRingBuffer(this->rBufferOut, out, avail * channels);
 
 #if 0
-    SPAM(("frames per buffer = %ld avail = %ld processing = %ld left = %d\n", 
+    SPAM(("frames per buffer = %ld avail = %ld processing = %ld left = %d\n",
         framesPerBuffer, PaUtil_GetRingBufferReadAvailable(this->rBufferOut), avail, left));
     if (left > 0) {
         SPAM(("WARNING DROPING %d\n", left));

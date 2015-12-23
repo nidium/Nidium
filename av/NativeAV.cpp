@@ -96,7 +96,7 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
         int left = size - copied;
         int copy = avail > left ? left : avail;
 
-        SPAM(("get streamBuffer = %p, totalRead = %lld, streamRead = %d, streamSize = %d, copy = %d, size = %d, avail = %d, left = %d\n", 
+        SPAM(("get streamBuffer = %p, totalRead = %lld, streamRead = %d, streamSize = %d, copy = %d, size = %d, avail = %d, left = %d\n",
             thiz->streamBuffer, thiz->totalRead, thiz->streamRead, thiz->streamPacketSize, copy, size, avail, left));
 
         memcpy(buffer + copied, thiz->streamBuffer + thiz->streamRead, copy);

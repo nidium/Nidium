@@ -693,7 +693,7 @@ return err;
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 
+    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE,
          0, this->reader, NativeAVStreamReader::read, NULL, NativeAVStreamReader::seek);
     if (!this->container) {
         RETURN_WITH_ERROR(ERR_OOM);
@@ -756,7 +756,7 @@ return err;
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 
+    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE,
         0, this->reader, NativeAVBufferReader::read, NULL, NativeAVBufferReader::seek);
     if (!this->container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);

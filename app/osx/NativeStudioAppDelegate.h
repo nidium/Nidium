@@ -31,3 +31,4 @@ class NativeCocoaUIInterface;
 @property (retain, nonatomic) NSString *appfile;
 
 @end
+
