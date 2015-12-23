@@ -1511,8 +1511,8 @@ void Canvas_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-#ifdef DEBUG
-static void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
+#if 0 && defined(DEBUG)
+void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
 {
     snprintf(buf, bufsize, "[0x%p].mJSVal", trc->debugPrintArg);
 }
@@ -1526,7 +1526,7 @@ static void Canvas_Trace(JSTracer *trc, JSObject *obj)
 
         for (cur = handler->getFirstChild(); cur != NULL; cur = cur->m_Next) {
             if (cur->jsobj) {
-#ifdef DEBUG
+#if 0 && defined(DEBUG)
                 trc->debugPrinter = PrintGetTraceName;
                 trc->debugPrintArg = cur;
 #endif
@@ -1630,8 +1630,8 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
         }
         case NATIVE_EVENT(NativeCanvasHandler, MOUSE_EVENT):
         {
-            NativeJSObjectBuilder obj = NativeJSObjectBuilder(m_Cx,
-                NativeJSEvents::CreateEventObject(m_Cx));
+            JS::RootedObject eventObj(m_Cx, NativeJSEvents::CreateEventObject(m_Cx));
+            NativeJSObjectBuilder obj(m_Cx, eventObj );
 
             NativeCanvasHandler *target = (NativeCanvasHandler *)msg.args[8].toPtr();
 

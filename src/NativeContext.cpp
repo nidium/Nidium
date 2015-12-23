@@ -583,7 +583,7 @@ void NativeContext::execPendingCanvasChanges()
 void NativeContext::onMessage(const NativeSharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case NATIVEWEBSOCKET_SERVER_CONNECT:
+        case NATIVE_EVENT(NativeWebSocketListener, SERVER_CONNECT):
             m_WSClient = (NativeWebSocketClientConnection *)msg.args[0].toPtr();
             printf("New WS client for render :)\n");
             break;

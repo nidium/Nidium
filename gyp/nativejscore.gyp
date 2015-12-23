@@ -9,6 +9,9 @@
             '<(third_party_path)/http-parser/',
             '<(native_nativejscore_path)/',
         ],
+        'cflags': [
+            '-std=c++11',
+         ],
         'conditions': [
             ['OS=="mac"', {
                 'xcode_settings': {
