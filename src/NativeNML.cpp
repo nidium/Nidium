@@ -16,7 +16,7 @@
 /*@FIXME:: refractor the constructor, so that m_JSObjectLayout get's njs'javascript context*/
 NativeNML::NativeNML(ape_global *net) :
     net(net), stream(NULL), nassets(0),
-    njs(NULL), m_Layout(NULL), m_JSObjectLayout((JSContext*)nullptr),
+    njs(NULL), m_Layout(NULL), m_JSObjectLayout(NULL),
     m_defaultItemsLoaded(false), m_loadDefaultItems(true)
 {
     assetsList.size = 0;
@@ -148,11 +148,8 @@ void NativeNML::onAssetsBlockReady(NativeAssets *asset)
     this->nassets--;
 
     if (this->nassets == 0) {
-    	JS::RootedObject layoutObj(njs->cx, m_JSObjectLayout);
+        JS::RootedObject layoutObj(njs->cx, m_JSObjectLayout);
         NativeJSwindow::getNativeClass(njs)->onReady(layoutObj);
-        if (m_JSObjectLayout.get()) {
-            m_JSObjectLayout = nullptr;
-        }
     }
 }
 
@@ -526,6 +523,7 @@ void NativeNML::onGetContent(const char *data, size_t len)
 
         if (m_Layout) {
             m_JSObjectLayout = this->buildLayoutTree(*m_Layout);
+            njs->rootObjectUntilShutdown(m_JSObjectLayout);
         }
     } else {
         /*

@@ -124,7 +124,7 @@ private:
     void *loaded_arg;
 
     rapidxml::xml_node<> *m_Layout;
-    JS::PersistentRootedObject m_JSObjectLayout;
+    JS::Heap<JSObject*> m_JSObjectLayout;
 
     bool m_defaultItemsLoaded;
     bool m_loadDefaultItems;
