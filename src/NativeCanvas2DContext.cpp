@@ -1,18 +1,17 @@
 #include "NativeCanvas2DContext.h"
+
+#include <SkDevice.h>
+#include <SkGpuDevice.h>
+
 #include "NativeJSCanvas.h"
 #include "NativeJSDocument.h"
 #include "NativeSkia.h"
 #include "NativeSkGradient.h"
 #include "NativeSkImage.h"
 #include "NativeJSImage.h"
-#include "SkDevice.h"
-#include "SkGpuDevice.h"
 #include "NativeSystemInterface.h"
 #include "NativeMacros.h"
-
-#include <SkDevice.h>
-
-#include <NativeOpenGLHeader.h>
+#include "NativeOpenGLHeader.h"
 
 #define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->getSurface())

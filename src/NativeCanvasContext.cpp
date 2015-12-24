@@ -1,15 +1,14 @@
-#include "NativeContext.h"
 #include "NativeCanvasContext.h"
-#include "NativeMacros.h"
-#include "NativeCanvasHandler.h"
-
-#include "NativeCanvas2DContext.h"
-#include "NativeSkia.h"
 
 #include <SkCanvas.h>
-#include <NativeSystemInterface.h>
 
-#include <NativeOpenGLHeader.h>
+#include "NativeContext.h"
+#include "NativeMacros.h"
+#include "NativeCanvasHandler.h"
+#include "NativeCanvas2DContext.h"
+#include "NativeSkia.h"
+#include "NativeSystemInterface.h"
+#include "NativeOpenGLHeader.h"
 
 char *NativeCanvasContext::processShader(const char *content, shaderType type)
 {

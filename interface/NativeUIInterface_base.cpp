@@ -1,17 +1,18 @@
-#include "NativeUIInterface.h"
-#include <NativeContext.h>
-#include <NativeTaskManager.h>
-#include <NativePath.h>
 #include <unistd.h>
 
+#include <SDL.h>
+
+#include <NativePath.h>
+#include <NativeTaskManager.h>
 #include <NativeHTTPStream.h>
 #include <NativeFileStream.h>
 #include <NativePrivateStream.h>
 #include <NativeNFSStream.h>
-#include <NativeSystemStream.h>
 
-#include <SDL.h>
-#include <NativeOpenGLHeader.h>
+#include "NativeSystemStream.h"
+#include "NativeUIInterface.h"
+#include "NativeContext.h"
+#include "NativeOpenGLHeader.h"
 
 NativeUIInterface::NativeUIInterface() :
     m_isOffscreen(false), m_readPixelInBuffer(false), m_Hidden(false),

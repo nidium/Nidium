@@ -1,17 +1,20 @@
-#include <stdio.h>
-#include "NativeUtils.h"
 #include "NativeVideo.h"
-#include "NativeAudioNode.h"
-#include "native_netlib.h"
 
-#include "pa_ringbuffer.h"
-#include "Coro.h"
+#include <stdio.h>
+
+#include "native_netlib.h"
+#include <pa_ringbuffer.h>
+#include <Coro.h>
+#include <NativeUtils.h>
 
 extern "C" {
-#include "libavcodec/avcodec.h"
-#include "libavformat/avformat.h"
-#include "libswscale/swscale.h"
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
 }
+
+
+#include "NativeAudioNode.h"
 
 #undef DPRINT
 #if 0

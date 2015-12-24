@@ -1,7 +1,8 @@
 #ifndef nativejswindow_h__
 #define nativejswindow_h__
 
-#include "NativeJSExposer.h"
+#include <NativeJSExposer.h>
+
 #include "NativeTypes.h"
 
 class NativeCanvasHandler;

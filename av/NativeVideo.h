@@ -3,12 +3,14 @@
 
 #include <pthread.h>
 #include <stdint.h>
+
 #include <native_netlib.h>
+
 #include "NativeAudio.h"
 #include "NativeAudioNode.h"
 
 extern "C" {
-#include "libavcodec/avcodec.h"
+#include <libavcodec/avcodec.h>
 }
 
 #define NATIVE_VIDEO_BUFFER_SAMPLES 16

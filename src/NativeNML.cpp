@@ -1,16 +1,14 @@
 #include "NativeNML.h"
-#include "NativeJS.h"
 
 #include <string.h>
-#include "NativeHash.h"
-#include "NativeJS.h"
+
+#include <NativeHash.h>
+#include <NativePath.h>
+#include <NativeStreamInterface.h>
+
+#include "NativeSystemInterface.h"
 #include "NativeJSWindow.h"
 #include "NativeJSDocument.h"
-#include "NativeSystemInterface.h"
-#include <NativeStreamInterface.h>
-#include <NativePath.h>
-#include <jsapi.h>
-
 #include "NativeJSUtils.h"
 
 /*@FIXME:: refractor the constructor, so that m_JSObjectLayout get's njs'javascript context*/

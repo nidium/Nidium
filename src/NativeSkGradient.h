@@ -1,9 +1,10 @@
 #ifndef nativeskgradient_h__
 #define nativeskgradient_h__
 
-#include "GrGLTexture.h"
-#include "SkCanvas.h"
 #include <stdint.h>
+
+#include <GrGLTexture.h>
+#include <SkCanvas.h>
 
 class SkShader;
 

@@ -1,11 +1,13 @@
 #include "NativeJSImage.h"
-#include "NativeSkImage.h"
-#include "NativeJS.h"
-#include "NativeSkia.h"
+
 #include <string.h>
+
 #include <native_netlib.h>
 #include <NativeFile.h>
 #include <NativeJSFileIO.h>
+
+#include "NativeSkImage.h"
+#include "NativeSkia.h"
 
 JSObject *NativeJSImage::classe = nullptr;
 

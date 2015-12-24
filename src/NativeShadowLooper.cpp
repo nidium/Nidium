@@ -1,17 +1,16 @@
 #include "NativeShadowLooper.h"
-#include "SkBlurMask.h"     // just for SkBlurMask::ConvertRadiusToSigma
-#include "SkBlurMaskFilter.h"
-#include "SkCanvas.h"
-#include "SkFlattenableBuffers.h"
-#include "SkPaint.h"
-#include "SkMaskFilter.h"
-#include "SkColorFilter.h"
-#include "SkColorPriv.h"
 
-#include "SkMaskFilter.h"
-#include "SkString.h"
-#include "SkStringUtils.h"
-
+#include <SkBlurMask.h>     // just for SkBlurMask::ConvertRadiusToSigma
+#include <SkBlurMaskFilter.h>
+#include <SkCanvas.h>
+#include <SkFlattenableBuffers.h>
+#include <SkPaint.h>
+#include <SkMaskFilter.h>
+#include <SkColorFilter.h>
+#include <SkColorPriv.h>
+#include <SkMaskFilter.h>
+#include <SkString.h>
+#include <SkStringUtils.h>
 
 void NativeShadowLooper::init(SkScalar sigma, SkScalar dx, SkScalar dy,
                             SkColor color, uint32_t flags) {

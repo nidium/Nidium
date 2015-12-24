@@ -1,6 +1,6 @@
 #include "NativeGLResources.h"
 
-#include <NativeOpenGLHeader.h>
+#include "NativeOpenGLHeader.h"
 
 void NativeGLResources::add(uint32_t glid, ResourceType type, const char *name)
 {

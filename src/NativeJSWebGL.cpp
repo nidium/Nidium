@@ -1,4 +1,8 @@
 #include "NativeJSWebGL.h"
+
+#include "GLSLANG/ShaderLang.h"
+#include <SkCanvas.h>
+
 #include "NativeJSImage.h"
 #include "NativeSkImage.h"
 #include "NativeSkia.h"
@@ -6,13 +10,11 @@
 #include "NativeCanvas3DContext.h"
 #include "NativeJSCanvas.h"
 #include "NativeGLState.h"
-#include "GLSLANG/ShaderLang.h"
-#include <SkCanvas.h>
-#include <NativeContext.h>
-#include <NativeUIInterface.h>
-#include <NativeMacros.h>
-#include <NativeSystemInterface.h>
-#include <NativeOpenGLHeader.h>
+#include "NativeContext.h"
+#include "NativeUIInterface.h"
+#include "NativeMacros.h"
+#include "NativeSystemInterface.h"
+#include "NativeOpenGLHeader.h"
 
 extern JSClass Canvas_class;
 
@@ -1955,7 +1957,7 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
     JS::RootedObject program(cx);
     JS::RootedValue proto(cx);
     char buff[2048];
-    unsigned int ctype;
+    unsigned int ctype = 0;
     unsigned int index;
     int csize = 0;
 

@@ -2,6 +2,7 @@
 #define nativemacros_h__
 
 #include <string.h>
+
 #include "NativeUIInterface.h"
 
 extern NativeUIInterface *__NativeUI;

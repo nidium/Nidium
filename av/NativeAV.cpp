@@ -1,14 +1,17 @@
 #include "NativeAV.h"
-#include "NativeAudioNode.h"
-#include "pa_ringbuffer.h"
-#include "Coro.h"
+
+#include <pa_ringbuffer.h>
+#include <Coro.h>
+
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+}
+
 #include <NativeUtils.h>
 #include <NativeSharedMessages.h>
 
-extern "C" {
-#include "libavcodec/avcodec.h"
-#include "libavformat/avformat.h"
-}
+#include "NativeAudioNode.h"
 
 pthread_mutex_t NativeAVSource::ffmpegLock = PTHREAD_MUTEX_INITIALIZER;
 

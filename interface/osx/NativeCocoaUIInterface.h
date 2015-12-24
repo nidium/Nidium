@@ -1,6 +1,8 @@
 #include "NativeUIInterface.h"
-#include "NativeUIConsole.h"
+
 #import <Cocoa/Cocoa.h>
+
+#include "NativeUIConsole.h"
 
 class NativeUICocoaConsole;
 

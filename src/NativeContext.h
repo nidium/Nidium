@@ -10,8 +10,6 @@
 #include "GLSLANG/ShaderLang.h"
 
 #include <NativeJS.h>
-#include <NativeMessages.h>
-#include <NativeHash.h>
 
 #include "NativeTypes.h"
 #include "NativeGLResources.h"

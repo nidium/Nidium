@@ -1,10 +1,18 @@
 #include "NativeX11UIInterface.h"
-#include <NativeJS.h>
-#include <NativeSkia.h>
-#include <NativeApp.h>
-#include <NativeJSWindow.h>
-#include <NativeContext.h>
-#include "NativeSystem.h"
+
+#include <string.h>
+#include <stdio.h>
+#include <errno.h>
+#include <unistd.h>
+
+#include <native_netlib.h>
+#include <X11/Xlib.h>
+#include <X11/cursorfont.h>
+#include <../build/include/SDL_config.h>
+#include <SDL.h>
+#include <SDL_opengl.h>
+#include <SDL_syswm.h>
+#include "SDL_keycode_translate.h"
 #ifdef NATIVE_USE_GTK
 #include <gtk/gtk.h>
 #endif
@@ -13,24 +21,14 @@
 #include <QFileDialog>
 #include <QString>
 #endif
-#include <../build/include/SDL_config.h>
-#include <SDL.h>
-#include <SDL_opengl.h>
-#include <SDL_syswm.h>
-#include <native_netlib.h>
-#include <NativeNML.h>
-#include <NativeMacros.h>
-#include <NativeMessages.h>
-#include <string.h>
-#include <stdio.h>
-#include <errno.h>
 
-#include <X11/Xlib.h>
-#include <X11/cursorfont.h>
-
-#include <unistd.h>
-
-#include "SDL_keycode_translate.h"
+#include "NativeJSWindow.h"
+#include "NativeSkia.h"
+#include "NativeApp.h"
+#include "NativeContext.h"
+#include "NativeSystem.h"
+#include "NativeNML.h"
+#include "NativeMacros.h"
 
 #define kNativeWidth 1280
 #define kNativeHeight 600

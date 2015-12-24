@@ -2,17 +2,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-
-int ape_running = 1;
-
-#include <native_netlib.h>
-
+#include <stddef.h>
+#include <assert.h>
 #ifndef _MSC_VER
   #include <unistd.h>
 #endif
-#include <stddef.h>
-#include <assert.h>
 
+#include <native_netlib.h>
+
+int ape_running = 1;
 int x = 0;
 
 void test_onread(ape_socket *s, ape_global *ape)

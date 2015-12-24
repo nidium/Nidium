@@ -1,53 +1,43 @@
+#include "NativeSkia.h"
+
 #ifdef __linux__
    #define UINT32_MAX 4294967295u
 #endif
 
-#include <NativeOpenGLHeader.h>
+#include <SkCanvas.h>
+#include <SkDevice.h>
+#include <SkGpuDevice.h>
+#include <SkBlurDrawLooper.h>
+#include <SkColorFilter.h>
+#include <SkConfig8888.h>
+#include <SkParse.h>
+#include <SkGraphics.h>
+#include <SkXfermode.h>
+#include <SkTypeface.h>
+#include <Sk2DPathEffect.h>
+#include <SkBlurMaskFilter.h>
+#include <SkBlurImageFilter.h>
+#include <SkLightingImageFilter.h>
+#include <SkStream.h>
+#include <SkImageInfo.h>
 
-#include <jsapi.h>
-#include "NativeSkia.h"
+#include <gl/GrGLInterface.h>
+#include <gl/GrGLUtil.h>
+#include <gl/SkNativeGLContext.h>
+#include <GrGLRenderTarget.h>
+#include <GrContext.h>
+
+#include <NativePath.h>
+
 #include "NativeSkGradient.h"
 #include "NativeSkImage.h"
 #include "NativeCanvas2DContext.h"
 #include "NativeSystemInterface.h"
-#include "SkCanvas.h"
-#include "SkDevice.h"
-#include "SkGpuDevice.h"
-#include "SkBlurDrawLooper.h"
-#include "SkColorFilter.h"
-#include "SkConfig8888.h"
-//#include "SkGLCanvas.h"
-
-#include "SkParse.h"
-
-#include "GrContext.h"
-#include "SkTypeface.h"
-
-#include "gl/GrGLInterface.h"
-#include "gl/GrGLUtil.h"
-#include "GrRenderTarget.h"
-
-#include "GrGLRenderTarget.h"
-
-#include "gl/SkNativeGLContext.h"
-
-#include "SkGraphics.h"
-#include "SkXfermode.h"
-
+#include "NativeOpenGLHeader.h"
 #include "NativeShadowLooper.h"
-#include "SkBlurMaskFilter.h"
-#include "SkBlurImageFilter.h"
-#include "SkLightingImageFilter.h"
 #include "NativeMacros.h"
-
-#include "Sk2DPathEffect.h"
-
-#include <NativeContext.h>
-
-#include <NativePath.h>
-#include <NativeJSDocument.h>
-#include <SkStream.h>
-#include <SkImageInfo.h>
+#include "NativeContext.h"
+#include "NativeJSDocument.h"
 
 SkCanvas *NativeSkia::glcontext = NULL;
 

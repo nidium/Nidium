@@ -3,7 +3,9 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+
 #include <NativeHash.h>
+
 #include "NativeMacros.h"
 
 class NativeGLResources

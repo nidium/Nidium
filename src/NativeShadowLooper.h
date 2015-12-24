@@ -1,9 +1,9 @@
 #ifndef nativeshadowlooper_h__
 #define nativeshadowlooper_h__
 
-#include "SkDrawLooper.h"
-#include "SkColor.h"
-#include "SkBlurMask.h"
+#include <SkDrawLooper.h>
+#include <SkColor.h>
+#include <SkBlurMask.h>
 
 class SkMaskFilter;
 class SkColorFilter;

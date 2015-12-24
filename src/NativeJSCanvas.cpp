@@ -1,11 +1,12 @@
 #include "NativeJSCanvas.h"
+
+#include <assert.h>
+
 #include "NativeSkia.h"
+#include "NativeContext.h"
 #include "NativeCanvas2DContext.h"
 #include "NativeCanvas3DContext.h"
 #include "NativeCanvasHandler.h"
-#include "NativeContext.h"
-
-#include <assert.h>
 
 extern JSClass Canvas2DContext_class;
 

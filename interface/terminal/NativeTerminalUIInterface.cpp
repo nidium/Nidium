@@ -1,12 +1,15 @@
-
 #include "NativeTerminalUIInterface.h"
-#include <NativeJS.h>
-#include <NativeSkia.h>
-#include <NativeApp.h>
-#include <native_netlib.h>
-#include <NativeNML.h>
+
 #include <string.h>
 #include <stdio.h>
+
+#include <native_netlib.h>
+
+#include <NativeJS.h>
+
+#include "NativeSkia.h"
+#include "NativeApp.h"
+#include "NativeNML.h"
 
 uint32_t ttfps = 0;
 

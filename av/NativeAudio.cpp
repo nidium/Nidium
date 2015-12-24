@@ -3,16 +3,16 @@
 #include <string.h>
 #include <portaudio.h>
 #include "pa_ringbuffer.h"
-#include "NativeAudio.h"
-#include "NativeAudioNode.h"
-#include "NativeAudioNodeGain.h"
-#include "NativeAudioNodeDelay.h"
 #include <NativeSharedMessages.h>
 #include "Coro.h"
 extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 }
+#include "NativeAudio.h"
+#include "NativeAudioNode.h"
+#include "NativeAudioNodeGain.h"
+#include "NativeAudioNodeDelay.h"
 
 // Next power of 2
 // Taken from http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2

@@ -1,6 +1,4 @@
 #include "NativeUIInterface.h"
-//#include "NativeUIConsole.h"
-//#import <X11/X11.h>
 
 class NativeUIX11Console : public NativeUIInterface::NativeUIConsole
 {

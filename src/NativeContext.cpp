@@ -1,39 +1,36 @@
 #include "NativeContext.h"
-#include "NativeUtils.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include <gl/GrGLInterface.h>
+#ifdef __linux__
+#include <SkImageDecoder.h>
+#endif
+
+#include <NativeUtils.h>
+#include <NativeJS.h>
+#include <NativeWebSocket.h>
+
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
 #include "NativeCanvas3DContext.h"
+#include "NativeCanvasContext.h"
+#include "NativeUIInterface.h"
+#include "NativeGLState.h"
+#include "NativeSkia.h"
+#include "NativeMacros.h"
+#include "NativeNML.h"
+#include "NativeSystemInterface.h"
+#include "NativeOpenGLHeader.h"
+#include "NativeJSNative.h"
+#include "NativeJSDocument.h"
+#include "NativeJSAV.h"
+#include "NativeJSCanvas.h"
+#include "NativeJSWindow.h"
+
 #ifdef NATIVE_WEBGL_ENABLED
   #include "NativeJSWebGL.h"
 #endif
-#include "NativeCanvasContext.h"
-#include "NativeGLState.h"
-#include "NativeSkia.h"
-#include "NativeJSNative.h"
-#include "NativeJSDocument.h"
-#include "NativeJS.h"
-#include "NativeJSAV.h"
-#include "NativeJSCanvas.h"
-#include "NativeJSDocument.h"
-#include "NativeJSWindow.h"
-#include "NativeUIInterface.h"
-#ifdef __linux__
-#include "SkImageDecoder.h"
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include "NativeMacros.h"
-
-#include "NativeMacros.h"
-#include "NativeNML.h"
-
-#include <NativeWebSocket.h>
-#include <NativeSystemInterface.h>
-
-#include <gl/GrGLInterface.h>
-
-#include <NativeOpenGLHeader.h>
-
 enum {
     NATIVE_SCTAG_IMAGEDATA = NATIVE_SCTAG_MAX,
 };

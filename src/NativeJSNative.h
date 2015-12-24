@@ -1,7 +1,7 @@
 #ifndef nativejsnative_h__
 #define nativejsnative_h__
 
-#include "NativeJSExposer.h"
+#include <NativeJSExposer.h>
 
 class NativeSkia;
 class NativeCanvasHandler;

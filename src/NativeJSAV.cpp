@@ -1,17 +1,17 @@
 #include "NativeJSAV.h"
-#include "NativeSharedMessages.h"
-#include "NativeJSThread.h"
-#include "NativeJS.h"
-#include <NativeJSConsole.h>
-
-#include "NativeJSCanvas.h"
-#include "NativeCanvasHandler.h"
-#include "NativeCanvas2DContext.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/dict.h>
 }
+
+#include <NativeJSConsole.h>
+#include <NativeJSThread.h>
+
+#include "NativeJSCanvas.h"
+#include "NativeCanvasHandler.h"
+#include "NativeCanvas2DContext.h"
+
 
 // TODO : Need to handle nodes GC, similar to
 //        https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#lifetime-AudioNode

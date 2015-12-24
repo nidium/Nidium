@@ -4,12 +4,13 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include "NativeStreamInterface.h"
-#include "NativeMessages.h"
-#include "native_netlib.h"
+
+#include <NativeStreamInterface.h>
+#include <NativeMessages.h>
+#include <native_netlib.h>
 
 extern "C" {
-#include "libavutil/time.h"
+#include <libavutil/time.h>
 }
 
 #define NATIVE_AVIO_BUFFER_SIZE 32768

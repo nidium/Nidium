@@ -5,9 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
+
+#include <exception>
+
 #include "NativeAV.h"
 #include "NativeAudio.h"
-#include <exception>
 
 #define NATIVE_AUDIONODE_ARGS_SIZE      32
 #define NATIVE_AUDIONODE_WIRE_SIZE      256

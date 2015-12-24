@@ -1,15 +1,15 @@
-
-#include <GL/gl.h>
-#include <SDL.h>
-//#include <SDL2/SDL_opengl.h>
-#include <SDL_video.h>
 #include <pthread.h>
 #include <stdio.h>
 
-#include "NativeJS.h"
+#include <GL/gl.h>
+#include <SDL.h>
+#include <SDL_video.h>
+
+#include <native_netlib.h>
+#include <ape_timers.h>
+#include <NativeJS.h>
+
 #include "NativeSkia.h"
-#include "native_netlib.h"
-#include "ape_timers.h"
 
 #define kNativeWidth 1024
 #define kNativeHeight 768

@@ -2,7 +2,9 @@
 #define nativecanvas2dcontext_h__
 
 #include <stdint.h>
-#include "NativeJSExposer.h"
+
+#include <NativeJSExposer.h>
+
 #include "NativeJSImage.h"
 #include "NativeCanvasContext.h"
 

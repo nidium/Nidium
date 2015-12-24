@@ -1,11 +1,12 @@
 #include "NativeJSNative.h"
+
+#include <jsstr.h>
+
 #include "NativeJSCanvas.h"
-#include "NativeJS.h"
 #include "NativeCanvasHandler.h"
 #include "NativeContext.h"
 #include "NativeUIInterface.h"
 #include "NativeSystemInterface.h"
-#include <jsstr.h>
 
 
 static void Native_Finalize(JSFreeOp *fop, JSObject *obj);

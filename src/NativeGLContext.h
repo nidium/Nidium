@@ -1,13 +1,12 @@
 #ifndef nativeglcontext_h__
 #define nativeglcontext_h__
 
-#include <NativeUIInterface.h>
-#include "NativeMacros.h"
-
 #include <gl/GrGLInterface.h>
 #include <gl/GrGLDefines.h>
 
-#include <NativeContext.h>
+#include "NativeUIInterface.h"
+#include "NativeMacros.h"
+#include "NativeContext.h"
 
 typedef void *SDL_GLContext;
 

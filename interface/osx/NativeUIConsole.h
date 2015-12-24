@@ -1,6 +1,6 @@
 #import "NativeUIInterface.h"
-#import <Cocoa/Cocoa.h>
 
+#import <Cocoa/Cocoa.h>
 
 @interface NativeConsole : NSObject
 {

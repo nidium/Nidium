@@ -1,21 +1,20 @@
 #include "NativeJSWindow.h"
-#include "NativeJS.h"
+
+#include <NativeJSFileIO.h>
+
+#include "NativeDB.h"
+#include "NativeNML.h"
+#include "NativeMacros.h"
 #include "NativeUIInterface.h"
 #include "NativeSkia.h"
 #include "NativeUtils.h"
 #include "NativeContext.h"
 #include "NativeJSNative.h"
 #include "NativeJSCanvas.h"
-#include "NativeDB.h"
-#include "NativeNML.h"
-#include "NativeMacros.h"
 #include "NativeJSUtils.h"
 #include "NativeJSImage.h"
 #include "NativeSkImage.h"
-
-#include <NativeSystemInterface.h>
-
-#include <NativeJSFileIO.h>
+#include "NativeSystemInterface.h"
 
 static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp);

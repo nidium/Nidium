@@ -1,9 +1,10 @@
 #ifndef nativeaudioprocessordelay_h__
 #define nativeaudioprocessordelay_h__
 
+#include <math.h>
+
 #include "NativeUtils.h"
 #include "../NativeAudioNode.h"
-#include <math.h>
 
 class NativeAudioProcessorDelay: public NativeAudioProcessor
 {

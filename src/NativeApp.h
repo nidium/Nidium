@@ -1,9 +1,10 @@
 #ifndef nativeapp_h__
 #define nativeapp_h__
 
-#include <jsoncpp.h>
 #include <pthread.h>
-#include "zip.h"
+
+#include <zip.h>
+#include <jsoncpp.h>
 
 class NativeSharedMessages;
 class NativeJS;

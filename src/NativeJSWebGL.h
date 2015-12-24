@@ -1,7 +1,7 @@
 #ifndef nativejswebgl_h__
 #define nativejswebgl_h__
 
-#include "NativeJSExposer.h"
+#include <NativeJSExposer.h>
 
 typedef unsigned int GLenum;
 typedef unsigned int GLuint;

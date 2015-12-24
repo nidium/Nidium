@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <NativeAudio.h>
-#include <NativeAudioNode.h>
-
-#include <pthread.h>
 #include <unistd.h>
-#include <stdio.h>
+#include <pthread.h>
+
+#include "<NativeAudio.h"
+#include "NativeAudioNode.h"
 
 // Compile with : 
 // g++ audio.cpp -D__STDC_CONSTANT_MACROS  -I../audio/ -L../audio/ -lnativeaudio -lavformat -lavcodec -lavutil -lz -lportaudio -lzita-resampler -o audio -I ../../portaudio/src/common/ ../../portaudio/src/common/pa_ringbuffer.o ../../portaudio/src/common/pa_converters.o ../../portaudio/src/common/pa_dither.o && ./audio

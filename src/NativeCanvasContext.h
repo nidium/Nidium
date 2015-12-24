@@ -4,10 +4,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 #include <SkMatrix44.h>
+
+#include "NativeTypes.h"
 #include "NativeGLResources.h"
 #include "NativeGLState.h"
-#include "NativeTypes.h"
 #include "NativeGLContext.h"
 
 class NativeCanvas2DContext;

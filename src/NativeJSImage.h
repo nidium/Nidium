@@ -1,7 +1,7 @@
 #ifndef nativejsimage_h__
 #define nativejsimage_h__
 
-#include "NativeJSExposer.h"
+#include <NativeJSExposer.h>
 #include <NativeMessages.h>
 #include <NativeStreamInterface.h>
 

@@ -1,11 +1,12 @@
 #include "NativeGLState.h"
-#include "NativeCanvasContext.h"
-#include "NativeTypes.h"
+
 #include <stdlib.h>
 #include <stddef.h>
 
-#include <NativeMacros.h>
-#include <NativeOpenGLHeader.h>
+#include "NativeCanvasContext.h"
+#include "NativeTypes.h"
+#include "NativeMacros.h"
+#include "NativeOpenGLHeader.h"
 
 NativeGLState::NativeGLState(NativeUIInterface *ui, bool withProgram, bool webgl) :
     m_Shared(true)

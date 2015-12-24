@@ -1,8 +1,8 @@
 #ifndef nativeskimage_h__
 #define nativeskimage_h__
 
-#include "SkBitmap.h"
-#include "SkImage.h"
+#include <SkBitmap.h>
+#include <SkImage.h>
 
 class SkCanvas;
 class SkBitmap;

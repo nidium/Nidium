@@ -3,8 +3,8 @@
 
 #include <native_netlib.h>
 
-#include <NativeMessages.h>
 #include "external/rapidxml.hpp"
+#include <NativeMessages.h>
 
 #include "NativeAssets.h"
 #include "NativeTypes.h"

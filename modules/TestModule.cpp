@@ -1,5 +1,6 @@
 #define __STDC_LIMIT_MACROS
 #include <stdint.h>
+
 #include <NativeJSExposer.h>
 
 static bool hello(JSContext *cx, unsigned argc, JS::Value *vp)

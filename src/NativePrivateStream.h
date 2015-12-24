@@ -20,10 +20,12 @@
 #ifndef nativeprivatestream_h__
 #define nativeprivatestream_h__
 
+#include <string>
+
 #include <NativeFileStream.h>
 #include <NativeNFSStream.h>
-#include <NativeSystemInterface.h>
-#include <string>
+
+#include "NativeSystemInterface.h"
 
 #ifndef NATIVE_EMBED_PRIVATE
 

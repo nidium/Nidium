@@ -1,11 +1,12 @@
 #ifndef nativeaudio_h__
 #define nativeaudio_h__
 
-#include <pthread.h>
 #include <stdint.h>
-#include "NativeAV.h"
+#include <pthread.h>
+
 #include "native_netlib.h"
 #include <jspubtd.h>
+#include "NativeAV.h"
 
 #if 0
   #define SPAM(a) \

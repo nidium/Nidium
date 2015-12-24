@@ -20,10 +20,10 @@
 #ifndef nativesystemstream_h__
 #define nativesystemstream_h__
 
-#include <NativeFileStream.h>
-#include <NativeSystemInterface.h>
 #include <string>
 
+#include <NativeFileStream.h>
+#include <NativeSystemInterface.h>
 
 class NativeSystemStream : public NativeFileStream
 {

@@ -1,13 +1,14 @@
-#include <jsoncpp.h>
+#include "NativeApp.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <native_netlib.h>
 #include <sys/stat.h>
 
-#include "NativeApp.h"
-#include "NativeJS.h"
-#include "NativeSharedMessages.h"
+#include <native_netlib.h>
+#include <jsoncpp.h>
+
+#include <NativeJS.h>
 
 #define NATIVE_MANIFEST "manifest.json"
 

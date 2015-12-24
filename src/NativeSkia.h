@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+
 #include "NativeCanvasHandler.h"
 
 class SkCanvas;

@@ -2,7 +2,9 @@
 #define nativecanvas3dcontext_h__
 
 #include <stdint.h>
-#include "NativeJSExposer.h"
+
+#include <NativeJSExposer.h>
+
 #include "NativeCanvasContext.h"
 
 class NativeCanvasHandler;

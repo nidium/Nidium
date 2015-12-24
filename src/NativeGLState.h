@@ -3,12 +3,11 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <NativeTypes.h>
-#include <NativeGLResources.h>
-#include <NativeMacros.h>
 
+#include "NativeTypes.h"
+#include "NativeGLResources.h"
 #include "NativeGLContext.h"
-
+#include "NativeMacros.h"
 
 class NativeUIInterface;
 

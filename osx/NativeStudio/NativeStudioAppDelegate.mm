@@ -1,15 +1,18 @@
 #import "NativeStudioAppDelegate.h"
+
+#import <pthread.h>
+
 #import <OpenGL/gl3.h>
 #import <SDL2/SDL.h>
 #import <SDL2/SDL_opengl.h>
 #import <SDL2/SDL_video.h>
-#import <pthread.h>
 
-#import "NativeJS.h"
+#import <native_netlib.h>
+#import <ape_timers.h>
+
+#import <NativeJS.h>
 #import "NativeSkia.h"
 #import "NativeConsole.h"
-#import "native_netlib.h"
-#import "ape_timers.h"
 
 #define kNativeWidth 300
 #define kNativeHeight 300

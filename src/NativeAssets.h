@@ -4,8 +4,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <ape_hash.h>
 #include <native_netlib.h>
+
 #include <NativeStreamInterface.h>
 #include <NativeMessages.h>
 

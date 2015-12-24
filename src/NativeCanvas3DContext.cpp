@@ -1,12 +1,10 @@
 #include "NativeCanvas3DContext.h"
-#include "NativeJSCanvas.h"
 
 #include "NativeMacros.h"
-
 #include "NativeGLState.h"
-
-#include <NativeSystemInterface.h>
-#include <NativeOpenGLHeader.h>
+#include "NativeSystemInterface.h"
+#include "NativeOpenGLHeader.h"
+#include "NativeJSCanvas.h"
 
 extern JSClass WebGLRenderingContext_class;
 extern JSConstDoubleSpec WebGLRenderingContext_const;

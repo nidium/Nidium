@@ -1,17 +1,17 @@
-#include "NativeSystem.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
+#include <pwd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/param.h>
-#include <pwd.h>
-#include <gtk/gtk.h>
-#include <string>
-#include <unistd.h>
+
 #include <X11/Xlib.h>
+#include <gtk/gtk.h>
+
+#include "NativeSystem.h"
 
 static void get_dpi(int *x, int *y)
 {
