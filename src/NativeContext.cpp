@@ -103,6 +103,8 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     m_JS->setPrivate(this);
 
     m_JS->loadGlobalObjects();
+    JS::RootedObject globalObj(m_JS->cx, JS::CurrentGlobalOrNull(m_JS->cx));
+    JS_InitReflect(m_JS->cx, globalObj);
     this->loadNativeObjects(width, height);
 
     m_JS->setLogger(NativeContext_Logger);
