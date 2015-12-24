@@ -178,62 +178,62 @@ static struct native_cursors {
 };
 
 static JSPropertySpec window_props[] = {
-    {"devicePixelRatio", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+    {"devicePixelRatio", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
         NATIVE_JS_GETTER(WINDOW_PROP_DEVICE_PIXELRATIO, native_window_prop_get),
         JSOP_NULLWRAPPER},
-    {"left", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"left", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_GETTER(WINDOW_PROP_LEFT, native_window_prop_get),
         NATIVE_JS_SETTER(WINDOW_PROP_LEFT, native_window_prop_set)},
-    {"top", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"top", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_GETTER(WINDOW_PROP_TOP, native_window_prop_get),
         NATIVE_JS_SETTER(WINDOW_PROP_TOP, native_window_prop_set)},
-    {"innerWidth", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"innerWidth", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_GETTER(WINDOW_PROP_WIDTH, native_window_prop_get),
         NATIVE_JS_SETTER(WINDOW_PROP_WIDTH, native_window_prop_set)},
-    {"outerWidth", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"outerWidth", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_GETTER(WINDOW_PROP_WIDTH, native_window_prop_get),
         NATIVE_JS_SETTER(WINDOW_PROP_WIDTH, native_window_prop_set)},
-    {"innerHeight", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"innerHeight", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_GETTER(WINDOW_PROP_HEIGHT, native_window_prop_get),
         NATIVE_JS_SETTER(WINDOW_PROP_HEIGHT, native_window_prop_set)},
-    {"outerHeight", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"outerHeight", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_GETTER(WINDOW_PROP_HEIGHT, native_window_prop_get),
         NATIVE_JS_SETTER(WINDOW_PROP_HEIGHT, native_window_prop_set)},
-    {"title", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"title", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_GETTER(WINDOW_PROP_TITLE, native_window_prop_get),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLE, native_window_prop_set)},
-    {"cursor", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"cursor", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, 
         NATIVE_JS_STUBGETTER(),
         NATIVE_JS_SETTER(WINDOW_PROP_CURSOR, native_window_prop_set)},
-    {"titleBarColor", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"titleBarColor", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_STUBGETTER(),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_COLOR, native_window_prop_set)},
-    {"titleBarControlsOffsetX", JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"titleBarControlsOffsetX", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_STUBGETTER(),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, native_window_prop_set)},
-    {"titleBarControlsOffsetY", JSPROP_PERMANENT | JSPROP_ENUMERATE,
-       NATIVE_JS_STUBGETTER(),
+    {"titleBarControlsOffsetY", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
+        NATIVE_JS_STUBGETTER(),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, native_window_prop_set)},
     JS_PS_END
 };
 
 static JSPropertySpec navigator_props[] = {
-    {"language", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+    {"language", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
         NATIVE_JS_GETTER(NAVIGATOR_PROP_LANGUAGE, native_navigator_prop_get),
         JSOP_NULLWRAPPER},
-    {"vibrate", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+    {"vibrate", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
         NATIVE_JS_GETTER(NAVIGATOR_PROP_VIBRATE, native_navigator_prop_get),
         JSOP_NULLWRAPPER},
-    {"appName", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+    {"appName", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
         NATIVE_JS_GETTER(NAVIGATOR_PROP_APPNAME, native_navigator_prop_get),
         JSOP_NULLWRAPPER},
-    {"appVersion", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+    {"appVersion", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
         NATIVE_JS_GETTER(NAVIGATOR_PROP_APPVERSION, native_navigator_prop_get),
         JSOP_NULLWRAPPER},
-    {"platform", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+    {"platform", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
         NATIVE_JS_GETTER(NAVIGATOR_PROP_PLATFORM, native_navigator_prop_get),
         JSOP_NULLWRAPPER},
-    {"userAgent", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+    {"userAgent", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
         NATIVE_JS_GETTER(NAVIGATOR_PROP_USERAGENT, native_navigator_prop_get),
         JSOP_NULLWRAPPER},
     JS_PS_END
@@ -290,7 +290,7 @@ bool NativeJSwindow::onClose()
 void NativeJSwindow::assetReady(const NMLTag &tag)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-        val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+        val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS )
 
     JSContext *cx = m_Cx;
     JS::RootedValue onassetready(cx);
@@ -344,7 +344,7 @@ void NativeJSwindow::windowBlur()
 void NativeJSwindow::mouseWheel(int xrel, int yrel, int x, int y)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-    val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+    val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY)
 
     JS::RootedValue rval(m_Cx);
     JS::AutoValueArray<1> jevent(m_Cx);
@@ -834,14 +834,17 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
         case WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX:
         {
             double dval, oval;
-            if (!vp.isNumber()) {
 
+            if (!vp.isNumber()) {
                 return true;
             }
             dval = vp.toDouble();
             JS::RootedValue offsety(cx);
 
             if (JS_GetProperty(cx, obj, "titleBarControlsOffsetY", &offsety) == false) {
+                offsety = DOUBLE_TO_JSVAL(0);
+            }
+            if (!offsety.isNumber()) {
                 offsety = DOUBLE_TO_JSVAL(0);
             }
             oval = offsety.toDouble();
@@ -852,13 +855,16 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
         case WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY:
         {
             double dval, oval;
-            if (!vp.isNumber()) {
 
+            if (!vp.isNumber()) {
                 return true;
             }
             dval = vp.toDouble();
             JS::RootedValue offsetx(cx);
             if (JS_GetProperty(cx, obj, "titleBarControlsOffsetX", &offsetx) == false) {
+                offsetx = DOUBLE_TO_JSVAL(0);
+            }
+            if (!offsetx.isNumber()) {
                 offsetx = DOUBLE_TO_JSVAL(0);
             }
             oval = offsetx.toDouble();
@@ -1459,26 +1465,12 @@ NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
     int height, JS::HandleObject doc)
 {
     JS::RootedObject globalObj(cx, JS::CurrentGlobalOrNull(cx));
-#if 0
-    JS::RootedObject windowObj(cx, JS_DefineObject(cx, globalObj,
-        NativeJSwindow::getJSObjectName(), &window_class, nullptr,
-        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
-#else
     JS::RootedObject windowObj(cx, globalObj);
-#endif
     NativeJSwindow *jwin = new NativeJSwindow(globalObj, cx);
-
-    //JS_SetPrivate(windowObj, jwin);
-
     jwin->initDataBase();
-
     jwin->createMainCanvas(width, height, doc);
-
-    /*NativeJS::getNativeClass(cx)->jsobjects.set(
-        NativeJSwindow::getJSObjectName(), windowObj);*/
-
-    JS_DefineFunctions(cx, globalObj, window_funcs);
-    JS_DefineProperties(cx, globalObj, window_props);
+    JS_DefineFunctions(cx, windowObj, window_funcs);
+    JS_DefineProperties(cx, windowObj, window_props);
 
     JS::RootedValue val(cx);
 

@@ -165,7 +165,7 @@ static bool native_canvas_clear(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_canvas_setZoom(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_canvas_setScale(JSContext *cx, unsigned argc, JS::Value *vp);
 
-#define NATIVE_JS_PROP JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED
+#define NATIVE_JS_PROP JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS
 
 static JSPropertySpec canvas_props[] = {
     {"opacity", NATIVE_JS_PROP,
@@ -255,10 +255,10 @@ static JSPropertySpec canvas_props[] = {
     {"__left", NATIVE_JS_PROP | JSPROP_READONLY,
         NATIVE_JS_GETTER(CANVAS_PROP___LEFT, native_canvas_prop_get),
         JSOP_NULLWRAPPER},
-    {"__fixed", JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_SHARED,
+    {"__fixed", NATIVE_JS_PROP | JSPROP_READONLY,
         NATIVE_JS_GETTER(CANVAS_PROP___FIXED, native_canvas_prop_get),
         JSOP_NULLWRAPPER},
-    {"__outofbound", JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_SHARED,
+    {"__outofbound", NATIVE_JS_PROP | JSPROP_READONLY,
         NATIVE_JS_GETTER(CANVAS_PROP___OUTOFBOUND, native_canvas_prop_get),
         JSOP_NULLWRAPPER},
     {"ctx", NATIVE_JS_PROP | JSPROP_READONLY,
@@ -1576,9 +1576,8 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
 void NativeJSCanvas::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS_InitClass(cx, global, JS::NullPtr(), &Canvas_class,
-        native_Canvas_constructor,
-        2, canvas_props, canvas_funcs, nullptr, nullptr);
+    JS_InitClass(cx, global, JS::NullPtr(), &Canvas_class, 
+    native_Canvas_constructor, 2, canvas_props, canvas_funcs, nullptr, nullptr);
 }
 
 void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
