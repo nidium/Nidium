@@ -228,10 +228,10 @@ bool NGL_uniformxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int arg
     JS_ValueToObject(cx, locVal, &location);
     clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, &args);
 
-    if (nb > 0) x = args.array()[1].toDouble();
-    if (nb > 1) y = args.array()[2].toDouble();
-    if (nb > 2) z = args.array()[3].toDouble();
-    if (nb > 3) w = args.array()[4].toDouble();
+    if (nb > 0) x = args.array()[1].toNumber();
+    if (nb > 1) y = args.array()[2].toNumber();
+    if (nb > 2) z = args.array()[3].toNumber();
+    if (nb > 3) w = args.array()[4].toNumber();
 
     switch (nb) {
         case 1:
@@ -427,10 +427,10 @@ bool NGL_vertexAttribxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned in
     double v3;
 
     index = (GLuint) args.array()[0].toInt32();
-    if (nb > 0) v0 = args.array()[1].toDouble();
-    if (nb > 1) v1 = args.array()[2].toDouble();
-    if (nb > 2) v2 = args.array()[3].toDouble();
-    if (nb > 3) v3 = args.array()[4].toDouble();
+    if (nb > 0) v0 = args.array()[1].toNumber();
+    if (nb > 1) v1 = args.array()[2].toNumber();
+    if (nb > 2) v2 = args.array()[3].toNumber();
+    if (nb > 3) v3 = args.array()[4].toNumber();
 
     switch (nb) {
         case 1:
@@ -1957,7 +1957,7 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
     char buff[2048];
     unsigned int ctype;
     unsigned int index;
-    int csize;
+    int csize = 0;
 
     if (!JS_ConvertArguments(cx, args, "ou", program.address(), &index)) {
         return false;

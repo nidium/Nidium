@@ -1612,7 +1612,7 @@ static void native_audionode_set_internal(JSContext *cx, NativeAudioNode *node, 
     } else if (val.isDouble()) {
         type = DOUBLE;
         size = sizeof(double);
-        doubleVal = val.toDouble();
+        doubleVal = val.toNumber();
         value = &doubleVal;
     } else {
         JS_ReportError(cx, "Unsuported value\n");
@@ -2370,7 +2370,7 @@ static bool native_video_setsize(JSContext *cx, unsigned argc, JS::Value *vp)
     if (jwidth.isString()) {
         width = -1;
     } else if (jwidth.isNumber()) {
-        width = jwidth.toDouble();
+        width = jwidth.toNumber();
     } else {
         JS_ReportError(cx, "Wrong argument type for width");
         return false;
@@ -2379,7 +2379,7 @@ static bool native_video_setsize(JSContext *cx, unsigned argc, JS::Value *vp)
     if (jheight.isString()) {
         height = -1;
     } else if (jheight.isNumber()) {
-        height = jheight.toDouble();
+        height = jheight.toNumber();
     } else {
         JS_ReportError(cx, "Wrong argument type for height");
         return false;
@@ -2465,7 +2465,7 @@ bool NativeJSAVSource::propSetter(NativeAVSource *source, uint8_t id, JS::Mutabl
     switch(id) {
         case SOURCE_PROP_POSITION:
             if (vp.isNumber()) {
-                source->seek(vp.toDouble());
+                source->seek(vp.toNumber());
             }
             break;
         default:
@@ -2522,7 +2522,7 @@ bool NativeJSAudioNode::propSetter(NativeJSAudioNode *jnode, JSContext *cx,
     switch(id) {
         case SOURCE_PROP_POSITION:
             if (vp.isNumber()) {
-                source->seek(vp.toDouble());
+                source->seek(vp.toNumber());
             }
         break;
         case CUSTOM_SOURCE_PROP_SEEK: {

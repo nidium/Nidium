@@ -971,7 +971,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!vp.isNumber()) {
                 return true;
             }
-            dval = vp.toDouble();
+            dval = vp.toNumber();
             handler->setLeft(dval);
         }
         break;
@@ -991,7 +991,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!vp.isNumber()) {
                 return true;
             }
-            dval = vp.toDouble();
+            dval = vp.toNumber();
             handler->setRight(dval);
         }
         break;
@@ -1008,7 +1008,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!vp.isNumber()) {
                 return true;
             }
-            dval = vp.toDouble();
+            dval = vp.toNumber();
             handler->setTop(dval);
         }
         break;
@@ -1025,7 +1025,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!vp.isNumber()) {
                 return true;
             }
-            dval = vp.toDouble();
+            dval = vp.toNumber();
             handler->setBottom(dval);
         }
         break;
@@ -1097,7 +1097,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!vp.isNumber()) {
                 return true;
             }
-            dval = vp.toDouble();
+            dval = vp.toNumber();
             handler->setOpacity(dval);
         }
         break;
@@ -1185,7 +1185,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!vp.isNumber()) {
                 return true;
             }
-            dval = vp.toDouble();
+            dval = vp.toNumber();
             handler->setMargin(handler->m_Margin.top, handler->m_Margin.right,
                 handler->m_Margin.bottom, dval);
         }
@@ -1198,7 +1198,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            dval = vp.toDouble();
+            dval = vp.toNumber();
             handler->setMargin(handler->m_Margin.top, dval,
                 handler->m_Margin.bottom, handler->m_Margin.left);
         }
@@ -1211,7 +1211,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            dval = vp.toDouble();
+            dval = vp.toNumber();
             handler->setMargin(dval, handler->m_Margin.right,
                 handler->m_Margin.bottom, handler->m_Margin.left);
         }
@@ -1223,7 +1223,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!vp.isNumber()) {
                 return true;
             }
-            dval = vp.toDouble();
+            dval = vp.toNumber();
             handler->setMargin(handler->m_Margin.top, handler->m_Margin.right,
                 dval, handler->m_Margin.left);
         }

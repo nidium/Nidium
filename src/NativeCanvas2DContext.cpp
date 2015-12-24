@@ -1511,7 +1511,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toDouble();
+            ret = vp.toNumber();
 
             curSkia->setShadowOffsetX(ret);
         }
@@ -1524,7 +1524,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toDouble();
+            ret = vp.toNumber();
 
             curSkia->setShadowOffsetY(ret);
         }
@@ -1537,7 +1537,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toDouble();
+            ret = vp.toNumber();
 
             curSkia->setShadowBlur(ret);
         }
@@ -1561,7 +1561,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toDouble();
+            ret = vp.toNumber();
             curSkia->setFontSize(ret);
 
         }
@@ -1586,7 +1586,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toDouble();
+            ret = vp.toNumber();
 
             curSkia->setFontSkew(ret);
         }
@@ -1693,7 +1693,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toDouble();
+            ret = vp.toNumber();
             curSkia->setLineWidth(ret);
         }
         break;
@@ -1705,7 +1705,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toDouble();
+            ret = vp.toNumber();
             curSkia->setMiterLimit(ret);
         }
         break;
@@ -1717,7 +1717,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toDouble();
+            ret = vp.toNumber();
             curSkia->setGlobalAlpha(ret);
         }
         break;

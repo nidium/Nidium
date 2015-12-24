@@ -742,7 +742,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            dval = vp.toDouble();
+            dval = vp.toNumber();
 
             NUI->setWindowPosition((int)dval, NATIVE_WINDOWPOS_UNDEFINED_MASK);
 
@@ -756,7 +756,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            dval = vp.toDouble();
+            dval = vp.toNumber();
 
             NUI->setWindowPosition(NATIVE_WINDOWPOS_UNDEFINED_MASK, (int)dval);
 
@@ -770,7 +770,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            dval = vp.toDouble();
+            dval = vp.toNumber();
             NativeContext::getNativeClass(cx)->setWindowSize((int)dval, NUI->getHeight());
 
             break;
@@ -783,7 +783,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            dval = vp.toDouble();
+            dval = vp.toNumber();
             NativeContext::getNativeClass(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
 
             break;
@@ -838,7 +838,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!vp.isNumber()) {
                 return true;
             }
-            dval = vp.toDouble();
+            dval = vp.toNumber();
             JS::RootedValue offsety(cx);
 
             if (JS_GetProperty(cx, obj, "titleBarControlsOffsetY", &offsety) == false) {
@@ -847,7 +847,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!offsety.isNumber()) {
                 offsety = DOUBLE_TO_JSVAL(0);
             }
-            oval = offsety.toDouble();
+            oval = offsety.toNumber();
 
             NUI->setWindowControlsOffset(dval, oval);
             break;
@@ -859,7 +859,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!vp.isNumber()) {
                 return true;
             }
-            dval = vp.toDouble();
+            dval = vp.toNumber();
             JS::RootedValue offsetx(cx);
             if (JS_GetProperty(cx, obj, "titleBarControlsOffsetX", &offsetx) == false) {
                 offsetx = DOUBLE_TO_JSVAL(0);
@@ -867,7 +867,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!offsetx.isNumber()) {
                 offsetx = DOUBLE_TO_JSVAL(0);
             }
-            oval = offsetx.toDouble();
+            oval = offsetx.toNumber();
 
             NUI->setWindowControlsOffset(oval, dval);
             break;
