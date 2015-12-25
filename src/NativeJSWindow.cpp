@@ -530,8 +530,8 @@ bool NativeJSwindow::dragEvent(const char *name, int x, int y)
     EVENT_PROP("clientX", xv);
     EVENT_PROP("clientY", yv);
 
-    if (m_DragedFiles) {
-    	JS::RootedObject drag(m_Cx, this->m_DragedFiles);
+    if (m_DraggedFiles) {
+        JS::RootedObject drag(m_Cx, this->m_DraggedFiles);
         EVENT_PROP("files", drag);
     }
 
@@ -563,15 +563,15 @@ bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t n
 
     m_Dragging = true;
 
-    m_DragedFiles = JS_NewArrayObject(m_Cx, (int)nfiles);
-    JS::RootedObject dragged(m_Cx, m_DragedFiles);
+    m_DraggedFiles = JS_NewArrayObject(m_Cx, (int)nfiles);
+    JS::RootedObject dragged(m_Cx, m_DraggedFiles);
 
     for (int i = 0; i < nfiles; i++) {
         JS::RootedValue val(m_Cx, OBJECT_TO_JSVAL(NativeJSFileIO::generateJSObject(m_Cx, files[i])));
         JS_SetElement(m_Cx, dragged, i, val);
     }
 
-    NativeJS::getNativeClass(m_Cx)->rootObjectUntilShutdown(m_DragedFiles);
+    NativeJS::getNativeClass(m_Cx)->rootObjectUntilShutdown(m_DraggedFiles);
 
     return this->dragEvent("_onFileDragEnter", x, y);
 
@@ -611,9 +611,9 @@ void NativeJSwindow::dragEnd()
         return;
     }
 
-    NativeJS::getNativeClass(m_Cx)->unrootObject(m_DragedFiles);
+    NativeJS::getNativeClass(m_Cx)->unrootObject(m_DraggedFiles);
 
-    m_DragedFiles = NULL;
+    m_DraggedFiles = NULL;
     m_Dragging = false;
 }
 
