@@ -699,28 +699,28 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
         {
             int x;
             NUI->getWindowPosition(&x, NULL);
-            vp.set(INT_TO_JSVAL(x));
+            vp.setInt32(x);
             break;
         }
         case WINDOW_PROP_TOP:
         {
             int y;
             NUI->getWindowPosition(NULL, &y);
-            vp.set(INT_TO_JSVAL(y));
+            vp.setInt32(y);
             break;
         }
         case WINDOW_PROP_WIDTH:
-            vp.set(INT_TO_JSVAL(NUI->getWidth()));
+            vp.setInt32(NUI->getWidth());
             break;
         case WINDOW_PROP_HEIGHT:
-            vp.set(INT_TO_JSVAL(NUI->getHeight()));
+            vp.setInt32(NUI->getHeight());
             break;
         case WINDOW_PROP_TITLE:
         {
             const char *title =  NUI->getWindowTitle();
             JS::RootedString str(m_Cx, NativeJSUtils::newStringWithEncoding(m_Cx, title,
                 strlen(title), "utf8"));
-            vp.set(STRING_TO_JSVAL(str));
+            vp.setString(str);
         }
         break;
     }
@@ -887,7 +887,7 @@ static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
        case NAVIGATOR_PROP_LANGUAGE:
             {
             JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_LANGUAGE));
-            vp.set(STRING_TO_JSVAL(jStr));
+            vp.setString(jStr);
             }
             break;
         case NAVIGATOR_PROP_VIBRATE:
@@ -899,13 +899,13 @@ static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
         case NAVIGATOR_PROP_APPVERSION:
             {
             JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, NATIVE_VERSION_STR));
-            vp.set(STRING_TO_JSVAL(jStr));
+            vp.setString(jStr);
             }
             break;
         case NAVIGATOR_PROP_APPNAME:
             {
             JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_NAME));
-            vp.set(STRING_TO_JSVAL(jStr));
+            vp.setString(jStr);
             }
             break;
         case NAVIGATOR_PROP_USERAGENT:
@@ -913,8 +913,7 @@ static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
             JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_NAME "/"
                 NATIVE_VERSION_STR "(" APP_LOCALE "; rv:" NATIVE_BUILD ") "
                 NATIVE_FRAMEWORK_STR));
-            JS::RootedValue vStr(m_Cx, STRING_TO_JSVAL(jStr));
-            vp.set(vStr);
+            vp.setString(jStr);
             }
             break;
         case NAVIGATOR_PROP_PLATFORM:
@@ -939,7 +938,7 @@ static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
             platform = "Unknown";
 #endif
             JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, platform));
-            vp.set(STRING_TO_JSVAL(jStr));
+            vp.setString(jStr);
             }
             break;
     }
@@ -1020,7 +1019,9 @@ static bool native_window_exec(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString curl(cx, url);
 
     const char *ret = NativeSystemInterface::getInstance()->execute(curl.ptr());
-    args.rval().setString(JS_NewStringCopyZ(cx, ret));
+    JS::RootedString retStr(cx, JS_NewStringCopyZ(cx, ret));
+
+    args.rval().setString(retStr);
 
     return true;
 }

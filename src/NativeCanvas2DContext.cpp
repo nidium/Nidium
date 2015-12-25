@@ -365,8 +365,8 @@ static bool native_canvas2dctx_breakText(JSContext *cx,
     JS::RootedObject alines(cx, JS_NewArrayObject(cx, length));
 
     for (int i = 0; i < len && i < length; i++) {
-        JS::RootedValue val(cx, STRING_TO_JSVAL(JS_NewStringCopyN(cx,
-            lines[i].line, lines[i].len)));
+        JS::RootedString str(cx, JS_NewStringCopyN(cx, lines[i].line, lines[i].len));
+        JS::RootedValue val(cx, STRING_TO_JSVAL(str));
         JS_SetElement(cx, alines, i, val);
     }
     JS::RootedValue heightVal(cx, DOUBLE_TO_JSVAL(SkScalarToDouble(ret)));
@@ -374,7 +374,7 @@ static bool native_canvas2dctx_breakText(JSContext *cx,
     SET_PROP(res, "height", heightVal);
     SET_PROP(res, "lines", linesVal);
 
-    args.rval().set(OBJECT_TO_JSVAL(res));
+    args.rval().setObjectOrNull(res);
 
     delete[] lines;
 
@@ -745,19 +745,16 @@ static bool native_canvas2dctx_createLinearGradient(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject linearObject(cx);
     double x1, y1, x2, y2;
     if (!JS_ConvertArguments(cx, args, "dddd", &x1, &y1, &x2, &y2)) {
         return false;
     }
 
-    linearObject = JS_NewObject(cx, &canvasGradient_class, JS::NullPtr(), JS::NullPtr());
-
-    args.rval().set(OBJECT_TO_JSVAL(linearObject));
-
+    JS::RootedObject linearObject(cx, JS_NewObject(cx, &canvasGradient_class, JS::NullPtr(), JS::NullPtr()));
     JS_SetPrivate(linearObject, new NativeSkGradient(x1, y1, x2, y2));
-
     JS_DefineFunctions(cx, linearObject, gradient_funcs);
+
+    args.rval().setObjectOrNull(linearObject);
 
     NATIVE_LOG_2D_CALL();
     return true;
@@ -768,17 +765,14 @@ static bool native_canvas2dctx_getImageData(JSContext *cx,
 {
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     int left, top, width, height;
-    JS::RootedObject dataObject(cx);
-    JS::RootedObject arrBuffer(cx);
     uint8_t *data;
 
     if (!JS_ConvertArguments(cx, args, "iiii", &left, &top, &width, &height)) {
         return false;
     }
 
-    dataObject = JS_NewObject(cx, &imageData_class, JS::NullPtr(), JS::NullPtr());
-
-    arrBuffer = JS_NewUint8ClampedArray(cx, width*height * 4);
+    JS::RootedObject dataObject(cx, JS_NewObject(cx, &imageData_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject arrBuffer(cx, JS_NewUint8ClampedArray(cx, width*height * 4));
     data = JS_GetUint8ClampedArrayData(arrBuffer);
 
     NSKIA_NATIVE->readPixels(top, left, width, height, data);
@@ -792,7 +786,7 @@ static bool native_canvas2dctx_getImageData(JSContext *cx,
     JS_DefineProperty(cx, dataObject, "data", arVal,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    args.rval().set(OBJECT_TO_JSVAL(dataObject));
+    args.rval().setObjectOrNull(dataObject);
 
     NATIVE_LOG_2D_CALL();
     return true;
@@ -837,8 +831,6 @@ static bool native_canvas2dctx_createImageData(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject dataObject(cx);
-    JS::RootedObject arrBuffer(cx);
     unsigned long x, y;
 
     if (!JS_ConvertArguments(cx, args, "uu", &x, &y)) {
@@ -852,13 +844,13 @@ static bool native_canvas2dctx_createImageData(JSContext *cx,
         y = 1;
     }
 
-    arrBuffer = JS_NewUint8ClampedArray(cx, x*y * 4);
+    JS::RootedObject arrBuffer(cx, JS_NewUint8ClampedArray(cx, x*y * 4));
     if (arrBuffer == NULL) {
         JS_ReportOutOfMemory(cx);
         return false;
     }
 
-    dataObject = JS_NewObject(cx, &imageData_class, JS::NullPtr(), JS::NullPtr());
+    JS::RootedObject dataObject(cx, JS_NewObject(cx, &imageData_class, JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue width(cx, UINT_TO_JSVAL(x));
     JS::RootedValue height(cx, UINT_TO_JSVAL(y));
 
@@ -872,7 +864,7 @@ static bool native_canvas2dctx_createImageData(JSContext *cx,
     JS_DefineProperty(cx, dataObject, "data", array,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    args.rval().set(OBJECT_TO_JSVAL(dataObject));
+    args.rval().setObjectOrNull(dataObject);
 
     NATIVE_LOG_2D_CALL();
 
@@ -884,7 +876,6 @@ static bool native_canvas2dctx_createPattern(JSContext *cx,
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject jsimage(cx);
-    JS::RootedObject patternObject(cx);
     JS::RootedString mode(cx);
 
     if (!JS_ConvertArguments(cx, args, "oS", jsimage.address(), mode.address())) {
@@ -896,18 +887,14 @@ static bool native_canvas2dctx_createPattern(JSContext *cx,
         return false;
     }
 
-    patternObject = JS_NewObject(cx, &canvasPattern_class, JS::NullPtr(), JS::NullPtr());
-
-    args.rval().set(OBJECT_TO_JSVAL(patternObject));
-
+    JS::RootedObject patternObject(cx, JS_NewObject(cx, &canvasPattern_class, JS::NullPtr(), JS::NullPtr()));
     NativeJSImage *img = (NativeJSImage *)JS_GetPrivate(jsimage);
-
     JS_SetReservedSlot(patternObject, 0, OBJECT_TO_JSVAL(img->getJSObject()));
-
     NativeCanvasPattern::PATTERN_MODE pmode = NativeCanvasPattern::PATTERN_REPEAT;
 
-    JSAutoByteString cmode(cx, mode);
+    args.rval().setObjectOrNull(patternObject);
 
+    JSAutoByteString cmode(cx, mode);
     if (strcasecmp(cmode.ptr(), "repeat") == 0) {
         pmode = NativeCanvasPattern::PATTERN_REPEAT;
     } else if (strcasecmp(cmode.ptr(), "no-repeat") == 0) {
@@ -1166,12 +1153,10 @@ static bool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
         return false;
     }
     JS::RootedObject canvasProgram(cx, JS_NewObject(cx, &canvasGLProgram_class, JS::NullPtr(), JS::NullPtr()));
-
-    args.rval().set(OBJECT_TO_JSVAL(canvasProgram));
-
     JS_DefineFunctions(cx, canvasProgram, glprogram_funcs);
-
     JS_SetPrivate(canvasProgram, (void *)program);
+
+    args.rval().setObjectOrNull(canvasProgram);
 
     NATIVE_LOG_2D_CALL();
 
@@ -1196,7 +1181,7 @@ static bool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsign
 
     int ret = glGetUniformLocation(program, clocation.ptr());
 
-    args.rval().set(INT_TO_JSVAL(ret));
+    args.rval().setInt32(ret);
 
     NATIVE_LOG_2D_CALL();
 
@@ -1441,7 +1426,7 @@ static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigne
     glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &nactives);
 
     JS::RootedObject arr(cx, JS_NewArrayObject(cx, nactives));
-    args.rval().set(OBJECT_TO_JSVAL(arr));
+    args.rval().setObjectOrNull(arr);
 
     char name[512];
     for (int i = 0; i < nactives; i++) {
@@ -1494,7 +1479,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(imageSmoothingEnabled):
         {
             if (!vp.isBoolean()) {
-                vp.set(JSVAL_FALSE);
+                vp.setBoolean(false);
 
                 return true;
             }
@@ -1506,7 +1491,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1519,7 +1504,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1532,7 +1517,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1544,7 +1529,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(shadowColor):
         {
             if (!vp.isString()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1556,7 +1541,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1568,7 +1553,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(fontStyle):
         {
             if (!vp.isString()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1581,7 +1566,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1593,7 +1578,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(textBaseline):
         {
             if (!vp.isString()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1604,7 +1589,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(textAlign):
         {
             if (!vp.isString()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1616,7 +1601,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(fontFamily):
         {
             if (!vp.isString()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1627,7 +1612,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(fontFile):
         {
             if (!vp.isString()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1660,7 +1645,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 curSkia->setFillColor(pattern);
             } else {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1679,7 +1664,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
                 curSkia->setStrokeColor(gradient);
             } else {
 
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
                 return true;
             }
         }
@@ -1688,7 +1673,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1700,7 +1685,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1712,7 +1697,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double ret;
             if (!vp.isNumber()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1723,7 +1708,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(globalCompositeOperation):
         {
             if (!vp.isString()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1734,7 +1719,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(lineCap):
         {
             if (!vp.isString()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1745,7 +1730,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(lineJoin):
         {
             if (!vp.isString()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
 
                 return true;
             }
@@ -1770,12 +1755,12 @@ static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
     switch (id) {
         case CTX_PROP(width):
         {
-            vp.set(INT_TO_JSVAL(curSkia->getWidth()));
+            vp.setInt32(curSkia->getWidth());
         }
         break;
         case CTX_PROP(height):
         {
-            vp.set(INT_TO_JSVAL(curSkia->getHeight()));
+            vp.setInt32(curSkia->getHeight());
         }
         break;
         default:

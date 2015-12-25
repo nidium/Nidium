@@ -1036,7 +1036,7 @@ NGL_JS_FN(WebGLRenderingContext_isContextLost)
 
 NGL_JS_FN(WebGLRenderingContext_getExtension)
 //{
-    args.rval().set(JSVAL_NULL);
+    args.rval().setNull();
     return true;
 }
 
@@ -1481,7 +1481,7 @@ NGL_JS_FN(WebGLRenderingContext_createBuffer)
     JS_SetPrivate(ret, new WebGLResource(buffer,
         WebGLResource::kBuffer, CppObj, ret));
 
-    args.rval().set(OBJECT_TO_JSVAL(ret));
+    args.rval().setObjectOrNull(ret);
 
     return true;
 }
@@ -1502,7 +1502,7 @@ NGL_JS_FN(WebGLRenderingContext_createFramebuffer)
     JS_SetPrivate(ret, new WebGLResource(buffer,
         WebGLResource::kFramebuffer, CppObj, ret));
 
-    args.rval().set(OBJECT_TO_JSVAL(ret));
+    args.rval().setObjectOrNull(ret);
 
     return true;
 }
@@ -1523,7 +1523,7 @@ NGL_JS_FN(WebGLRenderingContext_createRenderbuffer)
     JS_SetPrivate(ret, new WebGLResource(buffer,
         WebGLResource::kRenderbuffer, CppObj, ret));
 
-    args.rval().set(OBJECT_TO_JSVAL(ret));
+    args.rval().setObjectOrNull(ret);
 
     return true;
 }
@@ -1544,7 +1544,7 @@ NGL_JS_FN(WebGLRenderingContext_createProgram)
     JS_SetPrivate(ret, new WebGLResource(program,
         WebGLResource::kProgram, CppObj, ret));
 
-    args.rval().set(OBJECT_TO_JSVAL(ret));
+    args.rval().setObjectOrNull(ret);
 
     return true;
 }
@@ -1578,7 +1578,7 @@ NGL_JS_FN(WebGLRenderingContext_createShader)
 
     JS_SetPrivate(ret, res);
 
-    args.rval().set(OBJECT_TO_JSVAL(ret));
+    args.rval().setObjectOrNull(ret);
 
     return true;
 }
@@ -1599,7 +1599,7 @@ NGL_JS_FN(WebGLRenderingContext_createTexture)
     JS_SetPrivate(ret, new WebGLResource(texture,
         WebGLResource::kTexture, CppObj, ret));
 
-    args.rval().set(OBJECT_TO_JSVAL(ret));
+    args.rval().setObjectOrNull(ret);
 
     return true;
 }
@@ -1803,7 +1803,7 @@ NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
     GL_CALL_RET(CppObj, GetUniformLocation(cprogram->id(), cname), location);
 
     if (location < 0) {
-        args.rval().set(JSVAL_NULL);
+        args.rval().setNull();
     } else {
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
@@ -1813,7 +1813,7 @@ NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
         JS_SetPrivate(ret, (void *)(uintptr_t)location);
 
         JS_free(cx, (void *)cname);
-        args.rval().set(OBJECT_TO_JSVAL(ret));
+        args.rval().setObjectOrNull(ret);
     }
 
     return true;
@@ -1866,7 +1866,7 @@ NGL_JS_FN(WebGLRenderingContext_getShaderPrecisionFormat)
     SET_PROP("rangeMax", rangeMax);
     SET_PROP("precision", precision);
 
-    args.rval().set(OBJECT_TO_JSVAL(obj));
+    args.rval().setObjectOrNull(obj);
 
     return true;
 #undef SET_PROP
@@ -1972,7 +1972,7 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
 
     GLint err = glGetError();
     if (err != 0) {
-        args.rval().set(JSVAL_NULL);
+        args.rval().setNull();
         return true;
     }
 
@@ -1987,13 +1987,14 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
 
     size.setInt32(csize);
     type.setNumber(ctype);
-    name.setString(JS_NewStringCopyZ(cx, buff));
+    JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, buff));
+    name.setString(jstr);
 
     JS_SetProperty(cx, obj, "size", size);
     JS_SetProperty(cx, obj, "type", type);
     JS_SetProperty(cx, obj, "name", name);
 
-    args.rval().set(OBJECT_TO_JSVAL(obj));
+    args.rval().setObjectOrNull(obj);
 
     return true;
 }
@@ -2032,7 +2033,7 @@ NGL_JS_FN(WebGLRenderingContext_getAttribLocation)
     GL_CALL_RET(CppObj, GetAttribLocation(cprogram->id(), cattr), location);
 
     JS_free(cx, (void *)cattr);
-    args.rval().set(INT_TO_JSVAL(location));
+    args.rval().setInt32(location);
 
     return true;
 }
@@ -2375,7 +2376,7 @@ NGL_JS_FN(WebGLRenderingContext_getProgramParameter)
             args.rval().setBoolean((bool)(GLboolean)status);
             break;
         default:
-            args.rval().set(INT_TO_JSVAL(status));
+            args.rval().setInt32(status);
             break;
     }
 
@@ -2386,7 +2387,6 @@ NGL_JS_FN(WebGLRenderingContext_getProgramInfoLog)
 //{
     GLsizei max;
     GLsizei length;
-    JS::RootedString log(cx);
     JS::RootedObject program(cx);
     WebGLResource *cprogram;
     char *clog;
@@ -2401,10 +2401,10 @@ NGL_JS_FN(WebGLRenderingContext_getProgramInfoLog)
 
     clog = (char *)malloc(max);
     GL_CALL(CppObj, GetProgramInfoLog(cprogram->id(), max, &length, clog));
-    log = JS_NewStringCopyN(cx, clog, length);
+    JS::RootedString log(cx, JS_NewStringCopyN(cx, clog, length));
     free(clog);
 
-    args.rval().set(STRING_TO_JSVAL(log));
+    args.rval().setString(log);
 
     return true;
 }
@@ -2424,7 +2424,7 @@ NGL_JS_FN(WebGLRenderingContext_getShaderParameter)
 
     GL_CALL(CppObj, GetShaderiv(cshader->id(), pname, &param));
 
-    args.rval().set(INT_TO_JSVAL(param));
+    args.rval().setInt32(param);
 
     return true;
 }
@@ -2434,7 +2434,6 @@ NGL_JS_FN(WebGLRenderingContext_getShaderInfoLog)
     GLsizei length;
     GLsizei max;
     JS::RootedObject shader(cx);
-    JS::RootedString log(cx);
     WebGLResource *cshader;
     char *clog;
 
@@ -2448,10 +2447,10 @@ NGL_JS_FN(WebGLRenderingContext_getShaderInfoLog)
 
     clog = (char *)malloc(max);
     GL_CALL(CppObj, GetShaderInfoLog(cshader->id(), max, &length, clog));
-    log = JS_NewStringCopyN(cx, clog, length);
+    JS::RootedString log(cx, JS_NewStringCopyN(cx, clog, length));
     free(clog);
 
-    args.rval().set(STRING_TO_JSVAL(log));
+    args.rval().setString(log);
 
     return true;
 }
@@ -2897,7 +2896,7 @@ static bool native_NativeGL_constructor(JSContext *cx, unsigned argc, JS::Value 
     GL_CALL(CppObj, Enable(GL_VERTEX_PROGRAM_POINT_SIZE));
     //GL_CALL(CppObj, Enable(GL_POINT_SPRITE));
     //GL_ARB_point
-    args.rval().set(OBJECT_TO_JSVAL(webGLContext));
+    args.rval().setObject(webGLContext);
 
     return true;
 }

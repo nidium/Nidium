@@ -126,7 +126,7 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
                 JS::RootedObject obj(cx, vp.toObjectOrNull());
                 NativeFile *file = NativeJSFileIO::GetFileFromJSObject(cx, obj);
                 if (!file) {
-                    vp.set(JS::NullHandleValue);
+                    vp.setNull();
                     return true;
                 }
 
@@ -141,7 +141,7 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
                 stream->getContent();
 
             } else {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
                 return true;
             }
         }
@@ -176,13 +176,11 @@ static bool native_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp
     }
 
     nimg = new NativeJSImage(ret, cx);
-
     JS_SetPrivate(ret, nimg);
-
-    args.rval().set(OBJECT_TO_JSVAL(ret));
-
     JS_DefineProperties(cx, ret, Image_props);
     JS_DefineFunctions(cx, ret, Image_funcs);
+
+    args.rval().setObjectOrNull(ret);
 
     return true;
 }
@@ -318,10 +316,11 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
     printf("Build image object\n");
     JS::RootedValue widthVal(cx, INT_TO_JSVAL(image->getWidth()));
     JS::RootedValue heightVal(cx, INT_TO_JSVAL(image->getHeight()));
-    JS::RootedValue nameStr(cx, STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (name ? name : "unknown"))));
+    JS::RootedString jstr(cx,  JS_NewStringCopyZ(cx, (name ? name : "unknown")));
+    JS::RootedValue nameVal(cx, STRING_TO_JSVAL(jstr));
     JS_DefineProperty(cx, ret, "width", widthVal, JSPROP_PERMANENT | JSPROP_READONLY);
     JS_DefineProperty(cx, ret, "height", heightVal, JSPROP_PERMANENT | JSPROP_READONLY);
-    JS_DefineProperty(cx, ret, "src", nameStr, JSPROP_PERMANENT | JSPROP_READONLY);
+    JS_DefineProperty(cx, ret, "src", nameVal, JSPROP_PERMANENT | JSPROP_READONLY);
 
     return ret;
 }

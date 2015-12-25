@@ -491,8 +491,11 @@ static bool native_canvas_getParent(JSContext *cx, unsigned argc,
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
     NativeCanvasHandler *parent = NativeObject->getParent();
-
-    args.rval().set(parent && parent->jsobj ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
+    if (parent) {
+        args.rval().setObjectOrNull( parent->jsobj);
+    } else {
+        args.rval().setNull();
+    }
 
     return true;
 }
@@ -503,8 +506,11 @@ static bool native_canvas_getFirstChild(JSContext *cx, unsigned argc,
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
     NativeCanvasHandler *val = NativeObject->getFirstChild();
-
-    args.rval().set(val ? OBJECT_TO_JSVAL(val->jsobj) : JSVAL_NULL);
+    if (val) {
+        args.rval().setObjectOrNull(val->jsobj);
+    } else {
+        args.rval().setNull();
+    }
 
     return true;
 }
@@ -515,8 +521,11 @@ static bool native_canvas_getLastChild(JSContext *cx, unsigned argc,
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
     NativeCanvasHandler *val = NativeObject->getLastChild();
-
-    args.rval().set(val ? OBJECT_TO_JSVAL(val->jsobj) : JSVAL_NULL);
+    if (val) {
+        args.rval().setObjectOrNull(val->jsobj);
+    } else {
+        args.rval().setNull();
+    }
 
     return true;
 }
@@ -527,8 +536,11 @@ static bool native_canvas_getNextSibling(JSContext *cx, unsigned argc,
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
     NativeCanvasHandler *val = NativeObject->getNextSibling();
-
-    args.rval().set(val ? OBJECT_TO_JSVAL(val->jsobj) : JSVAL_NULL);
+    if (val) {
+        args.rval().setObjectOrNull(val->jsobj);
+    } else {
+        args.rval().setNull();
+    }
 
     return true;
 }
@@ -539,8 +551,11 @@ static bool native_canvas_getPrevSibling(JSContext *cx, unsigned argc,
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
     NativeCanvasHandler *val = NativeObject->getPrevSibling();
-
-    args.rval().set(val ? OBJECT_TO_JSVAL(val->jsobj) : JSVAL_NULL);
+    if (val) {
+        args.rval().setObjectOrNull(val->jsobj);
+    } else {
+        args.rval().setNull();
+    }
 
     return true;
 }
@@ -554,7 +569,8 @@ static bool native_canvas_getChildren(JSContext *cx, unsigned argc,
     int32_t count = NativeObject->countChildren();
 
     if (!count) {
-        args.rval().set(OBJECT_TO_JSVAL(JS_NewArrayObject(cx, 0)));
+        JS::RootedObject retObj(cx, JS_NewArrayObject(cx, 0));
+        args.rval().setObjectOrNull(retObj);
         return true;
     }
 
@@ -590,7 +606,7 @@ static bool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
     SET_PROP(ret, "height", native_max(0, rect.fBottom-rect.fTop));
 #undef SET_PROP
 
-    args.rval().set(OBJECT_TO_JSVAL(ret));
+    args.rval().setObjectOrNull(ret);
 
     return true;
 }
@@ -757,7 +773,7 @@ static bool native_canvas_getContext(JSContext *cx, unsigned argc,
     } else if (strncmp(cmode.ptr(), "webgl", 5) == 0) {
         ctxmode = NativeCanvasContext::CONTEXT_WEBGL;
     } else {
-        args.rval().set(JSVAL_NULL);
+        args.rval().setNull();
         return true;
     }
 
@@ -806,11 +822,11 @@ static bool native_canvas_getContext(JSContext *cx, unsigned argc,
     } else if (canvasctx->m_Mode != ctxmode) {
         JS_ReportWarning(cx, "Bad context requested");
         /* A mode is requested but another one was already created */
-        args.rval().set(JSVAL_NULL);
+        args.rval().setNull();
         return true;
     }
-
-    args.rval().set(OBJECT_TO_JSVAL(canvasctx->jsobj));
+    JS::RootedObject  ret(cx, canvasctx->jsobj);
+    args.rval().setObjectOrNull(ret);
 
     return true;
 }
@@ -859,7 +875,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         case CANVAS_PROP_POSITION:
         {
             if (!vp.isString()) {
-                vp.set(JS::NullHandleValue);
+                vp.setNull();
+
                 return true;
             }
             JSAutoByteString mode(cx, vp.toString());
@@ -1262,52 +1279,52 @@ static bool native_canvas_prop_get(JSContext *cx, JS::HandleObject obj,
 
     switch (id) {
         case CANVAS_PROP_OPACITY:
-            vp.set(DOUBLE_TO_JSVAL(handler->getOpacity()));
+            vp.setDouble(handler->getOpacity());
             break;
         case CANVAS_PROP_WIDTH:
-            vp.set(INT_TO_JSVAL(handler->getWidth()));
+            vp.setInt32(handler->getWidth());
             break;
         case CANVAS_PROP_MINWIDTH:
-            vp.set(INT_TO_JSVAL(handler->getMinWidth()));
+            vp.setInt32(handler->getMinWidth());
             break;
         case CANVAS_PROP_MAXWIDTH:
-            vp.set(INT_TO_JSVAL(handler->getMaxWidth()));
+            vp.setInt32(handler->getMaxWidth());
             break;
         case CANVAS_PROP_CLIENTWIDTH:
-            vp.set(INT_TO_JSVAL(handler->getWidth() + (handler->padding.global * 2)));
+            vp.setInt32(handler->getWidth() + (handler->padding.global * 2));
             break;
         case CANVAS_PROP_HEIGHT:
-            vp.set(INT_TO_JSVAL(handler->getHeight()));
+            vp.setInt32(handler->getHeight());
             break;
         case CANVAS_PROP_MINHEIGHT:
-            vp.set(INT_TO_JSVAL(handler->getMinHeight()));
+            vp.setInt32(handler->getMinHeight());
             break;
         case CANVAS_PROP_MAXHEIGHT:
-            vp.set(INT_TO_JSVAL(handler->getMaxHeight()));
+            vp.setInt32(handler->getMaxHeight());
             break;
         case CANVAS_PROP_CLIENTHEIGHT:
-            vp.set(INT_TO_JSVAL(handler->getHeight() + (handler->padding.global * 2)));
+            vp.setInt32(handler->getHeight() + (handler->padding.global * 2));
             break;
         case CANVAS_PROP_COATING:
-            vp.set(INT_TO_JSVAL(handler->padding.global));
+            vp.setInt32(handler->padding.global);
             break;
         case CANVAS_PROP_LEFT:
-            vp.set(DOUBLE_TO_JSVAL(handler->getLeft()));
+            vp.setDouble(handler->getLeft());
             break;
         case CANVAS_PROP_RIGHT:
-            vp.set(DOUBLE_TO_JSVAL(handler->getRight()));
+            vp.setDouble(handler->getRight());
             break;
         case CANVAS_PROP_BOTTOM:
-            vp.set(DOUBLE_TO_JSVAL(handler->getBottom()));
+            vp.setDouble(handler->getBottom());
             break;
         case CANVAS_PROP_CLIENTLEFT:
-            vp.set(INT_TO_JSVAL(handler->getLeft() - handler->padding.global));
+            vp.setInt32(handler->getLeft() - handler->padding.global);
             break;
         case CANVAS_PROP_TOP:
-            vp.set(DOUBLE_TO_JSVAL(handler->getTop()));
+            vp.setDouble(handler->getTop());
             break;
         case CANVAS_PROP_CLIENTTOP:
-            vp.set(INT_TO_JSVAL(handler->getTop() - handler->padding.global));
+            vp.setInt32(handler->getTop() - handler->padding.global);
             break;
         case CANVAS_PROP_STATICLEFT:
             vp.setBoolean(handler->hasStaticLeft());
@@ -1328,87 +1345,96 @@ static bool native_canvas_prop_get(JSContext *cx, JS::HandleObject obj,
             vp.setBoolean(handler->isWidthFluid());
             break;
         case CANVAS_PROP_VISIBLE:
-            vp.set(BOOLEAN_TO_JSVAL(!handler->isHidden()));
+            vp.setBoolean(!handler->isHidden());
             break;
         case CANVAS_PROP_OVERFLOW:
-            vp.set(BOOLEAN_TO_JSVAL(handler->m_Overflow));
+            vp.setBoolean(handler->m_Overflow);
             break;
         case CANVAS_PROP___VISIBLE:
-            vp.set(BOOLEAN_TO_JSVAL(handler->isDisplayed()));
+            vp.setBoolean(handler->isDisplayed());
             break;
         case CANVAS_PROP_CONTENTWIDTH:
-            vp.set(INT_TO_JSVAL(handler->getContentWidth()));
+            vp.setInt32(handler->getContentWidth());
             break;
         case CANVAS_PROP_CONTENTHEIGHT:
-            vp.set(INT_TO_JSVAL(handler->getContentHeight()));
+            vp.setInt32(handler->getContentHeight());
             break;
         case CANVAS_PROP_INNERWIDTH:
-            vp.set(INT_TO_JSVAL(handler->getContentWidth(true)));
+            vp.setInt32(handler->getContentWidth(true));
             break;
         case CANVAS_PROP_INNERHEIGHT:
-            vp.set(INT_TO_JSVAL(handler->getContentHeight(true)));
+            vp.setInt32(handler->getContentHeight(true));
             break;
         case CANVAS_PROP_SCROLLLEFT:
-            vp.set(INT_TO_JSVAL(handler->content.scrollLeft));
+            vp.setInt32(handler->content.scrollLeft);
             break;
         case CANVAS_PROP_SCROLLTOP:
-            vp.set(INT_TO_JSVAL(handler->content.scrollTop));
+            vp.setInt32(handler->content.scrollTop);
             break;
         case CANVAS_PROP_ALLOWNEGATIVESCROLL:
-            vp.set(BOOLEAN_TO_JSVAL(handler->getAllowNegativeScroll()));
+            vp.setBoolean(handler->getAllowNegativeScroll());
             break;
         case CANVAS_PROP___FIXED:
-            vp.set(BOOLEAN_TO_JSVAL(handler->hasAFixedAncestor()));
+            vp.setBoolean(handler->hasAFixedAncestor());
             break;
         case CANVAS_PROP___TOP:
         {
             handler->computeAbsolutePosition();
-            vp.set(DOUBLE_TO_JSVAL(handler->getTop(true)));
+            vp.setDouble(handler->getTop(true));
             break;
         }
         case CANVAS_PROP___LEFT:
         {
             handler->computeAbsolutePosition();
-            vp.set(DOUBLE_TO_JSVAL(handler->getLeft(true)));
+            vp.setDouble(handler->getLeft(true));
             break;
         }
         case CANVAS_PROP_CTX:
         {
             if (handler->m_Context == NULL) {
-                vp.set(JSVAL_NULL);
+                vp.setNull();
                 break;
             }
-            vp.set(OBJECT_TO_JSVAL(handler->m_Context->jsobj));
+            JS::RootedObject retObj(cx, handler->m_Context->jsobj);
+            vp.setObjectOrNull(retObj);
             break;
         }
         case CANVAS_PROP___OUTOFBOUND:
         {
-            vp.set(BOOLEAN_TO_JSVAL(handler->isOutOfBound()));
+            vp.setBoolean(handler->isOutOfBound());
             break;
         }
         case CANVAS_PROP_POSITION:
         {
+            JS::RootedString jstr(cx);
             switch (handler->getPositioning()) {
                 case NativeCanvasHandler::COORD_RELATIVE:
                     if (handler->getFlowMode() & NativeCanvasHandler::kFlowBreakPreviousSibling) {
-                        vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "inline-break")));
+                        jstr = JS_NewStringCopyZ(cx, "inline-break");
+                        vp.setString(jstr);
                     } else if (handler->getFlowMode() & NativeCanvasHandler::kFlowInlinePreviousSibling) {
-                        vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "inline")));
+                        jstr = JS_NewStringCopyZ(cx, "inline");
+                        vp.setString(jstr);
                     } else {
-                        vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "relative")));
+                        jstr = JS_NewStringCopyZ(cx, "relative");
+                        vp.setString(jstr);
                     }
                     break;
                 case NativeCanvasHandler::COORD_ABSOLUTE:
-                    vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "absolute")));
+                    jstr = JS_NewStringCopyZ(cx, "absolute");
+                    vp.setString(jstr);
                     break;
                 case NativeCanvasHandler::COORD_FIXED:
-                    vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "fixed")));
+                    jstr = JS_NewStringCopyZ(cx, "fixed");
+                    vp.setString(jstr);
                     break;
                 case NativeCanvasHandler::COORD_INLINE:
-                    vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "inline")));
+                    jstr = JS_NewStringCopyZ(cx, "inline");
+                    vp.setString(jstr);
                     break;
                 case NativeCanvasHandler::COORD_INLINEBREAK:
-                    vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "inline-break")));
+                    jstr = JS_NewStringCopyZ(cx, "inline-break");
+                    vp.setString(jstr);
                     break;
             }
             break;
@@ -1417,8 +1443,8 @@ static bool native_canvas_prop_get(JSContext *cx, JS::HandleObject obj,
         {
             char *id;
             handler->getIdentifier(&id);
-
-            vp.setString(JS_NewStringCopyZ(cx, id));
+            JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, id));
+            vp.setString(jstr);
 
             break;
         }
@@ -1498,7 +1524,7 @@ static bool native_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
     JS_SetPrivate(ret, jscanvas);
     JS_SetPrivate(inherit, jscanvas);
 
-    args.rval().set(OBJECT_TO_JSVAL(ret));
+    args.rval().setObjectOrNull(ret);
 
     return true;
 }

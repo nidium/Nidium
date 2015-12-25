@@ -72,8 +72,9 @@ static bool native_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp
 
     JSAutoByteString cstr;
     cstr.encodeUtf8(cx, str);
+    JS::RootedObject retObj(cx, NativeNML::BuildLST(cx, cstr.ptr()));
 
-    args.rval().setObjectOrNull(NativeNML::BuildLST(cx, cstr.ptr()));
+    args.rval().setObjectOrNull(retObj);
 
     return true;
 }
@@ -90,8 +91,11 @@ static bool native_document_getElementById(JSContext *cx, unsigned argc, JS::Val
     JSAutoByteString cid(cx, str);
 
     NativeCanvasHandler *elem = NativeContext::getNativeClass(cx)->getCanvasById(cid.ptr());
-
-    args.rval().set(elem ? OBJECT_TO_JSVAL(elem->jsobj) : JSVAL_NULL);
+    if (elem) {
+        args.rval().setObjectOrNull(elem->jsobj);
+    } else {
+        args.rval().setNull();
+    }
 
     return true;
 }
@@ -165,12 +169,12 @@ static bool native_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Val
     char *text = NativeContext::getNativeClass(cx)->getUI()->getClipboardText();
 
     if (text == NULL) {
-        args.rval().set(JSVAL_NULL);
+        args.rval().setNull();
         return true;
     }
     jsc = NativeUtils::Utf8ToUtf16(cx, text, strlen(text), &outputlen);
     JS::RootedString jret(cx, JS_NewUCStringCopyN(cx, jsc, outputlen));
-    args.rval().set(STRING_TO_JSVAL(jret));
+    args.rval().setString(jret);
 
     free(text);
     delete[] jsc; //@TODO: not shure
