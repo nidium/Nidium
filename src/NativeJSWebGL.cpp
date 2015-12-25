@@ -145,7 +145,7 @@ JSClass WebGLRenderingContext_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-static static JSClass WebGLBuffer_class = {
+static JSClass WebGLBuffer_class = {
     "WebGLBuffer", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Buffer_Finalize,
@@ -314,7 +314,7 @@ bool NGL_uniformxi(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int arg
 
     if (nb > 0) x = (GLint) args.array()[1].toInt32();
     if (nb > 1) y = (GLint) args.array()[2].toInt32();
-    if (nb > 2) x = (GLint) args.array()[3].toInt32();
+    if (nb > 2) z = (GLint) args.array()[3].toInt32();
     if (nb > 3) w = (GLint) args.array()[4].toInt32();
 
     switch (nb) {

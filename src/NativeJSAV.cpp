@@ -2344,7 +2344,7 @@ static bool native_video_prevframe(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_video_frameat(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     double time;
-    bool keyframe;
+    bool keyframe = false;
 
     JSNATIVE_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
 

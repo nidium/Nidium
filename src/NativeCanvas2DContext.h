@@ -46,7 +46,7 @@ class NativeCanvas2DContext : public NativeCanvasContext
         uint8_t *getPixels() override;
         uint32_t getTextureID() const;
         void flush();
-        void setSize(int width, int height, bool redraw = true);
+        virtual void setSize(int width, int height, bool redraw = true) override;
         void translate(double x, double y);
 
         void getSize(int *width, int *height) const;

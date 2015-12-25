@@ -188,7 +188,7 @@ static JSPropertySpec canvas2dctx_props[] = {
     NATIVE_JS_GETTER(CTX_PROP_ ## prop, native_canvas2dctx_prop_get), \
     JSOP_NULLWRAPPER},
   #include "NativeCanvas2DContextProperties.h"
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 #undef CANVAS_2D_CTX_PROP
 #undef CANVAS_2D_CTX_PROP_GET
 };

@@ -246,7 +246,7 @@ NativeCanvasContext::~NativeCanvasContext()
     }
 }
 
-#if DEBUG
+#if DEBUG && 0
 static void dump_Matrix(float *matrix)
 {
     int i = 4;

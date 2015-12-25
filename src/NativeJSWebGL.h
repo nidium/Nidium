@@ -67,7 +67,7 @@ class NativeCanvasWebGLContext: public NativeCanvasContext
         ~NativeCanvasWebGLContext();
 
         void translate(double x, double y) {};
-        void setSize(int width, int height) {};
+        void setSize(int width, int height, bool redraw = true) {};
         void setScale(double x, double y, double px=1, double py=1) {};
         void clear(uint32_t color) {};
         void flush() {};

@@ -1,6 +1,6 @@
 #include "NativeSkia.h"
 
-#ifdef __linux__
+#if defined(__linux__) && ! defined(UINT32_MAX)
    #define UINT32_MAX 4294967295u
 #endif
 
@@ -1300,7 +1300,6 @@ void NativeSkia::arcTo(int x1, int y1, int x2, int y2, int r)
         beginPath();
     }
 
-    SkMatrix m = m_Canvas->getTotalMatrix();
     SkScalar cx1 = SkIntToScalar(x1);
     SkScalar cy1 = SkIntToScalar(y1);
     SkScalar cx2 = SkIntToScalar(x2);
