@@ -314,6 +314,7 @@ void NativeJSwindow::assetReady(const NMLTag &tag)
 
         JS_CallFunctionValue(cx, event, onassetready, jevent, &rval);
     }
+#undef EVENT_PROP
 }
 
 void NativeJSwindow::windowFocus()
@@ -446,6 +447,7 @@ void NativeJSwindow::textInput(const char *data)
 
         JS_CallFunctionValue(m_Cx, event, ontextinput, jevent, &rval);
     }
+#undef EVENT_PROP
 }
 
 void NativeJSwindow::systemMenuClicked(const char *id)
@@ -511,10 +513,13 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button, int clicks)
 
         JS_CallFunctionValue(m_Cx, event, onclick, jevent, &rval);
     }
+#undef EVENT_PROP
 }
 
 bool NativeJSwindow::dragEvent(const char *name, int x, int y)
 {
+#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
+    val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     JSAutoRequest ar(m_Cx);
     JS::RootedValue rval(m_Cx);
     JS::AutoValueArray<1> jevent(m_Cx);
@@ -550,6 +555,7 @@ bool NativeJSwindow::dragEvent(const char *name, int x, int y)
     }
 
     return false;
+#undef EVENT_PROP
 }
 
 bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t nfiles)
@@ -574,7 +580,7 @@ bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t n
     NativeJS::getNativeClass(m_Cx)->rootObjectUntilShutdown(m_DraggedFiles);
 
     return this->dragEvent("_onFileDragEnter", x, y);
-
+#undef EVENT_PROP
 }
 
 void NativeJSwindow::dragLeave()
@@ -669,6 +675,7 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
 
         JS_CallFunctionValue(m_Cx, event, onmove, jevent, &rval);
     }
+#undef EVENT_PROP
 }
 
 static void Window_Finalize(JSFreeOp *fop, JSObject *obj)
@@ -945,7 +952,6 @@ static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
 #undef APP_NAME
 #undef APP_LANGUAGE
 #undef APP_LOCALE
-
     return true;
 }
 
