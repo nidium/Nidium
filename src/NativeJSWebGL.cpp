@@ -259,9 +259,9 @@ bool NGL_uniformxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int ar
     intptr_t clocation;
     GLsizei length;
     GLfloat *carray;
+
     JS::RootedObject array(cx);
     JS::RootedObject location(cx);
-
     if (!JS_ConvertArguments(cx, args, "oo", location.address(), array.address())) {
         return false;
     }
@@ -306,9 +306,9 @@ bool NGL_uniformxi(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int arg
     GLint y;
     GLint z;
     GLint w;
+
     JS::RootedObject location(cx);
     JS::RootedValue locval(cx, args.array()[0]);
-
     JS_ValueToObject(cx, locval, &location);
     clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, &args);
 
@@ -341,21 +341,19 @@ bool NGL_uniformxiv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int ar
     uintptr_t clocation;
     GLsizei length;
     GLint *carray;
-    JS::RootedObject tmp(cx);
+
     JS::RootedObject array(cx);
     JS::RootedObject location(cx);
-
     if (!JS_ConvertArguments(cx, args, "oo", location.address(), array.address())) {
         return false;
     }
 
-    clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, &args);
 
     if (JS_IsInt32Array(array)) {
         carray = (GLint *)JS_GetInt32ArrayData(array);
         length = (GLsizei)JS_GetTypedArrayLength(array);
     } else if (JS_IsArrayObject(cx, array)) {
-        tmp = JS_NewInt32ArrayFromArray(cx, array);
+        JS::RootedObject tmp(cx, JS_NewInt32ArrayFromArray(cx, array));
         carray = (GLint *)JS_GetInt32ArrayData(tmp);
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
@@ -363,6 +361,7 @@ bool NGL_uniformxiv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int ar
         return false;
     }
 
+    clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, &args);
     if (nb == 1) {
         GL_CALL(glctx, Uniform1iv(clocation, length, carray));
     } else if (nb == 2) {
@@ -383,20 +382,18 @@ bool NGL_uniformMatrixxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned 
     GLint length;
     GLfloat *carray;
     bool transpose;
-    JS::RootedObject tmp(cx);
+
     JS::RootedObject array(cx);
     JS::RootedObject location(cx);
-
     if (!JS_ConvertArguments(cx, args, "obo", location.address(), &transpose, array.address())) {
         return false;
     }
 
-    clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, &args);
     if (JS_IsFloat32Array(array)) {
         carray = (GLfloat *)JS_GetFloat32ArrayData(array);
         length = (GLsizei)JS_GetTypedArrayLength(array);
     } else if (JS_IsArrayObject(cx, array)) {
-        tmp = JS_NewFloat32ArrayFromArray(cx, array);
+        JS::RootedObject tmp(cx, JS_NewFloat32ArrayFromArray(cx, array));
         carray = (GLfloat *)JS_GetFloat32ArrayData(tmp);
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
@@ -404,6 +401,7 @@ bool NGL_uniformMatrixxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned 
         return false;
     }
 
+    clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, &args);
     switch (nb) {
         case 2:
             GL_CALL(glctx, UniformMatrix2fv(clocation, length/4, (GLboolean)transpose, carray));
@@ -458,7 +456,6 @@ bool NGL_vertexAttribxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned i
     GLfloat *carray;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedValue arg1(cx, args.array()[1]);
-    JS::RootedObject tmp(cx);
     JS::RootedObject array(cx);
 
     index = (GLuint) args.array()[0].toInt32();
@@ -467,7 +464,7 @@ bool NGL_vertexAttribxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned i
     if (JS_IsFloat32Array(array)) {
         carray = (GLfloat *)JS_GetFloat32ArrayData(array);
     } else if (JS_IsArrayObject(cx, array)) {
-        tmp = JS_NewFloat32ArrayFromArray(cx, array);
+        JS::RootedObject tmp(cx, JS_NewFloat32ArrayFromArray(cx, array));
         carray = (GLfloat *)JS_GetFloat32ArrayData(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Float32 array");
@@ -1056,11 +1053,11 @@ NGL_JS_FN(WebGLRenderingContext_activeTexture)
 
 NGL_JS_FN(WebGLRenderingContext_attachShader)
 //{
-    JS::RootedObject program(cx);
-    JS::RootedObject shader(cx);
     WebGLResource *cprogram;
     WebGLResource *cshader;
 
+    JS::RootedObject program(cx);
+    JS::RootedObject shader(cx);
     if (!JS_ConvertArguments(cx, args, "oo", program.address(), shader.address())) {
         return false;
     }
@@ -1077,10 +1074,10 @@ NGL_JS_FN(WebGLRenderingContext_bindAttribLocation)
 //{
     GLuint vertex;
     const char *cname;
-    JS::RootedObject program(cx);
-    JS::RootedString name(cx);
     WebGLResource *cprogram;
 
+    JS::RootedObject program(cx);
+    JS::RootedString name(cx);
     if (!JS_ConvertArguments(cx, args, "ouS", program.address(), &vertex, name.address())) {
         return false;
     }
@@ -1099,9 +1096,9 @@ NGL_JS_FN(WebGLRenderingContext_bindAttribLocation)
 NGL_JS_FN(WebGLRenderingContext_bindBuffer)
 //{
     GLenum target;
-    JS::RootedObject buffer(cx);
     WebGLResource *cbuffer;
 
+    JS::RootedObject buffer(cx);
     if (!JS_ConvertArguments(cx, args, "uo", &target, buffer.address())) {
         return false;
     }
@@ -1126,9 +1123,9 @@ NGL_JS_FN(WebGLRenderingContext_bindBuffer)
 NGL_JS_FN(WebGLRenderingContext_bindFramebuffer)
 //{
     GLenum target;
-    JS::RootedObject buffer(cx);
     WebGLResource *cbuffer;
 
+    JS::RootedObject buffer(cx);
     if (!JS_ConvertArguments(cx, args, "uo", &target, buffer.address())) {
         return false;
     }
@@ -1158,9 +1155,9 @@ NGL_JS_FN(WebGLRenderingContext_bindFramebuffer)
 NGL_JS_FN(WebGLRenderingContext_bindRenderbuffer)
 //{
     GLenum target;
-    JS::RootedObject buffer(cx);
     WebGLResource *cbuffer;
 
+    JS::RootedObject buffer(cx);
     if (!JS_ConvertArguments(cx, args, "uo", &target, buffer.address())) {
         return false;
     }
@@ -1184,9 +1181,9 @@ NGL_JS_FN(WebGLRenderingContext_bindRenderbuffer)
 NGL_JS_FN(WebGLRenderingContext_bindTexture)
 //{
     GLenum target;
-    JS::RootedObject texture(cx);
     WebGLResource *ctexture;
 
+    JS::RootedObject texture(cx);
     if (!JS_ConvertArguments(cx, args, "uo", &target, texture.address())) {
         return false;
     }
@@ -1315,8 +1312,8 @@ NGL_JS_FN(WebGLRenderingContext_bufferData)
 //{
     GLenum target;
     GLenum usage;
-    JS::RootedObject array(cx);
 
+    JS::RootedObject array(cx);
     if (!JS_ConvertArguments(cx, args, "uou", &target, array.address(), &usage)) {
         return false;
     }
@@ -1336,8 +1333,8 @@ NGL_JS_FN(WebGLRenderingContext_bufferSubData)
 //{
     GLenum target;
     GLint offset;
-    JS::RootedObject array(cx);
 
+    JS::RootedObject array(cx);
     if (!JS_ConvertArguments(cx, args, "uuo", &target, &offset, array.address())) {
         return false;
     }
@@ -1439,9 +1436,9 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
 //{
     WebGLResource *cshader;
     WebGLResource::ShaderData *shaderData;
-    JS::RootedObject shader(cx);
     const char *shaderStr;
 
+    JS::RootedObject shader(cx);
     if (!JS_ConvertArguments(cx, args, "o", shader.address())) {
         return false;
     }
@@ -1468,18 +1465,15 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
 NGL_JS_FN(WebGLRenderingContext_createBuffer)
 //{
     intptr_t buffer;
-    JS::RootedValue proto(cx);
-    JS::RootedObject ret(cx);
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
     GL_CALL(CppObj, GenBuffers(1, (GLuint *)&buffer));
 
+    JS::RootedValue proto(cx);
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLBuffer", &proto);
     JS::RootedObject protoObj(cx, &proto.toObject());
-    ret = JS_NewObject(cx, &WebGLBuffer_class, protoObj, JS::NullPtr());
-
-    JS_SetPrivate(ret, new WebGLResource(buffer,
-        WebGLResource::kBuffer, CppObj, ret));
+    JS::RootedObject ret(cx, JS_NewObject(cx, &WebGLBuffer_class, protoObj, JS::NullPtr()));
+    JS_SetPrivate(ret, new WebGLResource(buffer, WebGLResource::kBuffer, CppObj, ret));
 
     args.rval().setObjectOrNull(ret);
 
@@ -1489,18 +1483,16 @@ NGL_JS_FN(WebGLRenderingContext_createBuffer)
 NGL_JS_FN(WebGLRenderingContext_createFramebuffer)
 //{
     uintptr_t buffer;
-    JS::RootedValue proto(cx);
-    JS::RootedObject ret(cx);
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
     GL_CALL(CppObj, GenFramebuffers(1, (GLuint *)&buffer));
 
+    JS::RootedValue proto(cx);
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLFramebuffer", &proto);
     JS::RootedObject protoObj(cx, &proto.toObject());
-    ret = JS_NewObject(cx, &WebGLFramebuffer_class, protoObj, JS::NullPtr());
+    JS::RootedObject ret(cx, JS_NewObject(cx, &WebGLFramebuffer_class, protoObj, JS::NullPtr()));
 
-    JS_SetPrivate(ret, new WebGLResource(buffer,
-        WebGLResource::kFramebuffer, CppObj, ret));
+    JS_SetPrivate(ret, new WebGLResource(buffer, WebGLResource::kFramebuffer, CppObj, ret));
 
     args.rval().setObjectOrNull(ret);
 
@@ -1510,18 +1502,16 @@ NGL_JS_FN(WebGLRenderingContext_createFramebuffer)
 NGL_JS_FN(WebGLRenderingContext_createRenderbuffer)
 //{
     intptr_t buffer;
-    JS::RootedValue proto(cx);
-    JS::RootedObject ret(cx);
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
     GL_CALL(CppObj, GenRenderbuffers(1, (GLuint *)&buffer));
 
+    JS::RootedValue proto(cx);
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLRenderbuffer", &proto);
     JS::RootedObject protoObj(cx, &proto.toObject());
-    ret = JS_NewObject(cx, &WebGLRenderbuffer_class, protoObj, JS::NullPtr());
+    JS::RootedObject ret(cx, JS_NewObject(cx, &WebGLRenderbuffer_class, protoObj, JS::NullPtr()));
 
-    JS_SetPrivate(ret, new WebGLResource(buffer,
-        WebGLResource::kRenderbuffer, CppObj, ret));
+    JS_SetPrivate(ret, new WebGLResource(buffer, WebGLResource::kRenderbuffer, CppObj, ret));
 
     args.rval().setObjectOrNull(ret);
 
@@ -1531,18 +1521,16 @@ NGL_JS_FN(WebGLRenderingContext_createRenderbuffer)
 NGL_JS_FN(WebGLRenderingContext_createProgram)
 //{
     GLuint program;
-    JS::RootedValue proto(cx);
-    JS::RootedObject ret(cx);
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
     GL_CALL_RET(CppObj, CreateProgram(), program);
 
+    JS::RootedValue proto(cx);
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLProgram", &proto);
     JS::RootedObject protoObj(cx, &proto.toObject());
-    ret = JS_NewObject(cx, &WebGLProgram_class, protoObj, JS::NullPtr());
+    JS::RootedObject ret(cx, JS_NewObject(cx, &WebGLProgram_class, protoObj, JS::NullPtr()));
 
-    JS_SetPrivate(ret, new WebGLResource(program,
-        WebGLResource::kProgram, CppObj, ret));
+    JS_SetPrivate(ret, new WebGLResource(program, WebGLResource::kProgram, CppObj, ret));
 
     args.rval().setObjectOrNull(ret);
 
@@ -1553,9 +1541,6 @@ NGL_JS_FN(WebGLRenderingContext_createShader)
 //{
     GLenum type;
     GLuint cshader;
-    JS::RootedValue proto(cx);
-    JS::RootedObject ret(cx);
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
     if (!JS_ConvertArguments(cx, args, "u", &type)) {
         return false;
@@ -1568,9 +1553,11 @@ NGL_JS_FN(WebGLRenderingContext_createShader)
 
     GL_CALL_RET(CppObj, CreateShader(type), cshader);
 
+    JS::RootedValue proto(cx);
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLShader", &proto);
     JS::RootedObject protoObj(cx, &proto.toObject());
-    ret = JS_NewObject(cx, &WebGLShader_class, protoObj, JS::NullPtr());
+    JS::RootedObject ret(cx, JS_NewObject(cx, &WebGLShader_class, protoObj, JS::NullPtr()));
 
     WebGLResource *res = new WebGLResource(cshader, WebGLResource::kShader, CppObj, ret);
     WebGLResource::ShaderData *shaderData = res->getShaderData();
@@ -1586,18 +1573,16 @@ NGL_JS_FN(WebGLRenderingContext_createShader)
 NGL_JS_FN(WebGLRenderingContext_createTexture)
 //{
     uintptr_t texture;
-    JS::RootedObject ret(cx);
-    JS::RootedValue proto(cx);
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
     GL_CALL(CppObj, GenTextures(1, (GLuint *)&texture));
 
+    JS::RootedValue proto(cx);
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLTexture", &proto);
     JS::RootedObject protoObj(cx, &proto.toObject());
-    ret = JS_NewObject(cx, &WebGLTexture_class, protoObj, JS::NullPtr());
+    JS::RootedObject ret(cx, JS_NewObject(cx, &WebGLTexture_class, protoObj, JS::NullPtr()));
 
-    JS_SetPrivate(ret, new WebGLResource(texture,
-        WebGLResource::kTexture, CppObj, ret));
+    JS_SetPrivate(ret, new WebGLResource(texture, WebGLResource::kTexture, CppObj, ret));
 
     args.rval().setObjectOrNull(ret);
 
@@ -1666,11 +1651,11 @@ NGL_JS_FN(WebGLRenderingContext_depthRange)
 
 NGL_JS_FN(WebGLRenderingContext_detachShader)
 //{
-    JS::RootedObject program(cx);
-    JS::RootedObject shader(cx);
     WebGLResource *cprogram;
     WebGLResource *cshader;
 
+    JS::RootedObject program(cx);
+    JS::RootedObject shader(cx);
     if (!JS_ConvertArguments(cx, args, "oo", program.address(), shader.address())) {
         return false;
     }
@@ -1686,6 +1671,7 @@ NGL_JS_FN(WebGLRenderingContext_detachShader)
 NGL_JS_FN(WebGLRenderingContext_disable)
 //{
     GLenum cap;
+
     if (!JS_ConvertArguments(cx, args, "u", &cap)) {
         return false;
     }
@@ -1785,13 +1771,12 @@ NGL_JS_FN(WebGLRenderingContext_flush)
 NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
 //{
     GLint location;
-    JS::RootedString name(cx);
-    JS::RootedObject program(cx);
-    JS::RootedObject ret(cx);
     JS::RootedValue proto(cx);
     const char *cname;
     WebGLResource *cprogram;
 
+    JS::RootedString name(cx);
+    JS::RootedObject program(cx);
     if (!JS_ConvertArguments(cx, args, "oS", program.address(), name.address())) {
         return false;
     }
@@ -1806,10 +1791,9 @@ NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
         args.rval().setNull();
     } else {
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-
         JS_GetProperty(cx, global, "WebGLUniformLocation", &proto);
         JS::RootedObject protoObj(cx, &proto.toObject());
-        ret = JS_NewObject(cx, &WebGLUniformLocation_class, protoObj, JS::NullPtr());
+        JS::RootedObject ret(cx, JS_NewObject(cx, &WebGLUniformLocation_class, protoObj, JS::NullPtr()));
         JS_SetPrivate(ret, (void *)(uintptr_t)location);
 
         JS_free(cx, (void *)cname);
@@ -1895,11 +1879,10 @@ NGL_JS_FN(WebGLRenderingContext_framebufferTexture2D)
 //{
     GLenum target, attachement, textarget;
     uintptr_t level;
-    JS::RootedObject texture(cx);
     WebGLResource *ctexture;
 
-    if (!JS_ConvertArguments(cx, args, "uuuoi",
-        &target, &attachement, &textarget, texture.address(), &level)) {
+    JS::RootedObject texture(cx);
+    if (!JS_ConvertArguments(cx, args, "uuuoi", &target, &attachement, &textarget, texture.address(), &level)) {
         return false;
     }
 
@@ -1954,13 +1937,12 @@ NGL_JS_FN(WebGLRenderingContext_generateMipmap)
 NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
 //{
     WebGLResource *cprogram;
-    JS::RootedObject program(cx);
-    JS::RootedValue proto(cx);
     char buff[2048];
     unsigned int ctype = 0;
     unsigned int index;
     int csize = 0;
 
+    JS::RootedObject program(cx);
     if (!JS_ConvertArguments(cx, args, "ou", program.address(), &index)) {
         return false;
     }
@@ -1976,10 +1958,10 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
         return true;
     }
 
+    JS::RootedValue proto(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLActiveInfo", &proto);
     JS::RootedObject protoObj(cx, &proto.toObject());
-    JS::RootedObject obj(cx, JS_NewObject(cx, &WebGLActiveInfo_class, protoObj, JS::NullPtr()));
 
     JS::RootedValue size(cx);
     JS::RootedValue type(cx);
@@ -1990,6 +1972,7 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
     JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, buff));
     name.setString(jstr);
 
+    JS::RootedObject obj(cx, JS_NewObject(cx, &WebGLActiveInfo_class, protoObj, JS::NullPtr()));
     JS_SetProperty(cx, obj, "size", size);
     JS_SetProperty(cx, obj, "type", type);
     JS_SetProperty(cx, obj, "name", name);
@@ -2017,11 +2000,11 @@ NGL_JS_FN(WebGLRenderingContext_getActiveUniform)
 NGL_JS_FN(WebGLRenderingContext_getAttribLocation)
 //{
     GLint location;
-    JS::RootedString attr(cx);
-    JS::RootedObject program(cx);
     WebGLResource *cprogram;
     const char *cattr;
 
+    JS::RootedString attr(cx);
+    JS::RootedObject program(cx);
     if (!JS_ConvertArguments(cx, args, "oS", program.address(), attr.address())) {
         return false;
     }
@@ -2033,6 +2016,7 @@ NGL_JS_FN(WebGLRenderingContext_getAttribLocation)
     GL_CALL_RET(CppObj, GetAttribLocation(cprogram->id(), cattr), location);
 
     JS_free(cx, (void *)cattr);
+
     args.rval().setInt32(location);
 
     return true;
@@ -2057,7 +2041,6 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
             const GLubyte *cstr;
             GL_CALL_RET(CppObj, GetString(name), cstr);
             JS::RootedString str(cx, JS_NewStringCopyZ(cx, (const char *)cstr));
-
             value.setString(str);
 
             break;
@@ -2138,10 +2121,9 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
             GLint length;
             GLint *textures;
             uint32_t *data;
-            JS::RootedObject obj(cx);
 
             GL_CALL(CppObj, GetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &length));
-            obj = JS_NewUint32Array(cx, length);
+            JS::RootedObject obj(cx, JS_NewUint32Array(cx, length));
             textures = (GLint *)malloc(sizeof(GLint) * length);
 
             if (!obj || !textures) {
@@ -2358,9 +2340,9 @@ NGL_JS_FN(WebGLRenderingContext_getProgramParameter)
 //{
     GLenum param = 0;
     GLint status;
-    JS::RootedObject program(cx);
     WebGLResource *cprogram;
 
+    JS::RootedObject program(cx);
     if (!JS_ConvertArguments(cx, args, "ou", program.address(), param)) {
         return false;
     }
@@ -2387,10 +2369,10 @@ NGL_JS_FN(WebGLRenderingContext_getProgramInfoLog)
 //{
     GLsizei max;
     GLsizei length;
-    JS::RootedObject program(cx);
     WebGLResource *cprogram;
     char *clog;
 
+    JS::RootedObject program(cx);
     if (!JS_ConvertArguments(cx, args, "o", program.address())) {
         return false;
     }
@@ -2413,9 +2395,9 @@ NGL_JS_FN(WebGLRenderingContext_getShaderParameter)
 //{
     GLenum pname;
     GLint param;
-    JS::RootedObject shader(cx);
     WebGLResource *cshader;
 
+    JS::RootedObject shader(cx);
     if (!JS_ConvertArguments(cx, args, "ou", shader.address(), &pname)) {
         return false;
     }
@@ -2433,10 +2415,10 @@ NGL_JS_FN(WebGLRenderingContext_getShaderInfoLog)
 //{
     GLsizei length;
     GLsizei max;
-    JS::RootedObject shader(cx);
     WebGLResource *cshader;
     char *clog;
 
+    JS::RootedObject shader(cx);
     if (!JS_ConvertArguments(cx, args, "o", shader.address())) {
         return false;
     }
@@ -2471,9 +2453,9 @@ NGL_JS_FN(WebGLRenderingContext_lineWidth)
 
 NGL_JS_FN(WebGLRenderingContext_linkProgram)
 //{
-    JS::RootedObject program(cx);
     WebGLResource *cprogram;
 
+    JS::RootedObject program(cx);
     if (!JS_ConvertArguments(cx, args, "o", program.address())) {
         return false;
     }
@@ -2541,11 +2523,11 @@ NGL_JS_FN(WebGLRenderingContext_renderbufferStorage)
 
 NGL_JS_FN(WebGLRenderingContext_shaderSource)
 //{
-    JS::RootedString source(cx);
-    JS::RootedObject shader(cx);
     WebGLResource *cshader;
     WebGLResource::ShaderData *shaderData;
 
+    JS::RootedObject shader(cx);
+    JS::RootedString source(cx);
     if (!JS_ConvertArguments(cx, args, "oS", shader.address(), source.address())) {
         return false;
     }
@@ -2565,14 +2547,13 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
     GLint internalFormat;
     GLenum format;
     GLenum type;
-    JS::RootedObject image(cx);
     int width, height;
 
     if (argc == 9) {
         GLint border;
-        JS::RootedObject array(cx);
         void *pixels = NULL;
 
+        JS::RootedObject array(cx);
         if (!JS_ConvertArguments(cx, args, "uiiiiiuuo", &target, &level,
             &internalFormat, &width, &height, &border, &format, &type, array.address())) {
             return false;
@@ -2585,6 +2566,7 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
         GL_CALL(CppObj, TexImage2D(target, level, internalFormat, width, height, border, format, type, pixels));
     } else {
         unsigned char *pixels;
+        JS::RootedObject image(cx);
 
         if (!JS_ConvertArguments(cx, args, "uiiuuo", &target, &level, &internalFormat, &format, &type, image.address()) ||
              image == NULL) {
@@ -2816,9 +2798,9 @@ NGL_JS_FN(WebGLRenderingContext_vertexAttribPointer)
 
 NGL_JS_FN(WebGLRenderingContext_useProgram)
 //{
-    JS::RootedObject program(cx);
     WebGLResource *cprogram;
 
+    JS::RootedObject program(cx);
     if (!JS_ConvertArguments(cx, args, "o", program.address())) {
         return false;
     }
@@ -2875,13 +2857,13 @@ NGL_JS_FN(WebGLRenderingContext_swapBuffer)
 static bool native_NativeGL_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
     JS::RootedValuel proto(cx);
-    JS::RootedObject webGLContext(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     NativeCanvasWebGLContext *ngl = new NativeCanvasWebGLContext(cx);
 
     JS_GetProperty(cx, global, "WebGLRenderingContext", &proto);
-    webGLContext = JS_NewObject(cx, &WebGLRenderingContext_class, proto, JS::NullPtr());
+    JS::RootedObject webGLContext(cx, JS_NewObject(cx, &WebGLRenderingContext_class, proto, JS::NullPtr()));
 
     if (webGLContext == NULL) {
         JS_ReportError(cx, "Failed to create WebGLRenderingContext");
@@ -2910,14 +2892,12 @@ static bool NativeJSWebGLRenderingContext_constructor(JSContext *cx,
 }
 
 void NativeJSWebGLRenderingContext::registerObject(JSContext *cx) {
-    JS::RootedObject obj(cx);
     JS::RootedObject ctor(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-
-    obj = JS_InitClass(cx, global, JS::NullPtr(),
+    JS::RootedObject obj(cx, JS_InitClass(cx, global, JS::NullPtr(),
                 &WebGLRenderingContext_class,
                 NativeJSWebGLRenderingContext_constructor,
-                0, nullptr, WebGLRenderingContext_funcs, nullptr, nullptr);
+                0, nullptr, WebGLRenderingContext_funcs, nullptr, nullptr));
 
     if (!obj || !(ctor = JS_GetConstructor(cx, obj))) {
         // TODO : Handle failure. Throw exception ?

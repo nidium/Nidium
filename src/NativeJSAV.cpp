@@ -461,7 +461,6 @@ static void native_av_thread_message(JSContext *cx, JS::HandleObject obj, const 
             !jscbk.isPrimitive() && JS_ObjectIsCallable(cx, &jscbk.toObject())) {
 
             JS::RootedValue inval(cx, JSVAL_NULL);
-
             if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
                 JS_STRUCTURED_CLONE_VERSION, &inval, nullptr, NULL)) {
                 JS_PROPAGATE_ERROR(cx, "Failed to transfer custom node message to audio thread");
@@ -523,7 +522,7 @@ bool JSTransferableFunction::call(JSContext *cx, JS::HandleObject obj, JS::Handl
 {
     if (m_Fn == JSVAL_VOID) {
         if (m_Data == NULL) {
-        	return false;
+            return false;
         }
         m_Fn = JSVAL_VOID;
         if (!this->transfert(cx)) {
@@ -543,8 +542,7 @@ bool JSTransferableFunction::transfert(JSContext *destCx)
 
     m_DestCx = destCx;
     JS::RootedValue fun(m_DestCx, m_Fn.get());
-    bool ok = JS_ReadStructuredClone(m_DestCx, m_Data, m_Bytes,
-                JS_STRUCTURED_CLONE_VERSION, &fun, nullptr, NULL);
+    bool ok = JS_ReadStructuredClone(m_DestCx, m_Data, m_Bytes, JS_STRUCTURED_CLONE_VERSION, &fun, nullptr, NULL);
 
     JS_ClearStructuredClone(m_Data, m_Bytes, nullptr, NULL);
 
@@ -561,7 +559,7 @@ JSTransferableFunction::~JSTransferableFunction()
     }
 
     if (m_Fn != JSVAL_VOID) {
-    	m_Fn = JSVAL_VOID;
+        m_Fn = JSVAL_VOID;
     }
 }
 
@@ -585,21 +583,17 @@ void NativeJSAudio::initNode(NativeJSAudioNode *node, JS::HandleObject jnode, JS
 {
     int in = node->node->inCount;
     int out = node->node->outCount;
-    JS::RootedValue inputLinks(m_Cx);
-    JS::RootedValue outputLinks(m_Cx);
-    JS::RootedValue nameVal(m_Cx, STRING_TO_JSVAL(name));
 
-    JS_DefineProperty(m_Cx, jnode, "type", nameVal,
-        JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
+    JS::RootedValue nameVal(m_Cx, STRING_TO_JSVAL(name));
+    JS_DefineProperty(m_Cx, jnode, "type", nameVal, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
     JS::RootedObject arrayIn(m_Cx, JS_NewArrayObject(m_Cx, in));
     JS::RootedObject arrayOut(m_Cx, JS_NewArrayObject(m_Cx, out));
-    inputLinks.setObjectOrNull(arrayIn);
-    outputLinks.setObjectOrNull(arrayOut);
+    JS::RootedValue inputLinks(m_Cx, OBJECT_TO_JSVAL(arrayIn));
+    JS::RootedValue outputLinks(m_Cx, OBJECT_TO_JSVAL(arrayOut));
 
     for (int i = 0; i < in; i++) {
         JS::RootedObject link(m_Cx, JS_NewObject(m_Cx, &AudioNodeLink_class, JS::NullPtr(), JS::NullPtr()));
         JS_SetPrivate(link, node->node->input[i]);
-
         JS_DefineElement(m_Cx, inputLinks.toObjectOrNull(), i, OBJECT_TO_JSVAL(link), nullptr, nullptr, 0);
     }
 
@@ -611,13 +605,11 @@ void NativeJSAudio::initNode(NativeJSAudioNode *node, JS::HandleObject jnode, JS
     }
 
     if (in > 0) {
-        JS_DefineProperty(m_Cx, jnode, "input", inputLinks,
-            JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
+        JS_DefineProperty(m_Cx, jnode, "input", inputLinks, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
     }
 
     if (out > 0) {
-        JS_DefineProperty(m_Cx, jnode, "output", outputLinks,
-            JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
+        JS_DefineProperty(m_Cx, jnode, "output", outputLinks, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
     }
 
     node->njs = NJS;
@@ -711,17 +703,15 @@ bool NativeJSAudio::run(char *str)
     }
     JSAutoRequest ar(this->tcx);
 
-    JS::RootedValue rval(this->tcx);
-    JS::RootedFunction fun(this->tcx);
-    JS::RootedObject globalObj(this->tcx, JS::CurrentGlobalOrNull(this->tcx));
     JS::CompileOptions options(this->tcx);
+    JS::RootedObject globalObj(this->tcx, JS::CurrentGlobalOrNull(this->tcx));
     options.setIntroductionType("audio Thread").setUTF8(true);
-    fun = JS_CompileFunction(this->tcx, globalObj, "Audio_run", 0, nullptr, str, strlen(str), options);
-
+    JS::RootedFunction fun(this->tcx, JS_CompileFunction(this->tcx, globalObj, "Audio_run", 0, nullptr, str, strlen(str), options));
     if (!fun) {
         JS_ReportError(this->tcx, "Failed to execute script on audio thread\n");
         return false;
     }
+    JS::RootedValue rval(this->tcx);
     JS_CallFunction(this->tcx, globalObj, fun, JS::HandleValueArray::empty(), &rval);
 
     return true;
@@ -839,15 +829,15 @@ void native_audio_node_custom_set_internal(JSContext *cx, NativeJSAudioNode *nod
     JSTransferableFunction *setterFn;
     setterFn = node->m_TransferableFuncs[NativeJSAudioNode::SETTER_FN];
     if (setterFn) {
-        JS::RootedValue rval(cx);
-        JS::AutoValueArray<3> params(cx);
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-        JS::RootedObject nodeObj(cx, node->nodeObj);
         JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, name));
+        JS::AutoValueArray<3> params(cx);
         params[0].setString(jstr);
         params[1].set(val);
         params[2].setObjectOrNull(global);
 
+        JS::RootedValue rval(cx);
+        JS::RootedObject nodeObj(cx, node->nodeObj);
         setterFn->call(cx, nodeObj, params, &rval);
     }
 }
@@ -859,14 +849,11 @@ void NativeJSAudioNode::setPropCallback(NativeAudioNode *node, void *custom)
 
     msg = static_cast<struct NativeJSAudioNode::Message*>(custom);
     tcx = msg->jsNode->audio->tcx;
-    JS::RootedValue data(tcx);
 
     JSAutoRequest ar(tcx);
 
-    if (!JS_ReadStructuredClone(tcx,
-                msg->clone.datap,
-                msg->clone.nbytes,
-                JS_STRUCTURED_CLONE_VERSION, &data, nullptr, NULL)) {
+    JS::RootedValue data(tcx);
+    if (!JS_ReadStructuredClone(tcx, msg->clone.datap, msg->clone.nbytes, JS_STRUCTURED_CLONE_VERSION, &data, nullptr, NULL)) {
         JS_PROPAGATE_ERROR(tcx, "Failed to read structured clone");
 
         JS_free(msg->jsNode->getJSContext(), msg->name);
@@ -881,9 +868,8 @@ void NativeJSAudioNode::setPropCallback(NativeAudioNode *node, void *custom)
         JS::AutoIdArray ida(tcx, JS_Enumerate(tcx, props));
         for (size_t i = 0; i < ida.length(); i++) {
             JS::RootedId id(tcx, ida[i]);
-            JS::RootedValue val(tcx);
             JSAutoByteString name(tcx, JSID_TO_STRING(id));
-
+            JS::RootedValue val(tcx);
             if (!JS_GetPropertyById(tcx, props, id, &val)) {
                 break;
             }
@@ -907,6 +893,8 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
     NativeJSAudioNode *thiz;
     JSContext *tcx;
     JSTransferableFunction *processFn;
+    unsigned long size;
+    int count;
 
     thiz = static_cast<NativeJSAudioNode *>(ev->custom);
 
@@ -920,37 +908,24 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
 
     processFn = thiz->m_TransferableFuncs[NativeJSAudioNode::PROCESS_FN];
 
-    if (!processFn) return;
-
-    JS::AutoValueArray<2> params(tcx);
-    JS::RootedValue rval(tcx);
-    JS::RootedValue vFrames(tcx);
-    JS::RootedValue vSize(tcx);
-    JS::RootedObject obj(tcx);
-    JS::RootedObject frames(tcx);
-    unsigned long size;
-    int count;
+    if (!processFn) {
+        return;
+    }
 
     count = thiz->node->inCount > thiz->node->outCount ? thiz->node->inCount : thiz->node->outCount;
     size = thiz->node->audio->outputParameters->bufferSize/2;
 
-    obj = JS_NewObject(tcx, &AudioNodeEvent_class, JS::NullPtr(), JS::NullPtr());
+    JS::RootedObject obj(tcx, JS_NewObject(tcx, &AudioNodeEvent_class, JS::NullPtr(), JS::NullPtr()));
     JS_DefineProperties(tcx, obj, AudioNodeEvent_props);
-
-    frames = JS_NewArrayObject(tcx, 0);
-
+    JS::RootedObject frames(tcx, JS_NewArrayObject(tcx, 0));
     for (int i = 0; i < count; i++) {
-        JS::RootedObject arrBuff(tcx);
-        JS::RootedObject arr(tcx);
         uint8_t *data;
 
         // TODO : Avoid memcpy (custom allocator for NativeAudioNode?)
-        arrBuff = JS_NewArrayBuffer(tcx, size);
+        JS::RootedObject arrBuff(tcx, JS_NewArrayBuffer(tcx, size));
         data = JS_GetArrayBufferData(arrBuff);
-
         memcpy(data, ev->data[i], size);
-
-        arr = JS_NewFloat32ArrayWithBuffer(tcx, arrBuff, 0, -1);
+        JS::RootedObject arr(tcx, JS_NewFloat32ArrayWithBuffer(tcx, arrBuff, 0, -1));
         if (arr != NULL) {
             JS::RootedValue arrVal(tcx, OBJECT_TO_JSVAL(arr));
             JS_DefineElement(tcx, frames, i, arrVal, nullptr, nullptr,
@@ -961,29 +936,28 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
         }
     }
 
-    vFrames = OBJECT_TO_JSVAL(frames);
-    vSize = DOUBLE_TO_JSVAL(ev->size);
-
+    JS::RootedValue vFrames(tcx, OBJECT_TO_JSVAL(frames));
     JS_SetProperty(tcx, obj, "data", vFrames);
+    JS::RootedValue vSize(tcx, DOUBLE_TO_JSVAL(ev->size));
     JS_SetProperty(tcx, obj, "size", vSize);
     JS::RootedObject global(tcx, JS::CurrentGlobalOrNull(tcx));
-    JS::RootedObject nodeObj(tcx, thiz->nodeObj);
+    JS::AutoValueArray<2> params(tcx);
     params[0].set(OBJECT_TO_JSVAL(obj));
     params[1].set(OBJECT_TO_JSVAL(global));
 
-    //JS_CallFunction(tcx, thiz->nodeObj, thiz->processFn, params, &rval);
+    JS::RootedValue rval(tcx);
+    //JS_CallFunction(tcx, thiz->nodeObj, thiz->processFn, params, rval.address());
+    JS::RootedObject nodeObj(tcx, thiz->nodeObj);
     processFn->call(tcx, nodeObj, params, &rval);
 
     for (int i = 0; i < count; i++) {
         JS::RootedValue val(tcx);
-        JS::RootedObject arr(tcx);
-
         JS_GetElement(tcx, frames, i, &val);
         if (!val.isObject()) {
             continue;
         }
 
-        arr = val.toObjectOrNull();
+        JS::RootedObject arr(tcx, val.toObjectOrNull());
         if (arr == NULL || !JS_IsFloat32Array(arr) || JS_GetTypedArrayLength(arr) != ev->size) {
             continue;
         }
@@ -1082,11 +1056,11 @@ void NativeJSAudioNode::initCustomObject(NativeAudioNode *node, void *custom)
 
     if (initFn) {
         JS::AutoValueArray<1> params(tcx);
-        JS::RootedValue rval(tcx);
         JS::RootedObject global(tcx, JS::CurrentGlobalOrNull(tcx));
         JS::RootedValue glVal(tcx, OBJECT_TO_JSVAL(global));
         params[0].set(glVal);
 
+        JS::RootedValue rval(tcx);
         initFn->call(tcx, nodeObj, params, &rval);
 
         jnode->m_TransferableFuncs[NativeJSAudioNode::INIT_FN] = NULL;
@@ -1114,8 +1088,8 @@ NativeJSAudioNode::~NativeJSAudioNode()
 
     if (this->type == NativeAudio::SOURCE) {
         // Only source from NativeVideo has reserved slot
-        JS::RootedValue s(m_Cx, JS_GetReservedSlot(m_JSObject, 0));
-        JS::RootedObject obj(m_Cx, s.toObjectOrNull());
+        JS::RootedValue source(m_Cx, JS_GetReservedSlot(m_JSObject, 0));
+        JS::RootedObject obj(m_Cx, source.toObjectOrNull());
         if (obj != NULL) {
             // If it exist, we must inform the video
             // that audio node no longer exist
@@ -1179,10 +1153,12 @@ NativeJSAudioNode::~NativeJSAudioNode()
 static bool native_audio_pFFT(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    int dir, n;
+    double *dx, *dy;
+    uint32_t dlenx, dleny;
+
     JS::RootedObject x(cx);
     JS::RootedObject y(cx);
-    int dir, n;
-
     if (!JS_ConvertArguments(cx, args, "ooii", x.address(), y.address(), &n, &dir)) {
         return false;
     }
@@ -1191,9 +1167,6 @@ static bool native_audio_pFFT(JSContext *cx, unsigned argc, JS::Value *vp)
         JS_ReportError(cx, "Bad argument");
         return false;
     }
-
-    double *dx, *dy;
-    uint32_t dlenx, dleny;
 
     if (JS_GetObjectAsFloat64Array(x, &dlenx, &dx) == NULL) {
         JS_ReportError(cx, "Can't convert typed array (expected Float64Array)");
@@ -1327,13 +1300,13 @@ static bool native_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_audio_run(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedString fn(cx);
-    JS::RootedFunction nfn(cx);
     JS::RootedValue argv0(cx, args.array()[0]);
     NativeJSAudio *audio = NativeJSAudio::getContext();
 
     CHECK_INVALID_CTX(audio);
 
+    JS::RootedString fn(cx);
+    JS::RootedFunction nfn(cx);
     if ((nfn = JS_ValueToFunction(cx, argv0)) == NULL ||
         (fn = JS_DecompileFunctionBody(cx, nfn, 0)) == NULL) {
         JS_ReportError(cx, "Failed to read callback function\n");
@@ -1358,16 +1331,14 @@ static bool native_audio_load(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_audio_createnode(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     int in, out;
-    JS::RootedObject ret(cx);
-    JS::RootedString name(cx);
     NativeJSAudio *audio;
     NativeJSAudioNode *node;
 
     JSNATIVE_PROLOGUE_CLASS(NativeJSAudio, &AudioContext_class);
     audio = CppObj;
-
     node = NULL;
 
+    JS::RootedString name(cx);
     if (!JS_ConvertArguments(cx, args, "Suu", name.address(), &in, &out)) {
         return false;
     }
@@ -1383,8 +1354,7 @@ static bool native_audio_createnode(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    JSAutoByteString cname(cx, name);
-    ret = JS_NewObjectForConstructor(cx, &AudioNode_class, args);
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &AudioNode_class, args));
     if (!ret) {
         JS_ReportOutOfMemory(cx);
         return false;
@@ -1392,6 +1362,7 @@ static bool native_audio_createnode(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JS_SetReservedSlot(ret, 0, JSVAL_NULL);
 
+    JSAutoByteString cname(cx, name);
     try {
         if (strcmp("source", cname.ptr()) == 0) {
             node = new NativeJSAudioNode(ret, cx, NativeAudio::SOURCE, in, out, audio);
@@ -1451,17 +1422,16 @@ static bool native_audio_createnode(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_audio_connect(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JS::RootedObject link1(cx);
-    JS::RootedObject link2(cx);
     NodeLink *nlink1;
     NodeLink *nlink2;
     NativeJSAudio *jaudio;
 
     JSNATIVE_PROLOGUE_CLASS(NativeJSAudio, &AudioContext_class);
     jaudio = CppObj;
-
     NativeAudio *audio = jaudio->audio;
 
+    JS::RootedObject link1(cx);
+    JS::RootedObject link2(cx);
     if (!JS_ConvertArguments(cx, args, "oo", link1.address(), link2.address())) {
         return true;
     }
@@ -1494,17 +1464,16 @@ static bool native_audio_connect(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_audio_disconnect(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JS::RootedObject link1(cx);
-    JS::RootedObject link2(cx);
     NodeLink *nlink1;
     NodeLink *nlink2;
     NativeJSAudio *jaudio;
 
     JSNATIVE_PROLOGUE_CLASS(NativeJSAudio, &AudioContext_class);
     jaudio = CppObj;
-
     NativeAudio *audio = jaudio->audio;
 
+    JS::RootedObject link1(cx);
+    JS::RootedObject link2(cx);
     if (!JS_ConvertArguments(cx, args, "oo", link1.address(), link2.address())) {
         return true;
     }
@@ -1532,9 +1501,9 @@ static bool native_audio_disconnect(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_audiothread_print(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedValue argv0(cx, args.array()[0]);
     char *bytes;
 
+    JS::RootedValue argv0(cx, args.array()[0]);
     JS::RootedString str(cx, argv0.toString());
     if (!str.get())
         return true;
@@ -1627,7 +1596,6 @@ static void native_audionode_set_internal(JSContext *cx, NativeAudioNode *node, 
 }
 static bool native_audionode_set(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JS::RootedString name(cx);
     NativeJSAudioNode *jnode;
 
     JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
@@ -1635,27 +1603,26 @@ static bool native_audionode_set(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NativeAudioNode *node = jnode->node;
     if (!args.array()[0].isPrimitive()) {
-    	JS::RootedValue arg0(cx, args.array()[0]);
+        JS::RootedValue arg0(cx, args.array()[0]);
         JS::RootedObject props(cx, &arg0.toObject());
         JS::AutoIdArray ida(cx, JS_Enumerate(cx, props));
         for (size_t i = 0; i < ida.length(); i++) {
             JS::RootedId id(cx, ida[i]);
+            JSAutoByteString cname(cx, JSID_TO_STRING(id));
             JS::RootedValue val(cx);
-            JSAutoByteString name(cx, JSID_TO_STRING(id));
-
             if (!JS_GetPropertyById(cx, props, id, &val)) {
                 break;
             }
-            native_audionode_set_internal(cx, node, name.ptr(), val);
+            native_audionode_set_internal(cx, node, cname.ptr(), val);
         }
     } else {
+        JS::RootedString name(cx);
         if (!JS_ConvertArguments(cx, args, "S", name.address())) {
             return false;
         }
 
-        JSAutoByteString cname(cx, name);
         JS::RootedValue val(cx, args.array()[1]);
-
+        JSAutoByteString cname(cx, name);
         native_audionode_set_internal(cx, node, cname.ptr(), val);
     }
 
@@ -1669,8 +1636,6 @@ static bool native_audionode_get(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_audionode_custom_set(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JS::RootedString name(cx);
-    JS::RootedValue val(cx);
     NativeJSAudioNode::Message *msg;
     NativeAudioNodeCustom *node;
     NativeJSAudioNode *jnode;
@@ -1678,9 +1643,10 @@ static bool native_audionode_custom_set(JSContext *cx, unsigned argc, JS::Value 
     JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
     jnode = CppObj;
 
+    JS::RootedString name(cx);
+    JS::RootedValue val(cx);
     if (argc == 1 && !args.array()[0].isPrimitive()) {
         val = args.array()[0];
-        name = NULL;
     } else if (argc == 1) {
         JS_ReportError(cx, "Invalid arguments");
         return false;
@@ -1694,12 +1660,12 @@ static bool native_audionode_custom_set(JSContext *cx, unsigned argc, JS::Value 
     node = static_cast<NativeAudioNodeCustom *>(jnode->node);
 
     msg = new NativeJSAudioNode::Message();
-    if (name != NULL) {
+    if (JS_GetStringLength(name) > 0) {
         msg->name = JS_EncodeString(cx, name);
     }
     msg->jsNode = jnode;
-    JS::RootedValue args1(cx, args.array()[1]);
 
+    JS::RootedValue args1(cx, args.array()[1]);
     if (!JS_WriteStructuredClone(cx, args1, &msg->clone.datap, &msg->clone.nbytes, nullptr, nullptr, JS::NullHandleValue)) {
         JS_ReportError(cx, "Failed to write structured clone");
 
@@ -1720,28 +1686,27 @@ static bool native_audionode_custom_set(JSContext *cx, unsigned argc, JS::Value 
 #if 0
 static bool native_audionode_custom_get(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    printf("hello get\n");
-
     NativeJSAudioNode *jsNode;
-    JS::RootedValuel val(cx);
-    JS::RootedString name(cx);
+
+    printf("hello get\n");
     printf("get node\n");
 
     jsNode = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
 
     printf("convert\n");
+    JS::RootedString name(cx);
     if (!JS_ConvertArguments(cx, args, "S", name, address())) {
         return true;
     }
 
     printf("str\n");
     JSAutoByteString str(cx, name);
-
     JS_SetRuntimeThread(JS_GetRuntime(cx));
 
     printf("get\n");
     JS::RootedObject hashObj(cx, jnode->hashObj);
-    JS_GetProperty(jsNode->audio->tcx, hashObj, str.ptr(), &val);
+    JS::RootedValuel val(cx);
+    JS_GetProperty(jsNode->audio->tcx, hashObj, str.ptr(), val.address());
 
     printf("return\n");
     JS_ClearRuntimeThread(JS_GetRuntime(cx));
@@ -1754,8 +1719,6 @@ static bool native_audionode_custom_get(JSContext *cx, unsigned argc, JS::Value 
 
 static bool native_audionode_custom_threaded_set(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JS::RootedString name(cx);
-    JS::RootedValue val(cx);
     NativeJSAudioNode *jnode;
     JSTransferableFunction *fn;
 
@@ -1767,28 +1730,27 @@ static bool native_audionode_custom_threaded_set(JSContext *cx, unsigned argc, J
         return false;
     }
 
+    JS::RootedString name(cx);
     if (!JS_ConvertArguments(cx, args, "S", name.address())) {
         return false;
     }
 
     fn = jnode->m_TransferableFuncs[NativeJSAudioNode::SETTER_FN];
-    val = args.array()[1];
-
+    JS::RootedValue val(cx, args.array()[1]);
     JSAutoByteString str(cx, name);
     JS::RootedObject hash(cx, jnode->hashObj);
-
     JS_SetProperty(cx, hash, str.ptr(), val);
 
     if (fn) {
         JS::AutoValueArray<3> params(cx);
-        JS::RootedValue rval(cx);
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
         JS::RootedObject nodeObj(cx, jnode->nodeObj);
 
-        params[0].set(STRING_TO_JSVAL(name));
+        params[0].setString(name);
         params[1].set(val);
-        params[2].set(OBJECT_TO_JSVAL(global));
+        params[2].setObjectOrNull(global);
 
+        JS::RootedValue rval(cx);
         fn->call(cx, nodeObj, params, &rval);
     }
 
@@ -1797,8 +1759,6 @@ static bool native_audionode_custom_threaded_set(JSContext *cx, unsigned argc, J
 
 static bool native_audionode_custom_threaded_get(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JS::RootedValue val(cx);
-    JS::RootedString name(cx);
     NativeJSAudioNode *jnode;
 
     JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_threaded_class);
@@ -1809,12 +1769,14 @@ static bool native_audionode_custom_threaded_get(JSContext *cx, unsigned argc, J
         return false;
     }
 
+    JS::RootedString name(cx);
     if (!JS_ConvertArguments(cx, args, "S", name.address())) {
         return false;
     }
 
     JSAutoByteString str(cx, name);
     JS::RootedObject hashObj(cx, jnode->hashObj);
+    JS::RootedValue val(cx);
     JS_GetProperty(jnode->audio->tcx, hashObj, str.ptr(), &val);
 
     args.rval().set(val);
@@ -2153,13 +2115,13 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
     JS::RootedValue onframe(v->cx);
     JS::RootedObject vobj(v->cx, v->getJSObject());
     if (JS_GetProperty(v->cx, vobj, "onframe", &onframe) &&
-        !onframe.isPrimitive() &&
-        JS_ObjectIsCallable(v->cx, &onframe.toObject())) {
+            !onframe.isPrimitive() &&
+            JS_ObjectIsCallable(v->cx, &onframe.toObject())) {
         JS::AutoValueArray<1> params(v->cx);
-        JS::RootedValue rval(v->cx);
 
         params[0].set(OBJECT_TO_JSVAL(v->getJSObject()));
 
+        JS::RootedValue rval(v->cx);
         JSAutoRequest ar(v->cx);
         JS_CallFunctionValue(v->cx, vobj, onframe, params, &rval);
     }
@@ -2397,9 +2359,8 @@ static bool native_video_setsize(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Video_class, args));
-    JS::RootedObject canvas(cx);
 
+    JS::RootedObject canvas(cx);
     if (!JS_ConvertArguments(cx, args, "o", canvas.address())) {
         return true;
     }
@@ -2418,16 +2379,14 @@ static bool native_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp
         return false;
     }
     JSContext *m_Cx = cx;
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Video_class, args));
     NJS->rootObjectUntilShutdown(ret);
-
-    NativeJSVideo *v = new NativeJSVideo(ret, (NativeCanvas2DContext*)ncc, cx);
-
     JS_DefineFunctions(cx, ret, Video_funcs);
     JS_DefineProperties(cx, ret, Video_props);
-
+    NativeJSVideo *v = new NativeJSVideo(ret, (NativeCanvas2DContext*)ncc, cx);
     JS_SetPrivate(ret, v);
-    JS::RootedValue canv(cx, args.array()[0]);
 
+    JS::RootedValue canv(cx, args.array()[0]);
     JS_SetProperty(cx, ret, "canvas", canv);
 
     args.rval().setObjectOrNull(ret);
@@ -2564,12 +2523,12 @@ void NativeJSAudioNode::seekCallback(NativeAudioCustomSource *node, double seekT
     if (!fn) return;
 
     JS::AutoValueArray<2> params(jnode->audio->tcx);
-    JS::RootedValue rval(jnode->audio->tcx);
     JS::RootedObject global(jnode->audio->tcx, JS::CurrentGlobalOrNull(jnode->audio->tcx));
-    JS::RootedObject nodeObj(jnode->audio->tcx, jnode->nodeObj);
-    params[0].set(DOUBLE_TO_JSVAL(seekTime));
-    params[1].set(OBJECT_TO_JSVAL(global));
+    params[0].setDouble(seekTime);
+    params[1].setObjectOrNull(global);
 
+    JS::RootedValue rval(jnode->audio->tcx);
+    JS::RootedObject nodeObj(jnode->audio->tcx, jnode->nodeObj);
     fn->call(jnode->audio->tcx, nodeObj, params, &rval);
 }
 

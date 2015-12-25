@@ -167,7 +167,6 @@ void Image_Finalize(JSFreeOp *fop, JSObject *obj)
 static bool native_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Image_class, args));
     NativeJSImage *nimg;
 
     if (!args.isConstructing()) {
@@ -175,6 +174,7 @@ static bool native_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp
         return false;
     }
 
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Image_class, args));
     nimg = new NativeJSImage(ret, cx);
     JS_SetPrivate(ret, nimg);
     JS_DefineProperties(cx, ret, Image_props);
@@ -211,15 +211,14 @@ void NativeJSImage::onMessage(const NativeSharedMessages::Message &msg)
     switch (msg.event()) {
         case NATIVESTREAM_READ_BUFFER:
         {
-            JS::RootedValue rval(m_Cx);
             JS::RootedValue onload_callback(m_Cx);
             JS::RootedObject obj(m_Cx, m_JSObject);
             if (this->setupWithBuffer((buffer *)msg.args[0].toPtr())) {
                 if (JS_GetProperty(m_Cx, obj, "onload", &onload_callback) &&
                     JS_TypeOfValue(m_Cx, onload_callback) == JSTYPE_FUNCTION) {
 
-                    JS_CallFunctionValue(m_Cx, obj, onload_callback,
-                        JS::HandleValueArray::empty(), &rval);
+                    JS::RootedValue rval(m_Cx);
+                    JS_CallFunctionValue(m_Cx, obj, onload_callback, JS::HandleValueArray::empty(), &rval);
                 }
             }
 
@@ -261,8 +260,6 @@ bool NativeJSImage::setupWithBuffer(buffer *buf)
 #if 0
 void NativeJSImage::onGetContent(const char *data, size_t len)
 {
-    JS::RootedValue rval(cx);
-    JS::RootedValue onload_callback(cx);
     ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
 
     if (data == NULL || len == 0) {
@@ -285,11 +282,12 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
 
     JS_DefineProperty(cx, jsobj, "height", heightVal, JSPROP_PERMANENT | JSPROP_READONLY);
 
+    JS::RootedValue onload_callback(cx);
     if (JS_GetProperty(cx, jsobj, "onload", &onload_callback) &&
         JS_TypeOfValue(cx, onload_callback) == JSTYPE_FUNCTION) {
 
-        JS_CallFunctionValue(cx, jsobj, onload_callback,
-            JS::HandleValueArray::empty(), &rval);
+        JS::RootedValue rval(cx);
+        JS_CallFunctionValue(cx, jsobj, onload_callback, JS::HandleValueArray::empty(), rval.address());
     }
 
     NativeJSObj(cx)->unrootObject(jsobj);

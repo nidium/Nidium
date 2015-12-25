@@ -63,17 +63,17 @@ struct _native_document_restart_async
 
 static bool native_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
+    JS::RootedString str(cx);
     if (!JS_ConvertArguments(cx, args, "S", str.address())) {
         return false;
     }
 
     JSAutoByteString cstr;
     cstr.encodeUtf8(cx, str);
-    JS::RootedObject retObj(cx, NativeNML::BuildLST(cx, cstr.ptr()));
 
+    JS::RootedObject retObj(cx, NativeNML::BuildLST(cx, cstr.ptr()));
     args.rval().setObjectOrNull(retObj);
 
     return true;
@@ -81,15 +81,14 @@ static bool native_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp
 
 static bool native_document_getElementById(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
+    JS::RootedString str(cx);
     if (!JS_ConvertArguments(cx, args, "S", str.address())) {
         return false;
     }
 
     JSAutoByteString cid(cx, str);
-
     NativeCanvasHandler *elem = NativeContext::getNativeClass(cx)->getCanvasById(cid.ptr());
     if (elem) {
         args.rval().setObjectOrNull(elem->jsobj);
@@ -113,7 +112,6 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     JS::RootedObject arrBuffer(cx, JS_NewUint8ClampedArray(cx, width * height * 4));
     uint8_t *pixels = JS_GetUint8ClampedArrayData(arrBuffer);
 
-
     NativeContext *nctx = NativeContext::getNativeClass(cx);
 
     uint8_t *fb = nctx->getUI()->readScreenPixel();
@@ -125,18 +123,14 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     //glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
     //glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-    JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
     JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
     JS::RootedValue arVal(cx, OBJECT_TO_JSVAL(arrBuffer));
-    JS_DefineProperty(cx, dataObject, "width", widthVal,
-        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, JS::NullPtr(), JS::NullPtr()));
+    JS_DefineProperty(cx, dataObject, "width", widthVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "height", heightVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "data", arVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    JS_DefineProperty(cx, dataObject, "height", heightVal,
-        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-
-    JS_DefineProperty(cx, dataObject, "data", arVal,
-         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS::RootedValue dataVal(cx, OBJECT_TO_JSVAL(dataObject));
     args.rval().set(dataVal);
 
@@ -145,9 +139,9 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
 
 static bool native_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
+    JS::RootedString str(cx);
     if (!JS_ConvertArguments(cx, args, "S", str.address())) {
         return false;
     }
@@ -173,6 +167,7 @@ static bool native_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Val
         return true;
     }
     jsc = NativeUtils::Utf8ToUtf16(cx, text, strlen(text), &outputlen);
+
     JS::RootedString jret(cx, JS_NewUCStringCopyN(cx, jsc, outputlen));
     args.rval().setString(jret);
 
@@ -216,8 +211,8 @@ static int native_document_restart(void *param)
 static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedString location(cx);
 
+    JS::RootedString location(cx);
     if (!JS_ConvertArguments(cx, args, "S", location.address())) {
         return false;
     }
@@ -269,14 +264,15 @@ JSObject *NativeJSdocument::registerObject(JSContext *cx)
     NativeJS *njs = NativeJS::getNativeClass(cx);
 
     NativeJSdocument *jdoc = new NativeJSdocument(documentObj, cx);
-
     JS_SetPrivate(documentObj, jdoc);
 
     /* We have to root it since the user can replace the document object */
     njs->rootObjectUntilShutdown(documentObj);
     njs->jsobjects.set(NativeJSdocument::getJSObjectName(), documentObj);
 
-    jdoc->stylesheet = JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr());
+    JS::RootedObject styleObj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+    jdoc->stylesheet = styleObj;
+
     JS::RootedValue objV(cx, OBJECT_TO_JSVAL(jdoc->stylesheet));
     JS_SetProperty(cx, documentObj, "stylesheet", objV);
     JS_DefineFunctions(cx, documentObj, document_funcs);
@@ -334,7 +330,6 @@ static bool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp
     NativeJSdocument *CppObj = (NativeJSdocument *)JS_GetPrivate(thisobj);
 
     JS::RootedObject fontdef(cx);
-
     if (!JS_ConvertArguments(cx, args, "o", fontdef.address())) {
         return false;
     }

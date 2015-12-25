@@ -601,17 +601,17 @@ bool NativeContext::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWrite
     }
 
     if (JS_GetClass(obj) == NativeCanvas2DContext::ImageData_jsclass) {
-        JS::RootedValue iwidth(cx);
-        JS::RootedValue iheight(cx);
-        JS::RootedValue idata(cx);
         uint32_t dwidth, dheight;
 
+        JS::RootedValue iwidth(cx);
         if (!JS_GetProperty(cx, obj, "width", &iwidth)) {
             return false;
         }
+        JS::RootedValue iheight(cx);
         if (!JS_GetProperty(cx, obj, "height", &iheight)) {
             return false;
         }
+        JS::RootedValue idata(cx);
         if (!JS_GetProperty(cx, obj, "data", &idata)) {
             return false;
         }
@@ -639,28 +639,23 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
         case NATIVE_SCTAG_IMAGEDATA:
         {
             if (data < sizeof(uint32_t) * 2 + 1) {
-                return JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr());
+                JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+                return obj;
             }
             uint32_t width, height;
-            JS::RootedValue arr(cx);
 
             JS_ReadBytes(r, &width, sizeof(uint32_t));
             JS_ReadBytes(r, &height, sizeof(uint32_t));
 
+            JS::RootedValue arr(cx);
             JS_ReadTypedArray(r, &arr);
 
-            JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass,
-                JS::NullPtr(), JS::NullPtr()));
+            JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, JS::NullPtr(), JS::NullPtr()));
             JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
             JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
-            JS_DefineProperty(cx, dataObject, "width", widthVal,
-                JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-
-            JS_DefineProperty(cx, dataObject, "height", heightVal,
-                JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-
-            JS_DefineProperty(cx, dataObject, "data", arr,
-               JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+            JS_DefineProperty(cx, dataObject, "width", widthVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+            JS_DefineProperty(cx, dataObject, "height", heightVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+            JS_DefineProperty(cx, dataObject, "data", arr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
             return dataObject;
         }
