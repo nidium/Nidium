@@ -29,11 +29,11 @@ class NativeCanvas2DContext : public NativeCanvasContext
 {
     public:
 
-        static JSClass *ImageData_jsclass;
+        static JSClass *m_ImageData_jsclass;
 
         friend class NativeJSCanvas;
 
-        bool setterDisabled;
+        bool m_SetterDisabled;
 
         void clear(uint32_t color = 0x00000000) override;
 
@@ -57,7 +57,7 @@ class NativeCanvas2DContext : public NativeCanvasContext
         void setVertexDeformation(uint32_t vertex, float x, float y);
 
         NativeSkia *getSurface() const {
-            return this->m_Skia;
+            return m_Skia;
         }
 
         void setScale(double x, double y, double px=1, double py=1);
@@ -93,7 +93,7 @@ class NativeCanvas2DContext : public NativeCanvasContext
 class NativeCanvasPattern
 {
     public:
-        NativeJSImage *jsimg;
+        NativeJSImage *m_JsImg;
 
         enum PATTERN_MODE {
             PATTERN_REPEAT,
@@ -101,10 +101,10 @@ class NativeCanvasPattern
             PATTERN_REPEAT_X,
             PATTERN_REPEAT_Y,
             PATTERN_REPEAT_MIRROR
-        } mode;
+        } m_Mode;
 
         NativeCanvasPattern(NativeJSImage *img, PATTERN_MODE repeat) :
-            jsimg(img), mode(repeat) {
+            m_JsImg(img), m_Mode(repeat) {
         };
 };
 

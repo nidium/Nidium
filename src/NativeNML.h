@@ -86,24 +86,24 @@ private:
 
     bool loadData(char *data, size_t len, rapidxml::xml_document<> &doc);
     void addAsset(NativeAssets *);
-    ape_global *net;
-    NativeBaseStream *stream;
+    ape_global *m_Net;
+    NativeBaseStream *m_Stream;
 
     /* Define callbacks for tags in <application> */
     struct _nml_tags {
         const char *str;
         tag_callback cb; // Call : (this->*cb)()
         bool unique;
-    } nml_tags[4] = {
+    } m_NmlTags[4] = {
         {"assets",   &NativeNML::loadAssets, false},
         {"meta", &NativeNML::loadMeta, true},
         {"layout", &NativeNML::loadLayout, true},
         {NULL,       NULL, false}
     };
 
-    uint32_t nassets;
+    uint32_t m_nAssets;
 
-    NativeJS *njs;
+    NativeJS *m_Njs;
 
     struct {
         char *identifier;
@@ -119,15 +119,15 @@ private:
         NativeAssets **list;
         uint32_t allocated;
         uint32_t size;
-    } assetsList;
-    NMLLoadedCallback loaded;
-    void *loaded_arg;
+    } m_AssetsList;
+    NMLLoadedCallback m_Loaded;
+    void *m_LoadedArg;
 
     rapidxml::xml_node<> *m_Layout;
     JS::Heap<JSObject*> m_JSObjectLayout;
 
-    bool m_defaultItemsLoaded;
-    bool m_loadDefaultItems;
+    bool m_DefaultItemsLoaded;
+    bool m_LoadDefaultItems;
 };
 
 #endif

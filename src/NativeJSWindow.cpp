@@ -463,12 +463,12 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button, int clicks)
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &mouseEvent_class, JS::NullPtr(), JS::NullPtr()));
 
-    NativeContext *nctx = NativeContext::getNativeClass(this->m_Cx);
+    NativeContext *nctx = NativeContext::getNativeClass(m_Cx);
     NativeInputEvent *ev = new NativeInputEvent(state ?
         NativeInputEvent::kMouseClick_Type :
         NativeInputEvent::kMouseClickRelease_Type, x, y);
 
-    ev->data[0] = button;
+    ev->m_data[0] = button;
 
     nctx->addInputEvent(ev);
 
@@ -480,7 +480,7 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button, int clicks)
     if (clicks % 2 == 0 && !state) {
         NativeInputEvent *ev = new NativeInputEvent(NativeInputEvent::kMouseDoubleClick_Type, x, y);
 
-        ev->data[0] = button;
+        ev->m_data[0] = button;
         nctx->addInputEvent(ev);
     }
     JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
@@ -522,7 +522,7 @@ bool NativeJSwindow::dragEvent(const char *name, int x, int y)
     EVENT_PROP("clientY", yv);
 
     if (m_DraggedFiles) {
-        JS::RootedObject drag(m_Cx, this->m_DraggedFiles);
+        JS::RootedObject drag(m_Cx, m_DraggedFiles);
         EVENT_PROP("files", drag);
     }
 
@@ -622,19 +622,19 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
-    NativeContext *nctx = NativeContext::getNativeClass(this->m_Cx);
+    NativeContext *nctx = NativeContext::getNativeClass(m_Cx);
 
     NativeCanvasHandler *rootHandler = nctx->getRootHandler();
 
-    rootHandler->mousePosition.x = x;
-    rootHandler->mousePosition.y = y;
-    rootHandler->mousePosition.xrel += xrel;
-    rootHandler->mousePosition.yrel += yrel;
-    rootHandler->mousePosition.consumed = false;
+    rootHandler->m_MousePosition.x = x;
+    rootHandler->m_MousePosition.y = y;
+    rootHandler->m_MousePosition.xrel += xrel;
+    rootHandler->m_MousePosition.yrel += yrel;
+    rootHandler->m_MousePosition.consumed = false;
 
     NativeInputEvent *ev = new NativeInputEvent(NativeInputEvent::kMouseMove_Type, x, y);
-    ev->data[0] = xrel;
-    ev->data[1] = yrel;
+    ev->m_data[0] = xrel;
+    ev->m_data[1] = yrel;
 
     nctx->addInputEvent(ev);
 
@@ -1301,7 +1301,7 @@ static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
 void NativeJSwindow::addFrameCallback(JS::MutableHandleValue cb)
 {
     struct _requestedFrame *frame = new struct _requestedFrame(m_Cx);
-    frame->next = this->m_RequestedFrame;
+    frame->next = m_RequestedFrame;
     frame->cb = cb;
 
     m_RequestedFrame = frame;
@@ -1349,9 +1349,9 @@ void NativeJSwindow::initDataBase()
 
 void NativeJSwindow::createMainCanvas(int width, int height, JS::HandleObject doc)
 {
-    JS::RootedObject canvas(m_Cx, NativeJSCanvas::generateJSObject(m_Cx, width, height, &m_handler));
+    JS::RootedObject canvas(m_Cx, NativeJSCanvas::generateJSObject(m_Cx, width, height, &m_Handler));
 
-    NativeContext::getNativeClass(m_Cx)->getRootHandler()->addChild(m_handler);
+    NativeContext::getNativeClass(m_Cx)->getRootHandler()->addChild(m_Handler);
     JS::RootedValue canval(m_Cx, OBJECT_TO_JSVAL(canvas));
     JS::RootedObject docObj(m_Cx, doc);
     JS_DefineProperty(m_Cx, docObj, "canvas", canval, JSPROP_READONLY | JSPROP_PERMANENT);

@@ -62,11 +62,11 @@ public:
 
     NativeInputEvent(Type type, int ix, int iy,
         uint32_t *idata = NULL, uint8_t idata_len = 0) :
-        x(ix), y(iy), m_Next(NULL), m_PassThroughEvent(NULL), m_Handler(NULL),
+        m_x(ix), m_y(iy), m_Next(NULL), m_PassThroughEvent(NULL), m_Handler(NULL),
         m_Origin(NULL), m_depthAffectedCanvas(0), m_Type(type) {
 
         if (idata && idata_len <= 8) {
-            memcpy(data, idata, sizeof(uint32_t) * idata_len);
+            memcpy(m_data, idata, sizeof(uint32_t) * idata_len);
         }
     }
 
@@ -75,7 +75,7 @@ public:
         dup->m_Handler = handler;
         dup->m_Origin = this;
 
-        this->m_PassThroughEvent = dup;
+        m_PassThroughEvent = dup;
 
         return dup;
     }
@@ -100,8 +100,8 @@ public:
         return m_PassThroughEvent;
     }
 
-    int x, y;
-    uint32_t data[8];
+    int m_x, m_y;
+    uint32_t m_data[8];
     NativeInputEvent *m_Next;
     NativeInputEvent *m_PassThroughEvent;
     NativeCanvasHandler *m_Handler;
@@ -186,7 +186,7 @@ class NativeContext : public NativeMessages
     void sizeChanged(int w, int h);
 
     void setNML(NativeNML *nml) {
-        this->m_NML = nml;
+        m_NML = nml;
     }
 
     void sizeNeedUpdate() {
@@ -228,11 +228,11 @@ class NativeContext : public NativeMessages
     }
 
     void setCurrentClickedHandler(NativeCanvasHandler *handler) {
-        m_currentClickedHandler = handler;
+        m_CurrentClickedHandler = handler;
     }
 
     NativeCanvasHandler *getCurrentClickedHandler() const {
-        return m_currentClickedHandler;
+        return m_CurrentClickedHandler;
     }
 
     static void CreateAndAssemble(NativeUIInterface *ui, ape_global *gnet);
@@ -291,7 +291,7 @@ class NativeContext : public NativeMessages
 
     ape_pool_list_t m_CanvasEventsCanvas;
 
-    NativeCanvasHandler *m_currentClickedHandler;
+    NativeCanvasHandler *m_CurrentClickedHandler;
 
     void execJobs();
     void execPendingCanvasChanges();

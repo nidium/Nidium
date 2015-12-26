@@ -26,13 +26,13 @@ NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
     memset(&m_CachedPixels, 0, sizeof(m_CachedPixels));
     memset(&m_GLObjects, 0, sizeof(m_GLObjects));
 
-    jsobj = JS_NewObject(cx, &WebGLRenderingContext_class, JS::NullPtr(), JS::NullPtr());
-    JS::RootedObject obj(cx, jsobj);
+    m_JsObj = JS_NewObject(cx, &WebGLRenderingContext_class, JS::NullPtr(), JS::NullPtr());
+    JS::RootedObject obj(cx, m_JsObj);
     JS_DefineConstDoubles(cx, obj, &WebGLRenderingContext_const);
 
-    jscx  = cx;
+    m_JsCx  = cx;
 
-    JS_SetPrivate(jsobj, this);
+    JS_SetPrivate(m_JsObj, this);
 
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 

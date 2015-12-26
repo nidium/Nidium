@@ -27,35 +27,35 @@ I++;
 #define NODE_IO_FOR_END(i) }i++;}
 
 NativeAudioNode::NativeAudioNode(int inCount, int outCount, NativeAudio *audio)
-    : nullFrames(true), processed(false), isConnected(false), inCount(inCount), outCount(outCount),
-      audio(audio), doNotProcess(false)
+    : m_NullFrames(true), m_Processed(false), m_IsConnected(false), m_InCount(inCount), m_OutCount(outCount),
+      m_Audio(audio), m_DoNotProcess(false)
 {
     SPAM(("NativeAudioNode init located at %p\n", this));
     int max;
 
     // Init exports array
     for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
-        this->args[i] = NULL;
+        m_Args[i] = NULL;
     }
 
-    memset(this->input, 0, sizeof(this->input));
-    memset(this->output, 0, sizeof(this->output));
+    memset(m_Input, 0, sizeof(m_Input));
+    memset(m_Output, 0, sizeof(m_Output));
 
     // Init node IO queue
     for (int i = 0; i < inCount; i++) {
-        this->input[i] = new NodeLink(INPUT, i, this);
+        m_Input[i] = new NodeLink(INPUT, i, this);
     }
 
     for (int i = 0; i < outCount; i++) {
-        this->output[i] = new NodeLink(OUTPUT, i, this);
+        m_Output[i] = new NodeLink(OUTPUT, i, this);
     }
 
     // Malloc node I/O frames
     max = (inCount > outCount ? inCount : outCount);
-    this->frames = (float **)calloc(max, sizeof(void *));
+    m_Frames = (float **)calloc(max, sizeof(void *));
 
     for (int i = 0; i < max; i++) {
-        this->frames[i] = NULL;
+        m_Frames[i] = NULL;
     }
 
     // More output than input
@@ -64,43 +64,43 @@ NativeAudioNode::NativeAudioNode(int inCount, int outCount, NativeAudio *audio)
         int s = inCount == 0 ? 0 : outCount - inCount;
         for (int i = 0; i < outCount; i++) {
             if (i >= s) {
-                this->frames[i] = this->newFrame();
+                m_Frames[i] = this->newFrame();
             }
         }
     }
 }
 
 NativeAudioNode::Message::Message(NativeAudioNode *node, ExportsArgs *arg, void *val, unsigned long size)
-: node(node), arg(arg), size(size)
+: m_Node(node), m_Arg(arg), m_Size(size)
 {
-    this->val = malloc(size);
-    memcpy(this->val, val, size);
+    m_Val = malloc(size);
+    memcpy(m_Val, val, size);
 }
 
 NativeAudioNode::Message::~Message() {
-    free(this->val);
+    free(m_Val);
 }
 
 void NativeAudioNode::callback(NodeMessageCallback cbk, void *custom)
 {
-    this->audio->sharedMsg->postMessage((void *)new CallbackMessage(cbk, this, custom), NATIVE_AUDIO_NODE_CALLBACK);
+    m_Audio->m_SharedMsg->postMessage((void *)new CallbackMessage(cbk, this, custom), NATIVE_AUDIO_NODE_CALLBACK);
 }
 
 bool NativeAudioNode::set(const char *name, ArgType type, void *value, unsigned long size)
 {
     for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
-        ExportsArgs *arg = this->args[i];
-        if (arg != NULL && strcmp(name, arg->name) == 0) {
+        ExportsArgs *arg = m_Args[i];
+        if (arg != NULL && strcmp(name, arg->m_Name) == 0) {
             void *val = value;
 
             // If posted type and expected type are different
             // try to typecast the value (only few are supported)
             int intVal = 0;
             double doubleVal = 0;
-            if (arg->type != type) {
+            if (arg->m_Type != type) {
                 switch (type) {
                     case DOUBLE: {
-                        if (arg->type == INT) {
+                        if (arg->m_Type == INT) {
                             size = sizeof(int);
                             intVal = static_cast<int>(*((double*)value));
                             val = &intVal;
@@ -110,7 +110,7 @@ bool NativeAudioNode::set(const char *name, ArgType type, void *value, unsigned 
                     }
                     break;
                     case INT: {
-                        if (arg->type == DOUBLE) {
+                        if (arg->m_Type == DOUBLE) {
                             size = sizeof(double);
                             doubleVal = static_cast<double>(*((int*)value));
                             val = &doubleVal;
@@ -137,20 +137,20 @@ bool NativeAudioNode::set(const char *name, ArgType type, void *value, unsigned 
 void NativeAudioNode::updateFeedback(NativeAudioNode *nOut)
 {
     //SPAM(("updateFeedback called\n"));
-    for (int i = 0; i < this->inCount; i++) {
-        for (int j = 0; j < this->input[i]->count; j++) {
-            //SPAM(("  checking input #%d wire %d; node = %p/%p\n", i, j, this->input[i]->wire[j]->node, nOut));
-            if (!this->input[i]->wire[j]->feedback &&
-                 this->input[i]->wire[j]->node == nOut) {
+    for (int i = 0; i < m_InCount; i++) {
+        for (int j = 0; j < m_Input[i]->count; j++) {
+            //SPAM(("  checking input #%d wire %d; node = %p/%p\n", i, j, m_Input[i]->wire[j]->node, nOut));
+            if (!m_Input[i]->wire[j]->feedback &&
+                 m_Input[i]->wire[j]->node == nOut) {
                 //SPAM(("=================== Its a feedback\n"));
                 // It's a feedback
-                this->input[i]->wire[j]->feedback = true;
-                this->input[i]->haveFeedback = true;
+                m_Input[i]->wire[j]->feedback = true;
+                m_Input[i]->haveFeedback = true;
                 return;
-            } else if (!this->input[i]->wire[j]->feedback) {
+            } else if (!m_Input[i]->wire[j]->feedback) {
                 //SPAM(("Go back\n"));
                 // Go back a node, and check
-                this->input[i]->wire[j]->node->updateFeedback(nOut);
+                m_Input[i]->wire[j]->node->updateFeedback(nOut);
             }
         }
     }
@@ -165,22 +165,22 @@ void NativeAudioNode::updateWiresFrame(int channel, float *frame, float *discard
     // Stop updating wire when a framed owned by the node is met
     // Note : If the frame owned is the one that need to be updated
     // (dicardFrame) do not stop and update it
-    if (this->frames[channel] != NULL &&
-            this->frames[channel] != discardFrame &&
-            this->isFrameOwner(this->frames[channel])) {
+    if (m_Frames[channel] != NULL &&
+            m_Frames[channel] != discardFrame &&
+            this->isFrameOwner(m_Frames[channel])) {
         return;
     }
 
-    this->frames[channel] = frame;
+    m_Frames[channel] = frame;
 
-    if (!this->output[channel]) {
+    if (!m_Output[channel]) {
         return;
     }
 
-    int count = this->output[channel]->count;
+    int count = m_Output[channel]->count;
     for (int i = 0; i < count; i++)
     {
-        this->output[channel]->wire[i]->node->updateWiresFrame(channel, frame, discardFrame);
+        m_Output[channel]->wire[i]->node->updateWiresFrame(channel, frame, discardFrame);
     }
 
     return;
@@ -188,57 +188,57 @@ void NativeAudioNode::updateWiresFrame(int channel, float *frame, float *discard
 
 bool NativeAudioNode::queue(NodeLink *in, NodeLink *out)
 {
-    SPAM(("connect in node %p; out node %p\n", in->node, out->node));
+    SPAM(("connect in node %p; out node %p\n", in->m_Node, out->m_Node));
     NodeIO **inLink;
     NodeIO **outLink;
 
     // First, make sure we have enought space to connect wire
-    inLink = this->getWire(this->input[out->channel]);
-    outLink = this->getWire(in->node->output[in->channel]);
+    inLink = this->getWire(m_Input[out->channel]);
+    outLink = this->getWire(in->node->m_Output[in->channel]);
 
     if (inLink == NULL || outLink == NULL) {
         return false;
     }
 
-    this->audio->lockQueue();
+    m_Audio->lockQueue();
     // Connect blocks frames
-    if (in->node->frames[in->channel] == NULL) {
+    if (in->node->m_Frames[in->channel] == NULL) {
         SPAM(("Malloc frame\n"));
-        in->node->frames[in->channel] = in->node->newFrame();
-        //this->frames[out->channel] = in->node->frames[in->channel];
+        in->node->m_Frames[in->channel] = in->node->newFrame();
+        //m_Frames[out->channel] = in->node->m_Frames[in->channel];
     }
 
     if (out->count == 0 && in->count == 0 && in->node != out->node) {
         SPAM(("frame previously assigned\n"));
         // Frame was previously assigned, update next outputs
-        if (this->frames[out->channel] != NULL) {
-            float *discard = this->frames[out->channel];
-            this->frames[out->channel] = NULL;
+        if (m_Frames[out->channel] != NULL) {
+            float *discard = m_Frames[out->channel];
+            m_Frames[out->channel] = NULL;
 
             SPAM(("Update wires\n"));
-            this->updateWiresFrame(out->channel, in->node->frames[in->channel], discard);
+            this->updateWiresFrame(out->channel, in->node->m_Frames[in->channel], discard);
 
             SPAM(("Freeing frame @ %p\n", discard));
             free(discard);
         }
-        this->frames[out->channel] = in->node->frames[in->channel];
+        m_Frames[out->channel] = in->node->m_Frames[in->channel];
     } else if (out->count == 1 || in->count == 1 || in->node == out->node) {
         // Multiple input or output on same channel
         // need to use an internal buffer
 
-        this->frames[out->channel] = this->newFrame();
+        m_Frames[out->channel] = this->newFrame();
 
         SPAM(("Update wires\n"));
-        this->updateWiresFrame(out->channel, this->frames[out->channel]);
+        this->updateWiresFrame(out->channel, m_Frames[out->channel]);
 
         SPAM(("Using custom frames\n"));
     }
 
     // Then connect wires
-    *inLink = new NodeIO(in->node, in->node->frames[in->channel]);
+    *inLink = new NodeIO(in->node, in->node->m_Frames[in->channel]);
 
     // And update input node wires
-    *outLink = new NodeIO(out->node, out->node->frames[out->channel]);
+    *outLink = new NodeIO(out->node, out->node->m_Frames[out->channel]);
 
     in->count++;
     out->count++;
@@ -250,19 +250,19 @@ bool NativeAudioNode::queue(NodeLink *in, NodeLink *out)
     // and update "isConnected" for each one.
     in->node->updateIsConnected();
 
-    this->audio->unlockQueue();
+    m_Audio->unlockQueue();
 
     return true;
 }
 
 bool NativeAudioNode::unqueue(NodeLink *input, NodeLink *output)
 {
-    this->audio->lockQueue();
+    m_Audio->lockQueue();
     NodeLink *wiresIn, *wiresOut;
     int count;
 
-    wiresIn = this->input[output->channel];
-    wiresOut = input->node->output[input->channel];
+    wiresIn = m_Input[output->channel];
+    wiresOut = input->node->m_Output[input->channel];
 
     // Find connecting wires and delete them
     count = wiresIn->count;
@@ -298,16 +298,16 @@ bool NativeAudioNode::unqueue(NodeLink *input, NodeLink *output)
     if (empty) {
         // Output node input channel is orpheline, set his frame to null
         // If the frame is needed later, the fx queue will handle it
-        if (this->frames[output->channel] != NULL && this->isFrameOwner(this->frames[output->channel])) {
-            free(this->frames[output->channel]);
+        if (m_Frames[output->channel] != NULL && this->isFrameOwner(m_Frames[output->channel])) {
+            free(m_Frames[output->channel]);
         }
-        this->frames[output->channel] = NULL;
+        m_Frames[output->channel] = NULL;
         // Forward update the queue
-        this->updateWiresFrame(output->channel, this->frames[output->channel]);
+        this->updateWiresFrame(output->channel, m_Frames[output->channel]);
         wiresIn->count = 0;
     }
 
-    this->audio->unlockQueue();
+    m_Audio->unlockQueue();
     return true;
 }
 
@@ -315,89 +315,89 @@ void NativeAudioNode::processQueue()
 {
     SPAM(("process queue on %p\n", this));
 
-    if (!this->isConnected) {
+    if (!m_IsConnected) {
         SPAM(("    Node is not connected %p\n", this));
         return;
     }
 
     // Let's go for a new round.
     // First mark all output as unprocessed
-    for (int i = 0; i < this->outCount ; i++) {
+    for (int i = 0; i < m_OutCount ; i++) {
         int j = 0;
-        NODE_IO_FOR(j, this->output[i])
-            SPAM(("     Marking output at %p as unprocessed (%p)\n", this->output[i]->wire[j]->node, this));
-            this->output[i]->wire[j]->node->processed = false;
+        NODE_IO_FOR(j, m_Output[i])
+            SPAM(("     Marking output at %p as unprocessed (%p)\n", m_Output[i]->wire[j]->m_Node, this));
+            m_Output[i]->wire[j]->node->m_Processed = false;
         NODE_IO_FOR_END(j)
     }
 
     // Do we have all data we need to process this node?
-    for (int i = 0; i < this->inCount; i++) {
+    for (int i = 0; i < m_InCount; i++) {
         int j = 0;
-        NODE_IO_FOR(j, this->input[i])
-            if (!this->input[i]->wire[j]->node->processed && this->input[i]->wire[j]->node->isConnected) {
-                SPAM(("     Input %p havn't been processed, return\n", this->input[i]->wire[j]->node));
+        NODE_IO_FOR(j, m_Input[i])
+            if (!m_Input[i]->wire[j]->node->m_Processed && m_Input[i]->wire[j]->node->m_IsConnected) {
+                SPAM(("     Input %p havn't been processed, return\n", m_Input[i]->wire[j]->m_Node));
                 // Needed data havn't been processed yet. Return.
                 return;
             } else {
-                if (!this->input[i]->wire[j]->node->isConnected) {
-                    SPAM(("     Input %p isn't connected. No need to process\n", this->input[i]->wire[j]->node));
+                if (!m_Input[i]->wire[j]->node->m_IsConnected) {
+                    SPAM(("     Input %p isn't connected. No need to process\n", m_Input[i]->wire[j]->m_Node));
                 } else {
-                    SPAM(("    Input at %p is already processed\n", this->input[i]->wire[j]->node));
+                    SPAM(("    Input at %p is already processed\n", m_Input[i]->wire[j]->m_Node));
                 }
             }
         NODE_IO_FOR_END(j)
     }
 
     // Some sanity check and merge input if needed
-    for (int i = 0; i < this->inCount; i++) {
+    for (int i = 0; i < m_InCount; i++) {
         // Something is wrong (ie : node is not connected)
-        if (this->frames[i] == NULL) {
+        if (m_Frames[i] == NULL) {
             SPAM(("     => Found a NULL frame. Fixing it\n"));
-            this->frames[i] = this->newFrame();
-            this->updateWiresFrame(i, this->frames[i]);
+            m_Frames[i] = this->newFrame();
+            this->updateWiresFrame(i, m_Frames[i]);
         }
 
         // Have multiple data on one input
         // add all input
-        if (this->input[i]->count > 1) {
+        if (m_Input[i]->count > 1) {
             // Reset buffer
-            if (!this->input[i]->haveFeedback) {
-                memset(this->frames[i], 0, this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
+            if (!m_Input[i]->haveFeedback) {
+                memset(m_Frames[i], 0, m_Audio->m_OutputParameters->m_BufferSize/m_Audio->m_OutputParameters->m_Channels);
             }
 
             // Merge all input
             int j = 0;
-            NODE_IO_FOR(j, this->input[i])
-                if (this->frames[i] != this->input[i]->wire[j]->frame) {
-                    SPAM(("     Merging input #%d from %p to %p\n", this->input[i]->channel, this->input[i]->wire[j]->node, this));
-                    SPAM(("     frames=%p from %p\n", this->frames[i], this->input[i]->wire[j]->frame));
-                    for (int k = 0; k < this->audio->outputParameters->framesPerBuffer; k++) {
-                        this->frames[i][k] += this->input[i]->wire[j]->frame[k];
+            NODE_IO_FOR(j, m_Input[i])
+                if (m_Frames[i] != m_Input[i]->wire[j]->frame) {
+                    SPAM(("     Merging input #%d from %p to %p\n", m_Input[i]->channel, m_Input[i]->wire[j]->m_Node, this));
+                    SPAM(("     frames=%p from %p\n", m_Frames[i], m_Input[i]->wire[j]->frame));
+                    for (int k = 0; k < m_Audio->m_OutputParameters->m_FramesPerBuffer; k++) {
+                        m_Frames[i][k] += m_Input[i]->wire[j]->frame[k];
                     }
                 }
                 NODE_IO_FOR_END(j)
         }
     }
 
-    if (!this->doNotProcess) {
+    if (!m_DoNotProcess) {
         if (!this->process()) {
             SPAM(("Failed to process node at %p\n", this));
-            this->processed = true;
+            m_Processed = true;
             return; // XXX : This need to be double checked
         }
     } else {
         SPAM(("Node marked as doNotProcess\n"));
     }
 
-    for (int i = 0; i < this->outCount; i++) {
+    for (int i = 0; i < m_OutCount; i++) {
         // Have multiple data on one output.
         // Copy output data to next bloc
-        if (this->output[i]->count > 1) {
+        if (m_Output[i]->count > 1) {
             int j = 0;
-            NODE_IO_FOR(j, this->output[i])
-                if (this->output[i]->wire[j]->frame != this->frames[i]) {
-                    for (int k = 0; k < this->audio->outputParameters->framesPerBuffer; k++) {
-                        this->output[i]->wire[j]->frame[k] = this->frames[i][k];
+            NODE_IO_FOR(j, m_Output[i])
+                if (m_Output[i]->wire[j]->frame != m_Frames[i]) {
+                    for (int k = 0; k < m_Audio->m_OutputParameters->m_FramesPerBuffer; k++) {
+                        m_Output[i]->wire[j]->frame[k] = m_Frames[i][k];
                     }
                 }
             NODE_IO_FOR_END(j)
@@ -405,17 +405,17 @@ void NativeAudioNode::processQueue()
     }
 
     SPAM(("Marking node %p as processed\n", this));
-    this->processed = true;
+    m_Processed = true;
 
     // Go process next outputs
     int count = 0;
-    for (int i = 0; i < this->outCount; i++) {
+    for (int i = 0; i < m_OutCount; i++) {
         int j = 0;
-        NODE_IO_FOR(j, this->output[i])
-            if (!this->output[i]->wire[j]->node->processed) {
-                this->output[i]->wire[j]->node->processQueue();
+        NODE_IO_FOR(j, m_Output[i])
+            if (!m_Output[i]->wire[j]->node->m_Processed) {
+                m_Output[i]->wire[j]->node->processQueue();
             }
-            if (this->output[i]->wire[j]->node->processed) {
+            if (m_Output[i]->wire[j]->node->m_Processed) {
                 count++;
             }
         NODE_IO_FOR_END(j)
@@ -426,7 +426,7 @@ void NativeAudioNode::processQueue()
 
 float *NativeAudioNode::newFrame()
 {
-#define FRAME_SIZE this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels
+#define FRAME_SIZE m_Audio->m_OutputParameters->m_BufferSize/m_Audio->m_OutputParameters->m_Channels
     float *ret = (float *)calloc(FRAME_SIZE + sizeof(void *), NativeAudio::FLOAT32);
     if (ret != NULL) {
         // Store at the end of the frame array
@@ -441,7 +441,7 @@ float *NativeAudioNode::newFrame()
 }
 
 void NativeAudioNode::post(int msg, ExportsArgs *arg, void *val, unsigned long size) {
-    this->audio->sharedMsg->postMessage((void *)new Message(this, arg, val, size), msg);
+    m_Audio->m_SharedMsg->postMessage((void *)new Message(this, arg, val, size), msg);
 }
 
 NativeAudioNode::~NativeAudioNode() {
@@ -461,106 +461,106 @@ NativeAudioNode::~NativeAudioNode() {
     //  - Delete the wires, using the same technique than inputs
 
     SPAM(("--- Disconnect inputs\n"));
-    for (int i = 0; i < this->inCount; i++) {
-        int count = this->input[i]->count;
+    for (int i = 0; i < m_InCount; i++) {
+        int count = m_Input[i]->count;
         SPAM(("    node have %d input\n", count));
         // Free internal frames
-        if (i > this->outCount) {
-            if (this->frames[i] != NULL && this->isFrameOwner(this->frames[i])) {
-                free(this->frames[i]);
-                this->frames[i] = NULL;
+        if (i > m_OutCount) {
+            if (m_Frames[i] != NULL && this->isFrameOwner(m_Frames[i])) {
+                free(m_Frames[i]);
+                m_Frames[i] = NULL;
             }
         }
         // Find all connected inputs
         for (int j = 0; j < count; j++) {
-            if (this->input[i]->wire[j] != NULL) { // Got a wire to a node
-                NativeAudioNode *outNode = this->input[i]->wire[j]->node;
+            if (m_Input[i]->wire[j] != NULL) { // Got a wire to a node
+                NativeAudioNode *outNode = m_Input[i]->wire[j]->node;
                 SPAM(("    found a wire to node %p\n", outNode));
-                SPAM(("    output node have %d output\n", outCount));
-                for (int k = 0; k < outNode->outCount; k++) { // Go trought each output and wire
-                    int wireCount = outNode->output[k]->count;
+                SPAM(("    output node have %d output\n", m_OutCount));
+                for (int k = 0; k < outNode->m_OutCount; k++) { // Go trought each output and wire
+                    int wireCount = outNode->m_Output[k]->count;
                     SPAM(("        #%d wire = %d\n", k, wireCount));
                     for (int l = 0; l < wireCount; l++) {
-                        if (outNode->output[k]->wire[l] != NULL) {
-                            SPAM(("        wire=%d node=%p\n", l, outNode->output[k]->wire[l]->node));
+                        if (outNode->m_Output[k]->wire[l] != NULL) {
+                            SPAM(("        wire=%d node=%p\n", l, outNode->m_Output[k]->wire[l]->m_Node));
                             // Found a wire connected to this node, delete it
-                            if (outNode->output[k]->wire[l]->node == this) {
+                            if (outNode->m_Output[k]->wire[l]->node == this) {
                                 SPAM(("        DELETE\n"));
-                                delete outNode->output[k]->wire[l];
-                                outNode->output[k]->wire[l] = NULL;
-                                outNode->output[k]->count--;
+                                delete outNode->m_Output[k]->wire[l];
+                                outNode->m_Output[k]->wire[l] = NULL;
+                                outNode->m_Output[k]->count--;
                             }
                         }
                     }
                 }
                 SPAM(("    Deleting input wire\n\n"));
                 // Deleting input wire
-                delete this->input[i]->wire[j];
-                this->input[i]->wire[j] = NULL;
-                this->input[i]->count--;
+                delete m_Input[i]->wire[j];
+                m_Input[i]->wire[j] = NULL;
+                m_Input[i]->count--;
             }
         }
     }
 
 
     SPAM(("--- Disconnect ouputs\n"));
-    for (int i = 0; i < this->outCount; i++) {
-        int count = this->output[i]->count;
-        SPAM(("    node have %d output on channel %d/%d\n", count, this->output[i]->channel, i));
+    for (int i = 0; i < m_OutCount; i++) {
+        int count = m_Output[i]->count;
+        SPAM(("    node have %d output on channel %d/%d\n", count, m_Output[i]->channel, i));
         // Free remaining frames owned by the node
         // And forward update it
-        if (this->frames[i] != NULL && this->isFrameOwner(this->frames[i])) {
-            float *frame = this->frames[i];
-            this->frames[i] = NULL;
-            this->updateWiresFrame(i, this->frames[i]);
+        if (m_Frames[i] != NULL && this->isFrameOwner(m_Frames[i])) {
+            float *frame = m_Frames[i];
+            m_Frames[i] = NULL;
+            this->updateWiresFrame(i, m_Frames[i]);
             free(frame);
         }
         for (int j = 0; j < count; j++) {
-            if (this->output[i]->wire[j] != NULL) {
-                NativeAudioNode *inNode = this->output[i]->wire[j]->node;
+            if (m_Output[i]->wire[j] != NULL) {
+                NativeAudioNode *inNode = m_Output[i]->wire[j]->node;
                 SPAM(("    found a wire to node %p\n", inNode));
-                SPAM(("    input node have %d input\n", outCount));
-                for (int k = 0; k < inNode->inCount; k++) {
-                    int wireCount = inNode->input[k]->count;
+                SPAM(("    input node have %d input\n", m_OutCount));
+                for (int k = 0; k < inNode->m_InCount; k++) {
+                    int wireCount = inNode->m_Input[k]->count;
                     SPAM(("        #%d wire = %d\n", k, wireCount));
                     for (int l = 0; l < wireCount; l++) {
-                        if (inNode->input[k]->wire[l] != NULL) {
-                            SPAM(("        wire=%d node=%p\n", l, inNode->input[k]->wire[l]->node));
-                            if (inNode->input[k]->wire[l]->node == this) {
+                        if (inNode->m_Input[k]->wire[l] != NULL) {
+                            SPAM(("        wire=%d node=%p\n", l, inNode->m_Input[k]->wire[l]->m_Node));
+                            if (inNode->m_Input[k]->wire[l]->node == this) {
                                 SPAM(("       DELETE\n"));
-                                delete inNode->input[k]->wire[l];
-                                inNode->input[k]->wire[l] = NULL;
-                                inNode->input[k]->count--;
+                                delete inNode->m_Input[k]->wire[l];
+                                inNode->m_Input[k]->wire[l] = NULL;
+                                inNode->m_Input[k]->count--;
                             }
                         }
                     }
                 }
                 SPAM(("    Deleting input wire\n\n"));
-                delete this->output[i]->wire[j];
-                this->output[i]->wire[j] = NULL;
-                this->output[i]->count--;
+                delete m_Output[i]->wire[j];
+                m_Output[i]->wire[j] = NULL;
+                m_Output[i]->count--;
             }
         }
     }
 
-    free(this->frames);
+    free(m_Frames);
 
-    for (int i = 0; i < this->inCount; i++) {
-        delete this->input[i];
+    for (int i = 0; i < m_InCount; i++) {
+        delete m_Input[i];
     }
 
-    for (int i = 0; i < this->outCount; i++) {
-        delete this->output[i];
+    for (int i = 0; i < m_OutCount; i++) {
+        delete m_Output[i];
     }
 
     for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
-        if (this->args[i] != NULL) {
-            delete this->args[i];
+        if (m_Args[i] != NULL) {
+            delete m_Args[i];
         }
     }
 
-    if (this == this->audio->output) {
-        this->audio->output = NULL;
+    if (this == m_Audio->m_Output) {
+        m_Audio->m_Output = NULL;
     }
 }
 
@@ -578,9 +578,9 @@ bool NativeAudioNodeTarget::process()
 }
 
 NativeAudioNodeReverb::NativeAudioNodeReverb(int inCount, int outCount, NativeAudio *audio)
-    : NativeAudioNode(inCount, outCount, audio), delay(500)
+    : NativeAudioNode(inCount, outCount, audio), m_Delay(500)
 {
-    this->args[0] = new ExportsArgs("delay", DOUBLE, &this->delay);
+    m_Args[0] = new ExportsArgs("delay", DOUBLE, &m_Delay);
 }
 
 bool NativeAudioNodeReverb::process()
@@ -589,13 +589,13 @@ bool NativeAudioNodeReverb::process()
     int delayMilliseconds = 3; // half a second
     int delaySamples = (int)((float)delayMilliseconds * 44.1f); // assumes 44100 Hz sample rate
     float decay = 0.5f;
-    int length = this->audio->outputParameters->framesPerBuffer;
+    int length = m_Audio->m_OutputParameters->m_FramesPerBuffer;
 
-    for (int j = 0; j < this->inCount; j++) {
+    for (int j = 0; j < m_InCount; j++) {
         for (int i = 0; i < length - delaySamples; i++)
         {
             // WARNING: overflow potential
-            this->frames[j][i + delaySamples] += (short)((float)this->frames[j][i] * decay);
+            m_Frames[j][i + delaySamples] += (short)((float)m_Frames[j][i] * decay);
         }
     }
 #endif
@@ -603,9 +603,9 @@ bool NativeAudioNodeReverb::process()
 }
 
 NativeAudioNodeStereoEnhancer::NativeAudioNodeStereoEnhancer(int inCount, int outCount, NativeAudio *audio)
-    : NativeAudioNode(inCount, outCount, audio), width(0)
+    : NativeAudioNode(inCount, outCount, audio), m_Width(0)
 {
-    this->args[0] = new ExportsArgs("width", DOUBLE, &this->width);
+    m_Args[0] = new ExportsArgs("width", DOUBLE, &m_Width);
     if (inCount != 2 || outCount != 2) {
         throw new NativeAudioNodeException("Stereo enhancer must have 2 input and 2 output");
     }
@@ -613,61 +613,61 @@ NativeAudioNodeStereoEnhancer::NativeAudioNodeStereoEnhancer(int inCount, int ou
 
 bool NativeAudioNodeStereoEnhancer::process()
 {
-    double scale = this->width * 0.5;
+    double scale = m_Width * 0.5;
 
-    for (int i = 0; i < this->audio->outputParameters->framesPerBuffer; i++) {
-        float l = this->frames[0][i];
-        float r = this->frames[1][i];
+    for (int i = 0; i < m_Audio->m_OutputParameters->m_FramesPerBuffer; i++) {
+        float l = m_Frames[0][i];
+        float r = m_Frames[1][i];
 
         double m = (l + r) * 0.5;
         double s = (r - l) * scale;
 
-        this->frames[0][i] = m-s;
-        this->frames[1][i] = m+s;
+        m_Frames[0][i] = m-s;
+        m_Frames[1][i] = m+s;
     }
 
     return true;
 }
 
 NativeAudioNodeCustom::NativeAudioNodeCustom(int inCount, int outCount, NativeAudio *audio)
-    : NativeAudioNode(inCount, outCount, audio), cbk(NULL)
+    : NativeAudioNode(inCount, outCount, audio), m_Cbk(NULL)
 {
 }
 
 void NativeAudioNodeCustom::setCallback(NodeCallback cbk, void *custom)
 {
-    this->cbk = cbk;
-    this->custom = custom;
+    m_Cbk = cbk;
+    m_Custom = custom;
 }
 
 bool NativeAudioNodeCustom::process()
 {
-    if (this->cbk != NULL) {
+    if (m_Cbk != NULL) {
         NodeEvent ev;
 
-        ev.data = this->frames;
-        ev.size = this->audio->outputParameters->framesPerBuffer;
-        ev.custom = this->custom;
+        ev.data = m_Frames;
+        ev.size = m_Audio->m_OutputParameters->m_FramesPerBuffer;
+        ev.custom = m_Custom;
 
-        this->cbk(&ev);
+        m_Cbk(&ev);
     }
 
     return true;
 }
 
 NativeAudioSource::NativeAudioSource(int out, NativeAudio *audio, bool external)
-    : NativeAudioNode(0, out, audio), rBufferOut(NULL), reader(NULL), externallyManaged(external),
-      playing(false), stopped(false), loop(false), nbChannel(0),
-      codecCtx(NULL), tmpPacket(NULL), clock(0),
-      frameConsumed(true), packetConsumed(true), samplesConsumed(0), audioStream(-1),
-      m_FailedDecoding(0), swrCtx(NULL), fCvt(NULL), eof(false), buffering(false)
+    : NativeAudioNode(0, out, audio), m_rBufferOut(NULL), m_Reader(NULL), m_ExternallyManaged(external),
+      m_Playing(false), m_Stopped(false), m_Loop(false), m_NbChannel(0),
+      m_CodecCtx(NULL), m_TmpPacket(NULL), m_Clock(0),
+      m_FrameConsumed(true), m_PacketConsumed(true), m_SamplesConsumed(0), m_AudioStream(-1),
+      m_FailedDecoding(0), m_SwrCtx(NULL), m_fCvt(NULL), m_Buffering(false)
 {
-    this->doSeek = false;
-    this->seeking = false;
+    m_DoSemek = false;
+    m_Seeking = false;
 
-    this->tmpFrame.size = 0;
-    this->tmpFrame.data = NULL;
-    this->tmpFrame.nbSamples = 0;
+    m_TmpFrame.size = 0;
+    m_TmpFrame.data = NULL;
+    m_TmpFrame.nbSamples = 0;
 }
 
 int NativeAudioSource::open(const char *src)
@@ -677,29 +677,29 @@ this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
 this->closeInternal(true); \
 return err;
     // If a previous file has been opened, close it
-    if (this->container != NULL) {
+    if (m_Container != NULL) {
         this->closeInternal(true);
     }
 
-    this->coro = Coro_new();
-    this->mainCoro = Coro_new();
-    Coro_initializeMainCoro(this->mainCoro);
+    m_Coro = Coro_new();
+    m_MainCoro = Coro_new();
+    Coro_initializeMainCoro(m_MainCoro);
 
-    this->reader = new NativeAVStreamReader(src, NativeAudio::sourceNeedWork, this->audio, this, this->audio->net);
+    m_Reader = new NativeAVStreamReader(src, NativeAudio::sourceNeedWork, m_Audio, this, m_Audio->m_Net);
 
-    this->avioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
-    if (!this->avioBuffer) {
+    m_AvioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+    if (!m_AvioBuffer) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->container = avformat_alloc_context();
-    if (!this->container) {
+    m_Container = avformat_alloc_context();
+    if (!m_Container) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE,
-         0, this->reader, NativeAVStreamReader::read, NULL, NativeAVStreamReader::seek);
-    if (!this->container) {
+    m_Container->pb = avio_alloc_context(m_AvioBuffer, NATIVE_AVIO_BUFFER_SIZE,
+         0, m_Reader, NativeAVStreamReader::read, NULL, NativeAVStreamReader::seek);
+    if (!m_Container) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
@@ -710,7 +710,7 @@ return err;
 int NativeAudioSource::openInit()
 {
     m_SourceDoOpen = true;
-    NATIVE_PTHREAD_SIGNAL(&this->audio->queueNeedData);
+    NATIVE_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
     return 0;
 }
 
@@ -719,7 +719,7 @@ void NativeAudioSource::openInitCoro(void *arg)
 #define RETURN_WITH_ERROR(err) \
 thiz->sendEvent(SOURCE_EVENT_ERROR, err, false);\
 thiz->postMessage(thiz, NativeAVSource::MSG_CLOSE);\
-Coro_switchTo_(thiz->coro, thiz->mainCoro);
+Coro_switchTo_(thiz->m_Coro, thiz->m_MainCoro);
     NativeAudioSource *thiz = static_cast<NativeAudioSource *>(arg);
     thiz->m_SourceDoOpen = false;
 
@@ -732,7 +732,7 @@ Coro_switchTo_(thiz->coro, thiz->mainCoro);
         RETURN_WITH_ERROR(ret);
     }
 
-    Coro_switchTo_(thiz->coro, thiz->mainCoro);
+    Coro_switchTo_(thiz->m_Coro, thiz->m_MainCoro);
 #undef RETURN_WITH_ERROR
 }
 
@@ -744,25 +744,25 @@ this->closeInternal(true); \
 return err;
 
     // If a previous file has been opened, close it
-    if (this->container != NULL) {
+    if (m_Container != NULL) {
         this->closeInternal(true);
     }
 
-    this->reader = new NativeAVBufferReader((uint8_t *)buffer, size);
+    m_Reader = new NativeAVBufferReader((uint8_t *)buffer, size);
 
-    this->avioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
-    if (!this->avioBuffer) {
+    m_AvioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+    if (!m_AvioBuffer) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->container = avformat_alloc_context();
-    if (!this->container) {
+    m_Container = avformat_alloc_context();
+    if (!m_Container) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE,
-        0, this->reader, NativeAVBufferReader::read, NULL, NativeAVBufferReader::seek);
-    if (!this->container->pb) {
+    m_Container->pb = avio_alloc_context(m_AvioBuffer, NATIVE_AVIO_BUFFER_SIZE,
+        0, m_Reader, NativeAVBufferReader::read, NULL, NativeAVBufferReader::seek);
+    if (!m_Container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
@@ -783,7 +783,7 @@ return err;
 int NativeAudioSource::initStream()
 {
     // Open input
-    int ret = avformat_open_input(&this->container, "dummyFile", NULL, NULL);
+    int ret = avformat_open_input(&m_Container, "dummyFile", NULL, NULL);
 
     if (ret != 0) {
         char error[1024];
@@ -792,25 +792,25 @@ int NativeAudioSource::initStream()
         return ERR_INTERNAL;
     }
 
-    NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);
+    NativePthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
     // Retrieve stream information
-    if (avformat_find_stream_info(this->container, NULL) < 0) {
+    if (avformat_find_stream_info(m_Container, NULL) < 0) {
         fprintf(stderr, "Couldn't find stream information\n");
         return ERR_NO_INFORMATION;
     }
 
     // Dump information about file onto standard error
-    av_dump_format(this->container, 0, "Memory input", 0);
+    av_dump_format(m_Container, 0, "Memory input", 0);
 
     // Find first audio stream
-    for (unsigned int i = 0; i < this->container->nb_streams; i++) {
-        if (this->container->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
-            this->audioStream = i;
+    for (unsigned int i = 0; i < m_Container->nb_streams; i++) {
+        if (m_Container->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
+            m_AudioStream = i;
             break;
         }
     }
 
-    if (this->audioStream == -1) {
+    if (m_AudioStream == -1) {
         return ERR_NO_AUDIO;
     }
 
@@ -821,79 +821,79 @@ int NativeAudioSource::initInternal()
 {
     AVCodec *codec;
 
-    this->nbChannel = this->outCount;
+    m_NbChannel = m_OutCount;
 
-    this->tmpPacket = new AVPacket();
-    av_init_packet(this->tmpPacket);
+    m_TmpPacket = new AVPacket();
+    av_init_packet(m_TmpPacket);
 
     // Find the apropriate codec and open it
-    this->codecCtx = this->container->streams[this->audioStream]->codec;
-    codec = avcodec_find_decoder(this->codecCtx->codec_id);
+    m_CodecCtx = m_Container->streams[m_AudioStream]->codec;
+    codec = avcodec_find_decoder(m_CodecCtx->codec_id);
     if (!codec) {
         return ERR_NO_CODEC;
     }
 
-    NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);
-    if (avcodec_open2(this->codecCtx, codec, NULL) < 0) {
+    NativePthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
+    if (avcodec_open2(m_CodecCtx, codec, NULL) < 0) {
         fprintf(stderr, "Could not find or open the needed codec\n");
         return ERR_NO_CODEC;
     }
 
     // Frequency resampling
-    if (this->codecCtx->sample_rate != this->audio->outputParameters->sampleRate) {
-        this->fCvt = new Resampler();
-        this->fCvt->setup(this->codecCtx->sample_rate, this->audio->outputParameters->sampleRate, this->outCount, 32);
+    if (m_CodecCtx->sample_rate != m_Audio->m_OutputParameters->m_SampleRate) {
+        m_fCvt = new Resampler();
+        m_fCvt->setup(m_CodecCtx->sample_rate, m_Audio->m_OutputParameters->m_SampleRate, m_OutCount, 32);
 
-        if (!(this->fBufferOutData = (float *)malloc(NATIVE_RESAMPLER_BUFFER_SAMPLES * this->outCount * NativeAudio::FLOAT32))) {
+        if (!(m_fBufferOutData = (float *)malloc(NATIVE_RESAMPLER_BUFFER_SAMPLES * m_OutCount * NativeAudio::FLOAT32))) {
             fprintf(stderr, "Failed to init frequency resampler buffers");
             return ERR_OOM;
         }
 
-        this->fCvt->inp_count = this->fCvt->inpsize() / 2 -1;
-        this->fCvt->inp_data = 0;
+        m_fCvt->inp_count = m_fCvt->inpsize() / 2 -1;
+        m_fCvt->inp_data = 0;
 
-        this->fCvt->out_count = NATIVE_RESAMPLER_BUFFER_SAMPLES;
-        this->fCvt->out_data = this->fBufferOutData;
+        m_fCvt->out_count = NATIVE_RESAMPLER_BUFFER_SAMPLES;
+        m_fCvt->out_data = m_fBufferOutData;
     }
 
     // Init output buffer
-    int bufferSize = this->audio->outputParameters->bufferSize;
-    this->rBufferOut = new PaUtilRingBuffer();
-    if (!(this->rBufferOutData = calloc(bufferSize * this->outCount, NativeAudio::FLOAT32))) {
+    int bufferSize = m_Audio->m_OutputParameters->m_BufferSize;
+    m_rBufferOut = new PaUtilRingBuffer();
+    if (!(m_rBufferOutData = calloc(bufferSize * m_OutCount, NativeAudio::FLOAT32))) {
         return ERR_OOM;
     }
 
-    if (0 > PaUtil_InitializeRingBuffer(static_cast<PaUtilRingBuffer*>(this->rBufferOut),
-            (NativeAudio::FLOAT32 * this->outCount),
+    if (0 > PaUtil_InitializeRingBuffer(static_cast<PaUtilRingBuffer*>(m_rBufferOut),
+            (NativeAudio::FLOAT32 * m_OutCount),
             bufferSize,
-            this->rBufferOutData)) {
+            m_rBufferOutData)) {
         fprintf(stderr, "Failed to init output ringbuffer\n");
         return ERR_OOM;
     }
 
-    if (this->codecCtx->sample_fmt != AV_SAMPLE_FMT_FLT ||
-        this->codecCtx->channel_layout != AV_CH_LAYOUT_STEREO) {
+    if (m_CodecCtx->sample_fmt != AV_SAMPLE_FMT_FLT ||
+        m_CodecCtx->channel_layout != AV_CH_LAYOUT_STEREO) {
         int64_t channelLayout;
 
         // Channel layout is not set, use default one
-        if (this->codecCtx->channel_layout == 0) {
-            channelLayout = av_get_default_channel_layout(this->codecCtx->channels);
+        if (m_CodecCtx->channel_layout == 0) {
+            channelLayout = av_get_default_channel_layout(m_CodecCtx->channels);
         } else {
-            channelLayout = this->codecCtx->channel_layout;
+            channelLayout = m_CodecCtx->channel_layout;
         }
 
-        this->swrCtx = swr_alloc_set_opts(NULL,
-                AV_CH_LAYOUT_STEREO_DOWNMIX, AV_SAMPLE_FMT_FLT, this->codecCtx->sample_rate,
-                channelLayout, this->codecCtx->sample_fmt, this->codecCtx->sample_rate,
+        m_SwrCtx = swr_alloc_set_opts(NULL,
+                AV_CH_LAYOUT_STEREO_DOWNMIX, AV_SAMPLE_FMT_FLT, m_CodecCtx->sample_rate,
+                channelLayout, m_CodecCtx->sample_fmt, m_CodecCtx->sample_rate,
                 0, NULL);
-        if (!this->swrCtx || swr_init(this->swrCtx) < 0) {
+        if (!m_SwrCtx || swr_init(m_SwrCtx) < 0) {
             fprintf(stderr, "Failed to init sample resampling converter\n");
             return ERR_NO_RESAMPLING_CONVERTER;
         }
     }
 
-    this->opened = true;
-    this->processed = false;
+    m_Opened = true;
+    m_Processed = false;
 
     this->sendEvent(SOURCE_EVENT_READY, 0, false);
 
@@ -902,23 +902,23 @@ int NativeAudioSource::initInternal()
 
 int NativeAudioSource::avail()
 {
-    return this->opened ? (int) PaUtil_GetRingBufferReadAvailable(this->rBufferOut) : 0;
+    return m_Opened ? (int) PaUtil_GetRingBufferReadAvailable(m_rBufferOut) : 0;
 }
 
 bool NativeAudioSource::buffer()
 {
-    if (this->reader->async) {
-        if (this->buffering || this->doSeek) {
+    if (m_Reader->m_Async) {
+        if (m_Buffering || m_DoSemek) {
             // Reader already trying to get data
             // or we need to seek, so don't buffer
             return false;
         }
 
-        this->buffering = true;
-        Coro_startCoro_(this->mainCoro, this->coro, this, NativeAudioSource::bufferCoro);
+        m_Buffering = true;
+        Coro_startCoro_(m_MainCoro, m_Coro, this, NativeAudioSource::bufferCoro);
 
-        if (!this->reader->pending) {
-            this->buffering = false;
+        if (!m_Reader->m_Pending) {
+            m_Buffering = false;
             return true;
         }
 
@@ -931,20 +931,20 @@ bool NativeAudioSource::buffer()
 bool NativeAudioSource::bufferInternal()
 {
     for (;;) {
-        int ret = av_read_frame(this->container, this->tmpPacket);
-        if (this->tmpPacket->stream_index == this->audioStream) {
+        int ret = av_read_frame(m_Container, m_TmpPacket);
+        if (m_TmpPacket->stream_index == m_AudioStream) {
             if (ret < 0) {
-                av_free_packet(this->tmpPacket);
+                av_free_packet(m_TmpPacket);
                 if (this->readError(ret) < 0) {
                     return false;
                 }
             } else {
-                this->packetConsumed = false;
+                m_PacketConsumed = false;
             }
 
             return ret >= 0;
         } else {
-            av_free_packet(this->tmpPacket);
+            av_free_packet(m_TmpPacket);
         }
     }
 
@@ -955,76 +955,76 @@ void NativeAudioSource::bufferCoro(void *arg) {
     NativeAudioSource *t = static_cast<NativeAudioSource*>(arg);
     t->bufferInternal();
 
-    Coro_switchTo_(t->coro, t->mainCoro);
+    Coro_switchTo_(t->m_Coro, t->m_MainCoro);
 }
 
 // This method is used when the source is externally managed
 // (To fill a packet to the source)
 void NativeAudioSource::buffer(AVPacket *pkt) {
-    this->tmpPacket = pkt;
-    this->packetConsumed = false;
+    m_TmpPacket = pkt;
+    m_PacketConsumed = false;
 }
 
 bool NativeAudioSource::work()
 {
-    if (!this->externallyManaged) {
-        if (!this->reader) {
+    if (!m_ExternallyManaged) {
+        if (!m_Reader) {
             return false;
         }
 
         if (m_SourceDoOpen) {
-            Coro_startCoro_(this->mainCoro, this->coro, this, NativeAudioSource::openInitCoro);
+            Coro_startCoro_(m_MainCoro, m_Coro, this, NativeAudioSource::openInitCoro);
             return true;
         }
 
-        if (this->reader->needWakup) {
-            Coro_switchTo_(this->mainCoro, this->coro);
-            if (this->reader->pending) {
+        if (m_Reader->m_NeedWakup) {
+            Coro_switchTo_(m_MainCoro, m_Coro);
+            if (m_Reader->m_Pending) {
                 return false;
             } else {
-                this->buffering = false;
+                m_Buffering = false;
             }
         }
     }
 
-    if (this->doSeek) {
-        if (this->reader->pending) {
+    if (m_DoSemek) {
+        if (m_Reader->m_Pending) {
             return false;
         }
 
-        if (!this->reader->async) {
-            this->seekInternal(this->doSeekTime);
+        if (!m_Reader->m_Async) {
+            this->seekInternal(m_DoSeekTime);
         } else {
-            Coro_startCoro_(this->mainCoro, this->coro, this, NativeAudioSource::seekCoro);
+            Coro_startCoro_(m_MainCoro, m_Coro, this, NativeAudioSource::seekCoro);
         }
     }
 
-    if (this->doNotProcess || !this->opened || this->stopped) {
+    if (m_DoNotProcess || !m_Opened || m_Stopped) {
         SPAM(("Source will not be decoded. doNotProcess = %d opened = %d stopped = %d", 
-            this->doNotProcess, this->opened, this->stopped));
+            m_DoNotProcess, m_Opened, m_Stopped));
         return false;
     }
 
-    ring_buffer_size_t avail = PaUtil_GetRingBufferWriteAvailable(this->rBufferOut);
+    ring_buffer_size_t avail = PaUtil_GetRingBufferWriteAvailable(m_rBufferOut);
 
-    if (avail < this->audio->outputParameters->framesPerBuffer) {
+    if (avail < m_Audio->m_OutputParameters->m_FramesPerBuffer) {
         SPAM(("Work failed because not enought space is available to write decoded packet %lu\n", avail));
         return false;
     }
 
     if (!this->decode()) {
-        SPAM(("Work failed because source is stoped or decoding failed %d\n", this->stopped));
+        SPAM(("Work failed because source is stoped or decoding failed %d\n", m_Stopped));
         return false;
     }
 
     // Decode might return true but no frame have been decoded
     // So we return true here, to get a new frame right away
-    if (this->frameConsumed) {
+    if (m_FrameConsumed) {
         return true;
     }
 
-    avail = PaUtil_GetRingBufferWriteAvailable(this->rBufferOut);
-    int write = avail > this->audio->outputParameters->framesPerBuffer ? this->audio->outputParameters->framesPerBuffer : avail;
+    avail = PaUtil_GetRingBufferWriteAvailable(m_rBufferOut);
+    int write = avail > m_Audio->m_OutputParameters->m_FramesPerBuffer ? m_Audio->m_OutputParameters->m_FramesPerBuffer : avail;
 
     this->resample(write);
 
@@ -1036,12 +1036,12 @@ bool NativeAudioSource::decode()
 av_free(tmpFrame); \
 this->sendEvent(SOURCE_EVENT_ERROR, err, true);\
 return false;
-    if (this->error) {
-        SPAM(("decode() return false cause of error %d\n", this->error));
+    if (m_Error) {
+        SPAM(("decode() return false cause of error %d\n", m_Error));
         return false;
     }
     // No last packet, get a new one
-    if (this->packetConsumed) {
+    if (m_PacketConsumed) {
         if (!this->buffer()) {
             SPAM(("decode() buffer call failed\n"));
             return false;
@@ -1049,7 +1049,7 @@ return false;
     }
 
     // No last frame, get a new one
-    if (this->frameConsumed) {
+    if (m_FrameConsumed) {
         int gotFrame, len;
         AVFrame *tmpFrame;
 
@@ -1059,7 +1059,7 @@ return false;
         }
 
         // Decode packet
-        len = avcodec_decode_audio4(this->codecCtx, tmpFrame, &gotFrame, this->tmpPacket);
+        len = avcodec_decode_audio4(m_CodecCtx, tmpFrame, &gotFrame, m_TmpPacket);
 
         if (len < 0) {
             if (m_FailedDecoding > MAX_FAILED_DECODING) {
@@ -1067,18 +1067,18 @@ return false;
                 RETURN_WITH_ERROR(ERR_DECODING);
             } else {
                 // Got an error, skip the frame
-                this->tmpPacket->size = 0;
+                m_TmpPacket->size = 0;
             }
 
             m_FailedDecoding++;
 
             return true;
-        } else if (len < this->tmpPacket->size) {
-            this->tmpPacket->data += len;
-            this->tmpPacket->size -= len;
+        } else if (len < m_TmpPacket->size) {
+            m_TmpPacket->data += len;
+            m_TmpPacket->size -= len;
         } else {
-            this->packetConsumed = true;
-            av_free_packet(this->tmpPacket);
+            m_PacketConsumed = true;
+            av_free_packet(m_TmpPacket);
         }
 
         m_FailedDecoding = 0;
@@ -1088,55 +1088,55 @@ return false;
             return true;
         }
 
-        if (this->tmpPacket->pts != AV_NOPTS_VALUE) {
-            this->clock = av_q2d(this->container->streams[this->audioStream]->time_base) * this->tmpPacket->pts;
+        if (m_TmpPacket->pts != AV_NOPTS_VALUE) {
+            m_Clock = av_q2d(m_Container->streams[m_AudioStream]->time_base) * m_TmpPacket->pts;
         }
 
         // this->tmpFrame is too small to hold the new data
-        if (this->tmpFrame.nbSamples < tmpFrame->nb_samples) {
-            if (this->tmpFrame.size != 0) {
-                free(this->tmpFrame.data);
+        if (m_TmpFrame.nbSamples < tmpFrame->nb_samples) {
+            if (m_TmpFrame.size != 0) {
+                free(m_TmpFrame.data);
             }
-            this->tmpFrame.size = tmpFrame->linesize[0];
-            this->tmpFrame.data = (float *)malloc(tmpFrame->nb_samples * NativeAudio::FLOAT32 * 2);
+            m_TmpFrame.size = tmpFrame->linesize[0];
+            m_TmpFrame.data = (float *)malloc(tmpFrame->nb_samples * NativeAudio::FLOAT32 * 2);
             // XXX : Right now, source output is always stereo
-            if (this->tmpFrame.data == NULL) {
+            if (m_TmpFrame.data == NULL) {
                 RETURN_WITH_ERROR(ERR_OOM);
             }
         }
 
-        if (this->swrCtx) {
+        if (m_SwrCtx) {
             uint8_t *out[1];
-            out[0] = (uint8_t *)this->tmpFrame.data;
+            out[0] = (uint8_t *)m_TmpFrame.data;
 
             const uint8_t **in = (const uint8_t **)tmpFrame->data;
 
-            int len = swr_convert(this->swrCtx, out, tmpFrame->nb_samples, in, tmpFrame->nb_samples);
-            this->tmpFrame.nbSamples = len;
+            int len = swr_convert(m_SwrCtx, out, tmpFrame->nb_samples, in, tmpFrame->nb_samples);
+            m_TmpFrame.nbSamples = len;
         } else {
-            memcpy(this->tmpFrame.data, tmpFrame->data[0], tmpFrame->linesize[0]);
-            this->tmpFrame.nbSamples = tmpFrame->nb_samples;
+            memcpy(m_TmpFrame.data, tmpFrame->data[0], tmpFrame->linesize[0]);
+            m_TmpFrame.nbSamples = tmpFrame->nb_samples;
         }
 
         // Reset frequency converter input
-        if (this->fCvt) {
-            this->fCvt->inp_count = this->tmpFrame.nbSamples;
-            this->fCvt->inp_data = this->tmpFrame.data;
+        if (m_fCvt) {
+            m_fCvt->inp_count = m_TmpFrame.nbSamples;
+            m_fCvt->inp_data = m_TmpFrame.data;
         }
 
         av_free(tmpFrame);
 
-        this->samplesConsumed = 0;
-        this->frameConsumed = false;
+        m_SamplesConsumed = 0;
+        m_FrameConsumed = false;
     }
 
     return true;
 #undef RETURN_WITH_ERROR
 }
 int NativeAudioSource::resample(int destSamples) {
-    int channels = this->nbChannel;
+    int channels = m_NbChannel;
 
-    if (this->fCvt) {
+    if (m_fCvt) {
         int copied = 0;
         int passCopied = 0;
         for (;;) {
@@ -1145,31 +1145,31 @@ int NativeAudioSource::resample(int destSamples) {
             sampleSize = channels * NativeAudio::FLOAT32;
 
             // Output is empty
-            if (this->fCvt->out_count == NATIVE_RESAMPLER_BUFFER_SAMPLES) {
-                this->fCvt->out_data = this->fBufferOutData;
-                this->samplesConsumed = 0;
+            if (m_fCvt->out_count == NATIVE_RESAMPLER_BUFFER_SAMPLES) {
+                m_fCvt->out_data = m_fBufferOutData;
+                m_SamplesConsumed = 0;
                 passCopied= 0;
 
                 // Resample as much data as possible
-                while (this->fCvt->out_count > 0 && this->fCvt->inp_count > 0) {
-                    if (0 != this->fCvt->process()) {
+                while (m_fCvt->out_count > 0 && m_fCvt->inp_count > 0) {
+                    if (0 != m_fCvt->process()) {
                         printf("Failed to resample audio data\n");
                         return -1;
                     }
                 }
             }
 
-            if (this->fCvt->out_count < NATIVE_RESAMPLER_BUFFER_SAMPLES) {
+            if (m_fCvt->out_count < NATIVE_RESAMPLER_BUFFER_SAMPLES) {
                 int write, avail;
 
-                avail = NATIVE_RESAMPLER_BUFFER_SAMPLES - this->fCvt->out_count;
+                avail = NATIVE_RESAMPLER_BUFFER_SAMPLES - m_fCvt->out_count;
                 write = destSamples > avail ? avail : destSamples;
                 write -= passCopied;
 
-                PaUtil_WriteRingBuffer(this->rBufferOut, this->fBufferOutData + this->samplesConsumed * channels, write);
+                PaUtil_WriteRingBuffer(m_rBufferOut, m_fBufferOutData + m_SamplesConsumed * channels, write);
 
-                this->samplesConsumed += write;
-                this->fCvt->out_count += write;
+                m_SamplesConsumed += write;
+                m_fCvt->out_count += write;
                 copied += write;
                 passCopied += write;
 
@@ -1178,31 +1178,31 @@ int NativeAudioSource::resample(int destSamples) {
                 }
             }
 
-            if (this->fCvt->inp_count == 0) {
-                this->frameConsumed = true;
+            if (m_fCvt->inp_count == 0) {
+                m_FrameConsumed = true;
                 return copied;
             }
         }
     } else {
         int sampleSize, copied;
 
-        sampleSize = this->nbChannel * NativeAudio::FLOAT32;
+        sampleSize = m_NbChannel * NativeAudio::FLOAT32;
         copied = 0;
 
         for (;;) {
             int write, avail;
 
-            avail = this->tmpFrame.nbSamples - this->samplesConsumed;
+            avail = m_TmpFrame.nbSamples - m_SamplesConsumed;
             write = destSamples > avail ? avail : destSamples;
             write -= copied;
 
-            PaUtil_WriteRingBuffer(this->rBufferOut, this->tmpFrame.data + this->samplesConsumed * channels, write);
+            PaUtil_WriteRingBuffer(m_rBufferOut, m_TmpFrame.data + m_SamplesConsumed * channels, write);
 
             copied += write;
-            this->samplesConsumed += write;
+            m_SamplesConsumed += write;
 
-            if (this->samplesConsumed == this->tmpFrame.nbSamples) {
-                this->frameConsumed = true;
+            if (m_SamplesConsumed == m_TmpFrame.nbSamples) {
+                m_FrameConsumed = true;
                 return copied;
             }
 
@@ -1216,33 +1216,33 @@ int NativeAudioSource::resample(int destSamples) {
 }
 
 double NativeAudioSource::getClock() {
-    ring_buffer_size_t queuedSource = PaUtil_GetRingBufferReadAvailable(this->rBufferOut);
+    ring_buffer_size_t queuedSource = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
 
-    double delay = ((double)(queuedSource - this->tmpFrame.nbSamples)* ((double)1/this->audio->outputParameters->sampleRate));
+    double delay = ((double)(queuedSource - m_TmpFrame.nbSamples)* ((double)1/m_Audio->m_OutputParameters->m_SampleRate));
 
     // Remove the duration of the last consumed frame
     // (since the clock is for the start of the sample)
-    delay -= this->tmpFrame.nbSamples / this->audio->outputParameters->sampleRate;
+    delay -= m_TmpFrame.nbSamples / m_Audio->m_OutputParameters->m_SampleRate;
 
-    return this->clock - delay;
+    return m_Clock - delay;
 }
 
 double NativeAudioSource::drop(double sec)
 {
-    ring_buffer_size_t drop = ceil(sec /(double)(1/this->audio->outputParameters->sampleRate));
-    ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(this->rBufferOut);
+    ring_buffer_size_t drop = ceil(sec /(double)(1/m_Audio->m_OutputParameters->m_SampleRate));
+    ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
     ring_buffer_size_t actualDrop = drop > avail ? drop : avail;
 
-    PaUtil_AdvanceRingBufferReadIndex(this->rBufferOut, actualDrop);
+    PaUtil_AdvanceRingBufferReadIndex(m_rBufferOut, actualDrop);
 
-    return actualDrop * 1/this->audio->outputParameters->sampleRate;
+    return actualDrop * 1/m_Audio->m_OutputParameters->m_SampleRate;
 }
 
 void NativeAudioCustomSource::play()
 {
     m_Playing = true;
 
-    NATIVE_PTHREAD_SIGNAL(&this->audio->queueHaveData);
+    NATIVE_PTHREAD_SIGNAL(&m_Audio->m_QueueHaveData);
 }
 
 
@@ -1284,7 +1284,7 @@ bool NativeAudioCustomSource::process()
 
     NativeAudioNodeCustom::process();
 
-    NATIVE_PTHREAD_SIGNAL(&this->audio->queueHaveData);
+    NATIVE_PTHREAD_SIGNAL(&m_Audio->m_QueueHaveData);
 
     return true;
 }
@@ -1297,17 +1297,17 @@ bool NativeAudioCustomSource::isActive()
 bool NativeAudioNode::updateIsConnectedInput()
 {
     SPAM(("    updateIsConnectedInput @ %p\n", this));
-    if (this->inCount == 0) return true;
+    if (m_InCount == 0) return true;
 
-    for (int i = 0; i < this->inCount; i++)
+    for (int i = 0; i < m_InCount; i++)
     {
         SPAM(("    input %d\n", i));
-        int count = this->input[i]->count;
+        int count = m_Input[i]->count;
         for (int j = 0; j < count; j++)
         {
-            if (this->input[i]->wire[j] != NULL) {
-                SPAM(("    Wire %d to %p\n", i, this->input[i]->wire[j]->node));
-                return this->input[i]->wire[j]->node->updateIsConnected(false, true);
+            if (m_Input[i]->wire[j] != NULL) {
+                SPAM(("    Wire %d to %p\n", i, m_Input[i]->wire[j]->m_Node));
+                return m_Input[i]->wire[j]->node->updateIsConnected(false, true);
             }
         }
     }
@@ -1318,17 +1318,17 @@ bool NativeAudioNode::updateIsConnectedInput()
 bool NativeAudioNode::updateIsConnectedOutput()
 {
     SPAM(("    updateIsConnectedOutput @ %p\n", this));
-    if (this->outCount == 0) return true;
+    if (m_OutCount == 0) return true;
 
-    for (int i = 0; i < this->outCount; i++)
+    for (int i = 0; i < m_OutCount; i++)
     {
-        int count = this->output[i]->count;
+        int count = m_Output[i]->count;
         SPAM(("    output %d count=%d\n", i, count));
         for (int j = 0; j < count; j++)
         {
-            if (this->output[i]->wire[j] != NULL) {
-                SPAM(("    Wire %d to %p\n", i, this->output[i]->wire[j]->node));
-                return this->output[i]->wire[j]->node->updateIsConnected(true, false);
+            if (m_Output[i]->wire[j] != NULL) {
+                SPAM(("    Wire %d to %p\n", i, m_Output[i]->wire[j]->m_Node));
+                return m_Output[i]->wire[j]->node->updateIsConnected(true, false);
             }
         }
     }
@@ -1344,77 +1344,77 @@ bool NativeAudioNode::updateIsConnected() {
 
 bool NativeAudioNode::updateIsConnected(bool input, bool output)
 {
-    SPAM(("updateIsConnected @ %p input=%d output=%d\n", this, input, output));
-    this->isConnected =
+    SPAM(("updateIsConnected @ %p input=%d output=%d\n", this, m_Input, m_Output));
+    m_IsConnected =
         (input || this->updateIsConnectedInput()) &&
         (output || this->updateIsConnectedOutput());
-    SPAM(("updateIsConnected finished @ %p / isConnected=%d\n", this, this->isConnected));
-    return this->isConnected;
+    SPAM(("updateIsConnected finished @ %p / isConnected=%d\n", this, m_IsConnected));
+    return m_IsConnected;
 }
 
 void NativeAudioNode::resetFrames() {
-    if (!this->nullFrames) {
-        for (int i = 0; i < this->outCount; i++) {
+    if (!m_NullFrames) {
+        for (int i = 0; i < m_OutCount; i++) {
             this->resetFrame(i);
         }
-        this->nullFrames = true;
+        m_NullFrames = true;
     }
 }
 
 void NativeAudioNode::resetFrame(int channel)
 {
-    memset(this->frames[channel], 0, this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
+    memset(m_Frames[channel], 0, m_Audio->m_OutputParameters->m_BufferSize/m_Audio->m_OutputParameters->m_Channels);
 }
 
 void NativeAudioSource::seek(double time)
 {
-    if (!this->opened || this->doSeek) {
+    if (!m_Opened || m_DoSemek) {
         return;
     }
 
-    this->doSeekTime = time < 0 ? 0 : time;
-    this->doSeek = true;
+    m_DoSeekTime = time < 0 ? 0 : time;
+    m_DoSemek = true;
 
-    NATIVE_PTHREAD_SIGNAL(&this->audio->queueNeedData);
+    NATIVE_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
 }
 
 void NativeAudioSource::seekCoro(void *arg)
 {
     NativeAudioSource *source = static_cast<NativeAudioSource *>(arg);
-    source->seekInternal(source->doSeekTime);
+    source->seekInternal(source->m_DoSeekTime);
 }
 void NativeAudioSource::seekInternal(double time)
 {
-    if (this->externallyManaged) {
-        avcodec_flush_buffers(this->codecCtx);
-        PaUtil_FlushRingBuffer(this->rBufferOut);
+    if (m_ExternallyManaged) {
+        avcodec_flush_buffers(m_CodecCtx);
+        PaUtil_FlushRingBuffer(m_rBufferOut);
         this->resetFrames();
-        this->eof = false;
-        this->error = 0;
-        this->doNotProcess = false;
+        m_Eof = false;
+        m_Error = 0;
+        m_DoNotProcess = false;
     } else {
         int64_t target = 0;
         int flags = 0;
         double clock = this->getClock();
 
-        SPAM(("Seeking source to=%f / position=%f\n", time, clock));
+        SPAM(("Seeking source to=%f / position=%f\n", time, m_Clock));
 
         flags = time > clock ? 0 : AVSEEK_FLAG_BACKWARD;
 
         target = time * AV_TIME_BASE;
 
-        target = av_rescale_q(target, AV_TIME_BASE_Q, this->container->streams[this->audioStream]->time_base);
-        int ret = av_seek_frame(this->container, this->audioStream, target, flags);
+        target = av_rescale_q(target, AV_TIME_BASE_Q, m_Container->streams[m_AudioStream]->time_base);
+        int ret = av_seek_frame(m_Container, m_AudioStream, target, flags);
         if (ret >= 0) {
             SPAM(("Seeking success\n"));
-            avcodec_flush_buffers(this->codecCtx);
-            PaUtil_FlushRingBuffer(this->rBufferOut);
+            avcodec_flush_buffers(m_CodecCtx);
+            PaUtil_FlushRingBuffer(m_rBufferOut);
             this->resetFrames();
-            this->error = 0;
-            if (this->eof && flags == AVSEEK_FLAG_BACKWARD) {
-                this->eof = false;
-                this->doNotProcess = false;
-                if (this->loop) {
+            m_Error = 0;
+            if (m_Eof && flags == AVSEEK_FLAG_BACKWARD) {
+                m_Eof = false;
+                m_DoNotProcess = false;
+                if (m_Loop) {
                     this->play();
                 }
             }
@@ -1426,193 +1426,193 @@ void NativeAudioSource::seekInternal(double time)
         }
     }
 
-    if (!this->packetConsumed) {
-        av_free_packet(this->tmpPacket);
+    if (!m_PacketConsumed) {
+        av_free_packet(m_TmpPacket);
     }
 
-    if (this->externallyManaged) {
-        delete this->tmpPacket;
-        this->tmpPacket = NULL;
+    if (m_ExternallyManaged) {
+        delete m_TmpPacket;
+        m_TmpPacket = NULL;
     }
 
-    this->packetConsumed = true;
-    this->frameConsumed = true;
+    m_PacketConsumed = true;
+    m_FrameConsumed = true;
 
-    this->doSeek = false;
+    m_DoSemek = false;
 
-    if (this->reader->async) {
-        Coro_switchTo_(this->coro, this->mainCoro);
+    if (m_Reader->m_Async) {
+        Coro_switchTo_(m_Coro, m_MainCoro);
     }
 }
 
 bool NativeAudioSource::process() {
-    if (!this->opened) {
+    if (!m_Opened) {
         SPAM(("Not opened\n"));
         return false;
     }
 
-    if (!this->playing) {
+    if (!m_Playing) {
         SPAM(("Not playing\n"));
         this->resetFrames();
         return false;
     }
 
     // Make sure enought data is available
-    if (this->audio->outputParameters->framesPerBuffer >= PaUtil_GetRingBufferReadAvailable(this->rBufferOut)) {
+    if (m_Audio->m_OutputParameters->m_FramesPerBuffer >= PaUtil_GetRingBufferReadAvailable(m_rBufferOut)) {
         this->resetFrames();
         //SPAM(("Not enought to read\n"));
         // EOF reached, send message to NativeAudio
-        if (this->error == AVERROR_EOF && !this->eof) {
-            SPAM(("     => EOF loop=%d\n", this->loop));
+        if (m_Error == AVERROR_EOF && !m_Eof) {
+            SPAM(("     => EOF loop=%d\n", m_Loop));
 
-            this->eof = true;
-            this->doNotProcess = true;
+            m_Eof = true;
+            m_DoNotProcess = true;
             this->stop();
 
             this->sendEvent(SOURCE_EVENT_EOF, 0, true);
         }
-        SPAM(("Not enought data to read. return false %ld\n", PaUtil_GetRingBufferReadAvailable(this->rBufferOut)));
+        SPAM(("Not enought data to read. return false %ld\n", PaUtil_GetRingBufferReadAvailable(m_rBufferOut)));
         return false;
     }
 
     // Get the frame
-    if (this->outCount > 1) { // More than 1 channel, need to split
+    if (m_OutCount > 1) { // More than 1 channel, need to split
         float *tmp;
         int j;
 
         j = 0;
         // TODO : malloc each time could be avoided?
-        tmp = (float *)malloc(this->audio->outputParameters->bufferSize * this->outCount);
+        tmp = (float *)malloc(m_Audio->m_OutputParameters->m_BufferSize * m_OutCount);
 
-        PaUtil_ReadRingBuffer(this->rBufferOut, tmp, this->audio->outputParameters->framesPerBuffer);
+        PaUtil_ReadRingBuffer(m_rBufferOut, tmp, m_Audio->m_OutputParameters->m_FramesPerBuffer);
 
-        for (int i = 0; i < this->audio->outputParameters->framesPerBuffer; i++) {
-            for (int c = 0; c < this->outCount; c++) {
-                this->frames[c][i] = tmp[j];
+        for (int i = 0; i < m_Audio->m_OutputParameters->m_FramesPerBuffer; i++) {
+            for (int c = 0; c < m_OutCount; c++) {
+                m_Frames[c][i] = tmp[j];
                 j++;
             }
         }
 
         free(tmp);
     } else {
-        PaUtil_ReadRingBuffer(this->rBufferOut, this->frames[0], this->audio->outputParameters->framesPerBuffer);
+        PaUtil_ReadRingBuffer(m_rBufferOut, m_Frames[0], m_Audio->m_OutputParameters->m_FramesPerBuffer);
     }
 
-    this->nullFrames = false;
+    m_NullFrames = false;
 
     return true;
 }
 
 void NativeAudioSource::closeInternal(bool reset)
 {
-    this->audio->lockQueue();
-    this->audio->lockSources();
+    m_Audio->lockQueue();
+    m_Audio->lockSources();
 
-    if (this->opened) {
-        NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);
-        avcodec_close(this->codecCtx);
+    if (m_Opened) {
+        NativePthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
+        avcodec_close(m_CodecCtx);
 
-        if (!this->externallyManaged) {
-            av_free(this->container->pb);
-            avformat_close_input(&this->container);
+        if (!m_ExternallyManaged) {
+            av_free(m_Container->pb);
+            avformat_close_input(&m_Container);
         }
 
-        swr_free(&this->swrCtx);
+        swr_free(&m_SwrCtx);
 
-        PaUtil_FlushRingBuffer(this->rBufferOut);
-        free(this->rBufferOutData);
+        PaUtil_FlushRingBuffer(m_rBufferOut);
+        free(m_rBufferOutData);
 
-        this->codecCtx = NULL;
-        this->swrCtx = NULL;
-        this->rBufferOutData = NULL;
+        m_CodecCtx = NULL;
+        m_SwrCtx = NULL;
+        m_rBufferOutData = NULL;
     } else {
-        if (!this->externallyManaged && this->reader != NULL) {
-            av_free(this->container->pb);
-            avformat_free_context(this->container);
+        if (!m_ExternallyManaged && m_Reader != NULL) {
+            av_free(m_Container->pb);
+            avformat_free_context(m_Container);
 
-            this->container = NULL;
+            m_Container = NULL;
         }
     }
 
-    delete this->reader;
-    this->reader = NULL;
+    delete m_Reader;
+    m_Reader = NULL;
 
-    if (this->coro != NULL) {
-        Coro_free(this->coro);
-        Coro_free(this->mainCoro);
-        this->coro = NULL;
-        this->mainCoro = NULL;
+    if (m_Coro != NULL) {
+        Coro_free(m_Coro);
+        Coro_free(m_MainCoro);
+        m_Coro = NULL;
+        m_MainCoro = NULL;
     }
 
-    if (!this->packetConsumed) {
-        av_free_packet(this->tmpPacket);
+    if (!m_PacketConsumed) {
+        av_free_packet(m_TmpPacket);
     }
-    if (!reset && !this->externallyManaged) {
-        delete this->tmpPacket;
-    }
-
-    if (this->tmpFrame.data != NULL) {
-        free(this->tmpFrame.data);
-        this->tmpFrame.data = NULL;
-    }
-    this->tmpFrame.size = 0;
-    this->tmpFrame.nbSamples = 0;
-
-    if (this->fCvt != NULL) {
-        delete this->fCvt;
-        free(this->fBufferOutData);
-        this->fCvt = NULL;
+    if (!reset && !m_ExternallyManaged) {
+        delete m_TmpPacket;
     }
 
-    delete this->rBufferOut;
-    this->rBufferOut = NULL;
+    if (m_TmpFrame.data != NULL) {
+        free(m_TmpFrame.data);
+        m_TmpFrame.data = NULL;
+    }
+    m_TmpFrame.size = 0;
+    m_TmpFrame.nbSamples = 0;
 
-    this->playing = false;
-    this->frameConsumed = true;
-    this->packetConsumed = true;
-    this->opened = false;
-    this->audioStream = -1;
-    this->container = NULL;
-    this->avioBuffer = NULL;
+    if (m_fCvt != NULL) {
+        delete m_fCvt;
+        free(m_fBufferOutData);
+        m_fCvt = NULL;
+    }
 
-    this->audio->unlockQueue();
-    this->audio->unlockSources();
+    delete m_rBufferOut;
+    m_rBufferOut = NULL;
+
+    m_Playing = false;
+    m_FrameConsumed = true;
+    m_PacketConsumed = true;
+    m_Opened = false;
+    m_AudioStream = -1;
+    m_Container = NULL;
+    m_AvioBuffer = NULL;
+
+    m_Audio->unlockQueue();
+    m_Audio->unlockSources();
 }
 
 void NativeAudioSource::play()
 {
-    if (!this->opened) {
+    if (!m_Opened) {
         return;
     }
 
-    this->playing = true;
-    this->stopped = false;
+    m_Playing = true;
+    m_Stopped = false;
 
     SPAM(("Play source @ %p\n", this));
 
-    NATIVE_PTHREAD_SIGNAL(&this->audio->queueNeedData);
+    NATIVE_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
 
     this->sendEvent(SOURCE_EVENT_PLAY, 0, false);
 }
 
 void NativeAudioSource::pause()
 {
-    if (!this->opened) {
+    if (!m_Opened) {
         return;
     }
 
-    this->playing = false;
+    m_Playing = false;
     this->sendEvent(SOURCE_EVENT_PAUSE, 0, false);
 }
 
 void NativeAudioSource::stop()
 {
-    if (!this->externallyManaged) {
+    if (!m_ExternallyManaged) {
         this->seek(0);
     }
 
-    this->stopped = true;
-    this->playing = false;
+    m_Stopped = true;
+    m_Playing = false;
 
     this->resetFrames();
 
@@ -1623,39 +1623,39 @@ void NativeAudioSource::close()
 {
     this->closeInternal(false);
 #if 0
-    if (!this->opened) {
+    if (!m_Opened) {
         return;
     }
 
-    this->playing = false;
-    this->stopped = true;
-    this->opened = false;
+    m_Playing = false;
+    m_Stopped = true;
+    m_Opened = false;
     SPAM(("Stoped\n"));
 
-    if (!this->packetConsumed) {
-        av_free_packet(this->tmpPacket);
+    if (!m_PacketConsumed) {
+        av_free_packet(m_TmpPacket);
     }
 
-    PaUtil_FlushRingBuffer(this->rBufferOut);
+    PaUtil_FlushRingBuffer(m_rBufferOut);
 
-    this->samplesConsumed = 0;
-    this->frameConsumed = true;
-    this->packetConsumed = true;
+    m_SamplesConsumed = 0;
+    m_FrameConsumed = true;
+    m_PacketConsumed = true;
 
     this->resetFrames();
 
-    avcodec_flush_buffers(this->codecCtx);
+    avcodec_flush_buffers(m_CodecCtx);
 #endif
 }
 
 bool NativeAudioSource::isActive()
 {
-    return this->playing && this->error != AVERROR_EOF;
+    return m_Playing && m_Error != AVERROR_EOF;
 }
 
 
 NativeAudioSource::~NativeAudioSource() {
-    this->audio->removeSource(this);
+    m_Audio->removeSource(this);
     this->closeInternal(false);
 }
 

@@ -41,11 +41,11 @@ uint32_t ttfps = 0;
 
 
 #if 0
-static Window *NativeX11Window(SDL_Window *win)
+static Window *NativeX11Window(SDL_Window *m_Win)
 {
     SDL_SysWMinfo info;
     SDL_VERSION(&info.version);
-    SDL_GetWindowWMInfo(win, &info);
+    SDL_GetWindowWMInfo(m_Win, &info);
 
     return (Window*)info.info.x11.window;
 }
@@ -65,8 +65,8 @@ int NativeEvents(NativeX11UIInterface *NUII)
     int nevents = 0;
         while(SDL_PollEvent(&event)) {
             NativeJSwindow *window = NULL;
-            if (NUII->NativeCtx) {
-                window = NativeJSwindow::getNativeClass(NUII->NativeCtx->getNJS());
+            if (NUII->m_NativeCtx) {
+                window = NativeJSwindow::getNativeClass(NUII->m_NativeCtx->getNJS());
             }
             nevents++;
             switch(event.type) {
@@ -180,8 +180,8 @@ int NativeEvents(NativeX11UIInterface *NUII)
             }
         }
 
-        if (ttfps%20 == 0 && NUII->NativeCtx != NULL) {
-            NUII->NativeCtx->getNJS()->gc();
+        if (ttfps%20 == 0 && NUII->m_NativeCtx != NULL) {
+            NUII->m_NativeCtx->getNJS()->gc();
         }
 
         if (NUII->currentCursor != NativeX11UIInterface::NOCHANGE) {
@@ -211,7 +211,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
 
             SDL_VERSION(&info.version);
 
-            if (SDL_GetWindowWMInfo(NUII->win, &info)) {
+            if (SDL_GetWindowWMInfo(NUII->m_Win, &info)) {
                 Cursor c = XCreateFontCursor(info.info.x11.display, cursor);
                 Display *d = info.info.x11.display;
 
@@ -223,12 +223,12 @@ int NativeEvents(NativeX11UIInterface *NUII)
             NUII->currentCursor = NativeX11UIInterface::NOCHANGE;
         }
 
-        if (NUII->NativeCtx) {
-            NUII->NativeCtx->frame();
+        if (NUII->m_NativeCtx) {
+            NUII->m_NativeCtx->frame();
         }
 
         //NUII->getConsole()->flush();
-        if (NUII->getFBO() != 0 && NUII->NativeCtx) {
+        if (NUII->getFBO() != 0 && NUII->m_NativeCtx) {
             //glFlush();
             //glFinish();
             glReadBuffer(GL_COLOR_ATTACHMENT0);
@@ -236,9 +236,9 @@ int NativeEvents(NativeX11UIInterface *NUII)
             glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
             uint8_t *pdata = NUII->getFrameBufferData();
 
-            NUII->NativeCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
+            NUII->m_NativeCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
         } else {
-            SDL_GL_SwapWindow(NUII->win);
+            SDL_GL_SwapWindow(NUII->m_Win);
         }
 
     //}
@@ -276,9 +276,9 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     NativeX11UIInterface *ui = (NativeX11UIInterface *)closure;
     chdir(fpath);
     printf("Changing directory to : %s\n", fpath);
-    ui->nml = new NativeNML(ui->gnet);
-    ui->nml->setNJS(ui->NJS);
-    ui->nml->loadFile("./index.nml");
+    ui->m_Nml = new NativeNML(ui->m_Gnet);
+    ui->m_Nml->setNJS(ui->NJS);
+    ui->m_Nml->loadFile("./index.nml");
 }
 #endif
 static void NativeDoneExtracting(void *closure, const char *fpath)
@@ -290,30 +290,30 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     }
     printf("Changing directory to : %s\n", fpath);
 
-    ui->nml = new NativeNML(ui->gnet);
-    ui->nml->loadFile("./index.nml", NativeX11UIInterface_onNMLLoaded, ui);
+    ui->m_Nml = new NativeNML(ui->m_Gnet);
+    ui->m_Nml->loadFile("./index.nml", NativeX11UIInterface_onNMLLoaded, ui);
 }
 
 NativeX11UIInterface::NativeX11UIInterface()
 {
-    this->width = 0;
-    this->height = 0;
-    this->initialized = false;
-    this->nml = NULL;
-    this->filePath = NULL;
+    this->m_Width = 0;
+    this->m_Height = 0;
+    this->m_Initialized = false;
+    this->m_Nml = NULL;
+    this->m_FilePath = NULL;
     this->console = NULL;
 
     this->currentCursor = NOCHANGE;
-    this->NativeCtx = NULL;
+    this->m_NativeCtx = NULL;
 
-    gnet = native_netlib_init();
+    m_Gnet = native_netlib_init();
 }
 
 bool NativeX11UIInterface::createWindow(int width, int height)
 {
     SDL_GLContext contexteOpenGL;
 
-    if (!this->initialized) {
+    if (!this->m_Initialized) {
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1)
         {
             printf("Can't init SDL:  %s\n", SDL_GetError());
@@ -332,17 +332,17 @@ bool NativeX11UIInterface::createWindow(int width, int height)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
-        this->win = SDL_CreateWindow("Native - Running", 100, 100,
+        this->m_Win = SDL_CreateWindow("Native - Running", 100, 100,
             width, height,
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
 
-        if (this->win == NULL) {
+        if (this->m_Win == NULL) {
             printf("Cant create window (SDL)\n");
             return false;
         }
 
-        this->width = width;
-        this->height = height;
+        this->m_Width = width;
+        this->m_Height = height;
 
         //window = NativeX11Window(win);
 
@@ -366,8 +366,8 @@ bool NativeX11UIInterface::createWindow(int width, int height)
         //[window setOpaque:NO]; // YES by default
         //[window setAlphaValue:0.5];
 
-        contexteOpenGL = SDL_GL_CreateContext(win);
-        m_mainGLCtx = contexteOpenGL;
+        contexteOpenGL = SDL_GL_CreateContext(m_Win);
+        m_MainGLCtx = contexteOpenGL;
         if (contexteOpenGL == NULL) {
             NLOG("Failed to create OpenGL context : %s", SDL_GetError());
             exit(2);
@@ -383,12 +383,12 @@ bool NativeX11UIInterface::createWindow(int width, int height)
 
         console = new NativeUIX11Console();
 
-        this->initialized = true;
+        this->m_Initialized = true;
     } else {
         this->setWindowSize(width, height);
     }
 
-    NativeContext::CreateAndAssemble(this, gnet);
+    NativeContext::CreateAndAssemble(this, m_Gnet);
 
     return true;
 }
@@ -400,11 +400,11 @@ void NativeX11UIInterface::setCursor(CURSOR_TYPE type)
 
 void NativeX11UIInterface::setWindowTitle(const char *name)
 {
-    SDL_SetWindowTitle(win, (name == NULL || *name == '\0' ? "nidium" : name));
+    SDL_SetWindowTitle(m_Win, (name == NULL || *name == '\0' ? "nidium" : name));
 }
 const char *NativeX11UIInterface::getWindowTitle() const
 {
-    return SDL_GetWindowTitle(win);
+    return SDL_GetWindowTitle(m_Win);
 }
 
 void NativeX11UIInterface::openFileDialog(const char *files[],
@@ -588,9 +588,9 @@ void NativeX11UIInterface::setWindowControlsOffset(double x, double y)
 void NativeX11UIInterface::runLoop()
 {
 
-    add_timer(&gnet->timersng, 1, NativeProcessUI, (void *)this);
+    add_timer(&m_Gnet->timersng, 1, NativeProcessUI, (void *)this);
 
-    events_loop(gnet);
+    events_loop(m_Gnet);
 }
 
 NativeUIX11Console::NativeUIX11Console ()
@@ -644,18 +644,18 @@ NativeUIX11Console::~NativeUIX11Console()
 void NativeX11UIInterface::restartApplication(const char *path)
 {
     this->stopApplication();
-    this->runApplication(path == NULL ? this->filePath : path);
+    this->runApplication(path == NULL ? this->m_FilePath : path);
 }
 
 bool NativeX11UIInterface::runApplication(const char *path)
 {
-    NativeMessages::initReader(gnet);
+    NativeMessages::initReader(m_Gnet);
 
-    if (path != this->filePath) {
-        if (this->filePath) {
-            free(this->filePath);
+    if (path != this->m_FilePath) {
+        if (this->m_FilePath) {
+            free(this->m_FilePath);
         }
-        this->filePath = strdup(path);
+        this->m_FilePath = strdup(path);
     }
     if (path == NULL || strlen(path) < 5) {
         return false;
@@ -675,7 +675,7 @@ bool NativeX11UIInterface::runApplication(const char *path)
             }
             this->setWindowTitle(app->getTitle());
 
-            app->runWorker(this->gnet);
+            app->runWorker(this->m_Gnet);
 
             const char *cachePath = this->getCacheDirectory();
             char *uidpath = (char *)malloc(sizeof(char) *
@@ -694,8 +694,8 @@ bool NativeX11UIInterface::runApplication(const char *path)
             delete app;
         }
     } else {
-        this->nml = new NativeNML(this->gnet);
-        this->nml->loadFile(path, NativeX11UIInterface_onNMLLoaded, this);
+        this->m_Nml = new NativeNML(this->m_Gnet);
+        this->m_Nml->loadFile(path, NativeX11UIInterface_onNMLLoaded, this);
 
         return true;
     }
@@ -704,37 +704,37 @@ bool NativeX11UIInterface::runApplication(const char *path)
 
 void NativeX11UIInterface::stopApplication()
 {
-    if (this->nml) delete this->nml;
-    if (this->NativeCtx) {
-        delete this->NativeCtx;
-        this->NativeCtx = NULL;
+    if (this->m_Nml) delete this->m_Nml;
+    if (this->m_NativeCtx) {
+        delete this->m_NativeCtx;
+        this->m_NativeCtx = NULL;
         NativeMessages::destroyReader();
     }
-    this->nml = NULL;
+    this->m_Nml = NULL;
     glClearColor(1, 1, 1, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     /* Also clear the front buffer */
-    SDL_GL_SwapWindow(this->win);
+    SDL_GL_SwapWindow(this->m_Win);
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
 void NativeX11UIInterface::onNMLLoaded()
 {
     if (!this->createWindow(
-        this->nml->getMetaWidth()*2,
-        this->nml->getMetaHeight()*2+kNativeTitleBarHeight)) {
+        this->m_Nml->getMetaWidth()*2,
+        this->m_Nml->getMetaHeight()*2+kNativeTitleBarHeight)) {
 
         return;
     }
 
-    this->setWindowTitle(this->nml->getMetaTitle());
+    this->setWindowTitle(this->m_Nml->getMetaTitle());
 }
 
 void NativeX11UIInterface::setWindowSize(int w, int h)
 {
-    SDL_SetWindowSize(win, w, h);
-    this->width = w;
-    this->height = h;
+    SDL_SetWindowSize(m_Win, w, h);
+    this->m_Width = w;
+    this->m_Height = h;
 }
 
 void NativeX11UIInterface::log(const char *buf)

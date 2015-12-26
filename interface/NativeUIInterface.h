@@ -126,13 +126,13 @@ class NativeUIInterface
             kOpenFile_AlloMultipleSelection = 1 << 2
         };
 
-        NativeContext *NativeCtx;
-        NativeNML *nml;
-        struct SDL_Window *win;
-        struct _ape_global *gnet;
+        NativeContext *m_NativeCtx;
+        NativeNML *m_Nml;
+        struct SDL_Window *m_Win;
+        struct _ape_global *m_Gnet;
 
         inline NativeContext *getNativeContext() const {
-            return NativeCtx;
+            return m_NativeCtx;
         }
 
         NativeUIInterface();
@@ -172,8 +172,8 @@ class NativeUIInterface
 
         virtual void refresh();
 
-        int getWidth() const { return this->width; }
-        int getHeight() const { return this->height; }
+        int getWidth() const { return this->m_Width; }
+        int getHeight() const { return this->m_Height; }
         class NativeUIConsole
         {
             public:
@@ -200,11 +200,11 @@ class NativeUIInterface
         void initPBOs();
 
         bool hasPixelBuffer() const {
-            return m_readPixelInBuffer;
+            return m_ReadPixelInBuffer;
         }
 
         SDL_GLContext getGLContext() {
-            return m_mainGLCtx;
+            return m_MainGLCtx;
         }
 
         SDL_GLContext createSharedContext(bool webgl = false);
@@ -233,12 +233,12 @@ class NativeUIInterface
     protected:
         virtual void renderSystemTray() {};
 
-        int width;
-        int height;
-        char *filePath;
-        bool initialized;
-        bool m_isOffscreen;
-        bool m_readPixelInBuffer;
+        int m_Width;
+        int m_Height;
+        char *m_FilePath;
+        bool m_Initialized;
+        bool m_IsOffscreen;
+        bool m_ReadPixelInBuffer;
         bool m_Hidden;
         int m_FBO;
         uint8_t *m_FrameBuffer;
@@ -252,9 +252,8 @@ class NativeUIInterface
         } m_PBOs;
 
 
-        NativeUIConsole *console;
-        SDL_GLContext m_mainGLCtx;
-
+        NativeUIConsole *m_Console;
+        SDL_GLContext m_MainGLCtx;
         NativeSystemMenu m_SystemMenu;
 };
 

@@ -20,22 +20,22 @@ static int NativeProcessUI(void *arg)
 
 bool NativeTerminalUIInterface::runApplication(const char *path)
 {
-    this->console = new NativeUITerminalConsole();
-    this->gnet = native_netlib_init();
-    this->NJS = new NativeJS(1, 1, this, gnet);
+    this->m_Console = new NativeUITerminalConsole();
+    this->m_Gnet = native_netlib_init();
+    this->NJS = new NativeJS(1, 1, this, m_Gnet);
 
-    this->nml = new NativeNML(this->gnet);
-    this->nml->setNJS(this->NJS);
-    this->nml->loadFile("index.nml", NULL, NULL);
+    this->m_Nml = new NativeNML(this->m_Gnet);
+    this->m_Nml->setNJS(this->NJS);
+    this->m_Nml->loadFile("index.nml", NULL, NULL);
 
     return true;
 }
 
 NativeTerminalUIInterface::NativeTerminalUIInterface()
 {
-    this->width = 0;
-    this->height = 0;
-    this->nml = NULL;
+    this->m_Width = 0;
+    this->m_Height = 0;
+    this->m_Nml = NULL;
 
     this->currentCursor = NOCHANGE;
     this->NJS = NULL;
@@ -71,13 +71,13 @@ void NativeTerminalUIInterface::setWindowControlsOffset(double x, double y)
 
 void NativeTerminalUIInterface::runLoop()
 {
-    add_timer(&gnet->timersng, 1, NativeProcessUI, (void *)this);
+    add_timer(&m_Gnet->timersng, 1, NativeProcessUI, (void *)this);
 
-    events_loop(gnet);
+    events_loop(m_Gnet);
 }
 
 NativeUITerminalConsole::NativeUITerminalConsole ()
-    : isHidden(false), needFlush(false)
+    : m_IsHidden(false), m_NeedFlush(false)
 {
 }
 
@@ -100,7 +100,7 @@ void NativeUITerminalConsole::hide()
 
 bool NativeUITerminalConsole::hidden()
 {
-    return isHidden;
+    return m_IsHidden;
 }
 
 void NativeUITerminalConsole::clear()

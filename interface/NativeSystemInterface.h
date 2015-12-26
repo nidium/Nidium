@@ -40,7 +40,7 @@ class NativeSystemInterface
     private:
         void operator=(NativeSystem const&);
     protected:
-        float fbackingStorePixelRatio;
+        float m_fBackingStorePixelRatio;
 };
 
 #endif

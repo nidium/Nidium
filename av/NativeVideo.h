@@ -64,51 +64,51 @@ class NativeVideo : public NativeAVSource
             Frame() : data(NULL), pts(0) {};
         };
 
-        TimerItem *timers[NATIVE_VIDEO_BUFFER_SAMPLES];
-        PacketQueue *audioQueue;
-        PacketQueue *videoQueue;
-        int timerIdx;
-        int lastTimer;
-        int timersDelay;
+        TimerItem *m_Timers[NATIVE_VIDEO_BUFFER_SAMPLES];
+        PacketQueue *m_AudioQueue;
+        PacketQueue *m_VideoQueue;
+        int m_TimerIdx;
+        int m_LastTimer;
+        int m_TimersDelay;
 
-        ape_global *net;
-        NativeAudioSource *audioSource;
+        ape_global *m_Net;
+        NativeAudioSource *m_AudioSource;
 
-        VideoCallback frameCbk;
-        void *frameCbkArg;
+        VideoCallback m_FrameCbk;
+        void *m_FrameCbkArg;
 
-        bool shutdown;
+        bool m_Shutdown;
 
-        uint8_t *tmpFrame;
-        uint8_t *frameBuffer;
-        double frameTimer;
-        double lastPts;
-        double videoClock;
-        double audioClock;
-        double lastDelay;
+        uint8_t *m_TmpFrame;
+        uint8_t *m_FrameBuffer;
+        double m_FrameTimer;
+        double m_LastPts;
+        double m_VideoClock;
+        double m_AudioClock;
+        double m_LastDelay;
 
-        bool playing;
-        bool stoped;
-        int seekFlags;
+        bool m_Playing;
+        bool m_Stopped;
+        int m_SeekFlags;
 
         int m_Width;
         int m_Height;
 
-        SwsContext *swsCtx;
-        AVCodecContext *codecCtx;
-        int videoStream;
-        int audioStream;
+        SwsContext *m_SwsCtx;
+        AVCodecContext *m_CodecCtx;
+        int m_VideoStream;
+        int m_AudioStream;
 
-        PaUtilRingBuffer *rBuff;
-        uint8_t *buff;
-        unsigned char *avioBuffer;
+        PaUtilRingBuffer *m_rBuff;
+        uint8_t *m_Buff;
+        unsigned char *m_AvioBuffer;
         uint8_t *m_Frames[NATIVE_VIDEO_BUFFER_SAMPLES];
         int m_FramesIdx;
-        AVFrame *decodedFrame;
-        AVFrame *convertedFrame;
+        AVFrame *m_DecodedFrame;
+        AVFrame *m_ConvertedFrame;
 
-        pthread_t threadDecode;
-        NATIVE_PTHREAD_VAR_DECL(bufferCond);
+        pthread_t m_ThreadDecode;
+        NATIVE_PTHREAD_VAR_DECL(m_BufferCond);
 
         void play();
         void pause();
@@ -143,10 +143,10 @@ class NativeVideo : public NativeAVSource
 
         ~NativeVideo();
     private :
-        NativeAVReader *reader;
-        NativeAudio *audio;
-        bool buffering;
-        bool seeking;
+        NativeAVReader *m_Reader;
+        NativeAudio *m_Audio;
+        bool m_Buffering;
+        bool m_Seeking;
         bool m_ThreadCreated;
         bool m_SourceNeedWork;
         bool m_DoSetSize;
@@ -154,9 +154,9 @@ class NativeVideo : public NativeAVSource
         int m_NewHeight;
         bool m_NoDisplay;
         bool m_InDisplay;
-        pthread_mutex_t audioLock;
+        pthread_mutex_t m_AudioLock;
         NATIVE_PTHREAD_VAR_DECL(m_NotInDisplay);
-        pthread_mutex_t decodeThreadLock;
+        pthread_mutex_t m_DecodeThreadLock;
 
         void closeInternal(bool reset);
         static void seekCoro(void *arg);
@@ -195,7 +195,7 @@ class NativeVideoAudioSource: public NativeAudioSource
 {
   public:
       NativeVideoAudioSource(int out, NativeVideo *video, bool external) :
-          NativeAudioSource(out, video->audio, external),
+          NativeAudioSource(out, video->m_Audio, external),
           m_Video(video), m_FreePacket(NULL)
       {
       };
@@ -204,11 +204,11 @@ class NativeVideoAudioSource: public NativeAudioSource
 
     ~NativeVideoAudioSource() {
         if (m_FreePacket != NULL) {
-            if (!this->packetConsumed) {
+            if (!m_PacketConsumed) {
                 // Free the packet here, otherwise the source destructor
                 // will do it after we delete it.
-                av_free_packet(this->tmpPacket);
-                this->packetConsumed = true;
+                av_free_packet(m_TmpPacket);
+                m_PacketConsumed = true;
             }
             delete m_FreePacket;
         }
@@ -219,4 +219,3 @@ class NativeVideoAudioSource: public NativeAudioSource
 };
 
 #endif
-

@@ -11,9 +11,9 @@ class NativeUITerminalConsole : public NativeUIInterface::NativeUIConsole
         void clear();
         void flush();
     private:
-//        Window *window;
-        bool isHidden;
-        bool needFlush;
+//        Window *m_Window;
+        bool m_IsHidden;
+        bool m_NeedFlush;
 
 };
 
@@ -34,15 +34,15 @@ class NativeTerminalUIInterface : public NativeUIInterface
         void initControls();
         bool runApplication(const char *path);
         NativeUITerminalConsole *getConsole() const {
-            return this->console;
+            return this->m_Console;
         }
 
         struct {
             char *buf;
             size_t len;
             size_t offset;
-        } mainjs;
+        } m_Mainjs;
     private:
-        NativeUITerminalConsole *console;
+        NativeUITerminalConsole *m_Console;
 };
 

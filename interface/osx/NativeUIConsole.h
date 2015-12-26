@@ -4,17 +4,17 @@
 
 @interface NativeConsole : NSObject
 {
-    NSWindow *window;
+    NSWindow *m_Window;
     NSTextView *textview;
-    BOOL isHidden;
+    BOOL m_IsHidden;
 }
 
 - (void) log:(NSString *)str;
 - (void) attachToStdout;
 - (void) clear;
 
-@property (assign, nonatomic) BOOL isHidden;
-@property (retain, nonatomic) NSWindow *window;
+@property (assign, nonatomic) BOOL m_IsHidden;
+@property (retain, nonatomic) NSWindow *m_Window;
 @property (retain, nonatomic) NSTextView *textview;
 @end
 
@@ -30,9 +30,9 @@ class NativeUICocoaConsole : public NativeUIInterface::NativeUIConsole
         void clear();
         void flush();
         bool hidden();
-        bool isHidden;
+        bool m_IsHidden;
     private:
-        NativeConsole *window;
-        bool needFlush;
+        NativeConsole *m_Window;
+        bool m_NeedFlush;
 };
 

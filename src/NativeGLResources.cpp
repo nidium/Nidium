@@ -26,24 +26,24 @@ NativeGLResources::Resource::Resource(uint32_t glid,
 
 NativeGLResources::Resource::~Resource()
 {
-    switch(this->m_Type) {
+    switch(m_Type) {
         case NativeGLResources::RPROGRAM:
-            glDeleteProgram(this->m_Glid);
+            glDeleteProgram(m_Glid);
             break;
         case NativeGLResources::RSHADER:
-            glDeleteShader(this->m_Glid);
+            glDeleteShader(m_Glid);
             break;
         case NativeGLResources::RTEXTURE:
-            glDeleteTextures(1, &this->m_Glid);
+            glDeleteTextures(1, &m_Glid);
             break;
         case NativeGLResources::RBUFFER:
-            glDeleteBuffers(1, &this->m_Glid);
+            glDeleteBuffers(1, &m_Glid);
             break;
         case NativeGLResources::RVERTEX_ARRAY:
 #ifdef __APPLE__
-            glDeleteVertexArraysAPPLE(1, &this->m_Glid);
+            glDeleteVertexArraysAPPLE(1, &m_Glid);
 #else
-            glDeleteVertexArrays(1, &this->m_Glid);
+            glDeleteVertexArrays(1, &m_Glid);
 #endif
             break;
         default:

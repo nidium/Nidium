@@ -23,25 +23,25 @@ class NativeSkGradient
         double x;
         double y;
         double radius;
-    } startPoint;
+    } m_StartPoint;
 
     struct
     {
         double x;
         double y;
         double radius;
-    } endPoint;
+    } m_EndPoint;
 
     struct {
         uint32_t count;
         uint32_t allocated;
 
         struct _colorStop *items;
-    } colorsStop;
+    } m_ColorsStop;
 
-    int isRadial;
-    int needUpdate;
-    SkShader *currentShader;
+    int m_IsRadial;
+    int m_NeedUpdate;
+    SkShader *m_CurrentShader;
 
   public:
     ~NativeSkGradient();

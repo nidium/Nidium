@@ -106,8 +106,8 @@ int main(int argc, char *argv[]) {
     //gain->set("gain", DOUBLE, (void *)&gainValue, sizeof(double));
     //gain2->set("gain", DOUBLE, (void *)&gainValue2, sizeof(double));
 
-    audio->connect(track1->output[0], target->input[0]);
-    audio->connect(track1->output[1], target->input[1]);
+    audio->connect(track1->output[0], target->m_Input[0]);
+    audio->connect(track1->output[1], target->m_Input[1]);
 
 //    audio->connect(custom->output[0], target->input[0]);
     //audio->connect(custom->output[1], target->input[1]);

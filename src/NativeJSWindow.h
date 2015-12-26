@@ -13,7 +13,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
   public:
     NativeJSwindow(JS::HandleObject jsobj, JSContext *cx) :
         NativeJSExposer<NativeJSwindow>(jsobj, cx),
-        m_RequestedFrame(NULL), m_handler(NULL), m_Db(NULL),
+        m_RequestedFrame(NULL), m_Handler(NULL), m_Db(NULL),
         m_Dragging(false), m_DraggedFiles(NULL)
     {
     };
@@ -45,7 +45,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     void initDataBase();
 
     NativeCanvasHandler *getCanvasHandler() const {
-        return m_handler;
+        return m_Handler;
     }
 
     NativeDB *getDataBase() const {
@@ -79,7 +79,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
         }
     } *m_RequestedFrame;
 
-    NativeCanvasHandler *m_handler;
+    NativeCanvasHandler *m_Handler;
     NativeDB *m_Db;
 
     bool m_Dragging;

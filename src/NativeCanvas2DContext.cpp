@@ -27,7 +27,7 @@ static JSClass imageData_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-JSClass *NativeCanvas2DContext::ImageData_jsclass = &imageData_class;
+JSClass *NativeCanvas2DContext::m_ImageData_jsclass = &imageData_class;
 
 enum {
 #define CANVAS_2D_CTX_PROP(prop) CTX_PROP_ ## prop,
@@ -673,7 +673,7 @@ static bool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc, JS::Va
     }
 
     NSKIA_NATIVE->transform(scalex, skewx, skewy, scaley,
-        translatex+handler->padding.global, translatey+handler->padding.global, 1);
+        translatex+handler->m_Padding.global, translatey+handler->m_Padding.global, 1);
 
     NATIVE_LOG_2D_CALL();
     return true;
@@ -731,9 +731,9 @@ static bool native_canvas2dctx_restore(JSContext *cx, unsigned argc, JS::Value *
 #define CANVAS_2D_CTX_PROP(prop)    JS_GetProperty(cx, savedObj, #prop, &outval); \
                                     JS_SetProperty(cx, thisobj, #prop, outval);
 
-    CppObj->setterDisabled = true;
+    CppObj->m_SetterDisabled = true;
 #include "NativeCanvas2DContextProperties.h"
-    CppObj->setterDisabled = false;
+    CppObj->m_SetterDisabled = false;
 
 #undef CANVAS_2D_CTX_PROP
 #undef CANVAS_2D_CTX_PROP_GET
@@ -1454,7 +1454,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 {
 #define CTX_PROP(prop) CTX_PROP_ ## prop
 
-    if (CANVASCTX_GETTER(obj)->setterDisabled) {
+    if (CANVASCTX_GETTER(obj)->m_SetterDisabled) {
         return true;
     }
 
@@ -2227,7 +2227,7 @@ void NativeCanvas2DContext::flush()
 
 void NativeCanvas2DContext::getSize(int *width, int *height) const
 {
-    SkISize size = this->m_Skia->getCanvas()->getDeviceSize();
+    SkISize size = m_Skia->getCanvas()->getDeviceSize();
 
     *width = size.width();
     *height = size.height();
@@ -2240,21 +2240,21 @@ void NativeCanvas2DContext::setSize(int width, int height, bool redraw)
 
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
-    if (m_Skia->native_canvas_bind_mode == NativeSkia::BIND_GL) {
+    if (m_Skia->m_NativeCanvasBindMode == NativeSkia::BIND_GL) {
         if ((ncanvas = NativeSkia::createGLCanvas(width, height,
             __NativeUI->getNativeContext())) == NULL) {
             NLOG("[Error] Couldnt resize the canvas to %dx%d", width, height);
             return;
         }
 
-        NativeSkia::glcontext = ncanvas;
+        NativeSkia::m_GlContext = ncanvas;
 
     } else {
 #if 1
         const SkImageInfo &info = SkImageInfo::MakeN32Premul(width*ratio, height*ratio);
-        ndev = NativeSkia::glcontext->getDevice()->createCompatibleDevice(info);
+        ndev = NativeSkia::m_GlContext->getDevice()->createCompatibleDevice(info);
 #else
-        GrContext *gr = ((SkGpuDevice *)NativeSkia::glcontext->getDevice())->context();
+        GrContext *gr = ((SkGpuDevice *)NativeSkia::m_GlContext->getDevice())->context();
         ndev = m_Skia->createNewGPUDevice(gr, width*ratio, height*ratio);
 #endif
         if (ndev == NULL) {
@@ -2279,7 +2279,7 @@ void NativeCanvas2DContext::setSize(int width, int height, bool redraw)
     m_Skia->setCanvas(ncanvas);
     ncanvas->unref();
 
-    if (m_Skia->native_canvas_bind_mode == NativeSkia::BIND_GL) {
+    if (m_Skia->m_NativeCanvasBindMode == NativeSkia::BIND_GL) {
         m_Skia->drawRect(0, 0, 1, 1, 0);
     }
 }
@@ -2292,12 +2292,12 @@ void NativeCanvas2DContext::translate(double x, double y)
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     JSContext *cx, int width, int height, NativeUIInterface *ui) :
     NativeCanvasContext(handler),
-    setterDisabled(false)
+    m_SetterDisabled(false)
 {
     m_Mode = CONTEXT_2D;
 
     JS::RootedObject jsobj(cx, JS_NewObject(cx, &Canvas2DContext_class, JS::NullPtr(), JS::NullPtr()));
-    jscx  = cx;
+    m_JsCx  = cx;
 
     /*
         TODO: BUG: xxx setter doesn't work if we remove this the definesProperties

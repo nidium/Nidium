@@ -9,7 +9,7 @@
 #include "NativeSkImage.h"
 #include "NativeSkia.h"
 
-JSObject *NativeJSImage::classe = nullptr;
+JSObject *NativeJSImage::m_JsClasse = nullptr;
 
 #define NATIVE_IMAGE_GETTER(obj) (static_cast<class NativeJSImage *>(JS_GetPrivate(obj)))
 #define IMAGE_FROM_CALLEE(nimg) \
@@ -68,8 +68,8 @@ static bool native_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    if (nimg->img) {
-        nimg->img->shiftHue(val, color);
+    if (nimg->m_Image) {
+        nimg->m_Image->shiftHue(val, color);
     }
     return true;
 }
@@ -79,8 +79,8 @@ static bool native_image_markColorInAlpha(JSContext *cx,
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     IMAGE_FROM_CALLEE(nimg);
-    if (nimg->img) {
-        nimg->img->markColorsInAlpha();
+    if (nimg->m_Image) {
+        nimg->m_Image->markColorsInAlpha();
     }
 
     return true;
@@ -91,8 +91,8 @@ static bool native_image_desaturate(JSContext *cx,
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     IMAGE_FROM_CALLEE(nimg);
-    if (nimg->img) {
-        nimg->img->desaturate();
+    if (nimg->m_Image) {
+        nimg->m_Image->desaturate();
     }
 
     return true;
@@ -191,7 +191,7 @@ bool NativeJSImage::JSObjectIs(JSContext *cx, JS::HandleObject obj)
 
 NativeSkImage *NativeJSImage::JSObjectToNativeSkImage(JS::HandleObject obj)
 {
-    return NATIVE_IMAGE_GETTER(obj)->img;
+    return NATIVE_IMAGE_GETTER(obj)->m_Image;
 }
 
 static int delete_stream(void *arg)
@@ -237,14 +237,14 @@ bool NativeJSImage::setupWithBuffer(buffer *buf)
     }
 
     NativeSkImage *ImageObject = new NativeSkImage(buf->data, buf->used);
-    if (ImageObject->img == NULL) {
+    if (ImageObject->m_Image == NULL) {
         delete ImageObject;
 
         NativeJSObj(m_Cx)->unrootObject(m_JSObject);
         return false;
     }
 
-    img = ImageObject;
+    m_Image = ImageObject;
     JS::RootedObject obj(m_Cx, m_JSObject);
     JS::RootedValue widthVal(m_Cx, INT_TO_JSVAL(ImageObject->getWidth()));
     JS::RootedValue heightVal(m_Cx, INT_TO_JSVAL(ImageObject->getHeight()));
@@ -268,13 +268,13 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
     }
 
     NativeSkImage *ImageObject = new NativeSkImage((void *)data, len);
-    if (ImageObject->img == NULL) {
+    if (ImageObject->m_Image == NULL) {
         timer_dispatch_async(delete_stream, stream);
         stream = NULL;
         delete ImageObject;
         return;
     }
-    img = ImageObject;
+    m_Image = ImageObject;
     JS::RootedValue widthVal(cx, INT_TO_JSVAL(ImageObject->getWidth()));
     JS::RootedValue heightVal(cx, INT_TO_JSVAL(ImageObject->getHeight()));
     JS_DefineProperty(cx, jsobj, "width", widthVal, JSPROP_PERMANENT | JSPROP_READONLY);
@@ -306,7 +306,7 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
     JS::RootedObject ret(cx, JS_NewObject(cx, &Image_class, protoObj, JS::NullPtr()));
     NativeJSImage *nimg = new NativeJSImage(ret, cx);
 
-    nimg->img   = image;
+    nimg->m_Image   = image;
 
     JS_SetPrivate(ret, nimg);
 
@@ -324,15 +324,15 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
 
 NativeJSImage::NativeJSImage(JS::HandleObject obj, JSContext *cx) :
     NativeJSExposer<NativeJSImage>(obj, cx),
-    img(NULL), m_Stream(NULL)
+    m_Image(NULL), m_Stream(NULL)
 {
 
 }
 
 NativeJSImage::~NativeJSImage()
 {
-    if (img != NULL) {
-        delete img;
+    if (m_Image != NULL) {
+        delete m_Image;
     }
     if (m_Stream) {
         delete m_Stream;

@@ -68,14 +68,14 @@ class NativeGLContext
         {
             if (wrappedCtx) {
                 m_SDLGLCtx = wrappedCtx;
-                wrapped = true;
+                m_Wrapped = true;
 
                 this->createInterface();
 
                 return;
             }
 
-            wrapped = false;
+            m_Wrapped = false;
 
             SDL_GLContext oldctx = m_UI->getCurrentGLContext();
 
@@ -110,7 +110,7 @@ class NativeGLContext
         }
 
         ~NativeGLContext() {
-            if (!wrapped) {
+            if (!m_Wrapped) {
                 m_UI->makeMainGLCurrent();
                 /*
                     TODO: LEAK :
@@ -146,7 +146,7 @@ class NativeGLContext
 
         SDL_GLContext m_SDLGLCtx;
         NativeUIInterface *m_UI;
-        bool wrapped;
+        bool m_Wrapped;
 };
 
 #endif

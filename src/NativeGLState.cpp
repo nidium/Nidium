@@ -11,8 +11,8 @@
 NativeGLState::NativeGLState(NativeUIInterface *ui, bool withProgram, bool webgl) :
     m_Shared(true)
 {
-    memset(&this->m_GLObjects, 0, sizeof(this->m_GLObjects));
-    memset(&this->m_GLObjects.uniforms, -1, sizeof(this->m_GLObjects.uniforms));
+    memset(&m_GLObjects, 0, sizeof(m_GLObjects));
+    memset(&m_GLObjects.uniforms, -1, sizeof(m_GLObjects.uniforms));
 
     m_GLContext = new NativeGLContext(ui, webgl ? NULL : ui->getGLContext(), webgl);
 
@@ -26,8 +26,8 @@ NativeGLState::NativeGLState(NativeContext *nctx) :
 {
     NativeUIInterface *ui = nctx->getUI();
 
-    memset(&this->m_GLObjects, 0, sizeof(this->m_GLObjects));
-    memset(&this->m_GLObjects.uniforms, -1, sizeof(this->m_GLObjects.uniforms));
+    memset(&m_GLObjects, 0, sizeof(m_GLObjects));
+    memset(&m_GLObjects.uniforms, -1, sizeof(m_GLObjects.uniforms));
 
     m_GLContext = new NativeGLContext(ui, ui->getGLContext(), false);
 }
@@ -35,7 +35,7 @@ NativeGLState::NativeGLState(NativeContext *nctx) :
 void NativeGLState::CreateForContext(NativeContext *nctx)
 {
     NativeUIInterface *ui;
-    if ((ui = nctx->getUI()) == NULL || ui->NativeCtx->getGLState()) {
+    if ((ui = nctx->getUI()) == NULL || ui->m_NativeCtx->getGLState()) {
         NLOG("Failed to init the first NativeGLState");
         return;
     }
@@ -106,9 +106,9 @@ bool NativeGLState::initGLBase(bool withProgram)
                           (GLvoid*) offsetof(NativeVertex, Modifier)));
 
     if (withProgram) {
-        this->m_GLObjects.program = NativeCanvasContext::createPassThroughProgram(this->m_Resources);
+        m_GLObjects.program = NativeCanvasContext::createPassThroughProgram(m_Resources);
 
-        if (this->m_GLObjects.program == 0) {
+        if (m_GLObjects.program == 0) {
             return false;
         }
 
@@ -126,7 +126,7 @@ bool NativeGLState::initGLBase(bool withProgram)
 
 void NativeGLState::setProgram(uint32_t program)
 {
-    this->m_GLObjects.program = program;
+    m_GLObjects.program = program;
 
     NATIVE_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_projectionMatrix"),
         m_GLObjects.uniforms.u_projectionMatrix);

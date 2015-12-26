@@ -30,8 +30,8 @@ public:
         SH_ATTR_MODIFIER = 2
     };
 
-    class JSObject *jsobj;
-    struct JSContext *jscx;
+    class JSObject *m_JsObj;
+    struct JSContext *m_JsCx;
 
     enum mode {
         CONTEXT_2D,
@@ -67,7 +67,7 @@ public:
     }
 
     NativeCanvasHandler *getHandler() const {
-        return this->m_Handler;
+        return m_Handler;
     }
 
     const SkMatrix44 &getMatrix() const {

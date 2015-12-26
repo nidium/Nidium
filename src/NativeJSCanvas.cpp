@@ -342,12 +342,12 @@ static bool CanvasInherit_get(JSContext *cx, JS::HandleObject obj, JS::HandleId 
 
     if (vp.isNull()) {
 
-        if ((parent = handler->getParent()) == NULL || !parent->jsobj) {
+        if ((parent = handler->getParent()) == NULL || !parent->m_JsObj) {
             return true;
         }
 
         NativeJSCanvas *jscanvas_parent =
-            (class NativeJSCanvas *)JS_GetPrivate(parent->jsobj);
+            (class NativeJSCanvas *)JS_GetPrivate(parent->m_JsObj);
 
         JS::RootedValue ret(cx);
         JS::RootedObject parentObj(cx, jscanvas_parent->getInherit());
@@ -492,7 +492,7 @@ static bool native_canvas_getParent(JSContext *cx, unsigned argc,
 
     NativeCanvasHandler *parent = NativeObject->getParent();
     if (parent) {
-        args.rval().setObjectOrNull( parent->jsobj);
+        args.rval().setObjectOrNull( parent->m_JsObj);
     } else {
         args.rval().setNull();
     }
@@ -507,7 +507,7 @@ static bool native_canvas_getFirstChild(JSContext *cx, unsigned argc,
 
     NativeCanvasHandler *val = NativeObject->getFirstChild();
     if (val) {
-        args.rval().setObjectOrNull(val->jsobj);
+        args.rval().setObjectOrNull(val->m_JsObj);
     } else {
         args.rval().setNull();
     }
@@ -522,7 +522,7 @@ static bool native_canvas_getLastChild(JSContext *cx, unsigned argc,
 
     NativeCanvasHandler *val = NativeObject->getLastChild();
     if (val) {
-        args.rval().setObjectOrNull(val->jsobj);
+        args.rval().setObjectOrNull(val->m_JsObj);
     } else {
         args.rval().setNull();
     }
@@ -537,7 +537,7 @@ static bool native_canvas_getNextSibling(JSContext *cx, unsigned argc,
 
     NativeCanvasHandler *val = NativeObject->getNextSibling();
     if (val) {
-        args.rval().setObjectOrNull(val->jsobj);
+        args.rval().setObjectOrNull(val->m_JsObj);
     } else {
         args.rval().setNull();
     }
@@ -552,7 +552,7 @@ static bool native_canvas_getPrevSibling(JSContext *cx, unsigned argc,
 
     NativeCanvasHandler *val = NativeObject->getPrevSibling();
     if (val) {
-        args.rval().setObjectOrNull(val->jsobj);
+        args.rval().setObjectOrNull(val->m_JsObj);
     } else {
         args.rval().setNull();
     }
@@ -579,7 +579,7 @@ static bool native_canvas_getChildren(JSContext *cx, unsigned argc,
     NativeObject->getChildren(list);
     JS::RootedObject jlist(cx, JS_NewArrayObject(cx, count));
     for (i = 0; i < count; i++) {
-        JS::RootedValue objVal(cx, OBJECT_TO_JSVAL(list[i]->jsobj));
+        JS::RootedValue objVal(cx, OBJECT_TO_JSVAL(list[i]->m_JsObj));
         JS_SetElement(cx, jlist, i, objVal);
     }
     JS::RootedValue val(cx, OBJECT_TO_JSVAL(jlist));
@@ -601,10 +601,10 @@ static bool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
     (const char *)name, val, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
 
-    SET_PROP(ret, "left", rect.fLeft);
-    SET_PROP(ret, "top", rect.fTop);
-    SET_PROP(ret, "width", native_max(0, rect.fRight - rect.fLeft));
-    SET_PROP(ret, "height", native_max(0, rect.fBottom-rect.fTop));
+    SET_PROP(ret, "left", rect.m_fLeft);
+    SET_PROP(ret, "top", rect.m_fTop);
+    SET_PROP(ret, "width", native_max(0, rect.m_fRight - rect.m_fLeft));
+    SET_PROP(ret, "height", native_max(0, rect.m_fBottom-rect.m_fTop));
 #undef SET_PROP
 
     args.rval().setObjectOrNull(ret);
@@ -623,8 +623,8 @@ static bool native_canvas_setCoordinates(JSContext *cx, unsigned argc,
         return false;
     }
 
-    NativeObject->left = left;
-    NativeObject->top = top;
+    NativeObject->m_Left = left;
+    NativeObject->m_Top = top;
 
     return true;
 }
@@ -786,8 +786,8 @@ static bool native_canvas_getContext(JSContext *cx, unsigned argc,
             case NativeCanvasContext::CONTEXT_2D:
             {
                 NativeCanvas2DContext *ctx2d = new NativeCanvas2DContext(NativeObject, cx,
-                        NativeObject->getWidth() + (NativeObject->padding.global * 2),
-                        NativeObject->getHeight() + (NativeObject->padding.global * 2), ui);
+                        NativeObject->getWidth() + (NativeObject->m_Padding.global * 2),
+                        NativeObject->getHeight() + (NativeObject->m_Padding.global * 2), ui);
 
                 if (ctx2d->getSurface() == NULL) {
                     delete ctx2d;
@@ -807,8 +807,8 @@ static bool native_canvas_getContext(JSContext *cx, unsigned argc,
                     NativeObject->setContext(new NativeCanvasWebGLContext(...))
                 */
                 NativeCanvas3DContext *ctx3d = new NativeCanvas3DContext(NativeObject, cx,
-                        NativeObject->getWidth() + (NativeObject->padding.global * 2),
-                        NativeObject->getHeight() + (NativeObject->padding.global * 2), ui);
+                        NativeObject->getWidth() + (NativeObject->m_Padding.global * 2),
+                        NativeObject->getHeight() + (NativeObject->m_Padding.global * 2), ui);
 
                 NativeObject->setContext(ctx3d);
                 break;
@@ -819,14 +819,14 @@ static bool native_canvas_getContext(JSContext *cx, unsigned argc,
         /*  Protect against GC
             Canvas.slot[0] = context
         */
-        JS_SetReservedSlot(NativeObject->jsobj, 0, OBJECT_TO_JSVAL(NativeObject->getContext()->jsobj));
+        JS_SetReservedSlot(NativeObject->m_JsObj, 0, OBJECT_TO_JSVAL(NativeObject->getContext()->m_JsObj));
     } else if (canvasctx->m_Mode != ctxmode) {
         JS_ReportWarning(cx, "Bad context requested");
         /* A mode is requested but another one was already created */
         args.rval().setNull();
         return true;
     }
-    JS::RootedObject  ret(cx, canvasctx->jsobj);
+    JS::RootedObject  ret(cx, canvasctx->m_JsObj);
 
     args.rval().setObjectOrNull(ret);
 
@@ -858,7 +858,7 @@ static bool native_canvas_setContext(JSContext *cx, unsigned argc,
         If a context was already attached, it's going to be GC'd
         since it's not longer reachable from slot 0.
     */
-    JS_SetReservedSlot(NativeObject->jsobj, 0, OBJECT_TO_JSVAL(context->jsobj));
+    JS_SetReservedSlot(NativeObject->m_JsObj, 0, OBJECT_TO_JSVAL(context->m_JsObj));
 
     return true;
 }
@@ -1128,7 +1128,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             }
 
             if (vp.toBoolean()) {
-                handler->setLeft(handler->left);
+                handler->setLeft(handler->m_Left);
             } else {
                 handler->unsetLeft();
             }
@@ -1141,7 +1141,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             }
 
             if (vp.toBoolean()) {
-                handler->setRight(handler->right);
+                handler->setRight(handler->m_Right);
             } else {
                 handler->unsetRight();
             }
@@ -1154,7 +1154,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             }
 
             if (vp.toBoolean()) {
-                handler->setTop(handler->top);
+                handler->setTop(handler->m_Top);
             } else {
                 handler->unsetTop();
             }
@@ -1166,7 +1166,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
             if (vp.toBoolean()) {
-                handler->setBottom(handler->bottom);
+                handler->setBottom(handler->m_Bottom);
             } else {
                 handler->unsetBottom();
             }
@@ -1293,7 +1293,7 @@ static bool native_canvas_prop_get(JSContext *cx, JS::HandleObject obj,
             vp.setInt32(handler->getMaxWidth());
             break;
         case CANVAS_PROP_CLIENTWIDTH:
-            vp.setInt32(handler->getWidth() + (handler->padding.global * 2));
+            vp.setInt32(handler->getWidth() + (handler->m_Padding.global * 2));
             break;
         case CANVAS_PROP_HEIGHT:
             vp.setInt32(handler->getHeight());
@@ -1305,10 +1305,10 @@ static bool native_canvas_prop_get(JSContext *cx, JS::HandleObject obj,
             vp.setInt32(handler->getMaxHeight());
             break;
         case CANVAS_PROP_CLIENTHEIGHT:
-            vp.setInt32(handler->getHeight() + (handler->padding.global * 2));
+            vp.setInt32(handler->getHeight() + (handler->m_Padding.global * 2));
             break;
         case CANVAS_PROP_COATING:
-            vp.setInt32(handler->padding.global);
+            vp.setInt32(handler->m_Padding.global);
             break;
         case CANVAS_PROP_LEFT:
             vp.setDouble(handler->getLeft());
@@ -1320,13 +1320,13 @@ static bool native_canvas_prop_get(JSContext *cx, JS::HandleObject obj,
             vp.setDouble(handler->getBottom());
             break;
         case CANVAS_PROP_CLIENTLEFT:
-            vp.setInt32(handler->getLeft() - handler->padding.global);
+            vp.setInt32(handler->getLeft() - handler->m_Padding.global);
             break;
         case CANVAS_PROP_TOP:
             vp.setDouble(handler->getTop());
             break;
         case CANVAS_PROP_CLIENTTOP:
-            vp.setInt32(handler->getTop() - handler->padding.global);
+            vp.setInt32(handler->getTop() - handler->m_Padding.global);
             break;
         case CANVAS_PROP_STATICLEFT:
             vp.setBoolean(handler->hasStaticLeft());
@@ -1368,10 +1368,10 @@ static bool native_canvas_prop_get(JSContext *cx, JS::HandleObject obj,
             vp.setInt32(handler->getContentHeight(true));
             break;
         case CANVAS_PROP_SCROLLLEFT:
-            vp.setInt32(handler->content.scrollLeft);
+            vp.setInt32(handler->m_Content.scrollLeft);
             break;
         case CANVAS_PROP_SCROLLTOP:
-            vp.setInt32(handler->content.scrollTop);
+            vp.setInt32(handler->m_Content.scrollTop);
             break;
         case CANVAS_PROP_ALLOWNEGATIVESCROLL:
             vp.setBoolean(handler->getAllowNegativeScroll());
@@ -1397,7 +1397,7 @@ static bool native_canvas_prop_get(JSContext *cx, JS::HandleObject obj,
                 vp.setNull();
                 break;
             }
-            JS::RootedObject retObj(cx, handler->m_Context->jsobj);
+            JS::RootedObject retObj(cx, handler->m_Context->m_JsObj);
             vp.setObjectOrNull(retObj);
             break;
         }
@@ -1502,8 +1502,8 @@ static bool native_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Canvas_class, args));
     handler = new NativeCanvasHandler(width, height, NativeContext::getNativeClass(cx), true);
     handler->m_Context = NULL;
-    handler->jsobj = ret;
-    handler->jscx = cx;
+    handler->m_JsObj = ret;
+    handler->m_JsCx = cx;
 
     NativeJSCanvas *jscanvas = new NativeJSCanvas(ret, cx, handler);
     JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, nullptr, 
@@ -1541,12 +1541,12 @@ static void Canvas_Trace(JSTracer *trc, JSObject *obj)
         NativeCanvasHandler *cur;
 
         for (cur = handler->getFirstChild(); cur != NULL; cur = cur->m_Next) {
-            if (cur->jsobj) {
+            if (cur->m_JsObj) {
 #if 0 && defined(DEBUG)
                 trc->debugPrinter = PrintGetTraceName;
                 trc->debugPrintArg = cur;
 #endif
-                JS_CallObjectTracer(trc, (JSObject **)&cur->jsobj, "nativecanvasroot");
+                JS_CallObjectTracer(trc, (JSObject **)&cur->m_JsObj, "nativecanvasroot");
             }
         }
     }
@@ -1571,10 +1571,10 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     /* window.canvas.overflow default to false */
     handler->m_Overflow = false;
 
-    handler->jsobj = ret;
-    handler->jscx = cx;
+    handler->m_JsObj = ret;
+    handler->m_JsCx = cx;
 
-    JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->m_Context->jsobj));
+    JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->m_Context->m_JsObj));
 
     NativeJSCanvas *jscanvas = new NativeJSCanvas(ret, cx, handler);
 
@@ -1653,7 +1653,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
             obj.set("clientY", msg.args[3].toInt());
             obj.set("layerX", msg.args[6].toInt());
             obj.set("layerY", msg.args[7].toInt());
-            obj.set("target", target->jsobj);
+            obj.set("target", target->m_JsObj);
 
             int evtype = (NativeInputEvent::Type)msg.args[1].toInt();
 
@@ -1681,7 +1681,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
                     break;
                 case NativeInputEvent::kMouseDragOver_Type:
                 case NativeInputEvent::kMouseDrop_Type:
-                    obj.set("source", target->jsobj);
+                    obj.set("source", target->m_JsObj);
                     obj.set("target", this->getJSObject());
                     break;
                 default:

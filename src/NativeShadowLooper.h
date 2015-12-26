@@ -58,11 +58,11 @@ protected:
     virtual bool asABlurShadow(BlurShadowRec*) const SK_OVERRIDE;
 
 private:
-    SkMaskFilter*   fBlur;
-    SkColorFilter*  fColorFilter;
-    SkScalar        fDx, fDy, fSigma;
-    SkColor         fBlurColor;
-    uint32_t        fBlurFlags;
+    SkMaskFilter*   m_fBlur;
+    SkColorFilter*  m_fColorFilter;
+    SkScalar        m_fDx, m_fDy, m_fSigma;
+    SkColor         m_fBlurColor;
+    uint32_t        m_fBlurFlags;
 
     enum State {
         kBeforeEdge,
@@ -76,8 +76,8 @@ private:
         virtual bool next(SkCanvas* canvas, SkPaint* paint) SK_OVERRIDE;
 
     private:
-        const NativeShadowLooper* fLooper;
-        State fState;
+        const NativeShadowLooper* m_fLooper;
+        State m_fState;
     };
 
     void init(SkScalar sigma, SkScalar dx, SkScalar dy, SkColor color, uint32_t flags);

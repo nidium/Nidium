@@ -9,13 +9,13 @@
 {
     if (!(self = [super init])) return nil;
 
-    self.isHidden = NO;
+    self.m_IsHidden = NO;
 
-    self.window = [[NSWindow alloc] initWithContentRect:NSMakeRect(100, 100, 700, 480) styleMask: NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
+    self.m_Window = [[NSWindow alloc] initWithContentRect:NSMakeRect(100, 100, 700, 480) styleMask: NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
 
-    [self.window setFrameAutosaveName:@"nativeConsole"];
-    [self.window setTitle:@"nidium console"];
-    CGRect frame = [[self.window contentView] frame];
+    [self.m_Window setFrameAutosaveName:@"nativeConsole"];
+    [self.m_Window setTitle:@"nidium console"];
+    CGRect frame = [[self.m_Window contentView] frame];
     NSButton *btn = [[NSButton alloc] initWithFrame:NSMakeRect(10, 3, 100, 25)];
     [btn setButtonType:NSMomentaryLightButton]; //Set what type button You want
     [btn setBezelStyle:NSRegularSquareBezelStyle]; //Set what style You want
@@ -76,8 +76,8 @@
 
     [window makeFirstResponder:textview];
 
-    [self.window setContentBorderThickness:32.0 forEdge:NSMinYEdge];
-    [self.window release];
+    [self.m_Window setContentBorderThickness:32.0 forEdge:NSMinYEdge];
+    [self.m_Window release];
     [self.textview release];
 
     [textview insertText:@"Console ready.\n"];
@@ -94,7 +94,7 @@
 
 - (void) log:(NSString *)str
 {
-    if (!self.isHidden) {
+    if (!self.m_IsHidden) {
         @try {
             [[[textview textStorage] mutableString] appendString: str];
         } @catch(NSException *e) {}
@@ -140,9 +140,9 @@
 
 NativeUICocoaConsole::NativeUICocoaConsole()
 {
-    this->window = [[NativeConsole alloc] init];
-    this->needFlush = false;
-    //[this->window attachToStdout];
+    this->m_Window = [[NativeConsole alloc] init];
+    this->m_NeedFlush = false;
+    //[this->m_Window attachToStdout];
     this->show();
     //this->hide();
 }
@@ -152,11 +152,11 @@ void NativeUICocoaConsole::clear()
     if (![NSThread isMainThread]) {
         dispatch_async(dispatch_get_main_queue(), ^{
             this->flush();
-            [this->window clear];
+            [this->m_Window clear];
         });
     } else {
         this->flush();
-        [this->window clear];
+        [this->m_Window clear];
     }
 
 }
@@ -164,35 +164,35 @@ void NativeUICocoaConsole::clear()
 void NativeUICocoaConsole::flush()
 {
     if (needFlush) {
-        [[[this->window textview] textStorage] endEditing];
-        [[this->window textview] scrollRangeToVisible: NSMakeRange ([[this->window.textview string] length], 0)];
+        [[[this->m_Window textview] textStorage] endEditing];
+        [[this->m_Window textview] scrollRangeToVisible: NSMakeRange ([[this->m_Window.textview string] length], 0)];
         needFlush = false;
     }
 }
 
 void NativeUICocoaConsole::hide()
 {
-    if (this->isHidden) {
+    if (this->m_IsHidden) {
         return;
     }
-    [this->window.window orderOut:nil];
-    this->isHidden = true;
-    [this->window setIsHidden:YES];
+    [this->m_Window.window orderOut:nil];
+    this->m_IsHidden = true;
+    [this->m_Window setIsHidden:YES];
 }
 
 bool NativeUICocoaConsole::hidden()
 {
-    return this->isHidden;
+    return this->m_IsHidden;
 }
 
 void NativeUICocoaConsole::show()
 {
-    if (!this->isHidden) {
+    if (!this->m_IsHidden) {
         return;
     }
-    [this->window.window orderFront:nil];
-    this->isHidden = false;
-    [this->window setIsHidden:NO];
+    [this->m_Window.window orderFront:nil];
+    this->m_IsHidden = false;
+    [this->m_Window setIsHidden:NO];
 }
 
 void NativeUICocoaConsole::log(const char *str)
@@ -202,14 +202,14 @@ void NativeUICocoaConsole::log(const char *str)
 
     _closure func = ^{
         if (!needFlush) {
-            [[[this->window textview] textStorage] beginEditing];
+            [[[this->m_Window textview] textStorage] beginEditing];
             needFlush = true;
         }
-        if (this->isHidden) {
+        if (this->m_IsHidden) {
             return;
         }
         NSString *nstr = [NSString stringWithCString:copy_str encoding:NSUTF8StringEncoding];
-        [this->window log:nstr];
+        [this->m_Window log:nstr];
 
         free(copy_str);
     };
@@ -225,5 +225,5 @@ void NativeUICocoaConsole::log(const char *str)
 
 NativeUICocoaConsole::~NativeUICocoaConsole()
 {
-    [this->window release];
+    [this->m_Window release];
 }

@@ -42,68 +42,68 @@ const uint8_t *NativeSkImage::getPixels(size_t *len)
     if (len) {
         *len = 0;
     }
-    if (!img) {
+    if (!m_Image) {
         return NULL;
     }
 
     if (len) {
-        *len = img->getSize();
+        *len = m_Image->getSize();
     }
-    void *data = img->getPixels();
+    void *data = m_Image->getPixels();
 
-    printf("Pixels : %x %d\n", ((uint8_t *)data)[500], img->height());
+    printf("Pixels : %x %d\n", ((uint8_t *)data)[500], m_Image->height());
 
-    return (const uint8_t *)img->getPixels();
+    return (const uint8_t *)m_Image->getPixels();
 }
 
 NativeSkImage::NativeSkImage(SkCanvas *canvas)
 {
     //canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
 
-    isCanvas = 1;
-    canvasRef = canvas;
+    m_IsCanvas = 1;
+    m_CanvasRef = canvas;
     canvas->ref();
-    img = NULL;
+    m_Image = NULL;
 }
 
 NativeSkImage::NativeSkImage(void *data, size_t len) :
-    canvasRef(NULL)
+    m_CanvasRef(NULL)
 {
-    img = new SkBitmap();
-    isCanvas = 0;
+    m_Image = new SkBitmap();
+    m_IsCanvas = 0;
 
-    if (!SkImageDecoder::DecodeMemory(data, len, img)) {
+    if (!SkImageDecoder::DecodeMemory(data, len, m_Image)) {
         printf("failed to decode Image\n");
-        delete img;
-        img = NULL;
+        delete m_Image;
+        m_Image = NULL;
     }
 }
 
 NativeSkImage::~NativeSkImage()
 {
-    if (canvasRef) canvasRef->unref();
-    if (img) {
-        delete img;
+    if (m_CanvasRef) m_CanvasRef->unref();
+    if (m_Image) {
+        delete m_Image;
     }
 }
 
 int NativeSkImage::getWidth()
 {
-    return img->width();
+    return m_Image->width();
 }
 
 int NativeSkImage::getHeight()
 {
-    return img->height();
+    return m_Image->height();
 }
 
 void NativeSkImage::shiftHue(int val, U8CPU alpha)
 {
-    if (!img) return;
+    if (!m_Image) return;
 
-    size_t size = img->getSize() >> img->shiftPerPixel();
+    size_t size = m_Image->getSize() >> m_Image->shiftPerPixel();
 
-    SkColor *pixels = (SkColor *)img->getPixels();
+    SkColor *pixels = (SkColor *)m_Image->getPixels();
 
     for (int i = 0; i < size; i++) {
 
@@ -122,16 +122,16 @@ void NativeSkImage::shiftHue(int val, U8CPU alpha)
         pixels[i] = SkHSVToColor(SkColorGetA(pixel), hsv);
     }
 
-    img->notifyPixelsChanged();
+    m_Image->notifyPixelsChanged();
 }
 
 void NativeSkImage::markColorsInAlpha()
 {
-    if (!img) return;
+    if (!m_Image) return;
 
-    size_t size = img->getSize() >> img->shiftPerPixel();
+    size_t size = m_Image->getSize() >> m_Image->shiftPerPixel();
 
-    SkColor *pixels = (SkColor *)img->getPixels();
+    SkColor *pixels = (SkColor *)m_Image->getPixels();
     for (int i = 0; i < size; i++) {
         U8CPU alpha = 0;
 
@@ -152,17 +152,17 @@ void NativeSkImage::markColorsInAlpha()
         pixels[i] = SkColorSetA(pixels[i], alpha);
     }
 
-    img->notifyPixelsChanged();
+    m_Image->notifyPixelsChanged();
 
 }
 
 void NativeSkImage::desaturate()
 {
-    if (!img) return;
+    if (!m_Image) return;
 
-    size_t size = img->getSize() >> img->shiftPerPixel();
+    size_t size = m_Image->getSize() >> m_Image->shiftPerPixel();
 
-    SkColor *pixels = (SkColor *)img->getPixels();
+    SkColor *pixels = (SkColor *)m_Image->getPixels();
     for (int i = 0; i < size; i++) {
         SkColor pixel = pixels[i];
 
@@ -177,7 +177,7 @@ void NativeSkImage::desaturate()
         pixels[i] = SkHSVToColor(SkColorGetA(pixel), hsv);
     }
 
-    img->notifyPixelsChanged();
+    m_Image->notifyPixelsChanged();
 }
 
 
@@ -190,9 +190,9 @@ bool NativeSkImage::ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba,
     const unsigned char *pixels;
     int width;
 
-    nimg->img->lockPixels();
-    if ((pixels = static_cast<const unsigned char*>(nimg->img->getPixels())) == NULL) {
-        nimg->img->unlockPixels();
+    nimg->m_Image->lockPixels();
+    if ((pixels = static_cast<const unsigned char*>(nimg->m_Image->getPixels())) == NULL) {
+        nimg->m_Image->unlockPixels();
         return false;
     }
 

@@ -266,11 +266,11 @@ static bool NativeExtractMain(const char *buf, int len,
 {
     NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)user;
 
-    memcpy(UI->mainjs.buf+UI->mainjs.offset, buf, len);
-    UI->mainjs.offset += len;
+    memcpy(UI->m_m_Mainjs.buf+UI->m_m_Mainjs.offset, buf, len);
+    UI->m_m_Mainjs.offset += len;
 
     if (offset == total) {
-        if (UI->NJS->LoadScriptContent(UI->mainjs.buf, total, "main.js")) {
+        if (UI->NJS->LoadScriptContent(UI->m_m_Mainjs.buf, total, "main.js")) {
             UI->NJS->Loaded();
 
         }
@@ -295,8 +295,8 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
 
 void NativeCocoaUIInterface::log(const char *buf)
 {
-    if (this->console && !this->console->isHidden) {
-        this->console->log(buf);
+    if (this->m_Console && !this->m_Console->isHidden) {
+        this->m_Console->log(buf);
     } else {
         fwrite(buf, sizeof(char), strlen(buf), stdout);
         fflush(stdout);
@@ -332,8 +332,8 @@ void NativeCocoaUIInterface::vlog(const char *format, va_list ap)
 
 void NativeCocoaUIInterface::logclear()
 {
-    if (this->console && !this->console->isHidden) {
-        this->console->clear();
+    if (this->m_Console && !this->m_Console->isHidden) {
+        this->m_Console->clear();
     }
 }
 
@@ -351,7 +351,7 @@ void NativeCocoaUIInterface::onNMLLoaded()
 
 void NativeCocoaUIInterface::stopApplication()
 {
-    [this->dragNSView setResponder:nil];
+    [this->m_DragNSView setResponder:nil];
     this->disableSysTray();
     m_SystemMenu.deleteItems();
 
@@ -447,9 +447,9 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
 
             app->extractApp(uidpath, NativeDoneExtracting, this);
             free(uidpath);
-            /*this->mainjs.buf = (char *)malloc(fsize);
-            this->mainjs.len = fsize;
-            this->mainjs.offset = 0;
+            /*this->m_Mainjs.buf = (char *)malloc(fsize);
+            this->m_Mainjs.len = fsize;
+            this->m_Mainjs.offset = 0;
 
             printf("Start looking for main.js of size : %ld\n", fsize);*/
             return true;
@@ -473,9 +473,9 @@ NativeCocoaUIInterface::NativeCocoaUIInterface() :
     this->initialized = false;
     this->nml = NULL;
     this->filePath = NULL;
-    this->console = NULL;
+    this->m_Console = NULL;
 
-    this->dragNSView = nil;
+    this->m_DragNSView = nil;
 
     this->currentCursor = NOCHANGE;
     this->NativeCtx = NULL;
@@ -487,11 +487,11 @@ NativeCocoaUIInterface::NativeCocoaUIInterface() :
 
 NativeUICocoaConsole *NativeCocoaUIInterface::getConsole(bool create, bool *created) {
     if (created) *created = false;
-    if (this->console == NULL && create) {
-        this->console = new NativeUICocoaConsole;
+    if (this->m_Console == NULL && create) {
+        this->m_Console = new NativeUICocoaConsole;
         if (created) *created = true;
     }
-    return this->console;
+    return this->m_Console;
 }
 
 bool NativeCocoaUIInterface::createWindow(int width, int height)
@@ -534,8 +534,8 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
         window = NativeCocoaWindow(win);
 
-        this->dragNSView = [[NativeDragNSView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
-        [[window contentView] addSubview:this->dragNSView];
+        this->m_DragNSView = [[NativeDragNSView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
+        [[window contentView] addSubview:this->m_DragNSView];
 
         this->patchSDLView([window contentView]);
 
@@ -585,7 +585,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
     NativeContext::CreateAndAssemble(this, gnet);
 
-    [this->dragNSView setResponder:NativeJSwindow::getNativeClass(NativeCtx->getNJS())];
+    [this->m_DragNSView setResponder:NativeJSwindow::getNativeClass(NativeCtx->getNJS())];
 
     return true;
 }

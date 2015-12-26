@@ -50,7 +50,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
             char *buf;
             size_t len;
             size_t offset;
-        } mainjs;
+        } m_Mainjs;
 
         void onNMLLoaded();
 
@@ -75,8 +75,8 @@ class NativeCocoaUIInterface : public NativeUIInterface
         */
         void patchSDLView(NSView *sdlview);
 
-        NativeUICocoaConsole *console;
-        NativeDragNSView *dragNSView;
+        NativeUICocoaConsole *m_Console;
+        NativeDragNSView *m_DragNSView;
         NSStatusItem *m_StatusItem;
         NativeCocoaUIInterfaceWrapper *m_Wrapper;
 };

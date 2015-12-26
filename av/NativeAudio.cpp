@@ -31,40 +31,40 @@ static uint32_t upperPow2(uint32_t num)
 }
 
 NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sampleRate)
-    : net(n), sourcesCount(0), output(NULL), inputStream(NULL),
-      outputStream(NULL), rBufferOutData(NULL), volume(1),
-      m_SourceNeedWork(false), m_SharedMsgFlush(false), threadShutdown(false), sources(NULL), m_MainCtx(NULL)
+    : m_Net(n), m_SourcesCount(0), m_Output(NULL), m_InputStream(NULL),
+      m_OutputStream(NULL), m_rBufferOutData(NULL), m_volume(1),
+      m_SourceNeedWork(false), m_SharedMsgFlush(false), m_ThreadShutdown(false), m_Sources(NULL), m_MainCtx(NULL)
 {
-    NATIVE_PTHREAD_VAR_INIT(&this->queueHaveData);
-    NATIVE_PTHREAD_VAR_INIT(&this->queueHaveSpace);
-    NATIVE_PTHREAD_VAR_INIT(&this->queueNeedData);
-    NATIVE_PTHREAD_VAR_INIT(&this->queueMessagesFlushed);
+    NATIVE_PTHREAD_VAR_INIT(&m_QueueHaveData);
+    NATIVE_PTHREAD_VAR_INIT(&m_QueueHaveSpace);
+    NATIVE_PTHREAD_VAR_INIT(&m_QueueNeedData);
+    NATIVE_PTHREAD_VAR_INIT(&m_QueueMessagesFlushed);
 
     pthread_mutexattr_t mta;
     pthread_mutexattr_init(&mta);
     pthread_mutexattr_settype(&mta, PTHREAD_MUTEX_RECURSIVE);
 
-    pthread_mutex_init(&this->sourcesLock, &mta);
-    pthread_mutex_init(&this->recurseLock, &mta);
+    pthread_mutex_init(&m_SourcesLock, &mta);
+    pthread_mutex_init(&m_RecurseLock, &mta);
 
     av_register_all();
 
-    this->sharedMsg = new NativeSharedMessages();
+    m_SharedMsg = new NativeSharedMessages();
 
-    this->outputParameters = new NativeAudioParameters(bufferSize, channels, NativeAudio::FLOAT32, sampleRate);
+    m_OutputParameters = new NativeAudioParameters(bufferSize, channels, NativeAudio::FLOAT32, sampleRate);
 
     // Portaudio ring buffer needs a number power of two
     // for the number of elements in the ring buffer
     uint32_t count = upperPow2(bufferSize * channels);
 
-    this->rBufferOut = new PaUtilRingBuffer();
-    this->rBufferOutData = (float *)calloc(count, NativeAudio::FLOAT32);
+    m_rBufferOut = new PaUtilRingBuffer();
+    m_rBufferOutData = (float *)calloc(count, NativeAudio::FLOAT32);
 
-    PaUtil_InitializeRingBuffer(this->rBufferOut, NativeAudio::FLOAT32,
-            count, this->rBufferOutData);
+    PaUtil_InitializeRingBuffer(m_rBufferOut, NativeAudio::FLOAT32,
+            count, m_rBufferOutData);
 
-    pthread_create(&this->threadDecode, NULL, NativeAudio::decodeThread, this);
-    pthread_create(&this->threadQueue, NULL, NativeAudio::queueThread, this);
+    pthread_create(&m_ThreadDecode, NULL, NativeAudio::decodeThread, this);
+    pthread_create(&m_ThreadQueue, NULL, NativeAudio::queueThread, this);
 }
 
 void *NativeAudio::queueThread(void *args)
@@ -79,7 +79,7 @@ void *NativeAudio::queueThread(void *args)
 
         if (msgFlush && audio->m_SharedMsgFlush) {
             audio->m_SharedMsgFlush = false;
-            NATIVE_PTHREAD_SIGNAL(&audio->queueMessagesFlushed);
+            NATIVE_PTHREAD_SIGNAL(&audio->m_QueueMessagesFlushed);
         }
 
         // Using a trylock because we don't want to wait for another thread to
@@ -88,13 +88,13 @@ void *NativeAudio::queueThread(void *args)
         // Example : For shutdown, we need to suspend the queue thread (using
         // NativeAudio::lockQueue()) but we also need the ability to read
         // shared messages for shuting down various nodes.
-        int lockErr = pthread_mutex_trylock(&audio->recurseLock);
+        int lockErr = pthread_mutex_trylock(&audio->m_RecurseLock);
 
-        if (lockErr == 0 && audio->output != NULL && msgFlush != true) {
+        if (lockErr == 0 && audio->m_Output != NULL && msgFlush != true) {
             wrote = false;
 
-            if (audio->threadShutdown) {
-                pthread_mutex_unlock(&audio->recurseLock);
+            if (audio->m_ThreadShutdown) {
+                pthread_mutex_unlock(&audio->m_RecurseLock);
                 break;
             }
 
@@ -105,46 +105,46 @@ void *NativeAudio::queueThread(void *args)
 
                 audio->processQueue();
 
-                if (!audio->output->processed) {
+                if (!audio->m_Output->m_Processed) {
                     break;
                 }
 
                 wrote = true;
-                audio->output->processed = false;
+                audio->m_Output->m_Processed = false;
 
                 // Copy output node frame data to output ring buffer
                 // XXX : Find a more efficient way to copy data to output right buffer
-                for (int i = 0; i < audio->outputParameters->framesPerBuffer; i++) {
-                    for (int j = 0; j < audio->outputParameters->channels; j++) {
-                        audio->output->frames[j][i] *= audio->volume;
-                        PaUtil_WriteRingBuffer(audio->rBufferOut, &audio->output->frames[j][i], 1);
+                for (int i = 0; i < audio->m_OutputParameters->m_FramesPerBuffer; i++) {
+                    for (int j = 0; j < audio->m_OutputParameters->m_Channels; j++) {
+                        audio->m_Output->m_Frames[j][i] *= audio->m_volume;
+                        PaUtil_WriteRingBuffer(audio->m_rBufferOut, &audio->m_Output->m_Frames[j][i], 1);
                     }
                 }
             }
 
             if (wrote) {
                 SPAM(("Sending queueNeedData\n"));
-                NATIVE_PTHREAD_SIGNAL(&audio->queueNeedData);
+                NATIVE_PTHREAD_SIGNAL(&audio->m_QueueNeedData);
             }
         }
 
         if (lockErr == 0) {
-            pthread_mutex_unlock(&audio->recurseLock);
+            pthread_mutex_unlock(&audio->m_RecurseLock);
         }
 
-        if (audio->threadShutdown) break;
+        if (audio->m_ThreadShutdown) break;
 
         if (!audio->canWriteFrame()) {
             SPAM(("Waiting for more space\n"));
-            NATIVE_PTHREAD_WAIT(&audio->queueHaveSpace)
+            NATIVE_PTHREAD_WAIT(&audio->m_QueueHaveSpace)
         } else {
             SPAM(("Waiting for more data\n"));
-            NATIVE_PTHREAD_WAIT(&audio->queueHaveData)
+            NATIVE_PTHREAD_WAIT(&audio->m_QueueHaveData)
         }
 
-        if (audio->threadShutdown) break;
+        if (audio->m_ThreadShutdown) break;
 
-        SPAM(("Queue thead is now working shutdown=%d\n", audio->threadShutdown));
+        SPAM(("Queue thead is now working shutdown=%d\n", audio->m_ThreadShutdown));
     }
 
     audio->readMessages(true);
@@ -164,20 +164,20 @@ void NativeAudio::readMessages(bool flush)
 #define MAX_MSG_IN_ROW 1024
     NativeSharedMessages::Message *msg;
     int nread = 0;
-    while (((!flush && ++nread < MAX_MSG_IN_ROW) || flush) && (msg = this->sharedMsg->readMessage())) {
+    while (((!flush && ++nread < MAX_MSG_IN_ROW) || flush) && (msg = m_SharedMsg->readMessage())) {
         switch (msg->event()) {
             case NATIVE_AUDIO_NODE_CALLBACK : {
                 NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg->dataPtr());
-                cbkMsg->cbk(cbkMsg->node, cbkMsg->custom);
+                cbkMsg->m_Cbk(cbkMsg->m_Node, cbkMsg->m_Custom);
                 delete cbkMsg;
             }
             break;
             case NATIVE_AUDIO_NODE_SET : {
                 NativeAudioNode::Message *nodeMsg =  static_cast<NativeAudioNode::Message *>(msg->dataPtr());
-                if (nodeMsg->arg->ptr == NULL) {
-                    nodeMsg->arg->cbk(nodeMsg->node, nodeMsg->arg->id, nodeMsg->val, nodeMsg->size);
+                if (nodeMsg->m_Arg->m_Ptr == NULL) {
+                    nodeMsg->m_Arg->m_Cbk(nodeMsg->m_Node, nodeMsg->m_Arg->m_Id, nodeMsg->m_Val, nodeMsg->m_Size);
                 } else {
-                    memcpy(nodeMsg->arg->ptr, nodeMsg->val, nodeMsg->size);
+                    memcpy(nodeMsg->m_Arg->m_Ptr, nodeMsg->m_Val, nodeMsg->m_Size);
                 }
 
                 delete nodeMsg;
@@ -185,7 +185,7 @@ void NativeAudio::readMessages(bool flush)
             break;
             case NATIVE_AUDIO_CALLBACK :
                 NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg->dataPtr());
-                cbkMsg->cbk(NULL, cbkMsg->custom);
+                cbkMsg->m_Cbk(NULL, cbkMsg->m_Custom);
                 delete cbkMsg;
             break;
         }
@@ -198,12 +198,12 @@ void NativeAudio::readMessages(bool flush)
 void NativeAudio::processQueue()
 {
     SPAM(("process queue\n"));
-    NativeAudioSources *sources = this->sources;
+    NativeAudioSources *sources = m_Sources;
 
     while (sources!= NULL)
     {
-        SPAM(("curr=%p connected=%d\n", sources->curr, sources->curr->isConnected));
-        if (sources->curr != NULL && sources->curr->isConnected) {
+        SPAM(("curr=%p connected=%d\n", m_Sources->curr, m_Sources->curr->m_IsConnected));
+        if (sources->curr != NULL && sources->curr->m_IsConnected) {
             sources->curr->processQueue();
         }
         sources = sources->next;
@@ -221,11 +221,11 @@ void *NativeAudio::decodeThread(void *args)
 
     for(;;) {
         // Go through all the sources that need data to be decoded
-        pthread_mutex_lock(&audio->sourcesLock);
+        pthread_mutex_lock(&audio->m_SourcesLock);
 
-        sources = audio->sources;
+        sources = audio->m_Sources;
         haveEnought = 0;
-        sourcesCount = audio->sourcesCount;
+        sourcesCount = audio->m_SourcesCount;
 
         while (sources != NULL)
         {
@@ -237,29 +237,29 @@ void *NativeAudio::decodeThread(void *args)
                 // Loop as long as there is data to read and write
                 while (source->work()) {}
 
-                if (source->avail() >= audio->outputParameters->framesPerBuffer * 2) {
+                if (source->avail() >= audio->m_OutputParameters->m_FramesPerBuffer * 2) {
                     haveEnought++;
                     //audio->notEmpty = false;
                 }
 
-                if (!source->opened || !source->playing) {
+                if (!source->m_Opened || !source->m_Playing) {
                     sourcesCount--;
                 }
             }
             sources = sources->next;
         }
-        pthread_mutex_unlock(&audio->sourcesLock);
-        SPAM(("haveEnought %d / sourcesCount %d\n", haveEnought, sourcesCount));
+        pthread_mutex_unlock(&audio->m_SourcesLock);
+        SPAM(("haveEnought %d / sourcesCount %d\n", haveEnought, m_SourcesCount));
 
         // FIXME : find out why when playing multiple song,
         // the commented expression bellow fail to work
-        if (audio->sourcesCount > 0 /*&& haveEnought == sourcesCount*/) {
+        if (audio->m_SourcesCount > 0 /*&& haveEnought == sourcesCount*/) {
             if (audio->canWriteFrame()) {
-                SPAM(("Have data %lu\n", PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut)));
-                NATIVE_PTHREAD_SIGNAL(&audio->queueHaveData);
+                SPAM(("Have data %lu\n", PaUtil_GetRingBufferWriteAvailable(audio->m_rBufferOut)));
+                NATIVE_PTHREAD_SIGNAL(&audio->m_QueueHaveData);
                 //audio->haveData = true;
             }  else {
-                SPAM(("dont Have data %lu\n", PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut)));
+                SPAM(("dont Have data %lu\n", PaUtil_GetRingBufferWriteAvailable(audio->m_rBufferOut)));
             }
         }
 
@@ -268,7 +268,7 @@ void *NativeAudio::decodeThread(void *args)
         // Wait for work to do unless some source need to wakeup
         if (!audio->m_SourceNeedWork) {
             SPAM(("Waitting for queueNeedData m_SourceNeedWork=%d\n", audio->m_SourceNeedWork));
-            NATIVE_PTHREAD_WAIT(&audio->queueNeedData);
+            NATIVE_PTHREAD_WAIT(&audio->m_QueueNeedData);
             SPAM(("QueueNeedData received\n"));
         } else {
             SPAM(("decodeThread not sleeping cause it need wakup\n"));
@@ -302,17 +302,17 @@ int NativeAudio::openOutput() {
 
     // Set output parameters for PortAudio
     paOutputParameters.device = device;
-    paOutputParameters.channelCount = this->outputParameters->channels;
+    paOutputParameters.channelCount = m_OutputParameters->m_Channels;
     paOutputParameters.suggestedLatency = infos->defaultLowInputLatency;
     paOutputParameters.hostApiSpecificStreamInfo = 0; /* no api specific data */
     paOutputParameters.sampleFormat = paFloat32;
 
     // Try to open the output
-    error = Pa_OpenStream(&this->outputStream,
+    error = Pa_OpenStream(&m_OutputStream,
             0,
             &paOutputParameters,
-            this->outputParameters->sampleRate,
-            this->outputParameters->framesPerBuffer,
+            m_OutputParameters->m_SampleRate,
+            m_OutputParameters->m_FramesPerBuffer,
             paNoFlag,
             &NativeAudio::paOutputCallback,
             (void *)this);
@@ -325,7 +325,7 @@ int NativeAudio::openOutput() {
 
     printf("[NativeAudio] output opened with latency to %f\n", infos->defaultHighOutputLatency);
 
-    Pa_StartStream(this->outputStream);
+    Pa_StartStream(m_OutputStream);
 
     return 0;
 }
@@ -340,18 +340,18 @@ int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuf
     (void) inputBuffer;
 
     float *out = (float*)outputBuffer;
-    int channels = this->outputParameters->channels;
-    ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(this->rBufferOut) / channels;
+    int channels = m_OutputParameters->m_Channels;
+    ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(m_rBufferOut) / channels;
     avail = framesPerBuffer > avail ? avail : framesPerBuffer;
     int left = framesPerBuffer - avail;
 
 
-    //PaUtil_ReadRingBuffer(this->rBufferOut, out, avail * channels);
-    PaUtil_ReadRingBuffer(this->rBufferOut, out, avail * channels);
+    //PaUtil_ReadRingBuffer(m_rBufferOut, out, avail * channels);
+    PaUtil_ReadRingBuffer(m_rBufferOut, out, avail * channels);
 
 #if 0
     SPAM(("frames per buffer = %ld avail = %ld processing = %ld left = %d\n",
-        framesPerBuffer, PaUtil_GetRingBufferReadAvailable(this->rBufferOut), avail, left));
+        m_FramesPerBuffer, PaUtil_GetRingBufferReadAvailable(m_rBufferOut), avail, left));
     if (left > 0) {
         SPAM(("WARNING DROPING %d\n", left));
     }
@@ -362,7 +362,7 @@ int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuf
         *out++ = 0.0f;
     }
 
-    NATIVE_PTHREAD_SIGNAL(&this->queueHaveSpace);
+    NATIVE_PTHREAD_SIGNAL(&m_QueueHaveSpace);
 
     return paContinue;
 }
@@ -381,20 +381,20 @@ int NativeAudio::paOutputCallback(const void *inputBuffer, void *outputBuffer,
 
 bool NativeAudio::haveSourceActive(bool excludeExternal)
 {
-    pthread_mutex_lock(&this->sourcesLock);
-    NativeAudioSources *sources = this->sources;
+    pthread_mutex_lock(&m_SourcesLock);
+    NativeAudioSources *sources = m_Sources;
     while (sources != NULL)
     {
         NativeAudioNode *node = sources->curr;
         if (node != NULL && (!excludeExternal || (excludeExternal && !sources->externallyManaged))) {
             if (node->isActive()) {
-                pthread_mutex_unlock(&this->sourcesLock);
+                pthread_mutex_unlock(&m_SourcesLock);
                 return true;
             }
         }
         sources = sources->next;
     }
-    pthread_mutex_unlock(&this->sourcesLock);
+    pthread_mutex_unlock(&m_SourcesLock);
     return false;
 }
 
@@ -417,42 +417,41 @@ int NativeAudio::getSampleSize(int sampleFormat) {
 }
 
 double NativeAudio::getLatency() {
-    ring_buffer_size_t queuedAudio = PaUtil_GetRingBufferReadAvailable(this->rBufferOut);
-    return (queuedAudio * ((double)1/this->outputParameters->sampleRate)) / this->outputParameters->channels;
+    ring_buffer_size_t queuedAudio = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
+    return (queuedAudio * ((double)1/m_OutputParameters->m_SampleRate)) / m_OutputParameters->m_Channels;
 }
 
 NativeAudioNode *NativeAudio::addSource(NativeAudioNode *source, bool externallyManaged)
 {
     NativeAudioSources *sources = new NativeAudioSources();
 
-    pthread_mutex_lock(&this->sourcesLock);
-    pthread_mutex_lock(&this->recurseLock);
+    pthread_mutex_lock(&m_SourcesLock);
+    pthread_mutex_lock(&m_RecurseLock);
 
     sources->curr = source;
     sources->externallyManaged = externallyManaged;
     sources->prev = NULL;
-    sources->next = this->sources;
+    sources->next = m_Sources;
 
-    if (this->sources != NULL) {
-        this->sources->prev = sources;
+    if (m_Sources != NULL) {
+        m_Sources->prev = sources;
     }
 
-    this->sources = sources;
+    m_Sources = sources;
+    m_SourcesCount++;
 
-    this->sourcesCount++;
-
-    pthread_mutex_unlock(&this->recurseLock);
-    pthread_mutex_unlock(&this->sourcesLock);
+    pthread_mutex_unlock(&m_RecurseLock);
+    pthread_mutex_unlock(&m_SourcesLock);
 
     return sources->curr;
 }
 
 void NativeAudio::removeSource(NativeAudioSource *source)
 {
-    pthread_mutex_lock(&this->sourcesLock);
-    pthread_mutex_lock(&this->recurseLock);
+    pthread_mutex_lock(&m_SourcesLock);
+    pthread_mutex_lock(&m_RecurseLock);
 
-    NativeAudioSources *sources = this->sources;
+    NativeAudioSources *sources = m_Sources;
 
     while (sources != NULL)
     {
@@ -461,7 +460,7 @@ void NativeAudio::removeSource(NativeAudioSource *source)
             if (sources->prev != NULL) {
                 sources->prev->next = sources->next;
             } else {
-                this->sources = sources->next;
+                m_Sources = sources->next;
             }
             if (sources->next != NULL) {
                 sources->next->prev = sources->prev;
@@ -469,16 +468,16 @@ void NativeAudio::removeSource(NativeAudioSource *source)
 
             delete sources;
 
-            pthread_mutex_unlock(&this->recurseLock);
-            pthread_mutex_unlock(&this->sourcesLock);
+            pthread_mutex_unlock(&m_RecurseLock);
+            pthread_mutex_unlock(&m_SourcesLock);
 
             return;
         }
         sources = sources->next;
     }
 
-    pthread_mutex_unlock(&this->recurseLock);
-    pthread_mutex_unlock(&this->sourcesLock);
+    pthread_mutex_unlock(&m_RecurseLock);
+    pthread_mutex_unlock(&m_SourcesLock);
 }
 
 NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int output)
@@ -513,9 +512,9 @@ NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int 
                     return new NativeAudioNodeStereoEnhancer(input, output, this);
                 break;
             case TARGET:
-                    if (this->output == NULL) {
-                        this->output = new NativeAudioNodeTarget(input, output, this);
-                        return this->output;
+                    if (m_Output == NULL) {
+                        m_Output = new NativeAudioNodeTarget(input, output, this);
+                        return m_Output;
                     }
                     return NULL;
                 break;
@@ -541,90 +540,90 @@ bool NativeAudio::disconnect(NodeLink *input, NodeLink *output)
 
 void NativeAudio::setVolume(float volume)
 {
-    this->volume = volume;
+    m_volume = volume;
 }
 
 float NativeAudio::getVolume()
 {
-    return this->volume;
+    return m_volume;
 }
 
 void NativeAudio::wakeup()
 {
-    this->m_SharedMsgFlush = true;
+    m_SharedMsgFlush = true;
 
-    NATIVE_PTHREAD_SIGNAL(&this->queueHaveData);
-    NATIVE_PTHREAD_SIGNAL(&this->queueHaveSpace);
+    NATIVE_PTHREAD_SIGNAL(&m_QueueHaveData);
+    NATIVE_PTHREAD_SIGNAL(&m_QueueHaveSpace);
 
-    NATIVE_PTHREAD_WAIT(&this->queueMessagesFlushed);
+    NATIVE_PTHREAD_WAIT(&m_QueueMessagesFlushed);
 }
 
 void NativeAudio::shutdown()
 {
-    this->threadShutdown = true;
+    m_ThreadShutdown = true;
 
-    NATIVE_PTHREAD_SIGNAL(&this->queueHaveData)
-    NATIVE_PTHREAD_SIGNAL(&this->queueHaveSpace)
-    NATIVE_PTHREAD_SIGNAL(&this->queueNeedData)
+    NATIVE_PTHREAD_SIGNAL(&m_QueueHaveData)
+    NATIVE_PTHREAD_SIGNAL(&m_QueueHaveSpace)
+    NATIVE_PTHREAD_SIGNAL(&m_QueueNeedData)
 
-    pthread_join(this->threadQueue, NULL);
-    pthread_join(this->threadDecode, NULL);
+    pthread_join(m_ThreadQueue, NULL);
+    pthread_join(m_ThreadDecode, NULL);
 }
 
 void NativeAudio::lockQueue()
 {
-    pthread_mutex_lock(&this->recurseLock);
+    pthread_mutex_lock(&m_RecurseLock);
 }
 
 void NativeAudio::unlockQueue()
 {
-    pthread_mutex_unlock(&this->recurseLock);
+    pthread_mutex_unlock(&m_RecurseLock);
 }
 
 void NativeAudio::sourceNeedWork(void *ptr)
 {
     NativeAudio *thiz = static_cast<NativeAudio*>(ptr);
     thiz->m_SourceNeedWork = true;
-    NATIVE_PTHREAD_SIGNAL(&thiz->queueNeedData);
+    NATIVE_PTHREAD_SIGNAL(&thiz->m_QueueNeedData);
 }
 
 void NativeAudio::lockSources()
 {
-    pthread_mutex_lock(&this->sourcesLock);
+    pthread_mutex_lock(&m_SourcesLock);
 }
 
 void NativeAudio::unlockSources()
 {
-    pthread_mutex_unlock(&this->sourcesLock);
+    pthread_mutex_unlock(&m_SourcesLock);
 }
 
 bool NativeAudio::canWriteFrame()
 {
-    return PaUtil_GetRingBufferWriteAvailable(this->rBufferOut) >=
-        this->outputParameters->framesPerBuffer * this->outputParameters->channels;
+    return PaUtil_GetRingBufferWriteAvailable(m_rBufferOut) >=
+        m_OutputParameters->m_FramesPerBuffer * m_OutputParameters->m_Channels;
 }
 
 NativeAudio::~NativeAudio() {
-    if (this->threadShutdown == false) {
+    if (m_ThreadShutdown == false) {
         this->shutdown();
     }
 
-    if (this->outputStream != NULL) {
-        Pa_StopStream(this->outputStream);
-        Pa_CloseStream(this->outputStream);
+    if (m_OutputStream != NULL) {
+        Pa_StopStream(m_OutputStream);
+        Pa_CloseStream(m_OutputStream);
     }
 
-    if (this->inputStream != NULL) {
-        Pa_StopStream(this->inputStream);
-        Pa_CloseStream(this->inputStream);
+    if (m_InputStream != NULL) {
+        Pa_StopStream(m_InputStream);
+        Pa_CloseStream(m_InputStream);
     }
 
     Pa_Terminate();
 
-    free(this->rBufferOutData);
+    free(m_rBufferOutData);
 
-    delete this->outputParameters;
-    delete this->rBufferOut;
-    delete this->sharedMsg;
+    delete m_OutputParameters;
+    delete m_rBufferOut;
+    delete m_SharedMsg;
 }
 

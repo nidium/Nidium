@@ -73,20 +73,20 @@ void NativeContext::initStats()
 
 void NativeContext::CreateAndAssemble(NativeUIInterface *ui, ape_global *gnet)
 {
-    new NativeContext(ui, ui->nml, ui->getWidth(), ui->getHeight(), gnet);
+    new NativeContext(ui, ui->m_Nml, ui->getWidth(), ui->getHeight(), gnet);
 }
 
 NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
     m_DebugHandler(NULL), m_UI(nui), m_NML(nml),
-    m_GLState(NULL), m_SizeDirty(false), m_currentClickedHandler(NULL)
+    m_GLState(NULL), m_SizeDirty(false), m_CurrentClickedHandler(NULL)
 {
 
     this->resetInputEvents();
 
     ape_init_pool_list(&m_CanvasEventsCanvas, 0, 8);
 
-    m_UI->NativeCtx = this;
+    m_UI->m_NativeCtx = this;
 
     NativeGLState::CreateForContext(this);
 
@@ -238,7 +238,7 @@ void NativeContext::createDebug2Canvas()
 
 void NativeContext::postDraw()
 {
-    if (NativeJSdocument::showFPS && m_DebugHandler) {
+    if (NativeJSdocument::m_ShowFPS && m_DebugHandler) {
 
         NativeSkia *s = (static_cast<NativeCanvas2DContext *>(m_DebugHandler->getContext())->getSurface());
         m_DebugHandler->bringToFront();
@@ -339,7 +339,7 @@ NativeContext::~NativeContext()
     delete m_WS;
     delete m_JSWindow;
 
-    NativeSkia::glcontext = NULL;
+    NativeSkia::m_GlContext = NULL;
 
     ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
     this->clearInputEvents();
@@ -386,7 +386,7 @@ void NativeContext::frame(bool draw)
     NativeLayerizeContext ctx;
     ctx.reset();
     NativeLayerSiblingContext sctx;
-    ctx.siblingCtx = &sctx;
+    ctx.m_SiblingCtx = &sctx;
 
     m_CanvasOrderedEvents.clear();
 
@@ -523,7 +523,7 @@ bool NativeContext::initShaderLang()
 
 void NativeContext::initHandlers(int width, int height)
 {
-    NativeCanvasHandler::LastIdx = 0;
+    NativeCanvasHandler::m_LastIdx = 0;
 
     m_RootHandler = new NativeCanvasHandler(width, height, this);
 
@@ -600,7 +600,7 @@ bool NativeContext::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWrite
         return false;
     }
 
-    if (JS_GetClass(obj) == NativeCanvas2DContext::ImageData_jsclass) {
+    if (JS_GetClass(obj) == NativeCanvas2DContext::m_ImageData_jsclass) {
         uint32_t dwidth, dheight;
 
         JS::RootedValue iwidth(cx);
@@ -650,7 +650,7 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
             JS::RootedValue arr(cx);
             JS_ReadTypedArray(r, &arr);
 
-            JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, JS::NullPtr(), JS::NullPtr()));
+            JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::m_ImageData_jsclass, JS::NullPtr(), JS::NullPtr()));
             JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
             JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
             JS_DefineProperty(cx, dataObject, "width", widthVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);

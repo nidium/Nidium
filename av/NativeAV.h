@@ -57,11 +57,11 @@ struct Coro;
 class NativeAVReader
 {
     public:
-        NativeAVReader() : pending(false), needWakup(false), async(false)  {};
+        NativeAVReader() : m_Pending(false), m_NeedWakup(false), m_Async(false)  {};
 
-        bool pending;
-        bool needWakup;
-        bool async;
+        bool m_Pending;
+        bool m_NeedWakup;
+        bool m_Async;
 
         virtual void finish() = 0;
         virtual ~NativeAVReader() {};
@@ -77,20 +77,20 @@ class NativeAVBufferReader : public NativeAVReader
         void finish() {};
         ~NativeAVBufferReader() {};
     private:
-        uint8_t *buffer;
-        unsigned long bufferSize;
-        unsigned long pos;
+        uint8_t *m_Buffer;
+        unsigned long m_BufferSize;
+        unsigned long m_Pos;
 };
 
-typedef void (*NativeAVStreamReadCallback)(void *callbackPrivate);
+typedef void (*NativeAVStreamReadCallback)(void *m_CallbackPrivate);
 class NativeAVStreamReader : public NativeAVReader, public NativeMessages
 {
     public:
         NativeAVStreamReader(const char *src, NativeAVStreamReadCallback readCallback,
             void *callbackPrivate, NativeAVSource *source, ape_global *net);
 
-        NativeAVSource *source;
-        int64_t totalRead;
+        NativeAVSource *m_Source;
+        int64_t m_TotalRead;
 
         static int read(void *opaque, uint8_t *buffer, int size);
         static int64_t seek(void *opaque, int64_t offset, int whence);
@@ -107,30 +107,30 @@ class NativeAVStreamReader : public NativeAVReader, public NativeMessages
         void onMessage(const NativeSharedMessages::Message &msg);
         NATIVE_PTHREAD_VAR_DECL(m_ThreadCond);
 
-        NativeBaseStream *stream;
-        NativeAVStreamReadCallback readCallback;
-        void *callbackPrivate;
+        NativeBaseStream *m_Stream;
+        NativeAVStreamReadCallback m_ReadCallback;
+        void *m_CallbackPrivate;
 
-        bool opened;
+        bool m_Opened;
 
-        size_t streamRead;
-        size_t streamPacketSize;
-        int streamErr;
-        size_t streamSeekPos;
-        off_t streamSize;
-        unsigned const char* streamBuffer;
-        int error;
+        size_t m_StreamRead;
+        size_t m_StreamPacketSize;
+        int m_StreamErr;
+        size_t m_StreamSeekPos;
+        off_t m_StreamSize;
+        unsigned const char* m_StreamBuffer;
+        int m_Error;
         bool m_HaveDataAvailable;
 };
 
 
 struct NativeAudioParameters {
-    int bufferSize, channels, sampleFmt, sampleRate, framesPerBuffer;
+    int m_BufferSize, m_Channels, m_SampleFmt, m_SampleRate, m_FramesPerBuffer;
     NativeAudioParameters(int bufferSize, int channels,
                           int sampleFmt, int sampleRate)
-        : bufferSize(bufferSize), channels(channels),
-          sampleFmt(sampleFmt), sampleRate(sampleRate),
-          framesPerBuffer(bufferSize/(sampleFmt * channels))
+        : m_BufferSize(bufferSize), m_Channels(channels),
+          m_SampleFmt(sampleFmt), m_SampleRate(sampleRate),
+          m_FramesPerBuffer(bufferSize/(sampleFmt * channels))
     {
     }
 };
@@ -182,16 +182,16 @@ const char * const NativeAVErrorsStr[ERR_MAX] = {
 };
 
 // Used for event (play, pause, stop, error, buffered...)
-typedef void (*NativeAVSourceEventCallback)(const struct NativeAVSourceEvent*ev);
+typedef void (*NativeAVSourceEventCallback)(const struct NativeAVSourceEvent*m_Ev);
 
 struct NativeAVSourceEvent {
-    NativeAVSource *source;
-    int ev;
-    NativeArgs args;
-    void *custom;
-    bool fromThread;
+    NativeAVSource *m_Source;
+    int m_Ev;
+    NativeArgs m_Args;
+    void *m_Custom;
+    bool m_FromThread;
     NativeAVSourceEvent(NativeAVSource *source, int ev, void *custom, bool fromThread)
-        : source(source), ev(ev), custom(custom), fromThread(fromThread)
+        : m_Source(source), m_Ev(ev), m_Custom(custom), m_FromThread(fromThread)
     {
     };
 };
@@ -204,11 +204,11 @@ class NativeAVSource : public NativeMessages
         friend class NativeAVSource;
         friend class NativeAVStreamReader;
 
-        NativeAVSourceEventCallback eventCbk;
-        void *eventCbkCustom;
-        bool opened;
-        bool eof;
-        static pthread_mutex_t ffmpegLock;
+        NativeAVSourceEventCallback m_EventCbk;
+        void *m_EventCbkCustom;
+        bool m_Opened;
+        bool m_Eof;
+        static pthread_mutex_t m_FfmpegLock;
 
         void eventCallback(NativeAVSourceEventCallback cbk, void *custom);
         NativeAVSourceEvent *createEvent(int ev, bool fromThread);
@@ -235,16 +235,16 @@ class NativeAVSource : public NativeMessages
 
         virtual ~NativeAVSource() = 0;
     protected:
-        AVFormatContext *container;
+        AVFormatContext *m_Container;
 
-        Coro *coro;
-        Coro *mainCoro;
+        Coro *m_Coro;
+        Coro *m_MainCoro;
 
-        bool seeking;
-        bool doSeek;
-        double doSeekTime;
-        int seekFlags;
-        int error;
+        bool m_Seeking;
+        bool m_DoSemek;
+        double m_DoSeekTime;
+        int m_SeekFlags;
+        int m_Error;
 
         bool m_SourceDoOpen;
 
@@ -254,4 +254,3 @@ class NativeAVSource : public NativeMessages
 };
 
 #endif
-

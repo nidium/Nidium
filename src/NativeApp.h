@@ -15,7 +15,7 @@ typedef bool (* NativeAppExtractCallback)(const char * buf,
 class NativeApp
 {
 public:
-    char *path;
+    char *m_Path;
 
     NativeApp(const char *path);
     int open();
@@ -50,14 +50,14 @@ public:
         bool stop;
         uint32_t u32;
         uint8_t  u8;
-    } action;
+    } m_Action;
 
-    pthread_t threadHandle;
-    pthread_mutex_t threadMutex;
-    pthread_cond_t threadCond;
+    pthread_t m_ThreadHandle;
+    pthread_mutex_t m_ThreadMutex;
+    pthread_cond_t m_ThreadCond;
 
-    NativeSharedMessages *messages;
-    struct zip *fZip;
+    NativeSharedMessages *m_Messages;
+    struct zip *m_fZip;
 
     void actionExtractRead(const char *buf, int len,
         size_t offset, size_t total);
@@ -75,11 +75,11 @@ public:
     enum APP_MESSAGE {
         APP_MESSAGE_READ
     };
-    int numFiles;
+    int m_NumFiles;
 private:
 
-    Json::Reader reader;
-    bool workerIsRunning;
+    Json::Reader m_Reader;
+    bool m_WorkerIsRunning;
 
     int loadManifest();
 
@@ -91,9 +91,8 @@ private:
         int height;
     } appInfos;
 
-    struct _ape_timer *timer;
-    struct _ape_global *net;
+    struct _ape_timer *m_Timer;
+    struct _ape_global *m_Net;
 };
 
 #endif
-

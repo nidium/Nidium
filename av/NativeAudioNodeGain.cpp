@@ -4,9 +4,7 @@
 NativeAudioNodeGain::NativeAudioNodeGain(int inCount, int outCount, NativeAudio *audio)
     : NativeAudioNodeProcessor(inCount, outCount, audio)
 {
-    this->args[0] = new ExportsArgs("gain",
-        DOUBLE, GAIN, NativeAudioNodeGain::argCallback);
-
+    m_Args[0] = new ExportsArgs("gain", DOUBLE, GAIN, NativeAudioNodeGain::argCallback);
     m_GainProcessor = new NativeAudioProcessorGain();
 
     this->setProcessor(0, m_GainProcessor);

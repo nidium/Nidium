@@ -13,14 +13,14 @@
 
 /*@FIXME:: refractor the constructor, so that m_JSObjectLayout get's njs'javascript context*/
 NativeNML::NativeNML(ape_global *net) :
-    net(net), stream(NULL), nassets(0),
-    njs(NULL), m_Layout(NULL), m_JSObjectLayout(NULL),
-    m_defaultItemsLoaded(false), m_loadDefaultItems(true)
+    m_Net(net), m_Stream(NULL), m_nAssets(0),
+    m_Njs(NULL), m_Layout(NULL), m_JSObjectLayout(NULL),
+    m_DefaultItemsLoaded(false), m_LoadDefaultItems(true)
 {
-    assetsList.size = 0;
-    assetsList.allocated = 4;
+    m_AssetsList.size = 0;
+    m_AssetsList.allocated = 4;
 
-    assetsList.list = (NativeAssets **)malloc(sizeof(NativeAssets *) * assetsList.allocated);
+    m_AssetsList.list = (NativeAssets **)malloc(sizeof(NativeAssets *) * m_AssetsList.allocated);
 
     this->meta.title = NULL;
     this->meta.size.width = 0;
@@ -39,13 +39,13 @@ NativeNML::~NativeNML()
         m_JSObjectLayout = nullptr;
     }
 
-    if (stream) {
-        delete stream;
+    if (m_Stream) {
+        delete m_Stream;
     }
-    for (int i = 0; i < assetsList.size; i++) {
-        delete assetsList.list[i];
+    for (int i = 0; i < m_AssetsList.size; i++) {
+        delete m_AssetsList.list[i];
     }
-    free(assetsList.list);
+    free(m_AssetsList.list);
     if (this->meta.title) {
         free(this->meta.title);
     }
@@ -56,7 +56,7 @@ NativeNML::~NativeNML()
 
 void NativeNML::setNJS(NativeJS *js)
 {
-    this->njs = js;
+    m_Njs = js;
     /*
     if (m_JSObjectLayout.get()) {
         @FIXME: actually check that it is a context: even better: set the context here, and not in the constructor
@@ -68,15 +68,15 @@ void NativeNML::setNJS(NativeJS *js)
 
 void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
 {
-    this->loaded = cb;
-    this->loaded_arg = arg;
+    m_Loaded = cb;
+    m_LoadedArg = arg;
 
     NativePath path(file);
 
     printf("NML path : %s\n", path.path());
 
-    stream = NativeBaseStream::create(path);
-    if (stream == NULL) {
+    m_Stream = NativeBaseStream::create(path);
+    if (m_Stream == NULL) {
         NativeSystemInterface::getInstance()->
             alert("NML error : stream error",
             NativeSystemInterface::ALERT_CRITIC);
@@ -88,8 +88,8 @@ void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
     NativePath::cd(path.dir());
     NativePath::chroot(path.dir());
 
-    stream->setListener(this);
-    stream->getContent();
+    m_Stream->setListener(this);
+    m_Stream->getContent();
 }
 
 void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
@@ -108,20 +108,20 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
 
     if (data != NULL) {
 
-        switch(item->fileType) {
+        switch(item->m_FileType) {
             case NativeAssets::Item::ITEM_SCRIPT:
             {
-                njs->LoadScriptContent((const char *)data, len, item->getName());
+                m_Njs->LoadScriptContent((const char *)data, len, item->getName());
 
                 break;
             }
             case NativeAssets::Item::ITEM_NSS:
             {
-                NativeJSdocument *jdoc = NativeJSdocument::getNativeClass(njs->cx);
+                NativeJSdocument *jdoc = NativeJSdocument::getNativeClass(m_Njs->cx);
                 if (jdoc == NULL) {
                     return;
                 }
-                jdoc->populateStyle(njs->cx, (const char *)data,
+                jdoc->populateStyle(m_Njs->cx, (const char *)data,
                     len, item->getName());
                 break;
             }
@@ -131,7 +131,7 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
     }
     /* TODO: allow the callback to change content ? */
 
-    NativeJSwindow::getNativeClass(njs)->assetReady(tag);
+    NativeJSwindow::getNativeClass(m_Njs)->assetReady(tag);
 }
 
 static void NativeNML_onAssetsItemRead(NativeAssets::Item *item, void *arg)
@@ -143,11 +143,11 @@ static void NativeNML_onAssetsItemRead(NativeAssets::Item *item, void *arg)
 
 void NativeNML::onAssetsBlockReady(NativeAssets *asset)
 {
-    this->nassets--;
+    m_nAssets--;
 
-    if (this->nassets == 0) {
-        JS::RootedObject layoutObj(njs->cx, m_JSObjectLayout);
-        NativeJSwindow::getNativeClass(njs)->onReady(layoutObj);
+    if (m_nAssets == 0) {
+        JS::RootedObject layoutObj(m_Njs->cx, m_JSObjectLayout);
+        NativeJSwindow::getNativeClass(m_Njs)->onReady(layoutObj);
     }
 }
 
@@ -160,16 +160,16 @@ static void NativeNML_onAssetsReady(NativeAssets *assets, void *arg)
 
 void NativeNML::addAsset(NativeAssets *asset)
 {
-    this->nassets++;
-    if (assetsList.size == assetsList.allocated) {
-        assetsList.allocated *= 2;
-        assetsList.list = (NativeAssets **)realloc(assetsList.list,
-            sizeof(NativeAssets *) * assetsList.allocated);
+    m_nAssets++;
+    if (m_AssetsList.size == m_AssetsList.allocated) {
+        m_AssetsList.allocated *= 2;
+        m_AssetsList.list = (NativeAssets **)realloc(m_AssetsList.list,
+            sizeof(NativeAssets *) * m_AssetsList.allocated);
     }
 
-    assetsList.list[assetsList.size] = asset;
+    m_AssetsList.list[m_AssetsList.size] = asset;
 
-    assetsList.size++;
+    m_AssetsList.size++;
 }
 
 NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
@@ -239,19 +239,19 @@ NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
 
 void NativeNML::loadDefaultItems(NativeAssets *assets)
 {
-    if (m_defaultItemsLoaded || !m_loadDefaultItems) {
+    if (m_DefaultItemsLoaded || !m_LoadDefaultItems) {
         return;
     }
 
-    m_defaultItemsLoaded = true;
+    m_DefaultItemsLoaded = true;
 
     NativeAssets::Item *preload = new NativeAssets::Item("private://preload.js",
-        NativeAssets::Item::ITEM_SCRIPT, net);
+        NativeAssets::Item::ITEM_SCRIPT, m_Net);
 
     assets->addToPendingList(preload);
 
     NativeAssets::Item *falcon = new NativeAssets::Item("private://" NATIVE_FRAMEWORK_STR "/native.js",
-        NativeAssets::Item::ITEM_SCRIPT, net);
+        NativeAssets::Item::ITEM_SCRIPT, m_Net);
 
     assets->addToPendingList(falcon);
 }
@@ -277,14 +277,14 @@ NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
 
         if ((src = child->first_attribute("src"))) {
             item = new NativeAssets::Item(src->value(),
-                NativeAssets::Item::ITEM_UNKNOWN, net);
+                NativeAssets::Item::ITEM_UNKNOWN, m_Net);
 
             /* Name could be automatically changed afterward */
             item->setName(src->value());
 
             assets->addToPendingList(item);
         } else {
-            item = new NativeAssets::Item(NULL, NativeAssets::Item::ITEM_UNKNOWN, net);
+            item = new NativeAssets::Item(NULL, NativeAssets::Item::ITEM_UNKNOWN, m_Net);
             item->setName("inline"); /* TODO: NML name */
             assets->addToPendingList(item);
             item->setContent(child->value(), child->value_size(), true);
@@ -293,14 +293,14 @@ NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
         item->setTagName(child->name());
 
         if (!strncasecmp(child->name(), CONST_STR_LEN("script"))) {
-            item->fileType = NativeAssets::Item::ITEM_SCRIPT;
+            item->m_FileType = NativeAssets::Item::ITEM_SCRIPT;
         } else if (!strncasecmp(child->name(), CONST_STR_LEN("style"))) {
-            item->fileType = NativeAssets::Item::ITEM_NSS;
+            item->m_FileType = NativeAssets::Item::ITEM_NSS;
         }
         //printf("Node : %s\n", child->name());
     }
 
-    assets->endListUpdate(net);
+    assets->endListUpdate(m_Net);
 
     return NIDIUM_XML_OK;
 }
@@ -344,19 +344,19 @@ bool NativeNML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
 
     if (framework) {
         if (strncasecmp(framework->value(), CONST_STR_LEN("false")) == 0) {
-            m_loadDefaultItems = false;
+            m_LoadDefaultItems = false;
         }
     }
 
     for (xml_node<> *child = node->first_node(); child != NULL;
         child = child->next_sibling()) {
-        for (int i = 0; nml_tags[i].str != NULL; i++) {
-            if (!strncasecmp(nml_tags[i].str, child->name(),
+        for (int i = 0; m_NmlTags[i].str != NULL; i++) {
+            if (!strncasecmp(m_NmlTags[i].str, child->name(),
                 child->name_size())) {
 
                 nidium_xml_ret_t ret;
 
-                if ((ret = (this->*nml_tags[i].cb)(*child)) != NIDIUM_XML_OK) {
+                if ((ret = (this->*m_NmlTags[i].cb)(*child)) != NIDIUM_XML_OK) {
                     printf("XML : Nidium error (%d)\n", ret);
                     NativeSystemInterface::getInstance()->alert("NML ERROR", NativeSystemInterface::ALERT_CRITIC);
                     return false;
@@ -453,7 +453,7 @@ JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 */
 JSObject *NativeNML::buildLayoutTree(rapidxml::xml_node<> &node)
 {
-    return BuildLSTFromNode(this->njs->cx, node);
+    return BuildLSTFromNode(m_Njs->cx, node);
 }
 
 static int delete_stream(void *arg)
@@ -476,7 +476,7 @@ void NativeNML::onMessage(const NativeSharedMessages::Message &msg)
                 Some stream can have dynamic path (e.g http 301 or 302).
                 We make sure to update the root path in that case
             */
-            const char *streamPath = stream->getPath();
+            const char *streamPath = m_Stream->getPath();
 
             if (streamPath != NULL) {
                 NativePath path(streamPath);
@@ -517,11 +517,11 @@ void NativeNML::onGetContent(const char *data, size_t len)
     }
 
     if (this->loadData(data_nullterminated, len, doc)) {
-        this->loaded(this->loaded_arg);
+        m_Loaded(m_LoadedArg);
 
         if (m_Layout) {
             m_JSObjectLayout = this->buildLayoutTree(*m_Layout);
-            njs->rootObjectUntilShutdown(m_JSObjectLayout);
+            m_Njs->rootObjectUntilShutdown(m_JSObjectLayout);
         }
     } else {
         /*
@@ -533,9 +533,9 @@ void NativeNML::onGetContent(const char *data, size_t len)
     /* Invalidate layout node since memory pool is free'd */
     m_Layout = NULL;
     /* Stream has ended */
-    ape_global *ape = net;
-    timer_dispatch_async(delete_stream, stream);
-    stream = NULL;
+    ape_global *ape = m_Net;
+    timer_dispatch_async(delete_stream, m_Stream);
+    m_Stream = NULL;
 
     if (needRelease) {
         free(data_nullterminated);

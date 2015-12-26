@@ -17,7 +17,7 @@
 #endif
 
 #define NATIVE_RESAMPLER_BUFFER_SAMPLES 1024
-#define NATIVE_AUDIO_CHECK_EXIT_THREAD if (audio->threadShutdown) {\
+#define NATIVE_AUDIO_CHECK_EXIT_THREAD if (audio->m_ThreadShutdown) {\
     SPAM(("Exiting\n"));\
     return NULL;\
 }\
@@ -58,24 +58,19 @@ class NativeAudio
             STEREO_ENHANCER
         };
 
-        ape_global *net;
+        ape_global *m_Net;
 
-        NativeAudioParameters *outputParameters;
-        NativeAudioParameters *inputParameters;
-
-        NativeSharedMessages *sharedMsg;
-
-        int sourcesCount;
+        NativeAudioParameters *m_OutputParameters;
+        NativeAudioParameters *m_InputParameters;
+        NativeSharedMessages *m_SharedMsg;
+        int m_SourcesCount;
+        NativeAudioNodeTarget *m_Output;
 
         static void *queueThread(void *args);
         static void *decodeThread(void *args);
         void bufferData();
-
         int openOutput();
         int openInput();
-
-        NativeAudioNodeTarget *output;
-
         NativeAudioNode *addSource(NativeAudioNode *source, bool externallyManaged);
         void removeSource(NativeAudioSource *source);
         NativeAudioNode *createNode(NativeAudio::Node node, int input, int ouput);
@@ -83,17 +78,13 @@ class NativeAudio
         bool disconnect(NodeLink *input, NodeLink *output);
         void setVolume(float volume);
         float getVolume();
-
         static inline int getSampleSize(int sampleFmt);
         double getLatency();
-
         void wakeup();
         void shutdown();
-
         static void sourceNeedWork(void *ptr);
         void lockSources();
         void unlockSources();
-
         void lockQueue();
         void unlockQueue();
 
@@ -115,35 +106,27 @@ class NativeAudio
             NativeAudioSources *prev;
         };
 
-        PaStream *inputStream;
-        PaStream *outputStream;
-
-        float *rBufferOutData;
-        float volume;
-
-        pthread_t threadDecode;
-        pthread_t threadQueue;
-
-        NATIVE_PTHREAD_VAR_DECL(queueHaveData)
-        NATIVE_PTHREAD_VAR_DECL(queueHaveSpace)
-        NATIVE_PTHREAD_VAR_DECL(queueNeedData)
-        NATIVE_PTHREAD_VAR_DECL(queueMessagesFlushed)
-
-        pthread_mutex_t shutdownLock, recurseLock, sourcesLock;
-
-        PaUtilRingBuffer *rBufferOut;
-
-        bool haveData, notEmpty;
+        PaStream *m_InputStream;
+        PaStream *m_OutputStream;
+        float *m_rBufferOutData;
+        float m_volume;
+        pthread_t m_ThreadDecode;
+        pthread_t m_ThreadQueue;
+        NATIVE_PTHREAD_VAR_DECL(m_QueueHaveData)
+        NATIVE_PTHREAD_VAR_DECL(m_QueueHaveSpace)
+        NATIVE_PTHREAD_VAR_DECL(m_QueueNeedData)
+        NATIVE_PTHREAD_VAR_DECL(m_QueueMessagesFlushed)
+        pthread_mutex_t m_ShutdownLock, m_RecurseLock, m_SourcesLock;
+        PaUtilRingBuffer *m_rBufferOut;
+        bool m_HaveData, m_NotEmpty;
         bool m_SourceNeedWork;
         bool m_SharedMsgFlush;
-        bool threadShutdown;
-
-        NativeAudioSources *sources;
-        int queueCount;
+        bool m_ThreadShutdown;
+        NativeAudioSources *m_Sources;
+        int m_QueueCount;
 
         void readMessages();
         void readMessages(bool flush);
-
         void processQueue();
         bool canWriteFrame();
 
@@ -160,7 +143,6 @@ class NativeAudio
             unsigned long framesPerBuffer,
             const PaStreamCallbackTimeInfo* timeInfo,
             PaStreamCallbackFlags statusFlags);
-
 };
 
 #endif

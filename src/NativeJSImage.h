@@ -19,7 +19,7 @@ class NativeJSImage : public NativeJSExposer<NativeJSImage>,
     NativeJSImage(JS::HandleObject obj, JSContext *cx);
     virtual ~NativeJSImage();
 
-    NativeSkImage *img;
+    NativeSkImage *m_Image;
     NativeBaseStream *m_Stream;
 
     static NativeSkImage *JSObjectToNativeSkImage(JS::HandleObject obj);
@@ -27,7 +27,7 @@ class NativeJSImage : public NativeJSExposer<NativeJSImage>,
     static bool JSObjectIs(JSContext *cx, JS::HandleObject obj);
     static JSObject *buildImageObject(JSContext *cx, NativeSkImage *image,
         const char name[] = NULL);
-    static JSObject *classe;
+    static JSObject *m_JsClasse;
 
     void onMessage(const NativeSharedMessages::Message &msg);
     /*

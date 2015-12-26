@@ -7,17 +7,17 @@ class SkTypeface;
 
 class nativefont {
 public:
-    SkTypeface *typeface;
+    SkTypeface *m_Typeface;
 
     enum Style {
         kNativeFontBold,
         kNativeFontNormal,
         kNativeFontItalic
-    } style;
+    } m_Style;
 
-    int weight;
+    int m_Weight;
 
-    nativefont *next;
+    nativefont *m_Next;
 };
 
 
@@ -26,10 +26,10 @@ class NativeJSdocument : public NativeJSExposer<NativeJSdocument>
   public:
     NativeJSdocument(JS::HandleObject obj, JSContext *cx) :
     NativeJSExposer<NativeJSdocument>(obj, cx, false),
-        m_stylesheet(NULL), m_Fonts(256000) {};
+        m_Stylesheet(NULL), m_Fonts(256000) {};
     ~NativeJSdocument() {};
 
-    static bool showFPS;
+    static bool m_ShowFPS;
     bool populateStyle(JSContext *cx, const char *data,
         size_t len, const char *filename);
     static JSObject *registerObject(JSContext *cx);
@@ -37,9 +37,9 @@ class NativeJSdocument : public NativeJSExposer<NativeJSdocument>
         return "document";
     }
 
-    static JSClass *jsclass;
+    static JSClass *m_JsClass;
 
-    JS::Heap<JSObject *> m_stylesheet;
+    JS::Heap<JSObject *> m_Stylesheet;
     NativeHash<nativefont *>m_Fonts;
 
     bool loadFont(const char *path, const char *name, int weight = 400,

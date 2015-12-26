@@ -11,25 +11,25 @@
 #include "NativeContext.h"
 #include "NativeUIInterface.h"
 
-int NativeCanvasHandler::LastIdx = 0;
+int NativeCanvasHandler::m_LastIdx = 0;
 
 NativeCanvasHandler::NativeCanvasHandler(int width, int height,
     NativeContext *NativeCtx, bool lazyLoad) :
-    m_Context(NULL), jsobj(NULL), jscx(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
-    right(0.0), bottom(0.0),
+    m_Context(NULL), m_JsObj(NULL), m_JsCx(NULL), m_Left(0.0), m_Top(0.0), m_aLeft(0), m_aTop(0),
+    m_Right(0.0), m_Bottom(0.0),
     m_Overflow(true),
     m_Parent(NULL), m_Children(NULL), m_Next(NULL),
     m_Prev(NULL), m_Last(NULL),
     m_Flags(0),
-    nchildren(0),
-    coordPosition(COORD_RELATIVE),
-    visibility(CANVAS_VISIBILITY_VISIBLE),
+    m_nChildren(0),
+    m_CoordPosition(COORD_RELATIVE),
+    m_Visibility(CANVAS_VISIBILITY_VISIBLE),
     m_FlowMode(kFlowDoesntInteract),
-    coordMode(kLeft_Coord | kTop_Coord),
-    opacity(1.0),
-    zoom(1.0),
-    scaleX(1.0),
-    scaleY(1.0),
+    m_CoordMode(kLeft_Coord | kTop_Coord),
+    m_Opacity(1.0),
+    m_Zoom(1.0),
+    m_ScaleX(1.0),
+    m_ScaleY(1.0),
     m_AllowNegativeScroll(false),
     m_NativeContext(NativeCtx),
     m_Pending(0),
@@ -39,7 +39,7 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height,
     /*
         TODO: thread safe
     */
-    m_Identifier.idx = ++NativeCanvasHandler::LastIdx;
+    m_Identifier.idx = ++NativeCanvasHandler::m_LastIdx;
 
     asprintf(&m_Identifier.str, "%zd", m_Identifier.idx);
 
@@ -55,23 +55,23 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height,
     m_FluidHeight = false;
     m_FluidWidth = false;
 
-    memset(&this->m_Margin, 0, sizeof(this->m_Margin));
-    memset(&this->padding, 0, sizeof(this->padding));
-    memset(&this->translate_s, 0, sizeof(this->translate_s));
-    memset(&this->mousePosition, 0, sizeof(this->mousePosition));
+    memset(&m_Margin, 0, sizeof(m_Margin));
+    memset(&m_Padding, 0, sizeof(m_Padding));
+    memset(&m_Translate_s, 0, sizeof(m_Translate_s));
+    memset(&m_MousePosition, 0, sizeof(m_MousePosition));
 
-    this->mousePosition.consumed = true;
+    m_MousePosition.consumed = true;
 
-    this->content.width = m_Width;
-    this->content.height = m_Height;
+    m_Content.width = m_Width;
+    m_Content.height = m_Height;
 
-    this->content._width = m_Width;
-    this->content._height = m_Height;
+    m_Content._width = m_Width;
+    m_Content._height = m_Height;
 
-    this->content.scrollLeft = 0;
-    this->content.scrollTop = 0;
+    m_Content.scrollLeft = 0;
+    m_Content.scrollTop = 0;
 
-    this->coordMode = kLeft_Coord | kTop_Coord;
+    m_CoordMode = kLeft_Coord | kTop_Coord;
 }
 
 void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mode)
@@ -86,7 +86,7 @@ void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mod
         m_FlowMode &= ~kFlowBreakAndInlinePreviousSibling;
     }
 
-    coordPosition = mode;
+    m_CoordPosition = mode;
     this->computeAbsolutePosition();
 }
 
@@ -105,8 +105,8 @@ void NativeCanvasHandler::setId(const char *str)
 
 void NativeCanvasHandler::translate(double x, double y)
 {
-    this->translate_s.x += x;
-    this->translate_s.y += y;
+    m_Translate_s.x += x;
+    m_Translate_s.y += y;
 }
 
 bool NativeCanvasHandler::setMinWidth(int width)
@@ -228,8 +228,8 @@ void NativeCanvasHandler::setSize(int width, int height, bool redraw)
 void NativeCanvasHandler::deviceSetSize(int width, int height)
 {
     if (m_Context) {
-        m_Context->setSize(width + (this->padding.global * 2),
-            height + (this->padding.global * 2));
+        m_Context->setSize(width + (m_Padding.global * 2),
+            height + (m_Padding.global * 2));
     }
 
     NativeArgs arg;
@@ -267,21 +267,21 @@ void NativeCanvasHandler::setPadding(int padding)
 {
     if (padding < 0) padding = 0;
 
-    if (padding == this->padding.global) {
+    if (padding == m_Padding.global) {
         return;
     }
 
-    int tmppadding = this->padding.global;
+    int tmppadding = m_Padding.global;
 
-    this->padding.global = padding;
+    m_Padding.global = padding;
 
     if (m_Context) {
         m_Context->translate(-tmppadding, -tmppadding);
 
-        m_Context->setSize(m_Width + (this->padding.global * 2),
-            m_Height + (this->padding.global * 2));
+        m_Context->setSize(m_Width + (m_Padding.global * 2),
+            m_Height + (m_Padding.global * 2));
 
-        m_Context->translate(this->padding.global, this->padding.global);
+        m_Context->translate(m_Padding.global, m_Padding.global);
     }
 }
 
@@ -289,14 +289,14 @@ void NativeCanvasHandler::setScrollLeft(int value)
 {
     if (value < 0 && !m_AllowNegativeScroll) value = 0;
 
-    this->content.scrollLeft = value;
+    m_Content.scrollLeft = value;
 }
 
 void NativeCanvasHandler::setScrollTop(int value)
 {
     if (value < 0 && !m_AllowNegativeScroll) value = 0;
 
-    this->content.scrollTop = value;
+    m_Content.scrollTop = value;
 }
 
 void NativeCanvasHandler::bringToFront()
@@ -341,7 +341,7 @@ void NativeCanvasHandler::insertBefore(NativeCanvasHandler *insert,
     }
 
     insert->m_Parent = this;
-    this->nchildren++;
+    m_nChildren++;
 }
 
 void NativeCanvasHandler::insertAfter(NativeCanvasHandler *insert,
@@ -392,7 +392,7 @@ void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
     }
 
     insert->m_Parent = this;
-    this->nchildren++;
+    m_nChildren++;
 }
 
 void NativeCanvasHandler::removeFromParent(bool willBeAdopted)
@@ -405,8 +405,8 @@ void NativeCanvasHandler::removeFromParent(bool willBeAdopted)
         m_NativeContext->setCurrentClickedHandler(NULL);
     }
 
-    if (this->jsobj && JS::IsIncrementalBarrierNeeded(JS_GetRuntime(this->jscx))) {
-        JS::IncrementalReferenceBarrier(this->jsobj, JSTRACE_OBJECT);
+    if (m_JsObj && JS::IsIncrementalBarrierNeeded(JS_GetRuntime(m_JsCx))) {
+        JS::IncrementalReferenceBarrier(m_JsObj, JSTRACE_OBJECT);
     }
 
     if (m_Parent->m_Children == this) {
@@ -424,7 +424,7 @@ void NativeCanvasHandler::removeFromParent(bool willBeAdopted)
         m_Next->m_Prev = m_Prev;
     }
 
-    m_Parent->nchildren--;
+    m_Parent->m_nChildren--;
     m_Parent = NULL;
     m_Next = NULL;
     m_Prev = NULL;
@@ -438,17 +438,17 @@ void NativeCanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContex
     }
 
     NativeRect actualRect;
-    actualRect.fLeft = this->a_left - this->padding.global;
-    actualRect.fTop = this->a_top - this->padding.global;
-    actualRect.fRight = m_Width + this->a_left;
-    actualRect.fBottom = m_Height + this->a_top;
+    actualRect.m_fLeft = m_aLeft - m_Padding.global;
+    actualRect.m_fTop = m_aTop - m_Padding.global;
+    actualRect.m_fRight = m_Width + m_aLeft;
+    actualRect.m_fBottom = m_Height + m_aTop;
 
-    if (layerContext.clip) {
+    if (layerContext.m_Clip) {
 
-        if (!actualRect.intersect(layerContext.clip->fLeft,
-            layerContext.clip->fTop,
-            layerContext.clip->fRight,
-            layerContext.clip->fBottom)) {
+        if (!actualRect.intersect(layerContext.m_Clip->m_fLeft,
+            layerContext.m_Clip->m_fTop,
+            layerContext.m_Clip->m_fRight,
+            layerContext.m_Clip->m_fBottom)) {
 
             return;
         }
@@ -457,7 +457,7 @@ void NativeCanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContex
     ape_pool_list_t *evlist = NULL;
 
     for (; ev != NULL; ev = ev->m_Next) {
-        if (actualRect.contains(ev->x, ev->y)) {
+        if (actualRect.contains(ev->m_x, ev->m_y)) {
             /*
                 Increment depth (Nth canvas affected by this event)
             */
@@ -482,35 +482,35 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
 {
     NativeCanvasHandler *cur;
     NativeRect nclip;
-    NativeLayerSiblingContext *sctx = layerContext.siblingCtx;
+    NativeLayerSiblingContext *sctx = layerContext.m_SiblingCtx;
 
-    if (visibility == CANVAS_VISIBILITY_HIDDEN || opacity == 0.0) {
+    if (m_Visibility == CANVAS_VISIBILITY_HIDDEN || m_Opacity == 0.0) {
         return;
     }
     int maxChildrenHeight = this->getHeight(), maxChildrenWidth = this->getWidth();
 
     //double pzoom = this->zoom * azoom;
-    double popacity = this->opacity * layerContext.aopacity;
+    double popacity = m_Opacity * layerContext.m_aOpacity;
 
     int tmpLeft;
     int tmpTop;
     bool willDraw = true;
 
-    if (this->coordPosition == COORD_RELATIVE &&
-        this->m_FlowMode & kFlowBreakAndInlinePreviousSibling) {
+    if (m_CoordPosition == COORD_RELATIVE &&
+        m_FlowMode & kFlowBreakAndInlinePreviousSibling) {
 
         NativeCanvasHandler *prev = getPrevInlineSibling();
 
         if (!prev) {
-            this->left = tmpLeft = m_Margin.left;
-            this->top = tmpTop = m_Margin.top;
+            m_Left = tmpLeft = m_Margin.left;
+            m_Top = tmpTop = m_Margin.top;
 
         } else {
-            int prevWidth = prev->visibility == CANVAS_VISIBILITY_HIDDEN ?
+            int prevWidth = prev->m_Visibility == CANVAS_VISIBILITY_HIDDEN ?
                                                     0 : prev->getWidth();
 
-            this->left = tmpLeft = (prev->left + prevWidth + prev->m_Margin.right) + m_Margin.left;
-            this->top = tmpTop = (prev->top - prev->m_Margin.top) + m_Margin.top;
+            m_Left = tmpLeft = (prev->m_Left + prevWidth + prev->m_Margin.right) + m_Margin.left;
+            m_Top = tmpTop = (prev->m_Top - prev->m_Margin.top) + m_Margin.top;
 
             if (m_Parent) {
                 /*
@@ -519,21 +519,21 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
                         - Element would overflow-x its parent + parent doesn't have a fluid width
                         - Element would overflow-x its parent + parent has a fluid height but a maxWidth
                 */
-                if ((this->m_FlowMode & kFlowBreakPreviousSibling) ||
+                if ((m_FlowMode & kFlowBreakPreviousSibling) ||
                     ((!m_Parent->isWidthFluid() ||
                         (m_Parent->m_MaxWidth && tmpLeft + this->getWidth() > m_Parent->m_MaxWidth)) &&
                         tmpLeft + this->getWidth() > m_Parent->getWidth())) {
 
-                    sctx->maxLineHeightPreviousLine = sctx->maxLineHeight;
-                    sctx->maxLineHeight = this->getHeight() + m_Margin.bottom + m_Margin.top;
+                    sctx->m_MaxLineHeightPreviousLine = sctx->m_MaxLineHeight;
+                    sctx->m_MaxLineHeight = this->getHeight() + m_Margin.bottom + m_Margin.top;
 
-                    tmpTop = this->top = (prev->top - prev->m_Margin.top) + sctx->maxLineHeightPreviousLine + m_Margin.top;
-                    tmpLeft = this->left = m_Margin.left;
+                    tmpTop = m_Top = (prev->m_Top - prev->m_Margin.top) + sctx->m_MaxLineHeightPreviousLine + m_Margin.top;
+                    tmpLeft = m_Left = m_Margin.left;
                 }
             }
         }
 
-        sctx->maxLineHeight = native_max(this->getHeight() + m_Margin.bottom + m_Margin.top, sctx->maxLineHeight);
+        sctx->m_MaxLineHeight = native_max(this->getHeight() + m_Margin.bottom + m_Margin.top, sctx->m_MaxLineHeight);
 
     } else {
         tmpLeft = this->getLeft();
@@ -544,39 +544,39 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
         Fill the root layer with white
         This is the base surface on top of the window frame buffer
     */
-    if (layerContext.layer == NULL && m_Context) {
-        layerContext.layer = this;
+    if (layerContext.m_Layer == NULL && m_Context) {
+        layerContext.m_Layer = this;
         m_Context->clear(0xFFFFFFFF);
         m_Context->flush();
     } else {
         double cleft = 0.0, ctop = 0.0;
 
-        if (coordPosition != COORD_ABSOLUTE) {
-            cleft = layerContext.pleft;
-            ctop = layerContext.ptop;
+        if (m_CoordPosition != COORD_ABSOLUTE) {
+            cleft = layerContext.m_pLeft;
+            ctop = layerContext.m_pTop;
         }
 
         /*
             Set the absolute position
         */
-        this->a_left = cleft + tmpLeft + this->translate_s.x;
-        this->a_top = ctop + tmpTop + this->translate_s.y;
+        m_aLeft = cleft + tmpLeft + m_Translate_s.x;
+        m_aTop = ctop + tmpTop + m_Translate_s.y;
 
         /*
             draw current context on top of the root layer
         */
-        willDraw = (!layerContext.clip || coordPosition == COORD_ABSOLUTE ||
-              (layerContext.clip->checkIntersect(
-                this->a_left - this->padding.global,
-                this->a_top - this->padding.global,
-                this->a_left + this->padding.global + this->getWidth(),
-                this->a_top + this->padding.global + this->getHeight())));
+        willDraw = (!layerContext.m_Clip || m_CoordPosition == COORD_ABSOLUTE ||
+              (layerContext.m_Clip->checkIntersect(
+                m_aLeft - m_Padding.global,
+                m_aTop - m_Padding.global,
+                m_aLeft + m_Padding.global + this->getWidth(),
+                m_aTop + m_Padding.global + this->getHeight())));
 
         if (draw && m_Context && willDraw) {
-            this->m_Context->preComposeOn(static_cast<NativeCanvas2DContext *>(layerContext.layer->m_Context),
-                this->a_left - this->padding.global,
-                this->a_top - this->padding.global, popacity, zoom,
-                (coordPosition == COORD_ABSOLUTE) ? NULL : layerContext.clip);
+            m_Context->preComposeOn(static_cast<NativeCanvas2DContext *>(layerContext.m_Layer->m_Context),
+                m_aLeft - m_Padding.global,
+                m_aTop - m_Padding.global, popacity, m_Zoom,
+                (m_CoordPosition == COORD_ABSOLUTE) ? NULL : layerContext.m_Clip);
 
             /*
                 Dispatch current mouse position.
@@ -587,35 +587,35 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
     }
 
     if (!m_Overflow) {
-        if (layerContext.clip == NULL) {
-            layerContext.clip = &nclip;
-            layerContext.clip->fLeft = this->a_left;
-            layerContext.clip->fTop = this->a_top;
-            layerContext.clip->fRight = m_Width + this->a_left;
-            layerContext.clip->fBottom = m_Height + this->a_top;
+        if (layerContext.m_Clip == NULL) {
+            layerContext.m_Clip = &nclip;
+            layerContext.m_Clip->m_fLeft = m_aLeft;
+            layerContext.m_Clip->m_fTop = m_aTop;
+            layerContext.m_Clip->m_fRight = m_Width + m_aLeft;
+            layerContext.m_Clip->m_fBottom = m_Height + m_aTop;
             /*
                 if clip is not null, reduce it to intersect the current rect.
                 /!\ clip->intersect changes "clip"
             */
-        } else if (!layerContext.clip->intersect(this->a_left, this->a_top,
-                    m_Width + this->a_left, m_Height + this->a_top) && (!m_FluidHeight || !m_FluidWidth)) {
+        } else if (!layerContext.m_Clip->intersect(m_aLeft, m_aTop,
+                    m_Width + m_aLeft, m_Height + m_aTop) && (!m_FluidHeight || !m_FluidWidth)) {
             /* don't need to draw children (out of bounds) */
             return;
         }
     }
 
-    if (nchildren) {
+    if (m_nChildren) {
         NativeRect tmpClip;
 
         /* Save the clip */
-        if (layerContext.clip != NULL) {
-            memcpy(&tmpClip, layerContext.clip, sizeof(NativeRect));
+        if (layerContext.m_Clip != NULL) {
+            memcpy(&tmpClip, layerContext.m_Clip, sizeof(NativeRect));
         }
         /* Occlusion culling */
 #if 0
         NativeCanvasHandler **culling = (NativeCanvasHandler **)malloc(
                                         sizeof(NativeCanvasHandler *)
-                                        * nchildren);
+                                        * m_nChildren);
 
         NativeRect culRect;
         for (cur = last; cur != NULL; cur = cur->prev) {
@@ -626,19 +626,19 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
 
         for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
             int offsetLeft = 0, offsetTop = 0;
-            if (cur->coordPosition == COORD_RELATIVE) {
-                offsetLeft = -this->content.scrollLeft;
-                offsetTop  = -this->content.scrollTop;
+            if (cur->m_CoordPosition == COORD_RELATIVE) {
+                offsetLeft = -m_Content.scrollLeft;
+                offsetTop  = -m_Content.scrollTop;
             }
 
             struct NativeLayerizeContext ctx = {
-                .layer = layerContext.layer,
-                .pleft = tmpLeft + this->translate_s.x + layerContext.pleft + offsetLeft,
-                .ptop  = tmpTop + this->translate_s.y + layerContext.ptop + offsetTop,
-                .aopacity = popacity,
-                .azoom = zoom,
-                .clip = layerContext.clip,
-                .siblingCtx = &siblingctx
+                .m_Layer = layerContext.m_Layer,
+                .m_pLeft = tmpLeft + m_Translate_s.x + layerContext.m_pLeft + offsetLeft,
+                .m_pTop  = tmpTop + m_Translate_s.y + layerContext.m_pTop + offsetTop,
+                .m_aOpacity = popacity,
+                .m_aZoom = m_Zoom,
+                .m_Clip = layerContext.m_Clip,
+                .m_SiblingCtx = &siblingctx
             };
 
             cur->layerize(ctx, draw);
@@ -647,13 +647,13 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
                 Incrementaly check the bottom/right most children
                 in order to compute the contentHeight/Width
             */
-            if (cur->coordPosition == COORD_RELATIVE &&
-                cur->visibility == CANVAS_VISIBILITY_VISIBLE) {
+            if (cur->m_CoordPosition == COORD_RELATIVE &&
+                cur->m_Visibility == CANVAS_VISIBILITY_VISIBLE) {
 
                 int actualChildrenHeightPlusTop = cur->getTop() + (cur->m_Overflow ?
-                                        cur->content._height : cur->getHeight());
+                                        cur->m_Content._height : cur->getHeight());
                 int actualChildrenWidthPlusLeft = cur->getLeft() + (cur->m_Overflow ?
-                                        cur->content._width : cur->getWidth());
+                                        cur->m_Content._width : cur->getWidth());
 
                 if (actualChildrenHeightPlusTop > maxChildrenHeight) {
                     maxChildrenHeight = actualChildrenHeightPlusTop;
@@ -663,18 +663,18 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
                 }
             }
             /* restore the old clip (layerize could have altered it) */
-            if (layerContext.clip != NULL) {
-                memcpy(layerContext.clip, &tmpClip, sizeof(NativeRect));
+            if (layerContext.m_Clip != NULL) {
+                memcpy(layerContext.m_Clip, &tmpClip, sizeof(NativeRect));
             }
         }
     }
-    if (this->content._height != maxChildrenHeight) {
-        this->content._height = maxChildrenHeight;
+    if (m_Content._height != maxChildrenHeight) {
+        m_Content._height = maxChildrenHeight;
 
         this->propertyChanged(kContentHeight_Changed);
     }
-    if (this->content._width != maxChildrenWidth) {
-        this->content._width = maxChildrenWidth;
+    if (m_Content._width != maxChildrenWidth) {
+        m_Content._width = maxChildrenWidth;
 
         this->propertyChanged(kContentWidth_Changed);
     }
@@ -710,10 +710,10 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
         this->checkLoaded();
     }
 
-    if (layerContext.layer == this) {
-        this->mousePosition.consumed = true;
-        this->mousePosition.xrel = 0;
-        this->mousePosition.yrel = 0;
+    if (layerContext.m_Layer == this) {
+        m_MousePosition.consumed = true;
+        m_MousePosition.xrel = 0;
+        m_MousePosition.yrel = 0;
     }
 }
 
@@ -721,20 +721,20 @@ int NativeCanvasHandler::getContentWidth(bool inner)
 {
     this->computeContentSize(NULL, NULL, inner);
 
-    return this->content.width;
+    return m_Content.width;
 }
 
 int NativeCanvasHandler::getContentHeight(bool inner)
 {
     this->computeContentSize(NULL, NULL, inner);
 
-    return this->content.height;
+    return m_Content.height;
 }
 
 /* TODO: optimize tail recursion? */
 bool NativeCanvasHandler::hasAFixedAncestor() const
 {
-    if (coordPosition == COORD_FIXED) {
+    if (m_CoordPosition == COORD_FIXED) {
         return true;
     }
     return (m_Parent ? m_Parent->hasAFixedAncestor() : false);
@@ -743,7 +743,7 @@ bool NativeCanvasHandler::hasAFixedAncestor() const
 /* Compute whether or the canvas is going to be drawn */
 bool NativeCanvasHandler::isDisplayed() const
 {
-    if (visibility == CANVAS_VISIBILITY_HIDDEN) {
+    if (m_Visibility == CANVAS_VISIBILITY_HIDDEN) {
         return false;
     }
 
@@ -752,17 +752,17 @@ bool NativeCanvasHandler::isDisplayed() const
 
 void NativeCanvasHandler::computeAbsolutePosition()
 {
-    if (this->coordPosition == COORD_ABSOLUTE) {
-        this->a_top = this->getTop();
-        this->a_left = this->getLeft();
+    if (m_CoordPosition == COORD_ABSOLUTE) {
+        m_aTop = this->getTop();
+        m_aLeft = this->getLeft();
         return;
     }
 
-    if (this->coordPosition == COORD_RELATIVE &&
+    if (m_CoordPosition == COORD_RELATIVE &&
         m_FlowMode & kFlowBreakAndInlinePreviousSibling) {
 
         if (m_Parent == NULL) {
-            this->a_top = this->a_left = 0;
+            m_aTop = m_aLeft = 0;
             return;
         }
 
@@ -770,8 +770,8 @@ void NativeCanvasHandler::computeAbsolutePosition()
 
         m_Parent->computeAbsolutePosition();
 
-        double offset_x = m_Parent->a_left - m_Parent->content.scrollLeft,
-               offset_y = m_Parent->a_top - m_Parent->content.scrollTop;
+        double offset_x = m_Parent->m_aLeft - m_Parent->m_Content.scrollLeft,
+               offset_y = m_Parent->m_aTop - m_Parent->m_Content.scrollTop;
 
         double maxLineHeightPreviousLine = 0, maxLineHeight = 0;
 
@@ -783,31 +783,31 @@ void NativeCanvasHandler::computeAbsolutePosition()
             }
 
             if (prev) {
-                int prevWidth = prev->visibility == CANVAS_VISIBILITY_HIDDEN ?
+                int prevWidth = prev->m_Visibility == CANVAS_VISIBILITY_HIDDEN ?
                                                     0 : prev->getWidth();
 
-                elem->left = (prev->left + prevWidth + prev->m_Margin.right) + elem->m_Margin.left;
-                elem->top = (prev->top - prev->m_Margin.top) + elem->m_Margin.top;
+                elem->m_Left = (prev->m_Left + prevWidth + prev->m_Margin.right) + elem->m_Margin.left;
+                elem->m_Top = (prev->m_Top - prev->m_Margin.top) + elem->m_Margin.top;
 
                 if ((elem->m_FlowMode & kFlowBreakPreviousSibling) ||
                     ((!m_Parent->isWidthFluid() ||
-                        (m_Parent->m_MaxWidth && elem->left + elem->getWidth() > m_Parent->m_MaxWidth)) &&
-                    elem->left + elem->getWidth() > m_Parent->getWidth())) {
+                        (m_Parent->m_MaxWidth && elem->m_Left + elem->getWidth() > m_Parent->m_MaxWidth)) &&
+                    elem->m_Left + elem->getWidth() > m_Parent->getWidth())) {
 
                     maxLineHeightPreviousLine = maxLineHeight;
                     maxLineHeight = elem->getHeight() + elem->m_Margin.bottom + elem->m_Margin.top;
 
-                    elem->top = (prev->top - prev->m_Margin.top) + maxLineHeightPreviousLine + elem->m_Margin.top;
-                    elem->left = elem->m_Margin.left;
+                    elem->m_Top = (prev->m_Top - prev->m_Margin.top) + maxLineHeightPreviousLine + elem->m_Margin.top;
+                    elem->m_Left = elem->m_Margin.left;
                 }
             } else {
                 /* The first element is aligned to the parent's top-left */
-                elem->left = elem->m_Margin.left;
-                elem->top = elem->m_Margin.top;
+                elem->m_Left = elem->m_Margin.left;
+                elem->m_Top = elem->m_Margin.top;
             }
 
-            elem->a_left = elem->left + offset_x;
-            elem->a_top = elem->top + offset_y;
+            elem->m_aLeft = elem->m_Left + offset_x;
+            elem->m_aTop = elem->m_Top + offset_y;
 
             maxLineHeight = native_max(elem->getHeight() + elem->m_Margin.bottom + elem->m_Margin.top, maxLineHeight);
 
@@ -830,15 +830,15 @@ void NativeCanvasHandler::computeAbsolutePosition()
         ctop += cparent->getTopScrolled();
         cleft += cparent->getLeftScrolled();
 
-        if (cparent->coordPosition == COORD_ABSOLUTE) {
+        if (cparent->m_CoordPosition == COORD_ABSOLUTE) {
             break;
         }
 
         cparent = cparent->getParent();
     }
 
-    this->a_top = ctop;
-    this->a_left = cleft;
+    m_aTop = ctop;
+    m_aLeft = cleft;
 
 }
 
@@ -886,7 +886,7 @@ NativeRect NativeCanvasHandler::getViewport()
 
             NativeRect prect = m_Parent->getViewport();
 
-            rect.intersect(prect.fLeft, prect.fTop, prect.fRight, prect.fBottom);
+            rect.intersect(prect.m_fLeft, prect.m_fTop, prect.m_fRight, prect.m_fBottom);
 
             return rect;
         }
@@ -906,54 +906,54 @@ NativeRect NativeCanvasHandler::getVisibleRect()
     this->computeAbsolutePosition();
 
     return {
-        .fLeft   = native_min(native_max(this->getLeft(true), vp.fLeft), vp.fRight),
-        .fTop    = native_min(native_max(this->getTop(true), vp.fTop), vp.fBottom),
-        .fBottom = native_min(this->getTop(true)+getHeight(), vp.fBottom),
-        .fRight  = native_min(this->getLeft(true)+getWidth(), vp.fRight)
+        .m_fLeft   = native_min(native_max(this->getLeft(true), vp.m_fLeft), vp.m_fRight),
+        .m_fTop    = native_min(native_max(this->getTop(true), vp.m_fTop), vp.m_fBottom),
+        .m_fBottom = native_min(this->getTop(true)+getHeight(), vp.m_fBottom),
+        .m_fRight  = native_min(this->getLeft(true)+getWidth(), vp.m_fRight)
     };
 }
 
 void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight, bool inner)
 {
     NativeCanvasHandler *cur;
-    this->content.width = inner ? 0 : this->getWidth();
-    this->content.height = inner ? 0 : this->getHeight();
+    m_Content.width = inner ? 0 : this->getWidth();
+    m_Content.height = inner ? 0 : this->getHeight();
 
     /* don't go further if it doesn't overflow (and not the requested handler) */
     if (!m_Overflow && /*!m_FluidHeight && */cWidth && cHeight) {
-        *cWidth = this->content.width;
-        *cHeight = this->content.height;
+        *cWidth = m_Content.width;
+        *cHeight = m_Content.height;
         return;
     }
 
     for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
-        if (cur->coordPosition == COORD_RELATIVE &&
-            cur->visibility == CANVAS_VISIBILITY_VISIBLE) {
+        if (cur->m_CoordPosition == COORD_RELATIVE &&
+            cur->m_Visibility == CANVAS_VISIBILITY_VISIBLE) {
 
             int retWidth, retHeight;
 
             cur->computeContentSize(&retWidth, &retHeight, /*cur->m_FluidHeight*/ false);
 
-            if (retWidth + cur->getLeft() > this->content.width) {
-                this->content.width = retWidth + cur->getLeft();
+            if (retWidth + cur->getLeft() > m_Content.width) {
+                m_Content.width = retWidth + cur->getLeft();
             }
-            if (retHeight + cur->getTop() > this->content.height) {
-                this->content.height = retHeight + cur->getTop();
+            if (retHeight + cur->getTop() > m_Content.height) {
+                m_Content.height = retHeight + cur->getTop();
             }
         }
     }
-    if (cWidth) *cWidth = this->content.width;
-    if (cHeight) *cHeight = this->content.height;
+    if (cWidth) *cWidth = m_Content.width;
+    if (cHeight) *cHeight = m_Content.height;
 }
 
 bool NativeCanvasHandler::isHidden() const
 {
-    return (visibility == CANVAS_VISIBILITY_HIDDEN);
+    return (m_Visibility == CANVAS_VISIBILITY_HIDDEN);
 }
 
 void NativeCanvasHandler::setHidden(bool val)
 {
-    visibility = (val ? CANVAS_VISIBILITY_HIDDEN : CANVAS_VISIBILITY_VISIBLE);
+    m_Visibility = (val ? CANVAS_VISIBILITY_HIDDEN : CANVAS_VISIBILITY_VISIBLE);
 }
 
 void NativeCanvasHandler::setOpacity(double val)
@@ -962,12 +962,12 @@ void NativeCanvasHandler::setOpacity(double val)
         val = 1;
     }
 
-    opacity = val;
+    m_Opacity = val;
 }
 
 void NativeCanvasHandler::setZoom(double zoom)
 {
-    this->zoom = zoom;
+    m_Zoom = zoom;
 }
 
 void NativeCanvasHandler::getChildren(NativeCanvasHandler **out) const
@@ -981,15 +981,15 @@ void NativeCanvasHandler::getChildren(NativeCanvasHandler **out) const
 
 void NativeCanvasHandler::setScale(double x, double y)
 {
-    this->recursiveScale(x, y, this->scaleX, this->scaleY);
-    this->scaleX = x;
-    this->scaleY = y;
+    this->recursiveScale(x, y, m_ScaleX, m_ScaleY);
+    m_ScaleX = x;
+    m_ScaleY = y;
 }
 
 void NativeCanvasHandler::setContext(NativeCanvasContext *context)
 {
-    this->m_Context = context;
-    this->m_Context->translate(this->padding.global, this->padding.global);
+    m_Context = context;
+    m_Context->translate(m_Padding.global, m_Padding.global);
 }
 
 bool NativeCanvasHandler::setFluidHeight(bool val)
@@ -1020,7 +1020,7 @@ void NativeCanvasHandler::recursiveScale(double x, double y,
 
 int32_t NativeCanvasHandler::countChildren() const
 {
-    return this->nchildren;
+    return m_nChildren;
 }
 
 bool NativeCanvasHandler::containsPoint(double x, double y) const
@@ -1036,14 +1036,14 @@ void NativeCanvasHandler::unrootHierarchy()
 
     for (cur = children; cur != NULL; cur = cur->next) {
         cur->unrootHierarchy();
-        if (cur->context && cur->context->jsobj && cur->context->jscx) {
-            JS::RemoveObjectRoot(cur->context->jscx, &cur->context->jsobj);
+        if (cur->context && cur->context->m_JsObj && cur->context->m_JsCx) {
+            JS::RemoveObjectRoot(cur->context->m_JsCx, &cur->context->m_JsObj);
         }
-        if (cur->jsobj) {
-            JS::RemoveObjectRoot(cur->jscx, &cur->jsobj);
+        if (cur->m_JsObj) {
+            JS::RemoveObjectRoot(cur->m_JsCx, &cur->m_JsObj);
         }
-        cur->jsobj = NULL;
-        cur->context->jsobj = NULL;
+        cur->m_JsObj = NULL;
+        cur->context->m_JsObj = NULL;
     }
     children = NULL;
     #endif
@@ -1107,10 +1107,10 @@ void NativeCanvasHandler::propertyChanged(EventsChangedProperty property)
 
     switch (property) {
         case kContentWidth_Changed:
-            arg[1].set(content._width);
+            arg[1].set(m_Content._width);
             break;
         case kContentHeight_Changed:
-            arg[1].set(content._height);
+            arg[1].set(m_Content._height);
             break;
         default:
             break;
@@ -1131,12 +1131,12 @@ void NativeCanvasHandler::onDrag(NativeInputEvent *ev, NativeCanvasHandler *targ
         arg[0].set(NativeInputEvent::kMouseDragEnd_Type);
     }
 
-    arg[1].set(ev->x);
-    arg[2].set(ev->y);
-    arg[3].set(ev->data[0]);
-    arg[4].set(ev->data[1]);
-    arg[5].set(ev->x - a_left); // layerX
-    arg[6].set(ev->y - a_top);  // layerY
+    arg[1].set(ev->m_x);
+    arg[2].set(ev->m_y);
+    arg[3].set(ev->m_data[0]);
+    arg[4].set(ev->m_data[1]);
+    arg[5].set(ev->m_x - m_aLeft); // layerX
+    arg[6].set(ev->m_y - m_aTop);  // layerY
     arg[7].set(target); // target
 
     if (!end && (m_Flags & kDrag_Flag) == 0) {
@@ -1157,12 +1157,12 @@ void NativeCanvasHandler::onDrop(NativeInputEvent *ev, NativeCanvasHandler *drop
 {
     NativeArgs arg;
     arg[0].set(NativeInputEvent::kMouseDrop_Type);
-    arg[1].set(ev->x);
-    arg[2].set(ev->y);
+    arg[1].set(ev->m_x);
+    arg[2].set(ev->m_y);
     arg[3].set((int64_t)0);
     arg[4].set((int64_t)0);
-    arg[5].set(ev->x - a_left); // layerX
-    arg[6].set(ev->y - a_top);  // layerY
+    arg[5].set(ev->m_x - m_aLeft); // layerX
+    arg[6].set(ev->m_y - m_aTop);  // layerY
     arg[7].set(drop);
 
     this->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg);
@@ -1177,11 +1177,11 @@ void NativeCanvasHandler::onMouseEvent(NativeInputEvent *ev)
 
     switch (ev->getType()) {
         case NativeInputEvent::kMouseClick_Type:
-            if (ev->data[0] == 1) // left click
+            if (ev->m_data[0] == 1) // left click
                 m_NativeContext->setCurrentClickedHandler(this);
             break;
         case NativeInputEvent::kMouseClickRelease_Type:
-            if (ev->data[0] == 1) {
+            if (ev->m_data[0] == 1) {
                 NativeCanvasHandler *drag;
                 if ((drag = m_NativeContext->getCurrentClickedHandler()) &&
                     (drag->m_Flags & kDrag_Flag)) {
@@ -1224,12 +1224,12 @@ bool NativeCanvasHandler::_handleEvent(NativeInputEvent *ev)
         NativeArgs arg;
 
         arg[0].set(ev->getType());
-        arg[1].set(ev->x);
-        arg[2].set(ev->y);
-        arg[3].set(ev->data[0]); // xrel
-        arg[4].set(ev->data[1]); // yrel
-        arg[5].set(ev->x - a_left); // layerX
-        arg[6].set(ev->y - a_top);  // layerY
+        arg[1].set(ev->m_x);
+        arg[2].set(ev->m_y);
+        arg[3].set(ev->m_data[0]); // xrel
+        arg[4].set(ev->m_data[1]); // yrel
+        arg[5].set(ev->m_x - m_aLeft); // layerX
+        arg[6].set(ev->m_y - m_aTop);  // layerY
         arg[7].set(this); // target
 
         /* fireEvent returns false if a stopPropagation is detected */

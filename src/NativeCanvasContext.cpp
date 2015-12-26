@@ -148,8 +148,8 @@ NativeVertices *NativeCanvasContext::buildVerticesStripe(int resolution)
 
 void NativeCanvasContext::resetGLContext()
 {
-    if (this->m_GLState) {
-        this->m_GLState->setActive();
+    if (m_GLState) {
+        m_GLState->setActive();
     }
 }
 
@@ -231,7 +231,7 @@ uint32_t NativeCanvasContext::createPassThroughProgram(NativeGLResources &resour
 }
 
 NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
-    jsobj(NULL), jscx(NULL), m_Mode(CONTEXT_2D), m_Transform(SkMatrix44::kIdentity_Constructor),
+    m_JsObj(NULL), m_JsCx(NULL), m_Mode(CONTEXT_2D), m_Transform(SkMatrix44::kIdentity_Constructor),
     m_Handler(handler), m_GLState(NULL)
 {
 
@@ -330,7 +330,7 @@ void NativeCanvasContext::setupShader(float opacity, int width, int height,
         if (m_GLState->m_GLObjects.uniforms.u_opacity != -1) {
             NATIVE_GL_CALL_MAIN(Uniform1f(m_GLState->m_GLObjects.uniforms.u_opacity, opacity));
         }
-        float padding = this->getHandler()->padding.global * ratio;
+        float padding = this->getHandler()->m_Padding.global * ratio;
 
         if (m_GLState->m_GLObjects.uniforms.u_resolution != -1)
             NATIVE_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_resolution,
@@ -365,10 +365,10 @@ void NativeCanvasContext::preComposeOn(NativeCanvas2DContext *layer,
     */
     if (rclip != NULL) {
         SkRect r;
-        r.set(SkDoubleToScalar(rclip->fLeft*(double)ratio),
-            SkDoubleToScalar(rclip->fTop*(double)ratio),
-            SkDoubleToScalar(rclip->fRight*(double)ratio),
-            SkDoubleToScalar(rclip->fBottom*(double)ratio));
+        r.set(SkDoubleToScalar(rclip->m_fLeft*(double)ratio),
+            SkDoubleToScalar(rclip->m_fTop*(double)ratio),
+            SkDoubleToScalar(rclip->m_fRight*(double)ratio),
+            SkDoubleToScalar(rclip->m_fBottom*(double)ratio));
         NATIVE_GL_CALL(layer->m_GLState->getNativeGLContext(), Enable(GL_SCISSOR_TEST));
         NATIVE_GL_CALL(layer->m_GLState->getNativeGLContext(), Scissor(r.left(),
            layerSize.height() - (r.top() + r.height()), r.width(), r.height()));

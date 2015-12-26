@@ -10,9 +10,9 @@ class SkBitmap;
 class NativeSkImage
 {
   public:
-    int isCanvas;
-    SkCanvas *canvasRef;
-    SkBitmap *img;
+    int m_IsCanvas;
+    SkCanvas *m_CanvasRef;
+    SkBitmap *m_Image;
 #if 0
     SkImage *fixedImg;
 #endif

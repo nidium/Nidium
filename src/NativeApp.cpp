@@ -13,9 +13,9 @@
 #define NATIVE_MANIFEST "manifest.json"
 
 NativeApp::NativeApp(const char *path) :
-    messages(NULL), fZip(NULL), numFiles(0), workerIsRunning(false)
+    m_Messages(NULL), m_fZip(NULL), m_NumFiles(0), m_WorkerIsRunning(false)
 {
-    this->path = strdup(path);
+    m_Path = strdup(path);
 }
 
 static void *native_appworker_thread(void *arg)
@@ -24,24 +24,24 @@ static void *native_appworker_thread(void *arg)
 
     printf("Starting NativeApp worker...\n");
 
-    while (!app->action.stop) {
-        pthread_mutex_lock(&app->threadMutex);
+    while (!app->m_Action.stop) {
+        pthread_mutex_lock(&app->m_ThreadMutex);
 
-        while (!app->action.active && !app->action.stop) {
-            pthread_cond_wait(&app->threadCond, &app->threadMutex);
+        while (!app->m_Action.active && !app->m_Action.stop) {
+            pthread_cond_wait(&app->m_ThreadCond, &app->m_ThreadMutex);
         }
-        if (app->action.stop) {
-            pthread_mutex_unlock(&app->threadMutex);
+        if (app->m_Action.stop) {
+            pthread_mutex_unlock(&app->m_ThreadMutex);
             return NULL;
         }
 
-        switch (app->action.type) {
+        switch (app->m_Action.type) {
             case NativeApp::APP_ACTION_EXTRACT:
             {
 #define APP_READ_SIZE (1024L*1024L*2)
                 struct zip_file *zfile;
 
-                zfile = zip_fopen_index(app->fZip, app->action.u32,
+                zfile = zip_fopen_index(app->m_fZip, app->m_Action.u32,
                     ZIP_FL_UNCHANGED);
 
                 if (zfile == NULL) {
@@ -54,7 +54,7 @@ static void *native_appworker_thread(void *arg)
 
                 while ((r = zip_fread(zfile, content, APP_READ_SIZE)) >= 0) {
                     total += r;
-                    app->actionExtractRead(content, r, total, app->action.u64);
+                    app->actionExtractRead(content, r, total, app->m_Action.u64);
                     if (r != APP_READ_SIZE) {
                         break;
                     }
@@ -68,8 +68,8 @@ static void *native_appworker_thread(void *arg)
                 printf("unknown action\n");
                 break;
         }
-        app->action.active = false;
-        pthread_mutex_unlock(&app->threadMutex);
+        app->m_Action.active = false;
+        pthread_mutex_unlock(&app->m_ThreadMutex);
     }
     printf("Thread ended 2\n");
     return NULL;
@@ -84,7 +84,7 @@ static int Native_handle_app_messages(void *arg)
 
     NativeSharedMessages::Message *msg;
 
-    while (++nread < MAX_MSG_IN_ROW && (msg = app->messages->readMessage())) {
+    while (++nread < MAX_MSG_IN_ROW && (msg = app->m_Messages->readMessage())) {
         switch (msg->event()) {
             case NativeApp::APP_MESSAGE_READ:
                 ptr = static_cast<struct NativeApp::native_app_msg *>(msg->dataPtr());
@@ -109,55 +109,55 @@ void NativeApp::actionExtractRead(const char *buf, int len,
     msg->len  = len;
     msg->total = total;
     msg->offset = offset;
-    msg->cb = (NativeAppExtractCallback)action.cb;
-    msg->user = action.user;
+    msg->cb = (NativeAppExtractCallback)m_Action.cb;
+    msg->user = m_Action.user;
 
     memcpy(msg->data, buf, len);
 
-    messages->postMessage(msg, APP_MESSAGE_READ);
+    m_Messages->postMessage(msg, APP_MESSAGE_READ);
 }
 
 void NativeApp::runWorker(ape_global *net)
 {
-    messages = new NativeSharedMessages();
+    m_Messages = new NativeSharedMessages();
 
-    this->net = net;
+    m_Net = net;
 
-    this->action.active = false;
-    this->action.stop = false;
+    m_Action.active = false;
+    m_Action.stop = false;
 
-    timer = add_timer(&net->timersng, 1,
+    m_Timer = add_timer(&net->timersng, 1,
         Native_handle_app_messages, this);
 
-    pthread_mutex_init(&threadMutex, NULL);
-    pthread_cond_init(&threadCond, NULL);
+    pthread_mutex_init(&m_ThreadMutex, NULL);
+    pthread_cond_init(&m_ThreadCond, NULL);
 
-    this->workerIsRunning = true;
+    m_WorkerIsRunning = true;
 
-    pthread_create(&threadHandle, NULL, native_appworker_thread, this);
+    pthread_create(&m_ThreadHandle, NULL, native_appworker_thread, this);
 
-    pthread_mutex_lock(&threadMutex);
-        pthread_cond_signal(&threadCond);
-    pthread_mutex_unlock(&threadMutex);
+    pthread_mutex_lock(&m_ThreadMutex);
+        pthread_cond_signal(&m_ThreadCond);
+    pthread_mutex_unlock(&m_ThreadMutex);
 }
 
 int NativeApp::open()
 {
     int err = 0;
-    fZip = zip_open(path, ZIP_CHECKCONS, &err);
+    m_fZip = zip_open(m_Path, ZIP_CHECKCONS, &err);
 
-    if (err != ZIP_ER_OK || fZip == NULL) {
+    if (err != ZIP_ER_OK || m_fZip == NULL) {
         char buf_erreur[1024];
         zip_error_to_str(buf_erreur, sizeof buf_erreur, err, errno);
         printf("Failed to open zip file (%d) : %s\n", err, buf_erreur);
         return 0;
     }
 
-    if ((numFiles = zip_get_num_entries(fZip, ZIP_FL_UNCHANGED)) == -1 ||
-        numFiles == 0) {
+    if ((m_NumFiles = zip_get_num_entries(m_fZip, ZIP_FL_UNCHANGED)) == -1 ||
+        m_NumFiles == 0) {
 
-        zip_close(fZip);
-        fZip = NULL;
+        zip_close(m_fZip);
+        m_fZip = NULL;
 
         return 0;
     }
@@ -171,7 +171,7 @@ struct NativeExtractor_s
     uint64_t curIndex;
     const char *fName;
     char *fDir;
-    void (*done)(void *, const char *path);
+    void (*done)(void *, const char *m_Path);
     void *closure;
     struct {
         size_t len;
@@ -212,13 +212,13 @@ static bool NativeExtractor(const char * buf,
             fclose(arg->data.fp);
         }
 
-        if (arg->curIndex < (arg->app->numFiles-1)) {
+        if (arg->curIndex < (arg->app->m_NumFiles-1)) {
             arg->data.offset = 0;
             arg->data.fp = NULL;
 
             /* skip directories */
             while (++arg->curIndex) {
-                arg->fName = zip_get_name(arg->app->fZip,
+                arg->fName = zip_get_name(arg->app->m_fZip,
                     arg->curIndex, ZIP_FL_UNCHANGED);
 
                 if (arg->fName[strlen(arg->fName)-1] != '/') {
@@ -256,7 +256,7 @@ int NativeApp::extractApp(const char *path,
         return 0;
     }
 
-    if (fZip == NULL || !workerIsRunning) {
+    if (m_fZip == NULL || !m_WorkerIsRunning) {
         printf("extractApp : you need to call open() and runWorker() before\n");
         return 0;
     }
@@ -267,9 +267,9 @@ int NativeApp::extractApp(const char *path,
         return 0;
     }
     fullpath = (char *)malloc(sizeof(char) *
-                (strlen(path) + sizeof(NATIVE_CACHE_DIR) + 16));
+                (strlen(m_Path) + sizeof(NATIVE_CACHE_DIR) + 16));
 
-    sprintf(fullpath, NATIVE_CACHE_DIR "%s", path);
+    sprintf(fullpath, NATIVE_CACHE_DIR "%s", m_Path);
 
 #undef NATIVE_CACHE_DIR
 #endif
@@ -288,8 +288,8 @@ int NativeApp::extractApp(const char *path,
     int i, first = -1;
 
     /* Create all directories first */
-    for (i = 0; i < numFiles; i++) {
-        const char *fname = zip_get_name(fZip, i, ZIP_FL_UNCHANGED);
+    for (i = 0; i < m_NumFiles; i++) {
+        const char *fname = zip_get_name(m_fZip, i, ZIP_FL_UNCHANGED);
 
         if (fname[strlen(fname)-1] == '/') {
             char *create = (char *)malloc(sizeof(char) *
@@ -311,7 +311,7 @@ int NativeApp::extractApp(const char *path,
     struct NativeExtractor_s *arg = new NativeExtractor_s;
     arg->app = this;
     arg->curIndex = first;
-    arg->fName = zip_get_name(fZip, first, ZIP_FL_UNCHANGED);
+    arg->fName = zip_get_name(m_fZip, first, ZIP_FL_UNCHANGED);
     arg->data.offset = 0;
     arg->data.fp = NULL;
     arg->fDir = fullpath;
@@ -324,7 +324,7 @@ int NativeApp::extractApp(const char *path,
 
 uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb, void *user)
 {
-    if (fZip == NULL || !workerIsRunning) {
+    if (m_fZip == NULL || !m_WorkerIsRunning) {
         printf("extractFile : you need to call open() and runWorker() before\n");
         return 0;
     }
@@ -333,9 +333,9 @@ uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb, v
     struct zip_file *zfile;
     struct zip_stat stat;
 
-    if ((index = zip_name_locate(fZip, file, 0)) == -1 ||
-        strcmp(zip_get_name(fZip, index, ZIP_FL_UNCHANGED), file) != 0 ||
-        (zfile = zip_fopen_index(fZip, index, ZIP_FL_UNCHANGED)) == NULL) {
+    if ((index = zip_name_locate(m_fZip, file, 0)) == -1 ||
+        strcmp(zip_get_name(m_fZip, index, ZIP_FL_UNCHANGED), file) != 0 ||
+        (zfile = zip_fopen_index(m_fZip, index, ZIP_FL_UNCHANGED)) == NULL) {
 
         printf("extractFile: Failed to open %s\n", file);
         return 0;
@@ -343,29 +343,29 @@ uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb, v
 
     zip_stat_init(&stat);
 
-    if (zip_stat_index(fZip, index, ZIP_FL_UNCHANGED, &stat) == -1 ||
+    if (zip_stat_index(m_fZip, index, ZIP_FL_UNCHANGED, &stat) == -1 ||
        !(stat.valid & (ZIP_STAT_SIZE|ZIP_STAT_COMP_SIZE))) {
         zip_fclose(zfile);
         return 0;
     }
 
-    pthread_mutex_lock(&threadMutex);
-    if (action.active) {
-        pthread_mutex_unlock(&threadMutex);
+    pthread_mutex_lock(&m_ThreadMutex);
+    if (m_Action.active) {
+        pthread_mutex_unlock(&m_ThreadMutex);
         printf("extractFile: Worker already working...\n");
         zip_fclose(zfile);
         return 0;
     }
 
-    action.active = true;
-    action.type = APP_ACTION_EXTRACT;
-    action.ptr  = strdup(file);
-    action.u32  = index;
-    action.u64  = stat.size;
-    action.cb = (void *)cb;
-    action.user = user;
-    pthread_cond_signal(&threadCond);
-    pthread_mutex_unlock(&threadMutex);
+    m_Action.active = true;
+    m_Action.type = APP_ACTION_EXTRACT;
+    m_Action.ptr  = strdup(file);
+    m_Action.u32  = index;
+    m_Action.u64  = stat.size;
+    m_Action.cb = (void *)cb;
+    m_Action.user = user;
+    pthread_cond_signal(&m_ThreadCond);
+    pthread_mutex_unlock(&m_ThreadMutex);
     zip_fclose(zfile);
 
     return stat.size;
@@ -379,16 +379,16 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
     printf("Manifest error : " str " property not found or wrong type (required : " #type ")\n"); \
     return 0; \
 }
-    if (fZip == NULL) return 0;
+    if (m_fZip == NULL) return 0;
 
     int index;
     char *content;
     struct zip_file *manifest;
     struct zip_stat stat;
 
-    if ((index = zip_name_locate(fZip, NATIVE_MANIFEST, ZIP_FL_NODIR)) == -1 ||
-        strcmp(zip_get_name(fZip, index, ZIP_FL_UNCHANGED), NATIVE_MANIFEST) != 0 ||
-        (manifest = zip_fopen_index(fZip, index, ZIP_FL_UNCHANGED)) == NULL) {
+    if ((index = zip_name_locate(m_fZip, NATIVE_MANIFEST, ZIP_FL_NODIR)) == -1 ||
+        strcmp(zip_get_name(m_fZip, index, ZIP_FL_UNCHANGED), NATIVE_MANIFEST) != 0 ||
+        (manifest = zip_fopen_index(m_fZip, index, ZIP_FL_UNCHANGED)) == NULL) {
 
         printf(NATIVE_MANIFEST " not found\n");
         return 0;
@@ -396,7 +396,7 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
 
     zip_stat_init(&stat);
 
-    if (zip_stat_index(fZip, index, ZIP_FL_UNCHANGED, &stat) == -1 ||
+    if (zip_stat_index(m_fZip, index, ZIP_FL_UNCHANGED, &stat) == -1 ||
        !(stat.valid & (ZIP_STAT_SIZE|ZIP_STAT_COMP_SIZE))) {
         zip_fclose(manifest);
         return 0;
@@ -419,7 +419,7 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
 
     Json::Value root;
 
-    if (!reader.parse(content, content+stat.size, root)) {
+    if (!m_Reader.parse(content, content+stat.size, root)) {
         printf("Cant parse JSON\n");
 
         return 0;
@@ -440,20 +440,20 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
 
 NativeApp::~NativeApp()
 {
-    if (workerIsRunning) {
-        action.stop = true;
+    if (m_WorkerIsRunning) {
+        m_Action.stop = true;
 
-        pthread_mutex_lock(&threadMutex);
-        pthread_cond_signal(&threadCond);
-        pthread_mutex_unlock(&threadMutex);
+        pthread_mutex_lock(&m_ThreadMutex);
+        pthread_cond_signal(&m_ThreadCond);
+        pthread_mutex_unlock(&m_ThreadMutex);
 
-        pthread_join(threadHandle, NULL);
-        del_timer(&this->net->timersng, this->timer);
+        pthread_join(m_ThreadHandle, NULL);
+        del_timer(&m_Net->timersng, m_Timer);
     }
-    if (fZip) {
-        zip_close(this->fZip);
+    if (m_fZip) {
+        zip_close(m_fZip);
     }
 
-    free(path);
+    free(m_Path);
 }
 

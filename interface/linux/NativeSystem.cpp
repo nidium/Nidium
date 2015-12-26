@@ -48,13 +48,13 @@ NativeSystem::NativeSystem() : m_SystemUIReady(false)
     int x, y;
     get_dpi(&x, &y);
 
-    fbackingStorePixelRatio = float(x) / 96.f;
-    fbackingStorePixelRatio = 2.0;
+    m_fBackingStorePixelRatio = float(x) / 96.f;
+    m_fBackingStorePixelRatio = 2.0;
 }
 
 float NativeSystem::backingStorePixelRatio()
 {
-    return fbackingStorePixelRatio;
+    return m_fBackingStorePixelRatio;
 }
 
 const char *NativeSystem::getPrivateDirectory()

@@ -14,7 +14,7 @@
 #include "NativeSkia.h"
 #include "NativeCanvas2DContext.h"
 
-bool NativeJSdocument::showFPS = false;
+bool NativeJSdocument::m_ShowFPS = false;
 
 static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Document_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -38,7 +38,7 @@ static JSClass document_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-JSClass *NativeJSdocument::jsclass = &document_class;
+JSClass *NativeJSdocument::m_JsClass = &document_class;
 
 template<>
 JSClass *NativeJSExposer<NativeJSdocument>::jsclass = &document_class;
@@ -91,7 +91,7 @@ static bool native_document_getElementById(JSContext *cx, unsigned argc, JS::Val
     JSAutoByteString cid(cx, str);
     NativeCanvasHandler *elem = NativeContext::getNativeClass(cx)->getCanvasById(cid.ptr());
     if (elem) {
-        args.rval().setObjectOrNull(elem->jsobj);
+        args.rval().setObjectOrNull(elem->m_JsObj);
     } else {
         args.rval().setNull();
     }
@@ -126,7 +126,7 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
     JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
     JS::RootedValue arVal(cx, OBJECT_TO_JSVAL(arrBuffer));
-    JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::m_ImageData_jsclass, JS::NullPtr(), JS::NullPtr()));
     JS_DefineProperty(cx, dataObject, "width", widthVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "height", heightVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "data", arVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
@@ -186,7 +186,7 @@ static bool native_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativeJSdocument::showFPS = show;
+    NativeJSdocument::m_ShowFPS = show;
 
     if (show) {
         NativeContext::getNativeClass(cx)->createDebugCanvas();
@@ -243,14 +243,14 @@ static void Document_Finalize(JSFreeOp *fop, JSObject *obj)
 bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
     size_t len, const char *filename)
 {
-    if ( ! m_stylesheet ) {
+    if ( ! m_Stylesheet ) {
         return false;
     }
     JS::RootedValue ret(cx);
     if (!NativeJS::LoadScriptReturn(cx, data, len, filename, &ret)) {
         return false;
     }
-    JS::RootedObject style(cx, m_stylesheet);
+    JS::RootedObject style(cx, m_Stylesheet);
     JS::RootedObject jret(cx, ret.toObjectOrNull());
     NativeJS::copyProperties(cx, jret, &style);
 
@@ -274,9 +274,9 @@ JSObject *NativeJSdocument::registerObject(JSContext *cx)
     njs->jsobjects.set(NativeJSdocument::getJSObjectName(), documentObj);
 
     JS::RootedObject styleObj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
-    jdoc->m_stylesheet = styleObj;
+    jdoc->m_Stylesheet = styleObj;
 
-    JS::RootedValue objV(cx, OBJECT_TO_JSVAL(jdoc->m_stylesheet));
+    JS::RootedValue objV(cx, OBJECT_TO_JSVAL(jdoc->m_Stylesheet));
     JS_SetProperty(cx, documentObj, "stylesheet", objV);
     JS_DefineFunctions(cx, documentObj, document_funcs);
     JS_DefineProperties(cx, documentObj, document_props);
@@ -314,11 +314,11 @@ bool NativeJSdocument::loadFont(const char *path, const char *name,
     nativefont *oldfont = m_Fonts.get(name);
 
     nativefont *newfont = new nativefont();
-    newfont->weight = weight;
-    newfont->style = style;
-    newfont->typeface = tf;
+    newfont->m_Weight = weight;
+    newfont->m_Style = style;
+    newfont->m_Typeface = tf;
 
-    newfont->next = oldfont;
+    newfont->m_Next = oldfont;
 
     m_Fonts.set(name, newfont);
 
@@ -380,7 +380,7 @@ SkTypeface *NativeJSdocument::getFont(char *name)
 
     nativefont *font = m_Fonts.get(name);
     if (font) {
-        return font->typeface;
+        return font->m_Typeface;
     }
 
     return NULL;

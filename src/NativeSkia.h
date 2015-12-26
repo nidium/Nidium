@@ -49,9 +49,9 @@ enum _NativeBaseline
 };
 
 struct _nativeState {
-    SkPaint *paint;
-    SkPaint *paint_stroke;
-    enum _NativeBaseline baseline;
+    SkPaint *m_Paint;
+    SkPaint *m_PaintStroke;
+    enum _NativeBaseline m_Baseline;
 
     struct _nativeState *next;
 };
@@ -59,25 +59,19 @@ struct _nativeState {
 class NativeSkia
 {
     private:
+        struct _nativeState *m_State;
 
-        struct _nativeState *state;
-
-        SkPaint *paint_system;
-        SkPath *currentPath;
-
-        uint8_t globalAlpha;
-        uint8_t asComposite;
+        SkPaint *m_PaintSystem;
+        SkPath *m_CurrentPath;
+        uint8_t m_GlobalAlpha;
+        uint8_t m_AsComposite;
         SkBitmap *screen;
         NativeShadow_t currentShadow;
         NativeShadowLooper *buildShadow();
-
         SkCanvas *m_Canvas;
-
         void initPaints();
         void addPath(const SkPath& path, SkPath *to);
-
         bool m_Debug;
-
         double m_FontSkew;
 
     public:
@@ -89,12 +83,12 @@ class NativeSkia
             BIND_GL,
             BIND_OFFSCREEN,
             BIND_ONSCREEN
-        } native_canvas_bind_mode;
+        } m_NativeCanvasBindMode;
 
         friend class NativeCanvasHandler;
         friend class NativeJSCanvas;
 
-        static SkCanvas *glcontext;
+        static SkCanvas *m_GlContext;
 
         SkCanvas *getCanvas() const {
             return m_Canvas;

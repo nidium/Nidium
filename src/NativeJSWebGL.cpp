@@ -2584,12 +2584,12 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
 
             nimg = static_cast<NativeJSImage *>(JS_GetPrivate(image));
 
-            width = nimg->img->getWidth();
-            height = nimg->img->getHeight();
+            width = nimg->m_Image->getWidth();
+            height = nimg->m_Image->getHeight();
 
-            pixels = (unsigned char*)malloc(nimg->img->img->getSize());
+            pixels = (unsigned char*)malloc(nimg->m_Image->m_Image->getSize());
 
-           if (!NativeSkImage::ConvertToRGBA(nimg->img, pixels,
+           if (!NativeSkImage::ConvertToRGBA(nimg->m_Image, pixels,
                     CppObj->hasFlag(NativeCanvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag),
                     CppObj->hasFlag(NativeCanvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag))) {
 

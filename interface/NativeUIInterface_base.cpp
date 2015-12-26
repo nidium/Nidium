@@ -15,7 +15,7 @@
 #include "NativeOpenGLHeader.h"
 
 NativeUIInterface::NativeUIInterface() :
-    m_isOffscreen(false), m_readPixelInBuffer(false), m_Hidden(false),
+    m_IsOffscreen(false), m_ReadPixelInBuffer(false), m_Hidden(false),
     m_FBO(0), m_FrameBuffer(NULL), m_SystemMenu(this)
 {
     NativePath::registerScheme(SCHEME_DEFINE("file://",    NativeFileStream,    false), true); // default
@@ -33,8 +33,8 @@ NativeUIInterface::NativeUIInterface() :
 
 bool NativeUIInterface::makeMainGLCurrent()
 {
-    if (!m_mainGLCtx) return false;
-    return (SDL_GL_MakeCurrent(this->win, m_mainGLCtx) == 0);
+    if (!m_MainGLCtx) return false;
+    return (SDL_GL_MakeCurrent(this->m_Win, m_MainGLCtx) == 0);
 }
 
 SDL_GLContext NativeUIInterface::getCurrentGLContext()
@@ -44,14 +44,14 @@ SDL_GLContext NativeUIInterface::getCurrentGLContext()
 
 bool NativeUIInterface::makeGLCurrent(SDL_GLContext ctx)
 {
-    return (SDL_GL_MakeCurrent(this->win, ctx) == 0);
+    return (SDL_GL_MakeCurrent(this->m_Win, ctx) == 0);
 }
 
 SDL_GLContext NativeUIInterface::createSharedContext(bool webgl)
 {
     SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
 
-    SDL_GLContext created = SDL_GL_CreateContext(this->win);
+    SDL_GLContext created = SDL_GL_CreateContext(this->m_Win);
 
     return created;
 }
@@ -72,26 +72,26 @@ void NativeUIInterface::refresh()
     int oswap = SDL_GL_GetSwapInterval();
     SDL_GL_SetSwapInterval(0);
 
-    if (this->NativeCtx) {
+    if (this->m_NativeCtx) {
         this->makeMainGLCurrent();
-        this->NativeCtx->frame();
+        this->m_NativeCtx->frame();
     }
 
-    SDL_GL_SwapWindow(this->win);
+    SDL_GL_SwapWindow(this->m_Win);
 
     SDL_GL_SetSwapInterval(oswap);
 }
 
 void NativeUIInterface::centerWindow()
 {
-    SDL_SetWindowPosition(this->win, SDL_WINDOWPOS_CENTERED,
+    SDL_SetWindowPosition(this->m_Win, SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED);
 }
 
 void NativeUIInterface::getScreenSize(int *width, int *height)
 {
     SDL_Rect bounds;
-    int displayIndex = SDL_GetWindowDisplayIndex(this->win);
+    int displayIndex = SDL_GetWindowDisplayIndex(this->m_Win);
 
     SDL_GetDisplayBounds(displayIndex, &bounds);
 
@@ -101,22 +101,22 @@ void NativeUIInterface::getScreenSize(int *width, int *height)
 
 void NativeUIInterface::setWindowPosition(int x, int y)
 {
-    SDL_SetWindowPosition(this->win,
+    SDL_SetWindowPosition(this->m_Win,
         (x == NATIVE_WINDOWPOS_UNDEFINED_MASK) ? SDL_WINDOWPOS_UNDEFINED_MASK : x,
         (y == NATIVE_WINDOWPOS_UNDEFINED_MASK) ? SDL_WINDOWPOS_UNDEFINED_MASK : y);
 }
 
 void NativeUIInterface::getWindowPosition(int *x, int *y)
 {
-    SDL_GetWindowPosition(this->win, x, y);
+    SDL_GetWindowPosition(this->m_Win, x, y);
 }
 
 void NativeUIInterface::setWindowSize(int w, int h)
 {
-    this->width = w;
-    this->height = h;
+    this->m_Width = w;
+    this->m_Height = h;
 
-    SDL_SetWindowSize(this->win, w, h);
+    SDL_SetWindowSize(this->m_Win, w, h);
 }
 
 void NativeUIInterface::setWindowFrame(int x, int y, int w, int h)
@@ -130,23 +130,23 @@ void NativeUIInterface::setWindowFrame(int x, int y, int w, int h)
 
 void NativeUIInterface::toggleOfflineBuffer(bool val)
 {
-    if (val && !m_readPixelInBuffer) {
+    if (val && !m_ReadPixelInBuffer) {
         this->initPBOs();
-    } else if (!val && m_readPixelInBuffer) {
+    } else if (!val && m_ReadPixelInBuffer) {
 
         glDeleteBuffers(NUM_PBOS, m_PBOs.pbo);
         free(m_FrameBuffer);
     }
-    m_readPixelInBuffer = val;
+    m_ReadPixelInBuffer = val;
 }
 
 void NativeUIInterface::initPBOs()
 {
-    if (m_readPixelInBuffer) {
+    if (m_ReadPixelInBuffer) {
         return;
     }
 
-    uint32_t screenPixelSize = width * 2 * height * 2 * 4;
+    uint32_t screenPixelSize = m_Width * 2 * m_Height * 2 * 4;
 
     glGenBuffers(NUM_PBOS, m_PBOs.pbo);
     for (int i = 0; i < NUM_PBOS; i++) {
@@ -164,16 +164,16 @@ void NativeUIInterface::initPBOs()
 
 uint8_t *NativeUIInterface::readScreenPixel()
 {
-    if (!m_readPixelInBuffer) {
+    if (!m_ReadPixelInBuffer) {
         this->toggleOfflineBuffer(true);
     }
 
-    uint32_t screenPixelSize = width * 2 * height * 2 * 4;
+    uint32_t screenPixelSize = m_Width * 2 * m_Height * 2 * 4;
 
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[m_PBOs.gpu2vram]);
-    glReadPixels(0, 0, width*2, height*2, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glReadPixels(0, 0, m_Width*2, m_Height*2, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[m_PBOs.vram2sys]);
     uint8_t *ret = (uint8_t *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
@@ -198,9 +198,9 @@ uint8_t *NativeUIInterface::readScreenPixel()
 
 int NativeUIInterface::useOffScreenRendering(bool val)
 {
-    if (!val && m_isOffscreen) {
+    if (!val && m_IsOffscreen) {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        m_isOffscreen = false;
+        m_IsOffscreen = false;
         m_FBO = 0;
         free(m_FrameBuffer);
         m_FrameBuffer = NULL;
@@ -208,13 +208,13 @@ int NativeUIInterface::useOffScreenRendering(bool val)
         return 0;
     }
 
-    if (val && !m_isOffscreen) {
+    if (val && !m_IsOffscreen) {
         GLuint fbo, render_buf;
         glGenFramebuffers(1, &fbo);
         glGenRenderbuffers(1, &render_buf);
 
         glBindRenderbuffer(GL_RENDERBUFFER, render_buf);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA4, width, height);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA4, m_Width, m_Height);
 
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
         glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER,
@@ -222,9 +222,9 @@ int NativeUIInterface::useOffScreenRendering(bool val)
 
         m_FBO = fbo;
 
-        m_FrameBuffer = (uint8_t *)malloc(width*height*4);
+        m_FrameBuffer = (uint8_t *)malloc(m_Width*m_Height*4);
 
-        SDL_HideWindow(win);
+        SDL_HideWindow(m_Win);
 
         return fbo;
     }
@@ -243,8 +243,8 @@ void NativeUIInterface::refreshApplication(bool clearConsole)
     }
 
     /* Trigger GC before refreshing */
-    if (NativeCtx && NativeCtx->getNJS()) {
-        NativeCtx->getNJS()->gc();
+    if (m_NativeCtx && m_NativeCtx->getNJS()) {
+        m_NativeCtx->getNJS()->gc();
     }
 
     this->restartApplication();
@@ -254,9 +254,9 @@ void NativeUIInterface::hideWindow()
 {
     if (!m_Hidden) {
         m_Hidden = true;
-        SDL_HideWindow(win);
+        SDL_HideWindow(m_Win);
 
-        set_timer_to_low_resolution(&this->gnet->timersng, 1);
+        set_timer_to_low_resolution(&this->m_Gnet->timersng, 1);
     }
 }
 
@@ -264,9 +264,9 @@ void NativeUIInterface::showWindow()
 {
     if (m_Hidden) {
         m_Hidden = false;
-        SDL_ShowWindow(win);
+        SDL_ShowWindow(m_Win);
 
-        set_timer_to_low_resolution(&this->gnet->timersng, 0);
+        set_timer_to_low_resolution(&this->m_Gnet->timersng, 0);
     }
 }
 

@@ -4,15 +4,15 @@
 #include <NativePath.h>
 
 NativeAssets::NativeAssets(readyItem cb, readyAssets rcb, void *arg) :
-    itemReady(cb), assetsReady(rcb), readyArg(arg), nitems(0)
+    m_ItemReady(cb), m_AssetsReady(rcb), m_ReadyArg(arg), m_Nitems(0)
 {
-    pending_list.head = NULL;
-    pending_list.foot = NULL;
+    m_Pending_list.head = NULL;
+    m_Pending_list.foot = NULL;
 }
 
 NativeAssets::~NativeAssets()
 {
-    struct item_list *il = pending_list.head, *ilnext;
+    struct item_list *il = m_Pending_list.head, *ilnext;
     while (il != NULL) {
         ilnext = il->next;
         delete il->item;
@@ -23,11 +23,11 @@ NativeAssets::~NativeAssets()
 
 NativeAssets::Item::Item(const char *url, FileType t,
     ape_global *net) :
-    fileType(t), state(ITEM_LOADING), stream(NULL),
-    url(url), net(net), assets(NULL), name(NULL), tagname(NULL)
+    m_FileType(t), m_State(ITEM_LOADING), m_Stream(NULL),
+    m_Url(url), m_Net(net), m_Assets(NULL), m_Name(NULL), m_Tagname(NULL)
 {
-    data.data = NULL;
-    data.len = 0;
+    m_Data.data = NULL;
+    m_Data.len = 0;
 }
 
 
@@ -52,28 +52,28 @@ void NativeAssets::Item::onMessage(const NativeSharedMessages::Message &msg)
 
 NativeAssets::Item::~Item()
 {
-    if (name) {
-        free(name);
+    if (m_Name) {
+        free(m_Name);
     }
 
-    if (tagname) {
-        free(tagname);
+    if (m_Tagname) {
+        free(m_Tagname);
     }
-    if (this->data.data) {
-        free(this->data.data);
+    if (m_Data.data) {
+        free(m_Data.data);
     }
 
-    if (stream) {
-        delete stream;
+    if (m_Stream) {
+        delete m_Stream;
     }
 }
 
 void NativeAssets::Item::download()
 {
-    this->stream = NativeBaseStream::create(NativePath(url));
+    m_Stream = NativeBaseStream::create(NativePath(m_Url));
 
-    if (this->stream == NULL) {
-        this->setName(url);
+    if (m_Stream == NULL) {
+        this->setName(m_Url);
 
         /*
             setContent to NULL .
@@ -85,10 +85,10 @@ void NativeAssets::Item::download()
     }
 
     /* Reset the name with the new location forged by NativeStream */
-    this->setName(this->stream->getLocation());
+    this->setName(m_Stream->getLocation());
 
-    stream->setListener(this);
-    stream->getContent();
+    m_Stream->setListener(this);
+    m_Stream->getContent();
 }
 
 static int NativeAssets_pendingListUpdate(void *arg)
@@ -101,21 +101,21 @@ static int NativeAssets_pendingListUpdate(void *arg)
 }
 
 void NativeAssets::Item::setContent(const char *data, size_t len, bool async) {
-    this->state = ITEM_LOADED;
+    m_State = ITEM_LOADED;
 
     if (len) {
-        this->data.data = (unsigned char *)malloc(len);
-        memcpy(this->data.data, data, len);
+        m_Data.data = (unsigned char *)malloc(len);
+        memcpy(m_Data.data, data, len);
     } else {
-        this->data.data = NULL;
+        m_Data.data = NULL;
     }
-    this->data.len  = len;
-    if (assets) {
+    m_Data.len  = len;
+    if (m_Assets) {
         if (async) {
-            ape_global *ape = this->net;
-            timer_dispatch_async_unprotected(NativeAssets_pendingListUpdate, assets);
+            ape_global *ape = m_Net;
+            timer_dispatch_async_unprotected(NativeAssets_pendingListUpdate, m_Assets);
         } else {
-            assets->pendingListUpdate();
+            m_Assets->pendingListUpdate();
         }
     }
 }
@@ -124,23 +124,23 @@ void NativeAssets::addToPendingList(Item *item)
 {
     struct item_list *il = (struct item_list *)malloc(sizeof(*il));
 
-    this->nitems++;
+    m_Nitems++;
     il->item = item;
     il->next = NULL;
-    item->state = NativeAssets::Item::ITEM_LOADING;
-    item->assets = this;
+    item->m_State = NativeAssets::Item::ITEM_LOADING;
+    item->m_Assets = this;
 
-    if (pending_list.head == NULL) {
-        pending_list.head = il;
+    if (m_Pending_list.head == NULL) {
+        m_Pending_list.head = il;
     }
 
-    if (pending_list.foot != NULL) {
-        pending_list.foot->next = il;
+    if (m_Pending_list.foot != NULL) {
+        m_Pending_list.foot->next = il;
     }
 
-    pending_list.foot = il;
+    m_Pending_list.foot = il;
 
-    if (item->url != NULL) {
+    if (item->m_Url != NULL) {
         item->download();
     }
 }
@@ -156,7 +156,7 @@ static int NativeAssets_deleteItem(void *arg)
 
 void NativeAssets::endListUpdate(ape_global *ape)
 {
-    if (this->nitems == 0) {
+    if (m_Nitems == 0) {
         timer_dispatch_async_unprotected(NativeAssets_pendingListUpdate, this);
     }
 }
@@ -164,19 +164,19 @@ void NativeAssets::endListUpdate(ape_global *ape)
 void NativeAssets::pendingListUpdate()
 {
     bool worked = false;
-    struct item_list *il = pending_list.head, *ilnext;
-    while (il != NULL && il->item->state == NativeAssets::Item::ITEM_LOADED) {
-        this->nitems--;
-        itemReady(il->item, readyArg);
+    struct item_list *il = m_Pending_list.head, *ilnext;
+    while (il != NULL && il->item->m_State == NativeAssets::Item::ITEM_LOADED) {
+        m_Nitems--;
+        m_ItemReady(il->item, m_ReadyArg);
 
-        pending_list.head = il->next;
+        m_Pending_list.head = il->next;
 
         if (il->next == NULL) {
-            pending_list.foot = NULL;
+            m_Pending_list.foot = NULL;
         }
 
         ilnext = il->next;
-        ape_global *ape = il->item->net;
+        ape_global *ape = il->item->m_Net;
         timer_dispatch_async_unprotected(NativeAssets_deleteItem, il->item);
         free(il);
 
@@ -185,8 +185,8 @@ void NativeAssets::pendingListUpdate()
         worked = true;
     }
 
-    if (this->nitems == 0 && worked) {
-        assetsReady(this, readyArg);
+    if (m_Nitems == 0 && worked) {
+        m_AssetsReady(this, m_ReadyArg);
     }
 }
 

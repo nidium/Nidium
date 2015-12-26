@@ -76,13 +76,13 @@ class NativeCanvasWebGLContext: public NativeCanvasContext
             double left, double top, double opacity,
             double zoom, const NativeRect *rclip);
 
-        bool unpackFlipY;
-        bool unpackPremultiplyAlpha;
+        bool m_UnpackFlipY;
+        bool m_UnpackPremultiplyAlpha;
     private:
-        GLuint m_tex;
-        GLuint m_fbo;
-        int m_width;
-        int m_height;
+        GLuint m_Tex;
+        GLuint m_Fbo;
+        int m_Width;
+        int m_Height;
 };
 
 class NativeJSWebGLActiveInfo : public NativeJSExposer<NativeJSWebGLActiveInfo>
@@ -90,7 +90,7 @@ class NativeJSWebGLActiveInfo : public NativeJSExposer<NativeJSWebGLActiveInfo>
     public :
         NativeJSWebGLActiveInfo();
         ~NativeJSWebGLActiveInfo();
-        JSObject *jsobj;
+        JSObject *m_JsObj;
         static void registerObject(JSContext *cx);
 };
 

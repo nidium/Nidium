@@ -20,16 +20,16 @@ class NativeInputEvent;
 
 struct NativeRect
 {
-    double fLeft, fTop, fBottom, fRight;
-    bool isEmpty() const { return fLeft >= fRight || fTop >= fBottom; }
+    double m_fLeft, m_fTop, m_fBottom, m_fRight;
+    bool isEmpty() const { return m_fLeft >= m_fRight || m_fTop >= m_fBottom; }
     bool intersect(double left, double top, double right, double bottom) {
         if (left < right && top < bottom && !this->isEmpty() &&
-            fLeft < right && left < fRight && fTop < bottom && top < fBottom)
+            m_fLeft < right && left < m_fRight && m_fTop < bottom && top < m_fBottom)
         {
-            if (fLeft < left) fLeft = left;
-            if (fTop < top) fTop = top;
-            if (fRight > right) fRight = right;
-            if (fBottom > bottom) fBottom = bottom;
+            if (m_fLeft < left) m_fLeft = left;
+            if (m_fTop < top) m_fTop = top;
+            if (m_fRight > right) m_fRight = right;
+            if (m_fBottom > bottom) m_fBottom = bottom;
             return true;
         }
         return false;
@@ -37,7 +37,7 @@ struct NativeRect
 
     bool checkIntersect(double left, double top, double right, double bottom) const {
         if (left < right && top < bottom && !this->isEmpty() &&
-            fLeft < right && left < fRight && fTop < bottom && top < fBottom)
+            m_fLeft < right && left < m_fRight && m_fTop < bottom && top < m_fBottom)
         {
             return true;
         }
@@ -46,47 +46,47 @@ struct NativeRect
 
     NativeRect scaled(float scale) const {
         NativeRect r = {
-            this->fLeft*scale,
-            this->fTop*scale,
-            this->fBottom*scale,
-            this->fRight*scale
+            m_fLeft*scale,
+            m_fTop*scale,
+            m_fBottom*scale,
+            m_fRight*scale
         };
 
         return r;
     }
     bool contains(double x, double y) const {
         return !this->isEmpty() &&
-               fLeft <= x && x < fRight &&
-               fTop <= y && y < fBottom;
+               m_fLeft <= x && x < m_fRight &&
+               m_fTop <= y && y < m_fBottom;
     }
 };
 
 struct NativeLayerSiblingContext {
-    double maxLineHeight;
-    double maxLineHeightPreviousLine;
+    double m_MaxLineHeight;
+    double m_MaxLineHeightPreviousLine;
 
     NativeLayerSiblingContext() :
-        maxLineHeight(0.0), maxLineHeightPreviousLine(0.0) {}
+        m_MaxLineHeight(0.0), m_MaxLineHeightPreviousLine(0.0) {}
 };
 
 struct NativeLayerizeContext {
-    class NativeCanvasHandler *layer;
-    double pleft;
-    double ptop;
-    double aopacity;
-    double azoom;
-    NativeRect *clip;
+    class NativeCanvasHandler *m_Layer;
+    double m_pLeft;
+    double m_pTop;
+    double m_aOpacity;
+    double m_aZoom;
+    NativeRect *m_Clip;
 
-    struct NativeLayerSiblingContext *siblingCtx;
+    struct NativeLayerSiblingContext *m_SiblingCtx;
 
     void reset() {
-        layer = NULL;
-        pleft = 0.;
-        ptop = 0.;
-        aopacity = 1.0;
-        azoom = 1.0;
-        clip = NULL;
-        siblingCtx = NULL;
+        m_Layer = NULL;
+        m_pLeft = 0.;
+        m_pTop = 0.;
+        m_aOpacity = 1.0;
+        m_aZoom = 1.0;
+        m_Clip = NULL;
+        m_SiblingCtx = NULL;
     }
 };
 
@@ -98,7 +98,7 @@ class NativeCanvasHandler : public NativeEvents
         friend class NativeJSCanvas;
 
         static const uint8_t EventID = 1;
-        static int LastIdx;
+        static int m_LastIdx;
 
         enum COORD_MODE {
             kLeft_Coord   = 1 << 0,
@@ -150,15 +150,15 @@ class NativeCanvasHandler : public NativeEvents
         };
 
         NativeCanvasContext *m_Context;
-        class JSObject *jsobj;
-        struct JSContext *jscx;
+        class JSObject *m_JsObj;
+        struct JSContext *m_JsCx;
 
         int m_Width, m_Height, m_MinWidth, m_MinHeight, m_MaxWidth, m_MaxHeight;
         /*
             left and top are relative to parent
             a_left and a_top are relative to the root layer
         */
-        double left, top, a_left, a_top, right, bottom;
+        double m_Left, m_Top, m_aLeft, m_aTop, m_Right, m_Bottom;
 
         struct {
             double top;
@@ -166,7 +166,7 @@ class NativeCanvasHandler : public NativeEvents
             double left;
             double right;
             int global;
-        } padding;
+        } m_Padding;
 
         struct {
             double top;
@@ -178,59 +178,58 @@ class NativeCanvasHandler : public NativeEvents
         struct {
             double x;
             double y;
-        } translate_s;
+        } m_Translate_s;
 
         struct {
             int width;
             int height;
             int scrollTop;
             int scrollLeft;
-
             int _width, _height;
-        } content;
+        } m_Content;
 
         struct {
             int x, y, xrel, yrel;
             bool consumed;
-        } mousePosition;
+        } m_MousePosition;
 
         bool m_Overflow;
 
         NativeCanvasContext *getContext() const {
-            return this->m_Context;
+            return m_Context;
         }
 
         double getOpacity() const {
-            return this->opacity;
+            return m_Opacity;
         }
 
         double getZoom() const {
-            return this->zoom;
+            return m_Zoom;
         }
 
         double getLeft(bool absolute = false) const {
-            if (absolute) return a_left;
+            if (absolute) return m_aLeft;
 
-            if (!(coordMode & kLeft_Coord) && m_Parent) {
-                return m_Parent->getWidth() - (m_Width + this->right);
+            if (!(m_CoordMode & kLeft_Coord) && m_Parent) {
+                return m_Parent->getWidth() - (m_Width + m_Right);
             }
 
-            return this->left;
+            return m_Left;
         }
         double getTop(bool absolute = false) const {
-            if (absolute) return a_top;
+            if (absolute) return m_aTop;
 
-            if (!(coordMode & kTop_Coord) && m_Parent) {
-                return m_Parent->getHeight() - (m_Height + this->bottom);
+            if (!(m_CoordMode & kTop_Coord) && m_Parent) {
+                return m_Parent->getHeight() - (m_Height + m_Bottom);
             }
 
-            return this->top;
+            return m_Top;
         }
 
         double getTopScrolled() const {
             double top = getTop();
-            if (coordPosition == COORD_RELATIVE && m_Parent != NULL) {
-                top -= m_Parent->content.scrollTop;
+            if (m_CoordPosition == COORD_RELATIVE && m_Parent != NULL) {
+                top -= m_Parent->m_Content.scrollTop;
             }
 
             return top;
@@ -238,15 +237,15 @@ class NativeCanvasHandler : public NativeEvents
 
         double getLeftScrolled() const {
             double left = getLeft();
-            if (coordPosition == COORD_RELATIVE && m_Parent != NULL) {
-                left -= m_Parent->content.scrollLeft;
+            if (m_CoordPosition == COORD_RELATIVE && m_Parent != NULL) {
+                left -= m_Parent->m_Content.scrollLeft;
             }
             return left;
         }
 
         double getRight() const {
             if (hasStaticRight() || !m_Parent) {
-                return this->right;
+                return m_Right;
             }
 
             return m_Parent->getWidth() - (getLeftScrolled() + getWidth());
@@ -254,7 +253,7 @@ class NativeCanvasHandler : public NativeEvents
 
         double getBottom() const {
             if (hasStaticBottom() || !m_Parent) {
-                return this->bottom;
+                return m_Bottom;
             }
 
             return m_Parent->getHeight() - (getTopScrolled() + getHeight());
@@ -314,45 +313,45 @@ class NativeCanvasHandler : public NativeEvents
         }
 
         bool hasFixedWidth() const {
-            return !((coordMode & (kLeft_Coord | kRight_Coord))
+            return !((m_CoordMode & (kLeft_Coord | kRight_Coord))
                     == (kLeft_Coord|kRight_Coord) || m_FluidWidth);
         }
 
         bool hasFixedHeight() const {
-            return !((coordMode & (kTop_Coord | kBottom_Coord))
+            return !((m_CoordMode & (kTop_Coord | kBottom_Coord))
                     == (kTop_Coord|kBottom_Coord) || m_FluidHeight);
         }
 
         bool hasStaticLeft() const {
-            return coordMode & kLeft_Coord;
+            return m_CoordMode & kLeft_Coord;
         }
 
         bool hasStaticRight() const {
-            return coordMode & kRight_Coord;
+            return m_CoordMode & kRight_Coord;
         }
 
         bool hasStaticTop() const {
-            return coordMode & kTop_Coord;
+            return m_CoordMode & kTop_Coord;
         }
 
         bool hasStaticBottom() const {
-            return coordMode & kBottom_Coord;
+            return m_CoordMode & kBottom_Coord;
         }
 
         void unsetLeft() {
-            coordMode &= ~kLeft_Coord;
+            m_CoordMode &= ~kLeft_Coord;
         }
 
         void unsetRight() {
-            coordMode &= ~kRight_Coord;
+            m_CoordMode &= ~kRight_Coord;
         }
 
         void unsetTop() {
-            coordMode &= ~kTop_Coord;
+            m_CoordMode &= ~kTop_Coord;
         }
 
         void unsetBottom() {
-            coordMode &= ~kBottom_Coord;
+            m_CoordMode &= ~kBottom_Coord;
         }
 
         void setMargin(double top, double right, double bottom, double left)
@@ -367,15 +366,15 @@ class NativeCanvasHandler : public NativeEvents
             if (m_FlowMode & kFlowInlinePreviousSibling) {
                 return;
             }
-            coordMode |= kLeft_Coord;
-            this->left = val;
+            m_CoordMode |= kLeft_Coord;
+            m_Left = val;
             if (!hasFixedWidth()) {
                 setSize(this->getWidth(), m_Height);
             }
         }
         void setRight(double val) {
-            coordMode |= kRight_Coord;
-            this->right = val;
+            m_CoordMode |= kRight_Coord;
+            m_Right = val;
             if (!hasFixedWidth()) {
                 setSize(this->getWidth(), m_Height);
             }
@@ -385,16 +384,16 @@ class NativeCanvasHandler : public NativeEvents
             if (m_FlowMode & kFlowInlinePreviousSibling) {
                 return;
             }
-            coordMode |= kTop_Coord;
-            this->top = val;
+            m_CoordMode |= kTop_Coord;
+            m_Top = val;
             if (!hasFixedHeight()) {
                 setSize(m_Width, this->getHeight());
             }
         }
 
         void setBottom(double val) {
-            coordMode |= kBottom_Coord;
-            this->bottom = val;
+            m_CoordMode |= kBottom_Coord;
+            m_Bottom = val;
 
             if (!hasFixedHeight()) {
                 setSize(m_Width, this->getHeight());
@@ -406,11 +405,11 @@ class NativeCanvasHandler : public NativeEvents
         void setId(const char *str);
 
         double getScaleX() const {
-            return this->scaleX;
+            return m_ScaleX;
         }
 
         double getScaleY() const {
-            return this->scaleY;
+            return m_ScaleY;
         }
 
         uint64_t getIdentifier(char **str = NULL) {
@@ -430,7 +429,7 @@ class NativeCanvasHandler : public NativeEvents
         }
 
         COORD_POSITION getPositioning() const {
-            return coordPosition;
+            return m_CoordPosition;
         }
 
         unsigned int getFlowMode() const {
@@ -545,16 +544,16 @@ class NativeCanvasHandler : public NativeEvents
         void onDrag(NativeInputEvent *ev, NativeCanvasHandler *target, bool end = false);
         void onDrop(NativeInputEvent *ev, NativeCanvasHandler *droped);
 
-        int32_t nchildren;
+        int32_t m_nChildren;
         void dispatchMouseEvents(NativeLayerizeContext &layerContext);
-        COORD_POSITION coordPosition;
-        Visibility visibility;
+        COORD_POSITION m_CoordPosition;
+        Visibility m_Visibility;
         unsigned m_FlowMode;
-        unsigned coordMode : 16;
-        double opacity;
-        double zoom;
+        unsigned m_CoordMode : 16;
+        double m_Opacity;
+        double m_Zoom;
 
-        double scaleX, scaleY;
+        double m_ScaleX, m_ScaleY;
         bool m_AllowNegativeScroll;
         bool m_FluidWidth, m_FluidHeight;
 
@@ -575,7 +574,6 @@ class NativeCanvasHandler : public NativeEvents
 
         int m_Pending;
         bool m_Loaded;
-
         int m_Cursor;
 };
 
