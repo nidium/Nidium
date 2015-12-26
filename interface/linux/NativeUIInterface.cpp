@@ -135,14 +135,14 @@ int NativeEvents(NativeX11UIInterface *NUII)
                         if (++nrefresh > 1) {
                             break;
                         }
-                        printf("\n\n=======Refresh...=======\n");
+                        fprintf(stdout, "\n\n=======Refresh...=======\n");
                         //[console clear];
 #ifdef NATIVE_USE_GTK
                         while (gtk_events_pending ()) {
                             gtk_main_iteration();
                         }
 #endif
-                        //printf("\n\n=======Restarting...=====\n");
+                        //fprintf(stdout, "\n\n=======Restarting...=====\n");
                         NUII->restartApplication();
                         break;
                     }
@@ -167,8 +167,8 @@ int NativeEvents(NativeX11UIInterface *NUII)
                             event.key.state, event.key.repeat,
                             SDL_KEYCODE_GET_LOCATION(keyCode));
                     }
-                    /*printf("Mapped to %d\n", keyCode);
-                    printf("Key : %d %d %d %d %d uni : %d\n", event.key.keysym.sym,
+                    /*fprintf(stdout, "Mapped to %d\n", keyCode);
+                    fprintf(stout, "Key : %d %d %d %d %d uni : %d\n", event.key.keysym.sym,
                            event.key.repeat,
                            event.key.state,
                            event.key.type,
@@ -275,7 +275,7 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
 {
     NativeX11UIInterface *ui = (NativeX11UIInterface *)closure;
     chdir(fpath);
-    printf("Changing directory to : %s\n", fpath);
+    fprintf(stdout, "Changing directory to : %s\n", fpath);
     ui->m_Nml = new NativeNML(ui->m_Gnet);
     ui->m_Nml->setNJS(ui->NJS);
     ui->m_Nml->loadFile("./index.nml");
@@ -285,10 +285,10 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
 {
     NativeX11UIInterface *ui = static_cast<NativeX11UIInterface*>(closure);
     if (chdir(fpath) != 0) {
-        printf("Cant enter cache directory (%d)\n", errno);
+        fprintf(stderr, "Cant enter cache directory (%d)\n", errno);
         return;
     }
-    printf("Changing directory to : %s\n", fpath);
+    fprintf(stdout, "Changing directory to : %s\n", fpath);
 
     ui->m_Nml = new NativeNML(ui->m_Gnet);
     ui->m_Nml->loadFile("./index.nml", NativeX11UIInterface_onNMLLoaded, ui);
@@ -316,7 +316,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
     if (!this->m_Initialized) {
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1)
         {
-            printf("Can't init SDL:  %s\n", SDL_GetError());
+            fprintf(stdout, "Can't init SDL:  %s\n", SDL_GetError());
             return false;
         }
 
@@ -337,7 +337,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
 
         if (this->m_Win == NULL) {
-            printf("Cant create window (SDL)\n");
+            fprintf(stdout, "Cant create window (SDL)\n");
             return false;
         }
 
@@ -375,7 +375,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
         SDL_StartTextInput();
 
         if (SDL_GL_SetSwapInterval(kNativeVSYNC) == -1) {
-            printf("Cant vsync\n");
+            fprintf(stdout, "Cant vsync\n");
         }
 
         glViewport(0, 0, width*2, height*2);
@@ -515,7 +515,7 @@ void NativeX11UIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
     NSWindow *window = NativeX11Window(win);
     NSUInteger mask = [window styleMask];
 
-    printf("setting titlebar color\n");
+    fprintf(stdout, "setting titlebar color\n");
 
     if ((mask & NSTexturedBackgroundWindowMask) == 0) {
         [window setStyleMask:mask|NSTexturedBackgroundWindowMask];
@@ -600,9 +600,9 @@ NativeUIX11Console::NativeUIX11Console ()
 void NativeUIX11Console::log(const char *str)
 {
     if (strcmp("\n", str) == 0) {
-        printf("\n");
+        fprintf(stdout, "\n");
     } else {
-        printf("[CONSOLE] %s", str);
+        fprintf(stdout, "[CONSOLE] %s", str);
     }
 }
 
@@ -688,7 +688,7 @@ bool NativeX11UIInterface::runApplication(const char *path)
             this->mainjs.len = fsize;
             this->mainjs.offset = 0;
 
-            printf("Start looking for main.js of size : %ld\n", fsize);*/
+            fprintf(stdout, "Start looking for main.js of size : %ld\n", fsize);*/
             return true;
         } else {
             delete app;

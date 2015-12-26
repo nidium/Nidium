@@ -75,7 +75,7 @@ const char *NativeSystem::getCacheDirectory()
     snprintf(nHome, 2048, "%s.nidium/", homedir);
 
     if (mkdir(nHome, 0755) == -1 && errno != EEXIST) {
-        printf("Cant create cache directory %s\n", nHome);
+        fprintf(stderr, "Cant create cache directory %s\n", nHome);
         return NULL;
     }
 

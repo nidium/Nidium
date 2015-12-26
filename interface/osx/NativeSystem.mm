@@ -10,7 +10,7 @@ NativeSystem::NativeSystem()
 #else
     fbackingStorePixelRatio = 1.0;
 #endif
-    printf("Canvas Ratio (HIDPI) : %f\n", fbackingStorePixelRatio);
+    fprintf(stdout, "Canvas Ratio (HIDPI) : %f\n", fbackingStorePixelRatio);
 }
 
 float NativeSystem::backingStorePixelRatio()
@@ -94,7 +94,7 @@ const char *NativeSystem::getCacheDirectory()
         NSString *path = [NSString stringWithFormat:@"%@/nidium/",cacheDir];
         const char *cpath = [path cStringUsingEncoding:NSASCIIStringEncoding];
         if (mkdir(cpath, 0777) == -1 && errno != EEXIST) {
-            printf("Cant create cache directory %s\n", cpath);
+            fprintf(stderr, "Cant create cache directory %s\n", cpath);
             return NULL;
         }
         return cpath;

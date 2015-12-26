@@ -20,8 +20,8 @@ extern "C" {
 #if DEBUG && 0
   #define DEBUG_PRINT
   #define DPRINT(...) \
-    printf(">%lld / ", av_gettime()/1000); \
-    printf(__VA_ARGS__)
+    fprintf(stdout, ">%lld / ", av_gettime()/1000); \
+    fprintf(stdout __VA_ARGS__)
 #else
   #define DPRINT(...) (void)0
 #endif
@@ -856,7 +856,7 @@ int NativeVideo::setSizeInternal()
         m_Frames[i] = (uint8_t*) malloc(frameSize);
     }
 
-    printf("Setting size finished\n");
+    fprintf(stdout, "Setting size finished\n");
 
     m_Width = width;
     m_Height = height;
@@ -982,7 +982,7 @@ void NativeVideo::bufferInternal()
         if (ret < 0) {
             av_free_packet(&packet);
             if (this->readError(ret) != 0) {
-                printf("got error %d/%d\n", m_Eof, m_Error);
+                fprintf(stderr, "got error %d/%d\n", m_Eof, m_Error);
                 return;
             }
             continue;

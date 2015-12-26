@@ -537,7 +537,7 @@ bool NativeJSwindow::dragEvent(const char *name, int x, int y)
         JS::RootedValue rval(m_Cx);
 
         if (!JS_CallFunctionValue(m_Cx, event, ondragevent, jevent, &rval)) {
-            printf("Failed to exec func\n");
+            fprintf(stderr, "Failed to exec func\n");
             return false;
         }
 

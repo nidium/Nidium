@@ -318,12 +318,12 @@ int NativeAudio::openOutput() {
             (void *)this);
 
     if (error) {
-        printf("[NativeAudio] Error opening output, error code = %i\n", error);
+        fprintf(stderr, "[NativeAudio] Error opening output, error code = %i\n", error);
         Pa_Terminate();
         return error;
     }
 
-    printf("[NativeAudio] output opened with latency to %f\n", infos->defaultHighOutputLatency);
+    fprintf(stdout, "[NativeAudio] output opened with latency to %f\n", infos->defaultHighOutputLatency);
 
     Pa_StartStream(m_OutputStream);
 

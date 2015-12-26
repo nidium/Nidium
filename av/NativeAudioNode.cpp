@@ -1153,7 +1153,7 @@ int NativeAudioSource::resample(int destSamples) {
                 // Resample as much data as possible
                 while (m_fCvt->out_count > 0 && m_fCvt->inp_count > 0) {
                     if (0 != m_fCvt->process()) {
-                        printf("Failed to resample audio data\n");
+                        fprintf(stderr, "Failed to resample audio data\n");
                         return -1;
                     }
                 }

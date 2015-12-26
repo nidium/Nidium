@@ -53,7 +53,7 @@ void NativeTerminalUIInterface::setWindowTitle(const char *name)
 void NativeTerminalUIInterface::openFileDialog(const char const *files[],
     void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg)
 {
-    printf("openFileDialog not implemented\n");
+    fprintf(stdout, "openFileDialog not implemented\n");
 }
 
 void NativeTerminalUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
@@ -84,9 +84,9 @@ NativeUITerminalConsole::NativeUITerminalConsole ()
 void NativeUITerminalConsole::log(const char *str)
 {
     if (strcmp("\n", str) == 0) {
-        printf("\n");
+        fprintf(stdout, "\n");
     } else {
-        printf("[CONSOLE] %s", str);
+        fprintf(stdout, "[CONSOLE] %s", str);
     }
 }
 

@@ -75,11 +75,11 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     if (window) {
                         switch (event.window.event) {
                             case SDL_WINDOWEVENT_SIZE_CHANGED:
-                                //printf("Size changed ??? %d %d\n", event.window.data1, event.window.data2);
+                                //fprintf(stout, "Size changed ??? %d %d\n", event.window.data1, event.window.data2);
                                 //window->resized(event.window.data1, event.window.data2);
                                 break;
                             case SDL_WINDOWEVENT_RESIZED:
-                                //printf("Resized\n");
+                                //fprintf(stdout, "Resized\n");
                                 //window->resized(event.window.data1, event.window.data2);
                                 break;
                             case SDL_WINDOWEVENT_FOCUS_GAINED:
@@ -160,8 +160,8 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                             event.key.state, event.key.repeat,
                             SDL_KEYCODE_GET_LOCATION(keyCode));
                     }
-                    /*printf("Mapped to %d\n", keyCode);
-                    printf("Key : %d %d %d %d %d uni : %d\n", event.key.keysym.sym,
+                    /*fprintf(stdout, "Mapped to %d\n", keyCode);
+                    fprintf(stout, "Key : %d %d %d %d %d uni : %d\n", event.key.keysym.sym,
                            event.key.repeat,
                            event.key.state,
                            event.key.type,
@@ -284,10 +284,10 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
 {
     NativeCocoaUIInterface *ui = (NativeCocoaUIInterface *)closure;
     if (chdir(fpath) != 0) {
-        printf("Cant enter cache directory (%d)\n", errno);
+        fprintf(stderr, "Cant enter cache directory (%d)\n", errno);
         return;
     }
-    printf("Changing directory to : %s\n", fpath);
+    fprintf(stdout, "Changing directory to : %s\n", fpath);
 
     ui->nml = new NativeNML(ui->gnet);
     ui->nml->loadFile("./index.nml", NativeCocoaUIInterface_onNMLLoaded, ui);
@@ -451,7 +451,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
             this->m_Mainjs.len = fsize;
             this->m_Mainjs.offset = 0;
 
-            printf("Start looking for main.js of size : %ld\n", fsize);*/
+            fprintf(stdout, "Start looking for main.js of size : %ld\n", fsize);*/
             return true;
         } else {
             delete app;
@@ -502,7 +502,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1)
         {
-            printf( "Can't init SDL:  %s\n", SDL_GetError( ));
+            fprintf(stderr, "Can't init SDL:  %s\n", SDL_GetError( ));
             return false;
         }
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, true);
@@ -525,7 +525,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /*| SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN*/);
 
         if (win == NULL) {
-            printf("Cant create window (SDL)\n");
+            fprintf(stderr, "Cant create window (SDL)\n");
             return false;
         }
 
@@ -628,7 +628,7 @@ void NativeCocoaUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
     NSWindow *window = NativeCocoaWindow(win);
     NSUInteger mask = [window styleMask];
 
-    printf("setting titlebar color\n");
+    fprintf(stdout, "setting titlebar color\n");
 
     if ((mask & NSTexturedBackgroundWindowMask) == 0) {
         [window setStyleMask:mask|NSTexturedBackgroundWindowMask];

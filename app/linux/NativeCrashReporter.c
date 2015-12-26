@@ -30,7 +30,7 @@ char *read_dump(const char *path, int *data_len)
 
     fd = fopen(path, "rb");
     if (!fd) {
-        printf("Failed to open dump : %s\n", path);
+        fprintf(stderr, "Failed to open dump : %s\n", path);
         return NULL;
     }
 
@@ -62,17 +62,17 @@ int main(int argc, char **argv)
     size_t content_length;
 
     if (argc < 2) {
-        printf("No dump specified\n");
+        fprintf(stderr, "No dump specified\n");
         return -1;
     }
 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        printf("Failed to create socket, err=%d\n", errno);
+        fprintf(stderr, "Failed to create socket, err=%d\n", errno);
         return -2;
     }
 
     if ((hostaddr = gethostbyname(NATIVE_CRASH_COLLECTOR_HOST)) == NULL) {
-        printf("Unable to get host\n");
+        fprintf(stderr, "Unable to get host\n");
         return -2;
     }
 
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
     dest.sin_port = htons(NATIVE_CRASH_COLLECTOR_PORT);
 
     if (connect(sock, (const struct sockaddr *)&dest, sizeof(struct sockaddr)) != 0) {
-        printf("Failed to connect\n");
+        fprintf(stderr, "Failed to connect\n");
         return -2;
     }
 
@@ -116,7 +116,7 @@ int main(int argc, char **argv)
     SEND("Host: "NATIVE_CRASH_COLLECTOR_HOST"\r\n");
     SEND(cl_header);
     SEND("Content-Type: multipart/form-data; boundary="HTTP_BOUNDARY"\r\n\r\n");
-    printf("%s\n", data);
+    //fprintf(stdout, "%s\n", data);
     SEND(data);
     send(sock, minidump, minidum_size, 0);
     SEND(HTTP_BOUNDARY_END)
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
     len = recv(sock, reply_buffer, MAX_RCV_LEN, 0);
     reply_buffer[len] = '\0';
 
-    printf("reply=%d\n%s\n", len, reply_buffer);
+    fprintf(stdout, "reply=%d\n%s\n", len, reply_buffer);
 
     close(sock);
     free(minidump);

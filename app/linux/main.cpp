@@ -28,11 +28,11 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
         void* context,
         bool succeeded)
 {
-    printf("Nidium crash - Sending report - No personal information is transmited\n");
+    fprintf(stderr, "Nidium crash - Sending report - No personal information is transmited\n");
     char reporter[PATH_MAX];
     snprintf(reporter, PATH_MAX, "%s/nidium-crash-reporter", _root);
     int ret = execl(reporter, "nidium-crash-reporter", descriptor.path(), NULL);
-    printf("Crash reporter returned %d\n", ret);
+    fprintf(stdout, "Crash reporter returned %d\n", ret);
     return succeeded;
 }
 #endif

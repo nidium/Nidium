@@ -148,7 +148,7 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                     }
                 break;
                 default:
-                    printf("received unknown error (%d) and streamBuffer is null. Returning EOF, copied = %u\n",
+                    fprintf(stderr, "received unknown error (%d) and streamBuffer is null. Returning EOF, copied = %u\n",
                        thiz->m_StreamErr, (unsigned long) copied);
                     thiz->m_Error = AVERROR_EOF;
                     return copied > 0 ? copied : thiz->m_Error;
