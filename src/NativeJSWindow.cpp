@@ -251,13 +251,13 @@ NativeJSwindow::~NativeJSwindow()
 void NativeJSwindow::onReady(JS::HandleObject layout)
 {
     JS::AutoValueArray<1> arg(m_Cx);
-    JS::RootedObject rlayout(m_Cx);
 
     if (layout) {
-        rlayout = layout;
+        JS::RootedObject rlayout(m_Cx, layout);
         arg[0].set(OBJECT_TO_JSVAL(rlayout));
     } else {
-        arg[0].set(OBJECT_TO_JSVAL(JS_NewArrayObject(m_Cx, 0)));
+        JS::RootedObject lobj(m_Cx, JS_NewArrayObject(m_Cx, 0));
+        arg[0].set(OBJECT_TO_JSVAL(lobj));
     }
     JS::RootedObject obj(m_Cx, m_JSObject);
     JS::RootedValue onready(m_Cx);

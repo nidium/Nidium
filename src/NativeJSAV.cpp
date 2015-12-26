@@ -707,7 +707,7 @@ bool NativeJSAudio::run(char *str)
     JS::RootedObject globalObj(this->tcx, JS::CurrentGlobalOrNull(this->tcx));
     options.setIntroductionType("audio Thread").setUTF8(true);
     JS::RootedFunction fun(this->tcx, JS_CompileFunction(this->tcx, globalObj, "Audio_run", 0, nullptr, str, strlen(str), options));
-    if (!fun) {
+    if (!fun.get()) {
         JS_ReportError(this->tcx, "Failed to execute script on audio thread\n");
         return false;
     }
@@ -727,7 +727,7 @@ void NativeJSAudio::unroot()
         JS::RemoveObjectRoot(njs->cx, &m_JSObject);
     }
     if (this->gbl.get()) {
-    	this->gbl = nullptr;
+        this->gbl = nullptr;
     }
 
     while (nodes != NULL) {
@@ -926,7 +926,7 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
         data = JS_GetArrayBufferData(arrBuff);
         memcpy(data, ev->data[i], size);
         JS::RootedObject arr(tcx, JS_NewFloat32ArrayWithBuffer(tcx, arrBuff, 0, -1));
-        if (arr != NULL) {
+        if (arr.get()) {
             JS::RootedValue arrVal(tcx, OBJECT_TO_JSVAL(arr));
             JS_DefineElement(tcx, frames, i, arrVal, nullptr, nullptr,
                  JSPROP_ENUMERATE | JSPROP_PERMANENT);
@@ -958,7 +958,7 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
         }
 
         JS::RootedObject arr(tcx, val.toObjectOrNull());
-        if (arr == NULL || !JS_IsFloat32Array(arr) || JS_GetTypedArrayLength(arr) != ev->size) {
+        if (!arr.get() || !JS_IsFloat32Array(arr) || JS_GetTypedArrayLength(arr) != ev->size) {
             continue;
         }
 
@@ -1010,10 +1010,10 @@ void NativeJSAudioNode::shutdownCallback(NativeAudioNode *nnode, void *custom)
     JSAutoRequest ar(node->audio->tcx);
 
     if (!node->nodeObj.get()) {
-    	node->nodeObj = nullptr;
+        node->nodeObj = nullptr;
     }
     if (!node->hashObj.get()) {
-    	node->hashObj = nullptr;
+         node->hashObj = nullptr;
     }
 
     // JSTransferableFunction need to be destroyed on the JS thread
@@ -1090,7 +1090,7 @@ NativeJSAudioNode::~NativeJSAudioNode()
         // Only source from NativeVideo has reserved slot
         JS::RootedValue source(m_Cx, JS_GetReservedSlot(m_JSObject, 0));
         JS::RootedObject obj(m_Cx, source.toObjectOrNull());
-        if (obj != NULL) {
+        if (obj.get()) {
             // If it exist, we must inform the video
             // that audio node no longer exist
             NativeJSVideo *video = (NativeJSVideo *)JS_GetPrivate(obj);

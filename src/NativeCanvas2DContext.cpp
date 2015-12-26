@@ -567,6 +567,7 @@ static bool native_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc,
 {
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, cpx, cpy, cpx2, cpy2;
+
     if (!JS_ConvertArguments(cx, args, "dddddd", &cpx, &cpy, &cpx2, &cpy2,
         &x, &y)) {
         return false;
@@ -745,6 +746,7 @@ static bool native_canvas2dctx_createLinearGradient(JSContext *cx,
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     double x1, y1, x2, y2;
+
     if (!JS_ConvertArguments(cx, args, "dddd", &x1, &y1, &x2, &y2)) {
         return false;
     }
@@ -841,7 +843,7 @@ static bool native_canvas2dctx_createImageData(JSContext *cx,
     }
 
     JS::RootedObject arrBuffer(cx, JS_NewUint8ClampedArray(cx, x*y * 4));
-    if (arrBuffer == NULL) {
+    if (!arrBuffer.get()) {
         JS_ReportOutOfMemory(cx);
         return false;
     }
@@ -1123,15 +1125,14 @@ static bool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
-    JS::RootedString glsl(cx);
     size_t program;
 
+    JS::RootedString glsl(cx);
     if (!JS_ConvertArguments(cx, args, "S", glsl.address())) {
         return false;
     }
 
     JSAutoByteString cglsl(cx, glsl);
-
     if ((program = CppObj->attachShader(cglsl.ptr())) == 0) {
         JS_ReportError(cx, "Failed to compile GLSL shader");
         return false;
@@ -1151,10 +1152,10 @@ static bool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsign
     JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedString location(cx);
     JS::RootedObject caller(cx,  JS_THIS_OBJECT(cx, vp));
     uint32_t program;
 
+    JS::RootedString location(cx);
     if (!JS_ConvertArguments(cx, args, "S", location.address())) {
         return false;
     }
@@ -1232,7 +1233,6 @@ static bool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx,
     unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject array(cx);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     GLsizei length;
     GLint *carray;
@@ -1240,6 +1240,7 @@ static bool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx,
     uint32_t program;
     program = (size_t)JS_GetPrivate(caller);
 
+    JS::RootedObject array(cx);
     if (!JS_ConvertArguments(cx, args, "io", &location, array.address())) {
         return false;
     }
@@ -1291,7 +1292,6 @@ static bool native_canvas2dctxGLProgram_uniformXfv(JSContext *cx,
     unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject array(cx);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     GLsizei length;
     GLfloat *carray;
@@ -1299,6 +1299,7 @@ static bool native_canvas2dctxGLProgram_uniformXfv(JSContext *cx,
     uint32_t program;
     program = (size_t)JS_GetPrivate(caller);
 
+    JS::RootedObject array(cx);
     if (!JS_ConvertArguments(cx, args, "io", &location, array.address())) {
         return false;
     }

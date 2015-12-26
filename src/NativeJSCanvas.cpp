@@ -16,7 +16,7 @@ extern JSClass Canvas2DContext_class;
 #define NATIVE_PROLOGUE(ofclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
-    if (!thisobj) return false; \
+    if (!thisobj.get()) return false; \
     if (JS_GetClass(thisobj) != NativeLocalClass) { \
         JS_ReportError(cx, "Illegal invocation");\
         args.rval().setUndefined(); \
@@ -839,7 +839,7 @@ static bool native_canvas_setContext(JSContext *cx, unsigned argc,
     NATIVE_CHECK_ARGS("setContext", 1);
 
     JS::RootedObject obj(cx, args[0].toObjectOrNull());
-    if (!obj) {
+    if (!obj.get()) {
         return true;
     }
 

@@ -39,7 +39,7 @@ extern JSClass Canvas_class;
     if (!JS_ConvertArguments(cx, args, "o", obj.address())) { \
         return false;\
     } \
-    if (obj.get() != NULL) { \
+    if (obj.get()) { \
         WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, obj, \
             &WebGL## NAME ##_class, &args); \
         if (JS_GetReservedSlot(thisobj, WebGLResource::k## NAME).toObjectOrNull() == res->jsobj()) { \
