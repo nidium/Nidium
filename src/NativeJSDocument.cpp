@@ -243,12 +243,15 @@ static void Document_Finalize(JSFreeOp *fop, JSObject *obj)
 bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
     size_t len, const char *filename)
 {
+    if ( ! m_stylesheet ) {
+        return false;
+    }
     JS::RootedValue ret(cx);
     if (!NativeJS::LoadScriptReturn(cx, data, len, filename, &ret)) {
         return false;
     }
+    JS::RootedObject style(cx, m_stylesheet);
     JS::RootedObject jret(cx, ret.toObjectOrNull());
-    JS::RootedObject style(cx, this->stylesheet);
     NativeJS::copyProperties(cx, jret, &style);
 
     return true;
@@ -271,9 +274,9 @@ JSObject *NativeJSdocument::registerObject(JSContext *cx)
     njs->jsobjects.set(NativeJSdocument::getJSObjectName(), documentObj);
 
     JS::RootedObject styleObj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
-    jdoc->stylesheet = styleObj;
+    jdoc->m_stylesheet = styleObj;
 
-    JS::RootedValue objV(cx, OBJECT_TO_JSVAL(jdoc->stylesheet));
+    JS::RootedValue objV(cx, OBJECT_TO_JSVAL(jdoc->m_stylesheet));
     JS_SetProperty(cx, documentObj, "stylesheet", objV);
     JS_DefineFunctions(cx, documentObj, document_funcs);
     JS_DefineProperties(cx, documentObj, document_props);
