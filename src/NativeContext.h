@@ -159,15 +159,15 @@ class NativeContext : public NativeMessages
     }
 
     static NativeContext *getNativeClass() {
-        return (NativeContext *)NativeJS::getNativeClass(NULL)->getPrivate();
+        return static_cast<NativeContext *>(NativeJS::getNativeClass(NULL)->getPrivate());
     }
 
     static NativeContext *getNativeClass(struct JSContext *cx) {
-        return (NativeContext *)NativeJS::getNativeClass(cx)->getPrivate();
+        return static_cast<NativeContext *>(NativeJS::getNativeClass(cx)->getPrivate());
     }
 
     static NativeContext *getNativeClass(NativeJS *njs) {
-        return (NativeContext *)njs->getPrivate();
+        return static_cast<NativeContext *>(njs->getPrivate());
     }
 
     void callFrame();

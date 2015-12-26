@@ -40,8 +40,8 @@ extern JSClass Canvas_class;
         return false;\
     } \
     if (obj.get()) { \
-        WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, obj, \
-            &WebGL## NAME ##_class, &args); \
+        WebGLResource *res = static_cast<WebGLResource *>(JS_GetInstancePrivate(cx, obj, \
+            &WebGL## NAME ##_class, &args)); \
         if (JS_GetReservedSlot(thisobj, WebGLResource::k## NAME).toObjectOrNull() == res->jsobj()) { \
             JS_SetReservedSlot(thisobj, WebGLResource::k## NAME, JSVAL_NULL); \
         } \
@@ -59,8 +59,8 @@ extern JSClass Canvas_class;
     }
 
 #define NGL_GET_RESOURCE(CLASS, OBJ, VAR) \
-    VAR = (WebGLResource *)JS_GetInstancePrivate(cx, OBJ, \
-        &WebGL ## CLASS ##_class, &args);\
+    VAR = static_cast<WebGLResource *>(JS_GetInstancePrivate(cx, OBJ, \
+        &WebGL ## CLASS ##_class, &args));\
     if (!VAR) return false;
 
 class WebGLResource {
@@ -202,7 +202,7 @@ static JSClass WebGLActiveInfo_class = {
 
 static void Buffer_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    WebGLResource *res = (WebGLResource *)JS_GetPrivate(obj);
+    WebGLResource *res = static_cast<WebGLResource *>(JS_GetPrivate(obj));
 
     if (res) {
         delete res;
@@ -211,7 +211,7 @@ static void Buffer_Finalize(JSFreeOp *fop, JSObject *obj)
 
 static void WebGLRenderingContext_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeCanvas3DContext *ctx = (NativeCanvas3DContext *)JS_GetPrivate(obj);
+    NativeCanvas3DContext *ctx = static_cast<NativeCanvas3DContext *>(JS_GetPrivate(obj));
     if (ctx) {
         delete ctx;
     }

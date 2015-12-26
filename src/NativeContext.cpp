@@ -204,7 +204,7 @@ void NativeContext::sizeChanged(int w, int h)
 
 void NativeContext::createDebugCanvas()
 {
-    NativeCanvas2DContext *context = (NativeCanvas2DContext *)m_RootHandler->getContext();
+    NativeCanvas2DContext *context = static_cast<NativeCanvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
     m_DebugHandler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
     NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(m_DebugHandler,
@@ -221,7 +221,7 @@ void NativeContext::createDebugCanvas()
 #if DEBUG
 void NativeContext::createDebug2Canvas()
 {
-    NativeCanvas2DContext *context = (NativeCanvas2DContext *)m_RootHandler->getContext();
+    NativeCanvas2DContext *context = static_cast<NativeCanvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
     m_Debug2Handler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
     NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(m_Debug2Handler,
@@ -240,7 +240,7 @@ void NativeContext::postDraw()
 {
     if (NativeJSdocument::showFPS && m_DebugHandler) {
 
-        NativeSkia *s = ((NativeCanvas2DContext *)m_DebugHandler->getContext())->getSurface();
+        NativeSkia *s = (static_cast<NativeCanvas2DContext *>(m_DebugHandler->getContext())->getSurface());
         m_DebugHandler->bringToFront();
 
         s->setFillColor(0xFF000000u);
@@ -275,7 +275,7 @@ void NativeContext::postDraw()
 #if DEBUG
     m_Debug2Handler->bringToFront();
     m_Debug2Handler->getContext()->clear();
-    NativeSkia *rootctx = ((NativeCanvas2DContext *)m_Debug2Handler->getContext())->getSurface();
+    NativeSkia *rootctx = (static_cast<NativeCanvas2DContext *>(m_Debug2Handler->getContext())->getSurface());
     rootctx->save();
 
     rootctx->setFillColor("black");
@@ -400,7 +400,7 @@ void NativeContext::frame(bool draw)
 
     m_UI->makeMainGLCurrent();
     /* Skia context is dirty after a call to layerize */
-    ((NativeCanvas2DContext *)m_RootHandler->getContext())->resetSkiaContext();
+    (static_cast<NativeCanvas2DContext *>(m_RootHandler->getContext()))->resetSkiaContext();
 }
 
 void NativeContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
@@ -408,7 +408,7 @@ void NativeContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
     if (!pool->ptr.data) {
         return;
     }
-    NativeInputEvent *ev = (NativeInputEvent *)pool->ptr.data;
+    NativeInputEvent *ev = static_cast<NativeInputEvent *>(pool->ptr.data);
 
     /* top-most element */
     if (ev->getDepth() == ev->m_Origin->getDepth()) {
@@ -574,7 +574,7 @@ void NativeContext::execPendingCanvasChanges()
     ape_htable_item_t *item, *tmpItem;
     for (item = m_CanvasPendingJobs.accessCStruct()->first; item != NULL; item = tmpItem) {
         tmpItem = item->lnext;
-        NativeCanvasHandler *handler = (NativeCanvasHandler *)item->content.addrs;
+        NativeCanvasHandler *handler = static_cast<NativeCanvasHandler *>(item->content.addrs);
         handler->execPending();
     }
 }
@@ -583,7 +583,7 @@ void NativeContext::onMessage(const NativeSharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case NATIVE_EVENT(NativeWebSocketListener, SERVER_CONNECT):
-            m_WSClient = (NativeWebSocketClientConnection *)msg.args[0].toPtr();
+            m_WSClient = static_cast<NativeWebSocketClientConnection *>(msg.args[0].toPtr());
             printf("New WS client for render :)\n");
             break;
     }

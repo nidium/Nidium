@@ -358,7 +358,7 @@ int NativeSkia::bindOnScreen(int width, int height)
                         ->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                             width*ratio, height*ratio, false);
 #else
-    GrContext *gr = ((SkGpuDevice *)NativeSkia::glcontext->getDevice())->context();
+    GrContext *gr = (static_cast<SkGpuDevice *>(NativeSkia::glcontext->getDevice())->context());
     SkBaseDevice *dev = this->createNewGPUDevice(gr, width*ratio, height*ratio);
 #endif
     if (dev == NULL) {
@@ -405,7 +405,7 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height,
     GrContext *context = NULL;
 
     if (NativeSkia::glcontext) {
-        context = ((SkGpuDevice *)NativeSkia::glcontext->getDevice())->context();
+        context = (static_cast<SkGpuDevice *>(NativeSkia::glcontext->getDevice())->context());
         context->ref();
     } else {
 

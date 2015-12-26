@@ -36,7 +36,7 @@ NativeNML::NativeNML(ape_global *net) :
 NativeNML::~NativeNML()
 {
     if (m_JSObjectLayout.get()) {
-    	m_JSObjectLayout = nullptr;
+        m_JSObjectLayout = nullptr;
     }
 
     if (stream) {
@@ -458,7 +458,7 @@ JSObject *NativeNML::buildLayoutTree(rapidxml::xml_node<> &node)
 
 static int delete_stream(void *arg)
 {
-    NativeBaseStream *stream = (NativeBaseStream *)arg;
+    NativeBaseStream *stream = static_cast<NativeBaseStream *>(arg);
 
     delete stream;
 

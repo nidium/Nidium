@@ -93,7 +93,7 @@ void NativeAssets::Item::download()
 
 static int NativeAssets_pendingListUpdate(void *arg)
 {
-    NativeAssets *assets = (NativeAssets *)arg;
+    NativeAssets *assets = static_cast<NativeAssets *>(arg);
 
     assets->pendingListUpdate();
 

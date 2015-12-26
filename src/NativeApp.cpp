@@ -20,7 +20,7 @@ NativeApp::NativeApp(const char *path) :
 
 static void *native_appworker_thread(void *arg)
 {
-    NativeApp *app = (NativeApp *)arg;
+    NativeApp *app = static_cast<NativeApp *>(arg);
 
     printf("Starting NativeApp worker...\n");
 
@@ -78,7 +78,7 @@ static void *native_appworker_thread(void *arg)
 static int Native_handle_app_messages(void *arg)
 {
 #define MAX_MSG_IN_ROW 32
-    NativeApp *app = (NativeApp *)arg;
+    NativeApp *app = static_cast<NativeApp *>(arg);
     struct NativeApp::native_app_msg *ptr;
     int nread = 0;
 

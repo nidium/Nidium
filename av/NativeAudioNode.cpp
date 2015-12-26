@@ -863,7 +863,7 @@ int NativeAudioSource::initInternal()
         return ERR_OOM;
     }
 
-    if (0 > PaUtil_InitializeRingBuffer((PaUtilRingBuffer*)this->rBufferOut,
+    if (0 > PaUtil_InitializeRingBuffer(static_cast<PaUtilRingBuffer*>(this->rBufferOut),
             (NativeAudio::FLOAT32 * this->outCount),
             bufferSize,
             this->rBufferOutData)) {

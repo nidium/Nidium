@@ -672,7 +672,7 @@ NativeAudioSource *NativeVideo::getAudioNode(NativeAudio *audio)
 }
 
 int NativeVideo::display(void *custom) {
-    NativeVideo *v = (NativeVideo *)custom;
+    NativeVideo *v = static_cast<NativeVideo *>(custom);
 
     // Set pthread cond to false, so
     // setSize will always wait for the signal

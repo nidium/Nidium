@@ -573,7 +573,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
                 this->a_top + this->padding.global + this->getHeight())));
 
         if (draw && m_Context && willDraw) {
-            this->m_Context->preComposeOn((NativeCanvas2DContext *)layerContext.layer->m_Context,
+            this->m_Context->preComposeOn(static_cast<NativeCanvas2DContext *>(layerContext.layer->m_Context),
                 this->a_left - this->padding.global,
                 this->a_top - this->padding.global, popacity, zoom,
                 (coordPosition == COORD_ABSOLUTE) ? NULL : layerContext.clip);
@@ -1052,7 +1052,7 @@ void NativeCanvasHandler::unrootHierarchy()
 void NativeCanvasHandler::_jobResize(void *arg)
 {
     NativeArgs *args = (NativeArgs *)arg;
-    NativeCanvasHandler *handler = (NativeCanvasHandler *)args[0][0].toPtr();
+    NativeCanvasHandler *handler = static_cast<NativeCanvasHandler *>(args[0][0].toPtr());
 
     int64_t height = args[0][1].toInt64();
 

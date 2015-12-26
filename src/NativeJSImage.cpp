@@ -11,10 +11,10 @@
 
 JSObject *NativeJSImage::classe = nullptr;
 
-#define NATIVE_IMAGE_GETTER(obj) ((class NativeJSImage *)JS_GetPrivate(obj))
+#define NATIVE_IMAGE_GETTER(obj) (static_cast<class NativeJSImage *>(JS_GetPrivate(obj)))
 #define IMAGE_FROM_CALLEE(nimg) \
     JS::RootedObject parent(cx, JS_GetParent(&args.callee())); \
-    NativeJSImage *nimg = (NativeJSImage *) JS_GetPrivate(parent);
+    NativeJSImage *nimg = static_cast<NativeJSImage *>(JS_GetPrivate(parent));
 
 static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -115,7 +115,6 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
                 if (stream == NULL) {
                     JS_ReportError(cx, "Invalid path");
                     return false;
-                    break;
                 }
 
                 nimg->m_Stream = stream;

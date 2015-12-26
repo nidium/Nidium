@@ -104,7 +104,7 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     NativeCanvasHandler *rootHandler = NativeContext::getNativeClass(cx)->getRootHandler();
-    NativeCanvas2DContext *context = (NativeCanvas2DContext *)rootHandler->getContext();
+    NativeCanvas2DContext *context = static_cast<NativeCanvas2DContext *>(rootHandler->getContext());
 
     int width, height;
     context->getSize(&width, &height);
@@ -327,7 +327,7 @@ static bool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp
     JS_INITOPT();
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject thisobj(cx, NativeJSdocument::getJSGlobalObject(cx));
-    NativeJSdocument *CppObj = (NativeJSdocument *)JS_GetPrivate(thisobj);
+    NativeJSdocument *CppObj = static_cast<NativeJSdocument *>(JS_GetPrivate(thisobj));
 
     JS::RootedObject fontdef(cx);
     if (!JS_ConvertArguments(cx, args, "o", fontdef.address())) {

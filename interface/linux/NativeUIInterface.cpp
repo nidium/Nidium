@@ -53,7 +53,7 @@ static Window *NativeX11Window(SDL_Window *win)
 
 void NativeX11UIInterface_onNMLLoaded(void *arg)
 {
-    NativeX11UIInterface *UI = (NativeX11UIInterface *)arg;
+    NativeX11UIInterface *UI = static_cast<NativeX11UIInterface *>(arg);
     UI->onNMLLoaded();
 }
 
@@ -249,7 +249,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
 
 static int NativeProcessUI(void *arg)
 {
-    return NativeEvents((NativeX11UIInterface *)arg);
+    return NativeEvents(static_cast<NativeX11UIInterface *>(arg));
 }
 
 #if 0
@@ -283,7 +283,7 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
 #endif
 static void NativeDoneExtracting(void *closure, const char *fpath)
 {
-    NativeX11UIInterface *ui = (NativeX11UIInterface*)closure;
+    NativeX11UIInterface *ui = static_cast<NativeX11UIInterface*>(closure);
     if (chdir(fpath) != 0) {
         printf("Cant enter cache directory (%d)\n", errno);
         return;

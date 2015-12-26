@@ -662,7 +662,7 @@ static bool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
         return false;
     }
 
-    handler = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(sub))->getHandler();
+    handler = (static_cast<NativeJSCanvas *>(JS_GetPrivate(sub)))->getHandler();
 
     if (handler == NULL) {
         return true;
@@ -695,14 +695,15 @@ static bool native_canvas_insertBefore(JSContext *cx, unsigned argc,
         return false;
     }
 
-    handler_insert = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(insert))->getHandler();
+    handler_insert = (static_cast<NativeJSCanvas *>(JS_GetPrivate(insert)))->getHandler();
+
 
     if (handler_insert == NULL) {
         return true;
     }
 
     if (JS_GetClass(ref) == &Canvas_class) {
-        handler_ref = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(ref))->getHandler();
+        handler_ref= (static_cast<NativeJSCanvas *>(JS_GetPrivate(ref)))->getHandler();
     }
 
     if (NativeObject == handler_insert) {
@@ -733,14 +734,14 @@ static bool native_canvas_insertAfter(JSContext *cx, unsigned argc,
         return false;
     }
 
-    handler_insert = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(insert))->getHandler();
+    handler_insert= (static_cast<NativeJSCanvas *>(JS_GetPrivate(insert)))->getHandler();
 
     if (handler_insert == NULL) {
         return true;
     }
 
     if (JS_GetClass(ref) == &Canvas_class) {
-        handler_ref = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(ref))->getHandler();
+        handler_ref= (static_cast<NativeJSCanvas *>(JS_GetPrivate(ref)))->getHandler();
     }
 
     if (NativeObject == handler_insert) {
@@ -845,8 +846,8 @@ static bool native_canvas_setContext(JSContext *cx, unsigned argc,
 
     NativeCanvasContext *context;
 
-    if (!(context = (NativeCanvasContext *)JS_GetInstancePrivate(cx,
-            obj, &Canvas2DContext_class, &args))) {
+    if (!(context = static_cast<NativeCanvasContext *>(JS_GetInstancePrivate(cx,
+            obj, &Canvas2DContext_class, &args)))) {
         JS_ReportError(cx, "setContext() argument must a CanvasRenderingContext2D object");
         return false;
     }
@@ -1644,7 +1645,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
         case NATIVE_EVENT(NativeCanvasHandler, MOUSE_EVENT):
         {
             JS::RootedObject eventObj(m_Cx, NativeJSEvents::CreateEventObject(m_Cx));
-            NativeCanvasHandler *target = (NativeCanvasHandler *)msg.args[8].toPtr();
+            NativeCanvasHandler *target = static_cast<NativeCanvasHandler *>(msg.args[8].toPtr());
             NativeJSObjectBuilder obj(m_Cx, eventObj);
             obj.set("x", msg.args[2].toInt());
             obj.set("y", msg.args[3].toInt());

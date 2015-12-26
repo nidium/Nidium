@@ -69,7 +69,7 @@ NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sample
 
 void *NativeAudio::queueThread(void *args)
 {
-    NativeAudio *audio = (NativeAudio *)args;
+    NativeAudio *audio = static_cast<NativeAudio *>(args);
     bool wrote;
 
     while (true) {
@@ -373,7 +373,7 @@ int NativeAudio::paOutputCallback(const void *inputBuffer, void *outputBuffer,
     PaStreamCallbackFlags statusFlags,
     void *userData)
 {
-    return ((NativeAudio*)userData)->paOutputCallbackMethod(inputBuffer, outputBuffer,
+    return (static_cast<NativeAudio*>(userData))->paOutputCallbackMethod(inputBuffer, outputBuffer,
         framesPerBuffer,
         timeInfo,
         statusFlags);

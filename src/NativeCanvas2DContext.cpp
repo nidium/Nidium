@@ -880,7 +880,7 @@ static bool native_canvas2dctx_createPattern(JSContext *cx,
     }
 
     JS::RootedObject patternObject(cx, JS_NewObject(cx, &canvasPattern_class, JS::NullPtr(), JS::NullPtr()));
-    NativeJSImage *img = (NativeJSImage *)JS_GetPrivate(jsimage);
+    NativeJSImage *img = static_cast<NativeJSImage *>(JS_GetPrivate(jsimage));
     JS_SetReservedSlot(patternObject, 0, OBJECT_TO_JSVAL(img->getJSObject()));
     NativeCanvasPattern::PATTERN_MODE pmode = NativeCanvasPattern::PATTERN_REPEAT;
 
@@ -900,7 +900,7 @@ static bool native_canvas2dctx_createPattern(JSContext *cx,
     }
 
     JS_SetPrivate(patternObject,
-        new NativeCanvasPattern((NativeJSImage *)JS_GetPrivate(jsimage), pmode));
+        new NativeCanvasPattern(static_cast<NativeJSImage *>(JS_GetPrivate(jsimage)), pmode));
 
     NATIVE_LOG_2D_CALL();
 
@@ -940,7 +940,7 @@ static bool native_canvas2dctxGradient_addColorStop(JSContext *cx,
         return false;
     }
 
-    if ((gradient = (NativeSkGradient *)JS_GetPrivate(caller)) != NULL) {
+    if ((gradient = static_cast<NativeSkGradient *>(JS_GetPrivate(caller))) != NULL) {
         JSAutoByteString colorstr(cx, color);
 
         gradient->addColorStop(position, colorstr.ptr());
@@ -982,7 +982,7 @@ static bool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value
             JS_ReportError(cx, "Invalid image canvas (must be backed by a 2D context)");
             return false;
         }
-        image = new NativeSkImage(((NativeCanvas2DContext *)drawctx)->getSurface()->getCanvas());
+        image = new NativeSkImage((static_cast<NativeCanvas2DContext *>(drawctx))->getSurface()->getCanvas());
         need_free = 1;
     } else if (!NativeJSImage::JSObjectIs(cx, jsimage) ||
         (image = NativeJSImage::JSObjectToNativeSkImage(jsimage)) == NULL) {
