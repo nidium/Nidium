@@ -927,8 +927,7 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
         memcpy(data, ev->data[i], size);
         JS::RootedObject arr(tcx, JS_NewFloat32ArrayWithBuffer(tcx, arrBuff, 0, -1));
         if (arr.get()) {
-            JS::RootedValue arrVal(tcx, OBJECT_TO_JSVAL(arr));
-            JS_DefineElement(tcx, frames, i, arrVal, nullptr, nullptr,
+            JS_DefineElement(tcx, frames, i, OBJECT_TO_JSVAL(arr), nullptr, nullptr,
                  JSPROP_ENUMERATE | JSPROP_PERMANENT);
         } else {
             JS_ReportOutOfMemory(tcx);
@@ -942,8 +941,8 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
     JS_SetProperty(tcx, obj, "size", vSize);
     JS::RootedObject global(tcx, JS::CurrentGlobalOrNull(tcx));
     JS::AutoValueArray<2> params(tcx);
-    params[0].set(OBJECT_TO_JSVAL(obj));
-    params[1].set(OBJECT_TO_JSVAL(global));
+    params[0].setObjectOrNull(obj);
+    params[1].setObjectOrNull(global);
 
     JS::RootedValue rval(tcx);
     //JS_CallFunction(tcx, thiz->nodeObj, thiz->processFn, params, rval.address());
@@ -2119,7 +2118,7 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
             JS_ObjectIsCallable(v->cx, &onframe.toObject())) {
         JS::AutoValueArray<1> params(v->cx);
 
-        params[0].set(OBJECT_TO_JSVAL(v->getJSObject()));
+        params[0].setObjectOrNull(v->getJSObject());
 
         JS::RootedValue rval(v->cx);
         JSAutoRequest ar(v->cx);
