@@ -9,7 +9,6 @@
 #include "NativeSkImage.h"
 #include "NativeSkia.h"
 
-JSObject *NativeJSImage::m_JsClasse = nullptr;
 
 #define NATIVE_IMAGE_GETTER(obj) (static_cast<class NativeJSImage *>(JS_GetPrivate(obj)))
 #define IMAGE_FROM_CALLEE(nimg) \
@@ -24,8 +23,6 @@ static bool native_image_print(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj, uint8_t id,
     bool strict, JS::MutableHandleValue vp);
-
-extern JSClass File_class;
 
 static JSClass Image_class = {
     "Image", JSCLASS_HAS_PRIVATE,

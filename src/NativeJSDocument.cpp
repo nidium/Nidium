@@ -38,7 +38,7 @@ static JSClass document_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-JSClass *NativeJSdocument::m_JsClass = &document_class;
+JSClass *NativeJSdocument::jsclass = &document_class;
 
 template<>
 JSClass *NativeJSExposer<NativeJSdocument>::jsclass = &document_class;
@@ -126,7 +126,7 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
     JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
     JS::RootedValue arVal(cx, OBJECT_TO_JSVAL(arrBuffer));
-    JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::m_ImageData_jsclass, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::jsclass, JS::NullPtr(), JS::NullPtr()));
     JS_DefineProperty(cx, dataObject, "width", widthVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "height", heightVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "data", arVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);

@@ -27,7 +27,7 @@ static JSClass imageData_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-JSClass *NativeCanvas2DContext::m_ImageData_jsclass = &imageData_class;
+JSClass *NativeCanvas2DContext::jsclass = &imageData_class;
 
 enum {
 #define CANVAS_2D_CTX_PROP(prop) CTX_PROP_ ## prop,

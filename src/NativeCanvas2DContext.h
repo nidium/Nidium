@@ -29,7 +29,7 @@ class NativeCanvas2DContext : public NativeCanvasContext
 {
     public:
 
-        static JSClass *m_ImageData_jsclass;
+        static JSClass *jsclass;
 
         friend class NativeJSCanvas;
 

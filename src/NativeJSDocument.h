@@ -37,7 +37,7 @@ class NativeJSdocument : public NativeJSExposer<NativeJSdocument>
         return "document";
     }
 
-    static JSClass *m_JsClass;
+    static JSClass *jsclass;
 
     JS::Heap<JSObject *> m_Stylesheet;
     NativeHash<nativefont *>m_Fonts;
