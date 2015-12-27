@@ -4,10 +4,11 @@ class NativeUITerminalConsole : public NativeUIInterface::NativeUIConsole
 {
     public:
         NativeUITerminalConsole();
-        ~NativeUITerminalConsole();
+        virtual ~NativeUITerminalConsole();
         void log(const char *str);
         void show();
         void hide();
+        bool hidden();
         void clear();
         void flush();
     private:

@@ -15,8 +15,11 @@
 #include "NativeOpenGLHeader.h"
 
 NativeUIInterface::NativeUIInterface() :
-    m_IsOffscreen(false), m_ReadPixelInBuffer(false), m_Hidden(false),
-    m_FBO(0), m_FrameBuffer(NULL), m_SystemMenu(this)
+    m_CurrentCursor(NativeUIInterface::ARROW), m_NativeCtx(NULL), m_Nml(NULL),
+    m_Win(NULL), m_Gnet(NULL), m_Width(0), m_Height(0), m_FilePath(NULL),
+    m_Initialized(false), m_IsOffscreen(false), m_ReadPixelInBuffer(false),
+    m_Hidden(false), m_FBO(0), m_FrameBuffer(NULL), m_Console(NULL),
+    m_MainGLCtx(NULL), m_SystemMenu(this)
 {
     NativePath::registerScheme(SCHEME_DEFINE("file://",    NativeFileStream,    false), true); // default
     NativePath::registerScheme(SCHEME_DEFINE("private://", NativePrivateStream, false));

@@ -73,7 +73,8 @@ class NativeAudioNode
             ArgCallback m_Cbk;
             int m_Id;
 
-            ExportsArgs(const char *name, ArgType type, void *ptr) : m_Name(name), m_Type(type), m_Ptr(ptr) {};
+            ExportsArgs(const char *name, ArgType type, void *ptr) :
+                m_Name(name), m_Type(type), m_Ptr(ptr), m_Cbk(NULL), m_Id(0) {};
             ExportsArgs(const char *name, ArgType type, int id, ArgCallback cbk) :
                m_Name(name), m_Type(type), m_Ptr(NULL), m_Cbk(cbk), m_Id(id)  {};
         };
@@ -322,7 +323,7 @@ class NativeAudioCustomSource : public NativeAudioNodeCustom
     public:
         NativeAudioCustomSource(int out, NativeAudio *audio)
             : NativeAudioNodeCustom(0, out, audio), m_Playing(false),
-              m_SeekCallback(NULL)
+              m_SeekCallback(NULL), m_Custom(NULL), m_SeekTime(0.0f)
         {
         }
 

@@ -118,7 +118,7 @@ class NativeUIInterface
             RESIZEUPDOWN,
             HIDDEN,
             NOCHANGE
-        } currentCursor;
+        } m_CurrentCursor;
 
         enum OPENFILE_FLAGS {
             kOpenFile_CanChooseDir = 1 << 0,
@@ -136,6 +136,7 @@ class NativeUIInterface
         }
 
         NativeUIInterface();
+        virtual ~NativeUIInterface(){};
         virtual void stopApplication()=0;
         virtual void restartApplication(const char *path=NULL)=0;
 

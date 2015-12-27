@@ -59,7 +59,6 @@ int main(int argc, char **argv)
     struct sockaddr_in dest;
     struct hostent *hostaddr;
     int sock;
-    size_t content_length;
 
     if (argc < 2) {
         fprintf(stderr, "No dump specified\n");

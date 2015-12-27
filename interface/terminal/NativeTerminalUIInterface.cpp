@@ -31,13 +31,13 @@ bool NativeTerminalUIInterface::runApplication(const char *path)
     return true;
 }
 
-NativeTerminalUIInterface::NativeTerminalUIInterface()
+NativeTerminalUIInterface::NativeTerminalUIInterface(): m_Console(NULL)
 {
     this->m_Width = 0;
     this->m_Height = 0;
     this->m_Nml = NULL;
 
-    this->currentCursor = NOCHANGE;
+    this->m_CurrentCursor = NOCHANGE;
     this->NJS = NULL;
 }
 

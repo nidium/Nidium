@@ -2321,7 +2321,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     int width, int height, NativeUIInterface *ui, bool isGL) :
-    NativeCanvasContext(handler)
+    m_SetterDisabled(false), NativeCanvasContext(handler)
 {
     m_Mode = CONTEXT_2D;
 

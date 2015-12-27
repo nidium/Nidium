@@ -13,7 +13,7 @@
 #define NATIVE_MANIFEST "manifest.json"
 
 NativeApp::NativeApp(const char *path) :
-    m_Messages(NULL), m_fZip(NULL), m_NumFiles(0), m_WorkerIsRunning(false)
+    m_Messages(NULL), m_fZip(NULL), m_NumFiles(0), m_WorkerIsRunning(false), m_Timer(NULL), m_Net(NULL)
 {
     m_Path = strdup(path);
 }

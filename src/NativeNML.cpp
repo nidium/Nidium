@@ -14,8 +14,8 @@
 /*@FIXME:: refractor the constructor, so that m_JSObjectLayout get's njs'javascript context*/
 NativeNML::NativeNML(ape_global *net) :
     m_Net(net), m_Stream(NULL), m_nAssets(0),
-    m_Njs(NULL), m_Layout(NULL), m_JSObjectLayout(NULL),
-    m_DefaultItemsLoaded(false), m_LoadDefaultItems(true)
+    m_Njs(NULL), m_Loaded(NULL), m_LoadedArg(NULL), m_Layout(NULL),
+	m_JSObjectLayout(NULL), m_DefaultItemsLoaded(false), m_LoadDefaultItems(true)
 {
     m_AssetsList.size = 0;
     m_AssetsList.allocated = 4;

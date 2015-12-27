@@ -497,7 +497,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
     bool willDraw = true;
 
     if (m_CoordPosition == COORD_RELATIVE &&
-        m_FlowMode & kFlowBreakAndInlinePreviousSibling) {
+        (m_FlowMode & kFlowBreakAndInlinePreviousSibling)) {
 
         NativeCanvasHandler *prev = getPrevInlineSibling();
 
@@ -759,7 +759,7 @@ void NativeCanvasHandler::computeAbsolutePosition()
     }
 
     if (m_CoordPosition == COORD_RELATIVE &&
-        m_FlowMode & kFlowBreakAndInlinePreviousSibling) {
+        (m_FlowMode & kFlowBreakAndInlinePreviousSibling)) {
 
         if (m_Parent == NULL) {
             m_aTop = m_aLeft = 0;
@@ -1083,7 +1083,7 @@ void NativeCanvasHandler::setPendingFlags(int flags, bool append)
 
 void NativeCanvasHandler::execPending()
 {
-    if (m_Pending & kPendingResizeHeight || m_Pending & kPendingResizeWidth) {
+    if ((m_Pending & kPendingResizeHeight) || (m_Pending & kPendingResizeWidth)) {
         this->deviceSetSize(m_Width, m_Height);
     }
 

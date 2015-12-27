@@ -630,7 +630,7 @@ bool NativeAudioNodeStereoEnhancer::process()
 }
 
 NativeAudioNodeCustom::NativeAudioNodeCustom(int inCount, int outCount, NativeAudio *audio)
-    : NativeAudioNode(inCount, outCount, audio), m_Cbk(NULL)
+    : NativeAudioNode(inCount, outCount, audio), m_Cbk(NULL), m_Custom(NULL)
 {
 }
 
@@ -655,12 +655,16 @@ bool NativeAudioNodeCustom::process()
     return true;
 }
 
-NativeAudioSource::NativeAudioSource(int out, NativeAudio *audio, bool external)
-    : NativeAudioNode(0, out, audio), m_rBufferOut(NULL), m_Reader(NULL), m_ExternallyManaged(external),
-      m_Playing(false), m_Stopped(false), m_Loop(false), m_NbChannel(0),
-      m_CodecCtx(NULL), m_TmpPacket(NULL), m_Clock(0),
-      m_FrameConsumed(true), m_PacketConsumed(true), m_SamplesConsumed(0), m_AudioStream(-1),
-      m_FailedDecoding(0), m_SwrCtx(NULL), m_fCvt(NULL), m_Buffering(false)
+NativeAudioSource::NativeAudioSource(int out, NativeAudio *audio, bool external) :
+    NativeAudioNode(0, out, audio), m_OutputParameters(NULL),
+    m_BufferNotEmpty(NULL), m_rBufferOut(NULL), m_Reader(NULL),
+    m_ExternallyManaged(external), m_Playing(false), m_Stopped(false),
+    m_Loop(false), m_NbChannel(0), m_CodecCtx(NULL), m_TmpPacket(NULL),
+    m_Clock(0), m_FrameConsumed(true), m_PacketConsumed(true),
+    m_SamplesConsumed(0), m_AudioStream(-1), m_FailedDecoding(0),
+    m_SwrCtx(NULL), m_sCvt(NULL), m_fCvt(NULL), m_AvioBuffer(NULL),
+    m_fBufferInData(NULL), m_fBufferOutData(NULL),
+    m_rBufferOutData(NULL), m_Buffering(false)
 {
     m_DoSemek = false;
     m_Seeking = false;

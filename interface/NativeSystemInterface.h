@@ -31,12 +31,12 @@ class NativeSystemInterface
         virtual void alert(const char *message, AlertType type = ALERT_INFO)=0;
         virtual const char *pwd()=0;
         virtual void sendNotification(const char *title, const char *content, bool sound = false) {};
-
         static NativeSystemInterface* getInstance()
         {
             return NativeSystemInterface::_interface;
         }
         static NativeSystemInterface *_interface;
+        virtual ~NativeSystemInterface() {};
     private:
         void operator=(NativeSystem const&);
     protected:

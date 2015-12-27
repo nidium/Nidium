@@ -29,15 +29,18 @@ extern "C" {
 // XXX : Well, NativeVideo need a better interaction with NativeAudio.
 // There's a lot of little hack to work nicely with it.
 
-NativeVideo::NativeVideo(ape_global *n)
-    : m_TimerIdx(0), m_LastTimer(0),
-      m_Net(n), m_AudioSource(NULL), m_FrameCbk(NULL), m_FrameCbkArg(NULL), m_Shutdown(false),
-      m_FrameTimer(0), m_LastPts(0), m_VideoClock(0), m_Playing(false), m_Stopped(false),
-      m_Width(0), m_Height(0), m_SwsCtx(NULL), m_CodecCtx(NULL),
-      m_VideoStream(-1), m_AudioStream(-1), m_rBuff(NULL), m_Buff(NULL), m_AvioBuffer(NULL),
-      m_FramesIdx(0), m_DecodedFrame(NULL), m_ConvertedFrame(NULL),
-      m_Reader(NULL), m_Buffering(false), m_ThreadCreated(false), m_SourceNeedWork(false),
-      m_DoSetSize(false), m_NewWidth(0), m_NewHeight(0), m_NoDisplay(false), m_InDisplay(false)
+NativeVideo::NativeVideo(ape_global *n):
+    m_TimerIdx(0), m_LastTimer(0), m_TimersDelay(0), m_Net(n),
+    m_AudioSource(NULL), m_FrameCbk(NULL), m_FrameCbkArg(NULL),
+    m_Shutdown(false), m_TmpFrame(0), m_FrameBuffer(0), m_FrameTimer(0),
+    m_LastPts(0), m_VideoClock(0.0f), m_AudioClock(0.0f), m_LastDelay(0),
+    m_Playing(false), m_Stopped(false), m_SeekFlags(0), m_Width(0), m_Height(0),
+    m_SwsCtx(NULL), m_CodecCtx(NULL), m_VideoStream(-1), m_AudioStream(-1),
+    m_rBuff(NULL), m_Buff(NULL), m_AvioBuffer(NULL), m_FramesIdx(0),
+    m_DecodedFrame(NULL), m_ConvertedFrame(NULL), m_Reader(NULL), m_Audio(NULL),
+    m_Buffering(false), m_ThreadCreated(false), m_SourceNeedWork(false),
+    m_DoSetSize(false), m_NewWidth(0), m_NewHeight(0), m_NoDisplay(false),
+    m_InDisplay(false)
 {
     NATIVE_PTHREAD_VAR_INIT(&m_BufferCond);
     NATIVE_PTHREAD_VAR_INIT(&m_NotInDisplay);

@@ -52,7 +52,7 @@ struct NativeJSAVMessageCallback {
 class JSTransferableFunction
 {
     public :
-        JSTransferableFunction(JSContext *cxOrg) : m_Data(NULL), m_Fn(cxOrg, JSVAL_VOID), m_DestCx(NULL)
+        JSTransferableFunction(JSContext *cxOrg) : m_Data(NULL), m_Bytes(0), m_Fn(cxOrg, JSVAL_VOID), m_DestCx(NULL)
         {
         }
 
@@ -134,7 +134,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
     public :
         NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
             NativeAudio::Node type, int in, int out, NativeJSAudio *audio)
-            :   NativeJSExposer<NativeJSAudioNode>(obj, cx),
+            :   NativeJSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL),
                 m_Audio(audio), m_Node(NULL), m_NodeType(type), m_NodeObj(cx, nullptr), m_HashObj(cx, nullptr),
                 m_ArrayContent(NULL), m_IsDestructing(false)
         {
@@ -159,8 +159,8 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
 
         NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
                NativeAudio::Node type, NativeAudioNode *node, NativeJSAudio *audio)
-            :  NativeJSExposer<NativeJSAudioNode>(obj, cx), m_Audio(audio), m_Node(node), m_NodeType(type),
-               m_NodeObj(cx, nullptr), m_HashObj(cx, nullptr), m_ArrayContent(NULL)
+            :  NativeJSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL), m_Audio(audio), m_Node(node), m_NodeType(type),
+               m_NodeObj(cx, nullptr), m_HashObj(cx, nullptr), m_ArrayContent(NULL), m_IsDestructing(false)
         {
             this->add();
 

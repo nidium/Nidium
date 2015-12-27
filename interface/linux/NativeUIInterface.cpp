@@ -184,11 +184,11 @@ int NativeEvents(NativeX11UIInterface *NUII)
             NUII->m_NativeCtx->getNJS()->gc();
         }
 
-        if (NUII->currentCursor != NativeX11UIInterface::NOCHANGE) {
+        if (NUII->m_CurrentCursor != NativeX11UIInterface::NOCHANGE) {
             int cursor;
             SDL_SysWMinfo info;
 
-            switch(NUII->currentCursor) {
+            switch(NUII->m_CurrentCursor) {
                 case NativeX11UIInterface::ARROW:
                     cursor = XC_left_ptr;
                     break;
@@ -220,7 +220,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
                 XFreeCursor(d, c);
             }
 
-            NUII->currentCursor = NativeX11UIInterface::NOCHANGE;
+            NUII->m_CurrentCursor = NativeX11UIInterface::NOCHANGE;
         }
 
         if (NUII->m_NativeCtx) {
@@ -303,7 +303,7 @@ NativeX11UIInterface::NativeX11UIInterface()
     this->m_FilePath = NULL;
     this->console = NULL;
 
-    this->currentCursor = NOCHANGE;
+    this->m_CurrentCursor = NOCHANGE;
     this->m_NativeCtx = NULL;
 
     m_Gnet = native_netlib_init();
@@ -395,7 +395,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
 
 void NativeX11UIInterface::setCursor(CURSOR_TYPE type)
 {
-    this->currentCursor = type;
+    this->m_CurrentCursor = type;
 }
 
 void NativeX11UIInterface::setWindowTitle(const char *name)
