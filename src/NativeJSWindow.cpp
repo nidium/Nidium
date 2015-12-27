@@ -945,7 +945,7 @@ static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
 struct _nativeopenfile
 {
     JSContext *cx;
-    JS::Heap<JS::Value> cb;
+    JS::PersistentRootedValue cb;
 };
 
 static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len)
@@ -964,7 +964,7 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
     JS::RootedObject global(nof->cx, JS::CurrentGlobalOrNull(nof->cx));
     JS_CallFunctionValue(nof->cx, global, cb, jarr, &rval);
 
-    JS::RemoveValueRoot(nof->cx, &nof->cb);
+    nof->cx = NULL;
     free(nof);
 }
 
@@ -1029,8 +1029,6 @@ static bool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value 
     nof->cb = callback;
     nof->cx = cx;
 
-    JS::AddValueRoot(cx, &nof->cb);
-
     NativeContext::getNativeClass(cx)->getUI()->openFileDialog(
         NULL,
         native_window_openfilecb, nof,
@@ -1079,8 +1077,6 @@ static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
     struct _nativeopenfile *nof = (struct _nativeopenfile *)malloc(sizeof(*nof));
     nof->cb = callback;
     nof->cx = cx;
-
-    JS::AddValueRoot(cx, &nof->cb);
 
     NativeContext::getNativeClass(cx)->getUI()->openFileDialog(
         (const char **)ctypes,

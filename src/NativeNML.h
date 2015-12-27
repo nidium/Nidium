@@ -4,21 +4,18 @@
 #include <native_netlib.h>
 
 #include "external/rapidxml.hpp"
-#include <NativeMessages.h>
+#include "NativeJSStream.h"
 
 #include "NativeAssets.h"
 #include "NativeTypes.h"
+
 
 #define XML_VP_MAX_WIDTH 8000
 #define XML_VP_MAX_HEIGHT 8000
 #define XML_VP_DEFAULT_WIDTH 980
 #define XML_VP_DEFAULT_HEIGHT 700
 
-
 class NativeNML;
-class NativeJS;
-class JSObject;
-class NativeBaseStream;
 
 typedef void (*NMLLoadedCallback)(void *arg);
 
@@ -124,7 +121,7 @@ private:
     void *m_LoadedArg;
 
     rapidxml::xml_node<> *m_Layout;
-    JS::Heap<JSObject*> m_JSObjectLayout;
+    JS::Heap<JSObject *> m_JSObjectLayout;
 
     bool m_DefaultItemsLoaded;
     bool m_LoadDefaultItems;

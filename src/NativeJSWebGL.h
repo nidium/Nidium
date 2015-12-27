@@ -12,7 +12,7 @@ class NativeJS ## name: public NativeJSExposer<NativeJS ## name>\
     public :\
         NativeJS ## name ();\
         ~NativeJS ## name ();\
-        JSObject *jsobj;\
+         JS::PersistentRootedObject jsobj;\
         static void registerObject(JSContext *cx);\
 };
 
@@ -90,7 +90,7 @@ class NativeJSWebGLActiveInfo : public NativeJSExposer<NativeJSWebGLActiveInfo>
     public :
         NativeJSWebGLActiveInfo();
         ~NativeJSWebGLActiveInfo();
-        JSObject *m_JsObj;
+        JS::PersistentRootedObject m_JsObj;
         static void registerObject(JSContext *cx);
 };
 
