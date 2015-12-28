@@ -11,6 +11,10 @@
 #include <NativeJS.h>
 #include <NativeWebSocket.h>
 
+#ifdef DEBUG
+#include <NativeJSDebug.h>
+#endif
+
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
 #include "NativeCanvas3DContext.h"
@@ -78,7 +82,7 @@ void NativeContext::CreateAndAssemble(NativeUIInterface *ui, ape_global *gnet)
 
 NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
-    m_RootHandler(NULL), m_DebugHandler(NULL), m_UI(nui), m_NML(nml),
+    m_RootHandler(NULL), m_DebugHandler(NULL),m_Debug2Handler(NULL), m_UI(nui), m_NML(nml),
     m_GLState(NULL), m_JSWindow(NULL), m_SizeDirty(false),
     m_CurrentClickedHandler(NULL)
 {
@@ -91,15 +95,13 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     NativeGLState::CreateForContext(this);
 
+    m_JS = new NativeJS(net);
     this->initStats();
     this->initShaderLang();
     this->initHandlers(width, height);
 
-    m_JS = new NativeJS(net);
-
     m_JS->setStructuredCloneAddition(NativeContext::writeStructuredCloneOp, NativeContext::readStructuredCloneOp);
     m_JS->setPrivate(this);
-
     m_JS->loadGlobalObjects();
     JS::RootedObject globalObj(m_JS->cx, JS::CurrentGlobalOrNull(m_JS->cx));
     JS_InitReflect(m_JS->cx, globalObj);
@@ -159,14 +161,14 @@ void NativeContext::loadNativeObjects(int width, int height)
     /* Native() object */
     NativeJSNative::registerObject(cx);
     /* document() object */
-    JS::RootedObject jsdoc(cx, NativeJSdocument::registerObject(cx));
+    JS::RootedObject docObj(cx, NativeJSdocument::registerObject(cx));
     /* window() object */
-    m_JSWindow = NativeJSwindow::registerObject(cx, width, height, jsdoc);
+    m_JSWindow = NativeJSwindow::registerObject(cx, width, height, docObj);
 
 #if DEBUG
     createDebug2Canvas();
 #endif
-    //NativeJSDebug::registerObject(cx);
+    NativeJSDebug::registerObject(cx);
 }
 
 void NativeContext::setWindowSize(int w, int h)
@@ -274,15 +276,17 @@ void NativeContext::postDraw()
         s->flush();
     }
 #if DEBUG
-    m_Debug2Handler->bringToFront();
-    m_Debug2Handler->getContext()->clear();
-    NativeSkia *rootctx = (static_cast<NativeCanvas2DContext *>(m_Debug2Handler->getContext())->getSurface());
-    rootctx->save();
+    if (m_Debug2Handler) {
+        m_Debug2Handler->bringToFront();
+        m_Debug2Handler->getContext()->clear();
+        NativeSkia *rootctx = (static_cast<NativeCanvas2DContext *>(m_Debug2Handler->getContext())->getSurface());
+        rootctx->save();
 
-    rootctx->setFillColor("black");
-    rootctx->drawText("DEBUG build", 10, 30);
-    rootctx->restore();
-    rootctx->flush();
+        rootctx->setFillColor("black");
+        rootctx->drawText("DEBUG build", 10, 30);
+        rootctx->restore();
+        rootctx->flush();
+    }
 #endif
 }
 

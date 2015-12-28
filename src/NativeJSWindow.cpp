@@ -1343,14 +1343,12 @@ void NativeJSwindow::initDataBase()
     }
 }
 
-void NativeJSwindow::createMainCanvas(int width, int height, JS::HandleObject doc)
+void NativeJSwindow::createMainCanvas(int width, int height, JS::HandleObject docObj)
 {
     JS::RootedObject canvas(m_Cx, NativeJSCanvas::generateJSObject(m_Cx, width, height, &m_Handler));
-
     NativeContext::getNativeClass(m_Cx)->getRootHandler()->addChild(m_Handler);
     JS::RootedValue canval(m_Cx, OBJECT_TO_JSVAL(canvas));
-    JS::RootedObject docObj(m_Cx, doc);
-    JS_DefineProperty(m_Cx, docObj, "canvas", canval, JSPROP_READONLY | JSPROP_PERMANENT);
+    JS_DefineProperty(m_Cx, docObj, "canvas", canval, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
 
 void NativeJSwindow::createStorage()
@@ -1438,13 +1436,13 @@ bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
 }
 
 NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
-    int height, JS::HandleObject doc)
+    int height, JS::HandleObject docObj)
 {
     JS::RootedObject globalObj(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject windowObj(cx, globalObj);
     NativeJSwindow *jwin = new NativeJSwindow(globalObj, cx);
     jwin->initDataBase();
-    jwin->createMainCanvas(width, height, doc);
+    jwin->createMainCanvas(width, height, docObj);
     JS_DefineFunctions(cx, windowObj, window_funcs);
     JS_DefineProperties(cx, windowObj, window_props);
 

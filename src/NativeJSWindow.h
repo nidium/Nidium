@@ -68,7 +68,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
 
     bool dragEvent(const char *name, int x, int y);
 
-    void createMainCanvas(int width, int height, JS::HandleObject doc);
+    void createMainCanvas(int width, int height, JS::HandleObject docObj);
     void createStorage();
 
     struct _requestedFrame {

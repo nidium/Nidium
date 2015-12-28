@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <jsapi.h>
+
 #include <NativeEvents.h>
 
 /*
@@ -150,8 +152,8 @@ class NativeCanvasHandler : public NativeEvents
         };
 
         NativeCanvasContext *m_Context;
-        class JSObject *m_JsObj;
-        struct JSContext *m_JsCx;
+        JS::PersistentRootedObject m_JsObj;
+        JSContext *m_JsCx;
 
         int m_Width, m_Height, m_MinWidth, m_MinHeight, m_MaxWidth, m_MaxHeight;
         /*

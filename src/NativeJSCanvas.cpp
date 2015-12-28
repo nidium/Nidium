@@ -22,7 +22,7 @@ extern JSClass Canvas2DContext_class;
         args.rval().setUndefined(); \
         return false; \
     } \
-    ofclass *NativeObject = ((ofclass *)((class NativeJSCanvas *)JS_GetPrivate(thisobj))->getHandler())
+    ofclass *NativeObject = (static_cast<class NativeJSCanvas *>(JS_GetPrivate(thisobj)))->getHandler();
 
 
 static struct native_cursors {
@@ -761,14 +761,11 @@ static bool native_canvas_getContext(JSContext *cx, unsigned argc,
     NATIVE_CHECK_ARGS("getContext", 1);
 
     NativeContext *nctx = NativeContext::getNativeClass(cx);
+    NativeUIInterface *ui = nctx->getUI();
 
     JS::RootedString mode(cx, args[0].toString());
     JSAutoByteString cmode(cx, mode);
-
-    NativeUIInterface *ui = nctx->getUI();
-
     NativeCanvasContext::mode ctxmode = NativeCanvasContext::CONTEXT_2D;
-
     if (strncmp(cmode.ptr(), "2d", 2) == 0) {
         ctxmode = NativeCanvasContext::CONTEXT_2D;
     } else if (strncmp(cmode.ptr(), "webgl", 5) == 0) {
@@ -819,7 +816,8 @@ static bool native_canvas_getContext(JSContext *cx, unsigned argc,
         /*  Protect against GC
             Canvas.slot[0] = context
         */
-        JS_SetReservedSlot(NativeObject->m_JsObj, 0, OBJECT_TO_JSVAL(NativeObject->getContext()->m_JsObj));
+        JS::RootedValue slot(cx, OBJECT_TO_JSVAL(NativeObject->getContext()->m_JsObj));
+        JS_SetReservedSlot(NativeObject->m_JsObj, 0, slot);
     } else if (canvasctx->m_Mode != ctxmode) {
         JS_ReportWarning(cx, "Bad context requested");
         /* A mode is requested but another one was already created */
@@ -858,7 +856,8 @@ static bool native_canvas_setContext(JSContext *cx, unsigned argc,
         If a context was already attached, it's going to be GC'd
         since it's not longer reachable from slot 0.
     */
-    JS_SetReservedSlot(NativeObject->m_JsObj, 0, OBJECT_TO_JSVAL(context->m_JsObj));
+    JS::RootedValue slot(cx, OBJECT_TO_JSVAL(context->m_JsObj));
+    JS_SetReservedSlot(NativeObject->m_JsObj, 0, slot);
 
     return true;
 }
@@ -1530,7 +1529,7 @@ void Canvas_Finalize(JSFreeOp *fop, JSObject *obj)
 #if 0 && defined(DEBUG)
 void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
 {
-    snprintf(buf, bufsize, "[0x%p].mJSVal", trc->debugPrintArg);
+    snprintf(buf, bufsize, "[0x%p].mJSVal", trc->debugPrintArg());
 }
 #endif
 
@@ -1545,8 +1544,8 @@ static void Canvas_Trace(JSTracer *trc, JSObject *obj)
 #if 0 && defined(DEBUG)
                 trc->debugPrinter = PrintGetTraceName;
                 trc->debugPrintArg = cur;
-#endif
                 JS_CallObjectTracer(trc, (JSObject **)&cur->m_JsObj, "nativecanvasroot");
+#endif
             }
         }
     }
@@ -1573,8 +1572,8 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
 
     handler->m_JsObj = ret;
     handler->m_JsCx = cx;
-
-    JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->m_Context->m_JsObj));
+    JS::RootedValue val(cx, OBJECT_TO_JSVAL(handler->m_Context->m_JsObj));
+    JS_SetReservedSlot(ret, 0, val);
 
     NativeJSCanvas *jscanvas = new NativeJSCanvas(ret, cx, handler);
 
