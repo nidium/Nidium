@@ -1610,9 +1610,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         break;
         case CTX_PROP(fillStyle):
         {
-            JS::RootedObject vpObj(cx, vp.toObjectOrNull());
             if (vp.isString()) {
-
                 JSAutoByteString colorName(cx, vp.toString());
                 curSkia->setFillColor(colorName.ptr());
             } else if (!vp.isPrimitive() &&
