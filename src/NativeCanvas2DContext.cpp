@@ -2297,6 +2297,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     m_Mode = CONTEXT_2D;
 
     JS::RootedObject jsobj(cx, JS_NewObject(cx, &Canvas2DContext_class, JS::NullPtr(), JS::NullPtr()));
+    m_JsObj = jsobj;
     m_JsCx  = cx;
 
     /*
@@ -2304,7 +2305,8 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     */
     JS_DefineProperties(cx, jsobj, canvas2dctx_props);
     JS::RootedObject saved(cx, JS_NewArrayObject(cx, 0));
-    JS_SetReservedSlot(jsobj, 0, OBJECT_TO_JSVAL(saved));
+    JS::RootedValue saval(cx, OBJECT_TO_JSVAL(saved));
+    JS_SetReservedSlot(jsobj, 0, saval);
 
     m_Skia = new NativeSkia();
     if (!m_Skia->bindOnScreen(width, height)) {
@@ -2312,7 +2314,6 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
         m_Skia = NULL;
         return;
     }
-
     JS_SetPrivate(jsobj, this);
 
     /* Vertex buffers were unbound by parent constructor */
