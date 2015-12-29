@@ -151,48 +151,56 @@ static JSClass WebGLBuffer_class = {
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Buffer_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
+
 static JSClass WebGLFramebuffer_class = {
     "WebGLFramebuffer", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Buffer_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
+
 static JSClass WebGLProgram_class = {
     "WebGLProgram", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Buffer_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
+
 static JSClass WebGLRenderbuffer_class = {
     "WebGLRenderbuffer", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Buffer_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
+
 static JSClass WebGLShader_class = {
     "WebGLShader", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
+
 static JSClass WebGLTexture_class = {
     "WebGLTexture", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Buffer_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
+
 static JSClass WebGLUniformLocation_class = {
     "WebGLUniformLocation", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
+
 static JSClass WebGLShaderPrecisionFormat_class = {
     "WebGLShaderPrecisionFormat", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
+
 static JSClass WebGLActiveInfo_class = {
     "WebGLActiveInfo", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -2865,7 +2873,7 @@ static bool native_NativeGL_constructor(JSContext *cx, unsigned argc, JS::Value 
     JS_GetProperty(cx, global, "WebGLRenderingContext", &proto);
     JS::RootedObject webGLContext(cx, JS_NewObject(cx, &WebGLRenderingContext_class, proto, JS::NullPtr()));
 
-    if (webGLContext == NULL) {
+    if (!webGLContext.get()) {
         JS_ReportError(cx, "Failed to create WebGLRenderingContext");
         return false;
     }
