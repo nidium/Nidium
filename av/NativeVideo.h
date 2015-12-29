@@ -219,3 +219,4 @@ class NativeVideoAudioSource: public NativeAudioSource
 };
 
 #endif
+

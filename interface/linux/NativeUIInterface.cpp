@@ -135,14 +135,14 @@ int NativeEvents(NativeX11UIInterface *NUII)
                         if (++nrefresh > 1) {
                             break;
                         }
-                        fprintf(stdout, "\n\n=======Refresh...=======\n");
+                        fprintf(stdout, "\n\n= = = = Refresh... = = = = =\n");
                         //[console clear];
 #ifdef NATIVE_USE_GTK
                         while (gtk_events_pending ()) {
                             gtk_main_iteration();
                         }
 #endif
-                        //fprintf(stdout, "\n\n=======Restarting...=====\n");
+                        //fprintf(stdout, "\n\n= = = = Restarting... = = = = =\n");
                         NUII->restartApplication();
                         break;
                     }

@@ -202,7 +202,8 @@ class NativeAudioNodeReverb : public NativeAudioNode
 class NativeAudioNodeMixer : public NativeAudioNode
 {
     public :
-        NativeAudioNodeMixer(int m_InCount, int m_OutCount, NativeAudioParameters *params) : NativeAudioNode(m_InCount, m_OutCount, params)
+        NativeAudioNodeMixer(int m_InCount, int m_OutCount, NativeAudioParameters *params) :
+          NativeAudioNode(m_InCount, m_OutCount, params)
         {
             fprintf(stdout, "Mixer init\n");
             fprintf(stdout, "count %d/%d\n", m_InCount, m_OutCount);
@@ -431,3 +432,4 @@ class NativeAudioNodeException : public std::exception
 };
 
 #endif
+

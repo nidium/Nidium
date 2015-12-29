@@ -69,9 +69,11 @@ int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
 #define STREAM_BUFFER_SIZE NATIVE_AVIO_BUFFER_SIZE*6
 NativeAVStreamReader::NativeAVStreamReader(const char *src,
         NativeAVStreamReadCallback readCallback, void *callbackPrivate, NativeAVSource *source, ape_global *net)
-    : m_Source(source), m_TotalRead(0), m_ReadCallback(readCallback), m_CallbackPrivate(callbackPrivate),
-      m_Opened(false), m_StreamRead(STREAM_BUFFER_SIZE), m_StreamPacketSize(0), m_StreamErr(-1), m_StreamSeekPos(0), m_StreamSize(0),
-      m_StreamBuffer(NULL), m_Error(0), m_HaveDataAvailable(false)
+    : m_Source(source), m_TotalRead(0), m_ReadCallback(readCallback),
+      m_CallbackPrivate(callbackPrivate), m_Opened(false),
+      m_StreamRead(STREAM_BUFFER_SIZE), m_StreamPacketSize(0), m_StreamErr(-1),
+      m_StreamSeekPos(0), m_StreamSize(0), m_StreamBuffer(NULL), m_Error(0),
+      m_HaveDataAvailable(false)
 {
     m_Async = true;
     m_Stream = NativeBaseStream::create(NativePath(src));
@@ -99,7 +101,8 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
         int left = size - copied;
         int copy = avail > left ? left : avail;
 
-        SPAM(("get streamBuffer = %p, totalRead = %lld, streamRead = %d, streamSize = %d, copy = %d, size = %d, avail = %d, left = %d\n",
+        SPAM(("get streamBuffer = %p, totalRead = %lld, streamRead = %d, "
+              "streamSize = %d, copy = %d, size = %d, avail = %d, left = %d\n",
             thiz->m_StreamBuffer, thiz->m_TotalRead, thiz->m_StreamRead, thiz->m_StreamPacketSize, copy, size, avail, left));
 
         memcpy(buffer + copied, thiz->m_StreamBuffer + thiz->m_StreamRead, copy);
@@ -114,9 +117,9 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
         }
     }
 
-    SPAM(("streamSize=%lld\n", thiz->m_StreamSize));
+    SPAM(("streamSize = %lld\n", thiz->m_StreamSize));
     // No more data inside buffer, need to get more
-    for(;;) {
+    for(; ;) {
         thiz->postMessage(opaque, NativeAVStreamReader::MSG_READ);
         NATIVE_PTHREAD_WAIT(&thiz->m_ThreadCond);
         SPAM(("store streamBuffer=%p / size=%d / err=%d\n", thiz->m_StreamBuffer, thiz->m_StreamPacketSize, thiz->m_StreamErr));

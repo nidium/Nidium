@@ -254,3 +254,4 @@ class NativeAVSource : public NativeMessages
 };
 
 #endif
+

@@ -98,7 +98,7 @@ void *NativeAudio::queueThread(void *args)
                 break;
             }
 
-            for (;;) {
+            for (; ;) {
                 if (!audio->canWriteFrame()) {
                     break;
                 }
@@ -219,7 +219,7 @@ void *NativeAudio::decodeThread(void *args)
     NativeAudioSource *source;
     int haveEnought, sourcesCount;
 
-    for(;;) {
+    for(; ;) {
         // Go through all the sources that need data to be decoded
         pthread_mutex_lock(&audio->m_SourcesLock);
 

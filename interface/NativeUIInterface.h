@@ -136,7 +136,7 @@ class NativeUIInterface
         }
 
         NativeUIInterface();
-        virtual ~NativeUIInterface(){};
+        virtual ~NativeUIInterface() {};
         virtual void stopApplication()=0;
         virtual void restartApplication(const char *path=NULL)=0;
 

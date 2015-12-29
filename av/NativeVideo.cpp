@@ -459,7 +459,7 @@ void NativeVideo::seekInternal(double time)
         if (m_AudioSource != NULL) {
             double tmp;
             // "in memory" seeking, we need to drop audio packet
-            for (;;) {
+            for (; ;) {
                 p = this->getPacket(m_AudioQueue);
 
                 if (p == NULL) {
@@ -488,7 +488,7 @@ void NativeVideo::seekInternal(double time)
 
     flags = 0;
 
-    for (;;) {
+    for (; ;) {
         DPRINT("[SEEK] loop gotFrame = %d pts = %f seekTime = %f time = %f\n", gotFrame, pts, seekTime, time);
         if ((pts > seekTime + SEEK_STEP || pts > time) && !keyframe) {
             seekTime = seekTime - SEEK_STEP;
@@ -586,9 +586,9 @@ void NativeVideo::seekInternal(double time)
                 DPRINT("[SEEK]  its a keyframe\n");
                 avcodec_decode_video2(m_CodecCtx, m_DecodedFrame, &gotFrame, &packet);
                 if (gotFrame) {
-                    DPRINT("[SEEK] ==== GOT FRAME\n");
+                    DPRINT("[SEEK] = = = = GOT FRAME\n");
                     if (!keyframe) {
-                        startFrame = av_gettime()/1000;
+                        startFrame = av_gettime() / 1000;
                     }
                 }
                 keyframe = true;
@@ -1014,7 +1014,7 @@ void *NativeVideo::decode(void *args)
 {
     NativeVideo *v = static_cast<NativeVideo *>(args);
 
-    for (;;) {
+    for (; ;) {
         DPRINT("decode loop\n");
         v->lockDecodeThread();
 

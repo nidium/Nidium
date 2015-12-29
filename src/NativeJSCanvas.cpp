@@ -492,7 +492,7 @@ static bool native_canvas_getParent(JSContext *cx, unsigned argc,
 
     NativeCanvasHandler *parent = NativeObject->getParent();
     if (parent) {
-        args.rval().setObjectOrNull( parent->m_JsObj);
+        args.rval().setObjectOrNull(parent->m_JsObj);
     } else {
         args.rval().setNull();
     }
@@ -824,7 +824,7 @@ static bool native_canvas_getContext(JSContext *cx, unsigned argc,
         args.rval().setNull();
         return true;
     }
-    JS::RootedObject  ret(cx, canvasctx->m_JsObj);
+    JS::RootedObject ret(cx, canvasctx->m_JsObj);
 
     args.rval().setObjectOrNull(ret);
 
@@ -1505,7 +1505,7 @@ static bool native_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
     handler->m_JsCx = cx;
 
     NativeJSCanvas *jscanvas = new NativeJSCanvas(ret, cx, handler);
-    JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, nullptr, 
+    JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, nullptr,
         JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
     jscanvas->setInherit(inherit);
 
@@ -1569,7 +1569,6 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
 
     /* window.canvas.overflow default to false */
     handler->m_Overflow = false;
-
     handler->m_JsObj = ret;
     handler->m_JsCx = cx;
     JS::RootedValue val(cx, OBJECT_TO_JSVAL(handler->m_Context->m_JsObj));
@@ -1590,7 +1589,7 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
 void NativeJSCanvas::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS_InitClass(cx, global, JS::NullPtr(), &Canvas_class, native_Canvas_constructor, 2, canvas_props, canvas_funcs, 
+    JS_InitClass(cx, global, JS::NullPtr(), &Canvas_class, native_Canvas_constructor, 2, canvas_props, canvas_funcs,
         nullptr, nullptr);
 }
 

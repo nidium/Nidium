@@ -201,7 +201,7 @@ static JSPropertySpec window_props[] = {
     {"title", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_GETTER(WINDOW_PROP_TITLE, native_window_prop_get),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLE, native_window_prop_set)},
-    {"cursor", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, 
+    {"cursor", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_STUBGETTER(),
         NATIVE_JS_SETTER(WINDOW_PROP_CURSOR, native_window_prop_set)},
     {"titleBarColor", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
@@ -288,7 +288,7 @@ bool NativeJSwindow::onClose()
 void NativeJSwindow::assetReady(const NMLTag &tag)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-        val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS )
+        val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS)
 
     JSContext *cx = m_Cx;
     JS::AutoValueArray<1> jevent(cx);

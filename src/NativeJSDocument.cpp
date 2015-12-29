@@ -243,7 +243,7 @@ static void Document_Finalize(JSFreeOp *fop, JSObject *obj)
 bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
     size_t len, const char *filename)
 {
-    if ( ! m_Stylesheet ) {
+    if (! m_Stylesheet) {
         return false;
     }
     JS::RootedValue ret(cx);

@@ -142,7 +142,7 @@ void NativeAudioNode::updateFeedback(NativeAudioNode *nOut)
             //SPAM(("  checking input #%d wire %d; node = %p/%p\n", i, j, m_Input[i]->wire[j]->node, nOut));
             if (!m_Input[i]->wire[j]->feedback &&
                  m_Input[i]->wire[j]->node == nOut) {
-                //SPAM(("=================== Its a feedback\n"));
+                //SPAM(("= = = = = = = = = = Its a feedback\n"));
                 // It's a feedback
                 m_Input[i]->wire[j]->feedback = true;
                 m_Input[i]->haveFeedback = true;
@@ -934,7 +934,7 @@ bool NativeAudioSource::buffer()
 
 bool NativeAudioSource::bufferInternal()
 {
-    for (;;) {
+    for (; ;) {
         int ret = av_read_frame(m_Container, m_TmpPacket);
         if (m_TmpPacket->stream_index == m_AudioStream) {
             if (ret < 0) {
@@ -1004,7 +1004,7 @@ bool NativeAudioSource::work()
     }
 
     if (m_DoNotProcess || !m_Opened || m_Stopped) {
-        SPAM(("Source will not be decoded. doNotProcess = %d opened = %d stopped = %d", 
+        SPAM(("Source will not be decoded. doNotProcess = %d opened = %d stopped = %d",
             m_DoNotProcess, m_Opened, m_Stopped));
         return false;
     }
@@ -1143,7 +1143,7 @@ int NativeAudioSource::resample(int destSamples) {
     if (m_fCvt) {
         int copied = 0;
         int passCopied = 0;
-        for (;;) {
+        for (; ;) {
             int sampleSize;
 
             sampleSize = channels * NativeAudio::FLOAT32;
@@ -1193,7 +1193,7 @@ int NativeAudioSource::resample(int destSamples) {
         sampleSize = m_NbChannel * NativeAudio::FLOAT32;
         copied = 0;
 
-        for (;;) {
+        for (; ;) {
             int write, avail;
 
             avail = m_TmpFrame.nbSamples - m_SamplesConsumed;

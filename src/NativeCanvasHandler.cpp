@@ -15,14 +15,14 @@ int NativeCanvasHandler::m_LastIdx = 0;
 
 NativeCanvasHandler::NativeCanvasHandler(int width, int height,
     NativeContext *nativeCtx, bool lazyLoad) :
-    m_Context(NULL), m_JsObj(nativeCtx->getNJS()->getJSContext()), 
-    m_JsCx(nativeCtx->getNJS()->getJSContext()), m_Left(0.0), m_Top(0.0), 
+    m_Context(NULL), m_JsObj(nativeCtx->getNJS()->getJSContext()),
+    m_JsCx(nativeCtx->getNJS()->getJSContext()), m_Left(0.0), m_Top(0.0),
     m_aLeft(0), m_aTop(0), m_Right(0.0), m_Bottom(0.0), m_Overflow(true),
     m_Parent(NULL), m_Children(NULL), m_Next(NULL), m_Prev(NULL), m_Last(NULL),
-    m_Flags(0), m_nChildren(0), m_CoordPosition(COORD_RELATIVE), 
+    m_Flags(0), m_nChildren(0), m_CoordPosition(COORD_RELATIVE),
     m_Visibility(CANVAS_VISIBILITY_VISIBLE), m_FlowMode(kFlowDoesntInteract),
     m_CoordMode(kLeft_Coord | kTop_Coord), m_Opacity(1.0), m_Zoom(1.0),
-    m_ScaleX(1.0), m_ScaleY(1.0), m_AllowNegativeScroll(false), 
+    m_ScaleX(1.0), m_ScaleY(1.0), m_AllowNegativeScroll(false),
     m_NativeContext(nativeCtx), m_Pending(0), m_Loaded(!lazyLoad),
      m_Cursor(NativeUIInterface::ARROW)
 {

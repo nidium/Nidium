@@ -527,7 +527,8 @@ void NativeSkia::drawRect(double x, double y, double width,
 }
 
 NativeSkia::NativeSkia() :
-    m_State(NULL), m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0), m_AsComposite(0), screen(NULL), currentShadow({0, 0, 0, 0}),
+    m_State(NULL), m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0),
+    m_AsComposite(0), screen(NULL), currentShadow({0, 0, 0, 0}),
     m_Canvas(NULL), m_Debug(false), m_FontSkew(-0.25),
     m_NativeCanvasBindMode(NativeSkia::BIND_NO)
 {
