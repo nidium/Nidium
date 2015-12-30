@@ -52,8 +52,7 @@
                             'libhttp_parser.a',
                             'libnspr4.a',
                             'libjs_static.a',
-                            'libleveldb.a',
-                            '/usr/lib/libz.dylib',
+                            'libleveldb.a'
                         ]
                     }
                 }],
@@ -66,10 +65,9 @@
                             '-lpthread',
                             '-lrt',
                             '-ldl',
-                            '-lz',
                             '-lcares',
                             '-lhttp_parser',
-                            '-lleveldb',
+                            '-lleveldb'
                         ]
                     }
                 }]

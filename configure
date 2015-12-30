@@ -8,9 +8,9 @@ from konstructor import Builder
 from konstructor import Platform
 from konstructor import Variables
 from konstructor import Konstruct
+from konstructor import ROOT, OUTPUT
 
 Deps.set(
-    "zlib",
     "libnspr4", 
     "mozilla-central", 
     "leveldb",
@@ -50,7 +50,11 @@ def mozilla():
     nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/"))
     nsprFlags = "--with-nspr-cflags=\"-I" + nsprDir + "/dist/include/nspr/\" --with-nspr-libs=\"" + nsprDir + "/dist/lib/libnspr4.a " + nsprDir + "/dist/lib/libplds4.a " + nsprDir + "/dist/lib/libplc4.a\""
 
-    configure = "./js/src/configure --enable-threadsafe --enable-ctypes --with-system-zlib=%s %s" % (Variables.get("thirdPartyPath"), nsprFlags)
+    configureEnvVars = "MOZ_ZLIB_CFLAGS=-I%s MOZ_ZLIB_LIBS=\"-L%s -lz\"" % (os.path.abspath("zlib"), os.path.join(ROOT, OUTPUT, "third-party"))
+    configure = "%s ./js/src/configure\
+            --disable-shared-js\
+            --enable-threadsafe\
+            --enable-ctypes %s" % (configureEnvVars, nsprFlags)
 
     if Konstruct.config("debug", "valgring"):
         configure += " --enable-debug --disable-optimize"
@@ -60,7 +64,6 @@ def mozilla():
 
     return {
         "location": DEPEDENCY_REPO + "/mozjs-31.2.0.rc0.tar.bz2",
-        "chdir": "",
         "build": [configure, "make -j1"],
         "outputs": ["js/src/libjs_static.a$", "js/src/js-config.h$"]
     }
@@ -71,14 +74,6 @@ def httpParser():
         "location": Deps.GitRepo("git@github.com:nodejs/http-parser.git", tag="v2.3"),
         "build": ["make package"],
         "outputs": ["libhttp_parser.a"]
-    }
-
-@Deps.register("zlib")
-def zlip():
-    return {
-        "location": "http://zlib.net/zlib-1.2.8.tar.gz",
-        "build": ["./configure", "make"],
-        "outputs": ["libz.a"]
     }
 
 if __name__ == '__main__':
