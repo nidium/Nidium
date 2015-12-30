@@ -1,4 +1,7 @@
 {
+    'includes': [
+        '../nativejscore/gyp/common.gypi',
+    ],
     'target_defaults': {
         'defines': [
             'NATIVE_VERSION_STR="<(native_version)"',
