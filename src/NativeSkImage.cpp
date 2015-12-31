@@ -1,16 +1,11 @@
 #include "NativeSkImage.h"
 
+#include <stdio.h>
+
 #include <SkCanvas.h>
-#include <SkBitmap.h>
-#include <SkRect.h>
 #include <SkImageRef_GlobalPool.h>
-#include <SkStream.h>
-#include <SkData.h>
-#include <SkColor.h>
 #include <SkColorPriv.h>
 #include <SkUnPreMultiply.h>
-
-#include "NativeSkia.h"
 
 #define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
 #define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))

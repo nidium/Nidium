@@ -2,13 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <jsapi.h>
 #include <gl/GrGLInterface.h>
-#include <gl/GrGLUtil.h>
 #include <gl/GrGLUtil.h>
 #include <GrRenderTarget.h>
 #include <SkDevice.h>
-#include <SkCanvas.h>
 #include <SkCGUtils.h>
 #include <SkGpuDevice.h>
 #include <SkCanvas.h>

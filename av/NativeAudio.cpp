@@ -1,16 +1,21 @@
+#include "NativeAudio.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <pthread.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+
 #include <portaudio.h>
 #include "pa_ringbuffer.h"
-#include <NativeSharedMessages.h>
-#include "Coro.h"
+
 extern "C" {
-#include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 }
-#include "NativeAudio.h"
-#include "NativeAudioNode.h"
+
 #include "NativeAudioNodeGain.h"
 #include "NativeAudioNodeDelay.h"
 

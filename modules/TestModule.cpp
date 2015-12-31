@@ -1,4 +1,6 @@
 #define __STDC_LIMIT_MACROS
+
+#include <stdio.h>
 #include <stdint.h>
 
 #include <NativeJSExposer.h>

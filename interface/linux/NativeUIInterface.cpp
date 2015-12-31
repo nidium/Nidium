@@ -1,21 +1,28 @@
 #include "NativeX11UIInterface.h"
 
-#include <string.h>
 #include <stdio.h>
-#include <errno.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdarg.h>
+#include <string.h>
+#include <strings.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <math.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
-#include <native_netlib.h>
-#include <X11/Xlib.h>
 #include <X11/cursorfont.h>
 #include <../build/include/SDL_config.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <SDL_syswm.h>
 #include "SDL_keycode_translate.h"
+
 #ifdef NATIVE_USE_GTK
 #include <gtk/gtk.h>
 #endif
+
 #ifdef NATIVE_USE_QT
 #include <QtGui>
 #include <QFileDialog>
@@ -23,12 +30,10 @@
 #endif
 
 #include "NativeJSWindow.h"
-#include "NativeSkia.h"
 #include "NativeApp.h"
 #include "NativeContext.h"
 #include "NativeSystem.h"
 #include "NativeNML.h"
-#include "NativeMacros.h"
 
 #define kNativeWidth 1280
 #define kNativeHeight 600

@@ -1,9 +1,10 @@
 #include "NativeJSCanvas.h"
 
-#include <assert.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+#include <strings.h>
 
-#include "NativeSkia.h"
-#include "NativeContext.h"
 #include "NativeCanvas2DContext.h"
 #include "NativeCanvas3DContext.h"
 #include "NativeCanvasHandler.h"

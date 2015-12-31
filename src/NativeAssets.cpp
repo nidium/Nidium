@@ -1,7 +1,8 @@
 #include "NativeAssets.h"
 
-#include <native_netlib.h>
-#include <NativePath.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 
 NativeAssets::NativeAssets(readyItem cb, readyAssets rcb, void *arg) :
     m_ItemReady(cb), m_AssetsReady(rcb), m_ReadyArg(arg), m_Nitems(0)

@@ -1,10 +1,12 @@
 #include "NativeCanvasContext.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+
 #include <SkCanvas.h>
 
-#include "NativeContext.h"
-#include "NativeMacros.h"
-#include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
 #include "NativeSkia.h"
 #include "NativeSystemInterface.h"

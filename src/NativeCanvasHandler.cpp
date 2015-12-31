@@ -1,15 +1,13 @@
 #include "NativeCanvasHandler.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 
-#include <jsapi.h>
 #include <js/GCAPI.h>
 
-#include "NativeSkia.h"
 #include "NativeCanvas2DContext.h"
-#include "NativeMacros.h"
-#include "NativeContext.h"
-#include "NativeUIInterface.h"
 
 int NativeCanvasHandler::m_LastIdx = 0;
 

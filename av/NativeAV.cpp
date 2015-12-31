@@ -1,15 +1,16 @@
 #include "NativeAV.h"
 
-#include <pa_ringbuffer.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <unistd.h>
+
 #include <Coro.h>
 
 extern "C" {
-#include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 }
-
-#include <NativeUtils.h>
-#include <NativeSharedMessages.h>
 
 #include "NativeAudioNode.h"
 

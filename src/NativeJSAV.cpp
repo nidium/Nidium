@@ -1,15 +1,19 @@
 #include "NativeJSAV.h"
 
-extern "C" {
-#include <libavformat/avformat.h>
-#include <libavutil/dict.h>
-}
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <math.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <NativeJSConsole.h>
-#include <NativeJSThread.h>
 
 #include "NativeJSCanvas.h"
-#include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
 
 

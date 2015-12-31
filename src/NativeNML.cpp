@@ -1,10 +1,11 @@
 #include "NativeNML.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
-
-#include <NativeHash.h>
-#include <NativePath.h>
-#include <NativeStreamInterface.h>
+#include <strings.h>
+#include <unistd.h>
 
 #include "NativeSystemInterface.h"
 #include "NativeJSWindow.h"

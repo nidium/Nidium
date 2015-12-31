@@ -1,14 +1,12 @@
 #include "NativeJSImage.h"
 
-#include <string.h>
+#include <stdio.h>
 
 #include <native_netlib.h>
-#include <NativeFile.h>
+
 #include <NativeJSFileIO.h>
 
 #include "NativeSkImage.h"
-#include "NativeSkia.h"
-
 
 #define NATIVE_IMAGE_GETTER(obj) (static_cast<class NativeJSImage *>(JS_GetPrivate(obj)))
 #define IMAGE_FROM_CALLEE(nimg) \

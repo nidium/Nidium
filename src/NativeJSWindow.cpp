@@ -1,15 +1,17 @@
 #include "NativeJSWindow.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <strings.h>
+
 #include <NativeJSFileIO.h>
 
 #include "NativeDB.h"
 #include "NativeNML.h"
-#include "NativeMacros.h"
-#include "NativeUIInterface.h"
 #include "NativeSkia.h"
-#include "NativeUtils.h"
 #include "NativeContext.h"
-#include "NativeJSNative.h"
 #include "NativeJSCanvas.h"
 #include "NativeJSUtils.h"
 #include "NativeJSImage.h"

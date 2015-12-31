@@ -1,17 +1,15 @@
 #include "NativeJSDocument.h"
 
-#include <jsstr.h>
-#include <native_netlib.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <ctype.h>
+
 #include <SkTypeface.h>
 #include <SkStream.h>
 
-#include "NativeJS.h"
-#include "NativeContext.h"
-#include "NativeUIInterface.h"
-#include "NativeStreamInterface.h"
-#include "NativeCanvasHandler.h"
 #include "NativeNML.h"
-#include "NativeSkia.h"
+#include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
 
 bool NativeJSdocument::m_ShowFPS = false;

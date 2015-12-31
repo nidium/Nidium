@@ -1,11 +1,12 @@
 #include "NativeSkGradient.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include <SkGradientShader.h>
 
 #include "NativeSkia.h"
-#include "NativeMacros.h"
 
 NativeSkGradient::NativeSkGradient(double x1, double y1, double x2, double y2)
 {

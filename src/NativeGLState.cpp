@@ -2,10 +2,9 @@
 
 #include <stdlib.h>
 #include <stddef.h>
+#include <string.h>
 
 #include "NativeCanvasContext.h"
-#include "NativeTypes.h"
-#include "NativeMacros.h"
 #include "NativeOpenGLHeader.h"
 
 NativeGLState::NativeGLState(NativeUIInterface *ui, bool withProgram, bool webgl) :

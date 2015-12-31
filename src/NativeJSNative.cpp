@@ -1,14 +1,5 @@
 #include "NativeJSNative.h"
 
-#include <jsstr.h>
-
-#include "NativeJSCanvas.h"
-#include "NativeCanvasHandler.h"
-#include "NativeContext.h"
-#include "NativeUIInterface.h"
-#include "NativeSystemInterface.h"
-
-
 static void Native_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass Native_class = {

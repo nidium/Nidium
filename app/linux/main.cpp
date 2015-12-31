@@ -1,15 +1,11 @@
-#include <pthread.h>
-#include <limits.h>
+#include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <libgen.h>
+#include <time.h>
 #include <sys/types.h>
-#include <client/linux/handler/exception_handler.h>
 
-#include <GL/gl.h>
-#include <SDL.h>
-#include <SDL_opengl.h>
-#include <SDL_video.h>
-#include <SDL_syswm.h>
+#include <client/linux/handler/exception_handler.h>
 
 #include "NativeX11UIInterface.h"
 #include "NativeSystem.h"

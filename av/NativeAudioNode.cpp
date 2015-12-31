@@ -1,23 +1,20 @@
 #include "NativeAudioNode.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
 #include <math.h>
 
-#include <pa_dither.h>
 #include <pa_ringbuffer.h>
-#include <pa_converters.h>
 
 #include <zita-resampler/resampler.h>
 #include <Coro.h>
 extern "C" {
-#include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
 }
-#include <NativeSharedMessages.h>
 #include <NativeUtils.h>
-
-#include "NativeAudio.h"
-
 
 #define MAX_FAILED_DECODING 50
 #define NODE_IO_FOR(i, io) int I = 0;\

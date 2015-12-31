@@ -1,16 +1,14 @@
-#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
 
 #include <SDL.h>
 
-#include <NativePath.h>
-#include <NativeTaskManager.h>
 #include <NativeHTTPStream.h>
-#include <NativeFileStream.h>
 #include <NativePrivateStream.h>
-#include <NativeNFSStream.h>
 
 #include "NativeSystemStream.h"
-#include "NativeUIInterface.h"
 #include "NativeContext.h"
 #include "NativeOpenGLHeader.h"
 
