@@ -691,14 +691,15 @@ static bool native_canvas_insertBefore(JSContext *cx, unsigned argc,
     if (!JS_ConvertArguments(cx, args, "oo", insert.address(), ref.address())) {
         return false;
     }
+    if( ! insert.get() || ! ref.get() ) {
+        return false;
+    }
     if (JS_GetClass(insert) != &Canvas_class) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
 
     handler_insert = (static_cast<NativeJSCanvas *>(JS_GetPrivate(insert)))->getHandler();
-
-
     if (handler_insert == NULL) {
         return true;
     }
@@ -729,14 +730,15 @@ static bool native_canvas_insertAfter(JSContext *cx, unsigned argc,
     if (!JS_ConvertArguments(cx, args, "oo", insert.address(), ref.address())) {
         return false;
     }
-
+    if( ! insert.get() || ! ref.get() ) {
+        return false;
+    }
     if (JS_GetClass(insert) != &Canvas_class) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
 
     handler_insert= (static_cast<NativeJSCanvas *>(JS_GetPrivate(insert)))->getHandler();
-
     if (handler_insert == NULL) {
         return true;
     }
