@@ -33,7 +33,7 @@
     ofclass *CppObj = (ofclass *)JS_GetPrivate(thisobj); \
     args.rval().setUndefined();
 
-#define JSNATIVE_PROLOGUE_CLASS(ofclass, fclass) \
+#define JSNATIVE_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
     if (!thisobj) { \
@@ -45,6 +45,9 @@
         JS_ReportError(cx, "Illegal invocation"); \
         return false; \
     } \
+
+#define JSNATIVE_PROLOGUE_CLASS(ofclass, fclass) \
+    JSNATIVE_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
     args.rval().setUndefined();
 
 #define NATIVE_CHECK_ARGS(fnname, minarg) \
@@ -436,7 +439,7 @@ class NativeJSObjectMapper
 {
 public:
     NativeJSObjectMapper(JSContext *cx, const char *name) :
-        m_JSObj(cx), m_JSCx(cx)
+        m_JSCx(cx), m_JSObj(cx)
     {
         static JSClass jsclass = {
             NULL, JSCLASS_HAS_PRIVATE,
@@ -551,7 +554,7 @@ public:
         m_Obj = JS_NewObject(m_Cx, clasp, JS::NullPtr(), JS::NullPtr());
     };
 
-    NativeJSObjectBuilder(JSContext *cx, JSObject *wrapped) : m_Obj(cx) {
+    NativeJSObjectBuilder(JSContext *cx, JS::HandleObject wrapped) : m_Obj(cx) {
         m_Obj = wrapped;
         m_Cx = cx;
     };
@@ -624,11 +627,11 @@ private:
     This template act as a workaround (create a unique getter/setter and keep a unique identifier)
 */
 #define NATIVE_JS_SETTER(tinyid, setter) \
-    {JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}
+    {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}}
 #define NATIVE_JS_GETTER(tinyid, getter) \
-    {JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}
+    {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}}
 #define NATIVE_JS_STUBGETTER() \
-    {JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::NullGetter), JSPropertyOp), nullptr}
+    {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::NullGetter), JSPropertyOp), nullptr}}
 
 struct NativeJSPropertyAccessors
 {
