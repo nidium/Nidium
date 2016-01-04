@@ -50,12 +50,10 @@ static JSFunctionSpec http_funcs[] = {
 
 static void Http_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeHTTP *nhttp = (NativeHTTP *)JS_GetPrivate(obj);
-    if (nhttp != NULL) {
-        NativeJSHttp *jshttp = (NativeJSHttp *)nhttp->getPrivate();
-        if (jshttp != NULL) {
-            delete jshttp;
-        }
+    NativeJSHttp *jshttp = (NativeJSHttp *)JS_GetPrivate(obj);
+
+    if (jshttp != NULL) {
+        delete jshttp;
     }
 }
 
@@ -87,8 +85,7 @@ static bool native_Http_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
     jshttp->refHttp = nhttp;
     jshttp->jsobj = ret;
 
-    /* TODO: store jshttp intead of nhttp */
-    JS_SetPrivate(ret, nhttp);
+    JS_SetPrivate(ret, jshttp);
 
     args.rval().setObjectOrNull(ret);
     JS_DefineFunctions(cx, ret, http_funcs);
@@ -125,16 +122,16 @@ static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    if ((nhttp = (NativeHTTP *)JS_GetPrivate(caller)) == NULL) {
+    if ((jshttp = (NativeJSHttp *)JS_GetPrivate(caller)) == NULL) {
         return true;
     }
+
+    nhttp = jshttp->refHttp;
 
     if (!nhttp->canDoRequest()) {
         JS_ReportError(cx, "A request is already pending.");
         return false;
     }
-
-    jshttp = (NativeJSHttp *)nhttp->getPrivate();
 
     if ((req = nhttp->getRequest()) == NULL) {
         req = new NativeHTTPRequest(jshttp->m_URL);

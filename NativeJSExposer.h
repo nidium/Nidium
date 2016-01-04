@@ -322,6 +322,10 @@ private:
 
         NATIVE_CHECK_ARGS("fireEvent", 2);
 
+        if (!CppObj->m_Events) {
+            return true;
+        }
+
         JS::RootedString name(cx);
         JS::RootedObject evobj(cx);
 
