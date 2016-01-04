@@ -333,6 +333,11 @@ private:
             return false;
         }
 
+        if (!evobj) {
+            JS_ReportError(cx, "Invalid event object");
+            return false;
+        }
+
         JSAutoByteString cname(cx, name);
         JS::RootedValue evjsobj(cx, JS::ObjectValue(*evobj));
 
