@@ -6,16 +6,16 @@
 NativeSystem::NativeSystem()
 {
 #if NIDIUM_ENABLE_HIDPI
-    fbackingStorePixelRatio = [[NSScreen mainScreen] backingScaleFactor];
+    m_fBackingStorePixelRatio = [[NSScreen mainScreen] backingScaleFactor];
 #else
-    fbackingStorePixelRatio = 1.0;
+    m_fBackingStorePixelRatio = 1.0;
 #endif
-    fprintf(stdout, "Canvas Ratio (HIDPI) : %f\n", fbackingStorePixelRatio);
+    fprintf(stdout, "Canvas Ratio (HIDPI) : %f\n", m_fBackingStorePixelRatio);
 }
 
 float NativeSystem::backingStorePixelRatio()
 {
-    return fbackingStorePixelRatio;
+    return m_fBackingStorePixelRatio;
 }
 
 static NSString *runCommand(NSString *commandToRun)
@@ -121,7 +121,7 @@ void NativeSystem::alert(const char *message, AlertType type)
     [alert setMessageText:@"nidium"];
     [alert setInformativeText:[NSString stringWithCString:message encoding:NSUTF8StringEncoding]];
 
-    [alert setAlertStyle:type];
+    [alert setAlertStyle:(NSAlertStyle)type];
 
     [alert runModal];
 

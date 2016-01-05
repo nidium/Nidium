@@ -3,7 +3,7 @@
 
 @implementation NativeConsole
 
-@synthesize window, textview, isHidden;
+@synthesize m_Window, textview, m_IsHidden;
 
 - (id) init
 {
@@ -70,11 +70,11 @@
 
     [scrollview setDocumentView:textview];
 
-    [window setContentView:mview];
+    [m_Window setContentView:mview];
 
-    [window makeKeyAndOrderFront:nil];
+    [m_Window makeKeyAndOrderFront:nil];
 
-    [window makeFirstResponder:textview];
+    [m_Window makeFirstResponder:textview];
 
     [self.m_Window setContentBorderThickness:32.0 forEdge:NSMinYEdge];
     [self.m_Window release];
@@ -163,10 +163,10 @@ void NativeUICocoaConsole::clear()
 
 void NativeUICocoaConsole::flush()
 {
-    if (needFlush) {
+    if (m_NeedFlush) {
         [[[this->m_Window textview] textStorage] endEditing];
         [[this->m_Window textview] scrollRangeToVisible: NSMakeRange ([[this->m_Window.textview string] length], 0)];
-        needFlush = false;
+        m_NeedFlush = false;
     }
 }
 
@@ -175,7 +175,7 @@ void NativeUICocoaConsole::hide()
     if (this->m_IsHidden) {
         return;
     }
-    [this->m_Window.window orderOut:nil];
+    [this->m_Window.m_Window orderOut:nil];
     this->m_IsHidden = true;
     [this->m_Window setIsHidden:YES];
 }
@@ -190,7 +190,7 @@ void NativeUICocoaConsole::show()
     if (!this->m_IsHidden) {
         return;
     }
-    [this->m_Window.window orderFront:nil];
+    [this->m_Window.m_Window orderFront:nil];
     this->m_IsHidden = false;
     [this->m_Window setIsHidden:NO];
 }
@@ -201,9 +201,9 @@ void NativeUICocoaConsole::log(const char *str)
     typedef void(^_closure)();
 
     _closure func = ^{
-        if (!needFlush) {
+        if (!m_NeedFlush) {
             [[[this->m_Window textview] textStorage] beginEditing];
-            needFlush = true;
+            m_NeedFlush = true;
         }
         if (this->m_IsHidden) {
             return;

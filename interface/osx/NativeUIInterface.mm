@@ -36,6 +36,7 @@
 
 - (NSMenu *) renderSystemTray;
 - (void) menuClicked:(id)ev;
+- (id) initWithUI:(NativeCocoaUIInterface *)ui;
 
 @end
 
@@ -62,12 +63,12 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
     //while(1) {
     int nevents = 0;
         while(SDL_PollEvent(&event)) {
-            if (NUII->NativeCtx) {
+            if (NUII->m_NativeCtx) {
                 NUII->makeMainGLCurrent();
             }
             NativeJSwindow *window = NULL;
-            if (NUII->NativeCtx) {
-                window = NativeJSwindow::getNativeClass(NUII->NativeCtx->getNJS());
+            if (NUII->m_NativeCtx) {
+                window = NativeJSwindow::getNativeClass(NUII->m_NativeCtx->getNJS());
             }
             nevents++;
             switch(event.type) {
@@ -172,11 +173,11 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                 }
             }
         }
-        if (ttfps%300 == 0 && NUII->NativeCtx != NULL) {
-            NUII->NativeCtx->getNJS()->gc();
+        if (ttfps%300 == 0 && NUII->m_NativeCtx != NULL) {
+            NUII->m_NativeCtx->getNJS()->gc();
         }
-        if (NUII->currentCursor != NativeCocoaUIInterface::NOCHANGE) {
-            switch(NUII->currentCursor) {
+        if (NUII->m_CurrentCursor != NativeCocoaUIInterface::NOCHANGE) {
+            switch(NUII->m_CurrentCursor) {
                 case NativeCocoaUIInterface::ARROW:
                     [[NSCursor arrowCursor] set];
                     break;
@@ -201,19 +202,19 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                 default:
                     break;
             }
-            NUII->currentCursor = NativeCocoaUIInterface::NOCHANGE;
+            NUII->m_CurrentCursor = NativeCocoaUIInterface::NOCHANGE;
         }
 
         //glUseProgram(0);
-        if (NUII->NativeCtx) {
+        if (NUII->m_NativeCtx) {
             NUII->makeMainGLCurrent();
-            NUII->NativeCtx->frame(true);
+            NUII->m_NativeCtx->frame(true);
         }
         if (NUII->getConsole()) {
             NUII->getConsole()->flush();
         }
 
-        if (NUII->getFBO() != 0 && NUII->NativeCtx) {
+        if (NUII->getFBO() != 0 && NUII->m_NativeCtx) {
             //glFlush();
             //glFinish();
             glReadBuffer(GL_COLOR_ATTACHMENT0);
@@ -221,10 +222,10 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
             uint8_t *pdata = NUII->getFrameBufferData();
 
-            NUII->NativeCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
+            NUII->m_NativeCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
         } else {
             NUII->makeMainGLCurrent();
-            SDL_GL_SwapWindow(NUII->win);
+            SDL_GL_SwapWindow(NUII->m_Win);
         }
 
         //NSLog(@"Swap : %d\n", SDL_GetTicks()-s);
@@ -248,7 +249,7 @@ static int NativeProcessSystemLoop(void *arg)
     SDL_PumpEvents();
     NativeCocoaUIInterface *ui = (NativeCocoaUIInterface *)arg;
 
-    if (ui->NativeCtx) {
+    if (ui->m_NativeCtx) {
         ui->makeMainGLCurrent();
     }
     return 4;
@@ -289,13 +290,13 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     }
     fprintf(stdout, "Changing directory to : %s\n", fpath);
 
-    ui->nml = new NativeNML(ui->gnet);
-    ui->nml->loadFile("./index.nml", NativeCocoaUIInterface_onNMLLoaded, ui);
+    ui->m_Nml = new NativeNML(ui->m_Gnet);
+    ui->m_Nml->loadFile("./index.nml", NativeCocoaUIInterface_onNMLLoaded, ui);
 }
 
 void NativeCocoaUIInterface::log(const char *buf)
 {
-    if (this->m_Console && !this->m_Console->isHidden) {
+    if (this->m_Console && !this->m_Console->m_IsHidden) {
         this->m_Console->log(buf);
     } else {
         fwrite(buf, sizeof(char), strlen(buf), stdout);
@@ -332,7 +333,7 @@ void NativeCocoaUIInterface::vlog(const char *format, va_list ap)
 
 void NativeCocoaUIInterface::logclear()
 {
-    if (this->m_Console && !this->m_Console->isHidden) {
+    if (this->m_Console && !this->m_Console->m_IsHidden) {
         this->m_Console->clear();
     }
 }
@@ -340,13 +341,13 @@ void NativeCocoaUIInterface::logclear()
 void NativeCocoaUIInterface::onNMLLoaded()
 {
     if (!this->createWindow(
-        this->nml->getMetaWidth(),
-        this->nml->getMetaHeight()+kNativeTitleBarHeight)) {
+        this->m_Nml->getMetaWidth(),
+        this->m_Nml->getMetaHeight()+kNativeTitleBarHeight)) {
 
         return;
     }
 
-    this->setWindowTitle(this->nml->getMetaTitle());
+    this->setWindowTitle(this->m_Nml->getMetaTitle());
 }
 
 void NativeCocoaUIInterface::stopApplication()
@@ -355,37 +356,37 @@ void NativeCocoaUIInterface::stopApplication()
     this->disableSysTray();
     m_SystemMenu.deleteItems();
 
-    if (this->nml) {
-        delete this->nml;
-        this->nml = NULL;
+    if (this->m_Nml) {
+        delete this->m_Nml;
+        this->m_Nml = NULL;
     }
-    if (this->NativeCtx) {
-        delete this->NativeCtx;
-        this->NativeCtx = NULL;
+    if (this->m_NativeCtx) {
+        delete this->m_NativeCtx;
+        this->m_NativeCtx = NULL;
         NativeMessages::destroyReader();
     }
 
     glClearColor(1, 1, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     /* Also clear the front buffer */
-    SDL_GL_SwapWindow(this->win);
+    SDL_GL_SwapWindow(this->m_Win);
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
 void NativeCocoaUIInterface::restartApplication(const char *path)
 {
     this->stopApplication();
-    this->runApplication(path == NULL ? this->filePath : path);
+    this->runApplication(path == NULL ? this->m_FilePath : path);
 }
 
 bool NativeCocoaUIInterface::runJSWithoutNML(const char *path, int width, int height)
 {
-    NativeMessages::initReader(gnet);
-    if (path != this->filePath) {
-        if (this->filePath) {
-            free(this->filePath);
+    NativeMessages::initReader(m_Gnet);
+    if (path != this->m_FilePath) {
+        if (this->m_FilePath) {
+            free(this->m_FilePath);
         }
-        this->filePath = strdup(path);
+        this->m_FilePath = strdup(path);
     }
     if (strlen(path) < 5) {
         return false;
@@ -398,27 +399,27 @@ bool NativeCocoaUIInterface::runJSWithoutNML(const char *path, int width, int he
 
     this->setWindowTitle("Nidium");
 
-    NativeJS::initNet(gnet);
+    NativeJS::initNet(m_Gnet);
 
     NativePath jspath(path);
 
     NativePath::cd(jspath.dir());
     NativePath::chroot(jspath.dir());
 
-    NativeCtx->getNJS()->LoadScript(path);
+    m_NativeCtx->getNJS()->LoadScript(path);
 
     return true;
 }
 
 bool NativeCocoaUIInterface::runApplication(const char *path)
 {
-    NativeMessages::initReader(gnet);
+    NativeMessages::initReader(m_Gnet);
 
-    if (path != this->filePath) {
-        if (this->filePath) {
-            free(this->filePath);
+    if (path != this->m_FilePath) {
+        if (this->m_FilePath) {
+            free(this->m_FilePath);
         }
-        this->filePath = strdup(path);
+        this->m_FilePath = strdup(path);
     }
     if (strlen(path) < 5) {
         return false;
@@ -438,7 +439,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
             }
             this->setWindowTitle(app->getTitle());
 
-            app->runWorker(this->gnet);
+            app->runWorker(this->m_Gnet);
 
             const char *cachePath = this->getCacheDirectory();
             char *uidpath = (char *)malloc(sizeof(char) *
@@ -457,8 +458,8 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
             delete app;
         }
     } else {
-        this->nml = new NativeNML(this->gnet);
-        this->nml->loadFile(path, NativeCocoaUIInterface_onNMLLoaded, this);
+        this->m_Nml = new NativeNML(this->m_Gnet);
+        this->m_Nml->loadFile(path, NativeCocoaUIInterface_onNMLLoaded, this);
 
         return true;
     }
@@ -468,21 +469,21 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
 NativeCocoaUIInterface::NativeCocoaUIInterface() :
     m_StatusItem(NULL)
 {
-    this->width = 0;
-    this->height = 0;
-    this->initialized = false;
-    this->nml = NULL;
-    this->filePath = NULL;
+    this->m_Width = 0;
+    this->m_Height = 0;
+    this->m_Initialized = false;
+    this->m_Nml = NULL;
+    this->m_FilePath = NULL;
     this->m_Console = NULL;
 
     this->m_DragNSView = nil;
 
-    this->currentCursor = NOCHANGE;
-    this->NativeCtx = NULL;
+    this->m_CurrentCursor = NOCHANGE;
+    this->m_NativeCtx = NULL;
 
     m_Wrapper = [[NativeCocoaUIInterfaceWrapper alloc] initWithUI:this];
 
-    gnet = native_netlib_init();
+    m_Gnet = native_netlib_init();
 }
 
 NativeUICocoaConsole *NativeCocoaUIInterface::getConsole(bool create, bool *created) {
@@ -496,7 +497,7 @@ NativeUICocoaConsole *NativeCocoaUIInterface::getConsole(bool create, bool *crea
 
 bool NativeCocoaUIInterface::createWindow(int width, int height)
 {
-    if (!this->initialized) {
+    if (!this->m_Initialized) {
         NSWindow *window;
         SDL_GLContext contexteOpenGL;
 
@@ -520,19 +521,19 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
         //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-        win = SDL_CreateWindow("nidium", 100, 100,
+        m_Win = SDL_CreateWindow("nidium", 100, 100,
             width, height,
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /*| SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN*/);
 
-        if (win == NULL) {
+        if (m_Win == NULL) {
             fprintf(stderr, "Cant create window (SDL)\n");
             return false;
         }
 
-        this->width = width;
-        this->height = height;
+        this->m_Width = width;
+        this->m_Height = height;
 
-        window = NativeCocoaWindow(win);
+        window = NativeCocoaWindow(m_Win);
 
         this->m_DragNSView = [[NativeDragNSView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
         [[window contentView] addSubview:this->m_DragNSView];
@@ -553,8 +554,8 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         NSView *openglview = [window contentView];
         [openglview setWantsBestResolutionOpenGLSurface:YES];
 #endif
-        contexteOpenGL = SDL_GL_CreateContext(win);
-        m_mainGLCtx = contexteOpenGL;
+        contexteOpenGL = SDL_GL_CreateContext(m_Win);
+        m_MainGLCtx = contexteOpenGL;
 
         if (contexteOpenGL == NULL) {
             NLOG("Failed to create OpenGL context : %s", SDL_GetError());
@@ -565,7 +566,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
             NLOG("Cant vsync");
         }
 
-        this->initialized = true;
+        this->m_Initialized = true;
         glViewport(0, 0, width, height);
 
         int depth;
@@ -577,15 +578,15 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         NLOG("[DEBUG] Deph buffer %i", depth);
 
     } else {
-        //this->patchSDLView([NativeCocoaWindow(win) contentView]);
+        //this->patchSDLView([NativeCocoaWindow(m_Win) contentView]);
     }
 
     this->setWindowFrame(NATIVE_WINDOWPOS_UNDEFINED_MASK,
         NATIVE_WINDOWPOS_UNDEFINED_MASK, width, height);
 
-    NativeContext::CreateAndAssemble(this, gnet);
+    NativeContext::CreateAndAssemble(this, m_Gnet);
 
-    [this->m_DragNSView setResponder:NativeJSwindow::getNativeClass(NativeCtx->getNJS())];
+    [this->m_DragNSView setResponder:NativeJSwindow::getNativeClass(m_NativeCtx->getNJS())];
 
     return true;
 }
@@ -609,23 +610,23 @@ const char *NativeCocoaUIInterface::getCacheDirectory() const
 
 void NativeCocoaUIInterface::setCursor(CURSOR_TYPE type)
 {
-    this->currentCursor = type;
+    this->m_CurrentCursor = type;
 }
 
 void NativeCocoaUIInterface::setWindowTitle(const char *name)
 {
-    SDL_SetWindowTitle(win, (name == NULL || *name == '\0' ? "nidium" : name));
+    SDL_SetWindowTitle(m_Win, (name == NULL || *name == '\0' ? "nidium" : name));
 }
 
 const char *NativeCocoaUIInterface::getWindowTitle() const
 {
-    return SDL_GetWindowTitle(win);
+    return SDL_GetWindowTitle(m_Win);
 }
 
 void NativeCocoaUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
     uint8_t b, uint8_t a)
 {
-    NSWindow *window = NativeCocoaWindow(win);
+    NSWindow *window = NativeCocoaWindow(m_Win);
     NSUInteger mask = [window styleMask];
 
     fprintf(stdout, "setting titlebar color\n");
@@ -645,7 +646,7 @@ void NativeCocoaUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
 
 void NativeCocoaUIInterface::initControls()
 {
-    NSWindow *window = NativeCocoaWindow(win);
+    NSWindow *window = NativeCocoaWindow(m_Win);
     NSButton *close = [window standardWindowButton:NSWindowCloseButton];
     NSButton *min = [window standardWindowButton:NSWindowMiniaturizeButton];
     NSButton *max = [window standardWindowButton:NSWindowZoomButton];
@@ -665,7 +666,7 @@ void NativeCocoaUIInterface::initControls()
 
 void NativeCocoaUIInterface::setWindowControlsOffset(double x, double y)
 {
-    NSWindow *window = NativeCocoaWindow(win);
+    NSWindow *window = NativeCocoaWindow(m_Win);
     NSButton *close = [window standardWindowButton:NSWindowCloseButton];
     NSButton *min = [window standardWindowButton:NSWindowMiniaturizeButton];
     NSButton *max = [window standardWindowButton:NSWindowZoomButton];
@@ -716,7 +717,7 @@ void NativeCocoaUIInterface::openFileDialog(const char *files[],
 #if 1
     // TODO: set a flag so that nidium can't be refreshed and unset after the block is called
 
-    [openDlg beginSheetModalForWindow:NativeCocoaWindow(win) completionHandler:^(NSInteger result) {
+    [openDlg beginSheetModalForWindow:NativeCocoaWindow(m_Win) completionHandler:^(NSInteger result) {
         if (result == NSFileHandlingPanelOKButton) {
             uint32_t len = [openDlg.URLs count];
             const char **lst = (const char **)malloc(sizeof(char **) * len);
@@ -741,10 +742,10 @@ void NativeCocoaUIInterface::openFileDialog(const char *files[],
 
 void NativeCocoaUIInterface::runLoop()
 {
-    add_timer(&gnet->timersng, 1, NativeProcessUI, (void *)this);
-    add_timer(&gnet->timersng, 1, NativeProcessSystemLoop, (void *)this);
+    add_timer(&m_Gnet->timersng, 1, NativeProcessUI, (void *)this);
+    add_timer(&m_Gnet->timersng, 1, NativeProcessSystemLoop, (void *)this);
 
-    events_loop(gnet);
+    events_loop(m_Gnet);
 }
 
 void NativeCocoaUIInterface::setClipboardText(const char *text)
@@ -760,10 +761,10 @@ char *NativeCocoaUIInterface::getClipboardText()
 void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    NSWindow *nswindow = NativeCocoaWindow(this->win);
+    NSWindow *nswindow = NativeCocoaWindow(this->m_Win);
 
-    this->width = w;
-    this->height = h;
+    this->m_Width = w;
+    this->m_Height = h;
     CGRect oldframe = [nswindow frame];
 
     int screen_width, screen_height;
@@ -794,14 +795,14 @@ void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
 void NativeCocoaUIInterface::setWindowSize(int w, int h)
 {
     NSLog(@"set window size");
-    NSWindow *nswindow = NativeCocoaWindow(this->win);
+    NSWindow *nswindow = NativeCocoaWindow(this->m_Win);
 
     NSSize size;
     size.width = w;
     size.height = h;
 
-    this->width = w;
-    this->height = h;
+    this->m_Width = w;
+    this->m_Height = h;
 
     NSRect frame = [nswindow frame];
     frame.origin.y += frame.size.height;
@@ -811,7 +812,7 @@ void NativeCocoaUIInterface::setWindowSize(int w, int h)
 
     //[nswindow setFrame:frame display:YES];
 
-    SDL_SetWindowSize(this->win, w, h);
+    SDL_SetWindowSize(this->m_Win, w, h);
     //[(NSOpenGLContext *)this->getGLContext() update];
     //[nswindow setContentSize:size];
 }
@@ -955,12 +956,12 @@ void NativeCocoaUIInterface::hideWindow()
 {
     if (!m_Hidden) {
         m_Hidden = true;
-        SDL_HideWindow(win);
+        SDL_HideWindow(m_Win);
 
         /* Hide the Application (Dock, etc...) */
         [NSApp setActivationPolicy: NSApplicationActivationPolicyAccessory];
 
-        set_timer_to_low_resolution(&this->gnet->timersng, 1);
+        set_timer_to_low_resolution(&this->m_Gnet->timersng, 1);
     }
 }
 
@@ -968,11 +969,11 @@ void NativeCocoaUIInterface::showWindow()
 {
     if (m_Hidden) {
         m_Hidden = false;
-        SDL_ShowWindow(win);
+        SDL_ShowWindow(m_Win);
 
         [NSApp setActivationPolicy: NSApplicationActivationPolicyRegular];
 
-        set_timer_to_low_resolution(&this->gnet->timersng, 0);
+        set_timer_to_low_resolution(&this->m_Gnet->timersng, 0);
     }
 }
 
@@ -1037,7 +1038,7 @@ void NativeCocoaUIInterface::renderSystemTray()
 {
     NSString *identifier = [sender representedObject];
 
-    NativeJSwindow *window = NativeJSwindow::getNativeClass(self->base->NativeCtx->getNJS());
+    NativeJSwindow *window = NativeJSwindow::getNativeClass(self->base->m_NativeCtx->getNJS());
     if (window) {
         window->systemMenuClicked([identifier cStringUsingEncoding:NSUTF8StringEncoding]);
     }

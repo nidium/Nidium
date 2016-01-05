@@ -21,7 +21,10 @@
 #include "NativeNML.h"
 #include "NativeJSNative.h"
 #include "NativeJSDocument.h"
+#ifdef NATIVE_AUDIO_ENABLED
 #include "NativeJSAV.h"
+#endif
+#include <NativeSkia.h>
 #include "NativeJSCanvas.h"
 #include "NativeJSWindow.h"
 
