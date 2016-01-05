@@ -38,7 +38,7 @@ DEPEDENCY_REPO = Variables.get("depsRepo")
 def portaudio():
     return {
         "location": DEPEDENCY_REPO + "/portaudio.tgz",
-        "build": ["./configure --with-jack --without-alsa --without-oss --without-asihpi --without-winapi --enable-cxx", "make", "make  src/common/pa_ringbuffer.o"],
+        "build": ["./configure --without-jack --without-asihpi --without-winapi --enable-cxx", "make", "make  src/common/pa_ringbuffer.o"],
         "outputs": ["lib/.libs/libportaudio.a"]
     }
 
