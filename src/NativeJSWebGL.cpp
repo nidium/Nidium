@@ -2578,11 +2578,6 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
                 return false;
         }
 
-        if (!image.get()) {
-            JS_ReportError(cx, "Invalid image object");
-            return false;
-        }
-
         if (NativeJSImage::JSObjectIs(cx, image)) {
             NativeJSImage *nimg;
 
@@ -2600,7 +2595,7 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
                 JS_ReportError(cx, "Failed to read image data");
                 return false;
             }
-        } else if (JS_GetClass(image) == &Canvas_class) {
+        } else if (image && JS_GetClass(image) == &Canvas_class) {
             NativeCanvasHandler *handler = static_cast<NativeCanvasHandler *>
                 (static_cast<NativeJSCanvas*>(JS_GetPrivate(image))->getHandler());
             NativeCanvas2DContext *ctx = static_cast<NativeCanvas2DContext *>(handler->getContext());

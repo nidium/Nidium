@@ -658,7 +658,7 @@ static bool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
         return false;
     }
 
-    if (JS_GetClass(sub) != &Canvas_class) {
+    if (sub && JS_GetClass(sub) != &Canvas_class) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }

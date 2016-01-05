@@ -181,7 +181,7 @@ static bool native_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp
 
 bool NativeJSImage::JSObjectIs(JSContext *cx, JS::HandleObject obj)
 {
-    return JS_GetClass(obj) == &Image_class;
+    return obj && JS_GetClass(obj) == &Image_class;
 }
 
 NativeSkImage *NativeJSImage::JSObjectToNativeSkImage(JS::HandleObject obj)
