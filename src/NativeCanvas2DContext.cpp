@@ -834,7 +834,8 @@ static bool native_canvas2dctx_putImageData(JSContext *cx,
     if (!JS_ConvertArguments(cx, args, "oii", dataObject.address(), &x, &y)) {
         return false;
     }
-    if (JS_GetClass(dataObject) != &imageData_class) {
+
+    if (!dataObject || JS_GetClass(dataObject) != &imageData_class) {
         JS_ReportError(cx, "First argument must be a imageData object");
         return false;
     }
@@ -1004,7 +1005,7 @@ static bool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value
     /*
         TODO: work with WebGL canvas
     */
-    if (JS_GetClass(jsimage) == &Canvas_class) {
+    if (jsimage && JS_GetClass(jsimage) == &Canvas_class) {
         NativeCanvasContext *drawctx = HANDLER_GETTER(jsimage)->getContext();
 
         if (drawctx == NULL || drawctx->getContextType() != NativeCanvasContext::CONTEXT_2D) {
@@ -1013,7 +1014,7 @@ static bool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value
         }
         image = new NativeSkImage((static_cast<NativeCanvas2DContext *>(drawctx))->getSurface()->getCanvas());
         need_free = 1;
-    } else if (!NativeJSImage::JSObjectIs(cx, jsimage) ||
+    } else if (!jsimage || !NativeJSImage::JSObjectIs(cx, jsimage) ||
         (image = NativeJSImage::JSObjectToNativeSkImage(jsimage)) == NULL) {
 
         JS_ReportWarning(cx, "Invalid image given");
@@ -1627,8 +1628,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
             if (vp.isString()) {
                 JSAutoByteString colorName(cx, vp.toString());
                 curSkia->setFillColor(colorName.ptr());
-            } else if (!vp.isPrimitive() &&
-                JS_GetClass(&vp.toObject()) == &canvasGradient_class) {
+            } else if (!vp.isPrimitive() && JS_GetClass(&vp.toObject()) == &canvasGradient_class) {
                 NativeSkGradient *gradient = (class NativeSkGradient *)
                                             JS_GetPrivate(&vp.toObject());
 
