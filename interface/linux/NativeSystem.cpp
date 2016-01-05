@@ -49,7 +49,7 @@ NativeSystem::NativeSystem() : m_SystemUIReady(false)
     get_dpi(&x, &y);
 
     m_fBackingStorePixelRatio = float(x) / 96.f;
-    m_fBackingStorePixelRatio = 2.0;
+    m_fBackingStorePixelRatio = 1.0;
 }
 
 float NativeSystem::backingStorePixelRatio()

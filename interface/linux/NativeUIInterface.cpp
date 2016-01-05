@@ -726,8 +726,8 @@ void NativeX11UIInterface::stopApplication()
 void NativeX11UIInterface::onNMLLoaded()
 {
     if (!this->createWindow(
-        this->m_Nml->getMetaWidth()*2,
-        this->m_Nml->getMetaHeight()*2+kNativeTitleBarHeight)) {
+        this->m_Nml->getMetaWidth(),
+        this->m_Nml->getMetaHeight() + kNativeTitleBarHeight)) {
 
         return;
     }
