@@ -106,7 +106,7 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
 
         NATIVE_PTHREAD_VAR_DECL(m_ShutdownWait)
 
-        JS::PersistentRootedObject m_JsGlobalObj;
+        JS::PersistentRootedObject *m_JsGlobalObj;
 
         JSRuntime *m_JsRt;
         JSContext *m_JsTcx;

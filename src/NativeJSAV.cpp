@@ -117,7 +117,7 @@ static JSClass global_AudioThread_class = {
     "_GLOBALAudioThread", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
+    nullptr, nullptr, nullptr, JS_GlobalObjectTraceHook, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSClass AudioNodeLink_class = {
@@ -633,7 +633,7 @@ NativeJSAudio *NativeJSAudio::getContext()
 NativeJSAudio::NativeJSAudio(NativeAudio *audio, JSContext *cx, JS::HandleObject obj)
     :
       NativeJSExposer<NativeJSAudio>(obj, cx),
-      m_Audio(audio), m_Nodes(NULL), m_JsGlobalObj(cx, nullptr), m_JsRt(NULL), m_JsTcx(NULL),
+      m_Audio(audio), m_Nodes(NULL), m_JsGlobalObj(NULL), m_JsRt(NULL), m_JsTcx(NULL),
       m_Target(NULL)
 {
     NativeJSAudio::m_Instance = this;
@@ -659,7 +659,6 @@ bool NativeJSAudio::createContext()
             printf("Failed to init JS runtime\n");
             return false;
         }
-        //JS_SetRuntimePrivate(rt, this->cx);
 
         JS_SetGCParameter(m_JsRt, JSGC_MAX_BYTES, 0xffffffff);
         JS_SetGCParameter(m_JsRt, JSGC_SLICE_TIME_BUDGET, 15);
@@ -676,10 +675,13 @@ bool NativeJSAudio::createContext()
         //JS_SetGCParameterForThread(this->tcx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
         JS::CompartmentOptions options;
         options.setVersion(JSVERSION_LATEST);
+
         JS::RootedObject global(m_JsTcx, JS_NewGlobalObject(m_JsTcx,
             &global_AudioThread_class, nullptr, JS::DontFireOnNewGlobalHook, options));
-        m_JsGlobalObj = global;
+
         JSAutoCompartment ac(m_JsTcx, global);
+
+        m_JsGlobalObj = new JS::PersistentRootedObject(m_JsTcx, global);
 
         js::SetDefaultObjectForContext(m_JsTcx, global);
         if (!JS_InitStandardClasses(m_JsTcx, global)) {
@@ -687,8 +689,8 @@ bool NativeJSAudio::createContext()
             return false;
         }
         JS_SetErrorReporter(m_JsTcx, reportError);
-        JS_FireOnNewGlobalObject(m_JsTcx, m_JsGlobalObj);
-        JS_DefineFunctions(m_JsTcx, m_JsGlobalObj, glob_funcs_threaded);
+        JS_FireOnNewGlobalObject(m_JsTcx, *m_JsGlobalObj);
+        JS_DefineFunctions(m_JsTcx, *m_JsGlobalObj, glob_funcs_threaded);
         NativeJSconsole::registerObject(m_JsTcx);
 
         JS_SetRuntimePrivate(m_JsRt, NativeJS::getNativeClass(m_Audio->getMainCtx()));
@@ -731,8 +733,9 @@ void NativeJSAudio::unroot()
     if (m_JSObject != NULL) {
         JS::RemoveObjectRoot(njs->cx, &m_JSObject);
     }
-    if (m_JsGlobalObj.get()) {
-        m_JsGlobalObj = nullptr;
+
+    if (m_JsGlobalObj && m_JsGlobalObj->get()) {
+        delete m_JsGlobalObj;
     }
 
     while (nodes != NULL) {
@@ -760,7 +763,7 @@ void NativeJSAudio::shutdownCallback(NativeAudioNode *dummy, void *custom)
         JS_BeginRequest(audio->m_JsTcx);
 
         JSRuntime *rt = JS_GetRuntime(audio->m_JsTcx);
-        audio->m_JsGlobalObj = nullptr;
+        delete audio->m_JsGlobalObj;
 
         JS_EndRequest(audio->m_JsTcx);
 
@@ -1438,7 +1441,7 @@ static bool native_audio_connect(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedObject link1(cx);
     JS::RootedObject link2(cx);
     if (!JS_ConvertArguments(cx, args, "oo", link1.address(), link2.address())) {
-        return true;
+        return false;
     }
 
     nlink1 = (NodeLink *)JS_GetInstancePrivate(cx, link1, &AudioNodeLink_class, &args);
