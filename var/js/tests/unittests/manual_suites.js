@@ -1,7 +1,7 @@
 require('../../../../nativejscore/var/js/tests/testrunner.js');
 
 var suites = [
-		__dirname + 'Navigator/Navigator_language.js',
+    'Navigator/Navigator_language.js',
 ];
 
 var tr = new TestRunner(); 
