@@ -224,20 +224,19 @@ static void WebGLRenderingContext_Finalize(JSFreeOp *fop, JSObject *obj)
 bool NGL_uniformxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb) {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     uintptr_t clocation;
-    JS::RootedObject location(cx);
     JS::RootedValue locVal(cx, args.array()[0]);
     double x;
     double y;
     double z;
     double w;
 
-    JS_ValueToObject(cx, locVal, &location);
+    JS::RootedObject location(cx, &locVal.toObject());
     clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, &args);
 
-    if (nb > 0) x = args.array()[1].toNumber();
-    if (nb > 1) y = args.array()[2].toNumber();
-    if (nb > 2) z = args.array()[3].toNumber();
-    if (nb > 3) w = args.array()[4].toNumber();
+    if (nb > 0) JS::ToNumber(cx, args[1], &x);
+    if (nb > 1) JS::ToNumber(cx, args[2], &y);
+    if (nb > 2) JS::ToNumber(cx, args[3], &z);
+    if (nb > 3) JS::ToNumber(cx, args[4], &w);
 
     switch (nb) {
         case 1:
@@ -311,15 +310,14 @@ bool NGL_uniformxi(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int arg
     GLint z;
     GLint w;
 
-    JS::RootedObject location(cx);
     JS::RootedValue locval(cx, args.array()[0]);
-    JS_ValueToObject(cx, locval, &location);
+    JS::RootedObject location(cx, &locval.toObject());
     clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, &args);
 
-    if (nb > 0) x = (GLint) args.array()[1].toInt32();
-    if (nb > 1) y = (GLint) args.array()[2].toInt32();
-    if (nb > 2) z = (GLint) args.array()[3].toInt32();
-    if (nb > 3) w = (GLint) args.array()[4].toInt32();
+    if (nb > 0) x = JS::ToInt32(cx, args[1], &x);
+    if (nb > 1) y = JS::ToInt32(cx, args[2], &y);
+    if (nb > 2) z = JS::ToInt32(cx, args[3], &z);
+    if (nb > 3) w = JS::ToInt32(cx, args[4], &w);
 
     switch (nb) {
         case 1:
@@ -430,11 +428,11 @@ bool NGL_vertexAttribxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned in
     double v2;
     double v3;
 
-    index = (GLuint) args.array()[0].toInt32();
-    if (nb > 0) v0 = args.array()[1].toNumber();
-    if (nb > 1) v1 = args.array()[2].toNumber();
-    if (nb > 2) v2 = args.array()[3].toNumber();
-    if (nb > 3) v3 = args.array()[4].toNumber();
+    JS::ToUint32(cx, args[0], &index);
+    if (nb > 0) JS::ToNumber(cx, args[1], &v0);
+    if (nb > 1) JS::ToNumber(cx, args[2], &v1);
+    if (nb > 2) JS::ToNumber(cx, args[3], &v2);
+    if (nb > 3) JS::ToNumber(cx, args[4], &v3);
 
     switch (nb) {
         case 1:
@@ -460,10 +458,9 @@ bool NGL_vertexAttribxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned i
     GLfloat *carray;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedValue arg1(cx, args.array()[1]);
-    JS::RootedObject array(cx);
 
-    index = (GLuint) args.array()[0].toInt32();
-    JS_ValueToObject(cx, arg1, &array);
+    JS::ToUint32(cx, args[0], &index);
+    JS::RootedObject array(cx, &arg1.toObject());
 
     if (JS_IsFloat32Array(array)) {
         carray = (GLfloat *)JS_GetFloat32ArrayData(array);

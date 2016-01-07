@@ -54,7 +54,7 @@ enum {
 #undef CANVAS_2D_CTX_PROP_GET
 };
 
-#if 1 && DEBUG
+#if 0 && DEBUG
 #define NATIVE_LOG_2D_CALL() \
     JS::RootedObject calObj(cx, &args.callee()); \
     if (JS_ObjectIsFunction(cx, calObj)) { \
@@ -1494,7 +1494,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toNumber();
+            JS::ToNumber(cx, vp, &ret);
 
             curSkia->setShadowOffsetX(ret);
         }
@@ -1507,7 +1507,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toNumber();
+            JS::ToNumber(cx, vp, &ret);
 
             curSkia->setShadowOffsetY(ret);
         }
@@ -1520,7 +1520,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toNumber();
+            JS::ToNumber(cx, vp, &ret);
 
             curSkia->setShadowBlur(ret);
         }
@@ -1544,7 +1544,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toNumber();
+            JS::ToNumber(cx, vp, &ret);
             curSkia->setFontSize(ret);
 
         }
@@ -1569,7 +1569,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toNumber();
+            JS::ToNumber(cx, vp, &ret);
 
             curSkia->setFontSkew(ret);
         }
@@ -1673,7 +1673,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toNumber();
+            JS::ToNumber(cx, vp, &ret);
             curSkia->setLineWidth(ret);
         }
         break;
@@ -1685,7 +1685,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toNumber();
+            JS::ToNumber(cx, vp, &ret);
             curSkia->setMiterLimit(ret);
         }
         break;
@@ -1697,7 +1697,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            ret = vp.toNumber();
+            JS::ToNumber(cx, vp, &ret);
             curSkia->setGlobalAlpha(ret);
         }
         break;
