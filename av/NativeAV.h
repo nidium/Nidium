@@ -199,7 +199,6 @@ class NativeAVSource : public NativeMessages
     public :
         NativeAVSource();
 
-        friend class NativeAVSource;
         friend class NativeAVStreamReader;
 
         NativeAVSourceEventCallback eventCbk;

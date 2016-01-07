@@ -1822,7 +1822,9 @@ NGL_JS_FN(WebGLRenderingContext_getShaderPrecisionFormat)
 
     // Since getShaderPrecisionFormat is not available everywhere...
     // (Taken from mozilla GLContext.h)
-
+    crange[0] = 24;
+    crange[1] = 24;
+    cprecision = 0;
     switch (precisionType) {
         case NGL_LOW_FLOAT:
         case NGL_MEDIUM_FLOAT:
@@ -1841,6 +1843,9 @@ NGL_JS_FN(WebGLRenderingContext_getShaderPrecisionFormat)
             crange[1] = 24;
             cprecision = 0;
             break;
+        default:
+            JS_ReportError(cx, "Invalid precision specified");
+            return false;
     }
 
     rangeMin = INT_TO_JSVAL(crange[0]);
