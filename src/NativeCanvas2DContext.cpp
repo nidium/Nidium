@@ -21,21 +21,6 @@
 #define NSKIA_NATIVE (CppObj->getSurface())
 #define HANDLER_GETTER(obj) ((NativeCanvasHandler *)((class NativeJSCanvas *)JS_GetPrivate(obj))->getHandler())
 
-#define JSNATIVE_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
-    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
-    if (!thisobj) { \
-        JS_ReportError(cx, "Illegal invocation"); \
-        return false; \
-    } \
-    ofclass *CppObj = (ofclass *)JS_GetInstancePrivate(cx, thisobj, fclass, NULL); \
-    if (!CppObj) { \
-        JS_ReportError(cx, "Illegal invocation"); \
-        return false; \
-    }
-
-#define CANVASCTX_PROLOGUE
-
 static JSClass imageData_class = {
     "ImageData", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
