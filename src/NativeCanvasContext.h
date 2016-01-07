@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include <SkMatrix44.h>
+#include <jsapi.h>
 
 #include "NativeTypes.h"
 #include "NativeGLResources.h"
@@ -30,8 +31,8 @@ public:
         SH_ATTR_MODIFIER = 2
     };
 
-    class JSObject *m_JsObj;
-    struct JSContext *m_JsCx;
+    JS::PersistentRooted<JSObject *> m_JsObj;
+    JSContext *m_JsCx;
 
     enum mode {
         CONTEXT_2D,

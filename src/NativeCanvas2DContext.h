@@ -15,7 +15,7 @@
 
     i.e.
     foo = new NativeCanvas2DObject();
-    foo->jsobj Must either be JS_AddObjectRoot'ed or given to the userland
+    foo->m_JsObj Must either be JS_AddObjectRoot'ed or given to the userland
 
     Don't manually delete the instance.
 */
