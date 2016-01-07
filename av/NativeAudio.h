@@ -39,7 +39,7 @@ typedef unsigned long PaStreamCallbackFlags;
 class NativeAudio
 {
     public:
-        NativeAudio(ape_global *net, int bufferSize, int channels, int sampleRate);
+        NativeAudio(ape_global *net, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate);
 
         friend class NativeVideo;
         friend class NativeAudioSource;
