@@ -95,7 +95,7 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
     }
 
     int copied = 0;
-    int avail = (thiz->streamPacketSize - thiz->streamRead);
+    int avail = (thiz->m_StreamPacketSize - thiz->m_StreamRead);
 
     // Have data inside buffer
     if (avail > 0) {
@@ -153,7 +153,7 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                 break;
                 default:
                     fprintf(stderr, "received unknown error (%d) and streamBuffer is null. Returning EOF, copied = %u\n",
-                       thiz->m_StreamErr, (unsigned long) copied);
+                       thiz->m_StreamErr, copied);
                     thiz->m_Error = AVERROR_EOF;
                     return copied > 0 ? copied : thiz->m_Error;
             }

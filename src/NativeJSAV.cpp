@@ -567,7 +567,7 @@ JSTransferableFunction::~JSTransferableFunction()
     }
 }
 
-NativeJSAudio *NativeJSAudio::getContext(JSContext *cx, JSObject *obj, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate)
+NativeJSAudio *NativeJSAudio::getContext(JSContext *cx, JS::HandleObject obj, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate)
 {
     ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(cx));
     NativeAudio *audio;

@@ -85,7 +85,7 @@ class NativeJSAVSource
 class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
 {
     public :
-        static NativeJSAudio *getContext(JSContext *cx, JSObject *obj, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate);
+        static NativeJSAudio *getContext(JSContext *cx, JS::HandleObject obj, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate);
         static NativeJSAudio *getContext();
 
         struct Nodes {
