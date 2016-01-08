@@ -1,31 +1,34 @@
 #include "NativeJSConsole.h"
-#include "NativeJS.h"
-//#include "NativeContext.h"
 
+#include <string.h>
+#include <math.h>
+
+#ifdef NATIVE_JS_PROFILER
 #include "NativeJSProfiler.h"
+#endif
 
-#include <jsdbgapi.h>
-
-static JSBool native_console_log(JSContext *cx, unsigned argc,
-    jsval *vp);
-static JSBool native_console_write(JSContext *cx, unsigned argc,
-    jsval *vp);
-static JSBool native_console_hide(JSContext *cx, unsigned argc,
-    jsval *vp);
-static JSBool native_console_show(JSContext *cx, unsigned argc,
-    jsval *vp);
-static JSBool native_console_clear(JSContext *cx, unsigned argc,
-    jsval *vp);
-static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
-    jsval *vp);
-static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
-    jsval *vp);
+static bool native_console_log(JSContext *cx, unsigned argc,
+    JS::Value *vp);
+static bool native_console_write(JSContext *cx, unsigned argc,
+    JS::Value *vp);
+static bool native_console_hide(JSContext *cx, unsigned argc,
+    JS::Value *vp);
+static bool native_console_show(JSContext *cx, unsigned argc,
+    JS::Value *vp);
+static bool native_console_clear(JSContext *cx, unsigned argc,
+    JS::Value *vp);
+#ifdef NATIVE_JS_PROFILER
+static bool native_console_profile_start(JSContext *cx, unsigned argc,
+    JS::Value *vp);
+static bool native_console_profile_end(JSContext *cx, unsigned argc,
+    JS::Value *vp);
+#endif
 
 static JSClass console_class = {
     "Console", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSFunctionSpec console_funcs[] = {
@@ -37,13 +40,15 @@ static JSFunctionSpec console_funcs[] = {
     JS_FN("hide", native_console_hide, 0, 0),
     JS_FN("show", native_console_show, 0, 0),
     JS_FN("clear", native_console_clear, 0, 0),
+#ifdef NATIVE_JS_PROFILER
     JS_FN("profile", native_console_profile_start, 0, 0),
     JS_FN("profileEnd", native_console_profile_end, 0, 0),
+#endif
     JS_FS_END
 };
 
-static JSBool native_console_hide(JSContext *cx, unsigned argc,
-    jsval *vp)
+static bool native_console_hide(JSContext *cx, unsigned argc,
+    JS::Value *vp)
 {
 
 #if 0
@@ -51,20 +56,20 @@ static JSBool native_console_hide(JSContext *cx, unsigned argc,
         NativeContext::getNativeClass(cx)->getUI()->getConsole()->hide();
     }
 #endif
-    return JS_TRUE;
+    return true;
 }
 
-static JSBool native_console_show(JSContext *cx, unsigned argc,
-    jsval *vp)
+static bool native_console_show(JSContext *cx, unsigned argc,
+    JS::Value *vp)
 {
 #if 0
     NativeContext::getNativeClass(cx)->getUI()->getConsole(true)->show();
 #endif
-    return JS_TRUE;
+    return true;
 }
 
-static JSBool native_console_clear(JSContext *cx, unsigned argc,
-    jsval *vp)
+static bool native_console_clear(JSContext *cx, unsigned argc,
+    JS::Value *vp)
 {
     NativeJS *js = NativeJS::getNativeClass(cx);
 
@@ -74,24 +79,23 @@ static JSBool native_console_clear(JSContext *cx, unsigned argc,
         NativeContext::getNativeClass(cx)->getUI()->getConsole()->clear();
     }
 #endif
-    return JS_TRUE;
+    return true;
 }
 
-static JSBool native_console_log(JSContext *cx, unsigned argc,
-    jsval *vp)
+static bool native_console_log(JSContext *cx, unsigned argc,
+    JS::Value *vp)
 {
-    jsval *argv;
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     unsigned i;
-    JSString *str;
     char *bytes;
-    JSScript *parent;
     const char *filename_parent;
     unsigned lineno;
 
-    JS_DescribeScriptedCaller(cx, &parent, &lineno);
-    filename_parent = JS_GetScriptFilename(cx, parent);
-    NativeJS *js = NativeJS::getNativeClass(cx);
+    JS::AutoFilename filename;
+    JS::DescribeScriptedCaller(cx, &filename, &lineno);
 
+    NativeJS *js = NativeJS::getNativeClass(cx);
+    filename_parent = filename.get();
     if (filename_parent == NULL) {
         filename_parent = "(null)";
     }
@@ -101,10 +105,9 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
         filename_parent = &fname[1];
     }
 
-    argv = JS_ARGV(cx, vp);
+    for (i = 0; i < args.length(); i++) {
 
-    for (i = 0; i < argc; i++) {
-        str = JS_ValueToString(cx, argv[i]);
+        JS::RootedString str(cx, JS::ToString(cx, args[i]));
         if (!str)
             return false;
         bytes = JS_EncodeStringToUTF8(cx, str);
@@ -121,19 +124,20 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
     }
     js->log("\n");
 
-    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    args.rval().setUndefined();
+
     return true;
 }
 
-static JSBool native_console_write(JSContext *cx, unsigned argc,
-    jsval *vp)
+static bool native_console_write(JSContext *cx, unsigned argc,
+    JS::Value *vp)
 {
-    JSString *str;
     NativeJS *js = NativeJS::getNativeClass(cx);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     NATIVE_CHECK_ARGS("write", 1);
 
-    str = JS_ValueToString(cx, JS_ARGV(cx, vp)[0]);
+    JS::RootedString str(cx, args[0].toString());
     if (!str) {
         JS_ReportError(cx, "Bad argument");
         return false;
@@ -146,16 +150,17 @@ static JSBool native_console_write(JSContext *cx, unsigned argc,
     js->log(cstr.ptr());
     js->log("\n");
 
-    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    args.rval().setUndefined();
     return true;
 }
 
-static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
-    jsval *vp)
+#ifdef NATIVE_JS_PROFILER
+static bool native_console_profile_start(JSContext *cx, unsigned argc,
+    JS::Value *vp)
 {
     /*
-    JSString *tmp;
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &tmp)) {
+    JS::RootedString tmp(cx);
+    if (!JS_ConvertArguments(cx, args, "S", &tmp)) {
         return false;
     }
 
@@ -167,22 +172,24 @@ static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
 
     return true;
 }
-static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
-    jsval *vp)
+static bool native_console_profile_end(JSContext *cx, unsigned argc,
+    JS::Value *vp)
 {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     NativeProfiler *tracer = NativeProfiler::getInstance(cx);
     tracer->stop();
-    JS::Value val(OBJECT_TO_JSVAL(tracer->getJSObject()));
-    JS_SET_RVAL(cx, vp, val);
+
+    args.rval().setObjectOrNull(tracer->getJSObject());
     return true;
 }
-
+#endif
 
 void NativeJSconsole::registerObject(JSContext *cx)
 {
-    JSObject *consoleObj;
-    consoleObj = JS_DefineObject(cx, JS_GetGlobalObject(cx), "console",
-        &console_class , NULL, 0);
+    JS::RootedObject consoleObj(cx, JS_DefineObject(cx,
+        JS::CurrentGlobalOrNull(cx), "console",
+        &console_class, NULL, 0));
+
     JS_DefineFunctions(cx, consoleObj, console_funcs);
 }
 

@@ -21,10 +21,11 @@
 #ifndef nativejsfileio_h__
 #define nativejsfileio_h__
 
-#include "NativeJSExposer.h"
+#include <ape_buffer.h>
+
 #include "NativeFile.h"
 #include "NativeMessages.h"
-#include <ape_buffer.h>
+#include "NativeJSExposer.h"
 
 class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
                        public NativeMessages
@@ -32,16 +33,16 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
   public:
     void onMessage(const NativeSharedMessages::Message &msg);
 
-    static NativeFile *GetFileFromJSObject(JSContext *cx, JSObject *jsobj);
+    static NativeFile *GetFileFromJSObject(JSContext *cx, JS::HandleObject jsobj);
     static void registerObject(JSContext *cx);
     static JSObject *generateJSObject(JSContext *cx, const char *path);
 
-    static bool handleError(JSContext *cx, const NativeSharedMessages::Message &msg, jsval &vals);
+    static bool handleError(JSContext *cx, const NativeSharedMessages::Message &msg, JS::MutableHandleValue vals);
     bool callbackForMessage(JSContext *cx,
         const NativeSharedMessages::Message &msg,
         JSObject *thisobj, const char *encoding = NULL);
 
-    NativeJSFileIO(JSObject *obj, JSContext *cx) :
+    NativeJSFileIO(JS::HandleObject obj, JSContext *cx) :
         NativeJSExposer<NativeJSFileIO>(obj, cx), m_Encoding(NULL) {
     };
 
@@ -60,3 +61,4 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
 };
 
 #endif
+

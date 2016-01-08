@@ -17,10 +17,20 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeJS.h"
 
-#include "NativeSharedMessages.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <glob.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include <js/OldDebugAPI.h>
+#include <jsprf.h>
 
 #include "NativeJSSocket.h"
 #include "NativeJSThread.h"
@@ -29,35 +39,12 @@
 #include "NativeJSModules.h"
 #include "NativeJSStream.h"
 #include "NativeJSWebSocket.h"
+#include "NativeJSWebSocketClient.h"
 #include "NativeJSHTTPListener.h"
 #include "NativeJSDebug.h"
 #include "NativeJSConsole.h"
 #include "NativeJSFS.h"
-
-#include "NativeUtils.h"
-#include "NativeMessages.h"
-
-#include <ape_hash.h>
-
-#include <jsapi.h>
-#include <jsfriendapi.h>
-#include <jsdbgapi.h>
-#include <jsprf.h>
-
-#include <stdio.h>
-#include <stdint.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <libgen.h>
-
-#include "NativeTaskManager.h"
-#include "NativeFile.h"
-
-#include "NativeWebSocket.h"
-#include "NativePath.h"
-
-#include <NativeNFS.h>
-#include <NativeStreamInterface.h>
+#include "NativeStreamInterface.h"
 
 static pthread_key_t gAPE = 0;
 static pthread_key_t gJS = 0;
@@ -73,18 +60,20 @@ static pthread_key_t gJS = 0;
 
 size_t gMaxStackSize = DEFAULT_MAX_STACK_SIZE;
 
-struct _native_sm_timer
+struct native_sm_timer
 {
     JSContext *cx;
-    JSObject *global;
-    ape_timer *timerng;
-    jsval *argv;
-    jsval func;
+
+    
+    JS::PersistentRootedObject global;
+    JS::PersistentRootedValue **argv;
+    JS::PersistentRootedValue func;
 
     unsigned argc;
     int ms;
-    int cleared;
-    struct _ticks_callback *timer;
+
+    native_sm_timer(JSContext *cx) : global(cx), func(cx) { }
+    ~native_sm_timer() { }
 };
 
 enum {
@@ -98,21 +87,23 @@ JSStructuredCloneCallbacks *NativeJS::jsscc = NULL;
 
 static JSClass global_class = {
     "global", JSCLASS_GLOBAL_FLAGS,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
+    nullptr, nullptr, nullptr, JS_GlobalObjectTraceHook
 };
 
-static JSBool native_global_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp);
+static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
+    uint8_t, JS::MutableHandleValue vp);
 
 /******** Natives ********/
-static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp);
-//static JSBool native_readData(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_pwd(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_load(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_btoa(JSContext *cx, unsigned argc, JS::Value *vp);
+//static bool native_readData(JSContext *cx, unsigned argc, JS::Value *vp);
 /*************************/
 //static void native_timer_wrapper(struct _native_sm_timer *params, int *last);
 static int native_timerng_wrapper(void *arg);
@@ -121,49 +112,54 @@ static JSFunctionSpec glob_funcs[] = {
     JS_FN("load", native_load, 2, 0),
     JS_FN("pwd", native_pwd, 0, 0),
     JS_FN("setTimeout", native_set_timeout, 2, 0),
+    JS_FN("setImmediate", native_set_immediate, 1, 0),
     JS_FN("setInterval", native_set_interval, 2, 0),
     JS_FN("clearTimeout", native_clear_timeout, 1, 0),
     JS_FN("clearInterval", native_clear_timeout, 1, 0),
+    JS_FN("btoa", native_btoa, 1, 0),
     JS_FS_END
 };
 
 static JSPropertySpec glob_props[] = {
-    {"__filename", GLOBAL_PROP___FILENAME, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_global_prop_get),
+    {"__filename", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
+        NATIVE_JS_GETTER(GLOBAL_PROP___FILENAME, native_global_prop_get),
         JSOP_NULLWRAPPER},
-   {"__dirname", GLOBAL_PROP___DIRNAME, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_global_prop_get),
+   {"__dirname", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
+        NATIVE_JS_GETTER(GLOBAL_PROP___DIRNAME, native_global_prop_get),
         JSOP_NULLWRAPPER},
-   {"global", GLOBAL_PROP_GLOBAL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_global_prop_get),
+   {"global", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
+        NATIVE_JS_GETTER(GLOBAL_PROP_GLOBAL, native_global_prop_get),
         JSOP_NULLWRAPPER},
 #ifndef NATIVE_DISABLE_WINDOW_GLOBAL
-   {"window", GLOBAL_PROP_WINDOW, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_global_prop_get),
+   {"window", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
+        NATIVE_JS_GETTER(GLOBAL_PROP_WINDOW, native_global_prop_get),
         JSOP_NULLWRAPPER},
 #endif
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 };
 
-static JSBool native_global_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp)
+static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
+    uint8_t id, JS::MutableHandleValue vp)
 {
-    switch(JSID_TO_INT(id)) {
+    switch(id) {
         case GLOBAL_PROP___FILENAME:
         {
-            vp.setString(JS_NewStringCopyZ(cx, NativePath::currentJSCaller()));
+            char *filename = NativePath::currentJSCaller(cx);
+            vp.setString(JS_NewStringCopyZ(cx, filename));
+            free(filename);
             break;
         }
         case GLOBAL_PROP___DIRNAME:
         {
-            NativePath path(NativePath::currentJSCaller(), false, true);
+            NativePath path(NativePath::currentJSCaller(cx), false, true);
             vp.setString(JS_NewStringCopyZ(cx, path.dir()));
             break;
         }
         case GLOBAL_PROP_WINDOW:
         case GLOBAL_PROP_GLOBAL:
         {
-            vp.setObjectOrNull(JS_GetGlobalObject(cx));
+            JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+            vp.setObjectOrNull(global);
             break;
         }
         default:
@@ -180,7 +176,7 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
         printf("Error reporter failed (wrong JSContext?) (%s:%d > %s)\n", report->filename, report->lineno, message);
         return;
     }
-    
+
     if (!report) {
         js->logf("%s\n", message);
         return;
@@ -298,9 +294,14 @@ JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
                 return NULL;
             }
 
-            memcpy(pdata+sizeof(pre)+data-1, end, sizeof(end));
-            JSFunction *cf = JS_CompileFunction(cx, JS_GetGlobalObject(cx), NULL, 0, NULL, pdata,
-                strlen(pdata), NULL, 0);
+            memcpy(pdata+sizeof(pre) + data-1, end, sizeof(end));
+            JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+            JS::CompileOptions options(cx);
+            options.setUTF8(true);
+
+            JS::RootedFunction cf(cx);
+
+            cf = JS::CompileFunction(cx, global, options, NULL, 0, NULL, pdata, strlen(pdata));
 
             free(pdata);
 
@@ -311,7 +312,7 @@ JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
                 if (JS_IsExceptionPending(cx)) {
                     JS_ClearPendingException(cx);
                 }
-                return JS_NewObject(cx, NULL, NULL, NULL);
+                return JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
             }
 
             return JS_GetFunctionObject(cf);
@@ -322,7 +323,7 @@ JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
             if (!JS_ReadBytes(r, &nullbyte, data)) {
                 return NULL;
             }
-            return JS_NewObject(cx, NULL, NULL, NULL);
+            return JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
         }
         default:
         {
@@ -333,13 +334,13 @@ JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
         }
     }
 
-    return JS_NewObject(cx, NULL, NULL, NULL);
+    return JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
 }
 
-JSBool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
-                                         JSObject *obj, void *closure)
+bool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+                                         JS::HandleObject obj, void *closure)
 {
-    JS::Value vobj = OBJECT_TO_JSVAL(obj);
+    JS::RootedValue vobj(cx, JS::ObjectValue(*obj));
     JSType type = JS_TypeOfValue(cx, vobj);
     NativeJS *js = (NativeJS *)closure;
 
@@ -347,8 +348,10 @@ JSBool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *
         /* Serialize function into a string */
         case JSTYPE_FUNCTION:
         {
-            JSString *func = JS_DecompileFunction(cx,
-                JS_ValueToFunction(cx, vobj), 0 | JS_DONT_PRETTY_PRINT);
+
+            JS::RootedFunction fun(cx, JS_ValueToFunction(cx, vobj));
+            JS::RootedString func(cx, JS_DecompileFunction(cx,
+                fun, 0 | JS_DONT_PRETTY_PRINT));
             JSAutoByteString cfunc(cx, func);
             size_t flen = cfunc.length();
 
@@ -359,7 +362,7 @@ JSBool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *
         default:
         {
             if (js && type == JSTYPE_OBJECT) {
-                
+
                 WriteStructuredCloneOp op;
                 if ((op = js->getWriteStructuredCloneAddition()) &&
                     op(cx, w, obj, closure)) {
@@ -381,7 +384,7 @@ JSBool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *
     return true;
 }
 
-static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_pwd(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NativePath cur(NativePath::currentJSCaller(cx), false, true);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -391,23 +394,24 @@ static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
         return true;
     }
 
-    JSString *res = JS_NewStringCopyZ(cx, cur.dir());
+    JS::RootedString res(cx, JS_NewStringCopyZ(cx, cur.dir()));
 
     args.rval().setString(res);
 
     return true;
 }
 
-static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_load(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSString *script = NULL;
+    JS::RootedString script(cx);
     char *content;
     size_t len;
-    
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &script)) {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    if (!JS_ConvertArguments(cx, args, "S", script.address())) {
         return false;
     }
-    
+
     NativeJS *njs = NativeJS::getNativeClass(cx);
     JSAutoByteString scriptstr(cx, script);
     NativePath scriptpath(scriptstr.ptr());
@@ -435,13 +439,13 @@ static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
 
     if (!stream.ptr() || !stream.ptr()->getContentSync(&content, &len, true)) {
         JS_ReportError(cx, "load() failed read script");
-        return false;        
+        return false;
     }
 
     if (!njs->LoadScriptContent(content, len, scriptpath.path())) {
         JS_ReportError(cx, "load() failed to load script");
         return false;
-    }    
+    }
 
     return true;
 }
@@ -453,12 +457,7 @@ static void gccb(JSRuntime *rt, JSGCStatus status)
 }
 #endif
 
-#ifdef DEBUG
-static void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
-{
-    snprintf(buf, bufsize, "[0x%p].mJSVal", trc->debugPrintArg);
-}
-#endif
+#if 1
 
 static void NativeTraceBlack(JSTracer *trc, void *data)
 {
@@ -467,25 +466,34 @@ static void NativeTraceBlack(JSTracer *trc, void *data)
     if (self->isShuttingDown()) {
         return;
     }
-    ape_htable_item_t *item ;
+
+    ape_htable_item_t *item;
 
     for (item = self->rootedObj->first; item != NULL; item = item->lnext) {
-#ifdef DEBUG
-        JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, item, 0);
-#endif
-        JS_CallObjectTracer(trc, (JSObject *)item->content.addrs, "nativeroot");
+        uintptr_t oldaddr = (uintptr_t)item->content.addrs;
+        uintptr_t newaddr = oldaddr;
+
+        JS_CallObjectTracer(trc, (JSObject **)&newaddr, "nativeroot");
+
+        if (oldaddr != newaddr) {
+            printf("Address changed\n");
+        }
         //printf("Tracing object at %p\n", item->addrs);
     }
 }
+#endif
 
 /* Use obj address as key */
 void NativeJS::rootObjectUntilShutdown(JSObject *obj)
 {
+    //m_RootedSet->put(obj);
+    //JS::AutoHashSetRooter<JSObject *> rooterhash(cx, 0);
     hashtbl_append64(this->rootedObj, (uint64_t)obj, obj);
 }
 
 void NativeJS::unrootObject(JSObject *obj)
 {
+    //m_RootedSet->remove(obj);
     hashtbl_erase64(this->rootedObj, (uint64_t)obj);
 }
 
@@ -511,22 +519,68 @@ void NativeJS::initNet(ape_global *net)
         pthread_key_create(&gAPE, NULL);
     }
 
-    pthread_setspecific(gAPE, net); 
+    pthread_setspecific(gAPE, net);
 }
 
+JSObject *NativeJS::CreateJSGlobal(JSContext *cx)
+{
+    JS::CompartmentOptions options;
+    options.setVersion(JSVERSION_LATEST);
+
+    JS::RootedObject glob(cx, JS_NewGlobalObject(cx, &global_class, nullptr,
+                                             JS::DontFireOnNewGlobalHook, options));
+
+    JSAutoCompartment ac(cx, glob);
+
+    JS_InitStandardClasses(cx, glob);
+    JS_DefineDebuggerObject(cx, glob);
+    JS_InitCTypesClass(cx, glob);
+
+    JS_DefineFunctions(cx, glob, glob_funcs);
+    JS_DefineProperties(cx, glob, glob_props);
+
+    JS_FireOnNewGlobalObject(cx, glob);
+
+    return glob;
+    //JS::RegisterPerfMeasurement(cx, glob);
+
+    //https://bugzilla.mozilla.org/show_bug.cgi?id=880330
+    // context option vs compile option?
+}
+
+void NativeJS::SetJSRuntimeOptions(JSRuntime *rt)
+{
+    JS::RuntimeOptionsRef(rt).setBaseline(true)
+                             .setIon(true)
+                             .setAsmJS(true);
+
+    JS_SetGCParameter(rt, JSGC_MAX_BYTES, 0xffffffff);
+    JS_SetGCParameter(rt, JSGC_SLICE_TIME_BUDGET, 15);
+    JS_SetNativeStackQuota(rt, gMaxStackSize);
+
+    //rt->profilingScripts For profiling?
+}
+
+#if 0
+static void _gc_callback(JSRuntime *rt, JSGCStatus status, void *data)
+{
+    printf("Got gcd\n");
+}
+#endif
+
 NativeJS::NativeJS(ape_global *net) :
-    m_Logger(NULL), m_vLogger(NULL), m_LogClear(NULL)
+    m_JSStrictMode(false), m_Logger(NULL), m_vLogger(NULL), m_LogClear(NULL)
 {
     JSRuntime *rt;
-    JSObject *gbl;
     this->privateslot = NULL;
     this->relPath = NULL;
+    this->modules = NULL;
 
     m_StructuredCloneAddition.read = NULL;
     m_StructuredCloneAddition.write = NULL;
 
     static int isUTF8 = 0;
-    
+
     /* TODO: BUG */
     if (!isUTF8) {
         //JS_SetCStringsAreUTF8();
@@ -545,47 +599,55 @@ NativeJS::NativeJS(ape_global *net) :
     if (gJS == 0) {
         pthread_key_create(&gJS, NULL);
     }
-    pthread_setspecific(gJS, this);    
+    pthread_setspecific(gJS, this);
+
+    if (!JS_Init()) {
+        fprintf(stderr, "Failed to init JSAPI (JS_Init())\n");
+        return;
+    }
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L,
         JS_NO_HELPER_THREADS)) == NULL) {
-        
+
         printf("Failed to init JS runtime\n");
         return;
     }
 
-    JS_SetGCParameter(rt, JSGC_MAX_BYTES, 0xffffffff);
-    JS_SetGCParameter(rt, JSGC_MODE, JSGC_MODE_INCREMENTAL);
-    JS_SetGCParameter(rt, JSGC_SLICE_TIME_BUDGET, 15);
+    NativeJS::SetJSRuntimeOptions(rt);
     JS_SetGCParameterForThread(cx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
-
-    JS_SetNativeStackQuota(rt, gMaxStackSize);
 
     if ((cx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
-        return;     
+        return;
     }
+#if 0
+    JS_SetGCZeal(cx, 2, 4);
+#endif
+    //JS_ScheduleGC(cx, 1);
+#if 0
+    JS_SetGCCallback(rt, _gc_callback, NULL);
+#endif
 
     JS_BeginRequest(cx);
-    JS_SetVersion(cx, JSVERSION_LATEST);
+    JS::RootedObject gbl(cx);
+#if 0
     #ifdef NATIVE_DEBUG
     JS_SetOptions(cx, JSOPTION_VAROBJFIX);
     #else
-    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_METHODJIT_ALWAYS |
+
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT_ALWAYS |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION | JSOPTION_ASMJS | JSOPTION_BASELINE);
     #endif
+#endif
     JS_SetErrorReporter(cx, reportError);
 
-    if ((gbl = JS_NewGlobalObject(cx, &global_class, NULL)) == NULL ||
-        !JS_InitStandardClasses(cx, gbl)) {
+    gbl = NativeJS::CreateJSGlobal(cx);
 
-        return;
-    }
-
-    //js::frontend::ion::js_IonOptions.gvnIsOptimistic = true;
-    //JS_SetGCCallback(rt, gccb);
-    JS_SetExtraGCRootsTracer(rt, NativeTraceBlack, this);
-
+    m_Compartment = JS_EnterCompartment(cx, gbl);
+    //JSAutoCompartment ac(cx, gbl);
+#if 1
+    JS_AddExtraGCRootsTracer(rt, NativeTraceBlack, this);
+#endif
     if (NativeJS::jsscc == NULL) {
         NativeJS::jsscc = new JSStructuredCloneCallbacks();
         NativeJS::jsscc->read = NativeJS::readStructuredCloneOp;
@@ -595,13 +657,7 @@ NativeJS::NativeJS(ape_global *net) :
 
     JS_SetStructuredCloneCallbacks(rt, NativeJS::jsscc);
 
-    /* TODO: HAS_CTYPE in clang */
-    JS_InitCTypesClass(cx, gbl);
-    JS_InitReflect(cx, gbl);
-
-    JS_SetGlobalObject(cx, gbl);
-    JS_DefineFunctions(cx, gbl, glob_funcs);
-    JS_DefineProperties(cx, gbl, glob_props);
+    js::SetDefaultObjectForContext(cx, gbl);
 
     this->bindNetObject(net);
 
@@ -621,7 +677,6 @@ NativeJS::NativeJS(ape_global *net) :
         printf("Got the file\n");
         printf("ret : %s\n", ret);
     }
-
 
     NativeBaseStream *mov = NativeBaseStream::create("/tmp/test");
 
@@ -687,7 +742,6 @@ int NativeJS::LoadApplication(const char *path)
 }
 #endif
 
-
 NativeJS::~NativeJS()
 {
     JSRuntime *rt;
@@ -699,7 +753,9 @@ NativeJS::~NativeJS()
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
 
+    JS_LeaveCompartment(cx, m_Compartment);
     JS_EndRequest(cx);
+    //JS_LeaveCompartment(cx);
 
     JS_DestroyContext(cx);
 
@@ -707,10 +763,12 @@ NativeJS::~NativeJS()
     JS_ShutDown();
 
     delete messages;
-    delete modules;
+    if (this->modules) {
+        delete this->modules;
+    }
 
     pthread_setspecific(gJS, NULL);
-    
+
     hashtbl_free(rootedObj);
     free(registeredMessages);
 }
@@ -738,7 +796,6 @@ static int Native_handle_messages(void *arg)
 #undef MAX_MSG_IN_ROW
 }
 
-
 void NativeJS::bindNetObject(ape_global *net)
 {
     JS_SetContextPrivate(cx, net);
@@ -753,16 +810,16 @@ void NativeJS::bindNetObject(ape_global *net)
     //io->open();
 }
 
-void NativeJS::copyProperties(JSContext *cx, JSObject *source, JSObject *into)
+void NativeJS::copyProperties(JSContext *cx, JS::HandleObject source, JS::MutableHandleObject into)
 {
 
-    js::AutoIdArray ida(cx, JS_Enumerate(cx, source));
+    JS::AutoIdArray ida(cx, JS_Enumerate(cx, source));
 
     for (size_t i = 0; i < ida.length(); i++) {
-        js::Rooted<jsid> id(cx, ida[i]);
-        jsval val;
+        JS::RootedId id(cx, ida[i]);
 
-        JSString *prop = JSID_TO_STRING(id);
+        JS::RootedValue val(cx);
+        JS::RootedString prop(cx, JSID_TO_STRING(id));
         JSAutoByteString cprop(cx, prop);
 
         if (!JS_GetPropertyById(cx, source, id, &val)) {
@@ -772,36 +829,44 @@ void NativeJS::copyProperties(JSContext *cx, JSObject *source, JSObject *into)
         switch(JS_TypeOfValue(cx, val)) {
             case JSTYPE_OBJECT:
             {
-                jsval oldval;
+                JS::RootedValue oldval(cx);
+
                 if (!JS_GetPropertyById(cx, into, id, &oldval) ||
-                    JSVAL_IS_VOID(oldval) || JSVAL_IS_PRIMITIVE(oldval)) {
-                    JS_SetPropertyById(cx, into, id, &val);
+                    oldval.isNullOrUndefined() || oldval.isPrimitive()) {
+                    JS_SetPropertyById(cx, into, id, val);
                 } else {
-                    NativeJS::copyProperties(cx, JSVAL_TO_OBJECT(val), JSVAL_TO_OBJECT(oldval));
+                    JS::RootedObject oldvalobj(cx, &oldval.toObject());
+                    JS::RootedObject newvalobj(cx, &val.toObject());
+                    NativeJS::copyProperties(cx, newvalobj, &oldvalobj);
                 }
                 break;
             }
             default:
-                JS_SetPropertyById(cx, into, id, &val);
+                JS_SetPropertyById(cx, into, id, val);
                 break;
         }
     }
 }
 
 int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
-    size_t len, const char *filename, JS::Value *ret)
+    size_t len, const char *filename, JS::MutableHandleValue ret)
 {
-    JSObject *gbl = JS_GetGlobalObject(cx);
+    JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
 
     char *func = (char *)malloc(sizeof(char) * (len + 64));
     memset(func, 0, sizeof(char) * (len + 64));
-    
+
     strcat(func, "return (");
     strncat(func, data, len);
     strcat(func, ");");
 
-    JSFunction *cf = JS_CompileFunction(cx, gbl, NULL, 0, NULL, func,
-        strlen(func), filename, 1);
+    JS::RootedFunction cf(cx);
+
+    JS::CompileOptions options(cx);
+    options.setFileAndLine(filename, 1)
+           .setUTF8(true);
+
+    cf = JS::CompileFunction(cx, gbl, options, NULL, 0, NULL, func, strlen(func));
 
     free(func);
     if (cf == NULL) {
@@ -809,18 +874,18 @@ int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
         return 0;
     }
 
-    if (JS_CallFunction(cx, gbl, cf, 0, NULL, ret) == JS_FALSE) {
+    if (JS_CallFunction(cx, gbl, cf, JS::HandleValueArray::empty(), ret) == false) {
         printf("Got an error?\n"); /* or thread has ended */
 
         return 0;
     }
 
-    return 1;    
+    return 1;
 }
 
 int NativeJS::LoadScriptReturn(JSContext *cx,
-    const char *filename, jsval *ret)
-{   
+    const char *filename, JS::MutableHandleValue ret)
+{
     int err;
     char *data;
     size_t len;
@@ -856,24 +921,27 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
         return this->LoadBytecode((void *)data, len, filename);
     }
 
-    uint32_t oldopts;
-    JSObject *gbl = JS_GetGlobalObject(cx);
-    oldopts = JS_GetOptions(cx);
+    JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
 
-    JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO |
-        JSOPTION_NO_SCRIPT_RVAL | JSOPTION_VAROBJFIX);
+    if (!gbl) {
+        fprintf(stderr, "Failed to load global object\n");
+        return 0;
+    }
+
+    JS::RootedScript script(cx);
+    /* RAII helper that resets to origin options state */
+    JS::AutoSaveContextOptions asco(cx);
+
+    JS::ContextOptionsRef(cx).setVarObjFix(true).setStrictMode(m_JSStrictMode);
 
     JS::CompileOptions options(cx);
     options.setUTF8(true)
-           .setFileAndLine(filename, 1);
+           .setFileAndLine(filename, 1)
+           .setCompileAndGo(true).setNoScriptRval(true);
 
-    js::RootedObject rgbl(cx, gbl);
+    script = JS::Compile(cx, gbl, options, data, len);
 
-    JSScript *script = JS::Compile(cx, rgbl, options, data, len);
-
-    JS_SetOptions(cx, oldopts);
-
-    if (script == NULL || !JS_ExecuteScript(cx, rgbl, script, NULL)) {
+    if (!script || !JS_ExecuteScript(cx, gbl, script)) {
         if (JS_IsExceptionPending(cx)) {
             if (!JS_ReportPendingException(cx)) {
                 JS_ClearPendingException(cx);
@@ -914,12 +982,10 @@ int NativeJS::LoadBytecode(NativeBytecodeScript *script)
 
 int NativeJS::LoadBytecode(void *data, int size, const char *filename)
 {
-    JSObject *gbl = JS_GetGlobalObject(cx);
-    js::RootedObject rgbl(cx, gbl);
+    JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
+    JS::RootedScript script(cx, JS_DecodeScript(cx, data, size, NULL));
 
-    JSScript *script = JS_DecodeScript(cx, data, size, NULL, NULL);
-
-    if (script == NULL || !JS_ExecuteScript(cx, rgbl, script, NULL)) {
+    if (script == NULL || !JS_ExecuteScript(cx, gbl, script)) {
         if (JS_IsExceptionPending(cx)) {
             if (!JS_ReportPendingException(cx)) {
                 JS_ClearPendingException(cx);
@@ -951,6 +1017,7 @@ void NativeJS::loadGlobalObjects()
     NativeJSStream::registerObject(cx);
     /* WebSocket*() object */
     NativeJSWebSocketServer::registerObject(cx);
+    NativeJSWebSocket::registerObject(cx);
     /* HTTPListener object */
     NativeJSHTTPListener::registerObject(cx);
     /* Debug object */
@@ -960,12 +1027,12 @@ void NativeJS::loadGlobalObjects()
     /* fs object */
     NativeJSFS::registerObject(cx);
 
-    modules = new NativeJSModules(cx);
-    if (!modules) {
+    this->modules = new NativeJSModules(cx);
+    if (!this->modules) {
         JS_ReportOutOfMemory(cx);
         return;
     }
-    if (!modules->init()) {
+    if (!this->modules->init()) {
         JS_ReportError(cx, "Failed to init require()");
         if (!JS_ReportPendingException(cx)) {
             JS_ClearPendingException(cx);
@@ -1019,163 +1086,251 @@ void NativeJS::postMessage(void *dataPtr, int ev)
 
 static int native_timer_deleted(void *arg)
 {
-    struct _native_sm_timer *params = (struct _native_sm_timer *)arg;
-
-    JSAutoRequest ar(params->cx);
+    struct native_sm_timer *params = (struct native_sm_timer *)arg;
 
     if (params == NULL) {
         return 0;
     }
 
-    JS_RemoveValueRoot(params->cx, &params->func);
-
+    JSAutoRequest ar(params->cx);
     for (int i = 0; i < params->argc; i++) {
-        JS_RemoveValueRoot(params->cx, &params->argv[i]);
+        delete params->argv[i];
     }
-
-    if (params->argv != NULL) {
-        free(params->argv);
-    }
-
-    free(params);
+    delete[] params->argv;
+    delete params;
 
     return 1;
 }
 
-static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    struct _native_sm_timer *params;
+    struct native_sm_timer *params;
+    int i;
 
-    int ms, i;
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *obj = JS_THIS_OBJECT(cx, vp);
 
-    params = (struct _native_sm_timer *)malloc(sizeof(*params));
+    params = new native_sm_timer(cx);
+
+    if (params == NULL || argc < 1) {
+        if (params) delete params;
+        return true;
+    }
+
+    params->cx = cx;
+    params->global = obj;
+    params->argc = argc-1;
+    params->ms = 0;
+
+    params->argv = new JS::PersistentRootedValue*[argc-1];
+
+    for (i = 0; i < argc-1; i++) {
+        params->argv[i] = new JS::PersistentRootedValue(cx);
+    }
+
+    JS::RootedValue func(cx);
+
+    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
+        free(params->argv);
+        delete params;
+        return true;
+    }
+
+    params->func.set(func);
+
+    for (i = 0; i < (int)argc-1; i++) {
+        params->argv[i]->set(args[i+1]);
+    }
+
+    ape_async *async = add_async(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
+                native_timerng_wrapper, (void *)params);
+
+    async->clearfunc = native_timer_deleted;
+
+    args.rval().setNull();
+
+    return true;
+}
+
+static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    struct native_sm_timer *params;
+    int ms, i;
+
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JSObject *obj = JS_THIS_OBJECT(cx, vp);
+
+    params = new native_sm_timer(cx);
 
     if (params == NULL || argc < 2) {
-        if (params) free(params);
-        return JS_TRUE;
+        if (params) delete params;
+        return true;
     }
 
     params->cx = cx;
     params->global = obj;
     params->argc = argc-2;
-    params->cleared = 0;
-    params->timer = NULL;
-    params->timerng = NULL;
     params->ms = 0;
 
-    params->argv = (argc-2 ? (jsval *)malloc(sizeof(*params->argv) * argc-2) : NULL);
+    params->argv = new JS::PersistentRootedValue*[argc-2];
 
-    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &params->func)) {
-        free(params->argv);
-        free(params);
-        return JS_TRUE;
+    for (i = 0; i < argc-2; i++) {
+        params->argv[i] = new JS::PersistentRootedValue(cx);
     }
 
-    if (!JS_ConvertArguments(cx, 1, &JS_ARGV(cx, vp)[1], "i", &ms)) {
+    JS::RootedValue func(cx);
+
+    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
         free(params->argv);
-        free(params);
+        delete params;
+        return true;
+    }
+
+    if (!JS::ToInt32(cx, args[1], &ms)) {
+        free(params->argv);
+        delete params;
         return false;
     }
 
-    JS_AddValueRoot(cx, &params->func);
+    params->func.set(func);
 
     for (i = 0; i < (int)argc-2; i++) {
-        params->argv[i] = JS_ARGV(cx, vp)[i+2];
-        JS_AddValueRoot(cx, &params->argv[i]);
+        params->argv[i]->set(args[i+2]);
     }
 
-    params->timerng = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
+    ape_timer *timer = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
         native_max(ms, 8), native_timerng_wrapper,
         (void *)params);
 
-    params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;
-    params->timerng->clearfunc = native_timer_deleted;
+    timer->flags &= ~APE_TIMER_IS_PROTECTED;
+    timer->clearfunc = native_timer_deleted;
 
-    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(params->timerng->identifier));
+    args.rval().setNumber((double)timer->identifier);
 
-    return JS_TRUE;
+    return true;
 }
 
-static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    struct _native_sm_timer *params;
+    struct native_sm_timer *params;
     int ms, i;
+
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
     JSObject *obj = JS_THIS_OBJECT(cx, vp);
 
-    params = (struct _native_sm_timer *)malloc(sizeof(*params));
+    params = new native_sm_timer(cx);
 
     if (params == NULL || argc < 2) {
-        if (params) free(params);
-        return JS_TRUE;
+        if (params) delete params;
+        return true;
     }
 
     params->cx = cx;
     params->global = obj;
     params->argc = argc-2;
-    params->cleared = 0;
-    params->timer = NULL;
 
-    params->argv = (argc-2 ? (jsval *)malloc(sizeof(*params->argv) * argc-2) : NULL);
+    params->argv = new JS::PersistentRootedValue*[argc-2];
 
-    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &params->func)) {
-        free(params->argv);
-        free(params);
-        return JS_TRUE;
+    for (i = 0; i < argc-2; i++) {
+        params->argv[i] = new JS::PersistentRootedValue(cx);
     }
 
-    if (!JS_ConvertArguments(cx, 1, &JS_ARGV(cx, vp)[1], "i", &ms)) {
+    JS::RootedValue func(cx);
+    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
         free(params->argv);
-        free(params);
+        delete params;
+        return true;
+    }
+
+    params->func.set(func);
+
+    if (!JS::ToInt32(cx, args[1], &ms)) {
+        free(params->argv);
+        delete params;
         return false;
     }
 
     params->ms = native_max(8, ms);
 
-    JS_AddValueRoot(cx, &params->func);
-
     for (i = 0; i < (int)argc-2; i++) {
-        params->argv[i] = JS_ARGV(cx, vp)[i+2];
-        JS_AddValueRoot(cx, &params->argv[i]);
+        params->argv[i]->set(args.array()[i+2]);
     }
 
-    params->timerng = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
+    ape_timer *timer = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
         params->ms, native_timerng_wrapper,
         (void *)params);
 
-    params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;
-    params->timerng->clearfunc = native_timer_deleted;
+    timer->flags &= ~APE_TIMER_IS_PROTECTED;
+    timer->clearfunc = native_timer_deleted;
 
-    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(params->timerng->identifier));
+    args.rval().setNumber((double)timer->identifier);
 
-    return JS_TRUE; 
+    return true;
 }
 
-static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    unsigned int identifier;
+    double identifier;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "i", &identifier)) {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    if (!JS_ConvertArguments(cx, args, "d", &identifier)) {
         return false;
     }
 
     clear_timer_by_id(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
-        identifier, 0);
+        (uint64_t)identifier, 0);
 
-    return JS_TRUE;    
+    return true;
+}
+
+static bool native_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    double identifier;
+
+    NATIVE_CHECK_ARGS("btoa", 1);
+
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    if (args[0].isString()) {
+
+        JSAutoByteString cdata;
+        JS::RootedString str(cx, args[0].toString());
+        cdata.encodeUtf8(cx, str);
+
+        char *ret = NativeUtils::b64Encode((unsigned char *)cdata.ptr(), cdata.length());
+
+        args.rval().setString(JS_NewStringCopyZ(cx, ret));
+
+        free(ret);
+
+    } else {
+        args.rval().setNull();
+        JS_ReportWarning(cx, "btoa() non-string given");
+    }
+
+    return true;
 }
 
 static int native_timerng_wrapper(void *arg)
 {
-    jsval rval;
-    struct _native_sm_timer *params = (struct _native_sm_timer *)arg;
+    struct native_sm_timer *params = (struct native_sm_timer *)arg;
 
-    JSAutoRequest ar(params->cx);
+    JSAutoRequest       ar(params->cx);
+    JS::RootedValue     rval(params->cx);
+    JS::AutoValueVector arr(params->cx);
+    JS::RootedValue     func(params->cx, params->func);
+    JS::RootedObject    global(params->cx, params->global);
 
-    JS_CallFunctionValue(params->cx, params->global, params->func,
-        params->argc, params->argv, &rval);
+    arr.resize(params->argc);
+    for(size_t i = 0; i< params->argc; i++) {
+        arr[i] = params->argv[i]->get();
+    }
+    JS_CallFunctionValue(params->cx, global, func, arr, &rval);
 
     //timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
 
     return params->ms;
 }
+

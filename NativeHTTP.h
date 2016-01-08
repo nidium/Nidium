@@ -21,18 +21,18 @@
 #ifndef nativehttp_h__
 #define nativehttp_h__
 
-#include <native_netlib.h>
-//#include "ape_http_parser.h"
-#include <ape_array.h>
+#include <string>
+
 #include <http_parser.h>
+
+#include <native_netlib.h>
+#include <ape_array.h>
 
 #define HTTP_MAX_CL (1024ULL*1024ULL*1024ULL*2ULL)
 #define HTTP_DEFAULT_TIMEOUT 15000
 
 #include "NativeIStreamer.h"
 #include "NativeMessages.h"
-
-#include <string>
 
 class NativeHTTPDelegate;
 
@@ -49,7 +49,7 @@ class NativeHTTPRequest
 
         explicit NativeHTTPRequest(const char *url);
 
-        ~NativeHTTPRequest(){
+        ~NativeHTTPRequest() {
             ape_array_destroy(this->headers);
             if (data != NULL && datafree != NULL) {
                 datafree(data);
@@ -188,7 +188,7 @@ public:
 
     int err;
     uint32_t m_Timeout;
-    int m_TimeoutTimer;
+    uint64_t m_TimeoutTimer;
 
     NativeHTTPDelegate *delegate;
 
@@ -273,7 +273,7 @@ public:
     void setPendingError(NativeHTTP::HTTPError err) {
         m_PendingError = err;
     }
-    
+
     void clearPendingError() {
         m_PendingError = ERROR_NOERR;
     }
@@ -284,6 +284,10 @@ public:
 
     void setMaxRedirect(int max) {
         m_MaxRedirect = max;
+    }
+
+    void setFollowLocation(bool toggle) {
+        m_FollowLocation = toggle;
     }
 
     const char *getPath() const {
@@ -304,6 +308,7 @@ private:
     HTTPError m_PendingError;
 
     int m_MaxRedirect;
+    bool m_FollowLocation;
 
     std::string m_Path;
 
@@ -325,5 +330,5 @@ class NativeHTTPDelegate
     NativeHTTP *httpref;
 };
 
-
 #endif
+

@@ -16,11 +16,15 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeWebSocket.h"
+
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdbool.h>
+#include <unistd.h>
 #include <string.h>
+#include <strings.h>
+
+#include "NativeJS.h"
 
 #define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
     CONST_STR_LEN(header "\0"))
@@ -44,9 +48,11 @@ void NativeWebSocketListener::onClientConnect(ape_socket *client, ape_global *ap
 
 NativeWebSocketClientConnection::NativeWebSocketClientConnection(
         NativeHTTPListener *httpserver, ape_socket *socket) :
-    NativeHTTPClientConnection(httpserver, socket), m_Handshaked(false), m_Data(NULL)
+    NativeHTTPClientConnection(httpserver, socket), m_Handshaked(false),
+    m_PingTimer(0), m_Data(NULL)
 {
-    ape_ws_init(&m_WSState);
+    m_ClientTimeoutMs = 0; /* Disable HTTP timeout */
+    ape_ws_init(&m_WSState, 0);
     m_WSState.socket = socket;
     m_WSState.on_frame = native_on_ws_frame;
 }
@@ -57,17 +63,37 @@ NativeWebSocketClientConnection::~NativeWebSocketClientConnection()
         m_SocketClient->ctx = NULL;
         APE_socket_shutdown_now(m_SocketClient);
     }
+
+    if (m_PingTimer) {
+        ape_global *ape = NativeJS::getNet();
+        clear_timer_by_id(&ape->timersng, m_PingTimer, 1);
+        m_PingTimer = 0;
+    }
+}
+
+int NativeWebSocketClientConnection::pingTimer(void *arg)
+{
+    NativeWebSocketClientConnection *con = (NativeWebSocketClientConnection *)arg;
+
+    con->ping();
+
+    return NATIVEWEBSOCKET_PING_INTERVAL;
 }
 
 void NativeWebSocketClientConnection::onHeaderEnded()
 {
-    printf("WS header ended\n");
+
 }
 
 void NativeWebSocketClientConnection::onDisconnect(ape_global *ape)
 {
     NativeArgs args;
     args[0].set(this);
+
+    if (m_PingTimer) {
+        clear_timer_by_id(&ape->timersng, m_PingTimer, 1);
+        m_PingTimer = 0;
+    }
 
     m_HTTPListener->fireEvent<NativeWebSocketListener>(NativeWebSocketListener::SERVER_CLOSE, args);
 }
@@ -94,7 +120,7 @@ void NativeWebSocketClientConnection::onUpgrade(const char *to)
     APE_socket_write(m_SocketClient,
         (void*)CONST_STR_LEN("Sec-WebSocket-Accept: "), APE_DATA_STATIC);
     APE_socket_write(m_SocketClient,
-        ws_computed_key, strlen(ws_computed_key), APE_DATA_STATIC);
+        ws_computed_key, strlen(ws_computed_key), APE_DATA_AUTORELEASE);
     APE_socket_write(m_SocketClient,
         (void *)CONST_STR_LEN("\r\nSec-WebSocket-Origin: 127.0.0.1\r\n\r\n"),
         APE_DATA_STATIC);
@@ -104,12 +130,19 @@ void NativeWebSocketClientConnection::onUpgrade(const char *to)
     NativeArgs args;
     args[0].set(this);
 
+    ape_timer *timer = add_timer(&m_SocketClient->ape->timersng, NATIVEWEBSOCKET_PING_INTERVAL,
+        NativeWebSocketClientConnection::pingTimer, this);
+
+    m_PingTimer = timer->identifier;
+
     m_HTTPListener->fireEvent<NativeWebSocketListener>(NativeWebSocketListener::SERVER_CONNECT, args);
 
 }
 
 void NativeWebSocketClientConnection::onContent(const char *data, size_t len)
 {
+    m_LastAcitivty = NativeUtils::getTick(true);
+
     ape_ws_process_frame(&m_WSState, data, len);
 }
 
@@ -134,10 +167,19 @@ void NativeWebSocketClientConnection::close()
     ape_ws_close(&m_WSState);
 }
 
+void NativeWebSocketClientConnection::ping()
+{
+    if (!m_Handshaked) {
+        return;
+    }
+    ape_ws_ping(&m_WSState);
+}
+
 void NativeWebSocketClientConnection::write(unsigned char *data,
     size_t len, bool binary, ape_socket_data_autorelease type)
 {
-    ape_ws_write(m_SocketClient, (unsigned char *)data, len, (int)binary, type);
+    ape_ws_write(m_SocketClient, (unsigned char *)data, len,
+        (int)binary, type, NULL);
 }
 
 static void native_on_ws_frame(websocket_state *state,
@@ -157,3 +199,4 @@ static void native_on_ws_frame(websocket_state *state,
 
     con->onFrame((const char *)data, length, (bool)binary);
 }
+

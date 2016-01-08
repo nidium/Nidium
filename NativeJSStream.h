@@ -22,6 +22,7 @@
 #define nativejsstream_h__
 
 #include "NativeJSExposer.h"
+
 #include "NativeMessages.h"
 
 class NativeBaseStream;
@@ -31,7 +32,7 @@ class NativeJSStream :  public NativeJSExposer<NativeJSStream>,
 {
   public:
     static void registerObject(JSContext *cx);
-    NativeJSStream(JSObject *obj, JSContext *cx, ape_global *net, const char *url);
+    NativeJSStream(JS::HandleObject obj, JSContext *cx, ape_global *net, const char *url);
     ~NativeJSStream();
     NativeBaseStream *getStream() const {
         return m_Stream;
@@ -43,3 +44,4 @@ class NativeJSStream :  public NativeJSExposer<NativeJSStream>,
 };
 
 #endif
+

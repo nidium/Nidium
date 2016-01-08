@@ -23,12 +23,14 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "NativeHash.h"
-#include "NativeSharedMessages.h"
+
 #include <jspubtd.h>
 #include <jsapi.h>
+#include <js/StructuredClone.h>
 
-#include <NativeMessages.h>
+#include "NativeHash.h"
+#include "NativeMessages.h"
+#include "NativeSharedMessages.h"
 
 enum {
     NATIVE_SCTAG_FUNCTION = JS_SCTAG_USER_MIN+1,
@@ -81,6 +83,7 @@ class NativeJS
         NativeSharedMessages *messages;
 
         NativeHash<JSObject *> jsobjects;
+
         struct _ape_htable *rootedObj;
         struct _ape_global *net;
 
@@ -123,13 +126,17 @@ class NativeJS
             m_LogClear = clearfunc;
         }
 
+        void setStrictMode(bool val) {
+            m_JSStrictMode = val;
+        }
+
         void loadGlobalObjects();
-        
-        static void copyProperties(JSContext *cx, JSObject *source, JSObject *into);
+
+        static void copyProperties(JSContext *cx, JS::HandleObject source, JS::MutableHandleObject into);
         static int LoadScriptReturn(JSContext *cx, const char *data,
-            size_t len, const char *filename, JS::Value *ret);
+            size_t len, const char *filename, JS::MutableHandleValue ret);
         static int LoadScriptReturn(JSContext *cx,
-            const char *filename, JS::Value *ret);
+            const char *filename, JS::MutableHandleValue ret);
         int LoadScriptContent(const char *data, size_t len,
             const char *filename);
         int LoadScript(const char *filename);
@@ -149,8 +156,8 @@ class NativeJS
         static JSObject *readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
                                                    uint32_t tag, uint32_t data, void *closure);
 
-        static JSBool writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
-                                                 JSObject *obj, void *closure);
+        static bool writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+                                                 JS::HandleObject obj, void *closure);
 
         void logf(const char *format, ...);
         void log(const char *format);
@@ -169,12 +176,16 @@ class NativeJS
         WriteStructuredCloneOp getWriteStructuredCloneAddition() const {
             return m_StructuredCloneAddition.write;
         }
-        
+
+        static JSObject *CreateJSGlobal(JSContext *cx);
+        static void SetJSRuntimeOptions(JSRuntime *rt);
     private:
         NativeJSModules *modules;
         void *privateslot;
         bool shutdown;
         const char *relPath;
+        JSCompartment *m_Compartment;
+        bool m_JSStrictMode;
 
         /* argument list (...) */
         logger m_Logger;
@@ -189,4 +200,6 @@ class NativeJS
             ReadStructuredCloneOp read;
         } m_StructuredCloneAddition;
 };
+
 #endif
+

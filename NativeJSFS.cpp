@@ -19,26 +19,31 @@
 
 #include "NativeJSFS.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <dirent.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 enum {
     NATIVE_JSFS_MSG_READDIR_FILE = 1
 };
 
-static JSBool native_fs_readDir(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass fs_class = {
     "fs", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSFunctionSpec FS_static_funcs[] = {
     JS_FN("readDir",     native_fs_readDir, 2, 0),
     JS_FS_END
 };
-
 
 class NativeJSFSAsyncHandler : public NativeJSAsyncHandler
 {
@@ -51,25 +56,25 @@ public:
         switch(msg.event()) {
             case NATIVE_JSFS_MSG_READDIR_FILE:
             {
-                JS::Value rval, arg;
-
                 dirent *cur = (dirent *)msg.dataPtr();
                 JSObject *callback = this->getCallback(0);
                 JSContext *cx, *m_Cx = this->getJSContext();
 
                 cx = m_Cx;
+                JS::RootedValue rval(cx);
+                JS::AutoValueArray<1> params(cx);
 
-                JSObject *param = JS_NewObject(cx, NULL, NULL, NULL);
+                JS::RootedObject param(cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
+                JS::RootedString str(cx, JS_NewStringCopyZ(cx, cur->d_name));
 
-                JSOBJ_SET_PROP_STR(param, "name",
-                    JS_NewStringCopyZ(cx, cur->d_name));
-
+                JSOBJ_SET_PROP_STR(param, "name", str);
                 //JSOBJ_SET_PROP_CSTR(param, "type", NativeJSFS_dirtype_to_str(cur));
 
-                arg = OBJECT_TO_JSVAL(param);
+                params[0].setObject(*param);
 
-                JS_CallFunctionValue(cx, NULL,
-                    OBJECT_TO_JSVAL(callback), 1, &arg, &rval);
+                JS::RootedValue cb(cx, OBJECT_TO_JSVAL(callback));
+
+                JS_CallFunctionValue(cx, JS::NullPtr(), cb, params, &rval);
 
                 free(cur);
                 break;
@@ -100,7 +105,7 @@ void NativeJSFS_readDir_Task(NativeTask *task)
     }
 
     dirent *cur;
-    
+
     while ((cur = readdir(dir)) != NULL) {
         if (strcmp(cur->d_name, ".") == 0 || strcmp(cur->d_name, "..") == 0) {
             continue;
@@ -113,17 +118,18 @@ void NativeJSFS_readDir_Task(NativeTask *task)
     closedir(dir);
 }
 
-static JSBool native_fs_readDir(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    return true;
-    jsval callback;
+    return true;  //@FIXME why is this returning immed?
+
+    JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-    JSString *path;
+    JS::RootedString path(cx);
 
     NATIVE_CHECK_ARGS("readDir", 2);
 
-    if (!JS_ConvertArguments(cx, 1, args.array(), "S", &path)) {
+    if (!JS_ConvertArguments(cx, args, "S", path.address())) {
         return false;
     }
 
@@ -149,9 +155,9 @@ static JSBool native_fs_readDir(JSContext *cx, unsigned argc, jsval *vp)
 
 void NativeJSFS::registerObject(JSContext *cx)
 {
-    JSObject *fsObj;
-    fsObj = JS_DefineObject(cx, JS_GetGlobalObject(cx), "fs",
-        &fs_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS::RootedObject fsObj(cx, JS_DefineObject(cx, global, "fs",
+        &fs_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
     JS_DefineFunctions(cx, fsObj, FS_static_funcs);
 }

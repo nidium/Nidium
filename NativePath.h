@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <sys/param.h>
+
 #include <ape_array.h>
 
 #define NATIVE_MAX_REGISTERED_SCHEMES 1024
@@ -42,7 +43,7 @@ extern char *g_m_Root;
 extern char *g_m_Pwd;
 
 #define SCHEME_DEFINE(prefix, streamclass, keepprefix) ( \
-struct NativePath::schemeInfo){ \
+struct NativePath::schemeInfo) { \
     .str        = prefix, \
     .base       = streamclass::createStream, \
     .getBaseDir = streamclass::getBaseDir, \
@@ -103,7 +104,7 @@ public:
 
     bool isRelative(const char *path);
 
-    ~NativePath(){
+    ~NativePath() {
         if (m_Path) {
             free(m_Path);
         }
@@ -114,6 +115,7 @@ public:
 
     static void registerScheme(const schemeInfo &scheme,
         bool isDefault = false);
+    static void unRegisterSchemes();
     static schemeInfo *getScheme(const char *url, const char **pURL = NULL);
 
     static char *sanitize(const char *path, bool *external = NULL, bool relative = true);
@@ -139,7 +141,7 @@ public:
     }
 
     static const char *getPwd() {
-        return g_m_Pwd;        
+        return g_m_Pwd;
     }
 
     static schemeInfo *getPwdScheme() {
@@ -149,7 +151,7 @@ public:
         return NativePath::getScheme(g_m_Pwd);
     }
 
-    static const char *currentJSCaller(JSContext *cx = NULL);
+    static char *currentJSCaller(JSContext *cx = NULL);
     static int g_m_SchemesCount;
     static struct schemeInfo g_m_Schemes[NATIVE_MAX_REGISTERED_SCHEMES];
     static struct schemeInfo *g_m_DefaultScheme;
@@ -164,5 +166,5 @@ private:
     schemeInfo *m_Scheme;
 };
 
-
 #endif
+

@@ -20,10 +20,9 @@
 #ifndef nativeevents_h__
 #define nativeevents_h__
 
-#include <NativeHash.h>
-#include <NativeArgs.h>
-
-#include <NativeMessages.h>
+#include "NativeHash.h"
+#include "NativeArgs.h"
+#include "NativeMessages.h"
 
 #define NATIVE_EVENTS_MESSAGE_BITS(id) ((1 << 31) | id)
 #define NATIVE_EVENT(classe, event) (NATIVE_EVENTS_MESSAGE_BITS(classe::event) | (classe::EventID << 16))
@@ -52,13 +51,14 @@ public:
     template <typename T>
     bool fireEvent(typename T::Events event, const NativeArgs &args,
         bool forceAsync = false) {
-        
+
         ape_htable_item_t *item;
 
         for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
             NativeMessages *receiver = (NativeMessages *)item->content.addrs;
 
-            NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(NATIVE_EVENTS_MESSAGE_BITS(event) | (T::EventID << 16));
+            NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(NATIVE_EVENTS_MESSAGE_BITS(event) |
+                                                                                   (T::EventID << 16));
 
             msg->args[0].set(static_cast<T *>(this));
 
@@ -68,11 +68,13 @@ public:
             msg->priv = 0;
 
             receiver->postMessage(msg, forceAsync);
-
+#if 0
+            /* TODO FIX : Use after free here */
             /* stop propagation */
             if (msg->priv) {
                 return false;
             }
+#endif
         }
 
         return true;
@@ -93,5 +95,5 @@ private:
     NativeHash64<NativeMessages *> m_Listeners;
 };
 
-
 #endif
+

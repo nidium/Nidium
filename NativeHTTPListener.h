@@ -20,12 +20,15 @@
 #ifndef nativehttplistener_h__
 #define nativehttplistener_h__
 
+#include <stdio.h>
+
+#include <http_parser.h>
+
 #include <native_netlib.h>
 #include <ape_array.h>
-#include <http_parser.h>
-#include <stdio.h>
-#include <NativeMessages.h>
-#include <NativeEvents.h>
+
+#include "NativeMessages.h"
+#include "NativeEvents.h"
 
 #define HTTP_MAX_CL (1024ULL*1024ULL*1024ULL*2ULL)
 #define HTTP_DEFAULT_TIMEOUT 15000
@@ -45,7 +48,12 @@ public:
 
     NativeHTTPListener(uint16_t port, const char *ip = "0.0.0.0");
     virtual ~NativeHTTPListener();
-    bool start(bool reuseport = false);
+
+    /*
+        @param reuseport true to allow the server to re use the listening port
+        @param timeout <seconds> to set a TCP keepalive timeout
+    */
+    bool start(bool reuseport = false, int timeout = 0);
     void stop();
 
     ape_socket *getSocket() const {
@@ -66,12 +74,12 @@ public:
     /*
         Callbacks for subclasses
     */
-    virtual void onClientConnect(NativeHTTPClientConnection *client){};
-    virtual void onClientDisconnect(NativeHTTPClientConnection *client){};
-    virtual void onData(NativeHTTPClientConnection *client, const char *buf, size_t len){};
+    virtual void onClientConnect(NativeHTTPClientConnection *client) {};
+    virtual void onClientDisconnect(NativeHTTPClientConnection *client) {};
+    virtual void onData(NativeHTTPClientConnection *client, const char *buf, size_t len) {};
 
     /* return true to close the connection */
-    virtual bool onEnd(NativeHTTPClientConnection *client){
+    virtual bool onEnd(NativeHTTPClientConnection *client) {
         return true;
     };
 
@@ -159,7 +167,6 @@ protected:
     explicit NativeHTTPResponse(uint16_t code = 200);
 };
 
-
 class NativeHTTPClientConnection
 {
 public:
@@ -206,6 +213,7 @@ public:
         return m_HttpState.url;
     }
 
+    /* Get a header value from the client request */
     const char *getHeader(const char *key);
 
     void resetData() {
@@ -217,7 +225,7 @@ public:
         }
     }
 
-    void onRead(buffer *buf, ape_global *ape);
+    void onRead(const char *data, size_t len, ape_global *ape);
     void write(char *buf, size_t len);
     void setContext(void *arg) {
         m_Ctx = arg;
@@ -242,12 +250,27 @@ public:
         return m_LastAcitivty;
     }
 
+    void increaseRequestsCount() {
+        m_RequestsCount++;
+    }
+
+    bool shouldCloseConnection() {
+        const char *header_connection = getHeader("connection");
+
+        return ((m_MaxRequestsCount && m_RequestsCount >= m_MaxRequestsCount) ||
+            (header_connection && strcasecmp(header_connection, "close") == 0));
+    }
+
+    void setMaxRequestsCount(uint64_t n) {
+        m_MaxRequestsCount = n;
+    }
+
     virtual NativeHTTPResponse *onCreateResponse();
 
-    virtual void onHeaderEnded(){};
-    virtual void onDisconnect(ape_global *ape){};
-    virtual void onUpgrade(const char *to){};
-    virtual void onContent(const char *data, size_t len){};
+    virtual void onHeaderEnded() {};
+    virtual void onDisconnect(ape_global *ape) {};
+    virtual void onUpgrade(const char *to) {};
+    virtual void onContent(const char *data, size_t len) {};
 
     virtual void close();
 
@@ -259,16 +282,19 @@ public:
         m_Response = resp;
         m_Response->m_Con = this;
     }
-    
+
     void *m_Ctx;
 protected:
     struct HTTPData m_HttpState;
     ape_socket *m_SocketClient;
     NativeHTTPListener *m_HTTPListener;
     NativeHTTPResponse *m_Response;
-    int m_TimeoutTimer;
+    uint64_t m_TimeoutTimer;
     uint64_t m_LastAcitivty;
     int m_ClientTimeoutMs;
+    uint64_t          m_RequestsCount;
+    uint64_t          m_MaxRequestsCount;
 };
 
 #endif
+

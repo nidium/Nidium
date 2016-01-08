@@ -36,7 +36,7 @@ public:
     static const char *getBaseDir() {
         return NULL;
     }
-    
+
     static bool allowLocalFileStream() {
         return true;
     }
@@ -44,7 +44,7 @@ public:
         return true;
     }
 
-    virtual ~NativeNFSStream(){};
+    virtual ~NativeNFSStream() {};
 
     virtual void stop();
     virtual void getContent();
@@ -68,3 +68,4 @@ private:
 };
 
 #endif
+

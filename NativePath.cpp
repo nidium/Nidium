@@ -16,13 +16,16 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativePath.h"
-#include "NativeJS.h"
-#include <jsdbgapi.h>
-#include <vector>
+
 #include <string>
-#include <NativeUtils.h>
+
+#include <vector>
+
+#include <js/OldDebugAPI.h>
+
+#include "NativeUtils.h"
+#include "NativeJS.h"
 
 char *g_m_Root = NULL;
 char *g_m_Pwd = NULL;
@@ -94,7 +97,7 @@ NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
                 this->invalidatePath();
                 return;
             }
-            
+
             strcat(m_Path, baseDir);
             strcat(m_Path, &sanitized[2]);
             m_Scheme = scheme;
@@ -120,7 +123,6 @@ NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
 
     this->setDir();
 }
-
 
 bool NativePath::isRelative(const char *path)
 {
@@ -198,6 +200,17 @@ void NativePath::registerScheme(const NativePath::schemeInfo &scheme,
     }
 }
 
+void NativePath::unRegisterSchemes()
+{
+    schemeInfo *scheme;
+
+    for (int i = 0; i < NativePath::g_m_SchemesCount; i++) {
+        scheme = &NativePath::g_m_Schemes[i];
+        free((char*)scheme->str);
+    }
+    NativePath::g_m_SchemesCount = 0;
+}
+
 NativePath::schemeInfo *NativePath::getScheme(const char *url, const char **pURL)
 {
     for (int i = 0; i < NativePath::g_m_SchemesCount; i++) {
@@ -217,7 +230,7 @@ NativePath::schemeInfo *NativePath::getScheme(const char *url, const char **pURL
     return g_m_DefaultScheme;
 }
 
-const char * NativePath::currentJSCaller(JSContext *cx)
+char * NativePath::currentJSCaller(JSContext *cx)
 {
     if (cx == NULL) {
         /* lookup in the TLS */
@@ -227,10 +240,12 @@ const char * NativePath::currentJSCaller(JSContext *cx)
         }
     }
 
-    JSScript *parent;
     unsigned lineno;
-    JS_DescribeScriptedCaller(cx, &parent, &lineno);
-    return JS_GetScriptFilename(cx, parent);
+
+    JS::AutoFilename af;
+    JS::DescribeScriptedCaller(cx, &af, &lineno);
+
+    return strdup(af.get());
 }
 
 char *NativePath::sanitize(const char *path, bool *external, bool relative)
@@ -293,14 +308,14 @@ char *NativePath::sanitize(const char *path, bool *external, bool relative)
                             outsideRoot = true;
                         }
                         elements[counterPos].clear();
-                        minCounter = native_min(counter, minCounter);        
+                        minCounter = native_min(counter, minCounter);
                         break;
                     case PATH_STATE_SLASH:
                         break;
                     default:
                         break;
                 }
-                state = PATH_STATE_SLASH;           
+                state = PATH_STATE_SLASH;
                 break;
             default:
                 elements[counterPos] += path[i];
@@ -336,3 +351,4 @@ char *NativePath::sanitize(const char *path, bool *external, bool relative)
     }
     return strdup(finalPath.c_str());
 }
+

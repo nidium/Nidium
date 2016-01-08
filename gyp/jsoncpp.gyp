@@ -7,11 +7,11 @@
                 '../external/json/jsoncpp.cpp',
             ],
             'include_dirs': [
-                '../external/json/',
+                '../external/json/'
             ],
             'direct_dependent_settings': {
                 'include_dirs': [
-                    '../external/json/',
+                    '../external/json/'
                 ]
             }
         },

@@ -20,21 +20,15 @@
 #ifndef nativewebsocket_h__
 #define nativewebsocket_h__
 
-#include "NativeHTTPListener.h"
 #include <ape_websocket.h>
 
-#define NATIVEWEBSOCKET_SERVER_MESSAGE_BITS(id) ((1 << 22) | id)
+#include "NativeHTTPListener.h"
 
-enum {
-    NATIVEWEBSOCKET_SERVER_CONNECT = NATIVEWEBSOCKET_SERVER_MESSAGE_BITS(1),
-    NATIVEWEBSOCKET_SERVER_FRAME   = NATIVEWEBSOCKET_SERVER_MESSAGE_BITS(2),
-    NATIVEWEBSOCKET_SERVER_CLOSE   = NATIVEWEBSOCKET_SERVER_MESSAGE_BITS(3),
-};
+#define NATIVEWEBSOCKET_PING_INTERVAL 5000 /* ms */
 
 class NativeWebSocketListener : public NativeHTTPListener
 {
 public:
-
     static const uint8_t EventID = 4;
 
     enum Events {
@@ -44,7 +38,7 @@ public:
     };
 
     NativeWebSocketListener(uint16_t port, const char *ip = "0.0.0.0");
-    virtual void onClientConnect(ape_socket *client, ape_global *ape);  
+    virtual void onClientConnect(ape_socket *client, ape_global *ape);
 
     virtual bool onEnd(NativeHTTPClientConnection *client) override {
         return false;
@@ -71,7 +65,7 @@ public:
     virtual void onDisconnect(ape_global *ape);
     virtual void onUpgrade(const char *to);
     virtual void onContent(const char *data, size_t len);
-    
+
     virtual void setData(void *data) {
         m_Data = data;
     }
@@ -79,11 +73,16 @@ public:
         return m_Data;
     }
     virtual void close();
+    void ping();
+
+    static int pingTimer(void *arg);
 private:
     websocket_state m_WSState;
     bool m_Handshaked;
+    uint64_t m_PingTimer;
 
     void *m_Data;
 };
 
 #endif
+

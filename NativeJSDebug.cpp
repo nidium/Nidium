@@ -16,30 +16,25 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeJSDebug.h"
-#include "NativeJS.h"
 
-#include <native_netlib.h>
-#include <jsapi.h>
-#include <jsstr.h>
+#include <string.h>
 
 static void Debug_Finalize(JSFreeOp *fop, JSObject *obj);
-static JSBool native_debug_serialize(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_debug_unserialize(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass debug_class = {
     "NativeDebug", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Debug_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 JSClass *NativeJSDebug::jsclass = &debug_class;
 
 template<>
 JSClass *NativeJSExposer<NativeJSDebug>::jsclass = &debug_class;
-
 
 static JSFunctionSpec debug_funcs[] = {
     JS_FN("serialize", native_debug_serialize, 1, 0),
@@ -56,7 +51,7 @@ static void Debug_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-static JSBool native_debug_serialize(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -64,58 +59,58 @@ static JSBool native_debug_serialize(JSContext *cx, unsigned argc, jsval *vp)
     uint64_t *data;
     size_t data_len;
 
-    if (!JS_WriteStructuredClone(cx, args.array()[0], &data, &data_len,
-        NULL, NativeJS::getNativeClass(cx), JSVAL_VOID)) {
+    if (!JS_WriteStructuredClone(cx, args[0], &data, &data_len,
+        NULL, NativeJS::getNativeClass(cx), JS::NullHandleValue)) {
         JS_ReportError(cx, "serialize() failed");
         return false;
     }
 
     void *content;
-    uint8_t *cdata;
 
-    if (!JS_AllocateArrayBufferContents(cx, data_len, &content, &cdata)) {
+    if (!(content = JS_AllocateArrayBufferContents(cx, data_len))) {
         JS_ReportOutOfMemory(cx);
         return false;
     }
 
-    memcpy(cdata, data, data_len);
+    memcpy(content, data, data_len);
 
-    JS_ClearStructuredClone(data, data_len);
+    JS_ClearStructuredClone(data, data_len, nullptr, nullptr);
 
-    JSObject *arraybuffer = JS_NewArrayBufferWithContents(cx, content);
+    JS::RootedObject arraybuffer(cx, JS_NewArrayBufferWithContents(cx, data_len, content));
 
     args.rval().setObjectOrNull(arraybuffer);
 
     return true;
 }
 
-static JSBool native_debug_unserialize(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JSObject *objdata = NULL;
+    JS::RootedObject objdata(cx);
     uint32_t offset = 0;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o/u", &objdata, &offset)) {
+    if (!JS_ConvertArguments(cx, args, "o/u", objdata.address(), &offset)) {
         return false;
     }
 
     if (!objdata || !JS_IsArrayBufferObject(objdata)) {
         JS_ReportError(cx, "unserialize() invalid data (not an ArrayBuffer)");
-        return false;            
+        return false;
     }
     uint32_t len = JS_GetArrayBufferByteLength(objdata);
     uint8_t *data = JS_GetArrayBufferData(objdata);
-    JS::Value inval;
+
+    JS::RootedValue inval(cx);
 
     if (offset >= len) {
         JS_ReportError(cx, "unserialize() offset overflow");
-        return false;              
+        return false;
     }
 
     if (!JS_ReadStructuredClone(cx, (uint64_t *)(data+offset), len-offset,
         JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NativeJS::getNativeClass(cx))) {
         JS_ReportError(cx, "unserialize() invalid data");
-        return false;             
+        return false;
     }
 
     args.rval().set(inval);
@@ -125,13 +120,11 @@ static JSBool native_debug_unserialize(JSContext *cx, unsigned argc, jsval *vp)
 
 void NativeJSDebug::registerObject(JSContext *cx)
 {
-    JSObject *debugObj;
-    
     NativeJS *njs = NativeJS::getNativeClass(cx);
 
-    debugObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
+    JS::RootedObject debugObj(cx, JS_DefineObject(cx, JS::CurrentGlobalOrNull(cx),
         NativeJSDebug::getJSObjectName(),
-        &debug_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+        &debug_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
     NativeJSDebug *jdebug = new NativeJSDebug(debugObj, cx);
 

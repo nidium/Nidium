@@ -21,8 +21,8 @@
 #ifndef nativejssocket_h__
 #define nativejssocket_h__
 
-#include "NativeJSExposer.h"
 #include <native_netlib.h>
+#include "NativeJSExposer.h"
 
 enum {
     NATIVE_SOCKET_ISBINARY          = 1 << 0,
@@ -31,14 +31,13 @@ enum {
     NATIVE_SOCKET_ISCONNECTEDCLIENT = 1 << 3
 };
 
-
 #define SOCKET_LINEBUFFER_MAX 8192
 
 class NativeJSSocket : public NativeJSExposer<NativeJSSocket>
 {
 public:
     static void registerObject(JSContext *cx);
-    NativeJSSocket(JSObject *obj, JSContext *cx,
+    NativeJSSocket(JS::HandleObject obj, JSContext *cx,
         const char *host, unsigned short port);
     ~NativeJSSocket();
 
@@ -53,7 +52,7 @@ public:
 
     bool isJSCallable();
 
-    void onRead();
+    void onRead(const char *data, size_t len);
 
     NativeJSSocket *getParentServer() const {
         return m_ParentServer;
@@ -98,11 +97,13 @@ public:
 
     uint8_t m_FrameDelimiter;
 
-
     NativeJSSocket *m_ParentServer;
+
+    int m_TCPTimeout;
 
 private:
     void readFrame(const char *buf, size_t len);
 };
 
 #endif
+

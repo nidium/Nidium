@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2.7
 import os
 
 from konstructor import Deps
@@ -8,6 +8,7 @@ from konstructor import Builder
 from konstructor import Platform
 from konstructor import Variables
 from konstructor import Konstruct
+from konstructor import ROOT, OUTPUT
 
 Deps.set(
     "libnspr4", 
@@ -49,7 +50,11 @@ def mozilla():
     nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/"))
     nsprFlags = "--with-nspr-cflags=\"-I" + nsprDir + "/dist/include/nspr/\" --with-nspr-libs=\"" + nsprDir + "/dist/lib/libnspr4.a " + nsprDir + "/dist/lib/libplds4.a " + nsprDir + "/dist/lib/libplc4.a\""
 
-    configure = "./configure --enable-threadsafe --enable-ctypes " + nsprFlags
+    configureEnvVars = "MOZ_ZLIB_CFLAGS=-I%s MOZ_ZLIB_LIBS=\"-L%s -lz\"" % (os.path.abspath("zlib"), os.path.join(ROOT, OUTPUT, "third-party"))
+    configure = "%s ./js/src/configure\
+            --disable-shared-js\
+            --enable-threadsafe\
+            --enable-ctypes %s" % (configureEnvVars, nsprFlags)
 
     if Konstruct.config("debug", "valgring"):
         configure += " --enable-debug --disable-optimize"
@@ -57,26 +62,23 @@ def mozilla():
     if Konstruct.config("valgrind"):
         configure += " --enable-valgrind "
 
-    if Konstruct.config("mozillaci"):
-        location = Deps.GitRepo("git@github.com:nidium/NativeStudio.git")
-    else:
-        location = DEPEDENCY_REPO + "/mozilla-central.bz2"
-
     return {
-        "location": location,
-        "chdir": "js/src/",
-        "build": ["autoconf2.13", configure, "make"],
-        "outputs": ["libjs_static.a$"]
+        "location": DEPEDENCY_REPO + "/mozjs-31.2.0.rc0.tar.bz2",
+        "build": [configure, "make -j1"],
+        "outputs": ["js/src/libjs_static.a$", "js/src/js-config.h$"]
     }
 
 @Deps.register("http-parser")
 def httpParser():
     return {
-        "location": Deps.GitRepo("git@github.com:joyent/http-parser.git", tag="v2.3"),
+        "location": Deps.GitRepo("https://github.com/nodejs/http-parser.git", tag="v2.3"),
         "build": ["make package"],
         "outputs": ["libhttp_parser.a"]
     }
 
 if __name__ == '__main__':
+    if not Builder.Gyp._defines.has_key('native_version'):
+        Gyp.set('native_version', 'library')
+    Gyp.setArgs("--depth ./ --include=network/gyp/config.gypi --include=gyp/common.gypi")
     Build.add(Gyp("gyp/nativejscore.gyp"))
     Konstruct.start()

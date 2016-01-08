@@ -22,6 +22,7 @@
 #define nativejsutils_h__
 
 #include <jspubtd.h>
+#include <jsapi.h>
 
 class NativeJSUtils
 {
@@ -32,10 +33,11 @@ public:
         In case encoding is NULL, the jsval is an arraybuffer.
     */
     static bool strToJsval(JSContext *cx, const char *buf, size_t len,
-        JS::Value *jsval, const char *encoding);
+        JS::MutableHandleValue jval, const char *encoding);
 
     static JSString *newStringWithEncoding(JSContext *cx, const char *buf,
         size_t len, const char *encoding);
 };
 
 #endif
+

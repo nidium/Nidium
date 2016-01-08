@@ -20,8 +20,8 @@
 #ifndef nativejshttplistener_h__
 #define nativejshttplistener_h__
 
-#include "NativeJSExposer.h"
 #include "NativeHTTPListener.h"
+#include "NativeJSExposer.h"
 
 class NativeJSHTTPClientConnection;
 
@@ -51,14 +51,14 @@ class NativeJSHTTPListener :    public NativeJSExposer<NativeJSHTTPListener>,
                                 public NativeHTTPListener
 {
 public:
-    NativeJSHTTPListener(JSObject *obj, JSContext *cx,
+    NativeJSHTTPListener(JS::HandleObject obj, JSContext *cx,
         uint16_t port, const char *ip = "0.0.0.0");
     virtual ~NativeJSHTTPListener();
     virtual void onClientConnect(ape_socket *client, ape_global *ape) {
         NativeJSHTTPClientConnection *conn;
         client->ctx = conn = new NativeJSHTTPClientConnection(m_Cx, this, client);
 
-        JSObject *obj = conn->getJSObject();
+        JS::RootedObject obj(m_Cx, conn->getJSObject());
 
         JSOBJ_SET_PROP_CSTR(obj, "ip", APE_socket_ipv4(client));
 
@@ -68,7 +68,7 @@ public:
     virtual void onData(NativeHTTPClientConnection *client, const char *buf, size_t len);
     virtual bool onEnd(NativeHTTPClientConnection *client);
 
-    static void registerObject(JSContext *cx);    
+    static void registerObject(JSContext *cx);
 private:
 };
 

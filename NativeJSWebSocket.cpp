@@ -18,9 +18,14 @@
 */
 
 #include "NativeJSWebSocket.h"
-#include "NativeHTTP.h"
 
-#include <NativeJSUtils.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#include "NativeHTTP.h"
+#include "NativeJSUtils.h"
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
@@ -28,14 +33,14 @@
 
 static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj);
 static void WebSocket_Finalize_client(JSFreeOp *fop, JSObject *obj);
-static JSBool native_websocketclient_send(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_websocketclient_close(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_websocketclient_send(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_websocketclient_close(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass WebSocketServer_class = {
     "WebSocketServer", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, WebSocketServer_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 template<>
@@ -49,14 +54,14 @@ static JSFunctionSpec wsclient_funcs[] = {
 
 static JSClass WebSocketServer_client_class = {
     "WebSocketServerClient", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, WebSocket_Finalize_client,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static void WebSocket_Finalize_client(JSFreeOp *fop, JSObject *obj)
 {
-    printf("Ws client finalized\n");
+
 }
 
 static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj)
@@ -65,11 +70,10 @@ static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj)
 
     if (wss != NULL) {
         delete wss;
-        printf("Delete websocket server...\n");
-    }    
+    }
 }
 
-static JSBool native_websocketclient_send(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_websocketclient_send(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JSNATIVE_PROLOGUE_CLASS(NativeWebSocketClientConnection,
         &WebSocketServer_client_class);
@@ -78,8 +82,8 @@ static JSBool native_websocketclient_send(JSContext *cx, unsigned argc, jsval *v
 
     if (args[0].isString()) {
         JSAutoByteString cdata;
-
-        cdata.encodeUtf8(cx, args[0].toString());
+        JS::RootedString str(cx, args[0].toString());
+        cdata.encodeUtf8(cx, str);
 
         CppObj->write((unsigned char *)cdata.ptr(),
             strlen(cdata.ptr()), false, APE_DATA_COPY);
@@ -91,7 +95,7 @@ static JSBool native_websocketclient_send(JSContext *cx, unsigned argc, jsval *v
 
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
             JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer)");
-            return false;            
+            return false;
         }
         uint32_t len = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
@@ -108,27 +112,30 @@ static JSBool native_websocketclient_send(JSContext *cx, unsigned argc, jsval *v
     return true;
 }
 
-static JSBool native_websocketclient_close(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_websocketclient_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-
 
     return true;
 }
 
-static JSBool native_WebSocketServer_constructor(JSContext *cx,
-    unsigned argc, jsval *vp)
+static bool native_WebSocketServer_constructor(JSContext *cx,
+    unsigned argc, JS::Value *vp)
 {
-    JSString *localhost, *protocol = NULL;
-    if (!JS_IsConstructing(cx, vp)) {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    JS::RootedString localhost(cx);
+    JS::RootedString protocol(cx);
+
+    if (!args.isConstructing()) {
         JS_ReportError(cx, "Bad constructor");
         return false;
     }
 
-    JSObject *ret = JS_NewObjectForConstructor(cx, &WebSocketServer_class, vp);
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &WebSocketServer_class, args));
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S/S",
-        &localhost, &protocol)) {
+    if (!JS_ConvertArguments(cx, args, "S/S", localhost.address(), protocol.address())) {
         return false;
     }
 
@@ -136,8 +143,8 @@ static JSBool native_WebSocketServer_constructor(JSContext *cx,
 
     uint16_t port;
     char *url = strdup(clocalhost.ptr());
-    char *host = (char *)malloc(clocalhost.length());
-    char *path = (char *)malloc(clocalhost.length());
+    char *host = (char *)calloc(clocalhost.length(), sizeof(char));
+    char *path = (char *)calloc(clocalhost.length(), sizeof(char));
 
     if (NativeHTTP::ParseURI(url, clocalhost.length(), host,
         &port, path, "ws://") == -1) {
@@ -163,7 +170,7 @@ static JSBool native_WebSocketServer_constructor(JSContext *cx,
 
     JS_SetPrivate(ret, wss);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().setObjectOrNull(ret);
 
     /*
         Server is listening at this point. Don't collect.
@@ -173,7 +180,7 @@ static JSBool native_WebSocketServer_constructor(JSContext *cx,
     return true;
 }
 
-NativeJSWebSocketServer::NativeJSWebSocketServer(JSObject *obj, JSContext *cx,
+NativeJSWebSocketServer::NativeJSWebSocketServer(JS::HandleObject obj, JSContext *cx,
     const char *host,
     unsigned short port) : NativeJSExposer<NativeJSWebSocketServer>(obj, cx)
 {
@@ -188,9 +195,8 @@ NativeJSWebSocketServer::~NativeJSWebSocketServer()
 
 JSObject *NativeJSWebSocketServer::createClient(NativeWebSocketClientConnection *client)
 {
-    JSObject *jclient;
 
-    jclient = JS_NewObject(m_Cx, &WebSocketServer_client_class, NULL, NULL);
+    JS::RootedObject jclient(m_Cx, JS_NewObject(m_Cx, &WebSocketServer_client_class, JS::NullPtr(), JS::NullPtr()));
 
     JS_DefineFunctions(m_Cx, jclient, wsclient_funcs);
 
@@ -204,68 +210,73 @@ JSObject *NativeJSWebSocketServer::createClient(NativeWebSocketClientConnection 
 
 void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg)
 {
-    jsval oncallback, rval;
     JSContext *cx = m_Cx;
+
+    JS::RootedValue oncallback(cx);
+    JS::RootedValue rval(cx);
 
     switch (msg.event()) {
         case NATIVE_EVENT(NativeWebSocketListener, SERVER_FRAME):
         {
-            jsval arg[2];
+            JS::AutoValueArray<2> arg(cx);
+
             const char *data = (const char *)msg.args[2].toPtr();
             int len = msg.args[3].toInt();
             bool binary = msg.args[4].toBool();
-            
-            JSObject *jclient = (JSObject *)((NativeWebSocketClientConnection *)msg.args[1].toPtr())->getData();
 
-            if (!jclient) {
+            JS::RootedObject jclient(cx, (JSObject *)((NativeWebSocketClientConnection *)msg.args[1].toPtr())->getData());
+
+            if (!jclient.get()) {
                 return;
             }
-
-            if (JS_GetProperty(m_Cx, this->getJSObject(), "onmessage", &oncallback) &&
+            JS::RootedObject obj(m_Cx, this->getJSObject());
+            if (JS_GetProperty(m_Cx, obj, "onmessage", &oncallback) &&
                 JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
 
-                jsval jdata;
+                JS::RootedValue jdata(cx);
+                JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
-                JSObject *event = JS_NewObject(m_Cx, NULL, NULL, NULL);           
                 NativeJSUtils::strToJsval(m_Cx, data, len, &jdata, !binary ? "utf8" : NULL);
-                SET_PROP(event, "data", jdata);
+                JSOBJ_SET_PROP(event, "data", jdata);
 
                 arg[0].setObjectOrNull(jclient);
                 arg[1].setObjectOrNull(event);
 
-                JS_CallFunctionValue(m_Cx, this->getJSObject(), oncallback,
-                    2, arg, &rval);
+                JS_CallFunctionValue(m_Cx, obj, oncallback, arg, &rval);
             }
 
             break;
         }
         case NATIVE_EVENT(NativeWebSocketListener, SERVER_CONNECT):
         {
-            jsval arg;
+            JS::AutoValueArray<1> arg(cx);
+
             JSObject *jclient = this->createClient(
                 (NativeWebSocketClientConnection *)msg.args[1].toPtr());
 
-            arg.setObjectOrNull(jclient);
+            arg[0].setObject(*jclient);
 
-            JSOBJ_CALLFUNCNAME(this->getJSObject(), "onopen", 1, &arg);
+            JS::RootedObject obj(cx, this->getJSObject());
+
+            JSOBJ_CALLFUNCNAME(obj, "onopen", arg);
 
             break;
         }
         case NATIVE_EVENT(NativeWebSocketListener, SERVER_CLOSE):
         {
-            jsval arg;
             NativeWebSocketClientConnection *client = (NativeWebSocketClientConnection *)msg.args[1].toPtr();
-            JSObject *jclient = (JSObject *)client->getData();
+            JS::AutoValueArray<1> arg(cx);
+            JS::RootedObject jclient(cx, (JSObject *)client->getData());
+            JS::RootedObject obj(cx, this->getJSObject());
 
-            arg.setObjectOrNull(jclient);
-
-            JSOBJ_CALLFUNCNAME(this->getJSObject(), "onclose", 1, &arg);
+            arg[0].setObject(*jclient);
+            JSOBJ_CALLFUNCNAME(obj, "onclose", arg);
 
             JS_SetPrivate(jclient, NULL);
             NativeJSObj(m_Cx)->unrootObject(jclient);
 
             break;
-        }        
+        }
         default:
             break;
     }
@@ -279,3 +290,4 @@ bool NativeJSWebSocketServer::start()
 }
 
 NATIVE_OBJECT_EXPOSE(WebSocketServer)
+

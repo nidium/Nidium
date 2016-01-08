@@ -17,30 +17,32 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#include "NativeJSUtils.h"
 
-#include <jsapi.h>
+#include <string.h>
+#include <strings.h>
+
 #include <jsfriendapi.h>
 
-#include "NativeJSUtils.h"
 #include "NativeUtils.h"
 
-bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::Value *ret,
+bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::MutableHandleValue ret,
     const char *encoding)
 {
-    *ret = JSVAL_NULL;
+    ret.setNull();
 
     if (encoding) {
 
-        JSString *str = NativeJSUtils::newStringWithEncoding(cx, buf, len, encoding);
+        JS::RootedString str(cx, NativeJSUtils::newStringWithEncoding(cx, buf, len, encoding));
         if (!str) {
-            *ret = JS_GetEmptyStringValue(cx);
+            ret.set(JS_GetEmptyStringValue(cx));
             return false;
         }
 
-        *ret = STRING_TO_JSVAL(str);
+        ret.setString(str);
 
     } else {
-        JSObject *arrayBuffer = JS_NewArrayBuffer(cx, len);
+        JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
 
         if (arrayBuffer == NULL) {
             JS_ReportOutOfMemory(cx);
@@ -49,8 +51,8 @@ bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::V
             uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
             memcpy(adata, buf, len);
 
-            *ret = OBJECT_TO_JSVAL(arrayBuffer);
-        }        
+            ret.setObject(*arrayBuffer);
+        }
     }
 
     return true;
@@ -63,23 +65,24 @@ JSString *NativeJSUtils::newStringWithEncoding(JSContext *cx, const char *buf,
     if (encoding != NULL && strcasecmp(encoding, "utf8") == 0) {
         size_t jlen = 0;
 
-        NativePtrAutoDelete<jschar *> content(NativeUtils::Utf8ToUtf16(buf, len, &jlen), free);
+        NativePtrAutoDelete<char16_t *> content(NativeUtils::Utf8ToUtf16(cx, buf, len, &jlen), free);
 
         if (content.ptr() == NULL) {
             JS_ReportError(cx, "Could not decode string to utf8");
             return NULL;
         }
 
-        JSString *str = JS_NewUCString(cx, content.ptr(), jlen);
-        if (str == NULL) {
+        JS::RootedString str(cx, JS_NewUCString(cx, content.ptr(), jlen));
+        if (str.get() == NULL) {
             return NULL;
         }
 
         content.disable(); /* JS_NewUCString took ownership */
-        
+
         return str;
 
     }
 
     return JS_NewStringCopyN(cx, buf, len);
 }
+

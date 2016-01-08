@@ -17,27 +17,23 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#include "NativeJSModules.h"
 
-#include <jsfriendapi.h>
-#include <jsapi.h>
-#include <jsdbgapi.h>
-#include <libgen.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 #include <unistd.h>
-#include <errno.h> 
-#include <dlfcn.h> 
+#include <dlfcn.h>
 #include <sys/stat.h>
-
-#include <NativeJSExposer.h>
-#include <NativeJSModules.h>
-#include <NativeJS.h>
-#include <NativePath.h>
-#include <NativeStreamInterface.h>
-#include <NativeUtils.h>
-
-#include <jsoncpp.h>
-#include <json.h>
+#include <sys/types.h>
 
 #include <algorithm>
+
+#include <jsoncpp.h>
+
+#include "NativeStreamInterface.h"
+#include "NativeJSExposer.h"
 
 #if 0
 #define DPRINT(...) printf(__VA_ARGS__)
@@ -49,44 +45,47 @@ static void Exports_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass native_modules_exports_class = {
     "Exports", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Exports_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSClass native_modules_class = {
     "Module", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
+#if 0
 static JSPropertySpec native_modules_exports_props[] = {
-    {"exports", 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
-    {"module", 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    {"exports", 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
+    {"module", 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
+    JS_PS_END
 };
+#endif
 
-static JSBool native_modules_require(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_modules_require(JSContext *cx, unsigned argc, JS::Value *vp);
 
-NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name) 
-    : absoluteDir(NULL), filePath(NULL), name(strdup(name)), m_ModuleType(NONE), 
+NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name)
+    : absoluteDir(NULL), filePath(NULL), name(strdup(name)), m_ModuleType(NONE),
       m_Cached(false), exports(NULL), parent(parent), modules(modules), cx(cx)
 {
 }
 
-bool NativeJSModule::initMain() 
+bool NativeJSModule::initMain()
 {
     this->name = strdup("__MAIN__");
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
-    JSObject *funObj;
-    JSFunction *fun = js::DefineFunctionWithReserved(this->cx, JS_GetGlobalObject(cx), 
-            "require", native_modules_require, 1, 0);
+    JS::RootedFunction fun(cx, js::DefineFunctionWithReserved(this->cx, global,
+            "require", native_modules_require, 1, 0));
+
     if (!fun) {
         return false;
     }
 
-    funObj = JS_GetFunctionObject(fun);
+    JS::RootedObject funObj(cx, JS_GetFunctionObject(fun));
 
     js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
 
@@ -118,7 +117,7 @@ bool NativeJSModule::init()
     }
 
     this->absoluteDir = strdup(p.dir());
-    
+
     DPRINT("filepath = %s\n", this->filePath);
     DPRINT("name = %s\n", this->name);
 
@@ -146,7 +145,8 @@ bool NativeJSModules::init()
         }
 
         if (token != NULL && i == 63) {
-            fprintf(stderr, "Warning : require path ignored %s. A maximum of 63 search path is allowed. All subsequent path will be ignored.\n", token);
+            fprintf(stderr, "Warning : require path ignored %s."
+                            " A maximum of 63 search path is allowed. All subsequent paths will be ignored.\n", token);
         }
 
         m_EnvPaths[i] = NULL;
@@ -185,7 +185,7 @@ bool NativeJSModules::init(NativeJSModule *module)
 
 bool NativeJSModule::initNative()
 {
-    JSObject *exports = JS_NewObject(this->cx, NULL, NULL, NULL);
+    JS::RootedObject exports(this->cx, JS_NewObject(this->cx, NULL, JS::NullPtr(), JS::NullPtr()));
     NativeJS *njs = NativeJS::getNativeClass(this->cx);
     if (!exports) {
         return false;
@@ -211,8 +211,8 @@ bool NativeJSModule::initNative()
 
 bool NativeJSModule::initJS()
 {
-#define TRY_OR_DIE(call) if (call == JS_FALSE) { return false; }
-    JSObject *gbl = JS_NewObject(this->cx, &native_modules_exports_class, NULL, NULL);
+#define TRY_OR_DIE(call) if (call == false) { return false; }
+    JS::RootedObject gbl(cx, JS_NewObject(this->cx, &native_modules_exports_class, JS::NullPtr(), JS::NullPtr()));
     if (!gbl) {
         return false;
     }
@@ -221,7 +221,7 @@ bool NativeJSModule::initJS()
 
     JS_SetPrivate(gbl, this);
 
-    JSObject *funObj;
+    JS::RootedObject funObj(cx);
     JSFunction *fun = js::DefineFunctionWithReserved(this->cx, gbl, "require", native_modules_require, 1, 0);
     if (!fun) {
         return false;
@@ -231,30 +231,34 @@ bool NativeJSModule::initJS()
 
     js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
 
-    JSObject *exports = JS_NewObject(this->cx, NULL, NULL, NULL);
-    JSObject *module = JS_NewObject(this->cx, &native_modules_class, NULL, NULL);
+    JS::RootedObject exports(cx, JS_NewObject(this->cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject module(cx, JS_NewObject(this->cx, &native_modules_class, JS::NullPtr(), JS::NullPtr()));
 
     if (!exports || !module) {
         return false;
     }
 
-    JS::Value id;
-    JSString *idstr = JS_NewStringCopyN(cx, this->name, strlen(this->name));
+    JS::RootedValue id(cx);
+    JS::RootedString idstr(cx, JS_NewStringCopyN(cx, this->name, strlen(this->name)));
     if (!idstr) {
         return false;
     }
+
     id.setString(idstr);
 
-    jsval exportsVal = OBJECT_TO_JSVAL(exports);
-    jsval moduleVal  = OBJECT_TO_JSVAL(module);
-
+    JS::RootedValue exportsVal(cx, OBJECT_TO_JSVAL(exports));
+    JS::RootedValue moduleVal(cx, OBJECT_TO_JSVAL(module));
+#if 0
     TRY_OR_DIE(JS_DefineProperties(cx, gbl, native_modules_exports_props));
-    TRY_OR_DIE(JS_SetProperty(cx, gbl, "exports", &exportsVal));
+#endif
+    TRY_OR_DIE(JS_SetProperty(cx, gbl, "exports", exportsVal));
 
-    TRY_OR_DIE(JS_DefineProperties(cx, module, native_modules_exports_props));
-    TRY_OR_DIE(JS_SetProperty(cx, gbl, "module", &moduleVal));
-    TRY_OR_DIE(JS_SetProperty(cx, module, "id", &id));
-    TRY_OR_DIE(JS_SetProperty(cx, module, "exports", &exportsVal));
+#if 0
+    //TRY_OR_DIE(JS_DefineProperties(cx, module, native_modules_exports_props));
+#endif
+    TRY_OR_DIE(JS_SetProperty(cx, gbl, "module", moduleVal));
+    TRY_OR_DIE(JS_SetProperty(cx, module, "id", id));
+    TRY_OR_DIE(JS_SetProperty(cx, module, "exports", exportsVal));
 
     js::SetFunctionNativeReserved(funObj, 1, exportsVal);
 
@@ -352,7 +356,7 @@ bool NativeJSModules::getFileContent(const char *file, char **content, size_t *s
     return ret;
 }
 
-std::string NativeJSModules::findModuleInPath(NativeJSModule *module, const char *path) 
+std::string NativeJSModules::findModuleInPath(NativeJSModule *module, const char *path)
 {
 #define MAX_EXT_SIZE 13
     const char *extensions[] = {NULL, ".js", DSO_EXTENSION, ".json"};
@@ -464,7 +468,7 @@ bool NativeJSModules::loadDirectoryModule(std::string &dir)
                     fprintf(stderr, "Failed to parse %s\n  %s\n", dir.c_str(), reader.getFormatedErrorMessages().c_str());
                     return false;
                 }
-                
+
                 std::string main = root.get("main", "").asString();
                 dir.erase(len);
                 dir += std::string("/") + main;
@@ -483,11 +487,11 @@ bool NativeJSModules::loadDirectoryModule(std::string &dir)
     return false;
 }
 
-#undef MAX_EXT_SIZE 
+#undef MAX_EXT_SIZE
 
 JS::Value NativeJSModule::require(char *name)
 {
-    JS::Value ret;
+    JS::RootedValue ret(cx);
     NativeJSModule *cmodule;
     NativeJS *njs = NativeJS::getNativeClass(this->cx);
 
@@ -496,26 +500,26 @@ JS::Value NativeJSModule::require(char *name)
     // require() have been called from the main module
     if (this == this->modules->main) {
         /*
-         * This little hack is needed to conform CommonJS : 
+         * This little hack is needed to conform CommonJS :
          *  - Cyclic deps
          *  - Finding module
-         * 
+         *
          * Since all files included with NativeJS::LoadScript();
          * share the same module we need to be aware of the real caller.
-         * So here we set the filename and path of the caller 
-         * 
+         * So here we set the filename and path of the caller
+         *
          * XXX : Another way to handle this case would be to make
-         * load() aware of his context by using the same trick 
+         * load() aware of his context by using the same trick
          * require do.
          */
-        JSScript *script;
         unsigned lineno;
-        JS_DescribeScriptedCaller(this->cx, &script, &lineno);
+        JS::AutoFilename filename;
+        JS::DescribeScriptedCaller(cx, &filename, &lineno);
 
         free(this->filePath);
         free(this->absoluteDir);
         // filePath is needed for cyclic deps check
-        this->filePath = realpath(strdup(JS_GetScriptFilename(this->cx, script)), NULL);
+        this->filePath = realpath(filename.get(), NULL);
 
         if (this->filePath == NULL) {
             this->absoluteDir = strdup(NativePath::getPwd());
@@ -550,15 +554,17 @@ JS::Value NativeJSModule::require(char *name)
     }
 
     // Is there is a cyclic dependency
-    for (NativeJSModule *m = cmodule->parent;;) {
+    for (NativeJSModule *m = cmodule->parent; ; ) {
         if (!m || !m->exports) break;
 
         // Found a cyclic dependency
         if (strcmp(cmodule->filePath, m->filePath) == 0) {
-            JSObject *gbl = m->exports;
-            jsval module;
+            JS::RootedObject gbl(cx, m->exports);
+            JS::RootedValue module(cx);
             JS_GetProperty(cx, gbl, "module", &module);
-            JS_GetProperty(cx, JSVAL_TO_OBJECT(module), "exports", &ret);
+
+            JS::RootedObject modObj(cx, &module.toObject());
+            JS_GetProperty(cx, modObj, "exports", &ret);
             return ret;
         }
 
@@ -575,8 +581,8 @@ JS::Value NativeJSModule::require(char *name)
             size_t filesize;
             char *data;
 
-            JSFunction *fn;
-            jsval rval;
+            JS::RootedFunction fn(cx);
+            JS::RootedValue rval(cx);
 
             if (!NativeJSModules::getFileContent(cmodule->filePath, &data, &filesize) || data == NULL) {
                 JS_ReportError(cx, "Failed to open module %s\n", cmodule->name);
@@ -591,19 +597,24 @@ JS::Value NativeJSModule::require(char *name)
             }
 
             if (cmodule->m_ModuleType == JS) {
-                fn = JS_CompileFunction(cx, cmodule->exports, 
-                        "", 0, NULL, data, strlen(data), cmodule->filePath, 0);
+                JS::RootedObject expObj(cx, cmodule->exports);
+                JS::CompileOptions options(cx);
+                options.setFileAndLine(cmodule->filePath, 1)
+                       .setUTF8(true);
+
+                fn = JS::CompileFunction(cx, expObj, options, NULL, 0, NULL, data, strlen(data));
+
                 if (!fn) {
                     return ret;
                 }
 
-                if (!JS_CallFunction(cx, cmodule->exports, fn, 0, NULL, &rval)) {
+                if (!JS_CallFunction(cx, expObj, fn, JS::HandleValueArray::empty(), &rval)) {
                     return ret;
                 }
             } else {
                 size_t len;
                 jschar *jchars;
-                jsval jsonData;
+                JS::RootedValue jsonData(cx);
 
                 if (!JS_DecodeBytes(cx, data, filesize, NULL, &len)) {
                     return ret;
@@ -626,18 +637,20 @@ JS::Value NativeJSModule::require(char *name)
 
                 JS_free(cx, jchars);
 
-                cmodule->exports = JSVAL_TO_OBJECT(jsonData);
+                cmodule->exports.set(jsonData.toObjectOrNull());
                 njs->rootObjectUntilShutdown(cmodule->exports);
             }
         }
-    } 
+    }
 
     switch (cmodule->m_ModuleType) {
         case JS:
         {
-            JS::Value module;
-            JS_GetProperty(cx, cmodule->exports, "module", &module);
-            JS_GetProperty(cx, module.toObjectOrNull(), "exports", &ret);
+            JS::RootedValue module(cx);
+            JS::RootedObject expObj(cx, cmodule->exports);
+            JS_GetProperty(cx, expObj, "module", &module);
+            JS::RootedObject modObj(cx, &module.toObject());
+            JS_GetProperty(cx, modObj, "exports", &ret);
         }
         break;
         case JSON:
@@ -663,18 +676,20 @@ NativeJSModule::~NativeJSModule()
 
 }
 
-static JSBool native_modules_require(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSString *name = NULL;
+    JS::RootedString name(cx, NULL);
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &name)) {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    if (!JS_ConvertArguments(cx, args, "S", name.address())) {
         return false;
     }
 
     JSAutoByteString namestr(cx, name);
 
-    JSObject *callee = (JS_CALLEE(cx, vp)).toObjectOrNull();
-    JS::Value reserved = js::GetFunctionNativeReserved(callee, 0);
+    JSObject *callee = &args.callee();
+    JS::RootedValue reserved(cx, js::GetFunctionNativeReserved(callee, 0));
+
     if (!reserved.isDouble()) {
         JS_ReportError(cx, "InternalError");
         return false;
@@ -682,9 +697,9 @@ static JSBool native_modules_require(JSContext *cx, unsigned argc, jsval *vp)
 
     NativeJSModule *module = static_cast<NativeJSModule *>(JSVAL_TO_PRIVATE(reserved));
 
-    JS::Value ret = module->require(namestr.ptr());
+    JS::RootedValue ret(cx, module->require(namestr.ptr()));
 
-    JS_SET_RVAL(cx, vp, ret);
+    args.rval().set(ret);
 
     if (ret.isUndefined()) {
         return false;
@@ -701,3 +716,4 @@ void Exports_Finalize(JSFreeOp *fop, JSObject *obj)
         delete module;
     }
 }
+

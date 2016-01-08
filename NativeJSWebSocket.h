@@ -20,15 +20,15 @@
 #ifndef nativejswebsocket_h__
 #define nativejswebsocket_h__
 
-#include "NativeJSExposer.h"
 #include "NativeWebSocket.h"
 #include "NativeMessages.h"
+#include "NativeJSExposer.h"
 
 class NativeJSWebSocketServer : public NativeJSExposer<NativeJSWebSocketServer>,
                                 public NativeMessages
 {
 public:
-    NativeJSWebSocketServer(JSObject *obj, JSContext *cx,
+    NativeJSWebSocketServer(JS::HandleObject obj, JSContext *cx,
         const char *host, unsigned short port);
     ~NativeJSWebSocketServer();
     bool start();
@@ -41,3 +41,4 @@ private:
 };
 
 #endif
+

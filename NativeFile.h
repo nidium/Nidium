@@ -29,7 +29,7 @@
 #include "NativeMessages.h"
 #include "NativeTaskManager.h"
 #include "NativeIStreamer.h"
-#include <NativeEvents.h>
+#include "NativeEvents.h"
 
 #define NATIVEFILE_MESSAGE_BITS(id) ((1 << 20) | id)
 
@@ -59,7 +59,7 @@ public:
         READ_ERROR,
         WRITE_SUCCESS,
         WRITE_ERROR,
-        SEEK_SUCCESS, 
+        SEEK_SUCCESS,
         SEEK_ERROR
     };
 
@@ -169,3 +169,4 @@ private:
 };
 
 #endif
+

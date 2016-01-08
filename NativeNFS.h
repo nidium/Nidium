@@ -24,8 +24,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include <NativeHash.h>
 #include <jspubtd.h>
+
+#include "NativeHash.h"
 
 #define NATIVE_NFS_MAGIC 0x27121986
 
@@ -107,12 +108,12 @@ private:
     void initRoot();
 
     void *buildJS(const char *data, size_t len, const char *filename, uint32_t *outlen);
-    
+
     struct {
         JSRuntime *rt;
         JSContext *cx;
     } m_JS;
 };
 
-
 #endif
+

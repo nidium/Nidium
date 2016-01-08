@@ -16,12 +16,18 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #include "NativeHTTPListener.h"
-#include "NativeJS.h"
 
+#include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include "NativeJS.h"
 
 #define GET_HTTP_OR_FAIL(obj) \
     (NativeHTTPListener *)obj->ctx; \
@@ -36,7 +42,6 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len);
 static int request_url_cb(http_parser *p, const char *buf, size_t len);
 static int body_cb(http_parser *p, const char *buf, size_t len);
 
-
 static http_parser_settings settings =
 {
 .on_message_begin = message_begin_cb,
@@ -47,7 +52,6 @@ static http_parser_settings settings =
 .on_headers_complete = headers_complete_cb,
 .on_message_complete = message_complete_cb
 };
-
 
 static struct {
     uint16_t code;
@@ -95,7 +99,6 @@ static struct {
     {505, "HTTP Version not support"},
     {0, NULL}
 };
-
 
 static int message_begin_cb(http_parser *p)
 {
@@ -185,7 +188,7 @@ static int headers_complete_cb(http_parser *p)
         con->onHeaderEnded();
         return 0;
     }
-    
+
     if (p->content_length > HTTP_MAX_CL) {
         return -1;
     }
@@ -204,6 +207,7 @@ static int message_complete_cb(http_parser *p)
     NativeHTTPClientConnection *client = (NativeHTTPClientConnection *)p->data;
 
     client->_createResponse();
+    client->increaseRequestsCount();
 
     if (client->getHTTPListener()->onEnd(client)) {
         client->close();
@@ -261,7 +265,7 @@ static void native_socket_onaccept(ape_socket *socket_server,
     http->onClientConnect(socket_client, ape);
 }
 
-static void native_socket_client_read(ape_socket *socket_client,
+static void native_socket_client_read(ape_socket *socket_client, const uint8_t *data, size_t len,
     ape_global *ape, void *socket_arg)
 {
     NativeHTTPClientConnection *con = (NativeHTTPClientConnection *)socket_client->ctx;
@@ -269,18 +273,18 @@ static void native_socket_client_read(ape_socket *socket_client,
         return;
     }
 
-    con->onRead(&socket_client->data_in, ape);
+    con->onRead((const char *)data, len, ape);
 }
 
 static void native_socket_client_read_after_upgrade(ape_socket *socket_client,
+    const uint8_t *data, size_t len,
     ape_global *ape, void *socket_arg)
 {
     NativeHTTPClientConnection *con = (NativeHTTPClientConnection *)socket_client->ctx;
     if (!con) {
         return;
     }
-    con->onContent((const char *)socket_client->data_in.data,
-        socket_client->data_in.used);  
+    con->onContent((const char *)data, len);
 }
 
 static void native_socket_client_disconnect(ape_socket *socket_client,
@@ -298,9 +302,6 @@ static void native_socket_client_disconnect(ape_socket *socket_client,
     delete con;
 }
 
-////////////////////
-////////////////////
-
 NativeHTTPListener::NativeHTTPListener(uint16_t port, const char *ip)
 {
     ape_global *ape = NativeJS::getNet();
@@ -310,7 +311,7 @@ NativeHTTPListener::NativeHTTPListener(uint16_t port, const char *ip)
     m_Port = port;
 }
 
-bool NativeHTTPListener::start(bool reuseport)
+bool NativeHTTPListener::start(bool reuseport, int timeout)
 {
     if (!m_Socket) {
         return false;
@@ -324,6 +325,10 @@ bool NativeHTTPListener::start(bool reuseport)
     m_Socket->callbacks.arg           = NULL;
     m_Socket->ctx = this;
 
+    if (timeout) {
+        APE_socket_setTimeout(m_Socket, timeout);
+    }
+
     return (APE_socket_listen(m_Socket, m_Port, m_IP, 1, (int)reuseport) != -1);
 }
 
@@ -335,16 +340,11 @@ void NativeHTTPListener::stop()
     }
 }
 
-
 NativeHTTPListener::~NativeHTTPListener()
 {
     this->stop();
     free(m_IP);
 }
-
-
-////////////////////
-////////////////////
 
 void NativeHTTPListener::onClientConnect(ape_socket *client, ape_global *ape)
 {
@@ -352,10 +352,6 @@ void NativeHTTPListener::onClientConnect(ape_socket *client, ape_global *ape)
 
     this->onClientConnect((NativeHTTPClientConnection *)client->ctx);
 }
-
-
-//////////////
-//////////////
 
 int NativeHTTPClientConnection_checktimeout(void *arg)
 {
@@ -373,7 +369,9 @@ int NativeHTTPClientConnection_checktimeout(void *arg)
 
 NativeHTTPClientConnection::NativeHTTPClientConnection(NativeHTTPListener *httpserver,
     ape_socket *socket) :
-    m_Ctx(NULL), m_SocketClient(socket), m_HTTPListener(httpserver), m_Response(NULL)
+    m_Ctx(NULL), m_SocketClient(socket),
+    m_HTTPListener(httpserver), m_Response(NULL),
+    m_RequestsCount(0), m_MaxRequestsCount(0)
 {
     m_HttpState.headers.prevstate = PSTATE_NOTHING;
 
@@ -397,7 +395,8 @@ NativeHTTPClientConnection::NativeHTTPClientConnection(NativeHTTPListener *https
     m_LastAcitivty = NativeUtils::getTick(true);
 }
 
-void NativeHTTPClientConnection::onRead(buffer *buf, ape_global *ape)
+void NativeHTTPClientConnection::onRead(const char *data,
+    size_t len, ape_global *ape)
 {
 #define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
     CONST_STR_LEN(header "\0"))
@@ -405,25 +404,25 @@ void NativeHTTPClientConnection::onRead(buffer *buf, ape_global *ape)
     m_LastAcitivty = NativeUtils::getTick(true);
 
     int nparsed = http_parser_execute(&m_HttpState.parser, &settings,
-        (const char *)buf->data, (size_t)buf->used);
+        data, len);
 
     if (m_HttpState.parser.upgrade) {
         buffer *upgrade_header = REQUEST_HEADER("upgrade");
 
         if (upgrade_header) {
             this->onUpgrade((const char *)upgrade_header->data);
-            if (nparsed < buf->used) {
+            if (nparsed < len) {
                 /* Non-http data in the current packet (after the header) */
-                this->onContent((const char *)&buf->data[nparsed], buf->used - nparsed);
+                this->onContent(&data[nparsed], len - nparsed);
             }
 
             /* Change the callback for the next on_read calls */
             m_SocketClient->callbacks.on_read = native_socket_client_read_after_upgrade;
         }
-    } else if (nparsed != buf->used) {
+    } else if (nparsed != len) {
         printf("Http error : %s\n", http_errno_description(HTTP_PARSER_ERRNO(&m_HttpState.parser)));
     }
-#undef REQUEST_HEADER    
+#undef REQUEST_HEADER
 }
 
 void NativeHTTPClientConnection::close()
@@ -439,7 +438,7 @@ NativeHTTPClientConnection::~NativeHTTPClientConnection()
         ape_global *ape = NativeJS::getNet();
         clear_timer_by_id(&ape->timersng, m_TimeoutTimer, 1);
         m_TimeoutTimer = 0;
-    }   
+    }
 
     if (m_HttpState.headers.list) {
         ape_array_destroy(m_HttpState.headers.list);
@@ -477,9 +476,9 @@ NativeHTTPResponse *NativeHTTPClientConnection::onCreateResponse()
 
 NativeHTTPResponse::NativeHTTPResponse(uint16_t code) :
     m_Headers(ape_array_new(8)), m_Statuscode(code),
-	m_Content(NULL), m_Headers_str(NULL), m_HeaderSent(false), m_Chunked(false)
+    m_Content(NULL), m_Headers_str(NULL), m_HeaderSent(false), m_Chunked(false)
 {
-    this->setHeader("Server", "nidium/1.0");
+    this->setHeader("Server", "nidium/" NATIVE_VERSION_STR);
 }
 
 NativeHTTPResponse::~NativeHTTPResponse()
@@ -506,6 +505,11 @@ void NativeHTTPResponse::sendHeaders(bool chunked)
         m_Chunked = true;
     }
 
+    /* "No content requests must not be chunked" */
+    if (m_Statuscode == 204) {
+        m_Chunked = false;
+    }
+
     const buffer &headers = this->getHeadersString();
 
     APE_socket_write(m_Con->getSocket(), headers.data,
@@ -515,7 +519,6 @@ void NativeHTTPResponse::sendHeaders(bool chunked)
 
     this->dataOwnershipTransfered(true);
 }
-
 
 void NativeHTTPResponse::sendChunk(char *buf, size_t len,
     ape_socket_data_autorelease datatype, bool willEnd)
@@ -577,12 +580,19 @@ void NativeHTTPResponse::send(ape_socket_data_autorelease datatype)
             data->used, datatype);
     }
     FLUSH_TCP(m_Con->getSocket()->s.fd);
-    
+
     /*
         If we are not in a APE_DATA_AUTORELEASE,
         only transfert the headers ownership
     */
     this->dataOwnershipTransfered(!(datatype == APE_DATA_AUTORELEASE));
+
+    if (m_Con->shouldCloseConnection()) {
+        /*
+            TODO: temporise to (try to) avoid active close?
+        */
+        m_Con->close();
+    }
 }
 
 void NativeHTTPResponse::end()
@@ -600,8 +610,7 @@ void NativeHTTPResponse::end()
             (char *)CONST_STR_LEN("0\r\n\r\n"), APE_DATA_STATIC);
     }
 
-    const char *header_connection = m_Con->getHeader("connection");
-    if (header_connection && strcasecmp(header_connection, "close") == 0) {
+    if (m_Con->shouldCloseConnection()) {
         /*
             TODO: temporise to (try to) avoid active close?
         */
@@ -661,6 +670,11 @@ const buffer &NativeHTTPResponse::getHeadersString()
         this->setHeader("Transfer-Encoding", "chunked");
         this->removeHeader("Content-Length");
     }
+
+    if (m_Con && m_Con->shouldCloseConnection()) {
+        this->setHeader("Connection", "close");
+    }
+
     buffer *k, *v;
     if (this->getHeaders()) {
         APE_A_FOREACH(this->getHeaders(), k, v) {
@@ -706,3 +720,4 @@ void NativeHTTPResponse::dataOwnershipTransfered(bool onlyHeaders)
         m_Content = NULL;
     }
 }
+
