@@ -7,6 +7,8 @@ angle
 angle.tar.gz
 basekit
 breakpad
+breakpad.tar.gz
+gtest
 c-ares
 c-ares-1.9.1.tar.gz
 depot_tools
