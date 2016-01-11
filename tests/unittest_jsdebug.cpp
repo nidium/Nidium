@@ -13,15 +13,15 @@ TEST(NativeJSDebug, Simple)
     bool success;
 
 
-    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = JS_GetProperty(njs.cx, globalObj, "Debug", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "Debug", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
     NativeJSDebug::registerObject(njs.cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globalObj, "Debug", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "Debug", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 
@@ -33,10 +33,10 @@ TEST(NativeJSDebug, Init)
     ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
 
-    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    NativeJSDebug nd(globalObj, njs.cx);
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    NativeJSDebug nd(globObj, njs.cx);
 
-    EXPECT_TRUE(nd.getJSObject() == globalObj);
+    EXPECT_TRUE(nd.getJSObject() == globObj);
     EXPECT_TRUE(nd.getJSContext() == njs.cx);
 
     EXPECT_TRUE(strcmp(nd.getJSObjectName(), "Debug") == 0);

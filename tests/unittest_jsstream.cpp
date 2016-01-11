@@ -13,15 +13,15 @@ TEST(NativeJSStream, Simple)
     NativeJS njs(g_ape);
     bool success;
 
-    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = JS_GetProperty(njs.cx, globalObj, "Stream", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "Stream", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
     NativeJSStream::registerObject(njs.cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globalObj, "Stream", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "Stream", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 

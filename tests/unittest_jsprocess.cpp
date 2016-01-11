@@ -13,24 +13,24 @@ TEST(NativeJSProcess, Simple)
     bool success;
     const char * args[] = {"nidium"};
 
-    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = JS_GetProperty(njs.cx, globalObj, "process", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "process", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
     NativeJSProcess::registerObject(njs.cx, (char**)args, 1);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globalObj, "process", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "process", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 
-    jsval argv = JSVAL_VOID;
+    JS::RootedValue argv(njs.cx, JSVAL_VOID);
     JS::RootedObject obj(njs.cx, JSVAL_TO_OBJECT(rval));
     JS_GetProperty(njs.cx, obj, "argv", &argv);
     EXPECT_TRUE(JSVAL_IS_VOID(argv) == false);
 
-    NativeJSProcess *jproc = NULL;;
+    NativeJSProcess *jproc = NULL;
     jproc = (NativeJSProcess*)JS_GetPrivate(obj);
     EXPECT_TRUE(jproc != NULL);
 
@@ -50,10 +50,10 @@ TEST(NativeJSProcess, Init)
     ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
 
-    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    NativeJSProcess np(globalObj, njs.cx);
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    NativeJSProcess np(globObj, njs.cx);
 
-    EXPECT_TRUE(np.getJSObject() == globalObj);
+    EXPECT_TRUE(np.getJSObject() == globObj);
     EXPECT_TRUE(np.getJSContext() == njs.cx);
 
     EXPECT_TRUE(strcmp(np.getJSObjectName(), "process") == 0);

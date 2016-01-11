@@ -12,15 +12,15 @@ TEST(NativeJSSocket, Simple)
     NativeJS njs(g_ape);
     bool success;
 
-    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = JS_GetProperty(njs.cx, globalObj, "Socket", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "Socket", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
     NativeJSSocket::registerObject(njs.cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globalObj, "Socket", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "Socket", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 
@@ -34,10 +34,10 @@ TEST(NativeJSSocket, Init)
     ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
 
-    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    NativeJSSocket ns(globalObj, njs.cx, host, port);
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    NativeJSSocket ns(globObj, njs.cx, host, port);
 
-    EXPECT_TRUE(ns.getJSObject() == globalObj);
+    EXPECT_TRUE(ns.getJSObject() == globObj);
     EXPECT_TRUE(ns.getJSContext() == njs.cx);
 
     EXPECT_TRUE(ns.socket == NULL);

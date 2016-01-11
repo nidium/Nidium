@@ -23,25 +23,6 @@ TEST(NativeUtils, NativeTick)
     tick = nu.getTick(true);
     EXPECT_TRUE(tick > 10);
 }
-TEST(NativeUtils, Utf8)
-{
-    char16_t * jstr;
-    const char * cstr;
-    size_t outputlen;
-    JSContext *cx;
-
-    cx = NULL;
-    outputlen = 0;
-    cstr = "',.pyfgcrl/=aOEUIDHTNS-;QJKXBMWVZ`1234567890[]\t\n";
-    jstr = NativeUtils::Utf8ToUtf16(cx, cstr, strlen(cstr), &outputlen);
-    EXPECT_EQ(outputlen, 48);
-    free(jstr);
-
-    jstr = NativeUtils::Utf8ToUtf16(cx, cstr, strlen(cstr), &outputlen);
-    EXPECT_TRUE(jstr[0] == cstr[0]);
-    EXPECT_EQ(outputlen, 1);
-    free(jstr);
-}
 
 TEST(NativeUtils, Mainthread)
 {

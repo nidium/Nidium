@@ -12,15 +12,15 @@ TEST(NativeJSHTTPListener, Simple)
     NativeJS njs(g_ape);
     bool success;
 
-    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = JS_GetProperty(njs.cx, globalObj, "HTTPListener", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "HTTPListener", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
     NativeJSHTTPListener::registerObject(njs.cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globalObj, "HTTPListener", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "HTTPListener", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 
@@ -44,10 +44,10 @@ TEST(NativeJSHTTPListener, Listener)
     ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
 
-    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    NativeJSHTTPListener lis(globalObj, njs.cx, 8080, "127.0.0.1");
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    NativeJSHTTPListener lis(globObj, njs.cx, 8080, "127.0.0.1");
 
-    EXPECT_TRUE(lis.getJSObject() == globalObj);
+    EXPECT_TRUE(lis.getJSObject() == globObj);
     EXPECT_TRUE(lis.getJSContext() == njs.cx);
 
     EXPECT_EQ(lis.getPort(), 8080);

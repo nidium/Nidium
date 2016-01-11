@@ -12,15 +12,15 @@ TEST(NativeJSHTTP, Simple)
     NativeJS njs(g_ape);
     bool success;
 
-    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = JS_GetProperty(njs.cx, globalObj, "Http", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "Http", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
     NativeJSHttp::registerObject(njs.cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globalObj, "Http", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "Http", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 
@@ -33,10 +33,10 @@ TEST(NativeJSHTTP, init)
     NativeJS njs(g_ape);
     char * url = strdup("http://nidium.com:80/new.html");
 
-    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    NativeJSHttp ht(globalObj, njs.cx, url);
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    NativeJSHttp ht(globObj, njs.cx, url);
 
-    EXPECT_TRUE(ht.getJSObject() == globalObj);
+    EXPECT_TRUE(ht.getJSObject() == globObj);
     EXPECT_TRUE(ht.getJSContext() == njs.cx);
 
     EXPECT_TRUE(ht.request == JSVAL_NULL);

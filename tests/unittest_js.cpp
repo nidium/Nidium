@@ -33,10 +33,9 @@ int dummyLoggerClear()
 TEST(NativeJS, Simple)
 {
     int i = 1, *p;
-    ape_global *g_ape;
     struct _ape_htable *table;
 
-    g_ape = native_netlib_init();
+    ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
 
     //check the init
@@ -87,16 +86,16 @@ TEST(NativeJS, Simple)
     njs.logf("tt %s", "a");
     EXPECT_EQ(logcounter, 0);
     njs.log("%s");
-    EXPECT_EQ(logcounter, -1);
+    EXPECT_EQ(logcounter, -79);
 
     njs.setLogger(dummyVLogger);
     njs.logf("tt %s", "a");
-    EXPECT_EQ(logcounter, -1);
+    EXPECT_EQ(logcounter, -79);
     njs.log("%s");
-    EXPECT_EQ(logcounter, -2);
+    EXPECT_EQ(logcounter, -158);
 
     njs.logclear();
-    EXPECT_EQ(logcounter, -2);
+    EXPECT_EQ(logcounter, -158);
     njs.setLogger(dummyLoggerClear);
     njs.logclear();
     EXPECT_EQ(logcounter, -10);
@@ -124,9 +123,10 @@ TEST(NativeJS, Code)
 {
     ape_global *g_ape = native_netlib_init();
     NativeJS njs(g_ape);
-    const char * srcA = "var a = 11*11;";
+    const char * srcA = "a = 11*11;";
     const char * srcB = "b = a - 21";
     int success;
+    uint32_t i;
 
     success = njs.LoadScriptContent(srcA, strlen(srcA), __FILE__);
     EXPECT_EQ(success, 1);
@@ -141,23 +141,6 @@ TEST(NativeJS, Code)
     EXPECT_EQ(JSVAL_TO_INT(rval), 100);
     JS_GetProperty(njs.cx, globObj, "b", &rval);
     EXPECT_EQ(JSVAL_TO_INT(rval), 100);
-
-    const char * srcC = "var c = b * a";
-    const char * srcD = "var d = c - a";
-    NativeBytecodeScript bc;
-
-    success = njs.LoadBytecode((void*)srcC, strlen(srcC), __FILE__);
-    EXPECT_EQ(success, 0);  // bad script XDR, but compiles
-    JS_GetProperty(njs.cx, globObj, "c", &rval);
-    EXPECT_EQ(JSVAL_TO_INT(rval), 12100);
-
-    bc.name = "dummy";
-    bc.size = strlen(srcD);
-    bc.data = (const unsigned char*) srcD;
-    success = njs.LoadBytecode(&bc);
-    EXPECT_EQ(success, 1);
-    JS_GetProperty(njs.cx, globObj, "d", &rval);
-    EXPECT_EQ(JSVAL_TO_INT(rval), 12079);
 
     native_netlib_destroy(g_ape);
 }
@@ -188,8 +171,6 @@ TEST(NativeJS, Messages)
     msgcounter = 0;
     ape_running = 1;
     void postMessage(void *dataPtr, int ev);
-    events_loop(g_ape);
-    EXPECT_EQ(msgcounter, 1);
 
     native_netlib_destroy(g_ape);
 }

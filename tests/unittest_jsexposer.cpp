@@ -14,11 +14,11 @@ TEST(NativeJSExposer, Event)
     ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
 
-    JS::RootedObject globalObj(njs.cx, JS_GetGlobalObject(njs.cx));
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     JS::RootedValue func(njs.cx);
     njs.LoadScriptContent(srcA, strlen(srcA), __FILE__);
     njs.LoadScriptContent(srcFun, strlen(srcFun), __FILE__);
-    JS_GetProperty(njs.cx, globalObj, "counterInc", &func);
+    JS_GetProperty(njs.cx, globObj, "counterInc", &func);
 
     NativeJSEvent ne(njs.cx, func);
     EXPECT_TRUE(ne.m_Cx == njs.cx);
@@ -36,13 +36,11 @@ TEST(NativeJSExposer, Events)
     NativeJS njs(g_ape);
     char * name = strdup("dummy");
 
-    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     JS::RootedValue func(njs.cx);
     njs.LoadScriptContent(srcA, strlen(srcA), __FILE__);
     njs.LoadScriptContent(srcFun, strlen(srcFun), __FILE__);
-    JS_GetProperty(njs.cx, JS_GetGlobalObject(njs.cx), "counterInc", &func);
-
-
+    JS_GetProperty(njs.cx, globObj, "counterInc", &func);
 
     NativeJSEvents nes(name);
     EXPECT_TRUE(nes.m_Head == NULL);
@@ -74,9 +72,9 @@ TEST(NativeJSExposer, ObjectMapper)
     ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
 
-    JS::RootedObject globalObj(njs.cx, JS_GetGlobalObject(njs.cx));
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     Dummy njm(njs.cx);
-    obj = njm.getJSObject();
+    JS::RootedObject obj(njs.cx, njm.getJSObject());
     EXPECT_TRUE(obj != NULL);
 
     Dummy *dummy = NativeJSObjectMapper<Dummy>::getObject(obj);
@@ -90,18 +88,16 @@ TEST(NativeJSExposer, ObjectBuilder)
 {
     ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
-    globalObj = JS_GetGlobalObject(njs.cx);
     JS::RootedValue rval(njs.cx);
 
     JS::RootedObject obj(njs.cx);
     JS::RootedObject jsobj(njs.cx);
-    JS::RootedObject globalObj(njs.cx, JS_GetGlobalObject(njs.cx));
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     NativeJSObjectBuilder ob(njs.cx, jsobj);
     obj = ob.obj();
     rval = ob.jsval();
     EXPECT_TRUE(obj == JSVAL_TO_OBJECT(rval));
 
-    @FIXME: crash
     char * cstr;
     JS::RootedValue valOne(njs.cx, INT_TO_JSVAL(1));
     ob.set("valOne", valOne);
@@ -109,7 +105,7 @@ TEST(NativeJSExposer, ObjectBuilder)
     EXPECT_TRUE(1 == JSVAL_TO_INT(rval));
 
     JS::RootedString jstring(njs.cx, JS_NewStringCopyZ(njs.cx, "nidium"));
-    ob.set("string", jstring);
+    ob.set("string", jstring.get());
     JS_GetProperty(njs.cx, obj, "valOne", &rval);
     cstr = JS_EncodeString(njs.cx, jstring);
     EXPECT_TRUE(strcmp(cstr, "nidium") == 0);
@@ -144,13 +140,12 @@ TEST(NativeJSExposer, ObjectBuilderObj)
 {
     ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
-    JS::RootedObject globalObj(njs.cx, JS_GetGlobalObject(njs.cx));
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     JS::RootedObject jsobj(njs.cx, JS_NewObject(njs.cx, NULL, JS::NullPtr(), JS::NullPtr()));
     JS::RootedObject obj(njs.cx);
 
-    JS::RootedObject globalObj(njs.cx, JS_GetGlobalObject(njs.cx));
     JS::RootedValue rval(njs.cx, INT_TO_JSVAL(12));
-    JS_SetProperty(njs.cx, jsobj, "tst", &rval);
+    JS_SetProperty(njs.cx, jsobj, "tst", rval);
     NativeJSObjectBuilder ob(njs.cx, jsobj);
     obj = ob.obj();
     JS_GetProperty(njs.cx, obj, "tst", &rval);

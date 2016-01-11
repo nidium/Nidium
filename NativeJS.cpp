@@ -568,6 +568,18 @@ static void _gc_callback(JSRuntime *rt, JSGCStatus status, void *data)
 }
 #endif
 
+void NativeJS::Init()
+{
+    static bool _alreadyInit = false;
+    if (!_alreadyInit) {
+        if (!JS_Init()) {
+            fprintf(stderr, "Failed to init JSAPI (JS_Init())\n");
+            return;
+        }
+        _alreadyInit = true;
+    }
+}
+
 NativeJS::NativeJS(ape_global *net) :
     m_JSStrictMode(false), m_Logger(NULL), m_vLogger(NULL), m_LogClear(NULL)
 {
@@ -601,10 +613,7 @@ NativeJS::NativeJS(ape_global *net) :
     }
     pthread_setspecific(gJS, this);
 
-    if (!JS_Init()) {
-        fprintf(stderr, "Failed to init JSAPI (JS_Init())\n");
-        return;
-    }
+    NativeJS::Init();
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L,
         JS_NO_HELPER_THREADS)) == NULL) {
@@ -760,7 +769,6 @@ NativeJS::~NativeJS()
     JS_DestroyContext(cx);
 
     JS_DestroyRuntime(rt);
-    JS_ShutDown();
 
     delete messages;
     if (this->modules) {

@@ -12,15 +12,15 @@ TEST(NativeJSThread, Simple)
     NativeJS njs(g_ape);
     bool success;
 
-    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = JS_GetProperty(njs.cx, globalObj, "Thread", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "Thread", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
     NativeJSThread::registerObject(njs.cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globalObj, "Thread", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "Thread", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 
@@ -32,10 +32,10 @@ TEST(NativeJSThread, Init)
     ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
 
-    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    NativeJSThread nt(globalObj, njs.cx);
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    NativeJSThread nt(globObj, njs.cx);
 
-    EXPECT_TRUE(nt.getJSObject() == globalObj);
+    EXPECT_TRUE(nt.getJSObject() == globObj);
     EXPECT_TRUE(nt.getJSContext() == njs.cx);
 
     EXPECT_TRUE(nt.jsFunction == NULL);
