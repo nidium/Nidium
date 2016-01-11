@@ -879,7 +879,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            JSAutoByteString mode(cx, vp.toString());
+            JS::RootedString vpStr(cx, JSVAL_TO_STRING(vp));
+            JSAutoByteString mode(cx, vpStr);
             if (strcasecmp(mode.ptr(), "absolute") == 0) {
                 handler->setPositioning(NativeCanvasHandler::COORD_ABSOLUTE);
             } else if(strcasecmp(mode.ptr(), "fixed") == 0) {
@@ -1074,8 +1075,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!vp.isBoolean()) {
                 return true;
             }
-
-            handler->setAllowNegativeScroll(vp.toBoolean());
+            handler->setAllowNegativeScroll(JSVAL_TO_BOOLEAN(vp));
         }
         break;
         case CANVAS_PROP_VISIBLE:
@@ -1084,7 +1084,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            handler->setHidden(!vp.toBoolean());
+            handler->setHidden(!JSVAL_TO_BOOLEAN(vp));
         }
         break;
         case CANVAS_PROP_OVERFLOW:
@@ -1093,7 +1093,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            handler->m_Overflow = vp.toBoolean();
+            handler->m_Overflow = JSVAL_TO_BOOLEAN(vp);
         }
         break;
         case CANVAS_PROP_COATING:
@@ -1253,8 +1253,9 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!vp.isString()) {
                 return true;
             }
-            JSAutoByteString type(cx, vp.toString());
 
+            JS::RootedString vpStr(cx, JSVAL_TO_STRING(vp));
+            JSAutoByteString type(cx, vpStr);
             for (int i = 0; native_cursors_list[i].str != NULL; i++) {
                 if (strncasecmp(native_cursors_list[i].str, type.ptr(),
                     strlen(native_cursors_list[i].str)) == 0) {

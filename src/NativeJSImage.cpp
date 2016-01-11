@@ -101,7 +101,8 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
         case IMAGE_PROP_SRC:
         {
             if (vp.isString()) {
-                JSAutoByteString imgPath(cx, vp.toString());
+                JS::RootedString vpStr(cx, JSVAL_TO_STRING(vp));
+                JSAutoByteString imgPath(cx, vpStr);
 
                 NativeJSObj(cx)->rootObjectUntilShutdown(obj);
 

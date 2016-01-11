@@ -462,7 +462,7 @@ static void native_av_thread_message(JSContext *cx, JS::HandleObject obj, const 
         native_thread_msg *ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
 
         if (JS_GetProperty(cx, obj, "onmessage", &jscbk) &&
-            !jscbk.isPrimitive() && JS_ObjectIsCallable(cx, &jscbk.toObject())) {
+            !jscbk.isPrimitive() && JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(jscbk))) {
 
             JS::RootedValue inval(cx, JSVAL_NULL);
             if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
@@ -487,7 +487,7 @@ static void native_av_thread_message(JSContext *cx, JS::HandleObject obj, const 
 
         if (JS_GetProperty(cx, obj, prop, &jscbk) &&
             !jscbk.isPrimitive() &&
-            JS_ObjectIsCallable(cx, jscbk.toObjectOrNull())) {
+            JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(jscbk))) {
 
             if (cmsg->m_Ev == SOURCE_EVENT_ERROR) {
                 JS::AutoValueArray<2> event(cx);
@@ -873,7 +873,7 @@ void NativeJSAudioNode::setPropCallback(NativeAudioNode *node, void *custom)
     }
     JS::RootedObject hashObj(tcx, msg->jsNode->m_HashObj);
     if (msg->name == NULL) {
-        JS::RootedObject props(tcx, &data.toObject());
+        JS::RootedObject props(tcx, JSVAL_TO_OBJECT(data));
         JS::AutoIdArray ida(tcx, JS_Enumerate(tcx, props));
         for (size_t i = 0; i < ida.length(); i++) {
             JS::RootedId id(tcx, ida[i]);
@@ -1217,19 +1217,19 @@ static bool native_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
     unsigned int bufferSize, channels, sampleRate;
 
     if (argc > 0) {
-        bufferSize = args.array()[0].toInt32();
+        bufferSize = JSVAL_TO_INT(args[0]);
     } else {
         bufferSize = 2048;
     }
 
     if (argc > 1) {
-        channels = args.array()[1].toInt32();
+        channels = JSVAL_TO_INT(args[1]);
     } else {
         channels = 2;
     }
 
     if (argc >= 2) {
-        sampleRate = args.array()[2].toInt32();
+        sampleRate = JSVAL_TO_INT(args[2]);
     } else {
         sampleRate = 44100;
     }
@@ -1612,7 +1612,7 @@ static bool native_audionode_set(JSContext *cx, unsigned argc, JS::Value *vp)
     NativeAudioNode *node = jnode->m_Node;
     if (!args.array()[0].isPrimitive()) {
         JS::RootedValue arg0(cx, args.array()[0]);
-        JS::RootedObject props(cx, &arg0.toObject());
+        JS::RootedObject props(cx, JSVAL_TO_OBJECT(arg0));
         JS::AutoIdArray ida(cx, JS_Enumerate(cx, props));
         for (size_t i = 0; i < ida.length(); i++) {
             JS::RootedId id(cx, ida[i]);
@@ -2124,7 +2124,7 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
     JS::RootedObject vobj(v->cx, v->getJSObject());
     if (JS_GetProperty(v->cx, vobj, "onframe", &onframe) &&
             !onframe.isPrimitive() &&
-            JS_ObjectIsCallable(v->cx, &onframe.toObject())) {
+            JS_ObjectIsCallable(v->cx, JSVAL_TO_OBJECT(onframe))) {
         JS::AutoValueArray<1> params(v->cx);
 
         params[0].setObjectOrNull(v->getJSObject());
@@ -2345,7 +2345,7 @@ static bool native_video_setsize(JSContext *cx, unsigned argc, JS::Value *vp)
     if (jwidth.isString()) {
         width = -1;
     } else if (jwidth.isNumber()) {
-        width = jwidth.toNumber();
+        width = JSVAL_TO_INT(jwidth);
     } else {
         JS_ReportError(cx, "Wrong argument type for width");
         return false;
@@ -2354,7 +2354,7 @@ static bool native_video_setsize(JSContext *cx, unsigned argc, JS::Value *vp)
     if (jheight.isString()) {
         height = -1;
     } else if (jheight.isNumber()) {
-        height = jheight.toNumber();
+        height = JSVAL_TO_INT(jheight);
     } else {
         JS_ReportError(cx, "Wrong argument type for height");
         return false;
