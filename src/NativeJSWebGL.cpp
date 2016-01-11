@@ -224,13 +224,16 @@ static void WebGLRenderingContext_Finalize(JSFreeOp *fop, JSObject *obj)
 bool NGL_uniformxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb) {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     uintptr_t clocation;
-    JS::RootedValue locVal(cx, args.array()[0]);
     double x;
     double y;
     double z;
     double w;
 
-    JS::RootedObject location(cx, &locVal.toObject());
+    if (!args[0].isObject()) {
+        JS_ReportError(cx, "Bad argument");
+        return false;
+    }
+    JS::RootedObject location(cx, args[0].toObjectOrNull());
     clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, &args);
 
     if (nb > 0) JS::ToNumber(cx, args[1], &x);
@@ -310,8 +313,11 @@ bool NGL_uniformxi(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int arg
     GLint z;
     GLint w;
 
-    JS::RootedValue locval(cx, args.array()[0]);
-    JS::RootedObject location(cx, &locval.toObject());
+    if (!args[0].isObject()) {
+        JS_ReportError(cx, "Bad argument");
+        return false;
+    }
+    JS::RootedObject location(cx, args[0].toObjectOrNull());
     clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, &args);
 
     if (nb > 0) x = JS::ToInt32(cx, args[1], &x);
@@ -457,10 +463,14 @@ bool NGL_vertexAttribxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned i
     GLuint index;
     GLfloat *carray;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedValue arg1(cx, args.array()[1]);
+
+    if (!args[1].isObject()) {
+        JS_ReportError(cx, "Bad argument");
+        return false;
+    }
 
     JS::ToUint32(cx, args[0], &index);
-    JS::RootedObject array(cx, &arg1.toObject());
+    JS::RootedObject array(cx, args[1].toObjectOrNull());
 
     if (JS_IsFloat32Array(array)) {
         carray = (GLfloat *)JS_GetFloat32ArrayData(array);

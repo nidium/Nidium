@@ -1104,8 +1104,7 @@ static bool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS
     NATIVE_CHECK_ARGS("requestAnimationFrame", 1);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedValue cb(cx);
-    JS::RootedValue arg0(cx, args.array()[0]);
-    if (!JS_ConvertValue(cx, arg0, JSTYPE_FUNCTION, &cb)) {
+    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &cb)) {
         return true;
     }
     NativeJSwindow::getNativeClass(cx)->addFrameCallback(&cb);
