@@ -24,33 +24,21 @@ public:
     }
 };
 
-#if 0
 TEST(NativeMessages, Simple)
 {
     SimpleMessages *m;
 
     m = new SimpleMessages();
 
-    //@FIXME:  segfault
-    m->onMessage(NULL);
+    m->onMessage(0);
     EXPECT_EQ(dummyState, 1);
 
-    m->onMessageLost(NULL);
+    m->onMessageLost(0);
     EXPECT_EQ(dummyState, 2);
 
     m->delMessages();
     EXPECT_EQ(dummyState, -1);
 
-//@TODO: void postMessage(void *dataptr, int event, bool forceAsync = false);
-//@TODO: void postMessage(uint64_t dataint, int event, bool forceAsync = false);
-//@TODO: void postMessage(NativeSharedMessages::Message *msg, bool forceAsync = false);
-//@TODO: void delMessages(int event = -1);
-//@TODO: static void initReader(ape_global *ape);
-//@TODO: static void destroyReader();
-//@TODO: NativeSharedMessages *getSharedMessages();
-
     delete m;
 }
-
-#endif
 

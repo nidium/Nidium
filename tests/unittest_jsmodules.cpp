@@ -19,14 +19,6 @@ TEST(NativeJSModules, ModulesSimple)
     modules.init();
     EXPECT_TRUE(modules.main != NULL);
 
-    //add
-    //remove
-    //find
-    //setPath
-    //init
-    //fidModulePath
-    //getFileContent
-
     native_netlib_destroy(g_ape);
 }
 
@@ -44,10 +36,6 @@ TEST(NativeJSModules, ModuleSimple)
     EXPECT_TRUE(module.exports == NULL);
     EXPECT_TRUE(module.parent == NULL);
     EXPECT_TRUE(module.modules == &modules);
-    //@TODO: require
-    //@TODO: initNative
-    //@TODO: initMain
-    //@TODO: initJS
 
     native_netlib_destroy(g_ape);
 }

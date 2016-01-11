@@ -8,15 +8,12 @@
 
 TEST(NativeJSSocket, Simple)
 {
-    JSObject *globalObj;
     ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
-    jsval rval;
     bool success;
 
-    globalObj = JS_GetGlobalObject(njs.cx);
-
-    rval = JSVAL_VOID;
+    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    JS::RootedValue rval(njs.cx, JSVAL_VOID);
     success = JS_GetProperty(njs.cx, globalObj, "Socket", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
@@ -26,29 +23,6 @@ TEST(NativeJSSocket, Simple)
     success = JS_GetProperty(njs.cx, globalObj, "Socket", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
-    //@TODO: write
-    //@TODO: disconnnect
-    //@TODO: shutdown
-    //@TODO: dettach
-    //@TODO: isAttached
-    //@TODO: isJSCallable
-    //@TODO: onRead
-    //@TODO: getParentServer
-    //@TODO: setParentServer
-    //@TODO: getFlags
-    //@TODO: getEncoding
-    //@TODO: getFrameDelimiter
-    //@TODO: isClientFromOwnServer
-    //@TODO: getReceiverObject
-    //@TODO: host
-    //@TODO: port
-    //@TODO: socket
-    //@TODO: flags
-    //@TODO: m_Encoding
-    //@TODO: lineBuffer
-    //@TODO: m_FrameDelmitter
-    //@TODO: m_ParentServer
-
 
     native_netlib_destroy(g_ape);
 }
@@ -59,8 +33,8 @@ TEST(NativeJSSocket, Init)
     const uint16_t port = 1212;
     ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
-    JSObject * globalObj = JS_GetGlobalObject(njs.cx);
 
+    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
     NativeJSSocket ns(globalObj, njs.cx, host, port);
 
     EXPECT_TRUE(ns.getJSObject() == globalObj);

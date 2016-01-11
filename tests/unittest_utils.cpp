@@ -23,22 +23,23 @@ TEST(NativeUtils, NativeTick)
     tick = nu.getTick(true);
     EXPECT_TRUE(tick > 10);
 }
-
 TEST(NativeUtils, Utf8)
 {
-    uint16_t * jstr;
+    char16_t * jstr;
     const char * cstr;
-    size_t len;
+    size_t outputlen;
+    JSContext *cx;
 
-    len = 0;
+    cx = NULL;
+    outputlen = 0;
     cstr = "',.pyfgcrl/=aOEUIDHTNS-;QJKXBMWVZ`1234567890[]\t\n";
-    jstr = NativeUtils::Utf8ToUtf16(cstr, strlen(cstr), &len);
-    EXPECT_EQ(len, 48);
+    jstr = NativeUtils::Utf8ToUtf16(cx, cstr, strlen(cstr), &outputlen);
+    EXPECT_EQ(outputlen, 48);
     free(jstr);
 
-    jstr = NativeUtils::Utf8ToUtf16(cstr, 1, &len);
+    jstr = NativeUtils::Utf8ToUtf16(cx, cstr, strlen(cstr), &outputlen);
     EXPECT_TRUE(jstr[0] == cstr[0]);
-    EXPECT_EQ(len, 1);
+    EXPECT_EQ(outputlen, 1);
     free(jstr);
 }
 
@@ -129,7 +130,6 @@ struct constStrMacro{
         const int len;
 };
 
-#if 0
 TEST(NativeUtils, TreadLock)
 {
     pthread_mutex_t mutex;
@@ -138,7 +138,6 @@ TEST(NativeUtils, TreadLock)
 
     delete pt;
 }
-#endif
 
 TEST(NativeUtils, NativePtrAuteDelete)
 {

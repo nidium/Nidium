@@ -21,11 +21,11 @@ TEST(NativeArgs, Simple)
     EXPECT_EQ(args.size(), 8);
     for (i = 1; i < max; i++) {
         EXPECT_EQ(args[i].isSet(), false);
-#if 0
+
         EXPECT_TRUE(args[i].toPtr() == NULL);
         EXPECT_EQ(args[i].toInt64(), 0);
         EXPECT_EQ(args[i].toBool(), false);
-#endif
+
         args[i].set(max);
         EXPECT_EQ(args[i].isSet(), true);
         EXPECT_EQ(args[i].toInt(), (uint32_t)max);

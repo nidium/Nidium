@@ -1,9 +1,11 @@
 #!/usr/bin/env python2.7
-import os
+import os, sys
 
 from konstructor import Deps
 from konstructor import CommandLine
 from konstructor import Build
+from konstructor import Utils
+from konstructor import Tests
 from konstructor import Builder
 from konstructor import Platform
 from konstructor import Variables
@@ -21,6 +23,20 @@ Deps.set(
 DEPEDENCY_REPO = Variables.get("depsRepo")
 Gyp = Builder.Gyp
 
+@CommandLine.option("--unit-tests", default=False)
+def test_nativejscore(unitTests):
+    if not unitTests:
+        return
+    head, tail = os.path.split(os.getcwd())
+    if tail == 'nativejscore':
+        subdir = ''
+    else:
+        subdir = 'nativejscore'
+    Tests.register( subdir,
+        ["gyp/nativejscore-unittests.gyp"],
+        ['tests/bin/nativejscore-unittests']
+    )
+
 @Deps.register("leveldb")
 def leveldb():
     flags = ""
@@ -29,7 +45,7 @@ def leveldb():
 
     return {
         "location": DEPEDENCY_REPO + "/leveldb.tar.gz",
-        "build": [flags + " make"], 
+        "build": [flags + " make"],
         "outputs": ["libleveldb(.a|.lib)"]
     }
 
@@ -56,7 +72,7 @@ def mozilla():
             --enable-threadsafe\
             --enable-ctypes %s" % (configureEnvVars, nsprFlags)
 
-    if Konstruct.config("debug", "valgring"):
+    if Konstruct.config("debug", "valgrind"):
         configure += " --enable-debug --disable-optimize"
 
     if Konstruct.config("valgrind"):

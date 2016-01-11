@@ -11,11 +11,5 @@ TEST(NativeNFSStream, Simple)
     EXPECT_TRUE(nfs.getBaseDir() == NULL);
     EXPECT_TRUE(nfs.allowSyncStream() == true);
     EXPECT_TRUE(nfs.allowLocalFileStream() == true);
-//@TODO: void stop();
-//@TODO: void getContent();
-//@TODO: void _getContent();
-//@TODO: bool getContentSync(char **data, size_t *len, bool mmap = false);
-//@TODO: size_t getFileSize() const;
-//@TODO: void seek(size_t pos);
 }
 

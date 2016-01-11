@@ -8,19 +8,15 @@
 
 TEST(NativeJSConsole, Simple)
 {
-    JSObject *globalObj;
     ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
-    jsval rval;
     bool success;
 
-    globalObj = JS_GetGlobalObject(njs.cx);
-
-    rval = JSVAL_VOID;
+    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    JS::RootedValue rval(njs.cx, JSVAL_VOID);
     success = JS_GetProperty(njs.cx, globalObj, "console", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    //FIXME: naming convention NativeJS-C-onsole and uniform constructor
     NativeJSconsole::registerObject(njs.cx);
 
     rval = JSVAL_VOID;

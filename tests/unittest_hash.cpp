@@ -103,17 +103,5 @@ TEST(NativeHash, Iterable)
     d = new struct dummy;
     d->i = 2;
     ht.set("two", d);
-#if 0
-//@FIXME:
-struct dummy *dd;
-    dd  = ht.iterator.end();
-    EXPECT_EQ(dd->i, 2);
-
-    dd  = ht.iterator.begin();
-    EXPECT_EQ(dd->i, 1);
-
-    dd++;
-    EXPECT_EQ(dd->i, 2);
-#endif
 }
 

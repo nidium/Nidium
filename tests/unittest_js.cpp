@@ -33,9 +33,7 @@ int dummyLoggerClear()
 TEST(NativeJS, Simple)
 {
     int i = 1, *p;
-    JSObject *d, *dc;
     ape_global *g_ape;
-    jsval rval;
     struct _ape_htable *table;
 
     g_ape = native_netlib_init();
@@ -70,13 +68,13 @@ TEST(NativeJS, Simple)
     njs.gc();
 
     //store objects
-    d = JS_NewObject(njs.cx, NULL, NULL, NULL);
-    rval = INT_TO_JSVAL(1);
-    JS_SetProperty(njs.cx, d, "a", &rval);
+    JS::RootedObject d(njs.cx, JS_NewObject(njs.cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedValue rval(njs.cx, INT_TO_JSVAL(1));
+    JS_SetProperty(njs.cx, d, "a", rval);
     njs.rootObjectUntilShutdown(d);
     njs.unrootObject(d);
-    dc =JS_NewObject(njs.cx, NULL, NULL, NULL);
-    njs.copyProperties(njs.cx, d, dc);
+    JS::RootedObject dc(njs.cx, JS_NewObject(njs.cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    njs.copyProperties(njs.cx, d, &dc);
     JS_GetProperty(njs.cx, dc, "a", &rval);
     EXPECT_EQ(JSVAL_TO_INT(rval), 1);
 
@@ -119,7 +117,7 @@ TEST(NativeJS, Quick)
     EXPECT_TRUE(njs.net == g_ape);
     EXPECT_TRUE(njs.getNet() == g_ape);
 
-    //native_netlib_destroy(g_ape);
+    native_netlib_destroy(g_ape);
 }
 
 TEST(NativeJS, Code)
@@ -128,28 +126,29 @@ TEST(NativeJS, Code)
     NativeJS njs(g_ape);
     const char * srcA = "var a = 11*11;";
     const char * srcB = "b = a - 21";
-    jsval rval;
     int success;
 
     success = njs.LoadScriptContent(srcA, strlen(srcA), __FILE__);
     EXPECT_EQ(success, 1);
-    JS_GetProperty(njs.cx, JS_GetGlobalObject(njs.cx), "a", &rval);
+
+    JS::RootedValue rval(njs.cx);
+    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    JS_GetProperty(njs.cx, globObj, "a", &rval);
     EXPECT_EQ(JSVAL_TO_INT(rval), 121);
 
     success = njs.LoadScriptReturn(njs.cx, srcB, strlen(srcB), __FILE__, &rval);
     EXPECT_EQ(success, 1);
     EXPECT_EQ(JSVAL_TO_INT(rval), 100);
-    JS_GetProperty(njs.cx, JS_GetGlobalObject(njs.cx), "b", &rval);
+    JS_GetProperty(njs.cx, globObj, "b", &rval);
     EXPECT_EQ(JSVAL_TO_INT(rval), 100);
 
-#if 0
     const char * srcC = "var c = b * a";
     const char * srcD = "var d = c - a";
     NativeBytecodeScript bc;
 
     success = njs.LoadBytecode((void*)srcC, strlen(srcC), __FILE__);
-    EXPECT_EQ(success, 0);  // bad script XDR, but comilies
-    JS_GetProperty(njs.cx, JS_GetGlobalObject(njs.cx), "c", &rval);
+    EXPECT_EQ(success, 0);  // bad script XDR, but compiles
+    JS_GetProperty(njs.cx, globObj, "c", &rval);
     EXPECT_EQ(JSVAL_TO_INT(rval), 12100);
 
     bc.name = "dummy";
@@ -157,15 +156,12 @@ TEST(NativeJS, Code)
     bc.data = (const unsigned char*) srcD;
     success = njs.LoadBytecode(&bc);
     EXPECT_EQ(success, 1);
-    JS_GetProperty(njs.cx, JS_GetGlobalObject(njs.cx), "d", &rval);
+    JS_GetProperty(njs.cx, globObj, "d", &rval);
     EXPECT_EQ(JSVAL_TO_INT(rval), 12079);
 
-#endif
-//@TODO: static int LoadScriptReturn(JSContext *cx, const char *filename, JS::Value *ret);
-//@TODO: int LoadScript(const char *filename);
-
-    //native_netlib_destroy(g_ape);
+    native_netlib_destroy(g_ape);
 }
+
 TEST(NativeJS, Messages)
 {
     ape_global *g_ape = native_netlib_init();
@@ -181,7 +177,7 @@ TEST(NativeJS, Messages)
     EXPECT_EQ(njs.registeredMessagesIdx, 9);
     EXPECT_EQ(njs.registeredMessagesSize, 16);
     for (i = 10; i < 18; i++) {
-        printf("%d %d %d\n", i, njs.registeredMessagesIdx, njs.registeredMessagesSize);
+        printf("%ud %d %d\n", i, njs.registeredMessagesIdx, njs.registeredMessagesSize);
         njs.registerMessage(msg_cb_t);
         EXPECT_TRUE(njs.registeredMessages[i] != NULL);
     }
@@ -189,23 +185,12 @@ TEST(NativeJS, Messages)
     EXPECT_EQ(njs.registeredMessagesSize, 32);
 
     njs.registerMessage(msg_cb_t, 0);
-    //@FIXME: njs.registerMessage(msg_cb_t, 8);
-    //@FIXME: njs.registerMessage(msg_cb_t, 222);
-#if 0
     msgcounter = 0;
     ape_running = 1;
     void postMessage(void *dataPtr, int ev);
     events_loop(g_ape);
     EXPECT_EQ(msgcounter, 1);
-#endif
-    //native_netlib_destroy(g_ape);
+
+    native_netlib_destroy(g_ape);
 }
-/*
-static JSStructuredCloneCallbacks *jsscc;
-static JSObject *readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r, uint32_t tag, uint32_t data, void *closure);
-static JSBool writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w, JSObject *obj, void *closure);
-void setStructuredCloneAddition(WriteStructuredCloneOp write, ReadStructuredCloneOp read)
-ReadStructuredCloneOp getReadStructuredCloneAddition() const {
-WriteStructuredCloneOp getWriteStructuredCloneAddition() const {
-*/
 

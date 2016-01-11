@@ -8,15 +8,12 @@
 
 TEST(NativeJSThread, Simple)
 {
-    JSObject *globalObj;
     ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
-    jsval rval;
     bool success;
 
-    globalObj = JS_GetGlobalObject(njs.cx);
-
-    rval = JSVAL_VOID;
+    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    JS::RootedValue rval(njs.cx, JSVAL_VOID);
     success = JS_GetProperty(njs.cx, globalObj, "Thread", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
@@ -34,7 +31,8 @@ TEST(NativeJSThread, Init)
 {
     ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
-    JSObject * globalObj = JS_GetGlobalObject(njs.cx);
+
+    JS::RootedObject globObjnjs.cx, JS::CurrentGlobalOrNull(njs.cx));
     NativeJSThread nt(globalObj, njs.cx);
 
     EXPECT_TRUE(nt.getJSObject() == globalObj);

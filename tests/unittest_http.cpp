@@ -53,7 +53,7 @@ TEST(NativeHttp, Http)
     EXPECT_TRUE(nm.net == g_ape);
     EXPECT_TRUE(nm.m_CurrentSock == NULL);
     EXPECT_EQ(nm.err, 0);
-    //@TODO: nm.http.*
+
     EXPECT_EQ(nm.m_Timeout, HTTP_DEFAULT_TIMEOUT);
     EXPECT_EQ(nm.m_TimeoutTimer, 0);
     EXPECT_TRUE(nm.delegate == NULL);
@@ -87,47 +87,5 @@ TEST(NativeHttp, Http)
 
     //keepalive
     EXPECT_TRUE(nm.isKeepAlive() == true);
-
-#if 0
-    //@TODO: ParseURI
-    //@TODO: getPath
- @TODO:
-    ape_array_add_camelkey_n(nm.http.headers.list, "connection", strlen("connection"), "close", strlen("close"));
-    request->setHeader("connection", "close");
-    EXPECT_TRUE(nm.isKeepAlive() == false);
-
-    ape_array_add_camelkey_n(nm.http.headers.list, "connection", strlen("connection"), "close", strlen("close"));
-    request->setHeader("connection", "keep-alive");
-    EXPECT_TRUE(nm.isKeepAlive() == false);
-
-    ape_array_add_camelkey_n(nm.http.headers.list, "connection", strlen("connection"), "keep-alive", strlen("keep-alive"));
-    request->setHeader("connection", "close");
-    EXPECT_TRUE(nm.isKeepAlive() == false);
-
-    ape_array_add_camelkey_n(nm.http.headers.list, "connection", strlen("connection"), "keep-alive", strlen("keep-alive"));
-    request->setHeader("connection", "keep-alive");
-    EXPECT_TRUE(nm.isKeepAlive() == true);
-
-    //@TODO: requestEnded
-    //@TODO: headerEnded
-    //@TODO: stopRequest
-    //@TODO: clearTimeout
-    //@TODO: onData
-    //@TODO: setPrivate
-    //@TODO: getPrivate
-    //@TODO: resetData
-    //@TODO: getFileSize
-    //@TODO: getStatusCode
-    //@TODO: close
-    //@TODO: clearState
-    native_netlib_destroy(g_ape);
-#endif
 }
-
-/*
-TEST(NativeHttp, Delegate)
-{
-
-}
-*/
 

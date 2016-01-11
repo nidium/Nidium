@@ -7,36 +7,31 @@
 #include <NativeJS.h>
 #include <NativeJSProfiler.h>
 
-//@TODO: ? RegisterObject("NativeProfile");
 
 TEST(NativeJSProfiler, Init)
 {
     ape_global * g_ape = native_netlib_init();
     NativeJS njs(g_ape);
-    //JSObject * globalObj = JS_GetGlobalObject(njs.cx);
-    JSObject * obj;
-    jsval rval;
+    NativeProfile::RegisterObject(njs.cx);
 
     NativeProfiler *np = NativeProfiler::getInstance(njs.cx);
 
     np->start("dummy");
     np->stop();
 
-    obj = np->toJSObject();
+    JS::RootedObject obj(njs.cx, np->toJSObject());
     EXPECT_TRUE(obj != NULL);
 
     obj = np->getJSObject();
     EXPECT_TRUE(obj != NULL);
 
-    rval = JSVAL_VOID;
+    JS::RootedValue rval(njs.cx, JSVAL_VOID);
     JS_GetProperty(njs.cx, obj, "toJSObject", &rval);
     EXPECT_TRUE(!JSVAL_IS_VOID(rval));
 
     rval = JSVAL_VOID;
     JS_GetProperty(njs.cx, obj, "dump", &rval);
     EXPECT_TRUE(!JSVAL_IS_VOID(rval));
-
-    //@TODO: toCacheGrind
 
     native_netlib_destroy(g_ape);
 }
@@ -64,11 +59,8 @@ TEST(NativeJSProfiler, InitEntry)
     EXPECT_TRUE(pe.getTotalTSC() > 0);
     EXPECT_TRUE(pe.getTotalCall()> 0);
 
-    JSObject *obj = pe.toJSObject(njs.cx);
-    EXPECT_TRUE(obj != NULL);
-
-    //@TODO: addChild
-    //@TODO: toCacheGrind
+    JS::RootedObject obj(njs.cx, pe.toJSObject(njs.cx));
+    EXPECT_TRUE(obj.get() != NULL);
 
     free(sig);
     free(sigDummy);
@@ -92,9 +84,8 @@ TEST(NativeJSProfiler, InitChild)
     EXPECT_EQ(ce.getTotalTSC(), 16);
     EXPECT_EQ(ce.getTotalCall(), 1);
 
-    JSObject *obj = pe.toJSObject(njs.cx);
-    EXPECT_TRUE(obj != NULL);
-    //@TODO:toCacheGrind
+    JS::RootedObject obj(njs.cx, pe.toJSObject(njs.cx));
+    EXPECT_TRUE(obj.get() != NULL);
 
     free(sigDummy);
     native_netlib_destroy(g_ape);

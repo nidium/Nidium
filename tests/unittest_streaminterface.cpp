@@ -14,11 +14,9 @@ public:
         counter = 0;
         NativeBaseStream::create(location);
     }
-/*
     DummyStream(const NativePath &path): NativeBaseStream(path) {
         counter = 0;
     }
-*/
     void stop() {
         counter = 10;
     }
@@ -38,11 +36,9 @@ public:
 protected:
     const unsigned char * onGetNextPacket(size_t *len, int *err) {
         counter++;
-        /* @TODO: error simulation
         if (counter == 2) {
             this->error(NATIVESTREAM_ERROR_UNKNOWN, 666);
         }
-        */
         return NULL;
 
     }
@@ -60,7 +56,6 @@ TEST(NativeStreamInterface, Base)
     DummyStream nbs(fn);
     EXPECT_TRUE(strcmp(nbs.getLocation(), fn) == 0);
     EXPECT_EQ(nbs.counter, 0);
-    //TODO nbs.start(0, 0);
     nbs.start(1, 0);
     EXPECT_EQ(nbs.counter, 1);
 
@@ -71,10 +66,7 @@ TEST(NativeStreamInterface, Base)
     EXPECT_EQ(error, 0);
     EXPECT_EQ(len, 0);
 
-/*@TODO
     class NativeMessages listerer;
     setListener(listener);
-*/
 }
-//@TODO: construct with Path
 

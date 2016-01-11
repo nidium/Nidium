@@ -12,7 +12,6 @@ void dummyTask(NativeTask *arg)
     dummy++;
 }
 
-#if 0
 TEST(NativeTaskManager, NativeTask)
 {
     NativeTask::task_func fun;
@@ -29,8 +28,6 @@ TEST(NativeTaskManager, NativeTask)
     fun = nt->getFunction();
     EXPECT_TRUE(fun == dummyTask);
 
-    //@TODO: args
-
     dummy = 0;
     delete nt;
     delete nm;
@@ -42,7 +39,6 @@ TEST(NativeTaskManager, NativeManaged)
 
     EXPECT_EQ(nm.m_TaskQueued, 0);
     nm.addTask(&nt);
-    //@FIXME: EXPECT_EQ(nm.m_TaskQueued, 1);
 }
 
 TEST(NativeTaskManager, WorkerInfo)
@@ -50,13 +46,6 @@ TEST(NativeTaskManager, WorkerInfo)
     NativeTaskManager::workerInfo *wi = new NativeTaskManager::workerInfo();
     NativeTask *t = new NativeTask();
     wi->addTask(t);
-    //@TODO: setManager
-    //@TODO: getMessages
-    //@TODO: waitTerminate
-    //@TODO: run
-    //@TODO: stop
-    //@TODO: run
-    //@TODO: work
 
     delete t;
     delete wi;
@@ -75,5 +64,4 @@ TEST(NativeTaksManager,  TaskManager)
     tm->stopAll();
     wi = tm->getAvailableWorker();
 }
-#endif
 

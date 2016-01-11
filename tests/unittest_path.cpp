@@ -24,12 +24,6 @@ TEST(NativePath, Nulling)
     EXPECT_EQ(NativePath::g_m_SchemesCount, 2);
     EXPECT_TRUE(strcmp(path.g_m_DefaultScheme->str, "file://") == 0);
 
-#if 0
-    EXPECT_TRUE(strcmp(path.getDir("/tmp/t.txt"), "/tmp") == 0);
-    EXPECT_TRUE(strcmp(path.getDir("/tmp/t.txt/"), "/tmp/t.txt") == 0);
-    EXPECT_TRUE(strcmp(path.getDir("file:///tmp/t.txt"), "file:///tmp") == 0);
-    EXPECT_TRUE(strcmp(path.getDir("file:///tmp/t.txt/"), "file:///tmp/t.txt") == 0);
-#endif
 }
 
 TEST(NativePath, Relative)
@@ -84,7 +78,6 @@ TEST(NativePath, SimpleScheme)
     pwd[len] = '/';
     pwd[len + 1] = '\0';
 
-    //EXPECT_TRUE(strcmp(path.path(), pwd) == 0);
     EXPECT_TRUE(path.getRoot() == NULL);
     EXPECT_TRUE(path.getPwd() == NULL);
     EXPECT_TRUE(strcmp(path.dir(), pwd) == 0);
@@ -104,15 +97,6 @@ TEST(NativePath, RelativeFile)
 
     pwd[len] = '/';
     pwd[len + 1] = '\0';
-#if 0
-printf("path: %s\n", path.path());
-printf("root: %s\n", path.getRoot());
-printf("pwd:  %s\n", path.getPwd());
-printf("dir:  %s\n", path.dir());
-//printf("sch:  %s\n", path.getScheme()->str);
-printf("\n");
-#endif
-    //EXPECT_TRUE(strcmp(path.path(), pwd) == 0);
     EXPECT_TRUE(path.getRoot() == NULL);
     EXPECT_TRUE(path.getPwd() == NULL);
     EXPECT_TRUE(strcmp(path.dir(), pwd) == 0);
