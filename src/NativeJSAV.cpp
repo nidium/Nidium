@@ -462,7 +462,7 @@ static void native_av_thread_message(JSContext *cx, JS::HandleObject obj, const 
         native_thread_msg *ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
 
         if (JS_GetProperty(cx, obj, "onmessage", &jscbk) &&
-            !jscbk.isPrimitive() && JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(jscbk))) {
+            jscbk.isObject() && JS_ObjectIsCallable(cx, &jscbk.toObject())) {
 
             JS::RootedValue inval(cx, JSVAL_NULL);
             if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
@@ -486,8 +486,8 @@ static void native_av_thread_message(JSContext *cx, JS::HandleObject obj, const 
         }
 
         if (JS_GetProperty(cx, obj, prop, &jscbk) &&
-            !jscbk.isPrimitive() &&
-            JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(jscbk))) {
+            jscbk.isObject() &&
+            JS_ObjectIsCallable(cx, &jscbk.toObject())) {
 
             if (cmsg->m_Ev == SOURCE_EVENT_ERROR) {
                 JS::AutoValueArray<2> event(cx);
@@ -873,7 +873,8 @@ void NativeJSAudioNode::setPropCallback(NativeAudioNode *node, void *custom)
     }
     JS::RootedObject hashObj(tcx, msg->jsNode->m_HashObj);
     if (msg->name == NULL) {
-        JS::RootedObject props(tcx, JSVAL_TO_OBJECT(data));
+        JS::RootedObject props(tcx);
+        JS_ValueToObject(tcx, data, &props);
         JS::AutoIdArray ida(tcx, JS_Enumerate(tcx, props));
         for (size_t i = 0; i < ida.length(); i++) {
             JS::RootedId id(tcx, ida[i]);
@@ -1214,22 +1215,22 @@ static bool native_Audio_constructor(JSContext *cx, unsigned argc, JS::Value *vp
 static bool native_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    unsigned int bufferSize, channels, sampleRate;
+    int32_t bufferSize, channels, sampleRate;
 
     if (argc > 0) {
-        bufferSize = JSVAL_TO_INT(args[0]);
+        JS::ToInt32(cx, args[0], &bufferSize);
     } else {
         bufferSize = 2048;
     }
 
     if (argc > 1) {
-        channels = JSVAL_TO_INT(args[1]);
+        JS::ToInt32(cx, args[1], &channels);
     } else {
         channels = 2;
     }
 
     if (argc >= 2) {
-        sampleRate = JSVAL_TO_INT(args[2]);
+        JS::ToInt32(cx, args[2], &sampleRate);
     } else {
         sampleRate = 44100;
     }
@@ -1608,8 +1609,8 @@ static bool native_audionode_set(JSContext *cx, unsigned argc, JS::Value *vp)
     jnode = CppObj;
 
     NativeAudioNode *node = jnode->m_Node;
-    if (!args[0].isPrimitive()) {
-        JS::RootedObject props(cx, JSVAL_TO_OBJECT(args[0]));
+    if (args[0].isObject()) {
+        JS::RootedObject props(cx, &args[0].toObject());
         JS::AutoIdArray ida(cx, JS_Enumerate(cx, props));
         for (size_t i = 0; i < ida.length(); i++) {
             JS::RootedId id(cx, ida[i]);
@@ -2117,8 +2118,8 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
     JS::RootedValue onframe(v->cx);
     JS::RootedObject vobj(v->cx, v->getJSObject());
     if (JS_GetProperty(v->cx, vobj, "onframe", &onframe) &&
-            !onframe.isPrimitive() &&
-            JS_ObjectIsCallable(v->cx, JSVAL_TO_OBJECT(onframe))) {
+            onframe.isObject() &&
+            JS_ObjectIsCallable(v->cx, &onframe.toObject())) {
         JS::AutoValueArray<1> params(v->cx);
 
         params[0].setObjectOrNull(v->getJSObject());
@@ -2339,7 +2340,7 @@ static bool native_video_setsize(JSContext *cx, unsigned argc, JS::Value *vp)
     if (jwidth.isString()) {
         width = -1;
     } else if (jwidth.isNumber()) {
-        width = JSVAL_TO_INT(jwidth);
+        JS::ToNumber(cx, jwidth, &width);
     } else {
         JS_ReportError(cx, "Wrong argument type for width");
         return false;
@@ -2348,7 +2349,7 @@ static bool native_video_setsize(JSContext *cx, unsigned argc, JS::Value *vp)
     if (jheight.isString()) {
         height = -1;
     } else if (jheight.isNumber()) {
-        height = JSVAL_TO_INT(jheight);
+        JS::ToNumber(cx, jheight, &height);
     } else {
         JS_ReportError(cx, "Wrong argument type for height");
         return false;

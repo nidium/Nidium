@@ -697,11 +697,8 @@ static bool native_canvas2dctx_save(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NATIVE_LOG_2D_CALL();
 
-    JS::RootedValue slot(cx, JS_GetReservedSlot(thisobj, 0));
-    JS::RootedObject savedArray(cx, JSVAL_TO_OBJECT(slot));
     JS::RootedObject saved(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue outval(cx);
-
 #define CANVAS_2D_CTX_PROP_GET(prop)
 #define CANVAS_2D_CTX_PROP(prop)    JS_GetProperty(cx, thisobj, #prop, &outval); \
                                     JS_SetProperty(cx, saved, #prop, outval);
@@ -711,13 +708,14 @@ static bool native_canvas2dctx_save(JSContext *cx, unsigned argc, JS::Value *vp)
 #undef CANVAS_2D_CTX_PROP
 #undef CANVAS_2D_CTX_PROP_GET
     uint32_t arr_length;
+    JS::RootedValue slot(cx, JS_GetReservedSlot(thisobj, 0));
+    JS::RootedObject savedArray(cx);
+    JS_ValueToObject(cx, slot, &savedArray);
     JS::RootedValue savedVal(cx, OBJECT_TO_JSVAL(saved));
-
     JS_GetArrayLength(cx, savedArray, &arr_length);
     JS_SetElement(cx, savedArray, arr_length, savedVal);
 
     CppObj->getSurface()->save();
-
 
     return true;
 }
@@ -726,7 +724,9 @@ static bool native_canvas2dctx_restore(JSContext *cx, unsigned argc, JS::Value *
 {
     JSNATIVE_PROLOGUE_CLASS_NO_RET(NativeCanvas2DContext, &Canvas2DContext_class);
     JS::RootedValue slot(cx, JS_GetReservedSlot(thisobj, 0));
-    JS::RootedObject savedArray(cx, JSVAL_TO_OBJECT(slot));
+    JS::RootedObject slotObj(cx);
+    JS_ValueToObject(cx, slot, &slotObj);
+    JS::RootedObject savedArray(cx, slotObj);
 
     NATIVE_LOG_2D_CALL();
     NSKIA_NATIVE->restore();
@@ -740,7 +740,8 @@ static bool native_canvas2dctx_restore(JSContext *cx, unsigned argc, JS::Value *
     }
     JS::RootedValue saved(cx);
     JS_GetElement(cx, savedArray, arr_length - 1, &saved);
-    JS::RootedObject savedObj(cx, JSVAL_TO_OBJECT(saved));
+    JS::RootedObject savedObj(cx);
+    JS_ValueToObject(cx, saved, &savedObj);
     JS::RootedValue outval(cx);
 
 #define CANVAS_2D_CTX_PROP_GET(prop)
@@ -813,6 +814,7 @@ static bool native_canvas2dctx_putImageData(JSContext *cx,
     JSNATIVE_PROLOGUE_CLASS_NO_RET(NativeCanvas2DContext, &Canvas2DContext_class);
     int x, y;
     uint8_t *pixels;
+    int32_t w, h;
 
     NATIVE_LOG_2D_CALL();
     JS::RootedObject dataObject(cx);
@@ -832,12 +834,13 @@ static bool native_canvas2dctx_putImageData(JSContext *cx,
     JS_GetProperty(cx, dataObject, "width", &jwidth);
     JS_GetProperty(cx, dataObject, "height", &jheight);
 
-    JS::RootedObject jObj(cx, JSVAL_TO_OBJECT(jdata));
+    JS::RootedObject jObj(cx);
+    JS_ValueToObject(cx, jdata, &jObj);
     pixels = JS_GetUint8ClampedArrayData(jObj);
+    JS::ToInt32(cx, jwidth, &w);
+    JS::ToInt32(cx, jheight, &h);
 
-    NSKIA_NATIVE->drawPixels(pixels, JSVAL_TO_INT(jwidth), JSVAL_TO_INT(jheight),
-        x, y);
-
+    NSKIA_NATIVE->drawPixels(pixels, w, h, x, y);
 
     return true;
 }
@@ -1518,7 +1521,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            JS::RootedString vpStr(cx, JSVAL_TO_STRING(vp));
+            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString color(cx, vpStr);
             curSkia->setShadowColor(color.ptr());
         }
@@ -1543,7 +1546,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            JS::RootedString vpStr(cx, JSVAL_TO_STRING(vp));
+            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString style(cx, vpStr);
             curSkia->setFontStyle(style.ptr());
         }
@@ -1568,7 +1571,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            JS::RootedString vpStr(cx, JSVAL_TO_STRING(vp));
+            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString baseline(cx, vpStr);
             curSkia->textBaseline(baseline.ptr());
         }
@@ -1580,7 +1583,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            JS::RootedString vpStr(cx, JSVAL_TO_STRING(vp));
+            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString font(cx, vpStr);
             curSkia->textAlign(font.ptr());
         }
@@ -1592,7 +1595,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            JS::RootedString vpStr(cx, JSVAL_TO_STRING(vp));
+            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString font(cx, vpStr);
             curSkia->setFontType(font.ptr(), NativeJSdocument::getNativeClass(cx));
         }
@@ -1604,7 +1607,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            JS::RootedString vpStr(cx, JSVAL_TO_STRING(vp));
+            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString font(cx, vpStr);
             if (!curSkia->setFontFile(font.ptr())) {
                 JS_ReportError(cx, "Cannot set font (invalid file)");
@@ -1616,21 +1619,20 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(fillStyle):
         {
             if (vp.isString()) {
-                JS::RootedString vpStr(cx, JSVAL_TO_STRING(vp));
+                JS::RootedString vpStr(cx, JS::ToString(cx, vp));
                 JSAutoByteString colorName(cx, vpStr);
                 curSkia->setFillColor(colorName.ptr());
-            } else if (!vp.isPrimitive() && JS_GetClass(JSVAL_TO_OBJECT(vp)) == &canvasGradient_class) {
-                JS::RootedObject vpObj(cx, JSVAL_TO_OBJECT(vp));
-                NativeSkGradient *gradient = (class NativeSkGradient *)
-                                            JS_GetPrivate(vpObj);
+            } else if (vp.isObject() && 
+                JS_GetClass(&vp.toObject()) == &canvasGradient_class) {
+                JS::RootedObject vpObj(cx, &vp.toObject());
+                NativeSkGradient *gradient = (class NativeSkGradient *) JS_GetPrivate(vpObj);
 
                 curSkia->setFillColor(gradient);
 
-            } else if (!vp.isPrimitive() &&
-                JS_GetClass(JSVAL_TO_OBJECT(vp)) == &canvasPattern_class) {
-                JS::RootedObject vpObj(cx, JSVAL_TO_OBJECT(vp));
-                NativeCanvasPattern *pattern = (class NativeCanvasPattern *)
-                                            JS_GetPrivate(vpObj);
+            } else if (vp.isObject() &&
+                JS_GetClass(&vp.toObject()) == &canvasPattern_class) {
+                JS::RootedObject vpObj(cx, &vp.toObject());
+                NativeCanvasPattern *pattern = (class NativeCanvasPattern *) JS_GetPrivate(vpObj);
 
                 curSkia->setFillColor(pattern);
             } else {
@@ -1643,14 +1645,13 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(strokeStyle):
         {
             if (vp.isString()) {
-                JS::RootedString vpStr(cx, JSVAL_TO_STRING(vp));
+                JS::RootedString vpStr(cx, JS::ToString(cx, vp));
                 JSAutoByteString colorName(cx, vpStr);
                 curSkia->setStrokeColor(colorName.ptr());
-            } else if (!vp.isPrimitive() &&
-                JS_GetClass(JSVAL_TO_OBJECT(vp)) == &canvasGradient_class) {
-                JS::RootedObject vpObj(cx, JSVAL_TO_OBJECT(vp));
-                NativeSkGradient *gradient = (class NativeSkGradient *)
-                                            JS_GetPrivate(vpObj);
+            } else if (vp.isObject() &&
+                JS_GetClass(&vp.toObject()) == &canvasGradient_class) {
+                JS::RootedObject vpObj(cx, &vp.toObject());
+                NativeSkGradient *gradient = (class NativeSkGradient *) JS_GetPrivate(vpObj);
 
                 curSkia->setStrokeColor(gradient);
             } else {
@@ -1703,7 +1704,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            JS::RootedString vpStr(cx, JSVAL_TO_STRING(vp));
+            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString composite(cx, vpStr);
             curSkia->setGlobalComposite(composite.ptr());
         }
@@ -1715,7 +1716,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            JS::RootedString vpStr(cx, JSVAL_TO_STRING(vp));
+            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString lineCap(cx, vpStr);
             curSkia->setLineCap(lineCap.ptr());
         }
@@ -1727,7 +1728,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            JS::RootedString vpStr(cx, JSVAL_TO_STRING(vp));
+            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString lineJoin(cx, vpStr);
             curSkia->setLineJoin(lineJoin.ptr());
         }
