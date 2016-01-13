@@ -733,13 +733,13 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
     switch(id) {
         case WINDOW_PROP_LEFT:
         {
-            double dval;
+            uint32_t dval;
             if (!vp.isNumber()) {
 
                 return true;
             }
 
-            dval = vp.toNumber();
+            JS::ToUint32(cx, vp, &dval);
             NUI->setWindowPosition((int)dval, NATIVE_WINDOWPOS_UNDEFINED_MASK);
 
             break;
@@ -747,39 +747,39 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
         case WINDOW_PROP_TOP:
         {
-            double dval;
+            uint32_t dval;
             if (!vp.isNumber()) {
 
                 return true;
             }
 
-            dval = vp.toNumber();
+            JS::ToUint32(cx, vp, &dval);
             NUI->setWindowPosition(NATIVE_WINDOWPOS_UNDEFINED_MASK, (int)dval);
 
             break;
         }
         case WINDOW_PROP_WIDTH:
         {
-            double dval;
+            uint32_t dval;
             if (!vp.isNumber()) {
 
                 return true;
             }
 
-            dval = vp.toNumber();
+            JS::ToUint32(cx, vp, &dval);
             NativeContext::getNativeClass(cx)->setWindowSize((int)dval, NUI->getHeight());
 
             break;
         }
         case WINDOW_PROP_HEIGHT:
         {
-            double dval;
+            uint32_t dval;
             if (!vp.isNumber()) {
 
                 return true;
             }
 
-            dval = vp.toNumber();
+            JS::ToUint32(cx, vp, &dval);
             NativeContext::getNativeClass(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
 
             break;
@@ -1267,7 +1267,8 @@ static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    int x = 0, y = 0;
+    uint32_t x = 0, y = 0;
+    uint32_t w, h;
 
     if (args[0].isString()) {
         JS::RootedString xstr(cx, args[0].toString());
@@ -1278,9 +1279,10 @@ static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
         }
 
     } else if (args[0].isNumber()) {
-        x = args[0].toInt32();
+        JS::ToUint32(cx, args[0], &x);
     } else {
         JS_ReportError(cx, "setFrame() invalid position");
+
         return false;
     }
     if (args[1].isString()) {
@@ -1292,14 +1294,30 @@ static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
         }
 
     } else if (args[1].isNumber()) {
-        y = args[1].toInt32();
+        JS::ToUint32(cx, args[1], &y);
     } else {
         JS_ReportError(cx, "setFrame() invalid position");
+
+        return false;
+    }
+    if (args[2].isNumber()) {
+        JS::ToUint32(cx, args[2], &w);
+    } else {
+        JS_ReportError(cx, "setFrame() invalid width");
+
         return false;
     }
 
-    NativeContext::getNativeClass(cx)->setWindowFrame(x, y,
-        args[2].toInt32(), args[3].toInt32());
+    if (args[3].isNumber()) {
+        JS::ToUint32(cx, args[3], &h);
+    } else {
+        JS_ReportError(cx, "setFrame() invalid width");
+
+        return false;
+    }
+
+
+    NativeContext::getNativeClass(cx)->setWindowFrame((int)x, (int)y, (int) w, (int) h );
 
     return true;
 }
