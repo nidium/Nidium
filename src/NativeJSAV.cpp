@@ -1534,7 +1534,11 @@ static bool native_audio_prop_setter(JSContext *cx, JS::HandleObject obj, uint8_
     CHECK_INVALID_CTX(jaudio);
 
     if (vp.isNumber()) {
-        jaudio->m_Audio->setVolume((float)vp.toNumber());
+        float vol;
+
+        vol = vp.toNumber();
+
+        jaudio->m_Audio->setVolume(vol);
     }
 
     return true;
@@ -1586,9 +1590,9 @@ static void native_audionode_set_internal(JSContext *cx, NativeAudioNode *node, 
     if (val.isInt32()) {
         type = INT;
         size = sizeof(int);
-        intVal = val.toInt32();
+        intVal = (int) val.toInt32();
         value = &intVal;
-    } else if (val.isDouble()) {
+    } else if (val.isNumber()) {
         type = DOUBLE;
         size = sizeof(double);
         doubleVal = val.toNumber();
@@ -2326,8 +2330,7 @@ static bool native_video_frameat(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_video_setsize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    double width;
-    double height;
+    uint32_t width, height;
     JSNATIVE_PROLOGUE_CLASS_NO_RET(NativeJSVideo, &Video_class);
 
     if (argc < 2) {
@@ -2341,7 +2344,7 @@ static bool native_video_setsize(JSContext *cx, unsigned argc, JS::Value *vp)
     if (jwidth.isString()) {
         width = -1;
     } else if (jwidth.isNumber()) {
-        width = jwidth.toNumber();
+        JS::ToUint32(cx, jwidth, &width);
     } else {
         JS_ReportError(cx, "Wrong argument type for width");
         return false;
@@ -2350,7 +2353,7 @@ static bool native_video_setsize(JSContext *cx, unsigned argc, JS::Value *vp)
     if (jheight.isString()) {
         height = -1;
     } else if (jheight.isNumber()) {
-        height = jheight.toNumber();
+        JS::ToUint32(cx, jheight, &height);
     } else {
         JS_ReportError(cx, "Wrong argument type for height");
         return false;
@@ -2432,7 +2435,10 @@ bool NativeJSAVSource::propSetter(NativeAVSource *source, uint8_t id, JS::Mutabl
     switch(id) {
         case SOURCE_PROP_POSITION:
             if (vp.isNumber()) {
-                source->seek(vp.toNumber());
+                double pos;
+
+                pos = vp.toNumber();
+                source->seek(pos);
             }
             break;
         default:
@@ -2489,7 +2495,10 @@ bool NativeJSAudioNode::propSetter(NativeJSAudioNode *jnode, JSContext *cx,
     switch(id) {
         case SOURCE_PROP_POSITION:
             if (vp.isNumber()) {
-                source->seek(vp.toNumber());
+                double pos;
+
+                pos = vp.toNumber();
+                source->seek(pos);
             }
         break;
         case CUSTOM_SOURCE_PROP_SEEK: {

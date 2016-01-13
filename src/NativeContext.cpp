@@ -80,9 +80,9 @@ void NativeContext::CreateAndAssemble(NativeUIInterface *ui, ape_global *gnet)
 
 NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
-    m_RootHandler(NULL), m_DebugHandler(NULL), 
+    m_RootHandler(NULL), m_DebugHandler(NULL),
 #if DEBUG
-m_Debug2Handler(NULL), 
+m_Debug2Handler(NULL),
 #endif
     m_UI(nui), m_NML(nml), m_GLState(NULL), m_JSWindow(NULL), m_SizeDirty(false),
     m_CurrentClickedHandler(NULL)
