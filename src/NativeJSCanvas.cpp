@@ -342,7 +342,6 @@ static bool CanvasInherit_get(JSContext *cx, JS::HandleObject obj, JS::HandleId 
     NativeCanvasHandler *handler = jscanvas->getHandler(), *parent;
 
     if (vp.isNull()) {
-
         if ((parent = handler->getParent()) == NULL || !parent->m_JsObj) {
             return true;
         }
@@ -898,12 +897,14 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             uint32_t dval;
             if (!vp.isNumber()) {
+
                 return true;
             }
-            JS::ToUint32(cx, vp, &dval);
 
+            dval = vp.toInt32();
             if (!handler->setWidth(dval)) {
                 //JS_ReportError(cx, "Can't set canvas width (this canvas has a dynamic width)");
+
                 return true;
             }
         }
@@ -912,10 +913,11 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             uint32_t dval;
             if (!vp.isNumber()) {
+
                 return true;
             }
-            JS::ToUint32(cx, vp, &dval);
 
+            dval = vp.toInt32();
             if (!handler->setMinWidth(dval)) {
                 return true;
             }
@@ -927,8 +929,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!vp.isNumber()) {
                 return true;
             }
-            JS::ToUint32(cx, vp, &dval);
 
+            dval = vp.toInt32();
             if (!handler->setMaxWidth(dval)) {
                 return true;
             }
@@ -940,8 +942,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!vp.isNumber()) {
                 return true;
             }
-            JS::ToUint32(cx, vp, &dval);
 
+            dval = vp.toInt32();
             if (!handler->setHeight(dval)) {
                 //JS_ReportError(cx, "Can't set canvas height (this canvas has a dynamic height)");
                 return true;
@@ -954,8 +956,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!vp.isNumber()) {
                 return true;
             }
-            JS::ToUint32(cx, vp, &dval);
 
+            dval = vp.toInt32();
             if (!handler->setMinHeight(dval)) {
                 return true;
             }
@@ -967,8 +969,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!vp.isNumber()) {
                 return true;
             }
-            JS::ToUint32(cx, vp, &dval);
 
+            dval = vp.toInt32();
             if (!handler->setMaxHeight(dval)) {
                 return true;
             }
@@ -985,12 +987,15 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
 
             if (vp.isNullOrUndefined()) {
                 handler->unsetLeft();
+
                 return true;
             }
             if (!vp.isNumber()) {
+
                 return true;
             }
-            JS::ToNumber(cx, vp, &dval);
+
+            dval = vp.toNumber();
             handler->setLeft(dval);
         }
         break;
@@ -1005,12 +1010,15 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
 
             if (vp.isNullOrUndefined()) {
                 handler->unsetRight();
+
                 return true;
             }
             if (!vp.isNumber()) {
+
                 return true;
             }
-            JS::ToNumber(cx, vp, &dval);
+
+            dval = vp.toNumber();
             handler->setRight(dval);
         }
         break;
@@ -1022,12 +1030,15 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             }
             if (vp.isNullOrUndefined()) {
                 handler->unsetTop();
+
                 return true;
             }
             if (!vp.isNumber()) {
+
                 return true;
             }
-            JS::ToNumber(cx, vp, &dval);
+
+            dval = vp.toNumber();
             handler->setTop(dval);
         }
         break;
@@ -1035,16 +1046,20 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             double dval;
             if (!handler->hasStaticBottom()) {
+
                 return true;
             }
             if (vp.isNullOrUndefined()) {
                 handler->unsetBottom();
+
                 return true;
             }
             if (!vp.isNumber()) {
+
                 return true;
             }
-            JS::ToNumber(cx, vp, &dval);
+
+            dval = vp.toNumber();
             handler->setBottom(dval);
         }
         break;
@@ -1052,10 +1067,11 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             int32_t dval;
             if (!vp.isNumber()) {
+
                 return true;
             }
-            JS::ToInt32(cx, vp, &dval);
 
+            dval = vp.toInt32();
             handler->setScrollLeft(dval);
         }
         break;
@@ -1063,65 +1079,72 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             int32_t dval;
             if (!vp.isNumber()) {
+
                 return true;
             }
-            JS::ToInt32(cx, vp, &dval);
 
+            dval = vp.toInt32();
             handler->setScrollTop(dval);
         }
         break;
         case CANVAS_PROP_ALLOWNEGATIVESCROLL:
         {
             if (!vp.isBoolean()) {
+
                 return true;
             }
-            handler->setAllowNegativeScroll(JS::ToBoolean(vp));
+
+            handler->setAllowNegativeScroll(vp.toBoolean());
         }
         break;
         case CANVAS_PROP_VISIBLE:
         {
             if (!vp.isBoolean()) {
+
                 return true;
             }
 
-            handler->setHidden(!JS::ToBoolean(vp));
+            handler->setHidden(!vp.toBoolean());
         }
         break;
         case CANVAS_PROP_OVERFLOW:
         {
             if (!vp.isBoolean()) {
+
                 return true;
             }
 
-            handler->m_Overflow = JS::ToBoolean(vp);
+            handler->m_Overflow = vp.toBoolean();
         }
         break;
         case CANVAS_PROP_COATING:
         {
             int32_t dval;
-
             if (!vp.isNumber()) {
+
                 return true;
             }
-            JS::ToInt32(cx, vp, &dval);
 
+            dval = vp.toInt32();
             handler->setPadding(dval);
         }
         break;
         case CANVAS_PROP_OPACITY:
         {
             double dval;
-
             if (!vp.isNumber()) {
+
                 return true;
             }
-            JS::ToNumber(cx, vp, &dval);
+
+            dval = vp.toNumber();
             handler->setOpacity(dval);
         }
         break;
         case CANVAS_PROP_STATICLEFT:
         {
             if (!vp.isBoolean()) {
+
                 return true;
             }
 
@@ -1135,6 +1158,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         case CANVAS_PROP_STATICRIGHT:
         {
             if (!vp.isBoolean()) {
+
                 return true;
             }
 
@@ -1148,6 +1172,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         case CANVAS_PROP_STATICTOP:
         {
             if (!vp.isBoolean()) {
+
                 return true;
             }
 
@@ -1161,6 +1186,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         case CANVAS_PROP_STATICBOTTOM:
         {
             if (!vp.isBoolean()) {
+
                 return true;
             }
             if (vp.toBoolean()) {
@@ -1173,6 +1199,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         case CANVAS_PROP_FLUIDHEIGHT:
         {
             if (!vp.isBoolean()) {
+
                 return true;
             }
             handler->setFluidHeight(vp.toBoolean());
@@ -1181,6 +1208,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         case CANVAS_PROP_FLUIDWIDTH:
         {
             if (!vp.isBoolean()) {
+
                 return true;
             }
             handler->setFluidWidth(vp.toBoolean());
@@ -1189,7 +1217,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         case CANVAS_PROP_ID:
         {
             JS::RootedString sid(cx, vp.toString());
-            if (!sid) {
+            if (!sid.get()) {
+
                 return true;
             }
             JSAutoByteString cid(cx, sid);
@@ -1199,12 +1228,12 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         case CANVAS_PROP_MARGINLEFT:
         {
             double dval;
-
             if (!vp.isNumber()) {
+
                 return true;
             }
 
-            JS::ToNumber(cx, vp, &dval);
+            dval = vp.toNumber();
             handler->setMargin(handler->m_Margin.top, handler->m_Margin.right,
                 handler->m_Margin.bottom, dval);
         }
@@ -1212,12 +1241,12 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         case CANVAS_PROP_MARGINRIGHT:
         {
             double dval;
-
             if (!vp.isNumber()) {
+
                 return true;
             }
 
-            JS::ToNumber(cx, vp, &dval);
+            dval = vp.toNumber();
             handler->setMargin(handler->m_Margin.top, dval,
                 handler->m_Margin.bottom, handler->m_Margin.left);
         }
@@ -1225,12 +1254,12 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         case CANVAS_PROP_MARGINTOP:
         {
             double dval;
-
             if (!vp.isNumber()) {
+
                 return true;
             }
 
-            JS::ToNumber(cx, vp, &dval);
+            dval = vp.toNumber();
             handler->setMargin(dval, handler->m_Margin.right,
                 handler->m_Margin.bottom, handler->m_Margin.left);
         }
@@ -1238,12 +1267,12 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         case CANVAS_PROP_MARGINBOTTOM:
         {
             double dval;
-
             if (!vp.isNumber()) {
+
                 return true;
             }
 
-            JS::ToNumber(cx, vp, &dval);
+            dval = vp.toNumber();
             handler->setMargin(handler->m_Margin.top, handler->m_Margin.right,
                 dval, handler->m_Margin.left);
         }
@@ -1251,6 +1280,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         case CANVAS_PROP_CURSOR:
         {
             if (!vp.isString()) {
+
                 return true;
             }
 

@@ -738,8 +738,8 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 return true;
             }
-            JS::ToNumber(cx, vp, &dval);
 
+            dval = vp.toNumber();
             NUI->setWindowPosition((int)dval, NATIVE_WINDOWPOS_UNDEFINED_MASK);
 
             break;
@@ -753,7 +753,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            JS::ToNumber(cx, vp, &dval);
+            dval = vp.toNumber();
             NUI->setWindowPosition(NATIVE_WINDOWPOS_UNDEFINED_MASK, (int)dval);
 
             break;
@@ -766,7 +766,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            JS::ToNumber(cx, vp, &dval);
+            dval = vp.toNumber();
             NativeContext::getNativeClass(cx)->setWindowSize((int)dval, NUI->getHeight());
 
             break;
@@ -779,7 +779,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            JS::ToNumber(cx, vp, &dval);
+            dval = vp.toNumber();
             NativeContext::getNativeClass(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
 
             break;
@@ -787,6 +787,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
         case WINDOW_PROP_TITLE:
         {
             if (!vp.isString()) {
+
                 return true;
             }
 
@@ -798,6 +799,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
         case WINDOW_PROP_CURSOR:
         {
             if (!vp.isString()) {
+
                 return true;
             }
 
@@ -816,6 +818,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
         case WINDOW_PROP_TITLEBAR_COLOR:
         {
             if (!vp.isString()) {
+
                 return true;
             }
             JS::RootedString vpStr(cx, JS::ToString(cx, vp));
@@ -833,33 +836,33 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
         case WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX:
         {
             double dval, oval;
-
             if (!vp.isNumber()) {
+
                 return true;
             }
-            JS::ToNumber(cx, vp, &dval);
 
+            dval = vp.toNumber();
             JS::RootedValue offsety(cx);
+
             if (JS_GetProperty(cx, obj, "titleBarControlsOffsetY", &offsety) == false) {
                 offsety = DOUBLE_TO_JSVAL(0);
             }
             if (!offsety.isNumber()) {
                 offsety = DOUBLE_TO_JSVAL(0);
             }
-            JS::ToNumber(cx, offsety, &oval);
-
+            oval = offsety.toNumber();
             NUI->setWindowControlsOffset(dval, oval);
             break;
         }
         case WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY:
         {
             double dval, oval;
-
             if (!vp.isNumber()) {
+
                 return true;
             }
-            JS::ToNumber(cx, vp, &dval);
 
+            dval = vp.toNumber();
             JS::RootedValue offsetx(cx);
             if (JS_GetProperty(cx, obj, "titleBarControlsOffsetX", &offsetx) == false) {
                 offsetx = DOUBLE_TO_JSVAL(0);
@@ -867,8 +870,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
             if (!offsetx.isNumber()) {
                 offsetx = DOUBLE_TO_JSVAL(0);
             }
-            JS::ToNumber(cx, offsetx, &oval);
-
+            oval = offsetx.toNumber();
             NUI->setWindowControlsOffset(oval, dval);
             break;
         }
