@@ -767,6 +767,9 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
             }
 
             JS::ToInt32(cx, vp, &dval);
+
+            dval = ape_max(dval, 1);
+
             NativeContext::getNativeClass(cx)->setWindowSize((int)dval, NUI->getHeight());
 
             break;
@@ -780,6 +783,9 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
             }
 
             JS::ToInt32(cx, vp, &dval);
+
+            dval = ape_max(dval, 1);
+
             NativeContext::getNativeClass(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
 
             break;
@@ -1302,6 +1308,7 @@ static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
     }
     if (args[2].isNumber()) {
         JS::ToInt32(cx, args[2], &w);
+        w = ape_max(w, 1);
     } else {
         JS_ReportError(cx, "setFrame() invalid width");
 
@@ -1310,6 +1317,9 @@ static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
 
     if (args[3].isNumber()) {
         JS::ToInt32(cx, args[3], &h);
+
+        h = ape_max(h, 1);
+        
     } else {
         JS_ReportError(cx, "setFrame() invalid height");
 
