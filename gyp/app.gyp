@@ -137,15 +137,7 @@
                         'libskia_effects.a',
                         'libskia_images.a',
                         'libskia_skgpu.a',
-                        'libportaudio.a',
-                        'libzita-resampler.a',
-                        'libavcodec.a',
-                        'libavformat.a',
-                        'libavutil.a',
-                        'libswscale.a',
-                        'libswresample.a',
                         'libzip.a',
-                        'libcoroutine.a',
                         #'..//third-party/angle/libpreprocessor.a',
                         #'..//third-party/angle/libtranslator_common.a',
                         #'..//third-party/angle/libtranslator_glsl.a',
@@ -184,7 +176,7 @@
                 'sources': [
                     '<(native_app_path)/osx/main.mm',
                     '<(native_app_path)/osx/NativeStudioAppDelegate.mm',
-                    '<(third_party_path)/portaudio/src/common/pa_ringbuffer.o'
+                   
                 ],
                 'postbuilds': [
                     #{

@@ -14,17 +14,13 @@ from konstructor import Variables
 Gyp = Builder.Gyp
 
 Deps.set(
-    "portaudio",
-    "zita-resampler",
     "depot_tools",
     "skia",
     "libzip",
     "breakpad",
     "angle",
     "basekit",
-    "libcoroutine",
     "SDL2",
-    "ffmpeg",
     Deps.Konstruct("nativejscore", "nativejscore/configure")
 )
 

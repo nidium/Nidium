@@ -767,6 +767,9 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
             }
 
             JS::ToInt32(cx, vp, &dval);
+
+            dval = ape_max(dval, 1);
+
             NativeContext::getNativeClass(cx)->setWindowSize((int)dval, NUI->getHeight());
 
             break;
@@ -780,6 +783,9 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
             }
 
             JS::ToInt32(cx, vp, &dval);
+
+            dval = ape_max(dval, 1);
+
             NativeContext::getNativeClass(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
 
             break;
