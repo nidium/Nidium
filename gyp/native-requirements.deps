@@ -4,7 +4,11 @@ c-ares
 skia
 SDL2
 libzip
+ffmpeg
 basekit
+libcoroutine
+portaudio
+zita-resampler
 http-parser
 gyp
 angle
