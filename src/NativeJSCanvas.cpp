@@ -901,7 +901,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            dval = vp.toInt32();
+            JS::ToUint32(cx, vp, &dval);
+
             if (!handler->setWidth(dval)) {
                 //JS_ReportError(cx, "Can't set canvas width (this canvas has a dynamic width)");
 
@@ -917,7 +918,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            dval = vp.toInt32();
+            JS::ToUint32(cx, vp, &dval);
+
             if (!handler->setMinWidth(dval)) {
                 return true;
             }
@@ -930,7 +932,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            dval = vp.toInt32();
+            JS::ToUint32(cx, vp, &dval);
+
             if (!handler->setMaxWidth(dval)) {
                 return true;
             }
@@ -943,7 +946,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            dval = vp.toInt32();
+            JS::ToUint32(cx, vp, &dval);
+
             if (!handler->setHeight(dval)) {
                 //JS_ReportError(cx, "Can't set canvas height (this canvas has a dynamic height)");
                 return true;
@@ -957,7 +961,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            dval = vp.toInt32();
+            JS::ToUint32(cx, vp, &dval);
+
             if (!handler->setMinHeight(dval)) {
                 return true;
             }
@@ -970,7 +975,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            dval = vp.toInt32();
+            JS::ToUint32(cx, vp, &dval);
+
             if (!handler->setMaxHeight(dval)) {
                 return true;
             }
@@ -996,6 +1002,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             }
 
             dval = vp.toNumber();
+
             handler->setLeft(dval);
         }
         break;
@@ -1071,7 +1078,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            dval = vp.toInt32();
+            JS::ToInt32(cx, vp, &dval);
+
             handler->setScrollLeft(dval);
         }
         break;
@@ -1083,7 +1091,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            dval = vp.toInt32();
+            JS::ToInt32(cx, vp, &dval);
+
             handler->setScrollTop(dval);
         }
         break;
@@ -1125,7 +1134,8 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            dval = vp.toInt32();
+            JS::ToInt32(cx, vp, &dval);
+
             handler->setPadding(dval);
         }
         break;
@@ -1138,6 +1148,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             }
 
             dval = vp.toNumber();
+
             handler->setOpacity(dval);
         }
         break;
@@ -1216,7 +1227,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
         break;
         case CANVAS_PROP_ID:
         {
-            JS::RootedString sid(cx, vp.toString());
+            JS::RootedString sid(cx, JS::ToString(cx, vp));
             if (!sid.get()) {
 
                 return true;
@@ -1234,6 +1245,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
             }
 
             dval = vp.toNumber();
+
             handler->setMargin(handler->m_Margin.top, handler->m_Margin.right,
                 handler->m_Margin.bottom, dval);
         }
@@ -1284,7 +1296,7 @@ static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
                 return true;
             }
 
-            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+            JS::RootedString vpStr(cx, vp.toString());
             JSAutoByteString type(cx, vpStr);
             for (int i = 0; native_cursors_list[i].str != NULL; i++) {
                 if (strncasecmp(native_cursors_list[i].str, type.ptr(),
