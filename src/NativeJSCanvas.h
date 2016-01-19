@@ -32,7 +32,7 @@ public:
 
 private:
     NativeCanvasHandler *m_CanvasHandler;
-    JS::PersistentRootedObject m_Inherit;
+    JS::Heap<JSObject *> m_Inherit;
 };
 
 #endif
