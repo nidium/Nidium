@@ -52,16 +52,17 @@ struct NativeJSAVMessageCallback {
 class JSTransferableFunction
 {
     public :
-        JSTransferableFunction(JSContext *cxOrg) : m_Data(NULL), m_Bytes(0), m_Fn(cxOrg, JSVAL_VOID), m_DestCx(NULL)
+        JSTransferableFunction(JSContext *destCx) : m_Data(NULL), m_Bytes(0), m_Fn(destCx), m_DestCx(destCx)
         {
+            m_Fn.get().setUndefined();
         }
 
         bool prepare(JSContext *cx, JS::HandleValue val);
-        bool call(JSContext *cx, JS::HandleObject obj, JS::HandleValueArray params, JS::MutableHandleValue rval);
+        bool call(JS::HandleObject obj, JS::HandleValueArray params, JS::MutableHandleValue rval);
 
         ~JSTransferableFunction();
    private :
-        bool transfert(JSContext *destCx);
+        bool transfert();
 
         uint64_t *m_Data;
         size_t m_Bytes;
@@ -115,12 +116,11 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
         bool createContext();
         void initNode(NativeJSAudioNode *node, JS::HandleObject jnode, JS::HandleString name);
         bool run(char *str);
-        static void ctxCallback(NativeAudioNode *node, void *custom);
-        static void runCallback(NativeAudioNode *node, void *custom);
-        static void shutdownCallback(NativeAudioNode *dummy, void *custom);
+        static void ctxCallback(void *custom);
+        static void runCallback(void *custom);
+        static void shutdownCallback(void *custom);
         void unroot();
 
-        void onMessage(const NativeSharedMessages::Message &msg);
         static void registerObject(JSContext *cx);
 
         ~NativeJSAudio();
@@ -135,7 +135,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
         NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
             NativeAudio::Node type, int in, int out, NativeJSAudio *audio)
             :   NativeJSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL),
-                m_Audio(audio), m_Node(NULL), m_NodeType(type), m_NodeObj(cx, nullptr), m_HashObj(cx, nullptr),
+                m_Audio(audio), m_Node(NULL), m_NodeType(type), m_NodeObj(nullptr), m_HashObj(nullptr),
                 m_ArrayContent(NULL), m_IsDestructing(false)
         {
             m_JSObject = NULL;
@@ -160,7 +160,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
         NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
                NativeAudio::Node type, NativeAudioNode *node, NativeJSAudio *audio)
             :  NativeJSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL), m_Audio(audio), m_Node(node), m_NodeType(type),
-               m_NodeObj(cx, nullptr), m_HashObj(cx, nullptr), m_ArrayContent(NULL), m_IsDestructing(false)
+               m_NodeObj(nullptr), m_HashObj(nullptr), m_ArrayContent(NULL), m_IsDestructing(false)
         {
             this->add();
 
@@ -196,10 +196,11 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
         static void setPropCallback(NativeAudioNode *node, void *custom);
         static void shutdownCallback(NativeAudioNode *node, void *custom);
         static void initCustomObject(NativeAudioNode *node, void *custom);
+        static void deleteTransferableFunc(NativeAudioNode *node, void *custom);
         bool createHashObj();
 
-        JS::PersistentRootedObject m_NodeObj;
-        JS::PersistentRootedObject m_HashObj;
+        JS::PersistentRootedObject *m_NodeObj;
+        JS::PersistentRootedObject *m_HashObj;
 
         NATIVE_PTHREAD_VAR_DECL(m_ShutdownWait)
 

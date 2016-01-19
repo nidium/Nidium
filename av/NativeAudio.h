@@ -23,7 +23,6 @@
     return NULL;\
 }\
 
-class NativeJS;
 class NativeAudioSource;
 class NativeAudioNode;
 class NativeAudioNodeTarget;
@@ -35,6 +34,8 @@ struct PaUtilRingBuffer;
 struct PaStreamCallbackTimeInfo;
 typedef void PaStream;
 typedef unsigned long PaStreamCallbackFlags;
+
+typedef void (*AudioMessageCallback)(void *custom); 
 
 class NativeAudio
 {
@@ -57,6 +58,13 @@ class NativeAudio
         enum Node {
             SOURCE, GAIN, TARGET, CUSTOM, CUSTOM_SOURCE, REVERB, DELAY,
             STEREO_ENHANCER
+        };
+
+        struct CallbackMessage {
+            AudioMessageCallback m_Cbk;
+            void *m_Custom;
+            CallbackMessage(AudioMessageCallback cbk, void *custom)
+                : m_Cbk(cbk), m_Custom(custom) {}
         };
 
         ape_global *m_Net;
@@ -88,6 +96,8 @@ class NativeAudio
         void unlockSources();
         void lockQueue();
         void unlockQueue();
+        void postMessage(AudioMessageCallback cbk, void *custom);
+        void postMessage(AudioMessageCallback cbk, void *custom, bool block);
 
         JSContext *getMainCtx() const {
             return m_MainCtx;

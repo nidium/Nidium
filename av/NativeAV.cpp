@@ -224,7 +224,7 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
         return AVERROR_EOF;
     }
 
-    SPAM(("SEEK pos=%lld, size=%lld\n", m_Pos, size));
+    SPAM(("SEEK pos=%lld, size=%lld\n", pos, size));
 
     thiz->m_StreamBuffer = NULL;
     thiz->m_StreamRead = STREAM_BUFFER_SIZE;

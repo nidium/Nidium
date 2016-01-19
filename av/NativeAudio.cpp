@@ -189,8 +189,8 @@ void NativeAudio::readMessages(bool flush)
             }
             break;
             case NATIVE_AUDIO_CALLBACK :
-                NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg->dataPtr());
-                cbkMsg->m_Cbk(NULL, cbkMsg->m_Custom);
+                NativeAudio::CallbackMessage *cbkMsg = static_cast<NativeAudio::CallbackMessage*>(msg->dataPtr());
+                cbkMsg->m_Cbk(cbkMsg->m_Custom);
                 delete cbkMsg;
             break;
         }
@@ -254,7 +254,7 @@ void *NativeAudio::decodeThread(void *args)
             sources = sources->next;
         }
         pthread_mutex_unlock(&audio->m_SourcesLock);
-        SPAM(("haveEnought %d / sourcesCount %d\n", haveEnought, m_SourcesCount));
+        SPAM(("haveEnought %d / sourcesCount %d\n", haveEnought, audio->m_SourcesCount));
 
         // FIXME : find out why when playing multiple song,
         // the commented expression bellow fail to work
@@ -600,6 +600,20 @@ void NativeAudio::lockSources()
 void NativeAudio::unlockSources()
 {
     pthread_mutex_unlock(&m_SourcesLock);
+}
+
+void NativeAudio::postMessage(AudioMessageCallback cbk, void *custom, bool block)
+{
+    m_SharedMsg->postMessage((void *)new CallbackMessage(cbk, custom), 
+            NATIVE_AUDIO_CALLBACK);
+
+    if (block) {
+        this->wakeup();
+    }
+}
+void NativeAudio::postMessage(AudioMessageCallback cbk, void *custom)
+{
+    this->postMessage(cbk, custom, false);
 }
 
 bool NativeAudio::canWriteFrame()

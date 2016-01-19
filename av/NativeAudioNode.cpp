@@ -80,7 +80,14 @@ NativeAudioNode::Message::~Message() {
 
 void NativeAudioNode::callback(NodeMessageCallback cbk, void *custom)
 {
+    this->callback(cbk, custom, false);
+}
+void NativeAudioNode::callback(NodeMessageCallback cbk, void *custom, bool block)
+{
     m_Audio->m_SharedMsg->postMessage((void *)new CallbackMessage(cbk, this, custom), NATIVE_AUDIO_NODE_CALLBACK);
+    if (block) {
+        m_Audio->wakeup();
+    }
 }
 
 bool NativeAudioNode::set(const char *name, ArgType type, void *value, unsigned long size)
@@ -185,7 +192,7 @@ void NativeAudioNode::updateWiresFrame(int channel, float *frame, float *discard
 
 bool NativeAudioNode::queue(NodeLink *in, NodeLink *out)
 {
-    SPAM(("connect in node %p; out node %p\n", in->m_Node, out->m_Node));
+    SPAM(("connect in node %p; out node %p\n", in->node, out->node));
     NodeIO **inLink;
     NodeIO **outLink;
 
@@ -322,7 +329,7 @@ void NativeAudioNode::processQueue()
     for (int i = 0; i < m_OutCount ; i++) {
         int j = 0;
         NODE_IO_FOR(j, m_Output[i])
-            SPAM(("     Marking output at %p as unprocessed (%p)\n", m_Output[i]->wire[j]->m_Node, this));
+            SPAM(("     Marking output at %p as unprocessed (%p)\n", m_Output[i]->wire[j]->node, this));
             m_Output[i]->wire[j]->node->m_Processed = false;
         NODE_IO_FOR_END(j)
     }
@@ -332,14 +339,14 @@ void NativeAudioNode::processQueue()
         int j = 0;
         NODE_IO_FOR(j, m_Input[i])
             if (!m_Input[i]->wire[j]->node->m_Processed && m_Input[i]->wire[j]->node->m_IsConnected) {
-                SPAM(("     Input %p havn't been processed, return\n", m_Input[i]->wire[j]->m_Node));
+                SPAM(("     Input %p havn't been processed, return\n", m_Input[i]->wire[j]->node));
                 // Needed data havn't been processed yet. Return.
                 return;
             } else {
                 if (!m_Input[i]->wire[j]->node->m_IsConnected) {
-                    SPAM(("     Input %p isn't connected. No need to process\n", m_Input[i]->wire[j]->m_Node));
+                    SPAM(("     Input %p isn't connected. No need to process\n", m_Input[i]->wire[j]->node));
                 } else {
-                    SPAM(("    Input at %p is already processed\n", m_Input[i]->wire[j]->m_Node));
+                    SPAM(("    Input at %p is already processed\n", m_Input[i]->wire[j]->node));
                 }
             }
         NODE_IO_FOR_END(j)
@@ -366,7 +373,7 @@ void NativeAudioNode::processQueue()
             int j = 0;
             NODE_IO_FOR(j, m_Input[i])
                 if (m_Frames[i] != m_Input[i]->wire[j]->frame) {
-                    SPAM(("     Merging input #%d from %p to %p\n", m_Input[i]->channel, m_Input[i]->wire[j]->m_Node, this));
+                    SPAM(("     Merging input #%d from %p to %p\n", m_Input[i]->channel, m_Input[i]->wire[j]->node, this));
                     SPAM(("     frames=%p from %p\n", m_Frames[i], m_Input[i]->wire[j]->frame));
                     for (int k = 0; k < m_Audio->m_OutputParameters->m_FramesPerBuffer; k++) {
                         m_Frames[i][k] += m_Input[i]->wire[j]->frame[k];
@@ -479,7 +486,7 @@ NativeAudioNode::~NativeAudioNode() {
                     SPAM(("        #%d wire = %d\n", k, wireCount));
                     for (int l = 0; l < wireCount; l++) {
                         if (outNode->m_Output[k]->wire[l] != NULL) {
-                            SPAM(("        wire=%d node=%p\n", l, outNode->m_Output[k]->wire[l]->m_Node));
+                            SPAM(("        wire=%d node=%p\n", l, outNode->m_Output[k]->wire[l]->node));
                             // Found a wire connected to this node, delete it
                             if (outNode->m_Output[k]->wire[l]->node == this) {
                                 SPAM(("        DELETE\n"));
@@ -522,7 +529,7 @@ NativeAudioNode::~NativeAudioNode() {
                     SPAM(("        #%d wire = %d\n", k, wireCount));
                     for (int l = 0; l < wireCount; l++) {
                         if (inNode->m_Input[k]->wire[l] != NULL) {
-                            SPAM(("        wire=%d node=%p\n", l, inNode->m_Input[k]->wire[l]->m_Node));
+                            SPAM(("        wire=%d node=%p\n", l, inNode->m_Input[k]->wire[l]->node));
                             if (inNode->m_Input[k]->wire[l]->node == this) {
                                 SPAM(("       DELETE\n"));
                                 delete inNode->m_Input[k]->wire[l];
@@ -655,9 +662,9 @@ bool NativeAudioNodeCustom::process()
 NativeAudioSource::NativeAudioSource(int out, NativeAudio *audio, bool external) :
     NativeAudioNode(0, out, audio), m_OutputParameters(NULL),
     m_BufferNotEmpty(NULL), m_rBufferOut(NULL), m_Reader(NULL),
-    m_ExternallyManaged(external), m_Playing(false), m_Stopped(false),
-    m_Loop(false), m_NbChannel(0), m_CodecCtx(NULL), m_TmpPacket(NULL),
-    m_Clock(0), m_FrameConsumed(true), m_PacketConsumed(true),
+    m_ExternallyManaged(external), m_Playing(false), m_PlayWhenReady(false), 
+    m_Stopped(false), m_Loop(false), m_NbChannel(0), m_CodecCtx(NULL), 
+    m_TmpPacket(NULL), m_Clock(0), m_FrameConsumed(true), m_PacketConsumed(true),
     m_SamplesConsumed(0), m_AudioStream(-1), m_FailedDecoding(0),
     m_SwrCtx(NULL), m_sCvt(NULL), m_fCvt(NULL), m_AvioBuffer(NULL),
     m_fBufferInData(NULL), m_fBufferOutData(NULL),
@@ -895,6 +902,10 @@ int NativeAudioSource::initInternal()
 
     m_Opened = true;
     m_Processed = false;
+
+    if (m_PlayWhenReady) {
+        this->play();
+    }
 
     this->sendEvent(SOURCE_EVENT_READY, 0, false);
 
@@ -1217,6 +1228,8 @@ int NativeAudioSource::resample(int destSamples) {
 }
 
 double NativeAudioSource::getClock() {
+    if (!m_Opened) return 0;
+
     ring_buffer_size_t queuedSource = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
 
     double delay = ((double)(queuedSource - m_TmpFrame.nbSamples)* ((double)1/m_Audio->m_OutputParameters->m_SampleRate));
@@ -1307,7 +1320,7 @@ bool NativeAudioNode::updateIsConnectedInput()
         for (int j = 0; j < count; j++)
         {
             if (m_Input[i]->wire[j] != NULL) {
-                SPAM(("    Wire %d to %p\n", i, m_Input[i]->wire[j]->m_Node));
+                SPAM(("    Wire %d to %p\n", i, m_Input[i]->wire[j]->node));
                 return m_Input[i]->wire[j]->node->updateIsConnected(false, true);
             }
         }
@@ -1328,7 +1341,7 @@ bool NativeAudioNode::updateIsConnectedOutput()
         for (int j = 0; j < count; j++)
         {
             if (m_Output[i]->wire[j] != NULL) {
-                SPAM(("    Wire %d to %p\n", i, m_Output[i]->wire[j]->m_Node));
+                SPAM(("    Wire %d to %p\n", i, m_Output[i]->wire[j]->node));
                 return m_Output[i]->wire[j]->node->updateIsConnected(true, false);
             }
         }
@@ -1569,6 +1582,7 @@ void NativeAudioSource::closeInternal(bool reset)
     m_rBufferOut = NULL;
 
     m_Playing = false;
+    m_PlayWhenReady = false;
     m_FrameConsumed = true;
     m_PacketConsumed = true;
     m_Opened = false;
@@ -1583,11 +1597,13 @@ void NativeAudioSource::closeInternal(bool reset)
 void NativeAudioSource::play()
 {
     if (!m_Opened) {
+        m_PlayWhenReady = true;
         return;
     }
 
     m_Playing = true;
     m_Stopped = false;
+    m_PlayWhenReady = false;
 
     SPAM(("Play source @ %p\n", this));
 
@@ -1614,6 +1630,7 @@ void NativeAudioSource::stop()
 
     m_Stopped = true;
     m_Playing = false;
+    m_PlayWhenReady = false;
 
     this->resetFrames();
 

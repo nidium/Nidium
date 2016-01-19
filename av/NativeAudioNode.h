@@ -116,6 +116,7 @@ class NativeAudioNode
         void resetFrames();
         void resetFrame(int channel);
         void callback(NodeMessageCallback cbk, void *custom);
+        void callback(NodeMessageCallback cbk, void *custom, bool block);
         bool set(const char *name, ArgType type, void *value, unsigned long size);
         void get(const char *name);
         void updateFeedback(NativeAudioNode *nOut);
@@ -256,6 +257,7 @@ class NativeAudioSource: public NativeAudioNode, public NativeAVSource
         NativeAVReader *m_Reader;
         bool m_ExternallyManaged;
         bool m_Playing;
+        bool m_PlayWhenReady;
         bool m_Stopped;
         bool m_Loop;
         int m_NbChannel;
