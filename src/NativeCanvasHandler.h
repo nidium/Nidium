@@ -152,7 +152,7 @@ class NativeCanvasHandler : public NativeEvents
         };
 
         NativeCanvasContext *m_Context;
-        JS::PersistentRootedObject m_JsObj;
+        JS::Heap<JSObject *> m_JsObj;
         JSContext *m_JsCx;
 
         int m_Width, m_Height, m_MinWidth, m_MinHeight, m_MaxWidth, m_MaxHeight;

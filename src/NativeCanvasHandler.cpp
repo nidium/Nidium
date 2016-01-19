@@ -13,7 +13,7 @@ int NativeCanvasHandler::m_LastIdx = 0;
 
 NativeCanvasHandler::NativeCanvasHandler(int width, int height,
     NativeContext *nativeCtx, bool lazyLoad) :
-    m_Context(NULL), m_JsObj(nativeCtx->getNJS()->getJSContext()),
+    m_Context(NULL),
     m_JsCx(nativeCtx->getNJS()->getJSContext()), m_Left(0.0), m_Top(0.0),
     m_aLeft(0), m_aTop(0), m_Right(0.0), m_Bottom(0.0), m_Overflow(true),
     m_Parent(NULL), m_Children(NULL), m_Next(NULL), m_Prev(NULL), m_Last(NULL),

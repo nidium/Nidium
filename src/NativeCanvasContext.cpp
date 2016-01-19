@@ -233,7 +233,8 @@ uint32_t NativeCanvasContext::createPassThroughProgram(NativeGLResources &resour
 }
 
 NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
-    m_JsObj(handler->m_JsCx), m_JsCx(handler->m_JsCx), m_Mode(CONTEXT_2D), m_Transform(SkMatrix44::kIdentity_Constructor),
+    m_JsCx(handler->m_JsCx), m_Mode(CONTEXT_2D),
+    m_Transform(SkMatrix44::kIdentity_Constructor),
     m_Handler(handler), m_GLState(NULL)
 {
 }

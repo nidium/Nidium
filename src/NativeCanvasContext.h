@@ -31,7 +31,7 @@ public:
         SH_ATTR_MODIFIER = 2
     };
 
-    JS::PersistentRooted<JSObject *> m_JsObj;
+    JS::Heap<JSObject *> m_JsObj;
     JSContext *m_JsCx;
 
     enum mode {

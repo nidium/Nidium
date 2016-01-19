@@ -30,7 +30,7 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
 static bool native_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass document_class = {
-    "NativeDocument", JSCLASS_HAS_PRIVATE,
+    "NativeDocument", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Document_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
