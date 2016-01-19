@@ -1585,11 +1585,8 @@ static void Canvas_Trace(JSTracer *trc, JSObject *obj)
 
         for (cur = handler->getFirstChild(); cur != NULL; cur = cur->m_Next) {
             if (cur->m_JsObj) {
-#if 0 && defined(DEBUG)
-                trc->debugPrinter = PrintGetTraceName;
-                trc->debugPrintArg = cur;
-                JS_CallObjectTracer(trc, (JSObject **)&cur->m_JsObj, "nativecanvasroot");
-#endif
+
+                JS_CallHeapObjectTracer(trc, &cur->m_JsObj, "nativecanvasroot");
             }
         }
     }
