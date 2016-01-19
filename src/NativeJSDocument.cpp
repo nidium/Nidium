@@ -121,15 +121,15 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     //glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
     //glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-    JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
-    JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
-    JS::RootedValue arVal(cx, OBJECT_TO_JSVAL(arrBuffer));
+    JS::RootedValue widthVal(cx, JS::Int32Value(width));
+    JS::RootedValue heightVal(cx, JS::Int32Value(height));
+    JS::RootedValue arVal(cx, JS::ObjectOrNullValue(arrBuffer));
     JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::jsclass, JS::NullPtr(), JS::NullPtr()));
     JS_DefineProperty(cx, dataObject, "width", widthVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "height", heightVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "data", arVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    JS::RootedValue dataVal(cx, OBJECT_TO_JSVAL(dataObject));
+    JS::RootedValue dataVal(cx, JS::ObjectOrNullValue(dataObject));
     args.rval().set(dataVal);
 
     return true;
@@ -241,13 +241,15 @@ static void Document_Finalize(JSFreeOp *fop, JSObject *obj)
 bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
     size_t len, const char *filename)
 {
-    if (! m_Stylesheet) {
+    if (!m_Stylesheet) {
         return false;
     }
+
     JS::RootedValue ret(cx);
     if (!NativeJS::LoadScriptReturn(cx, data, len, filename, &ret)) {
         return false;
     }
+
     JS::RootedObject style(cx, m_Stylesheet);
     JS::RootedObject jret(cx, ret.toObjectOrNull());
     NativeJS::copyProperties(cx, jret, &style);
@@ -269,12 +271,17 @@ JSObject *NativeJSdocument::registerObject(JSContext *cx)
 
     /* We have to root it since the user can replace the document object */
     njs->rootObjectUntilShutdown(documentObj);
+
     njs->jsobjects.set(NativeJSdocument::getJSObjectName(), documentObj);
 
     JS::RootedObject styleObj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
     jdoc->m_Stylesheet = styleObj;
 
-    JS::RootedValue objV(cx, OBJECT_TO_JSVAL(jdoc->m_Stylesheet));
+    JS::RootedValue objV(cx, JS::ObjectOrNullValue(jdoc->m_Stylesheet));
+
+    /* implicitly root m_Stylesheet */
+    JS_SetReservedSlot(documentObj, 0, objV);
+
     JS_SetProperty(cx, documentObj, "stylesheet", objV);
     JS_DefineFunctions(cx, documentObj, document_funcs);
     JS_DefineProperties(cx, documentObj, document_props);

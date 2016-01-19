@@ -26,7 +26,7 @@ class NativeJSdocument : public NativeJSExposer<NativeJSdocument>
   public:
     NativeJSdocument(JS::HandleObject obj, JSContext *cx) :
     NativeJSExposer<NativeJSdocument>(obj, cx, false),
-    m_Stylesheet(cx), m_Fonts(256000) {};
+    m_Fonts(256000) {};
     ~NativeJSdocument() {};
 
     static bool m_ShowFPS;
@@ -38,7 +38,9 @@ class NativeJSdocument : public NativeJSExposer<NativeJSdocument>
     }
 
     static JSClass *jsclass;
-    JS::PersistentRootedObject m_Stylesheet;
+
+    JS::Heap<JSObject *> m_Stylesheet;
+
     NativeHash<nativefont *>m_Fonts;
 
     bool loadFont(const char *path, const char *name, int weight = 400,
