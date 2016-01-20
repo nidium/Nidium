@@ -14,7 +14,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     NativeJSwindow(JS::HandleObject jsobj, JSContext *cx) :
         NativeJSExposer<NativeJSwindow>(jsobj, cx),
         m_RequestedFrame(NULL), m_Handler(NULL), m_Db(NULL),
-        m_Dragging(false), m_DraggedFiles(cx)
+        m_Dragging(false)
     {
     };
 
@@ -83,7 +83,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     NativeDB *m_Db;
 
     bool m_Dragging;
-    JS::PersistentRootedObject m_DraggedFiles;
+    JS::Heap<JSObject *> m_DraggedFiles;
 };
 
 #endif

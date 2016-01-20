@@ -563,14 +563,14 @@ bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t n
     m_Dragging = true; //Duh..
 
     m_DraggedFiles = JS_NewArrayObject(m_Cx, (int)nfiles);
+    NativeJS::getNativeClass(m_Cx)->rootObjectUntilShutdown(m_DraggedFiles);
+
     JS::RootedObject dragged(m_Cx, m_DraggedFiles);
 
     for (int i = 0; i < nfiles; i++) {
         JS::RootedValue val(m_Cx, OBJECT_TO_JSVAL(NativeJSFileIO::generateJSObject(m_Cx, files[i])));
         JS_SetElement(m_Cx, dragged, i, val);
     }
-
-    NativeJS::getNativeClass(m_Cx)->rootObjectUntilShutdown(m_DraggedFiles);
 
     return this->dragEvent("_onFileDragEnter", x, y);
 #undef EVENT_PROP
@@ -672,8 +672,9 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
 static void Window_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSwindow *jwin = NativeContext::getNativeClass()->getJSWindow();
-
+    printf("Window global fin\n");
     if (jwin != NULL) {
+        printf("Window finalized\n");
         delete jwin;
     }
 }
