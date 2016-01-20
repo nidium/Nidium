@@ -37,6 +37,7 @@ NativeNML::NativeNML(ape_global *net) :
 NativeNML::~NativeNML()
 {
     if (m_JSObjectLayout.get()) {
+        m_Njs->unrootObject(m_JSObjectLayout);
         m_JSObjectLayout = nullptr;
     }
 
