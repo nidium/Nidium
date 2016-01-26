@@ -13,14 +13,17 @@ from konstructor import Konstruct
 from konstructor import ROOT, OUTPUT
 
 Deps.set(
-    "libnspr4", 
-    "mozilla-central", 
+    "libnspr4",
+    "mozilla-central",
     "leveldb",
     "http-parser",
     Deps.Konstruct("network", "network/configure")
 )
 
+Variables.set('product', 'nativejscore')
+
 DEPEDENCY_REPO = Variables.get("depsRepo")
+
 Gyp = Builder.Gyp
 
 @CommandLine.option("--unit-tests", default=False)
@@ -28,10 +31,14 @@ def test_nativejscore(unitTests):
     if not unitTests:
         return
     head, tail = os.path.split(os.getcwd())
-    if tail == 'nativejscore':
+    product = Variables.get('product', tail);
+    if product == 'nativejscore':
         subdir = ''
+    elif  product in ['nativeserver', 'nativestudio']:
+        subdir = os.path.join('nativejscore' )
     else:
-        subdir = 'nativejscore'
+        subdir = os.path.join(os.path.split(head)[-1], tail)
+        Log.error("'Variable.product' is not defined in 'configure' " + subdir)
     Tests.register( subdir,
         ["gyp/nativejscore-unittests.gyp"],
         ['tests/bin/nativejscore-unittests']
@@ -94,7 +101,7 @@ def httpParser():
 
 if __name__ == '__main__':
     if not Builder.Gyp._defines.has_key('native_version'):
-        Gyp.set('native_version', 'library')
+        Gyp.set('native_version', Variables.get('product', 'library'))
     Gyp.setArgs("--depth ./ --include=network/gyp/config.gypi --include=gyp/common.gypi")
     Build.add(Gyp("gyp/nativejscore.gyp"))
     Konstruct.start()
