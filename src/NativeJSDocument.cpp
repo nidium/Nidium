@@ -7,10 +7,13 @@
 
 #include <SkTypeface.h>
 #include <SkStream.h>
+#include <SkData.h>
 
 #include "NativeNML.h"
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
+
+#include "NativeSkImage.h"
 
 bool NativeJSdocument::m_ShowFPS = false;
 
@@ -27,6 +30,7 @@ static bool native_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Val
 static bool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_document_getElementById(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_document_toDataArray(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass document_class = {
@@ -49,6 +53,7 @@ static JSFunctionSpec document_funcs[] = {
     JS_FN("loadFont", native_document_loadFont, 1, JSPROP_ENUMERATE),
     JS_FN("getCanvasById", native_document_getElementById, 1, JSPROP_ENUMERATE),
     JS_FN("getScreenData", native_document_getScreenData, 0, 0),
+    JS_FN("toDataArray", native_document_toDataArray, 0, 0),
     JS_FN("parseNML", native_document_parseNML, 1, 0),
     JS_FS_END
 };
@@ -129,8 +134,52 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     JS_DefineProperty(cx, dataObject, "height", heightVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "data", arVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    JS::RootedValue dataVal(cx, JS::ObjectOrNullValue(dataObject));
-    args.rval().set(dataVal);
+    args.rval().setObjectOrNull(dataObject);
+
+    return true;
+}
+
+static bool native_document_toDataArray(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    NativeCanvasHandler *rootHandler = NativeContext::getNativeClass(cx)->getRootHandler();
+    NativeCanvas2DContext *context = static_cast<NativeCanvas2DContext *>(rootHandler->getContext());
+
+    int width, height;
+    context->getSize(&width, &height);
+
+    NativeContext *nctx = NativeContext::getNativeClass(cx);
+
+    uint8_t *fb = nctx->getUI()->readScreenPixel();
+    
+    NativeSkImage *img = new NativeSkImage(fb, width, height);
+    SkData *data;
+
+    data = img->getPNG();
+
+    if (!data) {
+        args.rval().setNull();
+
+        return true;
+    }
+
+    JS::RootedObject arrBuffer(cx, JS_NewUint8ClampedArray(cx, data->size()));
+    uint8_t *pixels = JS_GetUint8ClampedArrayData(arrBuffer);
+
+    memcpy(pixels, data->data(), data->size());
+
+    SkSafeUnref(data);
+
+    JS::RootedValue widthVal(cx, JS::Int32Value(width));
+    JS::RootedValue heightVal(cx, JS::Int32Value(height));
+    JS::RootedValue arVal(cx, JS::ObjectOrNullValue(arrBuffer));
+    JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::jsclass, JS::NullPtr(), JS::NullPtr()));
+    JS_DefineProperty(cx, dataObject, "width", widthVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "height", heightVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "data", arVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+    args.rval().setObjectOrNull(dataObject);
 
     return true;
 }

@@ -244,7 +244,7 @@ class NativeUIInterface
         int m_FBO;
         uint8_t *m_FrameBuffer;
 
-#define NUM_PBOS 3
+#define NUM_PBOS 1
 
         struct {
             uint32_t pbo[NUM_PBOS];

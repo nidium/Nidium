@@ -169,11 +169,12 @@ uint8_t *NativeUIInterface::readScreenPixel()
         this->toggleOfflineBuffer(true);
     }
 
-    uint32_t screenPixelSize = m_Width * 2 * m_Height * 2 * 4;
+    //uint32_t screenPixelSize = m_Width * 2 * m_Height * 2 * 4;
 
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[m_PBOs.gpu2vram]);
+
     glReadPixels(0, 0, m_Width*2, m_Height*2, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[m_PBOs.vram2sys]);
@@ -184,7 +185,13 @@ uint8_t *NativeUIInterface::readScreenPixel()
         return NULL;
     }
 
-    memcpy(m_FrameBuffer, ret, screenPixelSize);
+    /* Flip Y pixels (row by row) */
+    for (uint32_t i = 0; i < m_Height * 2; i++) {
+        memcpy(m_FrameBuffer + i * m_Width * 2 * 4,
+            &ret[(m_Height*2 - i - 1) * m_Width * 2 * 4], m_Width*2*4);
+    }
+
+    //memcpy(m_FrameBuffer, ret, screenPixelSize);
 
     glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);

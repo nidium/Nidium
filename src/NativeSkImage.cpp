@@ -74,6 +74,31 @@ NativeSkImage::NativeSkImage(void *data, size_t len) :
     }
 }
 
+NativeSkImage::NativeSkImage(void *data, int width, int height)
+{
+    uint8_t *px = (uint8_t *)data;
+    m_Image = new SkBitmap();
+    m_IsCanvas = 0;
+
+    m_Image->setConfig(SkBitmap::kARGB_8888_Config, width, height);
+
+    printf("First pixel value %.2x\n", px[0]);
+    printf("First pixel value %.2x\n", px[1]);
+    printf("First pixel value %.2x\n", px[2]);
+    printf("First pixel value %.2x\n", px[3]);
+
+    m_Image->setPixels(data);
+}
+
+SkData *NativeSkImage::getPNG()
+{
+    if (!m_Image) {
+        return NULL;
+    }
+
+    return SkImageEncoder::EncodeData(*m_Image, SkImageEncoder::kPNG_Type, 100);
+}
+
 NativeSkImage::~NativeSkImage()
 {
     if (m_CanvasRef) m_CanvasRef->unref();

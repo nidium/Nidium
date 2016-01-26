@@ -6,6 +6,7 @@
 
 class SkCanvas;
 class SkBitmap;
+class SkData;
 
 class NativeSkImage
 {
@@ -18,6 +19,11 @@ class NativeSkImage
 #endif
     NativeSkImage(SkCanvas *canvas);
     NativeSkImage(void *data, size_t len);
+    NativeSkImage(void *data, int width, int height);
+
+
+    SkData *getPNG();
+    
     static bool ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba,
         bool flipY, bool premultiply);
 
