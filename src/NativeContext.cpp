@@ -1,5 +1,7 @@
 #define _HAVE_SSL_SUPPORT 1
 
+#include <unistd.h>
+
 #include "NativeContext.h"
 #include "NativeMacros.h"
 #include <NativeJS.h>
@@ -29,9 +31,13 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
     bool jsstrict) :
     m_Worker(worker)
 {
+    char cwd[1024];
 
-    //NativePath::cd("/Users/paraboul/dev/");
-    //NativePath::chroot("/Users/paraboul/dev/");
+    memset(&cwd[0], '\0', sizeof(cwd));
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        NativePath::cd(cwd);
+        NativePath::chroot(cwd);
+    }
 
     m_JS = new NativeJS(net);
     m_JS->setPrivate(this);
