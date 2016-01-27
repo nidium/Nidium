@@ -534,6 +534,8 @@ bool JSTransferableFunction::call(JS::HandleObject obj, JS::HandleValueArray par
     JS::RootedValue fun(m_DestCx, m_Fn.get());
 
     bool success = JS_CallFunctionValue(m_DestCx, obj, fun, params, rval);
+
+    return success;
 }
 
 bool JSTransferableFunction::transfert()
@@ -650,7 +652,7 @@ NativeJSAudio::NativeJSAudio(NativeAudio *audio, JSContext *cx, JS::HandleObject
 
 bool NativeJSAudio::createContext()
 {
-    if (m_JsRt != NULL) return;
+    if (m_JsRt != NULL) return false;
     if ((m_JsRt = JS_NewRuntime(128L * 1024L * 1024L, JS_USE_HELPER_THREADS)) == NULL) {
         printf("Failed to init JS runtime\n");
         return false;
