@@ -16,6 +16,7 @@
 #include "NativeSystemInterface.h"
 #include "NativeOpenGLHeader.h"
 
+
 #define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->getSurface())
 #define NSKIA_NATIVE (CppObj->getSurface())
@@ -57,17 +58,19 @@ enum {
     args.rval().setUndefined();
 #endif
 
-void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
-void CanvasPattern_Finalize(JSFreeOp *fop, JSObject *obj);
-void Canvas2DContext_Finalize(JSFreeOp *fop, JSObject *obj);
+static void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
+static void CanvasPattern_Finalize(JSFreeOp *fop, JSObject *obj);
+static void Canvas2DContext_Finalize(JSFreeOp *fop, JSObject *obj);
+
+static void Canvas2DContext_Trace(JSTracer *trc, JSObject *obj);
 
 extern JSClass Canvas_class;
 
 JSClass Canvas2DContext_class = {
-    "CanvasRenderingContext2D", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
+    "CanvasRenderingContext2D", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas2DContext_Finalize,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
+    nullptr, nullptr, nullptr, Canvas2DContext_Trace, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSClass canvasGradient_class = {
@@ -188,8 +191,8 @@ static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigne
     JS::Value *vp);
 
 static JSPropertySpec canvas2dctx_props[] = {
-#define CANVAS_2D_CTX_PROP(prop) {#prop, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
-    NATIVE_JS_STUBGETTER(), \
+#define CANVAS_2D_CTX_PROP(prop) {#prop, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_NATIVE_ACCESSORS, \
+    NATIVE_JS_GETTER(CTX_PROP_ ## prop, native_canvas2dctx_prop_get), \
     NATIVE_JS_SETTER(CTX_PROP_ ## prop, native_canvas2dctx_prop_set)},
 #define CANVAS_2D_CTX_PROP_GET(prop) {#prop, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
     NATIVE_JS_GETTER(CTX_PROP_ ## prop, native_canvas2dctx_prop_get), \
@@ -694,27 +697,12 @@ static bool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc, JS::Va
 static bool native_canvas2dctx_save(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JSNATIVE_PROLOGUE_CLASS_NO_RET(NativeCanvas2DContext, &Canvas2DContext_class);
-
     NATIVE_LOG_2D_CALL();
 
-    JS::RootedObject saved(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
-    JS::RootedValue outval(cx);
-#define CANVAS_2D_CTX_PROP_GET(prop)
-#define CANVAS_2D_CTX_PROP(prop)    JS_GetProperty(cx, thisobj, #prop, &outval); \
-                                    JS_SetProperty(cx, saved, #prop, outval);
-
-#include "NativeCanvas2DContextProperties.h"
-
-#undef CANVAS_2D_CTX_PROP
-#undef CANVAS_2D_CTX_PROP_GET
-    uint32_t arr_length;
-    JS::RootedValue slot(cx, JS_GetReservedSlot(thisobj, 0));
-    JS::RootedObject savedArray(cx);
-    JS_ValueToObject(cx, slot, &savedArray);
-    JS::RootedValue savedVal(cx, OBJECT_TO_JSVAL(saved));
-    JS_GetArrayLength(cx, savedArray, &arr_length);
-    JS_SetElement(cx, savedArray, arr_length, savedVal);
-
+    /*
+        TODO: limit? (avoid while(1) ctx.save())
+    */
+    CppObj->pushNewState();
     CppObj->getSurface()->save();
 
     return true;
@@ -723,38 +711,11 @@ static bool native_canvas2dctx_save(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_canvas2dctx_restore(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JSNATIVE_PROLOGUE_CLASS_NO_RET(NativeCanvas2DContext, &Canvas2DContext_class);
-    JS::RootedValue slot(cx, JS_GetReservedSlot(thisobj, 0));
-    JS::RootedObject slotObj(cx);
-    JS_ValueToObject(cx, slot, &slotObj);
-    JS::RootedObject savedArray(cx, slotObj);
-
     NATIVE_LOG_2D_CALL();
+
+    CppObj->popState();
     NSKIA_NATIVE->restore();
 
-    uint32_t arr_length = 0;
-    if (JS_GetArrayLength(cx, savedArray, &arr_length) == false) {
-        return true;
-    }
-    if (arr_length == 0) {
-        return true;
-    }
-    JS::RootedValue saved(cx);
-    JS_GetElement(cx, savedArray, arr_length - 1, &saved);
-    JS::RootedObject savedObj(cx);
-    JS_ValueToObject(cx, saved, &savedObj);
-    JS::RootedValue outval(cx);
-
-#define CANVAS_2D_CTX_PROP_GET(prop)
-#define CANVAS_2D_CTX_PROP(prop)    JS_GetProperty(cx, savedObj, #prop, &outval); \
-                                    JS_SetProperty(cx, thisobj, #prop, outval);
-
-    CppObj->m_SetterDisabled = true;
-#include "NativeCanvas2DContextProperties.h"
-    CppObj->m_SetterDisabled = false;
-
-#undef CANVAS_2D_CTX_PROP
-#undef CANVAS_2D_CTX_PROP_GET
-    JS_SetArrayLength(cx, savedArray, arr_length-1);
     return true;
 }
 
@@ -1628,19 +1589,33 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
                 JS::RootedString vpStr(cx, JS::ToString(cx, vp));
                 JSAutoByteString colorName(cx, vpStr);
                 curSkia->setFillColor(colorName.ptr());
+
+                NativeCanvas2DContextState *state = CANVASCTX_GETTER(obj)->getCurrentState();
+                state->m_CurrentShader.setUndefined();
+
             } else if (vp.isObject() &&
                 JS_GetClass(&vp.toObject()) == &canvasGradient_class) {
+
                 JS::RootedObject vpObj(cx, &vp.toObject());
                 NativeSkGradient *gradient = (class NativeSkGradient *) JS_GetPrivate(vpObj);
 
                 curSkia->setFillColor(gradient);
 
+                /* Since out obj doesn't store the actual value (JSPROP_SHARED),
+                   we implicitly store and root our pattern obj */
+                NativeCanvas2DContextState *state = CANVASCTX_GETTER(obj)->getCurrentState();
+                state->m_CurrentShader.set(vp);
+
             } else if (vp.isObject() &&
                 JS_GetClass(&vp.toObject()) == &canvasPattern_class) {
+
                 JS::RootedObject vpObj(cx, &vp.toObject());
                 NativeCanvasPattern *pattern = (class NativeCanvasPattern *) JS_GetPrivate(vpObj);
 
                 curSkia->setFillColor(pattern);
+
+                NativeCanvas2DContextState *state = CANVASCTX_GETTER(obj)->getCurrentState();
+                state->m_CurrentShader.set(vp);
             } else {
                 vp.setNull();
 
@@ -1758,6 +1733,7 @@ static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
 {
 #define CTX_PROP(prop) CTX_PROP_ ## prop
     NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj);
+    NativeCanvas2DContext *ctx = CANVASCTX_GETTER(obj);
 
     switch (id) {
         case CTX_PROP(width):
@@ -1768,6 +1744,40 @@ static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(height):
         {
             vp.setInt32(curSkia->getHeight());
+        }
+        break;
+        case CTX_PROP(fillStyle):
+        {
+            JS::RootedValue ret(cx, ctx->getCurrentState()->m_CurrentShader);
+
+            if (ret.isUndefined()) {
+                uint32_t curColor = curSkia->getFillColor();
+                char rgba_str[64];
+
+                /*
+                    Mimic Chrome and Firefox :
+
+                    Whenver we have some alpha, a literal rgba() string is
+                    returned instead of a literal #RRGGBB
+                */
+                if (SkColorGetA(curColor) != 0xff) {
+                    
+                    sprintf(rgba_str, "rgba(%d, %d, %d, %.2f)",
+                        SkColorGetR(curColor),
+                        SkColorGetG(curColor),
+                        SkColorGetB(curColor),
+                        SkColorGetA(curColor) / 255.f);                
+                } else {
+                    sprintf(rgba_str, "#%.2x%.2x%.2x",
+                        SkColorGetR(curColor),
+                        SkColorGetG(curColor),
+                        SkColorGetB(curColor));
+                }
+
+                vp.setString(JS_NewStringCopyZ(cx, rgba_str));
+            } else {
+                vp.set(ret);
+            }
         }
         break;
         default:
@@ -1799,6 +1809,22 @@ void Canvas2DContext_Finalize(JSFreeOp *fop, JSObject *obj)
     NativeCanvas2DContext *canvasctx = CANVASCTX_GETTER(obj);
     if (canvasctx != NULL) {
         delete canvasctx;
+    }
+}
+
+void Canvas2DContext_Trace(JSTracer *trc, JSObject *obj)
+{
+    NativeCanvas2DContext *canvasctx = CANVASCTX_GETTER(obj);
+
+    if (!canvasctx) {
+        return;
+    }
+
+    for (NativeCanvas2DContextState *state = canvasctx->getCurrentState();
+        state != NULL; state = state->m_Next) {
+
+        /* Does this matter if we trace an UndefinedValue? */
+        JS_CallHeapValueTracer(trc, &state->m_CurrentShader, "NativeCanvas2DContextShader");        
     }
 }
 
@@ -2315,9 +2341,11 @@ void NativeCanvas2DContext::translate(double x, double y)
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     JSContext *cx, int width, int height, NativeUIInterface *ui) :
     NativeCanvasContext(handler),
-    m_SetterDisabled(false)
+    m_SetterDisabled(false), m_CurrentState(NULL)
 {
     m_Mode = CONTEXT_2D;
+
+    this->pushNewState();
 
     JS::RootedObject jsobj(cx, JS_NewObject(cx, &Canvas2DContext_class, JS::NullPtr(), JS::NullPtr()));
     m_JsObj = jsobj;
@@ -2327,9 +2355,6 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
         TODO: BUG: xxx setter doesn't work if we remove this the definesProperties
     */
     JS_DefineProperties(cx, jsobj, canvas2dctx_props);
-    JS::RootedObject saved(cx, JS_NewArrayObject(cx, 0));
-    JS::RootedValue saval(cx, OBJECT_TO_JSVAL(saved));
-    JS_SetReservedSlot(jsobj, 0, saval);
 
     m_Skia = new NativeSkia();
     if (!m_Skia->bindOnScreen(width, height)) {

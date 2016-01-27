@@ -108,11 +108,28 @@ class NativeSkia
         int bindGL(int width, int height, NativeContext *nativectx);
         void flush();
         void unlink();
-        /* Basics */
+
         int readPixels(int top, int left, int width, int height,
             uint8_t *pixels);
         void drawPixelsGL(uint8_t *pixels, int width, int height, int x, int y);
         void drawPixels(uint8_t *pixels, int width, int height, int x, int y);
+        void drawText(const char *text, int x, int y, bool stroke = false);
+        void drawTextf(int x, int y, const char *text, ...);
+        void drawImage(NativeSkImage *image, double x, double y);
+        void drawImage(NativeSkImage *image, double x, double y,
+            double width, double height);
+        void drawImage(NativeSkImage *image,
+            int sx, int sy, int swidth, int sheight,
+            double dx, double dy, double dwidth, double dheight);
+        void drawRect(double x, double y, double width,
+            double height, int stroke);
+        void drawRect(double x, double y, double width,
+            double height, double rx, double ry, int stroke);
+        void drawLine(double x1, double y1, double x2, double y2);
+        void system(const char *text, int x, int y);
+
+        uint32_t getFillColor() const;
+
         void setShadowOffsetX(double x);
         void setShadowOffsetY(double y);
         void setShadowBlur(double blur);
@@ -123,16 +140,6 @@ class NativeSkia
         void setFontSkew(double val) {
             m_FontSkew = val;
         }
-        void setFontType(char *str, NativeJSdocument *doc = NULL);
-        bool setFontFile(const char *str);
-        void drawText(const char *text, int x, int y, bool stroke = false);
-        void drawTextf(int x, int y, const char *text, ...);
-        void system(const char *text, int x, int y);
-        void drawRect(double x, double y, double width,
-            double height, int stroke);
-        void drawRect(double x, double y, double width,
-            double height, double rx, double ry, int stroke);
-        void drawLine(double x1, double y1, double x2, double y2);
         void setFillColor(const char *str);
         void setFillColor(NativeSkGradient *gradient);
         void setFillColor(NativeCanvasPattern *pattern);
@@ -144,18 +151,15 @@ class NativeSkia
         void setMiterLimit(double size);
         void setGlobalAlpha(double value);
         void setGlobalComposite(const char *str);
+        void setLineCap(const char *capStyle);
+        void setLineJoin(const char *joinStyle);
+        void setFontType(char *str, NativeJSdocument *doc = NULL);
+        bool setFontFile(const char *str);
+
         void clearRect(double, double, double, double);
-        void drawImage(NativeSkImage *image, double x, double y);
-        void drawImage(NativeSkImage *image, double x, double y,
-            double width, double height);
-        void drawImage(NativeSkImage *image,
-            int sx, int sy, int swidth, int sheight,
-            double dx, double dy, double dwidth, double dheight);
         int getWidth();
         int getHeight();
 
-        void setLineCap(const char *capStyle);
-        void setLineJoin(const char *joinStyle);
         /* Shapes */
         void beginPath();
         void moveTo(double x, double y);

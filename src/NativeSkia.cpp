@@ -169,6 +169,10 @@ int NativeSkia::getHeight()
     return m_Canvas->getDeviceSize().fHeight;
 }
 
+uint32_t NativeSkia::getFillColor() const {
+    return PAINT->getColor();
+}
+
 #if 0
 static U8CPU InvScaleByte(U8CPU component, uint32_t scale)
 {
