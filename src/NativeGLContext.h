@@ -140,6 +140,12 @@ class NativeGLContext
             this->makeCurrent();
 
             m_Interface = GrGLCreateNativeInterface();
+
+            if (!m_Interface) {
+                printf("[Fatal OpenGL Error] Failed to create GrGL Interface...exiting\n");
+                exit(1);
+            }
+
             ((GrGLInterface *)m_Interface)->fCallback = NativeGLContext::GLCallback;
             ((GrGLInterface *)m_Interface)->fCallbackData = (uintptr_t)this;
         }
