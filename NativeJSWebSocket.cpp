@@ -125,7 +125,7 @@ static bool native_WebSocketServer_constructor(JSContext *cx,
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    JS::RootedString localhost(cx);
+    JS::RootedString url(cx);
     JS::RootedString protocol(cx);
 
     if (!args.isConstructing()) {
@@ -135,23 +135,38 @@ static bool native_WebSocketServer_constructor(JSContext *cx,
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &WebSocketServer_class, args));
 
-    if (!JS_ConvertArguments(cx, args, "S/S", localhost.address(), protocol.address())) {
+    if (!JS_ConvertArguments(cx, args, "S/S", url.address(), protocol.address())) {
         return false;
     }
 
-    JSAutoByteString clocalhost(cx, localhost);
+    JSAutoByteString curl(cx, url);
 
-    uint16_t port;
-    char *url = strdup(clocalhost.ptr());
-    char *host = (char *)calloc(clocalhost.length(), sizeof(char));
-    char *path = (char *)calloc(clocalhost.length(), sizeof(char));
+    char *durl = strdup(curl.ptr());
+    char *host = (char *)calloc(curl.length(), sizeof(char));
+    char *path = (char *)calloc(curl.length(), sizeof(char));
 
-    if (NativeHTTP::ParseURI(url, clocalhost.length(), host,
-        &port, path, "ws://") == -1) {
-        JS_ReportError(cx, "Invalid WebSocketServer URI : %s", url);
+    u_short port = 80;
+    u_short default_port = 80;
+    bool isSSL = false;
+
+    const char *prefix = NULL;
+    if (strncasecmp(curl.ptr(), CONST_STR_LEN("wss://")) == 0) {
+        prefix = "wss://";
+        isSSL = true;
+        default_port = 443;
+    } else if (strncasecmp(curl.ptr(), CONST_STR_LEN("ws://")) == 0) {
+        prefix = "ws://";
+    } else {
+        /* No prefix provided. Assuming 'default url' => no SSL, port 80 */
+        prefix = "";
+    }
+
+    if (NativeHTTP::ParseURI(durl, curl.length(), host,
+        &port, path, prefix, default_port) == -1) {
+        JS_ReportError(cx, "Invalid WebSocketServer URI : %s", durl);
         free(path);
         free(host);
-        free(url);
+        free(durl);
         return false;
     }
 
@@ -159,11 +174,11 @@ static bool native_WebSocketServer_constructor(JSContext *cx,
 
     free(path);
     free(host);
-    free(url);
+    free(durl);
 
     if (!wss->start()) {
         JS_ReportError(cx, "WebSocketServer: failed to bind on %s",
-            clocalhost.ptr());
+            curl.ptr());
         delete wss;
         return false;
     }
@@ -171,7 +186,6 @@ static bool native_WebSocketServer_constructor(JSContext *cx,
     JS_SetPrivate(ret, wss);
 
     args.rval().setObjectOrNull(ret);
-
     /*
         Server is listening at this point. Don't collect.
     */
