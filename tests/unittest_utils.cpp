@@ -140,6 +140,14 @@ TEST(NativeUtils, NativePtrAuteDelete)
     delete adp;
 }
 
+TEST(NativeUtils, NativeUserAgentUtils_getOS)
+{
+	EXPECT_TRUE(NativeUserAgentUtils::WINDOWS == NativeUserAgentUtils::getOS("Mozilla/5.0 (compatible; U; ABrowse 0.6; Syllable) AppleWebKit/420+ (KHTML, like Gecko)"));
+	EXPECT_TRUE(NativeUserAgentUtils::WINDOWS == NativeUserAgentUtils::getOS("Mozilla/4.0 (compatible; Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; Acoo Browser 1.98.744; .NET CLR 3.5.30729); Windows NT 5.1; Trident/4.0)"));
+	EXPECT_TRUE(NativeUserAgentUtils::WINDOWS == NativeUserAgentUtils::getOS("Mozilla/4.0 (compatible; MSIE 7.0; AOL 9.1; AOLBuild 4334.5000; Windows NT 5.1; Trident/4.0)"));
+	EXPECT_TRUE(NativeUserAgentUtils::OTHER == NativeUserAgentUtils::getOS("wget"));
+}
+
 TEST(NativeUtils, ConstStrLenMacro)
 {
         {
