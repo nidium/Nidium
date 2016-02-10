@@ -35,8 +35,8 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
 
     memset(&cwd[0], '\0', sizeof(cwd));
     if (getcwd(cwd, sizeof(cwd)) != NULL) {
-        NativePath::cd(cwd);
-        NativePath::chroot(cwd);
+//        NativePath::cd(cwd);
+//        NativePath::chroot(cwd);
     }
 
     m_JS = new NativeJS(net);
