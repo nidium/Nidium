@@ -1,4 +1,4 @@
-NamespaceDoc( "NativeJSEvent", "Event coordinator",
+NamespaceDoc( "NativeJSEvent", "Event coordinator.",
 	SeesDocs( "NativeJSEvent.stopPropagation|NativeJSEvent.preventDefault|NativeJSEvent.forcePropagation" ),
 	NO_Examples
 )
@@ -8,18 +8,20 @@ EventDoc( "NativeJSEvent.stopProgagation", "Stops the propagation of events.",
 	NO_Examples,
 	NO_Params
 )
+
 EventDoc( "NativeJSEvent.preventDefault", "Prevents that the default event will fire.",
 	SeesDocs( "NativeJSEvent.stopPropagation|NativeJSEvent.preventDefault|NativeJSEvent.forcePropagation" ),
 	NO_Examples,
 	NO_Params
 )
+
 EventDoc( "NativeJSEvent.forcePropagation", "Forces an event to fire.",
 	SeesDocs( "NativeJSEvent.stopPropagation|NativeJSEvent.preventDefault|NativeJSEvent.forcePropagation" ),
 	NO_Examples,
 	NO_Params
 )
 
-FunctionDoc( "NativeJSEvent.fireEvent", "Starts an event",
+FunctionDoc( "NativeJSEvent.fireEvent", "Starts an event.",
 	SeesDocs( "NativeJSEvent.addEventListener|NativeJSEvent.fireEvent" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
@@ -27,7 +29,8 @@ FunctionDoc( "NativeJSEvent.fireEvent", "Starts an event",
 	  ParamDoc("param", "Arguments", "object", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
-FunctionDoc( "NativeJSEvent.addEventListener", "Register an action for an event",
+
+FunctionDoc( "NativeJSEvent.addEventListener", "Register an action for an event.",
 	SeesDocs( "NativeJSEvent.addEventListener|NativeJSEvent.fireEvent" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
@@ -35,3 +38,4 @@ FunctionDoc( "NativeJSEvent.addEventListener", "Register an action for an event"
 	  CallbackDoc( "callback", "The function to execute once the event occurs", [ParamDoc("param", "Arguments", "object", NO_Default, IS_Obligated ) ] )],
 	NO_Returns
 )
+

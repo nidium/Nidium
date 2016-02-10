@@ -1,6 +1,6 @@
 from dokumentor import *
 
-ClassDoc( "WebSocket", "Websocket handling",
+ClassDoc( "WebSocket", "Websocket handling.",
 	SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
 	NO_Examples,
 	NO_Inherrits,
@@ -32,19 +32,16 @@ FunctionDoc("WebSocket.ping", "Pings to an existing websocket connection.",
 	ReturnDoc("Websocket connection or null on failure", "WebSocket|null")
 )
 
-EventDoc( "WebSocketServer.onmessage", "Event triggered when a message arrives",
+EventDoc( "WebSocketServer.onmessage", "Event triggered when a message arrives.",
 	SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
 	NO_Examples,
 	[ParamDoc( "client", "The connected client", "WebSocketServerClient", NO_Default, IS_Obligated ),
 	ParamDoc( "event", "event object with key data", "object", NO_Default, IS_Obligated ) ]
 )
 
-EventDoc( "WebSocket.onopen", "Event triggered when a client connects",
+EventDoc( "WebSocket.onopen", "Event triggered when a client connects.",
 	SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
 	NO_Examples,
 	[ParamDoc( "client", "The connected client", "WebSocketServerClient", NO_Default, IS_Obligated ) ]
 )
-
-
-
 
