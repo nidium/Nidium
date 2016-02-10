@@ -7,6 +7,10 @@ var suites = [
 
 		__dirname + 'Thread/Thread_simple.js',
 		__dirname + 'Thread/Thread_complex.js',
+
+		__dirname + 'JS/JS_btoa.js',
+		__dirname + 'JS/JS_timers.js',
+
 ];
 var tr = new TestRunner(); 
 tr.do_test_suites(suites);
