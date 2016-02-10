@@ -178,8 +178,8 @@ void NativeWebSocketClientConnection::ping()
 void NativeWebSocketClientConnection::write(unsigned char *data,
     size_t len, bool binary, ape_socket_data_autorelease type)
 {
-    ape_ws_write(m_SocketClient, (unsigned char *)data, len,
-        (int)binary, type, NULL);
+    ape_ws_write(&m_WSState, (unsigned char *)data, len,
+        (int)binary, type);
 }
 
 static void native_on_ws_frame(websocket_state *state,

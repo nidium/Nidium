@@ -183,9 +183,6 @@ static bool native_WebSocket_constructor(JSContext *cx,
 
     args.rval().setObjectOrNull(ret);
 
-    /*
-        Server is listening at this point. Don't collect.
-    */
     NativeJSObj(cx)->rootObjectUntilShutdown(ret);
 
     return true;
