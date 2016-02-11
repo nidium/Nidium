@@ -2,7 +2,7 @@ from dokumentor import *
 
 items = [ "WebGLRenderingContext", "WebGLBuffer", "WebGLFramebuffer", "WebGLProgram", "WebGLRenderbuffer", "WebGLShader", "WebGLTexture", "WebGLUniformLocation", "WebGLShaderPrecisionFormat", "WebGLActiveInfo" ]
 for i in items:
-	NamespaceDoc( i, i + " Class",
+	NamespaceDoc( i, i + " Class.",
 		SeesDocs( "|".join( items ) ),
 		NO_Examples
 	)
@@ -26,7 +26,7 @@ for j,i in enumerate( items ):
 		SeesDocs( "WebGLRenderingContext|" + "|WebGLRenderingContext.".join( items ) ),
 		NO_Examples,
 		IS_Dynamic, IS_Public, IS_Fast,
-		[ ParamDoc( "location", "Location", "WebGLUniformLocation", NO_Default, IS_Obligated ), 
+		[ ParamDoc( "location", "Location", "WebGLUniformLocation", NO_Default, IS_Obligated ),
 		ParamDoc( "array", "Array", "[float]", NO_Default, IS_Obligated ) ],
 		NO_Returns
 	)
@@ -50,7 +50,7 @@ for j,i in enumerate( items ):
 		SeesDocs( "WebGLRenderingContext|" + "|WebGLRenderingContext.".join( items ) ),
 		NO_Examples,
 		IS_Dynamic, IS_Public, IS_Fast,
-		[ ParamDoc( "location", "Location", "WebGLUniformLocation", NO_Default, IS_Obligated ), 
+		[ ParamDoc( "location", "Location", "WebGLUniformLocation", NO_Default, IS_Obligated ),
 		ParamDoc( "array", "Array", "[float]", NO_Default, IS_Obligated ) ],
 		NO_Returns
 	)
@@ -61,7 +61,7 @@ for j,i in enumerate( items ):
 		SeesDocs( "WebGLRenderingContext|" + "|WebGLRenderingContext.".join( items ) ),
 		NO_Examples,
 		IS_Dynamic, IS_Public, IS_Fast,
-		[ ParamDoc( "location", "Location", "WebGLUniformLocation", NO_Default, IS_Obligated ), 
+		[ ParamDoc( "location", "Location", "WebGLUniformLocation", NO_Default, IS_Obligated ),
 		ParamDoc( "transpose", "Transpose the matrix", "boolean", NO_Default, IS_Obligated ),
 		ParamDoc( "array", "Array", "[float]", NO_Default, IS_Obligated ) ],
 		NO_Returns
@@ -101,7 +101,7 @@ for i in items:
 		NO_Default
 	)
 
-FunctionDoc( "WebGLRenderingContext.isContextLost", "Is the context lost",
+FunctionDoc( "WebGLRenderingContext.isContextLost", "Check if the context has been lost.",
 	SeesDocs( "WebGLRenderingContext.isContextLost|WebGLRenderingContext.useProgram|WebGLRenderingContext.getError|WebGLRenderingContext.viewport"),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -109,7 +109,7 @@ FunctionDoc( "WebGLRenderingContext.isContextLost", "Is the context lost",
 	ReturnDoc( "true", "boolean" )
 )
 
-FunctionDoc( "WebGLRenderingContext.getExtension", "Get an WebGL extension",
+FunctionDoc( "WebGLRenderingContext.getExtension", "Get an WebGL extension.",
 	SeesDocs( "WebGLRenderingContext.isContextLost|WebGLRenderingContext.useProgram|WebGLRenderingContext.getError|WebGLRenderingContext.viewport"),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -117,7 +117,7 @@ FunctionDoc( "WebGLRenderingContext.getExtension", "Get an WebGL extension",
 	ReturnDoc( "null", "null" )
 )
 
-FunctionDoc( "WebGLRenderingContext.activeTexture", "Call an texture",
+FunctionDoc( "WebGLRenderingContext.activeTexture", "Call an texture.",
 	SeesDocs( "WebGLRenderingContext.activeTexture|WebGLRenderingContext.createTexture|WebGLRenderingContext.deleteTexture"),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -184,14 +184,14 @@ FunctionDoc( "WebGLRenderingContext.copyTexImage2D", "Copy an texture.",
 	SeesDocs( "WebGLRenderingContext.bindAttribLocation|WebGLRenderingContext.bindBuffer|WebGLRenderingContext.bindFrameBuffer|WebGLRenderingContext.bindRenderBuffer|WebGLRenderingContext.bindTexture" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "level", "Level", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "internal", "Internal format", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "x", "X", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "y", "Y", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "width", "Width", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "height", "Height", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "border", "Border", "integer", NO_Default, IS_Obligated ), ],
+	[	ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "level", "Level", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "internal", "Internal format", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "x", "X", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "y", "Y", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "width", "Width", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "height", "Height", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "border", "Border", "integer", NO_Default, IS_Obligated ), ],
 	NO_Returns
 )
 
@@ -199,14 +199,14 @@ FunctionDoc( "WebGLRenderingContext.copyTexSubImage2D", "Copy an texture.",
 	SeesDocs( "WebGLRenderingContext.bindAttribLocation|WebGLRenderingContext.bindBuffer|WebGLRenderingContext.bindFrameBuffer|WebGLRenderingContext.bindRenderBuffer|WebGLRenderingContext.bindTexture" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "level", "Level", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "internal", "Internal format", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "x", "X", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "y", "Y", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "width", "Width", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "height", "Height", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "border", "Border", "integer", NO_Default, IS_Obligated ), ],
+	[	ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "level", "Level", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "internal", "Internal format", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "x", "X", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "y", "Y", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "width", "Width", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "height", "Height", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "border", "Border", "integer", NO_Default, IS_Obligated ), ],
 	NO_Returns
 )
 
@@ -222,8 +222,8 @@ FunctionDoc( "WebGLRenderingContext.blendEquationSeparate", "Blend aseperate equ
 	SeesDocs( "WebGLRenderingContext.blendEquation|WebGLRenderingContext.blendEquationSeperate|WebGLRenderingContext.blendFunc|WebGLRenderingContext.blendFuncSeperate" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "rgb", "Mode RGB", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "alpha", "Mode Alpha", "integer", NO_Default, IS_Obligated ) ] ,
+	[	ParamDoc( "rgb", "Mode RGB", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "alpha", "Mode Alpha", "integer", NO_Default, IS_Obligated ) ] ,
 	NO_Returns
 )
 
@@ -231,8 +231,8 @@ FunctionDoc( "WebGLRenderingContext.blendFunc", "Blend a function.",
 	SeesDocs( "WebGLRenderingContext.blendEquation|WebGLRenderingContext.blendEquationSeperate|WebGLRenderingContext.blendFunc|WebGLRenderingContext.blendFuncSeperate" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "sfactor", "S-factor", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "dfactor", "D-factor", "integer", NO_Default, IS_Obligated ) ] ,
+	[	ParamDoc( "sfactor", "S-factor", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "dfactor", "D-factor", "integer", NO_Default, IS_Obligated ) ] ,
 	NO_Returns
 )
 
@@ -240,10 +240,10 @@ FunctionDoc( "WebGLRenderingContext.blendFuncSeparate", "Blend a seperate functi
 	SeesDocs( "WebGLRenderingContext.blendEquation|WebGLRenderingContext.blendEquationSeperate|WebGLRenderingContext.blendFunc|WebGLRenderingContext.blendFuncSeperate" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "srcRgb", "RGB Source", "integer", NO_Default, IS_Obligated ),
-	  ParamDoc( "dstRgb", "RGB Destination", "integer", NO_Default, IS_Obligated ),
-	  ParamDoc( "srcAlpha", "Alpha Source", "integer", NO_Default, IS_Obligated ),
-	  ParamDoc( "dstAlpha", "Alpha Destination", "integer", NO_Default, IS_Obligated )],
+	[	ParamDoc( "srcRgb", "RGB Source", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "dstRgb", "RGB Destination", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "srcAlpha", "Alpha Source", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "dstAlpha", "Alpha Destination", "integer", NO_Default, IS_Obligated )],
 	NO_Returns
 )
 
@@ -251,9 +251,9 @@ FunctionDoc( "WebGLRenderingContext.bufferData", "Buffer data.",
 	SeesDocs( "WebGLRenderingContext.bufferData|WebGLRenderingContext.bufferSubData" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
-	  ParamDoc( "array", "Buffer", "WebGLBuffer", NO_Default, IS_Obligated ),
-	  ParamDoc( "usage", "Usage", "integer", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "array", "Buffer", "WebGLBuffer", NO_Default, IS_Obligated ),
+		ParamDoc( "usage", "Usage", "integer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -261,9 +261,9 @@ FunctionDoc( "WebGLRenderingContext.bufferSubData", "Buffer sub data.",
 	SeesDocs( "WebGLRenderingContext.bufferData|WebGLRenderingContext.bufferSubData" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
-	  ParamDoc( "offset", "Offset", "integer", NO_Default, IS_Obligated ),
-	  ParamDoc( "array", "Buffer", "WebGLBuffer", NO_Default, IS_Obligated ) ],
+	[ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "offset", "Offset", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "array", "Buffer", "WebGLBuffer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -279,10 +279,10 @@ FunctionDoc( "WebGLRenderingContext.clearColor", "Clears a color in a context.",
 	SeesDocs( "WebGLRenderingContext.clean|WebGLRenderingContext.clearColor|WebGLRenderingContext.clearDepth|clearColor|WebGLRenderingContext.clearStencil" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "r", "Red", "float", NO_Default, IS_Obligated ),
-	  ParamDoc( "g", "Green", "float", NO_Default, IS_Obligated ),
-	  ParamDoc( "blue", "Blue", "float", NO_Default, IS_Obligated ),
-	  ParamDoc( "a", "Alpha", "float", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "r", "Red", "float", NO_Default, IS_Obligated ),
+		ParamDoc( "g", "Green", "float", NO_Default, IS_Obligated ),
+		ParamDoc( "blue", "Blue", "float", NO_Default, IS_Obligated ),
+		ParamDoc( "a", "Alpha", "float", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -306,10 +306,10 @@ FunctionDoc( "WebGLRenderingContext.colorMask", "Mask a color in a context.",
 	SeesDocs( "WebGLRenderingContext.clearColor" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "r", "Red", "float", NO_Default, IS_Optional ),
-	  ParamDoc( "g", "Green", "float", NO_Default, IS_Optional ),
-	  ParamDoc( "blue", "Blue", "float", NO_Default, IS_Optional ),
-	  ParamDoc( "a", "Alpha", "float", NO_Default, IS_Optional ) ],
+	[	ParamDoc( "r", "Red", "float", NO_Default, IS_Optional ),
+		ParamDoc( "g", "Green", "float", NO_Default, IS_Optional ),
+		ParamDoc( "blue", "Blue", "float", NO_Default, IS_Optional ),
+		ParamDoc( "a", "Alpha", "float", NO_Default, IS_Optional ) ],
 	NO_Returns
 )
 
@@ -421,7 +421,7 @@ FunctionDoc( "WebGLRenderingContext.detachShader", "Remove a shader.",
 	NO_Returns
 )
 
-FunctionDoc( "WebGLRenderingContext.disable", "Disable something.",
+FunctionDoc( "WebGLRenderingContext.disable", "Disable a context.",
 	SeesDocs( "WebGLRenderingContext.disable|WebGLRenderingContext.enable|WebGLRenderingContext.disableVertexAttribArray|WebGLRenderingContext.enableVertexAttribArray" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -441,9 +441,9 @@ FunctionDoc( "WebGLRenderingContext.drawArrays", "Draw Arrays.",
 	SeesDocs( "WebGLRenderingContext.drawArrays|WebGLRenderingContext.drawElements" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "mode", "Mode", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "first", "First", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "count", "Count", "integer", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "mode", "Mode", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "first", "First", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "count", "Count", "integer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -451,14 +451,14 @@ FunctionDoc( "WebGLRenderingContext.drawElements", "Draw Elements.",
 	SeesDocs( "WebGLRenderingContext.drawArrays|WebGLRenderingContext.drawElements" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "mode", "Mode", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "first", "First", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "count", "Count", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "offset", "Offset", "integer", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "mode", "Mode", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "first", "First", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "count", "Count", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "offset", "Offset", "integer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
-FunctionDoc( "WebGLRenderingContext.enable", "Enable something.",
+FunctionDoc( "WebGLRenderingContext.enable", "Enable a context.",
 	SeesDocs( "WebGLRenderingContext.disable|WebGLRenderingContext.enable|WebGLRenderingContext.disableVertexAttribArray|WebGLRenderingContext.enableVertexAttribArray" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -494,8 +494,8 @@ FunctionDoc( "WebGLRenderingContext.getUniformLocation", "Get a location in a Co
 	SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "program", "Program", "WebGLProgram", NO_Default, IS_Obligated ) ,
-	 ParamDoc( "name", "Name", "string", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "program", "Program", "WebGLProgram", NO_Default, IS_Obligated ) ,
+		ParamDoc( "name", "Name", "string", NO_Default, IS_Obligated ) ],
 	ReturnDoc( "location", "WebGLUniformLocation" )
 )
 
@@ -503,14 +503,14 @@ FunctionDoc( "WebGLRenderingContext.getShaderPrecisionFormat", "Get the precisio
 	SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "shader", "Shadertype", "integer", NO_Default, IS_Obligated ) ,
-	 ParamDoc( "precision", "Precisiontype", "integer", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "shader", "Shadertype", "integer", NO_Default, IS_Obligated ) ,
+		ParamDoc( "precision", "Precisiontype", "integer", NO_Default, IS_Obligated ) ],
 	ReturnDoc( "format", "WebGLShaderPrecisionFormat" )
 )
 
 items = [ "rangeMin", "rangeMax", "precision"]
 for i in items:
-	FieldDoc( "WebGLShaderPrecisionFormat." + i, "The " + i + " value of the ShaderPrecisionFormat",
+	FieldDoc( "WebGLShaderPrecisionFormat." + i, "The " + i + " value of the ShaderPrecisionFormat.",
 		SeesDocs( "WebGLShaderPrecisionFormat." + "|WebGLShaderPrecisionFormat." .join( items ) ),
 		NO_Examples,
 		IS_Static, IS_Public, IS_ReadWrite,
@@ -518,26 +518,26 @@ for i in items:
 		NO_Default
 	)
 
-FunctionDoc( "WebGLRenderingContext.framebufferRenderbuffer", "?.",
+FunctionDoc( "WebGLRenderingContext.framebufferRenderbuffer", "Foo's the bar's?",
 	SeesDocs( "WebGLRenderingContext.framebufferRenderbuffer|WebGlRenderingContext.framebufferTexture2D" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ) ,
-	 ParamDoc( "attach", "Attachemnt", "integer", NO_Default, IS_Obligated ) ,
-	 ParamDoc( "renderbuffer_target", "Renderbuffer target", "integer", NO_Default, IS_Obligated ) ,
-	 ParamDoc( "renderbuffer", "Renderbuffer target", "WebGLRenderbuffer", NO_Default, IS_Obligated ) ],
+	[ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ) ,
+		ParamDoc( "attach", "Attachemnt", "integer", NO_Default, IS_Obligated ) ,
+		ParamDoc( "renderbuffer_target", "Renderbuffer target", "integer", NO_Default, IS_Obligated ) ,
+		ParamDoc( "renderbuffer", "Renderbuffer target", "WebGLRenderbuffer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
-FunctionDoc( "WebGLRenderingContext.framebufferTexture2D", "?.",
+FunctionDoc( "WebGLRenderingContext.framebufferTexture2D", "Bar's the Foo's?",
 	SeesDocs( "WebGLRenderingContext.framebufferRenderbuffer|WebGlRenderingContext.framebufferTexture2D" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ) ,
-	 ParamDoc( "attach", "Attachemnt", "integer", NO_Default, IS_Obligated ) ,
-	 ParamDoc( "texture_target", "Texture target", "integer", NO_Default, IS_Obligated ) ,
-	 ParamDoc( "texture", "Texture target", "WebGLTexture", NO_Default, IS_Obligated ),
-	 ParamDoc( "level", "level", "integer", NO_Default, IS_Obligated ) ] ,
+	[	ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ) ,
+		ParamDoc( "attach", "Attachemnt", "integer", NO_Default, IS_Obligated ) ,
+		ParamDoc( "texture_target", "Texture target", "integer", NO_Default, IS_Obligated ) ,
+		ParamDoc( "texture", "Texture target", "WebGLTexture", NO_Default, IS_Obligated ),
+		ParamDoc( "level", "level", "integer", NO_Default, IS_Obligated ) ] ,
 	NO_Returns
 )
 
@@ -549,7 +549,7 @@ FunctionDoc( "WebGLRenderingContext.frontFace", "Frontface.",
 	NO_Returns
 )
 
-FunctionDoc( "WebGLRenderingContext.generateMipfmap", "Generate a Mipmap.",
+FunctionDoc( "WebGLRenderingContext.generateMipmap", "Generate a Mipmap.",
 	SeesDocs( "WebGLRenderingContext.generateMipamp" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -557,9 +557,9 @@ FunctionDoc( "WebGLRenderingContext.generateMipfmap", "Generate a Mipmap.",
 	NO_Returns
 )
 
-items = { "uize": "integer", "type": "string", "name": "string" }
+items = { "size": "integer", "type": "string", "name": "string" }
 for i, typed in items.items():
-	FieldDoc( "WebGLActiveInfo." + i, "The " + i + " of the Object instance", 
+	FieldDoc( "WebGLActiveInfo." + i, "The " + i + " of the Object instance.",
 		SeesDocs( "WebGLActiveInfo.size|WebGLActiveInfo.type|WebGLActiveInfo.name" ),
 		NO_Examples,
 		IS_Static, IS_Public, IS_ReadWrite,
@@ -571,8 +571,8 @@ FunctionDoc( "WebGLRenderingContext.getActiveAttrib", "Get the active attributes
 	SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "program", "Program", "WebGLProgram", NO_Default, IS_Obligated ) ,
-	 ParamDoc( "index", "Attribute index", "integer", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "program", "Program", "WebGLProgram", NO_Default, IS_Obligated ) ,
+		ParamDoc( "index", "Attribute index", "integer", NO_Default, IS_Obligated ) ],
 	ReturnDoc( "Information about the attributes", "WebGLActiveInfo" )
 )
 
@@ -588,8 +588,8 @@ FunctionDoc( "WebGLRenderingContext.getAttribLocation", "Get the location of a a
 	SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "program", "Program", "WebGLProgram", NO_Default, IS_Obligated ) ,
-	 ParamDoc( "attr", "Attribute", "string", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "program", "Program", "WebGLProgram", NO_Default, IS_Obligated ) ,
+		ParamDoc( "attr", "Attribute", "string", NO_Default, IS_Obligated ) ],
 	ReturnDoc( "location", "WebGLUniformLocation" )
 )
 
@@ -605,8 +605,8 @@ FunctionDoc( "WebGLRenderingContext.getParameter", "Get parameter of a program."
 	SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "program", "Program", "WebGLProgram", NO_Default, IS_Obligated ),
-	  ParamDoc( "attr", "Attribute", "integer", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "program", "Program", "WebGLProgram", NO_Default, IS_Obligated ),
+		ParamDoc( "attr", "Attribute", "integer", NO_Default, IS_Obligated ) ],
 	ReturnDoc( "value", "mixed" )
 )
 
@@ -622,8 +622,8 @@ FunctionDoc( "WebGLRenderingContext.getShaderParameter", "Get parameter from a s
 	SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "shader", "Shader", "WebGLShader", NO_Default, IS_Obligated ),
-	ParamDoc( "param", "Parameter name", "integer", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "shader", "Shader", "WebGLShader", NO_Default, IS_Obligated ),
+		ParamDoc( "param", "Parameter name", "integer", NO_Default, IS_Obligated ) ],
 	ReturnDoc( "value", "integer" )
 )
 
@@ -635,7 +635,7 @@ FunctionDoc( "WebGLRenderingContext.getShaderInfoLog", "Get information about a 
 	ReturnDoc( "log", "string" )
 )
 
-FunctionDoc( "WebGLRenderingContext.lineWidth", "Set the width of a line.", 
+FunctionDoc( "WebGLRenderingContext.lineWidth", "Set the width of a line.",
 	SeesDocs( "WebGLRenderingContext.lineWidth" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -643,7 +643,7 @@ FunctionDoc( "WebGLRenderingContext.lineWidth", "Set the width of a line.",
 	NO_Returns
 )
 
-FunctionDoc( "WebGLRenderingContext.linkProgram", "Link a program to the context.", 
+FunctionDoc( "WebGLRenderingContext.linkProgram", "Link a program to the context.",
 	SeesDocs( "WebGLRenderingContext.linkProgram" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -651,7 +651,7 @@ FunctionDoc( "WebGLRenderingContext.linkProgram", "Link a program to the context
 	NO_Returns
 )
 
-FunctionDoc( "WebGLRenderingContext.pixelStorei", "Store a parameter.", 
+FunctionDoc( "WebGLRenderingContext.pixelStorei", "Store a parameter.",
 	SeesDocs( "WebGLRenderingContext.pixelStorei" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -660,49 +660,49 @@ FunctionDoc( "WebGLRenderingContext.pixelStorei", "Store a parameter.",
 	NO_Returns
 )
 
-FunctionDoc( "WebGLRenderingContext.renderBufferStorage", "Render a buffer.", 
+FunctionDoc( "WebGLRenderingContext.renderBufferStorage", "Render a buffer.",
 	SeesDocs( "WebGLRenderingContext.renderBufferStorage" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "internalFormat", "Internal format", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "width", "Width", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "height", "Height", "integer", NO_Default, IS_Obligated ) ],
+	[ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "internalFormat", "Internal format", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "width", "Width", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "height", "Height", "integer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
-FunctionDoc( "WebGLRenderingContext.shaderSource", "Set the source on a shader.", 
+FunctionDoc( "WebGLRenderingContext.shaderSource", "Set the source on a shader.",
 	SeesDocs( "WebGLRenderingContext.shaderSource" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "shader", "Shader", "WebGLShader", NO_Default, IS_Obligated ),
-	 ParamDoc( "source", "Source", "string", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "shader", "Shader", "WebGLShader", NO_Default, IS_Obligated ),
+		ParamDoc( "source", "Source", "string", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
 # TODO: investigate how to describe the 2nd paramater list
-FunctionDoc( "WebGLRenderingContext.texImage2D", "Texture of an image.", 
+FunctionDoc( "WebGLRenderingContext.texImage2D", "Texture of an image.",
 	SeesDocs( "WebGLRenderingContext.texImage2D" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "level", "Level", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "internalFormat", "Internal format", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "width", "Width", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "height", "Height", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "border", "Border", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "format", "Format", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "type", "Type", "integer", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "level", "Level", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "internalFormat", "Internal format", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "width", "Width", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "height", "Height", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "border", "Border", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "format", "Format", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "type", "Type", "integer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
-FunctionDoc( "WebGLRenderingContext.texParameteri", "Set a parameter value on a Texture.", 
+FunctionDoc( "WebGLRenderingContext.texParameteri", "Set a parameter value on a Texture.",
 	SeesDocs( "texImage2D|WebGLRenderingContext.texParameteri" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "name", "Parameter name", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "value", "Value", "integer", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "name", "Parameter name", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "value", "Value", "integer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -710,12 +710,12 @@ FunctionDoc( "WebGLRenderingContext.vertexAttribPointer", "Create a pointer to a
 	SeesDocs( "WebGLRenderingContext.vertextAttribPointer" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ParamDoc( "attr", "Attribute", "integer", NO_Default, IS_Obligated ),
-	ParamDoc( "size", "Size", "integer", NO_Default, IS_Obligated ),
-	ParamDoc( "type", "Type", "integer", NO_Default, IS_Obligated ),
-	ParamDoc( "normalized", "Normalized", "boolean", NO_Default, IS_Obligated ),
-	ParamDoc( "stride", "Stride", "integer", NO_Default, IS_Obligated ),
-	ParamDoc( "offset", "Offset", "integer", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "attr", "Attribute", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "size", "Size", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "type", "Type", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "normalized", "Normalized", "boolean", NO_Default, IS_Obligated ),
+		ParamDoc( "stride", "Stride", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "offset", "Offset", "integer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -731,10 +731,10 @@ FunctionDoc( "WebGLRenderingContext.viewPort", "Set the viewport to a certain po
 	SeesDocs( "WebGLRenderingContext.isContextLost|WebGLRenderingContext.useProgram|WebGLRenderingContext.getError|WebGLRenderingContext.viewport"),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ParamDoc( "x", "X", "integer", NO_Default, IS_Obligated ),
-	ParamDoc( "y", "Y", "integer", NO_Default, IS_Obligated ),
-	ParamDoc( "w", "width", "integer", NO_Default, IS_Obligated ),
-	ParamDoc( "h", "Height", "integer", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "x", "X", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "y", "Y", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "w", "width", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "h", "Height", "integer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -746,9 +746,10 @@ FunctionDoc( "WebGLRenderingContext.getError", "Retrieve the most recent error."
 	ReturnDoc( "Errorcode", "integer")
 )
 
-ConstructorDoc( "WebGLRenderingContext", "Constructs an WebGLRenderingContext",
+ConstructorDoc( "WebGLRenderingContext", "Constructs an WebGLRenderingContext.",
 	NO_Sees,
 	NO_Examples,
 	NO_Params,
 	ReturnDoc( "Context", "WebGLRenderingContext" )
 )
+

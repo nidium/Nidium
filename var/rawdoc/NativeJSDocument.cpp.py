@@ -1,6 +1,6 @@
 from dokumentor import *
 
-NamespaceDoc( "NativeDocument", "Document class",
+NamespaceDoc( "NativeDocument", "Document class.",
 	SeesDocs( "Window|Canvas" ),
 	NO_Examples
 )
@@ -13,7 +13,7 @@ FunctionDoc( "NativeDocument.parseNML", "Parses a NML string and sets this as a 
 	ReturnDoc( "A document instance", "NativeDocument" )
 )
 
-FunctionDoc( "NativeDocument.getCanvasById", "Select an canvas element for further manipulation",
+FunctionDoc( "NativeDocument.getCanvasById", "Select an canvas element for further manipulation.",
 	SeesDocs("NativeDocument.getScreenData|NativeDocument.getCanvasById" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
@@ -21,7 +21,7 @@ FunctionDoc( "NativeDocument.getCanvasById", "Select an canvas element for furth
 	ReturnDoc( "The selected element or null", "Canvas" )
 )
 
-FunctionDoc( "NativeDocument.getScreenData", "Provides information about an canvas object",
+FunctionDoc( "NativeDocument.getScreenData", "Provides information about an canvas object.",
 	SeesDocs("NativeDocument.getScreenData|NativeDocument.getCanvasById" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
@@ -29,7 +29,7 @@ FunctionDoc( "NativeDocument.getScreenData", "Provides information about an canv
 	ReturnDoc( "An object with keys: width/integer, height/integer, data/arrayBuffer", "Object" )
 )
 
-FunctionDoc( "NativeDocument.getPasteBuffer", "Get the content of the paste buffer",
+FunctionDoc( "NativeDocument.getPasteBuffer", "Get the content of the paste buffer.",
 	SeesDocs( "NativeDocument.getPasteBuffer|NativeDocument.setPasteBuffer" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
@@ -37,7 +37,7 @@ FunctionDoc( "NativeDocument.getPasteBuffer", "Get the content of the paste buff
 	NO_Returns
 )
 
-FunctionDoc( "NativeDocument.setPasteBuffer", "Set the content of the paste buffer",
+FunctionDoc( "NativeDocument.setPasteBuffer", "Set the content of the paste buffer.",
 	SeesDocs( "NativeDocument.getPasteBuffer|NativeDocument.setPasteBuffer" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
@@ -45,9 +45,12 @@ FunctionDoc( "NativeDocument.setPasteBuffer", "Set the content of the paste buff
 	ReturnDoc( "Paste buffer contents", "string")
 )
 
-FunctionDoc( "NativeDocument.showFPS", "Display the number of frames per second",
+FunctionDoc( "NativeDocument.showFPS", "Display the number of frames per second.",
 	SeesDocs( "NativeDocument.showFPS|NativeDocument.run" ),
-	NO_Examples,
+	[ExampleDoc("""var canvas = new Canvas(200, 100);
+var ctx = canvas.getContext("2d");
+document.showFPS(true);
+""")],
 	IS_Static, IS_Public, IS_Fast,
 	[ ParamDoc( "show", "Show it or hide it", "boolean", "false", IS_Obligated ) ],
 	NO_Returns
@@ -71,8 +74,16 @@ FieldDoc( "NativeDocument.stylesheet", "The Native Style sheet (NSS) that belong
 
 FunctionDoc( "NativeDocument.loadFont", "Load a certain font.",
 	SeesDocs( "NativeDocument.parseNML|NativeDocument.stylesheet|NativeDocument.loadFont" ),
-	NO_Examples,
+	[ExampleDoc("""document.loadFont({
+    file: "private://assets/fonts/onesize.ttf",
+    name: "OneSize"
+});
+"""), ExampleDoc("""document.loadFont({
+    file : "private://modules/fontawesome/fontawesome.ttf",
+    name : "fontAwesome"
+});""")],
 	IS_Static, IS_Public, IS_Fast,
 	[ ParamDoc( "name", "Fontname or font filename", "string", NO_Default, IS_Obligated ) ],
 	ReturnDoc( "success", "boolean" )
 )
+

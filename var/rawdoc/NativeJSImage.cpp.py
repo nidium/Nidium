@@ -1,11 +1,11 @@
 from dokumentor import *
 
-ClassDoc( "Image", "Image handling",
+ClassDoc( "Image", "Image handling.",
 	[SeeDoc( "Video" ) ],
 	ExampleDoc( """document.background = "#333333";
 document.opacity = 0;
 
-var pic = new UIElement(document, {
+var pic = new UI.element(document, {
     visible : false,
     width : 1,
     height : 1,
@@ -31,7 +31,7 @@ img.src = "http://www.nidium.com/static/img/island.png";
 	NO_Inherrits
 )
 
-FunctionDoc( "Image.print", "Does nothing",
+FunctionDoc( "Image.print", "Does nothing.",
 	SeesDocs( "Image.shiftHue|Image.markColorInAlpha|Image.desaturate|Image.print" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -39,7 +39,7 @@ FunctionDoc( "Image.print", "Does nothing",
 	NO_Returns
 )
 
-FunctionDoc( "Image.shiftHue", "Change the hue of an image",
+FunctionDoc( "Image.shiftHue", "Change the hue of an image.",
 	SeesDocs( "Image.shiftHue|Image.markColorInAlpha|Image.desaturate|Image.print" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -48,7 +48,7 @@ FunctionDoc( "Image.shiftHue", "Change the hue of an image",
 	NO_Returns
 )
 
-FunctionDoc( "Image.markColorInAlpha", "Mark the color in an image",
+FunctionDoc( "Image.markColorInAlpha", "Mark the color in an image.",
 	SeesDocs( "Image.shiftHue|Image.markColorInAlpha|Image.desaturate|Image.print" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -56,7 +56,7 @@ FunctionDoc( "Image.markColorInAlpha", "Mark the color in an image",
 	NO_Returns
 )
 
-FunctionDoc( "Image.desaturater", "Desaturate an image",
+FunctionDoc( "Image.desaturater", "Desaturate an image.",
 	SeesDocs( "Image.shiftHue|Image.markColorInAlpha|Image.desaturate|Image.print" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -64,7 +64,7 @@ FunctionDoc( "Image.desaturater", "Desaturate an image",
 	NO_Returns
 )
 
-FieldDoc( "Image.height", "Height of the image in pixels",
+FieldDoc( "Image.height", "Height of the image in pixels.",
 	SeesDocs( "Image.src|Image.heigth|Image.width" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Readonly,
@@ -72,7 +72,7 @@ FieldDoc( "Image.height", "Height of the image in pixels",
 	NO_Default
 )
 
-FieldDoc( "Image.width", "Width of the image in pixels",
+FieldDoc( "Image.width", "Width of the image in pixels.",
 	SeesDocs( "Image.src|Image.heigth|Image.width" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Readonly,
@@ -80,7 +80,7 @@ FieldDoc( "Image.width", "Width of the image in pixels",
 	NO_Default
 )
 
-FieldDoc( "Image.src", "Path to the image files",
+FieldDoc( "Image.src", "Path to the image files.",
 	SeesDocs( "Image.src|Image.heigth|Image.width" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_ReadWrite,
@@ -88,15 +88,16 @@ FieldDoc( "Image.src", "Path to the image files",
 	"unknown"
 )
 
-ConstructorDoc( "Image", "Image loader",
+ConstructorDoc( "Image", "Image loader.",
 	NO_Sees,
 	NO_Examples,
-	NO_Params, 
+	NO_Params,
 	ReturnDoc( "Image object", "Image" )
 )
 
-EventDoc( "Image.onload", "Event triggered on load event",
+EventDoc( "Image.onload", "Event triggered on load event.",
 	NO_Sees,
 	NO_Examples,
-	[ParamDoc( "video", "video instance", "Video", NO_Default, IS_Obligated ) ]
+	[ParamDoc( "image", "Image instance", "Image", NO_Default, IS_Obligated ) ]
 )
+
