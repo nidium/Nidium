@@ -1,13 +1,13 @@
 from dokumentor import *
 
-ClassDoc( "Stream", "Class to work with IO streams",
+ClassDoc( "Stream", "Class to work with IO streams.",
 	[ SeeDoc( "File" ), SeeDoc( "Http" ) ],
 	NO_Examples,
 	NO_Extends,
 	NO_Inherrits
 )
 
-FieldDoc( "Stream.fileSize", "The size of the stream in bytes",
+FieldDoc( "Stream.fileSize", "The size of the stream in bytes.",
 	[ SeeDoc( "Stream" ), SeeDoc( "File" ), SeeDoc( "Http" ) ],
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_ReadWrite,
@@ -15,7 +15,7 @@ FieldDoc( "Stream.fileSize", "The size of the stream in bytes",
 	NO_Default
 )
 
-FunctionDoc( "Stream.seek", "Go to a position in the stream, counted from the beginning.",
+FunctionDoc( "Stream.seek", "Go to a position in the stream, counted from the beginning of the stream.",
 	SeesDocs( "Stream|File|Stream.seek|Stream.start|Stream.stop|Stream.getNextPacket" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -39,7 +39,7 @@ FunctionDoc( "Stream.getNextPacket", "Continue reading on a stream.",
 	ReturnDoc( "Returns null if there is nothing more to read; Returns an the read bytes upon success.", "null|Stream" )
 )
 
-ConstructorDoc( "Stream", "Creates a new stream instance. A Stream is an IO interface that can perform operation like read and write.", 
+ConstructorDoc( "Stream", "Creates a new stream instance. A Stream is an IO interface that can perform operation like 'Stream.read' and 'Stream.write'.",
 	NO_Sees,
 	[ ExampleDoc("""var s = new Stream( "http://www.nidium.com" );
 s.onavailabledata = function( ) {
@@ -52,7 +52,7 @@ s.start( 1024 );
 	ReturnDoc( "Stream instance", "Stream" )
 )
 
-EventDoc( "Stream.onProgress", "Function that will be called when there is action on the Stream",
+EventDoc( "Stream.onProgress", "Function that will be called when there is action on the Stream.",
 	NO_Sees,
 	NO_Examples,
 	[ ParamDoc( "buffered", "The number of bytes that were buffered", "integer", NO_Default, IS_Obligated ),
@@ -60,8 +60,9 @@ EventDoc( "Stream.onProgress", "Function that will be called when there is actio
 	]
 )
 
-EventDoc( "Stream.onavailabledata", "Function that will be called when new data is available on the Stream",
+EventDoc( "Stream.onavailabledata", "Function that will be called when new data is available on the Stream.",
 	NO_Sees,
 	NO_Examples,
 	NO_Params,
 )
+
