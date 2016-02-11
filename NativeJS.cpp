@@ -45,6 +45,7 @@
 #include "NativeJSConsole.h"
 #include "NativeJSFS.h"
 #include "NativeStreamInterface.h"
+#include "NativeJSDebugger.h"
 
 static pthread_key_t gAPE = 0;
 static pthread_key_t gJS = 0;
@@ -171,6 +172,7 @@ static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
 void reportError(JSContext *cx, const char *message, JSErrorReport *report)
 {
     NativeJS *js = NativeJS::getNativeClass(cx);
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
     if (js == NULL) {
         printf("Error reporter failed (wrong JSContext?) (%s:%d > %s)\n", report->filename, report->lineno, message);
@@ -533,7 +535,6 @@ JSObject *NativeJS::CreateJSGlobal(JSContext *cx)
     JSAutoCompartment ac(cx, glob);
 
     JS_InitStandardClasses(cx, glob);
-    JS_DefineDebuggerObject(cx, glob);
     JS_InitCTypesClass(cx, glob);
 
     JS_DefineFunctions(cx, glob, glob_funcs);
@@ -1034,6 +1035,8 @@ void NativeJS::loadGlobalObjects()
     NativeJSconsole::registerObject(cx);
     /* fs object */
     NativeJSFS::registerObject(cx);
+    /* Debugger object */
+    NativeJSDebugger::registerObject(cx);
 
     this->modules = new NativeJSModules(cx);
     if (!this->modules) {
