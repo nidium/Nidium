@@ -313,7 +313,7 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
                 DPRINT("module path is %s\n", modulePath.c_str());
             }
 
-            stop = (strcmp(topDir, path.c_str()) == 0);
+            stop = (strcmp(topDir, path.c_str()) >= 0);
             // Try again with parent directory
             if (!stop) {
                 DPRINT("  Getting parent dir for %s\n", path.c_str());
