@@ -148,7 +148,6 @@ static bool native_console_write(JSContext *cx, unsigned argc,
     cstr.encodeUtf8(cx, str);
 
     js->log(cstr.ptr());
-    js->log("\n");
 
     args.rval().setUndefined();
     return true;
