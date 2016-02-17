@@ -1,8 +1,10 @@
-var running = false;
 
-function test_Thread_complex() {
+Tests.register("Thread.complex", function() {
+	var running = false;
+
 	var t = new Thread(function(...n) {
 		var p = 0;
+		console.log("starting thread");
 		for (var i = 0; i < 20000000; i++) {
 			if (i % 10000 == 0) this.send(i);
 			p++;
@@ -11,27 +13,25 @@ function test_Thread_complex() {
 	});
 
 	t.onmessage = function(e) {
-		var i = e.data, v = i * 100 / 20000000;
-		console.log( Math.round(v) + "%", v );
+		Assert.equal(running, false);	
+		var i = e.data, perc = i * 100 / 20000000;
+		console.log( Math.round(perc) + "%", v );
 	};
 
 	t.oncomplete = function(e) {
 		console.log("complete");
 		if (e.data){
-			console.log("i'm done with", e.data);
+			Assert.equal(e.data, 20000000);
+			running = false;
+			console.log("done");
 		}
 	};
-
 
 	running = true;
 	t.start(5, 6, 6, 9);
 	while(running) {
 		//loop
 	}
-	return true;
-}
+	Assert.equal(running, false);
+});
 
-
-run_unit_tests = function( ) {
-	return test_Thread_complex( );
-}
