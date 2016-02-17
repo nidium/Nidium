@@ -663,7 +663,7 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     if (JS_TypeOfValue(cx, args[1]) != JSTYPE_FUNCTION) {
-        NATIVE_CHECK_ARGS("readFile", 3);
+        NATIVE_CHECK_ARGS("read", 3);
 
         opt = args[1].toObjectOrNull();
         argcallback = args[2];
@@ -672,7 +672,7 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     if (!JS_ConvertValue(cx, argcallback, JSTYPE_FUNCTION, &callback)) {
-        JS_ReportError(cx, "readFile() invalid callback");
+        JS_ReportError(cx, "read() invalid callback");
         return false;
     }
 
