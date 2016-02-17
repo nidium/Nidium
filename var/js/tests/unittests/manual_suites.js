@@ -1,9 +1,12 @@
-require('../../../../nativejscore/var/js/tests/testrunner.js');
+var TestRunner = require('../../../../nativejscore/var/js/tests/testrunner.js');
 
-var suites = [
-		__dirname + 'System/System_getOpenFileStats.js',
+var Suites = [
+	'System/System_getOpenFileStats.js',
 ];
 
-var tr = new TestRunner(); 
-tr.do_test_suites(suites);
-tr.report();
+var tr = new TestsRunner();
+tr.load(Suites);
+tr.run(function() {
+    tr.report();
+});
+
