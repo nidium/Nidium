@@ -1,6 +1,6 @@
 var TestsRunner = require('../../../../nativejscore/var/js/tests/testrunner.js');
 
-var suites = [
+var Suites = [
     'Navigator/Navigator_language.js',
     'AV/getcontext.js',
     'AV/SourceNode.js',
@@ -8,7 +8,8 @@ var suites = [
 ];
 
 var tr = new TestsRunner();
-tr.load(suites);
+tr.load(Suites);
 tr.run(function() {
     tr.report();
 });
+
