@@ -104,6 +104,9 @@ FunctionDoc( "File.listFiles", "List the files in a directory.",
 			f.listFiles( function( error, entries ) {
 				if ( ! err ) {
 					console.log( JSON.stringify( entries ) );
+					for(var i = 0; i < entries.length; i++) {
+						console.log( entries[i].name + "=" + entries[i].type);
+					}
 			}
 		} );
 		}
