@@ -1,6 +1,5 @@
 // Make Assert object global for ease of use during the tests
 Assert = require("./assert");
-
 var log = {
 	error: function(...args) {
 		args.unshift(31);
@@ -51,10 +50,14 @@ TestsRunner = function() {
 TestsRunner.prototype = {
     reportLastException: function() {
             log.error("Exception : " + this.lastException.exception + "\n");
+            var regex = new RegExp( '^' + pwd() + '[^/]+$');
             for (var i = 0; i < this.lastException.trace.length; i++) {
                 var frame = this.lastException.trace[i];
-                // TODO : Remove the full path from the script path
-                console.write(frame.script + ":" + frame.line + " " + frame.callee + "()\n");
+                // This is not 100% ideal, but the noisyness in the stacktrace is reduced
+                if (!regex.exec(frame.script)) {
+                    var scriptShort = "\t" + i + " ../" + frame.script.split("/").slice(-3).join("/");
+                    console.write(scriptShort + ":" + frame.line + " " + frame.callee + "()\n");
+                }
             }
     },
 
@@ -139,8 +142,7 @@ TestsRunner.prototype = {
 
             // Expose to tests the current instance of the TestsRunner
             Tests = this;
-
-			load(includeName);
+            load(includeName);
             log.success("\t OK\n");
         }
 
