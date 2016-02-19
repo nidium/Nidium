@@ -47,7 +47,7 @@ FunctionDoc( "Console.info", "Logs output to the console, marked as info.",
 
 FunctionDoc( "Console.error", "Logs output to the console, marked as error.",
 	[ SeeDoc( "Console.log" ), SeeDoc( "Console.info" ), SeeDoc( "Console.warn" ), SeeDoc( "Console.write" ), SeeDoc( "Console.clear" ) ],
-	ExampleDoc( "console.error( 'Nidium, Cannot display HTML' );" ),
+	ExampleDoc( "console.error( 'Nidium says \"no\"' );" ),
 	IS_Static, IS_Public, IS_Fast,
 	[ParamDoc( "text", "The string that should be logged", "string", NO_Default, IS_Optional )],
 	NO_Returns
@@ -69,25 +69,26 @@ FunctionDoc( "Console.write", "Write output to the console.",
 	NO_Returns
 )
 
-FunctionDoc( "Console.profile", "Starts a profiler instance.",
-	[ SeeDoc( "Console.profileEnd" ) ],
-	ExampleDoc( """console.profile( );
-	// Time intense task
-	var result = Console.profileEnd( );
-	console.log( JSON.stringify( result ) ); """),
-	IS_Static, IS_Public, IS_Fast,
-	NO_Params,
-	NO_Returns
-)
+if False:
+	FunctionDoc( "Console.profile", "Starts a profiler instance.",
+		[ SeeDoc( "Console.profileEnd" ) ],
+		ExampleDoc( """console.profile( );
+		// Time intense task
+		var result = Console.profileEnd( );
+		console.log( JSON.stringify( result ) ); """),
+		IS_Static, IS_Public, IS_Fast,
+		NO_Params,
+		NO_Returns
+	)
 
-FunctionDoc( "Console.profileEnd", "Stops a profiler instance.",
-	[ SeeDoc( "Console.profile" ) ],
-	ExampleDoc( """console.profile( );
-	// Time intense task
-	var result = Console.profileEnd( );
-	console.log( JSON.stringify( result ) ); """),
-	IS_Static, IS_Public, IS_Fast,
-	NO_Params,
-	ReturnDoc( "Profile results", "object" )
-)
+	FunctionDoc( "Console.profileEnd", "Stops a profiler instance.",
+		[ SeeDoc( "Console.profile" ) ],
+		ExampleDoc( """console.profile( );
+		// Time intense task
+		var result = Console.profileEnd( );
+		console.log( JSON.stringify( result ) ); """),
+		IS_Static, IS_Public, IS_Fast,
+		NO_Params,
+		ReturnDoc( "Profile results", "object" )
+	)
 

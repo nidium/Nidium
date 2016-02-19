@@ -19,7 +19,7 @@ socket.ondisconnect = function() {
     console.log("Disconnected");
 }
 socket.onread = function(data) {
-    console.log("=>", data);
+    //console.log("=>", data);
 }"""), ExampleDoc( """//Server example
 var socket = new Socket("0.0.0.0", 8000).listen();
 socket.onaccept = function(clientSocket) {
@@ -29,7 +29,7 @@ socket.ondisconnect = function(clientSocket) {
     console.log("Client Disconnected");
 }
 socket.onread = function(clientSocket, data) {
-    console.log("=>", data);
+    //console.log("=>", data);
 }""") ],
 	NO_Inherrits,
 	NO_Extends
