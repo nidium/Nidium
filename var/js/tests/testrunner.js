@@ -184,6 +184,7 @@ TestsRunner.prototype = {
 		}
 
 		console.write("[ RUNNING ] " + test["name"]);
+		console.write("\n");
 
 		/*
 		 * Tests are ran in a setImmediate() call, so _nextTest() will be the
