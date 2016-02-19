@@ -49,7 +49,6 @@
                         '-lasound',
                         '-lpthread',
                         '-lpng',
-                        '-ljack',
                         '-lfreetype',
                         '-lrt',
                         '-lz',
