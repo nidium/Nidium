@@ -15,31 +15,39 @@
 
 static void get_dpi(int *x, int *y)
 {
-        double xres, yres;
-        Display *dpy;
-        char *displayname = NULL;
-        int scr = 0; /* Screen number */
+    double xres, yres;
+    Display *dpy;
+    char *displayname = NULL;
+    int scr = 0; /* Screen number */
 
-        if ((NULL == x) || (NULL == y)) { return ; }
+    if ((NULL == x) || (NULL == y)) { return ; }
 
-        dpy = XOpenDisplay (displayname);
+    dpy = XOpenDisplay (displayname);
+    if (dpy == nullptr) {
+        *x = -1;
+        *y = -1;
 
-        /*
-         *      * there are 2.54 centimeters to an inch; so there are 25.4 millimeters.
-         *           *
-         *                *     dpi = N pixels / (M millimeters / (25.4 millimeters / 1 inch))
-         *                     *         = N pixels / (M inch / 25.4)
-         *                          *         = N * 25.4 pixels / M inch
-         *                               */
-        xres = ((((double) DisplayWidth(dpy, scr)) * 25.4) /
-                        ((double) DisplayWidthMM(dpy, scr)));
-        yres = ((((double) DisplayHeight(dpy, scr)) * 25.4) /
-                        ((double) DisplayHeightMM(dpy, scr)));
+        fprintf(stderr, "Failed to open X display\n");
+        return;
+    }
 
-        *x = (int) (xres + 0.5);
-        *y = (int) (yres + 0.5);
 
-        XCloseDisplay (dpy);
+    /* 
+     * There are 2.54 centimeters to an inch; so there are 25.4 millimeters.
+     *
+     *     dpi = N pixels / (M millimeters / (25.4 millimeters / 1 inch))
+     *         = N pixels / (M inch / 25.4)
+     *         = N * 25.4 pixels / M inch
+     */
+    xres = ((((double) DisplayWidth(dpy, scr)) * 25.4) /
+            ((double) DisplayWidthMM(dpy, scr)));
+    yres = ((((double) DisplayHeight(dpy, scr)) * 25.4) /
+            ((double) DisplayHeightMM(dpy, scr)));
+
+    *x = (int) (xres + 0.5);
+    *y = (int) (yres + 0.5);
+
+    XCloseDisplay (dpy);
 }
 
 
@@ -47,6 +55,9 @@ NativeSystem::NativeSystem() : m_SystemUIReady(false)
 {
     int x, y;
     get_dpi(&x, &y);
+    if (x == -1 && y == -1) {
+        exit(3);
+    }
 
     m_fBackingStorePixelRatio = float(x) / 96.f;
     m_fBackingStorePixelRatio = 1.0;
