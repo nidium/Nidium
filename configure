@@ -10,6 +10,7 @@ from konstructor import Platform
 from konstructor import Konstruct
 from konstructor import Utils
 from konstructor import Variables 
+from konstructor import Tests
 
 Gyp = Builder.Gyp
 
@@ -171,6 +172,44 @@ def ffmpeg():
             "libswscale/libswscale(.a|.lib)"
         ]
     }
+
+@CommandLine.option("--auto-tests")
+def auotTestStudio(autoTests):
+    if autoTests is None:
+        return
+
+    if autoTests == "" or autoTests == "all":
+        autoTests = "core,studio,framework"
+
+    tests = []
+
+    if "core" in autoTests:
+        tests.append("framework/dist/nidium nativejscore/var/js/tests/autotests/autotests.nml")
+    if "studio" in autoTests:
+        tests.append("framework/dist/nidium var/js/tests/autotests/autotests.nml")
+    if "framework" in autoTests:
+        tests.append("framework/dist/nidium framework/var/js/tests/autotests/autotests.nml")
+
+    Tests.register(tests)
+
+@CommandLine.option("--unit-tests")
+def testStudio(unitTests):
+    if not unitTests:
+        return
+
+    if unitTests == "" or unitTests == "all":
+        unitTests = "core,studio,framework"
+
+    tests = []
+
+    if "core" in unitTests:
+        tests.append("framework/dist/nidium nativejscore/var/js/tests/unittests/unittests.nml")
+    if "studio" in unitTests:
+        tests.append("framework/dist/nidium var/js/tests/unittests/unittests.nml")
+    if "framework" in unitTests:
+        tests.append("framework/dist/nidium framework/var/js/tests/unittests/unittests.nml")
+
+    Tests.register(tests)
 
 Build.add(Gyp("gyp/all.gyp"));
 
