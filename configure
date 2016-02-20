@@ -50,7 +50,7 @@ def mozilla():
     nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/"))
     nsprFlags = "--with-nspr-cflags=\"-I" + nsprDir + "/dist/include/nspr/\" --with-nspr-libs=\"" + nsprDir + "/dist/lib/libnspr4.a " + nsprDir + "/dist/lib/libplds4.a " + nsprDir + "/dist/lib/libplc4.a\""
 
-    configureEnvVars = "MOZ_ZLIB_CFLAGS=-I%s MOZ_ZLIB_LIBS=\"-L%s -lz\"" % (os.path.abspath("zlib"), os.path.join(ROOT, OUTPUT, "third-party"))
+    configureEnvVars = "MOZ_ZLIB_CFLAGS=-I%s MOZ_ZLIB_LIBS=\"-L%s -lz\"" % (os.path.abspath("zlib"), os.path.abspath("zlib"))
     configure = "%s ./js/src/configure\
             --disable-shared-js\
             --enable-threadsafe\
@@ -79,6 +79,8 @@ def httpParser():
 if __name__ == '__main__':
     if not Builder.Gyp._defines.has_key('native_version'):
         Gyp.set('native_version', 'library')
+
     Gyp.setArgs("--depth ./ --include=network/gyp/config.gypi --include=gyp/common.gypi")
     Build.add(Gyp("gyp/nativejscore.gyp"))
+
     Konstruct.start()
