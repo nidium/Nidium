@@ -103,10 +103,10 @@ if False:
 			if  ( f.isDir( ) ) {
 				f.listFiles( function( error, entries ) {
 					if ( ! err ) {
-                                            console.log( JSON.stringify( entries ) );
-                                            for(var i = 0; i < entries.length; i++) {
-                                                    console.log( entries[i].name + "=" + entries[i].type);
-                                            }
+					    console.log( JSON.stringify( entries ) );
+					    for(var i = 0; i < entries.length; i++) {
+							    console.log( entries[i].name + "=" + entries[i].type);
+					    }
 				}
 			} );
 			}
