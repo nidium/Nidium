@@ -221,7 +221,7 @@ TestsRunner.prototype = {
 		this._nextTest();
 	},
 
-	report: function() {
+	report: function(exit=false) {
 		var success = this.counters.success == this.counters.total && this.counters.fails == 0;
 		var reportLog = success ? log.success : log.error;
 		if (success) {
@@ -241,6 +241,12 @@ TestsRunner.prototype = {
 		reportLog("|");
 		reportLog("\r\033[35C |\n");
 		reportLog("+-----------------------------------+\n");
+
+        if (exit) {
+            process.exit(success ? 0 : 1);
+        }
+
+        return success;
 	}
 }
 

@@ -13,6 +13,6 @@ var Suites = [
 var tr = new TestsRunner();
 tr.load(Suites);
 tr.run(function() {
-    tr.report();
+    tr.report(exit=true);
 });
 
