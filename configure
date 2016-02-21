@@ -2,9 +2,13 @@
 from konstructor import Build
 from konstructor import Builder
 from konstructor import Konstruct
+from konstructor import Variables
 from konstructor import Deps
 from konstructor import CommandLine
+
 Gyp = Builder.Gyp
+
+Variables.set('product', 'nativeserver')
 
 @Deps.register("jemalloc")
 def jemalloc():
@@ -38,4 +42,4 @@ def heapProfiling(profiling):
 if __name__ == '__main__':
     Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
     Build.add(Gyp("gyp/native-server.gyp"));
-    Konstruct.start() 
+    Konstruct.start()
