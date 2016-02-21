@@ -182,15 +182,23 @@ def auotTestStudio(autoTests):
         autoTests = "core,studio,framework"
 
     tests = []
+    nidium = ""
+    if Platform.system == "Linux":
+        nidium = "framework/dist/nidium"
+    elif Platform.system == "Darwin":
+        nidium = "framework/dist/nidium.app/Contents/MacOS/nidium"
+    else:
+        # TODO
+        Utils.exit("TODO : Unsupported platform for tests")
 
     if "core" in autoTests:
-        tests.append("framework/dist/nidium nativejscore/var/js/tests/autotests/autotests.nml")
+        tests.append("nativejscore/var/js/tests/autotests/autotests.nml")
     if "studio" in autoTests:
-        tests.append("framework/dist/nidium var/js/tests/autotests/autotests.nml")
+        tests.append("var/js/tests/autotests/autotests.nml")
     if "framework" in autoTests:
-        tests.append("framework/dist/nidium framework/var/js/tests/autotests/autotests.nml")
+        tests.append("framework/var/js/tests/autotests/autotests.nml")
 
-    Tests.register(tests)
+    Tests.register(["%s %s" % (nidium, t) for t in tests])
 
 @CommandLine.option("--unit-tests")
 def testStudio(unitTests):
