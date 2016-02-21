@@ -5,6 +5,7 @@ from konstructor import Konstruct
 from konstructor import Variables
 from konstructor import Deps
 from konstructor import CommandLine
+from konstructor import Tests
 
 Gyp = Builder.Gyp
 
@@ -38,6 +39,22 @@ def heapProfiling(profiling):
     if profiling:
         jemalloc(True)
         Deps.set("gperftools")
+
+
+
+@CommandLine.option("--unit-tests")
+@CommandLine.option("--auto-tests")
+def testServer(unitTests, autoTests):
+    tests = []
+
+    if unitTests:
+        tests.append("dist/nidium-server nativejscore/var/js/tests/unittests/manual_suites.js")
+
+    # Autotests does not have a "loader" for testing with Nidium Server yet
+    # if autoTests:
+    #     tests.append("dist/nidium-server nativejscore/var/js/tests/autotests/auto_suites.js")
+
+    Tests.register(tests)
 
 if __name__ == '__main__':
     Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
