@@ -780,8 +780,8 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
                     JS::RootedValue val(cx, OBJECT_TO_JSVAL(entry));
                     JS_SetElement(cx, arr, i, val);
 
-                    JSOBJ_SET_PROP_STR(entry, "name",
-                        JS::RootedString(cx, JS_NewStringCopyZ(cx, entries->lst[i].d_name)));
+                    JS::RootedString name(cx, JS_NewStringCopyZ(cx, entries->lst[i].d_name));
+                    JSOBJ_SET_PROP_STR(entry, "name", name);
 
                     JSOBJ_SET_PROP_CSTR(entry, "type",
                         NativeJSFileIO_dirtype_to_str(&entries->lst[i]));
