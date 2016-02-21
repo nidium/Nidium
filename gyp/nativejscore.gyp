@@ -100,6 +100,7 @@
             '../NativeJSFileIO.cpp',
             '../NativeJSHttp.cpp',
             '../NativeJSModules.cpp',
+            '../NativeJSDebugger.cpp',
             '../NativeJSSocket.cpp',
             '../NativeJSThread.cpp',
             '../NativeSharedMessages.cpp',

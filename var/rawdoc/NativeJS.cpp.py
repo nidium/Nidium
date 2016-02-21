@@ -3,7 +3,7 @@ from dokumentor import *
 NamespaceDoc( "global", "Global helper functions.",
 	NO_Sees,
 	[ 	ExampleDoc( "load( 'script.js' );"),
-		ExampleDoc( """console.log( pwd( )  + ' ' + __dirname + ' ' + __filename );"""),
+		ExampleDoc( """console.log( pwd( )  + '\\n' + __dirname + '\\n' + __filename + '\\n' );"""),
 		ExampleDoc( """var t = setTimeout( function() {
 	console.log( "Nidium" );}, 1000 );
 clearTimeout( t );"""),
@@ -52,7 +52,7 @@ The 'path' is relative to the NML file that run the current application.""",
 	ExampleDoc( """try {
 	load( '/nidium.js' ); 
 } catch(e) {
-	console.log("warning: "+ e.message());
+	console.log("warning: "+ e.message);
 	
 	}""" ),
 	IS_Static, IS_Public, IS_Fast,

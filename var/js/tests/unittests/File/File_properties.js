@@ -1,10 +1,4 @@
-var test_File_dirname = function(){
-	var success = false;
+Tests.register("File.properties",  function() {
+	Assert.equal(global.__dirname, global.pwd());
+});
 
-	success = global.__dirname === global.pwd();
-	return success;
-}
-
-run_unit_tests = function( ) {
-	return test_File_dirname( );
-}

@@ -1,126 +1,113 @@
 //Timeout
 /*FIXME:
-var test_JS_SetTimeoutString100 = function(){
-	var success = true;
-	if ( success ) {
-		var t = setTimeout('console.log("Hello Nidium");');
-		success = (t > 0);
-	}
-
-	return success;
-}
+Tests.register("Global.setTimeout string 100", function() {
+	var a = 0;
+	var t = setTimeout('function() {
+		Assert.equal(a, 1);
+	}');
+	Assert.notEqual(t, 0);
+	a++;
+});
 */
 
-var test_JS_SetTimeoutFunction100 = function(){
-	var success = true;
-	if ( success ) {
-		var t = setTimeout(function() {console.log("Hello Nidium");});
-		success = (t > 0);
-	}
+Tests.register("Global.setTimeout FN 100", function() {
+	var a = 0;
+	var t = setTimeout(function() {
+		Assert.equal(a, 1);
+	});
+	Assert.notEqual(t, 0);
+	a++;
+});
 
-	return success;
-}
+Tests.register("Global.setTimeout FN 110", function() {
+	var a = 0;
+	var t = setTimeout(function() {
+		Assert.equal(a, 1);
+	}, 500);
+	Assert.notEqual(t, 0);
+	a++;
+});
+
+Tests.register("Global.setTimeout FN 111", function() {
+	var a = 0;
+	var t = setTimeout(function(arg) {
+		Assert.equal(a, arg);
+	}, 500, 1);
+	Assert.notEqual(t, 0);
+	a++;
+});
 
 
-var test_JS_SetTimeoutFunction110 = function(){
-	var success = true;
-	if ( success ) {
-		var t = setTimeout(function() {console.log("Hello Nidium");}, 1000);
-		success = (t > 0);
-	}
-
-	return success;
-}
-
-var test_JS_SetTimeoutFunction111 = function(){
-	var success = true;
-	if ( success ) {
-		var t = setTimeout(function(w) {console.log("Hello " + w);}, 1000, "nidium");
-		success = (t > 0);
-	}
-
-	return success;
-}
 
 //Interval
-/*FIXME
-var test_JS_SetIntervalString100 = function(){
-	var success = true;
-	if ( success ) {
-		var t = setInterval('console.log("Hello Nidium");');
-		success = (t > 0);
-	}
-
-	return success;
-}
+/*FIXME:
+Tests.register("Global.setInterval string 100", function() {
+	var a = 0;
+	var t = setTimeout('function() {
+		Assert.equal(a, 1);
+	}');
+	Assert.notEqual(t, 0);
+	a++;
+});
 */
 
-var test_JS_SetIntervalFunction100 = function(){
-	var success = true;
-	if ( success ) {
-		var t = setInterval(function() {console.log("Hello Nidium");});
-		success = (t > 0);
-	}
+Tests.register("Global.setInterval FN 100", function() {
+	var a = 0;
+	var t = setInterval(function() {
+		Assert.equal(a, 1);
+		clearTimeout(t);
+	});
+	Assert.notEqual(t, 0);
+	a++;
+});
 
-	return success;
-}
+Tests.register("Global.setInterval FN 110", function() {
+	var a = 0;
+	var b = 0;
+	var t = setInterval(function() {
+		Assert.equal(a, 1);
+		b++
+		if (b > 5 ) {
+			clearTimeout(t);
+		}
+	}, 50);
+	Assert.notEqual(t, 0);
+	a++;
+});
 
-
-var test_JS_SetIntervalFunction110 = function(){
-	var success = true;
-	if ( success ) {
-		var t = setInterval(function() {console.log("Hello Nidium");}, 1000);
-		success = (t > 0);
-	}
-
-	return success;
-}
-
-var test_JS_SetIntervalFunction111 = function(){
-	var success = true;
-	if ( success ) {
-		var t = setInterval(function(w) {console.log("Hello " + w);}, 1000, "nidium");
-		success = (t > 0);
-	}
-
-	return success;
-}
+Tests.register("Global.setInterval FN 111", function() {
+	var a = 0;
+	var b = 0
+	var t = setInterval(function(arg) {
+		Assert.equal(a, arg);
+		b++;
+		if (b > 5 ) {
+			clearTimeout(t);
+		}
+	}, 50, 1);
+	Assert.notEqual(t, 0);
+	a++;
+});
 
 //clear
-var test_JS_ClearTimeoutFunction111 = function(){
-	var success = true;
-	if ( success ) {
-		var t = setInterval(function(w) {console.log("Hello " + w);}, 100000, "nidium");
-		success = (t > 0);
-		clearTimeout(t);
-	}
+Tests.register("Global.ClearTimeout FN 111", function() {
+	var a = 0;
+	var t = setTimeout(function(arg) {
+		a = args;
+	}, 600, 666);
+	Assert.notEqual(t, 0);
+	clearTimeout(t);
+	Assert.equal(a, 0);
+});
 
-	return success;
-}
+Tests.register("Global.ClearInterval FN 111", function() {
+	var a = 0;
+	var t = setInterval(function(arg) {
+		a = args;
+	}, 600, 666);
+	Assert.notEqual(t, 0);
+	clearTimeout(t);
+	Assert.equal(a, 0);
+});
 
-var test_JS_ClearIntervalFunction111 = function(){
-	var success = true;
-	if ( success ) {
-		var t = setInterval(function(w) {console.log("Hello " + w);}, 100000, "nidium");
-		success = (t > 0);
-		clearInterval(t);
-	}
-
-	return success;
-}
-
-run_unit_tests = function( ) {
-	return //test_JS_SetTimeoutString100() &&
-		test_JS_SetTimeoutFunction100() &&
-		test_JS_SetTimeoutFunction110() &&
-		test_JS_SetTimeoutFunction111() &&
-
-		//test_JS_SetIntervalString100() &&
-		test_JS_SetIntervalFunction100() &&
-		test_JS_SetIntervalFunction110() &&
-		test_JS_SetIntervalFunction111() &&
-
-		test_JS_ClearTimeoutFunction111() &&
-		test_JS_ClearIntervalFunction111();
-	}
 
