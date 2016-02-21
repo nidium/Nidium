@@ -32,6 +32,8 @@ Platform.setEnviron("MACOSX_DEPLOYMENT_TARGET=10.7")
 
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 
+Variables.set('product', 'nativestudio')
+
 DEPEDENCY_REPO = Variables.get("depsRepo")
 
 @Deps.register("portaudio")
