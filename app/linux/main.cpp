@@ -61,6 +61,8 @@ int main(int argc, char **argv)
 
     nml = argc > 1 ? argv[1] : "private://default.nml";
 
+    UI.setArguments(argc, argv);
+
     if (!UI.runApplication(nml)) {
         return 0;
     }

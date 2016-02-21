@@ -4,6 +4,7 @@
 #import "NativeCocoaUIInterface.h"
 #import "NativeSystem.h"
 #import <dispatch/dispatch.h>
+#include <crt_externs.h>
 
 #define NIDIUM_DISPATCH_MAINTHREAD 0
 
@@ -156,6 +157,7 @@ NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:@"Testing!"] autorelease];
     //[console attachToStdout];
     NativeCocoaUIInterface *nUI = new NativeCocoaUIInterface;
     __NativeUI = nUI;
+    nUI->setArguments(*_NSGetArgc(), *_NSGetArgv());
 
     self->UI = nUI;
     self->isRunning = YES;

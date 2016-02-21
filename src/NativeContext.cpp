@@ -32,6 +32,7 @@
 #include "NativeOpenGLHeader.h"
 #include "NativeGLState.h"
 #include "NativeJSWebGL.h"
+#include "NativeJSProcess.h"
 #endif
 enum {
     NATIVE_SCTAG_IMAGEDATA = NATIVE_SCTAG_MAX,
@@ -165,6 +166,8 @@ void NativeContext::loadNativeObjects(int width, int height)
     JS::RootedObject docObj(cx, NativeJSdocument::registerObject(cx));
     /* window() object */
     m_JSWindow = NativeJSwindow::registerObject(cx, width, height, docObj);
+
+    NativeJSProcess::registerObject(cx, m_UI->m_Argv, m_UI->m_Argc, 0);
 
 #if DEBUG
     createDebug2Canvas();

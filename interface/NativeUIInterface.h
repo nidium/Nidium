@@ -130,6 +130,8 @@ class NativeUIInterface
         NativeNML *m_Nml;
         struct SDL_Window *m_Win;
         struct _ape_global *m_Gnet;
+        int m_Argc = 0;
+        char **m_Argv = nullptr;
 
         inline NativeContext *getNativeContext() const {
             return m_NativeCtx;
@@ -144,6 +146,10 @@ class NativeUIInterface
         virtual bool runJSWithoutNML(const char *path, int width = 800, int height = 600) {
             return false;
         };
+        void setArguments(int argc, char **argv) {
+            m_Argc = argc;
+            m_Argv = argv;
+        }
         virtual bool runApplication(const char *path)=0;
         virtual void setWindowTitle(const char *)=0;
         virtual const char *getWindowTitle() const=0;
