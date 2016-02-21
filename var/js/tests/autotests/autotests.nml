@@ -1,0 +1,24 @@
+<!-- Native Markup Language Draft 0.1 -->
+<application version="0.1">
+	<meta>
+		<title>Autotest</title>
+		<description>This is a test run for manual designed testcases</description>
+		<viewport>1024x768</viewport>
+		<version>1.0</version>
+		<date>2013-09-05</date>
+		<robots>index, follow</robots>
+		<identifier>com.nidium.tests.unittests</identifier>
+	</meta>
+	<assets>
+		<script>
+var TestsRunner = require('../../../../nativejscore/var/js/tests/testrunner.js');
+var Suites = ['auto_suites.js'];
+
+var tr = new TestsRunner();
+tr.load(Suites);
+tr.run(function() {
+	tr.report();
+});
+</script> 
+	</assets>
+</application>
