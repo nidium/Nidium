@@ -1,4 +1,4 @@
-Tests.register("File.listFiles", function() {
+Tests.registerAsync("File.listFiles", function(next) {
 	var f = new File('.')
 	var expected = [	{name: "File", type: "dir"},
 						{name: "JS", type: "dir"},
@@ -8,10 +8,10 @@ Tests.register("File.listFiles", function() {
 	f.listFiles(function(err, entries) {
 		for( var i = 0; i < entries.length; i++) {
 			var entry = entries[i];
-			//console.log(i  + " " + entry.name  + "  " + expected[i].name );
+			// console.log(i  + " " + entry.name  + "  " + expected[i].name );
 			Assert.equal(entry.name, expected[i].name);
 			Assert.equal(entry.type, expected[i].type);
 		}
+        next();
 	});
-});
-
+}, 1000);
