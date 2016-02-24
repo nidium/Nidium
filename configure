@@ -189,11 +189,20 @@ def auotTestStudio(autoTests):
         # TODO
         Utils.exit("TODO : Unsupported platform for tests")
 
+    # Find Konstrutor path, to run Dokumentor
+    dokumentor = os.path.dirname(os.path.abspath(sys.modules[Konstruct.__module__].__file__))
+    dokumentor = os.path.join(dokumentor, "dokumentor.py")
+
     if "core" in autoTests:
+	Utils.run(dokumentor + " exampletest nativejscore/var/rawdoc/ > nativejscore/var/js/tests/autotests/auto_suites.js")
         tests.append("nativejscore/var/js/tests/autotests/autotests.nml")
+
     if "studio" in autoTests:
+	Utils.run(dokumentor + " exampletest var/rawdoc/ > var/js/tests/autotests/auto_suites.js")
         tests.append("var/js/tests/autotests/autotests.nml")
+
     if "framework" in autoTests:
+	Utils.run(dokumentor + " exampletest framework/var/rawdoc/ > framework/var/js/tests/autotests/auto_suites.js")
         tests.append("framework/var/js/tests/autotests/autotests.nml")
 
     Tests.register(["%s %s" % (nidium, t) for t in tests])
