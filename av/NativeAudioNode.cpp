@@ -1525,6 +1525,12 @@ bool NativeAudioSource::process() {
 
 void NativeAudioSource::closeInternal(bool reset)
 {
+    // Finish the reader first, any pending call
+    // will be finished (seek, read) so we can lock the thread
+    if (m_Reader != nullptr) {
+        m_Reader->finish();
+    }
+
     m_Audio->lockQueue();
     m_Audio->lockSources();
 
@@ -1646,30 +1652,6 @@ void NativeAudioSource::stop()
 void NativeAudioSource::close()
 {
     this->closeInternal(false);
-#if 0
-    if (!m_Opened) {
-        return;
-    }
-
-    m_Playing = false;
-    m_Stopped = true;
-    m_Opened = false;
-    SPAM(("Stoped\n"));
-
-    if (!m_PacketConsumed) {
-        av_free_packet(m_TmpPacket);
-    }
-
-    PaUtil_FlushRingBuffer(m_rBufferOut);
-
-    m_SamplesConsumed = 0;
-    m_FrameConsumed = true;
-    m_PacketConsumed = true;
-
-    this->resetFrames();
-
-    avcodec_flush_buffers(m_CodecCtx);
-#endif
 }
 
 bool NativeAudioSource::isActive()

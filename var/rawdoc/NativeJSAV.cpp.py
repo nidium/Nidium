@@ -566,7 +566,7 @@ FunctionDoc( "AudioNode.stop", "Stop playback.",
 FunctionDoc( "AudioNode.close", "Close a stream.",
 	SeesDocs( "Audio|AudioNode|AudioNode.open|AudioNode.pause|AudioNode.play|AudioNode.stop" ),
 	NO_Examples,
-	IS_Dynamic, IS_Public, IS_Fast,
+	IS_Dynamic, IS_Public, IS_Slow,
 	NO_Params,
 	NO_Returns,
 )

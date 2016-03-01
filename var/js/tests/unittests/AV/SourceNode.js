@@ -86,3 +86,10 @@ Tests.registerAsync("SourceNode stop", function(next) {
 
     node.stop();
 }, 5000);
+
+Tests.registerAsync("SourceNode close", function(next) {
+    node.close();
+    setTimeout(function() {
+        next();
+    }, 1000);
+}, 5000);
