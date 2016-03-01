@@ -5,7 +5,12 @@ Tests.register("Audio.getContext()", function() {
 
 Tests.register("Audio.getContext() with params", function() {
     var ctx = Audio.getContext(1024, 2, 22050);
+
     Assert(ctx instanceof AudioContext);
+
+    Assert.equal(ctx.bufferSize, 1024);
+    Assert.equal(ctx.channels, 2);
+    Assert.equal(ctx.sampleRate, 22050);
 });
 
 Tests.register("Audio.getContext() with invalid buffer size", function() {
