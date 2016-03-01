@@ -676,15 +676,18 @@ bool NativeJSAudio::run(char *str)
         return false;
     }
     JSAutoRequest ar(m_JsTcx);
+    JSAutoCompartment ac(m_JsTcx, m_JsGlobalObj);
 
     JS::CompileOptions options(m_JsTcx);
     JS::RootedObject globalObj(m_JsTcx, JS::CurrentGlobalOrNull(m_JsTcx));
     options.setIntroductionType("audio Thread").setUTF8(true);
+
     JS::RootedFunction fun(m_JsTcx, JS_CompileFunction(m_JsTcx, globalObj, "Audio_run", 0, nullptr, str, strlen(str), options));
     if (!fun.get()) {
-        JS_ReportError(m_JsTcx, "Failed to execute script on audio thread\n");
+        JS_ReportError(m_JsTcx, "Failed to compile script on audio thread\n");
         return false;
     }
+
     JS::RootedValue rval(m_JsTcx);
     JS_CallFunction(m_JsTcx, globalObj, fun, JS::HandleValueArray::empty(), &rval);
 
@@ -1277,6 +1280,10 @@ static bool native_audio_run(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     char *funStr = JS_EncodeString(cx, fn);
+    if (!funStr) {
+        JS_ReportError(cx, "Failed to convert callback function to source string");
+        return false;
+    }
 
     audio->m_Audio->postMessage(NativeJSAudio::runCallback, static_cast<void *>(funStr));
 
