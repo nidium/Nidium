@@ -202,17 +202,17 @@ class NativeVideoAudioSource: public NativeAudioSource
 
       bool buffer();
 
-    ~NativeVideoAudioSource() {
-        if (m_FreePacket != NULL) {
-            if (!m_PacketConsumed) {
-                // Free the packet here, otherwise the source destructor
-                // will do it after we delete it.
-                av_free_packet(m_TmpPacket);
-                m_PacketConsumed = true;
-            }
-            delete m_FreePacket;
-        }
-    }
+      ~NativeVideoAudioSource() {
+          if (m_FreePacket != NULL) {
+              if (!m_PacketConsumed) {
+                  // Free the packet here, otherwise the source destructor
+                  // will do it after we delete it.
+                  av_free_packet(m_TmpPacket);
+                  m_PacketConsumed = true;
+              }
+              delete m_FreePacket;
+          }
+      }
   private:
       NativeVideo *m_Video;
       NativeVideo::Packet *m_FreePacket;
