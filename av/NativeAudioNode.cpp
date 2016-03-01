@@ -1575,6 +1575,7 @@ void NativeAudioSource::closeInternal(bool reset)
     }
     if (!reset && !m_ExternallyManaged) {
         delete m_TmpPacket;
+        m_TmpPacket = NULL;
     }
 
     if (m_TmpFrame.data != NULL) {
