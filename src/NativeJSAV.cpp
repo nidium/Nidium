@@ -445,6 +445,12 @@ static void native_av_thread_message(JSContext *cx, JS::HandleObject obj, const 
             JS_DefineProperty(cx, event, "data", inval, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE);
             JS::RootedValue jsvalEvent(cx, OBJECT_TO_JSVAL(event));
             JS_CallFunctionValue(cx, event, jscbk, jsvalEvent, &rval);
+
+            if (JS_IsExceptionPending(cx)) {
+                if (!JS_ReportPendingException(cx)) {
+                    JS_ClearPendingException(cx);
+                }
+            }
         }
         delete ptr;
     } else {
@@ -1624,6 +1630,7 @@ static bool native_audionode_set(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_audionode_get(JSContext *cx, unsigned argc, JS::Value *vp)
 {
+    JS_ReportError(cx, "Not implemented");
     return true;
 }
 
@@ -2049,7 +2056,9 @@ static bool native_audionode_custom_source_play(JSContext *cx, unsigned argc, JS
 
     source->play();
 
-    return true;
+    // play() may call the JS "onready" callback in a synchronous way
+    // thus, if an exception happen in the callback, we should return false
+    return !JS_IsExceptionPending(cx);
 }
 
 static bool native_audionode_custom_source_pause(JSContext *cx, unsigned argc, JS::Value *vp)
@@ -2060,7 +2069,7 @@ static bool native_audionode_custom_source_pause(JSContext *cx, unsigned argc, J
 
     source->pause();
 
-    return true;
+    return !JS_IsExceptionPending(cx);
 }
 
 static bool native_audionode_custom_source_stop(JSContext *cx, unsigned argc, JS::Value *vp)
@@ -2071,7 +2080,7 @@ static bool native_audionode_custom_source_stop(JSContext *cx, unsigned argc, JS
 
     source->stop();
 
-    return true;
+    return !JS_IsExceptionPending(cx);
 }
 
 static bool native_video_prop_getter(JSContext *cx, JS::HandleObject obj, uint8_t id, JS::MutableHandleValue vp)
