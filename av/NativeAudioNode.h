@@ -386,7 +386,6 @@ class NativeAudioNodeProcessor: public NativeAudioNode
     void setProcessor(int channel, NativeAudioProcessor *processor) {
         for (int i = 0; i < NATIVE_AUDIONODE_CHANNEL_SIZE; i++) {
             if (m_Processor[channel][i] == NULL) {
-                fprintf(stdout, "Adding processor %d/%d %p\n", channel, i, processor);
                 m_Processor[channel][i] = processor;
                 break;
             }
