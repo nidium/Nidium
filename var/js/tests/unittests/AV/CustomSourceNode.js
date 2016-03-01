@@ -113,13 +113,13 @@ Tests.registerAsync("CustomSourceNode.set & get (threaded)", function(next) {
 
 Tests.registerAsync("CustomSourceNode.assignProcessor", function(next) {
     customProcessor.onmessage = function(msg) {
-        source.stop();
-
         customProcessor.onmessage = null;
         customProcessor.assignProcessor(null);
         source.assignProcessor(null);
 
         Assert.equal(msg.data, true);
+
+        source.stop();
 
         next();
     }
