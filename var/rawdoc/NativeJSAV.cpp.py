@@ -39,14 +39,14 @@ var target = dsp.createNode("target", 2, 0);
 dsp.connect(source.output[0], target.input[0]);
 dsp.connect(source.output[1], target.input[1]);
 
-source.process = function(frames, scope) {
+source.assignProcessor(function(frames, scope) {
     for (var i = 0; i < frames.data.length; i++) {
         for (var j = 0; j < frames.size; j++) {
             var t = j/frames.size;
             frames.data[i][j] = Math.sin(Math.PI * t);
         }
     }
-};
+});
 source.play();
 """) ]
 )
@@ -105,19 +105,19 @@ custom.set("foo", foo);
 foo = 0;
 
 // A setter is also called everytime a value is set
-custom.setter = function(key, value) {
+custom.assignSetter(function(key, value) {
 	switch (key) {
     	case "foo":
             console.log("foo variable set to ", value);
         	break;
     }
-};
-custom.process = function(frame, scope) {
+});
+custom.assignProcessor(function(frame, scope) {
 	// Variable passed to the node using set() are available on the node instance
     this.foo; // 15
     this.data.theAnswer // 42
     this.data.name // Hello world
-}; """) ]
+}); """) ]
 )
 
 NamespaceDoc( "AudioNodeThreaded", "An threaded Audio node.",
@@ -294,37 +294,37 @@ EventDoc( "AudioNode.onmessage", """Callback of message events.
 
 As every 'AudioContext' has it's own thread, communitation between threads is done via messages.
 This event will be fired when an message is send from an 'AudioNode' (via 'AudioNode.set') to the main thread.""",
-	SeesDocs( "Thread|AudioNode.process|AudioNode.init|AudioNode.setter" ),
+	SeesDocs( "Thread|AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter" ),
 	NO_Examples,
 	[ParamDoc( "name", "The name of the message", "string", NO_Default, IS_Obligated ),
 	ParamDoc( "data", "Data of the message", "mixed", NO_Default, IS_Obligated ) ],
 )
 
 EventDoc( "AudioNode.seek", """Callback when the 'AudioNode.position' is changed on a custom 'AudioNode'.""",
-	SeesDocs( "Thread|AudioNode.process|AudioNode.init|AudioNode.setter" ),
+	SeesDocs( "Thread|AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter" ),
 	NO_Examples,
 	[ParamDoc( "postition", "The new position in the audiostream.", "integer", NO_Default, IS_Obligated ) ],
 )
 
-EventDoc( "AudioNode.process", """Callback of process events.
+EventDoc( "AudioNode.assignProcessor", """Callback of process events.
 
 This can be used to fill the audiobuffers of the nodes.
-This callback runs is another thread then the main nidium UI. Variables must bes set expicitly with 'AudioNode.set'.""",
-	SeesDocs( "AudioNode.process|AudioNode.init|AudioNode.setter" ),
+This callback runs is another thread than the main nidium UI. Variables must bes set expicitly with 'AudioNode.set'.""",
+	SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter" ),
 	[ExampleDoc("""var dsp = Audio.getContext();
 var source = dsp.createNode("custom-source", 0, 2);
 var target = dsp.createNode("target", 2, 0);
 
 dsp.connect(source.output[0], target.input[0]);
 dsp.connect(source.output[1], target.input[1]);
-source.process = function(frames, scope) {
+source.assignProcessor(function(frames, scope) {
     for (var i = 0; i < frames.data.length; i++) {
         for (var j = 0; j < frames.size; j++) {
             var t = j/frames.size;
             frames.data[i][j] = Math.sin(Math.PI * t);
         }
     }
-};"""), ExampleDoc("""//**Sharing data from/to the audio context and the main thread**
+});"""), ExampleDoc("""//**Sharing data from/to the audio context and the main thread**
 var dsp = Audio.getContext();
 var source = dsp.createNode("custom-source", 0, 2);
 var target = dsp.createNode("target", 2, 0);
@@ -332,22 +332,22 @@ var target = dsp.createNode("target", 2, 0);
 dsp.connect(source.output[0], target.input[0]);
 dsp.connect(source.output[1], target.input[1]);
 
-source.process = function(frames, scope) {
+source.assignProcessor(function(frames, scope) {
     for (var i = 0; i < frames.data.length; i++) {
         for (var j = 0; j < frames.size; j++) {
             var t = j/frames.size;
             frames.data[i][j] = Math.sin(Math.PI * t * this.coef);
         }
     }
-};
+});
 
-source.init = function(frames, scope) {
+source.assignInit(function(frames, scope) {
     this.coef = 1;
-};
+});
 
-source.setter = function(key, value) {
+source.assignSetter(function(key, value) {
 	console.log("Setting " + key + " to " + value);
-}
+});
 
 source.onmessage = function(name, data) {
 	console.log("received message", name, data);
@@ -363,16 +363,16 @@ source.play();
 	ParamDoc( "scope", "Javascript context of the Audio thread", "AudioContext", NO_Default, IS_Obligated ) ]
 )
 
-EventDoc( "AudioNode.init", "Callback of init events.",
-	SeesDocs( "AudioNode.process|AudioNode.init|AudioNode.setter" ),
+EventDoc( "AudioNode.assignInit", "Callback of init events.",
+	SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter" ),
 	NO_Examples,
 	[ParamDoc( "scope", "Javascript context of the audio thread.", "AudioContext", NO_Default, IS_Obligated ) ]
 )
 
-EventDoc( "AudioNode.setter", """Callback of 'AudioNode.set' events.
+EventDoc( "AudioNode.assignSetter", """Callback of 'AudioNode.set' events.
 A value has been set for a certain key on this thread.
 This is very usefull if you need to do some extra processing on the variable being set.""",
-	SeesDocs( "AudioNode.process|AudioNode.init|AudioNode.setter|Audio|AudioNode.get|AudioNode.set|AudioNode.setter|AudioNode.init|AudioNode.process" ),
+	SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|Audio|AudioNode.get|AudioNode.set|AudioNode.assignInit" ),
 	[ExampleDoc("""var dsp = Audio.getContext();
 var custom = dsp.createNode("custom", 2, 2);
 var foo = 15;
@@ -380,13 +380,13 @@ custom.set("foo", foo);
 // Changing local variable does not affect the value of "foo" in the audio context.
 foo = 0;
 // A setter is also called everytime a value is set
-custom.setter = function(key, value) {
+custom.assignSetter(function(key, value) {
 	switch (key) {
     	case "foo":
             console.log("foo variable set to ", value);
         	break;
     }
-};
+});
 """)],
 	[ParamDoc( "key", "Key", "string", NO_Default, IS_Obligated ),
 	ParamDoc( "value", "the value that has been set", "mixed", NO_Default, IS_Obligated ),
@@ -462,7 +462,7 @@ An error will thrown if the name of the property is unknown.
 If the value has been set correctly, the function that was defined as 'setter' will be called.
 Variables passed to custom nodes are *copied* to the audio context. Every audio context runs in a different thread.
 Variables can then be accesed on the node from inside the audio thread using 'this.[key]'.""",
-	SeesDocs( "Audio|AudioNode.send|AudioNode.get|AudioNode.set|AudioNode.setter|AudioNode.init|AudioNode.process" ),
+	SeesDocs( "Audio|AudioNode.send|AudioNode.get|AudioNode.set|AudioNode.assignSetter|AudioNode.assignInit|AudioNode.assignProcessor" ),
 	[ ExampleDoc("""var dsp = Audio.getContext();
 var delay = dsp.createNode("delay", 2, 2);
 var custom = dsp.createNode("custom", 2, 2);
@@ -492,19 +492,19 @@ custom.set("foo", foo);
 foo = 0;
 
 // A setter is also called everytime a value is set
-custom.setter = function(key, value) {
+custom.assignSetter(function(key, value) {
     switch (key) {
         case "foo":
             console.log("foo variable set to ", value);
             break;
     }
-};
-custom.process = function(frame, scope) {
+});
+custom.assignProcessor(function(frame, scope) {
     // Variable passed to the node using set() are available on the node instance
     this.foo; // 15
     this.data.theAnswer // 42
     this.data.name // Hello world
-};""") ],
+});""") ],
 	IS_Dynamic, IS_Public, IS_Fast,
 	[ ParamDoc( "key", "Key to find the value for at a later stage", "string", NO_Default, IS_Obligated ) ,
 	 ParamDoc( "value", "Value belonging to Key. All javascript types are accepted.", "mixed", NO_Default, IS_Obligated ) ],

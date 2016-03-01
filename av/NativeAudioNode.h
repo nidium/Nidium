@@ -321,7 +321,7 @@ class NativeAudioSource: public NativeAudioNode, public NativeAVSource
         bool m_Buffering;
 };
 
-class NativeAudioCustomSource : public NativeAudioNodeCustom
+class NativeAudioCustomSource : public NativeAudioNodeCustom, public NativeAVSourceEventInterface
 {
     public:
         NativeAudioCustomSource(int out, NativeAudio *audio)

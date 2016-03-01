@@ -363,36 +363,10 @@ NativeAVStreamReader::~NativeAVStreamReader()
 }
 
 NativeAVSource::NativeAVSource()
-    : m_EventCbk(NULL), m_EventCbkCustom(NULL),
-      m_Opened(false), m_Eof(false), m_Container(NULL), m_Coro(NULL), m_MainCoro(NULL),
+    : m_Opened(false), m_Eof(false), m_Container(NULL), m_Coro(NULL), m_MainCoro(NULL),
       m_Seeking(false), m_DoSemek(false), m_DoSeekTime(0.0f), m_SeekFlags(0),  m_Error(0),
       m_SourceDoOpen(false)
 {
-}
-
-void NativeAVSource::eventCallback(NativeAVSourceEventCallback cbk, void *custom)
-{
-    m_EventCbk = cbk;
-    m_EventCbkCustom = custom;
-}
-
-NativeAVSourceEvent *NativeAVSource::createEvent(int ev, bool fromThread)
-{
-    return new NativeAVSourceEvent(this, ev, m_EventCbkCustom, fromThread);
-}
-
-void NativeAVSource::sendEvent(int type, int value, bool fromThread)
-{
-    NativeAVSourceEvent *ev = this->createEvent(type, fromThread);
-    ev->m_Args[0].set(value);
-    this->sendEvent(ev);
-}
-
-void NativeAVSource::sendEvent(NativeAVSourceEvent *ev)
-{
-    if (m_EventCbk != NULL) {
-        m_EventCbk(ev);
-    }
 }
 
 AVDictionary *NativeAVSource::getMetadata()

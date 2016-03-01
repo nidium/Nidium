@@ -6,13 +6,13 @@ Tests.register("CustomNode.create", function() {
 });
 
 Tests.registerAsync("CustomNode.set(key, value)", function(next) {
-    node.setter = function(key, value) {
+    node.assignSetter(function(key, value) {
         this.send({"key": key, "value": value});
-    }
+    })
 
     node.set("foo", "bar");
     node.onmessage = function(msg) {
-        node.setter = null;
+        node.assignSetter(null);
         Assert.equal(msg.data.key, "foo", "Key isn't \"foo\"")
         Assert.equal(msg.data.value, "bar", "Value isn't \"bar\"");
         next()
@@ -20,9 +20,9 @@ Tests.registerAsync("CustomNode.set(key, value)", function(next) {
 }, 5000);
 
 Tests.registerAsync("CustomNode.set(object)", function(next) {
-    node.setter = function(key, value) {
+    node.assignSetter(function(key, value) {
         this.send({"key": key, "value": value});
-    }
+    });
 
     node.set({"ILove": "Rock'n'Roll"});
 

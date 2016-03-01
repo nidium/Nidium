@@ -1257,18 +1257,24 @@ void NativeAudioCustomSource::play()
     m_Playing = true;
 
     NATIVE_PTHREAD_SIGNAL(&m_Audio->m_QueueHaveData);
+
+    this->sendEvent(SOURCE_EVENT_PLAY, 0, false);
 }
 
 
 void NativeAudioCustomSource::pause()
 {
     m_Playing = false;
+
+    this->sendEvent(SOURCE_EVENT_PAUSE, 0, false);
 }
 
 void NativeAudioCustomSource::stop()
 {
     m_Playing = false;
     this->seek(0);
+
+    this->sendEvent(SOURCE_EVENT_STOP, 0, false);
 }
 
 void NativeAudioCustomSource::setSeek(SeekCallback cbk, void *custom)

@@ -185,34 +185,54 @@ const char * const NativeAVErrorsStr[ERR_MAX] = {
 typedef void (*NativeAVSourceEventCallback)(const struct NativeAVSourceEvent*m_Ev);
 
 struct NativeAVSourceEvent {
-    NativeAVSource *m_Source;
     int m_Ev;
     NativeArgs m_Args;
     void *m_Custom;
     bool m_FromThread;
-    NativeAVSourceEvent(NativeAVSource *source, int ev, void *custom, bool fromThread)
-        : m_Source(source), m_Ev(ev), m_Custom(custom), m_FromThread(fromThread)
+    NativeAVSourceEvent(int ev, void *custom, bool fromThread)
+        : m_Ev(ev), m_Custom(custom), m_FromThread(fromThread)
     {
     };
 };
 
-class NativeAVSource : public NativeMessages
+class NativeAVSourceEventInterface {
+    public:
+        void eventCallback(NativeAVSourceEventCallback cbk, void *custom) {
+            m_EventCbk = cbk;
+            m_EventCbkCustom = custom;
+        };
+
+        NativeAVSourceEvent *createEvent(int ev, bool fromThread) {
+            return new NativeAVSourceEvent(ev, m_EventCbkCustom, fromThread);
+        };
+
+        void sendEvent(int type, int value, bool fromThread) {
+            NativeAVSourceEvent *ev = this->createEvent(type, fromThread);
+            ev->m_Args[0].set(value);
+            this->sendEvent(ev);
+        };
+
+        void sendEvent(NativeAVSourceEvent *ev) {
+            if (m_EventCbk != NULL) {
+                m_EventCbk(ev);
+            }
+        };
+
+    private:
+        NativeAVSourceEventCallback m_EventCbk;
+        void *m_EventCbkCustom;
+};
+
+class NativeAVSource : public NativeMessages, public NativeAVSourceEventInterface
 {
     public :
         NativeAVSource();
 
         friend class NativeAVStreamReader;
 
-        NativeAVSourceEventCallback m_EventCbk;
-        void *m_EventCbkCustom;
         bool m_Opened;
         bool m_Eof;
         static pthread_mutex_t m_FfmpegLock;
-
-        void eventCallback(NativeAVSourceEventCallback cbk, void *custom);
-        NativeAVSourceEvent *createEvent(int ev, bool fromThread);
-        void sendEvent(int ev, int value, bool fromThread);
-        void sendEvent(NativeAVSourceEvent *ev);
 
         virtual void play() = 0;
         virtual void pause() = 0;
