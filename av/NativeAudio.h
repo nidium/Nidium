@@ -11,7 +11,7 @@
 
 #if 0
   #define SPAM(a) \
-    fprintf(stdout, ">%lld / ", av_gettime()/1000); \
+    fprintf(stdout, ">%ld / ", av_gettime()/1000); \
     printf a
 #else
   #define SPAM(a) (void)0
