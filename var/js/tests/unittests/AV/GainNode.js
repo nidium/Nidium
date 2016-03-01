@@ -22,7 +22,7 @@ Tests.register("CustomSourceNode.create", function() {
     Assert(source instanceof AudioNode);
 });
 
-Tests.registerAsync("GainNode.set & get", function(next) {
+Tests.registerAsync("GainNode.set", function(next) {
     gain.set("gain", 0.5);
 
     customProcessor.onmessage = function(msg) {
