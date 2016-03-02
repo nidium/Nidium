@@ -36,9 +36,9 @@ static uint32_t upperPow2(uint32_t num)
 }
 
 NativeAudio::NativeAudio(ape_global *n, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate)
-    : m_Net(n), m_SourcesCount(0), m_Output(NULL), m_InputStream(NULL),
-      m_OutputStream(NULL), m_rBufferOutData(NULL), m_volume(1),
-      m_SourceNeedWork(false), m_SharedMsgFlush(false), m_ThreadShutdown(false), m_Sources(NULL), m_MainCtx(NULL)
+    : m_Net(n), m_SourcesCount(0), m_Output(NULL), m_InputStream(NULL), m_OutputStream(NULL), 
+      m_rBufferOutData(NULL), m_volume(1), m_SourceNeedWork(false),  m_QueueFreeLock(false), 
+      m_SharedMsgFlush(false), m_ThreadShutdown(false), m_Sources(NULL), m_MainCtx(NULL)
 {
     NATIVE_PTHREAD_VAR_INIT(&m_QueueHaveData);
     NATIVE_PTHREAD_VAR_INIT(&m_QueueHaveSpace);
@@ -103,8 +103,11 @@ void *NativeAudio::queueThread(void *args)
                 break;
             }
 
-            for (; ;) {
+            for (;;) {
                 if (!audio->canWriteFrame()) {
+                    break;
+                } else if (audio->m_QueueFreeLock) {
+                    usleep(500);
                     break;
                 }
 
@@ -430,8 +433,8 @@ NativeAudioNode *NativeAudio::addSource(NativeAudioNode *source, bool externally
 {
     NativeAudioSources *sources = new NativeAudioSources();
 
-    pthread_mutex_lock(&m_SourcesLock);
-    pthread_mutex_lock(&m_RecurseLock);
+    this->lockSources();
+    this->lockQueue();
 
     sources->curr = source;
     sources->externallyManaged = externallyManaged;
@@ -445,16 +448,16 @@ NativeAudioNode *NativeAudio::addSource(NativeAudioNode *source, bool externally
     m_Sources = sources;
     m_SourcesCount++;
 
-    pthread_mutex_unlock(&m_RecurseLock);
-    pthread_mutex_unlock(&m_SourcesLock);
+    this->unlockSources();
+    this->unlockQueue();
 
     return sources->curr;
 }
 
 void NativeAudio::removeSource(NativeAudioSource *source)
 {
-    pthread_mutex_lock(&m_SourcesLock);
-    pthread_mutex_lock(&m_RecurseLock);
+    this->lockSources();
+    this->lockQueue();
 
     NativeAudioSources *sources = m_Sources;
 
@@ -473,16 +476,16 @@ void NativeAudio::removeSource(NativeAudioSource *source)
 
             delete sources;
 
-            pthread_mutex_unlock(&m_RecurseLock);
-            pthread_mutex_unlock(&m_SourcesLock);
+            this->unlockSources();
+            this->unlockQueue();
 
             return;
         }
         sources = sources->next;
     }
 
-    pthread_mutex_unlock(&m_RecurseLock);
-    pthread_mutex_unlock(&m_SourcesLock);
+    this->unlockSources();
+    this->unlockQueue();
 }
 
 NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int output)
@@ -556,11 +559,14 @@ float NativeAudio::getVolume()
 void NativeAudio::wakeup()
 {
     m_SharedMsgFlush = true;
+    m_QueueFreeLock = true;
 
     NATIVE_PTHREAD_SIGNAL(&m_QueueHaveData);
     NATIVE_PTHREAD_SIGNAL(&m_QueueHaveSpace);
 
     NATIVE_PTHREAD_WAIT(&m_QueueMessagesFlushed);
+
+    m_QueueFreeLock = false;
 }
 
 void NativeAudio::shutdown()
@@ -577,7 +583,9 @@ void NativeAudio::shutdown()
 
 void NativeAudio::lockQueue()
 {
+    m_QueueFreeLock = true;
     pthread_mutex_lock(&m_RecurseLock);
+    m_QueueFreeLock = false;
 }
 
 void NativeAudio::unlockQueue()

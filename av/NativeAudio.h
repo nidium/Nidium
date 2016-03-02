@@ -131,6 +131,7 @@ class NativeAudio
         PaUtilRingBuffer *m_rBufferOut;
         bool m_HaveData, m_NotEmpty;
         bool m_SourceNeedWork;
+        bool m_QueueFreeLock;
         bool m_SharedMsgFlush;
         bool m_ThreadShutdown;
         NativeAudioSources *m_Sources;
