@@ -596,6 +596,8 @@ void NativeX11UIInterface::runLoop()
     add_timer(&m_Gnet->timersng, 1, NativeProcessUI, (void *)this);
 
     events_loop(m_Gnet);
+
+    this->stopApplication();
 }
 
 NativeUIX11Console::NativeUIX11Console ()
