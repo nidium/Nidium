@@ -17,7 +17,6 @@
   #define SPAM(a) (void)0
 #endif
 
-#define NATIVE_RESAMPLER_BUFFER_SAMPLES 1024
 #define NATIVE_AUDIO_CHECK_EXIT_THREAD if (audio->m_ThreadShutdown) {\
     SPAM(("Exiting\n"));\
     return NULL;\
@@ -34,6 +33,8 @@ struct PaUtilRingBuffer;
 struct PaStreamCallbackTimeInfo;
 typedef void PaStream;
 typedef unsigned long PaStreamCallbackFlags;
+typedef int PaStreamCallback(const void *input, void *output, unsigned long frameCount, 
+        const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags, void *userData);
 
 typedef void (*AudioMessageCallback)(void *custom); 
 
@@ -73,11 +74,16 @@ class NativeAudio
         NativeAudioParameters *m_InputParameters;
         NativeSharedMessages *m_SharedMsg;
         int m_SourcesCount;
+        int64_t m_PlaybackStartTime;
+        int64_t m_PlaybackConsumedFrame;
         NativeAudioNodeTarget *m_Output;
 
         static void *queueThread(void *args);
         static void *decodeThread(void *args);
         void bufferData();
+        static int InitPortAudioOutput(NativeAudioParameters *params, 
+                PaStream **outputStream, PaStreamCallback *callback, void *userData);
+        static int GetOutputBufferSize(NativeAudioParameters *params);
         int openOutput();
         int openInput();
         NativeAudioNode *addSource(NativeAudioNode *source, bool externallyManaged);
@@ -87,7 +93,7 @@ class NativeAudio
         bool disconnect(NodeLink *input, NodeLink *output);
         void setVolume(float volume);
         float getVolume();
-        static inline int getSampleSize(int sampleFmt);
+        static int getOutputBufferSize();
         double getLatency();
         void wakeup();
         void shutdown();

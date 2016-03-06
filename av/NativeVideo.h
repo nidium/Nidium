@@ -14,7 +14,7 @@ extern "C" {
 }
 
 #define NATIVE_VIDEO_BUFFER_SAMPLES 16
-#define NATIVE_VIDEO_AUDIO_SYNC_THRESHOLD 0.5
+#define NATIVE_VIDEO_AUDIO_SYNC_THRESHOLD 0.02
 #define NATIVE_VIDEO_SYNC_THRESHOLD 0.01
 #define NATIVE_VIDEO_NOSYNC_THRESHOLD 10.0
 #define NATIVE_VIDEO_PACKET_BUFFER 64
@@ -173,7 +173,7 @@ class NativeVideo : public NativeAVSource
         bool processFrame(AVFrame *frame);
         bool convertFrame(AVFrame *frame, uint8_t *dst);
 
-        double syncVideo(double pts);
+        int64_t syncVideo(int64_t pts);
         double getPts(AVPacket *packet);
         double getPts(AVFrame *frame);
         double getSyncedPts(AVPacket *packet);

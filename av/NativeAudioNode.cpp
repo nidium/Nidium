@@ -867,13 +867,13 @@ int NativeAudioSource::initInternal()
     // Init output buffer
     int bufferSize = m_Audio->m_OutputParameters->m_BufferSize;
     m_rBufferOut = new PaUtilRingBuffer();
-    if (!(m_rBufferOutData = calloc(bufferSize * m_OutCount, NativeAudio::FLOAT32))) {
+    if (!(m_rBufferOutData = calloc(bufferSize * NATIVE_AUDIO_BUFFER_MULTIPLIER, NativeAudio::FLOAT32 * m_OutCount))) {
         return ERR_OOM;
     }
 
     if (0 > PaUtil_InitializeRingBuffer(static_cast<PaUtilRingBuffer*>(m_rBufferOut),
             (NativeAudio::FLOAT32 * m_OutCount),
-            bufferSize,
+            bufferSize * NATIVE_AUDIO_BUFFER_MULTIPLIER,
             m_rBufferOutData)) {
         fprintf(stderr, "Failed to init output ringbuffer\n");
         return ERR_OOM;
@@ -1061,6 +1061,7 @@ return false;
     }
 
     // No last frame, get a new one
+    // TODO : Test if last packet frame is not finished before getting a new one
     if (m_FrameConsumed) {
         int gotFrame, len;
         AVFrame *tmpFrame;
@@ -1185,6 +1186,12 @@ int NativeAudioSource::resample(int destSamples) {
                 copied += write;
                 passCopied += write;
 
+                /*
+                 * Since the samples has been pushed inside the 
+                 * decoded buffer we need to update the clock accordingly.
+                 */
+                m_Clock += write * (1.0/m_Audio->m_OutputParameters->m_SampleRate);
+
                 if (copied == destSamples) {
                     return copied;
                 }
@@ -1213,6 +1220,8 @@ int NativeAudioSource::resample(int destSamples) {
             copied += write;
             m_SamplesConsumed += write;
 
+            m_Clock += write * (1.0/m_Audio->m_OutputParameters->m_SampleRate);
+
             if (m_SamplesConsumed == m_TmpFrame.nbSamples) {
                 m_FrameConsumed = true;
                 return copied;
@@ -1230,26 +1239,31 @@ int NativeAudioSource::resample(int destSamples) {
 double NativeAudioSource::getClock() {
     if (!m_Opened) return 0;
 
-    ring_buffer_size_t queuedSource = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
+    ring_buffer_size_t decodedSamples = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
+    double decodedDuration = decodedSamples * (1.0/m_Audio->m_OutputParameters->m_SampleRate);
 
-    double delay = ((double)(queuedSource - m_TmpFrame.nbSamples)* ((double)1/m_Audio->m_OutputParameters->m_SampleRate));
+    double audioLatency = m_Audio->getLatency();
 
-    // Remove the duration of the last consumed frame
-    // (since the clock is for the start of the sample)
-    delay -= m_TmpFrame.nbSamples / m_Audio->m_OutputParameters->m_SampleRate;
+    double ret = m_Clock - decodedDuration - audioLatency;
 
-    return m_Clock - delay;
+    SPAM(("source clock=%f decodingBuffer=%f originalClock=%f\n", ret, decodedDuration, m_Clock));
+
+    return ret < 0 ? 0 : ret;
 }
 
 double NativeAudioSource::drop(double sec)
 {
-    ring_buffer_size_t drop = ceil(sec /(double)(1/m_Audio->m_OutputParameters->m_SampleRate));
+    ring_buffer_size_t drop = ceil(sec/1.0 * m_Audio->m_OutputParameters->m_SampleRate);
     ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
-    ring_buffer_size_t actualDrop = drop > avail ? drop : avail;
+    ring_buffer_size_t actualDrop = drop > avail ? avail : drop;
 
     PaUtil_AdvanceRingBufferReadIndex(m_rBufferOut, actualDrop);
 
-    return actualDrop * 1/m_Audio->m_OutputParameters->m_SampleRate;
+    double actualDropDuration = actualDrop * 1.0/m_Audio->m_OutputParameters->m_SampleRate;
+
+    SPAM(("drop=%f nbSample=%ld actualDrop=%ld/%f\n", sec, drop, actualDrop, actualDropDuration));
+
+    return actualDropDuration;
 }
 
 void NativeAudioCustomSource::play()
@@ -1364,7 +1378,7 @@ bool NativeAudioNode::updateIsConnected() {
 
 bool NativeAudioNode::updateIsConnected(bool input, bool output)
 {
-    SPAM(("updateIsConnected @ %p input=%d output=%d\n", this, m_Input, m_Output));
+    SPAM(("updateIsConnected @ %p input=%d output=%d\n", this, input, output));
     m_IsConnected =
         (input || this->updateIsConnectedInput()) &&
         (output || this->updateIsConnectedOutput());

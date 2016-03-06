@@ -1185,7 +1185,7 @@ static bool native_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
     if (argc > 0) {
         JS::ToUint32(cx, args[0], &bufferSize);
     } else {
-        bufferSize = 2048;
+        bufferSize = 0;
     }
 
     if (argc > 1) {
@@ -1201,15 +1201,15 @@ static bool native_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     switch (bufferSize) {
-        case 16:
-        case 32:
-        case 64:
+        case 0:
         case 128:
         case 256:
         case 512:
         case 1024:
         case 2048:
         case 4096:
+        case 8192:
+        case 16384:
             // Supported buffer size
             // Multiply by 8 to get the bufferSize in bytes
             // rather than in samples per buffer
@@ -1217,7 +1217,7 @@ static bool native_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
             break;
         default :
             JS_ReportError(cx, "Unsuported buffer size %d. "
-                "Supported values are : 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 \n", bufferSize);
+                "Supported values are : 0, 128, 256, 512, 1024, 2048, 4096, 8192, 16384\n", bufferSize);
             return false;
             break;
     }
@@ -1237,7 +1237,7 @@ static bool native_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
 
     if (jaudio) {
         NativeAudioParameters *params = jaudio->m_Audio->m_OutputParameters;
-        if (params->m_BufferSize != bufferSize ||
+        if (params->m_AskedBufferSize != bufferSize ||
             params->m_Channels != channels ||
             params->m_SampleRate != sampleRate) {
             paramsChanged = true;
@@ -2321,7 +2321,7 @@ static bool native_video_get_audionode(JSContext *cx, unsigned argc, JS::Value *
     NativeJSAudio *jaudio = NativeJSAudio::getContext();
     NativeJSVideo *v;
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
+    JSNATIVE_PROLOGUE_CLASS_NO_RET(NativeJSVideo, &Video_class);
 
     v = CppObj;
 
@@ -2447,7 +2447,7 @@ static bool native_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp
 
     NativeCanvasContext *ncc = handler->getContext();
     if (ncc == NULL || ncc->m_Mode != NativeCanvasContext::CONTEXT_2D) {
-        JS_ReportError(cx, "Invalid destination canvas (must be backed by a 2D context)");
+        JS_ReportError(cx, "Invalid canvas context. Did you called canvas.getContext('2d') ?");
         return false;
     }
     JSContext *m_Cx = cx;

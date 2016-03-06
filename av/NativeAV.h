@@ -16,6 +16,11 @@ extern "C" {
 #define NATIVE_AVIO_BUFFER_SIZE 32768
 #define CORO_STACK_SIZE         4096*4
 #define NAV_IO_BUFFER_SIZE      NATIVE_AVIO_BUFFER_SIZE*8
+/* Audio processing buffer multiplier (must be power of 2) */
+#define NATIVE_AUDIO_BUFFER_MULTIPLIER 4
+/* Max size for the resampling buffer */
+#define NATIVE_RESAMPLER_BUFFER_SAMPLES 16384 
+
 
 #define SOURCE_EVENT_PLAY      0x01
 #define SOURCE_EVENT_PAUSE     0x02
@@ -125,11 +130,11 @@ class NativeAVStreamReader : public NativeAVReader, public NativeMessages
 
 
 struct NativeAudioParameters {
-    int m_BufferSize, m_Channels, m_SampleFmt, m_SampleRate, m_FramesPerBuffer;
-    NativeAudioParameters(int bufferSize, int channels,
+    int  m_AskedBufferSize, m_BufferSize, m_Channels, m_SampleFmt, m_SampleRate, m_FramesPerBuffer;
+    NativeAudioParameters(int askedBufferSize, int bufferSize, int channels,
                           int sampleFmt, int sampleRate)
-        : m_BufferSize(bufferSize), m_Channels(channels),
-          m_SampleFmt(sampleFmt), m_SampleRate(sampleRate),
+        : m_AskedBufferSize(askedBufferSize), m_BufferSize(bufferSize), 
+          m_Channels(channels), m_SampleFmt(sampleFmt), m_SampleRate(sampleRate),
           m_FramesPerBuffer(bufferSize/(sampleFmt * channels))
     {
     }

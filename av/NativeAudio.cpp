@@ -36,8 +36,9 @@ static uint32_t upperPow2(uint32_t num)
 }
 
 NativeAudio::NativeAudio(ape_global *n, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate)
-    : m_Net(n), m_SourcesCount(0), m_Output(NULL), m_InputStream(NULL), m_OutputStream(NULL), 
-      m_rBufferOutData(NULL), m_volume(1), m_SourceNeedWork(false),  m_QueueFreeLock(false), 
+    : m_Net(n), m_SourcesCount(0), m_PlaybackStartTime(0), m_PlaybackConsumedFrame(0), 
+      m_Output(NULL), m_InputStream(NULL), m_OutputStream(NULL), 
+      m_rBufferOutData(NULL), m_volume(1), m_SourceNeedWork(false), m_QueueFreeLock(false), 
       m_SharedMsgFlush(false), m_ThreadShutdown(false), m_Sources(NULL), m_MainCtx(NULL)
 {
     NATIVE_PTHREAD_VAR_INIT(&m_QueueHaveData);
@@ -54,19 +55,39 @@ NativeAudio::NativeAudio(ape_global *n, unsigned int bufferSize, unsigned int ch
 
     av_register_all();
 
+    Pa_Initialize();
+
     m_SharedMsg = new NativeSharedMessages();
 
-    m_OutputParameters = new NativeAudioParameters(bufferSize, channels, NativeAudio::FLOAT32, sampleRate);
+    int actualBufferSize = bufferSize;
+    if (bufferSize == 0) {
+        NativeAudioParameters tmp(0, 0, channels, NativeAudio::FLOAT32, sampleRate);
+        actualBufferSize = NativeAudio::GetOutputBufferSize(&tmp);
+        if (actualBufferSize == 0) {
+            fprintf(stderr, "[NativeAudio] Failed to request optimal buffer size. Defaulting to 4096\n");
+            actualBufferSize = 4096;
+        } else {
+            /* 
+             * Portaudio does not necessarily give us a power of 2 for the 
+             * buffer size, which is not appropriate for audio processing
+             */
+            actualBufferSize = upperPow2(actualBufferSize) * NativeAudio::FLOAT32;
+        }
+    }
 
-    // Portaudio ring buffer needs a number power of two
-    // for the number of elements in the ring buffer
-    uint32_t count = upperPow2(bufferSize * channels);
+    m_OutputParameters = new NativeAudioParameters(bufferSize, actualBufferSize, channels, NativeAudio::FLOAT32, sampleRate);
+
+    /* 
+     * Portaudio ring buffer require a power of two
+     * for the number of elements in the ring buffer
+     */
+    uint32_t count = upperPow2(actualBufferSize * NATIVE_AUDIO_BUFFER_MULTIPLIER * channels);
 
     m_rBufferOut = new PaUtilRingBuffer();
     m_rBufferOutData = (float *)calloc(count, NativeAudio::FLOAT32);
 
     PaUtil_InitializeRingBuffer(m_rBufferOut, NativeAudio::FLOAT32,
-            count, m_rBufferOutData);
+            count/NativeAudio::FLOAT32, m_rBufferOutData);
 
     pthread_create(&m_ThreadDecode, NULL, NativeAudio::decodeThread, this);
     pthread_create(&m_ThreadQueue, NULL, NativeAudio::queueThread, this);
@@ -76,6 +97,7 @@ void *NativeAudio::queueThread(void *args)
 {
     NativeAudio *audio = static_cast<NativeAudio *>(args);
     bool wrote;
+    bool needSpace;
 
     while (true) {
         bool msgFlush = audio->m_SharedMsgFlush;
@@ -97,6 +119,7 @@ void *NativeAudio::queueThread(void *args)
 
         if (lockErr == 0 && audio->m_Output != NULL && msgFlush != true) {
             wrote = false;
+            needSpace = false;
 
             if (audio->m_ThreadShutdown) {
                 pthread_mutex_unlock(&audio->m_RecurseLock);
@@ -105,6 +128,7 @@ void *NativeAudio::queueThread(void *args)
 
             for (;;) {
                 if (!audio->canWriteFrame()) {
+                    needSpace = true;
                     break;
                 } else if (audio->m_QueueFreeLock) {
                     usleep(500);
@@ -142,7 +166,7 @@ void *NativeAudio::queueThread(void *args)
 
         if (audio->m_ThreadShutdown) break;
 
-        if (!audio->canWriteFrame()) {
+        if (needSpace) {
             SPAM(("Waiting for more space\n"));
             NATIVE_PTHREAD_WAIT(&audio->m_QueueHaveSpace)
         } else {
@@ -245,7 +269,7 @@ void *NativeAudio::decodeThread(void *args)
                 // Loop as long as there is data to read and write
                 while (source->work()) {}
 
-                if (source->avail() >= audio->m_OutputParameters->m_FramesPerBuffer * 2) {
+                if (source->avail() >= audio->m_OutputParameters->m_FramesPerBuffer * audio->m_OutputParameters->m_Channels) {
                     haveEnought++;
                     //audio->notEmpty = false;
                 }
@@ -291,14 +315,11 @@ void *NativeAudio::decodeThread(void *args)
     return NULL;
 }
 
-int NativeAudio::openOutput() {
+int NativeAudio::InitPortAudioOutput(NativeAudioParameters *params, PaStream **outputStream, PaStreamCallback *callback, void *userData) {
     const PaDeviceInfo *infos;
     PaDeviceIndex device;
     PaError error;
     PaStreamParameters paOutputParameters;
-
-    // Start portaudio
-    Pa_Initialize();
 
     // TODO : Device should be defined by user
     device = Pa_GetDefaultOutputDevice();
@@ -310,32 +331,65 @@ int NativeAudio::openOutput() {
 
     // Set output parameters for PortAudio
     paOutputParameters.device = device;
-    paOutputParameters.channelCount = m_OutputParameters->m_Channels;
+    paOutputParameters.channelCount = params->m_Channels;
     paOutputParameters.suggestedLatency = infos->defaultLowInputLatency;
     paOutputParameters.hostApiSpecificStreamInfo = 0; /* no api specific data */
     paOutputParameters.sampleFormat = paFloat32;
 
     // Try to open the output
-    error = Pa_OpenStream(&m_OutputStream,
+    error = Pa_OpenStream(outputStream,
             0,
             &paOutputParameters,
-            m_OutputParameters->m_SampleRate,
-            m_OutputParameters->m_FramesPerBuffer,
-            paNoFlag,
-            &NativeAudio::paOutputCallback,
-            (void *)this);
+            params->m_SampleRate,
+            0,
+            paPrimeOutputBuffersUsingStreamCallback,
+            callback,
+            userData);
 
     if (error) {
-        fprintf(stderr, "[NativeAudio] Error opening output, error code = %i\n", error);
+        fprintf(stderr, "[NativeAudio] Error opening output. Code = %i\n", error);
         Pa_Terminate();
         return error;
     }
 
-    fprintf(stdout, "[NativeAudio] output opened with latency to %f\n", infos->defaultHighOutputLatency);
-
-    Pa_StartStream(m_OutputStream);
+    error = Pa_StartStream(*outputStream);
+    if (error) {
+        fprintf(stderr, "[NativeAudio] Failed to start PortAudio stream. Code=%i\n", error);
+        return 2;
+    }
 
     return 0;
+}
+
+/* 
+ * Return the number of *samples* per buffer. This method should only be used when no portaudio 
+ * stream is running. It's intended  to get an estimation of the audio bufer size selected by 
+ * portaudio before allocating the buffers for NativeAudio
+ */
+int NativeAudio::GetOutputBufferSize(NativeAudioParameters *params) {
+    PaStream *outputStream = NULL;
+
+    NativeAudio::InitPortAudioOutput(params, &outputStream, nullptr, nullptr);
+    if (outputStream == NULL) {
+        return 0;
+    }
+
+    const PaStreamInfo *streamInfo = Pa_GetStreamInfo(outputStream);
+
+    double latency = streamInfo == nullptr ? 0 : streamInfo->outputLatency;
+
+    Pa_StopStream(outputStream);
+    Pa_CloseStream(outputStream);
+
+    if (latency > 0) {
+        return latency * params->m_SampleRate;
+    } else {
+        return 0;
+    }
+}
+
+int NativeAudio::openOutput() {
+    return NativeAudio::InitPortAudioOutput(m_OutputParameters, &m_OutputStream, &NativeAudio::paOutputCallback, (void *)this);
 }
 
 int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuffer,
@@ -353,13 +407,24 @@ int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuf
     avail = framesPerBuffer > avail ? avail : framesPerBuffer;
     int left = framesPerBuffer - avail;
 
+    if (m_PlaybackStartTime == 0 || (statusFlags & paOutputUnderflow)) {
+        /*
+         * Reset in case of underflow, since it will 
+         * break the calculation  of the buffer size
+         */
+        m_PlaybackStartTime = av_gettime();
+        m_PlaybackConsumedFrame = 0;
+    }
 
-    //PaUtil_ReadRingBuffer(m_rBufferOut, out, avail * channels);
+    if (m_PlaybackStartTime > 0) {
+        m_PlaybackConsumedFrame += framesPerBuffer;
+    }
+
     PaUtil_ReadRingBuffer(m_rBufferOut, out, avail * channels);
 
 #if 0
-    SPAM(("frames per buffer = %ld avail = %ld processing = %ld left = %d\n",
-        m_FramesPerBuffer, PaUtil_GetRingBufferReadAvailable(m_rBufferOut), avail, left));
+    //SPAM(("===========frames per buffer = %d avail = %ld processing = %ld left = %d\n",
+        //framesPerBuffer, PaUtil_GetRingBufferReadAvailable(m_rBufferOut), avail, left));
     if (left > 0) {
         SPAM(("WARNING DROPING %d\n", left));
     }
@@ -406,27 +471,18 @@ bool NativeAudio::haveSourceActive(bool excludeExternal)
     return false;
 }
 
-int NativeAudio::getSampleSize(int sampleFormat) {
-    switch (sampleFormat) {
-        case AV_SAMPLE_FMT_U8 :
-            return UINT8;
-        case AV_SAMPLE_FMT_NONE:
-        case AV_SAMPLE_FMT_S16 :
-            return INT16;
-        case AV_SAMPLE_FMT_S32 :
-            return INT32;
-        case AV_SAMPLE_FMT_FLT :
-            return FLOAT32;
-        case AV_SAMPLE_FMT_DBL :
-            return FLOAT32;
-        default :
-            return INT16; // This will mostly fail
-    }
-}
-
 double NativeAudio::getLatency() {
     ring_buffer_size_t queuedAudio = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
-    return (queuedAudio * ((double)1/m_OutputParameters->m_SampleRate)) / m_OutputParameters->m_Channels;
+    double nativeAudioLatency = (((queuedAudio) * (1.0/m_OutputParameters->m_SampleRate)) / m_OutputParameters->m_Channels);
+
+    int64_t now = av_gettime();
+    int64_t playbackDuration = ((1.0/m_OutputParameters->m_SampleRate) 
+                * (double)m_PlaybackConsumedFrame)*1000000;
+    double paLatency = (double)(playbackDuration - (now - m_PlaybackStartTime))/100000;
+
+    SPAM(("latency=%f native=%f pa=%f\n", paLatency + nativeAudioLatency, nativeAudioLatency, paLatency));
+
+    return paLatency + nativeAudioLatency;
 }
 
 NativeAudioNode *NativeAudio::addSource(NativeAudioNode *source, bool externallyManaged)
@@ -638,11 +694,13 @@ NativeAudio::~NativeAudio() {
     if (m_OutputStream != NULL) {
         Pa_StopStream(m_OutputStream);
         Pa_CloseStream(m_OutputStream);
+        m_OutputStream = nullptr;
     }
 
     if (m_InputStream != NULL) {
         Pa_StopStream(m_InputStream);
         Pa_CloseStream(m_InputStream);
+        m_InputStream = nullptr;
     }
 
     Pa_Terminate();

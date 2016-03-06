@@ -20,7 +20,7 @@ extern "C" {
   #define DEBUG_PRINT
   #define DPRINT(...) \
     fprintf(stdout, ">%lld / ", av_gettime()/1000); \
-    fprintf(stdout __VA_ARGS__)
+    fprintf(stdout, __VA_ARGS__)
 #else
   #define DPRINT(...) (void)0
 #endif
@@ -758,7 +758,7 @@ int NativeVideo::display(void *custom) {
             diff -= v->m_AudioSource->drop(diff);
             DPRINT("after=%f sec)\n", diff);
         } else {
-            syncThreshold = (delay > NATIVE_VIDEO_SYNC_THRESHOLD) ? delay : NATIVE_VIDEO_SYNC_THRESHOLD;
+            syncThreshold = (delay >= NATIVE_VIDEO_SYNC_THRESHOLD) ? delay : NATIVE_VIDEO_SYNC_THRESHOLD;
 
             if (fabs(diff) < NATIVE_VIDEO_NOSYNC_THRESHOLD) {
                 if (diff <= -syncThreshold) {
@@ -778,7 +778,7 @@ int NativeVideo::display(void *custom) {
     v->m_FrameTimer += delay * 1000;
     actualDelay = (v->m_FrameTimer - (av_gettime() / 1000.0)) / 1000;
 
-    DPRINT("Using delay %f frameTimer=%f delay=%f\n", actualDelay, v->m_FrameTimer, delay);
+    DPRINT("Using delay %f diff=%d delay=%f\n", actualDelay, diff, delay);
 
     if (v->m_Playing) {
         if (actualDelay <= NATIVE_VIDEO_SYNC_THRESHOLD && diff <= 0) {
@@ -857,8 +857,6 @@ int NativeVideo::setSizeInternal()
         free(m_Frames[i]);
         m_Frames[i] = (uint8_t*) malloc(frameSize);
     }
-
-    fprintf(stdout, "Setting size finished\n");
 
     m_Width = width;
     m_Height = height;
@@ -1044,10 +1042,13 @@ void *NativeVideo::decode(void *args)
             DPRINT("doSeek=%d readFlag=%d seeking=%d\n", v->m_DoSemek, v->m_SourceNeedWork, v->m_Seeking);
             if (!v->m_DoSemek) {
                 DPRINT("processing\n");
-#if defined(DPRINT) && 0
                 bool videoFailed = !v->processVideo();
                 bool audioFailed = !v->processAudio();
+#ifdef DEBUG_PRINT
                 DPRINT("audioFailed=%d videoFailed=%d\n", audioFailed, videoFailed);
+#else
+                (void)videoFailed;
+                (void)audioFailed;
 #endif
             }
         } else if (v->m_SourceDoOpen) {
@@ -1206,7 +1207,7 @@ bool NativeVideo::convertFrame(AVFrame *avFrame, uint8_t *dst)
     return true;
 }
 
-double NativeVideo::syncVideo(double pts)
+int64_t NativeVideo::syncVideo(int64_t pts)
 {
     double frameDelay;
 
@@ -1225,9 +1226,7 @@ double NativeVideo::syncVideo(double pts)
 
 double NativeVideo::getPts(AVFrame *frame)
 {
-    double pts;
-
-    pts = av_frame_get_best_effort_timestamp(frame);
+    uint64_t pts = av_frame_get_best_effort_timestamp(frame);
 
     return this->syncVideo(pts) * av_q2d(m_Container->streams[m_VideoStream]->time_base);
 }
