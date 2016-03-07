@@ -110,12 +110,14 @@ public:
     }
 
     NativeJSEvents(char *name) :
-        m_Head(NULL), m_Queue(NULL), m_Name(strdup(name)) {}
+        m_Head(NULL), m_Queue(NULL), m_NextEv(NULL), m_IsFiring(false),
+        m_DeleteAfterFire(false), m_Name(strdup(name)) {}
+
     ~NativeJSEvents() {
         NativeJSEvent *ev, *tmpEv;
         for (ev = m_Head; ev != NULL;) {
             tmpEv = ev->next;
-            free(ev);
+            delete ev;
 
             ev = tmpEv;
         }
@@ -138,24 +140,92 @@ public:
     }
 
     bool fire(JS::Value evobj, JSObject *thisobj) {
-        NativeJSEvent *ev, *tmpEv;
+        NativeJSEvent *ev;
+        JSContext *cx;
+        m_IsFiring = true;
+
         for (ev = m_Head; ev != NULL;) {
             JS::AutoValueArray<1> params(ev->m_Cx);
-            params[0].set(evobj);
             JS::RootedValue rval(ev->m_Cx);
-            // Use tmp in case the event was self deleted during trigger
-            tmpEv = ev->next;
             JS::RootedObject obj(ev->m_Cx, thisobj);
             JS::RootedValue fun(ev->m_Cx, ev->m_Function);
+
+            params[0].set(evobj);
+
+            /*
+                Keep a reference to the next event in case the event is self
+                deleted during the trigger. In case the next event(s) are also
+                deleted, m_NextEv will be updated to the next valid event.
+            */
+            m_NextEv = ev->next;
+            cx = ev->m_Cx;
+
             JS_CallFunctionValue(ev->m_Cx, obj, fun, params, &rval);
 
-            ev = tmpEv;
+            if (JS_IsExceptionPending(cx)) {
+                if (!JS_ReportPendingException(cx)) {
+                    JS_ClearPendingException(cx);
+                }
+            }
+
+            if (m_DeleteAfterFire) {
+                delete this;
+                return false;
+            }
+
+            ev = m_NextEv;
         }
+
+        m_IsFiring = false;
+        m_NextEv = nullptr;
+
         return false;
+    }
+
+    void remove() {
+        if (m_IsFiring) {
+            m_DeleteAfterFire = true;
+        } else {
+            delete this;
+        }
+    }
+
+    void remove(JS::HandleValue func) {
+        NativeJSEvent *ev;
+        for (ev = m_Head; ev != nullptr;) {
+            if (ev->m_Function == func) {
+                if (ev->prev) {
+                    ev->prev->next = ev->next;
+                } else {
+                    m_Head = nullptr;
+                }
+
+                if (ev->next) {
+                    ev->next->prev = ev->prev;
+                } else {
+                    m_Queue = ev->prev;
+                }
+
+                /*
+                    The event currently deleted, is the next to be
+                    fired, update the pointer to the next event.
+                */
+                if (ev == m_NextEv) {
+                    m_NextEv = ev->next;
+                }
+
+                delete ev;
+
+                return;
+            }
+        }
     }
 
     NativeJSEvent *m_Head;
     NativeJSEvent *m_Queue;
+    NativeJSEvent *m_NextEv;
+    bool m_IsFiring;
+    bool m_DeleteAfterFire;
     char *m_Name;
 private:
     static bool native_jsevents_stopPropagation(JSContext *cx,
@@ -213,6 +283,8 @@ class NativeJSExposer
         static JSFunctionSpec NativeJSEvent_funcs[] = {
             JS_FN("addEventListener",
                 NativeJSExposer<T>::native_jsevent_addEventListener, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+            JS_FN("removeEventListener",
+                NativeJSExposer<T>::native_jsevent_removeEventListener, 1, JSPROP_ENUMERATE | JSPROP_PERMANENT),
             JS_FN("fireEvent",
                 NativeJSExposer<T>::native_jsevent_fireEvent, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
             JS_FS_END
@@ -225,6 +297,7 @@ class NativeJSExposer
 
     virtual ~NativeJSExposer() {
         if (m_Events) {
+            m_Events->setAutoDelete(true);
             delete m_Events;
         }
     }
@@ -288,6 +361,33 @@ class NativeJSExposer
         return true;
     }
 
+    void removeJSEvent(char *name) {
+        if (!m_Events) {
+            return;
+        }
+
+        NativeJSEvents *events = m_Events->get(name);
+        if (!events) {
+            return;
+        }
+
+        m_Events->erase(name);
+        events->remove();
+    }
+
+    void removeJSEvent(char *name, JS::HandleValue func) {
+        if (!m_Events) {
+            return;
+        }
+
+        NativeJSEvents *events = m_Events->get(name);
+        if (!events) {
+            return;
+        }
+
+        events->remove(func);
+    }
+
   protected:
     void initEvents() {
         if (m_Events) {
@@ -295,10 +395,10 @@ class NativeJSExposer
         }
 
         m_Events = new NativeHash<NativeJSEvents *>(32);
-        m_Events->setAutoDelete(true);
+        m_Events->setAutoDelete(false);
     }
 
-    void addJSEvent(char *name, JS::Value func) {
+    void addJSEvent(char *name, JS::HandleValue func) {
         initEvents();
 
         NativeJSEvents *events = m_Events->get(name);
@@ -370,6 +470,36 @@ private:
         JSAutoByteString cname(cx, name);
 
         CppObj->addJSEvent(cname.ptr(), cb);
+
+        return true;
+    }
+
+    static bool native_jsevent_removeEventListener(JSContext *cx,
+        unsigned argc, JS::Value *vp)
+    {
+        JSNATIVE_PROLOGUE_CLASS(NativeJSExposer<T>, NativeJSExposer<T>::jsclass);
+
+        NATIVE_CHECK_ARGS("removeEventListener", 1);
+
+        JS::RootedString name(cx);
+        JS::RootedValue cb(cx);
+
+        if (!JS_ConvertArguments(cx, args, "S", name.address())) {
+            return false;
+        }
+
+        JSAutoByteString cname(cx, name);
+
+        if (argc == 1) {
+            CppObj->removeJSEvent(cname.ptr());
+        } else {
+            if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &cb)) {
+                JS_ReportError(cx, "Bad callback given");
+                return false;
+            }
+
+            CppObj->removeJSEvent(cname.ptr(), cb);
+        }
 
         return true;
     }
