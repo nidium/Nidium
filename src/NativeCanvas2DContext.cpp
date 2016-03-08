@@ -1585,12 +1585,14 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         break;
         case CTX_PROP(fillStyle):
         {
+            NativeCanvas2DContextState *state = CANVASCTX_GETTER(obj)->getCurrentState();
+
             if (vp.isString()) {
                 JS::RootedString vpStr(cx, JS::ToString(cx, vp));
                 JSAutoByteString colorName(cx, vpStr);
                 curSkia->setFillColor(colorName.ptr());
 
-                NativeCanvas2DContextState *state = CANVASCTX_GETTER(obj)->getCurrentState();
+                
                 state->m_CurrentShader.setUndefined();
 
             } else if (vp.isObject() &&
@@ -1603,7 +1605,6 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 /* Since out obj doesn't store the actual value (JSPROP_SHARED),
                    we implicitly store and root our pattern obj */
-                NativeCanvas2DContextState *state = CANVASCTX_GETTER(obj)->getCurrentState();
                 state->m_CurrentShader.set(vp);
 
             } else if (vp.isObject() &&
@@ -1614,30 +1615,40 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 curSkia->setFillColor(pattern);
 
-                NativeCanvas2DContextState *state = CANVASCTX_GETTER(obj)->getCurrentState();
                 state->m_CurrentShader.set(vp);
             } else {
                 vp.setNull();
 
+                state->m_CurrentShader.setUndefined();
                 return true;
             }
         }
         break;
         case CTX_PROP(strokeStyle):
         {
+            NativeCanvas2DContextState *state = CANVASCTX_GETTER(obj)->getCurrentState();
+
             if (vp.isString()) {
                 JS::RootedString vpStr(cx, JS::ToString(cx, vp));
                 JSAutoByteString colorName(cx, vpStr);
                 curSkia->setStrokeColor(colorName.ptr());
+                
+                state->m_CurrentStrokeShader.setUndefined();
+
             } else if (vp.isObject() &&
                 JS_GetClass(&vp.toObject()) == &canvasGradient_class) {
                 JS::RootedObject vpObj(cx, &vp.toObject());
                 NativeSkGradient *gradient = (class NativeSkGradient *) JS_GetPrivate(vpObj);
 
                 curSkia->setStrokeColor(gradient);
-            } else {
 
+                /* Since out obj doesn't store the actual value (JSPROP_SHARED),
+                   we implicitly store and root our pattern obj */
+                state->m_CurrentStrokeShader.set(vp);
+            } else {
                 vp.setNull();
+                state->m_CurrentStrokeShader.setUndefined();
+
                 return true;
             }
         }
@@ -1780,7 +1791,13 @@ static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
             }
         }
         break;
+        case CTX_PROP(strokeStyle):
+        {
+
+        }
+        break;
         default:
+            vp.setUndefined();
             break;
     }
 
@@ -1824,7 +1841,8 @@ void Canvas2DContext_Trace(JSTracer *trc, JSObject *obj)
         state != NULL; state = state->m_Next) {
 
         /* Does this matter if we trace an UndefinedValue? */
-        JS_CallHeapValueTracer(trc, &state->m_CurrentShader, "NativeCanvas2DContextShader");        
+        JS_CallHeapValueTracer(trc, &state->m_CurrentShader, "NativeCanvas2DContextShader");
+        JS_CallHeapValueTracer(trc, &state->m_CurrentStrokeShader, "NativeCanvas2DContextShader"); 
     }
 }
 
