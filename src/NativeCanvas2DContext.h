@@ -33,16 +33,19 @@ struct NativeCanvas2DContextState
 {
     NativeCanvas2DContextState() :
         m_CurrentShader(JS::UndefinedValue()),
+        m_CurrentStrokeShader(JS::UndefinedValue()),
         m_Next(NULL) {
     }
 
     NativeCanvas2DContextState(NativeCanvas2DContextState *other) :
         m_CurrentShader(other->m_CurrentShader),
+        m_CurrentStrokeShader(other->m_CurrentStrokeShader),
         m_Next(other) {
     }
 
     /* either pattern or gradient (mutual exlusive) */
     JS::Heap<JS::Value> m_CurrentShader;
+    JS::Heap<JS::Value> m_CurrentStrokeShader;
 
     NativeCanvas2DContextState *m_Next;
 };

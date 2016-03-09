@@ -173,6 +173,11 @@ uint32_t NativeSkia::getFillColor() const {
     return PAINT->getColor();
 }
 
+uint32_t NativeSkia::getStrokeColor() const {
+    return PAINT_STROKE->getColor();
+}
+
+
 #if 0
 static U8CPU InvScaleByte(U8CPU component, uint32_t scale)
 {
@@ -939,6 +944,11 @@ void NativeSkia::setSmooth(bool val, int level)
     PAINT_STROKE->setFilterLevel(flevel);
 }
 
+int NativeSkia::getSmooth() const
+{
+    return (int)PAINT->getFilterLevel();
+}
+
 void NativeSkia::setGlobalAlpha(double value)
 {
     if (value < 0) return;
@@ -953,6 +963,11 @@ void NativeSkia::setGlobalAlpha(double value)
     PAINT_STROKE->setColorFilter(filter);
 
     filter->unref();
+}
+
+double NativeSkia::getGlobalAlpha() const
+{
+    return (double)m_GlobalAlpha / (double)255;
 }
 
 static struct _native_xfer_mode {
@@ -995,10 +1010,21 @@ void NativeSkia::setLineWidth(double size)
     PAINT_STROKE->setStrokeWidth(SkDoubleToScalar(size));
 }
 
+double NativeSkia::getLineWidth() const
+{
+    return SkScalarToDouble(PAINT_STROKE->getStrokeWidth());
+}
+
 void NativeSkia::setMiterLimit(double size)
 {
     PAINT_STROKE->setStrokeMiter(SkDoubleToScalar(size));
 }
+
+double NativeSkia::getMiterLimit() const
+{
+    return SkScalarToDouble(PAINT_STROKE->getStrokeMiter());
+}
+
 
 void NativeSkia::beginPath()
 {

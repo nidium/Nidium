@@ -129,12 +129,21 @@ class NativeSkia
         void system(const char *text, int x, int y);
 
         uint32_t getFillColor() const;
+        uint32_t getStrokeColor() const;
+        double getLineWidth() const;
+        double getMiterLimit() const;
+        double getGlobalAlpha() const;
+
+        int getWidth();
+        int getHeight();
+
+        int getSmooth() const;
 
         void setShadowOffsetX(double x);
         void setShadowOffsetY(double y);
         void setShadowBlur(double blur);
         void setShadowColor(const char *str);
-        void setSmooth(bool val, const  int level = 1);
+        void setSmooth(bool val, const int level = 1);
         void setFontSize(double size);
         void setFontStyle(const char *style);
         void setFontSkew(double val) {
@@ -157,8 +166,6 @@ class NativeSkia
         bool setFontFile(const char *str);
 
         void clearRect(double, double, double, double);
-        int getWidth();
-        int getHeight();
 
         /* Shapes */
         void beginPath();

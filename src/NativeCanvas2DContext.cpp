@@ -1758,11 +1758,21 @@ static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
         }
         break;
         case CTX_PROP(fillStyle):
+        case CTX_PROP(strokeStyle):
         {
-            JS::RootedValue ret(cx, ctx->getCurrentState()->m_CurrentShader);
+            JS::RootedValue ret(cx);
+            uint32_t curColor;
+
+            if (id == CTX_PROP(fillStyle)) {
+                ret = ctx->getCurrentState()->m_CurrentShader;
+                curColor = curSkia->getFillColor();
+            } else {
+                ret = ctx->getCurrentState()->m_CurrentStrokeShader;
+                curColor = curSkia->getStrokeColor();
+            }
 
             if (ret.isUndefined()) {
-                uint32_t curColor = curSkia->getFillColor();
+                
                 char rgba_str[64];
 
                 /*
@@ -1791,9 +1801,24 @@ static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
             }
         }
         break;
-        case CTX_PROP(strokeStyle):
+        case CTX_PROP(lineWidth):
         {
-
+            vp.setDouble(curSkia->getLineWidth());
+        }
+        break;
+        case CTX_PROP(miterLimit):
+        {
+            vp.setDouble(curSkia->getMiterLimit());
+        }
+        break;
+        case CTX_PROP(globalAlpha):
+        {
+            vp.setDouble(curSkia->getGlobalAlpha());
+        }
+        break;
+        case CTX_PROP(imageSmoothingEnabled):
+        {
+            vp.setBoolean(!!curSkia->getSmooth());
         }
         break;
         default:
