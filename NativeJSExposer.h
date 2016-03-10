@@ -69,7 +69,7 @@ static const JSClass NativeJSEvent_class = {
 
 struct NativeJSEvent
 {
-    NativeJSEvent(JSContext *cx, JS::Value func) : m_Function(cx) {
+    NativeJSEvent(JSContext *cx, JS::HandleValue func) : m_Function(cx) {
         once = false;
         next = prev = NULL;
 
@@ -139,7 +139,7 @@ public:
         m_Queue = ev;
     }
 
-    bool fire(JS::Value evobj, JSObject *thisobj) {
+    bool fire(JS::HandleValue evobj, JSObject *thisobj) {
         NativeJSEvent *ev;
         JSContext *cx;
         m_IsFiring = true;
