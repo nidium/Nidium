@@ -110,7 +110,7 @@ public:
     }
 
     NativeJSEvents(char *name) :
-        m_Head(NULL), m_Queue(NULL), m_NextEv(NULL), m_IsFiring(false),
+        m_Head(NULL), m_Queue(NULL), m_TmpEv(NULL), m_IsFiring(false),
         m_DeleteAfterFire(false), m_Name(strdup(name)) {}
 
     ~NativeJSEvents() {
@@ -155,9 +155,10 @@ public:
             /*
                 Keep a reference to the next event in case the event is self
                 deleted during the trigger. In case the next event(s) are also
-                deleted, m_NextEv will be updated to the next valid event.
+                deleted, m_TmpEv will be updated by NativeJSEvents::remove() 
+                to the next valid event.
             */
-            m_NextEv = ev->next;
+            m_TmpEv = ev->next;
             cx = ev->m_Cx;
 
             JS_CallFunctionValue(ev->m_Cx, obj, fun, params, &rval);
@@ -173,11 +174,11 @@ public:
                 return false;
             }
 
-            ev = m_NextEv;
+            ev = m_TmpEv;
         }
 
         m_IsFiring = false;
-        m_NextEv = nullptr;
+        m_TmpEv = nullptr;
 
         return false;
     }
@@ -210,8 +211,8 @@ public:
                     The event currently deleted, is the next to be
                     fired, update the pointer to the next event.
                 */
-                if (ev == m_NextEv) {
-                    m_NextEv = ev->next;
+                if (ev == m_TmpEv) {
+                    m_TmpEv = ev->next;
                 }
 
                 delete ev;
@@ -223,7 +224,7 @@ public:
 
     NativeJSEvent *m_Head;
     NativeJSEvent *m_Queue;
-    NativeJSEvent *m_NextEv;
+    NativeJSEvent *m_TmpEv;
     bool m_IsFiring;
     bool m_DeleteAfterFire;
     char *m_Name;
@@ -297,6 +298,11 @@ class NativeJSExposer
 
     virtual ~NativeJSExposer() {
         if (m_Events) {
+            /*
+                It's safe to enable again the auto delete feature from
+                NativeHash since we are sure at this point that no event
+                is currently fired.
+            */
             m_Events->setAutoDelete(true);
             delete m_Events;
         }
@@ -395,6 +401,12 @@ class NativeJSExposer
         }
 
         m_Events = new NativeHash<NativeJSEvents *>(32);
+        /*
+            Set NativeHash auto delete to false, since it's possible for 
+            an event to be deleted while it's fired. So we don't want to 
+            free the underlying object when removing it from the NativeHash 
+            (otherwise NativeJSEvents::fire will attempt to use a freed object)
+        */
         m_Events->setAutoDelete(false);
     }
 
