@@ -377,6 +377,15 @@ AVDictionary *NativeAVSource::getMetadata()
 
     return m_Container ? m_Container->metadata : NULL;
 }
+
+AVFormatContext *NativeAVSource::getAVFormatContext()
+{
+    if (!m_Opened) {
+        return NULL;
+    }
+    return m_Container;
+}
+
 int NativeAVSource::getBitrate()
 {
     return m_Container ? m_Container->bit_rate : 0;

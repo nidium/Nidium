@@ -252,6 +252,7 @@ class NativeAVSource : public NativeMessages, public NativeAVSourceEventInterfac
         double getDuration();
         int getBitrate();
         AVDictionary *getMetadata();
+        AVFormatContext *getAVFormatContext();
 
         enum {
             MSG_CLOSE
