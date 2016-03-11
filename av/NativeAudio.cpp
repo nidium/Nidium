@@ -474,11 +474,15 @@ bool NativeAudio::haveSourceActive(bool excludeExternal)
 double NativeAudio::getLatency() {
     ring_buffer_size_t queuedAudio = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
     double nativeAudioLatency = (((queuedAudio) * (1.0/m_OutputParameters->m_SampleRate)) / m_OutputParameters->m_Channels);
+    double paLatency = 0;
 
-    int64_t now = av_gettime();
-    int64_t playbackDuration = ((1.0/m_OutputParameters->m_SampleRate) 
-                * (double)m_PlaybackConsumedFrame)*1000000;
-    double paLatency = (double)(playbackDuration - (now - m_PlaybackStartTime))/100000;
+    if (m_PlaybackStartTime != 0) {
+        int64_t now = av_gettime();
+        double playbackDuration = ((1.0/m_OutputParameters->m_SampleRate) 
+                    * (double)m_PlaybackConsumedFrame);
+
+        paLatency = playbackDuration - (double)(now - m_PlaybackStartTime)/1000000;
+    }
 
     SPAM(("latency=%f native=%f pa=%f\n", paLatency + nativeAudioLatency, nativeAudioLatency, paLatency));
 
