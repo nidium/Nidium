@@ -70,7 +70,7 @@ return err;
 
 int NativeVideo::open(void *buffer, int size)
 {
-    if (m_Opened) {
+    if (m_Container) {
         this->closeInternal(true);
     }
 
@@ -103,7 +103,7 @@ int NativeVideo::open(void *buffer, int size)
 int NativeVideo::open(const char *src)
 {
     DPRINT("Open %s\n", src);
-    if (m_AvioBuffer != NULL) {
+    if (m_Container != NULL) {
         this->closeInternal(true);
     }
 
@@ -146,6 +146,7 @@ int NativeVideo::openInit()
 
 void NativeVideo::openInitCoro(void *arg)
 {
+    DPRINT("openInitCoro()\n");
     NativeVideo *thiz = (static_cast<NativeVideo*>(arg));
     int ret = thiz->openInitInternal();
     if (ret != 0) {
@@ -159,6 +160,7 @@ void NativeVideo::openInitCoro(void *arg)
 
 int NativeVideo::openInitInternal()
 {
+    DPRINT("openInitInternal");
     // FFmpeg stuff
     AVCodec *codec;
 
@@ -561,6 +563,7 @@ void NativeVideo::seekInternal(double time)
                 // We have our frame!
                 if ((pts >= time || seekTime == 0) && gotFrame) {
                     if ((m_SeekFlags & NATIVE_VIDEO_SEEK_PREVIOUS) && (pts != time && seekTime != 0)) {
+                        DPRINT("[SEEK] Seeked too far, rewind\n");
                         // When seeking to the previous frame, we need to be at
                         // the exact frame. As it's not the case, seek backward
                         pts += 120;
@@ -1015,7 +1018,10 @@ void *NativeVideo::decode(void *args)
         DPRINT("decode loop\n");
         v->lockDecodeThread();
 
-        if (v->m_Shutdown) break;
+        if (v->m_Shutdown) {
+            v->unlockDecodeThread();
+            break;
+        }
 
         if (v->m_Opened) {
             DPRINT("opened buffering=%d\n", v->m_Buffering);
