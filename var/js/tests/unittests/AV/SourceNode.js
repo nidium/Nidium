@@ -19,50 +19,52 @@ Tests.register("SourceNode with invalid input", function() {
 
 Tests.registerAsync("SourceNode open invalid file", function(next) {
     node.open("invalidfile")
-    node.onerror = function(code, err) {
+    node.addEventListener("error", function(ev) {
         // XXX : NativeStream triggers two error
         // workaround this issue otherwise callback is executed twice
-        node.onerror = null;
-        Assert.strictEqual(code, 1, "Invalid error code returned")
+        node.removeEventListener("error");
+        // Remove ready event otherwise it will be fired by the next test
+        node.removeEventListener("ready");
+        Assert.strictEqual(ev.code, 1, "Invalid error code returned")
         next();
-    };
+    });
 
-    node.onready = function() {
+    node.addEventListener("ready", function() {
         Assert(false, "Node fired onready callback oO");
         next();
-    }
+    });
 }, 5000);
 
 Tests.registerAsync("SourceNode open file", function(next) {
     node.open("AV/test.mp3")
-    node.onerror = function(e) {
-        node.onerror = null;
+    node.addEventListener("error", function(e) {
+        node.removeEventListener("error");
         Assert(false, "Failed to open media file");
         next();
-    };
+    });
 
-    node.onready = function() {
+    node.addEventListener("ready", function() {
         next();
-    }
+    });
 }, 5000);
 
 Tests.register("SourceNode MetaData", function() {
-    Assert(JSON.stringify(node.metadata) == '{"title":"The Sound of Epicness (ID: 358232)","artist":"larrylarrybb","album":"Newgrounds Audio Portal - http://www.newgrounds.com/audio","track":"01/01"}',
+    Assert(JSON.stringify(node.metadata) == '{"title":"The Sound of Epicness (ID: 358232)","artist":"larrylarrybb","album":"Newgrounds Audio Portal - http://www.newgrounds.com/audio","track":"01/01","streams":[{}]}',
         "File MetaData does not match");
 });
 
 Tests.registerAsync("SourceNode play event", function(next) {
-    node.onplay = function() {
+    node.addEventListener("play", function() {
         next();
-    }
+    });
 
     node.play();
 }, 5000);
 
 Tests.registerAsync("SourceNode pause event", function(next) {
-    node.onpause = function() {
+    node.addEventListener("pause", function() {
         next();
-    }
+    });
 
     node.pause();
 }, 5000);
@@ -73,16 +75,16 @@ Tests.registerAsync("SourceNode seek", function(next) {
     // Seeking is async
     setTimeout(function() {
         // Truncate the position, because node.position returns a float
-        // that is not accurate to the miliseconds 
+        // and seek is not accurate to the milisecond
         Assert.strictEqual((node.position | 0), 20, "Source position is invalid");
         next();
     }, 200);
 }, 5000);
 
 Tests.registerAsync("SourceNode stop", function(next) {
-    node.onstop = function() {
+    node.addEventListener("stop", function() {
         next();
-    }
+    });
 
     node.stop();
 }, 5000);

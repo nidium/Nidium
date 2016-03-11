@@ -11,12 +11,12 @@ Tests.registerAsync("CustomNode.set(key, value)", function(next) {
     })
 
     node.set("foo", "bar");
-    node.onmessage = function(msg) {
+    node.addEventListener("message", function(msg) {
         node.assignSetter(null);
         Assert.equal(msg.data.key, "foo", "Key isn't \"foo\"")
         Assert.equal(msg.data.value, "bar", "Value isn't \"bar\"");
         next()
-    }
+    });
 }, 5000);
 
 Tests.registerAsync("CustomNode.set(object)", function(next) {
@@ -26,11 +26,11 @@ Tests.registerAsync("CustomNode.set(object)", function(next) {
 
     node.set({"ILove": "Rock'n'Roll"});
 
-    node.onmessage = function(msg) {
+    node.addEventListener("message", function(msg) {
         node.setter = null;
         Assert(msg.data.key == "ILove" && msg.data.value == "Rock'n'Roll");
         next();
-    }
+    });
 }, 5000);
 
 Tests.register("CustomNode.set(invalid data)", function() {

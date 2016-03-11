@@ -17,38 +17,43 @@ Tests.register("CustomSourceNode.create", function() {
 });
 
 Tests.registerAsync("CustomSourceNode.play", function(next) {
-    source.onplay = function() {
-        source.onplay = null;
+    var fn = function() {
+        source.removeEventListener("play", fn);
         next();
     }
+    source.addEventListener("play", fn);
 
     source.play();
 }, 5000);
 
 Tests.registerAsync("CustomSourceNode.pause", function(next) {
-    source.onpause = function() {
-        source.onpause = null;
+    source.addEventListener("pause", function() {
         next();
-    }
+        source.removeEventListener("pause");
+    });
 
     source.pause();
 }, 5000);
 
 Tests.registerAsync("CustomSourceNode.stop", function(next) {
-    source.onstop = function() {
-        source.onstop = null;
+    source.addEventListener("stop", function() {
+        source.removeEventListener("stop");
         next();
-    }
+    });
 
     source.stop();
 }, 5000);
 
 Tests.registerAsync("CustomSourceNode.assignInit", function(next) {
-    source.onmessage = function(msg) {
+    source.addEventListener("message", function(msg) {
+        source.removeEventListener("message");
+
         source.stop();
+
         Assert.equal(msg.data, "init");
+
         next();
-    }
+    });
 
     source.assignInit(function() {
         this.send("init");
@@ -61,14 +66,15 @@ Tests.registerAsync("CustomSourceNode.assignInit", function(next) {
 }, 5000);
 
 Tests.registerAsync("CustomSourceNode.assignSetter & set", function(next) {
-    source.onmessage = function(msg) {
-        source.onmessage = null;
+    source.addEventListener("message", function(msg) {
+        source.removeEventListener("message");
 
         Assert.equal(msg.data.key, "foo");
         Assert.equal(msg.data.value, "bar");
 
         next();
-    }
+    });
+
 
     source.assignSetter(function(key, value) {
         this.send({"key": key, "value": value});
@@ -79,18 +85,17 @@ Tests.registerAsync("CustomSourceNode.assignSetter & set", function(next) {
 }, 5000);
 
 Tests.registerAsync("CustomSourceNode.set & get (threaded)", function(next) {
-    source.onmessage = function(msg) {
-        source.onmessage = null;
+    source.addEventListener("message", function(msg) {
+        source.removeEventListener("message");
 
         Assert.equal(msg.data.set, true);
         Assert.equal(msg.data.get, true); 
 
         next();
-    }
+    });
 
     source.assignSetter(function(key, value) {
         if (key == "test") {
-            console.log("got test");
             var out = {};
 
             this.set("foo", "bar");
@@ -112,8 +117,8 @@ Tests.registerAsync("CustomSourceNode.set & get (threaded)", function(next) {
 }, 5000);
 
 Tests.registerAsync("CustomSourceNode.assignProcessor", function(next) {
-    customProcessor.onmessage = function(msg) {
-        customProcessor.onmessage = null;
+    customProcessor.addEventListener("message", function(msg) {
+        customProcessor.removeEventListener("message");
         customProcessor.assignProcessor(null);
         source.assignProcessor(null);
 
@@ -122,7 +127,7 @@ Tests.registerAsync("CustomSourceNode.assignProcessor", function(next) {
         source.stop();
 
         next();
-    }
+    });
 
     customProcessor.assignProcessor(function(frames, scope) {
         var ok = false;
@@ -145,8 +150,8 @@ Tests.registerAsync("CustomSourceNode.assignProcessor", function(next) {
 }, 5000);
 
 Tests.registerAsync("CustomSourceNode.assignSeek", function(next) {
-    source.onmessage = function(msg) {
-        source.onmessage = null;
+    source.addEventListener("message", function(msg) {
+        source.removeEventListener("message");
         source.assignSeek(null);
 
         source.stop();
@@ -154,7 +159,7 @@ Tests.registerAsync("CustomSourceNode.assignSeek", function(next) {
         Assert.equal(msg.data.seek, 15);
 
         next();
-    }
+    });
 
     source.assignSeek(function(time, scope) {
         this.send({"seek": time});

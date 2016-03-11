@@ -25,8 +25,8 @@ Tests.register("CustomSourceNode.create", function() {
 Tests.registerAsync("GainNode.set", function(next) {
     gain.set("gain", 0.5);
 
-    customProcessor.onmessage = function(msg) {
-        customProcessor.onmessage = null;
+    customProcessor.addEventListener("message", function(msg) {
+        customProcessor.removeEventListener("message");
         customProcessor.assignProcessor(null);
         source.assignProcessor(null);
 
@@ -35,7 +35,7 @@ Tests.registerAsync("GainNode.set", function(next) {
         source.stop();
 
         next();
-    }
+    })
 
     customProcessor.assignProcessor(function(frames, scope) {
         var ok = false;
