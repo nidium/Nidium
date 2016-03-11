@@ -16,6 +16,10 @@
 #include "NativeJSCanvas.h"
 #include "NativeCanvas2DContext.h"
 
+extern "C" {
+#include <libavformat/avformat.h>
+}
+
 
 // TODO : Need to handle nodes GC, similar to
 //        https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#lifetime-AudioNode
@@ -2506,6 +2510,17 @@ bool NativeJSAVSource::propSetter(NativeAVSource *source, uint8_t id, JS::Mutabl
     return true;
 }
 
+void CopyMetaDataToJS(AVDictionary *dict, JSContext *cx, JS::HandleObject obj) {
+    AVDictionaryEntry *tag = NULL;
+
+    if (!dict) return;
+
+    while ((tag = av_dict_get(dict, "", tag, AV_DICT_IGNORE_SUFFIX))) {
+        JS::RootedString val(cx, JS_NewStringCopyN(cx, tag->value, strlen(tag->value)));
+        JS::RootedValue value(cx, STRING_TO_JSVAL(val));
+        JS_DefineProperty(cx, obj, tag->key, value, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
+    }
+}
 bool NativeJSAVSource::propGetter(NativeAVSource *source, JSContext *cx, uint8_t id, JS::MutableHandleValue vp)
 {
     switch(id) {
@@ -2520,17 +2535,50 @@ bool NativeJSAVSource::propGetter(NativeAVSource *source, JSContext *cx, uint8_t
         break;
         case SOURCE_PROP_METADATA:
         {
-            AVDictionaryEntry *tag = NULL;
-            AVDictionary *cmetadata = source->getMetadata();
+            AVFormatContext *avctx = source->getAVFormatContext();
 
-            if (cmetadata != NULL) {
+            if (avctx != NULL) {
                 JS::RootedObject metadata(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+                AVDictionary *cmetadata = avctx->metadata;
 
-                while ((tag = av_dict_get(cmetadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
-                    JS::RootedString val(cx, JS_NewStringCopyN(cx, tag->value, strlen(tag->value)));
-                    JS::RootedValue value(cx, STRING_TO_JSVAL(val));
-                    JS_DefineProperty(cx, metadata, tag->key, value, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
+                if (cmetadata) {
+                    CopyMetaDataToJS(cmetadata, cx, metadata);
                 }
+
+                for (int i = 0; i < avctx->nb_streams; i++) {
+                    JS::RootedObject arr(cx, JS_NewArrayObject(cx, 0));
+                    JS_DefineProperty(cx, metadata, "streams", arr, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
+
+                    for (int i = 0; i < avctx->nb_streams; i++) {
+                        JS::RootedObject streamMetaData(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+
+                        CopyMetaDataToJS(avctx->streams[i]->metadata, cx, streamMetaData);
+
+                        JS_DefineElement(cx, arr, i, OBJECT_TO_JSVAL(streamMetaData), nullptr, nullptr, 0);
+                    }
+                }
+                
+                /*
+                for (int i = 0; i < avctx->nb_chapters; i++) {
+                    // TODO
+                }
+                */
+
+                // XXX : Not tested 
+                /*
+                if (avctx->nb_programs) {
+                    JS::RootedObject arr(cx, JS_NewArrayObject(cx, 0));
+                    JS_DefineProperty(cx, metadata, "programs", arr, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
+
+                    for (int i = 0; i < avctx->nb_programs; i++) {
+                        JS::RootedObject progMetaData(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+
+                        CopyMetaDataToJS(avctx->programs[i]->metadata, cx, progMetaData);
+
+                        JS_DefineElement(cx, arr, i, OBJECT_TO_JSVAL(progMetaData), nullptr, nullptr, 0);
+                    }
+                }
+                */
 
                 vp.setObject(*metadata);
             } else {
@@ -2539,6 +2587,7 @@ bool NativeJSAVSource::propGetter(NativeAVSource *source, JSContext *cx, uint8_t
         }
         break;
         default:
+            vp.setUndefined();
         break;
     }
 
