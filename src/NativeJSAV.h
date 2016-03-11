@@ -71,11 +71,6 @@ class JSTransferableFunction
 class NativeJSAVSource
 {
     public:
-        static inline int open(NativeAVSource *source, JSContext *cx, unsigned argc, JS::HandleValue *vp);
-        static inline int play();
-        static inline int pause();
-        static inline int stop();
-
         static inline bool propSetter(NativeAVSource *source, uint8_t id, JS::MutableHandleValue vp);
         static inline bool propGetter(NativeAVSource *source, JSContext *ctx, uint8_t id, JS::MutableHandleValue vp);
 };
