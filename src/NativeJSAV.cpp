@@ -98,13 +98,6 @@ static bool native_audionode_source_prop_setter(JSContext *cx, JS::HandleObject 
 static bool native_audionode_source_prop_getter(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp);
 
-static JSClass messageEvent_class = {
-    "ThreadMessageEvent", 0,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
-
 static JSClass Audio_class = {
     "Audio", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -317,9 +310,6 @@ static JSPropertySpec Video_props[] = {
      {"bitrate", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
         NATIVE_JS_GETTER(SOURCE_PROP_BITRATE, native_video_prop_getter),
         JSOP_NULLWRAPPER},
-    {"onframe", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_STUBGETTER(),
-        JSOP_NULLWRAPPER},
     {"canvas", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_STUBGETTER(),
         JSOP_NULLWRAPPER},
@@ -396,26 +386,28 @@ static int FFT(int dir, int nn, double *x, double *y)
 const char *NativeJSAVEventRead(int ev)
 {
     switch (ev) {
+        case CUSTOM_SOURCE_SEND:
+            return "message";
         case SOURCE_EVENT_PAUSE:
-            return "onpause";
+            return "pause";
         break;
         case SOURCE_EVENT_PLAY:
-            return "onplay";
+            return "play";
         break;
         case SOURCE_EVENT_STOP:
-            return "onstop";
+            return "stop";
         break;
         case SOURCE_EVENT_EOF:
-            return "onend";
+            return "end";
         break;
         case SOURCE_EVENT_ERROR:
-            return "onerror";
+            return "error";
         break;
         case SOURCE_EVENT_BUFFERING:
-            return "onbuffering";
+            return "buffering";
         break;
         case SOURCE_EVENT_READY:
-            return "onready";
+            return "ready";
         break;
         default:
             return NULL;
@@ -423,72 +415,53 @@ const char *NativeJSAVEventRead(int ev)
     }
 }
 
-static void native_av_thread_message(JSContext *cx, JS::HandleObject obj, const NativeSharedMessages::Message &msg)
+static JS::HandleValue consumeSourceMessage(JSContext *cx, JS::HandleObject obj, const NativeSharedMessages::Message &msg)
 {
-    JS::RootedValue jscbk(cx);
-    JS::RootedValue rval(cx);
+    JS::RootedObject evObj(cx, NativeJSEvents::CreateEventObject(cx));
+    NativeJSObjectBuilder ev(cx, evObj);
 
     if (msg.event() == CUSTOM_SOURCE_SEND) {
         native_thread_msg *ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
 
-        if (JS_GetProperty(cx, obj, "onmessage", &jscbk) &&
-            jscbk.isObject() &&
-            JS_ObjectIsCallable(cx, &jscbk.toObject())) {
-
-            JS::RootedValue inval(cx, JSVAL_NULL);
-            if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
-                JS_STRUCTURED_CLONE_VERSION, &inval, nullptr, NULL)) {
-                JS_PROPAGATE_ERROR(cx, "Failed to transfer custom node message to audio thread");
-                return;
-            }
-            JS::RootedObject event(cx, JS_NewObject(cx, &messageEvent_class, JS::NullPtr(), JS::NullPtr()));
-            JS_DefineProperty(cx, event, "data", inval, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE);
-            JS::RootedValue jsvalEvent(cx, OBJECT_TO_JSVAL(event));
-            JS_CallFunctionValue(cx, event, jscbk, jsvalEvent, &rval);
-
-            if (JS_IsExceptionPending(cx)) {
-                if (!JS_ReportPendingException(cx)) {
-                    JS_ClearPendingException(cx);
-                }
-            }
+        JS::RootedValue inval(cx, JSVAL_NULL);
+        if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
+            JS_STRUCTURED_CLONE_VERSION, &inval, nullptr, NULL)) {
+            JS_PROPAGATE_ERROR(cx, "Failed to transfer custom node message to audio thread");
+            return JS::UndefinedHandleValue;
         }
+
+        ev.set("data", inval);
+
         delete ptr;
     } else {
-        NativeAVSourceEvent *cmsg = static_cast<struct NativeAVSourceEvent*>(msg.dataPtr());
+        NativeAVSourceEvent *cmsg = 
+                static_cast<struct NativeAVSourceEvent*>(msg.dataPtr());
 
-        const char *prop = NativeJSAVEventRead(msg.event());
-        if (!prop) {
-            // delete cmsg; // XXX : Unknown message. Don't delete it.
-            return;
-        }
+        if (cmsg->m_Ev == SOURCE_EVENT_ERROR) {
+            int errorCode = cmsg->m_Args[0].toInt();
+            const char *errorStr = NativeAVErrorsStr[errorCode];
+            JS::RootedString jstr(cx, JS_NewStringCopyN(cx, errorStr, strlen(errorStr)));
 
-        if (JS_GetProperty(cx, obj, prop, &jscbk) &&
-            jscbk.isObject() &&
-            JS_ObjectIsCallable(cx, &jscbk.toObject())) {
+            JS::RootedValue code(cx);
+            code.setInt32(errorCode);
 
-            if (cmsg->m_Ev == SOURCE_EVENT_ERROR) {
-                JS::AutoValueArray<2> event(cx);
-                int errorCode = cmsg->m_Args[0].toInt();
-                const char *errorStr = NativeAVErrorsStr[errorCode];
-                JS::RootedString jstr(cx, JS_NewStringCopyN(cx, errorStr, strlen(errorStr)));
+            JS::RootedValue err(cx);
+            err.setString(jstr);
 
-                event[0].setInt32(errorCode);
-                event[1].setString(jstr);
-                JS_CallFunctionValue(cx, obj, jscbk, event, &rval);
-            } else if (cmsg->m_Ev == SOURCE_EVENT_BUFFERING) {
-                JS::AutoValueArray<2> event(cx);
-                event[0].setInt32(cmsg->m_Args[0].toInt());
-                event[1].setInt32(cmsg->m_Args[1].toInt());
-                event[2].setInt32(cmsg->m_Args[2].toInt());
-                JS_CallFunctionValue(cx, obj, jscbk, event, &rval);
-            } else {
-                JS_CallFunctionValue(cx, obj, jscbk, JS::HandleValueArray::empty(), &rval);
-            }
-
+            ev.set("code", code);
+            ev.set("error", err);
+        } else if (cmsg->m_Ev == SOURCE_EVENT_BUFFERING) {
+            ev.set("filesize", cmsg->m_Args[0].toInt());
+            ev.set("startByte", cmsg->m_Args[1].toInt());
+            ev.set("bufferedBytes", cmsg->m_Args[2].toInt());
         }
 
         delete cmsg;
     }
+
+    JS::RootedValue rval(cx);
+    rval.set(ev.jsval());
+    return rval;
 }
 
 bool JSTransferableFunction::prepare(JSContext *cx, JS::HandleValue val)
@@ -938,7 +911,20 @@ void NativeJSAudioNode::onMessage(const NativeSharedMessages::Message &msg)
 {
     if (m_IsDestructing) return;
     JS::RootedObject obj(m_Cx, m_JSObject);
-    native_av_thread_message(m_Cx, obj, msg);
+
+    const char *evName = nullptr;
+    JS::RootedValue ev(m_Cx);
+
+    evName = NativeJSAVEventRead(msg.event());
+    if (!evName) {
+        return;
+    }
+
+    ev = consumeSourceMessage(m_Cx, obj, msg);
+
+    if (!ev.isNull()) {
+        this->fireJSEvent(evName, &ev);
+    }
 }
 
 void NativeJSAudioNode::onEvent(const struct NativeAVSourceEvent *cev)
@@ -2166,8 +2152,21 @@ void NativeJSVideo::onMessage(const NativeSharedMessages::Message &msg)
         if (msg.event() == SOURCE_EVENT_PLAY) {
             this->setSize(m_Width, m_Height);
         }
+
         JS::RootedObject obj(cx, this->getJSObject());
-        native_av_thread_message(cx, obj, msg);
+        const char *evName = nullptr;
+        JS::RootedValue ev(m_Cx);
+
+        evName = NativeJSAVEventRead(msg.event());
+        if (!evName) {
+            return;
+        }
+
+        ev = consumeSourceMessage(cx, obj, msg);
+
+        if (!ev.isNull()) {
+            this->fireJSEvent(evName, &ev);
+        }
     }
 }
 
@@ -2182,6 +2181,7 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
     NativeJSVideo *v = (NativeJSVideo *)custom;
     NativeCanvasHandler *handler = v->m_CanvasCtx->getHandler();
     NativeSkia *surface = v->m_CanvasCtx->getSurface();
+    JSContext *cx = v->cx;
 
     surface->setFillColor(0xFF000000);
     surface->drawRect(0, 0, handler->getWidth(), handler->getHeight(), 0);
@@ -2189,17 +2189,14 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
 
     JS::RootedValue onframe(v->cx);
     JS::RootedObject vobj(v->cx, v->getJSObject());
-    if (JS_GetProperty(v->cx, vobj, "onframe", &onframe) &&
-            onframe.isObject() &&
-            JS_ObjectIsCallable(v->cx, &onframe.toObject())) {
-        JS::AutoValueArray<1> params(v->cx);
+    JS::RootedObject evObj(cx);
 
-        params[0].setObjectOrNull(v->getJSObject());
+    evObj = NativeJSEvents::CreateEventObject(cx);
+    NativeJSObjectBuilder ev(cx, evObj);
+    ev.set("video", v->getJSObject());
+    JS::RootedValue evjsval(cx, ev.jsval());
 
-        JS::RootedValue rval(v->cx);
-        JSAutoRequest ar(v->cx);
-        JS_CallFunctionValue(v->cx, vobj, onframe, params, &rval);
-    }
+    v->fireJSEvent("frame", &evjsval);
 }
 
 void NativeJSVideo::setSize(int width, int height)
