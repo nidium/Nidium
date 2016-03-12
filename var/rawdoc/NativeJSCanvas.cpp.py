@@ -16,7 +16,7 @@ Every canvas, except the root canvas, has a parent canvas. Only canvas instances
 The parent of a canvas can be set by using methods like 'Canvas.add'.
 
 """,
-	SeesDocs( "global|Window|Document|WebGL|document.canvas|Canvas.add" ),
+	SeesDocs( "global|Window|NativeDocument|WebGL|global.document.canvas|Canvas.add" ),
 	[ExampleDoc("""// Create a new 200x100 canvas (logical pixels)
 var canvas = new Canvas(200, 100);
 // Add it to the root hierarchy
@@ -85,8 +85,8 @@ FunctionDoc( "Canvas.setScale", "Set a canvas object to a certain scale.",
 	SeesDocs( "Canvas.setCoordinates|Canvas.setSize|Canvas.setZoom|Canvas.setScale" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "x", "X", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "y", "Y", "integer", NO_Default, IS_Obligated ) ],
+	[ ParamDoc( "x_pos", "X position", "integer", NO_Default, IS_Obligated ),
+	 ParamDoc( "y_pos", "Y position", "integer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -237,7 +237,10 @@ FunctionDoc( "Canvas.getVisibleRect", "Get the outerbounds of the canvas in abso
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
 	NO_Params,
-	ReturnDoc( "An object with keys: left/float, top/float, width/float, height/float", "Object" )
+	ReturnDoc( "dimensions", ObjectDoc([("left", "left size", "float"),
+										("top", "top size", "float"),
+										("width", "width size", "float"),
+										("height", "height size", "float")]))
 )
 
 FunctionDoc( "Canvas.setCoordinates", """Sets a canvas object at a certain position.
@@ -808,7 +811,7 @@ ConstructorDoc( "Canvas", """Constructs a canvas instance.
 
 The new canvas is automatically orphaned and doesn't belong to the view hierarchy until added as a child to the root hierarchy.
 A canvas will not be displayed until it is a descendent of the root canvas ('document.canvas').""",
-	[ SeeDoc( "CanvasInherrits|Canvas|document.canvas" ) ],
+	SeesDocs( "CanvasInherrits|Canvas|document.canvas" ),
 	[ExampleDoc("""// Create a new 200x100 canvas (logical pixels)
 var myCanvas = new Canvas(200, 100);
 // at this stage, myCanvas is an orphaned canvas
@@ -816,9 +819,9 @@ var myCanvas = new Canvas(200, 100);
 document.canvas.add(myCanvas);
 // at this stage, myCanvas is "rooted" and document.canvas becomes its parent.
 """)],
-	[ ParamDoc( "w", "Width", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "h", "Height", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "options", "Options object with keys: lazy/boolean", "Object", NO_Default, IS_Optional ) ],
+	[ ParamDoc( "width", "Width size", "integer", NO_Default, IS_Obligated ),
+	 ParamDoc( "height", "Height size", "integer", NO_Default, IS_Obligated ),
+	 ParamDoc( "options", "Options object", ObjectDoc([("lazy", "lazy evaluation", "boolean")]), NO_Default, IS_Optional ) ],
 	ReturnDoc( "Canvas instance", "Canvas" )
 )
 
@@ -833,7 +836,8 @@ for i in items:
 EventDoc( "Canvas.onchange", "Callback for onchange events.",
 	SeesDocs( "Canvas.onresize|Canvas.onload|Canvas.onchange" ),
 	NO_Examples,
-	[ ParamDoc( "obj", "object with keys: property/string and value/mixed", "Object", NO_Default, IS_Obligated ) ]
+	[ ParamDoc( "obj", "event object", ObjectDoc([("property", "propertyname", "string"),
+												("value", "changed value", "string|float|integer|boolean")]), NO_Default, IS_Obligated ) ]
 )
 
 items = [ "onmouse*" ]
@@ -841,6 +845,6 @@ for i in items:
 	EventDoc( "Canvas." + i, "Callback for " + i + " events.",
 		SeesDocs( "Canvas.cancelbubble|Canvas.drag|Canvas" + "|Canvas.".join(items) ),
 		NO_Examples,
-		[ParamDoc( "obj", "messageObject", "Object", NO_Default, IS_Obligated ) ]
+		[ParamDoc( "obj", "messageObject", ObjectDoc([]), NO_Default, IS_Obligated ) ]
 	)
 

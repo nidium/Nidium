@@ -53,16 +53,12 @@ EventDoc( "Window._onclose", "Function that is called when the window will be cl
 	[ ParamDoc( "event", "EventMessage", "WindowEvent", NO_Default, IS_Obligated ) ]
 )
 
-EventDoc( "Window._onassetready", """Function that is called when the window has loaded all the assets.
-
-The event message object has the following keys:
- data: string in utf8 encoding
- tag: string
- id: string
-""",
+EventDoc( "Window._onassetready", """Function that is called when the window has loaded all the assets.""",
 	SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
 	NO_Examples,
-	[ ParamDoc( "event", "EventMessage", "WindowEvent", NO_Default, IS_Obligated ) ]
+	[ ParamDoc( "event", "EventMessage", ObjectDoc([("data", "string in utf8 encoding", "string"),
+													("tag", "tag name", "string"),
+													("id", "id of the object", "string")]), NO_Default, IS_Obligated ) ]
 )
 
 EventDoc( "Window._onfocus", "Function that is called when the window receives the focus.",
@@ -77,101 +73,74 @@ EventDoc( "Window._onblur", "Function that is called when the window looses the 
 	NO_Params
 )
 
-EventDoc( "Window._onmousewheel", """Function that is called when the window gets an mouse wheel event.
-
-The event message object has the following keys:
- xrel: integer
- yres: integer
- x: integer
- y: integer
-""",
+EventDoc( "Window._onmousewheel", """Function that is called when the window gets an mouse wheel event.""",
 	SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
 	NO_Examples,
-	[ ParamDoc( "event", "EventMessage", "WindowEvent", NO_Default, IS_Obligated ) ]
+	[ ParamDoc( "event", "EventMessage", ObjectDoc([("xrel", "x relative position", "integer"),
+													("yres", "x relative position", "integer"),
+													("x_pos", "x position", "integer"),
+													("y_pos", "y position", "integer")
+													]), NO_Default, IS_Obligated ) ]
 )
 
 for i in ["_onkeydown", "_onkeyup" ]:
-	EventDoc( "Window." + i, """Function that is called when the window gets an  " + i + " event.
-
-	The event message object has the following keys:
-	 keyCode: integer
-	 location: integer
-	 altKey: boolean
-	 ctrlKey: boolean
-	 shiftKey: boolean
-	 metaKey: boolean
-	 spaceKey: boolean
-	 repeat: boolean
-	""",
+	EventDoc( "Window." + i, """Function that is called when the window gets an  " + i + " event.""",
 		SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
 		NO_Examples,
-		[ ParamDoc( "event", "EventMessage", "WindowEvent", NO_Default, IS_Obligated ) ]
+		[ ParamDoc( "event", "EventMessage", ObjectDoc([ ("keyCode", "keycode used", "integer"),
+														 ("location", "location used", "integer"),
+														 ("altKey", "alt used", "boolean"),
+														 ("ctrlKey", "ctrl used", "boolean"),
+														 ("shiftKey", "shift used", "boolean"),
+														 ("metaKey", "meta used", "boolean"),
+														 ("spaceKey", "space used", "boolean"),
+														 ("repeat", "repeating", "boolean") ]), NO_Default, IS_Obligated ) ]
 	)
 
-EventDoc( "Window._ontextinput", """function that is called when the window gets an  " + i + " event.
-
-The event message object has the following keys:
- val: string in utf8
-""",
+EventDoc( "Window._ontextinput", """function that is called when the window gets an  " + i + " event.""",
 	SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
 	NO_Examples,
-	[ ParamDoc( "event", "EventMessage", "WindowEvent", NO_Default, IS_Obligated ) ]
+	[ ParamDoc( "event", "EventMessage", ObjectDoc([("val", "value (utf8)", "string")]), NO_Default, IS_Obligated ) ]
 )
 
-EventDoc( "Window._onsystemtrayclic", """Function that is called when the window gets an  " + i + " event.
-
-The event message object has the following keys:
- id: integer
-""",
+EventDoc( "Window._onsystemtrayclic", """Function that is called when the window gets an  " + i + " event.""",
 	SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
 	NO_Examples,
-	[ ParamDoc( "event", "EventMessage", "WindowEvent", NO_Default, IS_Obligated ) ]
+	[ ParamDoc( "event", "EventMessage", ObjectDoc([("id", "event id", "integer")]), NO_Default, IS_Obligated ) ]
 )
 
 for i in ["_onmousedown", "_onmouseup" ]:
-	EventDoc( "Window." + i, """Function that is called when the window gets an  " + i + " event.
-
-	The event message object has the following keys:
-	 x: integer
-	 y: integer
-	 clientX: integer
-	 clientY: integer
-	 which: integer (mouse button)
-	""",
+	EventDoc( "Window." + i, """Function that is called when the window gets an  " + i + " event.""",
 		SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
 		NO_Examples,
-		[ ParamDoc( "event", "EventMessage", "WindowEvent", NO_Default, IS_Obligated ) ]
+		[ ParamDoc( "event", "EventMessage", ObjectDoc([ ("x_pos", "x position", "integer"),
+														("y_pos", "y position", "integer"),
+														("clientX", "client x position", "integer"),
+														("clientY", "client y position", "integer"),
+														("which", "mouse button", "integer") ]), NO_Default, IS_Obligated ) ]
 	)
 
 for i in ["_onFileDragEnter", "_onFileDragLeave", "_onFileDrag", "_onFileDragDrop" ]:
-	EventDoc( "Window." + i, """function that is called when the window gets an  " + i + " event.
-
-	The event message object has the following keys:
-	 x: integer
-	 y: integer
-	 clientX: integer
-	 clientY: integer
-	 files: [string]
-	""",
-		SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
+	EventDoc( "Window." + i, """function that is called when the window gets an  " + i + " event.  """,
+ 		SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
 		NO_Examples,
-		[ ParamDoc( "event", "EventMessage", "WindowEvent", NO_Default, IS_Obligated ) ]
+		[ ParamDoc( "event", "EventMessage", ObjectDoc([ ("x_pos", "x position", "integer"),
+														("y_pos", "y position", "integer"),
+														("clientX", "client x position", "integer"),
+														("clientY", "client y position", "integer"),
+														("files", "Array of filenames", "[string]") ]), NO_Default, IS_Obligated ) ]
 	)
 
-EventDoc( "Window._onmousemove", """function that is called when the window gets an  mousemovement event.
-
-The event message object has the following keys:
- x: integer
- y: integer
- xrel: integer
- yrel: integer
- clientX: integer
- clientY: integer
- files: [string]
-""",
+EventDoc( "Window._onmousemove", """function that is called when the window gets an  mousemovement event.""",
 	SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
 	NO_Examples,
-	[ ParamDoc( "event", "EventMessage", "WindowEvent", NO_Default, IS_Obligated ) ]
+	[ ParamDoc( "event", "EventMessage", ObjectDoc([ ("x_pos", "x position", "integer"),
+														("y_pos", "y position", "integer"),
+														("xrel", "relative x position", "integer"),
+														("yrel", "relative y position", "integer"),
+														("clientX", "client x position", "integer"),
+														("clientY", "client y position", "integer"),
+														("files", "Array of filenames", "[string]") ]), NO_Default, IS_Obligated ) ]
 )
 
 topics = {"left": "integer", "top": "integer", "innerWidth": "integer", "innerHeight": "integer", "outerHeight": "integer", "title": "string" }
@@ -226,7 +195,7 @@ FunctionDoc( "Window.openDirDialog", "Opens a directory selection dialog.",
 	SeesDocs( "Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Slow,
-	[CallbackDoc( "fn", "The callback function", [ParamDoc( "list", "List of the selected items", "[string]", IS_Obligated ) ] ) ],
+	[CallbackDoc( "fn", "The callback function", [ParamDoc( "list", "List of the selected items", "[string]", NO_Default, IS_Obligated ) ] ) ],
 	NO_Returns
 )
 
@@ -235,7 +204,7 @@ FunctionDoc( "Window.openFileDialog", "Opens a file selection dialog.",
 	NO_Examples,
 	IS_Static, IS_Public, IS_Slow,
 	[ParamDoc( "types", "list of allowed extendsions or null", "[string]", NO_Default, IS_Obligated ),
-	  CallbackDoc( "fn", "The callback function", [ParamDoc( "list", "List of the selected items", "[string]", IS_Obligated ) ] ) ],
+	  CallbackDoc( "fn", "The callback function", [ParamDoc( "list", "List of the selected items", "[string]", NO_Default, IS_Obligated ) ] ) ],
 	NO_Returns
 )
 
@@ -243,7 +212,7 @@ FunctionDoc( "Window.requestAnimationFrame", "Execute a callback for the next fr
 	SeesDocs( "Window.requestAnimationFrame|Window.setFrame" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
-	[ CallbackDoc( "fn", "The callback function", [ParamDoc( "list", "List of the selected items", "[string]", IS_Obligated ) ] ) ],
+	[ CallbackDoc( "fn", "The callback function", [ParamDoc( "list", "List of the selected items", "[string]", NO_Default, IS_Obligated ) ] ) ],
 	NO_Returns
 )
 
@@ -259,8 +228,8 @@ FunctionDoc( "Window.center", "Positions the window in the center.",
 	SeesDocs( "Window.center|Window.setPosition|Window.setSize" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
-	[ParamDoc( "x", "X position", "integer", 0, IS_Obligated ),
-	 ParamDoc( "y", "Y position", "integer", 0, IS_Obligated ) ],
+	[ParamDoc( "x_pos", "X position", "integer", 0, IS_Obligated ),
+	 ParamDoc( "y_pos", "Y position", "integer", 0, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -294,7 +263,10 @@ FunctionDoc( "Window.notify", "Send a notification to the systemtray.",
 	SeesDocs( "Window.notify|Window.setSystemTray" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
-	[ParamDoc( "config", "Systemtray object with keys: 'icon' ('string'), 'menu' (array of objects with key 'id'(integer) and 'title'(string)", "Object", NO_Default, IS_Obligated ) ],
+	[ParamDoc( "config", "Systemtray", ObjectDoc([("icon", "Icon name", 'string'),
+													("menu", "array of objects", ObjectDoc([('id', "identifier", "integer"),
+																						    ("title", "name", "string")], IS_Array))
+														]), NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -302,10 +274,10 @@ FunctionDoc( "Window.setFrame", "Execute a callback for the next frame.",
 	SeesDocs( "Window.requestAnimationFrame|Window.setFrame" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
-	[ ParamDoc( "x", "x position", "integer|string", '0|center', IS_Obligated ),
-	  ParamDoc( "y", "x position", "integer|string", '0|center', IS_Obligated ),
-	  ParamDoc( "?", "? position", "integer", '0', IS_Obligated ),
-	  ParamDoc( "?", "? position", "integer", '0', IS_Obligated ) ],
+	[ ParamDoc( "x_pos", "x position", "integer|string", '0|center', IS_Obligated ),
+	  ParamDoc( "y_pos", "x position", "integer|string", '0|center', IS_Obligated ),
+	  ParamDoc( "hh", "? position", "integer", '0', IS_Obligated ),
+	  ParamDoc( "nn", "? position", "integer", '0', IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -389,7 +361,7 @@ FieldDoc("Window.__nidium__", "Details for this browser's framework.",
 	SeesDocs("Navigator|Window.navigator|Window.__nidium__|global.window"),
 	[ExampleDoc("console.log(JSON.stringify(window.navigator));")],
 	IS_Static, IS_Public, IS_Readonly,
-	"Object",
+	ObjectDoc([("version", "The version of nidium", "string"), ("build", "build identifier", "string"), ("revision", "revision identifier", "string")]),
 	NO_Default
 )
 

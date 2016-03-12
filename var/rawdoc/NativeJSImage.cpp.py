@@ -2,7 +2,7 @@ from dokumentor import *
 
 ClassDoc( "Image", "Image handling.",
 	[SeeDoc( "Video" ) ],
-	ExampleDoc( """document.background = "#333333";
+	[ExampleDoc( """document.background = "#333333";
 document.opacity = 0;
 
 var pic = new UI.element(document, {
@@ -26,7 +26,7 @@ img.onload = function(){
 };
 
 img.src = "http://www.nidium.com/static/img/island.png";
-"""),
+""")],
 	NO_Extends,
 	NO_Inherrits
 )

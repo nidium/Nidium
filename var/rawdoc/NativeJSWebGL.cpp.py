@@ -8,10 +8,10 @@ for i in items:
 	)
 
 items = [ "uniform1f", "uniform2f", "uniform3f", "uniform4f" ]
-vals = ['x', 'y', 'z', 'w']
+vals = ['x_pos', 'y_pos', 'z_index', 'w_pos']
 params = []
 for j,i in enumerate( items ):
-	params.append( ParamDoc( vals[j], vals[j].upper() + " value", "integer", NO_Default, IS_Obligated ) )
+	params.append( ParamDoc( vals[j], vals[j].title() + " value", "integer", NO_Default, IS_Obligated ) )
 	FunctionDoc( "WebGLRenderingContext." + i, "Performs a " + i,
 		SeesDocs( "WebGLRenderingContext|" + "|WebGLRenderingContext.".join( items ) ),
 		NO_Examples,
@@ -32,7 +32,7 @@ for j,i in enumerate( items ):
 	)
 
 items = [ "uniform1i", "uniform2i", "uniform3i", "uniform4i" ]
-vals = ['x', 'y', 'z', 'w']
+vals = ['x_pos', 'y_pos', 'z_index', 'width']
 params = [ParamDoc( "location", "Location", "WebGLUniformLocation", NO_Default, IS_Obligated ) ]
 for j,i in enumerate( items ):
 	params.append( ParamDoc( vals[j], vals[j].upper() + " value", "integer", NO_Default, IS_Obligated ) )
@@ -187,8 +187,8 @@ FunctionDoc( "WebGLRenderingContext.copyTexImage2D", "Copy an texture.",
 	[	ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
 		ParamDoc( "level", "Level", "integer", NO_Default, IS_Obligated ),
 		ParamDoc( "internal", "Internal format", "integer", NO_Default, IS_Obligated ),
-		ParamDoc( "x", "X", "integer", NO_Default, IS_Obligated ),
-		ParamDoc( "y", "Y", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "x_pos", "X position", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "y_pos", "Y position", "integer", NO_Default, IS_Obligated ),
 		ParamDoc( "width", "Width", "integer", NO_Default, IS_Obligated ),
 		ParamDoc( "height", "Height", "integer", NO_Default, IS_Obligated ),
 		ParamDoc( "border", "Border", "integer", NO_Default, IS_Obligated ), ],
@@ -202,8 +202,8 @@ FunctionDoc( "WebGLRenderingContext.copyTexSubImage2D", "Copy an texture.",
 	[	ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ),
 		ParamDoc( "level", "Level", "integer", NO_Default, IS_Obligated ),
 		ParamDoc( "internal", "Internal format", "integer", NO_Default, IS_Obligated ),
-		ParamDoc( "x", "X", "integer", NO_Default, IS_Obligated ),
-		ParamDoc( "y", "Y", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "x_pos", "X position", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "y_pos", "Y position", "integer", NO_Default, IS_Obligated ),
 		ParamDoc( "width", "Width", "integer", NO_Default, IS_Obligated ),
 		ParamDoc( "height", "Height", "integer", NO_Default, IS_Obligated ),
 		ParamDoc( "border", "Border", "integer", NO_Default, IS_Obligated ), ],
@@ -279,10 +279,10 @@ FunctionDoc( "WebGLRenderingContext.clearColor", "Clears a color in a context.",
 	SeesDocs( "WebGLRenderingContext.clean|WebGLRenderingContext.clearColor|WebGLRenderingContext.clearDepth|clearColor|WebGLRenderingContext.clearStencil" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[	ParamDoc( "r", "Red", "float", NO_Default, IS_Obligated ),
-		ParamDoc( "g", "Green", "float", NO_Default, IS_Obligated ),
-		ParamDoc( "blue", "Blue", "float", NO_Default, IS_Obligated ),
-		ParamDoc( "a", "Alpha", "float", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "red", "Red value", "float", NO_Default, IS_Obligated ),
+		ParamDoc( "green", "Green value", "float", NO_Default, IS_Obligated ),
+		ParamDoc( "blue", "Blue value", "float", NO_Default, IS_Obligated ),
+		ParamDoc( "alpha", "Alpha value", "float", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -290,7 +290,7 @@ FunctionDoc( "WebGLRenderingContext.clearDepth", "Clears a depth in a context.",
 	SeesDocs( "WebGLRenderingContext.clean|WebGLRenderingContext.clearColor|WebGLRenderingContext.clearDepth|clearColor|WebGLRenderingContext.clearStencil" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "d", "depth", "float", NO_Default, IS_Obligated ) ],
+	[ ParamDoc( "depth", "depth size", "float", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -306,10 +306,10 @@ FunctionDoc( "WebGLRenderingContext.colorMask", "Mask a color in a context.",
 	SeesDocs( "WebGLRenderingContext.clearColor" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[	ParamDoc( "r", "Red", "float", NO_Default, IS_Optional ),
-		ParamDoc( "g", "Green", "float", NO_Default, IS_Optional ),
-		ParamDoc( "blue", "Blue", "float", NO_Default, IS_Optional ),
-		ParamDoc( "a", "Alpha", "float", NO_Default, IS_Optional ) ],
+	[	ParamDoc( "red", "Red value", "float", NO_Default, IS_Optional ),
+		ParamDoc( "green", "Green value", "float", NO_Default, IS_Optional ),
+		ParamDoc( "blue", "Blue value", "float", NO_Default, IS_Optional ),
+		ParamDoc( "alpha", "Alpha value", "float", NO_Default, IS_Optional ) ],
 	NO_Returns
 )
 
@@ -639,7 +639,7 @@ FunctionDoc( "WebGLRenderingContext.lineWidth", "Set the width of a line.",
 	SeesDocs( "WebGLRenderingContext.lineWidth" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "w", "Width", "integer", NO_Default, IS_Obligated ) ],
+	[ ParamDoc( "width", "Width size", "integer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -731,10 +731,10 @@ FunctionDoc( "WebGLRenderingContext.viewPort", "Set the viewport to a certain po
 	SeesDocs( "WebGLRenderingContext.isContextLost|WebGLRenderingContext.useProgram|WebGLRenderingContext.getError|WebGLRenderingContext.viewport"),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[	ParamDoc( "x", "X", "integer", NO_Default, IS_Obligated ),
-		ParamDoc( "y", "Y", "integer", NO_Default, IS_Obligated ),
-		ParamDoc( "w", "width", "integer", NO_Default, IS_Obligated ),
-		ParamDoc( "h", "Height", "integer", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "x_pos", "X position", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "y_pos", "Y position", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "width", "width size", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "height", "Height size", "integer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 

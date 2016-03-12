@@ -31,7 +31,8 @@ FunctionDoc( "CanvasRenderingContext2D.breakText", "Wrap text over multiple line
 	IS_Dynamic, IS_Public, IS_Fast,
 	[ ParamDoc( "text", "Text string", "string", NO_Default, IS_Obligated ),
 	ParamDoc( "maxWidth", "The maximal width where the text should fit in", "float", NO_Default, IS_Obligated ) ],
-	ReturnDoc( "Object with keys: height/double, lines/[string]", "Object" )
+	ReturnDoc( "Dimensions", ObjectDoc([("height", "The heigth of the surrounding box", "float"),
+										("lines", "The wrapped text lines", "string")]))
 )
 
 FunctionDoc( "CanvasRenderingContext2D.fillText", "Put text in a textbox.",
@@ -39,8 +40,8 @@ FunctionDoc( "CanvasRenderingContext2D.fillText", "Put text in a textbox.",
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
 	[ ParamDoc( "text", "Text string", "string", NO_Default, IS_Obligated ),
-	ParamDoc( "x", "X position", "integer", NO_Default, IS_Obligated ),
-	ParamDoc( "y", "Y position", "integer", NO_Default, IS_Obligated ),
+	ParamDoc( "x_pos", "X position", "integer", NO_Default, IS_Obligated ),
+	ParamDoc( "y_pos", "Y position", "integer", NO_Default, IS_Obligated ),
 	ParamDoc( "maxWidth", "Maximum width where the text must fit in.", "integer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
@@ -50,8 +51,8 @@ FunctionDoc( "CanvasRenderingContext2D.strokeText", "Stroke text.",
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
 	[ ParamDoc( "text", "Text string", "string", NO_Default, IS_Obligated ),
-	ParamDoc( "x", "X position", "integer", NO_Default, IS_Obligated ),
-	ParamDoc( "y", "Y position", "integer", NO_Default, IS_Obligated ),
+	ParamDoc( "x_pos", "X position", "integer", NO_Default, IS_Obligated ),
+	ParamDoc( "y_pos", "Y position", "integer", NO_Default, IS_Obligated ),
 	ParamDoc( "maxWidth", "Maximum width where the text must fit in.", "integer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
@@ -76,8 +77,8 @@ FunctionDoc( "CanvasRenderingContext2D.moveTo", "Set the next coordinate on a pa
 	SeesDocs( "CanvasRenderingContext2D.beginPath|CanvasRenderingContext2D.moveTo|CanvasRenderingContext2D.lineTo|CanvasRenderingContext2D.closePath|CanvasRenderingContext2D.quadraticCurveTo|CanvasRenderingContext2D.bezierCurveTo" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "x", "X position", "float", NO_Default, IS_Obligated ),
-	 ParamDoc( "y", "Y position", "float", NO_Default, IS_Obligated ) ],
+	[ ParamDoc( "x_pos", "X position", "float", NO_Default, IS_Obligated ),
+	 ParamDoc( "y_pos", "Y position", "float", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -85,8 +86,8 @@ FunctionDoc( "CanvasRenderingContext2D.lineTo", "Set the next coordinate on a li
 	SeesDocs( "CanvasRenderingContext2D.beginPath|CanvasRenderingContext2D.moveTo|CanvasRenderingContext2D.lineTo|CanvasRenderingContext2D.closePath|CanvasRenderingContext2D.quadraticCurveTo|CanvasRenderingContext2D.bezierCurveTo" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "x", "X position", "float", NO_Default, IS_Obligated ),
-	 ParamDoc( "y", "Y position", "float", NO_Default, IS_Obligated ) ],
+	[ ParamDoc( "x_pos", "X position", "float", NO_Default, IS_Obligated ),
+	 ParamDoc( "y_pos", "Y position", "float", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -128,8 +129,8 @@ FunctionDoc( "CanvasRenderingContext2D.rect", "Draw a rectangle.",
 	IS_Dynamic, IS_Public, IS_Fast,
 	[ ParamDoc( "x1", "X1 position", "integer", NO_Default, IS_Obligated ),
 	 ParamDoc( "y1", "Y1 position", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "x2", "X2", "integer", NO_Default, IS_Obligated ),
-	 ParamDoc( "y2", "Y2", "integer", NO_Default, IS_Obligated ),
+	 ParamDoc( "x2", "X2 position", "integer", NO_Default, IS_Obligated ),
+	 ParamDoc( "y2", "Y2 position", "integer", NO_Default, IS_Obligated ),
 	 ParamDoc( "radius", "Radius", "float", NO_Default, IS_Obligated )],
 	NO_Returns
 )
@@ -138,8 +139,8 @@ FunctionDoc( "CanvasRenderingContext2D.arcTo", "Draw a arc to a position.",
 	SeesDocs( "CanvasRenderingContext2D.rect|CanvasRenderingContext2D.arc|CanvasRenderingContext.arcTo" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "x", "X position", "float", NO_Default, IS_Obligated ),
-	 ParamDoc( "y", "Y position", "float", NO_Default, IS_Obligated ),
+	[ ParamDoc( "x_pos", "X position", "float", NO_Default, IS_Obligated ),
+	 ParamDoc( "y_pos", "Y position", "float", NO_Default, IS_Obligated ),
 	 ParamDoc( "width", "Width", "float", NO_Default, IS_Obligated ),
 	 ParamDoc( "height", "Height", "float", NO_Default, IS_Obligated ) ],
 	NO_Returns
@@ -149,8 +150,8 @@ FunctionDoc( "CanvasRenderingContext2D.arc", "Draw an arc.",
 	SeesDocs( "CanvasRenderingContext2D.rect|CanvasRenderingContext2D.arc|CanvasRenderingContext.arcTo" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "x", "X position", "float", NO_Default, IS_Obligated ),
-	 ParamDoc( "y", "Y position", "float", NO_Default, IS_Obligated ),
+	[ ParamDoc( "x_pos", "X position", "float", NO_Default, IS_Obligated ),
+	 ParamDoc( "y_pos", "Y position", "float", NO_Default, IS_Obligated ),
 	 ParamDoc( "radius", "Radius", "float", NO_Default, IS_Obligated ),
 	 ParamDoc( "start", "Start Angle", "float", NO_Default, IS_Obligated ),
 	 ParamDoc( "end", "End Angle", "float", NO_Default, IS_Obligated ),
@@ -164,8 +165,8 @@ FunctionDoc( "CanvasRenderingContext2D.quadraticCurveTo", "Set the next coordina
 	IS_Dynamic, IS_Public, IS_Fast,
 	[ ParamDoc( "cx", "cX position", "float", NO_Default, IS_Obligated ),
 	 ParamDoc( "cy", "cY position", "float", NO_Default, IS_Obligated ),
-	 ParamDoc( "x", "X position", "float", NO_Default, IS_Obligated ),
-	 ParamDoc( "y", "Y position", "float", NO_Default, IS_Obligated ) ],
+	 ParamDoc( "x_pos", "X position", "float", NO_Default, IS_Obligated ),
+	 ParamDoc( "y_pos", "Y position", "float", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -177,8 +178,8 @@ FunctionDoc( "CanvasRenderingContext2D.bezierCurveTo", "Set the next coordinate 
 	 ParamDoc( "cy1", "cY1position", "float", NO_Default, IS_Obligated ),
 	 ParamDoc( "cx2", "cX2position", "float", NO_Default, IS_Obligated ),
 	 ParamDoc( "cy2", "cY2 position", "float", NO_Default, IS_Obligated ),
-	 ParamDoc( "x", "X position", "float", NO_Default, IS_Obligated ),
-	 ParamDoc( "y", "Y position", "float", NO_Default, IS_Obligated ) ],
+	 ParamDoc( "x_pos", "X position", "float", NO_Default, IS_Obligated ),
+	 ParamDoc( "y_pos", "Y position", "float", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -194,8 +195,8 @@ FunctionDoc( "CanvasRenderingContext2D.scale", "Scale an object.",
 	SeesDocs( "CanvasRenderingContext2D.rotate|CanvasRenderingContext2D.scale|CanvasRenderingContext2D.translate|CanvasRenderingContext2D.transform" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "x", "X Position", "float", NO_Default, IS_Obligated ),
-	 ParamDoc( "y", "Y Position", "float", NO_Default, IS_Obligated ) ],
+	[ ParamDoc( "x_pos", "X Position", "float", NO_Default, IS_Obligated ),
+	 ParamDoc( "y_pos", "Y Position", "float", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -203,8 +204,8 @@ FunctionDoc( "CanvasRenderingContext2D.translate", "Translate an object.",
 	SeesDocs( "CanvasRenderingContext2D.rotate|CanvasRenderingContext2D.scale|CanvasRenderingContext2D.translate|CanvasRenderingContext2D.transform" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "x", "X Position", "float", NO_Default, IS_Obligated ),
-	 ParamDoc( "y", "Y Position", "float", NO_Default, IS_Obligated ) ],
+	[ ParamDoc( "x_pos", "X Position", "float", NO_Default, IS_Obligated ),
+	 ParamDoc( "y_pos", "Y Position", "float", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -286,7 +287,7 @@ FunctionDoc( "CanvasRenderingContext2D.getImageData", "Get an ImageData.",
 	ReturnDoc( "ImageData instance", "ImageData" )
 )
 
-items = {"width": "integer", "height": "integer", "data": "ImageBuffer"}
+items = {"width": "integer", "height": "integer", "data": "Image"}
 for i, typed in items.items():
 	FieldDoc( "ImageData." + i, "The " + i + " value.",
 		SeesDocs( "ImageData.width|Image|ImageData.height|ImageData.data" ),
@@ -310,8 +311,8 @@ FunctionDoc( "CanvasRenderingContext2D.createImageData", "Create a ImageData.",
 	SeesDocs( "Image|ImageData.getImageData|ImageData.putImageData|ImageData.createImageData|CanvasRenderingContext2D.drawImage" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "x", "X Position", "integer", NO_Default, IS_Obligated ),
-	  ParamDoc( "y", "Y Position", "integer", NO_Default, IS_Obligated ) ],
+	[ ParamDoc( "x_pos", "X Position", "integer", NO_Default, IS_Obligated ),
+	  ParamDoc( "y_pos", "Y Position", "integer", NO_Default, IS_Obligated ) ],
 	ReturnDoc( "ImageData instance", "ImageData" )
 )
 
@@ -354,8 +355,8 @@ FunctionDoc( "CanvasRenderingContext2D.drawImage", "Draw an Image.",
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
 	[	ParamDoc( "image", "Image object", "Image", NO_Default, IS_Obligated ),
-		ParamDoc( "x", "X Position", "integer", NO_Default, IS_Obligated ),
-		ParamDoc( "y", "Y Position", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "x_pos", "X Position", "integer", NO_Default, IS_Obligated ),
+		ParamDoc( "y_pos", "Y Position", "integer", NO_Default, IS_Obligated ),
 		ParamDoc( "width", "Width", "integer", NO_Default, IS_Obligated ),
 		ParamDoc( "heigth", "Heigth", "integer", NO_Default, IS_Obligated ) ],
 	NO_Returns
@@ -366,15 +367,15 @@ FunctionDoc( "CanvasRenderingContext2D.measureText", "Deterimine the size of tex
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
 	[ ParamDoc( "text", "Text string", "string", NO_Default, IS_Obligated ) ],
-	ReturnDoc( "An object with keys: width/float", "Object" )
+	ReturnDoc( "dimensions", ObjectDoc([("width", "the width of the bounding box", "float")]) )
 )
 
 FunctionDoc( "CanvasRenderingContext2D.isPointPath", "Determine if the path consists out of points.",
 	SeesDocs( "CanvasRenderingContext2D.isPointPath|CanvasRenderingContext2D.getPathBounds" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "x", "X position", "float", NO_Default, IS_Obligated ),
-	 ParamDoc( "y", "Y position", "float", NO_Default, IS_Obligated ) ],
+	[ ParamDoc( "x_pos", "X position", "float", NO_Default, IS_Obligated ),
+	 ParamDoc( "y_pos", "Y position", "float", NO_Default, IS_Obligated ) ],
 	ReturnDoc( "is it a point path", "boolean" )
 )
 
@@ -383,7 +384,10 @@ FunctionDoc( "CanvasRenderingContext2D.getPathBounds", "Get the outer bounds of 
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
 	NO_Params,
-	ReturnDoc( "Object with keys: left/float, right/float, top/float, bottom/float", "Object" )
+	ReturnDoc( "dimensions", ObjectDoc([("left",  "left size", "float"),
+										("right", "right size", "float"),
+										("top", "top size", "float"), 
+										("bottom", "bottom size", "float")]) )
 )
 
 FunctionDoc( "CanvasRenderingContext2D.detachFragmentShader", "Detach a shader.",
@@ -399,8 +403,8 @@ FunctionDoc( "CanvasRenderingContext2D.setVertexOffset", "Set a vertexOffset.",
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
 	[ ParamDoc( "vertex", "Vertex", "integer", NO_Default, IS_Obligated ) ,
-	 ParamDoc( "x", "X y2yPosition", "float", NO_Default, IS_Obligated ),
-	 ParamDoc( "y", "Y Position", "float", NO_Default, IS_Obligated )],
+	 ParamDoc( "x_pos", "X y2yPosition", "float", NO_Default, IS_Obligated ),
+	 ParamDoc( "y_pos", "Y Position", "float", NO_Default, IS_Obligated )],
 	NO_Returns
 )
 
@@ -458,16 +462,18 @@ FunctionDoc( "CanvasGLProgram.getUniforms", "Get the uniforms.",
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
 	NO_Params,
-	ReturnDoc( "Array of objects with keys: name/string, location/int", "[Object]" )
+	#ReturnDoc( "Array of objects", "Object" )
+	ReturnDoc( "Array of objects", ObjectDoc([	("name", "variable", "string"), 
+												("location", "location marker", "integer")],IS_Array) )
 )
 
 FunctionDoc( "CanvasGLProgram.light", "Lights.",
 	SeesDocs( "CanvasRenderingContext2D|CanvasRenderingContext2D.light" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
-	[ ParamDoc( "x", "X Position", "float", NO_Default, IS_Obligated  ),
-	ParamDoc( "y", "Y Position", "float", NO_Default, IS_Obligated  ),
-	ParamDoc( "z", "Z Position", "float", NO_Default, IS_Obligated  ) ],
+	[ ParamDoc( "x_pos", "X Position", "float", NO_Default, IS_Obligated  ),
+	ParamDoc( "y_pos", "Y Position", "float", NO_Default, IS_Obligated  ),
+	ParamDoc( "z_pos", "Z Position", "float", NO_Default, IS_Obligated  ) ],
 	NO_Returns
 )
 

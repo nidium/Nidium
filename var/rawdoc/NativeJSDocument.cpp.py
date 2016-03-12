@@ -26,7 +26,9 @@ FunctionDoc( "NativeDocument.getScreenData", "Provides information about an canv
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
 	[ ParamDoc( "element", "Canvas instance", "Canvas", NO_Default, IS_Obligated ) ],
-	ReturnDoc( "An object with keys: width/integer, height/integer, data/arrayBuffer", "Object" )
+	ReturnDoc( "dimensions", ObjectDoc([("width", "The width", "integer"),
+										("height", "The height", "integer"),
+										("data", "The content", "ArrayBuffer")]))
 )
 
 FunctionDoc( "NativeDocument.getPasteBuffer", "Get the content of the paste buffer.",
@@ -68,7 +70,7 @@ FieldDoc( "NativeDocument.stylesheet", "The Native Style sheet (NSS) that belong
 	SeesDocs( "NativeDocument.parseNML|NativeDocument.stylesheet|NativeDocument.loadFont" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_ReadWrite,
-	"Object",
+	ObjectDoc([]),
 	NO_Default
 )
 
