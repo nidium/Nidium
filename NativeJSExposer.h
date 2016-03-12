@@ -69,20 +69,21 @@ static const JSClass NativeJSEvent_class = {
 
 struct NativeJSEvent
 {
-    NativeJSEvent(JSContext *cx, JS::HandleValue func) : m_Function(cx) {
+    NativeJSEvent(JSContext *cx, JS::HandleValue func) : m_Function(func) {
         once = false;
         next = prev = NULL;
 
         m_Cx = cx;
-        m_Function = func;
 
+        NativeJS::getNativeClass(m_Cx)->rootObjectUntilShutdown(func.toObjectOrNull());
     }
-    ~NativeJSEvent() {
 
+    ~NativeJSEvent() {
+        NativeJS::getNativeClass(m_Cx)->unrootObject(m_Function.toObjectOrNull());
     }
 
     JSContext *m_Cx;
-    JS::PersistentRootedValue m_Function;
+    JS::Heap<JS::Value> m_Function;
 
     bool once;
 
