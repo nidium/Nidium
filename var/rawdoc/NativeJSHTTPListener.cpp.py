@@ -65,7 +65,7 @@ FieldDoc( "HTTPRequest.headers", "An object of key/value pairs describing the he
 	[ SeeDoc( "HTTPRequest.data" ), SeeDoc( "HTTPRequest.method" ), SeeDoc( "HTTPRequest.headers" ), SeeDoc( "HTTPRequest.client" ), SeeDoc( "HTTPRequest.url" ) ],
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Readonly,
-	'object',
+	ObjectDoc([]),
 	 NO_Default
 )
 
@@ -73,15 +73,15 @@ FieldDoc( "HTTPRequest.client", "An object that describes the connected client."
 	[ SeeDoc( "HTTPRequest.data" ), SeeDoc( "HTTPRequest.method" ), SeeDoc( "HTTPRequest.headers" ), SeeDoc( "HTTPRequest.client" ), SeeDoc( "HTTPRequest.url" ) ],
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Readonly,
-	'object',
+	ObjectDoc([]),
 	 NO_Default
 )
 
 EventDoc( "HTTPListener.onrequest", "Event that fires when the server has read the complete http request.",
 	[ SeeDoc( "HTTPListener.ondisconnect" ), SeeDoc( "HTTPListener.ondata" ), SeeDoc( "HTTPListener.onrequest" ) ],
 	NO_Examples,
-	[	ParamDoc( "request", "client request object", "HTTPRequest", NO_Default, IS_Obligated ),
-		ParamDoc( "response", "Client response object", "HTTPResponse", NO_Default, IS_Obligated ) ]
+	[	ParamDoc( "request", "client request", "HTTPRequest", NO_Default, IS_Obligated ),
+		ParamDoc( "response", "Client response", "HTTPResponse", NO_Default, IS_Obligated ) ]
 )
 
 ConstructorDoc( "HTTPListener", "Constructor for HTTPListener object.",
@@ -116,7 +116,7 @@ FunctionDoc( "HTTPRequest.writeHead", "Set the headers on a response to a client
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
 	[ ParamDoc( "statuscode", "The HTTP code to set (e.g. 200)", "integer", IS_Obligated ),
-	  ParamDoc( "kvpairs", "Header data object", "object", IS_Optional ) ],
+	  ParamDoc( "kvpairs", "Header data object", ObjectDoc([]), IS_Optional ) ],
 	NO_Returns
 )
 

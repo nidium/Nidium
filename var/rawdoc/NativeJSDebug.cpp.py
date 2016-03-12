@@ -9,14 +9,14 @@ console.log(JSON.stringify(u));
 )
 
 FieldDoc( "global.Debug", "Interfaces to the NativeDebug class.",
-	[ SeeDoc( "global.Debug|NativeDebug" ) ],
+	SeesDocs( "global.Debug|NativeDebug" ),
 	[ExampleDoc( """var d = {a:1, b: "a"};
 var s = Debug.serialize(d);
 var u = Debug.unserialize(s)
 console.log(JSON.stringify(u));
 """)],
 	IS_Dynamic, IS_Public, IS_Readonly,
-	'object',
+	ObjectDoc([]),
 	NO_Default
 )
 
@@ -28,7 +28,7 @@ var u = Debug.unserialize(s)
 console.log(JSON.stringify(u));
 """)],
 	IS_Static, IS_Public, IS_Fast,
-	[ParamDoc( 'object', 'object to dump', 'object', NO_Default, IS_Obligated ) ],
+	[ParamDoc( 'obj', 'object to dump', ObjectDoc([('data', 'content', 'string')]), NO_Default, IS_Obligated ) ],
 	ReturnDoc( "list with dumped data", "[mixed]" )
 )
 
@@ -40,7 +40,7 @@ var u = Debug.unserialize(s)
 console.log(JSON.stringify(u));
 """)],
 	IS_Static, IS_Public, IS_Fast,
-	[	ParamDoc( 'object', 'object to dump', 'ArrayBuffer', NO_Default, IS_Obligated ),
+	[	ParamDoc( 'arraybuf', 'Object to dump into an arraybuffer', 'ArrayBuffer', NO_Default, IS_Obligated ),
 	 ParamDoc( 'offset', 'offset to start on', 'integer', 0, IS_Optional ) ],
 	ReturnDoc( "exerpt of dumped data", "mixed" )
 )

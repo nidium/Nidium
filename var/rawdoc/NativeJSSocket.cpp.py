@@ -161,7 +161,7 @@ socket.onmessage = function(data, details) {
     console.log("=>", data);
 }""") ],
 	[ ParamDoc( "data", "The message", "string", NO_Default, IS_Obligated ),
-	 ParamDoc( "details", "Connection details (keys: ip, port)", "Object", NO_Default, IS_Obligated ) ],
+	 ParamDoc( "details", "Connection details object", ObjectDoc([("ip", "The remote IP address", "string"), ("port", "The connected port", "integer")]), NO_Default, IS_Obligated ) ],
 )
 
 EventDoc( "SocketClient.onread", "Function to execute on a 'SocketClient', if it is not binary and not-readline.",
@@ -200,7 +200,7 @@ var server = new Socket("0.0.0.0", 8005);
 server.listen();""" ) ],
 	[ ParamDoc( "host", "Hostname or ip-address. '0.0.0.0' as host means any host when used with 'listen()' (e.g. when the socket must be accessed from the Internet). If an name is given, the name is resolved asynchronously automatic.", "string", NO_Default, IS_Obligated ),
 	 ParamDoc( "port", "port number", 'integer', NO_Default, IS_Obligated ) ],
-	ReturnDoc( "a (non-binary) socket instance", "object" )
+	ReturnDoc( "a (non-binary) socket instance", "Socket" )
 )
 
 FunctionDoc( "Socket.listen", """Starts a server.

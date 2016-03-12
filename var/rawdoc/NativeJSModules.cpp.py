@@ -14,7 +14,7 @@ FieldDoc( "global.modules", "Exposed Modules.",
 	SeesDocs( "Exports|Module" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Readonly,
-	"object",
+	'[Module]',
 	NO_Default
 )
 
@@ -22,7 +22,7 @@ FieldDoc( "Module.exports", "Exported Modules.",
 	SeesDocs( "Exports|Module" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Readonly,
-	"object",
+	"Exports",
 	NO_Default
 )
 
@@ -38,7 +38,7 @@ FieldDoc( "Module.name", "The module name.",
 	SeesDocs( "Exports|Module|Module.id|Module.name" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Readonly,
-	"string.",
+	"string",
 	NO_Default
 )
 

@@ -32,13 +32,13 @@ FieldDoc( "global.window", "The main window object.",
 	NO_Sees,
 	NO_Examples,
 	IS_Static, IS_Public, IS_ReadWrite,
-	'object',
+	'Window',
 	NO_Default
 )
 
 FunctionDoc( "global.pwd", "Get the current working directory.",
 	[ SeeDoc( "global.__filename" ), SeeDoc( "global.__dirname" ), SeeDoc( "File.isDir" ), SeeDoc( "File.rmrf" ), SeeDoc( "File.listFiles" ), SeeDoc( "fs" ), SeeDoc( "global.pwd" ) ],
-	ExampleDoc( """console.log( pwd( ) );""" ),
+	[ExampleDoc( """console.log( pwd( ) );""" )],
 	IS_Static, IS_Public, IS_Fast,
 	NO_Params,
 	ReturnDoc( "The current path", "string" )
@@ -49,12 +49,12 @@ FunctionDoc( "global.load", """Load the specified script in a synchronous way.
 This function is only available if the nidium application is running a NML file that was loaded from a local source (e.g. file://)
 The 'path' is relative to the NML file that run the current application.""",
 	[ SeeDoc( "global.require" )],
-	ExampleDoc( """try {
+	[ExampleDoc( """try {
 	load( '/nidium.js' ); 
 } catch(e) {
 	console.log("warning: "+ e.message);
 	
-	}""" ),
+	}""" )],
 	IS_Static, IS_Public, IS_Fast,
 	[ParamDoc( "path", "The javascript sourcefile that needs to be imported", "string", NO_Default, IS_Obligated ) ],
 	NO_Returns
@@ -91,7 +91,7 @@ FunctionDoc( "global.clearTimeout", "Stop a specified timeout timer.",
 }, 1000 );
 clearTimeout( t ); """) ],
 	IS_Static, IS_Public, IS_Fast,
-	ParamDoc( 'identifier', "Timer identifier returned by 'global.setTimeout'.", 'integer', NO_Default, IS_Obligated ),
+	[ParamDoc( 'identifier', "Timer identifier returned by 'global.setTimeout'.", 'integer', NO_Default, IS_Obligated )],
 	NO_Returns
 )
 
@@ -102,7 +102,7 @@ FunctionDoc( "global.clearInterval", "Stop a specified interval timer.",
 }, 1000 );
 clearInterval( t );""") ],
 	IS_Static, IS_Public, IS_Fast,
-	ParamDoc( 'identifier', "Timer identifier returned by 'global.setInterval'.", 'integer', NO_Default, IS_Obligated ),
+	[ParamDoc( 'identifier', "Timer identifier returned by 'global.setInterval'.", 'integer', NO_Default, IS_Obligated )],
 	NO_Returns
 )
 
@@ -123,7 +123,7 @@ FunctionDoc( "global.btoa", "Encode binary string to an base64 encodedstring.",
 	NO_Sees,
 	[ ExampleDoc( """console.log(btoa("Hello Nidium"));""") ],
 	IS_Static, IS_Public, IS_Fast,
-	ParamDoc( 'binary', "The binary to encode.", 'string', NO_Default, IS_Obligated ),
+	[ParamDoc( 'binary', "The binary to encode.", 'string', NO_Default, IS_Obligated )],
 	ReturnDoc( "The encoded string on base64", "string" )
 )
 

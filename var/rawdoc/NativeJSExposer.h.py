@@ -1,3 +1,5 @@
+from dokumentor import *
+
 NamespaceDoc( "NativeJSEvent", "Event coordinator.",
 	SeesDocs( "NativeJSEvent.stopPropagation|NativeJSEvent.preventDefault|NativeJSEvent.forcePropagation" ),
 	NO_Examples
@@ -26,7 +28,7 @@ FunctionDoc( "NativeJSEvent.fireEvent", "Starts an event.",
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
 	[ParamDoc( "eventName", "The event name", "string", NO_Default, IS_Obligated),
-	  ParamDoc("param", "Arguments", "object", NO_Default, IS_Obligated ) ],
+	  ParamDoc("param", "Native Object on where the event should fire", ObjectDoc([]), NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
@@ -35,7 +37,7 @@ FunctionDoc( "NativeJSEvent.addEventListener", "Register an action for an event.
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
 	[ParamDoc( "eventName", "The event name", "string", NO_Default, IS_Obligated),
-	  CallbackDoc( "callback", "The function to execute once the event occurs", [ParamDoc("param", "Arguments", "object", NO_Default, IS_Obligated ) ] )],
+	  CallbackDoc( "callback", "The function to execute once the event occurs", [ParamDoc("param", "Arguments", ObjectDoc([]), NO_Default, IS_Obligated ) ] )],
 	NO_Returns
 )
 

@@ -10,7 +10,7 @@ FunctionDoc( "NativeProfile.toJSObject", "Transform into a Javascript object.",
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
 	NO_Params,
-	ReturnDoc( "profile information", "object" )
+	ReturnDoc( "profile information", ObjectDoc([]) )
 )
 
 FunctionDoc( "NativeProfile.dump", "Transform a 'string' into a Javascript object.",
@@ -18,6 +18,6 @@ FunctionDoc( "NativeProfile.dump", "Transform a 'string' into a Javascript objec
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
 	[ ParamDoc( "tmp", "data", 'string', IS_Obligated ) ],
-	NO_Returns
+	ReturnDoc("obj", ObjectDoc([]))
 )
 

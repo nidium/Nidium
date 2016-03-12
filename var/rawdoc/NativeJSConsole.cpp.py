@@ -4,10 +4,9 @@ NamespaceDoc( "Console", "Output, profile and logging functions.",
 	[SeeDoc("global.console")],
 	[ ExampleDoc( "console.log( 'Nidium' );" ) ]
 )
-
 FunctionDoc( "Console.hide", "Hides the console.",
 	[ SeeDoc( "Console.show" ) ],
-	ExampleDoc( "console.hide( );" ),
+	[ExampleDoc( "console.hide( );" )],
 	IS_Static, IS_Public, IS_Fast,
 	NO_Params,
 	NO_Returns
@@ -15,7 +14,7 @@ FunctionDoc( "Console.hide", "Hides the console.",
 
 FunctionDoc( "Console.show", "Opens the console.",
 	[ SeeDoc( "Console.hide" ) ],
-	ExampleDoc( "console.show( );" ),
+	[ExampleDoc( "console.show( );" )],
 	IS_Static, IS_Public, IS_Fast,
 	NO_Params,
 	NO_Returns
@@ -23,7 +22,7 @@ FunctionDoc( "Console.show", "Opens the console.",
 
 FunctionDoc( "Console.clear", "Clears the console.",
 	[ SeeDoc( "Console.log" ), SeeDoc( "Console.info" ), SeeDoc( "Console.warn" ), SeeDoc( "Console.write" ) ],
-	ExampleDoc( "console.clear( );" ),
+	[ExampleDoc( "console.clear( );" )],
 	IS_Static, IS_Public, IS_Fast,
 	NO_Params,
 	NO_Returns
@@ -31,7 +30,7 @@ FunctionDoc( "Console.clear", "Clears the console.",
 
 FunctionDoc( "Console.log", "Logs output to the console.",
 	[ SeeDoc( "Console.info" ), SeeDoc( "Console.info" ), SeeDoc( "Console.warn" ), SeeDoc( "Console.write" ), SeeDoc( "Console.clear" ) ],
-	ExampleDoc( "console.log( 'Nidium' );" ),
+	[ExampleDoc( "console.log( 'Nidium' );" )],
 	IS_Static, IS_Public, IS_Fast,
 	[ParamDoc( "text", "The string that should be logged", "string", NO_Default, IS_Optional )],
 	NO_Returns
@@ -39,7 +38,7 @@ FunctionDoc( "Console.log", "Logs output to the console.",
 
 FunctionDoc( "Console.info", "Logs output to the console, marked as info.",
 	[ SeeDoc( "Console.log" ), SeeDoc( "Console.info" ), SeeDoc( "Console.warn" ), SeeDoc( "Console.write" ), SeeDoc( "Console.clear" ) ],
-	ExampleDoc( "console.info( 'Nidium, A new breed of browser' );" ),
+	[ExampleDoc( "console.info( 'Nidium, A new breed of browser' );" )],
 	IS_Static, IS_Public, IS_Fast,
 	[ParamDoc( "text", "The string that should be logged", "string", NO_Default, IS_Optional )],
 	NO_Returns
@@ -47,7 +46,7 @@ FunctionDoc( "Console.info", "Logs output to the console, marked as info.",
 
 FunctionDoc( "Console.error", "Logs output to the console, marked as error.",
 	[ SeeDoc( "Console.log" ), SeeDoc( "Console.info" ), SeeDoc( "Console.warn" ), SeeDoc( "Console.write" ), SeeDoc( "Console.clear" ) ],
-	ExampleDoc( "console.error( 'Nidium says \"no\"' );" ),
+	[ExampleDoc( "console.error( 'Nidium says \"no\"' );" )],
 	IS_Static, IS_Public, IS_Fast,
 	[ParamDoc( "text", "The string that should be logged", "string", NO_Default, IS_Optional )],
 	NO_Returns
@@ -55,7 +54,7 @@ FunctionDoc( "Console.error", "Logs output to the console, marked as error.",
 
 FunctionDoc( "Console.warn", "Logs output to the console, marked as warn.",
 	[ SeeDoc( "Console.log" ), SeeDoc( "Console.info" ), SeeDoc( "Console.info" ), SeeDoc( "Console.write" ), SeeDoc( "Console.clear" ) ],
-	ExampleDoc( "console.warn( 'Nidium, Improving the web' );" ),
+	[ExampleDoc( "console.warn( 'Nidium, Improving the web' );" )],
 	IS_Static, IS_Public, IS_Fast,
 	[ParamDoc( "text", "The string that should be logged", "string", NO_Default, IS_Optional )],
 	NO_Returns
@@ -63,32 +62,31 @@ FunctionDoc( "Console.warn", "Logs output to the console, marked as warn.",
 
 FunctionDoc( "Console.write", "Write output to the console.",
 	[ SeeDoc( "Console.log" ), SeeDoc( "Console.info" ), SeeDoc( "Console.warn" ), SeeDoc( "Console.clear" ) ],
-	ExampleDoc( "console.write( 'Nidium', 'A new breed of browser' );" ),
+	[ExampleDoc( "console.write( 'Nidium', 'A new breed of browser' );" )],
 	IS_Static, IS_Public, IS_Fast,
 	[ParamDoc( "text", "The string that should be logged", "string", NO_Default, IS_Optional ) ],
 	NO_Returns
 )
 
-if False:
-	FunctionDoc( "Console.profile", "Starts a profiler instance.",
-		[ SeeDoc( "Console.profileEnd" ) ],
-		ExampleDoc( """console.profile( );
-		// Time intense task
-		var result = Console.profileEnd( );
-		console.log( JSON.stringify( result ) ); """),
-		IS_Static, IS_Public, IS_Fast,
-		NO_Params,
-		NO_Returns
-	)
+FunctionDoc( "Console.profile", "Starts a profiler instance.",
+	[ SeeDoc( "Console.profileEnd" ) ],
+	[ExampleDoc( """console.profile( );
+	// Time intense task
+	var result = Console.profileEnd( );
+	console.log( JSON.stringify( result ) ); """)],
+	IS_Static, IS_Public, IS_Fast,
+	NO_Params,
+	NO_Returns
+)
 
-	FunctionDoc( "Console.profileEnd", "Stops a profiler instance.",
-		[ SeeDoc( "Console.profile" ) ],
-		ExampleDoc( """console.profile( );
-		// Time intense task
-		var result = Console.profileEnd( );
-		console.log( JSON.stringify( result ) ); """),
-		IS_Static, IS_Public, IS_Fast,
-		NO_Params,
-		ReturnDoc( "Profile results", "object" )
-	)
+FunctionDoc( "Console.profileEnd", "Stops a profiler instance.",
+	[ SeeDoc( "Console.profile" ) ],
+	[ExampleDoc( """console.profile( );
+	// Time intense task
+	var result = Console.profileEnd( );
+	console.log( JSON.stringify( result ) ); """)],
+	IS_Static, IS_Public, IS_Fast,
+	NO_Params,
+	ReturnDoc( "Profile results", ObjectDoc([]) )
+)
 

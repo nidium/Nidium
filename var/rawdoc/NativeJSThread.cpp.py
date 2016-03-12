@@ -13,9 +13,9 @@ This will run in a seperate JS Runtime, wich requires some cpu and memory overhe
 	var t = new Thread(function(foo){
    // something loud and heavy
 });
-t.oncomplete = function(e){
+t.oncomplete = function(event){
    // executed when the job is done
-   console.log(e.data);
+   console.log(event.data);
 };
 t.start("bar"); // start the new job with "bar" as a parameter.""") ],
 	NO_Inherrits,
@@ -41,16 +41,16 @@ var t = new Thread(function(...n){
     }
     return n;
 });
-t.onmessage = function(e){
-    var i = e.data,
+t.onmessage = function(event){
+    var i = event.data,
         v = i * 100 / 20000000;
 
     document.status.label = Math.round(v) + "%";
     document.status.value = v;
 };
-t.oncomplete = function(e){
-    if (e.data){
-        console.log("i'm done with", e.data);
+t.oncomplete = function(event){
+    if (event.data){
+        console.log("i'm done with", event.data);
     }
     document.status.close();
 };
@@ -64,13 +64,13 @@ t.start(5, 6, 6, 9);
 EventDoc( "Thread.onmessage", "Function that will be called when the thread posts a message.",
 	SeesDocs( "Thread.oncomplete|Thread.onmessage" ),
 	NO_Examples,
-	[ ParamDoc( "e", "error object with key: data", "object", IS_Obligated ) ]
+	[ ParamDoc( "event", "event object", ObjectDoc([("data", "The message data", "string")]), NO_Default, IS_Obligated ) ]
 )
 
 EventDoc( "Thread.oncomplete", "Function that will be called when the thread is complete.",
 	SeesDocs( "Thread.oncomplete|Thread.onmessage" ),
 	NO_Examples,
-	[ ParamDoc( "e", "error object with key: data", "object", IS_Obligated ) ]
+	[ ParamDoc( "event", "event object", ObjectDoc([("data", "The message data", "string")]), NO_Default, IS_Obligated ) ]
 )
 
 FunctionDoc( "_GLOBALThread.send", "Send a message to a thread.",

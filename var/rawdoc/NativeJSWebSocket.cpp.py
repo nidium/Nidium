@@ -26,7 +26,7 @@ EventDoc( "WebSocketServer.onmessage", "Event triggered when a message arrives."
 	SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
 	NO_Examples,
 	[ParamDoc( "client", "The connected client", "WebSocketServerClient", NO_Default, IS_Obligated ),
-	ParamDoc( "event", "event object with key data", "object", NO_Default, IS_Obligated ) ]
+	ParamDoc( "event", "event object with key data", ObjectDoc([]), NO_Default, IS_Obligated ) ]
 )
 
 EventDoc( "WebSocketServer.onopen", "Event triggered when a client connects.",
