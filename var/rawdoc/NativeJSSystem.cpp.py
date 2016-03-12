@@ -10,6 +10,10 @@ FunctionDoc( "System.getOpenFileStats", "Provide information about the openfiles
 	[ExampleDoc( "console.log( JSON.stringify( System.getOpenFileStats() ));" )],
 	IS_Static, IS_Public, IS_Fast,
 	NO_Params,
-	ReturnDoc( "Object with keys: cur/integer, max/integer, open/integer, sockets/integer, files/integer", "Object")
+	ReturnDoc( "statistics", ObjectDoc([("cur", "Current open files accourding to rlimit",  "integer"),
+										("max", "Maximum open files accourding to rlimit", "integer"),
+										("open", "Open files", "integer"),
+										("sockets", "Open sockes", "integer"),
+										("files", "Open Files", "integer")]))
 )
 
