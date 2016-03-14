@@ -8,6 +8,7 @@ var Suites = [
     'AV/CustomSourceNode.js',
     'AV/AudioThread.js',
     'AV/GainNode.js',
+    'AV/Video.js',
 ];
 
 var tr = new TestsRunner();
