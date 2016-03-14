@@ -11,10 +11,11 @@ Tests.registerAsync("CustomNode.set(key, value)", function(next) {
     })
 
     node.set("foo", "bar");
-    node.addEventListener("message", function(msg) {
+    node.addEventListener("message", function(ev) {
         node.assignSetter(null);
-        Assert.equal(msg.data.key, "foo", "Key isn't \"foo\"")
-        Assert.equal(msg.data.value, "bar", "Value isn't \"bar\"");
+        node.removeEventListener("message");
+        Assert.equal(ev.data.key, "foo", "Key isn't \"foo\"")
+        Assert.equal(ev.data.value, "bar", "Value isn't \"bar\"");
         next()
     });
 }, 5000);
