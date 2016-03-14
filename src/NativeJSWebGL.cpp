@@ -229,7 +229,7 @@ bool NGL_uniformxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int arg
     double z;
     double w;
 
-    if (!args[0].isObject()) {
+    if (argc == 0 || !args[0].isObject()) {
         JS_ReportError(cx, "Bad argument");
         return false;
     }
@@ -313,7 +313,7 @@ bool NGL_uniformxi(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int arg
     GLint z;
     GLint w;
 
-    if (!args[0].isObject()) {
+    if (argc == 0 || !args[0].isObject()) {
         JS_ReportError(cx, "Bad argument");
         return false;
     }
@@ -464,7 +464,14 @@ bool NGL_vertexAttribxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned i
     GLfloat *carray;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
+    NATIVE_CHECK_ARGS("vertexAttribxfv", 2)
+
     if (!args[1].isObject()) {
+        JS_ReportError(cx, "Bad argument");
+        return false;
+    }
+
+    if (!args[0].isNumber()) {
         JS_ReportError(cx, "Bad argument");
         return false;
     }
@@ -1069,6 +1076,7 @@ NGL_JS_FN(WebGLRenderingContext_attachShader)
 
     JS::RootedObject program(cx);
     JS::RootedObject shader(cx);
+
     if (!JS_ConvertArguments(cx, args, "oo", program.address(), shader.address())) {
         return false;
     }
@@ -1399,6 +1407,7 @@ NGL_JS_FN(WebGLRenderingContext_clearDepth)
     if (!JS_ConvertArguments(cx, args, "d", &clampd)) {
         return false;
     }
+
     GL_CALL(CppObj, ClearDepth(clampd));
 
     return true;
@@ -1794,6 +1803,7 @@ NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
 
     JS::RootedString name(cx);
     JS::RootedObject program(cx);
+
     if (!JS_ConvertArguments(cx, args, "oS", program.address(), name.address())) {
         return false;
     }
@@ -1870,6 +1880,7 @@ NGL_JS_FN(WebGLRenderingContext_getShaderPrecisionFormat)
     JS::RootedValue rangeMin(cx, INT_TO_JSVAL(crange[0]));
     JS::RootedValue rangeMax(cx, INT_TO_JSVAL(crange[1]));
     JS::RootedValue precision(cx, INT_TO_JSVAL(cprecision));
+
     SET_PROP("rangeMin", rangeMin);
     SET_PROP("rangeMax", rangeMax);
     SET_PROP("precision", precision);
