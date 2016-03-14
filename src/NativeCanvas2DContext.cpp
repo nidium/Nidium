@@ -1775,25 +1775,7 @@ static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
                 
                 char rgba_str[64];
 
-                /*
-                    Mimic Chrome and Firefox :
-
-                    Whenver we have some alpha, a literal rgba() string is
-                    returned instead of a literal #RRGGBB
-                */
-                if (SkColorGetA(curColor) != 0xff) {
-                    
-                    sprintf(rgba_str, "rgba(%d, %d, %d, %.2f)",
-                        SkColorGetR(curColor),
-                        SkColorGetG(curColor),
-                        SkColorGetB(curColor),
-                        SkColorGetA(curColor) / 255.f);                
-                } else {
-                    sprintf(rgba_str, "#%.2x%.2x%.2x",
-                        SkColorGetR(curColor),
-                        SkColorGetG(curColor),
-                        SkColorGetB(curColor));
-                }
+                NativeSkia::GetStringColor(curColor, rgba_str);
 
                 vp.setString(JS_NewStringCopyZ(cx, rgba_str));
             } else {
@@ -1819,6 +1801,40 @@ static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
         case CTX_PROP(imageSmoothingEnabled):
         {
             vp.setBoolean(!!curSkia->getSmooth());
+        }
+        break;
+        case CTX_PROP(shadowOffsetX):
+        {
+            vp.setDouble(curSkia->getShadowOffsetX());
+        }
+        break;
+        case CTX_PROP(shadowOffsetY):
+        {
+            vp.setDouble(curSkia->getShadowOffsetY());
+        }
+        break;
+        case CTX_PROP(shadowBlur):
+        {
+            vp.setDouble(curSkia->getShadowBlur());
+        }
+        break;
+        case CTX_PROP(lineCap):
+        {
+            vp.setString(JS_NewStringCopyZ(cx, curSkia->getLineCap()));
+        }
+        break;
+        case CTX_PROP(lineJoin):
+        {
+            vp.setString(JS_NewStringCopyZ(cx, curSkia->getLineJoin()));
+        }
+        break;
+        case CTX_PROP(shadowColor):
+        {
+            char rgba_str[64];
+
+            NativeSkia::GetStringColor(curSkia->getShadowColor(), rgba_str);
+
+            vp.setString(JS_NewStringCopyZ(cx, rgba_str));
         }
         break;
         default:

@@ -94,6 +94,8 @@ class NativeSkia
             return m_Canvas;
         }
 
+        static void GetStringColor(uint32_t color, char *out);
+
         /*
             Assign canvas (hold a ref and unref existing value)
         */
@@ -133,6 +135,29 @@ class NativeSkia
         double getLineWidth() const;
         double getMiterLimit() const;
         double getGlobalAlpha() const;
+
+        double getShadowOffsetX() const
+        {
+            return currentShadow.x;
+        }
+
+        double getShadowOffsetY() const
+        {
+            return currentShadow.y;
+        }
+
+        double getShadowBlur() const
+        {
+            return currentShadow.blur;
+        }
+
+        uint32_t getShadowColor() const
+        {
+            return currentShadow.color;
+        }
+        
+        const char *getLineCap() const;
+        const char *getLineJoin() const;
 
         int getWidth();
         int getHeight();

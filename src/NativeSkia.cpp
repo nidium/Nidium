@@ -158,6 +158,28 @@ static inline double calcHue(double temp1, double temp2, double hueVal) {
   return temp1;
 }
 
+void NativeSkia::GetStringColor(uint32_t color, char *out)
+{
+    /*
+        Mimic Chrome and Firefox :
+
+        Whenver we have some alpha, a literal rgba() string is
+        returned instead of a literal #RRGGBB
+    */
+    if (SkColorGetA(color) != 0xff) {
+        
+        sprintf(out, "rgba(%d, %d, %d, %.2f)",
+            SkColorGetR(color),
+            SkColorGetG(color),
+            SkColorGetB(color),
+            SkColorGetA(color) / 255.f);                
+    } else {
+        sprintf(out, "#%.2x%.2x%.2x",
+            SkColorGetR(color),
+            SkColorGetG(color),
+            SkColorGetB(color));
+    }
+}
 
 int NativeSkia::getWidth()
 {
@@ -288,7 +310,7 @@ void NativeSkia::initPaints()
         http://code.google.com/p/webkit-mirror/source/browse/Source/WebCore/platform/graphics/skia/PlatformContextSkia.cpp#363
     */
     memset(&currentShadow, 0, sizeof(NativeShadow_t));
-    currentShadow.color = SkColorSetARGB(255, 0, 0, 0);
+    currentShadow.color = SkColorSetARGB(0, 0, 0, 0);
 
     PAINT->setARGB(255, 0, 0, 0);
     PAINT->setAntiAlias(true);
@@ -1585,6 +1607,32 @@ void NativeSkia::setLineJoin(const char *joinStyle)
         PAINT_STROKE->setStrokeJoin(SkPaint::kBevel_Join);
     } else {
         PAINT_STROKE->setStrokeJoin(SkPaint::kMiter_Join);
+    }
+}
+
+const char *NativeSkia::getLineCap() const
+{
+    switch (PAINT_STROKE->getStrokeCap()) {
+        case SkPaint::kRound_Cap:
+            return "round";
+        case SkPaint::kSquare_Cap:
+            return "square";
+        case SkPaint::kButt_Cap:
+        default:
+            return "butt";
+    }
+}
+
+const char *NativeSkia::getLineJoin() const
+{
+    switch (PAINT_STROKE->getStrokeJoin()) {
+        case SkPaint::kRound_Join:
+            return "round";
+        case SkPaint::kBevel_Join:
+            return "bevel";
+        case SkPaint::kMiter_Join:
+        default:
+            return "miter";
     }
 }
 
