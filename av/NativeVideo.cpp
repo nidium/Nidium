@@ -985,7 +985,6 @@ void NativeVideo::bufferInternal()
         if (ret < 0) {
             av_free_packet(&packet);
             if (this->readError(ret) != 0) {
-                fprintf(stderr, "got error %d/%d\n", m_Eof, m_Error);
                 return;
             }
             continue;
