@@ -219,7 +219,7 @@ class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessag
 
         NativeVideo *m_Video;
 
-        JS::PersistentRootedObject m_AudioNode;
+        JS::Heap<JSObject *> m_AudioNode;
         void *m_ArrayContent;
 
         int m_Width;
@@ -229,6 +229,7 @@ class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessag
 
         void stopAudio();
         void setSize(int width, int height);
+        void close();
 
         static void registerObject(JSContext *cx);
         static void frameCallback(uint8_t *data, void *custom);
@@ -237,6 +238,7 @@ class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessag
 
         ~NativeJSVideo();
     private :
+        void releaseAudioNode();
         bool m_IsDestructing;
         NativeCanvas2DContext *m_CanvasCtx;
         JSContext *cx;

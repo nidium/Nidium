@@ -679,10 +679,9 @@ bool NativeJSAudio::run(char *str)
 
 void NativeJSAudio::unroot()
 {
-    NativeJS *njs = NativeJS::getNativeClass(m_Cx);
-
     if (m_JSObject != NULL) {
-        JS::RemoveObjectRoot(njs->cx, &m_JSObject);
+        NJS->unrootObject(m_JSObject);
+        m_JSObject = nullptr;
     }
 }
 
@@ -1081,7 +1080,6 @@ NativeJSAudioNode::~NativeJSAudioNode()
 
             delete nodes;
 
-
             break;
         }
         nodes = nodes->next;
@@ -1248,6 +1246,7 @@ static bool native_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &AudioContext_class, args));
+
     NativeJSAudio *naudio = NativeJSAudio::getContext(cx, ret, bufferSize, channels, sampleRate);
 
     if (naudio == NULL) {
@@ -2109,6 +2108,7 @@ void AudioContext_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSAudio *audio = (NativeJSAudio *)JS_GetPrivate(obj);
     if (audio != NULL) {
+        JS_SetPrivate(obj, nullptr);
         delete audio;
     }
 }
@@ -2117,6 +2117,7 @@ void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSAudioNode *node = (NativeJSAudioNode *)JS_GetPrivate(obj);
     if (node != NULL) {
+        JS_SetPrivate(obj, nullptr);
         delete node;
     }
 }
@@ -2124,7 +2125,7 @@ void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
 NativeJSVideo::NativeJSVideo(JS::HandleObject obj,
     NativeCanvas2DContext *canvasCtx, JSContext *cx) :
     NativeJSExposer<NativeJSVideo>(obj, cx),
-    m_Video(NULL), m_AudioNode(cx), m_ArrayContent(NULL),
+    m_Video(NULL), m_AudioNode(NULL), m_ArrayContent(NULL),
     m_Width(-1), m_Height(-1), m_Left(0), m_Top(0), m_IsDestructing(false),
     m_CanvasCtx(canvasCtx), cx(cx)
 {
@@ -2138,12 +2139,7 @@ void NativeJSVideo::stopAudio()
 {
     m_Video->stopAudio();
 
-    if (m_AudioNode.get()) {
-        NJS->unrootObject(m_AudioNode);
-        NativeJSAudioNode *jnode = static_cast<NativeJSAudioNode *>(JS_GetPrivate(m_AudioNode));
-        JS_SetReservedSlot(jnode->getJSObject(), 0, JSVAL_NULL);
-        m_AudioNode = nullptr;
-    }
+    this->releaseAudioNode();
 }
 
 void NativeJSVideo::onMessage(const NativeSharedMessages::Message &msg)
@@ -2279,7 +2275,7 @@ static bool native_video_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JSNATIVE_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
 
-    CppObj->m_Video->close();
+    CppObj->close();
 
     return true;
 }
@@ -2344,7 +2340,7 @@ static bool native_video_get_audionode(JSContext *cx, unsigned argc, JS::Value *
         JS::RootedObject audioNode(cx, JS_NewObjectForConstructor(cx, &AudioNode_class, args));
         v->m_AudioNode = audioNode;
 
-        NativeJSAudioNode *node = new NativeJSAudioNode(v->m_AudioNode, cx,
+        NativeJSAudioNode *node = new NativeJSAudioNode(audioNode, cx,
           NativeAudio::SOURCE, static_cast<class NativeAudioNode *>(source), jaudio);
 
         JS::RootedString name(cx, JS_NewStringCopyN(cx, "video-source", 12));
@@ -2466,19 +2462,41 @@ static bool native_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp
     return true;
 }
 
+
+void NativeJSVideo::releaseAudioNode()
+{
+    if (m_AudioNode) {
+        NativeJSAudioNode *node = NativeJSAudioNode::getNativeClass(m_AudioNode, cx);
+
+        NJS->unrootObject(m_AudioNode);
+
+        if (node) {
+            JS_SetReservedSlot(node->getJSObject(), 0, JSVAL_NULL);
+            // will remove the source from NativeJSAudio and NativeAudio 
+            delete node;
+        }
+
+        m_AudioNode = nullptr;
+    }
+}
+void NativeJSVideo::close()
+{
+    // Stop the audio first. 
+    // This will also release the JS audio node 
+    this->stopAudio();
+
+    m_Video->close();
+}
+
 NativeJSVideo::~NativeJSVideo()
 {
     JSAutoRequest ar(cx);
     m_IsDestructing = true;
-    if (m_AudioNode.get()) {
-        NativeJSAudioNode *node = static_cast<NativeJSAudioNode *>(JS_GetPrivate(m_AudioNode));
-        NJS->unrootObject(m_AudioNode);
-        if (node) {
-            // This will remove the source from
-            // NativeJSAudio nodes list and NativeAudio sources
-            delete node;
-        }
-    }
+
+    // Release JS AudioNode
+    this->stopAudio();
+
+    NJS->unrootObject(this->getJSObject());
 
     if (m_ArrayContent != NULL) {
         free(m_ArrayContent);
@@ -2491,6 +2509,7 @@ static void Video_Finalize(JSFreeOp *fop, JSObject *obj) {
     NativeJSVideo *v = (NativeJSVideo *)JS_GetPrivate(obj);
 
     if (v != NULL) {
+        JS_SetPrivate(obj, nullptr);
         delete v;
     }
 }
@@ -2653,4 +2672,3 @@ void NativeJSAudio::registerObject(JSContext *cx)
 }
 
 NATIVE_OBJECT_EXPOSE(Video);
-
