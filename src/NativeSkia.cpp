@@ -158,6 +158,28 @@ static inline double calcHue(double temp1, double temp2, double hueVal) {
   return temp1;
 }
 
+void NativeSkia::GetStringColor(uint32_t color, char *out)
+{
+    /*
+        Mimic Chrome and Firefox :
+
+        Whenver we have some alpha, a literal rgba() string is
+        returned instead of a literal #RRGGBB
+    */
+    if (SkColorGetA(color) != 0xff) {
+        
+        sprintf(out, "rgba(%d, %d, %d, %.2f)",
+            SkColorGetR(color),
+            SkColorGetG(color),
+            SkColorGetB(color),
+            SkColorGetA(color) / 255.f);                
+    } else {
+        sprintf(out, "#%.2x%.2x%.2x",
+            SkColorGetR(color),
+            SkColorGetG(color),
+            SkColorGetB(color));
+    }
+}
 
 int NativeSkia::getWidth()
 {
@@ -168,6 +190,15 @@ int NativeSkia::getHeight()
 {
     return m_Canvas->getDeviceSize().fHeight;
 }
+
+uint32_t NativeSkia::getFillColor() const {
+    return PAINT->getColor();
+}
+
+uint32_t NativeSkia::getStrokeColor() const {
+    return PAINT_STROKE->getColor();
+}
+
 
 #if 0
 static U8CPU InvScaleByte(U8CPU component, uint32_t scale)
@@ -279,7 +310,7 @@ void NativeSkia::initPaints()
         http://code.google.com/p/webkit-mirror/source/browse/Source/WebCore/platform/graphics/skia/PlatformContextSkia.cpp#363
     */
     memset(&currentShadow, 0, sizeof(NativeShadow_t));
-    currentShadow.color = SkColorSetARGB(255, 0, 0, 0);
+    currentShadow.color = SkColorSetARGB(0, 0, 0, 0);
 
     PAINT->setARGB(255, 0, 0, 0);
     PAINT->setAntiAlias(true);
@@ -935,6 +966,11 @@ void NativeSkia::setSmooth(bool val, int level)
     PAINT_STROKE->setFilterLevel(flevel);
 }
 
+int NativeSkia::getSmooth() const
+{
+    return (int)PAINT->getFilterLevel();
+}
+
 void NativeSkia::setGlobalAlpha(double value)
 {
     if (value < 0) return;
@@ -949,6 +985,11 @@ void NativeSkia::setGlobalAlpha(double value)
     PAINT_STROKE->setColorFilter(filter);
 
     filter->unref();
+}
+
+double NativeSkia::getGlobalAlpha() const
+{
+    return (double)m_GlobalAlpha / (double)255;
 }
 
 static struct _native_xfer_mode {
@@ -991,10 +1032,21 @@ void NativeSkia::setLineWidth(double size)
     PAINT_STROKE->setStrokeWidth(SkDoubleToScalar(size));
 }
 
+double NativeSkia::getLineWidth() const
+{
+    return SkScalarToDouble(PAINT_STROKE->getStrokeWidth());
+}
+
 void NativeSkia::setMiterLimit(double size)
 {
     PAINT_STROKE->setStrokeMiter(SkDoubleToScalar(size));
 }
+
+double NativeSkia::getMiterLimit() const
+{
+    return SkScalarToDouble(PAINT_STROKE->getStrokeMiter());
+}
+
 
 void NativeSkia::beginPath()
 {
@@ -1555,6 +1607,32 @@ void NativeSkia::setLineJoin(const char *joinStyle)
         PAINT_STROKE->setStrokeJoin(SkPaint::kBevel_Join);
     } else {
         PAINT_STROKE->setStrokeJoin(SkPaint::kMiter_Join);
+    }
+}
+
+const char *NativeSkia::getLineCap() const
+{
+    switch (PAINT_STROKE->getStrokeCap()) {
+        case SkPaint::kRound_Cap:
+            return "round";
+        case SkPaint::kSquare_Cap:
+            return "square";
+        case SkPaint::kButt_Cap:
+        default:
+            return "butt";
+    }
+}
+
+const char *NativeSkia::getLineJoin() const
+{
+    switch (PAINT_STROKE->getStrokeJoin()) {
+        case SkPaint::kRound_Join:
+            return "round";
+        case SkPaint::kBevel_Join:
+            return "bevel";
+        case SkPaint::kMiter_Join:
+        default:
+            return "miter";
     }
 }
 

@@ -25,6 +25,31 @@ struct NativeRect;
 class SkCanvas;
 class NativeCanvasHandler;
 
+
+/*
+    JSAPI tracer is told to trace JS::Heap stored in this chain of state
+*/
+struct NativeCanvas2DContextState
+{
+    NativeCanvas2DContextState() :
+        m_CurrentShader(JS::UndefinedValue()),
+        m_CurrentStrokeShader(JS::UndefinedValue()),
+        m_Next(NULL) {
+    }
+
+    NativeCanvas2DContextState(NativeCanvas2DContextState *other) :
+        m_CurrentShader(other->m_CurrentShader),
+        m_CurrentStrokeShader(other->m_CurrentStrokeShader),
+        m_Next(other) {
+    }
+
+    /* either pattern or gradient (mutual exlusive) */
+    JS::Heap<JS::Value> m_CurrentShader;
+    JS::Heap<JS::Value> m_CurrentStrokeShader;
+
+    NativeCanvas2DContextState *m_Next;
+};
+
 class NativeCanvas2DContext : public NativeCanvasContext
 {
     public:
@@ -67,6 +92,33 @@ class NativeCanvas2DContext : public NativeCanvasContext
         void drawTexture(uint32_t textureID, uint32_t width,
             uint32_t height, uint32_t left, uint32_t top);
 
+
+        NativeCanvas2DContextState *getCurrentState() const {
+            return m_CurrentState;
+        }
+        void pushNewState() {
+            NativeCanvas2DContextState *state =
+                m_CurrentState ? new NativeCanvas2DContextState(m_CurrentState)
+                               : new NativeCanvas2DContextState();
+
+            m_CurrentState = state;
+        }
+
+        void popState() {
+            /*
+                can't be stateless
+            */
+            if (!m_CurrentState->m_Next) {
+                return;
+            }
+
+            NativeCanvas2DContextState *tmp = m_CurrentState->m_Next;
+
+            delete m_CurrentState;
+
+            m_CurrentState = tmp;
+        }
+        
         static void registerObject(JSContext *cx);
 
         NativeCanvas2DContext(NativeCanvasHandler *handler,
@@ -78,6 +130,8 @@ class NativeCanvas2DContext : public NativeCanvasContext
         virtual ~NativeCanvas2DContext();
     private:
         NativeSkia *m_Skia;
+        NativeCanvas2DContextState *m_CurrentState;
+
 
         void initCopyTex();
         uint32_t compileCoopFragmentShader();
