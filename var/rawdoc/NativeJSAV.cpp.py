@@ -127,7 +127,7 @@ ClassDoc( "Video", "Video playing.",
 )
 
 EventDoc( "AVSource.error", "Event fired when the source fails to be opened or if a read error happens while playing the media file. This event can be fired by : Audio source node or Video object",
-	SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|ThreadMessageEvent.onstop|AVSource.error|AVSource.buffering|AVSource.ready" ),
+	SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
 	[ExampleDoc("""var dsp = Audio.getContext();
 var node = dsp.createNode("source", 0, 2);
 node.open("invalid_file.wav");
@@ -144,7 +144,7 @@ node.addEventListener("error", function(ev) {
 )
 
 EventDoc( "AVSource.buffering", "Event fired when the source is buffering data. This event can be fired by : Audio source node or Video object.",
-	SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|ThreadMessageEvent.onstop|AVSource.error|AVSource.buffering|AVSource.ready" ),
+	SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
 	[ExampleDoc("""var dsp = Audio.getContext();
 var node = dsp.createNode("source", 0, 2);
 node.open("test.wav");
@@ -162,7 +162,7 @@ node.addEventListener("buffering", function(ev) {
 )
 
 EventDoc( "AVSource.ready", "Event fired when the source is opened and ready to play. This event can be fired by : Audio source node or Video object.",
-	SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|ThreadMessageEvent.onstop|AVSource.error|AVSource.buffering|AVSource.ready" ),
+	SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
 	[ExampleDoc("""var dsp = Audio.getContext();
 var node = dsp.createNode("source", 0, 2);
 node.open("test.wav");
@@ -174,13 +174,13 @@ node.addEventListener("ready", function() {
 )
 
 EventDoc( "AVSource.pause", "Event fired when the source is put on pause. This event can be fired by : Audio source node or Video object.",
-	SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|ThreadMessageEvent.onstop|AVSource.error|AVSource.buffering|AVSource.ready" ),
+	SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
 	NO_Examples,
 	NO_Params
 )
 
 EventDoc( "AVSource.play", "Event fired when the source is put on play. This event can be fired by : Audio source node or Video object.",
-	SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|ThreadMessageEvent.onstop|AVSource.error|AVSource.buffering|AVSource.ready" ),
+	SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
 	NO_Examples,
 	NO_Params
 )
@@ -597,7 +597,7 @@ FieldDoc( "Video.height", "The height of the video.",
 )
 
 for i in ["Video", "Audio" ]:
-	FieldDoc( i + ".metadata", "An object with metadata that belong to this " + i ,
+	FieldDoc( i + ".metadata", "An object with metadata that belong to this " + i + " stream",
 		SeesDocs(i + "|" + i + ".position|" + i + ".duration|" + i + ".metadata|" + i + ".bitrate" ),
 		[ExampleDoc( """for (var k in source.metadata) {
 		console.log("Metadata : " + k + "=" + source.metadata[k]);
