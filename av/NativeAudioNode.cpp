@@ -1549,15 +1549,14 @@ void NativeAudioSource::closeInternal(bool reset)
     m_Audio->lockSources();
 
     if (m_Opened) {
-        NativePthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
-        avcodec_close(m_CodecCtx);
-
         if (!m_ExternallyManaged) {
+            NativePthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
+
+            avcodec_close(m_CodecCtx);
             av_free(m_Container->pb);
             avformat_close_input(&m_Container);
+            swr_free(&m_SwrCtx);
         }
-
-        swr_free(&m_SwrCtx);
 
         PaUtil_FlushRingBuffer(m_rBufferOut);
         free(m_rBufferOutData);
