@@ -27,7 +27,8 @@ extern JSClass Canvas_class;
 #define D_NGL_JS_FN(func_name) static bool func_name(JSContext *cx, unsigned int argc, JS::Value *vp);
 
 #define NGL_JS_FN(func_name) static bool func_name(JSContext *cx, unsigned int argc, JS::Value *vp) {\
-    JSNATIVE_PROLOGUE_CLASS_NO_RET(NativeCanvas3DContext, &WebGLRenderingContext_class);
+    JSNATIVE_PROLOGUE_CLASS_NO_RET(NativeCanvas3DContext, &WebGLRenderingContext_class);\
+    (void)args;
 
 #define NGL_JS_FN_DELETE_X(FUNC_NAME, NAME) \
     NGL_JS_FN(FUNC_NAME) \
@@ -573,6 +574,7 @@ D_NGL_JS_FN(WebGLRenderingContext_lineWidth)
 D_NGL_JS_FN(WebGLRenderingContext_linkProgram)
 D_NGL_JS_FN(WebGLRenderingContext_pixelStorei)
 D_NGL_JS_FN(WebGLRenderingContext_renderbufferStorage)
+D_NGL_JS_FN(WebGLRenderingContext_scissor)
 D_NGL_JS_FN(WebGLRenderingContext_shaderSource)
 D_NGL_JS_FN(WebGLRenderingContext_texImage2D)
 D_NGL_JS_FN(WebGLRenderingContext_texParameteri)
@@ -678,6 +680,7 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS("linkProgram", WebGLRenderingContext_linkProgram, 1, JSPROP_ENUMERATE),
     JS_FS("pixelStorei", WebGLRenderingContext_pixelStorei, 2, JSPROP_ENUMERATE),
     JS_FS("renderbufferStorage", WebGLRenderingContext_renderbufferStorage, 4, JSPROP_ENUMERATE),
+    JS_FS("scissor", WebGLRenderingContext_scissor, 4, JSPROP_ENUMERATE),
     JS_FS("shaderSource", WebGLRenderingContext_shaderSource, 2, JSPROP_ENUMERATE),
     JS_FS("texParameteri", WebGLRenderingContext_texParameteri, 3, JSPROP_ENUMERATE),
     JS_FS("uniform1f", WebGLRenderingContext_uniform1f, 2, JSPROP_ENUMERATE),
@@ -2553,6 +2556,20 @@ NGL_JS_FN(WebGLRenderingContext_renderbufferStorage)
     }
 
     GL_CALL(CppObj, RenderbufferStorage(target, internalFormat, width, height));
+
+    return true;
+}
+
+NGL_JS_FN(WebGLRenderingContext_scissor)
+//{
+    GLint x, y;
+    GLsizei width, height;
+
+    if (!JS_ConvertArguments(cx, args, "iiii", &x, &y, &width, &height)) {
+        return false;
+    }
+
+    GL_CALL(CppObj, Scissor(x, y, width, height));
 
     return true;
 }
