@@ -12,7 +12,6 @@ class NativeJS ## name: public NativeJSExposer<NativeJS ## name>\
     public :\
         NativeJS ## name ();\
         ~NativeJS ## name ();\
-         JS::PersistentRootedObject m_JsObj;\
         static void registerObject(JSContext *cx);\
 };
 
