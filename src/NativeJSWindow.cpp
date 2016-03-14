@@ -41,8 +41,6 @@ static bool native_window_exec(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_storage_set(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp);
 
-
-static void Window_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Storage_Finalize(JSFreeOp *fop, JSObject *obj);
 
 enum {
@@ -58,12 +56,6 @@ enum {
     WINDOW_PROP_DEVICE_PIXELRATIO
 };
 
-static JSClass window_class = {
-    "Window", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Window_Finalize,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
 
 enum {
     NAVIGATOR_PROP_LANGUAGE,
@@ -88,9 +80,11 @@ static JSClass storage_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-JSClass *NativeJSwindow::jsclass = &window_class;
+extern JSClass global_class;
+
+JSClass *NativeJSwindow::jsclass = &global_class;
 template<>
-JSClass *NativeJSExposer<NativeJSwindow>::jsclass = &window_class;
+JSClass *NativeJSExposer<NativeJSwindow>::jsclass = &global_class;
 
 
 static JSClass mouseEvent_class = {
@@ -669,15 +663,6 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
 #undef EVENT_PROP
 }
 
-static void Window_Finalize(JSFreeOp *fop, JSObject *obj)
-{
-    NativeJSwindow *jwin = NativeContext::getNativeClass()->getJSWindow();
-    printf("Window global fin\n");
-    if (jwin != NULL) {
-        printf("Window finalized\n");
-        delete jwin;
-    }
-}
 
 static void Storage_Finalize(JSFreeOp *fop, JSObject *obj)
 {
@@ -1480,6 +1465,9 @@ NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
     JS::RootedObject globalObj(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject windowObj(cx, globalObj);
     NativeJSwindow *jwin = new NativeJSwindow(globalObj, cx);
+
+    JS_SetPrivate(globalObj, jwin);
+    
     jwin->initDataBase();
     jwin->createMainCanvas(width, height, docObj);
     JS_DefineFunctions(cx, windowObj, window_funcs);
