@@ -80,10 +80,17 @@ public:
 
     WebGLResource(uint32_t id, ResourceType type,
         NativeCanvas3DContext *ctx, JS::HandleObject jsobj) :
-        m_GlIdentifier(id), m_GLctx(ctx), m_Type(type), m_JSObj(jsobj) {};
+        m_GlIdentifier(id), m_GLctx(ctx), m_Type(type), m_JSObj(jsobj) 
+    {
+        JS_GetReservedSlot();
+        NativeJS::getNativeClass(m_GLctx->m_JsCx)->rootObjectUntilShutdown(jsobj);
+    };
 
     ~WebGLResource() {
         JS_SetPrivate(m_JSObj, nullptr);
+
+        NativeJS::getNativeClass(m_GLctx->m_JsCx)->unrootObject(m_JSObj);
+
         switch(m_Type) {
             case kProgram:
                 GL_CALL(m_GLctx, DeleteProgram(m_GlIdentifier));
@@ -126,7 +133,8 @@ public:
     uint32_t m_GlIdentifier;
     NativeCanvas3DContext *m_GLctx;
     ResourceType m_Type;
-    JSObject *m_JSObj;
+    JS::Heap<JSObject *> m_JSObj;
+    JSContext *m_JSCx;
 
     ShaderData m_ShaderData;
 };

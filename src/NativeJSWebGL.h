@@ -84,15 +84,6 @@ class NativeCanvasWebGLContext: public NativeCanvasContext
         int m_Height;
 };
 
-class NativeJSWebGLActiveInfo : public NativeJSExposer<NativeJSWebGLActiveInfo>
-{
-    public :
-        NativeJSWebGLActiveInfo();
-        ~NativeJSWebGLActiveInfo();
-        JS::PersistentRootedObject m_JsObj;
-        static void registerObject(JSContext *cx);
-};
-
 NEW_CLASS(WebGLRenderingContext)
 NEW_CLASS(WebGLObject)
 NEW_CLASS(WebGLBuffer)
@@ -103,6 +94,7 @@ NEW_CLASS(WebGLShader)
 NEW_CLASS(WebGLTexture)
 NEW_CLASS(WebGLUniformLocation)
 NEW_CLASS(WebGLShaderPrecisionFormat)
+NEW_CLASS(WebGLActiveInfo)
 
 /* ClearBufferMask */
 #define NGL_DEPTH_BUFFER_BIT                0x00000100
