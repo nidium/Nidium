@@ -123,7 +123,6 @@
             '../NativeJSHTTPListener.cpp',
             '../NativeJSDebug.cpp',
             '../NativeJSConsole.cpp',
-            '../NativeJSProfiler.cpp',
             '../NativeJSFS.cpp',
             '../NativeJSProcess.cpp',
             '../NativeWebSocketClient.cpp',

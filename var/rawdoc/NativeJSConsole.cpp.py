@@ -67,26 +67,3 @@ FunctionDoc( "Console.write", "Write output to the console.",
 	[ParamDoc( "text", "The string that should be logged", "string", NO_Default, IS_Optional ) ],
 	NO_Returns
 )
-
-FunctionDoc( "Console.profile", "Starts a profiler instance.",
-	[ SeeDoc( "Console.profileEnd" ) ],
-	[ExampleDoc( """console.profile( );
-	// Time intense task
-	var result = Console.profileEnd( );
-	console.log( JSON.stringify( result ) ); """)],
-	IS_Static, IS_Public, IS_Fast,
-	NO_Params,
-	NO_Returns
-)
-
-FunctionDoc( "Console.profileEnd", "Stops a profiler instance.",
-	[ SeeDoc( "Console.profile" ) ],
-	[ExampleDoc( """console.profile( );
-	// Time intense task
-	var result = Console.profileEnd( );
-	console.log( JSON.stringify( result ) ); """)],
-	IS_Static, IS_Public, IS_Fast,
-	NO_Params,
-	ReturnDoc( "Profile results", ObjectDoc([]) )
-)
-
