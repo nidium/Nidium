@@ -9,6 +9,8 @@
 
 static bool native_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp);
+static bool native_console_write(JSContext *cx, unsigned argc,
+    JS::Value *vp);
 
 #ifdef NATIVE_JS_PROFILER
 static bool native_console_profile_start(JSContext *cx, unsigned argc,
@@ -26,6 +28,7 @@ static JSClass console_class = {
 
 static JSFunctionSpec console_funcs[] = {
     JS_FN("log", native_console_log, 0, 0),
+    JS_FN("write", native_console_write, 0, 0),
     JS_FN("info", native_console_log, 0, 0),
     JS_FN("error", native_console_log, 0, 0),
     JS_FN("warn", native_console_log, 0, 0),
@@ -106,6 +109,30 @@ static bool native_console_log(JSContext *cx, unsigned argc,
 
     args.rval().setUndefined();
 
+    return true;
+}
+
+static bool native_console_write(JSContext *cx, unsigned argc,
+    JS::Value *vp)
+{
+    NativeJS *js = NativeJS::getNativeClass(cx);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    NATIVE_CHECK_ARGS("write", 1);
+
+    JS::RootedString str(cx, args[0].toString());
+    if (!str) {
+        JS_ReportError(cx, "Bad argument");
+        return false;
+    }
+
+    JSAutoByteString cstr;
+
+    cstr.encodeUtf8(cx, str);
+
+    js->log(cstr.ptr());
+
+    args.rval().setUndefined();
     return true;
 }
 
