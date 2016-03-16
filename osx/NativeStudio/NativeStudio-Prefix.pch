@@ -1,7 +1,0 @@
-//
-// Prefix header for all source files of the 'NativeStudio' target in the 'NativeStudio' project
-//
-
-#ifdef __OBJC__
-    #import <Cocoa/Cocoa.h>
-#endif
