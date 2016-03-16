@@ -196,7 +196,9 @@ int NativeServer::init()
                 break;
         }
     }
-
+    /*
+        Only 'forward' the 'rest' of the arguments to the js Process/worker
+    */
     m_Args.argc -= optind;
     m_Args.argv += optind;
 
