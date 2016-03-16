@@ -3,7 +3,6 @@
 #include "NativeContext.h"
 #include "NativeMacros.h"
 
-#include <NativeJSProfiler.h>
 #include <js/OldDebugAPI.h>
 
 #include "NativeServer.h"
