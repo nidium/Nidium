@@ -145,7 +145,7 @@ int NativeServer::Start(int argc, char *argv[])
     return server->init();
 }
 
-void NativeServer::usage( struct option * long_options, const char ** text_blocks)
+void NativeServer::Usage( struct option * long_options, const char ** text_blocks)
 {
     struct option *opt;
     char const * text;
@@ -154,7 +154,7 @@ void NativeServer::usage( struct option * long_options, const char ** text_block
     opt = long_options;
     i = 0;
     NativeServer::displayVersion();
-    fprintf(stdout, "Usage: %s [options]\n\toptions: \n", "nidium-server");
+    fprintf(stdout, "Usage: %s [options] FILE\n\toptions: \n", "nidium-server");
     while( opt->name != NULL) {
         text = text_blocks[i];
         fprintf(stdout, "\t-%c --%-10s %s\n", opt->val, opt->name, text );
@@ -209,7 +209,7 @@ int NativeServer::init()
             case ':':
             case 'h':
             case '?':
-                NativeServer::usage(&long_options[0], text_blocks);
+                NativeServer::Usage(&long_options[0], text_blocks);
                 exit(1);
                 break;
             case 'w':
@@ -234,11 +234,16 @@ int NativeServer::init()
     /*
         Don't demonize if no JS file was provided
     */
-    if (daemon && m_Args.argc >= 1) {
+    if (!m_HasREPL && m_Args.argc == 0) {
+        NativeServer::Usage(&long_options[0], text_blocks);
+        exit(1);
+    } else if (daemon && m_Args.argc >= 1) {
         m_HasREPL = false;
         this->daemonize();
     } else if (daemon) {
         fprintf(stderr, "Can't demonize if no JS file is provided\n");
+        NativeServer::Usage(&long_options[0], text_blocks);
+        exit(1);
     }
 
     if (workers) {
@@ -260,7 +265,7 @@ int NativeServer::init()
 }
 
 NativeServer::NativeServer(int argc, char **argv) :
-    m_WorkerIdx(0), m_InstanceName(NULL), m_HasREPL(true),
+    m_WorkerIdx(0), m_InstanceName(NULL), m_HasREPL(false),
     m_NWorkers(0), m_JSStrictMode(false)
 {
     m_Args.argc = argc;
