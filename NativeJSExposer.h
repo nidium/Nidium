@@ -111,8 +111,8 @@ public:
     }
 
     NativeJSEvents(char *name) :
-        m_Head(NULL), m_Queue(NULL), m_TmpEv(NULL), m_IsFiring(false),
-        m_DeleteAfterFire(false), m_Name(strdup(name)) {}
+        m_Head(NULL), m_Queue(NULL), m_Name(strdup(name)),
+        m_TmpEv(NULL), m_IsFiring(false), m_DeleteAfterFire(false) {}
 
     ~NativeJSEvents() {
         NativeJSEvent *ev, *tmpEv;
@@ -225,11 +225,13 @@ public:
 
     NativeJSEvent *m_Head;
     NativeJSEvent *m_Queue;
+    char *m_Name;
+
+private:
     NativeJSEvent *m_TmpEv;
     bool m_IsFiring;
     bool m_DeleteAfterFire;
-    char *m_Name;
-private:
+
     static bool native_jsevents_stopPropagation(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
@@ -582,7 +584,7 @@ class NativeJSObjectMapper
 {
 public:
     NativeJSObjectMapper(JSContext *cx, const char *name) :
-        m_JSCx(cx), m_JSObj(cx)
+        m_JSObj(cx), m_JSCx(cx)
     {
         static JSClass jsclass = {
             NULL, JSCLASS_HAS_PRIVATE,
