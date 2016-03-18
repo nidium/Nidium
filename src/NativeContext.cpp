@@ -343,10 +343,11 @@ NativeContext::~NativeContext()
 
     m_JSWindow->callFrameCallbacks(0, true);
 
+    delete m_JSWindow;
     delete m_JS;
     delete m_GLState;
     delete m_WS;
-    delete m_JSWindow;
+    
 
     NativeSkia::m_GlContext = NULL;
 
