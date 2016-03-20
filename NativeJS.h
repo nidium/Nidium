@@ -32,6 +32,8 @@
 #include "NativeMessages.h"
 #include "NativeSharedMessages.h"
 
+#define JSFUNCTIONPROPS JSPROP_ENUMERATE | JSPROP_PERMANENT
+
 enum {
     NATIVE_SCTAG_FUNCTION = JS_SCTAG_USER_MIN+1,
     NATIVE_SCTAG_HIDDEN,

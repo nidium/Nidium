@@ -110,14 +110,14 @@ static bool native_btoa(JSContext *cx, unsigned argc, JS::Value *vp);
 static int native_timerng_wrapper(void *arg);
 
 static JSFunctionSpec glob_funcs[] = {
-    JS_FN("load", native_load, 2, 0),
-    JS_FN("pwd", native_pwd, 0, 0),
-    JS_FN("setTimeout", native_set_timeout, 2, 0),
-    JS_FN("setImmediate", native_set_immediate, 1, 0),
-    JS_FN("setInterval", native_set_interval, 2, 0),
-    JS_FN("clearTimeout", native_clear_timeout, 1, 0),
-    JS_FN("clearInterval", native_clear_timeout, 1, 0),
-    JS_FN("btoa", native_btoa, 1, 0),
+    JS_FN("load", native_load, 2, JSFUNCTIONPROPS),
+    JS_FN("pwd", native_pwd, 0, JSFUNCTIONPROPS),
+    JS_FN("setTimeout", native_set_timeout, 2, JSFUNCTIONPROPS),
+    JS_FN("setImmediate", native_set_immediate, 1, JSFUNCTIONPROPS),
+    JS_FN("setInterval", native_set_interval, 2, JSFUNCTIONPROPS),
+    JS_FN("clearTimeout", native_clear_timeout, 1, JSFUNCTIONPROPS),
+    JS_FN("clearInterval", native_clear_timeout, 1, JSFUNCTIONPROPS),
+    JS_FN("btoa", native_btoa, 1, JSFUNCTIONPROPS),
     JS_FS_END
 };
 

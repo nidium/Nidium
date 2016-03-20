@@ -47,8 +47,8 @@ template<>
 JSClass *NativeJSExposer<NativeJSWebSocketServer>::jsclass = &WebSocketServer_class;
 
 static JSFunctionSpec wsclient_funcs[] = {
-    JS_FN("send", native_websocketclient_send, 1, 0),
-    JS_FN("close", native_websocketclient_close, 0, 0),
+    JS_FN("send", native_websocketclient_send, 1, JSFUNCTIONPROPS),
+    JS_FN("close", native_websocketclient_close, 0, JSFUNCTIONPROPS),
     JS_FS_END
 };
 
