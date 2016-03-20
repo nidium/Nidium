@@ -46,15 +46,15 @@ template<>
 JSClass *NativeJSExposer<NativeJSdocument>::jsclass = &document_class;
 
 static JSFunctionSpec document_funcs[] = {
-    JS_FN("run", native_document_run, 1, 0),
-    JS_FN("showFPS", native_document_showfps, 1, 0),
-    JS_FN("setPasteBuffer", native_document_setPasteBuffer, 1, 0),
-    JS_FN("getPasteBuffer", native_document_getPasteBuffer, 0, 0),
-    JS_FN("loadFont", native_document_loadFont, 1, JSPROP_ENUMERATE),
-    JS_FN("getCanvasById", native_document_getElementById, 1, JSPROP_ENUMERATE),
-    JS_FN("getScreenData", native_document_getScreenData, 0, 0),
-    JS_FN("toDataArray", native_document_toDataArray, 0, 0),
-    JS_FN("parseNML", native_document_parseNML, 1, 0),
+    JS_FN("run", native_document_run, 1, JSFUNCTIONPROPS),
+    JS_FN("showFPS", native_document_showfps, 1, JSFUNCTIONPROPS),
+    JS_FN("setPasteBuffer", native_document_setPasteBuffer, 1, JSFUNCTIONPROPS),
+    JS_FN("getPasteBuffer", native_document_getPasteBuffer, 0, JSFUNCTIONPROPS),
+    JS_FN("loadFont", native_document_loadFont, 1, JSFUNCTIONPROPS),
+    JS_FN("getCanvasById", native_document_getElementById, 1, JSFUNCTIONPROPS),
+    JS_FN("getScreenData", native_document_getScreenData, 0, JSFUNCTIONPROPS),
+    JS_FN("toDataArray", native_document_toDataArray, 0, JSFUNCTIONPROPS),
+    JS_FN("parseNML", native_document_parseNML, 1, JSFUNCTIONPROPS),
     JS_FS_END
 };
 
