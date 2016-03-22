@@ -44,6 +44,8 @@ enum {
 
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj);
+static bool native_socket_prop_get(JSContext *cx, JS::HandleObject obj,
+    uint8_t id, JS::MutableHandleValue vp);
 static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp);
 static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -93,12 +95,62 @@ static JSFunctionSpec socket_funcs[] = {
 };
 
 static JSPropertySpec Socket_props[] = {
-    {"binary",   JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_BINARY, native_socket_prop_set)},
-    {"readline", JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_READLINE, native_socket_prop_set)},
-    {"encoding", JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_ENCODING, native_socket_prop_set)},
-    {"timeout",  JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_TIMEOUT, native_socket_prop_set)},
+    {"binary",   JSPROP_NATIVE_ACCESSORS,
+        NATIVE_JS_GETTER(SOCKET_PROP_BINARY, native_socket_prop_get),
+        NATIVE_JS_SETTER(SOCKET_PROP_BINARY, native_socket_prop_set)},
+    {"readline", JSPROP_NATIVE_ACCESSORS,
+        NATIVE_JS_GETTER(SOCKET_PROP_READLINE, native_socket_prop_get),
+        NATIVE_JS_SETTER(SOCKET_PROP_READLINE, native_socket_prop_set)},
+    {"encoding", JSPROP_NATIVE_ACCESSORS,
+        NATIVE_JS_GETTER(SOCKET_PROP_ENCODING, native_socket_prop_get),
+        NATIVE_JS_SETTER(SOCKET_PROP_ENCODING, native_socket_prop_set)},
+    {"timeout",  JSPROP_NATIVE_ACCESSORS,
+        NATIVE_JS_GETTER(SOCKET_PROP_TIMEOUT, native_socket_prop_get),
+        NATIVE_JS_SETTER(SOCKET_PROP_TIMEOUT, native_socket_prop_set)},
     JS_PS_END
 };
+
+static bool native_socket_prop_get(JSContext *cx, JS::HandleObject obj,
+    uint8_t id, JS::MutableHandleValue vp)
+{
+    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
+
+    if (nsocket == NULL) {
+        JS_ReportError(cx, "Invalid socket object");
+        return false;
+    }
+
+    switch(id) {
+        case SOCKET_PROP_BINARY:
+        {
+            bool bin;
+
+            bin = ((nsocket->flags & NATIVE_SOCKET_ISBINARY) == NATIVE_SOCKET_ISBINARY);
+            vp.setBoolean(bin);
+        }
+        break;
+        case SOCKET_PROP_READLINE:
+        {
+            bool bin;
+
+            bin = ((nsocket->flags & NATIVE_SOCKET_READLINE) == NATIVE_SOCKET_READLINE);
+            vp.setBoolean(bin);
+        }
+        break;
+        case SOCKET_PROP_ENCODING:
+        {
+            JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, nsocket->m_Encoding));
+            vp.setString(jstr);
+        }
+        break;
+        case SOCKET_PROP_TIMEOUT:
+            vp.setInt32(nsocket->m_TCPTimeout);
+        break;
+        default:
+            break;
+    }
+    return true;
+}
 
 static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp)
@@ -358,9 +410,10 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
             TODO: inet_ntoa is not reentrant
         */
         char *cip = inet_ntoa(addr->sin_addr);
-        JS::RootedValue jip(cx, STRING_TO_JSVAL(JS_NewStringCopyZ(cx, cip)));
+        JS::RootedString jip(cx, JS_NewStringCopyZ(cx, cip));
+        JS::RootedValue vip(cx, STRING_TO_JSVAL(jip));
 
-        JS_SetProperty(cx, remote, "ip", jip);
+        JS_SetProperty(cx, remote, "ip", vip);
         JS::RootedValue jport(cx, INT_TO_JSVAL(ntohs(addr->sin_port)));
 
         JS_SetProperty(cx, remote, "port", jport);
@@ -557,9 +610,6 @@ static bool native_Socket_constructor(JSContext *cx, unsigned argc, JS::Value *v
     JS_DefineFunctions(cx, ret, socket_funcs);
     JS_DefineProperties(cx, ret, Socket_props);
 
-    JS::RootedValue isBinary(cx, JSVAL_FALSE);
-
-    JS_SetProperty(cx, ret, "binary", isBinary);
 
     return true;
 }
