@@ -123,24 +123,17 @@ static bool native_socket_prop_get(JSContext *cx, JS::HandleObject obj,
     switch(id) {
         case SOCKET_PROP_BINARY:
         {
-            bool bin;
-
-            bin = ((nsocket->flags & NATIVE_SOCKET_ISBINARY) == NATIVE_SOCKET_ISBINARY);
-            vp.setBoolean(bin);
+            vp.setBoolean(nsocket->flags & NATIVE_SOCKET_ISBINARY);
         }
         break;
         case SOCKET_PROP_READLINE:
         {
-            bool bin;
-
-            bin = ((nsocket->flags & NATIVE_SOCKET_READLINE) == NATIVE_SOCKET_READLINE);
-            vp.setBoolean(bin);
+            vp.setBoolean(nsocket->flags & NATIVE_SOCKET_READLINE);
         }
         break;
         case SOCKET_PROP_ENCODING:
         {
-            JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, nsocket->m_Encoding));
-            vp.setString(jstr);
+            vp.setString(JS_NewStringCopyZ(cx, nsocket->m_Encoding));
         }
         break;
         case SOCKET_PROP_TIMEOUT:
