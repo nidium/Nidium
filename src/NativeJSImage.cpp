@@ -24,7 +24,7 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj, uint8_t i
     bool strict, JS::MutableHandleValue vp);
 
 static JSClass Image_class = {
-    "Image", JSCLASS_HAS_PRIVATE,
+    "Image", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Image_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
@@ -34,7 +34,7 @@ template<>
 JSClass *NativeJSExposer<NativeJSImage>::jsclass = &Image_class;
 
 static JSPropertySpec Image_props[] = {
-    {"src", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
+    {"src", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_NATIVE_ACCESSORS,
         NATIVE_JS_GETTER(IMAGE_PROP_SRC, native_image_prop_get),
         NATIVE_JS_SETTER(IMAGE_PROP_SRC, native_image_prop_set)},
     JS_PS_END
@@ -97,14 +97,12 @@ static bool native_image_desaturate(JSContext *cx,
 static bool native_image_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
-    NativeJSImage *nimg = NATIVE_IMAGE_GETTER(obj);
     switch(id) {
         case IMAGE_PROP_SRC:
         {
-            JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, nimg->m_Stream->getLocation()));
-            vp.setString(jstr);
+            vp.set(JS_GetReservedSlot(obj, 0));
         }
-       break;
+        break;
         default:
             break;
     }
@@ -123,7 +121,6 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
                 JSAutoByteString imgPath(cx, vpStr);
 
                 NativeJSObj(cx)->rootObjectUntilShutdown(obj);
-
                 NativeBaseStream *stream = NativeBaseStream::create(NativePath(imgPath.ptr()));
 
                 if (stream == NULL) {
@@ -135,16 +132,16 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 stream->setListener(nimg);
                 stream->getContent();
+                JS_SetReservedSlot(obj, 0, vp);
             } else if (vp.isObject()) {
-                JS::RootedObject obj(cx, vp.toObjectOrNull());
-                NativeFile *file = NativeJSFileIO::GetFileFromJSObject(cx, obj);
+                JS::RootedObject imgobj(cx, vp.toObjectOrNull());
+                NativeFile *file = NativeJSFileIO::GetFileFromJSObject(cx, imgobj);
                 if (!file) {
                     vp.setNull();
                     return true;
                 }
 
                 NativeJSObj(cx)->rootObjectUntilShutdown(obj);
-
                 NativeBaseStream *stream = NativeBaseStream::create(file->getFullPath());
                 if (stream == NULL) {
                     break;
@@ -152,6 +149,7 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
                 nimg->m_Stream = stream;
                 stream->setListener(nimg);
                 stream->getContent();
+                JS_SetReservedSlot(obj, 0, vp);
 
             } else {
                 vp.setNull();
@@ -257,14 +255,12 @@ bool NativeJSImage::setupWithBuffer(buffer *buf)
         NativeJSObj(m_Cx)->unrootObject(m_JSObject);
         return false;
     }
-
     m_Image = ImageObject;
     JS::RootedObject obj(m_Cx, m_JSObject);
     JS::RootedValue widthVal(m_Cx, INT_TO_JSVAL(ImageObject->getWidth()));
     JS::RootedValue heightVal(m_Cx, INT_TO_JSVAL(ImageObject->getHeight()));
     JS_DefineProperty(m_Cx, obj, "width", widthVal, JSPROP_PERMANENT | JSPROP_READONLY);
     JS_DefineProperty(m_Cx, obj, "height", heightVal, JSPROP_PERMANENT | JSPROP_READONLY);
-
     NativeJSObj(m_Cx)->unrootObject(m_JSObject);
 
     return true;
@@ -307,9 +303,7 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
     timer_dispatch_async(delete_stream, stream);
     stream = NULL;
 }
-#endif
 
-#if 0
 JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
     const char name[])
 {

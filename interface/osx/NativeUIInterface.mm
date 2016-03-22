@@ -475,6 +475,7 @@ NativeCocoaUIInterface::NativeCocoaUIInterface() :
     this->m_Nml = NULL;
     this->m_FilePath = NULL;
     this->m_Console = NULL;
+    this->setTitleBarRGBAColor(0, 0, 0, 0);
 
     this->m_DragNSView = nil;
 
@@ -629,6 +630,10 @@ void NativeCocoaUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
     NSWindow *window = NativeCocoaWindow(m_Win);
     NSUInteger mask = [window styleMask];
 
+    m_TitleBarRGBAColor.r = r;
+    m_TitleBarRGBAColor.g = g;
+    m_TitleBarRGBAColor.b = b;
+    m_TitleBarRGBAColor.a = a;
     fprintf(stdout, "setting titlebar color\n");
 
     if ((mask & NSTexturedBackgroundWindowMask) == 0) {

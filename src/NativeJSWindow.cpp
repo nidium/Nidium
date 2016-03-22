@@ -198,16 +198,16 @@ static JSPropertySpec window_props[] = {
         NATIVE_JS_GETTER(WINDOW_PROP_TITLE, native_window_prop_get),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLE, native_window_prop_set)},
     {"cursor", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_STUBGETTER(),
+        NATIVE_JS_GETTER(WINDOW_PROP_CURSOR, native_window_prop_get),
         NATIVE_JS_SETTER(WINDOW_PROP_CURSOR, native_window_prop_set)},
     {"titleBarColor", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_STUBGETTER(),
+        NATIVE_JS_GETTER(WINDOW_PROP_TITLEBAR_COLOR, native_window_prop_get),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_COLOR, native_window_prop_set)},
     {"titleBarControlsOffsetX", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_STUBGETTER(),
+        NATIVE_JS_GETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, native_window_prop_get),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, native_window_prop_set)},
     {"titleBarControlsOffsetY", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_STUBGETTER(),
+        NATIVE_JS_GETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, native_window_prop_get),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, native_window_prop_set)},
     JS_PS_END
 };
@@ -707,6 +707,52 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
             vp.setString(str);
         }
         break;
+        case WINDOW_PROP_CURSOR:
+        {
+            const char * cCursor;
+
+            cCursor = native_cursors_list[1].str;
+            for (size_t i = 0; native_cursors_list[i].str != NULL; i++) {
+                if (native_cursors_list[i].type == NUI->m_CurrentCursor) {
+                    cCursor = native_cursors_list[i].str;
+                }
+            }
+            JS::RootedString jstr(m_Cx, JS_NewStringCopyZ(m_Cx, cCursor));
+            vp.setString(jstr);
+        }
+        break;
+        case WINDOW_PROP_TITLEBAR_COLOR:
+        {
+            rgba *color;
+
+            color = NUI->getTitleBarRGBAColor();
+            JS::RootedObject aColor(m_Cx, JS_NewArrayObject(m_Cx, 4));
+            JS_SetElement(m_Cx, aColor, 0, color->r);
+            JS_SetElement(m_Cx, aColor, 1, color->g);
+            JS_SetElement(m_Cx, aColor, 2, color->b);
+            JS_SetElement(m_Cx, aColor, 3, color->a);
+            vp.setObjectOrNull(aColor);
+        }
+        break;
+        case WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX:
+        {
+            coord *xy;
+
+            xy = NUI->getWindowControlsOffset();
+            vp.setDouble(xy->x);
+        }
+
+        break;
+        case WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY:
+        {
+            coord *xy;
+
+            xy = NUI->getWindowControlsOffset();
+            vp.setDouble(xy->y);
+        }
+        break;
+         default:
+        break;
     }
 
     return true;
@@ -797,7 +843,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
             JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString type(cx, vpStr);
-            for (int i = 0; native_cursors_list[i].str != NULL; i++) {
+            for (size_t i = 0; native_cursors_list[i].str != NULL; i++) {
                 if (strncasecmp(native_cursors_list[i].str, type.ptr(),
                     strlen(native_cursors_list[i].str)) == 0) {
                     NUI->setCursor(native_cursors_list[i].type);

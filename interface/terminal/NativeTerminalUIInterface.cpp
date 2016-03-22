@@ -39,6 +39,7 @@ NativeTerminalUIInterface::NativeTerminalUIInterface(): m_Console(NULL)
 
     this->m_CurrentCursor = NOCHANGE;
     this->NJS = NULL;
+    this->setTitleBarRGBAColor(0, 0, 0, 0);
 }
 
 
@@ -59,6 +60,10 @@ void NativeTerminalUIInterface::openFileDialog(const char const *files[],
 void NativeTerminalUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
     uint8_t b, uint8_t a)
 {
+    m_TitleBarRGBAColor.r = r;
+    m_TitleBarRGBAColor.g = g;
+    m_TitleBarRGBAColor.b = b;
+    m_TitleBarRGBAColor.a = a;
 }
 
 void NativeTerminalUIInterface::initControls()
@@ -67,6 +72,8 @@ void NativeTerminalUIInterface::initControls()
 
 void NativeTerminalUIInterface::setWindowControlsOffset(double x, double y)
 {
+    m_WindowControlsOffset.x = x;
+    m_WindowControlsOffset.y = y;
 }
 
 void NativeTerminalUIInterface::runLoop()

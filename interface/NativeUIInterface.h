@@ -15,6 +15,16 @@ class NativeUIInterface;
 
 typedef void *SDL_GLContext;
 
+typedef struct _rgba {
+            uint8_t r;
+            uint8_t g;
+            uint8_t b;
+            uint8_t a;} rgba;
+
+typedef struct _coord {
+    double x;
+    double y; } coord;
+
 class NativeSystemMenuItem {
 public:
     NativeSystemMenuItem(char *title = NULL, char *id = NULL) :
@@ -156,7 +166,9 @@ class NativeUIInterface
         virtual void setCursor(CURSOR_TYPE)=0;
         virtual void runLoop()=0;
         virtual void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {};
+        rgba * getTitleBarRGBAColor() {return &m_TitleBarRGBAColor;};
         virtual void setWindowControlsOffset(double x, double y) {};
+        coord * getWindowControlsOffset(){ return &m_WindowControlsOffset; };
         virtual void setClipboardText(const char *text)=0;
         virtual char *getClipboardText()=0;
         virtual void openFileDialog(const char *files[],
@@ -249,6 +261,9 @@ class NativeUIInterface
         bool m_Hidden;
         int m_FBO;
         uint8_t *m_FrameBuffer;
+        //TODO: Remove these 2 structs and get the values out of the UI
+        rgba m_TitleBarRGBAColor;
+        coord m_WindowControlsOffset;
 
 #define NUM_PBOS 1
 

@@ -516,6 +516,10 @@ void NativeX11UIInterface::openFileDialog(const char *files[],
 void NativeX11UIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
     uint8_t b, uint8_t a)
 {
+    m_TitleBarRGBAColor.r = r;
+    m_TitleBarRGBAColor.g = g;
+    m_TitleBarRGBAColor.b = b;
+    m_TitleBarRGBAColor.a = a;
     /*
     NSWindow *window = NativeX11Window(win);
     NSUInteger mask = [window styleMask];
@@ -560,6 +564,8 @@ void NativeX11UIInterface::initControls()
 
 void NativeX11UIInterface::setWindowControlsOffset(double x, double y)
 {
+    m_WindowControlsOffset.x = x;
+    m_WindowControlsOffset.y = y;
     /*
     NSWindow *window = NativeX11Window(win);
     NSButton *close = [window standardWindowButton:NSWindowCloseButton];
