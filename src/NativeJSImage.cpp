@@ -18,7 +18,8 @@ static bool native_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_image_markColorInAlpha(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_image_desaturate(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_image_print(JSContext *cx, unsigned argc, JS::Value *vp);
-
+static bool native_image_prop_get(JSContext *cx, JS::HandleObject obj, uint8_t id,
+    JS::MutableHandleValue vp);
 static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj, uint8_t id,
     bool strict, JS::MutableHandleValue vp);
 
@@ -34,7 +35,7 @@ JSClass *NativeJSExposer<NativeJSImage>::jsclass = &Image_class;
 
 static JSPropertySpec Image_props[] = {
     {"src", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_STUBGETTER(),
+        NATIVE_JS_GETTER(IMAGE_PROP_SRC, native_image_prop_get),
         NATIVE_JS_SETTER(IMAGE_PROP_SRC, native_image_prop_set)},
     JS_PS_END
 };
@@ -90,6 +91,23 @@ static bool native_image_desaturate(JSContext *cx,
         nimg->m_Image->desaturate();
     }
 
+    return true;
+}
+
+static bool native_image_prop_get(JSContext *cx, JS::HandleObject obj,
+    uint8_t id, JS::MutableHandleValue vp)
+{
+    NativeJSImage *nimg = NATIVE_IMAGE_GETTER(obj);
+    switch(id) {
+        case IMAGE_PROP_SRC:
+        {
+            JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, nimg->m_Stream->getLocation()));
+            vp.setString(jstr);
+        }
+       break;
+        default:
+            break;
+    }
     return true;
 }
 
@@ -291,6 +309,7 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
 }
 #endif
 
+#if 0
 JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
     const char name[])
 {
@@ -317,6 +336,7 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
 
     return ret;
 }
+#endif
 
 NativeJSImage::NativeJSImage(JS::HandleObject obj, JSContext *cx) :
     NativeJSExposer<NativeJSImage>(obj, cx),
