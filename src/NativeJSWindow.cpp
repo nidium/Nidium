@@ -715,6 +715,7 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
             for (size_t i = 0; native_cursors_list[i].str != NULL; i++) {
                 if (native_cursors_list[i].type == NUI->m_CurrentCursor) {
                     cCursor = native_cursors_list[i].str;
+                    break;
                 }
             }
             JS::RootedString jstr(m_Cx, JS_NewStringCopyZ(m_Cx, cCursor));
