@@ -1,17 +1,18 @@
 from dokumentor import *
 
+NamespaceDoc("WebSocket Client & Server", """Native implemntation of WebSocket Client & Server
+* Client : Connect to a WebSocket server.
+* Server : Create a WebSocker server where clients cant connect to.
+""")
+
 ClassDoc( "WebSocketServer", "Websocket Server handling.",
 	SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
-	NO_Examples,
-	NO_Inherrits,
-	NO_Extends
+	section="WebSocket Client & Server"
 )
 
 ClassDoc( "WebSocketServerClient", "Class that the Websocket server creates for it's connections.",
 	SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
-	NO_Examples,
-	NO_Inherrits,
-	NO_Extends
+	section="WebSocket Client & Server"
 )
 
 ConstructorDoc( "WebSocketServer", "Constructor for a Websocket listener.",

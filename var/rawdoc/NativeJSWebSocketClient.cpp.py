@@ -4,7 +4,8 @@ ClassDoc( "WebSocket", "Websocket handling.",
 	SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
 	NO_Examples,
 	NO_Inherrits,
-	NO_Extends
+	NO_Extends,
+	section="WebSocket Client & Server"
 )
 
 FunctionDoc("WebSocket.close", "Closes an existing websocket connection.",

@@ -39,7 +39,8 @@ ClassDoc( "SocketClient", "A connected client.",
 	SeesDocs( "Http|HTTPListener|SocketClient|WebSocket|WebSocketClient" ),
 	NO_Examples,
 	[ "Socket" ],
-	NO_Extends
+	NO_Extends,
+        section="Socket"
 )
 
 FieldDoc( "Socket.binary", """Get or set the binary mode for send/recieve data.

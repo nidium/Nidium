@@ -2,7 +2,7 @@ from dokumentor import *
 
 NamespaceDoc( "_GLOBALThread", "Global threadnamespace.",
 	[SeeDoc( "Thread" ), SeeDoc( "ThreadMessageEvent" )  ],
-	NO_Examples
+        section="Thread"
 )
 
 ClassDoc( "Thread", """Run a CPU intensive task in the background, with out locking the main UI interface.
@@ -25,8 +25,7 @@ t.start("bar"); // start the new job with "bar" as a parameter.""") ],
 ClassDoc( "ThreadMessageEvent", "Communication channel between threads.",
 	[ SeeDoc( "_GLOBALThread" ), SeeDoc( "Thread" ) ],
 	NO_Examples,
-	NO_Inherrits,
-	NO_Extends
+        section="Thread"
 )
 
 FunctionDoc( "Thread.start", "Start a tread.",

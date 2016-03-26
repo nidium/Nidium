@@ -16,7 +16,8 @@ h.ondata = function(event){
 h.onerror = function(event){
 	console.log(event.error);
 }; """ ) ],
-	NO_Inherrits, NO_Extends
+	NO_Inherrits, NO_Extends,
+        section="HTTP Client & Server",
 )
 
 ConstructorDoc( "Http", "Constructor for a Http Object.",

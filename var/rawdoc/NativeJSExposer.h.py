@@ -1,29 +1,29 @@
 from dokumentor import *
 
-NamespaceDoc( "NativeJSEvent", "Event coordinator.",
+NamespaceDoc( "NativeJSEvent", "Event coordinator.\n\n Every native object exposed by Nidium inherits from NativeJSEvent.",
 	SeesDocs( "NativeJSEvent.stopPropagation|NativeJSEvent.preventDefault|NativeJSEvent.forcePropagation" ),
 	NO_Examples
 )
 
-EventDoc( "NativeJSEvent.stopProgagation", "Stops the propagation of events.",
+EventDoc( "NativeJSEvent.stopProgagation", "Stops the propagation of an event.",
 	SeesDocs( "NativeJSEvent.stopPropagation|NativeJSEvent.preventDefault|NativeJSEvent.forcePropagation" ),
 	NO_Examples,
 	NO_Params
 )
 
-EventDoc( "NativeJSEvent.preventDefault", "Prevents that the default event will fire.",
+EventDoc( "NativeJSEvent.preventDefault", "Prevents further listener to receive this event.",
 	SeesDocs( "NativeJSEvent.stopPropagation|NativeJSEvent.preventDefault|NativeJSEvent.forcePropagation" ),
 	NO_Examples,
 	NO_Params
 )
 
-EventDoc( "NativeJSEvent.forcePropagation", "Forces an event to fire.",
+EventDoc( "NativeJSEvent.forcePropagation", "Forces further listener to receive this event..",
 	SeesDocs( "NativeJSEvent.stopPropagation|NativeJSEvent.preventDefault|NativeJSEvent.forcePropagation" ),
 	NO_Examples,
 	NO_Params
 )
 
-FunctionDoc( "NativeJSEvent.fireEvent", "Starts an event.",
+FunctionDoc( "NativeJSEvent.fireEvent", "Fire the event on all the listener of the object.",
 	SeesDocs( "NativeJSEvent.addEventListener|NativeJSEvent.fireEvent" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
@@ -32,7 +32,7 @@ FunctionDoc( "NativeJSEvent.fireEvent", "Starts an event.",
 	NO_Returns
 )
 
-FunctionDoc( "NativeJSEvent.addEventListener", "Register an action for an event.",
+FunctionDoc( "NativeJSEvent.addEventListener", "Register a callback for an event.",
 	SeesDocs( "NativeJSEvent.addEventListener|NativeJSEvent.fireEvent" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,

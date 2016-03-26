@@ -16,7 +16,7 @@ FieldDoc( "File.filesize", "The size of the file in bytes.",
 	// buffer is an UTF8 string containing the data
 	console.log( this.filename + " " + this.filesize + " bytes" );
 });""" ) ],
-	IS_Static, IS_Public, IS_Readonly,
+	IS_Dynamic, IS_Public, IS_Readonly,
 	'string',
 	NO_Default
 )
@@ -27,7 +27,7 @@ FieldDoc( "File.filename", "The name of the opened file.",
 	// buffer is an UTF8 string containing the data
 	console.log( this.filename + " " + this.filesize + " bytes" );
 });""" ) ],
-	IS_Static, IS_Public, IS_Readonly,
+	IS_Dynamic, IS_Public, IS_Readonly,
 	'string',
 	NO_Default
 )

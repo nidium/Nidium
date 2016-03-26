@@ -1,5 +1,11 @@
 from dokumentor import *
 
+NamespaceDoc("HTTP Client & Server", """Native implemntation of HTTP Client & Server
+* HTTP : Connect to a HTTP server.
+* HTTPListener : Create an HTTP server where clients cant connect to.
+"""
+)
+
 ClassDoc( "HTTPListener", "Http server.",
 	[ SeeDoc( "HTTPRequest" ), SeeDoc( "Socket" ), SeeDoc( "Http" ) ],
 	[ ExampleDoc( """var ws = new HTTPListener(  8080, true, "127.0.0.1" );
@@ -10,19 +16,22 @@ ws.onrequest = function( request, client ) {
 	client.write( "hello, this is nidium" );
 } ;""") ],
 	NO_Inherrits,
-	NO_Extends
+	NO_Extends,
+        section="HTTP Client & Server",
 )
 
 ClassDoc( "HTTPRequest", "Http request object spawned by HTTPListener.",
 	[ SeeDoc( "HTTPListener" ), SeeDoc( "Socket" ), SeeDoc( "Http" ) ],
 	NO_Examples,
 	NO_Inherrits,
-	NO_Extends
+	NO_Extends,
+        section="HTTP Client & Server",
 )
 
 NamespaceDoc( "HTTPResponse", "HTTPResponse class.",
 	SeesDocs( "HTTPListener|HTTPRequest|Http" ),
-	NO_Examples
+	NO_Examples,
+        section="HTTP Client & Server",
 )
 
 EventDoc( "HTTPListener.onDisconnect", "Event that fires on disconnect.",
