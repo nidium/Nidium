@@ -2,27 +2,32 @@ from dokumentor import *
 
 NamespaceDoc( "ImageData", "ImageData Class.",
 	SeesDocs( "Image|Canvas" ),
-	NO_Examples
+	NO_Examples,
+	section="Image"
 )
 
 NamespaceDoc( "CanvasRenderingContext2D", "Class to render a 2D canvas.",
 	SeesDocs( "Canvas|CanvasGLProgram|CanvasPattern|CanvasRenderingContext2D" ),
-	NO_Examples
+	NO_Examples,
+	section="Canvas"
 )
 
 NamespaceDoc( "CanvasGradient", "Canvas gradient Class.",
 	SeesDocs( "Canvas|CanvasGLProgram|CanvasPattern|CanvasRenderingContext2D" ),
-	NO_Examples
+	NO_Examples,
+	section="Canvas"
 )
 
 NamespaceDoc( "CanvasGLProgram", "Canvas GL program Class.",
 	SeesDocs( "Canvas|CanvasGLProgram|CanvasPattern|CanvasRenderingContext2D" ),
-	NO_Examples
+	NO_Examples,
+	section="Canvas"
 )
 
 NamespaceDoc( "CanvasPattern", "Canvas pattern Class.",
 	SeesDocs( "Canvas|CanvasGLProgram|CanvasPattern|CanvasRenderingContext2D" ),
-	NO_Examples
+	NO_Examples,
+	section="Canvas"
 )
 
 FunctionDoc( "CanvasRenderingContext2D.breakText", "Wrap text over multiple lines based on a maximum width.",

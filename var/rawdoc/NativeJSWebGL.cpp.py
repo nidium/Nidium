@@ -1,10 +1,16 @@
 from dokumentor import *
 
+NamespaceDoc("WebGL", "A W3C compliant implementation of WebGL API inside Nidium", NO_Sees,
+    [ExampleDoc("""var c = new Canvas(100, 100);
+document.canvas.add(c);
+var webglContext = c.getContext("webgl");""")])
+
 items = [ "WebGLRenderingContext", "WebGLBuffer", "WebGLFramebuffer", "WebGLProgram", "WebGLRenderbuffer", "WebGLShader", "WebGLTexture", "WebGLUniformLocation", "WebGLShaderPrecisionFormat", "WebGLActiveInfo" ]
 for i in items:
 	NamespaceDoc( i, i + " Class.",
 		SeesDocs( "|".join( items ) ),
-		NO_Examples
+		NO_Examples,
+                section="WebGL"
 	)
 
 items = [ "uniform1f", "uniform2f", "uniform3f", "uniform4f" ]

@@ -1,10 +1,10 @@
 from dokumentor import *
 
-NamespaceDoc( "Audio", """Nidium provides a low level audio API called NativeDSP, a powerful interface to play and process digital audio signal.
+NamespaceDoc( "Audio", """Nidium provides a low level audio API, a powerful interface to play and process digital audio signal.
 
-NativeDSP was designed from scratch and operates in its own separate thread.
+Nidium Audio system was designed from scratch and operates in its own separate thread.
 
-NativeDSP uses an AudioBuffer for sounds. The API supports loading audio file data in multiple formats, such as mp3, wav, ogg, wma, aac.""",
+It uses an AudioBuffer for sounds. The API supports loading audio file data in multiple formats, such as mp3, wav, ogg, wma, aac.""",
 	SeesDocs( "Audio|AudioContext|_GLOBALAudioThread|AudioNodeLink|AudioNode" ),
 	[ExampleDoc( """// The following snippet demonstrates loading and playing a sound sample:
 // * Get the audio context with 'Audio.getContext()'
@@ -43,19 +43,22 @@ source.assignProcessor(function(frames, scope) {
     }
 });
 source.play();
-""") ]
+""") ],
+	section="Audio"
 )
 
 NamespaceDoc( "_GLOBALAudioThread", """The global object for the audio thread. This thread is seperated from the UI/Network thread.""",
 	SeesDocs( "_GLOBALThread|Audio|AudioContext|AudioNodeLink|AudioNode" ),
-	NO_Examples
+	NO_Examples,
+	section="Audio"
 )
 
 ClassDoc( "AudioNodeLink", "AudioNodeLink class. This class is returned by the audio node `input` or `output` array",
 	SeesDocs( "Audio|AudioContext|_GLOBALAudioThread|AudioNodeLink|AudioNode" ),
 	NO_Examples,
 	NO_Inherrits,
-	NO_Extends
+	NO_Extends,
+	section="Audio"
 )
 
 NamespaceDoc( "AudioNode", """AudioNode class.
@@ -110,7 +113,8 @@ custom.assignProcessor(function(frame, scope) {
     this.foo; // 15
     this.data.theAnswer // 42
     this.data.name // Hello world
-}); """) ]
+}); """) ],
+	section="Audio"
 )
 
 # Dont think we need to document this
@@ -126,64 +130,65 @@ ClassDoc( "Video", "Video playing.",
 	NO_Extends
 )
 
-EventDoc( "AVSource.error", "Event fired when the source fails to be opened or if a read error happens while playing the media file. This event can be fired by : Audio source node or Video object",
-	SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
-	[ExampleDoc("""var dsp = Audio.getContext();
+for klass in ["AudioNode", "Video"]:
+    EventDoc( klass + ".error", "Event fired when the source fails to be opened or if a read error happens while playing the media file.",
+            SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
+            [ExampleDoc("""var dsp = Audio.getContext();
 var node = dsp.createNode("source", 0, 2);
 node.open("invalid_file.wav");
 node.addEventListener("error", function(ev) {
     console.log("Error : " + ev.error + ". Code=" + code);
 });
 """)],
-	[ParamDoc( "event", "Event object", 
-            ObjectDoc([
-                ( "code", "The error code", "integer" ),
-                ( "error", "Description of the errorcode", "string" ) 
-            ]), NO_Default, IS_Obligated)
-        ]
-)
+            [ParamDoc( "event", "Event object", 
+                ObjectDoc([
+                    ( "code", "The error code", "integer" ),
+                    ( "error", "Description of the errorcode", "string" ) 
+                ]), NO_Default, IS_Obligated)
+            ]
+    )
 
-EventDoc( "AVSource.buffering", "Event fired when the source is buffering data. This event can be fired by : Audio source node or Video object.",
-	SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
-	[ExampleDoc("""var dsp = Audio.getContext();
+    EventDoc( klass + ".buffering", "Event fired when the source is buffering data.",
+            SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
+            [ExampleDoc("""var dsp = Audio.getContext();
 var node = dsp.createNode("source", 0, 2);
 node.open("test.wav");
 node.addEventListener("buffering", function(ev) {
     console.log("Buffering : " + ev.bufferedByes + "/" + ev.filesize + " starting at " + ev.startByes");
 });
-""")],
-	[ ParamDoc( "event", "Event object", 
-            ObjectDoc([
-                ( "filesize", "The size of the file in bytes", "integer" ),
-                ( "startByte", "The start position of the buffered data.", "integer" ),
-                ( "bufferedBytes", "The number of bytes buffered.", "integer" ) 
-            ]), NO_Default, IS_Obligated),
-        ]
-)
+    """)],
+            [ ParamDoc( "event", "Event object", 
+                ObjectDoc([
+                    ( "filesize", "The size of the file in bytes", "integer" ),
+                    ( "startByte", "The start position of the buffered data.", "integer" ),
+                    ( "bufferedBytes", "The number of bytes buffered.", "integer" ) 
+                ]), NO_Default, IS_Obligated),
+            ]
+    )
 
-EventDoc( "AVSource.ready", "Event fired when the source is opened and ready to play. This event can be fired by : Audio source node or Video object.",
-	SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
-	[ExampleDoc("""var dsp = Audio.getContext();
+    EventDoc( klass + ".ready", "Event fired when the source is opened and ready to play.",
+            SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
+            [ExampleDoc("""var dsp = Audio.getContext();
 var node = dsp.createNode("source", 0, 2);
 node.open("test.wav");
 node.addEventListener("ready", function() {
     console.log("Source is ready to be played");
 });
-""")],
-        [ ParamDoc("event", "Event object", NO_Params, NO_Default, IS_Obligated) ]	
-)
+    """)],
+            [ ParamDoc("event", "Event object", NO_Params, NO_Default, IS_Obligated) ]	
+    )
 
-EventDoc( "AVSource.pause", "Event fired when the source is put on pause. This event can be fired by : Audio source node or Video object.",
-	SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
-	NO_Examples,
-	NO_Params
-)
+    EventDoc( klass + ".pause", "Event fired when the source is put on pause.",
+            SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
+            NO_Examples,
+            [ ParamDoc("event", "Event object", NO_Params, NO_Default, IS_Obligated) ]	
+    )
 
-EventDoc( "AVSource.play", "Event fired when the source is put on play. This event can be fired by : Audio source node or Video object.",
-	SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
-	NO_Examples,
-	NO_Params
-)
+    EventDoc( klass + ".play", "Event fired when the source is put on play.",
+            SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
+            NO_Examples,
+            [ ParamDoc("event", "Event object", NO_Params, NO_Default, IS_Obligated) ]	
+    )
 
 FieldDoc( "AudioNode.type", "Node name.",
 	SeesDocs( "Audio|AudioNode|AudioNodeLink|AudioNode.type|audioNode.input|AudioNode.output" ),
@@ -221,13 +226,14 @@ FunctionDoc( "AudioContext.pFFT", "Do a FastFourierTransformation.",
 )
 
 
-FunctionDoc( "Audio.getContext", """Construct a new AudioContext.
+FunctionDoc( "Audio.getContext", """Create or retrieve the current AudioContext.
 
-If an argument is 0 or none arguments are providen, the best values are selected.""",
+If an argument is 0 or none arguments are providen, the best values are selected.
+> You can only have one `AudioContext`, if you call `getContext` multiple times with different parameters the previous `AudioContext` will become invalid. Calling `getContext` without arguments will return the current `AudioContext`""",
 	SeesDocs( "Audio|AudioContext" ),
 	NO_Examples,
 	IS_Static, IS_Public, IS_Fast,
-	[ParamDoc( "buffersize", "Buffer size", "integer", "2048", IS_Optional ) ,
+	[ParamDoc( "buffersize", "Buffer size", "integer", "0", IS_Optional ) ,
 	 ParamDoc( "channels", "Number of channels to use", "integer", "2", IS_Optional ) ,
 	 ParamDoc( "sampleRate", "Sample rate", "integer", "44100", IS_Optional ) ],
 	ReturnDoc( "AudioContext instance", "AudioContext" )
@@ -257,7 +263,7 @@ FunctionDoc( "AudioContext.createNode", """Create a new 'AudioNode' of the speci
 
 The following nodes are currently supported :
 
-|| 'type' || 'Description' || 'Input' || 'Output' ||
+|| **Type** || **Description** || **Input** || **Output** ||
 || source || Play a file or a stream || 0 || 1 or 2 ||
 || custom-source || Generate sound with JavaScript || 0 || 1 or 2 ||
 || custom || Process sound in JavaScript || up to 32 || up to 32 ||
@@ -276,12 +282,12 @@ try {
 }""")],
 	IS_Dynamic, IS_Public, IS_Fast,
 	[ParamDoc( "type", "Type of node ( 'source'|'target'|'custom-source'|'custom'|'reverb'|'delay'|'gain'|'stereo-enhancer')", "string", NO_Default, IS_Obligated ),
-	ParamDoc( "inputchannels", "The number of input channels", "integer", NO_Default, IS_Obligated ),
-	ParamDoc( "outputchannels", "The number of output channels", "integer", NO_Default, IS_Obligated ) ],
+	ParamDoc( "inputChannels", "The number of input channels", "integer", NO_Default, IS_Obligated ),
+	ParamDoc( "outputChannels", "The number of output channels", "integer", NO_Default, IS_Obligated ) ],
 	ReturnDoc( "A AudioNode of the specified type", "AudioNode" )
 )
 
-EventDoc( "AVNode.message", """Event fired when a custom node or custom-source node is sending a message from the audio thread to the main thread.
+EventDoc( "AudioNode.message", """Event fired when a custom node or custom-source node is sending a message from the audio thread to the main thread.
 
 As the 'AudioContext' has it's own thread, communitation between threads must be done via messages.""",
 	SeesDocs( "AudioNode.set|AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter" ),
@@ -293,11 +299,14 @@ As the 'AudioContext' has it's own thread, communitation between threads must be
         ]
 )
 
-FunctionDoc( "AudioNode.assignSeek", """Callback when the 'AudioNode.position' is changed on a custom custom-source node'.""",
-	SeesDocs( "Thread|AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter" ),
+FunctionDoc( "AudioNode.assignSeek", """Callback when the `AudioNode.position` is changed on a custom-source node.""",
+	SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter|AudioNode.position" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "postition", "The new position in the audiostream in seconds.", "float", NO_Default, IS_Obligated ) ],
+	[CallbackDoc( "callback", "Function to execute when the node position is changed", [
+	    ParamDoc( "postition", "The new position in seconds.", "float", NO_Default, IS_Obligated ),
+            ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated ) 
+	])]
 )
 
 FunctionDoc( "AudioNode.assignProcessor", """Callback when the node needs to process audio data.
@@ -362,44 +371,47 @@ source.play();
         ParamDoc( "frame", "An object with audio buffers",
             ObjectDoc([
                 ( "size", "The size of each audio frame in samples per buffer", "integer" ),
-                ( "data", "An array of Float32Array with the actual audio data. Each entry of the array represent a channel of the node", "[Float32Array]" )
+                ( "data", "An array of `Float32Array` with the audio data. Each entry of the array represent a channel of the node", "[Float32Array]" )
             ]), NO_Default, IS_Obligated),
-        ParamDoc( "scope", "Javascript context of the Audio thread", "AudioContext", NO_Default, IS_Obligated ) 
+        ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated ) 
     ]
 )
 
-FunctionDoc( "AudioNode.assignInit", "Callback of init events.",
+FunctionDoc( "AudioNode.assignInit", "Event fired when the custom-source or custom node is initialized.\n> * This method is only available on custom-source and custom node.\n> * Nodes are initialized when they are starting to process data.",
 	SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ParamDoc( "scope", "Javascript context of the audio thread.", "AudioContext", NO_Default, IS_Obligated ) ]
+	[CallbackDoc( "callback", "Function to execute when the node is initialized", [
+            ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated ) 
+	])]
 )
 
-FunctionDoc( "AudioNode.assignSetter", """Callback of 'AudioNode.set' events.
-A value has been set for a certain key on this thread.
+FunctionDoc( "AudioNode.assignSetter", """Callback called inside the Audio thread when a variable has been set on the node with `AudioNode.set`.
 This is very usefull if you need to do some extra processing on the variable being set.""",
     SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|Audio|AudioNode.get|AudioNode.set|AudioNode.assignInit" ),
     [ExampleDoc("""var dsp = Audio.getContext();
 var custom = dsp.createNode("custom", 2, 2);
-var foo = 15;
-custom.set("foo", foo);
-// Changing local variable does not affect the value of "foo" in the audio context.
-foo = 0;
-// A setter is also called everytime a value is set
+
 custom.assignSetter(function(key, value) {
 	switch (key) {
-    	case "foo":
-            console.log("foo variable set to ", value);
-        	break;
+	    case "foo":
+		console.log("foo variable set to ", value);
+		break;
     }
 });
+
+var foo = 15;
+custom.set("foo", foo);
+
+// Changing local variable does not affect the value of "foo" in the audio context.
+foo = 0;
 """)],
     IS_Dynamic, IS_Public, IS_Fast,
-    [
-        ParamDoc( "key", "Key", "string", NO_Default, IS_Obligated ),
-        ParamDoc( "value", "the value that has been set", "mixed", NO_Default, IS_Obligated ),
-        ParamDoc( "global", "Global object for it's thread", "Object", NO_Default, IS_Obligated ) 
-    ]
+    [CallbackDoc( "callback", "Function to execute when a variable is set on the `AudioNode`", [
+	ParamDoc( "key", "The key name", "string", NO_Default, IS_Obligated ),
+	ParamDoc( "value", "The value that has been set", "mixed", NO_Default, IS_Obligated ),
+        ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated ) 
+    ])]
 )
 
 FunctionDoc( "AudioContext.connect", "Connect an output channel to an input channel.",
@@ -422,7 +434,7 @@ One channel needs to be an input channel, the other channel needs to be an outpu
 	NO_Returns
 )
 
-FunctionDoc( "_GLOBALAudioThread.echo", "Display a textline on the console.",
+FunctionDoc( "_GLOBALAudioThread.console", "Expose the console object on the Audio thread",
 	[ SeeDoc( "Console" ) ],
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -465,12 +477,12 @@ console.log("Volume is now " + dsp.volume);""")],
 	NO_Default
 )
 
-FunctionDoc( "AudioNode.set", """Set a value on a AudioNode object from the main thread.
+FunctionDoc( "AudioNode.set", """Set a value on an `AudioNode` from the main thread.
 
 For native processor node an error will be thrown if the name of the property is unknown.
 If the value has been set correctly, the function that was defined with `assigneSetter` will be called.
 Variables passed to custom nodes are *copied* to the audio context. Audio context runs in a different thread.
-Variables can then be accesed on the node from inside the audio thread using 'this.[key]'.""",
+Variables can then be accesed on the node from inside the audio thread using `this[key]|.""",
 	SeesDocs( "Audio|AudioNode.send|AudioNode.get|AudioNode.set|AudioNode.assignSetter|AudioNode.assignInit|AudioNode.assignProcessor" ),
 	[ ExampleDoc("""var dsp = Audio.getContext();
 var delay = dsp.createNode("delay", 2, 2);
@@ -515,12 +527,12 @@ custom.assignProcessor(function(frame, scope) {
     this.data.name // Hello world
 });""") ],
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "key", "Key to find the value for at a later stage", "string", NO_Default, IS_Obligated ) ,
-	 ParamDoc( "value", "Value belonging to Key. All javascript types are accepted.", "mixed", NO_Default, IS_Obligated ) ],
+	[ ParamDoc( "key", "Key", "string", NO_Default, IS_Obligated ) ,
+	 ParamDoc( "value", "Value belonging to Key", "mixed", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
 
-FunctionDoc( "AudioNode.get", "Get a value from a custom AudioNode object. > Variables passed to custom nodes are *copied* to the audio context (thread).",
+FunctionDoc( "AudioNode.get", "Get a value from a custom AudioNode object.\n> Variables passed to custom nodes are *copied* to the audio context (thread).",
 	SeesDocs( "Audio|AudioNode.send|AudioNode.get|AudioNode.set" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -528,7 +540,7 @@ FunctionDoc( "AudioNode.get", "Get a value from a custom AudioNode object. > Var
 	ReturnDoc( "The value belonging to 'key'", "mixed" )
 )
 
-FunctionDoc( "AudioNode.send", """Send a message from a custom-source node or a custom node, to the main hread.
+FunctionDoc( "AudioNode.send", """Send a message from a custom-source node or a custom node, to the main thread.
 
 The values are copied and can be accessed with the 'AudioNode.message' event.""",
 	SeesDocs( "Audio|AudioNode.send|AudioNode.get|AudioNode.set|AudioNode.message" ),
@@ -540,7 +552,9 @@ The values are copied and can be accessed with the 'AudioNode.message' event."""
 
 FunctionDoc( "AudioNode.open", """Opens an audio file. You can use any stream supported by Nidium.
 
-Supported Audio Formats: mp3, wav, ogg, wma, aac.""",
+Supported Audio Formats: mp3, wav, ogg, wma, aac.
+>This method is only available on source node
+""",
 	SeesDocs( "Audio|AudioNode|AudioNode.open|AudioNode.pause|AudioNode.play|AudioNode.stop" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -548,7 +562,7 @@ Supported Audio Formats: mp3, wav, ogg, wma, aac.""",
 	NO_Returns,
 )
 
-FunctionDoc( "AudioNode.play", "Start playback.",
+FunctionDoc( "AudioNode.play", "Start playback.\n>This method is only available on source node",
 	SeesDocs( "Audio|AudioNode|AudioNode.open|AudioNode.pause|AudioNode.play|AudioNode.stop" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -556,7 +570,7 @@ FunctionDoc( "AudioNode.play", "Start playback.",
 	NO_Returns,
 )
 
-FunctionDoc( "AudioNode.pause", "Pause playback.",
+FunctionDoc( "AudioNode.pause", "Pause playback.\n>This method is only available on source node",
 	SeesDocs( "Audio|AudioNode|AudioNode.open|AudioNode.pause|AudioNode.play|AudioNode.stop" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -564,7 +578,7 @@ FunctionDoc( "AudioNode.pause", "Pause playback.",
 	NO_Returns,
 )
 
-FunctionDoc( "AudioNode.stop", "Stop playback.",
+FunctionDoc( "AudioNode.stop", "Stop playback.\n>This method is only available on source node",
 	SeesDocs( "Audio|AudioNode|AudioNode.open|AudioNode.pause|AudioNode.play|AudioNode.stop" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -572,7 +586,9 @@ FunctionDoc( "AudioNode.stop", "Stop playback.",
 	NO_Returns,
 )
 
-FunctionDoc( "AudioNode.close", "Close a stream.",
+FunctionDoc( "AudioNode.close", """Close a stream.
+This method will free all associated resource with the node. You'll have to call `AudioNode.open` if you want to play a new file
+>This method is only available on source node""",
 	SeesDocs( "Audio|AudioNode|AudioNode.open|AudioNode.pause|AudioNode.play|AudioNode.stop" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Slow,
@@ -595,17 +611,6 @@ FieldDoc( "Video.height", "The height of the video.",
 	"integer",
 	NO_Default
 )
-
-for i in ["Video", "Audio" ]:
-	FieldDoc( i + ".metadata", "An object with metadata that belong to this " + i + " stream",
-		SeesDocs(i + "|" + i + ".position|" + i + ".duration|" + i + ".metadata|" + i + ".bitrate" ),
-		[ExampleDoc( """for (var k in source.metadata) {
-		console.log("Metadata : " + k + "=" + source.metadata[k]);
-	}""") ],
-		IS_Dynamic, IS_Public, IS_Readonly,
-		"Object",
-		NO_Default
-	)
 
 EventDoc( "Video.frame", "Event fired when a new video frame is drawn.",
 	NO_Sees,
@@ -659,26 +664,44 @@ This method will return `null` if it's called before the `ready` event of the vi
         ReturnDoc("The audio node instance associated to the video or null if the video does not have any audio stream", "AudioNode")
 )
 
-for i in ["Video", "Audio" ]:
-	FieldDoc( i +".position", "The current position in the " + i + " in seconds. Can also be used to set the position to a certain time.",
-		SeesDocs("Video|Audio|Video.height|" + i + "width|" + i + "position|" + i + "duration|" + i + "metadata|" + i + "bitrate|Video.frame|Video.canvas" ),
-		[ ExampleDoc("""console.log(source.position); // display the current position in the source
+for i in ["Video", "AudioNode" ]:
+    if i == "AudioNode":
+        more = "\n>This property is only available on `source` node"
+    else:
+        more = "";
+
+    FieldDoc( i +".position", "The current position in the " + i + " in seconds.\n Can also be used to set the position to a certain time." + more,
+            SeesDocs( i + ".duration|" + i + ".metadata|" + i + ".bitrate" ),
+            [ ExampleDoc("""console.log(source.position); // display the current position in the source
 source.position += 5; // seek 5 seconds forwards""")],
-		IS_Dynamic, IS_Public, IS_ReadWrite,
-		"integer",
-		NO_Default
-	)
-	FieldDoc( i + ".duration", "The duration of the " + i + " in seconds.",
-		SeesDocs("Video|Audio|Video.height|" + i + "width|" + i + "position|" + i + "duration|" + i + "metadata|" + i + "bitrate|Video.frame|Video.canvas" ),
-		NO_Examples,
+            IS_Dynamic, IS_Public, IS_ReadWrite,
+            "integer",
+            NO_Default
+    )
+
+    FieldDoc( i + ".duration", "The duration of the " + i + " in seconds." + more,
+            SeesDocs( i + ".position|" + i + ".metadata|" + i + ".bitrate" ),
+            NO_Examples,
+            IS_Dynamic, IS_Public, IS_Readonly,
+            "integer",
+            NO_Default
+    )
+
+    FieldDoc( i +".bitrate", "The bitrate of the " + i + " in samples per buffer." + more,
+            SeesDocs( i + ".position|" + i + ".metadata|" + i + ".duration" ),
+            NO_Examples,
+            IS_Dynamic, IS_Public, IS_Readonly,
+            "integer",
+            NO_Default
+    )
+
+    FieldDoc( i + ".metadata", "An object with metadata that belong to this " + i + " stream." + more,
+            SeesDocs(i + "|" + i + ".position|" + i + ".duration|" + i + ".metadata|" + i + ".bitrate" ),
+            [ExampleDoc( """for (var k in source.metadata) {
+    console.log("Metadata : " + k + "=" + source.metadata[k]);
+}"""
+            )],
 		IS_Dynamic, IS_Public, IS_Readonly,
-		"integer",
-		NO_Default
-	)
-	FieldDoc( i +".bitrate", "The bitrate of the " + i + " in samples per buffer.",
-		SeesDocs("Video|Audio|Video.height|" + i + "width|" + i + "position|" + i + "duration|" + i + "metadata|" + i + "bitrate|Video.frame|Video.canvas" ),
-		NO_Examples,
-		IS_Dynamic, IS_Public, IS_Readonly,
-		"integer",
+		"Object",
 		NO_Default
 	)

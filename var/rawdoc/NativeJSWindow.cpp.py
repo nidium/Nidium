@@ -23,7 +23,8 @@ NamespaceDoc( "MouseDrag", "Class that describes drag events.",
 
 NamespaceDoc( "WindowEvent", "Class that describes window events.",
 	SeesDocs( "NMLEvent|Window|WindowEvent|keyEvent|TextInputEvent|MouseEvent|DragEvent" ),
-	NO_Examples
+	NO_Examples,
+        section="Window"
 )
 
 NamespaceDoc( "TextInputEvent", "Class that describes textinput events.",
