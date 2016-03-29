@@ -773,10 +773,30 @@ private:
 */
 #define NATIVE_JS_SETTER(tinyid, setter) \
     {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}}
+#define NATIVE_JS_SETTER_WRS(tinyid, setter) \
+    {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::SetterWithReservedSlot<tinyid, setter>), JSStrictPropertyOp), nullptr}}
 #define NATIVE_JS_GETTER(tinyid, getter) \
     {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}}
-#define NATIVE_JS_STUBGETTER() \
-    {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::NullGetter), JSPropertyOp), nullptr}}
+#define NATIVE_JS_STUBGETTER(tinyid) \
+    {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::NullGetter<tinyid>), JSPropertyOp), nullptr}}
+
+/* Getter only */
+#define NATIVE_PSG(name, tinyid, getter_func) \
+    {name, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
+        NATIVE_JS_GETTER(tinyid, getter_func), \
+        JSOP_NULLWRAPPER}
+
+/* Setter only */
+#define NATIVE_PSS(name, tinyid, setter_func) \
+    {name, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
+        NATIVE_JS_STUBGETTER(tinyid), \
+        NATIVE_JS_SETTER_WRS(tinyid, setter_func)}
+
+/* Both */
+#define NATIVE_PSGS(name, tinyid, getter_func, setter_func) \
+    {name, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
+        NATIVE_JS_GETTER(tinyid, getter_func), \
+        NATIVE_JS_SETTER(tinyid, setter_func)}
 
 struct NativeJSPropertyAccessors
 {
@@ -802,6 +822,23 @@ struct NativeJSPropertyAccessors
         return ret;
     }
 
+    template <uint8_t TINYID, NativeJSGetterOp FN>
+    static bool SetterWithReservedSlot(JSContext *cx, unsigned argc, JS::Value *vp) {
+        JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+        JS::RootedObject obj(cx, JS_THIS_OBJECT(cx, vp));
+
+        if (!obj) return false;
+        JS::RootedValue val(cx, args.get(0));
+        bool ret = FN(cx, obj, TINYID, true, &val);
+#if 0
+        args.rval().set(val);
+#endif
+        /* We need this to be sure that the value set is properly rooted */
+        JS_SetReservedSlot(obj, TINYID, val);
+
+        return ret;
+    }
+
     template <uint8_t TINYID, NativeJSSetterOp FN>
     static bool Getter(JSContext *cx, unsigned argc, JS::Value *vp) {
         JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -812,7 +849,16 @@ struct NativeJSPropertyAccessors
         return FN(cx, obj, TINYID, args.rval());
     }
 
+    template <uint8_t TINYID>
     static bool NullGetter(JSContext *cx, unsigned argc, JS::Value *vp) {
+
+        JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+        JS::RootedObject obj(cx, JS_THIS_OBJECT(cx, vp));
+
+        if (!obj) return false;
+
+        args.rval().set(JS_GetReservedSlot(obj, TINYID));
+
         return true;
     }
 

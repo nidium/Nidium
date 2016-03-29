@@ -87,7 +87,7 @@ enum {
 JSStructuredCloneCallbacks *NativeJS::jsscc = NULL;
 
 JSClass global_class = {
-    "global", JSCLASS_GLOBAL_FLAGS | JSCLASS_HAS_PRIVATE,
+    "global", JSCLASS_GLOBAL_FLAGS_WITH_SLOTS(16) | JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     nullptr, nullptr, nullptr, JS_GlobalObjectTraceHook
@@ -122,19 +122,12 @@ static JSFunctionSpec glob_funcs[] = {
 };
 
 static JSPropertySpec glob_props[] = {
-    {"__filename", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(GLOBAL_PROP___FILENAME, native_global_prop_get),
-        JSOP_NULLWRAPPER},
-   {"__dirname", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(GLOBAL_PROP___DIRNAME, native_global_prop_get),
-        JSOP_NULLWRAPPER},
-   {"global", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(GLOBAL_PROP_GLOBAL, native_global_prop_get),
-        JSOP_NULLWRAPPER},
-#ifndef NATIVE_DISABLE_WINDOW_GLOBAL
-   {"window", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(GLOBAL_PROP_WINDOW, native_global_prop_get),
-        JSOP_NULLWRAPPER},
+
+    NATIVE_PSG("__filename", GLOBAL_PROP___FILENAME, native_global_prop_get),
+    NATIVE_PSG("__dirname", GLOBAL_PROP___DIRNAME, native_global_prop_get),
+    NATIVE_PSG("global", GLOBAL_PROP_GLOBAL, native_global_prop_get),
+#ifndef NATIVE_DISABLE_WINDOW_GLOBAL    
+    NATIVE_PSG("window", GLOBAL_PROP_WINDOW, native_global_prop_get),
 #endif
     JS_PS_END
 };

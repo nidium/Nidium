@@ -141,12 +141,8 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
 static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSPropertySpec File_props[] = {
-    {"filesize", JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(FILE_PROP_FILESIZE, native_file_prop_get),
-        JSOP_NULLWRAPPER},
-    {"filename", JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(FILE_PROP_FILENAME, native_file_prop_get),
-        JSOP_NULLWRAPPER},
+    NATIVE_PSG("filesize", FILE_PROP_FILESIZE, native_file_prop_get),
+    NATIVE_PSG("filename", FILE_PROP_FILENAME, native_file_prop_get),
     JS_PS_END
 };
 

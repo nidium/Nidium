@@ -32,11 +32,14 @@
 
 #include "NativeJSUtils.h"
 
+#define SOCKET_RESERVED_SLOT 0
+
 enum {
-    SOCKET_PROP_BINARY,
+    SOCKET_PROP_BINARY = SOCKET_RESERVED_SLOT,
     SOCKET_PROP_READLINE,
     SOCKET_PROP_ENCODING,
-    SOCKET_PROP_TIMEOUT
+    SOCKET_PROP_TIMEOUT,
+    SOCKET_NPROP
 };
 
 /* only use on connected clients */
@@ -60,7 +63,7 @@ static bool native_socket_client_close(JSContext *cx,
     unsigned argc, JS::Value *vp);
 
 static JSClass Socket_class = {
-    "Socket", JSCLASS_HAS_PRIVATE,
+    "Socket", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(SOCKET_NPROP+1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Socket_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
@@ -93,10 +96,10 @@ static JSFunctionSpec socket_funcs[] = {
 };
 
 static JSPropertySpec Socket_props[] = {
-    {"binary",   JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_BINARY, native_socket_prop_set)},
-    {"readline", JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_READLINE, native_socket_prop_set)},
-    {"encoding", JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_ENCODING, native_socket_prop_set)},
-    {"timeout",  JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_TIMEOUT, native_socket_prop_set)},
+    NATIVE_PSS("binary", SOCKET_PROP_BINARY, native_socket_prop_set),
+    NATIVE_PSS("readline", SOCKET_PROP_READLINE, native_socket_prop_set),
+    NATIVE_PSS("encoding", SOCKET_PROP_ENCODING, native_socket_prop_set),
+    NATIVE_PSS("timeout", SOCKET_PROP_TIMEOUT, native_socket_prop_set),
     JS_PS_END
 };
 
