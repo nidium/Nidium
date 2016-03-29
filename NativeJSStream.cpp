@@ -47,10 +47,10 @@ template<>
 JSClass *NativeJSExposer<NativeJSStream>::jsclass = &Stream_class;
 
 static JSFunctionSpec Stream_funcs[] = {
-    JS_FN("seek", native_stream_seek, 1, JSFUNCTIONPROPS),
-    JS_FN("start", native_stream_start, 0, JSFUNCTIONPROPS),
-    JS_FN("stop", native_stream_stop, 0, JSFUNCTIONPROPS),
-    JS_FN("getNextPacket", native_stream_getNextPacket, 0, JSFUNCTIONPROPS),
+    JS_FN("seek", native_stream_seek, 1, NATIVE_JS_FNPROPS),
+    JS_FN("start", native_stream_start, 0, NATIVE_JS_FNPROPS),
+    JS_FN("stop", native_stream_stop, 0, NATIVE_JS_FNPROPS),
+    JS_FN("getNextPacket", native_stream_getNextPacket, 0, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 

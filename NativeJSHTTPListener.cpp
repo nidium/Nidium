@@ -52,9 +52,9 @@ static JSClass HTTPRequest_class = {
     TODO: write is for response
 */
 static JSFunctionSpec HTTPResponse_funcs[] = {
-    JS_FN("write", native_httpresponse_write, 1, JSFUNCTIONPROPS),
-    JS_FN("end", native_httpresponse_end, 0, JSFUNCTIONPROPS),
-    JS_FN("writeHead", native_httpresponse_writeHead, 1, JSFUNCTIONPROPS),
+    JS_FN("write", native_httpresponse_write, 1, NATIVE_JS_FNPROPS),
+    JS_FN("end", native_httpresponse_end, 0, NATIVE_JS_FNPROPS),
+    JS_FN("writeHead", native_httpresponse_writeHead, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 

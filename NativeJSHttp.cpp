@@ -44,7 +44,7 @@ template<>
 JSClass *NativeJSExposer<NativeJSHttp>::jsclass = &Http_class;
 
 static JSFunctionSpec http_funcs[] = {
-    JS_FN("request", native_http_request, 2, JSFUNCTIONPROPS),
+    JS_FN("request", native_http_request, 2, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 

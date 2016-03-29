@@ -151,22 +151,22 @@ static JSPropertySpec File_props[] = {
 };
 
 static JSFunctionSpec File_funcs[] = {
-    JS_FN("open", native_file_open, 1, JSFUNCTIONPROPS),
-    JS_FN("openSync", native_file_openSync, 1, JSFUNCTIONPROPS),
-    JS_FN("read", native_file_read, 2, JSFUNCTIONPROPS),
-    JS_FN("seek", native_file_seek, 2, JSFUNCTIONPROPS),
-    JS_FN("close", native_file_close, 0, JSFUNCTIONPROPS),
-    JS_FN("closeSync", native_file_closeSync, 0, JSFUNCTIONPROPS),
-    JS_FN("write", native_file_write, 1, JSFUNCTIONPROPS),
-    JS_FN("isDir", native_file_isDir, 0, JSFUNCTIONPROPS),
-    JS_FN("listFiles", native_file_listFiles, 1, JSFUNCTIONPROPS),
-    JS_FN("rmrf", native_file_rmrf, 0, JSFUNCTIONPROPS),
+    JS_FN("open", native_file_open, 1, NATIVE_JS_FNPROPS),
+    JS_FN("openSync", native_file_openSync, 1, NATIVE_JS_FNPROPS),
+    JS_FN("read", native_file_read, 2, NATIVE_JS_FNPROPS),
+    JS_FN("seek", native_file_seek, 2, NATIVE_JS_FNPROPS),
+    JS_FN("close", native_file_close, 0, NATIVE_JS_FNPROPS),
+    JS_FN("closeSync", native_file_closeSync, 0, NATIVE_JS_FNPROPS),
+    JS_FN("write", native_file_write, 1, NATIVE_JS_FNPROPS),
+    JS_FN("isDir", native_file_isDir, 0, NATIVE_JS_FNPROPS),
+    JS_FN("listFiles", native_file_listFiles, 1, NATIVE_JS_FNPROPS),
+    JS_FN("rmrf", native_file_rmrf, 0, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec File_static_funcs[] = {
-    JS_FN("readSync", native_file_readFileSync, 1, JSFUNCTIONPROPS),
-    JS_FN("read",     native_file_readFile, 2, JSFUNCTIONPROPS),
+    JS_FN("readSync", native_file_readFileSync, 1, NATIVE_JS_FNPROPS),
+    JS_FN("read",     native_file_readFile, 2, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 

@@ -37,8 +37,8 @@ template<>
 JSClass *NativeJSExposer<NativeJSDebug>::jsclass = &debug_class;
 
 static JSFunctionSpec debug_funcs[] = {
-    JS_FN("serialize", native_debug_serialize, 1, JSFUNCTIONPROPS),
-    JS_FN("unserialize", native_debug_unserialize, 1, JSFUNCTIONPROPS),
+    JS_FN("serialize", native_debug_serialize, 1, NATIVE_JS_FNPROPS),
+    JS_FN("unserialize", native_debug_unserialize, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 

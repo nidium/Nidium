@@ -22,14 +22,14 @@ static JSClass console_class = {
 };
 
 static JSFunctionSpec console_funcs[] = {
-    JS_FN("log", native_console_log, 0, JSFUNCTIONPROPS),
-    JS_FN("write", native_console_write, 0, JSFUNCTIONPROPS),
-    JS_FN("info", native_console_log, 0, JSFUNCTIONPROPS),
-    JS_FN("error", native_console_log, 0, JSFUNCTIONPROPS),
-    JS_FN("warn", native_console_log, 0, JSFUNCTIONPROPS),
-    JS_FN("hide", native_console_hide, 0, JSFUNCTIONPROPS),
-    JS_FN("show", native_console_show, 0, JSFUNCTIONPROPS),
-    JS_FN("clear", native_console_clear, 0, JSFUNCTIONPROPS),
+    JS_FN("log", native_console_log, 0, NATIVE_JS_FNPROPS),
+    JS_FN("write", native_console_write, 0, NATIVE_JS_FNPROPS),
+    JS_FN("info", native_console_log, 0, NATIVE_JS_FNPROPS),
+    JS_FN("error", native_console_log, 0, NATIVE_JS_FNPROPS),
+    JS_FN("warn", native_console_log, 0, NATIVE_JS_FNPROPS),
+    JS_FN("hide", native_console_hide, 0, NATIVE_JS_FNPROPS),
+    JS_FN("show", native_console_show, 0, NATIVE_JS_FNPROPS),
+    JS_FN("clear", native_console_clear, 0, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
