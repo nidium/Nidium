@@ -5,9 +5,12 @@
 #include <stdbool.h>
 #include <js/StructuredClone.h>
 
+#include "NativePath.h"
+
 #ifndef NATIVE_NO_PRIVATE_DIR
 #  include "../interface/NativeSystemInterface.h"
 #endif
+
 
 NativeDB::NativeDB(const char *name) :
     m_Database(NULL), m_Status(false)
@@ -22,14 +25,27 @@ NativeDB::NativeDB(const char *name) :
 #else
     const char *dir = "./";
 #endif
+    /*
+     change dots to slashes, to avoid a cluttered directory structure
+    */
     std::string sdir(dir);
     sdir += name;
-
+    char * chdir = strdup(sdir.c_str());
+    bool found = false;
+    for (size_t i = 0; i < strlen(chdir); i++) {
+        if (chdir[i] == '.' && found) {
+            chdir[i] = '/';
+        } else {
+            found = true;
+        }
+    }
+    NativePath::makedirs(chdir);
     options.create_if_missing = true;
     options.filter_policy = leveldb::NewBloomFilterPolicy(8);
 
-    leveldb::Status status = leveldb::DB::Open(options, sdir.c_str(), &m_Database);
+    leveldb::Status status = leveldb::DB::Open(options, chdir, &m_Database);
     m_Status = status.ok();
+    free(chdir);
 }
 
 bool NativeDB::insert(const char *key, const uint8_t *data, size_t data_len)

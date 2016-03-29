@@ -19,7 +19,7 @@
 #include "NativePath.h"
 
 #include <string>
-
+#include <sys/stat.h>
 #include <vector>
 
 #include <js/OldDebugAPI.h>
@@ -228,6 +228,27 @@ NativePath::schemeInfo *NativePath::getScheme(const char *url, const char **pURL
         *pURL = url;
     }
     return g_m_DefaultScheme;
+}
+
+void NativePath::makedirs(const char* dirWithSlashes)
+{
+    char tmp[MAXPATHLEN];
+    char *p = NULL;
+    size_t len;
+
+    len = snprintf(tmp, sizeof(tmp), "%s", dirWithSlashes);
+    if (tmp[len - 1] == '/') {
+        tmp[len - 1] = 0;
+    }
+    for (p = tmp + 1; *p; p++) {
+        if (*p == '/') {
+            *p = 0;
+            mkdir(tmp, S_IRWXU);
+            *p = '/';
+        }
+    }
+    mkdir(tmp, S_IRWXU);
+
 }
 
 char * NativePath::currentJSCaller(JSContext *cx)
