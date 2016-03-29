@@ -44,7 +44,7 @@ static bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Storage_Finalize(JSFreeOp *fop, JSObject *obj);
 
 enum {
-    WINDOW_PROP_LEFT,
+    WINDOW_PROP_LEFT = JSCLASS_GLOBAL_SLOT_COUNT,
     WINDOW_PROP_TOP,
     WINDOW_PROP_WIDTH,
     WINDOW_PROP_HEIGHT,
@@ -82,7 +82,6 @@ static JSClass storage_class = {
 
 extern JSClass global_class;
 
-JSClass *NativeJSwindow::jsclass = &global_class;
 template<>
 JSClass *NativeJSExposer<NativeJSwindow>::jsclass = &global_class;
 
@@ -173,64 +172,32 @@ static struct native_cursors {
 };
 
 static JSPropertySpec window_props[] = {
-    {"devicePixelRatio", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_GETTER(WINDOW_PROP_DEVICE_PIXELRATIO, native_window_prop_get),
-        JSOP_NULLWRAPPER},
-    {"left", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(WINDOW_PROP_LEFT, native_window_prop_get),
-        NATIVE_JS_SETTER(WINDOW_PROP_LEFT, native_window_prop_set)},
-    {"top", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(WINDOW_PROP_TOP, native_window_prop_get),
-        NATIVE_JS_SETTER(WINDOW_PROP_TOP, native_window_prop_set)},
-    {"innerWidth", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(WINDOW_PROP_WIDTH, native_window_prop_get),
-        NATIVE_JS_SETTER(WINDOW_PROP_WIDTH, native_window_prop_set)},
-    {"outerWidth", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(WINDOW_PROP_WIDTH, native_window_prop_get),
-        NATIVE_JS_SETTER(WINDOW_PROP_WIDTH, native_window_prop_set)},
-    {"innerHeight", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(WINDOW_PROP_HEIGHT, native_window_prop_get),
-        NATIVE_JS_SETTER(WINDOW_PROP_HEIGHT, native_window_prop_set)},
-    {"outerHeight", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(WINDOW_PROP_HEIGHT, native_window_prop_get),
-        NATIVE_JS_SETTER(WINDOW_PROP_HEIGHT, native_window_prop_set)},
-    {"title", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(WINDOW_PROP_TITLE, native_window_prop_get),
-        NATIVE_JS_SETTER(WINDOW_PROP_TITLE, native_window_prop_set)},
-    {"cursor", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_STUBGETTER(),
-        NATIVE_JS_SETTER(WINDOW_PROP_CURSOR, native_window_prop_set)},
-    {"titleBarColor", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_STUBGETTER(),
-        NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_COLOR, native_window_prop_set)},
-    {"titleBarControlsOffsetX", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_STUBGETTER(),
-        NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, native_window_prop_set)},
-    {"titleBarControlsOffsetY", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_STUBGETTER(),
-        NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, native_window_prop_set)},
+    NATIVE_PSG("devicePixelRatio", WINDOW_PROP_DEVICE_PIXELRATIO, native_window_prop_get),
+
+    NATIVE_PSGS("left", WINDOW_PROP_LEFT, native_window_prop_get, native_window_prop_set),
+    NATIVE_PSGS("top", WINDOW_PROP_TOP, native_window_prop_get, native_window_prop_set),
+    NATIVE_PSGS("innerWidth", WINDOW_PROP_WIDTH, native_window_prop_get, native_window_prop_set),
+    NATIVE_PSGS("outerWidth", WINDOW_PROP_WIDTH, native_window_prop_get, native_window_prop_set),
+    NATIVE_PSGS("innerHeight", WINDOW_PROP_HEIGHT, native_window_prop_get, native_window_prop_set),
+    NATIVE_PSGS("outerHeight", WINDOW_PROP_HEIGHT, native_window_prop_get, native_window_prop_set),
+    NATIVE_PSGS("title", WINDOW_PROP_TITLE, native_window_prop_get, native_window_prop_set),
+
+    NATIVE_PSS("cursor", WINDOW_PROP_CURSOR, native_window_prop_set),
+    NATIVE_PSS("titleBarColor", WINDOW_PROP_TITLEBAR_COLOR, native_window_prop_set),
+    NATIVE_PSS("titleBarControlsOffsetX", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, native_window_prop_set),
+    NATIVE_PSS("titleBarControlsOffsetY", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, native_window_prop_set),
+
     JS_PS_END
 };
 
 static JSPropertySpec navigator_props[] = {
-    {"language", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_GETTER(NAVIGATOR_PROP_LANGUAGE, native_navigator_prop_get),
-        JSOP_NULLWRAPPER},
-    {"vibrate", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_GETTER(NAVIGATOR_PROP_VIBRATE, native_navigator_prop_get),
-        JSOP_NULLWRAPPER},
-    {"appName", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_GETTER(NAVIGATOR_PROP_APPNAME, native_navigator_prop_get),
-        JSOP_NULLWRAPPER},
-    {"appVersion", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_GETTER(NAVIGATOR_PROP_APPVERSION, native_navigator_prop_get),
-        JSOP_NULLWRAPPER},
-    {"platform", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_GETTER(NAVIGATOR_PROP_PLATFORM, native_navigator_prop_get),
-        JSOP_NULLWRAPPER},
-    {"userAgent", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_GETTER(NAVIGATOR_PROP_USERAGENT, native_navigator_prop_get),
-        JSOP_NULLWRAPPER},
+
+    NATIVE_PSG("language", NAVIGATOR_PROP_LANGUAGE, native_navigator_prop_get),
+    NATIVE_PSG("vibrate", NAVIGATOR_PROP_VIBRATE, native_navigator_prop_get),
+    NATIVE_PSG("appName", NAVIGATOR_PROP_APPNAME, native_navigator_prop_get),
+    NATIVE_PSG("appVersion", NAVIGATOR_PROP_APPVERSION, native_navigator_prop_get),
+    NATIVE_PSG("platform", NAVIGATOR_PROP_PLATFORM, native_navigator_prop_get),
+    NATIVE_PSG("userAgent", NAVIGATOR_PROP_USERAGENT, native_navigator_prop_get),
     JS_PS_END
 };
 
