@@ -15,24 +15,27 @@
 NativeDB::NativeDB(const char *name) :
     m_Database(NULL), m_Status(false)
 {
+    char * chdir;
+    bool found;
+    size_t i;
+
     if (name == NULL) {
         m_Status = false;
         return;
     }
     leveldb::Options options;
 #ifndef NATIVE_NO_PRIVATE_DIR
-    const char *dir = NativeSystemInterface::getInstance()->getCacheDirectory();
+    std::string sdir(NativeSystemInterface::getInstance()->getCacheDirectory());
 #else
-    const char *dir = "./";
+    std::string sdir("./");
 #endif
     /*
      change dots to slashes, to avoid a cluttered directory structure
     */
-    std::string sdir(dir);
     sdir += name;
-    char * chdir = strdup(sdir.c_str());
-    bool found = false;
-    for (size_t i = 0; i < strlen(chdir); i++) {
+    chdir = strdup(sdir.c_str());
+    found = false;
+    for (i = 0; i < strlen(chdir); i++) {
         if (chdir[i] == '.' && found) {
             chdir[i] = '/';
         } else {
