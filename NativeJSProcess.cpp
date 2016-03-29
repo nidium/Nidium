@@ -37,8 +37,8 @@ template<>
 JSClass *NativeJSExposer<NativeJSProcess>::jsclass = &Process_class;
 
 static JSFunctionSpec Process_funcs[] = {
-    JS_FN("setSignalHandler", native_setSignalHandler, 1, 0),
-    JS_FN("exit", native_process_exit, 1, 0),
+    JS_FN("setSignalHandler", native_setSignalHandler, 1, NATIVE_JS_FNPROPS),
+    JS_FN("exit", native_process_exit, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 

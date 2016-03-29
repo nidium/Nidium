@@ -41,7 +41,7 @@ static JSClass fs_class = {
 };
 
 static JSFunctionSpec FS_static_funcs[] = {
-    JS_FN("readDir",     native_fs_readDir, 2, 0),
+    JS_FN("readDir",     native_fs_readDir, 2, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
