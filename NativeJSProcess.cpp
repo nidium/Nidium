@@ -16,12 +16,11 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#include "NativeJSProcess.h"
+
 #include <pwd.h>
 #include <grp.h>
 
-
-#include "NativeJSProcess.h"
-#include "NativeJS.h"
 #include <native_netlib.h>
 
 static void Process_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -46,9 +45,9 @@ template<>
 JSClass *NativeJSExposer<NativeJSProcess>::jsclass = &Process_class;
 
 static JSFunctionSpec Process_funcs[] = {
-    JS_FN("setUser", native_process_setuser, 1, 0),
-    JS_FN("setSignalHandler", native_setSignalHandler, 1, 0),
-    JS_FN("exit", native_process_exit, 1, 0),
+    JS_FN("setUser", native_process_setuser, 1, NATIVE_JS_FNPROPS),
+    JS_FN("setSignalHandler", native_setSignalHandler, 1, NATIVE_JS_FNPROPS),
+    JS_FN("exit", native_process_exit, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
@@ -99,8 +98,6 @@ static bool native_process_setuser(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    ape_global *ape = NativeJS::getNet();
-
     JSNATIVE_PROLOGUE_CLASS(NativeJSProcess, &Process_class);
     NATIVE_CHECK_ARGS("setSignalHandler", 1);
 
@@ -120,7 +117,7 @@ static bool native_process_exit(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
     ape->is_running = 0;
-    
+
     return true;
 }
 
@@ -153,7 +150,7 @@ static int ape_kill_handler(int code, ape_global *ape)
 }
 
 void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc, int workerId)
-{    
+{
     NativeJS *njs = NativeJS::getNativeClass(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject ProcessObj(cx, JS_DefineObject(cx, global, NativeJSProcess::getJSObjectName(),
