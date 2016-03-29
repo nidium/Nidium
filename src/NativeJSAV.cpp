@@ -158,18 +158,11 @@ static JSClass AudioNode_threaded_class = {
 };
 
 static JSPropertySpec AudioContext_props[] = {
-    {"volume", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(AUDIO_PROP_VOLUME, native_audio_prop_getter),
-        NATIVE_JS_SETTER(AUDIO_PROP_VOLUME, native_audio_prop_setter)},
-    {"bufferSize", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_GETTER(AUDIO_PROP_BUFFERSIZE, native_audio_prop_getter),
-        JSOP_NULLWRAPPER},
-    {"channels", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_GETTER(AUDIO_PROP_CHANNELS, native_audio_prop_getter),
-        JSOP_NULLWRAPPER},
-    {"sampleRate", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_GETTER(AUDIO_PROP_SAMPLERATE, native_audio_prop_getter),
-        JSOP_NULLWRAPPER},
+
+    NATIVE_PSGS("volume", AUDIO_PROP_VOLUME, native_audio_prop_getter, native_audio_prop_setter),
+    NATIVE_PSG("bufferSize", AUDIO_PROP_BUFFERSIZE, native_audio_prop_getter),
+    NATIVE_PSG("channels", AUDIO_PROP_CHANNELS, native_audio_prop_getter),
+    NATIVE_PSG("sampleRate", AUDIO_PROP_SAMPLERATE, native_audio_prop_getter),
     JS_PS_END
 };
 
@@ -233,18 +226,12 @@ static JSFunctionSpec AudioNodeCustomSource_funcs[] = {
 };
 
 static JSPropertySpec AudioNodeSource_props[] = {
-    {"position", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(SOURCE_PROP_POSITION, native_audionode_source_prop_getter),
-        NATIVE_JS_SETTER(SOURCE_PROP_POSITION, native_audionode_source_prop_setter)},
-    {"duration", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_GETTER(SOURCE_PROP_DURATION, native_audionode_source_prop_getter),
-        JSOP_NULLWRAPPER},
-    {"metadata", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_GETTER(SOURCE_PROP_METADATA, native_audionode_source_prop_getter),
-        JSOP_NULLWRAPPER},
-     {"bitrate", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS |JSPROP_READONLY,
-        NATIVE_JS_GETTER(SOURCE_PROP_BITRATE, native_audionode_source_prop_getter),
-        JSOP_NULLWRAPPER},
+
+    NATIVE_PSGS("position", SOURCE_PROP_POSITION, native_audionode_source_prop_getter, native_audionode_source_prop_setter),
+
+    NATIVE_PSG("duration", SOURCE_PROP_DURATION, native_audionode_source_prop_getter),
+    NATIVE_PSG("metadata", SOURCE_PROP_METADATA, native_audionode_source_prop_getter),
+    NATIVE_PSG("bitrate", SOURCE_PROP_BITRATE, native_audionode_source_prop_getter),
     JS_PS_END
 };
 
@@ -296,27 +283,17 @@ template<>
 JSClass *NativeJSExposer<NativeJSVideo>::jsclass = &Video_class;
 
 static JSPropertySpec Video_props[] = {
-    {"width", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(VIDEO_PROP_WIDTH, native_video_prop_getter),
-        JSOP_NULLWRAPPER},
-    {"height", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(VIDEO_PROP_HEIGHT, native_video_prop_getter),
-        JSOP_NULLWRAPPER},
-    {"position",  JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(SOURCE_PROP_POSITION, native_video_prop_getter),
-        NATIVE_JS_SETTER(SOURCE_PROP_POSITION, native_video_prop_setter)},
-    {"duration", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_GETTER(SOURCE_PROP_DURATION, native_video_prop_getter),
-        JSOP_NULLWRAPPER},
-    {"metadata", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_GETTER(SOURCE_PROP_METADATA, native_video_prop_getter),
-        JSOP_NULLWRAPPER},
-     {"bitrate", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_GETTER(SOURCE_PROP_BITRATE, native_video_prop_getter),
-        JSOP_NULLWRAPPER},
-    {"canvas", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        JSOP_NULLWRAPPER,
-        JSOP_NULLWRAPPER},
+
+    NATIVE_PSG("width", VIDEO_PROP_WIDTH, native_video_prop_getter),
+    NATIVE_PSG("height", VIDEO_PROP_HEIGHT, native_video_prop_getter),
+
+    NATIVE_PSG("duration", SOURCE_PROP_DURATION, native_video_prop_getter),
+    NATIVE_PSG("metadata", SOURCE_PROP_METADATA, native_video_prop_getter),
+    NATIVE_PSG("bitrate", SOURCE_PROP_BITRATE, native_video_prop_getter),
+
+    NATIVE_PSGS("position", SOURCE_PROP_POSITION, native_video_prop_getter, native_video_prop_setter),
+
+
     JS_PS_END
 };
 
@@ -2455,8 +2432,8 @@ static bool native_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp
     NativeJSVideo *v = new NativeJSVideo(ret, (NativeCanvas2DContext*)ncc, cx);
     JS_SetPrivate(ret, v);
 
-    JS_SetProperty(cx, ret, "canvas", args[0]);
-
+    JS_DefineProperty(cx, ret, "canvas", args[0], JSPROP_PERMANENT | JSPROP_READONLY);
+    
     args.rval().setObjectOrNull(ret);
 
     return true;

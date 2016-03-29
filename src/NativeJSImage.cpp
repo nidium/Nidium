@@ -40,9 +40,7 @@ template<>
 JSClass *NativeJSExposer<NativeJSImage>::jsclass = &Image_class;
 
 static JSPropertySpec Image_props[] = {
-    {"src", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_STUBGETTER(IMAGE_PROP_SRC),
-        NATIVE_JS_SETTER(IMAGE_PROP_SRC, native_image_prop_set)},
+    NATIVE_PSS("src", IMAGE_PROP_SRC, native_image_prop_set),
     JS_PS_END
 };
 
