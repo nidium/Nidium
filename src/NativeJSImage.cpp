@@ -8,6 +8,13 @@
 
 #include "NativeSkImage.h"
 
+#define IMAGE_RESERVED_SLOT 0
+
+enum {
+    IMAGE_PROP_SRC = IMAGE_RESERVED_SLOT,
+    IMAGE_NPROP
+};
+
 #define NATIVE_IMAGE_GETTER(obj) (static_cast<class NativeJSImage *>(JS_GetPrivate(obj)))
 #define IMAGE_FROM_CALLEE(nimg) \
     JS::RootedObject parent(cx, JS_GetParent(&args.callee())); \
@@ -23,7 +30,7 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj, uint8_t i
     bool strict, JS::MutableHandleValue vp);
 
 static JSClass Image_class = {
-    "Image", JSCLASS_HAS_PRIVATE,
+    "Image", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(IMAGE_NPROP+1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Image_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
@@ -33,8 +40,8 @@ template<>
 JSClass *NativeJSExposer<NativeJSImage>::jsclass = &Image_class;
 
 static JSPropertySpec Image_props[] = {
-    {"src", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY,
-        NATIVE_JS_STUBGETTER(),
+    {"src", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
+        NATIVE_JS_STUBGETTER(IMAGE_PROP_SRC),
         NATIVE_JS_SETTER(IMAGE_PROP_SRC, native_image_prop_set)},
     JS_PS_END
 };

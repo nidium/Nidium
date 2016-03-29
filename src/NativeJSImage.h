@@ -5,9 +5,6 @@
 #include <NativeMessages.h>
 #include <NativeStreamInterface.h>
 
-enum {
-    IMAGE_PROP_SRC
-};
 
 class NativeSkImage;
 

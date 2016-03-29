@@ -191,14 +191,10 @@ static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigne
     JS::Value *vp);
 
 static JSPropertySpec canvas2dctx_props[] = {
-#define CANVAS_2D_CTX_PROP(prop) {#prop, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_NATIVE_ACCESSORS, \
-    NATIVE_JS_GETTER(CTX_PROP_ ## prop, native_canvas2dctx_prop_get), \
-    NATIVE_JS_SETTER(CTX_PROP_ ## prop, native_canvas2dctx_prop_set)},
-#define CANVAS_2D_CTX_PROP_GET(prop) {#prop, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
-    NATIVE_JS_GETTER(CTX_PROP_ ## prop, native_canvas2dctx_prop_get), \
-    JSOP_NULLWRAPPER},
+#define CANVAS_2D_CTX_PROP(prop) NATIVE_PSGS(#prop, CTX_PROP_ ## prop, native_canvas2dctx_prop_get, native_canvas2dctx_prop_set),
+#define CANVAS_2D_CTX_PROP_GET(prop) NATIVE_PSG(#prop, CTX_PROP_ ## prop, native_canvas2dctx_prop_get),
   #include "NativeCanvas2DContextProperties.h"
-    JS_PS_END
+  JS_PS_END
 #undef CANVAS_2D_CTX_PROP
 #undef CANVAS_2D_CTX_PROP_GET
 };

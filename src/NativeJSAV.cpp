@@ -315,7 +315,7 @@ static JSPropertySpec Video_props[] = {
         NATIVE_JS_GETTER(SOURCE_PROP_BITRATE, native_video_prop_getter),
         JSOP_NULLWRAPPER},
     {"canvas", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_STUBGETTER(),
+        JSOP_NULLWRAPPER,
         JSOP_NULLWRAPPER},
     JS_PS_END
 };

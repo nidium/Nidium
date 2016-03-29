@@ -82,7 +82,6 @@ static JSClass storage_class = {
 
 extern JSClass global_class;
 
-JSClass *NativeJSwindow::jsclass = &global_class;
 template<>
 JSClass *NativeJSExposer<NativeJSwindow>::jsclass = &global_class;
 
@@ -198,16 +197,16 @@ static JSPropertySpec window_props[] = {
         NATIVE_JS_GETTER(WINDOW_PROP_TITLE, native_window_prop_get),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLE, native_window_prop_set)},
     {"cursor", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_STUBGETTER(),
+        NATIVE_JS_STUBGETTER(WINDOW_PROP_CURSOR),
         NATIVE_JS_SETTER(WINDOW_PROP_CURSOR, native_window_prop_set)},
     {"titleBarColor", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_STUBGETTER(),
+        NATIVE_JS_STUBGETTER(WINDOW_PROP_TITLEBAR_COLOR),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_COLOR, native_window_prop_set)},
     {"titleBarControlsOffsetX", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_STUBGETTER(),
+        NATIVE_JS_STUBGETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, native_window_prop_set)},
     {"titleBarControlsOffsetY", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_STUBGETTER(),
+        NATIVE_JS_STUBGETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY),
         NATIVE_JS_SETTER(WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, native_window_prop_set)},
     JS_PS_END
 };
