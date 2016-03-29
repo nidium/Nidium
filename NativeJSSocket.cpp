@@ -123,7 +123,7 @@ static bool native_socket_prop_get(JSContext *cx, JS::HandleObject obj,
             vp.setBoolean(nsocket->flags & NATIVE_SOCKET_READLINE);
             break;
         case SOCKET_PROP_ENCODING:
-            vp.setString(JS_NewStringCopyZ(cx, nsocket->m_Encoding));
+            vp.setString(JS_NewStringCopyZ(cx, nsocket->m_Encoding ? nsocket->m_Encoding : "ascii"));
             break;
         case SOCKET_PROP_TIMEOUT:
             vp.setInt32(nsocket->m_TCPTimeout);
