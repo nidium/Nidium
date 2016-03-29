@@ -32,7 +32,7 @@ NativeDB::NativeDB(const char *name) :
     sdir += name;
     char * chdir = strdup(sdir.c_str());
     bool found = false;
-    for( size_t i = 0; i < strlen(chdir); i++) {
+    for (size_t i = 0; i < strlen(chdir); i++) {
         if (chdir[i] == '.' && found) {
             chdir[i] = '/';
         } else {

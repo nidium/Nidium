@@ -236,8 +236,7 @@ void NativePath::makedirs(const char* dirWithSlashes)
     char *p = NULL;
     size_t len;
 
-    snprintf(tmp, sizeof(tmp),"%s",dirWithSlashes);
-    len = strlen(tmp);
+    len = snprintf(tmp, sizeof(tmp), "%s", dirWithSlashes);
     if (tmp[len - 1] == '/') {
         tmp[len - 1] = 0;
     }
