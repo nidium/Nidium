@@ -828,9 +828,9 @@ struct NativeJSPropertyAccessors
         if (!obj) return false;
         JS::RootedValue val(cx, args.get(0));
         bool ret = FN(cx, obj, TINYID, true, &val);
-
-        //args.rval().set(val);
-
+#if 0
+        args.rval().set(val);
+#endif
         /* We need this to be sure that the value set is properly rooted */
         JS_SetReservedSlot(obj, TINYID, val);
 
