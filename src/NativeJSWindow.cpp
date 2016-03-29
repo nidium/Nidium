@@ -44,7 +44,7 @@ static bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Storage_Finalize(JSFreeOp *fop, JSObject *obj);
 
 enum {
-    WINDOW_PROP_LEFT,
+    WINDOW_PROP_LEFT = JSCLASS_GLOBAL_SLOT_COUNT,
     WINDOW_PROP_TOP,
     WINDOW_PROP_WIDTH,
     WINDOW_PROP_HEIGHT,
