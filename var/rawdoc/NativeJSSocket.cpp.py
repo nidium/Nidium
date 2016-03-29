@@ -106,7 +106,7 @@ socket.onread = function(data) {
 } """) ],
 	IS_Dynamic, IS_Public, IS_ReadWrite,
 	'string',
-	'false'
+	'ascii'
 )
 
 EventDoc( "Socket.onconnect", """Function to execute on a socket if client called connect and the connection has been established correctly.
