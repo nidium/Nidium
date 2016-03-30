@@ -137,7 +137,7 @@ for klass in ["AudioNode", "Video"]:
 var node = dsp.createNode("source", 0, 2);
 node.open("invalid_file.wav");
 node.addEventListener("error", function(ev) {
-    console.log("Error : " + ev.error + ". Code=" + code);
+    console.log("Error : " + ev.error + ". Code=" + ev.code);
 });
 """)],
             [ParamDoc( "event", "Event object", 
