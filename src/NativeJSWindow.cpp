@@ -724,7 +724,7 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
         break;
         case WINDOW_PROP_TITLEBAR_COLOR:
         {
-            rgba *color;
+            NativeRGBA *color;
 
             color = NUI->getTitleBarRGBAColor();
             JS::RootedObject aColor(m_Cx, JS_NewArrayObject(m_Cx, 4));
@@ -737,7 +737,7 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
         break;
         case WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX:
         {
-            coord *xy;
+            NativeCoord *xy;
 
             xy = NUI->getWindowControlsOffset();
             vp.setDouble(xy->x);
@@ -746,7 +746,7 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
         break;
         case WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY:
         {
-            coord *xy;
+            NativeCoord *xy;
 
             xy = NUI->getWindowControlsOffset();
             vp.setDouble(xy->y);
