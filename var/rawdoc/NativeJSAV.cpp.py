@@ -154,7 +154,7 @@ node.addEventListener("error", function(ev) {
 var node = dsp.createNode("source", 0, 2);
 node.open("test.wav");
 node.addEventListener("buffering", function(ev) {
-    console.log("Buffering : " + ev.bufferedByes + "/" + ev.filesize + " starting at " + ev.startByes");
+    console.log("Buffering : " + ev.bufferedByes + "/" + ev.filesize + " starting at " + ev.startByte);
 });
     """)],
             [ ParamDoc( "event", "Event object", 
