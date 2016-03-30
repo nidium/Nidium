@@ -12,13 +12,6 @@ static bool native_console_log(JSContext *cx, unsigned argc,
 static bool native_console_write(JSContext *cx, unsigned argc,
     JS::Value *vp);
 
-#ifdef NATIVE_JS_PROFILER
-static bool native_console_profile_start(JSContext *cx, unsigned argc,
-    JS::Value *vp);
-static bool native_console_profile_end(JSContext *cx, unsigned argc,
-    JS::Value *vp);
-#endif
-
 static JSClass console_class = {
     "Console", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -32,35 +25,8 @@ static JSFunctionSpec console_funcs[] = {
     JS_FN("info", native_console_log, 0, 0),
     JS_FN("error", native_console_log, 0, 0),
     JS_FN("warn", native_console_log, 0, 0),
-#ifdef NATIVE_JS_PROFILER
-    JS_FN("profile", native_console_profile_start, 0, 0),
-    JS_FN("profileEnd", native_console_profile_end, 0, 0),
-#endif
     JS_FS_END
 };
-#ifdef NATIVE_JS_PROFILER
-static bool native_console_profile_start(JSContext *cx, unsigned argc,
-    JS::Value *vp)
-{
-    NativeProfiler *tracer = NativeProfiler::getInstance(cx);
-    tracer->start(NULL);
-
-    return true;
-}
-static bool native_console_profile_end(JSContext *cx, unsigned argc,
-    JS::Value *vp)
-{
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
-    NativeProfiler *tracer = NativeProfiler::getInstance(cx);
-    tracer->stop();
-    JS::RootedValue val(cx, OBJECT_TO_JSVAL(tracer->getJSObject()));
-
-    args.rval().set(val);
-
-    return true;
-}
-#endif
 
 static bool native_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp)
