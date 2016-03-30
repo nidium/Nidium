@@ -36,6 +36,7 @@ TestsRunner = function() {
 		"total": 0,
 		"suites": 0
 	};
+    this.failedTests = [];
 
 	this.lastException = {
 		"trace": [],
@@ -43,6 +44,7 @@ TestsRunner = function() {
 	};
 
 	this.testWatchdogTimer = -1;
+    this.currentTest = null;
 
 	this.currentFile = null;
 	this.completionCallback = null;
@@ -143,7 +145,14 @@ TestsRunner.prototype = {
 
 			// Expose to tests the current instance of the TestsRunner
 			Tests = this;
-			load(includeName);
+
+            try {
+			    load(includeName);
+            } catch(e) {
+                log.error(e);
+                process.exit(1)
+            }
+
 			log.success("\t OK\n");
 		}
 
@@ -162,16 +171,19 @@ TestsRunner.prototype = {
 			console.write("\n");
 			this.reportLastException();
 			// XXX : Should we exit here ? 
-			this.counters.fails++
+			this.counters.fails++;
+            this.failedTests.push(this.currentTest);
 		}
+
+        this.currentTest = null;
 
 		setImmediate(this._nextTest.bind(this));
 	},
 
 	_nextTest: function() {
 		var test = this.tests.shift();
-
-		if (!test) {
+        this.currentTest = test;
+if (!test) {
 			if (this.completionCallback) this.completionCallback();
 			return;
 		}
@@ -225,7 +237,7 @@ TestsRunner.prototype = {
 		var success = this.counters.success == this.counters.total && this.counters.fails == 0;
 		var reportLog = success ? log.success : log.error;
 		if (success) {
-			reportLog("\n+----------S U C C E S S------------+\n");
+			reportLog("\n+-----------P A S S E D------------+\n");
 		} else {
 			reportLog("\n+-----------F A I L E D-------------+\n");
 		}
@@ -241,6 +253,17 @@ TestsRunner.prototype = {
 		reportLog("|");
 		reportLog("\r\033[35C |\n");
 		reportLog("+-----------------------------------+\n");
+
+        if (this.failedTests.length > 0) {
+            reportLog("Failed tests : ");
+            for (var i = 0; i < this.failedTests.length; i++) {
+                try {
+                    console.write(" - " + this.failedTests[i].name + "\n");
+                } catch (e) {
+                    log.info(e);
+                }
+            }
+        }
 
         if (exit) {
             process.exit(success ? 0 : 1);
