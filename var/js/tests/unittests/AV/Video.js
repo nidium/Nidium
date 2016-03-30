@@ -31,7 +31,7 @@ Tests.registerAsync("Video.open", function(next) {
 
         Assert("Failed to open video");
     });
-    video.open("AV/test.ogg");
+    video.open("AV/video.ogg");
 }, 5000);
 
 Tests.register("Video.duration", function() {
