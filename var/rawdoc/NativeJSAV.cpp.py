@@ -358,7 +358,7 @@ source.assignSetter(function(key, value) {
 
 source.addEventListener("message", function(ev) {
     console.log("received message", ev.data);
-}
+});
 
 setTimeout(function() {
     source.set("coef", 5);
