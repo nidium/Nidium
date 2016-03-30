@@ -172,6 +172,7 @@ static struct native_cursors {
 };
 
 static JSPropertySpec window_props[] = {
+
     NATIVE_PSG("devicePixelRatio", WINDOW_PROP_DEVICE_PIXELRATIO, native_window_prop_get),
 
     NATIVE_PSGS("left", WINDOW_PROP_LEFT, native_window_prop_get, native_window_prop_set),
@@ -181,8 +182,7 @@ static JSPropertySpec window_props[] = {
     NATIVE_PSGS("innerHeight", WINDOW_PROP_HEIGHT, native_window_prop_get, native_window_prop_set),
     NATIVE_PSGS("outerHeight", WINDOW_PROP_HEIGHT, native_window_prop_get, native_window_prop_set),
     NATIVE_PSGS("title", WINDOW_PROP_TITLE, native_window_prop_get, native_window_prop_set),
-
-    NATIVE_PSS("cursor", WINDOW_PROP_CURSOR, native_window_prop_set),
+    NATIVE_PSGS("cursor", WINDOW_PROP_CURSOR, native_window_prop_get, native_window_prop_set),
     NATIVE_PSS("titleBarColor", WINDOW_PROP_TITLEBAR_COLOR, native_window_prop_set),
     NATIVE_PSS("titleBarControlsOffsetX", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, native_window_prop_set),
     NATIVE_PSS("titleBarControlsOffsetY", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, native_window_prop_set),
@@ -674,6 +674,22 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
             vp.setString(str);
         }
         break;
+        case WINDOW_PROP_CURSOR:
+        {
+            const char * cCursor;
+
+            cCursor = native_cursors_list[1].str;
+            for (size_t i = 0; native_cursors_list[i].str != NULL; i++) {
+                if (native_cursors_list[i].type == NUI->m_CurrentCursor) {
+                    cCursor = native_cursors_list[i].str;
+                    break;
+                }
+            }
+
+            vp.setString(JS_NewStringCopyZ(m_Cx, cCursor));
+        }
+        break;
+        default: break;
     }
 
     return true;
@@ -764,7 +780,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
             JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString type(cx, vpStr);
-            for (int i = 0; native_cursors_list[i].str != NULL; i++) {
+            for (size_t i = 0; native_cursors_list[i].str != NULL; i++) {
                 if (strncasecmp(native_cursors_list[i].str, type.ptr(),
                     strlen(native_cursors_list[i].str)) == 0) {
                     NUI->setCursor(native_cursors_list[i].type);
