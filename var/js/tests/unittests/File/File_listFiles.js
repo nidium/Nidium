@@ -1,17 +1,30 @@
 Tests.registerAsync("File.listFiles", function(next) {
-	var f = new File('.')
-	var expected = [	{name: "File", type: "dir"},
-						{name: "JS", type: "dir"},
-						{name: "unittests.nml", type:"file"},
-						{name: "Thread", type:"dir"},
-						{name: "manual_suites.js", type:"file"}];
-	f.listFiles(function(err, entries) {
-		for( var i = 0; i < entries.length; i++) {
-			var entry = entries[i];
-			// console.log(i  + " " + entry.name  + "  " + expected[i].name );
-			Assert.equal(entry.name, expected[i].name);
-			Assert.equal(entry.type, expected[i].type);
-		}
+    var expected = {
+        "File": "dir",
+        "JS": "dir",
+        "unittests.nml": "file",
+        "Thread": "dir",
+        "manual_suites.js": "file"
+    }
+
+    var f = new File('.')
+
+    f.listFiles(function(err, entries) {
+        for (var name in expected) {
+            var type = expected[name];
+            var found = false;
+            for( var i = 0; i < entries.length; i++) {
+                if (entries[i].name == name && entries[i].type == type) {
+                    console.log("Found " + type + " " + name);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                Assert("File " + name + " of type " + type + " not found");
+            }
+        }
         next();
-	});
+    });
 }, 1000);
