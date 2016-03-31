@@ -61,8 +61,15 @@ static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_process_exit(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
-    ape->is_running = 0;
+    JSNATIVE_PROLOGUE_CLASS(NativeJSProcess, &Process_class);
+
+    int code = 0;
+
+    if (argc > 0 && args[0].isInt32()) {
+        code = args[0].toInt32();
+    }
+
+    exit(code);
 
     return true;
 }
