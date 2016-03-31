@@ -36,7 +36,11 @@ Debugger.run(dbgCtx, function(dbg) {
 // You cannot use variables from the parent scope.
 var foo = "bar";
 Debugger.run(dbgCtx, function(dbg) {
-    console.log(foo); // undefined
+    try {
+        console.log(foo); // undefined
+    } catch ( e ) {
+        console.log("as expected, 'foo' is undefined");
+    }
 });
 
 // However you can explicitly pass a variable into the Debugger compartment
