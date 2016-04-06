@@ -7,7 +7,7 @@ try {
 	load(filename);
 } catch(e) {
 	console.log("Could not open '" + filename + "': " + e.message)
-}""")],
+}"""),
 		ExampleDoc( """console.log( pwd( )  + '\\n' + __dirname + '\\n' + __filename + '\\n' );"""),
 		ExampleDoc( """var t = setTimeout( function() {
 	console.log( "Nidium" );}, 1000 );
