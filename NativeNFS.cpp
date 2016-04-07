@@ -99,10 +99,13 @@ bool NativeNFS::validateArchive()
 
 bool NativeNFS::mkdir(const char *name_utf8, size_t name_len)
 {
-    bool outsideRoot = false;
+    NativePtrAutoDelete<char *> path(NativePath::sanitize(name_utf8));
+    if (!path.ptr()) {
+        return false;
+    }
 
-    NativePtrAutoDelete<char *> path(NativePath::sanitize(name_utf8, &outsideRoot, false));
     int path_len = strlen(path.ptr());
+    bool outsideRoot = path.ptr()[0] == '.';
 
     if (outsideRoot) {
         return false;
@@ -155,7 +158,7 @@ bool NativeNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
         size_t len, int flags)
 {
 
-    NativePtrAutoDelete<char *> path(NativePath::sanitize(name_utf8, NULL, false));
+    NativePtrAutoDelete<char *> path(NativePath::sanitize(name_utf8));
     int path_len = strlen(path.ptr());
 
     if (m_Hash.get(path.ptr())) {

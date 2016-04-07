@@ -86,6 +86,10 @@ public:
         return m_Dir;
     }
 
+    const char *host() const {
+        return m_Host;
+    }
+
     NativeBaseStream *createStream(bool onlySync = false) const {
         if (!m_Scheme || !m_Path) {
             return NULL;
@@ -102,7 +106,7 @@ public:
         return m_Scheme;
     }
 
-    bool isRelative(const char *path);
+    bool static isRelative(const char *path);
 
     ~NativePath() {
         if (m_Path) {
@@ -118,7 +122,7 @@ public:
     static void unRegisterSchemes();
     static schemeInfo *getScheme(const char *url, const char **pURL = NULL);
 
-    static char *sanitize(const char *path, bool *external = NULL, bool relative = true);
+    static char *sanitize(const char *path);
 
     static void chroot(const char *root) {
         if (g_m_Root != NULL && root != g_m_Root) {
@@ -156,16 +160,15 @@ public:
     static struct schemeInfo g_m_Schemes[NATIVE_MAX_REGISTERED_SCHEMES];
     static struct schemeInfo *g_m_DefaultScheme;
     static void makedirs(const char * dirWithSlashes);
+    static char *absolutize(const char *relative, const char *root);
+    static bool inDir(const char *dir, const char *root);
 private:
-    void invalidatePath() {
-        free(m_Path);
-        m_Path = NULL;
-    }
-    void setDir();
+    void parse(const char *path);
+    void invalidatePath();
     char *m_Path;
     char *m_Dir;
+    char *m_Host;
     schemeInfo *m_Scheme;
 };
 
 #endif
-

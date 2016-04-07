@@ -35,7 +35,7 @@ public:
         return new NativeFileStream(location);
     }
     static const char *getBaseDir() {
-        return NULL;
+        return NativePath::getRoot();
     }
 
     static bool allowLocalFileStream() {
