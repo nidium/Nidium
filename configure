@@ -8,6 +8,7 @@ from konstructor import Builder
 from konstructor import Platform
 from konstructor import Variables
 from konstructor import Konstruct
+from konstructor import Tests
 from konstructor import ROOT, OUTPUT
 
 Deps.set(
@@ -75,6 +76,19 @@ def httpParser():
         "build": ["make package"],
         "outputs": ["libhttp_parser.a"]
     }
+
+@CommandLine.option("--unit-tests")
+def testCore(unitTests):
+    if not unitTests:
+        return
+
+    cwd = os.path.dirname(os.path.realpath(__file__))
+
+    Tests.register([
+        "build/tests/nativejscore-unittests"
+    ], builders=[Gyp("%s/var/native/tests/unittests/tests.gyp" % cwd)])
+
+
 
 if __name__ == '__main__':
     if not Builder.Gyp._defines.has_key('native_version'):
