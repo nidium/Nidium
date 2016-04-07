@@ -18,13 +18,9 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "NativeJSHttp.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-
 #include "NativeJSUtils.h"
+
+using namespace Native::Core;
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
@@ -60,7 +56,7 @@ static void Http_Finalize(JSFreeOp *fop, JSObject *obj)
 static bool native_Http_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString url(cx);
-    NativeHTTP *nhttp;
+    HTTP *nhttp;
     NativeJSHttp *jshttp;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -77,7 +73,7 @@ static bool native_Http_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JSAutoByteString curl(cx, url);
 
-    nhttp = new NativeHTTP((ape_global *)JS_GetContextPrivate(cx));
+    nhttp = new HTTP((ape_global *)JS_GetContextPrivate(cx));
 
     jshttp = new NativeJSHttp(ret, cx, curl.ptr());
 
@@ -95,14 +91,14 @@ static bool native_Http_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NativeHTTP *nhttp;
+    HTTP *nhttp;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx,  JS_THIS_OBJECT(cx, vp));
     NativeJSHttp *jshttp;
     JS::RootedObject options(cx);
     JS::RootedValue curopt(cx);
     JS::RootedValue callback(cx);
-    NativeHTTPRequest *req;
+    HTTPRequest *req;
 
     NATIVE_CHECK_ARGS("request", 2);
 
@@ -134,7 +130,7 @@ static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     if ((req = nhttp->getRequest()) == NULL) {
-        req = new NativeHTTPRequest(jshttp->m_URL);
+        req = new HTTPRequest(jshttp->m_URL);
     } else {
         req->recycle();
     }
@@ -151,15 +147,15 @@ static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
         JS::RootedString method(cx, __curopt.toString());
         JSAutoByteString cmethod(cx, method);
         if (strcmp("POST", cmethod.ptr()) == 0) {
-            req->method = NativeHTTPRequest::NATIVE_HTTP_POST;
+            req->method = HTTPRequest::NATIVE_HTTP_POST;
         } else if (strcmp("HEAD", cmethod.ptr()) == 0) {
-            req->method = NativeHTTPRequest::NATIVE_HTTP_HEAD;
+            req->method = HTTPRequest::NATIVE_HTTP_HEAD;
         } else if (strcmp("PUT", cmethod.ptr()) == 0) {
-            req->method = NativeHTTPRequest::NATIVE_HTTP_PUT;
+            req->method = HTTPRequest::NATIVE_HTTP_PUT;
         } else if (strcmp("DELETE", cmethod.ptr()) == 0) {
-            req->method = NativeHTTPRequest::NATIVE_HTTP_DELETE;
+            req->method = HTTPRequest::NATIVE_HTTP_DELETE;
         }  else {
-            req->method = NativeHTTPRequest::NATIVE_HTTP_GET;
+            req->method = HTTPRequest::NATIVE_HTTP_GET;
         }
     }
 
@@ -204,8 +200,8 @@ static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
             req->setData(hdata, strlen(hdata));
             req->setDataReleaser(js_free);
 
-            if (req->method != NativeHTTPRequest::NATIVE_HTTP_PUT) {
-                req->method = NativeHTTPRequest::NATIVE_HTTP_POST;
+            if (req->method != HTTPRequest::NATIVE_HTTP_PUT) {
+                req->method = HTTPRequest::NATIVE_HTTP_POST;
             }
 
             char num[16];
@@ -258,7 +254,7 @@ static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-void NativeJSHttp::onError(NativeHTTP::HTTPError err)
+void NativeJSHttp::onError(HTTP::HTTPError err)
 {
     JSContext *cx = m_Cx;
     JS::RootedValue rval(cx);
@@ -277,22 +273,22 @@ void NativeJSHttp::onError(NativeHTTP::HTTPError err)
     event[0].setObject(*evobj);
 
     switch(err) {
-        case NativeHTTP::ERROR_RESPONSE:
+        case HTTP::ERROR_RESPONSE:
             JSOBJ_SET_PROP_CSTR(evobj, "error", "http_invalid_response");
             break;
-        case NativeHTTP::ERROR_DISCONNECTED:
+        case HTTP::ERROR_DISCONNECTED:
             JSOBJ_SET_PROP_CSTR(evobj, "error", "http_server_disconnected");
             break;
-        case NativeHTTP::ERROR_SOCKET:
+        case HTTP::ERROR_SOCKET:
             JSOBJ_SET_PROP_CSTR(evobj, "error", "http_connection_error");
             break;
-        case NativeHTTP::ERROR_TIMEOUT:
+        case HTTP::ERROR_TIMEOUT:
             JSOBJ_SET_PROP_CSTR(evobj, "error", "http_timedout");
             break;
-        case NativeHTTP::ERROR_HTTPCODE:
+        case HTTP::ERROR_HTTPCODE:
             JSOBJ_SET_PROP_CSTR(evobj, "error", "http_response_code");
             break;
-        case NativeHTTP::ERROR_REDIRECTMAX:
+        case HTTP::ERROR_REDIRECTMAX:
             JSOBJ_SET_PROP_CSTR(evobj, "error", "http_max_redirect_exceeded");
             break;
         default:
@@ -305,7 +301,7 @@ void NativeJSHttp::onError(NativeHTTP::HTTPError err)
 }
 
 void NativeJSHttp::onProgress(size_t offset, size_t len,
-    NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
+    HTTP::HTTPData *h, HTTP::DataType type)
 {
     JSContext *cx = m_Cx;
     JS::RootedValue rval(cx);
@@ -325,8 +321,8 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
     JSOBJ_SET_PROP(event, "read", (double)(offset + len));
 
     switch(type) {
-        case NativeHTTP::DATA_JSON:
-        case NativeHTTP::DATA_STRING:
+        case HTTP::DATA_JSON:
+        case HTTP::DATA_STRING:
 
             JSOBJ_SET_PROP_CSTR(event, "type", "string");
 
@@ -356,7 +352,7 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
     JS_CallFunctionValue(cx, obj, ondata_callback, jevent, &rval);
 }
 
-void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
+void NativeJSHttp::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 {
     buffer *k, *v;
 
@@ -399,17 +395,17 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     }
 
     if (!m_Eval) {
-        type = NativeHTTP::DATA_STRING;
+        type = HTTP::DATA_STRING;
     }
 
     switch(type) {
-        case NativeHTTP::DATA_STRING:
+        case HTTP::DATA_STRING:
             JSOBJ_SET_PROP_CSTR(event, "type", "string");
 
             NativeJSUtils::strToJsval(cx, (const char *)h->data->data,
                 h->data->used, &jdata, "utf8");
             break;
-        case NativeHTTP::DATA_JSON:
+        case HTTP::DATA_JSON:
         {
 
             const jschar *chars;
@@ -433,7 +429,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
             break;
         }
 #if 0
-        case NativeHTTP::DATA_IMAGE:
+        case HTTP::DATA_IMAGE:
         {
             NativeSkImage *nimg;
             SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
@@ -444,7 +440,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 
             break;
         }
-        case NativeHTTP::DATA_AUDIO:
+        case HTTP::DATA_AUDIO:
         {
             JSObject *arr = JS_NewArrayBuffer(cx, h->data->used);
             uint8_t *data = JS_GetArrayBufferData(arr);

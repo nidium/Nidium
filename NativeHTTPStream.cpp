@@ -27,6 +27,8 @@
 
 #include "NativeJS.h"
 
+using namespace Native::Core;
+
 #define MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH (1024LL*1024LL*64LL)
 
 NativeHTTPStream::NativeHTTPStream(const char *location) :
@@ -38,7 +40,7 @@ NativeHTTPStream::NativeHTTPStream(const char *location) :
     m_Mapped.fd   = 0;
     m_Mapped.size = 0;
 
-    m_Http = new NativeHTTP(NativeJS::getNet());
+    m_Http = new HTTP(NativeJS::getNet());
 }
 
 NativeHTTPStream::~NativeHTTPStream()
@@ -71,9 +73,9 @@ void NativeHTTPStream::onStart(size_t packets, size_t seek)
     m_BytesBuffered = 0;
 
 
-    NativeHTTPRequest *req = m_Http->getRequest();
+    HTTPRequest *req = m_Http->getRequest();
     if (!req) {
-        req = new NativeHTTPRequest(m_Location);
+        req = new HTTPRequest(m_Location);
     }
 
     m_Http->request(req, this);
@@ -173,7 +175,7 @@ void NativeHTTPStream::seek(size_t pos)
     /*
         We need to seek in HTTP
     */
-    NativeHTTPRequest *req = m_Http->getRequest();
+    HTTPRequest *req = m_Http->getRequest();
 
     m_Http->stopRequest();
 
@@ -205,7 +207,7 @@ void NativeHTTPStream::notifyAvailable()
     this->notify(message_available);
 }
 
-void NativeHTTPStream::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType)
+void NativeHTTPStream::onRequest(HTTP::HTTPData *h, HTTP::DataType)
 {
     this->m_DataBuffer.ended = true;
 
@@ -222,7 +224,7 @@ void NativeHTTPStream::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType)
 }
 
 void NativeHTTPStream::onProgress(size_t offset, size_t len,
-    NativeHTTP::HTTPData *h, NativeHTTP::DataType)
+    HTTP::HTTPData *h, HTTP::DataType)
 {
     /* overflow or invalid state */
     if (!m_Mapped.fd || !m_Mapped.addr ||
@@ -252,7 +254,7 @@ void NativeHTTPStream::onProgress(size_t offset, size_t len,
     }
 }
 
-void NativeHTTPStream::onError(NativeHTTP::HTTPError err)
+void NativeHTTPStream::onError(HTTP::HTTPError err)
 {
     this->cleanCacheFile();
 
@@ -263,12 +265,12 @@ void NativeHTTPStream::onError(NativeHTTP::HTTPError err)
         return;
     }
     switch (err) {
-        case NativeHTTP::ERROR_HTTPCODE:
+        case HTTP::ERROR_HTTPCODE:
             this->error(NATIVESTREAM_ERROR_OPEN, m_Http->getStatusCode());
             break;
-        case NativeHTTP::ERROR_RESPONSE:
-        case NativeHTTP::ERROR_SOCKET:
-        case NativeHTTP::ERROR_TIMEOUT:
+        case HTTP::ERROR_RESPONSE:
+        case HTTP::ERROR_SOCKET:
+        case HTTP::ERROR_TIMEOUT:
             this->error(NATIVESTREAM_ERROR_OPEN, -1);
             break;
         default:

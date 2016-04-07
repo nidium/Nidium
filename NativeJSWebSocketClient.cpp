@@ -32,6 +32,8 @@
 #include "NativeHTTP.h"
 #include "NativeJSUtils.h"
 
+using namespace Native::Core;
+
 static void WebSocket_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_websocket_close(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -60,7 +62,6 @@ static void WebSocket_Finalize(JSFreeOp *fop, JSObject *obj)
 
     if (wss != NULL) {
         delete wss;
-        printf("Delete websocket connection...\n");
     }
 }
 
@@ -164,7 +165,7 @@ static bool native_WebSocket_constructor(JSContext *cx,
         prefix = "";
     }
 
-    if (NativeHTTP::ParseURI(durl, curl.length(), host,
+    if (HTTP::ParseURI(durl, curl.length(), host,
         &port, path, prefix, default_port) == -1) {
         JS_ReportError(cx, "Invalid WebSocketServer URI : %s", durl);
         free(path);

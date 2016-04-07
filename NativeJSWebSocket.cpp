@@ -27,6 +27,8 @@
 #include "NativeHTTP.h"
 #include "NativeJSUtils.h"
 
+using namespace Native::Core;
+
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
@@ -163,7 +165,7 @@ static bool native_WebSocketServer_constructor(JSContext *cx,
         prefix = "";
     }
 
-    if (NativeHTTP::ParseURI(durl, curl.length(), host,
+    if (HTTP::ParseURI(durl, curl.length(), host,
         &port, path, prefix, default_port) == -1) {
         JS_ReportError(cx, "Invalid WebSocketServer URI : %s", durl);
         free(path);

@@ -27,7 +27,8 @@
 #include "NativeHTTP.h"
 #include "NativeJSExposer.h"
 
-class NativeJSHttp : public NativeJSExposer<NativeJSHttp>, public NativeHTTPDelegate
+
+class NativeJSHttp : public NativeJSExposer<NativeJSHttp>, public Native::Core::HTTPDelegate
 {
   public:
     static void registerObject(JSContext *cx);
@@ -37,12 +38,12 @@ class NativeJSHttp : public NativeJSExposer<NativeJSHttp>, public NativeHTTPDele
     JS::Heap<JS::Value> request;
     JS::Heap<JSObject *>jsobj;
 
-    NativeHTTP *refHttp;
+    Native::Core::HTTP *refHttp;
 
-    void onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType);
+    void onRequest(Native::Core::HTTP::HTTPData *h, Native::Core::HTTP::DataType);
     void onProgress(size_t offset, size_t len,
-        NativeHTTP::HTTPData *h, NativeHTTP::DataType);
-    void onError(NativeHTTP::HTTPError err);
+        Native::Core::HTTP::HTTPData *h, Native::Core::HTTP::DataType);
+    void onError(Native::Core::HTTP::HTTPError err);
     void onHeader() {};
 
     bool m_Eval;

@@ -25,7 +25,7 @@
 #include "NativeHTTP.h"
 
 class NativeHTTPStream : public NativeBaseStream,
-                         public NativeHTTPDelegate
+                         public Native::Core::HTTPDelegate
 {
 public:
     explicit NativeHTTPStream(const char *location);
@@ -64,12 +64,12 @@ protected:
         return m_BytesBuffered == m_Mapped.size;
     }
 private:
-    NativeHTTP *m_Http;
+    Native::Core::HTTP *m_Http;
 
-    void onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType);
-    void onProgress(size_t offset, size_t len, NativeHTTP::HTTPData *h,
-        NativeHTTP::DataType);
-    void onError(NativeHTTP::HTTPError err);
+    void onRequest(Native::Core::HTTP::HTTPData *h, Native::Core::HTTP::DataType);
+    void onProgress(size_t offset, size_t len, Native::Core::HTTP::HTTPData *h,
+        Native::Core::HTTP::DataType);
+    void onError(Native::Core::HTTP::HTTPError err);
     void onHeader();
     void cleanCacheFile();
 

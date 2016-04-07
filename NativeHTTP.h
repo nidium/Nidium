@@ -34,9 +34,10 @@
 #include "NativeIStreamer.h"
 #include "NativeMessages.h"
 
-class NativeHTTPDelegate;
+namespace Native {
+namespace Core {
 
-class NativeHTTPRequest
+class HTTPRequest
 {
     public:
         enum {
@@ -47,9 +48,9 @@ class NativeHTTPRequest
             NATIVE_HTTP_DELETE
         } method;
 
-        explicit NativeHTTPRequest(const char *url);
+        explicit HTTPRequest(const char *url);
 
-        ~NativeHTTPRequest() {
+        ~HTTPRequest() {
             ape_array_destroy(this->headers);
             if (data != NULL && datafree != NULL) {
                 datafree(data);
@@ -152,7 +153,9 @@ class NativeHTTPRequest
         bool m_isSSL;
 };
 
-class NativeHTTP : public NativeIStreamer, public NativeMessages
+class HTTPDelegate;
+
+class HTTP : public NativeIStreamer, public NativeMessages
 {
 private:
     void *ptr;
@@ -190,7 +193,7 @@ public:
     uint32_t m_Timeout;
     uint64_t m_TimeoutTimer;
 
-    NativeHTTPDelegate *delegate;
+    HTTPDelegate *delegate;
 
     struct HTTPData {
         http_parser parser;
@@ -239,7 +242,7 @@ public:
         return http.parser.status_code;
     }
 
-    NativeHTTPRequest *getRequest() const {
+    HTTPRequest *getRequest() const {
         return m_Request;
     }
 
@@ -256,7 +259,7 @@ public:
     }
 
     void clearState();
-    bool request(NativeHTTPRequest *req, NativeHTTPDelegate *delegate,
+    bool request(HTTPRequest *req, HTTPDelegate *delegate,
         bool forceNewConnection = false);
     bool isKeepAlive();
 
@@ -270,7 +273,7 @@ public:
         return canDoRequest();
     }
 
-    void setPendingError(NativeHTTP::HTTPError err) {
+    void setPendingError(HTTP::HTTPError err) {
         m_PendingError = err;
     }
 
@@ -294,8 +297,8 @@ public:
         return m_Path.c_str();
     }
 
-    NativeHTTP(ape_global *n);
-    ~NativeHTTP();
+    HTTP(ape_global *n);
+    ~HTTP();
 private:
     void reportPendingError();
 
@@ -303,7 +306,7 @@ private:
 
     uint64_t m_FileSize;
     bool m_isParsing; // http_parser_execute is working
-    NativeHTTPRequest *m_Request;
+    HTTPRequest *m_Request;
     bool m_CanDoRequest;
     HTTPError m_PendingError;
 
@@ -319,16 +322,19 @@ private:
     } m_Redirect;
 };
 
-class NativeHTTPDelegate
+class HTTPDelegate
 {
   public:
-    virtual void onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType)=0;
-    virtual void onProgress(size_t offset, size_t len, NativeHTTP::HTTPData *h,
-        NativeHTTP::DataType)=0;
-    virtual void onError(NativeHTTP::HTTPError err)=0;
+    virtual void onRequest(HTTP::HTTPData *h, HTTP::DataType)=0;
+    virtual void onProgress(size_t offset, size_t len, HTTP::HTTPData *h,
+        HTTP::DataType)=0;
+    virtual void onError(HTTP::HTTPError err)=0;
     virtual void onHeader()=0;
-    NativeHTTP *httpref;
+    HTTP *httpref;
 };
+
+}  /* namespace Core */
+}  /* namespace Native */
 
 #endif
 

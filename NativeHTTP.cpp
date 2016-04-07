@@ -29,6 +29,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+using namespace Native::Core;
+
+
 #include "NativePath.h"
 
 #ifndef ULLONG_MAX
@@ -44,25 +47,25 @@
 
 static struct native_http_mime {
     const char *str;
-    NativeHTTP::DataType data_type;
+    HTTP::DataType data_type;
 } native_mime[] = {
-    {"text/plain",                  NativeHTTP::DATA_STRING},
-    {"application/x-javascript",    NativeHTTP::DATA_STRING},
-    {"application/javascript",      NativeHTTP::DATA_STRING},
-    {"application/octet-stream",    NativeHTTP::DATA_STRING},
-    {"image/jpeg",                  NativeHTTP::DATA_IMAGE},
-    {"image/png",                   NativeHTTP::DATA_IMAGE},
-    {"audio/mp3",                   NativeHTTP::DATA_AUDIO},
-    {"audio/mpeg",                  NativeHTTP::DATA_AUDIO},
-    {"audio/wave",                  NativeHTTP::DATA_AUDIO},
-    {"audio/ogg",                   NativeHTTP::DATA_AUDIO},
-    {"audio/x-wav",                 NativeHTTP::DATA_AUDIO},
-    {"video/ogg",                   NativeHTTP::DATA_AUDIO},
-    {"audio/webm",                  NativeHTTP::DATA_AUDIO},
-    {"application/json",            NativeHTTP::DATA_JSON},
-    {"text/html",                   NativeHTTP::DATA_STRING}, /* TODO: use dom.js */
-    {"application/octet-stream",    NativeHTTP::DATA_BINARY},
-    {NULL,                          NativeHTTP::DATA_END}
+    {"text/plain",                  HTTP::DATA_STRING},
+    {"application/x-javascript",    HTTP::DATA_STRING},
+    {"application/javascript",      HTTP::DATA_STRING},
+    {"application/octet-stream",    HTTP::DATA_STRING},
+    {"image/jpeg",                  HTTP::DATA_IMAGE},
+    {"image/png",                   HTTP::DATA_IMAGE},
+    {"audio/mp3",                   HTTP::DATA_AUDIO},
+    {"audio/mpeg",                  HTTP::DATA_AUDIO},
+    {"audio/wave",                  HTTP::DATA_AUDIO},
+    {"audio/ogg",                   HTTP::DATA_AUDIO},
+    {"audio/x-wav",                 HTTP::DATA_AUDIO},
+    {"video/ogg",                   HTTP::DATA_AUDIO},
+    {"audio/webm",                  HTTP::DATA_AUDIO},
+    {"application/json",            HTTP::DATA_JSON},
+    {"text/html",                   HTTP::DATA_STRING}, /* TODO: use dom.js */
+    {"application/octet-stream",    HTTP::DATA_BINARY},
+    {NULL,                          HTTP::DATA_END}
 };
 
 static int message_begin_cb(http_parser *p);
@@ -86,7 +89,7 @@ static http_parser_settings settings =
 
 static int message_begin_cb(http_parser *p)
 {
-    NativeHTTP *nhttp = (NativeHTTP *)p->data;
+    HTTP *nhttp = (HTTP *)p->data;
 
     nhttp->clearState();
 
@@ -99,7 +102,7 @@ static int message_begin_cb(http_parser *p)
 
 static int headers_complete_cb(http_parser *p)
 {
-    NativeHTTP *nhttp = (NativeHTTP *)p->data;
+    HTTP *nhttp = (HTTP *)p->data;
 
     if (nhttp->http.headers.tval != NULL) {
         buffer_append_char(nhttp->http.headers.tval, '\0');
@@ -123,7 +126,7 @@ static int headers_complete_cb(http_parser *p)
 
 static int message_complete_cb(http_parser *p)
 {
-    NativeHTTP *nhttp = (NativeHTTP *)p->data;
+    HTTP *nhttp = (HTTP *)p->data;
 
     nhttp->requestEnded();
 
@@ -132,13 +135,13 @@ static int message_complete_cb(http_parser *p)
 
 static int header_field_cb(http_parser *p, const char *buf, size_t len)
 {
-    NativeHTTP *nhttp = (NativeHTTP *)p->data;
+    HTTP *nhttp = (HTTP *)p->data;
 
     switch (nhttp->http.headers.prevstate) {
-        case NativeHTTP::PSTATE_NOTHING:
+        case HTTP::PSTATE_NOTHING:
             nhttp->http.headers.list = ape_array_new(16);
             /* fall through */
-        case NativeHTTP::PSTATE_VALUE:
+        case HTTP::PSTATE_VALUE:
             nhttp->http.headers.tkey = buffer_new(16);
             if (nhttp->http.headers.tval != NULL) {
                 buffer_append_char(nhttp->http.headers.tval, '\0');
@@ -148,7 +151,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
             break;
     }
 
-    nhttp->http.headers.prevstate = NativeHTTP::PSTATE_FIELD;
+    nhttp->http.headers.prevstate = HTTP::PSTATE_FIELD;
 
     if (len != 0) {
         buffer_append_data_tolower(nhttp->http.headers.tkey,
@@ -160,12 +163,12 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
 
 static int header_value_cb(http_parser *p, const char *buf, size_t len)
 {
-    NativeHTTP *nhttp = (NativeHTTP *)p->data;
+    HTTP *nhttp = (HTTP *)p->data;
 
     switch (nhttp->http.headers.prevstate) {
-        case NativeHTTP::PSTATE_NOTHING:
+        case HTTP::PSTATE_NOTHING:
             return -1;
-        case NativeHTTP::PSTATE_FIELD:
+        case HTTP::PSTATE_FIELD:
             nhttp->http.headers.tval = buffer_new(64);
             buffer_append_char(nhttp->http.headers.tkey, '\0');
             ape_array_add_b(nhttp->http.headers.list,
@@ -175,7 +178,7 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
             break;
     }
 
-    nhttp->http.headers.prevstate = NativeHTTP::PSTATE_VALUE;
+    nhttp->http.headers.prevstate = HTTP::PSTATE_VALUE;
 
     if (len != 0) {
         buffer_append_data(nhttp->http.headers.tval,
@@ -191,7 +194,7 @@ static int request_url_cb(http_parser *p, const char *buf, size_t len)
 
 static int body_cb(http_parser *p, const char *buf, size_t len)
 {
-    NativeHTTP *nhttp = (NativeHTTP *)p->data;
+    HTTP *nhttp = (HTTP *)p->data;
 
     if (nhttp->http.data == NULL) {
         nhttp->http.data = buffer_new(2048);
@@ -214,7 +217,7 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
 static void native_http_connected(ape_socket *s,
     ape_global *ape, void *socket_arg)
 {
-    NativeHTTP *nhttp = (NativeHTTP *)s->ctx;
+    HTTP *nhttp = (HTTP *)s->ctx;
 
     if (nhttp == NULL) return;
 
@@ -222,12 +225,12 @@ static void native_http_connected(ape_socket *s,
     nhttp->http.parser.data = nhttp;
     nhttp->http.parser_rdy = true;
 
-    NativeHTTPRequest *request = nhttp->getRequest();
+    HTTPRequest *request = nhttp->getRequest();
     buffer *headers = request->getHeadersData();
 
     if (request->getData() != NULL &&
-        (request->method == NativeHTTPRequest::NATIVE_HTTP_POST ||
-            request->method == NativeHTTPRequest::NATIVE_HTTP_PUT)) {
+        (request->method == HTTPRequest::NATIVE_HTTP_POST ||
+            request->method == HTTPRequest::NATIVE_HTTP_PUT)) {
 
         PACK_TCP(s->s.fd);
         APE_socket_write(s, headers->data, headers->used, APE_DATA_COPY);
@@ -247,7 +250,7 @@ static void native_http_connected(ape_socket *s,
 static void native_http_disconnect(ape_socket *s,
     ape_global *ape, void *socket_arg)
 {
-    NativeHTTP *nhttp = (NativeHTTP *)s->ctx;
+    HTTP *nhttp = (HTTP *)s->ctx;
 
     if (nhttp == NULL ||
         (nhttp->m_CurrentSock != NULL && s != nhttp->m_CurrentSock)) {
@@ -264,7 +267,7 @@ static void native_http_disconnect(ape_socket *s,
     nhttp->m_CurrentSock = NULL;
 
     if (!nhttp->http.ended) {
-        nhttp->setPendingError(NativeHTTP::ERROR_DISCONNECTED);
+        nhttp->setPendingError(HTTP::ERROR_DISCONNECTED);
     }
 
     nhttp->clearState();
@@ -279,7 +282,7 @@ static void native_http_read(ape_socket *s,
     const uint8_t *data, size_t len, ape_global *ape, void *socket_arg)
 {
     size_t nparsed;
-    NativeHTTP *nhttp = (NativeHTTP *)s->ctx;
+    HTTP *nhttp = (HTTP *)s->ctx;
 
     if (nhttp == NULL || nhttp->http.ended) {
         return;
@@ -294,13 +297,13 @@ static void native_http_read(ape_socket *s,
         fprintf(stderr, "[HTTP] (socket %p) Parser returned %ld with error %s\n", s, (unsigned long) nparsed,
             http_errno_description(HTTP_PARSER_ERRNO(&nhttp->http.parser)));
 
-        nhttp->setPendingError(NativeHTTP::ERROR_RESPONSE);
+        nhttp->setPendingError(HTTP::ERROR_RESPONSE);
 
         APE_socket_shutdown_now(s);
     }
 }
 
-NativeHTTP::NativeHTTP(ape_global *n) :
+HTTP::HTTP(ape_global *n) :
     ptr(NULL), net(n), m_CurrentSock(NULL),
     err(0), m_Timeout(HTTP_DEFAULT_TIMEOUT),
     m_TimeoutTimer(0), delegate(NULL),
@@ -310,11 +313,11 @@ NativeHTTP::NativeHTTP(ape_global *n) :
     memset(&http, 0, sizeof(http));
     memset(&m_Redirect, 0, sizeof(m_Redirect));
 
-    http.headers.prevstate = NativeHTTP::PSTATE_NOTHING;
+    http.headers.prevstate = HTTP::PSTATE_NOTHING;
     native_http_data_type = DATA_NULL;
 }
 
-void NativeHTTP::reportPendingError()
+void HTTP::reportPendingError()
 {
     if (this->delegate && m_PendingError != ERROR_NOERR) {
         this->delegate->onError(m_PendingError);
@@ -323,23 +326,23 @@ void NativeHTTP::reportPendingError()
     m_PendingError = ERROR_NOERR;
 }
 
-void NativeHTTP::setPrivate(void *ptr)
+void HTTP::setPrivate(void *ptr)
 {
     this->ptr = ptr;
 }
 
-void *NativeHTTP::getPrivate()
+void *HTTP::getPrivate()
 {
     return this->ptr;
 }
 
-void NativeHTTP::onData(size_t offset, size_t len)
+void HTTP::onData(size_t offset, size_t len)
 {
     this->delegate->onProgress(offset, len,
         &this->http, this->native_http_data_type);
 }
 
-void NativeHTTP::headerEnded()
+void HTTP::headerEnded()
 {
 #define REQUEST_HEADER(header) ape_array_lookup(http.headers.list, \
     CONST_STR_LEN(header "\0"))
@@ -416,7 +419,7 @@ void NativeHTTP::headerEnded()
     stopRequest can be used to shutdown slow or maliscious connections
     since the shutdown is not queued
 */
-void NativeHTTP::stopRequest(bool timeout)
+void HTTP::stopRequest(bool timeout)
 {
     this->clearTimeout();
 
@@ -440,7 +443,7 @@ void NativeHTTP::stopRequest(bool timeout)
     }
 }
 
-void NativeHTTP::requestEnded()
+void HTTP::requestEnded()
 {
     m_CanDoRequest = true;
 
@@ -475,7 +478,7 @@ void NativeHTTP::requestEnded()
     }
 }
 
-void NativeHTTP::clearState()
+void HTTP::clearState()
 {
     this->reportPendingError();
 
@@ -484,11 +487,11 @@ void NativeHTTP::clearState()
     http.data = NULL;
 
     memset(&http.headers, 0, sizeof(http.headers));
-    http.headers.prevstate = NativeHTTP::PSTATE_NOTHING;
+    http.headers.prevstate = HTTP::PSTATE_NOTHING;
 
 }
 
-bool NativeHTTP::isKeepAlive()
+bool HTTP::isKeepAlive()
 {
     /*
         First check the server "connection" header
@@ -512,12 +515,12 @@ bool NativeHTTP::isKeepAlive()
 
 static int NativeHTTP_handle_timeout(void *arg)
 {
-    ((NativeHTTP *)arg)->stopRequest(true);
+    ((HTTP *)arg)->stopRequest(true);
 
     return 0;
 }
 
-void NativeHTTP::clearTimeout()
+void HTTP::clearTimeout()
 {
     if (this->m_TimeoutTimer) {
         clear_timer_by_id(&net->timersng, this->m_TimeoutTimer, 1);
@@ -525,7 +528,7 @@ void NativeHTTP::clearTimeout()
     }
 }
 
-bool NativeHTTP::createConnection()
+bool HTTP::createConnection()
 {
     if (!m_Request) {
         return false;
@@ -562,8 +565,8 @@ bool NativeHTTP::createConnection()
     return true;
 }
 
-bool NativeHTTP::request(NativeHTTPRequest *req,
-    NativeHTTPDelegate *delegate, bool forceNewConnection)
+bool HTTP::request(HTTPRequest *req,
+    HTTPDelegate *delegate, bool forceNewConnection)
 {
     if (!canDoRequest()) {
         this->clearState();
@@ -624,7 +627,7 @@ bool NativeHTTP::request(NativeHTTPRequest *req,
     return true;
 }
 
-NativeHTTP::~NativeHTTP()
+HTTP::~HTTP()
 {
     if (m_CurrentSock != NULL) {
         m_CurrentSock->ctx = NULL;
@@ -646,13 +649,13 @@ NativeHTTP::~NativeHTTP()
 
 }
 
-const char *NativeHTTP::getHeader(const char *key)
+const char *HTTP::getHeader(const char *key)
 {
     buffer *ret = ape_array_lookup_cstr(http.headers.list, key, strlen(key));
     return ret ? (const char *)ret->data : NULL;
 }
 
-int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
+int HTTP::ParseURI(char *url, size_t url_len, char *host,
     u_short *port, char *file, const char *prefix, u_short default_port)
 {
     char *p;
@@ -696,7 +699,7 @@ int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
     return 0;
 }
 
-NativeHTTPRequest::NativeHTTPRequest(const char *url) :
+HTTPRequest::HTTPRequest(const char *url) :
     method(NATIVE_HTTP_GET), host(NULL), path(NULL), data(NULL), datalen(0),
     datafree(free), headers(ape_array_new(8)), m_isSSL(false) 
 {
@@ -704,7 +707,7 @@ NativeHTTPRequest::NativeHTTPRequest(const char *url) :
     this->setDefaultHeaders();
 }
 
-bool NativeHTTPRequest::resetURL(const char *url)
+bool HTTPRequest::resetURL(const char *url)
 {
     m_isSSL = false;
     if (this->host) free(this->host);
@@ -735,7 +738,7 @@ bool NativeHTTPRequest::resetURL(const char *url)
         prefix = "";
     }
 
-    if (NativeHTTP::ParseURI(durl, url_len, this->host,
+    if (HTTP::ParseURI(durl, url_len, this->host,
         &this->port, this->path, prefix, default_port) == -1) {
         memset(host, 0, url_len+1);
         memset(path, 0, url_len+1);
@@ -750,14 +753,14 @@ bool NativeHTTPRequest::resetURL(const char *url)
     return true;
 }
 
-void NativeHTTPRequest::setDefaultHeaders()
+void HTTPRequest::setDefaultHeaders()
 {
     this->setHeader("User-Agent", "Mozilla/5.0 (Unknown arch) nidium/" NATIVE_VERSION_STR " (nidium, like Gecko) nidium/" NATIVE_VERSION_STR);
     this->setHeader("Accept-Charset", "UTF-8");
     this->setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
 }
 
-buffer *NativeHTTPRequest::getHeadersData() const
+buffer *HTTPRequest::getHeadersData() const
 {
     buffer *ret = buffer_new(1024);
 
