@@ -66,12 +66,12 @@ static JSClass messageEvent_class = {
 };
 
 static JSFunctionSpec glob_funcs_threaded[] = {
-    JS_FN("send", native_post_message, 1, 0),
+    JS_FN("send", native_post_message, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec Thread_funcs[] = {
-    JS_FN("start", native_thread_start, 0, 0),
+    JS_FN("start", native_thread_start, 0, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 

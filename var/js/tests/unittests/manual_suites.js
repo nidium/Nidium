@@ -1,6 +1,6 @@
 var TestsRunner = require('../testrunner.js');
 var Suites = [
-		'File/File_listDirs.js',
+		'File/File_listFiles.js',
 		'File/File_properties.js',
 
 		//'Thread/Thread_simple.js',

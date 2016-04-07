@@ -44,14 +44,12 @@ t.onmessage = function(event){
     var i = event.data,
         v = i * 100 / 20000000;
 
-    document.status.label = Math.round(v) + "%";
-    document.status.value = v;
+    console.write("Status: " + Math.round(v) + "% (" + v + ")");
 };
 t.oncomplete = function(event){
     if (event.data){
         console.log("i'm done with", event.data);
     }
-    document.status.close();
 };
 t.start(5, 6, 6, 9);
 """) ],

@@ -155,6 +155,7 @@ public:
     static int g_m_SchemesCount;
     static struct schemeInfo g_m_Schemes[NATIVE_MAX_REGISTERED_SCHEMES];
     static struct schemeInfo *g_m_DefaultScheme;
+    static void makedirs(const char * dirWithSlashes);
 private:
     void invalidatePath() {
         free(m_Path);

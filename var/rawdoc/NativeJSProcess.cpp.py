@@ -44,7 +44,10 @@ console.log("got Kill");
 
 FunctionDoc("NativeProcess.exit", "Attach a javascript callback to a signal.",
 	SeesDocs("NativeProcess|Threads|NativeProcess.setSignalHandler|NativeProcess.exit"),
-	[ExampleDoc("""process.exit();""")],
+	[ExampleDoc("""var realy = false;
+if (realy) {
+	process.exit();
+}""")],
 	IS_Dynamic, IS_Public, IS_Fast,
 	NO_Params,
 	NO_Returns

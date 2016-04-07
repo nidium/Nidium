@@ -5,31 +5,50 @@
 #include <stdbool.h>
 #include <js/StructuredClone.h>
 
+#include "NativePath.h"
+
 #ifndef NATIVE_NO_PRIVATE_DIR
 #  include "../interface/NativeSystemInterface.h"
 #endif
 
+
 NativeDB::NativeDB(const char *name) :
     m_Database(NULL), m_Status(false)
 {
+    char * chdir;
+    bool found;
+    size_t i;
+
     if (name == NULL) {
         m_Status = false;
         return;
     }
     leveldb::Options options;
 #ifndef NATIVE_NO_PRIVATE_DIR
-    const char *dir = NativeSystemInterface::getInstance()->getCacheDirectory();
+    std::string sdir(NativeSystemInterface::getInstance()->getCacheDirectory());
 #else
-    const char *dir = "./";
+    std::string sdir("./");
 #endif
-    std::string sdir(dir);
+    /*
+     change dots to slashes, to avoid a cluttered directory structure
+    */
     sdir += name;
-
+    chdir = strdup(sdir.c_str());
+    found = false;
+    for (i = 0; i < strlen(chdir); i++) {
+        if (chdir[i] == '.' && found) {
+            chdir[i] = '/';
+        } else {
+            found = true;
+        }
+    }
+    NativePath::makedirs(chdir);
     options.create_if_missing = true;
     options.filter_policy = leveldb::NewBloomFilterPolicy(8);
 
-    leveldb::Status status = leveldb::DB::Open(options, sdir.c_str(), &m_Database);
+    leveldb::Status status = leveldb::DB::Open(options, chdir, &m_Database);
     m_Status = status.ok();
+    free(chdir);
 }
 
 bool NativeDB::insert(const char *key, const uint8_t *data, size_t data_len)
