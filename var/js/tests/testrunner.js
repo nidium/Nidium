@@ -1,5 +1,12 @@
+/*
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
+
 // Make Assert object global for ease of use during the tests
 Assert = require("./assert");
+
 var log = {
     error: function(...args) {
         args.unshift(31);
