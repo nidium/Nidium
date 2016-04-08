@@ -1,3 +1,9 @@
+/*
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
+
 const char *native_ascii =
 " _   _       _   _                ____                                     \n"
 "| \\ | | __ _| |_(_)_   _____     / ___|  ___ _ ____   _____ _ __          \n"
