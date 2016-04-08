@@ -322,7 +322,7 @@ char * NativePath::currentJSCaller(JSContext *cx)
 }
 
 // XXX : Only works with path (not URIs)
-char *NativePath::sanitize(const char *path)
+char *NativePath::sanitize(const char *path, bool *external)
 {
     enum {
         PATH_STATE_START,
@@ -331,6 +331,10 @@ char *NativePath::sanitize(const char *path)
         PATH_STATE_NAME,
         PATH_STATE_SLASH
     } state = PATH_STATE_SLASH;
+
+    if (external) {
+        *external = false;
+    }
 
     int pathlen = strlen(path);
     if (pathlen == 0) {
@@ -377,6 +381,9 @@ char *NativePath::sanitize(const char *path)
                         if (counter < 0) {
                             outsideRoot = true;
                             if (!isRelative) {
+                                if (external) {
+                                    *external = true;
+                                }
                                 return nullptr;
                             }
                         }
@@ -414,6 +421,10 @@ char *NativePath::sanitize(const char *path)
         finalPath[finalPath.length()-1] == '/') {
 
         finalPath[finalPath.length()-1] = '\0';
+    }
+
+    if (external) {
+        *external = outsideRoot;
     }
 
     if (strcmp(finalPath.c_str(), ".") == 0 && strlen(finalPath.c_str()) == 1) {

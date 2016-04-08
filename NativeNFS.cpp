@@ -99,13 +99,13 @@ bool NativeNFS::validateArchive()
 
 bool NativeNFS::mkdir(const char *name_utf8, size_t name_len)
 {
-    NativePtrAutoDelete<char *> path(NativePath::sanitize(name_utf8));
+    bool outsideRoot = false;
+    NativePtrAutoDelete<char *> path(NativePath::sanitize(name_utf8, &outsideRoot));
     if (!path.ptr()) {
         return false;
     }
 
     int path_len = strlen(path.ptr());
-    bool outsideRoot = path.ptr()[0] == '.';
 
     if (outsideRoot) {
         return false;
