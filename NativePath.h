@@ -122,7 +122,7 @@ public:
     static void unRegisterSchemes();
     static schemeInfo *getScheme(const char *url, const char **pURL = NULL);
 
-    static char *sanitize(const char *path);
+    static char *sanitize(const char *path, bool *outsideRoot = nullptr);
 
     static void chroot(const char *root) {
         if (g_m_Root != NULL && root != g_m_Root) {
