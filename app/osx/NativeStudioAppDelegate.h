@@ -1,11 +1,8 @@
-//
-//  NativeStudioAppDelegate.h
-//  NativeOSX
-//
-//  Created by Anthony Catel on 8/15/12.
-//  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
-//
-
+/*
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
 #import <Cocoa/Cocoa.h>
 #import <AppKit/AppKit.h>
 #import <client/mac/Framework/Breakpad.h>

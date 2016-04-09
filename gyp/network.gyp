@@ -1,15 +1,19 @@
+# Copyright 2016 Nidium Inc. All rights reserved.
+# Use of this source code is governed by a MIT license
+# that can be found in the LICENSE file.
+
 {
     'targets': [{
         'target_name': 'nativenetwork',
         'type': 'static_library',
         'conditions': [
             ['OS=="mac"', {
-				'xcode_settings': {
-					'OTHER_CFLAGS': [
+                'xcode_settings': {
+                    'OTHER_CFLAGS': [
                         '-fvisibility=hidden'
-					],
-				},
-			}],
+                    ],
+                },
+            }],
             ['OS=="linux"', {
                 'cflags': [
                     '-fvisibility=hidden',
@@ -36,3 +40,4 @@
         ],
     }],
 }
+
