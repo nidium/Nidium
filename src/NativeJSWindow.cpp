@@ -8,7 +8,7 @@
 
 #include <NativeJSFileIO.h>
 
-#include "NativeDB.h"
+#include "NativeJSDB.h"
 #include "NativeNML.h"
 #include "NativeSkia.h"
 #include "NativeContext.h"
@@ -1341,7 +1341,7 @@ void NativeJSwindow::initDataBase()
         return;
     }
 
-    m_Db = new NativeDB(nml->getIdentifier());
+    m_Db = new NativeJSDB(nml->getIdentifier());
 
     if (m_Db->ok()) {
         this->createStorage();
@@ -1401,7 +1401,7 @@ bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativeDB *db = NativeJSwindow::getNativeClass(cx)->getDataBase();
+    NativeJSDB *db = NativeJSwindow::getNativeClass(cx)->getDataBase();
 
 
     JSAutoByteString key(cx, args[0].toString());

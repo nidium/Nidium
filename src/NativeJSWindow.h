@@ -6,7 +6,7 @@
 #include "NativeTypes.h"
 
 class NativeCanvasHandler;
-class NativeDB;
+class NativeJSDB;
 
 class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
 {
@@ -48,7 +48,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
         return m_Handler;
     }
 
-    NativeDB *getDataBase() const {
+    NativeJSDB *getDataBase() const {
         return m_Db;
     }
 
@@ -80,7 +80,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     } *m_RequestedFrame;
 
     NativeCanvasHandler *m_Handler;
-    NativeDB *m_Db;
+    NativeJSDB *m_Db;
 
     bool m_Dragging;
     JS::Heap<JSObject *> m_DraggedFiles;
