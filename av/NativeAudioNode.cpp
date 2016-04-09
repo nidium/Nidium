@@ -14,7 +14,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
 }
-#include <NativeUtils.h>
+#include <Core/NativeUtils.h>
 
 #define MAX_FAILED_DECODING 50
 #define NODE_IO_FOR(i, io) int I = 0;\

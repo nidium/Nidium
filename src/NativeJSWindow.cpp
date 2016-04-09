@@ -6,14 +6,14 @@
 #include <string.h>
 #include <strings.h>
 
-#include <NativeJSFileIO.h>
+#include <JS/NativeJSFileIO.h>
 
-#include "NativeDB.h"
+#include "Core/NativeDB.h"
 #include "NativeNML.h"
 #include "NativeSkia.h"
 #include "NativeContext.h"
 #include "NativeJSCanvas.h"
-#include "NativeJSUtils.h"
+#include "JS/NativeJSUtils.h"
 #include "NativeJSImage.h"
 #include "NativeSkImage.h"
 #include "NativeSystemInterface.h"

@@ -10,7 +10,7 @@
 #include "NativeSystemInterface.h"
 #include "NativeJSWindow.h"
 #include "NativeJSDocument.h"
-#include "NativeJSUtils.h"
+#include "JS/NativeJSUtils.h"
 
 /*@FIXME:: refractor the constructor, so that m_JSObjectLayout get's njs'javascript context*/
 NativeNML::NativeNML(ape_global *net) :

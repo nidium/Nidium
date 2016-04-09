@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <NativeJSConsole.h>
+#include <JS/NativeJSConsole.h>
 
 #include "NativeJSCanvas.h"
 #include "NativeCanvas2DContext.h"

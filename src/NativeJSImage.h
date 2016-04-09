@@ -1,9 +1,9 @@
 #ifndef nativejsimage_h__
 #define nativejsimage_h__
 
-#include <NativeJSExposer.h>
-#include <NativeMessages.h>
-#include <NativeStreamInterface.h>
+#include <JS/NativeJSExposer.h>
+#include <Core/NativeMessages.h>
+#include <IO/NativeStreamInterface.h>
 
 
 class NativeSkImage;
@@ -26,11 +26,7 @@ class NativeJSImage : public NativeJSExposer<NativeJSImage>,
         const char name[] = NULL);
 
     void onMessage(const NativeSharedMessages::Message &msg);
-    /*
-    void onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType);
-    void onProgress(size_t offset, size_t len,
-        NativeHTTP::HTTPData *h, NativeHTTP::DataType) {};
-    void onError(NativeHTTP::HTTPError err) {};*/
+
 private:
     bool setupWithBuffer(buffer *buf);
 };

@@ -11,7 +11,7 @@
         'include_dirs': [
             '<(native_src_path)',
             '<(native_interface_path)/',
-            '<(native_nativejscore_path)/',
+            '<(native_nativejscore_path)/src/',
             '<(native_network_path)/',
             '<(native_av_path)',
             '<(third_party_path)/skia/',

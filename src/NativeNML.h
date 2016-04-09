@@ -4,7 +4,7 @@
 #include <native_netlib.h>
 
 #include "external/rapidxml.hpp"
-#include "NativeJSStream.h"
+#include "JS/NativeJSStream.h"
 
 #include "NativeAssets.h"
 #include "NativeTypes.h"

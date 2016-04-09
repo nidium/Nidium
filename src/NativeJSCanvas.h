@@ -1,8 +1,8 @@
 #ifndef nativejscanvas_h__
 #define nativejscanvas_h__
 
-#include <NativeJSExposer.h>
-#include <NativeMessages.h>
+#include <JS/NativeJSExposer.h>
+#include <Core/NativeMessages.h>
 
 class NativeCanvasHandler;
 

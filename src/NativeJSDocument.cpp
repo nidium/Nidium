@@ -12,6 +12,7 @@
 #include "NativeNML.h"
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
+#include "JS/NativeJSUtils.h"
 
 #include "NativeSkImage.h"
 
@@ -213,7 +214,7 @@ static bool native_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Val
         args.rval().setNull();
         return true;
     }
-    jsc = NativeUtils::Utf8ToUtf16(cx, text, strlen(text), &outputlen);
+    jsc = NativeJSUtils::Utf8ToUtf16(cx, text, strlen(text), &outputlen);
 
     JS::RootedString jret(cx, JS_NewUCStringCopyN(cx, jsc, outputlen));
     args.rval().setString(jret);

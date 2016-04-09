@@ -9,7 +9,7 @@
 
 #include "GLSLANG/ShaderLang.h"
 
-#include <NativeJS.h>
+#include <JS/NativeJS.h>
 
 #include "NativeTypes.h"
 #include "NativeGLResources.h"

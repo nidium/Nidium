@@ -5,7 +5,7 @@
 
 #include <SDL.h>
 
-#include <NativeHTTPStream.h>
+#include <Net/NativeHTTPStream.h>
 #include <NativePrivateStream.h>
 
 #include "NativeSystemStream.h"

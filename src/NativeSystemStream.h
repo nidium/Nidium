@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include <NativeFileStream.h>
+#include <IO/NativeFileStream.h>
 #include <NativeSystemInterface.h>
 
 class NativeSystemStream : public NativeFileStream

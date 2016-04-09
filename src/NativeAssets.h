@@ -8,8 +8,8 @@
 #include <ape_hash.h>
 #include <native_netlib.h>
 
-#include <NativeStreamInterface.h>
-#include <NativeMessages.h>
+#include <IO/NativeStreamInterface.h>
+#include <Core/NativeMessages.h>
 
 class NativeStream;
 

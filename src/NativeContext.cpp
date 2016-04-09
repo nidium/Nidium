@@ -11,10 +11,10 @@
 #include <SkImageDecoder.h>
 #endif
 
-#include <NativeWebSocket.h>
+#include <Net/NativeWebSocket.h>
 
 #ifdef DEBUG
-#include <NativeJSDebug.h>
+#include <JS/NativeJSDebug.h>
 #endif
 
 #include "NativeCanvas2DContext.h"
@@ -32,7 +32,7 @@
 #include "NativeOpenGLHeader.h"
 #include "NativeGLState.h"
 #include "NativeJSWebGL.h"
-#include "NativeJSProcess.h"
+#include "JS/NativeJSProcess.h"
 #endif
 enum {
     NATIVE_SCTAG_IMAGEDATA = NATIVE_SCTAG_MAX,

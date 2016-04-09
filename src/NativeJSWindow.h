@@ -1,7 +1,7 @@
 #ifndef nativejswindow_h__
 #define nativejswindow_h__
 
-#include <NativeJSExposer.h>
+#include <JS/NativeJSExposer.h>
 
 #include "NativeTypes.h"
 

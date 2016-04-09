@@ -1,9 +1,9 @@
 #ifndef nativejsav_h__
 #define nativejsav_h__
 
-#include <NativeMessages.h>
+#include <Core/NativeMessages.h>
+#include <JS/NativeJSExposer.h>
 
-#include <NativeJSExposer.h>
 #include <NativeAudio.h>
 #include <NativeAudioNode.h>
 #include <NativeVideo.h>

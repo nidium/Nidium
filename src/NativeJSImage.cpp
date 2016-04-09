@@ -4,7 +4,7 @@
 
 #include <native_netlib.h>
 
-#include <NativeJSFileIO.h>
+#include <JS/NativeJSFileIO.h>
 
 #include "NativeSkImage.h"
 
