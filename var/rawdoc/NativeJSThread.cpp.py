@@ -13,8 +13,7 @@ ClassDoc( "Thread", """Run a CPU intensive task in the background, with out lock
 
 This will run in a seperate JS Runtime, wich requires some cpu and memory overhead.""",
 	[ SeeDoc( "_GLOBALThread" ), SeeDoc( "ThreadMessageEvent" ) ],
-	[ExampleDoc( """document.status.open();
-	var t = new Thread(function(foo){
+	[ExampleDoc( """var t = new Thread(function(foo){
    // something loud and heavy
 });
 t.oncomplete = function(event){
@@ -34,9 +33,7 @@ ClassDoc( "ThreadMessageEvent", "Communication channel between threads.",
 
 FunctionDoc( "Thread.start", "Start a tread.",
 	SeesDocs( "Thread|ThreadMessageEvent" ),
-	[ ExampleDoc( """document.status.open();
-
-var t = new Thread(function(...n){
+	[ ExampleDoc( """ ar t = new Thread(function(...n){
     var p = 0;
     for (var i = 0; i < 20000000; i++) {
         if (i % 10000 == 0) this.send(i);
