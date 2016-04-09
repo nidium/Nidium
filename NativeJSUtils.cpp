@@ -9,6 +9,7 @@
 #include <strings.h>
 
 #include <jsfriendapi.h>
+#include <js/CharacterEncoding.h>
 
 #include "NativeUtils.h"
 
@@ -44,6 +45,13 @@ bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::M
     return true;
 }
 
+char16_t *NativeJSUtils::Utf8ToUtf16(JSContext *cx,
+  const char *str, size_t len, size_t *outputlen)
+{
+    return JS::LossyUTF8CharsToNewTwoByteCharsZ(cx,
+      JS::UTF8Chars(str, len), outputlen).get();
+}
+
 JSString *NativeJSUtils::newStringWithEncoding(JSContext *cx, const char *buf,
         size_t len, const char *encoding)
 {
@@ -51,7 +59,7 @@ JSString *NativeJSUtils::newStringWithEncoding(JSContext *cx, const char *buf,
     if (encoding != NULL && strcasecmp(encoding, "utf8") == 0) {
         size_t jlen = 0;
 
-        NativePtrAutoDelete<char16_t *> content(NativeUtils::Utf8ToUtf16(cx, buf, len, &jlen), free);
+        NativePtrAutoDelete<char16_t *> content(NativeJSUtils::Utf8ToUtf16(cx, buf, len, &jlen), free);
 
         if (content.ptr() == NULL) {
             JS_ReportError(cx, "Could not decode string to utf8");
