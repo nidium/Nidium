@@ -13,7 +13,7 @@
                 '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
                 '<(third_party_path)/http-parser/',
                 '<(third_party_path)/leveldb/include/',
-                '../',
+                '../src/',
             ],
             'defines': [
                 #'_FILE_OFFSET_BITS=64',

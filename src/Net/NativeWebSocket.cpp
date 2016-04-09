@@ -11,7 +11,7 @@
 #include <string.h>
 #include <strings.h>
 
-#include "NativeJS.h"
+#include "JS/NativeJS.h"
 
 #define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
     CONST_STR_LEN(header "\0"))

@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-#include "NativeJS.h"
+#include "JS/NativeJS.h"
 
 using namespace Native::Core;
 

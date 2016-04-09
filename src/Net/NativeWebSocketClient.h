@@ -8,7 +8,7 @@
 
 #include <ape_websocket.h>
 
-#include "NativeEvents.h"
+#include "Core/NativeEvents.h"
 #include "NativeHTTPParser.h"
 
 class NativeWebSocketClient : public NativeEvents, public NativeHTTPParser

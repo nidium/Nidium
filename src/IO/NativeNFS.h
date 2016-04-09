@@ -12,7 +12,7 @@
 
 #include <jspubtd.h>
 
-#include "NativeHash.h"
+#include "Core/NativeHash.h"
 
 #define NATIVE_NFS_MAGIC 0x27121986
 

@@ -9,7 +9,7 @@
 
 #include <jsapi.h>
 
-#include "NativePath.h"
+#include "Core/NativePath.h"
 
 NativeNFS::NativeNFS(uint8_t *content, size_t size) :
     m_ContentPtr(0)

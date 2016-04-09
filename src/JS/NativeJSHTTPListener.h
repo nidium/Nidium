@@ -6,7 +6,7 @@
 #ifndef nativejshttplistener_h__
 #define nativejshttplistener_h__
 
-#include "NativeHTTPListener.h"
+#include "Net/NativeHTTPListener.h"
 #include "NativeJSExposer.h"
 
 class NativeJSHTTPClientConnection;

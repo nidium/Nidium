@@ -10,7 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "NativeHTTP.h"
+#include "Net/NativeHTTP.h"
 #include "NativeJSUtils.h"
 
 using namespace Native::Core;

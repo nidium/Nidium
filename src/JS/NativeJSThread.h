@@ -8,8 +8,8 @@
 
 #include <pthread.h>
 
-#include "NativeSharedMessages.h"
-#include "NativeMessages.h"
+#include "Core/NativeSharedMessages.h"
+#include "Core/NativeMessages.h"
 #include "NativeJSExposer.h"
 
 class NativeJS;

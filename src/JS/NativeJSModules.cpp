@@ -18,7 +18,7 @@
 
 #include <jsoncpp.h>
 
-#include "NativeStreamInterface.h"
+#include "IO/NativeStreamInterface.h"
 #include "NativeJSExposer.h"
 
 #if 0

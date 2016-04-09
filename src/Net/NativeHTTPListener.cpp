@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeHTTPListener.h"
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +14,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#include "NativeJS.h"
+#include "NativeHTTPListener.h"
+#include "JS/NativeJS.h"
 
 #define GET_HTTP_OR_FAIL(obj) \
     (NativeHTTPListener *)obj->ctx; \

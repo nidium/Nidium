@@ -16,7 +16,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "NativeStreamInterface.h"
+#include "IO/NativeStreamInterface.h"
 #include "NativeJSUtils.h"
 
 #define FILE_ROOT_DEBUG 0

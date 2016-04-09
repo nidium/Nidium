@@ -8,8 +8,8 @@
 
 #include <cstddef>
 
-#include "NativeWebSocketClient.h"
-#include "NativeMessages.h"
+#include "Net/NativeWebSocketClient.h"
+#include "Core/NativeMessages.h"
 #include "NativeJSExposer.h"
 
 class NativeJSWebSocket : public NativeJSExposer<NativeJSWebSocket>,

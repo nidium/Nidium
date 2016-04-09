@@ -15,7 +15,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#include "NativeHTTP.h"
+#include "Net/NativeHTTP.h"
 #include "NativeJSUtils.h"
 
 using namespace Native::Core;

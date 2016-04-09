@@ -6,9 +6,9 @@
 #ifndef nativehttpstream_h__
 #define nativehttpstream_h__
 
-#include "NativeStreamInterface.h"
-#include "NativeMessages.h"
-#include "NativeHTTP.h"
+#include "IO/NativeStreamInterface.h"
+#include "Core/NativeMessages.h"
+#include "Core/NativeHTTP.h"
 
 class NativeHTTPStream : public NativeBaseStream,
                          public Native::Core::HTTPDelegate

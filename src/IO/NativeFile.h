@@ -11,10 +11,12 @@
 #include <dirent.h>
 #include <sys/types.h>
 
-#include "NativeMessages.h"
-#include "NativeTaskManager.h"
+#include "Core/NativeMessages.h"
+#include "Core/NativeTaskManager.h"
+#include "Core/NativeEvents.h"
+
 #include "NativeIStreamer.h"
-#include "NativeEvents.h"
+
 
 #define NATIVEFILE_MESSAGE_BITS(id) ((1 << 20) | id)
 

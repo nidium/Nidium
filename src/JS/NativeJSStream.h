@@ -8,7 +8,7 @@
 
 #include "NativeJSExposer.h"
 
-#include "NativeMessages.h"
+#include "Core/NativeMessages.h"
 
 class NativeBaseStream;
 

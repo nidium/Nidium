@@ -8,9 +8,9 @@
 #include <native_netlib.h>
 #include <ape_buffer.h>
 
-#include "NativeUtils.h"
+#include "Core/NativeUtils.h"
 #include "NativeNFS.h"
-#include "NativeJS.h"
+#include "JS/NativeJS.h"
 
 #ifdef NATIVE_EMBED_PRIVATE
   #include NATIVE_EMBED_PRIVATE

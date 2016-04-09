@@ -11,7 +11,7 @@
 #include <jsapi.h>
 #include <jspubtd.h>
 
-#include "NativeHash.h"
+#include "Core/NativeHash.h"
 
 #define NATIVE_MODULES_PATHS_COUNT 2
 

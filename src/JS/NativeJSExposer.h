@@ -10,7 +10,7 @@
 #include <jsfriendapi.h>
 
 #include "NativeJS.h"
-#include "NativeTaskManager.h"
+#include "Core/NativeTaskManager.h"
 
 #define JSNATIVE_PROLOGUE(ofclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \

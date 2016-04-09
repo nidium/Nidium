@@ -12,7 +12,7 @@
 #include <js/OldDebugAPI.h>
 
 #include "NativeUtils.h"
-#include "NativeJS.h"
+#include "JS/NativeJS.h"
 
 char *g_m_Root = NULL;
 char *g_m_Pwd = NULL;

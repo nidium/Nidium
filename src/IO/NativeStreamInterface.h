@@ -11,8 +11,8 @@
 
 #include <ape_buffer.h>
 
-#include "NativePath.h"
-#include "NativeSharedMessages.h"
+#include "Core/NativePath.h"
+#include "Core/NativeSharedMessages.h"
 
 #define NATIVESTREAM_MESSAGE_BITS(id) ((1 << 21) | id)
 

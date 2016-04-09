@@ -7,7 +7,7 @@
 #define nativenfsstream_h__
 
 #include "NativeStreamInterface.h"
-#include "NativeMessages.h"
+#include "Core/NativeMessages.h"
 
 class NativeNFS;
 

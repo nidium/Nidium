@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "NativeStreamInterface.h"
+#include "IO/NativeStreamInterface.h"
 
 enum {
     STREAM_PROP_FILESIZE

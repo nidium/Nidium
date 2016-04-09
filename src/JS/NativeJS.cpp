@@ -18,6 +18,8 @@
 #include <js/OldDebugAPI.h>
 #include <jsprf.h>
 
+#include "IO/NativeStreamInterface.h"
+
 #include "NativeJSSocket.h"
 #include "NativeJSThread.h"
 #include "NativeJSHttp.h"
@@ -30,7 +32,6 @@
 #include "NativeJSDebug.h"
 #include "NativeJSConsole.h"
 #include "NativeJSFS.h"
-#include "NativeStreamInterface.h"
 #include "NativeJSDebugger.h"
 
 static pthread_key_t gAPE = 0;

@@ -10,7 +10,7 @@
 
 #include <jsfriendapi.h>
 
-#include "NativeUtils.h"
+#include "Core/NativeUtils.h"
 
 bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::MutableHandleValue ret,
     const char *encoding)

@@ -6,8 +6,8 @@
 #ifndef nativejsfs_h__
 #define nativejsfs_h__
 
-#include "NativeMessages.h"
-#include "NativeTaskManager.h"
+#include "Core/NativeMessages.h"
+#include "Core/NativeTaskManager.h"
 #include "NativeJSExposer.h"
 
 class NativeJSFS :     public NativeJSExposer<NativeJSFS>,

@@ -9,7 +9,7 @@
 #include <native_netlib.h>
 #include <ape_array.h>
 
-#include "NativeHTTP.h"
+#include "Net/NativeHTTP.h"
 #include "NativeJSExposer.h"
 
 
