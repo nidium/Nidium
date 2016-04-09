@@ -623,7 +623,7 @@ void NativeVideo::seekInternal(double time)
 
 void NativeVideo::nextFrame()
 {
-    if (m_Playing) {
+    if (m_Playing || !m_Opened) {
         return;
     }
     this->scheduleDisplay(1, true);
@@ -631,7 +631,7 @@ void NativeVideo::nextFrame()
 
 void NativeVideo::prevFrame()
 {
-    if (m_Playing) {
+    if (m_Playing || !m_Opened) {
         return;
     }
     this->seek(this->getClock(), NATIVE_VIDEO_SEEK_PREVIOUS);
@@ -639,7 +639,7 @@ void NativeVideo::prevFrame()
 
 void NativeVideo::frameAt(double time, bool keyframe)
 {
-    if (m_Playing) {
+    if (m_Playing || !m_Opened) {
         return;
     }
 
@@ -1257,6 +1257,10 @@ void NativeVideo::scheduleDisplay(int delay)
 }
 
 void NativeVideo::scheduleDisplay(int delay, bool force) {
+    if (!m_Opened) {
+        return;
+    }
+
     m_Timers[m_TimerIdx]->delay = delay;
     m_Timers[m_TimerIdx]->id = -1;
 

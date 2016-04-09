@@ -137,7 +137,7 @@ for klass in ["AudioNode", "Video"]:
 var node = dsp.createNode("source", 0, 2);
 node.open("invalid_file.wav");
 node.addEventListener("error", function(ev) {
-    console.log("Error : " + ev.error + ". Code=" + code);
+    console.log("Error : " + ev.error + ". Code=" + ev.code);
 });
 """)],
             [ParamDoc( "event", "Event object", 
@@ -154,7 +154,7 @@ node.addEventListener("error", function(ev) {
 var node = dsp.createNode("source", 0, 2);
 node.open("test.wav");
 node.addEventListener("buffering", function(ev) {
-    console.log("Buffering : " + ev.bufferedByes + "/" + ev.filesize + " starting at " + ev.startByes");
+    console.log("Buffering : " + ev.bufferedByes + "/" + ev.filesize + " starting at " + ev.startByte);
 });
     """)],
             [ ParamDoc( "event", "Event object", 
@@ -358,7 +358,7 @@ source.assignSetter(function(key, value) {
 
 source.addEventListener("message", function(ev) {
     console.log("received message", ev.data);
-}
+});
 
 setTimeout(function() {
     source.set("coef", 5);
