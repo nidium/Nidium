@@ -1,20 +1,21 @@
 from dokumentor import *
 
-ClassDoc( "WebSocketServer", "Websocket Server handling",
+NamespaceDoc("WebSocket Client & Server", """Native implemntation of WebSocket Client & Server
+* Client : Connect to a WebSocket server.
+* Server : Create a WebSocker server where clients cant connect to.
+""")
+
+ClassDoc( "WebSocketServer", "Websocket Server handling.",
 	SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
-	NO_Examples,
-	NO_Inherrits,
-	NO_Extends
+	section="WebSocket Client & Server"
 )
 
-ClassDoc( "WebSocketServerClient", "Class that the Websocket server creates for it's connections",
+ClassDoc( "WebSocketServerClient", "Class that the Websocket server creates for it's connections.",
 	SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
-	NO_Examples,
-	NO_Inherrits,
-	NO_Extends
+	section="WebSocket Client & Server"
 )
 
-ConstructorDoc( "WebSocketServer", "Constructor for a Websocket listener",
+ConstructorDoc( "WebSocketServer", "Constructor for a Websocket listener.",
 	SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
 	NO_Examples,
 	[ ParamDoc( "host", "hostname or ws:// url", "string", NO_Default, IS_Obligated ),
@@ -22,14 +23,14 @@ ConstructorDoc( "WebSocketServer", "Constructor for a Websocket listener",
 	ReturnDoc( "Websocket instance", "WebSocketServer" )
 )
 
-EventDoc( "WebSocketServer.onmessage", "Event triggered when a message arrives",
+EventDoc( "WebSocketServer.onmessage", "Event triggered when a message arrives.",
 	SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
 	NO_Examples,
 	[ParamDoc( "client", "The connected client", "WebSocketServerClient", NO_Default, IS_Obligated ),
-	ParamDoc( "event", "event object with key data", "object", NO_Default, IS_Obligated ) ]
+	ParamDoc( "event", "event object with key data", ObjectDoc([]), NO_Default, IS_Obligated ) ]
 )
 
-EventDoc( "WebSocketServer.onopen", "Event triggered when a client connects",
+EventDoc( "WebSocketServer.onopen", "Event triggered when a client connects.",
 	SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
 	NO_Examples,
 	[ParamDoc( "client", "The connected client", "WebSocketServerClient", NO_Default, IS_Obligated ) ]
@@ -50,3 +51,4 @@ FunctionDoc("WebSocketServerClient.close", "Closes an existing websocket connect
 	NO_Params,
 	NO_Returns
 )
+

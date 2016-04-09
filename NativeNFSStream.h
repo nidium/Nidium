@@ -34,7 +34,7 @@ public:
         return new NativeNFSStream(location);
     }
     static const char *getBaseDir() {
-        return NULL;
+        return "/";
     }
 
     static bool allowLocalFileStream() {

@@ -69,20 +69,21 @@ static const JSClass NativeJSEvent_class = {
 
 struct NativeJSEvent
 {
-    NativeJSEvent(JSContext *cx, JS::Value func) : m_Function(cx) {
+    NativeJSEvent(JSContext *cx, JS::HandleValue func) : m_Function(func) {
         once = false;
         next = prev = NULL;
 
         m_Cx = cx;
-        m_Function = func;
 
+        NativeJS::getNativeClass(m_Cx)->rootObjectUntilShutdown(func.toObjectOrNull());
     }
-    ~NativeJSEvent() {
 
+    ~NativeJSEvent() {
+        NativeJS::getNativeClass(m_Cx)->unrootObject(m_Function.toObjectOrNull());
     }
 
     JSContext *m_Cx;
-    JS::PersistentRootedValue m_Function;
+    JS::Heap<JS::Value> m_Function;
 
     bool once;
 
@@ -110,12 +111,14 @@ public:
     }
 
     NativeJSEvents(char *name) :
-        m_Head(NULL), m_Queue(NULL), m_Name(strdup(name)) {}
+        m_Head(NULL), m_Queue(NULL), m_Name(strdup(name)),
+        m_TmpEv(NULL), m_IsFiring(false), m_DeleteAfterFire(false) {}
+
     ~NativeJSEvents() {
         NativeJSEvent *ev, *tmpEv;
         for (ev = m_Head; ev != NULL;) {
             tmpEv = ev->next;
-            free(ev);
+            delete ev;
 
             ev = tmpEv;
         }
@@ -137,27 +140,98 @@ public:
         m_Queue = ev;
     }
 
-    bool fire(JS::Value evobj, JSObject *thisobj) {
-        NativeJSEvent *ev, *tmpEv;
+    bool fire(JS::HandleValue evobj, JSObject *thisobj) {
+        NativeJSEvent *ev;
+        JSContext *cx;
+        m_IsFiring = true;
+
         for (ev = m_Head; ev != NULL;) {
             JS::AutoValueArray<1> params(ev->m_Cx);
-            params[0].set(evobj);
             JS::RootedValue rval(ev->m_Cx);
-            // Use tmp in case the event was self deleted during trigger
-            tmpEv = ev->next;
             JS::RootedObject obj(ev->m_Cx, thisobj);
             JS::RootedValue fun(ev->m_Cx, ev->m_Function);
+
+            params[0].set(evobj);
+
+            /*
+                Keep a reference to the next event in case the event is self
+                deleted during the trigger. In case the next event(s) are also
+                deleted, m_TmpEv will be updated by NativeJSEvents::remove() 
+                to the next valid event.
+            */
+            m_TmpEv = ev->next;
+            cx = ev->m_Cx;
+
             JS_CallFunctionValue(ev->m_Cx, obj, fun, params, &rval);
 
-            ev = tmpEv;
+            if (JS_IsExceptionPending(cx)) {
+                if (!JS_ReportPendingException(cx)) {
+                    JS_ClearPendingException(cx);
+                }
+            }
+
+            if (m_DeleteAfterFire) {
+                delete this;
+                return false;
+            }
+
+            ev = m_TmpEv;
         }
+
+        m_IsFiring = false;
+        m_TmpEv = nullptr;
+
         return false;
+    }
+
+    void remove() {
+        if (m_IsFiring) {
+            m_DeleteAfterFire = true;
+        } else {
+            delete this;
+        }
+    }
+
+    void remove(JS::HandleValue func) {
+        NativeJSEvent *ev;
+        for (ev = m_Head; ev != nullptr;) {
+            if (ev->m_Function == func) {
+                if (ev->prev) {
+                    ev->prev->next = ev->next;
+                } else {
+                    m_Head = nullptr;
+                }
+
+                if (ev->next) {
+                    ev->next->prev = ev->prev;
+                } else {
+                    m_Queue = ev->prev;
+                }
+
+                /*
+                    The event currently deleted, is the next to be
+                    fired, update the pointer to the next event.
+                */
+                if (ev == m_TmpEv) {
+                    m_TmpEv = ev->next;
+                }
+
+                delete ev;
+
+                return;
+            }
+        }
     }
 
     NativeJSEvent *m_Head;
     NativeJSEvent *m_Queue;
     char *m_Name;
+
 private:
+    NativeJSEvent *m_TmpEv;
+    bool m_IsFiring;
+    bool m_DeleteAfterFire;
+
     static bool native_jsevents_stopPropagation(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
@@ -213,6 +287,8 @@ class NativeJSExposer
         static JSFunctionSpec NativeJSEvent_funcs[] = {
             JS_FN("addEventListener",
                 NativeJSExposer<T>::native_jsevent_addEventListener, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+            JS_FN("removeEventListener",
+                NativeJSExposer<T>::native_jsevent_removeEventListener, 1, JSPROP_ENUMERATE | JSPROP_PERMANENT),
             JS_FN("fireEvent",
                 NativeJSExposer<T>::native_jsevent_fireEvent, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
             JS_FS_END
@@ -225,6 +301,12 @@ class NativeJSExposer
 
     virtual ~NativeJSExposer() {
         if (m_Events) {
+            /*
+                It's safe to enable again the auto delete feature from
+                NativeHash since we are sure at this point that no event
+                is currently fired.
+            */
+            m_Events->setAutoDelete(true);
             delete m_Events;
         }
     }
@@ -288,6 +370,33 @@ class NativeJSExposer
         return true;
     }
 
+    void removeJSEvent(char *name) {
+        if (!m_Events) {
+            return;
+        }
+
+        NativeJSEvents *events = m_Events->get(name);
+        if (!events) {
+            return;
+        }
+
+        m_Events->erase(name);
+        events->remove();
+    }
+
+    void removeJSEvent(char *name, JS::HandleValue func) {
+        if (!m_Events) {
+            return;
+        }
+
+        NativeJSEvents *events = m_Events->get(name);
+        if (!events) {
+            return;
+        }
+
+        events->remove(func);
+    }
+
   protected:
     void initEvents() {
         if (m_Events) {
@@ -295,10 +404,16 @@ class NativeJSExposer
         }
 
         m_Events = new NativeHash<NativeJSEvents *>(32);
-        m_Events->setAutoDelete(true);
+        /*
+            Set NativeHash auto delete to false, since it's possible for 
+            an event to be deleted while it's fired. So we don't want to 
+            free the underlying object when removing it from the NativeHash 
+            (otherwise NativeJSEvents::fire will attempt to use a freed object)
+        */
+        m_Events->setAutoDelete(false);
     }
 
-    void addJSEvent(char *name, JS::Value func) {
+    void addJSEvent(char *name, JS::HandleValue func) {
         initEvents();
 
         NativeJSEvents *events = m_Events->get(name);
@@ -373,6 +488,36 @@ private:
 
         return true;
     }
+
+    static bool native_jsevent_removeEventListener(JSContext *cx,
+        unsigned argc, JS::Value *vp)
+    {
+        JSNATIVE_PROLOGUE_CLASS(NativeJSExposer<T>, NativeJSExposer<T>::jsclass);
+
+        NATIVE_CHECK_ARGS("removeEventListener", 1);
+
+        JS::RootedString name(cx);
+        JS::RootedValue cb(cx);
+
+        if (!JS_ConvertArguments(cx, args, "S", name.address())) {
+            return false;
+        }
+
+        JSAutoByteString cname(cx, name);
+
+        if (argc == 1) {
+            CppObj->removeJSEvent(cname.ptr());
+        } else {
+            if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &cb)) {
+                JS_ReportError(cx, "Bad callback given");
+                return false;
+            }
+
+            CppObj->removeJSEvent(cname.ptr(), cb);
+        }
+
+        return true;
+    }
 };
 
 #define NATIVE_ASYNC_MAXCALLBACK 4
@@ -439,7 +584,7 @@ class NativeJSObjectMapper
 {
 public:
     NativeJSObjectMapper(JSContext *cx, const char *name) :
-        m_JSCx(cx), m_JSObj(cx)
+        m_JSObj(cx), m_JSCx(cx)
     {
         static JSClass jsclass = {
             NULL, JSCLASS_HAS_PRIVATE,
@@ -628,10 +773,30 @@ private:
 */
 #define NATIVE_JS_SETTER(tinyid, setter) \
     {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}}
+#define NATIVE_JS_SETTER_WRS(tinyid, setter) \
+    {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::SetterWithReservedSlot<tinyid, setter>), JSStrictPropertyOp), nullptr}}
 #define NATIVE_JS_GETTER(tinyid, getter) \
     {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}}
-#define NATIVE_JS_STUBGETTER() \
-    {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::NullGetter), JSPropertyOp), nullptr}}
+#define NATIVE_JS_STUBGETTER(tinyid) \
+    {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::NullGetter<tinyid>), JSPropertyOp), nullptr}}
+
+/* Getter only */
+#define NATIVE_PSG(name, tinyid, getter_func) \
+    {name, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
+        NATIVE_JS_GETTER(tinyid, getter_func), \
+        JSOP_NULLWRAPPER}
+
+/* Setter only */
+#define NATIVE_PSS(name, tinyid, setter_func) \
+    {name, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
+        NATIVE_JS_STUBGETTER(tinyid), \
+        NATIVE_JS_SETTER_WRS(tinyid, setter_func)}
+
+/* Both */
+#define NATIVE_PSGS(name, tinyid, getter_func, setter_func) \
+    {name, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
+        NATIVE_JS_GETTER(tinyid, getter_func), \
+        NATIVE_JS_SETTER(tinyid, setter_func)}
 
 struct NativeJSPropertyAccessors
 {
@@ -657,6 +822,23 @@ struct NativeJSPropertyAccessors
         return ret;
     }
 
+    template <uint8_t TINYID, NativeJSGetterOp FN>
+    static bool SetterWithReservedSlot(JSContext *cx, unsigned argc, JS::Value *vp) {
+        JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+        JS::RootedObject obj(cx, JS_THIS_OBJECT(cx, vp));
+
+        if (!obj) return false;
+        JS::RootedValue val(cx, args.get(0));
+        bool ret = FN(cx, obj, TINYID, true, &val);
+#if 0
+        args.rval().set(val);
+#endif
+        /* We need this to be sure that the value set is properly rooted */
+        JS_SetReservedSlot(obj, TINYID, val);
+
+        return ret;
+    }
+
     template <uint8_t TINYID, NativeJSSetterOp FN>
     static bool Getter(JSContext *cx, unsigned argc, JS::Value *vp) {
         JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -667,7 +849,16 @@ struct NativeJSPropertyAccessors
         return FN(cx, obj, TINYID, args.rval());
     }
 
+    template <uint8_t TINYID>
     static bool NullGetter(JSContext *cx, unsigned argc, JS::Value *vp) {
+
+        JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+        JS::RootedObject obj(cx, JS_THIS_OBJECT(cx, vp));
+
+        if (!obj) return false;
+
+        args.rval().set(JS_GetReservedSlot(obj, TINYID));
+
         return true;
     }
 

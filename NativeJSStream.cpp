@@ -47,18 +47,15 @@ template<>
 JSClass *NativeJSExposer<NativeJSStream>::jsclass = &Stream_class;
 
 static JSFunctionSpec Stream_funcs[] = {
-    JS_FN("seek", native_stream_seek, 1, 0),
-    JS_FN("start", native_stream_start, 0, 0),
-    JS_FN("stop", native_stream_stop, 0, 0),
-    JS_FN("getNextPacket", native_stream_getNextPacket, 0, 0),
+    JS_FN("seek", native_stream_seek, 1, NATIVE_JS_FNPROPS),
+    JS_FN("start", native_stream_start, 0, NATIVE_JS_FNPROPS),
+    JS_FN("stop", native_stream_stop, 0, NATIVE_JS_FNPROPS),
+    JS_FN("getNextPacket", native_stream_getNextPacket, 0, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
-/* STREAM_PROP_FILESIZE */
 static JSPropertySpec Stream_props[] = {
-    {"fileSize", JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(STREAM_PROP_FILESIZE, native_stream_prop_get),
-        JSOP_NULLWRAPPER},
+    NATIVE_PSG("filesize", STREAM_PROP_FILESIZE, native_stream_prop_get),
     JS_PS_END
 };
 

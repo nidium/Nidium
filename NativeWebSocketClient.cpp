@@ -203,8 +203,7 @@ void NativeWebSocketClient::write(uint8_t *data, size_t len, bool binary)
 {
     if (!m_Socket) return;
 
-    uint32_t r32 = NativeUtils::randInt<uint32_t>();
-    ape_ws_write(m_Socket, data, len, binary, APE_DATA_COPY, &r32);
+    ape_ws_write(&m_WSState, data, len, binary, APE_DATA_COPY);
 }
 
 void NativeWebSocketClient::close()

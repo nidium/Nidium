@@ -45,6 +45,7 @@
 #include "NativeJSConsole.h"
 #include "NativeJSFS.h"
 #include "NativeStreamInterface.h"
+#include "NativeJSDebugger.h"
 
 static pthread_key_t gAPE = 0;
 static pthread_key_t gJS = 0;
@@ -85,8 +86,8 @@ enum {
 
 JSStructuredCloneCallbacks *NativeJS::jsscc = NULL;
 
-static JSClass global_class = {
-    "global", JSCLASS_GLOBAL_FLAGS,
+JSClass global_class = {
+    "global", JSCLASS_GLOBAL_FLAGS_WITH_SLOTS(16) | JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     nullptr, nullptr, nullptr, JS_GlobalObjectTraceHook
@@ -109,31 +110,24 @@ static bool native_btoa(JSContext *cx, unsigned argc, JS::Value *vp);
 static int native_timerng_wrapper(void *arg);
 
 static JSFunctionSpec glob_funcs[] = {
-    JS_FN("load", native_load, 2, 0),
-    JS_FN("pwd", native_pwd, 0, 0),
-    JS_FN("setTimeout", native_set_timeout, 2, 0),
-    JS_FN("setImmediate", native_set_immediate, 1, 0),
-    JS_FN("setInterval", native_set_interval, 2, 0),
-    JS_FN("clearTimeout", native_clear_timeout, 1, 0),
-    JS_FN("clearInterval", native_clear_timeout, 1, 0),
-    JS_FN("btoa", native_btoa, 1, 0),
+    JS_FN("load", native_load, 2, NATIVE_JS_FNPROPS),
+    JS_FN("pwd", native_pwd, 0, NATIVE_JS_FNPROPS),
+    JS_FN("setTimeout", native_set_timeout, 2, NATIVE_JS_FNPROPS),
+    JS_FN("setImmediate", native_set_immediate, 1, NATIVE_JS_FNPROPS),
+    JS_FN("setInterval", native_set_interval, 2, NATIVE_JS_FNPROPS),
+    JS_FN("clearTimeout", native_clear_timeout, 1, NATIVE_JS_FNPROPS),
+    JS_FN("clearInterval", native_clear_timeout, 1, NATIVE_JS_FNPROPS),
+    JS_FN("btoa", native_btoa, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSPropertySpec glob_props[] = {
-    {"__filename", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(GLOBAL_PROP___FILENAME, native_global_prop_get),
-        JSOP_NULLWRAPPER},
-   {"__dirname", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(GLOBAL_PROP___DIRNAME, native_global_prop_get),
-        JSOP_NULLWRAPPER},
-   {"global", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(GLOBAL_PROP_GLOBAL, native_global_prop_get),
-        JSOP_NULLWRAPPER},
-#ifndef NATIVE_DISABLE_WINDOW_GLOBAL
-   {"window", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(GLOBAL_PROP_WINDOW, native_global_prop_get),
-        JSOP_NULLWRAPPER},
+
+    NATIVE_PSG("__filename", GLOBAL_PROP___FILENAME, native_global_prop_get),
+    NATIVE_PSG("__dirname", GLOBAL_PROP___DIRNAME, native_global_prop_get),
+    NATIVE_PSG("global", GLOBAL_PROP_GLOBAL, native_global_prop_get),
+#ifndef NATIVE_DISABLE_WINDOW_GLOBAL    
+    NATIVE_PSG("window", GLOBAL_PROP_WINDOW, native_global_prop_get),
 #endif
     JS_PS_END
 };
@@ -171,6 +165,7 @@ static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
 void reportError(JSContext *cx, const char *message, JSErrorReport *report)
 {
     NativeJS *js = NativeJS::getNativeClass(cx);
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
     if (js == NULL) {
         printf("Error reporter failed (wrong JSContext?) (%s:%d > %s)\n", report->filename, report->lineno, message);
@@ -533,7 +528,6 @@ JSObject *NativeJS::CreateJSGlobal(JSContext *cx)
     JSAutoCompartment ac(cx, glob);
 
     JS_InitStandardClasses(cx, glob);
-    JS_DefineDebuggerObject(cx, glob);
     JS_InitCTypesClass(cx, glob);
 
     JS_DefineFunctions(cx, glob, glob_funcs);
@@ -1034,6 +1028,8 @@ void NativeJS::loadGlobalObjects()
     NativeJSconsole::registerObject(cx);
     /* fs object */
     NativeJSFS::registerObject(cx);
+    /* Debugger object */
+    NativeJSDebugger::registerObject(cx);
 
     this->modules = new NativeJSModules(cx);
     if (!this->modules) {
@@ -1139,7 +1135,7 @@ static bool native_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedValue func(cx);
 
     if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
-        free(params->argv);
+        delete[] params->argv;
         delete params;
         return true;
     }
@@ -1189,7 +1185,7 @@ static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedValue func(cx);
 
     if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
-        free(params->argv);
+        delete[] params->argv;
         delete params;
         return true;
     }
@@ -1246,7 +1242,7 @@ static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JS::RootedValue func(cx);
     if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
-        free(params->argv);
+        delete[] params->argv;
         delete params;
         return true;
     }
@@ -1254,7 +1250,7 @@ static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
     params->func.set(func);
 
     if (!JS::ToInt32(cx, args[1], &ms)) {
-        free(params->argv);
+        delete[] params->argv;
         delete params;
         return false;
     }

@@ -48,9 +48,9 @@ template<>
 JSClass *NativeJSExposer<NativeJSWebSocket>::jsclass = &WebSocket_class;
 
 static JSFunctionSpec ws_funcs[] = {
-    JS_FN("send", native_websocket_send, 1, 0),
-    JS_FN("close", native_websocket_close, 0, 0),
-    JS_FN("ping", native_websocket_ping, 0, 0),
+    JS_FN("send", native_websocket_send, 1, NATIVE_JS_FNPROPS),
+    JS_FN("close", native_websocket_close, 0, NATIVE_JS_FNPROPS),
+    JS_FN("ping", native_websocket_ping, 0, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
@@ -183,9 +183,6 @@ static bool native_WebSocket_constructor(JSContext *cx,
 
     args.rval().setObjectOrNull(ret);
 
-    /*
-        Server is listening at this point. Don't collect.
-    */
     NativeJSObj(cx)->rootObjectUntilShutdown(ret);
 
     return true;

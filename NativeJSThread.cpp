@@ -45,7 +45,7 @@ static JSClass global_Thread_class = {
     "_GLOBALThread", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
+    nullptr, nullptr, nullptr, JS_GlobalObjectTraceHook, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSClass Thread_class = {
@@ -66,12 +66,12 @@ static JSClass messageEvent_class = {
 };
 
 static JSFunctionSpec glob_funcs_threaded[] = {
-    JS_FN("send", native_post_message, 1, 0),
+    JS_FN("send", native_post_message, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec Thread_funcs[] = {
-    JS_FN("start", native_thread_start, 0, 0),
+    JS_FN("start", native_thread_start, 0, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
@@ -102,14 +102,10 @@ JSObject *_CreateJSGlobal(JSContext *cx)
 
     JS::RootedObject glob(cx, JS_NewGlobalObject(cx, &global_Thread_class, nullptr,
                                              JS::DontFireOnNewGlobalHook, options));
-
     JSAutoCompartment ac(cx, glob);
-
     JS_InitStandardClasses(cx, glob);
     JS_DefineDebuggerObject(cx, glob);
-
     JS_DefineFunctions(cx, glob, glob_funcs_threaded);
-
     JS_FireOnNewGlobalObject(cx, glob);
 
     return glob;
@@ -136,91 +132,85 @@ static void *native_thread(void *arg)
     if ((tcx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
         return NULL;
+    } else {
+        JSAutoRequest ar(tcx);
+        JS_SetGCParameterForThread(tcx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
+
+        JS_SetStructuredCloneCallbacks(rt, NativeJS::jsscc);
+        JS_SetInterruptCallback(rt, JSThreadCallback);
+
+        nthread->jsRuntime = rt;
+        nthread->jsCx      = tcx;
+
+        /*
+            repportError read the runtime private to use the logger
+        */
+        JS_SetRuntimePrivate(rt, nthread->njs);
+        JS_SetErrorReporter(tcx, reportError);
+
+        JS::RootedObject gbl(tcx, _CreateJSGlobal(tcx));
+        if (gbl.get()) {
+            JSAutoCompartment ac(tcx, gbl);
+            JS::RootedValue rval(tcx, JSVAL_VOID);
+
+            js::SetDefaultObjectForContext(tcx, gbl);
+
+            NativeJSconsole::registerObject(tcx);
+
+            JSAutoByteString str(tcx, nthread->jsFunction);
+            char *scoped = new char[strlen(str.ptr()) + 128];
+            /*
+                JS_CompileFunction takes a function body.
+                This is a hack in order to catch the arguments name, etc...
+
+                function() {
+                    (function (a) {
+                        this.send("hello" + a);
+                    }).apply(this, Array.prototype.slice.apply(arguments));
+                };
+            */
+            sprintf(scoped, "return %c%s%s", '(', str.ptr(), ").apply(this, Array.prototype.slice.apply(arguments));");
+
+            /* Hold the parent cx */
+            JS_SetContextPrivate(tcx, nthread);
+
+            JS::CompileOptions options(tcx);
+            options.setFileAndLine(nthread->m_CallerFileName, nthread->m_CallerLineno)
+                   .setUTF8(true);
+
+            JS::RootedFunction cf(tcx);
+            cf = JS::CompileFunction(tcx, gbl, options, NULL, 0, NULL, scoped, strlen(scoped));
+            delete[] scoped;
+
+            if (cf == NULL) {
+                printf("Cant compile function\n");
+                return NULL;
+            }
+
+            JS::AutoValueVector arglst(tcx);
+            arglst.resize(nthread->params.argc);
+
+            for (size_t i = 0; i < nthread->params.argc; i++) {
+                JS::RootedValue arg(tcx);
+                JS_ReadStructuredClone(tcx,
+                            nthread->params.argv[i],
+                            nthread->params.nbytes[i],
+                            JS_STRUCTURED_CLONE_VERSION, &arg, NULL, NULL);
+
+                arglst[i] = arg;
+                JS_ClearStructuredClone(nthread->params.argv[i], nthread->params.nbytes[i], NULL, NULL);
+            }
+
+            if (JS_CallFunction(tcx, gbl, cf, arglst, &rval) == false) {
+            }
+
+            free(nthread->params.argv);
+            free(nthread->params.nbytes);
+            nthread->onComplete(rval);
+        }
     }
-
-    JS_SetGCParameterForThread(tcx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
-    JS::RootedValue rval(tcx, JSVAL_VOID);
-
-    JS_SetStructuredCloneCallbacks(rt, NativeJS::jsscc);
-    JS_SetInterruptCallback(rt, JSThreadCallback);
-
-    nthread->jsRuntime = rt;
-    nthread->jsCx      = tcx;
-
-    /*
-        repportError read the runtime private to use the logger
-    */
-    JS_SetRuntimePrivate(rt, nthread->njs);
-
-    JS_BeginRequest(tcx);
-
-    JS::RootedObject gbl(tcx, _CreateJSGlobal(tcx));
-
-    JS_SetErrorReporter(tcx, reportError);
-
-    js::SetDefaultObjectForContext(tcx, gbl);
-
-    NativeJSconsole::registerObject(tcx);
-
-    JSAutoByteString str(tcx, nthread->jsFunction);
-    char *scoped = new char[strlen(str.ptr()) + 128];
-
-    /*
-        JS_CompileFunction takes a function body.
-        This is a hack in order to catch the arguments name, etc...
-
-        function() {
-            (function (a) {
-                this.send("hello" + a);
-            }).apply(this, Array.prototype.slice.apply(arguments));
-        };
-    */
-    sprintf(scoped, "return %c%s%s", '(', str.ptr(), ").apply(this, Array.prototype.slice.apply(arguments));");
-
-    /* Hold the parent cx */
-    JS_SetContextPrivate(tcx, nthread);
-
-    JS::CompileOptions options(tcx);
-    options.setFileAndLine(nthread->m_CallerFileName, nthread->m_CallerLineno)
-           .setUTF8(true);
-
-    JS::RootedFunction cf(tcx);
-    cf = JS::CompileFunction(tcx, gbl, options, NULL, 0, NULL, scoped, strlen(scoped));
-    delete[] scoped;
-
-    if (cf == NULL) {
-        printf("Cant compile function\n");
-        JS_EndRequest(tcx);
-        return NULL;
-    }
-
-    JS::AutoValueVector arglst(tcx);
-    arglst.resize(nthread->params.argc);
-
-    for (size_t i = 0; i < nthread->params.argc; i++) {
-        JS::RootedValue arg(tcx);
-        JS_ReadStructuredClone(tcx,
-                    nthread->params.argv[i],
-                    nthread->params.nbytes[i],
-                    JS_STRUCTURED_CLONE_VERSION, &arg, NULL, NULL);
-
-        arglst[i] = arg;
-        JS_ClearStructuredClone(nthread->params.argv[i], nthread->params.nbytes[i], NULL, NULL);
-    }
-
-    if (JS_CallFunction(tcx, gbl, cf, arglst, &rval) == false) {
-    }
-
-    JS_EndRequest(tcx);
-
-    free(nthread->params.argv);
-    free(nthread->params.nbytes);
-
-    nthread->onComplete(rval);
-
     JS_DestroyContext(tcx);
     JS_DestroyRuntime(rt);
-
     nthread->jsRuntime = NULL;
     nthread->jsCx = NULL;
 
@@ -275,14 +265,7 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
     char prop[16];
     int ev = msg.event();
 
-    JS::RootedValue jscbk(m_Cx);
-    JS::AutoValueArray<1> jevent(m_Cx);
-    JS::RootedValue rval(m_Cx);
-
-    JS::RootedObject event(m_Cx);
-
     ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
-
     memset(prop, 0, sizeof(prop));
 
     if (ev == NATIVE_THREAD_MESSAGE) {
@@ -292,7 +275,6 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
     }
 
     JS::RootedValue inval(m_Cx, JSVAL_NULL);
-
     if (!JS_ReadStructuredClone(m_Cx, ptr->data, ptr->nbytes,
         JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
 
@@ -301,20 +283,18 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
         delete ptr;
         return;
     }
+
+    JS::RootedValue jscbk(m_Cx);
     JS::RootedObject callee(m_Cx, ptr->callee);
-    if (JS_GetProperty(m_Cx, callee, prop, &jscbk) &&
-
-        jscbk.isPrimitive() && JS_ObjectIsCallable(m_Cx, &jscbk.toObject())) {
-
-        event = JS_NewObject(m_Cx, &messageEvent_class, JS::NullPtr(), JS::NullPtr());
-
-        //JS_DefineProperty(JSContext *cx, JS::HandleObject obj, const char *name, JS::HandleValue value, unsigned int attrs)
+    if (JS_GetProperty(m_Cx, callee, prop, &jscbk) && JS_TypeOfValue(m_Cx, jscbk) == JSTYPE_FUNCTION) {
+        JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &messageEvent_class, JS::NullPtr(), JS::NullPtr()));
         EVENT_PROP("data", inval);
 
+        JS::AutoValueArray<1> jevent(m_Cx);
         jevent[0].setObject(*event);
 
+        JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, event, jscbk, jevent, &rval);
-
     }
     JS_ClearStructuredClone(ptr->data, ptr->nbytes, NULL, NULL);
 

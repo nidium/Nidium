@@ -141,32 +141,28 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
 static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSPropertySpec File_props[] = {
-    {"filesize", JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(FILE_PROP_FILESIZE, native_file_prop_get),
-        JSOP_NULLWRAPPER},
-    {"filename", JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_NATIVE_ACCESSORS,
-        NATIVE_JS_GETTER(FILE_PROP_FILENAME, native_file_prop_get),
-        JSOP_NULLWRAPPER},
+    NATIVE_PSG("filesize", FILE_PROP_FILESIZE, native_file_prop_get),
+    NATIVE_PSG("filename", FILE_PROP_FILENAME, native_file_prop_get),
     JS_PS_END
 };
 
 static JSFunctionSpec File_funcs[] = {
-    JS_FN("open", native_file_open, 1, 0),
-    JS_FN("openSync", native_file_openSync, 1, 0),
-    JS_FN("read", native_file_read, 2, 0),
-    JS_FN("seek", native_file_seek, 2, 0),
-    JS_FN("close", native_file_close, 0, 0),
-    JS_FN("closeSync", native_file_closeSync, 0, 0),
-    JS_FN("write", native_file_write, 1, 0),
-    JS_FN("isDir", native_file_isDir, 0, 0),
-    JS_FN("listFiles", native_file_listFiles, 1, 0),
-    JS_FN("rmrf", native_file_rmrf, 0, 0),
+    JS_FN("open", native_file_open, 1, NATIVE_JS_FNPROPS),
+    JS_FN("openSync", native_file_openSync, 1, NATIVE_JS_FNPROPS),
+    JS_FN("read", native_file_read, 2, NATIVE_JS_FNPROPS),
+    JS_FN("seek", native_file_seek, 2, NATIVE_JS_FNPROPS),
+    JS_FN("close", native_file_close, 0, NATIVE_JS_FNPROPS),
+    JS_FN("closeSync", native_file_closeSync, 0, NATIVE_JS_FNPROPS),
+    JS_FN("write", native_file_write, 1, NATIVE_JS_FNPROPS),
+    JS_FN("isDir", native_file_isDir, 0, NATIVE_JS_FNPROPS),
+    JS_FN("listFiles", native_file_listFiles, 1, NATIVE_JS_FNPROPS),
+    JS_FN("rmrf", native_file_rmrf, 0, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec File_static_funcs[] = {
-    JS_FN("readSync", native_file_readFileSync, 1, 0),
-    JS_FN("read",     native_file_readFile, 2, 0),
+    JS_FN("readSync", native_file_readFileSync, 1, NATIVE_JS_FNPROPS),
+    JS_FN("read",     native_file_readFile, 2, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
@@ -663,7 +659,7 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     if (JS_TypeOfValue(cx, args[1]) != JSTYPE_FUNCTION) {
-        NATIVE_CHECK_ARGS("readFile", 3);
+        NATIVE_CHECK_ARGS("read", 3);
 
         opt = args[1].toObjectOrNull();
         argcallback = args[2];
@@ -672,7 +668,7 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     if (!JS_ConvertValue(cx, argcallback, JSTYPE_FUNCTION, &callback)) {
-        JS_ReportError(cx, "readFile() invalid callback");
+        JS_ReportError(cx, "read() invalid callback");
         return false;
     }
 
@@ -780,8 +776,8 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
                     JS::RootedValue val(cx, OBJECT_TO_JSVAL(entry));
                     JS_SetElement(cx, arr, i, val);
 
-                    JSOBJ_SET_PROP_STR(entry, "name",
-                        JS::RootedString(cx, JS_NewStringCopyZ(cx, entries->lst[i].d_name)));
+                    JS::RootedString name(cx, JS_NewStringCopyZ(cx, entries->lst[i].d_name));
+                    JSOBJ_SET_PROP_STR(entry, "name", name);
 
                     JSOBJ_SET_PROP_CSTR(entry, "type",
                         NativeJSFileIO_dirtype_to_str(&entries->lst[i]));

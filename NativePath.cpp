@@ -19,7 +19,7 @@
 #include "NativePath.h"
 
 #include <string>
-
+#include <sys/stat.h>
 #include <vector>
 
 #include <js/OldDebugAPI.h>
@@ -35,93 +35,161 @@ struct NativePath::schemeInfo *NativePath::g_m_DefaultScheme = NULL;
 struct NativePath::schemeInfo NativePath::g_m_Schemes[NATIVE_MAX_REGISTERED_SCHEMES] = {};
 
 NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
-    m_Path(NULL), m_Dir(NULL), m_Scheme(NULL)
+    m_Path(nullptr), m_Dir(nullptr), m_Host(nullptr), m_Scheme(nullptr)
 {
-    if (origin == NULL) {
+    if (origin == nullptr) {
         return;
     }
-    const char *pOrigin;
-    int originlen = strlen(origin);
 
-    if (originlen > MAXPATHLEN-1 || !originlen/* || origin[originlen-1] == '/'*/) {
-        return;
-    }
-    m_Path = (char *)malloc(sizeof(char) * (MAXPATHLEN*4 + 1));
-    m_Path[0] = '\0';
+    if (!NativePath::getPwd() || noFilter) {
+        const char *pOrigin;
+        schemeInfo *scheme = NativePath::getScheme(origin, &pOrigin);
 
-    if (!NativePath::getPwd() && URLSCHEME_MATCH(origin, "file")) {
-        realpath(origin, m_Path);
-        m_Scheme = NativePath::getScheme(origin, &pOrigin);
-    } else if (!NativePath::getPwd() || noFilter) {
-        m_Scheme = NativePath::getScheme(origin, &pOrigin);
-        if (m_Scheme->getBaseDir() != NULL) {
-            strcat(m_Path, m_Scheme->getBaseDir());
-
-        }
-        strcat(m_Path, pOrigin);
-    } else {
-        bool outsideRoot      = false;
-        schemeInfo *pwdScheme = NativePath::getPwdScheme();
-        schemeInfo *scheme    = NativePath::getScheme(origin, &pOrigin);
-        char *sanitized       = NativePath::sanitize(pOrigin, &outsideRoot);
-
-        /* Relative Path */
-
-        if (this->isRelative(origin)) {
-            if (outsideRoot) {
+        if (URLSCHEME_MATCH(origin, "file")) {
+            if (!(m_Path = realpath(pOrigin, nullptr))) {
                 this->invalidatePath();
                 return;
             }
-
-            strcat(m_Path, NativePath::getPwd());
-            strcat(m_Path, &sanitized[2]);
-            free(sanitized);
-            m_Scheme = pwdScheme;
-
-            this->setDir();
-            return;
-        }
-
-        /* Absolute path */
-
-        if (!allowAll && SCHEME_MATCH(scheme, "file") &&
-            !pwdScheme->allowLocalFileStream()) {
-
-            this->invalidatePath();
-            return;
-        }
-        const char *baseDir;
-
-        if ((baseDir = scheme->getBaseDir()) != NULL) {
-            if (outsideRoot) {
-                this->invalidatePath();
-                return;
-            }
-
-            strcat(m_Path, baseDir);
-            strcat(m_Path, &sanitized[2]);
-            m_Scheme = scheme;
-
-            this->setDir();
-
-            return;
-        }
-
-        if (SCHEME_MATCH(scheme, "file")) {
-            strcat(m_Path, NativePath::getRoot());
-            strcat(m_Path, &sanitized[2]);
-
         } else {
-            strcat(m_Path, origin);
-        }
+            std::string tmp;
+            if (scheme->getBaseDir() != nullptr) {
+                tmp += m_Scheme->getBaseDir();
+            }
+            tmp += pOrigin;
 
-        free(sanitized);
+            m_Path = strdup(tmp.c_str());
+        }
 
         m_Scheme = scheme;
+        m_Dir = NativePath::getDir(m_Path);
 
+        return;
     }
 
-    this->setDir();
+    schemeInfo *rootScheme = NativePath::getPwdScheme();
+    bool localRoot = rootScheme->allowLocalFileStream();
+
+    // Remote chroot trying to access local file. 
+    if (!localRoot && strncmp(origin, "file://", 7) == 0) {
+        this->invalidatePath();
+        return;
+    }
+
+    this->parse(origin);
+
+    if (!m_Path) {
+        this->invalidatePath();
+        return;
+    }
+
+    // Local root check if we are still in Native chroot.
+    if (localRoot && !allowAll && !NativePath::inDir(m_Path, m_Scheme->getBaseDir())) {
+        this->invalidatePath();
+        return;
+    }
+}
+
+void NativePath::parse(const char *origin)
+{
+    const char *pOrigin;
+    const char *baseDir;
+    schemeInfo *scheme = NativePath::getScheme(origin, &pOrigin);
+    schemeInfo *rootScheme = NativePath::getPwdScheme();
+    const char *root = NativePath::getRoot();
+    char *path = strdup(pOrigin);
+    NativePtrAutoDelete<char *> _path(path, free);
+
+    bool isRelative = NativePath::isRelative(origin);
+    bool isLocalRoot = rootScheme->allowLocalFileStream();
+
+    m_Scheme = scheme;
+
+    // Path with prefix. Extract it.
+    if (scheme->keepPrefix) {
+        const char *prefix = scheme->str;
+        int next = strlen(prefix);
+
+        // Remove any extra slashes
+        for (int i = next; path[i] && path[i] == '/'; i++) {
+            next++;
+        }
+
+        path = &path[next];
+    }
+
+    // Path with host. Extract it.
+    if (!scheme->allowLocalFileStream()) {
+        char *res = strchr(path, '/');
+        if (res == nullptr) {
+            // Path/Host without trailing slash
+            m_Host = strdup(path);
+            path = strdup("/");
+
+            free(_path.ptr());
+            _path.set(path);
+        } else {
+            m_Host = strndup(path, res - path);
+            path = &path[res - path];
+        }
+    }
+
+    // Relative path (no prefix) on a remote root.
+    // Set the appropriate host & scheme.
+    if ((isRelative || origin[0] == '/') && !isLocalRoot) { 
+        int hostStart = strlen(rootScheme->str);
+        char *hostEnd = strchr(&root[hostStart], '/');
+        int hostLen = (hostEnd - &root[hostStart]);
+
+        m_Scheme = rootScheme;
+        m_Host = (char *)malloc((hostLen + 1) * sizeof(char));
+        strncpy(m_Host, &root[hostStart], hostLen);
+        m_Host[hostLen] = '\0';
+    } 
+
+    // Prepare the full absolute path for sanitize
+    if (!isRelative && SCHEME_MATCH(scheme, "file")) {
+        // Absolute file on disk
+        baseDir = nullptr;
+    } else if (isRelative && !isLocalRoot) {
+        // Remote root, get the path of the root
+        baseDir = &root[strlen(scheme->str) + strlen(m_Host)];
+    } else {
+        // Relative path or prefixed scheme with a base directory
+        baseDir = scheme->getBaseDir();
+    }
+
+    if (baseDir) {
+        char *tmp = (char *)malloc((strlen(path) + strlen(baseDir) + 1) * sizeof(char));
+        strcpy(tmp, baseDir);
+        strcat(tmp, path);
+
+        path = tmp;
+
+        free(_path.ptr());
+        _path.set(tmp);
+    }
+
+    m_Path = NativePath::sanitize(path);
+    if (!m_Path || m_Path[0] == '.') {
+        // No path, or going outside "/"
+        return;
+    }
+
+    // Path have a host, prepend it to the final path
+    if (m_Host) {
+        char *tmp = (char *)malloc((strlen(m_Path) + strlen(m_Host) + strlen(m_Scheme->str) + 1) * sizeof(char));
+        strcpy(tmp, m_Scheme->str);
+        strcat(tmp, m_Host);
+        strcat(tmp, m_Path);
+
+        free(m_Path);
+
+        m_Path = tmp;
+    }
+
+    m_Dir = NativePath::getDir(m_Path);
+
+    return;
 }
 
 bool NativePath::isRelative(const char *path)
@@ -159,22 +227,6 @@ char *NativePath::getDir(const char *fullpath)
     }
 
     return ret;
-}
-
-void NativePath::setDir()
-{
-    int len = strlen(m_Path);
-    if (len == 0) {
-        m_Dir = NULL;
-        return;
-    }
-    m_Dir = (char *)malloc(sizeof(char) * (len + 1));
-    memcpy(m_Dir, m_Path, len + 1);
-
-    char *pos = strrchr(m_Dir, '/');
-    if (pos != NULL) {
-        pos[1] = '\0';
-    }
 }
 
 void NativePath::registerScheme(const NativePath::schemeInfo &scheme,
@@ -230,6 +282,27 @@ NativePath::schemeInfo *NativePath::getScheme(const char *url, const char **pURL
     return g_m_DefaultScheme;
 }
 
+void NativePath::makedirs(const char* dirWithSlashes)
+{
+    char tmp[MAXPATHLEN];
+    char *p = NULL;
+    size_t len;
+
+    len = snprintf(tmp, sizeof(tmp), "%s", dirWithSlashes);
+    if (tmp[len - 1] == '/') {
+        tmp[len - 1] = 0;
+    }
+    for (p = tmp + 1; *p; p++) {
+        if (*p == '/') {
+            *p = 0;
+            mkdir(tmp, S_IRWXU);
+            *p = '/';
+        }
+    }
+    mkdir(tmp, S_IRWXU);
+
+}
+
 char * NativePath::currentJSCaller(JSContext *cx)
 {
     if (cx == NULL) {
@@ -248,7 +321,8 @@ char * NativePath::currentJSCaller(JSContext *cx)
     return strdup(af.get());
 }
 
-char *NativePath::sanitize(const char *path, bool *external, bool relative)
+// XXX : Only works with path (not URIs)
+char *NativePath::sanitize(const char *path, bool *external)
 {
     enum {
         PATH_STATE_START,
@@ -258,18 +332,18 @@ char *NativePath::sanitize(const char *path, bool *external, bool relative)
         PATH_STATE_SLASH
     } state = PATH_STATE_SLASH;
 
-    int pathlen = strlen(path);
-
     if (external) {
         *external = false;
     }
 
+    int pathlen = strlen(path);
     if (pathlen == 0) {
         return NULL;
     }
 
     int counter = 0, minCounter = 0, counterPos = 0;
     bool outsideRoot = false;
+    bool isRelative = NativePath::isRelative(path);
 
     std::vector<std::string> elements(pathlen);
 
@@ -306,6 +380,12 @@ char *NativePath::sanitize(const char *path, bool *external, bool relative)
                         counterPos = native_max(0, counterPos - 1);
                         if (counter < 0) {
                             outsideRoot = true;
+                            if (!isRelative) {
+                                if (external) {
+                                    *external = true;
+                                }
+                                return nullptr;
+                            }
                         }
                         elements[counterPos].clear();
                         minCounter = native_min(counter, minCounter);
@@ -329,8 +409,8 @@ char *NativePath::sanitize(const char *path, bool *external, bool relative)
         for (int i = minCounter; i != 0; i++) {
             finalPath += "../";
         }
-    } else {
-        finalPath += (relative ? "./" : "/");
+    } else if (!isRelative) {
+        finalPath += "/";
     }
 
     for (int i = 0; elements[i].length() != 0; i++) {
@@ -346,9 +426,40 @@ char *NativePath::sanitize(const char *path, bool *external, bool relative)
     if (external) {
         *external = outsideRoot;
     }
+
     if (strcmp(finalPath.c_str(), ".") == 0 && strlen(finalPath.c_str()) == 1) {
-        return strdup("./");
+        return strdup("");
     }
+
     return strdup(finalPath.c_str());
+}
+
+void NativePath::invalidatePath()
+{
+    free(m_Path);
+    free(m_Host);
+    free(m_Dir);
+
+    m_Path = nullptr;
+    m_Host = nullptr;
+    m_Dir = nullptr;
+}
+
+bool NativePath::inDir(const char *path, const char *root) 
+{
+    if (!root) {
+        return true;
+    }
+
+    int i = 0;
+    int diff = 0;
+
+    while (root[i] && path[i] && root[i] == path[i]) {
+        i++;
+    }
+
+    diff = root[i] || path[i] ? i : -1;
+
+    return diff >= strlen(root);
 }
 

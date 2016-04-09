@@ -32,11 +32,14 @@
 
 #include "NativeJSUtils.h"
 
+#define SOCKET_RESERVED_SLOT 0
+
 enum {
-    SOCKET_PROP_BINARY,
+    SOCKET_PROP_BINARY = SOCKET_RESERVED_SLOT,
     SOCKET_PROP_READLINE,
     SOCKET_PROP_ENCODING,
-    SOCKET_PROP_TIMEOUT
+    SOCKET_PROP_TIMEOUT,
+    SOCKET_NPROP
 };
 
 /* only use on connected clients */
@@ -44,6 +47,8 @@ enum {
 
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj);
+static bool native_socket_prop_get(JSContext *cx, JS::HandleObject obj,
+    uint8_t id, JS::MutableHandleValue vp);
 static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp);
 static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -60,7 +65,7 @@ static bool native_socket_client_close(JSContext *cx,
     unsigned argc, JS::Value *vp);
 
 static JSClass Socket_class = {
-    "Socket", JSCLASS_HAS_PRIVATE,
+    "Socket", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(SOCKET_NPROP+1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Socket_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
@@ -77,28 +82,57 @@ static JSClass socket_client_class = {
 };
 
 static JSFunctionSpec socket_client_funcs[] = {
-    JS_FN("sendFile", native_socket_client_sendFile, 1, 0),
-    JS_FN("write", native_socket_client_write, 1, 0),
-    JS_FN("disconnect", native_socket_client_close, 0, 0),  /* TODO: add force arg */
+    JS_FN("sendFile", native_socket_client_sendFile, 1, NATIVE_JS_FNPROPS),
+    JS_FN("write", native_socket_client_write, 1, NATIVE_JS_FNPROPS),
+    JS_FN("disconnect", native_socket_client_close, 0, NATIVE_JS_FNPROPS),  /* TODO: add force arg */
     JS_FS_END
 };
 
 static JSFunctionSpec socket_funcs[] = {
-    JS_FN("listen", native_socket_listen, 0, 0),
-    JS_FN("connect", native_socket_connect, 0, 0),
-    JS_FN("write", native_socket_write, 1, 0),
-    JS_FN("disconnect", native_socket_close, 0, 0), /* TODO: add force arg */
-    JS_FN("sendTo", native_socket_sendto, 3, 0),
+    JS_FN("listen", native_socket_listen, 0, NATIVE_JS_FNPROPS),
+    JS_FN("connect", native_socket_connect, 0, NATIVE_JS_FNPROPS),
+    JS_FN("write", native_socket_write, 1, NATIVE_JS_FNPROPS),
+    JS_FN("disconnect", native_socket_close, 0, NATIVE_JS_FNPROPS), /* TODO: add force arg */
+    JS_FN("sendTo", native_socket_sendto, 3, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSPropertySpec Socket_props[] = {
-    {"binary",   JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_BINARY, native_socket_prop_set)},
-    {"readline", JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_READLINE, native_socket_prop_set)},
-    {"encoding", JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_ENCODING, native_socket_prop_set)},
-    {"timeout",  JSPROP_NATIVE_ACCESSORS, NATIVE_JS_STUBGETTER(), NATIVE_JS_SETTER(SOCKET_PROP_TIMEOUT, native_socket_prop_set)},
+    NATIVE_PSGS("binary", SOCKET_PROP_BINARY, native_socket_prop_get, native_socket_prop_set),
+    NATIVE_PSGS("readline", SOCKET_PROP_READLINE, native_socket_prop_get, native_socket_prop_set),
+    NATIVE_PSGS("encoding", SOCKET_PROP_ENCODING, native_socket_prop_get, native_socket_prop_set),
+    NATIVE_PSGS("timeout", SOCKET_PROP_TIMEOUT, native_socket_prop_get, native_socket_prop_set),
     JS_PS_END
 };
+
+static bool native_socket_prop_get(JSContext *cx, JS::HandleObject obj,
+    uint8_t id, JS::MutableHandleValue vp)
+{
+    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
+
+    if (nsocket == NULL) {
+        JS_ReportError(cx, "Invalid socket object");
+        return false;
+    }
+
+    switch(id) {
+        case SOCKET_PROP_BINARY:
+            vp.setBoolean(nsocket->flags & NATIVE_SOCKET_ISBINARY);
+            break;
+        case SOCKET_PROP_READLINE:
+            vp.setBoolean(nsocket->flags & NATIVE_SOCKET_READLINE);
+            break;
+        case SOCKET_PROP_ENCODING:
+            vp.setString(JS_NewStringCopyZ(cx, nsocket->m_Encoding ? nsocket->m_Encoding : "ascii"));
+            break;
+        case SOCKET_PROP_TIMEOUT:
+            vp.setInt32(nsocket->m_TCPTimeout);
+            break;
+        default:
+            break;
+    }
+    return true;
+}
 
 static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp)
@@ -358,9 +392,10 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
             TODO: inet_ntoa is not reentrant
         */
         char *cip = inet_ntoa(addr->sin_addr);
-        JS::RootedValue jip(cx, STRING_TO_JSVAL(JS_NewStringCopyZ(cx, cip)));
+        JS::RootedString jip(cx, JS_NewStringCopyZ(cx, cip));
+        JS::RootedValue vip(cx, STRING_TO_JSVAL(jip));
 
-        JS_SetProperty(cx, remote, "ip", jip);
+        JS_SetProperty(cx, remote, "ip", vip);
         JS::RootedValue jport(cx, INT_TO_JSVAL(ntohs(addr->sin_port)));
 
         JS_SetProperty(cx, remote, "port", jport);
@@ -557,9 +592,6 @@ static bool native_Socket_constructor(JSContext *cx, unsigned argc, JS::Value *v
     JS_DefineFunctions(cx, ret, socket_funcs);
     JS_DefineProperties(cx, ret, Socket_props);
 
-    JS::RootedValue isBinary(cx, JSVAL_FALSE);
-
-    JS_SetProperty(cx, ret, "binary", isBinary);
 
     return true;
 }

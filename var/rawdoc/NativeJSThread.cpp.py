@@ -1,11 +1,11 @@
 from dokumentor import *
 
-NamespaceDoc( "_GLOBALThread", "Global threadnamespace",
+NamespaceDoc( "_GLOBALThread", "Global threadnamespace.",
 	[SeeDoc( "Thread" ), SeeDoc( "ThreadMessageEvent" )  ],
-	NO_Examples
+        section="Thread"
 )
 
-ClassDoc( "Thread", """Run a CPU intensive task in the background, with out locking the main UI interface. 
+ClassDoc( "Thread", """Run a CPU intensive task in the background, with out locking the main UI interface.
 
 This will run in a seperate JS Runtime, wich requires some cpu and memory overhead.""",
 	[ SeeDoc( "_GLOBALThread" ), SeeDoc( "ThreadMessageEvent" ) ],
@@ -13,9 +13,9 @@ This will run in a seperate JS Runtime, wich requires some cpu and memory overhe
 	var t = new Thread(function(foo){
    // something loud and heavy
 });
-t.oncomplete = function(e){
+t.oncomplete = function(event){
    // executed when the job is done
-   console.log(e.data);
+   console.log(event.data);
 };
 t.start("bar"); // start the new job with "bar" as a parameter.""") ],
 	NO_Inherrits,
@@ -25,34 +25,31 @@ t.start("bar"); // start the new job with "bar" as a parameter.""") ],
 ClassDoc( "ThreadMessageEvent", "Communication channel between threads.",
 	[ SeeDoc( "_GLOBALThread" ), SeeDoc( "Thread" ) ],
 	NO_Examples,
-	NO_Inherrits,
-	NO_Extends
+        section="Thread"
 )
 
-FunctionDoc( "Thread.start", "Start a tread",
+FunctionDoc( "Thread.start", "Start a tread.",
 	SeesDocs( "Thread|ThreadMessageEvent" ),
 	[ ExampleDoc( """document.status.open();
 
 var t = new Thread(function(...n){
     var p = 0;
-    for (var i=0; i<20000000; i++){
-        if (i%10000 == 0) this.send(i);
+    for (var i = 0; i < 20000000; i++) {
+        if (i % 10000 == 0) this.send(i);
         p++;
     }
     return n;
 });
-t.onmessage = function(e){
-    var i = e.data,
-        v = i*100/20000000;
+t.onmessage = function(event){
+    var i = event.data,
+        v = i * 100 / 20000000;
 
-    document.status.label = Math.round(v)+"%";
-    document.status.value = v;
+    console.write("Status: " + Math.round(v) + "% (" + v + ")");
 };
-t.oncomplete = function(e){
-    if (e.data){
-        console.log("i'm done with", e.data);
+t.oncomplete = function(event){
+    if (event.data){
+        console.log("i'm done with", event.data);
     }
-    document.status.close();
 };
 t.start(5, 6, 6, 9);
 """) ],
@@ -61,16 +58,16 @@ t.start(5, 6, 6, 9);
 	NO_Returns
 )
 
-EventDoc( "Thread.onmessage", "Function that will be called once the thread posts a message.",
+EventDoc( "Thread.onmessage", "Function that will be called when the thread posts a message.",
 	SeesDocs( "Thread.oncomplete|Thread.onmessage" ),
 	NO_Examples,
-	[ ParamDoc( "e", "error object with key: data", "object", IS_Obligated ) ]
+	[ ParamDoc( "event", "event object", ObjectDoc([("data", "The message data", "string")]), NO_Default, IS_Obligated ) ]
 )
 
-EventDoc( "Thread.oncomplete", "Function that will be called once the thread is complete.",
+EventDoc( "Thread.oncomplete", "Function that will be called when the thread is complete.",
 	SeesDocs( "Thread.oncomplete|Thread.onmessage" ),
 	NO_Examples,
-	[ ParamDoc( "e", "error object with key: data", "object", IS_Obligated ) ]
+	[ ParamDoc( "event", "event object", ObjectDoc([("data", "The message data", "string")]), NO_Default, IS_Obligated ) ]
 )
 
 FunctionDoc( "_GLOBALThread.send", "Send a message to a thread.",
@@ -80,3 +77,4 @@ FunctionDoc( "_GLOBALThread.send", "Send a message to a thread.",
 	NO_Params,
 	NO_Returns
 )
+

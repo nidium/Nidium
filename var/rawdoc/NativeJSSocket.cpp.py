@@ -1,6 +1,6 @@
 from dokumentor import *
 
-ClassDoc( "Socket", """A advanced non-blocking socket class.
+ClassDoc( "Socket", """An advanced non-blocking socket class.
 
 Nidium Socket API was designed to connect to:
 
@@ -8,7 +8,7 @@ Nidium Socket API was designed to connect to:
 * to listen to a port as a server to handle incomming client connections.
 
 The underlying system is powered by a powerful, non-blocking event-driven engine.""",
-	SeesDocs( "Http|HTTPListener|SocketClient" ),
+	SeesDocs( "Http|HTTPListener|SocketClient|WebSocket|WebSocketClient" ),
 	[ ExampleDoc( """//Client Example
 var socket = new Socket("nidium.com", 80).connect();
 socket.onconnect = function() {
@@ -19,36 +19,37 @@ socket.ondisconnect = function() {
     console.log("Disconnected");
 }
 socket.onread = function(data) {
-    console.log("=>", data);
+    //console.log("=>", data);
 }"""), ExampleDoc( """//Server example
 var socket = new Socket("0.0.0.0", 8000).listen();
-socket.onaccept = function(client) {
-    client.write("Hello");
+socket.onaccept = function(clientSocket) {
+    clientSocket.write("Hello");
 }
-socket.ondisconnect = function(client) {
+socket.ondisconnect = function(clientSocket) {
     console.log("Client Disconnected");
 }
-socket.onread = function(client, data) {
-    console.log("=>", data);
+socket.onread = function(clientSocket, data) {
+    //console.log("=>", data);
 }""") ],
 	NO_Inherrits,
 	NO_Extends
 )
 
-ClassDoc( "SocketClient", "A connected client",
-	SeesDocs( "Http|HTTPListener|SocketClient" ),
+ClassDoc( "SocketClient", "A connected client.",
+	SeesDocs( "Http|HTTPListener|SocketClient|WebSocket|WebSocketClient" ),
 	NO_Examples,
 	[ "Socket" ],
-	NO_Extends
+	NO_Extends,
+        section="Socket"
 )
 
 FieldDoc( "Socket.binary", """Get or set the binary mode for send/recieve data.
 
 When the 'Socket.binary' property is set to 'true', the 'Socket.ondata' event will be called with an 'ArrayBuffer' instead of a 'string'.""",
 	SeesDocs( "Socket.encoding|Socket.timeout|Socket.readline|Socket.binary|Socket" ),
-	 [ ExampleDoc( """var socket = new Socket("0.0.0.0", 8000).listen()
+	 [ ExampleDoc( """var socket = new Socket("0.0.0.0", 8001).listen()
 socket.binary = true;
-socket.onread = function(client, data) {
+socket.onread = function(clientSocket, data) {
     console.log("=>", data); // data is an ArrayBuffer
 }""") ],
 	IS_Dynamic, IS_Public, IS_ReadWrite,
@@ -67,18 +68,18 @@ FieldDoc( "Socket.timeout", """Get or set the timeout on a socket connection."""
 
 FieldDoc( "Socket.readline", """Handle 'Socket.onread' events on a one line-per-line basis. A TCP Socket stream is 'frameless'.
 
-A TCP Socket stream is 'frameless'. When you receive data, there is no concept of boundaries.  
+A TCP Socket stream is 'frameless'. When you receive data, there is no concept of boundaries.
 For instance, if an endpoint sends "hello" it doesn't mean you can't receive the data in 2 or more callbacks.
 The 'readline' property tells the socket to set boundaries around the newline char (\\n).
 This is particularly useful to design simple protocols like IRC which are line-based.
 
-The maximum length of a line is internally set to 8192 bytes""",
+The maximum length of a line is internally set to 8192 bytes.""",
 	SeesDocs( "Socket.encoding|Socket.onread|Socket.readline|Socket.binary|Socket" ),
 	[ExampleDoc("""var socket = new Socket("irc.freenode.org", 6667).connect();
 socket.readline = true;
-socket.onconnect = function() {
-    client.write("NICKNAME foo\\n");
-    client.write("USER A A A A\\n");
+socket.onconnect = function(clientSocket) {
+    clientSocket.write("NICKNAME foo\\n");
+    clientSocket.write("USER A A A A\\n");
 }
 // if the server sends something like :
 // HELLO\\nPING 123\\nFOOBAR, the "onread" callback is called twice (once with HELLO and once with PING).
@@ -105,24 +106,25 @@ socket.onread = function(data) {
 } """) ],
 	IS_Dynamic, IS_Public, IS_ReadWrite,
 	'string',
-	'false'
+	'ascii'
 )
 
 EventDoc( "Socket.onconnect", """Function to execute on a socket if client called connect and the connection has been established correctly.
+
 This method is called when a new client connects on a listening Socket.""",
 	SeesDocs( "Socket.onconnect|Socket.onaccept|Socket.onread|Socket.ondrain|Socket.onmessage|Socket.onread|Socket.ondisconnect" ),
-	[ ExampleDoc( """var socket = new Socket("0.0.0.0", 8000).listen();
-socket.onaccept = function(client) {
-    client.write("hello !\\n");
+	[ ExampleDoc( """var socket = new Socket("0.0.0.0", 8002).listen();
+socket.onaccept = function(clientSocket) {
+    clientSocket.write("hello !\\n");
 }""" ), ExampleDoc("""var socket = new Socket("irc.freenode.org", 6667).connect();
 socket.onconnect = function( clientSocket ) {
-    client.write("NICKNAME foo\\n");
-    client.write("USER A A A A\\n");
+    clientSocket.write("NICKNAME foo\\n");
+    clientSocket.write("USER A A A A\\n");
 }""") ],
 	NO_Params
 )
 
-FieldDoc( "SocketClient.ip", "The ip address of the connected Socket",
+FieldDoc( "SocketClient.ip", "The ip address of the connected Socket.",
 	SeesDocs( "Socket|HTTPListener" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Readonly,
@@ -131,11 +133,11 @@ FieldDoc( "SocketClient.ip", "The ip address of the connected Socket",
 )
 EventDoc( "Socket.onaccept", """Function to execute on a server when a client connects.""",
 	SeesDocs( "Socket.onconnect|Socket.onaccept|Socket.onread|Socket.ondrain|Socket.onmessage|Socket.onread|Socket.ondisconnect" ),
-	[ExampleDoc("""var socket = new Socket("0.0.0.0", 8000).listen();
-socket.onaccept = function(client) {
-    client.write("hello !\\n");
+	[ExampleDoc("""var socket = new Socket("0.0.0.0", 8003).listen();
+socket.onaccept = function(clientSocket) {
+    clientSocket.write("hello !\\n");
 }""")],
-	[ParamDoc( "client", "Socketclient instance", "SocketClient", NO_Default, IS_Obligated ) ]
+	[ParamDoc( "clientSocket", "Socketclient instance", "SocketClient", NO_Default, IS_Obligated ) ]
 )
 
 EventDoc( "Socket.onread", "Function to execute on a socket upon the read event.",
@@ -152,35 +154,35 @@ That is: after a 'Socket.write' call, when everything was written, and the socke
 	NO_Params
 )
 
-EventDoc( "Socket.onmessage", "Function to execute on a when a message is available on a 'udp' socket.",
+EventDoc( "Socket.onmessage", "Function to execute when a message is available on a 'udp' socket.",
 	SeesDocs( "Socket.binary|Socket.readline|Socket.onconnect|Socket.onaccept|Socket.onread|Socket.ondrain|Socket.onmessage|Socket.onread|Socket.ondisconnect" ),
-	[ ExampleDoc("""var socket = new Socket("0.0.0.0", 8000).listen("udp");
+	[ ExampleDoc("""var socket = new Socket("0.0.0.0", 8004).listen("udp");
 socket.onmessage = function(data, details) {
     console.log("A message has arrived from", details.ip, ":", details.port);
     console.log("=>", data);
 }""") ],
 	[ ParamDoc( "data", "The message", "string", NO_Default, IS_Obligated ),
-	 ParamDoc( "details", "Connection details (keys: ip, port)", "Object", NO_Default, IS_Obligated ) ],
+	 ParamDoc( "details", "Connection details object", ObjectDoc([("ip", "The remote IP address", "string"), ("port", "The connected port", "integer")]), NO_Default, IS_Obligated ) ],
 )
 
-EventDoc( "SocketClient.onread", "Function to execute on a clientsocket if it is not binary and not-readline.",
+EventDoc( "SocketClient.onread", "Function to execute on a 'SocketClient', if it is not binary and not-readline.",
 	SeesDocs( "Socket.binary|Socket.readline|Socket.onconnect|Socket.onaccept|Socket.onread|Socket.ondrain|Socket.onmessage|Socket.onread|Socket.ondisconnect" ),
 	NO_Examples,
 	[ ParamDoc( "socketClient", "The connected client", "SocketClient", NO_Default, IS_Obligated ),
 	  ParamDoc( "data", "The read data", "string", NO_Default, IS_Obligated ) ]
 )
 
-EventDoc( "SocketClient.ondisconnect", "Function to execute on a socket upon the disconnect event.",
+EventDoc( "SocketClient.ondisconnect", "Function to execute on a 'SocketClient' upon the disconnect event.",
 	SeesDocs( "Socket.binary|Socket.readline|Socket.onconnect|Socket.onaccept|Socket.onread|Socket.ondrain|Socket.onmessage|Socket.onread|Socket.ondisconnect" ),
 	[ ExampleDoc("""var socket = new Socket("irc.freenode.org", 6667).connect();
-socket.onconnect = function() {
-    client.write("NICKNAME foo\\n");
-    client.disconnect( );
+socket.onconnect = function(clientSocket) {
+    clientSocket.write("NICKNAME foo\\n");
+    clientSocket.disconnect( );
 }
-socket.ondisconnect=  function( client ) {
-	console.log( "Disconnected from: " + client.ip );
+socket.ondisconnect=  function( clientSocket ) {
+	console.log( "Disconnected from: " + clientSocket.ip );
 }""") ],
-	[ParamDoc( "client", "Socketclient instance", "SocketClient", NO_Default, IS_Obligated ) ]
+	[ParamDoc( "clientSocket", "Socketclient instance", "SocketClient", NO_Default, IS_Obligated ) ]
 )
 
 EventDoc( "Socket.ondisconnect", "Function to execute on a socket upon the disconnect event.",
@@ -195,22 +197,22 @@ ConstructorDoc( "Socket", "Create a new Socket object ready for connecting or li
 var client = new Socket("google.com", 80);
 client.connect();
 """ ), ExampleDoc("""//Server
-var server = new Socket("0.0.0.0", 8000);
+var server = new Socket("0.0.0.0", 8005);
 server.listen();""" ) ],
-	[ ParamDoc( "host", "Hostname or ip-address. '0.0.0.0' as host means any host when used with listen() (e.g. when the socket must be accessed from the Internet). If an name is given, the name is resolved asynchronously automatic.", "string", NO_Default, IS_Obligated ),
+	[ ParamDoc( "host", "Hostname or ip-address. '0.0.0.0' as host means any host when used with 'listen()' (e.g. when the socket must be accessed from the Internet). If an name is given, the name is resolved asynchronously automatic.", "string", NO_Default, IS_Obligated ),
 	 ParamDoc( "port", "port number", 'integer', NO_Default, IS_Obligated ) ],
-	ReturnDoc( "a (non-binary) socket instance", "object" )
+	ReturnDoc( "a (non-binary) socket instance", "Socket" )
 )
 
 FunctionDoc( "Socket.listen", """Starts a server.
 
 The server will listen to the host and port that were specified in the constructor.""",
 	SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.disconnect|HTTPListener" ),
-	[ExampleDoc("""var socket = new Socket("0.0.0.0", 8000).listen();
+	[ExampleDoc("""var socket = new Socket("0.0.0.0", 8006).listen();
 
-socket.onaccept = function(client) {
-    client.write("hello !\\n");
-    client.disconnect();
+socket.onaccept = function(clientSocket) {
+    clientSocket.write("hello !\\n");
+    clientSocket.disconnect();
 }""")],
 	IS_Dynamic, IS_Public, IS_Fast,
 	[ParamDoc( "mode", "Conncection mode. Allowed values are: 'tcp'|'udp'", "string", 'tcp', IS_Optional ) ],
@@ -231,8 +233,7 @@ Connect the socket to the tuple host and port that were specified in the constru
 FunctionDoc( "SocketClient.write", """Write data to a connected server/client socket.
 
 If 'Socket.write' returns 0, the data is internally saved and sent as soon as possible.
-
-In order to avoid high memory usage, one should stop calling 'Socket.write' when a previous returned '0' and wait for the 'Socket.ondrain' event to be sent.
+In order to avoid high memory usage, one should stop calling 'Socket.write' when a previous call to 'Socket.write' returned '0' and wait for the 'Socket.ondrain' event to be sent.
 """,
 	SeesDocs( "SocketClient.listen|SocketClient.sendFile|SocketClient.write|SocketClient.disconnect|HTTPListener" ).append( "Socket.write " ),
 	NO_Examples,
@@ -241,7 +242,7 @@ In order to avoid high memory usage, one should stop calling 'Socket.write' when
 	ReturnDoc( "bytes written", "integer" )
 )
 
-FunctionDoc( "Socket.write", "Write data",
+FunctionDoc( "Socket.write", "Write data.",
 	SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.write|SocketClient.disconnect|HTTPListener" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -251,26 +252,26 @@ FunctionDoc( "Socket.write", "Write data",
 
 FunctionDoc( "SocketClient.disconnect", """Close the socket on an extisting connection.
 
-This can be done by both the server ( after the 'Socket.onaccept') and the client (after the 'Socket.connect').""",
+This can be done by both the server (after the 'Socket.onaccept') and the client (after the 'Socket.connect').""",
 	SeesDocs( "SocketClient.sendFile|SocketClient.write|SocketClient.disconnect|HTTPListener|Socket.connect|Socket.listen" ),
-	[ExampleDoc("""var s = new Socket("0.0.0.0", 8000).listen();
+	[ExampleDoc("""var s = new Socket("0.0.0.0", 8007).listen();
 
-s.onaccept = function(client) {
-    client.write("hello !\\n");
-    client.disconnect();
+s.onaccept = function(clientSocket) {
+    clientSocket.write("hello !\\n");
+    clientSocket.disconnect();
 }"""), ExampleDoc("""var socket = new Socket("irc.freenode.org", 6667).connect();
 
-socket.onconnect = function() {
-    client.write("NICKNAME foo\\n");
-    client.write("USER A A A A\\n");
-    client.disconnect()
+socket.onconnect = function(clientSocket) {
+    clientSocket.write("NICKNAME foo\\n");
+    clientSocket.write("USER A A A A\\n");
+    clientSocket.disconnect()
 }""") ],
 	IS_Dynamic, IS_Public, IS_Fast,
 	NO_Params,
 	NO_Returns
 )
 
-FunctionDoc( "Socket.close", "Close a socket connection",
+FunctionDoc( "Socket.close", "Close a socket connection.",
 	SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.write|SocketClient.disconnect|HTTPListener" ),
 	NO_Examples,
 	IS_Dynamic, IS_Public, IS_Fast,
@@ -278,17 +279,18 @@ FunctionDoc( "Socket.close", "Close a socket connection",
 	NO_Returns
 )
 
-FunctionDoc( "Socket.sendTo", "Send data from a socket server to a client via udp",
+FunctionDoc( "Socket.sendTo", "Send data from a socket server to a client via udp.",
 	SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.write|SocketClient.disconnect|HTTPListener" ),
-	[ExampleDoc("""var s = new Socket("0.0.0.0", 8000).listen("udp");
+	[ExampleDoc("""var s = new Socket("0.0.0.0", 8008).listen("udp");
 
-s.onaccept = function(client) {
-    client.sendTo( client.ip, client.port, "hello !\\n");
-    client.disconnect();
+s.onaccept = function(clientSocket) {
+    clientSocket.sendTo( clientSocket.ip, clientSocket.port, "hello !\\n");
+    clientSocket.disconnect();
 }""") ],
 	IS_Dynamic, IS_Public, IS_Fast,
-	[ ParamDoc( "ip", "The Ip to send to", 'string', NO_Default, IS_Obligated ),
-	  ParamDoc( "port", "Portnumber", 'integer', NO_Default, IS_Obligated ),
-	  ParamDoc( "data", "The data to send", "string|ArrayBuffer", NO_Default, IS_Obligated ) ],
+	[	ParamDoc( "ip", "The Ip to send to", 'string', NO_Default, IS_Obligated ),
+		ParamDoc( "port", "Portnumber", 'integer', NO_Default, IS_Obligated ),
+		 ParamDoc( "data", "The data to send", "string|ArrayBuffer", NO_Default, IS_Obligated ) ],
 	NO_Returns
 )
+
