@@ -2411,9 +2411,3 @@ Murmurhash2 - non-cryptographic hash function suitable for general hash-based lo
 All code is released to the public domain. For business purposes, Murmurhash is
 under the MIT license.
 
-###############################################################################
-Splaytree - Self-adjusting binary search tree with the additional property that recently accessed elements are quick to access again
-###############################################################################
-
-??
-
