@@ -10,7 +10,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 
-#include <system/native_atom.h>
+#include "../../system/native_atom.h"
 
 static pthread_key_t gManager = 0;
 

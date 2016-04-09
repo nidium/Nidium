@@ -101,7 +101,6 @@
             '../src/Net/NativeHTTP.cpp',
             '../src/Net/NativeWebSocketClient.cpp',
             '../src/Net/NativeHTTPParser.cpp',
-            '../src/Net/NativeJSWebSocketClient.cpp',
             '../src/Net/NativeHTTPListener.cpp',
             '../src/Net/NativeWebSocket.cpp',
             '../src/Net/NativeHTTPStream.cpp',
@@ -122,6 +121,7 @@
             '../src/JS/NativeJSWebSocket.cpp',
             '../src/JS/NativeJSUtils.cpp',
             '../src/JS/NativeJSStream.cpp',
+            '../src/JS/NativeJSWebSocketClient.cpp',
 
             '../src/Core/NativeSharedMessages.cpp',
             '../src/Core/NativeUtils.cpp',

@@ -8,7 +8,7 @@
 
 #include "IO/NativeStreamInterface.h"
 #include "Core/NativeMessages.h"
-#include "Core/NativeHTTP.h"
+#include "Net/NativeHTTP.h"
 
 class NativeHTTPStream : public NativeBaseStream,
                          public Native::Core::HTTPDelegate
