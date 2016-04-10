@@ -941,6 +941,52 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
     return 1;
 }
 
+char *NativeJS::LoadScriptContentAndGetResult(const char *data, size_t len,
+    const char *filename)
+{
+    if (!len) {
+        return NULL;
+    }
+
+    JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
+
+    if (!gbl) {
+        fprintf(stderr, "Failed to load global object\n");
+        return NULL;
+    }
+
+    JS::RootedScript script(cx);
+    /* RAII helper that resets to origin options state */
+    JS::AutoSaveContextOptions asco(cx);
+
+    JS::ContextOptionsRef(cx).setVarObjFix(true).setStrictMode(m_JSStrictMode);
+
+    JS::CompileOptions options(cx);
+    options.setUTF8(true)
+           .setFileAndLine(filename, 1)
+           .setCompileAndGo(true).setNoScriptRval(false);
+
+    script = JS::Compile(cx, gbl, options, data, len);
+
+    JS::RootedValue rval(cx);
+
+    if (!script || !JS_ExecuteScript(cx, gbl, script, &rval)) {
+        if (JS_IsExceptionPending(cx)) {
+            if (!JS_ReportPendingException(cx)) {
+                JS_ClearPendingException(cx);
+            }
+        }
+        return NULL;
+    }
+
+    JS::RootedString rvalstr(cx, JS::ToString(cx, rval));
+    JSAutoByteString cstr;
+
+    cstr.encodeUtf8(cx, rvalstr);
+
+    return strdup(cstr.ptr());
+}
+
 int NativeJS::LoadScript(const char *filename)
 {
     int err;

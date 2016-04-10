@@ -128,6 +128,9 @@ class NativeJS
             const char *filename, JS::MutableHandleValue ret);
         int LoadScriptContent(const char *data, size_t len,
             const char *filename);
+
+        char *LoadScriptContentAndGetResult(const char *data,
+            size_t len, const char *filename);
         int LoadScript(const char *filename);
         int LoadBytecode(NativeBytecodeScript *script);
         int LoadBytecode(void *data, int size, const char *filename);
