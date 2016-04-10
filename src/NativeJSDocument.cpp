@@ -12,9 +12,10 @@
 #include "NativeNML.h"
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
+#include "NativeSkImage.h"
+
 #include "JS/NativeJSUtils.h"
 
-#include "NativeSkImage.h"
 
 bool NativeJSdocument::m_ShowFPS = false;
 

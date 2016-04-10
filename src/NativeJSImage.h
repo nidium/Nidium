@@ -1,10 +1,9 @@
 #ifndef nativejsimage_h__
 #define nativejsimage_h__
 
-#include <JS/NativeJSExposer.h>
 #include <Core/NativeMessages.h>
 #include <IO/NativeStreamInterface.h>
-
+#include <JS/NativeJSExposer.h>
 
 class NativeSkImage;
 

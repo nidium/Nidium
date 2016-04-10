@@ -3,11 +3,11 @@
 
 #include <native_netlib.h>
 
-#include "external/rapidxml.hpp"
-#include "JS/NativeJSStream.h"
+#include <JS/NativeJSStream.h>
 
 #include "NativeAssets.h"
 #include "NativeTypes.h"
+#include "external/rapidxml.hpp"
 
 
 #define XML_VP_MAX_WIDTH 8000

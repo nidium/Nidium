@@ -7,33 +7,35 @@
 #include <unistd.h>
 #include <math.h>
 
-#ifdef __linux__
-#include <SkImageDecoder.h>
-#endif
-
+#include <NativeSkia.h>
 #include <Net/NativeWebSocket.h>
-
-#ifdef DEBUG
-#include <JS/NativeJSDebug.h>
-#endif
 
 #include "NativeCanvas2DContext.h"
 #include "NativeNML.h"
 #include "NativeJSNative.h"
 #include "NativeJSDocument.h"
-#ifdef NATIVE_AUDIO_ENABLED
-#include "NativeJSAV.h"
-#endif
-#include <NativeSkia.h>
 #include "NativeJSCanvas.h"
 #include "NativeJSWindow.h"
 
+#ifdef __linux__
+#include <SkImageDecoder.h>
+#endif
+
+#ifdef DEBUG
+#include <JS/NativeJSDebug.h>
+#endif
+
+#ifdef NATIVE_AUDIO_ENABLED
+#include "NativeJSAV.h"
+#endif
+
 #ifdef NATIVE_WEBGL_ENABLED
+#include <JS/NativeJSProcess.h>
 #include "NativeOpenGLHeader.h"
 #include "NativeGLState.h"
 #include "NativeJSWebGL.h"
-#include "JS/NativeJSProcess.h"
 #endif
+
 enum {
     NATIVE_SCTAG_IMAGEDATA = NATIVE_SCTAG_MAX,
 };

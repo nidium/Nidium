@@ -23,7 +23,8 @@
 #include <string>
 
 #include <IO/NativeFileStream.h>
-#include <NativeSystemInterface.h>
+
+#include "NativeSystemInterface.h"
 
 class NativeSystemStream : public NativeFileStream
 {
