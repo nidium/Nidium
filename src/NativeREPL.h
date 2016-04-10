@@ -20,6 +20,10 @@ public:
     sem_t *getReadLineLock() {
         return &m_ReadLineLock;
     }
+
+    bool isContinuing() const {
+        return m_Continue;
+    }
 private:
     pthread_t m_ThreadHandle;
     sem_t m_ReadLineLock;
@@ -27,6 +31,8 @@ private:
     NativeJS *m_JS;
 
     buffer *m_Buffer;
+
+    bool m_Continue;
 };
 
 #endif

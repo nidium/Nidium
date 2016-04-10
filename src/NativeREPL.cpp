@@ -15,7 +15,7 @@ static void *native_repl_thread(void *arg)
     NativeREPL *repl = (NativeREPL *)arg;
     char *line;
 
-    while ((line = linenoise("nidium> ")) != NULL) {
+    while ((line = linenoise(repl->isContinuing() ? "... " : "nidium> ")) != NULL) {
         linenoiseHistoryAdd(line);
         repl->postMessage(line, NATIVE_MESSAGE_READLINE);
 
@@ -26,7 +26,7 @@ static void *native_repl_thread(void *arg)
 }
 
 NativeREPL::NativeREPL(NativeJS *js)
-    : m_JS(js)
+    : m_JS(js), m_Continue(false)
 {
     m_Buffer = buffer_new(512);
 
@@ -45,6 +45,8 @@ void NativeREPL::onMessage(const NativeSharedMessages::Message &msg)
     if (JS_BufferIsCompilableUnit(m_JS->cx, rgbl,
         (char *)m_Buffer->data, m_Buffer->used)) {
 
+        m_Continue = false;
+
         char *ret = m_JS->LoadScriptContentAndGetResult((char *)m_Buffer->data,
             m_Buffer->used, "commandline");
 
@@ -54,6 +56,8 @@ void NativeREPL::onMessage(const NativeSharedMessages::Message &msg)
         }
 
         m_Buffer->used = 0;
+    } else {
+        m_Continue = true;
     }
 
     free(msg.dataPtr());
