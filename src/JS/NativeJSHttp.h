@@ -9,8 +9,8 @@
 #include <native_netlib.h>
 #include <ape_array.h>
 
-#include "Net/NativeHTTP.h"
 #include "NativeJSExposer.h"
+#include "Net/NativeHTTP.h"
 
 
 class NativeJSHttp : public NativeJSExposer<NativeJSHttp>, public Native::Core::HTTPDelegate

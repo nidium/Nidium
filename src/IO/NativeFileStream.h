@@ -6,8 +6,9 @@
 #ifndef nativefilestream_h__
 #define nativefilestream_h__
 
-#include "NativeStreamInterface.h"
 #include "Core/NativeMessages.h"
+
+#include "NativeStreamInterface.h"
 #include "NativeFile.h"
 
 class NativeFileStream : public NativeBaseStream,

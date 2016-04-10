@@ -7,7 +7,6 @@
 #define nativeevents_h__
 
 #include "NativeHash.h"
-#include "NativeArgs.h"
 #include "NativeMessages.h"
 
 #define NATIVE_EVENTS_MESSAGE_BITS(id) ((1 << 31) | id)

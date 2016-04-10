@@ -8,8 +8,8 @@
 
 #include <ape_buffer.h>
 
-#include "IO/NativeFile.h"
 #include "Core/NativeMessages.h"
+#include "IO/NativeFile.h"
 #include "NativeJSExposer.h"
 
 class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,

@@ -6,8 +6,8 @@
 #ifndef nativehttpstream_h__
 #define nativehttpstream_h__
 
-#include "IO/NativeStreamInterface.h"
 #include "Core/NativeMessages.h"
+#include "IO/NativeStreamInterface.h"
 #include "Net/NativeHTTP.h"
 
 class NativeHTTPStream : public NativeBaseStream,

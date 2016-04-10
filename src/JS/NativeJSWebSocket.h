@@ -6,8 +6,8 @@
 #ifndef nativejswebsocket_h__
 #define nativejswebsocket_h__
 
-#include "Net/NativeWebSocket.h"
 #include "Core/NativeMessages.h"
+#include "Net/NativeWebSocket.h"
 #include "NativeJSExposer.h"
 
 class NativeJSWebSocketServer : public NativeJSExposer<NativeJSWebSocketServer>,

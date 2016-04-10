@@ -6,9 +6,8 @@
 #ifndef nativejsstream_h__
 #define nativejsstream_h__
 
-#include "NativeJSExposer.h"
-
 #include "Core/NativeMessages.h"
+#include "NativeJSExposer.h"
 
 class NativeBaseStream;
 

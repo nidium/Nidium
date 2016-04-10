@@ -3,11 +3,11 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeJSDebugger.h"
-#include "NativeJSConsole.h"
-#include "NativeJS.h"
 #include <jswrapper.h>
 #include <vm/Debugger.h>
+
+#include "NativeJSDebugger.h"
+#include "NativeJSConsole.h"
 
 static JSClass DebuggerContext_class = {
     "DebuggerContext", JSCLASS_HAS_RESERVED_SLOTS(2),

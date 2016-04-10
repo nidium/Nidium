@@ -9,7 +9,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iterator>
+
 #include <ape_hash.h>
+
 #include "NativeUtils.h"
 
 /*

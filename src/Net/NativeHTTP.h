@@ -16,8 +16,8 @@
 #define HTTP_MAX_CL (1024ULL*1024ULL*1024ULL*2ULL)
 #define HTTP_DEFAULT_TIMEOUT 15000
 
-#include "IO/NativeIStreamer.h"
 #include "Core/NativeMessages.h"
+#include "IO/NativeIStreamer.h"
 
 namespace Native {
 namespace Core {

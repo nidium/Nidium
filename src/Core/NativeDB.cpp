@@ -5,9 +5,10 @@
 */
 #include "NativeDB.h"
 
+#include <stdbool.h>
+
 #include <leveldb/db.h>
 #include <leveldb/filter_policy.h>
-#include <stdbool.h>
 #include <js/StructuredClone.h>
 
 #include "NativePath.h"

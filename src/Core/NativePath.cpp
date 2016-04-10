@@ -6,12 +6,13 @@
 #include "NativePath.h"
 
 #include <string>
-#include <sys/stat.h>
 #include <vector>
+#include <sys/stat.h>
 
 #include <js/OldDebugAPI.h>
 
 #include "NativeUtils.h"
+
 #include "JS/NativeJS.h"
 
 char *g_m_Root = NULL;

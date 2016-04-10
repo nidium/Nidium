@@ -7,6 +7,7 @@
 #define nativejssocket_h__
 
 #include <native_netlib.h>
+
 #include "NativeJSExposer.h"
 
 enum {

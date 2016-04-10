@@ -9,7 +9,9 @@
 #include <ape_buffer.h>
 
 #include "Core/NativeUtils.h"
+
 #include "NativeNFS.h"
+
 #include "JS/NativeJS.h"
 
 #ifdef NATIVE_EMBED_PRIVATE
