@@ -4,6 +4,8 @@
 #include <JS/NativeJS.h>
 #include <stdio.h>
 
+#include "external/linenoise.h"
+
 enum {
     NATIVE_MESSAGE_READLINE
 };
@@ -11,13 +13,11 @@ enum {
 static void *native_repl_thread(void *arg)
 {
     NativeREPL *repl = (NativeREPL *)arg;
-    char input[1024];
-    while (1) {
-        if (fgets(input, 1024, stdin)) {
-            char *line = (char *)malloc((strlen(input) * sizeof(char)) + 1);
-            memcpy(line, input, strlen(input)+1);
-            repl->postMessage(line, NATIVE_MESSAGE_READLINE);
-        }
+    char *line;
+
+    while ((line = linenoise("nidium> ")) != NULL) {
+        linenoiseHistoryAdd(line);
+        repl->postMessage(line, NATIVE_MESSAGE_READLINE);
     }
 
     return NULL;
@@ -29,9 +29,6 @@ NativeREPL::NativeREPL(NativeJS *js)
     m_Buffer = buffer_new(512);
 
     pthread_create(&m_ThreadHandle, NULL, native_repl_thread, this);
-
-    fwrite("$ ", 1, 2, stdout);
-    fflush(stdout);
 }
 
 
@@ -48,9 +45,6 @@ void NativeREPL::onMessage(const NativeSharedMessages::Message &msg)
             m_Buffer->used, "commandline");
 
         m_Buffer->used = 0;
-
-        fwrite("$ ", 1, 2, stdout);
-        fflush(stdout);
     }
 
     free(msg.dataPtr());

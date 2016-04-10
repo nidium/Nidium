@@ -20,6 +20,8 @@
             '<(native_src_path)/NativeREPL.cpp',
             '<(native_src_path)/NativeJSSystem.cpp',
             '<(native_src_path)/external/setproctitle.c',
+            '<(native_src_path)/external/linenoise.c',
+
         ],
         'conditions': [
             ['nofork==1', {
