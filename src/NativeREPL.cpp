@@ -45,8 +45,13 @@ void NativeREPL::onMessage(const NativeSharedMessages::Message &msg)
     if (JS_BufferIsCompilableUnit(m_JS->cx, rgbl,
         (char *)m_Buffer->data, m_Buffer->used)) {
 
-        m_JS->LoadScriptContent((char *)m_Buffer->data,
+        char *ret = m_JS->LoadScriptContentAndGetResult((char *)m_Buffer->data,
             m_Buffer->used, "commandline");
+
+        if (ret) {
+            printf("%s\n", ret);
+            free(ret);
+        }
 
         m_Buffer->used = 0;
     }
