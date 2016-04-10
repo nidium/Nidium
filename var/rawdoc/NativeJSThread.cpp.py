@@ -33,7 +33,7 @@ ClassDoc( "ThreadMessageEvent", "Communication channel between threads.",
 
 FunctionDoc( "Thread.start", "Start a tread.",
 	SeesDocs( "Thread|ThreadMessageEvent" ),
-	[ ExampleDoc( """ ar t = new Thread(function(...n){
+	[ ExampleDoc( """var t = new Thread(function(...n){
     var p = 0;
     for (var i = 0; i < 20000000; i++) {
         if (i % 10000 == 0) this.send(i);
