@@ -1,7 +1,7 @@
 #ifndef nativecontext_h__
 #define nativecontext_h__
 
-#include <NativeJS.h>
+#include <JS/NativeJS.h>
 
 class NativeWorker;
 

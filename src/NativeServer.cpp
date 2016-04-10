@@ -17,7 +17,7 @@
 #include "NativeMacros.h"
 #include "NativeREPL.h"
 
-#include <NativeJSProcess.h>
+#include <JS/NativeJSProcess.h>
 
 #define NATIVE_SERVER_VERSION "0.2-dev"
 #define NATIVE_MAX_WORKERS 64

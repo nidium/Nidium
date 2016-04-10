@@ -1,7 +1,7 @@
 #ifndef nativejssystem_h__
 #define nativejssystem_h__
 
-#include <NativeJSExposer.h>
+#include <JS/NativeJSExposer.h>
 
 class NativeJSSystem : public NativeJSExposer<NativeJSSystem>
 {

@@ -4,14 +4,15 @@
 
 #include "NativeContext.h"
 #include "NativeMacros.h"
-#include <NativeJS.h>
+
+#include <JS/NativeJS.h>
 #include "NativeJSConsole.h"
 #include "NativeJSSystem.h"
-#include <NativeMessages.h>
-#include <NativeStreamInterface.h>
-#include <NativeFileStream.h>
-#include <NativeHTTPStream.h>
-#include <NativePath.h>
+#include <Core/NativeMessages.h>
+#include <IO/NativeStreamInterface.h>
+#include <IO/NativeFileStream.h>
+#include <Net/NativeHTTPStream.h>
+#include <Core/NativePath.h>
 #include <native_netlib.h>
 
 

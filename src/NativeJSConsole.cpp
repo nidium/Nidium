@@ -1,5 +1,5 @@
 #include "NativeJSConsole.h"
-#include "NativeJS.h"
+#include <JS/NativeJS.h>
 #include "NativeContext.h"
 #include "NativeMacros.h"
 

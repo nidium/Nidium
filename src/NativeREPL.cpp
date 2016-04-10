@@ -1,7 +1,7 @@
 #include "NativeREPL.h"
 #include "NativeMacros.h"
 
-#include <NativeJS.h>
+#include <JS/NativeJS.h>
 #include <stdio.h>
 
 enum {

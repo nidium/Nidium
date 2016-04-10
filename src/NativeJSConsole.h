@@ -1,7 +1,7 @@
 #ifndef nativejsconsole_h__
 #define nativejsconsole_h__
 
-#include <NativeJSExposer.h>
+#include <JS/NativeJSExposer.h>
 
 class NativeJSconsole : public NativeJSExposer<NativeJSconsole>
 {
