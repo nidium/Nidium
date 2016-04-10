@@ -5,6 +5,7 @@
 #include <Core/NativeMessages.h>
 
 #include <ape_buffer.h>
+#include <semaphore.h>
 
 class NativeJS;
 
@@ -15,8 +16,14 @@ public:
     ~NativeREPL();
     void onMessage(const NativeSharedMessages::Message &msg);
     void onMessageLost(const NativeSharedMessages::Message &msg);
+
+    sem_t *getReadLineLock() {
+        return &m_ReadLineLock;
+    }
 private:
     pthread_t m_ThreadHandle;
+    sem_t m_ReadLineLock;
+
     NativeJS *m_JS;
 
     buffer *m_Buffer;
