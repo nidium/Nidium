@@ -19,7 +19,7 @@
             '<(native_src_path)/NativeJSConsole.cpp',
             '<(native_src_path)/NativeREPL.cpp',
             '<(native_src_path)/NativeJSSystem.cpp',
-            '<(native_src_path)/setproctitle.c',
+            '<(native_src_path)/external/setproctitle.c',
         ],
         'conditions': [
             ['nofork==1', {
@@ -35,7 +35,6 @@
                     #'-fdata-sections',
                     #'-fno-exceptions',
                     #'-freorder-blocks',
-                    
                     # Not sure this is interesting for us
                     # See : http://stackoverflow.com/questions/1942801/when-should-i-omit-the-frame-pointer
                     #'-fomit-frame-pointer',
