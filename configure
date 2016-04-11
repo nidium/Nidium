@@ -150,7 +150,7 @@ def libcoro():
 @Deps.register("ffmpeg")
 def ffmpeg():
     return {
-        "location": DEPEDENCY_REPO + "/ffmpeg-snapshot.tar.bz2",
+        "location": Deps.GitRepo("git://source.ffmpeg.org/ffmpeg.git", tag="n2.5.11"),
         "patch": [],
         "build":
         [
