@@ -8,10 +8,10 @@
 
 #include <gtest/gtest.h>
 
-#include <NativePath.h>
-#include <NativeFileStream.h>
-#include <NativeHTTPStream.h>
-#include <NativeNFSStream.h>
+#include <Core/NativePath.h>
+#include <IO/NativeNFSStream.h>
+#include <IO/NativeFileStream.h>
+#include <Net/NativeHTTPStream.h>
 #include <libgen.h>
 #include <errno.h>
 
