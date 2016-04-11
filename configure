@@ -90,7 +90,7 @@ def skia():
 @Deps.register("libzip")
 def libzip():
     return {
-        "location": DEPEDENCY_REPO + "/libzip-0.10.1.tar.bz2",
+        "location": "http://www.nih.at/libzip/libzip-1.1.2.tar.gz",
         "build": ["./configure", "make"],
         "outputs": ["lib/.libs/libzip.a"]
     }
