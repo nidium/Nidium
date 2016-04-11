@@ -6,7 +6,7 @@
 #ifndef nativejsdb_h__
 #define nativejsdb_h__
 
-#include "NativeDB.h"
+#include "Core/NativeDB.h"
 
 #include <jsapi.h>
 
