@@ -1324,8 +1324,6 @@ static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    double identifier;
-
     NATIVE_CHECK_ARGS("btoa", 1);
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
