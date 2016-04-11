@@ -141,7 +141,7 @@ def libcoro():
     if Konstruct.config("debug", "valgrind"):
         patchs.append("libcoroutine.debug.patch")
     return {
-        "location": DEPEDENCY_REPO + "/libcoroutine.zip",
+        "location": Deps.GitRepo("https://github.com/stevedekorte/coroutine.git"),
         "patchs": patchs,
         "build": ["make"],
         "outputs": [["_build/lib/liblibcoroutine(.a|.lib)", "libcoroutine\\1"]]
