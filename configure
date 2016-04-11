@@ -129,7 +129,7 @@ def depotTools():
 @Deps.register("basekit")
 def basekit():
     return {
-        "location": DEPEDENCY_REPO + "/libbasekit.zip",
+        "location": Deps.GitRepo("https://github.com/stevedekorte/basekit.git"),
         "build": ["make"],
         "patchs": ["basekit.patch"],
         "outputs": ["_build/lib/libbasekit(.a|.lib)"]
