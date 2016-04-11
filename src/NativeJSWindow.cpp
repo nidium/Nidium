@@ -9,6 +9,7 @@
 #include <Core/NativeDB.h>
 #include <JS/NativeJSFileIO.h>
 #include <JS/NativeJSUtils.h>
+#include <JS/NativeJSDB.h>
 
 #include "NativeNML.h"
 #include "NativeSkia.h"
@@ -131,26 +132,26 @@ static JSClass NMLEvent_class = {
 };
 
 static JSFunctionSpec storage_funcs[] = {
-    JS_FN("set", native_storage_set, 2, 0),
-    JS_FN("get", native_storage_get, 1, 0),
+    JS_FN("set", native_storage_set, 2, NATIVE_JS_FNPROPS),
+    JS_FN("get", native_storage_get, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec window_funcs[] = {
-    JS_FN("openFileDialog", native_window_openFileDialog, 2, 0),
-    JS_FN("openDirDialog", native_window_openDirDialog, 1, 0),
-    JS_FN("setSize", native_window_setSize, 2, 0),
-    JS_FN("requestAnimationFrame", native_window_requestAnimationFrame, 1, 0),
-    JS_FN("center", native_window_center, 0, 0),
-    JS_FN("setPosition", native_window_setPosition, 2, 0),
-    JS_FN("setFrame", native_window_setFrame, 4, 0),
-    JS_FN("notify", native_window_notify, 2, 0),
-    JS_FN("quit", native_window_quit, 0, 0),
-    JS_FN("close", native_window_close, 0, 0),
-    JS_FN("open", native_window_open, 0, 0),
-    JS_FN("setSystemTray", native_window_setSystemTray, 1, 0),
-    JS_FN("openURL", native_window_openURLInBrowser, 1, 0),
-    JS_FN("exec", native_window_exec, 1, 0),
+    JS_FN("openFileDialog", native_window_openFileDialog, 2, NATIVE_JS_FNPROPS),
+    JS_FN("openDirDialog", native_window_openDirDialog, 1, NATIVE_JS_FNPROPS),
+    JS_FN("setSize", native_window_setSize, 2, NATIVE_JS_FNPROPS),
+    JS_FN("requestAnimationFrame", native_window_requestAnimationFrame, 1, NATIVE_JS_FNPROPS),
+    JS_FN("center", native_window_center, 0, NATIVE_JS_FNPROPS),
+    JS_FN("setPosition", native_window_setPosition, 2, NATIVE_JS_FNPROPS),
+    JS_FN("setFrame", native_window_setFrame, 4, NATIVE_JS_FNPROPS),
+    JS_FN("notify", native_window_notify, 2, NATIVE_JS_FNPROPS),
+    JS_FN("quit", native_window_quit, 0, NATIVE_JS_FNPROPS),
+    JS_FN("close", native_window_close, 0, NATIVE_JS_FNPROPS),
+    JS_FN("open", native_window_open, 0, NATIVE_JS_FNPROPS),
+    JS_FN("setSystemTray", native_window_setSystemTray, 1, NATIVE_JS_FNPROPS),
+    JS_FN("openURL", native_window_openURLInBrowser, 1, NATIVE_JS_FNPROPS),
+    JS_FN("exec", native_window_exec, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
@@ -1341,7 +1342,7 @@ void NativeJSwindow::initDataBase()
         return;
     }
 
-    m_Db = new NativeDB(nml->getIdentifier());
+    m_Db = new NativeJSDB(nml->getIdentifier());
 
     if (m_Db->ok()) {
         this->createStorage();
@@ -1401,7 +1402,7 @@ bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativeDB *db = NativeJSwindow::getNativeClass(cx)->getDataBase();
+    NativeJSDB *db = NativeJSwindow::getNativeClass(cx)->getDataBase();
 
 
     JSAutoByteString key(cx, args[0].toString());

@@ -172,56 +172,56 @@ static JSPropertySpec AudioNode_props[] = {
 };
 
 static JSFunctionSpec AudioContext_funcs[] = {
-    JS_FN("run", native_audio_run, 1, 0),
-    JS_FN("load", native_audio_load, 1, 0),
-    JS_FN("createNode", native_audio_createnode, 3, 0),
-    JS_FN("connect", native_audio_connect, 2, 0),
-    JS_FN("disconnect", native_audio_disconnect, 2, 0),
-    JS_FN("pFFT", native_audio_pFFT, 2, 0),
+    JS_FN("run", native_audio_run, 1, NATIVE_JS_FNPROPS),
+    JS_FN("load", native_audio_load, 1, NATIVE_JS_FNPROPS),
+    JS_FN("createNode", native_audio_createnode, 3, NATIVE_JS_FNPROPS),
+    JS_FN("connect", native_audio_connect, 2, NATIVE_JS_FNPROPS),
+    JS_FN("disconnect", native_audio_disconnect, 2, NATIVE_JS_FNPROPS),
+    JS_FN("pFFT", native_audio_pFFT, 2, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec Audio_static_funcs[] = {
-    JS_FN("getContext", native_audio_getcontext, 3, 0),
+    JS_FN("getContext", native_audio_getcontext, 3, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec AudioNode_funcs[] = {
-    JS_FN("set", native_audionode_set, 2, 0),
-    JS_FN("get", native_audionode_get, 1, 0),
+    JS_FN("set", native_audionode_set, 2, NATIVE_JS_FNPROPS),
+    JS_FN("get", native_audionode_get, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec AudioNodeCustom_funcs[] = {
-    JS_FN("set", native_audionode_custom_set, 2, 0),
-    JS_FN("assignProcessor", native_audionode_custom_assign_processor, 1, 0),
-    JS_FN("assignInit", native_audionode_custom_assign_init, 1, 0),
-    JS_FN("assignSetter", native_audionode_custom_assign_setter, 1, 0),
-    //JS_FN("get", native_audionode_custom_get, 1, 0),
+    JS_FN("set", native_audionode_custom_set, 2, NATIVE_JS_FNPROPS),
+    JS_FN("assignProcessor", native_audionode_custom_assign_processor, 1, NATIVE_JS_FNPROPS),
+    JS_FN("assignInit", native_audionode_custom_assign_init, 1, NATIVE_JS_FNPROPS),
+    JS_FN("assignSetter", native_audionode_custom_assign_setter, 1, NATIVE_JS_FNPROPS),
+    //JS_FN("get", native_audionode_custom_get, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec AudioNodeCustom_threaded_funcs[] = {
-    JS_FN("set", native_audionode_custom_threaded_set, 2, 0),
-    JS_FN("get", native_audionode_custom_threaded_get, 1, 0),
-    JS_FN("send", native_audionode_custom_threaded_send, 2, 0),
+    JS_FN("set", native_audionode_custom_threaded_set, 2, NATIVE_JS_FNPROPS),
+    JS_FN("get", native_audionode_custom_threaded_get, 1, NATIVE_JS_FNPROPS),
+    JS_FN("send", native_audionode_custom_threaded_send, 2, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec AudioNodeSource_funcs[] = {
-    JS_FN("open", native_audionode_source_open, 1, 0),
-    JS_FN("play", native_audionode_source_play, 0, 0),
-    JS_FN("pause", native_audionode_source_pause, 0, 0),
-    JS_FN("stop", native_audionode_source_stop, 0, 0),
-    JS_FN("close", native_audionode_source_close, 0, 0),
+    JS_FN("open", native_audionode_source_open, 1, NATIVE_JS_FNPROPS),
+    JS_FN("play", native_audionode_source_play, 0, NATIVE_JS_FNPROPS),
+    JS_FN("pause", native_audionode_source_pause, 0, NATIVE_JS_FNPROPS),
+    JS_FN("stop", native_audionode_source_stop, 0, NATIVE_JS_FNPROPS),
+    JS_FN("close", native_audionode_source_close, 0, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec AudioNodeCustomSource_funcs[] = {
-    JS_FN("play", native_audionode_custom_source_play, 0, 0),
-    JS_FN("pause", native_audionode_custom_source_pause, 0, 0),
-    JS_FN("stop", native_audionode_custom_source_stop, 0, 0),
-    JS_FN("assignSeek", native_audionode_custom_assign_seek, 1, 0),
+    JS_FN("play", native_audionode_custom_source_play, 0, NATIVE_JS_FNPROPS),
+    JS_FN("pause", native_audionode_custom_source_pause, 0, NATIVE_JS_FNPROPS),
+    JS_FN("stop", native_audionode_custom_source_stop, 0, NATIVE_JS_FNPROPS),
+    JS_FN("assignSeek", native_audionode_custom_assign_seek, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
@@ -236,7 +236,7 @@ static JSPropertySpec AudioNodeSource_props[] = {
 };
 
 static JSFunctionSpec glob_funcs_threaded[] = {
-    JS_FN("echo", native_audiothread_print, 1, 0),
+    JS_FN("echo", native_audiothread_print, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
@@ -259,16 +259,16 @@ static bool native_video_prop_setter(JSContext *cx, JS::HandleObject obj, uint8_
 static void Video_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSFunctionSpec Video_funcs[] = {
-    JS_FN("play", native_video_play, 0, 0),
-    JS_FN("pause", native_video_pause, 0, 0),
-    JS_FN("stop", native_video_stop, 0, 0),
-    JS_FN("close", native_video_close, 0, 0),
-    JS_FN("open", native_video_open, 1, 0),
-    JS_FN("getAudioNode", native_video_get_audionode, 0, 0),
-    JS_FN("nextFrame", native_video_nextframe, 0, 0),
-    JS_FN("prevFrame", native_video_prevframe, 0, 0),
-    JS_FN("frameAt", native_video_frameat, 1, 0),
-    JS_FN("setSize", native_video_setsize, 2, 0),
+    JS_FN("play", native_video_play, 0, NATIVE_JS_FNPROPS),
+    JS_FN("pause", native_video_pause, 0, NATIVE_JS_FNPROPS),
+    JS_FN("stop", native_video_stop, 0, NATIVE_JS_FNPROPS),
+    JS_FN("close", native_video_close, 0, NATIVE_JS_FNPROPS),
+    JS_FN("open", native_video_open, 1, NATIVE_JS_FNPROPS),
+    JS_FN("getAudioNode", native_video_get_audionode, 0, NATIVE_JS_FNPROPS),
+    JS_FN("nextFrame", native_video_nextframe, 0, NATIVE_JS_FNPROPS),
+    JS_FN("prevFrame", native_video_prevframe, 0, NATIVE_JS_FNPROPS),
+    JS_FN("frameAt", native_video_frameat, 1, NATIVE_JS_FNPROPS),
+    JS_FN("setSize", native_video_setsize, 2, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
