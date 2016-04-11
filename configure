@@ -134,7 +134,7 @@ def SDL2():
 def depotTools():
     Deps.Gclient.setExec(os.path.join("depot_tools", "gclient"))
     return {
-        "location": DEPEDENCY_REPO + "/depot_tools.tar.gz"
+        "location": Deps.GitRepo("https://chromium.googlesource.com/chromium/tools/depot_tools.git")
     }
 
 @Deps.register("basekit")
