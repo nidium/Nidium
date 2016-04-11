@@ -64,7 +64,7 @@ static bool native_console_log(JSContext *cx, unsigned argc,
             return false;
         if (i) {
             printf(" ");
-        } else {
+        } else if (!nctx->isREPL()) {
             printf("(worker %d) [%s:%d] ", nctx->getWorker()->getIdentifier(), filename_parent, lineno);
         }
         printf("%s", bytes);

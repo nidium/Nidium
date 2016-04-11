@@ -276,7 +276,7 @@ int NativeWorker::run(int argc, char **argv, bool jsstrict)
 
     signal(SIGPIPE, SIG_IGN);
 
-    NativeContext ctx(net, this, jsstrict);
+    NativeContext ctx(net, this, jsstrict, m_RunREPL);
     const NativeJS *js = ctx.getNJS();
     NativeJSProcess::registerObject(js->getJSContext(), argv, argc,
         this->getIdentifier());

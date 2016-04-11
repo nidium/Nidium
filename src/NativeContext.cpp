@@ -29,8 +29,8 @@ static int NativeContext_ping(void *arg)
 }
 
 NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
-    bool jsstrict) :
-    m_Worker(worker)
+    bool jsstrict, bool runInREPL) :
+    m_Worker(worker), m_RunInREPL(runInREPL)
 {
     char cwd[1024];
 

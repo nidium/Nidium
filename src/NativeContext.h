@@ -9,7 +9,7 @@ class NativeContext
 {
 public:
 
-    NativeContext(ape_global *ape, NativeWorker *worker, bool jsstrict = false);
+    NativeContext(ape_global *ape, NativeWorker *worker, bool jsstrict = false, bool runInREPL = false);
     ~NativeContext();
 
     static NativeContext *getNativeClass(struct JSContext *cx) {
@@ -27,9 +27,14 @@ public:
     NativeWorker *getWorker() const {
         return m_Worker;
     }
+
+    bool isREPL() const {
+        return m_RunInREPL;
+    }
 private:
     NativeJS *m_JS;
     NativeWorker *m_Worker;
+    bool m_RunInREPL;
 };
 
 #endif

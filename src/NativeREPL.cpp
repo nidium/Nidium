@@ -26,8 +26,8 @@ static void *native_repl_thread(void *arg)
     sprintf(historyPath, "%s/%s", homedir, ".nidium-repl-history");
 
     linenoiseHistoryLoad(historyPath);
+    
 repl:
-
     while ((line = linenoise(repl->isContinuing() ? "... " : "nidium> ")) != NULL) {
         repl->setExitCount(0);
 

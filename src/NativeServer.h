@@ -55,7 +55,7 @@ private:
 class NativeWorker
 {
 public:
-     NativeWorker(int idx, bool repl = false);
+    NativeWorker(int idx, bool repl = false);
     ~NativeWorker();
     int run(int argc, char **argv, bool jsstrict = false);
 
