@@ -384,6 +384,23 @@ TEST(NativePath, SanitizePrefixUserOutside)
 }
 // }}}
 
+// {{{ cd subdirectory of chroot
+TEST(NativePath, CdLocalSubdir)
+{
+    NativePath::cd(TEST_DIR "/bar/");
+
+    ASSERT_STREQ(TEST_DIR "/bar/", NativePath::getPwd());
+}
+
+TEST(NativePath, RelativeFileDifferentCwd)
+{
+    NativePath path(TEST_REL_FILE, false, false);
+
+    ASSERT_STREQ(TEST_DIR "bar/", path.dir());
+    ASSERT_STREQ(TEST_DIR "bar/" TEST_REL_FILE, path.path());
+}
+// }}}
+
 // {{{ cd & chroot (remote with directory)
 TEST(NativePath, CdRemote)
 {

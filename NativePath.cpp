@@ -153,8 +153,11 @@ void NativePath::parse(const char *origin)
     } else if (isRelative && !isLocalRoot) {
         // Remote root, get the path of the root
         baseDir = &root[strlen(scheme->str) + strlen(m_Host)];
+    } else if (SCHEME_MATCH(scheme, "file")) {
+        // Relative file on disk
+        baseDir = NativePath::getPwd();
     } else {
-        // Relative path or prefixed scheme with a base directory
+        // Prefixed scheme with a base directory
         baseDir = scheme->getBaseDir();
     }
 
