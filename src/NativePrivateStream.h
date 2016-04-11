@@ -22,8 +22,8 @@
 
 #include <string>
 
-#include <NativeFileStream.h>
-#include <NativeNFSStream.h>
+#include <IO/NativeFileStream.h>
+#include <IO/NativeNFSStream.h>
 
 #include "NativeSystemInterface.h"
 

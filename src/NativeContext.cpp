@@ -7,33 +7,35 @@
 #include <unistd.h>
 #include <math.h>
 
-#ifdef __linux__
-#include <SkImageDecoder.h>
-#endif
-
-#include <NativeWebSocket.h>
-
-#ifdef DEBUG
-#include <NativeJSDebug.h>
-#endif
+#include <NativeSkia.h>
+#include <Net/NativeWebSocket.h>
 
 #include "NativeCanvas2DContext.h"
 #include "NativeNML.h"
 #include "NativeJSNative.h"
 #include "NativeJSDocument.h"
-#ifdef NATIVE_AUDIO_ENABLED
-#include "NativeJSAV.h"
-#endif
-#include <NativeSkia.h>
 #include "NativeJSCanvas.h"
 #include "NativeJSWindow.h"
 
+#ifdef __linux__
+#include <SkImageDecoder.h>
+#endif
+
+#ifdef DEBUG
+#include <JS/NativeJSDebug.h>
+#endif
+
+#ifdef NATIVE_AUDIO_ENABLED
+#include "NativeJSAV.h"
+#endif
+
 #ifdef NATIVE_WEBGL_ENABLED
+#include <JS/NativeJSProcess.h>
 #include "NativeOpenGLHeader.h"
 #include "NativeGLState.h"
 #include "NativeJSWebGL.h"
-#include "NativeJSProcess.h"
 #endif
+
 enum {
     NATIVE_SCTAG_IMAGEDATA = NATIVE_SCTAG_MAX,
 };
@@ -343,10 +345,11 @@ NativeContext::~NativeContext()
 
     m_JSWindow->callFrameCallbacks(0, true);
 
+    delete m_JSWindow;
     delete m_JS;
     delete m_GLState;
     delete m_WS;
-    delete m_JSWindow;
+    
 
     NativeSkia::m_GlContext = NULL;
 

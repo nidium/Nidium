@@ -7,7 +7,7 @@
 
 #include <jsapi.h>
 
-#include <NativeEvents.h>
+#include <Core/NativeEvents.h>
 
 /*
     - Handle a canvas layer.

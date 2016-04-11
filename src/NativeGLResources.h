@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include <NativeHash.h>
+#include <Core/NativeHash.h>
 
 #include "NativeMacros.h"
 

@@ -1,7 +1,7 @@
 #ifndef nativejsdocument_h__
 #define nativejsdocument_h__
 
-#include <NativeJSExposer.h>
+#include <JS/NativeJSExposer.h>
 
 class SkTypeface;
 

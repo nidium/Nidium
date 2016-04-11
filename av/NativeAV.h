@@ -5,8 +5,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <NativeStreamInterface.h>
-#include <NativeMessages.h>
+#include <IO/NativeStreamInterface.h>
+#include <Core/NativeMessages.h>
 #include <native_netlib.h>
 
 extern "C" {

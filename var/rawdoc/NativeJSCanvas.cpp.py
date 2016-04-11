@@ -29,7 +29,8 @@ var context = canvas.getContext("2d");""")],
 
 NamespaceDoc( "CanvasInherrit", "Parent/Prototype class for Canvas.",
 	[ SeeDoc( "Canvas" ) ],
-	NO_Examples
+	NO_Examples,
+	section="Canvas"
 )
 
 FunctionDoc( "Canvas.show", """Show a previously hidden canvas.""",
@@ -304,13 +305,14 @@ FunctionDoc( "Canvas.getContext", """Creates a new Canvas context.
 
 The created 'Canvas' object provides methods and properties for drawing and manipulating images and graphics on a canvas element.
 A context object includes information about colors, line widths, fonts, and other graphic parameters that can be drawn on a canvas.
-This operation is slow the first time the method is called.
-The context can't be changed once it's created.
 
 Nidium is currently supporting the following context types:
 
 * 2D Context is based on the [2DContext API](http://www.w3.org/html/wg/drafts/2dcontext/html5_canvas/).
 * A WebGL Context is based on the [WebGL API](https://www.khronos.org/registry/webgl/specs/1.0/).
+
+>* This operation is slow the first time the method is called. 
+>* The context can't be changed once it's created.
 """,
 	SeesDocs( "document.canvas|Canvas|Canvas.getContext|Canvas.setContext|Canvas.clear" ),
 	[ExampleDoc("""var canvas = new Canvas(200, 100);
