@@ -14,8 +14,8 @@ Variables.set('product', 'nativeserver')
 @Deps.register("jemalloc")
 def jemalloc():
     return {
-        "location": "http://www.canonware.com/download/jemalloc/jemalloc-3.6.0.tar.bz2",
-        "build": ["./configure --enable-prof", "make"],
+        "location": Deps.GitRepo("https://github.com/jemalloc/jemalloc.git", tag="4.1.0"),
+        "build": ["./autogen.sh", "./configure --enable-prof", "make"],
         "outputs": ["lib/libjemalloc.a"]
     }
 
