@@ -13,6 +13,8 @@
 class NativeJSDB: public NativeDB
 {
     public:
+
+        using NativeDB::NativeDB;
         /*
             Caller is responsible for knowing how to
             decode the data during a get()
