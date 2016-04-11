@@ -76,7 +76,7 @@ def mozilla():
 @Deps.register("http-parser")
 def httpParser():
     return {
-        "location": Deps.GitRepo("https://github.com/nodejs/http-parser.git", tag="v2.3"),
+        "location": Deps.GitRepo("https://github.com/nodejs/http-parser.git", tag="v2.6.2"),
         "build": ["make package"],
         "outputs": ["libhttp_parser.a"]
     }
