@@ -20,6 +20,7 @@ Deps.set(
     "depot_tools",
     "skia",
     "libzip",
+    "lss",
     "breakpad",
     "angle",
     "basekit",
@@ -90,21 +91,31 @@ def skia():
 @Deps.register("libzip")
 def libzip():
     return {
+        #"location": DEPEDENCY_REPO + "/libzip-0.10.1.tar.bz2",
         "location": "http://www.nih.at/libzip/libzip-1.1.2.tar.gz",
         "build": ["./configure", "make"],
         "outputs": ["lib/.libs/libzip.a"]
     }
 
+@Deps.register("lss")
+def lss():
+    return {
+        "location": Deps.GitRepo("https://chromium.googlesource.com/linux-syscall-support")
+    }
+
 @Deps.register("angle")
 def angle():
     return {
-        "location": DEPEDENCY_REPO + "/angle.tar.gz"
+         "location": DEPEDENCY_REPO + "/angle.tar.gz"
+        #"location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chrome_m36"),
+        #"build": ["python src/commit_id.py src/commit_id.h"]
     }
 
 @Deps.register("breakpad")
 def breakpad():
     return {
         "location": Deps.SvnRepo("http://google-breakpad.googlecode.com/svn/trunk/", 1435)
+       #"location": Deps.GitRepo("https://chromium.googlesource.com/breakpad/breakpad", branch="chrome_49")    }
     }
 
 @Deps.register("SDL2")
