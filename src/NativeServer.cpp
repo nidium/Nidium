@@ -237,7 +237,7 @@ int NativeServer::init()
 
 NativeServer::NativeServer(int argc, char **argv) :
     m_WorkerIdx(0), m_InstanceName(NULL), m_HasREPL(true),
-    m_NWorkers(0), m_JSStrictMode(false)
+    m_JSStrictMode(false), m_NWorkers(0)
 {
     m_Args.argc = argc;
     m_Args.argv = argv;
