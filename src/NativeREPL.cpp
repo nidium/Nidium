@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <pwd.h>
 
 enum {
     NATIVE_MESSAGE_READLINE
@@ -15,16 +16,24 @@ static void *native_repl_thread(void *arg)
 {
     NativeREPL *repl = (NativeREPL *)arg;
     char *line;
+    const char *homedir;
+    char historyPath[PATH_MAX];
 
-    linenoiseHistoryLoad(".nidium-repl-history");
+    if ((homedir = getenv("HOME")) == NULL) {
+        homedir = getpwuid(getuid())->pw_dir;
+    }
+
+    sprintf(historyPath, "%s/%s", homedir, ".nidium-repl-history");
+
+    linenoiseHistoryLoad(historyPath);
 repl:
 
     while ((line = linenoise(repl->isContinuing() ? "... " : "nidium> ")) != NULL) {
         repl->setExitCount(0);
 
         linenoiseHistoryAdd(line);
-        linenoiseHistorySave(".nidium-repl-history");
-        
+        linenoiseHistorySave(historyPath);
+
         repl->postMessage(line, NATIVE_MESSAGE_READLINE);
 
         sem_wait(repl->getReadLineLock());
