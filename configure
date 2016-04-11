@@ -33,7 +33,7 @@ def leveldb():
         flags = "CXXFLAGS='-stdlib=libc++ -mmacosx-version-min=10.7' CFLAGS='-mmacosx-version-min=10.7'"
 
     return {
-        "location": DEPEDENCY_REPO + "/leveldb.tar.gz",
+        "location": Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.18"),
         "build": [flags + " make"], 
         "outputs": ["libleveldb(.a|.lib)"]
     }
