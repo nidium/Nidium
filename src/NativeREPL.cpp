@@ -2,9 +2,10 @@
 #include "NativeMacros.h"
 
 #include <JS/NativeJS.h>
-#include <stdio.h>
-
 #include "external/linenoise.h"
+
+#include <stdio.h>
+#include <errno.h>
 
 enum {
     NATIVE_MESSAGE_READLINE
@@ -15,18 +16,33 @@ static void *native_repl_thread(void *arg)
     NativeREPL *repl = (NativeREPL *)arg;
     char *line;
 
+repl:
+
     while ((line = linenoise(repl->isContinuing() ? "... " : "nidium> ")) != NULL) {
+        repl->setExitCount(0);
+
         linenoiseHistoryAdd(line);
         repl->postMessage(line, NATIVE_MESSAGE_READLINE);
 
         sem_wait(repl->getReadLineLock());
     }
 
+    int exitcount = repl->getExitCount();
+
+    repl->setExitCount(exitcount+1);
+
+    if (exitcount == 0) {
+        printf("(To exit, press ^C again)\n");
+        goto repl;
+    }
+
+    kill(getppid(), SIGINT);
+    
     return NULL;
 }
 
 NativeREPL::NativeREPL(NativeJS *js)
-    : m_JS(js), m_Continue(false)
+    : m_JS(js), m_Continue(false), m_ExitCount(0)
 {
     m_Buffer = buffer_new(512);
 

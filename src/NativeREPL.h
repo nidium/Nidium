@@ -24,6 +24,16 @@ public:
     bool isContinuing() const {
         return m_Continue;
     }
+
+    int getExitCount() const {
+        return m_ExitCount;
+    }
+
+    int setExitCount(int val) {
+        m_ExitCount = val;
+
+        return m_ExitCount;
+    }
 private:
     pthread_t m_ThreadHandle;
     sem_t m_ReadLineLock;
@@ -33,6 +43,7 @@ private:
     buffer *m_Buffer;
 
     bool m_Continue;
+    int m_ExitCount;
 };
 
 #endif
