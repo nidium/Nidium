@@ -98,7 +98,6 @@
             }]
         ],
         'sources': [
-<<<<<<< HEAD
             '../src/Net/NativeHTTP.cpp',
             '../src/Net/NativeWebSocketClient.cpp',
             '../src/Net/NativeHTTPParser.cpp',
