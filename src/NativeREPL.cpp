@@ -16,12 +16,15 @@ static void *native_repl_thread(void *arg)
     NativeREPL *repl = (NativeREPL *)arg;
     char *line;
 
+    linenoiseHistoryLoad(".nidium-repl-history");
 repl:
 
     while ((line = linenoise(repl->isContinuing() ? "... " : "nidium> ")) != NULL) {
         repl->setExitCount(0);
 
         linenoiseHistoryAdd(line);
+        linenoiseHistorySave(".nidium-repl-history");
+        
         repl->postMessage(line, NATIVE_MESSAGE_READLINE);
 
         sem_wait(repl->getReadLineLock());
