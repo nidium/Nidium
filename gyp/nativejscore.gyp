@@ -98,6 +98,7 @@
             }]
         ],
         'sources': [
+<<<<<<< HEAD
             '../src/Net/NativeHTTP.cpp',
             '../src/Net/NativeWebSocketClient.cpp',
             '../src/Net/NativeHTTPParser.cpp',
@@ -122,6 +123,7 @@
             '../src/JS/NativeJSUtils.cpp',
             '../src/JS/NativeJSStream.cpp',
             '../src/JS/NativeJSWebSocketClient.cpp',
+            '../src/JS/NativeJSDB.cpp',
 
             '../src/Core/NativeSharedMessages.cpp',
             '../src/Core/NativeUtils.cpp',
