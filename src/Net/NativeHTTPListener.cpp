@@ -15,7 +15,7 @@
 #include <sys/socket.h>
 
 #include "NativeHTTPListener.h"
-#include "JS/NativeJS.h"
+#include "Binding/NativeJS.h"
 
 #define GET_HTTP_OR_FAIL(obj) \
     (NativeHTTPListener *)obj->ctx; \

@@ -13,7 +13,7 @@
 
 #include "NativeUtils.h"
 
-#include "JS/NativeJS.h"
+#include "Binding/NativeJS.h"
 
 char *g_m_Root = NULL;
 char *g_m_Pwd = NULL;

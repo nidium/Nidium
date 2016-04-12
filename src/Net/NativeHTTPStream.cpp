@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-#include "JS/NativeJS.h"
+#include "Binding/NativeJS.h"
 
 using namespace Nidium::Net;
 

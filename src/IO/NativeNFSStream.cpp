@@ -12,7 +12,7 @@
 
 #include "NativeNFS.h"
 
-#include "JS/NativeJS.h"
+#include "Binding/NativeJS.h"
 
 #ifdef NATIVE_EMBED_PRIVATE
   #include NATIVE_EMBED_PRIVATE
