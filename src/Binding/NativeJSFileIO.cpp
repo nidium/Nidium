@@ -762,9 +762,9 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
                     JS_SetElement(cx, arr, i, val);
 
                     JS::RootedString name(cx, JS_NewStringCopyZ(cx, entries->lst[i].d_name));
-                    JSOBJ_SET_PROP_STR(entry, "name", name);
+                    NIDIUM_JSOBJ_SET_PROP_STR(entry, "name", name);
 
-                    JSOBJ_SET_PROP_CSTR(entry, "type",
+                    NIDIUM_JSOBJ_SET_PROP_CSTR(entry, "type",
                         NativeJSFileIO_dirtype_to_str(&entries->lst[i]));
 
                 }

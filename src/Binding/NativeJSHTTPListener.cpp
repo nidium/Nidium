@@ -107,7 +107,7 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
         APE_A_FOREACH(client->getHTTPState()->headers.list, k, v) {
             JS::RootedString jstr(m_Cx, JS_NewStringCopyN(m_Cx, (char *)v->data,
                 v->used-1));
-            JSOBJ_SET_PROP_FLAGS(headers, k->data,
+            NIDIUM_JSOBJ_SET_PROP_FLAGS(headers, k->data,
                 jstr, JSPROP_ENUMERATE);
         }
     }
@@ -115,7 +115,7 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
     buffer *url = client->getHTTPState()->url;
     if (url) {
         JS::RootedString jsurl(m_Cx, JS_NewStringCopyN(m_Cx, (char *)url->data, url->used));
-        JSOBJ_SET_PROP(objrequest, "url", jsurl);
+        NIDIUM_JSOBJ_SET_PROP(objrequest, "url", jsurl);
     }
 
     buffer *data = client->getHTTPState()->data;
@@ -128,7 +128,7 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
                 data->used, &strdata, "utf8");
         }
 
-        JSOBJ_SET_PROP(objrequest, "data", strdata);
+        NIDIUM_JSOBJ_SET_PROP(objrequest, "data", strdata);
     }
 
     JS::RootedValue method(m_Cx);
@@ -149,9 +149,9 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
             break;
     }
 
-    JSOBJ_SET_PROP(objrequest, "method", method);
-    JSOBJ_SET_PROP(objrequest, "headers", headers);
-    JSOBJ_SET_PROP(objrequest, "client", cli);
+    NIDIUM_JSOBJ_SET_PROP(objrequest, "method", method);
+    NIDIUM_JSOBJ_SET_PROP(objrequest, "headers", headers);
+    NIDIUM_JSOBJ_SET_PROP(objrequest, "client", cli);
     JS::RootedObject obj(m_Cx, m_JSObject);
     if (JS_GetProperty(m_Cx, obj, "onrequest", &oncallback) &&
         JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {

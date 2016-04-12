@@ -46,7 +46,7 @@ public:
 
         JS::RootedObject obj(m_Cx, conn->getJSObject());
 
-        JSOBJ_SET_PROP_CSTR(obj, "ip", APE_socket_ipv4(client));
+        NIDIUM_JSOBJ_SET_PROP_CSTR(obj, "ip", APE_socket_ipv4(client));
 
         NativeHTTPListener::onClientConnect((NativeHTTPClientConnection *)client->ctx);
     }

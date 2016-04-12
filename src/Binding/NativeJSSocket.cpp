@@ -263,7 +263,7 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
 
     JS_DefineFunctions(m_Cx, jclient, socket_client_funcs);
 
-    JSOBJ_SET_PROP_CSTR(jclient, "ip", APE_socket_ipv4(socket_client));
+    NIDIUM_JSOBJ_SET_PROP_CSTR(jclient, "ip", APE_socket_ipv4(socket_client));
 
     params[0].setObject(*jclient);
 

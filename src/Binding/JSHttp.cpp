@@ -263,22 +263,22 @@ void JSHttp::onError(HTTP::HTTPError err)
 
     switch(err) {
         case HTTP::ERROR_RESPONSE:
-            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_invalid_response");
+            NIDIUM_JSOBJ_SET_PROP_CSTR(evobj, "error", "http_invalid_response");
             break;
         case HTTP::ERROR_DISCONNECTED:
-            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_server_disconnected");
+            NIDIUM_JSOBJ_SET_PROP_CSTR(evobj, "error", "http_server_disconnected");
             break;
         case HTTP::ERROR_SOCKET:
-            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_connection_error");
+            NIDIUM_JSOBJ_SET_PROP_CSTR(evobj, "error", "http_connection_error");
             break;
         case HTTP::ERROR_TIMEOUT:
-            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_timedout");
+            NIDIUM_JSOBJ_SET_PROP_CSTR(evobj, "error", "http_timedout");
             break;
         case HTTP::ERROR_HTTPCODE:
-            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_response_code");
+            NIDIUM_JSOBJ_SET_PROP_CSTR(evobj, "error", "http_response_code");
             break;
         case HTTP::ERROR_REDIRECTMAX:
-            JSOBJ_SET_PROP_CSTR(evobj, "error", "http_max_redirect_exceeded");
+            NIDIUM_JSOBJ_SET_PROP_CSTR(evobj, "error", "http_max_redirect_exceeded");
             break;
         default:
             break;
@@ -306,14 +306,14 @@ void JSHttp::onProgress(size_t offset, size_t len,
 
     JS::RootedObject event(cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
-    JSOBJ_SET_PROP(event, "total", (double)h->contentlength);
-    JSOBJ_SET_PROP(event, "read", (double)(offset + len));
+    NIDIUM_JSOBJ_SET_PROP(event, "total", (double)h->contentlength);
+    NIDIUM_JSOBJ_SET_PROP(event, "read", (double)(offset + len));
 
     switch(type) {
         case HTTP::DATA_JSON:
         case HTTP::DATA_STRING:
 
-            JSOBJ_SET_PROP_CSTR(event, "type", "string");
+            NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "string");
 
             jdata.setString(JS_NewStringCopyN(cx,
                 (const char *)&h->data->data[offset], len));
@@ -326,7 +326,7 @@ void JSHttp::onProgress(size_t offset, size_t len,
 
             memcpy(data, &h->data->data[offset], len);
 
-            JSOBJ_SET_PROP_CSTR(event, "type", "binary");
+            NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "binary");
 
             jdata.setObject(*arr);
 
@@ -334,7 +334,7 @@ void JSHttp::onProgress(size_t offset, size_t len,
         }
     }
 
-    JSOBJ_SET_PROP(event, "data", jdata);
+    NIDIUM_JSOBJ_SET_PROP(event, "data", jdata);
 
     jevent[0].setObject(*event);
 
@@ -361,17 +361,17 @@ void JSHttp::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
     APE_A_FOREACH(h->headers.list, k, v) {
         JS::RootedString jstr(m_Cx, JS_NewStringCopyN(m_Cx, (char *)v->data,
             v->used-1));
-        JSOBJ_SET_PROP_FLAGS(headers, k->data, jstr, JSPROP_ENUMERATE);
+        NIDIUM_JSOBJ_SET_PROP_FLAGS(headers, k->data, jstr, JSPROP_ENUMERATE);
     }
 
-    JSOBJ_SET_PROP(event, "headers", headers);
-    JSOBJ_SET_PROP(event, "statusCode", h->parser.status_code);
+    NIDIUM_JSOBJ_SET_PROP(event, "headers", headers);
+    NIDIUM_JSOBJ_SET_PROP(event, "statusCode", h->parser.status_code);
 
     if (h->data == NULL) {
-        JSOBJ_SET_PROP(event, "data", JS::NullHandleValue);
+        NIDIUM_JSOBJ_SET_PROP(event, "data", JS::NullHandleValue);
 
         jevent[0].setObject(*event);
-        JSOBJ_SET_PROP_CSTR(event, "type", "null");
+        NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "null");
 
         JS::RootedValue req(cx, request);
         JS_CallFunctionValue(cx, obj, req, jevent, &rval);
@@ -389,7 +389,7 @@ void JSHttp::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 
     switch(type) {
         case HTTP::DATA_STRING:
-            JSOBJ_SET_PROP_CSTR(event, "type", "string");
+            NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "string");
 
             NativeJSUtils::strToJsval(cx, (const char *)h->data->data,
                 h->data->used, &jdata, "utf8");
@@ -399,7 +399,7 @@ void JSHttp::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 
             const jschar *chars;
             size_t clen;
-            JSOBJ_SET_PROP_CSTR(event, "type", "json");
+            NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "json");
 
             JS::RootedString str(cx, JS_NewStringCopyN(cx, (const char *)h->data->data,
                 h->data->used));
@@ -451,7 +451,7 @@ void JSHttp::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 
             memcpy(data, h->data->data, h->data->used);
 
-            JSOBJ_SET_PROP_CSTR(event, "type", "binary");
+            NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "binary");
 
             jdata.setObject(*arr);
 
@@ -459,7 +459,7 @@ void JSHttp::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
         }
     }
 
-    JSOBJ_SET_PROP(event, "data", jdata);
+    NIDIUM_JSOBJ_SET_PROP(event, "data", jdata);
 
     jevent[0].setObject(*event);
 

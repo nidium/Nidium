@@ -219,7 +219,7 @@ void NativeJSWebSocket::onMessage(const NativeSharedMessages::Message &msg)
                 JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
                 NativeJSUtils::strToJsval(m_Cx, data, len, &jdata, !binary ? "utf8" : NULL);
-                JSOBJ_SET_PROP(event, "data", jdata);
+                NIDIUM_JSOBJ_SET_PROP(event, "data", jdata);
 
                 arg[0].setObjectOrNull(event);
 

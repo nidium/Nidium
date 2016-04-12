@@ -660,10 +660,10 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
         return constructor(cx, exports); \
     }
 
-#define JSOBJ_SET_PROP_FLAGS(where, name, val, flags) JS_DefineProperty(m_Cx, where, \
+#define NIDIUM_JSOBJ_SET_PROP_FLAGS(where, name, val, flags) JS_DefineProperty(m_Cx, where, \
     (const char *)name, val, flags)
 
-#define JSOBJ_SET_PROP(where, name, val) JSOBJ_SET_PROP_FLAGS(where, name, val, \
+#define NIDIUM_JSOBJ_SET_PROP(where, name, val) NIDIUM_JSOBJ_SET_PROP_FLAGS(where, name, val, \
         JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
 #define JSOBJ_CALLFUNCNAME(where, name, argv) \
@@ -677,14 +677,14 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
                 argv, &_rval); \
         } \
     }
-#define JSOBJ_SET_PROP_CSTR(where, name, val) \
+#define NIDIUM_JSOBJ_SET_PROP_CSTR(where, name, val) \
     { \
         JS::RootedString __n_rootedstring(m_Cx, JS_NewStringCopyZ(m_Cx, val)); \
-        JSOBJ_SET_PROP(where, name, __n_rootedstring); \
+        NIDIUM_JSOBJ_SET_PROP(where, name, __n_rootedstring); \
     }
 
-#define JSOBJ_SET_PROP_STR(where, name, val) JSOBJ_SET_PROP(where, name, val)
-#define JSOBJ_SET_PROP_INT(where, name, val) JSOBJ_SET_PROP(where, name, val)
+#define NIDIUM_JSOBJ_SET_PROP_STR(where, name, val) NIDIUM_JSOBJ_SET_PROP(where, name, val)
+#define NIDIUM_JSOBJ_SET_PROP_INT(where, name, val) NIDIUM_JSOBJ_SET_PROP(where, name, val)
 
 #define JS_INITOPT() JS::RootedValue __curopt(cx);
 
@@ -715,12 +715,12 @@ public:
 
     void set (const char *name, JS::HandleValue jval) {
         JS::RootedObject obj(m_Cx, m_Obj);
-        JSOBJ_SET_PROP(obj, name, jval);
+        NIDIUM_JSOBJ_SET_PROP(obj, name, jval);
     }
 
     void set(const char *name, JS::HandleString value) {
         JS::RootedObject obj(m_Cx, m_Obj);
-        JSOBJ_SET_PROP_STR(obj, name, value);
+        NIDIUM_JSOBJ_SET_PROP_STR(obj, name, value);
     }
 
     void set(const char *name, JSString *str) {
@@ -730,27 +730,27 @@ public:
 
     void set(const char *name, const char *value) {
         JS::RootedObject obj(m_Cx, m_Obj);
-        JSOBJ_SET_PROP_CSTR(obj, name, value);
+        NIDIUM_JSOBJ_SET_PROP_CSTR(obj, name, value);
     }
 
     void set(const char *name, uint32_t value) {
         JS::RootedObject obj(m_Cx, m_Obj);
-        JSOBJ_SET_PROP_INT(obj, name, value);
+        NIDIUM_JSOBJ_SET_PROP_INT(obj, name, value);
     }
 
     void set(const char *name, int32_t value) {
         JS::RootedObject obj(m_Cx, m_Obj);
-        JSOBJ_SET_PROP_INT(obj, name, value);
+        NIDIUM_JSOBJ_SET_PROP_INT(obj, name, value);
     }
 
     void set(const char *name, double value) {
         JS::RootedObject obj(m_Cx, m_Obj);
-        JSOBJ_SET_PROP(obj, name, value);
+        NIDIUM_JSOBJ_SET_PROP(obj, name, value);
     }
 
     void set(const char *name, bool value) {
         JS::RootedObject obj(m_Cx, m_Obj);
-        JSOBJ_SET_PROP(obj, name, value);
+        NIDIUM_JSOBJ_SET_PROP(obj, name, value);
     }
 
     JSObject *obj() const {

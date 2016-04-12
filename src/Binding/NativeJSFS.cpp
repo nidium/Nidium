@@ -53,8 +53,8 @@ public:
                 JS::RootedObject param(cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
                 JS::RootedString str(cx, JS_NewStringCopyZ(cx, cur->d_name));
 
-                JSOBJ_SET_PROP_STR(param, "name", str);
-                //JSOBJ_SET_PROP_CSTR(param, "type", NativeJSFS_dirtype_to_str(cur));
+                NIDIUM_JSOBJ_SET_PROP_STR(param, "name", str);
+                //NIDIUM_JSOBJ_SET_PROP_CSTR(param, "type", NativeJSFS_dirtype_to_str(cur));
 
                 params[0].setObject(*param);
 
