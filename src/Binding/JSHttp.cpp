@@ -91,7 +91,7 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NIDIUM_JS_CHECK_ARGS("request", 2);
 
-    JS_INITOPT();
+    NIDIUM_JS_INIT_OPT();
 
     if (JS_InstanceOf(cx, caller, &Http_class, &args) == false) {
         return true;

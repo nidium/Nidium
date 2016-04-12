@@ -231,7 +231,7 @@ static bool native_File_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
     file = new NativeFile(path.path());
     file->setListener(NJSFIO);
 
-    JS_INITOPT();
+    NIDIUM_JS_INIT_OPT();
 
     JSGET_OPT_TYPE(opt, "encoding", String) {
         JSAutoByteString encoding(cx, __curopt.toString());
@@ -584,7 +584,7 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
     char *buf;
     size_t len;
 
-    JS_INITOPT();
+    NIDIUM_JS_INIT_OPT();
 
     if (!JS_ConvertArguments(cx, args, "S/o", filename.address(), opt.address())) {
         return false;
@@ -632,7 +632,7 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedObject secondarg(cx);
     JS::RootedString filename(cx);
 
-    JS_INITOPT();
+    NIDIUM_JS_INIT_OPT();
 
     JS::RootedValue argcallback(cx);
     JS::RootedValue callback(cx);

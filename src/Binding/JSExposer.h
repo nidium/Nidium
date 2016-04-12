@@ -686,7 +686,7 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 #define NIDIUM_JSOBJ_SET_PROP_STR(where, name, val) NIDIUM_JSOBJ_SET_PROP(where, name, val)
 #define NIDIUM_JSOBJ_SET_PROP_INT(where, name, val) NIDIUM_JSOBJ_SET_PROP(where, name, val)
 
-#define JS_INITOPT() JS::RootedValue __curopt(cx);
+#define NIDIUM_JS_INIT_OPT() JS::RootedValue __curopt(cx);
 
 #define JSGET_OPT(obj, name) \
     if (obj && \
