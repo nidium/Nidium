@@ -100,7 +100,7 @@ def libzip():
 @Deps.register("lss")
 def lss():
     return {
-        "location": Deps.GitRepo("https://chromium.googlesource.com/linux-syscall-support")
+        "location": Deps.GitRepo("https://chromium.googlesource.com/linux-syscall-support", revision="348bdf8d32b37c8fb2627df7a0a977d1d640e1fc")
     }
 
 @Deps.register("angle")
@@ -134,13 +134,13 @@ def SDL2():
 def depotTools():
     Deps.Gclient.setExec(os.path.join("depot_tools", "gclient"))
     return {
-        "location": Deps.GitRepo("https://chromium.googlesource.com/chromium/tools/depot_tools.git")
+        "location": Deps.GitRepo("https://chromium.googlesource.com/chromium/tools/depot_tools.git", revision="aa6235b1f6dbc9a7fa5139ef8964928b6348a4c4")
     }
 
 @Deps.register("basekit")
 def basekit():
     return {
-        "location": Deps.GitRepo("https://github.com/stevedekorte/basekit.git"),
+        "location": Deps.GitRepo("https://github.com/stevedekorte/basekit.git", revision="a3e54ba83b85f530dc9442a33d2779240ed96189"),
         "build": ["make"],
         "patchs": ["basekit.patch"],
         "outputs": ["_build/lib/libbasekit(.a|.lib)"]
@@ -149,10 +149,12 @@ def basekit():
 @Deps.register("libcoroutine")
 def libcoro():
     patchs = ["libcoroutine.patch"]
+
     if Konstruct.config("debug", "valgrind"):
         patchs.append("libcoroutine.debug.patch")
+
     return {
-        "location": Deps.GitRepo("https://github.com/stevedekorte/coroutine.git"),
+        "location": Deps.GitRepo("https://github.com/stevedekorte/coroutine.git", revision="b0bf11d8a0ec70bc0f1f5043513d334e1eff15fc"),
         "patchs": patchs,
         "build": ["make"],
         "outputs": [["_build/lib/liblibcoroutine(.a|.lib)", "libcoroutine\\1"]]
