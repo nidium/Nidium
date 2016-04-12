@@ -621,7 +621,7 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
     { \
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
         JS_InitClass(cx, global, JS::NullPtr(), &name ## _class, \
-            native_ ## name ## _constructor, \
+            nidium_ ## name ## _constructor, \
             0, NULL, NULL, NULL, NULL); \
     }
 

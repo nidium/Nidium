@@ -13,12 +13,15 @@
 #include "Net/NativeHTTP.h"
 
 
-class NativeJSHttp : public Nidium::Binding::JSExposer<NativeJSHttp>, public Nidium::Net::HTTPDelegate
+namespace Nidium {
+namespace Binding {
+
+class JSHttp : public JSExposer<JSHttp>, public Nidium::Net::HTTPDelegate
 {
   public:
     static void registerObject(JSContext *cx);
-    NativeJSHttp(JS::HandleObject obj, JSContext *cx, char *url);
-    virtual ~NativeJSHttp();
+    JSHttp(JS::HandleObject obj, JSContext *cx, char *url);
+    virtual ~JSHttp();
 
     JS::Heap<JS::Value> request;
     JS::Heap<JSObject *>jsobj;
@@ -35,5 +38,7 @@ class NativeJSHttp : public Nidium::Binding::JSExposer<NativeJSHttp>, public Nid
     char *m_URL;
 };
 
+} // namespace Binding
+} // namespace Nidium
 #endif
 

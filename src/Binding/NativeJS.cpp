@@ -22,7 +22,7 @@
 
 #include "NativeJSSocket.h"
 #include "NativeJSThread.h"
-#include "NativeJSHttp.h"
+#include "JSHttp.h"
 #include "NativeJSFileIO.h"
 #include "NativeJSModules.h"
 #include "NativeJSStream.h"
@@ -1047,7 +1047,7 @@ void NativeJS::loadGlobalObjects()
     /* Thread() object */
     NativeJSThread::registerObject(cx);
     /* Http() object */
-    NativeJSHttp::registerObject(cx);
+    Nidium::Binding::JSHttp::registerObject(cx);
     /* Stream() object */
     NativeJSStream::registerObject(cx);
     /* WebSocket*() object */
