@@ -233,7 +233,7 @@ static bool native_File_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NIDIUM_JS_INIT_OPT();
 
-    JSGET_OPT_TYPE(opt, "encoding", String) {
+    NIDIUM_JS_GET_OPT_TYPE(opt, "encoding", String) {
         JSAutoByteString encoding(cx, __curopt.toString());
         NJSFIO->m_Encoding = strdup(encoding.ptr());
     }
@@ -610,7 +610,7 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
     char *cencoding = NULL;
     JSAutoByteString encoding;
 
-    JSGET_OPT_TYPE(opt, "encoding", String) {
+    NIDIUM_JS_GET_OPT_TYPE(opt, "encoding", String) {
         encoding.encodeLatin1(cx, __curopt.toString());
         cencoding = encoding.ptr();
     }
@@ -667,7 +667,7 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    JSGET_OPT_TYPE(opt, "encoding", String) {
+    NIDIUM_JS_GET_OPT_TYPE(opt, "encoding", String) {
         JSAutoByteString encoding(cx, __curopt.toString());
         cencoding = strdup(encoding.ptr());
     }

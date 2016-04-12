@@ -688,12 +688,12 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 
 #define NIDIUM_JS_INIT_OPT() JS::RootedValue __curopt(cx);
 
-#define JSGET_OPT(obj, name) \
+#define NIDIUM_JS_GET_OPT(obj, name) \
     if (obj && \
         JS_GetProperty(cx, obj, name, &__curopt) && \
         __curopt != JSVAL_VOID && \
         __curopt != JSVAL_NULL)
-#define JSGET_OPT_TYPE(obj, name, type) \
+#define NIDIUM_JS_GET_OPT_TYPE(obj, name, type) \
     if (obj && \
         JS_GetProperty(cx, obj, name, &__curopt) && \
         __curopt != JSVAL_VOID && \

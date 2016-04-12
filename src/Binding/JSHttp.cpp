@@ -132,7 +132,7 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    JSGET_OPT_TYPE(options, "method", String) {
+    NIDIUM_JS_GET_OPT_TYPE(options, "method", String) {
         JS::RootedString method(cx, __curopt.toString());
         JSAutoByteString cmethod(cx, method);
         if (strcmp("POST", cmethod.ptr()) == 0) {
@@ -148,7 +148,7 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
         }
     }
 
-    JSGET_OPT_TYPE(options, "headers", Object) {
+    NIDIUM_JS_GET_OPT_TYPE(options, "headers", Object) {
         if (!__curopt.isPrimitive()) {
 
             JS::RootedObject headers(cx, __curopt.toObjectOrNull());
@@ -181,7 +181,7 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
         }
     }
 
-    JSGET_OPT_TYPE(options, "data", String) {
+    NIDIUM_JS_GET_OPT_TYPE(options, "data", String) {
         /* TODO: handle ArrayBuffer */
         JS::RootedString data(cx, __curopt.toString());
         if (data != NULL) {
@@ -199,11 +199,11 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
         }
     }
 
-    JSGET_OPT_TYPE(options, "timeout", Number) {
+    NIDIUM_JS_GET_OPT_TYPE(options, "timeout", Number) {
         nhttp->m_TimeoutTimer = __curopt.toInt32();
     }
 
-    JSGET_OPT_TYPE(options, "maxredirect", Number) {
+    NIDIUM_JS_GET_OPT_TYPE(options, "maxredirect", Number) {
 
         uint32_t max = 8;
         max = __curopt.toInt32();
@@ -212,15 +212,15 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
 
     }
 
-    JSGET_OPT_TYPE(options, "followlocation", Boolean) {
+    NIDIUM_JS_GET_OPT_TYPE(options, "followlocation", Boolean) {
         nhttp->setFollowLocation(__curopt.toBoolean());
     }
 
-    JSGET_OPT_TYPE(options, "eval", Boolean) {
+    NIDIUM_JS_GET_OPT_TYPE(options, "eval", Boolean) {
         jshttp->m_Eval = __curopt.toBoolean();
     }
 
-    JSGET_OPT_TYPE(options, "path", String) {
+    NIDIUM_JS_GET_OPT_TYPE(options, "path", String) {
 
         JSAutoByteString cstr(cx, __curopt.toString());
 
