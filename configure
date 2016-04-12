@@ -150,7 +150,7 @@ def basekit():
 def libcoro():
     patchs = ["libcoroutine.patch"]
 
-    if Konstruct.config("debug", "valgrind"):
+    if Konstruct.config("valgrind"):
         patchs.append("libcoroutine.debug.patch")
 
     return {
