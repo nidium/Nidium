@@ -13,7 +13,7 @@
 #include "Net/NativeHTTP.h"
 
 
-class NativeJSHttp : public NativeJSExposer<NativeJSHttp>, public Native::Core::HTTPDelegate
+class NativeJSHttp : public NativeJSExposer<NativeJSHttp>, public Nidium::Net::HTTPDelegate
 {
   public:
     static void registerObject(JSContext *cx);
@@ -23,12 +23,12 @@ class NativeJSHttp : public NativeJSExposer<NativeJSHttp>, public Native::Core::
     JS::Heap<JS::Value> request;
     JS::Heap<JSObject *>jsobj;
 
-    Native::Core::HTTP *refHttp;
+    Nidium::Net::HTTP *refHttp;
 
-    void onRequest(Native::Core::HTTP::HTTPData *h, Native::Core::HTTP::DataType);
+    void onRequest(Nidium::Net::HTTP::HTTPData *h, Nidium::Net::HTTP::DataType);
     void onProgress(size_t offset, size_t len,
-        Native::Core::HTTP::HTTPData *h, Native::Core::HTTP::DataType);
-    void onError(Native::Core::HTTP::HTTPError err);
+        Nidium::Net::HTTP::HTTPData *h, Nidium::Net::HTTP::DataType);
+    void onError(Nidium::Net::HTTP::HTTPError err);
     void onHeader() {};
 
     bool m_Eval;
