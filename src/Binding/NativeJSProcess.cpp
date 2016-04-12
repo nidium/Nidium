@@ -31,7 +31,7 @@ static JSFunctionSpec Process_funcs[] = {
 
 static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSProcess, &Process_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSProcess, &Process_class);
     NATIVE_CHECK_ARGS("setSignalHandler", 1);
 
     JS::RootedValue func(cx);
@@ -48,7 +48,7 @@ static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_process_exit(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSProcess, &Process_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSProcess, &Process_class);
 
     int code = 0;
 

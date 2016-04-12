@@ -590,7 +590,7 @@ static bool native_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
 
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
 
     if (CppObj->isAttached()) {
         return true;
@@ -660,7 +660,7 @@ static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
 
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
 
     if (CppObj->isAttached()) {
         return false;
@@ -729,7 +729,7 @@ static bool native_socket_client_sendFile(JSContext *cx,
 
     NATIVE_CHECK_ARGS("sendFile", 1);
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSSocket, &socket_client_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &socket_client_class);
 
     if (!CppObj->isAttached()) {
         JS_ReportWarning(cx, "socket.sendFile() Invalid socket (not connected)");
@@ -753,7 +753,7 @@ static bool native_socket_client_write(JSContext *cx,
 
     NATIVE_CHECK_ARGS("write", 1);
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSSocket, &socket_client_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &socket_client_class);
 
     if (!CppObj->isAttached()) {
 
@@ -799,7 +799,7 @@ static bool native_socket_write(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NATIVE_CHECK_ARGS("write", 1);
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
 
     if (!CppObj->isAttached()) {
 
@@ -843,7 +843,7 @@ static bool native_socket_write(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_socket_client_close(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSSocket, &socket_client_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &socket_client_class);
 
     if (!CppObj->isAttached()) {
         JS_ReportWarning(cx, "socket.close() Invalid socket (not connected)");
@@ -858,7 +858,7 @@ static bool native_socket_client_close(JSContext *cx,
 
 static bool native_socket_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
 
     if (!CppObj->isAttached()) {
         JS_ReportWarning(cx, "socket.close() Invalid socket (not connected)");

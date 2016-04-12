@@ -13,13 +13,13 @@
 
 #include "NativeJS.h"
 
-#define JSNATIVE_PROLOGUE(ofclass) \
+#define NIDIUM_JS_PROLOGUE(ofclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
     ofclass *CppObj = (ofclass *)JS_GetPrivate(thisobj); \
     args.rval().setUndefined();
 
-#define JSNATIVE_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
+#define NIDIUM_JS_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
     if (!thisobj) { \
@@ -32,8 +32,8 @@
         return false; \
     } \
 
-#define JSNATIVE_PROLOGUE_CLASS(ofclass, fclass) \
-    JSNATIVE_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
+#define NIDIUM_JS_PROLOGUE_CLASS(ofclass, fclass) \
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
     args.rval().setUndefined();
 
 #define NATIVE_CHECK_ARGS(fnname, minarg) \
@@ -425,7 +425,7 @@ private:
     static bool nidium_jsevent_fireEvent(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
-        JSNATIVE_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
+        NIDIUM_JS_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
 
         NATIVE_CHECK_ARGS("fireEvent", 2);
 
@@ -455,7 +455,7 @@ private:
     static bool nidium_jsevent_addEventListener(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
-        JSNATIVE_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
+        NIDIUM_JS_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
 
         NATIVE_CHECK_ARGS("addEventListener", 2);
 
@@ -481,7 +481,7 @@ private:
     static bool nidium_jsevent_removeEventListener(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
-        JSNATIVE_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
+        NIDIUM_JS_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
 
         NATIVE_CHECK_ARGS("removeEventListener", 1);
 

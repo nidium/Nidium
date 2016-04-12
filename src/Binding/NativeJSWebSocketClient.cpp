@@ -53,7 +53,7 @@ static void WebSocket_Finalize(JSFreeOp *fop, JSObject *obj)
 
 static bool native_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSWebSocket,
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSWebSocket,
         &WebSocket_class);
 
     NATIVE_CHECK_ARGS("send", 1);
@@ -92,7 +92,7 @@ static bool native_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_websocket_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSWebSocket,
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSWebSocket,
         &WebSocket_class);
 
     CppObj->ws()->close();
@@ -102,7 +102,7 @@ static bool native_websocket_close(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_websocket_ping(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSWebSocket,
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSWebSocket,
         &WebSocket_class);
 
     CppObj->ws()->ping();
