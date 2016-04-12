@@ -93,7 +93,7 @@ def libzip():
     return {
         #"location": DEPEDENCY_REPO + "/libzip-0.10.1.tar.bz2",
         "location": "http://www.nih.at/libzip/libzip-1.1.2.tar.gz",
-        "build": ["./configure", "make"],
+        "build": ["./configure --disable-shared --with-zlib=%s/zlib/" % (Deps.getDir()), "make"],
         "outputs": ["lib/.libs/libzip.a"]
     }
 
