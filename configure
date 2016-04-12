@@ -73,7 +73,7 @@ def skia():
     return {
         "location": Deps.Gclient("https://skia.googlesource.com/skia.git", revision="ed4dc2afaa4285a6d10a16fca77d1b9cbe3083d3"),
         "build": [exports + " ./gyp_skia", exports + " make tests BUILDTYPE=Release " + makeFlags + " -j " + str(Platform.cpuCount)],
-        "patchs": ["skia_defines.patch", "skia_gl.patch", "skia_python27.patch"],
+        "patchs": ["skia_defines.patch", "skia_gl.patch", "skia_python27.patch", "skia_clang.patch"],
         "outputs": [
             "out/Release/libskia_pdf.a",
             "out/Release/libskia_ports.a",
