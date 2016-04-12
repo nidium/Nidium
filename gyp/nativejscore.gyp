@@ -106,7 +106,7 @@
             '../src/Net/NativeHTTPStream.cpp',
 
             '../src/Binding/NativeJS.cpp',
-            '../src/Binding/NativeJSExposer.cpp',
+            '../src/Binding/JSExposer.cpp',
             '../src/Binding/NativeJSFileIO.cpp',
             '../src/Binding/NativeJSHttp.cpp',
             '../src/Binding/NativeJSModules.cpp',

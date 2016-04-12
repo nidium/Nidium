@@ -6,13 +6,13 @@
 #ifndef nativejsdebug_h__
 #define nativejsdebug_h__
 
-#include "NativeJSExposer.h"
+#include "JSExposer.h"
 
-class NativeJSDebug : public NativeJSExposer<NativeJSDebug>
+class NativeJSDebug : public Nidium::Binding::JSExposer<NativeJSDebug>
 {
   public:
     NativeJSDebug(JS::HandleObject obj, JSContext *cx) :
-    NativeJSExposer<NativeJSDebug>(obj, cx)
+    Nidium::Binding::JSExposer<NativeJSDebug>(obj, cx)
     {};
     virtual ~NativeJSDebug() {};
 

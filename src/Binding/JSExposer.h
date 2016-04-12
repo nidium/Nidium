@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativejsexposer_h__
-#define nativejsexposer_h__
+#ifndef nidiumjsexposer_h__
+#define nidiumjsexposer_h__
 
 #include <jsapi.h>
 #include <jsfriendapi.h>
@@ -46,16 +46,19 @@
         return false;  \
     }
 
-static const JSClass NativeJSEvent_class = {
-    "NativeJSEvent", 0,
+namespace Nidium {
+namespace Binding {
+
+static const JSClass JSEvent_class = {
+    "NidiumEvent", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-struct NativeJSEvent
+struct JSEvent
 {
-    NativeJSEvent(JSContext *cx, JS::HandleValue func) : m_Function(func) {
+    JSEvent(JSContext *cx, JS::HandleValue func) : m_Function(func) {
         once = false;
         next = prev = NULL;
 
@@ -64,7 +67,7 @@ struct NativeJSEvent
         NativeJS::getNativeClass(m_Cx)->rootObjectUntilShutdown(func.toObjectOrNull());
     }
 
-    ~NativeJSEvent() {
+    ~JSEvent() {
         NativeJS::getNativeClass(m_Cx)->unrootObject(m_Function.toObjectOrNull());
     }
 
@@ -73,35 +76,35 @@ struct NativeJSEvent
 
     bool once;
 
-    NativeJSEvent *next;
-    NativeJSEvent *prev;
+    JSEvent *next;
+    JSEvent *prev;
 };
 
-class NativeJSEvents
+class JSEvents
 {
 public:
     static JSObject *CreateEventObject(JSContext *cx) {
-        static JSFunctionSpec NativeJSEvents_funcs[] = {
+        static JSFunctionSpec JSEvents_funcs[] = {
             JS_FN("stopPropagation",
-                NativeJSEvents::native_jsevents_stopPropagation, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+                JSEvents::nidium_jsevents_stopPropagation, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
             JS_FN("preventDefault",
-                NativeJSEvents::native_jsevents_stub, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+                JSEvents::nidium_jsevents_stub, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
             JS_FN("forcePropagation",
-                NativeJSEvents::native_jsevents_stub, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+                JSEvents::nidium_jsevents_stub, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
             JS_FS_END
         };
 
-        JS::RootedObject ret(cx, JS_NewObject(cx, &NativeJSEvent_class, JS::NullPtr(), JS::NullPtr()));
-        JS_DefineFunctions(cx, ret, NativeJSEvents_funcs);
+        JS::RootedObject ret(cx, JS_NewObject(cx, &JSEvent_class, JS::NullPtr(), JS::NullPtr()));
+        JS_DefineFunctions(cx, ret, JSEvents_funcs);
         return ret;
     }
 
-    NativeJSEvents(char *name) :
+    JSEvents(char *name) :
         m_Head(NULL), m_Queue(NULL), m_Name(strdup(name)),
         m_TmpEv(NULL), m_IsFiring(false), m_DeleteAfterFire(false) {}
 
-    ~NativeJSEvents() {
-        NativeJSEvent *ev, *tmpEv;
+    ~JSEvents() {
+        JSEvent *ev, *tmpEv;
         for (ev = m_Head; ev != NULL;) {
             tmpEv = ev->next;
             delete ev;
@@ -111,7 +114,7 @@ public:
         free(m_Name);
     }
 
-    void add(NativeJSEvent *ev) {
+    void add(JSEvent *ev) {
         ev->prev = m_Queue;
         ev->next = NULL;
 
@@ -127,7 +130,7 @@ public:
     }
 
     bool fire(JS::HandleValue evobj, JSObject *thisobj) {
-        NativeJSEvent *ev;
+        JSEvent *ev;
         JSContext *cx;
         m_IsFiring = true;
 
@@ -142,7 +145,7 @@ public:
             /*
                 Keep a reference to the next event in case the event is self
                 deleted during the trigger. In case the next event(s) are also
-                deleted, m_TmpEv will be updated by NativeJSEvents::remove() 
+                deleted, m_TmpEv will be updated by JSEvents::remove() 
                 to the next valid event.
             */
             m_TmpEv = ev->next;
@@ -179,7 +182,7 @@ public:
     }
 
     void remove(JS::HandleValue func) {
-        NativeJSEvent *ev;
+        JSEvent *ev;
         for (ev = m_Head; ev != nullptr;) {
             if (ev->m_Function == func) {
                 if (ev->prev) {
@@ -209,16 +212,16 @@ public:
         }
     }
 
-    NativeJSEvent *m_Head;
-    NativeJSEvent *m_Queue;
+    JSEvent *m_Head;
+    JSEvent *m_Queue;
     char *m_Name;
 
 private:
-    NativeJSEvent *m_TmpEv;
+    JSEvent *m_TmpEv;
     bool m_IsFiring;
     bool m_DeleteAfterFire;
 
-    static bool native_jsevents_stopPropagation(JSContext *cx,
+    static bool nidium_jsevents_stopPropagation(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
         JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp));
@@ -226,7 +229,7 @@ private:
             JS_ReportError(cx, "Illegal invocation");
             return false;
         }
-        if (!JS_InstanceOf(cx, thisobj, &NativeJSEvent_class, NULL)) {
+        if (!JS_InstanceOf(cx, thisobj, &JSEvent_class, NULL)) {
             JS_ReportError(cx, "Illegal invocation");
             return false;
         }
@@ -235,7 +238,7 @@ private:
 
         return true;
     }
-    static bool native_jsevents_stub(JSContext *cx,
+    static bool nidium_jsevents_stub(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
 
@@ -244,7 +247,7 @@ private:
 };
 
 template <typename T>
-class NativeJSExposer
+class JSExposer
 {
   public:
     JSObject *getJSObject() const {
@@ -267,25 +270,25 @@ class NativeJSExposer
         m_Cx = cx;
     }
 
-    NativeJSExposer(JS::HandleObject jsobj, JSContext *cx, bool impEvents = true) :
+    JSExposer(JS::HandleObject jsobj, JSContext *cx, bool impEvents = true) :
         m_JSObject(jsobj), m_Cx(cx), m_Events(NULL)
     {
-        static JSFunctionSpec NativeJSEvent_funcs[] = {
+        static JSFunctionSpec JSEvent_funcs[] = {
             JS_FN("addEventListener",
-                NativeJSExposer<T>::native_jsevent_addEventListener, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+                JSExposer<T>::nidium_jsevent_addEventListener, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
             JS_FN("removeEventListener",
-                NativeJSExposer<T>::native_jsevent_removeEventListener, 1, JSPROP_ENUMERATE | JSPROP_PERMANENT),
+                JSExposer<T>::nidium_jsevent_removeEventListener, 1, JSPROP_ENUMERATE | JSPROP_PERMANENT),
             JS_FN("fireEvent",
-                NativeJSExposer<T>::native_jsevent_fireEvent, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+                JSExposer<T>::nidium_jsevent_fireEvent, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
             JS_FS_END
         };
 
         if (impEvents) {
-            JS_DefineFunctions(cx, jsobj, NativeJSEvent_funcs);
+            JS_DefineFunctions(cx, jsobj, JSEvent_funcs);
         }
     }
 
-    virtual ~NativeJSExposer() {
+    virtual ~JSExposer() {
         if (m_Events) {
             /*
                 It's safe to enable again the auto delete feature from
@@ -343,10 +346,10 @@ class NativeJSExposer
         }
         /*
         if (0 && !JS_InstanceOf(m_Cx, evobj.toObjectOrNull(),
-            &NativeJSEvent_class, NULL)) {
+            &JSEvent_class, NULL)) {
             evobj.setUndefined();
         }*/
-        NativeJSEvents *events = m_Events->get(name);
+        JSEvents *events = m_Events->get(name);
         if (!events) {
             return false;
         }
@@ -361,7 +364,7 @@ class NativeJSExposer
             return;
         }
 
-        NativeJSEvents *events = m_Events->get(name);
+        JSEvents *events = m_Events->get(name);
         if (!events) {
             return;
         }
@@ -375,7 +378,7 @@ class NativeJSExposer
             return;
         }
 
-        NativeJSEvents *events = m_Events->get(name);
+        JSEvents *events = m_Events->get(name);
         if (!events) {
             return;
         }
@@ -389,12 +392,12 @@ class NativeJSExposer
             return;
         }
 
-        m_Events = new NativeHash<NativeJSEvents *>(32);
+        m_Events = new NativeHash<JSEvents *>(32);
         /*
             Set NativeHash auto delete to false, since it's possible for 
             an event to be deleted while it's fired. So we don't want to 
             free the underlying object when removing it from the NativeHash 
-            (otherwise NativeJSEvents::fire will attempt to use a freed object)
+            (otherwise JSEvents::fire will attempt to use a freed object)
         */
         m_Events->setAutoDelete(false);
     }
@@ -402,27 +405,27 @@ class NativeJSExposer
     void addJSEvent(char *name, JS::HandleValue func) {
         initEvents();
 
-        NativeJSEvents *events = m_Events->get(name);
+        JSEvents *events = m_Events->get(name);
         if (!events) {
-            events = new NativeJSEvents(name);
+            events = new JSEvents(name);
             m_Events->set(name, events);
         }
 
-        NativeJSEvent *ev = new NativeJSEvent(m_Cx, func);
+        JSEvent *ev = new JSEvent(m_Cx, func);
         events->add(ev);
     }
 
     JS::Heap<JSObject *>m_JSObject;
 
     JSContext *m_Cx;
-    NativeHash<NativeJSEvents *> *m_Events;
+    NativeHash<JSEvents *> *m_Events;
 
     static JSClass *jsclass;
 private:
-    static bool native_jsevent_fireEvent(JSContext *cx,
+    static bool nidium_jsevent_fireEvent(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
-        JSNATIVE_PROLOGUE_CLASS(NativeJSExposer<T>, NativeJSExposer<T>::jsclass);
+        JSNATIVE_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
 
         NATIVE_CHECK_ARGS("fireEvent", 2);
 
@@ -449,10 +452,10 @@ private:
 
         return true;
     }
-    static bool native_jsevent_addEventListener(JSContext *cx,
+    static bool nidium_jsevent_addEventListener(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
-        JSNATIVE_PROLOGUE_CLASS(NativeJSExposer<T>, NativeJSExposer<T>::jsclass);
+        JSNATIVE_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
 
         NATIVE_CHECK_ARGS("addEventListener", 2);
 
@@ -475,10 +478,10 @@ private:
         return true;
     }
 
-    static bool native_jsevent_removeEventListener(JSContext *cx,
+    static bool nidium_jsevent_removeEventListener(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
-        JSNATIVE_PROLOGUE_CLASS(NativeJSExposer<T>, NativeJSExposer<T>::jsclass);
+        JSNATIVE_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
 
         NATIVE_CHECK_ARGS("removeEventListener", 1);
 
@@ -506,21 +509,21 @@ private:
     }
 };
 
-#define NATIVE_ASYNC_MAXCALLBACK 4
-class NativeJSAsyncHandler : public NativeManaged
+#define NIDIUM_ASYNC_MAXCALLBACK 4
+class JSAsyncHandler : public NativeManaged
 {
 public:
-    NativeJSAsyncHandler(JSContext *ctx) :
+    JSAsyncHandler(JSContext *ctx) :
         m_Ctx(ctx) {
         memset(m_CallBack, 0, sizeof(m_CallBack));
     }
 
-    virtual ~NativeJSAsyncHandler() {
+    virtual ~JSAsyncHandler() {
         if (m_Ctx == NULL) {
             return;
         }
 
-        for (int i = 0; i < NATIVE_ASYNC_MAXCALLBACK; i++) {
+        for (int i = 0; i < NIDIUM_ASYNC_MAXCALLBACK; i++) {
             if (m_CallBack[i] != NULL) {
                 NativeJS::getNativeClass(m_Ctx)->unrootObject(m_CallBack[i]);
             }
@@ -529,7 +532,7 @@ public:
 
     void setCallback(int idx, JSObject *callback)
     {
-        if (idx >= NATIVE_ASYNC_MAXCALLBACK || m_Ctx == NULL) {
+        if (idx >= NIDIUM_ASYNC_MAXCALLBACK || m_Ctx == NULL) {
             return;
         }
 
@@ -544,7 +547,7 @@ public:
     }
 
     JSObject *getCallback(int idx) const {
-        if (idx >= NATIVE_ASYNC_MAXCALLBACK || m_Ctx == NULL) {
+        if (idx >= NIDIUM_ASYNC_MAXCALLBACK || m_Ctx == NULL) {
             return NULL;
         }
 
@@ -558,7 +561,7 @@ public:
     virtual void onMessage(const NativeSharedMessages::Message &msg)=0;
 private:
     JSContext *m_Ctx;
-    JSObject *m_CallBack[NATIVE_ASYNC_MAXCALLBACK];
+    JSObject *m_CallBack[NIDIUM_ASYNC_MAXCALLBACK];
 };
 
 /*  TODO: add a way to define whether object life define JSObject life
@@ -566,10 +569,10 @@ private:
 */
 
 template <typename T>
-class NativeJSObjectMapper
+class JSObjectMapper
 {
 public:
-    NativeJSObjectMapper(JSContext *cx, const char *name) :
+    JSObjectMapper(JSContext *cx, const char *name) :
         m_JSObj(cx), m_JSCx(cx)
     {
         static JSClass jsclass = {
@@ -587,7 +590,7 @@ public:
         m_JSObj = JS_NewObject(m_JSCx, m_JSClass, JS::NullPtr(), JS::NullPtr());
         JS_SetPrivate(m_JSObj, static_cast<T *>(this));
     }
-    virtual ~NativeJSObjectMapper()
+    virtual ~JSObjectMapper()
     {
         JS_SetPrivate(m_JSObj, NULL);
     }
@@ -611,6 +614,26 @@ protected:
 typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 
 #define NativeJSObj(cx) (NativeJS::getNativeClass(cx))
+
+
+#define NIDIUM_JS_OBJECT_EXPOSE(name) \
+    void  JS ## name::registerObject(JSContext *cx) \
+    { \
+        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
+        JS_InitClass(cx, global, JS::NullPtr(), &name ## _class, \
+            native_ ## name ## _constructor, \
+            0, NULL, NULL, NULL, NULL); \
+    }
+
+#define NIDIUM_JS_OBJECT_EXPOSE_NOT_INST(name) \
+    void NativeJS ## name::registerObject(JSContext *cx) \
+    { \
+        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
+        JS::RootedObject name ## Obj(cx, JS_DefineObject(cx, global, #name, \
+            &name ## _class , NULL, 0)); \
+        JS_DefineFunctions(cx, name ## Obj, name ## _funcs); \
+        JS_DefineProperties(cx, name ## Obj, name ## _props); \
+    }
 
 #define NATIVE_OBJECT_EXPOSE(name) \
     void NativeJS ## name::registerObject(JSContext *cx) \
@@ -677,15 +700,15 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
         __curopt != JSVAL_NULL && \
         __curopt.is ## type())
 
-class NativeJSObjectBuilder
+class JSObjectBuilder
 {
 public:
-    NativeJSObjectBuilder(JSContext *cx, JSClass *clasp = NULL) : m_Obj(cx) {
+    JSObjectBuilder(JSContext *cx, JSClass *clasp = NULL) : m_Obj(cx) {
         m_Cx = cx;
         m_Obj = JS_NewObject(m_Cx, clasp, JS::NullPtr(), JS::NullPtr());
     };
 
-    NativeJSObjectBuilder(JSContext *cx, JS::HandleObject wrapped) : m_Obj(cx) {
+    JSObjectBuilder(JSContext *cx, JS::HandleObject wrapped) : m_Obj(cx) {
         m_Obj = wrapped;
         m_Cx = cx;
     };
@@ -701,7 +724,7 @@ public:
     }
 
     void set(const char *name, JSString *str) {
-        printf("NativeJSObjectBuilder using a JSString is deprecated\n");
+        printf("JSObjectBuilder using a JSString is deprecated\n");
         exit(1);
     }
 
@@ -746,7 +769,7 @@ public:
         return OBJECT_TO_JSVAL(m_Obj);
     }
 
-    ~NativeJSObjectBuilder() {};
+    ~JSObjectBuilder() {};
 
 private:
     JS::PersistentRootedObject m_Obj;
@@ -758,13 +781,13 @@ private:
     This template act as a workaround (create a unique getter/setter and keep a unique identifier)
 */
 #define NATIVE_JS_SETTER(tinyid, setter) \
-    {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}}
+    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}}
 #define NATIVE_JS_SETTER_WRS(tinyid, setter) \
-    {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::SetterWithReservedSlot<tinyid, setter>), JSStrictPropertyOp), nullptr}}
+    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::SetterWithReservedSlot<tinyid, setter>), JSStrictPropertyOp), nullptr}}
 #define NATIVE_JS_GETTER(tinyid, getter) \
-    {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}}
+    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}}
 #define NATIVE_JS_STUBGETTER(tinyid) \
-    {{JS_CAST_NATIVE_TO((NativeJSPropertyAccessors::NullGetter<tinyid>), JSPropertyOp), nullptr}}
+    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::NullGetter<tinyid>), JSPropertyOp), nullptr}}
 
 /* Getter only */
 #define NATIVE_PSG(name, tinyid, getter_func) \
@@ -784,17 +807,17 @@ private:
         NATIVE_JS_GETTER(tinyid, getter_func), \
         NATIVE_JS_SETTER(tinyid, setter_func)}
 
-struct NativeJSPropertyAccessors
+struct JSPropertyAccessors
 {
     typedef bool
-    (* NativeJSGetterOp)(JSContext *cx, JS::HandleObject obj, uint8_t id,
+    (* JSGetterOp)(JSContext *cx, JS::HandleObject obj, uint8_t id,
                            bool strict, JS::MutableHandleValue vp);
 
     typedef bool
-    (* NativeJSSetterOp)(JSContext *cx, JS::HandleObject obj, uint8_t id,
+    (* JSSetterOp)(JSContext *cx, JS::HandleObject obj, uint8_t id,
                            JS::MutableHandleValue vp);
 
-    template <uint8_t TINYID, NativeJSGetterOp FN>
+    template <uint8_t TINYID, JSGetterOp FN>
     static bool Setter(JSContext *cx, unsigned argc, JS::Value *vp) {
         JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
         JS::RootedObject obj(cx, JS_THIS_OBJECT(cx, vp));
@@ -808,7 +831,7 @@ struct NativeJSPropertyAccessors
         return ret;
     }
 
-    template <uint8_t TINYID, NativeJSGetterOp FN>
+    template <uint8_t TINYID, JSGetterOp FN>
     static bool SetterWithReservedSlot(JSContext *cx, unsigned argc, JS::Value *vp) {
         JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
         JS::RootedObject obj(cx, JS_THIS_OBJECT(cx, vp));
@@ -825,7 +848,7 @@ struct NativeJSPropertyAccessors
         return ret;
     }
 
-    template <uint8_t TINYID, NativeJSSetterOp FN>
+    template <uint8_t TINYID, JSSetterOp FN>
     static bool Getter(JSContext *cx, unsigned argc, JS::Value *vp) {
         JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
         JS::RootedObject obj(cx, JS_THIS_OBJECT(cx, vp));
@@ -849,6 +872,9 @@ struct NativeJSPropertyAccessors
     }
 
 };
+
+} // namespace Binding
+} // namespace Nidium
 
 #endif
 

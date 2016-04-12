@@ -32,7 +32,7 @@ static JSClass WebSocketServer_class = {
 };
 
 template<>
-JSClass *NativeJSExposer<NativeJSWebSocketServer>::jsclass = &WebSocketServer_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSWebSocketServer>::jsclass = &WebSocketServer_class;
 
 static JSFunctionSpec wsclient_funcs[] = {
     JS_FN("send", native_websocketclient_send, 1, NATIVE_JS_FNPROPS),
@@ -186,7 +186,7 @@ static bool native_WebSocketServer_constructor(JSContext *cx,
 
 NativeJSWebSocketServer::NativeJSWebSocketServer(JS::HandleObject obj, JSContext *cx,
     const char *host,
-    unsigned short port) : NativeJSExposer<NativeJSWebSocketServer>(obj, cx)
+    unsigned short port) : Nidium::Binding::JSExposer<NativeJSWebSocketServer>(obj, cx)
 {
     m_WebSocketServer = new NativeWebSocketListener(port, host);
     m_WebSocketServer->addListener(this);

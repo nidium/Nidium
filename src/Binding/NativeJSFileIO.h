@@ -10,9 +10,9 @@
 
 #include "Core/NativeMessages.h"
 #include "IO/NativeFile.h"
-#include "NativeJSExposer.h"
+#include "JSExposer.h"
 
-class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
+class NativeJSFileIO : public Nidium::Binding::JSExposer<NativeJSFileIO>,
                        public NativeMessages
 {
   public:
@@ -28,7 +28,7 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
         JSObject *thisobj, const char *encoding = NULL);
 
     NativeJSFileIO(JS::HandleObject obj, JSContext *cx) :
-        NativeJSExposer<NativeJSFileIO>(obj, cx), m_Encoding(NULL) {
+        Nidium::Binding::JSExposer<NativeJSFileIO>(obj, cx), m_Encoding(NULL) {
     };
 
     ~NativeJSFileIO() {

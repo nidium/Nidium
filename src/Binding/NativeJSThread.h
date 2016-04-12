@@ -10,11 +10,11 @@
 
 #include "Core/NativeSharedMessages.h"
 #include "Core/NativeMessages.h"
-#include "NativeJSExposer.h"
+#include "JSExposer.h"
 
 class NativeJS;
 
-class NativeJSThread : public NativeJSExposer<NativeJSThread>, public NativeMessages
+class NativeJSThread : public Nidium::Binding::JSExposer<NativeJSThread>, public NativeMessages
 {
   public:
     NativeJSThread(JS::HandleObject obj, JSContext *cx);

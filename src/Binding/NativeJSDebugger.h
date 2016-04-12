@@ -6,9 +6,9 @@
 #ifndef nativejsdebugger_h__
 #define nativejsdebugger_h__
 
-#include "NativeJSExposer.h"
+#include "JSExposer.h"
 
-class NativeJSDebugger : public NativeJSExposer<NativeJSDebugger>
+class NativeJSDebugger : public Nidium::Binding::JSExposer<NativeJSDebugger>
 {
   public:
     static void registerObject(JSContext *cx);

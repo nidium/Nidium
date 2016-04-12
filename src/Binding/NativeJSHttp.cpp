@@ -23,7 +23,7 @@ static JSClass Http_class = {
 };
 
 template<>
-JSClass *NativeJSExposer<NativeJSHttp>::jsclass = &Http_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSHttp>::jsclass = &Http_class;
 
 static JSFunctionSpec http_funcs[] = {
     JS_FN("request", native_http_request, 2, NATIVE_JS_FNPROPS),
@@ -468,7 +468,7 @@ void NativeJSHttp::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 }
 
 NativeJSHttp::NativeJSHttp(JS::HandleObject obj, JSContext *cx, char *url) :
-    NativeJSExposer<NativeJSHttp>(obj, cx),
+    Nidium::Binding::JSExposer<NativeJSHttp>(obj, cx),
     request(JSVAL_NULL), refHttp(NULL), m_Eval(true)
 {
     m_URL = strdup(url);

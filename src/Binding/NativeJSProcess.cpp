@@ -21,7 +21,7 @@ static JSClass Process_class = {
 JSClass *NativeJSProcess::jsclass = &Process_class;
 
 template<>
-JSClass *NativeJSExposer<NativeJSProcess>::jsclass = &Process_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSProcess>::jsclass = &Process_class;
 
 static JSFunctionSpec Process_funcs[] = {
     JS_FN("setSignalHandler", native_setSignalHandler, 1, NATIVE_JS_FNPROPS),

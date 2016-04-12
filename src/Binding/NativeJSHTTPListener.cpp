@@ -27,7 +27,7 @@ static JSClass HTTPListener_class = {
 };
 
 template<>
-JSClass *NativeJSExposer<NativeJSHTTPListener>::jsclass = &HTTPListener_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSHTTPListener>::jsclass = &HTTPListener_class;
 
 static JSClass HTTPRequest_class = {
     "HTTPRequest", JSCLASS_HAS_PRIVATE,
@@ -62,14 +62,14 @@ static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj)
 
 NativeJSHTTPResponse::NativeJSHTTPResponse(JSContext *cx, uint16_t code) :
         NativeHTTPResponse(code),
-        NativeJSObjectMapper(cx, "HTTPResponse")
+        JSObjectMapper(cx, "HTTPResponse")
 {
     JS_DefineFunctions(cx, m_JSObj, HTTPResponse_funcs);
 }
 
 NativeJSHTTPListener::NativeJSHTTPListener(JS::HandleObject obj, JSContext *cx,
     uint16_t port, const char *ip) :
-    NativeJSExposer<NativeJSHTTPListener>(obj, cx),
+    Nidium::Binding::JSExposer<NativeJSHTTPListener>(obj, cx),
     NativeHTTPListener(port, ip)
 {
 

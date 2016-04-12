@@ -6,13 +6,13 @@
 #ifndef nativejshttplistener_h__
 #define nativejshttplistener_h__
 
-#include "NativeJSExposer.h"
+#include "JSExposer.h"
 #include "Net/NativeHTTPListener.h"
 
 class NativeJSHTTPClientConnection;
 
 class NativeJSHTTPResponse : public NativeHTTPResponse,
-                             public NativeJSObjectMapper<NativeJSHTTPResponse>
+                             public Nidium::Binding::JSObjectMapper<NativeJSHTTPResponse>
 {
 public:
     friend NativeJSHTTPClientConnection;
@@ -21,19 +21,19 @@ protected:
 };
 
 class NativeJSHTTPClientConnection : public NativeHTTPClientConnection,
-                                     public NativeJSObjectMapper<NativeJSHTTPClientConnection>
+                                     public Nidium::Binding::JSObjectMapper<NativeJSHTTPClientConnection>
 {
 public:
     NativeJSHTTPClientConnection(JSContext *cx, NativeHTTPListener *httpserver,
         ape_socket *socket) :
         NativeHTTPClientConnection(httpserver, socket),
-        NativeJSObjectMapper(cx, "HTTPClientConnection") {}
+        JSObjectMapper(cx, "HTTPClientConnection") {}
     virtual NativeHTTPResponse *onCreateResponse() {
         return new NativeJSHTTPResponse(m_JSCx);
     }
 };
 
-class NativeJSHTTPListener :    public NativeJSExposer<NativeJSHTTPListener>,
+class NativeJSHTTPListener :    public Nidium::Binding::JSExposer<NativeJSHTTPListener>,
                                 public NativeHTTPListener
 {
 public:

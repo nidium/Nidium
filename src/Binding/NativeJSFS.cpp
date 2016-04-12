@@ -31,10 +31,10 @@ static JSFunctionSpec FS_static_funcs[] = {
     JS_FS_END
 };
 
-class NativeJSFSAsyncHandler : public NativeJSAsyncHandler
+class NativeJSFSAsyncHandler : public Nidium::Binding::JSAsyncHandler
 {
 public:
-    NativeJSFSAsyncHandler(JSContext *ctx) : NativeJSAsyncHandler(ctx) {
+    NativeJSFSAsyncHandler(JSContext *ctx) : Nidium::Binding::JSAsyncHandler(ctx) {
 
     }
 

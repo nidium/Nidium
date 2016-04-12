@@ -109,7 +109,7 @@ JSClass File_class = {
 };
 
 template<>
-JSClass *NativeJSExposer<NativeJSFileIO>::jsclass = &File_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSFileIO>::jsclass = &File_class;
 
 static bool native_file_open(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_file_openSync(JSContext *cx, unsigned argc, JS::Value *vp);

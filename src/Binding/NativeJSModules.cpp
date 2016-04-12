@@ -19,7 +19,7 @@
 #include <jsoncpp.h>
 
 #include "IO/NativeStreamInterface.h"
-#include "NativeJSExposer.h"
+#include "JSExposer.h"
 
 #if 0
 #define DPRINT(...) printf(__VA_ARGS__)
@@ -183,7 +183,7 @@ bool NativeJSModule::initNative()
         return false;
     }
 
-    register_module_t registerModule = (register_module_t)dlsym(module, "__NativeRegisterModule");
+    Nidium::Binding::register_module_t registerModule = (Nidium::Binding::register_module_t)dlsym(module, "__NativeRegisterModule");
     if (registerModule && !registerModule(this->cx, exports)) {
         printf("Failed to register module\n");
         return false;

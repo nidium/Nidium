@@ -33,7 +33,7 @@ static JSClass WebSocket_class = {
 };
 
 template<>
-JSClass *NativeJSExposer<NativeJSWebSocket>::jsclass = &WebSocket_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSWebSocket>::jsclass = &WebSocket_class;
 
 static JSFunctionSpec ws_funcs[] = {
     JS_FN("send", native_websocket_send, 1, NATIVE_JS_FNPROPS),
@@ -177,7 +177,7 @@ static bool native_WebSocket_constructor(JSContext *cx,
 
 NativeJSWebSocket::NativeJSWebSocket(JS::HandleObject obj, JSContext *cx,
     const char *host,
-    unsigned short port, const char *path, bool ssl) : NativeJSExposer<NativeJSWebSocket>(obj, cx)
+    unsigned short port, const char *path, bool ssl) : Nidium::Binding::JSExposer<NativeJSWebSocket>(obj, cx)
 {
     m_WebSocketClient = new NativeWebSocketClient(port, path, host);
     bool ret = m_WebSocketClient->connect(ssl, (ape_global *)JS_GetContextPrivate(cx));

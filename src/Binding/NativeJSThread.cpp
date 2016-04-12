@@ -42,7 +42,7 @@ static JSClass Thread_class = {
 };
 
 template<>
-JSClass *NativeJSExposer<NativeJSThread>::jsclass = &Thread_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSThread>::jsclass = &Thread_class;
 
 static JSClass messageEvent_class = {
     "ThreadMessageEvent", 0,
@@ -393,7 +393,7 @@ NativeJSThread::~NativeJSThread()
 }
 
 NativeJSThread::NativeJSThread(JS::HandleObject obj, JSContext *cx) :
-    NativeJSExposer<NativeJSThread>(obj, cx),
+    Nidium::Binding::JSExposer<NativeJSThread>(obj, cx),
     jsFunction(cx), jsRuntime(NULL), jsCx(NULL),
     jsObject(NULL), njs(NULL), markedStop(false), m_CallerFileName(NULL)
 {

@@ -7,11 +7,11 @@
 #define nativejsstream_h__
 
 #include "Core/NativeMessages.h"
-#include "NativeJSExposer.h"
+#include "JSExposer.h"
 
 class NativeBaseStream;
 
-class NativeJSStream :  public NativeJSExposer<NativeJSStream>,
+class NativeJSStream :  public Nidium::Binding::JSExposer<NativeJSStream>,
                         public NativeMessages
 {
   public:

@@ -9,11 +9,11 @@
 #include <native_netlib.h>
 #include <ape_array.h>
 
-#include "NativeJSExposer.h"
+#include "JSExposer.h"
 #include "Net/NativeHTTP.h"
 
 
-class NativeJSHttp : public NativeJSExposer<NativeJSHttp>, public Nidium::Net::HTTPDelegate
+class NativeJSHttp : public Nidium::Binding::JSExposer<NativeJSHttp>, public Nidium::Net::HTTPDelegate
 {
   public:
     static void registerObject(JSContext *cx);

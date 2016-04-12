@@ -8,9 +8,9 @@
 
 #include "Core/NativeMessages.h"
 #include "Core/NativeTaskManager.h"
-#include "NativeJSExposer.h"
+#include "JSExposer.h"
 
-class NativeJSFS :     public NativeJSExposer<NativeJSFS>,
+class NativeJSFS :     public Nidium::Binding::JSExposer<NativeJSFS>,
                        public NativeManaged,
                        public NativeMessages
 {

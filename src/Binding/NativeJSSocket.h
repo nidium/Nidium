@@ -8,7 +8,7 @@
 
 #include <native_netlib.h>
 
-#include "NativeJSExposer.h"
+#include "JSExposer.h"
 
 enum {
     NATIVE_SOCKET_ISBINARY          = 1 << 0,
@@ -19,7 +19,7 @@ enum {
 
 #define SOCKET_LINEBUFFER_MAX 8192
 
-class NativeJSSocket : public NativeJSExposer<NativeJSSocket>
+class NativeJSSocket : public Nidium::Binding::JSExposer<NativeJSSocket>
 {
 public:
     static void registerObject(JSContext *cx);

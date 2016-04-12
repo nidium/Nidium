@@ -58,7 +58,7 @@ static JSClass Socket_class = {
 };
 
 template<>
-JSClass *NativeJSExposer<NativeJSSocket>::jsclass = &Socket_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSSocket>::jsclass = &Socket_class;
 
 static JSClass socket_client_class = {
     "SocketClient", JSCLASS_HAS_PRIVATE,
@@ -953,7 +953,7 @@ static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj)
 
 NativeJSSocket::NativeJSSocket(JS::HandleObject obj, JSContext *cx,
     const char *host, unsigned short port)
-    :  NativeJSExposer<NativeJSSocket>(obj, cx),
+    :  Nidium::Binding::JSExposer<NativeJSSocket>(obj, cx),
     socket(NULL), flags(0), m_ParentServer(NULL), m_TCPTimeout(0)
 {
     this->host = strdup(host);

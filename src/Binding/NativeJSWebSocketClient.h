@@ -10,9 +10,9 @@
 
 #include "Core/NativeMessages.h"
 #include "Net/NativeWebSocketClient.h"
-#include "NativeJSExposer.h"
+#include "JSExposer.h"
 
-class NativeJSWebSocket : public NativeJSExposer<NativeJSWebSocket>,
+class NativeJSWebSocket : public Nidium::Binding::JSExposer<NativeJSWebSocket>,
                                 public NativeMessages
 {
 public:

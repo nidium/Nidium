@@ -30,7 +30,7 @@ static JSClass Stream_class = {
 };
 
 template<>
-JSClass *NativeJSExposer<NativeJSStream>::jsclass = &Stream_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSStream>::jsclass = &Stream_class;
 
 static JSFunctionSpec Stream_funcs[] = {
     JS_FN("seek", native_stream_seek, 1, NATIVE_JS_FNPROPS),
@@ -208,7 +208,7 @@ static bool native_Stream_constructor(JSContext *cx, unsigned argc, JS::Value *v
 
 NativeJSStream::NativeJSStream(JS::HandleObject obj, JSContext *cx,
     ape_global *net, const char *url) :
-    NativeJSExposer<NativeJSStream>(obj, cx)
+    Nidium::Binding::JSExposer<NativeJSStream>(obj, cx)
 {
     std::string str = url;
     //str += NativeJS::getNativeClass(cx)->getPath();
