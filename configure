@@ -28,13 +28,16 @@ Gyp = Builder.Gyp
 
 @Deps.register("leveldb")
 def leveldb():
+    cwd = os.path.dirname(os.path.realpath(__file__)) 
     flags = ""
+
     if Platform.system == "Darwin":
         flags = "CXXFLAGS='-stdlib=libc++ -mmacosx-version-min=10.7' CFLAGS='-mmacosx-version-min=10.7'"
 
     return {
         "location": Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.18"),
         "build": [flags + " make"], 
+        "patchs": [os.path.join(cwd, "var", "patch", "leveldb.patch")],
         "outputs": ["libleveldb(.a|.lib)"]
     }
 
