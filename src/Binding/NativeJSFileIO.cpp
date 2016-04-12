@@ -126,8 +126,8 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
 static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSPropertySpec File_props[] = {
-    NATIVE_PSG("filesize", FILE_PROP_FILESIZE, native_file_prop_get),
-    NATIVE_PSG("filename", FILE_PROP_FILENAME, native_file_prop_get),
+    NIDIUM_JS_PSG("filesize", FILE_PROP_FILESIZE, native_file_prop_get),
+    NIDIUM_JS_PSG("filename", FILE_PROP_FILENAME, native_file_prop_get),
     JS_PS_END
 };
 

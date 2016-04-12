@@ -110,11 +110,11 @@ static JSFunctionSpec glob_funcs[] = {
 
 static JSPropertySpec glob_props[] = {
 
-    NATIVE_PSG("__filename", GLOBAL_PROP___FILENAME, native_global_prop_get),
-    NATIVE_PSG("__dirname", GLOBAL_PROP___DIRNAME, native_global_prop_get),
-    NATIVE_PSG("global", GLOBAL_PROP_GLOBAL, native_global_prop_get),
+    NIDIUM_JS_PSG("__filename", GLOBAL_PROP___FILENAME, native_global_prop_get),
+    NIDIUM_JS_PSG("__dirname", GLOBAL_PROP___DIRNAME, native_global_prop_get),
+    NIDIUM_JS_PSG("global", GLOBAL_PROP_GLOBAL, native_global_prop_get),
 #ifndef NATIVE_DISABLE_WINDOW_GLOBAL    
-    NATIVE_PSG("window", GLOBAL_PROP_WINDOW, native_global_prop_get),
+    NIDIUM_JS_PSG("window", GLOBAL_PROP_WINDOW, native_global_prop_get),
 #endif
     JS_PS_END
 };

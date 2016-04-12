@@ -41,7 +41,7 @@ static JSFunctionSpec Stream_funcs[] = {
 };
 
 static JSPropertySpec Stream_props[] = {
-    NATIVE_PSG("filesize", STREAM_PROP_FILESIZE, native_stream_prop_get),
+    NIDIUM_JS_PSG("filesize", STREAM_PROP_FILESIZE, native_stream_prop_get),
     JS_PS_END
 };
 

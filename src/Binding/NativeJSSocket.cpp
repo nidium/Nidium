@@ -84,10 +84,10 @@ static JSFunctionSpec socket_funcs[] = {
 };
 
 static JSPropertySpec Socket_props[] = {
-    NATIVE_PSGS("binary", SOCKET_PROP_BINARY, native_socket_prop_get, native_socket_prop_set),
-    NATIVE_PSGS("readline", SOCKET_PROP_READLINE, native_socket_prop_get, native_socket_prop_set),
-    NATIVE_PSGS("encoding", SOCKET_PROP_ENCODING, native_socket_prop_get, native_socket_prop_set),
-    NATIVE_PSGS("timeout", SOCKET_PROP_TIMEOUT, native_socket_prop_get, native_socket_prop_set),
+    NIDIUM_JS_PSGS("binary", SOCKET_PROP_BINARY, native_socket_prop_get, native_socket_prop_set),
+    NIDIUM_JS_PSGS("readline", SOCKET_PROP_READLINE, native_socket_prop_get, native_socket_prop_set),
+    NIDIUM_JS_PSGS("encoding", SOCKET_PROP_ENCODING, native_socket_prop_get, native_socket_prop_set),
+    NIDIUM_JS_PSGS("timeout", SOCKET_PROP_TIMEOUT, native_socket_prop_get, native_socket_prop_set),
     JS_PS_END
 };
 

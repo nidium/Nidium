@@ -780,32 +780,32 @@ private:
     Tinyid were removed in SM31.
     This template act as a workaround (create a unique getter/setter and keep a unique identifier)
 */
-#define NATIVE_JS_SETTER(tinyid, setter) \
+#define NIDIUM_JS_SETTER(tinyid, setter) \
     {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}}
-#define NATIVE_JS_SETTER_WRS(tinyid, setter) \
+#define NIDIUM_JS_SETTER_WRS(tinyid, setter) \
     {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::SetterWithReservedSlot<tinyid, setter>), JSStrictPropertyOp), nullptr}}
-#define NATIVE_JS_GETTER(tinyid, getter) \
+#define NIDIUM_JS_GETTER(tinyid, getter) \
     {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}}
-#define NATIVE_JS_STUBGETTER(tinyid) \
+#define NIDIUM_JS_STUBGETTER(tinyid) \
     {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::NullGetter<tinyid>), JSPropertyOp), nullptr}}
 
 /* Getter only */
-#define NATIVE_PSG(name, tinyid, getter_func) \
+#define NIDIUM_JS_PSG(name, tinyid, getter_func) \
     {name, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
-        NATIVE_JS_GETTER(tinyid, getter_func), \
+        NIDIUM_JS_GETTER(tinyid, getter_func), \
         JSOP_NULLWRAPPER}
 
 /* Setter only */
-#define NATIVE_PSS(name, tinyid, setter_func) \
+#define NIDIUM_JS_PSS(name, tinyid, setter_func) \
     {name, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
-        NATIVE_JS_STUBGETTER(tinyid), \
-        NATIVE_JS_SETTER_WRS(tinyid, setter_func)}
+        NIDIUM_JS_STUBGETTER(tinyid), \
+        NIDIUM_JS_SETTER_WRS(tinyid, setter_func)}
 
 /* Both */
-#define NATIVE_PSGS(name, tinyid, getter_func, setter_func) \
+#define NIDIUM_JS_PSGS(name, tinyid, getter_func, setter_func) \
     {name, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
-        NATIVE_JS_GETTER(tinyid, getter_func), \
-        NATIVE_JS_SETTER(tinyid, setter_func)}
+        NIDIUM_JS_GETTER(tinyid, getter_func), \
+        NIDIUM_JS_SETTER(tinyid, setter_func)}
 
 struct JSPropertyAccessors
 {
