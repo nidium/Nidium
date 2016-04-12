@@ -265,7 +265,7 @@ static bool native_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
 
-    NATIVE_CHECK_ARGS("write", 2);
+    NIDIUM_JS_CHECK_ARGS("write", 2);
 
     if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
         JS_ReportError(cx, "write() bad callback");
@@ -368,7 +368,7 @@ static bool native_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
 
-    NATIVE_CHECK_ARGS("listFiles", 1);
+    NIDIUM_JS_CHECK_ARGS("listFiles", 1);
 
     if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &callback)) {
         JS_ReportError(cx, "listFiles() bad callback");
@@ -412,7 +412,7 @@ static bool native_file_read(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
 
-    NATIVE_CHECK_ARGS("read", 2);
+    NIDIUM_JS_CHECK_ARGS("read", 2);
 
     if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
         JS_ReportError(cx, "read() bad callback");
@@ -454,7 +454,7 @@ static bool native_file_seek(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NATIVE_CHECK_ARGS("seek", 2);
+    NIDIUM_JS_CHECK_ARGS("seek", 2);
 
     if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
         JS_ReportError(cx, "seek() bad callback");
@@ -508,7 +508,7 @@ static bool native_file_open(JSContext *cx, unsigned argc, JS::Value *vp)
     NativeFile *file;
     JS::RootedString modes(cx);
 
-    NATIVE_CHECK_ARGS("open", 2);
+    NIDIUM_JS_CHECK_ARGS("open", 2);
 
     if (JS_InstanceOf(cx, caller, &File_class, &args) == false) {
         return false;
@@ -644,7 +644,7 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     if (JS_TypeOfValue(cx, args[1]) != JSTYPE_FUNCTION) {
-        NATIVE_CHECK_ARGS("read", 3);
+        NIDIUM_JS_CHECK_ARGS("read", 3);
 
         opt = args[1].toObjectOrNull();
         argcallback = args[2];

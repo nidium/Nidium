@@ -126,7 +126,7 @@ static bool native_console_write(JSContext *cx, unsigned argc,
     NativeJS *js = NativeJS::getNativeClass(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    NATIVE_CHECK_ARGS("write", 1);
+    NIDIUM_JS_CHECK_ARGS("write", 1);
 
     JS::RootedString str(cx, args[0].toString());
     if (!str) {

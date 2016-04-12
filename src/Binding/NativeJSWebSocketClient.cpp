@@ -56,7 +56,7 @@ static bool native_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp)
     NIDIUM_JS_PROLOGUE_CLASS(NativeJSWebSocket,
         &WebSocket_class);
 
-    NATIVE_CHECK_ARGS("send", 1);
+    NIDIUM_JS_CHECK_ARGS("send", 1);
 
     if (args[0].isString()) {
         JSAutoByteString cdata;

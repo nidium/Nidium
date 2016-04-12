@@ -220,7 +220,7 @@ static bool native_httpresponse_write(JSContext *cx, unsigned argc, JS::Value *v
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
-    NATIVE_CHECK_ARGS("write", 1);
+    NIDIUM_JS_CHECK_ARGS("write", 1);
 
     NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller);
     if (!resp) {

@@ -42,7 +42,7 @@ static bool native_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    NATIVE_CHECK_ARGS("serialize", 1);
+    NIDIUM_JS_CHECK_ARGS("serialize", 1);
     uint64_t *data;
     size_t data_len;
 

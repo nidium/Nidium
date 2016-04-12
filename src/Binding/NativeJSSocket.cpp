@@ -727,7 +727,7 @@ static bool native_socket_client_sendFile(JSContext *cx,
 {
     JS::RootedString file(cx);
 
-    NATIVE_CHECK_ARGS("sendFile", 1);
+    NIDIUM_JS_CHECK_ARGS("sendFile", 1);
 
     NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &socket_client_class);
 
@@ -751,7 +751,7 @@ static bool native_socket_client_write(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
 
-    NATIVE_CHECK_ARGS("write", 1);
+    NIDIUM_JS_CHECK_ARGS("write", 1);
 
     NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &socket_client_class);
 
@@ -797,7 +797,7 @@ static bool native_socket_client_write(JSContext *cx,
 
 static bool native_socket_write(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NATIVE_CHECK_ARGS("write", 1);
+    NIDIUM_JS_CHECK_ARGS("write", 1);
 
     NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
 
@@ -876,7 +876,7 @@ static bool native_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
-    NATIVE_CHECK_ARGS("sendto", 3);
+    NIDIUM_JS_CHECK_ARGS("sendto", 3);
 
     if (JS_InstanceOf(cx, caller, &Socket_class, &args) == false) {
         return false;

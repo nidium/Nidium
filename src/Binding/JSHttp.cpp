@@ -89,7 +89,7 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedValue callback(cx);
     HTTPRequest *req;
 
-    NATIVE_CHECK_ARGS("request", 2);
+    NIDIUM_JS_CHECK_ARGS("request", 2);
 
     JS_INITOPT();
 

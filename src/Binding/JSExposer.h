@@ -36,7 +36,7 @@
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
     args.rval().setUndefined();
 
-#define NATIVE_CHECK_ARGS(fnname, minarg) \
+#define NIDIUM_JS_CHECK_ARGS(fnname, minarg) \
     if (argc < minarg) { \
                          \
         char numBuf[12];  \
@@ -427,7 +427,7 @@ private:
     {
         NIDIUM_JS_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
 
-        NATIVE_CHECK_ARGS("fireEvent", 2);
+        NIDIUM_JS_CHECK_ARGS("fireEvent", 2);
 
         if (!CppObj->m_Events) {
             return true;
@@ -457,7 +457,7 @@ private:
     {
         NIDIUM_JS_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
 
-        NATIVE_CHECK_ARGS("addEventListener", 2);
+        NIDIUM_JS_CHECK_ARGS("addEventListener", 2);
 
         JS::RootedString name(cx);
         JS::RootedValue cb(cx);
@@ -483,7 +483,7 @@ private:
     {
         NIDIUM_JS_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
 
-        NATIVE_CHECK_ARGS("removeEventListener", 1);
+        NIDIUM_JS_CHECK_ARGS("removeEventListener", 1);
 
         JS::RootedString name(cx);
         JS::RootedValue cb(cx);

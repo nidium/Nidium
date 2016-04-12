@@ -113,7 +113,7 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     JS::RootedString path(cx);
 
-    NATIVE_CHECK_ARGS("readDir", 2);
+    NIDIUM_JS_CHECK_ARGS("readDir", 2);
 
     if (!JS_ConvertArguments(cx, args, "S", path.address())) {
         return false;

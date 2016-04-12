@@ -20,7 +20,7 @@ static bool nativejs_debugger_run(JSContext* cx, unsigned argc, JS::Value* vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    NATIVE_CHECK_ARGS("run", 2);
+    NIDIUM_JS_CHECK_ARGS("run", 2);
 
     if (!args[0].isObject()) {
         JS_ReportError(cx, "Invalid DebuggerContext");

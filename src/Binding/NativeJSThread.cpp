@@ -350,7 +350,7 @@ static bool native_post_message(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    NATIVE_CHECK_ARGS("postMessage", 1);
+    NIDIUM_JS_CHECK_ARGS("postMessage", 1);
 
     if (nthread == NULL || nthread->markedStop) {
         JS_ReportError(cx, "thread.send() Could not retrieve thread (or marked for stopping)");
