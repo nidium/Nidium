@@ -13,7 +13,7 @@
 #include "Net/NativeHTTP.h"
 #include "NativeJSUtils.h"
 
-using namespace Native::Core;
+using namespace Nidium::Net;
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \

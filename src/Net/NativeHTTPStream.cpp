@@ -14,7 +14,7 @@
 
 #include "JS/NativeJS.h"
 
-using namespace Native::Core;
+using namespace Nidium::Net;
 
 #define MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH (1024LL*1024LL*64LL)
 

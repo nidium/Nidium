@@ -11,7 +11,7 @@
 #include "Net/NativeHTTP.h"
 
 class NativeHTTPStream : public NativeBaseStream,
-                         public Native::Core::HTTPDelegate
+                         public Nidium::Net::HTTPDelegate
 {
 public:
     explicit NativeHTTPStream(const char *location);
@@ -50,12 +50,12 @@ protected:
         return m_BytesBuffered == m_Mapped.size;
     }
 private:
-    Native::Core::HTTP *m_Http;
+    Nidium::Net::HTTP *m_Http;
 
-    void onRequest(Native::Core::HTTP::HTTPData *h, Native::Core::HTTP::DataType);
-    void onProgress(size_t offset, size_t len, Native::Core::HTTP::HTTPData *h,
-        Native::Core::HTTP::DataType);
-    void onError(Native::Core::HTTP::HTTPError err);
+    void onRequest(Nidium::Net::HTTP::HTTPData *h, Nidium::Net::HTTP::DataType);
+    void onProgress(size_t offset, size_t len, Nidium::Net::HTTP::HTTPData *h,
+        Nidium::Net::HTTP::DataType);
+    void onError(Nidium::Net::HTTP::HTTPError err);
     void onHeader();
     void cleanCacheFile();
 

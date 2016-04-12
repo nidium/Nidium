@@ -18,7 +18,7 @@
 #include "Net/NativeHTTP.h"
 #include "NativeJSUtils.h"
 
-using namespace Native::Core;
+using namespace Nidium::Net;
 
 static void WebSocket_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp);

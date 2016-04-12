@@ -19,8 +19,8 @@
 #include "Core/NativeMessages.h"
 #include "IO/NativeIStreamer.h"
 
-namespace Native {
-namespace Core {
+namespace Nidium{
+namespace Net {
 
 class HTTPRequest
 {

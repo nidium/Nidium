@@ -16,8 +16,8 @@
 #include <sys/socket.h>
 #include "Core/NativePath.h"
 
-using namespace Native::Core;
-
+namespace Nidium {
+namespace Net {
 
 #ifndef ULLONG_MAX
 # define ULLONG_MAX ((uint64_t) -1) /* 2^64-1 */
@@ -792,3 +792,5 @@ buffer *HTTPRequest::getHeadersData() const
     return ret;
 }
 
+}
+}
