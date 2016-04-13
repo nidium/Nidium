@@ -311,7 +311,7 @@ NativeX11UIInterface::NativeX11UIInterface()
     this->m_CurrentCursor = NOCHANGE;
     this->m_NativeCtx = NULL;
 
-    m_Gnet = native_netlib_init();
+    m_Gnet = APE_init();
 }
 
 bool NativeX11UIInterface::createWindow(int width, int height)
@@ -593,9 +593,9 @@ void NativeX11UIInterface::setWindowControlsOffset(double x, double y)
 void NativeX11UIInterface::runLoop()
 {
 
-    add_timer(&m_Gnet->timersng, 1, NativeProcessUI, (void *)this);
+    APE_timer_create(m_Gnet, 1, NativeProcessUI, (void *)this);
 
-    events_loop(m_Gnet);
+    APE_loop_run(m_Gnet);
 }
 
 NativeUIX11Console::NativeUIX11Console ()
