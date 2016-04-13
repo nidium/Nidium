@@ -11,8 +11,7 @@
 #include "NativeJSExposer.h"
 
 class NativeJSFS :     public NativeJSExposer<NativeJSFS>,
-                       public NativeManaged,
-                       public NativeMessages
+                       public NativeManaged
 {
 public:
     static void registerObject(JSContext *cx);
