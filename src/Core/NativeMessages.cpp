@@ -97,10 +97,10 @@ void NativeMessages::initReader(ape_global *ape)
 
     g_MessagesList->setCleaner(NativeMessages_lost);
 
-    ape_timer *timer = add_timer(&ape->timersng, 1,
+    ape_timer_t *timer = APE_timer_create(ape, 1,
         NativeMessages_handle, NULL);
-
-    timer->flags &= ~APE_TIMER_IS_PROTECTED;
+    
+    APE_timer_unprotect(timer);
 }
 
 void NativeMessages::listenFor(NativeEvents *obj, bool enable)

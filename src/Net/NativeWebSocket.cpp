@@ -53,7 +53,9 @@ NativeWebSocketClientConnection::~NativeWebSocketClientConnection()
 
     if (m_PingTimer) {
         ape_global *ape = NativeJS::getNet();
-        clear_timer_by_id(&ape->timersng, m_PingTimer, 1);
+
+        APE_timer_clearbyid(ape, m_PingTimer, 1);
+
         m_PingTimer = 0;
     }
 }
@@ -78,7 +80,7 @@ void NativeWebSocketClientConnection::onDisconnect(ape_global *ape)
     args[0].set(this);
 
     if (m_PingTimer) {
-        clear_timer_by_id(&ape->timersng, m_PingTimer, 1);
+        APE_timer_clearbyid(ape, m_PingTimer, 1);
         m_PingTimer = 0;
     }
 
@@ -117,11 +119,10 @@ void NativeWebSocketClientConnection::onUpgrade(const char *to)
     NativeArgs args;
     args[0].set(this);
 
-    ape_timer *timer = add_timer(&m_SocketClient->ape->timersng, NATIVEWEBSOCKET_PING_INTERVAL,
+    ape_timer_t *timer = APE_timer_create(m_SocketClient->ape, NATIVEWEBSOCKET_PING_INTERVAL,
         NativeWebSocketClientConnection::pingTimer, this);
 
-    m_PingTimer = timer->identifier;
-
+    m_PingTimer = APE_timer_getid(timer);
     m_HTTPListener->fireEvent<NativeWebSocketListener>(NativeWebSocketListener::SERVER_CONNECT, args);
 
 }
