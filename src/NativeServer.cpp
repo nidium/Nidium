@@ -22,13 +22,13 @@
 #define NATIVE_SERVER_VERSION "0.2-dev"
 #define NATIVE_MAX_WORKERS 64
 
-int ape_running = 1;
+
 unsigned long _ape_seed;
 static std::list<pid_t> pidList;
 
 static void signal_handler(int sign)
 {
-    ape_running = 0;
+    APE_loop_stop();
     for (auto it : pidList) {
         kill(it, sign);
     }
@@ -270,7 +270,7 @@ static int NativeCheckParentAlive_ping(void *arg)
 int NativeWorker::run(int argc, char **argv, bool jsstrict)
 {
     NativeREPL *repl = NULL;
-    ape_global *net = native_netlib_init();
+    ape_global *net = APE_init();
 
     inc_rlimit(64000);
 
@@ -306,8 +306,8 @@ int NativeWorker::run(int argc, char **argv, bool jsstrict)
         repl = new NativeREPL(ctx.getNJS());
     }
 
-    add_timer(&net->timersng, 1, NativeCheckParentAlive_ping, NULL);
-    events_loop(net);
+    APE_timer_create(net, 1, NativeCheckParentAlive_ping, NULL);
+    APE_loop_run(net);
 
     if (repl) {
         delete repl;
