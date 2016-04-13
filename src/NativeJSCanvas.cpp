@@ -109,7 +109,7 @@ JSClass Canvas_class = {
 };
 
 template<>
-JSClass *NativeJSExposer<NativeJSCanvas>::jsclass = &Canvas_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSCanvas>::jsclass = &Canvas_class;
 
 
 static JSClass Canvas_Inherit_class = {
@@ -170,52 +170,52 @@ static bool native_canvas_setScale(JSContext *cx, unsigned argc, JS::Value *vp);
 #define NATIVE_JS_PROP JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS
 
 static JSPropertySpec canvas_props[] = {
-    NATIVE_PSGS("opacity", CANVAS_PROP_OPACITY, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("overflow", CANVAS_PROP_OVERFLOW, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("scrollLeft", CANVAS_PROP_SCROLLLEFT, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("scrollTop", CANVAS_PROP_SCROLLTOP, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("allowNegativeScroll", CANVAS_PROP_ALLOWNEGATIVESCROLL, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("width", CANVAS_PROP_WIDTH, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("coating", CANVAS_PROP_COATING, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("height", CANVAS_PROP_HEIGHT, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("maxwidth", CANVAS_PROP_MAXWIDTH, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("maxHeight", CANVAS_PROP_MAXHEIGHT, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("minWidth", CANVAS_PROP_MINWIDTH, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("minHeight", CANVAS_PROP_MINHEIGHT, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("position", CANVAS_PROP_POSITION, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("top", CANVAS_PROP_TOP, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("left", CANVAS_PROP_LEFT, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("right", CANVAS_PROP_RIGHT, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("bottom", CANVAS_PROP_BOTTOM, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("visible", CANVAS_PROP_VISIBLE, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("staticLeft", CANVAS_PROP_STATICLEFT, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("staticRight", CANVAS_PROP_STATICRIGHT, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("staticTop", CANVAS_PROP_STATICTOP, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("staticBottom", CANVAS_PROP_STATICBOTTOM, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("fluidHeight", CANVAS_PROP_FLUIDHEIGHT, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("fluidWidth", CANVAS_PROP_FLUIDWIDTH, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("id", CANVAS_PROP_ID, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("marginLeft", CANVAS_PROP_MARGINLEFT, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("marginRight", CANVAS_PROP_MARGINRIGHT, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("marginTop", CANVAS_PROP_MARGINTOP, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("marginBottom", CANVAS_PROP_MARGINBOTTOM, native_canvas_prop_get, native_canvas_prop_set),
-    NATIVE_PSGS("cursor", CANVAS_PROP_CURSOR, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("opacity", CANVAS_PROP_OPACITY, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("overflow", CANVAS_PROP_OVERFLOW, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("scrollLeft", CANVAS_PROP_SCROLLLEFT, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("scrollTop", CANVAS_PROP_SCROLLTOP, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("allowNegativeScroll", CANVAS_PROP_ALLOWNEGATIVESCROLL, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("width", CANVAS_PROP_WIDTH, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("coating", CANVAS_PROP_COATING, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("height", CANVAS_PROP_HEIGHT, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("maxwidth", CANVAS_PROP_MAXWIDTH, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("maxHeight", CANVAS_PROP_MAXHEIGHT, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("minWidth", CANVAS_PROP_MINWIDTH, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("minHeight", CANVAS_PROP_MINHEIGHT, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("position", CANVAS_PROP_POSITION, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("top", CANVAS_PROP_TOP, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("left", CANVAS_PROP_LEFT, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("right", CANVAS_PROP_RIGHT, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("bottom", CANVAS_PROP_BOTTOM, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("visible", CANVAS_PROP_VISIBLE, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("staticLeft", CANVAS_PROP_STATICLEFT, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("staticRight", CANVAS_PROP_STATICRIGHT, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("staticTop", CANVAS_PROP_STATICTOP, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("staticBottom", CANVAS_PROP_STATICBOTTOM, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("fluidHeight", CANVAS_PROP_FLUIDHEIGHT, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("fluidWidth", CANVAS_PROP_FLUIDWIDTH, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("id", CANVAS_PROP_ID, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("marginLeft", CANVAS_PROP_MARGINLEFT, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("marginRight", CANVAS_PROP_MARGINRIGHT, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("marginTop", CANVAS_PROP_MARGINTOP, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("marginBottom", CANVAS_PROP_MARGINBOTTOM, native_canvas_prop_get, native_canvas_prop_set),
+    NIDIUM_JS_PSGS("cursor", CANVAS_PROP_CURSOR, native_canvas_prop_get, native_canvas_prop_set),
 
 
-    NATIVE_PSG("clientWidth", CANVAS_PROP_CLIENTWIDTH, native_canvas_prop_get),
-    NATIVE_PSG("clientHeight", CANVAS_PROP_CLIENTHEIGHT, native_canvas_prop_get),
-    NATIVE_PSG("clientTop", CANVAS_PROP_CLIENTTOP, native_canvas_prop_get),
-    NATIVE_PSG("clientLeft", CANVAS_PROP_CLIENTLEFT, native_canvas_prop_get),
-    NATIVE_PSG("contentWidth", CANVAS_PROP_CONTENTWIDTH, native_canvas_prop_get),
-    NATIVE_PSG("contentHeight", CANVAS_PROP_CONTENTHEIGHT, native_canvas_prop_get),
-    NATIVE_PSG("innerWidth", CANVAS_PROP_INNERWIDTH, native_canvas_prop_get),
-    NATIVE_PSG("innerHeight", CANVAS_PROP_INNERHEIGHT, native_canvas_prop_get),
-    NATIVE_PSG("__visible", CANVAS_PROP___VISIBLE, native_canvas_prop_get),
-    NATIVE_PSG("__top", CANVAS_PROP___TOP, native_canvas_prop_get),
-    NATIVE_PSG("__left", CANVAS_PROP___LEFT, native_canvas_prop_get),
-    NATIVE_PSG("__fixed", CANVAS_PROP___FIXED, native_canvas_prop_get),
-    NATIVE_PSG("__outofbound", CANVAS_PROP___OUTOFBOUND, native_canvas_prop_get),
-    NATIVE_PSG("ctx", CANVAS_PROP_CTX, native_canvas_prop_get),
+    NIDIUM_JS_PSG("clientWidth", CANVAS_PROP_CLIENTWIDTH, native_canvas_prop_get),
+    NIDIUM_JS_PSG("clientHeight", CANVAS_PROP_CLIENTHEIGHT, native_canvas_prop_get),
+    NIDIUM_JS_PSG("clientTop", CANVAS_PROP_CLIENTTOP, native_canvas_prop_get),
+    NIDIUM_JS_PSG("clientLeft", CANVAS_PROP_CLIENTLEFT, native_canvas_prop_get),
+    NIDIUM_JS_PSG("contentWidth", CANVAS_PROP_CONTENTWIDTH, native_canvas_prop_get),
+    NIDIUM_JS_PSG("contentHeight", CANVAS_PROP_CONTENTHEIGHT, native_canvas_prop_get),
+    NIDIUM_JS_PSG("innerWidth", CANVAS_PROP_INNERWIDTH, native_canvas_prop_get),
+    NIDIUM_JS_PSG("innerHeight", CANVAS_PROP_INNERHEIGHT, native_canvas_prop_get),
+    NIDIUM_JS_PSG("__visible", CANVAS_PROP___VISIBLE, native_canvas_prop_get),
+    NIDIUM_JS_PSG("__top", CANVAS_PROP___TOP, native_canvas_prop_get),
+    NIDIUM_JS_PSG("__left", CANVAS_PROP___LEFT, native_canvas_prop_get),
+    NIDIUM_JS_PSG("__fixed", CANVAS_PROP___FIXED, native_canvas_prop_get),
+    NIDIUM_JS_PSG("__outofbound", CANVAS_PROP___OUTOFBOUND, native_canvas_prop_get),
+    NIDIUM_JS_PSG("ctx", CANVAS_PROP_CTX, native_canvas_prop_get),
     JS_PS_END
 };
 
@@ -670,7 +670,7 @@ static bool native_canvas_getContext(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
-    NATIVE_CHECK_ARGS("getContext", 1);
+    NIDIUM_JS_CHECK_ARGS("getContext", 1);
 
     NativeContext *nctx = NativeContext::getNativeClass(cx);
     NativeUIInterface *ui = nctx->getUI();
@@ -747,7 +747,7 @@ static bool native_canvas_setContext(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
-    NATIVE_CHECK_ARGS("setContext", 1);
+    NIDIUM_JS_CHECK_ARGS("setContext", 1);
 
     JS::RootedObject obj(cx, args[0].toObjectOrNull());
     if (!obj.get()) {
@@ -1466,8 +1466,8 @@ static bool native_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
         return false;
     }
 
-    JS_INITOPT();
-    JSGET_OPT_TYPE(opt, "lazy", Boolean) {
+    NIDIUM_JS_INIT_OPT();
+    NIDIUM_JS_GET_OPT_TYPE(opt, "lazy", Boolean) {
         lazyLoad = __curopt.toBoolean();
     }
     lazyLoad = false; /* Always lazy load for now.  */
@@ -1597,8 +1597,8 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
             }
 
             JS::RootedObject ev(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
-            JSOBJ_SET_PROP_CSTR(ev, "property", name);
-            JSOBJ_SET_PROP(ev, "value", value);
+            NIDIUM_JSOBJ_SET_PROP_CSTR(ev, "property", name);
+            NIDIUM_JSOBJ_SET_PROP(ev, "value", value);
 
             JS::AutoValueArray<1> arg(cx);
             arg[0].set(OBJECT_TO_JSVAL(ev));
@@ -1612,9 +1612,9 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
         }
         case NATIVE_EVENT(NativeCanvasHandler, MOUSE_EVENT):
         {
-            JS::RootedObject eventObj(m_Cx, NativeJSEvents::CreateEventObject(m_Cx));
+            JS::RootedObject eventObj(m_Cx, Nidium::Binding::JSEvents::CreateEventObject(m_Cx));
             NativeCanvasHandler *target = static_cast<NativeCanvasHandler *>(msg.args[8].toPtr());
-            NativeJSObjectBuilder obj(m_Cx, eventObj);
+            Nidium::Binding::JSObjectBuilder obj(m_Cx, eventObj);
             obj.set("x", msg.args[2].toInt());
             obj.set("y", msg.args[3].toInt());
             obj.set("clientX", msg.args[2].toInt());
@@ -1683,7 +1683,7 @@ void NativeJSCanvas::onMessageLost(const NativeSharedMessages::Message &msg)
 
 NativeJSCanvas::NativeJSCanvas(JS::HandleObject obj, JSContext *cx,
     NativeCanvasHandler *handler) :
-    NativeJSExposer<NativeJSCanvas>(obj, cx),
+    Nidium::Binding::JSExposer<NativeJSCanvas>(obj, cx),
     m_CanvasHandler(handler)
 {
     m_CanvasHandler->addListener(this);

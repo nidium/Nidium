@@ -1,16 +1,16 @@
 #ifndef nativejsnative_h__
 #define nativejsnative_h__
 
-#include <JS/NativeJSExposer.h>
+#include <Binding/JSExposer.h>
 
 class NativeSkia;
 class NativeCanvasHandler;
 
-class NativeJSNative : public NativeJSExposer<NativeJSNative>
+class NativeJSNative : public Nidium::Binding::JSExposer<NativeJSNative>
 {
   public:
     NativeJSNative(JS::HandleObject obj, JSContext *cx) :
-        NativeJSExposer<NativeJSNative>(obj, cx)
+        Nidium::Binding::JSExposer<NativeJSNative>(obj, cx)
     {
 
     }

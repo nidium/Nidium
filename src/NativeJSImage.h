@@ -3,11 +3,11 @@
 
 #include <Core/NativeMessages.h>
 #include <IO/NativeStreamInterface.h>
-#include <JS/NativeJSExposer.h>
+#include <Binding/JSExposer.h>
 
 class NativeSkImage;
 
-class NativeJSImage : public NativeJSExposer<NativeJSImage>,
+class NativeJSImage : public Nidium::Binding::JSExposer<NativeJSImage>,
                       public NativeMessages
 {
   public:

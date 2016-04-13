@@ -1,18 +1,18 @@
 #ifndef nativejswindow_h__
 #define nativejswindow_h__
 
-#include <JS/NativeJSExposer.h>
+#include <Binding/JSExposer.h>
 
 #include "NativeTypes.h"
 
 class NativeCanvasHandler;
 class NativeJSDB;
 
-class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
+class NativeJSwindow : public Nidium::Binding::JSExposer<NativeJSwindow>
 {
   public:
     NativeJSwindow(JS::HandleObject jsobj, JSContext *cx) :
-        NativeJSExposer<NativeJSwindow>(jsobj, cx),
+        Nidium::Binding::JSExposer<NativeJSwindow>(jsobj, cx),
         m_RequestedFrame(NULL), m_Handler(NULL), m_Db(NULL),
         m_Dragging(false)
     {

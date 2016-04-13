@@ -14,7 +14,7 @@
 #include "NativeCanvas2DContext.h"
 #include "NativeSkImage.h"
 
-#include "JS/NativeJSUtils.h"
+#include "Binding/NativeJSUtils.h"
 
 
 bool NativeJSdocument::m_ShowFPS = false;
@@ -45,7 +45,7 @@ static JSClass document_class = {
 JSClass *NativeJSdocument::jsclass = &document_class;
 
 template<>
-JSClass *NativeJSExposer<NativeJSdocument>::jsclass = &document_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSdocument>::jsclass = &document_class;
 
 static JSFunctionSpec document_funcs[] = {
     JS_FN("run", native_document_run, 1, NATIVE_JS_FNPROPS),
@@ -383,7 +383,7 @@ bool NativeJSdocument::loadFont(const char *path, const char *name,
 
 static bool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JS_INITOPT();
+    NIDIUM_JS_INIT_OPT();
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject thisobj(cx, NativeJSdocument::getJSGlobalObject(cx));
     NativeJSdocument *CppObj = static_cast<NativeJSdocument *>(JS_GetPrivate(thisobj));
@@ -395,7 +395,7 @@ static bool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp
 
     JSAutoByteString cfile, cname;
 
-    JSGET_OPT_TYPE(fontdef, "file", String) {
+    NIDIUM_JS_GET_OPT_TYPE(fontdef, "file", String) {
         JS::RootedString file(cx, __curopt.toString());
         cfile.encodeUtf8(cx, file);
     } else {
@@ -403,7 +403,7 @@ static bool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp
         return false;
     }
 
-    JSGET_OPT_TYPE(fontdef, "name", String) {
+    NIDIUM_JS_GET_OPT_TYPE(fontdef, "name", String) {
         JS::RootedString name(cx, __curopt.toString());
         cname.encodeLatin1(cx, name);
     } else {

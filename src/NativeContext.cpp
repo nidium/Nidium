@@ -22,7 +22,7 @@
 #endif
 
 #ifdef DEBUG
-#include <JS/NativeJSDebug.h>
+#include <Binding/NativeJSDebug.h>
 #endif
 
 #ifdef NATIVE_AUDIO_ENABLED
@@ -30,7 +30,7 @@
 #endif
 
 #ifdef NATIVE_WEBGL_ENABLED
-#include <JS/NativeJSProcess.h>
+#include <Binding/NativeJSProcess.h>
 #include "NativeOpenGLHeader.h"
 #include "NativeGLState.h"
 #include "NativeJSWebGL.h"

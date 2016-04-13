@@ -1,7 +1,7 @@
 #ifndef nativejsdocument_h__
 #define nativejsdocument_h__
 
-#include <JS/NativeJSExposer.h>
+#include <Binding/JSExposer.h>
 
 class SkTypeface;
 
@@ -21,11 +21,11 @@ public:
 };
 
 
-class NativeJSdocument : public NativeJSExposer<NativeJSdocument>
+class NativeJSdocument : public Nidium::Binding::JSExposer<NativeJSdocument>
 {
   public:
     NativeJSdocument(JS::HandleObject obj, JSContext *cx) :
-    NativeJSExposer<NativeJSdocument>(obj, cx, false),
+    Nidium::Binding::JSExposer<NativeJSdocument>(obj, cx, false),
     m_Fonts(256000) {};
     ~NativeJSdocument() {};
 

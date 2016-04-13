@@ -7,9 +7,9 @@
 #include <strings.h>
 
 #include <Core/NativeDB.h>
-#include <JS/NativeJSFileIO.h>
-#include <JS/NativeJSUtils.h>
-#include <JS/NativeJSDB.h>
+#include <Binding/NativeJSFileIO.h>
+#include <Binding/NativeJSUtils.h>
+#include <Binding/NativeJSDB.h>
 
 #include "NativeNML.h"
 #include "NativeSkia.h"
@@ -84,7 +84,7 @@ static JSClass storage_class = {
 extern JSClass global_class;
 
 template<>
-JSClass *NativeJSExposer<NativeJSwindow>::jsclass = &global_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSwindow>::jsclass = &global_class;
 
 
 static JSClass mouseEvent_class = {
@@ -174,31 +174,31 @@ static struct native_cursors {
 
 static JSPropertySpec window_props[] = {
 
-    NATIVE_PSG("devicePixelRatio", WINDOW_PROP_DEVICE_PIXELRATIO, native_window_prop_get),
+    NIDIUM_JS_PSG("devicePixelRatio", WINDOW_PROP_DEVICE_PIXELRATIO, native_window_prop_get),
 
-    NATIVE_PSGS("left", WINDOW_PROP_LEFT, native_window_prop_get, native_window_prop_set),
-    NATIVE_PSGS("top", WINDOW_PROP_TOP, native_window_prop_get, native_window_prop_set),
-    NATIVE_PSGS("innerWidth", WINDOW_PROP_WIDTH, native_window_prop_get, native_window_prop_set),
-    NATIVE_PSGS("outerWidth", WINDOW_PROP_WIDTH, native_window_prop_get, native_window_prop_set),
-    NATIVE_PSGS("innerHeight", WINDOW_PROP_HEIGHT, native_window_prop_get, native_window_prop_set),
-    NATIVE_PSGS("outerHeight", WINDOW_PROP_HEIGHT, native_window_prop_get, native_window_prop_set),
-    NATIVE_PSGS("title", WINDOW_PROP_TITLE, native_window_prop_get, native_window_prop_set),
-    NATIVE_PSGS("cursor", WINDOW_PROP_CURSOR, native_window_prop_get, native_window_prop_set),
-    NATIVE_PSS("titleBarColor", WINDOW_PROP_TITLEBAR_COLOR, native_window_prop_set),
-    NATIVE_PSS("titleBarControlsOffsetX", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, native_window_prop_set),
-    NATIVE_PSS("titleBarControlsOffsetY", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, native_window_prop_set),
+    NIDIUM_JS_PSGS("left", WINDOW_PROP_LEFT, native_window_prop_get, native_window_prop_set),
+    NIDIUM_JS_PSGS("top", WINDOW_PROP_TOP, native_window_prop_get, native_window_prop_set),
+    NIDIUM_JS_PSGS("innerWidth", WINDOW_PROP_WIDTH, native_window_prop_get, native_window_prop_set),
+    NIDIUM_JS_PSGS("outerWidth", WINDOW_PROP_WIDTH, native_window_prop_get, native_window_prop_set),
+    NIDIUM_JS_PSGS("innerHeight", WINDOW_PROP_HEIGHT, native_window_prop_get, native_window_prop_set),
+    NIDIUM_JS_PSGS("outerHeight", WINDOW_PROP_HEIGHT, native_window_prop_get, native_window_prop_set),
+    NIDIUM_JS_PSGS("title", WINDOW_PROP_TITLE, native_window_prop_get, native_window_prop_set),
+    NIDIUM_JS_PSGS("cursor", WINDOW_PROP_CURSOR, native_window_prop_get, native_window_prop_set),
+    NIDIUM_JS_PSS("titleBarColor", WINDOW_PROP_TITLEBAR_COLOR, native_window_prop_set),
+    NIDIUM_JS_PSS("titleBarControlsOffsetX", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, native_window_prop_set),
+    NIDIUM_JS_PSS("titleBarControlsOffsetY", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, native_window_prop_set),
 
     JS_PS_END
 };
 
 static JSPropertySpec navigator_props[] = {
 
-    NATIVE_PSG("language", NAVIGATOR_PROP_LANGUAGE, native_navigator_prop_get),
-    NATIVE_PSG("vibrate", NAVIGATOR_PROP_VIBRATE, native_navigator_prop_get),
-    NATIVE_PSG("appName", NAVIGATOR_PROP_APPNAME, native_navigator_prop_get),
-    NATIVE_PSG("appVersion", NAVIGATOR_PROP_APPVERSION, native_navigator_prop_get),
-    NATIVE_PSG("platform", NAVIGATOR_PROP_PLATFORM, native_navigator_prop_get),
-    NATIVE_PSG("userAgent", NAVIGATOR_PROP_USERAGENT, native_navigator_prop_get),
+    NIDIUM_JS_PSG("language", NAVIGATOR_PROP_LANGUAGE, native_navigator_prop_get),
+    NIDIUM_JS_PSG("vibrate", NAVIGATOR_PROP_VIBRATE, native_navigator_prop_get),
+    NIDIUM_JS_PSG("appName", NAVIGATOR_PROP_APPNAME, native_navigator_prop_get),
+    NIDIUM_JS_PSG("appVersion", NAVIGATOR_PROP_APPVERSION, native_navigator_prop_get),
+    NIDIUM_JS_PSG("platform", NAVIGATOR_PROP_PLATFORM, native_navigator_prop_get),
+    NIDIUM_JS_PSG("userAgent", NAVIGATOR_PROP_USERAGENT, native_navigator_prop_get),
     JS_PS_END
 };
 
@@ -334,7 +334,7 @@ void NativeJSwindow::mouseWheel(int xrel, int yrel, int x, int y)
     }
 
     /*
-    JS::RootedObject obje(cx, NativeJSEvents::CreateEventObject(m_Cx));
+    JS::RootedObject obje(cx, Nidium::Binding::JSEvents::CreateEventObject(m_Cx));
     this->fireJSEvent("wheel", OBJECT_TO_JSVAL(obje));
     */
 
@@ -413,7 +413,7 @@ void NativeJSwindow::systemMenuClicked(const char *id)
     JSContext *cx = m_Cx;
     JS::RootedObject event(cx, JS_NewObject(m_Cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
-    JSOBJ_SET_PROP_CSTR(event, "id", id);
+    NIDIUM_JSOBJ_SET_PROP_CSTR(event, "id", id);
     JS::AutoValueArray<1> ev(cx);
     ev[0].setObjectOrNull(event);
     JS::RootedObject obj(cx, m_JSObject);
@@ -1081,7 +1081,7 @@ static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
 
 static bool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NATIVE_CHECK_ARGS("requestAnimationFrame", 1);
+    NIDIUM_JS_CHECK_ARGS("requestAnimationFrame", 1);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedValue cb(cx);
     if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &cb)) {
@@ -1101,7 +1101,7 @@ static bool native_window_center(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_window_setPosition(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NATIVE_CHECK_ARGS("setPosition", 2);
+    NIDIUM_JS_CHECK_ARGS("setPosition", 2);
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -1118,7 +1118,7 @@ static bool native_window_setPosition(JSContext *cx, unsigned argc, JS::Value *v
 
 static bool native_window_notify(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NATIVE_CHECK_ARGS("notify", 2);
+    NIDIUM_JS_CHECK_ARGS("notify", 2);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     bool sound = false;
 
@@ -1168,7 +1168,7 @@ static bool native_window_open(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NATIVE_CHECK_ARGS("setSystemTray", 1);
+    NIDIUM_JS_CHECK_ARGS("setSystemTray", 1);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
     JS::RootedObject jobj(cx, &args[0].toObject());
@@ -1177,12 +1177,12 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
         return true;
     }
 
-    JS_INITOPT();
+    NIDIUM_JS_INIT_OPT();
 
     NativeSystemMenu &menu = NUI->getSystemMenu();
     menu.deleteItems();
 
-    JSGET_OPT_TYPE(jobj, "icon", Object) {
+    NIDIUM_JS_GET_OPT_TYPE(jobj, "icon", Object) {
         JS::RootedObject jsimg(cx, __curopt.toObjectOrNull());
         NativeSkImage *skimage;
         if (NativeJSImage::JSObjectIs(cx, jsimg) &&
@@ -1193,7 +1193,7 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
         }
     }
 
-    JSGET_OPT_TYPE(jobj, "menu", Object) {
+    NIDIUM_JS_GET_OPT_TYPE(jobj, "menu", Object) {
         JS::RootedObject arr(cx,  __curopt.toObjectOrNull());
         if (JS_IsArrayObject(cx, arr)) {
             uint32_t len;
@@ -1209,7 +1209,7 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
                 if (val.isObject()) {
                     JS::RootedObject valObj(cx, &val.toObject());
                     NativeSystemMenuItem *menuItem = new NativeSystemMenuItem();
-                    JSGET_OPT_TYPE(valObj, "title", String) {
+                    NIDIUM_JS_GET_OPT_TYPE(valObj, "title", String) {
 
                         JSAutoByteString ctitle;
                         JS::RootedString str(cx, __curopt.toString());
@@ -1218,7 +1218,7 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
                     } else {
                         menuItem->title("");
                     }
-                    JSGET_OPT_TYPE(valObj, "id", String) {
+                    NIDIUM_JS_GET_OPT_TYPE(valObj, "id", String) {
                         JSAutoByteString cid;
                         JS::RootedString str(cx, __curopt.toString());
                         cid.encodeUtf8(cx, str);
@@ -1239,7 +1239,7 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
 
 static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NATIVE_CHECK_ARGS("setFrame", 4);
+    NIDIUM_JS_CHECK_ARGS("setFrame", 4);
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -1372,7 +1372,7 @@ bool native_storage_set(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    NATIVE_CHECK_ARGS("set", 2);
+    NIDIUM_JS_CHECK_ARGS("set", 2);
     if (!args[0].isString()) {
         JS_ReportError(cx, "set() : key must be a string");
         return false;
@@ -1396,7 +1396,7 @@ bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     std::string data;
 
-    NATIVE_CHECK_ARGS("get", 1);
+    NIDIUM_JS_CHECK_ARGS("get", 1);
     if (!args[0].isString()) {
         JS_ReportError(cx, "get() : key must be a string");
         return false;

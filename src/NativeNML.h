@@ -3,7 +3,7 @@
 
 #include <native_netlib.h>
 
-#include <JS/NativeJSStream.h>
+#include <Binding/NativeJSStream.h>
 
 #include "NativeAssets.h"
 #include "NativeTypes.h"

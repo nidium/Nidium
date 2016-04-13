@@ -1,13 +1,13 @@
 #ifndef nativejswebgl_h__
 #define nativejswebgl_h__
 
-#include <JS/NativeJSExposer.h>
+#include <Binding/JSExposer.h>
 
 typedef unsigned int GLenum;
 typedef unsigned int GLuint;
 
 #define NEW_CLASS(name)\
-class NativeJS ## name: public NativeJSExposer<NativeJS ## name>\
+class NativeJS ## name: public Nidium::Binding::JSExposer<NativeJS ## name>\
 {\
     public :\
         NativeJS ## name ();\
@@ -85,7 +85,7 @@ class NativeCanvasWebGLContext: public NativeCanvasContext
         int m_Height;
 };
 
-class NativeJSWebGLActiveInfo : public NativeJSExposer<NativeJSWebGLActiveInfo>
+class NativeJSWebGLActiveInfo : public Nidium::Binding::JSExposer<NativeJSWebGLActiveInfo>
 {
     public :
         NativeJSWebGLActiveInfo();

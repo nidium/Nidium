@@ -7,7 +7,7 @@
 #include <strings.h>
 #include <unistd.h>
 
-#include <JS/NativeJSUtils.h>
+#include <Binding/NativeJSUtils.h>
 
 #include "NativeSystemInterface.h"
 #include "NativeJSWindow.h"

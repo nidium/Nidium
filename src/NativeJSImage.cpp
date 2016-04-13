@@ -4,7 +4,7 @@
 
 #include <native_netlib.h>
 
-#include <JS/NativeJSFileIO.h>
+#include <Binding/NativeJSFileIO.h>
 
 #include "NativeSkImage.h"
 
@@ -37,10 +37,10 @@ static JSClass Image_class = {
 };
 
 template<>
-JSClass *NativeJSExposer<NativeJSImage>::jsclass = &Image_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSImage>::jsclass = &Image_class;
 
 static JSPropertySpec Image_props[] = {
-    NATIVE_PSS("src", IMAGE_PROP_SRC, native_image_prop_set),
+    NIDIUM_JS_PSS("src", IMAGE_PROP_SRC, native_image_prop_set),
     JS_PS_END
 };
 
@@ -324,7 +324,7 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
 }
 
 NativeJSImage::NativeJSImage(JS::HandleObject obj, JSContext *cx) :
-    NativeJSExposer<NativeJSImage>(obj, cx),
+    Nidium::Binding::JSExposer<NativeJSImage>(obj, cx),
     m_Image(NULL), m_Stream(NULL)
 {
 

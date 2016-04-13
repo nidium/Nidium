@@ -2,7 +2,7 @@
 #define nativejsav_h__
 
 #include <Core/NativeMessages.h>
-#include <JS/NativeJSExposer.h>
+#include <Binding/JSExposer.h>
 
 #include <NativeAudio.h>
 #include <NativeAudioNode.h>
@@ -75,7 +75,7 @@ class NativeJSAVSource
         static inline bool propGetter(NativeAVSource *source, JSContext *ctx, uint8_t id, JS::MutableHandleValue vp);
 };
 
-class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
+class NativeJSAudio: public Nidium::Binding::JSExposer<NativeJSAudio>
 {
     public :
         static NativeJSAudio *getContext(JSContext *cx, JS::HandleObject obj, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate);
@@ -121,12 +121,12 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
         static NativeJSAudio *m_Instance;
 };
 
-class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public NativeMessages
+class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, public NativeMessages
 {
     public :
         NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
             NativeAudio::Node type, int in, int out, NativeJSAudio *audio)
-            :   NativeJSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL),
+            :   Nidium::Binding::JSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL),
                 m_Audio(audio), m_Node(NULL), m_NodeType(type), m_NodeObj(nullptr), m_HashObj(nullptr),
                 m_ArrayContent(NULL), m_IsDestructing(false)
         {
@@ -151,7 +151,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
 
         NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
                NativeAudio::Node type, NativeAudioNode *node, NativeJSAudio *audio)
-            :  NativeJSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL), m_Audio(audio), m_Node(node), m_NodeType(type),
+            :  Nidium::Binding::JSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL), m_Audio(audio), m_Node(node), m_NodeType(type),
                m_NodeObj(nullptr), m_HashObj(nullptr), m_ArrayContent(NULL), m_IsDestructing(false)
         {
             this->add();
@@ -212,7 +212,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
         bool m_IsDestructing;
 };
 
-class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessages
+class NativeJSVideo : public Nidium::Binding::JSExposer<NativeJSVideo>, public NativeMessages
 {
     public :
         NativeJSVideo(JS::HandleObject obj, NativeCanvas2DContext *canvasCtx, JSContext *cx);

@@ -27,7 +27,7 @@ extern JSClass Canvas_class;
 #define D_NGL_JS_FN(func_name) static bool func_name(JSContext *cx, unsigned int argc, JS::Value *vp);
 
 #define NGL_JS_FN(func_name) static bool func_name(JSContext *cx, unsigned int argc, JS::Value *vp) {\
-    JSNATIVE_PROLOGUE_CLASS_NO_RET(NativeCanvas3DContext, &WebGLRenderingContext_class);
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(NativeCanvas3DContext, &WebGLRenderingContext_class);
 
 #define NGL_JS_FN_DELETE_X(FUNC_NAME, NAME) \
     NGL_JS_FN(FUNC_NAME) \

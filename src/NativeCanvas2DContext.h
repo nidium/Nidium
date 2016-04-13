@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include <JS/NativeJSExposer.h>
+#include <Binding/JSExposer.h>
 
 #include "NativeJSImage.h"
 #include "NativeCanvasContext.h"

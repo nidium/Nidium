@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <JS/NativeJSConsole.h>
+#include <Binding/NativeJSConsole.h>
 
 #include "NativeJSCanvas.h"
 #include "NativeCanvas2DContext.h"
@@ -37,7 +37,7 @@ if (!JS_ReportPendingException(cx)) {\
 }
 
 #define JSNATIVE_AV_GET_NODE(type, var)\
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class); \
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class); \
     var = static_cast<type *>(CppObj->m_Node);
 
 #define CHECK_INVALID_CTX(obj) if (!obj) {\
@@ -117,7 +117,7 @@ static JSClass AudioContext_class = {
 };
 
 template<>
-JSClass *NativeJSExposer<NativeJSAudio>::jsclass = &AudioContext_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSAudio>::jsclass = &AudioContext_class;
 
 static JSClass global_AudioThread_class = {
     "_GLOBALAudioThread", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
@@ -148,7 +148,7 @@ static JSClass AudioNode_class = {
 };
 
 template<>
-JSClass *NativeJSExposer<NativeJSAudioNode>::jsclass = &AudioNode_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSAudioNode>::jsclass = &AudioNode_class;
 
 static JSClass AudioNode_threaded_class = {
     "AudioNodeThreaded", JSCLASS_HAS_PRIVATE,
@@ -159,10 +159,10 @@ static JSClass AudioNode_threaded_class = {
 
 static JSPropertySpec AudioContext_props[] = {
 
-    NATIVE_PSGS("volume", AUDIO_PROP_VOLUME, native_audio_prop_getter, native_audio_prop_setter),
-    NATIVE_PSG("bufferSize", AUDIO_PROP_BUFFERSIZE, native_audio_prop_getter),
-    NATIVE_PSG("channels", AUDIO_PROP_CHANNELS, native_audio_prop_getter),
-    NATIVE_PSG("sampleRate", AUDIO_PROP_SAMPLERATE, native_audio_prop_getter),
+    NIDIUM_JS_PSGS("volume", AUDIO_PROP_VOLUME, native_audio_prop_getter, native_audio_prop_setter),
+    NIDIUM_JS_PSG("bufferSize", AUDIO_PROP_BUFFERSIZE, native_audio_prop_getter),
+    NIDIUM_JS_PSG("channels", AUDIO_PROP_CHANNELS, native_audio_prop_getter),
+    NIDIUM_JS_PSG("sampleRate", AUDIO_PROP_SAMPLERATE, native_audio_prop_getter),
     JS_PS_END
 };
 
@@ -227,11 +227,11 @@ static JSFunctionSpec AudioNodeCustomSource_funcs[] = {
 
 static JSPropertySpec AudioNodeSource_props[] = {
 
-    NATIVE_PSGS("position", SOURCE_PROP_POSITION, native_audionode_source_prop_getter, native_audionode_source_prop_setter),
+    NIDIUM_JS_PSGS("position", SOURCE_PROP_POSITION, native_audionode_source_prop_getter, native_audionode_source_prop_setter),
 
-    NATIVE_PSG("duration", SOURCE_PROP_DURATION, native_audionode_source_prop_getter),
-    NATIVE_PSG("metadata", SOURCE_PROP_METADATA, native_audionode_source_prop_getter),
-    NATIVE_PSG("bitrate", SOURCE_PROP_BITRATE, native_audionode_source_prop_getter),
+    NIDIUM_JS_PSG("duration", SOURCE_PROP_DURATION, native_audionode_source_prop_getter),
+    NIDIUM_JS_PSG("metadata", SOURCE_PROP_METADATA, native_audionode_source_prop_getter),
+    NIDIUM_JS_PSG("bitrate", SOURCE_PROP_BITRATE, native_audionode_source_prop_getter),
     JS_PS_END
 };
 
@@ -280,18 +280,18 @@ static JSClass Video_class = {
 };
 
 template<>
-JSClass *NativeJSExposer<NativeJSVideo>::jsclass = &Video_class;
+JSClass *Nidium::Binding::JSExposer<NativeJSVideo>::jsclass = &Video_class;
 
 static JSPropertySpec Video_props[] = {
 
-    NATIVE_PSG("width", VIDEO_PROP_WIDTH, native_video_prop_getter),
-    NATIVE_PSG("height", VIDEO_PROP_HEIGHT, native_video_prop_getter),
+    NIDIUM_JS_PSG("width", VIDEO_PROP_WIDTH, native_video_prop_getter),
+    NIDIUM_JS_PSG("height", VIDEO_PROP_HEIGHT, native_video_prop_getter),
 
-    NATIVE_PSG("duration", SOURCE_PROP_DURATION, native_video_prop_getter),
-    NATIVE_PSG("metadata", SOURCE_PROP_METADATA, native_video_prop_getter),
-    NATIVE_PSG("bitrate", SOURCE_PROP_BITRATE, native_video_prop_getter),
+    NIDIUM_JS_PSG("duration", SOURCE_PROP_DURATION, native_video_prop_getter),
+    NIDIUM_JS_PSG("metadata", SOURCE_PROP_METADATA, native_video_prop_getter),
+    NIDIUM_JS_PSG("bitrate", SOURCE_PROP_BITRATE, native_video_prop_getter),
 
-    NATIVE_PSGS("position", SOURCE_PROP_POSITION, native_video_prop_getter, native_video_prop_setter),
+    NIDIUM_JS_PSGS("position", SOURCE_PROP_POSITION, native_video_prop_getter, native_video_prop_setter),
 
 
     JS_PS_END
@@ -398,12 +398,11 @@ const char *NativeJSAVEventRead(int ev)
 
 static JS::HandleValue consumeSourceMessage(JSContext *cx, JS::HandleObject obj, const NativeSharedMessages::Message &msg)
 {
-    JS::RootedObject evObj(cx, NativeJSEvents::CreateEventObject(cx));
-    NativeJSObjectBuilder ev(cx, evObj);
+    JS::RootedObject evObj(cx, Nidium::Binding::JSEvents::CreateEventObject(cx));
+    Nidium::Binding::JSObjectBuilder ev(cx, evObj);
 
     if (msg.event() == CUSTOM_SOURCE_SEND) {
         native_thread_msg *ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
-
         JS::RootedValue inval(cx, JSVAL_NULL);
         if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
             JS_STRUCTURED_CLONE_VERSION, &inval, nullptr, NULL)) {
@@ -561,7 +560,7 @@ NativeJSAudio *NativeJSAudio::getContext()
 
 NativeJSAudio::NativeJSAudio(NativeAudio *audio, JSContext *cx, JS::HandleObject obj)
     :
-      NativeJSExposer<NativeJSAudio>(obj, cx),
+      Nidium::Binding::JSExposer<NativeJSAudio>(obj, cx),
       m_Audio(audio), m_Nodes(NULL), m_JsGlobalObj(NULL), m_JsRt(NULL), m_JsTcx(NULL),
       m_Target(NULL)
 {
@@ -1274,7 +1273,7 @@ static bool native_audio_createnode(JSContext *cx, unsigned argc, JS::Value *vp)
     NativeJSAudio *audio;
     NativeJSAudioNode *node;
 
-    JSNATIVE_PROLOGUE_CLASS_NO_RET(NativeJSAudio, &AudioContext_class);
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(NativeJSAudio, &AudioContext_class);
     audio = CppObj;
     node = NULL;
 
@@ -1375,7 +1374,7 @@ static bool native_audio_connect(JSContext *cx, unsigned argc, JS::Value *vp)
     NodeLink *nlink2;
     NativeJSAudio *jaudio;
 
-    JSNATIVE_PROLOGUE_CLASS_NO_RET(NativeJSAudio, &AudioContext_class);
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(NativeJSAudio, &AudioContext_class);
     jaudio = CppObj;
     NativeAudio *audio = jaudio->m_Audio;
 
@@ -1419,7 +1418,7 @@ static bool native_audio_disconnect(JSContext *cx, unsigned argc, JS::Value *vp)
     NodeLink *nlink2;
     NativeJSAudio *jaudio;
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudio, &AudioContext_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSAudio, &AudioContext_class);
     jaudio = CppObj;
     NativeAudio *audio = jaudio->m_Audio;
 
@@ -1553,12 +1552,12 @@ static bool native_audionode_set(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NativeJSAudioNode *jnode;
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
     jnode = CppObj;
 
     NativeAudioNode *node = jnode->m_Node;
 
-    NATIVE_CHECK_ARGS("set", 1)
+    NIDIUM_JS_CHECK_ARGS("set", 1)
 
     if (args[0].isObject()) {
         JS::RootedObject props(cx, args[0].toObjectOrNull());
@@ -1580,7 +1579,7 @@ static bool native_audionode_set(JSContext *cx, unsigned argc, JS::Value *vp)
             native_audionode_set_internal(cx, node, cname.ptr(), val);
         }
     } else {
-        NATIVE_CHECK_ARGS("set", 2)
+        NIDIUM_JS_CHECK_ARGS("set", 2)
 
         JS::RootedString name(cx);
         if (!JS_ConvertArguments(cx, args, "S", name.address())) {
@@ -1606,7 +1605,7 @@ static bool native_audionode_custom_set(JSContext *cx, unsigned argc, JS::Value 
     NativeAudioNodeCustom *node;
     NativeJSAudioNode *jnode;
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
     jnode = CppObj;
 
     JS::RootedString name(cx);
@@ -1714,8 +1713,8 @@ static bool native_audionode_custom_assign(JSContext *cx, NativeJSAudioNode *jno
 
 static bool native_audionode_custom_assign_processor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
-    NATIVE_CHECK_ARGS("assignProcessor", 1);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
+    NIDIUM_JS_CHECK_ARGS("assignProcessor", 1);
 
     NativeAudioNodeCustom *node = static_cast<NativeAudioNodeCustom *>(CppObj->m_Node);
 
@@ -1730,24 +1729,24 @@ static bool native_audionode_custom_assign_processor(JSContext *cx, unsigned arg
 
 static bool native_audionode_custom_assign_init(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
-    NATIVE_CHECK_ARGS("assignInit", 1);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
+    NIDIUM_JS_CHECK_ARGS("assignInit", 1);
 
     return native_audionode_custom_assign(cx, CppObj, NODE_CUSTOM_INIT_CALLBACK, args[0]);
 }
 
 static bool native_audionode_custom_assign_setter(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
-    NATIVE_CHECK_ARGS("assignSetter", 1);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
+    NIDIUM_JS_CHECK_ARGS("assignSetter", 1);
 
     return native_audionode_custom_assign(cx, CppObj, NODE_CUSTOM_SETTER_CALLBACK, args[0]);
 }
 
 static bool native_audionode_custom_assign_seek(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
-    NATIVE_CHECK_ARGS("assignSeek", 1);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
+    NIDIUM_JS_CHECK_ARGS("assignSeek", 1);
 
     NativeAudioCustomSource *node = static_cast<NativeAudioCustomSource *>(CppObj->m_Node);
 
@@ -1762,7 +1761,7 @@ static bool native_audionode_custom_assign_seek(JSContext *cx, unsigned argc, JS
 
 static bool native_audionode_custom_source_position_setter(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
 
     NativeAudioCustomSource *source = static_cast<NativeAudioCustomSource*>(CppObj->m_Node);
 
@@ -1775,7 +1774,7 @@ static bool native_audionode_custom_source_position_setter(JSContext *cx, unsign
 
 static bool native_audionode_custom_source_position_getter(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
 
     args.rval().setDouble(0.0);
     return true;
@@ -1820,7 +1819,7 @@ static bool native_audionode_custom_threaded_set(JSContext *cx, unsigned argc, J
     NativeJSAudioNode *jnode;
     JSTransferableFunction *fn;
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_threaded_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_threaded_class);
     jnode = CppObj;
 
     if (argc != 2) {
@@ -1857,7 +1856,7 @@ static bool native_audionode_custom_threaded_get(JSContext *cx, unsigned argc, J
 {
     NativeJSAudioNode *jnode;
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_threaded_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_threaded_class);
     jnode = CppObj;
 
     if (!jnode->m_HashObj) {
@@ -1885,8 +1884,8 @@ static bool native_audionode_custom_threaded_send(JSContext *cx, unsigned argc, 
     size_t nbytes;
     NativeJSAudioNode *jnode;
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_threaded_class);
-    NATIVE_CHECK_ARGS("send", 1);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_threaded_class);
+    NIDIUM_JS_CHECK_ARGS("send", 1);
 
     jnode = CppObj;
 
@@ -1911,7 +1910,7 @@ static bool native_audionode_source_open(JSContext *cx, unsigned argc, JS::Value
 {
     NativeJSAudioNode *jnode;
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
     jnode = CppObj;
 
     NativeAudioSource *source = (NativeAudioSource *)jnode->m_Node;
@@ -2101,7 +2100,7 @@ void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
 
 NativeJSVideo::NativeJSVideo(JS::HandleObject obj,
     NativeCanvas2DContext *canvasCtx, JSContext *cx) :
-    NativeJSExposer<NativeJSVideo>(obj, cx),
+    Nidium::Binding::JSExposer<NativeJSVideo>(obj, cx),
     m_Video(NULL), m_AudioNode(NULL), m_ArrayContent(NULL),
     m_Width(-1), m_Height(-1), m_Left(0), m_Top(0), m_IsDestructing(false),
     m_CanvasCtx(canvasCtx), cx(cx)
@@ -2168,8 +2167,8 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
     JS::RootedObject vobj(v->cx, v->getJSObject());
     JS::RootedObject evObj(cx);
 
-    evObj = NativeJSEvents::CreateEventObject(cx);
-    NativeJSObjectBuilder ev(cx, evObj);
+    evObj = Nidium::Binding::JSEvents::CreateEventObject(cx);
+    Nidium::Binding::JSObjectBuilder ev(cx, evObj);
     ev.set("video", v->getJSObject());
     JS::RootedValue evjsval(cx, ev.jsval());
 
@@ -2223,7 +2222,7 @@ void NativeJSVideo::setSize(int width, int height)
 
 static bool native_video_play(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
 
     CppObj->m_Video->play();
 
@@ -2232,7 +2231,7 @@ static bool native_video_play(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_video_pause(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
 
     CppObj->m_Video->pause();
 
@@ -2241,7 +2240,7 @@ static bool native_video_pause(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_video_stop(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
 
     CppObj->m_Video->stop();
 
@@ -2250,7 +2249,7 @@ static bool native_video_stop(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_video_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
 
     CppObj->close();
 
@@ -2260,7 +2259,7 @@ static bool native_video_close(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_video_open(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NativeJSVideo *v;
-    JSNATIVE_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
     v = CppObj;
 
     JS::RootedValue src(cx, args[0]);
@@ -2295,7 +2294,7 @@ static bool native_video_get_audionode(JSContext *cx, unsigned argc, JS::Value *
     NativeJSAudio *jaudio = NativeJSAudio::getContext();
     NativeJSVideo *v;
 
-    JSNATIVE_PROLOGUE_CLASS_NO_RET(NativeJSVideo, &Video_class);
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(NativeJSVideo, &Video_class);
 
     v = CppObj;
 
@@ -2337,7 +2336,7 @@ static bool native_video_get_audionode(JSContext *cx, unsigned argc, JS::Value *
 
 static bool native_video_nextframe(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
 
     CppObj->m_Video->nextFrame();
 
@@ -2346,7 +2345,7 @@ static bool native_video_nextframe(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_video_prevframe(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JSNATIVE_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
 
     CppObj->m_Video->prevFrame();
 
@@ -2358,7 +2357,7 @@ static bool native_video_frameat(JSContext *cx, unsigned argc, JS::Value *vp)
     double time;
     bool keyframe = false;
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
 
     if (!JS_ConvertArguments(cx, args, "db", &time, keyframe)) {
         return true;
@@ -2372,9 +2371,9 @@ static bool native_video_frameat(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_video_setsize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     uint32_t width, height;
-    JSNATIVE_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
+    NIDIUM_JS_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
 
-    NATIVE_CHECK_ARGS("setSize", 2)
+    NIDIUM_JS_CHECK_ARGS("setSize", 2)
 
     JS::RootedValue jwidth(cx, args[0]);
     JS::RootedValue jheight(cx, args[1]);
