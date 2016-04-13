@@ -55,7 +55,7 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
     NativeJSconsole::registerObject(m_JS->cx);
     NativeJSSystem::registerObject(m_JS->cx);
 
-    add_timer(&net->timersng, 1, NativeContext_ping, (void *)m_JS);
+    APE_timer_create(net, 1, NativeContext_ping, (void *)m_JS);
 }
 
 NativeContext::~NativeContext()
