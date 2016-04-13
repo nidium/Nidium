@@ -11,8 +11,7 @@
 #include "JSExposer.h"
 
 class NativeJSFS :     public Nidium::Binding::JSExposer<NativeJSFS>,
-                       public NativeManaged,
-                       public NativeMessages
+                       public NativeManaged
 {
 public:
     static void registerObject(JSContext *cx);

@@ -375,10 +375,10 @@ NativeHTTPClientConnection::NativeHTTPClientConnection(NativeHTTPListener *https
     http_parser_init(&m_HttpState.parser, HTTP_REQUEST);
     m_HttpState.parser.data = this;
 
-    ape_timer *timer = add_timer(&socket->ape->timersng, 1000,
+    ape_timer_t *timer = APE_timer_create(socket->ape, 1000,
         NativeHTTPClientConnection_checktimeout, this);
 
-    m_TimeoutTimer = timer->identifier;
+    m_TimeoutTimer = APE_timer_getid(timer);
 
     m_LastAcitivty = NativeUtils::getTick(true);
 }
@@ -424,7 +424,9 @@ NativeHTTPClientConnection::~NativeHTTPClientConnection()
 {
     if (m_TimeoutTimer) {
         ape_global *ape = NativeJS::getNet();
-        clear_timer_by_id(&ape->timersng, m_TimeoutTimer, 1);
+
+        APE_timer_clearbyid(ape, m_TimeoutTimer, 1);
+
         m_TimeoutTimer = 0;
     }
 

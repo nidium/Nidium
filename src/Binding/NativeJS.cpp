@@ -741,7 +741,7 @@ NativeJS::~NativeJS()
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
     /* clear all non protected timers */
-    del_timers_unprotected(&net->timersng);
+    APE_timers_destroy_unprotected(net);
 
     JS_LeaveCompartment(cx, m_Compartment);
     JS_EndRequest(cx);
@@ -790,10 +790,10 @@ void NativeJS::bindNetObject(ape_global *net)
     JS_SetContextPrivate(cx, net);
     this->net = net;
 
-    ape_timer *timer = add_timer(&net->timersng, 1,
+    ape_timer_t *timer = APE_timer_create(net, 1,
         Native_handle_messages, this);
 
-    timer->flags &= ~APE_TIMER_IS_PROTECTED;
+    APE_timer_unprotect(timer);
 
     //NativeFileIO *io = new NativeFileIO("/tmp/foobar", this, net);
     //io->open();
@@ -1179,10 +1179,10 @@ static bool native_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp)
         params->argv[i]->set(args[i+1]);
     }
 
-    ape_async *async = add_async(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
+    ape_timer_async_t *async = APE_async((ape_global *)JS_GetContextPrivate(cx),
                 native_timerng_wrapper, (void *)params);
 
-    async->clearfunc = native_timer_deleted;
+    APE_async_setclearfunc(async, native_timer_deleted);
 
     args.rval().setNull();
 
@@ -1235,14 +1235,14 @@ static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
         params->argv[i]->set(args[i+2]);
     }
 
-    ape_timer *timer = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
+    ape_timer_t *timer = APE_timer_create((ape_global *)JS_GetContextPrivate(cx),
         native_max(ms, 8), native_timerng_wrapper,
         (void *)params);
 
-    timer->flags &= ~APE_TIMER_IS_PROTECTED;
-    timer->clearfunc = native_timer_deleted;
+    APE_timer_unprotect(timer);
+    APE_timer_setclearfunc(timer, native_timer_deleted);
 
-    args.rval().setNumber((double)timer->identifier);
+    args.rval().setNumber((double)APE_timer_getid(timer));
 
     return true;
 }
@@ -1294,14 +1294,14 @@ static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
         params->argv[i]->set(args.array()[i+2]);
     }
 
-    ape_timer *timer = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
+    ape_timer_t *timer = APE_timer_create((ape_global *)JS_GetContextPrivate(cx),
         params->ms, native_timerng_wrapper,
         (void *)params);
 
-    timer->flags &= ~APE_TIMER_IS_PROTECTED;
-    timer->clearfunc = native_timer_deleted;
+    APE_timer_unprotect(timer);
+    APE_timer_setclearfunc(timer, native_timer_deleted);
 
-    args.rval().setNumber((double)timer->identifier);
+    args.rval().setNumber((double)APE_timer_getid(timer));
 
     return true;
 }
@@ -1316,7 +1316,7 @@ static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    clear_timer_by_id(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
+    APE_timer_clearbyid((ape_global *)JS_GetContextPrivate(cx),
         (uint64_t)identifier, 0);
 
     return true;
