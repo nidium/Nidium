@@ -125,7 +125,7 @@ void NativePath::parse(const char *origin)
     // Set the appropriate host & scheme.
     if ((isRelative || origin[0] == '/') && !isLocalRoot) { 
         int hostStart = strlen(rootScheme->str);
-        char *hostEnd = strchr(&root[hostStart], '/');
+        const char *hostEnd = strchr(&root[hostStart], '/');
         int hostLen = (hostEnd - &root[hostStart]);
 
         m_Scheme = rootScheme;
