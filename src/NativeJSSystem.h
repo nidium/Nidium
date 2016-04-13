@@ -1,9 +1,9 @@
 #ifndef nativejssystem_h__
 #define nativejssystem_h__
 
-#include <JS/NativeJSExposer.h>
+#include <Binding/JSExposer.h>
 
-class NativeJSSystem : public NativeJSExposer<NativeJSSystem>
+class NativeJSSystem : public Nidium::Binding::JSExposer<NativeJSSystem>
 {
   public:
     static void registerObject(JSContext *cx);

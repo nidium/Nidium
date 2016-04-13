@@ -1,9 +1,9 @@
 #ifndef nativejsconsole_h__
 #define nativejsconsole_h__
 
-#include <JS/NativeJSExposer.h>
+#include <Binding/JSExposer.h>
 
-class NativeJSconsole : public NativeJSExposer<NativeJSconsole>
+class NativeJSconsole : public Nidium::Binding::JSExposer<NativeJSconsole>
 {
   public:
     static void registerObject(JSContext *cx);

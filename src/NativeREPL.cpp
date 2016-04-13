@@ -1,7 +1,7 @@
 #include "NativeREPL.h"
 #include "NativeMacros.h"
 
-#include <JS/NativeJS.h>
+#include <Binding/NativeJS.h>
 #include "external/linenoise.h"
 
 #include <stdio.h>

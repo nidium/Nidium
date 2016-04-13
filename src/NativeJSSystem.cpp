@@ -1,5 +1,5 @@
 #include "NativeJSSystem.h"
-#include <JS/NativeJS.h>
+#include <Binding/NativeJS.h>
 
 #include "NativeContext.h"
 #include "NativeMacros.h"
@@ -46,8 +46,8 @@ static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
 
     JS::RootedObject ret(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
-    JSOBJ_SET_PROP_INT(ret, "cur", (int) rl.rlim_cur);
-    JSOBJ_SET_PROP_INT(ret, "max", (int) rl.rlim_max);
+    NIDIUM_JSOBJ_SET_PROP_INT(ret, "cur", (int) rl.rlim_cur);
+    NIDIUM_JSOBJ_SET_PROP_INT(ret, "max", (int) rl.rlim_max);
 
     int fdcounter = 0, sockcounter = 0, othercount = 0;
 
@@ -65,9 +65,9 @@ static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
 
     }
 
-    JSOBJ_SET_PROP_INT(ret, "open", fdcounter);
-    JSOBJ_SET_PROP_INT(ret, "sockets", sockcounter);
-    JSOBJ_SET_PROP_INT(ret, "files", othercount);
+    NIDIUM_JSOBJ_SET_PROP_INT(ret, "open", fdcounter);
+    NIDIUM_JSOBJ_SET_PROP_INT(ret, "sockets", sockcounter);
+    NIDIUM_JSOBJ_SET_PROP_INT(ret, "files", othercount);
 
     args.rval().setObjectOrNull(ret);
 

@@ -5,7 +5,7 @@
 #include "NativeContext.h"
 #include "NativeMacros.h"
 
-#include <JS/NativeJS.h>
+#include <Binding/NativeJS.h>
 #include "NativeJSConsole.h"
 #include "NativeJSSystem.h"
 #include <Core/NativeMessages.h>
