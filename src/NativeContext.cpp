@@ -40,7 +40,6 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
         
         NativePath::cd(cwd);
         NativePath::chroot("/");
-        printf("Changed working dir to %s\n", cwd);
     } else {
         fprintf(stderr, "[Warn] Failed to get current working directory\n");
     }
