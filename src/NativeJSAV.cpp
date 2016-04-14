@@ -402,7 +402,7 @@ static JS::HandleValue consumeSourceMessage(JSContext *cx, JS::HandleObject obj,
     Nidium::Binding::JSObjectBuilder ev(cx, evObj);
 
     if (msg.event() == CUSTOM_SOURCE_SEND) {
-        native_thread_msg *ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
+        nidium_thread_msg *ptr = static_cast<struct nidium_thread_msg *>(msg.dataPtr());
         JS::RootedValue inval(cx, JSVAL_NULL);
         if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
             JS_STRUCTURED_CLONE_VERSION, &inval, nullptr, NULL)) {
@@ -1889,13 +1889,13 @@ static bool native_audionode_custom_threaded_send(JSContext *cx, unsigned argc, 
 
     jnode = CppObj;
 
-    struct native_thread_msg *msg;
+    struct nidium_thread_msg *msg;
     if (!JS_WriteStructuredClone(cx, args[0], &datap, &nbytes, nullptr, nullptr, JS::NullHandleValue)) {
         JS_ReportError(cx, "Failed to write structured clone");
         return false;
     }
 
-    msg = new struct native_thread_msg;
+    msg = new struct nidium_thread_msg;
 
     msg->data   = datap;
     msg->nbytes = nbytes;
