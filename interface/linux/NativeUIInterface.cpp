@@ -321,7 +321,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
     if (!this->m_Initialized) {
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1)
         {
-            fprintf(stdout, "Can't init SDL:  %s\n", SDL_GetError());
+            NLOG("Can't init SDL:  %s\n", SDL_GetError());
             return false;
         }
 
@@ -342,7 +342,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
 
         if (this->m_Win == NULL) {
-            fprintf(stdout, "Cant create window (SDL)\n");
+            NLOG("Cant create window (SDL)\n");
             return false;
         }
 
@@ -375,7 +375,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
         m_MainGLCtx = contexteOpenGL;
         if (contexteOpenGL == NULL) {
             NLOG("Failed to create OpenGL context : %s", SDL_GetError());
-            exit(2);
+            return false;
         }
         SDL_StartTextInput();
 
@@ -728,8 +728,7 @@ void NativeX11UIInterface::onNMLLoaded()
     if (!this->createWindow(
         this->m_Nml->getMetaWidth(),
         this->m_Nml->getMetaHeight() + kNativeTitleBarHeight)) {
-
-        return;
+        exit(2);
     }
 
     this->setWindowTitle(this->m_Nml->getMetaTitle());
