@@ -32,12 +32,17 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
     bool jsstrict, bool runInREPL) :
     m_Worker(worker), m_RunInREPL(runInREPL)
 {
-    char cwd[1024];
+    char cwd[PATH_MAX];
 
     memset(&cwd[0], '\0', sizeof(cwd));
-    if (getcwd(cwd, sizeof(cwd)) != NULL) {
-//        NativePath::cd(cwd);
-//        NativePath::chroot(cwd);
+    if (getcwd(cwd, sizeof(cwd)-1) != NULL) {
+        strcat(cwd, "/");
+        
+        NativePath::cd(cwd);
+        NativePath::chroot("/");
+        printf("Changed working dir to %s\n", cwd);
+    } else {
+        fprintf(stderr, "[Warn] Failed to get current working directory\n");
     }
 
     m_JS = new NativeJS(net);
