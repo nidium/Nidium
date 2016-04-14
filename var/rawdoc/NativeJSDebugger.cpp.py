@@ -1,3 +1,7 @@
+# Copyright 2016 Nidium Inc. All rights reserved.
+# Use of this source code is governed by a MIT license
+# that can be found in the LICENSE file.
+
 from dokumentor import *
 
 NamespaceDoc("Debugger", """Javascript Debugger for Nidium. The Debugger object is the underlying <a href="https://developer.mozilla.org/en-US/docs/Tools/Debugger-API/Debugger">Debugger of SpiderMonkey </a>.

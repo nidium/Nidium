@@ -1,8 +1,0 @@
-mozilla-central
-c-ares
-leveldb
-http-parser
-gyp
-openssl
-nativejscore-requirements.py
-../network/gyp/libapenetwork-requirements.deps

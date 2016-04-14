@@ -5,18 +5,17 @@
 */
 #include <stdlib.h>
 #include <string.h>
-#include <libgen.h>
-#include <errno.h>
 
 #include <gtest/gtest.h>
 
-#include <NativePath.h>
-#include <NativeFileStream.h>
-#include <NativeHTTPStream.h>
-#include <NativeNFSStream.h>
+#include <Core/NativePath.h>
+#include <IO/NativeNFSStream.h>
+#include <IO/NativeFileStream.h>
+#include <Net/NativeHTTPStream.h>
+#include <libgen.h>
+#include <errno.h>
 
-#include "unittests.h"
-
+unsigned long _ape_seed = 31415961;
 
 #define TEST_DIR "/tmp/"
 #define TEST_DIR_OUTSIDE "/foo/bar/"
@@ -382,6 +381,23 @@ TEST(NativePath, SanitizePrefixUserOutside)
 
     ASSERT_STREQ(nullptr, path.dir());
     ASSERT_STREQ(nullptr, path.path());
+}
+// }}}
+
+// {{{ cd subdirectory of chroot
+TEST(NativePath, CdLocalSubdir)
+{
+    NativePath::cd(TEST_DIR "/bar/");
+
+    ASSERT_STREQ(TEST_DIR "/bar/", NativePath::getPwd());
+}
+
+TEST(NativePath, RelativeFileDifferentCwd)
+{
+    NativePath path(TEST_REL_FILE, false, false);
+
+    ASSERT_STREQ(TEST_DIR "bar/", path.dir());
+    ASSERT_STREQ(TEST_DIR "bar/" TEST_REL_FILE, path.path());
 }
 // }}}
 

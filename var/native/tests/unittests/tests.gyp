@@ -51,6 +51,7 @@
             #'jsthread.cpp',
             'jsutils.cpp',
             #'jswebsocket.cpp',
+            'path.cpp',
         ],
     }]
 }
