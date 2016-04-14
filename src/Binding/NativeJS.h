@@ -32,7 +32,7 @@ enum {
     NATIVE_KEY_META = 1 << 3
 };
 
-struct native_thread_msg
+struct nidium_thread_msg
 {
     uint64_t *data;
     size_t nbytes;
