@@ -340,7 +340,7 @@ JSObject *NativeJSdocument::registerObject(JSContext *cx)
     return documentObj;
 }
 
-// todo destroy with NativeHash cleaner
+// todo destroy with Nidium::Core::Hash cleaner
 bool NativeJSdocument::loadFont(const char *path, const char *name,
     int weight, nativefont::Style style)
 {

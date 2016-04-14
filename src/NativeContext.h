@@ -197,7 +197,7 @@ class NativeContext : public NativeMessages
         return m_SizeDirty;
     }
 
-    NativeHash<NativeBytecodeScript *> preload;
+    Nidium::Core::Hash<NativeBytecodeScript *> preload;
 
     void onMessage(const NativeSharedMessages::Message &msg);
     void addJob(void (*job)(void *arg), void *arg);
@@ -284,9 +284,9 @@ class NativeContext : public NativeMessages
     } m_Jobs;
 
     /* Hash of all canvases (key: identifier string) */
-    NativeHash<NativeCanvasHandler *> m_CanvasList;
+    Nidium::Core::Hash<NativeCanvasHandler *> m_CanvasList;
     /* Hash of all canvases with pending jobs (key: addr) */
-    NativeHash64<NativeCanvasHandler *> m_CanvasPendingJobs;
+    Nidium::Core::Hash64<NativeCanvasHandler *> m_CanvasPendingJobs;
     std::vector<NativeCanvasHandler *> m_CanvasOrderedEvents;
 
     ape_pool_list_t m_CanvasEventsCanvas;

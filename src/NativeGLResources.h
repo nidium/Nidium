@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include <Core/NativeHash.h>
+#include <Core/Hash.h>
 
 #include "NativeMacros.h"
 
@@ -54,7 +54,7 @@ public:
     }
 
 private:
-    NativeHash64<Resource *> m_List;
+    Nidium::Core::Hash64<Resource *> m_List;
 
     uint64_t genId(uint32_t glid, ResourceType type) const
     {
