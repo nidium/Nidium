@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativehash_h__
-#define nativehash_h__
+#ifndef core_hash_h__
+#define core_hash_h__
 
 #include <stdlib.h>
 #include <string.h>
