@@ -127,7 +127,7 @@ def SDL2():
     #build: ["xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'"], 
     #outputs["SDL2/Xcode/SDL/out/SDL2.framework"])
     return {
-        "location": "https://www.libsdl.org/release/SDL2-2.0.4.tar.gz",
+        "location": "https://www.libsdl.org/release/SDL2-2.0.3.tar.gz",
         "chdir": "build",
         "build": ["../configure", "make"],
         "outputs": ["build/.libs/libSDL2.a"]
