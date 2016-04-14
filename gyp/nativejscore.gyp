@@ -112,7 +112,7 @@
             '../src/Binding/NativeJSModules.cpp',
             '../src/Binding/NativeJSDebugger.cpp',
             '../src/Binding/NativeJSSocket.cpp',
-            '../src/Binding/NativeJSThread.cpp',
+            '../src/Binding/JSThread.cpp',
             '../src/Binding/NativeJSHTTPListener.cpp',
             '../src/Binding/NativeJSDebug.cpp',
             '../src/Binding/NativeJSConsole.cpp',
