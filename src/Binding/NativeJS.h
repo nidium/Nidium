@@ -13,7 +13,7 @@
 #include <jsapi.h>
 #include <js/StructuredClone.h>
 
-#include "Core/NativeHash.h"
+#include "Core/Hash.h"
 #include "Core/NativeMessages.h"
 #include "Core/NativeSharedMessages.h"
 
@@ -69,7 +69,7 @@ class NativeJS
         JSContext *cx;
         NativeSharedMessages *messages;
 
-        NativeHash<JSObject *> jsobjects;
+        Nidium::Core::Hash<JSObject *> jsobjects;
 
         struct _ape_htable *rootedObj;
         struct _ape_global *net;

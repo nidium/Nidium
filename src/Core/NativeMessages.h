@@ -9,7 +9,7 @@
 #include <pthread.h>
 
 #include "NativeSharedMessages.h"
-#include "NativeHash.h"
+#include "Hash.h"
 
 typedef struct _ape_global ape_global;
 class NativeEvents;
@@ -44,7 +44,7 @@ private:
     pthread_t m_GenesisThread;
 
     /* Keep track on which objects we are listening events */
-    NativeHash64<NativeEvents *>m_Listening;
+    Nidium::Core::Hash64<NativeEvents *>m_Listening;
 };
 
 #endif

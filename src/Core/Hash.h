@@ -18,11 +18,14 @@
     C++ wrapper to ape_hash
 */
 
+namespace Nidium {
+namespace Core {
+
 template <typename T>
-class NativeHash64 : public NativeNoncopyable
+class Hash64 : public NativeNoncopyable
 {
     public:
-        explicit NativeHash64(int size = 0)
+        explicit Hash64(int size = 0)
         {
             if (!size) {
                 this->table = hashtbl_init(APE_HASH_INT);
@@ -30,7 +33,7 @@ class NativeHash64 : public NativeNoncopyable
                 this->table = hashtbl_init_with_size(APE_HASH_INT, size);
             }
         }
-        ~NativeHash64() {
+        ~Hash64() {
             hashtbl_free(this->table);
         }
 
@@ -47,7 +50,7 @@ class NativeHash64 : public NativeNoncopyable
         }
 
         void setAutoDelete(bool val) {
-            hashtbl_set_cleaner(this->table, (val ? NativeHash64<T>::cleaner : NULL));
+            hashtbl_set_cleaner(this->table, (val ? Hash64<T>::cleaner : NULL));
         }
         static void cleaner(ape_htable_item_t *item) {
             delete (T)item->content.addrs;
@@ -63,10 +66,10 @@ class NativeHash64 : public NativeNoncopyable
 };
 
 template <typename T>
-class NativeHash : public NativeNoncopyable
+class Hash : public NativeNoncopyable
 {
     public:
-        NativeHash(int size = 0)
+        Hash(int size = 0)
         {
            if (!size) {
                 this->table = hashtbl_init(APE_HASH_STR);
@@ -74,7 +77,7 @@ class NativeHash : public NativeNoncopyable
                 this->table = hashtbl_init_with_size(APE_HASH_STR, size);
             }
         }
-        ~NativeHash() {
+        ~Hash() {
             hashtbl_free(this->table);
         }
 
@@ -91,7 +94,7 @@ class NativeHash : public NativeNoncopyable
         }
 
         void setAutoDelete(bool val) {
-            hashtbl_set_cleaner(this->table, (val ? NativeHash<T>::cleaner : NULL));
+            hashtbl_set_cleaner(this->table, (val ? Hash<T>::cleaner : NULL));
         }
         static void cleaner(ape_htable_item_t *item) {
             delete (T)item->content.addrs;
@@ -137,13 +140,13 @@ class NativeHash : public NativeNoncopyable
 };
 
 template <>
-class NativeHash<uint32_t> : public NativeNoncopyable
+class Hash<uint32_t> : public NativeNoncopyable
 {
     public:
-        NativeHash() {
+        Hash() {
             this->table = hashtbl_init(APE_HASH_STR);
         }
-        ~NativeHash() {
+        ~Hash() {
             hashtbl_free(this->table);
         }
 
@@ -161,6 +164,9 @@ class NativeHash<uint32_t> : public NativeNoncopyable
     private:
         struct _ape_htable *table;
 };
+
+} // namespace Binding
+} // namespace Nidium
 
 #endif
 

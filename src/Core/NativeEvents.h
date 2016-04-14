@@ -6,7 +6,7 @@
 #ifndef nativeevents_h__
 #define nativeevents_h__
 
-#include "NativeHash.h"
+#include "Hash.h"
 #include "NativeMessages.h"
 
 #define NATIVE_EVENTS_MESSAGE_BITS(id) ((1 << 31) | id)
@@ -77,7 +77,7 @@ public:
 
 private:
 
-    NativeHash64<NativeMessages *> m_Listeners;
+    Nidium::Core::Hash64<NativeMessages *> m_Listeners;
 };
 
 #endif

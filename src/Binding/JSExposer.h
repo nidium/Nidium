@@ -292,7 +292,7 @@ class JSExposer
         if (m_Events) {
             /*
                 It's safe to enable again the auto delete feature from
-                NativeHash since we are sure at this point that no event
+                Nidium::Core::Hash since we are sure at this point that no event
                 is currently fired.
             */
             m_Events->setAutoDelete(true);
@@ -392,11 +392,11 @@ class JSExposer
             return;
         }
 
-        m_Events = new NativeHash<JSEvents *>(32);
+        m_Events = new Nidium::Core::Hash<JSEvents *>(32);
         /*
-            Set NativeHash auto delete to false, since it's possible for 
+            Set Nidium::Core::Hash auto delete to false, since it's possible for 
             an event to be deleted while it's fired. So we don't want to 
-            free the underlying object when removing it from the NativeHash 
+            free the underlying object when removing it from the Nidium::Core::Hash 
             (otherwise JSEvents::fire will attempt to use a freed object)
         */
         m_Events->setAutoDelete(false);
@@ -418,7 +418,7 @@ class JSExposer
     JS::Heap<JSObject *>m_JSObject;
 
     JSContext *m_Cx;
-    NativeHash<JSEvents *> *m_Events;
+    Nidium::Core::Hash<JSEvents *> *m_Events;
 
     static JSClass *jsclass;
 private:

@@ -11,7 +11,7 @@
 #include <jsapi.h>
 #include <jspubtd.h>
 
-#include "Core/NativeHash.h"
+#include "Core/Hash.h"
 
 #define NATIVE_MODULES_PATHS_COUNT 2
 
@@ -98,7 +98,7 @@ class NativeJSModules
         static char *findModulePath(NativeJSModule *parent, NativeJSModule *module);
         static bool getFileContent(const char *file, char **content, size_t *size);
     private:
-        NativeHash<NativeJSModule *> m_Cache;
+        Nidium::Core::Hash<NativeJSModule *> m_Cache;
         const char *m_Paths[2];
         char *m_EnvPaths[64];
         JSContext *cx;

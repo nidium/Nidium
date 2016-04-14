@@ -12,7 +12,7 @@
 
 #include <jspubtd.h>
 
-#include "Core/NativeHash.h"
+#include "Core/Hash.h"
 
 #define NATIVE_NFS_MAGIC 0x27121986
 
@@ -81,7 +81,7 @@ private:
 
     struct nativenfs_header_s m_Header;
 
-    NativeHash<NativeNFSTree *> m_Hash;
+    Nidium::Core::Hash<NativeNFSTree *> m_Hash;
 
     NativeNFSTree m_Root;
 
