@@ -742,10 +742,10 @@ void NativeCocoaUIInterface::openFileDialog(const char *files[],
 
 void NativeCocoaUIInterface::runLoop()
 {
-    add_timer(&m_Gnet->timersng, 1, NativeProcessUI, (void *)this);
-    add_timer(&m_Gnet->timersng, 1, NativeProcessSystemLoop, (void *)this);
+    APE_timer_create(m_Gnet, 1, NativeProcessUI, (void *)this);
+    APE_timer_create(m_Gnet, 1, NativeProcessSystemLoop, (void *)this);
 
-    events_loop(m_Gnet);
+    APE_loop_run(m_Gnet);
 }
 
 void NativeCocoaUIInterface::setClipboardText(const char *text)

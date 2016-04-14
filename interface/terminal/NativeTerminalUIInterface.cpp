@@ -71,9 +71,9 @@ void NativeTerminalUIInterface::setWindowControlsOffset(double x, double y)
 
 void NativeTerminalUIInterface::runLoop()
 {
-    add_timer(&m_Gnet->timersng, 1, NativeProcessUI, (void *)this);
+    APE_timer_create(m_Gnet, 1, NativeProcessUI, (void *)this);
 
-    events_loop(m_Gnet);
+    APE_loop_run(m_Gnet);
 }
 
 NativeUITerminalConsole::NativeUITerminalConsole ()

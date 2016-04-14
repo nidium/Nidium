@@ -61,6 +61,9 @@ def skia():
     else:
         exports = "GYP_DEFINES='skia_arch_width=32 skia_osx_deployment_target=10.7'"
 
+    exports += " CPPFLAGS=-I%s" % (os.path.join(Deps.getDir(), "zlib"))
+    exports += " LDFLAGS=-L%s" % (os.path.join(Deps.getDir(), "zlib"))
+
     makeFlags = ""
     if Variables.get("verbose"):
         makeFlags = "V=1"
@@ -124,7 +127,7 @@ def SDL2():
     #build: ["xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'"], 
     #outputs["SDL2/Xcode/SDL/out/SDL2.framework"])
     return {
-        "location": "https://www.libsdl.org/release/SDL2-2.0.4.tar.gz",
+        "location": "https://www.libsdl.org/release/SDL2-2.0.3.tar.gz",
         "chdir": "build",
         "build": ["../configure", "make"],
         "outputs": ["build/.libs/libSDL2.a"]

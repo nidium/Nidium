@@ -51,11 +51,9 @@ enum {
         JS::RootedString _fun_name(cx, JS_GetFunctionDisplayId(JS_ValueToFunction(cx, calVal))); \
         JSAutoByteString _fun_namec(cx, _fun_name); \
         NLOG("Canvas2D.%s()] called on %s:%d", _fun_namec.ptr(), filename.get(), lineno); \
-    } \
-    args.rval().setUndefined();
+    }
 #else
-#define NATIVE_LOG_2D_CALL() \
-    args.rval().setUndefined();
+#define NATIVE_LOG_2D_CALL()
 #endif
 
 static void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
