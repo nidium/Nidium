@@ -65,7 +65,7 @@ def mozilla():
             --enable-threadsafe\
             --enable-ctypes %s" % (configureEnvVars, nsprFlags)
 
-    if Konstruct.config("debug", "valgrind"):
+    if Konstruct.config("debug", "valgring"):
         configure += " --enable-debug --disable-optimize"
 
     if Konstruct.config("valgrind"):

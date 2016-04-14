@@ -12,8 +12,6 @@
 
 #include "NativePath.h"
 
-#include "NativePath.h"
-
 #ifndef NATIVE_NO_PRIVATE_DIR
 #  include "../interface/NativeSystemInterface.h"
 #endif
