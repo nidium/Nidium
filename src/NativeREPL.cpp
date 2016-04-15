@@ -64,7 +64,7 @@ NativeREPL::NativeREPL(NativeJS *js)
 }
 
 
-void NativeREPL::onMessage(const NativeSharedMessages::Message &msg)
+void NativeREPL::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     buffer_append_string(m_Buffer, (char *)msg.dataPtr());
 
@@ -93,7 +93,7 @@ void NativeREPL::onMessage(const NativeSharedMessages::Message &msg)
     sem_post(&m_ReadLineLock);
 }
 
-void NativeREPL::onMessageLost(const NativeSharedMessages::Message &msg)
+void NativeREPL::onMessageLost(const Nidium::Core::SharedMessages::Message &msg)
 {
     free(msg.dataPtr());
 }

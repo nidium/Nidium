@@ -14,8 +14,8 @@ class NativeREPL : public NativeMessages
 public:
     NativeREPL(NativeJS *js);
     ~NativeREPL();
-    void onMessage(const NativeSharedMessages::Message &msg);
-    void onMessageLost(const NativeSharedMessages::Message &msg);
+    void onMessage(const Nidium::Core::SharedMessages::Message &msg);
+    void onMessageLost(const Nidium::Core::SharedMessages::Message &msg);
 
     sem_t *getReadLineLock() {
         return &m_ReadLineLock;
