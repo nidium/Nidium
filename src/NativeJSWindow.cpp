@@ -6,10 +6,8 @@
 #include <string.h>
 #include <strings.h>
 
-#include <Core/NativeDB.h>
 #include <Binding/NativeJSFileIO.h>
 #include <Binding/NativeJSUtils.h>
-#include <Binding/NativeJSDB.h>
 
 #include "NativeNML.h"
 #include "NativeSkia.h"
@@ -1342,7 +1340,7 @@ void NativeJSwindow::initDataBase()
         return;
     }
 
-    m_Db = new NativeJSDB(nml->getIdentifier());
+    m_Db = new Nidium::Binding::JSDB(nml->getIdentifier());
 
     if (m_Db->ok()) {
         this->createStorage();
@@ -1402,7 +1400,7 @@ bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativeJSDB *db = NativeJSwindow::getNativeClass(cx)->getDataBase();
+    Nidium::Binding::JSDB *db = NativeJSwindow::getNativeClass(cx)->getDataBase();
 
 
     JSAutoByteString key(cx, args[0].toString());
