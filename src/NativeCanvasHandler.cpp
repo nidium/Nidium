@@ -220,7 +220,7 @@ void NativeCanvasHandler::deviceSetSize(int width, int height)
             height + (m_Padding.global * 2));
     }
 
-    NativeArgs arg;
+    Nidium::Core::Args arg;
 
     arg[0].set(width);
     arg[1].set(height);
@@ -1039,7 +1039,7 @@ void NativeCanvasHandler::unrootHierarchy()
 
 void NativeCanvasHandler::_jobResize(void *arg)
 {
-    NativeArgs *args = (NativeArgs *)arg;
+    Nidium::Core::Args *args = (Nidium::Core::Args *)arg;
     NativeCanvasHandler *handler = static_cast<NativeCanvasHandler *>(args[0][0].toPtr());
 
     int64_t height = args[0][1].toInt64();
@@ -1081,7 +1081,7 @@ void NativeCanvasHandler::execPending()
 bool NativeCanvasHandler::checkLoaded()
 {
     if (m_Loaded) {
-        NativeArgs arg;
+        Nidium::Core::Args arg;
         this->fireEvent<NativeCanvasHandler>(LOADED_EVENT, arg, true);
         return true;
     }
@@ -1090,7 +1090,7 @@ bool NativeCanvasHandler::checkLoaded()
 
 void NativeCanvasHandler::propertyChanged(EventsChangedProperty property)
 {
-    NativeArgs arg;
+    Nidium::Core::Args arg;
     arg[0].set(property);
 
     switch (property) {
@@ -1109,7 +1109,7 @@ void NativeCanvasHandler::propertyChanged(EventsChangedProperty property)
 
 void NativeCanvasHandler::onDrag(NativeInputEvent *ev, NativeCanvasHandler *target, bool end)
 {
-    NativeArgs arg;
+    Nidium::Core::Args arg;
 
     if (!end) {
         arg[0].set((m_Flags & kDrag_Flag) == 0 ?
@@ -1143,7 +1143,7 @@ void NativeCanvasHandler::onDrag(NativeInputEvent *ev, NativeCanvasHandler *targ
 
 void NativeCanvasHandler::onDrop(NativeInputEvent *ev, NativeCanvasHandler *drop)
 {
-    NativeArgs arg;
+    Nidium::Core::Args arg;
     arg[0].set(NativeInputEvent::kMouseDrop_Type);
     arg[1].set(ev->m_x);
     arg[2].set(ev->m_y);
@@ -1209,7 +1209,7 @@ bool NativeCanvasHandler::_handleEvent(NativeInputEvent *ev)
     for (NativeCanvasHandler *handler = this; handler != NULL;
         handler = handler->getParent()) {
 
-        NativeArgs arg;
+        Nidium::Core::Args arg;
 
         arg[0].set(ev->getType());
         arg[1].set(ev->m_x);

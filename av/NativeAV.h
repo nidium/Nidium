@@ -191,7 +191,7 @@ typedef void (*NativeAVSourceEventCallback)(const struct NativeAVSourceEvent*m_E
 
 struct NativeAVSourceEvent {
     int m_Ev;
-    NativeArgs m_Args;
+    Nidium::Core::Args m_Args;
     void *m_Custom;
     bool m_FromThread;
     NativeAVSourceEvent(int ev, void *custom, bool fromThread)
