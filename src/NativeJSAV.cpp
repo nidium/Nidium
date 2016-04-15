@@ -396,7 +396,7 @@ const char *NativeJSAVEventRead(int ev)
     }
 }
 
-static JS::HandleValue consumeSourceMessage(JSContext *cx, JS::HandleObject obj, const NativeSharedMessages::Message &msg)
+static JS::HandleValue consumeSourceMessage(JSContext *cx, JS::HandleObject obj, const Nidium::Core::SharedMessages::Message &msg)
 {
     JS::RootedObject evObj(cx, Nidium::Binding::JSEvents::CreateEventObject(cx));
     Nidium::Binding::JSObjectBuilder ev(cx, evObj);
@@ -886,7 +886,7 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
     }
 }
 
-void NativeJSAudioNode::onMessage(const NativeSharedMessages::Message &msg)
+void NativeJSAudioNode::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     if (m_IsDestructing) return;
     JS::RootedObject obj(m_Cx, m_JSObject);
@@ -2118,7 +2118,7 @@ void NativeJSVideo::stopAudio()
     this->releaseAudioNode();
 }
 
-void NativeJSVideo::onMessage(const NativeSharedMessages::Message &msg)
+void NativeJSVideo::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     if (m_IsDestructing) return;
 

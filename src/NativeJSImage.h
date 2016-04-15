@@ -24,7 +24,7 @@ class NativeJSImage : public Nidium::Binding::JSExposer<NativeJSImage>,
     static JSObject *buildImageObject(JSContext *cx, NativeSkImage *image,
         const char name[] = NULL);
 
-    void onMessage(const NativeSharedMessages::Message &msg);
+    void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 
 private:
     bool setupWithBuffer(buffer *buf);

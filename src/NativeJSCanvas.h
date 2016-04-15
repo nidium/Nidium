@@ -9,8 +9,8 @@ class NativeCanvasHandler;
 class NativeJSCanvas: public Nidium::Binding::JSExposer<NativeJSCanvas>, public NativeMessages
 {
 public:
-    virtual void onMessage(const NativeSharedMessages::Message &msg);
-    virtual void onMessageLost(const NativeSharedMessages::Message &msg);
+    virtual void onMessage(const Nidium::Core::SharedMessages::Message &msg);
+    virtual void onMessageLost(const Nidium::Core::SharedMessages::Message &msg);
     static void registerObject(JSContext *cx);
     static JSObject *generateJSObject(JSContext *cx, int width, int height,
         NativeCanvasHandler **out);

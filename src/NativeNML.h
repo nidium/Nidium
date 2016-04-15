@@ -34,7 +34,7 @@ public:
 
     typedef nidium_xml_ret_t (NativeNML::*tag_callback)(rapidxml::xml_node<> &node);
 
-    void onMessage(const NativeSharedMessages::Message &msg);
+    void onMessage(const Nidium::Core::SharedMessages::Message &msg);
     void loadFile(const char *filename, NMLLoadedCallback cb, void *arg);
 
     void loadDefaultItems(NativeAssets *assets);

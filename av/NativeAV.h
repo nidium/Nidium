@@ -109,7 +109,7 @@ class NativeAVStreamReader : public NativeAVReader, public NativeMessages
             MSG_READ,
             MSG_STOP
         };
-        void onMessage(const NativeSharedMessages::Message &msg);
+        void onMessage(const Nidium::Core::SharedMessages::Message &msg);
         NATIVE_PTHREAD_VAR_DECL(m_ThreadCond);
 
         NativeBaseStream *m_Stream;
@@ -275,7 +275,7 @@ class NativeAVSource : public NativeMessages, public NativeAVSourceEventInterfac
 
         int readError(int err);
 
-        void onMessage(const NativeSharedMessages::Message &msg);
+        void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 };
 
 #endif

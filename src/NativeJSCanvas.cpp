@@ -1563,7 +1563,7 @@ void NativeJSCanvas::registerObject(JSContext *cx)
         nullptr, nullptr);
 }
 
-void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
+void NativeJSCanvas::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     JSContext *cx = m_Cx;
     JS::RootedObject ro(cx, m_JSObject);
@@ -1665,7 +1665,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
             if (JS_GetProperty(cx, robj, "cancelBubble", &cancelBubble)) {
                 if (cancelBubble.isBoolean() && cancelBubble.toBoolean()) {
                     /* TODO: sort out this dirty hack */
-                    NativeSharedMessages::Message *nonconstmsg = (NativeSharedMessages::Message *)&msg;
+                    Nidium::Core::SharedMessages::Message *nonconstmsg = (Nidium::Core::SharedMessages::Message *)&msg;
                     nonconstmsg->priv = 1;
                 }
             }
@@ -1676,7 +1676,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
     }
 }
 
-void NativeJSCanvas::onMessageLost(const NativeSharedMessages::Message &msg)
+void NativeJSCanvas::onMessageLost(const Nidium::Core::SharedMessages::Message &msg)
 {
 
 }

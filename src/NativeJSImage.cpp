@@ -204,7 +204,7 @@ static int delete_stream(void *arg)
     return 0;
 }
 
-void NativeJSImage::onMessage(const NativeSharedMessages::Message &msg)
+void NativeJSImage::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
 

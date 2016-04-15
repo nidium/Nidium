@@ -6,8 +6,7 @@
 #include <zip.h>
 #include <jsoncpp.h>
 
-class NativeSharedMessages;
-class NativeJS;
+#include <Binding/NativeJS.h>
 
 typedef bool (* NativeAppExtractCallback)(const char * buf,
     int len, size_t offset, size_t total, void *user);
@@ -56,7 +55,7 @@ public:
     pthread_mutex_t m_ThreadMutex;
     pthread_cond_t m_ThreadCond;
 
-    NativeSharedMessages *m_Messages;
+    Nidium::Core::SharedMessages *m_Messages;
     struct zip *m_fZip;
 
     void actionExtractRead(const char *buf, int len,

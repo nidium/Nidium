@@ -245,7 +245,7 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
     return pos;
 }
 
-void NativeAVStreamReader::onMessage(const NativeSharedMessages::Message &msg)
+void NativeAVStreamReader::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     //NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(msg.dataPtr());
 
@@ -416,7 +416,7 @@ int NativeAVSource::readError(int err)
 }
 
 
-void NativeAVSource::onMessage(const NativeSharedMessages::Message &msg)
+void NativeAVSource::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case MSG_CLOSE:

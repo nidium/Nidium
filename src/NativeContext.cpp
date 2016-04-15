@@ -591,7 +591,7 @@ void NativeContext::execPendingCanvasChanges()
     }
 }
 
-void NativeContext::onMessage(const NativeSharedMessages::Message &msg)
+void NativeContext::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case NATIVE_EVENT(NativeWebSocketListener, SERVER_CONNECT):

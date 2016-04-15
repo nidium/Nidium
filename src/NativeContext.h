@@ -199,7 +199,7 @@ class NativeContext : public NativeMessages
 
     Nidium::Core::Hash<NativeBytecodeScript *> preload;
 
-    void onMessage(const NativeSharedMessages::Message &msg);
+    void onMessage(const Nidium::Core::SharedMessages::Message &msg);
     void addJob(void (*job)(void *arg), void *arg);
 
     NativeCanvasHandler *getCanvasById(const char *str) {

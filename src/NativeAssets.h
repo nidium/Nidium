@@ -64,7 +64,7 @@ class NativeAssets
                 }
 
                 NativeBaseStream *m_Stream;
-                void onMessage(const NativeSharedMessages::Message &msg);
+                void onMessage(const Nidium::Core::SharedMessages::Message &msg);
             private:
                 const char *m_Url;
                 ape_global *m_Net;

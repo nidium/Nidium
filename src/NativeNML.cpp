@@ -472,7 +472,7 @@ static int delete_stream(void *arg)
     return 0;
 }
 
-void NativeNML::onMessage(const NativeSharedMessages::Message &msg)
+void NativeNML::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case NATIVESTREAM_READ_BUFFER:

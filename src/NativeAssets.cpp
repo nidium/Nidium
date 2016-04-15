@@ -32,7 +32,7 @@ NativeAssets::Item::Item(const char *url, FileType t,
 }
 
 
-void NativeAssets::Item::onMessage(const NativeSharedMessages::Message &msg)
+void NativeAssets::Item::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case NATIVESTREAM_READ_BUFFER:

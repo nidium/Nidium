@@ -198,7 +198,7 @@ class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, p
 
         // Source m_Node
         void *m_ArrayContent;
-        void onMessage(const NativeSharedMessages::Message &msg);
+        void onMessage(const Nidium::Core::SharedMessages::Message &msg);
         static void onEvent(const struct NativeAVSourceEvent *cev);
 
         // Custom source m_Node
@@ -233,7 +233,7 @@ class NativeJSVideo : public Nidium::Binding::JSExposer<NativeJSVideo>, public N
 
         static void registerObject(JSContext *cx);
         static void frameCallback(uint8_t *data, void *custom);
-        void onMessage(const NativeSharedMessages::Message &msg);
+        void onMessage(const Nidium::Core::SharedMessages::Message &msg);
         static void onEvent(const struct NativeAVSourceEvent *cev);
 
         ~NativeJSVideo();
