@@ -165,7 +165,7 @@ class Hash<uint32_t> : public NativeNoncopyable
         struct _ape_htable *table;
 };
 
-} // namespace Binding
+} // namespace Core
 } // namespace Nidium
 
 #endif
