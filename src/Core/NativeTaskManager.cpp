@@ -31,7 +31,7 @@ void *NativeTaskManager::workerInfo::work()
         }
         pthread_mutex_unlock(&m_Lock);
 
-        NativeSharedMessages::Message *msg;
+        Nidium::Core::SharedMessages::Message *msg;
 
         while ((msg = m_Messages.readMessage())) {
             NativeTask *task = (NativeTask *)msg->dataPtr();
@@ -60,7 +60,7 @@ void NativeTaskManager::workerInfo::waitTerminate()
     pthread_join(m_Handle, NULL);
 }
 
-void NativeTaskManager_workerInfo_MessageCleaner(const NativeSharedMessages::Message &msg)
+void NativeTaskManager_workerInfo_MessageCleaner(const Nidium::Core::SharedMessages::Message &msg)
 {
     NativeTask *task = (NativeTask *)msg.dataPtr();
     delete task;
@@ -92,7 +92,7 @@ void NativeTaskManager::workerInfo::run()
 
 void NativeTaskManager::workerInfo::addTask(NativeTask *task)
 {
-    NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(task, 0);
+    Nidium::Core::SharedMessages::Message *msg = new Nidium::Core::SharedMessages::Message(task, 0);
 
     /*
         Set the caller as destination so that messages

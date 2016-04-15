@@ -124,7 +124,7 @@
             '../src/Binding/NativeJSWebSocketClient.cpp',
             '../src/Binding/JSDB.cpp',
 
-            '../src/Core/NativeSharedMessages.cpp',
+            '../src/Core/SharedMessages.cpp',
             '../src/Core/NativeUtils.cpp',
             '../src/Core/NativeMessages.cpp',
             '../src/Core/DB.cpp',

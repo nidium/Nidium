@@ -20,7 +20,7 @@
 
 #define NATIVE_FILE_NOTIFY(param, event, arg) \
     do {   \
-        NativeSharedMessages::Message *__msg = new NativeSharedMessages::Message(event); \
+        Nidium::Core::SharedMessages::Message *__msg = new Nidium::Core::SharedMessages::Message(event); \
         __msg->args[0].set(param); \
         __msg->args[7].set(arg); \
         this->postMessage(__msg); \
@@ -425,7 +425,7 @@ NativeFile::~NativeFile()
     free(m_Path);
 }
 
-void NativeFile::onMessage(const NativeSharedMessages::Message &msg)
+void NativeFile::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     if (m_Delegate) {
         m_Delegate->onMessage(msg);
@@ -448,7 +448,7 @@ void NativeFile::onMessage(const NativeSharedMessages::Message &msg)
     }
 }
 
-void NativeFile::onMessageLost(const NativeSharedMessages::Message &msg)
+void NativeFile::onMessageLost(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch(msg.event()) {
         case NATIVEFILE_READ_SUCCESS:

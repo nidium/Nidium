@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativesharedmessages_h__
-#define nativesharedmessages_h__
+#ifndef core_sharedmessages_h__
+#define core_sharedmessages_h__
 
 #include <pthread.h>
 #include <stdint.h>
@@ -13,8 +13,11 @@
 
 /*
     TODO: Add "max messages in queue" to guard memory congestion in case of allocation
-         (i.e. NativeApp extractor)
+         (i.e. Nidium::Core:App extractor)
 */
+
+namespace Nidium {
+namespace Core {
 
 typedef struct _native_shared_message
 {
@@ -22,7 +25,7 @@ typedef struct _native_shared_message
     struct _native_shared_message *prev;
 } native_shared_message;
 
-class NativeSharedMessages
+class SharedMessages
 {
   public:
 
@@ -79,10 +82,10 @@ class NativeSharedMessages
             void *m_Dest;
     };
 
-    typedef void (*native_shared_message_cleaner)(const NativeSharedMessages::Message &msg);
+    typedef void (*native_shared_message_cleaner)(const SharedMessages::Message &msg);
 
-    NativeSharedMessages();
-    ~NativeSharedMessages();
+    SharedMessages();
+    ~SharedMessages();
 
     void postMessage(Message *msg);
     void postMessage(void *dataptr, int event);
@@ -110,5 +113,8 @@ class NativeSharedMessages
 
     native_shared_message_cleaner m_Cleaner;
 };
-#endif
 
+} // namespace Core
+} // namespace Nidium
+
+#endif

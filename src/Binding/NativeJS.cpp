@@ -653,7 +653,7 @@ NativeJS::NativeJS(ape_global *net) :
 
     JS_SetRuntimePrivate(rt, this);
 
-    messages = new NativeSharedMessages();
+    messages = new Nidium::Core::SharedMessages();
     registeredMessages = (native_thread_message_t*)calloc(16, sizeof(native_thread_message_t));
     registeredMessagesIdx = 8; // The 8 first slots are reserved for Native internals messages
     registeredMessagesSize = 16;
@@ -769,7 +769,7 @@ static int Native_handle_messages(void *arg)
     JSContext *cx = njs->cx;
     int nread = 0;
 
-    NativeSharedMessages::Message *msg;
+    Nidium::Core::SharedMessages::Message *msg;
     JSAutoRequest ar(cx);
 
     while (++nread < MAX_MSG_IN_ROW && (msg = njs->messages->readMessage())) {

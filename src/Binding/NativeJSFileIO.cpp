@@ -31,7 +31,7 @@ enum {
 class NativeJSFileAsyncReader : public NativeMessages
 {
 public:
-    void onMessage(const NativeSharedMessages::Message &msg)
+    void onMessage(const Nidium::Core::SharedMessages::Message &msg)
     {
 
         JSContext *cx = (JSContext *)m_Args[0].toPtr();
@@ -686,7 +686,7 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-bool NativeJSFileIO::handleError(JSContext *cx, const NativeSharedMessages::Message &msg,
+bool NativeJSFileIO::handleError(JSContext *cx, const Nidium::Core::SharedMessages::Message &msg,
     JS::MutableHandleValue vals)
 {
     switch (msg.event()) {
@@ -728,7 +728,7 @@ static const char *NativeJSFileIO_dirtype_to_str(const dirent *entry)
 }
 
 bool NativeJSFileIO::callbackForMessage(JSContext *cx,
-    const NativeSharedMessages::Message &msg, JSObject *thisobj,
+    const Nidium::Core::SharedMessages::Message &msg, JSObject *thisobj,
     const char *encoding)
 {
     JS::AutoValueArray<2> params(cx);
@@ -798,7 +798,7 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
     return true;
 }
 
-void NativeJSFileIO::onMessage(const NativeSharedMessages::Message &msg)
+void NativeJSFileIO::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     this->callbackForMessage(m_Cx, msg, m_JSObject, m_Encoding);
 }

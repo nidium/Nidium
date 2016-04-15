@@ -12,7 +12,7 @@
 #include <ape_buffer.h>
 
 #include "Core/NativePath.h"
-#include "Core/NativeSharedMessages.h"
+#include "Core/SharedMessages.h"
 
 #define NATIVESTREAM_MESSAGE_BITS(id) ((1 << 21) | id)
 
@@ -114,7 +114,7 @@ protected:
     /*
         Send a message to the listener
     */
-    void notify(NativeSharedMessages::Message *msg);
+    void notify(Nidium::Core::SharedMessages::Message *msg);
 
     /*
         Send an error message

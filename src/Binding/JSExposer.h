@@ -558,7 +558,7 @@ public:
         return m_Ctx;
     }
 
-    virtual void onMessage(const NativeSharedMessages::Message &msg)=0;
+    virtual void onMessage(const Nidium::Core::SharedMessages::Message &msg)=0;
 private:
     JSContext *m_Ctx;
     JSObject *m_CallBack[NIDIUM_ASYNC_MAXCALLBACK];

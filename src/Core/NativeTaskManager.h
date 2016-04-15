@@ -10,7 +10,7 @@
 #include <pthread.h>
 
 #include "NativeMessages.h"
-#include "NativeSharedMessages.h"
+#include "SharedMessages.h"
 
 #define NATIVE_TASKMANAGER_MAX_IDLE_THREAD 8
 #define NATIVE_TASKMANAGER_MAX_THREAD 16
@@ -35,7 +35,7 @@ public:
             m_Manager = manager;
         }
 
-        NativeSharedMessages *getMessages() {
+        Nidium::Core::SharedMessages *getMessages() {
             return &m_Messages;
         }
     private:
@@ -44,7 +44,7 @@ public:
         pthread_cond_t m_Cond;
         bool m_Stop;
         NativeTaskManager *m_Manager;
-        NativeSharedMessages m_Messages;
+        Nidium::Core::SharedMessages m_Messages;
     };
 
     NativeTaskManager();

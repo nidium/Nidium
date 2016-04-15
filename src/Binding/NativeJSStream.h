@@ -22,7 +22,7 @@ class NativeJSStream :  public Nidium::Binding::JSExposer<NativeJSStream>,
         return m_Stream;
     }
 
-    void onMessage(const NativeSharedMessages::Message &msg);
+    void onMessage(const Nidium::Core::SharedMessages::Message &msg);
   private:
     NativeBaseStream *m_Stream;
 };

@@ -14,14 +14,14 @@
 /*
     TODO: make thread local storage
 */
-static NativeSharedMessages *g_MessagesList;
+static Nidium::Core::SharedMessages *g_MessagesList;
 
 static int NativeMessages_handle(void *arg)
 {
 #define MAX_MSG_IN_ROW 256
     int nread = 0;
 
-    NativeSharedMessages::Message *msg;
+    Nidium::Core::SharedMessages::Message *msg;
 
     /*
         TODO: need a lock for "obj"
@@ -36,7 +36,7 @@ static int NativeMessages_handle(void *arg)
     return 8;
 }
 
-static void NativeMessages_lost(const NativeSharedMessages::Message &msg)
+static void NativeMessages_lost(const Nidium::Core::SharedMessages::Message &msg)
 {
     NativeMessages *obj = static_cast<NativeMessages *>(msg.dest());
     obj->onMessageLost(msg);
@@ -62,17 +62,17 @@ NativeMessages::~NativeMessages()
 
 void NativeMessages::postMessage(void *dataptr, int event, bool forceAsync)
 {
-    NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(dataptr, event);
+    Nidium::Core::SharedMessages::Message *msg = new Nidium::Core::SharedMessages::Message(dataptr, event);
     this->postMessage(msg, forceAsync);
 }
 
 void NativeMessages::postMessage(uint64_t dataint, int event, bool forceAsync)
 {
-    NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(dataint, event);
+    Nidium::Core::SharedMessages::Message *msg = new Nidium::Core::SharedMessages::Message(dataint, event);
     this->postMessage(msg, forceAsync);
 }
 
-void NativeMessages::postMessage(NativeSharedMessages::Message *msg, bool forceAsync)
+void NativeMessages::postMessage(Nidium::Core::SharedMessages::Message *msg, bool forceAsync)
 {
     msg->setDest(this);
 
@@ -93,7 +93,7 @@ void NativeMessages::postMessage(NativeSharedMessages::Message *msg, bool forceA
 
 void NativeMessages::initReader(ape_global *ape)
 {
-    g_MessagesList = new NativeSharedMessages();
+    g_MessagesList = new Nidium::Core::SharedMessages();
 
     g_MessagesList->setCleaner(NativeMessages_lost);
 
@@ -122,7 +122,7 @@ void NativeMessages::destroyReader()
     delete g_MessagesList;
 }
 
-NativeSharedMessages *NativeMessages::getSharedMessages()
+Nidium::Core::SharedMessages *NativeMessages::getSharedMessages()
 {
     return g_MessagesList;
 }

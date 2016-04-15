@@ -133,7 +133,7 @@ void NativeFileStream::seek(size_t pos)
     m_DataBuffer.ended = false;
 }
 
-void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
+void NativeFileStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case NATIVEFILE_OPEN_SUCCESS:

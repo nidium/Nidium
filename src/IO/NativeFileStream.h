@@ -44,7 +44,7 @@ public:
     virtual size_t getFileSize() const;
     virtual void seek(size_t pos);
 
-    virtual void onMessage(const NativeSharedMessages::Message &msg);
+    virtual void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 protected:
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err);
     virtual void onStart(size_t packets, size_t seek);

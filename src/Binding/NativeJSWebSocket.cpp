@@ -212,7 +212,7 @@ JSObject *NativeJSWebSocketServer::createClient(NativeWebSocketClientConnection 
     return jclient;
 }
 
-void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg)
+void NativeJSWebSocketServer::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     JSContext *cx = m_Cx;
 

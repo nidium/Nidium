@@ -66,7 +66,7 @@ const unsigned char *NativeBaseStream::getNextPacket(size_t *len, int *err)
     return this->onGetNextPacket(len, err);
 }
 
-void NativeBaseStream::notify(NativeSharedMessages::Message *msg)
+void NativeBaseStream::notify(Nidium::Core::SharedMessages::Message *msg)
 {
     if (m_Listener) {
         m_Listener->postMessage(msg);

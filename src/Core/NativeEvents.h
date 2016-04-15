@@ -42,7 +42,7 @@ public:
         for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
             NativeMessages *receiver = (NativeMessages *)item->content.addrs;
 
-            NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(NATIVE_EVENTS_MESSAGE_BITS(event) |
+            Nidium::Core::SharedMessages::Message *msg = new Nidium::Core::SharedMessages::Message(NATIVE_EVENTS_MESSAGE_BITS(event) |
                                                                                    (T::EventID << 16));
 
             msg->args[0].set(static_cast<T *>(this));

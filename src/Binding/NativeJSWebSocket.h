@@ -19,7 +19,7 @@ public:
     ~NativeJSWebSocketServer();
     bool start();
     static void registerObject(JSContext *cx);
-    void onMessage(const NativeSharedMessages::Message &msg);
+    void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 private:
     NativeWebSocketListener *m_WebSocketServer;
 

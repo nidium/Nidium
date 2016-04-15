@@ -195,7 +195,7 @@ NativeJSWebSocket::~NativeJSWebSocket()
     delete m_WebSocketClient;
 }
 
-void NativeJSWebSocket::onMessage(const NativeSharedMessages::Message &msg)
+void NativeJSWebSocket::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     JSContext *cx = m_Cx;
 

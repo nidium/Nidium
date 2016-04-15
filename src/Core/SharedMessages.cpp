@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeSharedMessages.h"
+#include "SharedMessages.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,7 +11,11 @@
 
 #include "NativeUtils.h"
 
-NativeSharedMessages::NativeSharedMessages() :
+namespace Nidium {
+namespace Core {
+
+SharedMessages::SharedMessages() :
+
     m_Cleaner(NULL)
 {
     messageslist.count = 0;
@@ -21,12 +25,12 @@ NativeSharedMessages::NativeSharedMessages() :
     pthread_mutex_init(&messageslist.lock, NULL);
 }
 
-NativeSharedMessages::~NativeSharedMessages()
+SharedMessages::~SharedMessages()
 {
     this->delMessagesForDest(NULL);
 }
 
-void NativeSharedMessages::postMessage(Message *message)
+void SharedMessages::postMessage(Message *message)
 {
     NativePthreadAutoLock lock(&messageslist.lock);
 
@@ -42,7 +46,7 @@ void NativeSharedMessages::postMessage(Message *message)
     messageslist.count++;
 }
 
-void NativeSharedMessages::postMessage(void *dataptr, int event)
+void SharedMessages::postMessage(void *dataptr, int event)
 {
     Message *message;
 
@@ -62,7 +66,7 @@ void NativeSharedMessages::postMessage(void *dataptr, int event)
     messageslist.count++;
 }
 
-void NativeSharedMessages::postMessage(uint64_t dataint, int event)
+void SharedMessages::postMessage(uint64_t dataint, int event)
 {
     Message *message;
 
@@ -82,7 +86,7 @@ void NativeSharedMessages::postMessage(uint64_t dataint, int event)
     messageslist.count++;
 }
 
-NativeSharedMessages::Message *NativeSharedMessages::readMessage()
+SharedMessages::Message *SharedMessages::readMessage()
 {
     NativePthreadAutoLock lock(&messageslist.lock);
 
@@ -103,7 +107,7 @@ NativeSharedMessages::Message *NativeSharedMessages::readMessage()
     return message;
 }
 
-NativeSharedMessages::Message *NativeSharedMessages::readMessage(int type)
+SharedMessages::Message *SharedMessages::readMessage(int type)
 {
     NativePthreadAutoLock lock(&messageslist.lock);
 
@@ -139,7 +143,7 @@ NativeSharedMessages::Message *NativeSharedMessages::readMessage(int type)
     return message;
 }
 
-void NativeSharedMessages::delMessagesForDest(void *dest, int event)
+void SharedMessages::delMessagesForDest(void *dest, int event)
 {
     NativePthreadAutoLock lock(&messageslist.lock);
 
@@ -174,4 +178,7 @@ void NativeSharedMessages::delMessagesForDest(void *dest, int event)
         message = tmp;
     }
 }
+
+} // namespace Core
+} // namespace Nidium
 

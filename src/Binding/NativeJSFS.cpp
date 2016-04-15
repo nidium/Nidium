@@ -38,7 +38,7 @@ public:
 
     }
 
-    void onMessage(const NativeSharedMessages::Message &msg) {
+    void onMessage(const Nidium::Core::SharedMessages::Message &msg) {
         switch(msg.event()) {
             case NATIVE_JSFS_MSG_READDIR_FILE:
             {
@@ -70,7 +70,7 @@ public:
         }
     }
 
-    void onMessageLost(const NativeSharedMessages::Message &msg)
+    void onMessageLost(const Nidium::Core::SharedMessages::Message &msg)
     {
         switch (msg.event()) {
             case NATIVE_JSFS_MSG_READDIR_FILE:

@@ -118,8 +118,8 @@ public:
         return new NativeFile(m_Path);
     }
 
-    void onMessage(const NativeSharedMessages::Message &msg);
-    void onMessageLost(const NativeSharedMessages::Message &msg);
+    void onMessage(const Nidium::Core::SharedMessages::Message &msg);
+    void onMessageLost(const Nidium::Core::SharedMessages::Message &msg);
 private:
     bool checkEOF();
     void checkRead(bool async = true, void *arg = NULL);

@@ -15,7 +15,7 @@
 
 #include "Core/Hash.h"
 #include "Core/NativeMessages.h"
-#include "Core/NativeSharedMessages.h"
+#include "Core/SharedMessages.h"
 
 #define NATIVE_JS_FNPROPS JSPROP_ENUMERATE | JSPROP_PERMANENT
 
@@ -39,14 +39,13 @@ struct nidium_thread_msg
     class JSObject *callee;
 };
 
-class NativeSharedMessages;
 class NativeSkia;
 class NativeCanvasHandler;
 class NativeJSModules;
 struct _ape_htable;
 
 typedef struct _ape_global ape_global;
-typedef void (*native_thread_message_t)(JSContext *cx, NativeSharedMessages::Message *msg);
+typedef void (*native_thread_message_t)(JSContext *cx, Nidium::Core::SharedMessages::Message *msg);
 
 typedef struct _NativeBytecodeScript {
     const char *name;
@@ -67,7 +66,7 @@ class NativeJS
         typedef int (*logger_clear)();
 
         JSContext *cx;
-        NativeSharedMessages *messages;
+        Nidium::Core::SharedMessages *messages;
 
         Nidium::Core::Hash<JSObject *> jsobjects;
 

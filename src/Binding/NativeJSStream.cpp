@@ -246,7 +246,7 @@ void NativeJSStream::onProgress(size_t buffered, size_t total)
 }
 #endif
 
-void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
+void NativeJSStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     JS::RootedValue onavailable_callback(m_Cx);
     JS::RootedValue onerror_callback(m_Cx);

@@ -8,7 +8,7 @@
 
 #include <pthread.h>
 
-#include "Core/NativeSharedMessages.h"
+#include "Core/SharedMessages.h"
 #include "Core/NativeMessages.h"
 #include "JSExposer.h"
 
@@ -24,7 +24,7 @@ class JSThread : public Nidium::Binding::JSExposer<JSThread>, public NativeMessa
     ~JSThread();
     static void registerObject(JSContext *cx);
     void onComplete(JS::HandleValue vp);
-    void onMessage(const NativeSharedMessages::Message &msg);
+    void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 
     JS::PersistentRootedString jsFunction;
 
