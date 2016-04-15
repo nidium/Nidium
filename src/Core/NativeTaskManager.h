@@ -87,7 +87,7 @@ public:
         return m_Obj;
     }
 
-    NativeArgs args;
+    Nidium::Core::Args args;
 
     friend class NativeManaged;
 private:

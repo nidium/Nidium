@@ -34,7 +34,7 @@ public:
         }
     }
     template <typename T>
-    bool fireEvent(typename T::Events event, const NativeArgs &args,
+    bool fireEvent(typename T::Events event, const Nidium::Core::Args &args,
         bool forceAsync = false) {
 
         ape_htable_item_t *item;

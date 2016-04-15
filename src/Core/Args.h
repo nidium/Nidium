@@ -3,19 +3,22 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativeargs_h__
-#define nativeargs_h__
+#ifndef core_args_h__
+#define core_args_h__
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-class NativeArgs
+namespace Nidium {
+namespace Core {
+
+class Args
 {
 public:
-    class NativeArgsValue {
+    class ArgsValue {
     public:
-        NativeArgsValue() : m_Value(0LL), m_isSet(false) {
+        ArgsValue() : m_Value(0LL), m_isSet(false) {
             m_ValuePtr = NULL;
         }
 
@@ -53,15 +56,15 @@ public:
 
         bool m_isSet;
     };
-    NativeArgs() {
+    Args() {
         m_numArgs = 8;
-        m_Args = (NativeArgsValue **)malloc(sizeof(NativeArgsValue *) * m_numArgs);
+        m_Args = (ArgsValue **)malloc(sizeof(ArgsValue *) * m_numArgs);
 
         for (int i = 0; i < m_numArgs; i++) {
-            m_Args[i] = new NativeArgsValue();
+            m_Args[i] = new ArgsValue();
         }
     }
-    ~NativeArgs() {
+    ~Args() {
         for (int i = 0; i < m_numArgs; i++) {
             delete m_Args[i];
         }
@@ -71,13 +74,13 @@ public:
     /*
         Overflow values are automatically allocated
     */
-    NativeArgsValue& operator[] (int idx) {
+    ArgsValue& operator[] (int idx) {
         if (idx >= m_numArgs) {
-            m_Args = (NativeArgsValue **)realloc(m_Args,
-                sizeof(NativeArgsValue *) * (idx+1));
+            m_Args = (ArgsValue **)realloc(m_Args,
+                sizeof(ArgsValue *) * (idx+1));
 
             for (int i = m_numArgs; i <= idx; i++) {
-                m_Args[i] = new NativeArgsValue();
+                m_Args[i] = new ArgsValue();
             }
             m_numArgs = idx+1;
 
@@ -89,9 +92,9 @@ public:
     /*
         const version doesn't protect against overflow
     */
-    const NativeArgsValue& operator[] (int idx) const {
+    const ArgsValue& operator[] (int idx) const {
         if (idx >= m_numArgs) {
-            printf("/!\\ Overflow in accessing NativeArgs value. Beggining of the array returned\n");
+            printf("/!\\ Overflow in accessing Args value. Beggining of the array returned\n");
             return *m_Args[0];
         }
         return *m_Args[idx];
@@ -101,9 +104,12 @@ public:
         return m_numArgs;
     }
 private:
-    NativeArgsValue **m_Args;
+    ArgsValue **m_Args;
     int m_numArgs;
 };
+
+} // namespace Core
+} // namespace Nidium
 
 #endif
 

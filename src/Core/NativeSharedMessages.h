@@ -9,7 +9,7 @@
 #include <pthread.h>
 #include <stdint.h>
 
-#include "NativeArgs.h"
+#include "Args.h"
 
 /*
     TODO: Add "max messages in queue" to guard memory congestion in case of allocation
@@ -66,7 +66,7 @@ class NativeSharedMessages
             }
 
             Message *prev;
-            NativeArgs args;
+            Nidium::Core::Args args;
             uint32_t priv;
         private:
 

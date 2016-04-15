@@ -164,7 +164,7 @@ void NativeWebSocketClient::onDataWS(const uint8_t *data, size_t len)
 
 void NativeWebSocketClient::onFrame(const char *data, size_t len, bool binary)
 {
-    NativeArgs args;
+    Nidium::Core::Args args;
     args[0].set(this);
     args[1].set((void *)data);
     args[2].set(len);
@@ -177,7 +177,7 @@ void NativeWebSocketClient::onClose()
 {
     m_Socket = NULL;
 
-    NativeArgs args;
+    Nidium::Core::Args args;
     args[0].set(this);
 
     this->fireEvent<NativeWebSocketClient>(NativeWebSocketClient::CLIENT_CLOSE, args);
@@ -198,7 +198,7 @@ void NativeWebSocketClient::HTTPRequestEnded()
 {
     m_Socket->callbacks.on_read = native_ws_read_ws;
 
-    NativeArgs args;
+    Nidium::Core::Args args;
     args[0].set(this);
 
     this->fireEvent<NativeWebSocketClient>(NativeWebSocketClient::CLIENT_CONNECT, args);

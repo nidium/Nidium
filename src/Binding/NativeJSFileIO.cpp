@@ -86,7 +86,7 @@ public:
         delete this;
     }
 
-    NativeArgs m_Args;
+    Nidium::Core::Args m_Args;
 };
 
 #define NJSFIO_GETTER(obj) ((class NativeJSFileIO *)JS_GetPrivate(obj))

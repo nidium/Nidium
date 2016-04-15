@@ -30,9 +30,6 @@ void NativeWebSocketListener::onClientConnect(ape_socket *client, ape_global *ap
     client->ctx = new NativeWebSocketClientConnection(this, client);
 }
 
-//////////
-//////////
-
 NativeWebSocketClientConnection::NativeWebSocketClientConnection(
         NativeHTTPListener *httpserver, ape_socket *socket) :
     NativeHTTPClientConnection(httpserver, socket), m_Handshaked(false),
@@ -76,7 +73,7 @@ void NativeWebSocketClientConnection::onHeaderEnded()
 
 void NativeWebSocketClientConnection::onDisconnect(ape_global *ape)
 {
-    NativeArgs args;
+    Nidium::Core::Args args;
     args[0].set(this);
 
     if (m_PingTimer) {
@@ -116,7 +113,7 @@ void NativeWebSocketClientConnection::onUpgrade(const char *to)
 
     m_Handshaked = true;
 
-    NativeArgs args;
+    Nidium::Core::Args args;
     args[0].set(this);
 
     ape_timer_t *timer = APE_timer_create(m_SocketClient->ape, NATIVEWEBSOCKET_PING_INTERVAL,
@@ -137,7 +134,7 @@ void NativeWebSocketClientConnection::onContent(const char *data, size_t len)
 void NativeWebSocketClientConnection::onFrame(const char *data, size_t len,
     bool binary)
 {
-    NativeArgs args;
+    Nidium::Core::Args args;
     args[0].set(this);
     args[1].set((void *)data);
     args[2].set(len);
