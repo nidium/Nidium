@@ -3,13 +3,16 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeJSDB.h"
+#include "JSDB.h"
 
 #include <leveldb/db.h>
 #include <jsapi.h>
 #include <js/StructuredClone.h>
 
-bool NativeJSDB::insert(const char *key, JSContext *cx, JS::HandleValue val)
+namespace Nidium {
+namespace Binding {
+
+bool JSDB::insert(const char *key, JSContext *cx, JS::HandleValue val)
 {
     uint64_t *data;
     size_t data_len;
@@ -25,3 +28,5 @@ bool NativeJSDB::insert(const char *key, JSContext *cx, JS::HandleValue val)
     return status.ok();
 }
 
+} // namespace Binding
+} // namespace Nidium

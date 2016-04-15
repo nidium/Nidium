@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeDB.h"
+#include "DB.h"
 
 #include <stdbool.h>
 
@@ -12,12 +12,15 @@
 
 #include "NativePath.h"
 
-#ifndef NATIVE_NO_PRIVATE_DIR
+#ifndef NIDIUM_NO_PRIVATE_DIR
 #  include "../interface/NativeSystemInterface.h"
 #endif
 
 
-NativeDB::NativeDB(const char *name) :
+namespace Nidium {
+namespace Core {
+
+DB::DB(const char *name) :
     m_Database(NULL), m_Status(false)
 {
     char * chdir;
@@ -29,7 +32,7 @@ NativeDB::NativeDB(const char *name) :
         return;
     }
     leveldb::Options options;
-#ifndef NATIVE_NO_PRIVATE_DIR
+#ifndef NIDIUM_NO_PRIVATE_DIR
     std::string sdir(NativeSystemInterface::getInstance()->getCacheDirectory());
 #else
     std::string sdir("./");
@@ -56,7 +59,7 @@ NativeDB::NativeDB(const char *name) :
     free(chdir);
 }
 
-bool NativeDB::insert(const char *key, const uint8_t *data, size_t data_len)
+bool DB::insert(const char *key, const uint8_t *data, size_t data_len)
 {
     leveldb::Slice input((const char *)data, data_len);
     leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, input);
@@ -64,7 +67,7 @@ bool NativeDB::insert(const char *key, const uint8_t *data, size_t data_len)
     return status.ok();
 }
 
-bool NativeDB::insert(const char *key, const char *string)
+bool DB::insert(const char *key, const char *string)
 {
     leveldb::Slice input(string);
     leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, input);
@@ -72,22 +75,25 @@ bool NativeDB::insert(const char *key, const char *string)
     return status.ok();
 }
 
-bool NativeDB::insert(const char *key, const std::string &string)
+bool DB::insert(const char *key, const std::string &string)
 {
     leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, string);
 
     return status.ok();
 }
 
-bool NativeDB::get(const char *key, std::string &ret)
+bool DB::get(const char *key, std::string &ret)
 {
     leveldb::Status status = m_Database->Get(leveldb::ReadOptions(), key, &ret);
 
     return status.ok();
 }
 
-NativeDB::~NativeDB()
+DB::~DB()
 {
     delete m_Database;
 }
+
+} // namespace Core
+} // namespace Nidium
 

@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativedb_h__
-#define nativedb_h__
+#ifndef core_db_h__
+#define core_db_h__
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -15,11 +15,14 @@ namespace leveldb {
     class DB;
 };
 
-class NativeDB
+namespace Nidium {
+namespace Core {
+
+class DB
 {
     public:
-        explicit NativeDB(const char *name);
-        ~NativeDB();
+        explicit DB(const char *name);
+        ~DB();
 
         /*
             Check status after the constructor is caller
@@ -37,6 +40,9 @@ class NativeDB
     private:
         bool m_Status;
 };
+
+} // namespace Core
+} // namespace Nidium
 
 #endif
 

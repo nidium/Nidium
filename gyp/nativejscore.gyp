@@ -122,15 +122,15 @@
             '../src/Binding/NativeJSUtils.cpp',
             '../src/Binding/NativeJSStream.cpp',
             '../src/Binding/NativeJSWebSocketClient.cpp',
-            '../src/Binding/NativeJSDB.cpp',
+            '../src/Binding/JSDB.cpp',
 
             '../src/Core/NativeSharedMessages.cpp',
             '../src/Core/NativeUtils.cpp',
             '../src/Core/NativeMessages.cpp',
-            '../src/Core/NativeDB.cpp',
+            '../src/Core/DB.cpp',
             '../src/Core/NativeTaskManager.cpp',
             '../src/Core/NativePath.cpp',
-            
+
             '../src/IO/NativeFile.cpp',
             '../src/IO/NativeStreamInterface.cpp',
             '../src/IO/NativeFileStream.cpp',
