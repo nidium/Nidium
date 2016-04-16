@@ -14,7 +14,7 @@
 #include <ape_array.h>
 
 #include "Core/NativeMessages.h"
-#include "Core/NativeEvents.h"
+#include "Core/Events.h"
 
 #define HTTP_MAX_CL (1024ULL*1024ULL*1024ULL*2ULL)
 #define HTTP_DEFAULT_TIMEOUT 15000
@@ -23,7 +23,7 @@ class NativeMessages;
 class NativeHTTPClientConnection;
 class NativeHTTPResponse;
 
-class NativeHTTPListener : public NativeEvents
+class NativeHTTPListener : public Nidium::Core::Events
 {
 public:
     static const uint8_t EventID = 3;

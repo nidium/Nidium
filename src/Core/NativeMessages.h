@@ -12,14 +12,19 @@
 #include "Hash.h"
 
 typedef struct _ape_global ape_global;
-class NativeEvents;
+
+namespace Nidium {
+	namespace Core {
+		class Events;
+	}
+}
 
 #define CREATE_MESSAGE(var, ev) Nidium::Core::SharedMessages::Message *var = new Nidium::Core::SharedMessages::Message(ev);
 
 class NativeMessages
 {
 public:
-    friend class NativeEvents;
+    friend class Nidium::Core::Events;
     NativeMessages();
     virtual ~NativeMessages()=0;
 
@@ -40,11 +45,11 @@ public:
     Nidium::Core::SharedMessages *getSharedMessages();
 
 private:
-    void listenFor(NativeEvents *obj, bool enable);
+    void listenFor(Nidium::Core::Events *obj, bool enable);
     pthread_t m_GenesisThread;
 
     /* Keep track on which objects we are listening events */
-    Nidium::Core::Hash64<NativeEvents *>m_Listening;
+    Nidium::Core::Hash64<Nidium::Core::Events *>m_Listening;
 };
 
 #endif

@@ -9,7 +9,7 @@
 
 #include <native_netlib.h>
 
-#include "NativeEvents.h"
+#include "Events.h"
 
 /*
     TODO: make thread local storage
@@ -55,7 +55,7 @@ NativeMessages::~NativeMessages()
     ape_htable_item_t *item;
 
     for (item = m_Listening.accessCStruct()->first; item != NULL; item = item->lnext) {
-        NativeEvents *sender = (NativeEvents *)item->content.addrs;
+        Nidium::Core::Events *sender = (Nidium::Core::Events *)item->content.addrs;
         sender->removeListener(this, false);
     }
 }
@@ -103,7 +103,7 @@ void NativeMessages::initReader(ape_global *ape)
     APE_timer_unprotect(timer);
 }
 
-void NativeMessages::listenFor(NativeEvents *obj, bool enable)
+void NativeMessages::listenFor(Nidium::Core::Events *obj, bool enable)
 {
     if (enable) {
         m_Listening.set((uint64_t)obj, obj);

@@ -3,11 +3,14 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativeevents_h__
-#define nativeevents_h__
+#ifndef core_events_h__
+#define core_events_h__
 
 #include "Hash.h"
 #include "NativeMessages.h"
+
+namespace Nidium {
+namespace Core {
 
 #define NATIVE_EVENTS_MESSAGE_BITS(id) ((1 << 31) | id)
 #define NATIVE_EVENT(classe, event) (NATIVE_EVENTS_MESSAGE_BITS(classe::event) | (classe::EventID << 16))
@@ -15,10 +18,10 @@
 /*
     Implementation Note :
 
-    Children of NativeEvents must define a static
+    Children of Nidium::Core::Events must define a static
     const property "static const uint8_t EventID" with an unique 8bit identifier
 */
-class NativeEvents
+class Events
 {
 public:
     void addListener(NativeMessages *listener) {
@@ -65,7 +68,7 @@ public:
         return true;
     }
 
-    virtual ~NativeEvents() {
+    virtual ~Events() {
         ape_htable_item_t *item;
 
         for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
@@ -79,6 +82,9 @@ private:
 
     Nidium::Core::Hash64<NativeMessages *> m_Listeners;
 };
+
+} // namespace Core
+} // namespace Nidium
 
 #endif
 

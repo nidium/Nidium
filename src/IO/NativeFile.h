@@ -13,7 +13,7 @@
 
 #include "Core/NativeMessages.h"
 #include "Core/NativeTaskManager.h"
-#include "Core/NativeEvents.h"
+#include "Core/Events.h"
 
 #include "NativeIStreamer.h"
 
@@ -33,7 +33,7 @@ enum {
     NATIVEFILE_LISTFILES_ENTRIES = NATIVEFILE_MESSAGE_BITS(10),
 };
 
-class NativeFile : public NativeManaged, public NativeIStreamer, public NativeEvents
+class NativeFile : public NativeManaged, public NativeIStreamer, public Nidium::Core::Events
 {
 public:
     static const uint8_t EventID = 2;

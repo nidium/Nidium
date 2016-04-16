@@ -8,10 +8,10 @@
 
 #include <ape_websocket.h>
 
-#include "Core/NativeEvents.h"
+#include "Core/Events.h"
 #include "NativeHTTPParser.h"
 
-class NativeWebSocketClient : public NativeEvents, public NativeHTTPParser
+class NativeWebSocketClient : public Nidium::Core::Events, public NativeHTTPParser
 {
 public:
     static const uint8_t EventID = 5;
