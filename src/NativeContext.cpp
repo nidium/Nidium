@@ -22,7 +22,7 @@
 #endif
 
 #ifdef DEBUG
-#include <Binding/NativeJSDebug.h>
+#include <Binding/JSDebug.h>
 #endif
 
 #ifdef NATIVE_AUDIO_ENABLED
@@ -173,7 +173,7 @@ void NativeContext::loadNativeObjects(int width, int height)
 
 #if DEBUG
     createDebug2Canvas();
-    NativeJSDebug::registerObject(cx);
+    Nidium::Binding::JSDebug::registerObject(cx);
 #endif
 }
 
