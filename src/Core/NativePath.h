@@ -21,10 +21,15 @@
 
 #include <ape_array.h>
 
+namespace Nidium {
+	namespace IO {
+		class Stream;
+	}
+}
+
 #define NATIVE_MAX_REGISTERED_SCHEMES 1024
 
 struct JSContext;
-class NativeBaseStream;
 
 extern char *g_m_Root;
 extern char *g_m_Pwd;
@@ -47,7 +52,7 @@ class NativePath
 public:
     struct schemeInfo {
         const char *str;
-        NativeBaseStream *(*base)(const char *);
+        Nidium::IO::Stream *(*base)(const char *);
         const char *(*getBaseDir)();
         bool keepPrefix;
         bool (*allowLocalFileStream)();
@@ -77,7 +82,7 @@ public:
         return m_Host;
     }
 
-    NativeBaseStream *createStream(bool onlySync = false) const {
+    Nidium::IO::Stream *createStream(bool onlySync = false) const {
         if (!m_Scheme || !m_Path) {
             return NULL;
         }

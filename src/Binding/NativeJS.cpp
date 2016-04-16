@@ -18,7 +18,7 @@
 #include <js/OldDebugAPI.h>
 #include <jsprf.h>
 
-#include "IO/NativeStreamInterface.h"
+#include "IO/Stream.h"
 
 #include "NativeJSSocket.h"
 #include "JSThread.h"
@@ -417,7 +417,7 @@ static bool native_load(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativePtrAutoDelete<NativeBaseStream *> stream(scriptpath.createStream());
+    NativePtrAutoDelete<Nidium::IO::Stream *> stream(scriptpath.createStream());
 
     if (!stream.ptr() || !stream.ptr()->getContentSync(&content, &len, true)) {
         JS_ReportError(cx, "load() failed read script");
@@ -659,7 +659,7 @@ NativeJS::NativeJS(ape_global *net) :
     registeredMessagesSize = 16;
 
 #if 0
-    NativeBaseStream *stream = NativeBaseStream::create("nvfs:///libs/zip.lib.js");
+    Nidium::IO::Stream *stream = Nidium::IO::Stream::create("nvfs:///libs/zip.lib.js");
     char *ret;
     size_t retlen;
 
@@ -668,7 +668,7 @@ NativeJS::NativeJS(ape_global *net) :
         printf("ret : %s\n", ret);
     }
 
-    NativeBaseStream *mov = NativeBaseStream::create("/tmp/test");
+    Nidium::IO::Stream *mov = Nidium::IO::Stream::create("/tmp/test");
 
     char *content;
     size_t len;

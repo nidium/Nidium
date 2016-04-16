@@ -132,7 +132,7 @@
             '../src/Core/NativePath.cpp',
 
             '../src/IO/NativeFile.cpp',
-            '../src/IO/NativeStreamInterface.cpp',
+            '../src/IO/Stream.cpp',
             '../src/IO/NativeFileStream.cpp',
             '../src/IO/NativeNFSStream.cpp',
             '../src/IO/NativeNFS.cpp',

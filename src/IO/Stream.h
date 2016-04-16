@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativestreaminterface_h__
-#define nativestreaminterface_h__
+#ifndef io_stream_h__
+#define io_stream_h__
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -13,32 +13,34 @@
 
 #include "Core/NativePath.h"
 #include "Core/SharedMessages.h"
+#include "Core/NativeMessages.h"
 
-#define NATIVESTREAM_MESSAGE_BITS(id) ((1 << 21) | id)
+namespace Nidium {
+namespace IO {
+
+#define STREAM_MESSAGE_BITS(id) ((1 << 21) | id)
 
 enum {
-    NATIVESTREAM_ERROR =            NATIVESTREAM_MESSAGE_BITS(1),
-    NATIVESTREAM_READ_BUFFER =      NATIVESTREAM_MESSAGE_BITS(2),
-    NATIVESTREAM_AVAILABLE_DATA =   NATIVESTREAM_MESSAGE_BITS(3),
-    NATIVESTREAM_PROGRESS =         NATIVESTREAM_MESSAGE_BITS(4)
+    STREAM_ERROR =            STREAM_MESSAGE_BITS(1),
+    STREAM_READ_BUFFER =      STREAM_MESSAGE_BITS(2),
+    STREAM_AVAILABLE_DATA =   STREAM_MESSAGE_BITS(3),
+    STREAM_PROGRESS =         STREAM_MESSAGE_BITS(4)
 };
 
-class NativeMessages;
-
-class NativeBaseStream
+class Stream
 {
 public:
     enum StreamErrors {
-        NATIVESTREAM_ERROR_OPEN,
-        NATIVESTREAM_ERROR_SEEK,
-        NATIVESTREAM_ERROR_READ,
-        NATIVESTREAM_ERROR_UNKNOWN,
+        STREAM_ERROR_OPEN,
+        STREAM_ERROR_SEEK,
+        STREAM_ERROR_READ,
+        STREAM_ERROR_UNKNOWN,
     };
 
-    virtual ~NativeBaseStream();
+    virtual ~Stream();
 
-    static NativeBaseStream *create(const NativePath &path);
-    static NativeBaseStream *create(const char *location);
+    static Stream *create(const NativePath &path);
+    static Stream *create(const char *location);
 
     enum StreamDataStatus {
         STREAM_EAGAIN = -1,
@@ -106,7 +108,7 @@ public:
     }
 
 protected:
-    explicit NativeBaseStream(const char *location);
+    explicit Stream(const char *location);
 
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err)=0;
     virtual void onStart(size_t packets, size_t seek)=0;
@@ -144,6 +146,9 @@ protected:
         bool ended;
     } m_DataBuffer;
 };
+
+} // namespace IO
+} // namespace Nidium
 
 #endif
 

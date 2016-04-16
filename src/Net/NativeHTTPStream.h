@@ -7,17 +7,17 @@
 #define nativehttpstream_h__
 
 #include "Core/NativeMessages.h"
-#include "IO/NativeStreamInterface.h"
+#include "IO/Stream.h"
 #include "Net/NativeHTTP.h"
 
-class NativeHTTPStream : public NativeBaseStream,
+class NativeHTTPStream : public Nidium::IO::Stream,
                          public Nidium::Net::HTTPDelegate
 {
 public:
     explicit NativeHTTPStream(const char *location);
     virtual ~NativeHTTPStream();
 
-    static NativeBaseStream *createStream(const char *location) {
+    static Nidium::IO::Stream *createStream(const char *location) {
         return new NativeHTTPStream(location);
     }
     static const char *getBaseDir() {

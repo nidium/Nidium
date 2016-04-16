@@ -19,7 +19,7 @@ using namespace Nidium::Net;
 #define MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH (1024LL*1024LL*64LL)
 
 NativeHTTPStream::NativeHTTPStream(const char *location) :
-    NativeBaseStream(location), m_StartPosition(0),
+    Nidium::IO::Stream(location), m_StartPosition(0),
     m_BytesBuffered(0), m_LastReadUntil(0)
 {
 
@@ -188,7 +188,7 @@ void NativeHTTPStream::notifyAvailable()
     m_PendingSeek = false;
     m_NeedToSendUpdate = false;
 
-    CREATE_MESSAGE(message_available, NATIVESTREAM_AVAILABLE_DATA);
+    CREATE_MESSAGE(message_available, Nidium::IO::STREAM_AVAILABLE_DATA);
     message_available->args[0].set(m_BytesBuffered - m_LastReadUntil);
 
     this->notify(message_available);
@@ -204,7 +204,7 @@ void NativeHTTPStream::onRequest(HTTP::HTTPData *h, HTTP::DataType)
     buf.data = (unsigned char *)m_Mapped.addr;
     buf.size = buf.used = m_Mapped.size;
 
-    CREATE_MESSAGE(message, NATIVESTREAM_READ_BUFFER);
+    CREATE_MESSAGE(message, Nidium::IO::STREAM_READ_BUFFER);
     message->args[0].set(&buf);
 
     this->notify(message);
@@ -228,7 +228,7 @@ void NativeHTTPStream::onProgress(size_t offset, size_t len,
     /* Reset the data buffer, so that data doesn't grow in memory */
     m_Http->resetData();
 
-    CREATE_MESSAGE(msg_progress, NATIVESTREAM_PROGRESS);
+    CREATE_MESSAGE(msg_progress, Nidium::IO::STREAM_PROGRESS);
     msg_progress->args[0].set(m_Http->getFileSize());
     msg_progress->args[1].set(m_StartPosition);
     msg_progress->args[2].set(m_BytesBuffered);
@@ -246,19 +246,19 @@ void NativeHTTPStream::onError(HTTP::HTTPError err)
     this->cleanCacheFile();
 
     if (m_PendingSeek) {
-        this->error(NATIVESTREAM_ERROR_SEEK, -1);
+        this->error(STREAM_ERROR_SEEK, -1);
         m_PendingSeek = false;
         this->stop();
         return;
     }
     switch (err) {
         case HTTP::ERROR_HTTPCODE:
-            this->error(NATIVESTREAM_ERROR_OPEN, m_Http->getStatusCode());
+            this->error(STREAM_ERROR_OPEN, m_Http->getStatusCode());
             break;
         case HTTP::ERROR_RESPONSE:
         case HTTP::ERROR_SOCKET:
         case HTTP::ERROR_TIMEOUT:
-            this->error(NATIVESTREAM_ERROR_OPEN, -1);
+            this->error(STREAM_ERROR_OPEN, -1);
             break;
         default:
             break;
@@ -287,7 +287,7 @@ void NativeHTTPStream::onHeader()
         HTTP didn't returned a partial content (HTTP 206) (seek failed?)
     */
     if (m_PendingSeek && m_Http->getStatusCode() != 206) {
-        this->error(NATIVESTREAM_ERROR_SEEK, -1);
+        this->error(STREAM_ERROR_SEEK, -1);
 
         m_PendingSeek = false;
         this->stop();

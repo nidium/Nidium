@@ -8,8 +8,7 @@
 
 #include "Core/NativeMessages.h"
 #include "JSExposer.h"
-
-class NativeBaseStream;
+#include "IO/Stream.h"
 
 class NativeJSStream :  public Nidium::Binding::JSExposer<NativeJSStream>,
                         public NativeMessages
@@ -18,13 +17,13 @@ class NativeJSStream :  public Nidium::Binding::JSExposer<NativeJSStream>,
     static void registerObject(JSContext *cx);
     NativeJSStream(JS::HandleObject obj, JSContext *cx, ape_global *net, const char *url);
     ~NativeJSStream();
-    NativeBaseStream *getStream() const {
+    Nidium::IO::Stream *getStream() const {
         return m_Stream;
     }
 
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
   private:
-    NativeBaseStream *m_Stream;
+    Nidium::IO::Stream *m_Stream;
 };
 
 #endif

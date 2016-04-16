@@ -12,7 +12,7 @@
 #include <sys/stat.h>
 
 NativeFileStream::NativeFileStream(const char *location) :
-    NativeBaseStream(location), m_File(location)
+    Nidium::IO::Stream(location), m_File(location)
 {
     /* We don't want the file to close when end of file is reached */
     m_File.setAutoClose(false);
@@ -140,16 +140,16 @@ void NativeFileStream::onMessage(const Nidium::Core::SharedMessages::Message &ms
             /* do nothing */
             break;
         case NATIVEFILE_OPEN_ERROR:
-            this->error(NATIVESTREAM_ERROR_OPEN, msg.args[0].toInt());
+            this->error(STREAM_ERROR_OPEN, msg.args[0].toInt());
             break;
         case NATIVEFILE_SEEK_ERROR:
-            this->error(NATIVESTREAM_ERROR_SEEK, -1);
+            this->error(STREAM_ERROR_SEEK, -1);
             /* fall through */
         case NATIVEFILE_SEEK_SUCCESS:
             m_PendingSeek = false;
             break;
         case NATIVEFILE_READ_ERROR:
-            this->error(NATIVESTREAM_ERROR_READ, msg.args[0].toInt());
+            this->error(STREAM_ERROR_READ, msg.args[0].toInt());
             break;
         case NATIVEFILE_READ_SUCCESS:
         {
@@ -180,14 +180,14 @@ void NativeFileStream::onMessage(const Nidium::Core::SharedMessages::Message &ms
                     if (m_NeedToSendUpdate) {
                         m_NeedToSendUpdate = false;
                         CREATE_MESSAGE(message_available,
-                            NATIVESTREAM_AVAILABLE_DATA);
+                            Nidium::IO::STREAM_AVAILABLE_DATA);
                         message_available->args[0].set(buf->used);
                         this->notify(message_available);
                     }
                 }
             }
 
-            CREATE_MESSAGE(message, NATIVESTREAM_READ_BUFFER);
+            CREATE_MESSAGE(message, Nidium::IO::STREAM_READ_BUFFER);
             message->args[0].set(buf);
 
             /*

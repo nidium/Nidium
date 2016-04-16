@@ -3,15 +3,18 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeStreamInterface.h"
+#include "Stream.h"
 
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "NativeFileStream.h"
+#include "Core/NativePath.h"
 
-NativeBaseStream::NativeBaseStream(const char *location) :
+namespace Nidium {
+namespace IO {
+
+Stream::Stream(const char *location) :
     m_PacketsSize(0), m_NeedToSendUpdate(false), m_PendingSeek(false),
     m_Listener(NULL)
 {
@@ -24,17 +27,17 @@ NativeBaseStream::NativeBaseStream(const char *location) :
     m_DataBuffer.ended =        false;
 }
 
-NativeBaseStream::~NativeBaseStream()
+Stream::~Stream()
 {
     free(m_Location);
 }
 
-NativeBaseStream *NativeBaseStream::create(const NativePath &path)
+Stream *Stream::create(const NativePath &path)
 {
     return path.createStream();
 }
 
-NativeBaseStream *NativeBaseStream::create(const char *location)
+Stream *Stream::create(const char *location)
 {
     const char *pLocation;
     NativePath::schemeInfo *info;
@@ -47,10 +50,10 @@ NativeBaseStream *NativeBaseStream::create(const char *location)
     return info->base(pLocation);
 }
 
-void NativeBaseStream::start(size_t packets, size_t seek)
+void Stream::start(size_t packets, size_t seek)
 {
     if (m_Location == NULL || packets < 1) {
-        this->error(NATIVESTREAM_ERROR_OPEN, -1);
+        this->error(STREAM_ERROR_OPEN, -1);
         return;
     }
 
@@ -59,14 +62,14 @@ void NativeBaseStream::start(size_t packets, size_t seek)
     this->onStart(packets, seek);
 }
 
-const unsigned char *NativeBaseStream::getNextPacket(size_t *len, int *err)
+const unsigned char *Stream::getNextPacket(size_t *len, int *err)
 {
     *len = 0;
     *err = 0;
     return this->onGetNextPacket(len, err);
 }
 
-void NativeBaseStream::notify(Nidium::Core::SharedMessages::Message *msg)
+void Stream::notify(Nidium::Core::SharedMessages::Message *msg)
 {
     if (m_Listener) {
         m_Listener->postMessage(msg);
@@ -75,16 +78,16 @@ void NativeBaseStream::notify(Nidium::Core::SharedMessages::Message *msg)
     }
 }
 
-void NativeBaseStream::error(StreamErrors err, unsigned int code)
+void Stream::error(StreamErrors err, unsigned int code)
 {
-    CREATE_MESSAGE(message, NATIVESTREAM_ERROR);
+    CREATE_MESSAGE(message, STREAM_ERROR);
     message->args[0].set(err);
     message->args[1].set(code);
 
     this->notify(message);
 }
 
-void NativeBaseStream::swapBuffer()
+void Stream::swapBuffer()
 {
     buffer *tmp =           m_DataBuffer.back;
     m_DataBuffer.back =     m_DataBuffer.front;
@@ -112,4 +115,7 @@ void NativeBaseStream::swapBuffer()
         m_DataBuffer.back->used = 0;
     }
 }
+
+} // namespace IO
+} // namespace Nidium
 

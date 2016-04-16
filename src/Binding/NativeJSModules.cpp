@@ -18,7 +18,7 @@
 
 #include <jsoncpp.h>
 
-#include "IO/NativeStreamInterface.h"
+#include "IO/Stream.h"
 #include "JSExposer.h"
 
 #if 0
@@ -329,7 +329,7 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
 bool NativeJSModules::getFileContent(const char *file, char **content, size_t *size)
 {
     NativePath path(file, false, true);
-    NativeBaseStream *stream = path.createStream(true);
+    Nidium::IO::Stream *stream = path.createStream(true);
 
     if (!stream) {
         return false;

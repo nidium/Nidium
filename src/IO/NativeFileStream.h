@@ -8,16 +8,16 @@
 
 #include "Core/NativeMessages.h"
 
-#include "NativeStreamInterface.h"
+#include "Stream.h"
 #include "NativeFile.h"
 
-class NativeFileStream : public NativeBaseStream,
+class NativeFileStream : public Nidium::IO::Stream,
                          public NativeMessages
 {
 public:
     explicit NativeFileStream(const char *location);
 
-    static NativeBaseStream *createStream(const char *location) {
+    static Nidium::IO::Stream *createStream(const char *location) {
         return new NativeFileStream(location);
     }
     static const char *getBaseDir() {

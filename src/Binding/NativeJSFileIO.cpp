@@ -16,7 +16,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "IO/NativeStreamInterface.h"
+//#include "Core/NativeMessages.h"
+#include "IO/Stream.h"
 #include "NativeJSUtils.h"
 
 #define FILE_ROOT_DEBUG 0
@@ -40,21 +41,21 @@ public:
         params[1].setUndefined();
         JS::RootedValue rval(cx);
 
-        NativeBaseStream *stream = (NativeBaseStream *)m_Args[2].toPtr();
+        Nidium::IO::Stream *stream = (Nidium::IO::Stream *)m_Args[2].toPtr();
 
         JS::RootedObject callback(cx, (JSObject *)m_Args[7].toPtr());
 
         char *encoding = (char *)m_Args[1].toPtr();
 
         switch (msg.event()) {
-            case NATIVESTREAM_ERROR: {
-                NativeBaseStream::StreamErrors err =
-                (NativeBaseStream::StreamErrors)msg.args[0].toInt();
+            case Nidium::IO::STREAM_ERROR: {
+                Nidium::IO::Stream::StreamErrors err =
+                (Nidium::IO::Stream::StreamErrors)msg.args[0].toInt();
                 printf("Got an error : %d\n", err);
                 params[0].setString(JS_NewStringCopyZ(cx, "Stream error"));
             }
                 break;
-            case NATIVESTREAM_READ_BUFFER:
+            case Nidium::IO::STREAM_READ_BUFFER:
             {
                 JS::RootedValue ret(cx);
                 buffer *buf = (buffer *)msg.args[0].toPtr();
@@ -598,7 +599,7 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
         return false;
     }
 
-    NativePtrAutoDelete<NativeBaseStream *> stream(path.createStream());
+    NativePtrAutoDelete<Nidium::IO::Stream *> stream(path.createStream());
 
     if (!stream.ptr() || !stream.ptr()->getContentSync(&buf, &len)) {
         args.rval().setNull();
@@ -660,7 +661,7 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString cfilename(cx, filename);
     NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(&callback.toObject());
 
-    NativeBaseStream *stream = NativeBaseStream::create(NativePath(cfilename.ptr()));
+    Nidium::IO::Stream *stream = Nidium::IO::Stream::create(NativePath(cfilename.ptr()));
 
     if (!stream) {
         JS_ReportError(cx, "couldn't open stream");

@@ -18,7 +18,7 @@
   #include NATIVE_EMBED_PRIVATE
 #endif
 NativeNFSStream::NativeNFSStream(const char *location) :
-    NativeBaseStream(location)
+    Nidium::IO::Stream(location)
 {
     static NativeNFS *nfs = NULL;
 
@@ -37,13 +37,13 @@ void NativeNFSStream::onStart(size_t packets, size_t seek)
     m_File.pos = 0;
 
     if (m_File.data == NULL) {
-        this->error(NATIVESTREAM_ERROR_OPEN, 0);
+        this->error(STREAM_ERROR_OPEN, 0);
 
         return;
     }
 
     CREATE_MESSAGE(message_available,
-        NATIVESTREAM_AVAILABLE_DATA);
+        Nidium::IO::STREAM_AVAILABLE_DATA);
     message_available->args[0].set(native_min(packets, m_File.len));
 
     this->notify(message_available);
@@ -54,7 +54,7 @@ void NativeNFSStream::onStart(size_t packets, size_t seek)
     buf.data = (unsigned char *)m_File.data;
     buf.size = buf.used = m_File.len;
 
-    CREATE_MESSAGE(message, NATIVESTREAM_READ_BUFFER);
+    CREATE_MESSAGE(message, Nidium::IO::STREAM_READ_BUFFER);
     message->args[0].set(&buf);
 
     /*
@@ -109,7 +109,7 @@ void NativeNFSStream::_getContent()
     m_File.pos = 0;
 
     if (m_File.data == NULL) {
-        this->error(NATIVESTREAM_ERROR_OPEN, 0);
+        this->error(STREAM_ERROR_OPEN, 0);
 
         return;
     }
@@ -120,7 +120,7 @@ void NativeNFSStream::_getContent()
     buf.data = (unsigned char *)m_File.data;
     buf.size = buf.used = m_File.len;
 
-    CREATE_MESSAGE(message, NATIVESTREAM_READ_BUFFER);
+    CREATE_MESSAGE(message, Nidium::IO::STREAM_READ_BUFFER);
     message->args[0].set(&buf);
 
     this->notify(message);
@@ -157,7 +157,7 @@ size_t NativeNFSStream::getFileSize() const
 void NativeNFSStream::seek(size_t pos)
 {
     if (pos > m_File.len) {
-        this->error(NATIVESTREAM_ERROR_SEEK, -1);
+        this->error(STREAM_ERROR_SEEK, -1);
         return;
     }
     m_File.pos = pos;

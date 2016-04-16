@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "IO/NativeStreamInterface.h"
+#include "IO/Stream.h"
 
 enum {
     STREAM_PROP_FILESIZE
@@ -144,13 +144,13 @@ static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value 
 
     if (ret == NULL) {
         switch(err) {
-            case NativeBaseStream::STREAM_END:
+            case Nidium::IO::Stream::STREAM_END:
                 JS_ReportError(cx, "Stream has ended");
                 return false;
-            case NativeBaseStream::STREAM_ERROR:
+            case Nidium::IO::Stream::STREAM_ERROR:
                 JS_ReportError(cx, "Stream error (unknown)");
                 return false;
-            case NativeBaseStream::STREAM_EAGAIN:
+            case Nidium::IO::Stream::STREAM_EAGAIN:
                 args.rval().setNull();
                 return true;
         }
@@ -213,7 +213,7 @@ NativeJSStream::NativeJSStream(JS::HandleObject obj, JSContext *cx,
     std::string str = url;
     //str += NativeJS::getNativeClass(cx)->getPath();
 
-    m_Stream = NativeBaseStream::create(NativePath(str.c_str()));
+    m_Stream = Nidium::IO::Stream::create(NativePath(str.c_str()));
 
     if (!m_Stream) {
         return;
@@ -255,24 +255,24 @@ void NativeJSStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     JS::RootedObject obj(m_Cx, m_JSObject);
 
     switch (msg.event()) {
-        case NATIVESTREAM_AVAILABLE_DATA:
+        case Nidium::IO::STREAM_AVAILABLE_DATA:
             if (JS_GetProperty(m_Cx, obj, "onavailabledata", &onavailable_callback) &&
                 JS_TypeOfValue(m_Cx, onavailable_callback) == JSTYPE_FUNCTION) {
 
                 JS_CallFunctionValue(m_Cx, obj, onavailable_callback, JS::HandleValueArray::empty(), &rval);
             }
             break;
-        case NATIVESTREAM_ERROR:
+        case Nidium::IO::STREAM_ERROR:
             {
-            NativeBaseStream::StreamErrors err =
-                (NativeBaseStream::StreamErrors)msg.args[0].toInt();
+            Nidium::IO::Stream::StreamErrors err =
+                (Nidium::IO::Stream::StreamErrors)msg.args[0].toInt();
             int code = msg.args[1].toInt();
             switch (err) {
-                case NativeBaseStream::NATIVESTREAM_ERROR_OPEN:
+                case Nidium::IO::Stream::STREAM_ERROR_OPEN:
                     break;
-                case NativeBaseStream::NATIVESTREAM_ERROR_READ:
+                case Nidium::IO::Stream::STREAM_ERROR_READ:
                     break;
-                case NativeBaseStream::NATIVESTREAM_ERROR_SEEK:
+                case Nidium::IO::Stream::STREAM_ERROR_SEEK:
 
                     break;
                 default:
