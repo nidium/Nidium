@@ -17,7 +17,7 @@
 #include "NativeMacros.h"
 #include "NativeREPL.h"
 
-#include <Binding/NativeJSProcess.h>
+#include <Binding/JSProcess.h>
 
 #define NATIVE_SERVER_VERSION "0.2-dev"
 #define NATIVE_MAX_WORKERS 64
@@ -278,7 +278,7 @@ int NativeWorker::run(int argc, char **argv, bool jsstrict)
 
     NativeContext ctx(net, this, jsstrict, m_RunREPL);
     const NativeJS *js = ctx.getNJS();
-    NativeJSProcess::registerObject(js->getJSContext(), argv, argc,
+    Nidium::Binding::JSProcess::registerObject(js->getJSContext(), argv, argc,
         this->getIdentifier());
 
     /*
