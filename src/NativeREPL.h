@@ -2,14 +2,14 @@
 #define nativerepl_h__
 
 #include <native_netlib.h>
-#include <Core/NativeMessages.h>
+#include <Core/Messages.h>
 
 #include <ape_buffer.h>
 #include <semaphore.h>
 
 class NativeJS;
 
-class NativeREPL : public NativeMessages
+class NativeREPL : public Nidium::Core::Messages
 {
 public:
     NativeREPL(NativeJS *js);

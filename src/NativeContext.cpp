@@ -2,17 +2,18 @@
 
 #include <unistd.h>
 
-#include "NativeContext.h"
-#include "NativeMacros.h"
+#include <native_netlib.h>
 
-#include <Binding/NativeJS.h>
-#include "NativeJSConsole.h"
-#include "NativeJSSystem.h"
-#include <Core/NativeMessages.h>
+#include <Core/Messages.h>
+#include <Core/NativePath.h>
 #include <IO/FileStream.h>
 #include <Net/NativeHTTPStream.h>
-#include <Core/NativePath.h>
-#include <native_netlib.h>
+#include <Binding/NativeJS.h>
+
+#include "NativeJSConsole.h"
+#include "NativeJSSystem.h"
+#include "NativeContext.h"
+#include "NativeMacros.h"
 
 
 static int NativeContext_ping(void *arg)
@@ -52,7 +53,7 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
     NativePath::registerScheme(SCHEME_DEFINE("https://",   NativeHTTPStream,    true));
 
     NativeTaskManager::createManager();
-    NativeMessages::initReader(net);
+    Nidium::Core::Messages::initReader(net);
     m_JS->loadGlobalObjects();
 
     NativeJSconsole::registerObject(m_JS->cx);
