@@ -22,18 +22,18 @@
 
 #include <string>
 
-#include <IO/NativeFileStream.h>
+#include <IO/FileStream.h>
 #include <IO/NativeNFSStream.h>
 
 #include "NativeSystemInterface.h"
 
 #ifndef NATIVE_EMBED_PRIVATE
 
-class NativePrivateStream : public NativeFileStream
+class NativePrivateStream : public Nidium::IO::FileStream
 {
 public:
     explicit NativePrivateStream(const char *location) :
-        NativeFileStream(location)
+        Nidium::IO::FileStream(location)
     {
     }
 

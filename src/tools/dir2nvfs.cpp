@@ -11,7 +11,7 @@
 #include <native_netlib.h>
 
 #include <NativeNFS.h>
-#include <NativeFileStream.h>
+#include <FileStream.h>
 #include <NativeUtils.h>
 
 #ifndef DIR2NFS_OUTPUT
@@ -80,7 +80,7 @@ void initNativeJSCore()
     /*
         This is required to create a stream (file is the default)
     */
-    NativePath::registerScheme(SCHEME_DEFINE("file://", NativeFileStream, false), true);
+    NativePath::registerScheme(SCHEME_DEFINE("file://", Nidium::IO::FileStream, false), true);
     NativeTaskManager::createManager();
     ape_global *gnet = native_netlib_init();
     NativeMessages::initReader(gnet);

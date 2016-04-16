@@ -19,7 +19,7 @@ NativeUIInterface::NativeUIInterface() :
     m_Hidden(false), m_FBO(0), m_FrameBuffer(NULL), m_Console(NULL),
     m_MainGLCtx(NULL), m_SystemMenu(this)
 {
-    NativePath::registerScheme(SCHEME_DEFINE("file://",    NativeFileStream,    false), true); // default
+    NativePath::registerScheme(SCHEME_DEFINE("file://",    Nidium::IO::FileStream,    false), true); // default
     NativePath::registerScheme(SCHEME_DEFINE("private://", NativePrivateStream, false));
 #if 1
     NativePath::registerScheme(SCHEME_DEFINE("system://",  NativeSystemStream,  false));
