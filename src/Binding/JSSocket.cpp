@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeJSSocket.h"
+#include "JSSocket.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -18,6 +18,9 @@
 
 #include "NativeJSUtils.h"
 
+namespace Nidium {
+namespace Binding {
+
 #define SOCKET_RESERVED_SLOT 0
 
 enum {
@@ -29,25 +32,25 @@ enum {
 };
 
 /* only use on connected clients */
-#define NATIVE_SOCKET_JSOBJECT(socket) (((NativeJSSocket *)socket)->getJSObject())
+#define SOCKET_JSOBJECT(socket) (((JSSocket *)socket)->getJSObject())
 
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj);
-static bool native_socket_prop_get(JSContext *cx, JS::HandleObject obj,
+static bool nidium_socket_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp);
-static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
+static bool nidium_socket_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp);
-static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_socket_write(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_socket_close(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_socket_write(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_socket_close(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static bool native_socket_client_write(JSContext *cx,
+static bool nidium_socket_client_write(JSContext *cx,
     unsigned argc, JS::Value *vp);
-static bool native_socket_client_sendFile(JSContext *cx,
+static bool nidium_socket_client_sendFile(JSContext *cx,
     unsigned argc, JS::Value *vp);
-static bool native_socket_client_close(JSContext *cx,
+static bool nidium_socket_client_close(JSContext *cx,
     unsigned argc, JS::Value *vp);
 
 static JSClass Socket_class = {
@@ -58,7 +61,7 @@ static JSClass Socket_class = {
 };
 
 template<>
-JSClass *Nidium::Binding::JSExposer<NativeJSSocket>::jsclass = &Socket_class;
+JSClass *Nidium::Binding::JSExposer<JSSocket>::jsclass = &Socket_class;
 
 static JSClass socket_client_class = {
     "SocketClient", JSCLASS_HAS_PRIVATE,
@@ -68,33 +71,33 @@ static JSClass socket_client_class = {
 };
 
 static JSFunctionSpec socket_client_funcs[] = {
-    JS_FN("sendFile", native_socket_client_sendFile, 1, NATIVE_JS_FNPROPS),
-    JS_FN("write", native_socket_client_write, 1, NATIVE_JS_FNPROPS),
-    JS_FN("disconnect", native_socket_client_close, 0, NATIVE_JS_FNPROPS),  /* TODO: add force arg */
+    JS_FN("sendFile", nidium_socket_client_sendFile, 1, NATIVE_JS_FNPROPS),
+    JS_FN("write", nidium_socket_client_write, 1, NATIVE_JS_FNPROPS),
+    JS_FN("disconnect", nidium_socket_client_close, 0, NATIVE_JS_FNPROPS),  /* TODO: add force arg */
     JS_FS_END
 };
 
 static JSFunctionSpec socket_funcs[] = {
-    JS_FN("listen", native_socket_listen, 0, NATIVE_JS_FNPROPS),
-    JS_FN("connect", native_socket_connect, 0, NATIVE_JS_FNPROPS),
-    JS_FN("write", native_socket_write, 1, NATIVE_JS_FNPROPS),
-    JS_FN("disconnect", native_socket_close, 0, NATIVE_JS_FNPROPS), /* TODO: add force arg */
-    JS_FN("sendTo", native_socket_sendto, 3, NATIVE_JS_FNPROPS),
+    JS_FN("listen", nidium_socket_listen, 0, NATIVE_JS_FNPROPS),
+    JS_FN("connect", nidium_socket_connect, 0, NATIVE_JS_FNPROPS),
+    JS_FN("write", nidium_socket_write, 1, NATIVE_JS_FNPROPS),
+    JS_FN("disconnect", nidium_socket_close, 0, NATIVE_JS_FNPROPS), /* TODO: add force arg */
+    JS_FN("sendTo", nidium_socket_sendto, 3, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSPropertySpec Socket_props[] = {
-    NIDIUM_JS_PSGS("binary", SOCKET_PROP_BINARY, native_socket_prop_get, native_socket_prop_set),
-    NIDIUM_JS_PSGS("readline", SOCKET_PROP_READLINE, native_socket_prop_get, native_socket_prop_set),
-    NIDIUM_JS_PSGS("encoding", SOCKET_PROP_ENCODING, native_socket_prop_get, native_socket_prop_set),
-    NIDIUM_JS_PSGS("timeout", SOCKET_PROP_TIMEOUT, native_socket_prop_get, native_socket_prop_set),
+    NIDIUM_JS_PSGS("binary", SOCKET_PROP_BINARY, nidium_socket_prop_get, nidium_socket_prop_set),
+    NIDIUM_JS_PSGS("readline", SOCKET_PROP_READLINE, nidium_socket_prop_get, nidium_socket_prop_set),
+    NIDIUM_JS_PSGS("encoding", SOCKET_PROP_ENCODING, nidium_socket_prop_get, nidium_socket_prop_set),
+    NIDIUM_JS_PSGS("timeout", SOCKET_PROP_TIMEOUT, nidium_socket_prop_get, nidium_socket_prop_set),
     JS_PS_END
 };
 
-static bool native_socket_prop_get(JSContext *cx, JS::HandleObject obj,
+static bool nidium_socket_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
-    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
+    JSSocket *nsocket = (JSSocket *)JS_GetPrivate(obj);
 
     if (nsocket == NULL) {
         JS_ReportError(cx, "Invalid socket object");
@@ -103,10 +106,10 @@ static bool native_socket_prop_get(JSContext *cx, JS::HandleObject obj,
 
     switch(id) {
         case SOCKET_PROP_BINARY:
-            vp.setBoolean(nsocket->flags & NATIVE_SOCKET_ISBINARY);
+            vp.setBoolean(nsocket->flags & SOCKET_ISBINARY);
             break;
         case SOCKET_PROP_READLINE:
-            vp.setBoolean(nsocket->flags & NATIVE_SOCKET_READLINE);
+            vp.setBoolean(nsocket->flags & SOCKET_READLINE);
             break;
         case SOCKET_PROP_ENCODING:
             vp.setString(JS_NewStringCopyZ(cx, nsocket->m_Encoding ? nsocket->m_Encoding : "ascii"));
@@ -120,10 +123,10 @@ static bool native_socket_prop_get(JSContext *cx, JS::HandleObject obj,
     return true;
 }
 
-static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
+static bool nidium_socket_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
-    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
+    JSSocket *nsocket = (JSSocket *)JS_GetPrivate(obj);
 
     if (nsocket == NULL) {
         JS_ReportError(cx, "Invalid socket object");
@@ -135,8 +138,8 @@ static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
         {
             if (vp.isBoolean()) {
                 nsocket->flags = (vp.toBoolean() == true ?
-                    nsocket->flags | NATIVE_SOCKET_ISBINARY :
-                    nsocket->flags & ~NATIVE_SOCKET_ISBINARY);
+                    nsocket->flags | SOCKET_ISBINARY :
+                    nsocket->flags & ~SOCKET_ISBINARY);
 
             } else {
                 vp.set(JSVAL_FALSE);
@@ -150,7 +153,7 @@ static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
 
             if (isactive) {
 
-                nsocket->flags |= NATIVE_SOCKET_READLINE;
+                nsocket->flags |= SOCKET_READLINE;
 
                 if (nsocket->lineBuffer.data == NULL) {
 
@@ -165,7 +168,7 @@ static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
                 nsocket->m_FrameDelimiter = vp.isBoolean() ? '\n' : vp.toInt32() & 0xFF;
 
             } else {
-                nsocket->flags &= ~NATIVE_SOCKET_READLINE;
+                nsocket->flags &= ~SOCKET_READLINE;
 
                 vp.set(JSVAL_FALSE);
                 return true;
@@ -199,12 +202,12 @@ static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
     return true;
 }
 
-static void native_socket_wrapper_onconnected(ape_socket *s, ape_global *ape,
+static void nidium_socket_wrapper_onconnected(ape_socket *s, ape_global *ape,
     void *socket_arg)
 {
     JSContext *cx;
 
-    NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx;
+    JSSocket *nsocket = (JSSocket *)s->ctx;
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -225,12 +228,12 @@ static void native_socket_wrapper_onconnected(ape_socket *s, ape_global *ape,
     }
 }
 
-static void native_socket_wrapper_onaccept(ape_socket *socket_server,
+static void nidium_socket_wrapper_onaccept(ape_socket *socket_server,
     ape_socket *socket_client, ape_global *ape, void *socket_arg)
 {
     JSContext *m_Cx;
 
-    NativeJSSocket *nsocket = (NativeJSSocket *)socket_server->ctx;
+    JSSocket *nsocket = (JSSocket *)socket_server->ctx;
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -245,13 +248,13 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
 
     NativeJSObj(m_Cx)->rootObjectUntilShutdown(jclient);
 
-    NativeJSSocket *sobj = new NativeJSSocket(jclient,
+    JSSocket *sobj = new JSSocket(jclient,
         nsocket->getJSContext(), APE_socket_ipv4(socket_client), 0);
 
     sobj->m_ParentServer = nsocket;
     sobj->socket = socket_client;
 
-    if (sobj->getFlags() & NATIVE_SOCKET_READLINE) {
+    if (sobj->getFlags() & SOCKET_READLINE) {
         sobj->lineBuffer.data = (char *)malloc(sizeof(char)
             * SOCKET_LINEBUFFER_MAX);
         sobj->lineBuffer.pos = 0;
@@ -283,7 +286,7 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
     }
 }
 
-void NativeJSSocket::readFrame(const char *buf, size_t len)
+void JSSocket::readFrame(const char *buf, size_t len)
 {
     JS::RootedValue onread(m_Cx);
     JS::RootedValue rval(m_Cx);
@@ -292,7 +295,7 @@ void NativeJSSocket::readFrame(const char *buf, size_t len)
     JS::RootedString jstr(m_Cx);
     jstr = tstr;
 
-    if (this->lineBuffer.pos && (this->getFlags() & NATIVE_SOCKET_READLINE)) {
+    if (this->lineBuffer.pos && (this->getFlags() & SOCKET_READLINE)) {
         JS::RootedString left(m_Cx, NativeJSUtils::newStringWithEncoding(m_Cx, this->lineBuffer.data,
             this->lineBuffer.pos, this->getEncoding()));
 
@@ -316,11 +319,11 @@ void NativeJSSocket::readFrame(const char *buf, size_t len)
     }
 }
 
-static void native_socket_wrapper_client_ondrain(ape_socket *socket_server,
+static void nidium_socket_wrapper_client_ondrain(ape_socket *socket_server,
     ape_global *ape, void *socket_arg)
 {
     JSContext *cx;
-    NativeJSSocket *nsocket = (NativeJSSocket *)socket_server->ctx;
+    JSSocket *nsocket = (JSSocket *)socket_server->ctx;
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -338,12 +341,12 @@ static void native_socket_wrapper_client_ondrain(ape_socket *socket_server,
     }
 }
 
-static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
+static void nidium_socket_wrapper_client_onmessage(ape_socket *socket_server,
     ape_global *ape, const unsigned char *packet, size_t len,
     struct sockaddr_in *addr, void *socket_arg)
 {
     JSContext *cx;
-    NativeJSSocket *nsocket = (NativeJSSocket *)socket_server->ctx;
+    JSSocket *nsocket = (JSSocket *)socket_server->ctx;
 
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
@@ -355,7 +358,7 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
     JS::RootedValue onmessage(cx);
     JS::RootedValue rval(cx);
 
-    if (nsocket->flags & NATIVE_SOCKET_ISBINARY) {
+    if (nsocket->flags & SOCKET_ISBINARY) {
         JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
         uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
         memcpy(data, packet, len);
@@ -392,7 +395,7 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
     }
 }
 
-void NativeJSSocket::onRead(const char *data, size_t len)
+void JSSocket::onRead(const char *data, size_t len)
 {
     JS::RootedValue onread(m_Cx);
     JS::RootedValue rval(m_Cx);
@@ -412,14 +415,14 @@ void NativeJSSocket::onRead(const char *data, size_t len)
         dataPosition = 0;
     }
 
-    if (this->getFlags() & NATIVE_SOCKET_ISBINARY) {
+    if (this->getFlags() & SOCKET_ISBINARY) {
         JS::RootedObject arrayBuffer(m_Cx, JS_NewArrayBuffer(m_Cx, len));
         uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
         memcpy(adata, data, len);
 
         jparams[dataPosition].setObject(*arrayBuffer);
 
-    } else if (this->getFlags() & NATIVE_SOCKET_READLINE) {
+    } else if (this->getFlags() & SOCKET_READLINE) {
         const char *pBuf = data;
         size_t tlen = len;
         char *eol;
@@ -459,11 +462,11 @@ void NativeJSSocket::onRead(const char *data, size_t len)
     }
 }
 
-static void native_socket_wrapper_client_read(ape_socket *socket_client,
+static void nidium_socket_wrapper_client_read(ape_socket *socket_client,
     const uint8_t *data, size_t len,
     ape_global *ape, void *socket_arg)
 {
-    NativeJSSocket *client = (NativeJSSocket *)socket_client->ctx;
+    JSSocket *client = (JSSocket *)socket_client->ctx;
 
     if (client == NULL) {
         return;
@@ -472,11 +475,11 @@ static void native_socket_wrapper_client_read(ape_socket *socket_client,
     client->onRead((const char *)data, len);
 }
 
-static void native_socket_wrapper_read(ape_socket *s,
+static void nidium_socket_wrapper_read(ape_socket *s,
     const uint8_t *data, size_t len, ape_global *ape,
     void *socket_arg)
 {
-    NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx;
+    JSSocket *nsocket = (JSSocket *)s->ctx;
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -485,17 +488,17 @@ static void native_socket_wrapper_read(ape_socket *s,
     nsocket->onRead((const char *)data, len);
 }
 
-static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
+static void nidium_socket_wrapper_client_disconnect(ape_socket *socket_client,
     ape_global *ape, void *socket_arg)
 {
     JSContext *cx;
 
-    NativeJSSocket *csocket = (NativeJSSocket *)socket_client->ctx;
+    JSSocket *csocket = (JSSocket *)socket_client->ctx;
     if (!csocket || !csocket->isClientFromOwnServer()) {
         return;
     }
 
-    NativeJSSocket *ssocket = csocket->getParentServer();
+    JSSocket *ssocket = csocket->getParentServer();
 
     if (ssocket == NULL || !ssocket->isJSCallable()) {
         return;
@@ -521,11 +524,11 @@ static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
     NativeJSObj(cx)->unrootObject(csocket->getJSObject());
 }
 
-static void native_socket_wrapper_disconnect(ape_socket *s, ape_global *ape,
+static void nidium_socket_wrapper_disconnect(ape_socket *s, ape_global *ape,
     void *socket_arg)
 {
     JSContext *cx;
-    NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx;
+    JSSocket *nsocket = (JSSocket *)s->ctx;
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -547,12 +550,12 @@ static void native_socket_wrapper_disconnect(ape_socket *s, ape_global *ape,
     NativeJSObj(cx)->unrootObject(nsocket->getJSObject());
 }
 
-static bool native_Socket_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_Socket_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString host(cx);
 
     unsigned int port;
-    NativeJSSocket *nsocket;
+    JSSocket *nsocket;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -569,7 +572,7 @@ static bool native_Socket_constructor(JSContext *cx, unsigned argc, JS::Value *v
 
     JSAutoByteString chost(cx, host);
 
-    nsocket = new NativeJSSocket(ret, cx, chost.ptr(), port);
+    nsocket = new JSSocket(ret, cx, chost.ptr(), port);
 
     JS_SetPrivate(ret, nsocket);
 
@@ -582,7 +585,7 @@ static bool native_Socket_constructor(JSContext *cx, unsigned argc, JS::Value *v
     return true;
 }
 
-static bool native_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     ape_socket *socket;
     ape_socket_proto protocol = APE_SOCKET_PT_TCP;
@@ -590,7 +593,7 @@ static bool native_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
 
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
-    NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
+    NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &Socket_class);
 
     if (CppObj->isAttached()) {
         return true;
@@ -614,12 +617,12 @@ static bool native_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    socket->callbacks.on_connect    = native_socket_wrapper_onaccept;
-    socket->callbacks.on_read       = native_socket_wrapper_client_read;
-    socket->callbacks.on_disconnect = native_socket_wrapper_client_disconnect;
-    socket->callbacks.on_message    = native_socket_wrapper_client_onmessage;
+    socket->callbacks.on_connect    = nidium_socket_wrapper_onaccept;
+    socket->callbacks.on_read       = nidium_socket_wrapper_client_read;
+    socket->callbacks.on_disconnect = nidium_socket_wrapper_client_disconnect;
+    socket->callbacks.on_message    = nidium_socket_wrapper_client_onmessage;
     /* TODO: need a drain for client socket */
-    //socket->callbacks.on_drain      = native_socket_wrapper_client_ondrain;
+    //socket->callbacks.on_drain      = nidium_socket_wrapper_client_ondrain;
     socket->callbacks.on_drain = NULL;
     socket->ctx = CppObj;
 
@@ -646,12 +649,12 @@ static bool native_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
 
     args.rval().setObjectOrNull(thisobj);
 
-    CppObj->flags |= NATIVE_SOCKET_ISSERVER;
+    CppObj->flags |= SOCKET_ISSERVER;
 
     return true;
 }
 
-static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     ape_socket *socket;
     ape_socket_proto protocol = APE_SOCKET_PT_TCP;
@@ -660,7 +663,7 @@ static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
 
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
-    NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
+    NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &Socket_class);
 
     if (CppObj->isAttached()) {
         return false;
@@ -689,11 +692,11 @@ static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    socket->callbacks.on_connected  = native_socket_wrapper_onconnected;
-    socket->callbacks.on_read       = native_socket_wrapper_read;
-    socket->callbacks.on_disconnect = native_socket_wrapper_disconnect;
-    socket->callbacks.on_message    = native_socket_wrapper_client_onmessage;
-    socket->callbacks.on_drain      = native_socket_wrapper_client_ondrain;
+    socket->callbacks.on_connected  = nidium_socket_wrapper_onconnected;
+    socket->callbacks.on_read       = nidium_socket_wrapper_read;
+    socket->callbacks.on_disconnect = nidium_socket_wrapper_disconnect;
+    socket->callbacks.on_message    = nidium_socket_wrapper_client_onmessage;
+    socket->callbacks.on_drain      = nidium_socket_wrapper_client_ondrain;
 
     socket->ctx = CppObj;
 
@@ -722,14 +725,14 @@ static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_socket_client_sendFile(JSContext *cx,
+static bool nidium_socket_client_sendFile(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     JS::RootedString file(cx);
 
     NIDIUM_JS_CHECK_ARGS("sendFile", 1);
 
-    NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &socket_client_class);
+    NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &socket_client_class);
 
     if (!CppObj->isAttached()) {
         JS_ReportWarning(cx, "socket.sendFile() Invalid socket (not connected)");
@@ -747,13 +750,13 @@ static bool native_socket_client_sendFile(JSContext *cx,
     return true;
 }
 
-static bool native_socket_client_write(JSContext *cx,
+static bool nidium_socket_client_write(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
 
     NIDIUM_JS_CHECK_ARGS("write", 1);
 
-    NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &socket_client_class);
+    NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &socket_client_class);
 
     if (!CppObj->isAttached()) {
 
@@ -795,11 +798,11 @@ static bool native_socket_client_write(JSContext *cx,
     return true;
 }
 
-static bool native_socket_write(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_socket_write(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_CHECK_ARGS("write", 1);
 
-    NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
+    NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &Socket_class);
 
     if (!CppObj->isAttached()) {
 
@@ -840,10 +843,10 @@ static bool native_socket_write(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_socket_client_close(JSContext *cx,
+static bool nidium_socket_client_close(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &socket_client_class);
+    NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &socket_client_class);
 
     if (!CppObj->isAttached()) {
         JS_ReportWarning(cx, "socket.close() Invalid socket (not connected)");
@@ -856,9 +859,9 @@ static bool native_socket_client_close(JSContext *cx,
     return true;
 }
 
-static bool native_socket_close(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_socket_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
+    NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &Socket_class);
 
     if (!CppObj->isAttached()) {
         JS_ReportWarning(cx, "socket.close() Invalid socket (not connected)");
@@ -871,7 +874,7 @@ static bool native_socket_close(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
@@ -882,13 +885,13 @@ static bool native_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
+    JSSocket *nsocket = (JSSocket *)JS_GetPrivate(caller);
 
     if (nsocket == NULL || !nsocket->isAttached()) {
         return true;
     }
 
-    if (!(nsocket->flags & NATIVE_SOCKET_ISSERVER)) {
+    if (!(nsocket->flags & SOCKET_ISSERVER)) {
         JS_ReportError(cx, "sendto() is only available on listening socket");
         return false;
     }
@@ -929,7 +932,7 @@ static bool native_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
+    JSSocket *nsocket = (JSSocket *)JS_GetPrivate(obj);
 
     if (nsocket != NULL) {
         delete nsocket;
@@ -938,7 +941,7 @@ static void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
 
 static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj)
 {
-    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
+    JSSocket *nsocket = (JSSocket *)JS_GetPrivate(obj);
 
     if (nsocket != NULL) {
 
@@ -951,9 +954,9 @@ static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-NativeJSSocket::NativeJSSocket(JS::HandleObject obj, JSContext *cx,
+JSSocket::JSSocket(JS::HandleObject obj, JSContext *cx,
     const char *host, unsigned short port)
-    :  Nidium::Binding::JSExposer<NativeJSSocket>(obj, cx),
+    :  Nidium::Binding::JSExposer<JSSocket>(obj, cx),
     socket(NULL), flags(0), m_ParentServer(NULL), m_TCPTimeout(0)
 {
     this->host = strdup(host);
@@ -965,7 +968,7 @@ NativeJSSocket::NativeJSSocket(JS::HandleObject obj, JSContext *cx,
     m_Encoding = NULL;
 }
 
-NativeJSSocket::~NativeJSSocket()
+JSSocket::~JSSocket()
 {
     if (isAttached()) {
         socket->ctx = NULL;
@@ -981,12 +984,12 @@ NativeJSSocket::~NativeJSSocket()
     }
 }
 
-bool NativeJSSocket::isAttached()
+bool JSSocket::isAttached()
 {
     return (socket != NULL);
 }
 
-bool NativeJSSocket::isJSCallable()
+bool JSSocket::isJSCallable()
 {
     if (m_ParentServer && !m_ParentServer->getJSObject()) {
         return false;
@@ -994,7 +997,7 @@ bool NativeJSSocket::isJSCallable()
     return (this->getJSObject() != NULL);
 }
 
-void NativeJSSocket::dettach()
+void JSSocket::dettach()
 {
     if (isAttached()) {
         socket->ctx = NULL;
@@ -1002,7 +1005,7 @@ void NativeJSSocket::dettach()
     }
 }
 
-int NativeJSSocket::write(unsigned char *data, size_t len,
+int JSSocket::write(unsigned char *data, size_t len,
     ape_socket_data_autorelease data_type)
 {
     if (!socket || !socket->ctx) {
@@ -1012,12 +1015,12 @@ int NativeJSSocket::write(unsigned char *data, size_t len,
     return APE_socket_write(socket, data, len, data_type);
 }
 
-void NativeJSSocket::disconnect()
+void JSSocket::disconnect()
 {
     APE_socket_shutdown_now(socket);
 }
 
-void NativeJSSocket::shutdown()
+void JSSocket::shutdown()
 {
     if (!socket || !socket->ctx) {
         return;
@@ -1025,5 +1028,7 @@ void NativeJSSocket::shutdown()
     APE_socket_shutdown(socket);
 }
 
-NATIVE_OBJECT_EXPOSE(Socket)
+NIDIUM_JS_OBJECT_EXPOSE(Socket)
 
+} // namespace Binding
+} // namespace Nidium

@@ -3,29 +3,32 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativejssocket_h__
-#define nativejssocket_h__
+#ifndef binding_jssocket_h__
+#define binding_jssocket_h__
 
 #include <native_netlib.h>
 
 #include "JSExposer.h"
 
+namespace Nidium {
+namespace Binding {
+
 enum {
-    NATIVE_SOCKET_ISBINARY          = 1 << 0,
-    NATIVE_SOCKET_READLINE          = 1 << 1,
-    NATIVE_SOCKET_ISSERVER          = 1 << 2,
-    NATIVE_SOCKET_ISCONNECTEDCLIENT = 1 << 3
+    SOCKET_ISBINARY          = 1 << 0,
+    SOCKET_READLINE          = 1 << 1,
+    SOCKET_ISSERVER          = 1 << 2,
+    SOCKET_ISCONNECTEDCLIENT = 1 << 3
 };
 
 #define SOCKET_LINEBUFFER_MAX 8192
 
-class NativeJSSocket : public Nidium::Binding::JSExposer<NativeJSSocket>
+class JSSocket : public Nidium::Binding::JSExposer<JSSocket>
 {
 public:
     static void registerObject(JSContext *cx);
-    NativeJSSocket(JS::HandleObject obj, JSContext *cx,
+    JSSocket(JS::HandleObject obj, JSContext *cx,
         const char *host, unsigned short port);
-    ~NativeJSSocket();
+    ~JSSocket();
 
     int write(unsigned char *data, size_t len,
         ape_socket_data_autorelease data_type);
@@ -40,13 +43,13 @@ public:
 
     void onRead(const char *data, size_t len);
 
-    NativeJSSocket *getParentServer() const {
+    JSSocket *getParentServer() const {
         return m_ParentServer;
     }
 
-    void setParentServer(NativeJSSocket *parent) {
+    void setParentServer(JSSocket *parent) {
         m_ParentServer = parent;
-        flags |= NATIVE_SOCKET_ISCONNECTEDCLIENT;
+        flags |= SOCKET_ISCONNECTEDCLIENT;
     }
 
     int getFlags() const {
@@ -83,13 +86,16 @@ public:
 
     uint8_t m_FrameDelimiter;
 
-    NativeJSSocket *m_ParentServer;
+    JSSocket *m_ParentServer;
 
     int m_TCPTimeout;
 
 private:
     void readFrame(const char *buf, size_t len);
 };
+
+} // namespace Binding
+} // namespace Nidium
 
 #endif
 

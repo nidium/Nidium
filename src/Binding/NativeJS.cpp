@@ -20,7 +20,7 @@
 
 #include "IO/Stream.h"
 
-#include "NativeJSSocket.h"
+#include "JSSocket.h"
 #include "JSThread.h"
 #include "JSHttp.h"
 #include "JSFileIO.h"
@@ -1043,7 +1043,7 @@ void NativeJS::loadGlobalObjects()
     /* File() object */
     Nidium::Binding::JSFileIO::registerObject(cx);
     /* Socket() object */
-    NativeJSSocket::registerObject(cx);
+    Nidium::Binding::JSSocket::registerObject(cx);
     /* Thread() object */
     Nidium::Binding::JSThread::registerObject(cx);
     /* Http() object */

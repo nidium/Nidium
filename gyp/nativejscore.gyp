@@ -111,7 +111,7 @@
             '../src/Binding/JSHttp.cpp',
             '../src/Binding/NativeJSModules.cpp',
             '../src/Binding/NativeJSDebugger.cpp',
-            '../src/Binding/NativeJSSocket.cpp',
+            '../src/Binding/JSSocket.cpp',
             '../src/Binding/JSThread.cpp',
             '../src/Binding/NativeJSHTTPListener.cpp',
             '../src/Binding/NativeJSDebug.cpp',
