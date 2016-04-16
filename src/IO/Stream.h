@@ -13,7 +13,7 @@
 
 #include "Core/NativePath.h"
 #include "Core/SharedMessages.h"
-#include "Core/NativeMessages.h"
+#include "Core/Messages.h"
 
 namespace Nidium {
 namespace IO {
@@ -48,7 +48,7 @@ public:
         STREAM_END = -3
     };
 
-    void setListener(NativeMessages *listener) {
+    void setListener(Nidium::Core::Messages *listener) {
         m_Listener = listener;
     }
 
@@ -137,7 +137,7 @@ protected:
     bool    m_NeedToSendUpdate;
     bool    m_PendingSeek;
 
-    NativeMessages *m_Listener;
+    Nidium::Core::Messages *m_Listener;
 
     struct {
         buffer *back, *front;

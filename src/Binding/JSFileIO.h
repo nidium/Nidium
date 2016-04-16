@@ -8,7 +8,7 @@
 
 #include <ape_buffer.h>
 
-#include "Core/NativeMessages.h"
+#include "Core/Messages.h"
 #include "IO/File.h"
 #include "JSExposer.h"
 
@@ -16,7 +16,7 @@ namespace Nidium {
 namespace Binding {
 
 class JSFileIO : public Nidium::Binding::JSExposer<JSFileIO>,
-                       public NativeMessages
+                       public Nidium::Core::Messages
 {
   public:
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);

@@ -9,7 +9,7 @@
 #include <pthread.h>
 
 #include "Core/SharedMessages.h"
-#include "Core/NativeMessages.h"
+#include "Core/Messages.h"
 #include "JSExposer.h"
 
 class NativeJS;
@@ -17,7 +17,7 @@ class NativeJS;
 namespace Nidium {
 namespace Binding {
 
-class JSThread : public Nidium::Binding::JSExposer<JSThread>, public NativeMessages
+class JSThread : public Nidium::Binding::JSExposer<JSThread>, public Nidium::Core::Messages
 {
   public:
     JSThread(JS::HandleObject obj, JSContext *cx);

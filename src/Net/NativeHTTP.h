@@ -16,7 +16,7 @@
 #define HTTP_MAX_CL (1024ULL*1024ULL*1024ULL*2ULL)
 #define HTTP_DEFAULT_TIMEOUT 15000
 
-#include "Core/NativeMessages.h"
+#include "Core/Messages.h"
 #include "IO/NativeIStreamer.h"
 
 namespace Nidium{
@@ -140,7 +140,7 @@ class HTTPRequest
 
 class HTTPDelegate;
 
-class HTTP : public NativeIStreamer, public NativeMessages
+class HTTP : public NativeIStreamer, public Nidium::Core::Messages
 {
 private:
     void *ptr;

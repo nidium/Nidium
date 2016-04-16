@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeMessages.h"
+#include "Messages.h"
 
 #include <pthread.h>
 
@@ -11,12 +11,15 @@
 
 #include "Events.h"
 
+namespace Nidium {
+namespace Core {
+
 /*
     TODO: make thread local storage
 */
 static Nidium::Core::SharedMessages *g_MessagesList;
 
-static int NativeMessages_handle(void *arg)
+static int Messages_handle(void *arg)
 {
 #define MAX_MSG_IN_ROW 256
     int nread = 0;
@@ -27,7 +30,7 @@ static int NativeMessages_handle(void *arg)
         TODO: need a lock for "obj"
     */
     while (++nread < MAX_MSG_IN_ROW && (msg = g_MessagesList->readMessage())) {
-        NativeMessages *obj = static_cast<NativeMessages *>(msg->dest());
+        Messages *obj = static_cast<Messages *>(msg->dest());
         obj->onMessage(*msg);
 
         delete msg;
@@ -36,19 +39,19 @@ static int NativeMessages_handle(void *arg)
     return 8;
 }
 
-static void NativeMessages_lost(const Nidium::Core::SharedMessages::Message &msg)
+static void Messages_lost(const Nidium::Core::SharedMessages::Message &msg)
 {
-    NativeMessages *obj = static_cast<NativeMessages *>(msg.dest());
+    Messages *obj = static_cast<Messages *>(msg.dest());
     obj->onMessageLost(msg);
 }
 
-NativeMessages::NativeMessages() :
+Messages::Messages() :
     m_Listening(8)
 {
     m_GenesisThread = pthread_self();
 }
 
-NativeMessages::~NativeMessages()
+Messages::~Messages()
 {
     g_MessagesList->delMessagesForDest(this);
 
@@ -60,19 +63,19 @@ NativeMessages::~NativeMessages()
     }
 }
 
-void NativeMessages::postMessage(void *dataptr, int event, bool forceAsync)
+void Messages::postMessage(void *dataptr, int event, bool forceAsync)
 {
     Nidium::Core::SharedMessages::Message *msg = new Nidium::Core::SharedMessages::Message(dataptr, event);
     this->postMessage(msg, forceAsync);
 }
 
-void NativeMessages::postMessage(uint64_t dataint, int event, bool forceAsync)
+void Messages::postMessage(uint64_t dataint, int event, bool forceAsync)
 {
     Nidium::Core::SharedMessages::Message *msg = new Nidium::Core::SharedMessages::Message(dataint, event);
     this->postMessage(msg, forceAsync);
 }
 
-void NativeMessages::postMessage(Nidium::Core::SharedMessages::Message *msg, bool forceAsync)
+void Messages::postMessage(Nidium::Core::SharedMessages::Message *msg, bool forceAsync)
 {
     msg->setDest(this);
 
@@ -82,7 +85,7 @@ void NativeMessages::postMessage(Nidium::Core::SharedMessages::Message *msg, boo
     */
     if (!forceAsync && pthread_equal(m_GenesisThread, pthread_self())) {
         // Make sure pending messagess are read so that we don't break the FIFO rule
-        (void)NativeMessages_handle(NULL);
+        (void)Messages_handle(NULL);
 
         this->onMessage(*msg);
         delete msg;
@@ -91,19 +94,19 @@ void NativeMessages::postMessage(Nidium::Core::SharedMessages::Message *msg, boo
     }
 }
 
-void NativeMessages::initReader(ape_global *ape)
+void Messages::initReader(ape_global *ape)
 {
     g_MessagesList = new Nidium::Core::SharedMessages();
 
-    g_MessagesList->setCleaner(NativeMessages_lost);
+    g_MessagesList->setCleaner(Messages_lost);
 
     ape_timer_t *timer = APE_timer_create(ape, 1,
-        NativeMessages_handle, NULL);
-    
+        Messages_handle, NULL);
+
     APE_timer_unprotect(timer);
 }
 
-void NativeMessages::listenFor(Nidium::Core::Events *obj, bool enable)
+void Messages::listenFor(Nidium::Core::Events *obj, bool enable)
 {
     if (enable) {
         m_Listening.set((uint64_t)obj, obj);
@@ -112,18 +115,21 @@ void NativeMessages::listenFor(Nidium::Core::Events *obj, bool enable)
     }
 }
 
-void NativeMessages::delMessages(int event)
+void Messages::delMessages(int event)
 {
     g_MessagesList->delMessagesForDest(this, event);
 }
 
-void NativeMessages::destroyReader()
+void Messages::destroyReader()
 {
     delete g_MessagesList;
 }
 
-Nidium::Core::SharedMessages *NativeMessages::getSharedMessages()
+Nidium::Core::SharedMessages *Messages::getSharedMessages()
 {
     return g_MessagesList;
 }
+
+} // namespace Core
+} // namespace Nidium
 

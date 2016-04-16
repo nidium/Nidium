@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <pthread.h>
 
-#include "NativeMessages.h"
+#include "Messages.h"
 #include "SharedMessages.h"
 
 #define NATIVE_TASKMANAGER_MAX_IDLE_THREAD 8
@@ -100,7 +100,7 @@ private:
 #undef MAX_ARG
 };
 
-class NativeManaged : public NativeMessages
+class NativeManaged : public Nidium::Core::Messages
 {
 public:
     NativeManaged() : m_TaskQueued(0), m_Worker(NULL) {

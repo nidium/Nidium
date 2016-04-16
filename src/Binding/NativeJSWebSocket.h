@@ -6,12 +6,12 @@
 #ifndef nativejswebsocket_h__
 #define nativejswebsocket_h__
 
-#include "Core/NativeMessages.h"
+#include "Core/Messages.h"
 #include "Net/NativeWebSocket.h"
 #include "JSExposer.h"
 
 class NativeJSWebSocketServer : public Nidium::Binding::JSExposer<NativeJSWebSocketServer>,
-                                public NativeMessages
+                                public Nidium::Core::Messages
 {
 public:
     NativeJSWebSocketServer(JS::HandleObject obj, JSContext *cx,

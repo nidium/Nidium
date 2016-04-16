@@ -31,7 +31,7 @@ enum {
     FILE_PROP_ASYNC
 };
 
-class JSFileAsyncReader : public NativeMessages
+class JSFileAsyncReader : public Nidium::Core::Messages
 {
 public:
     void onMessage(const Nidium::Core::SharedMessages::Message &msg)

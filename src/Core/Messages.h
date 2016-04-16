@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativemessages_h__
-#define nativemessages_h__
+#ifndef core_messages_h__
+#define core_messages_h__
 
 #include <pthread.h>
 
@@ -19,14 +19,17 @@ namespace Nidium {
 	}
 }
 
+namespace Nidium {
+namespace Core {
+
 #define CREATE_MESSAGE(var, ev) Nidium::Core::SharedMessages::Message *var = new Nidium::Core::SharedMessages::Message(ev);
 
-class NativeMessages
+class Messages
 {
 public:
     friend class Nidium::Core::Events;
-    NativeMessages();
-    virtual ~NativeMessages()=0;
+    Messages();
+    virtual ~Messages()=0;
 
     /*
         Derived classes must implement this in order to catch messages
@@ -51,6 +54,9 @@ private:
     /* Keep track on which objects we are listening events */
     Nidium::Core::Hash64<Nidium::Core::Events *>m_Listening;
 };
+
+} // namespace Core
+} // namespace Nidium
 
 #endif
 

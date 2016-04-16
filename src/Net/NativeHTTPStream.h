@@ -6,7 +6,7 @@
 #ifndef nativehttpstream_h__
 #define nativehttpstream_h__
 
-#include "Core/NativeMessages.h"
+#include "Core/Messages.h"
 #include "IO/Stream.h"
 #include "Net/NativeHTTP.h"
 

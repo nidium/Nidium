@@ -7,7 +7,7 @@
 #define io_nfsstream_h__
 
 
-#include "Core/NativeMessages.h"
+#include "Core/Messages.h"
 
 #include "Stream.h"
 

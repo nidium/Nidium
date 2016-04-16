@@ -6,7 +6,7 @@
 #ifndef binding_jsstream_h__
 #define binding_jsstream_h__
 
-#include "Core/NativeMessages.h"
+#include "Core/Messages.h"
 #include "JSExposer.h"
 #include "IO/Stream.h"
 
@@ -14,7 +14,7 @@ namespace Nidium {
 namespace Binding {
 
 class JSStream :  public Nidium::Binding::JSExposer<JSStream>,
-                        public NativeMessages
+                        public Nidium::Core::Messages
 {
   public:
     static void registerObject(JSContext *cx);

@@ -6,7 +6,7 @@
 #ifndef io_filestream_h__
 #define io_filestream_h__
 
-#include "Core/NativeMessages.h"
+#include "Core/Messages.h"
 
 #include "Stream.h"
 #include "File.h"
@@ -15,7 +15,7 @@ namespace Nidium {
 namespace IO {
 
 class FileStream : public Nidium::IO::Stream,
-                         public NativeMessages
+                         public Nidium::Core::Messages
 {
 public:
     explicit FileStream(const char *location);

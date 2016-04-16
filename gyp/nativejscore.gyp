@@ -126,7 +126,7 @@
 
             '../src/Core/SharedMessages.cpp',
             '../src/Core/NativeUtils.cpp',
-            '../src/Core/NativeMessages.cpp',
+            '../src/Core/Messages.cpp',
             '../src/Core/DB.cpp',
             '../src/Core/NativeTaskManager.cpp',
             '../src/Core/NativePath.cpp',

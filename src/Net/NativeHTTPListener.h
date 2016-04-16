@@ -13,13 +13,12 @@
 #include <native_netlib.h>
 #include <ape_array.h>
 
-#include "Core/NativeMessages.h"
+#include "Core/Messages.h"
 #include "Core/Events.h"
 
 #define HTTP_MAX_CL (1024ULL*1024ULL*1024ULL*2ULL)
 #define HTTP_DEFAULT_TIMEOUT 15000
 
-class NativeMessages;
 class NativeHTTPClientConnection;
 class NativeHTTPResponse;
 

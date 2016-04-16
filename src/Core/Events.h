@@ -7,7 +7,7 @@
 #define core_events_h__
 
 #include "Hash.h"
-#include "NativeMessages.h"
+#include "Messages.h"
 
 namespace Nidium {
 namespace Core {
@@ -24,12 +24,12 @@ namespace Core {
 class Events
 {
 public:
-    void addListener(NativeMessages *listener) {
-        m_Listeners.set((uint64_t)(NativeMessages *)listener, listener);
+    void addListener(Messages *listener) {
+        m_Listeners.set((uint64_t)(Messages *)listener, listener);
 
         listener->listenFor(this, true);
     }
-    void removeListener(NativeMessages *listener, bool propagate = true) {
+    void removeListener(Messages *listener, bool propagate = true) {
         m_Listeners.erase((uint64_t)listener);
 
         if (propagate) {
@@ -43,7 +43,7 @@ public:
         ape_htable_item_t *item;
 
         for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
-            NativeMessages *receiver = (NativeMessages *)item->content.addrs;
+            Messages *receiver = (Messages *)item->content.addrs;
 
             Nidium::Core::SharedMessages::Message *msg = new Nidium::Core::SharedMessages::Message(NIDIUM_EVENTS_MESSAGE_BITS(event) |
                                                                                    (T::EventID << 16));
@@ -72,7 +72,7 @@ public:
         ape_htable_item_t *item;
 
         for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
-            NativeMessages *receiver = (NativeMessages *)item->content.addrs;
+            Messages *receiver = (Messages *)item->content.addrs;
 
             receiver->listenFor(this, false);
         }
@@ -80,7 +80,7 @@ public:
 
 private:
 
-    Nidium::Core::Hash64<NativeMessages *> m_Listeners;
+    Nidium::Core::Hash64<Messages *> m_Listeners;
 };
 
 } // namespace Core

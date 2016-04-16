@@ -6,7 +6,7 @@
 #ifndef binding_jsfs_h__
 #define binding_jsfs_h__
 
-#include "Core/NativeMessages.h"
+#include "Core/Messages.h"
 #include "Core/NativeTaskManager.h"
 #include "JSExposer.h"
 

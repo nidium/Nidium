@@ -14,7 +14,7 @@
 #include <js/StructuredClone.h>
 
 #include "Core/Hash.h"
-#include "Core/NativeMessages.h"
+#include "Core/Messages.h"
 #include "Core/SharedMessages.h"
 
 #define NATIVE_JS_FNPROPS JSPROP_ENUMERATE | JSPROP_PERMANENT

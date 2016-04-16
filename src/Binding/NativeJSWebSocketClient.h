@@ -8,12 +8,12 @@
 
 #include <cstddef>
 
-#include "Core/NativeMessages.h"
+#include "Core/Messages.h"
 #include "Net/NativeWebSocketClient.h"
 #include "JSExposer.h"
 
 class NativeJSWebSocket : public Nidium::Binding::JSExposer<NativeJSWebSocket>,
-                                public NativeMessages
+                                public Nidium::Core::Messages
 {
 public:
     NativeJSWebSocket(JS::HandleObject obj, JSContext *cx,

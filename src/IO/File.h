@@ -11,7 +11,7 @@
 #include <dirent.h>
 #include <sys/types.h>
 
-#include "Core/NativeMessages.h"
+#include "Core/Messages.h"
 #include "Core/NativeTaskManager.h"
 #include "Core/Events.h"
 
@@ -86,7 +86,7 @@ public:
     void listFilesTask(void *arg = NULL);
 
     void setAutoClose(bool close) { m_AutoClose = close; }
-    void setListener(NativeMessages *listener) {
+    void setListener(Messages *listener) {
         m_Delegate = listener;
     }
     size_t getFileSize() const {
@@ -144,7 +144,7 @@ private:
     DIR *m_Dir;
     FILE *m_Fd;
 
-    NativeMessages *m_Delegate;
+    Nidium::Core::Messages *m_Delegate;
     char *m_Path;
     size_t m_Filesize;
     bool m_AutoClose;
