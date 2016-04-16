@@ -3,19 +3,23 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativejsfs_h__
-#define nativejsfs_h__
+#ifndef binding_jsfs_h__
+#define binding_jsfs_h__
 
 #include "Core/NativeMessages.h"
 #include "Core/NativeTaskManager.h"
 #include "JSExposer.h"
 
-class NativeJSFS :     public Nidium::Binding::JSExposer<NativeJSFS>,
-                       public NativeManaged
+namespace Nidium {
+namespace Binding {
+
+class JSFS :     public Nidium::Binding::JSExposer<JSFS>, public NativeManaged
 {
 public:
     static void registerObject(JSContext *cx);
 };
 
-#endif
+} // namespace Binding
+} // namespace Nidium
 
+#endif

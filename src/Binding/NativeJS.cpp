@@ -31,7 +31,7 @@
 #include "NativeJSHTTPListener.h"
 #include "NativeJSDebug.h"
 #include "NativeJSConsole.h"
-#include "NativeJSFS.h"
+#include "JSFS.h"
 #include "NativeJSDebugger.h"
 
 static pthread_key_t gAPE = 0;
@@ -1060,7 +1060,7 @@ void NativeJS::loadGlobalObjects()
     /* console object */
     NativeJSconsole::registerObject(cx);
     /* fs object */
-    NativeJSFS::registerObject(cx);
+    Nidium::Binding::JSFS::registerObject(cx);
     /* Debugger object */
     NativeJSDebugger::registerObject(cx);
 

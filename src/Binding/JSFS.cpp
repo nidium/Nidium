@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeJSFS.h"
+#include "JSFS.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,8 +13,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+namespace Nidium {
+namespace Binding {
+
 enum {
-    NATIVE_JSFS_MSG_READDIR_FILE = 1
+    JSFS_MSG_READDIR_FILE = 1
 };
 
 static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -31,16 +34,16 @@ static JSFunctionSpec FS_static_funcs[] = {
     JS_FS_END
 };
 
-class NativeJSFSAsyncHandler : public Nidium::Binding::JSAsyncHandler
+class JSFSAsyncHandler : public Nidium::Binding::JSAsyncHandler
 {
 public:
-    NativeJSFSAsyncHandler(JSContext *ctx) : Nidium::Binding::JSAsyncHandler(ctx) {
+    JSFSAsyncHandler(JSContext *ctx) : Nidium::Binding::JSAsyncHandler(ctx) {
 
     }
 
     void onMessage(const Nidium::Core::SharedMessages::Message &msg) {
         switch(msg.event()) {
-            case NATIVE_JSFS_MSG_READDIR_FILE:
+            case JSFS_MSG_READDIR_FILE:
             {
                 dirent *cur = (dirent *)msg.dataPtr();
                 JSObject *callback = this->getCallback(0);
@@ -73,8 +76,10 @@ public:
     void onMessageLost(const Nidium::Core::SharedMessages::Message &msg)
     {
         switch (msg.event()) {
-            case NATIVE_JSFS_MSG_READDIR_FILE:
+            case JSFS_MSG_READDIR_FILE:
                 free(msg.dataPtr());
+                break;
+            default:
                 break;
         }
     }
@@ -82,7 +87,7 @@ public:
 
 void NativeJSFS_readDir_Task(NativeTask *task)
 {
-    NativeJSFSAsyncHandler *handler = (NativeJSFSAsyncHandler *)task->getObject();
+    JSFSAsyncHandler *handler = (JSFSAsyncHandler *)task->getObject();
 
     DIR *dir;
 
@@ -98,7 +103,7 @@ void NativeJSFS_readDir_Task(NativeTask *task)
         }
         dirent *curcpy = (dirent *)malloc(sizeof(dirent));
         memcpy(curcpy, cur, sizeof(dirent));
-        handler->postMessage(curcpy, NATIVE_JSFS_MSG_READDIR_FILE);
+        handler->postMessage(curcpy, JSFS_MSG_READDIR_FILE);
     }
 
     closedir(dir);
@@ -126,7 +131,7 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JSAutoByteString cpath(cx, path);
 
-    NativeJSFSAsyncHandler *handler = new NativeJSFSAsyncHandler(cx);
+    JSFSAsyncHandler *handler = new JSFSAsyncHandler(cx);
     printf("Calling with cx : %p\n", cx);
 
     NativeTask *task = new NativeTask();
@@ -139,7 +144,7 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-void NativeJSFS::registerObject(JSContext *cx)
+void JSFS::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject fsObj(cx, JS_DefineObject(cx, global, "fs",
@@ -147,4 +152,7 @@ void NativeJSFS::registerObject(JSContext *cx)
 
     JS_DefineFunctions(cx, fsObj, FS_static_funcs);
 }
+
+} // namespace Binding
+} // namespace Nidium
 
