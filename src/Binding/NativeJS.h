@@ -39,8 +39,6 @@ struct nidium_thread_msg
     class JSObject *callee;
 };
 
-class NativeSkia;
-class NativeCanvasHandler;
 class NativeJSModules;
 struct _ape_htable;
 
