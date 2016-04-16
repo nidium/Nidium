@@ -220,7 +220,7 @@ void NativeJSWebSocketServer::onMessage(const Nidium::Core::SharedMessages::Mess
     JS::RootedValue rval(cx);
 
     switch (msg.event()) {
-        case NATIVE_EVENT(NativeWebSocketListener, SERVER_FRAME):
+        case NIDIUM_EVENT(NativeWebSocketListener, SERVER_FRAME):
         {
             JS::AutoValueArray<2> arg(cx);
 
@@ -251,7 +251,7 @@ void NativeJSWebSocketServer::onMessage(const Nidium::Core::SharedMessages::Mess
 
             break;
         }
-        case NATIVE_EVENT(NativeWebSocketListener, SERVER_CONNECT):
+        case NIDIUM_EVENT(NativeWebSocketListener, SERVER_CONNECT):
         {
             JS::AutoValueArray<1> arg(cx);
 
@@ -266,7 +266,7 @@ void NativeJSWebSocketServer::onMessage(const Nidium::Core::SharedMessages::Mess
 
             break;
         }
-        case NATIVE_EVENT(NativeWebSocketListener, SERVER_CLOSE):
+        case NIDIUM_EVENT(NativeWebSocketListener, SERVER_CLOSE):
         {
             NativeWebSocketClientConnection *client = (NativeWebSocketClientConnection *)msg.args[1].toPtr();
             JS::AutoValueArray<1> arg(cx);

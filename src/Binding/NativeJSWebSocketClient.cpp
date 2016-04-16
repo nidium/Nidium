@@ -203,7 +203,7 @@ void NativeJSWebSocket::onMessage(const Nidium::Core::SharedMessages::Message &m
     JS::RootedValue rval(cx);
 
     switch (msg.event()) {
-        case NATIVE_EVENT(NativeWebSocketClient, CLIENT_FRAME):
+        case NIDIUM_EVENT(NativeWebSocketClient, CLIENT_FRAME):
         {
             JS::AutoValueArray<1> arg(cx);
 
@@ -228,7 +228,7 @@ void NativeJSWebSocket::onMessage(const Nidium::Core::SharedMessages::Message &m
 
             break;
         }
-        case NATIVE_EVENT(NativeWebSocketClient, CLIENT_CONNECT):
+        case NIDIUM_EVENT(NativeWebSocketClient, CLIENT_CONNECT):
         {
             JS::RootedObject obj(cx, this->getJSObject());
 
@@ -236,7 +236,7 @@ void NativeJSWebSocket::onMessage(const Nidium::Core::SharedMessages::Message &m
 
             break;
         }
-        case NATIVE_EVENT(NativeWebSocketClient, CLIENT_CLOSE):
+        case NIDIUM_EVENT(NativeWebSocketClient, CLIENT_CLOSE):
         {
             JS::RootedObject obj(cx, this->getJSObject());
 

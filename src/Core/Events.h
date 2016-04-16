@@ -12,8 +12,8 @@
 namespace Nidium {
 namespace Core {
 
-#define NATIVE_EVENTS_MESSAGE_BITS(id) ((1 << 31) | id)
-#define NATIVE_EVENT(classe, event) (NATIVE_EVENTS_MESSAGE_BITS(classe::event) | (classe::EventID << 16))
+#define NIDIUM_EVENTS_MESSAGE_BITS(id) ((1 << 31) | id)
+#define NIDIUM_EVENT(classe, event) (NIDIUM_EVENTS_MESSAGE_BITS(classe::event) | (classe::EventID << 16))
 
 /*
     Implementation Note :
@@ -45,7 +45,7 @@ public:
         for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
             NativeMessages *receiver = (NativeMessages *)item->content.addrs;
 
-            Nidium::Core::SharedMessages::Message *msg = new Nidium::Core::SharedMessages::Message(NATIVE_EVENTS_MESSAGE_BITS(event) |
+            Nidium::Core::SharedMessages::Message *msg = new Nidium::Core::SharedMessages::Message(NIDIUM_EVENTS_MESSAGE_BITS(event) |
                                                                                    (T::EventID << 16));
 
             msg->args[0].set(static_cast<T *>(this));
