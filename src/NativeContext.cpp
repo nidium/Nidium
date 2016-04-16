@@ -9,7 +9,7 @@
 #include "NativeJSConsole.h"
 #include "NativeJSSystem.h"
 #include <Core/NativeMessages.h>
-#include <IO/NativeFileStream.h>
+#include <IO/FileStream.h>
 #include <Net/NativeHTTPStream.h>
 #include <Core/NativePath.h>
 #include <native_netlib.h>
@@ -47,7 +47,7 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
     m_JS->setPrivate(this);
     m_JS->setStrictMode(jsstrict);
 
-    NativePath::registerScheme(SCHEME_DEFINE("file://", NativeFileStream, false), true);
+    NativePath::registerScheme(SCHEME_DEFINE("file://", Nidium::IO::FileStream, false), true);
     NativePath::registerScheme(SCHEME_DEFINE("http://",    NativeHTTPStream,    true));
     NativePath::registerScheme(SCHEME_DEFINE("https://",   NativeHTTPStream,    true));
 
