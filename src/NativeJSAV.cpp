@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <Binding/NativeJSConsole.h>
+#include <Binding/JSConsole.h>
 
 #include "NativeJSCanvas.h"
 #include "NativeCanvas2DContext.h"
@@ -618,7 +618,7 @@ bool NativeJSAudio::createContext()
     JS_SetErrorReporter(m_JsTcx, reportError);
     JS_FireOnNewGlobalObject(m_JsTcx, global);
     JS_DefineFunctions(m_JsTcx, global, glob_funcs_threaded);
-    NativeJSconsole::registerObject(m_JsTcx);
+    Nidium::Binding::JSConsole::registerObject(m_JsTcx);
 
     JS_SetRuntimePrivate(m_JsRt, NativeJS::getNativeClass(m_Audio->getMainCtx()));
 
