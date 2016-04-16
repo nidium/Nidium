@@ -29,10 +29,10 @@
 #include "NativeJSWebSocket.h"
 #include "NativeJSWebSocketClient.h"
 #include "NativeJSHTTPListener.h"
-#include "NativeJSDebug.h"
+#include "JSDebug.h"
 #include "JSConsole.h"
 #include "JSFS.h"
-#include "NativeJSDebugger.h"
+#include "JSDebugger.h"
 
 static pthread_key_t gAPE = 0;
 static pthread_key_t gJS = 0;
@@ -52,7 +52,7 @@ struct native_sm_timer
 {
     JSContext *cx;
 
-    
+
     JS::PersistentRootedObject global;
     JS::PersistentRootedValue **argv;
     JS::PersistentRootedValue func;
@@ -1055,14 +1055,14 @@ void NativeJS::loadGlobalObjects()
     NativeJSWebSocket::registerObject(cx);
     /* HTTPListener object */
     NativeJSHTTPListener::registerObject(cx);
-    /* Debug object */
-    NativeJSDebug::registerObject(cx);
     /* console object */
     Nidium::Binding::JSConsole::registerObject(cx);
     /* fs object */
     Nidium::Binding::JSFS::registerObject(cx);
+    /* Debug object */
+    Nidium::Binding::JSDebug::registerObject(cx);
     /* Debugger object */
-    NativeJSDebugger::registerObject(cx);
+    Nidium::Binding::JSDebugger::registerObject(cx);
 
     this->modules = new NativeJSModules(cx);
     if (!this->modules) {

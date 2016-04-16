@@ -6,8 +6,11 @@
 #include <jswrapper.h>
 #include <vm/Debugger.h>
 
-#include "NativeJSDebugger.h"
+#include "JSDebugger.h"
 #include "JSConsole.h"
+
+namespace Nidium {
+namespace Binding {
 
 static JSClass DebuggerContext_class = {
     "DebuggerContext", JSCLASS_HAS_RESERVED_SLOTS(2),
@@ -16,7 +19,7 @@ static JSClass DebuggerContext_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-static bool nativejs_debugger_run(JSContext* cx, unsigned argc, JS::Value* vp)
+static bool nidium_debugger_run(JSContext* cx, unsigned argc, JS::Value* vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -108,7 +111,7 @@ static bool nativejs_debugger_run(JSContext* cx, unsigned argc, JS::Value* vp)
     return true;
 }
 
-static bool nativejs_debugger_create(JSContext* cx, unsigned argc, JS::Value* vp)
+static bool nidium_debugger_create(JSContext* cx, unsigned argc, JS::Value* vp)
 {
     JS::RootedObject mainGbl(cx, JS::CurrentGlobalOrNull(cx));
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -121,7 +124,7 @@ static bool nativejs_debugger_create(JSContext* cx, unsigned argc, JS::Value* vp
 
     JSCompartment *cpt = JS_EnterCompartment(cx, gbl);
 
-    NativeJSDebugger::registerObject(cx);
+    JSDebugger::registerObject(cx);
     /* Expose console object for easy "debugging" */
     Nidium::Binding::JSConsole::registerObject(cx);
 
@@ -175,7 +178,7 @@ static bool nativejs_debugger_create(JSContext* cx, unsigned argc, JS::Value* vp
     return true;
 }
 
-void NativeJSDebugger::registerObject(JSContext *cx)
+void JSDebugger::registerObject(JSContext *cx)
 {
     JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
 
@@ -192,6 +195,10 @@ void NativeJSDebugger::registerObject(JSContext *cx)
     JS_GetProperty(cx, gbl, "Debugger", &dbgVal);
     JS::RootedObject dbg(cx, dbgVal.toObjectOrNull());
 
-    JS_DefineFunction(cx, dbg, "create", nativejs_debugger_create, 0, 1);
-    JS_DefineFunction(cx, dbg, "run", nativejs_debugger_run, 0, 1);
+    JS_DefineFunction(cx, dbg, "create", nidium_debugger_create, 0, 1);
+    JS_DefineFunction(cx, dbg, "run", nidium_debugger_run, 0, 1);
 }
+
+} // namespace Binding
+} // namespace Nidium
+

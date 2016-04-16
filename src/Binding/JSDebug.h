@@ -3,18 +3,21 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativejsdebug_h__
-#define nativejsdebug_h__
+#ifndef binding_jsdebug_h__
+#define binding_jsdebug_h__
 
 #include "JSExposer.h"
 
-class NativeJSDebug : public Nidium::Binding::JSExposer<NativeJSDebug>
+namespace Nidium {
+namespace Binding {
+
+class JSDebug : public Nidium::Binding::JSExposer<JSDebug>
 {
   public:
-    NativeJSDebug(JS::HandleObject obj, JSContext *cx) :
-    Nidium::Binding::JSExposer<NativeJSDebug>(obj, cx)
+    JSDebug(JS::HandleObject obj, JSContext *cx) :
+    Nidium::Binding::JSExposer<JSDebug>(obj, cx)
     {};
-    virtual ~NativeJSDebug() {};
+    virtual ~JSDebug() {};
 
     static void registerObject(JSContext *cx);
     static const char *getJSObjectName() {
@@ -23,6 +26,9 @@ class NativeJSDebug : public Nidium::Binding::JSExposer<NativeJSDebug>
 
     static JSClass *jsclass;
 };
+
+} // namespace Binding
+} // namespace Nidium
 
 #endif
 

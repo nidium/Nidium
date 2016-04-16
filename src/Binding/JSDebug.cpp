@@ -3,13 +3,16 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeJSDebug.h"
+#include "JSDebug.h"
 
 #include <string.h>
 
+namespace Nidium {
+namespace Binding {
+
 static void Debug_Finalize(JSFreeOp *fop, JSObject *obj);
-static bool native_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass debug_class = {
     "NativeDebug", JSCLASS_HAS_PRIVATE,
@@ -18,27 +21,27 @@ static JSClass debug_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-JSClass *NativeJSDebug::jsclass = &debug_class;
+JSClass *JSDebug::jsclass = &debug_class;
 
 template<>
-JSClass *Nidium::Binding::JSExposer<NativeJSDebug>::jsclass = &debug_class;
+JSClass *Nidium::Binding::JSExposer<JSDebug>::jsclass = &debug_class;
 
 static JSFunctionSpec debug_funcs[] = {
-    JS_FN("serialize", native_debug_serialize, 1, NATIVE_JS_FNPROPS),
-    JS_FN("unserialize", native_debug_unserialize, 1, NATIVE_JS_FNPROPS),
+    JS_FN("serialize", nidium_debug_serialize, 1, NATIVE_JS_FNPROPS),
+    JS_FN("unserialize", nidium_debug_unserialize, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static void Debug_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeJSDebug *jdebug = NativeJSDebug::getNativeClass(obj);
+    JSDebug *jdebug = JSDebug::getNativeClass(obj);
 
     if (jdebug != NULL) {
         delete jdebug;
     }
 }
 
-static bool native_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -70,7 +73,7 @@ static bool native_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject objdata(cx);
@@ -105,20 +108,23 @@ static bool native_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp
     return true;
 }
 
-void NativeJSDebug::registerObject(JSContext *cx)
+void JSDebug::registerObject(JSContext *cx)
 {
     NativeJS *njs = NativeJS::getNativeClass(cx);
 
     JS::RootedObject debugObj(cx, JS_DefineObject(cx, JS::CurrentGlobalOrNull(cx),
-        NativeJSDebug::getJSObjectName(),
+        JSDebug::getJSObjectName(),
         &debug_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
-    NativeJSDebug *jdebug = new NativeJSDebug(debugObj, cx);
+    JSDebug *jdebug = new JSDebug(debugObj, cx);
 
     JS_SetPrivate(debugObj, jdebug);
 
-    njs->jsobjects.set(NativeJSDebug::getJSObjectName(), debugObj);
+    njs->jsobjects.set(JSDebug::getJSObjectName(), debugObj);
 
     JS_DefineFunctions(cx, debugObj, debug_funcs);
 }
+
+} // namespace Binding
+} // namespace Nidium
 
