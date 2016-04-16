@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativenfs_h__
-#define nativenfs_h__
+#ifndef io_nfs_h__
+#define io_nfs_h__
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -14,11 +14,14 @@
 
 #include "Core/Hash.h"
 
-#define NATIVE_NFS_MAGIC 0x27121986
+namespace Nidium {
+namespace IO {
 
-const uint16_t _native_nfs_version = 100;
+#define NIDIUM_NFS_MAGIC 0x27121986
 
-struct nativenfs_header_s {
+const uint16_t _nfs_version = 100;
+
+struct nfs_header_s {
     uint32_t magicnumber;
     uint16_t minversion;
     uint16_t flags;
@@ -26,7 +29,7 @@ struct nativenfs_header_s {
     uint32_t crc32;
 };
 
-struct nativenfs_file_header_s {
+struct nfs_file_header_s {
     uint64_t size; // describe the number of files in case it's a directory
     uint32_t crc32;
     uint16_t flags;
@@ -34,19 +37,19 @@ struct nativenfs_file_header_s {
     /* filename utf8 */
 };
 
-typedef struct nativenfs_tree_s {
-    struct nativenfs_file_header_s header;
+typedef struct nfs_tree_s {
+    struct nfs_file_header_s header;
     char *filename_utf8;
 
-    struct nativenfs_tree_s *next;
+    struct nfs_tree_s *next;
 
     union { /* file : content / dir : children (defined by flags in header) */
-        struct nativenfs_tree_s *children;
+        struct nfs_tree_s *children;
         uint8_t *content;
     } meta;
-} NativeNFSTree;
+} NFSTree;
 
-class NativeNFS
+class NFS
 {
 public:
     enum fileType {
@@ -58,9 +61,9 @@ public:
 
     bool validateArchive();
 
-    NativeNFS(uint8_t *content, size_t size);
-    NativeNFS();
-    ~NativeNFS();
+    NFS(uint8_t *content, size_t size);
+    NFS();
+    ~NFS();
 
     bool save(const char *dest);
     bool save(FILE *fd);
@@ -79,15 +82,15 @@ private:
     off_t m_ContentPtr;
     size_t m_Size;
 
-    struct nativenfs_header_s m_Header;
+    struct nfs_header_s m_Header;
 
-    Nidium::Core::Hash<NativeNFSTree *> m_Hash;
+    Nidium::Core::Hash<NFSTree *> m_Hash;
 
-    NativeNFSTree m_Root;
+    NFSTree m_Root;
 
-    void writeTree(FILE *fd, NativeNFSTree *cur);
-    void readTree(NativeNFSTree *parent);
-    void releaseTree(NativeNFSTree *root);
+    void writeTree(FILE *fd, NFSTree *cur);
+    void readTree(NFSTree *parent);
+    void releaseTree(NFSTree *root);
 
     bool readContent(void *dest, size_t len);
 
@@ -100,6 +103,9 @@ private:
         JSContext *cx;
     } m_JS;
 };
+
+} // namespace IO
+} // namespace Nidium
 
 #endif
 

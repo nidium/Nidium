@@ -3,35 +3,38 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeNFSStream.h"
+#include "NFSStream.h"
 
 #include <native_netlib.h>
 #include <ape_buffer.h>
 
 #include "Core/NativeUtils.h"
 
-#include "NativeNFS.h"
+#include "NFS.h"
 
 #include "Binding/NativeJS.h"
+
+namespace Nidium {
+namespace IO {
 
 #ifdef NATIVE_EMBED_PRIVATE
   #include NATIVE_EMBED_PRIVATE
 #endif
-NativeNFSStream::NativeNFSStream(const char *location) :
-    Nidium::IO::Stream(location)
+NFSStream::NFSStream(const char *location) :
+    Stream(location)
 {
-    static NativeNFS *nfs = NULL;
+    static NFS *nfs = NULL;
 
 #ifdef NATIVE_EMBED_PRIVATE
     if (nfs == NULL) {
-        nfs = new NativeNFS(private_bin, sizeof(private_bin));
+        nfs = new NFS(private_bin, sizeof(private_bin));
     }
 #endif
     m_NFS = nfs;
     m_File.pos = 0;
 }
 
-void NativeNFSStream::onStart(size_t packets, size_t seek)
+void NFSStream::onStart(size_t packets, size_t seek)
 {
     m_File.data = (const unsigned char *)m_NFS->readFile(m_Location, &m_File.len);
     m_File.pos = 0;
@@ -43,7 +46,7 @@ void NativeNFSStream::onStart(size_t packets, size_t seek)
     }
 
     CREATE_MESSAGE(message_available,
-        Nidium::IO::STREAM_AVAILABLE_DATA);
+        STREAM_AVAILABLE_DATA);
     message_available->args[0].set(native_min(packets, m_File.len));
 
     this->notify(message_available);
@@ -54,7 +57,7 @@ void NativeNFSStream::onStart(size_t packets, size_t seek)
     buf.data = (unsigned char *)m_File.data;
     buf.size = buf.used = m_File.len;
 
-    CREATE_MESSAGE(message, Nidium::IO::STREAM_READ_BUFFER);
+    CREATE_MESSAGE(message, STREAM_READ_BUFFER);
     message->args[0].set(&buf);
 
     /*
@@ -64,7 +67,7 @@ void NativeNFSStream::onStart(size_t packets, size_t seek)
     this->notify(message);
 }
 
-const unsigned char *NativeNFSStream::onGetNextPacket(size_t *len, int *err)
+const unsigned char *NFSStream::onGetNextPacket(size_t *len, int *err)
 {
     const unsigned char *data;
 
@@ -83,7 +86,7 @@ const unsigned char *NativeNFSStream::onGetNextPacket(size_t *len, int *err)
     return data;
 }
 
-void NativeNFSStream::stop()
+void NFSStream::stop()
 {
     /*
         Do nothing
@@ -92,18 +95,18 @@ void NativeNFSStream::stop()
 
 int NativeNFSStream_getContent(void *arg)
 {
-    ((NativeNFSStream *)arg)->_getContent();
+    ((NFSStream *)arg)->_getContent();
 
     return 0;
 }
 
-void NativeNFSStream::getContent()
+void NFSStream::getContent()
 {
     ape_global *ape = NativeJS::getNet();
     timer_dispatch_async_unprotected(NativeNFSStream_getContent, this);
 }
 
-void NativeNFSStream::_getContent()
+void NFSStream::_getContent()
 {
     m_File.data = (const unsigned char *)m_NFS->readFile(m_Location, &m_File.len);
     m_File.pos = 0;
@@ -120,13 +123,13 @@ void NativeNFSStream::_getContent()
     buf.data = (unsigned char *)m_File.data;
     buf.size = buf.used = m_File.len;
 
-    CREATE_MESSAGE(message, Nidium::IO::STREAM_READ_BUFFER);
+    CREATE_MESSAGE(message, STREAM_READ_BUFFER);
     message->args[0].set(&buf);
 
     this->notify(message);
 }
 
-bool NativeNFSStream::getContentSync(char **data, size_t *len, bool mmap)
+bool NFSStream::getContentSync(char **data, size_t *len, bool mmap)
 {
     *data = NULL;
 
@@ -149,12 +152,12 @@ bool NativeNFSStream::getContentSync(char **data, size_t *len, bool mmap)
     return true;
 }
 
-size_t NativeNFSStream::getFileSize() const
+size_t NFSStream::getFileSize() const
 {
     return m_File.len;
 }
 
-void NativeNFSStream::seek(size_t pos)
+void NFSStream::seek(size_t pos)
 {
     if (pos > m_File.len) {
         this->error(STREAM_ERROR_SEEK, -1);
@@ -162,4 +165,7 @@ void NativeNFSStream::seek(size_t pos)
     }
     m_File.pos = pos;
 }
+
+} // namespace IO
+} // namespace Nidium
 

@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeNFS.h"
+#include "NFS.h"
 
 #include <string.h>
 
@@ -11,7 +11,10 @@
 
 #include "Core/NativePath.h"
 
-NativeNFS::NativeNFS(uint8_t *content, size_t size) :
+namespace Nidium {
+namespace IO {
+
+NFS::NFS(uint8_t *content, size_t size) :
     m_ContentPtr(0)
 {
     m_Content = content;
@@ -24,19 +27,19 @@ NativeNFS::NativeNFS(uint8_t *content, size_t size) :
     }
 }
 
-NativeNFS::NativeNFS() :
+NFS::NFS() :
     m_Content(NULL), m_ContentPtr(0), m_Size(0)
 {
     this->initRoot();
 
     m_Header.crc32 = 0;
     m_Header.flags = 0;
-    m_Header.magicnumber = NATIVE_NFS_MAGIC;
+    m_Header.magicnumber = NIDIUM_NFS_MAGIC;
     m_Header.minversion = 100;
     m_Header.numfiles = 0;
 }
 
-void NativeNFS::initRoot()
+void NFS::initRoot()
 {
     m_JS.cx = NULL;
     m_JS.rt = NULL;
@@ -51,14 +54,14 @@ void NativeNFS::initRoot()
     m_Hash.set(m_Root.filename_utf8, &m_Root);
 }
 
-void NativeNFS::initJSWithCX(JSContext *cx)
+void NFS::initJSWithCX(JSContext *cx)
 {
     m_JS.cx = cx;
     m_JS.rt = JS_GetRuntime(cx);
 }
 
 #if 0
-struct nativenfs_file_header_s {
+struct nfs_file_header_s {
     uint64_t size; // describe the number of files in case it's a directory
     uint32_t crc32;
     uint16_t flags;
@@ -67,15 +70,15 @@ struct nativenfs_file_header_s {
 };
 #endif
 
-bool NativeNFS::validateArchive()
+bool NFS::validateArchive()
 {
-    if (m_Size < sizeof (struct nativenfs_header_s)) {
+    if (m_Size < sizeof (struct nfs_header_s)) {
         return false;
     }
 
-    this->readContent(&m_Header, sizeof(struct nativenfs_header_s));
+    this->readContent(&m_Header, sizeof(struct nfs_header_s));
 
-    if (m_Header.magicnumber != NATIVE_NFS_MAGIC) {
+    if (m_Header.magicnumber != NIDIUM_NFS_MAGIC) {
         return false;
     }
 
@@ -84,7 +87,7 @@ bool NativeNFS::validateArchive()
     return true;
 }
 
-bool NativeNFS::mkdir(const char *name_utf8, size_t name_len)
+bool NFS::mkdir(const char *name_utf8, size_t name_len)
 {
     bool outsideRoot = false;
     NativePtrAutoDelete<char *> path(NativePath::sanitize(name_utf8, &outsideRoot));
@@ -103,7 +106,7 @@ bool NativeNFS::mkdir(const char *name_utf8, size_t name_len)
     }
 
     NativePtrAutoDelete<char *> dir(NativePath::getDir(name_utf8));
-    NativeNFSTree *parent;
+    NFSTree *parent;
 
     if (strlen(dir.ptr())) {
         dir.ptr()[strlen(dir.ptr())-1] = '\0';
@@ -118,7 +121,7 @@ bool NativeNFS::mkdir(const char *name_utf8, size_t name_len)
         }
     }
 
-    NativeNFSTree *newdir = new NativeNFSTree;
+    NFSTree *newdir = new NFSTree;
 
     newdir->meta.children = NULL;
 
@@ -141,7 +144,7 @@ bool NativeNFS::mkdir(const char *name_utf8, size_t name_len)
     return true;
 }
 
-bool NativeNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
+bool NFS::writeFile(const char *name_utf8, size_t name_len, char *content,
         size_t len, int flags)
 {
 
@@ -159,7 +162,7 @@ bool NativeNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
         dir.ptr()[strlen(dir.ptr())-1] = '\0';
     }
 
-    NativeNFSTree *parent;
+    NFSTree *parent;
 
     if (strlen(dir.ptr()) == 0) {
         parent = &m_Root;
@@ -170,7 +173,7 @@ bool NativeNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
         }
     }
 
-    NativeNFSTree *newfile = new NativeNFSTree;
+    NFSTree *newfile = new NFSTree;
 
     newfile->meta.content = (uint8_t *)content;
     newfile->header.size = len;
@@ -207,7 +210,7 @@ bool NativeNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
     return true;
 }
 
-void *NativeNFS::buildJS(const char *data, size_t len, const char *filename, uint32_t *outlen)
+void *NFS::buildJS(const char *data, size_t len, const char *filename, uint32_t *outlen)
 {
     JS::RootedObject gbl(m_JS.cx, JS::CurrentGlobalOrNull(m_JS.cx));
     JS::CompileOptions options(m_JS.cx);
@@ -235,10 +238,10 @@ void *NativeNFS::buildJS(const char *data, size_t len, const char *filename, uin
     return JS_EncodeScript(m_JS.cx, script, outlen);
 }
 
-const char *NativeNFS::readFile(const char *filename, size_t *len,
+const char *NFS::readFile(const char *filename, size_t *len,
     int *flags) const
 {
-    NativeNFSTree *file = m_Hash.get(filename);
+    NFSTree *file = m_Hash.get(filename);
     if (file == NULL || (file->header.flags & NFS_FILE_DIR)) {
         return NULL;
     }
@@ -252,20 +255,20 @@ const char *NativeNFS::readFile(const char *filename, size_t *len,
     return (const char *)file->meta.content;
 }
 
-bool NativeNFS::save(FILE *fd)
+bool NFS::save(FILE *fd)
 {
     if (!fd) {
         return false;
     }
 
-    fwrite(&m_Header, sizeof(struct nativenfs_header_s), 1, fd);
+    fwrite(&m_Header, sizeof(struct nfs_header_s), 1, fd);
 
     writeTree(fd, m_Root.meta.children);
 
     return true;
 }
 
-bool NativeNFS::save(const char *dest)
+bool NFS::save(const char *dest)
 {
     FILE *fd = fopen(dest, "w+");
     if (!fd) {
@@ -279,13 +282,13 @@ bool NativeNFS::save(const char *dest)
     return ret;
 }
 
-void NativeNFS::writeTree(FILE *fd, NativeNFSTree *cur)
+void NFS::writeTree(FILE *fd, NFSTree *cur)
 {
     if (cur == NULL) {
         return;
     }
 
-    fwrite(&cur->header, sizeof(struct nativenfs_file_header_s), 1, fd);
+    fwrite(&cur->header, sizeof(struct nfs_file_header_s), 1, fd);
     fwrite(cur->filename_utf8, sizeof(char), cur->header.filename_length, fd);
 
     if (!(cur->header.flags & NFS_FILE_DIR)) {
@@ -297,18 +300,18 @@ void NativeNFS::writeTree(FILE *fd, NativeNFSTree *cur)
     this->writeTree(fd, cur->next);
 }
 
-void NativeNFS::readTree(NativeNFSTree *parent)
+void NFS::readTree(NFSTree *parent)
 {
     if (m_ContentPtr >= m_Size) {
         return;
     }
 
-    NativeNFSTree *item = new NativeNFSTree;
+    NFSTree *item = new NFSTree;
 
     item->next = parent->meta.children;
     parent->meta.children = item;
 
-    this->readContent(&item->header, sizeof(struct nativenfs_file_header_s));
+    this->readContent(&item->header, sizeof(struct nfs_file_header_s));
     item->filename_utf8 = (char *)malloc(item->header.filename_length + 1);
     this->readContent(item->filename_utf8, item->header.filename_length);
     item->filename_utf8[item->header.filename_length] = '\0';
@@ -325,7 +328,7 @@ void NativeNFS::readTree(NativeNFSTree *parent)
     this->readTree(parent);
 }
 
-bool NativeNFS::readContent(void *dest, size_t len)
+bool NFS::readContent(void *dest, size_t len)
 {
     if (m_ContentPtr + len > m_Size) {
         return false;
@@ -338,7 +341,7 @@ bool NativeNFS::readContent(void *dest, size_t len)
     return true;
 }
 
-void NativeNFS::releaseTree(NativeNFSTree *root)
+void NFS::releaseTree(NFSTree *root)
 {
     if (root == NULL) {
         return;
@@ -354,10 +357,13 @@ void NativeNFS::releaseTree(NativeNFSTree *root)
     free(root);
 }
 
-NativeNFS::~NativeNFS()
+NFS::~NFS()
 {
     free(m_Root.filename_utf8);
 
     this->releaseTree(m_Root.meta.children);
 }
+
+} // namespace IO
+} // namespace Nidium
 

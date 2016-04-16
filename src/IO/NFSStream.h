@@ -3,23 +3,26 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativenfsstream_h__
-#define nativenfsstream_h__
+#ifndef io_nfsstream_h__
+#define io_nfsstream_h__
 
 
 #include "Core/NativeMessages.h"
 
 #include "Stream.h"
 
-class NativeNFS;
+namespace Nidium {
+namespace IO {
 
-class NativeNFSStream :  public Nidium::IO::Stream
+class NFS;
+
+class NFSStream :  public Nidium::IO::Stream
 {
 public:
-    explicit NativeNFSStream(const char *location);
+    explicit NFSStream(const char *location);
 
     static Nidium::IO::Stream *createStream(const char *location) {
-        return new NativeNFSStream(location);
+        return new NFSStream(location);
     }
     static const char *getBaseDir() {
         return "/";
@@ -32,7 +35,7 @@ public:
         return true;
     }
 
-    virtual ~NativeNFSStream() {};
+    virtual ~NFSStream() {};
 
     virtual void stop();
     virtual void getContent();
@@ -46,7 +49,7 @@ protected:
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err);
     virtual void onStart(size_t packets, size_t seek);
 private:
-    NativeNFS *m_NFS;
+    Nidium::IO::NFS *m_NFS;
 
     struct {
         const unsigned char *data;
@@ -54,6 +57,9 @@ private:
         off_t pos;
     } m_File;
 };
+
+} // namespace IO
+} // namespace Nidium
 
 #endif
 

@@ -676,7 +676,7 @@ NativeJS::NativeJS(ape_global *net) :
         printf("Failed to open file\n");
     }
 
-    NativeNFS *nfs = new NativeNFS((unsigned char *)content, len);
+    Nidium::IO::NFS *nfs = new Nidium::IO::NFS((unsigned char *)content, len);
 
 
     const char *mp4file = nfs->readFile("/foo/toto", &len);
