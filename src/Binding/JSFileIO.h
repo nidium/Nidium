@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativejsfileio_h__
-#define nativejsfileio_h__
+#ifndef binding_jsfileio_h__
+#define binding_jsfileio_h__
 
 #include <ape_buffer.h>
 
@@ -12,7 +12,10 @@
 #include "IO/File.h"
 #include "JSExposer.h"
 
-class NativeJSFileIO : public Nidium::Binding::JSExposer<NativeJSFileIO>,
+namespace Nidium {
+namespace Binding {
+
+class JSFileIO : public Nidium::Binding::JSExposer<JSFileIO>,
                        public NativeMessages
 {
   public:
@@ -27,11 +30,11 @@ class NativeJSFileIO : public Nidium::Binding::JSExposer<NativeJSFileIO>,
         const Nidium::Core::SharedMessages::Message &msg,
         JSObject *thisobj, const char *encoding = NULL);
 
-    NativeJSFileIO(JS::HandleObject obj, JSContext *cx) :
-        Nidium::Binding::JSExposer<NativeJSFileIO>(obj, cx), m_Encoding(NULL) {
+    JSFileIO(JS::HandleObject obj, JSContext *cx) :
+        Nidium::Binding::JSExposer<JSFileIO>(obj, cx), m_Encoding(NULL) {
     };
 
-    ~NativeJSFileIO() {
+    ~JSFileIO() {
         if (m_Encoding) {
             free(m_Encoding);
         }
@@ -45,5 +48,7 @@ class NativeJSFileIO : public Nidium::Binding::JSExposer<NativeJSFileIO>,
     Nidium::IO::File *m_File;
 };
 
-#endif
+} // namespace Binding
+} // namespace Nidium
 
+#endif
