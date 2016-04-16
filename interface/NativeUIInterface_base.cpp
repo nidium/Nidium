@@ -27,7 +27,7 @@ NativeUIInterface::NativeUIInterface() :
 #endif
     NativePath::registerScheme(SCHEME_DEFINE("http://",    NativeHTTPStream,    true));
     NativePath::registerScheme(SCHEME_DEFINE("https://",   NativeHTTPStream,    true));
-    NativePath::registerScheme(SCHEME_DEFINE("nvfs://",    NativeNFSStream,     false));
+    NativePath::registerScheme(SCHEME_DEFINE("nvfs://",    Nidium::IO::NFSStream,     false));
 
     NativeTaskManager::createManager();
 }

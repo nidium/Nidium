@@ -10,7 +10,7 @@
 #include <jsapi.h>
 #include <native_netlib.h>
 
-#include <NativeNFS.h>
+#include <NFS.h>
 #include <FileStream.h>
 #include <NativeUtils.h>
 

@@ -23,7 +23,7 @@
 #include <string>
 
 #include <IO/FileStream.h>
-#include <IO/NativeNFSStream.h>
+#include <IO/NFSStream.h>
 
 #include "NativeSystemInterface.h"
 
