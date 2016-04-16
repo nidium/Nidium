@@ -84,7 +84,7 @@ private:
     bool loadData(char *data, size_t len, rapidxml::xml_document<> &doc);
     void addAsset(NativeAssets *);
     ape_global *m_Net;
-    NativeBaseStream *m_Stream;
+    Nidium::IO::Stream *m_Stream;
 
     /* Define callbacks for tags in <application> */
     struct _nml_tags {

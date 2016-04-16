@@ -78,7 +78,7 @@ void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
 
     printf("NML path : %s\n", path.path());
 
-    m_Stream = NativeBaseStream::create(path);
+    m_Stream = Nidium::IO::Stream::create(path);
     if (m_Stream == NULL) {
         NativeSystemInterface::getInstance()->
             alert("NML error : stream error",
@@ -465,7 +465,7 @@ JSObject *NativeNML::buildLayoutTree(rapidxml::xml_node<> &node)
 
 static int delete_stream(void *arg)
 {
-    NativeBaseStream *stream = static_cast<NativeBaseStream *>(arg);
+    Nidium::IO::Stream *stream = static_cast<Nidium::IO::Stream *>(arg);
 
     delete stream;
 
@@ -475,7 +475,7 @@ static int delete_stream(void *arg)
 void NativeNML::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case NATIVESTREAM_READ_BUFFER:
+        case Nidium::IO::STREAM_READ_BUFFER:
         {
             buffer *buf = (buffer *)msg.args[0].toPtr();
 
@@ -494,7 +494,7 @@ void NativeNML::onMessage(const Nidium::Core::SharedMessages::Message &msg)
             this->onGetContent((const char *)buf->data, buf->used);
             break;
         }
-        case NATIVESTREAM_ERROR:
+        case Nidium::IO::STREAM_ERROR:
         {
             NativeSystemInterface::getInstance()->
                 alert("NML error : stream error",

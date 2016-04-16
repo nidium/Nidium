@@ -11,7 +11,6 @@
 #include <native_netlib.h>
 
 #include <NativeNFS.h>
-#include <NativeStreamInterface.h>
 #include <NativeFileStream.h>
 #include <NativeUtils.h>
 
@@ -47,8 +46,8 @@ void listdir(NativeNFS *nfs, DIR *dir, std::string fullpath, int strip)
             listdir(nfs, opendir(newpath.c_str()), newpath, strip);
         } else if (cur->d_type & DT_REG) {
 
-            //NativePtrAutoDelete<NativeBaseStream *> stream(NativeBaseStream::create(newpath.c_str()));
-            NativeBaseStream *stream = NativeBaseStream::create(newpath.c_str());
+            //NativePtrAutoDelete<Nidium::IO::Stream *> stream(Nidium::IO::Stream::create(newpath.c_str()));
+            Nidium::IO::Stream *stream = Nidium::IO::Stream::create(newpath.c_str());
 
             if (stream == NULL) {
                 fprintf(stderr, "Could not create stream for file %s\n", newpath.c_str());

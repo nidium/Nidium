@@ -344,12 +344,12 @@ JSObject *NativeJSdocument::registerObject(JSContext *cx)
 bool NativeJSdocument::loadFont(const char *path, const char *name,
     int weight, nativefont::Style style)
 {
-    NativeBaseStream *stream = NativeBaseStream::create(path);
+    Nidium::IO::Stream *stream = Nidium::IO::Stream::create(path);
     if (!stream) {
         return false;
     }
 
-    NativePtrAutoDelete<NativeBaseStream *> npad(stream);
+    NativePtrAutoDelete<Nidium::IO::Stream *> npad(stream);
 
     char *data;
     size_t len;

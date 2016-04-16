@@ -111,7 +111,7 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 NativeJSObj(cx)->rootObjectUntilShutdown(obj);
 
-                NativeBaseStream *stream = NativeBaseStream::create(NativePath(imgPath.ptr()));
+                Nidium::IO::Stream *stream = Nidium::IO::Stream::create(NativePath(imgPath.ptr()));
 
                 if (stream == NULL) {
                     JS_ReportError(cx, "Invalid path");
@@ -132,7 +132,7 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 NativeJSObj(cx)->rootObjectUntilShutdown(obj);
 
-                NativeBaseStream *stream = NativeBaseStream::create(file->getFullPath());
+                Nidium::IO::Stream *stream = Nidium::IO::Stream::create(file->getFullPath());
                 if (stream == NULL) {
                     break;
                 }
@@ -197,7 +197,7 @@ NativeSkImage *NativeJSImage::JSObjectToNativeSkImage(JS::HandleObject obj)
 
 static int delete_stream(void *arg)
 {
-    NativeBaseStream *stream = (NativeBaseStream *)arg;
+    Nidium::IO::Stream *stream = (Nidium::IO::Stream *)arg;
 
     delete stream;
 
@@ -209,7 +209,7 @@ void NativeJSImage::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
 
     switch (msg.event()) {
-        case NATIVESTREAM_READ_BUFFER:
+        case Nidium::IO::STREAM_READ_BUFFER:
         {
             JS::RootedValue onload_callback(m_Cx);
             JS::RootedObject obj(m_Cx, m_JSObject);

@@ -655,13 +655,13 @@ bool NativeSkia::setFontFile(const char *str)
     size_t len;
 
     NativePath fontPath(str);
-    NativeBaseStream *stream;
+    Nidium::IO::Stream *stream;
 
     if ((stream = fontPath.createStream(true)) == NULL) {
         return false;
     }
 
-    NativePtrAutoDelete<NativeBaseStream *> npad(stream);
+    NativePtrAutoDelete<Nidium::IO::Stream *> npad(stream);
 
     if (!stream->getContentSync(&data, &len)) {
         return false;

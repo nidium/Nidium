@@ -37,7 +37,7 @@ public:
     {
     }
 
-    static NativeBaseStream *createStream(const char *location) {
+    static Nidium::IO::Stream *createStream(const char *location) {
         return new NativePrivateStream(location);
     }
 
@@ -68,7 +68,7 @@ public:
     {
     }
 
-    static NativeBaseStream *createStream(const char *location) {
+    static Nidium::IO::Stream *createStream(const char *location) {
         return new NativePrivateStream(location);
     }
 

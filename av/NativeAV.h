@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <IO/NativeStreamInterface.h>
+#include <IO/Stream.h>
 #include <Core/NativeMessages.h>
 #include <native_netlib.h>
 
@@ -112,7 +112,7 @@ class NativeAVStreamReader : public NativeAVReader, public NativeMessages
         void onMessage(const Nidium::Core::SharedMessages::Message &msg);
         NATIVE_PTHREAD_VAR_DECL(m_ThreadCond);
 
-        NativeBaseStream *m_Stream;
+        Nidium::IO::Stream *m_Stream;
         NativeAVStreamReadCallback m_ReadCallback;
         void *m_CallbackPrivate;
 

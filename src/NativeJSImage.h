@@ -2,7 +2,7 @@
 #define nativejsimage_h__
 
 #include <Core/NativeMessages.h>
-#include <IO/NativeStreamInterface.h>
+#include <IO/Stream.h>
 #include <Binding/JSExposer.h>
 
 class NativeSkImage;
@@ -16,7 +16,7 @@ class NativeJSImage : public Nidium::Binding::JSExposer<NativeJSImage>,
     virtual ~NativeJSImage();
 
     NativeSkImage *m_Image;
-    NativeBaseStream *m_Stream;
+    Nidium::IO::Stream *m_Stream;
 
     static NativeSkImage *JSObjectToNativeSkImage(JS::HandleObject obj);
     static void registerObject(JSContext *cx);

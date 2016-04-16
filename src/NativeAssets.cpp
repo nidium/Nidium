@@ -35,13 +35,13 @@ NativeAssets::Item::Item(const char *url, FileType t,
 void NativeAssets::Item::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case NATIVESTREAM_READ_BUFFER:
+        case Nidium::IO::STREAM_READ_BUFFER:
         {
             buffer *buf = (buffer *)msg.args[0].toPtr();
             this->setContent((const char *)buf->data, buf->used);
             break;
         }
-        case NATIVESTREAM_ERROR:
+        case Nidium::IO::STREAM_ERROR:
         {
             this->setContent(NULL, 0);
             break;
@@ -71,7 +71,7 @@ NativeAssets::Item::~Item()
 
 void NativeAssets::Item::download()
 {
-    m_Stream = NativeBaseStream::create(NativePath(m_Url));
+    m_Stream = Nidium::IO::Stream::create(NativePath(m_Url));
 
     if (m_Stream == NULL) {
         this->setName(m_Url);
