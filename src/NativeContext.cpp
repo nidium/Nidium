@@ -9,7 +9,6 @@
 #include "NativeJSConsole.h"
 #include "NativeJSSystem.h"
 #include <Core/NativeMessages.h>
-#include <IO/NativeStreamInterface.h>
 #include <IO/NativeFileStream.h>
 #include <Net/NativeHTTPStream.h>
 #include <Core/NativePath.h>
