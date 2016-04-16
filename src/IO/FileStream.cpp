@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeFileStream.h"
+#include "FileStream.h"
 
 #include <stdbool.h>
 #include <unistd.h>
@@ -11,7 +11,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-NativeFileStream::NativeFileStream(const char *location) :
+namespace Nidium {
+namespace IO {
+
+FileStream::FileStream(const char *location) :
     Nidium::IO::Stream(location), m_File(location)
 {
     /* We don't want the file to close when end of file is reached */
@@ -19,7 +22,7 @@ NativeFileStream::NativeFileStream(const char *location) :
     m_File.setListener(this);
 }
 
-void NativeFileStream::onStart(size_t packets, size_t seek)
+void FileStream::onStart(size_t packets, size_t seek)
 {
     if (m_DataBuffer.back == NULL) {
         m_DataBuffer.back = buffer_new(packets);
@@ -35,7 +38,7 @@ void NativeFileStream::onStart(size_t packets, size_t seek)
     m_File.read(packets);
 }
 
-const unsigned char *NativeFileStream::onGetNextPacket(size_t *len, int *err)
+const unsigned char *FileStream::onGetNextPacket(size_t *len, int *err)
 {
     unsigned char *data;
 
@@ -68,14 +71,14 @@ const unsigned char *NativeFileStream::onGetNextPacket(size_t *len, int *err)
     return data;
 }
 
-void NativeFileStream::stop()
+void FileStream::stop()
 {
     /*
         Do nothing
     */
 }
 
-void NativeFileStream::getContent()
+void FileStream::getContent()
 {
     if (m_File.isOpen()) {
         return;
@@ -86,7 +89,7 @@ void NativeFileStream::getContent()
     m_File.close();
 }
 
-bool NativeFileStream::getContentSync(char **data, size_t *len, bool mmap)
+bool FileStream::getContentSync(char **data, size_t *len, bool mmap)
 {
     int err;
     ssize_t slen;
@@ -114,12 +117,12 @@ bool NativeFileStream::getContentSync(char **data, size_t *len, bool mmap)
     return true;
 }
 
-size_t NativeFileStream::getFileSize() const
+size_t FileStream::getFileSize() const
 {
     return m_File.getFileSize();
 }
 
-void NativeFileStream::seek(size_t pos)
+void FileStream::seek(size_t pos)
 {
     if (!m_File.isOpen()) {
         return;
@@ -133,7 +136,7 @@ void NativeFileStream::seek(size_t pos)
     m_DataBuffer.ended = false;
 }
 
-void NativeFileStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void FileStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case Nidium::IO::FILE_OPEN_SUCCESS:
@@ -200,4 +203,7 @@ void NativeFileStream::onMessage(const Nidium::Core::SharedMessages::Message &ms
         }
     }
 }
+
+} // namespace IO
+} // namespace Nidium
 

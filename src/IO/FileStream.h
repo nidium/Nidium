@@ -3,22 +3,25 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativefilestream_h__
-#define nativefilestream_h__
+#ifndef io_filestream_h__
+#define io_filestream_h__
 
 #include "Core/NativeMessages.h"
 
 #include "Stream.h"
 #include "File.h"
 
-class NativeFileStream : public Nidium::IO::Stream,
+namespace Nidium {
+namespace IO {
+
+class FileStream : public Nidium::IO::Stream,
                          public NativeMessages
 {
 public:
-    explicit NativeFileStream(const char *location);
+    explicit FileStream(const char *location);
 
     static Nidium::IO::Stream *createStream(const char *location) {
-        return new NativeFileStream(location);
+        return new FileStream(location);
     }
     static const char *getBaseDir() {
         return NativePath::getRoot();
@@ -31,7 +34,7 @@ public:
         return true;
     }
 
-    virtual ~NativeFileStream() {};
+    virtual ~FileStream() {};
 
     virtual void stop();
     virtual void getContent();
@@ -51,6 +54,9 @@ protected:
 private:
     Nidium::IO::File m_File;
 };
+
+} // namespace IO
+} // namespace Nidium
 
 #endif
 

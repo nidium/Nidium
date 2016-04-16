@@ -133,7 +133,7 @@
 
             '../src/IO/File.cpp',
             '../src/IO/Stream.cpp',
-            '../src/IO/NativeFileStream.cpp',
+            '../src/IO/FileStream.cpp',
             '../src/IO/NativeNFSStream.cpp',
             '../src/IO/NativeNFS.cpp',
         ],
