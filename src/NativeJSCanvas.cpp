@@ -1568,19 +1568,19 @@ void NativeJSCanvas::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     JSContext *cx = m_Cx;
     JS::RootedObject ro(cx, m_JSObject);
     switch (msg.event()) {
-        case NATIVE_EVENT(NativeCanvasHandler, RESIZE_EVENT):
+        case NIDIUM_EVENT(NativeCanvasHandler, RESIZE_EVENT):
         {
             // TODO : fireEvent
             JSOBJ_CALLFUNCNAME(ro, "onresize", JS::HandleValueArray::empty());
             break;
         }
-        case NATIVE_EVENT(NativeCanvasHandler, LOADED_EVENT):
+        case NIDIUM_EVENT(NativeCanvasHandler, LOADED_EVENT):
         {
             // TODO : fireEvent
             JSOBJ_CALLFUNCNAME(ro, "onload", JS::HandleValueArray::empty());
             break;
         }
-        case NATIVE_EVENT(NativeCanvasHandler, CHANGE_EVENT):
+        case NIDIUM_EVENT(NativeCanvasHandler, CHANGE_EVENT):
         {
             const char *name = NULL;
             JS::RootedValue value(cx);
@@ -1606,11 +1606,11 @@ void NativeJSCanvas::onMessage(const Nidium::Core::SharedMessages::Message &msg)
             JSOBJ_CALLFUNCNAME(ro, "onchange", arg);
             break;
         }
-        case NATIVE_EVENT(NativeCanvasHandler, DRAG_EVENT):
+        case NIDIUM_EVENT(NativeCanvasHandler, DRAG_EVENT):
         {
             printf("Drag event detected\n");
         }
-        case NATIVE_EVENT(NativeCanvasHandler, MOUSE_EVENT):
+        case NIDIUM_EVENT(NativeCanvasHandler, MOUSE_EVENT):
         {
             JS::RootedObject eventObj(m_Cx, Nidium::Binding::JSEvents::CreateEventObject(m_Cx));
             NativeCanvasHandler *target = static_cast<NativeCanvasHandler *>(msg.args[8].toPtr());

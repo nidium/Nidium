@@ -2122,7 +2122,7 @@ void NativeJSVideo::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     if (m_IsDestructing) return;
 
-    if (msg.event() == NATIVE_EVENT(NativeCanvasHandler, RESIZE_EVENT) && (m_Width == -1 || m_Height == -1)) {
+    if (msg.event() == NIDIUM_EVENT(NativeCanvasHandler, RESIZE_EVENT) && (m_Width == -1 || m_Height == -1)) {
         this->setSize(m_Width, m_Height);
     } else {
         if (msg.event() == SOURCE_EVENT_PLAY) {

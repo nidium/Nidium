@@ -7,7 +7,7 @@
 
 #include <jsapi.h>
 
-#include <Core/NativeEvents.h>
+#include <Core/Events.h>
 
 /*
     - Handle a canvas layer.
@@ -92,7 +92,7 @@ struct NativeLayerizeContext {
     }
 };
 
-class NativeCanvasHandler : public NativeEvents
+class NativeCanvasHandler : public Nidium::Core::Events
 {
     public:
         friend class NativeSkia;

@@ -594,7 +594,7 @@ void NativeContext::execPendingCanvasChanges()
 void NativeContext::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case NATIVE_EVENT(NativeWebSocketListener, SERVER_CONNECT):
+        case NIDIUM_EVENT(NativeWebSocketListener, SERVER_CONNECT):
             m_WSClient = static_cast<NativeWebSocketClientConnection *>(msg.args[0].toPtr());
             printf("New WS client for render :)\n");
             break;
