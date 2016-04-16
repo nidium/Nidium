@@ -4,7 +4,7 @@
 
 #include <native_netlib.h>
 
-#include <Binding/NativeJSFileIO.h>
+#include <Binding/JSFileIO.h>
 
 #include "NativeSkImage.h"
 
@@ -124,7 +124,7 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
                 stream->getContent();
             } else if (vp.isObject()) {
                 JS::RootedObject obj(cx, vp.toObjectOrNull());
-                Nidium::IO::File *file = NativeJSFileIO::GetFileFromJSObject(cx, obj);
+                Nidium::IO::File *file = Nidium::Binding::JSFileIO::GetFileFromJSObject(cx, obj);
                 if (!file) {
                     vp.setNull();
                     return true;

@@ -6,7 +6,7 @@
 #include <string.h>
 #include <strings.h>
 
-#include <Binding/NativeJSFileIO.h>
+#include <Binding/JSFileIO.h>
 #include <Binding/NativeJSUtils.h>
 
 #include "NativeNML.h"
@@ -528,7 +528,7 @@ bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t n
     JS::RootedObject dragged(m_Cx, m_DraggedFiles);
 
     for (int i = 0; i < nfiles; i++) {
-        JS::RootedValue val(m_Cx, OBJECT_TO_JSVAL(NativeJSFileIO::generateJSObject(m_Cx, files[i])));
+        JS::RootedValue val(m_Cx, OBJECT_TO_JSVAL(Nidium::Binding::JSFileIO::generateJSObject(m_Cx, files[i])));
         JS_SetElement(m_Cx, dragged, i, val);
     }
 
@@ -937,7 +937,7 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
     struct _nativeopenfile *nof = (struct _nativeopenfile *)_nof;
     JS::RootedObject arr(nof->cx, JS_NewArrayObject(nof->cx, len));
     for (int i = 0; i < len; i++) {
-        JS::RootedValue val(nof->cx, OBJECT_TO_JSVAL(NativeJSFileIO::generateJSObject(nof->cx, lst[i])));
+        JS::RootedValue val(nof->cx, OBJECT_TO_JSVAL(Nidium::Binding::JSFileIO::generateJSObject(nof->cx, lst[i])));
         JS_SetElement(nof->cx, arr, i, val);
     }
 
