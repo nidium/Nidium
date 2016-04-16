@@ -117,7 +117,7 @@
             '../src/Binding/NativeJSDebug.cpp',
             '../src/Binding/JSConsole.cpp',
             '../src/Binding/JSFS.cpp',
-            '../src/Binding/NativeJSProcess.cpp',
+            '../src/Binding/JSProcess.cpp',
             '../src/Binding/NativeJSWebSocket.cpp',
             '../src/Binding/NativeJSUtils.cpp',
             '../src/Binding/JSStream.cpp',

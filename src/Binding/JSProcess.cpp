@@ -3,13 +3,16 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeJSProcess.h"
+#include "JSProcess.h"
 
 #include <native_netlib.h>
 
+namespace Nidium {
+namespace Binding {
+
 static void Process_Finalize(JSFreeOp *fop, JSObject *obj);
-static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_process_exit(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_process_exit(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass Process_class = {
     "NativeProcess", JSCLASS_HAS_PRIVATE,
@@ -18,20 +21,20 @@ static JSClass Process_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-JSClass *NativeJSProcess::jsclass = &Process_class;
+JSClass *JSProcess::jsclass = &Process_class;
 
 template<>
-JSClass *Nidium::Binding::JSExposer<NativeJSProcess>::jsclass = &Process_class;
+JSClass *JSExposer<JSProcess>::jsclass = &Process_class;
 
 static JSFunctionSpec Process_funcs[] = {
-    JS_FN("setSignalHandler", native_setSignalHandler, 1, NATIVE_JS_FNPROPS),
-    JS_FN("exit", native_process_exit, 1, NATIVE_JS_FNPROPS),
+    JS_FN("setSignalHandler", nidium_setSignalHandler, 1, NATIVE_JS_FNPROPS),
+    JS_FN("exit", nidium_process_exit, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
-static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(NativeJSProcess, &Process_class);
+    NIDIUM_JS_PROLOGUE_CLASS(JSProcess, &Process_class);
     NIDIUM_JS_CHECK_ARGS("setSignalHandler", 1);
 
     JS::RootedValue func(cx);
@@ -46,9 +49,9 @@ static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_process_exit(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_process_exit(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(NativeJSProcess, &Process_class);
+    NIDIUM_JS_PROLOGUE_CLASS(JSProcess, &Process_class);
 
     int code = 0;
 
@@ -63,7 +66,7 @@ static bool native_process_exit(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static void Process_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeJSProcess *jProcess = NativeJSProcess::getNativeClass(obj);
+    JSProcess *jProcess = JSProcess::getNativeClass(obj);
 
     if (jProcess != NULL) {
         delete jProcess;
@@ -76,7 +79,7 @@ static int ape_kill_handler(int code, ape_global *ape)
     JSContext *cx = njs->cx;
     JS::RootedValue     rval(cx);
 
-    NativeJSProcess *jProcess = NativeJSProcess::getNativeClass(njs);
+    JSProcess *jProcess = JSProcess::getNativeClass(njs);
 
     JS::RootedValue func(cx, jProcess->m_SignalFunction);
 
@@ -89,18 +92,18 @@ static int ape_kill_handler(int code, ape_global *ape)
     return false;
 }
 
-void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc, int workerId)
+void JSProcess::registerObject(JSContext *cx, char **argv, int argc, int workerId)
 {
     NativeJS *njs = NativeJS::getNativeClass(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS::RootedObject ProcessObj(cx, JS_DefineObject(cx, global, NativeJSProcess::getJSObjectName(),
+    JS::RootedObject ProcessObj(cx, JS_DefineObject(cx, global, JSProcess::getJSObjectName(),
         &Process_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
-    NativeJSProcess *jProcess = new NativeJSProcess(ProcessObj, cx);
+    JSProcess *jProcess = new JSProcess(ProcessObj, cx);
 
     JS_SetPrivate(ProcessObj, jProcess);
 
-    njs->jsobjects.set(NativeJSProcess::getJSObjectName(), ProcessObj);
+    njs->jsobjects.set(JSProcess::getJSObjectName(), ProcessObj);
 
     JS_DefineFunctions(cx, ProcessObj, Process_funcs);
 
@@ -121,4 +124,7 @@ void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc, int w
     jProcess->m_SignalFunction.set(JS::NullHandleValue);
 
 }
+
+} // namespace Binding
+} // namespace Nidium
 
