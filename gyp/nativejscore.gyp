@@ -120,7 +120,7 @@
             '../src/Binding/NativeJSProcess.cpp',
             '../src/Binding/NativeJSWebSocket.cpp',
             '../src/Binding/NativeJSUtils.cpp',
-            '../src/Binding/NativeJSStream.cpp',
+            '../src/Binding/JSStream.cpp',
             '../src/Binding/NativeJSWebSocketClient.cpp',
             '../src/Binding/JSDB.cpp',
 

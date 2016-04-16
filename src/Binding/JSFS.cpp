@@ -57,7 +57,7 @@ public:
                 JS::RootedString str(cx, JS_NewStringCopyZ(cx, cur->d_name));
 
                 NIDIUM_JSOBJ_SET_PROP_STR(param, "name", str);
-                //NIDIUM_JSOBJ_SET_PROP_CSTR(param, "type", NativeJSFS_dirtype_to_str(cur));
+                //NIDIUM_JSOBJ_SET_PROP_CSTR(param, "type", JSFS_dirtype_to_str(cur));
 
                 params[0].setObject(*param);
 
@@ -85,7 +85,7 @@ public:
     }
 };
 
-void NativeJSFS_readDir_Task(NativeTask *task)
+void JSFS_readDir_Task(NativeTask *task)
 {
     JSFSAsyncHandler *handler = (JSFSAsyncHandler *)task->getObject();
 
@@ -135,7 +135,7 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
     printf("Calling with cx : %p\n", cx);
 
     NativeTask *task = new NativeTask();
-    task->setFunction(NativeJSFS_readDir_Task);
+    task->setFunction(JSFS_readDir_Task);
     task->args[0].set(strdup(cpath.ptr()));
 
     handler->setCallback(0, callback.toObjectOrNull());

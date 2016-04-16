@@ -25,7 +25,7 @@
 #include "JSHttp.h"
 #include "JSFileIO.h"
 #include "NativeJSModules.h"
-#include "NativeJSStream.h"
+#include "JSStream.h"
 #include "NativeJSWebSocket.h"
 #include "NativeJSWebSocketClient.h"
 #include "NativeJSHTTPListener.h"
@@ -1049,7 +1049,7 @@ void NativeJS::loadGlobalObjects()
     /* Http() object */
     Nidium::Binding::JSHttp::registerObject(cx);
     /* Stream() object */
-    NativeJSStream::registerObject(cx);
+    Nidium::Binding::JSStream::registerObject(cx);
     /* WebSocket*() object */
     NativeJSWebSocketServer::registerObject(cx);
     NativeJSWebSocket::registerObject(cx);

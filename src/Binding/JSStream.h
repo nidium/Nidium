@@ -3,20 +3,23 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativejsstream_h__
-#define nativejsstream_h__
+#ifndef binding_jsstream_h__
+#define binding_jsstream_h__
 
 #include "Core/NativeMessages.h"
 #include "JSExposer.h"
 #include "IO/Stream.h"
 
-class NativeJSStream :  public Nidium::Binding::JSExposer<NativeJSStream>,
+namespace Nidium {
+namespace Binding {
+
+class JSStream :  public Nidium::Binding::JSExposer<JSStream>,
                         public NativeMessages
 {
   public:
     static void registerObject(JSContext *cx);
-    NativeJSStream(JS::HandleObject obj, JSContext *cx, ape_global *net, const char *url);
-    ~NativeJSStream();
+    JSStream(JS::HandleObject obj, JSContext *cx, ape_global *net, const char *url);
+    ~JSStream();
     Nidium::IO::Stream *getStream() const {
         return m_Stream;
     }
@@ -25,6 +28,9 @@ class NativeJSStream :  public Nidium::Binding::JSExposer<NativeJSStream>,
   private:
     Nidium::IO::Stream *m_Stream;
 };
+
+} // namespace Binding
+} // namespace Nidium
 
 #endif
 

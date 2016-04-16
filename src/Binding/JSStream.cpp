@@ -3,24 +3,27 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeJSStream.h"
+#include "JSStream.h"
 
 #include <string>
 
 #include "IO/Stream.h"
 
+namespace Nidium {
+namespace Binding {
+
 enum {
     STREAM_PROP_FILESIZE
 };
 
-static bool native_stream_prop_get(JSContext *cx, JS::HandleObject obj,
+static bool nidium_stream_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp);
 
 static void Stream_Finalize(JSFreeOp *fop, JSObject *obj);
-static bool native_stream_seek(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_stream_start(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_stream_stop(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_stream_seek(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_stream_start(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_stream_stop(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass Stream_class = {
     "Stream", JSCLASS_HAS_PRIVATE,
@@ -30,35 +33,35 @@ static JSClass Stream_class = {
 };
 
 template<>
-JSClass *Nidium::Binding::JSExposer<NativeJSStream>::jsclass = &Stream_class;
+JSClass *Nidium::Binding::JSExposer<JSStream>::jsclass = &Stream_class;
 
 static JSFunctionSpec Stream_funcs[] = {
-    JS_FN("seek", native_stream_seek, 1, NATIVE_JS_FNPROPS),
-    JS_FN("start", native_stream_start, 0, NATIVE_JS_FNPROPS),
-    JS_FN("stop", native_stream_stop, 0, NATIVE_JS_FNPROPS),
-    JS_FN("getNextPacket", native_stream_getNextPacket, 0, NATIVE_JS_FNPROPS),
+    JS_FN("seek", nidium_stream_seek, 1, NATIVE_JS_FNPROPS),
+    JS_FN("start", nidium_stream_start, 0, NATIVE_JS_FNPROPS),
+    JS_FN("stop", nidium_stream_stop, 0, NATIVE_JS_FNPROPS),
+    JS_FN("getNextPacket", nidium_stream_getNextPacket, 0, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSPropertySpec Stream_props[] = {
-    NIDIUM_JS_PSG("filesize", STREAM_PROP_FILESIZE, native_stream_prop_get),
+    NIDIUM_JS_PSG("filesize", STREAM_PROP_FILESIZE, nidium_stream_prop_get),
     JS_PS_END
 };
 
 static void Stream_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeJSStream *nstream = (NativeJSStream *)JS_GetPrivate(obj);
+    JSStream *nstream = (JSStream *)JS_GetPrivate(obj);
 
     if (nstream != NULL) {
         delete nstream;
     }
 }
 
-static bool native_stream_prop_get(JSContext *cx, JS::HandleObject obj,
+static bool nidium_stream_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
 
-    NativeJSStream *stream = (NativeJSStream *)JS_GetPrivate(obj);
+    JSStream *stream = (JSStream *)JS_GetPrivate(obj);
 
     switch(id) {
         case STREAM_PROP_FILESIZE:
@@ -69,7 +72,7 @@ static bool native_stream_prop_get(JSContext *cx, JS::HandleObject obj,
     return true;
 }
 
-static bool native_stream_stop(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_stream_stop(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
@@ -78,12 +81,12 @@ static bool native_stream_stop(JSContext *cx, unsigned argc, JS::Value *vp)
         return true;
     }
 
-    ((NativeJSStream *)JS_GetPrivate(caller))->getStream()->stop();
+    ((JSStream *)JS_GetPrivate(caller))->getStream()->stop();
 
     return true;
 }
 
-static bool native_stream_seek(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_stream_seek(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
@@ -97,12 +100,12 @@ static bool native_stream_seek(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    ((NativeJSStream *)JS_GetPrivate(caller))->getStream()->seek(pos);
+    ((JSStream *)JS_GetPrivate(caller))->getStream()->seek(pos);
 
     return true;
 }
 
-static bool native_stream_start(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_stream_start(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
@@ -119,14 +122,14 @@ static bool native_stream_start(JSContext *cx, unsigned argc, JS::Value *vp)
         }
     }
 
-    ((NativeJSStream *)JS_GetPrivate(caller))->getStream()->start(packetlen);
+    ((JSStream *)JS_GetPrivate(caller))->getStream()->start(packetlen);
 
     NativeJSObj(cx)->rootObjectUntilShutdown(caller);
 
     return true;
 }
 
-static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
@@ -139,7 +142,7 @@ static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value 
     int                   err;
     const unsigned char   *ret;
 
-    ret = ((NativeJSStream *)JS_GetPrivate(caller))->
+    ret = ((JSStream *)JS_GetPrivate(caller))->
         getStream()->getNextPacket(&len, &err);
 
     if (ret == NULL) {
@@ -170,7 +173,7 @@ static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value 
     return true;
 }
 
-static bool native_Stream_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_Stream_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString url(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -188,7 +191,7 @@ static bool native_Stream_constructor(JSContext *cx, unsigned argc, JS::Value *v
 
     JSAutoByteString curl(cx, url);
 
-    NativeJSStream *jstream = new NativeJSStream(ret, cx,
+    JSStream *jstream = new JSStream(ret, cx,
         (ape_global *)JS_GetContextPrivate(cx), curl.ptr());
 
     if (jstream->getStream() == NULL) {
@@ -206,9 +209,9 @@ static bool native_Stream_constructor(JSContext *cx, unsigned argc, JS::Value *v
     return true;
 }
 
-NativeJSStream::NativeJSStream(JS::HandleObject obj, JSContext *cx,
+JSStream::JSStream(JS::HandleObject obj, JSContext *cx,
     ape_global *net, const char *url) :
-    Nidium::Binding::JSExposer<NativeJSStream>(obj, cx)
+    Nidium::Binding::JSExposer<JSStream>(obj, cx)
 {
     std::string str = url;
     //str += NativeJS::getNativeClass(cx)->getPath();
@@ -222,13 +225,13 @@ NativeJSStream::NativeJSStream(JS::HandleObject obj, JSContext *cx,
     m_Stream->setListener(this);
 }
 
-NativeJSStream::~NativeJSStream()
+JSStream::~JSStream()
 {
     delete m_Stream;
 }
 
 #if 0
-void NativeJSStream::onProgress(size_t buffered, size_t total)
+void JSStream::onProgress(size_t buffered, size_t total)
 {
     JS::RootedObject obj(cx, this->jsobj);
     JS::Value onprogress_callback;
@@ -246,7 +249,7 @@ void NativeJSStream::onProgress(size_t buffered, size_t total)
 }
 #endif
 
-void NativeJSStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void JSStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     JS::RootedValue onavailable_callback(m_Cx);
     JS::RootedValue onerror_callback(m_Cx);
@@ -292,5 +295,8 @@ void NativeJSStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     }
 }
 
-NATIVE_OBJECT_EXPOSE(Stream)
 
+NIDIUM_JS_OBJECT_EXPOSE(Stream)
+
+} // namespace Binding
+} // namespace Nidium
