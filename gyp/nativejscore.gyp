@@ -115,7 +115,7 @@
             '../src/Binding/JSThread.cpp',
             '../src/Binding/NativeJSHTTPListener.cpp',
             '../src/Binding/NativeJSDebug.cpp',
-            '../src/Binding/NativeJSConsole.cpp',
+            '../src/Binding/JSConsole.cpp',
             '../src/Binding/JSFS.cpp',
             '../src/Binding/NativeJSProcess.cpp',
             '../src/Binding/NativeJSWebSocket.cpp',

@@ -3,16 +3,22 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativejsconsole_h__
-#define nativejsconsole_h__
+#ifndef binding_jsconsole_h__
+#define binding_jsconsole_h__
 
 #include "JSExposer.h"
 
-class NativeJSconsole : public Nidium::Binding::JSExposer<NativeJSconsole>
+namespace Nidium {
+namespace Binding {
+
+class JSConsole : public Nidium::Binding::JSExposer<JSConsole>
 {
   public:
     static void registerObject(JSContext *cx);
 };
+
+} // namespace Binding
+} // namespace Nidium
 
 #endif
 

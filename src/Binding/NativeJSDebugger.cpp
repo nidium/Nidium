@@ -7,7 +7,7 @@
 #include <vm/Debugger.h>
 
 #include "NativeJSDebugger.h"
-#include "NativeJSConsole.h"
+#include "JSConsole.h"
 
 static JSClass DebuggerContext_class = {
     "DebuggerContext", JSCLASS_HAS_RESERVED_SLOTS(2),
@@ -123,7 +123,7 @@ static bool nativejs_debugger_create(JSContext* cx, unsigned argc, JS::Value* vp
 
     NativeJSDebugger::registerObject(cx);
     /* Expose console object for easy "debugging" */
-    NativeJSconsole::registerObject(cx);
+    Nidium::Binding::JSConsole::registerObject(cx);
 
     JS::RootedScript script(cx);
     JS::AutoSaveContextOptions asco(cx);

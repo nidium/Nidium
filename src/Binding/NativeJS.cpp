@@ -30,7 +30,7 @@
 #include "NativeJSWebSocketClient.h"
 #include "NativeJSHTTPListener.h"
 #include "NativeJSDebug.h"
-#include "NativeJSConsole.h"
+#include "JSConsole.h"
 #include "JSFS.h"
 #include "NativeJSDebugger.h"
 
@@ -1058,7 +1058,7 @@ void NativeJS::loadGlobalObjects()
     /* Debug object */
     NativeJSDebug::registerObject(cx);
     /* console object */
-    NativeJSconsole::registerObject(cx);
+    Nidium::Binding::JSConsole::registerObject(cx);
     /* fs object */
     Nidium::Binding::JSFS::registerObject(cx);
     /* Debugger object */

@@ -17,7 +17,7 @@
 
 #include <js/OldDebugAPI.h>
 
-#include "NativeJSConsole.h"
+#include "JSConsole.h"
 
 extern void reportError(JSContext *cx, const char *message,
     JSErrorReport *report);
@@ -145,7 +145,7 @@ static void *nidium_thread(void *arg)
 
             js::SetDefaultObjectForContext(tcx, gbl);
 
-            NativeJSconsole::registerObject(tcx);
+            Nidium::Binding::JSConsole::registerObject(tcx);
 
             JSAutoByteString str(tcx, nthread->jsFunction);
             char *scoped = new char[strlen(str.ptr()) + 128];

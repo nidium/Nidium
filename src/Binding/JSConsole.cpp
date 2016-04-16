@@ -3,21 +3,19 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeJSConsole.h"
+#include "JSConsole.h"
 
 #include <string.h>
 #include <math.h>
 
-static bool native_console_log(JSContext *cx, unsigned argc,
-    JS::Value *vp);
-static bool native_console_write(JSContext *cx, unsigned argc,
-    JS::Value *vp);
-static bool native_console_hide(JSContext *cx, unsigned argc,
-    JS::Value *vp);
-static bool native_console_show(JSContext *cx, unsigned argc,
-    JS::Value *vp);
-static bool native_console_clear(JSContext *cx, unsigned argc,
-    JS::Value *vp);
+namespace Nidium {
+namespace Binding {
+
+static bool nidium_console_log(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_console_write(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_console_hide(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_console_show(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_console_clear(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass console_class = {
     "Console", 0,
@@ -27,18 +25,18 @@ static JSClass console_class = {
 };
 
 static JSFunctionSpec console_funcs[] = {
-    JS_FN("log", native_console_log, 0, NATIVE_JS_FNPROPS),
-    JS_FN("write", native_console_write, 0, NATIVE_JS_FNPROPS),
-    JS_FN("info", native_console_log, 0, NATIVE_JS_FNPROPS),
-    JS_FN("error", native_console_log, 0, NATIVE_JS_FNPROPS),
-    JS_FN("warn", native_console_log, 0, NATIVE_JS_FNPROPS),
-    JS_FN("hide", native_console_hide, 0, NATIVE_JS_FNPROPS),
-    JS_FN("show", native_console_show, 0, NATIVE_JS_FNPROPS),
-    JS_FN("clear", native_console_clear, 0, NATIVE_JS_FNPROPS),
+    JS_FN("log", nidium_console_log, 0, NATIVE_JS_FNPROPS),
+    JS_FN("write", nidium_console_write, 0, NATIVE_JS_FNPROPS),
+    JS_FN("info", nidium_console_log, 0, NATIVE_JS_FNPROPS),
+    JS_FN("error", nidium_console_log, 0, NATIVE_JS_FNPROPS),
+    JS_FN("warn", nidium_console_log, 0, NATIVE_JS_FNPROPS),
+    JS_FN("hide", nidium_console_hide, 0, NATIVE_JS_FNPROPS),
+    JS_FN("show", nidium_console_show, 0, NATIVE_JS_FNPROPS),
+    JS_FN("clear", nidium_console_clear, 0, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
-static bool native_console_hide(JSContext *cx, unsigned argc,
+static bool nidium_console_hide(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
 
@@ -50,7 +48,7 @@ static bool native_console_hide(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool native_console_show(JSContext *cx, unsigned argc,
+static bool nidium_console_show(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
 #if 0
@@ -59,7 +57,7 @@ static bool native_console_show(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool native_console_clear(JSContext *cx, unsigned argc,
+static bool nidium_console_clear(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     NativeJS *js = NativeJS::getNativeClass(cx);
@@ -73,7 +71,7 @@ static bool native_console_clear(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool native_console_log(JSContext *cx, unsigned argc,
+static bool nidium_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -120,7 +118,7 @@ static bool native_console_log(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool native_console_write(JSContext *cx, unsigned argc,
+static bool nidium_console_write(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     NativeJS *js = NativeJS::getNativeClass(cx);
@@ -144,7 +142,7 @@ static bool native_console_write(JSContext *cx, unsigned argc,
     return true;
 }
 
-void NativeJSconsole::registerObject(JSContext *cx)
+void JSConsole::registerObject(JSContext *cx)
 {
     JS::RootedObject consoleObj(cx, JS_DefineObject(cx,
         JS::CurrentGlobalOrNull(cx), "console",
@@ -152,4 +150,7 @@ void NativeJSconsole::registerObject(JSContext *cx)
 
     JS_DefineFunctions(cx, consoleObj, console_funcs);
 }
+
+} // namespace Binding
+} // namespace Nidium
 
