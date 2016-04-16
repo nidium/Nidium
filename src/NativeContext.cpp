@@ -30,7 +30,7 @@
 #endif
 
 #ifdef NATIVE_WEBGL_ENABLED
-#include <Binding/NativeJSProcess.h>
+#include <Binding/JSProcess.h>
 #include "NativeOpenGLHeader.h"
 #include "NativeGLState.h"
 #include "NativeJSWebGL.h"
@@ -169,7 +169,7 @@ void NativeContext::loadNativeObjects(int width, int height)
     /* window() object */
     m_JSWindow = NativeJSwindow::registerObject(cx, width, height, docObj);
 
-    NativeJSProcess::registerObject(cx, m_UI->m_Argv, m_UI->m_Argc, 0);
+    Nidium::Binding::JSProcess::registerObject(cx, m_UI->m_Argv, m_UI->m_Argc, 0);
 
 #if DEBUG
     createDebug2Canvas();
