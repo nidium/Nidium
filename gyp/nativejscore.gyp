@@ -131,7 +131,7 @@
             '../src/Core/NativeTaskManager.cpp',
             '../src/Core/NativePath.cpp',
 
-            '../src/IO/NativeFile.cpp',
+            '../src/IO/File.cpp',
             '../src/IO/Stream.cpp',
             '../src/IO/NativeFileStream.cpp',
             '../src/IO/NativeNFSStream.cpp',

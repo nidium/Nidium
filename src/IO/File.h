@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativefile_h__
-#define nativefile_h__
+#ifndef io_file_h__
+#define io_file_h__
 
 #include <stdio.h>
 #include <stdint.h>
@@ -18,22 +18,25 @@
 #include "NativeIStreamer.h"
 
 
-#define NATIVEFILE_MESSAGE_BITS(id) ((1 << 20) | id)
+namespace Nidium {
+namespace IO {
+
+#define NIDIUM_FILE_MESSAGE_BITS(id) ((1 << 20) | id)
 
 enum {
-    NATIVEFILE_OPEN_ERROR =     NATIVEFILE_MESSAGE_BITS(1),
-    NATIVEFILE_OPEN_SUCCESS =   NATIVEFILE_MESSAGE_BITS(2),
-    NATIVEFILE_CLOSE_SUCCESS =  NATIVEFILE_MESSAGE_BITS(3),
-    NATIVEFILE_READ_SUCCESS =   NATIVEFILE_MESSAGE_BITS(4),
-    NATIVEFILE_READ_ERROR =     NATIVEFILE_MESSAGE_BITS(5),
-    NATIVEFILE_WRITE_SUCCESS =  NATIVEFILE_MESSAGE_BITS(6),
-    NATIVEFILE_WRITE_ERROR =    NATIVEFILE_MESSAGE_BITS(7),
-    NATIVEFILE_SEEK_SUCCESS =   NATIVEFILE_MESSAGE_BITS(8),
-    NATIVEFILE_SEEK_ERROR =     NATIVEFILE_MESSAGE_BITS(9),
-    NATIVEFILE_LISTFILES_ENTRIES = NATIVEFILE_MESSAGE_BITS(10),
+    FILE_OPEN_ERROR =     NIDIUM_FILE_MESSAGE_BITS(1),
+    FILE_OPEN_SUCCESS =   NIDIUM_FILE_MESSAGE_BITS(2),
+    FILE_CLOSE_SUCCESS =  NIDIUM_FILE_MESSAGE_BITS(3),
+    FILE_READ_SUCCESS =   NIDIUM_FILE_MESSAGE_BITS(4),
+    FILE_READ_ERROR =     NIDIUM_FILE_MESSAGE_BITS(5),
+    FILE_WRITE_SUCCESS =  NIDIUM_FILE_MESSAGE_BITS(6),
+    FILE_WRITE_ERROR =    NIDIUM_FILE_MESSAGE_BITS(7),
+    FILE_SEEK_SUCCESS =   NIDIUM_FILE_MESSAGE_BITS(8),
+    FILE_SEEK_ERROR =     NIDIUM_FILE_MESSAGE_BITS(9),
+    FILE_LISTFILES_ENTRIES = NIDIUM_FILE_MESSAGE_BITS(10),
 };
 
-class NativeFile : public NativeManaged, public NativeIStreamer, public Nidium::Core::Events
+class File : public NativeManaged, public NativeIStreamer, public Nidium::Core::Events
 {
 public:
     static const uint8_t EventID = 2;
@@ -56,8 +59,8 @@ public:
         dirent *lst;
     };
 
-    explicit NativeFile(const char *path);
-    ~NativeFile();
+    explicit File(const char *path);
+    ~File();
 
     void open(const char *mode, void *arg = NULL);
     void close(void *arg = NULL);
@@ -114,8 +117,8 @@ public:
         return m_Dir;
     }
 
-    NativeFile *dup() {
-        return new NativeFile(m_Path);
+    File *dup() {
+        return new File(m_Path);
     }
 
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
@@ -154,6 +157,9 @@ private:
         void *addr;
     } m_Mmap;
 };
+
+} // namespace IO
+} // namespace Nidium
 
 #endif
 

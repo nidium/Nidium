@@ -9,7 +9,7 @@
 #include "Core/NativeMessages.h"
 
 #include "Stream.h"
-#include "NativeFile.h"
+#include "File.h"
 
 class NativeFileStream : public Nidium::IO::Stream,
                          public NativeMessages
@@ -49,7 +49,7 @@ protected:
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err);
     virtual void onStart(size_t packets, size_t seek);
 private:
-    NativeFile m_File;
+    Nidium::IO::File m_File;
 };
 
 #endif

@@ -879,7 +879,7 @@ int NativeJS::LoadScriptReturn(JSContext *cx,
     char *data;
     size_t len;
 
-    NativeFile file(filename);
+    Nidium::IO::File file(filename);
 
     if (!file.openSync("r", &err)) {
         return 0;
@@ -993,7 +993,7 @@ int NativeJS::LoadScript(const char *filename)
     char *data;
     size_t len;
 
-    NativeFile file(filename);
+    Nidium::IO::File file(filename);
 
     if (!file.openSync("r", &err)) {
         return 0;

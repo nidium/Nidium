@@ -9,7 +9,7 @@
 #include <ape_buffer.h>
 
 #include "Core/NativeMessages.h"
-#include "IO/NativeFile.h"
+#include "IO/File.h"
 #include "JSExposer.h"
 
 class NativeJSFileIO : public Nidium::Binding::JSExposer<NativeJSFileIO>,
@@ -18,7 +18,7 @@ class NativeJSFileIO : public Nidium::Binding::JSExposer<NativeJSFileIO>,
   public:
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 
-    static NativeFile *GetFileFromJSObject(JSContext *cx, JS::HandleObject jsobj);
+    static Nidium::IO::File *GetFileFromJSObject(JSContext *cx, JS::HandleObject jsobj);
     static void registerObject(JSContext *cx);
     static JSObject *generateJSObject(JSContext *cx, const char *path);
 
@@ -37,12 +37,12 @@ class NativeJSFileIO : public Nidium::Binding::JSExposer<NativeJSFileIO>,
         }
     };
 
-    NativeFile *getFile() const { return m_File; }
-    void setFile(NativeFile *file) { m_File = file; }
+    Nidium::IO::File *getFile() const { return m_File; }
+    void setFile(Nidium::IO::File *file) { m_File = file; }
 
     char *m_Encoding;
   private:
-    NativeFile *m_File;
+    Nidium::IO::File *m_File;
 };
 
 #endif

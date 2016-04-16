@@ -128,7 +128,7 @@ protected:
         so that the requested data (getNextPacket()) remains valid
         while data are still incoming (double buffering).
 
-        TODO: move to NativeFileStream?
+        TODO: move to Nidium::IO::FileStream?
     */
     void swapBuffer();
 

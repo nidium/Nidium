@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeFile.h"
+#include "File.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +18,10 @@
 
 #include <ape_buffer.h>
 
-#define NATIVE_FILE_NOTIFY(param, event, arg) \
+namespace Nidium {
+namespace IO {
+
+#define NIDIUM_FILE_NOTIFY(param, event, arg) \
     do {   \
         Nidium::Core::SharedMessages::Message *__msg = new Nidium::Core::SharedMessages::Message(event); \
         __msg->args[0].set(param); \
@@ -27,15 +30,15 @@
     } while(0);
 
 enum {
-    NATIVEFILE_TASK_OPEN,
-    NATIVEFILE_TASK_CLOSE,
-    NATIVEFILE_TASK_READ,
-    NATIVEFILE_TASK_WRITE,
-    NATIVEFILE_TASK_SEEK,
-    NATIVEFILE_TASK_LISTFILES
+    FILE_TASK_OPEN,
+    FILE_TASK_CLOSE,
+    FILE_TASK_READ,
+    FILE_TASK_WRITE,
+    FILE_TASK_SEEK,
+    FILE_TASK_LISTFILES
 };
 
-NativeFile::NativeFile(const char *name) :
+File::File(const char *name) :
     m_Dir(NULL), m_Fd(NULL), m_Delegate(NULL),
     m_Filesize(0), m_AutoClose(true),
     m_Eof(false), m_OpenSync(false), m_isDir(false)
@@ -48,32 +51,32 @@ NativeFile::NativeFile(const char *name) :
 /*
     /!\ Exec in a worker thread
 */
-void NativeFile_dispatchTask(NativeTask *task)
+void File_dispatchTask(NativeTask *task)
 {
-    NativeFile *file = (NativeFile *)task->getObject();
+    File *file = (File *)task->getObject();
     uint64_t type = task->args[0].toInt64();
     void *arg = task->args[7].toPtr();
 
     switch (type) {
-        case NATIVEFILE_TASK_OPEN:
+        case Nidium::IO::FILE_TASK_OPEN:
         {
             char *modes = (char *)task->args[1].toPtr();
             file->openTask(modes, arg);
             free(modes);
             break;
         }
-        case NATIVEFILE_TASK_CLOSE:
+        case Nidium::IO::FILE_TASK_CLOSE:
         {
             file->closeTask();
             break;
         }
-        case NATIVEFILE_TASK_READ:
+        case Nidium::IO::FILE_TASK_READ:
         {
             uint64_t size = task->args[1].toInt64();
             file->readTask(size, arg);
             break;
         }
-        case NATIVEFILE_TASK_WRITE:
+        case Nidium::IO::FILE_TASK_WRITE:
         {
             uint64_t buflen = task->args[1].toInt64();
             char *buf = (char *)task->args[2].toPtr();
@@ -83,13 +86,13 @@ void NativeFile_dispatchTask(NativeTask *task)
             free(buf);
             break;
         }
-        case NATIVEFILE_TASK_SEEK:
+        case Nidium::IO::FILE_TASK_SEEK:
         {
             uint64_t pos = task->args[1].toInt64();
             file->seekTask(pos, arg);
             break;
         }
-        case NATIVEFILE_TASK_LISTFILES:
+        case Nidium::IO::FILE_TASK_LISTFILES:
         {
             file->listFilesTask(arg);
             break;
@@ -102,11 +105,11 @@ void NativeFile_dispatchTask(NativeTask *task)
 /*
     /!\ Exec in a worker thread
 */
-void NativeFile::openTask(const char *mode, void *arg)
+void File::openTask(const char *mode, void *arg)
 {
     if (this->isOpen()) {
         // seek(0)?
-        NATIVE_FILE_NOTIFY(m_Fd, NATIVEFILE_OPEN_SUCCESS, arg);
+        NIDIUM_FILE_NOTIFY(m_Fd, Nidium::IO::FILE_OPEN_SUCCESS, arg);
         return;
     }
 
@@ -119,7 +122,7 @@ void NativeFile::openTask(const char *mode, void *arg)
         m_Dir = opendir(m_Path);
         if (!m_Dir) {
             printf("Failed to open dir %s : %s\n", m_Path, strerror(errno));
-            NATIVE_FILE_NOTIFY(errno, NATIVEFILE_OPEN_ERROR, arg);
+            NIDIUM_FILE_NOTIFY(errno, Nidium::IO::FILE_OPEN_ERROR, arg);
             return;
         }
         m_isDir = true;
@@ -127,7 +130,7 @@ void NativeFile::openTask(const char *mode, void *arg)
     } else {
         m_Fd = fopen(m_Path, mode);
         if (m_Fd == NULL) {
-            NATIVE_FILE_NOTIFY(errno, NATIVEFILE_OPEN_ERROR, arg);
+            NIDIUM_FILE_NOTIFY(errno, Nidium::IO::FILE_OPEN_ERROR, arg);
             return;
         }
 
@@ -135,28 +138,28 @@ void NativeFile::openTask(const char *mode, void *arg)
         m_isDir = false;
     }
 
-    NATIVE_FILE_NOTIFY(m_Fd, NATIVEFILE_OPEN_SUCCESS, arg);
+    NIDIUM_FILE_NOTIFY(m_Fd, Nidium::IO::FILE_OPEN_SUCCESS, arg);
 }
 
 /*
     /!\ Exec in a worker thread
 */
-void NativeFile::closeTask(void *arg)
+void File::closeTask(void *arg)
 {
     closeFd();
 
     if (!m_OpenSync) {
-        NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_CLOSE_SUCCESS, arg);
+        NIDIUM_FILE_NOTIFY((void *)NULL, Nidium::IO::FILE_CLOSE_SUCCESS, arg);
     }
 }
 
 /*
     /!\ Exec in a worker thread
 */
-void NativeFile::readTask(size_t size, void *arg)
+void File::readTask(size_t size, void *arg)
 {
     if (!this->isOpen() || this->isDir()) {
-        NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_READ_ERROR, arg);
+        NIDIUM_FILE_NOTIFY((void *)NULL, Nidium::IO::FILE_READ_ERROR, arg);
         return;
     }
 
@@ -169,7 +172,7 @@ void NativeFile::readTask(size_t size, void *arg)
         Read an empty file
     */
     if (clamped_len == 0) {
-        NATIVE_FILE_NOTIFY((void *)buf, NATIVEFILE_READ_SUCCESS, arg);
+        NIDIUM_FILE_NOTIFY((void *)buf, Nidium::IO::FILE_READ_SUCCESS, arg);
         buf->data[0] = '\0';
         return;
     }
@@ -184,16 +187,16 @@ void NativeFile::readTask(size_t size, void *arg)
 
     buf->data[buf->used] = '\0';
 
-    NATIVE_FILE_NOTIFY((void *)buf, NATIVEFILE_READ_SUCCESS, arg);
+    NIDIUM_FILE_NOTIFY((void *)buf, Nidium::IO::FILE_READ_SUCCESS, arg);
 }
 
 /*
     /!\ Exec in a worker thread
 */
-void NativeFile::writeTask(char *buf, size_t buflen, void *arg)
+void File::writeTask(char *buf, size_t buflen, void *arg)
 {
     if (!this->isOpen() || this->isDir()) {
-        NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_WRITE_ERROR, arg);
+        NIDIUM_FILE_NOTIFY((void *)NULL, Nidium::IO::FILE_WRITE_ERROR, arg);
         return;
     }
 
@@ -206,34 +209,34 @@ void NativeFile::writeTask(char *buf, size_t buflen, void *arg)
     */
     m_Filesize = ftell(m_Fd);
 
-    NATIVE_FILE_NOTIFY(writelen, NATIVEFILE_WRITE_SUCCESS, arg);
+    NIDIUM_FILE_NOTIFY(writelen, Nidium::IO::FILE_WRITE_SUCCESS, arg);
 }
 
 /*
     /!\ Exec in a worker thread
 */
-void NativeFile::seekTask(size_t pos, void *arg)
+void File::seekTask(size_t pos, void *arg)
 {
     if (!this->isOpen() || this->isDir()) {
         int err = 0;
-        NATIVE_FILE_NOTIFY(err, NATIVEFILE_SEEK_ERROR, arg);
+        NIDIUM_FILE_NOTIFY(err, Nidium::IO::FILE_SEEK_ERROR, arg);
         return;
     }
 
     if (fseek(m_Fd, pos, SEEK_SET) == -1) {
-        NATIVE_FILE_NOTIFY(errno, NATIVEFILE_SEEK_ERROR, arg);
+        NIDIUM_FILE_NOTIFY(errno, Nidium::IO::FILE_SEEK_ERROR, arg);
         return;
     }
 
     this->checkEOF();
 
-    NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_SEEK_SUCCESS, arg);
+    NIDIUM_FILE_NOTIFY((void *)NULL, Nidium::IO::FILE_SEEK_SUCCESS, arg);
 }
 
 /*
     /!\ Exec in a worker thread
 */
-void NativeFile::listFilesTask(void *arg)
+void File::listFilesTask(void *arg)
 {
     if (!this->isOpen() || !this->isDir()) {
         return;
@@ -261,86 +264,86 @@ void NativeFile::listFilesTask(void *arg)
         }
     }
 
-    NATIVE_FILE_NOTIFY(entries, NATIVEFILE_LISTFILES_ENTRIES, arg);
+    NIDIUM_FILE_NOTIFY(entries, Nidium::IO::FILE_LISTFILES_ENTRIES, arg);
 
     rewinddir(m_Dir);
 }
 
-void NativeFile::open(const char *mode, void *arg)
+void File::open(const char *mode, void *arg)
 {
     NativeTask *task = new NativeTask();
-    task->args[0].set(NATIVEFILE_TASK_OPEN);
+    task->args[0].set(Nidium::IO::FILE_TASK_OPEN);
     task->args[1].set(strdup(mode));
     task->args[7].set(arg);
 
-    task->setFunction(NativeFile_dispatchTask);
+    task->setFunction(File_dispatchTask);
 
     this->addTask(task);
 }
 
-void NativeFile::close(void *arg)
+void File::close(void *arg)
 {
     NativeTask *task = new NativeTask();
-    task->args[0].set(NATIVEFILE_TASK_CLOSE);
+    task->args[0].set(Nidium::IO::FILE_TASK_CLOSE);
     task->args[7].set(arg);
 
-    task->setFunction(NativeFile_dispatchTask);
+    task->setFunction(File_dispatchTask);
 
     this->addTask(task);
 }
 
-void NativeFile::read(size_t size, void *arg)
+void File::read(size_t size, void *arg)
 {
     NativeTask *task = new NativeTask();
-    task->args[0].set(NATIVEFILE_TASK_READ);
+    task->args[0].set(Nidium::IO::FILE_TASK_READ);
     task->args[1].set(size);
     task->args[7].set(arg);
 
-    task->setFunction(NativeFile_dispatchTask);
+    task->setFunction(File_dispatchTask);
 
     this->addTask(task);
 }
 
-void NativeFile::write(char *buf, size_t size, void *arg)
+void File::write(char *buf, size_t size, void *arg)
 {
     unsigned char *newbuf = (unsigned char *)malloc(size);
     memcpy(newbuf, buf, size);
 
     NativeTask *task = new NativeTask();
-    task->args[0].set(NATIVEFILE_TASK_WRITE);
+    task->args[0].set(Nidium::IO::FILE_TASK_WRITE);
     task->args[1].set(size);
     task->args[2].set(newbuf);
     task->args[7].set(arg);
 
-    task->setFunction(NativeFile_dispatchTask);
+    task->setFunction(File_dispatchTask);
 
     this->addTask(task);
 }
 
-void NativeFile::seek(size_t pos, void *arg)
+void File::seek(size_t pos, void *arg)
 {
     NativeTask *task = new NativeTask();
-    task->args[0].set(NATIVEFILE_TASK_SEEK);
+    task->args[0].set(Nidium::IO::FILE_TASK_SEEK);
     task->args[1].set(pos);
     task->args[7].set(arg);
 
-    task->setFunction(NativeFile_dispatchTask);
+    task->setFunction(File_dispatchTask);
 
     this->addTask(task);
 }
 
-void NativeFile::listFiles(void *arg)
+void File::listFiles(void *arg)
 {
     NativeTask *task = new NativeTask();
-    task->args[0].set(NATIVEFILE_TASK_LISTFILES);
+    task->args[0].set(Nidium::IO::FILE_TASK_LISTFILES);
     task->args[7].set(arg);
 
-    task->setFunction(NativeFile_dispatchTask);
+    task->setFunction(File_dispatchTask);
 
     this->addTask(task);
 }
 
-bool NativeFile::checkEOF()
+bool File::checkEOF()
 {
     if (m_Fd &&
         ((m_Eof = (bool)feof(m_Fd)) == true ||
@@ -354,7 +357,7 @@ bool NativeFile::checkEOF()
     return m_Eof;
 }
 
-void NativeFile::checkRead(bool async, void *arg)
+void File::checkRead(bool async, void *arg)
 {
     int err = -1;
 
@@ -365,16 +368,16 @@ void NativeFile::checkRead(bool async, void *arg)
     }
 
     if (async && err != -1) {
-        NATIVE_FILE_NOTIFY(err, NATIVEFILE_READ_ERROR, arg);
+        NIDIUM_FILE_NOTIFY(err, Nidium::IO::FILE_READ_ERROR, arg);
     }
 }
 
-static int NativeFile_compare(const FTSENT** one, const FTSENT** two)
+static int File_compare(const FTSENT** one, const FTSENT** two)
 {
     return (strcmp((*one)->fts_name, (*two)->fts_name));
 }
 
-void NativeFile::rmrf()
+void File::rmrf()
 {
     if (!isDir()) {
         return;
@@ -386,7 +389,7 @@ void NativeFile::rmrf()
     char *path[] = {m_Path, NULL};
 
     tree = fts_open(path,
-        FTS_COMFOLLOW | FTS_NOCHDIR, NativeFile_compare);
+        FTS_COMFOLLOW | FTS_NOCHDIR, File_compare);
 
     if (!tree) {
         printf("Failed to fts_open()\n");
@@ -413,7 +416,7 @@ void NativeFile::rmrf()
     closeFd();
 }
 
-NativeFile::~NativeFile()
+File::~File()
 {
     if (m_Mmap.addr) {
         munmap(m_Mmap.addr, m_Mmap.size);
@@ -425,20 +428,20 @@ NativeFile::~NativeFile()
     free(m_Path);
 }
 
-void NativeFile::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void File::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     if (m_Delegate) {
         m_Delegate->onMessage(msg);
     }
 
     switch(msg.event()) {
-        case NATIVEFILE_READ_SUCCESS:
+        case Nidium::IO::FILE_READ_SUCCESS:
         {
             buffer *buf = (buffer *)msg.args[0].toPtr();
             buffer_delete(buf);
             break;
         }
-        case NATIVEFILE_LISTFILES_ENTRIES:
+        case Nidium::IO::FILE_LISTFILES_ENTRIES:
         {
             DirEntries *entries = (DirEntries *)msg.args[0].toPtr();
             free(entries->lst);
@@ -448,16 +451,16 @@ void NativeFile::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     }
 }
 
-void NativeFile::onMessageLost(const Nidium::Core::SharedMessages::Message &msg)
+void File::onMessageLost(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch(msg.event()) {
-        case NATIVEFILE_READ_SUCCESS:
+        case Nidium::IO::FILE_READ_SUCCESS:
         {
             buffer *buf = (buffer *)msg.args[0].toPtr();
             buffer_delete(buf);
             break;
         }
-        case NATIVEFILE_LISTFILES_ENTRIES:
+        case Nidium::IO::FILE_LISTFILES_ENTRIES:
         {
             DirEntries *entries = (DirEntries *)msg.args[0].toPtr();
             free(entries->lst);
@@ -467,10 +470,7 @@ void NativeFile::onMessageLost(const Nidium::Core::SharedMessages::Message &msg)
     }
 }
 
-////////////////////
-////////////////////
-
-int NativeFile::openSync(const char *modes, int *err)
+int File::openSync(const char *modes, int *err)
 {
     *err = 0;
 
@@ -507,7 +507,7 @@ int NativeFile::openSync(const char *modes, int *err)
     return 1;
 }
 
-ssize_t NativeFile::writeSync(char *data, uint64_t len, int *err)
+ssize_t File::writeSync(char *data, uint64_t len, int *err)
 {
     *err = 0;
 
@@ -527,7 +527,7 @@ ssize_t NativeFile::writeSync(char *data, uint64_t len, int *err)
     return ret;
 }
 
-ssize_t NativeFile::mmapSync(char **buffer, int *err)
+ssize_t File::mmapSync(char **buffer, int *err)
 {
     *err = 0;
 
@@ -553,7 +553,7 @@ ssize_t NativeFile::mmapSync(char **buffer, int *err)
     return this->getFileSize();
 }
 
-ssize_t NativeFile::readSync(uint64_t len, char **buffer, int *err)
+ssize_t File::readSync(uint64_t len, char **buffer, int *err)
 {
     *err = 0;
 
@@ -594,7 +594,7 @@ ssize_t NativeFile::readSync(uint64_t len, char **buffer, int *err)
     return readsize;
 }
 
-void NativeFile::closeSync()
+void File::closeSync()
 {
     if (!this->isOpen()) {
         return;
@@ -603,7 +603,7 @@ void NativeFile::closeSync()
     closeFd();
 }
 
-int NativeFile::seekSync(size_t pos, int *err)
+int File::seekSync(size_t pos, int *err)
 {
     *err = 0;
     if (!this->isOpen() || this->isDir()) {
@@ -618,4 +618,7 @@ int NativeFile::seekSync(size_t pos, int *err)
 
     return 0;
 }
+
+} // namespace IO
+} // namespace Nidium
 

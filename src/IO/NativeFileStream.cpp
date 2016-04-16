@@ -136,29 +136,29 @@ void NativeFileStream::seek(size_t pos)
 void NativeFileStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case NATIVEFILE_OPEN_SUCCESS:
+        case Nidium::IO::FILE_OPEN_SUCCESS:
             /* do nothing */
             break;
-        case NATIVEFILE_OPEN_ERROR:
+        case Nidium::IO::FILE_OPEN_ERROR:
             this->error(STREAM_ERROR_OPEN, msg.args[0].toInt());
             break;
-        case NATIVEFILE_SEEK_ERROR:
+        case Nidium::IO::FILE_SEEK_ERROR:
             this->error(STREAM_ERROR_SEEK, -1);
             /* fall through */
-        case NATIVEFILE_SEEK_SUCCESS:
+        case Nidium::IO::FILE_SEEK_SUCCESS:
             m_PendingSeek = false;
             break;
-        case NATIVEFILE_READ_ERROR:
+        case Nidium::IO::FILE_READ_ERROR:
             this->error(STREAM_ERROR_READ, msg.args[0].toInt());
             break;
-        case NATIVEFILE_READ_SUCCESS:
+        case Nidium::IO::FILE_READ_SUCCESS:
         {
             if (m_PendingSeek) {
                 break;
             }
 
             /*
-                the buffer is automatically detroyed by NativeFile
+                the buffer is automatically detroyed by Nidium::IO::File
                 after the return of this function
             */
             buffer *buf = (buffer *)msg.args[0].toPtr();
