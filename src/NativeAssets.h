@@ -9,7 +9,7 @@
 #include <native_netlib.h>
 
 #include <IO/Stream.h>
-#include <Core/NativeMessages.h>
+#include <Core/Messages.h>
 
 class NativeStream;
 
@@ -17,7 +17,7 @@ class NativeAssets
 {
     public:
 
-        class Item : public NativeMessages
+        class Item : public Nidium::Core::Messages
         {
             friend class NativeAssets;
             public:

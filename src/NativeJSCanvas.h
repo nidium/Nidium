@@ -2,11 +2,11 @@
 #define nativejscanvas_h__
 
 #include <Binding/JSExposer.h>
-#include <Core/NativeMessages.h>
+#include <Core/Messages.h>
 
 class NativeCanvasHandler;
 
-class NativeJSCanvas: public Nidium::Binding::JSExposer<NativeJSCanvas>, public NativeMessages
+class NativeJSCanvas: public Nidium::Binding::JSExposer<NativeJSCanvas>, public Nidium::Core::Messages
 {
 public:
     virtual void onMessage(const Nidium::Core::SharedMessages::Message &msg);

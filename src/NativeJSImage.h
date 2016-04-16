@@ -1,14 +1,14 @@
 #ifndef nativejsimage_h__
 #define nativejsimage_h__
 
-#include <Core/NativeMessages.h>
+#include <Core/Messages.h>
 #include <IO/Stream.h>
 #include <Binding/JSExposer.h>
 
 class NativeSkImage;
 
 class NativeJSImage : public Nidium::Binding::JSExposer<NativeJSImage>,
-                      public NativeMessages
+                      public Nidium::Core::Messages
 {
   public:
 

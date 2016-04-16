@@ -11,7 +11,7 @@
 #import <Cocoa/Cocoa.h>
 #import <native_netlib.h>
 #import <NativeMacros.h>
-#import <NativeMessages.h>
+#import <Messages.h>
 #import <NativePath.h>
 
 #import <NativeNML.h>
@@ -363,7 +363,7 @@ void NativeCocoaUIInterface::stopApplication()
     if (this->m_NativeCtx) {
         delete this->m_NativeCtx;
         this->m_NativeCtx = NULL;
-        NativeMessages::destroyReader();
+        Nidium::Core::Messages::destroyReader();
     }
 
     glClearColor(1, 1, 1, 1);
@@ -381,7 +381,7 @@ void NativeCocoaUIInterface::restartApplication(const char *path)
 
 bool NativeCocoaUIInterface::runJSWithoutNML(const char *path, int width, int height)
 {
-    NativeMessages::initReader(m_Gnet);
+    Nidium::Core::Messages::initReader(m_Gnet);
     if (path != this->m_FilePath) {
         if (this->m_FilePath) {
             free(this->m_FilePath);
@@ -413,7 +413,7 @@ bool NativeCocoaUIInterface::runJSWithoutNML(const char *path, int width, int he
 
 bool NativeCocoaUIInterface::runApplication(const char *path)
 {
-    NativeMessages::initReader(m_Gnet);
+    Nidium::Core::Messages::initReader(m_Gnet);
 
     if (path != this->m_FilePath) {
         if (this->m_FilePath) {

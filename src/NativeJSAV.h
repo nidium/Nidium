@@ -1,7 +1,7 @@
 #ifndef nativejsav_h__
 #define nativejsav_h__
 
-#include <Core/NativeMessages.h>
+#include <Core/Messages.h>
 #include <Binding/JSExposer.h>
 
 #include <NativeAudio.h>
@@ -121,7 +121,7 @@ class NativeJSAudio: public Nidium::Binding::JSExposer<NativeJSAudio>
         static NativeJSAudio *m_Instance;
 };
 
-class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, public NativeMessages
+class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, public Nidium::Core::Messages
 {
     public :
         NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
@@ -212,7 +212,7 @@ class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, p
         bool m_IsDestructing;
 };
 
-class NativeJSVideo : public Nidium::Binding::JSExposer<NativeJSVideo>, public NativeMessages
+class NativeJSVideo : public Nidium::Binding::JSExposer<NativeJSVideo>, public Nidium::Core::Messages
 {
     public :
         NativeJSVideo(JS::HandleObject obj, NativeCanvas2DContext *canvasCtx, JSContext *cx);

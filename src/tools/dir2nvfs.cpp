@@ -83,7 +83,7 @@ void initNativeJSCore()
     NativePath::registerScheme(SCHEME_DEFINE("file://", Nidium::IO::FileStream, false), true);
     NativeTaskManager::createManager();
     ape_global *gnet = native_netlib_init();
-    NativeMessages::initReader(gnet);
+    Nidium::Core::Messages::initReader(gnet);
 
 }
 

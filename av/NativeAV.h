@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 #include <IO/Stream.h>
-#include <Core/NativeMessages.h>
+#include <Core/Messages.h>
 #include <native_netlib.h>
 
 extern "C" {
@@ -88,7 +88,7 @@ class NativeAVBufferReader : public NativeAVReader
 };
 
 typedef void (*NativeAVStreamReadCallback)(void *m_CallbackPrivate);
-class NativeAVStreamReader : public NativeAVReader, public NativeMessages
+class NativeAVStreamReader : public NativeAVReader, public Nidium::Core::Messages
 {
     public:
         NativeAVStreamReader(const char *src, NativeAVStreamReadCallback readCallback,
@@ -228,7 +228,7 @@ class NativeAVSourceEventInterface {
         void *m_EventCbkCustom;
 };
 
-class NativeAVSource : public NativeMessages, public NativeAVSourceEventInterface
+class NativeAVSource : public Nidium::Core::Messages, public NativeAVSourceEventInterface
 {
     public :
         NativeAVSource();

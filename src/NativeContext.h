@@ -113,7 +113,7 @@ private:
 
 struct GrGLInterface;
 
-class NativeContext : public NativeMessages
+class NativeContext : public Nidium::Core::Messages
 {
     public:
 
