@@ -1548,9 +1548,10 @@ NGL_JS_FN(WebGLRenderingContext_createBuffer)
     JS::RootedValue proto(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLBuffer", &proto);
-    JS::RootedObject protoObj(cx);
-    JS_ValueToObject(cx, proto, &protoObj);
+
+    JS::RootedObject protoObj(cx, proto.toObjectOrNull());
     JS::RootedObject ret(cx, JS_NewObject(cx, &WebGLBuffer_class, protoObj, JS::NullPtr()));
+
     JS_SetPrivate(ret, new WebGLResource(buffer, WebGLResource::kBuffer, cx, CppObj, thisobj, ret));
 
     args.rval().setObjectOrNull(ret);
@@ -1567,8 +1568,8 @@ NGL_JS_FN(WebGLRenderingContext_createFramebuffer)
     JS::RootedValue proto(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLFramebuffer", &proto);
-    JS::RootedObject protoObj(cx);
-    JS_ValueToObject(cx, proto, &protoObj);
+
+    JS::RootedObject protoObj(cx, proto.toObjectOrNull());
     JS::RootedObject ret(cx, JS_NewObject(cx, &WebGLFramebuffer_class, protoObj, JS::NullPtr()));
 
     JS_SetPrivate(ret, new WebGLResource(buffer, WebGLResource::kFramebuffer, cx, CppObj, thisobj, ret));
@@ -1587,8 +1588,8 @@ NGL_JS_FN(WebGLRenderingContext_createRenderbuffer)
     JS::RootedValue proto(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLRenderbuffer", &proto);
-    JS::RootedObject protoObj(cx);
-    JS_ValueToObject(cx, proto, &protoObj);
+
+    JS::RootedObject protoObj(cx, proto.toObjectOrNull());
     JS::RootedObject ret(cx, JS_NewObject(cx, &WebGLRenderbuffer_class, protoObj, JS::NullPtr()));
 
     JS_SetPrivate(ret, new WebGLResource(buffer, WebGLResource::kRenderbuffer, cx, CppObj, thisobj, ret));
@@ -1607,8 +1608,8 @@ NGL_JS_FN(WebGLRenderingContext_createProgram)
     JS::RootedValue proto(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLProgram", &proto);
-    JS::RootedObject protoObj(cx);
-    JS_ValueToObject(cx, proto, &protoObj);
+
+    JS::RootedObject protoObj(cx, proto.toObjectOrNull());
     JS::RootedObject ret(cx, JS_NewObject(cx, &WebGLProgram_class, protoObj, JS::NullPtr()));
 
     JS_SetPrivate(ret, new WebGLResource(program, WebGLResource::kProgram, cx, CppObj, thisobj, ret));
@@ -1637,8 +1638,8 @@ NGL_JS_FN(WebGLRenderingContext_createShader)
     JS::RootedValue proto(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLShader", &proto);
-    JS::RootedObject protoObj(cx);
-    JS_ValueToObject(cx, proto, &protoObj);
+
+    JS::RootedObject protoObj(cx, proto.toObjectOrNull());
     JS::RootedObject ret(cx, JS_NewObject(cx, &WebGLShader_class, protoObj, JS::NullPtr()));
 
     WebGLResource *res = new WebGLResource(cshader, WebGLResource::kShader, cx, CppObj, thisobj, ret);
@@ -1661,8 +1662,8 @@ NGL_JS_FN(WebGLRenderingContext_createTexture)
     JS::RootedValue proto(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLTexture", &proto);
-    JS::RootedObject protoObj(cx);
-    JS_ValueToObject(cx, proto, &protoObj);
+
+    JS::RootedObject protoObj(cx, proto.toObjectOrNull());
     JS::RootedObject ret(cx, JS_NewObject(cx, &WebGLTexture_class, protoObj, JS::NullPtr()));
 
     JS_SetPrivate(ret, new WebGLResource(texture, WebGLResource::kTexture, cx, CppObj, thisobj, ret));
@@ -1876,12 +1877,14 @@ NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
     } else {
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
         JS_GetProperty(cx, global, "WebGLUniformLocation", &proto);
-        JS::RootedObject protoObj(cx);
-        JS_ValueToObject(cx, proto, &protoObj);
+
+        JS::RootedObject protoObj(cx, proto.toObjectOrNull());
         JS::RootedObject ret(cx, JS_NewObject(cx, &WebGLUniformLocation_class, protoObj, JS::NullPtr()));
+
         JS_SetPrivate(ret, (void *)(uintptr_t)location);
 
         JS_free(cx, (void *)cname);
+
         args.rval().setObjectOrNull(ret);
     }
 
@@ -1902,8 +1905,8 @@ NGL_JS_FN(WebGLRenderingContext_getShaderPrecisionFormat)
     JS::RootedValue proto(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLShaderPrecisionFormat", &proto);
-    JS::RootedObject protoObj(cx);
-    JS_ValueToObject(cx, proto, &protoObj);
+
+    JS::RootedObject protoObj(cx, proto.toObjectOrNull());
     JS::RootedObject obj(cx, JS_NewObject(cx, &WebGLShaderPrecisionFormat_class, protoObj, JS::NullPtr()));
 
     // Since getShaderPrecisionFormat is not available everywhere...
@@ -2053,8 +2056,7 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
     JS::RootedValue proto(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "WebGLActiveInfo", &proto);
-    JS::RootedObject protoObj(cx);
-    JS_ValueToObject(cx, proto, &protoObj);
+    JS::RootedObject protoObj(cx, proto.toObjectOrNull());
 
     JS::RootedValue size(cx);
     JS::RootedValue type(cx);
