@@ -2910,7 +2910,7 @@ NGL_JS_FN(WebGLRenderingContext_useProgram)
     }
 
     if (program == NULL) {
-        WebGLResource::unbind(thisobj, WebGLResource:kProgram);
+        WebGLResource::unbind(thisobj, WebGLResource::kProgram);
         GL_CALL(CppObj, UseProgram(0));
         return true;
     }
