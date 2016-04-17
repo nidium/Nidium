@@ -7,7 +7,7 @@
 #include <Core/Messages.h>
 #include <Core/NativePath.h>
 #include <IO/FileStream.h>
-#include <Net/NativeHTTPStream.h>
+#include <Net/HTTPStream.h>
 #include <Binding/NativeJS.h>
 
 #include "NativeJSConsole.h"
@@ -37,7 +37,7 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
     memset(&cwd[0], '\0', sizeof(cwd));
     if (getcwd(cwd, sizeof(cwd)-1) != NULL) {
         strcat(cwd, "/");
-        
+
         NativePath::cd(cwd);
         NativePath::chroot("/");
     } else {
@@ -49,8 +49,8 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
     m_JS->setStrictMode(jsstrict);
 
     NativePath::registerScheme(SCHEME_DEFINE("file://", Nidium::IO::FileStream, false), true);
-    NativePath::registerScheme(SCHEME_DEFINE("http://",    NativeHTTPStream,    true));
-    NativePath::registerScheme(SCHEME_DEFINE("https://",   NativeHTTPStream,    true));
+    NativePath::registerScheme(SCHEME_DEFINE("http://", Nidium::Net::HTTPStream,    true));
+    NativePath::registerScheme(SCHEME_DEFINE("https://", Nidium::Net::HTTPStream,    true));
 
     NativeTaskManager::createManager();
     Nidium::Core::Messages::initReader(net);
