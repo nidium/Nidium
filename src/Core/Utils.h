@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativeutils_h__
-#define nativeutils_h__
+#ifndef core_utils_h__
+#define core_utils_h__
 
 #include <stdio.h>
 #include <stdint.h>
@@ -16,16 +16,19 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 
-class NativeNoncopyable {
+namespace Nidium {
+namespace Core {
+
+class NonCopyable {
 public:
-    NativeNoncopyable() {}
+    NonCopyable() {}
 
 private:
-    NativeNoncopyable(const NativeNoncopyable&);
-    NativeNoncopyable& operator=(const NativeNoncopyable&);
+    NonCopyable(const NonCopyable&);
+    NonCopyable& operator=(const NonCopyable&);
 };
 
-class NativeUserAgentUtils
+class UserAgentUtils
 {
 public:
     enum OS {
@@ -65,7 +68,7 @@ public:
 
 };
 
-class NativeUtils
+class Utils
 {
 public:
     static uint64_t getTick(bool ms = false);
@@ -106,15 +109,14 @@ template <typename T>
     static void HTTPTime(char *buf);
 };
 
-class NativePthreadAutoLock {
+class PthreadAutoLock {
   public:
-    NativePthreadAutoLock(pthread_mutex_t *mutex)
-      : lock(mutex) {
+    PthreadAutoLock(pthread_mutex_t *mutex) : lock(mutex) {
 
         pthread_mutex_lock(lock);
     }
 
-    ~NativePthreadAutoLock() {
+    ~PthreadAutoLock() {
         pthread_mutex_unlock(lock);
     }
   private:
@@ -122,9 +124,9 @@ class NativePthreadAutoLock {
 };
 
 template <typename T = void *>
-class NativePtrAutoDelete {
+class PtrAutoDelete {
   public:
-    NativePtrAutoDelete(T ptr = NULL, void (*func)(void *) = NULL)
+    PtrAutoDelete(T ptr = NULL, void (*func)(void *) = NULL)
       : m_Ptr(ptr), m_Free(func) {
     }
 
@@ -144,7 +146,7 @@ class NativePtrAutoDelete {
         m_Ptr = NULL;
     }
 
-    ~NativePtrAutoDelete() {
+    ~PtrAutoDelete() {
         if (!m_Ptr) return;
 
         if (!m_Free) {
@@ -165,6 +167,9 @@ class NativePtrAutoDelete {
 #define CONST_STR_LEN(x) x, x ? sizeof(x) - 1 : 0
 
 #define APE_CTX(CX) ((ape_global *)JS_GetContextPrivate(CX))
+
+} // namespace Core
+} // namespace Nidium
 
 #endif
 

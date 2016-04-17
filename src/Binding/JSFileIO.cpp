@@ -17,7 +17,7 @@
 #include <sys/stat.h>
 
 #include "IO/Stream.h"
-#include "NativeJSUtils.h"
+#include "JSUtils.h"
 
 namespace Nidium {
 namespace Binding {
@@ -61,7 +61,7 @@ public:
             {
                 JS::RootedValue ret(cx);
                 buffer *buf = (buffer *)msg.args[0].toPtr();
-                if (NativeJSUtils::strToJsval(cx, (const char *)buf->data,
+                if (JSUtils::strToJsval(cx, (const char *)buf->data,
                     buf->used, &ret, encoding)) {
 
                     params[1].set(ret);
@@ -601,7 +601,7 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
         return false;
     }
 
-    NativePtrAutoDelete<Nidium::IO::Stream *> stream(path.createStream());
+    Nidium::Core::PtrAutoDelete<Nidium::IO::Stream *> stream(path.createStream());
 
     if (!stream.ptr() || !stream.ptr()->getContentSync(&buf, &len)) {
         args.rval().setNull();
@@ -609,7 +609,7 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
         return true;
     }
 
-    NativePtrAutoDelete<char *> cbuf(buf, free);
+    Nidium::Core::PtrAutoDelete<char *> cbuf(buf, free);
     char *cencoding = NULL;
     JSAutoByteString encoding;
 
@@ -620,7 +620,7 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
 
     JS::RootedValue ret(cx);
 
-    if (!NativeJSUtils::strToJsval(cx, buf, len, &ret, cencoding)) {
+    if (!JSUtils::strToJsval(cx, buf, len, &ret, cencoding)) {
         return false;
     }
 
@@ -746,7 +746,7 @@ bool JSFileIO::callbackForMessage(JSContext *cx,
             case Nidium::IO::FILE_READ_SUCCESS:
             {
                 buffer *buf = (buffer *)msg.args[0].toPtr();
-                NativeJSUtils::strToJsval(cx, (const char *)buf->data,
+                JSUtils::strToJsval(cx, (const char *)buf->data,
                     buf->used, params[1], encoding);
                 break;
             }

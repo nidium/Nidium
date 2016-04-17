@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 
-#include "NativeJSUtils.h"
+#include "JSUtils.h"
 
 namespace Nidium {
 namespace Binding {
@@ -127,7 +127,7 @@ bool JSHTTPServer::onEnd(Nidium::Net::HTTPClientConnection *client)
         if (data == NULL || data->used == 0) {
             strdata.setObjectOrNull(&JS_GetEmptyStringValue(m_Cx).toObject());
         } else {
-            NativeJSUtils::strToJsval(m_Cx, (const char *)data->data,
+            JSUtils::strToJsval(m_Cx, (const char *)data->data,
                 data->used, &strdata, "utf8");
         }
 

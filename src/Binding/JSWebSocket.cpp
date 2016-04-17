@@ -11,7 +11,7 @@
 #include <unistd.h>
 
 #include "Net/HTTP.h"
-#include "NativeJSUtils.h"
+#include "JSUtils.h"
 
 namespace Nidium {
 namespace Binding {
@@ -241,7 +241,7 @@ void JSWebSocketServer::onMessage(const Nidium::Core::SharedMessages::Message &m
                 JS::RootedValue jdata(cx);
                 JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
-                NativeJSUtils::strToJsval(m_Cx, data, len, &jdata, !binary ? "utf8" : NULL);
+                JSUtils::strToJsval(m_Cx, data, len, &jdata, !binary ? "utf8" : NULL);
                 NIDIUM_JSOBJ_SET_PROP(event, "data", jdata);
 
                 arg[0].setObjectOrNull(jclient);

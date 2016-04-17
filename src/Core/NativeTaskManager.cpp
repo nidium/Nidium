@@ -50,7 +50,7 @@ void NativeTaskManager::workerInfo::stop()
     if (m_Stop) {
         return;
     }
-    NativePthreadAutoLock npal(&m_Lock);
+    Nidium::Core::PthreadAutoLock npal(&m_Lock);
     m_Stop = true;
     pthread_cond_signal(&m_Cond);
 }
@@ -102,7 +102,7 @@ void NativeTaskManager::workerInfo::addTask(NativeTask *task)
     msg->setDest(task->getObject());
     m_Messages.postMessage(msg);
 
-    NativePthreadAutoLock npal(&m_Lock);
+    Nidium::Core::PthreadAutoLock npal(&m_Lock);
     pthread_cond_signal(&m_Cond);
 }
 

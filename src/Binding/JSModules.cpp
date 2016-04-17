@@ -447,7 +447,7 @@ bool JSModules::loadDirectoryModule(std::string &dir)
                     return false;
                 }
 
-                NativePtrAutoDelete<> npad(data, free);
+                Nidium::Core::PtrAutoDelete<> npad(data, free);
 
                 Json::Value root;
                 Json::Reader reader;
@@ -578,7 +578,7 @@ JS::Value JSModule::require(char *name)
                 return ret;
             }
 
-            NativePtrAutoDelete<> npad(data, free);
+            Nidium::Core::PtrAutoDelete<> npad(data, free);
 
             if (filesize == 0) {
                 ret.setObject(*cmodule->exports);

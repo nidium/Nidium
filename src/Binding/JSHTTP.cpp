@@ -4,7 +4,7 @@
    that can be found in the LICENSE file.
 */
 #include "JSHTTP.h"
-#include "NativeJSUtils.h"
+#include "JSUtils.h"
 
 using namespace Nidium::Net;
 
@@ -391,7 +391,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
         case HTTP::DATA_STRING:
             NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "string");
 
-            NativeJSUtils::strToJsval(cx, (const char *)h->data->data,
+            JSUtils::strToJsval(cx, (const char *)h->data->data,
                 h->data->used, &jdata, "utf8");
             break;
         case HTTP::DATA_JSON:

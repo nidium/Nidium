@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeUtils.h"
+#include "Utils.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -11,6 +11,9 @@
 #include <ape_sha1.h>
 #include <ape_base64.h>
 #include <ape_blowfish.h>
+
+namespace Nidium {
+namespace Core {
 
 /* TODO : http://nadeausoftware.com/articles/2012/04/c_c_tip_how_measure_elapsed_real_time_benchmarking */
 
@@ -113,33 +116,33 @@ static uint8_t nibbleFromChar(char c)
 }
 
 /* TODO: iOS : http://shiftedbits.org/2008/10/01/mach_absolute_time-on-the-iphone/ */
-uint64_t NativeUtils::getTick(bool ms)
+uint64_t Utils::getTick(bool ms)
 {
     return mach_absolute_time() / (ms ? 1000000LL : 1LL);
 }
 
-void NativeUtils::sha1hmac(const unsigned char *key, uint32_t keylen,
+void Utils::sha1hmac(const unsigned char *key, uint32_t keylen,
     const unsigned char *buf, uint32_t buflen, unsigned char out[20])
 {
     sha1_hmac((unsigned char *)key, keylen, (unsigned char *)buf, buflen, out);
 }
 
-void NativeUtils::sha1(const unsigned char *buf, uint32_t buflen, unsigned char out[20])
+void Utils::sha1(const unsigned char *buf, uint32_t buflen, unsigned char out[20])
 {
     sha1_csum((unsigned char *)buf, buflen, out);
 }
 
-char *NativeUtils::b64Encode(const unsigned char *buf, size_t len)
+char *Utils::b64Encode(const unsigned char *buf, size_t len)
 {
     return base64_encode((unsigned char *)buf, len);
 }
 
-int NativeUtils::b64Decode(unsigned char *out, const char *in, int out_length)
+int Utils::b64Decode(unsigned char *out, const char *in, int out_length)
 {
     return base64_decode(out, in, out_length);
 }
 
-int NativeUtils::b16Decode(unsigned char *out, const char *in, int out_length)
+int Utils::b16Decode(unsigned char *out, const char *in, int out_length)
 {
     int len, i;
     int inlen = strlen(in);
@@ -157,7 +160,7 @@ int NativeUtils::b16Decode(unsigned char *out, const char *in, int out_length)
     return len;
 }
 
-void NativeUtils::blowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len)
+void Utils::blowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len)
 {
     struct APEBlowfish ctx;
 
@@ -275,7 +278,7 @@ ngx_gmtime(time_t t, struct tm *tp)
     tp->tm_wday = (int)wday;
 }
 
-void NativeUtils::HTTPTime(char *buf)
+void Utils::HTTPTime(char *buf)
 {
     struct tm timenow;
 
@@ -290,4 +293,7 @@ void NativeUtils::HTTPTime(char *buf)
                            timenow.tm_min,
                            timenow.tm_sec);
 }
+
+} // namespace Core
+} // namespace Nidium
 

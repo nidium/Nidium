@@ -351,7 +351,7 @@ int NativeHTTPClientConnection_checktimeout(void *arg)
     /*
         Never timeout if set to 0
     */
-    if (timeout && NativeUtils::getTick(true) - con->getLastActivity() > timeout) {
+    if (timeout && Nidium::Core::Utils::getTick(true) - con->getLastActivity() > timeout) {
         con->close();
     }
 
@@ -383,7 +383,7 @@ HTTPClientConnection::HTTPClientConnection(HTTPServer *httpserver,
 
     m_TimeoutTimer = APE_timer_getid(timer);
 
-    m_LastAcitivty = NativeUtils::getTick(true);
+    m_LastAcitivty = Nidium::Core::Utils::getTick(true);
 }
 
 void HTTPClientConnection::onRead(const char *data,
@@ -392,7 +392,7 @@ void HTTPClientConnection::onRead(const char *data,
 #define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
     CONST_STR_LEN(header "\0"))
 
-    m_LastAcitivty = NativeUtils::getTick(true);
+    m_LastAcitivty = Nidium::Core::Utils::getTick(true);
 
     int nparsed = http_parser_execute(&m_HttpState.parser, &settings,
         data, len);
@@ -646,7 +646,7 @@ const buffer &HTTPResponse::getHeadersString()
     buffer_append_string(m_Headers_str, this->getStatusDesc());
 
     char httpdate[256];
-    NativeUtils::HTTPTime(httpdate);
+    Nidium::Core::Utils::HTTPTime(httpdate);
 
     this->setHeader("Date", httpdate);
 

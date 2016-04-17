@@ -8,7 +8,7 @@
 #include <native_netlib.h>
 #include <ape_buffer.h>
 
-#include "Core/NativeUtils.h"
+#include "Core/Utils.h"
 
 #include "NFS.h"
 

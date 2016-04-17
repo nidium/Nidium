@@ -11,7 +11,7 @@
 
 #include <js/OldDebugAPI.h>
 
-#include "NativeUtils.h"
+#include "Utils.h"
 
 #include "Binding/NativeJS.h"
 
@@ -85,7 +85,7 @@ void NativePath::parse(const char *origin)
     schemeInfo *rootScheme = NativePath::getPwdScheme();
     const char *root = NativePath::getRoot();
     char *path = strdup(pOrigin);
-    NativePtrAutoDelete<char *> _path(path, free);
+    Nidium::Core::PtrAutoDelete<char *> _path(path, free);
 
     bool isRelative = NativePath::isRelative(origin);
     bool isLocalRoot = rootScheme->allowLocalFileStream();

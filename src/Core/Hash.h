@@ -12,7 +12,7 @@
 
 #include <ape_hash.h>
 
-#include "NativeUtils.h"
+#include "Utils.h"
 
 /*
     C++ wrapper to ape_hash
@@ -22,7 +22,7 @@ namespace Nidium {
 namespace Core {
 
 template <typename T>
-class Hash64 : public NativeNoncopyable
+class Hash64 : public NonCopyable
 {
     public:
         explicit Hash64(int size = 0)
@@ -66,7 +66,7 @@ class Hash64 : public NativeNoncopyable
 };
 
 template <typename T>
-class Hash : public NativeNoncopyable
+class Hash : public NonCopyable
 {
     public:
         Hash(int size = 0)
@@ -140,7 +140,7 @@ class Hash : public NativeNoncopyable
 };
 
 template <>
-class Hash<uint32_t> : public NativeNoncopyable
+class Hash<uint32_t> : public NonCopyable
 {
     public:
         Hash() {

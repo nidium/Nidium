@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "NativeUtils.h"
+#include "Utils.h"
 
 namespace Nidium {
 namespace Core {
@@ -32,7 +32,7 @@ SharedMessages::~SharedMessages()
 
 void SharedMessages::postMessage(Message *message)
 {
-    NativePthreadAutoLock lock(&messageslist.lock);
+    Nidium::Core::PthreadAutoLock lock(&messageslist.lock);
 
     if (messageslist.head) {
         messageslist.head->prev = message;
@@ -52,7 +52,7 @@ void SharedMessages::postMessage(void *dataptr, int event)
 
     message = new Message(dataptr, event);
 
-    NativePthreadAutoLock lock(&messageslist.lock);
+    Nidium::Core::PthreadAutoLock lock(&messageslist.lock);
 
     if (messageslist.head) {
         messageslist.head->prev = message;
@@ -72,7 +72,7 @@ void SharedMessages::postMessage(uint64_t dataint, int event)
 
     message = new Message(dataint, event);
 
-    NativePthreadAutoLock lock(&messageslist.lock);
+    Nidium::Core::PthreadAutoLock lock(&messageslist.lock);
 
     if (messageslist.head) {
         messageslist.head->prev = message;
@@ -88,7 +88,7 @@ void SharedMessages::postMessage(uint64_t dataint, int event)
 
 SharedMessages::Message *SharedMessages::readMessage()
 {
-    NativePthreadAutoLock lock(&messageslist.lock);
+    Nidium::Core::PthreadAutoLock lock(&messageslist.lock);
 
     Message *message = messageslist.queue;
 
@@ -109,7 +109,7 @@ SharedMessages::Message *SharedMessages::readMessage()
 
 SharedMessages::Message *SharedMessages::readMessage(int type)
 {
-    NativePthreadAutoLock lock(&messageslist.lock);
+    Nidium::Core::PthreadAutoLock lock(&messageslist.lock);
 
     Message *message = messageslist.queue;
     Message *next = NULL;
@@ -145,7 +145,7 @@ SharedMessages::Message *SharedMessages::readMessage(int type)
 
 void SharedMessages::delMessagesForDest(void *dest, int event)
 {
-    NativePthreadAutoLock lock(&messageslist.lock);
+    Nidium::Core::PthreadAutoLock lock(&messageslist.lock);
 
     Message *message = messageslist.queue;
     Message *next = NULL;

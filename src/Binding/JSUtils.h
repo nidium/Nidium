@@ -3,13 +3,16 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativejsutils_h__
-#define nativejsutils_h__
+#ifndef binding_jsutils_h__
+#define binding_jsutils_h__
 
 #include <jspubtd.h>
 #include <jsapi.h>
 
-class NativeJSUtils
+namespace Nidium {
+namespace Binding {
+
+class JSUtils
 {
 public:
     /*
@@ -26,6 +29,9 @@ public:
     static char16_t *Utf8ToUtf16(JSContext *cx, const char *str, size_t len,
         size_t *outputlen);
 };
+
+} // namespace Binding
+} // namespace Nidium
 
 #endif
 

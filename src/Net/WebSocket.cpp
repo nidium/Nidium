@@ -129,7 +129,7 @@ void WebSocketClientConnection::onUpgrade(const char *to)
 
 void WebSocketClientConnection::onContent(const char *data, size_t len)
 {
-    m_LastAcitivty = NativeUtils::getTick(true);
+    m_LastAcitivty = Nidium::Core::Utils::getTick(true);
 
     ape_ws_process_frame(&m_WSState, data, len);
 }

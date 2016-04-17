@@ -417,7 +417,7 @@ static bool native_load(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativePtrAutoDelete<Nidium::IO::Stream *> stream(scriptpath.createStream());
+    Nidium::Core::PtrAutoDelete<Nidium::IO::Stream *> stream(scriptpath.createStream());
 
     if (!stream.ptr() || !stream.ptr()->getContentSync(&content, &len, true)) {
         JS_ReportError(cx, "load() failed read script");
@@ -1334,7 +1334,7 @@ static bool native_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
         JS::RootedString str(cx, args[0].toString());
         cdata.encodeUtf8(cx, str);
 
-        char *ret = NativeUtils::b64Encode((unsigned char *)cdata.ptr(), cdata.length());
+        char *ret = Nidium::Core::Utils::b64Encode((unsigned char *)cdata.ptr(), cdata.length());
 
         args.rval().setString(JS_NewStringCopyZ(cx, ret));
 
