@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeWebSocket.h"
+#include "WebSocket.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -13,24 +13,27 @@
 
 #include "Binding/NativeJS.h"
 
+namespace Nidium {
+namespace Net {
+
 #define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
     CONST_STR_LEN(header "\0"))
 
-static void native_on_ws_frame(websocket_state *state,
+static void nidium_on_ws_frame(websocket_state *state,
     const unsigned char *data, ssize_t length, int binary);
 
-NativeWebSocketListener::NativeWebSocketListener(uint16_t port, const char *ip) :
+WebSocketListener::WebSocketListener(uint16_t port, const char *ip) :
     HTTPServer(port, ip)
 {
 
 }
 
-void NativeWebSocketListener::onClientConnect(ape_socket *client, ape_global *ape)
+void WebSocketListener::onClientConnect(ape_socket *client, ape_global *ape)
 {
-    client->ctx = new NativeWebSocketClientConnection(this, client);
+    client->ctx = new WebSocketClientConnection(this, client);
 }
 
-NativeWebSocketClientConnection::NativeWebSocketClientConnection(
+WebSocketClientConnection::WebSocketClientConnection(
         Nidium::Net::HTTPServer *httpserver, ape_socket *socket) :
     Nidium::Net::HTTPClientConnection(httpserver, socket), m_Handshaked(false),
     m_PingTimer(0), m_Data(NULL)
@@ -38,10 +41,10 @@ NativeWebSocketClientConnection::NativeWebSocketClientConnection(
     m_ClientTimeoutMs = 0; /* Disable HTTP timeout */
     ape_ws_init(&m_WSState, 0);
     m_WSState.socket = socket;
-    m_WSState.on_frame = native_on_ws_frame;
+    m_WSState.on_frame = nidium_on_ws_frame;
 }
 
-NativeWebSocketClientConnection::~NativeWebSocketClientConnection()
+WebSocketClientConnection::~WebSocketClientConnection()
 {
     if (m_SocketClient->ctx == this) {
         m_SocketClient->ctx = NULL;
@@ -57,21 +60,21 @@ NativeWebSocketClientConnection::~NativeWebSocketClientConnection()
     }
 }
 
-int NativeWebSocketClientConnection::pingTimer(void *arg)
+int WebSocketClientConnection::pingTimer(void *arg)
 {
-    NativeWebSocketClientConnection *con = (NativeWebSocketClientConnection *)arg;
+    WebSocketClientConnection *con = (WebSocketClientConnection *)arg;
 
     con->ping();
 
-    return NATIVEWEBSOCKET_PING_INTERVAL;
+    return WEBSOCKET_PING_INTERVAL;
 }
 
-void NativeWebSocketClientConnection::onHeaderEnded()
+void WebSocketClientConnection::onHeaderEnded()
 {
 
 }
 
-void NativeWebSocketClientConnection::onDisconnect(ape_global *ape)
+void WebSocketClientConnection::onDisconnect(ape_global *ape)
 {
     Nidium::Core::Args args;
     args[0].set(this);
@@ -81,10 +84,10 @@ void NativeWebSocketClientConnection::onDisconnect(ape_global *ape)
         m_PingTimer = 0;
     }
 
-    m_HTTPListener->fireEvent<NativeWebSocketListener>(NativeWebSocketListener::SERVER_CLOSE, args);
+    m_HTTPListener->fireEvent<WebSocketListener>(WebSocketListener::SERVER_CLOSE, args);
 }
 
-void NativeWebSocketClientConnection::onUpgrade(const char *to)
+void WebSocketClientConnection::onUpgrade(const char *to)
 {
     if (strcasecmp(to, "websocket") != 0) {
         this->close();
@@ -116,22 +119,22 @@ void NativeWebSocketClientConnection::onUpgrade(const char *to)
     Nidium::Core::Args args;
     args[0].set(this);
 
-    ape_timer_t *timer = APE_timer_create(m_SocketClient->ape, NATIVEWEBSOCKET_PING_INTERVAL,
-        NativeWebSocketClientConnection::pingTimer, this);
+    ape_timer_t *timer = APE_timer_create(m_SocketClient->ape, WEBSOCKET_PING_INTERVAL,
+        WebSocketClientConnection::pingTimer, this);
 
     m_PingTimer = APE_timer_getid(timer);
-    m_HTTPListener->fireEvent<NativeWebSocketListener>(NativeWebSocketListener::SERVER_CONNECT, args);
+    m_HTTPListener->fireEvent<WebSocketListener>(WebSocketListener::SERVER_CONNECT, args);
 
 }
 
-void NativeWebSocketClientConnection::onContent(const char *data, size_t len)
+void WebSocketClientConnection::onContent(const char *data, size_t len)
 {
     m_LastAcitivty = NativeUtils::getTick(true);
 
     ape_ws_process_frame(&m_WSState, data, len);
 }
 
-void NativeWebSocketClientConnection::onFrame(const char *data, size_t len,
+void WebSocketClientConnection::onFrame(const char *data, size_t len,
     bool binary)
 {
     Nidium::Core::Args args;
@@ -140,10 +143,10 @@ void NativeWebSocketClientConnection::onFrame(const char *data, size_t len,
     args[2].set(len);
     args[3].set(binary);
 
-    m_HTTPListener->fireEvent<NativeWebSocketListener>(NativeWebSocketListener::SERVER_FRAME, args);
+    m_HTTPListener->fireEvent<WebSocketListener>(WebSocketListener::SERVER_FRAME, args);
 }
 
-void NativeWebSocketClientConnection::close()
+void WebSocketClientConnection::close()
 {
     if (!m_Handshaked) {
         APE_socket_shutdown_now(m_SocketClient);
@@ -152,7 +155,7 @@ void NativeWebSocketClientConnection::close()
     ape_ws_close(&m_WSState);
 }
 
-void NativeWebSocketClientConnection::ping()
+void WebSocketClientConnection::ping()
 {
     if (!m_Handshaked) {
         return;
@@ -160,14 +163,14 @@ void NativeWebSocketClientConnection::ping()
     ape_ws_ping(&m_WSState);
 }
 
-void NativeWebSocketClientConnection::write(unsigned char *data,
+void WebSocketClientConnection::write(unsigned char *data,
     size_t len, bool binary, ape_socket_data_autorelease type)
 {
     ape_ws_write(&m_WSState, (unsigned char *)data, len,
         (int)binary, type);
 }
 
-static void native_on_ws_frame(websocket_state *state,
+static void nidium_on_ws_frame(websocket_state *state,
     const unsigned char *data, ssize_t length, int binary)
 {
     ape_socket *sock = state->socket;
@@ -175,8 +178,7 @@ static void native_on_ws_frame(websocket_state *state,
         return;
     }
 
-    NativeWebSocketClientConnection *con =
-        (NativeWebSocketClientConnection *)sock->ctx;
+    WebSocketClientConnection *con = (WebSocketClientConnection *)sock->ctx;
 
     if (con == NULL) {
         return;
@@ -184,4 +186,7 @@ static void native_on_ws_frame(websocket_state *state,
 
     con->onFrame((const char *)data, length, (bool)binary);
 }
+
+} // namespace Net
+} // namespace Nidium
 

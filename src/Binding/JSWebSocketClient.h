@@ -3,33 +3,39 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativejswebsocketclient_h__
-#define nativejswebsocketclient_h__
+#ifndef binding_swebsocketclient_h__
+#define binding_swebsocketclient_h__
 
 #include <cstddef>
 
 #include "Core/Messages.h"
-#include "Net/NativeWebSocketClient.h"
+#include "Net/WebSocketClient.h"
 #include "JSExposer.h"
 
-class NativeJSWebSocket : public Nidium::Binding::JSExposer<NativeJSWebSocket>,
+namespace Nidium {
+namespace Binding {
+
+class JSWebSocket : public Nidium::Binding::JSExposer<JSWebSocket>,
                                 public Nidium::Core::Messages
 {
 public:
-    NativeJSWebSocket(JS::HandleObject obj, JSContext *cx,
+    JSWebSocket(JS::HandleObject obj, JSContext *cx,
         const char *host, unsigned short port, const char *path, bool ssl = false);
-    ~NativeJSWebSocket();
+    ~JSWebSocket();
     bool start();
     static void registerObject(JSContext *cx);
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 
-    NativeWebSocketClient *ws() const {
+    Nidium::Net::WebSocketClient *ws() const {
         return m_WebSocketClient;
     }
 
 private:
-    NativeWebSocketClient *m_WebSocketClient;
+    Nidium::Net::WebSocketClient *m_WebSocketClient;
 };
+
+} // namespace Binding
+} // namespace Nidium
 
 #endif
 

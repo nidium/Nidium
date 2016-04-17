@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeWebSocketClient.h"
+#include "WebSocketClient.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,28 +11,31 @@
 
 #include <ape_base64.h>
 
+namespace Nidium {
+namespace Net {
+
 static void native_ws_connected(ape_socket *s,
     ape_global *ape, void *arg)
 {
-    ((NativeWebSocketClient *)arg)->onConnected();
+    ((WebSocketClient *)arg)->onConnected();
 }
 
 static void native_ws_read_handshake(ape_socket *s,
     const uint8_t *data, size_t len, ape_global *ape, void *arg)
 {
-    ((NativeWebSocketClient *)arg)->onDataHandshake(data, len);
+    ((WebSocketClient *)arg)->onDataHandshake(data, len);
 }
 
 static void native_ws_read_ws(ape_socket *s,
     const uint8_t *data, size_t len, ape_global *ape, void *arg)
 {
-    ((NativeWebSocketClient *)arg)->onDataWS(data, len);
+    ((WebSocketClient *)arg)->onDataWS(data, len);
 }
 
 static void native_ws_disconnect(ape_socket *s,
     ape_global *ape, void *arg)
 {
-    ((NativeWebSocketClient *)arg)->onClose();
+    ((WebSocketClient *)arg)->onClose();
 }
 
 static void native_on_ws_client_frame(websocket_state *state,
@@ -43,8 +46,7 @@ static void native_on_ws_client_frame(websocket_state *state,
         return;
     }
 
-    NativeWebSocketClient *con =
-        (NativeWebSocketClient *)sock->ctx;
+    WebSocketClient *con = (WebSocketClient *)sock->ctx;
 
     if (con == NULL) {
         return;
@@ -53,7 +55,7 @@ static void native_on_ws_client_frame(websocket_state *state,
     con->onFrame((const char *)data, length, (bool)binary);
 }
 
-NativeWebSocketClient::NativeWebSocketClient(uint16_t port, const char *url,
+WebSocketClient::WebSocketClient(uint16_t port, const char *url,
     const char *host) :
     Nidium::Net::HTTPParser(), m_Socket(NULL), m_Port(port), m_SSL(false)
 {
@@ -66,7 +68,7 @@ NativeWebSocketClient::NativeWebSocketClient(uint16_t port, const char *url,
     m_ComputedKey = ape_ws_compute_key(m_HandShakeKey, strlen(m_HandShakeKey));
 }
 
-NativeWebSocketClient::~NativeWebSocketClient()
+WebSocketClient::~WebSocketClient()
 {
     free(m_Host);
     free(m_URL);
@@ -78,7 +80,7 @@ NativeWebSocketClient::~NativeWebSocketClient()
     }
 }
 
-bool NativeWebSocketClient::connect(bool ssl, ape_global *ape)
+bool WebSocketClient::connect(bool ssl, ape_global *ape)
 {
     if (m_Socket) {
         return false;
@@ -105,7 +107,7 @@ bool NativeWebSocketClient::connect(bool ssl, ape_global *ape)
     return true;
 }
 
-void NativeWebSocketClient::onConnected()
+void WebSocketClient::onConnected()
 {
     ape_ws_init(&m_WSState, 1);
     m_WSState.socket = m_Socket;
@@ -152,17 +154,17 @@ void NativeWebSocketClient::onConnected()
     FLUSH_TCP(m_Socket->s.fd);
 }
 
-void NativeWebSocketClient::onDataHandshake(const uint8_t *data, size_t len)
+void WebSocketClient::onDataHandshake(const uint8_t *data, size_t len)
 {
     this->HTTPParse((char *)data, len);
 }
 
-void NativeWebSocketClient::onDataWS(const uint8_t *data, size_t len)
+void WebSocketClient::onDataWS(const uint8_t *data, size_t len)
 {
     ape_ws_process_frame(&m_WSState, (char *)data, len);
 }
 
-void NativeWebSocketClient::onFrame(const char *data, size_t len, bool binary)
+void WebSocketClient::onFrame(const char *data, size_t len, bool binary)
 {
     Nidium::Core::Args args;
     args[0].set(this);
@@ -170,20 +172,20 @@ void NativeWebSocketClient::onFrame(const char *data, size_t len, bool binary)
     args[2].set(len);
     args[3].set(binary);
 
-    this->fireEvent<NativeWebSocketClient>(NativeWebSocketClient::CLIENT_FRAME, args);
+    this->fireEvent<WebSocketClient>(WebSocketClient::CLIENT_FRAME, args);
 }
 
-void NativeWebSocketClient::onClose()
+void WebSocketClient::onClose()
 {
     m_Socket = NULL;
 
     Nidium::Core::Args args;
     args[0].set(this);
 
-    this->fireEvent<NativeWebSocketClient>(NativeWebSocketClient::CLIENT_CLOSE, args);
+    this->fireEvent<WebSocketClient>(WebSocketClient::CLIENT_CLOSE, args);
 }
 
-void NativeWebSocketClient::HTTPHeaderEnded()
+void WebSocketClient::HTTPHeaderEnded()
 {
     const char *swa = this->HTTPGetHeader("Sec-WebSocket-Accept");
 
@@ -194,39 +196,42 @@ void NativeWebSocketClient::HTTPHeaderEnded()
     }
 }
 
-void NativeWebSocketClient::HTTPRequestEnded()
+void WebSocketClient::HTTPRequestEnded()
 {
     m_Socket->callbacks.on_read = native_ws_read_ws;
 
     Nidium::Core::Args args;
     args[0].set(this);
 
-    this->fireEvent<NativeWebSocketClient>(NativeWebSocketClient::CLIENT_CONNECT, args);
+    this->fireEvent<WebSocketClient>(WebSocketClient::CLIENT_CONNECT, args);
 }
 
-void NativeWebSocketClient::write(uint8_t *data, size_t len, bool binary)
+void WebSocketClient::write(uint8_t *data, size_t len, bool binary)
 {
     if (!m_Socket) return;
 
     ape_ws_write(&m_WSState, data, len, binary, APE_DATA_COPY);
 }
 
-void NativeWebSocketClient::close()
+void WebSocketClient::close()
 {
     if (!m_Socket) return;
 
     ape_ws_close(&m_WSState);
 }
 
-void NativeWebSocketClient::ping()
+void WebSocketClient::ping()
 {
     if (!m_Socket) return;
 
     ape_ws_ping(&m_WSState);
 }
 
-void NativeWebSocketClient::HTTPOnData(size_t offset, size_t len)
+void WebSocketClient::HTTPOnData(size_t offset, size_t len)
 {
 
 }
+
+} // namespace Net
+} // namespace Nidium
 

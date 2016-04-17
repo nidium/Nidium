@@ -102,8 +102,8 @@
             '../src/Net/HTTPParser.cpp',
             '../src/Net/HTTPServer.cpp',
             '../src/Net/HTTPStream.cpp',
-            '../src/Net/NativeWebSocket.cpp',
-            '../src/Net/NativeWebSocketClient.cpp',
+            '../src/Net/WebSocket.cpp',
+            '../src/Net/WebSocketClient.cpp',
 
             '../src/Binding/NativeJS.cpp',
             '../src/Binding/JSExposer.cpp',
@@ -120,8 +120,8 @@
             '../src/Binding/JSProcess.cpp',
             '../src/Binding/NativeJSUtils.cpp',
             '../src/Binding/JSStream.cpp',
-            '../src/Binding/NativeJSWebSocket.cpp',
-            '../src/Binding/NativeJSWebSocketClient.cpp',
+            '../src/Binding/JSWebSocket.cpp',
+            '../src/Binding/JSWebSocketClient.cpp',
             '../src/Binding/JSDB.cpp',
 
             '../src/Core/SharedMessages.cpp',

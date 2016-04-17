@@ -3,16 +3,19 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativewebsocket_h__
-#define nativewebsocket_h__
+#ifndef net_websocket_h__
+#define net_websocket_h__
 
 #include <ape_websocket.h>
 
 #include "HTTPServer.h"
 
-#define NATIVEWEBSOCKET_PING_INTERVAL 5000 /* ms */
+namespace Nidium {
+namespace Net {
 
-class NativeWebSocketListener : public Nidium::Net::HTTPServer
+#define WEBSOCKET_PING_INTERVAL 5000 /* ms */
+
+class WebSocketListener : public Nidium::Net::HTTPServer
 {
 public:
     static const uint8_t EventID = 4;
@@ -23,7 +26,7 @@ public:
         SERVER_CLOSE
     };
 
-    NativeWebSocketListener(uint16_t port, const char *ip = "0.0.0.0");
+    WebSocketListener(uint16_t port, const char *ip = "0.0.0.0");
     virtual void onClientConnect(ape_socket *client, ape_global *ape);
 
     virtual bool onEnd(Nidium::Net::HTTPClientConnection *client) override {
@@ -31,12 +34,11 @@ public:
     };
 };
 
-class NativeWebSocketClientConnection : public Nidium::Net::HTTPClientConnection
+class WebSocketClientConnection : public Nidium::Net::HTTPClientConnection
 {
 public:
-    NativeWebSocketClientConnection(Nidium::Net::HTTPServer *httpserver,
-        ape_socket *socket);
-    ~NativeWebSocketClientConnection();
+    WebSocketClientConnection(Nidium::Net::HTTPServer *httpserver, ape_socket *socket);
+    ~WebSocketClientConnection();
 
     virtual void onFrame(const char *data, size_t len, bool binary);
 
@@ -69,6 +71,9 @@ private:
 
     void *m_Data;
 };
+
+} // namespace Net
+} // namespace Nidium
 
 #endif
 
