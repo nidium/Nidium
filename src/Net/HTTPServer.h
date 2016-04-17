@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativehttplistener_h__
-#define nativehttplistener_h__
+#ifndef net_httpserver_h__
+#define net_httpserver_h__
 
 #include <stdio.h>
 
@@ -19,10 +19,13 @@
 #define HTTP_MAX_CL (1024ULL*1024ULL*1024ULL*2ULL)
 #define HTTP_DEFAULT_TIMEOUT 15000
 
-class NativeHTTPClientConnection;
-class NativeHTTPResponse;
+namespace Nidium {
+namespace Net {
 
-class NativeHTTPListener : public Nidium::Core::Events
+class HTTPClientConnection;
+class HTTPResponse;
+
+class HTTPServer : public Nidium::Core::Events
 {
 public:
     static const uint8_t EventID = 3;
@@ -31,8 +34,8 @@ public:
         NONE_EVENT = 1
     };
 
-    NativeHTTPListener(uint16_t port, const char *ip = "0.0.0.0");
-    virtual ~NativeHTTPListener();
+    HTTPServer(uint16_t port, const char *ip = "0.0.0.0");
+    virtual ~HTTPServer();
 
     /*
         @param reuseport true to allow the server to re use the listening port
@@ -47,10 +50,10 @@ public:
 
     /*
         Subclasses can override this in order to set
-        their own NativeHTTPClientConnection subclass.
+        their own HTTPClientConnection subclass.
 
-        This method must set a NativeHTTPClientConnection on client->ctx.
-        NativeHTTPClientConnection is then automatically
+        This method must set a HTTPClientConnection on client->ctx.
+        HTTPClientConnection is then automatically
         deleted when the socket disconnect.
 
     */
@@ -59,12 +62,12 @@ public:
     /*
         Callbacks for subclasses
     */
-    virtual void onClientConnect(NativeHTTPClientConnection *client) {};
-    virtual void onClientDisconnect(NativeHTTPClientConnection *client) {};
-    virtual void onData(NativeHTTPClientConnection *client, const char *buf, size_t len) {};
+    virtual void onClientConnect(HTTPClientConnection *client) {};
+    virtual void onClientDisconnect(HTTPClientConnection *client) {};
+    virtual void onData(HTTPClientConnection *client, const char *buf, size_t len) {};
 
     /* return true to close the connection */
-    virtual bool onEnd(NativeHTTPClientConnection *client) {
+    virtual bool onEnd(HTTPClientConnection *client) {
         return true;
     };
 
@@ -85,13 +88,13 @@ private:
 /*
     TODO: add APE_socket_sendfile() support
 */
-class NativeHTTPResponse
+class HTTPResponse
 {
 public:
 
-    friend NativeHTTPClientConnection;
+    friend HTTPClientConnection;
 
-    virtual ~NativeHTTPResponse();
+    virtual ~HTTPResponse();
 
     void setHeader(const char *key, const char *val);
     void removeHeader(const char *key);
@@ -147,17 +150,17 @@ private:
     bool m_HeaderSent;
     bool m_Chunked;
 
-    NativeHTTPClientConnection *m_Con;
+    HTTPClientConnection *m_Con;
 protected:
-    explicit NativeHTTPResponse(uint16_t code = 200);
+    explicit HTTPResponse(uint16_t code = 200);
 };
 
-class NativeHTTPClientConnection
+class HTTPClientConnection
 {
 public:
-    NativeHTTPClientConnection(NativeHTTPListener *httpserver,
+    HTTPClientConnection(HTTPServer *httpserver,
         ape_socket *socket);
-    virtual ~NativeHTTPClientConnection();
+    virtual ~HTTPClientConnection();
 
     enum PrevState {
         PSTATE_NOTHING,
@@ -186,7 +189,7 @@ public:
         return m_SocketClient;
     }
 
-    NativeHTTPListener *getHTTPListener() const {
+    HTTPServer *getHTTPListener() const {
         return m_HTTPListener;
     }
 
@@ -219,7 +222,7 @@ public:
         return m_Ctx;
     }
 
-    NativeHTTPResponse *getResponse() {
+    HTTPResponse *getResponse() {
         return m_Response;
     }
 
@@ -250,7 +253,7 @@ public:
         m_MaxRequestsCount = n;
     }
 
-    virtual NativeHTTPResponse *onCreateResponse();
+    virtual HTTPResponse *onCreateResponse();
 
     virtual void onHeaderEnded() {};
     virtual void onDisconnect(ape_global *ape) {};
@@ -260,7 +263,7 @@ public:
     virtual void close();
 
     void _createResponse() {
-        NativeHTTPResponse *resp = onCreateResponse();
+        HTTPResponse *resp = onCreateResponse();
         if (m_Response && resp != m_Response) {
             delete m_Response;
         }
@@ -272,14 +275,17 @@ public:
 protected:
     struct HTTPData m_HttpState;
     ape_socket *m_SocketClient;
-    NativeHTTPListener *m_HTTPListener;
-    NativeHTTPResponse *m_Response;
+    HTTPServer *m_HTTPListener;
+    HTTPResponse *m_Response;
     uint64_t m_TimeoutTimer;
     uint64_t m_LastAcitivty;
     int m_ClientTimeoutMs;
     uint64_t          m_RequestsCount;
     uint64_t          m_MaxRequestsCount;
 };
+
+} // namespace Net
+} // namespace Nidium
 
 #endif
 

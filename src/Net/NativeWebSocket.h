@@ -8,11 +8,11 @@
 
 #include <ape_websocket.h>
 
-#include "NativeHTTPListener.h"
+#include "HTTPServer.h"
 
 #define NATIVEWEBSOCKET_PING_INTERVAL 5000 /* ms */
 
-class NativeWebSocketListener : public NativeHTTPListener
+class NativeWebSocketListener : public Nidium::Net::HTTPServer
 {
 public:
     static const uint8_t EventID = 4;
@@ -26,15 +26,15 @@ public:
     NativeWebSocketListener(uint16_t port, const char *ip = "0.0.0.0");
     virtual void onClientConnect(ape_socket *client, ape_global *ape);
 
-    virtual bool onEnd(NativeHTTPClientConnection *client) override {
+    virtual bool onEnd(Nidium::Net::HTTPClientConnection *client) override {
         return false;
     };
 };
 
-class NativeWebSocketClientConnection : public NativeHTTPClientConnection
+class NativeWebSocketClientConnection : public Nidium::Net::HTTPClientConnection
 {
 public:
-    NativeWebSocketClientConnection(NativeHTTPListener *httpserver,
+    NativeWebSocketClientConnection(Nidium::Net::HTTPServer *httpserver,
         ape_socket *socket);
     ~NativeWebSocketClientConnection();
 

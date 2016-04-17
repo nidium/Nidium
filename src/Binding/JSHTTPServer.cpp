@@ -64,7 +64,7 @@ static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj)
 }
 
 JSHTTPResponse::JSHTTPResponse(JSContext *cx, uint16_t code) :
-        NativeHTTPResponse(code),
+        Nidium::Net::HTTPResponse(code),
         JSObjectMapper(cx, "HTTPResponse")
 {
     JS_DefineFunctions(cx, m_JSObj, HTTPResponse_funcs);
@@ -73,7 +73,7 @@ JSHTTPResponse::JSHTTPResponse(JSContext *cx, uint16_t code) :
 JSHTTPServer::JSHTTPServer(JS::HandleObject obj, JSContext *cx,
     uint16_t port, const char *ip) :
     Nidium::Binding::JSExposer<JSHTTPServer>(obj, cx),
-    NativeHTTPListener(port, ip)
+    HTTPServer(port, ip)
 {
 
 }
@@ -83,18 +83,18 @@ JSHTTPServer::~JSHTTPServer()
 
 }
 
-void JSHTTPServer::onClientDisconnect(NativeHTTPClientConnection *client)
+void JSHTTPServer::onClientDisconnect(Nidium::Net::HTTPClientConnection *client)
 {
 
 }
 
-void JSHTTPServer::onData(NativeHTTPClientConnection *client,
+void JSHTTPServer::onData(Nidium::Net::HTTPClientConnection *client,
     const char *buf, size_t len)
 {
     // on progress
 }
 
-bool JSHTTPServer::onEnd(NativeHTTPClientConnection *client)
+bool JSHTTPServer::onEnd(Nidium::Net::HTTPClientConnection *client)
 {
     buffer *k, *v;
 

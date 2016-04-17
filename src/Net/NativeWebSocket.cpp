@@ -20,7 +20,7 @@ static void native_on_ws_frame(websocket_state *state,
     const unsigned char *data, ssize_t length, int binary);
 
 NativeWebSocketListener::NativeWebSocketListener(uint16_t port, const char *ip) :
-    NativeHTTPListener(port, ip)
+    HTTPServer(port, ip)
 {
 
 }
@@ -31,8 +31,8 @@ void NativeWebSocketListener::onClientConnect(ape_socket *client, ape_global *ap
 }
 
 NativeWebSocketClientConnection::NativeWebSocketClientConnection(
-        NativeHTTPListener *httpserver, ape_socket *socket) :
-    NativeHTTPClientConnection(httpserver, socket), m_Handshaked(false),
+        Nidium::Net::HTTPServer *httpserver, ape_socket *socket) :
+    Nidium::Net::HTTPClientConnection(httpserver, socket), m_Handshaked(false),
     m_PingTimer(0), m_Data(NULL)
 {
     m_ClientTimeoutMs = 0; /* Disable HTTP timeout */

@@ -7,14 +7,14 @@
 #define binding_jshttpserver_h__
 
 #include "JSExposer.h"
-#include "Net/NativeHTTPListener.h"
+#include "Net/HTTPServer.h"
 
 namespace Nidium {
 namespace Binding {
 
 class JSHTTPClientConnection;
 
-class JSHTTPResponse : public NativeHTTPResponse,
+class JSHTTPResponse : public Nidium::Net::HTTPResponse,
                              public Nidium::Binding::JSObjectMapper<JSHTTPResponse>
 {
 public:
@@ -23,22 +23,22 @@ protected:
     explicit JSHTTPResponse(JSContext *cx, uint16_t code = 200);
 };
 
-class JSHTTPClientConnection : public NativeHTTPClientConnection,
+class JSHTTPClientConnection : public Nidium::Net::HTTPClientConnection,
                                      public Nidium::Binding::JSObjectMapper<JSHTTPClientConnection>
 {
 public:
-    JSHTTPClientConnection(JSContext *cx, NativeHTTPListener *httpserver,
+    JSHTTPClientConnection(JSContext *cx, Nidium::Net::HTTPServer *httpserver,
         ape_socket *socket) :
-        NativeHTTPClientConnection(httpserver, socket),
+        Nidium::Net::HTTPClientConnection(httpserver, socket),
         JSObjectMapper(cx, "HTTPClientConnection") {}
-    virtual NativeHTTPResponse *onCreateResponse() {
+    virtual Nidium::Net::HTTPResponse *onCreateResponse() {
         return new JSHTTPResponse(m_JSCx);
     }
 };
 
 
 class JSHTTPServer :    public Nidium::Binding::JSExposer<JSHTTPServer>,
-                                public NativeHTTPListener
+                        public Nidium::Net::HTTPServer
 {
 public:
     JSHTTPServer(JS::HandleObject obj, JSContext *cx,
@@ -52,11 +52,11 @@ public:
 
         NIDIUM_JSOBJ_SET_PROP_CSTR(obj, "ip", APE_socket_ipv4(client));
 
-        NativeHTTPListener::onClientConnect((NativeHTTPClientConnection *)client->ctx);
+        HTTPServer::onClientConnect((Nidium::Net::HTTPClientConnection *)client->ctx);
     }
-    virtual void onClientDisconnect(NativeHTTPClientConnection *client);
-    virtual void onData(NativeHTTPClientConnection *client, const char *buf, size_t len);
-    virtual bool onEnd(NativeHTTPClientConnection *client);
+    virtual void onClientDisconnect(Nidium::Net::HTTPClientConnection *client);
+    virtual void onData(Nidium::Net::HTTPClientConnection *client, const char *buf, size_t len);
+    virtual bool onEnd(Nidium::Net::HTTPClientConnection *client);
 
     static void registerObject(JSContext *cx);
 private:
