@@ -8,18 +8,18 @@
 
 #include "unittest.h"
 
-#include <NativeWebSocket.h>
+#include <Net/NativeWebSocket.h>
 
 TEST(NativeWebsocket, Simple)
 {
     ape_global * g_ape;
     ape_socket *socket;
 
-    g_ape = native_netlib_init();
-    ape_running = g_ape->is_running = 0;
+    g_ape = APE_init();
     socket = APE_socket_new(APE_SOCKET_PT_UDP, 0, g_ape);
     NativeWebSocketListener wsl(8080);
 
-    native_netlib_destroy(g_ape);
+    APE_loop_run(g_ape);
+    APE_destroy(g_ape);
 }
 

@@ -9,11 +9,11 @@
 #include "unittest.h"
 
 #include <native_netlib.h>
-#include <NativeJSHttp.h>
+#include <JS/NativeJSHttp.h>
 
 TEST(NativeJSHTTP, Simple)
 {
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     NativeJS njs(g_ape);
     bool success;
 
@@ -29,12 +29,12 @@ TEST(NativeJSHTTP, Simple)
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 
 TEST(NativeJSHTTP, init)
 {
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     NativeJS njs(g_ape);
     char * url = strdup("http://nidium.com:80/new.html");
 
@@ -50,6 +50,6 @@ TEST(NativeJSHTTP, init)
     EXPECT_TRUE(strcmp(ht.m_URL, url) == 0);
 
     free(url);
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 

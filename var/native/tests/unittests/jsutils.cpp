@@ -9,8 +9,8 @@
 #include "unittest.h"
 
 #include <native_netlib.h>
-#include <NativeJS.h>
-#include <NativeJSUtils.h>
+#include <JS/NativeJS.h>
+#include <JS/NativeJSUtils.h>
 
 TEST(NativeJSUtils, String)
 {
@@ -21,7 +21,7 @@ TEST(NativeJSUtils, String)
     bool success;
 
     memset(&target[0], '\0', sizeof(target));
-    ape_global *g_ape = native_netlib_init();
+    ape_global *g_ape = APE_init();
     NativeJS njs(g_ape);
 
     JS::RootedValue rval(njs.cx, JSVAL_VOID);
@@ -49,6 +49,6 @@ TEST(NativeJSUtils, String)
     EXPECT_TRUE(strcmp(te, cstr) == 0);
     free(cstr);
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 

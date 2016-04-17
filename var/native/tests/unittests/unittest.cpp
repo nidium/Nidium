@@ -7,6 +7,5 @@
 
 #include <jsapi.h>
 
-int ape_running;
 unsigned long _ape_seed = 31415961;
 

@@ -8,7 +8,7 @@
 
 #include "unittest.h"
 
-#include <NativeSharedMessages.h>
+#include <Core/NativeSharedMessages.h>
 
 TEST(NativeSharedMessages, Simple)
 {

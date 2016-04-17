@@ -15,8 +15,6 @@
 #include <libgen.h>
 #include <errno.h>
 
-unsigned long _ape_seed = 31415961;
-
 #define TEST_DIR "/tmp/"
 #define TEST_DIR_OUTSIDE "/foo/bar/"
 #define TEST_HOST "www.nidium.com"

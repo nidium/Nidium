@@ -9,11 +9,11 @@
 #include "unittest.h"
 
 #include <native_netlib.h>
-#include <NativeJSSocket.h>
+#include <JS/NativeJSSocket.h>
 
 TEST(NativeJSSocket, Simple)
 {
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     NativeJS njs(g_ape);
     bool success;
 
@@ -29,14 +29,14 @@ TEST(NativeJSSocket, Simple)
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 
 TEST(NativeJSSocket, Init)
 {
     const char * host = "127.0.0.1";
     const uint16_t port = 1212;
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     NativeJS njs(g_ape);
 
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
@@ -54,6 +54,6 @@ TEST(NativeJSSocket, Init)
     EXPECT_TRUE(ns.lineBuffer.data == NULL);
     EXPECT_TRUE(ns.m_Encoding == NULL);
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 

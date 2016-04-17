@@ -9,14 +9,14 @@
 #include "unittest.h"
 
 #include <native_netlib.h>
-#include <NativeJS.h>
+#include <JS/NativeJS.h>
 
 static int logcounter;
 static int msgcounter;
 void msg_cb_t(JSContext *cx, NativeSharedMessages::Message *msg)
 {
     msgcounter++;
-    ape_running = 0;
+    APE_loop_stop();
 }
 
 int dummyLogger(const char *format)
@@ -40,7 +40,7 @@ TEST(NativeJS, Simple)
     int i = 1, *p;
     struct _ape_htable *table;
 
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     NativeJS njs(g_ape);
 
     //check the init
@@ -105,28 +105,26 @@ TEST(NativeJS, Simple)
     njs.logclear();
     EXPECT_EQ(logcounter, -10);
 
-    ape_running = 0;
-
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 
 
 TEST(NativeJS, Quick)
 {
     ape_global *g_ape = NULL;
-    g_ape = native_netlib_init();
+    g_ape = APE_init();
     NativeJS njs(g_ape);
 
     njs.initNet(g_ape);
     EXPECT_TRUE(njs.net == g_ape);
     EXPECT_TRUE(njs.getNet() == g_ape);
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 
 TEST(NativeJS, Code)
 {
-    ape_global *g_ape = native_netlib_init();
+    ape_global *g_ape = APE_init();
     NativeJS njs(g_ape);
     const char * srcA = "a = 11*11;";
     const char * srcB = "b = a - 21";
@@ -147,12 +145,12 @@ TEST(NativeJS, Code)
     JS_GetProperty(njs.cx, globObj, "b", &rval);
     EXPECT_EQ(JSVAL_TO_INT(rval), 100);
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 
 TEST(NativeJS, Messages)
 {
-    ape_global *g_ape = native_netlib_init();
+    ape_global *g_ape = APE_init();
     NativeJS njs(g_ape);
     size_t i;
 
@@ -174,9 +172,9 @@ TEST(NativeJS, Messages)
 
     njs.registerMessage(msg_cb_t, 0);
     msgcounter = 0;
-    ape_running = 1;
+    APE_loop_stop();
     void postMessage(void *dataPtr, int ev);
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 

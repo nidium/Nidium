@@ -8,7 +8,7 @@
 
 #include "unittest.h"
 
-#include <NativeHash.h>
+#include <Core/NativeHash.h>
 
 TEST(NativeHash, Simple32)
 {

@@ -8,7 +8,7 @@
 
 #include "unittest.h"
 
-#include <NativeNFS.h>
+#include <IO/NativeNFS.h>
 
 
 TEST(NativeNFS, Simple)

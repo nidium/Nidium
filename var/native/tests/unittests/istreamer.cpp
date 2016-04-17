@@ -8,7 +8,7 @@
 
 #include "unittest.h"
 
-#include <NativeIStreamer.h>
+#include <IO/NativeIStreamer.h>
 
 TEST(NativeIStream, Simple)
 {

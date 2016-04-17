@@ -8,7 +8,7 @@
 
 #include "unittest.h"
 
-#include <NativeDB.h>
+#include <Core/NativeDB.h>
 
 static const char * secret = "tetetetetetetetet";
 

@@ -8,7 +8,7 @@
 
 #include "unittest.h"
 
-#include <NativeEvents.h>
+#include <Core/NativeEvents.h>
 
 TEST(NativeEvents, Simple)
 {

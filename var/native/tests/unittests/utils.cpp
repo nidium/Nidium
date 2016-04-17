@@ -11,7 +11,7 @@
 #include <ape_sha1.h>
 #include <ape_base64.h>
 
-#include <NativeUtils.h>
+#include <Core/NativeUtils.h>
 
 TEST(NativeUtils, NativeNoncopyable)
 {

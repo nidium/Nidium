@@ -8,12 +8,13 @@
 
 #include "unittest.h"
 
-#include <NativeNFSStream.h>
+#include <IO/NativeNFSStream.h>
 
 TEST(NativeNFSStream, Simple)
 {
     NativeNFSStream nfs("nfs://127.0.0.1:/tmp/tst.txt");
-    EXPECT_TRUE(nfs.getBaseDir() == NULL);
+
+    ASSERT_STREQ(nfs.getBaseDir(), "/");
     EXPECT_TRUE(nfs.allowSyncStream() == true);
     EXPECT_TRUE(nfs.allowLocalFileStream() == true);
 }
