@@ -635,7 +635,7 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
     }
 
 #define NATIVE_OBJECT_EXPOSE(name) \
-    void NidiumJS ## name::registerObject(JSContext *cx) \
+    void NativeJS ## name::registerObject(JSContext *cx) \
     { \
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
         JS_InitClass(cx, global, JS::NullPtr(), &name ## _class, \
@@ -644,7 +644,7 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
     }
 
 #define NATIVE_OBJECT_EXPOSE_NOT_INST(name) \
-    void NidiumJS ## name::registerObject(JSContext *cx) \
+    void NativeJS ## name::registerObject(JSContext *cx) \
     { \
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
         JS::RootedObject name ## Obj(cx, JS_DefineObject(cx, global, #name, \
