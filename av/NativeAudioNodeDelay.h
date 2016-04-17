@@ -1,7 +1,7 @@
 #ifndef nativeaudionodedelay_h__
 #define nativeaudionodedelay_h__
 
-#include "Core/NativeUtils.h"
+#include "Core/Utils.h"
 #include "NativeAudio.h"
 #include "NativeAudioNode.h"
 

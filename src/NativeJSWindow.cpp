@@ -7,7 +7,7 @@
 #include <strings.h>
 
 #include <Binding/JSFileIO.h>
-#include <Binding/NativeJSUtils.h>
+#include <Binding/JSUtils.h>
 
 #include "NativeNML.h"
 #include "NativeSkia.h"
@@ -259,7 +259,7 @@ void NativeJSwindow::assetReady(const NMLTag &tag)
     jevent[0].set(OBJECT_TO_JSVAL(event));
     JS::RootedString tagStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.tag));
     JS::RootedString idStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.id));
-    JS::RootedString dataStr(cx, NativeJSUtils::newStringWithEncoding(cx,
+    JS::RootedString dataStr(cx, Nidium::Binding::JSUtils::newStringWithEncoding(cx,
         (const char *)tag.content.data, tag.content.len, "utf8"));
     EVENT_PROP("tag", tagStr);
     EVENT_PROP("id", idStr);
@@ -389,7 +389,7 @@ void NativeJSwindow::textInput(const char *data)
     JSAutoRequest ar(m_Cx);
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &textEvent_class, JS::NullPtr(), JS::NullPtr()));
-    JS::RootedString str(m_Cx, NativeJSUtils::newStringWithEncoding(m_Cx, data, strlen(data), "utf8"));
+    JS::RootedString str(m_Cx, Nidium::Binding::JSUtils::newStringWithEncoding(m_Cx, data, strlen(data), "utf8"));
     EVENT_PROP("val", str);
 
     JS::AutoValueArray<1> jevent(m_Cx);
@@ -668,7 +668,7 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
         case WINDOW_PROP_TITLE:
         {
             const char *title =  NUI->getWindowTitle();
-            JS::RootedString str(m_Cx, NativeJSUtils::newStringWithEncoding(m_Cx, title,
+            JS::RootedString str(m_Cx, Nidium::Binding::JSUtils::newStringWithEncoding(m_Cx, title,
                 strlen(title), "utf8"));
             vp.setString(str);
         }

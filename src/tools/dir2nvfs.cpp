@@ -12,7 +12,7 @@
 
 #include <NFS.h>
 #include <FileStream.h>
-#include <NativeUtils.h>
+#include <Utils.h>
 
 #ifndef DIR2NFS_OUTPUT
 #define DIR2NFS_OUTPUT stdout

@@ -14,7 +14,7 @@
 #include "NativeCanvas2DContext.h"
 #include "NativeSkImage.h"
 
-#include "Binding/NativeJSUtils.h"
+#include "Binding/JSUtils.h"
 
 
 bool NativeJSdocument::m_ShowFPS = false;
@@ -215,7 +215,7 @@ static bool native_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Val
         args.rval().setNull();
         return true;
     }
-    jsc = NativeJSUtils::Utf8ToUtf16(cx, text, strlen(text), &outputlen);
+    jsc = Nidium::Binding::JSUtils::Utf8ToUtf16(cx, text, strlen(text), &outputlen);
 
     JS::RootedString jret(cx, JS_NewUCStringCopyN(cx, jsc, outputlen));
     args.rval().setString(jret);
@@ -349,7 +349,7 @@ bool NativeJSdocument::loadFont(const char *path, const char *name,
         return false;
     }
 
-    NativePtrAutoDelete<Nidium::IO::Stream *> npad(stream);
+    Nidium::Core::PtrAutoDelete<Nidium::IO::Stream *> npad(stream);
 
     char *data;
     size_t len;

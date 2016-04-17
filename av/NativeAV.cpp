@@ -235,7 +235,7 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
         return pos;
     }
 
-    if (NativeUtils::isMainThread()) {
+    if (Nidium::Core::Utils::isMainThread()) {
         thiz->m_Stream->seek(pos);
     } else {
         thiz->postMessage(opaque, NativeAVStreamReader::MSG_SEEK);
@@ -354,7 +354,7 @@ void NativeAVStreamReader::finish()
 
 NativeAVStreamReader::~NativeAVStreamReader()
 {
-    if (NativeUtils::isMainThread()) {
+    if (Nidium::Core::Utils::isMainThread()) {
         delete m_Stream;
     } else {
         this->postMessage(this, NativeAVStreamReader::MSG_STOP);

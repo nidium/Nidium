@@ -3,7 +3,7 @@
 
 #include <math.h>
 
-#include "Core/NativeUtils.h"
+#include "Core/Utils.h"
 #include "../NativeAudioNode.h"
 
 class NativeAudioProcessorDelay: public NativeAudioProcessor

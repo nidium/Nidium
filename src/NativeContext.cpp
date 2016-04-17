@@ -64,7 +64,7 @@ int NativeContext_LogClear()
 void NativeContext::initStats()
 {
     m_Stats.nframe = 0;
-    m_Stats.starttime = NativeUtils::getTick();
+    m_Stats.starttime = Nidium::Core::Utils::getTick();
     m_Stats.lastmeasuredtime = m_Stats.starttime;
     m_Stats.lastdifftime = 0;
     m_Stats.cumulframe = 0;
@@ -299,7 +299,7 @@ void NativeContext::postDraw()
 /* TODO, move out */
 void NativeContext::callFrame()
 {
-    uint64_t tmptime = NativeUtils::getTick();
+    uint64_t tmptime = Nidium::Core::Utils::getTick();
     m_Stats.nframe++;
 
     m_Stats.lastdifftime = tmptime - m_Stats.lastmeasuredtime;

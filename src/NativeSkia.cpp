@@ -661,7 +661,7 @@ bool NativeSkia::setFontFile(const char *str)
         return false;
     }
 
-    NativePtrAutoDelete<Nidium::IO::Stream *> npad(stream);
+    Nidium::Core::PtrAutoDelete<Nidium::IO::Stream *> npad(stream);
 
     if (!stream->getContentSync(&data, &len)) {
         return false;

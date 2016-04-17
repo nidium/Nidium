@@ -10,11 +10,13 @@
 
 #include <zita-resampler/resampler.h>
 #include <Coro.h>
+
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
 }
-#include <Core/NativeUtils.h>
+
+#include <Core/Utils.h>
 
 #define MAX_FAILED_DECODING 50
 #define NODE_IO_FOR(i, io) int I = 0;\
@@ -800,7 +802,7 @@ int NativeAudioSource::initStream()
         return ERR_INTERNAL;
     }
 
-    NativePthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
+    Nidium::Core::PthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
     // Retrieve stream information
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
         fprintf(stderr, "Couldn't find stream information\n");
@@ -841,7 +843,7 @@ int NativeAudioSource::initInternal()
         return ERR_NO_CODEC;
     }
 
-    NativePthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
+    Nidium::Core::PthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
     if (avcodec_open2(m_CodecCtx, codec, NULL) < 0) {
         fprintf(stderr, "Could not find or open the needed codec\n");
         return ERR_NO_CODEC;
@@ -1550,7 +1552,7 @@ void NativeAudioSource::closeInternal(bool reset)
 
     if (m_Opened) {
         if (!m_ExternallyManaged) {
-            NativePthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
+            Nidium::Core::PthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
 
             avcodec_close(m_CodecCtx);
             av_free(m_Container->pb);

@@ -7,7 +7,7 @@
 #include <strings.h>
 #include <unistd.h>
 
-#include <Binding/NativeJSUtils.h>
+#include <Binding/JSUtils.h>
 
 #include "NativeSystemInterface.h"
 #include "NativeJSWindow.h"
@@ -400,7 +400,7 @@ JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 {
 #define NODE_PROP(where, name, val) JS_DefineProperty(cx, where, name, \
     val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
-#define NODE_STR(data, len) STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(cx, \
+#define NODE_STR(data, len) STRING_TO_JSVAL(Nidium::Binding::JSUtils::newStringWithEncoding(cx, \
         (const char *)data, len, "utf8"))
 
     using namespace rapidxml;
