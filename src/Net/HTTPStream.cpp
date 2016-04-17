@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeHTTPStream.h"
+#include "HTTPStream.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,11 +14,12 @@
 
 #include "Binding/NativeJS.h"
 
-using namespace Nidium::Net;
+namespace Nidium {
+namespace Net {
 
 #define MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH (1024LL*1024LL*64LL)
 
-NativeHTTPStream::NativeHTTPStream(const char *location) :
+HTTPStream::HTTPStream(const char *location) :
     Nidium::IO::Stream(location), m_StartPosition(0),
     m_BytesBuffered(0), m_LastReadUntil(0)
 {
@@ -30,7 +31,7 @@ NativeHTTPStream::NativeHTTPStream(const char *location) :
     m_Http = new HTTP(NativeJS::getNet());
 }
 
-NativeHTTPStream::~NativeHTTPStream()
+HTTPStream::~HTTPStream()
 {
     if (m_Mapped.addr) {
         munmap(m_Mapped.addr, m_Mapped.size);
@@ -42,7 +43,7 @@ NativeHTTPStream::~NativeHTTPStream()
     delete m_Http;
 }
 
-void NativeHTTPStream::onStart(size_t packets, size_t seek)
+void HTTPStream::onStart(size_t packets, size_t seek)
 {
     if (m_Mapped.fd) {
         close(m_Mapped.fd);
@@ -51,7 +52,7 @@ void NativeHTTPStream::onStart(size_t packets, size_t seek)
     char tmpfname[] = "/tmp/nidiumtmp.XXXXXXXX";
     m_Mapped.fd = mkstemp(tmpfname);
     if (m_Mapped.fd == -1) {
-        printf("[NativeHTTPStream] Failed to create temporary file\n");
+        printf("[HTTPStream] Failed to create temporary file\n");
         return;
     }
     unlink(tmpfname);
@@ -68,7 +69,7 @@ void NativeHTTPStream::onStart(size_t packets, size_t seek)
     m_Http->request(req, this);
 }
 
-const char *NativeHTTPStream::getPath() const
+const char *HTTPStream::getPath() const
 {
     if (!m_Http) {
         return NULL;
@@ -77,7 +78,7 @@ const char *NativeHTTPStream::getPath() const
     return m_Http->getPath();
 }
 
-bool NativeHTTPStream::hasDataAvailable() const
+bool HTTPStream::hasDataAvailable() const
 {
     /*
         Returns true if we have either enough data buffered or
@@ -87,7 +88,7 @@ bool NativeHTTPStream::hasDataAvailable() const
         (m_LastReadUntil != m_BytesBuffered && this->readComplete())));
 }
 
-const unsigned char *NativeHTTPStream::onGetNextPacket(size_t *len, int *err)
+const unsigned char *HTTPStream::onGetNextPacket(size_t *len, int *err)
 {
     unsigned char *data;
 
@@ -115,31 +116,31 @@ const unsigned char *NativeHTTPStream::onGetNextPacket(size_t *len, int *err)
     return data;
 }
 
-void NativeHTTPStream::stop()
+void HTTPStream::stop()
 {
     m_Http->stopRequest();
 }
 
-void NativeHTTPStream::getContent()
+void HTTPStream::getContent()
 {
     this->onStart(0, 0);
     m_NeedToSendUpdate = false;
 }
 
-size_t NativeHTTPStream::getFileSize() const
+size_t HTTPStream::getFileSize() const
 {
     return m_Http->getFileSize();
 }
 
-int NativeHTTPStream_notifyAvailable(void *arg)
+int Nidium_HTTPStream_notifyAvailable(void *arg)
 {
-    NativeHTTPStream *http = (NativeHTTPStream *)arg;
+    HTTPStream *http = (HTTPStream *)arg;
 
     http->notifyAvailable();
     return 0;
 }
 
-void NativeHTTPStream::seek(size_t pos)
+void HTTPStream::seek(size_t pos)
 {
     size_t max = m_StartPosition + m_BytesBuffered;
 
@@ -154,7 +155,7 @@ void NativeHTTPStream::seek(size_t pos)
         m_PendingSeek = true;
         m_NeedToSendUpdate = false;
 
-        timer_dispatch_async(NativeHTTPStream_notifyAvailable, this);
+        timer_dispatch_async(Nidium_HTTPStream_notifyAvailable, this);
 
         return;
     }
@@ -183,7 +184,7 @@ void NativeHTTPStream::seek(size_t pos)
     m_NeedToSendUpdate = true;
 }
 
-void NativeHTTPStream::notifyAvailable()
+void HTTPStream::notifyAvailable()
 {
     m_PendingSeek = false;
     m_NeedToSendUpdate = false;
@@ -194,7 +195,7 @@ void NativeHTTPStream::notifyAvailable()
     this->notify(message_available);
 }
 
-void NativeHTTPStream::onRequest(HTTP::HTTPData *h, HTTP::DataType)
+void HTTPStream::onRequest(HTTP::HTTPData *h, HTTP::DataType)
 {
     this->m_DataBuffer.ended = true;
 
@@ -210,7 +211,7 @@ void NativeHTTPStream::onRequest(HTTP::HTTPData *h, HTTP::DataType)
     this->notify(message);
 }
 
-void NativeHTTPStream::onProgress(size_t offset, size_t len,
+void HTTPStream::onProgress(size_t offset, size_t len,
     HTTP::HTTPData *h, HTTP::DataType)
 {
     /* overflow or invalid state */
@@ -241,7 +242,7 @@ void NativeHTTPStream::onProgress(size_t offset, size_t len,
     }
 }
 
-void NativeHTTPStream::onError(HTTP::HTTPError err)
+void HTTPStream::onError(HTTP::HTTPError err)
 {
     this->cleanCacheFile();
 
@@ -265,7 +266,7 @@ void NativeHTTPStream::onError(HTTP::HTTPError err)
     }
 }
 
-void NativeHTTPStream::cleanCacheFile()
+void HTTPStream::cleanCacheFile()
 {
     if (m_Mapped.addr) {
         munmap(m_Mapped.addr, m_Mapped.size);
@@ -274,7 +275,7 @@ void NativeHTTPStream::cleanCacheFile()
     }
 }
 
-void NativeHTTPStream::onHeader()
+void HTTPStream::onHeader()
 {
     m_BytesBuffered = 0;
 
@@ -319,4 +320,7 @@ void NativeHTTPStream::onHeader()
         return;
     }
 }
+
+} // namespace Net
+} // namespace Nidium
 

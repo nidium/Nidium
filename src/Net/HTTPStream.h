@@ -3,22 +3,24 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativehttpstream_h__
-#define nativehttpstream_h__
+#ifndef net_httpstream_h__
+#define net_httpstream_h__
 
 #include "Core/Messages.h"
 #include "IO/Stream.h"
 #include "Net/HTTP.h"
 
-class NativeHTTPStream : public Nidium::IO::Stream,
-                         public Nidium::Net::HTTPDelegate
+namespace Nidium {
+namespace Net {
+
+class HTTPStream : public Nidium::IO::Stream, public Nidium::Net::HTTPDelegate
 {
 public:
-    explicit NativeHTTPStream(const char *location);
-    virtual ~NativeHTTPStream();
+    explicit HTTPStream(const char *location);
+    virtual ~HTTPStream();
 
     static Nidium::IO::Stream *createStream(const char *location) {
-        return new NativeHTTPStream(location);
+        return new HTTPStream(location);
     }
     static const char *getBaseDir() {
         return NULL;
@@ -69,6 +71,9 @@ private:
     size_t m_BytesBuffered;
     size_t m_LastReadUntil;
 };
+
+} // namespace Net
+} // namespace Nidium
 
 #endif
 
