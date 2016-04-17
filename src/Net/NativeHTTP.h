@@ -17,7 +17,6 @@
 #define HTTP_DEFAULT_TIMEOUT 15000
 
 #include "Core/Messages.h"
-#include "IO/NativeIStreamer.h"
 
 namespace Nidium{
 namespace Net {
@@ -140,7 +139,7 @@ class HTTPRequest
 
 class HTTPDelegate;
 
-class HTTP : public NativeIStreamer, public Nidium::Core::Messages
+class HTTP :  public Nidium::Core::Messages
 {
 private:
     void *ptr;

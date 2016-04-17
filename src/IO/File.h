@@ -15,9 +15,6 @@
 #include "Core/NativeTaskManager.h"
 #include "Core/Events.h"
 
-#include "NativeIStreamer.h"
-
-
 namespace Nidium {
 namespace IO {
 
@@ -36,7 +33,7 @@ enum {
     FILE_LISTFILES_ENTRIES = NIDIUM_FILE_MESSAGE_BITS(10),
 };
 
-class File : public NativeManaged, public NativeIStreamer, public Nidium::Core::Events
+class File : public NativeManaged, public Nidium::Core::Events
 {
 public:
     static const uint8_t EventID = 2;
