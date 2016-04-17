@@ -59,8 +59,8 @@ class NativeJSwindow : public Nidium::Binding::JSExposer<NativeJSwindow>
         return "Window";
     }
 
-    static NativeJSwindow* getNativeClass(JSContext *cx);
-    static NativeJSwindow* getNativeClass(NativeJS *njs);
+    static NativeJSwindow* GetObject(JSContext *cx);
+    static NativeJSwindow* GetObject(Nidium::Binding::NidiumJS *njs);
 
     static JSClass *jsclass;
 

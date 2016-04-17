@@ -9,7 +9,7 @@
 
 #include "GLSLANG/ShaderLang.h"
 
-#include <Binding/NativeJS.h>
+#include <Binding/NidiumJS.h>
 
 #include "NativeTypes.h"
 #include "NativeGLResources.h"
@@ -17,7 +17,6 @@
 class NativeSkia;
 class NativeCanvasHandler;
 class NativeUIInterface;
-class NativeJS;
 class NativeNML;
 class NativeCanvasContext;
 class NativeGLState;
@@ -27,6 +26,9 @@ namespace Nidium {
     namespace Net {
         class WebSocketListener;
         class WebSocketClientConnection;
+    }
+    namespace Binding {
+        class NidiumJS;
     }
 }
 
@@ -135,7 +137,7 @@ class NativeContext : public Nidium::Core::Messages
         return m_RootHandler;
     }
 
-    NativeJS *getNJS() const {
+    Nidium::Binding::NidiumJS *getNJS() const {
         return m_JS;
     }
 
@@ -163,15 +165,15 @@ class NativeContext : public Nidium::Core::Messages
         return &m_ShResources;
     }
 
-    static NativeContext *getNativeClass() {
-        return static_cast<NativeContext *>(NativeJS::getNativeClass(NULL)->getPrivate());
+    static NativeContext *GetObject() {
+        return static_cast<NativeContext *>(Nidium::Binding::NidiumJS::GetObject(NULL)->getPrivate());
     }
 
-    static NativeContext *getNativeClass(struct JSContext *cx) {
-        return static_cast<NativeContext *>(NativeJS::getNativeClass(cx)->getPrivate());
+    static NativeContext *GetObject(struct JSContext *cx) {
+        return static_cast<NativeContext *>(Nidium::Binding::NidiumJS::GetObject(cx)->getPrivate());
     }
 
-    static NativeContext *getNativeClass(NativeJS *njs) {
+    static NativeContext *GetObject(Nidium::Binding::NidiumJS *njs) {
         return static_cast<NativeContext *>(njs->getPrivate());
     }
 
@@ -202,7 +204,7 @@ class NativeContext : public Nidium::Core::Messages
         return m_SizeDirty;
     }
 
-    Nidium::Core::Hash<NativeBytecodeScript *> preload;
+    Nidium::Core::Hash<Nidium::Binding::NidiumBytecodeScript *> preload;
 
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
     void addJob(void (*job)(void *arg), void *arg);
@@ -244,7 +246,7 @@ class NativeContext : public Nidium::Core::Messages
 
     private:
     NativeGLResources         m_Resources;
-    NativeJS *                m_JS;
+    Nidium::Binding::NidiumJS *m_JS;
     NativeCanvasHandler *     m_RootHandler;
     NativeCanvasHandler *     m_DebugHandler;
 #ifdef DEBUG

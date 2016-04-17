@@ -71,7 +71,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
         while(SDL_PollEvent(&event)) {
             NativeJSwindow *window = NULL;
             if (NUII->m_NativeCtx) {
-                window = NativeJSwindow::getNativeClass(NUII->m_NativeCtx->getNJS());
+                window = NativeJSwindow::GetObject(NUII->m_NativeCtx->getNJS());
             }
             nevents++;
             switch(event.type) {
@@ -158,13 +158,13 @@ int NativeEvents(NativeX11UIInterface *NUII)
                     }
 
                     if (event.key.keysym.mod & KMOD_SHIFT) {
-                        mod |= NATIVE_KEY_SHIFT;
+                        mod |= Nidium::Binding::NIDIUM_KEY_SHIFT;
                     }
                     if (event.key.keysym.mod & KMOD_ALT) {
-                        mod |= NATIVE_KEY_ALT;
+                        mod |= Nidium::Binding::NIDIUM_KEY_ALT;
                     }
                     if (event.key.keysym.mod & KMOD_CTRL) {
-                        mod |= NATIVE_KEY_CTRL;
+                        mod |= Nidium::Binding::NIDIUM_KEY_CTRL;
                     }
 
                     if (window) {

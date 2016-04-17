@@ -94,7 +94,7 @@ static bool native_document_getElementById(JSContext *cx, unsigned argc, JS::Val
     }
 
     JSAutoByteString cid(cx, str);
-    NativeCanvasHandler *elem = NativeContext::getNativeClass(cx)->getCanvasById(cid.ptr());
+    NativeCanvasHandler *elem = NativeContext::GetObject(cx)->getCanvasById(cid.ptr());
     if (elem) {
         args.rval().setObjectOrNull(elem->m_JsObj);
     } else {
@@ -108,7 +108,7 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    NativeCanvasHandler *rootHandler = NativeContext::getNativeClass(cx)->getRootHandler();
+    NativeCanvasHandler *rootHandler = NativeContext::GetObject(cx)->getRootHandler();
     NativeCanvas2DContext *context = static_cast<NativeCanvas2DContext *>(rootHandler->getContext());
 
     int width, height;
@@ -117,7 +117,7 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     JS::RootedObject arrBuffer(cx, JS_NewUint8ClampedArray(cx, width * height * 4));
     uint8_t *pixels = JS_GetUint8ClampedArrayData(arrBuffer);
 
-    NativeContext *nctx = NativeContext::getNativeClass(cx);
+    NativeContext *nctx = NativeContext::GetObject(cx);
 
     uint8_t *fb = nctx->getUI()->readScreenPixel();
 
@@ -145,13 +145,13 @@ static bool native_document_toDataArray(JSContext *cx, unsigned argc, JS::Value 
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    NativeCanvasHandler *rootHandler = NativeContext::getNativeClass(cx)->getRootHandler();
+    NativeCanvasHandler *rootHandler = NativeContext::GetObject(cx)->getRootHandler();
     NativeCanvas2DContext *context = static_cast<NativeCanvas2DContext *>(rootHandler->getContext());
 
     int width, height;
     context->getSize(&width, &height);
 
-    NativeContext *nctx = NativeContext::getNativeClass(cx);
+    NativeContext *nctx = NativeContext::GetObject(cx);
 
     uint8_t *fb = nctx->getUI()->readScreenPixel();
     
@@ -197,7 +197,7 @@ static bool native_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Val
 
     char *text = JS_EncodeStringToUTF8(cx, str);
 
-    NativeContext::getNativeClass(cx)->getUI()->setClipboardText(text);
+    NativeContext::GetObject(cx)->getUI()->setClipboardText(text);
 
     js_free(text);
 
@@ -209,7 +209,7 @@ static bool native_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Val
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     size_t outputlen;
     char16_t * jsc;
-    char *text = NativeContext::getNativeClass(cx)->getUI()->getClipboardText();
+    char *text = NativeContext::GetObject(cx)->getUI()->getClipboardText();
 
     if (text == NULL) {
         args.rval().setNull();
@@ -238,7 +238,7 @@ static bool native_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp)
     NativeJSdocument::m_ShowFPS = show;
 
     if (show) {
-        NativeContext::getNativeClass(cx)->createDebugCanvas();
+        NativeContext::GetObject(cx)->createDebugCanvas();
     }
 
     return true;
@@ -266,14 +266,14 @@ static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
+    NativeUIInterface *NUI = NativeContext::GetObject(cx)->getUI();
     JSAutoByteString locationstr(cx, location);
 
     struct _native_document_restart_async *ndra = (struct _native_document_restart_async *)malloc(sizeof(*ndra));
 
     ndra->location = strdup(locationstr.ptr());
     ndra->ui = NUI;
-    ape_global *ape = NativeJS::getNativeClass(cx)->net;
+    ape_global *ape = Nidium::Binding::NidiumJS::GetObject(cx)->net;
 
     timer_dispatch_async(native_document_restart, ndra);
 
@@ -282,7 +282,7 @@ static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static void Document_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeJSdocument *jdoc = NativeJSdocument::getNativeClass(obj);
+    NativeJSdocument *jdoc = NativeJSdocument::GetObject(obj);
 
     if (jdoc != NULL) {
         delete jdoc;
@@ -297,13 +297,13 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
     }
 
     JS::RootedValue ret(cx);
-    if (!NativeJS::LoadScriptReturn(cx, data, len, filename, &ret)) {
+    if (!Nidium::Binding::NidiumJS::LoadScriptReturn(cx, data, len, filename, &ret)) {
         return false;
     }
 
     JS::RootedObject style(cx, m_Stylesheet);
     JS::RootedObject jret(cx, ret.toObjectOrNull());
-    NativeJS::copyProperties(cx, jret, &style);
+    Nidium::Binding::NidiumJS::copyProperties(cx, jret, &style);
 
     return true;
 }
@@ -315,7 +315,7 @@ JSObject *NativeJSdocument::registerObject(JSContext *cx)
         NativeJSdocument::getJSObjectName(), &document_class , nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE));
 
-    NativeJS *njs = NativeJS::getNativeClass(cx);
+    Nidium::Binding::NidiumJS *njs = Nidium::Binding::NidiumJS::GetObject(cx);
 
     NativeJSdocument *jdoc = new NativeJSdocument(documentObj, cx);
     JS_SetPrivate(documentObj, jdoc);

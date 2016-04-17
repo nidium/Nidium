@@ -43,18 +43,18 @@ class NativeAudioProcessorDelay: public NativeAudioProcessor
         memset(m_Buffer, 0.0, size);
 
         m_Idx = 0;
-        m_Delay = native_max(native_min(delay, m_MaxDelay), 1);
+        m_Delay = nidium_max(nidium_min(delay, m_MaxDelay), 1);
         m_BuffIndex = ceil((m_Delay/1000) * m_MaxSamples);
     }
 
     void setFeedback(double feedback)
     {
-        m_Feedback = native_max(native_min(feedback, 0.8), 0.0);
+        m_Feedback = nidium_max(nidium_min(feedback, 0.8), 0.0);
     }
 
     void setWet(double wet)
     {
-        m_Wet = native_max(native_min(wet, 1), 0);
+        m_Wet = nidium_max(nidium_min(wet, 1), 0);
     }
 
     ~NativeAudioProcessorDelay() {

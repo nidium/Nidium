@@ -11,9 +11,6 @@
 
 extern JSClass Canvas2DContext_class;
 
-#define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
-#define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
-
 #define NATIVE_PROLOGUE(ofclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
@@ -517,8 +514,8 @@ static bool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
 
     SET_PROP(ret, "left", rect.m_fLeft);
     SET_PROP(ret, "top", rect.m_fTop);
-    SET_PROP(ret, "width", native_max(0, rect.m_fRight - rect.m_fLeft));
-    SET_PROP(ret, "height", native_max(0, rect.m_fBottom-rect.m_fTop));
+    SET_PROP(ret, "width", nidium_max(0, rect.m_fRight - rect.m_fLeft));
+    SET_PROP(ret, "height", nidium_max(0, rect.m_fBottom-rect.m_fTop));
 #undef SET_PROP
 
     args.rval().setObjectOrNull(ret);
@@ -672,7 +669,7 @@ static bool native_canvas_getContext(JSContext *cx, unsigned argc,
     NATIVE_PROLOGUE(NativeCanvasHandler);
     NIDIUM_JS_CHECK_ARGS("getContext", 1);
 
-    NativeContext *nctx = NativeContext::getNativeClass(cx);
+    NativeContext *nctx = NativeContext::GetObject(cx);
     NativeUIInterface *ui = nctx->getUI();
 
     JS::RootedString mode(cx, args[0].toString());
@@ -1472,7 +1469,7 @@ static bool native_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
     }
     lazyLoad = false; /* Always lazy load for now.  */
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Canvas_class, args));
-    handler = new NativeCanvasHandler(width, height, NativeContext::getNativeClass(cx), true);
+    handler = new NativeCanvasHandler(width, height, NativeContext::GetObject(cx), true);
     handler->m_Context = NULL;
     handler->m_JsObj = ret;
     handler->m_JsCx = cx;
@@ -1525,7 +1522,7 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     int height, NativeCanvasHandler **out)
 {
     NativeCanvasHandler *handler;
-    NativeContext *nctx = NativeContext::getNativeClass(cx);
+    NativeContext *nctx = NativeContext::GetObject(cx);
     NativeUIInterface *ui = nctx->getUI();
 
     JS::RootedObject ret(cx, JS_NewObject(cx, &Canvas_class, JS::NullPtr(), JS::NullPtr()));

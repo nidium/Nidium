@@ -41,9 +41,6 @@ SkCanvas *NativeSkia::m_GlContext = NULL;
 #define WHITESPACE \
   while (' ' == *str) ++str;
 
-#define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
-#define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
-
 /*
  * Parse color channel value
  */
@@ -1508,13 +1505,13 @@ bool NativeSkia::SkPathContainsPoint(double x, double y)
     //    TODO: when Skia is patched to work properly with large values, this will not be necessary.
     // 2) Skia does not support analytic hit testing, so we scale paths up to do raster hit testing with subpixel accuracy.
 
-    SkScalar biggestCoord = native_max(native_max(native_max(bounds.fRight,
+    SkScalar biggestCoord = nidium_max(nidium_max(nidium_max(bounds.fRight,
         bounds.fBottom), -bounds.fLeft), -bounds.fTop);
 
     if (SkScalarNearlyZero(biggestCoord))
         return false;
 
-    biggestCoord = native_max(native_max(biggestCoord, fX + 1), fY + 1);
+    biggestCoord = nidium_max(nidium_max(biggestCoord, fX + 1), fY + 1);
 
     const SkScalar kMaxCoordinate = SkIntToScalar(1 << 15);
     SkScalar scale = SkScalarDiv(kMaxCoordinate, biggestCoord);

@@ -32,7 +32,12 @@ enum {
     CUSTOM_SOURCE_PROP_SEEK
 };
 
-class NativeJS;
+namespace Nidium {
+    namespace Binding {
+        class NidiumJS;
+    }
+}
+
 class NativeJSAudioNode;
 class NativeCanvas2DContext;
 
@@ -177,7 +182,7 @@ class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, p
         };
 
         // Common
-        NativeJS *m_nJs;
+        Nidium::Binding::NidiumJS *m_nJs;
         NativeJSAudio *m_Audio;
         NativeAudioNode *m_Node;
         NativeAudio::Node m_NodeType;

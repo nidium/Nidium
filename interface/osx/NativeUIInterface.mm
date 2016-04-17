@@ -1,6 +1,6 @@
 #import "NativeCocoaUIInterface.h"
 #import "NativeUIConsole.h"
-#import <NativeJS.h>
+#import <Binding/NidiumJS.h>
 #import <NativeContext.h>
 #import <NativeSkia.h>
 #import <NativeApp.h>
@@ -68,7 +68,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             }
             NativeJSwindow *window = NULL;
             if (NUII->m_NativeCtx) {
-                window = NativeJSwindow::getNativeClass(NUII->m_NativeCtx->getNJS());
+                window = NativeJSwindow::GetObject(NUII->m_NativeCtx->getNJS());
             }
             nevents++;
             switch(event.type) {
@@ -145,16 +145,16 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     }
 
                     if (event.key.keysym.mod & KMOD_SHIFT || SDL_KEYCODE_GET_CODE(keyCode) == 16) {
-                        mod |= NATIVE_KEY_SHIFT;
+                        mod |= Nidium::Binding::NIDIUM_KEY_SHIFT;
                     }
                     if (event.key.keysym.mod & KMOD_ALT || SDL_KEYCODE_GET_CODE(keyCode) == 18) {
-                        mod |= NATIVE_KEY_ALT;
+                        mod |= Nidium::Binding::NIDIUM_KEY_ALT;
                     }
                     if (event.key.keysym.mod & KMOD_CTRL || SDL_KEYCODE_GET_CODE(keyCode) == 17) {
-                        mod |= NATIVE_KEY_CTRL;
+                        mod |= Nidium::Binding::NIDIUM_KEY_CTRL;
                     }
                     if (event.key.keysym.mod & KMOD_GUI || SDL_KEYCODE_GET_CODE(keyCode) == 91) {
-                        mod |= NATIVE_KEY_META;
+                        mod |= Nidium::Binding::NIDIUM_KEY_META;
                     }
                     if (window) {
                         window->keyupdown(SDL_KEYCODE_GET_CODE(keyCode), mod,
@@ -586,7 +586,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
     NativeContext::CreateAndAssemble(this, m_Gnet);
 
-    [this->m_DragNSView setResponder:NativeJSwindow::getNativeClass(m_NativeCtx->getNJS())];
+    [this->m_DragNSView setResponder:NativeJSwindow::GetObject(m_NativeCtx->getNJS())];
 
     return true;
 }
@@ -1038,7 +1038,7 @@ void NativeCocoaUIInterface::renderSystemTray()
 {
     NSString *identifier = [sender representedObject];
 
-    NativeJSwindow *window = NativeJSwindow::getNativeClass(self->base->m_NativeCtx->getNJS());
+    NativeJSwindow *window = NativeJSwindow::GetObject(self->base->m_NativeCtx->getNJS());
     if (window) {
         window->systemMenuClicked([identifier cStringUsingEncoding:NSUTF8StringEncoding]);
     }

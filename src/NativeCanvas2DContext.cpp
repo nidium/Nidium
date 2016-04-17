@@ -1557,7 +1557,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
             JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString font(cx, vpStr);
-            curSkia->setFontType(font.ptr(), NativeJSdocument::getNativeClass(cx));
+            curSkia->setFontType(font.ptr(), NativeJSdocument::GetObject(cx));
         }
         break;
         case CTX_PROP(fontFile):

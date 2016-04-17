@@ -37,7 +37,7 @@
 #endif
 
 enum {
-    NATIVE_SCTAG_IMAGEDATA = NATIVE_SCTAG_MAX,
+    NIDIUM_SCTAG_IMAGEDATA = Nidium::Binding::NIDIUM_SCTAG_MAX,
 };
 
 int NativeContext_Logger(const char *format)
@@ -99,7 +99,7 @@ m_Debug2Handler(NULL),
 
     NativeGLState::CreateForContext(this);
 
-    m_JS = new NativeJS(net);
+    m_JS = new Nidium::Binding::NidiumJS(net);
     this->initStats();
     this->initShaderLang();
     this->initHandlers(width, height);
@@ -272,7 +272,7 @@ void NativeContext::postDraw()
             s->setStrokeColor(0xFF00BB00u);
             s->drawLine(m_DebugHandler->getWidth() - 20 - i * 3, 55,
                 m_DebugHandler->getWidth() - 20 - i * 3,
-                native_min(60 - ((40.f / 62.f) * (float)m_Stats.samples[i]), 55));
+                nidium_min(60 - ((40.f / 62.f) * (float)m_Stats.samples[i]), 55));
         }
         //s->setLineWidth(1.0);
 
@@ -309,7 +309,7 @@ void NativeContext::callFrame()
     m_Stats.cumultimems += (float)m_Stats.lastdifftime / 1000000.f;
     m_Stats.cumulframe++;
 
-    m_Stats.minfps = native_min(m_Stats.minfps, 1000.f/(m_Stats.lastdifftime/1000000.f));
+    m_Stats.minfps = nidium_min(m_Stats.minfps, 1000.f/(m_Stats.lastdifftime/1000000.f));
     //printf("FPS : %f\n", 1000.f/(m_Stats.lastdifftime/1000000.f));
 
     //printf("Last diff : %f\n", (float)(m_Stats.lastdifftime/1000000.f));
@@ -631,7 +631,7 @@ bool NativeContext::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWrite
         dwidth = iwidth.toInt32();
         dheight = iheight.toInt32();
 
-        JS_WriteUint32Pair(w, NATIVE_SCTAG_IMAGEDATA,
+        JS_WriteUint32Pair(w, NIDIUM_SCTAG_IMAGEDATA,
             (sizeof(uint32_t) * 2) + dwidth * dheight * 4);
 
         JS_WriteBytes(w, &dwidth, sizeof(uint32_t));
@@ -648,7 +648,7 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
                                        uint32_t tag, uint32_t data, void *closure)
 {
     switch (tag) {
-        case NATIVE_SCTAG_IMAGEDATA:
+        case NIDIUM_SCTAG_IMAGEDATA:
         {
             if (data < sizeof(uint32_t) * 2 + 1) {
                 JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));

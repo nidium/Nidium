@@ -5,7 +5,7 @@
 
 #include <native_netlib.h>
 
-#include <NativeJS.h>
+#include <Binding/Nidium.JS.h>
 
 #include "NativeSkia.h"
 #include "NativeApp.h"
@@ -22,7 +22,7 @@ bool NativeTerminalUIInterface::runApplication(const char *path)
 {
     this->m_Console = new NativeUITerminalConsole();
     this->m_Gnet = native_netlib_init();
-    this->NJS = new NativeJS(1, 1, this, m_Gnet);
+    this->NJS = new Nidium::Binding::NidiumJS(1, 1, this, m_Gnet);
 
     this->m_Nml = new NativeNML(this->m_Gnet);
     this->m_Nml->setNJS(this->NJS);

@@ -6,7 +6,7 @@
 #include <zip.h>
 #include <jsoncpp.h>
 
-#include <Binding/NativeJS.h>
+#include <Binding/NidiumJS.h>
 
 typedef bool (* NativeAppExtractCallback)(const char * buf,
     int len, size_t offset, size_t total, void *user);

@@ -78,12 +78,14 @@ static JSClass storage_class = {
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Storage_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
-
-extern JSClass global_class;
+namespace Nidium {
+    namespace Binding {
+        extern JSClass global_class;
+    }
+}
 
 template<>
 JSClass *Nidium::Binding::JSExposer<NativeJSwindow>::jsclass = &global_class;
-
 
 static JSClass mouseEvent_class = {
     "MouseEvent", 0,
@@ -349,10 +351,10 @@ void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat, int 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &keyEvent_class, JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue keyV(m_Cx, INT_TO_JSVAL(keycode));
     JS::RootedValue locationV(m_Cx, INT_TO_JSVAL(location));
-    JS::RootedValue alt(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_ALT)));
-    JS::RootedValue ctl(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_CTRL)));
-    JS::RootedValue shift(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_SHIFT)));
-    JS::RootedValue meta(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_META)));
+    JS::RootedValue alt(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & Nidium::Binding::NIDIUM_KEY_ALT)));
+    JS::RootedValue ctl(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & Nidium::Binding::NIDIUM_KEY_CTRL)));
+    JS::RootedValue shift(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & Nidium::Binding::NIDIUM_KEY_SHIFT)));
+    JS::RootedValue meta(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & Nidium::Binding::NIDIUM_KEY_META)));
     JS::RootedValue space(m_Cx, BOOLEAN_TO_JSVAL(keycode == 32));
     JS::RootedValue rep(m_Cx, BOOLEAN_TO_JSVAL(!!(repeat)));
     EVENT_PROP("keyCode", keyV);
@@ -427,7 +429,7 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button, int clicks)
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &mouseEvent_class, JS::NullPtr(), JS::NullPtr()));
 
-    NativeContext *nctx = NativeContext::getNativeClass(m_Cx);
+    NativeContext *nctx = NativeContext::GetObject(m_Cx);
     NativeInputEvent *ev = new NativeInputEvent(state ?
         NativeInputEvent::kMouseClick_Type :
         NativeInputEvent::kMouseClickRelease_Type, x, y);
@@ -523,7 +525,7 @@ bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t n
     m_Dragging = true; //Duh..
 
     m_DraggedFiles = JS_NewArrayObject(m_Cx, (int)nfiles);
-    NativeJS::getNativeClass(m_Cx)->rootObjectUntilShutdown(m_DraggedFiles);
+    Nidium::Binding::NidiumJS::GetObject(m_Cx)->rootObjectUntilShutdown(m_DraggedFiles);
 
     JS::RootedObject dragged(m_Cx, m_DraggedFiles);
 
@@ -570,7 +572,7 @@ void NativeJSwindow::dragEnd()
         return;
     }
 
-    NativeJS::getNativeClass(m_Cx)->unrootObject(m_DraggedFiles);
+    Nidium::Binding::NidiumJS::GetObject(m_Cx)->unrootObject(m_DraggedFiles);
 
     m_DraggedFiles = NULL;
     m_Dragging = false;
@@ -578,7 +580,7 @@ void NativeJSwindow::dragEnd()
 
 void NativeJSwindow::resized(int width, int height)
 {
-    NativeContext::getNativeClass(m_Cx)->sizeChanged(width, height);
+    NativeContext::GetObject(m_Cx)->sizeChanged(width, height);
 }
 
 void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
@@ -586,7 +588,7 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
-    NativeContext *nctx = NativeContext::getNativeClass(m_Cx);
+    NativeContext *nctx = NativeContext::GetObject(m_Cx);
 
     NativeCanvasHandler *rootHandler = nctx->getRootHandler();
 
@@ -638,7 +640,7 @@ static void Storage_Finalize(JSFreeOp *fop, JSObject *obj)
 static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
-    NativeUIInterface *NUI = NativeContext::getNativeClass(m_Cx)->getUI();
+    NativeUIInterface *NUI = NativeContext::GetObject(m_Cx)->getUI();
 
     switch (id) {
         case WINDOW_PROP_DEVICE_PIXELRATIO:
@@ -697,7 +699,7 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
 static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
-    NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
+    NativeUIInterface *NUI = NativeContext::GetObject(cx)->getUI();
     switch(id) {
         case WINDOW_PROP_LEFT:
         {
@@ -738,7 +740,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
             dval = ape_max(dval, 1);
 
-            NativeContext::getNativeClass(cx)->setWindowSize((int)dval, NUI->getHeight());
+            NativeContext::GetObject(cx)->setWindowSize((int)dval, NUI->getHeight());
 
             break;
         }
@@ -754,7 +756,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
             dval = ape_max(dval, 1);
 
-            NativeContext::getNativeClass(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
+            NativeContext::GetObject(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
 
             break;
         }
@@ -961,7 +963,7 @@ static bool native_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativeContext::getNativeClass(cx)->setWindowSize(w, h);
+    NativeContext::GetObject(cx)->setWindowSize(w, h);
 
     return true;
 }
@@ -1013,7 +1015,7 @@ static bool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value 
     nof->cb = callback;
     nof->cx = cx;
 
-    NativeContext::getNativeClass(cx)->getUI()->openFileDialog(
+    NativeContext::GetObject(cx)->getUI()->openFileDialog(
         NULL,
         native_window_openfilecb, nof,
         NativeUIInterface::kOpenFile_CanChooseDir);
@@ -1063,7 +1065,7 @@ static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
     nof->cb = callback;
     nof->cx = cx;
 
-    NativeContext::getNativeClass(cx)->getUI()->openFileDialog(
+    NativeContext::GetObject(cx)->getUI()->openFileDialog(
         (const char **)ctypes,
         native_window_openfilecb, nof,
         NativeUIInterface::kOpenFile_CanChooseFile | NativeUIInterface::kOpenFile_AlloMultipleSelection);
@@ -1085,14 +1087,14 @@ static bool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS
     if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &cb)) {
         return true;
     }
-    NativeJSwindow::getNativeClass(cx)->addFrameCallback(&cb);
+    NativeJSwindow::GetObject(cx)->addFrameCallback(&cb);
 
     return true;
 }
 
 static bool native_window_center(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NativeContext::getNativeClass(cx)->getUI()->centerWindow();
+    NativeContext::GetObject(cx)->getUI()->centerWindow();
 
     return true;
 }
@@ -1109,7 +1111,7 @@ static bool native_window_setPosition(JSContext *cx, unsigned argc, JS::Value *v
     int y = (args[1].isUndefined() || args[1].isNull()) ?
         NATIVE_WINDOWPOS_UNDEFINED_MASK : args[1].toInt32();
 
-    NativeContext::getNativeClass(cx)->getUI()->setWindowPosition(x, y);
+    NativeContext::GetObject(cx)->getUI()->setWindowPosition(x, y);
 
     return true;
 }
@@ -1139,7 +1141,7 @@ static bool native_window_notify(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_window_quit(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
+    NativeUIInterface *NUI = NativeContext::GetObject(cx)->getUI();
 
     NUI->quit();
 
@@ -1148,7 +1150,7 @@ static bool native_window_quit(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_window_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
+    NativeUIInterface *NUI = NativeContext::GetObject(cx)->getUI();
 
     NUI->hideWindow();
 
@@ -1157,7 +1159,7 @@ static bool native_window_close(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_window_open(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
+    NativeUIInterface *NUI = NativeContext::GetObject(cx)->getUI();
 
     NUI->showWindow();
 
@@ -1168,7 +1170,7 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
 {
     NIDIUM_JS_CHECK_ARGS("setSystemTray", 1);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
+    NativeUIInterface *NUI = NativeContext::GetObject(cx)->getUI();
     JS::RootedObject jobj(cx, &args[0].toObject());
     if (!jobj.get()) {
         NUI->disableSysTray();
@@ -1295,7 +1297,7 @@ static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
 
-    NativeContext::getNativeClass(cx)->setWindowFrame((int)x, (int)y, (int) w, (int) h );
+    NativeContext::GetObject(cx)->setWindowFrame((int)x, (int)y, (int) w, (int) h );
 
     return true;
 }
@@ -1334,7 +1336,7 @@ void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
 
 void NativeJSwindow::initDataBase()
 {
-    NativeNML *nml = NativeContext::getNativeClass(m_Cx)->getNML();
+    NativeNML *nml = NativeContext::GetObject(m_Cx)->getNML();
     if (!nml) {
         NLOG("[Notice] Unable to create window.storage (no NML provided)");
         return;
@@ -1352,7 +1354,7 @@ void NativeJSwindow::initDataBase()
 void NativeJSwindow::createMainCanvas(int width, int height, JS::HandleObject docObj)
 {
     JS::RootedObject canvas(m_Cx, NativeJSCanvas::generateJSObject(m_Cx, width, height, &m_Handler));
-    NativeContext::getNativeClass(m_Cx)->getRootHandler()->addChild(m_Handler);
+    NativeContext::GetObject(m_Cx)->getRootHandler()->addChild(m_Handler);
     JS::RootedValue canval(m_Cx, OBJECT_TO_JSVAL(canvas));
     JS_DefineProperty(m_Cx, docObj, "canvas", canval, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
@@ -1377,7 +1379,7 @@ bool native_storage_set(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     JSAutoByteString key(cx, args[0].toString());
-    if (!NativeJSwindow::getNativeClass(cx)->getDataBase()->
+    if (!NativeJSwindow::GetObject(cx)->getDataBase()->
         insert(key.ptr(), cx, args[1])) {
 
         JS_ReportError(cx, "Cant insert data in storage");
@@ -1400,7 +1402,7 @@ bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    Nidium::Binding::JSDB *db = NativeJSwindow::getNativeClass(cx)->getDataBase();
+    Nidium::Binding::JSDB *db = NativeJSwindow::GetObject(cx)->getDataBase();
 
 
     JSAutoByteString key(cx, args[0].toString());
@@ -1449,7 +1451,7 @@ NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
     NativeJSwindow *jwin = new NativeJSwindow(globalObj, cx);
 
     JS_SetPrivate(globalObj, jwin);
-    
+
     jwin->initDataBase();
     jwin->createMainCanvas(width, height, docObj);
     JS_DefineFunctions(cx, windowObj, window_funcs);
@@ -1486,13 +1488,13 @@ NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
     return jwin;
 }
 
-NativeJSwindow* NativeJSwindow::getNativeClass(JSContext *cx)
+NativeJSwindow* NativeJSwindow::GetObject(JSContext *cx)
 {
-    return NativeContext::getNativeClass(cx)->getJSWindow();
+    return NativeContext::GetObject(cx)->getJSWindow();
 }
 
-NativeJSwindow* NativeJSwindow::getNativeClass(NativeJS *njs)
+NativeJSwindow* NativeJSwindow::GetObject(Nidium::Binding::NidiumJS *njs)
 {
-    return NativeContext::getNativeClass(njs)->getJSWindow();
+    return NativeContext::GetObject(njs)->getJSWindow();
 }
 

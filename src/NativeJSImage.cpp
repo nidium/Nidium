@@ -109,7 +109,7 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
                 JS::RootedString vpStr(cx, JS::ToString(cx, vp));
                 JSAutoByteString imgPath(cx, vpStr);
 
-                NativeJSObj(cx)->rootObjectUntilShutdown(obj);
+                NidiumJSObj(cx)->rootObjectUntilShutdown(obj);
 
                 Nidium::IO::Stream *stream = Nidium::IO::Stream::create(NativePath(imgPath.ptr()));
 
@@ -130,7 +130,7 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
                     return true;
                 }
 
-                NativeJSObj(cx)->rootObjectUntilShutdown(obj);
+                NidiumJSObj(cx)->rootObjectUntilShutdown(obj);
 
                 Nidium::IO::Stream *stream = Nidium::IO::Stream::create(file->getFullPath());
                 if (stream == NULL) {
@@ -233,7 +233,7 @@ bool NativeJSImage::setupWithBuffer(buffer *buf)
 {
     if (buf->used == 0) {
 
-        NativeJSObj(m_Cx)->unrootObject(m_JSObject);
+        NidiumJSObj(m_Cx)->unrootObject(m_JSObject);
         return false;
     }
 
@@ -241,7 +241,7 @@ bool NativeJSImage::setupWithBuffer(buffer *buf)
     if (ImageObject->m_Image == NULL) {
         delete ImageObject;
 
-        NativeJSObj(m_Cx)->unrootObject(m_JSObject);
+        NidiumJSObj(m_Cx)->unrootObject(m_JSObject);
         return false;
     }
 
@@ -252,7 +252,7 @@ bool NativeJSImage::setupWithBuffer(buffer *buf)
     JS_DefineProperty(m_Cx, obj, "width", widthVal, JSPROP_PERMANENT | JSPROP_READONLY);
     JS_DefineProperty(m_Cx, obj, "height", heightVal, JSPROP_PERMANENT | JSPROP_READONLY);
 
-    NativeJSObj(m_Cx)->unrootObject(m_JSObject);
+    NidiumJSObj(m_Cx)->unrootObject(m_JSObject);
 
     return true;
 }
@@ -290,7 +290,7 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
         JS_CallFunctionValue(cx, jsobj, onload_callback, JS::HandleValueArray::empty(), rval.address());
     }
 
-    NativeJSObj(cx)->unrootObject(jsobj);
+    NidiumJSObj(cx)->unrootObject(jsobj);
     timer_dispatch_async(delete_stream, stream);
     stream = NULL;
 }

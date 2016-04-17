@@ -11,7 +11,7 @@
 
 #include <native_netlib.h>
 
-#include <Binding/NativeJS.h>
+#include <Binding/NidiumJS.h>
 
 #define NATIVE_MANIFEST "manifest.json"
 

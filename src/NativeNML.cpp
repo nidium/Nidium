@@ -29,8 +29,8 @@ NativeNML::NativeNML(ape_global *net) :
     this->meta.size.height = 0;
     this->meta.identifier = NULL;
 
-    /* Make sure NativeJS already has the netlib set */
-    NativeJS::initNet(net);
+    /* Make sure Nidium::Binding::NidiumJS already has the netlib set */
+    Nidium::Binding::NidiumJS::initNet(net);
 
     memset(&this->meta, 0, sizeof(this->meta));
 }
@@ -57,7 +57,7 @@ NativeNML::~NativeNML()
     NativePath::chroot(NULL);
 }
 
-void NativeNML::setNJS(NativeJS *js)
+void NativeNML::setNJS(Nidium::Binding::NidiumJS *js)
 {
     m_Njs = js;
     /*
@@ -120,7 +120,7 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
             }
             case NativeAssets::Item::ITEM_NSS:
             {
-                NativeJSdocument *jdoc = NativeJSdocument::getNativeClass(m_Njs->cx);
+                NativeJSdocument *jdoc = NativeJSdocument::GetObject(m_Njs->cx);
                 if (jdoc == NULL) {
                     return;
                 }
@@ -134,7 +134,7 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
     }
     /* TODO: allow the callback to change content ? */
 
-    NativeJSwindow::getNativeClass(m_Njs)->assetReady(tag);
+    NativeJSwindow::GetObject(m_Njs)->assetReady(tag);
 }
 
 static void NativeNML_onAssetsItemRead(NativeAssets::Item *item, void *arg)
@@ -150,7 +150,7 @@ void NativeNML::onAssetsBlockReady(NativeAssets *asset)
 
     if (m_nAssets == 0) {
         JS::RootedObject layoutObj(m_Njs->cx, m_JSObjectLayout);
-        NativeJSwindow::getNativeClass(m_Njs)->onReady(layoutObj);
+        NativeJSwindow::GetObject(m_Njs)->onReady(layoutObj);
     }
 }
 

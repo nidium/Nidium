@@ -69,7 +69,7 @@ public:
 
     JSObject *buildLayoutTree(rapidxml::xml_node<> &node);
 
-    void setNJS(NativeJS *js);
+    void setNJS(Nidium::Binding::NidiumJS *js);
 
     /*
         str must be null-terminated.
@@ -100,7 +100,7 @@ private:
 
     uint32_t m_nAssets;
 
-    NativeJS *m_Njs;
+    Nidium::Binding::NidiumJS *m_Njs;
 
     struct {
         char *identifier;

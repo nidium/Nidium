@@ -20,7 +20,7 @@ static JSFunctionSpec Native_funcs[] = {
 
 void Native_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeJSNative *jnative = NativeJSNative::getNativeClass(obj);
+    NativeJSNative *jnative = NativeJSNative::GetObject(obj);
 
     if (jnative != NULL) {
         delete jnative;
@@ -37,7 +37,7 @@ void NativeJSNative::registerObject(JSContext *cx)
     JS_DefineFunctions(cx, NativeObj, Native_funcs);
     JS_SetPrivate(NativeObj, jnative);
 
-    NativeJS::getNativeClass(cx)->jsobjects.set(NativeJSNative::getJSObjectName(), NativeObj);
+    Nidium::Binding::NidiumJS::GetObject(cx)->jsobjects.set(NativeJSNative::getJSObjectName(), NativeObj);
 
     //JS::RootedObject titleBar(cx, NativeJSCanvas::generateJSObject(cx, width, 35));
     //((NativeCanvasHandler *)JS_GetPrivate(canvas))->translate(0, 35);
