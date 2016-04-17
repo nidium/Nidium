@@ -5,7 +5,7 @@
 
 #include <SDL.h>
 
-#include <Net/NativeHTTPStream.h>
+#include <Net/HTTPStream.h>
 #include <NativePrivateStream.h>
 
 #include "NativeSystemStream.h"
@@ -25,8 +25,8 @@ NativeUIInterface::NativeUIInterface() :
     NativePath::registerScheme(SCHEME_DEFINE("system://",  NativeSystemStream,  false));
     NativePath::registerScheme(SCHEME_DEFINE("user://",    NativeUserStream,    false));
 #endif
-    NativePath::registerScheme(SCHEME_DEFINE("http://",    NativeHTTPStream,    true));
-    NativePath::registerScheme(SCHEME_DEFINE("https://",   NativeHTTPStream,    true));
+    NativePath::registerScheme(SCHEME_DEFINE("http://",    Nidium::Net::HTTPStream,    true));
+    NativePath::registerScheme(SCHEME_DEFINE("https://",   Nidium::Net::HTTPStream,    true));
     NativePath::registerScheme(SCHEME_DEFINE("nvfs://",    Nidium::IO::NFSStream,     false));
 
     NativeTaskManager::createManager();
