@@ -3,9 +3,12 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeHTTPParser.h"
+#include "HTTPParser.h"
 
 #include <string.h>
+
+namespace Nidium {
+namespace Net {
 
 #ifndef ULLONG_MAX
 # define ULLONG_MAX ((uint64_t) -1) /* 2^64-1 */
@@ -34,7 +37,7 @@ static http_parser_settings settings =
 
 static int message_begin_cb(http_parser *p)
 {
-    NativeHTTPParser *nhttp = (NativeHTTPParser *)p->data;
+    HTTPParser *nhttp = (HTTPParser *)p->data;
 
     nhttp->HTTPClearState();
 
@@ -45,7 +48,7 @@ static int message_begin_cb(http_parser *p)
 
 static int message_complete_cb(http_parser *p)
 {
-    NativeHTTPParser *nhttp = (NativeHTTPParser *)p->data;
+    HTTPParser *nhttp = (HTTPParser *)p->data;
 
     nhttp->HTTPRequestEnded();
 
@@ -54,7 +57,7 @@ static int message_complete_cb(http_parser *p)
 
 static int body_cb(http_parser *p, const char *buf, size_t len)
 {
-    NativeHTTPParser *nhttp = (NativeHTTPParser *)p->data;
+    HTTPParser *nhttp = (HTTPParser *)p->data;
 
     if (nhttp->m_Data == NULL) {
         nhttp->m_Data = buffer_new(2048);
@@ -76,13 +79,13 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
 
 static int header_field_cb(http_parser *p, const char *buf, size_t len)
 {
-    NativeHTTPParser *nhttp = (NativeHTTPParser *)p->data;
+    HTTPParser *nhttp = (HTTPParser *)p->data;
 
     switch (nhttp->m_Headers.prevstate) {
-        case NativeHTTPParser::PSTATE_NOTHING:
+        case HTTPParser::PSTATE_NOTHING:
             nhttp->m_Headers.list = ape_array_new(16);
             /* fall through */
-        case NativeHTTPParser::PSTATE_VALUE:
+        case HTTPParser::PSTATE_VALUE:
             nhttp->m_Headers.tkey = buffer_new(16);
             if (nhttp->m_Headers.tval != NULL) {
                 buffer_append_char(nhttp->m_Headers.tval, '\0');
@@ -92,7 +95,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
             break;
     }
 
-    nhttp->m_Headers.prevstate = NativeHTTPParser::PSTATE_FIELD;
+    nhttp->m_Headers.prevstate = HTTPParser::PSTATE_FIELD;
 
     if (len != 0) {
         buffer_append_data_tolower(nhttp->m_Headers.tkey,
@@ -104,12 +107,12 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
 
 static int header_value_cb(http_parser *p, const char *buf, size_t len)
 {
-    NativeHTTPParser *nhttp = (NativeHTTPParser *)p->data;
+    HTTPParser *nhttp = (HTTPParser *)p->data;
 
     switch (nhttp->m_Headers.prevstate) {
-        case NativeHTTPParser::PSTATE_NOTHING:
+        case HTTPParser::PSTATE_NOTHING:
             return -1;
-        case NativeHTTPParser::PSTATE_FIELD:
+        case HTTPParser::PSTATE_FIELD:
             nhttp->m_Headers.tval = buffer_new(64);
             buffer_append_char(nhttp->m_Headers.tkey, '\0');
             ape_array_add_b(nhttp->m_Headers.list,
@@ -119,7 +122,7 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
             break;
     }
 
-    nhttp->m_Headers.prevstate = NativeHTTPParser::PSTATE_VALUE;
+    nhttp->m_Headers.prevstate = HTTPParser::PSTATE_VALUE;
 
     if (len != 0) {
         buffer_append_data(nhttp->m_Headers.tval,
@@ -135,7 +138,7 @@ static int request_url_cb(http_parser *p, const char *buf, size_t len)
 
 static int headers_complete_cb(http_parser *p)
 {
-    NativeHTTPParser *nhttp = (NativeHTTPParser *)p->data;
+    HTTPParser *nhttp = (HTTPParser *)p->data;
 
     if (nhttp->m_Headers.tval != NULL) {
         buffer_append_char(nhttp->m_Headers.tval, '\0');
@@ -157,7 +160,7 @@ static int headers_complete_cb(http_parser *p)
     return 0;
 }
 
-bool NativeHTTPParser::HTTPParse(const char *data, size_t len)
+bool HTTPParser::HTTPParse(const char *data, size_t len)
 {
     size_t nparsed;
 
@@ -167,7 +170,7 @@ bool NativeHTTPParser::HTTPParse(const char *data, size_t len)
     return true;
 }
 
-void NativeHTTPParser::HTTPClearState()
+void HTTPParser::HTTPClearState()
 {
     ape_array_destroy(m_Headers.list);
     buffer_destroy(m_Data);
@@ -177,7 +180,7 @@ void NativeHTTPParser::HTTPClearState()
     m_Headers.prevstate = PSTATE_NOTHING;
 }
 
-NativeHTTPParser::NativeHTTPParser() :
+HTTPParser::HTTPParser() :
     m_Data(NULL), m_Ended(0), m_Contentlength(0)
 {
     http_parser_init(&m_Parser, HTTP_RESPONSE);
@@ -189,14 +192,17 @@ NativeHTTPParser::NativeHTTPParser() :
     m_Headers.tval = NULL;
 }
 
-NativeHTTPParser::~NativeHTTPParser()
+HTTPParser::~HTTPParser()
 {
 
 }
 
-const char *NativeHTTPParser::HTTPGetHeader(const char *key)
+const char *HTTPParser::HTTPGetHeader(const char *key)
 {
     buffer *ret = ape_array_lookup_cstr(m_Headers.list, key, strlen(key));
     return ret ? (const char *)ret->data : NULL;
 }
+
+} // namespace Net
+} // namespace Nidium
 

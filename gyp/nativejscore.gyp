@@ -99,7 +99,7 @@
         ],
         'sources': [
             '../src/Net/HTTP.cpp',
-            '../src/Net/NativeHTTPParser.cpp',
+            '../src/Net/HTTPParser.cpp',
             '../src/Net/NativeHTTPListener.cpp',
             '../src/Net/NativeHTTPStream.cpp',
             '../src/Net/NativeWebSocket.cpp',

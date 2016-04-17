@@ -9,10 +9,13 @@
 #include <http_parser.h>
 #include <ape_array.h>
 
-class NativeHTTPParser
+namespace Nidium {
+namespace Net {
+
+class HTTPParser
 {
 public:
-    virtual ~NativeHTTPParser();
+    virtual ~HTTPParser();
 
     bool HTTPParse(const char *data, size_t len);
     void HTTPClearState();
@@ -41,8 +44,11 @@ public:
     int m_Ended;
     uint64_t m_Contentlength;
 protected:
-    NativeHTTPParser();
+    HTTPParser();
 };
+
+} // namespace Net
+} // namespace Nidium
 
 #endif
 
