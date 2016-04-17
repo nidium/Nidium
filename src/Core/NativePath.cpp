@@ -298,7 +298,7 @@ char * NativePath::currentJSCaller(JSContext *cx)
 {
     if (cx == NULL) {
         /* lookup in the TLS */
-        Nidium::Binding::NidiumJS *js = Nidium::Binding::NidiumJS::getNidiumClass();
+        Nidium::Binding::NidiumJS *js = Nidium::Binding::NidiumJS::GetObject();
         if (!js || (cx = js->getJSContext()) == NULL) {
             return NULL;
         }

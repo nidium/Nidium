@@ -66,7 +66,7 @@ static bool nidium_process_exit(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static void Process_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    JSProcess *jProcess = JSProcess::getNidiumClass(obj);
+    JSProcess *jProcess = JSProcess::GetObject(obj);
 
     if (jProcess != NULL) {
         delete jProcess;
@@ -75,11 +75,11 @@ static void Process_Finalize(JSFreeOp *fop, JSObject *obj)
 
 static int ape_kill_handler(int code, ape_global *ape)
 {
-    NidiumJS *njs = NidiumJS::getNidiumClass();
+    NidiumJS *njs = NidiumJS::GetObject();
     JSContext *cx = njs->cx;
     JS::RootedValue     rval(cx);
 
-    JSProcess *jProcess = JSProcess::getNidiumClass(njs);
+    JSProcess *jProcess = JSProcess::GetObject(njs);
 
     JS::RootedValue func(cx, jProcess->m_SignalFunction);
 
@@ -94,7 +94,7 @@ static int ape_kill_handler(int code, ape_global *ape)
 
 void JSProcess::registerObject(JSContext *cx, char **argv, int argc, int workerId)
 {
-    NidiumJS *njs = NidiumJS::getNidiumClass(cx);
+    NidiumJS *njs = NidiumJS::GetObject(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject ProcessObj(cx, JS_DefineObject(cx, global, JSProcess::getJSObjectName(),
         &Process_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));

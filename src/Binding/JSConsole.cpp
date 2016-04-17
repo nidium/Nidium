@@ -41,8 +41,8 @@ static bool nidium_console_hide(JSContext *cx, unsigned argc,
 {
 
 #if 0
-    if (NativeContext::getNidiumClass(cx)->getUI()->getConsole()) {
-        NativeContext::getNidiumClass(cx)->getUI()->getConsole()->hide();
+    if (NativeContext::GetObject(cx)->getUI()->getConsole()) {
+        NativeContext::GetObject(cx)->getUI()->getConsole()->hide();
     }
 #endif
     return true;
@@ -52,7 +52,7 @@ static bool nidium_console_show(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
 #if 0
-    NativeContext::getNidiumClass(cx)->getUI()->getConsole(true)->show();
+    NativeContext::GetObject(cx)->getUI()->getConsole(true)->show();
 #endif
     return true;
 }
@@ -60,12 +60,12 @@ static bool nidium_console_show(JSContext *cx, unsigned argc,
 static bool nidium_console_clear(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NidiumJS *js = NidiumJS::getNidiumClass(cx);
+    NidiumJS *js = NidiumJS::GetObject(cx);
 
     js->logclear();
 #if 0
-    if (NativeContext::getNidiumClass(cx)->getUI()->getConsole()) {
-        NativeContext::getNidiumClass(cx)->getUI()->getConsole()->clear();
+    if (NativeContext::GetObject(cx)->getUI()->getConsole()) {
+        NativeContext::GetObject(cx)->getUI()->getConsole()->clear();
     }
 #endif
     return true;
@@ -83,7 +83,7 @@ static bool nidium_console_log(JSContext *cx, unsigned argc,
     JS::AutoFilename filename;
     JS::DescribeScriptedCaller(cx, &filename, &lineno);
 
-    NidiumJS *js = NidiumJS::getNidiumClass(cx);
+    NidiumJS *js = NidiumJS::GetObject(cx);
     filename_parent = filename.get();
     if (filename_parent == NULL) {
         filename_parent = "(null)";
@@ -121,7 +121,7 @@ static bool nidium_console_log(JSContext *cx, unsigned argc,
 static bool nidium_console_write(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NidiumJS *js = NidiumJS::getNidiumClass(cx);
+    NidiumJS *js = NidiumJS::GetObject(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     NIDIUM_JS_CHECK_ARGS("write", 1);

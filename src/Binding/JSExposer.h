@@ -64,11 +64,11 @@ struct JSEvent
 
         m_Cx = cx;
 
-        NidiumJS::getNidiumClass(m_Cx)->rootObjectUntilShutdown(func.toObjectOrNull());
+        NidiumJS::GetObject(m_Cx)->rootObjectUntilShutdown(func.toObjectOrNull());
     }
 
     ~JSEvent() {
-        NidiumJS::getNidiumClass(m_Cx)->unrootObject(m_Function.toObjectOrNull());
+        NidiumJS::GetObject(m_Cx)->unrootObject(m_Function.toObjectOrNull());
     }
 
     JSContext *m_Cx;
@@ -314,10 +314,10 @@ class JSExposer
     }
 
     static JSObject *getJSGlobalObject(JSContext *cx) {
-        return T::getJSGlobalObject(NidiumJS::getNidiumClass(cx));
+        return T::getJSGlobalObject(NidiumJS::GetObject(cx));
     }
 
-    static T* getNidiumClass(JSObject *obj, JSContext *cx = NULL)
+    static T* GetObject(JSObject *obj, JSContext *cx = NULL)
     {
         if (cx != NULL) {
             if (JS_GetClass(obj) == T::jsclass) {
@@ -328,7 +328,7 @@ class JSExposer
         return (T *)JS_GetPrivate(obj);
     }
 
-    static T* getNidiumClass(NidiumJS *njs) {
+    static T* GetObject(NidiumJS *njs) {
         JSObject *obj = T::getJSGlobalObject(njs);
         if (obj == NULL) {
             return NULL;
@@ -336,8 +336,8 @@ class JSExposer
         return (T *)JS_GetPrivate(obj);
     }
 
-    static T* getNidiumClass(JSContext *cx) {
-        return T::getNidiumClass(NidiumJS::getNidiumClass(cx));
+    static T* GetObject(JSContext *cx) {
+        return T::GetObject(NidiumJS::GetObject(cx));
     }
 
     bool fireJSEvent(const char *name, JS::MutableHandleValue evobj) {
@@ -525,7 +525,7 @@ public:
 
         for (int i = 0; i < NIDIUM_ASYNC_MAXCALLBACK; i++) {
             if (m_CallBack[i] != NULL) {
-                NidiumJS::getNidiumClass(m_Ctx)->unrootObject(m_CallBack[i]);
+                NidiumJS::GetObject(m_Ctx)->unrootObject(m_CallBack[i]);
             }
         }
     }
@@ -537,11 +537,11 @@ public:
         }
 
         if (m_CallBack[idx] != NULL) {
-            NidiumJS::getNidiumClass(m_Ctx)->unrootObject(m_CallBack[idx]);
+            NidiumJS::GetObject(m_Ctx)->unrootObject(m_CallBack[idx]);
         }
 
         if (callback) {
-            NidiumJS::getNidiumClass(m_Ctx)->rootObjectUntilShutdown(callback);
+            NidiumJS::GetObject(m_Ctx)->rootObjectUntilShutdown(callback);
         }
         m_CallBack[idx] = callback;
     }
@@ -613,8 +613,7 @@ protected:
 
 typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 
-#define NidiumJSObj(cx) (NidiumJS::getNidiumClass(cx))
-
+#define NidiumJSObj(cx) (Nidium::Binding::NidiumJS::GetObject(cx))
 
 #define NIDIUM_JS_OBJECT_EXPOSE(name) \
     void  JS ## name::registerObject(JSContext *cx) \

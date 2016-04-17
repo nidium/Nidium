@@ -79,7 +79,7 @@ class NidiumJS
         int registeredMessagesIdx;
         int registeredMessagesSize;
 
-        static NidiumJS *getNidiumClass(JSContext *cx = NULL);
+        static NidiumJS *GetObject(JSContext *cx = NULL);
         static ape_global *getNet();
         static void initNet(ape_global *net);
 

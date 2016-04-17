@@ -175,7 +175,7 @@ bool JSModules::init(JSModule *module)
 bool JSModule::initNidium()
 {
     JS::RootedObject exports(this->cx, JS_NewObject(this->cx, NULL, JS::NullPtr(), JS::NullPtr()));
-    NidiumJS *njs = NidiumJS::getNidiumClass(this->cx);
+    NidiumJS *njs = NidiumJS::GetObject(this->cx);
     if (!exports) {
         return false;
     }
@@ -206,7 +206,7 @@ bool JSModule::initJS()
         return false;
     }
 
-    NidiumJS *njs = NidiumJS::getNidiumClass(this->cx);
+    NidiumJS *njs = NidiumJS::GetObject(this->cx);
 
     JS_SetPrivate(gbl, this);
 
@@ -482,7 +482,7 @@ JS::Value JSModule::require(char *name)
 {
     JS::RootedValue ret(cx);
     JSModule *cmodule;
-    NidiumJS *njs = NidiumJS::getNidiumClass(this->cx);
+    NidiumJS *njs = NidiumJS::GetObject(this->cx);
 
     ret.setUndefined();
 

@@ -29,7 +29,7 @@ static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Thread_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool nidium_thread_start(JSContext *cx, unsigned argc, JS::Value *vp);
 
-#define NJS (NidiumJS::getNidiumClass(cx))
+#define NJS (NidiumJS::GetObject(cx))
 
 static JSClass global_Thread_class = {
     "_GLOBALThread", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,

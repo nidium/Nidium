@@ -154,7 +154,7 @@ static bool nidium_global_prop_get(JSContext *cx, JS::HandleObject obj,
 
 void reportError(JSContext *cx, const char *message, JSErrorReport *report)
 {
-    NidiumJS *js = NidiumJS::getNidiumClass(cx);
+    NidiumJS *js = NidiumJS::GetObject(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
     if (js == NULL) {
@@ -397,7 +397,7 @@ static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NidiumJS *njs = NidiumJS::getNidiumClass(cx);
+    NidiumJS *njs = NidiumJS::GetObject(cx);
     JSAutoByteString scriptstr(cx, script);
     NativePath scriptpath(scriptstr.ptr());
 
@@ -482,7 +482,7 @@ void NidiumJS::unrootObject(JSObject *obj)
     hashtbl_erase64(this->rootedObj, (uint64_t)obj);
 }
 
-NidiumJS *NidiumJS::getNidiumClass(JSContext *cx)
+NidiumJS *NidiumJS::GetObject(JSContext *cx)
 {
     if (cx == NULL) {
         return (NidiumJS *)pthread_getspecific(gJS);
