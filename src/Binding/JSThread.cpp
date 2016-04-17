@@ -19,17 +19,17 @@
 
 #include "JSConsole.h"
 
-extern void reportError(JSContext *cx, const char *message,
-    JSErrorReport *report);
-
 namespace Nidium {
 namespace Binding {
+
+extern void reportError(JSContext *cx, const char *message,
+    JSErrorReport *report);
 
 static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Thread_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool nidium_thread_start(JSContext *cx, unsigned argc, JS::Value *vp);
 
-#define NJS (NativeJS::getNativeClass(cx))
+#define NJS (NidiumJS::getNidiumClass(cx))
 
 static JSClass global_Thread_class = {
     "_GLOBALThread", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
@@ -117,7 +117,7 @@ static void *nidium_thread(void *arg)
         return NULL;
     }
 
-    NativeJS::SetJSRuntimeOptions(rt);
+    NidiumJS::SetJSRuntimeOptions(rt);
 
     if ((tcx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
@@ -126,7 +126,7 @@ static void *nidium_thread(void *arg)
         JSAutoRequest ar(tcx);
         JS_SetGCParameterForThread(tcx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
 
-        JS_SetStructuredCloneCallbacks(rt, NativeJS::jsscc);
+        JS_SetStructuredCloneCallbacks(rt, NidiumJS::jsscc);
         JS_SetInterruptCallback(rt, JSThreadCallback);
 
         nthread->jsRuntime = rt;

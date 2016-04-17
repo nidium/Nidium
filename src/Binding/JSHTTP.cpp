@@ -231,7 +231,7 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
     jshttp->request = callback;
     JS_SetReservedSlot(caller, 0, callback);
 
-    NativeJSObj(cx)->rootObjectUntilShutdown(caller);
+    NidiumJSObj(cx)->rootObjectUntilShutdown(caller);
 
     //printf("Request : %s\n", req->getHeadersData()->data);
 
@@ -286,7 +286,7 @@ void JSHTTP::onError(HTTP::HTTPError err)
 
     JS_CallFunctionValue(cx, obj, onerror_callback, event, &rval);
 
-    NativeJSObj(cx)->unrootObject(this->jsobj);
+    NidiumJSObj(cx)->unrootObject(this->jsobj);
 }
 
 void JSHTTP::onProgress(size_t offset, size_t len,
@@ -376,7 +376,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
         JS::RootedValue req(cx, request);
         JS_CallFunctionValue(cx, obj, req, jevent, &rval);
 
-        NativeJSObj(cx)->unrootObject(this->jsobj);
+        NidiumJSObj(cx)->unrootObject(this->jsobj);
 
         JS_SetReservedSlot(jsobj, 0, JSVAL_NULL);
 
@@ -425,7 +425,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
                 CONST_STR_LEN("image"))));
 
             nimg = new NativeSkImage(h->data->data, h->data->used);
-            jdata = OBJECT_TO_JSVAL(NativeJSImage::buildImageObject(cx, nimg));
+            jdata = OBJECT_TO_JSVAL(NidiumJSImage::buildImageObject(cx, nimg));
 
             break;
         }
@@ -466,7 +466,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
     JS::RootedValue req(cx, request);
     JS_CallFunctionValue(cx, obj, req, jevent, &rval);
 
-    NativeJSObj(cx)->unrootObject(this->jsobj);
+    NidiumJSObj(cx)->unrootObject(this->jsobj);
     JS_SetReservedSlot(jsobj, 0, JSVAL_NULL);
 }
 

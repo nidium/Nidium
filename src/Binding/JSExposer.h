@@ -11,7 +11,7 @@
 
 #include "Core/NativeTaskManager.h"
 
-#include "NativeJS.h"
+#include "NidiumJS.h"
 
 #define NIDIUM_JS_PROLOGUE(ofclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
@@ -64,11 +64,11 @@ struct JSEvent
 
         m_Cx = cx;
 
-        NativeJS::getNativeClass(m_Cx)->rootObjectUntilShutdown(func.toObjectOrNull());
+        NidiumJS::getNidiumClass(m_Cx)->rootObjectUntilShutdown(func.toObjectOrNull());
     }
 
     ~JSEvent() {
-        NativeJS::getNativeClass(m_Cx)->unrootObject(m_Function.toObjectOrNull());
+        NidiumJS::getNidiumClass(m_Cx)->unrootObject(m_Function.toObjectOrNull());
     }
 
     JSContext *m_Cx;
@@ -302,7 +302,7 @@ class JSExposer
 
     static const char *getJSObjectName() { return NULL; }
 
-    static JSObject *getJSGlobalObject(NativeJS *njs) {
+    static JSObject *getJSGlobalObject(NidiumJS *njs) {
         JSObject *jobj;
         const char *name = T::getJSObjectName();
 
@@ -314,10 +314,10 @@ class JSExposer
     }
 
     static JSObject *getJSGlobalObject(JSContext *cx) {
-        return T::getJSGlobalObject(NativeJS::getNativeClass(cx));
+        return T::getJSGlobalObject(NidiumJS::getNidiumClass(cx));
     }
 
-    static T* getNativeClass(JSObject *obj, JSContext *cx = NULL)
+    static T* getNidiumClass(JSObject *obj, JSContext *cx = NULL)
     {
         if (cx != NULL) {
             if (JS_GetClass(obj) == T::jsclass) {
@@ -328,7 +328,7 @@ class JSExposer
         return (T *)JS_GetPrivate(obj);
     }
 
-    static T* getNativeClass(NativeJS *njs) {
+    static T* getNidiumClass(NidiumJS *njs) {
         JSObject *obj = T::getJSGlobalObject(njs);
         if (obj == NULL) {
             return NULL;
@@ -336,8 +336,8 @@ class JSExposer
         return (T *)JS_GetPrivate(obj);
     }
 
-    static T* getNativeClass(JSContext *cx) {
-        return T::getNativeClass(NativeJS::getNativeClass(cx));
+    static T* getNidiumClass(JSContext *cx) {
+        return T::getNidiumClass(NidiumJS::getNidiumClass(cx));
     }
 
     bool fireJSEvent(const char *name, JS::MutableHandleValue evobj) {
@@ -525,7 +525,7 @@ public:
 
         for (int i = 0; i < NIDIUM_ASYNC_MAXCALLBACK; i++) {
             if (m_CallBack[i] != NULL) {
-                NativeJS::getNativeClass(m_Ctx)->unrootObject(m_CallBack[i]);
+                NidiumJS::getNidiumClass(m_Ctx)->unrootObject(m_CallBack[i]);
             }
         }
     }
@@ -537,11 +537,11 @@ public:
         }
 
         if (m_CallBack[idx] != NULL) {
-            NativeJS::getNativeClass(m_Ctx)->unrootObject(m_CallBack[idx]);
+            NidiumJS::getNidiumClass(m_Ctx)->unrootObject(m_CallBack[idx]);
         }
 
         if (callback) {
-            NativeJS::getNativeClass(m_Ctx)->rootObjectUntilShutdown(callback);
+            NidiumJS::getNidiumClass(m_Ctx)->rootObjectUntilShutdown(callback);
         }
         m_CallBack[idx] = callback;
     }
@@ -613,7 +613,7 @@ protected:
 
 typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 
-#define NativeJSObj(cx) (NativeJS::getNativeClass(cx))
+#define NidiumJSObj(cx) (NidiumJS::getNidiumClass(cx))
 
 
 #define NIDIUM_JS_OBJECT_EXPOSE(name) \
@@ -626,7 +626,7 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
     }
 
 #define NIDIUM_JS_OBJECT_EXPOSE_NOT_INST(name) \
-    void NativeJS ## name::registerObject(JSContext *cx) \
+    void NidiumJS ## name::registerObject(JSContext *cx) \
     { \
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
         JS::RootedObject name ## Obj(cx, JS_DefineObject(cx, global, #name, \
@@ -636,7 +636,7 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
     }
 
 #define NATIVE_OBJECT_EXPOSE(name) \
-    void NativeJS ## name::registerObject(JSContext *cx) \
+    void NidiumJS ## name::registerObject(JSContext *cx) \
     { \
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
         JS_InitClass(cx, global, JS::NullPtr(), &name ## _class, \
@@ -645,7 +645,7 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
     }
 
 #define NATIVE_OBJECT_EXPOSE_NOT_INST(name) \
-    void NativeJS ## name::registerObject(JSContext *cx) \
+    void NidiumJS ## name::registerObject(JSContext *cx) \
     { \
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
         JS::RootedObject name ## Obj(cx, JS_DefineObject(cx, global, #name, \

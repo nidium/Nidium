@@ -204,7 +204,7 @@ static bool nidium_HTTPListener_constructor(JSContext *cx,
     JS_SetPrivate(ret, listener);
     args.rval().setObjectOrNull(ret);
 
-    NativeJSObj(cx)->rootObjectUntilShutdown(ret);
+    NidiumJSObj(cx)->rootObjectUntilShutdown(ret);
 
     return true;
 }
@@ -349,7 +349,7 @@ void JSHTTPServer::registerObject(JSContext *cx)
         nidium_HTTPListener_constructor,
         0, NULL, NULL, NULL, NULL);
 #if 0
-    //TODO: how to init a class from a NativeJSObjectMapper derived class
+    //TODO: how to init a class from a NidiumJSObjectMapper derived class
     JS_InitClass(cx, global, NULL, &HTTPRequest_class,
                 nidium_HTTPRequest_class_constructor,
                 0, HTTPRequest_props, HTTPRequest_funcs, NULL, NULL);

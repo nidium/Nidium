@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-#include "Binding/NativeJS.h"
+#include "Binding/NidiumJS.h"
 
 namespace Nidium {
 namespace Net {
@@ -28,7 +28,7 @@ HTTPStream::HTTPStream(const char *location) :
     m_Mapped.fd   = 0;
     m_Mapped.size = 0;
 
-    m_Http = new HTTP(NativeJS::getNet());
+    m_Http = new HTTP(Nidium::Binding::NidiumJS::getNet());
 }
 
 HTTPStream::~HTTPStream()
@@ -108,7 +108,7 @@ const unsigned char *HTTPStream::onGetNextPacket(size_t *len, int *err)
     }
 
     ssize_t byteLeft = m_Mapped.size - m_LastReadUntil;
-    *len = native_min(m_PacketsSize, byteLeft);
+    *len = nidium_min(m_PacketsSize, byteLeft);
 
     data = (unsigned char *)m_Mapped.addr + m_LastReadUntil;
     m_LastReadUntil += *len;
@@ -150,7 +150,7 @@ void HTTPStream::seek(size_t pos)
     if (pos >= m_StartPosition && pos < max &&
         (pos <= max - m_PacketsSize || this->readComplete())) {
 
-        ape_global *ape = NativeJS::getNet();
+        ape_global *ape = Nidium::Binding::NidiumJS::getNet();
         m_LastReadUntil = pos - m_StartPosition;
         m_PendingSeek = true;
         m_NeedToSendUpdate = false;

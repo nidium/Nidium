@@ -59,7 +59,7 @@ const unsigned char *FileStream::onGetNextPacket(size_t *len, int *err)
     }
 
     data = m_DataBuffer.back->data;
-    *len = native_min(m_DataBuffer.back->used, m_PacketsSize);
+    *len = nidium_min(m_DataBuffer.back->used, m_PacketsSize);
     m_DataBuffer.alreadyRead = true;
 
     this->swapBuffer();

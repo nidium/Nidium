@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativejs_h__
-#define nativejs_h__
+#ifndef binding_nidiumjs_h__
+#define binding_nidiumjs_h__
 
 #include <stdint.h>
 #include <stddef.h>
@@ -17,28 +17,26 @@
 #include "Core/Messages.h"
 #include "Core/SharedMessages.h"
 
-namespace Nidium {
-	namespace Binding {
-		class JSModules;
-	}
-}
-
 struct _ape_htable;
 
+namespace Nidium {
+namespace Binding {
+
+class JSModules;
 
 #define NATIVE_JS_FNPROPS JSPROP_ENUMERATE | JSPROP_PERMANENT
 
 enum {
-    NATIVE_SCTAG_FUNCTION = JS_SCTAG_USER_MIN+1,
-    NATIVE_SCTAG_HIDDEN,
-    NATIVE_SCTAG_MAX
+    NIDIUM_SCTAG_FUNCTION = JS_SCTAG_USER_MIN+1,
+    NIDIUM_SCTAG_HIDDEN,
+    NIDIUM_SCTAG_MAX
 };
 
 enum {
-    NATIVE_KEY_SHIFT = 1 << 0,
-    NATIVE_KEY_ALT = 1 << 1,
-    NATIVE_KEY_CTRL = 1 << 2,
-    NATIVE_KEY_META = 1 << 3
+    NIDIUM_KEY_SHIFT = 1 << 0,
+    NIDIUM_KEY_ALT = 1 << 1,
+    NIDIUM_KEY_CTRL = 1 << 2,
+    NIDIUM_KEY_META = 1 << 3
 };
 
 struct nidium_thread_msg
@@ -49,21 +47,21 @@ struct nidium_thread_msg
 };
 
 typedef struct _ape_global ape_global;
-typedef void (*native_thread_message_t)(JSContext *cx, Nidium::Core::SharedMessages::Message *msg);
+typedef void (*nidium_thread_message_t)(JSContext *cx, Nidium::Core::SharedMessages::Message *msg);
 
-typedef struct _NativeBytecodeScript {
+typedef struct _NidiumBytecodeScript {
     const char *name;
     int size;
     const unsigned char *data;
-} NativeBytecodeScript;
+} NidiumBytecodeScript;
 
-class NativeJSDelegate;
+class NidiumJSDelegate;
 
-class NativeJS
+class NidiumJS
 {
     public:
-        explicit NativeJS(ape_global *net);
-        ~NativeJS();
+        explicit NidiumJS(ape_global *net);
+        ~NidiumJS();
 
         typedef int (*logger)(const char *format);
         typedef int (*vlogger)(const char *format, va_list ap);
@@ -77,11 +75,11 @@ class NativeJS
         struct _ape_htable *rootedObj;
         struct _ape_global *net;
 
-        native_thread_message_t *registeredMessages;
+        nidium_thread_message_t *registeredMessages;
         int registeredMessagesIdx;
         int registeredMessagesSize;
 
-        static NativeJS *getNativeClass(JSContext *cx = NULL);
+        static NidiumJS *getNidiumClass(JSContext *cx = NULL);
         static ape_global *getNet();
         static void initNet(ape_global *net);
 
@@ -135,7 +133,7 @@ class NativeJS
         char *LoadScriptContentAndGetResult(const char *data,
             size_t len, const char *filename);
         int LoadScript(const char *filename);
-        int LoadBytecode(NativeBytecodeScript *script);
+        int LoadBytecode(NidiumBytecodeScript *script);
         int LoadBytecode(void *data, int size, const char *filename);
 
         void rootObjectUntilShutdown(JSObject *obj);
@@ -143,8 +141,8 @@ class NativeJS
         void gc();
         void bindNetObject(ape_global *net);
 
-        int registerMessage(native_thread_message_t cbk);
-        void registerMessage(native_thread_message_t cbk, int id);
+        int registerMessage(nidium_thread_message_t cbk);
+        void registerMessage(nidium_thread_message_t cbk, int id);
         void postMessage(void *dataPtr, int ev);
 
         static JSStructuredCloneCallbacks *jsscc;
@@ -195,6 +193,9 @@ class NativeJS
             ReadStructuredCloneOp read;
         } m_StructuredCloneAddition;
 };
+
+} // namespace Binding
+} // namespace Nidium
 
 #endif
 

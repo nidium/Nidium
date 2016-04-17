@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeJS.h"
+#include "NidiumJS.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,6 +34,9 @@
 #include "JSFS.h"
 #include "JSDebugger.h"
 
+namespace Nidium {
+namespace Binding {
+
 static pthread_key_t gAPE = 0;
 static pthread_key_t gJS = 0;
 
@@ -48,7 +51,7 @@ static pthread_key_t gJS = 0;
 
 size_t gMaxStackSize = DEFAULT_MAX_STACK_SIZE;
 
-struct native_sm_timer
+struct nidium_sm_timer
 {
     JSContext *cx;
 
@@ -60,8 +63,8 @@ struct native_sm_timer
     unsigned argc;
     int ms;
 
-    native_sm_timer(JSContext *cx) : global(cx), func(cx) { }
-    ~native_sm_timer() { }
+    nidium_sm_timer(JSContext *cx) : global(cx), func(cx) { }
+    ~nidium_sm_timer() { }
 };
 
 enum {
@@ -71,7 +74,7 @@ enum {
     GLOBAL_PROP_WINDOW
 };
 
-JSStructuredCloneCallbacks *NativeJS::jsscc = NULL;
+JSStructuredCloneCallbacks *NidiumJS::jsscc = NULL;
 
 JSClass global_class = {
     "global", JSCLASS_GLOBAL_FLAGS_WITH_SLOTS(16) | JSCLASS_HAS_PRIVATE,
@@ -80,46 +83,46 @@ JSClass global_class = {
     nullptr, nullptr, nullptr, JS_GlobalObjectTraceHook
 };
 
-static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
+static bool nidium_global_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t, JS::MutableHandleValue vp);
 
 /******** Natives ********/
-static bool native_pwd(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_load(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_btoa(JSContext *cx, unsigned argc, JS::Value *vp);
-//static bool native_readData(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_pwd(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_set_interval(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_btoa(JSContext *cx, unsigned argc, JS::Value *vp);
+//static bool nidium_readData(JSContext *cx, unsigned argc, JS::Value *vp);
 /*************************/
-//static void native_timer_wrapper(struct _native_sm_timer *params, int *last);
-static int native_timerng_wrapper(void *arg);
+//static void nidium_timer_wrapper(struct _nidium_sm_timer *params, int *last);
+static int nidium_timerng_wrapper(void *arg);
 
 static JSFunctionSpec glob_funcs[] = {
-    JS_FN("load", native_load, 2, NATIVE_JS_FNPROPS),
-    JS_FN("pwd", native_pwd, 0, NATIVE_JS_FNPROPS),
-    JS_FN("setTimeout", native_set_timeout, 2, NATIVE_JS_FNPROPS),
-    JS_FN("setImmediate", native_set_immediate, 1, NATIVE_JS_FNPROPS),
-    JS_FN("setInterval", native_set_interval, 2, NATIVE_JS_FNPROPS),
-    JS_FN("clearTimeout", native_clear_timeout, 1, NATIVE_JS_FNPROPS),
-    JS_FN("clearInterval", native_clear_timeout, 1, NATIVE_JS_FNPROPS),
-    JS_FN("btoa", native_btoa, 1, NATIVE_JS_FNPROPS),
+    JS_FN("load", nidium_load, 2, NATIVE_JS_FNPROPS),
+    JS_FN("pwd", nidium_pwd, 0, NATIVE_JS_FNPROPS),
+    JS_FN("setTimeout", nidium_set_timeout, 2, NATIVE_JS_FNPROPS),
+    JS_FN("setImmediate", nidium_set_immediate, 1, NATIVE_JS_FNPROPS),
+    JS_FN("setInterval", nidium_set_interval, 2, NATIVE_JS_FNPROPS),
+    JS_FN("clearTimeout", nidium_clear_timeout, 1, NATIVE_JS_FNPROPS),
+    JS_FN("clearInterval", nidium_clear_timeout, 1, NATIVE_JS_FNPROPS),
+    JS_FN("btoa", nidium_btoa, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSPropertySpec glob_props[] = {
 
-    NIDIUM_JS_PSG("__filename", GLOBAL_PROP___FILENAME, native_global_prop_get),
-    NIDIUM_JS_PSG("__dirname", GLOBAL_PROP___DIRNAME, native_global_prop_get),
-    NIDIUM_JS_PSG("global", GLOBAL_PROP_GLOBAL, native_global_prop_get),
-#ifndef NATIVE_DISABLE_WINDOW_GLOBAL    
-    NIDIUM_JS_PSG("window", GLOBAL_PROP_WINDOW, native_global_prop_get),
+    NIDIUM_JS_PSG("__filename", GLOBAL_PROP___FILENAME, nidium_global_prop_get),
+    NIDIUM_JS_PSG("__dirname", GLOBAL_PROP___DIRNAME, nidium_global_prop_get),
+    NIDIUM_JS_PSG("global", GLOBAL_PROP_GLOBAL, nidium_global_prop_get),
+#ifndef NATIVE_DISABLE_WINDOW_GLOBAL
+    NIDIUM_JS_PSG("window", GLOBAL_PROP_WINDOW, nidium_global_prop_get),
 #endif
     JS_PS_END
 };
 
-static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
+static bool nidium_global_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
     switch(id) {
@@ -151,7 +154,7 @@ static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
 
 void reportError(JSContext *cx, const char *message, JSErrorReport *report)
 {
-    NativeJS *js = NativeJS::getNativeClass(cx);
+    NidiumJS *js = NidiumJS::getNidiumClass(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
     if (js == NULL) {
@@ -227,7 +230,7 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
     JS_free(cx, prefix);
 }
 
-void NativeJS::logf(const char *format, ...)
+void NidiumJS::logf(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -239,7 +242,7 @@ void NativeJS::logf(const char *format, ...)
     va_end(args);
 }
 
-void NativeJS::log(const char *format)
+void NidiumJS::log(const char *format)
 {
     if (!m_Logger) {
         fwrite(format, sizeof(char), strlen(format), stdout);
@@ -248,7 +251,7 @@ void NativeJS::log(const char *format)
     }
 }
 
-void NativeJS::logclear()
+void NidiumJS::logclear()
 {
     if (!m_LogClear) {
         return;
@@ -257,13 +260,13 @@ void NativeJS::logclear()
     m_LogClear();
 }
 
-JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
+JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
                                            uint32_t tag, uint32_t data, void *closure)
 {
-    NativeJS *js = (NativeJS *)closure;
+    NidiumJS *js = (NidiumJS *)closure;
 
     switch(tag) {
-        case NATIVE_SCTAG_FUNCTION:
+        case NIDIUM_SCTAG_FUNCTION:
         {
             const char pre[] = "return (";
             const char end[] = ").apply(this, Array.prototype.slice.apply(arguments));";
@@ -299,7 +302,7 @@ JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
 
             return JS_GetFunctionObject(cf);
         }
-        case NATIVE_SCTAG_HIDDEN:
+        case NIDIUM_SCTAG_HIDDEN:
         {
             uint8_t nullbyte;
             if (!JS_ReadBytes(r, &nullbyte, data)) {
@@ -319,12 +322,12 @@ JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
     return JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
 }
 
-bool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+bool NidiumJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
                                          JS::HandleObject obj, void *closure)
 {
     JS::RootedValue vobj(cx, JS::ObjectValue(*obj));
     JSType type = JS_TypeOfValue(cx, vobj);
-    NativeJS *js = (NativeJS *)closure;
+    NidiumJS *js = (NidiumJS *)closure;
 
     switch(type) {
         /* Serialize function into a string */
@@ -337,7 +340,7 @@ bool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
             JSAutoByteString cfunc(cx, func);
             size_t flen = cfunc.length();
 
-            JS_WriteUint32Pair(w, NATIVE_SCTAG_FUNCTION, flen);
+            JS_WriteUint32Pair(w, NIDIUM_SCTAG_FUNCTION, flen);
             JS_WriteBytes(w, cfunc.ptr(), flen);
             break;
         }
@@ -355,7 +358,7 @@ bool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
             }
             const uint8_t nullbyte = '\0';
 
-            JS_WriteUint32Pair(w, NATIVE_SCTAG_HIDDEN, 1);
+            JS_WriteUint32Pair(w, NIDIUM_SCTAG_HIDDEN, 1);
             JS_WriteBytes(w, &nullbyte, 1);
 
             break;
@@ -366,7 +369,7 @@ bool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
     return true;
 }
 
-static bool native_pwd(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_pwd(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NativePath cur(NativePath::currentJSCaller(cx), false, true);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -383,7 +386,7 @@ static bool native_pwd(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_load(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString script(cx);
     char *content;
@@ -394,7 +397,7 @@ static bool native_load(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativeJS *njs = NativeJS::getNativeClass(cx);
+    NidiumJS *njs = NidiumJS::getNidiumClass(cx);
     JSAutoByteString scriptstr(cx, script);
     NativePath scriptpath(scriptstr.ptr());
 
@@ -441,9 +444,9 @@ static void gccb(JSRuntime *rt, JSGCStatus status)
 
 #if 1
 
-static void NativeTraceBlack(JSTracer *trc, void *data)
+static void NidiumTraceBlack(JSTracer *trc, void *data)
 {
-    class NativeJS *self = (class NativeJS *)data;
+    class NidiumJS *self = (class NidiumJS *)data;
 
     if (self->isShuttingDown()) {
         return;
@@ -466,28 +469,28 @@ static void NativeTraceBlack(JSTracer *trc, void *data)
 #endif
 
 /* Use obj address as key */
-void NativeJS::rootObjectUntilShutdown(JSObject *obj)
+void NidiumJS::rootObjectUntilShutdown(JSObject *obj)
 {
     //m_RootedSet->put(obj);
     //JS::AutoHashSetRooter<JSObject *> rooterhash(cx, 0);
     hashtbl_append64(this->rootedObj, (uint64_t)obj, obj);
 }
 
-void NativeJS::unrootObject(JSObject *obj)
+void NidiumJS::unrootObject(JSObject *obj)
 {
     //m_RootedSet->remove(obj);
     hashtbl_erase64(this->rootedObj, (uint64_t)obj);
 }
 
-NativeJS *NativeJS::getNativeClass(JSContext *cx)
+NidiumJS *NidiumJS::getNidiumClass(JSContext *cx)
 {
     if (cx == NULL) {
-        return (NativeJS *)pthread_getspecific(gJS);
+        return (NidiumJS *)pthread_getspecific(gJS);
     }
-    return ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)));
+    return ((class NidiumJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)));
 }
 
-ape_global *NativeJS::getNet()
+ape_global *NidiumJS::getNet()
 {
     if (gAPE == 0) {
         return NULL;
@@ -495,7 +498,7 @@ ape_global *NativeJS::getNet()
     return (ape_global *)pthread_getspecific(gAPE);
 }
 
-void NativeJS::initNet(ape_global *net)
+void NidiumJS::initNet(ape_global *net)
 {
     if (gAPE == 0) {
         pthread_key_create(&gAPE, NULL);
@@ -504,7 +507,7 @@ void NativeJS::initNet(ape_global *net)
     pthread_setspecific(gAPE, net);
 }
 
-JSObject *NativeJS::CreateJSGlobal(JSContext *cx)
+JSObject *NidiumJS::CreateJSGlobal(JSContext *cx)
 {
     JS::CompartmentOptions options;
     options.setVersion(JSVERSION_LATEST);
@@ -529,7 +532,7 @@ JSObject *NativeJS::CreateJSGlobal(JSContext *cx)
     // context option vs compile option?
 }
 
-void NativeJS::SetJSRuntimeOptions(JSRuntime *rt)
+void NidiumJS::SetJSRuntimeOptions(JSRuntime *rt)
 {
     JS::RuntimeOptionsRef(rt).setBaseline(true)
                              .setIon(true)
@@ -549,7 +552,7 @@ static void _gc_callback(JSRuntime *rt, JSGCStatus status, void *data)
 }
 #endif
 
-void NativeJS::Init()
+void NidiumJS::Init()
 {
     static bool _alreadyInit = false;
     if (!_alreadyInit) {
@@ -561,7 +564,7 @@ void NativeJS::Init()
     }
 }
 
-NativeJS::NativeJS(ape_global *net) :
+NidiumJS::NidiumJS(ape_global *net) :
     m_JSStrictMode(false), m_Logger(NULL), m_vLogger(NULL), m_LogClear(NULL)
 {
     JSRuntime *rt;
@@ -587,14 +590,14 @@ NativeJS::NativeJS(ape_global *net) :
 
     rootedObj = hashtbl_init(APE_HASH_INT);
 
-    NativeJS::initNet(net);
+    NidiumJS::initNet(net);
 
     if (gJS == 0) {
         pthread_key_create(&gJS, NULL);
     }
     pthread_setspecific(gJS, this);
 
-    NativeJS::Init();
+    NidiumJS::Init();
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L,
         JS_NO_HELPER_THREADS)) == NULL) {
@@ -603,7 +606,7 @@ NativeJS::NativeJS(ape_global *net) :
         return;
     }
 
-    NativeJS::SetJSRuntimeOptions(rt);
+    NidiumJS::SetJSRuntimeOptions(rt);
     JS_SetGCParameterForThread(cx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
 
     if ((cx = JS_NewContext(rt, 8192)) == NULL) {
@@ -631,21 +634,21 @@ NativeJS::NativeJS(ape_global *net) :
 #endif
     JS_SetErrorReporter(cx, reportError);
 
-    gbl = NativeJS::CreateJSGlobal(cx);
+    gbl = NidiumJS::CreateJSGlobal(cx);
 
     m_Compartment = JS_EnterCompartment(cx, gbl);
     //JSAutoCompartment ac(cx, gbl);
 #if 1
-    JS_AddExtraGCRootsTracer(rt, NativeTraceBlack, this);
+    JS_AddExtraGCRootsTracer(rt, NidiumTraceBlack, this);
 #endif
-    if (NativeJS::jsscc == NULL) {
-        NativeJS::jsscc = new JSStructuredCloneCallbacks();
-        NativeJS::jsscc->read = NativeJS::readStructuredCloneOp;
-        NativeJS::jsscc->write = NativeJS::writeStructuredCloneOp;
-        NativeJS::jsscc->reportError = NULL;
+    if (NidiumJS::jsscc == NULL) {
+        NidiumJS::jsscc = new JSStructuredCloneCallbacks();
+        NidiumJS::jsscc->read = NidiumJS::readStructuredCloneOp;
+        NidiumJS::jsscc->write = NidiumJS::writeStructuredCloneOp;
+        NidiumJS::jsscc->reportError = NULL;
     }
 
-    JS_SetStructuredCloneCallbacks(rt, NativeJS::jsscc);
+    JS_SetStructuredCloneCallbacks(rt, NidiumJS::jsscc);
 
     js::SetDefaultObjectForContext(cx, gbl);
 
@@ -654,8 +657,8 @@ NativeJS::NativeJS(ape_global *net) :
     JS_SetRuntimePrivate(rt, this);
 
     messages = new Nidium::Core::SharedMessages();
-    registeredMessages = (native_thread_message_t*)calloc(16, sizeof(native_thread_message_t));
-    registeredMessagesIdx = 8; // The 8 first slots are reserved for Native internals messages
+    registeredMessages = (nidium_thread_message_t*)calloc(16, sizeof(nidium_thread_message_t));
+    registeredMessagesIdx = 8; // The 8 first slots are reserved for Nidium internals messages
     registeredMessagesSize = 16;
 
 #if 0
@@ -703,14 +706,14 @@ NativeJS::NativeJS(ape_global *net) :
 static bool test_extracting(const char *buf, int len,
     size_t offset, size_t total, void *user)
 {
-    //NativeJS *njs = (NativeJS *)user;
+    //NidiumJS *njs = (NidiumJS *)user;
 
     printf("Got a packet of size %ld out of %ld\n", offset, total);
     return true;
 }
 
 
-int NativeJS::LoadApplication(const char *path)
+int NidiumJS::LoadApplication(const char *path)
 {
     if (this->net == NULL) {
         printf("LoadApplication: bind a net object first\n");
@@ -732,7 +735,7 @@ int NativeJS::LoadApplication(const char *path)
 }
 #endif
 
-NativeJS::~NativeJS()
+NidiumJS::~NidiumJS()
 {
     JSRuntime *rt;
     rt = JS_GetRuntime(cx);
@@ -762,10 +765,10 @@ NativeJS::~NativeJS()
     free(registeredMessages);
 }
 
-static int Native_handle_messages(void *arg)
+static int Nidium_handle_messages(void *arg)
 {
 #define MAX_MSG_IN_ROW 20
-    NativeJS *njs = (NativeJS *)arg;
+    NidiumJS *njs = (NidiumJS *)arg;
     JSContext *cx = njs->cx;
     int nread = 0;
 
@@ -785,21 +788,21 @@ static int Native_handle_messages(void *arg)
 #undef MAX_MSG_IN_ROW
 }
 
-void NativeJS::bindNetObject(ape_global *net)
+void NidiumJS::bindNetObject(ape_global *net)
 {
     JS_SetContextPrivate(cx, net);
     this->net = net;
 
     ape_timer_t *timer = APE_timer_create(net, 1,
-        Native_handle_messages, this);
+        Nidium_handle_messages, this);
 
     APE_timer_unprotect(timer);
 
-    //NativeFileIO *io = new NativeFileIO("/tmp/foobar", this, net);
+    //NidiumFileIO *io = new NidiumFileIO("/tmp/foobar", this, net);
     //io->open();
 }
 
-void NativeJS::copyProperties(JSContext *cx, JS::HandleObject source, JS::MutableHandleObject into)
+void NidiumJS::copyProperties(JSContext *cx, JS::HandleObject source, JS::MutableHandleObject into)
 {
 
     JS::AutoIdArray ida(cx, JS_Enumerate(cx, source));
@@ -826,7 +829,7 @@ void NativeJS::copyProperties(JSContext *cx, JS::HandleObject source, JS::Mutabl
                 } else {
                     JS::RootedObject oldvalobj(cx, &oldval.toObject());
                     JS::RootedObject newvalobj(cx, &val.toObject());
-                    NativeJS::copyProperties(cx, newvalobj, &oldvalobj);
+                    NidiumJS::copyProperties(cx, newvalobj, &oldvalobj);
                 }
                 break;
             }
@@ -837,7 +840,7 @@ void NativeJS::copyProperties(JSContext *cx, JS::HandleObject source, JS::Mutabl
     }
 }
 
-int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
+int NidiumJS::LoadScriptReturn(JSContext *cx, const char *data,
     size_t len, const char *filename, JS::MutableHandleValue ret)
 {
     JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
@@ -872,7 +875,7 @@ int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
     return 1;
 }
 
-int NativeJS::LoadScriptReturn(JSContext *cx,
+int NidiumJS::LoadScriptReturn(JSContext *cx,
     const char *filename, JS::MutableHandleValue ret)
 {
     int err;
@@ -889,14 +892,14 @@ int NativeJS::LoadScriptReturn(JSContext *cx,
         return 0;
     }
 
-    int r = NativeJS::LoadScriptReturn(cx, data, len, filename, ret);
+    int r = NidiumJS::LoadScriptReturn(cx, data, len, filename, ret);
 
     free(data);
 
     return r;
 }
 
-int NativeJS::LoadScriptContent(const char *data, size_t len,
+int NidiumJS::LoadScriptContent(const char *data, size_t len,
     const char *filename)
 {
     if (!len) {
@@ -941,7 +944,7 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
     return 1;
 }
 
-char *NativeJS::LoadScriptContentAndGetResult(const char *data, size_t len,
+char *NidiumJS::LoadScriptContentAndGetResult(const char *data, size_t len,
     const char *filename)
 {
     if (!len) {
@@ -987,7 +990,7 @@ char *NativeJS::LoadScriptContentAndGetResult(const char *data, size_t len,
     return strdup(cstr.ptr());
 }
 
-int NativeJS::LoadScript(const char *filename)
+int NidiumJS::LoadScript(const char *filename)
 {
     int err;
     char *data;
@@ -1010,12 +1013,12 @@ int NativeJS::LoadScript(const char *filename)
     return ret;
 }
 
-int NativeJS::LoadBytecode(NativeBytecodeScript *script)
+int NidiumJS::LoadBytecode(NidiumBytecodeScript *script)
 {
     return this->LoadBytecode((void *)script->data, script->size, script->name);
 }
 
-int NativeJS::LoadBytecode(void *data, int size, const char *filename)
+int NidiumJS::LoadBytecode(void *data, int size, const char *filename)
 {
     JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedScript script(cx, JS_DecodeScript(cx, data, size, NULL));
@@ -1031,14 +1034,14 @@ int NativeJS::LoadBytecode(void *data, int size, const char *filename)
     return 1;
 }
 
-void NativeJS::setPath(const char *path) {
+void NidiumJS::setPath(const char *path) {
     this->relPath = path;
     if (this->modules) {
         this->modules->setPath(path);
     }
 }
 
-void NativeJS::loadGlobalObjects()
+void NidiumJS::loadGlobalObjects()
 {
     /* File() object */
     Nidium::Binding::JSFileIO::registerObject(cx);
@@ -1077,20 +1080,20 @@ void NativeJS::loadGlobalObjects()
     }
 }
 
-void NativeJS::gc()
+void NidiumJS::gc()
 {
     JS_GC(JS_GetRuntime(cx));
 }
 
-int NativeJS::registerMessage(native_thread_message_t cbk)
+int NidiumJS::registerMessage(nidium_thread_message_t cbk)
 {
     if (registeredMessagesIdx >= registeredMessagesSize) {
-        void *ptr = realloc(registeredMessages, (registeredMessagesSize + 16) * sizeof(native_thread_message_t));
+        void *ptr = realloc(registeredMessages, (registeredMessagesSize + 16) * sizeof(nidium_thread_message_t));
         if (ptr == NULL) {
             return -1;
         }
 
-        registeredMessages = (native_thread_message_t *)ptr;
+        registeredMessages = (nidium_thread_message_t *)ptr;
         registeredMessagesSize += 16;
     }
 
@@ -1101,7 +1104,7 @@ int NativeJS::registerMessage(native_thread_message_t cbk)
     return registeredMessagesIdx;
 }
 
-void NativeJS::registerMessage(native_thread_message_t cbk, int id)
+void NidiumJS::registerMessage(nidium_thread_message_t cbk, int id)
 {
     if (id > 8) {
         printf("ERROR : You can't register a message with idx > 8.\n");
@@ -1116,14 +1119,14 @@ void NativeJS::registerMessage(native_thread_message_t cbk, int id)
     registeredMessages[id] = cbk;
 }
 
-void NativeJS::postMessage(void *dataPtr, int ev)
+void NidiumJS::postMessage(void *dataPtr, int ev)
 {
     this->messages->postMessage(dataPtr, ev);
 }
 
-static int native_timer_deleted(void *arg)
+static int nidium_timer_deleted(void *arg)
 {
-    struct native_sm_timer *params = (struct native_sm_timer *)arg;
+    struct nidium_sm_timer *params = (struct nidium_sm_timer *)arg;
 
     if (params == NULL) {
         return 0;
@@ -1139,15 +1142,15 @@ static int native_timer_deleted(void *arg)
     return 1;
 }
 
-static bool native_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    struct native_sm_timer *params;
+    struct nidium_sm_timer *params;
     int i;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *obj = JS_THIS_OBJECT(cx, vp);
 
-    params = new native_sm_timer(cx);
+    params = new nidium_sm_timer(cx);
 
     if (params == NULL || argc < 1) {
         if (params) delete params;
@@ -1180,24 +1183,24 @@ static bool native_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     ape_timer_async_t *async = APE_async((ape_global *)JS_GetContextPrivate(cx),
-                native_timerng_wrapper, (void *)params);
+                nidium_timerng_wrapper, (void *)params);
 
-    APE_async_setclearfunc(async, native_timer_deleted);
+    APE_async_setclearfunc(async, nidium_timer_deleted);
 
     args.rval().setNull();
 
     return true;
 }
 
-static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    struct native_sm_timer *params;
+    struct nidium_sm_timer *params;
     int ms, i;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *obj = JS_THIS_OBJECT(cx, vp);
 
-    params = new native_sm_timer(cx);
+    params = new nidium_sm_timer(cx);
 
     if (params == NULL || argc < 2) {
         if (params) delete params;
@@ -1236,27 +1239,27 @@ static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     ape_timer_t *timer = APE_timer_create((ape_global *)JS_GetContextPrivate(cx),
-        native_max(ms, 8), native_timerng_wrapper,
+        nidium_max(ms, 8), nidium_timerng_wrapper,
         (void *)params);
 
     APE_timer_unprotect(timer);
-    APE_timer_setclearfunc(timer, native_timer_deleted);
+    APE_timer_setclearfunc(timer, nidium_timer_deleted);
 
     args.rval().setNumber((double)APE_timer_getid(timer));
 
     return true;
 }
 
-static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    struct native_sm_timer *params;
+    struct nidium_sm_timer *params;
     int ms, i;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     JSObject *obj = JS_THIS_OBJECT(cx, vp);
 
-    params = new native_sm_timer(cx);
+    params = new nidium_sm_timer(cx);
 
     if (params == NULL || argc < 2) {
         if (params) delete params;
@@ -1288,25 +1291,25 @@ static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    params->ms = native_max(8, ms);
+    params->ms = nidium_max(8, ms);
 
     for (i = 0; i < (int)argc-2; i++) {
         params->argv[i]->set(args.array()[i+2]);
     }
 
     ape_timer_t *timer = APE_timer_create((ape_global *)JS_GetContextPrivate(cx),
-        params->ms, native_timerng_wrapper,
+        params->ms, nidium_timerng_wrapper,
         (void *)params);
 
     APE_timer_unprotect(timer);
-    APE_timer_setclearfunc(timer, native_timer_deleted);
+    APE_timer_setclearfunc(timer, nidium_timer_deleted);
 
     args.rval().setNumber((double)APE_timer_getid(timer));
 
     return true;
 }
 
-static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     double identifier;
 
@@ -1322,7 +1325,7 @@ static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_CHECK_ARGS("btoa", 1);
 
@@ -1348,9 +1351,9 @@ static bool native_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static int native_timerng_wrapper(void *arg)
+static int nidium_timerng_wrapper(void *arg)
 {
-    struct native_sm_timer *params = (struct native_sm_timer *)arg;
+    struct nidium_sm_timer *params = (struct nidium_sm_timer *)arg;
 
     JSAutoRequest       ar(params->cx);
     JS::RootedValue     rval(params->cx);
@@ -1368,4 +1371,7 @@ static int native_timerng_wrapper(void *arg)
 
     return params->ms;
 }
+
+} // namespace Binding
+} // namespace Nidium
 

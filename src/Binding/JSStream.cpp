@@ -124,7 +124,7 @@ static bool nidium_stream_start(JSContext *cx, unsigned argc, JS::Value *vp)
 
     ((JSStream *)JS_GetPrivate(caller))->getStream()->start(packetlen);
 
-    NativeJSObj(cx)->rootObjectUntilShutdown(caller);
+    NidiumJSObj(cx)->rootObjectUntilShutdown(caller);
 
     return true;
 }
@@ -214,7 +214,7 @@ JSStream::JSStream(JS::HandleObject obj, JSContext *cx,
     Nidium::Binding::JSExposer<JSStream>(obj, cx)
 {
     std::string str = url;
-    //str += NativeJS::getNativeClass(cx)->getPath();
+    //str += NidiumJS::getNidiumClass(cx)->getPath();
 
     m_Stream = Nidium::IO::Stream::create(NativePath(str.c_str()));
 

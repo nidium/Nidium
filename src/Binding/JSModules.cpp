@@ -175,7 +175,7 @@ bool JSModules::init(JSModule *module)
 bool JSModule::initNidium()
 {
     JS::RootedObject exports(this->cx, JS_NewObject(this->cx, NULL, JS::NullPtr(), JS::NullPtr()));
-    NativeJS *njs = NativeJS::getNativeClass(this->cx);
+    NidiumJS *njs = NidiumJS::getNidiumClass(this->cx);
     if (!exports) {
         return false;
     }
@@ -206,7 +206,7 @@ bool JSModule::initJS()
         return false;
     }
 
-    NativeJS *njs = NativeJS::getNativeClass(this->cx);
+    NidiumJS *njs = NidiumJS::getNidiumClass(this->cx);
 
     JS_SetPrivate(gbl, this);
 
@@ -482,7 +482,7 @@ JS::Value JSModule::require(char *name)
 {
     JS::RootedValue ret(cx);
     JSModule *cmodule;
-    NativeJS *njs = NativeJS::getNativeClass(this->cx);
+    NidiumJS *njs = NidiumJS::getNidiumClass(this->cx);
 
     ret.setUndefined();
 
@@ -493,7 +493,7 @@ JS::Value JSModule::require(char *name)
          *  - Cyclic deps
          *  - Finding module
          *
-         * Since all files included with NativeJS::LoadScript();
+         * Since all files included with NidiumJS::LoadScript();
          * share the same module we need to be aware of the real caller.
          * So here we set the filename and path of the caller
          *

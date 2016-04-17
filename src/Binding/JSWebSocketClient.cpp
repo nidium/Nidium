@@ -170,7 +170,7 @@ static bool nidium_WebSocket_constructor(JSContext *cx,
 
     args.rval().setObjectOrNull(ret);
 
-    NativeJSObj(cx)->rootObjectUntilShutdown(ret);
+    NidiumJSObj(cx)->rootObjectUntilShutdown(ret);
 
     return true;
 }
@@ -242,7 +242,7 @@ void JSWebSocket::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 
             JSOBJ_CALLFUNCNAME(obj, "onclose", JS::HandleValueArray::empty());
 
-            NativeJSObj(cx)->unrootObject(obj);
+            NidiumJSObj(cx)->unrootObject(obj);
 
             break;
         }

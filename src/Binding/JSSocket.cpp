@@ -246,7 +246,7 @@ static void nidium_socket_wrapper_onaccept(ape_socket *socket_server,
     JS::AutoValueArray<1> params(m_Cx);
     JS::RootedObject jclient(m_Cx, JS_NewObject(m_Cx, &socket_client_class, JS::NullPtr(), JS::NullPtr()));
 
-    NativeJSObj(m_Cx)->rootObjectUntilShutdown(jclient);
+    NidiumJSObj(m_Cx)->rootObjectUntilShutdown(jclient);
 
     JSSocket *sobj = new JSSocket(jclient,
         nsocket->getJSContext(), APE_socket_ipv4(socket_client), 0);
@@ -521,7 +521,7 @@ static void nidium_socket_wrapper_client_disconnect(ape_socket *socket_client,
         JS_CallFunctionValue(cx, obj, ondisconnect, jparams, &rval);
     }
 
-    NativeJSObj(cx)->unrootObject(csocket->getJSObject());
+    NidiumJSObj(cx)->unrootObject(csocket->getJSObject());
 }
 
 static void nidium_socket_wrapper_disconnect(ape_socket *s, ape_global *ape,
@@ -547,7 +547,7 @@ static void nidium_socket_wrapper_disconnect(ape_socket *s, ape_global *ape,
         JS_CallFunctionValue(cx, obj, ondisconnect, JS::HandleValueArray::empty(), &rval);
     }
 
-    NativeJSObj(cx)->unrootObject(nsocket->getJSObject());
+    NidiumJSObj(cx)->unrootObject(nsocket->getJSObject());
 }
 
 static bool nidium_Socket_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
@@ -645,7 +645,7 @@ static bool nidium_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
         APE_socket_enable_lz4(socket, APE_LZ4_COMPRESS_TX|APE_LZ4_COMPRESS_RX);
     }
 
-    NativeJSObj(cx)->rootObjectUntilShutdown(thisobj);
+    NidiumJSObj(cx)->rootObjectUntilShutdown(thisobj);
 
     args.rval().setObjectOrNull(thisobj);
 
@@ -718,7 +718,7 @@ static bool nidium_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativeJSObj(cx)->rootObjectUntilShutdown(thisobj);
+    NidiumJSObj(cx)->rootObjectUntilShutdown(thisobj);
 
     args.rval().setObjectOrNull(thisobj);
 

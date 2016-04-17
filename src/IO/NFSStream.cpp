@@ -12,7 +12,7 @@
 
 #include "NFS.h"
 
-#include "Binding/NativeJS.h"
+#include "Binding/NidiumJS.h"
 
 namespace Nidium {
 namespace IO {
@@ -47,7 +47,7 @@ void NFSStream::onStart(size_t packets, size_t seek)
 
     CREATE_MESSAGE(message_available,
         STREAM_AVAILABLE_DATA);
-    message_available->args[0].set(native_min(packets, m_File.len));
+    message_available->args[0].set(nidium_min(packets, m_File.len));
 
     this->notify(message_available);
 
@@ -79,7 +79,7 @@ const unsigned char *NFSStream::onGetNextPacket(size_t *len, int *err)
     }
 
     data = m_File.data + m_File.pos;
-    *len = native_min(m_PacketsSize, byteLeft);
+    *len = nidium_min(m_PacketsSize, byteLeft);
 
     m_File.pos += *len;
 
@@ -102,7 +102,7 @@ int NativeNFSStream_getContent(void *arg)
 
 void NFSStream::getContent()
 {
-    ape_global *ape = NativeJS::getNet();
+    ape_global *ape = Nidium::Binding::NidiumJS::getNet();
     timer_dispatch_async_unprotected(NativeNFSStream_getContent, this);
 }
 

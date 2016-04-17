@@ -12,10 +12,11 @@
 #include "Core/Messages.h"
 #include "JSExposer.h"
 
-class NativeJS;
 
 namespace Nidium {
 namespace Binding {
+
+class NidiumJS;
 
 class JSThread : public Nidium::Binding::JSExposer<JSThread>, public Nidium::Core::Messages
 {
@@ -31,7 +32,7 @@ class JSThread : public Nidium::Binding::JSExposer<JSThread>, public Nidium::Cor
     JSRuntime *jsRuntime;
     JSContext *jsCx;
     JSObject *jsObject;
-    NativeJS *njs;
+    NidiumJS *njs;
     struct {
         int argc;
         uint64_t **argv;

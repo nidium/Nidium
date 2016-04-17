@@ -13,7 +13,7 @@
 
 #include "Utils.h"
 
-#include "Binding/NativeJS.h"
+#include "Binding/NidiumJS.h"
 
 char *g_m_Root = NULL;
 char *g_m_Pwd = NULL;
@@ -298,7 +298,7 @@ char * NativePath::currentJSCaller(JSContext *cx)
 {
     if (cx == NULL) {
         /* lookup in the TLS */
-        NativeJS *js = NativeJS::getNativeClass();
+        Nidium::Binding::NidiumJS *js = Nidium::Binding::NidiumJS::getNidiumClass();
         if (!js || (cx = js->getJSContext()) == NULL) {
             return NULL;
         }
@@ -368,7 +368,7 @@ char *NativePath::sanitize(const char *path, bool *external)
                         break;
                     case PATH_STATE_DOUBLE_DOT:
                         counter--;
-                        counterPos = native_max(0, counterPos - 1);
+                        counterPos = nidium_max(0, counterPos - 1);
                         if (counter < 0) {
                             outsideRoot = true;
                             if (!isRelative) {
@@ -379,7 +379,7 @@ char *NativePath::sanitize(const char *path, bool *external)
                             }
                         }
                         elements[counterPos].clear();
-                        minCounter = native_min(counter, minCounter);
+                        minCounter = nidium_min(counter, minCounter);
                         break;
                     case PATH_STATE_SLASH:
                         break;

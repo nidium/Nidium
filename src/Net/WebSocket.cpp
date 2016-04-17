@@ -11,7 +11,7 @@
 #include <string.h>
 #include <strings.h>
 
-#include "Binding/NativeJS.h"
+#include "Binding/NidiumJS.h"
 
 namespace Nidium {
 namespace Net {
@@ -52,7 +52,7 @@ WebSocketClientConnection::~WebSocketClientConnection()
     }
 
     if (m_PingTimer) {
-        ape_global *ape = NativeJS::getNet();
+        ape_global *ape = Nidium::Binding::NidiumJS::getNet();
 
         APE_timer_clearbyid(ape, m_PingTimer, 1);
 

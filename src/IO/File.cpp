@@ -164,7 +164,7 @@ void File::readTask(size_t size, void *arg)
     }
 
     uint64_t clamped_len;
-    clamped_len = native_min(m_Filesize, size);
+    clamped_len = nidium_min(m_Filesize, size);
 
     buffer *buf = buffer_new(clamped_len + 1);
 
@@ -564,7 +564,7 @@ ssize_t File::readSync(uint64_t len, char **buffer, int *err)
     }
 
     uint64_t clamped_len;
-    clamped_len = native_min(m_Filesize, len);
+    clamped_len = nidium_min(m_Filesize, len);
 
     /*
         Read an empty file

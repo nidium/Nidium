@@ -180,7 +180,7 @@ static bool nidium_WebSocketServer_constructor(JSContext *cx,
     /*
         Server is listening at this point. Don't collect.
     */
-    NativeJSObj(cx)->rootObjectUntilShutdown(ret);
+    NidiumJSObj(cx)->rootObjectUntilShutdown(ret);
 
     return true;
 }
@@ -207,7 +207,7 @@ JSObject *JSWebSocketServer::createClient(Nidium::Net::WebSocketClientConnection
 
     JS_SetPrivate(jclient, client);
 
-    NativeJSObj(m_Cx)->rootObjectUntilShutdown(jclient);
+    NidiumJSObj(m_Cx)->rootObjectUntilShutdown(jclient);
     client->setData(jclient);
 
     return jclient;
@@ -278,7 +278,7 @@ void JSWebSocketServer::onMessage(const Nidium::Core::SharedMessages::Message &m
             JSOBJ_CALLFUNCNAME(obj, "onclose", arg);
 
             JS_SetPrivate(jclient, NULL);
-            NativeJSObj(m_Cx)->unrootObject(jclient);
+            NidiumJSObj(m_Cx)->unrootObject(jclient);
 
             break;
         }

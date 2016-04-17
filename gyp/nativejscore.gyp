@@ -105,7 +105,7 @@
             '../src/Net/WebSocket.cpp',
             '../src/Net/WebSocketClient.cpp',
 
-            '../src/Binding/NativeJS.cpp',
+            '../src/Binding/NidiumJS.cpp',
             '../src/Binding/JSExposer.cpp',
             '../src/Binding/JSFileIO.cpp',
             '../src/Binding/JSHTTP.cpp',
