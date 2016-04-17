@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "JSHttp.h"
+#include "JSHTTP.h"
 #include "NativeJSUtils.h"
 
 using namespace Nidium::Net;
@@ -18,7 +18,7 @@ namespace Binding {
 static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Http_Finalize(JSFreeOp *fop, JSObject *obj);
 
-static JSClass Http_class = {
+static JSClass HTTP_class = {
     "Http", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Http_Finalize,
@@ -26,7 +26,7 @@ static JSClass Http_class = {
 };
 
 template<>
-JSClass *JSExposer<JSHttp>::jsclass = &Http_class;
+JSClass *JSExposer<JSHTTP>::jsclass = &HTTP_class;
 
 static JSFunctionSpec http_funcs[] = {
     JS_FN("request", nidium_http_request, 2, NATIVE_JS_FNPROPS),
@@ -35,18 +35,18 @@ static JSFunctionSpec http_funcs[] = {
 
 static void Http_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    JSHttp *jshttp = (JSHttp *)JS_GetPrivate(obj);
+    JSHTTP *jshttp = (JSHTTP *)JS_GetPrivate(obj);
 
     if (jshttp != NULL) {
         delete jshttp;
     }
 }
 
-static bool nidium_Http_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_HTTP_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString url(cx);
     HTTP *nhttp;
-    JSHttp *jshttp;
+    JSHTTP *jshttp;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (!args.isConstructing()) {
@@ -54,7 +54,7 @@ static bool nidium_Http_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Http_class, args));
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &HTTP_class, args));
 
     if (!JS_ConvertArguments(cx, args, "S", url.address())) {
         return false;
@@ -64,7 +64,7 @@ static bool nidium_Http_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 
     nhttp = new HTTP((ape_global *)JS_GetContextPrivate(cx));
 
-    jshttp = new JSHttp(ret, cx, curl.ptr());
+    jshttp = new JSHTTP(ret, cx, curl.ptr());
 
     nhttp->setPrivate(jshttp);
     jshttp->refHttp = nhttp;
@@ -83,7 +83,7 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
     HTTP *nhttp;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx,  JS_THIS_OBJECT(cx, vp));
-    JSHttp *jshttp;
+    JSHTTP *jshttp;
     JS::RootedObject options(cx);
     JS::RootedValue curopt(cx);
     JS::RootedValue callback(cx);
@@ -93,7 +93,7 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NIDIUM_JS_INIT_OPT();
 
-    if (JS_InstanceOf(cx, caller, &Http_class, &args) == false) {
+    if (JS_InstanceOf(cx, caller, &HTTP_class, &args) == false) {
         return true;
     }
 
@@ -107,7 +107,7 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    if ((jshttp = (JSHttp *)JS_GetPrivate(caller)) == NULL) {
+    if ((jshttp = (JSHTTP *)JS_GetPrivate(caller)) == NULL) {
         return true;
     }
 
@@ -243,7 +243,7 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-void JSHttp::onError(HTTP::HTTPError err)
+void JSHTTP::onError(HTTP::HTTPError err)
 {
     JSContext *cx = m_Cx;
     JS::RootedValue rval(cx);
@@ -289,7 +289,7 @@ void JSHttp::onError(HTTP::HTTPError err)
     NativeJSObj(cx)->unrootObject(this->jsobj);
 }
 
-void JSHttp::onProgress(size_t offset, size_t len,
+void JSHTTP::onProgress(size_t offset, size_t len,
     HTTP::HTTPData *h, HTTP::DataType type)
 {
     JSContext *cx = m_Cx;
@@ -341,7 +341,7 @@ void JSHttp::onProgress(size_t offset, size_t len,
     JS_CallFunctionValue(cx, obj, ondata_callback, jevent, &rval);
 }
 
-void JSHttp::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
+void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 {
     buffer *k, *v;
 
@@ -470,14 +470,14 @@ void JSHttp::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
     JS_SetReservedSlot(jsobj, 0, JSVAL_NULL);
 }
 
-JSHttp::JSHttp(JS::HandleObject obj, JSContext *cx, char *url) :
-    JSExposer<JSHttp>(obj, cx),
+JSHTTP::JSHTTP(JS::HandleObject obj, JSContext *cx, char *url) :
+    JSExposer<JSHTTP>(obj, cx),
     request(JSVAL_NULL), refHttp(NULL), m_Eval(true)
 {
     m_URL = strdup(url);
 }
 
-JSHttp::~JSHttp()
+JSHTTP::~JSHTTP()
 {
     if (refHttp) {
         delete refHttp;
@@ -485,7 +485,7 @@ JSHttp::~JSHttp()
     free(m_URL);
 }
 
-NIDIUM_JS_OBJECT_EXPOSE(Http)
+NIDIUM_JS_OBJECT_EXPOSE(HTTP)
 
 } // namespace Binding
 } // namespace Nidium

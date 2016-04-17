@@ -16,12 +16,12 @@
 namespace Nidium {
 namespace Binding {
 
-class JSHttp : public JSExposer<JSHttp>, public Nidium::Net::HTTPDelegate
+class JSHTTP : public JSExposer<JSHTTP>, public Nidium::Net::HTTPDelegate
 {
   public:
     static void registerObject(JSContext *cx);
-    JSHttp(JS::HandleObject obj, JSContext *cx, char *url);
-    virtual ~JSHttp();
+    JSHTTP(JS::HandleObject obj, JSContext *cx, char *url);
+    virtual ~JSHTTP();
 
     JS::Heap<JS::Value> request;
     JS::Heap<JSObject *>jsobj;

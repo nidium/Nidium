@@ -108,7 +108,7 @@
             '../src/Binding/NativeJS.cpp',
             '../src/Binding/JSExposer.cpp',
             '../src/Binding/JSFileIO.cpp',
-            '../src/Binding/JSHttp.cpp',
+            '../src/Binding/JSHTTP.cpp',
             '../src/Binding/JSModules.cpp',
             '../src/Binding/JSSocket.cpp',
             '../src/Binding/JSThread.cpp',
