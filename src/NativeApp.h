@@ -91,7 +91,7 @@ private:
         int height;
     } appInfos;
 
-    struct _ape_timer *m_Timer;
+    struct _ape_timer_t *m_Timer;
     struct _ape_global *m_Net;
 };
 

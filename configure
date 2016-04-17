@@ -20,6 +20,7 @@ Deps.set(
     "depot_tools",
     "skia",
     "libzip",
+    "lss",
     "breakpad",
     "angle",
     "basekit",
@@ -60,6 +61,9 @@ def skia():
     else:
         exports = "GYP_DEFINES='skia_arch_width=32 skia_osx_deployment_target=10.7'"
 
+    exports += " CPPFLAGS=-I%s" % (os.path.join(Deps.getDir(), "zlib"))
+    exports += " LDFLAGS=-L%s" % (os.path.join(Deps.getDir(), "zlib"))
+
     makeFlags = ""
     if Variables.get("verbose"):
         makeFlags = "V=1"
@@ -72,7 +76,7 @@ def skia():
     return {
         "location": Deps.Gclient("https://skia.googlesource.com/skia.git", revision="ed4dc2afaa4285a6d10a16fca77d1b9cbe3083d3"),
         "build": [exports + " ./gyp_skia", exports + " make tests BUILDTYPE=Release " + makeFlags + " -j " + str(Platform.cpuCount)],
-        "patchs": ["skia_defines.patch", "skia_gl.patch", "skia_python27.patch"],
+        "patchs": ["skia_defines.patch", "skia_gl.patch", "skia_python27.patch", "skia_clang.patch"],
         "outputs": [
             "out/Release/libskia_pdf.a",
             "out/Release/libskia_ports.a",
@@ -90,21 +94,31 @@ def skia():
 @Deps.register("libzip")
 def libzip():
     return {
-        "location": DEPEDENCY_REPO + "/libzip-0.10.1.tar.bz2",
-        "build": ["./configure", "make"],
+        #"location": DEPEDENCY_REPO + "/libzip-0.10.1.tar.bz2",
+        "location": "http://www.nih.at/libzip/libzip-1.1.2.tar.gz",
+        "build": ["./configure --disable-shared --with-zlib=%s/zlib/" % (Deps.getDir()), "make"],
         "outputs": ["lib/.libs/libzip.a"]
+    }
+
+@Deps.register("lss")
+def lss():
+    return {
+        "location": Deps.GitRepo("https://chromium.googlesource.com/linux-syscall-support", revision="348bdf8d32b37c8fb2627df7a0a977d1d640e1fc")
     }
 
 @Deps.register("angle")
 def angle():
     return {
-        "location": DEPEDENCY_REPO + "/angle.tar.gz"
+         "location": DEPEDENCY_REPO + "/angle.tar.gz"
+        #"location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chrome_m36"),
+        #"build": ["python src/commit_id.py src/commit_id.h"]
     }
 
 @Deps.register("breakpad")
 def breakpad():
     return {
         "location": Deps.SvnRepo("http://google-breakpad.googlecode.com/svn/trunk/", 1435)
+       #"location": Deps.GitRepo("https://chromium.googlesource.com/breakpad/breakpad", branch="chrome_49")    }
     }
 
 @Deps.register("SDL2")
@@ -113,9 +127,9 @@ def SDL2():
     #build: ["xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'"], 
     #outputs["SDL2/Xcode/SDL/out/SDL2.framework"])
     return {
-        "location": DEPEDENCY_REPO + "/SDL-2-2.0.3.tar.gz",
+        "location": "https://www.libsdl.org/release/SDL2-2.0.3.tar.gz",
         "chdir": "build",
-        "build": ["../configure", "make"], 
+        "build": ["../configure", "make"],
         "outputs": ["build/.libs/libSDL2.a"]
     }
 
@@ -123,13 +137,13 @@ def SDL2():
 def depotTools():
     Deps.Gclient.setExec(os.path.join("depot_tools", "gclient"))
     return {
-        "location": DEPEDENCY_REPO + "/depot_tools.tar.gz"
+        "location": Deps.GitRepo("https://chromium.googlesource.com/chromium/tools/depot_tools.git", revision="aa6235b1f6dbc9a7fa5139ef8964928b6348a4c4")
     }
 
 @Deps.register("basekit")
 def basekit():
     return {
-        "location": DEPEDENCY_REPO + "/libbasekit.zip",
+        "location": Deps.GitRepo("https://github.com/stevedekorte/basekit.git", revision="a3e54ba83b85f530dc9442a33d2779240ed96189"),
         "build": ["make"],
         "patchs": ["basekit.patch"],
         "outputs": ["_build/lib/libbasekit(.a|.lib)"]
@@ -138,10 +152,12 @@ def basekit():
 @Deps.register("libcoroutine")
 def libcoro():
     patchs = ["libcoroutine.patch"]
-    if Konstruct.config("debug", "valgrind"):
+
+    if Konstruct.config("valgrind"):
         patchs.append("libcoroutine.debug.patch")
+
     return {
-        "location": DEPEDENCY_REPO + "/libcoroutine.zip",
+        "location": Deps.GitRepo("https://github.com/stevedekorte/coroutine.git", revision="b0bf11d8a0ec70bc0f1f5043513d334e1eff15fc"),
         "patchs": patchs,
         "build": ["make"],
         "outputs": [["_build/lib/liblibcoroutine(.a|.lib)", "libcoroutine\\1"]]
@@ -150,12 +166,12 @@ def libcoro():
 @Deps.register("ffmpeg")
 def ffmpeg():
     return {
-        "location": DEPEDENCY_REPO + "/ffmpeg-snapshot.tar.bz2",
+        "location": Deps.GitRepo("git://source.ffmpeg.org/ffmpeg.git", tag="n2.5.11"),
         "patch": [],
         "build":
         [
             "./configure \
-            --disable-vaapi --disable-avdevice --disable-postproc --disable-avfilter --disable-ffserver \
+            --disable-vaapi --disable-avdevice --disable-postproc --disable-avfilter --disable-ffserver --disable-lzma --disable-bzlib \
             --enable-decoder=ac3,aac,mp3,vorbis,pcm_s16be_planar,pcm_s16le,pcm_s16le_planar,pcm_s24be,pcm_s24daud,pcm_s24le,pcm_s24le_planar,pcm_s32be,pcm_s32le,pcm_s32le_planar,pcm_s8,pcm_s8_planar,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpeg4,mpeg2video,wmv1,wmv2,wmv3,wmv3_crystalhd,wmv3_vdpau,wmv3image,wmalossless,wmapro,wmav1,wmav2,wmavoice,vc1,vc1_crystalhd,vc1_vdpau,vc1image\
             --enable-parser=vorbis,mpegaudio,mpegvideo,mpeg4video,h264,vp8,aac,vc1\
             --enable-demuxer=matroska,mp3,ogg,vorbis,pcm_alaw,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,pcm_mulaw,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpegvideo,aac,mov,avi,wav,asf", 

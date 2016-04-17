@@ -1,0 +1,6 @@
+build
+konstruct.log
+tags
+tags.sh
+*.pyc
+

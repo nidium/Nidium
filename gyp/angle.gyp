@@ -11,6 +11,7 @@
         # Can't use variable in includes 
         # https://code.google.com/p/gyp/wiki/InputFormatReference#Processing_Order
         '../third-party/angle/src/build_angle.gypi'
+       #'../third-party/angle/src/angle.gypi'
     ],
     'targets': [{
         'target_name': 'angle',

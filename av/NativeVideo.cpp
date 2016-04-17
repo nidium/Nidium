@@ -1279,10 +1279,10 @@ void NativeVideo::scheduleDisplay(int delay, bool force) {
 
 int NativeVideo::addTimer(int delay)
 {
-    ape_timer *timer;
-    timer = add_timer(&m_Net->timersng, delay, NativeVideo::display, this);
-    //timer->flags &= ~APE_TIMER_IS_PROTECTED; // XXX : Remove me
-    return timer->identifier;
+    /* XXX timer is protected by default and will not be cleared upon refresh.
+        Is that the desired behaviour ? */
+    return APE_timer_getid(APE_timer_create(m_Net, delay,
+        NativeVideo::display, this));
 }
 
 bool NativeVideo::addPacket(PacketQueue *queue, AVPacket *packet)
@@ -1329,7 +1329,7 @@ void NativeVideo::clearTimers(bool reset)
 {
     for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
         if (m_Timers[i]->id != -1 && m_Timers[i]->delay != -1) {
-            clear_timer_by_id(&m_Net->timersng, m_Timers[i]->id, 1);
+            APE_timer_clearbyid(m_Net, m_Timers[i]->id, 1);
         }
         if (reset) {
             m_Timers[i]->id = -1;

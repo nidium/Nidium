@@ -264,7 +264,7 @@ void NativeUIInterface::hideWindow()
         m_Hidden = true;
         SDL_HideWindow(m_Win);
 
-        set_timer_to_low_resolution(&this->m_Gnet->timersng, 1);
+        APE_timer_setlowresolution(this->m_Gnet, 1);
     }
 }
 
@@ -274,7 +274,7 @@ void NativeUIInterface::showWindow()
         m_Hidden = false;
         SDL_ShowWindow(m_Win);
 
-        set_timer_to_low_resolution(&this->m_Gnet->timersng, 0);
+        APE_timer_setlowresolution(this->m_Gnet, 0);
     }
 }
 

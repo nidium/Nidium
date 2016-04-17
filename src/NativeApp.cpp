@@ -129,7 +129,7 @@ void NativeApp::runWorker(ape_global *net)
     m_Action.active = false;
     m_Action.stop = false;
 
-    m_Timer = add_timer(&net->timersng, 1,
+    m_Timer = APE_timer_create(net, 1,
         Native_handle_app_messages, this);
 
     pthread_mutex_init(&m_ThreadMutex, NULL);
@@ -451,7 +451,7 @@ NativeApp::~NativeApp()
         pthread_mutex_unlock(&m_ThreadMutex);
 
         pthread_join(m_ThreadHandle, NULL);
-        del_timer(&m_Net->timersng, m_Timer);
+        APE_timer_destroy(m_Net, m_Timer);
     }
     if (m_fZip) {
         zip_close(m_fZip);
