@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeJSModules.h"
+#include "JSModules.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +21,9 @@
 #include "IO/Stream.h"
 #include "JSExposer.h"
 
+namespace Nidium {
+namespace Binding {
+
 #if 0
 #define DPRINT(...) printf(__VA_ARGS__)
 #else
@@ -29,14 +32,14 @@
 
 static void Exports_Finalize(JSFreeOp *fop, JSObject *obj);
 
-static JSClass native_modules_exports_class = {
+static JSClass nidium_modules_exports_class = {
     "Exports", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Exports_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-static JSClass native_modules_class = {
+static JSClass nidium_modules_class = {
     "Module", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
@@ -44,28 +47,28 @@ static JSClass native_modules_class = {
 };
 
 #if 0
-static JSPropertySpec native_modules_exports_props[] = {
+static JSPropertySpec nidium_modules_exports_props[] = {
     {"exports", 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
     {"module", 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
     JS_PS_END
 };
 #endif
 
-static bool native_modules_require(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_modules_require(JSContext *cx, unsigned argc, JS::Value *vp);
 
-NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name)
+JSModule::JSModule(JSContext *cx, JSModules *modules, JSModule *parent, const char *name)
     : absoluteDir(NULL), filePath(NULL), name(strdup(name)), m_ModuleType(NONE),
       m_Cached(false), exports(NULL), parent(parent), modules(modules), cx(cx)
 {
 }
 
-bool NativeJSModule::initMain()
+bool JSModule::initMain()
 {
     this->name = strdup("__MAIN__");
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
     JS::RootedFunction fun(cx, js::DefineFunctionWithReserved(this->cx, global,
-            "require", native_modules_require, 1, 0));
+            "require", nidium_modules_require, 1, 0));
 
     if (!fun) {
         return false;
@@ -79,14 +82,14 @@ bool NativeJSModule::initMain()
 
     return true;
 }
-bool NativeJSModule::init()
+bool JSModule::init()
 {
     if (!this->name || strlen(this->name) == 0) return false;
-    DPRINT("= NativeJSModule INIT\n");
+    DPRINT("= JSModule INIT\n");
     DPRINT("name = %s\n", this->name);
 
     if (this->parent) {
-        this->filePath = NativeJSModules::findModulePath(this->parent, this);
+        this->filePath = JSModules::findModulePath(this->parent, this);
     } else {
         this->filePath = realpath(this->name, NULL);
     }
@@ -112,7 +115,7 @@ bool NativeJSModule::init()
     return true;
 }
 
-bool NativeJSModules::init()
+bool JSModules::init()
 {
     char *paths = getenv("NIDIUM_REQUIRE_PATH");
 
@@ -142,22 +145,22 @@ bool NativeJSModules::init()
         m_EnvPaths[0] = NULL;
     }
 
-    this->main = new NativeJSModule(cx, this, NULL, "MAIN");
+    this->main = new JSModule(cx, this, NULL, "MAIN");
 
     if (!main) return false;
 
     return this->main->initMain();
 }
 
-bool NativeJSModules::init(NativeJSModule *module)
+bool JSModules::init(JSModule *module)
 {
     switch (module->m_ModuleType) {
-        case NativeJSModule::NATIVE:
-            if (!module->initNative()) {
+        case JSModule::NIDIUM:
+            if (!module->initNidium()) {
                 return false;
             }
             break;
-        case NativeJSModule::JS:
+        case JSModule::JS:
             if (!module->initJS()) {
                 return false;
             }
@@ -169,7 +172,7 @@ bool NativeJSModules::init(NativeJSModule *module)
     return true;
 }
 
-bool NativeJSModule::initNative()
+bool JSModule::initNidium()
 {
     JS::RootedObject exports(this->cx, JS_NewObject(this->cx, NULL, JS::NullPtr(), JS::NullPtr()));
     NativeJS *njs = NativeJS::getNativeClass(this->cx);
@@ -183,7 +186,7 @@ bool NativeJSModule::initNative()
         return false;
     }
 
-    Nidium::Binding::register_module_t registerModule = (Nidium::Binding::register_module_t)dlsym(module, "__NativeRegisterModule");
+    Nidium::Binding::register_module_t registerModule = (Nidium::Binding::register_module_t)dlsym(module, "__NidiumRegisterModule");
     if (registerModule && !registerModule(this->cx, exports)) {
         printf("Failed to register module\n");
         return false;
@@ -195,10 +198,10 @@ bool NativeJSModule::initNative()
     return true;
 }
 
-bool NativeJSModule::initJS()
+bool JSModule::initJS()
 {
 #define TRY_OR_DIE(call) if (call == false) { return false; }
-    JS::RootedObject gbl(cx, JS_NewObject(this->cx, &native_modules_exports_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject gbl(cx, JS_NewObject(this->cx, &nidium_modules_exports_class, JS::NullPtr(), JS::NullPtr()));
     if (!gbl) {
         return false;
     }
@@ -208,7 +211,7 @@ bool NativeJSModule::initJS()
     JS_SetPrivate(gbl, this);
 
     JS::RootedObject funObj(cx);
-    JSFunction *fun = js::DefineFunctionWithReserved(this->cx, gbl, "require", native_modules_require, 1, 0);
+    JSFunction *fun = js::DefineFunctionWithReserved(this->cx, gbl, "require", nidium_modules_require, 1, 0);
     if (!fun) {
         return false;
     }
@@ -218,7 +221,7 @@ bool NativeJSModule::initJS()
     js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
 
     JS::RootedObject exports(cx, JS_NewObject(this->cx, NULL, JS::NullPtr(), JS::NullPtr()));
-    JS::RootedObject module(cx, JS_NewObject(this->cx, &native_modules_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject module(cx, JS_NewObject(this->cx, &nidium_modules_class, JS::NullPtr(), JS::NullPtr()));
 
     if (!exports || !module) {
         return false;
@@ -235,12 +238,12 @@ bool NativeJSModule::initJS()
     JS::RootedValue exportsVal(cx, OBJECT_TO_JSVAL(exports));
     JS::RootedValue moduleVal(cx, OBJECT_TO_JSVAL(module));
 #if 0
-    TRY_OR_DIE(JS_DefineProperties(cx, gbl, native_modules_exports_props));
+    TRY_OR_DIE(JS_DefineProperties(cx, gbl, nidium_modules_exports_props));
 #endif
     TRY_OR_DIE(JS_SetProperty(cx, gbl, "exports", exportsVal));
 
 #if 0
-    //TRY_OR_DIE(JS_DefineProperties(cx, module, native_modules_exports_props));
+    //TRY_OR_DIE(JS_DefineProperties(cx, module, nidium_modules_exports_props));
 #endif
     TRY_OR_DIE(JS_SetProperty(cx, gbl, "module", moduleVal));
     TRY_OR_DIE(JS_SetProperty(cx, module, "id", id));
@@ -255,7 +258,7 @@ bool NativeJSModule::initJS()
 #undef TRY_OR_DIE
 }
 
-void NativeJSModules::dirname(std::string &source)
+void JSModules::dirname(std::string &source)
 {
     if (source.size() <= 1) {
         return;
@@ -269,17 +272,17 @@ void NativeJSModules::dirname(std::string &source)
     source.erase(std::find(source.rbegin(), source.rend(), '/').base(), source.end());
 }
 
-char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *module)
+char *JSModules::findModulePath(JSModule *parent, JSModule *module)
 {
     std::string modulePath;
-    NativeJSModules *modules = module->modules;
+    JSModules *modules = module->modules;
     const char *topDir = modules->m_TopDir;
 
     if (module->name[0] == '.') {
         // Relative module, only look in current script directory
-        modulePath = NativeJSModules::findModuleInPath(module, parent->absoluteDir);
+        modulePath = JSModules::findModuleInPath(module, parent->absoluteDir);
     }  else if (module->name[0] == '/') {
-        modulePath = NativeJSModules::findModuleInPath(module, topDir);
+        modulePath = JSModules::findModuleInPath(module, topDir);
     }  else {
         std::string path = parent->absoluteDir;
 
@@ -290,12 +293,12 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
         bool stop = false;
         do {
             // Try local search path
-            for (int i = 0; i < NATIVE_MODULES_PATHS_COUNT && modulePath.empty(); i++) {
+            for (int i = 0; i < NIDIUM_MODULES_PATHS_COUNT && modulePath.empty(); i++) {
                 std::string currentPath = path;
                 currentPath += modules->m_Paths[i];
 
                 DPRINT("Looking for module %s in %s\n", module->name, currentPath.c_str());
-                modulePath = NativeJSModules::findModuleInPath(module, currentPath.c_str());
+                modulePath = JSModules::findModuleInPath(module, currentPath.c_str());
                 DPRINT("module path is %s\n", modulePath.c_str());
             }
 
@@ -303,7 +306,7 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
             // Try again with parent directory
             if (!stop) {
                 DPRINT("  Getting parent dir for %s\n", path.c_str());
-                NativeJSModules::dirname(path);
+                JSModules::dirname(path);
                 DPRINT("  Parent path is         %s\n", path.c_str());
             }
         } while (modulePath.empty() && !stop);
@@ -313,7 +316,7 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
             for (int i = 0; modules->m_EnvPaths[i] != NULL && modulePath.empty(); i++) {
                 char *tmp = modules->m_EnvPaths[i];
                 DPRINT("Looking for module %s in %s\n", module->name, tmp);
-                modulePath = NativeJSModules::findModuleInPath(module, tmp);
+                modulePath = JSModules::findModuleInPath(module, tmp);
                 DPRINT("module path is %s\n", modulePath.c_str());
             }
         }
@@ -326,7 +329,7 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
     return realpath(modulePath.c_str(), NULL);
 }
 
-bool NativeJSModules::getFileContent(const char *file, char **content, size_t *size)
+bool JSModules::getFileContent(const char *file, char **content, size_t *size)
 {
     NativePath path(file, false, true);
     Nidium::IO::Stream *stream = path.createStream(true);
@@ -342,7 +345,7 @@ bool NativeJSModules::getFileContent(const char *file, char **content, size_t *s
     return ret;
 }
 
-std::string NativeJSModules::findModuleInPath(NativeJSModule *module, const char *path)
+std::string JSModules::findModuleInPath(JSModule *module, const char *path)
 {
 #define MAX_EXT_SIZE 13
     const char *extensions[] = {NULL, ".js", DSO_EXTENSION, ".json"};
@@ -358,7 +361,7 @@ std::string NativeJSModules::findModuleInPath(NativeJSModule *module, const char
             tmp += extensions[i];
         }
 
-        DPRINT("    [NativeJSModule] Looking for %s\n", tmp.c_str());
+        DPRINT("    [JSModule] Looking for %s\n", tmp.c_str());
 
         if (access(tmp.c_str(), F_OK) != 0) {
             continue;
@@ -367,10 +370,10 @@ std::string NativeJSModules::findModuleInPath(NativeJSModule *module, const char
         // XXX : Refactor this code. It's a bit messy.
         switch (i) {
             case 0: // directory or exact filename
-                module->m_ModuleType = NativeJSModule::JS;
+                module->m_ModuleType = JSModule::JS;
                 struct stat sb;
                 if (stat(tmp.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode)) {
-                    if (NativeJSModules::loadDirectoryModule(tmp)) {
+                    if (JSModules::loadDirectoryModule(tmp)) {
                         return tmp;
                     }
                     DPRINT("%s\n", tmp.c_str());
@@ -380,7 +383,7 @@ std::string NativeJSModules::findModuleInPath(NativeJSModule *module, const char
                     // No extension, assume it's a JS file
                     if (pos == std::string::npos) {
                         DPRINT("      No extension found. Assuming JS file\n");
-                        module->m_ModuleType = NativeJSModule::JS;
+                        module->m_ModuleType = JSModule::JS;
                         return tmp;
                     }
 
@@ -389,13 +392,13 @@ std::string NativeJSModules::findModuleInPath(NativeJSModule *module, const char
                         if (tmpPos != std::string::npos) {
                             switch (j) {
                                 case 1:
-                                    module->m_ModuleType = NativeJSModule::JS;
+                                    module->m_ModuleType = JSModule::JS;
                                     break;
                                 case 2:
-                                    module->m_ModuleType = NativeJSModule::NATIVE;
+                                    module->m_ModuleType = JSModule::NIDIUM;
                                     break;
                                 case 3:
-                                    module->m_ModuleType = NativeJSModule::JSON;
+                                    module->m_ModuleType = JSModule::JSON;
                                     break;
                             }
                             return tmp;
@@ -404,23 +407,23 @@ std::string NativeJSModules::findModuleInPath(NativeJSModule *module, const char
                 }
                 continue;
             case 1: // .js
-                module->m_ModuleType = NativeJSModule::JS;
+                module->m_ModuleType = JSModule::JS;
                 break;
-            case 2: // native module
-                module->m_ModuleType = NativeJSModule::NATIVE;
+            case 2: // nidium module
+                module->m_ModuleType = JSModule::NIDIUM;
                 break;
             case 3: // json file
-                module->m_ModuleType = NativeJSModule::JSON;
+                module->m_ModuleType = JSModule::JSON;
                 break;
         }
-        DPRINT("    [NativeJSModule] FOUND IT\n");
+        DPRINT("    [JSModule] FOUND IT\n");
         return tmp;
     }
 
     return std::string();
 }
 
-bool NativeJSModules::loadDirectoryModule(std::string &dir)
+bool JSModules::loadDirectoryModule(std::string &dir)
 {
     const char *files[] = {"/index.js", "/package.json"};
     size_t len = dir.length();
@@ -439,7 +442,7 @@ bool NativeJSModules::loadDirectoryModule(std::string &dir)
                 char *data = NULL;
                 size_t size;
 
-                if (!NativeJSModules::getFileContent(dir.c_str(), &data, &size) || data == NULL) {
+                if (!JSModules::getFileContent(dir.c_str(), &data, &size) || data == NULL) {
                     fprintf(stderr, "Failed to open %s\n", dir.c_str());
                     return false;
                 }
@@ -475,10 +478,10 @@ bool NativeJSModules::loadDirectoryModule(std::string &dir)
 
 #undef MAX_EXT_SIZE
 
-JS::Value NativeJSModule::require(char *name)
+JS::Value JSModule::require(char *name)
 {
     JS::RootedValue ret(cx);
-    NativeJSModule *cmodule;
+    JSModule *cmodule;
     NativeJS *njs = NativeJS::getNativeClass(this->cx);
 
     ret.setUndefined();
@@ -519,9 +522,9 @@ JS::Value NativeJSModule::require(char *name)
         DPRINT("Module scope loading\n");
     }
 
-    DPRINT("[NativeJSModule] Module %s require(%s)\n", this->name, name);
+    DPRINT("[JSModule] Module %s require(%s)\n", this->name, name);
 
-    NativeJSModule *tmp = new NativeJSModule(cx, this->modules, this, name);
+    JSModule *tmp = new JSModule(cx, this->modules, this, name);
     if (!tmp->init()) {
         JS_ReportError(cx, "Module %s not found\n", name);
         delete tmp;
@@ -529,7 +532,7 @@ JS::Value NativeJSModule::require(char *name)
     }
 
     // Let's see if the module is in the cache
-    NativeJSModule *cached = this->modules->find(tmp);
+    JSModule *cached = this->modules->find(tmp);
     if (!cached) {
         DPRINT("Module is not cached\n");
         cmodule = tmp;
@@ -540,7 +543,7 @@ JS::Value NativeJSModule::require(char *name)
     }
 
     // Is there is a cyclic dependency
-    for (NativeJSModule *m = cmodule->parent; ; ) {
+    for (JSModule *m = cmodule->parent; ; ) {
         if (!m || !m->exports) break;
 
         // Found a cyclic dependency
@@ -570,7 +573,7 @@ JS::Value NativeJSModule::require(char *name)
             JS::RootedFunction fn(cx);
             JS::RootedValue rval(cx);
 
-            if (!NativeJSModules::getFileContent(cmodule->filePath, &data, &filesize) || data == NULL) {
+            if (!JSModules::getFileContent(cmodule->filePath, &data, &filesize) || data == NULL) {
                 JS_ReportError(cx, "Failed to open module %s\n", cmodule->name);
                 return ret;
             }
@@ -640,7 +643,7 @@ JS::Value NativeJSModule::require(char *name)
         }
         break;
         case JSON:
-        case NATIVE:
+        case NIDIUM:
         {
             ret = OBJECT_TO_JSVAL(cmodule->exports);
         }
@@ -650,7 +653,7 @@ JS::Value NativeJSModule::require(char *name)
     return ret;
 }
 
-NativeJSModule::~NativeJSModule()
+JSModule::~JSModule()
 {
     if (this->filePath && m_Cached) {
         this->modules->remove(this);
@@ -662,7 +665,7 @@ NativeJSModule::~NativeJSModule()
 
 }
 
-static bool native_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString name(cx, NULL);
 
@@ -681,7 +684,7 @@ static bool native_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativeJSModule *module = static_cast<NativeJSModule *>(JSVAL_TO_PRIVATE(reserved));
+    JSModule *module = static_cast<JSModule *>(JSVAL_TO_PRIVATE(reserved));
 
     JS::RootedValue ret(cx, module->require(namestr.ptr()));
 
@@ -698,8 +701,11 @@ void Exports_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     void *priv = JS_GetPrivate(obj);
     if (priv != NULL) {
-        NativeJSModule *module = static_cast<NativeJSModule *>(priv);
+        JSModule *module = static_cast<JSModule *>(priv);
         delete module;
     }
 }
+
+} // namespace Binding
+} // namespace Nidium
 

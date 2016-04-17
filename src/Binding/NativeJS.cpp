@@ -24,7 +24,7 @@
 #include "JSThread.h"
 #include "JSHttp.h"
 #include "JSFileIO.h"
-#include "NativeJSModules.h"
+#include "JSModules.h"
 #include "JSStream.h"
 #include "NativeJSWebSocket.h"
 #include "NativeJSWebSocketClient.h"
@@ -1064,7 +1064,7 @@ void NativeJS::loadGlobalObjects()
     /* Debugger object */
     Nidium::Binding::JSDebugger::registerObject(cx);
 
-    this->modules = new NativeJSModules(cx);
+    this->modules = new Nidium::Binding::JSModules(cx);
     if (!this->modules) {
         JS_ReportOutOfMemory(cx);
         return;

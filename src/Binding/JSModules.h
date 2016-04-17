@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativejsmodules_h__
-#define nativejsmodules_h__
+#ifndef binding_jsmodules_h__
+#define binding_jsmodules_h__
 
 #include <string.h>
 
@@ -13,17 +13,21 @@
 
 #include "Core/Hash.h"
 
-#define NATIVE_MODULES_PATHS_COUNT 2
 
-class NativeJSModules;
+namespace Nidium {
+namespace Binding {
 
-class NativeJSModule
+#define NIDIUM_MODULES_PATHS_COUNT 2
+
+class JSModules;
+
+class JSModule
 {
     public:
-        NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name);
+        JSModule(JSContext *cx, JSModules *modules, JSModule *parent, const char *name);
 
         enum ModuleType {
-            NONE, JS, NATIVE, JSON
+            NONE, JS, NIDIUM, JSON
         };
 
         char *absoluteDir;
@@ -34,33 +38,33 @@ class NativeJSModule
 
         JS::Heap<JSObject *> exports;
 
-        NativeJSModule *parent;
-        NativeJSModules *modules;
+        JSModule *parent;
+        JSModules *modules;
 
         bool init();
         bool initJS();
         bool initMain();
-        bool initNative();
+        bool initNidium();
 
         JS::Value require(char *name);
 
-        ~NativeJSModule();
+        ~JSModule();
     private:
         JSContext *cx;
 
         JS::Value load(JS::Value &scope);
 };
 
-class NativeJSModules
+class JSModules
 {
     public:
-        NativeJSModules(JSContext *cx) : m_TopDir("/"), cx(cx)
+        JSModules(JSContext *cx) : m_TopDir("/"), cx(cx)
         {
             m_Paths[0] = (const char *)"modules";
             m_Paths[1] = (const char *)"node_modules";
         }
 
-        ~NativeJSModules()
+        ~JSModules()
         {
             for (int i = 0; m_EnvPaths[i] != NULL; i++) {
                 free(m_EnvPaths[i]);
@@ -68,21 +72,21 @@ class NativeJSModules
             delete this->main;
         }
 
-        NativeJSModule *main;
+        JSModule *main;
         const char *m_TopDir;
 
-        void add(NativeJSModule *module)
+        void add(JSModule *module)
         {
             m_Cache.set(module->filePath, module);
             module->m_Cached = true;
         }
 
-        void remove(NativeJSModule *module)
+        void remove(JSModule *module)
         {
             m_Cache.erase(module->filePath);
         }
 
-        NativeJSModule *find(NativeJSModule *module)
+        JSModule *find(JSModule *module)
         {
             return m_Cache.get(module->filePath);
         }
@@ -93,23 +97,26 @@ class NativeJSModules
         }
 
         bool init();
-        bool init(NativeJSModule *module);
+        bool init(JSModule *module);
 
-        static char *findModulePath(NativeJSModule *parent, NativeJSModule *module);
+        static char *findModulePath(JSModule *parent, JSModule *module);
         static bool getFileContent(const char *file, char **content, size_t *size);
     private:
-        Nidium::Core::Hash<NativeJSModule *> m_Cache;
+        Nidium::Core::Hash<JSModule *> m_Cache;
         const char *m_Paths[2];
         char *m_EnvPaths[64];
         JSContext *cx;
 
-        bool initJS(NativeJSModule *cmodule);
+        bool initJS(JSModule *cmodule);
 
-        static std::string findModuleInPath(NativeJSModule *module, const char *path);
+        static std::string findModuleInPath(JSModule *module, const char *path);
         static bool loadDirectoryModule(std::string &dir);
 
         static void dirname(std::string &source);
 };
+
+} // namespace Binding
+} // namespace Nidium
 
 #endif
 

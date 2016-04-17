@@ -17,6 +17,15 @@
 #include "Core/Messages.h"
 #include "Core/SharedMessages.h"
 
+namespace Nidium {
+	namespace Binding {
+		class JSModules;
+	}
+}
+
+struct _ape_htable;
+
+
 #define NATIVE_JS_FNPROPS JSPROP_ENUMERATE | JSPROP_PERMANENT
 
 enum {
@@ -38,9 +47,6 @@ struct nidium_thread_msg
     size_t nbytes;
     class JSObject *callee;
 };
-
-class NativeJSModules;
-struct _ape_htable;
 
 typedef struct _ape_global ape_global;
 typedef void (*native_thread_message_t)(JSContext *cx, Nidium::Core::SharedMessages::Message *msg);
@@ -169,7 +175,7 @@ class NativeJS
         static JSObject *CreateJSGlobal(JSContext *cx);
         static void SetJSRuntimeOptions(JSRuntime *rt);
     private:
-        NativeJSModules *modules;
+        Nidium::Binding::JSModules *modules;
         void *privateslot;
         bool shutdown;
         const char *relPath;
