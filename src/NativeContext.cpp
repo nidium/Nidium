@@ -8,7 +8,7 @@
 #include <math.h>
 
 #include <NativeSkia.h>
-#include <Net/NativeWebSocket.h>
+#include <Net/WebSocket.h>
 
 #include "NativeCanvas2DContext.h"
 #include "NativeNML.h"
@@ -126,7 +126,7 @@ m_Debug2Handler(NULL),
 
     m_WSClient = NULL;
     m_WS = NULL;
-    /*m_WS = new NativeWebSocketListener(4000, "127.0.0.1");
+    /*m_WS = new Nidium::Net::WebSocketListener(4000, "127.0.0.1");
     m_WS->addListener(this);
     m_WS->start();*/
 
@@ -594,8 +594,8 @@ void NativeContext::execPendingCanvasChanges()
 void NativeContext::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case NIDIUM_EVENT(NativeWebSocketListener, SERVER_CONNECT):
-            m_WSClient = static_cast<NativeWebSocketClientConnection *>(msg.args[0].toPtr());
+        case NIDIUM_EVENT(Nidium::Net::WebSocketListener, SERVER_CONNECT):
+            m_WSClient = static_cast<Nidium::Net::WebSocketClientConnection *>(msg.args[0].toPtr());
             printf("New WS client for render :)\n");
             break;
     }

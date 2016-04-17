@@ -21,9 +21,14 @@ class NativeJS;
 class NativeNML;
 class NativeCanvasContext;
 class NativeGLState;
-class NativeWebSocketListener;
-class NativeWebSocketClientConnection;
 class NativeJSwindow;
+
+namespace Nidium {
+    namespace Net {
+        class WebSocketListener;
+        class WebSocketClientConnection;
+    }
+}
 
 typedef struct _ape_global ape_global;
 
@@ -248,8 +253,8 @@ class NativeContext : public Nidium::Core::Messages
     NativeUIInterface *       m_UI;
     NativeNML *               m_NML;
     NativeGLState *           m_GLState;
-    NativeWebSocketListener * m_WS;
-    NativeWebSocketClientConnection *m_WSClient;
+    Nidium::Net::WebSocketListener * m_WS;
+    Nidium::Net::WebSocketClientConnection *m_WSClient;
     ShBuiltInResources        m_ShResources;
     NativeJSwindow *          m_JSWindow;
     bool                      m_SizeDirty;
