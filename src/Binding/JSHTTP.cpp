@@ -136,15 +136,15 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
         JS::RootedString method(cx, __curopt.toString());
         JSAutoByteString cmethod(cx, method);
         if (strcmp("POST", cmethod.ptr()) == 0) {
-            req->method = HTTPRequest::NATIVE_HTTP_POST;
+            req->method = HTTPRequest::HTTP_POST;
         } else if (strcmp("HEAD", cmethod.ptr()) == 0) {
-            req->method = HTTPRequest::NATIVE_HTTP_HEAD;
+            req->method = HTTPRequest::HTTP_HEAD;
         } else if (strcmp("PUT", cmethod.ptr()) == 0) {
-            req->method = HTTPRequest::NATIVE_HTTP_PUT;
+            req->method = HTTPRequest::HTTP_PUT;
         } else if (strcmp("DELETE", cmethod.ptr()) == 0) {
-            req->method = HTTPRequest::NATIVE_HTTP_DELETE;
+            req->method = HTTPRequest::HTTP_DELETE;
         }  else {
-            req->method = HTTPRequest::NATIVE_HTTP_GET;
+            req->method = HTTPRequest::HTTP_GET;
         }
     }
 
@@ -189,8 +189,8 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
             req->setData(hdata, strlen(hdata));
             req->setDataReleaser(js_free);
 
-            if (req->method != HTTPRequest::NATIVE_HTTP_PUT) {
-                req->method = HTTPRequest::NATIVE_HTTP_POST;
+            if (req->method != HTTPRequest::HTTP_PUT) {
+                req->method = HTTPRequest::HTTP_POST;
             }
 
             char num[16];

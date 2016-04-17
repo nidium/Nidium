@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeHTTP.h"
+#include "HTTP.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,10 +30,10 @@ namespace Net {
 #define SOCKET_WRITE_OWN(data) APE_socket_write(s, (unsigned char *)data, \
     strlen(data), APE_DATA_OWN)
 
-static struct native_http_mime {
+static struct nidium_http_mime {
     const char *str;
     HTTP::DataType data_type;
-} native_mime[] = {
+} nidium_mime[] = {
     {"text/plain",                  HTTP::DATA_STRING},
     {"application/x-javascript",    HTTP::DATA_STRING},
     {"application/javascript",      HTTP::DATA_STRING},
@@ -199,7 +199,7 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
     return 0;
 }
 
-static void native_http_connected(ape_socket *s,
+static void nidium_http_connected(ape_socket *s,
     ape_global *ape, void *socket_arg)
 {
     HTTP *nhttp = (HTTP *)s->ctx;
@@ -214,8 +214,8 @@ static void native_http_connected(ape_socket *s,
     buffer *headers = request->getHeadersData();
 
     if (request->getData() != NULL &&
-        (request->method == HTTPRequest::NATIVE_HTTP_POST ||
-            request->method == HTTPRequest::NATIVE_HTTP_PUT)) {
+        (request->method == HTTPRequest::HTTP_POST ||
+            request->method == HTTPRequest::HTTP_PUT)) {
 
         PACK_TCP(s->s.fd);
         APE_socket_write(s, headers->data, headers->used, APE_DATA_COPY);
@@ -232,7 +232,7 @@ static void native_http_connected(ape_socket *s,
     buffer_destroy(headers);
 }
 
-static void native_http_disconnect(ape_socket *s,
+static void nidium_http_disconnect(ape_socket *s,
     ape_global *ape, void *socket_arg)
 {
     HTTP *nhttp = (HTTP *)s->ctx;
@@ -263,7 +263,7 @@ static void native_http_disconnect(ape_socket *s,
 
 }
 
-static void native_http_read(ape_socket *s,
+static void nidium_http_read(ape_socket *s,
     const uint8_t *data, size_t len, ape_global *ape, void *socket_arg)
 {
     size_t nparsed;
@@ -299,7 +299,7 @@ HTTP::HTTP(ape_global *n) :
     memset(&m_Redirect, 0, sizeof(m_Redirect));
 
     http.headers.prevstate = HTTP::PSTATE_NOTHING;
-    native_http_data_type = DATA_NULL;
+    nidium_http_data_type = DATA_NULL;
 }
 
 void HTTP::reportPendingError()
@@ -324,7 +324,7 @@ void *HTTP::getPrivate()
 void HTTP::onData(size_t offset, size_t len)
 {
     this->delegate->onProgress(offset, len,
-        &this->http, this->native_http_data_type);
+        &this->http, this->nidium_http_data_type);
 }
 
 void HTTP::headerEnded()
@@ -341,10 +341,10 @@ void HTTP::headerEnded()
             content_type->used > 3) {
             int i;
 
-            for (i = 0; native_mime[i].str != NULL; i++) {
-                if (strncasecmp(native_mime[i].str, (const char *)content_type->data,
-                    strlen(native_mime[i].str)) == 0) {
-                    native_http_data_type = native_mime[i].data_type;
+            for (i = 0; nidium_mime[i].str != NULL; i++) {
+                if (strncasecmp(nidium_mime[i].str, (const char *)content_type->data,
+                    strlen(nidium_mime[i].str)) == 0) {
+                    nidium_http_data_type = nidium_mime[i].data_type;
                     break;
                 }
             }
@@ -451,14 +451,14 @@ void HTTP::requestEnded()
         bool doclose = !this->isKeepAlive();
 
         if (!hasPendingError()) {
-            delegate->onRequest(&http, native_http_data_type);
+            delegate->onRequest(&http, nidium_http_data_type);
         }
 
         this->clearState();
 
         if (doclose) {
             this->close();
-            native_http_disconnect(m_CurrentSock, m_CurrentSock->ape, NULL);
+            nidium_http_disconnect(m_CurrentSock, m_CurrentSock->ape, NULL);
         }
     }
 }
@@ -498,7 +498,7 @@ bool HTTP::isKeepAlive()
     return true;
 }
 
-static int NativeHTTP_handle_timeout(void *arg)
+static int Nidium_HTTP_handle_timeout(void *arg)
 {
     ((HTTP *)arg)->stopRequest(true);
 
@@ -539,9 +539,9 @@ bool HTTP::createConnection()
         return false;
     }
 
-    socket->callbacks.on_connected  = native_http_connected;
-    socket->callbacks.on_read       = native_http_read;
-    socket->callbacks.on_disconnect = native_http_disconnect;
+    socket->callbacks.on_connected  = nidium_http_connected;
+    socket->callbacks.on_read       = nidium_http_read;
+    socket->callbacks.on_disconnect = nidium_http_disconnect;
 
     socket->ctx = this;
 
@@ -597,7 +597,7 @@ bool HTTP::request(HTTPRequest *req,
     if (m_Timeout) {
         ape_timer_t *ctimer;
         ctimer = APE_timer_create(net, m_Timeout,
-            NativeHTTP_handle_timeout, this);
+            Nidium_HTTP_handle_timeout, this);
 
         APE_timer_unprotect(ctimer);
         m_TimeoutTimer = APE_timer_getid(ctimer);
@@ -606,7 +606,7 @@ bool HTTP::request(HTTPRequest *req,
     m_CanDoRequest = false;
 
     if (reusesock) {
-        native_http_connected(m_CurrentSock, net, NULL);
+        nidium_http_connected(m_CurrentSock, net, NULL);
     }
 
     return true;
@@ -685,7 +685,7 @@ int HTTP::ParseURI(char *url, size_t url_len, char *host,
 }
 
 HTTPRequest::HTTPRequest(const char *url) :
-    method(NATIVE_HTTP_GET), host(NULL), path(NULL), data(NULL), datalen(0),
+    method(HTTP_GET), host(NULL), path(NULL), data(NULL), datalen(0),
     datafree(free), headers(ape_array_new(8)), m_isSSL(false) 
 {
     this->resetURL(url);
@@ -750,19 +750,19 @@ buffer *HTTPRequest::getHeadersData() const
     buffer *ret = buffer_new(1024);
 
     switch (this->method) {
-        case NATIVE_HTTP_GET:
+        case HTTP_GET:
             buffer_append_string_n(ret, CONST_STR_LEN("GET "));
             break;
-        case NATIVE_HTTP_HEAD:
+        case HTTP_HEAD:
             buffer_append_string_n(ret, CONST_STR_LEN("HEAD "));
             break;
-        case NATIVE_HTTP_POST:
+        case HTTP_POST:
             buffer_append_string_n(ret, CONST_STR_LEN("POST "));
             break;
-        case NATIVE_HTTP_PUT:
+        case HTTP_PUT:
             buffer_append_string_n(ret, CONST_STR_LEN("PUT "));
             break;
-        case NATIVE_HTTP_DELETE:
+        case HTTP_DELETE:
             buffer_append_string_n(ret, CONST_STR_LEN("DELETE "));
             break;
     }

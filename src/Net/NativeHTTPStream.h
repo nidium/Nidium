@@ -8,7 +8,7 @@
 
 #include "Core/Messages.h"
 #include "IO/Stream.h"
-#include "Net/NativeHTTP.h"
+#include "Net/HTTP.h"
 
 class NativeHTTPStream : public Nidium::IO::Stream,
                          public Nidium::Net::HTTPDelegate

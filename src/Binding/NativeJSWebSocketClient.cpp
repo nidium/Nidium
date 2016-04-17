@@ -15,7 +15,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#include "Net/NativeHTTP.h"
+#include "Net/HTTP.h"
 #include "NativeJSUtils.h"
 
 using namespace Nidium::Net;

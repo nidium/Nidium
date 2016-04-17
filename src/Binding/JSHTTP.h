@@ -10,8 +10,7 @@
 #include <ape_array.h>
 
 #include "JSExposer.h"
-#include "Net/NativeHTTP.h"
-
+#include "Net/HTTP.h"
 
 namespace Nidium {
 namespace Binding {

@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativehttp_h__
-#define nativehttp_h__
+#ifndef net_http_h__
+#define net_http_h__
 
 #include <string>
 
@@ -25,11 +25,11 @@ class HTTPRequest
 {
     public:
         enum {
-            NATIVE_HTTP_GET,
-            NATIVE_HTTP_POST,
-            NATIVE_HTTP_HEAD,
-            NATIVE_HTTP_PUT,
-            NATIVE_HTTP_DELETE
+            HTTP_GET,
+            HTTP_POST,
+            HTTP_HEAD,
+            HTTP_PUT,
+            HTTP_DELETE
         } method;
 
         explicit HTTPRequest(const char *url);
@@ -51,7 +51,7 @@ class HTTPRequest
             }
             data = NULL;
             datalen = 0;
-            method = NATIVE_HTTP_GET;
+            method = HTTP_GET;
 
             this->setDefaultHeaders();
         }
@@ -152,7 +152,7 @@ public:
         DATA_JSON,
         DATA_NULL,
         DATA_END
-    } native_http_data_type;
+    } nidium_http_data_type;
 
     enum HTTPError {
         ERROR_NOERR,
@@ -318,7 +318,7 @@ class HTTPDelegate
 };
 
 }  /* namespace Core */
-}  /* namespace Native */
+}  /* namespace Nidium */
 
 #endif
 
