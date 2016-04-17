@@ -3,20 +3,23 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeJSHTTPListener.h"
+#include "JSHTTPServer.h"
 
 #include <stdbool.h>
 #include <unistd.h>
 
 #include "NativeJSUtils.h"
 
+namespace Nidium {
+namespace Binding {
+
 static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj);
 
-static bool native_httpresponse_write(JSContext *cx,
+static bool nidium_httpresponse_write(JSContext *cx,
     unsigned argc, JS::Value *vp);
-static bool native_httpresponse_end(JSContext *cx,
+static bool nidium_httpresponse_end(JSContext *cx,
     unsigned argc, JS::Value *vp);
-static bool native_httpresponse_writeHead(JSContext *cx,
+static bool nidium_httpresponse_writeHead(JSContext *cx,
     unsigned argc, JS::Value *vp);
 
 static JSClass HTTPListener_class = {
@@ -27,7 +30,7 @@ static JSClass HTTPListener_class = {
 };
 
 template<>
-JSClass *Nidium::Binding::JSExposer<NativeJSHTTPListener>::jsclass = &HTTPListener_class;
+JSClass *Nidium::Binding::JSExposer<JSHTTPServer>::jsclass = &HTTPListener_class;
 
 static JSClass HTTPRequest_class = {
     "HTTPRequest", JSCLASS_HAS_PRIVATE,
@@ -39,9 +42,9 @@ static JSClass HTTPRequest_class = {
     TODO: write is for response
 */
 static JSFunctionSpec HTTPResponse_funcs[] = {
-    JS_FN("write", native_httpresponse_write, 1, NATIVE_JS_FNPROPS),
-    JS_FN("end", native_httpresponse_end, 0, NATIVE_JS_FNPROPS),
-    JS_FN("writeHead", native_httpresponse_writeHead, 1, NATIVE_JS_FNPROPS),
+    JS_FN("write", nidium_httpresponse_write, 1, NATIVE_JS_FNPROPS),
+    JS_FN("end", nidium_httpresponse_end, 0, NATIVE_JS_FNPROPS),
+    JS_FN("writeHead", nidium_httpresponse_writeHead, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
@@ -53,52 +56,52 @@ static JSPropertySpec HTTPRequest_props[] = {
 
 static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeJSHTTPListener *server = (NativeJSHTTPListener *)JS_GetPrivate(obj);
+    JSHTTPServer *server = (JSHTTPServer *)JS_GetPrivate(obj);
 
     if (server != NULL) {
         delete server;
     }
 }
 
-NativeJSHTTPResponse::NativeJSHTTPResponse(JSContext *cx, uint16_t code) :
+JSHTTPResponse::JSHTTPResponse(JSContext *cx, uint16_t code) :
         NativeHTTPResponse(code),
         JSObjectMapper(cx, "HTTPResponse")
 {
     JS_DefineFunctions(cx, m_JSObj, HTTPResponse_funcs);
 }
 
-NativeJSHTTPListener::NativeJSHTTPListener(JS::HandleObject obj, JSContext *cx,
+JSHTTPServer::JSHTTPServer(JS::HandleObject obj, JSContext *cx,
     uint16_t port, const char *ip) :
-    Nidium::Binding::JSExposer<NativeJSHTTPListener>(obj, cx),
+    Nidium::Binding::JSExposer<JSHTTPServer>(obj, cx),
     NativeHTTPListener(port, ip)
 {
 
 }
 
-NativeJSHTTPListener::~NativeJSHTTPListener()
+JSHTTPServer::~JSHTTPServer()
 {
 
 }
 
-void NativeJSHTTPListener::onClientDisconnect(NativeHTTPClientConnection *client)
+void JSHTTPServer::onClientDisconnect(NativeHTTPClientConnection *client)
 {
 
 }
 
-void NativeJSHTTPListener::onData(NativeHTTPClientConnection *client,
+void JSHTTPServer::onData(NativeHTTPClientConnection *client,
     const char *buf, size_t len)
 {
     // on progress
 }
 
-bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
+bool JSHTTPServer::onEnd(NativeHTTPClientConnection *client)
 {
     buffer *k, *v;
 
     JS::RootedValue rval(m_Cx);
     JS::RootedValue oncallback(m_Cx);
 
-    NativeJSHTTPClientConnection *subclient = static_cast<NativeJSHTTPClientConnection *>(client);
+    JSHTTPClientConnection *subclient = static_cast<JSHTTPClientConnection *>(client);
 
     JS::RootedObject objrequest(m_Cx, JS_NewObject(m_Cx, &HTTPRequest_class, JS::NullPtr(), JS::NullPtr()));
     JS::RootedObject headers(m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
@@ -158,20 +161,20 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
 
         JS::AutoValueArray<2> arg(m_Cx);
         arg[0].setObjectOrNull(objrequest);
-        arg[1].setObjectOrNull(static_cast<NativeJSHTTPResponse*>(client->getResponse())->getJSObject());
+        arg[1].setObjectOrNull(static_cast<JSHTTPResponse*>(client->getResponse())->getJSObject());
         JS_CallFunctionValue(m_Cx, obj, oncallback, arg, &rval);
     }
 
     return false;
 }
 
-static bool native_HTTPListener_constructor(JSContext *cx,
+static bool nidium_HTTPListener_constructor(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     uint16_t port;
     JS::RootedString ip_bind(cx);
     bool reuseport = false;
-    NativeJSHTTPListener *listener;
+    JSHTTPServer *listener;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (!args.isConstructing()) {
@@ -187,9 +190,9 @@ static bool native_HTTPListener_constructor(JSContext *cx,
 
     if (ip_bind) {
         JSAutoByteString cip(cx, ip_bind);
-        listener = new NativeJSHTTPListener(ret, cx, port, cip.ptr());
+        listener = new JSHTTPServer(ret, cx, port, cip.ptr());
     } else {
-        listener = new NativeJSHTTPListener(ret, cx, port);
+        listener = new JSHTTPServer(ret, cx, port);
     }
 
     if (!listener->start((bool)reuseport)) {
@@ -207,7 +210,7 @@ static bool native_HTTPListener_constructor(JSContext *cx,
 }
 
 #if 0
-static bool native_HTTPRequest_class_constructor(JSContext *cx,
+static bool nidium_HTTPRequest_class_constructor(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     JS_ReportError(cx, "Illegal constructor");
@@ -215,14 +218,14 @@ static bool native_HTTPRequest_class_constructor(JSContext *cx,
 }
 #endif
 
-static bool native_httpresponse_write(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_httpresponse_write(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     NIDIUM_JS_CHECK_ARGS("write", 1);
 
-    NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller);
+    JSHTTPResponse *resp = JSHTTPResponse::getObject(caller);
     if (!resp) {
         return true;
     }
@@ -252,12 +255,12 @@ static bool native_httpresponse_write(JSContext *cx, unsigned argc, JS::Value *v
     return true;
 }
 
-static bool native_httpresponse_end(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_httpresponse_end(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
-    NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller);
+    JSHTTPResponse *resp = JSHTTPResponse::getObject(caller);
     if (!resp) {
         return true;
     }
@@ -287,7 +290,7 @@ static bool native_httpresponse_end(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     uint16_t statuscode;
 
@@ -299,7 +302,7 @@ static bool native_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Valu
         return false;
     }
 
-    NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller);
+    JSHTTPResponse *resp = JSHTTPResponse::getObject(caller);
     if (!resp) {
         return true;
     }
@@ -339,17 +342,20 @@ static bool native_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Valu
     return true;
 }
 
-void NativeJSHTTPListener::registerObject(JSContext *cx)
+void JSHTTPServer::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_InitClass(cx, global, JS::NullPtr(), &HTTPListener_class,
-        native_HTTPListener_constructor,
+        nidium_HTTPListener_constructor,
         0, NULL, NULL, NULL, NULL);
 #if 0
     //TODO: how to init a class from a NativeJSObjectMapper derived class
     JS_InitClass(cx, global, NULL, &HTTPRequest_class,
-                native_HTTPRequest_class_constructor,
+                nidium_HTTPRequest_class_constructor,
                 0, HTTPRequest_props, HTTPRequest_funcs, NULL, NULL);
 #endif
 }
+
+} // namespace Binding
+} // namespace Nidium
 

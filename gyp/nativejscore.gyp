@@ -112,7 +112,7 @@
             '../src/Binding/JSModules.cpp',
             '../src/Binding/JSSocket.cpp',
             '../src/Binding/JSThread.cpp',
-            '../src/Binding/NativeJSHTTPListener.cpp',
+            '../src/Binding/JSHTTPServer.cpp',
             '../src/Binding/JSDebug.cpp',
             '../src/Binding/JSDebugger.cpp',
             '../src/Binding/JSConsole.cpp',

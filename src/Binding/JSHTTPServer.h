@@ -3,46 +3,50 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativejshttplistener_h__
-#define nativejshttplistener_h__
+#ifndef binding_jshttpserver_h__
+#define binding_jshttpserver_h__
 
 #include "JSExposer.h"
 #include "Net/NativeHTTPListener.h"
 
-class NativeJSHTTPClientConnection;
+namespace Nidium {
+namespace Binding {
 
-class NativeJSHTTPResponse : public NativeHTTPResponse,
-                             public Nidium::Binding::JSObjectMapper<NativeJSHTTPResponse>
+class JSHTTPClientConnection;
+
+class JSHTTPResponse : public NativeHTTPResponse,
+                             public Nidium::Binding::JSObjectMapper<JSHTTPResponse>
 {
 public:
-    friend NativeJSHTTPClientConnection;
+    friend JSHTTPClientConnection;
 protected:
-    explicit NativeJSHTTPResponse(JSContext *cx, uint16_t code = 200);
+    explicit JSHTTPResponse(JSContext *cx, uint16_t code = 200);
 };
 
-class NativeJSHTTPClientConnection : public NativeHTTPClientConnection,
-                                     public Nidium::Binding::JSObjectMapper<NativeJSHTTPClientConnection>
+class JSHTTPClientConnection : public NativeHTTPClientConnection,
+                                     public Nidium::Binding::JSObjectMapper<JSHTTPClientConnection>
 {
 public:
-    NativeJSHTTPClientConnection(JSContext *cx, NativeHTTPListener *httpserver,
+    JSHTTPClientConnection(JSContext *cx, NativeHTTPListener *httpserver,
         ape_socket *socket) :
         NativeHTTPClientConnection(httpserver, socket),
         JSObjectMapper(cx, "HTTPClientConnection") {}
     virtual NativeHTTPResponse *onCreateResponse() {
-        return new NativeJSHTTPResponse(m_JSCx);
+        return new JSHTTPResponse(m_JSCx);
     }
 };
 
-class NativeJSHTTPListener :    public Nidium::Binding::JSExposer<NativeJSHTTPListener>,
+
+class JSHTTPServer :    public Nidium::Binding::JSExposer<JSHTTPServer>,
                                 public NativeHTTPListener
 {
 public:
-    NativeJSHTTPListener(JS::HandleObject obj, JSContext *cx,
+    JSHTTPServer(JS::HandleObject obj, JSContext *cx,
         uint16_t port, const char *ip = "0.0.0.0");
-    virtual ~NativeJSHTTPListener();
+    virtual ~JSHTTPServer();
     virtual void onClientConnect(ape_socket *client, ape_global *ape) {
-        NativeJSHTTPClientConnection *conn;
-        client->ctx = conn = new NativeJSHTTPClientConnection(m_Cx, this, client);
+        JSHTTPClientConnection *conn;
+        client->ctx = conn = new JSHTTPClientConnection(m_Cx, this, client);
 
         JS::RootedObject obj(m_Cx, conn->getJSObject());
 
@@ -57,6 +61,9 @@ public:
     static void registerObject(JSContext *cx);
 private:
 };
+
+} // namespace Binding
+} // namespace Nidium
 
 #endif
 
