@@ -7,12 +7,16 @@
 #include <ape_buffer.h>
 #include <semaphore.h>
 
-class NativeJS;
+namespace Nidium {
+    namespace Binding {
+        class NidiumJS;
+    }
+}
 
 class NativeREPL : public Nidium::Core::Messages
 {
 public:
-    NativeREPL(NativeJS *js);
+    NativeREPL(Nidium::Binding::NidiumJS *js);
     ~NativeREPL();
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
     void onMessageLost(const Nidium::Core::SharedMessages::Message &msg);
@@ -38,7 +42,7 @@ private:
     pthread_t m_ThreadHandle;
     sem_t m_ReadLineLock;
 
-    NativeJS *m_JS;
+    Nidium::Binding::NidiumJS *m_JS;
 
     buffer *m_Buffer;
 

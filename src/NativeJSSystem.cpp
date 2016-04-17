@@ -1,5 +1,5 @@
 #include "NativeJSSystem.h"
-#include <Binding/NativeJS.h>
+#include <Binding/NidiumJS.h>
 
 #include "NativeContext.h"
 #include "NativeMacros.h"

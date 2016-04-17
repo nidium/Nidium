@@ -1,7 +1,7 @@
 #include "NativeREPL.h"
 #include "NativeMacros.h"
 
-#include <Binding/NativeJS.h>
+#include <Binding/NidiumJS.h>
 #include "external/linenoise.h"
 
 #include <stdio.h>
@@ -26,7 +26,7 @@ static void *native_repl_thread(void *arg)
     sprintf(historyPath, "%s/%s", homedir, ".nidium-repl-history");
 
     linenoiseHistoryLoad(historyPath);
-    
+
 repl:
     while ((line = linenoise(repl->isContinuing() ? "... " : "nidium> ")) != NULL) {
         repl->setExitCount(0);
@@ -49,11 +49,11 @@ repl:
     }
 
     kill(getppid(), SIGINT);
-    
+
     return NULL;
 }
 
-NativeREPL::NativeREPL(NativeJS *js)
+NativeREPL::NativeREPL(Nidium::Binding::NidiumJS *js)
     : m_JS(js), m_Continue(false), m_ExitCount(0)
 {
     m_Buffer = buffer_new(512);

@@ -8,7 +8,7 @@
 #include <Core/NativePath.h>
 #include <IO/FileStream.h>
 #include <Net/HTTPStream.h>
-#include <Binding/NativeJS.h>
+#include <Binding/NidiumJS.h>
 
 #include "NativeJSConsole.h"
 #include "NativeJSSystem.h"
@@ -19,7 +19,7 @@
 static int NativeContext_ping(void *arg)
 {
     static uint64_t framecount = 0;
-    NativeJS *js = (NativeJS *)arg;
+    Nidium::Binding::NidiumJS *js = (Nidium::Binding::NidiumJS *)arg;
 
     if (++framecount % 1000 == 0) {
         js->gc();
@@ -44,7 +44,7 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
         fprintf(stderr, "[Warn] Failed to get current working directory\n");
     }
 
-    m_JS = new NativeJS(net);
+    m_JS = new Nidium::Binding::NidiumJS(net);
     m_JS->setPrivate(this);
     m_JS->setStrictMode(jsstrict);
 

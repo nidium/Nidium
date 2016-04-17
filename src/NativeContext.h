@@ -1,7 +1,7 @@
 #ifndef nativecontext_h__
 #define nativecontext_h__
 
-#include <Binding/NativeJS.h>
+#include <Binding/NidiumJS.h>
 
 class NativeWorker;
 
@@ -12,15 +12,15 @@ public:
     NativeContext(ape_global *ape, NativeWorker *worker, bool jsstrict = false, bool runInREPL = false);
     ~NativeContext();
 
-    static NativeContext *getNativeClass(struct JSContext *cx) {
-        return (NativeContext *)NativeJS::getNativeClass(cx)->getPrivate();
+    static NativeContext *getNidiumClass(struct JSContext *cx) {
+        return (NativeContext *)Nidium::Binding::NidiumJS::getNidiumClass(cx)->getPrivate();
     }
 
-    static NativeContext *getNativeClass(NativeJS *njs) {
+    static NativeContext *getNidiumClass(Nidium::Binding::NidiumJS *njs) {
         return (NativeContext *)njs->getPrivate();
     }
 
-    NativeJS *getNJS() const {
+    Nidium::Binding::NidiumJS *getNJS() const {
         return m_JS;
     }
 
@@ -32,7 +32,7 @@ public:
         return m_RunInREPL;
     }
 private:
-    NativeJS *m_JS;
+    Nidium::Binding::NidiumJS *m_JS;
     NativeWorker *m_Worker;
     bool m_RunInREPL;
 };

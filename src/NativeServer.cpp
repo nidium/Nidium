@@ -277,7 +277,7 @@ int NativeWorker::run(int argc, char **argv, bool jsstrict)
     signal(SIGPIPE, SIG_IGN);
 
     NativeContext ctx(net, this, jsstrict, m_RunREPL);
-    const NativeJS *js = ctx.getNJS();
+    const Nidium::Binding::NidiumJS *js = ctx.getNJS();
     Nidium::Binding::JSProcess::registerObject(js->getJSContext(), argv, argc,
         this->getIdentifier());
 
@@ -292,7 +292,7 @@ int NativeWorker::run(int argc, char **argv, bool jsstrict)
         fprintf(stdout, "[JS] Strict mode is enabled\n");
     }
     if (argc >= 1) {
-        NativeJS *js = ctx.getNJS();
+        Nidium::Binding::NidiumJS *js = ctx.getNJS();
         if (!js) {
             fprintf(stderr, "Failed to get JS\n");
             return 0;
@@ -301,7 +301,7 @@ int NativeWorker::run(int argc, char **argv, bool jsstrict)
     }
 
     /* Heap allocated because we need to be
-    sure that it's deleted before NativeJS */
+    sure that it's deleted before Nidium::Binding::NidiumJS */
     if (m_RunREPL) {
         repl = new NativeREPL(ctx.getNJS());
     }
