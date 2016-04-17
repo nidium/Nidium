@@ -12,11 +12,11 @@ public:
     NativeContext(ape_global *ape, NativeWorker *worker, bool jsstrict = false, bool runInREPL = false);
     ~NativeContext();
 
-    static NativeContext *getNidiumClass(struct JSContext *cx) {
-        return (NativeContext *)Nidium::Binding::NidiumJS::getNidiumClass(cx)->getPrivate();
+    static NativeContext *GetObject(struct JSContext *cx) {
+        return (NativeContext *)Nidium::Binding::NidiumJS::GetObject(cx)->getPrivate();
     }
 
-    static NativeContext *getNidiumClass(Nidium::Binding::NidiumJS *njs) {
+    static NativeContext *GetObject(Nidium::Binding::NidiumJS *njs) {
         return (NativeContext *)njs->getPrivate();
     }
 

@@ -54,7 +54,7 @@ static bool native_console_log(JSContext *cx, unsigned argc,
         filename_parent = &fname[1];
     }
 
-    NativeContext *nctx = NativeContext::getNidiumClass(cx);
+    NativeContext *nctx = NativeContext::GetObject(cx);
 
     for (i = 0; i < args.length(); i++) {
         JS::RootedString str(cx, JS::ToString(cx, args[i]));
@@ -82,7 +82,7 @@ static bool native_console_log(JSContext *cx, unsigned argc,
 static bool native_console_write(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    Nidium::Binding::NidiumJS *js = Nidium::Binding::NidiumJS::getNidiumClass(cx);
+    Nidium::Binding::NidiumJS *js = Nidium::Binding::NidiumJS::GetObject(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     NIDIUM_JS_CHECK_ARGS("write", 1);
