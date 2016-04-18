@@ -54,10 +54,13 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
 
     Nidium::Core::TaskManager::createManager();
     Nidium::Core::Messages::initReader(net);
+
     m_JS->loadGlobalObjects();
 
     NativeJSconsole::registerObject(m_JS->cx);
     NativeJSSystem::registerObject(m_JS->cx);
+    
+    m_JS->setPath(Nidium::Core::Path::getPwd());
 
     APE_timer_create(net, 1, NativeContext_ping, (void *)m_JS);
 }
