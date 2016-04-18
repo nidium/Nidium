@@ -11,7 +11,7 @@
 namespace Nidium {
 namespace Binding {
 
-class JSDebugger : public Nidium::Binding::JSExposer<JSDebugger>
+class JSDebugger : public JSExposer<JSDebugger>
 {
   public:
     static void registerObject(JSContext *cx);

@@ -17,14 +17,14 @@ namespace Core {
 /*
     TODO: make thread local storage
 */
-static Nidium::Core::SharedMessages *g_MessagesList;
+static SharedMessages *g_MessagesList;
 
 static int Messages_handle(void *arg)
 {
 #define MAX_MSG_IN_ROW 256
     int nread = 0;
 
-    Nidium::Core::SharedMessages::Message *msg;
+    SharedMessages::Message *msg;
 
     /*
         TODO: need a lock for "obj"
@@ -39,7 +39,7 @@ static int Messages_handle(void *arg)
     return 8;
 }
 
-static void Messages_lost(const Nidium::Core::SharedMessages::Message &msg)
+static void Messages_lost(const SharedMessages::Message &msg)
 {
     Messages *obj = static_cast<Messages *>(msg.dest());
     obj->onMessageLost(msg);
@@ -58,24 +58,24 @@ Messages::~Messages()
     ape_htable_item_t *item;
 
     for (item = m_Listening.accessCStruct()->first; item != NULL; item = item->lnext) {
-        Nidium::Core::Events *sender = (Nidium::Core::Events *)item->content.addrs;
+        Events *sender = (Events *)item->content.addrs;
         sender->removeListener(this, false);
     }
 }
 
 void Messages::postMessage(void *dataptr, int event, bool forceAsync)
 {
-    Nidium::Core::SharedMessages::Message *msg = new Nidium::Core::SharedMessages::Message(dataptr, event);
+    SharedMessages::Message *msg = new SharedMessages::Message(dataptr, event);
     this->postMessage(msg, forceAsync);
 }
 
 void Messages::postMessage(uint64_t dataint, int event, bool forceAsync)
 {
-    Nidium::Core::SharedMessages::Message *msg = new Nidium::Core::SharedMessages::Message(dataint, event);
+    SharedMessages::Message *msg = new SharedMessages::Message(dataint, event);
     this->postMessage(msg, forceAsync);
 }
 
-void Messages::postMessage(Nidium::Core::SharedMessages::Message *msg, bool forceAsync)
+void Messages::postMessage(SharedMessages::Message *msg, bool forceAsync)
 {
     msg->setDest(this);
 
@@ -96,7 +96,7 @@ void Messages::postMessage(Nidium::Core::SharedMessages::Message *msg, bool forc
 
 void Messages::initReader(ape_global *ape)
 {
-    g_MessagesList = new Nidium::Core::SharedMessages();
+    g_MessagesList = new SharedMessages();
 
     g_MessagesList->setCleaner(Messages_lost);
 
@@ -106,7 +106,7 @@ void Messages::initReader(ape_global *ape)
     APE_timer_unprotect(timer);
 }
 
-void Messages::listenFor(Nidium::Core::Events *obj, bool enable)
+void Messages::listenFor(Events *obj, bool enable)
 {
     if (enable) {
         m_Listening.set((uint64_t)obj, obj);
@@ -125,7 +125,7 @@ void Messages::destroyReader()
     delete g_MessagesList;
 }
 
-Nidium::Core::SharedMessages *Messages::getSharedMessages()
+SharedMessages *Messages::getSharedMessages()
 {
     return g_MessagesList;
 }

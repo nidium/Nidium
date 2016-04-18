@@ -34,7 +34,7 @@ void *TaskManager::workerInfo::work()
         }
         pthread_mutex_unlock(&m_Lock);
 
-        Nidium::Core::SharedMessages::Message *msg;
+        SharedMessages::Message *msg;
 
         while ((msg = m_Messages.readMessage())) {
             Task *task = (Task *)msg->dataPtr();
@@ -53,7 +53,7 @@ void TaskManager::workerInfo::stop()
     if (m_Stop) {
         return;
     }
-    Nidium::Core::PthreadAutoLock npal(&m_Lock);
+    PthreadAutoLock npal(&m_Lock);
     m_Stop = true;
     pthread_cond_signal(&m_Cond);
 }
@@ -63,7 +63,7 @@ void TaskManager::workerInfo::waitTerminate()
     pthread_join(m_Handle, NULL);
 }
 
-void TaskManager_workerInfo_MessageCleaner(const Nidium::Core::SharedMessages::Message &msg)
+void TaskManager_workerInfo_MessageCleaner(const SharedMessages::Message &msg)
 {
     Task *task = (Task *)msg.dataPtr();
     delete task;
@@ -94,7 +94,7 @@ void TaskManager::workerInfo::run()
 
 void TaskManager::workerInfo::addTask(Task *task)
 {
-    Nidium::Core::SharedMessages::Message *msg = new Nidium::Core::SharedMessages::Message(task, 0);
+    SharedMessages::Message *msg = new SharedMessages::Message(task, 0);
 
     /*
         Set the caller as destination so that messages
@@ -104,7 +104,7 @@ void TaskManager::workerInfo::addTask(Task *task)
     msg->setDest(task->getObject());
     m_Messages.postMessage(msg);
 
-    Nidium::Core::PthreadAutoLock npal(&m_Lock);
+    PthreadAutoLock npal(&m_Lock);
     pthread_cond_signal(&m_Cond);
 }
 

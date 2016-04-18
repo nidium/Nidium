@@ -38,7 +38,7 @@ public:
             m_Manager = manager;
         }
 
-        Nidium::Core::SharedMessages *getMessages() {
+        SharedMessages *getMessages() {
             return &m_Messages;
         }
     private:
@@ -47,7 +47,7 @@ public:
         pthread_cond_t m_Cond;
         bool m_Stop;
         TaskManager *m_Manager;
-        Nidium::Core::SharedMessages m_Messages;
+        SharedMessages m_Messages;
     };
 
     TaskManager();
@@ -90,7 +90,7 @@ public:
         return m_Obj;
     }
 
-    Nidium::Core::Args args;
+    Args args;
 
     friend class Managed;
 private:
@@ -103,7 +103,7 @@ private:
 #undef MAX_ARG
 };
 
-class Managed : public Nidium::Core::Messages
+class Managed : public Messages
 {
 public:
     Managed() : m_TaskQueued(0), m_Worker(NULL) {

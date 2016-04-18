@@ -11,7 +11,7 @@
 namespace Nidium {
 namespace Binding {
 
-class JSConsole : public Nidium::Binding::JSExposer<JSConsole>
+class JSConsole : public JSExposer<JSConsole>
 {
   public:
     static void registerObject(JSContext *cx);

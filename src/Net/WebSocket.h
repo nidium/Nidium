@@ -15,7 +15,7 @@ namespace Net {
 
 #define WEBSOCKET_PING_INTERVAL 5000 /* ms */
 
-class WebSocketListener : public Nidium::Net::HTTPServer
+class WebSocketListener : public HTTPServer
 {
 public:
     static const uint8_t EventID = 4;
@@ -29,15 +29,15 @@ public:
     WebSocketListener(uint16_t port, const char *ip = "0.0.0.0");
     virtual void onClientConnect(ape_socket *client, ape_global *ape);
 
-    virtual bool onEnd(Nidium::Net::HTTPClientConnection *client) override {
+    virtual bool onEnd(HTTPClientConnection *client) override {
         return false;
     };
 };
 
-class WebSocketClientConnection : public Nidium::Net::HTTPClientConnection
+class WebSocketClientConnection : public HTTPClientConnection
 {
 public:
-    WebSocketClientConnection(Nidium::Net::HTTPServer *httpserver, ape_socket *socket);
+    WebSocketClientConnection(HTTPServer *httpserver, ape_socket *socket);
     ~WebSocketClientConnection();
 
     virtual void onFrame(const char *data, size_t len, bool binary);

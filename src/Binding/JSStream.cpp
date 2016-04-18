@@ -33,7 +33,7 @@ static JSClass Stream_class = {
 };
 
 template<>
-JSClass *Nidium::Binding::JSExposer<JSStream>::jsclass = &Stream_class;
+JSClass *JSExposer<JSStream>::jsclass = &Stream_class;
 
 static JSFunctionSpec Stream_funcs[] = {
     JS_FN("seek", nidium_stream_seek, 1, NATIVE_JS_FNPROPS),
@@ -210,8 +210,7 @@ static bool nidium_Stream_constructor(JSContext *cx, unsigned argc, JS::Value *v
 }
 
 JSStream::JSStream(JS::HandleObject obj, JSContext *cx,
-    ape_global *net, const char *url) :
-    Nidium::Binding::JSExposer<JSStream>(obj, cx)
+    ape_global *net, const char *url) : JSExposer<JSStream>(obj, cx)
 {
     std::string str = url;
     //str += NidiumJS::getNidiumClass(cx)->getPath();

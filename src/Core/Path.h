@@ -21,15 +21,12 @@
 
 #include <ape_array.h>
 
+struct JSContext;
+
 namespace Nidium {
 	namespace IO {
 		class Stream;
 	}
-}
-
-struct JSContext;
-
-namespace Nidium {
 namespace Core {
 
 #define MAX_REGISTERED_SCHEMES 1024

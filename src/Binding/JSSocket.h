@@ -22,7 +22,7 @@ enum {
 
 #define SOCKET_LINEBUFFER_MAX 8192
 
-class JSSocket : public Nidium::Binding::JSExposer<JSSocket>
+class JSSocket : public JSExposer<JSSocket>
 {
 public:
     static void registerObject(JSContext *cx);

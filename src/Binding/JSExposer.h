@@ -613,7 +613,7 @@ protected:
 
 typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 
-#define NidiumJSObj(cx) (Nidium::Binding::NidiumJS::GetObject(cx))
+#define NidiumJSObj(cx) (NidiumJS::GetObject(cx))
 
 #define NIDIUM_JS_OBJECT_EXPOSE(name) \
     void  JS ## name::registerObject(JSContext *cx) \
@@ -780,13 +780,13 @@ private:
     This template act as a workaround (create a unique getter/setter and keep a unique identifier)
 */
 #define NIDIUM_JS_SETTER(tinyid, setter) \
-    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}}
+    {{JS_CAST_NATIVE_TO((JSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}}
 #define NIDIUM_JS_SETTER_WRS(tinyid, setter) \
-    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::SetterWithReservedSlot<tinyid, setter>), JSStrictPropertyOp), nullptr}}
+    {{JS_CAST_NATIVE_TO((JSPropertyAccessors::SetterWithReservedSlot<tinyid, setter>), JSStrictPropertyOp), nullptr}}
 #define NIDIUM_JS_GETTER(tinyid, getter) \
-    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}}
+    {{JS_CAST_NATIVE_TO((JSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}}
 #define NIDIUM_JS_STUBGETTER(tinyid) \
-    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::NullGetter<tinyid>), JSPropertyOp), nullptr}}
+    {{JS_CAST_NATIVE_TO((JSPropertyAccessors::NullGetter<tinyid>), JSPropertyOp), nullptr}}
 
 /* Getter only */
 #define NIDIUM_JS_PSG(name, tinyid, getter_func) \

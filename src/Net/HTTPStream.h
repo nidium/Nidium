@@ -13,7 +13,7 @@
 namespace Nidium {
 namespace Net {
 
-class HTTPStream : public Nidium::IO::Stream, public Nidium::Net::HTTPDelegate
+class HTTPStream : public Nidium::IO::Stream, public HTTPDelegate
 {
 public:
     explicit HTTPStream(const char *location);
@@ -52,12 +52,11 @@ protected:
         return m_BytesBuffered == m_Mapped.size;
     }
 private:
-    Nidium::Net::HTTP *m_Http;
+    HTTP *m_Http;
 
-    void onRequest(Nidium::Net::HTTP::HTTPData *h, Nidium::Net::HTTP::DataType);
-    void onProgress(size_t offset, size_t len, Nidium::Net::HTTP::HTTPData *h,
-        Nidium::Net::HTTP::DataType);
-    void onError(Nidium::Net::HTTP::HTTPError err);
+    void onRequest(HTTP::HTTPData *h, HTTP::DataType);
+    void onProgress(size_t offset, size_t len, HTTP::HTTPData *h, HTTP::DataType);
+    void onError(HTTP::HTTPError err);
     void onHeader();
     void cleanCacheFile();
 

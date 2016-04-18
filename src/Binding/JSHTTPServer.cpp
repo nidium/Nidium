@@ -30,7 +30,7 @@ static JSClass HTTPListener_class = {
 };
 
 template<>
-JSClass *Nidium::Binding::JSExposer<JSHTTPServer>::jsclass = &HTTPListener_class;
+JSClass *JSExposer<JSHTTPServer>::jsclass = &HTTPListener_class;
 
 static JSClass HTTPRequest_class = {
     "HTTPRequest", JSCLASS_HAS_PRIVATE,
@@ -72,7 +72,7 @@ JSHTTPResponse::JSHTTPResponse(JSContext *cx, uint16_t code) :
 
 JSHTTPServer::JSHTTPServer(JS::HandleObject obj, JSContext *cx,
     uint16_t port, const char *ip) :
-    Nidium::Binding::JSExposer<JSHTTPServer>(obj, cx),
+    JSExposer<JSHTTPServer>(obj, cx),
     HTTPServer(port, ip)
 {
 

@@ -13,7 +13,7 @@
 namespace Nidium {
 namespace Binding {
 
-class JSWebSocketServer : public Nidium::Binding::JSExposer<JSWebSocketServer>,
+class JSWebSocketServer : public JSExposer<JSWebSocketServer>,
                                 public Nidium::Core::Messages
 {
 public:

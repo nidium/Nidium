@@ -14,13 +14,13 @@
 namespace Nidium {
 namespace IO {
 
-class FileStream : public Nidium::IO::Stream,
+class FileStream : public Stream,
                          public Nidium::Core::Messages
 {
 public:
     explicit FileStream(const char *location);
 
-    static Nidium::IO::Stream *createStream(const char *location) {
+    static Stream *createStream(const char *location) {
         return new FileStream(location);
     }
     static const char *getBaseDir() {
@@ -52,7 +52,7 @@ protected:
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err);
     virtual void onStart(size_t packets, size_t seek);
 private:
-    Nidium::IO::File m_File;
+    File m_File;
 };
 
 } // namespace IO

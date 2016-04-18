@@ -15,7 +15,7 @@
 namespace Nidium {
 namespace Binding {
 
-class JSFileIO : public Nidium::Binding::JSExposer<JSFileIO>,
+class JSFileIO : public JSExposer<JSFileIO>,
                        public Nidium::Core::Messages
 {
   public:
@@ -31,7 +31,7 @@ class JSFileIO : public Nidium::Binding::JSExposer<JSFileIO>,
         JSObject *thisobj, const char *encoding = NULL);
 
     JSFileIO(JS::HandleObject obj, JSContext *cx) :
-        Nidium::Binding::JSExposer<JSFileIO>(obj, cx), m_Encoding(NULL) {
+        JSExposer<JSFileIO>(obj, cx), m_Encoding(NULL) {
     };
 
     ~JSFileIO() {

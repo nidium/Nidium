@@ -15,8 +15,7 @@
 namespace Nidium {
 namespace Binding {
 
-class JSWebSocket : public Nidium::Binding::JSExposer<JSWebSocket>,
-                                public Nidium::Core::Messages
+class JSWebSocket : public JSExposer<JSWebSocket>, public Nidium::Core::Messages
 {
 public:
     JSWebSocket(JS::HandleObject obj, JSContext *cx,

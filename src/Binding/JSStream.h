@@ -13,8 +13,7 @@
 namespace Nidium {
 namespace Binding {
 
-class JSStream :  public Nidium::Binding::JSExposer<JSStream>,
-                        public Nidium::Core::Messages
+class JSStream :  public JSExposer<JSStream>, public Nidium::Core::Messages
 {
   public:
     static void registerObject(JSContext *cx);

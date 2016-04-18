@@ -126,7 +126,7 @@ static bool nidium_debugger_create(JSContext* cx, unsigned argc, JS::Value* vp)
 
     JSDebugger::registerObject(cx);
     /* Expose console object for easy "debugging" */
-    Nidium::Binding::JSConsole::registerObject(cx);
+    JSConsole::registerObject(cx);
 
     JS::RootedScript script(cx);
     JS::AutoSaveContextOptions asco(cx);

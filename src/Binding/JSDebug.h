@@ -11,11 +11,11 @@
 namespace Nidium {
 namespace Binding {
 
-class JSDebug : public Nidium::Binding::JSExposer<JSDebug>
+class JSDebug : public JSExposer<JSDebug>
 {
   public:
     JSDebug(JS::HandleObject obj, JSContext *cx) :
-    Nidium::Binding::JSExposer<JSDebug>(obj, cx)
+    JSExposer<JSDebug>(obj, cx)
     {};
     virtual ~JSDebug() {};
 

@@ -55,7 +55,6 @@ struct nidium_sm_timer
 {
     JSContext *cx;
 
-
     JS::PersistentRootedObject global;
     JS::PersistentRootedValue **argv;
     JS::PersistentRootedValue func;
@@ -1043,31 +1042,20 @@ void NidiumJS::setPath(const char *path) {
 
 void NidiumJS::loadGlobalObjects()
 {
-    /* File() object */
-    Nidium::Binding::JSFileIO::registerObject(cx);
-    /* Socket() object */
-    Nidium::Binding::JSSocket::registerObject(cx);
-    /* Thread() object */
-    Nidium::Binding::JSThread::registerObject(cx);
-    /* Http() object */
-    Nidium::Binding::JSHTTP::registerObject(cx);
-    /* Stream() object */
-    Nidium::Binding::JSStream::registerObject(cx);
-    /* WebSocket*() object */
-    Nidium::Binding::JSWebSocketServer::registerObject(cx);
-    Nidium::Binding::JSWebSocket::registerObject(cx);
-    /* HttpServer object */
-    Nidium::Binding::JSHTTPServer::registerObject(cx);
-    /* console object */
-    Nidium::Binding::JSConsole::registerObject(cx);
-    /* fs object */
-    Nidium::Binding::JSFS::registerObject(cx);
-    /* Debug object */
-    Nidium::Binding::JSDebug::registerObject(cx);
-    /* Debugger object */
-    Nidium::Binding::JSDebugger::registerObject(cx);
+    JSFileIO::registerObject(cx);
+    JSSocket::registerObject(cx);
+    JSThread::registerObject(cx);
+    JSHTTP::registerObject(cx);
+    JSStream::registerObject(cx);
+    JSWebSocketServer::registerObject(cx);
+    JSWebSocket::registerObject(cx);
+    JSHTTPServer::registerObject(cx);
+    JSConsole::registerObject(cx);
+    JSFS::registerObject(cx);
+    JSDebug::registerObject(cx);
+    JSDebugger::registerObject(cx);
 
-    this->modules = new Nidium::Binding::JSModules(cx);
+    this->modules = new JSModules(cx);
     if (!this->modules) {
         JS_ReportOutOfMemory(cx);
         return;

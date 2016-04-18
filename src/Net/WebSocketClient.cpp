@@ -57,7 +57,7 @@ static void native_on_ws_client_frame(websocket_state *state,
 
 WebSocketClient::WebSocketClient(uint16_t port, const char *url,
     const char *host) :
-    Nidium::Net::HTTPParser(), m_Socket(NULL), m_Port(port), m_SSL(false)
+    HTTPParser(), m_Socket(NULL), m_Port(port), m_SSL(false)
 {
     m_Host = strdup(host);
     m_URL  = strdup(url);

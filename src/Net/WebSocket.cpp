@@ -34,8 +34,8 @@ void WebSocketListener::onClientConnect(ape_socket *client, ape_global *ape)
 }
 
 WebSocketClientConnection::WebSocketClientConnection(
-        Nidium::Net::HTTPServer *httpserver, ape_socket *socket) :
-    Nidium::Net::HTTPClientConnection(httpserver, socket), m_Handshaked(false),
+        HTTPServer *httpserver, ape_socket *socket) :
+    HTTPClientConnection(httpserver, socket), m_Handshaked(false),
     m_PingTimer(0), m_Data(NULL)
 {
     m_ClientTimeoutMs = 0; /* Disable HTTP timeout */

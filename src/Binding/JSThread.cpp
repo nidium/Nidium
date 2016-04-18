@@ -46,7 +46,7 @@ static JSClass Thread_class = {
 };
 
 template<>
-JSClass *Nidium::Binding::JSExposer<Nidium::Binding::JSThread>::jsclass = &Thread_class;
+JSClass *JSExposer<JSThread>::jsclass = &Thread_class;
 
 static JSClass messageEvent_class = {
     "ThreadMessageEvent", 0,
@@ -145,7 +145,7 @@ static void *nidium_thread(void *arg)
 
             js::SetDefaultObjectForContext(tcx, gbl);
 
-            Nidium::Binding::JSConsole::registerObject(tcx);
+            JSConsole::registerObject(tcx);
 
             JSAutoByteString str(tcx, nthread->jsFunction);
             char *scoped = new char[strlen(str.ptr()) + 128];
@@ -397,7 +397,7 @@ JSThread::~JSThread()
 }
 
 JSThread::JSThread(JS::HandleObject obj, JSContext *cx) :
-    Nidium::Binding::JSExposer<JSThread>(obj, cx),
+    JSExposer<JSThread>(obj, cx),
     jsFunction(cx), jsRuntime(NULL), jsCx(NULL),
     jsObject(NULL), njs(NULL), markedStop(false), m_CallerFileName(NULL)
 {

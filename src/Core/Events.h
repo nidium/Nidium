@@ -18,7 +18,7 @@ namespace Core {
 /*
     Implementation Note :
 
-    Children of Nidium::Core::Events must define a static
+    Children of Events must define a static
     const property "static const uint8_t EventID" with an unique 8bit identifier
 */
 class Events
@@ -37,7 +37,7 @@ public:
         }
     }
     template <typename T>
-    bool fireEvent(typename T::Events event, const Nidium::Core::Args &args,
+    bool fireEvent(typename T::Events event, const Args &args,
         bool forceAsync = false) {
 
         ape_htable_item_t *item;
@@ -45,7 +45,7 @@ public:
         for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
             Messages *receiver = (Messages *)item->content.addrs;
 
-            Nidium::Core::SharedMessages::Message *msg = new Nidium::Core::SharedMessages::Message(NIDIUM_EVENTS_MESSAGE_BITS(event) |
+            SharedMessages::Message *msg = new SharedMessages::Message(NIDIUM_EVENTS_MESSAGE_BITS(event) |
                                                                                    (T::EventID << 16));
 
             msg->args[0].set(static_cast<T *>(this));
@@ -80,7 +80,7 @@ public:
 
 private:
 
-    Nidium::Core::Hash64<Messages *> m_Listeners;
+    Hash64<Messages *> m_Listeners;
 };
 
 } // namespace Core

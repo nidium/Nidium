@@ -15,7 +15,7 @@ namespace Nidium {
 namespace IO {
 
 FileStream::FileStream(const char *location) :
-    Nidium::IO::Stream(location), m_File(location)
+    Stream(location), m_File(location)
 {
     /* We don't want the file to close when end of file is reached */
     m_File.setAutoClose(false);
@@ -139,29 +139,29 @@ void FileStream::seek(size_t pos)
 void FileStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case Nidium::IO::FILE_OPEN_SUCCESS:
+        case FILE_OPEN_SUCCESS:
             /* do nothing */
             break;
-        case Nidium::IO::FILE_OPEN_ERROR:
+        case FILE_OPEN_ERROR:
             this->error(STREAM_ERROR_OPEN, msg.args[0].toInt());
             break;
-        case Nidium::IO::FILE_SEEK_ERROR:
+        case FILE_SEEK_ERROR:
             this->error(STREAM_ERROR_SEEK, -1);
             /* fall through */
-        case Nidium::IO::FILE_SEEK_SUCCESS:
+        case FILE_SEEK_SUCCESS:
             m_PendingSeek = false;
             break;
-        case Nidium::IO::FILE_READ_ERROR:
+        case FILE_READ_ERROR:
             this->error(STREAM_ERROR_READ, msg.args[0].toInt());
             break;
-        case Nidium::IO::FILE_READ_SUCCESS:
+        case FILE_READ_SUCCESS:
         {
             if (m_PendingSeek) {
                 break;
             }
 
             /*
-                the buffer is automatically detroyed by Nidium::IO::File
+                the buffer is automatically detroyed by File
                 after the return of this function
             */
             buffer *buf = (buffer *)msg.args[0].toPtr();
@@ -183,14 +183,14 @@ void FileStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
                     if (m_NeedToSendUpdate) {
                         m_NeedToSendUpdate = false;
                         CREATE_MESSAGE(message_available,
-                            Nidium::IO::STREAM_AVAILABLE_DATA);
+                            STREAM_AVAILABLE_DATA);
                         message_available->args[0].set(buf->used);
                         this->notify(message_available);
                     }
                 }
             }
 
-            CREATE_MESSAGE(message, Nidium::IO::STREAM_READ_BUFFER);
+            CREATE_MESSAGE(message, STREAM_READ_BUFFER);
             message->args[0].set(buf);
 
             /*

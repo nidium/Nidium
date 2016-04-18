@@ -173,7 +173,7 @@ class NidiumJS
         static JSObject *CreateJSGlobal(JSContext *cx);
         static void SetJSRuntimeOptions(JSRuntime *rt);
     private:
-        Nidium::Binding::JSModules *modules;
+        JSModules *modules;
         void *privateslot;
         bool shutdown;
         const char *relPath;

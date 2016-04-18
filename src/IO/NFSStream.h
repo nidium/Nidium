@@ -16,12 +16,12 @@ namespace IO {
 
 class NFS;
 
-class NFSStream :  public Nidium::IO::Stream
+class NFSStream :  public Stream
 {
 public:
     explicit NFSStream(const char *location);
 
-    static Nidium::IO::Stream *createStream(const char *location) {
+    static Stream *createStream(const char *location) {
         return new NFSStream(location);
     }
     static const char *getBaseDir() {
@@ -49,7 +49,7 @@ protected:
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err);
     virtual void onStart(size_t packets, size_t seek);
 private:
-    Nidium::IO::NFS *m_NFS;
+    NFS *m_NFS;
 
     struct {
         const unsigned char *data;

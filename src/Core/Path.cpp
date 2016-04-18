@@ -88,7 +88,7 @@ void Path::parse(const char *origin)
     schemeInfo *rootScheme = Path::getPwdScheme();
     const char *root = Path::getRoot();
     char *path = strdup(pOrigin);
-    Nidium::Core::PtrAutoDelete<char *> _path(path, free);
+    PtrAutoDelete<char *> _path(path, free);
 
     bool isRelative = Path::isRelative(origin);
     bool isLocalRoot = rootScheme->allowLocalFileStream();

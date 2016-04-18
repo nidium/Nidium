@@ -69,7 +69,7 @@ class SharedMessages
             }
 
             Message *prev;
-            Nidium::Core::Args args;
+            Args args;
             uint32_t priv;
         private:
 

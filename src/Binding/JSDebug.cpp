@@ -24,7 +24,7 @@ static JSClass debug_class = {
 JSClass *JSDebug::jsclass = &debug_class;
 
 template<>
-JSClass *Nidium::Binding::JSExposer<JSDebug>::jsclass = &debug_class;
+JSClass *JSExposer<JSDebug>::jsclass = &debug_class;
 
 static JSFunctionSpec debug_funcs[] = {
     JS_FN("serialize", nidium_debug_serialize, 1, NATIVE_JS_FNPROPS),

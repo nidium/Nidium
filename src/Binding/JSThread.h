@@ -18,7 +18,7 @@ namespace Binding {
 
 class NidiumJS;
 
-class JSThread : public Nidium::Binding::JSExposer<JSThread>, public Nidium::Core::Messages
+class JSThread : public JSExposer<JSThread>, public Nidium::Core::Messages
 {
   public:
     JSThread(JS::HandleObject obj, JSContext *cx);

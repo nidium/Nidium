@@ -186,7 +186,7 @@ bool JSModule::initNidium()
         return false;
     }
 
-    Nidium::Binding::register_module_t registerModule = (Nidium::Binding::register_module_t)dlsym(module, "__NidiumRegisterModule");
+    register_module_t registerModule = (register_module_t)dlsym(module, "__NidiumRegisterModule");
     if (registerModule && !registerModule(this->cx, exports)) {
         printf("Failed to register module\n");
         return false;

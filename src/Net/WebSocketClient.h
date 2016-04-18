@@ -14,7 +14,7 @@
 namespace Nidium {
 namespace Net {
 
-class WebSocketClient : public Nidium::Core::Events, public Nidium::Net::HTTPParser
+class WebSocketClient : public Nidium::Core::Events, public HTTPParser
 {
 public:
     static const uint8_t EventID = 5;
