@@ -24,7 +24,7 @@ public:
         return new FileStream(location);
     }
     static const char *getBaseDir() {
-        return NativePath::getRoot();
+        return Nidium::Core::Path::getRoot();
     }
 
     static bool allowLocalFileStream() {

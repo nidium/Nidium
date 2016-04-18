@@ -99,7 +99,7 @@ bool JSModule::init()
         return false;
     }
 
-    NativePath p(this->filePath, false, true);
+    Nidium::Core::Path p(this->filePath, false, true);
 
     if (!p.dir()) {
         return false;
@@ -331,7 +331,7 @@ char *JSModules::findModulePath(JSModule *parent, JSModule *module)
 
 bool JSModules::getFileContent(const char *file, char **content, size_t *size)
 {
-    NativePath path(file, false, true);
+    Nidium::Core::Path path(file, false, true);
     Nidium::IO::Stream *stream = path.createStream(true);
 
     if (!stream) {
@@ -511,10 +511,10 @@ JS::Value JSModule::require(char *name)
         this->filePath = realpath(filename.get(), NULL);
 
         if (this->filePath == NULL) {
-            this->absoluteDir = strdup(NativePath::getPwd());
+            this->absoluteDir = strdup(Nidium::Core::Path::getPwd());
         } else {
             // absoluteDir is needed for findModulePath
-            NativePath p(this->filePath, false, true);
+            Nidium::Core::Path p(this->filePath, false, true);
             this->absoluteDir = strdup(p.dir());
             DPRINT("Global scope loading\n");
         }

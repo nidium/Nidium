@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativePath.h"
+#include "Path.h"
 
 #include <string>
 #include <vector>
@@ -15,23 +15,26 @@
 
 #include "Binding/NidiumJS.h"
 
+namespace Nidium {
+namespace Core {
+
 char *g_m_Root = NULL;
 char *g_m_Pwd = NULL;
 
-int NativePath::g_m_SchemesCount = 0;
-struct NativePath::schemeInfo *NativePath::g_m_DefaultScheme = NULL;
-struct NativePath::schemeInfo NativePath::g_m_Schemes[NATIVE_MAX_REGISTERED_SCHEMES] = {};
+int Path::g_m_SchemesCount = 0;
+struct Path::schemeInfo *Path::g_m_DefaultScheme = NULL;
+struct Path::schemeInfo Path::g_m_Schemes[MAX_REGISTERED_SCHEMES] = {};
 
-NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
+Path::Path(const char *origin, bool allowAll, bool noFilter) :
     m_Path(nullptr), m_Dir(nullptr), m_Host(nullptr), m_Scheme(nullptr)
 {
     if (origin == nullptr) {
         return;
     }
 
-    if (!NativePath::getPwd() || noFilter) {
+    if (!Path::getPwd() || noFilter) {
         const char *pOrigin;
-        schemeInfo *scheme = NativePath::getScheme(origin, &pOrigin);
+        schemeInfo *scheme = Path::getScheme(origin, &pOrigin);
 
         if (URLSCHEME_MATCH(origin, "file")) {
             if (!(m_Path = realpath(pOrigin, nullptr))) {
@@ -49,12 +52,12 @@ NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
         }
 
         m_Scheme = scheme;
-        m_Dir = NativePath::getDir(m_Path);
+        m_Dir = Path::getDir(m_Path);
 
         return;
     }
 
-    schemeInfo *rootScheme = NativePath::getPwdScheme();
+    schemeInfo *rootScheme = Path::getPwdScheme();
     bool localRoot = rootScheme->allowLocalFileStream();
 
     // Remote chroot trying to access local file. 
@@ -70,24 +73,24 @@ NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
         return;
     }
 
-    // Local root check if we are still in Native chroot.
-    if (localRoot && !allowAll && !NativePath::inDir(m_Path, m_Scheme->getBaseDir())) {
+    // Local root check if we are still in nidium chroot.
+    if (localRoot && !allowAll && !Path::inDir(m_Path, m_Scheme->getBaseDir())) {
         this->invalidatePath();
         return;
     }
 }
 
-void NativePath::parse(const char *origin)
+void Path::parse(const char *origin)
 {
     const char *pOrigin;
     const char *baseDir;
-    schemeInfo *scheme = NativePath::getScheme(origin, &pOrigin);
-    schemeInfo *rootScheme = NativePath::getPwdScheme();
-    const char *root = NativePath::getRoot();
+    schemeInfo *scheme = Path::getScheme(origin, &pOrigin);
+    schemeInfo *rootScheme = Path::getPwdScheme();
+    const char *root = Path::getRoot();
     char *path = strdup(pOrigin);
     Nidium::Core::PtrAutoDelete<char *> _path(path, free);
 
-    bool isRelative = NativePath::isRelative(origin);
+    bool isRelative = Path::isRelative(origin);
     bool isLocalRoot = rootScheme->allowLocalFileStream();
 
     m_Scheme = scheme;
@@ -143,7 +146,7 @@ void NativePath::parse(const char *origin)
         baseDir = &root[strlen(scheme->str) + strlen(m_Host)];
     } else if (SCHEME_MATCH(scheme, "file")) {
         // Relative file on disk
-        baseDir = NativePath::getPwd();
+        baseDir = Path::getPwd();
     } else {
         // Prefixed scheme with a base directory
         baseDir = scheme->getBaseDir();
@@ -160,7 +163,7 @@ void NativePath::parse(const char *origin)
         _path.set(tmp);
     }
 
-    m_Path = NativePath::sanitize(path);
+    m_Path = Path::sanitize(path);
     if (!m_Path || m_Path[0] == '.') {
         // No path, or going outside "/"
         return;
@@ -178,12 +181,12 @@ void NativePath::parse(const char *origin)
         m_Path = tmp;
     }
 
-    m_Dir = NativePath::getDir(m_Path);
+    m_Dir = Path::getDir(m_Path);
 
     return;
 }
 
-bool NativePath::isRelative(const char *path)
+bool Path::isRelative(const char *path)
 {
     const char *pPath;
 
@@ -191,7 +194,7 @@ bool NativePath::isRelative(const char *path)
         return false;
     }
 
-    schemeInfo *scheme = NativePath::getScheme(path, &pPath);
+    schemeInfo *scheme = Path::getScheme(path, &pPath);
 
     /* We assume that if a "prefix based" path is given, it's an absolute URL */
     if (!SCHEME_MATCH(scheme, "file")) {
@@ -202,7 +205,7 @@ bool NativePath::isRelative(const char *path)
     return pPath[0] != '/';
 }
 
-char *NativePath::getDir(const char *fullpath)
+char *Path::getDir(const char *fullpath)
 {
     int len = strlen(fullpath);
     char *ret;
@@ -220,14 +223,14 @@ char *NativePath::getDir(const char *fullpath)
     return ret;
 }
 
-void NativePath::registerScheme(const NativePath::schemeInfo &scheme,
+void Path::registerScheme(const Path::schemeInfo &scheme,
     bool isDefault)
 {
-    if (NativePath::g_m_SchemesCount + 1 >= NATIVE_MAX_REGISTERED_SCHEMES) {
+    if (Path::g_m_SchemesCount + 1 >= MAX_REGISTERED_SCHEMES) {
         return;
     }
 
-    schemeInfo *newScheme = &NativePath::g_m_Schemes[NativePath::g_m_SchemesCount];
+    schemeInfo *newScheme = &Path::g_m_Schemes[Path::g_m_SchemesCount];
 
     newScheme->str = strdup(scheme.str);
     newScheme->base = scheme.base;
@@ -236,35 +239,35 @@ void NativePath::registerScheme(const NativePath::schemeInfo &scheme,
     newScheme->allowLocalFileStream = scheme.allowLocalFileStream;
     newScheme->allowSyncStream = scheme.allowSyncStream;
 
-    NativePath::g_m_SchemesCount++;
+    Path::g_m_SchemesCount++;
 
-    if (isDefault || NativePath::g_m_DefaultScheme == NULL) {
-       NativePath::g_m_DefaultScheme = newScheme;
+    if (isDefault || Path::g_m_DefaultScheme == NULL) {
+       Path::g_m_DefaultScheme = newScheme;
     }
 }
 
-void NativePath::unRegisterSchemes()
+void Path::unRegisterSchemes()
 {
     schemeInfo *scheme;
 
-    for (int i = 0; i < NativePath::g_m_SchemesCount; i++) {
-        scheme = &NativePath::g_m_Schemes[i];
+    for (int i = 0; i < Path::g_m_SchemesCount; i++) {
+        scheme = &Path::g_m_Schemes[i];
         free((char*)scheme->str);
     }
-    NativePath::g_m_SchemesCount = 0;
+    Path::g_m_SchemesCount = 0;
 }
 
-NativePath::schemeInfo *NativePath::getScheme(const char *url, const char **pURL)
+Path::schemeInfo *Path::getScheme(const char *url, const char **pURL)
 {
-    for (int i = 0; i < NativePath::g_m_SchemesCount; i++) {
-        int len = strlen(NativePath::g_m_Schemes[i].str);
-        if (strncasecmp(NativePath::g_m_Schemes[i].str, url,
+    for (int i = 0; i < Path::g_m_SchemesCount; i++) {
+        int len = strlen(Path::g_m_Schemes[i].str);
+        if (strncasecmp(Path::g_m_Schemes[i].str, url,
                         len) == 0) {
-            bool prefix = NativePath::g_m_Schemes[i].keepPrefix;
+            bool prefix = Path::g_m_Schemes[i].keepPrefix;
             if (pURL) {
                 *pURL = (prefix ? url : &url[len]);
             }
-            return &NativePath::g_m_Schemes[i];
+            return &Path::g_m_Schemes[i];
         }
     }
     if (pURL) {
@@ -273,7 +276,7 @@ NativePath::schemeInfo *NativePath::getScheme(const char *url, const char **pURL
     return g_m_DefaultScheme;
 }
 
-void NativePath::makedirs(const char* dirWithSlashes)
+void Path::makedirs(const char* dirWithSlashes)
 {
     char tmp[MAXPATHLEN];
     char *p = NULL;
@@ -294,7 +297,7 @@ void NativePath::makedirs(const char* dirWithSlashes)
 
 }
 
-char * NativePath::currentJSCaller(JSContext *cx)
+char * Path::currentJSCaller(JSContext *cx)
 {
     if (cx == NULL) {
         /* lookup in the TLS */
@@ -313,7 +316,7 @@ char * NativePath::currentJSCaller(JSContext *cx)
 }
 
 // XXX : Only works with path (not URIs)
-char *NativePath::sanitize(const char *path, bool *external)
+char *Path::sanitize(const char *path, bool *external)
 {
     enum {
         PATH_STATE_START,
@@ -334,7 +337,7 @@ char *NativePath::sanitize(const char *path, bool *external)
 
     int counter = 0, minCounter = 0, counterPos = 0;
     bool outsideRoot = false;
-    bool isRelative = NativePath::isRelative(path);
+    bool isRelative = Path::isRelative(path);
 
     std::vector<std::string> elements(pathlen);
 
@@ -425,7 +428,7 @@ char *NativePath::sanitize(const char *path, bool *external)
     return strdup(finalPath.c_str());
 }
 
-void NativePath::invalidatePath()
+void Path::invalidatePath()
 {
     free(m_Path);
     free(m_Host);
@@ -436,7 +439,7 @@ void NativePath::invalidatePath()
     m_Dir = nullptr;
 }
 
-bool NativePath::inDir(const char *path, const char *root) 
+bool Path::inDir(const char *path, const char *root) 
 {
     if (!root) {
         return true;
@@ -453,4 +456,7 @@ bool NativePath::inDir(const char *path, const char *root)
 
     return diff >= strlen(root);
 }
+
+} // namespace Core
+} // namespace Nidium
 

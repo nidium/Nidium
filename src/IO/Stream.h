@@ -11,7 +11,7 @@
 
 #include <ape_buffer.h>
 
-#include "Core/NativePath.h"
+#include "Core/Path.h"
 #include "Core/SharedMessages.h"
 #include "Core/Messages.h"
 
@@ -39,7 +39,7 @@ public:
 
     virtual ~Stream();
 
-    static Stream *create(const NativePath &path);
+    static Stream *create(const Nidium::Core::Path &path);
     static Stream *create(const char *location);
 
     enum StreamDataStatus {

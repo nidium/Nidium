@@ -223,7 +223,7 @@ static bool native_File_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     JSAutoByteString curl(cx, url);
-    NativePath path(curl.ptr());
+    Nidium::Core::Path path(curl.ptr());
 
     if (!path.path()) {
         JS_ReportError(cx, "Nidium::IO::FileIO : Invalid file path");
@@ -594,7 +594,7 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
     }
 
     JSAutoByteString cfilename(cx, filename);
-    NativePath path(cfilename.ptr());
+    Nidium::Core::Path path(cfilename.ptr());
 
     if (!path.getScheme()->allowSyncStream()) {
         JS_ReportError(cx, "can't open this file for sync read");
@@ -663,7 +663,7 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString cfilename(cx, filename);
     NidiumJS::GetObject(cx)->rootObjectUntilShutdown(&callback.toObject());
 
-    Nidium::IO::Stream *stream = Nidium::IO::Stream::create(NativePath(cfilename.ptr()));
+    Nidium::IO::Stream *stream = Nidium::IO::Stream::create(Nidium::Core::Path(cfilename.ptr()));
 
     if (!stream) {
         JS_ReportError(cx, "couldn't open stream");

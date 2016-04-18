@@ -14,7 +14,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include "Core/NativePath.h"
+
+#include "Core/Path.h"
 
 namespace Nidium {
 namespace Net {

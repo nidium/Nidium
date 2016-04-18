@@ -9,8 +9,8 @@
     TODO: windows ('shlwapi') http://msdn.microsoft.com/en-us/library/windows/desktop/bb773559%28v=vs.85%29.aspx
 */
 
-#ifndef nativepath_h__
-#define nativepath_h__
+#ifndef core_path_h__
+#define core_path_h__
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -27,15 +27,19 @@ namespace Nidium {
 	}
 }
 
-#define NATIVE_MAX_REGISTERED_SCHEMES 1024
-
 struct JSContext;
+
+namespace Nidium {
+namespace Core {
+
+#define MAX_REGISTERED_SCHEMES 1024
+
 
 extern char *g_m_Root;
 extern char *g_m_Pwd;
 
 #define SCHEME_DEFINE(prefix, streamclass, keepprefix) ( \
-struct NativePath::schemeInfo) { \
+struct Nidium::Core::Path::schemeInfo) { \
     .str        = prefix, \
     .base       = streamclass::createStream, \
     .getBaseDir = streamclass::getBaseDir, \
@@ -44,10 +48,10 @@ struct NativePath::schemeInfo) { \
     .allowSyncStream = streamclass::allowSyncStream \
 }
 
-#define URLSCHEME_MATCH(url, scheme) (strcmp(NativePath::getScheme(url)->str, scheme "://") == 0)
+#define URLSCHEME_MATCH(url, scheme) (strcmp(Nidium::Core::Path::getScheme(url)->str, scheme "://") == 0)
 #define SCHEME_MATCH(obj, scheme) (strcmp(obj->str, scheme "://") == 0)
 
-class NativePath
+class Path
 {
 public:
     struct schemeInfo {
@@ -62,7 +66,7 @@ public:
     /*
         allowAll defines if origin must match "pwd" stream class (if false)
     */
-    explicit NativePath(const char *origin, bool allowAll = false,
+    explicit Path(const char *origin, bool allowAll = false,
         bool noFilter = false);
 
 #if 0
@@ -100,7 +104,7 @@ public:
 
     bool static isRelative(const char *path);
 
-    ~NativePath() {
+    ~Path() {
         if (m_Path) {
             free(m_Path);
         }
@@ -144,12 +148,12 @@ public:
         if (!g_m_Pwd) {
             return NULL;
         }
-        return NativePath::getScheme(g_m_Pwd);
+        return Path::getScheme(g_m_Pwd);
     }
 
     static char *currentJSCaller(JSContext *cx = NULL);
     static int g_m_SchemesCount;
-    static struct schemeInfo g_m_Schemes[NATIVE_MAX_REGISTERED_SCHEMES];
+    static struct schemeInfo g_m_Schemes[MAX_REGISTERED_SCHEMES];
     static struct schemeInfo *g_m_DefaultScheme;
     static void makedirs(const char * dirWithSlashes);
     static char *absolutize(const char *relative, const char *root);
@@ -162,5 +166,8 @@ private:
     char *m_Host;
     schemeInfo *m_Scheme;
 };
+
+} // namespace Core
+} // namespace Nidium
 
 #endif

@@ -10,7 +10,7 @@
 #include <leveldb/db.h>
 #include <leveldb/filter_policy.h>
 
-#include "NativePath.h"
+#include "Path.h"
 
 #ifndef NIDIUM_NO_PRIVATE_DIR
 #  include "../interface/NativeSystemInterface.h"
@@ -50,7 +50,7 @@ DB::DB(const char *name) :
             found = true;
         }
     }
-    NativePath::makedirs(chdir);
+    Path::makedirs(chdir);
     options.create_if_missing = true;
     options.filter_policy = leveldb::NewBloomFilterPolicy(8);
 

@@ -128,14 +128,14 @@ static bool nidium_global_prop_get(JSContext *cx, JS::HandleObject obj,
     switch(id) {
         case GLOBAL_PROP___FILENAME:
         {
-            char *filename = NativePath::currentJSCaller(cx);
+            char *filename = Nidium::Core::Path::currentJSCaller(cx);
             vp.setString(JS_NewStringCopyZ(cx, filename));
             free(filename);
             break;
         }
         case GLOBAL_PROP___DIRNAME:
         {
-            NativePath path(NativePath::currentJSCaller(cx), false, true);
+            Nidium::Core::Path path(Nidium::Core::Path::currentJSCaller(cx), false, true);
             vp.setString(JS_NewStringCopyZ(cx, path.dir()));
             break;
         }
@@ -371,7 +371,7 @@ bool NidiumJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
 
 static bool nidium_pwd(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NativePath cur(NativePath::currentJSCaller(cx), false, true);
+    Nidium::Core::Path cur(Nidium::Core::Path::currentJSCaller(cx), false, true);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (cur.dir() == NULL) {
@@ -399,9 +399,9 @@ static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NidiumJS *njs = NidiumJS::GetObject(cx);
     JSAutoByteString scriptstr(cx, script);
-    NativePath scriptpath(scriptstr.ptr());
+    Nidium::Core::Path scriptpath(scriptstr.ptr());
 
-    NativePath::schemeInfo *schemePwd = NativePath::getPwdScheme();
+    Nidium::Core::Path::schemeInfo *schemePwd = Nidium::Core::Path::getPwdScheme();
 
     if (scriptpath.path() == NULL) {
         JS_ReportError(cx, "script error : invalid file location");

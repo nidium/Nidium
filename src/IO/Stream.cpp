@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "Core/NativePath.h"
+#include "Core/Path.h"
 
 namespace Nidium {
 namespace IO {
@@ -32,7 +32,7 @@ Stream::~Stream()
     free(m_Location);
 }
 
-Stream *Stream::create(const NativePath &path)
+Stream *Stream::create(const Nidium::Core::Path &path)
 {
     return path.createStream();
 }
@@ -40,10 +40,10 @@ Stream *Stream::create(const NativePath &path)
 Stream *Stream::create(const char *location)
 {
     const char *pLocation;
-    NativePath::schemeInfo *info;
+    Nidium::Core::Path::schemeInfo *info;
 
     if (location == NULL ||
-        (info = NativePath::getScheme(location, &pLocation)) == NULL) {
+        (info = Nidium::Core::Path::getScheme(location, &pLocation)) == NULL) {
         return NULL;
     }
 

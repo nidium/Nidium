@@ -129,7 +129,7 @@
             '../src/Core/Messages.cpp',
             '../src/Core/DB.cpp',
             '../src/Core/TaskManager.cpp',
-            '../src/Core/NativePath.cpp',
+            '../src/Core/Path.cpp',
 
             '../src/IO/File.cpp',
             '../src/IO/Stream.cpp',
