@@ -51,7 +51,7 @@ File::File(const char *name) :
 /*
     /!\ Exec in a worker thread
 */
-void File_dispatchTask(NativeTask *task)
+void File_dispatchTask(Nidium::Core::Task *task)
 {
     File *file = (File *)task->getObject();
     uint64_t type = task->args[0].toInt64();
@@ -271,7 +271,7 @@ void File::listFilesTask(void *arg)
 
 void File::open(const char *mode, void *arg)
 {
-    NativeTask *task = new NativeTask();
+    Nidium::Core::Task *task = new Nidium::Core::Task();
     task->args[0].set(Nidium::IO::FILE_TASK_OPEN);
     task->args[1].set(strdup(mode));
     task->args[7].set(arg);
@@ -283,7 +283,7 @@ void File::open(const char *mode, void *arg)
 
 void File::close(void *arg)
 {
-    NativeTask *task = new NativeTask();
+    Nidium::Core::Task *task = new Nidium::Core::Task();
     task->args[0].set(Nidium::IO::FILE_TASK_CLOSE);
     task->args[7].set(arg);
 
@@ -294,7 +294,7 @@ void File::close(void *arg)
 
 void File::read(size_t size, void *arg)
 {
-    NativeTask *task = new NativeTask();
+    Nidium::Core::Task *task = new Nidium::Core::Task();
     task->args[0].set(Nidium::IO::FILE_TASK_READ);
     task->args[1].set(size);
     task->args[7].set(arg);
@@ -309,7 +309,7 @@ void File::write(char *buf, size_t size, void *arg)
     unsigned char *newbuf = (unsigned char *)malloc(size);
     memcpy(newbuf, buf, size);
 
-    NativeTask *task = new NativeTask();
+    Nidium::Core::Task *task = new Nidium::Core::Task();
     task->args[0].set(Nidium::IO::FILE_TASK_WRITE);
     task->args[1].set(size);
     task->args[2].set(newbuf);
@@ -322,7 +322,7 @@ void File::write(char *buf, size_t size, void *arg)
 
 void File::seek(size_t pos, void *arg)
 {
-    NativeTask *task = new NativeTask();
+    Nidium::Core::Task *task = new Nidium::Core::Task();
     task->args[0].set(Nidium::IO::FILE_TASK_SEEK);
     task->args[1].set(pos);
     task->args[7].set(arg);
@@ -334,7 +334,7 @@ void File::seek(size_t pos, void *arg)
 
 void File::listFiles(void *arg)
 {
-    NativeTask *task = new NativeTask();
+    Nidium::Core::Task *task = new Nidium::Core::Task();
     task->args[0].set(Nidium::IO::FILE_TASK_LISTFILES);
     task->args[7].set(arg);
 

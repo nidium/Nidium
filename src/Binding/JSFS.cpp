@@ -85,7 +85,7 @@ public:
     }
 };
 
-void JSFS_readDir_Task(NativeTask *task)
+void JSFS_readDir_Task(Nidium::Core::Task *task)
 {
     JSFSAsyncHandler *handler = (JSFSAsyncHandler *)task->getObject();
 
@@ -134,7 +134,7 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
     JSFSAsyncHandler *handler = new JSFSAsyncHandler(cx);
     printf("Calling with cx : %p\n", cx);
 
-    NativeTask *task = new NativeTask();
+    Nidium::Core::Task *task = new Nidium::Core::Task();
     task->setFunction(JSFS_readDir_Task);
     task->args[0].set(strdup(cpath.ptr()));
 

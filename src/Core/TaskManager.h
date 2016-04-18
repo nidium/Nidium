@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativeTaskManager_h__
-#define nativeTaskManager_h__
+#ifndef core_taskmanager_h__
+#define core_taskmanager_h__
 
 #include <stdio.h>
 #include <pthread.h>
@@ -12,12 +12,15 @@
 #include "Messages.h"
 #include "SharedMessages.h"
 
+namespace Nidium {
+namespace Core {
+
 #define NATIVE_TASKMANAGER_MAX_IDLE_THREAD 8
 #define NATIVE_TASKMANAGER_MAX_THREAD 16
 
-class NativeTask;
+class Task;
 
-class NativeTaskManager
+class TaskManager
 {
 public:
     class workerInfo {
@@ -28,10 +31,10 @@ public:
         void *work();
         void stop();
         void run();
-        void addTask(NativeTask *task);
+        void addTask(Task *task);
         void waitTerminate();
 
-        void setManager(NativeTaskManager *manager) {
+        void setManager(TaskManager *manager) {
             m_Manager = manager;
         }
 
@@ -43,17 +46,17 @@ public:
         pthread_mutex_t m_Lock;
         pthread_cond_t m_Cond;
         bool m_Stop;
-        NativeTaskManager *m_Manager;
+        TaskManager *m_Manager;
         Nidium::Core::SharedMessages m_Messages;
     };
 
-    NativeTaskManager();
-    ~NativeTaskManager();
+    TaskManager();
+    ~TaskManager();
     int createWorker(int count = 1);
     void stopAll();
 
     workerInfo *getAvailableWorker();
-    static NativeTaskManager *getManager();
+    static TaskManager *getManager();
     static void createManager();
 
 private:
@@ -66,14 +69,14 @@ private:
     } m_Threadpool;
 };
 
-class NativeManaged;
+class Managed;
 
-class NativeTask
+class Task
 {
 #define MAX_ARG 8
 public:
-    typedef void (* task_func)(NativeTask *arg);
-    NativeTask() : m_Obj(NULL), m_Func(NULL) {}
+    typedef void (* task_func)(Task *arg);
+    Task() : m_Obj(NULL), m_Func(NULL) {}
 
     void setFunction(task_func func) {
         m_Func = func;
@@ -83,40 +86,43 @@ public:
         return m_Func;
     }
 
-    NativeManaged *getObject() const {
+    Managed *getObject() const {
         return m_Obj;
     }
 
     Nidium::Core::Args args;
 
-    friend class NativeManaged;
+    friend class Managed;
 private:
-    void setObject(NativeManaged *obj) {
+    void setObject(Managed *obj) {
         m_Obj = obj;
     }
 
-    NativeManaged *m_Obj;
+    Managed *m_Obj;
     task_func m_Func;
 #undef MAX_ARG
 };
 
-class NativeManaged : public Nidium::Core::Messages
+class Managed : public Nidium::Core::Messages
 {
 public:
-    NativeManaged() : m_TaskQueued(0), m_Worker(NULL) {
-        m_Manager = NativeTaskManager::getManager();
+    Managed() : m_TaskQueued(0), m_Worker(NULL) {
+        m_Manager = TaskManager::getManager();
     }
-    ~NativeManaged() {
+    ~Managed() {
         if (m_Worker) {
             m_Worker->getMessages()->delMessagesForDest(this);
         }
     };
-    void addTask(NativeTask *task);
+    void addTask(Task *task);
     int32_t m_TaskQueued;
 private:
-    NativeTaskManager *m_Manager;
-    NativeTaskManager::workerInfo *m_Worker;
+    TaskManager *m_Manager;
+    TaskManager::workerInfo *m_Worker;
 };
+
+} // namespace Core
+} // namespace Nidium
 
 #endif
 

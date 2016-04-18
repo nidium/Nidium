@@ -7,13 +7,13 @@
 #define binding_jsfs_h__
 
 #include "Core/Messages.h"
-#include "Core/NativeTaskManager.h"
+#include "Core/TaskManager.h"
 #include "JSExposer.h"
 
 namespace Nidium {
 namespace Binding {
 
-class JSFS :     public Nidium::Binding::JSExposer<JSFS>, public NativeManaged
+class JSFS :     public Nidium::Binding::JSExposer<JSFS>, public Nidium::Core::Managed
 {
 public:
     static void registerObject(JSContext *cx);

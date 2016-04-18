@@ -128,7 +128,7 @@
             '../src/Core/Utils.cpp',
             '../src/Core/Messages.cpp',
             '../src/Core/DB.cpp',
-            '../src/Core/NativeTaskManager.cpp',
+            '../src/Core/TaskManager.cpp',
             '../src/Core/NativePath.cpp',
 
             '../src/IO/File.cpp',

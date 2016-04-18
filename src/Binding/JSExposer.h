@@ -9,7 +9,7 @@
 #include <jsapi.h>
 #include <jsfriendapi.h>
 
-#include "Core/NativeTaskManager.h"
+#include "Core/TaskManager.h"
 
 #include "NidiumJS.h"
 
@@ -510,7 +510,7 @@ private:
 };
 
 #define NIDIUM_ASYNC_MAXCALLBACK 4
-class JSAsyncHandler : public NativeManaged
+class JSAsyncHandler : public Nidium::Core::Managed
 {
 public:
     JSAsyncHandler(JSContext *ctx) :

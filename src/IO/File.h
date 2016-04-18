@@ -12,7 +12,7 @@
 #include <sys/types.h>
 
 #include "Core/Messages.h"
-#include "Core/NativeTaskManager.h"
+#include "Core/TaskManager.h"
 #include "Core/Events.h"
 
 namespace Nidium {
@@ -33,7 +33,7 @@ enum {
     FILE_LISTFILES_ENTRIES = NIDIUM_FILE_MESSAGE_BITS(10),
 };
 
-class File : public NativeManaged, public Nidium::Core::Events
+class File : public Nidium::Core::Managed, public Nidium::Core::Events
 {
 public:
     static const uint8_t EventID = 2;

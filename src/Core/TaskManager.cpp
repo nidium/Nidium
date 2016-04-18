@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NativeTaskManager.h"
+#include "TaskManager.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,14 +12,17 @@
 
 #include "../../system/native_atom.h"
 
+namespace Nidium {
+namespace Core {
+
 static pthread_key_t gManager = 0;
 
-void *NativeTaskManager_Worker(void *arg)
+void *TaskManager_Worker(void *arg)
 {
-    return ((NativeTaskManager::workerInfo *)arg)->work();
+    return ((TaskManager::workerInfo *)arg)->work();
 }
 
-void *NativeTaskManager::workerInfo::work()
+void *TaskManager::workerInfo::work()
 {
     while (!m_Stop) {
         pthread_mutex_lock(&m_Lock);
@@ -34,7 +37,7 @@ void *NativeTaskManager::workerInfo::work()
         Nidium::Core::SharedMessages::Message *msg;
 
         while ((msg = m_Messages.readMessage())) {
-            NativeTask *task = (NativeTask *)msg->dataPtr();
+            Task *task = (Task *)msg->dataPtr();
             task->getFunction()(task);
             native_atomic_dec(&task->getObject()->m_TaskQueued);
 
@@ -45,7 +48,7 @@ void *NativeTaskManager::workerInfo::work()
     return NULL;
 }
 
-void NativeTaskManager::workerInfo::stop()
+void TaskManager::workerInfo::stop()
 {
     if (m_Stop) {
         return;
@@ -55,27 +58,27 @@ void NativeTaskManager::workerInfo::stop()
     pthread_cond_signal(&m_Cond);
 }
 
-void NativeTaskManager::workerInfo::waitTerminate()
+void TaskManager::workerInfo::waitTerminate()
 {
     pthread_join(m_Handle, NULL);
 }
 
-void NativeTaskManager_workerInfo_MessageCleaner(const Nidium::Core::SharedMessages::Message &msg)
+void TaskManager_workerInfo_MessageCleaner(const Nidium::Core::SharedMessages::Message &msg)
 {
-    NativeTask *task = (NativeTask *)msg.dataPtr();
+    Task *task = (Task *)msg.dataPtr();
     delete task;
 }
 
-NativeTaskManager::workerInfo::workerInfo() :
+TaskManager::workerInfo::workerInfo() :
     m_Stop(false), m_Manager(NULL)
 {
     pthread_mutex_init(&m_Lock, NULL);
     pthread_cond_init(&m_Cond, NULL);
 
-    m_Messages.setCleaner(NativeTaskManager_workerInfo_MessageCleaner);
+    m_Messages.setCleaner(TaskManager_workerInfo_MessageCleaner);
 }
 
-NativeTaskManager::workerInfo::~workerInfo()
+TaskManager::workerInfo::~workerInfo()
 {
     this->stop();
     pthread_join(m_Handle, NULL);
@@ -83,14 +86,13 @@ NativeTaskManager::workerInfo::~workerInfo()
     m_Messages.delMessagesForDest(NULL);
 }
 
-void NativeTaskManager::workerInfo::run()
+void TaskManager::workerInfo::run()
 {
     m_Stop = false;
-    pthread_create(&m_Handle, NULL,
-        NativeTaskManager_Worker, this);
+    pthread_create(&m_Handle, NULL, TaskManager_Worker, this);
 }
 
-void NativeTaskManager::workerInfo::addTask(NativeTask *task)
+void TaskManager::workerInfo::addTask(Task *task)
 {
     Nidium::Core::SharedMessages::Message *msg = new Nidium::Core::SharedMessages::Message(task, 0);
 
@@ -110,7 +112,7 @@ void NativeTaskManager::workerInfo::addTask(NativeTask *task)
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 
-NativeTaskManager::NativeTaskManager()
+TaskManager::TaskManager()
 {
     m_Threadpool.count = 0;
     m_Threadpool.size = NATIVE_TASKMANAGER_MAX_THREAD;
@@ -120,7 +122,7 @@ NativeTaskManager::NativeTaskManager()
     this->createWorker(NATIVE_TASKMANAGER_MAX_IDLE_THREAD);
 }
 
-int NativeTaskManager::createWorker(int count)
+int TaskManager::createWorker(int count)
 {
     int actualCount = count;
 
@@ -150,7 +152,7 @@ int NativeTaskManager::createWorker(int count)
     return actualCount;
 }
 
-void NativeTaskManager::stopAll()
+void TaskManager::stopAll()
 {
     int count = m_Threadpool.count, i;
     for (i = 0; i < count; i++) {
@@ -163,26 +165,26 @@ void NativeTaskManager::stopAll()
     }
 }
 
-NativeTaskManager::workerInfo *NativeTaskManager::getAvailableWorker()
+TaskManager::workerInfo *TaskManager::getAvailableWorker()
 {
     return &m_Threadpool.worker[rand() % m_Threadpool.count];
 }
 
-NativeTaskManager *NativeTaskManager::getManager()
+TaskManager *TaskManager::getManager()
 {
-    return (NativeTaskManager *)pthread_getspecific(gManager);
+    return (TaskManager *)pthread_getspecific(gManager);
 }
 
-void NativeTaskManager::createManager()
+void TaskManager::createManager()
 {
-    NativeTaskManager *manager = new NativeTaskManager();
+    TaskManager *manager = new TaskManager();
     if (gManager == 0) {
         pthread_key_create(&gManager, NULL);
     }
     pthread_setspecific(gManager, manager);
 }
 
-NativeTaskManager::~NativeTaskManager()
+TaskManager::~TaskManager()
 {
     /*
         It's faster to stop all the
@@ -197,7 +199,7 @@ NativeTaskManager::~NativeTaskManager()
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 
-void NativeManaged::addTask(NativeTask *task)
+void Managed::addTask(Task *task)
 {
     if (m_Manager == NULL) {
         printf("addTask() : Unknown manager\n");
@@ -214,3 +216,5 @@ void NativeManaged::addTask(NativeTask *task)
     m_Worker->addTask(task);
 }
 
+} // namespace Core
+} // namespace Nidium
