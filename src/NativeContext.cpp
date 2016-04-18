@@ -52,7 +52,7 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
     NativePath::registerScheme(SCHEME_DEFINE("http://", Nidium::Net::HTTPStream,    true));
     NativePath::registerScheme(SCHEME_DEFINE("https://", Nidium::Net::HTTPStream,    true));
 
-    NativeTaskManager::createManager();
+    Nidium::Core::TaskManager::createManager();
     Nidium::Core::Messages::initReader(net);
     m_JS->loadGlobalObjects();
 
