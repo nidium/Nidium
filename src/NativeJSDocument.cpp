@@ -418,7 +418,7 @@ static bool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp
         pTmp++;
     }
 
-    NativePath fpath(cfile.ptr());
+    Nidium::Core::Path fpath(cfile.ptr());
 
     args.rval().setBoolean(CppObj->loadFont(fpath.path(), cname.ptr()));
 

@@ -53,8 +53,8 @@ NativeNML::~NativeNML()
         free(this->meta.title);
     }
 
-    NativePath::cd(NULL);
-    NativePath::chroot(NULL);
+    Nidium::Core::Path::cd(NULL);
+    Nidium::Core::Path::chroot(NULL);
 }
 
 void NativeNML::setNJS(Nidium::Binding::NidiumJS *js)
@@ -74,7 +74,7 @@ void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
     m_Loaded = cb;
     m_LoadedArg = arg;
 
-    NativePath path(file);
+    Nidium::Core::Path path(file);
 
     printf("NML path : %s\n", path.path());
 
@@ -88,8 +88,8 @@ void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
     /*
         Set the global working directory at the NML location
     */
-    NativePath::cd(path.dir());
-    NativePath::chroot(path.dir());
+    Nidium::Core::Path::cd(path.dir());
+    Nidium::Core::Path::chroot(path.dir());
 
     m_Stream->setListener(this);
     m_Stream->getContent();
@@ -486,9 +486,9 @@ void NativeNML::onMessage(const Nidium::Core::SharedMessages::Message &msg)
             const char *streamPath = m_Stream->getPath();
 
             if (streamPath != NULL) {
-                NativePath path(streamPath);
-                NativePath::cd(path.dir());
-                NativePath::chroot(path.dir());
+                Nidium::Core::Path path(streamPath);
+                Nidium::Core::Path::cd(path.dir());
+                Nidium::Core::Path::chroot(path.dir());
             }
 
             this->onGetContent((const char *)buf->data, buf->used);

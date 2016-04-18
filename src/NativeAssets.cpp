@@ -71,7 +71,7 @@ NativeAssets::Item::~Item()
 
 void NativeAssets::Item::download()
 {
-    m_Stream = Nidium::IO::Stream::create(NativePath(m_Url));
+    m_Stream = Nidium::IO::Stream::create(Nidium::Core::Path(m_Url));
 
     if (m_Stream == NULL) {
         this->setName(m_Url);

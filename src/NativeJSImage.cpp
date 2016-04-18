@@ -111,7 +111,7 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 NidiumJSObj(cx)->rootObjectUntilShutdown(obj);
 
-                Nidium::IO::Stream *stream = Nidium::IO::Stream::create(NativePath(imgPath.ptr()));
+                Nidium::IO::Stream *stream = Nidium::IO::Stream::create(Nidium::Core::Path(imgPath.ptr()));
 
                 if (stream == NULL) {
                     JS_ReportError(cx, "Invalid path");

@@ -77,7 +77,7 @@ NativeAVStreamReader::NativeAVStreamReader(const char *src,
       m_HaveDataAvailable(false)
 {
     m_Async = true;
-    m_Stream = Nidium::IO::Stream::create(NativePath(src));
+    m_Stream = Nidium::IO::Stream::create(Nidium::Core::Path(src));
     //m_Stream->setAutoClose(false);
     m_Stream->start(STREAM_BUFFER_SIZE);
     m_Stream->setListener(this);

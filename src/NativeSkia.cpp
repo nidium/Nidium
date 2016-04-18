@@ -651,7 +651,7 @@ bool NativeSkia::setFontFile(const char *str)
     char *data;
     size_t len;
 
-    NativePath fontPath(str);
+    Nidium::Core::Path fontPath(str);
     Nidium::IO::Stream *stream;
 
     if ((stream = fontPath.createStream(true)) == NULL) {

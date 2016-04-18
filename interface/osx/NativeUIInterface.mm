@@ -1,26 +1,31 @@
 #import "NativeCocoaUIInterface.h"
-#import "NativeUIConsole.h"
-#import <Binding/NidiumJS.h>
-#import <NativeContext.h>
-#import <NativeSkia.h>
-#import <NativeApp.h>
-#import <NativeJSWindow.h>
+
+#import <sys/stat.h>
+#import <objc/runtime.h>
+
+#import <Cocoa/Cocoa.h>
+
+#import <native_netlib.h>
+
 #import <SDL.h>
 #import <SDL_opengl.h>
 #import <SDL_syswm.h>
-#import <Cocoa/Cocoa.h>
-#import <native_netlib.h>
-#import <NativeMacros.h>
-#import <Messages.h>
-#import <NativePath.h>
-
-#import <NativeNML.h>
-#import <sys/stat.h>
-#import "NativeSystem.h"
 #import "SDL_keycode_translate.h"
 
+#import <Core/Messages.h>
+#import <Core/Path.h>
+#import <Binding/NidiumJS.h>
+
+#import <NativeContext.h>
+#import <NativeSkia.h>
+#import <NativeNML.h>
+#import <NativeApp.h>
+#import <NativeJSWindow.h>
+
+#import "NativeMacros.h"
+#import "NativeSystem.h"
+#import "NativeUIConsole.h"
 #import "NativeDragNSView.h"
-#import <objc/runtime.h>
 
 #define kNativeWidth 1024
 #define kNativeHeight 768
@@ -401,10 +406,10 @@ bool NativeCocoaUIInterface::runJSWithoutNML(const char *path, int width, int he
 
     NativeJS::initNet(m_Gnet);
 
-    NativePath jspath(path);
+    Nidium::Core::Path jspath(path);
 
-    NativePath::cd(jspath.dir());
-    NativePath::chroot(jspath.dir());
+    Nidium::Core::Path::cd(jspath.dir());
+    Nidium::Core::Path::chroot(jspath.dir());
 
     m_NativeCtx->getNJS()->LoadScript(path);
 

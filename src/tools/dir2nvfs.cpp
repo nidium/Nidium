@@ -80,7 +80,7 @@ static void initNidiumJSCore()
     /*
         This is required to create a stream (file is the default)
     */
-    NativePath::registerScheme(SCHEME_DEFINE("file://", Nidium::IO::FileStream, false), true);
+    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("file://", Nidium::IO::FileStream, false), true);
     Nidium::Core::TaskManager::createManager();
     ape_global *gnet = native_netlib_init();
     Nidium::Core::Messages::initReader(gnet);

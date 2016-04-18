@@ -122,7 +122,7 @@ m_Debug2Handler(NULL),
     /*
         Set path for modules
     */
-    m_JS->setPath(NativePath::getPwd());
+    m_JS->setPath(Nidium::Core::Path::getPwd());
 
     m_WSClient = NULL;
     m_WS = NULL;
