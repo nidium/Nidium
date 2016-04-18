@@ -29,7 +29,7 @@ NativeUIInterface::NativeUIInterface() :
     NativePath::registerScheme(SCHEME_DEFINE("https://",   Nidium::Net::HTTPStream,    true));
     NativePath::registerScheme(SCHEME_DEFINE("nvfs://",    Nidium::IO::NFSStream,     false));
 
-    NativeTaskManager::createManager();
+    Nidium::Core::TaskManager::createManager();
 }
 
 bool NativeUIInterface::makeMainGLCurrent()
