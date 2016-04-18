@@ -48,6 +48,7 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
     m_JS->setPrivate(this);
     m_JS->setStrictMode(jsstrict);
 
+
     NativePath::registerScheme(SCHEME_DEFINE("file://", NativeFileStream, false), true);
     NativePath::registerScheme(SCHEME_DEFINE("http://",    NativeHTTPStream,    true));
     NativePath::registerScheme(SCHEME_DEFINE("https://",   NativeHTTPStream,    true));
@@ -58,6 +59,8 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
 
     NativeJSconsole::registerObject(m_JS->cx);
     NativeJSSystem::registerObject(m_JS->cx);
+    
+    m_JS->setPath(NativePath::getPwd());
 
     APE_timer_create(net, 1, NativeContext_ping, (void *)m_JS);
 }
