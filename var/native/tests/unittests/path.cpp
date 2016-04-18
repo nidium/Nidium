@@ -98,6 +98,62 @@ TEST(NativePath, Sanitize3)
     free(sanitized);
 }
 
+TEST(NativePath, Sanitize4)
+{
+    char *sanitized = NativePath::sanitize("dir/..");
+
+    ASSERT_STREQ("", sanitized);
+
+    free(sanitized);
+}
+
+TEST(NativePath, Sanitize5)
+{
+    bool external = false;
+    char *sanitized = NativePath::sanitize("dir/../..", &external);
+
+    ASSERT_STREQ("../", sanitized);
+    ASSERT_TRUE(external);
+
+    free(sanitized);
+}
+
+TEST(NativePath, SanitizeEmpty)
+{
+    char *sanitized = NativePath::sanitize("");
+
+    ASSERT_STREQ("", sanitized);
+
+    free(sanitized);
+}
+
+TEST(NativePath, SanitizeDot)
+{
+    char *sanitized = NativePath::sanitize(".");
+
+    ASSERT_STREQ("", sanitized);
+
+    free(sanitized);
+}
+
+TEST(NativePath, SanitizeDotSlash)
+{
+    char *sanitized = NativePath::sanitize("./");
+
+    ASSERT_STREQ("", sanitized);
+
+    free(sanitized);
+}
+
+TEST(NativePath, SanitizeNull)
+{
+    char *sanitized = NativePath::sanitize(nullptr);
+
+    ASSERT_STREQ(nullptr, sanitized);
+
+    free(sanitized);
+}
+
 TEST(NativePath, SanitizeAbsoluteInvalid)
 {
     char *sanitized = NativePath::sanitize(TEST_DIR "../../");
