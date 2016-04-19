@@ -32,17 +32,22 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
     bool jsstrict, bool runInREPL) :
     m_Worker(worker), m_RunInREPL(runInREPL)
 {
-    char cwd[1024];
+    char cwd[PATH_MAX];
 
     memset(&cwd[0], '\0', sizeof(cwd));
-    if (getcwd(cwd, sizeof(cwd)) != NULL) {
-//        NativePath::cd(cwd);
-//        NativePath::chroot(cwd);
+    if (getcwd(cwd, sizeof(cwd)-1) != NULL) {
+        strcat(cwd, "/");
+        
+        NativePath::cd(cwd);
+        NativePath::chroot("/");
+    } else {
+        fprintf(stderr, "[Warn] Failed to get current working directory\n");
     }
 
     m_JS = new NativeJS(net);
     m_JS->setPrivate(this);
     m_JS->setStrictMode(jsstrict);
+
 
     NativePath::registerScheme(SCHEME_DEFINE("file://", NativeFileStream, false), true);
     NativePath::registerScheme(SCHEME_DEFINE("http://",    NativeHTTPStream,    true));
@@ -54,6 +59,8 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
 
     NativeJSconsole::registerObject(m_JS->cx);
     NativeJSSystem::registerObject(m_JS->cx);
+    
+    m_JS->setPath(NativePath::getPwd());
 
     APE_timer_create(net, 1, NativeContext_ping, (void *)m_JS);
 }
