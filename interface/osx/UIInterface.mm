@@ -27,9 +27,6 @@
 #import "UIConsole.h"
 #import "DragNSView.h"
 
-#define kNativeWidth 1024
-#define kNativeHeight 768
-
 #define kNativeTitleBarHeight 0
 
 #define kNativeVSYNC 1
@@ -60,184 +57,9 @@ static NSWindow *NativeCocoaWindow(SDL_Window *win)
     return (NSWindow *)info.info.cocoa.window;
 }
 
-int NativeEvents(NativeCocoaUIInterface *NUII)
+void NativeCocoaUIInterface::quitApplication()
 {
-    SDL_Event event;
-    int nrefresh = 0;
-    //while(1) {
-    int nevents = 0;
-        while(SDL_PollEvent(&event)) {
-            if (NUII->m_NativeCtx) {
-                NUII->makeMainGLCurrent();
-            }
-            JSWindow *window = NULL;
-            if (NUII->m_NativeCtx) {
-                window = JSWindow::GetObject(NUII->m_NativeCtx->getNJS());
-            }
-            nevents++;
-            switch(event.type) {
-                case SDL_WINDOWEVENT:
-                    if (window) {
-                        switch (event.window.event) {
-                            case SDL_WINDOWEVENT_SIZE_CHANGED:
-                                //fprintf(stout, "Size changed ??? %d %d\n", event.window.data1, event.window.data2);
-                                //window->resized(event.window.data1, event.window.data2);
-                                break;
-                            case SDL_WINDOWEVENT_RESIZED:
-                                //fprintf(stdout, "Resized\n");
-                                //window->resized(event.window.data1, event.window.data2);
-                                break;
-                            case SDL_WINDOWEVENT_FOCUS_GAINED:
-                                window->windowFocus();
-                                break;
-                            case SDL_WINDOWEVENT_FOCUS_LOST:
-                                window->windowBlur();
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    break;
-                case SDL_TEXTINPUT:
-                    if (window && event.text.text) {
-                        window->textInput(event.text.text);
-                    }
-                    break;
-                case SDL_USEREVENT:
-                    break;
-                case SDL_QUIT:
-                    if (window && !window->onClose()) {
-                        break;
-                    }
-                    NUII->stopApplication();
-                    SDL_Quit();
-                    [[NSApplication sharedApplication] terminate:nil];
-                    break;
-                case SDL_MOUSEMOTION:
-                    if (window) {
-                        window->mouseMove(event.motion.x, event.motion.y - kNativeTitleBarHeight,
-                                   event.motion.xrel, event.motion.yrel);
-                    }
-                    break;
-                case SDL_MOUSEWHEEL:
-                {
-                    int cx, cy;
-                    SDL_GetMouseState(&cx, &cy);
-                    if (window) {
-                        window->mouseWheel(event.wheel.x, event.wheel.y, cx, cy - kNativeTitleBarHeight);
-                    }
-                    break;
-                }
-                case SDL_MOUSEBUTTONUP:
-                case SDL_MOUSEBUTTONDOWN:
-                    if (window) {
-                        window->mouseClick(event.button.x, event.button.y - kNativeTitleBarHeight,
-                                    event.button.state, event.button.button, event.button.clicks);
-                    }
-                break;
-                case SDL_KEYDOWN:
-                case SDL_KEYUP:
-                {
-                    int keyCode = 0;
-
-                    int mod = 0;
-
-                    if (event.key.keysym.sym >= 97 && event.key.keysym.sym <= 122) {
-                        keyCode = event.key.keysym.sym - 32;
-                    } else {
-                        keyCode = SDL_KEYCODE_TO_DOMCODE(event.key.keysym.sym);
-                    }
-
-                    if (event.key.keysym.mod & KMOD_SHIFT || SDL_KEYCODE_GET_CODE(keyCode) == 16) {
-                        mod |= Nidium::Binding::NIDIUM_KEY_SHIFT;
-                    }
-                    if (event.key.keysym.mod & KMOD_ALT || SDL_KEYCODE_GET_CODE(keyCode) == 18) {
-                        mod |= Nidium::Binding::NIDIUM_KEY_ALT;
-                    }
-                    if (event.key.keysym.mod & KMOD_CTRL || SDL_KEYCODE_GET_CODE(keyCode) == 17) {
-                        mod |= Nidium::Binding::NIDIUM_KEY_CTRL;
-                    }
-                    if (event.key.keysym.mod & KMOD_GUI || SDL_KEYCODE_GET_CODE(keyCode) == 91) {
-                        mod |= Nidium::Binding::NIDIUM_KEY_META;
-                    }
-                    if (window) {
-                        window->keyupdown(SDL_KEYCODE_GET_CODE(keyCode), mod,
-                            event.key.state, event.key.repeat,
-                            SDL_KEYCODE_GET_LOCATION(keyCode));
-                    }
-                    /*fprintf(stdout, "Mapped to %d\n", keyCode);
-                    fprintf(stout, "Key : %d %d %d %d %d uni : %d\n", event.key.keysym.sym,
-                           event.key.repeat,
-                           event.key.state,
-                           event.key.type,
-                           event.key.keysym.scancode,
-                           event.key.keysym.unicode);*/
-                    //return;
-                    break;
-                }
-            }
-        }
-        if (ttfps%300 == 0 && NUII->m_NativeCtx != NULL) {
-            NUII->m_NativeCtx->getNJS()->gc();
-        }
-        if (NUII->m_CurrentCursor != NativeCocoaUIInterface::NOCHANGE) {
-            switch(NUII->m_CurrentCursor) {
-                case NativeCocoaUIInterface::ARROW:
-                    [[NSCursor arrowCursor] set];
-                    break;
-                case NativeCocoaUIInterface::BEAM:
-                    [[NSCursor IBeamCursor] set];
-                    break;
-                case NativeCocoaUIInterface::CROSS:
-                    [[NSCursor crosshairCursor] set];
-                    break;
-                case NativeCocoaUIInterface::POINTING:
-                    [[NSCursor pointingHandCursor] set];
-                    break;
-                case NativeCocoaUIInterface::CLOSEDHAND:
-                    [[NSCursor closedHandCursor] set];
-                    break;
-                case NativeCocoaUIInterface::RESIZELEFTRIGHT:
-                    [[NSCursor resizeLeftRightCursor] set];
-                    break;
-                case NativeCocoaUIInterface::HIDDEN:
-                    SDL_ShowCursor(0);
-                    break;
-                default:
-                    break;
-            }
-            NUII->m_CurrentCursor = NativeCocoaUIInterface::NOCHANGE;
-        }
-
-        //glUseProgram(0);
-        if (NUII->m_NativeCtx) {
-            NUII->makeMainGLCurrent();
-            NUII->m_NativeCtx->frame(true);
-        }
-        if (NUII->getConsole()) {
-            NUII->getConsole()->flush();
-        }
-
-        if (NUII->getFBO() != 0 && NUII->m_NativeCtx) {
-            //glFlush();
-            //glFinish();
-            glReadBuffer(GL_COLOR_ATTACHMENT0);
-
-            glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
-            uint8_t *pdata = NUII->getFrameBufferData();
-
-            NUII->m_NativeCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
-        } else {
-            NUII->makeMainGLCurrent();
-            SDL_GL_SwapWindow(NUII->m_Win);
-        }
-
-        //NSLog(@"Swap : %d\n", SDL_GetTicks()-s);
-
-    //}
-    ttfps++;
-    //NSLog(@"ret : %d for %d events", (tend - tstart), nevents);
-    return 16;
+    [[NSApplication sharedApplication] terminate:nil];
 }
 
 /*
@@ -245,7 +67,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
 */
 static int NativeProcessUI(void *arg)
 {
-    return NativeEvents((NativeCocoaUIInterface *)arg);
+    return NativeUIInterface::HandleEvents((NativeUIInterface *)arg)
 }
 
 static int NativeProcessSystemLoop(void *arg)
@@ -264,26 +86,6 @@ void NativeCocoaUIInterface_onNMLLoaded(void *arg)
     NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)arg;
     UI->onNMLLoaded();
 }
-
-#if 0
-static bool NativeExtractMain(const char *buf, int len,
-    size_t offset, size_t total, void *user)
-{
-    NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)user;
-
-    memcpy(UI->m_m_Mainjs.buf+UI->m_m_Mainjs.offset, buf, len);
-    UI->m_m_Mainjs.offset += len;
-
-    if (offset == total) {
-        if (UI->NJS->LoadScriptContent(UI->m_m_Mainjs.buf, total, "main.js")) {
-            UI->NJS->Loaded();
-
-        }
-    }
-
-    return true;
-}
-#endif
 
 static void NativeDoneExtracting(void *closure, const char *fpath)
 {
@@ -610,21 +412,6 @@ const char *NativeCocoaUIInterface::getCacheDirectory() const
         return cpath;
     }
     return NULL;
-}
-
-void NativeCocoaUIInterface::setCursor(CURSOR_TYPE type)
-{
-    this->m_CurrentCursor = type;
-}
-
-void NativeCocoaUIInterface::setWindowTitle(const char *name)
-{
-    SDL_SetWindowTitle(m_Win, (name == NULL || *name == '\0' ? "nidium" : name));
-}
-
-const char *NativeCocoaUIInterface::getWindowTitle() const
-{
-    return SDL_GetWindowTitle(m_Win);
 }
 
 void NativeCocoaUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
@@ -1027,6 +814,34 @@ void NativeCocoaUIInterface::renderSystemTray()
     [m_StatusItem setMenu:stackMenu];
 }
 
+void NativeCocoaUIInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
+{
+    switch(cursorvalue) {
+        case NativeCocoaUIInterface::ARROW:
+            [[NSCursor arrowCursor] set];
+            break;
+        case NativeCocoaUIInterface::BEAM:
+            [[NSCursor IBeamCursor] set];
+            break;
+        case NativeCocoaUIInterface::CROSS:
+            [[NSCursor crosshairCursor] set];
+            break;
+        case NativeCocoaUIInterface::POINTING:
+            [[NSCursor pointingHandCursor] set];
+            break;
+        case NativeCocoaUIInterface::CLOSEDHAND:
+            [[NSCursor closedHandCursor] set];
+            break;
+        case NativeCocoaUIInterface::RESIZELEFTRIGHT:
+            [[NSCursor resizeLeftRightCursor] set];
+            break;
+        case NativeCocoaUIInterface::HIDDEN:
+            SDL_ShowCursor(0);
+            break;
+        default:
+            break;
+    }
+}
 
 @implementation NativeCocoaUIInterfaceWrapper
 

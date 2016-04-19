@@ -165,9 +165,28 @@ class NativeUIInterface
             m_Argv = argv;
         }
         virtual bool runApplication(const char *path)=0;
-        virtual void setWindowTitle(const char *)=0;
-        virtual const char *getWindowTitle() const=0;
-        virtual void setCursor(CURSOR_TYPE)=0;
+
+        /*
+            Set the system window title
+        */
+        virtual void setWindowTitle(const char *title);
+
+        /*
+            Get the system window title
+        */
+        virtual const char *getWindowTitle() const;
+
+        /*
+            Shutdown the application
+        */
+        virtual void quitApplication()=0;
+
+
+        /*
+
+        */
+        virtual void setCursor(CURSOR_TYPE);
+
         virtual void runLoop()=0;
         virtual void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {};
         virtual void setWindowControlsOffset(double x, double y) {};
@@ -251,9 +270,18 @@ class NativeUIInterface
             return m_SystemMenu;
         }
 
+        static int HandleEvents(NativeUIInterface *NUII);
+
     protected:
         virtual void renderSystemTray() {};
+        virtual void setSystemCursor(CURSOR_TYPE cursor)=0;
 
+        /*
+            Ctrl+R action
+            OSX: does nothing, this is handled by the menu action
+        */
+        virtual void hitRefresh() {}
+        
         int m_Width;
         int m_Height;
         char *m_FilePath;
