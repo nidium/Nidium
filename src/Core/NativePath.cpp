@@ -41,7 +41,7 @@ NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
         } else {
             std::string tmp;
             if (scheme->getBaseDir() != nullptr) {
-                tmp += m_Scheme->getBaseDir();
+                tmp += scheme->getBaseDir();
             }
             tmp += pOrigin;
 
