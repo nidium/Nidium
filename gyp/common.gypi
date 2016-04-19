@@ -9,7 +9,7 @@
     'target_defaults': {
         'defines': [
             'NATIVE_VERSION_STR="<(native_version)"',
-            'NATIVE_NO_PRIVATE_DIR'
+            'NIDIUM_NO_PRIVATE_DIR'
         ],
 
         'cflags_cc': [
