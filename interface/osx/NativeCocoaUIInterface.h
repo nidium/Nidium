@@ -13,9 +13,8 @@ class NativeCocoaUIInterface : public NativeUIInterface
 {
     public:
         NativeCocoaUIInterface();
-        void setWindowTitle(const char *);
-        const char *getWindowTitle() const;
-        void setCursor(CURSOR_TYPE);
+
+        void quitApplication();
         void runLoop();
         void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
         void setWindowControlsOffset(double x, double y);
@@ -63,6 +62,8 @@ class NativeCocoaUIInterface : public NativeUIInterface
         virtual bool makeGLCurrent(SDL_GLContext ctx);
         virtual SDL_GLContext getCurrentGLContext();
 #endif
+    protected:
+        void setSystemCursor(CURSOR_TYPE cursor);
     private:
         void renderSystemTray();
         bool initContext();

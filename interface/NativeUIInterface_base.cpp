@@ -8,9 +8,17 @@
 #include <Net/NativeHTTPStream.h>
 #include <NativePrivateStream.h>
 
+#include "NativeUIInterface.h"
+#include <NativeJSWindow.h>
 #include "NativeSystemStream.h"
 #include "NativeContext.h"
 #include "NativeOpenGLHeader.h"
+#include "SDL_keycode_translate.h"
+
+#define kNativeTitleBarHeight 0
+
+uint32_t ttfps = 0;
+
 
 NativeUIInterface::NativeUIInterface() :
     m_CurrentCursor(NativeUIInterface::ARROW), m_NativeCtx(NULL), m_Nml(NULL),
@@ -30,6 +38,154 @@ NativeUIInterface::NativeUIInterface() :
     NativePath::registerScheme(SCHEME_DEFINE("nvfs://",    NativeNFSStream,     false));
 
     NativeTaskManager::createManager();
+}
+
+int NativeUIInterface::HandleEvents(NativeUIInterface *NUII)
+{
+    SDL_Event event;
+    int nrefresh = 0;
+    int nevents = 0;
+
+    while(SDL_PollEvent(&event)) {
+        NativeJSwindow *window = NULL;
+        if (NUII->m_NativeCtx) {
+            NUII->makeMainGLCurrent();
+            window = NativeJSwindow::getNativeClass(NUII->m_NativeCtx->getNJS());
+        }
+        nevents++;
+        switch(event.type) {
+            case SDL_WINDOWEVENT:
+                if (window) {
+                    switch (event.window.event) {
+                        case SDL_WINDOWEVENT_FOCUS_GAINED:
+                            window->windowFocus();
+                            break;
+                        case SDL_WINDOWEVENT_FOCUS_LOST:
+                            window->windowBlur();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                break;
+            case SDL_TEXTINPUT:
+                if (window && event.text.text && strlen(event.text.text) > 0) {
+                    window->textInput(event.text.text);
+                }
+                break;
+            case SDL_USEREVENT:
+                break;
+            case SDL_QUIT:
+                if (window && !window->onClose()) {
+                    break;
+                }
+                NUII->stopApplication();
+                SDL_Quit();
+                NUII->quitApplication();
+
+                break;
+            case SDL_MOUSEMOTION:
+                if (window) {
+                    window->mouseMove(event.motion.x, event.motion.y - kNativeTitleBarHeight,
+                               event.motion.xrel, event.motion.yrel);
+                }
+                break;
+            case SDL_MOUSEWHEEL:
+            {
+                int cx, cy;
+                SDL_GetMouseState(&cx, &cy);
+                if (window) {
+                    window->mouseWheel(event.wheel.x, event.wheel.y, cx, cy - kNativeTitleBarHeight);
+                }
+                break;
+            }
+            case SDL_MOUSEBUTTONUP:
+            case SDL_MOUSEBUTTONDOWN:
+                if (window) {
+                    window->mouseClick(event.button.x, event.button.y - kNativeTitleBarHeight,
+                                event.button.state, event.button.button, event.button.clicks);
+                }
+            break;
+            case SDL_KEYDOWN:
+            case SDL_KEYUP:
+            {
+                int keyCode = 0;
+                int mod = 0;
+
+                if ((&event.key)->keysym.sym == SDLK_r &&
+                    (event.key.keysym.mod & KMOD_CTRL) && event.type == SDL_KEYDOWN) {
+
+                    if (++nrefresh > 1) {
+                        break;
+                    }
+
+                    NUII->hitRefresh();
+
+                    break;
+                }
+                if (event.key.keysym.sym >= 97 && event.key.keysym.sym <= 122) {
+                    keyCode = event.key.keysym.sym - 32;
+                } else {
+                    keyCode = SDL_KEYCODE_TO_DOMCODE(event.key.keysym.sym);
+                }
+
+                if (event.key.keysym.mod & KMOD_SHIFT || SDL_KEYCODE_GET_CODE(keyCode) == 16) {
+                    mod |= NATIVE_KEY_SHIFT;
+                }
+                if (event.key.keysym.mod & KMOD_ALT || SDL_KEYCODE_GET_CODE(keyCode) == 18) {
+                    mod |= NATIVE_KEY_ALT;
+                }
+                if (event.key.keysym.mod & KMOD_CTRL || SDL_KEYCODE_GET_CODE(keyCode) == 17) {
+                    mod |= NATIVE_KEY_CTRL;
+                }
+                if (event.key.keysym.mod & KMOD_GUI || SDL_KEYCODE_GET_CODE(keyCode) == 91) {
+                    mod |= NATIVE_KEY_META;
+                }
+                if (window) {
+                    window->keyupdown(SDL_KEYCODE_GET_CODE(keyCode), mod,
+                        event.key.state, event.key.repeat,
+                        SDL_KEYCODE_GET_LOCATION(keyCode));
+                }
+
+                break;
+            }
+        }
+    }
+
+    if (ttfps%300 == 0 && NUII->m_NativeCtx != NULL) {
+        NUII->m_NativeCtx->getNJS()->gc();
+    }
+
+    if (NUII->m_CurrentCursor != NativeUIInterface::NOCHANGE) {
+        NUII->setSystemCursor(NUII->m_CurrentCursor);
+        NUII->m_CurrentCursor = NativeUIInterface::NOCHANGE;
+    }
+
+    if (NUII->m_NativeCtx) {
+        NUII->makeMainGLCurrent();
+        NUII->m_NativeCtx->frame(true);
+    }
+#if 0
+    TODO : OSX
+    if (NUII->getConsole()) {
+        NUII->getConsole()->flush();
+    }
+#endif
+    if (NUII->getFBO() != 0 && NUII->m_NativeCtx) {
+
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+        glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
+        uint8_t *pdata = NUII->getFrameBufferData();
+
+        NUII->m_NativeCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
+    } else {
+        NUII->makeMainGLCurrent();
+        SDL_GL_SwapWindow(NUII->m_Win);
+    }
+
+    ttfps++;
+    return 16;
 }
 
 bool NativeUIInterface::makeMainGLCurrent()
@@ -56,6 +212,23 @@ SDL_GLContext NativeUIInterface::createSharedContext(bool webgl)
 
     return created;
 }
+
+void NativeUIInterface::setWindowTitle(const char *name)
+{
+    SDL_SetWindowTitle(m_Win, (name == NULL || *name == '\0' ? "nidium" : name));
+}
+
+const char *NativeUIInterface::getWindowTitle() const
+{
+    return SDL_GetWindowTitle(m_Win);
+}
+
+
+void NativeUIInterface::setCursor(CURSOR_TYPE type)
+{
+    this->m_CurrentCursor = type;
+}
+
 
 void NativeUIInterface::deleteGLContext(SDL_GLContext ctx)
 {

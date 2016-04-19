@@ -17,10 +17,8 @@ class NativeX11UIInterface : public NativeUIInterface
 {
     public:
         NativeX11UIInterface();
-        void setWindowTitle(const char *);
-        const char *getWindowTitle() const;
-        void setCursor(CURSOR_TYPE);
         void runLoop();
+        void quitApplication();
         void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
         void setWindowControlsOffset(double x, double y);
         void openFileDialog(const char *files[],
@@ -60,6 +58,9 @@ class NativeX11UIInterface : public NativeUIInterface
             size_t len;
             size_t offset;
         } mainjs;
+    protected:
+        void setSystemCursor(CURSOR_TYPE cursor);
+        void hitRefresh();
     private:
         bool createWindow(int width, int height);
         NativeUIX11Console *console;

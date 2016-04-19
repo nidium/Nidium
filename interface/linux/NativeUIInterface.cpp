@@ -17,7 +17,7 @@
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <SDL_syswm.h>
-#include "SDL_keycode_translate.h"
+
 
 #ifdef NATIVE_USE_GTK
 #include <gtk/gtk.h>
@@ -38,12 +38,8 @@
 #define kNativeWidth 1280
 #define kNativeHeight 600
 
-#define kNativeTitleBarHeight 0
-
 #define kNativeVSYNC 1
-
-uint32_t ttfps = 0;
-
+#define kNativeTitleBarHeight 0
 
 #if 0
 static Window *NativeX11Window(SDL_Window *m_Win)
@@ -62,230 +58,11 @@ void NativeX11UIInterface_onNMLLoaded(void *arg)
     UI->onNMLLoaded();
 }
 
-int NativeEvents(NativeX11UIInterface *NUII)
-{
-    SDL_Event event;
-    int nrefresh = 0;
-    //while(1) {
-    int nevents = 0;
-        while(SDL_PollEvent(&event)) {
-            NativeJSwindow *window = NULL;
-            if (NUII->m_NativeCtx) {
-                window = NativeJSwindow::getNativeClass(NUII->m_NativeCtx->getNJS());
-            }
-            nevents++;
-            switch(event.type) {
-                case SDL_WINDOWEVENT:
-                    if (window) {
-                        switch (event.window.event) {
-                            case SDL_WINDOWEVENT_FOCUS_GAINED:
-                                window->windowFocus();
-                                break;
-                            case SDL_WINDOWEVENT_FOCUS_LOST:
-                                window->windowBlur();
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    break;
-                case SDL_TEXTINPUT:
-                    if (window && strlen(event.text.text) > 0) {
-                        window->textInput(event.text.text);
-                    }
-                    break;
-                case SDL_USEREVENT:
-                    break;
-                case SDL_QUIT:
-                    NUII->stopApplication();
-                    SDL_Quit();
-#ifdef NATIVE_USE_GTK
-                    while (gtk_events_pending ()) {
-                        gtk_main_iteration();
-                    }
-#endif
-                    exit(1);
-                    break;
-                case SDL_MOUSEMOTION:
-                    if (window) {
-                        window->mouseMove(event.motion.x, event.motion.y - kNativeTitleBarHeight,
-                                   event.motion.xrel, event.motion.yrel);
-                    }
-                    break;
-                case SDL_MOUSEWHEEL:
-                {
-                    int cx, cy;
-                    SDL_GetMouseState(&cx, &cy);
-                    if (window) {
-                        window->mouseWheel(event.wheel.x, event.wheel.y, cx, cy - kNativeTitleBarHeight);
-                    }
-                    break;
-                }
-                case SDL_MOUSEBUTTONUP:
-                case SDL_MOUSEBUTTONDOWN:
-                    if (window) {
-                        window->mouseClick(event.button.x, event.button.y - kNativeTitleBarHeight,
-                                    event.button.state, event.button.button, event.button.clicks);
-                    }
-                break;
-                case SDL_KEYDOWN:
-                case SDL_KEYUP:
-                {
-                    int keyCode = 0;
-
-                    int mod = 0;
-                    if (
-                        (&event.key)->keysym.sym == SDLK_r &&
-                        (event.key.keysym.mod & KMOD_CTRL) && event.type == SDL_KEYDOWN) {
-                        if (++nrefresh > 1) {
-                            break;
-                        }
-                        fprintf(stdout, "\n\n= = = = Refresh... = = = = =\n");
-                        //[console clear];
-#ifdef NATIVE_USE_GTK
-                        while (gtk_events_pending ()) {
-                            gtk_main_iteration();
-                        }
-#endif
-                        //fprintf(stdout, "\n\n= = = = Restarting... = = = = =\n");
-                        NUII->restartApplication();
-                        break;
-                    }
-                    if (event.key.keysym.sym >= 97 && event.key.keysym.sym <= 122) {
-                        keyCode = event.key.keysym.sym - 32;
-                    } else {
-                        keyCode = SDL_KEYCODE_TO_DOMCODE(event.key.keysym.sym);
-                    }
-
-                    if (event.key.keysym.mod & KMOD_SHIFT) {
-                        mod |= NATIVE_KEY_SHIFT;
-                    }
-                    if (event.key.keysym.mod & KMOD_ALT) {
-                        mod |= NATIVE_KEY_ALT;
-                    }
-                    if (event.key.keysym.mod & KMOD_CTRL) {
-                        mod |= NATIVE_KEY_CTRL;
-                    }
-
-                    if (window) {
-                        window->keyupdown(SDL_KEYCODE_GET_CODE(keyCode), mod,
-                            event.key.state, event.key.repeat,
-                            SDL_KEYCODE_GET_LOCATION(keyCode));
-                    }
-                    /*fprintf(stdout, "Mapped to %d\n", keyCode);
-                    fprintf(stout, "Key : %d %d %d %d %d uni : %d\n", event.key.keysym.sym,
-                           event.key.repeat,
-                           event.key.state,
-                           event.key.type,
-                           event.key.keysym.scancode,
-                           event.key.keysym.unicode);*/
-                    //return;
-                    break;
-                }
-            }
-        }
-
-        if (ttfps%20 == 0 && NUII->m_NativeCtx != NULL) {
-            NUII->m_NativeCtx->getNJS()->gc();
-        }
-
-        if (NUII->m_CurrentCursor != NativeX11UIInterface::NOCHANGE) {
-            int cursor;
-            SDL_SysWMinfo info;
-
-            switch(NUII->m_CurrentCursor) {
-                case NativeX11UIInterface::ARROW:
-                    cursor = XC_left_ptr;
-                    break;
-                case NativeX11UIInterface::BEAM:
-                    cursor = XC_xterm;
-                    break;
-                case NativeX11UIInterface::CROSS:
-                    cursor = XC_crosshair;
-                    break;
-                case NativeX11UIInterface::POINTING:
-                    cursor = XC_hand2;
-                    break;
-                case NativeX11UIInterface::CLOSEDHAND:
-                    cursor = XC_hand1;
-                    break;
-                default:
-                    cursor = XC_left_ptr;
-                    break;
-            }
-
-            SDL_VERSION(&info.version);
-
-            if (SDL_GetWindowWMInfo(NUII->m_Win, &info)) {
-                Cursor c = XCreateFontCursor(info.info.x11.display, cursor);
-                Display *d = info.info.x11.display;
-
-                XDefineCursor(d, info.info.x11.window, c);
-                XFlush(d);
-                XFreeCursor(d, c);
-            }
-
-            NUII->m_CurrentCursor = NativeX11UIInterface::NOCHANGE;
-        }
-
-        if (NUII->m_NativeCtx) {
-            NUII->m_NativeCtx->frame();
-        }
-
-        //NUII->getConsole()->flush();
-        if (NUII->getFBO() != 0 && NUII->m_NativeCtx) {
-            //glFlush();
-            //glFinish();
-            glReadBuffer(GL_COLOR_ATTACHMENT0);
-
-            glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
-            uint8_t *pdata = NUII->getFrameBufferData();
-
-            NUII->m_NativeCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
-        } else {
-            SDL_GL_SwapWindow(NUII->m_Win);
-        }
-
-    //}
-    ttfps++;
-    //NSLog(@"ret : %d for %d events", (tend - tstart), nevents);
-    return 16;
-}
-
 static int NativeProcessUI(void *arg)
 {
-    return NativeEvents(static_cast<NativeX11UIInterface *>(arg));
+    return NativeUIInterface::HandleEvents((NativeUIInterface *)arg);
 }
 
-#if 0
-static bool NativeExtractMain(const char *buf, int len,
-    size_t offset, size_t total, void *user)
-{
-    NativeX11UIInterface *UI = (NativeX11UIInterface *)user;
-
-    memcpy(UI->mainjs.buf+UI->mainjs.offset, buf, len);
-    UI->mainjs.offset += len;
-
-    if (offset == total) {
-        if (UI->NJS->LoadScriptContent(UI->mainjs.buf, total, "main.js")) {
-            UI->NJS->Loaded();
-
-        }
-    }
-
-    return true;
-}
-
-static void NativeDoneExtracting(void *closure, const char *fpath)
-{
-    NativeX11UIInterface *ui = (NativeX11UIInterface *)closure;
-    chdir(fpath);
-    fprintf(stdout, "Changing directory to : %s\n", fpath);
-    ui->m_Nml = new NativeNML(ui->m_Gnet);
-    ui->m_Nml->setNJS(ui->NJS);
-    ui->m_Nml->loadFile("./index.nml");
-}
-#endif
 static void NativeDoneExtracting(void *closure, const char *fpath)
 {
     NativeX11UIInterface *ui = static_cast<NativeX11UIInterface*>(closure);
@@ -312,6 +89,26 @@ NativeX11UIInterface::NativeX11UIInterface()
     this->m_NativeCtx = NULL;
 
     m_Gnet = APE_init();
+}
+
+void NativeX11UIInterface::quitApplication()
+{
+#ifdef NATIVE_USE_GTK
+    while (gtk_events_pending ()) {
+        gtk_main_iteration();
+    }
+#endif
+    exit(1);
+}
+
+void NativeX11UIInterface::hitRefresh()
+{
+#ifdef NATIVE_USE_GTK
+    while (gtk_events_pending ()) {
+        gtk_main_iteration();
+    }
+#endif
+    this->restartApplication();
 }
 
 bool NativeX11UIInterface::createWindow(int width, int height)
@@ -396,20 +193,6 @@ bool NativeX11UIInterface::createWindow(int width, int height)
     NativeContext::CreateAndAssemble(this, m_Gnet);
 
     return true;
-}
-
-void NativeX11UIInterface::setCursor(CURSOR_TYPE type)
-{
-    this->m_CurrentCursor = type;
-}
-
-void NativeX11UIInterface::setWindowTitle(const char *name)
-{
-    SDL_SetWindowTitle(m_Win, (name == NULL || *name == '\0' ? "nidium" : name));
-}
-const char *NativeX11UIInterface::getWindowTitle() const
-{
-    return SDL_GetWindowTitle(m_Win);
 }
 
 void NativeX11UIInterface::openFileDialog(const char *files[],
@@ -774,3 +557,40 @@ void NativeX11UIInterface::vlog(const char *format, va_list ap)
     free(buff);
 }
 
+void NativeX11UIInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
+{
+    int cursor;
+    SDL_SysWMinfo info;
+
+    switch(cursorvalue) {
+        case NativeX11UIInterface::ARROW:
+            cursor = XC_left_ptr;
+            break;
+        case NativeX11UIInterface::BEAM:
+            cursor = XC_xterm;
+            break;
+        case NativeX11UIInterface::CROSS:
+            cursor = XC_crosshair;
+            break;
+        case NativeX11UIInterface::POINTING:
+            cursor = XC_hand2;
+            break;
+        case NativeX11UIInterface::CLOSEDHAND:
+            cursor = XC_hand1;
+            break;
+        default:
+            cursor = XC_left_ptr;
+            break;
+    }
+
+    SDL_VERSION(&info.version);
+
+    if (SDL_GetWindowWMInfo(m_Win, &info)) {
+        Cursor c = XCreateFontCursor(info.info.x11.display, cursor);
+        Display *d = info.info.x11.display;
+
+        XDefineCursor(d, info.info.x11.window, c);
+        XFlush(d);
+        XFreeCursor(d, c);
+    }
+}
