@@ -31,8 +31,6 @@ class NativeX11UIInterface : public NativeUIInterface
             return this->console;
         }
 
-        void setClipboardText(const char *text);
-        char *getClipboardText();
         void stopApplication();
         void restartApplication(const char *path=NULL);
         bool runApplication(const char *path);

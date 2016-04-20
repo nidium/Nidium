@@ -176,8 +176,8 @@ class NativeUIInterface
         virtual void runLoop()=0;
         virtual void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {};
         virtual void setWindowControlsOffset(double x, double y) {};
-        virtual void setClipboardText(const char *text)=0;
-        virtual char *getClipboardText()=0;
+        virtual void setClipboardText(const char *text);
+        virtual char *getClipboardText();
         virtual void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags=0)=0;
         virtual const char *getCacheDirectory() const=0;

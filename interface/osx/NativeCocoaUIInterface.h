@@ -19,8 +19,6 @@ class NativeCocoaUIInterface : public NativeUIInterface
         void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
         void setWindowControlsOffset(double x, double y);
         void initControls();
-        void setClipboardText(const char *text);
-        char *getClipboardText();
         void stopApplication();
         void setWindowSize(int w, int h);
         void setWindowFrame(int x, int y, int w, int h);

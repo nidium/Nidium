@@ -538,16 +538,6 @@ void NativeCocoaUIInterface::runLoop()
     APE_loop_run(m_Gnet);
 }
 
-void NativeCocoaUIInterface::setClipboardText(const char *text)
-{
-    SDL_SetClipboardText(text);
-}
-
-char *NativeCocoaUIInterface::getClipboardText()
-{
-    return SDL_GetClipboardText();
-}
-
 void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];

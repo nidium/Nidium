@@ -223,6 +223,16 @@ const char *NativeUIInterface::getWindowTitle() const
     return SDL_GetWindowTitle(m_Win);
 }
 
+void NativeUIInterface::setClipboardText(const char *text)
+{
+    SDL_SetClipboardText(text);
+}
+
+char *NativeUIInterface::getClipboardText()
+{
+    return SDL_GetClipboardText();
+}
+
 
 void NativeUIInterface::setCursor(CURSOR_TYPE type)
 {
