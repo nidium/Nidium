@@ -15,20 +15,31 @@
     TODO: make thread local storage
 */
 static NativeSharedMessages *g_MessagesList;
-static bool g_IsPostingSync = false;
+static NativeSharedMessages::Message *g_PostingSyncMsg = nullptr;
 
 static int NativeMessages_handle(void *arg)
 {
 #define MAX_MSG_IN_ROW 256
     int nread = 0;
-
+    bool stopOnAsync = false;
     NativeSharedMessages::Message *msg;
 
-    while (++nread < MAX_MSG_IN_ROW && (msg = g_MessagesList->readMessage())) {
+    while (++nread < MAX_MSG_IN_ROW &&
+            (msg = g_MessagesList->readMessage(stopOnAsync))) {
+
         NativeMessages *obj = static_cast<NativeMessages *>(msg->dest());
         obj->onMessage(*msg);
 
         delete msg;
+
+        if (g_PostingSyncMsg == msg) {
+            /*
+                Found the message being synchronously processed.
+                After this message, any async message must be
+                deffered to the next event loop.
+            */
+            stopOnAsync = true;
+        }
     }
 
     return 8;
@@ -90,25 +101,16 @@ void NativeMessages::postMessage(NativeSharedMessages::Message *msg, bool forceA
         - Must not have forced async message in queue
     */
     if (!forceAsync && pthread_equal(m_GenesisThread, pthread_self()) &&
-            g_MessagesList->hasAsyncMessages() && !g_IsPostingSync) {
+            g_MessagesList->hasAsyncMessages() && !g_PostingSyncMsg) {
 
-        g_IsPostingSync = true;
+        g_PostingSyncMsg = msg;
 
-        // Read pending messages so we don't break the FIFO rule
+        // Ensure that so we don't break the FIFO rule.
+        // Post the message first and then read all pendings messages
+        g_MessagesList->postMessage(msg);
         (void)NativeMessages_handle(nullptr);
 
-        g_IsPostingSync = false;
-
-        if (g_MessagesList->hasPendingMessages()) {
-            // Still have pending message(s),
-            // repost the message as an async one.
-            this->postMessage(msg, true);
-            return;
-        }
-
-        this->onMessage(*msg);
-
-        delete msg;
+        g_PostingSyncMsg = nullptr;
     } else {
         if (forceAsync) {
             msg->setForceAsync();

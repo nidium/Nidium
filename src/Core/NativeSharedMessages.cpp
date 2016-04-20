@@ -62,13 +62,17 @@ void NativeSharedMessages::addMessage(Message *msg)
     messageslist.count++;
 }
 
-NativeSharedMessages::Message *NativeSharedMessages::readMessage()
+NativeSharedMessages::Message *NativeSharedMessages::readMessage(bool stopOnAsync)
 {
     NativePthreadAutoLock lock(&messageslist.lock);
 
     Message *message = messageslist.queue;
 
     if (message == NULL) {
+        return NULL;
+    }
+
+    if (stopOnAsync && message->forceAsync()) {
         return NULL;
     }
 
