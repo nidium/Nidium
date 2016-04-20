@@ -52,11 +52,6 @@ static Window *NativeX11Window(SDL_Window *m_Win)
 }
 #endif
 
-void NativeX11UIInterface_onNMLLoaded(void *arg)
-{
-    NativeX11UIInterface *UI = static_cast<NativeX11UIInterface *>(arg);
-    UI->onNMLLoaded();
-}
 
 static int NativeProcessUI(void *arg)
 {
@@ -66,19 +61,10 @@ static int NativeProcessUI(void *arg)
 // }}}
 
 // {{{ NativeX11UIinterface
-NativeX11UIInterface::NativeX11UIInterface()
+NativeX11UIInterface::NativeX11UIInterface() :
+    NativeUIInterface(), console(NULL)
 {
-    this->m_Width = 0;
-    this->m_Height = 0;
-    this->m_Initialized = false;
-    this->m_Nml = NULL;
-    this->m_FilePath = NULL;
-    this->console = NULL;
 
-    this->m_CurrentCursor = NOCHANGE;
-    this->m_NativeCtx = NULL;
-
-    m_Gnet = APE_init();
 }
 
 void NativeX11UIInterface::quitApplication()
@@ -100,6 +86,13 @@ void NativeX11UIInterface::hitRefresh()
 #endif
     this->restartApplication();
 }
+
+void NativeX11UIInterface::onWindowCreated()
+{
+    console = new NativeUIX11Console();
+    static_cast<NativeSystem *>(NativeSystemInterface::_interface)->initSystemUI();
+}
+
 
 void NativeX11UIInterface::openFileDialog(const char *files[],
     void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags)
@@ -205,8 +198,8 @@ void NativeX11UIInterface::openFileDialog(const char *files[],
 void NativeX11UIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
     uint8_t b, uint8_t a)
 {
-}
 
+}
 
 void NativeX11UIInterface::initControls()
 {

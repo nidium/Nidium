@@ -53,14 +53,15 @@ static const char * InputEvent_Names[] = {
     "dragend",
     "dragover",
     "drop",
-    "drag"
+    "drag",
+    "mousewheel"
 };
 
 class InputEvent
 {
 public:
     enum Type {
-        kMouseMove_Type,
+        kMouseMove_Type = 0,
         kMouseClick_Type,
         kMouseClickRelease_Type,
         kMouseDoubleClick_Type,
@@ -68,7 +69,8 @@ public:
         kMouseDragEnd_Type,
         kMouseDragOver_Type,
         kMouseDrop_Type,
-        kMouseDrag_Type
+        kMouseDrag_Type,
+        kMouseWheel_Type
     };
 
     InputEvent(Type type, int ix, int iy,
@@ -109,6 +111,10 @@ public:
 
     InputEvent *getEventForNextCanvas() const {
         return m_PassThroughEvent;
+    }
+
+    void setData(int index, uint32_t data) {
+        m_data[index] = data;
     }
 
     int m_x, m_y;
