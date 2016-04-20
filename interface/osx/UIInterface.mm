@@ -81,12 +81,6 @@ static int NativeProcessSystemLoop(void *arg)
     return 4;
 }
 
-void NativeCocoaUIInterface_onNMLLoaded(void *arg)
-{
-    NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)arg;
-    UI->onNMLLoaded();
-}
-
 static void NativeDoneExtracting(void *closure, const char *fpath)
 {
     NativeCocoaUIInterface *ui = (NativeCocoaUIInterface *)closure;
@@ -144,17 +138,6 @@ void NativeCocoaUIInterface::logclear()
     }
 }
 
-void NativeCocoaUIInterface::onNMLLoaded()
-{
-    if (!this->createWindow(
-        this->m_Nml->getMetaWidth(),
-        this->m_Nml->getMetaHeight()+kNativeTitleBarHeight)) {
-
-        return;
-    }
-
-    this->setWindowTitle(this->m_Nml->getMetaTitle());
-}
 
 void NativeCocoaUIInterface::stopApplication()
 {
@@ -217,79 +200,10 @@ bool NativeCocoaUIInterface::runJSWithoutNML(const char *path, int width, int he
     return true;
 }
 
-bool NativeCocoaUIInterface::runApplication(const char *path)
-{
-    Nidium::Core::Messages::InitReader(m_Gnet);
-
-    if (path != this->m_FilePath) {
-        if (this->m_FilePath) {
-            free(this->m_FilePath);
-        }
-        this->m_FilePath = strdup(path);
-    }
-    if (strlen(path) < 5) {
-        return false;
-    }
-    //    FILE *main = fopen("index.nml", "r");
-    const char *ext = &path[strlen(path)-4];
-
-    if (strncasecmp(ext, ".npa", 4) == 0) {
-        FILE *main = fopen(path, "r");
-        if (main == NULL) {
-            return false;
-        }
-        Nidium::Frontend::App *app = new Nidium::Frontend::App(path);
-        if (app->open()) {
-            if (!this->createWindow(app->getWidth(), app->getHeight()+kNativeTitleBarHeight)) {
-                return false;
-            }
-            this->setWindowTitle(app->getTitle());
-
-            app->runWorker(this->m_Gnet);
-
-            const char *cachePath = this->getCacheDirectory();
-            char *uidpath = (char *)malloc(sizeof(char) *
-                                (strlen(app->getUDID()) + strlen(cachePath) + 16));
-            sprintf(uidpath, "%s%s.content/", cachePath, app->getUDID());
-
-            app->extractApp(uidpath, NativeDoneExtracting, this);
-            free(uidpath);
-            /*this->m_Mainjs.buf = (char *)malloc(fsize);
-            this->m_Mainjs.len = fsize;
-            this->m_Mainjs.offset = 0;
-
-            fprintf(stdout, "Start looking for main.js of size : %ld\n", fsize);*/
-            return true;
-        } else {
-            delete app;
-        }
-    } else {
-        this->m_Nml = new Nidium::Frontend::NML(this->m_Gnet);
-        this->m_Nml->loadFile(path, NativeCocoaUIInterface_onNMLLoaded, this);
-
-        return true;
-    }
-    return false;
-}
-
 NativeCocoaUIInterface::NativeCocoaUIInterface() :
-    m_StatusItem(NULL)
+    NativeUIInterface(), m_StatusItem(NULL), m_DragNSView(nil)
 {
-    this->m_Width = 0;
-    this->m_Height = 0;
-    this->m_Initialized = false;
-    this->m_Nml = NULL;
-    this->m_FilePath = NULL;
-    this->m_Console = NULL;
-
-    this->m_DragNSView = nil;
-
-    this->m_CurrentCursor = NOCHANGE;
-    this->m_NativeCtx = NULL;
-
     m_Wrapper = [[NativeCocoaUIInterfaceWrapper alloc] initWithUI:this];
-
-    m_Gnet = native_netlib_init();
 }
 
 NativeUICocoaConsole *NativeCocoaUIInterface::getConsole(bool create, bool *created) {
@@ -301,100 +215,29 @@ NativeUICocoaConsole *NativeCocoaUIInterface::getConsole(bool create, bool *crea
     return this->m_Console;
 }
 
-bool NativeCocoaUIInterface::createWindow(int width, int height)
+void NativeCocoaUIInterface::onWindowCreated()
 {
-    if (!this->m_Initialized) {
-        NSWindow *window;
-        SDL_GLContext contexteOpenGL;
+    NSWindow *window = NativeCocoaWindow(m_Win);
 
-        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1)
-        {
-            fprintf(stderr, "Can't init SDL:  %s\n", SDL_GetError( ));
-            return false;
-        }
-        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, true);
-        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5 );
-        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5 );
-        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5 );
-        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0 );
-        SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+    m_DragNSView = [[NativeDragNSView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
+    [[window contentView] addSubview:this->m_DragNSView];
+    [this->m_DragNSView setResponder:NativeJSwindow::getNativeClass(m_NativeCtx->getNJS())];
 
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    this->patchSDLView([window contentView]);
 
-        //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    [window setCollectionBehavior:
+             NSWindowCollectionBehaviorFullScreenPrimary];
 
-        m_Win = SDL_CreateWindow("nidium", 100, 100,
-            width, height,
-            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /*| SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN*/);
-
-        if (m_Win == NULL) {
-            fprintf(stderr, "Cant create window (SDL)\n");
-            return false;
-        }
-
-        this->m_Width = width;
-        this->m_Height = height;
-
-        window = NativeCocoaWindow(m_Win);
-
-        this->m_DragNSView = [[NativeDragNSView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
-        [[window contentView] addSubview:this->m_DragNSView];
-
-        this->patchSDLView([window contentView]);
-
-        [window setCollectionBehavior:
-                 NSWindowCollectionBehaviorFullScreenPrimary];
-
-        initControls();
-
-        [window setFrameAutosaveName:@"nativeMainWindow"];
-        if (kNativeTitleBarHeight != 0) {
-            [window setStyleMask:NSTexturedBackgroundWindowMask|NSTitledWindowMask];
-        }
-
-#if NIDIUM_ENABLE_HIDPI
-        NSView *openglview = [window contentView];
-        [openglview setWantsBestResolutionOpenGLSurface:YES];
-#endif
-        contexteOpenGL = SDL_GL_CreateContext(m_Win);
-        m_MainGLCtx = contexteOpenGL;
-
-        if (contexteOpenGL == NULL) {
-            NLOG("Failed to create OpenGL context : %s", SDL_GetError());
-        }
-        SDL_StartTextInput();
-
-        if (SDL_GL_SetSwapInterval(kNativeVSYNC) == -1) {
-            NLOG("Cant vsync");
-        }
-
-        this->m_Initialized = true;
-        glViewport(0, 0, width, height);
-
-        int depth;
-        glGetIntegerv(GL_DEPTH_BITS, &depth);
-
-        NLOG("[DEBUG] OpenGL Context at %p", contexteOpenGL);
-        NLOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
-        NLOG("[DEBUG] GLSL Version : %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
-        NLOG("[DEBUG] Deph buffer %i", depth);
-
-    } else {
-        //this->patchSDLView([NativeCocoaWindow(m_Win) contentView]);
+    [window setFrameAutosaveName:@"nativeMainWindow"];
+    if (kNativeTitleBarHeight != 0) {
+        [window setStyleMask:NSTexturedBackgroundWindowMask|NSTitledWindowMask];
     }
 
-    this->setWindowFrame(NATIVE_WINDOWPOS_UNDEFINED_MASK,
-        NATIVE_WINDOWPOS_UNDEFINED_MASK, width, height);
+#if NIDIUM_ENABLE_HIDPI
+    NSView *openglview = [window contentView];
+    [openglview setWantsBestResolutionOpenGLSurface:YES];
+#endif
 
-    Nidium::Frontend::Context::CreateAndAssemble(this, m_Gnet);
-
-    [this->m_DragNSView setResponder:JSWindow::GetObject(m_NativeCtx->getNJS())];
-
-    return true;
 }
 
 const char *NativeCocoaUIInterface::getCacheDirectory() const
@@ -539,20 +382,10 @@ void NativeCocoaUIInterface::runLoop()
     APE_loop_run(m_Gnet);
 }
 
-void NativeCocoaUIInterface::setClipboardText(const char *text)
-{
-    SDL_SetClipboardText(text);
-}
-
-char *NativeCocoaUIInterface::getClipboardText()
-{
-    return SDL_GetClipboardText();
-}
-
 void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    NSWindow *nswindow = NativeCocoaWindow(this->m_Win);
+    NSWindow *nswindow = NativeCocoaWindow(m_Win);
 
     this->m_Width = w;
     this->m_Height = h;
