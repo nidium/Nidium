@@ -33,36 +33,17 @@ public:
             listener->listenFor(this, false);
         }
     }
+
+    template <typename T>
+    bool fireEventSync(typename T::Events event, const NativeArgs &args) {
+        return this->fireEventImpl<T>(event, args, SYNC);
+    }
+
     template <typename T>
     bool fireEvent(typename T::Events event, const NativeArgs &args,
         bool forceAsync = false) {
 
-        ape_htable_item_t *item;
-
-        for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
-            NativeMessages *receiver = (NativeMessages *)item->content.addrs;
-
-            NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(NATIVE_EVENTS_MESSAGE_BITS(event) |
-                                                                                   (T::EventID << 16));
-
-            msg->args[0].set(static_cast<T *>(this));
-
-            for (int i = 0; i < args.size(); i++) {
-                msg->args[i+1].set(args[i].toInt64());
-            }
-            msg->priv = 0;
-
-            receiver->postMessage(msg, forceAsync);
-#if 0
-            /* TODO FIX : Use after free here */
-            /* stop propagation */
-            if (msg->priv) {
-                return false;
-            }
-#endif
-        }
-
-        return true;
+        return this->fireEventImpl<T>(event, args, forceAsync ? ASYNC : AUTO);
     }
 
     virtual ~NativeEvents() {
@@ -76,8 +57,49 @@ public:
     }
 
 private:
+    enum PropagationMode {
+        AUTO,
+        ASYNC,
+        SYNC
+    };
 
     NativeHash64<NativeMessages *> m_Listeners;
+
+    template <typename T>
+    bool fireEventImpl(typename T::Events event, const NativeArgs &args,
+        PropagationMode propagation = AUTO) {
+
+        ape_htable_item_t *item;
+
+        for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
+            NativeMessages *receiver = (NativeMessages *)item->content.addrs;
+
+            NativeSharedMessages::Message *msg = 
+                new NativeSharedMessages::Message(NATIVE_EVENTS_MESSAGE_BITS(event) | (T::EventID << 16));
+
+            msg->args[0].set(static_cast<T *>(this));
+
+            for (int i = 0; i < args.size(); i++) {
+                msg->args[i+1].set(args[i].toInt64());
+            }
+            msg->priv = 0;
+
+            if (propagation == SYNC) {
+                receiver->postMessageSync(msg);
+            } else {
+                receiver->postMessage(msg, propagation == ASYNC ? true : false);
+            }
+#if 0
+            /* TODO FIX : Use after free here */
+            /* stop propagation */
+            if (msg->priv) {
+                return false;
+            }
+#endif
+        }
+
+        return true;
+    }
 };
 
 #endif

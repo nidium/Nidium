@@ -57,6 +57,14 @@ class NativeSharedMessages
                 m_Dest = dest;
             }
 
+            void setForceAsync() {
+                m_ForceAsync = true;
+            }
+
+            bool forceAsync() {
+                return m_ForceAsync;
+            }
+
             uint64_t dataUInt() const {
                 return msgdata.dataint;
             }
@@ -77,6 +85,7 @@ class NativeSharedMessages
 
             int type;
             void *m_Dest;
+            bool m_ForceAsync = false;
     };
 
     typedef void (*native_shared_message_cleaner)(const NativeSharedMessages::Message &msg);
@@ -88,20 +97,24 @@ class NativeSharedMessages
     void postMessage(void *dataptr, int event);
     void postMessage(uint64_t dataint, int event);
     Message *readMessage();
-    Message *readMessage(int ev);
     void delMessagesForDest(void *dest, int event = -1);
     void setCleaner(native_shared_message_cleaner cleaner) {
         m_Cleaner = cleaner;
     }
 
-    int hasPendingMessages() const {
-        return (messageslist.count != 0);
+    bool hasAsyncMessages() {
+        return messageslist.asyncCount != 0;
+    }
+
+    bool hasPendingMessages() const {
+        return messageslist.count != 0;
     }
   private:
 
     struct
     {
         int count;
+        int asyncCount;
         Message *head;
         Message *queue;
         pthread_mutex_t lock;
@@ -109,6 +122,8 @@ class NativeSharedMessages
     } messageslist;
 
     native_shared_message_cleaner m_Cleaner;
+
+    void addMessage(Message *msg);
 };
 #endif
 

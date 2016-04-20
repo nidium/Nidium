@@ -140,16 +140,16 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
             /* do nothing */
             break;
         case NATIVEFILE_OPEN_ERROR:
-            this->error(NATIVESTREAM_ERROR_OPEN, msg.args[0].toInt());
+            this->errorSync(NATIVESTREAM_ERROR_OPEN, msg.args[0].toInt());
             break;
         case NATIVEFILE_SEEK_ERROR:
-            this->error(NATIVESTREAM_ERROR_SEEK, -1);
+            this->errorSync(NATIVESTREAM_ERROR_SEEK, -1);
             /* fall through */
         case NATIVEFILE_SEEK_SUCCESS:
             m_PendingSeek = false;
             break;
         case NATIVEFILE_READ_ERROR:
-            this->error(NATIVESTREAM_ERROR_READ, msg.args[0].toInt());
+            this->errorSync(NATIVESTREAM_ERROR_READ, msg.args[0].toInt());
             break;
         case NATIVEFILE_READ_SUCCESS:
         {
@@ -182,7 +182,7 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
                         CREATE_MESSAGE(message_available,
                             NATIVESTREAM_AVAILABLE_DATA);
                         message_available->args[0].set(buf->used);
-                        this->notify(message_available);
+                        this->notifySync(message_available);
                     }
                 }
             }
@@ -190,11 +190,7 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
             CREATE_MESSAGE(message, NATIVESTREAM_READ_BUFFER);
             message->args[0].set(buf);
 
-            /*
-                The underlying object is notified in a sync way
-                since it's on the same thread.
-            */
-            this->notify(message);
+            this->notifySync(message);
 
             break;
         }

@@ -32,6 +32,7 @@ public:
     void postMessage(void *dataptr, int event, bool forceAsync = false);
     void postMessage(uint64_t dataint, int event, bool forceAsync = false);
     void postMessage(NativeSharedMessages::Message *msg, bool forceAsync = false);
+    void postMessageSync(NativeSharedMessages::Message *msg);
     void delMessages(int event = -1);
 
     static void initReader(ape_global *ape);
@@ -40,11 +41,12 @@ public:
     NativeSharedMessages *getSharedMessages();
 
 private:
-    void listenFor(NativeEvents *obj, bool enable);
     pthread_t m_GenesisThread;
-
     /* Keep track on which objects we are listening events */
     NativeHash64<NativeEvents *>m_Listening;
+
+    void listenFor(NativeEvents *obj, bool enable);
+    static int process(void *arg);
 };
 
 #endif

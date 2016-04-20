@@ -115,11 +115,13 @@ protected:
         Send a message to the listener
     */
     void notify(NativeSharedMessages::Message *msg);
+    void notifySync(NativeSharedMessages::Message *msg);
 
     /*
         Send an error message
     */
     void error(StreamErrors, unsigned int code);
+    void errorSync(StreamErrors, unsigned int code);
 
     /*
         Swap back and front buffer.

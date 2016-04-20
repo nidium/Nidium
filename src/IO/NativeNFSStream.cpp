@@ -37,7 +37,7 @@ void NativeNFSStream::onStart(size_t packets, size_t seek)
     m_File.pos = 0;
 
     if (m_File.data == NULL) {
-        this->error(NATIVESTREAM_ERROR_OPEN, 0);
+        this->errorSync(NATIVESTREAM_ERROR_OPEN, 0);
 
         return;
     }
@@ -46,7 +46,7 @@ void NativeNFSStream::onStart(size_t packets, size_t seek)
         NATIVESTREAM_AVAILABLE_DATA);
     message_available->args[0].set(native_min(packets, m_File.len));
 
-    this->notify(message_available);
+    this->notifySync(message_available);
 
     buffer buf;
     buffer_init(&buf);
@@ -57,11 +57,7 @@ void NativeNFSStream::onStart(size_t packets, size_t seek)
     CREATE_MESSAGE(message, NATIVESTREAM_READ_BUFFER);
     message->args[0].set(&buf);
 
-    /*
-        The underlying object is notified in a sync way
-        since it's on the same thread.
-    */
-    this->notify(message);
+    this->notifySync(message);
 }
 
 const unsigned char *NativeNFSStream::onGetNextPacket(size_t *len, int *err)
@@ -109,7 +105,7 @@ void NativeNFSStream::_getContent()
     m_File.pos = 0;
 
     if (m_File.data == NULL) {
-        this->error(NATIVESTREAM_ERROR_OPEN, 0);
+        this->errorSync(NATIVESTREAM_ERROR_OPEN, 0);
 
         return;
     }
@@ -123,7 +119,7 @@ void NativeNFSStream::_getContent()
     CREATE_MESSAGE(message, NATIVESTREAM_READ_BUFFER);
     message->args[0].set(&buf);
 
-    this->notify(message);
+    this->notifySync(message);
 }
 
 bool NativeNFSStream::getContentSync(char **data, size_t *len, bool mmap)
@@ -157,7 +153,7 @@ size_t NativeNFSStream::getFileSize() const
 void NativeNFSStream::seek(size_t pos)
 {
     if (pos > m_File.len) {
-        this->error(NATIVESTREAM_ERROR_SEEK, -1);
+        this->errorSync(NATIVESTREAM_ERROR_SEEK, -1);
         return;
     }
     m_File.pos = pos;

@@ -75,6 +75,15 @@ void NativeBaseStream::notify(NativeSharedMessages::Message *msg)
     }
 }
 
+void NativeBaseStream::notifySync(NativeSharedMessages::Message *msg)
+{
+    if (m_Listener) {
+        m_Listener->postMessageSync(msg);
+    } else {
+        delete msg;
+    }
+}
+
 void NativeBaseStream::error(StreamErrors err, unsigned int code)
 {
     CREATE_MESSAGE(message, NATIVESTREAM_ERROR);
@@ -82,6 +91,15 @@ void NativeBaseStream::error(StreamErrors err, unsigned int code)
     message->args[1].set(code);
 
     this->notify(message);
+}
+
+void NativeBaseStream::errorSync(StreamErrors err, unsigned int code)
+{
+    CREATE_MESSAGE(message, NATIVESTREAM_ERROR);
+    message->args[0].set(err);
+    message->args[1].set(code);
+
+    this->notifySync(message);
 }
 
 void NativeBaseStream::swapBuffer()

@@ -84,7 +84,7 @@ void NativeWebSocketClientConnection::onDisconnect(ape_global *ape)
         m_PingTimer = 0;
     }
 
-    m_HTTPListener->fireEvent<NativeWebSocketListener>(NativeWebSocketListener::SERVER_CLOSE, args);
+    m_HTTPListener->fireEventSync<NativeWebSocketListener>(NativeWebSocketListener::SERVER_CLOSE, args);
 }
 
 void NativeWebSocketClientConnection::onUpgrade(const char *to)
@@ -123,7 +123,7 @@ void NativeWebSocketClientConnection::onUpgrade(const char *to)
         NativeWebSocketClientConnection::pingTimer, this);
 
     m_PingTimer = APE_timer_getid(timer);
-    m_HTTPListener->fireEvent<NativeWebSocketListener>(NativeWebSocketListener::SERVER_CONNECT, args);
+    m_HTTPListener->fireEventSync<NativeWebSocketListener>(NativeWebSocketListener::SERVER_CONNECT, args);
 
 }
 
@@ -143,7 +143,7 @@ void NativeWebSocketClientConnection::onFrame(const char *data, size_t len,
     args[2].set(len);
     args[3].set(binary);
 
-    m_HTTPListener->fireEvent<NativeWebSocketListener>(NativeWebSocketListener::SERVER_FRAME, args);
+    m_HTTPListener->fireEventSync<NativeWebSocketListener>(NativeWebSocketListener::SERVER_FRAME, args);
 }
 
 void NativeWebSocketClientConnection::close()

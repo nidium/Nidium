@@ -15,6 +15,7 @@ NativeSharedMessages::NativeSharedMessages() :
     m_Cleaner(NULL)
 {
     messageslist.count = 0;
+    messageslist.asyncCount = 0;
     messageslist.head  = NULL;
     messageslist.queue = NULL;
 
@@ -28,57 +29,36 @@ NativeSharedMessages::~NativeSharedMessages()
 
 void NativeSharedMessages::postMessage(Message *message)
 {
-    NativePthreadAutoLock lock(&messageslist.lock);
-
-    if (messageslist.head) {
-        messageslist.head->prev = message;
-    }
-
-    if (messageslist.queue == NULL) {
-        messageslist.queue = message;
-    }
-
-    messageslist.head = message;
-    messageslist.count++;
+    this->addMessage(message);
 }
 
 void NativeSharedMessages::postMessage(void *dataptr, int event)
 {
-    Message *message;
-
-    message = new Message(dataptr, event);
-
-    NativePthreadAutoLock lock(&messageslist.lock);
-
-    if (messageslist.head) {
-        messageslist.head->prev = message;
-    }
-
-    if (messageslist.queue == NULL) {
-        messageslist.queue = message;
-    }
-
-    messageslist.head = message;
-    messageslist.count++;
+    this->addMessage(new Message(dataptr, event));
 }
 
 void NativeSharedMessages::postMessage(uint64_t dataint, int event)
 {
-    Message *message;
+    this->addMessage(new Message(dataint, event));
+}
 
-    message = new Message(dataint, event);
-
+void NativeSharedMessages::addMessage(Message *msg) 
+{
     NativePthreadAutoLock lock(&messageslist.lock);
 
     if (messageslist.head) {
-        messageslist.head->prev = message;
+        messageslist.head->prev = msg;
     }
 
     if (messageslist.queue == NULL) {
-        messageslist.queue = message;
+        messageslist.queue = msg;
     }
 
-    messageslist.head = message;
+    if (msg->forceAsync()) {
+        messageslist.asyncCount++;
+    }
+
+    messageslist.head = msg;
     messageslist.count++;
 }
 
@@ -98,40 +78,8 @@ NativeSharedMessages::Message *NativeSharedMessages::readMessage()
         messageslist.head = NULL;
     }
 
-    messageslist.count--;
-
-    return message;
-}
-
-NativeSharedMessages::Message *NativeSharedMessages::readMessage(int type)
-{
-    NativePthreadAutoLock lock(&messageslist.lock);
-
-    Message *message = messageslist.queue;
-    Message *next = NULL;
-
-    if (message == NULL) {
-        printf("no message to delete\n");
-        return NULL;
-    }
-
-    while (message != NULL && message->event() != type) {
-        next = message;
-        message = message->prev;
-    }
-
-    if (message == NULL) {
-        return NULL;
-    }
-
-    if (message == messageslist.queue) {
-        messageslist.queue = message->prev;
-    } else {
-        next->prev = message->prev;
-    }
-
-    if (messageslist.queue == NULL) {
-        messageslist.head = NULL;
+    if (message->forceAsync()) {
+        messageslist.asyncCount--;
     }
 
     messageslist.count--;
@@ -161,6 +109,11 @@ void NativeSharedMessages::delMessagesForDest(void *dest, int event)
             if (messageslist.queue == NULL) {
                 messageslist.head = NULL;
             }
+
+            if (message->forceAsync()) {
+                messageslist.asyncCount--;
+            }
+
             if (m_Cleaner) {
                 m_Cleaner(*message);
             }
@@ -174,4 +127,3 @@ void NativeSharedMessages::delMessagesForDest(void *dest, int event)
         message = tmp;
     }
 }
-
