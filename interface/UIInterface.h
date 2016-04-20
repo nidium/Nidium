@@ -281,7 +281,6 @@ class NativeUIInterface
 
         static void OnNMLLoaded(void *arg);
     protected:
-
         virtual void initControls() {};
         virtual void onWindowCreated() {};
         virtual void onNMLLoaded();
