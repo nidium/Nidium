@@ -93,8 +93,8 @@ def testCore(unitTests):
     cwd = os.path.dirname(os.path.realpath(__file__))
 
     Tests.register([
-        "build/tests/nativejscore-unittests"
-    ], builders=[Gyp("%s/var/native/tests/unittests/tests.gyp" % cwd)])
+        "build/tests/nidiumcore-unittests"
+    ], builders=[Gyp("%s/var/nidiumcore/tests/unittests/tests.gyp" % cwd)])
 
 
 
