@@ -9,9 +9,9 @@
 #include "unittest.h"
 
 #include <native_netlib.h>
-#include <Binding/JSHTTPListener.h>
+#include <Binding/JSHTTPServer.h>
 
-TEST(JSHTTPListener, Simple)
+TEST(JSHTTPServer, Simple)
 {
     ape_global * g_ape = native_netlib_init();
     Nidium::Binding::NidiumJS njs(g_ape);
@@ -19,38 +19,38 @@ TEST(JSHTTPListener, Simple)
 
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = JS_GetProperty(njs.cx, globObj, "HTTPListener", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "HTTPServer", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSHTTPListener::registerObject(njs.cx);
+    Nidium::Binding::JSHTTPServer::registerObject(njs.cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globObj, "HTTPListener", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "HTTPServer", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 
     native_netlib_destroy(g_ape);
 }
 
-TEST(JSListener, Connection)
+TEST(JSServer, Connection)
 {
     ape_global * g_ape = native_netlib_init();
     Nidium::Binding::NidiumJS njs(g_ape);
     ape_socket *socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, g_ape);
-    Nidium::Binding::HTTPListener listener(8080, "0.0.0.0");
-    Nidium::Binding::JSHTTPClientConnection conn(njs.cx, &listener, socket);
-    EXPECT_EQ(conn.getHTTPListener(), &listener);
+    Nidium::Binding::HTTPServer server(8080, "0.0.0.0");
+    Nidium::Binding::JSHTTPClientConnection conn(njs.cx, &server, socket);
+    EXPECT_EQ(conn.getHTTPServer(), &server);
 
     native_netlib_destroy(g_ape);
 }
 
-TEST(JSHTTPListener, Listener)
+TEST(JSHTTPServer, Server)
 {
     ape_global * g_ape = native_netlib_init();
     Nidium::Binding::NidiumJS njs(g_ape);
 
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    Nidium::Binding::JSHTTPListener lis(globObj, njs.cx, 8080, "127.0.0.1");
+    Nidium::Binding::JSHTTPServer lis(globObj, njs.cx, 8080, "127.0.0.1");
 
     EXPECT_TRUE(lis.getJSObject() == globObj);
     EXPECT_TRUE(lis.getJSContext() == njs.cx);

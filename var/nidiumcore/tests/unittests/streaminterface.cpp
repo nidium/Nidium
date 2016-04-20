@@ -42,7 +42,7 @@ protected:
     const unsigned char * onGetNextPacket(size_t *len, int *err) {
         counter++;
         if (counter == 2) {
-            this->error(NATIVESTREAM_ERROR_UNKNOWN, 666);
+            this->error(ERROR_UNKNOWN, 666);
         }
         return NULL;
 
