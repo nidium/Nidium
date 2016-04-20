@@ -150,7 +150,13 @@ class NativeUIInterface
             m_Argc = argc;
             m_Argv = argv;
         }
-        virtual bool runApplication(const char *path)=0;
+
+
+        /*
+            Create the initial window
+            ::onWindowCreated() is then called on the subclass
+        */
+        virtual bool createWindow(int width, int height);
 
         /*
             Set the system window title
@@ -167,6 +173,7 @@ class NativeUIInterface
         */
         virtual void quitApplication()=0;
 
+        virtual bool runApplication(const char *path);
 
         /*
 
@@ -258,7 +265,12 @@ class NativeUIInterface
 
         static int HandleEvents(NativeUIInterface *NUII);
 
+        static void OnNMLLoaded(void *arg);
     protected:
+        
+        virtual void initControls() {};
+        virtual void onWindowCreated() {};
+        virtual void onNMLLoaded();
         virtual void renderSystemTray() {};
         virtual void setSystemCursor(CURSOR_TYPE cursor)=0;
 

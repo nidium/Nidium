@@ -52,43 +52,17 @@ static Window *NativeX11Window(SDL_Window *m_Win)
 }
 #endif
 
-void NativeX11UIInterface_onNMLLoaded(void *arg)
-{
-    NativeX11UIInterface *UI = static_cast<NativeX11UIInterface *>(arg);
-    UI->onNMLLoaded();
-}
 
 static int NativeProcessUI(void *arg)
 {
     return NativeUIInterface::HandleEvents((NativeUIInterface *)arg);
 }
 
-static void NativeDoneExtracting(void *closure, const char *fpath)
+
+NativeX11UIInterface::NativeX11UIInterface() :
+    NativeUIInterface(), console(NULL)
 {
-    NativeX11UIInterface *ui = static_cast<NativeX11UIInterface*>(closure);
-    if (chdir(fpath) != 0) {
-        fprintf(stderr, "Cant enter cache directory (%d)\n", errno);
-        return;
-    }
-    fprintf(stdout, "Changing directory to : %s\n", fpath);
 
-    ui->m_Nml = new NativeNML(ui->m_Gnet);
-    ui->m_Nml->loadFile("./index.nml", NativeX11UIInterface_onNMLLoaded, ui);
-}
-
-NativeX11UIInterface::NativeX11UIInterface()
-{
-    this->m_Width = 0;
-    this->m_Height = 0;
-    this->m_Initialized = false;
-    this->m_Nml = NULL;
-    this->m_FilePath = NULL;
-    this->console = NULL;
-
-    this->m_CurrentCursor = NOCHANGE;
-    this->m_NativeCtx = NULL;
-
-    m_Gnet = APE_init();
 }
 
 void NativeX11UIInterface::quitApplication()
@@ -111,89 +85,12 @@ void NativeX11UIInterface::hitRefresh()
     this->restartApplication();
 }
 
-bool NativeX11UIInterface::createWindow(int width, int height)
+void NativeX11UIInterface::onWindowCreated()
 {
-    SDL_GLContext contexteOpenGL;
-
-    if (!this->m_Initialized) {
-        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1)
-        {
-            NLOG("Can't init SDL:  %s\n", SDL_GetError());
-            return false;
-        }
-
-        static_cast<NativeSystem *>(NativeSystemInterface::_interface)->initSystemUI();
-
-        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
-        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
-        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
-        SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-
-        this->m_Win = SDL_CreateWindow("Native - Running", 100, 100,
-            width, height,
-            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
-
-        if (this->m_Win == NULL) {
-            NLOG("Cant create window (SDL)\n");
-            return false;
-        }
-
-        this->m_Width = width;
-        this->m_Height = height;
-
-        //window = NativeX11Window(win);
-
-        /*[window setCollectionBehavior:
-                 NSWindowCollectionBehaviorFullScreenPrimary];*/
-
-        initControls();
-
-        //[btn setFrame:CGRectMake(btn.frame.origin.x, btn.frame.origin.y-4, btn.frame.size.width, btn.frame.size.width)];
-
-        //[window setBackgroundColor:[NSColor colorWithSRGBRed:0.0980 green:0.1019 blue:0.09411 alpha:1.]];
-
-        //[window setFrameAutosaveName:@"nativeMainWindow"];
-        if (kNativeTitleBarHeight != 0) {
-            //[window setStyleMask:NSTexturedBackgroundWindowMask|NSTitledWindowMask];
-
-            //[window setContentBorderThickness:32.0 forEdge:NSMinYEdge];
-            //[window setOpaque:NO];
-        }
-        //[window setMovableByWindowBackground:NO];
-        //[window setOpaque:NO]; // YES by default
-        //[window setAlphaValue:0.5];
-
-        contexteOpenGL = SDL_GL_CreateContext(m_Win);
-        m_MainGLCtx = contexteOpenGL;
-        if (contexteOpenGL == NULL) {
-            NLOG("Failed to create OpenGL context : %s", SDL_GetError());
-            return false;
-        }
-        SDL_StartTextInput();
-
-        if (SDL_GL_SetSwapInterval(kNativeVSYNC) == -1) {
-            fprintf(stdout, "Cant vsync\n");
-        }
-
-        glViewport(0, 0, width*2, height*2);
-        NLOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
-
-        console = new NativeUIX11Console();
-
-        this->m_Initialized = true;
-    } else {
-        this->setWindowSize(width, height);
-    }
-
-    NativeContext::CreateAndAssemble(this, m_Gnet);
-
-    return true;
+    console = new NativeUIX11Console();
+    static_cast<NativeSystem *>(NativeSystemInterface::_interface)->initSystemUI();
 }
+
 
 void NativeX11UIInterface::openFileDialog(const char *files[],
     void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags)
@@ -299,78 +196,17 @@ void NativeX11UIInterface::openFileDialog(const char *files[],
 void NativeX11UIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
     uint8_t b, uint8_t a)
 {
-    /*
-    NSWindow *window = NativeX11Window(win);
-    NSUInteger mask = [window styleMask];
 
-    fprintf(stdout, "setting titlebar color\n");
-
-    if ((mask & NSTexturedBackgroundWindowMask) == 0) {
-        [window setStyleMask:mask|NSTexturedBackgroundWindowMask];
-        [window setMovableByWindowBackground:NO];
-        [window setOpaque:NO];
-    }
-
-    [window setBackgroundColor:[NSColor
-        colorWithSRGBRed:((double)r)/255.
-                   green:((double)g)/255.
-                    blue:((double)b)/255.
-                   alpha:((double)a)/255]];
-   */
 }
 
 void NativeX11UIInterface::initControls()
 {
-    /*
-    NSWindow *window = NativeX11Window(win);
-    NSButton *close = [window standardWindowButton:NSWindowCloseButton];
-    NSButton *min = [window standardWindowButton:NSWindowMiniaturizeButton];
-    NSButton *max = [window standardWindowButton:NSWindowZoomButton];
 
-    memset(&this->controls, 0, sizeof(CGRect));
-
-    if (close) {
-        this->controls.closeFrame = close.frame;
-    }
-    if (min) {
-        this->controls.minFrame = min.frame;
-    }
-    if (max) {
-        this->controls.zoomFrame = max.frame;
-    }
-    */
 }
 
 void NativeX11UIInterface::setWindowControlsOffset(double x, double y)
 {
-    /*
-    NSWindow *window = NativeX11Window(win);
-    NSButton *close = [window standardWindowButton:NSWindowCloseButton];
-    NSButton *min = [window standardWindowButton:NSWindowMiniaturizeButton];
-    NSButton *max = [window standardWindowButton:NSWindowZoomButton];
 
-    if (close) {
-        [close setFrame:CGRectMake(
-            this->controls.closeFrame.origin.x+x,
-            this->controls.closeFrame.origin.y-y,
-            this->controls.closeFrame.size.width,
-            this->controls.closeFrame.size.height)];
-    }
-    if (min) {
-        [min setFrame:CGRectMake(
-            this->controls.minFrame.origin.x+x,
-            this->controls.minFrame.origin.y-y,
-            this->controls.minFrame.size.width,
-            this->controls.minFrame.size.height)];
-    }
-    if (max) {
-        [max setFrame:CGRectMake(
-            this->controls.zoomFrame.origin.x+x,
-            this->controls.zoomFrame.origin.y-y,
-            this->controls.zoomFrame.size.width,
-            this->controls.zoomFrame.size.height)];
-    }
-    */
 }
 
 void NativeX11UIInterface::runLoop()
@@ -425,61 +261,6 @@ void NativeX11UIInterface::restartApplication(const char *path)
     this->runApplication(path == NULL ? this->m_FilePath : path);
 }
 
-bool NativeX11UIInterface::runApplication(const char *path)
-{
-    NativeMessages::initReader(m_Gnet);
-
-    if (path != this->m_FilePath) {
-        if (this->m_FilePath) {
-            free(this->m_FilePath);
-        }
-        this->m_FilePath = strdup(path);
-    }
-    if (path == NULL || strlen(path) < 5) {
-        return false;
-    }
-    //    FILE *main = fopen("index.nml", "r");
-    const char *ext = &path[strlen(path)-4];
-
-    if (strncasecmp(ext, ".npa", 4) == 0) {
-        FILE *main = fopen(path, "r");
-        if (main == NULL) {
-            return false;
-        }
-        NativeApp *app = new NativeApp(path);
-        if (app->open()) {
-            if (!this->createWindow(app->getWidth()*2, 2*app->getHeight()+kNativeTitleBarHeight)) {
-                return false;
-            }
-            this->setWindowTitle(app->getTitle());
-
-            app->runWorker(this->m_Gnet);
-
-            const char *cachePath = this->getCacheDirectory();
-            char *uidpath = (char *)malloc(sizeof(char) *
-                                (strlen(app->getUDID()) + strlen(cachePath) + 16));
-            sprintf(uidpath, "%s%s.content/", cachePath, app->getUDID());
-
-            app->extractApp(uidpath, NativeDoneExtracting, this);
-            free(uidpath);
-            /*this->mainjs.buf = (char *)malloc(fsize);
-            this->mainjs.len = fsize;
-            this->mainjs.offset = 0;
-
-            fprintf(stdout, "Start looking for main.js of size : %ld\n", fsize);*/
-            return true;
-        } else {
-            delete app;
-        }
-    } else {
-        this->m_Nml = new NativeNML(this->m_Gnet);
-        this->m_Nml->loadFile(path, NativeX11UIInterface_onNMLLoaded, this);
-
-        return true;
-    }
-    return false;
-}
-
 void NativeX11UIInterface::stopApplication()
 {
     if (this->m_Nml) delete this->m_Nml;
@@ -496,16 +277,6 @@ void NativeX11UIInterface::stopApplication()
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-void NativeX11UIInterface::onNMLLoaded()
-{
-    if (!this->createWindow(
-        this->m_Nml->getMetaWidth(),
-        this->m_Nml->getMetaHeight() + kNativeTitleBarHeight)) {
-        exit(2);
-    }
-
-    this->setWindowTitle(this->m_Nml->getMetaTitle());
-}
 
 void NativeX11UIInterface::setWindowSize(int w, int h)
 {

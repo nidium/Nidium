@@ -33,8 +33,6 @@ class NativeX11UIInterface : public NativeUIInterface
 
         void stopApplication();
         void restartApplication(const char *path=NULL);
-        bool runApplication(const char *path);
-        void onNMLLoaded();
         void setWindowSize(int w, int h);
 
         void vlog(const char *buf, va_list ap);
@@ -59,8 +57,8 @@ class NativeX11UIInterface : public NativeUIInterface
     protected:
         void setSystemCursor(CURSOR_TYPE cursor);
         void hitRefresh();
+        void onWindowCreated();
     private:
-        bool createWindow(int width, int height);
         NativeUIX11Console *console;
 };
 

@@ -7,6 +7,8 @@
 
 #include <Net/NativeHTTPStream.h>
 #include <NativePrivateStream.h>
+#include <NativeApp.h>
+#include <NativeNML.h>
 
 #include "NativeUIInterface.h"
 #include <NativeJSWindow.h>
@@ -18,11 +20,11 @@
 #define kNativeTitleBarHeight 0
 
 uint32_t ttfps = 0;
-
+#define kNativeVSYNC 1
 
 NativeUIInterface::NativeUIInterface() :
     m_CurrentCursor(NativeUIInterface::ARROW), m_NativeCtx(NULL), m_Nml(NULL),
-    m_Win(NULL), m_Gnet(NULL), m_Width(0), m_Height(0), m_FilePath(NULL),
+    m_Win(NULL), m_Gnet(APE_init()), m_Width(0), m_Height(0), m_FilePath(NULL),
     m_Initialized(false), m_IsOffscreen(false), m_ReadPixelInBuffer(false),
     m_Hidden(false), m_FBO(0), m_FrameBuffer(NULL), m_Console(NULL),
     m_MainGLCtx(NULL), m_SystemMenu(this)
@@ -38,6 +40,67 @@ NativeUIInterface::NativeUIInterface() :
     NativePath::registerScheme(SCHEME_DEFINE("nvfs://",    NativeNFSStream,     false));
 
     NativeTaskManager::createManager();
+}
+
+bool NativeUIInterface::createWindow(int width, int height)
+{
+    if (!m_Initialized) {
+        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1) {
+            NLOG("Can't init SDL:  %s\n", SDL_GetError());
+            return false;
+        }
+
+        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
+        SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+
+        m_Win = SDL_CreateWindow("nidium", 100, 100, width, height,
+            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
+
+        if (m_Win == NULL) {
+            NLOG("Cant create window (SDL)\n");
+            return false;
+        }
+
+        m_Width  = width;
+        m_Height = height;
+
+        this->onWindowCreated();
+        
+        if ((m_MainGLCtx = SDL_GL_CreateContext(m_Win)) == NULL) {
+            NLOG("Failed to create OpenGL context : %s", SDL_GetError());
+            return false;
+        }
+
+        this->initControls();
+        SDL_StartTextInput();
+
+        /*
+            Enable vertical sync
+        */
+        if (SDL_GL_SetSwapInterval(kNativeVSYNC) == -1) {
+            fprintf(stdout, "Cant vsync\n");
+        }
+
+        //glViewport(0, 0, width*2, height*2);
+        NLOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
+
+        this->m_Initialized = true;
+
+    }
+
+    this->setWindowFrame(NATIVE_WINDOWPOS_UNDEFINED_MASK,
+        NATIVE_WINDOWPOS_UNDEFINED_MASK, width, height);
+
+    NativeContext::CreateAndAssemble(this, m_Gnet);
+
+    return true;
 }
 
 int NativeUIInterface::HandleEvents(NativeUIInterface *NUII)
@@ -186,6 +249,23 @@ int NativeUIInterface::HandleEvents(NativeUIInterface *NUII)
 
     ttfps++;
     return 16;
+}
+
+void NativeUIInterface::OnNMLLoaded(void *arg)
+{
+    NativeUIInterface *UI = (NativeUIInterface *)arg;
+    UI->onNMLLoaded();
+}
+
+void NativeUIInterface::onNMLLoaded()
+{
+    if (!this->createWindow(
+        this->m_Nml->getMetaWidth(),
+        this->m_Nml->getMetaHeight() + kNativeTitleBarHeight)) {
+        exit(2);
+    }
+
+    this->setWindowTitle(this->m_Nml->getMetaTitle());
 }
 
 bool NativeUIInterface::makeMainGLCurrent()
@@ -441,6 +521,30 @@ void NativeUIInterface::refreshApplication(bool clearConsole)
     this->restartApplication();
 }
 
+bool NativeUIInterface::runApplication(const char *path)
+{
+    NativeMessages::initReader(m_Gnet);
+
+    if (path != this->m_FilePath) {
+        if (this->m_FilePath) {
+            free(this->m_FilePath);
+        }
+        this->m_FilePath = strdup(path);
+    }
+    if (path == NULL || strlen(path) < 5) {
+        return false;
+    }
+    //    FILE *main = fopen("index.nml", "r");
+    const char *ext = &path[strlen(path)-4];
+
+    this->m_Nml = new NativeNML(this->m_Gnet);
+    this->m_Nml->loadFile(path, NativeUIInterface::OnNMLLoaded, this);
+
+    return true;
+
+}
+
+
 void NativeUIInterface::hideWindow()
 {
     if (!m_Hidden) {
@@ -460,6 +564,7 @@ void NativeUIInterface::showWindow()
         APE_timer_setlowresolution(this->m_Gnet, 0);
     }
 }
+
 
 void NativeSystemMenu::addItem(NativeSystemMenuItem *item)
 {
