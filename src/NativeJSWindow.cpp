@@ -252,7 +252,7 @@ bool NativeJSwindow::onClose()
 void NativeJSwindow::assetReady(const NMLTag &tag)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-        val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS)
+        val, JSPROP_PERMANENT | JSPROP_ENUMERATE)
 
     JSContext *cx = m_Cx;
     JS::AutoValueArray<1> jevent(cx);
@@ -306,9 +306,17 @@ void NativeJSwindow::windowBlur()
 void NativeJSwindow::mouseWheel(int xrel, int yrel, int x, int y)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-    val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY)
+    val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
 
     JSAutoRequest ar(m_Cx);
+
+    NativeContext *nctx = NativeContext::getNativeClass(m_Cx);
+    NativeInputEvent *ev = new NativeInputEvent(NativeInputEvent::kMouseWheel_Type, x, y);
+
+    ev->setData(0, xrel);
+    ev->setData(1, yrel);
+
+    nctx->addInputEvent(ev);
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &mouseEvent_class, JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue xrelv(m_Cx, INT_TO_JSVAL(xrel));
@@ -434,7 +442,7 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button, int clicks)
         NativeInputEvent::kMouseClick_Type :
         NativeInputEvent::kMouseClickRelease_Type, x, y);
 
-    ev->m_data[0] = button;
+    ev->setData(0, button);
 
     nctx->addInputEvent(ev);
 
@@ -446,7 +454,7 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button, int clicks)
     if (clicks % 2 == 0 && !state) {
         NativeInputEvent *ev = new NativeInputEvent(NativeInputEvent::kMouseDoubleClick_Type, x, y);
 
-        ev->m_data[0] = button;
+        ev->setData(0, button);
         nctx->addInputEvent(ev);
     }
     JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
@@ -599,8 +607,9 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
     rootHandler->m_MousePosition.consumed = false;
 
     NativeInputEvent *ev = new NativeInputEvent(NativeInputEvent::kMouseMove_Type, x, y);
-    ev->m_data[0] = xrel;
-    ev->m_data[1] = yrel;
+
+    ev->setData(0, xrel);
+    ev->setData(1, yrel);
 
     nctx->addInputEvent(ev);
 

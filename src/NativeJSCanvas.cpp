@@ -1471,6 +1471,7 @@ static bool native_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
         lazyLoad = __curopt.toBoolean();
     }
     lazyLoad = false; /* Always lazy load for now.  */
+
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Canvas_class, args));
     handler = new NativeCanvasHandler(width, height, NativeContext::getNativeClass(cx), true);
     handler->m_Context = NULL;
@@ -1570,7 +1571,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
     switch (msg.event()) {
         case NATIVE_EVENT(NativeCanvasHandler, RESIZE_EVENT):
         {
-            // TODO : fireEvent
+            // TODO : fireEvent            
             JSOBJ_CALLFUNCNAME(ro, "onresize", JS::HandleValueArray::empty());
             break;
         }
@@ -1629,6 +1630,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
                 case NativeInputEvent::kMouseMove_Type:
                 case NativeInputEvent::kMouseDrag_Type:
                 case NativeInputEvent::kMouseDragOver_Type:
+                case NativeInputEvent::kMouseWheel_Type:
                     obj.set("xrel", msg.args[4].toInt());
                     obj.set("yrel", msg.args[5].toInt());
                     break;
