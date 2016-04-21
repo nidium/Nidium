@@ -114,7 +114,7 @@ int Server::initWorker(int *idx)
 
     pid_t pid = 0;
     /* Execute the worker for the child process and returns 0 */
-#ifndef NATIVE_NO_FORK
+#ifndef NIDIUM_NO_FORK
     if ((pid = fork()) == 0) {
 #endif
         Worker worker(*idx, (m_HasREPL && *idx == 1));
@@ -125,7 +125,7 @@ int Server::initWorker(int *idx)
         worker.run(m_Args.argc, m_Args.argv, m_JSStrictMode);
 
         return 0;
-#ifndef NATIVE_NO_FORK
+#ifndef NIDIUM_NO_FORK
     }
 
     pidList.push_back(pid);

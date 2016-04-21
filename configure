@@ -58,5 +58,5 @@ def testServer(unitTests, autoTests):
 
 if __name__ == '__main__':
     Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
-    Build.add(Gyp("gyp/native-server.gyp"));
+    Build.add(Gyp("gyp/nidium-server.gyp"));
     Konstruct.start()

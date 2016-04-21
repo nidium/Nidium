@@ -15,7 +15,7 @@ enum {
     MESSAGE_READLINE
 };
 
-static void *native_repl_thread(void *arg)
+static void *nidium_repl_thread(void *arg)
 {
     REPL * repl = (REPL *)arg;
     char *line;
@@ -63,7 +63,7 @@ REPL::REPL(Nidium::Binding::NidiumJS *js)
 
     sem_init(&m_ReadLineLock, 0, 0);
 
-    pthread_create(&m_ThreadHandle, NULL, native_repl_thread, this);
+    pthread_create(&m_ThreadHandle, NULL, nidium_repl_thread, this);
 }
 
 

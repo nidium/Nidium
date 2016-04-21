@@ -13,7 +13,7 @@
             '<(third_party_path)/http-parser/',
         ],
         'sources': [
-            '<(native_src_path)/native_main.cpp',
+            '<(native_src_path)/nidium_server_main.cpp',
             '<(native_src_path)/Server.cpp',
             '<(native_src_path)/Context.cpp',
             '<(native_src_path)/JSConsole.cpp',
@@ -25,7 +25,7 @@
         ],
         'conditions': [
             ['nofork==1', {
-                'defines':['NATIVE_NO_FORK']
+                'defines':['NIDIUM_NO_FORK']
             }],
             ['OS=="linux"', {
                 'cflags': [
