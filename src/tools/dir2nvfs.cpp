@@ -10,10 +10,9 @@
 #include <jsapi.h>
 #include <native_netlib.h>
 
-#include <NativeNFS.h>
-#include <NativeStreamInterface.h>
-#include <NativeFileStream.h>
-#include <NativeUtils.h>
+#include <NFS.h>
+#include <FileStream.h>
+#include <Utils.h>
 
 #ifndef DIR2NFS_OUTPUT
 #define DIR2NFS_OUTPUT stdout
@@ -47,8 +46,8 @@ void listdir(NativeNFS *nfs, DIR *dir, std::string fullpath, int strip)
             listdir(nfs, opendir(newpath.c_str()), newpath, strip);
         } else if (cur->d_type & DT_REG) {
 
-            //NativePtrAutoDelete<NativeBaseStream *> stream(NativeBaseStream::create(newpath.c_str()));
-            NativeBaseStream *stream = NativeBaseStream::create(newpath.c_str());
+            //NativePtrAutoDelete<Nidium::IO::Stream *> stream(Nidium::IO::Stream::create(newpath.c_str()));
+            Nidium::IO::Stream *stream = Nidium::IO::Stream::create(newpath.c_str());
 
             if (stream == NULL) {
                 fprintf(stderr, "Could not create stream for file %s\n", newpath.c_str());
@@ -74,23 +73,23 @@ void listdir(NativeNFS *nfs, DIR *dir, std::string fullpath, int strip)
     closedir(dir);
 }
 
-void initNativeJSCore()
+static void initNidiumJSCore()
 {
     _ape_seed = time(NULL) ^ (getpid() << 16);
 
     /*
         This is required to create a stream (file is the default)
     */
-    NativePath::registerScheme(SCHEME_DEFINE("file://", NativeFileStream, false), true);
-    NativeTaskManager::createManager();
+    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("file://", Nidium::IO::FileStream, false), true);
+    Nidium::Core::TaskManager::createManager();
     ape_global *gnet = native_netlib_init();
-    NativeMessages::initReader(gnet);
+    Nidium::Core::Messages::initReader(gnet);
 
 }
 
 int main(int argc, char **argv)
 {
-    initNativeJSCore();
+    initNidiumJSCore();
 
     if (argc <= 1) {
         printf("$ %s <path> [prefix] [> out]\n", argv[0]);

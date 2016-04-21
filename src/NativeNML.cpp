@@ -7,7 +7,7 @@
 #include <strings.h>
 #include <unistd.h>
 
-#include <Binding/NativeJSUtils.h>
+#include <Binding/JSUtils.h>
 
 #include "NativeSystemInterface.h"
 #include "NativeJSWindow.h"
@@ -29,8 +29,8 @@ NativeNML::NativeNML(ape_global *net) :
     this->meta.size.height = 0;
     this->meta.identifier = NULL;
 
-    /* Make sure NativeJS already has the netlib set */
-    NativeJS::initNet(net);
+    /* Make sure Nidium::Binding::NidiumJS already has the netlib set */
+    Nidium::Binding::NidiumJS::initNet(net);
 
     memset(&this->meta, 0, sizeof(this->meta));
 }
@@ -53,11 +53,11 @@ NativeNML::~NativeNML()
         free(this->meta.title);
     }
 
-    NativePath::cd(NULL);
-    NativePath::chroot(NULL);
+    Nidium::Core::Path::cd(NULL);
+    Nidium::Core::Path::chroot(NULL);
 }
 
-void NativeNML::setNJS(NativeJS *js)
+void NativeNML::setNJS(Nidium::Binding::NidiumJS *js)
 {
     m_Njs = js;
     /*
@@ -74,11 +74,11 @@ void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
     m_Loaded = cb;
     m_LoadedArg = arg;
 
-    NativePath path(file);
+    Nidium::Core::Path path(file);
 
     printf("NML path : %s\n", path.path());
 
-    m_Stream = NativeBaseStream::create(path);
+    m_Stream = Nidium::IO::Stream::create(path);
     if (m_Stream == NULL) {
         NativeSystemInterface::getInstance()->
             alert("NML error : stream error",
@@ -88,8 +88,8 @@ void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
     /*
         Set the global working directory at the NML location
     */
-    NativePath::cd(path.dir());
-    NativePath::chroot(path.dir());
+    Nidium::Core::Path::cd(path.dir());
+    Nidium::Core::Path::chroot(path.dir());
 
     m_Stream->setListener(this);
     m_Stream->getContent();
@@ -120,7 +120,7 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
             }
             case NativeAssets::Item::ITEM_NSS:
             {
-                NativeJSdocument *jdoc = NativeJSdocument::getNativeClass(m_Njs->cx);
+                NativeJSdocument *jdoc = NativeJSdocument::GetObject(m_Njs->cx);
                 if (jdoc == NULL) {
                     return;
                 }
@@ -134,7 +134,7 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
     }
     /* TODO: allow the callback to change content ? */
 
-    NativeJSwindow::getNativeClass(m_Njs)->assetReady(tag);
+    NativeJSwindow::GetObject(m_Njs)->assetReady(tag);
 }
 
 static void NativeNML_onAssetsItemRead(NativeAssets::Item *item, void *arg)
@@ -150,7 +150,7 @@ void NativeNML::onAssetsBlockReady(NativeAssets *asset)
 
     if (m_nAssets == 0) {
         JS::RootedObject layoutObj(m_Njs->cx, m_JSObjectLayout);
-        NativeJSwindow::getNativeClass(m_Njs)->onReady(layoutObj);
+        NativeJSwindow::GetObject(m_Njs)->onReady(layoutObj);
     }
 }
 
@@ -400,7 +400,7 @@ JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 {
 #define NODE_PROP(where, name, val) JS_DefineProperty(cx, where, name, \
     val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
-#define NODE_STR(data, len) STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(cx, \
+#define NODE_STR(data, len) STRING_TO_JSVAL(Nidium::Binding::JSUtils::newStringWithEncoding(cx, \
         (const char *)data, len, "utf8"))
 
     using namespace rapidxml;
@@ -465,17 +465,17 @@ JSObject *NativeNML::buildLayoutTree(rapidxml::xml_node<> &node)
 
 static int delete_stream(void *arg)
 {
-    NativeBaseStream *stream = static_cast<NativeBaseStream *>(arg);
+    Nidium::IO::Stream *stream = static_cast<Nidium::IO::Stream *>(arg);
 
     delete stream;
 
     return 0;
 }
 
-void NativeNML::onMessage(const NativeSharedMessages::Message &msg)
+void NativeNML::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case NATIVESTREAM_READ_BUFFER:
+        case Nidium::IO::STREAM_READ_BUFFER:
         {
             buffer *buf = (buffer *)msg.args[0].toPtr();
 
@@ -486,15 +486,15 @@ void NativeNML::onMessage(const NativeSharedMessages::Message &msg)
             const char *streamPath = m_Stream->getPath();
 
             if (streamPath != NULL) {
-                NativePath path(streamPath);
-                NativePath::cd(path.dir());
-                NativePath::chroot(path.dir());
+                Nidium::Core::Path path(streamPath);
+                Nidium::Core::Path::cd(path.dir());
+                Nidium::Core::Path::chroot(path.dir());
             }
 
             this->onGetContent((const char *)buf->data, buf->used);
             break;
         }
-        case NATIVESTREAM_ERROR:
+        case Nidium::IO::STREAM_ERROR:
         {
             NativeSystemInterface::getInstance()->
                 alert("NML error : stream error",

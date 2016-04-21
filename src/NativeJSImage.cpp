@@ -4,7 +4,7 @@
 
 #include <native_netlib.h>
 
-#include <Binding/NativeJSFileIO.h>
+#include <Binding/JSFileIO.h>
 
 #include "NativeSkImage.h"
 
@@ -109,9 +109,9 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
                 JS::RootedString vpStr(cx, JS::ToString(cx, vp));
                 JSAutoByteString imgPath(cx, vpStr);
 
-                NativeJSObj(cx)->rootObjectUntilShutdown(obj);
+                NidiumJSObj(cx)->rootObjectUntilShutdown(obj);
 
-                NativeBaseStream *stream = NativeBaseStream::create(NativePath(imgPath.ptr()));
+                Nidium::IO::Stream *stream = Nidium::IO::Stream::create(Nidium::Core::Path(imgPath.ptr()));
 
                 if (stream == NULL) {
                     JS_ReportError(cx, "Invalid path");
@@ -124,15 +124,15 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
                 stream->getContent();
             } else if (vp.isObject()) {
                 JS::RootedObject obj(cx, vp.toObjectOrNull());
-                NativeFile *file = NativeJSFileIO::GetFileFromJSObject(cx, obj);
+                Nidium::IO::File *file = Nidium::Binding::JSFileIO::GetFileFromJSObject(cx, obj);
                 if (!file) {
                     vp.setNull();
                     return true;
                 }
 
-                NativeJSObj(cx)->rootObjectUntilShutdown(obj);
+                NidiumJSObj(cx)->rootObjectUntilShutdown(obj);
 
-                NativeBaseStream *stream = NativeBaseStream::create(file->getFullPath());
+                Nidium::IO::Stream *stream = Nidium::IO::Stream::create(file->getFullPath());
                 if (stream == NULL) {
                     break;
                 }
@@ -197,19 +197,19 @@ NativeSkImage *NativeJSImage::JSObjectToNativeSkImage(JS::HandleObject obj)
 
 static int delete_stream(void *arg)
 {
-    NativeBaseStream *stream = (NativeBaseStream *)arg;
+    Nidium::IO::Stream *stream = (Nidium::IO::Stream *)arg;
 
     delete stream;
 
     return 0;
 }
 
-void NativeJSImage::onMessage(const NativeSharedMessages::Message &msg)
+void NativeJSImage::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
 
     switch (msg.event()) {
-        case NATIVESTREAM_READ_BUFFER:
+        case Nidium::IO::STREAM_READ_BUFFER:
         {
             JS::RootedValue onload_callback(m_Cx);
             JS::RootedObject obj(m_Cx, m_JSObject);
@@ -233,7 +233,7 @@ bool NativeJSImage::setupWithBuffer(buffer *buf)
 {
     if (buf->used == 0) {
 
-        NativeJSObj(m_Cx)->unrootObject(m_JSObject);
+        NidiumJSObj(m_Cx)->unrootObject(m_JSObject);
         return false;
     }
 
@@ -241,7 +241,7 @@ bool NativeJSImage::setupWithBuffer(buffer *buf)
     if (ImageObject->m_Image == NULL) {
         delete ImageObject;
 
-        NativeJSObj(m_Cx)->unrootObject(m_JSObject);
+        NidiumJSObj(m_Cx)->unrootObject(m_JSObject);
         return false;
     }
 
@@ -252,7 +252,7 @@ bool NativeJSImage::setupWithBuffer(buffer *buf)
     JS_DefineProperty(m_Cx, obj, "width", widthVal, JSPROP_PERMANENT | JSPROP_READONLY);
     JS_DefineProperty(m_Cx, obj, "height", heightVal, JSPROP_PERMANENT | JSPROP_READONLY);
 
-    NativeJSObj(m_Cx)->unrootObject(m_JSObject);
+    NidiumJSObj(m_Cx)->unrootObject(m_JSObject);
 
     return true;
 }
@@ -290,7 +290,7 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
         JS_CallFunctionValue(cx, jsobj, onload_callback, JS::HandleValueArray::empty(), rval.address());
     }
 
-    NativeJSObj(cx)->unrootObject(jsobj);
+    NidiumJSObj(cx)->unrootObject(jsobj);
     timer_dispatch_async(delete_stream, stream);
     stream = NULL;
 }

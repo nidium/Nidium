@@ -1,14 +1,14 @@
 #ifndef nativejsimage_h__
 #define nativejsimage_h__
 
-#include <Core/NativeMessages.h>
-#include <IO/NativeStreamInterface.h>
+#include <Core/Messages.h>
+#include <IO/Stream.h>
 #include <Binding/JSExposer.h>
 
 class NativeSkImage;
 
 class NativeJSImage : public Nidium::Binding::JSExposer<NativeJSImage>,
-                      public NativeMessages
+                      public Nidium::Core::Messages
 {
   public:
 
@@ -16,7 +16,7 @@ class NativeJSImage : public Nidium::Binding::JSExposer<NativeJSImage>,
     virtual ~NativeJSImage();
 
     NativeSkImage *m_Image;
-    NativeBaseStream *m_Stream;
+    Nidium::IO::Stream *m_Stream;
 
     static NativeSkImage *JSObjectToNativeSkImage(JS::HandleObject obj);
     static void registerObject(JSContext *cx);
@@ -24,7 +24,7 @@ class NativeJSImage : public Nidium::Binding::JSExposer<NativeJSImage>,
     static JSObject *buildImageObject(JSContext *cx, NativeSkImage *image,
         const char name[] = NULL);
 
-    void onMessage(const NativeSharedMessages::Message &msg);
+    void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 
 private:
     bool setupWithBuffer(buffer *buf);

@@ -71,7 +71,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
         while(SDL_PollEvent(&event)) {
             NativeJSwindow *window = NULL;
             if (NUII->m_NativeCtx) {
-                window = NativeJSwindow::getNativeClass(NUII->m_NativeCtx->getNJS());
+                window = NativeJSwindow::GetObject(NUII->m_NativeCtx->getNJS());
             }
             nevents++;
             switch(event.type) {
@@ -158,13 +158,13 @@ int NativeEvents(NativeX11UIInterface *NUII)
                     }
 
                     if (event.key.keysym.mod & KMOD_SHIFT) {
-                        mod |= NATIVE_KEY_SHIFT;
+                        mod |= Nidium::Binding::NIDIUM_KEY_SHIFT;
                     }
                     if (event.key.keysym.mod & KMOD_ALT) {
-                        mod |= NATIVE_KEY_ALT;
+                        mod |= Nidium::Binding::NIDIUM_KEY_ALT;
                     }
                     if (event.key.keysym.mod & KMOD_CTRL) {
-                        mod |= NATIVE_KEY_CTRL;
+                        mod |= Nidium::Binding::NIDIUM_KEY_CTRL;
                     }
 
                     if (window) {
@@ -321,7 +321,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
     if (!this->m_Initialized) {
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1)
         {
-            fprintf(stdout, "Can't init SDL:  %s\n", SDL_GetError());
+            NLOG("Can't init SDL:  %s\n", SDL_GetError());
             return false;
         }
 
@@ -342,7 +342,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
 
         if (this->m_Win == NULL) {
-            fprintf(stdout, "Cant create window (SDL)\n");
+            NLOG("Cant create window (SDL)\n");
             return false;
         }
 
@@ -375,7 +375,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
         m_MainGLCtx = contexteOpenGL;
         if (contexteOpenGL == NULL) {
             NLOG("Failed to create OpenGL context : %s", SDL_GetError());
-            exit(2);
+            return false;
         }
         SDL_StartTextInput();
 
@@ -654,7 +654,7 @@ void NativeX11UIInterface::restartApplication(const char *path)
 
 bool NativeX11UIInterface::runApplication(const char *path)
 {
-    NativeMessages::initReader(m_Gnet);
+    Nidium::Core::Messages::initReader(m_Gnet);
 
     if (path != this->m_FilePath) {
         if (this->m_FilePath) {
@@ -713,7 +713,7 @@ void NativeX11UIInterface::stopApplication()
     if (this->m_NativeCtx) {
         delete this->m_NativeCtx;
         this->m_NativeCtx = NULL;
-        NativeMessages::destroyReader();
+        Nidium::Core::Messages::destroyReader();
     }
     this->m_Nml = NULL;
     glClearColor(1, 1, 1, 0);
@@ -728,8 +728,7 @@ void NativeX11UIInterface::onNMLLoaded()
     if (!this->createWindow(
         this->m_Nml->getMetaWidth(),
         this->m_Nml->getMetaHeight() + kNativeTitleBarHeight)) {
-
-        return;
+        exit(2);
     }
 
     this->setWindowTitle(this->m_Nml->getMetaTitle());

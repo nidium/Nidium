@@ -2,11 +2,11 @@
 #define nativejswindow_h__
 
 #include <Binding/JSExposer.h>
+#include <Binding/JSDB.h>
 
 #include "NativeTypes.h"
 
 class NativeCanvasHandler;
-class NativeJSDB;
 
 class NativeJSwindow : public Nidium::Binding::JSExposer<NativeJSwindow>
 {
@@ -48,7 +48,7 @@ class NativeJSwindow : public Nidium::Binding::JSExposer<NativeJSwindow>
         return m_Handler;
     }
 
-    NativeJSDB *getDataBase() const {
+    Nidium::Binding::JSDB *getDataBase() const {
         return m_Db;
     }
 
@@ -59,8 +59,8 @@ class NativeJSwindow : public Nidium::Binding::JSExposer<NativeJSwindow>
         return "Window";
     }
 
-    static NativeJSwindow* getNativeClass(JSContext *cx);
-    static NativeJSwindow* getNativeClass(NativeJS *njs);
+    static NativeJSwindow* GetObject(JSContext *cx);
+    static NativeJSwindow* GetObject(Nidium::Binding::NidiumJS *njs);
 
     static JSClass *jsclass;
 
@@ -80,7 +80,7 @@ class NativeJSwindow : public Nidium::Binding::JSExposer<NativeJSwindow>
     } *m_RequestedFrame;
 
     NativeCanvasHandler *m_Handler;
-    NativeJSDB *m_Db;
+    Nidium::Binding::JSDB *m_Db;
 
     bool m_Dragging;
     JS::Heap<JSObject *> m_DraggedFiles;

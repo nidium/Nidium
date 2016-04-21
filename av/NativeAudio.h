@@ -4,8 +4,9 @@
 #include <stdint.h>
 #include <pthread.h>
 
-#include <native_netlib.h>
 #include <jspubtd.h>
+#include <native_netlib.h>
+#include <Core/SharedMessages.h>
 
 #include "NativeAV.h"
 
@@ -27,7 +28,6 @@ class NativeAudioNode;
 class NativeAudioNodeTarget;
 struct NodeLink;
 
-class NativeSharedMessages;
 
 struct PaUtilRingBuffer;
 struct PaStreamCallbackTimeInfo;
@@ -72,7 +72,7 @@ class NativeAudio
 
         NativeAudioParameters *m_OutputParameters;
         NativeAudioParameters *m_InputParameters;
-        NativeSharedMessages *m_SharedMsg;
+        Nidium::Core::SharedMessages *m_SharedMsg;
         int m_SourcesCount;
         int64_t m_PlaybackStartTime;
         int64_t m_PlaybackConsumedFrame;

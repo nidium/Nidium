@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <Binding/NativeJSConsole.h>
+#include <Binding/JSConsole.h>
 
 #include "NativeJSCanvas.h"
 #include "NativeCanvas2DContext.h"
@@ -19,7 +19,6 @@
 extern "C" {
 #include <libavformat/avformat.h>
 }
-
 
 // TODO : Need to handle nodes GC, similar to
 //        https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#lifetime-AudioNode
@@ -29,7 +28,7 @@ extern "C" {
 NativeJSAudio *NativeJSAudio::m_Instance = NULL;
 extern JSClass Canvas_class;
 
-#define NJS (NativeJS::getNativeClass(m_Cx))
+#define NJS (Nidium::Binding::NidiumJS::GetObject(m_Cx))
 #define JS_PROPAGATE_ERROR(cx, ...)\
 JS_ReportError(cx, __VA_ARGS__); \
 if (!JS_ReportPendingException(cx)) {\
@@ -52,7 +51,11 @@ typedef enum {
     NODE_CUSTOM_SEEK_CALLBACK
 } CustomNodeCallbacks;
 
-extern void reportError(JSContext *cx, const char *message, JSErrorReport *report);
+namespace Nidium {
+    namespace Binding {
+        extern void reportError(JSContext *cx, const char *message, JSErrorReport *report);
+    }
+}
 
 static void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj);
 static void AudioContext_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -396,13 +399,13 @@ const char *NativeJSAVEventRead(int ev)
     }
 }
 
-static JS::HandleValue consumeSourceMessage(JSContext *cx, JS::HandleObject obj, const NativeSharedMessages::Message &msg)
+static JS::HandleValue consumeSourceMessage(JSContext *cx, JS::HandleObject obj, const Nidium::Core::SharedMessages::Message &msg)
 {
     JS::RootedObject evObj(cx, Nidium::Binding::JSEvents::CreateEventObject(cx));
     Nidium::Binding::JSObjectBuilder ev(cx, evObj);
 
     if (msg.event() == CUSTOM_SOURCE_SEND) {
-        native_thread_msg *ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
+        Nidium::Binding::nidium_thread_msg *ptr = static_cast<struct Nidium::Binding::nidium_thread_msg *>(msg.dataPtr());
         JS::RootedValue inval(cx, JSVAL_NULL);
         if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
             JS_STRUCTURED_CLONE_VERSION, &inval, nullptr, NULL)) {
@@ -595,7 +598,7 @@ bool NativeJSAudio::createContext()
         return false;
     }
 
-    JS_SetStructuredCloneCallbacks(m_JsRt, NativeJS::jsscc);
+    JS_SetStructuredCloneCallbacks(m_JsRt, Nidium::Binding::NidiumJS::jsscc);
 
     JSAutoRequest ar(m_JsTcx);
 
@@ -615,12 +618,12 @@ bool NativeJSAudio::createContext()
         printf("Failed to init std class\n");
         return false;
     }
-    JS_SetErrorReporter(m_JsTcx, reportError);
+    JS_SetErrorReporter(m_JsTcx, Nidium::Binding::reportError);
     JS_FireOnNewGlobalObject(m_JsTcx, global);
     JS_DefineFunctions(m_JsTcx, global, glob_funcs_threaded);
-    NativeJSconsole::registerObject(m_JsTcx);
+    Nidium::Binding::JSConsole::registerObject(m_JsTcx);
 
-    JS_SetRuntimePrivate(m_JsRt, NativeJS::getNativeClass(m_Audio->getMainCtx()));
+    JS_SetRuntimePrivate(m_JsRt, Nidium::Binding::NidiumJS::GetObject(m_Audio->getMainCtx()));
 
     //JS_SetContextPrivate(this->tcx, static_cast<void *>(this));
 
@@ -886,7 +889,7 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
     }
 }
 
-void NativeJSAudioNode::onMessage(const NativeSharedMessages::Message &msg)
+void NativeJSAudioNode::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     if (m_IsDestructing) return;
     JS::RootedObject obj(m_Cx, m_JSObject);
@@ -1889,13 +1892,13 @@ static bool native_audionode_custom_threaded_send(JSContext *cx, unsigned argc, 
 
     jnode = CppObj;
 
-    struct native_thread_msg *msg;
+    struct Nidium::Binding::nidium_thread_msg *msg;
     if (!JS_WriteStructuredClone(cx, args[0], &datap, &nbytes, nullptr, nullptr, JS::NullHandleValue)) {
         JS_ReportError(cx, "Failed to write structured clone");
         return false;
     }
 
-    msg = new struct native_thread_msg;
+    msg = new struct Nidium::Binding::nidium_thread_msg;
 
     msg->data   = datap;
     msg->nbytes = nbytes;
@@ -2118,11 +2121,11 @@ void NativeJSVideo::stopAudio()
     this->releaseAudioNode();
 }
 
-void NativeJSVideo::onMessage(const NativeSharedMessages::Message &msg)
+void NativeJSVideo::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     if (m_IsDestructing) return;
 
-    if (msg.event() == NATIVE_EVENT(NativeCanvasHandler, RESIZE_EVENT) && (m_Width == -1 || m_Height == -1)) {
+    if (msg.event() == NIDIUM_EVENT(NativeCanvasHandler, RESIZE_EVENT) && (m_Width == -1 || m_Height == -1)) {
         this->setSize(m_Width, m_Height);
     } else {
         if (msg.event() == SOURCE_EVENT_PLAY) {
@@ -2197,9 +2200,9 @@ void NativeJSVideo::setSize(int width, int height)
         int videoWidth = m_Video->m_CodecCtx->width;
         int videoHeight = m_Video->m_CodecCtx->height;
 
-        int maxWidth = native_min(m_Width == -1 ? canvasWidth : m_Width, canvasWidth);
-        int maxHeight = native_min(m_Height == -1 ? canvasHeight : m_Height, canvasHeight);
-        double ratio = native_max(videoHeight / (double)maxHeight, videoWidth / (double)maxWidth);
+        int maxWidth = nidium_min(m_Width == -1 ? canvasWidth : m_Width, canvasWidth);
+        int maxHeight = nidium_min(m_Height == -1 ? canvasHeight : m_Height, canvasHeight);
+        double ratio = nidium_max(videoHeight / (double)maxHeight, videoWidth / (double)maxWidth);
 
         width = videoWidth / ratio;
         height = videoHeight / ratio;
@@ -2442,7 +2445,7 @@ static bool native_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp
 void NativeJSVideo::releaseAudioNode()
 {
     if (m_AudioNode) {
-        NativeJSAudioNode *node = NativeJSAudioNode::getNativeClass(m_AudioNode, cx);
+        NativeJSAudioNode *node = NativeJSAudioNode::GetObject(m_AudioNode, cx);
 
         NJS->unrootObject(m_AudioNode);
 

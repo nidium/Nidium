@@ -7,7 +7,7 @@
 
 #include <jsapi.h>
 
-#include <Core/NativeEvents.h>
+#include <Core/Events.h>
 
 /*
     - Handle a canvas layer.
@@ -92,7 +92,7 @@ struct NativeLayerizeContext {
     }
 };
 
-class NativeCanvasHandler : public NativeEvents
+class NativeCanvasHandler : public Nidium::Core::Events
 {
     public:
         friend class NativeSkia;
@@ -274,7 +274,7 @@ class NativeCanvasHandler : public NativeEvents
 
             if (pwidth == 0) return 0.;
 
-            return native_max(pwidth - this->getLeft() - this->getRight(), 1);
+            return nidium_max(pwidth - this->getLeft() - this->getRight(), 1);
         }
 
         /*
@@ -291,7 +291,7 @@ class NativeCanvasHandler : public NativeEvents
 
             if (pheight == 0) return 0.;
 
-            return native_max(pheight - this->getTop() - this->getBottom(), 1);
+            return nidium_max(pheight - this->getTop() - this->getBottom(), 1);
         }
 
         int getMinWidth() const {

@@ -51,11 +51,9 @@ enum {
         JS::RootedString _fun_name(cx, JS_GetFunctionDisplayId(JS_ValueToFunction(cx, calVal))); \
         JSAutoByteString _fun_namec(cx, _fun_name); \
         NLOG("Canvas2D.%s()] called on %s:%d", _fun_namec.ptr(), filename.get(), lineno); \
-    } \
-    args.rval().setUndefined();
+    }
 #else
-#define NATIVE_LOG_2D_CALL() \
-    args.rval().setUndefined();
+#define NATIVE_LOG_2D_CALL()
 #endif
 
 static void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -1559,7 +1557,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 
             JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString font(cx, vpStr);
-            curSkia->setFontType(font.ptr(), NativeJSdocument::getNativeClass(cx));
+            curSkia->setFontType(font.ptr(), NativeJSdocument::GetObject(cx));
         }
         break;
         case CTX_PROP(fontFile):

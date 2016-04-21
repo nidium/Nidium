@@ -7,8 +7,7 @@
 #include <SkColorPriv.h>
 #include <SkUnPreMultiply.h>
 
-#define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
-#define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
+#include <Core/Utils.h>
 
 #if 0
 static bool SetImageRef(SkBitmap* bitmap, SkStream* stream,
@@ -137,7 +136,7 @@ void NativeSkImage::shiftHue(int val, U8CPU alpha)
         SkScalar hsv[3];
         SkColorToHSV(pixel, hsv);
 
-        hsv[0] = native_min(native_max(SkIntToScalar(val), 0), 360);
+        hsv[0] = nidium_min(nidium_max(SkIntToScalar(val), 0), 360);
 
         pixels[i] = SkHSVToColor(SkColorGetA(pixel), hsv);
     }

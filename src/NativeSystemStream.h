@@ -22,19 +22,19 @@
 
 #include <string>
 
-#include <IO/NativeFileStream.h>
+#include <IO/FileStream.h>
 
 #include "NativeSystemInterface.h"
 
-class NativeSystemStream : public NativeFileStream
+class NativeSystemStream : public Nidium::IO::FileStream
 {
 public:
     explicit NativeSystemStream(const char *location) :
-        NativeFileStream(location)
+        Nidium::IO::FileStream(location)
     {
     }
 
-    static NativeBaseStream *createStream(const char *location) {
+    static Nidium::IO::Stream *createStream(const char *location) {
         return new NativeSystemStream(location);
     }
 
@@ -51,15 +51,15 @@ public:
     }
 };
 
-class NativeUserStream : public NativeFileStream
+class NativeUserStream : public Nidium::IO::FileStream
 {
 public:
     explicit NativeUserStream(const char *location) :
-        NativeFileStream(location)
+        Nidium::IO::FileStream(location)
     {
     }
 
-    static NativeBaseStream *createStream(const char *location) {
+    static Nidium::IO::Stream *createStream(const char *location) {
         return new NativeUserStream(location);
     }
 

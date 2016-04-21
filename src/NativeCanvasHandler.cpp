@@ -33,8 +33,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height,
 
     m_NativeContext->m_CanvasList.set(m_Identifier.str, this);
 
-    m_Width = native_max(width, 1);
-    m_Height = native_max(height, 1);
+    m_Width = nidium_max(width, 1);
+    m_Height = nidium_max(height, 1);
     m_MaxHeight = 0;
     m_MaxWidth = 0;
     m_MinWidth = 1;
@@ -101,7 +101,7 @@ bool NativeCanvasHandler::setMinWidth(int width)
 {
     if (width < 1) width = 1;
 
-    m_MinWidth = m_MaxWidth ? native_min(width, m_MaxWidth) : width;
+    m_MinWidth = m_MaxWidth ? nidium_min(width, m_MaxWidth) : width;
 
     if (m_Width < m_MinWidth) {
         this->setWidth(m_MinWidth);
@@ -114,7 +114,7 @@ bool NativeCanvasHandler::setMinHeight(int height)
 {
     if (height < 1) height = 1;
 
-    m_MinHeight = m_MaxHeight ? native_min(height, m_MaxHeight) : height;
+    m_MinHeight = m_MaxHeight ? nidium_min(height, m_MaxHeight) : height;
 
     if (m_Height < m_MinHeight) {
         this->setHeight(m_MinHeight);
@@ -127,7 +127,7 @@ bool NativeCanvasHandler::setMaxWidth(int width)
 {
     if (width < 1) width = 1;
 
-    m_MaxWidth = native_max(m_MinWidth, width);
+    m_MaxWidth = nidium_max(m_MinWidth, width);
 
     if (m_Width > m_MaxWidth) {
         this->setWidth(m_MaxWidth);
@@ -140,7 +140,7 @@ bool NativeCanvasHandler::setMaxHeight(int height)
 {
     if (height < 1) height = 1;
 
-    m_MaxHeight = native_max(m_MinHeight, height);
+    m_MaxHeight = nidium_max(m_MinHeight, height);
 
     if (m_Height > m_MaxHeight) {
         this->setHeight(m_MaxHeight);
@@ -151,8 +151,8 @@ bool NativeCanvasHandler::setMaxHeight(int height)
 
 bool NativeCanvasHandler::setWidth(int width, bool force)
 {
-    width = m_MaxWidth ? native_clamp(width, m_MinWidth, m_MaxWidth) :
-                           native_max(width, m_MinWidth);
+    width = m_MaxWidth ? nidium_clamp(width, m_MinWidth, m_MaxWidth) :
+                           nidium_max(width, m_MinWidth);
 
     if (!force && !this->hasFixedWidth()) {
         return false;
@@ -177,8 +177,8 @@ bool NativeCanvasHandler::setHeight(int height, bool force)
         return false;
     }
 
-    height = m_MaxHeight ? native_clamp(height, m_MinHeight, m_MaxHeight) :
-                           native_max(height, m_MinHeight);
+    height = m_MaxHeight ? nidium_clamp(height, m_MinHeight, m_MaxHeight) :
+                           nidium_max(height, m_MinHeight);
 
     if (m_Height == height) {
         return true;
@@ -195,11 +195,11 @@ bool NativeCanvasHandler::setHeight(int height, bool force)
 void NativeCanvasHandler::setSize(int width, int height, bool redraw)
 {
 
-    height = m_MaxHeight ? native_clamp(height, m_MinHeight, m_MaxHeight) :
-                           native_max(height, m_MinHeight);
+    height = m_MaxHeight ? nidium_clamp(height, m_MinHeight, m_MaxHeight) :
+                           nidium_max(height, m_MinHeight);
 
-    width = m_MaxWidth ? native_clamp(width, m_MinWidth, m_MaxWidth) :
-                           native_max(width, m_MinWidth);
+    width = m_MaxWidth ? nidium_clamp(width, m_MinWidth, m_MaxWidth) :
+                           nidium_max(width, m_MinWidth);
 
     if (m_Height == height && m_Width == width) {
         return;
@@ -220,7 +220,7 @@ void NativeCanvasHandler::deviceSetSize(int width, int height)
             height + (m_Padding.global * 2));
     }
 
-    NativeArgs arg;
+    Nidium::Core::Args arg;
 
     arg[0].set(width);
     arg[1].set(height);
@@ -521,7 +521,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
             }
         }
 
-        sctx->m_MaxLineHeight = native_max(this->getHeight() + m_Margin.bottom + m_Margin.top, sctx->m_MaxLineHeight);
+        sctx->m_MaxLineHeight = nidium_max(this->getHeight() + m_Margin.bottom + m_Margin.top, sctx->m_MaxLineHeight);
 
     } else {
         tmpLeft = this->getLeft();
@@ -674,8 +674,8 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
     if (m_FluidHeight) {
         int contentHeight = this->getContentHeight(true);
 
-        int newHeight = m_MaxHeight ? native_clamp(contentHeight, m_MinHeight, m_MaxHeight) :
-                           native_max(contentHeight, m_MinHeight);
+        int newHeight = m_MaxHeight ? nidium_clamp(contentHeight, m_MinHeight, m_MaxHeight) :
+                           nidium_max(contentHeight, m_MinHeight);
 
         if (m_Height != newHeight) {
             this->setHeight(newHeight, true);
@@ -685,8 +685,8 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
     if (m_FluidWidth) {
         int contentWidth = this->getContentWidth(true);
 
-        int newWidth = m_MaxWidth ? native_clamp(contentWidth, m_MinWidth, m_MaxWidth) :
-                           native_max(contentWidth, m_MinWidth);
+        int newWidth = m_MaxWidth ? nidium_clamp(contentWidth, m_MinWidth, m_MaxWidth) :
+                           nidium_max(contentWidth, m_MinWidth);
 
         if (m_Width != newWidth) {
             this->setWidth(newWidth, true);
@@ -797,7 +797,7 @@ void NativeCanvasHandler::computeAbsolutePosition()
             elem->m_aLeft = elem->m_Left + offset_x;
             elem->m_aTop = elem->m_Top + offset_y;
 
-            maxLineHeight = native_max(elem->getHeight() + elem->m_Margin.bottom + elem->m_Margin.top, maxLineHeight);
+            maxLineHeight = nidium_max(elem->getHeight() + elem->m_Margin.bottom + elem->m_Margin.top, maxLineHeight);
 
             if (elem == this) {
                 break;
@@ -894,10 +894,10 @@ NativeRect NativeCanvasHandler::getVisibleRect()
     this->computeAbsolutePosition();
 
     return {
-        .m_fLeft   = native_min(native_max(this->getLeft(true), vp.m_fLeft), vp.m_fRight),
-        .m_fTop    = native_min(native_max(this->getTop(true), vp.m_fTop), vp.m_fBottom),
-        .m_fBottom = native_min(this->getTop(true)+getHeight(), vp.m_fBottom),
-        .m_fRight  = native_min(this->getLeft(true)+getWidth(), vp.m_fRight)
+        .m_fLeft   = nidium_min(nidium_max(this->getLeft(true), vp.m_fLeft), vp.m_fRight),
+        .m_fTop    = nidium_min(nidium_max(this->getTop(true), vp.m_fTop), vp.m_fBottom),
+        .m_fBottom = nidium_min(this->getTop(true)+getHeight(), vp.m_fBottom),
+        .m_fRight  = nidium_min(this->getLeft(true)+getWidth(), vp.m_fRight)
     };
 }
 
@@ -1039,7 +1039,7 @@ void NativeCanvasHandler::unrootHierarchy()
 
 void NativeCanvasHandler::_jobResize(void *arg)
 {
-    NativeArgs *args = (NativeArgs *)arg;
+    Nidium::Core::Args *args = (Nidium::Core::Args *)arg;
     NativeCanvasHandler *handler = static_cast<NativeCanvasHandler *>(args[0][0].toPtr());
 
     int64_t height = args[0][1].toInt64();
@@ -1081,7 +1081,7 @@ void NativeCanvasHandler::execPending()
 bool NativeCanvasHandler::checkLoaded()
 {
     if (m_Loaded) {
-        NativeArgs arg;
+        Nidium::Core::Args arg;
         this->fireEvent<NativeCanvasHandler>(LOADED_EVENT, arg, true);
         return true;
     }
@@ -1090,7 +1090,7 @@ bool NativeCanvasHandler::checkLoaded()
 
 void NativeCanvasHandler::propertyChanged(EventsChangedProperty property)
 {
-    NativeArgs arg;
+    Nidium::Core::Args arg;
     arg[0].set(property);
 
     switch (property) {
@@ -1109,7 +1109,7 @@ void NativeCanvasHandler::propertyChanged(EventsChangedProperty property)
 
 void NativeCanvasHandler::onDrag(NativeInputEvent *ev, NativeCanvasHandler *target, bool end)
 {
-    NativeArgs arg;
+    Nidium::Core::Args arg;
 
     if (!end) {
         arg[0].set((m_Flags & kDrag_Flag) == 0 ?
@@ -1143,7 +1143,7 @@ void NativeCanvasHandler::onDrag(NativeInputEvent *ev, NativeCanvasHandler *targ
 
 void NativeCanvasHandler::onDrop(NativeInputEvent *ev, NativeCanvasHandler *drop)
 {
-    NativeArgs arg;
+    Nidium::Core::Args arg;
     arg[0].set(NativeInputEvent::kMouseDrop_Type);
     arg[1].set(ev->m_x);
     arg[2].set(ev->m_y);
@@ -1209,7 +1209,7 @@ bool NativeCanvasHandler::_handleEvent(NativeInputEvent *ev)
     for (NativeCanvasHandler *handler = this; handler != NULL;
         handler = handler->getParent()) {
 
-        NativeArgs arg;
+        Nidium::Core::Args arg;
 
         arg[0].set(ev->getType());
         arg[1].set(ev->m_x);

@@ -1,7 +1,7 @@
 #ifndef nativejsav_h__
 #define nativejsav_h__
 
-#include <Core/NativeMessages.h>
+#include <Core/Messages.h>
 #include <Binding/JSExposer.h>
 
 #include <NativeAudio.h>
@@ -32,7 +32,12 @@ enum {
     CUSTOM_SOURCE_PROP_SEEK
 };
 
-class NativeJS;
+namespace Nidium {
+    namespace Binding {
+        class NidiumJS;
+    }
+}
+
 class NativeJSAudioNode;
 class NativeCanvas2DContext;
 
@@ -121,7 +126,7 @@ class NativeJSAudio: public Nidium::Binding::JSExposer<NativeJSAudio>
         static NativeJSAudio *m_Instance;
 };
 
-class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, public NativeMessages
+class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, public Nidium::Core::Messages
 {
     public :
         NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
@@ -177,7 +182,7 @@ class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, p
         };
 
         // Common
-        NativeJS *m_nJs;
+        Nidium::Binding::NidiumJS *m_nJs;
         NativeJSAudio *m_Audio;
         NativeAudioNode *m_Node;
         NativeAudio::Node m_NodeType;
@@ -198,7 +203,7 @@ class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, p
 
         // Source m_Node
         void *m_ArrayContent;
-        void onMessage(const NativeSharedMessages::Message &msg);
+        void onMessage(const Nidium::Core::SharedMessages::Message &msg);
         static void onEvent(const struct NativeAVSourceEvent *cev);
 
         // Custom source m_Node
@@ -212,7 +217,7 @@ class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, p
         bool m_IsDestructing;
 };
 
-class NativeJSVideo : public Nidium::Binding::JSExposer<NativeJSVideo>, public NativeMessages
+class NativeJSVideo : public Nidium::Binding::JSExposer<NativeJSVideo>, public Nidium::Core::Messages
 {
     public :
         NativeJSVideo(JS::HandleObject obj, NativeCanvas2DContext *canvasCtx, JSContext *cx);
@@ -233,7 +238,7 @@ class NativeJSVideo : public Nidium::Binding::JSExposer<NativeJSVideo>, public N
 
         static void registerObject(JSContext *cx);
         static void frameCallback(uint8_t *data, void *custom);
-        void onMessage(const NativeSharedMessages::Message &msg);
+        void onMessage(const Nidium::Core::SharedMessages::Message &msg);
         static void onEvent(const struct NativeAVSourceEvent *cev);
 
         ~NativeJSVideo();

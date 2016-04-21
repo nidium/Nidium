@@ -3,7 +3,7 @@
 
 #include <native_netlib.h>
 
-#include <Binding/NativeJSStream.h>
+#include <Binding/JSStream.h>
 
 #include "NativeAssets.h"
 #include "NativeTypes.h"
@@ -19,7 +19,7 @@ class NativeNML;
 
 typedef void (*NMLLoadedCallback)(void *arg);
 
-class NativeNML : public NativeMessages
+class NativeNML : public Nidium::Core::Messages
 {
 public:
     explicit NativeNML(ape_global *net);
@@ -34,7 +34,7 @@ public:
 
     typedef nidium_xml_ret_t (NativeNML::*tag_callback)(rapidxml::xml_node<> &node);
 
-    void onMessage(const NativeSharedMessages::Message &msg);
+    void onMessage(const Nidium::Core::SharedMessages::Message &msg);
     void loadFile(const char *filename, NMLLoadedCallback cb, void *arg);
 
     void loadDefaultItems(NativeAssets *assets);
@@ -69,7 +69,7 @@ public:
 
     JSObject *buildLayoutTree(rapidxml::xml_node<> &node);
 
-    void setNJS(NativeJS *js);
+    void setNJS(Nidium::Binding::NidiumJS *js);
 
     /*
         str must be null-terminated.
@@ -84,7 +84,7 @@ private:
     bool loadData(char *data, size_t len, rapidxml::xml_document<> &doc);
     void addAsset(NativeAssets *);
     ape_global *m_Net;
-    NativeBaseStream *m_Stream;
+    Nidium::IO::Stream *m_Stream;
 
     /* Define callbacks for tags in <application> */
     struct _nml_tags {
@@ -100,7 +100,7 @@ private:
 
     uint32_t m_nAssets;
 
-    NativeJS *m_Njs;
+    Nidium::Binding::NidiumJS *m_Njs;
 
     struct {
         char *identifier;

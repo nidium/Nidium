@@ -77,7 +77,7 @@ NativeAVStreamReader::NativeAVStreamReader(const char *src,
       m_HaveDataAvailable(false)
 {
     m_Async = true;
-    m_Stream = NativeBaseStream::create(NativePath(src));
+    m_Stream = Nidium::IO::Stream::create(Nidium::Core::Path(src));
     //m_Stream->setAutoClose(false);
     m_Stream->start(STREAM_BUFFER_SIZE);
     m_Stream->setListener(this);
@@ -131,15 +131,15 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                     thiz->m_Pending = false;
                     thiz->m_NeedWakup = false;
                     return AVERROR_EXIT;
-                case NativeBaseStream::STREAM_END:
-                case NativeBaseStream::STREAM_ERROR:
+                case Nidium::IO::Stream::STREAM_END:
+                case Nidium::IO::Stream::STREAM_ERROR:
                     thiz->m_Error = AVERROR_EOF;
                     SPAM(("Got EOF\n"));
                     thiz->m_Pending = false;
                     thiz->m_NeedWakup = false;
                     return copied > 0 ? copied : thiz->m_Error;
                 break;
-                case NativeBaseStream::STREAM_EAGAIN:
+                case Nidium::IO::Stream::STREAM_EAGAIN:
                     SPAM(("Got eagain\n"));
                     if (!thiz->m_HaveDataAvailable) {
                         // Got EAGAIN, switch back to main coro
@@ -235,7 +235,7 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
         return pos;
     }
 
-    if (NativeUtils::isMainThread()) {
+    if (Nidium::Core::Utils::isMainThread()) {
         thiz->m_Stream->seek(pos);
     } else {
         thiz->postMessage(opaque, NativeAVStreamReader::MSG_SEEK);
@@ -245,21 +245,21 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
     return pos;
 }
 
-void NativeAVStreamReader::onMessage(const NativeSharedMessages::Message &msg)
+void NativeAVStreamReader::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     //NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(msg.dataPtr());
 
     switch (msg.event()) {
-        case NATIVESTREAM_AVAILABLE_DATA:
+        case Nidium::IO::STREAM_AVAILABLE_DATA:
             this->onAvailableData(0);
             return;
-        case NATIVESTREAM_ERROR: {
+        case Nidium::IO::STREAM_ERROR: {
             int err;
             int streamErr = msg.args[0].toInt();
 
-            if (streamErr == NativeBaseStream::NATIVESTREAM_ERROR_OPEN) {
+            if (streamErr == Nidium::IO::Stream::STREAM_ERROR_OPEN) {
                 err = ERR_FAILED_OPEN;
-            } else if (streamErr == NativeBaseStream::NATIVESTREAM_ERROR_READ) {
+            } else if (streamErr == Nidium::IO::Stream::STREAM_ERROR_READ) {
                 err = ERR_READING;
             } else {
                 err = ERR_IO;
@@ -269,7 +269,7 @@ void NativeAVStreamReader::onMessage(const NativeSharedMessages::Message &msg)
 
             return;
         }
-        case NATIVESTREAM_PROGRESS: {
+        case Nidium::IO::STREAM_PROGRESS: {
             NativeAVSourceEvent *ev = m_Source->createEvent(SOURCE_EVENT_BUFFERING, false);
             ev->m_Args[0].set(msg.args[0].toInt64());
             ev->m_Args[1].set(msg.args[1].toInt64());
@@ -277,7 +277,7 @@ void NativeAVStreamReader::onMessage(const NativeSharedMessages::Message &msg)
             m_Source->sendEvent(ev);
             return;
         }
-        case NATIVESTREAM_READ_BUFFER:
+        case Nidium::IO::STREAM_READ_BUFFER:
             return;
         case MSG_SEEK:
             m_Stream->seek(m_StreamSeekPos);
@@ -354,7 +354,7 @@ void NativeAVStreamReader::finish()
 
 NativeAVStreamReader::~NativeAVStreamReader()
 {
-    if (NativeUtils::isMainThread()) {
+    if (Nidium::Core::Utils::isMainThread()) {
         delete m_Stream;
     } else {
         this->postMessage(this, NativeAVStreamReader::MSG_STOP);
@@ -416,7 +416,7 @@ int NativeAVSource::readError(int err)
 }
 
 
-void NativeAVSource::onMessage(const NativeSharedMessages::Message &msg)
+void NativeAVSource::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case MSG_CLOSE:

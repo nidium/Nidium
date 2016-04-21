@@ -5,8 +5,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <IO/NativeStreamInterface.h>
-#include <Core/NativeMessages.h>
+#include <IO/Stream.h>
+#include <Core/Messages.h>
 #include <native_netlib.h>
 
 extern "C" {
@@ -88,7 +88,7 @@ class NativeAVBufferReader : public NativeAVReader
 };
 
 typedef void (*NativeAVStreamReadCallback)(void *m_CallbackPrivate);
-class NativeAVStreamReader : public NativeAVReader, public NativeMessages
+class NativeAVStreamReader : public NativeAVReader, public Nidium::Core::Messages
 {
     public:
         NativeAVStreamReader(const char *src, NativeAVStreamReadCallback readCallback,
@@ -109,10 +109,10 @@ class NativeAVStreamReader : public NativeAVReader, public NativeMessages
             MSG_READ,
             MSG_STOP
         };
-        void onMessage(const NativeSharedMessages::Message &msg);
+        void onMessage(const Nidium::Core::SharedMessages::Message &msg);
         NATIVE_PTHREAD_VAR_DECL(m_ThreadCond);
 
-        NativeBaseStream *m_Stream;
+        Nidium::IO::Stream *m_Stream;
         NativeAVStreamReadCallback m_ReadCallback;
         void *m_CallbackPrivate;
 
@@ -191,7 +191,7 @@ typedef void (*NativeAVSourceEventCallback)(const struct NativeAVSourceEvent*m_E
 
 struct NativeAVSourceEvent {
     int m_Ev;
-    NativeArgs m_Args;
+    Nidium::Core::Args m_Args;
     void *m_Custom;
     bool m_FromThread;
     NativeAVSourceEvent(int ev, void *custom, bool fromThread)
@@ -228,7 +228,7 @@ class NativeAVSourceEventInterface {
         void *m_EventCbkCustom;
 };
 
-class NativeAVSource : public NativeMessages, public NativeAVSourceEventInterface
+class NativeAVSource : public Nidium::Core::Messages, public NativeAVSourceEventInterface
 {
     public :
         NativeAVSource();
@@ -275,7 +275,7 @@ class NativeAVSource : public NativeMessages, public NativeAVSourceEventInterfac
 
         int readError(int err);
 
-        void onMessage(const NativeSharedMessages::Message &msg);
+        void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 };
 
 #endif

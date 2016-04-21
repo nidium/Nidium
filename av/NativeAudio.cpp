@@ -57,7 +57,7 @@ NativeAudio::NativeAudio(ape_global *n, unsigned int bufferSize, unsigned int ch
 
     Pa_Initialize();
 
-    m_SharedMsg = new NativeSharedMessages();
+    m_SharedMsg = new Nidium::Core::SharedMessages();
 
     int actualBufferSize = bufferSize;
     if (bufferSize == 0) {
@@ -194,7 +194,7 @@ void NativeAudio::readMessages()
 void NativeAudio::readMessages(bool flush)
 {
 #define MAX_MSG_IN_ROW 1024
-    NativeSharedMessages::Message *msg;
+    Nidium::Core::SharedMessages::Message *msg;
     int nread = 0;
     while (((!flush && ++nread < MAX_MSG_IN_ROW) || flush) && (msg = m_SharedMsg->readMessage())) {
         switch (msg->event()) {

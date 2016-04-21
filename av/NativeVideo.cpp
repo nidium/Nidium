@@ -175,7 +175,7 @@ int NativeVideo::openInitInternal()
         return ERR_INTERNAL;
     }
 
-    NativePthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
+    Nidium::Core::PthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
         fprintf(stderr, "Couldn't find stream information");
         return ERR_NO_INFORMATION;
@@ -1093,7 +1093,7 @@ void *NativeVideo::decode(void *args)
 
 void NativeVideo::stopAudio()
 {
-    NativePthreadAutoLock lock(&m_AudioLock);
+    Nidium::Core::PthreadAutoLock lock(&m_AudioLock);
 
     this->clearAudioQueue();
 
@@ -1112,7 +1112,7 @@ void NativeVideo::sourceNeedWork(void *ptr)
 
 bool NativeVideo::processAudio()
 {
-    NativePthreadAutoLock lock(&m_AudioLock);
+    Nidium::Core::PthreadAutoLock lock(&m_AudioLock);
     DPRINT("processing audio\n");
 
     if (m_AudioSource == NULL) {
@@ -1418,7 +1418,7 @@ void NativeVideo::unlockDecodeThread()
 void NativeVideo::closeFFMpeg()
 {
     if (m_Opened) {
-        NativePthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
+        Nidium::Core::PthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
         avcodec_close(m_CodecCtx);
         av_free(m_Container->pb);
         avformat_close_input(&m_Container);

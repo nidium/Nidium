@@ -11,7 +11,7 @@
 
 #include <native_netlib.h>
 
-#include <Binding/NativeJS.h>
+#include <Binding/NidiumJS.h>
 
 #define NATIVE_MANIFEST "manifest.json"
 
@@ -85,7 +85,7 @@ static int Native_handle_app_messages(void *arg)
     struct NativeApp::native_app_msg *ptr;
     int nread = 0;
 
-    NativeSharedMessages::Message *msg;
+    Nidium::Core::SharedMessages::Message *msg;
 
     while (++nread < MAX_MSG_IN_ROW && (msg = app->m_Messages->readMessage())) {
         switch (msg->event()) {
@@ -122,7 +122,7 @@ void NativeApp::actionExtractRead(const char *buf, int len,
 
 void NativeApp::runWorker(ape_global *net)
 {
-    m_Messages = new NativeSharedMessages();
+    m_Messages = new Nidium::Core::SharedMessages();
 
     m_Net = net;
 

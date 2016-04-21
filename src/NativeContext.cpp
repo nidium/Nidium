@@ -8,7 +8,7 @@
 #include <math.h>
 
 #include <NativeSkia.h>
-#include <Net/NativeWebSocket.h>
+#include <Net/WebSocket.h>
 
 #include "NativeCanvas2DContext.h"
 #include "NativeNML.h"
@@ -22,7 +22,7 @@
 #endif
 
 #ifdef DEBUG
-#include <Binding/NativeJSDebug.h>
+#include <Binding/JSDebug.h>
 #endif
 
 #ifdef NATIVE_AUDIO_ENABLED
@@ -30,14 +30,14 @@
 #endif
 
 #ifdef NATIVE_WEBGL_ENABLED
-#include <Binding/NativeJSProcess.h>
+#include <Binding/JSProcess.h>
 #include "NativeOpenGLHeader.h"
 #include "NativeGLState.h"
 #include "NativeJSWebGL.h"
 #endif
 
 enum {
-    NATIVE_SCTAG_IMAGEDATA = NATIVE_SCTAG_MAX,
+    NIDIUM_SCTAG_IMAGEDATA = Nidium::Binding::NIDIUM_SCTAG_MAX,
 };
 
 int NativeContext_Logger(const char *format)
@@ -64,7 +64,7 @@ int NativeContext_LogClear()
 void NativeContext::initStats()
 {
     m_Stats.nframe = 0;
-    m_Stats.starttime = NativeUtils::getTick();
+    m_Stats.starttime = Nidium::Core::Utils::getTick();
     m_Stats.lastmeasuredtime = m_Stats.starttime;
     m_Stats.lastdifftime = 0;
     m_Stats.cumulframe = 0;
@@ -99,7 +99,7 @@ m_Debug2Handler(NULL),
 
     NativeGLState::CreateForContext(this);
 
-    m_JS = new NativeJS(net);
+    m_JS = new Nidium::Binding::NidiumJS(net);
     this->initStats();
     this->initShaderLang();
     this->initHandlers(width, height);
@@ -122,11 +122,11 @@ m_Debug2Handler(NULL),
     /*
         Set path for modules
     */
-    m_JS->setPath(NativePath::getPwd());
+    m_JS->setPath(Nidium::Core::Path::getPwd());
 
     m_WSClient = NULL;
     m_WS = NULL;
-    /*m_WS = new NativeWebSocketListener(4000, "127.0.0.1");
+    /*m_WS = new Nidium::Net::WebSocketListener(4000, "127.0.0.1");
     m_WS->addListener(this);
     m_WS->start();*/
 
@@ -169,11 +169,11 @@ void NativeContext::loadNativeObjects(int width, int height)
     /* window() object */
     m_JSWindow = NativeJSwindow::registerObject(cx, width, height, docObj);
 
-    NativeJSProcess::registerObject(cx, m_UI->m_Argv, m_UI->m_Argc, 0);
+    Nidium::Binding::JSProcess::registerObject(cx, m_UI->m_Argv, m_UI->m_Argc, 0);
 
 #if DEBUG
     createDebug2Canvas();
-    NativeJSDebug::registerObject(cx);
+    Nidium::Binding::JSDebug::registerObject(cx);
 #endif
 }
 
@@ -272,7 +272,7 @@ void NativeContext::postDraw()
             s->setStrokeColor(0xFF00BB00u);
             s->drawLine(m_DebugHandler->getWidth() - 20 - i * 3, 55,
                 m_DebugHandler->getWidth() - 20 - i * 3,
-                native_min(60 - ((40.f / 62.f) * (float)m_Stats.samples[i]), 55));
+                nidium_min(60 - ((40.f / 62.f) * (float)m_Stats.samples[i]), 55));
         }
         //s->setLineWidth(1.0);
 
@@ -299,7 +299,7 @@ void NativeContext::postDraw()
 /* TODO, move out */
 void NativeContext::callFrame()
 {
-    uint64_t tmptime = NativeUtils::getTick();
+    uint64_t tmptime = Nidium::Core::Utils::getTick();
     m_Stats.nframe++;
 
     m_Stats.lastdifftime = tmptime - m_Stats.lastmeasuredtime;
@@ -309,7 +309,7 @@ void NativeContext::callFrame()
     m_Stats.cumultimems += (float)m_Stats.lastdifftime / 1000000.f;
     m_Stats.cumulframe++;
 
-    m_Stats.minfps = native_min(m_Stats.minfps, 1000.f/(m_Stats.lastdifftime/1000000.f));
+    m_Stats.minfps = nidium_min(m_Stats.minfps, 1000.f/(m_Stats.lastdifftime/1000000.f));
     //printf("FPS : %f\n", 1000.f/(m_Stats.lastdifftime/1000000.f));
 
     //printf("Last diff : %f\n", (float)(m_Stats.lastdifftime/1000000.f));
@@ -591,11 +591,11 @@ void NativeContext::execPendingCanvasChanges()
     }
 }
 
-void NativeContext::onMessage(const NativeSharedMessages::Message &msg)
+void NativeContext::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case NATIVE_EVENT(NativeWebSocketListener, SERVER_CONNECT):
-            m_WSClient = static_cast<NativeWebSocketClientConnection *>(msg.args[0].toPtr());
+        case NIDIUM_EVENT(Nidium::Net::WebSocketListener, SERVER_CONNECT):
+            m_WSClient = static_cast<Nidium::Net::WebSocketClientConnection *>(msg.args[0].toPtr());
             printf("New WS client for render :)\n");
             break;
     }
@@ -631,7 +631,7 @@ bool NativeContext::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWrite
         dwidth = iwidth.toInt32();
         dheight = iheight.toInt32();
 
-        JS_WriteUint32Pair(w, NATIVE_SCTAG_IMAGEDATA,
+        JS_WriteUint32Pair(w, NIDIUM_SCTAG_IMAGEDATA,
             (sizeof(uint32_t) * 2) + dwidth * dheight * 4);
 
         JS_WriteBytes(w, &dwidth, sizeof(uint32_t));
@@ -648,7 +648,7 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
                                        uint32_t tag, uint32_t data, void *closure)
 {
     switch (tag) {
-        case NATIVE_SCTAG_IMAGEDATA:
+        case NIDIUM_SCTAG_IMAGEDATA:
         {
             if (data < sizeof(uint32_t) * 2 + 1) {
                 JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));

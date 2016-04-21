@@ -8,8 +8,8 @@
 #include <ape_hash.h>
 #include <native_netlib.h>
 
-#include <IO/NativeStreamInterface.h>
-#include <Core/NativeMessages.h>
+#include <IO/Stream.h>
+#include <Core/Messages.h>
 
 class NativeStream;
 
@@ -17,7 +17,7 @@ class NativeAssets
 {
     public:
 
-        class Item : public NativeMessages
+        class Item : public Nidium::Core::Messages
         {
             friend class NativeAssets;
             public:
@@ -63,8 +63,8 @@ class NativeAssets
                     m_Tagname = strdup(name);
                 }
 
-                NativeBaseStream *m_Stream;
-                void onMessage(const NativeSharedMessages::Message &msg);
+                Nidium::IO::Stream *m_Stream;
+                void onMessage(const Nidium::Core::SharedMessages::Message &msg);
             private:
                 const char *m_Url;
                 ape_global *m_Net;

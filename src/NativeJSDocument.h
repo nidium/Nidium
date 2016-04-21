@@ -41,7 +41,7 @@ class NativeJSdocument : public Nidium::Binding::JSExposer<NativeJSdocument>
 
     JS::Heap<JSObject *> m_Stylesheet;
 
-    NativeHash<nativefont *>m_Fonts;
+    Nidium::Core::Hash<nativefont *>m_Fonts;
 
     bool loadFont(const char *path, const char *name, int weight = 400,
         nativefont::Style = nativefont::kNativeFontNormal);

@@ -9,7 +9,7 @@
 
 #include "GLSLANG/ShaderLang.h"
 
-#include <Binding/NativeJS.h>
+#include <Binding/NidiumJS.h>
 
 #include "NativeTypes.h"
 #include "NativeGLResources.h"
@@ -17,13 +17,20 @@
 class NativeSkia;
 class NativeCanvasHandler;
 class NativeUIInterface;
-class NativeJS;
 class NativeNML;
 class NativeCanvasContext;
 class NativeGLState;
-class NativeWebSocketListener;
-class NativeWebSocketClientConnection;
 class NativeJSwindow;
+
+namespace Nidium {
+    namespace Net {
+        class WebSocketListener;
+        class WebSocketClientConnection;
+    }
+    namespace Binding {
+        class NidiumJS;
+    }
+}
 
 typedef struct _ape_global ape_global;
 
@@ -113,7 +120,7 @@ private:
 
 struct GrGLInterface;
 
-class NativeContext : public NativeMessages
+class NativeContext : public Nidium::Core::Messages
 {
     public:
 
@@ -130,7 +137,7 @@ class NativeContext : public NativeMessages
         return m_RootHandler;
     }
 
-    NativeJS *getNJS() const {
+    Nidium::Binding::NidiumJS *getNJS() const {
         return m_JS;
     }
 
@@ -158,15 +165,15 @@ class NativeContext : public NativeMessages
         return &m_ShResources;
     }
 
-    static NativeContext *getNativeClass() {
-        return static_cast<NativeContext *>(NativeJS::getNativeClass(NULL)->getPrivate());
+    static NativeContext *GetObject() {
+        return static_cast<NativeContext *>(Nidium::Binding::NidiumJS::GetObject(NULL)->getPrivate());
     }
 
-    static NativeContext *getNativeClass(struct JSContext *cx) {
-        return static_cast<NativeContext *>(NativeJS::getNativeClass(cx)->getPrivate());
+    static NativeContext *GetObject(struct JSContext *cx) {
+        return static_cast<NativeContext *>(Nidium::Binding::NidiumJS::GetObject(cx)->getPrivate());
     }
 
-    static NativeContext *getNativeClass(NativeJS *njs) {
+    static NativeContext *GetObject(Nidium::Binding::NidiumJS *njs) {
         return static_cast<NativeContext *>(njs->getPrivate());
     }
 
@@ -197,9 +204,9 @@ class NativeContext : public NativeMessages
         return m_SizeDirty;
     }
 
-    NativeHash<NativeBytecodeScript *> preload;
+    Nidium::Core::Hash<Nidium::Binding::NidiumBytecodeScript *> preload;
 
-    void onMessage(const NativeSharedMessages::Message &msg);
+    void onMessage(const Nidium::Core::SharedMessages::Message &msg);
     void addJob(void (*job)(void *arg), void *arg);
 
     NativeCanvasHandler *getCanvasById(const char *str) {
@@ -239,7 +246,7 @@ class NativeContext : public NativeMessages
 
     private:
     NativeGLResources         m_Resources;
-    NativeJS *                m_JS;
+    Nidium::Binding::NidiumJS *m_JS;
     NativeCanvasHandler *     m_RootHandler;
     NativeCanvasHandler *     m_DebugHandler;
 #ifdef DEBUG
@@ -248,8 +255,8 @@ class NativeContext : public NativeMessages
     NativeUIInterface *       m_UI;
     NativeNML *               m_NML;
     NativeGLState *           m_GLState;
-    NativeWebSocketListener * m_WS;
-    NativeWebSocketClientConnection *m_WSClient;
+    Nidium::Net::WebSocketListener * m_WS;
+    Nidium::Net::WebSocketClientConnection *m_WSClient;
     ShBuiltInResources        m_ShResources;
     NativeJSwindow *          m_JSWindow;
     bool                      m_SizeDirty;
@@ -284,9 +291,9 @@ class NativeContext : public NativeMessages
     } m_Jobs;
 
     /* Hash of all canvases (key: identifier string) */
-    NativeHash<NativeCanvasHandler *> m_CanvasList;
+    Nidium::Core::Hash<NativeCanvasHandler *> m_CanvasList;
     /* Hash of all canvases with pending jobs (key: addr) */
-    NativeHash64<NativeCanvasHandler *> m_CanvasPendingJobs;
+    Nidium::Core::Hash64<NativeCanvasHandler *> m_CanvasPendingJobs;
     std::vector<NativeCanvasHandler *> m_CanvasOrderedEvents;
 
     ape_pool_list_t m_CanvasEventsCanvas;
