@@ -3,17 +3,17 @@
 
 #include <Binding/NidiumJS.h>
 
-class NativeWorker;
 
 namespace Nidium {
 namespace Server {
 
+class Worker;
 
 class Context
 {
 public:
 
-    Context(ape_global *ape, NativeWorker *worker, bool jsstrict = false, bool runInREPL = false);
+    Context(ape_global *ape, Worker *worker, bool jsstrict = false, bool runInREPL = false);
     ~Context();
 
     static Context *GetObject(struct JSContext *cx) {
@@ -28,7 +28,7 @@ public:
         return m_JS;
     }
 
-    NativeWorker *getWorker() const {
+    Worker *getWorker() const {
         return m_Worker;
     }
 
@@ -37,7 +37,7 @@ public:
     }
 private:
     Nidium::Binding::NidiumJS *m_JS;
-    NativeWorker *m_Worker;
+    Worker *m_Worker;
     bool m_RunInREPL;
 };
 

@@ -6,7 +6,7 @@
 
 #include <js/OldDebugAPI.h>
 
-#include "NativeServer.h"
+#include "Server.h"
 
 static bool native_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp);

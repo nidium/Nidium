@@ -12,18 +12,21 @@
 #include <sys/wait.h>
 #endif
 
-#include "NativeServer.h"
+#include "Server.h"
 #include "Context.h"
 #include "Macros.h"
 #include "REPL.h"
 
 #include <Binding/JSProcess.h>
 
-#define NATIVE_SERVER_VERSION "0.2-dev"
-#define NATIVE_MAX_WORKERS 64
-
-
 unsigned long _ape_seed;
+
+namespace Nidium {
+namespace Server {
+
+#define NIDIUM_SERVER_VERSION "0.2-dev"
+#define NIDIUM_MAX_WORKERS 64
+
 static std::list<pid_t> pidList;
 
 static void signal_handler(int sign)
@@ -44,7 +47,7 @@ static int inc_rlimit(int nofile)
     return setrlimit(RLIMIT_NOFILE, &rl);
 }
 
-void NativeServer::daemonize(int pidfile)
+void Server::daemonize(int pidfile)
 {
     if (0 != fork()) {
         exit(0);
@@ -66,7 +69,7 @@ void NativeServer::daemonize(int pidfile)
     }
 }
 
-void NativeServer::wait()
+void Server::wait()
 {
     int pid;
     int state;
@@ -96,14 +99,14 @@ void NativeServer::wait()
     }
 }
 
-void NativeServer::displayVersion()
+void Server::displayVersion()
 {
 #include "ASCII.h"
-    fprintf(stdout, native_ascii, NATIVE_SERVER_VERSION,
+    fprintf(stdout, nidium_ascii, NIDIUM_SERVER_VERSION,
         __DATE__, __TIME__, getpid(), m_NWorkers);
 }
 
-int NativeServer::initWorker(int *idx)
+int Server::initWorker(int *idx)
 {
     if (!(*idx)) {
         *idx = ++m_WorkerIdx;
@@ -114,9 +117,9 @@ int NativeServer::initWorker(int *idx)
 #ifndef NATIVE_NO_FORK
     if ((pid = fork()) == 0) {
 #endif
-        NativeWorker worker(*idx, (m_HasREPL && *idx == 1));
+        Worker worker(*idx, (m_HasREPL && *idx == 1));
 
-        setproctitle("Native-Server:<%s> (worker %d)",
+        setproctitle("Nidium-Server:<%s> (worker %d)",
             m_InstanceName ? m_InstanceName : "noname", *idx);
 
         worker.run(m_Args.argc, m_Args.argv, m_JSStrictMode);
@@ -134,18 +137,18 @@ int NativeServer::initWorker(int *idx)
     return pid;
 }
 
-int NativeServer::Start(int argc, char *argv[])
+int Server::Start(int argc, char *argv[])
 {
 #ifdef INIT_SETPROCTITLE_REPLACEMENT
     spt_init(argc, argv);
 #endif
 
-    NativeServer *server = new NativeServer(argc, argv);
+    Server *server = new Server(argc, argv);
 
     return server->init();
 }
 
-int NativeServer::init()
+int Server::init()
 {
     bool daemon = false;
     int workers = 1;
@@ -202,8 +205,8 @@ int NativeServer::init()
     m_Args.argc -= optind;
     m_Args.argv += optind;
 
-    if (workers > NATIVE_MAX_WORKERS) {
-        fprintf(stderr, "[Error] Too many worker requested : max %d\n", NATIVE_MAX_WORKERS);
+    if (workers > NIDIUM_MAX_WORKERS) {
+        fprintf(stderr, "[Error] Too many worker requested : max %d\n", NIDIUM_MAX_WORKERS);
         exit(1);
     }
 
@@ -235,7 +238,7 @@ int NativeServer::init()
     return 1;
 }
 
-NativeServer::NativeServer(int argc, char **argv) :
+Server::Server(int argc, char **argv) :
     m_WorkerIdx(0), m_InstanceName(NULL), m_HasREPL(true),
     m_JSStrictMode(false), m_NWorkers(0)
 {
@@ -243,18 +246,18 @@ NativeServer::NativeServer(int argc, char **argv) :
     m_Args.argv = argv;
 }
 
-NativeWorker::NativeWorker(int idx, bool repl) :
+Worker::Worker(int idx, bool repl) :
     m_Idx(idx), m_RunREPL(repl)
 {
 
 }
 
-NativeWorker::~NativeWorker()
+Worker::~Worker()
 {
 
 }
 
-static int NativeCheckParentAlive_ping(void *arg)
+static int NidiumCheckParentAlive_ping(void *arg)
 {
     pid_t ppid = getppid();
     /*
@@ -267,7 +270,7 @@ static int NativeCheckParentAlive_ping(void *arg)
     return 1000;
 }
 
-int NativeWorker::run(int argc, char **argv, bool jsstrict)
+int Worker::run(int argc, char **argv, bool jsstrict)
 {
     Nidium::Server::REPL *repl = NULL;
     ape_global *net = APE_init();
@@ -306,7 +309,7 @@ int NativeWorker::run(int argc, char **argv, bool jsstrict)
         repl = new Nidium::Server::REPL(ctx.getNJS());
     }
 
-    APE_timer_create(net, 1, NativeCheckParentAlive_ping, NULL);
+    APE_timer_create(net, 1, NidiumCheckParentAlive_ping, NULL);
     APE_loop_run(net);
 
     if (repl) {
@@ -318,3 +321,6 @@ int NativeWorker::run(int argc, char **argv, bool jsstrict)
 #endif
     return 0;
 }
+
+} // namespace Server
+} // namespace Nidium

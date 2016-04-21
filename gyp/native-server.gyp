@@ -14,7 +14,7 @@
         ],
         'sources': [
             '<(native_src_path)/native_main.cpp',
-            '<(native_src_path)/NativeServer.cpp',
+            '<(native_src_path)/Server.cpp',
             '<(native_src_path)/Context.cpp',
             '<(native_src_path)/NativeJSConsole.cpp',
             '<(native_src_path)/REPL.cpp',

@@ -1,7 +1,7 @@
 #ifndef serverascii_h__
 #define serverascii_h__
 
-const char *native_ascii =
+const char *nidium_ascii =
 ".   .        .                   .-.                         \n"
 "|\\  |  o     |   o              (   )                        \n"
 "| \\ |  .  .-.|   .  .  . .--.--. `-.  .-. .--..    ._.-. .--.\n"

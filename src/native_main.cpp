@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "NativeServer.h"
+#include "Server.h"
 
 int main(int argc, char **argv)
 {
-    return NativeServer::Start(argc, argv);
+    return Nidium::Server::Server::Start(argc, argv);
 }
 

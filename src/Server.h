@@ -1,5 +1,5 @@
-#ifndef nativeserver_h__
-#define nativeserver_h__
+#ifndef serverserver_h__
+#define serverserver_h__
 
 #include <stdlib.h>
 #include <map>
@@ -24,12 +24,15 @@ void setproctitle(const char *fmt, ...);
 #endif
 #endif
 
-class NativeServer
+namespace Nidium {
+namespace Server {
+
+class Server
 {
 public:
     static int Start(int argc, char **argv);
 private:
-    NativeServer(int argc, char **argv);
+    Server(int argc, char **argv);
     int init();
 
     void daemonize(int pidfile = 0);
@@ -52,11 +55,11 @@ private:
     int m_NWorkers;
 };
 
-class NativeWorker
+class Worker
 {
 public:
-    NativeWorker(int idx, bool repl = false);
-    ~NativeWorker();
+    Worker(int idx, bool repl = false);
+    ~Worker();
     int run(int argc, char **argv, bool jsstrict = false);
 
     int getIdentifier() const {
@@ -66,6 +69,9 @@ private:
     int m_Idx;
     bool m_RunREPL;
 };
+
+} // namespace Server
+} // namespace Nidium
 
 #endif
 

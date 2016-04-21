@@ -30,7 +30,7 @@ static int Context_ping(void *arg)
     return 8;
 }
 
-Context::Context(ape_global *net, NativeWorker *worker,
+Context::Context(ape_global *net, Worker *worker,
     bool jsstrict, bool runInREPL) :
     m_Worker(worker), m_RunInREPL(runInREPL)
 {
