@@ -12,11 +12,13 @@
 
 #include "NativeJSConsole.h"
 #include "NativeJSSystem.h"
-#include "NativeContext.h"
+#include "Context.h"
 #include "Macros.h"
 
+namespace Nidium {
+namespace Server {
 
-static int NativeContext_ping(void *arg)
+static int Context_ping(void *arg)
 {
     static uint64_t framecount = 0;
     Nidium::Binding::NidiumJS *js = (Nidium::Binding::NidiumJS *)arg;
@@ -28,7 +30,7 @@ static int NativeContext_ping(void *arg)
     return 8;
 }
 
-NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
+Context::Context(ape_global *net, NativeWorker *worker,
     bool jsstrict, bool runInREPL) :
     m_Worker(worker), m_RunInREPL(runInREPL)
 {
@@ -59,14 +61,17 @@ NativeContext::NativeContext(ape_global *net, NativeWorker *worker,
 
     NativeJSconsole::registerObject(m_JS->cx);
     NativeJSSystem::registerObject(m_JS->cx);
-    
+
     m_JS->setPath(Nidium::Core::Path::getPwd());
 
-    APE_timer_create(net, 1, NativeContext_ping, (void *)m_JS);
+    APE_timer_create(net, 1, Context_ping, (void *)m_JS);
 }
 
-NativeContext::~NativeContext()
+Context::~Context()
 {
     delete m_JS;
 }
+
+} // namespace Server
+} // namespace Nidium
 

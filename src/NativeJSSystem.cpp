@@ -1,7 +1,7 @@
 #include "NativeJSSystem.h"
 #include <Binding/NidiumJS.h>
 
-#include "NativeContext.h"
+#include "Context.h"
 #include "Macros.h"
 
 #ifdef __linux__

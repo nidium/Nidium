@@ -13,7 +13,7 @@
 #endif
 
 #include "NativeServer.h"
-#include "NativeContext.h"
+#include "Context.h"
 #include "Macros.h"
 #include "REPL.h"
 
@@ -118,7 +118,7 @@ int NativeServer::initWorker(int *idx)
 
         setproctitle("Native-Server:<%s> (worker %d)",
             m_InstanceName ? m_InstanceName : "noname", *idx);
-        
+
         worker.run(m_Args.argc, m_Args.argv, m_JSStrictMode);
 
         return 0;
@@ -276,7 +276,7 @@ int NativeWorker::run(int argc, char **argv, bool jsstrict)
 
     signal(SIGPIPE, SIG_IGN);
 
-    NativeContext ctx(net, this, jsstrict, m_RunREPL);
+    Nidium::Server::Context ctx(net, this, jsstrict, m_RunREPL);
     const Nidium::Binding::NidiumJS *js = ctx.getNJS();
     Nidium::Binding::JSProcess::registerObject(js->getJSContext(), argv, argc,
         this->getIdentifier());
