@@ -10,8 +10,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include <jspubtd.h>
-
 #include "Core/Hash.h"
 
 namespace Nidium {
@@ -72,36 +70,22 @@ public:
     bool writeFile(const char *name_utf8, size_t name_len, char *content,
         size_t len, int flags = 0);
 
-    void initJSWithCX(JSContext *cx);
-
     const char *readFile(const char *filename, size_t *len,
         int *flags = NULL) const;
-
+protected:
+    struct nfs_header_s m_Header;
+    Nidium::Core::Hash<NFSTree *> m_Hash;
+    NFSTree m_Root;
+    void initRoot();
 private:
     uint8_t *m_Content;
     off_t m_ContentPtr;
     size_t m_Size;
-
-    struct nfs_header_s m_Header;
-
-    Nidium::Core::Hash<NFSTree *> m_Hash;
-
-    NFSTree m_Root;
-
     void writeTree(FILE *fd, NFSTree *cur);
     void readTree(NFSTree *parent);
     void releaseTree(NFSTree *root);
-
     bool readContent(void *dest, size_t len);
-
-    void initRoot();
-
     void *buildJS(const char *data, size_t len, const char *filename, uint32_t *outlen);
-
-    struct {
-        JSRuntime *rt;
-        JSContext *cx;
-    } m_JS;
 };
 
 } // namespace IO

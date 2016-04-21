@@ -117,6 +117,7 @@
             '../src/Binding/JSDebugger.cpp',
             '../src/Binding/JSConsole.cpp',
             '../src/Binding/JSFS.cpp',
+            '../src/Binding/JSNFS.cpp',
             '../src/Binding/JSProcess.cpp',
             '../src/Binding/JSUtils.cpp',
             '../src/Binding/JSStream.cpp',

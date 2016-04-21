@@ -7,8 +7,6 @@
 
 #include <string.h>
 
-#include <jsapi.h>
-
 #include "Core/Path.h"
 
 namespace Nidium {
@@ -41,9 +39,6 @@ NFS::NFS() :
 
 void NFS::initRoot()
 {
-    m_JS.cx = NULL;
-    m_JS.rt = NULL;
-
     m_Root.header.filename_length = 1;
     m_Root.filename_utf8 = strdup("/");
     m_Root.next = NULL;
@@ -52,12 +47,6 @@ void NFS::initRoot()
     m_Root.header.size = 0;
 
     m_Hash.set(m_Root.filename_utf8, &m_Root);
-}
-
-void NFS::initJSWithCX(JSContext *cx)
-{
-    m_JS.cx = cx;
-    m_JS.rt = JS_GetRuntime(cx);
 }
 
 #if 0
@@ -183,21 +172,6 @@ bool NFS::writeFile(const char *name_utf8, size_t name_len, char *content,
     newfile->filename_utf8[path_len] = '\0';
     newfile->header.flags = flags;
 
-    if (strncasecmp(&newfile->filename_utf8[path_len-3], CONST_STR_LEN(".js")) == 0) {
-        uint32_t bytecode_len;
-        uint8_t *bytecode;
-
-        if ((bytecode = (uint8_t *)this->buildJS(content, len, newfile->filename_utf8, &bytecode_len)) == NULL) {
-            delete newfile;
-            return false;
-        }
-
-        newfile->meta.content = (uint8_t *)bytecode;
-        newfile->header.size = bytecode_len;
-
-        newfile->header.flags = flags | NFS_FILE_JSBYTECODE;
-    }
-
     newfile->next = parent->meta.children;
     newfile->header.filename_length = path_len;
 
@@ -208,34 +182,6 @@ bool NFS::writeFile(const char *name_utf8, size_t name_len, char *content,
     m_Header.numfiles++;
 
     return true;
-}
-
-void *NFS::buildJS(const char *data, size_t len, const char *filename, uint32_t *outlen)
-{
-    JS::RootedObject gbl(m_JS.cx, JS::CurrentGlobalOrNull(m_JS.cx));
-    JS::CompileOptions options(m_JS.cx);
-
-    options.setUTF8(true)
-           .setFileAndLine(filename, 1);
-
-    JS::RootedObject rgbl(m_JS.cx, gbl);
-    JS::AutoSaveContextOptions asco(m_JS.cx);
-
-    JS::ContextOptionsRef(m_JS.cx).setNoScriptRval(true)
-                             .setVarObjFix(true);
-
-    JS::RootedScript script(m_JS.cx, JS::Compile(m_JS.cx, rgbl, options, data, len));
-
-    if (!script) {
-        if (JS_IsExceptionPending(m_JS.cx)) {
-            if (!JS_ReportPendingException(m_JS.cx)) {
-                JS_ClearPendingException(m_JS.cx);
-            }
-        }
-        return NULL;
-    }
-
-    return JS_EncodeScript(m_JS.cx, script, outlen);
 }
 
 const char *NFS::readFile(const char *filename, size_t *len,
