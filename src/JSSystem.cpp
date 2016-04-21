@@ -1,4 +1,4 @@
-#include "NativeJSSystem.h"
+#include "JSSystem.h"
 #include <Binding/NidiumJS.h>
 
 #include "Context.h"
@@ -12,7 +12,10 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
+namespace Nidium {
+namespace Server {
+
+static bool nidium_system_getOpenFileStats(JSContext *cx, unsigned argc,
     JS::Value *vp);
 
 static JSClass system_class = {
@@ -23,13 +26,13 @@ static JSClass system_class = {
 };
 
 static JSFunctionSpec system_funcs[] = {
-    JS_FN("getOpenFileStats", native_system_getOpenFileStats, 0, 0),
+    JS_FN("getOpenFileStats", nidium_system_getOpenFileStats, 0, 0),
 
     JS_FS_END
 };
 
 
-static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
+static bool nidium_system_getOpenFileStats(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     struct rlimit rl;
@@ -74,11 +77,14 @@ static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
     return true;
 }
 
-void NativeJSSystem::registerObject(JSContext *cx)
+void JSSystem::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject systemObj(cx, JS_DefineObject(cx, global,
         "System", &system_class , nullptr, 0));
     JS_DefineFunctions(cx, systemObj, system_funcs);
 }
+
+} // namespace Server
+} // namespce Nidium
 

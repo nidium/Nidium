@@ -11,7 +11,7 @@
 #include <Binding/NidiumJS.h>
 
 #include "NativeJSConsole.h"
-#include "NativeJSSystem.h"
+#include "JSSystem.h"
 #include "Context.h"
 #include "Macros.h"
 
@@ -60,7 +60,7 @@ Context::Context(ape_global *net, Worker *worker,
     m_JS->loadGlobalObjects();
 
     NativeJSconsole::registerObject(m_JS->cx);
-    NativeJSSystem::registerObject(m_JS->cx);
+    JSSystem::registerObject(m_JS->cx);
 
     m_JS->setPath(Nidium::Core::Path::getPwd());
 
