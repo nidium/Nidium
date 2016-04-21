@@ -10,6 +10,8 @@
 
 #include "JSUtils.h"
 
+using namespace Nidium::Net;
+
 namespace Nidium {
 namespace Binding {
 
@@ -64,7 +66,7 @@ static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj)
 }
 
 JSHTTPResponse::JSHTTPResponse(JSContext *cx, uint16_t code) :
-        Nidium::Net::HTTPResponse(code),
+        HTTPResponse(code),
         JSObjectMapper(cx, "HTTPResponse")
 {
     JS_DefineFunctions(cx, m_JSObj, HTTPResponse_funcs);
@@ -83,18 +85,18 @@ JSHTTPServer::~JSHTTPServer()
 
 }
 
-void JSHTTPServer::onClientDisconnect(Nidium::Net::HTTPClientConnection *client)
+void JSHTTPServer::onClientDisconnect(HTTPClientConnection *client)
 {
 
 }
 
-void JSHTTPServer::onData(Nidium::Net::HTTPClientConnection *client,
+void JSHTTPServer::onData(HTTPClientConnection *client,
     const char *buf, size_t len)
 {
     // on progress
 }
 
-bool JSHTTPServer::onEnd(Nidium::Net::HTTPClientConnection *client)
+bool JSHTTPServer::onEnd(HTTPClientConnection *client)
 {
     buffer *k, *v;
 
