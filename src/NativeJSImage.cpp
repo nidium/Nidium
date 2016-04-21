@@ -209,7 +209,7 @@ void NativeJSImage::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
 
     switch (msg.event()) {
-        case Nidium::IO::STREAM_READ_BUFFER:
+        case Nidium::IO::Stream::EVENT_READ_BUFFER:
         {
             JS::RootedValue onload_callback(m_Cx);
             JS::RootedObject obj(m_Cx, m_JSObject);

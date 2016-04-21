@@ -475,7 +475,7 @@ static int delete_stream(void *arg)
 void NativeNML::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case Nidium::IO::STREAM_READ_BUFFER:
+        case Nidium::IO::Stream::EVENT_READ_BUFFER:
         {
             buffer *buf = (buffer *)msg.args[0].toPtr();
 
@@ -494,7 +494,7 @@ void NativeNML::onMessage(const Nidium::Core::SharedMessages::Message &msg)
             this->onGetContent((const char *)buf->data, buf->used);
             break;
         }
-        case Nidium::IO::STREAM_ERROR:
+        case Nidium::IO::Stream::EVENT_ERROR:
         {
             NativeSystemInterface::getInstance()->
                 alert("NML error : stream error",
