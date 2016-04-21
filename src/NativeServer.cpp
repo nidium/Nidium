@@ -98,7 +98,7 @@ void NativeServer::wait()
 
 void NativeServer::displayVersion()
 {
-#include "NativeASCII.h"
+#include "ASCII.h"
     fprintf(stdout, native_ascii, NATIVE_SERVER_VERSION,
         __DATE__, __TIME__, getpid(), m_NWorkers);
 }
