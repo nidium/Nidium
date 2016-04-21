@@ -1,5 +1,5 @@
-#ifndef nativemacros_h__
-#define nativemacros_h__
+#ifndef servermacros_h__
+#define servermacros_h__
 
 #include <string.h>
 

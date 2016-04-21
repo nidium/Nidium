@@ -2,7 +2,7 @@
 
 #include <Binding/NidiumJS.h>
 #include "NativeContext.h"
-#include "NativeMacros.h"
+#include "Macros.h"
 
 #include <js/OldDebugAPI.h>
 

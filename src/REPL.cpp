@@ -1,5 +1,5 @@
 #include "REPL.h"
-#include "NativeMacros.h"
+#include "Macros.h"
 
 #include <Binding/NidiumJS.h>
 #include "external/linenoise.h"

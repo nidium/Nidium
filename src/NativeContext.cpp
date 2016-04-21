@@ -13,7 +13,7 @@
 #include "NativeJSConsole.h"
 #include "NativeJSSystem.h"
 #include "NativeContext.h"
-#include "NativeMacros.h"
+#include "Macros.h"
 
 
 static int NativeContext_ping(void *arg)

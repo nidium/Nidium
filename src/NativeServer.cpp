@@ -14,7 +14,7 @@
 
 #include "NativeServer.h"
 #include "NativeContext.h"
-#include "NativeMacros.h"
+#include "Macros.h"
 #include "REPL.h"
 
 #include <Binding/JSProcess.h>

@@ -2,7 +2,7 @@
 #include <Binding/NidiumJS.h>
 
 #include "NativeContext.h"
-#include "NativeMacros.h"
+#include "Macros.h"
 
 #ifdef __linux__
   #include <sys/time.h>
