@@ -10,7 +10,8 @@
 
 #include "JSUtils.h"
 
-using namespace Nidium::Net;
+using Nidium::Net::HTTPServer;
+using Nidium::Net::HTTPClientConnection;
 
 namespace Nidium {
 namespace Binding {

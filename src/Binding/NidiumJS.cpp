@@ -35,6 +35,9 @@
 #include "JSFS.h"
 #include "JSDebugger.h"
 
+using namespace Nidium::Core;
+using namespace Nidium::IO;
+
 namespace Nidium {
 namespace Binding {
 
@@ -135,7 +138,7 @@ static bool nidium_global_prop_get(JSContext *cx, JS::HandleObject obj,
         }
         case GLOBAL_PROP___DIRNAME:
         {
-            Nidium::Core::Path path(JSUtils::CurrentJSCaller(cx), false, true);
+            Path path(JSUtils::CurrentJSCaller(cx), false, true);
             vp.setString(JS_NewStringCopyZ(cx, path.dir()));
             break;
         }
@@ -371,7 +374,7 @@ bool NidiumJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
 
 static bool nidium_pwd(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    Nidium::Core::Path cur(JSUtils::CurrentJSCaller(cx), false, true);
+    Path cur(JSUtils::CurrentJSCaller(cx), false, true);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (cur.dir() == NULL) {
@@ -399,9 +402,9 @@ static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NidiumJS *njs = NidiumJS::GetObject(cx);
     JSAutoByteString scriptstr(cx, script);
-    Nidium::Core::Path scriptpath(scriptstr.ptr());
+    Path scriptpath(scriptstr.ptr());
 
-    Nidium::Core::Path::schemeInfo *schemePwd = Nidium::Core::Path::getPwdScheme();
+    Path::schemeInfo *schemePwd = Path::getPwdScheme();
 
     if (scriptpath.path() == NULL) {
         JS_ReportError(cx, "script error : invalid file location");
@@ -420,7 +423,7 @@ static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    Nidium::Core::PtrAutoDelete<Nidium::IO::Stream *> stream(scriptpath.createStream());
+    PtrAutoDelete<Stream *> stream(scriptpath.createStream());
 
     if (!stream.ptr() || !stream.ptr()->getContentSync(&content, &len, true)) {
         JS_ReportError(cx, "load() failed read script");
@@ -656,13 +659,13 @@ NidiumJS::NidiumJS(ape_global *net) :
 
     JS_SetRuntimePrivate(rt, this);
 
-    messages = new Nidium::Core::SharedMessages();
+    messages = new SharedMessages();
     registeredMessages = (nidium_thread_message_t*)calloc(16, sizeof(nidium_thread_message_t));
     registeredMessagesIdx = 8; // The 8 first slots are reserved for Nidium internals messages
     registeredMessagesSize = 16;
 
 #if 0
-    Nidium::IO::Stream *stream = Nidium::IO::Stream::create("nvfs:///libs/zip.lib.js");
+    Stream *stream = Stream::create("nvfs:///libs/zip.lib.js");
     char *ret;
     size_t retlen;
 
@@ -671,7 +674,7 @@ NidiumJS::NidiumJS(ape_global *net) :
         printf("ret : %s\n", ret);
     }
 
-    Nidium::IO::Stream *mov = Nidium::IO::Stream::create("/tmp/test");
+    Stream *mov = Stream::create("/tmp/test");
 
     char *content;
     size_t len;
@@ -679,7 +682,7 @@ NidiumJS::NidiumJS(ape_global *net) :
         printf("Failed to open file\n");
     }
 
-    Nidium::IO::NFS *nfs = new Nidium::IO::NFS((unsigned char *)content, len);
+    NFS *nfs = new NFS((unsigned char *)content, len);
 
 
     const char *mp4file = nfs->readFile("/foo/toto", &len);
@@ -772,7 +775,7 @@ static int Nidium_handle_messages(void *arg)
     JSContext *cx = njs->cx;
     int nread = 0;
 
-    Nidium::Core::SharedMessages::Message *msg;
+    SharedMessages::Message *msg;
     JSAutoRequest ar(cx);
 
     while (++nread < MAX_MSG_IN_ROW && (msg = njs->messages->readMessage())) {
@@ -882,7 +885,7 @@ int NidiumJS::LoadScriptReturn(JSContext *cx,
     char *data;
     size_t len;
 
-    Nidium::IO::File file(filename);
+    File file(filename);
 
     if (!file.openSync("r", &err)) {
         return 0;
@@ -996,7 +999,7 @@ int NidiumJS::LoadScript(const char *filename)
     char *data;
     size_t len;
 
-    Nidium::IO::File file(filename);
+    File file(filename);
 
     if (!file.openSync("r", &err)) {
         return 0;
@@ -1326,7 +1329,7 @@ static bool nidium_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
         JS::RootedString str(cx, args[0].toString());
         cdata.encodeUtf8(cx, str);
 
-        char *ret = Nidium::Core::Utils::b64Encode((unsigned char *)cdata.ptr(), cdata.length());
+        char *ret = Utils::b64Encode((unsigned char *)cdata.ptr(), cdata.length());
 
         args.rval().setString(JS_NewStringCopyZ(cx, ret));
 

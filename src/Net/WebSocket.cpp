@@ -13,6 +13,8 @@
 
 #include "Binding/NidiumJS.h"
 
+using Nidium::Core::Args;
+
 namespace Nidium {
 namespace Net {
 
@@ -52,7 +54,7 @@ WebSocketClientConnection::~WebSocketClientConnection()
     }
 
     if (m_PingTimer) {
-        ape_global *ape = Nidium::Binding::NidiumJS::getNet();
+        ape_global *ape = Binding::NidiumJS::getNet();
 
         APE_timer_clearbyid(ape, m_PingTimer, 1);
 
@@ -76,7 +78,7 @@ void WebSocketClientConnection::onHeaderEnded()
 
 void WebSocketClientConnection::onDisconnect(ape_global *ape)
 {
-    Nidium::Core::Args args;
+    Args args;
     args[0].set(this);
 
     if (m_PingTimer) {
@@ -116,7 +118,7 @@ void WebSocketClientConnection::onUpgrade(const char *to)
 
     m_Handshaked = true;
 
-    Nidium::Core::Args args;
+    Args args;
     args[0].set(this);
 
     ape_timer_t *timer = APE_timer_create(m_SocketClient->ape, WEBSOCKET_PING_INTERVAL,
@@ -129,7 +131,7 @@ void WebSocketClientConnection::onUpgrade(const char *to)
 
 void WebSocketClientConnection::onContent(const char *data, size_t len)
 {
-    m_LastAcitivty = Nidium::Core::Utils::getTick(true);
+    m_LastAcitivty = Core::Utils::getTick(true);
 
     ape_ws_process_frame(&m_WSState, data, len);
 }
@@ -137,7 +139,7 @@ void WebSocketClientConnection::onContent(const char *data, size_t len)
 void WebSocketClientConnection::onFrame(const char *data, size_t len,
     bool binary)
 {
-    Nidium::Core::Args args;
+    Args args;
     args[0].set(this);
     args[1].set((void *)data);
     args[2].set(len);

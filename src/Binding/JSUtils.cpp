@@ -64,7 +64,7 @@ JSString *JSUtils::newStringWithEncoding(JSContext *cx, const char *buf,
     if (encoding != NULL && strcasecmp(encoding, "utf8") == 0) {
         size_t jlen = 0;
 
-        Nidium::Core::PtrAutoDelete<char16_t *> content(JSUtils::Utf8ToUtf16(cx, buf, len, &jlen), free);
+        Core::PtrAutoDelete<char16_t *> content(JSUtils::Utf8ToUtf16(cx, buf, len, &jlen), free);
 
         if (content.ptr() == NULL) {
             JS_ReportError(cx, "Could not decode string to utf8");

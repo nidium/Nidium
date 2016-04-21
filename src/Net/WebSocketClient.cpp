@@ -11,6 +11,8 @@
 
 #include <ape_base64.h>
 
+using Nidium::Core::Args;
+
 namespace Nidium {
 namespace Net {
 
@@ -62,7 +64,7 @@ WebSocketClient::WebSocketClient(uint16_t port, const char *url,
     m_Host = strdup(host);
     m_URL  = strdup(url);
 
-    uint64_t r64 = Nidium::Core::Utils::randInt<uint64_t>();
+    uint64_t r64 = Core::Utils::randInt<uint64_t>();
     base64_encode_b_safe((unsigned char *)&r64, m_HandShakeKey, sizeof(uint64_t), 0);
 
     m_ComputedKey = ape_ws_compute_key(m_HandShakeKey, strlen(m_HandShakeKey));
@@ -166,7 +168,7 @@ void WebSocketClient::onDataWS(const uint8_t *data, size_t len)
 
 void WebSocketClient::onFrame(const char *data, size_t len, bool binary)
 {
-    Nidium::Core::Args args;
+    Args args;
     args[0].set(this);
     args[1].set((void *)data);
     args[2].set(len);
@@ -179,7 +181,7 @@ void WebSocketClient::onClose()
 {
     m_Socket = NULL;
 
-    Nidium::Core::Args args;
+    Args args;
     args[0].set(this);
 
     this->fireEvent<WebSocketClient>(WebSocketClient::CLIENT_CLOSE, args);
@@ -200,7 +202,7 @@ void WebSocketClient::HTTPRequestEnded()
 {
     m_Socket->callbacks.on_read = native_ws_read_ws;
 
-    Nidium::Core::Args args;
+    Args args;
     args[0].set(this);
 
     this->fireEvent<WebSocketClient>(WebSocketClient::CLIENT_CONNECT, args);

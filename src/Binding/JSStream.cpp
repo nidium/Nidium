@@ -9,6 +9,8 @@
 
 #include "IO/Stream.h"
 
+using Nidium::IO::Stream;
+
 namespace Nidium {
 namespace Binding {
 
@@ -147,13 +149,13 @@ static bool nidium_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value 
 
     if (ret == NULL) {
         switch(err) {
-            case Nidium::IO::Stream::DATA_STATUS_END:
+            case Stream::DATA_STATUS_END:
                 JS_ReportError(cx, "Stream has ended");
                 return false;
-            case Nidium::IO::Stream::DATA_STATUS_ERROR:
+            case Stream::DATA_STATUS_ERROR:
                 JS_ReportError(cx, "Stream error (unknown)");
                 return false;
-            case Nidium::IO::Stream::DATA_STATUS_EAGAIN:
+            case Stream::DATA_STATUS_EAGAIN:
                 args.rval().setNull();
                 return true;
         }
@@ -215,7 +217,7 @@ JSStream::JSStream(JS::HandleObject obj, JSContext *cx,
     std::string str = url;
     //str += NidiumJS::getNidiumClass(cx)->getPath();
 
-    m_Stream = Nidium::IO::Stream::create(Nidium::Core::Path(str.c_str()));
+    m_Stream = Stream::create(Core::Path(str.c_str()));
 
     if (!m_Stream) {
         return;
@@ -248,7 +250,7 @@ void JSStream::onProgress(size_t buffered, size_t total)
 }
 #endif
 
-void JSStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void JSStream::onMessage(const Core::SharedMessages::Message &msg)
 {
     JS::RootedValue onavailable_callback(m_Cx);
     JS::RootedValue onerror_callback(m_Cx);
@@ -257,24 +259,23 @@ void JSStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     JS::RootedObject obj(m_Cx, m_JSObject);
 
     switch (msg.event()) {
-        case Nidium::IO::Stream::EVENT_AVAILABLE_DATA:
+        case Stream::EVENT_AVAILABLE_DATA:
             if (JS_GetProperty(m_Cx, obj, "onavailabledata", &onavailable_callback) &&
                 JS_TypeOfValue(m_Cx, onavailable_callback) == JSTYPE_FUNCTION) {
 
                 JS_CallFunctionValue(m_Cx, obj, onavailable_callback, JS::HandleValueArray::empty(), &rval);
             }
             break;
-        case Nidium::IO::Stream::EVENT_ERROR:
+        case Stream::EVENT_ERROR:
             {
-            Nidium::IO::Stream::Errors err =
-                (Nidium::IO::Stream::Errors)msg.args[0].toInt();
+            Stream::Errors err = (Stream::Errors)msg.args[0].toInt();
             int code = msg.args[1].toInt();
             switch (err) {
-                case Nidium::IO::Stream::ERROR_OPEN:
+                case Stream::ERROR_OPEN:
                     break;
-                case Nidium::IO::Stream::ERROR_READ:
+                case Stream::ERROR_READ:
                     break;
-                case Nidium::IO::Stream::ERROR_SEEK:
+                case Stream::ERROR_SEEK:
 
                     break;
                 default:

@@ -13,6 +13,9 @@
 #include "Net/HTTP.h"
 #include "JSUtils.h"
 
+using Nidium::Net::WebSocketListener;
+using Nidium::Net::WebSocketClientConnection;
+
 namespace Nidium {
 namespace Binding {
 
@@ -64,7 +67,7 @@ static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj)
 
 static bool nidium_websocketclient_send(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(Nidium::Net::WebSocketClientConnection,
+    NIDIUM_JS_PROLOGUE_CLASS(WebSocketClientConnection,
         &WebSocketServer_client_class);
 
     NIDIUM_JS_CHECK_ARGS("send", 1);
@@ -103,7 +106,7 @@ static bool nidium_websocketclient_send(JSContext *cx, unsigned argc, JS::Value 
 
 static bool nidium_websocketclient_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(Nidium::Net::WebSocketClientConnection,
+    NIDIUM_JS_PROLOGUE_CLASS(WebSocketClientConnection,
         &WebSocketServer_client_class);
 
     CppObj->close();
@@ -152,7 +155,7 @@ static bool nidium_WebSocketServer_constructor(JSContext *cx,
         prefix = "";
     }
 
-    if (Nidium::Net::HTTP::ParseURI(durl, curl.length(), host,
+    if (Net::HTTP::ParseURI(durl, curl.length(), host,
         &port, path, prefix, default_port) == -1) {
         JS_ReportError(cx, "Invalid WebSocketServer URI : %s", durl);
         free(path);
@@ -189,7 +192,7 @@ JSWebSocketServer::JSWebSocketServer(JS::HandleObject obj, JSContext *cx,
     const char *host,
     unsigned short port) : JSExposer<JSWebSocketServer>(obj, cx)
 {
-    m_WebSocketServer = new Nidium::Net::WebSocketListener(port, host);
+    m_WebSocketServer = new WebSocketListener(port, host);
     m_WebSocketServer->addListener(this);
 }
 
@@ -198,7 +201,7 @@ JSWebSocketServer::~JSWebSocketServer()
     delete m_WebSocketServer;
 }
 
-JSObject *JSWebSocketServer::createClient(Nidium::Net::WebSocketClientConnection *client)
+JSObject *JSWebSocketServer::createClient(WebSocketClientConnection *client)
 {
 
     JS::RootedObject jclient(m_Cx, JS_NewObject(m_Cx, &WebSocketServer_client_class, JS::NullPtr(), JS::NullPtr()));
@@ -213,7 +216,7 @@ JSObject *JSWebSocketServer::createClient(Nidium::Net::WebSocketClientConnection
     return jclient;
 }
 
-void JSWebSocketServer::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void JSWebSocketServer::onMessage(const Core::SharedMessages::Message &msg)
 {
     JSContext *cx = m_Cx;
 
@@ -221,7 +224,7 @@ void JSWebSocketServer::onMessage(const Nidium::Core::SharedMessages::Message &m
     JS::RootedValue rval(cx);
 
     switch (msg.event()) {
-        case NIDIUM_EVENT(Nidium::Net::WebSocketListener, SERVER_FRAME):
+        case NIDIUM_EVENT(WebSocketListener, SERVER_FRAME):
         {
             JS::AutoValueArray<2> arg(cx);
 
@@ -229,7 +232,7 @@ void JSWebSocketServer::onMessage(const Nidium::Core::SharedMessages::Message &m
             int len = msg.args[3].toInt();
             bool binary = msg.args[4].toBool();
 
-            JS::RootedObject jclient(cx, (JSObject *)((Nidium::Net::WebSocketClientConnection *)msg.args[1].toPtr())->getData());
+            JS::RootedObject jclient(cx, (JSObject *)((WebSocketClientConnection *)msg.args[1].toPtr())->getData());
 
             if (!jclient.get()) {
                 return;
@@ -252,12 +255,12 @@ void JSWebSocketServer::onMessage(const Nidium::Core::SharedMessages::Message &m
 
             break;
         }
-        case NIDIUM_EVENT(Nidium::Net::WebSocketListener, SERVER_CONNECT):
+        case NIDIUM_EVENT(WebSocketListener, SERVER_CONNECT):
         {
             JS::AutoValueArray<1> arg(cx);
 
             JSObject *jclient = this->createClient(
-                (Nidium::Net::WebSocketClientConnection *)msg.args[1].toPtr());
+                (WebSocketClientConnection *)msg.args[1].toPtr());
 
             arg[0].setObject(*jclient);
 
@@ -267,9 +270,9 @@ void JSWebSocketServer::onMessage(const Nidium::Core::SharedMessages::Message &m
 
             break;
         }
-        case NIDIUM_EVENT(Nidium::Net::WebSocketListener, SERVER_CLOSE):
+        case NIDIUM_EVENT(WebSocketListener, SERVER_CLOSE):
         {
-            Nidium::Net::WebSocketClientConnection *client = (Nidium::Net::WebSocketClientConnection *)msg.args[1].toPtr();
+            WebSocketClientConnection *client = (WebSocketClientConnection *)msg.args[1].toPtr();
             JS::AutoValueArray<1> arg(cx);
             JS::RootedObject jclient(cx, (JSObject *)client->getData());
             JS::RootedObject obj(cx, this->getJSObject());

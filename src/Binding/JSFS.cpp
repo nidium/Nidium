@@ -13,6 +13,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+using Nidium::Core::SharedMessages;
+using Nidium::Core::Task;
+
 namespace Nidium {
 namespace Binding {
 
@@ -41,7 +44,7 @@ public:
 
     }
 
-    void onMessage(const Nidium::Core::SharedMessages::Message &msg) {
+    void onMessage(const SharedMessages::Message &msg) {
         switch(msg.event()) {
             case JSFS_MSG_READDIR_FILE:
             {
@@ -73,7 +76,7 @@ public:
         }
     }
 
-    void onMessageLost(const Nidium::Core::SharedMessages::Message &msg)
+    void onMessageLost(const SharedMessages::Message &msg)
     {
         switch (msg.event()) {
             case JSFS_MSG_READDIR_FILE:
@@ -85,7 +88,7 @@ public:
     }
 };
 
-void JSFS_readDir_Task(Nidium::Core::Task *task)
+void JSFS_readDir_Task(Task *task)
 {
     JSFSAsyncHandler *handler = (JSFSAsyncHandler *)task->getObject();
 
@@ -134,7 +137,7 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
     JSFSAsyncHandler *handler = new JSFSAsyncHandler(cx);
     printf("Calling with cx : %p\n", cx);
 
-    Nidium::Core::Task *task = new Nidium::Core::Task();
+    Task *task = new Task();
     task->setFunction(JSFS_readDir_Task);
     task->args[0].set(strdup(cpath.ptr()));
 

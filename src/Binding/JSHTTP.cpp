@@ -6,7 +6,8 @@
 #include "JSHTTP.h"
 #include "JSUtils.h"
 
-using namespace Nidium::Net;
+using Nidium::Net::HTTP;
+using Nidium::Net::HTTPRequest;
 
 namespace Nidium {
 namespace Binding {

@@ -247,7 +247,7 @@ static bool nidium_thread_start(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-void JSThread::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void JSThread::onMessage(const Core::SharedMessages::Message &msg)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)

@@ -19,8 +19,10 @@
 #include "IO/Stream.h"
 #include "JSUtils.h"
 
-using namespace Nidium::Core;
-using namespace Nidium::IO;
+using Nidium::Core::Path;
+using Nidium::Core::SharedMessages;
+using Nidium::IO::Stream;
+using Nidium::IO::File;
 
 namespace Nidium {
 namespace Binding {
@@ -34,7 +36,7 @@ enum {
     FILE_PROP_ASYNC
 };
 
-class JSFileAsyncReader : public Messages
+class JSFileAsyncReader : public Core::Messages
 {
 public:
     void onMessage(const SharedMessages::Message &msg)
@@ -92,7 +94,7 @@ public:
         delete this;
     }
 
-    Args m_Args;
+    Core::Args m_Args;
 };
 
 #define NJSFIO_GETTER(obj) ((class JSFileIO *)JS_GetPrivate(obj))
@@ -604,7 +606,7 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
         return false;
     }
 
-    PtrAutoDelete<Stream *> stream(path.createStream());
+    Core::PtrAutoDelete<Stream *> stream(path.createStream());
 
     if (!stream.ptr() || !stream.ptr()->getContentSync(&buf, &len)) {
         args.rval().setNull();
@@ -612,7 +614,7 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
         return true;
     }
 
-    PtrAutoDelete<char *> cbuf(buf, free);
+    Core::PtrAutoDelete<char *> cbuf(buf, free);
     char *cencoding = NULL;
     JSAutoByteString encoding;
 
@@ -696,17 +698,17 @@ bool JSFileIO::handleError(JSContext *cx, const SharedMessages::Message &msg,
     JS::MutableHandleValue vals)
 {
     switch (msg.event()) {
-        case FILE_OPEN_ERROR:
+        case IO::FILE_OPEN_ERROR:
             // todo : replace by error object
             vals.setString(JS_NewStringCopyZ(cx, "Open error"));
             break;
-        case FILE_SEEK_ERROR:
+        case IO::FILE_SEEK_ERROR:
             vals.setString(JS_NewStringCopyZ(cx, "Seek error"));
             break;
-        case FILE_READ_ERROR:
+        case IO::FILE_READ_ERROR:
             vals.setString(JS_NewStringCopyZ(cx, "read error"));
             break;
-        case FILE_WRITE_ERROR:
+        case IO::FILE_WRITE_ERROR:
             vals.setString(JS_NewStringCopyZ(cx, "write error"));
             break;
         default:
@@ -746,17 +748,17 @@ bool JSFileIO::callbackForMessage(JSContext *cx,
     JS::RootedObject jsthis(cx, thisobj);
     if (!JSFileIO::handleError(cx, msg, params[0])) {
         switch (msg.event()) {
-            case FILE_READ_SUCCESS:
+            case IO::FILE_READ_SUCCESS:
             {
                 buffer *buf = (buffer *)msg.args[0].toPtr();
                 JSUtils::strToJsval(cx, (const char *)buf->data,
                     buf->used, params[1], encoding);
                 break;
             }
-            case FILE_WRITE_SUCCESS:
+            case IO::FILE_WRITE_SUCCESS:
                 params[1].setDouble(msg.args[0].toInt64());
                 break;
-            case FILE_LISTFILES_ENTRIES:
+            case IO::FILE_LISTFILES_ENTRIES:
             {
                 File::DirEntries *entries = (File::DirEntries *)msg.args[0].toPtr();
                 JS::RootedObject arr(cx, JS_NewArrayObject(cx, entries->size));

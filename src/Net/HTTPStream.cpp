@@ -14,13 +14,15 @@
 
 #include "Binding/NidiumJS.h"
 
+using Nidium::IO::Stream;
+
 namespace Nidium {
 namespace Net {
 
 #define MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH (1024LL*1024LL*64LL)
 
 HTTPStream::HTTPStream(const char *location) :
-    Nidium::IO::Stream(location), m_StartPosition(0),
+    Stream(location), m_StartPosition(0),
     m_BytesBuffered(0), m_LastReadUntil(0)
 {
 
@@ -28,7 +30,7 @@ HTTPStream::HTTPStream(const char *location) :
     m_Mapped.fd   = 0;
     m_Mapped.size = 0;
 
-    m_Http = new HTTP(Nidium::Binding::NidiumJS::getNet());
+    m_Http = new HTTP(Binding::NidiumJS::getNet());
 }
 
 HTTPStream::~HTTPStream()
@@ -150,7 +152,7 @@ void HTTPStream::seek(size_t pos)
     if (pos >= m_StartPosition && pos < max &&
         (pos <= max - m_PacketsSize || this->readComplete())) {
 
-        ape_global *ape = Nidium::Binding::NidiumJS::getNet();
+        ape_global *ape = Binding::NidiumJS::getNet();
         m_LastReadUntil = pos - m_StartPosition;
         m_PendingSeek = true;
         m_NeedToSendUpdate = false;
@@ -189,7 +191,7 @@ void HTTPStream::notifyAvailable()
     m_PendingSeek = false;
     m_NeedToSendUpdate = false;
 
-    CREATE_MESSAGE(message_available, Nidium::IO::Stream::EVENT_AVAILABLE_DATA);
+    CREATE_MESSAGE(message_available, Stream::EVENT_AVAILABLE_DATA);
     message_available->args[0].set(m_BytesBuffered - m_LastReadUntil);
 
     this->notify(message_available);
@@ -205,7 +207,7 @@ void HTTPStream::onRequest(HTTP::HTTPData *h, HTTP::DataType)
     buf.data = (unsigned char *)m_Mapped.addr;
     buf.size = buf.used = m_Mapped.size;
 
-    CREATE_MESSAGE(message, Nidium::IO::Stream::EVENT_READ_BUFFER);
+    CREATE_MESSAGE(message, Stream::EVENT_READ_BUFFER);
     message->args[0].set(&buf);
 
     this->notify(message);
@@ -229,7 +231,7 @@ void HTTPStream::onProgress(size_t offset, size_t len,
     /* Reset the data buffer, so that data doesn't grow in memory */
     m_Http->resetData();
 
-    CREATE_MESSAGE(msg_progress, Nidium::IO::Stream::EVENT_PROGRESS);
+    CREATE_MESSAGE(msg_progress, Stream::EVENT_PROGRESS);
     msg_progress->args[0].set(m_Http->getFileSize());
     msg_progress->args[1].set(m_StartPosition);
     msg_progress->args[2].set(m_BytesBuffered);

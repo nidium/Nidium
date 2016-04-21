@@ -17,6 +17,8 @@
 #include "HTTPServer.h"
 #include "Binding/NidiumJS.h"
 
+using Nidium::Core::Utils;
+
 namespace Nidium {
 namespace Net {
 
@@ -295,7 +297,7 @@ static void nidium_socket_client_disconnect(ape_socket *socket_client,
 
 HTTPServer::HTTPServer(uint16_t port, const char *ip)
 {
-    ape_global *ape = Nidium::Binding::NidiumJS::getNet();
+    ape_global *ape = Binding::NidiumJS::getNet();
     m_Socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, ape);
 
     m_IP = strdup(ip);
@@ -351,7 +353,7 @@ int NativeHTTPClientConnection_checktimeout(void *arg)
     /*
         Never timeout if set to 0
     */
-    if (timeout && Nidium::Core::Utils::getTick(true) - con->getLastActivity() > timeout) {
+    if (timeout && Utils::getTick(true) - con->getLastActivity() > timeout) {
         con->close();
     }
 
@@ -383,7 +385,7 @@ HTTPClientConnection::HTTPClientConnection(HTTPServer *httpserver,
 
     m_TimeoutTimer = APE_timer_getid(timer);
 
-    m_LastAcitivty = Nidium::Core::Utils::getTick(true);
+    m_LastAcitivty = Utils::getTick(true);
 }
 
 void HTTPClientConnection::onRead(const char *data,
@@ -392,7 +394,7 @@ void HTTPClientConnection::onRead(const char *data,
 #define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
     CONST_STR_LEN(header "\0"))
 
-    m_LastAcitivty = Nidium::Core::Utils::getTick(true);
+    m_LastAcitivty = Utils::getTick(true);
 
     int nparsed = http_parser_execute(&m_HttpState.parser, &settings,
         data, len);
@@ -426,7 +428,7 @@ void HTTPClientConnection::close()
 HTTPClientConnection::~HTTPClientConnection()
 {
     if (m_TimeoutTimer) {
-        ape_global *ape = Nidium::Binding::NidiumJS::getNet();
+        ape_global *ape = Binding::NidiumJS::getNet();
 
         APE_timer_clearbyid(ape, m_TimeoutTimer, 1);
 
@@ -646,7 +648,7 @@ const buffer &HTTPResponse::getHeadersString()
     buffer_append_string(m_Headers_str, this->getStatusDesc());
 
     char httpdate[256];
-    Nidium::Core::Utils::HTTPTime(httpdate);
+    Utils::HTTPTime(httpdate);
 
     this->setHeader("Date", httpdate);
 

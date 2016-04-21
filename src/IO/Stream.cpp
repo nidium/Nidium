@@ -11,6 +11,8 @@
 
 #include "Core/Path.h"
 
+using Nidium::Core::Path;
+
 namespace Nidium {
 namespace IO {
 
@@ -32,7 +34,7 @@ Stream::~Stream()
     free(m_Location);
 }
 
-Stream *Stream::create(const Nidium::Core::Path &path)
+Stream *Stream::create(const Path &path)
 {
     return path.createStream();
 }
@@ -40,10 +42,10 @@ Stream *Stream::create(const Nidium::Core::Path &path)
 Stream *Stream::create(const char *location)
 {
     const char *pLocation;
-    Nidium::Core::Path::schemeInfo *info;
+    Path::schemeInfo *info;
 
     if (location == NULL ||
-        (info = Nidium::Core::Path::getScheme(location, &pLocation)) == NULL) {
+        (info = Path::getScheme(location, &pLocation)) == NULL) {
         return NULL;
     }
 
@@ -69,7 +71,7 @@ const unsigned char *Stream::getNextPacket(size_t *len, int *err)
     return this->onGetNextPacket(len, err);
 }
 
-void Stream::notify(Nidium::Core::SharedMessages::Message *msg)
+void Stream::notify(Core::SharedMessages::Message *msg)
 {
     if (m_Listener) {
         m_Listener->postMessage(msg);

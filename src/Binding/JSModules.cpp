@@ -21,6 +21,9 @@
 #include "IO/Stream.h"
 #include "JSExposer.h"
 
+using Nidium::IO::Stream;
+using Nidium::Core::Path;
+
 namespace Nidium {
 namespace Binding {
 
@@ -99,7 +102,7 @@ bool JSModule::init()
         return false;
     }
 
-    Nidium::Core::Path p(this->filePath, false, true);
+    Path p(this->filePath, false, true);
 
     if (!p.dir()) {
         return false;
@@ -331,8 +334,8 @@ char *JSModules::findModulePath(JSModule *parent, JSModule *module)
 
 bool JSModules::getFileContent(const char *file, char **content, size_t *size)
 {
-    Nidium::Core::Path path(file, false, true);
-    Nidium::IO::Stream *stream = path.createStream(true);
+    Path path(file, false, true);
+    Stream *stream = path.createStream(true);
 
     if (!stream) {
         return false;
@@ -447,7 +450,7 @@ bool JSModules::loadDirectoryModule(std::string &dir)
                     return false;
                 }
 
-                Nidium::Core::PtrAutoDelete<> npad(data, free);
+                Core::PtrAutoDelete<> npad(data, free);
 
                 Json::Value root;
                 Json::Reader reader;
@@ -511,10 +514,10 @@ JS::Value JSModule::require(char *name)
         this->filePath = realpath(filename.get(), NULL);
 
         if (this->filePath == NULL) {
-            this->absoluteDir = strdup(Nidium::Core::Path::getPwd());
+            this->absoluteDir = strdup(Path::getPwd());
         } else {
             // absoluteDir is needed for findModulePath
-            Nidium::Core::Path p(this->filePath, false, true);
+            Path p(this->filePath, false, true);
             this->absoluteDir = strdup(p.dir());
             DPRINT("Global scope loading\n");
         }
@@ -578,7 +581,7 @@ JS::Value JSModule::require(char *name)
                 return ret;
             }
 
-            Nidium::Core::PtrAutoDelete<> npad(data, free);
+            Core::PtrAutoDelete<> npad(data, free);
 
             if (filesize == 0) {
                 ret.setObject(*cmodule->exports);

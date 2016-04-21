@@ -18,7 +18,7 @@
 #include "Net/HTTP.h"
 #include "JSUtils.h"
 
-using namespace Nidium::Net;
+using Nidium::Net::WebSocketClient;
 
 namespace Nidium {
 namespace Binding {
@@ -151,7 +151,7 @@ static bool nidium_WebSocket_constructor(JSContext *cx,
         prefix = "";
     }
 
-    if (HTTP::ParseURI(durl, curl.length(), host,
+    if (Net::HTTP::ParseURI(durl, curl.length(), host,
         &port, path, prefix, default_port) == -1) {
         JS_ReportError(cx, "Invalid WebSocketServer URI : %s", durl);
         free(path);
@@ -179,7 +179,7 @@ JSWebSocket::JSWebSocket(JS::HandleObject obj, JSContext *cx,
     const char *host,
     unsigned short port, const char *path, bool ssl) : JSExposer<JSWebSocket>(obj, cx)
 {
-    m_WebSocketClient = new Nidium::Net::WebSocketClient(port, path, host);
+    m_WebSocketClient = new WebSocketClient(port, path, host);
     bool ret = m_WebSocketClient->connect(ssl, (ape_global *)JS_GetContextPrivate(cx));
 
     if (!ret) {
@@ -195,7 +195,7 @@ JSWebSocket::~JSWebSocket()
     delete m_WebSocketClient;
 }
 
-void JSWebSocket::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
 {
     JSContext *cx = m_Cx;
 
@@ -203,7 +203,7 @@ void JSWebSocket::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     JS::RootedValue rval(cx);
 
     switch (msg.event()) {
-        case NIDIUM_EVENT(Nidium::Net::WebSocketClient, CLIENT_FRAME):
+        case NIDIUM_EVENT(WebSocketClient, CLIENT_FRAME):
         {
             JS::AutoValueArray<1> arg(cx);
 
@@ -228,7 +228,7 @@ void JSWebSocket::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 
             break;
         }
-        case NIDIUM_EVENT(Nidium::Net::WebSocketClient, CLIENT_CONNECT):
+        case NIDIUM_EVENT(WebSocketClient, CLIENT_CONNECT):
         {
             JS::RootedObject obj(cx, this->getJSObject());
 
@@ -236,7 +236,7 @@ void JSWebSocket::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 
             break;
         }
-        case NIDIUM_EVENT(Nidium::Net::WebSocketClient, CLIENT_CLOSE):
+        case NIDIUM_EVENT(WebSocketClient, CLIENT_CLOSE):
         {
             JS::RootedObject obj(cx, this->getJSObject());
 

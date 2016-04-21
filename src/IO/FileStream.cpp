@@ -136,7 +136,7 @@ void FileStream::seek(size_t pos)
     m_DataBuffer.ended = false;
 }
 
-void FileStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void FileStream::onMessage(const Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case FILE_OPEN_SUCCESS:

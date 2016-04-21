@@ -9,10 +9,14 @@
 
 #include "Core/Path.h"
 
+using Nidium::Core::PtrAutoDelete;
+using Nidium::Core::Path;
+using Nidium::IO::NFSTree;
+
 namespace Nidium {
 namespace Binding {
 
-JSNFS::JSNFS(JSContext *cx): Nidium::IO::NFS()
+JSNFS::JSNFS(JSContext *cx): IO::NFS()
 {
     m_JS.cx = cx;
     m_JS.rt = JS_GetRuntime(cx);
@@ -22,7 +26,7 @@ bool JSNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
         size_t len, int flags)
 {
 
-    Nidium::Core::PtrAutoDelete<char *> path(Nidium::Core::Path::sanitize(name_utf8, NULL));
+    PtrAutoDelete<char *> path(Path::sanitize(name_utf8, NULL));
     int path_len = strlen(path.ptr());
 
     if (m_Hash.get(path.ptr())) {
@@ -30,13 +34,13 @@ bool JSNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
         return false;
     }
 
-    Nidium::Core::PtrAutoDelete<char *> dir(Nidium::Core::Path::getDir(name_utf8));
+    PtrAutoDelete<char *> dir(Path::getDir(name_utf8));
 
     if (strlen(dir.ptr())) {
         dir.ptr()[strlen(dir.ptr())-1] = '\0';
     }
 
-    Nidium::IO::NFSTree *parent;
+    NFSTree *parent;
 
     if (strlen(dir.ptr()) == 0) {
         parent = &m_Root;
@@ -47,7 +51,7 @@ bool JSNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
         }
     }
 
-    Nidium::IO::NFSTree *newfile = new Nidium::IO::NFSTree;
+    NFSTree *newfile = new NFSTree;
 
     newfile->meta.content = (uint8_t *)content;
     newfile->header.size = len;
