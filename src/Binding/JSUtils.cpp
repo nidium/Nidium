@@ -10,7 +10,9 @@
 
 #include <jsfriendapi.h>
 #include <js/CharacterEncoding.h>
+#include <js/OldDebugAPI.h>
 
+#include "Binding/NidiumJS.h"
 #include "Core/Utils.h"
 
 namespace Nidium {
@@ -81,6 +83,24 @@ JSString *JSUtils::newStringWithEncoding(JSContext *cx, const char *buf,
     }
 
     return JS_NewStringCopyN(cx, buf, len);
+}
+
+char * JSUtils::CurrentJSCaller(JSContext *cx)
+{
+    if (cx == NULL) {
+        /* lookup in the TLS */
+        NidiumJS *js = NidiumJS::GetObject();
+        if (!js || (cx = js->getJSContext()) == NULL) {
+            return NULL;
+        }
+    }
+
+    unsigned lineno;
+
+    JS::AutoFilename af;
+    JS::DescribeScriptedCaller(cx, &af, &lineno);
+
+    return strdup(af.get());
 }
 
 } // namespace Binding

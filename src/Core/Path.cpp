@@ -9,11 +9,7 @@
 #include <vector>
 #include <sys/stat.h>
 
-#include <js/OldDebugAPI.h>
-
 #include "Utils.h"
-
-#include "Binding/NidiumJS.h"
 
 namespace Nidium {
 namespace Core {
@@ -295,24 +291,6 @@ void Path::makedirs(const char* dirWithSlashes)
     }
     mkdir(tmp, S_IRWXU);
 
-}
-
-char * Path::currentJSCaller(JSContext *cx)
-{
-    if (cx == NULL) {
-        /* lookup in the TLS */
-        Nidium::Binding::NidiumJS *js = Nidium::Binding::NidiumJS::GetObject();
-        if (!js || (cx = js->getJSContext()) == NULL) {
-            return NULL;
-        }
-    }
-
-    unsigned lineno;
-
-    JS::AutoFilename af;
-    JS::DescribeScriptedCaller(cx, &af, &lineno);
-
-    return strdup(af.get());
 }
 
 // XXX : Only works with path (not URIs)

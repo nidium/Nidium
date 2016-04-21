@@ -31,6 +31,7 @@
 #include "JSHTTPServer.h"
 #include "JSDebug.h"
 #include "JSConsole.h"
+#include "JSUtils.h"
 #include "JSFS.h"
 #include "JSDebugger.h"
 
@@ -127,14 +128,14 @@ static bool nidium_global_prop_get(JSContext *cx, JS::HandleObject obj,
     switch(id) {
         case GLOBAL_PROP___FILENAME:
         {
-            char *filename = Nidium::Core::Path::currentJSCaller(cx);
+            char *filename = JSUtils::CurrentJSCaller(cx);
             vp.setString(JS_NewStringCopyZ(cx, filename));
             free(filename);
             break;
         }
         case GLOBAL_PROP___DIRNAME:
         {
-            Nidium::Core::Path path(Nidium::Core::Path::currentJSCaller(cx), false, true);
+            Nidium::Core::Path path(JSUtils::CurrentJSCaller(cx), false, true);
             vp.setString(JS_NewStringCopyZ(cx, path.dir()));
             break;
         }
@@ -370,7 +371,7 @@ bool NidiumJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
 
 static bool nidium_pwd(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    Nidium::Core::Path cur(Nidium::Core::Path::currentJSCaller(cx), false, true);
+    Nidium::Core::Path cur(JSUtils::CurrentJSCaller(cx), false, true);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (cur.dir() == NULL) {

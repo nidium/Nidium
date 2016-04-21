@@ -148,7 +148,6 @@ public:
         return Path::getScheme(g_m_Pwd);
     }
 
-    static char *currentJSCaller(JSContext *cx = NULL);
     static int g_m_SchemesCount;
     static struct schemeInfo g_m_Schemes[MAX_REGISTERED_SCHEMES];
     static struct schemeInfo *g_m_DefaultScheme;

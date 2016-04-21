@@ -28,6 +28,7 @@ public:
 
     static char16_t *Utf8ToUtf16(JSContext *cx, const char *str, size_t len,
         size_t *outputlen);
+    static char *CurrentJSCaller(JSContext *cx = NULL);
 };
 
 } // namespace Binding
