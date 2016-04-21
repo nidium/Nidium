@@ -53,7 +53,7 @@ Stream *Stream::create(const char *location)
 void Stream::start(size_t packets, size_t seek)
 {
     if (m_Location == NULL || packets < 1) {
-        this->error(STREAM_ERROR_OPEN, -1);
+        this->error(ERROR_OPEN, -1);
         return;
     }
 
@@ -78,9 +78,9 @@ void Stream::notify(Nidium::Core::SharedMessages::Message *msg)
     }
 }
 
-void Stream::error(StreamErrors err, unsigned int code)
+void Stream::error(Errors err, unsigned int code)
 {
-    CREATE_MESSAGE(message, STREAM_ERROR);
+    CREATE_MESSAGE(message, EVENT_ERROR);
     message->args[0].set(err);
     message->args[1].set(code);
 

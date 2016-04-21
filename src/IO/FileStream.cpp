@@ -43,7 +43,7 @@ const unsigned char *FileStream::onGetNextPacket(size_t *len, int *err)
     unsigned char *data;
 
     if (m_DataBuffer.back == NULL) {
-        *err = STREAM_ERROR;
+        *err = DATA_STATUS_ERROR;
         return NULL;
     }
 
@@ -53,7 +53,7 @@ const unsigned char *FileStream::onGetNextPacket(size_t *len, int *err)
         */
         m_NeedToSendUpdate = !m_DataBuffer.ended;
         *err = (m_DataBuffer.ended && m_DataBuffer.alreadyRead && !m_PendingSeek ?
-            STREAM_END : STREAM_EAGAIN);
+            DATA_STATUS_END : DATA_STATUS_EAGAIN);
 
         return NULL;
     }
@@ -143,16 +143,16 @@ void FileStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
             /* do nothing */
             break;
         case FILE_OPEN_ERROR:
-            this->error(STREAM_ERROR_OPEN, msg.args[0].toInt());
+            this->error(ERROR_OPEN, msg.args[0].toInt());
             break;
         case FILE_SEEK_ERROR:
-            this->error(STREAM_ERROR_SEEK, -1);
+            this->error(ERROR_SEEK, -1);
             /* fall through */
         case FILE_SEEK_SUCCESS:
             m_PendingSeek = false;
             break;
         case FILE_READ_ERROR:
-            this->error(STREAM_ERROR_READ, msg.args[0].toInt());
+            this->error(ERROR_READ, msg.args[0].toInt());
             break;
         case FILE_READ_SUCCESS:
         {
@@ -183,14 +183,14 @@ void FileStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
                     if (m_NeedToSendUpdate) {
                         m_NeedToSendUpdate = false;
                         CREATE_MESSAGE(message_available,
-                            STREAM_AVAILABLE_DATA);
+                            EVENT_AVAILABLE_DATA);
                         message_available->args[0].set(buf->used);
                         this->notify(message_available);
                     }
                 }
             }
 
-            CREATE_MESSAGE(message, STREAM_READ_BUFFER);
+            CREATE_MESSAGE(message, EVENT_READ_BUFFER);
             message->args[0].set(buf);
 
             /*

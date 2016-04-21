@@ -53,14 +53,14 @@ public:
         char *encoding = (char *)m_Args[1].toPtr();
 
         switch (msg.event()) {
-            case STREAM_ERROR: {
-                Stream::StreamErrors err =
-                (Stream::StreamErrors)msg.args[0].toInt();
+            case Stream::EVENT_ERROR: {
+                Stream::Errors err =
+                (Stream::Errors)msg.args[0].toInt();
                 printf("Got an error : %d\n", err);
                 params[0].setString(JS_NewStringCopyZ(cx, "Stream error"));
             }
                 break;
-            case STREAM_READ_BUFFER:
+            case Stream::EVENT_READ_BUFFER:
             {
                 JS::RootedValue ret(cx);
                 buffer *buf = (buffer *)msg.args[0].toPtr();

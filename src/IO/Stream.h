@@ -15,38 +15,38 @@
 #include "Core/SharedMessages.h"
 #include "Core/Messages.h"
 
-namespace Nidium {
-namespace IO {
-
 #define STREAM_MESSAGE_BITS(id) ((1 << 21) | id)
 
-enum {
-    STREAM_ERROR =            STREAM_MESSAGE_BITS(1),
-    STREAM_READ_BUFFER =      STREAM_MESSAGE_BITS(2),
-    STREAM_AVAILABLE_DATA =   STREAM_MESSAGE_BITS(3),
-    STREAM_PROGRESS =         STREAM_MESSAGE_BITS(4)
-};
+namespace Nidium {
+namespace IO {
 
 class Stream
 {
 public:
-    enum StreamErrors {
-        STREAM_ERROR_OPEN,
-        STREAM_ERROR_SEEK,
-        STREAM_ERROR_READ,
-        STREAM_ERROR_UNKNOWN,
+    enum Events {
+        EVENT_ERROR             = STREAM_MESSAGE_BITS(1),
+        EVENT_READ_BUFFER       = STREAM_MESSAGE_BITS(2),
+        EVENT_AVAILABLE_DATA    = STREAM_MESSAGE_BITS(3),
+        EVENT_PROGRESS          = STREAM_MESSAGE_BITS(4)
+    };
+
+    enum Errors {
+        ERROR_OPEN,
+        ERROR_SEEK,
+        ERROR_READ,
+        ERROR_UNKNOWN,
+    };
+
+    enum DataStatus {
+        DATA_STATUS_EAGAIN  = -1,
+        DATA_STATUS_ERROR   = -2,
+        DATA_STATUS_END     = -3
     };
 
     virtual ~Stream();
 
     static Stream *create(const Nidium::Core::Path &path);
     static Stream *create(const char *location);
-
-    enum StreamDataStatus {
-        STREAM_EAGAIN = -1,
-        STREAM_ERROR = -2,
-        STREAM_END = -3
-    };
 
     void setListener(Nidium::Core::Messages *listener) {
         m_Listener = listener;
@@ -121,7 +121,7 @@ protected:
     /*
         Send an error message
     */
-    void error(StreamErrors, unsigned int code);
+    void error(Errors, unsigned int code);
 
     /*
         Swap back and front buffer.

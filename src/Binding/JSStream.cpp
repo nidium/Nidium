@@ -147,13 +147,13 @@ static bool nidium_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value 
 
     if (ret == NULL) {
         switch(err) {
-            case Nidium::IO::Stream::STREAM_END:
+            case Nidium::IO::Stream::DATA_STATUS_END:
                 JS_ReportError(cx, "Stream has ended");
                 return false;
-            case Nidium::IO::Stream::STREAM_ERROR:
+            case Nidium::IO::Stream::DATA_STATUS_ERROR:
                 JS_ReportError(cx, "Stream error (unknown)");
                 return false;
-            case Nidium::IO::Stream::STREAM_EAGAIN:
+            case Nidium::IO::Stream::DATA_STATUS_EAGAIN:
                 args.rval().setNull();
                 return true;
         }
@@ -257,24 +257,24 @@ void JSStream::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     JS::RootedObject obj(m_Cx, m_JSObject);
 
     switch (msg.event()) {
-        case Nidium::IO::STREAM_AVAILABLE_DATA:
+        case Nidium::IO::Stream::EVENT_AVAILABLE_DATA:
             if (JS_GetProperty(m_Cx, obj, "onavailabledata", &onavailable_callback) &&
                 JS_TypeOfValue(m_Cx, onavailable_callback) == JSTYPE_FUNCTION) {
 
                 JS_CallFunctionValue(m_Cx, obj, onavailable_callback, JS::HandleValueArray::empty(), &rval);
             }
             break;
-        case Nidium::IO::STREAM_ERROR:
+        case Nidium::IO::Stream::EVENT_ERROR:
             {
-            Nidium::IO::Stream::StreamErrors err =
-                (Nidium::IO::Stream::StreamErrors)msg.args[0].toInt();
+            Nidium::IO::Stream::Errors err =
+                (Nidium::IO::Stream::Errors)msg.args[0].toInt();
             int code = msg.args[1].toInt();
             switch (err) {
-                case Nidium::IO::Stream::STREAM_ERROR_OPEN:
+                case Nidium::IO::Stream::ERROR_OPEN:
                     break;
-                case Nidium::IO::Stream::STREAM_ERROR_READ:
+                case Nidium::IO::Stream::ERROR_READ:
                     break;
-                case Nidium::IO::Stream::STREAM_ERROR_SEEK:
+                case Nidium::IO::Stream::ERROR_SEEK:
 
                     break;
                 default:

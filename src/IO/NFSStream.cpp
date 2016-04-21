@@ -40,13 +40,13 @@ void NFSStream::onStart(size_t packets, size_t seek)
     m_File.pos = 0;
 
     if (m_File.data == NULL) {
-        this->error(STREAM_ERROR_OPEN, 0);
+        this->error(ERROR_OPEN, 0);
 
         return;
     }
 
     CREATE_MESSAGE(message_available,
-        STREAM_AVAILABLE_DATA);
+        EVENT_AVAILABLE_DATA);
     message_available->args[0].set(nidium_min(packets, m_File.len));
 
     this->notify(message_available);
@@ -57,7 +57,7 @@ void NFSStream::onStart(size_t packets, size_t seek)
     buf.data = (unsigned char *)m_File.data;
     buf.size = buf.used = m_File.len;
 
-    CREATE_MESSAGE(message, STREAM_READ_BUFFER);
+    CREATE_MESSAGE(message, EVENT_READ_BUFFER);
     message->args[0].set(&buf);
 
     /*
@@ -74,7 +74,7 @@ const unsigned char *NFSStream::onGetNextPacket(size_t *len, int *err)
     ssize_t byteLeft = m_File.len - m_File.pos;
 
     if (byteLeft <= 0) {
-        *err = STREAM_END;
+        *err = DATA_STATUS_END;
         return NULL;
     }
 
@@ -112,7 +112,7 @@ void NFSStream::_getContent()
     m_File.pos = 0;
 
     if (m_File.data == NULL) {
-        this->error(STREAM_ERROR_OPEN, 0);
+        this->error(ERROR_OPEN, 0);
 
         return;
     }
@@ -123,7 +123,7 @@ void NFSStream::_getContent()
     buf.data = (unsigned char *)m_File.data;
     buf.size = buf.used = m_File.len;
 
-    CREATE_MESSAGE(message, STREAM_READ_BUFFER);
+    CREATE_MESSAGE(message, EVENT_READ_BUFFER);
     message->args[0].set(&buf);
 
     this->notify(message);
@@ -160,7 +160,7 @@ size_t NFSStream::getFileSize() const
 void NFSStream::seek(size_t pos)
 {
     if (pos > m_File.len) {
-        this->error(STREAM_ERROR_SEEK, -1);
+        this->error(ERROR_SEEK, -1);
         return;
     }
     m_File.pos = pos;
