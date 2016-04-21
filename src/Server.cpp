@@ -272,14 +272,14 @@ static int NidiumCheckParentAlive_ping(void *arg)
 
 int Worker::run(int argc, char **argv, bool jsstrict)
 {
-    Nidium::Server::REPL *repl = NULL;
+    REPL *repl = NULL;
     ape_global *net = APE_init();
 
     inc_rlimit(64000);
 
     signal(SIGPIPE, SIG_IGN);
 
-    Nidium::Server::Context ctx(net, this, jsstrict, m_RunREPL);
+    Context ctx(net, this, jsstrict, m_RunREPL);
     const Nidium::Binding::NidiumJS *js = ctx.getNJS();
     Nidium::Binding::JSProcess::registerObject(js->getJSContext(), argv, argc,
         this->getIdentifier());
@@ -306,7 +306,7 @@ int Worker::run(int argc, char **argv, bool jsstrict)
     /* Heap allocated because we need to be
     sure that it's deleted before Nidium::Binding::NidiumJS */
     if (m_RunREPL) {
-        repl = new Nidium::Server::REPL(ctx.getNJS());
+        repl = new REPL(ctx.getNJS());
     }
 
     APE_timer_create(net, 1, NidiumCheckParentAlive_ping, NULL);

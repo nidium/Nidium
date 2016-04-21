@@ -57,7 +57,7 @@ static bool nidium_console_log(JSContext *cx, unsigned argc,
         filename_parent = &fname[1];
     }
 
-    Nidium::Server::Context *nctx = Nidium::Server::Context::GetObject(cx);
+    Context *nctx = Context::GetObject(cx);
 
     for (i = 0; i < args.length(); i++) {
         JS::RootedString str(cx, JS::ToString(cx, args[i]));
