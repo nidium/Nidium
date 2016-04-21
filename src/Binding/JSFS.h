@@ -13,7 +13,8 @@
 namespace Nidium {
 namespace Binding {
 
-class JSFS :     public JSExposer<JSFS>, public Nidium::Core::Managed
+class JSFS : public JSExposer<JSFS>,
+             public Nidium::Core::Managed
 {
 public:
     static void registerObject(JSContext *cx);
