@@ -19,6 +19,9 @@
 #include "IO/Stream.h"
 #include "JSUtils.h"
 
+using namespace Nidium::Core;
+using namespace Nidium::IO;
+
 namespace Nidium {
 namespace Binding {
 
@@ -31,10 +34,10 @@ enum {
     FILE_PROP_ASYNC
 };
 
-class JSFileAsyncReader : public Nidium::Core::Messages
+class JSFileAsyncReader : public Messages
 {
 public:
-    void onMessage(const Nidium::Core::SharedMessages::Message &msg)
+    void onMessage(const SharedMessages::Message &msg)
     {
 
         JSContext *cx = (JSContext *)m_Args[0].toPtr();
@@ -43,21 +46,21 @@ public:
         params[1].setUndefined();
         JS::RootedValue rval(cx);
 
-        Nidium::IO::Stream *stream = (Nidium::IO::Stream *)m_Args[2].toPtr();
+        Stream *stream = (Stream *)m_Args[2].toPtr();
 
         JS::RootedObject callback(cx, (JSObject *)m_Args[7].toPtr());
 
         char *encoding = (char *)m_Args[1].toPtr();
 
         switch (msg.event()) {
-            case Nidium::IO::STREAM_ERROR: {
-                Nidium::IO::Stream::StreamErrors err =
-                (Nidium::IO::Stream::StreamErrors)msg.args[0].toInt();
+            case STREAM_ERROR: {
+                Stream::StreamErrors err =
+                (Stream::StreamErrors)msg.args[0].toInt();
                 printf("Got an error : %d\n", err);
                 params[0].setString(JS_NewStringCopyZ(cx, "Stream error"));
             }
                 break;
-            case Nidium::IO::STREAM_READ_BUFFER:
+            case STREAM_READ_BUFFER:
             {
                 JS::RootedValue ret(cx);
                 buffer *buf = (buffer *)msg.args[0].toPtr();
@@ -89,7 +92,7 @@ public:
         delete this;
     }
 
-    Nidium::Core::Args m_Args;
+    Args m_Args;
 };
 
 #define NJSFIO_GETTER(obj) ((class JSFileIO *)JS_GetPrivate(obj))
@@ -161,7 +164,7 @@ static void File_Finalize(JSFreeOp *fop, JSObject *obj)
 #if FILE_ROOT_DEBUG
         printf("Finalize %p\n", obj);
 #endif
-        Nidium::IO::File *file = NJSFIO->getFile();
+        File *file = NJSFIO->getFile();
         delete file;
         delete NJSFIO;
     }
@@ -170,7 +173,7 @@ static void File_Finalize(JSFreeOp *fop, JSObject *obj)
 static bool native_file_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
-    Nidium::IO::File *file = NJSFIO_GETTER(obj)->getFile();
+    File *file = NJSFIO_GETTER(obj)->getFile();
 
     switch(id) {
         case FILE_PROP_FILESIZE:
@@ -204,7 +207,7 @@ static bool native_file_prop_set(JSContext *cx, JS::HandleObject obj,
 static bool native_File_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString url(cx);
-    Nidium::IO::File *file;
+    File *file;
     JSFileIO *NJSFIO;
 
     JS::RootedObject opt(cx);
@@ -223,15 +226,15 @@ static bool native_File_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     JSAutoByteString curl(cx, url);
-    Nidium::Core::Path path(curl.ptr());
+    Path path(curl.ptr());
 
     if (!path.path()) {
-        JS_ReportError(cx, "Nidium::IO::FileIO : Invalid file path");
+        JS_ReportError(cx, "FileIO : Invalid file path");
         return false;
     }
 
     NJSFIO = new JSFileIO(ret, cx);
-    file = new Nidium::IO::File(path.path());
+    file = new File(path.path());
     file->setListener(NJSFIO);
 
     NIDIUM_JS_INIT_OPT();
@@ -260,7 +263,7 @@ static bool native_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     JSFileIO *NJSFIO;
-    Nidium::IO::File *file;
+    File *file;
 
     if (JS_InstanceOf(cx, caller, &File_class, &args) == false) {
         return false;
@@ -320,7 +323,7 @@ static bool native_file_isDir(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     JSFileIO *NJSFIO;
-    Nidium::IO::File *file;
+    File *file;
 
     if (JS_InstanceOf(cx, caller, &File_class, &args) == false) {
         return false;
@@ -342,7 +345,7 @@ static bool native_file_rmrf(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     JSFileIO *NJSFIO;
-    Nidium::IO::File *file;
+    File *file;
 
     if (JS_InstanceOf(cx, caller, &File_class, &args) == false) {
         return false;
@@ -363,7 +366,7 @@ static bool native_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     JSFileIO *NJSFIO;
-    Nidium::IO::File *file;
+    File *file;
 
     if (JS_InstanceOf(cx, caller, &File_class, &args) == false) {
         return false;
@@ -402,7 +405,7 @@ static bool native_file_read(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     JSFileIO *NJSFIO;
-    Nidium::IO::File *file;
+    File *file;
     double read_size;
 
     if (JS_InstanceOf(cx, caller, &File_class, &args) == false) {
@@ -446,7 +449,7 @@ static bool native_file_seek(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     JSFileIO *NJSFIO;
-    Nidium::IO::File *file;
+    File *file;
     double seek_pos;
 
     if (JS_InstanceOf(cx, caller, &File_class, &args) == false) {
@@ -483,7 +486,7 @@ static bool native_file_close(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     JSFileIO *NJSFIO;
-    Nidium::IO::File *file;
+    File *file;
 
     if (JS_InstanceOf(cx, caller, &File_class, &args) == false) {
         return false;
@@ -508,7 +511,7 @@ static bool native_file_open(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     JSFileIO *NJSFIO;
-    Nidium::IO::File *file;
+    File *file;
     JS::RootedString modes(cx);
 
     NIDIUM_JS_CHECK_ARGS("open", 2);
@@ -564,7 +567,7 @@ static bool native_file_closeSync(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     JSFileIO *NJSFIO;
-    Nidium::IO::File *file;
+    File *file;
 
     if (JS_InstanceOf(cx, caller, &File_class, &args) == false) {
         return false;
@@ -594,14 +597,14 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
     }
 
     JSAutoByteString cfilename(cx, filename);
-    Nidium::Core::Path path(cfilename.ptr());
+    Path path(cfilename.ptr());
 
     if (!path.getScheme()->allowSyncStream()) {
         JS_ReportError(cx, "can't open this file for sync read");
         return false;
     }
 
-    Nidium::Core::PtrAutoDelete<Nidium::IO::Stream *> stream(path.createStream());
+    PtrAutoDelete<Stream *> stream(path.createStream());
 
     if (!stream.ptr() || !stream.ptr()->getContentSync(&buf, &len)) {
         args.rval().setNull();
@@ -609,7 +612,7 @@ static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
         return true;
     }
 
-    Nidium::Core::PtrAutoDelete<char *> cbuf(buf, free);
+    PtrAutoDelete<char *> cbuf(buf, free);
     char *cencoding = NULL;
     JSAutoByteString encoding;
 
@@ -663,7 +666,7 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString cfilename(cx, filename);
     NidiumJS::GetObject(cx)->rootObjectUntilShutdown(&callback.toObject());
 
-    Nidium::IO::Stream *stream = Nidium::IO::Stream::create(Nidium::Core::Path(cfilename.ptr()));
+    Stream *stream = Stream::create(Path(cfilename.ptr()));
 
     if (!stream) {
         JS_ReportError(cx, "couldn't open stream");
@@ -689,21 +692,21 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-bool JSFileIO::handleError(JSContext *cx, const Nidium::Core::SharedMessages::Message &msg,
+bool JSFileIO::handleError(JSContext *cx, const SharedMessages::Message &msg,
     JS::MutableHandleValue vals)
 {
     switch (msg.event()) {
-        case Nidium::IO::FILE_OPEN_ERROR:
+        case FILE_OPEN_ERROR:
             // todo : replace by error object
             vals.setString(JS_NewStringCopyZ(cx, "Open error"));
             break;
-        case Nidium::IO::FILE_SEEK_ERROR:
+        case FILE_SEEK_ERROR:
             vals.setString(JS_NewStringCopyZ(cx, "Seek error"));
             break;
-        case Nidium::IO::FILE_READ_ERROR:
+        case FILE_READ_ERROR:
             vals.setString(JS_NewStringCopyZ(cx, "read error"));
             break;
-        case Nidium::IO::FILE_WRITE_ERROR:
+        case FILE_WRITE_ERROR:
             vals.setString(JS_NewStringCopyZ(cx, "write error"));
             break;
         default:
@@ -731,7 +734,7 @@ static const char *JSFileIO_dirtype_to_str(const dirent *entry)
 }
 
 bool JSFileIO::callbackForMessage(JSContext *cx,
-    const Nidium::Core::SharedMessages::Message &msg, JSObject *thisobj,
+    const SharedMessages::Message &msg, JSObject *thisobj,
     const char *encoding)
 {
     JS::AutoValueArray<2> params(cx);
@@ -743,19 +746,19 @@ bool JSFileIO::callbackForMessage(JSContext *cx,
     JS::RootedObject jsthis(cx, thisobj);
     if (!JSFileIO::handleError(cx, msg, params[0])) {
         switch (msg.event()) {
-            case Nidium::IO::FILE_READ_SUCCESS:
+            case FILE_READ_SUCCESS:
             {
                 buffer *buf = (buffer *)msg.args[0].toPtr();
                 JSUtils::strToJsval(cx, (const char *)buf->data,
                     buf->used, params[1], encoding);
                 break;
             }
-            case Nidium::IO::FILE_WRITE_SUCCESS:
+            case FILE_WRITE_SUCCESS:
                 params[1].setDouble(msg.args[0].toInt64());
                 break;
-            case Nidium::IO::FILE_LISTFILES_ENTRIES:
+            case FILE_LISTFILES_ENTRIES:
             {
-                Nidium::IO::File::DirEntries *entries = (Nidium::IO::File::DirEntries *)msg.args[0].toPtr();
+                File::DirEntries *entries = (File::DirEntries *)msg.args[0].toPtr();
                 JS::RootedObject arr(cx, JS_NewArrayObject(cx, entries->size));
 
                 for (int i = 0; i < entries->size; i++) {
@@ -801,7 +804,7 @@ bool JSFileIO::callbackForMessage(JSContext *cx,
     return true;
 }
 
-void JSFileIO::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void JSFileIO::onMessage(const SharedMessages::Message &msg)
 {
     this->callbackForMessage(m_Cx, msg, m_JSObject, m_Encoding);
 }
@@ -817,11 +820,11 @@ void JSFileIO::registerObject(JSContext *cx)
 JSObject *JSFileIO::generateJSObject(JSContext *cx, const char *path)
 {
     JS::RootedObject ret(cx, JS_NewObject(cx, &File_class, JS::NullPtr(), JS::NullPtr()));
-    Nidium::IO::File *file;
+    File *file;
     JSFileIO *NJSFIO;
 
     NJSFIO = new JSFileIO(ret, cx);
-    file = new Nidium::IO::File(path);
+    file = new File(path);
     file->setListener(NJSFIO);
 
     NJSFIO->setFile(file);
@@ -834,7 +837,7 @@ JSObject *JSFileIO::generateJSObject(JSContext *cx, const char *path)
     return ret;
 }
 
-Nidium::IO::File *JSFileIO::GetFileFromJSObject(JSContext *cx, JS::HandleObject jsobj)
+File *JSFileIO::GetFileFromJSObject(JSContext *cx, JS::HandleObject jsobj)
 {
     JSFileIO *nfio = (JSFileIO *)JS_GetInstancePrivate(cx, jsobj,
         &File_class, NULL);
