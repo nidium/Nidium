@@ -1,23 +1,25 @@
-#ifndef nativerepl_h__
-#define nativerepl_h__
+#ifndef serverrepl_h__
+#define serverrepl_h__
 
-#include <native_netlib.h>
-#include <Core/Messages.h>
+#include <semaphore.h>
 
 #include <ape_buffer.h>
-#include <semaphore.h>
+#include <native_netlib.h>
+
+#include <Core/Messages.h>
 
 namespace Nidium {
     namespace Binding {
         class NidiumJS;
-    }
-}
+   }
 
-class NativeREPL : public Nidium::Core::Messages
+namespace Server {
+
+class REPL : public Nidium::Core::Messages
 {
 public:
-    NativeREPL(Nidium::Binding::NidiumJS *js);
-    ~NativeREPL();
+    REPL(Nidium::Binding::NidiumJS *js);
+    ~REPL();
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
     void onMessageLost(const Nidium::Core::SharedMessages::Message &msg);
 
@@ -49,6 +51,9 @@ private:
     bool m_Continue;
     int m_ExitCount;
 };
+
+} // namespace Server
+} // namespace Nidium
 
 #endif
 

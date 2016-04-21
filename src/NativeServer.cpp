@@ -15,7 +15,7 @@
 #include "NativeServer.h"
 #include "NativeContext.h"
 #include "NativeMacros.h"
-#include "NativeREPL.h"
+#include "REPL.h"
 
 #include <Binding/JSProcess.h>
 
@@ -269,7 +269,7 @@ static int NativeCheckParentAlive_ping(void *arg)
 
 int NativeWorker::run(int argc, char **argv, bool jsstrict)
 {
-    NativeREPL *repl = NULL;
+    Nidium::Server::REPL *repl = NULL;
     ape_global *net = APE_init();
 
     inc_rlimit(64000);
@@ -303,7 +303,7 @@ int NativeWorker::run(int argc, char **argv, bool jsstrict)
     /* Heap allocated because we need to be
     sure that it's deleted before Nidium::Binding::NidiumJS */
     if (m_RunREPL) {
-        repl = new NativeREPL(ctx.getNJS());
+        repl = new Nidium::Server::REPL(ctx.getNJS());
     }
 
     APE_timer_create(net, 1, NativeCheckParentAlive_ping, NULL);

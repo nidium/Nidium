@@ -1,4 +1,4 @@
-#include "NativeREPL.h"
+#include "REPL.h"
 #include "NativeMacros.h"
 
 #include <Binding/NidiumJS.h>
@@ -8,13 +8,16 @@
 #include <errno.h>
 #include <pwd.h>
 
+namespace Nidium {
+namespace Server {
+
 enum {
-    NATIVE_MESSAGE_READLINE
+    MESSAGE_READLINE
 };
 
 static void *native_repl_thread(void *arg)
 {
-    NativeREPL *repl = (NativeREPL *)arg;
+    REPL * repl = (REPL *)arg;
     char *line;
     const char *homedir;
     char historyPath[PATH_MAX];
@@ -34,7 +37,7 @@ repl:
         linenoiseHistoryAdd(line);
         linenoiseHistorySave(historyPath);
 
-        repl->postMessage(line, NATIVE_MESSAGE_READLINE);
+        repl->postMessage(line, MESSAGE_READLINE);
 
         sem_wait(repl->getReadLineLock());
     }
@@ -53,7 +56,7 @@ repl:
     return NULL;
 }
 
-NativeREPL::NativeREPL(Nidium::Binding::NidiumJS *js)
+REPL::REPL(Nidium::Binding::NidiumJS *js)
     : m_JS(js), m_Continue(false), m_ExitCount(0)
 {
     m_Buffer = buffer_new(512);
@@ -64,7 +67,7 @@ NativeREPL::NativeREPL(Nidium::Binding::NidiumJS *js)
 }
 
 
-void NativeREPL::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void REPL::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     buffer_append_string(m_Buffer, (char *)msg.dataPtr());
 
@@ -93,16 +96,19 @@ void NativeREPL::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     sem_post(&m_ReadLineLock);
 }
 
-void NativeREPL::onMessageLost(const Nidium::Core::SharedMessages::Message &msg)
+void REPL::onMessageLost(const Nidium::Core::SharedMessages::Message &msg)
 {
     free(msg.dataPtr());
 }
 
-NativeREPL::~NativeREPL()
+REPL::~REPL()
 {
     /*
         TODO : stop thread and pthread_join()
     */
     buffer_destroy(m_Buffer);
 }
+
+} // namespace Server
+} // namespace Nidium
 

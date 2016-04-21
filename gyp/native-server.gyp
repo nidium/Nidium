@@ -17,7 +17,7 @@
             '<(native_src_path)/NativeServer.cpp',
             '<(native_src_path)/NativeContext.cpp',
             '<(native_src_path)/NativeJSConsole.cpp',
-            '<(native_src_path)/NativeREPL.cpp',
+            '<(native_src_path)/REPL.cpp',
             '<(native_src_path)/NativeJSSystem.cpp',
             '<(native_src_path)/external/setproctitle.c',
             '<(native_src_path)/external/linenoise.c',
