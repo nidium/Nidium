@@ -18,12 +18,15 @@
 
 #include <ape_buffer.h>
 
+using Nidium::Core::Task;
+using Nidium::Core::SharedMessages;
+
 namespace Nidium {
 namespace IO {
 
 #define NIDIUM_FILE_NOTIFY(param, event, arg) \
     do {   \
-        Nidium::Core::SharedMessages::Message *__msg = new Nidium::Core::SharedMessages::Message(event); \
+        SharedMessages::Message *__msg = new SharedMessages::Message(event); \
         __msg->args[0].set(param); \
         __msg->args[7].set(arg); \
         this->postMessage(__msg); \
@@ -51,7 +54,7 @@ File::File(const char *name) :
 /*
     /!\ Exec in a worker thread
 */
-void File_dispatchTask(Nidium::Core::Task *task)
+void File_dispatchTask(Task *task)
 {
     File *file = (File *)task->getObject();
     uint64_t type = task->args[0].toInt64();
@@ -271,7 +274,7 @@ void File::listFilesTask(void *arg)
 
 void File::open(const char *mode, void *arg)
 {
-    Nidium::Core::Task *task = new Nidium::Core::Task();
+    Task *task = new Task();
     task->args[0].set(FILE_TASK_OPEN);
     task->args[1].set(strdup(mode));
     task->args[7].set(arg);
@@ -283,7 +286,7 @@ void File::open(const char *mode, void *arg)
 
 void File::close(void *arg)
 {
-    Nidium::Core::Task *task = new Nidium::Core::Task();
+    Task *task = new Task();
     task->args[0].set(FILE_TASK_CLOSE);
     task->args[7].set(arg);
 
@@ -294,7 +297,7 @@ void File::close(void *arg)
 
 void File::read(size_t size, void *arg)
 {
-    Nidium::Core::Task *task = new Nidium::Core::Task();
+    Task *task = new Task();
     task->args[0].set(FILE_TASK_READ);
     task->args[1].set(size);
     task->args[7].set(arg);
@@ -309,7 +312,7 @@ void File::write(char *buf, size_t size, void *arg)
     unsigned char *newbuf = (unsigned char *)malloc(size);
     memcpy(newbuf, buf, size);
 
-    Nidium::Core::Task *task = new Nidium::Core::Task();
+    Task *task = new Task();
     task->args[0].set(FILE_TASK_WRITE);
     task->args[1].set(size);
     task->args[2].set(newbuf);
@@ -322,7 +325,7 @@ void File::write(char *buf, size_t size, void *arg)
 
 void File::seek(size_t pos, void *arg)
 {
-    Nidium::Core::Task *task = new Nidium::Core::Task();
+    Task *task = new Task();
     task->args[0].set(FILE_TASK_SEEK);
     task->args[1].set(pos);
     task->args[7].set(arg);
@@ -334,7 +337,7 @@ void File::seek(size_t pos, void *arg)
 
 void File::listFiles(void *arg)
 {
-    Nidium::Core::Task *task = new Nidium::Core::Task();
+    Task *task = new Task();
     task->args[0].set(FILE_TASK_LISTFILES);
     task->args[7].set(arg);
 
@@ -428,7 +431,7 @@ File::~File()
     free(m_Path);
 }
 
-void File::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void File::onMessage(const SharedMessages::Message &msg)
 {
     if (m_Delegate) {
         m_Delegate->onMessage(msg);
@@ -451,7 +454,7 @@ void File::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     }
 }
 
-void File::onMessageLost(const Nidium::Core::SharedMessages::Message &msg)
+void File::onMessageLost(const SharedMessages::Message &msg)
 {
     switch(msg.event()) {
         case FILE_READ_SUCCESS:
