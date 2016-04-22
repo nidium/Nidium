@@ -41,11 +41,11 @@ enum {
 
 static void File_Finalize(JSFreeOp *fop, JSObject *obj);
 
-static bool native_file_prop_get(JSContext *cx, JS::HandleObject obj,
+static bool nidium_file_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp);
 
 #if 0
-static bool native_file_prop_set(JSContext *cx, JS::HandleObject obj,
+static bool nidium_file_prop_set(JSContext *cx, JS::HandleObject obj,
     JS::HandleId id, bool strict, JS::MutableHandleValue vp);
 #endif
 
@@ -59,43 +59,43 @@ JSClass File_class = {
 template<>
 JSClass *JSExposer<JSFileIO>::jsclass = &File_class;
 
-static bool native_file_open(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_file_openSync(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_file_read(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_file_seek(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_file_close(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_file_closeSync(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_file_write(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_file_isDir(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_file_rmrf(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_open(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_openSync(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_read(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_seek(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_close(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_closeSync(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_isDir(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_rmrf(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSPropertySpec File_props[] = {
-    NIDIUM_JS_PSG("filesize", FILE_PROP_FILESIZE, native_file_prop_get),
-    NIDIUM_JS_PSG("filename", FILE_PROP_FILENAME, native_file_prop_get),
+    NIDIUM_JS_PSG("filesize", FILE_PROP_FILESIZE, nidium_file_prop_get),
+    NIDIUM_JS_PSG("filename", FILE_PROP_FILENAME, nidium_file_prop_get),
     JS_PS_END
 };
 
 static JSFunctionSpec File_funcs[] = {
-    JS_FN("open", native_file_open, 1, NATIVE_JS_FNPROPS),
-    JS_FN("openSync", native_file_openSync, 1, NATIVE_JS_FNPROPS),
-    JS_FN("read", native_file_read, 2, NATIVE_JS_FNPROPS),
-    JS_FN("seek", native_file_seek, 2, NATIVE_JS_FNPROPS),
-    JS_FN("close", native_file_close, 0, NATIVE_JS_FNPROPS),
-    JS_FN("closeSync", native_file_closeSync, 0, NATIVE_JS_FNPROPS),
-    JS_FN("write", native_file_write, 1, NATIVE_JS_FNPROPS),
-    JS_FN("isDir", native_file_isDir, 0, NATIVE_JS_FNPROPS),
-    JS_FN("listFiles", native_file_listFiles, 1, NATIVE_JS_FNPROPS),
-    JS_FN("rmrf", native_file_rmrf, 0, NATIVE_JS_FNPROPS),
+    JS_FN("open", nidium_file_open, 1, NATIVE_JS_FNPROPS),
+    JS_FN("openSync", nidium_file_openSync, 1, NATIVE_JS_FNPROPS),
+    JS_FN("read", nidium_file_read, 2, NATIVE_JS_FNPROPS),
+    JS_FN("seek", nidium_file_seek, 2, NATIVE_JS_FNPROPS),
+    JS_FN("close", nidium_file_close, 0, NATIVE_JS_FNPROPS),
+    JS_FN("closeSync", nidium_file_closeSync, 0, NATIVE_JS_FNPROPS),
+    JS_FN("write", nidium_file_write, 1, NATIVE_JS_FNPROPS),
+    JS_FN("isDir", nidium_file_isDir, 0, NATIVE_JS_FNPROPS),
+    JS_FN("listFiles", nidium_file_listFiles, 1, NATIVE_JS_FNPROPS),
+    JS_FN("rmrf", nidium_file_rmrf, 0, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec File_static_funcs[] = {
-    JS_FN("readSync", native_file_readFileSync, 1, NATIVE_JS_FNPROPS),
-    JS_FN("read",     native_file_readFile, 2, NATIVE_JS_FNPROPS),
+    JS_FN("readSync", nidium_file_readFileSync, 1, NATIVE_JS_FNPROPS),
+    JS_FN("read",     nidium_file_readFile, 2, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
 
@@ -330,7 +330,7 @@ File *JSFileIO::GetFileFromJSObject(JSContext *cx, JS::HandleObject jsobj)
 
 // {{{ Implementation
 
-static bool native_file_prop_get(JSContext *cx, JS::HandleObject obj,
+static bool nidium_file_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
     File *file = NJSFIO_GETTER(obj)->getFile();
@@ -351,7 +351,7 @@ static bool native_file_prop_get(JSContext *cx, JS::HandleObject obj,
 
 #if 0
 // currently no props
-static bool native_file_prop_set(JSContext *cx, JS::HandleObject obj,
+static bool nidium_file_prop_set(JSContext *cx, JS::HandleObject obj,
     JS::HandleId id, bool strict, JS::MutableHandleValue vp)
 {
     JSFileIO *nfio = NJSFIO_GETTER(obj);
@@ -364,7 +364,7 @@ static bool native_file_prop_set(JSContext *cx, JS::HandleObject obj,
 }
 #endif
 
-static bool native_File_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_File_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString url(cx);
     File *file;
@@ -416,7 +416,7 @@ static bool native_File_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_file_isDir(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_file_isDir(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
@@ -438,7 +438,7 @@ static bool native_file_isDir(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_file_rmrf(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_file_rmrf(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
@@ -458,7 +458,7 @@ static bool native_file_rmrf(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_file_seek(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_file_seek(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -496,7 +496,7 @@ static bool native_file_seek(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -536,7 +536,7 @@ static bool native_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp)
 
 // {{{ Async implementation
 
-static bool native_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -578,7 +578,7 @@ static bool native_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
         JS::RootedObject jsobj(cx, args[0].toObjectOrNull());
 
         if (jsobj == NULL || !JS_IsArrayBufferObject(jsobj)) {
-            JS_ReportError(cx, "NATIVE_INVALID_VALUE : only accept string or ArrayBuffer");
+            JS_ReportError(cx, "INVALID_VALUE : only accept string or ArrayBuffer");
             return false;
         }
         uint32_t len = JS_GetArrayBufferByteLength(jsobj);
@@ -589,7 +589,7 @@ static bool native_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
         file->write((char *)data, len, callback.toObjectOrNull());
 
     } else {
-        JS_ReportError(cx, "NATIVE_INVALID_VALUE : only accept string or ArrayBuffer");
+        JS_ReportError(cx, "INVALID_VALUE : only accept string or ArrayBuffer");
         return false;
     }
 
@@ -598,7 +598,7 @@ static bool native_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_file_read(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_file_read(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -642,7 +642,7 @@ static bool native_file_read(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_file_close(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_file_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
@@ -667,7 +667,7 @@ static bool native_file_close(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_file_open(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_file_open(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -707,7 +707,7 @@ static bool native_file_open(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedObject opt(cx);
     JS::RootedObject secondarg(cx);
@@ -771,23 +771,23 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
 
 // {{{ Sync implementation
 
-static bool native_file_openSync(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_file_openSync(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     return true;
 }
 #if 0
-static bool native_file_readSync(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_file_readSync(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     return true;
 }
 
-static bool native_file_writeSync(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_file_writeSync(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     return true;
 }
 #endif
 
-static bool native_file_closeSync(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_file_closeSync(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
@@ -808,7 +808,7 @@ static bool native_file_closeSync(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString filename(cx);
     JS::RootedObject opt(cx);
@@ -867,7 +867,7 @@ void JSFileIO::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_InitClass(cx, global, JS::NullPtr(), &File_class,
-        native_File_constructor,
+        nidium_File_constructor,
         0, nullptr, nullptr, nullptr, File_static_funcs);
 }
 

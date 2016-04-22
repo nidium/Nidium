@@ -17,31 +17,31 @@ namespace Nidium {
 namespace Net {
 
 // {{{ Callbacks
-static void native_ws_connected(ape_socket *s,
+static void nidium_ws_connected(ape_socket *s,
     ape_global *ape, void *arg)
 {
     ((WebSocketClient *)arg)->onConnected();
 }
 
-static void native_ws_read_handshake(ape_socket *s,
+static void nidium_ws_read_handshake(ape_socket *s,
     const uint8_t *data, size_t len, ape_global *ape, void *arg)
 {
     ((WebSocketClient *)arg)->onDataHandshake(data, len);
 }
 
-static void native_ws_read_ws(ape_socket *s,
+static void nidium_ws_read_ws(ape_socket *s,
     const uint8_t *data, size_t len, ape_global *ape, void *arg)
 {
     ((WebSocketClient *)arg)->onDataWS(data, len);
 }
 
-static void native_ws_disconnect(ape_socket *s,
+static void nidium_ws_disconnect(ape_socket *s,
     ape_global *ape, void *arg)
 {
     ((WebSocketClient *)arg)->onClose();
 }
 
-static void native_on_ws_client_frame(websocket_state *state,
+static void nidium_on_ws_client_frame(websocket_state *state,
     const unsigned char *data, ssize_t length, int binary)
 {
     ape_socket *sock = state->socket;
@@ -90,9 +90,9 @@ bool WebSocketClient::connect(bool ssl, ape_global *ape)
         return false;
     }
 
-    m_Socket->callbacks.on_connected  = native_ws_connected;
-    m_Socket->callbacks.on_read       = native_ws_read_handshake;
-    m_Socket->callbacks.on_disconnect = native_ws_disconnect;
+    m_Socket->callbacks.on_connected  = nidium_ws_connected;
+    m_Socket->callbacks.on_read       = nidium_ws_read_handshake;
+    m_Socket->callbacks.on_disconnect = nidium_ws_disconnect;
     m_Socket->callbacks.arg = this;
 
     m_Socket->ctx = this;
@@ -113,7 +113,7 @@ void WebSocketClient::HTTPHeaderEnded()
 
 void WebSocketClient::HTTPRequestEnded()
 {
-    m_Socket->callbacks.on_read = native_ws_read_ws;
+    m_Socket->callbacks.on_read = nidium_ws_read_ws;
 
     Args args;
     args[0].set(this);
@@ -166,7 +166,7 @@ void WebSocketClient::onConnected()
 {
     ape_ws_init(&m_WSState, 1);
     m_WSState.socket = m_Socket;
-    m_WSState.on_frame = native_on_ws_client_frame;
+    m_WSState.on_frame = nidium_on_ws_client_frame;
 
     /*
         Write http header

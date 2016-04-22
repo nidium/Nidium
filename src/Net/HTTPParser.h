@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativehttpparser_h__
-#define nativehttpparser_h__
+#ifndef net_httpparser_h__
+#define net_httpparser_h__
 
 #include <http_parser.h>
 #include <ape_array.h>

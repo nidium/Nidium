@@ -24,7 +24,7 @@ enum {
     JSFS_MSG_READDIR_FILE = 1
 };
 
-static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass fs_class = {
     "fs", 0,
@@ -34,7 +34,7 @@ static JSClass fs_class = {
 };
 
 static JSFunctionSpec FS_static_funcs[] = {
-    JS_FN("readDir",     native_fs_readDir, 2, NATIVE_JS_FNPROPS),
+    JS_FN("readDir",     nidium_fs_readDir, 2, nidium_JS_FNPROPS),
     JS_FS_END
 };
 // }}}
@@ -117,7 +117,7 @@ public:
 // }}}
 
 // {{{ Implementation
-static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     return true;  //@FIXME why is this returning immed?
 
