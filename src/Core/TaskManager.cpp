@@ -10,7 +10,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 
-#include "../../system/native_atom.h"
+#include "Atomic.h"
 
 namespace Nidium {
 namespace Core {
@@ -42,7 +42,7 @@ void *TaskManager::workerInfo::work()
         while ((msg = m_Messages.readMessage())) {
             Task *task = (Task *)msg->dataPtr();
             task->getFunction()(task);
-            native_atomic_dec(&task->getObject()->m_TaskQueued);
+            Atomic::dec(&task->getObject()->m_TaskQueued);
 
             delete task;
             delete msg;
@@ -210,7 +210,7 @@ void Managed::addTask(Task *task)
 
     task->setObject(this);
 
-    native_atomic_inc(&m_TaskQueued);
+    Atomic::inc(&m_TaskQueued);
 
     m_Worker->addTask(task);
 }
