@@ -8,7 +8,7 @@
 
 #include "unittest.h"
 
-#include <native_netlib.h>
+#include <ape_netlib.h>
 #include <Binding/JSProcess.h>
 
 TEST(JSProcess, Simple)

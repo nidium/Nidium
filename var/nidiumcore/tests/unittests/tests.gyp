@@ -9,7 +9,7 @@
         'type': 'executable',
         'dependencies': [
             '../../../../network/gyp/network-unittests.gyp:unittests-settings',
-            '../../../../gyp/nativejscore.gyp:*',
+            '../../../../gyp/nidiumcore.gyp:*',
             '../../../../network/gyp/network.gyp:*',
         ],
         'sources': [
