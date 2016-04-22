@@ -1,7 +1,7 @@
 #ifndef nativerepl_h__
 #define nativerepl_h__
 
-#include <native_netlib.h>
+#include <ape_netlib.h>
 #include <Core/NativeMessages.h>
 
 #include <ape_buffer.h>

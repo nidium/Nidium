@@ -13,7 +13,7 @@
 #include <IO/NativeFileStream.h>
 #include <Net/NativeHTTPStream.h>
 #include <Core/NativePath.h>
-#include <native_netlib.h>
+#include <ape_netlib.h>
 
 
 static int NativeContext_ping(void *arg)
