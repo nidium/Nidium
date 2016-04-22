@@ -510,7 +510,7 @@ NidiumJS::NidiumJS(ape_global *net) :
     JS_BeginRequest(cx);
     JS::RootedObject gbl(cx);
 #if 0
-    #ifdef NATIVE_DEBUG
+    #ifdef NIDIUM_DEBUG
     JS_SetOptions(cx, JSOPTION_VAROBJFIX);
     #else
 

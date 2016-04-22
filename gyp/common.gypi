@@ -27,7 +27,7 @@
         },
         'configurations': {
             'Debug': {
-                'defines': ['NATIVE_DEBUG', 'DEBUG', '_DEBUG'],
+                'defines': ['NIDIUM_DEBUG', 'DEBUG', '_DEBUG'],
             },
             'Release': {
                 'defines': ['NDEBUG'],
