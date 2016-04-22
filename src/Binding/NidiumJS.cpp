@@ -151,7 +151,7 @@ static void NidiumTraceBlack(JSTracer *trc, void *data)
         uintptr_t oldaddr = (uintptr_t)item->content.addrs;
         uintptr_t newaddr = oldaddr;
 
-        JS_CallObjectTracer(trc, (JSObject **)&newaddr, "nativeroot");
+        JS_CallObjectTracer(trc, (JSObject **)&newaddr, "NidiumRoot");
 
         if (oldaddr != newaddr) {
             printf("Address changed\n");
