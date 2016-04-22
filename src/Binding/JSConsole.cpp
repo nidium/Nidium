@@ -27,14 +27,14 @@ static JSClass console_class = {
 };
 
 static JSFunctionSpec console_funcs[] = {
-    JS_FN("log", nidium_console_log, 0, NATIVE_JS_FNPROPS),
-    JS_FN("write", nidium_console_write, 0, NATIVE_JS_FNPROPS),
-    JS_FN("info", nidium_console_log, 0, NATIVE_JS_FNPROPS),
-    JS_FN("error", nidium_console_log, 0, NATIVE_JS_FNPROPS),
-    JS_FN("warn", nidium_console_log, 0, NATIVE_JS_FNPROPS),
-    JS_FN("hide", nidium_console_hide, 0, NATIVE_JS_FNPROPS),
-    JS_FN("show", nidium_console_show, 0, NATIVE_JS_FNPROPS),
-    JS_FN("clear", nidium_console_clear, 0, NATIVE_JS_FNPROPS),
+    JS_FN("log", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("write", nidium_console_write, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("info", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("error", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("warn", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("hide", nidium_console_hide, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("show", nidium_console_show, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("clear", nidium_console_clear, 0, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 

@@ -40,9 +40,9 @@ template<>
 JSClass *JSExposer<JSWebSocket>::jsclass = &WebSocket_class;
 
 static JSFunctionSpec ws_funcs[] = {
-    JS_FN("send", nidium_websocket_send, 1, NATIVE_JS_FNPROPS),
-    JS_FN("close", nidium_websocket_close, 0, NATIVE_JS_FNPROPS),
-    JS_FN("ping", nidium_websocket_ping, 0, NATIVE_JS_FNPROPS),
+    JS_FN("send", nidium_websocket_send, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("close", nidium_websocket_close, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("ping", nidium_websocket_ping, 0, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 // }}}

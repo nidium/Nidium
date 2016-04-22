@@ -72,18 +72,18 @@ static JSClass socket_client_class = {
 };
 
 static JSFunctionSpec socket_client_funcs[] = {
-    JS_FN("sendFile", nidium_socket_client_sendFile, 1, NATIVE_JS_FNPROPS),
-    JS_FN("write", nidium_socket_client_write, 1, NATIVE_JS_FNPROPS),
-    JS_FN("disconnect", nidium_socket_client_close, 0, NATIVE_JS_FNPROPS),  /* TODO: add force arg */
+    JS_FN("sendFile", nidium_socket_client_sendFile, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("write", nidium_socket_client_write, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("disconnect", nidium_socket_client_close, 0, NIDIUM_JS_FNPROPS),  /* TODO: add force arg */
     JS_FS_END
 };
 
 static JSFunctionSpec socket_funcs[] = {
-    JS_FN("listen", nidium_socket_listen, 0, NATIVE_JS_FNPROPS),
-    JS_FN("connect", nidium_socket_connect, 0, NATIVE_JS_FNPROPS),
-    JS_FN("write", nidium_socket_write, 1, NATIVE_JS_FNPROPS),
-    JS_FN("disconnect", nidium_socket_close, 0, NATIVE_JS_FNPROPS), /* TODO: add force arg */
-    JS_FN("sendTo", nidium_socket_sendto, 3, NATIVE_JS_FNPROPS),
+    JS_FN("listen", nidium_socket_listen, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("connect", nidium_socket_connect, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("write", nidium_socket_write, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("disconnect", nidium_socket_close, 0, NIDIUM_JS_FNPROPS), /* TODO: add force arg */
+    JS_FN("sendTo", nidium_socket_sendto, 3, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 

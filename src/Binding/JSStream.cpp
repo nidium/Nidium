@@ -39,10 +39,10 @@ template<>
 JSClass *JSExposer<JSStream>::jsclass = &Stream_class;
 
 static JSFunctionSpec Stream_funcs[] = {
-    JS_FN("seek", nidium_stream_seek, 1, NATIVE_JS_FNPROPS),
-    JS_FN("start", nidium_stream_start, 0, NATIVE_JS_FNPROPS),
-    JS_FN("stop", nidium_stream_stop, 0, NATIVE_JS_FNPROPS),
-    JS_FN("getNextPacket", nidium_stream_getNextPacket, 0, NATIVE_JS_FNPROPS),
+    JS_FN("seek", nidium_stream_seek, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("start", nidium_stream_start, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("stop", nidium_stream_stop, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("getNextPacket", nidium_stream_getNextPacket, 0, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 

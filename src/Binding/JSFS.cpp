@@ -34,7 +34,7 @@ static JSClass fs_class = {
 };
 
 static JSFunctionSpec FS_static_funcs[] = {
-    JS_FN("readDir",     nidium_fs_readDir, 2, NATIVE_JS_FNPROPS),
+    JS_FN("readDir",     nidium_fs_readDir, 2, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 // }}}

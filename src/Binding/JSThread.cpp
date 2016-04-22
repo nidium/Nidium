@@ -58,12 +58,12 @@ static JSClass messageEvent_class = {
 };
 
 static JSFunctionSpec glob_funcs_threaded[] = {
-    JS_FN("send", nidium_post_message, 1, NATIVE_JS_FNPROPS),
+    JS_FN("send", nidium_post_message, 1, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec Thread_funcs[] = {
-    JS_FN("start", nidium_thread_start, 0, NATIVE_JS_FNPROPS),
+    JS_FN("start", nidium_thread_start, 0, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 

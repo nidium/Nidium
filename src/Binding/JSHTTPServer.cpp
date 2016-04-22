@@ -46,9 +46,9 @@ static JSClass HTTPRequest_class = {
     TODO: write is for response
 */
 static JSFunctionSpec HTTPResponse_funcs[] = {
-    JS_FN("write", nidium_httpresponse_write, 1, NATIVE_JS_FNPROPS),
-    JS_FN("end", nidium_httpresponse_end, 0, NATIVE_JS_FNPROPS),
-    JS_FN("writeHead", nidium_httpresponse_writeHead, 1, NATIVE_JS_FNPROPS),
+    JS_FN("write", nidium_httpresponse_write, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("end", nidium_httpresponse_end, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("writeHead", nidium_httpresponse_writeHead, 1, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 

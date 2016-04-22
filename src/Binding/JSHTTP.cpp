@@ -31,7 +31,7 @@ template<>
 JSClass *JSExposer<JSHTTP>::jsclass = &HTTP_class;
 
 static JSFunctionSpec http_funcs[] = {
-    JS_FN("request", nidium_http_request, 2, NATIVE_JS_FNPROPS),
+    JS_FN("request", nidium_http_request, 2, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 // }}}

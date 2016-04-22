@@ -29,8 +29,8 @@ template<>
 JSClass *JSExposer<JSProcess>::jsclass = &Process_class;
 
 static JSFunctionSpec Process_funcs[] = {
-    JS_FN("setSignalHandler", nidium_setSignalHandler, 1, NATIVE_JS_FNPROPS),
-    JS_FN("exit", nidium_process_exit, 1, NATIVE_JS_FNPROPS),
+    JS_FN("setSignalHandler", nidium_setSignalHandler, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("exit", nidium_process_exit, 1, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 

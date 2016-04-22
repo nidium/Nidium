@@ -103,14 +103,14 @@ static bool nidium_btoa(JSContext *cx, unsigned argc, JS::Value *vp);
 static int nidium_timerng_wrapper(void *arg);
 
 static JSFunctionSpec glob_funcs[] = {
-    JS_FN("load", nidium_load, 2, NATIVE_JS_FNPROPS),
-    JS_FN("pwd", nidium_pwd, 0, NATIVE_JS_FNPROPS),
-    JS_FN("setTimeout", nidium_set_timeout, 2, NATIVE_JS_FNPROPS),
-    JS_FN("setImmediate", nidium_set_immediate, 1, NATIVE_JS_FNPROPS),
-    JS_FN("setInterval", nidium_set_interval, 2, NATIVE_JS_FNPROPS),
-    JS_FN("clearTimeout", nidium_clear_timeout, 1, NATIVE_JS_FNPROPS),
-    JS_FN("clearInterval", nidium_clear_timeout, 1, NATIVE_JS_FNPROPS),
-    JS_FN("btoa", nidium_btoa, 1, NATIVE_JS_FNPROPS),
+    JS_FN("load", nidium_load, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("pwd", nidium_pwd, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("setTimeout", nidium_set_timeout, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("setImmediate", nidium_set_immediate, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("setInterval", nidium_set_interval, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("clearTimeout", nidium_clear_timeout, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("clearInterval", nidium_clear_timeout, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("btoa", nidium_btoa, 1, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 

@@ -29,8 +29,8 @@ template<>
 JSClass *JSExposer<JSDebug>::jsclass = &debug_class;
 
 static JSFunctionSpec debug_funcs[] = {
-    JS_FN("serialize", nidium_debug_serialize, 1, NATIVE_JS_FNPROPS),
-    JS_FN("unserialize", nidium_debug_unserialize, 1, NATIVE_JS_FNPROPS),
+    JS_FN("serialize", nidium_debug_serialize, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("unserialize", nidium_debug_unserialize, 1, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 // }}}

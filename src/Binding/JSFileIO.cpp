@@ -80,22 +80,22 @@ static JSPropertySpec File_props[] = {
 };
 
 static JSFunctionSpec File_funcs[] = {
-    JS_FN("open", nidium_file_open, 1, NATIVE_JS_FNPROPS),
-    JS_FN("openSync", nidium_file_openSync, 1, NATIVE_JS_FNPROPS),
-    JS_FN("read", nidium_file_read, 2, NATIVE_JS_FNPROPS),
-    JS_FN("seek", nidium_file_seek, 2, NATIVE_JS_FNPROPS),
-    JS_FN("close", nidium_file_close, 0, NATIVE_JS_FNPROPS),
-    JS_FN("closeSync", nidium_file_closeSync, 0, NATIVE_JS_FNPROPS),
-    JS_FN("write", nidium_file_write, 1, NATIVE_JS_FNPROPS),
-    JS_FN("isDir", nidium_file_isDir, 0, NATIVE_JS_FNPROPS),
-    JS_FN("listFiles", nidium_file_listFiles, 1, NATIVE_JS_FNPROPS),
-    JS_FN("rmrf", nidium_file_rmrf, 0, NATIVE_JS_FNPROPS),
+    JS_FN("open", nidium_file_open, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("openSync", nidium_file_openSync, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("read", nidium_file_read, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("seek", nidium_file_seek, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("close", nidium_file_close, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("closeSync", nidium_file_closeSync, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("write", nidium_file_write, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("isDir", nidium_file_isDir, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("listFiles", nidium_file_listFiles, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("rmrf", nidium_file_rmrf, 0, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec File_static_funcs[] = {
-    JS_FN("readSync", nidium_file_readFileSync, 1, NATIVE_JS_FNPROPS),
-    JS_FN("read",     nidium_file_readFile, 2, NATIVE_JS_FNPROPS),
+    JS_FN("readSync", nidium_file_readFileSync, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("read",     nidium_file_readFile, 2, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 
