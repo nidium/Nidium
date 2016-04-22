@@ -18,6 +18,7 @@
 namespace Nidium {
 namespace Server {
 
+// {{{ Static
 static int Context_ping(void *arg)
 {
     static uint64_t framecount = 0;
@@ -29,7 +30,9 @@ static int Context_ping(void *arg)
 
     return 8;
 }
+// }}}
 
+// {{{ Context
 Context::Context(ape_global *net, Worker *worker,
     bool jsstrict, bool runInREPL) :
     m_Worker(worker), m_RunInREPL(runInREPL)
@@ -71,6 +74,7 @@ Context::~Context()
 {
     delete m_JS;
 }
+// }}}
 
 } // namespace Server
 } // namespace Nidium

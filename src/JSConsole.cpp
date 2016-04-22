@@ -11,6 +11,7 @@
 namespace Nidium {
 namespace Server {
 
+// {{{ Preamble
 static bool nidium_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp);
 static bool nidium_console_write(JSContext *cx, unsigned argc,
@@ -31,6 +32,9 @@ static JSFunctionSpec console_funcs[] = {
     JS_FN("warn", nidium_console_log, 0, 0),
     JS_FS_END
 };
+// }}}
+
+// {{{ Implementation
 
 static bool nidium_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp)
@@ -105,7 +109,9 @@ static bool nidium_console_write(JSContext *cx, unsigned argc,
     args.rval().setUndefined();
     return true;
 }
+// }}}
 
+// {{{ Registration
 void JSconsole::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
@@ -113,6 +119,7 @@ void JSconsole::registerObject(JSContext *cx)
         "console", &console_class , nullptr, 0));
     JS_DefineFunctions(cx, consoleObj, console_funcs);
 }
+// }}}
 
 } // namespace Nidium
 } // namespace Server

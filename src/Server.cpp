@@ -27,6 +27,7 @@ namespace Server {
 #define NIDIUM_SERVER_VERSION "0.2-dev"
 #define NIDIUM_MAX_WORKERS 64
 
+// {{{ Static
 static std::list<pid_t> pidList;
 
 static void signal_handler(int sign)
@@ -47,6 +48,22 @@ static int inc_rlimit(int nofile)
     return setrlimit(RLIMIT_NOFILE, &rl);
 }
 
+static int NidiumCheckParentAlive_ping(void *arg)
+{
+    pid_t ppid = getppid();
+    /*
+        If the parent's pid is 0 or 1, it means that our parent is dead. Exit.
+    */
+    if (ppid == 0 || ppid == 1) {
+        exit(0);
+    }
+
+    return 1000;
+}
+// }}}
+
+
+// {{{ Server
 void Server::daemonize(int pidfile)
 {
     if (0 != fork()) {
@@ -245,7 +262,9 @@ Server::Server(int argc, char **argv) :
     m_Args.argc = argc;
     m_Args.argv = argv;
 }
+// }}}
 
+// {{{ Worker
 Worker::Worker(int idx, bool repl) :
     m_Idx(idx), m_RunREPL(repl)
 {
@@ -255,19 +274,6 @@ Worker::Worker(int idx, bool repl) :
 Worker::~Worker()
 {
 
-}
-
-static int NidiumCheckParentAlive_ping(void *arg)
-{
-    pid_t ppid = getppid();
-    /*
-        If the parent's pid is 0 or 1, it means that our parent is dead. Exit.
-    */
-    if (ppid == 0 || ppid == 1) {
-        exit(0);
-    }
-
-    return 1000;
 }
 
 int Worker::run(int argc, char **argv, bool jsstrict)
@@ -321,6 +327,7 @@ int Worker::run(int argc, char **argv, bool jsstrict)
 #endif
     return 0;
 }
+// }}}
 
 } // namespace Server
 } // namespace Nidium

@@ -11,7 +11,6 @@ class Worker;
 class Context
 {
 public:
-
     Context(ape_global *ape, Worker *worker, bool jsstrict = false, bool runInREPL = false);
     ~Context();
 

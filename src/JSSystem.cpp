@@ -15,6 +15,7 @@
 namespace Nidium {
 namespace Server {
 
+// {{{ Preamble
 static bool nidium_system_getOpenFileStats(JSContext *cx, unsigned argc,
     JS::Value *vp);
 
@@ -30,8 +31,9 @@ static JSFunctionSpec system_funcs[] = {
 
     JS_FS_END
 };
+// }}}
 
-
+// {{{ Implementation
 static bool nidium_system_getOpenFileStats(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
@@ -76,7 +78,9 @@ static bool nidium_system_getOpenFileStats(JSContext *cx, unsigned argc,
 
     return true;
 }
+// }}}
 
+// {{{ Registration
 void JSSystem::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
@@ -84,6 +88,7 @@ void JSSystem::registerObject(JSContext *cx)
         "System", &system_class , nullptr, 0));
     JS_DefineFunctions(cx, systemObj, system_funcs);
 }
+// }}}
 
 } // namespace Server
 } // namespce Nidium

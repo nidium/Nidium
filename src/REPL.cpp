@@ -56,6 +56,7 @@ repl:
     return NULL;
 }
 
+// {{{ REPL
 REPL::REPL(Nidium::Binding::NidiumJS *js)
     : m_JS(js), m_Continue(false), m_ExitCount(0)
 {
@@ -108,6 +109,7 @@ REPL::~REPL()
     */
     buffer_destroy(m_Buffer);
 }
+// }}}
 
 } // namespace Server
 } // namespace Nidium

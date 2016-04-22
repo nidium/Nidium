@@ -27,6 +27,7 @@ void setproctitle(const char *fmt, ...);
 namespace Nidium {
 namespace Server {
 
+// {{{ Server
 class Server
 {
 public:
@@ -54,7 +55,9 @@ private:
     bool m_JSStrictMode;
     int m_NWorkers;
 };
+// }}}
 
+// {{{ Worker
 class Worker
 {
 public:
@@ -69,6 +72,7 @@ private:
     int m_Idx;
     bool m_RunREPL;
 };
+// }}}
 
 } // namespace Server
 } // namespace Nidium
