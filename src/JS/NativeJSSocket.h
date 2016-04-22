@@ -6,7 +6,7 @@
 #ifndef nativejssocket_h__
 #define nativejssocket_h__
 
-#include <native_netlib.h>
+#include <ape_netlib.h>
 
 #include "NativeJSExposer.h"
 

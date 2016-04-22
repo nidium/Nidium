@@ -6,7 +6,7 @@
 #ifndef nativejshttp_h__
 #define nativejshttp_h__
 
-#include <native_netlib.h>
+#include <ape_netlib.h>
 #include <ape_array.h>
 
 #include "NativeJSExposer.h"

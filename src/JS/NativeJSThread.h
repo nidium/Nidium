@@ -23,7 +23,7 @@ class NativeJSThread : public NativeJSExposer<NativeJSThread>, public NativeMess
     void onComplete(JS::HandleValue vp);
     void onMessage(const NativeSharedMessages::Message &msg);
 
-    JS::PersistentRootedString jsFunction;
+    JS::Heap<JSString *> jsFunction;
 
     JSRuntime *jsRuntime;
     JSContext *jsCx;
