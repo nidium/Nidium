@@ -1,15 +1,19 @@
-#include "NativeJSConsole.h"
-#include <Binding/NativeJS.h>
-#include "NativeContext.h"
-#include "NativeMacros.h"
+#include "JSConsole.h"
+
+#include <Binding/NidiumJS.h>
+#include "Context.h"
+#include "Macros.h"
 
 #include <js/OldDebugAPI.h>
 
-#include "NativeServer.h"
+#include "Server.h"
 
-static bool native_console_log(JSContext *cx, unsigned argc,
+namespace Nidium {
+namespace Server {
+
+static bool nidium_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_console_write(JSContext *cx, unsigned argc,
+static bool nidium_console_write(JSContext *cx, unsigned argc,
     JS::Value *vp);
 
 static JSClass console_class = {
@@ -20,15 +24,15 @@ static JSClass console_class = {
 };
 
 static JSFunctionSpec console_funcs[] = {
-    JS_FN("log", native_console_log, 0, 0),
-    JS_FN("write", native_console_write, 0, 0),
-    JS_FN("info", native_console_log, 0, 0),
-    JS_FN("error", native_console_log, 0, 0),
-    JS_FN("warn", native_console_log, 0, 0),
+    JS_FN("log", nidium_console_log, 0, 0),
+    JS_FN("write", nidium_console_write, 0, 0),
+    JS_FN("info", nidium_console_log, 0, 0),
+    JS_FN("error", nidium_console_log, 0, 0),
+    JS_FN("warn", nidium_console_log, 0, 0),
     JS_FS_END
 };
 
-static bool native_console_log(JSContext *cx, unsigned argc,
+static bool nidium_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     unsigned i;
@@ -53,7 +57,7 @@ static bool native_console_log(JSContext *cx, unsigned argc,
         filename_parent = &fname[1];
     }
 
-    NativeContext *nctx = NativeContext::getNativeClass(cx);
+    Context *nctx = Context::GetObject(cx);
 
     for (i = 0; i < args.length(); i++) {
         JS::RootedString str(cx, JS::ToString(cx, args[i]));
@@ -78,10 +82,10 @@ static bool native_console_log(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool native_console_write(JSContext *cx, unsigned argc,
+static bool nidium_console_write(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NativeJS *js = NativeJS::getNativeClass(cx);
+    Nidium::Binding::NidiumJS *js = Nidium::Binding::NidiumJS::GetObject(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     NIDIUM_JS_CHECK_ARGS("write", 1);
@@ -102,11 +106,14 @@ static bool native_console_write(JSContext *cx, unsigned argc,
     return true;
 }
 
-void NativeJSconsole::registerObject(JSContext *cx)
+void JSconsole::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject consoleObj(cx, JS_DefineObject(cx, global,
         "console", &console_class , nullptr, 0));
     JS_DefineFunctions(cx, consoleObj, console_funcs);
 }
+
+} // namespace Nidium
+} // namespace Server
 

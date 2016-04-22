@@ -13,19 +13,19 @@
             '<(third_party_path)/http-parser/',
         ],
         'sources': [
-            '<(native_src_path)/native_main.cpp',
-            '<(native_src_path)/NativeServer.cpp',
-            '<(native_src_path)/NativeContext.cpp',
-            '<(native_src_path)/NativeJSConsole.cpp',
-            '<(native_src_path)/NativeREPL.cpp',
-            '<(native_src_path)/NativeJSSystem.cpp',
+            '<(native_src_path)/nidium_server_main.cpp',
+            '<(native_src_path)/Server.cpp',
+            '<(native_src_path)/Context.cpp',
+            '<(native_src_path)/JSConsole.cpp',
+            '<(native_src_path)/REPL.cpp',
+            '<(native_src_path)/JSSystem.cpp',
             '<(native_src_path)/external/setproctitle.c',
             '<(native_src_path)/external/linenoise.c',
 
         ],
         'conditions': [
             ['nofork==1', {
-                'defines':['NATIVE_NO_FORK']
+                'defines':['NIDIUM_NO_FORK']
             }],
             ['OS=="linux"', {
                 'cflags': [
