@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <pthread.h>
 
-#include <native_netlib.h>
+#include <ape_netlib.h>
 #include <jspubtd.h>
 
 #include "NativeAV.h"

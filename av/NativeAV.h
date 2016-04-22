@@ -7,7 +7,7 @@
 
 #include <IO/NativeStreamInterface.h>
 #include <Core/NativeMessages.h>
-#include <native_netlib.h>
+#include <ape_netlib.h>
 
 extern "C" {
 #include <libavutil/time.h>
