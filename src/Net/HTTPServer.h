@@ -10,7 +10,7 @@
 
 #include <http_parser.h>
 
-#include <native_netlib.h>
+#include <ape_netlib.h>
 #include <ape_array.h>
 
 #include "Core/Messages.h"

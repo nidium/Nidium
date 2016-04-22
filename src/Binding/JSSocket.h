@@ -6,7 +6,7 @@
 #ifndef binding_jssocket_h__
 #define binding_jssocket_h__
 
-#include <native_netlib.h>
+#include <ape_netlib.h>
 
 #include "JSExposer.h"
 

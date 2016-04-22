@@ -5,7 +5,7 @@
 */
 #include "NFSStream.h"
 
-#include <native_netlib.h>
+#include <ape_netlib.h>
 #include <ape_buffer.h>
 
 #include "Core/Utils.h"

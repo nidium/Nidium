@@ -5,7 +5,7 @@
 */
 #include "JSProcess.h"
 
-#include <native_netlib.h>
+#include <ape_netlib.h>
 
 namespace Nidium {
 namespace Binding {

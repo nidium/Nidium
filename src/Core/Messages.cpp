@@ -7,7 +7,7 @@
 
 #include <pthread.h>
 
-#include <native_netlib.h>
+#include <ape_netlib.h>
 
 #include "Events.h"
 
