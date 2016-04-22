@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativeatom_h__
-#define nativeatom_h__
+#ifndef core_atomic_h__
+#define core_atomic_h__
 
 #include <stdint.h>
 
