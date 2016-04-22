@@ -14,7 +14,7 @@
 namespace Nidium {
 namespace IO {
 
-// {{{ Filestream
+// {{{ Implementation
 
 FileStream::FileStream(const char *location) :
     Stream(location), m_File(location)
@@ -89,7 +89,9 @@ void FileStream::seek(size_t pos)
     m_DataBuffer.ended = false;
 }
 
-// {{{ FileStream events
+// }}}
+
+// {{{ Callbacks / Events
 
 void FileStream::onStart(size_t packets, size_t seek)
 {
@@ -144,22 +146,22 @@ const unsigned char *FileStream::onGetNextPacket(size_t *len, int *err)
 void FileStream::onMessage(const Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case FILE_OPEN_SUCCESS:
+        case File::OPEN_SUCCESS:
             /* do nothing */
             break;
-        case FILE_OPEN_ERROR:
+        case File::OPEN_ERROR:
             this->error(ERROR_OPEN, msg.args[0].toInt());
             break;
-        case FILE_SEEK_ERROR:
+        case File::SEEK_ERROR:
             this->error(ERROR_SEEK, -1);
             /* fall through */
-        case FILE_SEEK_SUCCESS:
+        case File::SEEK_SUCCESS:
             m_PendingSeek = false;
             break;
-        case FILE_READ_ERROR:
+        case File::READ_ERROR:
             this->error(ERROR_READ, msg.args[0].toInt());
             break;
-        case FILE_READ_SUCCESS:
+        case File::READ_SUCCESS:
         {
             if (m_PendingSeek) {
                 break;
@@ -208,6 +210,8 @@ void FileStream::onMessage(const Core::SharedMessages::Message &msg)
         }
     }
 }
+
+// }}}
 
 } // namespace IO
 } // namespace Nidium

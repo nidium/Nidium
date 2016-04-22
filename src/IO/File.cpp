@@ -24,7 +24,7 @@ using Nidium::Core::SharedMessages;
 namespace Nidium {
 namespace IO {
 
-// {{{ File
+// {{{ Preamble
 
 #define NIDIUM_FILE_NOTIFY(param, event, arg) \
     do {   \
@@ -43,6 +43,14 @@ enum {
     FILE_TASK_LISTFILES
 };
 
+static int File_compare(const FTSENT** one, const FTSENT** two)
+{
+    return (strcmp((*one)->fts_name, (*two)->fts_name));
+}
+
+// }}}
+
+// {{{ Implementation
 File::File(const char *name) :
     m_Dir(NULL), m_Fd(NULL), m_Delegate(NULL),
     m_Filesize(0), m_AutoClose(true),
@@ -52,6 +60,90 @@ File::File(const char *name) :
     m_Mmap.size = 0;
     m_Path = strdup(name);
 }
+
+bool File::checkEOF()
+{
+    if (m_Fd &&
+        ((m_Eof = (bool)feof(m_Fd)) == true ||
+        (m_Eof = (ftell(m_Fd) == this->m_Filesize)))) {
+
+        if (m_AutoClose) {
+            this->closeTask();
+        }
+    }
+
+    return m_Eof;
+}
+
+void File::checkRead(bool async, void *arg)
+{
+    int err = -1;
+
+    if (ferror(m_Fd)) {
+        err = errno;
+    } else if (this->checkEOF()) {
+        err = 0;
+    }
+
+    if (async && err != -1) {
+        NIDIUM_FILE_NOTIFY(err, File::READ_ERROR, arg);
+    }
+}
+
+void File::rmrf()
+{
+    if (!isDir()) {
+        return;
+    }
+
+    FTS *tree;
+    FTSENT *f;
+
+    char *path[] = {m_Path, NULL};
+
+    tree = fts_open(path,
+        FTS_COMFOLLOW | FTS_NOCHDIR, File_compare);
+
+    if (!tree) {
+        printf("Failed to fts_open()\n");
+        return;
+    }
+    while ((f = fts_read(tree))) {
+        switch(f->fts_info) {
+            case FTS_F:
+            case FTS_NS:
+            case FTS_SL:
+            case FTS_SLNONE:
+                unlink(f->fts_path);
+                break;
+            case FTS_DP:
+                rmdir(f->fts_path);
+                break;
+            default:
+                break;
+        }
+    }
+
+    fts_close(tree);
+
+    closeFd();
+}
+
+File::~File()
+{
+    if (m_Mmap.addr) {
+        munmap(m_Mmap.addr, m_Mmap.size);
+    }
+    if (this->isOpen()) {
+        this->closeTask();
+    }
+
+    free(m_Path);
+}
+
+// }}}
+
+// {{{ Tasks implementation
 
 /*
     /!\ Exec in a worker thread
@@ -114,7 +206,7 @@ void File::openTask(const char *mode, void *arg)
 {
     if (this->isOpen()) {
         // seek(0)?
-        NIDIUM_FILE_NOTIFY(m_Fd, FILE_OPEN_SUCCESS, arg);
+        NIDIUM_FILE_NOTIFY(m_Fd, File::OPEN_SUCCESS, arg);
         return;
     }
 
@@ -127,7 +219,7 @@ void File::openTask(const char *mode, void *arg)
         m_Dir = opendir(m_Path);
         if (!m_Dir) {
             printf("Failed to open dir %s : %s\n", m_Path, strerror(errno));
-            NIDIUM_FILE_NOTIFY(errno, FILE_OPEN_ERROR, arg);
+            NIDIUM_FILE_NOTIFY(errno, File::OPEN_ERROR, arg);
             return;
         }
         m_isDir = true;
@@ -135,7 +227,7 @@ void File::openTask(const char *mode, void *arg)
     } else {
         m_Fd = fopen(m_Path, mode);
         if (m_Fd == NULL) {
-            NIDIUM_FILE_NOTIFY(errno, FILE_OPEN_ERROR, arg);
+            NIDIUM_FILE_NOTIFY(errno, File::OPEN_ERROR, arg);
             return;
         }
 
@@ -143,7 +235,7 @@ void File::openTask(const char *mode, void *arg)
         m_isDir = false;
     }
 
-    NIDIUM_FILE_NOTIFY(m_Fd, FILE_OPEN_SUCCESS, arg);
+    NIDIUM_FILE_NOTIFY(m_Fd, File::OPEN_SUCCESS, arg);
 }
 
 /*
@@ -154,7 +246,7 @@ void File::closeTask(void *arg)
     closeFd();
 
     if (!m_OpenSync) {
-        NIDIUM_FILE_NOTIFY((void *)NULL, FILE_CLOSE_SUCCESS, arg);
+        NIDIUM_FILE_NOTIFY((void *)NULL, File::CLOSE_SUCCESS, arg);
     }
 }
 
@@ -164,7 +256,7 @@ void File::closeTask(void *arg)
 void File::readTask(size_t size, void *arg)
 {
     if (!this->isOpen() || this->isDir()) {
-        NIDIUM_FILE_NOTIFY((void *)NULL, FILE_READ_ERROR, arg);
+        NIDIUM_FILE_NOTIFY((void *)NULL, File::READ_ERROR, arg);
         return;
     }
 
@@ -177,7 +269,7 @@ void File::readTask(size_t size, void *arg)
         Read an empty file
     */
     if (clamped_len == 0) {
-        NIDIUM_FILE_NOTIFY((void *)buf, FILE_READ_SUCCESS, arg);
+        NIDIUM_FILE_NOTIFY((void *)buf, File::READ_SUCCESS, arg);
         buf->data[0] = '\0';
         return;
     }
@@ -192,7 +284,7 @@ void File::readTask(size_t size, void *arg)
 
     buf->data[buf->used] = '\0';
 
-    NIDIUM_FILE_NOTIFY((void *)buf, FILE_READ_SUCCESS, arg);
+    NIDIUM_FILE_NOTIFY((void *)buf, File::READ_SUCCESS, arg);
 }
 
 /*
@@ -201,7 +293,7 @@ void File::readTask(size_t size, void *arg)
 void File::writeTask(char *buf, size_t buflen, void *arg)
 {
     if (!this->isOpen() || this->isDir()) {
-        NIDIUM_FILE_NOTIFY((void *)NULL, FILE_WRITE_ERROR, arg);
+        NIDIUM_FILE_NOTIFY((void *)NULL, File::WRITE_ERROR, arg);
         return;
     }
 
@@ -214,7 +306,7 @@ void File::writeTask(char *buf, size_t buflen, void *arg)
     */
     m_Filesize = ftell(m_Fd);
 
-    NIDIUM_FILE_NOTIFY(writelen, FILE_WRITE_SUCCESS, arg);
+    NIDIUM_FILE_NOTIFY(writelen, File::WRITE_SUCCESS, arg);
 }
 
 /*
@@ -224,18 +316,18 @@ void File::seekTask(size_t pos, void *arg)
 {
     if (!this->isOpen() || this->isDir()) {
         int err = 0;
-        NIDIUM_FILE_NOTIFY(err, FILE_SEEK_ERROR, arg);
+        NIDIUM_FILE_NOTIFY(err, File::SEEK_ERROR, arg);
         return;
     }
 
     if (fseek(m_Fd, pos, SEEK_SET) == -1) {
-        NIDIUM_FILE_NOTIFY(errno, FILE_SEEK_ERROR, arg);
+        NIDIUM_FILE_NOTIFY(errno, File::SEEK_ERROR, arg);
         return;
     }
 
     this->checkEOF();
 
-    NIDIUM_FILE_NOTIFY((void *)NULL, FILE_SEEK_SUCCESS, arg);
+    NIDIUM_FILE_NOTIFY((void *)NULL, File::SEEK_SUCCESS, arg);
 }
 
 /*
@@ -269,11 +361,14 @@ void File::listFilesTask(void *arg)
         }
     }
 
-    NIDIUM_FILE_NOTIFY(entries, FILE_LISTFILES_ENTRIES, arg);
+    NIDIUM_FILE_NOTIFY(entries, File::LISTFILES_ENTRIES, arg);
 
     rewinddir(m_Dir);
 }
 
+// }}}
+
+// {{{ Async operations
 void File::open(const char *mode, void *arg)
 {
     Task *task = new Task();
@@ -348,134 +443,9 @@ void File::listFiles(void *arg)
     this->addTask(task);
 }
 
-bool File::checkEOF()
-{
-    if (m_Fd &&
-        ((m_Eof = (bool)feof(m_Fd)) == true ||
-        (m_Eof = (ftell(m_Fd) == this->m_Filesize)))) {
+// }}}
 
-        if (m_AutoClose) {
-            this->closeTask();
-        }
-    }
-
-    return m_Eof;
-}
-
-void File::checkRead(bool async, void *arg)
-{
-    int err = -1;
-
-    if (ferror(m_Fd)) {
-        err = errno;
-    } else if (this->checkEOF()) {
-        err = 0;
-    }
-
-    if (async && err != -1) {
-        NIDIUM_FILE_NOTIFY(err, FILE_READ_ERROR, arg);
-    }
-}
-
-static int File_compare(const FTSENT** one, const FTSENT** two)
-{
-    return (strcmp((*one)->fts_name, (*two)->fts_name));
-}
-
-void File::rmrf()
-{
-    if (!isDir()) {
-        return;
-    }
-
-    FTS *tree;
-    FTSENT *f;
-
-    char *path[] = {m_Path, NULL};
-
-    tree = fts_open(path,
-        FTS_COMFOLLOW | FTS_NOCHDIR, File_compare);
-
-    if (!tree) {
-        printf("Failed to fts_open()\n");
-        return;
-    }
-    while ((f = fts_read(tree))) {
-        switch(f->fts_info) {
-            case FTS_F:
-            case FTS_NS:
-            case FTS_SL:
-            case FTS_SLNONE:
-                unlink(f->fts_path);
-                break;
-            case FTS_DP:
-                rmdir(f->fts_path);
-                break;
-            default:
-                break;
-        }
-    }
-
-    fts_close(tree);
-
-    closeFd();
-}
-
-File::~File()
-{
-    if (m_Mmap.addr) {
-        munmap(m_Mmap.addr, m_Mmap.size);
-    }
-    if (this->isOpen()) {
-        this->closeTask();
-    }
-
-    free(m_Path);
-}
-
-// {{{ File events
-
-void File::onMessage(const SharedMessages::Message &msg)
-{
-    if (m_Delegate) {
-        m_Delegate->onMessage(msg);
-    }
-
-    switch(msg.event()) {
-        case FILE_READ_SUCCESS:
-        {
-            buffer *buf = (buffer *)msg.args[0].toPtr();
-            buffer_delete(buf);
-            break;
-        }
-        case FILE_LISTFILES_ENTRIES:
-        {
-            DirEntries *entries = (DirEntries *)msg.args[0].toPtr();
-            free(entries->lst);
-            free(entries);
-            break;
-        }
-    }
-}
-
-void File::onMessageLost(const SharedMessages::Message &msg)
-{
-    switch(msg.event()) {
-        case FILE_READ_SUCCESS:
-        {
-            buffer *buf = (buffer *)msg.args[0].toPtr();
-            buffer_delete(buf);
-            break;
-        }
-        case FILE_LISTFILES_ENTRIES:
-        {
-            DirEntries *entries = (DirEntries *)msg.args[0].toPtr();
-            free(entries->lst);
-            free(entries);
-            break;
-        }
-    }
-}
+// {{{ Sync operations
 
 int File::openSync(const char *modes, int *err)
 {
@@ -513,8 +483,6 @@ int File::openSync(const char *modes, int *err)
 
     return 1;
 }
-
-// {{ File sync actions
 
 ssize_t File::writeSync(char *data, uint64_t len, int *err)
 {
@@ -627,6 +595,54 @@ int File::seekSync(size_t pos, int *err)
 
     return 0;
 }
+
+// }}}
+
+// {{{ Events
+
+void File::onMessage(const SharedMessages::Message &msg)
+{
+    if (m_Delegate) {
+        m_Delegate->onMessage(msg);
+    }
+
+    switch(msg.event()) {
+        case File::READ_SUCCESS:
+        {
+            buffer *buf = (buffer *)msg.args[0].toPtr();
+            buffer_delete(buf);
+            break;
+        }
+        case File::LISTFILES_ENTRIES:
+        {
+            DirEntries *entries = (DirEntries *)msg.args[0].toPtr();
+            free(entries->lst);
+            free(entries);
+            break;
+        }
+    }
+}
+
+void File::onMessageLost(const SharedMessages::Message &msg)
+{
+    switch(msg.event()) {
+        case File::READ_SUCCESS:
+        {
+            buffer *buf = (buffer *)msg.args[0].toPtr();
+            buffer_delete(buf);
+            break;
+        }
+        case File::LISTFILES_ENTRIES:
+        {
+            DirEntries *entries = (DirEntries *)msg.args[0].toPtr();
+            free(entries->lst);
+            free(entries);
+            break;
+        }
+    }
+}
+
+// }}}
 
 } // namespace IO
 } // namespace Nidium
