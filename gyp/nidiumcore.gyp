@@ -83,7 +83,7 @@
         'dependencies': [
             '../network/gyp/network.gyp:*',
             'jsoncpp.gyp:jsoncpp',
-            'nativejscore.gyp:nativejscore-includes',
+            'nidiumcore.gyp:nativejscore-includes',
         ],
         'conditions': [
             ['OS=="mac"', {
