@@ -4,7 +4,7 @@
 #include <math.h>
 
 #include "Core/Utils.h"
-#include "../NativeAudioNode.h"
+#include "../AudioNode.h"
 
 class NativeAudioProcessorDelay: public NativeAudioProcessor
 {

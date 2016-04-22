@@ -1,0 +1,153 @@
+#ifndef nidium_canvascontext_h__
+#define nidium_canvascontext_h__
+
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#include <SkMatrix44.h>
+#include <jsapi.h>
+
+#include "Types.h"
+#include "GLResources.h"
+#include "GLState.h"
+#include "GLContext.h"
+
+class NativeCanvas2DContext;
+class NativeCanvasHandler;
+struct NativeRect;
+
+class NativeCanvasContext
+{
+public:
+
+    explicit NativeCanvasContext(NativeCanvasHandler *handler);
+    virtual ~NativeCanvasContext();
+
+    /* Explicit name used by glBindAttribLocation */
+    enum {
+        SH_ATTR_POSITION = 0,
+        SH_ATTR_TEXCOORD = 1,
+        SH_ATTR_MODIFIER = 2
+    };
+
+    JS::Heap<JSObject *> m_JsObj;
+    JSContext *m_JsCx;
+
+    enum mode {
+        CONTEXT_2D,
+        CONTEXT_WEBGL
+    } m_Mode;
+
+    enum shaderType {
+        SHADER_FRAGMENT = 0x8B30,
+        SHADER_VERTEX = 0x8B31
+    };
+
+    /*
+        Create a CanvasContext of type |type|
+    */
+    static NativeCanvasContext *Create(NativeContextType type);
+
+    mode getContextType() const {
+        return m_Mode;
+    }
+
+    /*
+        Check if the context has a program installed
+    */
+    bool hasShader() const {
+        return (m_GLState->getProgram() != 0);
+    }
+
+    /*
+        Get the current installed program or 0
+    */
+    uint32_t getProgram() const {
+        return m_GLState->getProgram();
+    }
+
+    NativeCanvasHandler *getHandler() const {
+        return m_Handler;
+    }
+
+    const SkMatrix44 &getMatrix() const {
+        return m_Transform;
+    }
+
+    void setGLState(NativeGLState *state) {
+        m_GLState = state;
+    }
+
+    inline NativeGLState *getGLState() const {
+        return m_GLState;
+    }
+
+    inline NativeGLContext *getGLContext() const {
+        if (!m_GLState) {
+            NLOG("getGLContext() invalid glstate on %p", this);
+            return NULL;
+        }
+
+        return m_GLState->getNativeGLContext();
+    }
+
+    bool makeGLCurrent() {
+        return m_GLState->makeGLCurrent();
+    }
+
+    bool validateCurrentFBO();
+
+    /*
+        Set the appropriate OpenGL state (bind buffers, ...)
+    */
+    void resetGLContext();
+
+    static char *processShader(const char *content, shaderType type);
+    static uint32_t compileShader(const char *data, int type);
+
+    virtual void translate(double x, double y)=0;
+    virtual void setSize(int width, int height, bool redraw = true)=0;
+    virtual void setScale(double x, double y, double px=1, double py=1)=0;
+    virtual void clear(uint32_t color = 0x00000000)=0;
+    virtual void flush()=0;
+    virtual uint32_t getTextureID() const=0;
+
+    /* Returns the size in device pixel */
+    virtual void getSize(int *width, int *height) const=0;
+
+    virtual uint8_t *getPixels() {
+        return NULL;
+    }
+
+    /*
+        Create a grid of |resolution^2| points using triangle strip
+
+        Scheme : http://dan.lecocq.us/wordpress/wp-content/uploads/2009/12/strip.png
+        Details: http://en.wikipedia.org/wiki/Triangle_strip
+    */
+    static NativeVertices *buildVerticesStripe(int resolution);
+
+    static uint32_t createPassThroughVertex();
+    static uint32_t createPassThroughFragment();
+    static uint32_t createPassThroughProgram(NativeGLResources &resource);
+
+
+    void preComposeOn(NativeCanvas2DContext *layer,
+        double left, double top, double opacity,
+        double zoom, const NativeRect *rclip);
+protected:
+    /* Hold the current matrix (model) sent to the Vertex shader */
+    SkMatrix44 m_Transform;
+    NativeCanvasHandler *m_Handler;
+    NativeGLState *m_GLState;
+    NativeGLResources m_Resources;
+    void updateMatrix(double left, double top, int layerWidth,
+        int layerHeight, NativeGLState *glstate);
+
+    void setupShader(float opacity, int width, int height,
+        int left, int top, int wWidth, int wHeight);
+};
+
+#endif
+

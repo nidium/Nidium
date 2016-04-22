@@ -7,7 +7,7 @@
         'dependencies': [
             'native.gyp:*',
             '<(native_network_path)/gyp/network.gyp:*',
-            '<(native_nativejscore_path)/gyp/nativejscore.gyp:*',
+            '<(native_nativejscore_path)/gyp/nidiumcore.gyp:*',
             '<(native_nativejscore_path)/gyp/jsoncpp.gyp:jsoncpp',
             'interface.gyp:nativeinterface',
         ],
@@ -182,7 +182,7 @@
                 ],
                 'sources': [
                     '<(native_app_path)/osx/main.mm',
-                    '<(native_app_path)/osx/NativeStudioAppDelegate.mm',
+                    '<(native_app_path)/osx/StudioAppDelegate.mm',
                     '<(third_party_path)/portaudio/src/common/pa_ringbuffer.o'
                 ],
                 'postbuilds': [

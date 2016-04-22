@@ -7,8 +7,8 @@
 
 #include <client/linux/handler/exception_handler.h>
 
-#include "NativeX11UIInterface.h"
-#include "NativeSystem.h"
+#include "X11UIInterface.h"
+#include "System.h"
 
 NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
 NativeUIInterface *__NativeUI;

@@ -1,7 +1,7 @@
 #ifndef nativeaudioprocessorgain_h__
 #define nativeaudioprocessorgain_h__
 
-#include "../NativeAudioNode.h"
+#include "../AudioNode.h"
 
 class NativeAudioProcessorGain: public NativeAudioProcessor
 {

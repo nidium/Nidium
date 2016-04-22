@@ -14,16 +14,16 @@
         ],
         'dependencies': [
             '<(native_network_path)/gyp/network.gyp:nativenetwork-includes',
-            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore-includes',
+            '<(native_nativejscore_path)/gyp/nidiumcore.gyp:nativejscore-includes',
             '<(native_nativejscore_path)/gyp/jsoncpp.gyp:jsoncpp',
         ],
         'sources': [
-            '<(native_interface_path)/NativeUIInterface_base.cpp',
+            '<(native_interface_path)/UIInterface_base.cpp',
         ],
         'conditions': [
             ['native_interface=="terminal"', {
                 'sources': [
-                    '<(native_interface_path)/terminal/NativeTerminalUIInterface.cpp',
+                    '<(native_interface_path)/terminal/TerminalUIInterface.cpp',
                 ],
                 'include_dirs': [
                     '<(native_interface_path)/terminal/',
@@ -37,16 +37,16 @@
                     ],
                 },
                 'sources': [
-                    '<(native_interface_path)/osx/NativeUIInterface.mm',
-                    '<(native_interface_path)/osx/NativeUIConsole.mm',
-                    '<(native_interface_path)/osx/NativeSystem.mm',
-                    '<(native_interface_path)/osx/NativeDragNSView.mm',
+                    '<(native_interface_path)/osx/UIInterface.mm',
+                    '<(native_interface_path)/osx/UIConsole.mm',
+                    '<(native_interface_path)/osx/System.mm',
+                    '<(native_interface_path)/osx/DragNSView.mm',
                 ],
-			}],
+            }],
             ['OS=="linux"', {
                 'sources': [
-                    '<(native_interface_path)/linux/NativeUIInterface.cpp',
-                    '<(native_interface_path)/linux/NativeSystem.cpp',
+                    '<(native_interface_path)/linux/UIInterface.cpp',
+                    '<(native_interface_path)/linux/System.cpp',
                 ],
                 'include_dirs': [
                     '<(native_interface_path)/linux/',

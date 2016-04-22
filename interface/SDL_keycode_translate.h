@@ -1,5 +1,5 @@
-#ifndef nativesdlkeycodetranslate_h__
-#define nativesdlkeycodetranslate_h__
+#ifndef nidium_sdlkeycodetranslate_h__
+#define nidium_sdlkeycodetranslate_h__
 
 #include <stdint.h>
 

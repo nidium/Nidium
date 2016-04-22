@@ -13,7 +13,7 @@
         ],
         'dependencies': [
             '<(native_network_path)/gyp/network.gyp:nativenetwork-includes',
-            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore-includes',
+            '<(native_nativejscore_path)/gyp/nidiumcore.gyp:nativejscore-includes',
         ],
         'defines': [
             '__STDC_CONSTANT_MACROS'
@@ -35,12 +35,12 @@
             ],
         ],
         'sources': [
-            '<(native_av_path)NativeAV.cpp',
-            '<(native_av_path)NativeAudioNode.cpp',
-            '<(native_av_path)NativeAudio.cpp',
-            '<(native_av_path)NativeVideo.cpp',
-            '<(native_av_path)NativeAudioNodeGain.cpp',
-            '<(native_av_path)NativeAudioNodeDelay.cpp',
+            '<(native_av_path)AV.cpp',
+            '<(native_av_path)AudioNode.cpp',
+            '<(native_av_path)Audio.cpp',
+            '<(native_av_path)Video.cpp',
+            '<(native_av_path)AudioNodeGain.cpp',
+            '<(native_av_path)AudioNodeDelay.cpp',
         ],
     }],
 }

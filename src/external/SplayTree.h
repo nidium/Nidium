@@ -1,7 +1,7 @@
-#include <functional>
-
 #ifndef SPLAY_TREE
 #define SPLAY_TREE
+
+#include <functional>
 
 template< typename T>
 class SplayTree {
