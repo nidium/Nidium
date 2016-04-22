@@ -5,7 +5,7 @@
 #include <pthread.h>
 
 #include <jspubtd.h>
-#include <native_netlib.h>
+#include <ape_netlib.h>
 #include <Core/SharedMessages.h>
 
 #include "NativeAV.h"

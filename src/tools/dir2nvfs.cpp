@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 
 #include <jsapi.h>
-#include <native_netlib.h>
+#include <ape_netlib.h>
 
 #include <NFS.h>
 #include <FileStream.h>

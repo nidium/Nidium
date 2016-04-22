@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <native_netlib.h>
+#include <ape_netlib.h>
 
 #include <Binding/NidiumJS.h>
 

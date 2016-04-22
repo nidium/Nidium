@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include <ape_hash.h>
-#include <native_netlib.h>
+#include <ape_netlib.h>
 
 #include <IO/Stream.h>
 #include <Core/Messages.h>
