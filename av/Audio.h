@@ -33,10 +33,10 @@ struct PaUtilRingBuffer;
 struct PaStreamCallbackTimeInfo;
 typedef void PaStream;
 typedef unsigned long PaStreamCallbackFlags;
-typedef int PaStreamCallback(const void *input, void *output, unsigned long frameCount, 
+typedef int PaStreamCallback(const void *input, void *output, unsigned long frameCount,
         const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags, void *userData);
 
-typedef void (*AudioMessageCallback)(void *custom); 
+typedef void (*AudioMessageCallback)(void *custom);
 
 class NativeAudio
 {
@@ -81,7 +81,7 @@ class NativeAudio
         static void *queueThread(void *args);
         static void *decodeThread(void *args);
         void bufferData();
-        static int InitPortAudioOutput(NativeAudioParameters *params, 
+        static int InitPortAudioOutput(NativeAudioParameters *params,
                 PaStream **outputStream, PaStreamCallback *callback, void *userData);
         static int GetOutputBufferSize(NativeAudioParameters *params);
         int openOutput();

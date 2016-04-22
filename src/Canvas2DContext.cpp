@@ -1586,7 +1586,6 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
                 JSAutoByteString colorName(cx, vpStr);
                 curSkia->setFillColor(colorName.ptr());
 
-                
                 state->m_CurrentShader.setUndefined();
 
             } else if (vp.isObject() &&
@@ -1626,7 +1625,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
                 JS::RootedString vpStr(cx, JS::ToString(cx, vp));
                 JSAutoByteString colorName(cx, vpStr);
                 curSkia->setStrokeColor(colorName.ptr());
-                
+
                 state->m_CurrentStrokeShader.setUndefined();
 
             } else if (vp.isObject() &&
@@ -1766,7 +1765,6 @@ static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
             }
 
             if (ret.isUndefined()) {
-                
                 char rgba_str[64];
 
                 NativeSkia::GetStringColor(curColor, rgba_str);
@@ -1877,7 +1875,7 @@ void Canvas2DContext_Trace(JSTracer *trc, JSObject *obj)
 
         /* Does this matter if we trace an UndefinedValue? */
         JS_CallHeapValueTracer(trc, &state->m_CurrentShader, "NativeCanvas2DContextShader");
-        JS_CallHeapValueTracer(trc, &state->m_CurrentStrokeShader, "NativeCanvas2DContextShader"); 
+        JS_CallHeapValueTracer(trc, &state->m_CurrentStrokeShader, "NativeCanvas2DContextShader");
     }
 }
 

@@ -1289,7 +1289,7 @@ static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
         JS::ToInt32(cx, args[3], &h);
 
         h = ape_max(h, 1);
-        
+
     } else {
         JS_ReportError(cx, "setFrame() invalid height");
 
@@ -1297,7 +1297,7 @@ static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
 
-    NativeContext::GetObject(cx)->setWindowFrame((int)x, (int)y, (int) w, (int) h );
+    NativeContext::GetObject(cx)->setWindowFrame((int)x, (int)y, (int) w, (int) h);
 
     return true;
 }

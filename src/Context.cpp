@@ -349,7 +349,6 @@ NativeContext::~NativeContext()
     delete m_JS;
     delete m_GLState;
     delete m_WS;
-    
 
     NativeSkia::m_GlContext = NULL;
 

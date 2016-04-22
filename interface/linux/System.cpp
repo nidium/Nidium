@@ -32,7 +32,7 @@ static void get_dpi(int *x, int *y)
     }
 
 
-    /* 
+    /*
      * There are 2.54 centimeters to an inch; so there are 25.4 millimeters.
      *
      *     dpi = N pixels / (M millimeters / (25.4 millimeters / 1 inch))

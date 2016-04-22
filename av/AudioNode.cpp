@@ -664,8 +664,8 @@ bool NativeAudioNodeCustom::process()
 NativeAudioSource::NativeAudioSource(int out, NativeAudio *audio, bool external) :
     NativeAudioNode(0, out, audio), m_OutputParameters(NULL),
     m_BufferNotEmpty(NULL), m_rBufferOut(NULL), m_Reader(NULL),
-    m_ExternallyManaged(external), m_Playing(false), m_PlayWhenReady(false), 
-    m_Stopped(false), m_Loop(false), m_NbChannel(0), m_CodecCtx(NULL), 
+    m_ExternallyManaged(external), m_Playing(false), m_PlayWhenReady(false),
+    m_Stopped(false), m_Loop(false), m_NbChannel(0), m_CodecCtx(NULL),
     m_TmpPacket(NULL), m_Clock(0), m_FrameConsumed(true), m_PacketConsumed(true),
     m_SamplesConsumed(0), m_AudioStream(-1), m_FailedDecoding(0),
     m_SwrCtx(NULL), m_sCvt(NULL), m_fCvt(NULL), m_AvioBuffer(NULL),
@@ -1189,7 +1189,7 @@ int NativeAudioSource::resample(int destSamples) {
                 passCopied += write;
 
                 /*
-                 * Since the samples has been pushed inside the 
+                 * Since the samples has been pushed inside the
                  * decoded buffer we need to update the clock accordingly.
                  */
                 m_Clock += write * (1.0/m_Audio->m_OutputParameters->m_SampleRate);

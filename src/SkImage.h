@@ -23,7 +23,7 @@ class NativeSkImage
 
 
     SkData *getPNG();
-    
+
     static bool ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba,
         bool flipY, bool premultiply);
 

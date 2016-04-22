@@ -1431,7 +1431,6 @@ static bool native_canvas_prop_get(JSContext *cx, JS::HandleObject obj,
 
             for (int i = 0; native_cursors_list[i].str != NULL; i++) {
                 if (native_cursors_list[i].type == cursor) {
-                    
                     vp.setString(JS_NewStringCopyZ(cx, native_cursors_list[i].str));
 
                     break;

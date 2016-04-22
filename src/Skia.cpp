@@ -164,12 +164,12 @@ void NativeSkia::GetStringColor(uint32_t color, char *out)
         returned instead of a literal #RRGGBB
     */
     if (SkColorGetA(color) != 0xff) {
-        
+
         sprintf(out, "rgba(%d, %d, %d, %.2f)",
             SkColorGetR(color),
             SkColorGetG(color),
             SkColorGetB(color),
-            SkColorGetA(color) / 255.f);                
+            SkColorGetA(color) / 255.f);
     } else {
         sprintf(out, "#%.2x%.2x%.2x",
             SkColorGetR(color),

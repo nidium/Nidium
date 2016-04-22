@@ -154,7 +154,7 @@ static bool native_document_toDataArray(JSContext *cx, unsigned argc, JS::Value 
     NativeContext *nctx = NativeContext::GetObject(cx);
 
     uint8_t *fb = nctx->getUI()->readScreenPixel();
-    
+
     NativeSkImage *img = new NativeSkImage(fb, width, height);
     SkData *data;
 

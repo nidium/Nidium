@@ -155,7 +155,7 @@ class NativeSkia
         {
             return currentShadow.color;
         }
-        
+
         const char *getLineCap() const;
         const char *getLineJoin() const;
 

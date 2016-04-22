@@ -83,7 +83,8 @@ class NativeJSAVSource
 class NativeJSAudio: public Nidium::Binding::JSExposer<NativeJSAudio>
 {
     public :
-        static NativeJSAudio *getContext(JSContext *cx, JS::HandleObject obj, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate);
+        static NativeJSAudio *getContext(JSContext *cx, JS::HandleObject obj, \
+            unsigned int bufferSize, unsigned int channels, unsigned int sampleRate);
         static NativeJSAudio *getContext();
 
         struct Nodes {

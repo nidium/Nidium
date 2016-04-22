@@ -19,7 +19,7 @@ extern "C" {
 /* Audio processing buffer multiplier (must be power of 2) */
 #define NATIVE_AUDIO_BUFFER_MULTIPLIER 4
 /* Max size for the resampling buffer */
-#define NATIVE_RESAMPLER_BUFFER_SAMPLES 16384 
+#define NATIVE_RESAMPLER_BUFFER_SAMPLES 16384
 
 
 #define SOURCE_EVENT_PLAY      0x01
@@ -133,7 +133,7 @@ struct NativeAudioParameters {
     int  m_AskedBufferSize, m_BufferSize, m_Channels, m_SampleFmt, m_SampleRate, m_FramesPerBuffer;
     NativeAudioParameters(int askedBufferSize, int bufferSize, int channels,
                           int sampleFmt, int sampleRate)
-        : m_AskedBufferSize(askedBufferSize), m_BufferSize(bufferSize), 
+        : m_AskedBufferSize(askedBufferSize), m_BufferSize(bufferSize),
           m_Channels(channels), m_SampleFmt(sampleFmt), m_SampleRate(sampleRate),
           m_FramesPerBuffer(bufferSize/(sampleFmt * channels))
     {
