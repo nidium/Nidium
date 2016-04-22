@@ -41,7 +41,7 @@ static JSClass global_Thread_class = {
 };
 
 static JSClass Thread_class = {
-    "Thread", JSCLASS_HAS_PRIVATE,
+    "Thread", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Thread_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
@@ -114,6 +114,7 @@ static void *nidium_thread(void *arg)
 
     if ((tcx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
+        JS_DestroyRuntime(rt);
         return NULL;
     } else {
         JSAutoRequest ar(tcx);
@@ -153,6 +154,8 @@ static void *nidium_thread(void *arg)
                 };
             */
             sprintf(scoped, "return %c%s%s", '(', str.ptr(), ").apply(this, Array.prototype.slice.apply(arguments));");
+
+            JS_SetReservedSlot(nthread->getJSObject(), 0, JS::NullHandleValue);
 
             /* Hold the parent cx */
             JS_SetContextPrivate(tcx, nthread);
@@ -206,7 +209,7 @@ static void *nidium_thread(void *arg)
 
 JSThread::JSThread(JS::HandleObject obj, JSContext *cx) :
     JSExposer<JSThread>(obj, cx),
-    jsFunction(cx), jsRuntime(NULL), jsCx(NULL),
+    jsRuntime(NULL), jsCx(NULL),
     jsObject(NULL), njs(NULL), markedStop(false), m_CallerFileName(NULL)
 {
     /* cx hold the main context (caller) */

@@ -31,6 +31,8 @@
 #define TEST_URL_DIR TEST_URL "tmp/"
 #define TEST_PREFIX_FILE TEST_PREFIX TEST_FILE
 
+using Nidium::Core::Path;
+
 /*
     Class for testing prefixed stream with a base dir different than "/"
 */
@@ -61,17 +63,17 @@ class UserStream : public Nidium::IO::FileStream
 
 TEST(Path, RegisterScheme)
 {
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("file://",    Nidium::IO::FileStream,    false), true); // default
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("http://",    Nidium::Net::HTTPStream,    true));
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("https://",   Nidium::Net::HTTPStream,    true));
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("nvfs://",    Nidium::IO::NFSStream,     false));
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("user://",    UserStream,    false));
+    Path::registerScheme(SCHEME_DEFINE("file://",    Nidium::IO::FileStream,    false), true); // default
+    Path::registerScheme(SCHEME_DEFINE("http://",    Nidium::Net::HTTPStream,    true));
+    Path::registerScheme(SCHEME_DEFINE("https://",   Nidium::Net::HTTPStream,    true));
+    Path::registerScheme(SCHEME_DEFINE("nvfs://",    Nidium::IO::NFSStream,     false));
+    Path::registerScheme(SCHEME_DEFINE("user://",    UserStream,    false));
 }
 
 // {{{ Sanitize
 TEST(Path, Sanitize)
 {
-    char *sanitized = Nidium::Core::Path::sanitize("dir/../");
+    char *sanitized = Path::sanitize("dir/../");
 
     ASSERT_STREQ("", sanitized);
 
@@ -80,7 +82,7 @@ TEST(Path, Sanitize)
 
 TEST(Path, Sanitize2)
 {
-    char *sanitized = Nidium::Core::Path::sanitize("dir//./a/.././file");
+    char *sanitized = Path::sanitize("dir//./a/.././file");
 
     ASSERT_STREQ("dir/file", sanitized);
 
@@ -89,16 +91,72 @@ TEST(Path, Sanitize2)
 
 TEST(Path, Sanitize3)
 {
-    char *sanitized = Nidium::Core::Path::sanitize("foo/bar/../file");
+    char *sanitized = Path::sanitize("foo/bar/../file");
 
     ASSERT_STREQ("foo/file", sanitized);
 
     free(sanitized);
 }
 
+TEST(Path, Sanitize4)
+{
+    char *sanitized = Path::sanitize("dir/..");
+
+    ASSERT_STREQ("", sanitized);
+
+    free(sanitized);
+}
+
+TEST(Path, Sanitize5)
+{
+    bool external = false;
+    char *sanitized = Path::sanitize("dir/../..", &external);
+
+    ASSERT_STREQ("../", sanitized);
+    ASSERT_TRUE(external);
+
+    free(sanitized);
+}
+
+TEST(Path, SanitizeEmpty)
+{
+    char *sanitized = Path::sanitize("");
+
+    ASSERT_STREQ("", sanitized);
+
+    free(sanitized);
+}
+
+TEST(Path, SanitizeDot)
+{
+    char *sanitized = Path::sanitize(".");
+
+    ASSERT_STREQ("", sanitized);
+
+    free(sanitized);
+}
+
+TEST(Path, SanitizeDotSlash)
+{
+    char *sanitized = Path::sanitize("./");
+
+    ASSERT_STREQ("", sanitized);
+
+    free(sanitized);
+}
+
+TEST(Path, SanitizeNull)
+{
+    char *sanitized = Path::sanitize(nullptr);
+
+    ASSERT_STREQ(nullptr, sanitized);
+
+    free(sanitized);
+}
+
 TEST(Path, SanitizeAbsoluteInvalid)
 {
-    char *sanitized = Nidium::Core::Path::sanitize(TEST_DIR "../../");
+    char *sanitized = Path::sanitize(TEST_DIR "../../");
 
     ASSERT_STREQ(nullptr, sanitized);
 
@@ -108,7 +166,7 @@ TEST(Path, SanitizeAbsoluteInvalid)
 TEST(Path, SanitizeAbsolute)
 {
     // Path is : /tmp/../tmp/file 
-    char *sanitized = Nidium::Core::Path::sanitize(TEST_DIR ".." TEST_DIR TEST_FILE);
+    char *sanitized = Path::sanitize(TEST_DIR ".." TEST_DIR TEST_FILE);
 
     ASSERT_STREQ(TEST_DIR TEST_FILE, sanitized);
 
@@ -117,7 +175,7 @@ TEST(Path, SanitizeAbsolute)
 
 TEST(Path, SanitizeRelativeOutsideRoot)
 {
-    char *sanitized = Nidium::Core::Path::sanitize("file/../../");
+    char *sanitized = Path::sanitize("file/../../");
 
     ASSERT_STREQ("../", sanitized);
 
@@ -129,7 +187,7 @@ TEST(Path, SanitizeRelativeOutsideRoot)
 // {{{ Path without chroot
 TEST(Path, InvalidAbsoluteFileNoChroot)
 {
-    Nidium::Core::Path path("/absolute/path/file", false, false);
+    Path path("/absolute/path/file", false, false);
 
     ASSERT_STREQ(nullptr, path.dir());
     ASSERT_STREQ(nullptr, path.path());
@@ -140,7 +198,7 @@ TEST(Path, AbsoluteFileNoChroot)
     int fd = open(TEST_ABS_FILE, O_RDWR | O_CREAT, S_IRUSR | S_IRGRP | S_IROTH);
     close(fd);
 
-    Nidium::Core::Path path(TEST_ABS_FILE, false, false);
+    Path path(TEST_ABS_FILE, false, false);
 
     unlink(TEST_ABS_FILE);
 
@@ -150,7 +208,7 @@ TEST(Path, AbsoluteFileNoChroot)
 
 TEST(Path, InvalidRelativeFileNoChroot)
 {
-    Nidium::Core::Path path("file", false, false);
+    Path path("file", false, false);
 
     ASSERT_STREQ(nullptr, path.dir());
     ASSERT_STREQ(nullptr, path.path());
@@ -162,7 +220,7 @@ TEST(Path, RelativeFileNoChroot)
     char testFilePath [PATH_MAX];
     char *testDirPath = nullptr;
 
-    Nidium::Core::Path path(TEST_REL_FILE, false, false);
+    Path path(TEST_REL_FILE, false, false);
 
     close(fd);
 
@@ -188,7 +246,7 @@ TEST(Path, RelativeFileNoChroot)
 
 TEST(Path, HttpNoChroot)
 {
-    Nidium::Core::Path path(TEST_URL_FILE, false, false);
+    Path path(TEST_URL_FILE, false, false);
 
     ASSERT_STREQ(TEST_URL, path.dir());
     ASSERT_STREQ(TEST_URL_FILE, path.path());
@@ -199,23 +257,23 @@ TEST(Path, HttpNoChroot)
 // {{{ cd & chroot (local)
 TEST(Path, CdLocal)
 {
-    Nidium::Core::Path::cd(TEST_DIR);
+    Path::cd(TEST_DIR);
 
-    ASSERT_STREQ(TEST_DIR, Nidium::Core::Path::getPwd());
+    ASSERT_STREQ(TEST_DIR, Path::getPwd());
 }
 
 TEST(Path, ChrootLocal)
 {
-    Nidium::Core::Path::chroot(TEST_DIR);
+    Path::chroot(TEST_DIR);
 
-    ASSERT_STREQ(TEST_DIR, Nidium::Core::Path::getRoot());
+    ASSERT_STREQ(TEST_DIR, Path::getRoot());
 }
 // }}}
 
 // {{{ Relative paths
 TEST(Path, RelativeFile)
 {
-    Nidium::Core::Path path(TEST_REL_FILE, false, false);
+    Path path(TEST_REL_FILE, false, false);
 
     ASSERT_STREQ(TEST_DIR, path.dir());
     ASSERT_STREQ(TEST_DIR TEST_REL_FILE, path.path());
@@ -224,7 +282,7 @@ TEST(Path, RelativeFile)
 TEST(Path, RelativeFileUTF8)
 {
 #define UTF8_FILENAME "♥ Nidium"
-    Nidium::Core::Path path(UTF8_FILENAME, false, false);
+    Path path(UTF8_FILENAME, false, false);
 
     ASSERT_STREQ(TEST_DIR, path.dir());
     ASSERT_STREQ(TEST_DIR UTF8_FILENAME, path.path());
@@ -233,7 +291,7 @@ TEST(Path, RelativeFileUTF8)
 
 TEST(Path, RelativeFileDot)
 {
-    Nidium::Core::Path path("./" TEST_REL_FILE, false, false);
+    Path path("./" TEST_REL_FILE, false, false);
 
     ASSERT_STREQ(TEST_DIR, path.dir());
     ASSERT_STREQ(TEST_DIR TEST_REL_FILE, path.path());
@@ -241,7 +299,7 @@ TEST(Path, RelativeFileDot)
 
 TEST(Path, RelativeFileOutChroot)
 {
-    Nidium::Core::Path path(TEST_REL_OUTSIDE_FILE, false, false);
+    Path path(TEST_REL_OUTSIDE_FILE, false, false);
 
     ASSERT_STREQ(nullptr, path.dir());
     ASSERT_STREQ(nullptr, path.path());
@@ -249,7 +307,7 @@ TEST(Path, RelativeFileOutChroot)
 
 TEST(Path, RelativeFileOutChrootAllowAll)
 {
-    Nidium::Core::Path path(TEST_REL_OUTSIDE_FILE, true, false);
+    Path path(TEST_REL_OUTSIDE_FILE, true, false);
 
     ASSERT_STREQ("/", path.dir());
     ASSERT_STREQ("/" TEST_FILE, path.path());
@@ -259,7 +317,7 @@ TEST(Path, RelativeFileOutChrootAllowAll)
 // {{{ Absolute paths
 TEST(Path, AbsoluteFile)
 {
-    Nidium::Core::Path path(TEST_ABS_FILE, false, false);
+    Path path(TEST_ABS_FILE, false, false);
 
     ASSERT_STREQ(TEST_DIR, path.dir());
     ASSERT_STREQ(TEST_DIR TEST_FILE, path.path());
@@ -267,7 +325,7 @@ TEST(Path, AbsoluteFile)
 
 TEST(Path, AbsoluteFileOutChroot)
 {
-    Nidium::Core::Path path(TEST_ABS_OUTSIDE_FILE, false, false);
+    Path path(TEST_ABS_OUTSIDE_FILE, false, false);
 
     ASSERT_STREQ(nullptr, path.dir());
     ASSERT_STREQ(nullptr, path.path());
@@ -275,7 +333,7 @@ TEST(Path, AbsoluteFileOutChroot)
 
 TEST(Path, AbsoluteFileOutChrootAllowAll)
 {
-    Nidium::Core::Path path(TEST_ABS_OUTSIDE_FILE, true, false);
+    Path path(TEST_ABS_OUTSIDE_FILE, true, false);
 
     ASSERT_STREQ(TEST_DIR_OUTSIDE, path.dir());
     ASSERT_STREQ(TEST_DIR_OUTSIDE TEST_FILE, path.path());
@@ -285,7 +343,7 @@ TEST(Path, AbsoluteFileOutChrootAllowAll)
 // {{{ Http Paths
 TEST(Path, WithHttp)
 {
-    Nidium::Core::Path path(TEST_URL_FILE);
+    Path path(TEST_URL_FILE);
 
     ASSERT_STREQ(TEST_HOST, path.host());
     ASSERT_STREQ(TEST_URL, path.dir());
@@ -294,7 +352,7 @@ TEST(Path, WithHttp)
 
 TEST(Path, WithHttpNoFile)
 {
-    Nidium::Core::Path path(TEST_URL);
+    Path path(TEST_URL);
 
     ASSERT_STREQ(TEST_HOST, path.host());
     ASSERT_STREQ(TEST_URL, path.dir());
@@ -303,7 +361,7 @@ TEST(Path, WithHttpNoFile)
 
 TEST(Path, WithHttpComplex)
 {
-    Nidium::Core::Path path(TEST_URL "foo/../");
+    Path path(TEST_URL "foo/../");
 
     ASSERT_STREQ(TEST_HOST, path.host());
     ASSERT_STREQ(TEST_URL, path.dir());
@@ -312,7 +370,7 @@ TEST(Path, WithHttpComplex)
 
 TEST(Path, WithHttpComplex2)
 {
-    Nidium::Core::Path path(TEST_URL "/foo/bar/../file");
+    Path path(TEST_URL "/foo/bar/../file");
 
     ASSERT_STREQ(TEST_HOST, path.host());
     ASSERT_STREQ(TEST_URL "foo/", path.dir());
@@ -321,7 +379,7 @@ TEST(Path, WithHttpComplex2)
 
 TEST(Path, WithHttpProtoTooMuchSlashes)
 {
-    Nidium::Core::Path path("http:///www.nidium.com/");
+    Path path("http:///www.nidium.com/");
 
     ASSERT_STREQ(TEST_HOST, path.host());
     ASSERT_STREQ(TEST_URL, path.dir());
@@ -330,7 +388,7 @@ TEST(Path, WithHttpProtoTooMuchSlashes)
 
 TEST(Path, WithHttpHostWithoutTrailingSlash)
 {
-    Nidium::Core::Path path("http://www.nidium.com");
+    Path path("http://www.nidium.com");
 
     ASSERT_STREQ(TEST_HOST, path.host());
     ASSERT_STREQ(TEST_URL, path.dir());
@@ -339,7 +397,7 @@ TEST(Path, WithHttpHostWithoutTrailingSlash)
 
 TEST(Path, WithInvalidHttp)
 {
-    Nidium::Core::Path path(TEST_URL "foo/../../");
+    Path path(TEST_URL "foo/../../");
 
     ASSERT_STREQ(nullptr, path.host());
     ASSERT_STREQ(nullptr, path.dir());
@@ -351,7 +409,7 @@ TEST(Path, WithInvalidHttp)
 // {{{ Prefixed paths
 TEST(Path, SanitizePrefixFile)
 {
-    Nidium::Core::Path path("nvfs://" TEST_FILE);
+    Path path("nvfs://" TEST_FILE);
 
     ASSERT_STREQ("/" TEST_FILE, path.path());
     ASSERT_STREQ("/", path.dir());
@@ -359,7 +417,7 @@ TEST(Path, SanitizePrefixFile)
 
 TEST(Path, SanitizePrefixDir)
 {
-    Nidium::Core::Path path("nvfs://" TEST_DIR);
+    Path path("nvfs://" TEST_DIR);
 
     ASSERT_STREQ(TEST_DIR, path.path());
     ASSERT_STREQ(TEST_DIR, path.dir());
@@ -367,7 +425,7 @@ TEST(Path, SanitizePrefixDir)
 
 TEST(Path, SanitizePrefixUser)
 {
-    Nidium::Core::Path path("user://foo/bar");
+    Path path("user://foo/bar");
 
     ASSERT_STREQ(USER_STREAM_BASE_DIR "foo/", path.dir());
     ASSERT_STREQ(USER_STREAM_BASE_DIR "foo/bar", path.path());
@@ -375,7 +433,7 @@ TEST(Path, SanitizePrefixUser)
 
 TEST(Path, SanitizePrefixUserOutside)
 {
-    Nidium::Core::Path path("user://foo/../../");
+    Path path("user://foo/../../");
 
     ASSERT_STREQ(nullptr, path.dir());
     ASSERT_STREQ(nullptr, path.path());
@@ -385,14 +443,14 @@ TEST(Path, SanitizePrefixUserOutside)
 // {{{ cd subdirectory of chroot
 TEST(Path, CdLocalSubdir)
 {
-    Nidium::Core::Path::cd(TEST_DIR "/bar/");
+    Path::cd(TEST_DIR "/bar/");
 
-    ASSERT_STREQ(TEST_DIR "/bar/", Nidium::Core::Path::getPwd());
+    ASSERT_STREQ(TEST_DIR "/bar/", Path::getPwd());
 }
 
 TEST(Path, RelativeFileDifferentCwd)
 {
-    Nidium::Core::Path path(TEST_REL_FILE, false, false);
+    Path path(TEST_REL_FILE, false, false);
 
     ASSERT_STREQ(TEST_DIR "bar/", path.dir());
     ASSERT_STREQ(TEST_DIR "bar/" TEST_REL_FILE, path.path());
@@ -402,23 +460,23 @@ TEST(Path, RelativeFileDifferentCwd)
 // {{{ cd & chroot (remote with directory)
 TEST(Path, CdRemote)
 {
-    Nidium::Core::Path::cd(TEST_URL_DIR);
+    Path::cd(TEST_URL_DIR);
 
-    ASSERT_STREQ(TEST_URL_DIR, Nidium::Core::Path::getPwd());
+    ASSERT_STREQ(TEST_URL_DIR, Path::getPwd());
 }
 
 TEST(Path, ChrootRemote)
 {
-    Nidium::Core::Path::chroot(TEST_URL_DIR);
+    Path::chroot(TEST_URL_DIR);
 
-    ASSERT_STREQ(TEST_URL_DIR, Nidium::Core::Path::getRoot());
+    ASSERT_STREQ(TEST_URL_DIR, Path::getRoot());
 }
 // }}}
 
 // {{{ Path with remote chroot in a directory
 TEST(Path, RelativeRemote)
 {
-    Nidium::Core::Path path(TEST_FILE, false, false);
+    Path path(TEST_FILE, false, false);
 
     ASSERT_STREQ(TEST_URL_DIR, path.dir());
     ASSERT_STREQ(TEST_URL_DIR TEST_FILE, path.path());
@@ -426,7 +484,7 @@ TEST(Path, RelativeRemote)
 
 TEST(Path, FilePrefixWithRemoteRoot)
 {
-    Nidium::Core::Path path("file://foo/bar", false, false);
+    Path path("file://foo/bar", false, false);
 
     ASSERT_STREQ(nullptr, path.dir());
     ASSERT_STREQ(nullptr, path.path());
@@ -434,7 +492,7 @@ TEST(Path, FilePrefixWithRemoteRoot)
 
 TEST(Path, AbsolutePathRemoteRoot)
 {
-    Nidium::Core::Path path("/foo/bar", false, false);
+    Path path("/foo/bar", false, false);
 
     ASSERT_STREQ(TEST_HOST, path.host());
     ASSERT_STREQ(TEST_URL "foo/", path.dir());
@@ -443,7 +501,7 @@ TEST(Path, AbsolutePathRemoteRoot)
 
 TEST(Path, AbsoluteOtherHost)
 {
-    Nidium::Core::Path path("http://www.foo.com/dir/file", false, false);
+    Path path("http://www.foo.com/dir/file", false, false);
 
     ASSERT_STREQ("www.foo.com", path.host());
     ASSERT_STREQ("http://www.foo.com/dir/", path.dir());
@@ -452,7 +510,7 @@ TEST(Path, AbsoluteOtherHost)
 
 TEST(Path, RelativeRemoteOutsideChroot)
 {
-    Nidium::Core::Path path("../../", false, false);
+    Path path("../../", false, false);
 
     ASSERT_STREQ(nullptr, path.dir());
     ASSERT_STREQ(nullptr, path.path());
@@ -462,23 +520,23 @@ TEST(Path, RelativeRemoteOutsideChroot)
 // {{{ cd & chroot (remote "/")
 TEST(Path, CdRemoteSlash)
 {
-    Nidium::Core::Path::cd(TEST_URL);
+    Path::cd(TEST_URL);
 
-    ASSERT_STREQ(TEST_URL, Nidium::Core::Path::getPwd());
+    ASSERT_STREQ(TEST_URL, Path::getPwd());
 }
 
 TEST(Path, ChrootRemoteSlash)
 {
-    Nidium::Core::Path::chroot(TEST_URL);
+    Path::chroot(TEST_URL);
 
-    ASSERT_STREQ(TEST_URL, Nidium::Core::Path::getRoot());
+    ASSERT_STREQ(TEST_URL, Path::getRoot());
 }
 // }}}
 
-// {{{ Nidium::Core::Path with remote chroot on /
+// {{{ Path with remote chroot on /
 TEST(Path, RelativeRemoteSlash)
 {
-    Nidium::Core::Path path(TEST_FILE, false, false);
+    Path path(TEST_FILE, false, false);
 
     ASSERT_STREQ(TEST_URL, path.dir());
     ASSERT_STREQ(TEST_URL TEST_FILE, path.path());
@@ -486,7 +544,7 @@ TEST(Path, RelativeRemoteSlash)
 
 TEST(Path, AbsolutePathRemoteRootSlash)
 {
-    Nidium::Core::Path path("/foo/bar", false, false);
+    Path path("/foo/bar", false, false);
 
     ASSERT_STREQ(TEST_HOST, path.host());
     ASSERT_STREQ(TEST_URL "foo/", path.dir());

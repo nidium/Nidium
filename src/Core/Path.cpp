@@ -43,7 +43,7 @@ Path::Path(const char *origin, bool allowAll, bool noFilter) :
         } else {
             std::string tmp;
             if (scheme->getBaseDir() != nullptr) {
-                tmp += m_Scheme->getBaseDir();
+                tmp += scheme->getBaseDir();
             }
             tmp += pOrigin;
 
@@ -163,8 +163,8 @@ void Path::parse(const char *origin)
     }
 
     m_Path = Path::sanitize(path);
-    if (!m_Path || m_Path[0] == '.') {
-        // No path, or going outside "/"
+    if (!m_Path) {
+        // No path 
         return;
     }
 
@@ -296,6 +296,21 @@ void Path::makedirs(const char* dirWithSlashes)
 
 }
 
+#define HANDLE_DOUBLE_DOT()\
+    counter--;\
+    counterPos = nidium_max(0, counterPos - 1);\
+    if (counter < 0) {\
+        outsideRoot = true;\
+        if (!isRelative) {\
+            if (external) {\
+                *external = true;\
+            }\
+            return nullptr;\
+        }\
+    }\
+    elements[counterPos].clear();\
+    minCounter = nidium_min(counter, minCounter);
+
 // XXX : Only works with path (not URIs)
 char *Path::sanitize(const char *path, bool *external)
 {
@@ -311,9 +326,13 @@ char *Path::sanitize(const char *path, bool *external)
         *external = false;
     }
 
+    if (path == nullptr) {
+        return nullptr;
+    }
+
     int pathlen = strlen(path);
     if (pathlen == 0) {
-        return NULL;
+        return strdup("");
     }
 
     int counter = 0, minCounter = 0, counterPos = 0;
@@ -351,19 +370,7 @@ char *Path::sanitize(const char *path, bool *external)
                         counterPos++;
                         break;
                     case PATH_STATE_DOUBLE_DOT:
-                        counter--;
-                        counterPos = nidium_max(0, counterPos - 1);
-                        if (counter < 0) {
-                            outsideRoot = true;
-                            if (!isRelative) {
-                                if (external) {
-                                    *external = true;
-                                }
-                                return nullptr;
-                            }
-                        }
-                        elements[counterPos].clear();
-                        minCounter = nidium_min(counter, minCounter);
+                        HANDLE_DOUBLE_DOT()
                         break;
                     case PATH_STATE_SLASH:
                         break;
@@ -379,6 +386,10 @@ char *Path::sanitize(const char *path, bool *external)
         }
     }
 
+    if (state == PATH_STATE_DOUBLE_DOT) {
+        HANDLE_DOUBLE_DOT()
+    }
+
     std::string finalPath;
     if (outsideRoot) {
         for (int i = minCounter; i != 0; i++) {
@@ -388,13 +399,12 @@ char *Path::sanitize(const char *path, bool *external)
         finalPath += "/";
     }
 
+
     for (int i = 0; elements[i].length() != 0; i++) {
         finalPath += elements[i] + "/";
     }
 
-    if (finalPath.length() > 0 && path[pathlen-1] != '/' &&
-        finalPath[finalPath.length()-1] == '/') {
-
+    if (finalPath.length() > 0 && state == PATH_STATE_NAME) {
         finalPath[finalPath.length()-1] = '\0';
     }
 
@@ -408,6 +418,7 @@ char *Path::sanitize(const char *path, bool *external)
 
     return strdup(finalPath.c_str());
 }
+#undef HANDLE_DOUBLE_DOT
 
 void Path::invalidatePath()
 {

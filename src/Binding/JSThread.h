@@ -27,7 +27,7 @@ class JSThread : public JSExposer<JSThread>, public Nidium::Core::Messages
     void onComplete(JS::HandleValue vp);
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 
-    JS::PersistentRootedString jsFunction;
+    JS::Heap<JSString *> jsFunction;
 
     JSRuntime *jsRuntime;
     JSContext *jsCx;

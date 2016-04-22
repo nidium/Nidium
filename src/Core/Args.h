@@ -25,11 +25,11 @@ public:
         void *toPtr() const {
             return m_ValuePtr;
         }
-        uint64_t toInt64() const {
+        int64_t toInt64() const {
             return m_Value;
         }
-        uint32_t toInt() const {
-            return static_cast<uint32_t>(m_Value);
+        int32_t toInt() const {
+            return static_cast<int32_t>(m_Value);
         }
 
         bool toBool() const {

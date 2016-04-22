@@ -84,7 +84,7 @@ static bool nidium_process_exit(JSContext *cx, unsigned argc, JS::Value *vp)
         code = args[0].toInt32();
     }
 
-    exit(code);
+    quick_exit(code);
 
     return true;
 }
