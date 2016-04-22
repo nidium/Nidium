@@ -5,7 +5,7 @@
 */
 #include "NativeJSProcess.h"
 
-#include <native_netlib.h>
+#include <ape_netlib.h>
 
 static void Process_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp);
