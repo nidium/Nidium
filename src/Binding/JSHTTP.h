@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nativejshttp_h__
-#define nativejshttp_h__
+#ifndef binding_jshttp_h__
+#define binding_jshttp_h__
 
 #include <ape_netlib.h>
 #include <ape_array.h>
