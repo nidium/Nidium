@@ -45,10 +45,10 @@ static JSPropertySpec Image_props[] = {
 };
 
 static JSFunctionSpec Image_funcs[] = {
-    JS_FN("shiftHue", native_image_shiftHue, 2, NATIVE_JS_FNPROPS),
-    JS_FN("markColorInAlpha", native_image_markColorInAlpha, 0, NATIVE_JS_FNPROPS),
-    JS_FN("desaturate", native_image_desaturate, 0, NATIVE_JS_FNPROPS),
-    JS_FN("print", native_image_print, 0, NATIVE_JS_FNPROPS),
+    JS_FN("shiftHue", native_image_shiftHue, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("markColorInAlpha", native_image_markColorInAlpha, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("desaturate", native_image_desaturate, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("print", native_image_print, 0, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 

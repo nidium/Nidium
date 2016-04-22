@@ -132,26 +132,26 @@ static JSClass NMLEvent_class = {
 };
 
 static JSFunctionSpec storage_funcs[] = {
-    JS_FN("set", native_storage_set, 2, NATIVE_JS_FNPROPS),
-    JS_FN("get", native_storage_get, 1, NATIVE_JS_FNPROPS),
+    JS_FN("set", native_storage_set, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("get", native_storage_get, 1, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec window_funcs[] = {
-    JS_FN("openFileDialog", native_window_openFileDialog, 2, NATIVE_JS_FNPROPS),
-    JS_FN("openDirDialog", native_window_openDirDialog, 1, NATIVE_JS_FNPROPS),
-    JS_FN("setSize", native_window_setSize, 2, NATIVE_JS_FNPROPS),
-    JS_FN("requestAnimationFrame", native_window_requestAnimationFrame, 1, NATIVE_JS_FNPROPS),
-    JS_FN("center", native_window_center, 0, NATIVE_JS_FNPROPS),
-    JS_FN("setPosition", native_window_setPosition, 2, NATIVE_JS_FNPROPS),
-    JS_FN("setFrame", native_window_setFrame, 4, NATIVE_JS_FNPROPS),
-    JS_FN("notify", native_window_notify, 2, NATIVE_JS_FNPROPS),
-    JS_FN("quit", native_window_quit, 0, NATIVE_JS_FNPROPS),
-    JS_FN("close", native_window_close, 0, NATIVE_JS_FNPROPS),
-    JS_FN("open", native_window_open, 0, NATIVE_JS_FNPROPS),
-    JS_FN("setSystemTray", native_window_setSystemTray, 1, NATIVE_JS_FNPROPS),
-    JS_FN("openURL", native_window_openURLInBrowser, 1, NATIVE_JS_FNPROPS),
-    JS_FN("exec", native_window_exec, 1, NATIVE_JS_FNPROPS),
+    JS_FN("openFileDialog", native_window_openFileDialog, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("openDirDialog", native_window_openDirDialog, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("setSize", native_window_setSize, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("requestAnimationFrame", native_window_requestAnimationFrame, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("center", native_window_center, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("setPosition", native_window_setPosition, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("setFrame", native_window_setFrame, 4, NIDIUM_JS_FNPROPS),
+    JS_FN("notify", native_window_notify, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("quit", native_window_quit, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("close", native_window_close, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("open", native_window_open, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("setSystemTray", native_window_setSystemTray, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("openURL", native_window_openURLInBrowser, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("exec", native_window_exec, 1, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 
