@@ -1,5 +1,5 @@
-#ifndef serverserver_h__
-#define serverserver_h__
+#ifndef server_server_h__
+#define server_server_h__
 
 #include <stdlib.h>
 #include <map>

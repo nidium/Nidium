@@ -1,5 +1,5 @@
-#ifndef serverjsconsole_h__
-#define serverjsconsole_h__
+#ifndef server_jsconsole_h__
+#define server_jsconsole_h__
 
 #include <Binding/JSExposer.h>
 

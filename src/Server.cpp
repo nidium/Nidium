@@ -324,3 +324,4 @@ int Worker::run(int argc, char **argv, bool jsstrict)
 
 } // namespace Server
 } // namespace Nidium
+

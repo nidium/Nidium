@@ -1,5 +1,5 @@
-#ifndef serverascii_h__
-#define serverascii_h__
+#ifndef server_ascii_h__
+#define server_ascii_h__
 
 const char *nidium_ascii =
 ".   .        .                   .-.                         \n"
@@ -13,3 +13,4 @@ const char *nidium_ascii =
 "\033[1mWorkers\033[0m :    %d                                           \n\n";
 
 #endif
+

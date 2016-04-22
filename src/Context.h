@@ -1,8 +1,7 @@
-#ifndef servercontext_h__
-#define servercontext_h__
+#ifndef server_context_h__
+#define server_context_h__
 
 #include <Binding/NidiumJS.h>
-
 
 namespace Nidium {
 namespace Server {
@@ -45,3 +44,4 @@ private:
 } // namespace Nidium
 
 #endif
+

@@ -1,5 +1,5 @@
-#ifndef serverrepl_h__
-#define serverrepl_h__
+#ifndef server_repl_h__
+#define server_repl_h__
 
 #include <semaphore.h>
 
