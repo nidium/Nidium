@@ -25,12 +25,12 @@ class JSHTTP : public JSExposer<JSHTTP>, public Nidium::Net::HTTPDelegate
     JS::Heap<JS::Value> request;
     JS::Heap<JSObject *>jsobj;
 
-    Nidium::Net::HTTP *refHttp;
+    Net::HTTP *refHttp;
 
-    void onRequest(Nidium::Net::HTTP::HTTPData *h, Nidium::Net::HTTP::DataType);
+    void onRequest(Net::HTTP::HTTPData *h, Nidium::Net::HTTP::DataType);
     void onProgress(size_t offset, size_t len,
-        Nidium::Net::HTTP::HTTPData *h, Nidium::Net::HTTP::DataType);
-    void onError(Nidium::Net::HTTP::HTTPError err);
+        Net::HTTP::HTTPData *h, Nidium::Net::HTTP::DataType);
+    void onError(Net::HTTP::HTTPError err);
     void onHeader() {};
 
     bool m_Eval;
