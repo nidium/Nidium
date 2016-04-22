@@ -116,11 +116,11 @@ void TaskManager::workerInfo::addTask(Task *task)
 TaskManager::TaskManager()
 {
     m_Threadpool.count = 0;
-    m_Threadpool.size = NATIVE_TASKMANAGER_MAX_THREAD;
+    m_Threadpool.size = NIDIUM_TASKMANAGER_MAX_THREAD;
 
-    m_Threadpool.worker = new workerInfo[NATIVE_TASKMANAGER_MAX_THREAD];
+    m_Threadpool.worker = new workerInfo[NIDIUM_TASKMANAGER_MAX_THREAD];
 
-    this->createWorker(NATIVE_TASKMANAGER_MAX_IDLE_THREAD);
+    this->createWorker(NIDIUM_TASKMANAGER_MAX_IDLE_THREAD);
 }
 
 int TaskManager::createWorker(int count)

@@ -15,8 +15,8 @@
 namespace Nidium {
 namespace Core {
 
-#define NATIVE_TASKMANAGER_MAX_IDLE_THREAD 8
-#define NATIVE_TASKMANAGER_MAX_THREAD 16
+#define NIDIUM_TASKMANAGER_MAX_IDLE_THREAD 8
+#define NIDIUM_TASKMANAGER_MAX_THREAD 16
 
 // {{{ TaskManager
 class Task;
