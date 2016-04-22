@@ -19,11 +19,11 @@
 namespace Nidium {
 namespace Core {
 
-typedef struct _native_shared_message
+typedef struct _nidium_shared_message
 {
     void *ptr;
-    struct _native_shared_message *prev;
-} native_shared_message;
+    struct _nidium_shared_message *prev;
+} nidium_shared_message;
 
 class SharedMessages
 {
@@ -81,7 +81,7 @@ class SharedMessages
             void *m_Dest;
     };
 
-    typedef void (*native_shared_message_cleaner)(const SharedMessages::Message &msg);
+    typedef void (*nidium_shared_message_cleaner)(const SharedMessages::Message &msg);
 
     SharedMessages();
     ~SharedMessages();
@@ -92,7 +92,7 @@ class SharedMessages
     Message *readMessage();
     Message *readMessage(int ev);
     void delMessagesForDest(void *dest, int event = -1);
-    void setCleaner(native_shared_message_cleaner cleaner) {
+    void setCleaner(nidium_shared_message_cleaner cleaner) {
         m_Cleaner = cleaner;
     }
 
@@ -110,7 +110,7 @@ class SharedMessages
 
     } messageslist;
 
-    native_shared_message_cleaner m_Cleaner;
+    nidium_shared_message_cleaner m_Cleaner;
 };
 
 } // namespace Core
