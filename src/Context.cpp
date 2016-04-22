@@ -2,7 +2,7 @@
 
 #include <unistd.h>
 
-#include <native_netlib.h>
+#include <ape_netlib.h>
 
 #include <Core/Messages.h>
 #include <Core/Path.h>

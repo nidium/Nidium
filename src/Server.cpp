@@ -1,5 +1,5 @@
 #define _HAVE_SSL_SUPPORT 1
-#include <native_netlib.h>
+#include <ape_netlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
@@ -317,7 +317,7 @@ int Worker::run(int argc, char **argv, bool jsstrict)
     }
 #if 0
     TODO : heap use after free ?
-    native_netlib_destroy(net);
+    APE_destroy(net);
 #endif
     return 0;
 }

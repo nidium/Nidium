@@ -4,7 +4,7 @@
 #include <semaphore.h>
 
 #include <ape_buffer.h>
-#include <native_netlib.h>
+#include <ape_netlib.h>
 
 #include <Core/Messages.h>
 
