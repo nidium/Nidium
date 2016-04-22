@@ -41,6 +41,7 @@ using namespace Nidium::IO;
 namespace Nidium {
 namespace Binding {
 
+// {{{ Preamble
 static pthread_key_t gAPE = 0;
 static pthread_key_t gJS = 0;
 
@@ -89,7 +90,6 @@ JSClass global_class = {
 static bool nidium_global_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t, JS::MutableHandleValue vp);
 
-/******** Natives ********/
 static bool nidium_pwd(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -115,7 +115,6 @@ static JSFunctionSpec glob_funcs[] = {
 };
 
 static JSPropertySpec glob_props[] = {
-
     NIDIUM_JS_PSG("__filename", GLOBAL_PROP___FILENAME, nidium_global_prop_get),
     NIDIUM_JS_PSG("__dirname", GLOBAL_PROP___DIRNAME, nidium_global_prop_get),
     NIDIUM_JS_PSG("global", GLOBAL_PROP_GLOBAL, nidium_global_prop_get),
@@ -125,179 +124,7 @@ static JSPropertySpec glob_props[] = {
     JS_PS_END
 };
 
-static bool nidium_global_prop_get(JSContext *cx, JS::HandleObject obj,
-    uint8_t id, JS::MutableHandleValue vp)
-{
-    switch(id) {
-        case GLOBAL_PROP___FILENAME:
-        {
-            char *filename = JSUtils::CurrentJSCaller(cx);
-            vp.setString(JS_NewStringCopyZ(cx, filename));
-            free(filename);
-            break;
-        }
-        case GLOBAL_PROP___DIRNAME:
-        {
-            Path path(JSUtils::CurrentJSCaller(cx), false, true);
-            vp.setString(JS_NewStringCopyZ(cx, path.dir()));
-            break;
-        }
-        case GLOBAL_PROP_WINDOW:
-        case GLOBAL_PROP_GLOBAL:
-        {
-            JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-            vp.setObjectOrNull(global);
-            break;
-        }
-        default:
-            return false;
-    }
-    return true;
-}
-
-void reportError(JSContext *cx, const char *message, JSErrorReport *report)
-{
-    NidiumJS *js = NidiumJS::GetObject(cx);
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-
-    if (js == NULL) {
-        printf("Error reporter failed (wrong JSContext?) (%s:%d > %s)\n", report->filename, report->lineno, message);
-        return;
-    }
-
-    if (!report) {
-        js->logf("%s\n", message);
-        return;
-    }
-
-    char *prefix = NULL;
-    if (report->filename)
-        prefix = JS_smprintf("%s:", report->filename);
-    if (report->lineno) {
-        char *tmp = prefix;
-        prefix = JS_smprintf("%s%u:%u ", tmp ? tmp : "", report->lineno, report->column);
-        JS_free(cx, tmp);
-    }
-    if (JSREPORT_IS_WARNING(report->flags)) {
-        char *tmp = prefix;
-        prefix = JS_smprintf("%s%swarning: ",
-                             tmp ? tmp : "",
-                             JSREPORT_IS_STRICT(report->flags) ? "strict " : "");
-        JS_free(cx, tmp);
-    }
-
-    /* embedded newlines -- argh! */
-    const char *ctmp;
-    while ((ctmp = strchr(message, '\n')) != 0) {
-        ctmp++;
-        if (prefix)
-            js->logf("%s", prefix);
-
-        char *tmpwrite = (char *)malloc((ctmp - message)+1);
-        memcpy(tmpwrite, message, ctmp - message);
-        tmpwrite[ctmp - message] = '\0';
-        js->logf("%s", tmpwrite);
-        free(tmpwrite);
-
-        message = ctmp;
-    }
-
-    /* If there were no filename or lineno, the prefix might be empty */
-    if (prefix)
-        js->logf("%s", prefix);
-    js->logf("%s", message);
-
-    if (report->linebuf) {
-        /* report->linebuf usually ends with a newline. */
-        int n = strlen(report->linebuf);
-        js->logf(":\n%s%s%s%s",
-                prefix,
-                report->linebuf,
-                (n > 0 && report->linebuf[n-1] == '\n') ? "" : "\n",
-                prefix);
-        n = report->tokenptr - report->linebuf;
-        for (int i = 0, j = 0; i < n; i++) {
-            if (report->linebuf[i] == '\t') {
-                for (int k = (j + 8) & ~7; j < k; j++) {
-                    js->logf("%c", '.');
-                }
-                continue;
-            }
-            js->logf("%c", '.');
-            j++;
-        }
-        js->logf("%c", '^');
-    }
-    js->logf("%c", '\n');
-    fflush(stdout);
-    JS_free(cx, prefix);
-}
-
-static bool nidium_pwd(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    Path cur(JSUtils::CurrentJSCaller(cx), false, true);
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
-    if (cur.dir() == NULL) {
-        args.rval().setUndefined();
-        return true;
-    }
-
-    JS::RootedString res(cx, JS_NewStringCopyZ(cx, cur.dir()));
-
-    args.rval().setString(res);
-
-    return true;
-}
-
-static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    JS::RootedString script(cx);
-    char *content;
-    size_t len;
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
-    if (!JS_ConvertArguments(cx, args, "S", script.address())) {
-        return false;
-    }
-
-    NidiumJS *njs = NidiumJS::GetObject(cx);
-    JSAutoByteString scriptstr(cx, script);
-    Path scriptpath(scriptstr.ptr());
-
-    Path::schemeInfo *schemePwd = Path::getPwdScheme();
-
-    if (scriptpath.path() == NULL) {
-        JS_ReportError(cx, "script error : invalid file location");
-        return false;
-    }
-
-    /* only private are allowed in an http context */
-    if (SCHEME_MATCH(schemePwd, "http") &&
-        !URLSCHEME_MATCH(scriptstr.ptr(), "private")) {
-        JS_ReportError(cx, "script access error : cannot load in this context");
-        return false;
-    }
-
-    if (!scriptpath.getScheme()->allowSyncStream()) {
-        JS_ReportError(cx, "script error : \"%s\" scheme can't load in a sync way", schemePwd->str);
-        return false;
-    }
-
-    PtrAutoDelete<Stream *> stream(scriptpath.createStream());
-
-    if (!stream.ptr() || !stream.ptr()->getContentSync(&content, &len, true)) {
-        JS_ReportError(cx, "load() failed read script");
-        return false;
-    }
-
-    if (!njs->LoadScriptContent(content, len, scriptpath.path())) {
-        JS_ReportError(cx, "load() failed to load script");
-        return false;
-    }
-
-    return true;
-}
+// }}}
 
 // {{{ NidiumJS
 
@@ -543,6 +370,84 @@ void NidiumJS::Init()
         }
         _alreadyInit = true;
     }
+}
+
+void reportError(JSContext *cx, const char *message, JSErrorReport *report)
+{
+    NidiumJS *js = NidiumJS::GetObject(cx);
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+
+    if (js == NULL) {
+        printf("Error reporter failed (wrong JSContext?) (%s:%d > %s)\n", report->filename, report->lineno, message);
+        return;
+    }
+
+    if (!report) {
+        js->logf("%s\n", message);
+        return;
+    }
+
+    char *prefix = NULL;
+    if (report->filename)
+        prefix = JS_smprintf("%s:", report->filename);
+    if (report->lineno) {
+        char *tmp = prefix;
+        prefix = JS_smprintf("%s%u:%u ", tmp ? tmp : "", report->lineno, report->column);
+        JS_free(cx, tmp);
+    }
+    if (JSREPORT_IS_WARNING(report->flags)) {
+        char *tmp = prefix;
+        prefix = JS_smprintf("%s%swarning: ",
+                             tmp ? tmp : "",
+                             JSREPORT_IS_STRICT(report->flags) ? "strict " : "");
+        JS_free(cx, tmp);
+    }
+
+    /* embedded newlines -- argh! */
+    const char *ctmp;
+    while ((ctmp = strchr(message, '\n')) != 0) {
+        ctmp++;
+        if (prefix)
+            js->logf("%s", prefix);
+
+        char *tmpwrite = (char *)malloc((ctmp - message)+1);
+        memcpy(tmpwrite, message, ctmp - message);
+        tmpwrite[ctmp - message] = '\0';
+        js->logf("%s", tmpwrite);
+        free(tmpwrite);
+
+        message = ctmp;
+    }
+
+    /* If there were no filename or lineno, the prefix might be empty */
+    if (prefix)
+        js->logf("%s", prefix);
+    js->logf("%s", message);
+
+    if (report->linebuf) {
+        /* report->linebuf usually ends with a newline. */
+        int n = strlen(report->linebuf);
+        js->logf(":\n%s%s%s%s",
+                prefix,
+                report->linebuf,
+                (n > 0 && report->linebuf[n-1] == '\n') ? "" : "\n",
+                prefix);
+        n = report->tokenptr - report->linebuf;
+        for (int i = 0, j = 0; i < n; i++) {
+            if (report->linebuf[i] == '\t') {
+                for (int k = (j + 8) & ~7; j < k; j++) {
+                    js->logf("%c", '.');
+                }
+                continue;
+            }
+            js->logf("%c", '.');
+            j++;
+        }
+        js->logf("%c", '^');
+    }
+    js->logf("%c", '\n');
+    fflush(stdout);
+    JS_free(cx, prefix);
 }
 
 NidiumJS::NidiumJS(ape_global *net) :
@@ -1119,9 +1024,106 @@ void NidiumJS::postMessage(void *dataPtr, int ev)
 {
     this->messages->postMessage(dataPtr, ev);
 }
+// }}}
 
-// {{{ implementation timers
+// {{{ Implementation
+static bool nidium_global_prop_get(JSContext *cx, JS::HandleObject obj,
+    uint8_t id, JS::MutableHandleValue vp)
+{
+    switch(id) {
+        case GLOBAL_PROP___FILENAME:
+        {
+            char *filename = JSUtils::CurrentJSCaller(cx);
+            vp.setString(JS_NewStringCopyZ(cx, filename));
+            free(filename);
+            break;
+        }
+        case GLOBAL_PROP___DIRNAME:
+        {
+            Path path(JSUtils::CurrentJSCaller(cx), false, true);
+            vp.setString(JS_NewStringCopyZ(cx, path.dir()));
+            break;
+        }
+        case GLOBAL_PROP_WINDOW:
+        case GLOBAL_PROP_GLOBAL:
+        {
+            JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+            vp.setObjectOrNull(global);
+            break;
+        }
+        default:
+            return false;
+    }
+    return true;
+}
 
+static bool nidium_pwd(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    Path cur(JSUtils::CurrentJSCaller(cx), false, true);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    if (cur.dir() == NULL) {
+        args.rval().setUndefined();
+        return true;
+    }
+
+    JS::RootedString res(cx, JS_NewStringCopyZ(cx, cur.dir()));
+
+    args.rval().setString(res);
+
+    return true;
+}
+
+static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    JS::RootedString script(cx);
+    char *content;
+    size_t len;
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    if (!JS_ConvertArguments(cx, args, "S", script.address())) {
+        return false;
+    }
+
+    NidiumJS *njs = NidiumJS::GetObject(cx);
+    JSAutoByteString scriptstr(cx, script);
+    Path scriptpath(scriptstr.ptr());
+
+    Path::schemeInfo *schemePwd = Path::getPwdScheme();
+
+    if (scriptpath.path() == NULL) {
+        JS_ReportError(cx, "script error : invalid file location");
+        return false;
+    }
+
+    /* only private are allowed in an http context */
+    if (SCHEME_MATCH(schemePwd, "http") &&
+        !URLSCHEME_MATCH(scriptstr.ptr(), "private")) {
+        JS_ReportError(cx, "script access error : cannot load in this context");
+        return false;
+    }
+
+    if (!scriptpath.getScheme()->allowSyncStream()) {
+        JS_ReportError(cx, "script error : \"%s\" scheme can't load in a sync way", schemePwd->str);
+        return false;
+    }
+
+    PtrAutoDelete<Stream *> stream(scriptpath.createStream());
+
+    if (!stream.ptr() || !stream.ptr()->getContentSync(&content, &len, true)) {
+        JS_ReportError(cx, "load() failed read script");
+        return false;
+    }
+
+    if (!njs->LoadScriptContent(content, len, scriptpath.path())) {
+        JS_ReportError(cx, "load() failed to load script");
+        return false;
+    }
+
+    return true;
+}
+
+// {{{ Timers
 static int nidium_timer_deleted(void *arg)
 {
     struct nidium_sm_timer *params = (struct nidium_sm_timer *)arg;
@@ -1343,8 +1345,8 @@ static int nidium_timerng_wrapper(void *arg)
 
     return params->ms;
 }
-// {{{ implementation conversions
-
+// }}}
+// {{{ Conversions
 static bool nidium_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_CHECK_ARGS("btoa", 1);
@@ -1370,6 +1372,8 @@ static bool nidium_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
 
     return true;
 }
+// }}}
+// }}}
 
 } // namespace Binding
 } // namespace Nidium

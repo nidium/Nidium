@@ -15,23 +15,10 @@
 #include "Core/TaskManager.h"
 #include "Core/Events.h"
 
-namespace Nidium {
-namespace IO {
-
 #define NIDIUM_FILE_MESSAGE_BITS(id) ((1 << 20) | id)
 
-enum {
-    FILE_OPEN_ERROR =     NIDIUM_FILE_MESSAGE_BITS(1),
-    FILE_OPEN_SUCCESS =   NIDIUM_FILE_MESSAGE_BITS(2),
-    FILE_CLOSE_SUCCESS =  NIDIUM_FILE_MESSAGE_BITS(3),
-    FILE_READ_SUCCESS =   NIDIUM_FILE_MESSAGE_BITS(4),
-    FILE_READ_ERROR =     NIDIUM_FILE_MESSAGE_BITS(5),
-    FILE_WRITE_SUCCESS =  NIDIUM_FILE_MESSAGE_BITS(6),
-    FILE_WRITE_ERROR =    NIDIUM_FILE_MESSAGE_BITS(7),
-    FILE_SEEK_SUCCESS =   NIDIUM_FILE_MESSAGE_BITS(8),
-    FILE_SEEK_ERROR =     NIDIUM_FILE_MESSAGE_BITS(9),
-    FILE_LISTFILES_ENTRIES = NIDIUM_FILE_MESSAGE_BITS(10),
-};
+namespace Nidium {
+namespace IO {
 
 class File : public Nidium::Core::Managed, public Nidium::Core::Events
 {
@@ -39,15 +26,16 @@ public:
     static const uint8_t EventID = 2;
 
     enum Events {
-        OPEN_ERROR = 1,
-        OPEN_SUCCESS,
-        CLOSE_SUCCESS,
-        READ_SUCCESS,
-        READ_ERROR,
-        WRITE_SUCCESS,
-        WRITE_ERROR,
-        SEEK_SUCCESS,
-        SEEK_ERROR
+        OPEN_ERROR     = NIDIUM_FILE_MESSAGE_BITS(1),
+        OPEN_SUCCESS   = NIDIUM_FILE_MESSAGE_BITS(2),
+        CLOSE_SUCCESS  = NIDIUM_FILE_MESSAGE_BITS(3),
+        READ_SUCCESS   = NIDIUM_FILE_MESSAGE_BITS(4),
+        READ_ERROR     = NIDIUM_FILE_MESSAGE_BITS(5),
+        WRITE_SUCCESS  = NIDIUM_FILE_MESSAGE_BITS(6),
+        WRITE_ERROR    = NIDIUM_FILE_MESSAGE_BITS(7),
+        SEEK_SUCCESS   = NIDIUM_FILE_MESSAGE_BITS(8),
+        SEEK_ERROR     = NIDIUM_FILE_MESSAGE_BITS(9),
+        LISTFILES_ENTRIES = NIDIUM_FILE_MESSAGE_BITS(10),
     };
 
     struct DirEntries {

@@ -12,17 +12,16 @@
 namespace Nidium {
 namespace Binding {
 
-// {{{ preamble
-
+// {{{ Preamble
 static JSClass DebuggerContext_class = {
     "DebuggerContext", JSCLASS_HAS_RESERVED_SLOTS(2),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
+// }}}
 
-// {{{ implementation
-
+// {{{ Implementation
 static bool nidium_debugger_run(JSContext* cx, unsigned argc, JS::Value* vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -181,9 +180,9 @@ static bool nidium_debugger_create(JSContext* cx, unsigned argc, JS::Value* vp)
 
     return true;
 }
+// }}}
 
-// {{{ registration
-
+// {{{ Registration
 void JSDebugger::registerObject(JSContext *cx)
 {
     JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
@@ -204,6 +203,7 @@ void JSDebugger::registerObject(JSContext *cx)
     JS_DefineFunction(cx, dbg, "create", nidium_debugger_create, 0, 1);
     JS_DefineFunction(cx, dbg, "run", nidium_debugger_run, 0, 1);
 }
+// }}}
 
 } // namespace Binding
 } // namespace Nidium

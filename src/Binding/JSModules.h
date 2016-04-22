@@ -22,7 +22,6 @@ namespace Binding {
 class JSModules;
 
 // {{{ JSModule
-
 class JSModule
 {
     public:
@@ -56,9 +55,9 @@ class JSModule
 
         JS::Value load(JS::Value &scope);
 };
+// }}}
 
 // {{{ JSModules
-
 class JSModules
 {
     public:
@@ -118,6 +117,7 @@ class JSModules
 
         static void dirname(std::string &source);
 };
+// }}}
 
 } // namespace Binding
 } // namespace Nidium

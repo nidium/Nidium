@@ -20,6 +20,7 @@
 namespace Nidium {
 namespace Net {
 
+// {{{ Preamble
 #ifndef ULLONG_MAX
 # define ULLONG_MAX ((uint64_t) -1) /* 2^64-1 */
 #endif
@@ -53,9 +54,9 @@ static struct nidium_http_mime {
     {"application/octet-stream",    HTTP::DATA_BINARY},
     {NULL,                          HTTP::DATA_END}
 };
+// }}}
 
-// {{{ callback
-
+// {{{ HTTP Parser callbacks
 static int message_begin_cb(http_parser *p);
 static int headers_complete_cb(http_parser *p);
 static int message_complete_cb(http_parser *p);
@@ -66,13 +67,13 @@ static int body_cb(http_parser *p, const char *buf, size_t len);
 
 static http_parser_settings settings =
 {
-.on_message_begin = message_begin_cb,
-.on_header_field = header_field_cb,
-.on_header_value = header_value_cb,
-.on_url = request_url_cb,
-.on_body = body_cb,
-.on_headers_complete = headers_complete_cb,
-.on_message_complete = message_complete_cb
+    .on_message_begin = message_begin_cb,
+    .on_header_field = header_field_cb,
+    .on_header_value = header_value_cb,
+    .on_url = request_url_cb,
+    .on_body = body_cb,
+    .on_headers_complete = headers_complete_cb,
+    .on_message_complete = message_complete_cb
 };
 
 
@@ -202,9 +203,9 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
 
     return 0;
 }
+// }}}
 
-// {{{ connect/disconnect/read
-
+// {{{ HTTP callbacks (connect/disconnect/read)
 static void nidium_http_connected(ape_socket *s,
     ape_global *ape, void *socket_arg)
 {
@@ -293,9 +294,9 @@ static void nidium_http_read(ape_socket *s,
         APE_socket_shutdown_now(s);
     }
 }
+// }}}
 
-// {{{ HTTP
-
+// {{{ HTTP Implementation
 HTTP::HTTP(ape_global *n) :
     ptr(NULL), net(n), m_CurrentSock(NULL),
     err(0), m_Timeout(HTTP_DEFAULT_TIMEOUT),
@@ -691,9 +692,9 @@ HTTP::~HTTP()
     this->clearState();
 
 }
+// }}}
 
-// {{{ HTTPRequest
-
+// {{{ HTTPRequest Implementation
 HTTPRequest::HTTPRequest(const char *url) :
     method(HTTP_GET), host(NULL), path(NULL), data(NULL), datalen(0),
     datafree(free), headers(ape_array_new(8)), m_isSSL(false) 
@@ -801,6 +802,7 @@ buffer *HTTPRequest::getHeadersData() const
 
     return ret;
 }
+// }}}
 
 } //namespace Net
 } //namespace Nidium

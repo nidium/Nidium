@@ -26,7 +26,6 @@ class HTTPClientConnection;
 class HTTPResponse;
 
 // {{{ HTTPServer
-
 class HTTPServer : public Nidium::Core::Events
 {
 public:
@@ -86,7 +85,7 @@ private:
     char *            m_IP;
     uint16_t          m_Port;
 };
-
+// }}}
 
 //  {{{ HTTPResponse
 /*
@@ -158,9 +157,9 @@ private:
 protected:
     explicit HTTPResponse(uint16_t code = 200);
 };
+// }}}
 
-// HTTPClientConnection
-
+// {{{ HTTPClientConnection
 class HTTPClientConnection
 {
 public:
@@ -289,6 +288,7 @@ protected:
     uint64_t          m_RequestsCount;
     uint64_t          m_MaxRequestsCount;
 };
+// }}}
 
 } // namespace Net
 } // namespace Nidium

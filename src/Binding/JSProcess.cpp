@@ -10,7 +10,7 @@
 namespace Nidium {
 namespace Binding {
 
-// {{{ preamble
+// {{{ Preamble
 
 static void Process_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool nidium_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -34,7 +34,28 @@ static JSFunctionSpec Process_funcs[] = {
     JS_FS_END
 };
 
-// {{{ implementation
+static int ape_kill_handler(int code, ape_global *ape)
+{
+    NidiumJS *njs = NidiumJS::GetObject();
+    JSContext *cx = njs->cx;
+    JS::RootedValue     rval(cx);
+
+    JSProcess *jProcess = JSProcess::GetObject(njs);
+
+    JS::RootedValue func(cx, jProcess->m_SignalFunction);
+
+    if (func.isObject() && JS_ObjectIsCallable(cx, func.toObjectOrNull())) {
+        JS_CallFunctionValue(cx, JS::NullPtr(), func, JS::HandleValueArray::empty(), &rval);
+
+        return rval.isBoolean() ? !rval.toBoolean() : false;
+    }
+
+    return false;
+}
+
+// }}}
+
+// {{{ Implementation
 
 static bool nidium_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
 {
@@ -77,26 +98,9 @@ static void Process_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-// {{{ registration
+// }}}
 
-static int ape_kill_handler(int code, ape_global *ape)
-{
-    NidiumJS *njs = NidiumJS::GetObject();
-    JSContext *cx = njs->cx;
-    JS::RootedValue     rval(cx);
-
-    JSProcess *jProcess = JSProcess::GetObject(njs);
-
-    JS::RootedValue func(cx, jProcess->m_SignalFunction);
-
-    if (func.isObject() && JS_ObjectIsCallable(cx, func.toObjectOrNull())) {
-        JS_CallFunctionValue(cx, JS::NullPtr(), func, JS::HandleValueArray::empty(), &rval);
-
-        return rval.isBoolean() ? !rval.toBoolean() : false;
-    }
-
-    return false;
-}
+// {{{ Registration
 
 void JSProcess::registerObject(JSContext *cx, char **argv, int argc, int workerId)
 {
@@ -130,6 +134,8 @@ void JSProcess::registerObject(JSContext *cx, char **argv, int argc, int workerI
     jProcess->m_SignalFunction.set(JS::NullHandleValue);
 
 }
+
+// }}}
 
 } // namespace Binding
 } // namespace Nidium

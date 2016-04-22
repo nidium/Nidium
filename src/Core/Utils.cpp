@@ -228,9 +228,9 @@ void Utils::HTTPTime(char *buf)
                            timenow.tm_min,
                            timenow.tm_sec);
 }
+// }}}
 
-// {{{ Conversion related
-
+// {{{ Conversion/Hashing related
 static uint8_t nibbleFromChar(char c)
 {
     if(c >= '0' && c <= '9') return c - '0';
@@ -296,6 +296,7 @@ void Utils::blowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len)
     memcpy(data, &xl, sizeof(uint32_t));
     memcpy(data+sizeof(uint32_t), &xr, sizeof(uint32_t));
 }
+// }}}
 
 } // namespace Core
 } // namespace Nidium

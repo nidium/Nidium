@@ -138,11 +138,10 @@ class HTTPRequest
 
         bool m_isSSL;
 };
-
-class HTTPDelegate;
+// }}}
 
 // {{{ HTTP
-
+class HTTPDelegate;
 class HTTP :  public Nidium::Core::Messages
 {
 private:
@@ -309,9 +308,9 @@ private:
         int count;
     } m_Redirect;
 };
+// }}}
 
 // {{{ HTTPDelegate
-
 class HTTPDelegate
 {
   public:
@@ -322,6 +321,7 @@ class HTTPDelegate
     virtual void onHeader()=0;
     HTTP *httpref;
 };
+// }}}
 
 }  /* namespace Core */
 }  /* namespace Nidium */

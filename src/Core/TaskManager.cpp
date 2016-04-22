@@ -15,15 +15,16 @@
 namespace Nidium {
 namespace Core {
 
+// {{{ Preamble
 static pthread_key_t gManager = 0;
 
 void *TaskManager_Worker(void *arg)
 {
     return ((TaskManager::workerInfo *)arg)->work();
 }
+// }}}
 
 // {{{ TaskManager::workerInfo
-
 void *TaskManager::workerInfo::work()
 {
     while (!m_Stop) {
@@ -109,9 +110,9 @@ void TaskManager::workerInfo::addTask(Task *task)
     PthreadAutoLock npal(&m_Lock);
     pthread_cond_signal(&m_Cond);
 }
+// }}}
 
 // {{{ TaskManager
-
 TaskManager::TaskManager()
 {
     m_Threadpool.count = 0;
@@ -194,9 +195,9 @@ TaskManager::~TaskManager()
     delete[] m_Threadpool.worker;
     pthread_setspecific(gManager, NULL);
 }
+// }}}
 
-// {{{ TaskManager
-
+// {{{ Managed 
 void Managed::addTask(Task *task)
 {
     if (m_Manager == NULL) {
@@ -213,6 +214,7 @@ void Managed::addTask(Task *task)
 
     m_Worker->addTask(task);
 }
+// }}}
 
 } // namespace Core
 } // namespace Nidium

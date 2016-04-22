@@ -12,8 +12,7 @@ using Nidium::Net::HTTPRequest;
 namespace Nidium {
 namespace Binding {
 
-// {{{preamble
-
+// {{{ Preamble
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
@@ -35,18 +34,9 @@ static JSFunctionSpec http_funcs[] = {
     JS_FN("request", nidium_http_request, 2, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
+// }}}
 
-static void Http_Finalize(JSFreeOp *fop, JSObject *obj)
-{
-    JSHTTP *jshttp = (JSHTTP *)JS_GetPrivate(obj);
-
-    if (jshttp != NULL) {
-        delete jshttp;
-    }
-}
-
-// {{{ implementation
-
+// {{{ Implementation
 static bool nidium_HTTP_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString url(cx);
@@ -248,8 +238,17 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-// {{{ events
+static void Http_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    JSHTTP *jshttp = (JSHTTP *)JS_GetPrivate(obj);
 
+    if (jshttp != NULL) {
+        delete jshttp;
+    }
+}
+// }}}
+
+// {{{ JSHTTP  
 void JSHTTP::onError(HTTP::HTTPError err)
 {
     JSContext *cx = m_Cx;
@@ -491,10 +490,11 @@ JSHTTP::~JSHTTP()
     }
     free(m_URL);
 }
+// }}}
 
-// {{{ registration
-
+// {{{ Registration
 NIDIUM_JS_OBJECT_EXPOSE(HTTP)
+// }}}
 
 } // namespace Binding
 } // namespace Nidium

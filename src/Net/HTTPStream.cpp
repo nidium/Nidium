@@ -19,9 +19,13 @@ using Nidium::IO::Stream;
 namespace Nidium {
 namespace Net {
 
+// {{{ Preamble
+
 #define MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH (1024LL*1024LL*64LL)
 
-// {{{ HTTPStream
+// }}}
+
+// {{{ Implementation
 HTTPStream::HTTPStream(const char *location) :
     Stream(location), m_StartPosition(0),
     m_BytesBuffered(0), m_LastReadUntil(0)
@@ -154,7 +158,9 @@ void HTTPStream::cleanCacheFile()
     }
 }
 
-// {{{ HTTPStream events
+// }}}
+
+// {{{ Events
 
 void HTTPStream::onStart(size_t packets, size_t seek)
 {
@@ -326,6 +332,8 @@ void HTTPStream::onHeader()
         return;
     }
 }
+
+// }}}
 
 } // namespace Net
 } // namespace Nidium

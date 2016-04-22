@@ -22,7 +22,7 @@
 namespace Nidium {
 namespace Binding {
 
-// {{{ preamble
+// {{{ Preamble
 
 extern void reportError(JSContext *cx, const char *message,
     JSErrorReport *report);
@@ -66,15 +66,6 @@ static JSFunctionSpec Thread_funcs[] = {
     JS_FN("start", nidium_thread_start, 0, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
-
-static void Thread_Finalize(JSFreeOp *fop, JSObject *obj)
-{
-    JSThread *nthread = (JSThread *)JS_GetPrivate(obj);
-
-    if (nthread != NULL) {
-        delete nthread;
-    }
-}
 
 static bool JSThreadCallback(JSContext *cx)
 {
@@ -209,7 +200,104 @@ static void *nidium_thread(void *arg)
     return NULL;
 }
 
-// {{{ implementation
+// }}}
+
+// {{{ JSThread
+
+JSThread::JSThread(JS::HandleObject obj, JSContext *cx) :
+    JSExposer<JSThread>(obj, cx),
+    jsFunction(cx), jsRuntime(NULL), jsCx(NULL),
+    jsObject(NULL), njs(NULL), markedStop(false), m_CallerFileName(NULL)
+{
+    /* cx hold the main context (caller) */
+    /* jsCx hold the newly created context (along with jsRuntime) */
+    cx = NULL;
+}
+
+void JSThread::onMessage(const Core::SharedMessages::Message &msg)
+{
+#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
+    val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+    struct nidium_thread_msg *ptr;
+    char prop[16];
+    int ev = msg.event();
+
+    ptr = static_cast<struct nidium_thread_msg *>(msg.dataPtr());
+    memset(prop, 0, sizeof(prop));
+
+    if (ev == NIDIUM_THREAD_MESSAGE) {
+        strcpy(prop, "onmessage");
+    } else if (ev == NIDIUM_THREAD_COMPLETE) {
+        strcpy(prop, "oncomplete");
+    }
+
+    JS::RootedValue inval(m_Cx, JSVAL_NULL);
+    if (!JS_ReadStructuredClone(m_Cx, ptr->data, ptr->nbytes,
+        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
+
+        printf("Failed to read input data (readMessage)\n");
+
+        delete ptr;
+        return;
+    }
+
+    JS::RootedValue jscbk(m_Cx);
+    JS::RootedObject callee(m_Cx, ptr->callee);
+    if (JS_GetProperty(m_Cx, callee, prop, &jscbk) && JS_TypeOfValue(m_Cx, jscbk) == JSTYPE_FUNCTION) {
+        JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &messageEvent_class, JS::NullPtr(), JS::NullPtr()));
+        EVENT_PROP("data", inval);
+
+        JS::AutoValueArray<1> jevent(m_Cx);
+        jevent[0].setObject(*event);
+
+        JS::RootedValue rval(m_Cx);
+        JS_CallFunctionValue(m_Cx, event, jscbk, jevent, &rval);
+    }
+    JS_ClearStructuredClone(ptr->data, ptr->nbytes, NULL, NULL);
+
+    delete ptr;
+#undef EVENT_PROP
+}
+
+
+void JSThread::onComplete(JS::HandleValue vp)
+{
+    struct nidium_thread_msg *msg = new struct nidium_thread_msg;
+
+    if (!JS_WriteStructuredClone(jsCx, vp, &msg->data, &msg->nbytes,
+        NULL,
+        NULL,
+        JS::NullHandleValue)) {
+
+        msg->data = NULL;
+        msg->nbytes = 0;
+    }
+
+    msg->callee = jsObject;
+
+    this->postMessage(msg, NIDIUM_THREAD_COMPLETE);
+
+    njs->unrootObject(jsObject);
+}
+
+
+JSThread::~JSThread()
+{
+
+    this->markedStop = true;
+    if (this->jsRuntime) {
+        JS_RequestInterruptCallback(this->jsRuntime);
+        pthread_join(this->threadHandle, NULL);
+    }
+
+    if (m_CallerFileName) {
+        free(m_CallerFileName);
+    }
+}
+
+// }}}
+
+// {{{ Implementation
 
 static bool nidium_thread_start(JSContext *cx, unsigned argc, JS::Value *vp)
 {
@@ -322,102 +410,22 @@ static bool nidium_Thread_constructor(JSContext *cx, unsigned argc, JS::Value *v
     return true;
 }
 
-// {{{ JSThread
-
-JSThread::JSThread(JS::HandleObject obj, JSContext *cx) :
-    JSExposer<JSThread>(obj, cx),
-    jsFunction(cx), jsRuntime(NULL), jsCx(NULL),
-    jsObject(NULL), njs(NULL), markedStop(false), m_CallerFileName(NULL)
+static void Thread_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    /* cx hold the main context (caller) */
-    /* jsCx hold the newly created context (along with jsRuntime) */
-    cx = NULL;
-}
+    JSThread *nthread = (JSThread *)JS_GetPrivate(obj);
 
-void JSThread::onMessage(const Core::SharedMessages::Message &msg)
-{
-#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-    val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
-    struct nidium_thread_msg *ptr;
-    char prop[16];
-    int ev = msg.event();
-
-    ptr = static_cast<struct nidium_thread_msg *>(msg.dataPtr());
-    memset(prop, 0, sizeof(prop));
-
-    if (ev == NIDIUM_THREAD_MESSAGE) {
-        strcpy(prop, "onmessage");
-    } else if (ev == NIDIUM_THREAD_COMPLETE) {
-        strcpy(prop, "oncomplete");
-    }
-
-    JS::RootedValue inval(m_Cx, JSVAL_NULL);
-    if (!JS_ReadStructuredClone(m_Cx, ptr->data, ptr->nbytes,
-        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
-
-        printf("Failed to read input data (readMessage)\n");
-
-        delete ptr;
-        return;
-    }
-
-    JS::RootedValue jscbk(m_Cx);
-    JS::RootedObject callee(m_Cx, ptr->callee);
-    if (JS_GetProperty(m_Cx, callee, prop, &jscbk) && JS_TypeOfValue(m_Cx, jscbk) == JSTYPE_FUNCTION) {
-        JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &messageEvent_class, JS::NullPtr(), JS::NullPtr()));
-        EVENT_PROP("data", inval);
-
-        JS::AutoValueArray<1> jevent(m_Cx);
-        jevent[0].setObject(*event);
-
-        JS::RootedValue rval(m_Cx);
-        JS_CallFunctionValue(m_Cx, event, jscbk, jevent, &rval);
-    }
-    JS_ClearStructuredClone(ptr->data, ptr->nbytes, NULL, NULL);
-
-    delete ptr;
-#undef EVENT_PROP
-}
-
-
-void JSThread::onComplete(JS::HandleValue vp)
-{
-    struct nidium_thread_msg *msg = new struct nidium_thread_msg;
-
-    if (!JS_WriteStructuredClone(jsCx, vp, &msg->data, &msg->nbytes,
-        NULL,
-        NULL,
-        JS::NullHandleValue)) {
-
-        msg->data = NULL;
-        msg->nbytes = 0;
-    }
-
-    msg->callee = jsObject;
-
-    this->postMessage(msg, NIDIUM_THREAD_COMPLETE);
-
-    njs->unrootObject(jsObject);
-}
-
-
-JSThread::~JSThread()
-{
-
-    this->markedStop = true;
-    if (this->jsRuntime) {
-        JS_RequestInterruptCallback(this->jsRuntime);
-        pthread_join(this->threadHandle, NULL);
-    }
-
-    if (m_CallerFileName) {
-        free(m_CallerFileName);
+    if (nthread != NULL) {
+        delete nthread;
     }
 }
 
-// {{{ registration
+// }}}
+
+// {{{ Registration
 
 NIDIUM_JS_OBJECT_EXPOSE(Thread)
+
+// }}}
 
 } // namespace Binding
 } // namespace Nidium

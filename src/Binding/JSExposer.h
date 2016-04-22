@@ -14,7 +14,7 @@
 #include "NidiumJS.h"
 
 // {{{ Macros
-
+// {{{ JSClass macro's
 #define NIDIUM_JS_PROLOGUE(ofclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
@@ -47,12 +47,134 @@
                              fnname, numBuf, (argc > 1 ? "s" : ""));  \
         return false;  \
     }
+// }}}
+// {{{ Object macro's
+typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
+
+#define NidiumJSObj(cx) (Nidium::Binding::NidiumJS::GetObject(cx))
+
+#define NIDIUM_JS_OBJECT_EXPOSE(name) \
+    void  JS ## name::registerObject(JSContext *cx) \
+    { \
+        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
+        JS_InitClass(cx, global, JS::NullPtr(), &name ## _class, \
+            nidium_ ## name ## _constructor, \
+            0, NULL, NULL, NULL, NULL); \
+    }
+
+#define NIDIUM_JS_OBJECT_EXPOSE_NOT_INST(name) \
+    void NidiumJS ## name::registerObject(JSContext *cx) \
+    { \
+        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
+        JS::RootedObject name ## Obj(cx, JS_DefineObject(cx, global, #name, \
+            &name ## _class , NULL, 0)); \
+        JS_DefineFunctions(cx, name ## Obj, name ## _funcs); \
+        JS_DefineProperties(cx, name ## Obj, name ## _props); \
+    }
+
+#define NATIVE_OBJECT_EXPOSE(name) \
+    void NativeJS ## name::registerObject(JSContext *cx) \
+    { \
+        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
+        JS_InitClass(cx, global, JS::NullPtr(), &name ## _class, \
+            native_ ## name ## _constructor, \
+            0, NULL, NULL, NULL, NULL); \
+    }
+
+#define NATIVE_OBJECT_EXPOSE_NOT_INST(name) \
+    void NativeJS ## name::registerObject(JSContext *cx) \
+    { \
+        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
+        JS::RootedObject name ## Obj(cx, JS_DefineObject(cx, global, #name, \
+            &name ## _class , NULL, 0)); \
+        JS_DefineFunctions(cx, name ## Obj, name ## _funcs); \
+        JS_DefineProperties(cx, name ## Obj, name ## _props); \
+    }
+
+#define NIDIUM_JS_REGISTER_MODULE(constructor) \
+    extern "C" __attribute__((__visibility__("default"))) bool __NativeRegisterModule(JSContext *cx, JS::HandleObject exports) \
+    { \
+        return constructor(cx, exports); \
+    }
+
+#define NIDIUM_JSOBJ_SET_PROP_FLAGS(where, name, val, flags) JS_DefineProperty(m_Cx, where, \
+    (const char *)name, val, flags)
+
+#define NIDIUM_JSOBJ_SET_PROP(where, name, val) NIDIUM_JSOBJ_SET_PROP_FLAGS(where, name, val, \
+        JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+
+#define JSOBJ_CALLFUNCNAME(where, name, argv) \
+    { \
+        JS::RootedValue _oncallback(cx); \
+        JS::RootedValue _rval(cx); \
+        JS::RootedValue rval(cx); \
+        if (JS_GetProperty(cx, where, name, &_oncallback) && \
+            JS_TypeOfValue(cx, _oncallback) == JSTYPE_FUNCTION) { \
+            JS_CallFunctionValue(cx, where, _oncallback, \
+                argv, &_rval); \
+        } \
+    }
+#define NIDIUM_JSOBJ_SET_PROP_CSTR(where, name, val) \
+    { \
+        JS::RootedString __n_rootedstring(m_Cx, JS_NewStringCopyZ(m_Cx, val)); \
+        NIDIUM_JSOBJ_SET_PROP(where, name, __n_rootedstring); \
+    }
+
+#define NIDIUM_JSOBJ_SET_PROP_STR(where, name, val) NIDIUM_JSOBJ_SET_PROP(where, name, val)
+#define NIDIUM_JSOBJ_SET_PROP_INT(where, name, val) NIDIUM_JSOBJ_SET_PROP(where, name, val)
+
+#define NIDIUM_JS_INIT_OPT() JS::RootedValue __curopt(cx);
+
+#define NIDIUM_JS_GET_OPT(obj, name) \
+    if (obj && \
+        JS_GetProperty(cx, obj, name, &__curopt) && \
+        __curopt != JSVAL_VOID && \
+        __curopt != JSVAL_NULL)
+#define NIDIUM_JS_GET_OPT_TYPE(obj, name, type) \
+    if (obj && \
+        JS_GetProperty(cx, obj, name, &__curopt) && \
+        __curopt != JSVAL_VOID && \
+        __curopt != JSVAL_NULL && \
+        __curopt.is ## type())
+// }}}
+// {{{ Getter / Setter macro's
+/*
+    Tinyid were removed in SM31.
+    This template act as a workaround (create a unique getter/setter and keep a unique identifier)
+*/
+#define NIDIUM_JS_SETTER(tinyid, setter) \
+    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}}
+#define NIDIUM_JS_SETTER_WRS(tinyid, setter) \
+    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::SetterWithReservedSlot<tinyid, setter>), JSStrictPropertyOp), nullptr}}
+#define NIDIUM_JS_GETTER(tinyid, getter) \
+    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}}
+#define NIDIUM_JS_STUBGETTER(tinyid) \
+    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::NullGetter<tinyid>), JSPropertyOp), nullptr}}
+
+/* Getter only */
+#define NIDIUM_JS_PSG(name, tinyid, getter_func) \
+    {name, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
+        NIDIUM_JS_GETTER(tinyid, getter_func), \
+        JSOP_NULLWRAPPER}
+
+/* Setter only */
+#define NIDIUM_JS_PSS(name, tinyid, setter_func) \
+    {name, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
+        NIDIUM_JS_STUBGETTER(tinyid), \
+        NIDIUM_JS_SETTER_WRS(tinyid, setter_func)}
+
+/* Both */
+#define NIDIUM_JS_PSGS(name, tinyid, getter_func, setter_func) \
+    {name, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
+        NIDIUM_JS_GETTER(tinyid, getter_func), \
+        NIDIUM_JS_SETTER(tinyid, setter_func)}
+// }}}
+// }}}
 
 namespace Nidium {
 namespace Binding {
 
 // {{{ JSEvent
-
 static const JSClass JSEvent_class = {
     "NidiumEvent", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -83,9 +205,9 @@ struct JSEvent
     JSEvent *next;
     JSEvent *prev;
 };
+// }}}
 
 // {{{ JSEvents
-
 class JSEvents
 {
 public:
@@ -251,9 +373,9 @@ private:
         return true;
     }
 };
+// }}}
 
 // {{{ JSExposer
-
 template <typename T>
 class JSExposer
 {
@@ -516,9 +638,9 @@ private:
         return true;
     }
 };
+// }}}
 
 // {{{ JSAsyncHandler
-
 #define NIDIUM_ASYNC_MAXCALLBACK 4
 class JSAsyncHandler : public Nidium::Core::Managed
 {
@@ -573,13 +695,13 @@ private:
     JSContext *m_Ctx;
     JSObject *m_CallBack[NIDIUM_ASYNC_MAXCALLBACK];
 };
+// }}}
 
 /*  TODO: add a way to define whether object life define JSObject life
     (addroot/unroot or if jsobject life define obj life (finalizer))
 */
 
 // {{{ JSObjectMapper
-
 template <typename T>
 class JSObjectMapper
 {
@@ -622,99 +744,9 @@ protected:
     JS::PersistentRootedObject m_JSObj;
     JSContext *m_JSCx;
 };
-
-// {{{ Object Macro's
-
-typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
-
-#define NidiumJSObj(cx) (Nidium::Binding::NidiumJS::GetObject(cx))
-
-#define NIDIUM_JS_OBJECT_EXPOSE(name) \
-    void  JS ## name::registerObject(JSContext *cx) \
-    { \
-        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
-        JS_InitClass(cx, global, JS::NullPtr(), &name ## _class, \
-            nidium_ ## name ## _constructor, \
-            0, NULL, NULL, NULL, NULL); \
-    }
-
-#define NIDIUM_JS_OBJECT_EXPOSE_NOT_INST(name) \
-    void NidiumJS ## name::registerObject(JSContext *cx) \
-    { \
-        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
-        JS::RootedObject name ## Obj(cx, JS_DefineObject(cx, global, #name, \
-            &name ## _class , NULL, 0)); \
-        JS_DefineFunctions(cx, name ## Obj, name ## _funcs); \
-        JS_DefineProperties(cx, name ## Obj, name ## _props); \
-    }
-
-#define NATIVE_OBJECT_EXPOSE(name) \
-    void NativeJS ## name::registerObject(JSContext *cx) \
-    { \
-        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
-        JS_InitClass(cx, global, JS::NullPtr(), &name ## _class, \
-            native_ ## name ## _constructor, \
-            0, NULL, NULL, NULL, NULL); \
-    }
-
-#define NATIVE_OBJECT_EXPOSE_NOT_INST(name) \
-    void NativeJS ## name::registerObject(JSContext *cx) \
-    { \
-        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
-        JS::RootedObject name ## Obj(cx, JS_DefineObject(cx, global, #name, \
-            &name ## _class , NULL, 0)); \
-        JS_DefineFunctions(cx, name ## Obj, name ## _funcs); \
-        JS_DefineProperties(cx, name ## Obj, name ## _props); \
-    }
-
-#define NIDIUM_JS_REGISTER_MODULE(constructor) \
-    extern "C" __attribute__((__visibility__("default"))) bool __NativeRegisterModule(JSContext *cx, JS::HandleObject exports) \
-    { \
-        return constructor(cx, exports); \
-    }
-
-#define NIDIUM_JSOBJ_SET_PROP_FLAGS(where, name, val, flags) JS_DefineProperty(m_Cx, where, \
-    (const char *)name, val, flags)
-
-#define NIDIUM_JSOBJ_SET_PROP(where, name, val) NIDIUM_JSOBJ_SET_PROP_FLAGS(where, name, val, \
-        JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
-
-#define JSOBJ_CALLFUNCNAME(where, name, argv) \
-    { \
-        JS::RootedValue _oncallback(cx); \
-        JS::RootedValue _rval(cx); \
-        JS::RootedValue rval(cx); \
-        if (JS_GetProperty(cx, where, name, &_oncallback) && \
-            JS_TypeOfValue(cx, _oncallback) == JSTYPE_FUNCTION) { \
-            JS_CallFunctionValue(cx, where, _oncallback, \
-                argv, &_rval); \
-        } \
-    }
-#define NIDIUM_JSOBJ_SET_PROP_CSTR(where, name, val) \
-    { \
-        JS::RootedString __n_rootedstring(m_Cx, JS_NewStringCopyZ(m_Cx, val)); \
-        NIDIUM_JSOBJ_SET_PROP(where, name, __n_rootedstring); \
-    }
-
-#define NIDIUM_JSOBJ_SET_PROP_STR(where, name, val) NIDIUM_JSOBJ_SET_PROP(where, name, val)
-#define NIDIUM_JSOBJ_SET_PROP_INT(where, name, val) NIDIUM_JSOBJ_SET_PROP(where, name, val)
-
-#define NIDIUM_JS_INIT_OPT() JS::RootedValue __curopt(cx);
-
-#define NIDIUM_JS_GET_OPT(obj, name) \
-    if (obj && \
-        JS_GetProperty(cx, obj, name, &__curopt) && \
-        __curopt != JSVAL_VOID && \
-        __curopt != JSVAL_NULL)
-#define NIDIUM_JS_GET_OPT_TYPE(obj, name, type) \
-    if (obj && \
-        JS_GetProperty(cx, obj, name, &__curopt) && \
-        __curopt != JSVAL_VOID && \
-        __curopt != JSVAL_NULL && \
-        __curopt.is ## type())
+// }}}
 
 // {{{ JSObjectBuilder
-
 class JSObjectBuilder
 {
 public:
@@ -790,41 +822,9 @@ private:
     JS::PersistentRootedObject m_Obj;
     JSContext *m_Cx;
 };
+// }}}
 
-// {{{ Getter / Setter Macros
-/*
-    Tinyid were removed in SM31.
-    This template act as a workaround (create a unique getter/setter and keep a unique identifier)
-*/
-#define NIDIUM_JS_SETTER(tinyid, setter) \
-    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}}
-#define NIDIUM_JS_SETTER_WRS(tinyid, setter) \
-    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::SetterWithReservedSlot<tinyid, setter>), JSStrictPropertyOp), nullptr}}
-#define NIDIUM_JS_GETTER(tinyid, getter) \
-    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}}
-#define NIDIUM_JS_STUBGETTER(tinyid) \
-    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::NullGetter<tinyid>), JSPropertyOp), nullptr}}
-
-/* Getter only */
-#define NIDIUM_JS_PSG(name, tinyid, getter_func) \
-    {name, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
-        NIDIUM_JS_GETTER(tinyid, getter_func), \
-        JSOP_NULLWRAPPER}
-
-/* Setter only */
-#define NIDIUM_JS_PSS(name, tinyid, setter_func) \
-    {name, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
-        NIDIUM_JS_STUBGETTER(tinyid), \
-        NIDIUM_JS_SETTER_WRS(tinyid, setter_func)}
-
-/* Both */
-#define NIDIUM_JS_PSGS(name, tinyid, getter_func, setter_func) \
-    {name, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
-        NIDIUM_JS_GETTER(tinyid, getter_func), \
-        NIDIUM_JS_SETTER(tinyid, setter_func)}
-
-// {{ JSPropertyAccessors
-
+// {{{ JSPropertyAccessors
 struct JSPropertyAccessors
 {
     typedef bool
@@ -890,6 +890,7 @@ struct JSPropertyAccessors
     }
 
 };
+// }}}
 
 } // namespace Binding
 } // namespace Nidium

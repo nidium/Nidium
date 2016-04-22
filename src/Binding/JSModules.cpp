@@ -27,8 +27,7 @@ using Nidium::Core::Path;
 namespace Nidium {
 namespace Binding {
 
-// {{{ preamble
-
+// {{{ Preamble
 #if 0
 #define DPRINT(...) printf(__VA_ARGS__)
 #else
@@ -60,14 +59,14 @@ static JSPropertySpec nidium_modules_exports_props[] = {
 #endif
 
 static bool nidium_modules_require(JSContext *cx, unsigned argc, JS::Value *vp);
+// }}}
 
+// {{{ JSModule
 JSModule::JSModule(JSContext *cx, JSModules *modules, JSModule *parent, const char *name)
     : absoluteDir(NULL), filePath(NULL), name(strdup(name)), m_ModuleType(NONE),
       m_Cached(false), exports(NULL), parent(parent), modules(modules), cx(cx)
 {
 }
-
-// {{{ JSModule
 
 bool JSModule::initMain()
 {
@@ -395,9 +394,9 @@ JSModule::~JSModule()
     free(this->filePath);
 
 }
+// }}}
 
 // {{{ JSModules
-
 bool JSModules::init()
 {
     char *paths = getenv("NIDIUM_REQUIRE_PATH");
@@ -674,9 +673,9 @@ bool JSModules::loadDirectoryModule(std::string &dir)
 }
 
 #undef MAX_EXT_SIZE
+// }}}
 
-// {{{ implementation
-
+// {{{ Implementation
 static bool nidium_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString name(cx, NULL);
@@ -709,8 +708,6 @@ static bool nidium_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-// {{{ registration
-
 void Exports_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     void *priv = JS_GetPrivate(obj);
@@ -719,6 +716,7 @@ void Exports_Finalize(JSFreeOp *fop, JSObject *obj)
         delete module;
     }
 }
+// }}}
 
 } // namespace Binding
 } // namespace Nidium

@@ -10,14 +10,15 @@
 namespace Nidium {
 namespace Net {
 
+// {{{ Preambule
 #ifndef ULLONG_MAX
 # define ULLONG_MAX ((uint64_t) -1) /* 2^64-1 */
 #endif
 
 #define HTTP_MAX_CL (1024ULL*1024ULL*1024ULL*2ULL)
+// }}}
 
-// {{{ callback
-
+// {{{ Callbacks
 static int message_begin_cb(http_parser *p);
 static int headers_complete_cb(http_parser *p);
 static int message_complete_cb(http_parser *p);
@@ -161,9 +162,9 @@ static int headers_complete_cb(http_parser *p)
 
     return 0;
 }
+// }}}
 
-// {{{ HTTPParser
-
+// {{{ Implementation 
 bool HTTPParser::HTTPParse(const char *data, size_t len)
 {
     size_t nparsed;
@@ -206,6 +207,7 @@ const char *HTTPParser::HTTPGetHeader(const char *key)
     buffer *ret = ape_array_lookup_cstr(m_Headers.list, key, strlen(key));
     return ret ? (const char *)ret->data : NULL;
 }
+// }}}
 
 } // namespace Net
 } // namespace Nidium

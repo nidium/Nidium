@@ -23,8 +23,7 @@ using Nidium::Net::WebSocketClient;
 namespace Nidium {
 namespace Binding {
 
-// {{{ preamble
-
+// {{{ Preamble
 static void WebSocket_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool nidium_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_websocket_close(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -46,17 +45,87 @@ static JSFunctionSpec ws_funcs[] = {
     JS_FN("ping", nidium_websocket_ping, 0, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
+// }}}
 
-static void WebSocket_Finalize(JSFreeOp *fop, JSObject *obj)
+// {{{ JSWebSocket
+JSWebSocket::JSWebSocket(JS::HandleObject obj, JSContext *cx,
+    const char *host,
+    unsigned short port, const char *path, bool ssl) : JSExposer<JSWebSocket>(obj, cx)
 {
-    JSWebSocket *wss = (JSWebSocket *)JS_GetPrivate(obj);
+    m_WebSocketClient = new WebSocketClient(port, path, host);
+    bool ret = m_WebSocketClient->connect(ssl, (ape_global *)JS_GetContextPrivate(cx));
 
-    if (wss != NULL) {
-        delete wss;
+    if (!ret) {
+        JS_ReportWarning(cx, "Failed to connect to WS endpoint\n");
+        return;
+    }
+
+    m_WebSocketClient->addListener(this);
+}
+
+void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
+{
+    JSContext *cx = m_Cx;
+
+    JS::RootedValue oncallback(cx);
+    JS::RootedValue rval(cx);
+
+    switch (msg.event()) {
+        case NIDIUM_EVENT(WebSocketClient, CLIENT_FRAME):
+        {
+            JS::AutoValueArray<1> arg(cx);
+
+            const char *data = (const char *)msg.args[2].toPtr();
+            int len = msg.args[3].toInt();
+            bool binary = msg.args[4].toBool();
+
+            JS::RootedObject obj(m_Cx, this->getJSObject());
+            if (JS_GetProperty(m_Cx, obj, "onmessage", &oncallback) &&
+                JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
+
+                JS::RootedValue jdata(cx);
+                JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
+
+                JSUtils::strToJsval(m_Cx, data, len, &jdata, !binary ? "utf8" : NULL);
+                NIDIUM_JSOBJ_SET_PROP(event, "data", jdata);
+
+                arg[0].setObjectOrNull(event);
+
+                JS_CallFunctionValue(m_Cx, obj, oncallback, arg, &rval);
+            }
+
+            break;
+        }
+        case NIDIUM_EVENT(WebSocketClient, CLIENT_CONNECT):
+        {
+            JS::RootedObject obj(cx, this->getJSObject());
+
+            JSOBJ_CALLFUNCNAME(obj, "onopen", JS::HandleValueArray::empty());
+
+            break;
+        }
+        case NIDIUM_EVENT(WebSocketClient, CLIENT_CLOSE):
+        {
+            JS::RootedObject obj(cx, this->getJSObject());
+
+            JSOBJ_CALLFUNCNAME(obj, "onclose", JS::HandleValueArray::empty());
+
+            NidiumJSObj(cx)->unrootObject(obj);
+
+            break;
+        }
+        default:
+            break;
     }
 }
 
-// {{{ implementation
+JSWebSocket::~JSWebSocket()
+{
+    delete m_WebSocketClient;
+}
+// }}}
+
+// {{{ Implementation
 
 static bool nidium_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp)
 {
@@ -179,86 +248,18 @@ static bool nidium_WebSocket_constructor(JSContext *cx,
     return true;
 }
 
-// {{{ JSWebSocket
-
-JSWebSocket::JSWebSocket(JS::HandleObject obj, JSContext *cx,
-    const char *host,
-    unsigned short port, const char *path, bool ssl) : JSExposer<JSWebSocket>(obj, cx)
+static void WebSocket_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    m_WebSocketClient = new WebSocketClient(port, path, host);
-    bool ret = m_WebSocketClient->connect(ssl, (ape_global *)JS_GetContextPrivate(cx));
+    JSWebSocket *wss = (JSWebSocket *)JS_GetPrivate(obj);
 
-    if (!ret) {
-        JS_ReportWarning(cx, "Failed to connect to WS endpoint\n");
-        return;
-    }
-
-    m_WebSocketClient->addListener(this);
-}
-
-void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
-{
-    JSContext *cx = m_Cx;
-
-    JS::RootedValue oncallback(cx);
-    JS::RootedValue rval(cx);
-
-    switch (msg.event()) {
-        case NIDIUM_EVENT(WebSocketClient, CLIENT_FRAME):
-        {
-            JS::AutoValueArray<1> arg(cx);
-
-            const char *data = (const char *)msg.args[2].toPtr();
-            int len = msg.args[3].toInt();
-            bool binary = msg.args[4].toBool();
-
-            JS::RootedObject obj(m_Cx, this->getJSObject());
-            if (JS_GetProperty(m_Cx, obj, "onmessage", &oncallback) &&
-                JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
-
-                JS::RootedValue jdata(cx);
-                JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
-
-                JSUtils::strToJsval(m_Cx, data, len, &jdata, !binary ? "utf8" : NULL);
-                NIDIUM_JSOBJ_SET_PROP(event, "data", jdata);
-
-                arg[0].setObjectOrNull(event);
-
-                JS_CallFunctionValue(m_Cx, obj, oncallback, arg, &rval);
-            }
-
-            break;
-        }
-        case NIDIUM_EVENT(WebSocketClient, CLIENT_CONNECT):
-        {
-            JS::RootedObject obj(cx, this->getJSObject());
-
-            JSOBJ_CALLFUNCNAME(obj, "onopen", JS::HandleValueArray::empty());
-
-            break;
-        }
-        case NIDIUM_EVENT(WebSocketClient, CLIENT_CLOSE):
-        {
-            JS::RootedObject obj(cx, this->getJSObject());
-
-            JSOBJ_CALLFUNCNAME(obj, "onclose", JS::HandleValueArray::empty());
-
-            NidiumJSObj(cx)->unrootObject(obj);
-
-            break;
-        }
-        default:
-            break;
+    if (wss != NULL) {
+        delete wss;
     }
 }
 
-JSWebSocket::~JSWebSocket()
-{
-    delete m_WebSocketClient;
-}
+// }}}
 
-// {{{ registration
-
+// {{{ Registration
 void JSWebSocket::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
@@ -266,6 +267,7 @@ void JSWebSocket::registerObject(JSContext *cx)
         nidium_WebSocket_constructor,
         1, NULL, ws_funcs, NULL, NULL);
 }
+// }}}
 
 } // namespace Binding
 } // namespace Nidium

@@ -1,5 +1,5 @@
 /*
-   Copyright 2016 Nidium Inc. All rights reserved.
+ Filestream  Copyright 2016 Nidium Inc. All rights reserved.
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
@@ -18,11 +18,25 @@ using Nidium::Core::Args;
 namespace Nidium {
 namespace Net {
 
+// {{{ Preamble
 #define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
     CONST_STR_LEN(header "\0"))
+// }}}
 
-// {{{ callbacks
+// {{{ WebSocketListener
+WebSocketListener::WebSocketListener(uint16_t port, const char *ip) :
+    HTTPServer(port, ip)
+{
 
+}
+
+void WebSocketListener::onClientConnect(ape_socket *client, ape_global *ape)
+{
+    client->ctx = new WebSocketClientConnection(this, client);
+}
+// }}}
+
+// {{{ WebSocketClientConnection Implementation
 static void nidium_on_ws_frame(websocket_state *state,
     const unsigned char *data, ssize_t length, int binary)
 {
@@ -40,22 +54,6 @@ static void nidium_on_ws_frame(websocket_state *state,
     con->onFrame((const char *)data, length, (bool)binary);
 }
 
-
-// {{{ WebSocketListener
-
-WebSocketListener::WebSocketListener(uint16_t port, const char *ip) :
-    HTTPServer(port, ip)
-{
-
-}
-
-void WebSocketListener::onClientConnect(ape_socket *client, ape_global *ape)
-{
-    client->ctx = new WebSocketClientConnection(this, client);
-}
-
-// {{{ WebSocketClientConnection
-
 WebSocketClientConnection::WebSocketClientConnection(
         HTTPServer *httpserver, ape_socket *socket) :
     HTTPClientConnection(httpserver, socket), m_Handshaked(false),
@@ -67,21 +65,21 @@ WebSocketClientConnection::WebSocketClientConnection(
     m_WSState.on_frame = nidium_on_ws_frame;
 }
 
-void WebSocketClientConnection::close()
-{
-    if (!m_Handshaked) {
-        APE_socket_shutdown_now(m_SocketClient);
-        return;
-    }
-    ape_ws_close(&m_WSState);
-}
-
 void WebSocketClientConnection::ping()
 {
     if (!m_Handshaked) {
         return;
     }
     ape_ws_ping(&m_WSState);
+}
+
+int WebSocketClientConnection::pingTimer(void *arg)
+{
+    WebSocketClientConnection *con = (WebSocketClientConnection *)arg;
+
+    con->ping();
+
+    return WEBSOCKET_PING_INTERVAL;
 }
 
 void WebSocketClientConnection::write(unsigned char *data,
@@ -91,6 +89,14 @@ void WebSocketClientConnection::write(unsigned char *data,
         (int)binary, type);
 }
 
+void WebSocketClientConnection::close()
+{
+    if (!m_Handshaked) {
+        APE_socket_shutdown_now(m_SocketClient);
+        return;
+    }
+    ape_ws_close(&m_WSState);
+}
 
 WebSocketClientConnection::~WebSocketClientConnection()
 {
@@ -107,18 +113,9 @@ WebSocketClientConnection::~WebSocketClientConnection()
         m_PingTimer = 0;
     }
 }
+// }}}
 
-int WebSocketClientConnection::pingTimer(void *arg)
-{
-    WebSocketClientConnection *con = (WebSocketClientConnection *)arg;
-
-    con->ping();
-
-    return WEBSOCKET_PING_INTERVAL;
-}
-
-// {{{ events
-
+// {{{ WebSocketClientConnection Events
 void WebSocketClientConnection::onHeaderEnded()
 {
 
@@ -195,6 +192,7 @@ void WebSocketClientConnection::onFrame(const char *data, size_t len,
 
     m_HTTPListener->fireEvent<WebSocketListener>(WebSocketListener::SERVER_FRAME, args);
 }
+// }}}
 
 } // namespace Net
 } // namespace Nidium

@@ -17,7 +17,7 @@
 namespace Nidium {
 namespace IO {
 
-// {{{ NFSStream
+// {{{ Implementation
 
 #ifdef NATIVE_EMBED_PRIVATE
   #include NATIVE_EMBED_PRIVATE
@@ -116,7 +116,9 @@ void NFSStream::seek(size_t pos)
     m_File.pos = pos;
 }
 
-// {{{ NFSStream events
+// }}}
+
+// {{{ Callbacks
 
 void NFSStream::onStart(size_t packets, size_t seek)
 {
@@ -169,6 +171,8 @@ const unsigned char *NFSStream::onGetNextPacket(size_t *len, int *err)
 
     return data;
 }
+
+// }}}
 
 
 } // namespace IO

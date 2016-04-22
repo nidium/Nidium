@@ -14,11 +14,10 @@ using Nidium::IO::Stream;
 namespace Nidium {
 namespace Binding {
 
+// {{{ Preamble
 enum {
     STREAM_PROP_FILESIZE
 };
-
-// {{{ preamble
 
 static bool nidium_stream_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp);
@@ -51,17 +50,95 @@ static JSPropertySpec Stream_props[] = {
     NIDIUM_JS_PSG("filesize", STREAM_PROP_FILESIZE, nidium_stream_prop_get),
     JS_PS_END
 };
+// }}}
 
-static void Stream_Finalize(JSFreeOp *fop, JSObject *obj)
+// {{{ JSStream
+JSStream::JSStream(JS::HandleObject obj, JSContext *cx,
+    ape_global *net, const char *url) : JSExposer<JSStream>(obj, cx)
 {
-    JSStream *nstream = (JSStream *)JS_GetPrivate(obj);
+    std::string str = url;
+    //str += NidiumJS::getNidiumClass(cx)->getPath();
 
-    if (nstream != NULL) {
-        delete nstream;
+    m_Stream = Stream::create(Core::Path(str.c_str()));
+
+    if (!m_Stream) {
+        return;
     }
+
+    m_Stream->setListener(this);
 }
 
-// {{{ implementation
+JSStream::~JSStream()
+{
+    delete m_Stream;
+}
+
+#if 0
+void JSStream::onProgress(size_t buffered, size_t total)
+{
+    JS::RootedObject obj(cx, this->jsobj);
+    JS::Value onprogress_callback;
+
+    if (JS_GetProperty(this->cx, obj, "onProgress", &onprogress_callback) &&
+        JS_TypeOfValue(this->cx, onprogress_callback) == JSTYPE_FUNCTION) {
+
+        JS::RootedValue rval(this->cx);
+        JS::AutoValueArray<2>args(this->cx);
+        args[0] = INT_TO_JSVAL(buffered);
+        args[1] = INT_TO_JSVAL(total);
+
+        JS_CallFunctionValue(this->cx, obj, onprogress_callback, args, &rval);
+    }
+}
+#endif
+
+void JSStream::onMessage(const Core::SharedMessages::Message &msg)
+{
+    JS::RootedValue onavailable_callback(m_Cx);
+    JS::RootedValue onerror_callback(m_Cx);
+    JS::RootedValue rval(m_Cx);
+
+    JS::RootedObject obj(m_Cx, m_JSObject);
+
+    switch (msg.event()) {
+        case Stream::EVENT_AVAILABLE_DATA:
+            if (JS_GetProperty(m_Cx, obj, "onavailabledata", &onavailable_callback) &&
+                JS_TypeOfValue(m_Cx, onavailable_callback) == JSTYPE_FUNCTION) {
+
+                JS_CallFunctionValue(m_Cx, obj, onavailable_callback, JS::HandleValueArray::empty(), &rval);
+            }
+            break;
+        case Stream::EVENT_ERROR:
+            {
+            Stream::Errors err = (Stream::Errors)msg.args[0].toInt();
+            int code = msg.args[1].toInt();
+            switch (err) {
+                case Stream::ERROR_OPEN:
+                    break;
+                case Stream::ERROR_READ:
+                    break;
+                case Stream::ERROR_SEEK:
+
+                    break;
+                default:
+                    break;
+            }
+            if (JS_GetProperty(m_Cx, obj, "onerror", &onerror_callback) &&
+                JS_TypeOfValue(m_Cx, onerror_callback) == JSTYPE_FUNCTION) {
+                JS::AutoValueArray<1> args(m_Cx);
+
+                args[0].setInt32(code);
+                JS_CallFunctionValue(m_Cx, obj, onerror_callback, args, &rval);
+                }
+            }
+            break;
+        default:
+            break;
+    }
+}
+// }}}
+
+// {{{ Implementation
 
 static bool nidium_stream_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
@@ -215,95 +292,19 @@ static bool nidium_Stream_constructor(JSContext *cx, unsigned argc, JS::Value *v
     return true;
 }
 
-// {{{ JSStream
-
-JSStream::JSStream(JS::HandleObject obj, JSContext *cx,
-    ape_global *net, const char *url) : JSExposer<JSStream>(obj, cx)
+static void Stream_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    std::string str = url;
-    //str += NidiumJS::getNidiumClass(cx)->getPath();
+    JSStream *nstream = (JSStream *)JS_GetPrivate(obj);
 
-    m_Stream = Stream::create(Core::Path(str.c_str()));
-
-    if (!m_Stream) {
-        return;
-    }
-
-    m_Stream->setListener(this);
-}
-
-JSStream::~JSStream()
-{
-    delete m_Stream;
-}
-
-#if 0
-void JSStream::onProgress(size_t buffered, size_t total)
-{
-    JS::RootedObject obj(cx, this->jsobj);
-    JS::Value onprogress_callback;
-
-    if (JS_GetProperty(this->cx, obj, "onProgress", &onprogress_callback) &&
-        JS_TypeOfValue(this->cx, onprogress_callback) == JSTYPE_FUNCTION) {
-
-        JS::RootedValue rval(this->cx);
-        JS::AutoValueArray<2>args(this->cx);
-        args[0] = INT_TO_JSVAL(buffered);
-        args[1] = INT_TO_JSVAL(total);
-
-        JS_CallFunctionValue(this->cx, obj, onprogress_callback, args, &rval);
+    if (nstream != NULL) {
+        delete nstream;
     }
 }
-#endif
+// }}}
 
-void JSStream::onMessage(const Core::SharedMessages::Message &msg)
-{
-    JS::RootedValue onavailable_callback(m_Cx);
-    JS::RootedValue onerror_callback(m_Cx);
-    JS::RootedValue rval(m_Cx);
-
-    JS::RootedObject obj(m_Cx, m_JSObject);
-
-    switch (msg.event()) {
-        case Stream::EVENT_AVAILABLE_DATA:
-            if (JS_GetProperty(m_Cx, obj, "onavailabledata", &onavailable_callback) &&
-                JS_TypeOfValue(m_Cx, onavailable_callback) == JSTYPE_FUNCTION) {
-
-                JS_CallFunctionValue(m_Cx, obj, onavailable_callback, JS::HandleValueArray::empty(), &rval);
-            }
-            break;
-        case Stream::EVENT_ERROR:
-            {
-            Stream::Errors err = (Stream::Errors)msg.args[0].toInt();
-            int code = msg.args[1].toInt();
-            switch (err) {
-                case Stream::ERROR_OPEN:
-                    break;
-                case Stream::ERROR_READ:
-                    break;
-                case Stream::ERROR_SEEK:
-
-                    break;
-                default:
-                    break;
-            }
-            if (JS_GetProperty(m_Cx, obj, "onerror", &onerror_callback) &&
-                JS_TypeOfValue(m_Cx, onerror_callback) == JSTYPE_FUNCTION) {
-                JS::AutoValueArray<1> args(m_Cx);
-
-                args[0].setInt32(code);
-                JS_CallFunctionValue(m_Cx, obj, onerror_callback, args, &rval);
-                }
-            }
-            break;
-        default:
-            break;
-    }
-}
-
-// {{{ registration
-
+// {{{ Registration
 NIDIUM_JS_OBJECT_EXPOSE(Stream)
+// }}}
 
 } // namespace Binding
 } // namespace Nidium

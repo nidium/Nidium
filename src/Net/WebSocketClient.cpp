@@ -16,8 +16,7 @@ using Nidium::Core::Args;
 namespace Nidium {
 namespace Net {
 
-// {{{ callback
-
+// {{{ Callbacks
 static void native_ws_connected(ape_socket *s,
     ape_global *ape, void *arg)
 {
@@ -58,9 +57,9 @@ static void native_on_ws_client_frame(websocket_state *state,
 
     con->onFrame((const char *)data, length, (bool)binary);
 }
+// }}}
 
 // {{{ WebSocketClient
-
 WebSocketClient::WebSocketClient(uint16_t port, const char *url,
     const char *host) :
     HTTPParser(), m_Socket(NULL), m_Port(port), m_SSL(false)
@@ -160,9 +159,9 @@ WebSocketClient::~WebSocketClient()
         APE_socket_shutdown_now(m_Socket);
     }
 }
+// }}}
 
 // {{{ WebSocketClient events
-
 void WebSocketClient::onConnected()
 {
     ape_ws_init(&m_WSState, 1);
@@ -240,6 +239,7 @@ void WebSocketClient::onClose()
 
     this->fireEvent<WebSocketClient>(WebSocketClient::CLIENT_CLOSE, args);
 }
+// }}}
 
 } // namespace Net
 } // namespace Nidium

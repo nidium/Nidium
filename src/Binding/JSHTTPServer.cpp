@@ -16,8 +16,7 @@ using Nidium::Net::HTTPClientConnection;
 namespace Nidium {
 namespace Binding {
 
-// {{{ preamble
-
+// {{{ Preamble
 static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static bool nidium_httpresponse_write(JSContext *cx,
@@ -58,23 +57,18 @@ static JSPropertySpec HTTPRequest_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 #endif
+// }}}
 
-static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj)
-{
-    JSHTTPServer *server = (JSHTTPServer *)JS_GetPrivate(obj);
-
-    if (server != NULL) {
-        delete server;
-    }
-}
-
+// {{{ JSHTTPResponse
 JSHTTPResponse::JSHTTPResponse(JSContext *cx, uint16_t code) :
         HTTPResponse(code),
         JSObjectMapper(cx, "HTTPResponse")
 {
     JS_DefineFunctions(cx, m_JSObj, HTTPResponse_funcs);
 }
+// }}}
 
+// {{{ JSHTTPServer
 JSHTTPServer::JSHTTPServer(JS::HandleObject obj, JSContext *cx,
     uint16_t port, const char *ip) :
     JSExposer<JSHTTPServer>(obj, cx),
@@ -87,8 +81,6 @@ JSHTTPServer::~JSHTTPServer()
 {
 
 }
-
-// {{{ JSHTTPServer events
 
 void JSHTTPServer::onClientDisconnect(HTTPClientConnection *client)
 {
@@ -174,9 +166,9 @@ bool JSHTTPServer::onEnd(HTTPClientConnection *client)
 
     return false;
 }
+// }}}
 
-// {{{ implementation
-
+// {{{ Implementation
 static bool nidium_HTTPListener_constructor(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
@@ -351,8 +343,17 @@ static bool nidium_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Valu
     return true;
 }
 
-// {{{ registration
+static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    JSHTTPServer *server = (JSHTTPServer *)JS_GetPrivate(obj);
 
+    if (server != NULL) {
+        delete server;
+    }
+}
+// }}}
+
+// {{{ Registration
 void JSHTTPServer::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
@@ -366,6 +367,7 @@ void JSHTTPServer::registerObject(JSContext *cx)
                 0, HTTPRequest_props, HTTPRequest_funcs, NULL, NULL);
 #endif
 }
+// }}}
 
 } // namespace Binding
 } // namespace Nidium

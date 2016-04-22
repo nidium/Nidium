@@ -15,20 +15,19 @@ namespace Binding {
 class JSHTTPClientConnection;
 
 // {{{ JSHTTPResponse
-
 class JSHTTPResponse : public Nidium::Net::HTTPResponse,
-                             public JSObjectMapper<JSHTTPResponse>
+                       public JSObjectMapper<JSHTTPResponse>
 {
 public:
     friend JSHTTPClientConnection;
 protected:
     explicit JSHTTPResponse(JSContext *cx, uint16_t code = 200);
 };
+// }}}
 
 // {{{ JSHTTPClientConnection
-
 class JSHTTPClientConnection : public Nidium::Net::HTTPClientConnection,
-                                     public JSObjectMapper<JSHTTPClientConnection>
+                               public JSObjectMapper<JSHTTPClientConnection>
 {
 public:
     JSHTTPClientConnection(JSContext *cx, Nidium::Net::HTTPServer *httpserver,
@@ -39,9 +38,9 @@ public:
         return new JSHTTPResponse(m_JSCx);
     }
 };
+// }}}
 
 // {{{ JSHTTPServer
-
 class JSHTTPServer :    public JSExposer<JSHTTPServer>,
                         public Nidium::Net::HTTPServer
 {
@@ -64,8 +63,8 @@ public:
     virtual bool onEnd(Nidium::Net::HTTPClientConnection *client);
 
     static void registerObject(JSContext *cx);
-private:
 };
+// }}}
 
 } // namespace Binding
 } // namespace Nidium

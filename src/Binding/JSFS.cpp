@@ -19,11 +19,10 @@ using Nidium::Core::Task;
 namespace Nidium {
 namespace Binding {
 
+// {{{ Preamble
 enum {
     JSFS_MSG_READDIR_FILE = 1
 };
-
-// {{{ preamble
 
 static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp);
 
@@ -38,9 +37,9 @@ static JSFunctionSpec FS_static_funcs[] = {
     JS_FN("readDir",     native_fs_readDir, 2, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
+// }}}
 
 // {{{ JSFSAsyncHandler
-
 class JSFSAsyncHandler : public JSAsyncHandler
 {
 public:
@@ -80,6 +79,30 @@ public:
         }
     }
 
+    static void readDirTask(Task *task)
+    {
+        JSFSAsyncHandler *handler = (JSFSAsyncHandler *)task->getObject();
+
+        DIR *dir;
+
+        if (!(dir = opendir((const char *)task->args[0].toPtr()))) {
+            return;
+        }
+
+        dirent *cur;
+
+        while ((cur = readdir(dir)) != NULL) {
+            if (strcmp(cur->d_name, ".") == 0 || strcmp(cur->d_name, "..") == 0) {
+                continue;
+            }
+            dirent *curcpy = (dirent *)malloc(sizeof(dirent));
+            memcpy(curcpy, cur, sizeof(dirent));
+            handler->postMessage(curcpy, JSFS_MSG_READDIR_FILE);
+        }
+
+        closedir(dir);
+    }
+
     void onMessageLost(const SharedMessages::Message &msg)
     {
         switch (msg.event()) {
@@ -91,33 +114,9 @@ public:
         }
     }
 };
+// }}}
 
-void JSFS_readDir_Task(Task *task)
-{
-    JSFSAsyncHandler *handler = (JSFSAsyncHandler *)task->getObject();
-
-    DIR *dir;
-
-    if (!(dir = opendir((const char *)task->args[0].toPtr()))) {
-        return;
-    }
-
-    dirent *cur;
-
-    while ((cur = readdir(dir)) != NULL) {
-        if (strcmp(cur->d_name, ".") == 0 || strcmp(cur->d_name, "..") == 0) {
-            continue;
-        }
-        dirent *curcpy = (dirent *)malloc(sizeof(dirent));
-        memcpy(curcpy, cur, sizeof(dirent));
-        handler->postMessage(curcpy, JSFS_MSG_READDIR_FILE);
-    }
-
-    closedir(dir);
-}
-
-// implementation
-
+// {{{ Implementation
 static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     return true;  //@FIXME why is this returning immed?
@@ -141,10 +140,9 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString cpath(cx, path);
 
     JSFSAsyncHandler *handler = new JSFSAsyncHandler(cx);
-    printf("Calling with cx : %p\n", cx);
 
     Task *task = new Task();
-    task->setFunction(JSFS_readDir_Task);
+    task->setFunction(JSFSAsyncHandler::readDirTask);
     task->args[0].set(strdup(cpath.ptr()));
 
     handler->setCallback(0, callback.toObjectOrNull());
@@ -152,9 +150,9 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
 
     return true;
 }
+// }}}
 
 // {{{ registration
-
 void JSFS::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
@@ -163,6 +161,7 @@ void JSFS::registerObject(JSContext *cx)
 
     JS_DefineFunctions(cx, fsObj, FS_static_funcs);
 }
+// }}}
 
 } // namespace Binding
 } // namespace Nidium

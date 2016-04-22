@@ -18,10 +18,8 @@ namespace Core {
 #define NATIVE_TASKMANAGER_MAX_IDLE_THREAD 8
 #define NATIVE_TASKMANAGER_MAX_THREAD 16
 
-class Task;
-
 // {{{ TaskManager
-
+class Task;
 class TaskManager
 {
 public:
@@ -69,9 +67,10 @@ private:
         workerInfo *worker;
     } m_Threadpool;
 };
+// }}}
 
+// {{{ Task
 class Managed;
-
 class Task
 {
 #define MAX_ARG 8
@@ -103,9 +102,9 @@ private:
     task_func m_Func;
 #undef MAX_ARG
 };
+// }}}
 
 // {{{ Managed
-
 class Managed : public Messages
 {
 public:
@@ -123,6 +122,7 @@ private:
     TaskManager *m_Manager;
     TaskManager::workerInfo *m_Worker;
 };
+// }}}
 
 } // namespace Core
 } // namespace Nidium

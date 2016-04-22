@@ -22,6 +22,7 @@ using Nidium::Core::Utils;
 namespace Nidium {
 namespace Net {
 
+// {{{ Preamble
 #define GET_HTTP_OR_FAIL(obj) \
     (HTTPServer *)obj->ctx; \
     HTTPServer *___http___ = (HTTPServer *)obj->ctx; \
@@ -74,7 +75,9 @@ static struct {
     {0, NULL}
 };
 
-// {{{ callback
+// }}}
+
+// {{{ HTTP parser callbacks
 
 static int message_begin_cb(http_parser *p);
 static int headers_complete_cb(http_parser *p);
@@ -86,13 +89,13 @@ static int body_cb(http_parser *p, const char *buf, size_t len);
 
 static http_parser_settings settings =
 {
-.on_message_begin = message_begin_cb,
-.on_header_field = header_field_cb,
-.on_header_value = header_value_cb,
-.on_url = request_url_cb,
-.on_body = body_cb,
-.on_headers_complete = headers_complete_cb,
-.on_message_complete = message_complete_cb
+    .on_message_begin = message_begin_cb,
+    .on_header_field = header_field_cb,
+    .on_header_value = header_value_cb,
+    .on_url = request_url_cb,
+    .on_body = body_cb,
+    .on_headers_complete = headers_complete_cb,
+    .on_message_complete = message_complete_cb
 };
 
 static int message_begin_cb(http_parser *p)
@@ -252,7 +255,9 @@ static int request_url_cb(http_parser *p, const char *buf, size_t len)
     return 0;
 }
 
-// {{{ socket events
+// }}}
+
+// {{{ Socket callbacks
 
 static void nidium_socket_onaccept(ape_socket *socket_server,
     ape_socket *socket_client, ape_global *ape, void *socket_arg)
@@ -299,7 +304,9 @@ static void nidium_socket_client_disconnect(ape_socket *socket_client,
     delete con;
 }
 
-// {{ HTTPServer
+// }}}
+
+// {{{ HTTPServer Implementation
 
 HTTPServer::HTTPServer(uint16_t port, const char *ip)
 {
@@ -366,7 +373,9 @@ int NativeHTTPClientConnection_checktimeout(void *arg)
     return 1000;
 }
 
-// {{ HTTPClientConnection
+// }}}
+
+// {{{ HTTPClientConnection Implementation
 
 HTTPClientConnection::HTTPClientConnection(HTTPServer *httpserver,
     ape_socket *socket) :
@@ -476,6 +485,8 @@ HTTPClientConnection::~HTTPClientConnection()
         delete m_Response;
     }
 };
+
+// }}}
 
 // {{{ HTTPResponse
 
@@ -725,6 +736,8 @@ void HTTPResponse::dataOwnershipTransfered(bool onlyHeaders)
         m_Content = NULL;
     }
 }
+
+// }}}
 
 } // namespace Net
 } // namespace Nidium

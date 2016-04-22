@@ -10,7 +10,7 @@
 namespace Nidium {
 namespace Binding {
 
-// {{{ preamble
+// {{{ Preamble
 
 static void Debug_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool nidium_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -33,18 +33,9 @@ static JSFunctionSpec debug_funcs[] = {
     JS_FN("unserialize", nidium_debug_unserialize, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
+// }}}
 
-static void Debug_Finalize(JSFreeOp *fop, JSObject *obj)
-{
-    JSDebug *jdebug = JSDebug::GetObject(obj);
-
-    if (jdebug != NULL) {
-        delete jdebug;
-    }
-}
-
-//  {{{ implementation
-
+//  {{{ Implementation
 static bool nidium_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -112,8 +103,17 @@ static bool nidium_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp
     return true;
 }
 
-// {{{ registration
+static void Debug_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    JSDebug *jdebug = JSDebug::GetObject(obj);
 
+    if (jdebug != NULL) {
+        delete jdebug;
+    }
+}
+// }}}
+
+// {{{ Registration
 void JSDebug::registerObject(JSContext *cx)
 {
     NidiumJS *njs = NidiumJS::GetObject(cx);
@@ -130,6 +130,7 @@ void JSDebug::registerObject(JSContext *cx)
 
     JS_DefineFunctions(cx, debugObj, debug_funcs);
 }
+// }}}
 
 } // namespace Binding
 } // namespace Nidium
