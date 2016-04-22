@@ -23,6 +23,8 @@ enum {
     JSFS_MSG_READDIR_FILE = 1
 };
 
+// {{{ preamble
+
 static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass fs_class = {
@@ -36,6 +38,8 @@ static JSFunctionSpec FS_static_funcs[] = {
     JS_FN("readDir",     native_fs_readDir, 2, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
+
+// {{{ JSFSAsyncHandler
 
 class JSFSAsyncHandler : public JSAsyncHandler
 {
@@ -112,6 +116,8 @@ void JSFS_readDir_Task(Task *task)
     closedir(dir);
 }
 
+// implementation
+
 static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     return true;  //@FIXME why is this returning immed?
@@ -146,6 +152,8 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
 
     return true;
 }
+
+// {{{ registration
 
 void JSFS::registerObject(JSContext *cx)
 {

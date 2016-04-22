@@ -16,7 +16,6 @@ namespace Binding {
 class JSDB: public Nidium::Core::DB
 {
     public:
-
         using DB::DB;
         /*
             Caller is responsible for knowing how to

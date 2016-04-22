@@ -23,6 +23,8 @@ using Nidium::Net::WebSocketClient;
 namespace Nidium {
 namespace Binding {
 
+// {{{ preamble
+
 static void WebSocket_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool nidium_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_websocket_close(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -53,6 +55,8 @@ static void WebSocket_Finalize(JSFreeOp *fop, JSObject *obj)
         delete wss;
     }
 }
+
+// {{{ implementation
 
 static bool nidium_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp)
 {
@@ -175,6 +179,8 @@ static bool nidium_WebSocket_constructor(JSContext *cx,
     return true;
 }
 
+// {{{ JSWebSocket
+
 JSWebSocket::JSWebSocket(JS::HandleObject obj, JSContext *cx,
     const char *host,
     unsigned short port, const char *path, bool ssl) : JSExposer<JSWebSocket>(obj, cx)
@@ -188,11 +194,6 @@ JSWebSocket::JSWebSocket(JS::HandleObject obj, JSContext *cx,
     }
 
     m_WebSocketClient->addListener(this);
-}
-
-JSWebSocket::~JSWebSocket()
-{
-    delete m_WebSocketClient;
 }
 
 void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
@@ -250,6 +251,13 @@ void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
             break;
     }
 }
+
+JSWebSocket::~JSWebSocket()
+{
+    delete m_WebSocketClient;
+}
+
+// {{{ registration
 
 void JSWebSocket::registerObject(JSContext *cx)
 {

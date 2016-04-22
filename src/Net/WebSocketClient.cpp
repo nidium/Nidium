@@ -16,6 +16,8 @@ using Nidium::Core::Args;
 namespace Nidium {
 namespace Net {
 
+// {{{ callback
+
 static void native_ws_connected(ape_socket *s,
     ape_global *ape, void *arg)
 {
@@ -57,6 +59,8 @@ static void native_on_ws_client_frame(websocket_state *state,
     con->onFrame((const char *)data, length, (bool)binary);
 }
 
+// {{{ WebSocketClient
+
 WebSocketClient::WebSocketClient(uint16_t port, const char *url,
     const char *host) :
     HTTPParser(), m_Socket(NULL), m_Port(port), m_SSL(false)
@@ -68,18 +72,6 @@ WebSocketClient::WebSocketClient(uint16_t port, const char *url,
     base64_encode_b_safe((unsigned char *)&r64, m_HandShakeKey, sizeof(uint64_t), 0);
 
     m_ComputedKey = ape_ws_compute_key(m_HandShakeKey, strlen(m_HandShakeKey));
-}
-
-WebSocketClient::~WebSocketClient()
-{
-    free(m_Host);
-    free(m_URL);
-    free(m_ComputedKey);
-    if (m_Socket) {
-        //ape_ws_close(websocket_state *state);
-        APE_socket_remove_callbacks(m_Socket);
-        APE_socket_shutdown_now(m_Socket);
-    }
 }
 
 bool WebSocketClient::connect(bool ssl, ape_global *ape)
@@ -108,6 +100,68 @@ bool WebSocketClient::connect(bool ssl, ape_global *ape)
 
     return true;
 }
+
+void WebSocketClient::HTTPHeaderEnded()
+{
+    const char *swa = this->HTTPGetHeader("Sec-WebSocket-Accept");
+
+    /* Check handshake key integrity */
+    if (swa == NULL || strcmp(swa, m_ComputedKey) != 0) {
+        APE_socket_shutdown_now(m_Socket);
+        return;
+    }
+}
+
+void WebSocketClient::HTTPRequestEnded()
+{
+    m_Socket->callbacks.on_read = native_ws_read_ws;
+
+    Args args;
+    args[0].set(this);
+
+    this->fireEvent<WebSocketClient>(WebSocketClient::CLIENT_CONNECT, args);
+}
+
+void WebSocketClient::write(uint8_t *data, size_t len, bool binary)
+{
+    if (!m_Socket) return;
+
+    ape_ws_write(&m_WSState, data, len, binary, APE_DATA_COPY);
+}
+
+void WebSocketClient::close()
+{
+    if (!m_Socket) return;
+
+    ape_ws_close(&m_WSState);
+}
+
+void WebSocketClient::ping()
+{
+    if (!m_Socket) return;
+
+    ape_ws_ping(&m_WSState);
+}
+
+void WebSocketClient::HTTPOnData(size_t offset, size_t len)
+{
+
+}
+
+
+WebSocketClient::~WebSocketClient()
+{
+    free(m_Host);
+    free(m_URL);
+    free(m_ComputedKey);
+    if (m_Socket) {
+        //ape_ws_close(websocket_state *state);
+        APE_socket_remove_callbacks(m_Socket);
+        APE_socket_shutdown_now(m_Socket);
+    }
+}
+
+// {{{ WebSocketClient events
 
 void WebSocketClient::onConnected()
 {
@@ -185,53 +239,6 @@ void WebSocketClient::onClose()
     args[0].set(this);
 
     this->fireEvent<WebSocketClient>(WebSocketClient::CLIENT_CLOSE, args);
-}
-
-void WebSocketClient::HTTPHeaderEnded()
-{
-    const char *swa = this->HTTPGetHeader("Sec-WebSocket-Accept");
-
-    /* Check handshake key integrity */
-    if (swa == NULL || strcmp(swa, m_ComputedKey) != 0) {
-        APE_socket_shutdown_now(m_Socket);
-        return;
-    }
-}
-
-void WebSocketClient::HTTPRequestEnded()
-{
-    m_Socket->callbacks.on_read = native_ws_read_ws;
-
-    Args args;
-    args[0].set(this);
-
-    this->fireEvent<WebSocketClient>(WebSocketClient::CLIENT_CONNECT, args);
-}
-
-void WebSocketClient::write(uint8_t *data, size_t len, bool binary)
-{
-    if (!m_Socket) return;
-
-    ape_ws_write(&m_WSState, data, len, binary, APE_DATA_COPY);
-}
-
-void WebSocketClient::close()
-{
-    if (!m_Socket) return;
-
-    ape_ws_close(&m_WSState);
-}
-
-void WebSocketClient::ping()
-{
-    if (!m_Socket) return;
-
-    ape_ws_ping(&m_WSState);
-}
-
-void WebSocketClient::HTTPOnData(size_t offset, size_t len)
-{
-
 }
 
 } // namespace Net

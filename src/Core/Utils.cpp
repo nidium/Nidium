@@ -15,6 +15,8 @@
 namespace Nidium {
 namespace Core {
 
+// {{{ Time related
+
 /* TODO : http://nadeausoftware.com/articles/2012/04/c_c_tip_how_measure_elapsed_real_time_benchmarking */
 
 #if defined(__APPLE__)
@@ -106,76 +108,10 @@ static __inline uint64_t mach_absolute_time()
 #endif
 #endif
 
-static uint8_t nibbleFromChar(char c)
-{
-    if(c >= '0' && c <= '9') return c - '0';
-    if(c >= 'a' && c <= 'f') return c - 'a' + 10;
-    if(c >= 'A' && c <= 'F') return c - 'A' + 10;
-
-    return 255;
-}
-
 /* TODO: iOS : http://shiftedbits.org/2008/10/01/mach_absolute_time-on-the-iphone/ */
 uint64_t Utils::getTick(bool ms)
 {
     return mach_absolute_time() / (ms ? 1000000LL : 1LL);
-}
-
-void Utils::sha1hmac(const unsigned char *key, uint32_t keylen,
-    const unsigned char *buf, uint32_t buflen, unsigned char out[20])
-{
-    sha1_hmac((unsigned char *)key, keylen, (unsigned char *)buf, buflen, out);
-}
-
-void Utils::sha1(const unsigned char *buf, uint32_t buflen, unsigned char out[20])
-{
-    sha1_csum((unsigned char *)buf, buflen, out);
-}
-
-char *Utils::b64Encode(const unsigned char *buf, size_t len)
-{
-    return base64_encode((unsigned char *)buf, len);
-}
-
-int Utils::b64Decode(unsigned char *out, const char *in, int out_length)
-{
-    return base64_decode(out, in, out_length);
-}
-
-int Utils::b16Decode(unsigned char *out, const char *in, int out_length)
-{
-    int len, i;
-    int inlen = strlen(in);
-
-    if ((inlen % 2)) {
-        return 0;
-    }
-
-    len = strlen(in) / 2;
-
-    for (i = 0; i < len; i++) {
-        out[i] = nibbleFromChar(in[i * 2]) * 16 + nibbleFromChar(in[i * 2 + 1]);
-    }
-
-    return len;
-}
-
-void Utils::blowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len)
-{
-    struct APEBlowfish ctx;
-
-    uint32_t xl = data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3];
-    uint32_t xr = data[4] << 24 | data[5] << 16 | data[6] << 8 | data[7];
-
-    APE_blowfish_init(&ctx, key, key_len);
-
-    APE_blowfish_crypt_ecb(&ctx, &xl, &xr, 1);
-
-    xl = ntohl(xl);
-    xr = ntohl(xr);
-
-    memcpy(data, &xl, sizeof(uint32_t));
-    memcpy(data+sizeof(uint32_t), &xr, sizeof(uint32_t));
 }
 
 static const char  *week[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
@@ -183,8 +119,7 @@ static const char  *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 /*
-    Taken from
-    ngx_time.c
+    Taken from ngx_time.c
 */
 static void
 ngx_gmtime(time_t t, struct tm *tp)
@@ -292,6 +227,74 @@ void Utils::HTTPTime(char *buf)
                            timenow.tm_hour,
                            timenow.tm_min,
                            timenow.tm_sec);
+}
+
+// {{{ Conversion related
+
+static uint8_t nibbleFromChar(char c)
+{
+    if(c >= '0' && c <= '9') return c - '0';
+    if(c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if(c >= 'A' && c <= 'F') return c - 'A' + 10;
+
+    return 255;
+}
+
+void Utils::sha1hmac(const unsigned char *key, uint32_t keylen,
+    const unsigned char *buf, uint32_t buflen, unsigned char out[20])
+{
+    sha1_hmac((unsigned char *)key, keylen, (unsigned char *)buf, buflen, out);
+}
+
+void Utils::sha1(const unsigned char *buf, uint32_t buflen, unsigned char out[20])
+{
+    sha1_csum((unsigned char *)buf, buflen, out);
+}
+
+char *Utils::b64Encode(const unsigned char *buf, size_t len)
+{
+    return base64_encode((unsigned char *)buf, len);
+}
+
+int Utils::b64Decode(unsigned char *out, const char *in, int out_length)
+{
+    return base64_decode(out, in, out_length);
+}
+
+int Utils::b16Decode(unsigned char *out, const char *in, int out_length)
+{
+    int len, i;
+    int inlen = strlen(in);
+
+    if ((inlen % 2)) {
+        return 0;
+    }
+
+    len = strlen(in) / 2;
+
+    for (i = 0; i < len; i++) {
+        out[i] = nibbleFromChar(in[i * 2]) * 16 + nibbleFromChar(in[i * 2 + 1]);
+    }
+
+    return len;
+}
+
+void Utils::blowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len)
+{
+    struct APEBlowfish ctx;
+
+    uint32_t xl = data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3];
+    uint32_t xr = data[4] << 24 | data[5] << 16 | data[6] << 8 | data[7];
+
+    APE_blowfish_init(&ctx, key, key_len);
+
+    APE_blowfish_crypt_ecb(&ctx, &xl, &xr, 1);
+
+    xl = ntohl(xl);
+    xr = ntohl(xr);
+
+    memcpy(data, &xl, sizeof(uint32_t));
+    memcpy(data+sizeof(uint32_t), &xr, sizeof(uint32_t));
 }
 
 } // namespace Core

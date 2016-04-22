@@ -11,6 +11,8 @@
 namespace Nidium {
 namespace Binding {
 
+// {{{ preamble
+
 static bool nidium_console_log(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_console_write(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_console_hide(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -35,6 +37,8 @@ static JSFunctionSpec console_funcs[] = {
     JS_FN("clear", nidium_console_clear, 0, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
+
+// {{{ implementation
 
 static bool nidium_console_hide(JSContext *cx, unsigned argc,
     JS::Value *vp)
@@ -142,6 +146,7 @@ static bool nidium_console_write(JSContext *cx, unsigned argc,
     return true;
 }
 
+// {{{ registration
 void JSConsole::registerObject(JSContext *cx)
 {
     JS::RootedObject consoleObj(cx, JS_DefineObject(cx,

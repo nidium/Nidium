@@ -21,6 +21,7 @@ namespace Core {
     Children of Events must define a static
     const property "static const uint8_t EventID" with an unique 8bit identifier
 */
+
 class Events
 {
 public:

@@ -27,25 +27,6 @@ namespace Net {
     HTTPServer *___http___ = (HTTPServer *)obj->ctx; \
     if (___http___ == NULL) return;
 
-static int message_begin_cb(http_parser *p);
-static int headers_complete_cb(http_parser *p);
-static int message_complete_cb(http_parser *p);
-static int header_field_cb(http_parser *p, const char *buf, size_t len);
-static int header_value_cb(http_parser *p, const char *buf, size_t len);
-static int request_url_cb(http_parser *p, const char *buf, size_t len);
-static int body_cb(http_parser *p, const char *buf, size_t len);
-
-static http_parser_settings settings =
-{
-.on_message_begin = message_begin_cb,
-.on_header_field = header_field_cb,
-.on_header_value = header_value_cb,
-.on_url = request_url_cb,
-.on_body = body_cb,
-.on_headers_complete = headers_complete_cb,
-.on_message_complete = message_complete_cb
-};
-
 static struct {
     uint16_t code;
     const char *desc;
@@ -91,6 +72,27 @@ static struct {
     {504, "Gateway Time-out"},
     {505, "HTTP Version not support"},
     {0, NULL}
+};
+
+// {{{ callback
+
+static int message_begin_cb(http_parser *p);
+static int headers_complete_cb(http_parser *p);
+static int message_complete_cb(http_parser *p);
+static int header_field_cb(http_parser *p, const char *buf, size_t len);
+static int header_value_cb(http_parser *p, const char *buf, size_t len);
+static int request_url_cb(http_parser *p, const char *buf, size_t len);
+static int body_cb(http_parser *p, const char *buf, size_t len);
+
+static http_parser_settings settings =
+{
+.on_message_begin = message_begin_cb,
+.on_header_field = header_field_cb,
+.on_header_value = header_value_cb,
+.on_url = request_url_cb,
+.on_body = body_cb,
+.on_headers_complete = headers_complete_cb,
+.on_message_complete = message_complete_cb
 };
 
 static int message_begin_cb(http_parser *p)
@@ -250,6 +252,8 @@ static int request_url_cb(http_parser *p, const char *buf, size_t len)
     return 0;
 }
 
+// {{{ socket events
+
 static void nidium_socket_onaccept(ape_socket *socket_server,
     ape_socket *socket_client, ape_global *ape, void *socket_arg)
 {
@@ -294,6 +298,8 @@ static void nidium_socket_client_disconnect(ape_socket *socket_client,
 
     delete con;
 }
+
+// {{ HTTPServer
 
 HTTPServer::HTTPServer(uint16_t port, const char *ip)
 {
@@ -360,6 +366,8 @@ int NativeHTTPClientConnection_checktimeout(void *arg)
     return 1000;
 }
 
+// {{ HTTPClientConnection
+
 HTTPClientConnection::HTTPClientConnection(HTTPServer *httpserver,
     ape_socket *socket) :
     m_Ctx(NULL), m_SocketClient(socket),
@@ -425,6 +433,23 @@ void HTTPClientConnection::close()
     }
 }
 
+void HTTPClientConnection::write(char *buf, size_t len)
+{
+    APE_socket_write(m_SocketClient, buf, len, APE_DATA_COPY);
+}
+
+const char *HTTPClientConnection::getHeader(const char *key)
+{
+    buffer *ret = ape_array_lookup_cstr(getHTTPState()->headers.list,
+        key, strlen(key));
+    return ret ? (const char *)ret->data : NULL;
+}
+
+HTTPResponse *HTTPClientConnection::onCreateResponse()
+{
+    return new HTTPResponse();
+}
+
 HTTPClientConnection::~HTTPClientConnection()
 {
     if (m_TimeoutTimer) {
@@ -452,22 +477,7 @@ HTTPClientConnection::~HTTPClientConnection()
     }
 };
 
-void HTTPClientConnection::write(char *buf, size_t len)
-{
-    APE_socket_write(m_SocketClient, buf, len, APE_DATA_COPY);
-}
-
-const char *HTTPClientConnection::getHeader(const char *key)
-{
-    buffer *ret = ape_array_lookup_cstr(getHTTPState()->headers.list,
-        key, strlen(key));
-    return ret ? (const char *)ret->data : NULL;
-}
-
-HTTPResponse *HTTPClientConnection::onCreateResponse()
-{
-    return new HTTPResponse();
-}
+// {{{ HTTPResponse
 
 HTTPResponse::HTTPResponse(uint16_t code) :
     m_Headers(ape_array_new(8)), m_Statuscode(code),

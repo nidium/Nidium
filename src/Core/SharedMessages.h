@@ -28,7 +28,6 @@ typedef struct _native_shared_message
 class SharedMessages
 {
   public:
-
     class Message
     {
         public:

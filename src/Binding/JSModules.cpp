@@ -27,6 +27,8 @@ using Nidium::Core::Path;
 namespace Nidium {
 namespace Binding {
 
+// {{{ preamble
+
 #if 0
 #define DPRINT(...) printf(__VA_ARGS__)
 #else
@@ -65,6 +67,8 @@ JSModule::JSModule(JSContext *cx, JSModules *modules, JSModule *parent, const ch
 {
 }
 
+// {{{ JSModule
+
 bool JSModule::initMain()
 {
     this->name = strdup("__MAIN__");
@@ -85,6 +89,7 @@ bool JSModule::initMain()
 
     return true;
 }
+
 bool JSModule::init()
 {
     if (!this->name || strlen(this->name) == 0) return false;
@@ -114,63 +119,6 @@ bool JSModule::init()
     DPRINT("name = %s\n", this->name);
 
     DPRINT("absolute dir for %s\n", this->absoluteDir);
-
-    return true;
-}
-
-bool JSModules::init()
-{
-    char *paths = getenv("NIDIUM_REQUIRE_PATH");
-
-    if (paths) {
-        char *token;
-        char *originalPaths = strdup(paths);
-        char *tmp = originalPaths;
-        int i = 0;
-
-        while ((token = strsep(&tmp, ":")) != NULL && i < 63) {
-            if (i > 63) {
-            } else {
-                m_EnvPaths[i] = strdup(token);
-                i++;
-            }
-        }
-
-        if (token != NULL && i == 63) {
-            fprintf(stderr, "Warning : require path ignored %s."
-                            " A maximum of 63 search path is allowed. All subsequent paths will be ignored.\n", token);
-        }
-
-        m_EnvPaths[i] = NULL;
-
-        free(originalPaths);
-    } else {
-        m_EnvPaths[0] = NULL;
-    }
-
-    this->main = new JSModule(cx, this, NULL, "MAIN");
-
-    if (!main) return false;
-
-    return this->main->initMain();
-}
-
-bool JSModules::init(JSModule *module)
-{
-    switch (module->m_ModuleType) {
-        case JSModule::NIDIUM:
-            if (!module->initNidium()) {
-                return false;
-            }
-            break;
-        case JSModule::JS:
-            if (!module->initJS()) {
-                return false;
-            }
-            break;
-    }
-
-    this->add(module);
 
     return true;
 }
@@ -259,6 +207,252 @@ bool JSModule::initJS()
 
     return true;
 #undef TRY_OR_DIE
+}
+
+JS::Value JSModule::require(char *name)
+{
+    JS::RootedValue ret(cx);
+    JSModule *cmodule;
+    NidiumJS *njs = NidiumJS::GetObject(this->cx);
+
+    ret.setUndefined();
+
+    // require() have been called from the main module
+    if (this == this->modules->main) {
+        /*
+         * This little hack is needed to conform CommonJS :
+         *  - Cyclic deps
+         *  - Finding module
+         *
+         * Since all files included with NidiumJS::LoadScript();
+         * share the same module we need to be aware of the real caller.
+         * So here we set the filename and path of the caller
+         *
+         * XXX : Another way to handle this case would be to make
+         * load() aware of his context by using the same trick
+         * require do.
+         */
+        unsigned lineno;
+        JS::AutoFilename filename;
+        JS::DescribeScriptedCaller(cx, &filename, &lineno);
+
+        free(this->filePath);
+        free(this->absoluteDir);
+        // filePath is needed for cyclic deps check
+        this->filePath = realpath(filename.get(), NULL);
+
+        if (this->filePath == NULL) {
+            this->absoluteDir = strdup(Path::getPwd());
+        } else {
+            // absoluteDir is needed for findModulePath
+            Path p(this->filePath, false, true);
+            this->absoluteDir = strdup(p.dir());
+            DPRINT("Global scope loading\n");
+        }
+    } else {
+        DPRINT("Module scope loading\n");
+    }
+
+    DPRINT("[JSModule] Module %s require(%s)\n", this->name, name);
+
+    JSModule *tmp = new JSModule(cx, this->modules, this, name);
+    if (!tmp->init()) {
+        JS_ReportError(cx, "Module %s not found\n", name);
+        delete tmp;
+        return ret;
+    }
+
+    // Let's see if the module is in the cache
+    JSModule *cached = this->modules->find(tmp);
+    if (!cached) {
+        DPRINT("Module is not cached\n");
+        cmodule = tmp;
+    } else {
+        DPRINT("Module is cached %s\n", cached->filePath);
+        cmodule = cached;
+        delete tmp;
+    }
+
+    // Is there is a cyclic dependency
+    for (JSModule *m = cmodule->parent; ; ) {
+        if (!m || !m->exports) break;
+
+        // Found a cyclic dependency
+        if (strcmp(cmodule->filePath, m->filePath) == 0) {
+            JS::RootedObject gbl(cx, m->exports);
+            JS::RootedValue module(cx);
+            JS_GetProperty(cx, gbl, "module", &module);
+
+            JS::RootedObject modObj(cx, &module.toObject());
+            JS_GetProperty(cx, modObj, "exports", &ret);
+            return ret;
+        }
+
+        m = m->parent;
+    }
+
+    if (!cached) {
+        if (!this->modules->init(cmodule)) {
+            JS_ReportError(cx, "Failed to initialize module %s\n", cmodule->name);
+            return ret;
+        }
+
+        if (cmodule->m_ModuleType == JSON || cmodule->m_ModuleType == JS) {
+            size_t filesize;
+            char *data;
+
+            JS::RootedFunction fn(cx);
+            JS::RootedValue rval(cx);
+
+            if (!JSModules::getFileContent(cmodule->filePath, &data, &filesize) || data == NULL) {
+                JS_ReportError(cx, "Failed to open module %s\n", cmodule->name);
+                return ret;
+            }
+
+            Core::PtrAutoDelete<> npad(data, free);
+
+            if (filesize == 0) {
+                ret.setObject(*cmodule->exports);
+                return ret;
+            }
+
+            if (cmodule->m_ModuleType == JS) {
+                JS::RootedObject expObj(cx, cmodule->exports);
+                JS::CompileOptions options(cx);
+                options.setFileAndLine(cmodule->filePath, 1)
+                       .setUTF8(true);
+
+                fn = JS::CompileFunction(cx, expObj, options, NULL, 0, NULL, data, strlen(data));
+
+                if (!fn) {
+                    return ret;
+                }
+
+                if (!JS_CallFunction(cx, expObj, fn, JS::HandleValueArray::empty(), &rval)) {
+                    return ret;
+                }
+            } else {
+                size_t len;
+                jschar *jchars;
+                JS::RootedValue jsonData(cx);
+
+                if (!JS_DecodeBytes(cx, data, filesize, NULL, &len)) {
+                    return ret;
+                }
+
+                jchars = (jschar *)JS_malloc(cx, len * sizeof(jschar));
+                if (!jchars) {
+                    return ret;
+                }
+
+                if (!JS_DecodeBytes(cx, data, filesize, jchars, &len)) {
+                    JS_free(cx, jchars);
+                    return ret;
+                }
+
+                if (!JS_ParseJSON(cx, jchars, len, &jsonData)) {
+                    JS_free(cx, jchars);
+                    return ret;
+                }
+
+                JS_free(cx, jchars);
+
+                cmodule->exports.set(jsonData.toObjectOrNull());
+                njs->rootObjectUntilShutdown(cmodule->exports);
+            }
+        }
+    }
+
+    switch (cmodule->m_ModuleType) {
+        case JS:
+        {
+            JS::RootedValue module(cx);
+            JS::RootedObject expObj(cx, cmodule->exports);
+            JS_GetProperty(cx, expObj, "module", &module);
+            JS::RootedObject modObj(cx, &module.toObject());
+            JS_GetProperty(cx, modObj, "exports", &ret);
+        }
+        break;
+        case JSON:
+        case NIDIUM:
+        {
+            ret = OBJECT_TO_JSVAL(cmodule->exports);
+        }
+        break;
+    }
+
+    return ret;
+}
+
+JSModule::~JSModule()
+{
+    if (this->filePath && m_Cached) {
+        this->modules->remove(this);
+    }
+
+    free(this->name);
+    free(this->absoluteDir);
+    free(this->filePath);
+
+}
+
+// {{{ JSModules
+
+bool JSModules::init()
+{
+    char *paths = getenv("NIDIUM_REQUIRE_PATH");
+
+    if (paths) {
+        char *token;
+        char *originalPaths = strdup(paths);
+        char *tmp = originalPaths;
+        int i = 0;
+
+        while ((token = strsep(&tmp, ":")) != NULL && i < 63) {
+            if (i > 63) {
+            } else {
+                m_EnvPaths[i] = strdup(token);
+                i++;
+            }
+        }
+
+        if (token != NULL && i == 63) {
+            fprintf(stderr, "Warning : require path ignored %s."
+                            " A maximum of 63 search path is allowed. All subsequent paths will be ignored.\n", token);
+        }
+
+        m_EnvPaths[i] = NULL;
+
+        free(originalPaths);
+    } else {
+        m_EnvPaths[0] = NULL;
+    }
+
+    this->main = new JSModule(cx, this, NULL, "MAIN");
+
+    if (!main) return false;
+
+    return this->main->initMain();
+}
+
+bool JSModules::init(JSModule *module)
+{
+    switch (module->m_ModuleType) {
+        case JSModule::NIDIUM:
+            if (!module->initNidium()) {
+                return false;
+            }
+            break;
+        case JSModule::JS:
+            if (!module->initJS()) {
+                return false;
+            }
+            break;
+    }
+
+    this->add(module);
+
+    return true;
 }
 
 void JSModules::dirname(std::string &source)
@@ -481,192 +675,7 @@ bool JSModules::loadDirectoryModule(std::string &dir)
 
 #undef MAX_EXT_SIZE
 
-JS::Value JSModule::require(char *name)
-{
-    JS::RootedValue ret(cx);
-    JSModule *cmodule;
-    NidiumJS *njs = NidiumJS::GetObject(this->cx);
-
-    ret.setUndefined();
-
-    // require() have been called from the main module
-    if (this == this->modules->main) {
-        /*
-         * This little hack is needed to conform CommonJS :
-         *  - Cyclic deps
-         *  - Finding module
-         *
-         * Since all files included with NidiumJS::LoadScript();
-         * share the same module we need to be aware of the real caller.
-         * So here we set the filename and path of the caller
-         *
-         * XXX : Another way to handle this case would be to make
-         * load() aware of his context by using the same trick
-         * require do.
-         */
-        unsigned lineno;
-        JS::AutoFilename filename;
-        JS::DescribeScriptedCaller(cx, &filename, &lineno);
-
-        free(this->filePath);
-        free(this->absoluteDir);
-        // filePath is needed for cyclic deps check
-        this->filePath = realpath(filename.get(), NULL);
-
-        if (this->filePath == NULL) {
-            this->absoluteDir = strdup(Path::getPwd());
-        } else {
-            // absoluteDir is needed for findModulePath
-            Path p(this->filePath, false, true);
-            this->absoluteDir = strdup(p.dir());
-            DPRINT("Global scope loading\n");
-        }
-    } else {
-        DPRINT("Module scope loading\n");
-    }
-
-    DPRINT("[JSModule] Module %s require(%s)\n", this->name, name);
-
-    JSModule *tmp = new JSModule(cx, this->modules, this, name);
-    if (!tmp->init()) {
-        JS_ReportError(cx, "Module %s not found\n", name);
-        delete tmp;
-        return ret;
-    }
-
-    // Let's see if the module is in the cache
-    JSModule *cached = this->modules->find(tmp);
-    if (!cached) {
-        DPRINT("Module is not cached\n");
-        cmodule = tmp;
-    } else {
-        DPRINT("Module is cached %s\n", cached->filePath);
-        cmodule = cached;
-        delete tmp;
-    }
-
-    // Is there is a cyclic dependency
-    for (JSModule *m = cmodule->parent; ; ) {
-        if (!m || !m->exports) break;
-
-        // Found a cyclic dependency
-        if (strcmp(cmodule->filePath, m->filePath) == 0) {
-            JS::RootedObject gbl(cx, m->exports);
-            JS::RootedValue module(cx);
-            JS_GetProperty(cx, gbl, "module", &module);
-
-            JS::RootedObject modObj(cx, &module.toObject());
-            JS_GetProperty(cx, modObj, "exports", &ret);
-            return ret;
-        }
-
-        m = m->parent;
-    }
-
-    if (!cached) {
-        if (!this->modules->init(cmodule)) {
-            JS_ReportError(cx, "Failed to initialize module %s\n", cmodule->name);
-            return ret;
-        }
-
-        if (cmodule->m_ModuleType == JSON || cmodule->m_ModuleType == JS) {
-            size_t filesize;
-            char *data;
-
-            JS::RootedFunction fn(cx);
-            JS::RootedValue rval(cx);
-
-            if (!JSModules::getFileContent(cmodule->filePath, &data, &filesize) || data == NULL) {
-                JS_ReportError(cx, "Failed to open module %s\n", cmodule->name);
-                return ret;
-            }
-
-            Core::PtrAutoDelete<> npad(data, free);
-
-            if (filesize == 0) {
-                ret.setObject(*cmodule->exports);
-                return ret;
-            }
-
-            if (cmodule->m_ModuleType == JS) {
-                JS::RootedObject expObj(cx, cmodule->exports);
-                JS::CompileOptions options(cx);
-                options.setFileAndLine(cmodule->filePath, 1)
-                       .setUTF8(true);
-
-                fn = JS::CompileFunction(cx, expObj, options, NULL, 0, NULL, data, strlen(data));
-
-                if (!fn) {
-                    return ret;
-                }
-
-                if (!JS_CallFunction(cx, expObj, fn, JS::HandleValueArray::empty(), &rval)) {
-                    return ret;
-                }
-            } else {
-                size_t len;
-                jschar *jchars;
-                JS::RootedValue jsonData(cx);
-
-                if (!JS_DecodeBytes(cx, data, filesize, NULL, &len)) {
-                    return ret;
-                }
-
-                jchars = (jschar *)JS_malloc(cx, len * sizeof(jschar));
-                if (!jchars) {
-                    return ret;
-                }
-
-                if (!JS_DecodeBytes(cx, data, filesize, jchars, &len)) {
-                    JS_free(cx, jchars);
-                    return ret;
-                }
-
-                if (!JS_ParseJSON(cx, jchars, len, &jsonData)) {
-                    JS_free(cx, jchars);
-                    return ret;
-                }
-
-                JS_free(cx, jchars);
-
-                cmodule->exports.set(jsonData.toObjectOrNull());
-                njs->rootObjectUntilShutdown(cmodule->exports);
-            }
-        }
-    }
-
-    switch (cmodule->m_ModuleType) {
-        case JS:
-        {
-            JS::RootedValue module(cx);
-            JS::RootedObject expObj(cx, cmodule->exports);
-            JS_GetProperty(cx, expObj, "module", &module);
-            JS::RootedObject modObj(cx, &module.toObject());
-            JS_GetProperty(cx, modObj, "exports", &ret);
-        }
-        break;
-        case JSON:
-        case NIDIUM:
-        {
-            ret = OBJECT_TO_JSVAL(cmodule->exports);
-        }
-        break;
-    }
-
-    return ret;
-}
-
-JSModule::~JSModule()
-{
-    if (this->filePath && m_Cached) {
-        this->modules->remove(this);
-    }
-
-    free(this->name);
-    free(this->absoluteDir);
-    free(this->filePath);
-
-}
+// {{{ implementation
 
 static bool nidium_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
 {
@@ -699,6 +708,8 @@ static bool nidium_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
 
     return true;
 }
+
+// {{{ registration
 
 void Exports_Finalize(JSFreeOp *fop, JSObject *obj)
 {

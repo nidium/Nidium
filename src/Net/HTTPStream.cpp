@@ -21,6 +21,7 @@ namespace Net {
 
 #define MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH (1024LL*1024LL*64LL)
 
+// {{{ HTTPStream
 HTTPStream::HTTPStream(const char *location) :
     Stream(location), m_StartPosition(0),
     m_BytesBuffered(0), m_LastReadUntil(0)
@@ -31,91 +32,6 @@ HTTPStream::HTTPStream(const char *location) :
     m_Mapped.size = 0;
 
     m_Http = new HTTP(Binding::NidiumJS::getNet());
-}
-
-HTTPStream::~HTTPStream()
-{
-    if (m_Mapped.addr) {
-        munmap(m_Mapped.addr, m_Mapped.size);
-    }
-    if (m_Mapped.fd) {
-        close(m_Mapped.fd);
-    }
-
-    delete m_Http;
-}
-
-void HTTPStream::onStart(size_t packets, size_t seek)
-{
-    if (m_Mapped.fd) {
-        close(m_Mapped.fd);
-    }
-
-    char tmpfname[] = "/tmp/nidiumtmp.XXXXXXXX";
-    m_Mapped.fd = mkstemp(tmpfname);
-    if (m_Mapped.fd == -1) {
-        printf("[HTTPStream] Failed to create temporary file\n");
-        return;
-    }
-    unlink(tmpfname);
-
-    m_StartPosition = seek;
-    m_BytesBuffered = 0;
-
-
-    HTTPRequest *req = m_Http->getRequest();
-    if (!req) {
-        req = new HTTPRequest(m_Location);
-    }
-
-    m_Http->request(req, this);
-}
-
-const char *HTTPStream::getPath() const
-{
-    if (!m_Http) {
-        return NULL;
-    }
-
-    return m_Http->getPath();
-}
-
-bool HTTPStream::hasDataAvailable() const
-{
-    /*
-        Returns true if we have either enough data buffered or
-        if the stream reached the end of file
-    */
-    return !m_PendingSeek && ((m_BytesBuffered - m_LastReadUntil >= m_PacketsSize ||
-        (m_LastReadUntil != m_BytesBuffered && this->readComplete())));
-}
-
-const unsigned char *HTTPStream::onGetNextPacket(size_t *len, int *err)
-{
-    unsigned char *data;
-
-    if (!m_Mapped.addr) {
-        *err = DATA_STATUS_ERROR;
-        return NULL;
-    }
-
-    if (m_Mapped.size == m_LastReadUntil) {
-        *err = DATA_STATUS_END;
-        return NULL;
-    }
-    if (!this->hasDataAvailable()) {
-        m_NeedToSendUpdate = true;
-        *err = DATA_STATUS_EAGAIN;
-        return NULL;
-    }
-
-    ssize_t byteLeft = m_Mapped.size - m_LastReadUntil;
-    *len = nidium_min(m_PacketsSize, byteLeft);
-
-    data = (unsigned char *)m_Mapped.addr + m_LastReadUntil;
-    m_LastReadUntil += *len;
-
-    return data;
 }
 
 void HTTPStream::stop()
@@ -197,6 +113,103 @@ void HTTPStream::notifyAvailable()
     this->notify(message_available);
 }
 
+
+HTTPStream::~HTTPStream()
+{
+    if (m_Mapped.addr) {
+        munmap(m_Mapped.addr, m_Mapped.size);
+    }
+    if (m_Mapped.fd) {
+        close(m_Mapped.fd);
+    }
+
+    delete m_Http;
+}
+
+const char *HTTPStream::getPath() const
+{
+    if (!m_Http) {
+        return NULL;
+    }
+
+    return m_Http->getPath();
+}
+
+bool HTTPStream::hasDataAvailable() const
+{
+    /*
+        Returns true if we have either enough data buffered or
+        if the stream reached the end of file
+    */
+    return !m_PendingSeek && ((m_BytesBuffered - m_LastReadUntil >= m_PacketsSize ||
+        (m_LastReadUntil != m_BytesBuffered && this->readComplete())));
+}
+
+void HTTPStream::cleanCacheFile()
+{
+    if (m_Mapped.addr) {
+        munmap(m_Mapped.addr, m_Mapped.size);
+        m_Mapped.addr = NULL;
+        m_Mapped.size = 0;
+    }
+}
+
+// {{{ HTTPStream events
+
+void HTTPStream::onStart(size_t packets, size_t seek)
+{
+    if (m_Mapped.fd) {
+        close(m_Mapped.fd);
+    }
+
+    char tmpfname[] = "/tmp/nidiumtmp.XXXXXXXX";
+    m_Mapped.fd = mkstemp(tmpfname);
+    if (m_Mapped.fd == -1) {
+        printf("[HTTPStream] Failed to create temporary file\n");
+        return;
+    }
+    unlink(tmpfname);
+
+    m_StartPosition = seek;
+    m_BytesBuffered = 0;
+
+
+    HTTPRequest *req = m_Http->getRequest();
+    if (!req) {
+        req = new HTTPRequest(m_Location);
+    }
+
+    m_Http->request(req, this);
+}
+
+const unsigned char *HTTPStream::onGetNextPacket(size_t *len, int *err)
+{
+    unsigned char *data;
+
+    if (!m_Mapped.addr) {
+        *err = DATA_STATUS_ERROR;
+        return NULL;
+    }
+
+    if (m_Mapped.size == m_LastReadUntil) {
+        *err = DATA_STATUS_END;
+        return NULL;
+    }
+    if (!this->hasDataAvailable()) {
+        m_NeedToSendUpdate = true;
+        *err = DATA_STATUS_EAGAIN;
+        return NULL;
+    }
+
+    ssize_t byteLeft = m_Mapped.size - m_LastReadUntil;
+    *len = nidium_min(m_PacketsSize, byteLeft);
+
+    data = (unsigned char *)m_Mapped.addr + m_LastReadUntil;
+    m_LastReadUntil += *len;
+
+    return data;
+}
+
 void HTTPStream::onRequest(HTTP::HTTPData *h, HTTP::DataType)
 {
     this->m_DataBuffer.ended = true;
@@ -265,15 +278,6 @@ void HTTPStream::onError(HTTP::HTTPError err)
             break;
         default:
             break;
-    }
-}
-
-void HTTPStream::cleanCacheFile()
-{
-    if (m_Mapped.addr) {
-        munmap(m_Mapped.addr, m_Mapped.size);
-        m_Mapped.addr = NULL;
-        m_Mapped.size = 0;
     }
 }
 

@@ -10,6 +10,8 @@
 namespace Nidium {
 namespace Binding {
 
+// {{{ preamble
+
 static void Process_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool nidium_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_process_exit(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -31,6 +33,8 @@ static JSFunctionSpec Process_funcs[] = {
     JS_FN("exit", nidium_process_exit, 1, NATIVE_JS_FNPROPS),
     JS_FS_END
 };
+
+// {{{ implementation
 
 static bool nidium_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
 {
@@ -72,6 +76,8 @@ static void Process_Finalize(JSFreeOp *fop, JSObject *obj)
         delete jProcess;
     }
 }
+
+// {{{ registration
 
 static int ape_kill_handler(int code, ape_global *ape)
 {

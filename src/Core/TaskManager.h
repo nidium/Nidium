@@ -20,6 +20,8 @@ namespace Core {
 
 class Task;
 
+// {{{ TaskManager
+
 class TaskManager
 {
 public:
@@ -60,7 +62,6 @@ public:
     static void createManager();
 
 private:
-
     struct {
         int count;
         int size;
@@ -102,6 +103,8 @@ private:
     task_func m_Func;
 #undef MAX_ARG
 };
+
+// {{{ Managed
 
 class Managed : public Messages
 {

@@ -22,6 +22,8 @@ void *TaskManager_Worker(void *arg)
     return ((TaskManager::workerInfo *)arg)->work();
 }
 
+// {{{ TaskManager::workerInfo
+
 void *TaskManager::workerInfo::work()
 {
     while (!m_Stop) {
@@ -108,9 +110,7 @@ void TaskManager::workerInfo::addTask(Task *task)
     pthread_cond_signal(&m_Cond);
 }
 
-////////////////////////////////////////////
-////////////////////////////////////////////
-////////////////////////////////////////////
+// {{{ TaskManager
 
 TaskManager::TaskManager()
 {
@@ -195,9 +195,7 @@ TaskManager::~TaskManager()
     pthread_setspecific(gManager, NULL);
 }
 
-////////////////////////////////////////////
-////////////////////////////////////////////
-////////////////////////////////////////////
+// {{{ TaskManager
 
 void Managed::addTask(Task *task)
 {
@@ -218,3 +216,4 @@ void Managed::addTask(Task *task)
 
 } // namespace Core
 } // namespace Nidium
+

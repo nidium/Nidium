@@ -10,6 +10,8 @@
 namespace Nidium {
 namespace Binding {
 
+// {{{ preamble
+
 static void Debug_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool nidium_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -40,6 +42,8 @@ static void Debug_Finalize(JSFreeOp *fop, JSObject *obj)
         delete jdebug;
     }
 }
+
+//  {{{ implementation
 
 static bool nidium_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
@@ -107,6 +111,8 @@ static bool nidium_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp
 
     return true;
 }
+
+// {{{ registration
 
 void JSDebug::registerObject(JSContext *cx)
 {

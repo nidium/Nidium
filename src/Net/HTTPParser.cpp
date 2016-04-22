@@ -16,6 +16,8 @@ namespace Net {
 
 #define HTTP_MAX_CL (1024ULL*1024ULL*1024ULL*2ULL)
 
+// {{{ callback
+
 static int message_begin_cb(http_parser *p);
 static int headers_complete_cb(http_parser *p);
 static int message_complete_cb(http_parser *p);
@@ -159,6 +161,8 @@ static int headers_complete_cb(http_parser *p)
 
     return 0;
 }
+
+// {{{ HTTPParser
 
 bool HTTPParser::HTTPParse(const char *data, size_t len)
 {

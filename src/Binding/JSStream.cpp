@@ -18,6 +18,8 @@ enum {
     STREAM_PROP_FILESIZE
 };
 
+// {{{ preamble
+
 static bool nidium_stream_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp);
 
@@ -58,6 +60,8 @@ static void Stream_Finalize(JSFreeOp *fop, JSObject *obj)
         delete nstream;
     }
 }
+
+// {{{ implementation
 
 static bool nidium_stream_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
@@ -211,6 +215,8 @@ static bool nidium_Stream_constructor(JSContext *cx, unsigned argc, JS::Value *v
     return true;
 }
 
+// {{{ JSStream
+
 JSStream::JSStream(JS::HandleObject obj, JSContext *cx,
     ape_global *net, const char *url) : JSExposer<JSStream>(obj, cx)
 {
@@ -295,6 +301,7 @@ void JSStream::onMessage(const Core::SharedMessages::Message &msg)
     }
 }
 
+// {{{ registration
 
 NIDIUM_JS_OBJECT_EXPOSE(Stream)
 

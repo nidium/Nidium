@@ -14,6 +14,8 @@ namespace Binding {
 
 class JSHTTPClientConnection;
 
+// {{{ JSHTTPResponse
+
 class JSHTTPResponse : public Nidium::Net::HTTPResponse,
                              public JSObjectMapper<JSHTTPResponse>
 {
@@ -22,6 +24,8 @@ public:
 protected:
     explicit JSHTTPResponse(JSContext *cx, uint16_t code = 200);
 };
+
+// {{{ JSHTTPClientConnection
 
 class JSHTTPClientConnection : public Nidium::Net::HTTPClientConnection,
                                      public JSObjectMapper<JSHTTPClientConnection>
@@ -36,6 +40,7 @@ public:
     }
 };
 
+// {{{ JSHTTPServer
 
 class JSHTTPServer :    public JSExposer<JSHTTPServer>,
                         public Nidium::Net::HTTPServer

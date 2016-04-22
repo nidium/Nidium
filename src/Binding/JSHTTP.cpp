@@ -12,6 +12,8 @@ using Nidium::Net::HTTPRequest;
 namespace Nidium {
 namespace Binding {
 
+// {{{preamble
+
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
@@ -42,6 +44,8 @@ static void Http_Finalize(JSFreeOp *fop, JSObject *obj)
         delete jshttp;
     }
 }
+
+// {{{ implementation
 
 static bool nidium_HTTP_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
@@ -243,6 +247,8 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
 
     return true;
 }
+
+// {{{ events
 
 void JSHTTP::onError(HTTP::HTTPError err)
 {
@@ -485,6 +491,8 @@ JSHTTP::~JSHTTP()
     }
     free(m_URL);
 }
+
+// {{{ registration
 
 NIDIUM_JS_OBJECT_EXPOSE(HTTP)
 

@@ -14,12 +14,16 @@
 namespace Nidium {
 namespace Core {
 
+// {{{ global variables
+
 char *g_m_Root = NULL;
 char *g_m_Pwd = NULL;
 
 int Path::g_m_SchemesCount = 0;
 struct Path::schemeInfo *Path::g_m_DefaultScheme = NULL;
 struct Path::schemeInfo Path::g_m_Schemes[MAX_REGISTERED_SCHEMES] = {};
+
+// {{{ Path
 
 Path::Path(const char *origin, bool allowAll, bool noFilter) :
     m_Path(nullptr), m_Dir(nullptr), m_Host(nullptr), m_Scheme(nullptr)

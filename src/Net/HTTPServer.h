@@ -25,6 +25,8 @@ namespace Net {
 class HTTPClientConnection;
 class HTTPResponse;
 
+// {{{ HTTPServer
+
 class HTTPServer : public Nidium::Core::Events
 {
 public:
@@ -85,6 +87,8 @@ private:
     uint16_t          m_Port;
 };
 
+
+//  {{{ HTTPResponse
 /*
     TODO: add APE_socket_sendfile() support
 */
@@ -154,6 +158,8 @@ private:
 protected:
     explicit HTTPResponse(uint16_t code = 200);
 };
+
+// HTTPClientConnection
 
 class HTTPClientConnection
 {

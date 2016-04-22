@@ -13,6 +13,8 @@
 
 #include "NidiumJS.h"
 
+// {{{ Macros
+
 #define NIDIUM_JS_PROLOGUE(ofclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
@@ -49,6 +51,8 @@
 namespace Nidium {
 namespace Binding {
 
+// {{{ JSEvent
+
 static const JSClass JSEvent_class = {
     "NidiumEvent", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -79,6 +83,8 @@ struct JSEvent
     JSEvent *next;
     JSEvent *prev;
 };
+
+// {{{ JSEvents
 
 class JSEvents
 {
@@ -245,6 +251,8 @@ private:
         return true;
     }
 };
+
+// {{{ JSExposer
 
 template <typename T>
 class JSExposer
@@ -509,6 +517,8 @@ private:
     }
 };
 
+// {{{ JSAsyncHandler
+
 #define NIDIUM_ASYNC_MAXCALLBACK 4
 class JSAsyncHandler : public Nidium::Core::Managed
 {
@@ -568,6 +578,8 @@ private:
     (addroot/unroot or if jsobject life define obj life (finalizer))
 */
 
+// {{{ JSObjectMapper
+
 template <typename T>
 class JSObjectMapper
 {
@@ -610,6 +622,8 @@ protected:
     JS::PersistentRootedObject m_JSObj;
     JSContext *m_JSCx;
 };
+
+// {{{ Object Macro's
 
 typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 
@@ -699,6 +713,8 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
         __curopt != JSVAL_NULL && \
         __curopt.is ## type())
 
+// {{{ JSObjectBuilder
+
 class JSObjectBuilder
 {
 public:
@@ -775,6 +791,7 @@ private:
     JSContext *m_Cx;
 };
 
+// {{{ Getter / Setter Macros
 /*
     Tinyid were removed in SM31.
     This template act as a workaround (create a unique getter/setter and keep a unique identifier)
@@ -805,6 +822,8 @@ private:
     {name, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
         NIDIUM_JS_GETTER(tinyid, getter_func), \
         NIDIUM_JS_SETTER(tinyid, setter_func)}
+
+// {{ JSPropertyAccessors
 
 struct JSPropertyAccessors
 {

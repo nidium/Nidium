@@ -14,61 +14,14 @@
 namespace Nidium {
 namespace IO {
 
+// {{{ Filestream
+
 FileStream::FileStream(const char *location) :
     Stream(location), m_File(location)
 {
     /* We don't want the file to close when end of file is reached */
     m_File.setAutoClose(false);
     m_File.setListener(this);
-}
-
-void FileStream::onStart(size_t packets, size_t seek)
-{
-    if (m_DataBuffer.back == NULL) {
-        m_DataBuffer.back = buffer_new(packets);
-        m_DataBuffer.front = buffer_new(packets);
-    }
-
-    m_File.open("r");
-
-    if (seek) {
-        m_File.seek(seek);
-    }
-
-    m_File.read(packets);
-}
-
-const unsigned char *FileStream::onGetNextPacket(size_t *len, int *err)
-{
-    unsigned char *data;
-
-    if (m_DataBuffer.back == NULL) {
-        *err = DATA_STATUS_ERROR;
-        return NULL;
-    }
-
-    if (!this->hasDataAvailable()) {
-        /*
-            Notify the listener whenever data become available
-        */
-        m_NeedToSendUpdate = !m_DataBuffer.ended;
-        *err = (m_DataBuffer.ended && m_DataBuffer.alreadyRead && !m_PendingSeek ?
-            DATA_STATUS_END : DATA_STATUS_EAGAIN);
-
-        return NULL;
-    }
-
-    data = m_DataBuffer.back->data;
-    *len = nidium_min(m_DataBuffer.back->used, m_PacketsSize);
-    m_DataBuffer.alreadyRead = true;
-
-    this->swapBuffer();
-
-    if (!m_DataBuffer.ended) {
-        m_File.read(m_PacketsSize);
-    }
-
-    return data;
 }
 
 void FileStream::stop()
@@ -135,6 +88,58 @@ void FileStream::seek(size_t pos)
     m_NeedToSendUpdate = true;
     m_DataBuffer.ended = false;
 }
+
+// {{{ FileStream events
+
+void FileStream::onStart(size_t packets, size_t seek)
+{
+    if (m_DataBuffer.back == NULL) {
+        m_DataBuffer.back = buffer_new(packets);
+        m_DataBuffer.front = buffer_new(packets);
+    }
+
+    m_File.open("r");
+
+    if (seek) {
+        m_File.seek(seek);
+    }
+
+    m_File.read(packets);
+}
+
+const unsigned char *FileStream::onGetNextPacket(size_t *len, int *err)
+{
+    unsigned char *data;
+
+    if (m_DataBuffer.back == NULL) {
+        *err = DATA_STATUS_ERROR;
+        return NULL;
+    }
+
+    if (!this->hasDataAvailable()) {
+        /*
+            Notify the listener whenever data become available
+        */
+        m_NeedToSendUpdate = !m_DataBuffer.ended;
+        *err = (m_DataBuffer.ended && m_DataBuffer.alreadyRead && !m_PendingSeek ?
+            DATA_STATUS_END : DATA_STATUS_EAGAIN);
+
+        return NULL;
+    }
+
+    data = m_DataBuffer.back->data;
+    *len = nidium_min(m_DataBuffer.back->used, m_PacketsSize);
+    m_DataBuffer.alreadyRead = true;
+
+    this->swapBuffer();
+
+    if (!m_DataBuffer.ended) {
+        m_File.read(m_PacketsSize);
+    }
+
+    return data;
+}
+
 
 void FileStream::onMessage(const Core::SharedMessages::Message &msg)
 {

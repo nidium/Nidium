@@ -17,6 +17,8 @@
 namespace Nidium {
 namespace IO {
 
+// {{{ NFSStream
+
 #ifdef NATIVE_EMBED_PRIVATE
   #include NATIVE_EMBED_PRIVATE
 #endif
@@ -32,58 +34,6 @@ NFSStream::NFSStream(const char *location) :
 #endif
     m_NFS = nfs;
     m_File.pos = 0;
-}
-
-void NFSStream::onStart(size_t packets, size_t seek)
-{
-    m_File.data = (const unsigned char *)m_NFS->readFile(m_Location, &m_File.len);
-    m_File.pos = 0;
-
-    if (m_File.data == NULL) {
-        this->error(ERROR_OPEN, 0);
-
-        return;
-    }
-
-    CREATE_MESSAGE(message_available,
-        EVENT_AVAILABLE_DATA);
-    message_available->args[0].set(nidium_min(packets, m_File.len));
-
-    this->notify(message_available);
-
-    buffer buf;
-    buffer_init(&buf);
-
-    buf.data = (unsigned char *)m_File.data;
-    buf.size = buf.used = m_File.len;
-
-    CREATE_MESSAGE(message, EVENT_READ_BUFFER);
-    message->args[0].set(&buf);
-
-    /*
-        The underlying object is notified in a sync way
-        since it's on the same thread.
-    */
-    this->notify(message);
-}
-
-const unsigned char *NFSStream::onGetNextPacket(size_t *len, int *err)
-{
-    const unsigned char *data;
-
-    ssize_t byteLeft = m_File.len - m_File.pos;
-
-    if (byteLeft <= 0) {
-        *err = DATA_STATUS_END;
-        return NULL;
-    }
-
-    data = m_File.data + m_File.pos;
-    *len = nidium_min(m_PacketsSize, byteLeft);
-
-    m_File.pos += *len;
-
-    return data;
 }
 
 void NFSStream::stop()
@@ -165,6 +115,61 @@ void NFSStream::seek(size_t pos)
     }
     m_File.pos = pos;
 }
+
+// {{{ NFSStream events
+
+void NFSStream::onStart(size_t packets, size_t seek)
+{
+    m_File.data = (const unsigned char *)m_NFS->readFile(m_Location, &m_File.len);
+    m_File.pos = 0;
+
+    if (m_File.data == NULL) {
+        this->error(ERROR_OPEN, 0);
+
+        return;
+    }
+
+    CREATE_MESSAGE(message_available,
+        EVENT_AVAILABLE_DATA);
+    message_available->args[0].set(nidium_min(packets, m_File.len));
+
+    this->notify(message_available);
+
+    buffer buf;
+    buffer_init(&buf);
+
+    buf.data = (unsigned char *)m_File.data;
+    buf.size = buf.used = m_File.len;
+
+    CREATE_MESSAGE(message, EVENT_READ_BUFFER);
+    message->args[0].set(&buf);
+
+    /*
+        The underlying object is notified in a sync way
+        since it's on the same thread.
+    */
+    this->notify(message);
+}
+
+const unsigned char *NFSStream::onGetNextPacket(size_t *len, int *err)
+{
+    const unsigned char *data;
+
+    ssize_t byteLeft = m_File.len - m_File.pos;
+
+    if (byteLeft <= 0) {
+        *err = DATA_STATUS_END;
+        return NULL;
+    }
+
+    data = m_File.data + m_File.pos;
+    *len = nidium_min(m_PacketsSize, byteLeft);
+
+    m_File.pos += *len;
+
+    return data;
+}
+
 
 } // namespace IO
 } // namespace Nidium

@@ -21,6 +21,8 @@ namespace Binding {
 
 class JSModules;
 
+// {{{ JSModule
+
 class JSModule
 {
     public:
@@ -54,6 +56,8 @@ class JSModule
 
         JS::Value load(JS::Value &scope);
 };
+
+// {{{ JSModules
 
 class JSModules
 {

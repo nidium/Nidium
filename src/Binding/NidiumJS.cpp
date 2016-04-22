@@ -233,34 +233,124 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
     JS_free(cx, prefix);
 }
 
-void NidiumJS::logf(const char *format, ...)
+static bool nidium_pwd(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    va_list args;
-    va_start(args, format);
-    if (m_vLogger == NULL) {
-        vprintf(format, args);
-    } else {
-        m_vLogger(format, args);
+    Path cur(JSUtils::CurrentJSCaller(cx), false, true);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    if (cur.dir() == NULL) {
+        args.rval().setUndefined();
+        return true;
     }
-    va_end(args);
+
+    JS::RootedString res(cx, JS_NewStringCopyZ(cx, cur.dir()));
+
+    args.rval().setString(res);
+
+    return true;
 }
 
-void NidiumJS::log(const char *format)
+static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    if (!m_Logger) {
-        fwrite(format, sizeof(char), strlen(format), stdout);
-    } else {
-        m_Logger(format);
+    JS::RootedString script(cx);
+    char *content;
+    size_t len;
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    if (!JS_ConvertArguments(cx, args, "S", script.address())) {
+        return false;
     }
+
+    NidiumJS *njs = NidiumJS::GetObject(cx);
+    JSAutoByteString scriptstr(cx, script);
+    Path scriptpath(scriptstr.ptr());
+
+    Path::schemeInfo *schemePwd = Path::getPwdScheme();
+
+    if (scriptpath.path() == NULL) {
+        JS_ReportError(cx, "script error : invalid file location");
+        return false;
+    }
+
+    /* only private are allowed in an http context */
+    if (SCHEME_MATCH(schemePwd, "http") &&
+        !URLSCHEME_MATCH(scriptstr.ptr(), "private")) {
+        JS_ReportError(cx, "script access error : cannot load in this context");
+        return false;
+    }
+
+    if (!scriptpath.getScheme()->allowSyncStream()) {
+        JS_ReportError(cx, "script error : \"%s\" scheme can't load in a sync way", schemePwd->str);
+        return false;
+    }
+
+    PtrAutoDelete<Stream *> stream(scriptpath.createStream());
+
+    if (!stream.ptr() || !stream.ptr()->getContentSync(&content, &len, true)) {
+        JS_ReportError(cx, "load() failed read script");
+        return false;
+    }
+
+    if (!njs->LoadScriptContent(content, len, scriptpath.path())) {
+        JS_ReportError(cx, "load() failed to load script");
+        return false;
+    }
+
+    return true;
 }
 
-void NidiumJS::logclear()
+// {{{ NidiumJS
+
+#if 0
+static void gccb(JSRuntime *rt, JSGCStatus status)
 {
-    if (!m_LogClear) {
+    //printf("Gc TH1 callback?\n");
+}
+#endif
+
+#if 1
+
+static void NidiumTraceBlack(JSTracer *trc, void *data)
+{
+    class NidiumJS *self = (class NidiumJS *)data;
+
+    if (self->isShuttingDown()) {
         return;
     }
 
-    m_LogClear();
+    ape_htable_item_t *item;
+
+    for (item = self->rootedObj->first; item != NULL; item = item->lnext) {
+        uintptr_t oldaddr = (uintptr_t)item->content.addrs;
+        uintptr_t newaddr = oldaddr;
+
+        JS_CallObjectTracer(trc, (JSObject **)&newaddr, "nativeroot");
+
+        if (oldaddr != newaddr) {
+            printf("Address changed\n");
+        }
+        //printf("Tracing object at %p\n", item->addrs);
+    }
+}
+#endif
+
+void NidiumJS::gc()
+{
+    JS_GC(JS_GetRuntime(cx));
+}
+
+/* Use obj address as key */
+void NidiumJS::rootObjectUntilShutdown(JSObject *obj)
+{
+    //m_RootedSet->put(obj);
+    //JS::AutoHashSetRooter<JSObject *> rooterhash(cx, 0);
+    hashtbl_append64(this->rootedObj, (uint64_t)obj, obj);
+}
+
+void NidiumJS::unrootObject(JSObject *obj)
+{
+    //m_RootedSet->remove(obj);
+    hashtbl_erase64(this->rootedObj, (uint64_t)obj);
 }
 
 JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
@@ -372,118 +462,6 @@ bool NidiumJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
     return true;
 }
 
-static bool nidium_pwd(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    Path cur(JSUtils::CurrentJSCaller(cx), false, true);
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
-    if (cur.dir() == NULL) {
-        args.rval().setUndefined();
-        return true;
-    }
-
-    JS::RootedString res(cx, JS_NewStringCopyZ(cx, cur.dir()));
-
-    args.rval().setString(res);
-
-    return true;
-}
-
-static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    JS::RootedString script(cx);
-    char *content;
-    size_t len;
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
-    if (!JS_ConvertArguments(cx, args, "S", script.address())) {
-        return false;
-    }
-
-    NidiumJS *njs = NidiumJS::GetObject(cx);
-    JSAutoByteString scriptstr(cx, script);
-    Path scriptpath(scriptstr.ptr());
-
-    Path::schemeInfo *schemePwd = Path::getPwdScheme();
-
-    if (scriptpath.path() == NULL) {
-        JS_ReportError(cx, "script error : invalid file location");
-        return false;
-    }
-
-    /* only private are allowed in an http context */
-    if (SCHEME_MATCH(schemePwd, "http") &&
-        !URLSCHEME_MATCH(scriptstr.ptr(), "private")) {
-        JS_ReportError(cx, "script access error : cannot load in this context");
-        return false;
-    }
-
-    if (!scriptpath.getScheme()->allowSyncStream()) {
-        JS_ReportError(cx, "script error : \"%s\" scheme can't load in a sync way", schemePwd->str);
-        return false;
-    }
-
-    PtrAutoDelete<Stream *> stream(scriptpath.createStream());
-
-    if (!stream.ptr() || !stream.ptr()->getContentSync(&content, &len, true)) {
-        JS_ReportError(cx, "load() failed read script");
-        return false;
-    }
-
-    if (!njs->LoadScriptContent(content, len, scriptpath.path())) {
-        JS_ReportError(cx, "load() failed to load script");
-        return false;
-    }
-
-    return true;
-}
-
-#if 0
-static void gccb(JSRuntime *rt, JSGCStatus status)
-{
-    //printf("Gc TH1 callback?\n");
-}
-#endif
-
-#if 1
-
-static void NidiumTraceBlack(JSTracer *trc, void *data)
-{
-    class NidiumJS *self = (class NidiumJS *)data;
-
-    if (self->isShuttingDown()) {
-        return;
-    }
-
-    ape_htable_item_t *item;
-
-    for (item = self->rootedObj->first; item != NULL; item = item->lnext) {
-        uintptr_t oldaddr = (uintptr_t)item->content.addrs;
-        uintptr_t newaddr = oldaddr;
-
-        JS_CallObjectTracer(trc, (JSObject **)&newaddr, "nativeroot");
-
-        if (oldaddr != newaddr) {
-            printf("Address changed\n");
-        }
-        //printf("Tracing object at %p\n", item->addrs);
-    }
-}
-#endif
-
-/* Use obj address as key */
-void NidiumJS::rootObjectUntilShutdown(JSObject *obj)
-{
-    //m_RootedSet->put(obj);
-    //JS::AutoHashSetRooter<JSObject *> rooterhash(cx, 0);
-    hashtbl_append64(this->rootedObj, (uint64_t)obj, obj);
-}
-
-void NidiumJS::unrootObject(JSObject *obj)
-{
-    //m_RootedSet->remove(obj);
-    hashtbl_erase64(this->rootedObj, (uint64_t)obj);
-}
 
 NidiumJS *NidiumJS::GetObject(JSContext *cx)
 {
@@ -737,6 +715,37 @@ int NidiumJS::LoadApplication(const char *path)
     return 0;
 }
 #endif
+
+void NidiumJS::logf(const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    if (m_vLogger == NULL) {
+        vprintf(format, args);
+    } else {
+        m_vLogger(format, args);
+    }
+    va_end(args);
+}
+
+void NidiumJS::log(const char *format)
+{
+    if (!m_Logger) {
+        fwrite(format, sizeof(char), strlen(format), stdout);
+    } else {
+        m_Logger(format);
+    }
+}
+
+void NidiumJS::logclear()
+{
+    if (!m_LogClear) {
+        return;
+    }
+
+    m_LogClear();
+}
+
 
 NidiumJS::~NidiumJS()
 {
@@ -1072,11 +1081,6 @@ void NidiumJS::loadGlobalObjects()
     }
 }
 
-void NidiumJS::gc()
-{
-    JS_GC(JS_GetRuntime(cx));
-}
-
 int NidiumJS::registerMessage(nidium_thread_message_t cbk)
 {
     if (registeredMessagesIdx >= registeredMessagesSize) {
@@ -1115,6 +1119,8 @@ void NidiumJS::postMessage(void *dataPtr, int ev)
 {
     this->messages->postMessage(dataPtr, ev);
 }
+
+// {{{ implementation timers
 
 static int nidium_timer_deleted(void *arg)
 {
@@ -1317,6 +1323,28 @@ static bool nidium_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
+static int nidium_timerng_wrapper(void *arg)
+{
+    struct nidium_sm_timer *params = (struct nidium_sm_timer *)arg;
+
+    JSAutoRequest       ar(params->cx);
+    JS::RootedValue     rval(params->cx);
+    JS::AutoValueVector arr(params->cx);
+    JS::RootedValue     func(params->cx, params->func);
+    JS::RootedObject    global(params->cx, params->global);
+
+    arr.resize(params->argc);
+    for(size_t i = 0; i< params->argc; i++) {
+        arr[i] = params->argv[i]->get();
+    }
+    JS_CallFunctionValue(params->cx, global, func, arr, &rval);
+
+    //timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
+
+    return params->ms;
+}
+// {{{ implementation conversions
+
 static bool nidium_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_CHECK_ARGS("btoa", 1);
@@ -1341,27 +1369,6 @@ static bool nidium_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     return true;
-}
-
-static int nidium_timerng_wrapper(void *arg)
-{
-    struct nidium_sm_timer *params = (struct nidium_sm_timer *)arg;
-
-    JSAutoRequest       ar(params->cx);
-    JS::RootedValue     rval(params->cx);
-    JS::AutoValueVector arr(params->cx);
-    JS::RootedValue     func(params->cx, params->func);
-    JS::RootedObject    global(params->cx, params->global);
-
-    arr.resize(params->argc);
-    for(size_t i = 0; i< params->argc; i++) {
-        arr[i] = params->argv[i]->get();
-    }
-    JS_CallFunctionValue(params->cx, global, func, arr, &rval);
-
-    //timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
-
-    return params->ms;
 }
 
 } // namespace Binding

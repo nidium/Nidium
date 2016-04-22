@@ -16,6 +16,8 @@ using Nidium::IO::NFSTree;
 namespace Nidium {
 namespace Binding {
 
+// {{{ JSNFS
+
 JSNFS::JSNFS(JSContext *cx): IO::NFS()
 {
     m_JS.cx = cx;

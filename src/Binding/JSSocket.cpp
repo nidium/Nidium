@@ -31,6 +31,8 @@ enum {
     SOCKET_NPROP
 };
 
+// {{{ preamble
+
 /* only use on connected clients */
 #define SOCKET_JSOBJECT(socket) (((JSSocket *)socket)->getJSObject())
 
@@ -93,6 +95,8 @@ static JSPropertySpec Socket_props[] = {
     NIDIUM_JS_PSGS("timeout", SOCKET_PROP_TIMEOUT, nidium_socket_prop_get, nidium_socket_prop_set),
     JS_PS_END
 };
+
+// {{ implementation
 
 static bool nidium_socket_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
@@ -202,6 +206,33 @@ static bool nidium_socket_prop_set(JSContext *cx, JS::HandleObject obj,
     return true;
 }
 
+static void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    JSSocket *nsocket = (JSSocket *)JS_GetPrivate(obj);
+
+    if (nsocket != NULL) {
+        delete nsocket;
+    }
+}
+
+static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj)
+{
+    JSSocket *nsocket = (JSSocket *)JS_GetPrivate(obj);
+
+    if (nsocket != NULL) {
+
+        if (nsocket->socket) {
+            nsocket->socket->ctx = NULL;
+            APE_socket_shutdown_now(nsocket->socket);
+        }
+
+        delete nsocket;
+    }
+}
+
+
+// {{{ events
+
 static void nidium_socket_wrapper_onconnected(ape_socket *s, ape_global *ape,
     void *socket_arg)
 {
@@ -286,38 +317,6 @@ static void nidium_socket_wrapper_onaccept(ape_socket *socket_server,
     }
 }
 
-void JSSocket::readFrame(const char *buf, size_t len)
-{
-    JS::RootedValue onread(m_Cx);
-    JS::RootedValue rval(m_Cx);
-    JS::AutoValueArray<2> jdata(m_Cx);
-    JS::RootedString tstr(m_Cx, JSUtils::newStringWithEncoding(m_Cx, buf, len, this->getEncoding()));
-    JS::RootedString jstr(m_Cx);
-    jstr = tstr;
-
-    if (this->lineBuffer.pos && (this->getFlags() & SOCKET_READLINE)) {
-        JS::RootedString left(m_Cx, JSUtils::newStringWithEncoding(m_Cx, this->lineBuffer.data,
-            this->lineBuffer.pos, this->getEncoding()));
-
-        jstr = JS_ConcatStrings(m_Cx, left, tstr);
-        this->lineBuffer.pos = 0;
-    }
-
-    if (isClientFromOwnServer()) {
-        jdata[0].setObjectOrNull(this->getJSObject());
-        jdata[1].setString(jstr);
-    } else {
-        jdata[0].setString(jstr);
-    }
-
-    JS::RootedObject obj(m_Cx, getReceiverJSObject());
-    if (JS_GetProperty(m_Cx, obj, "onread", &onread) &&
-        JS_TypeOfValue(m_Cx, onread) == JSTYPE_FUNCTION) {
-        PACK_TCP(socket->s.fd);
-        JS_CallFunctionValue(m_Cx, obj, onread, jdata, &rval);
-        FLUSH_TCP(socket->s.fd);
-    }
-}
 
 static void nidium_socket_wrapper_client_ondrain(ape_socket *socket_server,
     ape_global *ape, void *socket_arg)
@@ -392,73 +391,6 @@ static void nidium_socket_wrapper_client_onmessage(ape_socket *socket_server,
         jparams[1].setObject(*remote);
 
         JS_CallFunctionValue(cx, obj, onmessage, jparams, &rval);
-    }
-}
-
-void JSSocket::onRead(const char *data, size_t len)
-{
-    JS::RootedValue onread(m_Cx);
-    JS::RootedValue rval(m_Cx);
-
-    if (!isJSCallable()) {
-        return;
-    }
-
-    JS::AutoValueArray<2> jparams(m_Cx);
-    int dataPosition = 0;
-
-    if (isClientFromOwnServer()) {
-        dataPosition = 1;
-        JS::RootedObject obj(m_Cx, this->getJSObject());
-        jparams[0].setObjectOrNull(obj);
-    } else {
-        dataPosition = 0;
-    }
-
-    if (this->getFlags() & SOCKET_ISBINARY) {
-        JS::RootedObject arrayBuffer(m_Cx, JS_NewArrayBuffer(m_Cx, len));
-        uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
-        memcpy(adata, data, len);
-
-        jparams[dataPosition].setObject(*arrayBuffer);
-
-    } else if (this->getFlags() & SOCKET_READLINE) {
-        const char *pBuf = data;
-        size_t tlen = len;
-        char *eol;
-
-        while (tlen > 0 && (eol = (char *)memchr(pBuf,
-            this->getFrameDelimiter(), tlen)) != NULL) {
-
-            size_t pLen = eol - pBuf;
-            tlen -= pLen;
-            if (tlen-- > 0) {
-                this->readFrame(pBuf, pLen);
-                pBuf = eol+1;
-            }
-        }
-
-        if (tlen && tlen+this->lineBuffer.pos <= SOCKET_LINEBUFFER_MAX) {
-            memcpy(this->lineBuffer.data+this->lineBuffer.pos, pBuf, tlen);
-            this->lineBuffer.pos += tlen;
-        } else if (tlen) {
-            this->lineBuffer.pos = 0;
-        }
-
-        return;
-    } else {
-        JS::RootedString jstr(m_Cx, JSUtils::newStringWithEncoding(m_Cx,
-            data, len, this->getEncoding()));
-
-        jparams[dataPosition].setString(jstr);
-    }
-
-    JS::RootedObject obj(m_Cx, getReceiverJSObject());
-    if (JS_GetProperty(m_Cx, obj, "onread", &onread) &&
-        JS_TypeOfValue(m_Cx, onread) == JSTYPE_FUNCTION) {
-        PACK_TCP(socket->s.fd);
-        JS_CallFunctionValue(m_Cx, obj, onread, jparams, &rval);
-        FLUSH_TCP(socket->s.fd);
     }
 }
 
@@ -930,30 +862,7 @@ static bool nidium_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
-{
-    JSSocket *nsocket = (JSSocket *)JS_GetPrivate(obj);
-
-    if (nsocket != NULL) {
-        delete nsocket;
-    }
-}
-
-static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj)
-{
-    JSSocket *nsocket = (JSSocket *)JS_GetPrivate(obj);
-
-    if (nsocket != NULL) {
-
-        if (nsocket->socket) {
-            nsocket->socket->ctx = NULL;
-            APE_socket_shutdown_now(nsocket->socket);
-        }
-
-        delete nsocket;
-    }
-}
-
+// {{{ JSSocket
 JSSocket::JSSocket(JS::HandleObject obj, JSContext *cx,
     const char *host, unsigned short port)
     :  JSExposer<JSSocket>(obj, cx),
@@ -968,19 +877,36 @@ JSSocket::JSSocket(JS::HandleObject obj, JSContext *cx,
     m_Encoding = NULL;
 }
 
-JSSocket::~JSSocket()
+void JSSocket::readFrame(const char *buf, size_t len)
 {
-    if (isAttached()) {
-        socket->ctx = NULL;
-        this->disconnect();
-    }
-    free(host);
-    if (lineBuffer.data) {
-        free(lineBuffer.data);
+    JS::RootedValue onread(m_Cx);
+    JS::RootedValue rval(m_Cx);
+    JS::AutoValueArray<2> jdata(m_Cx);
+    JS::RootedString tstr(m_Cx, JSUtils::newStringWithEncoding(m_Cx, buf, len, this->getEncoding()));
+    JS::RootedString jstr(m_Cx);
+    jstr = tstr;
+
+    if (this->lineBuffer.pos && (this->getFlags() & SOCKET_READLINE)) {
+        JS::RootedString left(m_Cx, JSUtils::newStringWithEncoding(m_Cx, this->lineBuffer.data,
+            this->lineBuffer.pos, this->getEncoding()));
+
+        jstr = JS_ConcatStrings(m_Cx, left, tstr);
+        this->lineBuffer.pos = 0;
     }
 
-    if (m_Encoding) {
-        free(m_Encoding);
+    if (isClientFromOwnServer()) {
+        jdata[0].setObjectOrNull(this->getJSObject());
+        jdata[1].setString(jstr);
+    } else {
+        jdata[0].setString(jstr);
+    }
+
+    JS::RootedObject obj(m_Cx, getReceiverJSObject());
+    if (JS_GetProperty(m_Cx, obj, "onread", &onread) &&
+        JS_TypeOfValue(m_Cx, onread) == JSTYPE_FUNCTION) {
+        PACK_TCP(socket->s.fd);
+        JS_CallFunctionValue(m_Cx, obj, onread, jdata, &rval);
+        FLUSH_TCP(socket->s.fd);
     }
 }
 
@@ -1020,6 +946,74 @@ void JSSocket::disconnect()
     APE_socket_shutdown_now(socket);
 }
 
+void JSSocket::onRead(const char *data, size_t len)
+{
+    JS::RootedValue onread(m_Cx);
+    JS::RootedValue rval(m_Cx);
+
+    if (!isJSCallable()) {
+        return;
+    }
+
+    JS::AutoValueArray<2> jparams(m_Cx);
+    int dataPosition = 0;
+
+    if (isClientFromOwnServer()) {
+        dataPosition = 1;
+        JS::RootedObject obj(m_Cx, this->getJSObject());
+        jparams[0].setObjectOrNull(obj);
+    } else {
+        dataPosition = 0;
+    }
+
+    if (this->getFlags() & SOCKET_ISBINARY) {
+        JS::RootedObject arrayBuffer(m_Cx, JS_NewArrayBuffer(m_Cx, len));
+        uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
+        memcpy(adata, data, len);
+
+        jparams[dataPosition].setObject(*arrayBuffer);
+
+    } else if (this->getFlags() & SOCKET_READLINE) {
+        const char *pBuf = data;
+        size_t tlen = len;
+        char *eol;
+
+        while (tlen > 0 && (eol = (char *)memchr(pBuf,
+            this->getFrameDelimiter(), tlen)) != NULL) {
+
+            size_t pLen = eol - pBuf;
+            tlen -= pLen;
+            if (tlen-- > 0) {
+                this->readFrame(pBuf, pLen);
+                pBuf = eol+1;
+            }
+        }
+
+        if (tlen && tlen+this->lineBuffer.pos <= SOCKET_LINEBUFFER_MAX) {
+            memcpy(this->lineBuffer.data+this->lineBuffer.pos, pBuf, tlen);
+            this->lineBuffer.pos += tlen;
+        } else if (tlen) {
+            this->lineBuffer.pos = 0;
+        }
+
+        return;
+    } else {
+        JS::RootedString jstr(m_Cx, JSUtils::newStringWithEncoding(m_Cx,
+            data, len, this->getEncoding()));
+
+        jparams[dataPosition].setString(jstr);
+    }
+
+    JS::RootedObject obj(m_Cx, getReceiverJSObject());
+    if (JS_GetProperty(m_Cx, obj, "onread", &onread) &&
+        JS_TypeOfValue(m_Cx, onread) == JSTYPE_FUNCTION) {
+        PACK_TCP(socket->s.fd);
+        JS_CallFunctionValue(m_Cx, obj, onread, jparams, &rval);
+        FLUSH_TCP(socket->s.fd);
+    }
+}
+
+
 void JSSocket::shutdown()
 {
     if (!socket || !socket->ctx) {
@@ -1027,6 +1021,25 @@ void JSSocket::shutdown()
     }
     APE_socket_shutdown(socket);
 }
+
+JSSocket::~JSSocket()
+{
+    if (isAttached()) {
+        socket->ctx = NULL;
+        this->disconnect();
+    }
+    free(host);
+    if (lineBuffer.data) {
+        free(lineBuffer.data);
+    }
+
+    if (m_Encoding) {
+        free(m_Encoding);
+    }
+}
+
+
+// {{{ registration
 
 NIDIUM_JS_OBJECT_EXPOSE(Socket)
 

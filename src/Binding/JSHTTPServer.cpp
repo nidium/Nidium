@@ -16,6 +16,8 @@ using Nidium::Net::HTTPClientConnection;
 namespace Nidium {
 namespace Binding {
 
+// {{{ preamble
+
 static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static bool nidium_httpresponse_write(JSContext *cx,
@@ -85,6 +87,8 @@ JSHTTPServer::~JSHTTPServer()
 {
 
 }
+
+// {{{ JSHTTPServer events
 
 void JSHTTPServer::onClientDisconnect(HTTPClientConnection *client)
 {
@@ -170,6 +174,8 @@ bool JSHTTPServer::onEnd(HTTPClientConnection *client)
 
     return false;
 }
+
+// {{{ implementation
 
 static bool nidium_HTTPListener_constructor(JSContext *cx,
     unsigned argc, JS::Value *vp)
@@ -344,6 +350,8 @@ static bool nidium_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Valu
 
     return true;
 }
+
+// {{{ registration
 
 void JSHTTPServer::registerObject(JSContext *cx)
 {

@@ -24,6 +24,8 @@ using Nidium::Core::SharedMessages;
 namespace Nidium {
 namespace IO {
 
+// {{{ File
+
 #define NIDIUM_FILE_NOTIFY(param, event, arg) \
     do {   \
         SharedMessages::Message *__msg = new SharedMessages::Message(event); \
@@ -431,6 +433,8 @@ File::~File()
     free(m_Path);
 }
 
+// {{{ File events
+
 void File::onMessage(const SharedMessages::Message &msg)
 {
     if (m_Delegate) {
@@ -509,6 +513,8 @@ int File::openSync(const char *modes, int *err)
 
     return 1;
 }
+
+// {{ File sync actions
 
 ssize_t File::writeSync(char *data, uint64_t len, int *err)
 {

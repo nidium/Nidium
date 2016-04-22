@@ -18,6 +18,8 @@
 namespace Nidium {
 namespace Binding {
 
+// {{{ String conversions
+
 bool JSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::MutableHandleValue ret,
     const char *encoding)
 {
@@ -85,6 +87,7 @@ JSString *JSUtils::newStringWithEncoding(JSContext *cx, const char *buf,
     return JS_NewStringCopyN(cx, buf, len);
 }
 
+// {{{ JS
 char * JSUtils::CurrentJSCaller(JSContext *cx)
 {
     if (cx == NULL) {

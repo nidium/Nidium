@@ -19,6 +19,8 @@
 namespace Nidium {
 namespace Core {
 
+// {{{ NonCopyable
+
 class NonCopyable {
 public:
     NonCopyable() {}
@@ -27,6 +29,8 @@ private:
     NonCopyable(const NonCopyable&);
     NonCopyable& operator=(const NonCopyable&);
 };
+
+// {{{ UserAgentUtils
 
 class UserAgentUtils
 {
@@ -67,6 +71,8 @@ public:
     }
 
 };
+
+// {{{ Utils
 
 class Utils
 {
@@ -109,6 +115,8 @@ template <typename T>
     static void HTTPTime(char *buf);
 };
 
+// {{{ PthreadLock
+
 class PthreadAutoLock {
   public:
     PthreadAutoLock(pthread_mutex_t *mutex) : lock(mutex) {
@@ -122,6 +130,8 @@ class PthreadAutoLock {
   private:
     pthread_mutex_t *lock;
 };
+
+// {{{ PtrAutoDelete
 
 template <typename T = void *>
 class PtrAutoDelete {
@@ -159,6 +169,8 @@ class PtrAutoDelete {
     T m_Ptr;
     void (*m_Free)(void *);
 };
+
+// {{{ Macros
 
 #define nidium_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
 #define nidium_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))

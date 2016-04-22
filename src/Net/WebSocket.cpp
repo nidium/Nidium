@@ -21,8 +21,27 @@ namespace Net {
 #define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
     CONST_STR_LEN(header "\0"))
 
+// {{{ callbacks
+
 static void nidium_on_ws_frame(websocket_state *state,
-    const unsigned char *data, ssize_t length, int binary);
+    const unsigned char *data, ssize_t length, int binary)
+{
+    ape_socket *sock = state->socket;
+    if (sock == NULL) {
+        return;
+    }
+
+    WebSocketClientConnection *con = (WebSocketClientConnection *)sock->ctx;
+
+    if (con == NULL) {
+        return;
+    }
+
+    con->onFrame((const char *)data, length, (bool)binary);
+}
+
+
+// {{{ WebSocketListener
 
 WebSocketListener::WebSocketListener(uint16_t port, const char *ip) :
     HTTPServer(port, ip)
@@ -35,6 +54,8 @@ void WebSocketListener::onClientConnect(ape_socket *client, ape_global *ape)
     client->ctx = new WebSocketClientConnection(this, client);
 }
 
+// {{{ WebSocketClientConnection
+
 WebSocketClientConnection::WebSocketClientConnection(
         HTTPServer *httpserver, ape_socket *socket) :
     HTTPClientConnection(httpserver, socket), m_Handshaked(false),
@@ -45,6 +66,31 @@ WebSocketClientConnection::WebSocketClientConnection(
     m_WSState.socket = socket;
     m_WSState.on_frame = nidium_on_ws_frame;
 }
+
+void WebSocketClientConnection::close()
+{
+    if (!m_Handshaked) {
+        APE_socket_shutdown_now(m_SocketClient);
+        return;
+    }
+    ape_ws_close(&m_WSState);
+}
+
+void WebSocketClientConnection::ping()
+{
+    if (!m_Handshaked) {
+        return;
+    }
+    ape_ws_ping(&m_WSState);
+}
+
+void WebSocketClientConnection::write(unsigned char *data,
+    size_t len, bool binary, ape_socket_data_autorelease type)
+{
+    ape_ws_write(&m_WSState, (unsigned char *)data, len,
+        (int)binary, type);
+}
+
 
 WebSocketClientConnection::~WebSocketClientConnection()
 {
@@ -70,6 +116,8 @@ int WebSocketClientConnection::pingTimer(void *arg)
 
     return WEBSOCKET_PING_INTERVAL;
 }
+
+// {{{ events
 
 void WebSocketClientConnection::onHeaderEnded()
 {
@@ -146,47 +194,6 @@ void WebSocketClientConnection::onFrame(const char *data, size_t len,
     args[3].set(binary);
 
     m_HTTPListener->fireEvent<WebSocketListener>(WebSocketListener::SERVER_FRAME, args);
-}
-
-void WebSocketClientConnection::close()
-{
-    if (!m_Handshaked) {
-        APE_socket_shutdown_now(m_SocketClient);
-        return;
-    }
-    ape_ws_close(&m_WSState);
-}
-
-void WebSocketClientConnection::ping()
-{
-    if (!m_Handshaked) {
-        return;
-    }
-    ape_ws_ping(&m_WSState);
-}
-
-void WebSocketClientConnection::write(unsigned char *data,
-    size_t len, bool binary, ape_socket_data_autorelease type)
-{
-    ape_ws_write(&m_WSState, (unsigned char *)data, len,
-        (int)binary, type);
-}
-
-static void nidium_on_ws_frame(websocket_state *state,
-    const unsigned char *data, ssize_t length, int binary)
-{
-    ape_socket *sock = state->socket;
-    if (sock == NULL) {
-        return;
-    }
-
-    WebSocketClientConnection *con = (WebSocketClientConnection *)sock->ctx;
-
-    if (con == NULL) {
-        return;
-    }
-
-    con->onFrame((const char *)data, length, (bool)binary);
 }
 
 } // namespace Net

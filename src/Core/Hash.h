@@ -21,6 +21,8 @@
 namespace Nidium {
 namespace Core {
 
+// {{{ Hash64
+
 template <typename T>
 class Hash64 : public NonCopyable
 {
@@ -64,6 +66,8 @@ class Hash64 : public NonCopyable
 
         struct _ape_htable *table;
 };
+
+// {{{ Hash
 
 template <typename T>
 class Hash : public NonCopyable
@@ -138,6 +142,8 @@ class Hash : public NonCopyable
 
         struct _ape_htable *table;
 };
+
+// {{{ Hash<uint32_t
 
 template <>
 class Hash<uint32_t> : public NonCopyable

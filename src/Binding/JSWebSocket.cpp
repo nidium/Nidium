@@ -19,6 +19,8 @@ using Nidium::Net::WebSocketClientConnection;
 namespace Nidium {
 namespace Binding {
 
+// {{{ preamble
+
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
@@ -64,6 +66,8 @@ static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj)
         delete wss;
     }
 }
+
+// {{{ implementation
 
 static bool nidium_websocketclient_send(JSContext *cx, unsigned argc, JS::Value *vp)
 {
@@ -188,17 +192,14 @@ static bool nidium_WebSocketServer_constructor(JSContext *cx,
     return true;
 }
 
+// {{{ JSWebSocketServe
+
 JSWebSocketServer::JSWebSocketServer(JS::HandleObject obj, JSContext *cx,
     const char *host,
     unsigned short port) : JSExposer<JSWebSocketServer>(obj, cx)
 {
     m_WebSocketServer = new WebSocketListener(port, host);
     m_WebSocketServer->addListener(this);
-}
-
-JSWebSocketServer::~JSWebSocketServer()
-{
-    delete m_WebSocketServer;
 }
 
 JSObject *JSWebSocketServer::createClient(WebSocketClientConnection *client)
@@ -296,6 +297,13 @@ bool JSWebSocketServer::start()
 
     return m_WebSocketServer->start();
 }
+
+JSWebSocketServer::~JSWebSocketServer()
+{
+    delete m_WebSocketServer;
+}
+
+// {{{ registration
 
 NIDIUM_JS_OBJECT_EXPOSE(WebSocketServer)
 

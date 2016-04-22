@@ -36,6 +36,8 @@ enum {
     FILE_PROP_ASYNC
 };
 
+// {{{ JSFileAsyncReader
+
 class JSFileAsyncReader : public Core::Messages
 {
 public:
@@ -96,6 +98,8 @@ public:
 
     Core::Args m_Args;
 };
+
+// {{{ preamble
 
 #define NJSFIO_GETTER(obj) ((class JSFileIO *)JS_GetPrivate(obj))
 
@@ -171,6 +175,8 @@ static void File_Finalize(JSFreeOp *fop, JSObject *obj)
         delete NJSFIO;
     }
 }
+
+// {{{ implementation
 
 static bool native_file_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
@@ -693,6 +699,8 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
 
     return true;
 }
+
+// {{{ JSFileIO
 
 bool JSFileIO::handleError(JSContext *cx, const SharedMessages::Message &msg,
     JS::MutableHandleValue vals)

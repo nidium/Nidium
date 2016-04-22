@@ -21,6 +21,8 @@
 namespace Nidium{
 namespace Net {
 
+// {{{ HTTPRequest
+
 class HTTPRequest
 {
     public:
@@ -138,6 +140,8 @@ class HTTPRequest
 };
 
 class HTTPDelegate;
+
+// {{{ HTTP
 
 class HTTP :  public Nidium::Core::Messages
 {
@@ -305,6 +309,8 @@ private:
         int count;
     } m_Redirect;
 };
+
+// {{{ HTTPDelegate
 
 class HTTPDelegate
 {
