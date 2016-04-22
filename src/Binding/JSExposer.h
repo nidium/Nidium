@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef nidiumjsexposer_h__
-#define nidiumjsexposer_h__
+#ifndef binding_jsexposer_h__
+#define binding_jsexposer_h__
 
 #include <jsapi.h>
 #include <jsfriendapi.h>
@@ -273,7 +273,7 @@ public:
             /*
                 Keep a reference to the next event in case the event is self
                 deleted during the trigger. In case the next event(s) are also
-                deleted, m_TmpEv will be updated by JSEvents::remove() 
+                deleted, m_TmpEv will be updated by JSEvents::remove()
                 to the next valid event.
             */
             m_TmpEv = ev->next;
@@ -524,9 +524,9 @@ class JSExposer
 
         m_Events = new Nidium::Core::Hash<JSEvents *>(32);
         /*
-            Set Nidium::Core::Hash auto delete to false, since it's possible for 
-            an event to be deleted while it's fired. So we don't want to 
-            free the underlying object when removing it from the Nidium::Core::Hash 
+            Set Nidium::Core::Hash auto delete to false, since it's possible for
+            an event to be deleted while it's fired. So we don't want to
+            free the underlying object when removing it from the Nidium::Core::Hash
             (otherwise JSEvents::fire will attempt to use a freed object)
         */
         m_Events->setAutoDelete(false);

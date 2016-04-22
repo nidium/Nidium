@@ -875,3 +875,4 @@ void JSFileIO::registerObject(JSContext *cx)
 
 } // namespace Binding
 } // namespace Nidium
+

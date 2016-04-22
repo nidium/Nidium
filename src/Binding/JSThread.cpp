@@ -432,3 +432,4 @@ NIDIUM_JS_OBJECT_EXPOSE(Thread)
 
 } // namespace Binding
 } // namespace Nidium
+

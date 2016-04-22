@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef binding_swebsocketclient_h__
-#define binding_swebsocketclient_h__
+#ifndef binding_jswebsocketclient_h__
+#define binding_jswebsocketclient_h__
 
 #include <cstddef>
 

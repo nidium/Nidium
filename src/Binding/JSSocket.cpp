@@ -1050,3 +1050,4 @@ NIDIUM_JS_OBJECT_EXPOSE(Socket)
 
 } // namespace Binding
 } // namespace Nidium
+

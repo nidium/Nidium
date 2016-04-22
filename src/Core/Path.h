@@ -24,9 +24,9 @@
 struct JSContext;
 
 namespace Nidium {
-	namespace IO {
-		class Stream;
-	}
+    namespace IO {
+        class Stream;
+    }
 namespace Core {
 
 #define MAX_REGISTERED_SCHEMES 1024
@@ -35,8 +35,7 @@ namespace Core {
 extern char *g_m_Root;
 extern char *g_m_Pwd;
 
-#define SCHEME_DEFINE(prefix, streamclass, keepprefix) ( \
-struct Nidium::Core::Path::schemeInfo) { \
+#define SCHEME_DEFINE(prefix, streamclass, keepprefix) (struct Nidium::Core::Path::schemeInfo) { \
     .str        = prefix, \
     .base       = streamclass::createStream, \
     .getBaseDir = streamclass::getBaseDir, \

@@ -308,3 +308,4 @@ NIDIUM_JS_OBJECT_EXPOSE(Stream)
 
 } // namespace Binding
 } // namespace Nidium
+

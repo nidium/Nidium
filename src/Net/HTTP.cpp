@@ -697,7 +697,7 @@ HTTP::~HTTP()
 // {{{ HTTPRequest Implementation
 HTTPRequest::HTTPRequest(const char *url) :
     method(HTTP_GET), host(NULL), path(NULL), data(NULL), datalen(0),
-    datafree(free), headers(ape_array_new(8)), m_isSSL(false) 
+    datafree(free), headers(ape_array_new(8)), m_isSSL(false)
 {
     this->resetURL(url);
     this->setDefaultHeaders();

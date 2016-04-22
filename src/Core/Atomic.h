@@ -85,4 +85,6 @@ public:
 
 } // namespace Core
 } // namespace Nidium
+
 #endif
+

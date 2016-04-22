@@ -30,3 +30,4 @@ bool JSDB::insert(const char *key, JSContext *cx, JS::HandleValue val)
 
 } // namespace Binding
 } // namespace Nidium
+

@@ -164,7 +164,7 @@ static int headers_complete_cb(http_parser *p)
 }
 // }}}
 
-// {{{ Implementation 
+// {{{ Implementation
 bool HTTPParser::HTTPParse(const char *data, size_t len)
 {
     size_t nparsed;

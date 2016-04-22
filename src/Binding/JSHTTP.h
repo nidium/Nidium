@@ -39,5 +39,6 @@ class JSHTTP : public JSExposer<JSHTTP>, public Nidium::Net::HTTPDelegate
 
 } // namespace Binding
 } // namespace Nidium
+
 #endif
 

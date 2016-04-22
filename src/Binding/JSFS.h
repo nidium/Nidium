@@ -24,3 +24,4 @@ public:
 } // namespace Nidium
 
 #endif
+

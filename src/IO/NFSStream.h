@@ -6,7 +6,6 @@
 #ifndef io_nfsstream_h__
 #define io_nfsstream_h__
 
-
 #include "Core/Messages.h"
 
 #include "Stream.h"

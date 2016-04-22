@@ -197,7 +197,7 @@ TaskManager::~TaskManager()
 }
 // }}}
 
-// {{{ Managed 
+// {{{ Managed
 void Managed::addTask(Task *task)
 {
     if (m_Manager == NULL) {

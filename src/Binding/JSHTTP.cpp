@@ -248,7 +248,7 @@ static void Http_Finalize(JSFreeOp *fop, JSObject *obj)
 }
 // }}}
 
-// {{{ JSHTTP  
+// {{{ JSHTTP
 void JSHTTP::onError(HTTP::HTTPError err)
 {
     JSContext *cx = m_Cx;
@@ -498,3 +498,4 @@ NIDIUM_JS_OBJECT_EXPOSE(HTTP)
 
 } // namespace Binding
 } // namespace Nidium
+

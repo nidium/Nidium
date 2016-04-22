@@ -117,3 +117,4 @@ class SharedMessages
 } // namespace Nidium
 
 #endif
+

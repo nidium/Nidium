@@ -189,7 +189,7 @@ void JSDebugger::registerObject(JSContext *cx)
 
     JS_DefineDebuggerObject(cx, gbl);
 
-    /* 
+    /*
      * Debugger object must live in another compartment
      * so we extend the Debugger object with two static methods
      * - create : Initialize the Debugger in a new compartment

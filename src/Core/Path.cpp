@@ -59,7 +59,7 @@ Path::Path(const char *origin, bool allowAll, bool noFilter) :
     schemeInfo *rootScheme = Path::getPwdScheme();
     bool localRoot = rootScheme->allowLocalFileStream();
 
-    // Remote chroot trying to access local file. 
+    // Remote chroot trying to access local file.
     if (!localRoot && strncmp(origin, "file://", 7) == 0) {
         this->invalidatePath();
         return;
@@ -125,7 +125,7 @@ void Path::parse(const char *origin)
 
     // Relative path (no prefix) on a remote root.
     // Set the appropriate host & scheme.
-    if ((isRelative || origin[0] == '/') && !isLocalRoot) { 
+    if ((isRelative || origin[0] == '/') && !isLocalRoot) {
         int hostStart = strlen(rootScheme->str);
         const char *hostEnd = strchr(&root[hostStart], '/');
         int hostLen = (hostEnd - &root[hostStart]);
@@ -134,7 +134,7 @@ void Path::parse(const char *origin)
         m_Host = (char *)malloc((hostLen + 1) * sizeof(char));
         strncpy(m_Host, &root[hostStart], hostLen);
         m_Host[hostLen] = '\0';
-    } 
+    }
 
     // Prepare the full absolute path for sanitize
     if (!isRelative && SCHEME_MATCH(scheme, "file")) {
@@ -164,7 +164,7 @@ void Path::parse(const char *origin)
 
     m_Path = Path::sanitize(path);
     if (!m_Path) {
-        // No path 
+        // No path
         return;
     }
 
@@ -431,7 +431,7 @@ void Path::invalidatePath()
     m_Dir = nullptr;
 }
 
-bool Path::inDir(const char *path, const char *root) 
+bool Path::inDir(const char *path, const char *root)
 {
     if (!root) {
         return true;

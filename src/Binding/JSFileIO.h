@@ -52,3 +52,4 @@ class JSFileIO : public JSExposer<JSFileIO>,
 } // namespace Nidium
 
 #endif
+

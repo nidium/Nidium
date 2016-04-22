@@ -273,7 +273,7 @@ JS::Value JSModule::require(char *name)
     }
 
     // Is there is a cyclic dependency
-    for (JSModule *m = cmodule->parent; ; ) {
+    for (JSModule *m = cmodule->parent; ;) {
         if (!m || !m->exports) break;
 
         // Found a cyclic dependency
