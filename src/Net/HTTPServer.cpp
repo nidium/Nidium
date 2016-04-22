@@ -207,7 +207,7 @@ static int message_complete_cb(http_parser *p)
     client->_createResponse();
     client->increaseRequestsCount();
 
-    if (client->getHTTPListener()->onEnd(client)) {
+    if (client->getHTTPServer()->onEnd(client)) {
         client->close();
     } else {
         /* Further reading possible */
@@ -234,7 +234,7 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
             (const unsigned char *)buf, len);
     }
 
-    client->getHTTPListener()->onData(client, buf, len);
+    client->getHTTPServer()->onData(client, buf, len);
 
     return 0;
 }
@@ -296,7 +296,7 @@ static void nidium_socket_client_disconnect(ape_socket *socket_client,
     if (!con) {
         return;
     }
-    con->getHTTPListener()->onClientDisconnect(con);
+    con->getHTTPServer()->onClientDisconnect(con);
     con->onDisconnect(ape);
 
     socket_client->ctx = NULL;
@@ -380,7 +380,7 @@ int NativeHTTPClientConnection_checktimeout(void *arg)
 HTTPClientConnection::HTTPClientConnection(HTTPServer *httpserver,
     ape_socket *socket) :
     m_Ctx(NULL), m_SocketClient(socket),
-    m_HTTPListener(httpserver), m_Response(NULL),
+    m_HTTPServer(httpserver), m_Response(NULL),
     m_RequestsCount(0), m_MaxRequestsCount(0)
 {
     m_HttpState.headers.prevstate = PSTATE_NOTHING;

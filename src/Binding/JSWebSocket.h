@@ -24,7 +24,7 @@ public:
     static void registerObject(JSContext *cx);
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 private:
-    Nidium::Net::WebSocketListener *m_WebSocketServer;
+    Nidium::Net::WebSocketServer *m_WebSocketServer;
 
     JSObject *createClient(Nidium::Net::WebSocketClientConnection *client);
 };

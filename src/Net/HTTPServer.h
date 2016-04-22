@@ -194,8 +194,8 @@ public:
         return m_SocketClient;
     }
 
-    HTTPServer *getHTTPListener() const {
-        return m_HTTPListener;
+    HTTPServer *getHTTPServer() const {
+        return m_HTTPServer;
     }
 
     buffer *getData() const {
@@ -280,7 +280,7 @@ public:
 protected:
     struct HTTPData m_HttpState;
     ape_socket *m_SocketClient;
-    HTTPServer *m_HTTPListener;
+    HTTPServer *m_HTTPServer;
     HTTPResponse *m_Response;
     uint64_t m_TimeoutTimer;
     uint64_t m_LastAcitivty;

@@ -17,7 +17,7 @@ TEST(Websocket, Simple)
 
     g_ape = APE_init();
     socket = APE_socket_new(APE_SOCKET_PT_UDP, 0, g_ape);
-    Nidium::Net::WebSocketListener wsl(8080);
+    Nidium::Net::WebSocketServer wsl(8080);
 
     APE_loop_run(g_ape);
     APE_destroy(g_ape);

@@ -15,7 +15,7 @@ namespace Net {
 
 #define WEBSOCKET_PING_INTERVAL 5000 /* ms */
 
-class WebSocketListener : public HTTPServer
+class WebSocketServer : public HTTPServer
 {
 public:
     static const uint8_t EventID = 4;
@@ -26,7 +26,7 @@ public:
         SERVER_CLOSE
     };
 
-    WebSocketListener(uint16_t port, const char *ip = "0.0.0.0");
+    WebSocketServer(uint16_t port, const char *ip = "0.0.0.0");
     virtual void onClientConnect(ape_socket *client, ape_global *ape);
 
     virtual bool onEnd(HTTPClientConnection *client) override {

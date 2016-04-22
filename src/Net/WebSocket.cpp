@@ -23,14 +23,14 @@ namespace Net {
     CONST_STR_LEN(header "\0"))
 // }}}
 
-// {{{ WebSocketListener
-WebSocketListener::WebSocketListener(uint16_t port, const char *ip) :
+// {{{ WebSocketServer
+WebSocketServer::WebSocketServer(uint16_t port, const char *ip) :
     HTTPServer(port, ip)
 {
 
 }
 
-void WebSocketListener::onClientConnect(ape_socket *client, ape_global *ape)
+void WebSocketServer::onClientConnect(ape_socket *client, ape_global *ape)
 {
     client->ctx = new WebSocketClientConnection(this, client);
 }
@@ -131,7 +131,7 @@ void WebSocketClientConnection::onDisconnect(ape_global *ape)
         m_PingTimer = 0;
     }
 
-    m_HTTPListener->fireEvent<WebSocketListener>(WebSocketListener::SERVER_CLOSE, args);
+    m_HTTPServer->fireEvent<WebSocketServer>(WebSocketServer::SERVER_CLOSE, args);
 }
 
 void WebSocketClientConnection::onUpgrade(const char *to)
@@ -170,7 +170,7 @@ void WebSocketClientConnection::onUpgrade(const char *to)
         WebSocketClientConnection::pingTimer, this);
 
     m_PingTimer = APE_timer_getid(timer);
-    m_HTTPListener->fireEvent<WebSocketListener>(WebSocketListener::SERVER_CONNECT, args);
+    m_HTTPServer->fireEvent<WebSocketServer>(WebSocketServer::SERVER_CONNECT, args);
 
 }
 
@@ -190,7 +190,7 @@ void WebSocketClientConnection::onFrame(const char *data, size_t len,
     args[2].set(len);
     args[3].set(binary);
 
-    m_HTTPListener->fireEvent<WebSocketListener>(WebSocketListener::SERVER_FRAME, args);
+    m_HTTPServer->fireEvent<WebSocketServer>(WebSocketServer::SERVER_FRAME, args);
 }
 // }}}
 

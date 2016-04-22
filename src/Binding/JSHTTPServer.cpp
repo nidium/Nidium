@@ -17,7 +17,7 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj);
+static void HTTPServer_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static bool nidium_httpresponse_write(JSContext *cx,
     unsigned argc, JS::Value *vp);
@@ -26,15 +26,15 @@ static bool nidium_httpresponse_end(JSContext *cx,
 static bool nidium_httpresponse_writeHead(JSContext *cx,
     unsigned argc, JS::Value *vp);
 
-static JSClass HTTPListener_class = {
+static JSClass HTTPServer_class = {
     "HTTPListener", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, HTTPListener_Finalize,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, HTTPServer_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 template<>
-JSClass *JSExposer<JSHTTPServer>::jsclass = &HTTPListener_class;
+JSClass *JSExposer<JSHTTPServer>::jsclass = &HTTPServer_class;
 
 static JSClass HTTPRequest_class = {
     "HTTPRequest", JSCLASS_HAS_PRIVATE,
@@ -169,7 +169,7 @@ bool JSHTTPServer::onEnd(HTTPClientConnection *client)
 // }}}
 
 // {{{ Implementation
-static bool nidium_HTTPListener_constructor(JSContext *cx,
+static bool nidium_HTTPServer_constructor(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     uint16_t port;
@@ -183,7 +183,7 @@ static bool nidium_HTTPListener_constructor(JSContext *cx,
         return false;
     }
 
-    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &HTTPListener_class, args));
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &HTTPServer_class, args));
 
     if (!JS_ConvertArguments(cx, args, "c/bS", &port, &reuseport, ip_bind.address())) {
         return false;
@@ -197,7 +197,7 @@ static bool nidium_HTTPListener_constructor(JSContext *cx,
     }
 
     if (!listener->start((bool)reuseport)) {
-        JS_ReportError(cx, "HTTPListener() couldn't listener on %d", port);
+        JS_ReportError(cx, "HTTPServer() couldn't listener on %d", port);
         delete listener;
         return false;
     }
@@ -343,7 +343,7 @@ static bool nidium_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Valu
     return true;
 }
 
-static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj)
+static void HTTPServer_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     JSHTTPServer *server = (JSHTTPServer *)JS_GetPrivate(obj);
 
@@ -357,8 +357,8 @@ static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj)
 void JSHTTPServer::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS_InitClass(cx, global, JS::NullPtr(), &HTTPListener_class,
-        nidium_HTTPListener_constructor,
+    JS_InitClass(cx, global, JS::NullPtr(), &HTTPServer_class,
+        nidium_HTTPServer_constructor,
         0, NULL, NULL, NULL, NULL);
 #if 0
     //TODO: how to init a class from a NidiumJSObjectMapper derived class

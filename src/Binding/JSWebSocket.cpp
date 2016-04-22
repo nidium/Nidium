@@ -13,7 +13,7 @@
 #include "Net/HTTP.h"
 #include "JSUtils.h"
 
-using Nidium::Net::WebSocketListener;
+using Nidium::Net::WebSocketServer;
 using Nidium::Net::WebSocketClientConnection;
 
 namespace Nidium {
@@ -58,7 +58,7 @@ JSWebSocketServer::JSWebSocketServer(JS::HandleObject obj, JSContext *cx,
     const char *host,
     unsigned short port) : JSExposer<JSWebSocketServer>(obj, cx)
 {
-    m_WebSocketServer = new WebSocketListener(port, host);
+    m_WebSocketServer = new WebSocketServer(port, host);
     m_WebSocketServer->addListener(this);
 }
 
@@ -85,7 +85,7 @@ void JSWebSocketServer::onMessage(const Core::SharedMessages::Message &msg)
     JS::RootedValue rval(cx);
 
     switch (msg.event()) {
-        case NIDIUM_EVENT(WebSocketListener, SERVER_FRAME):
+        case NIDIUM_EVENT(WebSocketServer, SERVER_FRAME):
         {
             JS::AutoValueArray<2> arg(cx);
 
@@ -116,7 +116,7 @@ void JSWebSocketServer::onMessage(const Core::SharedMessages::Message &msg)
 
             break;
         }
-        case NIDIUM_EVENT(WebSocketListener, SERVER_CONNECT):
+        case NIDIUM_EVENT(WebSocketServer, SERVER_CONNECT):
         {
             JS::AutoValueArray<1> arg(cx);
 
@@ -131,7 +131,7 @@ void JSWebSocketServer::onMessage(const Core::SharedMessages::Message &msg)
 
             break;
         }
-        case NIDIUM_EVENT(WebSocketListener, SERVER_CLOSE):
+        case NIDIUM_EVENT(WebSocketServer, SERVER_CLOSE):
         {
             WebSocketClientConnection *client = (WebSocketClientConnection *)msg.args[1].toPtr();
             JS::AutoValueArray<1> arg(cx);
