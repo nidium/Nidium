@@ -29,11 +29,12 @@
 #include <QString>
 #endif
 
-#include "JSWindow.h"
-#include "App.h"
-#include "Context.h"
+#include "Binding/JSWindow.h"
+#include "NML/App.h"
+#include "NML/Context.h"
+#include "NML/NML.h"
+
 #include "System.h"
-#include "NML.h"
 
 #define kNativeWidth 1280
 #define kNativeHeight 600

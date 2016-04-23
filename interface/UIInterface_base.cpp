@@ -6,11 +6,11 @@
 #include <SDL.h>
 
 #include <Net/HTTPStream.h>
-#include <PrivateStream.h>
 
-#include "SystemStream.h"
-#include "Context.h"
-#include "OpenGLHeader.h"
+#include "NML/PrivateStream.h"
+#include "NML/SystemStream.h"
+#include "NML/Context.h"
+#include "Graphics/OpenGLHeader.h"
 
 NativeUIInterface::NativeUIInterface() :
     m_CurrentCursor(NativeUIInterface::ARROW), m_NativeCtx(NULL), m_Nml(NULL),
