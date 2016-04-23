@@ -5,9 +5,12 @@
 #include <string.h>
 #include <strings.h>
 
-#include "Graphics/Canvas2DContext.h"
 #include "Graphics/Canvas3DContext.h"
 #include "Graphics/CanvasHandler.h"
+#include "Binding/JSCanvas2DContext.h"
+
+namespace Nidium {
+namespace Binding {
 
 extern JSClass Canvas2DContext_class;
 
@@ -106,7 +109,7 @@ JSClass Canvas_class = {
 };
 
 template<>
-JSClass *Nidium::Binding::JSExposer<NativeJSCanvas>::jsclass = &Canvas_class;
+JSClass *JSExposer<NativeJSCanvas>::jsclass = &Canvas_class;
 
 
 static JSClass Canvas_Inherit_class = {
@@ -505,7 +508,7 @@ static bool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
-    NativeRect rect = NativeObject->getVisibleRect();
+    ::NativeRect rect = NativeObject->getVisibleRect();
     JS::RootedObject ret(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
@@ -1559,7 +1562,7 @@ void NativeJSCanvas::registerObject(JSContext *cx)
         nullptr, nullptr);
 }
 
-void NativeJSCanvas::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void NativeJSCanvas::onMessage(const Core::SharedMessages::Message &msg)
 {
     JSContext *cx = m_Cx;
     JS::RootedObject ro(cx, m_JSObject);
@@ -1608,9 +1611,9 @@ void NativeJSCanvas::onMessage(const Nidium::Core::SharedMessages::Message &msg)
         }
         case NIDIUM_EVENT(NativeCanvasHandler, MOUSE_EVENT):
         {
-            JS::RootedObject eventObj(m_Cx, Nidium::Binding::JSEvents::CreateEventObject(m_Cx));
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             NativeCanvasHandler *target = static_cast<NativeCanvasHandler *>(msg.args[8].toPtr());
-            Nidium::Binding::JSObjectBuilder obj(m_Cx, eventObj);
+            JSObjectBuilder obj(m_Cx, eventObj);
             obj.set("x", msg.args[2].toInt());
             obj.set("y", msg.args[3].toInt());
             obj.set("clientX", msg.args[2].toInt());
@@ -1661,7 +1664,7 @@ void NativeJSCanvas::onMessage(const Nidium::Core::SharedMessages::Message &msg)
             if (JS_GetProperty(cx, robj, "cancelBubble", &cancelBubble)) {
                 if (cancelBubble.isBoolean() && cancelBubble.toBoolean()) {
                     /* TODO: sort out this dirty hack */
-                    Nidium::Core::SharedMessages::Message *nonconstmsg = (Nidium::Core::SharedMessages::Message *)&msg;
+                    Core::SharedMessages::Message *nonconstmsg = (Core::SharedMessages::Message *)&msg;
                     nonconstmsg->priv = 1;
                 }
             }
@@ -1672,14 +1675,14 @@ void NativeJSCanvas::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     }
 }
 
-void NativeJSCanvas::onMessageLost(const Nidium::Core::SharedMessages::Message &msg)
+void NativeJSCanvas::onMessageLost(const Core::SharedMessages::Message &msg)
 {
 
 }
 
 NativeJSCanvas::NativeJSCanvas(JS::HandleObject obj, JSContext *cx,
     NativeCanvasHandler *handler) :
-    Nidium::Binding::JSExposer<NativeJSCanvas>(obj, cx),
+    JSExposer<NativeJSCanvas>(obj, cx),
     m_CanvasHandler(handler)
 {
     m_CanvasHandler->addListener(this);
@@ -1694,4 +1697,7 @@ NativeJSCanvas::~NativeJSCanvas()
 {
     delete m_CanvasHandler;
 }
+
+} // namespace Nidium
+} // namespace Binding
 

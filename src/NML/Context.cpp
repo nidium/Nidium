@@ -11,7 +11,7 @@
 
 #include "NML/NML.h"
 #include "Graphics/Skia.h"
-#include "Graphics/Canvas2DContext.h"
+#include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSNidium.h"
 #include "Binding/JSDocument.h"
 #include "Binding/JSCanvas.h"
@@ -139,35 +139,35 @@ void NativeContext::loadNativeObjects(int width, int height)
     JSContext *cx = m_JS->cx;
 
     /* CanvasRenderingContext2D object */
-    NativeCanvas2DContext::registerObject(cx);
+    Nidium::Binding::NativeCanvas2DContext::registerObject(cx);
     /* Canvas() object */
-    NativeJSCanvas::registerObject(cx);
+    Nidium::Binding::NativeJSCanvas::registerObject(cx);
     /* Image() object */
-    NativeJSImage::registerObject(cx);
+    Nidium::Binding::NativeJSImage::registerObject(cx);
     /* Audio() object */
 #ifdef NATIVE_AUDIO_ENABLED
-    NativeJSAudio::registerObject(cx);
-    NativeJSAudioNode::registerObject(cx);
-    NativeJSVideo::registerObject(cx);
+    Nidium::Binding::NativeJSAudio::registerObject(cx);
+    Nidium::Binding::NativeJSAudioNode::registerObject(cx);
+    Nidium::Binding::NativeJSVideo::registerObject(cx);
 #endif
     /* WebGL*() object */
 #ifdef NATIVE_WEBGL_ENABLED
-    NativeJSWebGLRenderingContext::registerObject(cx);
-    NativeJSWebGLBuffer::registerObject(cx);
-    NativeJSWebGLFramebuffer::registerObject(cx);
-    NativeJSWebGLProgram::registerObject(cx);
-    NativeJSWebGLRenderbuffer::registerObject(cx);
-    NativeJSWebGLShader::registerObject(cx);
-    NativeJSWebGLTexture::registerObject(cx);
-    NativeJSWebGLUniformLocation::registerObject(cx);
-    NativeJSWebGLShaderPrecisionFormat::registerObject(cx);
+    Nidium::Binding::NativeJSWebGLRenderingContext::registerObject(cx);
+    Nidium::Binding::NativeJSWebGLBuffer::registerObject(cx);
+    Nidium::Binding::NativeJSWebGLFramebuffer::registerObject(cx);
+    Nidium::Binding::NativeJSWebGLProgram::registerObject(cx);
+    Nidium::Binding::NativeJSWebGLRenderbuffer::registerObject(cx);
+    Nidium::Binding::NativeJSWebGLShader::registerObject(cx);
+    Nidium::Binding::NativeJSWebGLTexture::registerObject(cx);
+    Nidium::Binding::NativeJSWebGLUniformLocation::registerObject(cx);
+    Nidium::Binding::NativeJSWebGLShaderPrecisionFormat::registerObject(cx);
 #endif
     /* Native() object */
-    NativeJSNative::registerObject(cx);
+    Nidium::Binding::NativeJSNative::registerObject(cx);
     /* document() object */
-    JS::RootedObject docObj(cx, NativeJSdocument::registerObject(cx));
+    JS::RootedObject docObj(cx, Nidium::Binding::NativeJSdocument::registerObject(cx));
     /* window() object */
-    m_JSWindow = NativeJSwindow::registerObject(cx, width, height, docObj);
+    m_JSWindow = Nidium::Binding::NativeJSwindow::registerObject(cx, width, height, docObj);
 
     Nidium::Binding::JSProcess::registerObject(cx, m_UI->m_Argv, m_UI->m_Argc, 0);
 
@@ -213,10 +213,10 @@ void NativeContext::sizeChanged(int w, int h)
 
 void NativeContext::createDebugCanvas()
 {
-    NativeCanvas2DContext *context = static_cast<NativeCanvas2DContext *>(m_RootHandler->getContext());
+    Nidium::Binding::NativeCanvas2DContext *context = static_cast<Nidium::Binding::NativeCanvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
     m_DebugHandler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
-    NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(m_DebugHandler,
+    Nidium::Binding::NativeCanvas2DContext *ctx2d =  new Nidium::Binding::NativeCanvas2DContext(m_DebugHandler,
          context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
     m_DebugHandler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
@@ -230,10 +230,10 @@ void NativeContext::createDebugCanvas()
 #if DEBUG
 void NativeContext::createDebug2Canvas()
 {
-    NativeCanvas2DContext *context = static_cast<NativeCanvas2DContext *>(m_RootHandler->getContext());
+    Nidium::Binding::NativeCanvas2DContext *context = static_cast<Nidium::Binding::NativeCanvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
     m_Debug2Handler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
-    NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(m_Debug2Handler,
+    Nidium::Binding::NativeCanvas2DContext *ctx2d =  new Nidium::Binding::NativeCanvas2DContext(m_Debug2Handler,
          context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
     m_Debug2Handler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
@@ -247,9 +247,9 @@ void NativeContext::createDebug2Canvas()
 
 void NativeContext::postDraw()
 {
-    if (NativeJSdocument::m_ShowFPS && m_DebugHandler) {
+    if (Nidium::Binding::NativeJSdocument::m_ShowFPS && m_DebugHandler) {
 
-        NativeSkia *s = (static_cast<NativeCanvas2DContext *>(m_DebugHandler->getContext())->getSurface());
+        NativeSkia *s = (static_cast<Nidium::Binding::NativeCanvas2DContext *>(m_DebugHandler->getContext())->getSurface());
         m_DebugHandler->bringToFront();
 
         s->setFillColor(0xFF000000u);
@@ -285,7 +285,7 @@ void NativeContext::postDraw()
     if (m_Debug2Handler) {
         m_Debug2Handler->bringToFront();
         m_Debug2Handler->getContext()->clear();
-        NativeSkia *rootctx = (static_cast<NativeCanvas2DContext *>(m_Debug2Handler->getContext())->getSurface());
+        NativeSkia *rootctx = (static_cast<Nidium::Binding::NativeCanvas2DContext *>(m_Debug2Handler->getContext())->getSurface());
         rootctx->save();
 
         rootctx->setFillColor("black");
@@ -411,7 +411,7 @@ void NativeContext::frame(bool draw)
 
     m_UI->makeMainGLCurrent();
     /* Skia context is dirty after a call to layerize */
-    (static_cast<NativeCanvas2DContext *>(m_RootHandler->getContext()))->resetSkiaContext();
+    (static_cast<Nidium::Binding::NativeCanvas2DContext *>(m_RootHandler->getContext()))->resetSkiaContext();
 }
 
 void NativeContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
@@ -538,7 +538,7 @@ void NativeContext::initHandlers(int width, int height)
 
     m_RootHandler = new NativeCanvasHandler(width, height, this);
 
-    m_RootHandler->setContext(new NativeCanvas2DContext(m_RootHandler, width, height, m_UI));
+    m_RootHandler->setContext(new Nidium::Binding::NativeCanvas2DContext(m_RootHandler, width, height, m_UI));
     m_RootHandler->getContext()->setGLState(this->getGLState());
 }
 
@@ -611,7 +611,7 @@ bool NativeContext::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWrite
         return false;
     }
 
-    if (JS_GetClass(obj) == NativeCanvas2DContext::jsclass) {
+    if (JS_GetClass(obj) == Nidium::Binding::NativeCanvas2DContext::jsclass) {
         uint32_t dwidth, dheight;
 
         JS::RootedValue iwidth(cx);
@@ -661,7 +661,7 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
             JS::RootedValue arr(cx);
             JS_ReadTypedArray(r, &arr);
 
-            JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::jsclass, JS::NullPtr(), JS::NullPtr()));
+            JS::RootedObject dataObject(cx, JS_NewObject(cx,  Nidium::Binding::NativeCanvas2DContext::jsclass, JS::NullPtr(), JS::NullPtr()));
             JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
             JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
             JS_DefineProperty(cx, dataObject, "width", widthVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);

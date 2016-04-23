@@ -1,4 +1,4 @@
-#include "Graphics/Canvas2DContext.h"
+#include "Binding/JSCanvas2DContext.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,6 +17,9 @@
 #include "Binding/JSCanvas.h"
 #include "Binding/JSDocument.h"
 
+namespace Nidium {
+namespace Binding {
+
 #define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->getSurface())
 #define NSKIA_NATIVE (CppObj->getSurface())
@@ -34,7 +37,7 @@ JSClass *NativeCanvas2DContext::jsclass = &imageData_class;
 enum {
 #define CANVAS_2D_CTX_PROP(prop) CTX_PROP_ ## prop,
 #define CANVAS_2D_CTX_PROP_GET(prop) CTX_PROP_ ## prop,
-  #include "Canvas2DContextProperties.h"
+  #include "Graphics/Canvas2DContextProperties.h"
   CTX_PROP__NPROP
 #undef CANVAS_2D_CTX_PROP
 #undef CANVAS_2D_CTX_PROP_GET
@@ -191,7 +194,7 @@ static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigne
 static JSPropertySpec canvas2dctx_props[] = {
 #define CANVAS_2D_CTX_PROP(prop) NIDIUM_JS_PSGS(#prop, CTX_PROP_ ## prop, native_canvas2dctx_prop_get, native_canvas2dctx_prop_set),
 #define CANVAS_2D_CTX_PROP_GET(prop) NIDIUM_JS_PSG(#prop, CTX_PROP_ ## prop, native_canvas2dctx_prop_get),
-  #include "Canvas2DContextProperties.h"
+  #include "Graphics/Canvas2DContextProperties.h"
   JS_PS_END
 #undef CANVAS_2D_CTX_PROP
 #undef CANVAS_2D_CTX_PROP_GET
@@ -2482,4 +2485,7 @@ void NativeCanvas2DContext::registerObject(JSContext *cx)
     native_Canvas2DContext_constructor, 0, canvas2dctx_props,
     canvas2dctx_funcs, nullptr, nullptr);
 }
+
+} // namespace Binding
+} // namespace Nidium
 

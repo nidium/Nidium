@@ -14,9 +14,14 @@ class NativeSkImage;
 class SkBitmap;
 class NativeShadowLooper;
 class GrContext;
-class NativeCanvasPattern;
 class SkGpuDevice;
-class NativeJSdocument;
+
+namespace Nidium {
+    namespace Binding {
+         class NativeJSdocument;
+         class NativeCanvasPattern;
+    }
+}
 
 typedef uint32_t SkPMColor;
 typedef uint32_t SkColor;
@@ -176,7 +181,7 @@ class NativeSkia
         }
         void setFillColor(const char *str);
         void setFillColor(NativeSkGradient *gradient);
-        void setFillColor(NativeCanvasPattern *pattern);
+        void setFillColor(Nidium::Binding::NativeCanvasPattern *pattern);
         void setFillColor(uint32_t color);
         void setStrokeColor(const char *str);
         void setStrokeColor(NativeSkGradient *gradient);
@@ -187,7 +192,7 @@ class NativeSkia
         void setGlobalComposite(const char *str);
         void setLineCap(const char *capStyle);
         void setLineJoin(const char *joinStyle);
-        void setFontType(char *str, NativeJSdocument *doc = NULL);
+        void setFontType(char *str, Nidium::Binding::NativeJSdocument *doc = NULL);
         bool setFontFile(const char *str);
 
         void clearRect(double, double, double, double);

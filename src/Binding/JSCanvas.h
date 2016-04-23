@@ -4,13 +4,17 @@
 #include <Binding/JSExposer.h>
 #include <Core/Messages.h>
 
+
 class NativeCanvasHandler;
 
-class NativeJSCanvas: public Nidium::Binding::JSExposer<NativeJSCanvas>, public Nidium::Core::Messages
+namespace Nidium {
+namespace Binding {
+
+class NativeJSCanvas: public JSExposer<NativeJSCanvas>, public Core::Messages
 {
 public:
-    virtual void onMessage(const Nidium::Core::SharedMessages::Message &msg);
-    virtual void onMessageLost(const Nidium::Core::SharedMessages::Message &msg);
+    virtual void onMessage(const Core::SharedMessages::Message &msg);
+    virtual void onMessageLost(const Core::SharedMessages::Message &msg);
     static void registerObject(JSContext *cx);
     static JSObject *generateJSObject(JSContext *cx, int width, int height,
         NativeCanvasHandler **out);
@@ -34,6 +38,9 @@ private:
     NativeCanvasHandler *m_CanvasHandler;
     JS::Heap<JSObject *> m_Inherit;
 };
+
+} // namespace Nidium
+} // namespace Binding
 
 #endif
 

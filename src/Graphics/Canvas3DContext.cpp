@@ -8,8 +8,12 @@
 
 #include "Graphics/OpenGLHeader.h"
 
-extern JSClass WebGLRenderingContext_class;
-extern JSConstDoubleSpec WebGLRenderingContext_const;
+namespace Nidium {
+    namespace Binding {
+         extern JSClass WebGLRenderingContext_class;
+         extern JSConstDoubleSpec WebGLRenderingContext_const;
+    }
+}
 
 #define GL_CALL(X) NATIVE_GL_CALL(m_GLState->getNativeGLContext(), X)
 #define GL_CALL_RET(X, RET) NATIVE_GL_CALL_RET(m_GLState->getNativeGLContext(), X, RET)
@@ -28,9 +32,9 @@ NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
     memset(&m_CachedPixels, 0, sizeof(m_CachedPixels));
     memset(&m_GLObjects, 0, sizeof(m_GLObjects));
 
-    m_JsObj = JS_NewObject(cx, &WebGLRenderingContext_class, JS::NullPtr(), JS::NullPtr());
+    m_JsObj = JS_NewObject(cx, &Nidium::Binding::WebGLRenderingContext_class, JS::NullPtr(), JS::NullPtr());
     JS::RootedObject obj(cx, m_JsObj);
-    JS_DefineConstDoubles(cx, obj, &WebGLRenderingContext_const);
+    JS_DefineConstDoubles(cx, obj, &Nidium::Binding::WebGLRenderingContext_const);
 
     m_JsCx  = cx;
 

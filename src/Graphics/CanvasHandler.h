@@ -20,6 +20,12 @@ class NativeCanvasContext;
 class NativeContext;
 class NativeInputEvent;
 
+namespace Nidium {
+    namespace Binding {
+        class NativeJSCanvas;
+    }
+}
+
 struct NativeRect
 {
     double m_fLeft, m_fTop, m_fBottom, m_fRight;
@@ -97,7 +103,7 @@ class NativeCanvasHandler : public Nidium::Core::Events
     public:
         friend class NativeSkia;
         friend class NativeContext;
-        friend class NativeJSCanvas;
+        friend class Nidium::Binding::NativeJSCanvas;
 
         static const uint8_t EventID = 1;
         static int m_LastIdx;

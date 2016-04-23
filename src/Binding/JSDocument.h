@@ -5,8 +5,12 @@
 
 class SkTypeface;
 
-class nativefont {
-public:
+namespace Nidium {
+namespace Binding {
+
+class nativefont
+{
+  public:
     SkTypeface *m_Typeface;
 
     enum Style {
@@ -21,11 +25,11 @@ public:
 };
 
 
-class NativeJSdocument : public Nidium::Binding::JSExposer<NativeJSdocument>
+class NativeJSdocument : public JSExposer<NativeJSdocument>
 {
   public:
     NativeJSdocument(JS::HandleObject obj, JSContext *cx) :
-    Nidium::Binding::JSExposer<NativeJSdocument>(obj, cx, false),
+    JSExposer<NativeJSdocument>(obj, cx, false),
     m_Fonts(256000) {};
     ~NativeJSdocument() {};
 
@@ -41,13 +45,16 @@ class NativeJSdocument : public Nidium::Binding::JSExposer<NativeJSdocument>
 
     JS::Heap<JSObject *> m_Stylesheet;
 
-    Nidium::Core::Hash<nativefont *>m_Fonts;
+    Core::Hash<nativefont *>m_Fonts;
 
     bool loadFont(const char *path, const char *name, int weight = 400,
         nativefont::Style = nativefont::kNativeFontNormal);
 
     SkTypeface *getFont(char *name);
 };
+
+} // namespace Nidium
+} // namespace Binding
 
 #endif
 

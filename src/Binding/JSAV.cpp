@@ -15,21 +15,26 @@
 
 #include "Binding/JSCanvas.h"
 
-#include "Graphics/Canvas2DContext.h"
+#include "Binding/JSCanvas2DContext.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
 }
+
+namespace Nidium {
+namespace Binding {
+
+extern JSClass Canvas_class;
+
+NativeJSAudio *NativeJSAudio::m_Instance = NULL;
 
 // TODO : Need to handle nodes GC, similar to
 //        https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#lifetime-AudioNode
 // TODO : Need to handle video GC
 // TODO : When stop/pause/kill fade out sound
 
-NativeJSAudio *NativeJSAudio::m_Instance = NULL;
-extern JSClass Canvas_class;
 
-#define NJS (Nidium::Binding::NidiumJS::GetObject(m_Cx))
+#define NJS (NidiumJS::GetObject(m_Cx))
 #define JS_PROPAGATE_ERROR(cx, ...)\
 JS_ReportError(cx, __VA_ARGS__); \
 if (!JS_ReportPendingException(cx)) {\
@@ -52,11 +57,7 @@ typedef enum {
     NODE_CUSTOM_SEEK_CALLBACK
 } CustomNodeCallbacks;
 
-namespace Nidium {
-    namespace Binding {
-        extern void reportError(JSContext *cx, const char *message, JSErrorReport *report);
-    }
-}
+extern void reportError(JSContext *cx, const char *message, JSErrorReport *report);
 
 static void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj);
 static void AudioContext_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -121,7 +122,7 @@ static JSClass AudioContext_class = {
 };
 
 template<>
-JSClass *Nidium::Binding::JSExposer<NativeJSAudio>::jsclass = &AudioContext_class;
+JSClass *JSExposer<NativeJSAudio>::jsclass = &AudioContext_class;
 
 static JSClass global_AudioThread_class = {
     "_GLOBALAudioThread", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
@@ -152,7 +153,7 @@ static JSClass AudioNode_class = {
 };
 
 template<>
-JSClass *Nidium::Binding::JSExposer<NativeJSAudioNode>::jsclass = &AudioNode_class;
+JSClass *JSExposer<NativeJSAudioNode>::jsclass = &AudioNode_class;
 
 static JSClass AudioNode_threaded_class = {
     "AudioNodeThreaded", JSCLASS_HAS_PRIVATE,
@@ -284,7 +285,7 @@ static JSClass Video_class = {
 };
 
 template<>
-JSClass *Nidium::Binding::JSExposer<NativeJSVideo>::jsclass = &Video_class;
+JSClass *JSExposer<NativeJSVideo>::jsclass = &Video_class;
 
 static JSPropertySpec Video_props[] = {
 
@@ -400,13 +401,13 @@ const char *NativeJSAVEventRead(int ev)
     }
 }
 
-static JS::HandleValue consumeSourceMessage(JSContext *cx, JS::HandleObject obj, const Nidium::Core::SharedMessages::Message &msg)
+static JS::HandleValue consumeSourceMessage(JSContext *cx, JS::HandleObject obj, const Core::SharedMessages::Message &msg)
 {
-    JS::RootedObject evObj(cx, Nidium::Binding::JSEvents::CreateEventObject(cx));
-    Nidium::Binding::JSObjectBuilder ev(cx, evObj);
+    JS::RootedObject evObj(cx, JSEvents::CreateEventObject(cx));
+    JSObjectBuilder ev(cx, evObj);
 
     if (msg.event() == CUSTOM_SOURCE_SEND) {
-        Nidium::Binding::nidium_thread_msg *ptr = static_cast<struct Nidium::Binding::nidium_thread_msg *>(msg.dataPtr());
+        nidium_thread_msg *ptr = static_cast<struct nidium_thread_msg *>(msg.dataPtr());
         JS::RootedValue inval(cx, JSVAL_NULL);
         if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
             JS_STRUCTURED_CLONE_VERSION, &inval, nullptr, NULL)) {
@@ -565,7 +566,7 @@ NativeJSAudio *NativeJSAudio::getContext()
 
 NativeJSAudio::NativeJSAudio(NativeAudio *audio, JSContext *cx, JS::HandleObject obj)
     :
-      Nidium::Binding::JSExposer<NativeJSAudio>(obj, cx),
+      JSExposer<NativeJSAudio>(obj, cx),
       m_Audio(audio), m_Nodes(NULL), m_JsGlobalObj(NULL), m_JsRt(NULL), m_JsTcx(NULL),
       m_Target(NULL)
 {
@@ -600,7 +601,7 @@ bool NativeJSAudio::createContext()
         return false;
     }
 
-    JS_SetStructuredCloneCallbacks(m_JsRt, Nidium::Binding::NidiumJS::jsscc);
+    JS_SetStructuredCloneCallbacks(m_JsRt, NidiumJS::jsscc);
 
     JSAutoRequest ar(m_JsTcx);
 
@@ -620,12 +621,12 @@ bool NativeJSAudio::createContext()
         printf("Failed to init std class\n");
         return false;
     }
-    JS_SetErrorReporter(m_JsTcx, Nidium::Binding::reportError);
+    JS_SetErrorReporter(m_JsTcx, reportError);
     JS_FireOnNewGlobalObject(m_JsTcx, global);
     JS_DefineFunctions(m_JsTcx, global, glob_funcs_threaded);
-    Nidium::Binding::JSConsole::registerObject(m_JsTcx);
+    JSConsole::registerObject(m_JsTcx);
 
-    JS_SetRuntimePrivate(m_JsRt, Nidium::Binding::NidiumJS::GetObject(m_Audio->getMainCtx()));
+    JS_SetRuntimePrivate(m_JsRt, NidiumJS::GetObject(m_Audio->getMainCtx()));
 
     //JS_SetContextPrivate(this->tcx, static_cast<void *>(this));
 
@@ -889,7 +890,7 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
     }
 }
 
-void NativeJSAudioNode::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void NativeJSAudioNode::onMessage(const Core::SharedMessages::Message &msg)
 {
     if (m_IsDestructing) return;
     JS::RootedObject obj(m_Cx, m_JSObject);
@@ -1893,13 +1894,13 @@ static bool native_audionode_custom_threaded_send(JSContext *cx, unsigned argc, 
 
     jnode = CppObj;
 
-    struct Nidium::Binding::nidium_thread_msg *msg;
+    struct nidium_thread_msg *msg;
     if (!JS_WriteStructuredClone(cx, args[0], &datap, &nbytes, nullptr, nullptr, JS::NullHandleValue)) {
         JS_ReportError(cx, "Failed to write structured clone");
         return false;
     }
 
-    msg = new struct Nidium::Binding::nidium_thread_msg;
+    msg = new struct nidium_thread_msg;
 
     msg->data   = datap;
     msg->nbytes = nbytes;
@@ -2104,7 +2105,7 @@ void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
 
 NativeJSVideo::NativeJSVideo(JS::HandleObject obj,
     NativeCanvas2DContext *canvasCtx, JSContext *cx) :
-    Nidium::Binding::JSExposer<NativeJSVideo>(obj, cx),
+    JSExposer<NativeJSVideo>(obj, cx),
     m_Video(NULL), m_AudioNode(NULL), m_ArrayContent(NULL),
     m_Width(-1), m_Height(-1), m_Left(0), m_Top(0), m_IsDestructing(false),
     m_CanvasCtx(canvasCtx), cx(cx)
@@ -2122,7 +2123,7 @@ void NativeJSVideo::stopAudio()
     this->releaseAudioNode();
 }
 
-void NativeJSVideo::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void NativeJSVideo::onMessage(const Core::SharedMessages::Message &msg)
 {
     if (m_IsDestructing) return;
 
@@ -2171,8 +2172,8 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
     JS::RootedObject vobj(v->cx, v->getJSObject());
     JS::RootedObject evObj(cx);
 
-    evObj = Nidium::Binding::JSEvents::CreateEventObject(cx);
-    Nidium::Binding::JSObjectBuilder ev(cx, evObj);
+    evObj = JSEvents::CreateEventObject(cx);
+    JSObjectBuilder ev(cx, evObj);
     ev.set("video", v->getJSObject());
     JS::RootedValue evjsval(cx, ev.jsval());
 
@@ -2652,4 +2653,7 @@ void NativeJSAudio::registerObject(JSContext *cx)
 }
 
 NATIVE_OBJECT_EXPOSE(Video);
+
+} // namespace Nidium
+} // namespace Binding
 

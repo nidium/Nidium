@@ -1,5 +1,5 @@
-#ifndef nidium_canvas2dcontext_h__
-#define nidium_canvas2dcontext_h__
+#ifndef binding_jscanvas2dcontext_h__
+#define binding_jscanvas2dcontext_h__
 
 #include <stdint.h>
 
@@ -7,6 +7,14 @@
 
 #include "Graphics/CanvasContext.h"
 #include "Binding/JSImage.h"
+
+struct NativeRect;
+class NativeSkia;
+class SkCanvas;
+class NativeCanvasHandler;
+
+namespace Nidium {
+namespace Binding {
 
 /*
     Create a new 2D context using NativeSkia.
@@ -19,12 +27,8 @@
 
     Don't manually delete the instance.
 */
-
-class NativeSkia;
-struct NativeRect;
-class SkCanvas;
-class NativeCanvasHandler;
-
+class NativeJSCanvas;
+class NativeJSImage;
 
 /*
     JSAPI tracer is told to trace JS::Heap stored in this chain of state
@@ -118,7 +122,7 @@ class NativeCanvas2DContext : public NativeCanvasContext
 
             m_CurrentState = tmp;
         }
-        
+
         static void registerObject(JSContext *cx);
 
         NativeCanvas2DContext(NativeCanvasHandler *handler,
@@ -161,6 +165,9 @@ class NativeCanvasPattern
             m_JsImg(img), m_Mode(repeat) {
         };
 };
+
+} // namespace Binding
+} // namespace Nidium
 
 #endif
 

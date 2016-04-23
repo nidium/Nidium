@@ -121,7 +121,7 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
             }
             case NativeAssets::Item::ITEM_NSS:
             {
-                NativeJSdocument *jdoc = NativeJSdocument::GetObject(m_Njs->cx);
+                Nidium::Binding::NativeJSdocument *jdoc = Nidium::Binding::NativeJSdocument::GetObject(m_Njs->cx);
                 if (jdoc == NULL) {
                     return;
                 }
@@ -135,7 +135,7 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
     }
     /* TODO: allow the callback to change content ? */
 
-    NativeJSwindow::GetObject(m_Njs)->assetReady(tag);
+    Nidium::Binding::NativeJSwindow::GetObject(m_Njs)->assetReady(tag);
 }
 
 static void NativeNML_onAssetsItemRead(NativeAssets::Item *item, void *arg)
@@ -151,7 +151,7 @@ void NativeNML::onAssetsBlockReady(NativeAssets *asset)
 
     if (m_nAssets == 0) {
         JS::RootedObject layoutObj(m_Njs->cx, m_JSObjectLayout);
-        NativeJSwindow::GetObject(m_Njs)->onReady(layoutObj);
+        Nidium::Binding::NativeJSwindow::GetObject(m_Njs)->onReady(layoutObj);
     }
 }
 

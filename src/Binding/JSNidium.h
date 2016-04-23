@@ -6,11 +6,14 @@
 class NativeSkia;
 class NativeCanvasHandler;
 
-class NativeJSNative : public Nidium::Binding::JSExposer<NativeJSNative>
+namespace Nidium {
+namespace Binding {
+
+class NativeJSNative : public JSExposer<NativeJSNative>
 {
   public:
     NativeJSNative(JS::HandleObject obj, JSContext *cx) :
-        Nidium::Binding::JSExposer<NativeJSNative>(obj, cx)
+        JSExposer<NativeJSNative>(obj, cx)
     {
 
     }
@@ -24,6 +27,9 @@ class NativeJSNative : public Nidium::Binding::JSExposer<NativeJSNative>
 
     static JSClass *jsclass;
 };
+
+} // namespace Nidium
+} // namespace Binding
 
 #endif
 

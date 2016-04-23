@@ -1,4 +1,4 @@
-#include "JSWebGL.h"
+#include "Binding/JSWebGL.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -9,9 +9,12 @@
 
 #include "Graphics/SkImage.h"
 #include "Graphics/Skia.h"
-#include "Graphics/Canvas2DContext.h"
 #include "Graphics/Canvas3DContext.h"
 #include "Binding/JSCanvas.h"
+#include "Binding/JSCanvas2DContext.h"
+
+namespace Nidium {
+namespace Binding {
 
 extern JSClass Canvas_class;
 
@@ -2939,4 +2942,7 @@ NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLTexture);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLUniformLocation);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLShaderPrecisionFormat);
 NATIVE_OBJECT_EXPOSE_NOT_INST(WebGLActiveInfo);
+
+} // namespace Nidium
+} // namespace Binding
 

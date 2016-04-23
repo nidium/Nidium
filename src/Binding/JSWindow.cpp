@@ -1,4 +1,4 @@
-#include "JSWindow.h"
+#include "Binding/JSWindow.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,6 +17,9 @@
 #include "Graphics/SkImage.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSImage.h"
+
+namespace Nidium {
+namespace Binding {
 
 static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp);
@@ -79,14 +82,11 @@ static JSClass storage_class = {
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Storage_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
-namespace Nidium {
-    namespace Binding {
-        extern JSClass global_class;
-    }
-}
+
+extern JSClass global_class;
 
 template<>
-JSClass *Nidium::Binding::JSExposer<NativeJSwindow>::jsclass = &global_class;
+JSClass *JSExposer<NativeJSwindow>::jsclass = &global_class;
 
 static JSClass mouseEvent_class = {
     "MouseEvent", 0,
@@ -262,7 +262,7 @@ void NativeJSwindow::assetReady(const NMLTag &tag)
     jevent[0].set(OBJECT_TO_JSVAL(event));
     JS::RootedString tagStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.tag));
     JS::RootedString idStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.id));
-    JS::RootedString dataStr(cx, Nidium::Binding::JSUtils::newStringWithEncoding(cx,
+    JS::RootedString dataStr(cx, JSUtils::newStringWithEncoding(cx,
         (const char *)tag.content.data, tag.content.len, "utf8"));
     EVENT_PROP("tag", tagStr);
     EVENT_PROP("id", idStr);
@@ -335,7 +335,7 @@ void NativeJSwindow::mouseWheel(int xrel, int yrel, int x, int y)
     }
 
     /*
-    JS::RootedObject obje(cx, Nidium::Binding::JSEvents::CreateEventObject(m_Cx));
+    JS::RootedObject obje(cx, JSEvents::CreateEventObject(m_Cx));
     this->fireJSEvent("wheel", OBJECT_TO_JSVAL(obje));
     */
 
@@ -352,10 +352,10 @@ void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat, int 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &keyEvent_class, JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue keyV(m_Cx, INT_TO_JSVAL(keycode));
     JS::RootedValue locationV(m_Cx, INT_TO_JSVAL(location));
-    JS::RootedValue alt(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & Nidium::Binding::NIDIUM_KEY_ALT)));
-    JS::RootedValue ctl(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & Nidium::Binding::NIDIUM_KEY_CTRL)));
-    JS::RootedValue shift(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & Nidium::Binding::NIDIUM_KEY_SHIFT)));
-    JS::RootedValue meta(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & Nidium::Binding::NIDIUM_KEY_META)));
+    JS::RootedValue alt(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NIDIUM_KEY_ALT)));
+    JS::RootedValue ctl(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NIDIUM_KEY_CTRL)));
+    JS::RootedValue shift(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NIDIUM_KEY_SHIFT)));
+    JS::RootedValue meta(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NIDIUM_KEY_META)));
     JS::RootedValue space(m_Cx, BOOLEAN_TO_JSVAL(keycode == 32));
     JS::RootedValue rep(m_Cx, BOOLEAN_TO_JSVAL(!!(repeat)));
     EVENT_PROP("keyCode", keyV);
@@ -392,7 +392,7 @@ void NativeJSwindow::textInput(const char *data)
     JSAutoRequest ar(m_Cx);
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &textEvent_class, JS::NullPtr(), JS::NullPtr()));
-    JS::RootedString str(m_Cx, Nidium::Binding::JSUtils::newStringWithEncoding(m_Cx, data, strlen(data), "utf8"));
+    JS::RootedString str(m_Cx, JSUtils::newStringWithEncoding(m_Cx, data, strlen(data), "utf8"));
     EVENT_PROP("val", str);
 
     JS::AutoValueArray<1> jevent(m_Cx);
@@ -526,12 +526,12 @@ bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t n
     m_Dragging = true; //Duh..
 
     m_DraggedFiles = JS_NewArrayObject(m_Cx, (int)nfiles);
-    Nidium::Binding::NidiumJS::GetObject(m_Cx)->rootObjectUntilShutdown(m_DraggedFiles);
+    NidiumJS::GetObject(m_Cx)->rootObjectUntilShutdown(m_DraggedFiles);
 
     JS::RootedObject dragged(m_Cx, m_DraggedFiles);
 
     for (int i = 0; i < nfiles; i++) {
-        JS::RootedValue val(m_Cx, OBJECT_TO_JSVAL(Nidium::Binding::JSFileIO::generateJSObject(m_Cx, files[i])));
+        JS::RootedValue val(m_Cx, OBJECT_TO_JSVAL(JSFileIO::generateJSObject(m_Cx, files[i])));
         JS_SetElement(m_Cx, dragged, i, val);
     }
 
@@ -573,7 +573,7 @@ void NativeJSwindow::dragEnd()
         return;
     }
 
-    Nidium::Binding::NidiumJS::GetObject(m_Cx)->unrootObject(m_DraggedFiles);
+    NidiumJS::GetObject(m_Cx)->unrootObject(m_DraggedFiles);
 
     m_DraggedFiles = NULL;
     m_Dragging = false;
@@ -671,7 +671,7 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
         case WINDOW_PROP_TITLE:
         {
             const char *title =  NUI->getWindowTitle();
-            JS::RootedString str(m_Cx, Nidium::Binding::JSUtils::newStringWithEncoding(m_Cx, title,
+            JS::RootedString str(m_Cx, JSUtils::newStringWithEncoding(m_Cx, title,
                 strlen(title), "utf8"));
             vp.setString(str);
         }
@@ -940,7 +940,7 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
     struct _nativeopenfile *nof = (struct _nativeopenfile *)_nof;
     JS::RootedObject arr(nof->cx, JS_NewArrayObject(nof->cx, len));
     for (int i = 0; i < len; i++) {
-        JS::RootedValue val(nof->cx, OBJECT_TO_JSVAL(Nidium::Binding::JSFileIO::generateJSObject(nof->cx, lst[i])));
+        JS::RootedValue val(nof->cx, OBJECT_TO_JSVAL(JSFileIO::generateJSObject(nof->cx, lst[i])));
         JS_SetElement(nof->cx, arr, i, val);
     }
 
@@ -1343,7 +1343,7 @@ void NativeJSwindow::initDataBase()
         return;
     }
 
-    m_Db = new Nidium::Binding::JSDB(nml->getIdentifier());
+    m_Db = new JSDB(nml->getIdentifier());
 
     if (m_Db->ok()) {
         this->createStorage();
@@ -1403,7 +1403,7 @@ bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    Nidium::Binding::JSDB *db = NativeJSwindow::GetObject(cx)->getDataBase();
+    JSDB *db = NativeJSwindow::GetObject(cx)->getDataBase();
 
 
     JSAutoByteString key(cx, args[0].toString());
@@ -1494,8 +1494,11 @@ NativeJSwindow* NativeJSwindow::GetObject(JSContext *cx)
     return NativeContext::GetObject(cx)->getJSWindow();
 }
 
-NativeJSwindow* NativeJSwindow::GetObject(Nidium::Binding::NidiumJS *njs)
+NativeJSwindow* NativeJSwindow::GetObject(NidiumJS *njs)
 {
     return NativeContext::GetObject(njs)->getJSWindow();
 }
+
+} // namespace Nidium
+} // namespace Binding
 

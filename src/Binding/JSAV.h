@@ -12,6 +12,9 @@
 
 #define CUSTOM_SOURCE_SEND 100
 
+namespace Nidium {
+namespace Binding {
+
 enum {
     NODE_EV_PROP_DATA,
     NODE_EV_PROP_SIZE,
@@ -81,7 +84,7 @@ class NativeJSAVSource
         static inline bool propGetter(NativeAVSource *source, JSContext *ctx, uint8_t id, JS::MutableHandleValue vp);
 };
 
-class NativeJSAudio: public Nidium::Binding::JSExposer<NativeJSAudio>
+class NativeJSAudio: public JSExposer<NativeJSAudio>
 {
     public :
         static NativeJSAudio *getContext(JSContext *cx, JS::HandleObject obj, \
@@ -128,12 +131,12 @@ class NativeJSAudio: public Nidium::Binding::JSExposer<NativeJSAudio>
         static NativeJSAudio *m_Instance;
 };
 
-class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, public Nidium::Core::Messages
+class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messages
 {
     public :
         NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
             NativeAudio::Node type, int in, int out, NativeJSAudio *audio)
-            :   Nidium::Binding::JSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL),
+            :   JSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL),
                 m_Audio(audio), m_Node(NULL), m_NodeType(type), m_NodeObj(nullptr), m_HashObj(nullptr),
                 m_ArrayContent(NULL), m_IsDestructing(false)
         {
@@ -158,7 +161,7 @@ class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, p
 
         NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
                NativeAudio::Node type, NativeAudioNode *node, NativeJSAudio *audio)
-            :  Nidium::Binding::JSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL), m_Audio(audio), m_Node(node), m_NodeType(type),
+            :  JSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL), m_Audio(audio), m_Node(node), m_NodeType(type),
                m_NodeObj(nullptr), m_HashObj(nullptr), m_ArrayContent(NULL), m_IsDestructing(false)
         {
             this->add();
@@ -184,7 +187,7 @@ class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, p
         };
 
         // Common
-        Nidium::Binding::NidiumJS *m_nJs;
+        NidiumJS *m_nJs;
         NativeJSAudio *m_Audio;
         NativeAudioNode *m_Node;
         NativeAudio::Node m_NodeType;
@@ -205,7 +208,7 @@ class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, p
 
         // Source m_Node
         void *m_ArrayContent;
-        void onMessage(const Nidium::Core::SharedMessages::Message &msg);
+        void onMessage(const Core::SharedMessages::Message &msg);
         static void onEvent(const struct NativeAVSourceEvent *cev);
 
         // Custom source m_Node
@@ -219,7 +222,7 @@ class NativeJSAudioNode: public Nidium::Binding::JSExposer<NativeJSAudioNode>, p
         bool m_IsDestructing;
 };
 
-class NativeJSVideo : public Nidium::Binding::JSExposer<NativeJSVideo>, public Nidium::Core::Messages
+class NativeJSVideo : public JSExposer<NativeJSVideo>, public Core::Messages
 {
     public :
         NativeJSVideo(JS::HandleObject obj, NativeCanvas2DContext *canvasCtx, JSContext *cx);
@@ -240,7 +243,7 @@ class NativeJSVideo : public Nidium::Binding::JSExposer<NativeJSVideo>, public N
 
         static void registerObject(JSContext *cx);
         static void frameCallback(uint8_t *data, void *custom);
-        void onMessage(const Nidium::Core::SharedMessages::Message &msg);
+        void onMessage(const Core::SharedMessages::Message &msg);
         static void onEvent(const struct NativeAVSourceEvent *cev);
 
         ~NativeJSVideo();
@@ -250,6 +253,9 @@ class NativeJSVideo : public Nidium::Binding::JSExposer<NativeJSVideo>, public N
         NativeCanvas2DContext *m_CanvasCtx;
         JSContext *cx;
 };
+
+} // namespace Nidium
+} // namespace Binding
 
 #endif
 

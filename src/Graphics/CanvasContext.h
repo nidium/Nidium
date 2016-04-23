@@ -13,13 +13,18 @@
 #include "Graphics/GLState.h"
 #include "Graphics/GLContext.h"
 
-class NativeCanvas2DContext;
-class NativeCanvasHandler;
 struct NativeRect;
+class NativeCanvasHandler;
+
+namespace Nidium {
+    namespace Binding {
+        class NativeCanvas2DContext;
+    }
+}
 
 class NativeCanvasContext
 {
-public:
+  public:
 
     explicit NativeCanvasContext(NativeCanvasHandler *handler);
     virtual ~NativeCanvasContext();
@@ -133,7 +138,7 @@ public:
     static uint32_t createPassThroughProgram(NativeGLResources &resource);
 
 
-    void preComposeOn(NativeCanvas2DContext *layer,
+    void preComposeOn(Nidium::Binding::NativeCanvas2DContext *layer,
         double left, double top, double opacity,
         double zoom, const NativeRect *rclip);
 protected:

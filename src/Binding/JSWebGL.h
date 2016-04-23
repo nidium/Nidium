@@ -7,7 +7,7 @@ typedef unsigned int GLenum;
 typedef unsigned int GLuint;
 
 #define NEW_CLASS(name)\
-class NativeJS ## name: public Nidium::Binding::JSExposer<NativeJS ## name>\
+class NativeJS ## name: public JSExposer<NativeJS ## name>\
 {\
     public :\
         NativeJS ## name ();\
@@ -29,6 +29,9 @@ class NativeJS ## name: public Nidium::Binding::JSExposer<NativeJS ## name>\
 
 #include "Graphics/CanvasContext.h"
 #include "Graphics/GLContext.h"
+
+namespace Nidium {
+namespace Binding {
 
 struct NGLContextAttributes {
     bool m_Alpha;
@@ -85,7 +88,7 @@ class NativeCanvasWebGLContext: public NativeCanvasContext
         int m_Height;
 };
 
-class NativeJSWebGLActiveInfo : public Nidium::Binding::JSExposer<NativeJSWebGLActiveInfo>
+class NativeJSWebGLActiveInfo : public JSExposer<NativeJSWebGLActiveInfo>
 {
     public :
         NativeJSWebGLActiveInfo();
@@ -519,6 +522,9 @@ NEW_CLASS(WebGLShaderPrecisionFormat)
 #define NGL_CONTEXT_LOST_WEBGL              0x9242
 #define NGL_UNPACK_COLORSPACE_CONVERSION_WEBGL  0x9243
 #define NGL_BROWSER_DEFAULT_WEBGL           0x9244
+
+} // namespace Nidium
+} // namespace Binding
 
 #endif
 

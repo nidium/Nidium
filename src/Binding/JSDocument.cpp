@@ -13,8 +13,11 @@
 
 #include "NML/NML.h"
 #include "Graphics/CanvasHandler.h"
-#include "Graphics/Canvas2DContext.h"
 #include "Graphics/SkImage.h"
+#include "Binding/JSCanvas2DContext.h"
+
+namespace Nidium {
+namespace Binding {
 
 bool NativeJSdocument::m_ShowFPS = false;
 
@@ -44,7 +47,7 @@ static JSClass document_class = {
 JSClass *NativeJSdocument::jsclass = &document_class;
 
 template<>
-JSClass *Nidium::Binding::JSExposer<NativeJSdocument>::jsclass = &document_class;
+JSClass *JSExposer<NativeJSdocument>::jsclass = &document_class;
 
 static JSFunctionSpec document_funcs[] = {
     JS_FN("run", native_document_run, 1, NIDIUM_JS_FNPROPS),
@@ -214,7 +217,7 @@ static bool native_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Val
         args.rval().setNull();
         return true;
     }
-    jsc = Nidium::Binding::JSUtils::Utf8ToUtf16(cx, text, strlen(text), &outputlen);
+    jsc = JSUtils::Utf8ToUtf16(cx, text, strlen(text), &outputlen);
 
     JS::RootedString jret(cx, JS_NewUCStringCopyN(cx, jsc, outputlen));
     args.rval().setString(jret);
@@ -272,7 +275,7 @@ static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
 
     ndra->location = strdup(locationstr.ptr());
     ndra->ui = NUI;
-    ape_global *ape = Nidium::Binding::NidiumJS::GetObject(cx)->net;
+    ape_global *ape = NidiumJS::GetObject(cx)->net;
 
     timer_dispatch_async(native_document_restart, ndra);
 
@@ -296,13 +299,13 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
     }
 
     JS::RootedValue ret(cx);
-    if (!Nidium::Binding::NidiumJS::LoadScriptReturn(cx, data, len, filename, &ret)) {
+    if (!NidiumJS::LoadScriptReturn(cx, data, len, filename, &ret)) {
         return false;
     }
 
     JS::RootedObject style(cx, m_Stylesheet);
     JS::RootedObject jret(cx, ret.toObjectOrNull());
-    Nidium::Binding::NidiumJS::copyProperties(cx, jret, &style);
+    NidiumJS::copyProperties(cx, jret, &style);
 
     return true;
 }
@@ -314,7 +317,7 @@ JSObject *NativeJSdocument::registerObject(JSContext *cx)
         NativeJSdocument::getJSObjectName(), &document_class , nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE));
 
-    Nidium::Binding::NidiumJS *njs = Nidium::Binding::NidiumJS::GetObject(cx);
+    NidiumJS *njs = NidiumJS::GetObject(cx);
 
     NativeJSdocument *jdoc = new NativeJSdocument(documentObj, cx);
     JS_SetPrivate(documentObj, jdoc);
@@ -339,16 +342,16 @@ JSObject *NativeJSdocument::registerObject(JSContext *cx)
     return documentObj;
 }
 
-// todo destroy with Nidium::Core::Hash cleaner
+// todo destroy with Core::Hash cleaner
 bool NativeJSdocument::loadFont(const char *path, const char *name,
     int weight, nativefont::Style style)
 {
-    Nidium::IO::Stream *stream = Nidium::IO::Stream::create(path);
+    IO::Stream *stream = IO::Stream::create(path);
     if (!stream) {
         return false;
     }
 
-    Nidium::Core::PtrAutoDelete<Nidium::IO::Stream *> npad(stream);
+    Core::PtrAutoDelete<IO::Stream *> npad(stream);
 
     char *data;
     size_t len;
@@ -440,4 +443,7 @@ SkTypeface *NativeJSdocument::getFont(char *name)
 
     return NULL;
 }
+
+} // namespace Nidium
+} // namespace Binding
 

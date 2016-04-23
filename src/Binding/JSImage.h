@@ -7,8 +7,12 @@
 
 class NativeSkImage;
 
-class NativeJSImage : public Nidium::Binding::JSExposer<NativeJSImage>,
-                      public Nidium::Core::Messages
+namespace Nidium {
+namespace Binding {
+
+
+class NativeJSImage : public JSExposer<NativeJSImage>,
+                      public Core::Messages
 {
   public:
 
@@ -16,7 +20,7 @@ class NativeJSImage : public Nidium::Binding::JSExposer<NativeJSImage>,
     virtual ~NativeJSImage();
 
     NativeSkImage *m_Image;
-    Nidium::IO::Stream *m_Stream;
+    IO::Stream *m_Stream;
 
     static NativeSkImage *JSObjectToNativeSkImage(JS::HandleObject obj);
     static void registerObject(JSContext *cx);
@@ -24,11 +28,14 @@ class NativeJSImage : public Nidium::Binding::JSExposer<NativeJSImage>,
     static JSObject *buildImageObject(JSContext *cx, NativeSkImage *image,
         const char name[] = NULL);
 
-    void onMessage(const Nidium::Core::SharedMessages::Message &msg);
+    void onMessage(const Core::SharedMessages::Message &msg);
 
 private:
     bool setupWithBuffer(buffer *buf);
 };
+
+} // namespace Nidium
+} // namespace Binding
 
 #endif
 

@@ -1,4 +1,4 @@
-#include "CanvasContext.h"
+#include "Graphics/CanvasContext.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,9 +9,9 @@
 
 #include <SystemInterface.h>
 
-#include "Graphics/Canvas2DContext.h"
 #include "Graphics/Skia.h"
 #include "Graphics/OpenGLHeader.h"
+#include "Binding/JSCanvas2DContext.h"
 
 char *NativeCanvasContext::processShader(const char *content, shaderType type)
 {
@@ -346,7 +346,7 @@ void NativeCanvasContext::setupShader(float opacity, int width, int height,
 
 }
 
-void NativeCanvasContext::preComposeOn(NativeCanvas2DContext *layer,
+void NativeCanvasContext::preComposeOn(Nidium::Binding::NativeCanvas2DContext *layer,
     double left, double top, double opacity,
     double zoom, const NativeRect *rclip)
 {

@@ -7,7 +7,7 @@
 
 #include <js/GCAPI.h>
 
-#include "Graphics/Canvas2DContext.h"
+#include "Binding/JSCanvas2DContext.h"
 
 int NativeCanvasHandler::m_LastIdx = 0;
 
@@ -561,7 +561,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
                 m_aTop + m_Padding.global + this->getHeight())));
 
         if (draw && m_Context && willDraw) {
-            m_Context->preComposeOn(static_cast<NativeCanvas2DContext *>(layerContext.m_Layer->m_Context),
+            m_Context->preComposeOn(static_cast<Nidium::Binding::NativeCanvas2DContext *>(layerContext.m_Layer->m_Context),
                 m_aLeft - m_Padding.global,
                 m_aTop - m_Padding.global, popacity, m_Zoom,
                 (m_CoordPosition == COORD_ABSOLUTE) ? NULL : layerContext.m_Clip);

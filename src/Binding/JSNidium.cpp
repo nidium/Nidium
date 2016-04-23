@@ -1,5 +1,8 @@
 #include "Binding/JSNidium.h"
 
+namespace Nidium {
+namespace Binding {
+
 static void Native_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass Native_class = {
@@ -10,8 +13,9 @@ static JSClass Native_class = {
 };
 
 JSClass *NativeJSNative::jsclass = &Native_class;
+
 template<>
-JSClass *Nidium::Binding::JSExposer<NativeJSNative>::jsclass = &Native_class;
+JSClass *JSExposer<NativeJSNative>::jsclass = &Native_class;
 
 
 static JSFunctionSpec Native_funcs[] = {
@@ -37,7 +41,7 @@ void NativeJSNative::registerObject(JSContext *cx)
     JS_DefineFunctions(cx, NativeObj, Native_funcs);
     JS_SetPrivate(NativeObj, jnative);
 
-    Nidium::Binding::NidiumJS::GetObject(cx)->jsobjects.set(NativeJSNative::getJSObjectName(), NativeObj);
+    NidiumJS::GetObject(cx)->jsobjects.set(NativeJSNative::getJSObjectName(), NativeObj);
 
     //JS::RootedObject titleBar(cx, NativeJSCanvas::generateJSObject(cx, width, 35));
     //((NativeCanvasHandler *)JS_GetPrivate(canvas))->translate(0, 35);
@@ -48,4 +52,7 @@ void NativeJSNative::registerObject(JSContext *cx)
     /*JS::RootedValue titleVal(cx, OBJECT_TO_JSVAL(titleBar));
     JS_DefineProperty(cx, NativeObj, "titleBar", titleVal, JSPROP_READONLY | JSPROP_PERMANENT);*/
 }
+
+} // namespace Nidium
+} // namespace Binding
 

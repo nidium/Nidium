@@ -8,11 +8,15 @@
 
 class NativeCanvasHandler;
 
-class NativeJSwindow : public Nidium::Binding::JSExposer<NativeJSwindow>
+namespace Nidium {
+namespace Binding {
+
+
+class NativeJSwindow : public JSExposer<NativeJSwindow>
 {
   public:
     NativeJSwindow(JS::HandleObject jsobj, JSContext *cx) :
-        Nidium::Binding::JSExposer<NativeJSwindow>(jsobj, cx),
+        JSExposer<NativeJSwindow>(jsobj, cx),
         m_RequestedFrame(NULL), m_Handler(NULL), m_Db(NULL),
         m_Dragging(false)
     {
@@ -48,7 +52,7 @@ class NativeJSwindow : public Nidium::Binding::JSExposer<NativeJSwindow>
         return m_Handler;
     }
 
-    Nidium::Binding::JSDB *getDataBase() const {
+    JSDB *getDataBase() const {
         return m_Db;
     }
 
@@ -60,7 +64,7 @@ class NativeJSwindow : public Nidium::Binding::JSExposer<NativeJSwindow>
     }
 
     static NativeJSwindow* GetObject(JSContext *cx);
-    static NativeJSwindow* GetObject(Nidium::Binding::NidiumJS *njs);
+    static NativeJSwindow* GetObject(NidiumJS *njs);
 
     static JSClass *jsclass;
 
@@ -80,11 +84,14 @@ class NativeJSwindow : public Nidium::Binding::JSExposer<NativeJSwindow>
     } *m_RequestedFrame;
 
     NativeCanvasHandler *m_Handler;
-    Nidium::Binding::JSDB *m_Db;
+    JSDB *m_Db;
 
     bool m_Dragging;
     JS::Heap<JSObject *> m_DraggedFiles;
 };
+
+} // namespace Nidium
+} // namespace Binding
 
 #endif
 

@@ -7,20 +7,19 @@
 
 #include <ape_pool.h>
 
-#include "GLSLANG/ShaderLang.h"
+#include <GLSLANG/ShaderLang.h>
 
 #include <Binding/NidiumJS.h>
 
 #include "NML/Types.h"
 #include "Graphics/GLResources.h"
 
+class NativeNML;
 class NativeSkia;
 class NativeCanvasHandler;
-class NativeUIInterface;
-class NativeNML;
 class NativeCanvasContext;
 class NativeGLState;
-class NativeJSwindow;
+class NativeUIInterface;
 
 namespace Nidium {
     namespace Net {
@@ -29,6 +28,8 @@ namespace Nidium {
     }
     namespace Binding {
         class NidiumJS;
+
+        class NativeJSwindow;
     }
 }
 
@@ -145,11 +146,11 @@ class NativeContext : public Nidium::Core::Messages
         return m_NML;
     }
 
-    NativeJSwindow *getJSWindow() const {
+    Nidium::Binding::NativeJSwindow *getJSWindow() const {
         return m_JSWindow;
     }
 
-    void setJSWindow(NativeJSwindow *obj) {
+    void setJSWindow(Nidium::Binding::NativeJSwindow *obj) {
         m_JSWindow = obj;
     }
 
@@ -258,7 +259,7 @@ class NativeContext : public Nidium::Core::Messages
     Nidium::Net::WebSocketServer * m_WS;
     Nidium::Net::WebSocketClientConnection *m_WSClient;
     ShBuiltInResources        m_ShResources;
-    NativeJSwindow *          m_JSWindow;
+    Nidium::Binding::NativeJSwindow *          m_JSWindow;
     bool                      m_SizeDirty;
 
     struct {

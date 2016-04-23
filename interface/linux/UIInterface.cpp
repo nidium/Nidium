@@ -45,7 +45,6 @@
 
 uint32_t ttfps = 0;
 
-
 #if 0
 static Window *NativeX11Window(SDL_Window *m_Win)
 {
@@ -70,9 +69,9 @@ int NativeEvents(NativeX11UIInterface *NUII)
     //while(1) {
     int nevents = 0;
         while(SDL_PollEvent(&event)) {
-            NativeJSwindow *window = NULL;
+            Nidium::Binding::NativeJSwindow *window = NULL;
             if (NUII->m_NativeCtx) {
-                window = NativeJSwindow::GetObject(NUII->m_NativeCtx->getNJS());
+                window = Nidium::Binding::NativeJSwindow::GetObject(NUII->m_NativeCtx->getNJS());
             }
             nevents++;
             switch(event.type) {

@@ -25,9 +25,9 @@
 
 #include "Graphics/SkGradient.h"
 #include "Graphics/SkImage.h"
-#include "Graphics/Canvas2DContext.h"
 #include "Graphics/ShadowLooper.h"
 #include "Binding/JSDocument.h"
+#include "Binding/JSCanvas2DContext.h"
 
 SkCanvas *NativeSkia::m_GlContext = NULL;
 
@@ -619,7 +619,7 @@ void NativeSkia::setFontStyle(const char *style)
     PAINT->setTextSkewX(strcasestr(style, "italic") ? m_FontSkew : 0);
 }
 
-void NativeSkia::setFontType(char *str, NativeJSdocument *doc)
+void NativeSkia::setFontType(char *str, Nidium::Binding::NativeJSdocument *doc)
 {
     if (doc) {
         SkTypeface *tf = doc->getFont(str);
@@ -630,7 +630,7 @@ void NativeSkia::setFontType(char *str, NativeJSdocument *doc)
             return;
         }
     }
-    //NativeJSdocument *jdoc = NativeJSdocument::
+    //Nidium::Binding::NativeJSdocument *jdoc = Nidium::Binding::NativeJSdocument::
     SkTypeface *tf = SkTypeface::CreateFromName(str,
         SkTypeface::kNormal);
     // Workarround for skia bug #1648
@@ -765,7 +765,7 @@ void NativeSkia::system(const char *text, int x, int y)
     CANVAS_FLUSH();
 }
 
-void NativeSkia::setFillColor(NativeCanvasPattern *pattern)
+void NativeSkia::setFillColor(Nidium::Binding::NativeCanvasPattern *pattern)
 {
     SkShader *shader = NULL;
 
@@ -773,14 +773,14 @@ void NativeSkia::setFillColor(NativeCanvasPattern *pattern)
         bool repeat_x = false, repeat_y = false;
 
         switch(pattern->m_Mode) {
-            case NativeCanvasPattern::PATTERN_REPEAT_MIRROR:
-            case NativeCanvasPattern::PATTERN_REPEAT:
+            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_MIRROR:
+            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT:
                 repeat_x = repeat_y = true;
                 break;
-            case NativeCanvasPattern::PATTERN_REPEAT_X:
+            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_X:
                 repeat_x = true;
                 break;
-            case NativeCanvasPattern::PATTERN_REPEAT_Y:
+            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_Y:
                 repeat_y = true;
                 break;
             default:
@@ -789,9 +789,9 @@ void NativeSkia::setFillColor(NativeCanvasPattern *pattern)
 
         if (repeat_x && repeat_y) {
             shader = SkShader::CreateBitmapShader(*pattern->m_JsImg->m_Image->m_Image,
-                pattern->m_Mode == NativeCanvasPattern::PATTERN_REPEAT_MIRROR ?
+                pattern->m_Mode == Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_MIRROR ?
                     SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode,
-                pattern->m_Mode == NativeCanvasPattern::PATTERN_REPEAT_MIRROR ?
+                pattern->m_Mode == Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_MIRROR ?
                     SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode);
         } else {
             SkShader::TileMode tileModeX = repeat_x ? SkShader::kRepeat_TileMode : SkShader::kClamp_TileMode;
