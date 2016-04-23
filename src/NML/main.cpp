@@ -15,6 +15,9 @@
 #include <SkTemplates.h>
 #include <SkTypeface.h>
 
+namespace Nidium {
+namespace NML {
+
 int setupSkiaGL(int width, int height)
 {
 
@@ -43,4 +46,7 @@ int setupSkiaGL(int width, int height)
 
     return 0;
 }
+
+} // namespace NML
+} // namespace Nidium
 

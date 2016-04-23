@@ -11,6 +11,8 @@
 
 typedef void *SDL_GLContext;
 
+extern NativeUIInterface *__NativeUI;
+
 namespace Nidium {
 namespace Graphics {
 

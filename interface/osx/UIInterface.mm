@@ -295,7 +295,7 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     }
     fprintf(stdout, "Changing directory to : %s\n", fpath);
 
-    ui->m_Nml = new NativeNML(ui->m_Gnet);
+    ui->m_Nml = new Nidium::NML::NativeNML(ui->m_Gnet);
     ui->m_Nml->loadFile("./index.nml", NativeCocoaUIInterface_onNMLLoaded, ui);
 }
 
@@ -437,7 +437,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
         if (main == NULL) {
             return false;
         }
-        NativeApp *app = new NativeApp(path);
+        Nidium::NML::NativeApp *app = new Nidium::NML::NativeApp(path);
         if (app->open()) {
             if (!this->createWindow(app->getWidth(), app->getHeight()+kNativeTitleBarHeight)) {
                 return false;
@@ -463,7 +463,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
             delete app;
         }
     } else {
-        this->m_Nml = new NativeNML(this->m_Gnet);
+        this->m_Nml = new Nidium::NML::NativeNML(this->m_Gnet);
         this->m_Nml->loadFile(path, NativeCocoaUIInterface_onNMLLoaded, this);
 
         return true;
@@ -589,7 +589,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     this->setWindowFrame(NATIVE_WINDOWPOS_UNDEFINED_MASK,
         NATIVE_WINDOWPOS_UNDEFINED_MASK, width, height);
 
-    NativeContext::CreateAndAssemble(this, m_Gnet);
+    Nidium::NML::NativeContext::CreateAndAssemble(this, m_Gnet);
 
     [this->m_DragNSView setResponder:NativeJSwindow::GetObject(m_NativeCtx->getNJS())];
 
@@ -880,7 +880,7 @@ static const char *drawRect_Associated_obj = "_NativeUIInterface";
 {
     NSPointer *idthis = objc_getAssociatedObject(self, drawRect_Associated_obj);
     NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)idthis->m_Ptr;
-    NativeContext *ctx = UI->getNativeContext();
+    Nidium::NML::NativeContext *ctx = UI->getNativeContext();
 
     if (ctx && ctx->isSizeDirty()) {
         [(NSOpenGLContext *)UI->getGLContext() update];

@@ -11,6 +11,9 @@
 #include <IO/Stream.h>
 #include <Core/Messages.h>
 
+namespace Nidium {
+namespace NML {
+
 class NativeStream;
 
 class NativeAssets
@@ -104,6 +107,9 @@ class NativeAssets
             struct item_list *foot;
         } m_Pending_list;
 };
+
+} // namespace NML
+} // namespace Nidium
 
 #endif
 

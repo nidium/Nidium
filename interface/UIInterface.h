@@ -9,8 +9,13 @@
 #define NATIVE_WINDOWPOS_UNDEFINED_MASK   0xFFFFFFF0
 #define NATIVE_WINDOWPOS_CENTER_MASK   0xFFFFFFF1
 
-class NativeContext;
-class NativeNML;
+namespace Nidium {
+    namespace NML {
+        class NativeContext;
+        class NativeNML;
+    }
+}
+
 class NativeUIInterface;
 
 typedef void *SDL_GLContext;
@@ -126,14 +131,14 @@ class NativeUIInterface
             kOpenFile_AlloMultipleSelection = 1 << 2
         };
 
-        NativeContext *m_NativeCtx;
-        NativeNML *m_Nml;
+        Nidium::NML::NativeContext *m_NativeCtx;
+        Nidium::NML::NativeNML *m_Nml;
         struct SDL_Window *m_Win;
         struct _ape_global *m_Gnet;
         int m_Argc = 0;
         char **m_Argv = nullptr;
 
-        inline NativeContext *getNativeContext() const {
+        inline Nidium::NML::NativeContext *getNativeContext() const {
             return m_NativeCtx;
         }
 

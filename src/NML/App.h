@@ -5,8 +5,12 @@
 
 #include <zip.h>
 #include <jsoncpp.h>
+#include <ape_timers_next.h>
 
 #include <Binding/NidiumJS.h>
+
+namespace Nidium {
+namespace NML {
 
 typedef bool (* NativeAppExtractCallback)(const char * buf,
     int len, size_t offset, size_t total, void *user);
@@ -90,9 +94,12 @@ private:
         int height;
     } appInfos;
 
-    struct _ape_timer_t *m_Timer;
-    struct _ape_global *m_Net;
+    ape_timer_t *m_Timer;
+    ape_global *m_Net;
 };
+
+} // namespace NML
+} // namespace Nidium
 
 #endif
 

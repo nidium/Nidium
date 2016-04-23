@@ -13,6 +13,9 @@
 
 #include <Binding/NidiumJS.h>
 
+namespace Nidium {
+namespace NML {
+
 #define NATIVE_MANIFEST "manifest.json"
 
 NativeApp::NativeApp(const char *path) :
@@ -459,4 +462,7 @@ NativeApp::~NativeApp()
 
     free(m_Path);
 }
+
+} // namespace NML
+} // namespace Nidium
 

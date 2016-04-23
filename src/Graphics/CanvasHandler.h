@@ -15,13 +15,15 @@
     - All size are in logical pixels (device ratio is handled by NativeCanvasContext)
 */
 
-class NativeContext;
 class NativeUIInterface;
-class NativeInputEvent;
 
 namespace Nidium {
     namespace Binding {
         class NativeJSCanvas;
+    }
+    namespace NML {
+        class NativeContext;
+        class NativeInputEvent;
     }
 }
 
@@ -321,7 +323,7 @@ class NativeCanvasHandler : public Nidium::Core::Events
             return m_MaxHeight;
         }
 
-        NativeContext *getNativeContext() const {
+        Nidium::NML::NativeContext *getNativeContext() const {
             return m_NativeContext;
         }
 
@@ -458,7 +460,7 @@ class NativeCanvasHandler : public Nidium::Core::Events
         }
 
         NativeCanvasHandler(int width, int height,
-            NativeContext *NativeCtx, bool lazyLoad = false);
+            Nidium::NML::NativeContext *NativeCtx, bool lazyLoad = false);
 
         virtual ~NativeCanvasHandler();
 
@@ -532,7 +534,7 @@ class NativeCanvasHandler : public Nidium::Core::Events
         NativeCanvasHandler *m_Last;
 
         static void _jobResize(void *arg);
-        bool _handleEvent(NativeInputEvent *ev);
+        bool _handleEvent(Nidium::NML::NativeInputEvent *ev);
 
         uint32_t m_Flags;
 
@@ -553,9 +555,9 @@ class NativeCanvasHandler : public Nidium::Core::Events
     private:
 
         void deviceSetSize(int width, int height);
-        void onMouseEvent(NativeInputEvent *ev);
-        void onDrag(NativeInputEvent *ev, NativeCanvasHandler *target, bool end = false);
-        void onDrop(NativeInputEvent *ev, NativeCanvasHandler *droped);
+        void onMouseEvent(Nidium::NML::NativeInputEvent *ev);
+        void onDrag(Nidium::NML::NativeInputEvent *ev, NativeCanvasHandler *target, bool end = false);
+        void onDrop(Nidium::NML::NativeInputEvent *ev, NativeCanvasHandler *droped);
 
         int32_t m_nChildren;
         void dispatchMouseEvents(NativeLayerizeContext &layerContext);
@@ -570,7 +572,7 @@ class NativeCanvasHandler : public Nidium::Core::Events
         bool m_AllowNegativeScroll;
         bool m_FluidWidth, m_FluidHeight;
 
-        NativeContext *m_NativeContext;
+        Nidium::NML::NativeContext *m_NativeContext;
 
         struct {
             uint64_t idx;

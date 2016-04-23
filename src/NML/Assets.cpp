@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include <string.h>
 
+namespace Nidium {
+namespace NML {
+
 NativeAssets::NativeAssets(readyItem cb, readyAssets rcb, void *arg) :
     m_ItemReady(cb), m_AssetsReady(rcb), m_ReadyArg(arg), m_Nitems(0)
 {
@@ -190,4 +193,7 @@ void NativeAssets::pendingListUpdate()
         m_AssetsReady(this, m_ReadyArg);
     }
 }
+
+} // namespace NML
+} // namespace Nidium
 

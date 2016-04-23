@@ -23,7 +23,7 @@ NativeGLState::NativeGLState(NativeUIInterface *ui, bool withProgram, bool webgl
     }
 }
 
-NativeGLState::NativeGLState(NativeContext *nctx) :
+NativeGLState::NativeGLState(Nidium::NML::NativeContext *nctx) :
     m_Shared(true)
 {
     NativeUIInterface *ui = nctx->getUI();
@@ -34,7 +34,7 @@ NativeGLState::NativeGLState(NativeContext *nctx) :
     m_GLContext = new NativeGLContext(ui, ui->getGLContext(), false);
 }
 
-void NativeGLState::CreateForContext(NativeContext *nctx)
+void NativeGLState::CreateForContext(Nidium::NML::NativeContext *nctx)
 {
     NativeUIInterface *ui;
     if ((ui = nctx->getUI()) == NULL || ui->m_NativeCtx->getGLState()) {
@@ -62,8 +62,8 @@ void NativeGLState::setVertexDeformation(uint32_t vertex, float x, float y)
     float mod[2] = {x, y};
 
     NATIVE_GL_CALL_MAIN(BufferSubData(GL_ARRAY_BUFFER,
-        (sizeof(NativeVertex) * vertex) + offsetof(NativeVertex, Modifier),
-        sizeof(((NativeVertex *)0)->Modifier),
+        (sizeof(Nidium::NML::NativeVertex) * vertex) + offsetof(Nidium::NML::NativeVertex, Modifier),
+        sizeof(((Nidium::NML::NativeVertex *)0)->Modifier),
         &mod));
 }
 
@@ -78,7 +78,7 @@ bool NativeGLState::initGLBase(bool withProgram)
     m_Resources.add(m_GLObjects.vbo[1], NativeGLResources::RBUFFER);
     m_Resources.add(m_GLObjects.vao, NativeGLResources::RVERTEX_ARRAY);
 
-    NativeVertices *vtx = m_GLObjects.vtx = NativeCanvasContext::buildVerticesStripe(4);
+    Nidium::NML::NativeVertices *vtx = m_GLObjects.vtx = NativeCanvasContext::buildVerticesStripe(4);
 
     NATIVE_GL_CALL_MAIN(BindVertexArray(m_GLObjects.vao));
 
@@ -88,7 +88,7 @@ bool NativeGLState::initGLBase(bool withProgram)
 
     /* Upload the list of vertex */
     NATIVE_GL_CALL_MAIN(BindBuffer(GR_GL_ARRAY_BUFFER, m_GLObjects.vbo[0]));
-    NATIVE_GL_CALL_MAIN(BufferData(GR_GL_ARRAY_BUFFER, sizeof(NativeVertex) * vtx->nvertices,
+    NATIVE_GL_CALL_MAIN(BufferData(GR_GL_ARRAY_BUFFER, sizeof(Nidium::NML::NativeVertex) * vtx->nvertices,
         vtx->vertices, GL_DYNAMIC_DRAW));
 
     /* Upload the indexes for triangle strip */
@@ -97,15 +97,15 @@ bool NativeGLState::initGLBase(bool withProgram)
         vtx->indices, GL_STATIC_DRAW));
 
     NATIVE_GL_CALL_MAIN(VertexAttribPointer(NativeCanvasContext::SH_ATTR_POSITION, 3, GR_GL_FLOAT, GR_GL_FALSE,
-                          sizeof(NativeVertex), 0));
+                          sizeof(Nidium::NML::NativeVertex), 0));
 
     NATIVE_GL_CALL_MAIN(VertexAttribPointer(NativeCanvasContext::SH_ATTR_TEXCOORD, 2, GR_GL_FLOAT, GR_GL_FALSE,
-                          sizeof(NativeVertex),
-                          (GLvoid*) offsetof(NativeVertex, TexCoord)));
+                          sizeof(Nidium::NML::NativeVertex),
+                          (GLvoid*) offsetof(Nidium::NML::NativeVertex, TexCoord)));
 
     NATIVE_GL_CALL_MAIN(VertexAttribPointer(NativeCanvasContext::SH_ATTR_MODIFIER, 2, GR_GL_FLOAT, GR_GL_FALSE,
-                          sizeof(NativeVertex),
-                          (GLvoid*) offsetof(NativeVertex, Modifier)));
+                          sizeof(Nidium::NML::NativeVertex),
+                          (GLvoid*) offsetof(Nidium::NML::NativeVertex, Modifier)));
 
     if (withProgram) {
         m_GLObjects.program = NativeCanvasContext::createPassThroughProgram(m_Resources);

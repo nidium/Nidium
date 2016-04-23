@@ -14,7 +14,6 @@
 #include "NML/Types.h"
 #include "Graphics/GLResources.h"
 
-class NativeNML;
 class NativeUIInterface;
 
 namespace Nidium {
@@ -33,7 +32,9 @@ namespace Nidium {
 
         class NativeJSwindow;
     }
-}
+namespace NML {
+
+class NativeNML;
 
 typedef struct _ape_global ape_global;
 
@@ -313,6 +314,9 @@ class NativeContext : public Nidium::Core::Messages
     static JSObject *readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
                                            uint32_t tag, uint32_t data, void *closure);
 };
+
+} // namespace NML
+} // namespace Nidium
 
 #endif
 

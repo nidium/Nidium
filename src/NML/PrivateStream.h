@@ -29,6 +29,9 @@
 
 #ifndef NATIVE_EMBED_PRIVATE
 
+namespace Nidium {
+namespace NML {
+
 class NativePrivateStream : public Nidium::IO::FileStream
 {
 public:
@@ -88,4 +91,7 @@ public:
 #endif
 
 #endif
+
+} // namespace NML
+} // namespace Nidium
 

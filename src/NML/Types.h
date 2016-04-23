@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+namespace Nidium {
+namespace NML {
+
 typedef struct _NMLTag {
     const char *id;
     const char *tag;
@@ -32,6 +35,9 @@ enum NativeContextType {
     kSkia2D_ContextType,
     kWebGL_ContextType
 };
+
+} // namespace NML
+} // namespace Nidium
 
 #endif
 

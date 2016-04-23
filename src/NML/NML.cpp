@@ -14,6 +14,9 @@
 #include "Binding/JSWindow.h"
 #include "Binding/JSDocument.h"
 
+namespace Nidium {
+namespace NML {
+
 /*@FIXME:: refractor the constructor, so that m_JSObjectLayout get's njs'javascript context*/
 NativeNML::NativeNML(ape_global *net) :
     m_Net(net), m_Stream(NULL), m_nAssets(0),
@@ -549,4 +552,7 @@ void NativeNML::onGetContent(const char *data, size_t len)
         free(data_nullterminated);
     }
 }
+
+} // namespace NML
+} // namespace Nidium
 

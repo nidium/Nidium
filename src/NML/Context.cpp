@@ -36,6 +36,9 @@
 #include "Binding/JSWebGL.h"
 #endif
 
+namespace Nidium {
+namespace NML {
+
 enum {
     NIDIUM_SCTAG_IMAGEDATA = Nidium::Binding::NIDIUM_SCTAG_MAX,
 };
@@ -700,4 +703,7 @@ void NativeContext::forceLinking()
     CreateWBMPImageDecoder();
 #endif
 }
+
+} // namespace NML
+} // namespace Nidium
 

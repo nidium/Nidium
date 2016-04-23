@@ -28,7 +28,7 @@ class NativeJSwindow : public JSExposer<NativeJSwindow>
 
     void onReady(JS::HandleObject layout);
     bool onClose();
-    void assetReady(const NMLTag &tag);
+    void assetReady(const Nidium::NML::NMLTag &tag);
     void windowFocus();
     void windowBlur();
     void resized(int width, int height);

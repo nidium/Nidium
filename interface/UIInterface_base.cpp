@@ -20,10 +20,10 @@ NativeUIInterface::NativeUIInterface() :
     m_MainGLCtx(NULL), m_SystemMenu(this)
 {
     Nidium::Core::Path::registerScheme(SCHEME_DEFINE("file://",    Nidium::IO::FileStream,    false), true); // default
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("private://", NativePrivateStream, false));
+    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("private://", Nidium::NML::NativePrivateStream, false));
 #if 1
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("system://",  NativeSystemStream,  false));
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("user://",    NativeUserStream,    false));
+    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("system://",  Nidium::NML::NativeSystemStream,  false));
+    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("user://",    Nidium::NML::NativeUserStream,    false));
 #endif
     Nidium::Core::Path::registerScheme(SCHEME_DEFINE("http://",    Nidium::Net::HTTPStream,    true));
     Nidium::Core::Path::registerScheme(SCHEME_DEFINE("https://",   Nidium::Net::HTTPStream,    true));

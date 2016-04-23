@@ -26,6 +26,9 @@
 
 #include <SystemInterface.h>
 
+namespace Nidium {
+namespace NML {
+
 class NativeSystemStream : public Nidium::IO::FileStream
 {
 public:
@@ -75,6 +78,9 @@ public:
         return NativeSystemInterface::getInstance()->getUserDirectory();
     }
 };
+
+} // namespace NML
+} // namespace Nidium
 
 #endif
 

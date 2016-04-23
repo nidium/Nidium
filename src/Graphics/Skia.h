@@ -112,8 +112,8 @@ class NativeSkia
             struct _NativeLine lines[], double maxWidth, int *length = NULL);
         int bindOnScreen(int width, int height);
         static SkCanvas *createGLCanvas(int width, int height,
-            NativeContext *nativectx);
-        int bindGL(int width, int height, NativeContext *nativectx);
+            Nidium::NML::NativeContext *nativectx);
+        int bindGL(int width, int height, Nidium::NML::NativeContext *nativectx);
         void flush();
         void unlink();
 

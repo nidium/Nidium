@@ -54,7 +54,7 @@ public:
     struct {
         uint32_t vbo[2];
         uint32_t vao;
-        NativeVertices *vtx;
+        Nidium::NML::NativeVertices *vtx;
         uint32_t program;
         struct {
             int32_t u_projectionMatrix;
@@ -65,10 +65,10 @@ public:
         } uniforms;
     } m_GLObjects;
 
-    static void CreateForContext(NativeContext *nctx);
+    static void CreateForContext(Nidium::NML::NativeContext *nctx);
 
 private:
-    NativeGLState(NativeContext *nctx);
+    NativeGLState(Nidium::NML::NativeContext *nctx);
 
     NativeGLResources m_Resources;
 

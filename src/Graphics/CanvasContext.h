@@ -56,7 +56,7 @@ class NativeCanvasContext
     /*
         Create a CanvasContext of type |type|
     */
-    static NativeCanvasContext *Create(NativeContextType type);
+    static NativeCanvasContext *Create(Nidium::NML::NativeContextType type);
 
     mode getContextType() const {
         return m_Mode;
@@ -135,7 +135,7 @@ class NativeCanvasContext
         Scheme : http://dan.lecocq.us/wordpress/wp-content/uploads/2009/12/strip.png
         Details: http://en.wikipedia.org/wiki/Triangle_strip
     */
-    static NativeVertices *buildVerticesStripe(int resolution);
+    static Nidium::NML::NativeVertices *buildVerticesStripe(int resolution);
 
     static uint32_t createPassThroughVertex();
     static uint32_t createPassThroughFragment();

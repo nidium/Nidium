@@ -15,6 +15,9 @@
 #define XML_VP_DEFAULT_WIDTH 980
 #define XML_VP_DEFAULT_HEIGHT 700
 
+namespace Nidium {
+namespace NML {
+
 class NativeNML;
 
 typedef void (*NMLLoadedCallback)(void *arg);
@@ -126,6 +129,9 @@ private:
     bool m_DefaultItemsLoaded;
     bool m_LoadDefaultItems;
 };
+
+} // namespace NML
+} // namespace Nidium
 
 #endif
 

@@ -22,7 +22,7 @@ char *NativeCanvasContext::processShader(const char *content, shaderType type)
 
     compiler = ShConstructCompiler((ShShaderType)type,
         SH_WEBGL_SPEC, SH_GLSL_OUTPUT,
-        NativeContext::GetObject(Nidium::Binding::NidiumJS::GetObject())->getShaderResources());
+        Nidium::NML::NativeContext::GetObject(Nidium::Binding::NidiumJS::GetObject())->getShaderResources());
 
     if (compiler == NULL) {
         NLOG("Shader : Compiler not supported");
@@ -79,7 +79,7 @@ uint32_t NativeCanvasContext::compileShader(const char *data, int type)
     return shaderHandle;
 }
 
-NativeVertices *NativeCanvasContext::buildVerticesStripe(int resolution)
+Nidium::NML::NativeVertices *NativeCanvasContext::buildVerticesStripe(int resolution)
 {
     int x = resolution;
     int y = resolution;
@@ -91,16 +91,16 @@ NativeVertices *NativeCanvasContext::buildVerticesStripe(int resolution)
     float txstep = 1.  / ((float)x-1.);
     float tystep = 1.  / ((float)y-1.);
 
-    NativeVertices *info = (NativeVertices *)malloc(sizeof(NativeVertices));
+    Nidium::NML::NativeVertices *info = (Nidium::NML::NativeVertices *)malloc(sizeof(Nidium::NML::NativeVertices));
 
-    info->vertices = (NativeVertex *)malloc(sizeof(NativeVertex) * x * y);
+    info->vertices = (Nidium::NML::NativeVertex *)malloc(sizeof(Nidium::NML::NativeVertex) * x * y);
 
     info->nvertices = x*y;
 
     info->indices = (unsigned int *)malloc((sizeof(int) * x * y) * 2);
     info->nindices = 0;
 
-    NativeVertex *vert = info->vertices;
+    Nidium::NML::NativeVertex *vert = info->vertices;
     unsigned int *indices = info->indices;
 
     for (int i = 0; i < y; i++) {
@@ -429,12 +429,12 @@ bool NativeCanvasContext::validateCurrentFBO()
 /*
     TODO: implement
 */
-NativeCanvasContext *NativeCanvasContext::Create(NativeContextType type)
+NativeCanvasContext *NativeCanvasContext::Create(Nidium::NML::NativeContextType type)
 {
     switch (type) {
-        case kWebGL_ContextType:
+        case Nidium::NML::kWebGL_ContextType:
             return NULL;
-        case kSkia2D_ContextType:
+        case Nidium::NML::kSkia2D_ContextType:
             return NULL;
         default:
             NLOG("[Error] Invalid CanvasContext requested");
