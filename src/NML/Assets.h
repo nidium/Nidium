@@ -1,5 +1,5 @@
-#ifndef nidium_assets_h__
-#define nidium_assets_h__
+#ifndef nml_assets_h__
+#define nml_assets_h__
 
 #include <stdint.h>
 #include <stdlib.h>

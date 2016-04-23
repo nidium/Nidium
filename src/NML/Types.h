@@ -1,5 +1,5 @@
-#ifndef nidium_types_h__
-#define nidium_types_h__
+#ifndef nml_types_h__
+#define nml_types_h__
 
 #include <stdint.h>
 #include <stdlib.h>

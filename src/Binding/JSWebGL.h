@@ -1,5 +1,5 @@
-#ifndef nidium_jswebgl_h__
-#define nidium_jswebgl_h__
+#ifndef binding_jswebgl_h__
+#define binding_jswebgl_h__
 
 #include <Binding/JSExposer.h>
 

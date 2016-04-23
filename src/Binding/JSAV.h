@@ -1,5 +1,5 @@
-#ifndef nidium_jsav_h__
-#define nidium_jsav_h__
+#ifndef binding_jsav_h__
+#define binding_jsav_h__
 
 #include <Core/Messages.h>
 #include <Binding/JSExposer.h>

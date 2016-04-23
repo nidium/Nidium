@@ -1,5 +1,5 @@
-#ifndef nidium_glresources_h__
-#define nidium_glresources_h__
+#ifndef graphics_glresources_h__
+#define graphics_glresources_h__
 
 #include <stdlib.h>
 #include <stdint.h>

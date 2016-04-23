@@ -1,5 +1,5 @@
-#ifndef nidium_skimage_h__
-#define nidium_skimage_h__
+#ifndef graphics_skimage_h__
+#define graphics_skimage_h__
 
 #include <SkBitmap.h>
 #include <SkImage.h>

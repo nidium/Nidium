@@ -1,5 +1,5 @@
-#ifndef nidium_skia_h__
-#define nidium_skia_h__
+#ifndef graphics_skia_h__
+#define graphics_skia_h__
 
 #include <stdint.h>
 #include <stdlib.h>

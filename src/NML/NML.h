@@ -1,5 +1,5 @@
-#ifndef nidium_nml_h__
-#define nidium_nml_h__
+#ifndef nml_nml_h__
+#define nml_nml_h__
 
 #include <ape_netlib.h>
 

@@ -1,5 +1,5 @@
-#ifndef nidium_context_h__
-#define nidium_context_h__
+#ifndef nml_context_h__
+#define nml_context_h__
 
 #include <stdint.h>
 #include <stddef.h>

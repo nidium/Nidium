@@ -1,5 +1,5 @@
-#ifndef nidium_glstate_h__
-#define nidium_glstate_h__
+#ifndef graphics_glstate_h__
+#define graphics_glstate_h__
 
 #include <stdlib.h>
 #include <stdint.h>

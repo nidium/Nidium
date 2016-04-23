@@ -1,5 +1,5 @@
-#ifndef nidium_jsdocument_h__
-#define nidium_jsdocument_h__
+#ifndef binding_jsdocument_h__
+#define binding_jsdocument_h__
 
 #include <Binding/JSExposer.h>
 

@@ -1,5 +1,5 @@
-#ifndef nidium_macros_h__
-#define nidium_macros_h__
+#ifndef nml_macros_h__
+#define nml_macros_h__
 
 #include <string.h>
 

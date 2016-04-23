@@ -1,5 +1,5 @@
-#ifndef nidium_jscanvas_h__
-#define nidium_jscanvas_h__
+#ifndef binding_jscanvas_h__
+#define binding_jscanvas_h__
 
 #include <Binding/JSExposer.h>
 #include <Core/Messages.h>

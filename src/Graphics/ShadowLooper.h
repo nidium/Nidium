@@ -1,5 +1,5 @@
-#ifndef nidium_shadowlooper_h__
-#define nidium_shadowlooper_h__
+#ifndef graphics_shadowlooper_h__
+#define graphics_shadowlooper_h__
 
 #include <SkDrawLooper.h>
 #include <SkColor.h>

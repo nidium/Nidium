@@ -1,5 +1,5 @@
-#ifndef nidium_canvascontext_h__
-#define nidium_canvascontext_h__
+#ifndef graphics_canvascontext_h__
+#define graphics_canvascontext_h__
 
 #include <stdint.h>
 #include <stdlib.h>

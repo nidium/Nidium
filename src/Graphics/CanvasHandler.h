@@ -1,5 +1,5 @@
-#ifndef nidium_canvashandler_h__
-#define nidium_canvashandler_h__
+#ifndef graphics_canvashandler_h__
+#define graphics_canvashandler_h__
 
 #include <stdint.h>
 #include <stdlib.h>

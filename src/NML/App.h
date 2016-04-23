@@ -1,5 +1,5 @@
-#ifndef nidium_app_h__
-#define nidium_app_h__
+#ifndef nml_app_h__
+#define nml_app_h__
 
 #include <pthread.h>
 

@@ -1,5 +1,5 @@
-#ifndef nidium_jsimage_h__
-#define nidium_jsimage_h__
+#ifndef binding_jsimage_h__
+#define binding_jsimage_h__
 
 #include <Core/Messages.h>
 #include <IO/Stream.h>

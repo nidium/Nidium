@@ -1,5 +1,5 @@
-#ifndef nidium_glcontext_h__
-#define nidium_glcontext_h__
+#ifndef graphics_glcontext_h__
+#define graphics_glcontext_h__
 
 #include <gl/GrGLInterface.h>
 #include <gl/GrGLDefines.h>

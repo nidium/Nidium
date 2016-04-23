@@ -17,8 +17,8 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef nidium_systemstream_h__
-#define nidium_systemstream_h__
+#ifndef nml_systemstream_h__
+#define nml_systemstream_h__
 
 #include <string>
 

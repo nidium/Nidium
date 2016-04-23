@@ -1,5 +1,5 @@
-#ifndef nidium_openglheader_h__
-#define nidium_openglheader_h__
+#ifndef graphics_openglheader_h__
+#define graphics_openglheader_h__
 
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__

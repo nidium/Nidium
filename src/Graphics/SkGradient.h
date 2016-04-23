@@ -1,5 +1,5 @@
-#ifndef nidium_skgradient_h__
-#define nidium_skgradient_h__
+#ifndef graphics_skgradient_h__
+#define graphics_skgradient_h__
 
 #include <stdint.h>
 
