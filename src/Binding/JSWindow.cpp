@@ -591,7 +591,7 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
 
     NativeContext *nctx = NativeContext::GetObject(m_Cx);
 
-    NativeCanvasHandler *rootHandler = nctx->getRootHandler();
+    Graphics::NativeCanvasHandler *rootHandler = nctx->getRootHandler();
 
     rootHandler->m_MousePosition.x = x;
     rootHandler->m_MousePosition.y = y;
@@ -800,7 +800,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
             }
             JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString color(cx, vpStr);
-            uint32_t icolor = NativeSkia::parseColor(color.ptr());
+            uint32_t icolor = Graphics::NativeSkia::parseColor(color.ptr());
 
             NUI->setTitleBarRGBAColor(
                 (icolor & 0x00FF0000) >> 16,
@@ -1185,7 +1185,7 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
 
     NIDIUM_JS_GET_OPT_TYPE(jobj, "icon", Object) {
         JS::RootedObject jsimg(cx, __curopt.toObjectOrNull());
-        NativeSkImage *skimage;
+        Graphics::NativeSkImage *skimage;
         if (NativeJSImage::JSObjectIs(cx, jsimg) &&
             (skimage = NativeJSImage::JSObjectToNativeSkImage(jsimg))) {
 

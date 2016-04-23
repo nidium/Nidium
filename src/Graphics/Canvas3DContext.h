@@ -7,8 +7,12 @@
 
 #include "Graphics/CanvasContext.h"
 
-class NativeCanvasHandler;
 class NativeUIInterface;
+
+namespace Nidium {
+namespace Graphics {
+
+class NativeCanvasHandler;
 
 class NativeCanvas3DContext : public NativeCanvasContext
 {
@@ -100,6 +104,9 @@ private:
         uint8_t *pixels;
     } m_CachedPixels;
 };
+
+} // namespace Graphics
+} // namespace Nidium
 
 #endif
 

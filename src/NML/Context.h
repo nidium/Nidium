@@ -15,16 +15,18 @@
 #include "Graphics/GLResources.h"
 
 class NativeNML;
-class NativeSkia;
-class NativeCanvasHandler;
-class NativeCanvasContext;
-class NativeGLState;
 class NativeUIInterface;
 
 namespace Nidium {
     namespace Net {
         class WebSocketServer;
         class WebSocketClientConnection;
+    }
+    namespace Graphics {
+        class NativeSkia;
+        class NativeCanvasHandler;
+        class NativeCanvasContext;
+        class NativeGLState;
     }
     namespace Binding {
         class NidiumJS;
@@ -78,7 +80,7 @@ public:
         }
     }
 
-    NativeInputEvent *dupWithHandler(NativeCanvasHandler *handler) {
+    NativeInputEvent *dupWithHandler(Nidium::Graphics::NativeCanvasHandler *handler) {
         NativeInputEvent *dup = new NativeInputEvent(*this);
         dup->m_Handler = handler;
         dup->m_Origin = this;
@@ -112,7 +114,7 @@ public:
     uint32_t m_data[8];
     NativeInputEvent *m_Next;
     NativeInputEvent *m_PassThroughEvent;
-    NativeCanvasHandler *m_Handler;
+    Nidium::Graphics::NativeCanvasHandler *m_Handler;
     NativeInputEvent *m_Origin;
     unsigned m_depthAffectedCanvas;
 private:
@@ -125,7 +127,7 @@ class NativeContext : public Nidium::Core::Messages
 {
     public:
 
-    friend class NativeCanvasHandler;
+    friend class Nidium::Graphics::NativeCanvasHandler;
 
     NativeContext(NativeUIInterface *nui, NativeNML *nml,
         int width, int height, ape_global *net);
@@ -134,7 +136,7 @@ class NativeContext : public Nidium::Core::Messages
     NativeUIInterface *getUI() const {
         return m_UI;
     }
-    NativeCanvasHandler *getRootHandler() const {
+    Nidium::Graphics::NativeCanvasHandler *getRootHandler() const {
         return m_RootHandler;
     }
 
@@ -154,11 +156,11 @@ class NativeContext : public Nidium::Core::Messages
         m_JSWindow = obj;
     }
 
-    inline NativeGLState *getGLState() const {
+    inline Nidium::Graphics::NativeGLState *getGLState() const {
         return m_GLState;
     }
 
-    void setGLState(NativeGLState *state) {
+    void setGLState(Nidium::Graphics::NativeGLState *state) {
         m_GLState = state;
     }
 
@@ -210,7 +212,7 @@ class NativeContext : public Nidium::Core::Messages
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
     void addJob(void (*job)(void *arg), void *arg);
 
-    NativeCanvasHandler *getCanvasById(const char *str) {
+    Nidium::Graphics::NativeCanvasHandler *getCanvasById(const char *str) {
         return m_CanvasList.get(str);
     }
 
@@ -235,27 +237,27 @@ class NativeContext : public Nidium::Core::Messages
         return m_InputEvents.head;
     }
 
-    void setCurrentClickedHandler(NativeCanvasHandler *handler) {
+    void setCurrentClickedHandler(Nidium::Graphics::NativeCanvasHandler *handler) {
         m_CurrentClickedHandler = handler;
     }
 
-    NativeCanvasHandler *getCurrentClickedHandler() const {
+    Nidium::Graphics::NativeCanvasHandler *getCurrentClickedHandler() const {
         return m_CurrentClickedHandler;
     }
 
     static void CreateAndAssemble(NativeUIInterface *ui, ape_global *gnet);
 
     private:
-    NativeGLResources         m_Resources;
+    Nidium::Graphics::NativeGLResources         m_Resources;
     Nidium::Binding::NidiumJS *m_JS;
-    NativeCanvasHandler *     m_RootHandler;
-    NativeCanvasHandler *     m_DebugHandler;
+    Nidium::Graphics::NativeCanvasHandler *     m_RootHandler;
+    Nidium::Graphics::NativeCanvasHandler *     m_DebugHandler;
 #ifdef DEBUG
-    NativeCanvasHandler *     m_Debug2Handler;
+    Nidium::Graphics::NativeCanvasHandler *     m_Debug2Handler;
 #endif
     NativeUIInterface *       m_UI;
     NativeNML *               m_NML;
-    NativeGLState *           m_GLState;
+    Nidium::Graphics::NativeGLState *           m_GLState;
     Nidium::Net::WebSocketServer * m_WS;
     Nidium::Net::WebSocketClientConnection *m_WSClient;
     ShBuiltInResources        m_ShResources;
@@ -292,14 +294,14 @@ class NativeContext : public Nidium::Core::Messages
     } m_Jobs;
 
     /* Hash of all canvases (key: identifier string) */
-    Nidium::Core::Hash<NativeCanvasHandler *> m_CanvasList;
+    Nidium::Core::Hash<Nidium::Graphics::NativeCanvasHandler *> m_CanvasList;
     /* Hash of all canvases with pending jobs (key: addr) */
-    Nidium::Core::Hash64<NativeCanvasHandler *> m_CanvasPendingJobs;
-    std::vector<NativeCanvasHandler *> m_CanvasOrderedEvents;
+    Nidium::Core::Hash64<Nidium::Graphics::NativeCanvasHandler *> m_CanvasPendingJobs;
+    std::vector<Nidium::Graphics::NativeCanvasHandler *> m_CanvasOrderedEvents;
 
     ape_pool_list_t m_CanvasEventsCanvas;
 
-    NativeCanvasHandler *m_CurrentClickedHandler;
+    Nidium::Graphics::NativeCanvasHandler *m_CurrentClickedHandler;
 
     void execJobs();
     void execPendingCanvasChanges();

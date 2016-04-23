@@ -6,9 +6,11 @@
 
 #include "NML/Types.h"
 
-class NativeCanvasHandler;
 
 namespace Nidium {
+    namespace Graphics {
+        class NativeCanvasHandler;
+    }
 namespace Binding {
 
 
@@ -48,7 +50,7 @@ class NativeJSwindow : public JSExposer<NativeJSwindow>
 
     void initDataBase();
 
-    NativeCanvasHandler *getCanvasHandler() const {
+    Graphics::NativeCanvasHandler *getCanvasHandler() const {
         return m_Handler;
     }
 
@@ -83,7 +85,7 @@ class NativeJSwindow : public JSExposer<NativeJSwindow>
         }
     } *m_RequestedFrame;
 
-    NativeCanvasHandler *m_Handler;
+    Graphics::NativeCanvasHandler *m_Handler;
     JSDB *m_Db;
 
     bool m_Dragging;

@@ -15,6 +15,9 @@ namespace Nidium {
     }
 }
 
+namespace Nidium {
+namespace Graphics {
+
 #define GL_CALL(X) NATIVE_GL_CALL(m_GLState->getNativeGLContext(), X)
 #define GL_CALL_RET(X, RET) NATIVE_GL_CALL_RET(m_GLState->getNativeGLContext(), X, RET)
 
@@ -289,4 +292,7 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
 
     return true;
 }
+
+} // namespace Graphics
+} // namespace Nidium
 

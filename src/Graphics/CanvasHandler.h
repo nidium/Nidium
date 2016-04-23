@@ -15,9 +15,8 @@
     - All size are in logical pixels (device ratio is handled by NativeCanvasContext)
 */
 
-class NativeSkia;
-class NativeCanvasContext;
 class NativeContext;
+class NativeUIInterface;
 class NativeInputEvent;
 
 namespace Nidium {
@@ -25,6 +24,12 @@ namespace Nidium {
         class NativeJSCanvas;
     }
 }
+
+namespace Nidium {
+namespace Graphics {
+
+class NativeSkia;
+class NativeCanvasContext;
 
 struct NativeRect
 {
@@ -531,6 +536,7 @@ class NativeCanvasHandler : public Nidium::Core::Events
 
         uint32_t m_Flags;
 
+        void execPending();
     protected:
         NativeCanvasHandler *getPrevInlineSibling() const {
             NativeCanvasHandler *prev;
@@ -547,7 +553,6 @@ class NativeCanvasHandler : public Nidium::Core::Events
     private:
 
         void deviceSetSize(int width, int height);
-        void execPending();
         void onMouseEvent(NativeInputEvent *ev);
         void onDrag(NativeInputEvent *ev, NativeCanvasHandler *target, bool end = false);
         void onDrop(NativeInputEvent *ev, NativeCanvasHandler *droped);
@@ -584,6 +589,9 @@ class NativeCanvasHandler : public Nidium::Core::Events
         bool m_Loaded;
         int m_Cursor;
 };
+
+} // namespace Graphics
+} // namespace Nidium
 
 #endif
 

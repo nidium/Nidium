@@ -8,6 +8,9 @@
 class SkMaskFilter;
 class SkColorFilter;
 
+namespace Nidium {
+namespace Graphics {
+
 /** \class NativeShadowLooper
     This class draws a shadow of the object (possibly offset), and then draws
     the original object in its original position.
@@ -85,6 +88,9 @@ private:
 
     typedef SkDrawLooper INHERITED;
 };
+
+} // namespace Graphics
+} // namespace Nidium
 
 #endif
 

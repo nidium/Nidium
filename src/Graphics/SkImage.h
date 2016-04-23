@@ -8,6 +8,9 @@ class SkCanvas;
 class SkBitmap;
 class SkData;
 
+namespace Nidium {
+namespace Graphics {
+
 class NativeSkImage
 {
   public:
@@ -37,6 +40,9 @@ class NativeSkImage
     void markColorsInAlpha();
     void desaturate();
 };
+
+} // namespace Graphics
+} // namespace Nidium
 
 #endif
 

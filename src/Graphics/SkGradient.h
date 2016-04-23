@@ -8,6 +8,9 @@
 
 class SkShader;
 
+namespace Nidium {
+namespace Graphics {
+
 struct _colorStop
 {
     SkColor color;
@@ -52,6 +55,9 @@ class NativeSkGradient
     SkShader *build();
 
 };
+
+} // namespace Graphics
+} // namespace Nidium
 
 #endif
 

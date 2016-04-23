@@ -21,9 +21,9 @@ namespace Nidium {
 namespace Binding {
 
 #define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
-#define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->getSurface())
+#define NSKIA_NATIVE_GETTER(obj) ((class Nidium::Graphics::NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->getSurface())
 #define NSKIA_NATIVE (CppObj->getSurface())
-#define HANDLER_GETTER(obj) ((NativeCanvasHandler *)((class NativeJSCanvas *)JS_GetPrivate(obj))->getHandler())
+#define HANDLER_GETTER(obj) ((Nidium::Graphics::NativeCanvasHandler *)((class NativeJSCanvas *)JS_GetPrivate(obj))->getHandler())
 
 static JSClass imageData_class = {
     "ImageData", JSCLASS_HAS_PRIVATE,
@@ -362,14 +362,14 @@ static bool native_canvas2dctx_breakText(JSContext *cx,
         return true;
     }
 
-    struct _NativeLine *lines = new struct _NativeLine[len];
+    struct Nidium::Graphics::_NativeLine *lines = new struct Nidium::Graphics::_NativeLine[len];
 
     if (!lines) {
         JS_ReportOutOfMemory(cx);
         return false;
     }
 
-    memset(lines, 0, len * sizeof(struct _NativeLine));
+    memset(lines, 0, len * sizeof(struct Nidium::Graphics::_NativeLine));
 
     SkScalar ret = CppObj->getSurface()->breakText(text.ptr(), len,
                     lines, maxWidth, &length);
@@ -678,7 +678,7 @@ static bool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc, JS::Va
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(NativeCanvas2DContext, &Canvas2DContext_class);
     double scalex, skewx, skewy, scaley, translatex, translatey;
 
-    NativeCanvasHandler *handler = CppObj->getHandler();
+    Nidium::Graphics::NativeCanvasHandler *handler = CppObj->getHandler();
 
     if (!JS_ConvertArguments(cx, args, "dddddd", &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
     NATIVE_LOG_2D_CALL();
@@ -728,7 +728,7 @@ static bool native_canvas2dctx_createLinearGradient(JSContext *cx,
     }
 
     JS::RootedObject linearObject(cx, JS_NewObject(cx, &canvasGradient_class, JS::NullPtr(), JS::NullPtr()));
-    JS_SetPrivate(linearObject, new NativeSkGradient(x1, y1, x2, y2));
+    JS_SetPrivate(linearObject, new Nidium::Graphics::NativeSkGradient(x1, y1, x2, y2));
     JS_DefineFunctions(cx, linearObject, gradient_funcs);
 
     args.rval().setObjectOrNull(linearObject);
@@ -897,7 +897,7 @@ static bool native_canvas2dctx_createRadialGradient(JSContext *cx,
     }
 
     JS::RootedObject linearObject(cx, JS_NewObject(cx, &canvasGradient_class, JS::NullPtr(), JS::NullPtr()));
-    JS_SetPrivate(linearObject, new NativeSkGradient(x1, y1, r1, x2, y2, r2));
+    JS_SetPrivate(linearObject, new Nidium::Graphics::NativeSkGradient(x1, y1, r1, x2, y2, r2));
     JS_DefineFunctions(cx, linearObject, gradient_funcs);
     args.rval().setObjectOrNull(linearObject);
 
@@ -911,14 +911,14 @@ static bool native_canvas2dctxGradient_addColorStop(JSContext *cx,
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     JS::RootedString color(cx);
     double position;
-    NativeSkGradient *gradient;
+    Nidium::Graphics::NativeSkGradient *gradient;
 
     NATIVE_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dS", &position, color.address())) {
         return false;
     }
 
-    if ((gradient = static_cast<NativeSkGradient *>(JS_GetPrivate(caller))) != NULL) {
+    if ((gradient = static_cast<Nidium::Graphics::NativeSkGradient *>(JS_GetPrivate(caller))) != NULL) {
         JSAutoByteString colorstr(cx, color);
 
         gradient->addColorStop(position, colorstr.ptr());
@@ -931,7 +931,7 @@ static bool native_canvas2dctxGradient_addColorStop(JSContext *cx,
 static bool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(NativeCanvas2DContext, &Canvas2DContext_class);
-    NativeSkImage *image;
+    Nidium::Graphics::NativeSkImage *image;
     double x, y, width, height;
     int sx, sy, swidth, sheight;
     int need_free = 0;
@@ -953,13 +953,13 @@ static bool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value
         TODO: work with WebGL canvas
     */
     if (jsimage && JS_GetClass(jsimage) == &Canvas_class) {
-        NativeCanvasContext *drawctx = HANDLER_GETTER(jsimage)->getContext();
+        Nidium::Graphics::NativeCanvasContext *drawctx = HANDLER_GETTER(jsimage)->getContext();
 
-        if (drawctx == NULL || drawctx->getContextType() != NativeCanvasContext::CONTEXT_2D) {
+        if (drawctx == NULL || drawctx->getContextType() != Nidium::Graphics::NativeCanvasContext::CONTEXT_2D) {
             JS_ReportError(cx, "Invalid image canvas (must be backed by a 2D context)");
             return false;
         }
-        image = new NativeSkImage((static_cast<NativeCanvas2DContext *>(drawctx))->getSurface()->getCanvas());
+        image = new Nidium::Graphics::NativeSkImage((static_cast<NativeCanvas2DContext *>(drawctx))->getSurface()->getCanvas());
         need_free = 1;
     } else if (!jsimage || !NativeJSImage::JSObjectIs(cx, jsimage) ||
         (image = NativeJSImage::JSObjectToNativeSkImage(jsimage)) == NULL) {
@@ -1009,7 +1009,7 @@ static bool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
     JSAutoByteString ctext;
     ctext.encodeUtf8(cx, text);
 
-    NativeSkia *n = NSKIA_NATIVE;
+    Nidium::Graphics::NativeSkia *n = NSKIA_NATIVE;
     JS::RootedValue widthVal(cx, DOUBLE_TO_JSVAL(n->measureText(ctext.ptr(), strlen(ctext.ptr()))));
     OBJ_PROP("width", widthVal);
 
@@ -1030,7 +1030,7 @@ static bool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
         return false;
     }
 
-    NativeSkia *n = NSKIA_NATIVE;
+    Nidium::Graphics::NativeSkia *n = NSKIA_NATIVE;
 
     vp->setBoolean(n->SkPathContainsPoint(x, y));
 
@@ -1420,7 +1420,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         return true;
     }
 
-    NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj);
+    Nidium::Graphics::NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj);
     switch (id) {
         case CTX_PROP(imageSmoothingEnabled):
         {
@@ -1595,7 +1595,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
                 JS_GetClass(&vp.toObject()) == &canvasGradient_class) {
 
                 JS::RootedObject vpObj(cx, &vp.toObject());
-                NativeSkGradient *gradient = (class NativeSkGradient *) JS_GetPrivate(vpObj);
+                Nidium::Graphics::NativeSkGradient *gradient = (class Nidium::Graphics::NativeSkGradient *) JS_GetPrivate(vpObj);
 
                 curSkia->setFillColor(gradient);
 
@@ -1634,7 +1634,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
             } else if (vp.isObject() &&
                 JS_GetClass(&vp.toObject()) == &canvasGradient_class) {
                 JS::RootedObject vpObj(cx, &vp.toObject());
-                NativeSkGradient *gradient = (class NativeSkGradient *) JS_GetPrivate(vpObj);
+                Nidium::Graphics::NativeSkGradient *gradient = (class Nidium::Graphics::NativeSkGradient *) JS_GetPrivate(vpObj);
 
                 curSkia->setStrokeColor(gradient);
 
@@ -1739,7 +1739,7 @@ static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
 #define CTX_PROP(prop) CTX_PROP_ ## prop
-    NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj);
+    Nidium::Graphics::NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj);
     NativeCanvas2DContext *ctx = CANVASCTX_GETTER(obj);
 
     switch (id) {
@@ -1770,7 +1770,7 @@ static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
             if (ret.isUndefined()) {
                 char rgba_str[64];
 
-                NativeSkia::GetStringColor(curColor, rgba_str);
+                Nidium::Graphics::NativeSkia::GetStringColor(curColor, rgba_str);
 
                 vp.setString(JS_NewStringCopyZ(cx, rgba_str));
             } else {
@@ -1827,7 +1827,7 @@ static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
         {
             char rgba_str[64];
 
-            NativeSkia::GetStringColor(curSkia->getShadowColor(), rgba_str);
+            Nidium::Graphics::NativeSkia::GetStringColor(curSkia->getShadowColor(), rgba_str);
 
             vp.setString(JS_NewStringCopyZ(cx, rgba_str));
         }
@@ -1843,7 +1843,7 @@ static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
 
 void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeSkGradient *gradient = (class NativeSkGradient *)JS_GetPrivate(obj);
+    Nidium::Graphics::NativeSkGradient *gradient = (class Nidium::Graphics::NativeSkGradient *)JS_GetPrivate(obj);
     if (gradient != NULL) {
         delete gradient;
     }
@@ -1905,7 +1905,7 @@ char *NativeCanvas2DContext::genModifiedFragmentShader(const char *data)
 
 uint32_t NativeCanvas2DContext::createProgram(const char *data)
 {
-    char *pdata = NativeCanvasContext::processShader(data, NativeCanvasContext::SHADER_FRAGMENT);
+    char *pdata = Nidium::Graphics::NativeCanvasContext::processShader(data, Nidium::Graphics::NativeCanvasContext::SHADER_FRAGMENT);
 
     if (pdata == NULL) {
         return 0;
@@ -1913,7 +1913,7 @@ uint32_t NativeCanvas2DContext::createProgram(const char *data)
 
     char *nshader = this->genModifiedFragmentShader(pdata);
 
-    uint32_t fragment = NativeCanvasContext::compileShader(nshader, GL_FRAGMENT_SHADER);
+    uint32_t fragment = Nidium::Graphics::NativeCanvasContext::compileShader(nshader, GL_FRAGMENT_SHADER);
     uint32_t coop = this->compileCoopFragmentShader();
     uint32_t vertex = this->createPassThroughVertex();
 
@@ -1925,7 +1925,7 @@ uint32_t NativeCanvas2DContext::createProgram(const char *data)
 
     GLuint programHandle;
 
-    NativeGLContext *iface = m_GLState->getNativeGLContext();
+    Nidium::Graphics::NativeGLContext *iface = m_GLState->getNativeGLContext();
 
     NATIVE_GL_CALL_RET(iface, CreateProgram(), programHandle);
 
@@ -1936,10 +1936,10 @@ uint32_t NativeCanvas2DContext::createProgram(const char *data)
     NATIVE_GL_CALL(iface, AttachShader(programHandle, fragment));
 
     NATIVE_GL_CALL(iface, BindAttribLocation(programHandle,
-        NativeCanvasContext::SH_ATTR_POSITION, "Position"));
+        Nidium::Graphics::NativeCanvasContext::SH_ATTR_POSITION, "Position"));
 
     NATIVE_GL_CALL(iface, BindAttribLocation(programHandle,
-        NativeCanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn"));
+        Nidium::Graphics::NativeCanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn"));
 
     NATIVE_GL_CALL(iface, LinkProgram(programHandle));
 
@@ -2262,14 +2262,14 @@ uint32_t NativeCanvas2DContext::attachShader(const char *string)
         /* Destroy the old context (if it's not shared) */
         m_GLState->destroy();
         /* Create a new state without program */
-        NativeGLState *nstate = new NativeGLState(ui, false);
+        Nidium::Graphics::NativeGLState *nstate = new Nidium::Graphics::NativeGLState(ui, false);
         nstate->setShared(false);
 
         m_GLState = nstate;
 
         m_GLState->setProgram(program);
 
-        NativeGLContext *iface = m_GLState->getNativeGLContext();
+        Nidium::Graphics::NativeGLContext *iface = m_GLState->getNativeGLContext();
 
         NATIVE_GL_CALL_RET(iface,
             GetUniformLocation(program, "n_Resolution"),
@@ -2299,14 +2299,14 @@ void NativeCanvas2DContext::detachShader()
 void NativeCanvas2DContext::setVertexDeformation(uint32_t vertex,
     float x, float y)
 {
-    NativeGLState *state = m_GLState;
+    Nidium::Graphics::NativeGLState *state = m_GLState;
 
     /*
         If the GL state is shared among other Canvas, create a new one
     */
     if (state->isShared()) {
         NLOG("New GL state created !");
-        state = new NativeGLState(m_GLState->getNativeGLContext()->getUI());
+        state = new Nidium::Graphics::NativeGLState(m_GLState->getNativeGLContext()->getUI());
         state->setShared(false);
 
         m_GLState = state;
@@ -2343,21 +2343,21 @@ void NativeCanvas2DContext::setSize(int width, int height, bool redraw)
 
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
-    if (m_Skia->m_NativeCanvasBindMode == NativeSkia::BIND_GL) {
-        if ((ncanvas = NativeSkia::createGLCanvas(width, height,
+    if (m_Skia->m_NativeCanvasBindMode == Nidium::Graphics::NativeSkia::BIND_GL) {
+        if ((ncanvas = Nidium::Graphics::NativeSkia::createGLCanvas(width, height,
             __NativeUI->getNativeContext())) == NULL) {
             NLOG("[Error] Couldnt resize the canvas to %dx%d", width, height);
             return;
         }
 
-        NativeSkia::m_GlContext = ncanvas;
+        Nidium::Graphics::NativeSkia::m_GlContext = ncanvas;
 
     } else {
 #if 1
         const SkImageInfo &info = SkImageInfo::MakeN32Premul(width*ratio, height*ratio);
-        ndev = NativeSkia::m_GlContext->getDevice()->createCompatibleDevice(info);
+        ndev = Nidium::Graphics::NativeSkia::m_GlContext->getDevice()->createCompatibleDevice(info);
 #else
-        GrContext *gr = ((SkGpuDevice *)NativeSkia::m_GlContext->getDevice())->context();
+        GrContext *gr = ((SkGpuDevice *)Nidium::Graphics::NativeSkia::m_GlContext->getDevice())->context();
         ndev = m_Skia->createNewGPUDevice(gr, width*ratio, height*ratio);
 #endif
         if (ndev == NULL) {
@@ -2382,7 +2382,7 @@ void NativeCanvas2DContext::setSize(int width, int height, bool redraw)
     m_Skia->setCanvas(ncanvas);
     ncanvas->unref();
 
-    if (m_Skia->m_NativeCanvasBindMode == NativeSkia::BIND_GL) {
+    if (m_Skia->m_NativeCanvasBindMode == Nidium::Graphics::NativeSkia::BIND_GL) {
         m_Skia->drawRect(0, 0, 1, 1, 0);
     }
 }
@@ -2392,9 +2392,9 @@ void NativeCanvas2DContext::translate(double x, double y)
     m_Skia->getCanvas()->translate(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
-NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
+NativeCanvas2DContext::NativeCanvas2DContext(Nidium::Graphics::NativeCanvasHandler *handler,
     JSContext *cx, int width, int height, NativeUIInterface *ui) :
-    NativeCanvasContext(handler),
+    Nidium::Graphics::NativeCanvasContext(handler),
     m_SetterDisabled(false), m_CurrentState(NULL)
 {
     m_Mode = CONTEXT_2D;
@@ -2410,7 +2410,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     */
     JS_DefineProperties(cx, jsobj, canvas2dctx_props);
 
-    m_Skia = new NativeSkia();
+    m_Skia = new Nidium::Graphics::NativeSkia();
     if (!m_Skia->bindOnScreen(width, height)) {
         delete m_Skia;
         m_Skia = NULL;
@@ -2422,13 +2422,13 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     this->resetSkiaContext(kVertex_GrGLBackendState);
 }
 
-NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
+NativeCanvas2DContext::NativeCanvas2DContext(Nidium::Graphics::NativeCanvasHandler *handler,
     int width, int height, NativeUIInterface *ui, bool isGL) :
-    NativeCanvasContext(handler), m_SetterDisabled(false)
+    Nidium::Graphics::NativeCanvasContext(handler), m_SetterDisabled(false)
 {
     m_Mode = CONTEXT_2D;
 
-    m_Skia = new NativeSkia();
+    m_Skia = new Nidium::Graphics::NativeSkia();
     int state;
 
     if (isGL) {

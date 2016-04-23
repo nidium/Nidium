@@ -193,7 +193,7 @@ bool NativeJSImage::JSObjectIs(JSContext *cx, JS::HandleObject obj)
     return obj && JS_GetClass(obj) == &Image_class;
 }
 
-NativeSkImage *NativeJSImage::JSObjectToNativeSkImage(JS::HandleObject obj)
+Graphics::NativeSkImage *NativeJSImage::JSObjectToNativeSkImage(JS::HandleObject obj)
 {
     return NATIVE_IMAGE_GETTER(obj)->m_Image;
 }
@@ -240,7 +240,7 @@ bool NativeJSImage::setupWithBuffer(buffer *buf)
         return false;
     }
 
-    NativeSkImage *ImageObject = new NativeSkImage(buf->data, buf->used);
+    Graphics::NativeSkImage *ImageObject = new Graphics::NativeSkImage(buf->data, buf->used);
     if (ImageObject->m_Image == NULL) {
         delete ImageObject;
 
@@ -271,7 +271,7 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
         return;
     }
 
-    NativeSkImage *ImageObject = new NativeSkImage((void *)data, len);
+    Graphics::NativeSkImage *ImageObject = new Graphics::NativeSkImage((void *)data, len);
     if (ImageObject->m_Image == NULL) {
         timer_dispatch_async(delete_stream, stream);
         stream = NULL;
@@ -299,7 +299,7 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
 }
 #endif
 
-JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
+JSObject *NativeJSImage::buildImageObject(JSContext *cx, Graphics::NativeSkImage *image,
     const char name[])
 {
     JS::RootedValue proto(cx);

@@ -96,7 +96,7 @@ static bool native_document_getElementById(JSContext *cx, unsigned argc, JS::Val
     }
 
     JSAutoByteString cid(cx, str);
-    NativeCanvasHandler *elem = NativeContext::GetObject(cx)->getCanvasById(cid.ptr());
+    Graphics::NativeCanvasHandler *elem = NativeContext::GetObject(cx)->getCanvasById(cid.ptr());
     if (elem) {
         args.rval().setObjectOrNull(elem->m_JsObj);
     } else {
@@ -110,7 +110,7 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    NativeCanvasHandler *rootHandler = NativeContext::GetObject(cx)->getRootHandler();
+    Graphics::NativeCanvasHandler *rootHandler = NativeContext::GetObject(cx)->getRootHandler();
     NativeCanvas2DContext *context = static_cast<NativeCanvas2DContext *>(rootHandler->getContext());
 
     int width, height;
@@ -147,7 +147,7 @@ static bool native_document_toDataArray(JSContext *cx, unsigned argc, JS::Value 
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    NativeCanvasHandler *rootHandler = NativeContext::GetObject(cx)->getRootHandler();
+    Graphics::NativeCanvasHandler *rootHandler = NativeContext::GetObject(cx)->getRootHandler();
     NativeCanvas2DContext *context = static_cast<NativeCanvas2DContext *>(rootHandler->getContext());
 
     int width, height;
@@ -157,7 +157,7 @@ static bool native_document_toDataArray(JSContext *cx, unsigned argc, JS::Value 
 
     uint8_t *fb = nctx->getUI()->readScreenPixel();
 
-    NativeSkImage *img = new NativeSkImage(fb, width, height);
+    Graphics::NativeSkImage *img = new Graphics::NativeSkImage(fb, width, height);
     SkData *data;
 
     data = img->getPNG();

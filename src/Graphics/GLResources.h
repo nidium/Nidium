@@ -8,6 +8,9 @@
 
 #include "NML/Macros.h"
 
+namespace Nidium {
+namespace Graphics {
+
 class NativeGLResources
 {
 public:
@@ -61,6 +64,9 @@ private:
         return (((uint64_t)glid << 8) | (uint8_t)type);
     }
 };
+
+} // namespace Graphics
+} // namespace Nidium
 
 #endif
 

@@ -8,16 +8,22 @@
 #include "Graphics/CanvasContext.h"
 #include "Binding/JSImage.h"
 
-struct NativeRect;
-class NativeSkia;
 class SkCanvas;
-class NativeCanvasHandler;
+class NativeUIInterface;
+
+namespace Nidium {
+    namespace Graphics {
+        struct NativeRect;
+        class NativeSkia;
+        class NativeCanvasHandler;
+    }
+}
 
 namespace Nidium {
 namespace Binding {
 
 /*
-    Create a new 2D context using NativeSkia.
+    Create a new 2D context using Graphics::NativeSkia.
     A new JSObject is created with NativeCanvas2DContext as private
     The class is auto destroyed if no reference is retained to the JSObject
 
@@ -54,7 +60,7 @@ struct NativeCanvas2DContextState
     NativeCanvas2DContextState *m_Next;
 };
 
-class NativeCanvas2DContext : public NativeCanvasContext
+class NativeCanvas2DContext : public Graphics::NativeCanvasContext
 {
     public:
 
@@ -85,7 +91,7 @@ class NativeCanvas2DContext : public NativeCanvasContext
 
         void setVertexDeformation(uint32_t vertex, float x, float y);
 
-        NativeSkia *getSurface() const {
+        Graphics::NativeSkia *getSurface() const {
             return m_Skia;
         }
 
@@ -125,15 +131,15 @@ class NativeCanvas2DContext : public NativeCanvasContext
 
         static void registerObject(JSContext *cx);
 
-        NativeCanvas2DContext(NativeCanvasHandler *handler,
+        NativeCanvas2DContext(Graphics::NativeCanvasHandler *handler,
             int width, int height, NativeUIInterface *ui, bool isGL = true);
 
-        NativeCanvas2DContext(NativeCanvasHandler *handler,
+        NativeCanvas2DContext(Graphics::NativeCanvasHandler *handler,
             struct JSContext *cx, int width, int height, NativeUIInterface *ui);
 
         virtual ~NativeCanvas2DContext();
     private:
-        NativeSkia *m_Skia;
+        Graphics::NativeSkia *m_Skia;
         NativeCanvas2DContextState *m_CurrentState;
 
 

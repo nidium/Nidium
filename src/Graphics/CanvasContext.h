@@ -13,14 +13,18 @@
 #include "Graphics/GLState.h"
 #include "Graphics/GLContext.h"
 
-struct NativeRect;
-class NativeCanvasHandler;
 
 namespace Nidium {
     namespace Binding {
         class NativeCanvas2DContext;
     }
 }
+
+namespace Nidium {
+namespace Graphics {
+
+struct NativeRect;
+class NativeCanvasHandler;
 
 class NativeCanvasContext
 {
@@ -153,6 +157,9 @@ protected:
     void setupShader(float opacity, int width, int height,
         int left, int top, int wWidth, int wHeight);
 };
+
+} // namespace Graphics
+} // namespace Nidium
 
 #endif
 

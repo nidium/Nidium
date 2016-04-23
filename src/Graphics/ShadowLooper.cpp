@@ -8,6 +8,9 @@
 #include <SkColorPriv.h>
 #include <SkStringUtils.h>
 
+namespace Nidium {
+namespace Graphics {
+
 void NativeShadowLooper::init(SkScalar sigma, SkScalar dx, SkScalar dy,
                             SkColor color, uint32_t flags) {
     m_fSigma = sigma;
@@ -166,6 +169,9 @@ void NativeShadowLooper::toString(SkString* str) const {
     // TODO: add optional "fBlurFilter->toString(str);" when SkMaskFilter::toString is added
     // alternatively we could cache the radius in SkBlurDrawLooper and just add it here
 }
+
+} // namespace Graphics
+} // namespace Nidium
 
 #endif
 

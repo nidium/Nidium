@@ -13,6 +13,9 @@
 #include "Graphics/OpenGLHeader.h"
 #include "Binding/JSCanvas2DContext.h"
 
+namespace Nidium {
+namespace Graphics {
+
 char *NativeCanvasContext::processShader(const char *content, shaderType type)
 {
     ShHandle compiler = NULL;
@@ -438,4 +441,7 @@ NativeCanvasContext *NativeCanvasContext::Create(NativeContextType type)
             return NULL;
     }
 }
+
+} // namespace Graphics
+} // namespace Nidium
 

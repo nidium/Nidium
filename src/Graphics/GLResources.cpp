@@ -2,6 +2,9 @@
 
 #include "Graphics/OpenGLHeader.h"
 
+namespace Nidium {
+namespace Graphics {
+
 void NativeGLResources::add(uint32_t glid, ResourceType type, const char *name)
 {
     if (glid == 0) {
@@ -50,4 +53,7 @@ NativeGLResources::Resource::~Resource()
             break;
     }
 }
+
+} // namespace Graphics
+} // namespace Nidium
 

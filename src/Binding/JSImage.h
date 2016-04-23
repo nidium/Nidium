@@ -8,6 +8,9 @@
 class NativeSkImage;
 
 namespace Nidium {
+    namespace Graphics {
+        class NativeSkImage;
+    }
 namespace Binding {
 
 
@@ -19,13 +22,13 @@ class NativeJSImage : public JSExposer<NativeJSImage>,
     NativeJSImage(JS::HandleObject obj, JSContext *cx);
     virtual ~NativeJSImage();
 
-    NativeSkImage *m_Image;
+    Graphics::NativeSkImage *m_Image;
     IO::Stream *m_Stream;
 
-    static NativeSkImage *JSObjectToNativeSkImage(JS::HandleObject obj);
+    static Graphics::NativeSkImage *JSObjectToNativeSkImage(JS::HandleObject obj);
     static void registerObject(JSContext *cx);
     static bool JSObjectIs(JSContext *cx, JS::HandleObject obj);
-    static JSObject *buildImageObject(JSContext *cx, NativeSkImage *image,
+    static JSObject *buildImageObject(JSContext *cx, Graphics::NativeSkImage *image,
         const char name[] = NULL);
 
     void onMessage(const Core::SharedMessages::Message &msg);

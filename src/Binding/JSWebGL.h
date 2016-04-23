@@ -63,7 +63,7 @@ struct NGLContextAttributes {
     }
 };
 
-class NativeCanvasWebGLContext: public NativeCanvasContext
+class NativeCanvasWebGLContext: public Graphics::NativeCanvasContext
 {
     public :
         NativeCanvasWebGLContext(JSContext *cx, NGLContextAttributes *attributes, int width, int height);
@@ -77,7 +77,7 @@ class NativeCanvasWebGLContext: public NativeCanvasContext
 
         void composeWith(NativeCanvas2DContext *layer,
             double left, double top, double opacity,
-            double zoom, const NativeRect *rclip);
+            double zoom, const Graphics::NativeRect *rclip);
 
         bool m_UnpackFlipY;
         bool m_UnpackPremultiplyAlpha;

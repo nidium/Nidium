@@ -8,6 +8,9 @@
 
 #include "Graphics/Skia.h"
 
+namespace Nidium {
+namespace Graphics {
+
 NativeSkGradient::NativeSkGradient(double x1, double y1, double x2, double y2)
 {
     m_StartPoint.x = x1;
@@ -116,4 +119,7 @@ SkShader *NativeSkGradient::build()
 
     return m_CurrentShader;
 }
+
+} // namespace Graphics
+} // namespace Nidium
 

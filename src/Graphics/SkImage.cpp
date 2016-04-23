@@ -9,6 +9,9 @@
 
 #include <Core/Utils.h>
 
+namespace Nidium {
+namespace Graphics {
+
 #if 0
 static bool SetImageRef(SkBitmap* bitmap, SkStream* stream,
                         SkBitmap::Config pref, const char name[] = NULL)
@@ -246,4 +249,7 @@ bool NativeSkImage::ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba,
 #endif
     return true;
 }
+
+} // namespace Graphics
+} // namespace Nidium
 

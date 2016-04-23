@@ -3,10 +3,11 @@
 
 #include <Binding/JSExposer.h>
 
-class NativeSkia;
-class NativeCanvasHandler;
-
 namespace Nidium {
+    namespace Graphics {
+        class NativeSkia;
+        class NativeCanvasHandler;
+    }
 namespace Binding {
 
 class NativeJSNative : public JSExposer<NativeJSNative>

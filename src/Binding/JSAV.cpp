@@ -2127,7 +2127,7 @@ void NativeJSVideo::onMessage(const Core::SharedMessages::Message &msg)
 {
     if (m_IsDestructing) return;
 
-    if (msg.event() == NIDIUM_EVENT(NativeCanvasHandler, RESIZE_EVENT) && (m_Width == -1 || m_Height == -1)) {
+    if (msg.event() == NIDIUM_EVENT(Graphics::NativeCanvasHandler, RESIZE_EVENT) && (m_Width == -1 || m_Height == -1)) {
         this->setSize(m_Width, m_Height);
     } else {
         if (msg.event() == SOURCE_EVENT_PLAY) {
@@ -2160,8 +2160,8 @@ void NativeJSVideo::onEvent(const struct NativeAVSourceEvent *cev)
 void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
 {
     NativeJSVideo *v = (NativeJSVideo *)custom;
-    NativeCanvasHandler *handler = v->m_CanvasCtx->getHandler();
-    NativeSkia *surface = v->m_CanvasCtx->getSurface();
+    Graphics::NativeCanvasHandler *handler = v->m_CanvasCtx->getHandler();
+    Graphics::NativeSkia *surface = v->m_CanvasCtx->getSurface();
     JSContext *cx = v->cx;
 
     surface->setFillColor(0xFF000000);
@@ -2415,7 +2415,7 @@ static bool native_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp
         return true;
     }
 
-    NativeCanvasHandler *handler = static_cast<class NativeJSCanvas*>(
+    Graphics::NativeCanvasHandler *handler = static_cast<class NativeJSCanvas*>(
         JS_GetInstancePrivate(cx, canvas, &Canvas_class, &args))->getHandler();
 
     if (!handler) {
@@ -2423,8 +2423,8 @@ static bool native_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp
         return false;
     }
 
-    NativeCanvasContext *ncc = handler->getContext();
-    if (ncc == NULL || ncc->m_Mode != NativeCanvasContext::CONTEXT_2D) {
+    Graphics::NativeCanvasContext *ncc = handler->getContext();
+    if (ncc == NULL || ncc->m_Mode != Graphics::NativeCanvasContext::CONTEXT_2D) {
         JS_ReportError(cx, "Invalid canvas context. Did you called canvas.getContext('2d') ?");
         return false;
     }

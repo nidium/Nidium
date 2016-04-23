@@ -11,6 +11,9 @@
 
 class NativeUIInterface;
 
+namespace Nidium {
+namespace Graphics {
+
 class NativeGLState
 {
 
@@ -72,6 +75,9 @@ private:
     bool m_Shared;
     NativeGLContext *m_GLContext;
 };
+
+} // namespace Graphics
+} // namespace Nidium
 
 #endif
 

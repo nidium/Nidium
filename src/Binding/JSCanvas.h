@@ -4,10 +4,12 @@
 #include <Binding/JSExposer.h>
 #include <Core/Messages.h>
 
-
-class NativeCanvasHandler;
+class NativeUIInterface;
 
 namespace Nidium {
+    namespace Graphics {
+        class NativeCanvasHandler;
+    }
 namespace Binding {
 
 class NativeJSCanvas: public JSExposer<NativeJSCanvas>, public Core::Messages
@@ -17,12 +19,12 @@ public:
     virtual void onMessageLost(const Core::SharedMessages::Message &msg);
     static void registerObject(JSContext *cx);
     static JSObject *generateJSObject(JSContext *cx, int width, int height,
-        NativeCanvasHandler **out);
+        Graphics::NativeCanvasHandler **out);
 
-    NativeJSCanvas(JS::HandleObject obj, JSContext *cx, NativeCanvasHandler *handler);
+    NativeJSCanvas(JS::HandleObject obj, JSContext *cx, Graphics::NativeCanvasHandler *handler);
     ~NativeJSCanvas();
 
-    NativeCanvasHandler *getHandler() const {
+    Graphics::NativeCanvasHandler *getHandler() const {
         return m_CanvasHandler;
     }
 
@@ -35,7 +37,7 @@ public:
     }
 
 private:
-    NativeCanvasHandler *m_CanvasHandler;
+    Graphics::NativeCanvasHandler *m_CanvasHandler;
     JS::Heap<JSObject *> m_Inherit;
 };
 

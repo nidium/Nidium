@@ -9,6 +9,9 @@
 
 #include "Binding/JSCanvas2DContext.h"
 
+namespace Nidium {
+namespace Graphics {
+
 int NativeCanvasHandler::m_LastIdx = 0;
 
 NativeCanvasHandler::NativeCanvasHandler(int width, int height,
@@ -1270,4 +1273,7 @@ NativeCanvasHandler::~NativeCanvasHandler()
 
     m_NativeContext->m_CanvasPendingJobs.erase((uint64_t)this);
 }
+
+} // namespace Graphics
+} // namespace Nidium
 

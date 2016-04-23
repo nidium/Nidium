@@ -29,6 +29,9 @@
 #include "Binding/JSDocument.h"
 #include "Binding/JSCanvas2DContext.h"
 
+namespace Nidium {
+namespace Graphics {
+
 SkCanvas *NativeSkia::m_GlContext = NULL;
 
 //#define CANVAS_FLUSH() canvas->flush()
@@ -1861,4 +1864,7 @@ void NativeSkia::setCanvas(SkCanvas *canvas)
 {
     SkRefCnt_SafeAssign(m_Canvas, canvas);
 }
+
+} // namespace Graphics
+} // namespace Nidium
 

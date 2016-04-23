@@ -97,7 +97,7 @@ m_Debug2Handler(NULL),
 
     m_UI->m_NativeCtx = this;
 
-    NativeGLState::CreateForContext(this);
+    Nidium::Graphics::NativeGLState::CreateForContext(this);
 
     m_JS = new Nidium::Binding::NidiumJS(net);
     this->initStats();
@@ -215,7 +215,7 @@ void NativeContext::createDebugCanvas()
 {
     Nidium::Binding::NativeCanvas2DContext *context = static_cast<Nidium::Binding::NativeCanvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
-    m_DebugHandler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
+    m_DebugHandler = new Nidium::Graphics::NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
     Nidium::Binding::NativeCanvas2DContext *ctx2d =  new Nidium::Binding::NativeCanvas2DContext(m_DebugHandler,
          context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
     m_DebugHandler->setContext(ctx2d);
@@ -232,7 +232,7 @@ void NativeContext::createDebug2Canvas()
 {
     Nidium::Binding::NativeCanvas2DContext *context = static_cast<Nidium::Binding::NativeCanvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
-    m_Debug2Handler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
+    m_Debug2Handler = new Nidium::Graphics::NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
     Nidium::Binding::NativeCanvas2DContext *ctx2d =  new Nidium::Binding::NativeCanvas2DContext(m_Debug2Handler,
          context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
     m_Debug2Handler->setContext(ctx2d);
@@ -249,7 +249,7 @@ void NativeContext::postDraw()
 {
     if (Nidium::Binding::NativeJSdocument::m_ShowFPS && m_DebugHandler) {
 
-        NativeSkia *s = (static_cast<Nidium::Binding::NativeCanvas2DContext *>(m_DebugHandler->getContext())->getSurface());
+        Nidium::Graphics::NativeSkia *s = (static_cast<Nidium::Binding::NativeCanvas2DContext *>(m_DebugHandler->getContext())->getSurface());
         m_DebugHandler->bringToFront();
 
         s->setFillColor(0xFF000000u);
@@ -285,7 +285,7 @@ void NativeContext::postDraw()
     if (m_Debug2Handler) {
         m_Debug2Handler->bringToFront();
         m_Debug2Handler->getContext()->clear();
-        NativeSkia *rootctx = (static_cast<Nidium::Binding::NativeCanvas2DContext *>(m_Debug2Handler->getContext())->getSurface());
+        Nidium::Graphics::NativeSkia *rootctx = (static_cast<Nidium::Binding::NativeCanvas2DContext *>(m_Debug2Handler->getContext())->getSurface());
         rootctx->save();
 
         rootctx->setFillColor("black");
@@ -350,7 +350,7 @@ NativeContext::~NativeContext()
     delete m_GLState;
     delete m_WS;
 
-    NativeSkia::m_GlContext = NULL;
+    Nidium::Graphics::NativeSkia::m_GlContext = NULL;
 
     ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
     this->clearInputEvents();
@@ -394,9 +394,9 @@ void NativeContext::frame(bool draw)
 
     /* We draw on the UI fbo */
     glBindFramebuffer(GL_FRAMEBUFFER, m_UI->getFBO());
-    NativeLayerizeContext ctx;
+    Nidium::Graphics::NativeLayerizeContext ctx;
     ctx.reset();
-    NativeLayerSiblingContext sctx;
+    Nidium::Graphics::NativeLayerSiblingContext sctx;
     ctx.m_SiblingCtx = &sctx;
 
     m_CanvasOrderedEvents.clear();
@@ -534,9 +534,9 @@ bool NativeContext::initShaderLang()
 
 void NativeContext::initHandlers(int width, int height)
 {
-    NativeCanvasHandler::m_LastIdx = 0;
+    Nidium::Graphics::NativeCanvasHandler::m_LastIdx = 0;
 
-    m_RootHandler = new NativeCanvasHandler(width, height, this);
+    m_RootHandler = new Nidium::Graphics::NativeCanvasHandler(width, height, this);
 
     m_RootHandler->setContext(new Nidium::Binding::NativeCanvas2DContext(m_RootHandler, width, height, m_UI));
     m_RootHandler->getContext()->setGLState(this->getGLState());
@@ -585,7 +585,7 @@ void NativeContext::execPendingCanvasChanges()
     ape_htable_item_t *item, *tmpItem;
     for (item = m_CanvasPendingJobs.accessCStruct()->first; item != NULL; item = tmpItem) {
         tmpItem = item->lnext;
-        NativeCanvasHandler *handler = static_cast<NativeCanvasHandler *>(item->content.addrs);
+        Nidium::Graphics::NativeCanvasHandler *handler = static_cast<Nidium::Graphics::NativeCanvasHandler *>(item->content.addrs);
         handler->execPending();
     }
 }

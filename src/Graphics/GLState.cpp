@@ -7,6 +7,9 @@
 #include "Graphics/CanvasContext.h"
 #include "Graphics/OpenGLHeader.h"
 
+namespace Nidium {
+namespace Graphics {
+
 NativeGLState::NativeGLState(NativeUIInterface *ui, bool withProgram, bool webgl) :
     m_Shared(true)
 {
@@ -149,4 +152,7 @@ NativeGLState::~NativeGLState()
         delete m_GLContext;
     }
 }
+
+} // namespace Graphics
+} // namespace Nidium
 
