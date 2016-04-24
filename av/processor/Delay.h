@@ -80,3 +80,4 @@ class NativeAudioProcessorDelay: public NativeAudioProcessor
 } // namespace Nidium
 
 #endif
+

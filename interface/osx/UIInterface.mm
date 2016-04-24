@@ -436,7 +436,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
         if (main == NULL) {
             return false;
         }
-        Nidium::NML::NativeApp *app = new Nidium::NML::NativeApp(path);
+        Nidium::NML::App *app = new Nidium::NML::App(path);
         if (app->open()) {
             if (!this->createWindow(app->getWidth(), app->getHeight()+kNativeTitleBarHeight)) {
                 return false;

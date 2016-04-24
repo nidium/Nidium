@@ -13,20 +13,20 @@
 namespace Nidium {
 namespace NML {
 
-typedef bool (* NativeAppExtractCallback)(const char * buf,
+typedef bool (* AppExtractCallback)(const char * buf,
     int len, size_t offset, size_t total, void *user);
 
-class NativeApp
+class App
 {
 public:
     char *m_Path;
 
-    NativeApp(const char *path);
+    App(const char *path);
     int open();
     void runWorker(ape_global *net);
-    uint64_t extractFile(const char *path, NativeAppExtractCallback cb, void *user);
+    uint64_t extractFile(const char *path, AppExtractCallback cb, void *user);
     int extractApp(const char *path, void (*done)(void *, const char *), void *closure);
-    ~NativeApp();
+    ~App();
 
     const char *getTitle() const {
         return this->appInfos.title.asCString();
@@ -71,7 +71,7 @@ public:
         size_t total;
         size_t offset;
         char *data;
-        NativeAppExtractCallback cb;
+        AppExtractCallback cb;
         void *user;
         int len;
     };

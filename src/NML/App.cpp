@@ -21,7 +21,7 @@ namespace NML {
 // {{{ NativeExtractor
 struct NativeExtractor_s
 {
-    NativeApp *app;
+    App *app;
     uint64_t curIndex;
     const char *fName;
     char *fDir;
@@ -101,8 +101,8 @@ static bool NativeExtractor(const char * buf,
 }
 // }}}
 
-// {{{ NativeApp
-NativeApp::NativeApp(const char *path) :
+// {{{ App
+App::App(const char *path) :
     m_Messages(NULL), m_fZip(NULL), m_NumFiles(0), m_WorkerIsRunning(false), m_Timer(NULL), m_Net(NULL)
 {
     m_Path = strdup(path);
@@ -110,9 +110,9 @@ NativeApp::NativeApp(const char *path) :
 
 static void *native_appworker_thread(void *arg)
 {
-    NativeApp *app = static_cast<NativeApp *>(arg);
+    App *app = static_cast<App *>(arg);
 
-    printf("Starting NativeApp worker...\n");
+    printf("Starting App worker...\n");
 
     while (!app->m_Action.stop) {
         pthread_mutex_lock(&app->m_ThreadMutex);
@@ -126,7 +126,7 @@ static void *native_appworker_thread(void *arg)
         }
 
         switch (app->m_Action.type) {
-            case NativeApp::APP_ACTION_EXTRACT:
+            case App::APP_ACTION_EXTRACT:
             {
 #define APP_READ_SIZE (1024L*1024L*2)
                 struct zip_file *zfile;
@@ -168,16 +168,16 @@ static void *native_appworker_thread(void *arg)
 static int Native_handle_app_messages(void *arg)
 {
 #define MAX_MSG_IN_ROW 32
-    NativeApp *app = static_cast<NativeApp *>(arg);
-    struct NativeApp::native_app_msg *ptr;
+    App *app = static_cast<App *>(arg);
+    struct App::native_app_msg *ptr;
     int nread = 0;
 
     Nidium::Core::SharedMessages::Message *msg;
 
     while (++nread < MAX_MSG_IN_ROW && (msg = app->m_Messages->readMessage())) {
         switch (msg->event()) {
-            case NativeApp::APP_MESSAGE_READ:
-                ptr = static_cast<struct NativeApp::native_app_msg *>(msg->dataPtr());
+            case App::APP_MESSAGE_READ:
+                ptr = static_cast<struct App::native_app_msg *>(msg->dataPtr());
                 ptr->cb(ptr->data, ptr->len, ptr->offset, ptr->total, ptr->user);
                 free(ptr->data);
                 delete ptr;
@@ -191,7 +191,7 @@ static int Native_handle_app_messages(void *arg)
 #undef MAX_MSG_IN_ROW
 }
 
-void NativeApp::actionExtractRead(const char *buf, int len,
+void App::actionExtractRead(const char *buf, int len,
     size_t offset, size_t total)
 {
     struct native_app_msg *msg = new struct native_app_msg;
@@ -199,7 +199,7 @@ void NativeApp::actionExtractRead(const char *buf, int len,
     msg->len  = len;
     msg->total = total;
     msg->offset = offset;
-    msg->cb = (NativeAppExtractCallback)m_Action.cb;
+    msg->cb = (AppExtractCallback)m_Action.cb;
     msg->user = m_Action.user;
 
     memcpy(msg->data, buf, len);
@@ -207,7 +207,7 @@ void NativeApp::actionExtractRead(const char *buf, int len,
     m_Messages->postMessage(msg, APP_MESSAGE_READ);
 }
 
-void NativeApp::runWorker(ape_global *net)
+void App::runWorker(ape_global *net)
 {
     m_Messages = new Nidium::Core::SharedMessages();
 
@@ -231,7 +231,7 @@ void NativeApp::runWorker(ape_global *net)
     pthread_mutex_unlock(&m_ThreadMutex);
 }
 
-int NativeApp::open()
+int App::open()
 {
     int err = 0;
     m_fZip = zip_open(m_Path, ZIP_CHECKCONS, &err);
@@ -255,7 +255,7 @@ int NativeApp::open()
     return this->loadManifest();
 }
 
-int NativeApp::extractApp(const char *path,
+int App::extractApp(const char *path,
         void (*done)(void *, const char *), void *closure)
 {
     char *fullpath = strdup(path);
@@ -331,7 +331,7 @@ int NativeApp::extractApp(const char *path,
     return (arg->data.len != 0);
 }
 
-uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb, void *user)
+uint64_t App::extractFile(const char *file, AppExtractCallback cb, void *user)
 {
     if (m_fZip == NULL || !m_WorkerIsRunning) {
         printf("extractFile : you need to call open() and runWorker() before\n");
@@ -380,7 +380,7 @@ uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb, v
     return stat.size;
 }
 
-int NativeApp::loadManifest()
+int App::loadManifest()
 {
 #define MPROP(root, str, type, out) \
 Json::Value out; \
@@ -447,7 +447,7 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
     return 1;
 }
 
-NativeApp::~NativeApp()
+App::~App()
 {
     if (m_WorkerIsRunning) {
         m_Action.stop = true;
