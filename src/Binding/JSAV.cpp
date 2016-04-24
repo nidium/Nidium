@@ -2566,7 +2566,7 @@ bool NativeJSAVSource::PropGetter(AV::NativeAVSource *source, JSContext *cx, uin
                 }
                 */
 
-                // XXX : Not tested 
+                // XXX : Not tested
                 /*
                 if (avctx->nb_programs) {
                     JS::RootedObject arr(cx, JS_NewArrayObject(cx, 0));

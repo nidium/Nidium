@@ -30,3 +30,4 @@ class NativeAudioProcessorGain: public NativeAudioProcessor
 } // namespace Nidium
 
 #endif
+

@@ -361,3 +361,4 @@ void NativeJSImage::RegisterObject(JSContext *cx)
 // }}}
 } // namespace Nidium
 } // namespace Binding
+
