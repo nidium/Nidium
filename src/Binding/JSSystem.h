@@ -9,7 +9,7 @@ namespace Server {
 class JSSystem : public Nidium::Binding::JSExposer<JSSystem>
 {
   public:
-    static void registerObject(JSContext *cx);
+    static void RegisterObject(JSContext *cx);
 };
 
 } // namespace Server

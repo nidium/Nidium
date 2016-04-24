@@ -83,7 +83,7 @@ static bool nidium_system_getOpenFileStats(JSContext *cx, unsigned argc,
 // }}}
 
 // {{{ Registration
-void JSSystem::registerObject(JSContext *cx)
+void JSSystem::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject systemObj(cx, JS_DefineObject(cx, global,

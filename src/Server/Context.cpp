@@ -43,8 +43,8 @@ Context::Context(ape_global *net, Worker *worker,
     if (getcwd(cwd, sizeof(cwd)-1) != NULL) {
         strcat(cwd, "/");
 
-        Nidium::Core::Path::cd(cwd);
-        Nidium::Core::Path::chroot("/");
+        Nidium::Core::Path::CD(cwd);
+        Nidium::Core::Path::Chroot("/");
     } else {
         fprintf(stderr, "[Warn] Failed to get current working directory\n");
     }
@@ -53,19 +53,19 @@ Context::Context(ape_global *net, Worker *worker,
     m_JS->setPrivate(this);
     m_JS->setStrictMode(jsstrict);
 
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("file://", Nidium::IO::FileStream, false), true);
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("http://", Nidium::Net::HTTPStream,    true));
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("https://", Nidium::Net::HTTPStream,    true));
+    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("file://", Nidium::IO::FileStream, false), true);
+    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("http://", Nidium::Net::HTTPStream,    true));
+    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("https://", Nidium::Net::HTTPStream,    true));
 
-    Nidium::Core::TaskManager::createManager();
-    Nidium::Core::Messages::initReader(net);
+    Nidium::Core::TaskManager::CreateManager();
+    Nidium::Core::Messages::InitReader(net);
 
     m_JS->loadGlobalObjects();
 
-    JSconsole::registerObject(m_JS->cx);
-    JSSystem::registerObject(m_JS->cx);
+    JSconsole::RegisterObject(m_JS->cx);
+    JSSystem::RegisterObject(m_JS->cx);
 
-    m_JS->setPath(Nidium::Core::Path::getPwd());
+    m_JS->setPath(Nidium::Core::Path::GetPwd());
 
     APE_timer_create(net, 1, Context_ping, (void *)m_JS);
 }

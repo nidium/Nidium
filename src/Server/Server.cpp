@@ -287,7 +287,7 @@ int Worker::run(int argc, char **argv, bool jsstrict)
 
     Context ctx(net, this, jsstrict, m_RunREPL);
     const Nidium::Binding::NidiumJS *js = ctx.getNJS();
-    Nidium::Binding::JSProcess::registerObject(js->getJSContext(), argv, argc,
+    Nidium::Binding::JSProcess::RegisterObject(js->getJSContext(), argv, argc,
         this->getIdentifier());
 
     /*
