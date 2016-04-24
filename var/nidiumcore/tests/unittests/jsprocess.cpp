@@ -13,7 +13,7 @@
 
 TEST(JSProcess, Simple)
 {
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     Nidium::Binding::NidiumJS njs(g_ape);
     bool success;
     const char * args[] = {"nidium"};
@@ -23,7 +23,7 @@ TEST(JSProcess, Simple)
     success = JS_GetProperty(njs.cx, globObj, "process", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    JSProcess::RegisterObject(njs.cx, (char**)args, 1);
+    Nidium::Binding::JSProcess::RegisterObject(njs.cx, (char**)args, 1);
 
     rval = JSVAL_VOID;
     success = JS_GetProperty(njs.cx, globObj, "process", &rval);
@@ -35,7 +35,7 @@ TEST(JSProcess, Simple)
     JS_GetProperty(njs.cx, obj, "argv", &argv);
     EXPECT_TRUE(JSVAL_IS_VOID(argv) == false);
 
-    JSProcess *jproc = NULL;
+    Nidium::Binding::JSProcess *jproc = NULL;
     jproc = (Nidium::Binding::JSProcess*)JS_GetPrivate(obj);
     EXPECT_TRUE(jproc != NULL);
 
@@ -47,12 +47,12 @@ TEST(JSProcess, Simple)
     EXPECT_TRUE(strcmp(cstr, "nidium") == 0);
     free(cstr);
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 
 TEST(JSProcess, Init)
 {
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     Nidium::Binding::NidiumJS njs(g_ape);
 
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
@@ -64,6 +64,6 @@ TEST(JSProcess, Init)
     EXPECT_TRUE(strcmp(np.GetJSObjectName(), "process") == 0);
     EXPECT_TRUE(np.jsclass != NULL);
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 

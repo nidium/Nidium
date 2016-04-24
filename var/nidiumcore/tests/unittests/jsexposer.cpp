@@ -16,7 +16,7 @@ static const char * srcFun = "function counterInc() {counter++;};";
 
 TEST(JSExposer, Event)
 {
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     Nidium::Binding::NidiumJS njs(g_ape);
 
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
@@ -32,12 +32,12 @@ TEST(JSExposer, Event)
     EXPECT_TRUE(ne.next == NULL);
     EXPECT_TRUE(ne.prev == NULL);
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 
 TEST(JSExposer, Events)
 {
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     Nidium::Binding::NidiumJS njs(g_ape);
     char * name = strdup("dummy");
 
@@ -53,13 +53,13 @@ TEST(JSExposer, Events)
     EXPECT_TRUE(strcmp(nes.m_Name, name) == 0);
 
     free(name);
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 TEST(JSExposer, Exposer)
 {
 
 }
-
+/*
 class Dummy;
 
 class Dummy : public Nidium::Binding::JSObjectMapper<Dummy>{
@@ -74,7 +74,7 @@ public:
 
 TEST(JSExposer, ObjectMapper)
 {
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     Nidium::Binding::NidiumJS njs(g_ape);
 
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
@@ -86,12 +86,13 @@ TEST(JSExposer, ObjectMapper)
     EXPECT_TRUE(dummy != NULL);
     EXPECT_EQ(dummy->counter, 1);
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
+*/
 
 TEST(JSExposer, ObjectBuilder)
 {
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     Nidium::Binding::NidiumJS njs(g_ape);
     JS::RootedValue rval(njs.cx);
 
@@ -138,12 +139,12 @@ TEST(JSExposer, ObjectBuilder)
     ob.set("bool", true);
     JS_GetProperty(njs.cx, obj, "bool", &rval);
     EXPECT_TRUE(true == JSVAL_TO_BOOLEAN(rval));
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 
 TEST(JSExposer, ObjectBuilderObj)
 {
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     Nidium::Binding::NidiumJS njs(g_ape);
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     JS::RootedObject jsobj(njs.cx, JS_NewObject(njs.cx, NULL, JS::NullPtr(), JS::NullPtr()));
@@ -156,6 +157,6 @@ TEST(JSExposer, ObjectBuilderObj)
     JS_GetProperty(njs.cx, obj, "tst", &rval);
     EXPECT_TRUE(12 == JSVAL_TO_INT(rval));
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 

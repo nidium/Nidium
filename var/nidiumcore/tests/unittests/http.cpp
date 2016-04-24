@@ -51,7 +51,7 @@ TEST(Http, Request)
 TEST(Http, Http)
 {
     Nidium::Net::HTTPRequest *request;
-    ape_global *g_ape = native_netlib_init();
+    ape_global *g_ape = APE_init();
     Nidium::Net::HTTP nm(g_ape);
     nm.http.headers.list = ape_array_new(1); // this should happen in the constructor....
 
@@ -62,7 +62,7 @@ TEST(Http, Http)
     EXPECT_EQ(nm.m_Timeout, HTTP_DEFAULT_TIMEOUT);
     EXPECT_EQ(nm.m_TimeoutTimer, 0);
     EXPECT_TRUE(nm.delegate == NULL);
-    EXPECT_TRUE(nm.native_http_data_type == Nidium::Net::HTTP::DATA_NULL);
+    EXPECT_TRUE(nm.nidium_http_data_type == Nidium::Net::HTTP::DATA_NULL);
 
     nm.parsing(true);
     EXPECT_TRUE(nm.isParsing() == true);

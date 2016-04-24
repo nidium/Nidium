@@ -14,7 +14,7 @@
 
 TEST(JSModules, ModulesSimple)
 {
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     Nidium::Binding::NidiumJS njs(g_ape);
     Nidium::Binding::JSModules modules(njs.cx);
     EXPECT_TRUE(modules.main == NULL);
@@ -24,12 +24,12 @@ TEST(JSModules, ModulesSimple)
     modules.init();
     EXPECT_TRUE(modules.main != NULL);
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 
 TEST(JSModules, ModuleSimple)
 {
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     Nidium::Binding::NidiumJS njs(g_ape);
     Nidium::Binding::JSModules modules(njs.cx);
     Nidium::Binding::JSModule module(njs.cx, &modules, NULL, "dummy");
@@ -42,6 +42,6 @@ TEST(JSModules, ModuleSimple)
     EXPECT_TRUE(module.parent == NULL);
     EXPECT_TRUE(module.modules == &modules);
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 

@@ -13,7 +13,7 @@
 
 TEST(JSFileIO, Simple)
 {
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     Nidium::Binding::NidiumJS njs(g_ape);
     bool success;
 
@@ -30,12 +30,12 @@ TEST(JSFileIO, Simple)
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 
 TEST(JSFileIO, Init)
 {
-    ape_global * g_ape = native_netlib_init();
+    ape_global * g_ape = APE_init();
     Nidium::Binding::NidiumJS njs(g_ape);
 
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
@@ -48,6 +48,6 @@ TEST(JSFileIO, Init)
 
     EXPECT_TRUE(file.m_Encoding == NULL);
 
-    native_netlib_destroy(g_ape);
+    APE_destroy(g_ape);
 }
 

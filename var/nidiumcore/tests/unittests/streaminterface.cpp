@@ -8,8 +8,7 @@
 
 #include "unittest.h"
 
-#include <IO/StreamInterface.h>
-
+#include <IO/Stream.h>
 
 class DummyStream: public Nidium::IO::Stream
 {
@@ -17,10 +16,7 @@ public:
     int counter;
     DummyStream(const char * location): Nidium::IO::Stream(location) {
         counter = 0;
-        Nidium::IO::Stream::create(location);
-    }
-    DummyStream(const Nidium::Core::Path &path): Nidium::IO::Stream(path) {
-        counter = 0;
+        Nidium::IO::Stream::Create(location);
     }
     void stop() {
         counter = 10;
@@ -71,7 +67,7 @@ TEST(StreamInterface, Base)
     EXPECT_EQ(error, 0);
     EXPECT_EQ(len, 0);
 
-    class Nidium::Core::Messages listerer;
-    setListener(listener);
+    //class Nidium::Core::Messages listerer;
+    //setListener(listener);
 }
 

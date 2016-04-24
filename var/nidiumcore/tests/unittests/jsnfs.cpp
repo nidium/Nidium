@@ -9,31 +9,28 @@
 #include "unittest.h"
 
 #include <ape_netlib.h>
-#include <Binding/NidiumJS.h>
-#include <Binding/JSFS.h>
+#include <Binding/JSConsole.h>
 
-TEST(JSFS, Simple)
+TEST(JSNFS, Simple)
 {
     ape_global * g_ape = APE_init();
     Nidium::Binding::NidiumJS njs(g_ape);
-    bool success;
-
-    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    //bool success;
     JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = JS_GetProperty(njs.cx, globObj, "fs", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSFS::RegisterObject(njs.cx);
+    /*JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
+    JS::RootedValue rval(njs.cx, JSVAL_VOID);
+    success = JS_GetProperty(njs.cx, globObj, "nfs", &rval);
+    EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
+
+    Nidium::Binding::JSNFS::RegisterObject(njs.cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globObj, "fs", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "nfs", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
-
-    rval = JSVAL_VOID;
-    JS::RootedObject obj(njs.cx, JSVAL_TO_OBJECT(rval));
-    JS_GetProperty(njs.cx, obj, "readDir", &rval);
-    EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
+*/
 
     APE_destroy(g_ape);
 }

@@ -60,9 +60,9 @@ TEST(TaksManager,  TaskManager)
 {
     int i;
     Nidium::Core::TaskManager::workerInfo * wi;
-    Nidium::Core::TaskManager *tm = Nidium::Core::TaskManager::getManager();
+    Nidium::Core::TaskManager *tm = Nidium::Core::TaskManager::GetManager();
 
-    tm->createManager();
+    tm->CreateManager();
     i = tm->createWorker();
     EXPECT_EQ(i, 1);
 

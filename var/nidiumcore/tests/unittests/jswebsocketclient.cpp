@@ -6,11 +6,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <ape_netlib.h>
+
 #include "unittest.h"
 
-#include <Binding/JSWebSocket.h>
+#include <Binding/JSWebSocketClient.h>
 
-TEST(JSWebsocket, Simple)
+TEST(JSWebsocketClient, Simple)
 {
     ape_global * g_ape = APE_init();
     Nidium::Binding::NidiumJS njs(g_ape);
@@ -18,37 +20,25 @@ TEST(JSWebsocket, Simple)
 
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = JS_GetProperty(njs.cx, globObj, "WebSocketServer", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "WebSocket", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
-    success = JS_GetProperty(njs.cx, globObj, "WebSocketServerClient", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "WebSocket", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSWebSocketServer::RegisterObject(njs.cx);
+    Nidium::Binding::JSWebSocket::RegisterObject(njs.cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globObj, "WebSocketServer", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "WebSocket", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globObj, "WebSocketServerClient", &rval);
+    success = JS_GetProperty(njs.cx, globObj, "WebSocket", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
     ape_running = 0;
     APE_loop_run(g_ape);
     APE_destroy(g_ape);
-}
-
-TEST(JSWebsocket, Init)
-{
-    ape_global * g_ape = APE_init();
-    Nidium::Binding::NidiumJS njs(g_ape);
-
-    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    Nidium::Binding::JSWebSocketServer nws(globObj, njs.cx, "0.0.0.0", 8888);
-
-    EXPECT_TRUE(nws.getJSObject() == globObj);
-    EXPECT_TRUE(nws.getJSContext() == njs.cx);
 }
 
