@@ -158,19 +158,19 @@ static JSFunctionSpec window_funcs[] = {
 
 static struct native_cursors {
     const char *str;
-    NativeUIInterface::CURSOR_TYPE type;
+    Nidium::Interface::NativeUIInterface::CURSOR_TYPE type;
 } native_cursors_list[] = {
-    {"default",             NativeUIInterface::ARROW},
-    {"arrow",               NativeUIInterface::ARROW},
-    {"beam",                NativeUIInterface::BEAM},
-    {"text",                NativeUIInterface::BEAM},
-    {"pointer",             NativeUIInterface::POINTING},
-    {"grabbing",            NativeUIInterface::CLOSEDHAND},
-    {"drag",                NativeUIInterface::CLOSEDHAND},
-    {"hidden",              NativeUIInterface::HIDDEN},
-    {"none",                NativeUIInterface::HIDDEN},
-    {"col-resize",          NativeUIInterface::RESIZELEFTRIGHT},
-    {NULL,                  NativeUIInterface::NOCHANGE},
+    {"default",             Nidium::Interface::NativeUIInterface::ARROW},
+    {"arrow",               Nidium::Interface::NativeUIInterface::ARROW},
+    {"beam",                Nidium::Interface::NativeUIInterface::BEAM},
+    {"text",                Nidium::Interface::NativeUIInterface::BEAM},
+    {"pointer",             Nidium::Interface::NativeUIInterface::POINTING},
+    {"grabbing",            Nidium::Interface::NativeUIInterface::CLOSEDHAND},
+    {"drag",                Nidium::Interface::NativeUIInterface::CLOSEDHAND},
+    {"hidden",              Nidium::Interface::NativeUIInterface::HIDDEN},
+    {"none",                Nidium::Interface::NativeUIInterface::HIDDEN},
+    {"col-resize",          Nidium::Interface::NativeUIInterface::RESIZELEFTRIGHT},
+    {NULL,                  Nidium::Interface::NativeUIInterface::NOCHANGE},
 };
 
 static JSPropertySpec window_props[] = {
@@ -641,7 +641,7 @@ static void Storage_Finalize(JSFreeOp *fop, JSObject *obj)
 static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
-    NativeUIInterface *NUI = Nidium::NML::NativeContext::GetObject(m_Cx)->getUI();
+    Nidium::Interface::NativeUIInterface *NUI = Nidium::NML::NativeContext::GetObject(m_Cx)->getUI();
 
     switch (id) {
         case WINDOW_PROP_DEVICE_PIXELRATIO:
@@ -700,7 +700,7 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
 static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
-    NativeUIInterface *NUI = Nidium::NML::NativeContext::GetObject(cx)->getUI();
+    Nidium::Interface::NativeUIInterface *NUI = Nidium::NML::NativeContext::GetObject(cx)->getUI();
     switch(id) {
         case WINDOW_PROP_LEFT:
         {
@@ -980,7 +980,7 @@ static bool native_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Val
 
     JSAutoByteString curl(cx, url);
 
-    NativeSystemInterface::getInstance()->openURLInBrowser(curl.ptr());
+    Nidium::Interface::NativeSystemInterface::getInstance()->openURLInBrowser(curl.ptr());
 
     return true;
 }
@@ -995,7 +995,7 @@ static bool native_window_exec(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     JSAutoByteString curl(cx, url);
-    const char *ret = NativeSystemInterface::getInstance()->execute(curl.ptr());
+    const char *ret = Nidium::Interface::NativeSystemInterface::getInstance()->execute(curl.ptr());
 
     JS::RootedString retStr(cx, JS_NewStringCopyZ(cx, ret));
     args.rval().setString(retStr);
@@ -1019,7 +1019,7 @@ static bool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value 
     Nidium::NML::NativeContext::GetObject(cx)->getUI()->openFileDialog(
         NULL,
         native_window_openfilecb, nof,
-        NativeUIInterface::kOpenFile_CanChooseDir);
+        Nidium::Interface::NativeUIInterface::kOpenFile_CanChooseDir);
 
     return true;
 }
@@ -1069,7 +1069,7 @@ static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
     Nidium::NML::NativeContext::GetObject(cx)->getUI()->openFileDialog(
         (const char **)ctypes,
         native_window_openfilecb, nof,
-        NativeUIInterface::kOpenFile_CanChooseFile | NativeUIInterface::kOpenFile_AlloMultipleSelection);
+        Nidium::Interface::NativeUIInterface::kOpenFile_CanChooseFile | Nidium::Interface::NativeUIInterface::kOpenFile_AlloMultipleSelection);
 
     if (ctypes) {
         for (int i = 0; i < len; i++) {
@@ -1135,14 +1135,14 @@ static bool native_window_notify(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString cbody;
     cbody.encodeUtf8(cx, body);
 
-    NativeSystemInterface::getInstance()->sendNotification(ctitle.ptr(), cbody.ptr(), sound);
+    Nidium::Interface::NativeSystemInterface::getInstance()->sendNotification(ctitle.ptr(), cbody.ptr(), sound);
 
     return true;
 }
 
 static bool native_window_quit(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NativeUIInterface *NUI = Nidium::NML::NativeContext::GetObject(cx)->getUI();
+    Nidium::Interface::NativeUIInterface *NUI = Nidium::NML::NativeContext::GetObject(cx)->getUI();
 
     NUI->quit();
 
@@ -1151,7 +1151,7 @@ static bool native_window_quit(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_window_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NativeUIInterface *NUI = Nidium::NML::NativeContext::GetObject(cx)->getUI();
+    Nidium::Interface::NativeUIInterface *NUI = Nidium::NML::NativeContext::GetObject(cx)->getUI();
 
     NUI->hideWindow();
 
@@ -1160,7 +1160,7 @@ static bool native_window_close(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool native_window_open(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NativeUIInterface *NUI = Nidium::NML::NativeContext::GetObject(cx)->getUI();
+    Nidium::Interface::NativeUIInterface *NUI = Nidium::NML::NativeContext::GetObject(cx)->getUI();
 
     NUI->showWindow();
 
@@ -1171,7 +1171,7 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
 {
     NIDIUM_JS_CHECK_ARGS("setSystemTray", 1);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    NativeUIInterface *NUI = Nidium::NML::NativeContext::GetObject(cx)->getUI();
+    Nidium::Interface::NativeUIInterface *NUI = Nidium::NML::NativeContext::GetObject(cx)->getUI();
     JS::RootedObject jobj(cx, &args[0].toObject());
     if (!jobj.get()) {
         NUI->disableSysTray();
@@ -1180,7 +1180,7 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
 
     NIDIUM_JS_INIT_OPT();
 
-    NativeSystemMenu &menu = NUI->getSystemMenu();
+    Nidium::Interface::NativeSystemMenu &menu = NUI->getSystemMenu();
     menu.deleteItems();
 
     NIDIUM_JS_GET_OPT_TYPE(jobj, "icon", Object) {
@@ -1209,7 +1209,7 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
                 JS_GetElement(cx, arr, i, &val);
                 if (val.isObject()) {
                     JS::RootedObject valObj(cx, &val.toObject());
-                    NativeSystemMenuItem *menuItem = new NativeSystemMenuItem();
+                    Nidium::Interface::NativeSystemMenuItem *menuItem = new Nidium::Interface::NativeSystemMenuItem();
                     NIDIUM_JS_GET_OPT_TYPE(valObj, "title", String) {
 
                         JSAutoByteString ctitle;

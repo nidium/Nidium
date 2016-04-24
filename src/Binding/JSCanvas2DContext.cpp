@@ -2258,7 +2258,7 @@ uint32_t NativeCanvas2DContext::attachShader(const char *string)
     uint32_t program = this->createProgram(string);
 
     if (program) {
-        NativeUIInterface *ui = m_GLState->getNativeGLContext()->getUI();
+        Nidium::Interface::NativeUIInterface *ui = m_GLState->getNativeGLContext()->getUI();
         /* Destroy the old context (if it's not shared) */
         m_GLState->destroy();
         /* Create a new state without program */
@@ -2341,11 +2341,11 @@ void NativeCanvas2DContext::setSize(int width, int height, bool redraw)
     SkBaseDevice *ndev = NULL;
     SkCanvas *ncanvas;
 
-    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     if (m_Skia->m_NativeCanvasBindMode == Nidium::Graphics::NativeSkia::BIND_GL) {
         if ((ncanvas = Nidium::Graphics::NativeSkia::createGLCanvas(width, height,
-            __NativeUI->getNativeContext())) == NULL) {
+            Nidium::Interface::__NativeUI->getNativeContext())) == NULL) {
             NLOG("[Error] Couldnt resize the canvas to %dx%d", width, height);
             return;
         }
@@ -2393,7 +2393,7 @@ void NativeCanvas2DContext::translate(double x, double y)
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(Nidium::Graphics::NativeCanvasHandler *handler,
-    JSContext *cx, int width, int height, NativeUIInterface *ui) :
+    JSContext *cx, int width, int height, Nidium::Interface::NativeUIInterface *ui) :
     Nidium::Graphics::NativeCanvasContext(handler),
     m_SetterDisabled(false), m_CurrentState(NULL)
 {
@@ -2423,7 +2423,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(Nidium::Graphics::NativeCanvasHandl
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(Nidium::Graphics::NativeCanvasHandler *handler,
-    int width, int height, NativeUIInterface *ui, bool isGL) :
+    int width, int height, Nidium::Interface::NativeUIInterface *ui, bool isGL) :
     Nidium::Graphics::NativeCanvasContext(handler), m_SetterDisabled(false)
 {
     m_Mode = CONTEXT_2D;

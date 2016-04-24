@@ -2849,7 +2849,7 @@ NGL_JS_FN(WebGLRenderingContext_viewport)
 //{
     GLint x, y, w, h;
 
-    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     if (!JS_ConvertArguments(cx, args, "iiii", &x, &y, &w, &h)) {
         return false;

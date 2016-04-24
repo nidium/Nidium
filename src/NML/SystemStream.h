@@ -75,7 +75,7 @@ public:
     }
 
     static const char *getBaseDir() {
-        return NativeSystemInterface::getInstance()->getUserDirectory();
+        return Nidium::Interface::NativeSystemInterface::getInstance()->getUserDirectory();
     }
 };
 

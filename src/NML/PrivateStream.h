@@ -53,7 +53,7 @@ public:
     }
 
     static const char *getBaseDir() {
-        return NativeSystemInterface::getInstance()->getPrivateDirectory();
+        return Nidium::Interface::NativeSystemInterface::getInstance()->getPrivateDirectory();
     }
 };
 

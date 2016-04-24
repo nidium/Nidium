@@ -9,17 +9,16 @@
 #include "Binding/JSImage.h"
 
 class SkCanvas;
-class NativeUIInterface;
 
 namespace Nidium {
+    namespace Interface {
+        class NativeUIInterface;
+    }
     namespace Graphics {
         struct NativeRect;
         class NativeSkia;
         class NativeCanvasHandler;
     }
-}
-
-namespace Nidium {
 namespace Binding {
 
 /*
@@ -132,10 +131,10 @@ class NativeCanvas2DContext : public Graphics::NativeCanvasContext
         static void registerObject(JSContext *cx);
 
         NativeCanvas2DContext(Graphics::NativeCanvasHandler *handler,
-            int width, int height, NativeUIInterface *ui, bool isGL = true);
+            int width, int height, Interface::NativeUIInterface *ui, bool isGL = true);
 
         NativeCanvas2DContext(Graphics::NativeCanvasHandler *handler,
-            struct JSContext *cx, int width, int height, NativeUIInterface *ui);
+            struct JSContext *cx, int width, int height, Interface::NativeUIInterface *ui);
 
         virtual ~NativeCanvas2DContext();
     private:

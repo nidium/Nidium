@@ -1,6 +1,12 @@
+#ifndef interface_osx_uiconsole_h__
+#define interface_osx_uiconsole_h__
+
 #import "UIInterface.h"
 
 #import <Cocoa/Cocoa.h>
+
+namespace Nidium {
+namespace Interface {
 
 @interface NativeConsole : NSObject
 {
@@ -35,4 +41,9 @@ class NativeUICocoaConsole : public NativeUIInterface::NativeUIConsole
         NativeConsole *m_Window;
         bool m_NeedFlush;
 };
+
+} // namespace Nidium
+} // namespace Interface
+
+#endif
 

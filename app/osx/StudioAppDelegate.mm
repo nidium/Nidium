@@ -9,8 +9,8 @@
 
 #define NIDIUM_DISPATCH_MAINTHREAD 0
 
-NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
-NativeUIInterface *__NativeUI;
+Nidium::Interface::NativeSystemInterface *NativeSystemInterface::_interface = new Nidium::Interface::NativeSystem();
+Nidium::Interface::NativeUIInterface *__NativeUI;
 
 
 int _nativebuild = 1002;

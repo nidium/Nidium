@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <ape_pool.h>
+#include <ape_netlib.h>
 
 #include <GLSLANG/ShaderLang.h>
 
@@ -14,9 +15,10 @@
 #include "NML/Types.h"
 #include "Graphics/GLResources.h"
 
-class NativeUIInterface;
-
 namespace Nidium {
+    namespace Interface {
+        class NativeUIInterface;
+    }
     namespace Net {
         class WebSocketServer;
         class WebSocketClientConnection;
@@ -36,7 +38,6 @@ namespace NML {
 
 class NativeNML;
 
-typedef struct _ape_global ape_global;
 
 struct NativeJobQueue {
     void (*job)(void *arg);
@@ -130,11 +131,11 @@ class NativeContext : public Nidium::Core::Messages
 
     friend class Nidium::Graphics::NativeCanvasHandler;
 
-    NativeContext(NativeUIInterface *nui, NativeNML *nml,
+    NativeContext(Nidium::Interface::NativeUIInterface *nui, NativeNML *nml,
         int width, int height, ape_global *net);
     ~NativeContext();
 
-    NativeUIInterface *getUI() const {
+    Nidium::Interface::NativeUIInterface *getUI() const {
         return m_UI;
     }
     Nidium::Graphics::NativeCanvasHandler *getRootHandler() const {
@@ -246,7 +247,7 @@ class NativeContext : public Nidium::Core::Messages
         return m_CurrentClickedHandler;
     }
 
-    static void CreateAndAssemble(NativeUIInterface *ui, ape_global *gnet);
+    static void CreateAndAssemble(Nidium::Interface::NativeUIInterface *ui, ape_global *gnet);
 
     private:
     Nidium::Graphics::NativeGLResources         m_Resources;
@@ -256,7 +257,7 @@ class NativeContext : public Nidium::Core::Messages
 #ifdef DEBUG
     Nidium::Graphics::NativeCanvasHandler *     m_Debug2Handler;
 #endif
-    NativeUIInterface *       m_UI;
+    Nidium::Interface::NativeUIInterface *       m_UI;
     NativeNML *               m_NML;
     Nidium::Graphics::NativeGLState *           m_GLState;
     Nidium::Net::WebSocketServer * m_WS;

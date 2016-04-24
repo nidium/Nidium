@@ -5,6 +5,7 @@
 
 #include <zip.h>
 #include <jsoncpp.h>
+
 #include <ape_timers_next.h>
 
 #include <Binding/NidiumJS.h>
@@ -22,7 +23,7 @@ public:
 
     NativeApp(const char *path);
     int open();
-    void runWorker(struct _ape_global *net);
+    void runWorker(ape_global *net);
     uint64_t extractFile(const char *path, NativeAppExtractCallback cb, void *user);
     int extractApp(const char *path, void (*done)(void *, const char *), void *closure);
     ~NativeApp();

@@ -45,21 +45,21 @@ enum {
 
 int NativeContext_Logger(const char *format)
 {
-    __NativeUI->log(format);
+    Nidium::Interface::__NativeUI->log(format);
 
     return 0;
 }
 
 int NativeContext_vLogger(const char *format, va_list ap)
 {
-    __NativeUI->vlog(format, ap);
+    Nidium::Interface::__NativeUI->vlog(format, ap);
 
     return 0;
 }
 
 int NativeContext_LogClear()
 {
-    __NativeUI->logclear();
+    Nidium::Interface::__NativeUI->logclear();
 
     return 0;
 }
@@ -79,12 +79,12 @@ void NativeContext::initStats()
     memset(m_Stats.samples, 0, sizeof(m_Stats.samples));
 }
 
-void NativeContext::CreateAndAssemble(NativeUIInterface *ui, ape_global *gnet)
+void NativeContext::CreateAndAssemble(Nidium::Interface::NativeUIInterface *ui, ape_global *gnet)
 {
     new NativeContext(ui, ui->m_Nml, ui->getWidth(), ui->getHeight(), gnet);
 }
 
-NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
+NativeContext::NativeContext(Nidium::Interface::NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
     m_RootHandler(NULL), m_DebugHandler(NULL),
 #if DEBUG

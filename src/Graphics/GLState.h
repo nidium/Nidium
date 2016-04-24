@@ -9,9 +9,10 @@
 #include "Graphics/GLResources.h"
 #include "Graphics/GLContext.h"
 
-class NativeUIInterface;
-
 namespace Nidium {
+    namespace Interface {
+        class NativeUIInterface;
+    }
 namespace Graphics {
 
 class NativeGLState
@@ -19,7 +20,7 @@ class NativeGLState
 
 public:
 
-    NativeGLState(NativeUIInterface *ui,
+    NativeGLState(Nidium::Interface::NativeUIInterface *ui,
         bool withProgram = true, bool webgl = false);
     ~NativeGLState();
 

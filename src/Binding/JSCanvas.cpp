@@ -28,19 +28,19 @@ extern JSClass Canvas2DContext_class;
 
 static struct native_cursors {
     const char *str;
-    NativeUIInterface::CURSOR_TYPE type;
+    Nidium::Interface::NativeUIInterface::CURSOR_TYPE type;
 } native_cursors_list[] = {
-    {"default",             NativeUIInterface::ARROW},
-    {"arrow",               NativeUIInterface::ARROW},
-    {"beam",                NativeUIInterface::BEAM},
-    {"text",                NativeUIInterface::BEAM},
-    {"pointer",             NativeUIInterface::POINTING},
-    {"grabbing",            NativeUIInterface::CLOSEDHAND},
-    {"drag",                NativeUIInterface::CLOSEDHAND},
-    {"hidden",              NativeUIInterface::HIDDEN},
-    {"none",                NativeUIInterface::HIDDEN},
-    {"col-resize",          NativeUIInterface::RESIZELEFTRIGHT},
-    {NULL,                  NativeUIInterface::NOCHANGE},
+    {"default",             Nidium::Interface::NativeUIInterface::ARROW},
+    {"arrow",               Nidium::Interface::NativeUIInterface::ARROW},
+    {"beam",                Nidium::Interface::NativeUIInterface::BEAM},
+    {"text",                Nidium::Interface::NativeUIInterface::BEAM},
+    {"pointer",             Nidium::Interface::NativeUIInterface::POINTING},
+    {"grabbing",            Nidium::Interface::NativeUIInterface::CLOSEDHAND},
+    {"drag",                Nidium::Interface::NativeUIInterface::CLOSEDHAND},
+    {"hidden",              Nidium::Interface::NativeUIInterface::HIDDEN},
+    {"none",                Nidium::Interface::NativeUIInterface::HIDDEN},
+    {"col-resize",          Nidium::Interface::NativeUIInterface::RESIZELEFTRIGHT},
+    {NULL,                  Nidium::Interface::NativeUIInterface::NOCHANGE},
 };
 
 enum {
@@ -673,7 +673,7 @@ static bool native_canvas_getContext(JSContext *cx, unsigned argc,
     NIDIUM_JS_CHECK_ARGS("getContext", 1);
 
     Nidium::NML::NativeContext *nctx = Nidium::NML::NativeContext::GetObject(cx);
-    NativeUIInterface *ui = nctx->getUI();
+    Nidium::Interface::NativeUIInterface *ui = nctx->getUI();
 
     JS::RootedString mode(cx, args[0].toString());
     JSAutoByteString cmode(cx, mode);
@@ -1525,7 +1525,7 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
 {
     Nidium::Graphics::NativeCanvasHandler *handler;
     Nidium::NML::NativeContext *nctx = Nidium::NML::NativeContext::GetObject(cx);
-    NativeUIInterface *ui = nctx->getUI();
+    Nidium::Interface::NativeUIInterface *ui = nctx->getUI();
 
     JS::RootedObject ret(cx, JS_NewObject(cx, &Canvas_class, JS::NullPtr(), JS::NullPtr()));
     JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit",

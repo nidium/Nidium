@@ -1,7 +1,10 @@
-#ifndef nidium_x11uiinterface_h__
-#define nidium_x11uiinterface_h__
+#ifndef interface_linux_x11uiinterface_h__
+#define interface_linux_x11uiinterface_h__
 
 #include "UIInterface.h"
+
+namespace Nidium {
+namespace Interface {
 
 class NativeUIX11Console : public NativeUIInterface::NativeUIConsole
 {
@@ -67,6 +70,9 @@ class NativeX11UIInterface : public NativeUIInterface
         bool createWindow(int width, int height);
         NativeUIX11Console *console;
 };
+
+} // namespace Nidium
+} // namespace Interface
 
 #endif
 

@@ -1,7 +1,10 @@
-#ifndef nidium_system_h__
-#define nidium_system_h__
+#ifndef interface_linux_system_h__
+#define interface_linux_system_h__
 
 #include "SystemInterface.h"
+
+namespace Nidium {
+namespace Interface {
 
 class NativeSystem : public NativeSystemInterface
 {
@@ -18,6 +21,9 @@ class NativeSystem : public NativeSystemInterface
     private:
         bool m_SystemUIReady;
 };
+
+} // namespace Nidium
+} // namespace Interface
 
 #endif
 

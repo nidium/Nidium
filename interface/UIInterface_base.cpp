@@ -12,6 +12,9 @@
 #include "NML/Context.h"
 #include "Graphics/OpenGLHeader.h"
 
+namespace Nidium {
+namespace Interface {
+
 NativeUIInterface::NativeUIInterface() :
     m_CurrentCursor(NativeUIInterface::ARROW), m_NativeCtx(NULL), m_Nml(NULL),
     m_Win(NULL), m_Gnet(NULL), m_Width(0), m_Height(0), m_FilePath(NULL),
@@ -315,4 +318,7 @@ NativeSystemMenu::~NativeSystemMenu()
 {
     this->deleteItems();
 }
+
+} // namespace Nidium
+} // namespace Interface
 

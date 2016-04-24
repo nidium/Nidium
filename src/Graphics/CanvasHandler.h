@@ -15,9 +15,11 @@
     - All size are in logical pixels (device ratio is handled by NativeCanvasContext)
 */
 
-class NativeUIInterface;
 
 namespace Nidium {
+    namespace Interface {
+        class NativeUIInterface;
+    }
     namespace Binding {
         class NativeJSCanvas;
     }

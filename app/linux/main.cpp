@@ -10,8 +10,16 @@
 #include "X11UIInterface.h"
 #include "System.h"
 
-NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
-NativeUIInterface *__NativeUI;
+namespace Nidium {
+    namespace Interface {
+        class NativeSystemInterface;
+        class NativeUIInterface;
+        class NativeX11Interface;
+
+        NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
+        NativeUIInterface *__NativeUI;
+    }
+}
 
 
 int _nativebuild = 1002;
@@ -35,7 +43,7 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 
 int main(int argc, char **argv)
 {
-    NativeX11UIInterface UI;
+    Nidium::Interface::NativeX11UIInterface UI;
 
 #ifdef NATIVE_ENABLE_BREAKPAD
     google_breakpad::MinidumpDescriptor descriptor(UI.getCacheDirectory());
@@ -47,7 +55,7 @@ int main(int argc, char **argv)
             -1);
 #endif
 
-    __NativeUI = &UI;
+    Nidium::Interface::__NativeUI = &UI;
     _ape_seed = time(NULL) ^ (getpid() << 16);
     if (getcwd(_root, PATH_MAX)) {
         int l = strlen(_root);

@@ -1,7 +1,10 @@
-#ifndef nidium_systeminterface_h__
-#define nidium_systeminterface_h__
+#ifndef interface_systeminterface_h__
+#define interface_systeminterface_h__
 
 #include <stdlib.h>
+
+namespace Nidium {
+namespace Interface {
 
 class NativeSystem;
 
@@ -41,6 +44,9 @@ class NativeSystemInterface
     protected:
         float m_fBackingStorePixelRatio;
 };
+
+} // namespace Nidium
+} // namespace Interface
 
 #endif
 

@@ -1,20 +1,24 @@
-#ifndef nidium_uiinterface_h__
-#define nidium_uiinterface_h__
+#ifndef interface_uiinterface_h__
+#define interface_uiinterface_h__
 
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
+#include <ape_netlib.h>
+
 #define NATIVE_WINDOWPOS_UNDEFINED_MASK   0xFFFFFFF0
 #define NATIVE_WINDOWPOS_CENTER_MASK   0xFFFFFFF1
+
+struct SDL_Window; //FIXME: This is not correct
 
 namespace Nidium {
     namespace NML {
         class NativeContext;
         class NativeNML;
     }
-}
+namespace Interface {
 
 class NativeUIInterface;
 
@@ -133,8 +137,8 @@ class NativeUIInterface
 
         Nidium::NML::NativeContext *m_NativeCtx;
         Nidium::NML::NativeNML *m_Nml;
-        struct SDL_Window *m_Win;
-        struct _ape_global *m_Gnet;
+        SDL_Window *m_Win;
+        ape_global *m_Gnet;
         int m_Argc = 0;
         char **m_Argv = nullptr;
 
@@ -268,6 +272,9 @@ class NativeUIInterface
         SDL_GLContext m_MainGLCtx;
         NativeSystemMenu m_SystemMenu;
 };
+
+} // namespace Nidium
+} // namespace Interface
 
 #endif
 

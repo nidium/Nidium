@@ -64,7 +64,7 @@ static JSFunctionSpec document_funcs[] = {
 
 struct _native_document_restart_async
 {
-    NativeUIInterface *ui;
+    Nidium::Interface::NativeUIInterface *ui;
     char *location;
 };
 
@@ -268,7 +268,7 @@ static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativeUIInterface *NUI = Nidium::NML::NativeContext::GetObject(cx)->getUI();
+    Nidium::Interface::NativeUIInterface *NUI = Nidium::NML::NativeContext::GetObject(cx)->getUI();
     JSAutoByteString locationstr(cx, location);
 
     struct _native_document_restart_async *ndra = (struct _native_document_restart_async *)malloc(sizeof(*ndra));

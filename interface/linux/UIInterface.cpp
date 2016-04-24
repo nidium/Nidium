@@ -36,6 +36,9 @@
 
 #include "System.h"
 
+namespace Nidium {
+namespace Interface {
+
 #define kNativeWidth 1280
 #define kNativeHeight 600
 
@@ -773,4 +776,7 @@ void NativeX11UIInterface::vlog(const char *format, va_list ap)
 
     free(buff);
 }
+
+} // namespace Nidium
+} // namespace Interface
 

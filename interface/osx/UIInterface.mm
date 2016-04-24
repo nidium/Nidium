@@ -34,7 +34,6 @@
 
 #define kNativeVSYNC 1
 
-
 @interface NativeCocoaUIInterfaceWrapper: NSObject {
     NativeCocoaUIInterface *base;
 }

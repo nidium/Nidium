@@ -25,7 +25,7 @@ typedef void (*NMLLoadedCallback)(void *arg);
 class NativeNML : public Nidium::Core::Messages
 {
 public:
-    explicit NativeNML(ape_global *net);
+    explicit NativeNML(_ape_global *net);
     ~NativeNML();
 
     typedef enum {

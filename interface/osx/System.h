@@ -1,7 +1,10 @@
-#ifndef nidium_system_h__
-#define nidium_system_h__
+#ifndef interface_osx_system_h__
+#define interface_osx_system_h__
 
 #include "../NativeSystemInterface.h"
+
+namespace Nidium {
+namespace Interface {
 
 /*
     Enable Retina support
@@ -23,6 +26,9 @@ class NativeSystem : public NativeSystemInterface
         void sendNotification(const char *title, const char *content, bool sound = false);
         const char *execute(const char *cmd);
 };
+
+} // namespace Nidium
+} // namespace Interface
 
 #endif
 

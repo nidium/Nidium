@@ -1,7 +1,10 @@
-#ifndef nidium_uiinterface_h__
-#define nidium_uiinterface_h__
+#ifndef interface_terminal_uiinterface_h__
+#define interface_terminal_uiinterface_h__
 
 #include "UIInterface.h"
+
+namespace Nidium {
+namespace Interface {
 
 class NativeUITerminalConsole : public NativeUIInterface::NativeUIConsole
 {
@@ -49,6 +52,9 @@ class NativeTerminalUIInterface : public NativeUIInterface
     private:
         NativeUITerminalConsole *m_Console;
 };
+
+} // namespace Nidium
+} // namespace Interface
 
 #endif
 

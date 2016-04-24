@@ -4,9 +4,10 @@
 #include <Binding/JSExposer.h>
 #include <Core/Messages.h>
 
-class NativeUIInterface;
-
 namespace Nidium {
+    namespace Interface {
+        class NativeUIInterface;
+    }
     namespace Graphics {
         class NativeCanvasHandler;
     }

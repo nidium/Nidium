@@ -1,8 +1,14 @@
+#ifndef interface_osx_cocoauiinterface_h__
+#define interface_osx_cocoauiinterface_h__
+
 #include "UIInterface.h"
 
 #import <Cocoa/Cocoa.h>
 
 #include "UIConsole.h"
+
+namespace Nidium {
+namespace Interface {
 
 class NativeUICocoaConsole;
 
@@ -80,4 +86,9 @@ class NativeCocoaUIInterface : public NativeUIInterface
         NSStatusItem *m_StatusItem;
         NativeCocoaUIInterfaceWrapper *m_Wrapper;
 };
+
+} // namespace Nidium
+} // namespace Interface
+
+#endif
 

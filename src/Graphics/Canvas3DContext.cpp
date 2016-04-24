@@ -27,7 +27,7 @@ NativeCanvas3DContext::~NativeCanvas3DContext()
 }
 
 NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
-    JSContext *cx, int width, int height, NativeUIInterface *ui) :
+    JSContext *cx, int width, int height, Nidium::Interface::NativeUIInterface *ui) :
     NativeCanvasContext(handler), m_Flags(0)
 {
     m_Mode = CONTEXT_WEBGL;
@@ -43,7 +43,7 @@ NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
 
     JS_SetPrivate(m_JsObj, this);
 
-    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     m_Device.width = width * ratio;
     m_Device.height = height * ratio;
@@ -79,7 +79,7 @@ void NativeCanvas3DContext::setSize(int width, int height, bool redraw)
 
     this->cleanUp();
 
-    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     m_Device.width = width * ratio;
     m_Device.height = height * ratio;
@@ -192,7 +192,7 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
         Create a WebGL context with passthrough program
     */
     if (!m_GLState) {
-        m_GLState = new NativeGLState(__NativeUI, true, true);
+        m_GLState = new NativeGLState(Nidium::Interface::__NativeUI, true, true);
         m_GLState->setShared(false);
     }
 

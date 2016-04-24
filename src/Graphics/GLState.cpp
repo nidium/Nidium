@@ -10,7 +10,7 @@
 namespace Nidium {
 namespace Graphics {
 
-NativeGLState::NativeGLState(NativeUIInterface *ui, bool withProgram, bool webgl) :
+NativeGLState::NativeGLState(Nidium::Interface::NativeUIInterface *ui, bool withProgram, bool webgl) :
     m_Shared(true)
 {
     memset(&m_GLObjects, 0, sizeof(m_GLObjects));
@@ -26,7 +26,7 @@ NativeGLState::NativeGLState(NativeUIInterface *ui, bool withProgram, bool webgl
 NativeGLState::NativeGLState(Nidium::NML::NativeContext *nctx) :
     m_Shared(true)
 {
-    NativeUIInterface *ui = nctx->getUI();
+    Nidium::Interface::NativeUIInterface *ui = nctx->getUI();
 
     memset(&m_GLObjects, 0, sizeof(m_GLObjects));
     memset(&m_GLObjects.uniforms, -1, sizeof(m_GLObjects.uniforms));
@@ -36,7 +36,7 @@ NativeGLState::NativeGLState(Nidium::NML::NativeContext *nctx) :
 
 void NativeGLState::CreateForContext(Nidium::NML::NativeContext *nctx)
 {
-    NativeUIInterface *ui;
+    Nidium::Interface::NativeUIInterface *ui;
     if ((ui = nctx->getUI()) == NULL || ui->m_NativeCtx->getGLState()) {
         NLOG("Failed to init the first NativeGLState");
         return;

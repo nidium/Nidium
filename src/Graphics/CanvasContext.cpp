@@ -329,7 +329,7 @@ void NativeCanvasContext::setupShader(float opacity, int width, int height,
     uint32_t program = this->getProgram();
     NATIVE_GL_CALL_MAIN(UseProgram(program));
 
-    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     if (program > 0) {
         if (m_GLState->m_GLObjects.uniforms.u_opacity != -1) {
@@ -354,7 +354,7 @@ void NativeCanvasContext::preComposeOn(Nidium::Binding::NativeCanvas2DContext *l
     double zoom, const NativeRect *rclip)
 {
     bool revertScissor = false;
-    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     NativeSkia *skia = layer->getSurface();
     SkISize layerSize = skia->getCanvas()->getDeviceSize();

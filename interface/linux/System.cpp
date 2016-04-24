@@ -13,6 +13,9 @@
 
 #include "System.h"
 
+namespace Nidium {
+namespace Interface {
+
 static void get_dpi(int *x, int *y)
 {
     double xres, yres;
@@ -158,4 +161,7 @@ const char *NativeSystem::pwd()
 
     return dir;
 }
+
+} // namespace Nidium
+} // namespace Interface
 

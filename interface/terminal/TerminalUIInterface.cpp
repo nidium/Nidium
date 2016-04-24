@@ -11,6 +11,9 @@
 #include "App.h"
 #include "NML.h"
 
+namespace Nidium {
+namespace Interface {
+
 uint32_t ttfps = 0;
 
 static int NativeProcessUI(void *arg)
@@ -114,4 +117,7 @@ void NativeUITerminalConsole::flush()
 NativeUITerminalConsole::~NativeUITerminalConsole()
 {
 }
+
+} // namespace Nidium
+} // namespace Interface
 
