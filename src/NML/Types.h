@@ -18,20 +18,20 @@ typedef struct _NMLTag {
     } content;
 } NMLTag;
 
-typedef struct _NativeVertex {
+typedef struct _Vertex {
     float Position[3];
     float TexCoord[2];
     float Modifier[2];
-} NativeVertex;
+} Vertex;
 
-typedef struct _NativeVertices {
-    NativeVertex *vertices;
+typedef struct _Vertices {
+    Vertex *vertices;
     unsigned int *indices;
     unsigned int nvertices;
     unsigned int nindices;
-} NativeVertices;
+} Vertices;
 
-enum NativeContextType {
+enum ContextType {
     kSkia2D_ContextType,
     kWebGL_ContextType
 };

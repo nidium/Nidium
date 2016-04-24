@@ -55,7 +55,7 @@ public:
     struct {
         uint32_t vbo[2];
         uint32_t vao;
-        Nidium::NML::NativeVertices *vtx;
+        Nidium::NML::Vertices *vtx;
         uint32_t program;
         struct {
             int32_t u_projectionMatrix;

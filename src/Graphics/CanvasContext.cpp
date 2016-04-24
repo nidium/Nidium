@@ -79,7 +79,7 @@ uint32_t NativeCanvasContext::CompileShader(const char *data, int type)
     return shaderHandle;
 }
 
-Nidium::NML::NativeVertices *NativeCanvasContext::BuildVerticesStripe(int resolution)
+Nidium::NML::Vertices *NativeCanvasContext::BuildVerticesStripe(int resolution)
 {
     int x = resolution;
     int y = resolution;
@@ -91,16 +91,16 @@ Nidium::NML::NativeVertices *NativeCanvasContext::BuildVerticesStripe(int resolu
     float txstep = 1.  / ((float)x-1.);
     float tystep = 1.  / ((float)y-1.);
 
-    Nidium::NML::NativeVertices *info = (Nidium::NML::NativeVertices *)malloc(sizeof(Nidium::NML::NativeVertices));
+    Nidium::NML::Vertices *info = (Nidium::NML::Vertices *)malloc(sizeof(Nidium::NML::Vertices));
 
-    info->vertices = (Nidium::NML::NativeVertex *)malloc(sizeof(Nidium::NML::NativeVertex) * x * y);
+    info->vertices = (Nidium::NML::Vertex *)malloc(sizeof(Nidium::NML::Vertex) * x * y);
 
     info->nvertices = x*y;
 
     info->indices = (unsigned int *)malloc((sizeof(int) * x * y) * 2);
     info->nindices = 0;
 
-    Nidium::NML::NativeVertex *vert = info->vertices;
+    Nidium::NML::Vertex *vert = info->vertices;
     unsigned int *indices = info->indices;
 
     for (int i = 0; i < y; i++) {
@@ -429,7 +429,7 @@ bool NativeCanvasContext::validateCurrentFBO()
 /*
     TODO: implement
 */
-NativeCanvasContext *NativeCanvasContext::Create(Nidium::NML::NativeContextType type)
+NativeCanvasContext *NativeCanvasContext::Create(Nidium::NML::ContextType type)
 {
     switch (type) {
         case Nidium::NML::kWebGL_ContextType:
