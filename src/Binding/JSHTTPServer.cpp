@@ -126,7 +126,7 @@ bool JSHTTPServer::onEnd(HTTPClientConnection *client)
         if (data == NULL || data->used == 0) {
             strdata.setObjectOrNull(&JS_GetEmptyStringValue(m_Cx).toObject());
         } else {
-            JSUtils::strToJsval(m_Cx, (const char *)data->data,
+            JSUtils::StrToJsval(m_Cx, (const char *)data->data,
                 data->used, &strdata, "utf8");
         }
 
@@ -226,7 +226,7 @@ static bool nidium_httpresponse_write(JSContext *cx, unsigned argc, JS::Value *v
 
     NIDIUM_JS_CHECK_ARGS("write", 1);
 
-    JSHTTPResponse *resp = JSHTTPResponse::getObject(caller);
+    JSHTTPResponse *resp = JSHTTPResponse::GetObject(caller);
     if (!resp) {
         return true;
     }
@@ -261,7 +261,7 @@ static bool nidium_httpresponse_end(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
-    JSHTTPResponse *resp = JSHTTPResponse::getObject(caller);
+    JSHTTPResponse *resp = JSHTTPResponse::GetObject(caller);
     if (!resp) {
         return true;
     }
@@ -303,7 +303,7 @@ static bool nidium_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Valu
         return false;
     }
 
-    JSHTTPResponse *resp = JSHTTPResponse::getObject(caller);
+    JSHTTPResponse *resp = JSHTTPResponse::GetObject(caller);
     if (!resp) {
         return true;
     }
@@ -354,7 +354,7 @@ static void HTTPServer_Finalize(JSFreeOp *fop, JSObject *obj)
 // }}}
 
 // {{{ Registration
-void JSHTTPServer::registerObject(JSContext *cx)
+void JSHTTPServer::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_InitClass(cx, global, JS::NullPtr(), &HTTPServer_class,

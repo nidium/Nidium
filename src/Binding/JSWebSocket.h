@@ -21,7 +21,7 @@ public:
         const char *host, unsigned short port);
     ~JSWebSocketServer();
     bool start();
-    static void registerObject(JSContext *cx);
+    static void RegisterObject(JSContext *cx);
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 private:
     Nidium::Net::WebSocketServer *m_WebSocketServer;

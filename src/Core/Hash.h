@@ -51,9 +51,9 @@ class Hash64 : public NonCopyable
         }
 
         void setAutoDelete(bool val) {
-            hashtbl_set_cleaner(this->table, (val ? Hash64<T>::cleaner : NULL));
+            hashtbl_set_cleaner(this->table, (val ? Hash64<T>::Cleaner : NULL));
         }
-        static void cleaner(ape_htable_item_t *item) {
+        static void Cleaner(ape_htable_item_t *item) {
             delete (T)item->content.addrs;
         }
 
@@ -97,9 +97,9 @@ class Hash : public NonCopyable
         }
 
         void setAutoDelete(bool val) {
-            hashtbl_set_cleaner(this->table, (val ? Hash<T>::cleaner : NULL));
+            hashtbl_set_cleaner(this->table, (val ? Hash<T>::Cleaner : NULL));
         }
-        static void cleaner(ape_htable_item_t *item) {
+        static void Cleaner(ape_htable_item_t *item) {
             delete (T)item->content.addrs;
         }
         struct _ape_htable *accessCStruct() const {

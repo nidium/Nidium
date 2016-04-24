@@ -23,7 +23,7 @@ TEST(JSFileIO, Simple)
     success = JS_GetProperty(njs.cx, globObj, "File", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSFileIO::registerObject(njs.cx);
+    Nidium::Binding::JSFileIO::RegisterObject(njs.cx);
 
     rval = JSVAL_VOID;
     success = JS_GetProperty(njs.cx, globObj, "File", &rval);
@@ -39,7 +39,7 @@ TEST(JSFileIO, Init)
     Nidium::Binding::NidiumJS njs(g_ape);
 
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    //Nidium::Core::Path::registerScheme(SCHEME_DEFINE("file://", Nidium::IO::FileStream, false), true);
+    //Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("file://", Nidium::IO::FileStream, false), true);
 
     Nidium::Binding::JSFileIO file(globObj, njs.cx);
 

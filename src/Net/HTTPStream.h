@@ -19,18 +19,18 @@ public:
     explicit HTTPStream(const char *location);
     virtual ~HTTPStream();
 
-    static Nidium::IO::Stream *createStream(const char *location) {
+    static Nidium::IO::Stream *CreateStream(const char *location) {
         return new HTTPStream(location);
     }
-    static const char *getBaseDir() {
+    static const char *GetBaseDir() {
         return NULL;
     }
 
-    static bool allowLocalFileStream() {
+    static bool AllowLocalFileStream() {
         return false;
     }
 
-    static bool allowSyncStream() {
+    static bool AllowSyncStream() {
         return false;
     }
 

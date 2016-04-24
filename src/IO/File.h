@@ -98,7 +98,7 @@ public:
         return m_Fd;
     }
 
-    DIR *getDir() const {
+    DIR *GetDir() const {
         return m_Dir;
     }
 

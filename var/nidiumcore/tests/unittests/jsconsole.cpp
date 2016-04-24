@@ -22,7 +22,7 @@ TEST(JSConsole, Simple)
     success = JS_GetProperty(njs.cx, globObj, "console", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSConsole::registerObject(njs.cx);
+    Nidium::Binding::JSConsole::RegisterObject(njs.cx);
 
     rval = JSVAL_VOID;
     success = JS_GetProperty(njs.cx, globObj, "console", &rval);

@@ -17,8 +17,8 @@ class JSProcess : public JSExposer<JSProcess>
     JSProcess(JS::HandleObject obj, JSContext *cx) : JSExposer<JSProcess>(obj, cx), m_SignalFunction(cx) {};
     virtual ~JSProcess() {};
 
-    static void registerObject(JSContext *cx, char **argv, int argc, int workerId = 0);
-    static const char *getJSObjectName() {
+    static void RegisterObject(JSContext *cx, char **argv, int argc, int workerId = 0);
+    static const char *GetJSObjectName() {
         return "process";
     }
 

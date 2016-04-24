@@ -13,8 +13,8 @@
 TEST(FileStream, Simple)
 {
     Nidium::IO::FileStream fs("file:///tmp/tst.txt");
-    EXPECT_TRUE(fs.getBaseDir() == NULL);
-    EXPECT_TRUE(fs.allowSyncStream() == true);
-    EXPECT_TRUE(fs.allowLocalFileStream() == true);
+    EXPECT_TRUE(fs.GetBaseDir() == NULL);
+    EXPECT_TRUE(fs.AllowSyncStream() == true);
+    EXPECT_TRUE(fs.AllowLocalFileStream() == true);
 }
 

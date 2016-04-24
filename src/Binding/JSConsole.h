@@ -14,7 +14,7 @@ namespace Binding {
 class JSConsole : public JSExposer<JSConsole>
 {
   public:
-    static void registerObject(JSContext *cx);
+    static void RegisterObject(JSContext *cx);
 };
 
 } // namespace Binding

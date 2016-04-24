@@ -22,7 +22,7 @@ TEST(JSSocket, Simple)
     success = JS_GetProperty(njs.cx, globObj, "Socket", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSSocket::registerObject(njs.cx);
+    Nidium::Binding::JSSocket::RegisterObject(njs.cx);
 
     rval = JSVAL_VOID;
     success = JS_GetProperty(njs.cx, globObj, "Socket", &rval);

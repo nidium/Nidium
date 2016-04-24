@@ -34,18 +34,18 @@ Stream::~Stream()
     free(m_Location);
 }
 
-Stream *Stream::create(const Path &path)
+Stream *Stream::Create(const Path &path)
 {
-    return path.createStream();
+    return path.CreateStream();
 }
 
-Stream *Stream::create(const char *location)
+Stream *Stream::Create(const char *location)
 {
     const char *pLocation;
     Path::schemeInfo *info;
 
     if (location == NULL ||
-        (info = Path::getScheme(location, &pLocation)) == NULL) {
+        (info = Path::GetScheme(location, &pLocation)) == NULL) {
         return NULL;
     }
 

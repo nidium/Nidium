@@ -63,7 +63,7 @@ public:
     virtual void close();
     void ping();
 
-    static int pingTimer(void *arg);
+    static int PingTimer(void *arg);
 private:
     websocket_state m_WSState;
     bool m_Handshaked;

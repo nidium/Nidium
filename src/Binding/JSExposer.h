@@ -54,7 +54,7 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 #define NidiumJSObj(cx) (Nidium::Binding::NidiumJS::GetObject(cx))
 
 #define NIDIUM_JS_OBJECT_EXPOSE(name) \
-    void  JS ## name::registerObject(JSContext *cx) \
+    void  JS ## name::RegisterObject(JSContext *cx) \
     { \
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
         JS_InitClass(cx, global, JS::NullPtr(), &name ## _class, \
@@ -63,7 +63,7 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
     }
 
 #define NIDIUM_JS_OBJECT_EXPOSE_NOT_INST(name) \
-    void NidiumJS ## name::registerObject(JSContext *cx) \
+    void NidiumJS ## name::RegisterObject(JSContext *cx) \
     { \
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
         JS::RootedObject name ## Obj(cx, JS_DefineObject(cx, global, #name, \
@@ -73,7 +73,7 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
     }
 
 #define NATIVE_OBJECT_EXPOSE(name) \
-    void NativeJS ## name::registerObject(JSContext *cx) \
+    void NativeJS ## name::RegisterObject(JSContext *cx) \
     { \
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
         JS_InitClass(cx, global, JS::NullPtr(), &name ## _class, \
@@ -82,7 +82,7 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
     }
 
 #define NATIVE_OBJECT_EXPOSE_NOT_INST(name) \
-    void NativeJS ## name::registerObject(JSContext *cx) \
+    void NativeJS ## name::RegisterObject(JSContext *cx) \
     { \
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
         JS::RootedObject name ## Obj(cx, JS_DefineObject(cx, global, #name, \
@@ -143,13 +143,13 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
     This template act as a workaround (create a unique getter/setter and keep a unique identifier)
 */
 #define NIDIUM_JS_SETTER(tinyid, setter) \
-    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}}
+    {{JS_CAST_NATIVE_TO((JSPropertyAccessors::Setter<tinyid, setter>), JSStrictPropertyOp), nullptr}}
 #define NIDIUM_JS_SETTER_WRS(tinyid, setter) \
-    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::SetterWithReservedSlot<tinyid, setter>), JSStrictPropertyOp), nullptr}}
+    {{JS_CAST_NATIVE_TO((JSPropertyAccessors::SetterWithReservedSlot<tinyid, setter>), JSStrictPropertyOp), nullptr}}
 #define NIDIUM_JS_GETTER(tinyid, getter) \
-    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}}
+    {{JS_CAST_NATIVE_TO((JSPropertyAccessors::Getter<tinyid, getter>), JSPropertyOp), nullptr}}
 #define NIDIUM_JS_STUBGETTER(tinyid) \
-    {{JS_CAST_NATIVE_TO((Nidium::Binding::JSPropertyAccessors::NullGetter<tinyid>), JSPropertyOp), nullptr}}
+    {{JS_CAST_NATIVE_TO((JSPropertyAccessors::NullGetter<tinyid>), JSPropertyOp), nullptr}}
 
 /* Getter only */
 #define NIDIUM_JS_PSG(name, tinyid, getter_func) \
@@ -214,11 +214,11 @@ public:
     static JSObject *CreateEventObject(JSContext *cx) {
         static JSFunctionSpec JSEvents_funcs[] = {
             JS_FN("stopPropagation",
-                JSEvents::nidium_jsevents_stopPropagation, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+                JSEvents::Nidium_jsevents_stopPropagation, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
             JS_FN("preventDefault",
-                JSEvents::nidium_jsevents_stub, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+                JSEvents::Nidium_jsevents_stub, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
             JS_FN("forcePropagation",
-                JSEvents::nidium_jsevents_stub, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+                JSEvents::Nidium_jsevents_stub, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
             JS_FS_END
         };
 
@@ -349,7 +349,7 @@ private:
     bool m_IsFiring;
     bool m_DeleteAfterFire;
 
-    static bool nidium_jsevents_stopPropagation(JSContext *cx,
+    static bool Nidium_jsevents_stopPropagation(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
         JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp));
@@ -366,7 +366,7 @@ private:
 
         return true;
     }
-    static bool nidium_jsevents_stub(JSContext *cx,
+    static bool Nidium_jsevents_stub(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
 
@@ -405,11 +405,11 @@ class JSExposer
     {
         static JSFunctionSpec JSEvent_funcs[] = {
             JS_FN("addEventListener",
-                JSExposer<T>::nidium_jsevent_addEventListener, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+                JSExposer<T>::Nidium_jsevent_addEventListener, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
             JS_FN("removeEventListener",
-                JSExposer<T>::nidium_jsevent_removeEventListener, 1, JSPROP_ENUMERATE | JSPROP_PERMANENT),
+                JSExposer<T>::Nidium_jsevent_removeEventListener, 1, JSPROP_ENUMERATE | JSPROP_PERMANENT),
             JS_FN("fireEvent",
-                JSExposer<T>::nidium_jsevent_fireEvent, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+                JSExposer<T>::Nidium_jsevent_fireEvent, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
             JS_FS_END
         };
 
@@ -430,11 +430,11 @@ class JSExposer
         }
     }
 
-    static const char *getJSObjectName() { return NULL; }
+    static const char *GetJSObjectName() { return NULL; }
 
-    static JSObject *getJSGlobalObject(NidiumJS *njs) {
+    static JSObject *GetJSGlobalObject(NidiumJS *njs) {
         JSObject *jobj;
-        const char *name = T::getJSObjectName();
+        const char *name = T::GetJSObjectName();
 
         if ((jobj = njs->jsobjects.get(name)) == NULL) {
             return NULL;
@@ -443,8 +443,8 @@ class JSExposer
         return jobj;
     }
 
-    static JSObject *getJSGlobalObject(JSContext *cx) {
-        return T::getJSGlobalObject(NidiumJS::GetObject(cx));
+    static JSObject *GetJSGlobalObject(JSContext *cx) {
+        return T::GetJSGlobalObject(NidiumJS::GetObject(cx));
     }
 
     static T* GetObject(JSObject *obj, JSContext *cx = NULL)
@@ -459,7 +459,7 @@ class JSExposer
     }
 
     static T* GetObject(NidiumJS *njs) {
-        JSObject *obj = T::getJSGlobalObject(njs);
+        JSObject *obj = T::GetJSGlobalObject(njs);
         if (obj == NULL) {
             return NULL;
         }
@@ -552,7 +552,7 @@ class JSExposer
 
     static JSClass *jsclass;
 private:
-    static bool nidium_jsevent_fireEvent(JSContext *cx,
+    static bool Nidium_jsevent_fireEvent(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
         NIDIUM_JS_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
@@ -582,7 +582,7 @@ private:
 
         return true;
     }
-    static bool nidium_jsevent_addEventListener(JSContext *cx,
+    static bool Nidium_jsevent_addEventListener(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
         NIDIUM_JS_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
@@ -608,7 +608,7 @@ private:
         return true;
     }
 
-    static bool nidium_jsevent_removeEventListener(JSContext *cx,
+    static bool Nidium_jsevent_removeEventListener(JSContext *cx,
         unsigned argc, JS::Value *vp)
     {
         NIDIUM_JS_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
@@ -735,7 +735,7 @@ public:
     /*
         TODO : need to check against instance
     */
-    static T *getObject(JSObject *jsobj) {
+    static T *GetObject(JSObject *jsobj) {
         return (T *)JS_GetPrivate(jsobj);
     }
 protected:

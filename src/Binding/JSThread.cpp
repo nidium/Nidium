@@ -139,7 +139,7 @@ static void *nidium_thread(void *arg)
 
             js::SetDefaultObjectForContext(tcx, gbl);
 
-            JSConsole::registerObject(tcx);
+            JSConsole::RegisterObject(tcx);
 
             JSAutoByteString str(tcx, nthread->jsFunction);
             char *scoped = new char[strlen(str.ptr()) + 128];

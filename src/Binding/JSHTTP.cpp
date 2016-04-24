@@ -397,7 +397,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
         case HTTP::DATA_STRING:
             NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "string");
 
-            JSUtils::strToJsval(cx, (const char *)h->data->data,
+            JSUtils::StrToJsval(cx, (const char *)h->data->data,
                 h->data->used, &jdata, "utf8");
             break;
         case HTTP::DATA_JSON:
@@ -431,7 +431,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
                 CONST_STR_LEN("image"))));
 
             nimg = new NativeSkImage(h->data->data, h->data->used);
-            jdata = OBJECT_TO_JSVAL(NidiumJSImage::buildImageObject(cx, nimg));
+            jdata = OBJECT_TO_JSVAL(NidiumJSImage::BuildImageObject(cx, nimg));
 
             break;
         }

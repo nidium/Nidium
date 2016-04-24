@@ -42,7 +42,7 @@ public:
     };
 
     /* Fast OS detection */
-    static OS getOS(const char *ua) {
+    static OS GetOS(const char *ua) {
         const char *paddr = strchr(ua, '(');
 
         if (!paddr || !paddr[1] || !paddr[2]) {
@@ -76,23 +76,23 @@ public:
 class Utils
 {
 public:
-    static uint64_t getTick(bool ms = false);
-    static bool isMainThread()
+    static uint64_t GetTick(bool ms = false);
+    static bool IsMainThread()
     {
         // TODO : Windows support and better implementation
         return getpid() == syscall(SYS_gettid);
     }
 
-    static void sha1hmac(const unsigned char *key, uint32_t keylen,
+    static void SHA1hmac(const unsigned char *key, uint32_t keylen,
         const unsigned char *buf, uint32_t buflen, unsigned char out[20]);
-    static void sha1(const unsigned char *buf, uint32_t buflen, unsigned char out[20]);
-    static char *b64Encode(const unsigned char *buf, size_t len);
-    static int b64Decode(unsigned char *out, const char *in, int out_length);
-    static void blowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len);
-    static int b16Decode(unsigned char *out, const char *in, int out_length);
+    static void SHA1(const unsigned char *buf, uint32_t buflen, unsigned char out[20]);
+    static char *B64Encode(const unsigned char *buf, size_t len);
+    static int B64Decode(unsigned char *out, const char *in, int out_length);
+    static void BlowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len);
+    static int B16Decode(unsigned char *out, const char *in, int out_length);
 
 template <typename T>
-    static T randInt()
+    static T RandInt()
     {
         int random;
         T ret = 0;

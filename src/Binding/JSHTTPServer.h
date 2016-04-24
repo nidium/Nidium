@@ -62,7 +62,7 @@ public:
     virtual void onData(Nidium::Net::HTTPClientConnection *client, const char *buf, size_t len);
     virtual bool onEnd(Nidium::Net::HTTPClientConnection *client);
 
-    static void registerObject(JSContext *cx);
+    static void RegisterObject(JSContext *cx);
 };
 // }}}
 

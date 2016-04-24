@@ -310,7 +310,7 @@ static void nidium_socket_client_disconnect(ape_socket *socket_client,
 
 HTTPServer::HTTPServer(uint16_t port, const char *ip)
 {
-    ape_global *ape = Binding::NidiumJS::getNet();
+    ape_global *ape = Binding::NidiumJS::GetNet();
     m_Socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, ape);
 
     m_IP = strdup(ip);
@@ -366,7 +366,7 @@ int NativeHTTPClientConnection_checktimeout(void *arg)
     /*
         Never timeout if set to 0
     */
-    if (timeout && Utils::getTick(true) - con->getLastActivity() > timeout) {
+    if (timeout && Utils::GetTick(true) - con->getLastActivity() > timeout) {
         con->close();
     }
 
@@ -402,7 +402,7 @@ HTTPClientConnection::HTTPClientConnection(HTTPServer *httpserver,
 
     m_TimeoutTimer = APE_timer_getid(timer);
 
-    m_LastAcitivty = Utils::getTick(true);
+    m_LastAcitivty = Utils::GetTick(true);
 }
 
 void HTTPClientConnection::onRead(const char *data,
@@ -411,7 +411,7 @@ void HTTPClientConnection::onRead(const char *data,
 #define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
     CONST_STR_LEN(header "\0"))
 
-    m_LastAcitivty = Utils::getTick(true);
+    m_LastAcitivty = Utils::GetTick(true);
 
     int nparsed = http_parser_execute(&m_HttpState.parser, &settings,
         data, len);
@@ -462,7 +462,7 @@ HTTPResponse *HTTPClientConnection::onCreateResponse()
 HTTPClientConnection::~HTTPClientConnection()
 {
     if (m_TimeoutTimer) {
-        ape_global *ape = Binding::NidiumJS::getNet();
+        ape_global *ape = Binding::NidiumJS::GetNet();
 
         APE_timer_clearbyid(ape, m_TimeoutTimer, 1);
 

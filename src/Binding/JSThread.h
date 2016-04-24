@@ -23,7 +23,7 @@ class JSThread : public JSExposer<JSThread>, public Nidium::Core::Messages
   public:
     JSThread(JS::HandleObject obj, JSContext *cx);
     ~JSThread();
-    static void registerObject(JSContext *cx);
+    static void RegisterObject(JSContext *cx);
     void onComplete(JS::HandleValue vp);
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 

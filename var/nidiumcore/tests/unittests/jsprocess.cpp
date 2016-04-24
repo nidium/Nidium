@@ -23,7 +23,7 @@ TEST(JSProcess, Simple)
     success = JS_GetProperty(njs.cx, globObj, "process", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    JSProcess::registerObject(njs.cx, (char**)args, 1);
+    JSProcess::RegisterObject(njs.cx, (char**)args, 1);
 
     rval = JSVAL_VOID;
     success = JS_GetProperty(njs.cx, globObj, "process", &rval);
@@ -61,7 +61,7 @@ TEST(JSProcess, Init)
     EXPECT_TRUE(np.getJSObject() == globObj);
     EXPECT_TRUE(np.getJSContext() == njs.cx);
 
-    EXPECT_TRUE(strcmp(np.getJSObjectName(), "process") == 0);
+    EXPECT_TRUE(strcmp(np.GetJSObjectName(), "process") == 0);
     EXPECT_TRUE(np.jsclass != NULL);
 
     native_netlib_destroy(g_ape);

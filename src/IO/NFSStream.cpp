@@ -52,7 +52,7 @@ int NativeNFSStream_getContent(void *arg)
 
 void NFSStream::getContent()
 {
-    ape_global *ape = Binding::NidiumJS::getNet();
+    ape_global *ape = Binding::NidiumJS::GetNet();
     timer_dispatch_async_unprotected(NativeNFSStream_getContent, this);
 }
 

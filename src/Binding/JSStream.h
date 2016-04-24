@@ -16,7 +16,7 @@ namespace Binding {
 class JSStream :  public JSExposer<JSStream>, public Nidium::Core::Messages
 {
   public:
-    static void registerObject(JSContext *cx);
+    static void RegisterObject(JSContext *cx);
     JSStream(JS::HandleObject obj, JSContext *cx, ape_global *net, const char *url);
     ~JSStream();
     Nidium::IO::Stream *getStream() const {

@@ -146,7 +146,7 @@ public:
             {
                 JS::RootedValue ret(cx);
                 buffer *buf = (buffer *)msg.args[0].toPtr();
-                if (JSUtils::strToJsval(cx, (const char *)buf->data,
+                if (JSUtils::StrToJsval(cx, (const char *)buf->data,
                     buf->used, &ret, encoding)) {
 
                     params[1].set(ret);
@@ -180,8 +180,7 @@ public:
 // }}}
 
 // {{{ JSFileIO
-
-bool JSFileIO::handleError(JSContext *cx, const SharedMessages::Message &msg,
+bool JSFileIO::HandleError(JSContext *cx, const SharedMessages::Message &msg,
     JS::MutableHandleValue vals)
 {
     switch (msg.event()) {
@@ -233,12 +232,12 @@ bool JSFileIO::callbackForMessage(JSContext *cx,
     JSContext *m_Cx = cx;
 
     JS::RootedObject jsthis(cx, thisobj);
-    if (!JSFileIO::handleError(cx, msg, params[0])) {
+    if (!JSFileIO::HandleError(cx, msg, params[0])) {
         switch (msg.event()) {
             case File::READ_SUCCESS:
             {
                 buffer *buf = (buffer *)msg.args[0].toPtr();
-                JSUtils::strToJsval(cx, (const char *)buf->data,
+                JSUtils::StrToJsval(cx, (const char *)buf->data,
                     buf->used, params[1], encoding);
                 break;
             }
@@ -298,7 +297,7 @@ void JSFileIO::onMessage(const SharedMessages::Message &msg)
     this->callbackForMessage(m_Cx, msg, m_JSObject, m_Encoding);
 }
 
-JSObject *JSFileIO::generateJSObject(JSContext *cx, const char *path)
+JSObject *JSFileIO::GenerateJSObject(JSContext *cx, const char *path)
 {
     JS::RootedObject ret(cx, JS_NewObject(cx, &File_class, JS::NullPtr(), JS::NullPtr()));
     File *file;
@@ -741,7 +740,7 @@ static bool nidium_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString cfilename(cx, filename);
     NidiumJS::GetObject(cx)->rootObjectUntilShutdown(&callback.toObject());
 
-    Stream *stream = Stream::create(Path(cfilename.ptr()));
+    Stream *stream = Stream::Create(Path(cfilename.ptr()));
 
     if (!stream) {
         JS_ReportError(cx, "couldn't open stream");
@@ -825,12 +824,12 @@ static bool nidium_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
     JSAutoByteString cfilename(cx, filename);
     Path path(cfilename.ptr());
 
-    if (!path.getScheme()->allowSyncStream()) {
+    if (!path.GetScheme()->AllowSyncStream()) {
         JS_ReportError(cx, "can't open this file for sync read");
         return false;
     }
 
-    Core::PtrAutoDelete<Stream *> stream(path.createStream());
+    Core::PtrAutoDelete<Stream *> stream(path.CreateStream());
 
     if (!stream.ptr() || !stream.ptr()->getContentSync(&buf, &len)) {
         args.rval().setNull();
@@ -849,7 +848,7 @@ static bool nidium_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
 
     JS::RootedValue ret(cx);
 
-    if (!JSUtils::strToJsval(cx, buf, len, &ret, cencoding)) {
+    if (!JSUtils::StrToJsval(cx, buf, len, &ret, cencoding)) {
         return false;
     }
 
@@ -863,7 +862,7 @@ static bool nidium_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
 // }}}
 
 // {{{ Registration
-void JSFileIO::registerObject(JSContext *cx)
+void JSFileIO::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_InitClass(cx, global, JS::NullPtr(), &File_class,

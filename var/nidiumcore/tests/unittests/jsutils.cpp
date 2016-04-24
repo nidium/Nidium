@@ -25,26 +25,26 @@ TEST(JSUtils, String)
     Nidium::Binding::NidiumJS njs(g_ape);
 
     JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = Nidium::Binding::JSUtils::strToJsval(njs.cx, text, strlen(text), &rval, "utf8");
+    success = Nidium::Binding::JSUtils::StrToJsval(njs.cx, text, strlen(text), &rval, "utf8");
     EXPECT_TRUE(success == true);
     JS::RootedString jstr(njs.cx,  rval.toString());
     cstr = JS_EncodeString(njs.cx, jstr);
     EXPECT_TRUE(strcmp(te, cstr) == 0);
     free(cstr);
 
-    success = Nidium::Binding::JSUtils::strToJsval(njs.cx, text, strlen(text), &rval, "asciiiiii");
+    success = Nidium::Binding::JSUtils::StrToJsval(njs.cx, text, strlen(text), &rval, "asciiiiii");
     EXPECT_TRUE(success == true);
     jstr = rval.toString();
     cstr = JS_EncodeString(njs.cx, jstr);
     EXPECT_TRUE(strcmp(te, cstr) == 0);
     free(cstr);
 
-    jstr = Nidium::Binding::JSUtils::newStringWithEncoding(njs.cx, text, strlen(text), "utf8");
+    jstr = Nidium::Binding::JSUtils::NewStringWithEncoding(njs.cx, text, strlen(text), "utf8");
     cstr = JS_EncodeString(njs.cx, jstr);
     EXPECT_TRUE(strcmp(te, cstr) == 0);
     free(cstr);
 
-    jstr = Nidium::Binding::JSUtils::newStringWithEncoding(njs.cx, text, strlen(text), "asciiiiii");
+    jstr = Nidium::Binding::JSUtils::NewStringWithEncoding(njs.cx, text, strlen(text), "asciiiiii");
     cstr = JS_EncodeString(njs.cx, jstr);
     EXPECT_TRUE(strcmp(te, cstr) == 0);
     free(cstr);

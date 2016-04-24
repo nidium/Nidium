@@ -18,7 +18,7 @@ namespace Binding {
 class JSHTTP : public JSExposer<JSHTTP>, public Nidium::Net::HTTPDelegate
 {
   public:
-    static void registerObject(JSContext *cx);
+    static void RegisterObject(JSContext *cx);
     JSHTTP(JS::HandleObject obj, JSContext *cx, char *url);
     virtual ~JSHTTP();
 

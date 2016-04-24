@@ -31,9 +31,9 @@ Path::Path(const char *origin, bool allowAll, bool noFilter) :
         return;
     }
 
-    if (!Path::getPwd() || noFilter) {
+    if (!Path::GetPwd() || noFilter) {
         const char *pOrigin;
-        schemeInfo *scheme = Path::getScheme(origin, &pOrigin);
+        schemeInfo *scheme = Path::GetScheme(origin, &pOrigin);
 
         if (URLSCHEME_MATCH(origin, "file")) {
             if (!(m_Path = realpath(pOrigin, nullptr))) {
@@ -42,8 +42,8 @@ Path::Path(const char *origin, bool allowAll, bool noFilter) :
             }
         } else {
             std::string tmp;
-            if (scheme->getBaseDir() != nullptr) {
-                tmp += scheme->getBaseDir();
+            if (scheme->GetBaseDir() != nullptr) {
+                tmp += scheme->GetBaseDir();
             }
             tmp += pOrigin;
 
@@ -51,15 +51,15 @@ Path::Path(const char *origin, bool allowAll, bool noFilter) :
         }
 
         m_Scheme = scheme;
-        m_Dir = Path::getDir(m_Path);
+        m_Dir = Path::GetDir(m_Path);
 
         return;
     }
 
-    schemeInfo *rootScheme = Path::getPwdScheme();
-    bool localRoot = rootScheme->allowLocalFileStream();
+    schemeInfo *rootScheme = Path::GetPwdScheme();
+    bool localRoot = rootScheme->AllowLocalFileStream();
 
-    // Remote chroot trying to access local file.
+    // Remote Chroot trying to access local file.
     if (!localRoot && strncmp(origin, "file://", 7) == 0) {
         this->invalidatePath();
         return;
@@ -72,8 +72,8 @@ Path::Path(const char *origin, bool allowAll, bool noFilter) :
         return;
     }
 
-    // Local root check if we are still in nidium chroot.
-    if (localRoot && !allowAll && !Path::inDir(m_Path, m_Scheme->getBaseDir())) {
+    // Local root check if we are still in nidium Chroot.
+    if (localRoot && !allowAll && !Path::InDir(m_Path, m_Scheme->GetBaseDir())) {
         this->invalidatePath();
         return;
     }
@@ -83,14 +83,14 @@ void Path::parse(const char *origin)
 {
     const char *pOrigin;
     const char *baseDir;
-    schemeInfo *scheme = Path::getScheme(origin, &pOrigin);
-    schemeInfo *rootScheme = Path::getPwdScheme();
-    const char *root = Path::getRoot();
+    schemeInfo *scheme = Path::GetScheme(origin, &pOrigin);
+    schemeInfo *rootScheme = Path::GetPwdScheme();
+    const char *root = Path::GetRoot();
     char *path = strdup(pOrigin);
     PtrAutoDelete<char *> _path(path, free);
 
-    bool isRelative = Path::isRelative(origin);
-    bool isLocalRoot = rootScheme->allowLocalFileStream();
+    bool isRelative = Path::IsRelative(origin);
+    bool isLocalRoot = rootScheme->AllowLocalFileStream();
 
     m_Scheme = scheme;
 
@@ -108,7 +108,7 @@ void Path::parse(const char *origin)
     }
 
     // Path with host. Extract it.
-    if (!scheme->allowLocalFileStream()) {
+    if (!scheme->AllowLocalFileStream()) {
         char *res = strchr(path, '/');
         if (res == nullptr) {
             // Path/Host without trailing slash
@@ -136,7 +136,7 @@ void Path::parse(const char *origin)
         m_Host[hostLen] = '\0';
     }
 
-    // Prepare the full absolute path for sanitize
+    // Prepare the full absolute path for Sanitize
     if (!isRelative && SCHEME_MATCH(scheme, "file")) {
         // Absolute file on disk
         baseDir = nullptr;
@@ -145,10 +145,10 @@ void Path::parse(const char *origin)
         baseDir = &root[strlen(scheme->str) + strlen(m_Host)];
     } else if (SCHEME_MATCH(scheme, "file")) {
         // Relative file on disk
-        baseDir = Path::getPwd();
+        baseDir = Path::GetPwd();
     } else {
         // Prefixed scheme with a base directory
-        baseDir = scheme->getBaseDir();
+        baseDir = scheme->GetBaseDir();
     }
 
     if (baseDir) {
@@ -162,7 +162,7 @@ void Path::parse(const char *origin)
         _path.set(tmp);
     }
 
-    m_Path = Path::sanitize(path);
+    m_Path = Path::Sanitize(path);
     if (!m_Path) {
         // No path
         return;
@@ -180,12 +180,12 @@ void Path::parse(const char *origin)
         m_Path = tmp;
     }
 
-    m_Dir = Path::getDir(m_Path);
+    m_Dir = Path::GetDir(m_Path);
 
     return;
 }
 
-bool Path::isRelative(const char *path)
+bool Path::IsRelative(const char *path)
 {
     const char *pPath;
 
@@ -193,7 +193,7 @@ bool Path::isRelative(const char *path)
         return false;
     }
 
-    schemeInfo *scheme = Path::getScheme(path, &pPath);
+    schemeInfo *scheme = Path::GetScheme(path, &pPath);
 
     /* We assume that if a "prefix based" path is given, it's an absolute URL */
     if (!SCHEME_MATCH(scheme, "file")) {
@@ -204,7 +204,7 @@ bool Path::isRelative(const char *path)
     return pPath[0] != '/';
 }
 
-char *Path::getDir(const char *fullpath)
+char *Path::GetDir(const char *fullpath)
 {
     int len = strlen(fullpath);
     char *ret;
@@ -222,7 +222,7 @@ char *Path::getDir(const char *fullpath)
     return ret;
 }
 
-void Path::registerScheme(const Path::schemeInfo &scheme,
+void Path::RegisterScheme(const Path::schemeInfo &scheme,
     bool isDefault)
 {
     if (Path::g_m_SchemesCount + 1 >= MAX_REGISTERED_SCHEMES) {
@@ -234,9 +234,9 @@ void Path::registerScheme(const Path::schemeInfo &scheme,
     newScheme->str = strdup(scheme.str);
     newScheme->base = scheme.base;
     newScheme->keepPrefix = scheme.keepPrefix;
-    newScheme->getBaseDir = scheme.getBaseDir;
-    newScheme->allowLocalFileStream = scheme.allowLocalFileStream;
-    newScheme->allowSyncStream = scheme.allowSyncStream;
+    newScheme->GetBaseDir = scheme.GetBaseDir;
+    newScheme->AllowLocalFileStream = scheme.AllowLocalFileStream;
+    newScheme->AllowSyncStream = scheme.AllowSyncStream;
 
     Path::g_m_SchemesCount++;
 
@@ -245,7 +245,7 @@ void Path::registerScheme(const Path::schemeInfo &scheme,
     }
 }
 
-void Path::unRegisterSchemes()
+void Path::UnRegisterSchemes()
 {
     schemeInfo *scheme;
 
@@ -256,7 +256,7 @@ void Path::unRegisterSchemes()
     Path::g_m_SchemesCount = 0;
 }
 
-Path::schemeInfo *Path::getScheme(const char *url, const char **pURL)
+Path::schemeInfo *Path::GetScheme(const char *url, const char **pURL)
 {
     for (int i = 0; i < Path::g_m_SchemesCount; i++) {
         int len = strlen(Path::g_m_Schemes[i].str);
@@ -275,7 +275,7 @@ Path::schemeInfo *Path::getScheme(const char *url, const char **pURL)
     return g_m_DefaultScheme;
 }
 
-void Path::makedirs(const char* dirWithSlashes)
+void Path::Makedirs(const char* dirWithSlashes)
 {
     char tmp[MAXPATHLEN];
     char *p = NULL;
@@ -312,7 +312,7 @@ void Path::makedirs(const char* dirWithSlashes)
     minCounter = nidium_min(counter, minCounter);
 
 // XXX : Only works with path (not URIs)
-char *Path::sanitize(const char *path, bool *external)
+char *Path::Sanitize(const char *path, bool *external)
 {
     enum {
         PATH_STATE_START,
@@ -337,7 +337,7 @@ char *Path::sanitize(const char *path, bool *external)
 
     int counter = 0, minCounter = 0, counterPos = 0;
     bool outsideRoot = false;
-    bool isRelative = Path::isRelative(path);
+    bool isRelative = Path::IsRelative(path);
 
     std::vector<std::string> elements(pathlen);
 
@@ -431,7 +431,7 @@ void Path::invalidatePath()
     m_Dir = nullptr;
 }
 
-bool Path::inDir(const char *path, const char *root)
+bool Path::InDir(const char *path, const char *root)
 {
     if (!root) {
         return true;

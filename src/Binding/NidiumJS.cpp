@@ -298,7 +298,7 @@ NidiumJS *NidiumJS::GetObject(JSContext *cx)
     return ((class NidiumJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)));
 }
 
-ape_global *NidiumJS::getNet()
+ape_global *NidiumJS::GetNet()
 {
     if (gAPE == 0) {
         return NULL;
@@ -306,7 +306,7 @@ ape_global *NidiumJS::getNet()
     return (ape_global *)pthread_getspecific(gAPE);
 }
 
-void NidiumJS::initNet(ape_global *net)
+void NidiumJS::InitNet(ape_global *net)
 {
     if (gAPE == 0) {
         pthread_key_create(&gAPE, NULL);
@@ -476,7 +476,7 @@ NidiumJS::NidiumJS(ape_global *net) :
 
     rootedObj = hashtbl_init(APE_HASH_INT);
 
-    NidiumJS::initNet(net);
+    NidiumJS::InitNet(net);
 
     if (gJS == 0) {
         pthread_key_create(&gJS, NULL);
@@ -719,7 +719,7 @@ void NidiumJS::bindNetObject(ape_global *net)
     //io->open();
 }
 
-void NidiumJS::copyProperties(JSContext *cx, JS::HandleObject source, JS::MutableHandleObject into)
+void NidiumJS::CopyProperties(JSContext *cx, JS::HandleObject source, JS::MutableHandleObject into)
 {
 
     JS::AutoIdArray ida(cx, JS_Enumerate(cx, source));
@@ -746,7 +746,7 @@ void NidiumJS::copyProperties(JSContext *cx, JS::HandleObject source, JS::Mutabl
                 } else {
                     JS::RootedObject oldvalobj(cx, &oldval.toObject());
                     JS::RootedObject newvalobj(cx, &val.toObject());
-                    NidiumJS::copyProperties(cx, newvalobj, &oldvalobj);
+                    NidiumJS::CopyProperties(cx, newvalobj, &oldvalobj);
                 }
                 break;
             }
@@ -960,18 +960,18 @@ void NidiumJS::setPath(const char *path) {
 
 void NidiumJS::loadGlobalObjects()
 {
-    JSFileIO::registerObject(cx);
-    JSSocket::registerObject(cx);
-    JSThread::registerObject(cx);
-    JSHTTP::registerObject(cx);
-    JSStream::registerObject(cx);
-    JSWebSocketServer::registerObject(cx);
-    JSWebSocket::registerObject(cx);
-    JSHTTPServer::registerObject(cx);
-    JSConsole::registerObject(cx);
-    JSFS::registerObject(cx);
-    JSDebug::registerObject(cx);
-    JSDebugger::registerObject(cx);
+    JSFileIO::RegisterObject(cx);
+    JSSocket::RegisterObject(cx);
+    JSThread::RegisterObject(cx);
+    JSHTTP::RegisterObject(cx);
+    JSStream::RegisterObject(cx);
+    JSWebSocketServer::RegisterObject(cx);
+    JSWebSocket::RegisterObject(cx);
+    JSHTTPServer::RegisterObject(cx);
+    JSConsole::RegisterObject(cx);
+    JSFS::RegisterObject(cx);
+    JSDebug::RegisterObject(cx);
+    JSDebugger::RegisterObject(cx);
 
     this->modules = new JSModules(cx);
     if (!this->modules) {
@@ -1089,7 +1089,7 @@ static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString scriptstr(cx, script);
     Path scriptpath(scriptstr.ptr());
 
-    Path::schemeInfo *schemePwd = Path::getPwdScheme();
+    Path::schemeInfo *schemePwd = Path::GetPwdScheme();
 
     if (scriptpath.path() == NULL) {
         JS_ReportError(cx, "script error : invalid file location");
@@ -1103,12 +1103,12 @@ static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    if (!scriptpath.getScheme()->allowSyncStream()) {
+    if (!scriptpath.GetScheme()->AllowSyncStream()) {
         JS_ReportError(cx, "script error : \"%s\" scheme can't load in a sync way", schemePwd->str);
         return false;
     }
 
-    PtrAutoDelete<Stream *> stream(scriptpath.createStream());
+    PtrAutoDelete<Stream *> stream(scriptpath.CreateStream());
 
     if (!stream.ptr() || !stream.ptr()->getContentSync(&content, &len, true)) {
         JS_ReportError(cx, "load() failed read script");
@@ -1359,7 +1359,7 @@ static bool nidium_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
         JS::RootedString str(cx, args[0].toString());
         cdata.encodeUtf8(cx, str);
 
-        char *ret = Utils::b64Encode((unsigned char *)cdata.ptr(), cdata.length());
+        char *ret = Utils::B64Encode((unsigned char *)cdata.ptr(), cdata.length());
 
         args.rval().setString(JS_NewStringCopyZ(cx, ret));
 

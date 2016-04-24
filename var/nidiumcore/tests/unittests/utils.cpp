@@ -25,42 +25,42 @@ TEST(Utils, NativeTick)
     uint64_t tick;
     Nidium::Core::Utils nu;
 
-    tick = nu.getTick(true);
+    tick = nu.GetTick(true);
     EXPECT_TRUE(tick > 10);
 }
 
 TEST(Utils, Mainthread)
 {
-    EXPECT_TRUE(Nidium::Core::Utils::isMainThread());
+    EXPECT_TRUE(Nidium::Core::Utils::IsMainThread());
 }
 
-TEST(Utils, sha1hmac)
+TEST(Utils, SHA1hmac)
 {
     char * key = strdup("dvorak");
     char * buf = strdup("querty");
     unsigned char out1[20], out2[20];
 
     sha1_hmac((unsigned char *)key, strlen(key), (unsigned char *)buf, strlen(buf), out1);
-    Nidium::Core::Utils::sha1hmac((unsigned char*)key, strlen(key), (unsigned char*)buf, strlen(buf), out2);
+    Nidium::Core::Utils::SHA1hmac((unsigned char*)key, strlen(key), (unsigned char*)buf, strlen(buf), out2);
     EXPECT_TRUE(strncmp((char*)&out1[0], (char*)&out2[0], 20) == 0);
 
     free(key);
     free(buf);
 }
 
-TEST(Utils, sha1)
+TEST(Utils, SHA1)
 {
     char * buf = strdup("superman");
     unsigned char out1[20], out2[20];
 
     sha1_csum((unsigned char *)buf, strlen(buf), out1);
-    Nidium::Core::Utils::sha1((unsigned char*)buf, strlen(buf), out2);
+    Nidium::Core::Utils::SHA1((unsigned char*)buf, strlen(buf), out2);
     EXPECT_TRUE(strncmp((char*)&out1[0], (char*)&out2[0], 20) == 0);
 
     free(buf);
 }
 
-TEST(Utils, b64)
+TEST(Utils, B64)
 {
 #define B64_OUT_LENGTH 32
     char * buf = strdup("spiderman");
@@ -71,12 +71,12 @@ TEST(Utils, b64)
 
     out1 = out2 = NULL;
     out1 = base64_encode((unsigned char *)buf, strlen(buf));
-    out2 = Nidium::Core::Utils::b64Encode((unsigned char*)buf, strlen(buf));
+    out2 = Nidium::Core::Utils::B64Encode((unsigned char*)buf, strlen(buf));
     EXPECT_TRUE(out1 != NULL);
     EXPECT_TRUE(strcmp(out1, out2) == 0);
 
     base64_decode(&out12[0], out1, B64_OUT_LENGTH);
-    Nidium::Core::Utils::b64Decode(&out22[0], out2, B64_OUT_LENGTH);
+    Nidium::Core::Utils::B64Decode(&out22[0], out2, B64_OUT_LENGTH);
     EXPECT_TRUE(strcmp((char*)&out12[0], (char*)&out22[0]) == 0);
     EXPECT_TRUE(strcmp(buf, (char*)&out22[0]) == 0);
 
@@ -145,12 +145,12 @@ TEST(Utils, PtrAuteDelete)
     delete adp;
 }
 
-TEST(Utils, UserAgentUtils_getOS)
+TEST(Utils, UserAgentUtils_GetOS)
 {
-	EXPECT_TRUE(Nidium::Core::UserAgentUtils::WINDOWS == Nidium::Core::UserAgentUtils::getOS("Mozilla/5.0 (compatible; U; ABrowse 0.6; Syllable) AppleWebKit/420+ (KHTML, like Gecko)"));
-	EXPECT_TRUE(Nidium::Core::UserAgentUtils::WINDOWS == Nidium::Core::UserAgentUtils::getOS("Mozilla/4.0 (compatible; Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; Acoo Browser 1.98.744; .NET CLR 3.5.30729); Windows NT 5.1; Trident/4.0)"));
-	EXPECT_TRUE(Nidium::Core::UserAgentUtils::WINDOWS == Nidium::Core::UserAgentUtils::getOS("Mozilla/4.0 (compatible; MSIE 7.0; AOL 9.1; AOLBuild 4334.5000; Windows NT 5.1; Trident/4.0)"));
-	EXPECT_TRUE(Nidium::Core::UserAgentUtils::OTHER == Nidium::Core::UserAgentUtils::getOS("wget"));
+	EXPECT_TRUE(Nidium::Core::UserAgentUtils::WINDOWS == Nidium::Core::UserAgentUtils::GetOS("Mozilla/5.0 (compatible; U; ABrowse 0.6; Syllable) AppleWebKit/420+ (KHTML, like Gecko)"));
+	EXPECT_TRUE(Nidium::Core::UserAgentUtils::WINDOWS == Nidium::Core::UserAgentUtils::GetOS("Mozilla/4.0 (compatible; Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; Acoo Browser 1.98.744; .NET CLR 3.5.30729); Windows NT 5.1; Trident/4.0)"));
+	EXPECT_TRUE(Nidium::Core::UserAgentUtils::WINDOWS == Nidium::Core::UserAgentUtils::GetOS("Mozilla/4.0 (compatible; MSIE 7.0; AOL 9.1; AOLBuild 4334.5000; Windows NT 5.1; Trident/4.0)"));
+	EXPECT_TRUE(Nidium::Core::UserAgentUtils::OTHER == Nidium::Core::UserAgentUtils::GetOS("wget"));
 }
 
 TEST(Utils, ConstStrLenMacro)

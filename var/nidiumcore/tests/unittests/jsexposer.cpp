@@ -82,7 +82,7 @@ TEST(JSExposer, ObjectMapper)
     JS::RootedObject obj(njs.cx, njm.getJSObject());
     EXPECT_TRUE(obj != NULL);
 
-    Dummy *dummy = Nidium::Binding::JSObjectMapper<Dummy>::getObject(obj);
+    Dummy *dummy = Nidium::Binding::JSObjectMapper<Dummy>::GetObject(obj);
     EXPECT_TRUE(dummy != NULL);
     EXPECT_EQ(dummy->counter, 1);
 

@@ -117,12 +117,12 @@ void JSSocket::readFrame(const char *buf, size_t len)
     JS::RootedValue onread(m_Cx);
     JS::RootedValue rval(m_Cx);
     JS::AutoValueArray<2> jdata(m_Cx);
-    JS::RootedString tstr(m_Cx, JSUtils::newStringWithEncoding(m_Cx, buf, len, this->getEncoding()));
+    JS::RootedString tstr(m_Cx, JSUtils::NewStringWithEncoding(m_Cx, buf, len, this->getEncoding()));
     JS::RootedString jstr(m_Cx);
     jstr = tstr;
 
     if (this->lineBuffer.pos && (this->getFlags() & SOCKET_READLINE)) {
-        JS::RootedString left(m_Cx, JSUtils::newStringWithEncoding(m_Cx, this->lineBuffer.data,
+        JS::RootedString left(m_Cx, JSUtils::NewStringWithEncoding(m_Cx, this->lineBuffer.data,
             this->lineBuffer.pos, this->getEncoding()));
 
         jstr = JS_ConcatStrings(m_Cx, left, tstr);
@@ -233,7 +233,7 @@ void JSSocket::onRead(const char *data, size_t len)
 
         return;
     } else {
-        JS::RootedString jstr(m_Cx, JSUtils::newStringWithEncoding(m_Cx,
+        JS::RootedString jstr(m_Cx, JSUtils::NewStringWithEncoding(m_Cx,
             data, len, this->getEncoding()));
 
         jparams[dataPosition].setString(jstr);
@@ -444,7 +444,7 @@ static void nidium_socket_wrapper_client_onmessage(ape_socket *socket_server,
         jparams[0].setObject(*arrayBuffer);
 
     } else {
-        JS::RootedString jstr(cx, JSUtils::newStringWithEncoding(cx, (char *)packet, len, nsocket->m_Encoding));
+        JS::RootedString jstr(cx, JSUtils::NewStringWithEncoding(cx, (char *)packet, len, nsocket->m_Encoding));
 
         jparams[0].setString(jstr);
     }

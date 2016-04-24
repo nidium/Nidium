@@ -59,7 +59,7 @@ JSStream::JSStream(JS::HandleObject obj, JSContext *cx,
     std::string str = url;
     //str += NidiumJS::getNidiumClass(cx)->getPath();
 
-    m_Stream = Stream::create(Core::Path(str.c_str()));
+    m_Stream = Stream::Create(Core::Path(str.c_str()));
 
     if (!m_Stream) {
         return;

@@ -45,8 +45,8 @@ public:
 
     virtual ~Stream();
 
-    static Stream *create(const Nidium::Core::Path &path);
-    static Stream *create(const char *location);
+    static Stream *Create(const Nidium::Core::Path &path);
+    static Stream *Create(const char *location);
 
     void setListener(Nidium::Core::Messages *listener) {
         m_Listener = listener;

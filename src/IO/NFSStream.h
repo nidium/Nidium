@@ -20,17 +20,17 @@ class NFSStream :  public Stream
 public:
     explicit NFSStream(const char *location);
 
-    static Stream *createStream(const char *location) {
+    static Stream *CreateStream(const char *location) {
         return new NFSStream(location);
     }
-    static const char *getBaseDir() {
+    static const char *GetBaseDir() {
         return "/";
     }
 
-    static bool allowLocalFileStream() {
+    static bool AllowLocalFileStream() {
         return true;
     }
-    static bool allowSyncStream() {
+    static bool AllowSyncStream() {
         return true;
     }
 

@@ -23,7 +23,7 @@ TEST(JSStream, Simple)
     success = JS_GetProperty(njs.cx, globObj, "Stream", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSStream::registerObject(njs.cx);
+    Nidium::Binding::JSStream::RegisterObject(njs.cx);
 
     rval = JSVAL_VOID;
     success = JS_GetProperty(njs.cx, globObj, "Stream", &rval);

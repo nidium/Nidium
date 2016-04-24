@@ -23,7 +23,7 @@ TEST(JSDebug, Simple)
     success = JS_GetProperty(njs.cx, globObj, "Debug", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSDebug::registerObject(njs.cx);
+    Nidium::Binding::JSDebug::RegisterObject(njs.cx);
 
     rval = JSVAL_VOID;
     success = JS_GetProperty(njs.cx, globObj, "Debug", &rval);
@@ -44,7 +44,7 @@ TEST(JSDebug, Init)
     EXPECT_TRUE(nd.getJSObject() == globObj);
     EXPECT_TRUE(nd.getJSContext() == njs.cx);
 
-    EXPECT_TRUE(strcmp(nd.getJSObjectName(), "Debug") == 0);
+    EXPECT_TRUE(strcmp(nd.GetJSObjectName(), "Debug") == 0);
 
     APE_destroy(g_ape);
 }

@@ -28,7 +28,7 @@ bool JSNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
         size_t len, int flags)
 {
 
-    PtrAutoDelete<char *> path(Path::sanitize(name_utf8, NULL));
+    PtrAutoDelete<char *> path(Path::Sanitize(name_utf8, NULL));
     int path_len = strlen(path.ptr());
 
     if (m_Hash.get(path.ptr())) {
@@ -36,7 +36,7 @@ bool JSNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
         return false;
     }
 
-    PtrAutoDelete<char *> dir(Path::getDir(name_utf8));
+    PtrAutoDelete<char *> dir(Path::GetDir(name_utf8));
 
     if (strlen(dir.ptr())) {
         dir.ptr()[strlen(dir.ptr())-1] = '\0';

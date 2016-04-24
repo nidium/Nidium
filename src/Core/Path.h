@@ -37,14 +37,14 @@ extern char *g_m_Pwd;
 
 #define SCHEME_DEFINE(prefix, streamclass, keepprefix) (struct Nidium::Core::Path::schemeInfo) { \
     .str        = prefix, \
-    .base       = streamclass::createStream, \
-    .getBaseDir = streamclass::getBaseDir, \
+    .base       = streamclass::CreateStream, \
+    .GetBaseDir = streamclass::GetBaseDir, \
     .keepPrefix = keepprefix, \
-    .allowLocalFileStream = streamclass::allowLocalFileStream, \
-    .allowSyncStream = streamclass::allowSyncStream \
+    .AllowLocalFileStream = streamclass::AllowLocalFileStream, \
+    .AllowSyncStream = streamclass::AllowSyncStream \
 }
 
-#define URLSCHEME_MATCH(url, scheme) (strcmp(Nidium::Core::Path::getScheme(url)->str, scheme "://") == 0)
+#define URLSCHEME_MATCH(url, scheme) (strcmp(Nidium::Core::Path::GetScheme(url)->str, scheme "://") == 0)
 #define SCHEME_MATCH(obj, scheme) (strcmp(obj->str, scheme "://") == 0)
 
 class Path
@@ -53,10 +53,10 @@ public:
     struct schemeInfo {
         const char *str;
         Nidium::IO::Stream *(*base)(const char *);
-        const char *(*getBaseDir)();
+        const char *(*GetBaseDir)();
         bool keepPrefix;
-        bool (*allowLocalFileStream)();
-        bool (*allowSyncStream)();
+        bool (*AllowLocalFileStream)();
+        bool (*AllowSyncStream)();
     };
 
     /*
@@ -82,23 +82,23 @@ public:
         return m_Host;
     }
 
-    Nidium::IO::Stream *createStream(bool onlySync = false) const {
+    Nidium::IO::Stream *CreateStream(bool onlySync = false) const {
         if (!m_Scheme || !m_Path) {
             return NULL;
         }
 
-        if (onlySync && !m_Scheme->allowSyncStream()) {
+        if (onlySync && !m_Scheme->AllowSyncStream()) {
             return NULL;
         }
 
         return m_Scheme->base(m_Path);
     }
 
-    schemeInfo *getScheme() const {
+    schemeInfo *GetScheme() const {
         return m_Scheme;
     }
 
-    bool static isRelative(const char *path);
+    bool static IsRelative(const char *path);
 
     ~Path() {
         if (m_Path) {
@@ -109,50 +109,49 @@ public:
         }
     };
 
-    static void registerScheme(const schemeInfo &scheme,
+    static void RegisterScheme(const schemeInfo &scheme,
         bool isDefault = false);
-    static void unRegisterSchemes();
-    static schemeInfo *getScheme(const char *url, const char **pURL = NULL);
+    static void UnRegisterSchemes();
+    static schemeInfo *GetScheme(const char *url, const char **pURL = NULL);
 
-    static char *sanitize(const char *path, bool *outsideRoot = nullptr);
+    static char *Sanitize(const char *path, bool *outsideRoot = nullptr);
 
-    static void chroot(const char *root) {
+    static void Chroot(const char *root) {
         if (g_m_Root != NULL && root != g_m_Root) {
             free(g_m_Root);
         }
         g_m_Root = (root != NULL ? strdup(root) : NULL);
     }
 
-    static void cd(const char *dir) {
+    static void CD(const char *dir) {
         if (g_m_Pwd != NULL && dir != g_m_Pwd) {
             free(g_m_Pwd);
         }
         g_m_Pwd = (dir != NULL ? strdup(dir) : NULL);
     }
 
-    static char *getDir(const char *fullpath);
+    static char *GetDir(const char *fullpath);
 
-    static const char *getRoot() {
+    static const char *GetRoot() {
         return g_m_Root;
     }
 
-    static const char *getPwd() {
+    static const char *GetPwd() {
         return g_m_Pwd;
     }
 
-    static schemeInfo *getPwdScheme() {
+    static schemeInfo *GetPwdScheme() {
         if (!g_m_Pwd) {
             return NULL;
         }
-        return Path::getScheme(g_m_Pwd);
+        return Path::GetScheme(g_m_Pwd);
     }
 
     static int g_m_SchemesCount;
     static struct schemeInfo g_m_Schemes[MAX_REGISTERED_SCHEMES];
     static struct schemeInfo *g_m_DefaultScheme;
-    static void makedirs(const char * dirWithSlashes);
-    static char *absolutize(const char *relative, const char *root);
-    static bool inDir(const char *dir, const char *root);
+    static void Makedirs(const char * dirWithSlashes);
+    static bool InDir(const char *dir, const char *root);
 private:
     void parse(const char *path);
     void invalidatePath();

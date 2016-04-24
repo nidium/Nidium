@@ -73,7 +73,7 @@ void WebSocketClientConnection::ping()
     ape_ws_ping(&m_WSState);
 }
 
-int WebSocketClientConnection::pingTimer(void *arg)
+int WebSocketClientConnection::PingTimer(void *arg)
 {
     WebSocketClientConnection *con = (WebSocketClientConnection *)arg;
 
@@ -106,7 +106,7 @@ WebSocketClientConnection::~WebSocketClientConnection()
     }
 
     if (m_PingTimer) {
-        ape_global *ape = Binding::NidiumJS::getNet();
+        ape_global *ape = Binding::NidiumJS::GetNet();
 
         APE_timer_clearbyid(ape, m_PingTimer, 1);
 
@@ -167,7 +167,7 @@ void WebSocketClientConnection::onUpgrade(const char *to)
     args[0].set(this);
 
     ape_timer_t *timer = APE_timer_create(m_SocketClient->ape, WEBSOCKET_PING_INTERVAL,
-        WebSocketClientConnection::pingTimer, this);
+        WebSocketClientConnection::PingTimer, this);
 
     m_PingTimer = APE_timer_getid(timer);
     m_HTTPServer->fireEvent<WebSocketServer>(WebSocketServer::SERVER_CONNECT, args);
@@ -176,7 +176,7 @@ void WebSocketClientConnection::onUpgrade(const char *to)
 
 void WebSocketClientConnection::onContent(const char *data, size_t len)
 {
-    m_LastAcitivty = Core::Utils::getTick(true);
+    m_LastAcitivty = Core::Utils::GetTick(true);
 
     ape_ws_process_frame(&m_WSState, data, len);
 }

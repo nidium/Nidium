@@ -102,8 +102,8 @@ class JSModules
         bool init();
         bool init(JSModule *module);
 
-        static char *findModulePath(JSModule *parent, JSModule *module);
-        static bool getFileContent(const char *file, char **content, size_t *size);
+        static char *FindModulePath(JSModule *parent, JSModule *module);
+        static bool GetFileContent(const char *file, char **content, size_t *size);
     private:
         Nidium::Core::Hash<JSModule *> m_Cache;
         const char *m_Paths[2];
@@ -112,10 +112,10 @@ class JSModules
 
         bool initJS(JSModule *cmodule);
 
-        static std::string findModuleInPath(JSModule *module, const char *path);
-        static bool loadDirectoryModule(std::string &dir);
+        static std::string FindModuleInPath(JSModule *module, const char *path);
+        static bool LoadDirectoryModule(std::string &dir);
 
-        static void dirname(std::string &source);
+        static void DirName(std::string &source);
 };
 // }}}
 

@@ -44,36 +44,36 @@ class UserStream : public Nidium::IO::FileStream
     {
     }
 
-    static Nidium::IO::Stream *createStream(const char *location) {
+    static Nidium::IO::Stream *CreateStream(const char *location) {
         return new UserStream(location);
     }
 
-    static bool allowLocalFileStream() {
+    static bool AllowLocalFileStream() {
         return true;
     }
 
-    static bool allowSyncStream() {
+    static bool AllowSyncStream() {
         return true;
     }
 
-    static const char *getBaseDir() {
+    static const char *GetBaseDir() {
         return USER_STREAM_BASE_DIR;
     }
 };
 
 TEST(Path, RegisterScheme)
 {
-    Path::registerScheme(SCHEME_DEFINE("file://",    Nidium::IO::FileStream,    false), true); // default
-    Path::registerScheme(SCHEME_DEFINE("http://",    Nidium::Net::HTTPStream,    true));
-    Path::registerScheme(SCHEME_DEFINE("https://",   Nidium::Net::HTTPStream,    true));
-    Path::registerScheme(SCHEME_DEFINE("nvfs://",    Nidium::IO::NFSStream,     false));
-    Path::registerScheme(SCHEME_DEFINE("user://",    UserStream,    false));
+    Path::RegisterScheme(SCHEME_DEFINE("file://",    Nidium::IO::FileStream,    false), true); // default
+    Path::RegisterScheme(SCHEME_DEFINE("http://",    Nidium::Net::HTTPStream,    true));
+    Path::RegisterScheme(SCHEME_DEFINE("https://",   Nidium::Net::HTTPStream,    true));
+    Path::RegisterScheme(SCHEME_DEFINE("nvfs://",    Nidium::IO::NFSStream,     false));
+    Path::RegisterScheme(SCHEME_DEFINE("user://",    UserStream,    false));
 }
 
 // {{{ Sanitize
 TEST(Path, Sanitize)
 {
-    char *sanitized = Path::sanitize("dir/../");
+    char *sanitized = Path::Sanitize("dir/../");
 
     ASSERT_STREQ("", sanitized);
 
@@ -82,7 +82,7 @@ TEST(Path, Sanitize)
 
 TEST(Path, Sanitize2)
 {
-    char *sanitized = Path::sanitize("dir//./a/.././file");
+    char *sanitized = Path::Sanitize("dir//./a/.././file");
 
     ASSERT_STREQ("dir/file", sanitized);
 
@@ -91,7 +91,7 @@ TEST(Path, Sanitize2)
 
 TEST(Path, Sanitize3)
 {
-    char *sanitized = Path::sanitize("foo/bar/../file");
+    char *sanitized = Path::Sanitize("foo/bar/../file");
 
     ASSERT_STREQ("foo/file", sanitized);
 
@@ -100,7 +100,7 @@ TEST(Path, Sanitize3)
 
 TEST(Path, Sanitize4)
 {
-    char *sanitized = Path::sanitize("dir/..");
+    char *sanitized = Path::Sanitize("dir/..");
 
     ASSERT_STREQ("", sanitized);
 
@@ -110,7 +110,7 @@ TEST(Path, Sanitize4)
 TEST(Path, Sanitize5)
 {
     bool external = false;
-    char *sanitized = Path::sanitize("dir/../..", &external);
+    char *sanitized = Path::Sanitize("dir/../..", &external);
 
     ASSERT_STREQ("../", sanitized);
     ASSERT_TRUE(external);
@@ -120,7 +120,7 @@ TEST(Path, Sanitize5)
 
 TEST(Path, SanitizeEmpty)
 {
-    char *sanitized = Path::sanitize("");
+    char *sanitized = Path::Sanitize("");
 
     ASSERT_STREQ("", sanitized);
 
@@ -129,7 +129,7 @@ TEST(Path, SanitizeEmpty)
 
 TEST(Path, SanitizeDot)
 {
-    char *sanitized = Path::sanitize(".");
+    char *sanitized = Path::Sanitize(".");
 
     ASSERT_STREQ("", sanitized);
 
@@ -138,7 +138,7 @@ TEST(Path, SanitizeDot)
 
 TEST(Path, SanitizeDotSlash)
 {
-    char *sanitized = Path::sanitize("./");
+    char *sanitized = Path::Sanitize("./");
 
     ASSERT_STREQ("", sanitized);
 
@@ -147,7 +147,7 @@ TEST(Path, SanitizeDotSlash)
 
 TEST(Path, SanitizeNull)
 {
-    char *sanitized = Path::sanitize(nullptr);
+    char *sanitized = Path::Sanitize(nullptr);
 
     ASSERT_STREQ(nullptr, sanitized);
 
@@ -156,7 +156,7 @@ TEST(Path, SanitizeNull)
 
 TEST(Path, SanitizeAbsoluteInvalid)
 {
-    char *sanitized = Path::sanitize(TEST_DIR "../../");
+    char *sanitized = Path::Sanitize(TEST_DIR "../../");
 
     ASSERT_STREQ(nullptr, sanitized);
 
@@ -166,7 +166,7 @@ TEST(Path, SanitizeAbsoluteInvalid)
 TEST(Path, SanitizeAbsolute)
 {
     // Path is : /tmp/../tmp/file 
-    char *sanitized = Path::sanitize(TEST_DIR ".." TEST_DIR TEST_FILE);
+    char *sanitized = Path::Sanitize(TEST_DIR ".." TEST_DIR TEST_FILE);
 
     ASSERT_STREQ(TEST_DIR TEST_FILE, sanitized);
 
@@ -175,7 +175,7 @@ TEST(Path, SanitizeAbsolute)
 
 TEST(Path, SanitizeRelativeOutsideRoot)
 {
-    char *sanitized = Path::sanitize("file/../../");
+    char *sanitized = Path::Sanitize("file/../../");
 
     ASSERT_STREQ("../", sanitized);
 
@@ -184,7 +184,7 @@ TEST(Path, SanitizeRelativeOutsideRoot)
 
 // }}}
 
-// {{{ Path without chroot
+// {{{ Path without Chroot
 TEST(Path, InvalidAbsoluteFileNoChroot)
 {
     Path path("/absolute/path/file", false, false);
@@ -254,19 +254,19 @@ TEST(Path, HttpNoChroot)
 
 // }}}
 
-// {{{ cd & chroot (local)
+// {{{ cd & Chroot (local)
 TEST(Path, CdLocal)
 {
-    Path::cd(TEST_DIR);
+    Path::CD(TEST_DIR);
 
-    ASSERT_STREQ(TEST_DIR, Path::getPwd());
+    ASSERT_STREQ(TEST_DIR, Path::GetPwd());
 }
 
 TEST(Path, ChrootLocal)
 {
-    Path::chroot(TEST_DIR);
+    Path::Chroot(TEST_DIR);
 
-    ASSERT_STREQ(TEST_DIR, Path::getRoot());
+    ASSERT_STREQ(TEST_DIR, Path::GetRoot());
 }
 // }}}
 
@@ -440,12 +440,12 @@ TEST(Path, SanitizePrefixUserOutside)
 }
 // }}}
 
-// {{{ cd subdirectory of chroot
+// {{{ cd subdirectory of Chroot
 TEST(Path, CdLocalSubdir)
 {
-    Path::cd(TEST_DIR "/bar/");
+    Path::CD(TEST_DIR "/bar/");
 
-    ASSERT_STREQ(TEST_DIR "/bar/", Path::getPwd());
+    ASSERT_STREQ(TEST_DIR "/bar/", Path::GetPwd());
 }
 
 TEST(Path, RelativeFileDifferentCwd)
@@ -457,23 +457,23 @@ TEST(Path, RelativeFileDifferentCwd)
 }
 // }}}
 
-// {{{ cd & chroot (remote with directory)
+// {{{ cd & Chroot (remote with directory)
 TEST(Path, CdRemote)
 {
-    Path::cd(TEST_URL_DIR);
+    Path::CD(TEST_URL_DIR);
 
-    ASSERT_STREQ(TEST_URL_DIR, Path::getPwd());
+    ASSERT_STREQ(TEST_URL_DIR, Path::GetPwd());
 }
 
 TEST(Path, ChrootRemote)
 {
-    Path::chroot(TEST_URL_DIR);
+    Path::Chroot(TEST_URL_DIR);
 
-    ASSERT_STREQ(TEST_URL_DIR, Path::getRoot());
+    ASSERT_STREQ(TEST_URL_DIR, Path::GetRoot());
 }
 // }}}
 
-// {{{ Path with remote chroot in a directory
+// {{{ Path with remote Chroot in a directory
 TEST(Path, RelativeRemote)
 {
     Path path(TEST_FILE, false, false);
@@ -517,23 +517,23 @@ TEST(Path, RelativeRemoteOutsideChroot)
 }
 // }}}
 
-// {{{ cd & chroot (remote "/")
+// {{{ cd & Chroot (remote "/")
 TEST(Path, CdRemoteSlash)
 {
-    Path::cd(TEST_URL);
+    Path::CD(TEST_URL);
 
-    ASSERT_STREQ(TEST_URL, Path::getPwd());
+    ASSERT_STREQ(TEST_URL, Path::GetPwd());
 }
 
 TEST(Path, ChrootRemoteSlash)
 {
-    Path::chroot(TEST_URL);
+    Path::Chroot(TEST_URL);
 
-    ASSERT_STREQ(TEST_URL, Path::getRoot());
+    ASSERT_STREQ(TEST_URL, Path::GetRoot());
 }
 // }}}
 
-// {{{ Path with remote chroot on /
+// {{{ Path with remote Chroot on /
 TEST(Path, RelativeRemoteSlash)
 {
     Path path(TEST_FILE, false, false);

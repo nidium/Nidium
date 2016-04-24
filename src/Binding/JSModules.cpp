@@ -96,7 +96,7 @@ bool JSModule::init()
     DPRINT("name = %s\n", this->name);
 
     if (this->parent) {
-        this->filePath = JSModules::findModulePath(this->parent, this);
+        this->filePath = JSModules::FindModulePath(this->parent, this);
     } else {
         this->filePath = realpath(this->name, NULL);
     }
@@ -241,9 +241,9 @@ JS::Value JSModule::require(char *name)
         this->filePath = realpath(filename.get(), NULL);
 
         if (this->filePath == NULL) {
-            this->absoluteDir = strdup(Path::getPwd());
+            this->absoluteDir = strdup(Path::GetPwd());
         } else {
-            // absoluteDir is needed for findModulePath
+            // absoluteDir is needed for FindModulePath
             Path p(this->filePath, false, true);
             this->absoluteDir = strdup(p.dir());
             DPRINT("Global scope loading\n");
@@ -303,7 +303,7 @@ JS::Value JSModule::require(char *name)
             JS::RootedFunction fn(cx);
             JS::RootedValue rval(cx);
 
-            if (!JSModules::getFileContent(cmodule->filePath, &data, &filesize) || data == NULL) {
+            if (!JSModules::GetFileContent(cmodule->filePath, &data, &filesize) || data == NULL) {
                 JS_ReportError(cx, "Failed to open module %s\n", cmodule->name);
                 return ret;
             }
@@ -454,7 +454,7 @@ bool JSModules::init(JSModule *module)
     return true;
 }
 
-void JSModules::dirname(std::string &source)
+void JSModules::DirName(std::string &source)
 {
     if (source.size() <= 1) {
         return;
@@ -468,7 +468,7 @@ void JSModules::dirname(std::string &source)
     source.erase(std::find(source.rbegin(), source.rend(), '/').base(), source.end());
 }
 
-char *JSModules::findModulePath(JSModule *parent, JSModule *module)
+char *JSModules::FindModulePath(JSModule *parent, JSModule *module)
 {
     std::string modulePath;
     JSModules *modules = module->modules;
@@ -476,13 +476,13 @@ char *JSModules::findModulePath(JSModule *parent, JSModule *module)
 
     if (module->name[0] == '.') {
         // Relative module, only look in current script directory
-        modulePath = JSModules::findModuleInPath(module, parent->absoluteDir);
+        modulePath = JSModules::FindModuleInPath(module, parent->absoluteDir);
     }  else if (module->name[0] == '/') {
-        modulePath = JSModules::findModuleInPath(module, topDir);
+        modulePath = JSModules::FindModuleInPath(module, topDir);
     }  else {
         std::string path = parent->absoluteDir;
 
-        DPRINT("[findModulePath] absolute topDir=%s dir=%s path=%s\n", topDir, parent->absoluteDir, path.c_str());
+        DPRINT("[FindModulePath] absolute topDir=%s dir=%s path=%s\n", topDir, parent->absoluteDir, path.c_str());
 
         // Look for the module in all parent directory until it's found
         // or if the top level working directory is reached
@@ -494,7 +494,7 @@ char *JSModules::findModulePath(JSModule *parent, JSModule *module)
                 currentPath += modules->m_Paths[i];
 
                 DPRINT("Looking for module %s in %s\n", module->name, currentPath.c_str());
-                modulePath = JSModules::findModuleInPath(module, currentPath.c_str());
+                modulePath = JSModules::FindModuleInPath(module, currentPath.c_str());
                 DPRINT("module path is %s\n", modulePath.c_str());
             }
 
@@ -502,7 +502,7 @@ char *JSModules::findModulePath(JSModule *parent, JSModule *module)
             // Try again with parent directory
             if (!stop) {
                 DPRINT("  Getting parent dir for %s\n", path.c_str());
-                JSModules::dirname(path);
+                JSModules::DirName(path);
                 DPRINT("  Parent path is         %s\n", path.c_str());
             }
         } while (modulePath.empty() && !stop);
@@ -512,7 +512,7 @@ char *JSModules::findModulePath(JSModule *parent, JSModule *module)
             for (int i = 0; modules->m_EnvPaths[i] != NULL && modulePath.empty(); i++) {
                 char *tmp = modules->m_EnvPaths[i];
                 DPRINT("Looking for module %s in %s\n", module->name, tmp);
-                modulePath = JSModules::findModuleInPath(module, tmp);
+                modulePath = JSModules::FindModuleInPath(module, tmp);
                 DPRINT("module path is %s\n", modulePath.c_str());
             }
         }
@@ -525,10 +525,10 @@ char *JSModules::findModulePath(JSModule *parent, JSModule *module)
     return realpath(modulePath.c_str(), NULL);
 }
 
-bool JSModules::getFileContent(const char *file, char **content, size_t *size)
+bool JSModules::GetFileContent(const char *file, char **content, size_t *size)
 {
     Path path(file, false, true);
-    Stream *stream = path.createStream(true);
+    Stream *stream = path.CreateStream(true);
 
     if (!stream) {
         return false;
@@ -541,7 +541,7 @@ bool JSModules::getFileContent(const char *file, char **content, size_t *size)
     return ret;
 }
 
-std::string JSModules::findModuleInPath(JSModule *module, const char *path)
+std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
 {
 #define MAX_EXT_SIZE 13
     const char *extensions[] = {NULL, ".js", DSO_EXTENSION, ".json"};
@@ -569,7 +569,7 @@ std::string JSModules::findModuleInPath(JSModule *module, const char *path)
                 module->m_ModuleType = JSModule::JS;
                 struct stat sb;
                 if (stat(tmp.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode)) {
-                    if (JSModules::loadDirectoryModule(tmp)) {
+                    if (JSModules::LoadDirectoryModule(tmp)) {
                         return tmp;
                     }
                     DPRINT("%s\n", tmp.c_str());
@@ -619,7 +619,7 @@ std::string JSModules::findModuleInPath(JSModule *module, const char *path)
     return std::string();
 }
 
-bool JSModules::loadDirectoryModule(std::string &dir)
+bool JSModules::LoadDirectoryModule(std::string &dir)
 {
     const char *files[] = {"/index.js", "/package.json"};
     size_t len = dir.length();
@@ -638,7 +638,7 @@ bool JSModules::loadDirectoryModule(std::string &dir)
                 char *data = NULL;
                 size_t size;
 
-                if (!JSModules::getFileContent(dir.c_str(), &data, &size) || data == NULL) {
+                if (!JSModules::GetFileContent(dir.c_str(), &data, &size) || data == NULL) {
                     fprintf(stderr, "Failed to open %s\n", dir.c_str());
                     return false;
                 }

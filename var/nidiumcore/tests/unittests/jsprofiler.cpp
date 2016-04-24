@@ -19,7 +19,7 @@ TEST(JSProfiler, Init)
     Nidium::Binding::NidiumJS njs(g_ape);
     Nidium::Binding::Profile::RegisterObject(njs.cx);
 
-    Nidium::Binding::Profiler *np = Nidium::Binding::Profiler::getInstance(njs.cx);
+    Nidium::Binding::Profiler *np = Nidium::Binding::Profiler::GetInstance(njs.cx);
 
     np->start("dummy");
     np->stop();

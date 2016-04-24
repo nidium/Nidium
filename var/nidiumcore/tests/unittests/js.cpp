@@ -45,7 +45,7 @@ TEST(JS, Simple)
 
     //check the init
     EXPECT_TRUE(njs.net == g_ape);
-    EXPECT_TRUE(njs.getNet() == g_ape);
+    EXPECT_TRUE(njs.GetNet() == g_ape);
     EXPECT_TRUE(njs.cx != NULL);
     EXPECT_TRUE(njs.getJSContext() == njs.cx);
     EXPECT_TRUE(njs.messages != NULL);
@@ -78,7 +78,7 @@ TEST(JS, Simple)
     njs.rootObjectUntilShutdown(d);
     njs.unrootObject(d);
     JS::RootedObject dc(njs.cx, JS_NewObject(njs.cx, NULL, JS::NullPtr(), JS::NullPtr()));
-    njs.copyProperties(njs.cx, d, &dc);
+    njs.CopyProperties(njs.cx, d, &dc);
     JS_GetProperty(njs.cx, dc, "a", &rval);
     EXPECT_EQ(JSVAL_TO_INT(rval), 1);
 
@@ -115,9 +115,9 @@ TEST(NidiumJS, Quick)
     g_ape = APE_init();
     Nidium::Binding::NidiumJS njs(g_ape);
 
-    njs.initNet(g_ape);
+    njs.InitNet(g_ape);
     EXPECT_TRUE(njs.net == g_ape);
-    EXPECT_TRUE(njs.getNet() == g_ape);
+    EXPECT_TRUE(njs.GetNet() == g_ape);
 
     APE_destroy(g_ape);
 }

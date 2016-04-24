@@ -80,8 +80,8 @@ class NidiumJS
         int registeredMessagesSize;
 
         static NidiumJS *GetObject(JSContext *cx = NULL);
-        static ape_global *getNet();
-        static void initNet(ape_global *net);
+        static ape_global *GetNet();
+        static void InitNet(ape_global *net);
 
         static void Init();
 
@@ -122,7 +122,7 @@ class NidiumJS
 
         void loadGlobalObjects();
 
-        static void copyProperties(JSContext *cx, JS::HandleObject source, JS::MutableHandleObject into);
+        static void CopyProperties(JSContext *cx, JS::HandleObject source, JS::MutableHandleObject into);
         static int LoadScriptReturn(JSContext *cx, const char *data,
             size_t len, const char *filename, JS::MutableHandleValue ret);
         static int LoadScriptReturn(JSContext *cx,

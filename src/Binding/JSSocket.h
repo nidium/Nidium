@@ -25,7 +25,7 @@ enum {
 class JSSocket : public JSExposer<JSSocket>
 {
 public:
-    static void registerObject(JSContext *cx);
+    static void RegisterObject(JSContext *cx);
     JSSocket(JS::HandleObject obj, JSContext *cx,
         const char *host, unsigned short port);
     ~JSSocket();

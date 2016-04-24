@@ -127,9 +127,9 @@ static bool nidium_debugger_create(JSContext* cx, unsigned argc, JS::Value* vp)
 
     JSCompartment *cpt = JS_EnterCompartment(cx, gbl);
 
-    JSDebugger::registerObject(cx);
+    JSDebugger::RegisterObject(cx);
     /* Expose console object for easy "debugging" */
-    JSConsole::registerObject(cx);
+    JSConsole::RegisterObject(cx);
 
     JS::RootedScript script(cx);
     JS::AutoSaveContextOptions asco(cx);
@@ -183,7 +183,7 @@ static bool nidium_debugger_create(JSContext* cx, unsigned argc, JS::Value* vp)
 // }}}
 
 // {{{ Registration
-void JSDebugger::registerObject(JSContext *cx)
+void JSDebugger::RegisterObject(JSContext *cx)
 {
     JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
 

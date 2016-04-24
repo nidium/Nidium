@@ -19,8 +19,8 @@ class JSDebug : public JSExposer<JSDebug>
     {};
     virtual ~JSDebug() {};
 
-    static void registerObject(JSContext *cx);
-    static const char *getJSObjectName() {
+    static void RegisterObject(JSContext *cx);
+    static const char *GetJSObjectName() {
         return "Debug";
     }
 

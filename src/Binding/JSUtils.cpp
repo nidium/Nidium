@@ -19,14 +19,14 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ String conversions
-bool JSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::MutableHandleValue ret,
+bool JSUtils::StrToJsval(JSContext *cx, const char *buf, size_t len, JS::MutableHandleValue ret,
     const char *encoding)
 {
     ret.setNull();
 
     if (encoding) {
 
-        JS::RootedString str(cx, JSUtils::newStringWithEncoding(cx, buf, len, encoding));
+        JS::RootedString str(cx, JSUtils::NewStringWithEncoding(cx, buf, len, encoding));
         if (!str) {
             ret.set(JS_GetEmptyStringValue(cx));
             return false;
@@ -58,7 +58,7 @@ char16_t *JSUtils::Utf8ToUtf16(JSContext *cx,
       JS::UTF8Chars(str, len), outputlen).get();
 }
 
-JSString *JSUtils::newStringWithEncoding(JSContext *cx, const char *buf,
+JSString *JSUtils::NewStringWithEncoding(JSContext *cx, const char *buf,
         size_t len, const char *encoding)
 {
 

@@ -22,7 +22,7 @@ TEST(JSHTTP, Simple)
     success = JS_GetProperty(njs.cx, globObj, "Http", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSHTTP::registerObject(njs.cx);
+    Nidium::Binding::JSHTTP::RegisterObject(njs.cx);
 
     rval = JSVAL_VOID;
     success = JS_GetProperty(njs.cx, globObj, "Http", &rval);

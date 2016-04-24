@@ -33,7 +33,7 @@ DB::DB(const char *name) :
     }
     leveldb::Options options;
 #ifndef NIDIUM_NO_PRIVATE_DIR
-    std::string sdir(NativeSystemInterface::getInstance()->getCacheDirectory());
+    std::string sdir(NativeSystemInterface::GetInstance()->getCacheDirectory());
 #else
     std::string sdir("./");
 #endif
@@ -50,7 +50,7 @@ DB::DB(const char *name) :
             found = true;
         }
     }
-    Path::makedirs(chdir);
+    Path::Makedirs(chdir);
     options.create_if_missing = true;
     options.filter_policy = leveldb::NewBloomFilterPolicy(8);
 

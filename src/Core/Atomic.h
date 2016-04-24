@@ -23,62 +23,62 @@ public:
     #pragma intrinsic(_InterlockedIncrement, _InterlockedExchangeAdd, _InterlockedDecrement)
     #pragma intrinsic(_InterlockedCompareExchange)
 
-    static inline int32_t inc(int32_t* addr) {
+    static inline int32_t Inc(int32_t* addr) {
         // InterlockedIncrement returns the new value, we want to return the old.
         return _InterlockedIncrement(reinterpret_cast<long*>(addr)) - 1;
     };
 
-    static inline int32_t add(int32_t* addr, int32_t inc) {
+    static inline int32_t Add(int32_t* addr, int32_t inc) {
         return _InterlockedExchangeAdd(reinterpret_cast<long*>(addr), static_cast<long>(inc));
     };
 
-    static inline int32_t dec(int32_t* addr) {
+    static inline int32_t Dec(int32_t* addr) {
         // InterlockedDecrement returns the new value, we want to return the old.
         return _InterlockedDecrement(reinterpret_cast<long*>(addr)) + 1;
     };
 
-    static inline void membar_acquire__after_atomic_dec() { };
+    static inline void Membar_acquire__after_atomic_dec() { };
 
-    static inline bool cas(int32_t* addr, int32_t before, int32_t after) {
+    static inline bool Cas(int32_t* addr, int32_t before, int32_t after) {
         return _InterlockedCompareExchange(reinterpret_cast<long*>(addr), after, before) == before;
     };
 
-    static inline void* cas(void** addr, void* before, void* after) {
+    static inline void* Cas(void** addr, void* before, void* after) {
         return InterlockedCompareExchangePointer(addr, after, before);
     };
 
-    static inline void membar_acquire__after_atomic_conditional_inc() { };
+    static inline void Membar_acquire__after_atomic_conditional_inc() { };
 // }}}
 #else
 // {{{ *NIX Implementation
 
-    static inline __attribute__((always_inline)) int32_t inc(int32_t* addr) {
+    static inline __attribute__((always_inline)) int32_t Inc(int32_t* addr) {
         return __sync_fetch_and_add(addr, 1);
     };
 
-    static inline __attribute__((always_inline)) int32_t add(int32_t* addr, int32_t inc) {
+    static inline __attribute__((always_inline)) int32_t Add(int32_t* addr, int32_t inc) {
         return __sync_fetch_and_add(addr, inc);
     };
 
-    static inline __attribute__((always_inline)) int32_t dec(int32_t* addr) {
+    static inline __attribute__((always_inline)) int32_t Dec(int32_t* addr) {
         return __sync_fetch_and_add(addr, -1);
     };
 
-    static inline __attribute__((always_inline)) void membar_acquire__after_atomic_dec() { };
+    static inline __attribute__((always_inline)) void Membar_acquire__after_atomic_dec() { };
 
-    static inline __attribute__((always_inline)) bool cas(int32_t* addr,
+    static inline __attribute__((always_inline)) bool Cas(int32_t* addr,
             int32_t before,
             int32_t after) {
         return __sync_bool_compare_and_swap(addr, before, after);
     };
 
-    static inline __attribute__((always_inline)) void* cas(void** addr,
+    static inline __attribute__((always_inline)) void* Cas(void** addr,
             void* before,
             void* after) {
         return __sync_val_compare_and_swap(addr, before, after);
     };
 
-    static inline __attribute__((always_inline)) void membar_acquire__after_atomic_conditional_inc() { };
+    static inline __attribute__((always_inline)) void Membar_acquire__after_atomic_conditional_inc() { };
 // }}}
 #endif
 };

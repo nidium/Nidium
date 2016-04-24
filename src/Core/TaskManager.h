@@ -56,8 +56,8 @@ public:
     void stopAll();
 
     workerInfo *getAvailableWorker();
-    static TaskManager *getManager();
-    static void createManager();
+    static TaskManager *GetManager();
+    static void CreateManager();
 
 private:
     struct {
@@ -109,7 +109,7 @@ class Managed : public Messages
 {
 public:
     Managed() : m_TaskQueued(0), m_Worker(NULL) {
-        m_Manager = TaskManager::getManager();
+        m_Manager = TaskManager::GetManager();
     }
     ~Managed() {
         if (m_Worker) {

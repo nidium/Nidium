@@ -23,7 +23,7 @@ TEST(JSWebsocket, Simple)
     success = JS_GetProperty(njs.cx, globObj, "WebSocketServerClient", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSWebSocketServer::registerObject(njs.cx);
+    Nidium::Binding::JSWebSocketServer::RegisterObject(njs.cx);
 
     rval = JSVAL_VOID;
     success = JS_GetProperty(njs.cx, globObj, "WebSocketServer", &rval);

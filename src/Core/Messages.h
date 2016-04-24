@@ -38,8 +38,8 @@ public:
     void postMessage(SharedMessages::Message *msg, bool forceAsync = false);
     void delMessages(int event = -1);
 
-    static void initReader(ape_global *ape);
-    static void destroyReader();
+    static void InitReader(ape_global *ape);
+    static void DestroyReader();
 
     SharedMessages *getSharedMessages();
 

@@ -20,17 +20,17 @@ class FileStream : public Stream,
 public:
     explicit FileStream(const char *location);
 
-    static Stream *createStream(const char *location) {
+    static Stream *CreateStream(const char *location) {
         return new FileStream(location);
     }
-    static const char *getBaseDir() {
-        return Nidium::Core::Path::getRoot();
+    static const char *GetBaseDir() {
+        return Nidium::Core::Path::GetRoot();
     }
 
-    static bool allowLocalFileStream() {
+    static bool AllowLocalFileStream() {
         return true;
     }
-    static bool allowSyncStream() {
+    static bool AllowSyncStream() {
         return true;
     }
 

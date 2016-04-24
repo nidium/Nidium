@@ -23,7 +23,7 @@ TEST(JSFS, Simple)
     success = JS_GetProperty(njs.cx, globObj, "fs", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSFS::registerObject(njs.cx);
+    Nidium::Binding::JSFS::RegisterObject(njs.cx);
 
     rval = JSVAL_VOID;
     success = JS_GetProperty(njs.cx, globObj, "fs", &rval);

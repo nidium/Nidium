@@ -114,19 +114,19 @@ static void Debug_Finalize(JSFreeOp *fop, JSObject *obj)
 // }}}
 
 // {{{ Registration
-void JSDebug::registerObject(JSContext *cx)
+void JSDebug::RegisterObject(JSContext *cx)
 {
     NidiumJS *njs = NidiumJS::GetObject(cx);
 
     JS::RootedObject debugObj(cx, JS_DefineObject(cx, JS::CurrentGlobalOrNull(cx),
-        JSDebug::getJSObjectName(),
+        JSDebug::GetJSObjectName(),
         &debug_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
     JSDebug *jdebug = new JSDebug(debugObj, cx);
 
     JS_SetPrivate(debugObj, jdebug);
 
-    njs->jsobjects.set(JSDebug::getJSObjectName(), debugObj);
+    njs->jsobjects.set(JSDebug::GetJSObjectName(), debugObj);
 
     JS_DefineFunctions(cx, debugObj, debug_funcs);
 }

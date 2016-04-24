@@ -153,7 +153,7 @@ static bool nidium_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
 // }}}
 
 // {{{ registration
-void JSFS::registerObject(JSContext *cx)
+void JSFS::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject fsObj(cx, JS_DefineObject(cx, global, "fs",

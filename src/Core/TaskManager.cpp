@@ -42,7 +42,7 @@ void *TaskManager::workerInfo::work()
         while ((msg = m_Messages.readMessage())) {
             Task *task = (Task *)msg->dataPtr();
             task->getFunction()(task);
-            Atomic::dec(&task->getObject()->m_TaskQueued);
+            Atomic::Dec(&task->getObject()->m_TaskQueued);
 
             delete task;
             delete msg;
@@ -171,12 +171,12 @@ TaskManager::workerInfo *TaskManager::getAvailableWorker()
     return &m_Threadpool.worker[rand() % m_Threadpool.count];
 }
 
-TaskManager *TaskManager::getManager()
+TaskManager *TaskManager::GetManager()
 {
     return (TaskManager *)pthread_getspecific(gManager);
 }
 
-void TaskManager::createManager()
+void TaskManager::CreateManager()
 {
     TaskManager *manager = new TaskManager();
     if (gManager == 0) {
@@ -210,7 +210,7 @@ void Managed::addTask(Task *task)
 
     task->setObject(this);
 
-    Atomic::inc(&m_TaskQueued);
+    Atomic::Inc(&m_TaskQueued);
 
     m_Worker->addTask(task);
 }

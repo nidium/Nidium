@@ -94,7 +94,7 @@ void Messages::postMessage(SharedMessages::Message *msg, bool forceAsync)
     }
 }
 
-void Messages::initReader(ape_global *ape)
+void Messages::InitReader(ape_global *ape)
 {
     g_MessagesList = new SharedMessages();
 
@@ -120,7 +120,7 @@ void Messages::delMessages(int event)
     g_MessagesList->delMessagesForDest(this, event);
 }
 
-void Messages::destroyReader()
+void Messages::DestroyReader()
 {
     delete g_MessagesList;
 }

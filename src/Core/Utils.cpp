@@ -109,7 +109,7 @@ static __inline uint64_t mach_absolute_time()
 #endif
 
 /* TODO: iOS : http://shiftedbits.org/2008/10/01/mach_absolute_time-on-the-iphone/ */
-uint64_t Utils::getTick(bool ms)
+uint64_t Utils::GetTick(bool ms)
 {
     return mach_absolute_time() / (ms ? 1000000LL : 1LL);
 }
@@ -240,28 +240,28 @@ static uint8_t nibbleFromChar(char c)
     return 255;
 }
 
-void Utils::sha1hmac(const unsigned char *key, uint32_t keylen,
+void Utils::SHA1hmac(const unsigned char *key, uint32_t keylen,
     const unsigned char *buf, uint32_t buflen, unsigned char out[20])
 {
     sha1_hmac((unsigned char *)key, keylen, (unsigned char *)buf, buflen, out);
 }
 
-void Utils::sha1(const unsigned char *buf, uint32_t buflen, unsigned char out[20])
+void Utils::SHA1(const unsigned char *buf, uint32_t buflen, unsigned char out[20])
 {
     sha1_csum((unsigned char *)buf, buflen, out);
 }
 
-char *Utils::b64Encode(const unsigned char *buf, size_t len)
+char *Utils::B64Encode(const unsigned char *buf, size_t len)
 {
     return base64_encode((unsigned char *)buf, len);
 }
 
-int Utils::b64Decode(unsigned char *out, const char *in, int out_length)
+int Utils::B64Decode(unsigned char *out, const char *in, int out_length)
 {
     return base64_decode(out, in, out_length);
 }
 
-int Utils::b16Decode(unsigned char *out, const char *in, int out_length)
+int Utils::B16Decode(unsigned char *out, const char *in, int out_length)
 {
     int len, i;
     int inlen = strlen(in);
@@ -279,7 +279,7 @@ int Utils::b16Decode(unsigned char *out, const char *in, int out_length)
     return len;
 }
 
-void Utils::blowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len)
+void Utils::BlowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len)
 {
     struct APEBlowfish ctx;
 

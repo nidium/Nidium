@@ -22,10 +22,10 @@ class JSFileIO : public JSExposer<JSFileIO>,
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 
     static Nidium::IO::File *GetFileFromJSObject(JSContext *cx, JS::HandleObject jsobj);
-    static void registerObject(JSContext *cx);
-    static JSObject *generateJSObject(JSContext *cx, const char *path);
+    static void RegisterObject(JSContext *cx);
+    static JSObject *GenerateJSObject(JSContext *cx, const char *path);
 
-    static bool handleError(JSContext *cx, const Nidium::Core::SharedMessages::Message &msg, JS::MutableHandleValue vals);
+    static bool HandleError(JSContext *cx, const Nidium::Core::SharedMessages::Message &msg, JS::MutableHandleValue vals);
     bool callbackForMessage(JSContext *cx,
         const Nidium::Core::SharedMessages::Message &msg,
         JSObject *thisobj, const char *encoding = NULL);

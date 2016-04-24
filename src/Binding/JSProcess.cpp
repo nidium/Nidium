@@ -102,18 +102,18 @@ static void Process_Finalize(JSFreeOp *fop, JSObject *obj)
 
 // {{{ Registration
 
-void JSProcess::registerObject(JSContext *cx, char **argv, int argc, int workerId)
+void JSProcess::RegisterObject(JSContext *cx, char **argv, int argc, int workerId)
 {
     NidiumJS *njs = NidiumJS::GetObject(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS::RootedObject ProcessObj(cx, JS_DefineObject(cx, global, JSProcess::getJSObjectName(),
+    JS::RootedObject ProcessObj(cx, JS_DefineObject(cx, global, JSProcess::GetJSObjectName(),
         &Process_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
     JSProcess *jProcess = new JSProcess(ProcessObj, cx);
 
     JS_SetPrivate(ProcessObj, jProcess);
 
-    njs->jsobjects.set(JSProcess::getJSObjectName(), ProcessObj);
+    njs->jsobjects.set(JSProcess::GetJSObjectName(), ProcessObj);
 
     JS_DefineFunctions(cx, ProcessObj, Process_funcs);
 
@@ -130,7 +130,7 @@ void JSProcess::registerObject(JSContext *cx, char **argv, int argc, int workerI
     JS::RootedValue workerid_v(cx, JS::Int32Value(workerId));
     JS_SetProperty(cx, ProcessObj, "workerId", workerid_v);
 
-    NidiumJS::getNet()->kill_handler = ape_kill_handler;
+    NidiumJS::GetNet()->kill_handler = ape_kill_handler;
     jProcess->m_SignalFunction.set(JS::NullHandleValue);
 
 }

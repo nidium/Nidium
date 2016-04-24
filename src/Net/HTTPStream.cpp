@@ -35,7 +35,7 @@ HTTPStream::HTTPStream(const char *location) :
     m_Mapped.fd   = 0;
     m_Mapped.size = 0;
 
-    m_Http = new HTTP(Binding::NidiumJS::getNet());
+    m_Http = new HTTP(Binding::NidiumJS::GetNet());
 }
 
 void HTTPStream::stop()
@@ -72,7 +72,7 @@ void HTTPStream::seek(size_t pos)
     if (pos >= m_StartPosition && pos < max &&
         (pos <= max - m_PacketsSize || this->readComplete())) {
 
-        ape_global *ape = Binding::NidiumJS::getNet();
+        ape_global *ape = Binding::NidiumJS::GetNet();
         m_LastReadUntil = pos - m_StartPosition;
         m_PendingSeek = true;
         m_NeedToSendUpdate = false;

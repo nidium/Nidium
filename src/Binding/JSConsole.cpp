@@ -150,7 +150,7 @@ static bool nidium_console_write(JSContext *cx, unsigned argc,
 // }}}
 
 // {{{ Registration
-void JSConsole::registerObject(JSContext *cx)
+void JSConsole::RegisterObject(JSContext *cx)
 {
     JS::RootedObject consoleObj(cx, JS_DefineObject(cx,
         JS::CurrentGlobalOrNull(cx), "console",
