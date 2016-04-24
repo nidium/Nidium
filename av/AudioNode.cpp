@@ -18,6 +18,9 @@ extern "C" {
 
 #include <Core/Utils.h>
 
+namespace Nidium {
+namespace AV {
+
 #define MAX_FAILED_DECODING 50
 #define NODE_IO_FOR(i, io) int I = 0;\
 while (I < io->count) { \
@@ -1682,4 +1685,7 @@ NativeAudioSource::~NativeAudioSource() {
 }
 
 NativeAudioProcessor::~NativeAudioProcessor() {};
+
+} // namespace AV
+} // namespace Nidium
 

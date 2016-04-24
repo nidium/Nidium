@@ -1,5 +1,8 @@
 #include "AudioNodeDelay.h"
 
+namespace Nidium {
+namespace AV {
+
 NativeAudioNodeDelay::NativeAudioNodeDelay(int inCount, int outCount, NativeAudio *audio)
     : NativeAudioNodeProcessor(inCount, outCount, audio)
 {
@@ -28,4 +31,7 @@ void NativeAudioNodeDelay::argCallback(NativeAudioNode *node, int id, void *tmp,
         break;
     }
 }
+
+} // namespace AV
+} // namespace Nidium
 

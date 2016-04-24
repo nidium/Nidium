@@ -1,5 +1,5 @@
-#ifndef nidium_audionode_h__
-#define nidium_audionode_h__
+#ifndef av_audionode_h__
+#define av_audionode_h__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,13 +16,19 @@
 #define NATIVE_AUDIONODE_CHANNEL_SIZE   32
 
 struct AVFormatContext;
-struct AVPacket;
-struct AVDictionary;
 struct AVCodecContext;
-struct SwrContext;
-typedef void PaUtilConverter(void*, int, void*, int, unsigned int, struct PaUtilTriangularDitherGenerator*);
+struct AVDictionary;
+struct AVPacket;
 
 class Resampler;
+
+struct SwrContext;
+
+namespace Nidium {
+namespace AV {
+
+typedef void PaUtilConverter(void*, int, void*, int, unsigned int, struct PaUtilTriangularDitherGenerator*);
+
 class NativeAudioNode;
 
 enum TypeIO {INPUT, OUTPUT};
@@ -431,6 +437,9 @@ class NativeAudioNodeException : public std::exception
     private:
         const char *m_Err;
 };
+
+} // namespace AV
+} // namespace Nidium
 
 #endif
 

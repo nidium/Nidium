@@ -1,5 +1,5 @@
-#ifndef nidium_audio_h__
-#define nidium_audio_h__
+#ifndef av_audio_h__
+#define av_audio_h__
 
 #include <stdint.h>
 #include <pthread.h>
@@ -9,6 +9,16 @@
 #include <Core/SharedMessages.h>
 
 #include "AV.h"
+
+struct PaUtilRingBuffer;
+struct PaStreamCallbackTimeInfo;
+typedef void PaStream;
+typedef unsigned long PaStreamCallbackFlags;
+typedef int PaStreamCallback(const void *input, void *output, unsigned long frameCount,
+        const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags, void *userData);
+
+namespace Nidium {
+namespace AV {
 
 #if 0
   #define SPAM(a) \
@@ -27,15 +37,6 @@ class NativeAudioSource;
 class NativeAudioNode;
 class NativeAudioNodeTarget;
 struct NodeLink;
-
-
-struct PaUtilRingBuffer;
-struct PaStreamCallbackTimeInfo;
-typedef void PaStream;
-typedef unsigned long PaStreamCallbackFlags;
-typedef int PaStreamCallback(const void *input, void *output, unsigned long frameCount,
-        const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags, void *userData);
-
 typedef void (*AudioMessageCallback)(void *custom);
 
 class NativeAudio
@@ -162,6 +163,9 @@ class NativeAudio
             const PaStreamCallbackTimeInfo* timeInfo,
             PaStreamCallbackFlags statusFlags);
 };
+
+} // namespace AV
+} // namespace Nidium
 
 #endif
 

@@ -1,10 +1,13 @@
-#ifndef nativeaudioprocessordelay_h__
-#define nativeaudioprocessordelay_h__
+#ifndef av_processor_delay_h__
+#define av_processor_delay_h__
 
 #include <math.h>
 
 #include "Core/Utils.h"
 #include "../AudioNode.h"
+
+namespace Nidium {
+namespace AV {
 
 class NativeAudioProcessorDelay: public NativeAudioProcessor
 {
@@ -72,4 +75,8 @@ class NativeAudioProcessorDelay: public NativeAudioProcessor
     int m_MaxDelay;
     int m_SamplRate;
 };
+
+} // namespace AV
+} // namespace Nidium
+
 #endif

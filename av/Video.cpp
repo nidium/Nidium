@@ -15,6 +15,9 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+namespace Nidium {
+namespace AV {
+
 #undef DPRINT
 #if DEBUG && 0
   #define DEBUG_PRINT
@@ -1534,4 +1537,7 @@ bool NativeVideoAudioSource::buffer()
         return false;
     }
 }
+
+} // namespace AV
+} // namespace Nidium
 

@@ -1,5 +1,8 @@
 #include "AudioNodeGain.h"
-#include "processor/Gain.hpp"
+#include "processor/Gain.h"
+
+namespace Nidium {
+namespace AV {
 
 NativeAudioNodeGain::NativeAudioNodeGain(int inCount, int outCount, NativeAudio *audio)
     : NativeAudioNodeProcessor(inCount, outCount, audio)
@@ -20,4 +23,7 @@ void NativeAudioNodeGain::argCallback(NativeAudioNode *node, int id, void *tmp, 
         break;
     }
 }
+
+} // namespace AV
+} // namespace Nidium
 

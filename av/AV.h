@@ -1,5 +1,5 @@
-#ifndef nidium_av_h__
-#define nidium_av_h__
+#ifndef av_av_h__
+#define av_av_h__
 
 #include <stdint.h>
 #include <string.h>
@@ -13,6 +13,14 @@ extern "C" {
 #include <libavutil/time.h>
 }
 
+struct Coro;
+struct AVFormatContext;
+struct AVDictionary;
+struct PaUtilRingBuffer;
+
+namespace Nidium {
+namespace AV {
+
 #define NATIVE_AVIO_BUFFER_SIZE 32768
 #define CORO_STACK_SIZE         4096*4
 #define NAV_IO_BUFFER_SIZE      NATIVE_AVIO_BUFFER_SIZE*8
@@ -20,7 +28,6 @@ extern "C" {
 #define NATIVE_AUDIO_BUFFER_MULTIPLIER 4
 /* Max size for the resampling buffer */
 #define NATIVE_RESAMPLER_BUFFER_SAMPLES 16384
-
 
 #define SOURCE_EVENT_PLAY      0x01
 #define SOURCE_EVENT_PAUSE     0x02
@@ -52,12 +59,8 @@ pthread_mutex_unlock(mutexRef##Lock);\
 *(mutexRef##Cond) = true;\
 pthread_cond_signal(mutexRef);
 
-struct AVDictionary;
-struct AVFormatContext;
 class NativeAudioTrack;
-struct PaUtilRingBuffer;
 class NativeAVSource;
-struct Coro;
 
 class NativeAVReader
 {
@@ -277,6 +280,9 @@ class NativeAVSource : public Nidium::Core::Messages, public NativeAVSourceEvent
 
         void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 };
+
+} // namespace AV
+} // namespace Nidium
 
 #endif
 

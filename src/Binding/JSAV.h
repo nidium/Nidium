@@ -80,8 +80,8 @@ class JSTransferableFunction
 class NativeJSAVSource
 {
     public:
-        static inline bool propSetter(NativeAVSource *source, uint8_t id, JS::MutableHandleValue vp);
-        static inline bool propGetter(NativeAVSource *source, JSContext *ctx, uint8_t id, JS::MutableHandleValue vp);
+        static inline bool propSetter(AV::NativeAVSource *source, uint8_t id, JS::MutableHandleValue vp);
+        static inline bool propGetter(AV::NativeAVSource *source, JSContext *ctx, uint8_t id, JS::MutableHandleValue vp);
 };
 
 class NativeJSAudio: public JSExposer<NativeJSAudio>
@@ -103,7 +103,7 @@ class NativeJSAudio: public JSExposer<NativeJSAudio>
                 : curr(NULL), prev(NULL), next(NULL) {}
         };
 
-        NativeAudio *m_Audio;
+        AV::NativeAudio *m_Audio;
         Nodes *m_Nodes;
         pthread_t m_ThreadIO;
 
@@ -127,7 +127,7 @@ class NativeJSAudio: public JSExposer<NativeJSAudio>
 
         ~NativeJSAudio();
     private :
-        NativeJSAudio(NativeAudio *audio, JSContext *cx, JS::HandleObject obj);
+        NativeJSAudio(AV::NativeAudio *audio, JSContext *cx, JS::HandleObject obj);
         static NativeJSAudio *m_Instance;
 };
 
@@ -135,7 +135,7 @@ class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messa
 {
     public :
         NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
-            NativeAudio::Node type, int in, int out, NativeJSAudio *audio)
+            AV::NativeAudio::Node type, int in, int out, NativeJSAudio *audio)
             :   JSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL),
                 m_Audio(audio), m_Node(NULL), m_NodeType(type), m_NodeObj(nullptr), m_HashObj(nullptr),
                 m_ArrayContent(NULL), m_IsDestructing(false)
@@ -144,11 +144,11 @@ class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messa
 
             try {
                 m_Node = audio->m_Audio->createNode(type, in, out);
-            } catch (NativeAudioNodeException *e) {
+            } catch (AV::NativeAudioNodeException *e) {
                 throw;
             }
 
-            if (type == NativeAudio::CUSTOM || type == NativeAudio::CUSTOM_SOURCE) {
+            if (type == AV::NativeAudio::CUSTOM || type == AV::NativeAudio::CUSTOM_SOURCE) {
                 NATIVE_PTHREAD_VAR_INIT(&m_ShutdownWait);
             }
 
@@ -160,7 +160,7 @@ class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messa
         }
 
         NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
-               NativeAudio::Node type, NativeAudioNode *node, NativeJSAudio *audio)
+               AV::NativeAudio::Node type, AV::NativeAudioNode *node, NativeJSAudio *audio)
             :  JSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL), m_Audio(audio), m_Node(node), m_NodeType(type),
                m_NodeObj(nullptr), m_HashObj(nullptr), m_ArrayContent(NULL), m_IsDestructing(false)
         {
@@ -189,16 +189,16 @@ class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messa
         // Common
         NidiumJS *m_nJs;
         NativeJSAudio *m_Audio;
-        NativeAudioNode *m_Node;
-        NativeAudio::Node m_NodeType;
+        AV::NativeAudioNode *m_Node;
+        AV::NativeAudio::Node m_NodeType;
 
         // Custom m_Node
         JSTransferableFunction *m_TransferableFuncs[END_FN];
-        static void customCallback(const struct NodeEvent *ev);
-        static void setPropCallback(NativeAudioNode *node, void *custom);
-        static void shutdownCallback(NativeAudioNode *node, void *custom);
-        static void initCustomObject(NativeAudioNode *node, void *custom);
-        static void deleteTransferableFunc(NativeAudioNode *node, void *custom);
+        static void customCallback(const struct AV::NodeEvent *ev);
+        static void setPropCallback(AV::NativeAudioNode *node, void *custom);
+        static void shutdownCallback(AV::NativeAudioNode *node, void *custom);
+        static void initCustomObject(AV::NativeAudioNode *node, void *custom);
+        static void deleteTransferableFunc(AV::NativeAudioNode *node, void *custom);
         bool createHashObj();
 
         JS::PersistentRootedObject *m_NodeObj;
@@ -209,10 +209,10 @@ class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messa
         // Source m_Node
         void *m_ArrayContent;
         void onMessage(const Core::SharedMessages::Message &msg);
-        static void onEvent(const struct NativeAVSourceEvent *cev);
+        static void onEvent(const struct AV::NativeAVSourceEvent *cev);
 
         // Custom source m_Node
-        static void seekCallback(NativeAudioCustomSource *node, double seekTime, void *custom);
+        static void seekCallback(AV::NativeAudioCustomSource *node, double seekTime, void *custom);
         static bool propSetter(NativeJSAudioNode *node, JSContext *cx,
                 uint8_t id, JS::MutableHandleValue vp);
 
@@ -227,7 +227,7 @@ class NativeJSVideo : public JSExposer<NativeJSVideo>, public Core::Messages
     public :
         NativeJSVideo(JS::HandleObject obj, NativeCanvas2DContext *canvasCtx, JSContext *cx);
 
-        NativeVideo *m_Video;
+        AV::NativeVideo *m_Video;
 
         JS::Heap<JSObject *> m_AudioNode;
         void *m_ArrayContent;
@@ -244,7 +244,7 @@ class NativeJSVideo : public JSExposer<NativeJSVideo>, public Core::Messages
         static void registerObject(JSContext *cx);
         static void frameCallback(uint8_t *data, void *custom);
         void onMessage(const Core::SharedMessages::Message &msg);
-        static void onEvent(const struct NativeAVSourceEvent *cev);
+        static void onEvent(const struct AV::NativeAVSourceEvent *cev);
 
         ~NativeJSVideo();
     private :

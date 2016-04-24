@@ -1,5 +1,8 @@
-#ifndef nidium_audionparameters_h__
-#define nidium_audionparameters_h__
+#ifndef av_audionparameters_h__
+#define av_audionparameters_h__
+
+namespace Nidium {
+namespace AV {
 
 class NativeAudioParameters {
     public :
@@ -19,5 +22,9 @@ enum {
     NATIVE_AUDIO_TRACK_CALLBACK,
     NATIVE_AUDIO_SHUTDOWN
 };
+
+} // namespace AV
+} // namespace Nidium
+
 #endif
 

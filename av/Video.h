@@ -1,5 +1,5 @@
-#ifndef nidium_video_h__
-#define nidium_video_h__
+#ifndef av_video_h__
+#define av_video_h__
 
 #include <pthread.h>
 #include <stdint.h>
@@ -13,6 +13,15 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
+struct PaUtilRingBuffer;
+struct AVFormatContext;
+struct AVCodecContext;
+struct AVFrame;
+struct SwsContext;
+
+namespace Nidium {
+namespace AV {
+
 #define NATIVE_VIDEO_BUFFER_SAMPLES 16
 #define NATIVE_VIDEO_AUDIO_SYNC_THRESHOLD 0.1
 #define NATIVE_VIDEO_SYNC_THRESHOLD 0.01
@@ -23,12 +32,6 @@ extern "C" {
 #define NATIVE_VIDEO_SEEK_PREVIOUS 0x2
 
 typedef void (*VideoCallback)(uint8_t *data, void *custom);
-struct PaUtilRingBuffer;
-
-struct SwsContext;
-struct AVFormatContext;
-struct AVCodecContext;
-struct AVFrame;
 
 class NativeVideo : public NativeAVSource
 {
@@ -217,6 +220,9 @@ class NativeVideoAudioSource: public NativeAudioSource
       NativeVideo *m_Video;
       NativeVideo::Packet *m_FreePacket;
 };
+
+} // namespace AV
+} // namespace Nidium
 
 #endif
 

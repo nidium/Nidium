@@ -14,6 +14,9 @@ extern "C" {
 
 #include "AudioNode.h"
 
+namespace Nidium {
+namespace AV {
+
 pthread_mutex_t NativeAVSource::m_FfmpegLock = PTHREAD_MUTEX_INITIALIZER;
 
 NativeAVBufferReader::NativeAVBufferReader(uint8_t *buffer, unsigned long bufferSize)
@@ -428,4 +431,7 @@ void NativeAVSource::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 NativeAVSource::~NativeAVSource()
 {
 }
+
+} // namespace AV
+} // namespace Nidium
 

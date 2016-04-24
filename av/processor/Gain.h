@@ -1,7 +1,10 @@
-#ifndef nativeaudioprocessorgain_h__
-#define nativeaudioprocessorgain_h__
+#ifndef av_processor_gain_h__
+#define av_processor_gain_h__
 
 #include "../AudioNode.h"
+
+namespace Nidium {
+namespace AV {
 
 class NativeAudioProcessorGain: public NativeAudioProcessor
 {
@@ -22,4 +25,8 @@ class NativeAudioProcessorGain: public NativeAudioProcessor
   private:
     double m_Gain;
 };
+
+} // namespace AV
+} // namespace Nidium
+
 #endif

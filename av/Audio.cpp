@@ -19,6 +19,9 @@ extern "C" {
 #include "AudioNodeGain.h"
 #include "AudioNodeDelay.h"
 
+namespace Nidium {
+namespace AV {
+
 // Next power of 2
 // Taken from http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
 static uint32_t upperPow2(uint32_t num)
@@ -716,4 +719,7 @@ NativeAudio::~NativeAudio() {
     delete m_rBufferOut;
     delete m_SharedMsg;
 }
+
+} // namespace AV
+} // namespace Nidium
 

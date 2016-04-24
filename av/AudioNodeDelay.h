@@ -1,11 +1,14 @@
-#ifndef nidium_audionodedelay_h__
-#define nidium_audionodedelay_h__
+#ifndef av_audionodedelay_h__
+#define av_audionodedelay_h__
 
 #include "Core/Utils.h"
 #include "Audio.h"
 #include "AudioNode.h"
 
-#include "processor/Delay.hpp"
+#include "processor/Delay.h"
+
+namespace Nidium {
+namespace AV {
 
 class NativeAudioProcessorDelay;
 
@@ -24,5 +27,9 @@ class NativeAudioNodeDelay: public NativeAudioNodeProcessor
     private :
         NativeAudioProcessorDelay *m_DelayProcessor;
 };
+
+} // namespace AV
+} // namespace Nidium
+
 #endif
 
