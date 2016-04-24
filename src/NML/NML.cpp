@@ -27,7 +27,7 @@ NativeNML::NativeNML(ape_global *net) :
     m_AssetsList.size = 0;
     m_AssetsList.allocated = 4;
 
-    m_AssetsList.list = (NativeAssets **)malloc(sizeof(NativeAssets *) * m_AssetsList.allocated);
+    m_AssetsList.list = (Assets **)malloc(sizeof(Assets *) * m_AssetsList.allocated);
 
     this->meta.title = NULL;
     this->meta.size.width = 0;
@@ -78,7 +78,7 @@ void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
     m_Stream->getContent();
 }
 
-void NativeNML::loadDefaultItems(NativeAssets *assets)
+void NativeNML::loadDefaultItems(Assets *assets)
 {
     if (m_DefaultItemsLoaded) {
         return;
@@ -86,8 +86,8 @@ void NativeNML::loadDefaultItems(NativeAssets *assets)
 
     m_DefaultItemsLoaded = true;
 
-    NativeAssets::Item *preload = new NativeAssets::Item("private://preload.js",
-        NativeAssets::Item::ITEM_SCRIPT, m_Net);
+    Assets::Item *preload = new Assets::Item("private://preload.js",
+        Assets::Item::ITEM_SCRIPT, m_Net);
 
     assets->addToPendingList(preload);
 
@@ -95,8 +95,8 @@ void NativeNML::loadDefaultItems(NativeAssets *assets)
         return;
     }
 
-    NativeAssets::Item *falcon = new NativeAssets::Item("private://" NATIVE_FRAMEWORK_STR "/native.js",
-        NativeAssets::Item::ITEM_SCRIPT, m_Net);
+    Assets::Item *falcon = new Assets::Item("private://" NATIVE_FRAMEWORK_STR "/native.js",
+        Assets::Item::ITEM_SCRIPT, m_Net);
 
     assets->addToPendingList(falcon);
 }
@@ -353,7 +353,7 @@ NativeNML::~NativeNML()
 // }}}
 
 // {{{ Assets
-void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
+void NativeNML::onAssetsItemReady(Assets::Item *item)
 {
     NMLTag tag;
     memset(&tag, 0, sizeof(NMLTag));
@@ -370,13 +370,13 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
     if (data != NULL) {
 
         switch(item->m_FileType) {
-            case NativeAssets::Item::ITEM_SCRIPT:
+            case Assets::Item::ITEM_SCRIPT:
             {
                 m_Njs->LoadScriptContent((const char *)data, len, item->getName());
 
                 break;
             }
-            case NativeAssets::Item::ITEM_NSS:
+            case Assets::Item::ITEM_NSS:
             {
                 Nidium::Binding::NativeJSdocument *jdoc = Nidium::Binding::NativeJSdocument::GetObject(m_Njs->cx);
                 if (jdoc == NULL) {
@@ -395,14 +395,14 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
     Nidium::Binding::NativeJSwindow::GetObject(m_Njs)->assetReady(tag);
 }
 
-static void NativeNML_onAssetsItemRead(NativeAssets::Item *item, void *arg)
+static void NativeNML_onAssetsItemRead(Assets::Item *item, void *arg)
 {
     class NativeNML *nml = (class NativeNML *)arg;
 
     nml->onAssetsItemReady(item);
 }
 
-void NativeNML::onAssetsBlockReady(NativeAssets *asset)
+void NativeNML::onAssetsBlockReady(Assets *asset)
 {
     m_nAssets--;
 
@@ -412,20 +412,20 @@ void NativeNML::onAssetsBlockReady(NativeAssets *asset)
     }
 }
 
-static void NativeNML_onAssetsReady(NativeAssets *assets, void *arg)
+static void NativeNML_onAssetsReady(Assets *assets, void *arg)
 {
     class NativeNML *nml = (class NativeNML *)arg;
 
     nml->onAssetsBlockReady(assets);
 }
 
-void NativeNML::addAsset(NativeAssets *asset)
+void NativeNML::addAsset(Assets *asset)
 {
     m_nAssets++;
     if (m_AssetsList.size == m_AssetsList.allocated) {
         m_AssetsList.allocated *= 2;
-        m_AssetsList.list = (NativeAssets **)realloc(m_AssetsList.list,
-            sizeof(NativeAssets *) * m_AssetsList.allocated);
+        m_AssetsList.list = (Assets **)realloc(m_AssetsList.list,
+            sizeof(Assets *) * m_AssetsList.allocated);
     }
 
     m_AssetsList.list[m_AssetsList.size] = asset;
@@ -507,7 +507,7 @@ NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
 
     using namespace rapidxml;
 
-    NativeAssets *assets = new NativeAssets(NativeNML_onAssetsItemRead,
+    Assets *assets = new Assets(NativeNML_onAssetsItemRead,
         NativeNML_onAssetsReady, this);
 
     this->addAsset(assets);
@@ -517,18 +517,18 @@ NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
         child = child->next_sibling())
     {
         xml_attribute<> *src = NULL;
-        NativeAssets::Item *item = NULL;
+        Assets::Item *item = NULL;
 
         if ((src = child->first_attribute("src"))) {
-            item = new NativeAssets::Item(src->value(),
-                NativeAssets::Item::ITEM_UNKNOWN, m_Net);
+            item = new Assets::Item(src->value(),
+                Assets::Item::ITEM_UNKNOWN, m_Net);
 
             /* Name could be automatically changed afterward */
             item->setName(src->value());
 
             assets->addToPendingList(item);
         } else {
-            item = new NativeAssets::Item(NULL, NativeAssets::Item::ITEM_UNKNOWN, m_Net);
+            item = new Assets::Item(NULL, Assets::Item::ITEM_UNKNOWN, m_Net);
             item->setName("inline"); /* TODO: NML name */
             assets->addToPendingList(item);
             item->setContent(child->value(), child->value_size(), true);
@@ -537,9 +537,9 @@ NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
         item->setTagName(child->name());
 
         if (!strncasecmp(child->name(), CONST_STR_LEN("script"))) {
-            item->m_FileType = NativeAssets::Item::ITEM_SCRIPT;
+            item->m_FileType = Assets::Item::ITEM_SCRIPT;
         } else if (!strncasecmp(child->name(), CONST_STR_LEN("style"))) {
-            item->m_FileType = NativeAssets::Item::ITEM_NSS;
+            item->m_FileType = Assets::Item::ITEM_NSS;
         }
         //printf("Node : %s\n", child->name());
     }

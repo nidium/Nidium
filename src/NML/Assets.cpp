@@ -7,14 +7,14 @@
 namespace Nidium {
 namespace NML {
 
-NativeAssets::NativeAssets(readyItem cb, readyAssets rcb, void *arg) :
+Assets::Assets(readyItem cb, readyAssets rcb, void *arg) :
     m_ItemReady(cb), m_AssetsReady(rcb), m_ReadyArg(arg), m_Nitems(0)
 {
     m_Pending_list.head = NULL;
     m_Pending_list.foot = NULL;
 }
 
-NativeAssets::~NativeAssets()
+Assets::~Assets()
 {
     struct item_list *il = m_Pending_list.head, *ilnext;
     while (il != NULL) {
@@ -25,7 +25,7 @@ NativeAssets::~NativeAssets()
     }
 }
 
-NativeAssets::Item::Item(const char *url, FileType t,
+Assets::Item::Item(const char *url, FileType t,
     ape_global *net) :
     m_FileType(t), m_State(ITEM_LOADING), m_Stream(NULL),
     m_Url(url), m_Net(net), m_Assets(NULL), m_Name(NULL), m_Tagname(NULL)
@@ -35,7 +35,7 @@ NativeAssets::Item::Item(const char *url, FileType t,
 }
 
 
-void NativeAssets::Item::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void Assets::Item::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case Nidium::IO::Stream::EVENT_READ_BUFFER:
@@ -54,7 +54,7 @@ void NativeAssets::Item::onMessage(const Nidium::Core::SharedMessages::Message &
     }
 }
 
-NativeAssets::Item::~Item()
+Assets::Item::~Item()
 {
     if (m_Name) {
         free(m_Name);
@@ -72,7 +72,7 @@ NativeAssets::Item::~Item()
     }
 }
 
-void NativeAssets::Item::download()
+void Assets::Item::download()
 {
     m_Stream = Nidium::IO::Stream::Create(Nidium::Core::Path(m_Url));
 
@@ -95,16 +95,16 @@ void NativeAssets::Item::download()
     m_Stream->getContent();
 }
 
-static int NativeAssets_pendingListUpdate(void *arg)
+static int Assets_pendingListUpdate(void *arg)
 {
-    NativeAssets *assets = static_cast<NativeAssets *>(arg);
+    Assets *assets = static_cast<Assets *>(arg);
 
     assets->pendingListUpdate();
 
     return 0;
 }
 
-void NativeAssets::Item::setContent(const char *data, size_t len, bool async) {
+void Assets::Item::setContent(const char *data, size_t len, bool async) {
     m_State = ITEM_LOADED;
 
     if (len) {
@@ -117,21 +117,21 @@ void NativeAssets::Item::setContent(const char *data, size_t len, bool async) {
     if (m_Assets) {
         if (async) {
             ape_global *ape = m_Net;
-            timer_dispatch_async_unprotected(NativeAssets_pendingListUpdate, m_Assets);
+            timer_dispatch_async_unprotected(Assets_pendingListUpdate, m_Assets);
         } else {
             m_Assets->pendingListUpdate();
         }
     }
 }
 
-void NativeAssets::addToPendingList(Item *item)
+void Assets::addToPendingList(Item *item)
 {
     struct item_list *il = (struct item_list *)malloc(sizeof(*il));
 
     m_Nitems++;
     il->item = item;
     il->next = NULL;
-    item->m_State = NativeAssets::Item::ITEM_LOADING;
+    item->m_State = Assets::Item::ITEM_LOADING;
     item->m_Assets = this;
 
     if (m_Pending_list.head == NULL) {
@@ -149,27 +149,27 @@ void NativeAssets::addToPendingList(Item *item)
     }
 }
 
-static int NativeAssets_deleteItem(void *arg)
+static int Assets_deleteItem(void *arg)
 {
-    NativeAssets::Item *item = (NativeAssets::Item *)arg;
+    Assets::Item *item = (Assets::Item *)arg;
 
     delete item;
 
     return 0;
 }
 
-void NativeAssets::endListUpdate(ape_global *ape)
+void Assets::endListUpdate(ape_global *ape)
 {
     if (m_Nitems == 0) {
-        timer_dispatch_async_unprotected(NativeAssets_pendingListUpdate, this);
+        timer_dispatch_async_unprotected(Assets_pendingListUpdate, this);
     }
 }
 
-void NativeAssets::pendingListUpdate()
+void Assets::pendingListUpdate()
 {
     bool worked = false;
     struct item_list *il = m_Pending_list.head, *ilnext;
-    while (il != NULL && il->item->m_State == NativeAssets::Item::ITEM_LOADED) {
+    while (il != NULL && il->item->m_State == Assets::Item::ITEM_LOADED) {
         m_Nitems--;
         m_ItemReady(il->item, m_ReadyArg);
 
@@ -181,7 +181,7 @@ void NativeAssets::pendingListUpdate()
 
         ilnext = il->next;
         ape_global *ape = il->item->m_Net;
-        timer_dispatch_async_unprotected(NativeAssets_deleteItem, il->item);
+        timer_dispatch_async_unprotected(Assets_deleteItem, il->item);
         free(il);
 
         il = ilnext;

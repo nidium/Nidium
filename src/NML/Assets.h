@@ -16,13 +16,13 @@ namespace NML {
 
 class NativeStream;
 
-class NativeAssets
+class Assets
 {
     public:
 
         class Item : public Nidium::Core::Messages
         {
-            friend class NativeAssets;
+            friend class Assets;
             public:
                 enum FileType {
                     ITEM_UNKNOWN,
@@ -71,7 +71,7 @@ class NativeAssets
             private:
                 const char *m_Url;
                 ape_global *m_Net;
-                NativeAssets *m_Assets;
+                Assets *m_Assets;
                 char *m_Name;
                 char *m_Tagname;
 
@@ -81,13 +81,13 @@ class NativeAssets
                 } m_Data;
         };
 
-        typedef void (*readyItem)(NativeAssets::Item *item, void *arg);
-        typedef void (*readyAssets)(NativeAssets *m_Assets, void *arg);
+        typedef void (*readyItem)(Assets::Item *item, void *arg);
+        typedef void (*readyAssets)(Assets *m_Assets, void *arg);
 
         void addToPendingList(Item *item);
 
-        NativeAssets(readyItem cb, readyAssets rcb, void *arg);
-        ~NativeAssets();
+        Assets(readyItem cb, readyAssets rcb, void *arg);
+        ~Assets();
 
         readyItem m_ItemReady;
         readyAssets m_AssetsReady;

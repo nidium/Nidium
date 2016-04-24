@@ -40,13 +40,13 @@ public:
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
     void loadFile(const char *filename, NMLLoadedCallback cb, void *arg);
 
-    void loadDefaultItems(NativeAssets *assets);
+    void loadDefaultItems(Assets *assets);
     nidium_xml_ret_t loadAssets(rapidxml::xml_node<> &node);
     nidium_xml_ret_t loadMeta(rapidxml::xml_node<> &node);
     nidium_xml_ret_t loadLayout(rapidxml::xml_node<> &node);
 
-    void onAssetsItemReady(NativeAssets::Item *item);
-    void onAssetsBlockReady(NativeAssets *asset);
+    void onAssetsItemReady(Assets::Item *item);
+    void onAssetsBlockReady(Assets *asset);
     void onGetContent(const char *data, size_t len);
 
     const char *getMetaTitle() const {
@@ -85,7 +85,7 @@ private:
     static JSObject *BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node);
 
     bool loadData(char *data, size_t len, rapidxml::xml_document<> &doc);
-    void addAsset(NativeAssets *);
+    void addAsset(Assets *);
     ape_global *m_Net;
     Nidium::IO::Stream *m_Stream;
 
@@ -116,7 +116,7 @@ private:
     } meta;
 
     struct {
-        NativeAssets **list;
+        Assets **list;
         uint32_t allocated;
         uint32_t size;
     } m_AssetsList;
