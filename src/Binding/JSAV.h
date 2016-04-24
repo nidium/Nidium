@@ -45,6 +45,7 @@ namespace Nidium {
 class NativeJSAudioNode;
 class NativeCanvas2DContext;
 
+// {{{ NativeJSAVMessageCallback
 struct NativeJSAVMessageCallback {
     JS::PersistentRootedObject callee;
     int ev;
@@ -54,7 +55,9 @@ struct NativeJSAVMessageCallback {
     NativeJSAVMessageCallback(JSContext *cx, JS::HandleObject callee, int ev, int arg1, int arg2)
         : callee(cx, callee), ev(ev), arg1(arg1), arg2(arg2) {};
 };
+// }}}
 
+// {{{ JSTransferableFunction
 class JSTransferableFunction
 {
     public :
@@ -76,14 +79,18 @@ class JSTransferableFunction
         JS::PersistentRootedValue m_Fn;
         JSContext *m_DestCx;
 };
+// }}}
 
+// {{{ NativeJSAVSource
 class NativeJSAVSource
 {
     public:
         static inline bool propSetter(AV::NativeAVSource *source, uint8_t id, JS::MutableHandleValue vp);
         static inline bool propGetter(AV::NativeAVSource *source, JSContext *ctx, uint8_t id, JS::MutableHandleValue vp);
 };
+// }}}
 
+// {{{ NativeJSAudio
 class NativeJSAudio: public JSExposer<NativeJSAudio>
 {
     public :
@@ -130,7 +137,9 @@ class NativeJSAudio: public JSExposer<NativeJSAudio>
         NativeJSAudio(AV::NativeAudio *audio, JSContext *cx, JS::HandleObject obj);
         static NativeJSAudio *m_Instance;
 };
+// }}}
 
+// {{{ NativeJSAudioNode
 class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messages
 {
     public :
@@ -221,7 +230,9 @@ class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messa
         void add();
         bool m_IsDestructing;
 };
+// }}}
 
+// {{{ NativeJSVideo
 class NativeJSVideo : public JSExposer<NativeJSVideo>, public Core::Messages
 {
     public :
@@ -253,6 +264,7 @@ class NativeJSVideo : public JSExposer<NativeJSVideo>, public Core::Messages
         NativeCanvas2DContext *m_CanvasCtx;
         JSContext *cx;
 };
+// }}}
 
 } // namespace Nidium
 } // namespace Binding

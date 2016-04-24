@@ -12,6 +12,7 @@
 namespace Nidium {
 namespace Binding {
 
+// {{{ Preamble
 extern JSClass Canvas2DContext_class;
 
 #define NATIVE_PROLOGUE(ofclass) \
@@ -110,7 +111,6 @@ JSClass Canvas_class = {
 
 template<>
 JSClass *JSExposer<NativeJSCanvas>::jsclass = &Canvas_class;
-
 
 static JSClass Canvas_Inherit_class = {
     "CanvasInherit", JSCLASS_HAS_PRIVATE,
@@ -245,7 +245,9 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("setScale", native_canvas_setScale, 2, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
+// }}}
 
+// {{{ Implementation
 static bool CanvasInherit_get(JSContext *cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp)
 {
     NativeJSCanvas *jscanvas = (class NativeJSCanvas *)JS_GetPrivate(obj);
@@ -1555,13 +1557,6 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     return ret;
 }
 
-void NativeJSCanvas::registerObject(JSContext *cx)
-{
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS_InitClass(cx, global, JS::NullPtr(), &Canvas_class, native_Canvas_constructor, 2, canvas_props, canvas_funcs,
-        nullptr, nullptr);
-}
-
 void NativeJSCanvas::onMessage(const Core::SharedMessages::Message &msg)
 {
     JSContext *cx = m_Cx;
@@ -1697,6 +1692,16 @@ NativeJSCanvas::~NativeJSCanvas()
 {
     delete m_CanvasHandler;
 }
+// }}}
+
+// {{{ Registration
+void NativeJSCanvas::registerObject(JSContext *cx)
+{
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS_InitClass(cx, global, JS::NullPtr(), &Canvas_class, native_Canvas_constructor, 2, canvas_props, canvas_funcs,
+        nullptr, nullptr);
+}
+// }}}
 
 } // namespace Nidium
 } // namespace Binding

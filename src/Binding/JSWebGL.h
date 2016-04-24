@@ -33,6 +33,7 @@ class NativeJS ## name: public JSExposer<NativeJS ## name>\
 namespace Nidium {
 namespace Binding {
 
+// {{{ NGLContextAttributes
 struct NGLContextAttributes {
     bool m_Alpha;
     bool m_Depth;
@@ -62,7 +63,9 @@ struct NGLContextAttributes {
     {
     }
 };
+// }}}
 
+// {{{ NativeCanvasWebGLContext
 class NativeCanvasWebGLContext: public Graphics::NativeCanvasContext
 {
     public :
@@ -87,7 +90,9 @@ class NativeCanvasWebGLContext: public Graphics::NativeCanvasContext
         int m_Width;
         int m_Height;
 };
+// }}}
 
+// {{{ NativeJSWebGLActiveInfor
 class NativeJSWebGLActiveInfo : public JSExposer<NativeJSWebGLActiveInfo>
 {
     public :
@@ -96,7 +101,9 @@ class NativeJSWebGLActiveInfo : public JSExposer<NativeJSWebGLActiveInfo>
         JS::PersistentRootedObject m_JsObj;
         static void registerObject(JSContext *cx);
 };
+// }}}
 
+// {{{ Classes and Macros
 NEW_CLASS(WebGLRenderingContext)
 NEW_CLASS(WebGLObject)
 NEW_CLASS(WebGLBuffer)
@@ -522,6 +529,7 @@ NEW_CLASS(WebGLShaderPrecisionFormat)
 #define NGL_CONTEXT_LOST_WEBGL              0x9242
 #define NGL_UNPACK_COLORSPACE_CONVERSION_WEBGL  0x9243
 #define NGL_BROWSER_DEFAULT_WEBGL           0x9244
+// }}}
 
 } // namespace Nidium
 } // namespace Binding

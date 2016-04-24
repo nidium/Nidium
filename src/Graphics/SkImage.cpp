@@ -12,6 +12,48 @@
 namespace Nidium {
 namespace Graphics {
 
+// {{{ Constructors
+NativeSkImage::NativeSkImage(SkCanvas *canvas)
+{
+    //canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
+
+    m_IsCanvas = 1;
+    m_CanvasRef = canvas;
+    canvas->ref();
+    m_Image = NULL;
+}
+
+NativeSkImage::NativeSkImage(void *data, size_t len) :
+    m_CanvasRef(NULL)
+{
+    m_Image = new SkBitmap();
+    m_IsCanvas = 0;
+
+    if (!SkImageDecoder::DecodeMemory(data, len, m_Image)) {
+        printf("failed to decode Image\n");
+        delete m_Image;
+        m_Image = NULL;
+    }
+}
+
+NativeSkImage::NativeSkImage(void *data, int width, int height)
+{
+    uint8_t *px = (uint8_t *)data;
+    m_Image = new SkBitmap();
+    m_IsCanvas = 0;
+
+    m_Image->setConfig(SkBitmap::kARGB_8888_Config, width, height);
+
+    printf("First pixel value %.2x\n", px[0]);
+    printf("First pixel value %.2x\n", px[1]);
+    printf("First pixel value %.2x\n", px[2]);
+    printf("First pixel value %.2x\n", px[3]);
+
+    m_Image->setPixels(data);
+}
+// }}}
+
+// {{{ Methods
 #if 0
 static bool SetImageRef(SkBitmap* bitmap, SkStream* stream,
                         SkBitmap::Config pref, const char name[] = NULL)
@@ -53,45 +95,6 @@ const uint8_t *NativeSkImage::getPixels(size_t *len)
     return (const uint8_t *)m_Image->getPixels();
 }
 
-NativeSkImage::NativeSkImage(SkCanvas *canvas)
-{
-    //canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
-
-    m_IsCanvas = 1;
-    m_CanvasRef = canvas;
-    canvas->ref();
-    m_Image = NULL;
-}
-
-NativeSkImage::NativeSkImage(void *data, size_t len) :
-    m_CanvasRef(NULL)
-{
-    m_Image = new SkBitmap();
-    m_IsCanvas = 0;
-
-    if (!SkImageDecoder::DecodeMemory(data, len, m_Image)) {
-        printf("failed to decode Image\n");
-        delete m_Image;
-        m_Image = NULL;
-    }
-}
-
-NativeSkImage::NativeSkImage(void *data, int width, int height)
-{
-    uint8_t *px = (uint8_t *)data;
-    m_Image = new SkBitmap();
-    m_IsCanvas = 0;
-
-    m_Image->setConfig(SkBitmap::kARGB_8888_Config, width, height);
-
-    printf("First pixel value %.2x\n", px[0]);
-    printf("First pixel value %.2x\n", px[1]);
-    printf("First pixel value %.2x\n", px[2]);
-    printf("First pixel value %.2x\n", px[3]);
-
-    m_Image->setPixels(data);
-}
-
 SkData *NativeSkImage::getPNG()
 {
     if (!m_Image) {
@@ -99,14 +102,6 @@ SkData *NativeSkImage::getPNG()
     }
 
     return SkImageEncoder::EncodeData(*m_Image, SkImageEncoder::kPNG_Type, 100);
-}
-
-NativeSkImage::~NativeSkImage()
-{
-    if (m_CanvasRef) m_CanvasRef->unref();
-    if (m_Image) {
-        delete m_Image;
-    }
 }
 
 int NativeSkImage::getWidth()
@@ -248,6 +243,15 @@ bool NativeSkImage::ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba,
     }
 #endif
     return true;
+}
+// }}}
+
+NativeSkImage::~NativeSkImage()
+{
+    if (m_CanvasRef) m_CanvasRef->unref();
+    if (m_Image) {
+        delete m_Image;
+    }
 }
 
 } // namespace Graphics

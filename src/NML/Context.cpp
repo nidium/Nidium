@@ -43,6 +43,7 @@ enum {
     NIDIUM_SCTAG_IMAGEDATA = Nidium::Binding::NIDIUM_SCTAG_MAX,
 };
 
+// {{{ Logging
 int NativeContext_Logger(const char *format)
 {
     Nidium::Interface::__NativeUI->log(format);
@@ -63,6 +64,7 @@ int NativeContext_LogClear()
 
     return 0;
 }
+// }}}
 
 void NativeContext::initStats()
 {

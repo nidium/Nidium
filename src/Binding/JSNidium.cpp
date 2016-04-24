@@ -3,6 +3,7 @@
 namespace Nidium {
 namespace Binding {
 
+// {{{ Preamble
 static void Native_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass Native_class = {
@@ -30,7 +31,9 @@ void Native_Finalize(JSFreeOp *fop, JSObject *obj)
         delete jnative;
     }
 }
+// }}}
 
+// {{{ Registration
 void NativeJSNative::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
@@ -52,6 +55,7 @@ void NativeJSNative::registerObject(JSContext *cx)
     /*JS::RootedValue titleVal(cx, OBJECT_TO_JSVAL(titleBar));
     JS_DefineProperty(cx, NativeObj, "titleBar", titleVal, JSPROP_READONLY | JSPROP_PERMANENT);*/
 }
+// }}}
 
 } // namespace Nidium
 } // namespace Binding

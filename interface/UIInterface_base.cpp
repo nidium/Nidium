@@ -15,6 +15,7 @@
 namespace Nidium {
 namespace Interface {
 
+// {{{ NativUIInterface
 NativeUIInterface::NativeUIInterface() :
     m_CurrentCursor(NativeUIInterface::ARROW), m_NativeCtx(NULL), m_Nml(NULL),
     m_Win(NULL), m_Gnet(NULL), m_Width(0), m_Height(0), m_FilePath(NULL),
@@ -280,7 +281,9 @@ void NativeUIInterface::showWindow()
         APE_timer_setlowresolution(this->m_Gnet, 0);
     }
 }
+// }}}
 
+// {{{ NativeSystemMenu
 void NativeSystemMenu::addItem(NativeSystemMenuItem *item)
 {
     item->m_Next = m_Items;
@@ -318,6 +321,7 @@ NativeSystemMenu::~NativeSystemMenu()
 {
     this->deleteItems();
 }
+// }}}
 
 } // namespace Nidium
 } // namespace Interface

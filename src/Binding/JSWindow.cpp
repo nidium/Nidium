@@ -21,6 +21,7 @@
 namespace Nidium {
 namespace Binding {
 
+// {{{ Preamble
 static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp);
 static bool native_window_prop_get(JSContext *cx, JS::HandleObject obj,
@@ -202,7 +203,9 @@ static JSPropertySpec navigator_props[] = {
     NIDIUM_JS_PSG("userAgent", NAVIGATOR_PROP_USERAGENT, native_navigator_prop_get),
     JS_PS_END
 };
+// }}}
 
+// {{{ Implementation
 NativeJSwindow::~NativeJSwindow()
 {
     if (m_Dragging) {
@@ -1444,6 +1447,18 @@ bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
+NativeJSwindow* NativeJSwindow::GetObject(JSContext *cx)
+{
+    return Nidium::NML::NativeContext::GetObject(cx)->getJSWindow();
+}
+
+NativeJSwindow* NativeJSwindow::GetObject(NidiumJS *njs)
+{
+    return Nidium::NML::NativeContext::GetObject(njs)->getJSWindow();
+}
+// }}}
+
+// {{{ Registration
 NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
     int height, JS::HandleObject docObj)
 {
@@ -1488,16 +1503,7 @@ NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
 
     return jwin;
 }
-
-NativeJSwindow* NativeJSwindow::GetObject(JSContext *cx)
-{
-    return Nidium::NML::NativeContext::GetObject(cx)->getJSWindow();
-}
-
-NativeJSwindow* NativeJSwindow::GetObject(NidiumJS *njs)
-{
-    return Nidium::NML::NativeContext::GetObject(njs)->getJSWindow();
-}
+// }}}
 
 } // namespace Nidium
 } // namespace Binding

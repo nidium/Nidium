@@ -52,14 +52,6 @@ NativeSkGradient::NativeSkGradient(double x0, double y0, double r0,
     m_CurrentShader = NULL;
 }
 
-NativeSkGradient::~NativeSkGradient()
-{
-    //if (currentShader)
-        //NLOG("Free gradient %d for %p", (currentShader ? currentShader->getRefCnt() : 0), currentShader);
-    free(m_ColorsStop.items);
-    SkSafeUnref(m_CurrentShader);
-}
-
 void NativeSkGradient::addColorStop(double position, char *color)
 {
 
@@ -119,6 +111,15 @@ SkShader *NativeSkGradient::build()
 
     return m_CurrentShader;
 }
+
+NativeSkGradient::~NativeSkGradient()
+{
+    //if (currentShader)
+        //NLOG("Free gradient %d for %p", (currentShader ? currentShader->getRefCnt() : 0), currentShader);
+    free(m_ColorsStop.items);
+    SkSafeUnref(m_CurrentShader);
+}
+
 
 } // namespace Graphics
 } // namespace Nidium

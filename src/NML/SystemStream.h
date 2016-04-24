@@ -29,6 +29,7 @@
 namespace Nidium {
 namespace NML {
 
+// {{{ NativeSystemStream
 class NativeSystemStream : public Nidium::IO::FileStream
 {
 public:
@@ -53,7 +54,9 @@ public:
         return "/";
     }
 };
+// }}}
 
+// {{{ NativeUserStream
 class NativeUserStream : public Nidium::IO::FileStream
 {
 public:
@@ -78,6 +81,7 @@ public:
         return Nidium::Interface::NativeSystemInterface::getInstance()->getUserDirectory();
     }
 };
+// }}}
 
 } // namespace NML
 } // namespace Nidium

@@ -66,6 +66,7 @@ NativeVideo::NativeVideo(ape_global *n):
     }
 }
 
+// {{{ Open
 #define RETURN_WITH_ERROR(err) \
 this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
 this->closeInternal(true);\
@@ -243,8 +244,8 @@ int NativeVideo::openInitInternal()
 
     return 0;
 }
-
 #undef RETURN_WITH_ERROR
+// }}}
 
 void NativeVideo::frameCallback(VideoCallback cbk, void *arg) {
     m_FrameCbk = cbk;
@@ -322,6 +323,7 @@ double NativeVideo::getClock()
     return m_LastPts;
 }
 
+// {{{ Seek
 void NativeVideo::seek(double time, uint32_t flags)
 {
     DPRINT("Seek called\n");
@@ -623,7 +625,9 @@ void NativeVideo::seekInternal(double time)
 #undef SEEK_THRESHOLD
 #undef SEEK_STEP
 #undef SEEK_BUFFER_PACKET
+/// }}}
 
+// {{{ Frame
 void NativeVideo::nextFrame()
 {
     if (m_Playing || !m_Opened) {
@@ -648,6 +652,7 @@ void NativeVideo::frameAt(double time, bool keyframe)
 
     this->seek(time, keyframe ? NATIVE_VIDEO_SEEK_KEYFRAME : 0);
 }
+// }}}
 
 NativeAudioSource *NativeVideo::getAudioNode(NativeAudio *audio)
 {
@@ -914,6 +919,7 @@ void NativeVideo::setSize(int width, int height)
     //NATIVE_PTHREAD_SIGNAL(&this->bufferCond);
 }
 
+// {{{ Buffer
 void NativeVideo::buffer()
 {
     if (m_Error != 0) {
@@ -934,6 +940,7 @@ void NativeVideo::buffer()
         this->bufferInternal();
     }
 }
+
 
 void NativeVideo::bufferCoro(void *arg)
 {
@@ -1009,8 +1016,8 @@ void NativeVideo::bufferInternal()
             break;
         }
     }
-
 }
+// }}}
 
 void *NativeVideo::decode(void *args)
 {
@@ -1113,6 +1120,7 @@ void NativeVideo::sourceNeedWork(void *ptr)
     NATIVE_PTHREAD_SIGNAL(&thiz->m_BufferCond);
 }
 
+// {{{ process
 bool NativeVideo::processAudio()
 {
     Nidium::Core::PthreadAutoLock lock(&m_AudioLock);
@@ -1199,6 +1207,8 @@ bool NativeVideo::processFrame(AVFrame *avFrame)
 
     return ret;
 }
+// }}}
+
 bool NativeVideo::convertFrame(AVFrame *avFrame, uint8_t *dst)
 {
     // Format the frame for sws_scale

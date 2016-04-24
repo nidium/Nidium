@@ -5,6 +5,14 @@
 namespace Nidium {
 namespace Graphics {
 
+NativeGLResources::Resource::Resource(uint32_t glid,
+    NativeGLResources::ResourceType type, char *name) :
+
+    m_Glid(glid), m_Type(type)
+{
+
+}
+
 void NativeGLResources::add(uint32_t glid, ResourceType type, const char *name)
 {
     if (glid == 0) {
@@ -17,15 +25,6 @@ void NativeGLResources::add(uint32_t glid, ResourceType type, const char *name)
     m_List.set(this->genId(glid, type), res);
 }
 
-
-NativeGLResources::Resource::Resource(uint32_t glid,
-    NativeGLResources::ResourceType type, char *name) :
-
-    m_Glid(glid), m_Type(type)
-
-{
-
-}
 
 NativeGLResources::Resource::~Resource()
 {

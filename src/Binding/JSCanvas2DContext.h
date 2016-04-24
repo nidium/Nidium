@@ -38,6 +38,7 @@ class NativeJSImage;
 /*
     JSAPI tracer is told to trace JS::Heap stored in this chain of state
 */
+// {{{ NativeCanvas2dContextState
 struct NativeCanvas2DContextState
 {
     NativeCanvas2DContextState() :
@@ -58,7 +59,9 @@ struct NativeCanvas2DContextState
 
     NativeCanvas2DContextState *m_Next;
 };
+// }}}
 
+// {{{ NativeCanvas2DContext
 class NativeCanvas2DContext : public Graphics::NativeCanvasContext
 {
     public:
@@ -152,7 +155,9 @@ class NativeCanvas2DContext : public Graphics::NativeCanvasContext
         uint32_t getSkiaTextureID(int *width = NULL, int *height = NULL);
         uint32_t getMainFBO();
 };
+// }}}
 
+// {{{ NativeCanvasPattern
 class NativeCanvasPattern
 {
     public:
@@ -170,6 +175,7 @@ class NativeCanvasPattern
             m_JsImg(img), m_Mode(repeat) {
         };
 };
+// }}}
 
 } // namespace Binding
 } // namespace Nidium

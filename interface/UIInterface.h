@@ -24,6 +24,7 @@ class NativeUIInterface;
 
 typedef void *SDL_GLContext;
 
+// {{{ NativeSystemMenuItem
 class NativeSystemMenuItem {
 public:
     NativeSystemMenuItem(char *title = NULL, char *id = NULL) :
@@ -76,7 +77,9 @@ private:
     char *m_Title;
     bool m_Enabled;
 };
+// }}}
 
+// {{{ NativeSystemMen
 class NativeSystemMenu {
 public:
     NativeSystemMenu(NativeUIInterface *ui);
@@ -106,7 +109,9 @@ private:
     NativeSystemMenuItem *m_Items;
     NativeUIInterface *m_UI;
 };
+// }}}
 
+// {{{ NativeUIInterface
 class NativeUIInterface
 {
     public:
@@ -272,6 +277,7 @@ class NativeUIInterface
         SDL_GLContext m_MainGLCtx;
         NativeSystemMenu m_SystemMenu;
 };
+// }}}
 
 } // namespace Nidium
 } // namespace Interface

@@ -13,7 +13,6 @@ namespace Nidium {
     }
 namespace Binding {
 
-
 class NativeJSwindow : public JSExposer<NativeJSwindow>
 {
   public:

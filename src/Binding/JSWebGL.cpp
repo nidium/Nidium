@@ -16,7 +16,6 @@
 namespace Nidium {
 namespace Binding {
 
-extern JSClass Canvas_class;
 
 #define NATIVE_GL_GETTER(obj) ((class NativeCanvasWebGLContext*)JS_GetPrivate(obj))
 
@@ -134,6 +133,8 @@ public:
     ShaderData m_ShaderData;
 };
 
+// {{{ Preamble
+extern JSClass Canvas_class;
 static void Buffer_Finalize(JSFreeOp *fop, JSObject *obj);
 static void WebGLRenderingContext_Finalize(JSFreeOp *fop, JSObject *obj);
 
@@ -224,7 +225,9 @@ static void WebGLRenderingContext_Finalize(JSFreeOp *fop, JSObject *obj)
         delete ctx;
     }
 }
+// }}}
 
+// {{{ Implementation
 bool NGL_uniformxf(Graphics::NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb) {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     uintptr_t clocation;
@@ -2932,7 +2935,9 @@ void NativeJSWebGLRenderingContext::registerObject(JSContext *cx) {
 
     JS_DefineConstDoubles(cx, ctor, WebGLRenderingContext_const);
 }
+// }}}
 
+// {{{ Registration
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLBuffer);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLFramebuffer);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLProgram);
@@ -2942,6 +2947,7 @@ NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLTexture);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLUniformLocation);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLShaderPrecisionFormat);
 NATIVE_OBJECT_EXPOSE_NOT_INST(WebGLActiveInfo);
+// }}}
 
 } // namespace Nidium
 } // namespace Binding

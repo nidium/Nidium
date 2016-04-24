@@ -34,6 +34,7 @@ namespace Graphics {
 
 SkCanvas *NativeSkia::m_GlContext = NULL;
 
+// {{{ Static funcs and macros
 //#define CANVAS_FLUSH() canvas->flush()
 #define CANVAS_FLUSH()
 
@@ -159,47 +160,36 @@ static inline double calcHue(double temp1, double temp2, double hueVal) {
   return temp1;
 }
 
-void NativeSkia::GetStringColor(uint32_t color, char *out)
+static inline bool isBreakable(const unsigned char c)
 {
-    /*
-        Mimic Chrome and Firefox :
+    return (c == ' ' || c == '.' || c == ',' || c == '-' /*|| c == 0xAD*/);
+}
 
-        Whenver we have some alpha, a literal rgba() string is
-        returned instead of a literal #RRGGBB
-    */
-    if (SkColorGetA(color) != 0xff) {
+/*
+static SkBitmap load_bitmap() {
+    SkStream* stream = new SkFILEStream("/skimages/sesame_street_ensemble-hp.jpg");
+    SkAutoUnref aur(stream);
 
-        sprintf(out, "rgba(%d, %d, %d, %.2f)",
-            SkColorGetR(color),
-            SkColorGetG(color),
-            SkColorGetB(color),
-            SkColorGetA(color) / 255.f);
-    } else {
-        sprintf(out, "#%.2x%.2x%.2x",
-            SkColorGetR(color),
-            SkColorGetG(color),
-            SkColorGetB(color));
+    SkBitmap bm;
+    if (SkImageDecoder::DecodeStream(stream, &bm, SkBitmap::kNo_Config,
+                                     SkImageDecoder::kDecodeBounds_Mode)) {
+        SkPixelRef* pr = new SkImageRef_GlobalPool(stream, bm.config(), 1);
+        bm.setPixelRef(pr)->unref();
     }
+    return bm;
 }
+*/
+// }}}
 
-int NativeSkia::getWidth()
+// {{{ NativeSkia
+NativeSkia::NativeSkia() :
+    m_State(NULL), m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0),
+    m_AsComposite(0), screen(NULL), currentShadow({0, 0, 0, 0}),
+    m_Canvas(NULL), m_Debug(false), m_FontSkew(-0.25),
+    m_NativeCanvasBindMode(NativeSkia::BIND_NO)
 {
-    return m_Canvas->getDeviceSize().fWidth;
-}
 
-int NativeSkia::getHeight()
-{
-    return m_Canvas->getDeviceSize().fHeight;
 }
-
-uint32_t NativeSkia::getFillColor() const {
-    return PAINT->getColor();
-}
-
-uint32_t NativeSkia::getStrokeColor() const {
-    return PAINT_STROKE->getColor();
-}
-
 
 #if 0
 static U8CPU InvScaleByte(U8CPU component, uint32_t scale)
@@ -515,69 +505,6 @@ int NativeSkia::bindGL(int width, int height, Nidium::NML::NativeContext *native
     return 1;
 }
 
-void NativeSkia::drawRect(double x, double y, double width,
-    double height, int stroke)
-{
-    SkRect r;
-
-    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
-        SkDoubleToScalar(width), SkDoubleToScalar(height));
-
-    m_Canvas->drawRect(r, (stroke ? *PAINT_STROKE : *PAINT));
-
-    CANVAS_FLUSH();
-
-}
-
-void NativeSkia::drawLine(double x1, double y1, double x2, double y2)
-{
-    m_Canvas->drawLine(SkDoubleToScalar(x1), SkDoubleToScalar(y1),
-        SkDoubleToScalar(x2), SkDoubleToScalar(y2), *PAINT_STROKE);
-}
-
-void NativeSkia::drawRect(double x, double y, double width,
-    double height, double rx, double ry, int stroke)
-{
-    SkRect r;
-
-    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
-        SkDoubleToScalar(width), SkDoubleToScalar(height));
-
-    m_Canvas->drawRoundRect(r, SkDoubleToScalar(rx), SkDoubleToScalar(ry),
-        (stroke ? *PAINT_STROKE : *PAINT));
-}
-
-NativeSkia::NativeSkia() :
-    m_State(NULL), m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0),
-    m_AsComposite(0), screen(NULL), currentShadow({0, 0, 0, 0}),
-    m_Canvas(NULL), m_Debug(false), m_FontSkew(-0.25),
-    m_NativeCanvasBindMode(NativeSkia::BIND_NO)
-{
-
-}
-
-NativeSkia::~NativeSkia()
-{
-    struct _nativeState *nstate = m_State;
-
-    if (m_Canvas != NULL) {
-        m_Canvas->flush();
-    }
-    while (nstate) {
-        struct _nativeState *tmp = nstate->next;
-        //NLOG("Delete pain %p with shader : %p", nstate->paint, nstate->paint->getShader());
-        delete nstate->m_Paint;
-        delete nstate->m_PaintStroke;
-        delete nstate;
-        nstate = tmp;
-    }
-
-    if (m_PaintSystem) delete m_PaintSystem;
-    if (m_CurrentPath) delete m_CurrentPath;
-
-    SkSafeUnref(m_Canvas);
-}
-
 /* TODO: check if there is a best way to do this;
     context->clear() ?
 */
@@ -606,160 +533,6 @@ void NativeSkia::clearRect(double x, double y, double width, double height)
 
 }
 
-void NativeSkia::setFontSize(double size)
-{
-    SkScalar ssize = SkDoubleToScalar(size);
-    PAINT->setTextSize(ssize);
-    PAINT_STROKE->setTextSize(ssize);
-}
-
-void NativeSkia::setFontStyle(const char *style)
-{
-    PAINT->setFakeBoldText((strcasestr(style, "bold")));
-    PAINT->setUnderlineText((strcasestr(style, "underline")));
-    PAINT->setStrikeThruText((strcasestr(style, "strike")));
-
-    PAINT->setTextSkewX(strcasestr(style, "italic") ? m_FontSkew : 0);
-}
-
-void NativeSkia::setFontType(char *str, Nidium::Binding::NativeJSdocument *doc)
-{
-    if (doc) {
-        SkTypeface *tf = doc->getFont(str);
-        if (tf) {
-            PAINT->setTypeface(tf);
-            PAINT_STROKE->setTypeface(tf);
-
-            return;
-        }
-    }
-    //Nidium::Binding::NativeJSdocument *jdoc = Nidium::Binding::NativeJSdocument::
-    SkTypeface *tf = SkTypeface::CreateFromName(str,
-        SkTypeface::kNormal);
-    // Workarround for skia bug #1648
-    // https://code.google.com/p/skia/issues/detail?id=1648
-    if (tf == NULL) {
-        tf = SkTypeface::CreateFromName(NULL,
-                SkTypeface::kNormal);
-        if (tf == NULL) return;
-    }
-
-    PAINT->setTypeface(tf);
-    PAINT_STROKE->setTypeface(tf);
-
-    tf->unref();
-}
-
-bool NativeSkia::setFontFile(const char *str)
-{
-    char *data;
-    size_t len;
-
-    Nidium::Core::Path fontPath(str);
-    Nidium::IO::Stream *stream;
-
-    if ((stream = fontPath.createStream(true)) == NULL) {
-        return false;
-    }
-
-    Nidium::Core::PtrAutoDelete<Nidium::IO::Stream *> npad(stream);
-
-    if (!stream->getContentSync(&data, &len)) {
-        return false;
-    }
-
-    SkMemoryStream *skmemory = new SkMemoryStream(data, len, true);
-    free(data);
-
-    SkTypeface *tf = SkTypeface::CreateFromStream(skmemory);
-    if (tf == NULL) {
-        delete skmemory;
-        return false;
-    }
-
-    PAINT->setTypeface(tf);
-    PAINT_STROKE->setTypeface(tf);
-
-    tf->unref();
-
-    return true;
-}
-
-/* TODO: bug with alpha */
-void NativeSkia::drawText(const char *text, int x, int y, bool stroke)
-{
-    SkPaint::FontMetrics metrics;
-    PAINT->getFontMetrics(&metrics);
-
-    SkScalar sx = SkIntToScalar(x), sy = SkIntToScalar(y);
-
-    switch(m_State->m_Baseline) {
-        case BASELINE_TOP:
-            sy -= metrics.fTop;
-            break;
-        case BASELINE_BOTTOM:
-            sy -= metrics.fBottom;
-            break;
-        case BASELINE_MIDDLE:
-        /* TODO: remove hack */
-            sy += ((metrics.fXHeight)/2) + ((metrics.fXHeight)/2)*13./100.;
-            break;
-        default:
-            break;
-    }
-
-    m_Canvas->drawText(text, strlen(text),
-        sx, sy, (stroke ? *PAINT_STROKE : *PAINT));
-
-    CANVAS_FLUSH();
-}
-
-void NativeSkia::textBaseline(const char *mode)
-{
-    if (strcasecmp("top", mode) == 0) {
-        m_State->m_Baseline = BASELINE_TOP;
-    } else if (strcasecmp("hanging", mode) == 0) {
-        m_State->m_Baseline = BASELINE_ALPHABETIC;
-    } else if (strcasecmp("middle", mode) == 0) {
-        m_State->m_Baseline = BASELINE_MIDDLE;
-    } else if (strcasecmp("ideographic", mode) == 0) {
-        m_State->m_Baseline = BASELINE_ALPHABETIC;
-    } else if (strcasecmp("bottom", mode) == 0) {
-        m_State->m_Baseline = BASELINE_BOTTOM;
-    } else {
-        m_State->m_Baseline = BASELINE_ALPHABETIC;
-    }
-}
-
-void NativeSkia::textAlign(const char *mode)
-{
-    if (strcasecmp("left", mode) == 0) {
-        PAINT->setTextAlign(SkPaint::kLeft_Align);
-        PAINT_STROKE->setTextAlign(SkPaint::kLeft_Align);
-
-    } else if (strcasecmp("center", mode) == 0) {
-        PAINT->setTextAlign(SkPaint::kCenter_Align);
-        PAINT_STROKE->setTextAlign(SkPaint::kLeft_Align);
-
-    } else if (strcasecmp("right", mode) == 0) {
-        PAINT->setTextAlign(SkPaint::kRight_Align);
-        PAINT_STROKE->setTextAlign(SkPaint::kRight_Align);
-    }
-}
-
-void NativeSkia::drawTextf(int x, int y, const char text[], ...)
-{
-    static const size_t BUFFER_SIZE = 4096;
-
-    char    buffer[BUFFER_SIZE];
-    va_list args;
-    va_start(args, text);
-    vsnprintf(buffer, BUFFER_SIZE, text, args);
-    va_end(args);
-
-    drawText(buffer, x, y);
-}
-
 void NativeSkia::system(const char *text, int x, int y)
 {
     m_Canvas->drawText(text, strlen(text),
@@ -767,138 +540,6 @@ void NativeSkia::system(const char *text, int x, int y)
 
     CANVAS_FLUSH();
 }
-
-void NativeSkia::setFillColor(Nidium::Binding::NativeCanvasPattern *pattern)
-{
-    SkShader *shader = NULL;
-
-    if (pattern->m_JsImg->m_Image->m_Image != NULL) {
-        bool repeat_x = false, repeat_y = false;
-
-        switch(pattern->m_Mode) {
-            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_MIRROR:
-            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT:
-                repeat_x = repeat_y = true;
-                break;
-            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_X:
-                repeat_x = true;
-                break;
-            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_Y:
-                repeat_y = true;
-                break;
-            default:
-                break;
-        }
-
-        if (repeat_x && repeat_y) {
-            shader = SkShader::CreateBitmapShader(*pattern->m_JsImg->m_Image->m_Image,
-                pattern->m_Mode == Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_MIRROR ?
-                    SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode,
-                pattern->m_Mode == Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_MIRROR ?
-                    SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode);
-        } else {
-            SkShader::TileMode tileModeX = repeat_x ? SkShader::kRepeat_TileMode : SkShader::kClamp_TileMode;
-            SkShader::TileMode tileModeY = repeat_y ? SkShader::kRepeat_TileMode : SkShader::kClamp_TileMode;
-
-            int expandW = repeat_x ? 0 : 1;
-            int expandH = repeat_y ? 0 : 1;
-
-            SkBitmap *bm = pattern->m_JsImg->m_Image->m_Image;
-            SkBitmap bm2;
-
-            bm2.setConfig(bm->config(), bm->width() + expandW, bm->height() + expandH);
-            bm2.allocPixels();
-            bm2.eraseARGB(0x00, 0x00, 0x00, 0x00);
-
-            SkCanvas canvas(bm2);
-            canvas.drawBitmap(*bm, 0, 0);
-
-            shader = SkShader::CreateBitmapShader(bm2, tileModeX, tileModeY);
-
-        }
-
-        PAINT->setColor(SK_ColorBLACK);
-        PAINT->setShader(shader);
-    }
-}
-
-void NativeSkia::setFillColor(NativeSkGradient *gradient)
-{
-    SkShader *shader;
-
-    if ((shader = gradient->build()) == NULL) {
-        /* Make paint invalid (no future draw) */
-        //paint->setShader(NULL);
-        NLOG("Invalid gradient");
-        return;
-    }
-    PAINT->setColor(SK_ColorBLACK);
-
-    PAINT->setShader(shader);
-    //NLOG("Add gradient : %p (%d)", shader, shader->getRefCnt());
-}
-
-void NativeSkia::setFillColor(const char *str)
-{
-    SkColor color = parseColor(str);
-
-    SkShader *shader = PAINT->getShader();
-
-    if (shader) {
-        PAINT->setShader(NULL);
-    }
-
-    PAINT->setColor(color);
-}
-
-void NativeSkia::setFillColor(uint32_t color)
-{
-    SkShader *shader = PAINT->getShader();
-
-    if (shader) {
-        PAINT->setShader(NULL);
-    }
-
-    PAINT->setColor(color);
-}
-
-void NativeSkia::setStrokeColor(const char *str)
-{
-    SkColor color = parseColor(str);
-
-    SkShader *shader = PAINT_STROKE->getShader();
-
-    if (shader) {
-        PAINT_STROKE->setShader(NULL);
-    }
-
-    PAINT_STROKE->setColor(color);
-
-}
-
-void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
-{
-    SkShader *shader;
-
-    if ((shader = gradient->build()) == NULL) {
-        return;
-    }
-    PAINT_STROKE->setColor(SK_ColorBLACK);
-    PAINT_STROKE->setShader(shader);
-}
-
-
-void NativeSkia::setStrokeColor(uint32_t color)
-{
-    SkShader *shader = PAINT_STROKE->getShader();
-
-    if (shader) {
-        PAINT_STROKE->setShader(NULL);
-    }
-
-    PAINT_STROKE->setColor(color);
-}
-
 
 NativeShadowLooper *NativeSkia::buildShadow()
 {
@@ -912,85 +553,6 @@ NativeShadowLooper *NativeSkia::buildShadow()
                                 currentShadow.color,
                                 SkBlurDrawLooper::kIgnoreTransform_BlurFlag |
                                 SkBlurDrawLooper::kHighQuality_BlurFlag);
-}
-
-void NativeSkia::setShadowOffsetX(double x)
-{
-    if (currentShadow.x == x) return;
-    currentShadow.x = x;
-    SkSafeUnref(PAINT->setLooper(buildShadow()));
-}
-
-void NativeSkia::setShadowOffsetY(double y)
-{
-    if (currentShadow.y == y) return;
-    currentShadow.y = y;
-    SkSafeUnref(PAINT->setLooper(buildShadow()));
-}
-
-void NativeSkia::setShadowBlur(double blur)
-{
-    if (currentShadow.blur == blur) return;
-    currentShadow.blur = blur;
-
-    SkSafeUnref(PAINT->setLooper(buildShadow()));
-}
-
-void NativeSkia::setShadowColor(const char *str)
-{
-    SkColor color = parseColor(str);
-
-    if (currentShadow.color == color) return;
-    currentShadow.color = color;
-
-    SkSafeUnref(PAINT->setLooper(buildShadow()));
-}
-
-void NativeSkia::setSmooth(bool val, int level)
-{
-    SkPaint::FilterLevel flevel = SkPaint::kNone_FilterLevel;
-
-    if (val) {
-        switch (level) {
-            case 0: flevel = SkPaint::kNone_FilterLevel;
-                    break;
-            case 1: flevel = SkPaint::kLow_FilterLevel;
-                    break;
-            case 2: flevel = SkPaint::kMedium_FilterLevel;
-                    break;
-            case 3: default: flevel = SkPaint::kHigh_FilterLevel;
-                    break;
-        }
-    }
-
-    PAINT->setFilterLevel(flevel);
-    PAINT_STROKE->setFilterLevel(flevel);
-}
-
-int NativeSkia::getSmooth() const
-{
-    return (int)PAINT->getFilterLevel();
-}
-
-void NativeSkia::setGlobalAlpha(double value)
-{
-    if (value < 0) return;
-
-    SkScalar maxuint = SkIntToScalar(255);
-    m_GlobalAlpha = SkMinScalar(SkDoubleToScalar(value) * maxuint, maxuint);
-    SkColorFilter *filter = SkColorFilter::CreateModeFilter(
-        SkColorSetARGB(m_GlobalAlpha, 255, 255, 255),
-        SkXfermode::kModulate_Mode);
-
-    PAINT->setColorFilter(filter);
-    PAINT_STROKE->setColorFilter(filter);
-
-    filter->unref();
-}
-
-double NativeSkia::getGlobalAlpha() const
-{
-    return (double)m_GlobalAlpha / (double)255;
 }
 
 static struct _native_xfer_mode {
@@ -1012,42 +574,6 @@ static struct _native_xfer_mode {
     {"lighten",            SkXfermode::kColorDodge_Mode},
     {NULL,                 SkXfermode::kSrcOver_Mode}
 };
-
-void NativeSkia::setGlobalComposite(const char *str)
-{
-    for (int i = 0; native_xfer_mode[i].str != NULL; i++) {
-        if (strcasecmp(native_xfer_mode[i].str, str) == 0) {
-            SkXfermode *mode = SkXfermode::Create(native_xfer_mode[i].mode);
-            PAINT->setXfermode(mode);
-            PAINT_STROKE->setXfermode(mode);
-            SkSafeUnref(mode);
-            break;
-        }
-    }
-
-    m_AsComposite = 1;
-}
-
-void NativeSkia::setLineWidth(double size)
-{
-    PAINT_STROKE->setStrokeWidth(SkDoubleToScalar(size));
-}
-
-double NativeSkia::getLineWidth() const
-{
-    return SkScalarToDouble(PAINT_STROKE->getStrokeWidth());
-}
-
-void NativeSkia::setMiterLimit(double size)
-{
-    PAINT_STROKE->setStrokeMiter(SkDoubleToScalar(size));
-}
-
-double NativeSkia::getMiterLimit() const
-{
-    return SkScalarToDouble(PAINT_STROKE->getStrokeMiter());
-}
-
 
 void NativeSkia::beginPath()
 {
@@ -1451,34 +977,9 @@ void NativeSkia::restore()
     m_Canvas->restore();
 }
 
-double NativeSkia::measureText(const char *str, size_t length)
-{
-    return SkScalarToDouble(PAINT->measureText(str, length));
-}
-
 void NativeSkia::skew(double x, double y)
 {
     m_Canvas->skew(SkDoubleToScalar(x), SkDoubleToScalar(y));
-}
-
-/*
-    composite :
-    http://code.google.com/p/webkit-mirror/source/browse/Source/WebCore/platform/graphics/skia/SkiaUtils.cpp
-*/
-
-
-void NativeSkia::getPathBounds(double *left, double *right,
-    double *top, double *bottom)
-{
-    if (m_CurrentPath == NULL) {
-        return;
-    }
-    SkRect bounds = m_CurrentPath->getBounds();
-
-    *left = SkScalarToDouble(bounds.fLeft);
-    *right = SkScalarToDouble(bounds.fRight);
-    *top = SkScalarToDouble(bounds.fTop);
-    *bottom = SkScalarToDouble(bounds.fBottom);
 }
 
 /*
@@ -1589,26 +1090,104 @@ void NativeSkia::transform(double scalex, double skewy, double skewx,
     }
 }
 
-void NativeSkia::setLineCap(const char *capStyle)
+int NativeSkia::readPixels(int top, int left, int width, int height,
+    uint8_t *pixels)
 {
-    if (strcasecmp(capStyle, "round") == 0) {
-        PAINT_STROKE->setStrokeCap(SkPaint::kRound_Cap);
-    } else if (strcasecmp(capStyle, "square") == 0) {
-        PAINT_STROKE->setStrokeCap(SkPaint::kSquare_Cap);
+    const SkImageInfo &info = SkImageInfo::Make(width, height,
+        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+
+    if (!m_Canvas->readPixels(info, pixels, width * 4, left, top)) {
+        printf("Failed to read pixels\n");
+        return 0;
+    }
+
+    return 1;
+}
+// }}}
+
+// {{{ Some Getters
+void NativeSkia::GetStringColor(uint32_t color, char *out)
+{
+    /*
+        Mimic Chrome and Firefox :
+
+        Whenver we have some alpha, a literal rgba() string is
+        returned instead of a literal #RRGGBB
+    */
+    if (SkColorGetA(color) != 0xff) {
+
+        sprintf(out, "rgba(%d, %d, %d, %.2f)",
+            SkColorGetR(color),
+            SkColorGetG(color),
+            SkColorGetB(color),
+            SkColorGetA(color) / 255.f);
     } else {
-        PAINT_STROKE->setStrokeCap(SkPaint::kButt_Cap);
+        sprintf(out, "#%.2x%.2x%.2x",
+            SkColorGetR(color),
+            SkColorGetG(color),
+            SkColorGetB(color));
     }
 }
 
-void NativeSkia::setLineJoin(const char *joinStyle)
+int NativeSkia::getWidth()
 {
-     if (strcasecmp(joinStyle, "round") == 0) {
-        PAINT_STROKE->setStrokeJoin(SkPaint::kRound_Join);
-    } else if (strcasecmp(joinStyle, "bevel") == 0) {
-        PAINT_STROKE->setStrokeJoin(SkPaint::kBevel_Join);
-    } else {
-        PAINT_STROKE->setStrokeJoin(SkPaint::kMiter_Join);
+    return m_Canvas->getDeviceSize().fWidth;
+}
+
+int NativeSkia::getHeight()
+{
+    return m_Canvas->getDeviceSize().fHeight;
+}
+
+uint32_t NativeSkia::getFillColor() const {
+    return PAINT->getColor();
+}
+
+uint32_t NativeSkia::getStrokeColor() const {
+    return PAINT_STROKE->getColor();
+}
+
+int NativeSkia::getSmooth() const
+{
+    return (int)PAINT->getFilterLevel();
+}
+
+double NativeSkia::getGlobalAlpha() const
+{
+    return (double)m_GlobalAlpha / (double)255;
+}
+
+double NativeSkia::getLineWidth() const
+{
+    return SkScalarToDouble(PAINT_STROKE->getStrokeWidth());
+}
+
+void NativeSkia::setMiterLimit(double size)
+{
+    PAINT_STROKE->setStrokeMiter(SkDoubleToScalar(size));
+}
+
+double NativeSkia::getMiterLimit() const
+{
+    return SkScalarToDouble(PAINT_STROKE->getStrokeMiter());
+}
+
+/*
+    composite :
+    http://code.google.com/p/webkit-mirror/source/browse/Source/WebCore/platform/graphics/skia/SkiaUtils.cpp
+*/
+void NativeSkia::getPathBounds(double *left, double *right,
+    double *top, double *bottom)
+{
+    if (m_CurrentPath == NULL) {
+        return;
     }
+    SkRect bounds = m_CurrentPath->getBounds();
+
+    *left = SkScalarToDouble(bounds.fLeft);
+    *right = SkScalarToDouble(bounds.fRight);
+    *top = SkScalarToDouble(bounds.fTop);
+    *bottom = SkScalarToDouble(bounds.fBottom);
 }
 
 const char *NativeSkia::getLineCap() const
@@ -1635,6 +1214,41 @@ const char *NativeSkia::getLineJoin() const
         default:
             return "miter";
     }
+}
+
+
+// }}}
+// {{{ Draw
+void NativeSkia::drawRect(double x, double y, double width,
+    double height, int stroke)
+{
+    SkRect r;
+
+    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
+        SkDoubleToScalar(width), SkDoubleToScalar(height));
+
+    m_Canvas->drawRect(r, (stroke ? *PAINT_STROKE : *PAINT));
+
+    CANVAS_FLUSH();
+
+}
+
+void NativeSkia::drawLine(double x1, double y1, double x2, double y2)
+{
+    m_Canvas->drawLine(SkDoubleToScalar(x1), SkDoubleToScalar(y1),
+        SkDoubleToScalar(x2), SkDoubleToScalar(y2), *PAINT_STROKE);
+}
+
+void NativeSkia::drawRect(double x, double y, double width,
+    double height, double rx, double ry, int stroke)
+{
+    SkRect r;
+
+    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
+        SkDoubleToScalar(width), SkDoubleToScalar(height));
+
+    m_Canvas->drawRoundRect(r, SkDoubleToScalar(rx), SkDoubleToScalar(ry),
+        (stroke ? *PAINT_STROKE : *PAINT));
 }
 
 void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
@@ -1761,23 +1375,415 @@ void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     m_Canvas->drawBitmap(bt, x, y, &pt);
 }
 
-int NativeSkia::readPixels(int top, int left, int width, int height,
-    uint8_t *pixels)
+void NativeSkia::flush()
 {
-    const SkImageInfo &info = SkImageInfo::Make(width, height,
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    m_Canvas->flush();
+}
+// }}}
 
-    if (!m_Canvas->readPixels(info, pixels, width * 4, left, top)) {
-        printf("Failed to read pixels\n");
-        return 0;
-    }
+// {{{ Some Setters
+void NativeSkia::setGlobalAlpha(double value)
+{
+    if (value < 0) return;
 
-    return 1;
+    SkScalar maxuint = SkIntToScalar(255);
+    m_GlobalAlpha = SkMinScalar(SkDoubleToScalar(value) * maxuint, maxuint);
+    SkColorFilter *filter = SkColorFilter::CreateModeFilter(
+        SkColorSetARGB(m_GlobalAlpha, 255, 255, 255),
+        SkXfermode::kModulate_Mode);
+
+    PAINT->setColorFilter(filter);
+    PAINT_STROKE->setColorFilter(filter);
+
+    filter->unref();
 }
 
-static inline bool isBreakable(const unsigned char c)
+void NativeSkia::setFontSize(double size)
 {
-    return (c == ' ' || c == '.' || c == ',' || c == '-' /*|| c == 0xAD*/);
+    SkScalar ssize = SkDoubleToScalar(size);
+    PAINT->setTextSize(ssize);
+    PAINT_STROKE->setTextSize(ssize);
+}
+
+void NativeSkia::setFontStyle(const char *style)
+{
+    PAINT->setFakeBoldText((strcasestr(style, "bold")));
+    PAINT->setUnderlineText((strcasestr(style, "underline")));
+    PAINT->setStrikeThruText((strcasestr(style, "strike")));
+
+    PAINT->setTextSkewX(strcasestr(style, "italic") ? m_FontSkew : 0);
+}
+
+void NativeSkia::setFontType(char *str, Nidium::Binding::NativeJSdocument *doc)
+{
+    if (doc) {
+        SkTypeface *tf = doc->getFont(str);
+        if (tf) {
+            PAINT->setTypeface(tf);
+            PAINT_STROKE->setTypeface(tf);
+
+            return;
+        }
+    }
+    //Nidium::Binding::NativeJSdocument *jdoc = Nidium::Binding::NativeJSdocument::
+    SkTypeface *tf = SkTypeface::CreateFromName(str,
+        SkTypeface::kNormal);
+    // Workarround for skia bug #1648
+    // https://code.google.com/p/skia/issues/detail?id=1648
+    if (tf == NULL) {
+        tf = SkTypeface::CreateFromName(NULL,
+                SkTypeface::kNormal);
+        if (tf == NULL) return;
+    }
+
+    PAINT->setTypeface(tf);
+    PAINT_STROKE->setTypeface(tf);
+
+    tf->unref();
+}
+
+bool NativeSkia::setFontFile(const char *str)
+{
+    char *data;
+    size_t len;
+
+    Nidium::Core::Path fontPath(str);
+    Nidium::IO::Stream *stream;
+
+    if ((stream = fontPath.createStream(true)) == NULL) {
+        return false;
+    }
+
+    Nidium::Core::PtrAutoDelete<Nidium::IO::Stream *> npad(stream);
+
+    if (!stream->getContentSync(&data, &len)) {
+        return false;
+    }
+
+    SkMemoryStream *skmemory = new SkMemoryStream(data, len, true);
+    free(data);
+
+    SkTypeface *tf = SkTypeface::CreateFromStream(skmemory);
+    if (tf == NULL) {
+        delete skmemory;
+        return false;
+    }
+
+    PAINT->setTypeface(tf);
+    PAINT_STROKE->setTypeface(tf);
+
+    tf->unref();
+
+    return true;
+}
+
+void NativeSkia::setFillColor(Nidium::Binding::NativeCanvasPattern *pattern)
+{
+    SkShader *shader = NULL;
+
+    if (pattern->m_JsImg->m_Image->m_Image != NULL) {
+        bool repeat_x = false, repeat_y = false;
+
+        switch(pattern->m_Mode) {
+            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_MIRROR:
+            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT:
+                repeat_x = repeat_y = true;
+                break;
+            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_X:
+                repeat_x = true;
+                break;
+            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_Y:
+                repeat_y = true;
+                break;
+            default:
+                break;
+        }
+
+        if (repeat_x && repeat_y) {
+            shader = SkShader::CreateBitmapShader(*pattern->m_JsImg->m_Image->m_Image,
+                pattern->m_Mode == Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_MIRROR ?
+                    SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode,
+                pattern->m_Mode == Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_MIRROR ?
+                    SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode);
+        } else {
+            SkShader::TileMode tileModeX = repeat_x ? SkShader::kRepeat_TileMode : SkShader::kClamp_TileMode;
+            SkShader::TileMode tileModeY = repeat_y ? SkShader::kRepeat_TileMode : SkShader::kClamp_TileMode;
+
+            int expandW = repeat_x ? 0 : 1;
+            int expandH = repeat_y ? 0 : 1;
+
+            SkBitmap *bm = pattern->m_JsImg->m_Image->m_Image;
+            SkBitmap bm2;
+
+            bm2.setConfig(bm->config(), bm->width() + expandW, bm->height() + expandH);
+            bm2.allocPixels();
+            bm2.eraseARGB(0x00, 0x00, 0x00, 0x00);
+
+            SkCanvas canvas(bm2);
+            canvas.drawBitmap(*bm, 0, 0);
+
+            shader = SkShader::CreateBitmapShader(bm2, tileModeX, tileModeY);
+
+        }
+
+        PAINT->setColor(SK_ColorBLACK);
+        PAINT->setShader(shader);
+    }
+}
+
+void NativeSkia::setFillColor(NativeSkGradient *gradient)
+{
+    SkShader *shader;
+
+    if ((shader = gradient->build()) == NULL) {
+        /* Make paint invalid (no future draw) */
+        //paint->setShader(NULL);
+        NLOG("Invalid gradient");
+        return;
+    }
+    PAINT->setColor(SK_ColorBLACK);
+
+    PAINT->setShader(shader);
+    //NLOG("Add gradient : %p (%d)", shader, shader->getRefCnt());
+}
+
+void NativeSkia::setFillColor(const char *str)
+{
+    SkColor color = parseColor(str);
+
+    SkShader *shader = PAINT->getShader();
+
+    if (shader) {
+        PAINT->setShader(NULL);
+    }
+
+    PAINT->setColor(color);
+}
+
+void NativeSkia::setFillColor(uint32_t color)
+{
+    SkShader *shader = PAINT->getShader();
+
+    if (shader) {
+        PAINT->setShader(NULL);
+    }
+
+    PAINT->setColor(color);
+}
+
+void NativeSkia::setStrokeColor(const char *str)
+{
+    SkColor color = parseColor(str);
+
+    SkShader *shader = PAINT_STROKE->getShader();
+
+    if (shader) {
+        PAINT_STROKE->setShader(NULL);
+    }
+
+    PAINT_STROKE->setColor(color);
+
+}
+
+void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
+{
+    SkShader *shader;
+
+    if ((shader = gradient->build()) == NULL) {
+        return;
+    }
+    PAINT_STROKE->setColor(SK_ColorBLACK);
+    PAINT_STROKE->setShader(shader);
+}
+
+
+void NativeSkia::setStrokeColor(uint32_t color)
+{
+    SkShader *shader = PAINT_STROKE->getShader();
+
+    if (shader) {
+        PAINT_STROKE->setShader(NULL);
+    }
+
+    PAINT_STROKE->setColor(color);
+}
+
+void NativeSkia::setShadowOffsetX(double x)
+{
+    if (currentShadow.x == x) return;
+    currentShadow.x = x;
+    SkSafeUnref(PAINT->setLooper(buildShadow()));
+}
+
+void NativeSkia::setShadowOffsetY(double y)
+{
+    if (currentShadow.y == y) return;
+    currentShadow.y = y;
+    SkSafeUnref(PAINT->setLooper(buildShadow()));
+}
+
+void NativeSkia::setShadowBlur(double blur)
+{
+    if (currentShadow.blur == blur) return;
+    currentShadow.blur = blur;
+
+    SkSafeUnref(PAINT->setLooper(buildShadow()));
+}
+
+void NativeSkia::setShadowColor(const char *str)
+{
+    SkColor color = parseColor(str);
+
+    if (currentShadow.color == color) return;
+    currentShadow.color = color;
+
+    SkSafeUnref(PAINT->setLooper(buildShadow()));
+}
+
+void NativeSkia::setSmooth(bool val, int level)
+{
+    SkPaint::FilterLevel flevel = SkPaint::kNone_FilterLevel;
+
+    if (val) {
+        switch (level) {
+            case 0: flevel = SkPaint::kNone_FilterLevel;
+                    break;
+            case 1: flevel = SkPaint::kLow_FilterLevel;
+                    break;
+            case 2: flevel = SkPaint::kMedium_FilterLevel;
+                    break;
+            case 3: default: flevel = SkPaint::kHigh_FilterLevel;
+                    break;
+        }
+    }
+
+    PAINT->setFilterLevel(flevel);
+    PAINT_STROKE->setFilterLevel(flevel);
+}
+
+void NativeSkia::setGlobalComposite(const char *str)
+{
+    for (int i = 0; native_xfer_mode[i].str != NULL; i++) {
+        if (strcasecmp(native_xfer_mode[i].str, str) == 0) {
+            SkXfermode *mode = SkXfermode::Create(native_xfer_mode[i].mode);
+            PAINT->setXfermode(mode);
+            PAINT_STROKE->setXfermode(mode);
+            SkSafeUnref(mode);
+            break;
+        }
+    }
+
+    m_AsComposite = 1;
+}
+
+void NativeSkia::setLineWidth(double size)
+{
+    PAINT_STROKE->setStrokeWidth(SkDoubleToScalar(size));
+}
+
+void NativeSkia::setLineCap(const char *capStyle)
+{
+    if (strcasecmp(capStyle, "round") == 0) {
+        PAINT_STROKE->setStrokeCap(SkPaint::kRound_Cap);
+    } else if (strcasecmp(capStyle, "square") == 0) {
+        PAINT_STROKE->setStrokeCap(SkPaint::kSquare_Cap);
+    } else {
+        PAINT_STROKE->setStrokeCap(SkPaint::kButt_Cap);
+    }
+}
+
+void NativeSkia::setLineJoin(const char *joinStyle)
+{
+     if (strcasecmp(joinStyle, "round") == 0) {
+        PAINT_STROKE->setStrokeJoin(SkPaint::kRound_Join);
+    } else if (strcasecmp(joinStyle, "bevel") == 0) {
+        PAINT_STROKE->setStrokeJoin(SkPaint::kBevel_Join);
+    } else {
+        PAINT_STROKE->setStrokeJoin(SkPaint::kMiter_Join);
+    }
+}
+
+void NativeSkia::setCanvas(SkCanvas *canvas)
+{
+    SkRefCnt_SafeAssign(m_Canvas, canvas);
+}
+
+// }}}
+
+// {{{ Text
+/* TODO: bug with alpha */
+void NativeSkia::drawText(const char *text, int x, int y, bool stroke)
+{
+    SkPaint::FontMetrics metrics;
+    PAINT->getFontMetrics(&metrics);
+
+    SkScalar sx = SkIntToScalar(x), sy = SkIntToScalar(y);
+
+    switch(m_State->m_Baseline) {
+        case BASELINE_TOP:
+            sy -= metrics.fTop;
+            break;
+        case BASELINE_BOTTOM:
+            sy -= metrics.fBottom;
+            break;
+        case BASELINE_MIDDLE:
+        /* TODO: remove hack */
+            sy += ((metrics.fXHeight)/2) + ((metrics.fXHeight)/2)*13./100.;
+            break;
+        default:
+            break;
+    }
+
+    m_Canvas->drawText(text, strlen(text),
+        sx, sy, (stroke ? *PAINT_STROKE : *PAINT));
+
+    CANVAS_FLUSH();
+}
+
+void NativeSkia::textBaseline(const char *mode)
+{
+    if (strcasecmp("top", mode) == 0) {
+        m_State->m_Baseline = BASELINE_TOP;
+    } else if (strcasecmp("hanging", mode) == 0) {
+        m_State->m_Baseline = BASELINE_ALPHABETIC;
+    } else if (strcasecmp("middle", mode) == 0) {
+        m_State->m_Baseline = BASELINE_MIDDLE;
+    } else if (strcasecmp("ideographic", mode) == 0) {
+        m_State->m_Baseline = BASELINE_ALPHABETIC;
+    } else if (strcasecmp("bottom", mode) == 0) {
+        m_State->m_Baseline = BASELINE_BOTTOM;
+    } else {
+        m_State->m_Baseline = BASELINE_ALPHABETIC;
+    }
+}
+
+void NativeSkia::textAlign(const char *mode)
+{
+    if (strcasecmp("left", mode) == 0) {
+        PAINT->setTextAlign(SkPaint::kLeft_Align);
+        PAINT_STROKE->setTextAlign(SkPaint::kLeft_Align);
+
+    } else if (strcasecmp("center", mode) == 0) {
+        PAINT->setTextAlign(SkPaint::kCenter_Align);
+        PAINT_STROKE->setTextAlign(SkPaint::kLeft_Align);
+
+    } else if (strcasecmp("right", mode) == 0) {
+        PAINT->setTextAlign(SkPaint::kRight_Align);
+        PAINT_STROKE->setTextAlign(SkPaint::kRight_Align);
+    }
+}
+
+void NativeSkia::drawTextf(int x, int y, const char text[], ...)
+{
+    static const size_t BUFFER_SIZE = 4096;
+
+    char    buffer[BUFFER_SIZE];
+    va_list args;
+    va_start(args, text);
+    vsnprintf(buffer, BUFFER_SIZE, text, args);
+    va_end(args);
+
+    drawText(buffer, x, y);
 }
 
 double NativeSkia::breakText(const char *str, size_t len,
@@ -1840,30 +1846,35 @@ double NativeSkia::breakText(const char *str, size_t len,
     return (curState.curLine+1)*PAINT->getFontSpacing();
 }
 
-/*
-static SkBitmap load_bitmap() {
-    SkStream* stream = new SkFILEStream("/skimages/sesame_street_ensemble-hp.jpg");
-    SkAutoUnref aur(stream);
+double NativeSkia::measureText(const char *str, size_t length)
+{
+    return SkScalarToDouble(PAINT->measureText(str, length));
+}
+// }}}
 
-    SkBitmap bm;
-    if (SkImageDecoder::DecodeStream(stream, &bm, SkBitmap::kNo_Config,
-                                     SkImageDecoder::kDecodeBounds_Mode)) {
-        SkPixelRef* pr = new SkImageRef_GlobalPool(stream, bm.config(), 1);
-        bm.setPixelRef(pr)->unref();
+NativeSkia::~NativeSkia()
+{
+    struct _nativeState *nstate = m_State;
+
+    if (m_Canvas != NULL) {
+        m_Canvas->flush();
     }
-    return bm;
-}
-*/
+    while (nstate) {
+        struct _nativeState *tmp = nstate->next;
+        //NLOG("Delete pain %p with shader : %p", nstate->paint, nstate->paint->getShader());
+        delete nstate->m_Paint;
+        delete nstate->m_PaintStroke;
+        delete nstate;
+        nstate = tmp;
+    }
 
-void NativeSkia::flush()
-{
-    m_Canvas->flush();
+    if (m_PaintSystem) delete m_PaintSystem;
+    if (m_CurrentPath) delete m_CurrentPath;
+
+    SkSafeUnref(m_Canvas);
 }
 
-void NativeSkia::setCanvas(SkCanvas *canvas)
-{
-    SkRefCnt_SafeAssign(m_Canvas, canvas);
-}
+
 
 } // namespace Graphics
 } // namespace Nidium

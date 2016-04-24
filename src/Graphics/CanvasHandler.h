@@ -35,6 +35,7 @@ namespace Graphics {
 class NativeSkia;
 class NativeCanvasContext;
 
+// {{{ NativeRect
 struct NativeRect
 {
     double m_fLeft, m_fTop, m_fBottom, m_fRight;
@@ -77,7 +78,9 @@ struct NativeRect
                m_fTop <= y && y < m_fBottom;
     }
 };
+// }}}
 
+// {{{ NativeLayerSiblingContext
 struct NativeLayerSiblingContext {
     double m_MaxLineHeight;
     double m_MaxLineHeightPreviousLine;
@@ -85,7 +88,9 @@ struct NativeLayerSiblingContext {
     NativeLayerSiblingContext() :
         m_MaxLineHeight(0.0), m_MaxLineHeightPreviousLine(0.0) {}
 };
+// }}}
 
+// {{{ NativeLayerizeContext
 struct NativeLayerizeContext {
     class NativeCanvasHandler *m_Layer;
     double m_pLeft;
@@ -106,7 +111,9 @@ struct NativeLayerizeContext {
         m_SiblingCtx = NULL;
     }
 };
+// }}}
 
+// {{{ NativeCanvasHandler
 class NativeCanvasHandler : public Nidium::Core::Events
 {
     public:
@@ -593,6 +600,7 @@ class NativeCanvasHandler : public Nidium::Core::Events
         bool m_Loaded;
         int m_Cursor;
 };
+// }}}
 
 } // namespace Graphics
 } // namespace Nidium

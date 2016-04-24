@@ -19,6 +19,7 @@
 namespace Nidium {
 namespace Binding {
 
+// {{{ Preamble
 bool NativeJSdocument::m_ShowFPS = false;
 
 static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -61,7 +62,9 @@ static JSFunctionSpec document_funcs[] = {
     JS_FN("parseNML", native_document_parseNML, 1, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
+// }}}
 
+// {{{ Implementation
 struct _native_document_restart_async
 {
     Nidium::Interface::NativeUIInterface *ui;
@@ -310,38 +313,6 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
     return true;
 }
 
-JSObject *NativeJSdocument::registerObject(JSContext *cx)
-{
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS::RootedObject documentObj(cx, JS_DefineObject(cx, global,
-        NativeJSdocument::getJSObjectName(), &document_class , nullptr,
-        JSPROP_PERMANENT | JSPROP_ENUMERATE));
-
-    NidiumJS *njs = NidiumJS::GetObject(cx);
-
-    NativeJSdocument *jdoc = new NativeJSdocument(documentObj, cx);
-    JS_SetPrivate(documentObj, jdoc);
-
-    /* We have to root it since the user can replace the document object */
-    njs->rootObjectUntilShutdown(documentObj);
-
-    njs->jsobjects.set(NativeJSdocument::getJSObjectName(), documentObj);
-
-    JS::RootedObject styleObj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
-    jdoc->m_Stylesheet = styleObj;
-
-    JS::RootedValue objV(cx, JS::ObjectOrNullValue(jdoc->m_Stylesheet));
-
-    /* implicitly root m_Stylesheet */
-    JS_SetReservedSlot(documentObj, 0, objV);
-
-    JS_SetProperty(cx, documentObj, "stylesheet", objV);
-    JS_DefineFunctions(cx, documentObj, document_funcs);
-    JS_DefineProperties(cx, documentObj, document_props);
-
-    return documentObj;
-}
-
 // todo destroy with Core::Hash cleaner
 bool NativeJSdocument::loadFont(const char *path, const char *name,
     int weight, nativefont::Style style)
@@ -443,6 +414,41 @@ SkTypeface *NativeJSdocument::getFont(char *name)
 
     return NULL;
 }
+// }}}
+
+// {{{ Registration
+JSObject *NativeJSdocument::registerObject(JSContext *cx)
+{
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS::RootedObject documentObj(cx, JS_DefineObject(cx, global,
+        NativeJSdocument::getJSObjectName(), &document_class , nullptr,
+        JSPROP_PERMANENT | JSPROP_ENUMERATE));
+
+    NidiumJS *njs = NidiumJS::GetObject(cx);
+
+    NativeJSdocument *jdoc = new NativeJSdocument(documentObj, cx);
+    JS_SetPrivate(documentObj, jdoc);
+
+    /* We have to root it since the user can replace the document object */
+    njs->rootObjectUntilShutdown(documentObj);
+
+    njs->jsobjects.set(NativeJSdocument::getJSObjectName(), documentObj);
+
+    JS::RootedObject styleObj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+    jdoc->m_Stylesheet = styleObj;
+
+    JS::RootedValue objV(cx, JS::ObjectOrNullValue(jdoc->m_Stylesheet));
+
+    /* implicitly root m_Stylesheet */
+    JS_SetReservedSlot(documentObj, 0, objV);
+
+    JS_SetProperty(cx, documentObj, "stylesheet", objV);
+    JS_DefineFunctions(cx, documentObj, document_funcs);
+    JS_DefineProperties(cx, documentObj, document_props);
+
+    return documentObj;
+}
+// }}}
 
 } // namespace Nidium
 } // namespace Binding

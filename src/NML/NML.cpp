@@ -17,6 +17,7 @@
 namespace Nidium {
 namespace NML {
 
+// {{{ NML
 /*@FIXME:: refractor the constructor, so that m_JSObjectLayout get's njs'javascript context*/
 NativeNML::NativeNML(ape_global *net) :
     m_Net(net), m_Stream(NULL), m_nAssets(0),
@@ -37,28 +38,6 @@ NativeNML::NativeNML(ape_global *net) :
     Nidium::Binding::NidiumJS::initNet(net);
 
     memset(&this->meta, 0, sizeof(this->meta));
-}
-
-NativeNML::~NativeNML()
-{
-    if (m_JSObjectLayout.get()) {
-        m_Njs->unrootObject(m_JSObjectLayout);
-        m_JSObjectLayout = nullptr;
-    }
-
-    if (m_Stream) {
-        delete m_Stream;
-    }
-    for (int i = 0; i < m_AssetsList.size; i++) {
-        delete m_AssetsList.list[i];
-    }
-    free(m_AssetsList.list);
-    if (this->meta.title) {
-        free(this->meta.title);
-    }
-
-    Nidium::Core::Path::cd(NULL);
-    Nidium::Core::Path::chroot(NULL);
 }
 
 void NativeNML::setNJS(Nidium::Binding::NidiumJS *js)
@@ -99,151 +78,6 @@ void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
     m_Stream->getContent();
 }
 
-void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
-{
-    NMLTag tag;
-    memset(&tag, 0, sizeof(NMLTag));
-    size_t len = 0;
-
-    const unsigned char *data = item->get(&len);
-
-    tag.tag = item->getTagName();
-    tag.id = item->getName();
-    tag.content.data = data;
-    tag.content.len = len;
-    tag.content.isBinary = false;
-
-    if (data != NULL) {
-
-        switch(item->m_FileType) {
-            case NativeAssets::Item::ITEM_SCRIPT:
-            {
-                m_Njs->LoadScriptContent((const char *)data, len, item->getName());
-
-                break;
-            }
-            case NativeAssets::Item::ITEM_NSS:
-            {
-                Nidium::Binding::NativeJSdocument *jdoc = Nidium::Binding::NativeJSdocument::GetObject(m_Njs->cx);
-                if (jdoc == NULL) {
-                    return;
-                }
-                jdoc->populateStyle(m_Njs->cx, (const char *)data,
-                    len, item->getName());
-                break;
-            }
-            default:
-                break;
-        }
-    }
-    /* TODO: allow the callback to change content ? */
-
-    Nidium::Binding::NativeJSwindow::GetObject(m_Njs)->assetReady(tag);
-}
-
-static void NativeNML_onAssetsItemRead(NativeAssets::Item *item, void *arg)
-{
-    class NativeNML *nml = (class NativeNML *)arg;
-
-    nml->onAssetsItemReady(item);
-}
-
-void NativeNML::onAssetsBlockReady(NativeAssets *asset)
-{
-    m_nAssets--;
-
-    if (m_nAssets == 0) {
-        JS::RootedObject layoutObj(m_Njs->cx, m_JSObjectLayout);
-        Nidium::Binding::NativeJSwindow::GetObject(m_Njs)->onReady(layoutObj);
-    }
-}
-
-static void NativeNML_onAssetsReady(NativeAssets *assets, void *arg)
-{
-    class NativeNML *nml = (class NativeNML *)arg;
-
-    nml->onAssetsBlockReady(assets);
-}
-
-void NativeNML::addAsset(NativeAssets *asset)
-{
-    m_nAssets++;
-    if (m_AssetsList.size == m_AssetsList.allocated) {
-        m_AssetsList.allocated *= 2;
-        m_AssetsList.list = (NativeAssets **)realloc(m_AssetsList.list,
-            sizeof(NativeAssets *) * m_AssetsList.allocated);
-    }
-
-    m_AssetsList.list[m_AssetsList.size] = asset;
-
-    m_AssetsList.size++;
-}
-
-NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
-{
-    using namespace rapidxml;
-
-    for (xml_node<> *child = node.first_node(); child != NULL;
-        child = child->next_sibling())
-    {
-        if (strncasecmp(child->name(), "title", 5) == 0) {
-            if (this->meta.title)
-                free(this->meta.title);
-
-            this->meta.title = (char *)malloc(sizeof(char) *
-                (child->value_size() + 1));
-
-            memcpy(this->meta.title, child->value(), child->value_size());
-            this->meta.title[child->value_size()] = '\0';
-
-        } else if (strncasecmp(child->name(), "viewport", 8) == 0) {
-            char *pos;
-            if ((pos = (char *)memchr(child->value(), 'x',
-                child->value_size())) == NULL) {
-
-                return NIDIUM_XML_ERR_VIEWPORT_SIZE;
-            }
-            *pos = '\0';
-            int width = atoi(child->value());
-            if (width < 1 || width > XML_VP_MAX_WIDTH) {
-                return NIDIUM_XML_ERR_VIEWPORT_SIZE;
-            }
-            this->meta.size.width = width;
-            *(char *)(child->value()+child->value_size()) = '\0';
-
-            int height = atoi(pos+1);
-
-            if (height < 0 || height > XML_VP_MAX_HEIGHT) {
-                return NIDIUM_XML_ERR_VIEWPORT_SIZE;
-            }
-            this->meta.size.height = height;
-        } else if (strncasecmp(child->name(), "identifier", 10) == 0) {
-            if (child->value_size() > 128) {
-                return NIDIUM_XML_ERR_IDENTIFIER_TOOLONG;
-            }
-            if (this->meta.identifier)
-                free(this->meta.identifier);
-
-            this->meta.identifier = (char *)malloc(sizeof(char) *
-                (child->value_size() + 1));
-
-            memcpy(this->meta.identifier, child->value(), child->value_size());
-            this->meta.identifier[child->value_size()] = '\0';
-        }
-    }
-
-    if (this->getMetaWidth() == 0) {
-        this->meta.size.width = XML_VP_DEFAULT_WIDTH;
-    }
-    if (this->getMetaHeight() == 0) {
-        this->meta.size.height = XML_VP_DEFAULT_HEIGHT;
-    }
-
-    this->meta.loaded = true;
-
-    return NIDIUM_XML_OK;
-}
-
 void NativeNML::loadDefaultItems(NativeAssets *assets)
 {
     if (m_DefaultItemsLoaded) {
@@ -265,64 +99,6 @@ void NativeNML::loadDefaultItems(NativeAssets *assets)
         NativeAssets::Item::ITEM_SCRIPT, m_Net);
 
     assets->addToPendingList(falcon);
-}
-
-NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
-{
-
-    if (!this->meta.loaded) return NIDIUM_XML_ERR_META_MISSING;
-
-    using namespace rapidxml;
-
-    NativeAssets *assets = new NativeAssets(NativeNML_onAssetsItemRead,
-        NativeNML_onAssetsReady, this);
-
-    this->addAsset(assets);
-    this->loadDefaultItems(assets);
-
-    for (xml_node<> *child = node.first_node(); child != NULL;
-        child = child->next_sibling())
-    {
-        xml_attribute<> *src = NULL;
-        NativeAssets::Item *item = NULL;
-
-        if ((src = child->first_attribute("src"))) {
-            item = new NativeAssets::Item(src->value(),
-                NativeAssets::Item::ITEM_UNKNOWN, m_Net);
-
-            /* Name could be automatically changed afterward */
-            item->setName(src->value());
-
-            assets->addToPendingList(item);
-        } else {
-            item = new NativeAssets::Item(NULL, NativeAssets::Item::ITEM_UNKNOWN, m_Net);
-            item->setName("inline"); /* TODO: NML name */
-            assets->addToPendingList(item);
-            item->setContent(child->value(), child->value_size(), true);
-        }
-
-        item->setTagName(child->name());
-
-        if (!strncasecmp(child->name(), CONST_STR_LEN("script"))) {
-            item->m_FileType = NativeAssets::Item::ITEM_SCRIPT;
-        } else if (!strncasecmp(child->name(), CONST_STR_LEN("style"))) {
-            item->m_FileType = NativeAssets::Item::ITEM_NSS;
-        }
-        //printf("Node : %s\n", child->name());
-    }
-
-    assets->endListUpdate(m_Net);
-
-    return NIDIUM_XML_OK;
-}
-
-NativeNML::nidium_xml_ret_t NativeNML::loadLayout(rapidxml::xml_node<> &node)
-{
-    if (!this->meta.loaded) return NIDIUM_XML_ERR_META_MISSING;
-
-    m_Layout = node.document()->clone_node(&node);
-
-    return NIDIUM_XML_OK;
 }
 
 bool NativeNML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
@@ -551,6 +327,235 @@ void NativeNML::onGetContent(const char *data, size_t len)
     if (needRelease) {
         free(data_nullterminated);
     }
+}
+
+NativeNML::~NativeNML()
+{
+    if (m_JSObjectLayout.get()) {
+        m_Njs->unrootObject(m_JSObjectLayout);
+        m_JSObjectLayout = nullptr;
+    }
+
+    if (m_Stream) {
+        delete m_Stream;
+    }
+    for (int i = 0; i < m_AssetsList.size; i++) {
+        delete m_AssetsList.list[i];
+    }
+    free(m_AssetsList.list);
+    if (this->meta.title) {
+        free(this->meta.title);
+    }
+
+    Nidium::Core::Path::cd(NULL);
+    Nidium::Core::Path::chroot(NULL);
+}
+// }}}
+
+// {{{ Assets
+void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
+{
+    NMLTag tag;
+    memset(&tag, 0, sizeof(NMLTag));
+    size_t len = 0;
+
+    const unsigned char *data = item->get(&len);
+
+    tag.tag = item->getTagName();
+    tag.id = item->getName();
+    tag.content.data = data;
+    tag.content.len = len;
+    tag.content.isBinary = false;
+
+    if (data != NULL) {
+
+        switch(item->m_FileType) {
+            case NativeAssets::Item::ITEM_SCRIPT:
+            {
+                m_Njs->LoadScriptContent((const char *)data, len, item->getName());
+
+                break;
+            }
+            case NativeAssets::Item::ITEM_NSS:
+            {
+                Nidium::Binding::NativeJSdocument *jdoc = Nidium::Binding::NativeJSdocument::GetObject(m_Njs->cx);
+                if (jdoc == NULL) {
+                    return;
+                }
+                jdoc->populateStyle(m_Njs->cx, (const char *)data,
+                    len, item->getName());
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    /* TODO: allow the callback to change content ? */
+
+    Nidium::Binding::NativeJSwindow::GetObject(m_Njs)->assetReady(tag);
+}
+
+static void NativeNML_onAssetsItemRead(NativeAssets::Item *item, void *arg)
+{
+    class NativeNML *nml = (class NativeNML *)arg;
+
+    nml->onAssetsItemReady(item);
+}
+
+void NativeNML::onAssetsBlockReady(NativeAssets *asset)
+{
+    m_nAssets--;
+
+    if (m_nAssets == 0) {
+        JS::RootedObject layoutObj(m_Njs->cx, m_JSObjectLayout);
+        Nidium::Binding::NativeJSwindow::GetObject(m_Njs)->onReady(layoutObj);
+    }
+}
+
+static void NativeNML_onAssetsReady(NativeAssets *assets, void *arg)
+{
+    class NativeNML *nml = (class NativeNML *)arg;
+
+    nml->onAssetsBlockReady(assets);
+}
+
+void NativeNML::addAsset(NativeAssets *asset)
+{
+    m_nAssets++;
+    if (m_AssetsList.size == m_AssetsList.allocated) {
+        m_AssetsList.allocated *= 2;
+        m_AssetsList.list = (NativeAssets **)realloc(m_AssetsList.list,
+            sizeof(NativeAssets *) * m_AssetsList.allocated);
+    }
+
+    m_AssetsList.list[m_AssetsList.size] = asset;
+
+    m_AssetsList.size++;
+}
+// }}}
+
+/// {{{ xml
+NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
+{
+    using namespace rapidxml;
+
+    for (xml_node<> *child = node.first_node(); child != NULL;
+        child = child->next_sibling())
+    {
+        if (strncasecmp(child->name(), "title", 5) == 0) {
+            if (this->meta.title)
+                free(this->meta.title);
+
+            this->meta.title = (char *)malloc(sizeof(char) *
+                (child->value_size() + 1));
+
+            memcpy(this->meta.title, child->value(), child->value_size());
+            this->meta.title[child->value_size()] = '\0';
+
+        } else if (strncasecmp(child->name(), "viewport", 8) == 0) {
+            char *pos;
+            if ((pos = (char *)memchr(child->value(), 'x',
+                child->value_size())) == NULL) {
+
+                return NIDIUM_XML_ERR_VIEWPORT_SIZE;
+            }
+            *pos = '\0';
+            int width = atoi(child->value());
+            if (width < 1 || width > XML_VP_MAX_WIDTH) {
+                return NIDIUM_XML_ERR_VIEWPORT_SIZE;
+            }
+            this->meta.size.width = width;
+            *(char *)(child->value()+child->value_size()) = '\0';
+
+            int height = atoi(pos+1);
+
+            if (height < 0 || height > XML_VP_MAX_HEIGHT) {
+                return NIDIUM_XML_ERR_VIEWPORT_SIZE;
+            }
+            this->meta.size.height = height;
+        } else if (strncasecmp(child->name(), "identifier", 10) == 0) {
+            if (child->value_size() > 128) {
+                return NIDIUM_XML_ERR_IDENTIFIER_TOOLONG;
+            }
+            if (this->meta.identifier)
+                free(this->meta.identifier);
+
+            this->meta.identifier = (char *)malloc(sizeof(char) *
+                (child->value_size() + 1));
+
+            memcpy(this->meta.identifier, child->value(), child->value_size());
+            this->meta.identifier[child->value_size()] = '\0';
+        }
+    }
+
+    if (this->getMetaWidth() == 0) {
+        this->meta.size.width = XML_VP_DEFAULT_WIDTH;
+    }
+    if (this->getMetaHeight() == 0) {
+        this->meta.size.height = XML_VP_DEFAULT_HEIGHT;
+    }
+
+    this->meta.loaded = true;
+
+    return NIDIUM_XML_OK;
+}
+
+NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
+{
+
+    if (!this->meta.loaded) return NIDIUM_XML_ERR_META_MISSING;
+
+    using namespace rapidxml;
+
+    NativeAssets *assets = new NativeAssets(NativeNML_onAssetsItemRead,
+        NativeNML_onAssetsReady, this);
+
+    this->addAsset(assets);
+    this->loadDefaultItems(assets);
+
+    for (xml_node<> *child = node.first_node(); child != NULL;
+        child = child->next_sibling())
+    {
+        xml_attribute<> *src = NULL;
+        NativeAssets::Item *item = NULL;
+
+        if ((src = child->first_attribute("src"))) {
+            item = new NativeAssets::Item(src->value(),
+                NativeAssets::Item::ITEM_UNKNOWN, m_Net);
+
+            /* Name could be automatically changed afterward */
+            item->setName(src->value());
+
+            assets->addToPendingList(item);
+        } else {
+            item = new NativeAssets::Item(NULL, NativeAssets::Item::ITEM_UNKNOWN, m_Net);
+            item->setName("inline"); /* TODO: NML name */
+            assets->addToPendingList(item);
+            item->setContent(child->value(), child->value_size(), true);
+        }
+
+        item->setTagName(child->name());
+
+        if (!strncasecmp(child->name(), CONST_STR_LEN("script"))) {
+            item->m_FileType = NativeAssets::Item::ITEM_SCRIPT;
+        } else if (!strncasecmp(child->name(), CONST_STR_LEN("style"))) {
+            item->m_FileType = NativeAssets::Item::ITEM_NSS;
+        }
+        //printf("Node : %s\n", child->name());
+    }
+
+    assets->endListUpdate(m_Net);
+
+    return NIDIUM_XML_OK;
+}
+
+NativeNML::nidium_xml_ret_t NativeNML::loadLayout(rapidxml::xml_node<> &node)
+{
+    if (!this->meta.loaded) return NIDIUM_XML_ERR_META_MISSING;
+
+    m_Layout = node.document()->clone_node(&node);
+
+    return NIDIUM_XML_OK;
 }
 
 } // namespace NML

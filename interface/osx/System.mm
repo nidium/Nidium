@@ -153,3 +153,4 @@ void NativeSystem::sendNotification(const char *title, const char *content, bool
 
     [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
 }
+

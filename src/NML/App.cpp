@@ -18,6 +18,90 @@ namespace NML {
 
 #define NATIVE_MANIFEST "manifest.json"
 
+// {{{ NativeExtractor
+struct NativeExtractor_s
+{
+    NativeApp *app;
+    uint64_t curIndex;
+    const char *fName;
+    char *fDir;
+    void (*done)(void *, const char *m_Path);
+    void *closure;
+    struct {
+        size_t len;
+        size_t offset;
+        FILE *fp;
+    } data;
+};
+
+static bool NativeExtractor(const char * buf,
+    int len, size_t offset, size_t total, void *user)
+{
+    struct NativeExtractor_s *arg = (struct NativeExtractor_s *)user;
+
+    /* First call (open the file) */
+    if (arg->data.offset == 0) {
+
+        char *fpath = (char *)malloc(sizeof(char) *
+                        (strlen(arg->fDir) + strlen(arg->fName) + 1));
+
+        sprintf(fpath, "%s%s", arg->fDir, arg->fName);
+
+        if ((arg->data.fp = fopen(fpath, "w")) == NULL) {
+            free(fpath);
+            return false;
+        }
+
+        free(fpath);
+    }
+
+    if (fwrite(buf, 1, len, arg->data.fp) != len) {
+        /* TODO: handle error */
+    }
+    arg->data.offset += len;
+
+    /* File extracting finished */
+    if (offset == total) {
+        if (arg->data.fp) {
+            fclose(arg->data.fp);
+        }
+
+        if (arg->curIndex < (arg->app->m_NumFiles-1)) {
+            arg->data.offset = 0;
+            arg->data.fp = NULL;
+
+            /* skip directories */
+            while (++arg->curIndex) {
+                arg->fName = zip_get_name(arg->app->m_fZip,
+                    arg->curIndex, ZIP_FL_UNCHANGED);
+
+                if (arg->fName[strlen(arg->fName)-1] != '/') {
+                    break;
+                }
+            }
+
+            /* Extract next file */
+            arg->data.len = arg->app->extractFile(arg->fName,
+                                NativeExtractor, arg);
+
+            return true;
+        }
+
+        if (arg->done != NULL) {
+            arg->done(arg->closure, arg->fDir);
+        }
+        /* Complete extracting finished */
+        free(arg->fDir);
+        delete arg;
+
+        return false;
+    }
+
+    return true;
+}
+// }}}
+
+// {{{ NativeApp
 NativeApp::NativeApp(const char *path) :
     m_Messages(NULL), m_fZip(NULL), m_NumFiles(0), m_WorkerIsRunning(false), m_Timer(NULL), m_Net(NULL)
 {
@@ -169,87 +253,6 @@ int NativeApp::open()
     }
 
     return this->loadManifest();
-}
-
-struct NativeExtractor_s
-{
-    NativeApp *app;
-    uint64_t curIndex;
-    const char *fName;
-    char *fDir;
-    void (*done)(void *, const char *m_Path);
-    void *closure;
-    struct {
-        size_t len;
-        size_t offset;
-        FILE *fp;
-    } data;
-};
-
-static bool NativeExtractor(const char * buf,
-    int len, size_t offset, size_t total, void *user)
-{
-    struct NativeExtractor_s *arg = (struct NativeExtractor_s *)user;
-
-    /* First call (open the file) */
-    if (arg->data.offset == 0) {
-
-        char *fpath = (char *)malloc(sizeof(char) *
-                        (strlen(arg->fDir) + strlen(arg->fName) + 1));
-
-        sprintf(fpath, "%s%s", arg->fDir, arg->fName);
-
-        if ((arg->data.fp = fopen(fpath, "w")) == NULL) {
-            free(fpath);
-            return false;
-        }
-
-        free(fpath);
-    }
-
-    if (fwrite(buf, 1, len, arg->data.fp) != len) {
-        /* TODO: handle error */
-    }
-    arg->data.offset += len;
-
-    /* File extracting finished */
-    if (offset == total) {
-        if (arg->data.fp) {
-            fclose(arg->data.fp);
-        }
-
-        if (arg->curIndex < (arg->app->m_NumFiles-1)) {
-            arg->data.offset = 0;
-            arg->data.fp = NULL;
-
-            /* skip directories */
-            while (++arg->curIndex) {
-                arg->fName = zip_get_name(arg->app->m_fZip,
-                    arg->curIndex, ZIP_FL_UNCHANGED);
-
-                if (arg->fName[strlen(arg->fName)-1] != '/') {
-                    break;
-                }
-            }
-
-            /* Extract next file */
-            arg->data.len = arg->app->extractFile(arg->fName,
-                                NativeExtractor, arg);
-
-            return true;
-        }
-
-        if (arg->done != NULL) {
-            arg->done(arg->closure, arg->fDir);
-        }
-        /* Complete extracting finished */
-        free(arg->fDir);
-        delete arg;
-
-        return false;
-    }
-
-    return true;
 }
 
 int NativeApp::extractApp(const char *path,
@@ -462,6 +465,7 @@ NativeApp::~NativeApp()
 
     free(m_Path);
 }
+// }}}
 
 } // namespace NML
 } // namespace Nidium

@@ -22,6 +22,7 @@ extern "C" {
 namespace Nidium {
 namespace AV {
 
+// {{{ Functions
 // Next power of 2
 // Taken from http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
 static uint32_t upperPow2(uint32_t num)
@@ -37,7 +38,9 @@ static uint32_t upperPow2(uint32_t num)
 
     return n;
 }
+// }}}
 
+// {{{ NativeAudio
 NativeAudio::NativeAudio(ape_global *n, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate)
     : m_Net(n), m_SourcesCount(0), m_PlaybackStartTime(0), m_PlaybackConsumedFrame(0),
       m_Output(NULL), m_InputStream(NULL), m_OutputStream(NULL),
@@ -188,7 +191,9 @@ void *NativeAudio::queueThread(void *args)
 
     return NULL;
 }
+// }}}
 
+// {{{ Messages
 void NativeAudio::readMessages()
 {
     this->readMessages(false);
@@ -228,7 +233,7 @@ void NativeAudio::readMessages(bool flush)
     }
 #undef MAX_MSG_IN_ROW
 }
-
+// }}}
 
 void NativeAudio::processQueue()
 {

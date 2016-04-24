@@ -48,6 +48,7 @@ namespace Interface {
 
 uint32_t ttfps = 0;
 
+// {{{ Functions
 #if 0
 static Window *NativeX11Window(SDL_Window *m_Win)
 {
@@ -301,7 +302,9 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     ui->m_Nml = new Nidium::NML::NativeNML(ui->m_Gnet);
     ui->m_Nml->loadFile("./index.nml", NativeX11UIInterface_onNMLLoaded, ui);
 }
+// }}}
 
+// {{{ NativeX11UIinterface
 NativeX11UIInterface::NativeX11UIInterface()
 {
     this->m_Width = 0;
@@ -601,40 +604,6 @@ void NativeX11UIInterface::runLoop()
     APE_loop_run(m_Gnet);
 }
 
-NativeUIX11Console::NativeUIX11Console ()
-{
-}
-
-void NativeUIX11Console::log(const char *str)
-{
-    if (strcmp("\n", str) == 0) {
-        fprintf(stdout, "\n");
-    } else {
-        fprintf(stdout, "[CONSOLE] %s", str);
-    }
-}
-
-void NativeUIX11Console::show()
-{
-}
-
-void NativeUIX11Console::hide()
-{
-}
-
-bool NativeUIX11Console::hidden()
-{
-    return true;
-}
-
-void NativeUIX11Console::clear()
-{
-}
-
-void NativeUIX11Console::flush()
-{
-}
-
 void NativeX11UIInterface::setClipboardText(const char *text)
 {
     SDL_SetClipboardText(text);
@@ -643,10 +612,6 @@ void NativeX11UIInterface::setClipboardText(const char *text)
 char *NativeX11UIInterface::getClipboardText()
 {
     return SDL_GetClipboardText();
-}
-
-NativeUIX11Console::~NativeUIX11Console()
-{
 }
 
 void NativeX11UIInterface::restartApplication(const char *path)
@@ -775,6 +740,49 @@ void NativeX11UIInterface::vlog(const char *format, va_list ap)
     this->log(buff);
 
     free(buff);
+}
+
+
+// }}}
+
+// {{{ NativeUIX11Console
+NativeUIX11Console::NativeUIX11Console ()
+{
+}
+
+void NativeUIX11Console::log(const char *str)
+{
+    if (strcmp("\n", str) == 0) {
+        fprintf(stdout, "\n");
+    } else {
+        fprintf(stdout, "[CONSOLE] %s", str);
+    }
+}
+
+void NativeUIX11Console::show()
+{
+}
+
+void NativeUIX11Console::hide()
+{
+}
+
+bool NativeUIX11Console::hidden()
+{
+    return true;
+}
+
+void NativeUIX11Console::clear()
+{
+}
+
+void NativeUIX11Console::flush()
+{
+}
+// }}}
+
+NativeUIX11Console::~NativeUIX11Console()
+{
 }
 
 } // namespace Nidium

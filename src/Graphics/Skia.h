@@ -28,6 +28,7 @@ typedef uint32_t SkPMColor;
 typedef uint32_t SkColor;
 typedef unsigned U8CPU;
 
+// {{{ _NativeShadow
 typedef struct _NativeShadow
 {
     double x;
@@ -37,7 +38,9 @@ typedef struct _NativeShadow
     SkColor color;
 
 } NativeShadow_t;
+// }}
 
+// {{{ _NativeLine and Baseline
 struct _NativeLine
 {
     const char *line;
@@ -53,7 +56,9 @@ enum _NativeBaseline
     BASELINE_IDEOGRAPHIC,
     BASELINE_BOTTOM
 };
+// }}}
 
+// {{{ _nativeState
 struct _nativeState {
     SkPaint *m_Paint;
     SkPaint *m_PaintStroke;
@@ -61,7 +66,9 @@ struct _nativeState {
 
     struct _nativeState *next;
 };
+// }}}
 
+// {{{ NativeSkia
 class NativeSkia
 {
     private:
@@ -240,6 +247,7 @@ class NativeSkia
         }
 #endif
 };
+// }}}
 
 } // namespace Graphics
 } // namespace Nidium

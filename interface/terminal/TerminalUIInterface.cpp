@@ -21,6 +21,7 @@ static int NativeProcessUI(void *arg)
     return 16;
 }
 
+// {{{ NativeTerminalUIInterface
 bool NativeTerminalUIInterface::runApplication(const char *path)
 {
     this->m_Console = new NativeUITerminalConsole();
@@ -78,7 +79,9 @@ void NativeTerminalUIInterface::runLoop()
 
     APE_loop_run(m_Gnet);
 }
+// }}}
 
+// {{{ NativeUITerminalConsole
 NativeUITerminalConsole::NativeUITerminalConsole ()
     : m_IsHidden(false), m_NeedFlush(false)
 {
@@ -117,6 +120,7 @@ void NativeUITerminalConsole::flush()
 NativeUITerminalConsole::~NativeUITerminalConsole()
 {
 }
+// }}}
 
 } // namespace Nidium
 } // namespace Interface

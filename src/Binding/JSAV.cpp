@@ -24,6 +24,8 @@ extern "C" {
 namespace Nidium {
 namespace Binding {
 
+// {{{ Preamble
+
 extern JSClass Canvas_class;
 
 NativeJSAudio *NativeJSAudio::m_Instance = NULL;
@@ -301,7 +303,9 @@ static JSPropertySpec Video_props[] = {
 
     JS_PS_END
 };
+// }}}
 
+// {{{ Implementation
 static int FFT(int dir, int nn, double *x, double *y)
 {
    long m, i, i1, j, k, i2, l, l1, l2;
@@ -2631,7 +2635,9 @@ void NativeJSAudioNode::seekCallback(AV::NativeAudioCustomSource *node, double s
     JS::RootedValue rval(jnode->m_Audio->m_JsTcx);
     fn->call(*jnode->m_NodeObj, params, &rval);
 }
+// }}}
 
+// {{{ Registration
 void NativeJSAudioNode::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
@@ -2653,6 +2659,7 @@ void NativeJSAudio::registerObject(JSContext *cx)
 }
 
 NATIVE_OBJECT_EXPOSE(Video);
+// }}}
 
 } // namespace Nidium
 } // namespace Binding

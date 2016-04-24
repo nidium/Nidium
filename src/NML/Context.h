@@ -38,13 +38,13 @@ namespace NML {
 
 class NativeNML;
 
-
 struct NativeJobQueue {
     void (*job)(void *arg);
     struct NativeJobQueue *next;
     void *arg;
 };
 
+// {{ NativeInputEvent
 static const char * NativeInputEvent_Names[] = {
     "mousemove",
     "mousedown",
@@ -122,9 +122,11 @@ public:
 private:
     Type m_Type;
 };
+// }}}
 
 struct GrGLInterface;
 
+// {{{ NativeContext
 class NativeContext : public Nidium::Core::Messages
 {
     public:
@@ -315,6 +317,7 @@ class NativeContext : public Nidium::Core::Messages
     static JSObject *readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
                                            uint32_t tag, uint32_t data, void *closure);
 };
+// }}}
 
 } // namespace NML
 } // namespace Nidium

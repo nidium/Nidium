@@ -33,6 +33,7 @@ namespace AV {
 
 typedef void (*VideoCallback)(uint8_t *data, void *custom);
 
+// {{{ NativeVideo
 class NativeVideo : public NativeAVSource
 {
     friend class NativeVideoAudioSource;
@@ -193,7 +194,9 @@ class NativeVideo : public NativeAVSource
         void unlockDecodeThread();
         void closeFFMpeg();
 };
+// }}}
 
+// {{{ NativeVideoAudioSource
 class NativeVideoAudioSource: public NativeAudioSource
 {
   public:
@@ -220,6 +223,7 @@ class NativeVideoAudioSource: public NativeAudioSource
       NativeVideo *m_Video;
       NativeVideo::Packet *m_FreePacket;
 };
+// }}}
 
 } // namespace AV
 } // namespace Nidium

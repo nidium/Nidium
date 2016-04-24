@@ -34,19 +34,24 @@ class NativeAudioNode;
 enum TypeIO {INPUT, OUTPUT};
 enum ArgType {INT, DOUBLE};
 
+// {{{ NodeIO
 struct NodeIO {
     NativeAudioNode *node;
     bool feedback;
     float *frame;
     NodeIO(NativeAudioNode *node, float *frame) : node(node), feedback(false), frame(frame) {};
 };
+// }}}
 
+// {{{ Event
 struct NodeEvent {
     float **data;
     unsigned long size;
     void *custom;
 };
+// }}}
 
+// {{{ NodeLink
 struct NodeLink {
     int count;
     int channel;
@@ -63,12 +68,14 @@ struct NodeLink {
         }
     };
 };
+// }}}
 
 // TODO : Cleanup callbacks
 typedef void (*NodeCallback)(const struct NodeEvent *ev); // Simple on thread callback
 typedef void (*ArgCallback)(NativeAudioNode *m_Node, int m_Id, void *m_Val, int m_Size); // Callback for node arguments
 typedef void (*NodeMessageCallback)(NativeAudioNode *m_Node, void *m_Custom); // Message posting to thread TODO : Normalize m_Args
 
+// {{{ NativeAudioNode
 class NativeAudioNode
 {
     public :
@@ -163,7 +170,9 @@ class NativeAudioNode
             return NULL;
         }
 };
+// }}}
 
+// {{{ NativeAudioNodeTarget
 class NativeAudioNodeTarget : public NativeAudioNode
 {
     public :
@@ -171,7 +180,9 @@ class NativeAudioNodeTarget : public NativeAudioNode
 
         virtual bool process();
 };
+// }}}
 
+// {{{ NativeAudioNodeCustom
 class NativeAudioNodeCustom : public NativeAudioNode
 {
     public :
@@ -184,7 +195,9 @@ class NativeAudioNodeCustom : public NativeAudioNode
         NodeCallback m_Cbk;
         void * m_Custom;
 };
+// }}}
 
+// {{{ NativeAudioNodeStereoEnhance
 class NativeAudioNodeStereoEnhancer : public NativeAudioNode
 {
     public :
@@ -194,7 +207,9 @@ class NativeAudioNodeStereoEnhancer : public NativeAudioNode
 
         virtual bool process();
 };
+// }}}
 
+// {{{ NativeAudioNodeReverb
 class NativeAudioNodeReverb : public NativeAudioNode
 {
     public :
@@ -204,8 +219,10 @@ class NativeAudioNodeReverb : public NativeAudioNode
 
         virtual bool process();
 };
+// }}}
 
 #if 0
+// {{{ NativeAudioNodeMixer
 class NativeAudioNodeMixer : public NativeAudioNode
 {
     public :
@@ -247,8 +264,10 @@ class NativeAudioNodeMixer : public NativeAudioNode
             return true;
         }
 };
+// }}}
 #endif
 
+// {{{ NativeAudioSource
 class NativeAudioSource: public NativeAudioNode, public NativeAVSource
 {
     public:
@@ -326,7 +345,9 @@ class NativeAudioSource: public NativeAudioNode, public NativeAVSource
 
         bool m_Buffering;
 };
+// }}}
 
+// {{{ NativeAudioCustomSource
 class NativeAudioCustomSource : public NativeAudioNodeCustom, public NativeAVSourceEventInterface
 {
     public:
@@ -354,14 +375,18 @@ class NativeAudioCustomSource : public NativeAudioNodeCustom, public NativeAVSou
         bool process();
         bool isActive();
 };
+// }}}
 
+// {{{ NativeAudioProcessor
 class NativeAudioProcessor
 {
   public:
     virtual void process(float *in, int *i) = 0;
     virtual ~NativeAudioProcessor() = 0;
 };
+// }}}
 
+// {{{ NativeAudioNodeProcessor
 class NativeAudioNodeProcessor: public NativeAudioNode
 {
   public:
@@ -419,7 +444,9 @@ class NativeAudioNodeProcessor: public NativeAudioNode
   private:
     NativeAudioProcessor *m_Processor[NATIVE_AUDIONODE_CHANNEL_SIZE][NATIVE_AUDIONODE_CHANNEL_SIZE];
 };
+// }}}
 
+// {{{ NativeAudioNodeException
 class NativeAudioNodeException : public std::exception
 {
     public:
@@ -437,6 +464,7 @@ class NativeAudioNodeException : public std::exception
     private:
         const char *m_Err;
 };
+// }}}
 
 } // namespace AV
 } // namespace Nidium

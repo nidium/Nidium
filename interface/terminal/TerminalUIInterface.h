@@ -6,6 +6,7 @@
 namespace Nidium {
 namespace Interface {
 
+// NativeUITerminalConsole
 class NativeUITerminalConsole : public NativeUIInterface::NativeUIConsole
 {
     public:
@@ -21,9 +22,10 @@ class NativeUITerminalConsole : public NativeUIInterface::NativeUIConsole
 //        Window *m_Window;
         bool m_IsHidden;
         bool m_NeedFlush;
-
 };
+// }}}
 
+// {{{ NativeTerminalUIInterface
 class NativeTerminalUIInterface : public NativeUIInterface
 {
     public:
@@ -52,6 +54,7 @@ class NativeTerminalUIInterface : public NativeUIInterface
     private:
         NativeUITerminalConsole *m_Console;
 };
+// }}}
 
 } // namespace Nidium
 } // namespace Interface

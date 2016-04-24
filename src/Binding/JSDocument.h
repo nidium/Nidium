@@ -8,6 +8,7 @@ class SkTypeface;
 namespace Nidium {
 namespace Binding {
 
+// {{{ nativefont
 class nativefont
 {
   public:
@@ -23,8 +24,9 @@ class nativefont
 
     nativefont *m_Next;
 };
+// }}}
 
-
+// {{{ NativeJSdocument
 class NativeJSdocument : public JSExposer<NativeJSdocument>
 {
   public:
@@ -52,6 +54,7 @@ class NativeJSdocument : public JSExposer<NativeJSdocument>
 
     SkTypeface *getFont(char *name);
 };
+// }}}
 
 } // namespace Nidium
 } // namespace Binding

@@ -11,6 +11,29 @@
 namespace Nidium {
 namespace Graphics {
 
+
+/// {{{ Construct and init
+NativeShadowLooper::NativeShadowLooper(SkScalar radius, SkScalar dx, SkScalar dy,
+                                   SkColor color, uint32_t flags) {
+    this->init(SkBlurMask::ConvertRadiusToSigma(radius), dx, dy, color, flags);
+}
+
+NativeShadowLooper::NativeShadowLooper(SkColor color, SkScalar sigma,
+                                   SkScalar dx, SkScalar dy, uint32_t flags) {
+    this->init(sigma, dx, dy, color, flags);
+}
+
+NativeShadowLooper::NativeShadowLooper(SkReadBuffer& buffer) : INHERITED(buffer) {
+
+    m_fSigma = buffer.readScalar();
+    m_fDx = buffer.readScalar();
+    m_fDy = buffer.readScalar();
+    m_fBlurColor = buffer.readColor();
+    m_fBlurFlags = buffer.readUInt() & kAll_BlurFlag;
+
+    this->initEffects();
+}
+
 void NativeShadowLooper::init(SkScalar sigma, SkScalar dx, SkScalar dy,
                             SkColor color, uint32_t flags) {
     m_fSigma = sigma;
@@ -41,28 +64,9 @@ void NativeShadowLooper::initEffects()
 
     m_fColorFilter = NULL;
 }
+// }}}
 
-NativeShadowLooper::NativeShadowLooper(SkScalar radius, SkScalar dx, SkScalar dy,
-                                   SkColor color, uint32_t flags) {
-    this->init(SkBlurMask::ConvertRadiusToSigma(radius), dx, dy, color, flags);
-}
-
-NativeShadowLooper::NativeShadowLooper(SkColor color, SkScalar sigma,
-                                   SkScalar dx, SkScalar dy, uint32_t flags) {
-    this->init(sigma, dx, dy, color, flags);
-}
-
-NativeShadowLooper::NativeShadowLooper(SkReadBuffer& buffer) : INHERITED(buffer) {
-
-    m_fSigma = buffer.readScalar();
-    m_fDx = buffer.readScalar();
-    m_fDy = buffer.readScalar();
-    m_fBlurColor = buffer.readColor();
-    m_fBlurFlags = buffer.readUInt() & kAll_BlurFlag;
-
-    this->initEffects();
-}
-
+// {{{ Methods
 void NativeShadowLooper::flatten(SkWriteBuffer& buffer) const {
     this->INHERITED::flatten(buffer);
     buffer.writeScalar(m_fSigma);
@@ -70,11 +74,6 @@ void NativeShadowLooper::flatten(SkWriteBuffer& buffer) const {
     buffer.writeScalar(m_fDy);
     buffer.writeColor(m_fBlurColor);
     buffer.write32(m_fBlurFlags);
-}
-
-NativeShadowLooper::~NativeShadowLooper() {
-    SkSafeUnref(m_fBlur);
-    SkSafeUnref(m_fColorFilter);
 }
 
 bool NativeShadowLooper::asABlurShadow(BlurShadowRec* rec) const {
@@ -93,6 +92,39 @@ bool NativeShadowLooper::asABlurShadow(BlurShadowRec* rec) const {
     return true;
 }
 
+#if 1
+void NativeShadowLooper::toString(SkString* str) const {
+    str->append("SkBlurDrawLooper: ");
+
+    str->append("dx: ");
+    str->appendScalar(m_fDx);
+
+    str->append(" dy: ");
+    str->appendScalar(m_fDy);
+
+    str->append(" color: ");
+    str->appendHex(m_fBlurColor);
+
+    str->append(" flags: (");
+    if (kNone_BlurFlag == m_fBlurFlags) {
+        str->append("None");
+    } else {
+        bool needsSeparator = false;
+        SkAddFlagToString(str, SkToBool(kIgnoreTransform_BlurFlag & m_fBlurFlags), "IgnoreTransform",
+                          &needsSeparator);
+        SkAddFlagToString(str, SkToBool(kOverrideColor_BlurFlag & m_fBlurFlags), "OverrideColor",
+                          &needsSeparator);
+        SkAddFlagToString(str, SkToBool(kHighQuality_BlurFlag & m_fBlurFlags), "HighQuality",
+                          &needsSeparator);
+    }
+    str->append(")");
+
+    // TODO: add optional "fBlurFilter->toString(str);" when SkMaskFilter::toString is added
+    // alternatively we could cache the radius in SkBlurDrawLooper and just add it here
+}
+// }}}
+
+// {{{ Context
 NativeShadowLooper::Context* NativeShadowLooper::createContext(SkCanvas*, void* storage) const {
     return SkNEW_PLACEMENT_ARGS(storage, NativeShadowLooperContext, (this));
 }
@@ -138,37 +170,14 @@ bool NativeShadowLooper::NativeShadowLooperContext::next(SkCanvas* canvas, SkPai
             return false;
     }
 }
+// }}}
 
-#if 1
-void NativeShadowLooper::toString(SkString* str) const {
-    str->append("SkBlurDrawLooper: ");
-
-    str->append("dx: ");
-    str->appendScalar(m_fDx);
-
-    str->append(" dy: ");
-    str->appendScalar(m_fDy);
-
-    str->append(" color: ");
-    str->appendHex(m_fBlurColor);
-
-    str->append(" flags: (");
-    if (kNone_BlurFlag == m_fBlurFlags) {
-        str->append("None");
-    } else {
-        bool needsSeparator = false;
-        SkAddFlagToString(str, SkToBool(kIgnoreTransform_BlurFlag & m_fBlurFlags), "IgnoreTransform",
-                          &needsSeparator);
-        SkAddFlagToString(str, SkToBool(kOverrideColor_BlurFlag & m_fBlurFlags), "OverrideColor",
-                          &needsSeparator);
-        SkAddFlagToString(str, SkToBool(kHighQuality_BlurFlag & m_fBlurFlags), "HighQuality",
-                          &needsSeparator);
-    }
-    str->append(")");
-
-    // TODO: add optional "fBlurFilter->toString(str);" when SkMaskFilter::toString is added
-    // alternatively we could cache the radius in SkBlurDrawLooper and just add it here
+// {{{ Destruct
+NativeShadowLooper::~NativeShadowLooper() {
+    SkSafeUnref(m_fBlur);
+    SkSafeUnref(m_fColorFilter);
 }
+// }}}
 
 } // namespace Graphics
 } // namespace Nidium

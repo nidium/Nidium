@@ -11,6 +11,7 @@
 namespace Nidium {
 namespace Binding {
 
+// {{{ Preamble
 #define IMAGE_RESERVED_SLOT 0
 
 enum {
@@ -54,7 +55,9 @@ static JSFunctionSpec Image_funcs[] = {
     JS_FN("print", native_image_print, 0, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
+// }}}
 
+// {{{ Implementation
 static bool native_image_print(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     return true;
@@ -342,7 +345,9 @@ NativeJSImage::~NativeJSImage()
         delete m_Stream;
     }
 }
+// }}}
 
+// {{{ Registration
 void NativeJSImage::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
@@ -353,5 +358,6 @@ void NativeJSImage::registerObject(JSContext *cx)
 
 //NATIVE_OBJECT_EXPOSE(Image)
 
+// }}}
 } // namespace Nidium
 } // namespace Binding

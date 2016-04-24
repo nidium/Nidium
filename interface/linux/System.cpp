@@ -16,6 +16,7 @@
 namespace Nidium {
 namespace Interface {
 
+// {{{ Functions
 static void get_dpi(int *x, int *y)
 {
     double xres, yres;
@@ -52,8 +53,9 @@ static void get_dpi(int *x, int *y)
 
     XCloseDisplay (dpy);
 }
+// }}}
 
-
+// {{{ NativeSystem
 NativeSystem::NativeSystem() : m_SystemUIReady(false)
 {
     int x, y;
@@ -161,6 +163,7 @@ const char *NativeSystem::pwd()
 
     return dir;
 }
+// }}}
 
 } // namespace Nidium
 } // namespace Interface

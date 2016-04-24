@@ -19,6 +19,7 @@ namespace AV {
 
 pthread_mutex_t NativeAVSource::m_FfmpegLock = PTHREAD_MUTEX_INITIALIZER;
 
+// {{{ NativeAVBufferReader
 NativeAVBufferReader::NativeAVBufferReader(uint8_t *buffer, unsigned long bufferSize)
     : m_Buffer(buffer), m_BufferSize(bufferSize), m_Pos(0) {}
 
@@ -37,7 +38,6 @@ int NativeAVBufferReader::read(void *opaque, uint8_t *buffer, int size)
 
     return size;
 }
-
 
 int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
 {
@@ -68,8 +68,9 @@ int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
 
     return pos;
 }
+// }}}
 
-
+// {{{ NativeAVStreamReader
 #define STREAM_BUFFER_SIZE NATIVE_AVIO_BUFFER_SIZE*6
 NativeAVStreamReader::NativeAVStreamReader(const char *src,
         NativeAVStreamReadCallback readCallback, void *callbackPrivate, NativeAVSource *source, ape_global *net)
@@ -364,7 +365,9 @@ NativeAVStreamReader::~NativeAVStreamReader()
         NATIVE_PTHREAD_WAIT(&m_ThreadCond);
     }
 }
+// }}}
 
+// {{{ NativeAVSource
 NativeAVSource::NativeAVSource()
     : m_Opened(false), m_Eof(false), m_Container(NULL), m_Coro(NULL), m_MainCoro(NULL),
       m_Seeking(false), m_DoSemek(false), m_DoSeekTime(0.0f), m_SeekFlags(0),  m_Error(0),
@@ -431,6 +434,7 @@ void NativeAVSource::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 NativeAVSource::~NativeAVSource()
 {
 }
+// }}}
 
 } // namespace AV
 } // namespace Nidium

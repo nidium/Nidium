@@ -62,6 +62,7 @@ pthread_cond_signal(mutexRef);
 class NativeAudioTrack;
 class NativeAVSource;
 
+// {{{ NativeAVReader
 class NativeAVReader
 {
     public:
@@ -74,7 +75,9 @@ class NativeAVReader
         virtual void finish() = 0;
         virtual ~NativeAVReader() {};
 };
+// }}}
 
+// {{{ NativeAVBufferReader
 class NativeAVBufferReader : public NativeAVReader
 {
     public:
@@ -89,8 +92,11 @@ class NativeAVBufferReader : public NativeAVReader
         unsigned long m_BufferSize;
         unsigned long m_Pos;
 };
+// }}}
 
 typedef void (*NativeAVStreamReadCallback)(void *m_CallbackPrivate);
+
+// {{{ NativeAVStreamReader
 class NativeAVStreamReader : public NativeAVReader, public Nidium::Core::Messages
 {
     public:
@@ -130,8 +136,9 @@ class NativeAVStreamReader : public NativeAVReader, public Nidium::Core::Message
         int m_Error;
         bool m_HaveDataAvailable;
 };
+// }}}
 
-
+// {{{ NativeAudioParameters
 struct NativeAudioParameters {
     int  m_AskedBufferSize, m_BufferSize, m_Channels, m_SampleFmt, m_SampleRate, m_FramesPerBuffer;
     NativeAudioParameters(int askedBufferSize, int bufferSize, int channels,
@@ -142,8 +149,9 @@ struct NativeAudioParameters {
     {
     }
 };
+// }}}
 
-
+// {{{ Enums and texts
 // Shared messages enum
 enum {
     NATIVE_AUDIO_NODE_SET,
@@ -188,10 +196,12 @@ const char * const NativeAVErrorsStr[ERR_MAX] = {
     "Internal error",
     "Input/Output error"
 };
+// }}}
 
 // Used for event (play, pause, stop, error, buffered...)
 typedef void (*NativeAVSourceEventCallback)(const struct NativeAVSourceEvent*m_Ev);
 
+// {{{ NativeAVSourceEvent
 struct NativeAVSourceEvent {
     int m_Ev;
     Nidium::Core::Args m_Args;
@@ -202,7 +212,9 @@ struct NativeAVSourceEvent {
     {
     };
 };
+// }}}
 
+// {{{ NativeAVSourceEventInterface
 class NativeAVSourceEventInterface {
     public:
         void eventCallback(NativeAVSourceEventCallback cbk, void *custom) {
@@ -230,7 +242,9 @@ class NativeAVSourceEventInterface {
         NativeAVSourceEventCallback m_EventCbk;
         void *m_EventCbkCustom;
 };
+// }}}
 
+// {{{ NativeAVSource
 class NativeAVSource : public Nidium::Core::Messages, public NativeAVSourceEventInterface
 {
     public :
@@ -280,6 +294,7 @@ class NativeAVSource : public Nidium::Core::Messages, public NativeAVSourceEvent
 
         void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 };
+// }}}
 
 } // namespace AV
 } // namespace Nidium

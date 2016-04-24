@@ -18,6 +18,7 @@ namespace Nidium {
     }
 namespace Graphics {
 
+// {{{ Macro's
 /*
     Make the context pointed by IFACE current and make a GL call
     e.g. NATIVE_GL_CALL(this->context, Clear(0, 0, 0, 0));
@@ -64,8 +65,9 @@ namespace Graphics {
 #define NATIVE_GL_CALL_MAIN(X) NATIVE_GL_CALL((NATIVE_GL_MAIN_IFACE), X)
 
 #define NATIVE_GL_CALL_RET_MAIN(X, RET) NATIVE_GL_CALL_RET(NATIVE_GL_MAIN_IFACE, X, RET)
+// }}}
 
-
+// {{{ NativeGLContext
 class NativeGLContext
 {
     public:
@@ -161,6 +163,7 @@ class NativeGLContext
         Nidium::Interface::NativeUIInterface *m_UI;
         bool m_Wrapped;
 };
+// }}}
 
 } // namespace Graphics
 } // namespace Nidium

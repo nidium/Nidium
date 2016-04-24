@@ -6,6 +6,7 @@
 namespace Nidium {
 namespace Interface {
 
+// {{{ NativeUIX11Console
 class NativeUIX11Console : public NativeUIInterface::NativeUIConsole
 {
     public:
@@ -18,7 +19,9 @@ class NativeUIX11Console : public NativeUIInterface::NativeUIConsole
         void flush();
         bool hidden();
 };
+// }}}
 
+// {{{ NativeX11UIInterface
 class NativeX11UIInterface : public NativeUIInterface
 {
     public:
@@ -70,6 +73,7 @@ class NativeX11UIInterface : public NativeUIInterface
         bool createWindow(int width, int height);
         NativeUIX11Console *console;
 };
+// }}}
 
 } // namespace Nidium
 } // namespace Interface

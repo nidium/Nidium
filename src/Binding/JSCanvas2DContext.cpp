@@ -20,6 +20,7 @@
 namespace Nidium {
 namespace Binding {
 
+// {{{ Preamble
 #define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
 #define NSKIA_NATIVE_GETTER(obj) ((class Nidium::Graphics::NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->getSurface())
 #define NSKIA_NATIVE (CppObj->getSurface())
@@ -270,7 +271,9 @@ static JSFunctionSpec glprogram_funcs[] = {
     JS_FN("uniform4fv", native_canvas2dctxGLProgram_uniform4fv, 2, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
+// }}}
 
+// {{{ Implementation
 static bool native_canvas2dctx_stub(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -2477,7 +2480,9 @@ static bool native_Canvas2DContext_constructor(JSContext *cx,
     JS_ReportError(cx, "Illegal constructor");
     return false;
 }
+// }}}
 
+// {{{ Registration
 void NativeCanvas2DContext::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
@@ -2485,6 +2490,7 @@ void NativeCanvas2DContext::registerObject(JSContext *cx)
     native_Canvas2DContext_constructor, 0, canvas2dctx_props,
     canvas2dctx_funcs, nullptr, nullptr);
 }
+// }}}
 
 } // namespace Binding
 } // namespace Nidium
