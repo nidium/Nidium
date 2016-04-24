@@ -622,7 +622,7 @@ void NativeX11UIInterface::restartApplication(const char *path)
 
 bool NativeX11UIInterface::runApplication(const char *path)
 {
-    Nidium::Core::Messages::initReader(m_Gnet);
+    Nidium::Core::Messages::InitReader(m_Gnet);
 
     if (path != this->m_FilePath) {
         if (this->m_FilePath) {
@@ -681,7 +681,7 @@ void NativeX11UIInterface::stopApplication()
     if (this->m_NativeCtx) {
         delete this->m_NativeCtx;
         this->m_NativeCtx = NULL;
-        Nidium::Core::Messages::destroyReader();
+        Nidium::Core::Messages::DestroyReader();
     }
     this->m_Nml = NULL;
     glClearColor(1, 1, 1, 0);

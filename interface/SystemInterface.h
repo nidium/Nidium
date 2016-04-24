@@ -33,7 +33,7 @@ class NativeSystemInterface
         virtual void alert(const char *message, AlertType type = ALERT_INFO)=0;
         virtual const char *pwd()=0;
         virtual void sendNotification(const char *title, const char *content, bool sound = false) {};
-        static NativeSystemInterface* getInstance()
+        static NativeSystemInterface* GetInstance()
         {
             return NativeSystemInterface::_interface;
         }

@@ -265,7 +265,7 @@ void NativeJSwindow::assetReady(const Nidium::NML::NMLTag &tag)
     jevent[0].set(OBJECT_TO_JSVAL(event));
     JS::RootedString tagStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.tag));
     JS::RootedString idStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.id));
-    JS::RootedString dataStr(cx, JSUtils::newStringWithEncoding(cx,
+    JS::RootedString dataStr(cx, JSUtils::NewStringWithEncoding(cx,
         (const char *)tag.content.data, tag.content.len, "utf8"));
     EVENT_PROP("tag", tagStr);
     EVENT_PROP("id", idStr);
@@ -395,7 +395,7 @@ void NativeJSwindow::textInput(const char *data)
     JSAutoRequest ar(m_Cx);
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &textEvent_class, JS::NullPtr(), JS::NullPtr()));
-    JS::RootedString str(m_Cx, JSUtils::newStringWithEncoding(m_Cx, data, strlen(data), "utf8"));
+    JS::RootedString str(m_Cx, JSUtils::NewStringWithEncoding(m_Cx, data, strlen(data), "utf8"));
     EVENT_PROP("val", str);
 
     JS::AutoValueArray<1> jevent(m_Cx);
@@ -534,7 +534,7 @@ bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t n
     JS::RootedObject dragged(m_Cx, m_DraggedFiles);
 
     for (int i = 0; i < nfiles; i++) {
-        JS::RootedValue val(m_Cx, OBJECT_TO_JSVAL(JSFileIO::generateJSObject(m_Cx, files[i])));
+        JS::RootedValue val(m_Cx, OBJECT_TO_JSVAL(JSFileIO::GenerateJSObject(m_Cx, files[i])));
         JS_SetElement(m_Cx, dragged, i, val);
     }
 
@@ -674,7 +674,7 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
         case WINDOW_PROP_TITLE:
         {
             const char *title =  NUI->getWindowTitle();
-            JS::RootedString str(m_Cx, JSUtils::newStringWithEncoding(m_Cx, title,
+            JS::RootedString str(m_Cx, JSUtils::NewStringWithEncoding(m_Cx, title,
                 strlen(title), "utf8"));
             vp.setString(str);
         }
@@ -803,7 +803,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
             }
             JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString color(cx, vpStr);
-            uint32_t icolor = Graphics::NativeSkia::parseColor(color.ptr());
+            uint32_t icolor = Graphics::NativeSkia::ParseColor(color.ptr());
 
             NUI->setTitleBarRGBAColor(
                 (icolor & 0x00FF0000) >> 16,
@@ -943,7 +943,7 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
     struct _nativeopenfile *nof = (struct _nativeopenfile *)_nof;
     JS::RootedObject arr(nof->cx, JS_NewArrayObject(nof->cx, len));
     for (int i = 0; i < len; i++) {
-        JS::RootedValue val(nof->cx, OBJECT_TO_JSVAL(JSFileIO::generateJSObject(nof->cx, lst[i])));
+        JS::RootedValue val(nof->cx, OBJECT_TO_JSVAL(JSFileIO::GenerateJSObject(nof->cx, lst[i])));
         JS_SetElement(nof->cx, arr, i, val);
     }
 
@@ -983,7 +983,7 @@ static bool native_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Val
 
     JSAutoByteString curl(cx, url);
 
-    Nidium::Interface::NativeSystemInterface::getInstance()->openURLInBrowser(curl.ptr());
+    Nidium::Interface::NativeSystemInterface::GetInstance()->openURLInBrowser(curl.ptr());
 
     return true;
 }
@@ -998,7 +998,7 @@ static bool native_window_exec(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     JSAutoByteString curl(cx, url);
-    const char *ret = Nidium::Interface::NativeSystemInterface::getInstance()->execute(curl.ptr());
+    const char *ret = Nidium::Interface::NativeSystemInterface::GetInstance()->execute(curl.ptr());
 
     JS::RootedString retStr(cx, JS_NewStringCopyZ(cx, ret));
     args.rval().setString(retStr);
@@ -1138,7 +1138,7 @@ static bool native_window_notify(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString cbody;
     cbody.encodeUtf8(cx, body);
 
-    Nidium::Interface::NativeSystemInterface::getInstance()->sendNotification(ctitle.ptr(), cbody.ptr(), sound);
+    Nidium::Interface::NativeSystemInterface::GetInstance()->sendNotification(ctitle.ptr(), cbody.ptr(), sound);
 
     return true;
 }
@@ -1357,7 +1357,7 @@ void NativeJSwindow::initDataBase()
 
 void NativeJSwindow::createMainCanvas(int width, int height, JS::HandleObject docObj)
 {
-    JS::RootedObject canvas(m_Cx, NativeJSCanvas::generateJSObject(m_Cx, width, height, &m_Handler));
+    JS::RootedObject canvas(m_Cx, NativeJSCanvas::GenerateJSObject(m_Cx, width, height, &m_Handler));
     Nidium::NML::NativeContext::GetObject(m_Cx)->getRootHandler()->addChild(m_Handler);
     JS::RootedValue canval(m_Cx, OBJECT_TO_JSVAL(canvas));
     JS_DefineProperty(m_Cx, docObj, "canvas", canval, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
@@ -1459,7 +1459,7 @@ NativeJSwindow* NativeJSwindow::GetObject(NidiumJS *njs)
 // }}}
 
 // {{{ Registration
-NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
+NativeJSwindow *NativeJSwindow::RegisterObject(JSContext *cx, int width,
     int height, JS::HandleObject docObj)
 {
     JS::RootedObject globalObj(cx, JS::CurrentGlobalOrNull(cx));

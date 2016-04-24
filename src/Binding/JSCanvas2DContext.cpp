@@ -1908,7 +1908,7 @@ char *NativeCanvas2DContext::genModifiedFragmentShader(const char *data)
 
 uint32_t NativeCanvas2DContext::createProgram(const char *data)
 {
-    char *pdata = Nidium::Graphics::NativeCanvasContext::processShader(data, Nidium::Graphics::NativeCanvasContext::SHADER_FRAGMENT);
+    char *pdata = Nidium::Graphics::NativeCanvasContext::ProcessShader(data, Nidium::Graphics::NativeCanvasContext::SHADER_FRAGMENT);
 
     if (pdata == NULL) {
         return 0;
@@ -1916,9 +1916,9 @@ uint32_t NativeCanvas2DContext::createProgram(const char *data)
 
     char *nshader = this->genModifiedFragmentShader(pdata);
 
-    uint32_t fragment = Nidium::Graphics::NativeCanvasContext::compileShader(nshader, GL_FRAGMENT_SHADER);
+    uint32_t fragment = Nidium::Graphics::NativeCanvasContext::CompileShader(nshader, GL_FRAGMENT_SHADER);
     uint32_t coop = this->compileCoopFragmentShader();
-    uint32_t vertex = this->createPassThroughVertex();
+    uint32_t vertex = this->CreatePassThroughVertex();
 
     free(nshader);
 
@@ -1984,7 +1984,7 @@ uint32_t NativeCanvas2DContext::compileCoopFragmentShader()
         "gl_FragColor = gl_FragColor * u_opacity;"
         "}\n";
 
-    return this->compileShader(coop, GL_FRAGMENT_SHADER);
+    return this->CompileShader(coop, GL_FRAGMENT_SHADER);
 }
 
 #if 0
@@ -2344,10 +2344,10 @@ void NativeCanvas2DContext::setSize(int width, int height, bool redraw)
     SkBaseDevice *ndev = NULL;
     SkCanvas *ncanvas;
 
-    float ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
 
     if (m_Skia->m_NativeCanvasBindMode == Nidium::Graphics::NativeSkia::BIND_GL) {
-        if ((ncanvas = Nidium::Graphics::NativeSkia::createGLCanvas(width, height,
+        if ((ncanvas = Nidium::Graphics::NativeSkia::CreateGLCanvas(width, height,
             Nidium::Interface::__NativeUI->getNativeContext())) == NULL) {
             NLOG("[Error] Couldnt resize the canvas to %dx%d", width, height);
             return;
@@ -2483,7 +2483,7 @@ static bool native_Canvas2DContext_constructor(JSContext *cx,
 // }}}
 
 // {{{ Registration
-void NativeCanvas2DContext::registerObject(JSContext *cx)
+void NativeCanvas2DContext::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_InitClass(cx, global, JS::NullPtr(), &Canvas2DContext_class,

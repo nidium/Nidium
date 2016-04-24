@@ -242,7 +242,7 @@ SkColor makeRGBAFromHSLA(double hue, double saturation, double lightness, double
 }
 
 /* TODO: Only accept ints int rgb(a)() */
-uint32_t NativeSkia::parseColor(const char *str)
+uint32_t NativeSkia::ParseColor(const char *str)
 {
     SkColor color = SK_ColorBLACK;
     /* TODO: use strncasecmp */
@@ -362,7 +362,7 @@ int NativeSkia::bindOnScreen(int width, int height)
         return 0;
     }
 
-    float ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
 
 #if 0
     SkBaseDevice *dev = NativeSkia::m_GlContext
@@ -403,12 +403,12 @@ void glcb(const GrGLInterface*) {
     printf("Got a gl call\n");
 }
 
-SkCanvas *NativeSkia::createGLCanvas(int width, int height,
+SkCanvas *NativeSkia::CreateGLCanvas(int width, int height,
     Nidium::NML::NativeContext *nativectx)
 {
 
     if (!nativectx) {
-        NLOG("createGLCanvas() : invalid native context");
+        NLOG("CreateGLCanvas() : invalid native context");
         return NULL;
     }
 
@@ -433,7 +433,7 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height,
         }
 
     }
-    float ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
 
     GrBackendRenderTargetDesc desc;
     //GrGLRenderTarget *t = new GrGLRenderTarget();
@@ -476,7 +476,7 @@ int NativeSkia::bindGL(int width, int height, Nidium::NML::NativeContext *native
 {
     m_NativeCanvasBindMode = NativeSkia::BIND_GL;
 
-    if ((m_Canvas = NativeSkia::createGLCanvas(width, height, nativectx)) == NULL) {
+    if ((m_Canvas = NativeSkia::CreateGLCanvas(width, height, nativectx)) == NULL) {
         return 0;
     }
 
@@ -669,7 +669,7 @@ void NativeSkia::stroke()
     m_Canvas->resetMatrix();
 
     SkScalar lineWidth = PAINT_STROKE->getStrokeWidth();
-    float ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
 
     PAINT_STROKE->setStrokeWidth(SkFloatToScalar(ratio) * lineWidth);
 
@@ -1067,7 +1067,7 @@ void NativeSkia::transform(double scalex, double skewy, double skewx,
 
     float ratio = 1.0f;
     if (set) {
-        ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
+        ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
     }
 
     m.setScaleX(SkDoubleToScalar(scalex*ratio));
@@ -1450,7 +1450,7 @@ bool NativeSkia::setFontFile(const char *str)
     Nidium::Core::Path fontPath(str);
     Nidium::IO::Stream *stream;
 
-    if ((stream = fontPath.createStream(true)) == NULL) {
+    if ((stream = fontPath.CreateStream(true)) == NULL) {
         return false;
     }
 
@@ -1549,7 +1549,7 @@ void NativeSkia::setFillColor(NativeSkGradient *gradient)
 
 void NativeSkia::setFillColor(const char *str)
 {
-    SkColor color = parseColor(str);
+    SkColor color = ParseColor(str);
 
     SkShader *shader = PAINT->getShader();
 
@@ -1573,7 +1573,7 @@ void NativeSkia::setFillColor(uint32_t color)
 
 void NativeSkia::setStrokeColor(const char *str)
 {
-    SkColor color = parseColor(str);
+    SkColor color = ParseColor(str);
 
     SkShader *shader = PAINT_STROKE->getShader();
 
@@ -1632,7 +1632,7 @@ void NativeSkia::setShadowBlur(double blur)
 
 void NativeSkia::setShadowColor(const char *str)
 {
-    SkColor color = parseColor(str);
+    SkColor color = ParseColor(str);
 
     if (currentShadow.color == color) return;
     currentShadow.color = color;

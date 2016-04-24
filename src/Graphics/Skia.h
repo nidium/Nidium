@@ -118,7 +118,7 @@ class NativeSkia
         double breakText(const char *str, size_t len,
             struct _NativeLine lines[], double maxWidth, int *length = NULL);
         int bindOnScreen(int width, int height);
-        static SkCanvas *createGLCanvas(int width, int height,
+        static SkCanvas *CreateGLCanvas(int width, int height,
             Nidium::NML::NativeContext *nativectx);
         int bindGL(int width, int height, Nidium::NML::NativeContext *nativectx);
         void flush();
@@ -237,10 +237,10 @@ class NativeSkia
             double *top, double *bottom);
         void textAlign(const char *mode);
         void textBaseline(const char *mode);
-        static uint32_t parseColor(const char *str);
+        static uint32_t ParseColor(const char *str);
         static SkPMColor HSLToSKColor(U8CPU alpha, float hsl[3]);
 #if 0
-        static NativeSkia &getInstance() {
+        static NativeSkia &GetInstance() {
             static NativeSkia ret;
 
             return ret;

@@ -69,7 +69,7 @@ int NativeContext_LogClear()
 void NativeContext::initStats()
 {
     m_Stats.nframe = 0;
-    m_Stats.starttime = Nidium::Core::Utils::getTick();
+    m_Stats.starttime = Nidium::Core::Utils::GetTick();
     m_Stats.lastmeasuredtime = m_Stats.starttime;
     m_Stats.lastdifftime = 0;
     m_Stats.cumulframe = 0;
@@ -109,7 +109,7 @@ m_Debug2Handler(NULL),
     this->initShaderLang();
     this->initHandlers(width, height);
 
-    m_JS->setStructuredCloneAddition(NativeContext::writeStructuredCloneOp, NativeContext::readStructuredCloneOp);
+    m_JS->setStructuredCloneAddition(NativeContext::WriteStructuredCloneOp, NativeContext::ReadStructuredCloneOp);
     m_JS->setPrivate(this);
     m_JS->loadGlobalObjects();
     JS::RootedObject globalObj(m_JS->cx, JS::CurrentGlobalOrNull(m_JS->cx));
@@ -127,7 +127,7 @@ m_Debug2Handler(NULL),
     /*
         Set path for modules
     */
-    m_JS->setPath(Nidium::Core::Path::getPwd());
+    m_JS->setPath(Nidium::Core::Path::GetPwd());
 
     m_WSClient = NULL;
     m_WS = NULL;
@@ -144,41 +144,41 @@ void NativeContext::loadNativeObjects(int width, int height)
     JSContext *cx = m_JS->cx;
 
     /* CanvasRenderingContext2D object */
-    Nidium::Binding::NativeCanvas2DContext::registerObject(cx);
+    Nidium::Binding::NativeCanvas2DContext::RegisterObject(cx);
     /* Canvas() object */
-    Nidium::Binding::NativeJSCanvas::registerObject(cx);
+    Nidium::Binding::NativeJSCanvas::RegisterObject(cx);
     /* Image() object */
-    Nidium::Binding::NativeJSImage::registerObject(cx);
+    Nidium::Binding::NativeJSImage::RegisterObject(cx);
     /* Audio() object */
 #ifdef NATIVE_AUDIO_ENABLED
-    Nidium::Binding::NativeJSAudio::registerObject(cx);
-    Nidium::Binding::NativeJSAudioNode::registerObject(cx);
-    Nidium::Binding::NativeJSVideo::registerObject(cx);
+    Nidium::Binding::NativeJSAudio::RegisterObject(cx);
+    Nidium::Binding::NativeJSAudioNode::RegisterObject(cx);
+    Nidium::Binding::NativeJSVideo::RegisterObject(cx);
 #endif
     /* WebGL*() object */
 #ifdef NATIVE_WEBGL_ENABLED
-    Nidium::Binding::NativeJSWebGLRenderingContext::registerObject(cx);
-    Nidium::Binding::NativeJSWebGLBuffer::registerObject(cx);
-    Nidium::Binding::NativeJSWebGLFramebuffer::registerObject(cx);
-    Nidium::Binding::NativeJSWebGLProgram::registerObject(cx);
-    Nidium::Binding::NativeJSWebGLRenderbuffer::registerObject(cx);
-    Nidium::Binding::NativeJSWebGLShader::registerObject(cx);
-    Nidium::Binding::NativeJSWebGLTexture::registerObject(cx);
-    Nidium::Binding::NativeJSWebGLUniformLocation::registerObject(cx);
-    Nidium::Binding::NativeJSWebGLShaderPrecisionFormat::registerObject(cx);
+    Nidium::Binding::NativeJSWebGLRenderingContext::RegisterObject(cx);
+    Nidium::Binding::NativeJSWebGLBuffer::RegisterObject(cx);
+    Nidium::Binding::NativeJSWebGLFramebuffer::RegisterObject(cx);
+    Nidium::Binding::NativeJSWebGLProgram::RegisterObject(cx);
+    Nidium::Binding::NativeJSWebGLRenderbuffer::RegisterObject(cx);
+    Nidium::Binding::NativeJSWebGLShader::RegisterObject(cx);
+    Nidium::Binding::NativeJSWebGLTexture::RegisterObject(cx);
+    Nidium::Binding::NativeJSWebGLUniformLocation::RegisterObject(cx);
+    Nidium::Binding::NativeJSWebGLShaderPrecisionFormat::RegisterObject(cx);
 #endif
     /* Native() object */
-    Nidium::Binding::NativeJSNative::registerObject(cx);
+    Nidium::Binding::NativeJSNative::RegisterObject(cx);
     /* document() object */
-    JS::RootedObject docObj(cx, Nidium::Binding::NativeJSdocument::registerObject(cx));
+    JS::RootedObject docObj(cx, Nidium::Binding::NativeJSdocument::RegisterObject(cx));
     /* window() object */
-    m_JSWindow = Nidium::Binding::NativeJSwindow::registerObject(cx, width, height, docObj);
+    m_JSWindow = Nidium::Binding::NativeJSwindow::RegisterObject(cx, width, height, docObj);
 
-    Nidium::Binding::JSProcess::registerObject(cx, m_UI->m_Argv, m_UI->m_Argc, 0);
+    Nidium::Binding::JSProcess::RegisterObject(cx, m_UI->m_Argv, m_UI->m_Argc, 0);
 
 #if DEBUG
     createDebug2Canvas();
-    Nidium::Binding::JSDebug::registerObject(cx);
+    Nidium::Binding::JSDebug::RegisterObject(cx);
 #endif
 }
 
@@ -304,7 +304,7 @@ void NativeContext::postDraw()
 /* TODO, move out */
 void NativeContext::callFrame()
 {
-    uint64_t tmptime = Nidium::Core::Utils::getTick();
+    uint64_t tmptime = Nidium::Core::Utils::GetTick();
     m_Stats.nframe++;
 
     m_Stats.lastdifftime = tmptime - m_Stats.lastmeasuredtime;
@@ -605,7 +605,7 @@ void NativeContext::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     }
 }
 
-bool NativeContext::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+bool NativeContext::WriteStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
                                      JS::HandleObject obj, void *closure)
 {
 
@@ -648,7 +648,7 @@ bool NativeContext::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWrite
     return false;
 }
 
-JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
+JSObject *NativeContext::ReadStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
                                        uint32_t tag, uint32_t data, void *closure)
 {
     switch (tag) {

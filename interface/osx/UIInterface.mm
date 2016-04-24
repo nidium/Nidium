@@ -367,7 +367,7 @@ void NativeCocoaUIInterface::stopApplication()
     if (this->m_NativeCtx) {
         delete this->m_NativeCtx;
         this->m_NativeCtx = NULL;
-        Nidium::Core::Messages::destroyReader();
+        Nidium::Core::Messages::DestroyReader();
     }
 
     glClearColor(1, 1, 1, 1);
@@ -385,7 +385,7 @@ void NativeCocoaUIInterface::restartApplication(const char *path)
 
 bool NativeCocoaUIInterface::runJSWithoutNML(const char *path, int width, int height)
 {
-    Nidium::Core::Messages::initReader(m_Gnet);
+    Nidium::Core::Messages::InitReader(m_Gnet);
     if (path != this->m_FilePath) {
         if (this->m_FilePath) {
             free(this->m_FilePath);
@@ -403,12 +403,12 @@ bool NativeCocoaUIInterface::runJSWithoutNML(const char *path, int width, int he
 
     this->setWindowTitle("Nidium");
 
-    NativeJS::initNet(m_Gnet);
+    NativeJS::InitNet(m_Gnet);
 
     Nidium::Core::Path jspath(path);
 
-    Nidium::Core::Path::cd(jspath.dir());
-    Nidium::Core::Path::chroot(jspath.dir());
+    Nidium::Core::Path::CD(jspath.dir());
+    Nidium::Core::Path::Chroot(jspath.dir());
 
     m_NativeCtx->getNJS()->LoadScript(path);
 
@@ -417,7 +417,7 @@ bool NativeCocoaUIInterface::runJSWithoutNML(const char *path, int width, int he
 
 bool NativeCocoaUIInterface::runApplication(const char *path)
 {
-    Nidium::Core::Messages::initReader(m_Gnet);
+    Nidium::Core::Messages::InitReader(m_Gnet);
 
     if (path != this->m_FilePath) {
         if (this->m_FilePath) {

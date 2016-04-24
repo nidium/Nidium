@@ -16,7 +16,7 @@
 namespace Nidium {
 namespace Graphics {
 
-char *NativeCanvasContext::processShader(const char *content, shaderType type)
+char *NativeCanvasContext::ProcessShader(const char *content, shaderType type)
 {
     ShHandle compiler = NULL;
 
@@ -53,7 +53,7 @@ char *NativeCanvasContext::processShader(const char *content, shaderType type)
     return ocode;
 }
 
-uint32_t NativeCanvasContext::compileShader(const char *data, int type)
+uint32_t NativeCanvasContext::CompileShader(const char *data, int type)
 {
     GLuint shaderHandle = glCreateShader(type);
 
@@ -79,7 +79,7 @@ uint32_t NativeCanvasContext::compileShader(const char *data, int type)
     return shaderHandle;
 }
 
-Nidium::NML::NativeVertices *NativeCanvasContext::buildVerticesStripe(int resolution)
+Nidium::NML::NativeVertices *NativeCanvasContext::BuildVerticesStripe(int resolution)
 {
     int x = resolution;
     int y = resolution;
@@ -159,7 +159,7 @@ void NativeCanvasContext::resetGLContext()
     }
 }
 
-uint32_t NativeCanvasContext::createPassThroughVertex()
+uint32_t NativeCanvasContext::CreatePassThroughVertex()
 {
     /* PassThrough Vertex shader */
     const char *vertex_s = "attribute vec4 Position;\n"
@@ -172,12 +172,12 @@ uint32_t NativeCanvasContext::createPassThroughVertex()
     "    TexCoordOut = TexCoordIn;\n"
     "}";
 
-    uint32_t vertexshader = NativeCanvasContext::compileShader(vertex_s, GL_VERTEX_SHADER);
+    uint32_t vertexshader = NativeCanvasContext::CompileShader(vertex_s, GL_VERTEX_SHADER);
 
     return vertexshader;
 }
 
-uint32_t NativeCanvasContext::createPassThroughFragment()
+uint32_t NativeCanvasContext::CreatePassThroughFragment()
 {
     const char *fragment_s = "\n"
     "uniform sampler2D Texture;\n"
@@ -187,15 +187,15 @@ uint32_t NativeCanvasContext::createPassThroughFragment()
     "    gl_FragColor = texture2D(Texture, TexCoordOut.xy) * u_opacity;\n"
     "}";
 
-    uint32_t fragmentshader = NativeCanvasContext::compileShader(fragment_s, GL_FRAGMENT_SHADER);
+    uint32_t fragmentshader = NativeCanvasContext::CompileShader(fragment_s, GL_FRAGMENT_SHADER);
 
     return fragmentshader;
 }
 
-uint32_t NativeCanvasContext::createPassThroughProgram(NativeGLResources &resource)
+uint32_t NativeCanvasContext::CreatePassThroughProgram(NativeGLResources &resource)
 {
-    uint32_t vertexshader = NativeCanvasContext::createPassThroughVertex();
-    uint32_t fragmentshader = NativeCanvasContext::createPassThroughFragment();
+    uint32_t vertexshader = NativeCanvasContext::CreatePassThroughVertex();
+    uint32_t fragmentshader = NativeCanvasContext::CreatePassThroughFragment();
 
     if (vertexshader == 0 || fragmentshader == 0) {
         return 0;
@@ -329,7 +329,7 @@ void NativeCanvasContext::setupShader(float opacity, int width, int height,
     uint32_t program = this->getProgram();
     NATIVE_GL_CALL_MAIN(UseProgram(program));
 
-    float ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
 
     if (program > 0) {
         if (m_GLState->m_GLObjects.uniforms.u_opacity != -1) {
@@ -354,7 +354,7 @@ void NativeCanvasContext::preComposeOn(Nidium::Binding::NativeCanvas2DContext *l
     double zoom, const NativeRect *rclip)
 {
     bool revertScissor = false;
-    float ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
 
     NativeSkia *skia = layer->getSurface();
     SkISize layerSize = skia->getCanvas()->getDeviceSize();

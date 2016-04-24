@@ -308,7 +308,7 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
 
     JS::RootedObject style(cx, m_Stylesheet);
     JS::RootedObject jret(cx, ret.toObjectOrNull());
-    NidiumJS::copyProperties(cx, jret, &style);
+    NidiumJS::CopyProperties(cx, jret, &style);
 
     return true;
 }
@@ -317,7 +317,7 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
 bool NativeJSdocument::loadFont(const char *path, const char *name,
     int weight, nativefont::Style style)
 {
-    IO::Stream *stream = IO::Stream::create(path);
+    IO::Stream *stream = IO::Stream::Create(path);
     if (!stream) {
         return false;
     }
@@ -358,7 +358,7 @@ static bool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp
 {
     NIDIUM_JS_INIT_OPT();
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject thisobj(cx, NativeJSdocument::getJSGlobalObject(cx));
+    JS::RootedObject thisobj(cx, NativeJSdocument::GetJSGlobalObject(cx));
     NativeJSdocument *CppObj = static_cast<NativeJSdocument *>(JS_GetPrivate(thisobj));
 
     JS::RootedObject fontdef(cx);
@@ -417,11 +417,11 @@ SkTypeface *NativeJSdocument::getFont(char *name)
 // }}}
 
 // {{{ Registration
-JSObject *NativeJSdocument::registerObject(JSContext *cx)
+JSObject *NativeJSdocument::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject documentObj(cx, JS_DefineObject(cx, global,
-        NativeJSdocument::getJSObjectName(), &document_class , nullptr,
+        NativeJSdocument::GetJSObjectName(), &document_class , nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE));
 
     NidiumJS *njs = NidiumJS::GetObject(cx);
@@ -432,7 +432,7 @@ JSObject *NativeJSdocument::registerObject(JSContext *cx)
     /* We have to root it since the user can replace the document object */
     njs->rootObjectUntilShutdown(documentObj);
 
-    njs->jsobjects.set(NativeJSdocument::getJSObjectName(), documentObj);
+    njs->jsobjects.set(NativeJSdocument::GetJSObjectName(), documentObj);
 
     JS::RootedObject styleObj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
     jdoc->m_Stylesheet = styleObj;

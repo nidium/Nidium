@@ -34,19 +34,19 @@ void Native_Finalize(JSFreeOp *fop, JSObject *obj)
 // }}}
 
 // {{{ Registration
-void NativeJSNative::registerObject(JSContext *cx)
+void NativeJSNative::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject NativeObj(cx, JS_DefineObject(cx, global,
-        NativeJSNative::getJSObjectName(), &Native_class , nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
+        NativeJSNative::GetJSObjectName(), &Native_class , nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
     NativeJSNative *jnative = new NativeJSNative(NativeObj, cx);
     JS_DefineFunctions(cx, NativeObj, Native_funcs);
     JS_SetPrivate(NativeObj, jnative);
 
-    NidiumJS::GetObject(cx)->jsobjects.set(NativeJSNative::getJSObjectName(), NativeObj);
+    NidiumJS::GetObject(cx)->jsobjects.set(NativeJSNative::GetJSObjectName(), NativeObj);
 
-    //JS::RootedObject titleBar(cx, NativeJSCanvas::generateJSObject(cx, width, 35));
+    //JS::RootedObject titleBar(cx, NativeJSCanvas::GenerateJSObject(cx, width, 35));
     //((NativeCanvasHandler *)JS_GetPrivate(canvas))->translate(0, 35);
 
     /* Set the newly generated CanvasHandler as first child of rootHandler */

@@ -1522,7 +1522,7 @@ static void Canvas_Trace(JSTracer *trc, JSObject *obj)
     }
 }
 
-JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
+JSObject *NativeJSCanvas::GenerateJSObject(JSContext *cx, int width,
     int height, Nidium::Graphics::NativeCanvasHandler **out)
 {
     Nidium::Graphics::NativeCanvasHandler *handler;
@@ -1650,7 +1650,7 @@ void NativeJSCanvas::onMessage(const Core::SharedMessages::Message &msg)
                     break;
             }
             JS::RootedValue rval(cx, obj.jsval());
-            if (!this->fireJSEvent(Nidium::NML::NativeInputEvent::getName(msg.args[1].toInt()), &rval)) {
+            if (!this->fireJSEvent(Nidium::NML::NativeInputEvent::GetName(msg.args[1].toInt()), &rval)) {
                 break;
             }
 
@@ -1695,7 +1695,7 @@ NativeJSCanvas::~NativeJSCanvas()
 // }}}
 
 // {{{ Registration
-void NativeJSCanvas::registerObject(JSContext *cx)
+void NativeJSCanvas::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_InitClass(cx, global, JS::NullPtr(), &Canvas_class, native_Canvas_constructor, 2, canvas_props, canvas_funcs,

@@ -1062,7 +1062,7 @@ void NativeCanvasHandler::unrootHierarchy()
     #endif
 }
 
-void NativeCanvasHandler::_jobResize(void *arg)
+void NativeCanvasHandler::_JobResize(void *arg)
 {
     Nidium::Core::Args *args = (Nidium::Core::Args *)arg;
     NativeCanvasHandler *handler = static_cast<NativeCanvasHandler *>(args[0][0].toPtr());

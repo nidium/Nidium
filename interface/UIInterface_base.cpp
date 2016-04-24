@@ -23,17 +23,17 @@ NativeUIInterface::NativeUIInterface() :
     m_Hidden(false), m_FBO(0), m_FrameBuffer(NULL), m_Console(NULL),
     m_MainGLCtx(NULL), m_SystemMenu(this)
 {
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("file://",    Nidium::IO::FileStream,    false), true); // default
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("private://", Nidium::NML::NativePrivateStream, false));
+    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("file://",    Nidium::IO::FileStream,    false), true); // default
+    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("private://", Nidium::NML::NativePrivateStream, false));
 #if 1
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("system://",  Nidium::NML::NativeSystemStream,  false));
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("user://",    Nidium::NML::NativeUserStream,    false));
+    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("system://",  Nidium::NML::NativeSystemStream,  false));
+    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("user://",    Nidium::NML::NativeUserStream,    false));
 #endif
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("http://",    Nidium::Net::HTTPStream,    true));
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("https://",   Nidium::Net::HTTPStream,    true));
-    Nidium::Core::Path::registerScheme(SCHEME_DEFINE("nvfs://",    Nidium::IO::NFSStream,     false));
+    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("http://",    Nidium::Net::HTTPStream,    true));
+    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("https://",   Nidium::Net::HTTPStream,    true));
+    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("nvfs://",    Nidium::IO::NFSStream,     false));
 
-    Nidium::Core::TaskManager::createManager();
+    Nidium::Core::TaskManager::CreateManager();
 }
 
 bool NativeUIInterface::makeMainGLCurrent()

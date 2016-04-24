@@ -104,7 +104,7 @@ public:
         return m_depthAffectedCanvas;
     }
 
-    static const char *getName(int type) {
+    static const char *GetName(int type) {
         return NativeInputEvent_Names[type];
     }
 
@@ -311,10 +311,10 @@ class NativeContext : public Nidium::Core::Messages
     void execPendingCanvasChanges();
     void triggerEvents();
 
-    static bool writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+    static bool WriteStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
                                          JS::HandleObject obj, void *closure);
 
-    static JSObject *readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
+    static JSObject *ReadStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
                                            uint32_t tag, uint32_t data, void *closure);
 };
 // }}}

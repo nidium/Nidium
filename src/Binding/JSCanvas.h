@@ -18,8 +18,8 @@ class NativeJSCanvas: public JSExposer<NativeJSCanvas>, public Core::Messages
 public:
     virtual void onMessage(const Core::SharedMessages::Message &msg);
     virtual void onMessageLost(const Core::SharedMessages::Message &msg);
-    static void registerObject(JSContext *cx);
-    static JSObject *generateJSObject(JSContext *cx, int width, int height,
+    static void RegisterObject(JSContext *cx);
+    static JSObject *GenerateJSObject(JSContext *cx, int width, int height,
         Graphics::NativeCanvasHandler **out);
 
     NativeJSCanvas(JS::HandleObject obj, JSContext *cx, Graphics::NativeCanvasHandler *handler);

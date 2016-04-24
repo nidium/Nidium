@@ -542,7 +542,7 @@ class NativeCanvasHandler : public Nidium::Core::Events
         NativeCanvasHandler *m_Prev;
         NativeCanvasHandler *m_Last;
 
-        static void _jobResize(void *arg);
+        static void _JobResize(void *arg);
         bool _handleEvent(Nidium::NML::NativeInputEvent *ev);
 
         uint32_t m_Flags;

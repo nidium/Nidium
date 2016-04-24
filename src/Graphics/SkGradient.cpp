@@ -62,7 +62,7 @@ void NativeSkGradient::addColorStop(double position, char *color)
             sizeof(struct _colorStop) * m_ColorsStop.allocated);
     }
 
-    m_ColorsStop.items[m_ColorsStop.count].color    = NativeSkia::parseColor(color);
+    m_ColorsStop.items[m_ColorsStop.count].color    = NativeSkia::ParseColor(color);
     m_ColorsStop.items[m_ColorsStop.count].position = SkDoubleToScalar(position);
 
     m_ColorsStop.count++;

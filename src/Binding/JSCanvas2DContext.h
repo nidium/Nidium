@@ -131,7 +131,7 @@ class NativeCanvas2DContext : public Graphics::NativeCanvasContext
             m_CurrentState = tmp;
         }
 
-        static void registerObject(JSContext *cx);
+        static void RegisterObject(JSContext *cx);
 
         NativeCanvas2DContext(Graphics::NativeCanvasHandler *handler,
             int width, int height, Interface::NativeUIInterface *ui, bool isGL = true);

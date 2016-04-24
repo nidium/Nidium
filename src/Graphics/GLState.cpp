@@ -78,7 +78,7 @@ bool NativeGLState::initGLBase(bool withProgram)
     m_Resources.add(m_GLObjects.vbo[1], NativeGLResources::RBUFFER);
     m_Resources.add(m_GLObjects.vao, NativeGLResources::RVERTEX_ARRAY);
 
-    Nidium::NML::NativeVertices *vtx = m_GLObjects.vtx = NativeCanvasContext::buildVerticesStripe(4);
+    Nidium::NML::NativeVertices *vtx = m_GLObjects.vtx = NativeCanvasContext::BuildVerticesStripe(4);
 
     NATIVE_GL_CALL_MAIN(BindVertexArray(m_GLObjects.vao));
 
@@ -108,7 +108,7 @@ bool NativeGLState::initGLBase(bool withProgram)
                           (GLvoid*) offsetof(Nidium::NML::NativeVertex, Modifier)));
 
     if (withProgram) {
-        m_GLObjects.program = NativeCanvasContext::createPassThroughProgram(m_Resources);
+        m_GLObjects.program = NativeCanvasContext::CreatePassThroughProgram(m_Resources);
 
         if (m_GLObjects.program == 0) {
             return false;

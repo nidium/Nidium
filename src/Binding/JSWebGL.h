@@ -13,7 +13,7 @@ class NativeJS ## name: public JSExposer<NativeJS ## name>\
         NativeJS ## name ();\
         ~NativeJS ## name ();\
          JS::PersistentRootedObject m_JsObj;\
-        static void registerObject(JSContext *cx);\
+        static void RegisterObject(JSContext *cx);\
 };
 
 #define GL_GLEXT_PROTOTYPES
@@ -99,7 +99,7 @@ class NativeJSWebGLActiveInfo : public JSExposer<NativeJSWebGLActiveInfo>
         NativeJSWebGLActiveInfo();
         ~NativeJSWebGLActiveInfo();
         JS::PersistentRootedObject m_JsObj;
-        static void registerObject(JSContext *cx);
+        static void RegisterObject(JSContext *cx);
 };
 // }}}
 

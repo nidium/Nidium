@@ -85,8 +85,8 @@ class JSTransferableFunction
 class NativeJSAVSource
 {
     public:
-        static inline bool propSetter(AV::NativeAVSource *source, uint8_t id, JS::MutableHandleValue vp);
-        static inline bool propGetter(AV::NativeAVSource *source, JSContext *ctx, uint8_t id, JS::MutableHandleValue vp);
+        static inline bool PropSetter(AV::NativeAVSource *source, uint8_t id, JS::MutableHandleValue vp);
+        static inline bool PropGetter(AV::NativeAVSource *source, JSContext *ctx, uint8_t id, JS::MutableHandleValue vp);
 };
 // }}}
 
@@ -94,9 +94,9 @@ class NativeJSAVSource
 class NativeJSAudio: public JSExposer<NativeJSAudio>
 {
     public :
-        static NativeJSAudio *getContext(JSContext *cx, JS::HandleObject obj, \
+        static NativeJSAudio *GetContext(JSContext *cx, JS::HandleObject obj, \
             unsigned int bufferSize, unsigned int channels, unsigned int sampleRate);
-        static NativeJSAudio *getContext();
+        static NativeJSAudio *GetContext();
 
         struct Nodes {
             NativeJSAudioNode *curr;
@@ -125,12 +125,12 @@ class NativeJSAudio: public JSExposer<NativeJSAudio>
         bool createContext();
         void initNode(NativeJSAudioNode *node, JS::HandleObject jnode, JS::HandleString name);
         bool run(char *str);
-        static void ctxCallback(void *custom);
-        static void runCallback(void *custom);
-        static void shutdownCallback(void *custom);
+        static void CtxCallback(void *custom);
+        static void RunCallback(void *custom);
+        static void ShutdownCallback(void *custom);
         void unroot();
 
-        static void registerObject(JSContext *cx);
+        static void RegisterObject(JSContext *cx);
 
         ~NativeJSAudio();
     private :
@@ -203,11 +203,11 @@ class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messa
 
         // Custom m_Node
         JSTransferableFunction *m_TransferableFuncs[END_FN];
-        static void customCallback(const struct AV::NodeEvent *ev);
-        static void setPropCallback(AV::NativeAudioNode *node, void *custom);
-        static void shutdownCallback(AV::NativeAudioNode *node, void *custom);
-        static void initCustomObject(AV::NativeAudioNode *node, void *custom);
-        static void deleteTransferableFunc(AV::NativeAudioNode *node, void *custom);
+        static void CustomCallback(const struct AV::NodeEvent *ev);
+        static void SetPropCallback(AV::NativeAudioNode *node, void *custom);
+        static void ShutdownCallback(AV::NativeAudioNode *node, void *custom);
+        static void InitCustomObject(AV::NativeAudioNode *node, void *custom);
+        static void DeleteTransferableFunc(AV::NativeAudioNode *node, void *custom);
         bool createHashObj();
 
         JS::PersistentRootedObject *m_NodeObj;
@@ -221,11 +221,11 @@ class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messa
         static void onEvent(const struct AV::NativeAVSourceEvent *cev);
 
         // Custom source m_Node
-        static void seekCallback(AV::NativeAudioCustomSource *node, double seekTime, void *custom);
-        static bool propSetter(NativeJSAudioNode *node, JSContext *cx,
+        static void SeekCallback(AV::NativeAudioCustomSource *node, double seekTime, void *custom);
+        static bool PropSetter(NativeJSAudioNode *node, JSContext *cx,
                 uint8_t id, JS::MutableHandleValue vp);
 
-        static void registerObject(JSContext *cx);
+        static void RegisterObject(JSContext *cx);
     private :
         void add();
         bool m_IsDestructing;
@@ -252,8 +252,8 @@ class NativeJSVideo : public JSExposer<NativeJSVideo>, public Core::Messages
         void setSize(int width, int height);
         void close();
 
-        static void registerObject(JSContext *cx);
-        static void frameCallback(uint8_t *data, void *custom);
+        static void RegisterObject(JSContext *cx);
+        static void FrameCallback(uint8_t *data, void *custom);
         void onMessage(const Core::SharedMessages::Message &msg);
         static void onEvent(const struct AV::NativeAVSourceEvent *cev);
 

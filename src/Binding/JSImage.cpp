@@ -117,7 +117,7 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 NidiumJSObj(cx)->rootObjectUntilShutdown(obj);
 
-                IO::Stream *stream = IO::Stream::create(Core::Path(imgPath.ptr()));
+                IO::Stream *stream = IO::Stream::Create(Core::Path(imgPath.ptr()));
 
                 if (stream == NULL) {
                     JS_ReportError(cx, "Invalid path");
@@ -138,7 +138,7 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 NidiumJSObj(cx)->rootObjectUntilShutdown(obj);
 
-                IO::Stream *stream = IO::Stream::create(file->getFullPath());
+                IO::Stream *stream = IO::Stream::Create(file->getFullPath());
                 if (stream == NULL) {
                     break;
                 }
@@ -302,7 +302,7 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
 }
 #endif
 
-JSObject *NativeJSImage::buildImageObject(JSContext *cx, Graphics::NativeSkImage *image,
+JSObject *NativeJSImage::BuildImageObject(JSContext *cx, Graphics::NativeSkImage *image,
     const char name[])
 {
     JS::RootedValue proto(cx);
@@ -348,7 +348,7 @@ NativeJSImage::~NativeJSImage()
 // }}}
 
 // {{{ Registration
-void NativeJSImage::registerObject(JSContext *cx)
+void NativeJSImage::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_InitClass(cx, global, JS::NullPtr(), &Image_class,

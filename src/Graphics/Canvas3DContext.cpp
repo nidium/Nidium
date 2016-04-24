@@ -43,7 +43,7 @@ NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
 
     JS_SetPrivate(m_JsObj, this);
 
-    float ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
 
     m_Device.width = width * ratio;
     m_Device.height = height * ratio;
@@ -79,7 +79,7 @@ void NativeCanvas3DContext::setSize(int width, int height, bool redraw)
 
     this->cleanUp();
 
-    float ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
 
     m_Device.width = width * ratio;
     m_Device.height = height * ratio;

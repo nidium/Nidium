@@ -112,8 +112,8 @@ class NativeCanvasContext
     */
     void resetGLContext();
 
-    static char *processShader(const char *content, shaderType type);
-    static uint32_t compileShader(const char *data, int type);
+    static char *ProcessShader(const char *content, shaderType type);
+    static uint32_t CompileShader(const char *data, int type);
 
     virtual void translate(double x, double y)=0;
     virtual void setSize(int width, int height, bool redraw = true)=0;
@@ -135,11 +135,11 @@ class NativeCanvasContext
         Scheme : http://dan.lecocq.us/wordpress/wp-content/uploads/2009/12/strip.png
         Details: http://en.wikipedia.org/wiki/Triangle_strip
     */
-    static Nidium::NML::NativeVertices *buildVerticesStripe(int resolution);
+    static Nidium::NML::NativeVertices *BuildVerticesStripe(int resolution);
 
-    static uint32_t createPassThroughVertex();
-    static uint32_t createPassThroughFragment();
-    static uint32_t createPassThroughProgram(NativeGLResources &resource);
+    static uint32_t CreatePassThroughVertex();
+    static uint32_t CreatePassThroughFragment();
+    static uint32_t CreatePassThroughProgram(NativeGLResources &resource);
 
 
     void preComposeOn(Nidium::Binding::NativeCanvas2DContext *layer,

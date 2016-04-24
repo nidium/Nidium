@@ -20,9 +20,9 @@ class NativeJSNative : public JSExposer<NativeJSNative>
     }
     ~NativeJSNative() {};
 
-    static void registerObject(JSContext *cx);
+    static void RegisterObject(JSContext *cx);
 
-    static const char *getJSObjectName() {
+    static const char *GetJSObjectName() {
         return "native";
     }
 

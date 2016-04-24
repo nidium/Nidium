@@ -38,8 +38,8 @@ class NativeJSdocument : public JSExposer<NativeJSdocument>
     static bool m_ShowFPS;
     bool populateStyle(JSContext *cx, const char *data,
         size_t len, const char *filename);
-    static JSObject *registerObject(JSContext *cx);
-    static const char *getJSObjectName() {
+    static JSObject *RegisterObject(JSContext *cx);
+    static const char *GetJSObjectName() {
         return "document";
     }
 

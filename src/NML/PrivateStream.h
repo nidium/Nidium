@@ -40,20 +40,20 @@ public:
     {
     }
 
-    static Nidium::IO::Stream *createStream(const char *location) {
+    static Nidium::IO::Stream *CreateStream(const char *location) {
         return new NativePrivateStream(location);
     }
 
-    static bool allowLocalFileStream() {
+    static bool AllowLocalFileStream() {
         return true;
     }
 
-    static bool allowSyncStream() {
+    static bool AllowSyncStream() {
         return true;
     }
 
-    static const char *getBaseDir() {
-        return Nidium::Interface::NativeSystemInterface::getInstance()->getPrivateDirectory();
+    static const char *GetBaseDir() {
+        return Nidium::Interface::NativeSystemInterface::GetInstance()->getPrivateDirectory();
     }
 };
 
@@ -71,19 +71,19 @@ public:
     {
     }
 
-    static Nidium::IO::Stream *createStream(const char *location) {
+    static Nidium::IO::Stream *CreateStream(const char *location) {
         return new NativePrivateStream(location);
     }
 
-    static bool allowLocalFileStream() {
+    static bool AllowLocalFileStream() {
         return true;
     }
 
-    static bool allowSyncStream() {
+    static bool AllowSyncStream() {
         return true;
     }
 
-    static const char *getBaseDir() {
+    static const char *GetBaseDir() {
         return "/";
     }
 };

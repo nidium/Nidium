@@ -81,7 +81,7 @@ NativeAVStreamReader::NativeAVStreamReader(const char *src,
       m_HaveDataAvailable(false)
 {
     m_Async = true;
-    m_Stream = Nidium::IO::Stream::create(Nidium::Core::Path(src));
+    m_Stream = Nidium::IO::Stream::Create(Nidium::Core::Path(src));
     //m_Stream->setAutoClose(false);
     m_Stream->start(STREAM_BUFFER_SIZE);
     m_Stream->setListener(this);
@@ -239,7 +239,7 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
         return pos;
     }
 
-    if (Nidium::Core::Utils::isMainThread()) {
+    if (Nidium::Core::Utils::IsMainThread()) {
         thiz->m_Stream->seek(pos);
     } else {
         thiz->postMessage(opaque, NativeAVStreamReader::MSG_SEEK);
@@ -358,7 +358,7 @@ void NativeAVStreamReader::finish()
 
 NativeAVStreamReader::~NativeAVStreamReader()
 {
-    if (Nidium::Core::Utils::isMainThread()) {
+    if (Nidium::Core::Utils::IsMainThread()) {
         delete m_Stream;
     } else {
         this->postMessage(this, NativeAVStreamReader::MSG_STOP);

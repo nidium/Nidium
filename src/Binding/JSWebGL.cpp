@@ -50,7 +50,7 @@ namespace Binding {
 }
 
 #define NATIVE_GL_OBJECT_EXPOSE_NOT_INST(name) \
-    void NativeJS ## name::registerObject(JSContext *cx) \
+    void NativeJS ## name::RegisterObject(JSContext *cx) \
     { \
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
         JS_DefineObject(cx, global, #name, \
@@ -1464,7 +1464,7 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
     NGL_GET_RESOURCE(Shader, shader, cshader);
     shaderData = cshader->getShaderData();
 
-    if (!(shaderStr = Graphics::NativeCanvasContext::processShader(
+    if (!(shaderStr = Graphics::NativeCanvasContext::ProcessShader(
             shaderData->source, (Graphics::NativeCanvasContext::shaderType)shaderData->type))) {
         return false;
     }
@@ -2852,7 +2852,7 @@ NGL_JS_FN(WebGLRenderingContext_viewport)
 //{
     GLint x, y, w, h;
 
-    float ratio = Nidium::Interface::NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
 
     if (!JS_ConvertArguments(cx, args, "iiii", &x, &y, &w, &h)) {
         return false;
@@ -2920,7 +2920,7 @@ static bool NativeJSWebGLRenderingContext_constructor(JSContext *cx,
     return false;
 }
 
-void NativeJSWebGLRenderingContext::registerObject(JSContext *cx) {
+void NativeJSWebGLRenderingContext::RegisterObject(JSContext *cx) {
     JS::RootedObject ctor(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject obj(cx, JS_InitClass(cx, global, JS::NullPtr(),

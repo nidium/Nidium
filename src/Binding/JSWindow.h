@@ -57,10 +57,10 @@ class NativeJSwindow : public JSExposer<NativeJSwindow>
         return m_Db;
     }
 
-    static NativeJSwindow *registerObject(JSContext *cx, int width,
+    static NativeJSwindow *RegisterObject(JSContext *cx, int width,
         int height, JS::HandleObject doc);
 
-    static const char *getJSObjectName() {
+    static const char *GetJSObjectName() {
         return "Window";
     }
 
