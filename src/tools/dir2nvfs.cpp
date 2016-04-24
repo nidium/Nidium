@@ -10,9 +10,9 @@
 #include <jsapi.h>
 #include <ape_netlib.h>
 
-#include <NFS.h>
-#include <FileStream.h>
-#include <Utils.h>
+#include <IO/NFS.h>
+#include <IO/FileStream.h>
+#include <Core/Utils.h>
 
 #ifndef DIR2NFS_OUTPUT
 #define DIR2NFS_OUTPUT stdout
