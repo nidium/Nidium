@@ -32,16 +32,16 @@
 namespace Nidium {
 namespace NML {
 
-class NativePrivateStream : public Nidium::IO::FileStream
+class PrivateStream : public Nidium::IO::FileStream
 {
 public:
-    explicit NativePrivateStream(const char *location) :
+    explicit PrivateStream(const char *location) :
         Nidium::IO::FileStream(location)
     {
     }
 
     static Nidium::IO::Stream *CreateStream(const char *location) {
-        return new NativePrivateStream(location);
+        return new PrivateStream(location);
     }
 
     static bool AllowLocalFileStream() {
@@ -59,10 +59,10 @@ public:
 
 #else
 
-class NativePrivateStream : public NativeNFSStream
+class PrivateStream : public NativeNFSStream
 {
 public:
-    explicit NativePrivateStream(const char *location) :
+    explicit PrivateStream(const char *location) :
 #if 0
         NativeNFSStream((std::string("/private") + location).c_str())
 #else
@@ -72,7 +72,7 @@ public:
     }
 
     static Nidium::IO::Stream *CreateStream(const char *location) {
-        return new NativePrivateStream(location);
+        return new PrivateStream(location);
     }
 
     static bool AllowLocalFileStream() {

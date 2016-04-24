@@ -29,17 +29,17 @@
 namespace Nidium {
 namespace NML {
 
-// {{{ NativeSystemStream
-class NativeSystemStream : public Nidium::IO::FileStream
+// {{{ SystemStream
+class SystemStream : public Nidium::IO::FileStream
 {
 public:
-    explicit NativeSystemStream(const char *location) :
+    explicit SystemStream(const char *location) :
         Nidium::IO::FileStream(location)
     {
     }
 
     static Nidium::IO::Stream *CreateStream(const char *location) {
-        return new NativeSystemStream(location);
+        return new SystemStream(location);
     }
 
     static bool AllowLocalFileStream() {
@@ -56,17 +56,17 @@ public:
 };
 // }}}
 
-// {{{ NativeUserStream
-class NativeUserStream : public Nidium::IO::FileStream
+// {{{ UserStream
+class UserStream : public Nidium::IO::FileStream
 {
 public:
-    explicit NativeUserStream(const char *location) :
+    explicit UserStream(const char *location) :
         Nidium::IO::FileStream(location)
     {
     }
 
     static Nidium::IO::Stream *CreateStream(const char *location) {
-        return new NativeUserStream(location);
+        return new UserStream(location);
     }
 
     static bool AllowLocalFileStream() {
