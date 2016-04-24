@@ -83,7 +83,7 @@ static bool native_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp
     JSAutoByteString cstr;
     cstr.encodeUtf8(cx, str);
 
-    JS::RootedObject retObj(cx, Nidium::NML::NativeNML::BuildLST(cx, cstr.ptr()));
+    JS::RootedObject retObj(cx, Nidium::NML::NML::BuildLST(cx, cstr.ptr()));
     args.rval().setObjectOrNull(retObj);
 
     return true;

@@ -16,7 +16,7 @@ struct SDL_Window; //FIXME: This is not correct
 namespace Nidium {
     namespace NML {
         class NativeContext;
-        class NativeNML;
+        class NML;
     }
 namespace Interface {
 
@@ -141,7 +141,7 @@ class NativeUIInterface
         };
 
         Nidium::NML::NativeContext *m_NativeCtx;
-        Nidium::NML::NativeNML *m_Nml;
+        Nidium::NML::NML *m_Nml;
         SDL_Window *m_Win;
         ape_global *m_Gnet;
         int m_Argc = 0;

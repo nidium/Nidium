@@ -18,15 +18,15 @@
 namespace Nidium {
 namespace NML {
 
-class NativeNML;
+class NML;
 
 typedef void (*NMLLoadedCallback)(void *arg);
 
-class NativeNML : public Nidium::Core::Messages
+class NML : public Nidium::Core::Messages
 {
 public:
-    explicit NativeNML(_ape_global *net);
-    ~NativeNML();
+    explicit NML(_ape_global *net);
+    ~NML();
 
     typedef enum {
         NIDIUM_XML_OK,
@@ -35,7 +35,7 @@ public:
         NIDIUM_XML_ERR_META_MISSING
     } nidium_xml_ret_t;
 
-    typedef nidium_xml_ret_t (NativeNML::*tag_callback)(rapidxml::xml_node<> &node);
+    typedef nidium_xml_ret_t (NML::*tag_callback)(rapidxml::xml_node<> &node);
 
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
     void loadFile(const char *filename, NMLLoadedCallback cb, void *arg);
@@ -95,9 +95,9 @@ private:
         tag_callback cb; // Call : (this->*cb)()
         bool unique;
     } m_NmlTags[4] = {
-        {"assets",   &NativeNML::loadAssets, false},
-        {"meta", &NativeNML::loadMeta, true},
-        {"layout", &NativeNML::loadLayout, true},
+        {"assets",   &NML::loadAssets, false},
+        {"meta", &NML::loadMeta, true},
+        {"layout", &NML::loadLayout, true},
         {NULL,       NULL, false}
     };
 

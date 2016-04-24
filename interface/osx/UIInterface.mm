@@ -294,7 +294,7 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     }
     fprintf(stdout, "Changing directory to : %s\n", fpath);
 
-    ui->m_Nml = new Nidium::NML::NativeNML(ui->m_Gnet);
+    ui->m_Nml = new Nidium::NML::NML(ui->m_Gnet);
     ui->m_Nml->loadFile("./index.nml", NativeCocoaUIInterface_onNMLLoaded, ui);
 }
 
@@ -462,7 +462,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
             delete app;
         }
     } else {
-        this->m_Nml = new Nidium::NML::NativeNML(this->m_Gnet);
+        this->m_Nml = new Nidium::NML::NML(this->m_Gnet);
         this->m_Nml->loadFile(path, NativeCocoaUIInterface_onNMLLoaded, this);
 
         return true;

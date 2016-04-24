@@ -285,7 +285,7 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     NativeX11UIInterface *ui = (NativeX11UIInterface *)closure;
     chdir(fpath);
     fprintf(stdout, "Changing directory to : %s\n", fpath);
-    ui->m_Nml = new Nidium::NML::NativeNML(ui->m_Gnet);
+    ui->m_Nml = new Nidium::NML::NML(ui->m_Gnet);
     ui->m_Nml->setNJS(ui->NJS);
     ui->m_Nml->loadFile("./index.nml");
 }
@@ -299,7 +299,7 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     }
     fprintf(stdout, "Changing directory to : %s\n", fpath);
 
-    ui->m_Nml = new Nidium::NML::NativeNML(ui->m_Gnet);
+    ui->m_Nml = new Nidium::NML::NML(ui->m_Gnet);
     ui->m_Nml->loadFile("./index.nml", NativeX11UIInterface_onNMLLoaded, ui);
 }
 // }}}
@@ -667,7 +667,7 @@ bool NativeX11UIInterface::runApplication(const char *path)
             delete app;
         }
     } else {
-        this->m_Nml = new Nidium::NML::NativeNML(this->m_Gnet);
+        this->m_Nml = new Nidium::NML::NML(this->m_Gnet);
         this->m_Nml->loadFile(path, NativeX11UIInterface_onNMLLoaded, this);
 
         return true;

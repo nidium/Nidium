@@ -28,7 +28,7 @@ bool NativeTerminalUIInterface::runApplication(const char *path)
     this->m_Gnet = native_netlib_init();
     this->NJS = new Nidium::Binding::NidiumJS(1, 1, this, m_Gnet);
 
-    this->m_Nml = new Nidium::NML::NativeNML(this->m_Gnet);
+    this->m_Nml = new Nidium::NML::NML(this->m_Gnet);
     this->m_Nml->setNJS(this->NJS);
     this->m_Nml->loadFile("index.nml", NULL, NULL);
 

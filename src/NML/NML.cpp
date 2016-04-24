@@ -19,7 +19,7 @@ namespace NML {
 
 // {{{ NML
 /*@FIXME:: refractor the constructor, so that m_JSObjectLayout get's njs'javascript context*/
-NativeNML::NativeNML(ape_global *net) :
+NML::NML(ape_global *net) :
     m_Net(net), m_Stream(NULL), m_nAssets(0),
     m_Njs(NULL), m_Loaded(NULL), m_LoadedArg(NULL), m_Layout(NULL),
     m_JSObjectLayout(NULL), m_DefaultItemsLoaded(false), m_LoadDefaultItems(true)
@@ -40,7 +40,7 @@ NativeNML::NativeNML(ape_global *net) :
     memset(&this->meta, 0, sizeof(this->meta));
 }
 
-void NativeNML::setNJS(Nidium::Binding::NidiumJS *js)
+void NML::setNJS(Nidium::Binding::NidiumJS *js)
 {
     m_Njs = js;
     /*
@@ -52,7 +52,7 @@ void NativeNML::setNJS(Nidium::Binding::NidiumJS *js)
     */
 }
 
-void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
+void NML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
 {
     m_Loaded = cb;
     m_LoadedArg = arg;
@@ -78,7 +78,7 @@ void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
     m_Stream->getContent();
 }
 
-void NativeNML::loadDefaultItems(Assets *assets)
+void NML::loadDefaultItems(Assets *assets)
 {
     if (m_DefaultItemsLoaded) {
         return;
@@ -101,7 +101,7 @@ void NativeNML::loadDefaultItems(Assets *assets)
     assets->addToPendingList(falcon);
 }
 
-bool NativeNML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
+bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
 {
     using namespace rapidxml;
 
@@ -161,7 +161,7 @@ bool NativeNML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
 }
 
 
-JSObject *NativeNML::BuildLST(JSContext *cx, char *str)
+JSObject *NML::BuildLST(JSContext *cx, char *str)
 {
     using namespace rapidxml;
 
@@ -176,7 +176,7 @@ JSObject *NativeNML::BuildLST(JSContext *cx, char *str)
     return BuildLSTFromNode(cx, doc);
 }
 
-JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
+JSObject *NML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 {
 #define NODE_PROP(where, name, val) JS_DefineProperty(cx, where, name, \
     val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
@@ -238,7 +238,7 @@ JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
     </canvas>
     <foo></foo>
 */
-JSObject *NativeNML::buildLayoutTree(rapidxml::xml_node<> &node)
+JSObject *NML::buildLayoutTree(rapidxml::xml_node<> &node)
 {
     return BuildLSTFromNode(m_Njs->cx, node);
 }
@@ -252,7 +252,7 @@ static int delete_stream(void *arg)
     return 0;
 }
 
-void NativeNML::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void NML::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case Nidium::IO::Stream::EVENT_READ_BUFFER:
@@ -287,7 +287,7 @@ void NativeNML::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     }
 }
 
-void NativeNML::onGetContent(const char *data, size_t len)
+void NML::onGetContent(const char *data, size_t len)
 {
     rapidxml::xml_document<> doc;
 
@@ -329,7 +329,7 @@ void NativeNML::onGetContent(const char *data, size_t len)
     }
 }
 
-NativeNML::~NativeNML()
+NML::~NML()
 {
     if (m_JSObjectLayout.get()) {
         m_Njs->unrootObject(m_JSObjectLayout);
@@ -353,7 +353,7 @@ NativeNML::~NativeNML()
 // }}}
 
 // {{{ Assets
-void NativeNML::onAssetsItemReady(Assets::Item *item)
+void NML::onAssetsItemReady(Assets::Item *item)
 {
     NMLTag tag;
     memset(&tag, 0, sizeof(NMLTag));
@@ -395,14 +395,14 @@ void NativeNML::onAssetsItemReady(Assets::Item *item)
     Nidium::Binding::NativeJSwindow::GetObject(m_Njs)->assetReady(tag);
 }
 
-static void NativeNML_onAssetsItemRead(Assets::Item *item, void *arg)
+static void NML_onAssetsItemRead(Assets::Item *item, void *arg)
 {
-    class NativeNML *nml = (class NativeNML *)arg;
+    class NML *nml = (class NML *)arg;
 
     nml->onAssetsItemReady(item);
 }
 
-void NativeNML::onAssetsBlockReady(Assets *asset)
+void NML::onAssetsBlockReady(Assets *asset)
 {
     m_nAssets--;
 
@@ -412,14 +412,14 @@ void NativeNML::onAssetsBlockReady(Assets *asset)
     }
 }
 
-static void NativeNML_onAssetsReady(Assets *assets, void *arg)
+static void NML_onAssetsReady(Assets *assets, void *arg)
 {
-    class NativeNML *nml = (class NativeNML *)arg;
+    class NML *nml = (class NML *)arg;
 
     nml->onAssetsBlockReady(assets);
 }
 
-void NativeNML::addAsset(Assets *asset)
+void NML::addAsset(Assets *asset)
 {
     m_nAssets++;
     if (m_AssetsList.size == m_AssetsList.allocated) {
@@ -435,7 +435,7 @@ void NativeNML::addAsset(Assets *asset)
 // }}}
 
 /// {{{ xml
-NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
+NML::nidium_xml_ret_t NML::loadMeta(rapidxml::xml_node<> &node)
 {
     using namespace rapidxml;
 
@@ -500,15 +500,15 @@ NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
     return NIDIUM_XML_OK;
 }
 
-NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
+NML::nidium_xml_ret_t NML::loadAssets(rapidxml::xml_node<> &node)
 {
 
     if (!this->meta.loaded) return NIDIUM_XML_ERR_META_MISSING;
 
     using namespace rapidxml;
 
-    Assets *assets = new Assets(NativeNML_onAssetsItemRead,
-        NativeNML_onAssetsReady, this);
+    Assets *assets = new Assets(NML_onAssetsItemRead,
+        NML_onAssetsReady, this);
 
     this->addAsset(assets);
     this->loadDefaultItems(assets);
@@ -549,7 +549,7 @@ NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
     return NIDIUM_XML_OK;
 }
 
-NativeNML::nidium_xml_ret_t NativeNML::loadLayout(rapidxml::xml_node<> &node)
+NML::nidium_xml_ret_t NML::loadLayout(rapidxml::xml_node<> &node)
 {
     if (!this->meta.loaded) return NIDIUM_XML_ERR_META_MISSING;
 

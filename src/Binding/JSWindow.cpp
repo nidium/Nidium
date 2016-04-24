@@ -1340,7 +1340,7 @@ void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
 
 void NativeJSwindow::initDataBase()
 {
-    Nidium::NML::NativeNML *nml = Nidium::NML::NativeContext::GetObject(m_Cx)->getNML();
+    Nidium::NML::NML *nml = Nidium::NML::NativeContext::GetObject(m_Cx)->getNML();
     if (!nml) {
         NLOG("[Notice] Unable to create window.storage (no NML provided)");
         return;

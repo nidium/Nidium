@@ -36,7 +36,7 @@ namespace Nidium {
     }
 namespace NML {
 
-class NativeNML;
+class NML;
 
 struct NativeJobQueue {
     void (*job)(void *arg);
@@ -133,7 +133,7 @@ class NativeContext : public Nidium::Core::Messages
 
     friend class Nidium::Graphics::NativeCanvasHandler;
 
-    NativeContext(Nidium::Interface::NativeUIInterface *nui, NativeNML *nml,
+    NativeContext(Nidium::Interface::NativeUIInterface *nui, NML *nml,
         int width, int height, ape_global *net);
     ~NativeContext();
 
@@ -148,7 +148,7 @@ class NativeContext : public Nidium::Core::Messages
         return m_JS;
     }
 
-    NativeNML *getNML() const {
+    NML *getNML() const {
         return m_NML;
     }
 
@@ -199,7 +199,7 @@ class NativeContext : public Nidium::Core::Messages
     void setWindowFrame(int x, int y, int width, int height);
     void sizeChanged(int w, int h);
 
-    void setNML(NativeNML *nml) {
+    void setNML(NML *nml) {
         m_NML = nml;
     }
 
@@ -253,20 +253,20 @@ class NativeContext : public Nidium::Core::Messages
 
     private:
     Nidium::Graphics::NativeGLResources         m_Resources;
-    Nidium::Binding::NidiumJS *m_JS;
+    Nidium::Binding::NidiumJS *                 m_JS;
     Nidium::Graphics::NativeCanvasHandler *     m_RootHandler;
     Nidium::Graphics::NativeCanvasHandler *     m_DebugHandler;
 #ifdef DEBUG
     Nidium::Graphics::NativeCanvasHandler *     m_Debug2Handler;
 #endif
-    Nidium::Interface::NativeUIInterface *       m_UI;
-    NativeNML *               m_NML;
+    Nidium::Interface::NativeUIInterface *      m_UI;
+    NML *                                       m_NML;
     Nidium::Graphics::NativeGLState *           m_GLState;
     Nidium::Net::WebSocketServer * m_WS;
-    Nidium::Net::WebSocketClientConnection *m_WSClient;
+    Nidium::Net::WebSocketClientConnection *    m_WSClient;
     ShBuiltInResources        m_ShResources;
-    Nidium::Binding::NativeJSwindow *          m_JSWindow;
-    bool                      m_SizeDirty;
+    Nidium::Binding::NativeJSwindow *            m_JSWindow;
+    bool                                         m_SizeDirty;
 
     struct {
         uint64_t nframe;

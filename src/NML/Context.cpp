@@ -86,7 +86,7 @@ void NativeContext::CreateAndAssemble(Nidium::Interface::NativeUIInterface *ui, 
     new NativeContext(ui, ui->m_Nml, ui->getWidth(), ui->getHeight(), gnet);
 }
 
-NativeContext::NativeContext(Nidium::Interface::NativeUIInterface *nui, NativeNML *nml,
+NativeContext::NativeContext(Nidium::Interface::NativeUIInterface *nui, NML *nml,
     int width, int height, ape_global *net) :
     m_RootHandler(NULL), m_DebugHandler(NULL),
 #if DEBUG
