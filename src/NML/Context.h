@@ -38,14 +38,14 @@ namespace NML {
 
 class NML;
 
-struct NativeJobQueue {
+struct JobQueue {
     void (*job)(void *arg);
-    struct NativeJobQueue *next;
+    struct JobQueue *next;
     void *arg;
 };
 
-// {{ NativeInputEvent
-static const char * NativeInputEvent_Names[] = {
+// {{ InputEvent
+static const char * InputEvent_Names[] = {
     "mousemove",
     "mousedown",
     "mouseup",
@@ -57,7 +57,7 @@ static const char * NativeInputEvent_Names[] = {
     "drag"
 };
 
-class NativeInputEvent
+class InputEvent
 {
 public:
     enum Type {
@@ -72,7 +72,7 @@ public:
         kMouseDrag_Type
     };
 
-    NativeInputEvent(Type type, int ix, int iy,
+    InputEvent(Type type, int ix, int iy,
         uint32_t *idata = NULL, uint8_t idata_len = 0) :
         m_x(ix), m_y(iy), m_Next(NULL), m_PassThroughEvent(NULL), m_Handler(NULL),
         m_Origin(NULL), m_depthAffectedCanvas(0), m_Type(type) {
@@ -82,8 +82,8 @@ public:
         }
     }
 
-    NativeInputEvent *dupWithHandler(Nidium::Graphics::NativeCanvasHandler *handler) {
-        NativeInputEvent *dup = new NativeInputEvent(*this);
+    InputEvent *dupWithHandler(Nidium::Graphics::NativeCanvasHandler *handler) {
+        InputEvent *dup = new InputEvent(*this);
         dup->m_Handler = handler;
         dup->m_Origin = this;
 
@@ -105,19 +105,19 @@ public:
     }
 
     static const char *GetName(int type) {
-        return NativeInputEvent_Names[type];
+        return InputEvent_Names[type];
     }
 
-    NativeInputEvent *getEventForNextCanvas() const {
+    InputEvent *getEventForNextCanvas() const {
         return m_PassThroughEvent;
     }
 
     int m_x, m_y;
     uint32_t m_data[8];
-    NativeInputEvent *m_Next;
-    NativeInputEvent *m_PassThroughEvent;
+    InputEvent *m_Next;
+    InputEvent *m_PassThroughEvent;
     Nidium::Graphics::NativeCanvasHandler *m_Handler;
-    NativeInputEvent *m_Origin;
+    InputEvent *m_Origin;
     unsigned m_depthAffectedCanvas;
 private:
     Type m_Type;
@@ -220,15 +220,15 @@ class NativeContext : public Nidium::Core::Messages
         return m_CanvasList.get(str);
     }
 
-    void addInputEvent(NativeInputEvent *ev);
+    void addInputEvent(InputEvent *ev);
     void resetInputEvents() {
         m_InputEvents.head = NULL;
         m_InputEvents.queue = NULL;
     }
 
     void clearInputEvents() {
-        NativeInputEvent *tmp;
-        for (NativeInputEvent *ev = m_InputEvents.head; ev != NULL; ev = tmp) {
+        InputEvent *tmp;
+        for (InputEvent *ev = m_InputEvents.head; ev != NULL; ev = tmp) {
             tmp = ev->m_Next;
 
             delete(ev);
@@ -237,7 +237,7 @@ class NativeContext : public Nidium::Core::Messages
         m_InputEvents.queue = NULL;
     }
 
-    NativeInputEvent *getInputEvents() const {
+    InputEvent *getInputEvents() const {
         return m_InputEvents.head;
     }
 
@@ -282,8 +282,8 @@ class NativeContext : public Nidium::Core::Messages
     } m_Stats;
 
     struct {
-        NativeInputEvent *head;
-        NativeInputEvent *queue;
+        InputEvent *head;
+        InputEvent *queue;
     } m_InputEvents;
 
     void forceLinking();
@@ -293,8 +293,8 @@ class NativeContext : public Nidium::Core::Messages
     bool initShaderLang();
     void initHandlers(int width, int height);
     struct {
-        struct NativeJobQueue *head;
-        struct NativeJobQueue *queue;
+        struct JobQueue *head;
+        struct JobQueue *queue;
     } m_Jobs;
 
     /* Hash of all canvases (key: identifier string) */

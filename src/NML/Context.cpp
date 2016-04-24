@@ -424,7 +424,7 @@ void NativeContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
     if (!pool->ptr.data) {
         return;
     }
-    NativeInputEvent *ev = static_cast<NativeInputEvent *>(pool->ptr.data);
+    InputEvent *ev = static_cast<InputEvent *>(pool->ptr.data);
 
     /* top-most element */
     if (ev->getDepth() == ev->m_Origin->getDepth()) {
@@ -549,7 +549,7 @@ void NativeContext::initHandlers(int width, int height)
 
 void NativeContext::addJob(void (*job)(void *arg), void *arg)
 {
-    struct NativeJobQueue *obj = (struct NativeJobQueue *)malloc(sizeof(struct NativeJobQueue));
+    struct JobQueue *obj = (struct JobQueue *)malloc(sizeof(struct JobQueue));
 
     obj->job = job;
     obj->arg = arg;
@@ -571,7 +571,7 @@ void NativeContext::execJobs()
         return;
     }
 
-    struct NativeJobQueue *obj, *tObj;
+    struct JobQueue *obj, *tObj;
 
     for (obj = m_Jobs.head; obj != NULL; obj = tObj) {
         tObj = obj->next;
@@ -681,7 +681,7 @@ JSObject *NativeContext::ReadStructuredCloneOp(JSContext *cx, JSStructuredCloneR
     return JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr());
 }
 
-void NativeContext::addInputEvent(NativeInputEvent *ev)
+void NativeContext::addInputEvent(InputEvent *ev)
 {
     if (m_InputEvents.head == NULL) {
         m_InputEvents.head = ev;

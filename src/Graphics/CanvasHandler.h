@@ -25,7 +25,7 @@ namespace Nidium {
     }
     namespace NML {
         class NativeContext;
-        class NativeInputEvent;
+        class InputEvent;
     }
 }
 
@@ -543,7 +543,7 @@ class NativeCanvasHandler : public Nidium::Core::Events
         NativeCanvasHandler *m_Last;
 
         static void _JobResize(void *arg);
-        bool _handleEvent(Nidium::NML::NativeInputEvent *ev);
+        bool _handleEvent(Nidium::NML::InputEvent *ev);
 
         uint32_t m_Flags;
 
@@ -564,9 +564,9 @@ class NativeCanvasHandler : public Nidium::Core::Events
     private:
 
         void deviceSetSize(int width, int height);
-        void onMouseEvent(Nidium::NML::NativeInputEvent *ev);
-        void onDrag(Nidium::NML::NativeInputEvent *ev, NativeCanvasHandler *target, bool end = false);
-        void onDrop(Nidium::NML::NativeInputEvent *ev, NativeCanvasHandler *droped);
+        void onMouseEvent(Nidium::NML::InputEvent *ev);
+        void onDrag(Nidium::NML::InputEvent *ev, NativeCanvasHandler *target, bool end = false);
+        void onDrop(Nidium::NML::InputEvent *ev, NativeCanvasHandler *droped);
 
         int32_t m_nChildren;
         void dispatchMouseEvents(NativeLayerizeContext &layerContext);

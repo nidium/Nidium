@@ -434,9 +434,9 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button, int clicks)
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &mouseEvent_class, JS::NullPtr(), JS::NullPtr()));
 
     Nidium::NML::NativeContext *nctx = Nidium::NML::NativeContext::GetObject(m_Cx);
-    Nidium::NML::NativeInputEvent *ev = new Nidium::NML::NativeInputEvent(state ?
-        Nidium::NML::NativeInputEvent::kMouseClick_Type :
-        Nidium::NML::NativeInputEvent::kMouseClickRelease_Type, x, y);
+    Nidium::NML::InputEvent *ev = new Nidium::NML::InputEvent(state ?
+        Nidium::NML::InputEvent::kMouseClick_Type :
+        Nidium::NML::InputEvent::kMouseClickRelease_Type, x, y);
 
     ev->m_data[0] = button;
 
@@ -448,7 +448,7 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button, int clicks)
         Only trigger for even number on release.
     */
     if (clicks % 2 == 0 && !state) {
-        Nidium::NML::NativeInputEvent *ev = new Nidium::NML::NativeInputEvent(Nidium::NML::NativeInputEvent::kMouseDoubleClick_Type, x, y);
+        Nidium::NML::InputEvent *ev = new Nidium::NML::InputEvent(Nidium::NML::InputEvent::kMouseDoubleClick_Type, x, y);
 
         ev->m_data[0] = button;
         nctx->addInputEvent(ev);
@@ -602,7 +602,7 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
     rootHandler->m_MousePosition.yrel += yrel;
     rootHandler->m_MousePosition.consumed = false;
 
-    Nidium::NML::NativeInputEvent *ev = new Nidium::NML::NativeInputEvent(Nidium::NML::NativeInputEvent::kMouseMove_Type, x, y);
+    Nidium::NML::InputEvent *ev = new Nidium::NML::InputEvent(Nidium::NML::InputEvent::kMouseMove_Type, x, y);
     ev->m_data[0] = xrel;
     ev->m_data[1] = yrel;
 
