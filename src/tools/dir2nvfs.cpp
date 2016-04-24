@@ -10,17 +10,19 @@
 #include <jsapi.h>
 #include <ape_netlib.h>
 
-#include <IO/NFS.h>
-#include <IO/FileStream.h>
 #include <Core/Utils.h>
+#include <IO/FileStream.h>
+#include <Binding/JSNFS.h>
 
 #ifndef DIR2NFS_OUTPUT
 #define DIR2NFS_OUTPUT stdout
 #endif
 
+using Nidium::Binding::NativeJSNSFS;
+
 unsigned long _ape_seed;
 
-void listdir(NativeNFS *nfs, DIR *dir, std::string fullpath, int strip)
+void listdir(NativeJSNFS *nfs, DIR *dir, std::string fullpath, int strip)
 {
     dirent *cur;
 
@@ -117,9 +119,7 @@ int main(int argc, char **argv)
     JS_SetOptions(cx, JSOPTION_NO_SCRIPT_RVAL);
     JS_SetVersion(cx, JSVERSION_LATEST);
 
-    NativeNFS *nfs = new NativeNFS();
-
-    nfs->initJSWithCX(cx);
+    NativeJSNFS *nfs = new NativeJSNFS(cx);
 
     if (argc == 3) {
         std::string prefix = "/";
