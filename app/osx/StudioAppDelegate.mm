@@ -9,12 +9,17 @@
 
 #define NIDIUM_DISPATCH_MAINTHREAD 0
 
-Nidium::Interface::NativeSystemInterface *NativeSystemInterface::_interface = new Nidium::Interface::NativeSystem();
-Nidium::Interface::NativeUIInterface *__NativeUI;
+unsigned long _ape_seed;
 
+namespace Nidium {
+    namespace Interface {
+        NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
+        NativeUIInterface *__NativeUI;
+    }
+
+namespace App {
 
 int _nativebuild = 1002;
-unsigned long _ape_seed;
 
 @implementation NativeStudioAppDelegate
 
@@ -267,3 +272,7 @@ void SetCrashKeyValue(BreakpadRef breakpad, NSString *key, NSString *value) {
 #endif
 
 @end
+
+} // namespace App
+} // namespace Nidium
+

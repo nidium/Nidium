@@ -10,6 +10,9 @@
 #import <AppKit/AppKit.h>
 #import <client/mac/Framework/Breakpad.h>
 
+namespace Nidium {
+namespace App {
+
 class NativeCocoaUIInterface;
 
 @interface NativeStudioAppDelegate : NSObject <NSApplicationDelegate, NSUserNotificationCenterDelegate>
@@ -31,4 +34,7 @@ class NativeCocoaUIInterface;
 @property (retain, nonatomic) NSString *appfile;
 
 @end
+
+} // namespace App
+} // namespace Nidium
 

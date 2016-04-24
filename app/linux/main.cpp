@@ -10,6 +10,8 @@
 #include "X11UIInterface.h"
 #include "System.h"
 
+unsigned long _ape_seed;
+
 namespace Nidium {
     namespace Interface {
         class NativeSystemInterface;
@@ -19,12 +21,9 @@ namespace Nidium {
         NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
         NativeUIInterface *__NativeUI;
     }
-}
-
+namespace App {
 
 int _nativebuild = 1002;
-unsigned long _ape_seed;
-
 char _root[PATH_MAX]; // Using _root to store the location of nidium exec
 
 #ifdef NATIVE_ENABLE_BREAKPAD
@@ -34,12 +33,15 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 {
     fprintf(stderr, "Nidium crash - Sending report - No personal information is transmited\n");
     char reporter[PATH_MAX];
-    snprintf(reporter, PATH_MAX, "%s/nidium-crash-reporter", _root);
+    snprintf(reporter, PATH_MAX, "%s/nidium-crash-reporter", Nidium::App::_root);
     int ret = execl(reporter, "nidium-crash-reporter", descriptor.path(), NULL);
     fprintf(stdout, "Crash reporter returned %d\n", ret);
     return succeeded;
 }
 #endif
+
+} // namespace App
+} // namespace Nidium
 
 int main(int argc, char **argv)
 {
@@ -57,12 +59,12 @@ int main(int argc, char **argv)
 
     Nidium::Interface::__NativeUI = &UI;
     _ape_seed = time(NULL) ^ (getpid() << 16);
-    if (getcwd(_root, PATH_MAX)) {
-        int l = strlen(_root);
-        _root[l] = '/';
+    if (getcwd(Nidium::App::_root, PATH_MAX)) {
+        int l = strlen(Nidium::App::_root);
+        Nidium::App::_root[l] = '/';
         l += 1;
-        strncpy(&_root[l], argv[0], PATH_MAX - l);
-        dirname(_root);
+        strncpy(&Nidium::App::_root[l], argv[0], PATH_MAX - l);
+        dirname(Nidium::App::_root);
     }
 
     const char *nml = NULL;
