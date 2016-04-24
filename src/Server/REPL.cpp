@@ -1,12 +1,14 @@
-#include "REPL.h"
-#include "Macros.h"
-
-#include <Binding/NidiumJS.h>
-#include "external/linenoise.h"
+#include "Server/REPL.h"
 
 #include <stdio.h>
 #include <errno.h>
 #include <pwd.h>
+
+#include <Binding/NidiumJS.h>
+
+#include "external/linenoise.h"
+
+#include "Server/Macros.h"
 
 namespace Nidium {
 namespace Server {

@@ -1,16 +1,18 @@
-#include "JSSystem.h"
+#include "Binding/JSSystem.h"
+
 #include <Binding/NidiumJS.h>
 
-#include "Context.h"
-#include "Macros.h"
+#include <errno.h>
+#include <sys/stat.h>
 
 #ifdef __linux__
   #include <sys/time.h>
   #include <sys/resource.h>
   #include <linux/stat.h>
 #endif
-#include <errno.h>
-#include <sys/stat.h>
+
+#include "Server/Context.h"
+#include "Server/Macros.h"
 
 namespace Nidium {
 namespace Server {

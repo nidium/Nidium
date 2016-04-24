@@ -12,12 +12,12 @@
 #include <sys/wait.h>
 #endif
 
-#include "Server.h"
-#include "Context.h"
-#include "Macros.h"
-#include "REPL.h"
-
 #include <Binding/JSProcess.h>
+
+#include "Server/Server.h"
+#include "Server/Context.h"
+#include "Server/Macros.h"
+#include "Server/REPL.h"
 
 unsigned long _ape_seed;
 

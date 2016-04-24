@@ -10,10 +10,10 @@
 #include <Net/HTTPStream.h>
 #include <Binding/NidiumJS.h>
 
-#include "JSConsole.h"
-#include "JSSystem.h"
-#include "Context.h"
-#include "Macros.h"
+#include "Server/Context.h"
+#include "Server/Macros.h"
+#include "Binding/JSConsole.h"
+#include "Binding/JSSystem.h"
 
 namespace Nidium {
 namespace Server {

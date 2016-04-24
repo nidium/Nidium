@@ -1,5 +1,5 @@
-#ifndef serverjssystem_h__
-#define serverjssystem_h__
+#ifndef binding_jssystem_h__
+#define binding_jssystem_h__
 
 #include <Binding/JSExposer.h>
 
