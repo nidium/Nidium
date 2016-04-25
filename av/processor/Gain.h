@@ -6,10 +6,10 @@
 namespace Nidium {
 namespace AV {
 
-class NativeAudioProcessorGain: public NativeAudioProcessor
+class AudioProcessorGain: public AudioProcessor
 {
   public:
-    NativeAudioProcessorGain() : m_Gain(1) {};
+    AudioProcessorGain() : m_Gain(1) {};
 
     void process(float *in, int *i)
     {
@@ -21,7 +21,7 @@ class NativeAudioProcessorGain: public NativeAudioProcessor
         m_Gain = gain;
     }
 
-    ~NativeAudioProcessorGain() {};
+    ~AudioProcessorGain() {};
   private:
     double m_Gain;
 };

@@ -10,12 +10,12 @@
 namespace Nidium {
 namespace AV {
 
-class NativeAudioProcessorDelay;
+class AudioProcessorDelay;
 
-class NativeAudioNodeDelay: public NativeAudioNodeProcessor
+class AudioNodeDelay: public NativeAudioNodeProcessor
 {
     public :
-        NativeAudioNodeDelay(int inCount, int outCount, NativeAudio *audio);
+        AudioNodeDelay(int inCount, int outCount, NativeAudio *audio);
 
         enum Args {
             WET, DELAY, FEEDBACK
@@ -23,9 +23,9 @@ class NativeAudioNodeDelay: public NativeAudioNodeProcessor
 
         static void argCallback(NativeAudioNode *node, int id, void *val, int size);
 
-        ~NativeAudioNodeDelay() {};
+        ~AudioNodeDelay() {};
     private :
-        NativeAudioProcessorDelay *m_DelayProcessor;
+        AudioProcessorDelay *m_DelayProcessor;
 };
 
 } // namespace AV

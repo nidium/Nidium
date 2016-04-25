@@ -9,10 +9,10 @@
 namespace Nidium {
 namespace AV {
 
-class NativeAudioProcessorDelay: public NativeAudioProcessor
+class AudioProcessorDelay: public AudioProcessor
 {
   public:
-    NativeAudioProcessorDelay(int sampleRate, int maxDelay)
+    AudioProcessorDelay(int sampleRate, int maxDelay)
         : m_Buffer(NULL), m_Delay(0), m_Wet(1), m_Feedback(0), m_BuffIndex(0),
           m_Idx(0), m_MaxDelay(maxDelay), m_SamplRate(sampleRate)
     {
@@ -60,7 +60,7 @@ class NativeAudioProcessorDelay: public NativeAudioProcessor
         m_Wet = nidium_max(nidium_min(wet, 1), 0);
     }
 
-    ~NativeAudioProcessorDelay() {
+    ~AudioProcessorDelay() {
         free(m_Buffer);
     };
   private:

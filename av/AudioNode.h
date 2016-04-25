@@ -377,12 +377,12 @@ class NativeAudioCustomSource : public NativeAudioNodeCustom, public NativeAVSou
 };
 // }}}
 
-// {{{ NativeAudioProcessor
-class NativeAudioProcessor
+// {{{ AudioProcessor
+class AudioProcessor
 {
   public:
     virtual void process(float *in, int *i) = 0;
-    virtual ~NativeAudioProcessor() = 0;
+    virtual ~AudioProcessor() = 0;
 };
 // }}}
 
@@ -404,17 +404,17 @@ class NativeAudioNodeProcessor: public NativeAudioNode
     {
         va_list args;
         va_start(args, channel);
-        NativeAudioProcessor *p = va_arg(args, NativeAudioProcessor*);
+        AudioProcessor *p = va_arg(args, AudioProcessor*);
 
         while (p != NULL) {
             this->setProcessor(channel, p);
-            p = va_arg(args, NativeAudioProcessor*);
+            p = va_arg(args, AudioProcessor*);
         }
 
         va_end(args);
     }
 
-    void setProcessor(int channel, NativeAudioProcessor *processor) {
+    void setProcessor(int channel, AudioProcessor *processor) {
         for (int i = 0; i < NATIVE_AUDIONODE_CHANNEL_SIZE; i++) {
             if (m_Processor[channel][i] == NULL) {
                 m_Processor[channel][i] = processor;
@@ -428,7 +428,7 @@ class NativeAudioNodeProcessor: public NativeAudioNode
         for (int i = 0; i < m_Audio->m_OutputParameters->m_FramesPerBuffer; i++) {
             for (int j = 0; j < m_InCount; j++) {
                 for (int k = 0; k < NATIVE_AUDIONODE_CHANNEL_SIZE; k++) {
-                    NativeAudioProcessor *p = m_Processor[m_Input[j]->channel][k];
+                    AudioProcessor *p = m_Processor[m_Input[j]->channel][k];
                     if (p != NULL) {
                         p->process(&m_Frames[m_Input[j]->channel][i], &i);
                     } else {
@@ -442,7 +442,7 @@ class NativeAudioNodeProcessor: public NativeAudioNode
 
     ~NativeAudioNodeProcessor() {}
   private:
-    NativeAudioProcessor *m_Processor[NATIVE_AUDIONODE_CHANNEL_SIZE][NATIVE_AUDIONODE_CHANNEL_SIZE];
+    AudioProcessor *m_Processor[NATIVE_AUDIONODE_CHANNEL_SIZE][NATIVE_AUDIONODE_CHANNEL_SIZE];
 };
 // }}}
 

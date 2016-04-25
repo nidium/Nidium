@@ -574,7 +574,7 @@ NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int 
                 }
                 break;
             case GAIN:
-                    return new NativeAudioNodeGain(input, output, this);
+                    return new AudioNodeGain(input, output, this);
                 break;
             case CUSTOM:
                     return new NativeAudioNodeCustom(input, output, this);
@@ -583,7 +583,7 @@ NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int 
                     return new NativeAudioNodeReverb(input, output, this);
                 break;
             case DELAY:
-                    return new NativeAudioNodeDelay(input, output, this);
+                    return new AudioNodeDelay(input, output, this);
                 break;
             case STEREO_ENHANCER:
                     return new NativeAudioNodeStereoEnhancer(input, output, this);

@@ -1701,8 +1701,8 @@ bool NativeAudioCustomSource::isActive()
 }
 // }}}
 
-// {{{ NativeAudioProcessor
-NativeAudioProcessor::~NativeAudioProcessor() {};
+// {{{ AudioProcessor
+AudioProcessor::~AudioProcessor() {};
 // }}}
 
 } // namespace AV
