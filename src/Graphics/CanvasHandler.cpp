@@ -428,7 +428,7 @@ void CanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContext)
         return;
     }
 
-    NativeRect actualRect;
+    Rect actualRect;
     actualRect.m_fLeft = m_aLeft - m_Padding.global;
     actualRect.m_fTop = m_aTop - m_Padding.global;
     actualRect.m_fRight = m_Width + m_aLeft;
@@ -472,7 +472,7 @@ void CanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContext)
 void CanvasHandler::layerize(NativeLayerizeContext &layerContext, bool draw)
 {
     CanvasHandler *cur;
-    NativeRect nclip;
+    Rect nclip;
     NativeLayerSiblingContext *sctx = layerContext.m_SiblingCtx;
 
     if (m_Visibility == CANVAS_VISIBILITY_HIDDEN || m_Opacity == 0.0) {
@@ -596,11 +596,11 @@ void CanvasHandler::layerize(NativeLayerizeContext &layerContext, bool draw)
     }
 
     if (m_nChildren) {
-        NativeRect tmpClip;
+        Rect tmpClip;
 
         /* Save the clip */
         if (layerContext.m_Clip != NULL) {
-            memcpy(&tmpClip, layerContext.m_Clip, sizeof(NativeRect));
+            memcpy(&tmpClip, layerContext.m_Clip, sizeof(Rect));
         }
         /* Occlusion culling */
 #if 0
@@ -608,7 +608,7 @@ void CanvasHandler::layerize(NativeLayerizeContext &layerContext, bool draw)
                                         sizeof(CanvasHandler *)
                                         * m_nChildren);
 
-        NativeRect culRect;
+        Rect culRect;
         for (cur = last; cur != NULL; cur = cur->prev) {
 
         }
@@ -655,7 +655,7 @@ void CanvasHandler::layerize(NativeLayerizeContext &layerContext, bool draw)
             }
             /* restore the old clip (layerize could have altered it) */
             if (layerContext.m_Clip != NULL) {
-                memcpy(layerContext.m_Clip, &tmpClip, sizeof(NativeRect));
+                memcpy(layerContext.m_Clip, &tmpClip, sizeof(Rect));
             }
         }
     }
@@ -858,7 +858,7 @@ bool CanvasHandler::isOutOfBound()
     return false;
 }
 
-NativeRect CanvasHandler::getViewport()
+Rect CanvasHandler::getViewport()
 {
     CanvasHandler *cur = NULL;
 
@@ -869,14 +869,14 @@ NativeRect CanvasHandler::getViewport()
 
             cur->computeAbsolutePosition();
 
-            NativeRect rect = {
+            Rect rect = {
                 cur->getLeft(true),
                 cur->getTop(true),
                 cur->getTop(true)+cur->getHeight(),
                 cur->getLeft(true)+cur->getWidth()
             };
 
-            NativeRect prect = m_Parent->getViewport();
+            Rect prect = m_Parent->getViewport();
 
             rect.intersect(prect.m_fLeft, prect.m_fTop, prect.m_fRight, prect.m_fBottom);
 
@@ -892,9 +892,9 @@ NativeRect CanvasHandler::getViewport()
         cur->getLeft(true)+cur->getWidth()};
 }
 
-NativeRect CanvasHandler::getVisibleRect()
+Rect CanvasHandler::getVisibleRect()
 {
-    NativeRect vp = this->getViewport();
+    Rect vp = this->getViewport();
     this->computeAbsolutePosition();
 
     return {

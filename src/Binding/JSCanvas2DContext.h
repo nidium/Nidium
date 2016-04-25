@@ -15,7 +15,7 @@ namespace Nidium {
         class NativeUIInterface;
     }
     namespace Graphics {
-        struct NativeRect;
+        struct Rect;
         class Skia;
         class CanvasHandler;
     }

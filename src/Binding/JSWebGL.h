@@ -80,7 +80,7 @@ class CanvasWebGLContext: public Graphics::CanvasContext
 
         void composeWith(Canvas2DContext *layer,
             double left, double top, double opacity,
-            double zoom, const Graphics::NativeRect *rclip);
+            double zoom, const Graphics::Rect *rclip);
 
         bool m_UnpackFlipY;
         bool m_UnpackPremultiplyAlpha;

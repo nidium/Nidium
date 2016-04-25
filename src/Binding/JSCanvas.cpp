@@ -510,7 +510,7 @@ static bool nidium_canvas_getVisibleRect(JSContext *cx, unsigned argc,
 {
     NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
 
-    Nidium::Graphics::NativeRect rect = NativeObject->getVisibleRect();
+    Nidium::Graphics::Rect rect = NativeObject->getVisibleRect();
     JS::RootedObject ret(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \

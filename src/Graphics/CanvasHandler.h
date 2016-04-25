@@ -35,8 +35,8 @@ namespace Graphics {
 class Skia;
 class CanvasContext;
 
-// {{{ NativeRect
-struct NativeRect
+// {{{ Rect
+struct Rect
 {
     double m_fLeft, m_fTop, m_fBottom, m_fRight;
     bool isEmpty() const { return m_fLeft >= m_fRight || m_fTop >= m_fBottom; }
@@ -62,8 +62,8 @@ struct NativeRect
         return false;
     }
 
-    NativeRect scaled(float scale) const {
-        NativeRect r = {
+    Rect scaled(float scale) const {
+        Rect r = {
             m_fLeft*scale,
             m_fTop*scale,
             m_fBottom*scale,
@@ -97,7 +97,7 @@ struct NativeLayerizeContext {
     double m_pTop;
     double m_aOpacity;
     double m_aZoom;
-    NativeRect *m_Clip;
+    Rect *m_Clip;
 
     struct NativeLayerSiblingContext *m_SiblingCtx;
 
@@ -499,8 +499,8 @@ class CanvasHandler : public Nidium::Core::Events
         void computeContentSize(int *cWidth, int *cHeight, bool inner = false);
         void translate(double x, double y);
         bool isOutOfBound();
-        NativeRect getViewport();
-        NativeRect getVisibleRect();
+        Rect getViewport();
+        Rect getVisibleRect();
 
         void bringToFront();
         void sendToBack();

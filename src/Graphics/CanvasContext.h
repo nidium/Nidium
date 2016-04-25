@@ -23,7 +23,7 @@ namespace Nidium {
 namespace Nidium {
 namespace Graphics {
 
-struct NativeRect;
+struct Rect;
 class CanvasHandler;
 
 class CanvasContext
@@ -144,7 +144,7 @@ class CanvasContext
 
     void preComposeOn(Nidium::Binding::Canvas2DContext *layer,
         double left, double top, double opacity,
-        double zoom, const NativeRect *rclip);
+        double zoom, const Rect *rclip);
 protected:
     /* Hold the current matrix (model) sent to the Vertex shader */
     SkMatrix44 m_Transform;

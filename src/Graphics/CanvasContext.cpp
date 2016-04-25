@@ -350,7 +350,7 @@ void CanvasContext::setupShader(float opacity, int width, int height,
 
 void CanvasContext::preComposeOn(Nidium::Binding::Canvas2DContext *layer,
     double left, double top, double opacity,
-    double zoom, const NativeRect *rclip)
+    double zoom, const Rect *rclip)
 {
     bool revertScissor = false;
     float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
