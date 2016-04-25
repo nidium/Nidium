@@ -151,9 +151,9 @@ void NativeContext::loadNativeObjects(int width, int height)
     Nidium::Binding::JSImage::RegisterObject(cx);
     /* Audio() object */
 #ifdef NATIVE_AUDIO_ENABLED
-    Nidium::Binding::NativeJSAudio::RegisterObject(cx);
-    Nidium::Binding::NativeJSAudioNode::RegisterObject(cx);
-    Nidium::Binding::NativeJSVideo::RegisterObject(cx);
+    Nidium::Binding::JSAudio::RegisterObject(cx);
+    Nidium::Binding::JSAudioNode::RegisterObject(cx);
+    Nidium::Binding::JSVideo::RegisterObject(cx);
 #endif
     /* WebGL*() object */
 #ifdef NATIVE_WEBGL_ENABLED

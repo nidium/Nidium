@@ -36,23 +36,19 @@ enum {
     CUSTOM_SOURCE_PROP_SEEK
 };
 
-namespace Nidium {
-    namespace Binding {
-        class NidiumJS;
-    }
-}
+class NidiumJS;
 
-class NativeJSAudioNode;
+class JSAudioNode;
 class Canvas2DContext;
 
-// {{{ NativeJSAVMessageCallback
-struct NativeJSAVMessageCallback {
+// {{{ JSAVMessageCallback
+struct JSAVMessageCallback {
     JS::PersistentRootedObject callee;
     int ev;
     int arg1;
     int arg2;
 
-    NativeJSAVMessageCallback(JSContext *cx, JS::HandleObject callee, int ev, int arg1, int arg2)
+    JSAVMessageCallback(JSContext *cx, JS::HandleObject callee, int ev, int arg1, int arg2)
         : callee(cx, callee), ev(ev), arg1(arg1), arg2(arg2) {};
 };
 // }}}
@@ -81,8 +77,8 @@ class JSTransferableFunction
 };
 // }}}
 
-// {{{ NativeJSAVSource
-class NativeJSAVSource
+// {{{ JSAVSource
+class JSAVSource
 {
     public:
         static inline bool PropSetter(AV::NativeAVSource *source, uint8_t id, JS::MutableHandleValue vp);
@@ -90,21 +86,21 @@ class NativeJSAVSource
 };
 // }}}
 
-// {{{ NativeJSAudio
-class NativeJSAudio: public JSExposer<NativeJSAudio>
+// {{{ JSAudio
+class JSAudio: public JSExposer<JSAudio>
 {
     public :
-        static NativeJSAudio *GetContext(JSContext *cx, JS::HandleObject obj, \
+        static JSAudio *GetContext(JSContext *cx, JS::HandleObject obj, \
             unsigned int bufferSize, unsigned int channels, unsigned int sampleRate);
-        static NativeJSAudio *GetContext();
+        static JSAudio *GetContext();
 
         struct Nodes {
-            NativeJSAudioNode *curr;
+            JSAudioNode *curr;
 
             Nodes *prev;
             Nodes *next;
 
-            Nodes(NativeJSAudioNode *curr, Nodes *prev, Nodes *next)
+            Nodes(JSAudioNode *curr, Nodes *prev, Nodes *next)
                 : curr(curr), prev(prev), next(next) {}
             Nodes()
                 : curr(NULL), prev(NULL), next(NULL) {}
@@ -120,10 +116,10 @@ class NativeJSAudio: public JSExposer<NativeJSAudio>
 
         JSRuntime *m_JsRt;
         JSContext *m_JsTcx;
-        NativeJSAudioNode *m_Target;
+        JSAudioNode *m_Target;
 
         bool createContext();
-        void initNode(NativeJSAudioNode *node, JS::HandleObject jnode, JS::HandleString name);
+        void initNode(JSAudioNode *node, JS::HandleObject jnode, JS::HandleString name);
         bool run(char *str);
         static void CtxCallback(void *custom);
         static void RunCallback(void *custom);
@@ -132,20 +128,20 @@ class NativeJSAudio: public JSExposer<NativeJSAudio>
 
         static void RegisterObject(JSContext *cx);
 
-        ~NativeJSAudio();
+        ~JSAudio();
     private :
-        NativeJSAudio(AV::NativeAudio *audio, JSContext *cx, JS::HandleObject obj);
-        static NativeJSAudio *m_Instance;
+        JSAudio(AV::NativeAudio *audio, JSContext *cx, JS::HandleObject obj);
+        static JSAudio *m_Instance;
 };
 // }}}
 
-// {{{ NativeJSAudioNode
-class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messages
+// {{{ JSAudioNode
+class JSAudioNode: public JSExposer<JSAudioNode>, public Core::Messages
 {
     public :
-        NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
-            AV::NativeAudio::Node type, int in, int out, NativeJSAudio *audio)
-            :   JSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL),
+        JSAudioNode(JS::HandleObject obj, JSContext *cx,
+            AV::NativeAudio::Node type, int in, int out, JSAudio *audio)
+            :   JSExposer<JSAudioNode>(obj, cx), m_nJs(NULL),
                 m_Audio(audio), m_Node(NULL), m_NodeType(type), m_NodeObj(nullptr), m_HashObj(nullptr),
                 m_ArrayContent(NULL), m_IsDestructing(false)
         {
@@ -168,9 +164,9 @@ class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messa
             }
         }
 
-        NativeJSAudioNode(JS::HandleObject obj, JSContext *cx,
-               AV::NativeAudio::Node type, AV::NativeAudioNode *node, NativeJSAudio *audio)
-            :  JSExposer<NativeJSAudioNode>(obj, cx), m_nJs(NULL), m_Audio(audio), m_Node(node), m_NodeType(type),
+        JSAudioNode(JS::HandleObject obj, JSContext *cx,
+               AV::NativeAudio::Node type, AV::NativeAudioNode *node, JSAudio *audio)
+            :  JSExposer<JSAudioNode>(obj, cx), m_nJs(NULL), m_Audio(audio), m_Node(node), m_NodeType(type),
                m_NodeObj(nullptr), m_HashObj(nullptr), m_ArrayContent(NULL), m_IsDestructing(false)
         {
             this->add();
@@ -180,10 +176,10 @@ class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messa
             }
         }
 
-        ~NativeJSAudioNode();
+        ~JSAudioNode();
 
         struct Message {
-            NativeJSAudioNode *jsNode;
+            JSAudioNode *jsNode;
             char *name;
             struct {
                 uint64_t *datap;
@@ -197,7 +193,7 @@ class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messa
 
         // Common
         NidiumJS *m_nJs;
-        NativeJSAudio *m_Audio;
+        JSAudio *m_Audio;
         AV::NativeAudioNode *m_Node;
         AV::NativeAudio::Node m_NodeType;
 
@@ -222,7 +218,7 @@ class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messa
 
         // Custom source m_Node
         static void SeekCallback(AV::NativeAudioCustomSource *node, double seekTime, void *custom);
-        static bool PropSetter(NativeJSAudioNode *node, JSContext *cx,
+        static bool PropSetter(JSAudioNode *node, JSContext *cx,
                 uint8_t id, JS::MutableHandleValue vp);
 
         static void RegisterObject(JSContext *cx);
@@ -232,11 +228,11 @@ class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messa
 };
 // }}}
 
-// {{{ NativeJSVideo
-class NativeJSVideo : public JSExposer<NativeJSVideo>, public Core::Messages
+// {{{ JSVideo
+class JSVideo : public JSExposer<JSVideo>, public Core::Messages
 {
     public :
-        NativeJSVideo(JS::HandleObject obj, Canvas2DContext *canvasCtx, JSContext *cx);
+        JSVideo(JS::HandleObject obj, Canvas2DContext *canvasCtx, JSContext *cx);
 
         AV::NativeVideo *m_Video;
 
@@ -257,7 +253,7 @@ class NativeJSVideo : public JSExposer<NativeJSVideo>, public Core::Messages
         void onMessage(const Core::SharedMessages::Message &msg);
         static void onEvent(const struct AV::NativeAVSourceEvent *cev);
 
-        ~NativeJSVideo();
+        ~JSVideo();
     private :
         void releaseAudioNode();
         bool m_IsDestructing;
