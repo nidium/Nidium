@@ -4,7 +4,7 @@
 
 from dokumentor import *
 
-NamespaceDoc( "NativeDebug", "Debugging helper functions.",
+NamespaceDoc( "NidiumDebug", "Debugging helper functions.",
 	NO_Sees,
 	[ExampleDoc( """var d = {a:1, b: "a"};
 var s = Debug.serialize(d);
@@ -13,8 +13,8 @@ console.log(JSON.stringify(u));
 """)]
 )
 
-FieldDoc( "global.Debug", "Interfaces to the NativeDebug class.",
-	SeesDocs( "global.Debug|NativeDebug" ),
+FieldDoc( "global.Debug", "Interfaces to the NidiumDebug class.",
+	SeesDocs( "global.Debug|NidiumDebug" ),
 	[ExampleDoc( """var d = {a:1, b: "a"};
 var s = Debug.serialize(d);
 var u = Debug.unserialize(s)
@@ -25,8 +25,8 @@ console.log(JSON.stringify(u));
 	NO_Default
 )
 
-FunctionDoc( "NativeDebug.serialize", "Dump the content of an object.",
-	[ SeeDoc( "NativeDebug.unserialize" ) ],
+FunctionDoc( "NidiumDebug.serialize", "Dump the content of an object.",
+	[ SeeDoc( "NidiumDebug.unserialize" ) ],
 	[ExampleDoc( """var d = {a:1, b: "a"};
 var s = Debug.serialize(d);
 var u = Debug.unserialize(s)
@@ -37,8 +37,8 @@ console.log(JSON.stringify(u));
 	ReturnDoc( "list with dumped data", "[mixed]" )
 )
 
-FunctionDoc( "NativeDebug.unserialize", "Dump the content of an object.",
-	[ SeeDoc( "NativeDebug.serialize" ) ],
+FunctionDoc( "NidiumDebug.unserialize", "Dump the content of an object.",
+	[ SeeDoc( "NidiumDebug.serialize" ) ],
 	[ExampleDoc( """var d = {a:1, b: "a"};
 var s = Debug.serialize(d);
 var u = Debug.unserialize(s)

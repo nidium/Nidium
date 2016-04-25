@@ -17,7 +17,7 @@ static bool nidium_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool nidium_process_exit(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass Process_class = {
-    "NativeProcess", JSCLASS_HAS_PRIVATE,
+    "NidiumProcess", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Process_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS

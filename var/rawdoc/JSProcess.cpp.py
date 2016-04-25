@@ -4,39 +4,39 @@
 
 from dokumentor import *
 
-ClassDoc( "NativeProcess", "Process information how nidium was started.",
-	SeesDocs( "global.process|NativeProcess" ),
+ClassDoc( "NidiumProcess", "Object providing various information and interfaces to interact with system process.",
+	SeesDocs( "global.process|NidiumProcess" ),
 	[ExampleDoc("""console.log(JSON.stringify(process));""")],
 	NO_Inherrits,
 	NO_Extends,
 )
 
-FieldDoc( "global.process", "Instance of the the `NativeProcess` class.",
-	SeesDocs( "global.process|NativeProcess" ),
+FieldDoc( "global.process", "Instance of the the `NidiumProcess` class.",
+	SeesDocs( "global.process|NidiumProcess" ),
 	[ExampleDoc("""console.log(JSON.stringify(process));""")],
 	IS_Dynamic, IS_Public, IS_Readonly,
 	ObjectDoc([]),
 	NO_Default
 )
 
-FieldDoc( "NativeProcess.argv", "The arguments that were set upon construction.",
-	SeesDocs( "NativeProcess" ),
+FieldDoc( "NidiumProcess.argv", "The arguments that were set upon construction.",
+	SeesDocs( "NidiumProcess" ),
 	[ExampleDoc("""console.log(JSON.stringify(process));""")],
 	IS_Dynamic, IS_Public, IS_Readonly,
 	ObjectDoc([]),
 	NO_Default
 )
 
-FieldDoc( "NativeProcess.workerId", "The identifier for the current worker.",
-	SeesDocs( "NativeProcess|Threads" ),
+FieldDoc( "NidiumProcess.workerId", "The identifier for the current worker.",
+	SeesDocs( "NidiumProcess|Threads" ),
 	[ExampleDoc("""console.log(JSON.stringify(process));""")],
 	IS_Dynamic, IS_Public, IS_Readonly,
 	"integer",
 	NO_Default
 )
 
-FunctionDoc("NativeProcess.setSignalHandler", "Attach a javascript callback to a signal.",
-	SeesDocs("NativeProcess|Threads|NativeProcess.setSignalHandler|NativeProcess.exit"),
+FunctionDoc("NidiumProcess.setSignalHandler", "Attach a javascript callback to a signal.",
+	SeesDocs("NidiumProcess|Threads|NidiumProcess.setSignalHandler|NidiumProcess.exit"),
 	[ExampleDoc("""process.setSignalHandler(function(){
 console.log("got Kill");
 })
@@ -46,8 +46,8 @@ console.log("got Kill");
 	NO_Returns
 )
 
-FunctionDoc("NativeProcess.exit", "Attach a javascript callback to a signal.",
-	SeesDocs("NativeProcess|Threads|NativeProcess.setSignalHandler|NativeProcess.exit"),
+FunctionDoc("NidiumProcess.exit", "Attach a javascript callback to a signal.",
+	SeesDocs("NidiumProcess|Threads|NidiumProcess.setSignalHandler|NidiumProcess.exit"),
 	[ExampleDoc("""var realy = false;
 if (realy) {
 	process.exit();
