@@ -11,12 +11,12 @@ class SkColorFilter;
 namespace Nidium {
 namespace Graphics {
 
-/** class NativeShadowLooper
+/** class ShadowLooper
     This class draws a shadow of the object (possibly offset), and then draws
     the original object in its original position.
     should there be an option to just draw the shadow/blur layer? webkit?
 */
-class SK_API NativeShadowLooper : public SkDrawLooper {
+class SK_API ShadowLooper : public SkDrawLooper {
 public:
     enum BlurFlags {
         kNone_BlurFlag = 0x00,
@@ -31,31 +31,31 @@ public:
         kAll_BlurFlag = 0x07
     };
 
-    static NativeShadowLooper* Create(SkColor color, SkScalar sigma, SkScalar dx, SkScalar dy,
+    static ShadowLooper* Create(SkColor color, SkScalar sigma, SkScalar dx, SkScalar dy,
                                     uint32_t flags = kNone_BlurFlag) {
-        return SkNEW_ARGS(NativeShadowLooper, (color, sigma, dx, dy, flags));
+        return SkNEW_ARGS(ShadowLooper, (color, sigma, dx, dy, flags));
     }
 
-    static NativeShadowLooper* Create(SkScalar radius, SkScalar dx, SkScalar dy,
+    static ShadowLooper* Create(SkScalar radius, SkScalar dx, SkScalar dy,
                                    SkColor color, uint32_t flags) {
-        return SkNEW_ARGS(NativeShadowLooper, (color, SkBlurMask::ConvertRadiusToSigma(radius), dx, dy, flags));
+        return SkNEW_ARGS(ShadowLooper, (color, SkBlurMask::ConvertRadiusToSigma(radius), dx, dy, flags));
     }
 
-    virtual ~NativeShadowLooper();
+    virtual ~ShadowLooper();
 
-    virtual NativeShadowLooper::Context* createContext(SkCanvas*, void* storage) const SK_OVERRIDE;
-    virtual size_t contextSize() const SK_OVERRIDE { return sizeof(NativeShadowLooperContext); }
+    virtual ShadowLooper::Context* createContext(SkCanvas*, void* storage) const SK_OVERRIDE;
+    virtual size_t contextSize() const SK_OVERRIDE { return sizeof(ShadowLooperContext); }
 
     SK_TO_STRING_OVERRIDE()
-    SK_DECLARE_PUBLIC_FLATTENABLE_DESERIALIZATION_PROCS(NativeShadowLooper)
+    SK_DECLARE_PUBLIC_FLATTENABLE_DESERIALIZATION_PROCS(ShadowLooper)
 
 protected:
 
-    NativeShadowLooper(SkColor color, SkScalar sigma, SkScalar dx, SkScalar dy,
+    ShadowLooper(SkColor color, SkScalar sigma, SkScalar dx, SkScalar dy,
                     uint32_t flags = kNone_BlurFlag);
-    NativeShadowLooper(SkScalar radius, SkScalar dx, SkScalar dy,
+    ShadowLooper(SkScalar radius, SkScalar dx, SkScalar dy,
                     SkColor color, uint32_t flags = kNone_BlurFlag);
-    NativeShadowLooper(SkReadBuffer&);
+    ShadowLooper(SkReadBuffer&);
 
     virtual void flatten(SkWriteBuffer&) const SK_OVERRIDE;
     virtual bool asABlurShadow(BlurShadowRec*) const SK_OVERRIDE;
@@ -72,14 +72,14 @@ private:
         kAfterEdge,
         kDone
     };
-    class NativeShadowLooperContext : public SkDrawLooper::Context {
+    class ShadowLooperContext : public SkDrawLooper::Context {
     public:
-        explicit NativeShadowLooperContext(const NativeShadowLooper* looper);
+        explicit ShadowLooperContext(const ShadowLooper* looper);
 
         virtual bool next(SkCanvas* canvas, SkPaint* paint) SK_OVERRIDE;
 
     private:
-        const NativeShadowLooper* m_fLooper;
+        const ShadowLooper* m_fLooper;
         State m_fState;
     };
 

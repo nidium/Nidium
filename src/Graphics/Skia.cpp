@@ -541,13 +541,13 @@ void NativeSkia::system(const char *text, int x, int y)
     CANVAS_FLUSH();
 }
 
-NativeShadowLooper *NativeSkia::buildShadow()
+ShadowLooper *NativeSkia::buildShadow()
 {
     if (currentShadow.blur == 0) {
         return NULL;
     }
 
-    return NativeShadowLooper::Create(SkDoubleToScalar(currentShadow.blur),
+    return ShadowLooper::Create(SkDoubleToScalar(currentShadow.blur),
                                 SkDoubleToScalar(currentShadow.x),
                                 SkDoubleToScalar(currentShadow.y),
                                 currentShadow.color,

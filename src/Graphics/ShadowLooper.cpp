@@ -13,17 +13,17 @@ namespace Graphics {
 
 
 /// {{{ Construct and init
-NativeShadowLooper::NativeShadowLooper(SkScalar radius, SkScalar dx, SkScalar dy,
+ShadowLooper::ShadowLooper(SkScalar radius, SkScalar dx, SkScalar dy,
                                    SkColor color, uint32_t flags) {
     this->init(SkBlurMask::ConvertRadiusToSigma(radius), dx, dy, color, flags);
 }
 
-NativeShadowLooper::NativeShadowLooper(SkColor color, SkScalar sigma,
+ShadowLooper::ShadowLooper(SkColor color, SkScalar sigma,
                                    SkScalar dx, SkScalar dy, uint32_t flags) {
     this->init(sigma, dx, dy, color, flags);
 }
 
-NativeShadowLooper::NativeShadowLooper(SkReadBuffer& buffer) : INHERITED(buffer) {
+ShadowLooper::ShadowLooper(SkReadBuffer& buffer) : INHERITED(buffer) {
 
     m_fSigma = buffer.readScalar();
     m_fDx = buffer.readScalar();
@@ -34,7 +34,7 @@ NativeShadowLooper::NativeShadowLooper(SkReadBuffer& buffer) : INHERITED(buffer)
     this->initEffects();
 }
 
-void NativeShadowLooper::init(SkScalar sigma, SkScalar dx, SkScalar dy,
+void ShadowLooper::init(SkScalar sigma, SkScalar dx, SkScalar dy,
                             SkColor color, uint32_t flags) {
     m_fSigma = sigma;
     m_fDx = dx;
@@ -45,7 +45,7 @@ void NativeShadowLooper::init(SkScalar sigma, SkScalar dx, SkScalar dy,
     this->initEffects();
 }
 
-void NativeShadowLooper::initEffects()
+void ShadowLooper::initEffects()
 {
     SkASSERT(m_fBlurFlags <= kAll_BlurFlag);
     if (m_fSigma > 0) {
@@ -67,7 +67,7 @@ void NativeShadowLooper::initEffects()
 // }}}
 
 // {{{ Methods
-void NativeShadowLooper::flatten(SkWriteBuffer& buffer) const {
+void ShadowLooper::flatten(SkWriteBuffer& buffer) const {
     this->INHERITED::flatten(buffer);
     buffer.writeScalar(m_fSigma);
     buffer.writeScalar(m_fDx);
@@ -76,7 +76,7 @@ void NativeShadowLooper::flatten(SkWriteBuffer& buffer) const {
     buffer.write32(m_fBlurFlags);
 }
 
-bool NativeShadowLooper::asABlurShadow(BlurShadowRec* rec) const {
+bool ShadowLooper::asABlurShadow(BlurShadowRec* rec) const {
     if (m_fSigma <= 0 || (m_fBlurFlags & m_fBlurFlags & kIgnoreTransform_BlurFlag)) {
         return false;
     }
@@ -93,7 +93,7 @@ bool NativeShadowLooper::asABlurShadow(BlurShadowRec* rec) const {
 }
 
 #if 1
-void NativeShadowLooper::toString(SkString* str) const {
+void ShadowLooper::toString(SkString* str) const {
     str->append("SkBlurDrawLooper: ");
 
     str->append("dx: ");
@@ -125,16 +125,16 @@ void NativeShadowLooper::toString(SkString* str) const {
 // }}}
 
 // {{{ Context
-NativeShadowLooper::Context* NativeShadowLooper::createContext(SkCanvas*, void* storage) const {
-    return SkNEW_PLACEMENT_ARGS(storage, NativeShadowLooperContext, (this));
+ShadowLooper::Context* ShadowLooper::createContext(SkCanvas*, void* storage) const {
+    return SkNEW_PLACEMENT_ARGS(storage, ShadowLooperContext, (this));
 }
 
 
-NativeShadowLooper::NativeShadowLooperContext::NativeShadowLooperContext(
-        const NativeShadowLooper* looper)
-    : m_fLooper(looper), m_fState(NativeShadowLooper::kBeforeEdge) {}
+ShadowLooper::ShadowLooperContext::ShadowLooperContext(
+        const ShadowLooper* looper)
+    : m_fLooper(looper), m_fState(ShadowLooper::kBeforeEdge) {}
 
-bool NativeShadowLooper::NativeShadowLooperContext::next(SkCanvas* canvas, SkPaint* paint) {
+bool ShadowLooper::ShadowLooperContext::next(SkCanvas* canvas, SkPaint* paint) {
     U8CPU a;
     switch (m_fState) {
         case kBeforeEdge:
@@ -173,7 +173,7 @@ bool NativeShadowLooper::NativeShadowLooperContext::next(SkCanvas* canvas, SkPai
 // }}}
 
 // {{{ Destruct
-NativeShadowLooper::~NativeShadowLooper() {
+ShadowLooper::~ShadowLooper() {
     SkSafeUnref(m_fBlur);
     SkSafeUnref(m_fColorFilter);
 }

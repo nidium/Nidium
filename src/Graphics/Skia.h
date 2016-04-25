@@ -22,7 +22,7 @@ namespace Graphics {
 
 class NativeSkImage;
 class NativeSkGradient;
-class NativeShadowLooper;
+class ShadowLooper;
 
 typedef uint32_t SkPMColor;
 typedef uint32_t SkColor;
@@ -80,7 +80,7 @@ class NativeSkia
         uint8_t m_AsComposite;
         SkBitmap *screen;
         NativeShadow_t currentShadow;
-        NativeShadowLooper *buildShadow();
+        ShadowLooper *buildShadow();
         SkCanvas *m_Canvas;
         void initPaints();
         void addPath(const SkPath& path, SkPath *to);
