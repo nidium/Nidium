@@ -857,13 +857,13 @@ static bool native_canvas2dctx_createPattern(JSContext *cx,
         return false;
     }
 
-    if (!NativeJSImage::JSObjectIs(cx, jsimage)) {
+    if (!JSImage::JSObjectIs(cx, jsimage)) {
         JS_ReportError(cx, "First parameter is not an Image");
         return false;
     }
 
     JS::RootedObject patternObject(cx, JS_NewObject(cx, &canvasPattern_class, JS::NullPtr(), JS::NullPtr()));
-    NativeJSImage *img = static_cast<NativeJSImage *>(JS_GetPrivate(jsimage));
+    JSImage *img = static_cast<JSImage *>(JS_GetPrivate(jsimage));
     JS_SetReservedSlot(patternObject, 0, OBJECT_TO_JSVAL(img->getJSObject()));
     NativeCanvasPattern::PATTERN_MODE pmode = NativeCanvasPattern::PATTERN_REPEAT;
 
@@ -883,7 +883,7 @@ static bool native_canvas2dctx_createPattern(JSContext *cx,
     }
 
     JS_SetPrivate(patternObject,
-        new NativeCanvasPattern(static_cast<NativeJSImage *>(JS_GetPrivate(jsimage)), pmode));
+        new NativeCanvasPattern(static_cast<JSImage *>(JS_GetPrivate(jsimage)), pmode));
 
     return true;
 }
@@ -964,8 +964,8 @@ static bool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value
         }
         image = new Nidium::Graphics::NativeSkImage((static_cast<NativeCanvas2DContext *>(drawctx))->getSurface()->getCanvas());
         need_free = 1;
-    } else if (!jsimage || !NativeJSImage::JSObjectIs(cx, jsimage) ||
-        (image = NativeJSImage::JSObjectToNativeSkImage(jsimage)) == NULL) {
+    } else if (!jsimage || !JSImage::JSObjectIs(cx, jsimage) ||
+        (image = JSImage::JSObjectToNativeSkImage(jsimage)) == NULL) {
 
         JS_ReportWarning(cx, "Invalid image given");
         return true;

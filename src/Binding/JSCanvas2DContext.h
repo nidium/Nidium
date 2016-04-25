@@ -33,7 +33,7 @@ namespace Binding {
     Don't manually delete the instance.
 */
 class NativeJSCanvas;
-class NativeJSImage;
+class JSImage;
 
 /*
     JSAPI tracer is told to trace JS::Heap stored in this chain of state
@@ -161,7 +161,7 @@ class NativeCanvas2DContext : public Graphics::NativeCanvasContext
 class NativeCanvasPattern
 {
     public:
-        NativeJSImage *m_JsImg;
+        JSImage *m_JsImg;
 
         enum PATTERN_MODE {
             PATTERN_REPEAT,
@@ -171,7 +171,7 @@ class NativeCanvasPattern
             PATTERN_REPEAT_MIRROR
         } m_Mode;
 
-        NativeCanvasPattern(NativeJSImage *img, PATTERN_MODE repeat) :
+        NativeCanvasPattern(JSImage *img, PATTERN_MODE repeat) :
             m_JsImg(img), m_Mode(repeat) {
         };
 };

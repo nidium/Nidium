@@ -14,13 +14,13 @@ namespace Nidium {
 namespace Binding {
 
 
-class NativeJSImage : public JSExposer<NativeJSImage>,
+class JSImage : public JSExposer<JSImage>,
                       public Core::Messages
 {
   public:
 
-    NativeJSImage(JS::HandleObject obj, JSContext *cx);
-    virtual ~NativeJSImage();
+    JSImage(JS::HandleObject obj, JSContext *cx);
+    virtual ~JSImage();
 
     Graphics::NativeSkImage *m_Image;
     IO::Stream *m_Stream;

@@ -148,7 +148,7 @@ void NativeContext::loadNativeObjects(int width, int height)
     /* Canvas() object */
     Nidium::Binding::NativeJSCanvas::RegisterObject(cx);
     /* Image() object */
-    Nidium::Binding::NativeJSImage::RegisterObject(cx);
+    Nidium::Binding::JSImage::RegisterObject(cx);
     /* Audio() object */
 #ifdef NATIVE_AUDIO_ENABLED
     Nidium::Binding::NativeJSAudio::RegisterObject(cx);

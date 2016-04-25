@@ -1189,8 +1189,8 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
     NIDIUM_JS_GET_OPT_TYPE(jobj, "icon", Object) {
         JS::RootedObject jsimg(cx, __curopt.toObjectOrNull());
         Graphics::NativeSkImage *skimage;
-        if (NativeJSImage::JSObjectIs(cx, jsimg) &&
-            (skimage = NativeJSImage::JSObjectToNativeSkImage(jsimg))) {
+        if (JSImage::JSObjectIs(cx, jsimg) &&
+            (skimage = JSImage::JSObjectToNativeSkImage(jsimg))) {
 
             const uint8_t *pixels = skimage->getPixels(NULL);
             menu.setIcon(pixels, skimage->getWidth(), skimage->getHeight());

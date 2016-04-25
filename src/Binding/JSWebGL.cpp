@@ -2605,10 +2605,10 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
                 return false;
         }
 
-        if (NativeJSImage::JSObjectIs(cx, image)) {
-            NativeJSImage *nimg;
+        if (JSImage::JSObjectIs(cx, image)) {
+            JSImage *nimg;
 
-            nimg = static_cast<NativeJSImage *>(JS_GetPrivate(image));
+            nimg = static_cast<JSImage *>(JS_GetPrivate(image));
 
             width = nimg->m_Image->getWidth();
             height = nimg->m_Image->getHeight();

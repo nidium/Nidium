@@ -19,17 +19,16 @@ enum {
     IMAGE_NPROP
 };
 
-#define NATIVE_IMAGE_GETTER(obj) (static_cast<class NativeJSImage *>(JS_GetPrivate(obj)))
+#define NATIVE_IMAGE_GETTER(obj) (static_cast<class JSImage *>(JS_GetPrivate(obj)))
 #define IMAGE_FROM_CALLEE(nimg) \
     JS::RootedObject parent(cx, JS_GetParent(&args.callee())); \
-    NativeJSImage *nimg = static_cast<NativeJSImage *>(JS_GetPrivate(parent));
+    JSImage *nimg = static_cast<JSImage *>(JS_GetPrivate(parent));
 
 static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_image_markColorInAlpha(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_image_desaturate(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_image_print(JSContext *cx, unsigned argc, JS::Value *vp);
-
 static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj, uint8_t id,
     bool strict, JS::MutableHandleValue vp);
 
@@ -41,7 +40,7 @@ static JSClass Image_class = {
 };
 
 template<>
-JSClass *JSExposer<NativeJSImage>::jsclass = &Image_class;
+JSClass *JSExposer<JSImage>::jsclass = &Image_class;
 
 static JSPropertySpec Image_props[] = {
     NIDIUM_JS_PSS("src", IMAGE_PROP_SRC, native_image_prop_set),
@@ -107,7 +106,7 @@ static bool native_image_desaturate(JSContext *cx,
 static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
-    NativeJSImage *nimg = NATIVE_IMAGE_GETTER(obj);
+    JSImage *nimg = NATIVE_IMAGE_GETTER(obj);
     switch(id) {
         case IMAGE_PROP_SRC:
         {
@@ -160,7 +159,7 @@ static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
 
 void Image_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeJSImage *img = NATIVE_IMAGE_GETTER(obj);
+    JSImage *img = NATIVE_IMAGE_GETTER(obj);
     if (img != NULL) {
         if (img->m_Stream) {
             img->m_Stream->setListener(NULL);
@@ -173,7 +172,7 @@ void Image_Finalize(JSFreeOp *fop, JSObject *obj)
 static bool native_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    NativeJSImage *nimg;
+    JSImage *nimg;
 
     if (!args.isConstructing()) {
         JS_ReportError(cx, "Bad constructor");
@@ -181,7 +180,7 @@ static bool native_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp
     }
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Image_class, args));
-    nimg = new NativeJSImage(ret, cx);
+    nimg = new JSImage(ret, cx);
     JS_SetPrivate(ret, nimg);
     JS_DefineProperties(cx, ret, Image_props);
     JS_DefineFunctions(cx, ret, Image_funcs);
@@ -191,12 +190,12 @@ static bool native_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp
     return true;
 }
 
-bool NativeJSImage::JSObjectIs(JSContext *cx, JS::HandleObject obj)
+bool JSImage::JSObjectIs(JSContext *cx, JS::HandleObject obj)
 {
     return obj && JS_GetClass(obj) == &Image_class;
 }
 
-Graphics::NativeSkImage *NativeJSImage::JSObjectToNativeSkImage(JS::HandleObject obj)
+Graphics::NativeSkImage *JSImage::JSObjectToNativeSkImage(JS::HandleObject obj)
 {
     return NATIVE_IMAGE_GETTER(obj)->m_Image;
 }
@@ -210,7 +209,7 @@ static int delete_stream(void *arg)
     return 0;
 }
 
-void NativeJSImage::onMessage(const Core::SharedMessages::Message &msg)
+void JSImage::onMessage(const Core::SharedMessages::Message &msg)
 {
     ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
 
@@ -235,7 +234,7 @@ void NativeJSImage::onMessage(const Core::SharedMessages::Message &msg)
     }
 }
 
-bool NativeJSImage::setupWithBuffer(buffer *buf)
+bool JSImage::setupWithBuffer(buffer *buf)
 {
     if (buf->used == 0) {
 
@@ -264,7 +263,7 @@ bool NativeJSImage::setupWithBuffer(buffer *buf)
 }
 
 #if 0
-void NativeJSImage::onGetContent(const char *data, size_t len)
+void JSImage::onGetContent(const char *data, size_t len)
 {
     ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
 
@@ -302,7 +301,7 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
 }
 #endif
 
-JSObject *NativeJSImage::BuildImageObject(JSContext *cx, Graphics::NativeSkImage *image,
+JSObject *JSImage::BuildImageObject(JSContext *cx, Graphics::NativeSkImage *image,
     const char name[])
 {
     JS::RootedValue proto(cx);
@@ -311,7 +310,7 @@ JSObject *NativeJSImage::BuildImageObject(JSContext *cx, Graphics::NativeSkImage
     JS::RootedObject protoObj(cx);
     protoObj.set(&proto.toObject());
     JS::RootedObject ret(cx, JS_NewObject(cx, &Image_class, protoObj, JS::NullPtr()));
-    NativeJSImage *nimg = new NativeJSImage(ret, cx);
+    JSImage *nimg = new JSImage(ret, cx);
 
     nimg->m_Image   = image;
 
@@ -329,14 +328,14 @@ JSObject *NativeJSImage::BuildImageObject(JSContext *cx, Graphics::NativeSkImage
     return ret;
 }
 
-NativeJSImage::NativeJSImage(JS::HandleObject obj, JSContext *cx) :
-    JSExposer<NativeJSImage>(obj, cx),
+JSImage::JSImage(JS::HandleObject obj, JSContext *cx) :
+    JSExposer<JSImage>(obj, cx),
     m_Image(NULL), m_Stream(NULL)
 {
 
 }
 
-NativeJSImage::~NativeJSImage()
+JSImage::~JSImage()
 {
     if (m_Image != NULL) {
         delete m_Image;
@@ -348,7 +347,7 @@ NativeJSImage::~NativeJSImage()
 // }}}
 
 // {{{ Registration
-void NativeJSImage::RegisterObject(JSContext *cx)
+void JSImage::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_InitClass(cx, global, JS::NullPtr(), &Image_class,
