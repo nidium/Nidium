@@ -29,7 +29,7 @@ namespace Binding {
 #define D_NGL_JS_FN(func_name) static bool func_name(JSContext *cx, unsigned int argc, JS::Value *vp);
 
 #define NGL_JS_FN(func_name) static bool func_name(JSContext *cx, unsigned int argc, JS::Value *vp) {\
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Graphics::NativeCanvas3DContext, &WebGLRenderingContext_class);
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Graphics::Canvas3DContext, &WebGLRenderingContext_class);
 
 #define NGL_JS_FN_DELETE_X(FUNC_NAME, NAME) \
     NGL_JS_FN(FUNC_NAME) \
@@ -80,7 +80,7 @@ public:
     };
 
     WebGLResource(uint32_t id, ResourceType type,
-        Graphics::NativeCanvas3DContext *ctx, JS::HandleObject jsobj) :
+        Graphics::Canvas3DContext *ctx, JS::HandleObject jsobj) :
         m_GlIdentifier(id), m_GLctx(ctx), m_Type(type), m_JSObj(jsobj) {};
 
     ~WebGLResource() {
@@ -125,7 +125,7 @@ public:
     }
 
     uint32_t m_GlIdentifier;
-    Graphics::NativeCanvas3DContext *m_GLctx;
+    Graphics::Canvas3DContext *m_GLctx;
     ResourceType m_Type;
     JSObject *m_JSObj;
 
@@ -219,7 +219,7 @@ static void Buffer_Finalize(JSFreeOp *fop, JSObject *obj)
 
 static void WebGLRenderingContext_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    Graphics::NativeCanvas3DContext *ctx = static_cast<Graphics::NativeCanvas3DContext *>(JS_GetPrivate(obj));
+    Graphics::Canvas3DContext *ctx = static_cast<Graphics::Canvas3DContext *>(JS_GetPrivate(obj));
     if (ctx) {
         delete ctx;
     }
@@ -227,7 +227,7 @@ static void WebGLRenderingContext_Finalize(JSFreeOp *fop, JSObject *obj)
 // }}}
 
 // {{{ Implementation
-bool NGL_uniformxf(Graphics::NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb) {
+bool NGL_uniformxf(Graphics::Canvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb) {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     uintptr_t clocation;
     double x;
@@ -265,7 +265,7 @@ bool NGL_uniformxf(Graphics::NativeCanvas3DContext *glctx, JSContext *cx, unsign
     return true;
 }
 
-bool NGL_uniformxfv(Graphics::NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
+bool NGL_uniformxfv(Graphics::Canvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     intptr_t clocation;
@@ -310,7 +310,7 @@ bool NGL_uniformxfv(Graphics::NativeCanvas3DContext *glctx, JSContext *cx, unsig
     return true;
 }
 
-bool NGL_uniformxi(Graphics::NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
+bool NGL_uniformxi(Graphics::Canvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     uintptr_t clocation;
@@ -349,7 +349,7 @@ bool NGL_uniformxi(Graphics::NativeCanvas3DContext *glctx, JSContext *cx, unsign
     return true;
 }
 
-bool NGL_uniformxiv(Graphics::NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
+bool NGL_uniformxiv(Graphics::Canvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     uintptr_t clocation;
@@ -389,7 +389,7 @@ bool NGL_uniformxiv(Graphics::NativeCanvas3DContext *glctx, JSContext *cx, unsig
     return true;
 }
 
-bool NGL_uniformMatrixxfv(Graphics::NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
+bool NGL_uniformMatrixxfv(Graphics::Canvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     uintptr_t clocation;
@@ -431,7 +431,7 @@ bool NGL_uniformMatrixxfv(Graphics::NativeCanvas3DContext *glctx, JSContext *cx,
     return true;
 }
 
-bool NGL_vertexAttribxf(Graphics::NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
+bool NGL_vertexAttribxf(Graphics::Canvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     GLuint index;
@@ -464,7 +464,7 @@ bool NGL_vertexAttribxf(Graphics::NativeCanvas3DContext *glctx, JSContext *cx, u
     return true;
 }
 
-bool NGL_vertexAttribxfv(Graphics::NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
+bool NGL_vertexAttribxfv(Graphics::Canvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
 {
     GLuint index;
     GLfloat *carray;
@@ -2234,10 +2234,10 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
 
         // bool, WebGL-specific
         case NGL_UNPACK_FLIP_Y_WEBGL:
-            value.setBoolean(CppObj->hasFlag(Graphics::NativeCanvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag));
+            value.setBoolean(CppObj->hasFlag(Graphics::Canvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag));
             break;
         case NGL_UNPACK_PREMULTIPLY_ALPHA_WEBGL:
-            value.setBoolean(CppObj->hasFlag(Graphics::NativeCanvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag));
+            value.setBoolean(CppObj->hasFlag(Graphics::Canvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag));
             break;
 
         // uint, WebGL-specific
@@ -2511,18 +2511,18 @@ NGL_JS_FN(WebGLRenderingContext_pixelStorei)
         case NGL_UNPACK_FLIP_Y_WEBGL:
         {
             if (value) {
-                CppObj->addFlag(Graphics::NativeCanvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag);
+                CppObj->addFlag(Graphics::Canvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag);
             } else {
-                CppObj->removeFlag(Graphics::NativeCanvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag);
+                CppObj->removeFlag(Graphics::Canvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag);
             }
             break;
         }
         case NGL_UNPACK_PREMULTIPLY_ALPHA_WEBGL:
         {
             if (value) {
-                CppObj->addFlag(Graphics::NativeCanvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag);
+                CppObj->addFlag(Graphics::Canvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag);
             } else {
-                CppObj->removeFlag(Graphics::NativeCanvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag);
+                CppObj->removeFlag(Graphics::Canvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag);
             }
             break;
         }
@@ -2616,8 +2616,8 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
             pixels = (unsigned char*)malloc(nimg->m_Image->m_Image->getSize());
 
            if (!Graphics::NativeSkImage::ConvertToRGBA(nimg->m_Image, pixels,
-                    CppObj->hasFlag(Graphics::NativeCanvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag),
-                    CppObj->hasFlag(Graphics::NativeCanvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag))) {
+                    CppObj->hasFlag(Graphics::Canvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag),
+                    CppObj->hasFlag(Graphics::Canvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag))) {
 
                 JS_ReportError(cx, "Failed to read image data");
                 return false;

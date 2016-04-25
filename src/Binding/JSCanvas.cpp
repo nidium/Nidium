@@ -717,7 +717,7 @@ static bool nidium_canvas_getContext(JSContext *cx, unsigned argc,
                     TODO :
                     NativeObject->setContext(new CanvasWebGLContext(...))
                 */
-                Nidium::Graphics::NativeCanvas3DContext *ctx3d = new Nidium::Graphics::NativeCanvas3DContext(NativeObject, cx,
+                Nidium::Graphics::Canvas3DContext *ctx3d = new Nidium::Graphics::Canvas3DContext(NativeObject, cx,
                         NativeObject->getWidth() + (NativeObject->m_Padding.global * 2),
                         NativeObject->getHeight() + (NativeObject->m_Padding.global * 2), ui);
 

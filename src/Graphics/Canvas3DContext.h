@@ -15,7 +15,7 @@ namespace Graphics {
 
 class NativeCanvasHandler;
 
-class NativeCanvas3DContext : public NativeCanvasContext
+class Canvas3DContext : public NativeCanvasContext
 {
 public:
 
@@ -27,9 +27,9 @@ public:
     /*
         width and height is in logical pixel
     */
-    NativeCanvas3DContext(NativeCanvasHandler *handler,
+    Canvas3DContext(NativeCanvasHandler *handler,
         struct JSContext *cx, int width, int height, Nidium::Interface::NativeUIInterface *ui);
-    virtual ~NativeCanvas3DContext();
+    virtual ~Canvas3DContext();
 
     virtual void translate(double x, double y) override;
     virtual void setSize(int width, int height, bool redraw = true) override;

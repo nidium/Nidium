@@ -21,12 +21,12 @@ namespace Graphics {
 #define GL_CALL(X) NIDIUM_GL_CALL(m_GLState->getNativeGLContext(), X)
 #define GL_CALL_RET(X, RET) NIDIUM_GL_CALL_RET(m_GLState->getNativeGLContext(), X, RET)
 
-NativeCanvas3DContext::~NativeCanvas3DContext()
+Canvas3DContext::~Canvas3DContext()
 {
     this->cleanUp();
 }
 
-NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
+Canvas3DContext::Canvas3DContext(NativeCanvasHandler *handler,
     JSContext *cx, int width, int height, Nidium::Interface::NativeUIInterface *ui) :
     NativeCanvasContext(handler), m_Flags(0)
 {
@@ -60,7 +60,7 @@ static bool native_Canvas3DContext_constructor(JSContext *cx,
 }
 #endif
 
-void NativeCanvas3DContext::translate(double x, double y)
+void Canvas3DContext::translate(double x, double y)
 {
     if (m_CachedPixels.pixels) {
         free(m_CachedPixels.pixels);
@@ -71,7 +71,7 @@ void NativeCanvas3DContext::translate(double x, double y)
     m_CachedPixels.height = 0;
 }
 
-void NativeCanvas3DContext::setSize(int width, int height, bool redraw)
+void Canvas3DContext::setSize(int width, int height, bool redraw)
 {
     if (width == m_Device.width && height == m_Device.height) {
         return;
@@ -87,18 +87,18 @@ void NativeCanvas3DContext::setSize(int width, int height, bool redraw)
     this->createFBO(m_Device.width, m_Device.height);
 }
 
-void NativeCanvas3DContext::setScale(double x, double y, double px, double py)
+void Canvas3DContext::setScale(double x, double y, double px, double py)
 {
 
 }
 
-void NativeCanvas3DContext::clear(uint32_t color)
+void Canvas3DContext::clear(uint32_t color)
 {
     GL_CALL(ClearColor(0., 0., 0., 0.));
     GL_CALL(Clear(GL_COLOR_BUFFER_BIT));
 }
 
-void NativeCanvas3DContext::flush()
+void Canvas3DContext::flush()
 {
     GL_CALL(Flush());
 
@@ -112,19 +112,19 @@ void NativeCanvas3DContext::flush()
     GL_CALL(BindFramebuffer(GR_GL_FRAMEBUFFER, m_GLObjects.fbo_sampled));
 }
 
-uint32_t NativeCanvas3DContext::getTextureID() const
+uint32_t Canvas3DContext::getTextureID() const
 {
     return m_GLObjects.texture;
 }
 
 /* Returns the size in device pixel */
-void NativeCanvas3DContext::getSize(int *width, int *height) const
+void Canvas3DContext::getSize(int *width, int *height) const
 {
     if (width) *width = m_Device.width;
     if (height) *height = m_Device.height;
 }
 
-void NativeCanvas3DContext::cleanUp()
+void Canvas3DContext::cleanUp()
 {
 
     if (m_GLObjects.texture) {
@@ -160,7 +160,7 @@ void NativeCanvas3DContext::cleanUp()
     GL_CALL(BindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
-uint8_t *NativeCanvas3DContext::getPixels()
+uint8_t *Canvas3DContext::getPixels()
 {
     this->flush();
 
@@ -186,7 +186,7 @@ uint8_t *NativeCanvas3DContext::getPixels()
     return m_CachedPixels.pixels;
 }
 
-bool NativeCanvas3DContext::createFBO(int width, int height)
+bool Canvas3DContext::createFBO(int width, int height)
 {
     /*
         Create a WebGL context with passthrough program
