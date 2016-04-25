@@ -273,8 +273,8 @@ class NativeAudioSource: public NativeAudioNode, public NativeAVSource
     public:
         NativeAudioSource(int out, NativeAudio *audio, bool external);
 
-        friend class NativeVideo;
-        friend class NativeVideoAudioSource;
+        friend class Video;
+        friend class VideoAudioSource;
 
         NativeAudioParameters *m_OutputParameters;
         pthread_cond_t *m_BufferNotEmpty;

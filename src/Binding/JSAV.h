@@ -234,7 +234,7 @@ class JSVideo : public JSExposer<JSVideo>, public Core::Messages
     public :
         JSVideo(JS::HandleObject obj, Canvas2DContext *canvasCtx, JSContext *cx);
 
-        AV::NativeVideo *m_Video;
+        AV::Video *m_Video;
 
         JS::Heap<JSObject *> m_AudioNode;
         void *m_ArrayContent;

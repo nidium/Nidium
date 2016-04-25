@@ -28,10 +28,10 @@ namespace AV {
   #define DPRINT(...) (void)0
 #endif
 
-// XXX : Well, NativeVideo need a better interaction with NativeAudio.
+// XXX : Well, Video need a better interaction with NativeAudio.
 // There's a lot of little hack to work nicely with it.
 
-NativeVideo::NativeVideo(ape_global *n):
+Video::Video(ape_global *n):
     m_TimerIdx(0), m_LastTimer(0), m_TimersDelay(0), m_Net(n),
     m_AudioSource(NULL), m_FrameCbk(NULL), m_FrameCbkArg(NULL),
     m_Shutdown(false), m_TmpFrame(0), m_FrameBuffer(0), m_FrameTimer(0),
@@ -72,7 +72,7 @@ this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
 this->closeInternal(true);\
 return err;
 
-int NativeVideo::open(void *buffer, int size)
+int Video::open(void *buffer, int size)
 {
     if (m_Container) {
         this->closeInternal(true);
@@ -94,7 +94,7 @@ int NativeVideo::open(void *buffer, int size)
         RETURN_WITH_ERROR(ERR_OOM);
     }
     if (this->openInit() == 0) {
-        if (pthread_create(&m_ThreadDecode, NULL, NativeVideo::decode, this) != 0) {
+        if (pthread_create(&m_ThreadDecode, NULL, Video::decode, this) != 0) {
             RETURN_WITH_ERROR(ERR_INTERNAL);
         }
         m_ThreadCreated = true;
@@ -104,7 +104,7 @@ int NativeVideo::open(void *buffer, int size)
     return 0;
 }
 
-int NativeVideo::open(const char *src)
+int Video::open(const char *src)
 {
     DPRINT("Open %s\n", src);
     if (m_Container != NULL) {
@@ -119,7 +119,7 @@ int NativeVideo::open(const char *src)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Reader = new NativeAVStreamReader(src, NativeVideo::sourceNeedWork, this, this, m_Net);
+    m_Reader = new NativeAVStreamReader(src, Video::sourceNeedWork, this, this, m_Net);
     m_Container = avformat_alloc_context();
     if (!m_Container) {
         RETURN_WITH_ERROR(ERR_OOM);
@@ -131,7 +131,7 @@ int NativeVideo::open(const char *src)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    if (pthread_create(&m_ThreadDecode, NULL, NativeVideo::decode, this) != 0) {
+    if (pthread_create(&m_ThreadDecode, NULL, Video::decode, this) != 0) {
         RETURN_WITH_ERROR(ERR_INTERNAL);
     }
     m_ThreadCreated = true;
@@ -140,7 +140,7 @@ int NativeVideo::open(const char *src)
 }
 #undef RETURN_WITH_ERROR
 
-int NativeVideo::openInit()
+int Video::openInit()
 {
     DPRINT("openInit()\n");
     m_SourceDoOpen = true;
@@ -148,10 +148,10 @@ int NativeVideo::openInit()
     return 0;
 }
 
-void NativeVideo::openInitCoro(void *arg)
+void Video::openInitCoro(void *arg)
 {
     DPRINT("openInitCoro()\n");
-    NativeVideo *thiz = (static_cast<NativeVideo*>(arg));
+    Video *thiz = (static_cast<Video*>(arg));
     int ret = thiz->openInitInternal();
     if (ret != 0) {
         thiz->sendEvent(SOURCE_EVENT_ERROR, ret, false);
@@ -162,7 +162,7 @@ void NativeVideo::openInitCoro(void *arg)
     Coro_switchTo_(thiz->m_Coro, thiz->m_MainCoro);
 }
 
-int NativeVideo::openInitInternal()
+int Video::openInitInternal()
 {
     DPRINT("openInitInternal");
     // FFmpeg stuff
@@ -200,8 +200,8 @@ int NativeVideo::openInitInternal()
     }
 
     m_CodecCtx = m_Container->streams[m_VideoStream]->codec;
-    //this->codecCtx->get_buffer = NativeVideo::getBuffer;
-    //this->codecCtx->release_buffer = NativeVideo::releaseBuffer;
+    //this->codecCtx->get_buffer = Video::getBuffer;
+    //this->codecCtx->release_buffer = Video::releaseBuffer;
 
     codec = avcodec_find_decoder(m_CodecCtx->codec_id);
     if (!codec) {
@@ -218,7 +218,7 @@ int NativeVideo::openInitInternal()
 
     // Ringbuffer that hold reference to decoded frames
     m_rBuff = new PaUtilRingBuffer();
-    m_Buff = (uint8_t*) malloc(sizeof(NativeVideo::Frame) * NATIVE_VIDEO_BUFFER_SAMPLES);
+    m_Buff = (uint8_t*) malloc(sizeof(Video::Frame) * NATIVE_VIDEO_BUFFER_SAMPLES);
 
     if (m_Buff == NULL) {
         fprintf(stderr, "Failed to alloc buffer\n");
@@ -226,7 +226,7 @@ int NativeVideo::openInitInternal()
     }
 
     if (0 > PaUtil_InitializeRingBuffer(m_rBuff,
-            sizeof(NativeVideo::Frame),
+            sizeof(Video::Frame),
             NATIVE_VIDEO_BUFFER_SAMPLES,
             m_Buff)) {
         fprintf(stderr, "Failed to init ringbuffer\n");
@@ -247,12 +247,12 @@ int NativeVideo::openInitInternal()
 #undef RETURN_WITH_ERROR
 // }}}
 
-void NativeVideo::frameCallback(VideoCallback cbk, void *arg) {
+void Video::frameCallback(VideoCallback cbk, void *arg) {
     m_FrameCbk = cbk;
     m_FrameCbkArg = arg;
 }
 
-void NativeVideo::play() {
+void Video::play() {
     if (!m_Opened || m_Playing) {
         return;
     }
@@ -275,7 +275,7 @@ void NativeVideo::play() {
     this->sendEvent(SOURCE_EVENT_PLAY, 0, false);
 }
 
-void NativeVideo::pause()
+void Video::pause()
 {
     m_Playing = false;
 
@@ -288,7 +288,7 @@ void NativeVideo::pause()
     this->sendEvent(SOURCE_EVENT_PAUSE, 0, false);
 }
 
-void NativeVideo::close()
+void Video::close()
 {
     m_Playing = false;
     m_VideoClock = 0;
@@ -298,7 +298,7 @@ void NativeVideo::close()
     this->closeInternal(true);
 }
 
-void NativeVideo::stop() {
+void Video::stop() {
     m_Playing = false;
     m_VideoClock = 0;
     m_LastDelay = 40e-3;
@@ -318,13 +318,13 @@ void NativeVideo::stop() {
     this->sendEvent(SOURCE_EVENT_STOP, 0, false);
 }
 
-double NativeVideo::getClock()
+double Video::getClock()
 {
     return m_LastPts;
 }
 
 // {{{ Seek
-void NativeVideo::seek(double time, uint32_t flags)
+void Video::seek(double time, uint32_t flags)
 {
     DPRINT("Seek called\n");
     if (!m_Opened || m_DoSemek) {
@@ -344,9 +344,9 @@ void NativeVideo::seek(double time, uint32_t flags)
     this->scheduleDisplay(1, true);
 }
 
-void NativeVideo::seekCoro(void *arg)
+void Video::seekCoro(void *arg)
 {
-    NativeVideo *v = static_cast<NativeVideo *>(arg);
+    Video *v = static_cast<Video *>(arg);
     v->m_Seeking = true;
     v->flushBuffers();
     v->seekInternal(v->m_DoSeekTime);
@@ -355,7 +355,7 @@ void NativeVideo::seekCoro(void *arg)
     Coro_switchTo_(v->m_Coro, v->m_MainCoro);
 }
 
-bool NativeVideo::seekMethod(int64_t target, int flags)
+bool Video::seekMethod(int64_t target, int flags)
 {
     DPRINT("av_seek_frame\n");
     if (!(m_SeekFlags & NATIVE_VIDEO_SEEK_KEYFRAME)) {
@@ -388,7 +388,7 @@ bool NativeVideo::seekMethod(int64_t target, int flags)
     }
 }
 
-int64_t NativeVideo::seekTarget(double time, int *flags)
+int64_t Video::seekTarget(double time, int *flags)
 {
     double clock = m_LastPts;
     int64_t target = 0;
@@ -402,7 +402,7 @@ int64_t NativeVideo::seekTarget(double time, int *flags)
 #define SEEK_THRESHOLD 2
 #define SEEK_BUFFER_PACKET 16
 #define SEEK_STEP 2
-void NativeVideo::seekInternal(double time)
+void Video::seekInternal(double time)
 {
 #ifdef DEBUG_PRINT
     double start = av_gettime();
@@ -628,7 +628,7 @@ void NativeVideo::seekInternal(double time)
 /// }}}
 
 // {{{ Frame
-void NativeVideo::nextFrame()
+void Video::nextFrame()
 {
     if (m_Playing || !m_Opened) {
         return;
@@ -636,7 +636,7 @@ void NativeVideo::nextFrame()
     this->scheduleDisplay(1, true);
 }
 
-void NativeVideo::prevFrame()
+void Video::prevFrame()
 {
     if (m_Playing || !m_Opened) {
         return;
@@ -644,7 +644,7 @@ void NativeVideo::prevFrame()
     this->seek(this->getClock(), NATIVE_VIDEO_SEEK_PREVIOUS);
 }
 
-void NativeVideo::frameAt(double time, bool keyframe)
+void Video::frameAt(double time, bool keyframe)
 {
     if (m_Playing || !m_Opened) {
         return;
@@ -654,7 +654,7 @@ void NativeVideo::frameAt(double time, bool keyframe)
 }
 // }}}
 
-NativeAudioSource *NativeVideo::getAudioNode(NativeAudio *audio)
+NativeAudioSource *Video::getAudioNode(NativeAudio *audio)
 {
 
     if (m_AudioSource) {
@@ -664,7 +664,7 @@ NativeAudioSource *NativeVideo::getAudioNode(NativeAudio *audio)
     m_Audio = audio;
 
     if (m_AudioStream != -1 && audio) {
-        m_AudioSource = new NativeVideoAudioSource(2, this, true);
+        m_AudioSource = new VideoAudioSource(2, this, true);
         audio->addSource(m_AudioSource, true);
         m_AudioSource->m_AudioStream = m_AudioStream;
         m_AudioSource->m_Container = m_Container;
@@ -684,8 +684,8 @@ NativeAudioSource *NativeVideo::getAudioNode(NativeAudio *audio)
     return m_AudioSource;
 }
 
-int NativeVideo::display(void *custom) {
-    NativeVideo *v = static_cast<NativeVideo *>(custom);
+int Video::display(void *custom) {
+    Video *v = static_cast<Video *>(custom);
 
     // Set pthread cond to false, so
     // setSize will always wait for the signal
@@ -824,7 +824,7 @@ int NativeVideo::display(void *custom) {
     return 0;
 }
 
-int NativeVideo::setSizeInternal()
+int Video::setSizeInternal()
 {
     m_NoDisplay = true;
 
@@ -905,7 +905,7 @@ int NativeVideo::setSizeInternal()
 #endif
 }
 
-void NativeVideo::setSize(int width, int height)
+void Video::setSize(int width, int height)
 {
     if (width == m_Width && height == m_Height && m_SwsCtx) {
         return;
@@ -920,7 +920,7 @@ void NativeVideo::setSize(int width, int height)
 }
 
 // {{{ Buffer
-void NativeVideo::buffer()
+void Video::buffer()
 {
     if (m_Error != 0) {
         DPRINT("=> Not buffering cause of error\n");
@@ -935,16 +935,16 @@ void NativeVideo::buffer()
         }
         m_Buffering = true;
         DPRINT("buffer coro start\n");
-        Coro_startCoro_(m_MainCoro, m_Coro, this, NativeVideo::bufferCoro);
+        Coro_startCoro_(m_MainCoro, m_Coro, this, Video::bufferCoro);
     } else {
         this->bufferInternal();
     }
 }
 
 
-void NativeVideo::bufferCoro(void *arg)
+void Video::bufferCoro(void *arg)
 {
-   NativeVideo *v = static_cast<NativeVideo*>(arg);
+   Video *v = static_cast<Video*>(arg);
    v->bufferInternal();
 
     if (!v->m_Reader->m_Pending) {
@@ -956,7 +956,7 @@ void NativeVideo::bufferCoro(void *arg)
     return;
 }
 
-void NativeVideo::bufferInternal()
+void Video::bufferInternal()
 {
     DPRINT("hello buffer internal\n");
     AVPacket packet;
@@ -1019,9 +1019,9 @@ void NativeVideo::bufferInternal()
 }
 // }}}
 
-void *NativeVideo::decode(void *args)
+void *Video::decode(void *args)
 {
-    NativeVideo *v = static_cast<NativeVideo *>(args);
+    Video *v = static_cast<Video *>(args);
 
     for (; ;) {
         DPRINT("decode loop\n");
@@ -1043,7 +1043,7 @@ void *NativeVideo::decode(void *args)
                         v->m_DoSemek = false;
                     } else {
                         DPRINT("    running seek coro\n");
-                        Coro_startCoro_(v->m_MainCoro, v->m_Coro, v, NativeVideo::seekCoro);
+                        Coro_startCoro_(v->m_MainCoro, v->m_Coro, v, Video::seekCoro);
                     }
                     DPRINT("done seeking\n");
                 } else {
@@ -1069,7 +1069,7 @@ void *NativeVideo::decode(void *args)
         } else if (v->m_SourceDoOpen) {
             v->m_SourceDoOpen = false;
             if (v->m_Reader->m_Async) {
-                Coro_startCoro_(v->m_MainCoro, v->m_Coro, v, NativeVideo::openInitCoro);
+                Coro_startCoro_(v->m_MainCoro, v->m_Coro, v, Video::openInitCoro);
             } else {
                 v->openInitInternal();
             }
@@ -1101,27 +1101,27 @@ void *NativeVideo::decode(void *args)
     return NULL;
 }
 
-void NativeVideo::stopAudio()
+void Video::stopAudio()
 {
     Nidium::Core::PthreadAutoLock lock(&m_AudioLock);
 
     this->clearAudioQueue();
 
     m_Audio = NULL;
-    // NativeVideo::stopAudio() is called when the audio node
+    // Video::stopAudio() is called when the audio node
     // is being destructed, so we just set the audioSource to null
     m_AudioSource = NULL;
 }
 
-void NativeVideo::sourceNeedWork(void *ptr)
+void Video::sourceNeedWork(void *ptr)
 {
-    NativeVideo *thiz = static_cast<NativeVideo*>(ptr);
+    Video *thiz = static_cast<Video*>(ptr);
     thiz->m_SourceNeedWork = true;
     NATIVE_PTHREAD_SIGNAL(&thiz->m_BufferCond);
 }
 
 // {{{ process
-bool NativeVideo::processAudio()
+bool Video::processAudio()
 {
     Nidium::Core::PthreadAutoLock lock(&m_AudioLock);
     DPRINT("processing audio\n");
@@ -1146,7 +1146,7 @@ bool NativeVideo::processAudio()
     return true;
 }
 
-bool NativeVideo::processVideo()
+bool Video::processVideo()
 {
     if (PaUtil_GetRingBufferWriteAvailable(m_rBuff) < 1) {
         DPRINT("processVideo not enought space to write data\n");
@@ -1187,7 +1187,7 @@ bool NativeVideo::processVideo()
     return true;
 }
 
-bool NativeVideo::processFrame(AVFrame *avFrame)
+bool Video::processFrame(AVFrame *avFrame)
 {
     Frame frame;
     frame.data = m_Frames[m_FramesIdx];
@@ -1196,7 +1196,7 @@ bool NativeVideo::processFrame(AVFrame *avFrame)
     bool ret = this->convertFrame(avFrame, (uint8_t*) frame.data);
 
     // Write frame to rBuff, the frame will be consumed
-    // later by NativeVideo::display() (UI Thread)
+    // later by Video::display() (UI Thread)
     PaUtil_WriteRingBuffer(m_rBuff, &frame, 1);
 
     if (m_FramesIdx == NATIVE_VIDEO_BUFFER_SAMPLES - 1) {
@@ -1209,7 +1209,7 @@ bool NativeVideo::processFrame(AVFrame *avFrame)
 }
 // }}}
 
-bool NativeVideo::convertFrame(AVFrame *avFrame, uint8_t *dst)
+bool Video::convertFrame(AVFrame *avFrame, uint8_t *dst)
 {
     // Format the frame for sws_scale
     uint8_t *tmp[1];
@@ -1225,7 +1225,7 @@ bool NativeVideo::convertFrame(AVFrame *avFrame, uint8_t *dst)
     return true;
 }
 
-int64_t NativeVideo::syncVideo(int64_t pts)
+int64_t Video::syncVideo(int64_t pts)
 {
     double frameDelay;
 
@@ -1242,14 +1242,14 @@ int64_t NativeVideo::syncVideo(int64_t pts)
     return pts;
 }
 
-double NativeVideo::getPts(AVFrame *frame)
+double Video::getPts(AVFrame *frame)
 {
     uint64_t pts = av_frame_get_best_effort_timestamp(frame);
 
     return this->syncVideo(pts) * av_q2d(m_Container->streams[m_VideoStream]->time_base);
 }
 
-double NativeVideo::getPts(AVPacket *packet)
+double Video::getPts(AVPacket *packet)
 {
     double pts;
 
@@ -1264,12 +1264,12 @@ double NativeVideo::getPts(AVPacket *packet)
     return this->syncVideo(pts) * av_q2d(m_Container->streams[m_VideoStream]->time_base);
 }
 
-void NativeVideo::scheduleDisplay(int delay)
+void Video::scheduleDisplay(int delay)
 {
     this->scheduleDisplay(delay, false);
 }
 
-void NativeVideo::scheduleDisplay(int delay, bool force) {
+void Video::scheduleDisplay(int delay, bool force) {
     if (!m_Opened) {
         return;
     }
@@ -1290,15 +1290,15 @@ void NativeVideo::scheduleDisplay(int delay, bool force) {
     }
 }
 
-int NativeVideo::addTimer(int delay)
+int Video::addTimer(int delay)
 {
     /* XXX timer is protected by default and will not be cleared upon refresh.
         Is that the desired behaviour ? */
     return APE_timer_getid(APE_timer_create(m_Net, delay,
-        NativeVideo::display, this));
+        Video::display, this));
 }
 
-bool NativeVideo::addPacket(PacketQueue *queue, AVPacket *packet)
+bool Video::addPacket(PacketQueue *queue, AVPacket *packet)
 {
     av_dup_packet(packet);
 
@@ -1317,7 +1317,7 @@ bool NativeVideo::addPacket(PacketQueue *queue, AVPacket *packet)
     return true;
 }
 
-NativeVideo::Packet *NativeVideo::getPacket(PacketQueue *queue)
+Video::Packet *Video::getPacket(PacketQueue *queue)
 {
     if (queue->count == 0 || queue->head == NULL) {
         return NULL;
@@ -1338,7 +1338,7 @@ NativeVideo::Packet *NativeVideo::getPacket(PacketQueue *queue)
     return pkt;
 }
 
-void NativeVideo::clearTimers(bool reset)
+void Video::clearTimers(bool reset)
 {
     for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
         if (m_Timers[i]->id != -1 && m_Timers[i]->delay != -1) {
@@ -1354,7 +1354,7 @@ void NativeVideo::clearTimers(bool reset)
     }
 }
 
-void NativeVideo::clearAudioQueue()
+void Video::clearAudioQueue()
 {
     /*
     if (this->freePacket != NULL) {
@@ -1380,7 +1380,7 @@ void NativeVideo::clearAudioQueue()
     m_AudioQueue->count = 0;
 }
 
-void NativeVideo::clearVideoQueue()
+void Video::clearVideoQueue()
 {
     Packet *pkt = m_VideoQueue->head;
     Packet *next;
@@ -1395,7 +1395,7 @@ void NativeVideo::clearVideoQueue()
     m_VideoQueue->count = 0;
 }
 
-void NativeVideo::flushBuffers()
+void Video::flushBuffers()
 {
     if (m_rBuff == NULL) return;
 
@@ -1405,30 +1405,30 @@ void NativeVideo::flushBuffers()
 }
 
 #if 0
-int NativeVideo::getBuffer(struct AVCodecContext *c, AVFrame *pic) {
+int Video::getBuffer(struct AVCodecContext *c, AVFrame *pic) {
     int ret = avcodec_default_get_buffer(c, pic);
     uint64_t *pts = (uint64_t *)av_malloc(sizeof(uint64_t));
-    *pts = NativeVideo::pktPts;
+    *pts = Video::pktPts;
     pic->opaque = pts;
     return ret;
 }
-void NativeVideo::releaseBuffer(struct AVCodecContext *c, AVFrame *pic) {
+void Video::releaseBuffer(struct AVCodecContext *c, AVFrame *pic) {
     if(pic) av_freep(&pic->opaque);
     avcodec_default_release_buffer(c, pic);
 }
 #endif
 
-void NativeVideo::lockDecodeThread()
+void Video::lockDecodeThread()
 {
     pthread_mutex_lock(&m_DecodeThreadLock);
 }
 
-void NativeVideo::unlockDecodeThread()
+void Video::unlockDecodeThread()
 {
     pthread_mutex_unlock(&m_DecodeThreadLock);
 }
 
-void NativeVideo::closeFFMpeg()
+void Video::closeFFMpeg()
 {
     if (m_Opened) {
         Nidium::Core::PthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
@@ -1443,7 +1443,7 @@ void NativeVideo::closeFFMpeg()
     }
 }
 
-void NativeVideo::closeInternal(bool reset)
+void Video::closeInternal(bool reset)
 {
     this->clearTimers(reset);
 
@@ -1524,11 +1524,11 @@ void NativeVideo::closeInternal(bool reset)
     m_SourceDoOpen = false;
 }
 
-NativeVideo::~NativeVideo() {
+Video::~Video() {
     this->closeInternal(false);
 }
 
-bool NativeVideoAudioSource::buffer()
+bool VideoAudioSource::buffer()
 {
     if (m_Video->m_AudioQueue->count > 0) {
         if (m_FreePacket != NULL) {
@@ -1537,7 +1537,7 @@ bool NativeVideoAudioSource::buffer()
             // Note : av_free_packet is called by the audioSource
         }
 
-        NativeVideo::Packet *p = m_Video->getPacket(m_Video->m_AudioQueue);
+        Video::Packet *p = m_Video->getPacket(m_Video->m_AudioQueue);
         m_TmpPacket = &p->curr;
         m_FreePacket = p;
         m_PacketConsumed = false;

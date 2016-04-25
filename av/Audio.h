@@ -44,7 +44,7 @@ class NativeAudio
     public:
         NativeAudio(ape_global *net, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate);
 
-        friend class NativeVideo;
+        friend class Video;
         friend class NativeAudioSource;
         friend class NativeAudioCustomSource;
 

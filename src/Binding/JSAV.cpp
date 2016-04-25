@@ -1033,7 +1033,7 @@ JSAudioNode::~JSAudioNode()
     m_Audio->m_Audio->wakeup();
 
     if (m_NodeType == AV::NativeAudio::SOURCE) {
-        // Only source from AV::NativeVideo has reserved slot
+        // Only source from AV::Video has reserved slot
         JS::RootedValue source(m_Cx, JS_GetReservedSlot(m_JSObject, 0));
         JS::RootedObject obj(m_Cx, source.toObjectOrNull());
         if (obj.get()) {
@@ -2112,7 +2112,7 @@ JSVideo::JSVideo(JS::HandleObject obj,
     m_Width(-1), m_Height(-1), m_Left(0), m_Top(0), m_IsDestructing(false),
     m_CanvasCtx(canvasCtx), cx(cx)
 {
-    m_Video = new AV::NativeVideo((ape_global *)JS_GetContextPrivate(cx));
+    m_Video = new AV::Video((ape_global *)JS_GetContextPrivate(cx));
     m_Video->frameCallback(JSVideo::FrameCallback, this);
     m_Video->eventCallback(JSVideo::onEvent, this);
     m_CanvasCtx->getHandler()->addListener(this);

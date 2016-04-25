@@ -33,13 +33,13 @@ namespace AV {
 
 typedef void (*VideoCallback)(uint8_t *data, void *custom);
 
-// {{{ NativeVideo
-class NativeVideo : public NativeAVSource
+// {{{ Video
+class Video : public NativeAVSource
 {
-    friend class NativeVideoAudioSource;
+    friend class VideoAudioSource;
 
     public :
-        NativeVideo(ape_global *n);
+        Video(ape_global *n);
 
         struct TimerItem {
             int id;
@@ -145,7 +145,7 @@ class NativeVideo : public NativeAVSource
 
         static void sourceNeedWork(void *ptr);
 
-        ~NativeVideo();
+        ~Video();
     private :
         NativeAVReader *m_Reader;
         NativeAudio *m_Audio;
@@ -196,11 +196,11 @@ class NativeVideo : public NativeAVSource
 };
 // }}}
 
-// {{{ NativeVideoAudioSource
-class NativeVideoAudioSource: public NativeAudioSource
+// {{{ VideoAudioSource
+class VideoAudioSource: public NativeAudioSource
 {
   public:
-      NativeVideoAudioSource(int out, NativeVideo *video, bool external) :
+      VideoAudioSource(int out, Video *video, bool external) :
           NativeAudioSource(out, video->m_Audio, external),
           m_Video(video), m_FreePacket(NULL)
       {
@@ -208,7 +208,7 @@ class NativeVideoAudioSource: public NativeAudioSource
 
       bool buffer();
 
-      ~NativeVideoAudioSource() {
+      ~VideoAudioSource() {
           if (m_FreePacket != NULL) {
               if (!m_PacketConsumed) {
                   // Free the packet here, otherwise the source destructor
@@ -220,8 +220,8 @@ class NativeVideoAudioSource: public NativeAudioSource
           }
       }
   private:
-      NativeVideo *m_Video;
-      NativeVideo::Packet *m_FreePacket;
+      Video *m_Video;
+      Video::Packet *m_FreePacket;
 };
 // }}}
 
