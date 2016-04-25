@@ -29,7 +29,7 @@ I++;
 #define NODE_IO_FOR_END(i) }i++;}
 
 // {{{ AudioNode
-AudioNode::AudioNode(int inCount, int outCount, NativeAudio *audio)
+AudioNode::AudioNode(int inCount, int outCount, Audio *audio)
     : m_NullFrames(true), m_Processed(false), m_IsConnected(false), m_InCount(inCount), m_OutCount(outCount),
       m_Audio(audio), m_DoNotProcess(false)
 {
@@ -437,7 +437,7 @@ void AudioNode::processQueue()
 float *AudioNode::newFrame()
 {
 #define FRAME_SIZE m_Audio->m_OutputParameters->m_BufferSize/m_Audio->m_OutputParameters->m_Channels
-    float *ret = (float *)calloc(FRAME_SIZE + sizeof(void *), NativeAudio::FLOAT32);
+    float *ret = (float *)calloc(FRAME_SIZE + sizeof(void *), Audio::FLOAT32);
     if (ret != NULL) {
         // Store at the end of the frame array
         // a pointer to the frame owner
@@ -455,7 +455,7 @@ void AudioNode::post(int msg, ExportsArgs *arg, void *val, unsigned long size) {
 }
 
 AudioNode::~AudioNode() {
-    // NOTE : The caller is responsible for calling NativeAudio::lockQueue();
+    // NOTE : The caller is responsible for calling Audio::lockQueue();
     // before deleting a node
 
     // Disconnect algorithm :
@@ -650,7 +650,7 @@ void AudioNode::resetFrame(int channel)
 // }}}
 
 // {{{ AudioNodeTarget
-AudioNodeTarget::AudioNodeTarget(int inCount, int outCount, NativeAudio *audio)
+AudioNodeTarget::AudioNodeTarget(int inCount, int outCount, Audio *audio)
     : AudioNode(inCount, outCount, audio)
 {
     if (audio->openOutput() != 0) {
@@ -665,7 +665,7 @@ bool AudioNodeTarget::process()
 /// }}}
 
 // {{{ AudioNodeReverb
-AudioNodeReverb::AudioNodeReverb(int inCount, int outCount, NativeAudio *audio)
+AudioNodeReverb::AudioNodeReverb(int inCount, int outCount, Audio *audio)
     : AudioNode(inCount, outCount, audio), m_Delay(500)
 {
     m_Args[0] = new ExportsArgs("delay", DOUBLE, &m_Delay);
@@ -692,7 +692,7 @@ bool AudioNodeReverb::process()
 // }}}
 
 // {{{ NativeAudoNodeStereoEnhancer
-AudioNodeStereoEnhancer::AudioNodeStereoEnhancer(int inCount, int outCount, NativeAudio *audio)
+AudioNodeStereoEnhancer::AudioNodeStereoEnhancer(int inCount, int outCount, Audio *audio)
     : AudioNode(inCount, outCount, audio), m_Width(0)
 {
     m_Args[0] = new ExportsArgs("width", DOUBLE, &m_Width);
@@ -721,7 +721,7 @@ bool AudioNodeStereoEnhancer::process()
 // }}}
 
 // {{{ AudioNodeCustom
-AudioNodeCustom::AudioNodeCustom(int inCount, int outCount, NativeAudio *audio)
+AudioNodeCustom::AudioNodeCustom(int inCount, int outCount, Audio *audio)
     : AudioNode(inCount, outCount, audio), m_Cbk(NULL), m_Custom(NULL)
 {
 }
@@ -749,7 +749,7 @@ bool AudioNodeCustom::process()
 // }}}
 
 // {{{ AudioSource
-AudioSource::AudioSource(int out, NativeAudio *audio, bool external) :
+AudioSource::AudioSource(int out, Audio *audio, bool external) :
     AudioNode(0, out, audio), m_OutputParameters(NULL),
     m_BufferNotEmpty(NULL), m_rBufferOut(NULL), m_Reader(NULL),
     m_ExternallyManaged(external), m_Playing(false), m_PlayWhenReady(false),
@@ -783,7 +783,7 @@ return err;
     m_MainCoro = Coro_new();
     Coro_initializeMainCoro(m_MainCoro);
 
-    m_Reader = new NativeAVStreamReader(src, NativeAudio::sourceNeedWork, m_Audio, this, m_Audio->m_Net);
+    m_Reader = new NativeAVStreamReader(src, Audio::sourceNeedWork, m_Audio, this, m_Audio->m_Net);
 
     m_AvioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
     if (!m_AvioBuffer) {
@@ -942,7 +942,7 @@ int AudioSource::initInternal()
         m_fCvt = new Resampler();
         m_fCvt->setup(m_CodecCtx->sample_rate, m_Audio->m_OutputParameters->m_SampleRate, m_OutCount, 32);
 
-        if (!(m_fBufferOutData = (float *)malloc(NATIVE_RESAMPLER_BUFFER_SAMPLES * m_OutCount * NativeAudio::FLOAT32))) {
+        if (!(m_fBufferOutData = (float *)malloc(NATIVE_RESAMPLER_BUFFER_SAMPLES * m_OutCount * Audio::FLOAT32))) {
             fprintf(stderr, "Failed to init frequency resampler buffers");
             return ERR_OOM;
         }
@@ -957,12 +957,12 @@ int AudioSource::initInternal()
     // Init output buffer
     int bufferSize = m_Audio->m_OutputParameters->m_BufferSize;
     m_rBufferOut = new PaUtilRingBuffer();
-    if (!(m_rBufferOutData = calloc(bufferSize * NATIVE_AUDIO_BUFFER_MULTIPLIER, NativeAudio::FLOAT32 * m_OutCount))) {
+    if (!(m_rBufferOutData = calloc(bufferSize * NATIVE_AUDIO_BUFFER_MULTIPLIER, Audio::FLOAT32 * m_OutCount))) {
         return ERR_OOM;
     }
 
     if (0 > PaUtil_InitializeRingBuffer(static_cast<PaUtilRingBuffer*>(m_rBufferOut),
-            (NativeAudio::FLOAT32 * m_OutCount),
+            (Audio::FLOAT32 * m_OutCount),
             bufferSize * NATIVE_AUDIO_BUFFER_MULTIPLIER,
             m_rBufferOutData)) {
         fprintf(stderr, "Failed to init output ringbuffer\n");
@@ -1201,7 +1201,7 @@ return false;
                 free(m_TmpFrame.data);
             }
             m_TmpFrame.size = tmpFrame->linesize[0];
-            m_TmpFrame.data = (float *)malloc(tmpFrame->nb_samples * NativeAudio::FLOAT32 * 2);
+            m_TmpFrame.data = (float *)malloc(tmpFrame->nb_samples * Audio::FLOAT32 * 2);
             // XXX : Right now, source output is always stereo
             if (m_TmpFrame.data == NULL) {
                 RETURN_WITH_ERROR(ERR_OOM);
@@ -1246,7 +1246,7 @@ int AudioSource::resample(int destSamples) {
         for (; ;) {
             int sampleSize;
 
-            sampleSize = channels * NativeAudio::FLOAT32;
+            sampleSize = channels * Audio::FLOAT32;
 
             // Output is empty
             if (m_fCvt->out_count == NATIVE_RESAMPLER_BUFFER_SAMPLES) {
@@ -1296,7 +1296,7 @@ int AudioSource::resample(int destSamples) {
     } else {
         int sampleSize, copied;
 
-        sampleSize = m_NbChannel * NativeAudio::FLOAT32;
+        sampleSize = m_NbChannel * Audio::FLOAT32;
         copied = 0;
 
         for (; ;) {
@@ -1452,7 +1452,7 @@ bool AudioSource::process() {
     if (m_Audio->m_OutputParameters->m_FramesPerBuffer >= PaUtil_GetRingBufferReadAvailable(m_rBufferOut)) {
         this->resetFrames();
         //SPAM(("Not enought to read\n"));
-        // EOF reached, send message to NativeAudio
+        // EOF reached, send message to Audio
         if (m_Error == AVERROR_EOF && !m_Eof) {
             SPAM(("     => EOF loop=%d\n", m_Loop));
 

@@ -106,7 +106,7 @@ class JSAudio: public JSExposer<JSAudio>
                 : curr(NULL), prev(NULL), next(NULL) {}
         };
 
-        AV::NativeAudio *m_Audio;
+        AV::Audio *m_Audio;
         Nodes *m_Nodes;
         pthread_t m_ThreadIO;
 
@@ -130,7 +130,7 @@ class JSAudio: public JSExposer<JSAudio>
 
         ~JSAudio();
     private :
-        JSAudio(AV::NativeAudio *audio, JSContext *cx, JS::HandleObject obj);
+        JSAudio(AV::Audio *audio, JSContext *cx, JS::HandleObject obj);
         static JSAudio *m_Instance;
 };
 // }}}
@@ -140,7 +140,7 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Core::Messages
 {
     public :
         JSAudioNode(JS::HandleObject obj, JSContext *cx,
-            AV::NativeAudio::Node type, int in, int out, JSAudio *audio)
+            AV::Audio::Node type, int in, int out, JSAudio *audio)
             :   JSExposer<JSAudioNode>(obj, cx), m_nJs(NULL),
                 m_Audio(audio), m_Node(NULL), m_NodeType(type), m_NodeObj(nullptr), m_HashObj(nullptr),
                 m_ArrayContent(NULL), m_IsDestructing(false)
@@ -153,7 +153,7 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Core::Messages
                 throw;
             }
 
-            if (type == AV::NativeAudio::CUSTOM || type == AV::NativeAudio::CUSTOM_SOURCE) {
+            if (type == AV::Audio::CUSTOM || type == AV::Audio::CUSTOM_SOURCE) {
                 NATIVE_PTHREAD_VAR_INIT(&m_ShutdownWait);
             }
 
@@ -165,7 +165,7 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Core::Messages
         }
 
         JSAudioNode(JS::HandleObject obj, JSContext *cx,
-               AV::NativeAudio::Node type, AV::AudioNode *node, JSAudio *audio)
+               AV::Audio::Node type, AV::AudioNode *node, JSAudio *audio)
             :  JSExposer<JSAudioNode>(obj, cx), m_nJs(NULL), m_Audio(audio), m_Node(node), m_NodeType(type),
                m_NodeObj(nullptr), m_HashObj(nullptr), m_ArrayContent(NULL), m_IsDestructing(false)
         {
@@ -195,7 +195,7 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Core::Messages
         NidiumJS *m_nJs;
         JSAudio *m_Audio;
         AV::AudioNode *m_Node;
-        AV::NativeAudio::Node m_NodeType;
+        AV::Audio::Node m_NodeType;
 
         // Custom m_Node
         JSTransferableFunction *m_TransferableFuncs[END_FN];

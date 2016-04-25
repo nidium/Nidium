@@ -136,7 +136,7 @@ class Video : public NativeAVSource
 
         void frameCallback(VideoCallback cbk, void *arg);
 
-        AudioSource *getAudioNode(NativeAudio *audio);
+        AudioSource *getAudioNode(Audio *audio);
         static void* decode(void *args);
         static int display(void *custom);
         void setSize(int width, int height);
@@ -148,7 +148,7 @@ class Video : public NativeAVSource
         ~Video();
     private :
         NativeAVReader *m_Reader;
-        NativeAudio *m_Audio;
+        Audio *m_Audio;
         bool m_Buffering;
         bool m_Seeking;
         bool m_ThreadCreated;

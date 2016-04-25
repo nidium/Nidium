@@ -39,10 +39,10 @@ class AudioNodeTarget;
 struct NodeLink;
 typedef void (*AudioMessageCallback)(void *custom);
 
-class NativeAudio
+class Audio
 {
     public:
-        NativeAudio(ape_global *net, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate);
+        Audio(ape_global *net, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate);
 
         friend class Video;
         friend class AudioSource;
@@ -89,7 +89,7 @@ class NativeAudio
         int openInput();
         AudioNode *addSource(AudioNode *source, bool externallyManaged);
         void removeSource(AudioSource *source);
-        AudioNode *createNode(NativeAudio::Node node, int input, int ouput);
+        AudioNode *createNode(Audio::Node node, int input, int ouput);
         bool connect(NodeLink *input, NodeLink *output);
         bool disconnect(NodeLink *input, NodeLink *output);
         void setVolume(float volume);
@@ -114,7 +114,7 @@ class NativeAudio
             m_MainCtx = ctx;
         }
 
-        ~NativeAudio();
+        ~Audio();
     private:
         struct AudioSources {
             AudioNode *curr;

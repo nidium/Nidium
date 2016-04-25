@@ -123,9 +123,9 @@ class AudioNode
         int m_OutCount;
         // XXX : Should be private
         // (but for now JS need access to it)
-        NativeAudio *m_Audio;
+        Audio *m_Audio;
 
-        AudioNode(int inCount, int outCount, NativeAudio *audio);
+        AudioNode(int inCount, int outCount, Audio *audio);
         void resetFrames();
         void resetFrame(int channel);
         void callback(NodeMessageCallback cbk, void *custom);
@@ -176,7 +176,7 @@ class AudioNode
 class AudioNodeTarget : public AudioNode
 {
     public :
-        AudioNodeTarget(int inCount, int outCount, NativeAudio *audio);
+        AudioNodeTarget(int inCount, int outCount, Audio *audio);
 
         virtual bool process();
 };
@@ -186,7 +186,7 @@ class AudioNodeTarget : public AudioNode
 class AudioNodeCustom : public AudioNode
 {
     public :
-        AudioNodeCustom(int inCount, int outCount, NativeAudio *audio);
+        AudioNodeCustom(int inCount, int outCount, Audio *audio);
 
         void setCallback(NodeCallback cbk, void *custom);
 
@@ -201,7 +201,7 @@ class AudioNodeCustom : public AudioNode
 class AudioNodeStereoEnhancer : public AudioNode
 {
     public :
-        AudioNodeStereoEnhancer(int inCount, int outCount, NativeAudio *audio);
+        AudioNodeStereoEnhancer(int inCount, int outCount, Audio *audio);
 
         double m_Width;
 
@@ -213,7 +213,7 @@ class AudioNodeStereoEnhancer : public AudioNode
 class AudioNodeReverb : public AudioNode
 {
     public :
-        AudioNodeReverb(int inCount, int outCount, NativeAudio *audio);
+        AudioNodeReverb(int inCount, int outCount, Audio *audio);
 
         double m_Delay;
 
@@ -271,7 +271,7 @@ class AudioNodeMixer : public AudioNode
 class AudioSource: public AudioNode, public NativeAVSource
 {
     public:
-        AudioSource(int out, NativeAudio *audio, bool external);
+        AudioSource(int out, Audio *audio, bool external);
 
         friend class Video;
         friend class VideoAudioSource;
@@ -351,7 +351,7 @@ class AudioSource: public AudioNode, public NativeAVSource
 class AudioCustomSource : public AudioNodeCustom, public NativeAVSourceEventInterface
 {
     public:
-        AudioCustomSource(int out, NativeAudio *audio)
+        AudioCustomSource(int out, Audio *audio)
             : AudioNodeCustom(0, out, audio), m_Playing(false),
               m_SeekCallback(NULL), m_Custom(NULL), m_SeekTime(0.0f)
         {
@@ -390,7 +390,7 @@ class AudioProcessor
 class AudioNodeProcessor: public AudioNode
 {
   public:
-    AudioNodeProcessor(int inCount, int outCount, NativeAudio *audio)
+    AudioNodeProcessor(int inCount, int outCount, Audio *audio)
         : AudioNode(inCount, outCount, audio)
     {
         for (int i = 0; i < NATIVE_AUDIONODE_CHANNEL_SIZE; i++) {

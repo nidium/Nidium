@@ -3,7 +3,7 @@
 namespace Nidium {
 namespace AV {
 
-AudioNodeDelay::AudioNodeDelay(int inCount, int outCount, NativeAudio *audio)
+AudioNodeDelay::AudioNodeDelay(int inCount, int outCount, Audio *audio)
     : AudioNodeProcessor(inCount, outCount, audio)
 {
     m_Args[0] = new ExportsArgs("wet", DOUBLE, WET, AudioNodeDelay::argCallback);

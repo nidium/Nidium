@@ -18,7 +18,7 @@ class AudioProcessorDelay: public AudioProcessor
     {
         int size = ceil(m_MaxDelay/1000) * sampleRate;
 
-        m_Buffer = (float *)calloc(size, NativeAudio::FLOAT32);
+        m_Buffer = (float *)calloc(size, Audio::FLOAT32);
         m_BufferSize = size;
         m_MaxSamples = m_BufferSize * 0.5;
 
@@ -42,7 +42,7 @@ class AudioProcessorDelay: public AudioProcessor
 
     void setDelay(int delay)
     {
-        int size = ceil(m_MaxDelay/1000) * m_SamplRate * NativeAudio::FLOAT32;
+        int size = ceil(m_MaxDelay/1000) * m_SamplRate * Audio::FLOAT32;
         memset(m_Buffer, 0.0, size);
 
         m_Idx = 0;

@@ -15,7 +15,7 @@ class AudioProcessorDelay;
 class AudioNodeDelay: public AudioNodeProcessor
 {
     public :
-        AudioNodeDelay(int inCount, int outCount, NativeAudio *audio);
+        AudioNodeDelay(int inCount, int outCount, Audio *audio);
 
         enum Args {
             WET, DELAY, FEEDBACK

@@ -28,7 +28,7 @@ namespace AV {
   #define DPRINT(...) (void)0
 #endif
 
-// XXX : Well, Video need a better interaction with NativeAudio.
+// XXX : Well, Video need a better interaction with Audio.
 // There's a lot of little hack to work nicely with it.
 
 Video::Video(ape_global *n):
@@ -654,7 +654,7 @@ void Video::frameAt(double time, bool keyframe)
 }
 // }}}
 
-AudioSource *Video::getAudioNode(NativeAudio *audio)
+AudioSource *Video::getAudioNode(Audio *audio)
 {
 
     if (m_AudioSource) {

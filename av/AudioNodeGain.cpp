@@ -4,7 +4,7 @@
 namespace Nidium {
 namespace AV {
 
-AudioNodeGain::AudioNodeGain(int inCount, int outCount, NativeAudio *audio)
+AudioNodeGain::AudioNodeGain(int inCount, int outCount, Audio *audio)
     : AudioNodeProcessor(inCount, outCount, audio)
 {
     m_Args[0] = new ExportsArgs("gain", DOUBLE, GAIN, AudioNodeGain::argCallback);

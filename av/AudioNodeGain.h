@@ -12,7 +12,7 @@ class AudioProcessorGain;
 class AudioNodeGain: public AudioNodeProcessor
 {
     public :
-        AudioNodeGain(int inCount, int outCount, NativeAudio *audio);
+        AudioNodeGain(int inCount, int outCount, Audio *audio);
 
         enum Args {
             GAIN

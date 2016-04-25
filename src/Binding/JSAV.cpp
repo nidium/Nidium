@@ -48,7 +48,7 @@ if (!JS_ReportPendingException(cx)) {\
     var = static_cast<type *>(CppObj->m_Node);
 
 #define CHECK_INVALID_CTX(obj) if (!obj) {\
-JS_ReportError(cx, "Invalid AV::NativeAudio context"); \
+JS_ReportError(cx, "Invalid AV::Audio context"); \
 return false; \
 }
 
@@ -508,10 +508,10 @@ JSAudio *JSAudio::GetContext(JSContext *cx, JS::HandleObject obj, \
     unsigned int bufferSize, unsigned int channels, unsigned int sampleRate)
 {
     ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(cx));
-    AV::NativeAudio *audio;
+    AV::Audio *audio;
 
     try {
-        audio = new AV::NativeAudio(net, bufferSize, channels, sampleRate);
+        audio = new AV::Audio(net, bufferSize, channels, sampleRate);
     } catch (...) {
         return NULL;
     }
@@ -568,7 +568,7 @@ JSAudio *JSAudio::GetContext()
     return JSAudio::m_Instance;
 }
 
-JSAudio::JSAudio(AV::NativeAudio *audio, JSContext *cx, JS::HandleObject obj)
+JSAudio::JSAudio(AV::Audio *audio, JSContext *cx, JS::HandleObject obj)
     :
       JSExposer<JSAudio>(obj, cx),
       m_Audio(audio), m_Nodes(NULL), m_JsGlobalObj(NULL), m_JsRt(NULL), m_JsTcx(NULL),
@@ -678,8 +678,8 @@ void JSAudio::ShutdownCallback(void *custom)
 
     // Let's shutdown all custom nodes
     while (nodes != NULL) {
-        if (nodes->curr->m_NodeType == AV::NativeAudio::CUSTOM ||
-            nodes->curr->m_NodeType == AV::NativeAudio::CUSTOM_SOURCE) {
+        if (nodes->curr->m_NodeType == AV::Audio::CUSTOM ||
+            nodes->curr->m_NodeType == AV::Audio::CUSTOM_SOURCE) {
             nodes->curr->ShutdownCallback(nodes->curr->m_Node, nodes->curr);
         }
 
@@ -723,7 +723,7 @@ JSAudio::~JSAudio()
     NATIVE_PTHREAD_WAIT(&m_ShutdownWait)
 
     // Unlock the sources, so the decode thread can exit
-    // when we call AV::NativeAudio::shutdown()
+    // when we call AV::Audio::shutdown()
     m_Audio->unlockSources();
 
     // Shutdown the audio
@@ -1021,7 +1021,7 @@ JSAudioNode::~JSAudioNode()
 
     m_IsDestructing = true;
 
-    // Block Nidium::NativeAudio threads execution.
+    // Block Nidium::Audio threads execution.
     // While the node is destructed we don't want any thread
     // to call some method on a node that is being destroyed
     m_Audio->m_Audio->lockQueue();
@@ -1032,7 +1032,7 @@ JSAudioNode::~JSAudioNode()
     // later for this node.
     m_Audio->m_Audio->wakeup();
 
-    if (m_NodeType == AV::NativeAudio::SOURCE) {
+    if (m_NodeType == AV::Audio::SOURCE) {
         // Only source from AV::Video has reserved slot
         JS::RootedValue source(m_Cx, JS_GetReservedSlot(m_JSObject, 0));
         JS::RootedObject obj(m_Cx, source.toObjectOrNull());
@@ -1070,8 +1070,8 @@ JSAudioNode::~JSAudioNode()
 
     // Custom nodes and sources must release all JS object on the JS thread
     if (m_Node != NULL && m_Audio->m_JsTcx != NULL &&
-            (m_NodeType == AV::NativeAudio::CUSTOM ||
-             m_NodeType == AV::NativeAudio::CUSTOM_SOURCE)) {
+            (m_NodeType == AV::Audio::CUSTOM ||
+             m_NodeType == AV::Audio::CUSTOM_SOURCE)) {
 
         m_Node->callback(JSAudioNode::ShutdownCallback, this, true);
 
@@ -1310,7 +1310,7 @@ static bool nidium_audio_createnode(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString cname(cx, name);
     try {
         if (strcmp("source", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, AV::NativeAudio::SOURCE, in, out, audio);
+            node = new JSAudioNode(ret, cx, AV::Audio::SOURCE, in, out, audio);
 
             AV::AudioSource *source = static_cast<AV::AudioSource*>(node->m_Node);
             source->eventCallback(JSAudioNode::onEvent, node);
@@ -1318,7 +1318,7 @@ static bool nidium_audio_createnode(JSContext *cx, unsigned argc, JS::Value *vp)
             JS_DefineFunctions(cx, ret, AudioNodeSource_funcs);
             JS_DefineProperties(cx, ret, AudioNodeSource_props);
         } else if (strcmp("custom-source", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, AV::NativeAudio::CUSTOM_SOURCE, in, out, audio);
+            node = new JSAudioNode(ret, cx, AV::Audio::CUSTOM_SOURCE, in, out, audio);
 
             AV::AudioCustomSource *source = static_cast<AV::AudioCustomSource*>(node->m_Node);
             source->eventCallback(JSAudioNode::onEvent, node);
@@ -1332,25 +1332,25 @@ static bool nidium_audio_createnode(JSContext *cx, unsigned argc, JS::Value *vp)
             JS_DefineFunctions(cx, ret, AudioNodeCustom_funcs);
             JS_DefineFunctions(cx, ret, AudioNodeCustomSource_funcs);
         } else if (strcmp("custom", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, AV::NativeAudio::CUSTOM, in, out, audio);
+            node = new JSAudioNode(ret, cx, AV::Audio::CUSTOM, in, out, audio);
             JS_DefineFunctions(cx, ret, AudioNodeCustom_funcs);
         } else if (strcmp("reverb", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, AV::NativeAudio::REVERB, in, out, audio);
+            node = new JSAudioNode(ret, cx, AV::Audio::REVERB, in, out, audio);
         } else if (strcmp("delay", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, AV::NativeAudio::DELAY, in, out, audio);
+            node = new JSAudioNode(ret, cx, AV::Audio::DELAY, in, out, audio);
         } else if (strcmp("gain", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, AV::NativeAudio::GAIN, in, out, audio);
+            node = new JSAudioNode(ret, cx, AV::Audio::GAIN, in, out, audio);
         } else if (strcmp("target", cname.ptr()) == 0) {
             if (audio->m_Target != NULL) {
                 JS::RootedObject retObj(cx, audio->m_Target->getJSObject());
                 args.rval().setObjectOrNull(retObj);
                 return true;
             } else {
-                node = new JSAudioNode(ret, cx, AV::NativeAudio::TARGET, in, out, audio);
+                node = new JSAudioNode(ret, cx, AV::Audio::TARGET, in, out, audio);
                 audio->m_Target = node;
             }
         } else if (strcmp("stereo-enhancer", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, AV::NativeAudio::STEREO_ENHANCER, in, out, audio);
+            node = new JSAudioNode(ret, cx, AV::Audio::STEREO_ENHANCER, in, out, audio);
         } else {
             JS_ReportError(cx, "Unknown node name : %s\n", cname.ptr());
             return false;
@@ -1382,7 +1382,7 @@ static bool nidium_audio_connect(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSAudio, &AudioContext_class);
     jaudio = CppObj;
-    AV::NativeAudio *audio = jaudio->m_Audio;
+    AV::Audio *audio = jaudio->m_Audio;
 
     JS::RootedObject link1(cx);
     JS::RootedObject link2(cx);
@@ -1426,7 +1426,7 @@ static bool nidium_audio_disconnect(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NIDIUM_JS_PROLOGUE_CLASS(JSAudio, &AudioContext_class);
     jaudio = CppObj;
-    AV::NativeAudio *audio = jaudio->m_Audio;
+    AV::Audio *audio = jaudio->m_Audio;
 
     JS::RootedObject link1(cx);
     JS::RootedObject link2(cx);
@@ -2324,7 +2324,7 @@ static bool nidium_video_get_audionode(JSContext *cx, unsigned argc, JS::Value *
         v->m_AudioNode = audioNode;
 
         JSAudioNode *node = new JSAudioNode(audioNode, cx,
-          AV::NativeAudio::SOURCE, static_cast<class AV::AudioNode *>(source), jaudio);
+          AV::Audio::SOURCE, static_cast<class AV::AudioNode *>(source), jaudio);
 
         JS::RootedString name(cx, JS_NewStringCopyN(cx, "video-source", 12));
         JS::RootedObject an(cx, v->m_AudioNode);
@@ -2455,7 +2455,7 @@ void JSVideo::releaseAudioNode()
 
         if (node) {
             JS_SetReservedSlot(node->getJSObject(), 0, JSVAL_NULL);
-            // will remove the source from JSAudio and AV::NativeAudio
+            // will remove the source from JSAudio and AV::Audio
             delete node;
         }
 

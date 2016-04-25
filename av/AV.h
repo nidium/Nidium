@@ -59,7 +59,7 @@ pthread_mutex_unlock(mutexRef##Lock);\
 *(mutexRef##Cond) = true;\
 pthread_cond_signal(mutexRef);
 
-class NativeAudioTrack;
+class AudioTrack;
 class NativeAVSource;
 
 // {{{ NativeAVReader
