@@ -421,7 +421,7 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
     m_Prev = NULL;
 }
 
-void CanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContext)
+void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
 {
     Nidium::NML::InputEvent *ev = m_NativeContext->getInputEvents();
     if (ev == NULL) {
@@ -469,11 +469,11 @@ void CanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContext)
     }
 }
 
-void CanvasHandler::layerize(NativeLayerizeContext &layerContext, bool draw)
+void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
 {
     CanvasHandler *cur;
     Rect nclip;
-    NativeLayerSiblingContext *sctx = layerContext.m_SiblingCtx;
+    LayerSiblingContext *sctx = layerContext.m_SiblingCtx;
 
     if (m_Visibility == CANVAS_VISIBILITY_HIDDEN || m_Opacity == 0.0) {
         return;
@@ -613,7 +613,7 @@ void CanvasHandler::layerize(NativeLayerizeContext &layerContext, bool draw)
 
         }
 #endif
-        struct NativeLayerSiblingContext siblingctx;
+        struct LayerSiblingContext siblingctx;
 
         for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
             int offsetLeft = 0, offsetTop = 0;
@@ -622,7 +622,7 @@ void CanvasHandler::layerize(NativeLayerizeContext &layerContext, bool draw)
                 offsetTop  = -m_Content.scrollTop;
             }
 
-            struct NativeLayerizeContext ctx = {
+            struct LayerizeContext ctx = {
                 .m_Layer = layerContext.m_Layer,
                 .m_pLeft = tmpLeft + m_Translate_s.x + layerContext.m_pLeft + offsetLeft,
                 .m_pTop  = tmpTop + m_Translate_s.y + layerContext.m_pTop + offsetTop,

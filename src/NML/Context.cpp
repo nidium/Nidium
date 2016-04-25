@@ -399,9 +399,9 @@ void NativeContext::frame(bool draw)
 
     /* We draw on the UI fbo */
     glBindFramebuffer(GL_FRAMEBUFFER, m_UI->getFBO());
-    Nidium::Graphics::NativeLayerizeContext ctx;
+    Nidium::Graphics::LayerizeContext ctx;
     ctx.reset();
-    Nidium::Graphics::NativeLayerSiblingContext sctx;
+    Nidium::Graphics::LayerSiblingContext sctx;
     ctx.m_SiblingCtx = &sctx;
 
     m_CanvasOrderedEvents.clear();

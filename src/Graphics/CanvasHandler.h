@@ -15,7 +15,6 @@
     - All size are in logical pixels (device ratio is handled by CanvasContext)
 */
 
-
 namespace Nidium {
     namespace Interface {
         class NativeUIInterface;
@@ -80,18 +79,18 @@ struct Rect
 };
 // }}}
 
-// {{{ NativeLayerSiblingContext
-struct NativeLayerSiblingContext {
+// {{{ LayerSiblingContext
+struct LayerSiblingContext {
     double m_MaxLineHeight;
     double m_MaxLineHeightPreviousLine;
 
-    NativeLayerSiblingContext() :
+    LayerSiblingContext() :
         m_MaxLineHeight(0.0), m_MaxLineHeightPreviousLine(0.0) {}
 };
 // }}}
 
-// {{{ NativeLayerizeContext
-struct NativeLayerizeContext {
+// {{{ LayerizeContext
+struct LayerizeContext {
     class CanvasHandler *m_Layer;
     double m_pLeft;
     double m_pTop;
@@ -99,7 +98,7 @@ struct NativeLayerizeContext {
     double m_aZoom;
     Rect *m_Clip;
 
-    struct NativeLayerSiblingContext *m_SiblingCtx;
+    struct LayerSiblingContext *m_SiblingCtx;
 
     void reset() {
         m_Layer = NULL;
@@ -533,7 +532,7 @@ class CanvasHandler : public Nidium::Core::Events
         CanvasHandler *getPrevSibling() const { return m_Prev; }
         int32_t countChildren() const;
         bool containsPoint(double x, double y) const;
-        void layerize(NativeLayerizeContext &layerContext, bool draw);
+        void layerize(LayerizeContext &layerContext, bool draw);
 
         CanvasHandler *m_Parent;
         CanvasHandler *m_Children;
@@ -569,7 +568,7 @@ class CanvasHandler : public Nidium::Core::Events
         void onDrop(Nidium::NML::InputEvent *ev, CanvasHandler *droped);
 
         int32_t m_nChildren;
-        void dispatchMouseEvents(NativeLayerizeContext &layerContext);
+        void dispatchMouseEvents(LayerizeContext &layerContext);
         COORD_POSITION m_CoordPosition;
         Visibility m_Visibility;
         unsigned m_FlowMode;
