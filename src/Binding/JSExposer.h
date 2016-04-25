@@ -92,7 +92,7 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
     }
 
 #define NIDIUM_JS_REGISTER_MODULE(constructor) \
-    extern "C" __attribute__((__visibility__("default"))) bool __NativeRegisterModule(JSContext *cx, JS::HandleObject exports) \
+    extern "C" __attribute__((__visibility__("default"))) bool __NidiumRegisterModule(JSContext *cx, JS::HandleObject exports) \
     { \
         return constructor(cx, exports); \
     }
