@@ -16,8 +16,7 @@
 namespace Nidium {
 namespace Binding {
 
-
-#define NATIVE_GL_GETTER(obj) ((class NativeCanvasWebGLContext*)JS_GetPrivate(obj))
+#define NATIVE_GL_GETTER(obj) ((class CanvasWebGLContext*)JS_GetPrivate(obj))
 
 #define GL_CALL(IFACE, FN)\
     NATIVE_GL_CALL((IFACE)->getGLContext(), FN); \
@@ -49,8 +48,8 @@ namespace Binding {
     return true;\
 }
 
-#define NATIVE_GL_OBJECT_EXPOSE_NOT_INST(name) \
-    void NativeJS ## name::RegisterObject(JSContext *cx) \
+#define NIDIUM_GL_OBJECT_EXPOSE_NOT_INST(name) \
+    void JS ## name::RegisterObject(JSContext *cx) \
     { \
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
         JS_DefineObject(cx, global, #name, \
@@ -2887,7 +2886,7 @@ static bool native_NativeGL_constructor(JSContext *cx, unsigned argc, JS::Value 
 
     JS::RootedValuel proto(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    NativeCanvasWebGLContext *ngl = new NativeCanvasWebGLContext(cx);
+    CanvasWebGLContext *ngl = new CanvasWebGLContext(cx);
 
     JS_GetProperty(cx, global, "WebGLRenderingContext", &proto);
     JS::RootedObject protoObj(cx);
@@ -2913,19 +2912,19 @@ static bool native_NativeGL_constructor(JSContext *cx, unsigned argc, JS::Value 
 }
 #endif
 
-static bool NativeJSWebGLRenderingContext_constructor(JSContext *cx,
+static bool JSWebGLRenderingContext_constructor(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     JS_ReportError(cx, "Illegal constructor");
     return false;
 }
 
-void NativeJSWebGLRenderingContext::RegisterObject(JSContext *cx) {
+void JSWebGLRenderingContext::RegisterObject(JSContext *cx) {
     JS::RootedObject ctor(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject obj(cx, JS_InitClass(cx, global, JS::NullPtr(),
                 &WebGLRenderingContext_class,
-                NativeJSWebGLRenderingContext_constructor,
+                JSWebGLRenderingContext_constructor,
                 0, nullptr, WebGLRenderingContext_funcs, nullptr, nullptr));
 
     if (!obj || !(ctor = JS_GetConstructor(cx, obj))) {
@@ -2938,15 +2937,15 @@ void NativeJSWebGLRenderingContext::RegisterObject(JSContext *cx) {
 // }}}
 
 // {{{ Registration
-NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLBuffer);
-NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLFramebuffer);
-NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLProgram);
-NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLRenderbuffer);
-NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLShader);
-NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLTexture);
-NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLUniformLocation);
-NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLShaderPrecisionFormat);
-NATIVE_OBJECT_EXPOSE_NOT_INST(WebGLActiveInfo);
+NIDIUM_GL_OBJECT_EXPOSE_NOT_INST(WebGLBuffer);
+NIDIUM_GL_OBJECT_EXPOSE_NOT_INST(WebGLFramebuffer);
+NIDIUM_GL_OBJECT_EXPOSE_NOT_INST(WebGLProgram);
+NIDIUM_GL_OBJECT_EXPOSE_NOT_INST(WebGLRenderbuffer);
+NIDIUM_GL_OBJECT_EXPOSE_NOT_INST(WebGLShader);
+NIDIUM_GL_OBJECT_EXPOSE_NOT_INST(WebGLTexture);
+NIDIUM_GL_OBJECT_EXPOSE_NOT_INST(WebGLUniformLocation);
+NIDIUM_GL_OBJECT_EXPOSE_NOT_INST(WebGLShaderPrecisionFormat);
+NIDIUM_JS_OBJECT_EXPOSE_NOT_INST(WebGLActiveInfo);
 // }}}
 
 } // namespace Nidium

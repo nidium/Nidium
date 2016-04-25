@@ -87,7 +87,7 @@ static JSClass storage_class = {
 extern JSClass global_class;
 
 template<>
-JSClass *JSExposer<NativeJSwindow>::jsclass = &global_class;
+JSClass *JSExposer<JSWindow>::jsclass = &global_class;
 
 static JSClass mouseEvent_class = {
     "MouseEvent", 0,
@@ -206,7 +206,7 @@ static JSPropertySpec navigator_props[] = {
 // }}}
 
 // {{{ Implementation
-NativeJSwindow::~NativeJSwindow()
+JSWindow::~JSWindow()
 {
     if (m_Dragging) {
         /* cleanup drag files */
@@ -216,7 +216,7 @@ NativeJSwindow::~NativeJSwindow()
     }
 };
 
-void NativeJSwindow::onReady(JS::HandleObject layout)
+void JSWindow::onReady(JS::HandleObject layout)
 {
     JS::AutoValueArray<1> arg(m_Cx);
 
@@ -237,7 +237,7 @@ void NativeJSwindow::onReady(JS::HandleObject layout)
     }
 }
 
-bool NativeJSwindow::onClose()
+bool JSWindow::onClose()
 {
     JS::RootedValue onclose(m_Cx);
     JS::RootedObject obj(m_Cx, m_JSObject);
@@ -253,7 +253,7 @@ bool NativeJSwindow::onClose()
     return true;
 }
 
-void NativeJSwindow::assetReady(const Nidium::NML::NMLTag &tag)
+void JSWindow::assetReady(const Nidium::NML::NMLTag &tag)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
         val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS)
@@ -283,7 +283,7 @@ void NativeJSwindow::assetReady(const Nidium::NML::NMLTag &tag)
 #undef EVENT_PROP
 }
 
-void NativeJSwindow::windowFocus()
+void JSWindow::windowFocus()
 {
     JS::RootedValue onfocus(m_Cx);
     JS::RootedObject obj(m_Cx, m_JSObject);
@@ -295,7 +295,7 @@ void NativeJSwindow::windowFocus()
     }
 }
 
-void NativeJSwindow::windowBlur()
+void JSWindow::windowBlur()
 {
     JS::RootedValue onblur(m_Cx);
     JS::RootedObject obj(m_Cx, m_JSObject);
@@ -307,7 +307,7 @@ void NativeJSwindow::windowBlur()
     }
 }
 
-void NativeJSwindow::mouseWheel(int xrel, int yrel, int x, int y)
+void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY)
@@ -345,7 +345,7 @@ void NativeJSwindow::mouseWheel(int xrel, int yrel, int x, int y)
 #undef EVENT_PROP
 }
 
-void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat, int location)
+void JSWindow::keyupdown(int keycode, int mod, int state, int repeat, int location)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, JSPROP_PERMANENT | JSPROP_ENUMERATE)
@@ -387,7 +387,7 @@ void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat, int 
 #undef EVENT_PROP
 }
 
-void NativeJSwindow::textInput(const char *data)
+void JSWindow::textInput(const char *data)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
@@ -412,7 +412,7 @@ void NativeJSwindow::textInput(const char *data)
 #undef EVENT_PROP
 }
 
-void NativeJSwindow::systemMenuClicked(const char *id)
+void JSWindow::systemMenuClicked(const char *id)
 {
     JSContext *cx = m_Cx;
     JS::RootedObject event(cx, JS_NewObject(m_Cx, nullptr, JS::NullPtr(), JS::NullPtr()));
@@ -424,7 +424,7 @@ void NativeJSwindow::systemMenuClicked(const char *id)
     JSOBJ_CALLFUNCNAME(obj, "_onsystemtrayclick", ev);
 }
 
-void NativeJSwindow::mouseClick(int x, int y, int state, int button, int clicks)
+void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
@@ -477,7 +477,7 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button, int clicks)
 #undef EVENT_PROP
 }
 
-bool NativeJSwindow::dragEvent(const char *name, int x, int y)
+bool JSWindow::dragEvent(const char *name, int x, int y)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
@@ -518,7 +518,7 @@ bool NativeJSwindow::dragEvent(const char *name, int x, int y)
 #undef EVENT_PROP
 }
 
-bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t nfiles)
+bool JSWindow::dragBegin(int x, int y, const char * const *files, size_t nfiles)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
@@ -542,7 +542,7 @@ bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t n
 #undef EVENT_PROP
 }
 
-void NativeJSwindow::dragLeave()
+void JSWindow::dragLeave()
 {
     if (!m_Dragging) {
         return;
@@ -551,7 +551,7 @@ void NativeJSwindow::dragLeave()
     this->dragEnd();
 }
 
-bool NativeJSwindow::dragUpdate(int x, int y)
+bool JSWindow::dragUpdate(int x, int y)
 {
     if (!m_Dragging) {
         return false;
@@ -561,7 +561,7 @@ bool NativeJSwindow::dragUpdate(int x, int y)
     return drag;
 }
 
-bool NativeJSwindow::dragDroped(int x, int y)
+bool JSWindow::dragDroped(int x, int y)
 {
     if (!m_Dragging) {
         return false;
@@ -570,7 +570,7 @@ bool NativeJSwindow::dragDroped(int x, int y)
     return this->dragEvent("_onFileDrop", x, y);
 }
 
-void NativeJSwindow::dragEnd()
+void JSWindow::dragEnd()
 {
     if (!m_Dragging) {
         return;
@@ -582,12 +582,12 @@ void NativeJSwindow::dragEnd()
     m_Dragging = false;
 }
 
-void NativeJSwindow::resized(int width, int height)
+void JSWindow::resized(int width, int height)
 {
     Nidium::NML::NativeContext::GetObject(m_Cx)->sizeChanged(width, height);
 }
 
-void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
+void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
@@ -1091,7 +1091,7 @@ static bool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS
     if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &cb)) {
         return true;
     }
-    NativeJSwindow::GetObject(cx)->addFrameCallback(&cb);
+    JSWindow::GetObject(cx)->addFrameCallback(&cb);
 
     return true;
 }
@@ -1306,7 +1306,7 @@ static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-void NativeJSwindow::addFrameCallback(JS::MutableHandleValue cb)
+void JSWindow::addFrameCallback(JS::MutableHandleValue cb)
 {
     struct _requestedFrame *frame = new struct _requestedFrame(m_Cx);
     frame->next = m_RequestedFrame;
@@ -1315,7 +1315,7 @@ void NativeJSwindow::addFrameCallback(JS::MutableHandleValue cb)
     m_RequestedFrame = frame;
 }
 
-void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
+void JSWindow::callFrameCallbacks(double ts, bool garbage)
 {
     struct _requestedFrame *frame = m_RequestedFrame;
 
@@ -1338,7 +1338,7 @@ void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
     }
 }
 
-void NativeJSwindow::initDataBase()
+void JSWindow::initDataBase()
 {
     Nidium::NML::NML *nml = Nidium::NML::NativeContext::GetObject(m_Cx)->getNML();
     if (!nml) {
@@ -1355,7 +1355,7 @@ void NativeJSwindow::initDataBase()
     }
 }
 
-void NativeJSwindow::createMainCanvas(int width, int height, JS::HandleObject docObj)
+void JSWindow::createMainCanvas(int width, int height, JS::HandleObject docObj)
 {
     JS::RootedObject canvas(m_Cx, NativeJSCanvas::GenerateJSObject(m_Cx, width, height, &m_Handler));
     Nidium::NML::NativeContext::GetObject(m_Cx)->getRootHandler()->addChild(m_Handler);
@@ -1363,7 +1363,7 @@ void NativeJSwindow::createMainCanvas(int width, int height, JS::HandleObject do
     JS_DefineProperty(m_Cx, docObj, "canvas", canval, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
 
-void NativeJSwindow::createStorage()
+void JSWindow::createStorage()
 {
     JS::RootedObject storage(m_Cx, JS_NewObject(m_Cx, &storage_class, JS::NullPtr(), JS::NullPtr()));
     JS_DefineFunctions(m_Cx, storage, storage_funcs);
@@ -1383,7 +1383,7 @@ bool native_storage_set(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     JSAutoByteString key(cx, args[0].toString());
-    if (!NativeJSwindow::GetObject(cx)->getDataBase()->
+    if (!JSWindow::GetObject(cx)->getDataBase()->
         insert(key.ptr(), cx, args[1])) {
 
         JS_ReportError(cx, "Cant insert data in storage");
@@ -1406,7 +1406,7 @@ bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    JSDB *db = NativeJSwindow::GetObject(cx)->getDataBase();
+    JSDB *db = JSWindow::GetObject(cx)->getDataBase();
 
 
     JSAutoByteString key(cx, args[0].toString());
@@ -1447,24 +1447,24 @@ bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-NativeJSwindow* NativeJSwindow::GetObject(JSContext *cx)
+JSWindow* JSWindow::GetObject(JSContext *cx)
 {
     return Nidium::NML::NativeContext::GetObject(cx)->getJSWindow();
 }
 
-NativeJSwindow* NativeJSwindow::GetObject(NidiumJS *njs)
+JSWindow* JSWindow::GetObject(NidiumJS *njs)
 {
     return Nidium::NML::NativeContext::GetObject(njs)->getJSWindow();
 }
 // }}}
 
 // {{{ Registration
-NativeJSwindow *NativeJSwindow::RegisterObject(JSContext *cx, int width,
+JSWindow *JSWindow::RegisterObject(JSContext *cx, int width,
     int height, JS::HandleObject docObj)
 {
     JS::RootedObject globalObj(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject windowObj(cx, globalObj);
-    NativeJSwindow *jwin = new NativeJSwindow(globalObj, cx);
+    JSWindow *jwin = new JSWindow(globalObj, cx);
 
     JS_SetPrivate(globalObj, jwin);
 

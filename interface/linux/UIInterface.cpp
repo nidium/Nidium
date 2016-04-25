@@ -73,9 +73,9 @@ int NativeEvents(NativeX11UIInterface *NUII)
     //while(1) {
     int nevents = 0;
         while(SDL_PollEvent(&event)) {
-            Nidium::Binding::NativeJSwindow *window = NULL;
+            Nidium::Binding::JSWindow *window = NULL;
             if (NUII->m_NativeCtx) {
-                window = Nidium::Binding::NativeJSwindow::GetObject(NUII->m_NativeCtx->getNJS());
+                window = Nidium::Binding::JSWindow::GetObject(NUII->m_NativeCtx->getNJS());
             }
             nevents++;
             switch(event.type) {

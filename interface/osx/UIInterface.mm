@@ -70,9 +70,9 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             if (NUII->m_NativeCtx) {
                 NUII->makeMainGLCurrent();
             }
-            NativeJSwindow *window = NULL;
+            JSWindow *window = NULL;
             if (NUII->m_NativeCtx) {
-                window = NativeJSwindow::GetObject(NUII->m_NativeCtx->getNJS());
+                window = JSWindow::GetObject(NUII->m_NativeCtx->getNJS());
             }
             nevents++;
             switch(event.type) {
@@ -590,7 +590,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
     Nidium::NML::NativeContext::CreateAndAssemble(this, m_Gnet);
 
-    [this->m_DragNSView setResponder:NativeJSwindow::GetObject(m_NativeCtx->getNJS())];
+    [this->m_DragNSView setResponder:JSWindow::GetObject(m_NativeCtx->getNJS())];
 
     return true;
 }
@@ -1042,7 +1042,7 @@ void NativeCocoaUIInterface::renderSystemTray()
 {
     NSString *identifier = [sender representedObject];
 
-    NativeJSwindow *window = NativeJSwindow::GetObject(self->base->m_NativeCtx->getNJS());
+    JSWindow *window = JSWindow::GetObject(self->base->m_NativeCtx->getNJS());
     if (window) {
         window->systemMenuClicked([identifier cStringUsingEncoding:NSUTF8StringEncoding]);
     }

@@ -6,11 +6,11 @@
 namespace Nidium {
 namespace Interface {
 
-class NativeJSwindow;
+class JSWindow;
 
 @interface NativeDragNSView : NSView
 
-@property (assign, nonatomic) NativeJSwindow *responder;
+@property (assign, nonatomic) JSWindow *responder;
 
 @end
 

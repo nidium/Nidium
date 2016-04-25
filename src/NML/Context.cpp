@@ -157,22 +157,22 @@ void NativeContext::loadNativeObjects(int width, int height)
 #endif
     /* WebGL*() object */
 #ifdef NATIVE_WEBGL_ENABLED
-    Nidium::Binding::NativeJSWebGLRenderingContext::RegisterObject(cx);
-    Nidium::Binding::NativeJSWebGLBuffer::RegisterObject(cx);
-    Nidium::Binding::NativeJSWebGLFramebuffer::RegisterObject(cx);
-    Nidium::Binding::NativeJSWebGLProgram::RegisterObject(cx);
-    Nidium::Binding::NativeJSWebGLRenderbuffer::RegisterObject(cx);
-    Nidium::Binding::NativeJSWebGLShader::RegisterObject(cx);
-    Nidium::Binding::NativeJSWebGLTexture::RegisterObject(cx);
-    Nidium::Binding::NativeJSWebGLUniformLocation::RegisterObject(cx);
-    Nidium::Binding::NativeJSWebGLShaderPrecisionFormat::RegisterObject(cx);
+    Nidium::Binding::JSWebGLRenderingContext::RegisterObject(cx);
+    Nidium::Binding::JSWebGLBuffer::RegisterObject(cx);
+    Nidium::Binding::JSWebGLFramebuffer::RegisterObject(cx);
+    Nidium::Binding::JSWebGLProgram::RegisterObject(cx);
+    Nidium::Binding::JSWebGLRenderbuffer::RegisterObject(cx);
+    Nidium::Binding::JSWebGLShader::RegisterObject(cx);
+    Nidium::Binding::JSWebGLTexture::RegisterObject(cx);
+    Nidium::Binding::JSWebGLUniformLocation::RegisterObject(cx);
+    Nidium::Binding::JSWebGLShaderPrecisionFormat::RegisterObject(cx);
 #endif
     /* Native() object */
     Nidium::Binding::NativeJSNative::RegisterObject(cx);
     /* document() object */
     JS::RootedObject docObj(cx, Nidium::Binding::NativeJSdocument::RegisterObject(cx));
     /* window() object */
-    m_JSWindow = Nidium::Binding::NativeJSwindow::RegisterObject(cx, width, height, docObj);
+    m_JSWindow = Nidium::Binding::JSWindow::RegisterObject(cx, width, height, docObj);
 
     Nidium::Binding::JSProcess::RegisterObject(cx, m_UI->m_Argv, m_UI->m_Argc, 0);
 

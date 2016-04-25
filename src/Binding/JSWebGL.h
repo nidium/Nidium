@@ -6,12 +6,12 @@
 typedef unsigned int GLenum;
 typedef unsigned int GLuint;
 
-#define NEW_CLASS(name)\
-class NativeJS ## name: public JSExposer<NativeJS ## name>\
+#define NIDIUM_GL_NEW_CLASS(name)\
+class JS ## name: public JSExposer<JS ## name>\
 {\
     public :\
-        NativeJS ## name ();\
-        ~NativeJS ## name ();\
+        JS ## name ();\
+        ~JS ## name ();\
          JS::PersistentRootedObject m_JsObj;\
         static void RegisterObject(JSContext *cx);\
 };
@@ -65,12 +65,12 @@ struct NGLContextAttributes {
 };
 // }}}
 
-// {{{ NativeCanvasWebGLContext
-class NativeCanvasWebGLContext: public Graphics::NativeCanvasContext
+// {{{ CanvasWebGLContext
+class CanvasWebGLContext: public Graphics::NativeCanvasContext
 {
     public :
-        NativeCanvasWebGLContext(JSContext *cx, NGLContextAttributes *attributes, int width, int height);
-        ~NativeCanvasWebGLContext();
+        CanvasWebGLContext(JSContext *cx, NGLContextAttributes *attributes, int width, int height);
+        ~CanvasWebGLContext();
 
         void translate(double x, double y) {};
         void setSize(int width, int height, bool redraw = true) {};
@@ -92,28 +92,28 @@ class NativeCanvasWebGLContext: public Graphics::NativeCanvasContext
 };
 // }}}
 
-// {{{ NativeJSWebGLActiveInfor
-class NativeJSWebGLActiveInfo : public JSExposer<NativeJSWebGLActiveInfo>
+// {{{ NidiumJSWebGLActiveInfo
+class NidiumJSWebGLActiveInfo : public JSExposer<NidiumJSWebGLActiveInfo>
 {
     public :
-        NativeJSWebGLActiveInfo();
-        ~NativeJSWebGLActiveInfo();
+        NidiumJSWebGLActiveInfo();
+        ~NidiumJSWebGLActiveInfo();
         JS::PersistentRootedObject m_JsObj;
         static void RegisterObject(JSContext *cx);
 };
 // }}}
 
 // {{{ Classes and Macros
-NEW_CLASS(WebGLRenderingContext)
-NEW_CLASS(WebGLObject)
-NEW_CLASS(WebGLBuffer)
-NEW_CLASS(WebGLFramebuffer)
-NEW_CLASS(WebGLProgram)
-NEW_CLASS(WebGLRenderbuffer)
-NEW_CLASS(WebGLShader)
-NEW_CLASS(WebGLTexture)
-NEW_CLASS(WebGLUniformLocation)
-NEW_CLASS(WebGLShaderPrecisionFormat)
+NIDIUM_GL_NEW_CLASS(WebGLRenderingContext)
+NIDIUM_GL_NEW_CLASS(WebGLObject)
+NIDIUM_GL_NEW_CLASS(WebGLBuffer)
+NIDIUM_GL_NEW_CLASS(WebGLFramebuffer)
+NIDIUM_GL_NEW_CLASS(WebGLProgram)
+NIDIUM_GL_NEW_CLASS(WebGLRenderbuffer)
+NIDIUM_GL_NEW_CLASS(WebGLShader)
+NIDIUM_GL_NEW_CLASS(WebGLTexture)
+NIDIUM_GL_NEW_CLASS(WebGLUniformLocation)
+NIDIUM_GL_NEW_CLASS(WebGLShaderPrecisionFormat)
 
 /* ClearBufferMask */
 #define NGL_DEPTH_BUFFER_BIT                0x00000100

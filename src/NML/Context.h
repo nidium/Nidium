@@ -32,7 +32,7 @@ namespace Nidium {
     namespace Binding {
         class NidiumJS;
 
-        class NativeJSwindow;
+        class JSWindow;
     }
 namespace NML {
 
@@ -152,11 +152,11 @@ class NativeContext : public Nidium::Core::Messages
         return m_NML;
     }
 
-    Nidium::Binding::NativeJSwindow *getJSWindow() const {
+    Nidium::Binding::JSWindow *getJSWindow() const {
         return m_JSWindow;
     }
 
-    void setJSWindow(Nidium::Binding::NativeJSwindow *obj) {
+    void setJSWindow(Nidium::Binding::JSWindow *obj) {
         m_JSWindow = obj;
     }
 
@@ -265,7 +265,7 @@ class NativeContext : public Nidium::Core::Messages
     Nidium::Net::WebSocketServer * m_WS;
     Nidium::Net::WebSocketClientConnection *    m_WSClient;
     ShBuiltInResources        m_ShResources;
-    Nidium::Binding::NativeJSwindow *            m_JSWindow;
+    Nidium::Binding::JSWindow *                  m_JSWindow;
     bool                                         m_SizeDirty;
 
     struct {

@@ -13,17 +13,17 @@ namespace Nidium {
     }
 namespace Binding {
 
-class NativeJSwindow : public JSExposer<NativeJSwindow>
+class JSWindow : public JSExposer<JSWindow>
 {
   public:
-    NativeJSwindow(JS::HandleObject jsobj, JSContext *cx) :
-        JSExposer<NativeJSwindow>(jsobj, cx),
+    JSWindow(JS::HandleObject jsobj, JSContext *cx) :
+        JSExposer<JSWindow>(jsobj, cx),
         m_RequestedFrame(NULL), m_Handler(NULL), m_Db(NULL),
         m_Dragging(false)
     {
     };
 
-    ~NativeJSwindow();
+    ~JSWindow();
 
     void onReady(JS::HandleObject layout);
     bool onClose();
@@ -57,15 +57,15 @@ class NativeJSwindow : public JSExposer<NativeJSwindow>
         return m_Db;
     }
 
-    static NativeJSwindow *RegisterObject(JSContext *cx, int width,
+    static JSWindow *RegisterObject(JSContext *cx, int width,
         int height, JS::HandleObject doc);
 
     static const char *GetJSObjectName() {
         return "Window";
     }
 
-    static NativeJSwindow* GetObject(JSContext *cx);
-    static NativeJSwindow* GetObject(NidiumJS *njs);
+    static JSWindow* GetObject(JSContext *cx);
+    static JSWindow* GetObject(NidiumJS *njs);
 
     static JSClass *jsclass;
 

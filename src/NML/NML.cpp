@@ -392,7 +392,7 @@ void NML::onAssetsItemReady(Assets::Item *item)
     }
     /* TODO: allow the callback to change content ? */
 
-    Nidium::Binding::NativeJSwindow::GetObject(m_Njs)->assetReady(tag);
+    Nidium::Binding::JSWindow::GetObject(m_Njs)->assetReady(tag);
 }
 
 static void NML_onAssetsItemRead(Assets::Item *item, void *arg)
@@ -408,7 +408,7 @@ void NML::onAssetsBlockReady(Assets *asset)
 
     if (m_nAssets == 0) {
         JS::RootedObject layoutObj(m_Njs->cx, m_JSObjectLayout);
-        Nidium::Binding::NativeJSwindow::GetObject(m_Njs)->onReady(layoutObj);
+        Nidium::Binding::JSWindow::GetObject(m_Njs)->onReady(layoutObj);
     }
 }
 
