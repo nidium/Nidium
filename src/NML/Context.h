@@ -27,7 +27,7 @@ namespace Nidium {
         class NativeSkia;
         class CanvasHandler;
         class CanvasContext;
-        class NativeGLState;
+        class GLState;
     }
     namespace Binding {
         class NidiumJS;
@@ -160,11 +160,11 @@ class NativeContext : public Nidium::Core::Messages
         m_JSWindow = obj;
     }
 
-    inline Nidium::Graphics::NativeGLState *getGLState() const {
+    inline Nidium::Graphics::GLState *getGLState() const {
         return m_GLState;
     }
 
-    void setGLState(Nidium::Graphics::NativeGLState *state) {
+    void setGLState(Nidium::Graphics::GLState *state) {
         m_GLState = state;
     }
 
@@ -261,7 +261,7 @@ class NativeContext : public Nidium::Core::Messages
 #endif
     Nidium::Interface::NativeUIInterface *      m_UI;
     NML *                                       m_NML;
-    Nidium::Graphics::NativeGLState *           m_GLState;
+    Nidium::Graphics::GLState *                 m_GLState;
     Nidium::Net::WebSocketServer * m_WS;
     Nidium::Net::WebSocketClientConnection *    m_WSClient;
     ShBuiltInResources        m_ShResources;

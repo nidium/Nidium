@@ -10,7 +10,7 @@
 namespace Nidium {
 namespace Graphics {
 
-NativeGLState::NativeGLState(Nidium::Interface::NativeUIInterface *ui, bool withProgram, bool webgl) :
+GLState::GLState(Nidium::Interface::NativeUIInterface *ui, bool withProgram, bool webgl) :
     m_Shared(true)
 {
     memset(&m_GLObjects, 0, sizeof(m_GLObjects));
@@ -23,7 +23,7 @@ NativeGLState::NativeGLState(Nidium::Interface::NativeUIInterface *ui, bool with
     }
 }
 
-NativeGLState::NativeGLState(Nidium::NML::NativeContext *nctx) :
+GLState::GLState(Nidium::NML::NativeContext *nctx) :
     m_Shared(true)
 {
     Nidium::Interface::NativeUIInterface *ui = nctx->getUI();
@@ -34,28 +34,28 @@ NativeGLState::NativeGLState(Nidium::NML::NativeContext *nctx) :
     m_GLContext = new GLContext(ui, ui->getGLContext(), false);
 }
 
-void NativeGLState::CreateForContext(Nidium::NML::NativeContext *nctx)
+void GLState::CreateForContext(Nidium::NML::NativeContext *nctx)
 {
     Nidium::Interface::NativeUIInterface *ui;
     if ((ui = nctx->getUI()) == NULL || ui->m_NativeCtx->getGLState()) {
-        NLOG("Failed to init the first NativeGLState");
+        NLOG("Failed to init the first GLState");
         return;
     }
 
-    NativeGLState *_this = new NativeGLState(nctx);
+    GLState *_this = new GLState(nctx);
 
     nctx->setGLState(_this);
     _this->initGLBase(true);
 }
 
-void NativeGLState::destroy()
+void GLState::destroy()
 {
     if (!m_Shared) {
         delete this;
     }
 }
 
-void NativeGLState::setVertexDeformation(uint32_t vertex, float x, float y)
+void GLState::setVertexDeformation(uint32_t vertex, float x, float y)
 {
     NATIVE_GL_CALL_MAIN(BindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]));
 
@@ -67,7 +67,7 @@ void NativeGLState::setVertexDeformation(uint32_t vertex, float x, float y)
         &mod));
 }
 
-bool NativeGLState::initGLBase(bool withProgram)
+bool GLState::initGLBase(bool withProgram)
 {
     //glctx->iface()->fExtensions.print();
 
@@ -126,7 +126,7 @@ bool NativeGLState::initGLBase(bool withProgram)
     return true;
 }
 
-void NativeGLState::setProgram(uint32_t program)
+void GLState::setProgram(uint32_t program)
 {
     m_GLObjects.program = program;
 
@@ -136,13 +136,13 @@ void NativeGLState::setProgram(uint32_t program)
         m_GLObjects.uniforms.u_opacity);
 }
 
-void NativeGLState::setActive()
+void GLState::setActive()
 {
     NATIVE_GL_CALL_MAIN(BindVertexArray(m_GLObjects.vao));
     NATIVE_GL_CALL_MAIN(ActiveTexture(GR_GL_TEXTURE0));
 }
 
-NativeGLState::~NativeGLState()
+GLState::~GLState()
 {
     free(m_GLObjects.vtx->indices);
     free(m_GLObjects.vtx->vertices);

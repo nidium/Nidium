@@ -102,7 +102,7 @@ m_Debug2Handler(NULL),
 
     m_UI->m_NativeCtx = this;
 
-    Nidium::Graphics::NativeGLState::CreateForContext(this);
+    Nidium::Graphics::GLState::CreateForContext(this);
 
     m_JS = new Nidium::Binding::NidiumJS(net);
     this->initStats();

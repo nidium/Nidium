@@ -84,11 +84,11 @@ class CanvasContext
         return m_Transform;
     }
 
-    void setGLState(NativeGLState *state) {
+    void setGLState(GLState *state) {
         m_GLState = state;
     }
 
-    inline NativeGLState *getGLState() const {
+    inline GLState *getGLState() const {
         return m_GLState;
     }
 
@@ -149,10 +149,10 @@ protected:
     /* Hold the current matrix (model) sent to the Vertex shader */
     SkMatrix44 m_Transform;
     CanvasHandler *m_Handler;
-    NativeGLState *m_GLState;
+    GLState *m_GLState;
     GLResources m_Resources;
     void updateMatrix(double left, double top, int layerWidth,
-        int layerHeight, NativeGLState *glstate);
+        int layerHeight, GLState *glstate);
 
     void setupShader(float opacity, int width, int height,
         int left, int top, int wWidth, int wHeight);

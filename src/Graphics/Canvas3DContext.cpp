@@ -192,7 +192,7 @@ bool Canvas3DContext::createFBO(int width, int height)
         Create a WebGL context with passthrough program
     */
     if (!m_GLState) {
-        m_GLState = new NativeGLState(Nidium::Interface::__NativeUI, true, true);
+        m_GLState = new GLState(Nidium::Interface::__NativeUI, true, true);
         m_GLState->setShared(false);
     }
 

@@ -265,7 +265,7 @@ static void dump_Matrix(float *matrix)
 #endif
 
 void CanvasContext::updateMatrix(double left, double top,
-    int layerWidth, int layerHeight, NativeGLState *glstate)
+    int layerWidth, int layerHeight, GLState *glstate)
 {
 
     if (!m_GLState) {

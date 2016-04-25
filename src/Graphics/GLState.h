@@ -15,14 +15,14 @@ namespace Nidium {
     }
 namespace Graphics {
 
-class NativeGLState
+class GLState
 {
 
 public:
 
-    NativeGLState(Nidium::Interface::NativeUIInterface *ui,
+    GLState(Nidium::Interface::NativeUIInterface *ui,
         bool withProgram = true, bool webgl = false);
-    ~NativeGLState();
+    ~GLState();
 
     bool initGLBase(bool withProgram = true);
     void setActive();
@@ -69,7 +69,7 @@ public:
     static void CreateForContext(Nidium::NML::NativeContext *nctx);
 
 private:
-    NativeGLState(Nidium::NML::NativeContext *nctx);
+    GLState(Nidium::NML::NativeContext *nctx);
 
     GLResources m_Resources;
 

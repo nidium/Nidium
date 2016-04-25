@@ -2265,7 +2265,7 @@ uint32_t Canvas2DContext::attachShader(const char *string)
         /* Destroy the old context (if it's not shared) */
         m_GLState->destroy();
         /* Create a new state without program */
-        Nidium::Graphics::NativeGLState *nstate = new Nidium::Graphics::NativeGLState(ui, false);
+        Nidium::Graphics::GLState *nstate = new Nidium::Graphics::GLState(ui, false);
         nstate->setShared(false);
 
         m_GLState = nstate;
@@ -2302,14 +2302,14 @@ void Canvas2DContext::detachShader()
 void Canvas2DContext::setVertexDeformation(uint32_t vertex,
     float x, float y)
 {
-    Nidium::Graphics::NativeGLState *state = m_GLState;
+    Nidium::Graphics::GLState *state = m_GLState;
 
     /*
         If the GL state is shared among other Canvas, create a new one
     */
     if (state->isShared()) {
         NLOG("New GL state created !");
-        state = new Nidium::Graphics::NativeGLState(m_GLState->getNativeGLContext()->getUI());
+        state = new Nidium::Graphics::GLState(m_GLState->getNativeGLContext()->getUI());
         state->setShared(false);
 
         m_GLState = state;
