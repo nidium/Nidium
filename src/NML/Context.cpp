@@ -170,7 +170,7 @@ void NativeContext::loadNativeObjects(int width, int height)
     /* Native() object */
     Nidium::Binding::NativeJSNative::RegisterObject(cx);
     /* document() object */
-    JS::RootedObject docObj(cx, Nidium::Binding::NativeJSdocument::RegisterObject(cx));
+    JS::RootedObject docObj(cx, Nidium::Binding::JSDocument::RegisterObject(cx));
     /* window() object */
     m_JSWindow = Nidium::Binding::JSWindow::RegisterObject(cx, width, height, docObj);
 
@@ -252,7 +252,7 @@ void NativeContext::createDebug2Canvas()
 
 void NativeContext::postDraw()
 {
-    if (Nidium::Binding::NativeJSdocument::m_ShowFPS && m_DebugHandler) {
+    if (Nidium::Binding::JSDocument::m_ShowFPS && m_DebugHandler) {
 
         Nidium::Graphics::NativeSkia *s = (static_cast<Nidium::Binding::NativeCanvas2DContext *>(m_DebugHandler->getContext())->getSurface());
         m_DebugHandler->bringToFront();

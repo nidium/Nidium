@@ -378,7 +378,7 @@ void NML::onAssetsItemReady(Assets::Item *item)
             }
             case Assets::Item::ITEM_NSS:
             {
-                Nidium::Binding::NativeJSdocument *jdoc = Nidium::Binding::NativeJSdocument::GetObject(m_Njs->cx);
+                Nidium::Binding::JSDocument *jdoc = Nidium::Binding::JSDocument::GetObject(m_Njs->cx);
                 if (jdoc == NULL) {
                     return;
                 }

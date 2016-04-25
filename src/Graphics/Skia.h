@@ -15,7 +15,7 @@ class SkGpuDevice;
 
 namespace Nidium {
     namespace Binding {
-         class NativeJSdocument;
+         class JSDocument;
          class NativeCanvasPattern;
     }
 namespace Graphics {
@@ -200,7 +200,7 @@ class NativeSkia
         void setGlobalComposite(const char *str);
         void setLineCap(const char *capStyle);
         void setLineJoin(const char *joinStyle);
-        void setFontType(char *str, Nidium::Binding::NativeJSdocument *doc = NULL);
+        void setFontType(char *str, Nidium::Binding::JSDocument *doc = NULL);
         bool setFontFile(const char *str);
 
         void clearRect(double, double, double, double);

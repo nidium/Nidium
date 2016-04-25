@@ -8,8 +8,8 @@ class SkTypeface;
 namespace Nidium {
 namespace Binding {
 
-// {{{ nativefont
-class nativefont
+// {{{ NidiumFont
+class NidiumFont
 {
   public:
     SkTypeface *m_Typeface;
@@ -22,18 +22,18 @@ class nativefont
 
     int m_Weight;
 
-    nativefont *m_Next;
+    NidiumFont *m_Next;
 };
 // }}}
 
-// {{{ NativeJSdocument
-class NativeJSdocument : public JSExposer<NativeJSdocument>
+// {{{ JSDocument
+class JSDocument : public JSExposer<JSDocument>
 {
   public:
-    NativeJSdocument(JS::HandleObject obj, JSContext *cx) :
-    JSExposer<NativeJSdocument>(obj, cx, false),
+    JSDocument(JS::HandleObject obj, JSContext *cx) :
+    JSExposer<JSDocument>(obj, cx, false),
     m_Fonts(256000) {};
-    ~NativeJSdocument() {};
+    ~JSDocument() {};
 
     static bool m_ShowFPS;
     bool populateStyle(JSContext *cx, const char *data,
@@ -47,10 +47,10 @@ class NativeJSdocument : public JSExposer<NativeJSdocument>
 
     JS::Heap<JSObject *> m_Stylesheet;
 
-    Core::Hash<nativefont *>m_Fonts;
+    Core::Hash<NidiumFont *>m_Fonts;
 
     bool loadFont(const char *path, const char *name, int weight = 400,
-        nativefont::Style = nativefont::kNativeFontNormal);
+        NidiumFont::Style = NidiumFont::kNativeFontNormal);
 
     SkTypeface *getFont(char *name);
 };

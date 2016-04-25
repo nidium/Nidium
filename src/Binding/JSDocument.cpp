@@ -20,7 +20,7 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-bool NativeJSdocument::m_ShowFPS = false;
+bool JSDocument::m_ShowFPS = false;
 
 static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Document_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -45,10 +45,10 @@ static JSClass document_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-JSClass *NativeJSdocument::jsclass = &document_class;
+JSClass *JSDocument::jsclass = &document_class;
 
 template<>
-JSClass *JSExposer<NativeJSdocument>::jsclass = &document_class;
+JSClass *JSExposer<JSDocument>::jsclass = &document_class;
 
 static JSFunctionSpec document_funcs[] = {
     JS_FN("run", native_document_run, 1, NIDIUM_JS_FNPROPS),
@@ -240,7 +240,7 @@ static bool native_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativeJSdocument::m_ShowFPS = show;
+    JSDocument::m_ShowFPS = show;
 
     if (show) {
         Nidium::NML::NativeContext::GetObject(cx)->createDebugCanvas();
@@ -287,14 +287,14 @@ static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static void Document_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeJSdocument *jdoc = NativeJSdocument::GetObject(obj);
+    JSDocument *jdoc = JSDocument::GetObject(obj);
 
     if (jdoc != NULL) {
         delete jdoc;
     }
 }
 
-bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
+bool JSDocument::populateStyle(JSContext *cx, const char *data,
     size_t len, const char *filename)
 {
     if (!m_Stylesheet) {
@@ -314,8 +314,8 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
 }
 
 // todo destroy with Core::Hash cleaner
-bool NativeJSdocument::loadFont(const char *path, const char *name,
-    int weight, nativefont::Style style)
+bool JSDocument::loadFont(const char *path, const char *name,
+    int weight, NidiumFont::Style style)
 {
     IO::Stream *stream = IO::Stream::Create(path);
     if (!stream) {
@@ -340,9 +340,9 @@ bool NativeJSdocument::loadFont(const char *path, const char *name,
         return false;
     }
 
-    nativefont *oldfont = m_Fonts.get(name);
+    NidiumFont *oldfont = m_Fonts.get(name);
 
-    nativefont *newfont = new nativefont();
+    NidiumFont *newfont = new NidiumFont();
     newfont->m_Weight = weight;
     newfont->m_Style = style;
     newfont->m_Typeface = tf;
@@ -358,8 +358,8 @@ static bool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp
 {
     NIDIUM_JS_INIT_OPT();
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject thisobj(cx, NativeJSdocument::GetJSGlobalObject(cx));
-    NativeJSdocument *CppObj = static_cast<NativeJSdocument *>(JS_GetPrivate(thisobj));
+    JS::RootedObject thisobj(cx, JSDocument::GetJSGlobalObject(cx));
+    JSDocument *CppObj = static_cast<JSDocument *>(JS_GetPrivate(thisobj));
 
     JS::RootedObject fontdef(cx);
     if (!JS_ConvertArguments(cx, args, "o", fontdef.address())) {
@@ -398,7 +398,7 @@ static bool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp
     return true;
 }
 
-SkTypeface *NativeJSdocument::getFont(char *name)
+SkTypeface *JSDocument::getFont(char *name)
 {
     char *pTmp = name;
 
@@ -407,7 +407,7 @@ SkTypeface *NativeJSdocument::getFont(char *name)
         pTmp++;
     }
 
-    nativefont *font = m_Fonts.get(name);
+    NidiumFont *font = m_Fonts.get(name);
     if (font) {
         return font->m_Typeface;
     }
@@ -417,22 +417,22 @@ SkTypeface *NativeJSdocument::getFont(char *name)
 // }}}
 
 // {{{ Registration
-JSObject *NativeJSdocument::RegisterObject(JSContext *cx)
+JSObject *JSDocument::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject documentObj(cx, JS_DefineObject(cx, global,
-        NativeJSdocument::GetJSObjectName(), &document_class , nullptr,
+        JSDocument::GetJSObjectName(), &document_class , nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE));
 
     NidiumJS *njs = NidiumJS::GetObject(cx);
 
-    NativeJSdocument *jdoc = new NativeJSdocument(documentObj, cx);
+    JSDocument *jdoc = new JSDocument(documentObj, cx);
     JS_SetPrivate(documentObj, jdoc);
 
     /* We have to root it since the user can replace the document object */
     njs->rootObjectUntilShutdown(documentObj);
 
-    njs->jsobjects.set(NativeJSdocument::GetJSObjectName(), documentObj);
+    njs->jsobjects.set(JSDocument::GetJSObjectName(), documentObj);
 
     JS::RootedObject styleObj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
     jdoc->m_Stylesheet = styleObj;

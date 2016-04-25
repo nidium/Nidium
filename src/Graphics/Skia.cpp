@@ -1414,7 +1414,7 @@ void NativeSkia::setFontStyle(const char *style)
     PAINT->setTextSkewX(strcasestr(style, "italic") ? m_FontSkew : 0);
 }
 
-void NativeSkia::setFontType(char *str, Nidium::Binding::NativeJSdocument *doc)
+void NativeSkia::setFontType(char *str, Nidium::Binding::JSDocument *doc)
 {
     if (doc) {
         SkTypeface *tf = doc->getFont(str);
@@ -1425,7 +1425,7 @@ void NativeSkia::setFontType(char *str, Nidium::Binding::NativeJSdocument *doc)
             return;
         }
     }
-    //Nidium::Binding::NativeJSdocument *jdoc = Nidium::Binding::NativeJSdocument::
+    //Nidium::Binding::JSDocument *jdoc = Nidium::Binding::JSDocument::
     SkTypeface *tf = SkTypeface::CreateFromName(str,
         SkTypeface::kNormal);
     // Workarround for skia bug #1648
