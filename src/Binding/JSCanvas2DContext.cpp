@@ -1928,7 +1928,7 @@ uint32_t Canvas2DContext::createProgram(const char *data)
 
     GLuint programHandle;
 
-    Nidium::Graphics::NativeGLContext *iface = m_GLState->getNativeGLContext();
+    Nidium::Graphics::GLContext *iface = m_GLState->getNativeGLContext();
 
     NIDIUM_GL_CALL_RET(iface, CreateProgram(), programHandle);
 
@@ -2272,7 +2272,7 @@ uint32_t Canvas2DContext::attachShader(const char *string)
 
         m_GLState->setProgram(program);
 
-        Nidium::Graphics::NativeGLContext *iface = m_GLState->getNativeGLContext();
+        Nidium::Graphics::GLContext *iface = m_GLState->getNativeGLContext();
 
         NIDIUM_GL_CALL_RET(iface,
             GetUniformLocation(program, "n_Resolution"),

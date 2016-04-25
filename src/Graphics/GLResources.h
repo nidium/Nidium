@@ -11,7 +11,7 @@
 namespace Nidium {
 namespace Graphics {
 
-class NativeGLResources
+class GLResources
 {
 public:
 
@@ -26,7 +26,7 @@ public:
     class Resource {
     public:
         Resource(uint32_t glid,
-            NativeGLResources::ResourceType type,
+            GLResources::ResourceType type,
             char *name);
 
         ~Resource();
@@ -35,14 +35,14 @@ public:
         ResourceType m_Type;
     };
 
-    NativeGLResources()
+    GLResources()
     {
         /* Call delete automagically on every
         item of the hashtable */
 
         m_List.setAutoDelete(true);
     };
-    ~NativeGLResources() {};
+    ~GLResources() {};
 
     void add(uint32_t glid, ResourceType type, const char *name = NULL);
 

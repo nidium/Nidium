@@ -252,7 +252,7 @@ class NativeContext : public Nidium::Core::Messages
     static void CreateAndAssemble(Nidium::Interface::NativeUIInterface *ui, ape_global *gnet);
 
     private:
-    Nidium::Graphics::NativeGLResources         m_Resources;
+    Nidium::Graphics::GLResources               m_Resources;
     Nidium::Binding::NidiumJS *                 m_JS;
     Nidium::Graphics::CanvasHandler *           m_RootHandler;
     Nidium::Graphics::CanvasHandler *           m_DebugHandler;

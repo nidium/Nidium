@@ -16,7 +16,7 @@ NativeGLState::NativeGLState(Nidium::Interface::NativeUIInterface *ui, bool with
     memset(&m_GLObjects, 0, sizeof(m_GLObjects));
     memset(&m_GLObjects.uniforms, -1, sizeof(m_GLObjects.uniforms));
 
-    m_GLContext = new NativeGLContext(ui, webgl ? NULL : ui->getGLContext(), webgl);
+    m_GLContext = new GLContext(ui, webgl ? NULL : ui->getGLContext(), webgl);
 
     if (!this->initGLBase(withProgram)) {
         NLOG("[OpenGL] Failed to init base GL");
@@ -31,7 +31,7 @@ NativeGLState::NativeGLState(Nidium::NML::NativeContext *nctx) :
     memset(&m_GLObjects, 0, sizeof(m_GLObjects));
     memset(&m_GLObjects.uniforms, -1, sizeof(m_GLObjects.uniforms));
 
-    m_GLContext = new NativeGLContext(ui, ui->getGLContext(), false);
+    m_GLContext = new GLContext(ui, ui->getGLContext(), false);
 }
 
 void NativeGLState::CreateForContext(Nidium::NML::NativeContext *nctx)
@@ -74,9 +74,9 @@ bool NativeGLState::initGLBase(bool withProgram)
     NATIVE_GL_CALL_MAIN(GenBuffers(2, m_GLObjects.vbo));
     NATIVE_GL_CALL_MAIN(GenVertexArrays(1, &m_GLObjects.vao));
 
-    m_Resources.add(m_GLObjects.vbo[0], NativeGLResources::RBUFFER);
-    m_Resources.add(m_GLObjects.vbo[1], NativeGLResources::RBUFFER);
-    m_Resources.add(m_GLObjects.vao, NativeGLResources::RVERTEX_ARRAY);
+    m_Resources.add(m_GLObjects.vbo[0], GLResources::RBUFFER);
+    m_Resources.add(m_GLObjects.vbo[1], GLResources::RBUFFER);
+    m_Resources.add(m_GLObjects.vao, GLResources::RVERTEX_ARRAY);
 
     Nidium::NML::Vertices *vtx = m_GLObjects.vtx = CanvasContext::BuildVerticesStripe(4);
 

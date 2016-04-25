@@ -192,7 +192,7 @@ uint32_t CanvasContext::CreatePassThroughFragment()
     return fragmentshader;
 }
 
-uint32_t CanvasContext::CreatePassThroughProgram(NativeGLResources &resource)
+uint32_t CanvasContext::CreatePassThroughProgram(GLResources &resource)
 {
     uint32_t vertexshader = CanvasContext::CreatePassThroughVertex();
     uint32_t fragmentshader = CanvasContext::CreatePassThroughFragment();
@@ -203,9 +203,9 @@ uint32_t CanvasContext::CreatePassThroughProgram(NativeGLResources &resource)
 
     GLuint programHandle = glCreateProgram();
 
-    resource.add(fragmentshader, NativeGLResources::RSHADER);
-    resource.add(vertexshader, NativeGLResources::RSHADER);
-    resource.add(programHandle, NativeGLResources::RPROGRAM);
+    resource.add(fragmentshader, GLResources::RSHADER);
+    resource.add(vertexshader, GLResources::RSHADER);
+    resource.add(programHandle, GLResources::RPROGRAM);
 
     GLint linkSuccess;
 
@@ -282,7 +282,6 @@ void CanvasContext::updateMatrix(double left, double top,
 
     /*
         X position : -1 ----- 0 ------ 1
-
 
         The canvas is scalled to match its size relative to the window ratio.
         Scale to (e.g.) 0.5 will shift the left position from -1 to 0

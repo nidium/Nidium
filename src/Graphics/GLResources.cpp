@@ -5,43 +5,43 @@
 namespace Nidium {
 namespace Graphics {
 
-NativeGLResources::Resource::Resource(uint32_t glid,
-    NativeGLResources::ResourceType type, char *name) :
+GLResources::Resource::Resource(uint32_t glid,
+    GLResources::ResourceType type, char *name) :
 
     m_Glid(glid), m_Type(type)
 {
 
 }
 
-void NativeGLResources::add(uint32_t glid, ResourceType type, const char *name)
+void GLResources::add(uint32_t glid, ResourceType type, const char *name)
 {
     if (glid == 0) {
         return;
     }
 
-    NativeGLResources::Resource *res = new NativeGLResources::Resource(glid,
+    GLResources::Resource *res = new GLResources::Resource(glid,
         type, NULL);
 
     m_List.set(this->genId(glid, type), res);
 }
 
 
-NativeGLResources::Resource::~Resource()
+GLResources::Resource::~Resource()
 {
     switch(m_Type) {
-        case NativeGLResources::RPROGRAM:
+        case GLResources::RPROGRAM:
             glDeleteProgram(m_Glid);
             break;
-        case NativeGLResources::RSHADER:
+        case GLResources::RSHADER:
             glDeleteShader(m_Glid);
             break;
-        case NativeGLResources::RTEXTURE:
+        case GLResources::RTEXTURE:
             glDeleteTextures(1, &m_Glid);
             break;
-        case NativeGLResources::RBUFFER:
+        case GLResources::RBUFFER:
             glDeleteBuffers(1, &m_Glid);
             break;
-        case NativeGLResources::RVERTEX_ARRAY:
+        case GLResources::RVERTEX_ARRAY:
 #ifdef __APPLE__
             glDeleteVertexArraysAPPLE(1, &m_Glid);
 #else

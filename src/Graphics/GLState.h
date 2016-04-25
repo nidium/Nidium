@@ -48,7 +48,7 @@ public:
 
     void setVertexDeformation(uint32_t vertex, float x, float y);
 
-    inline NativeGLContext *getNativeGLContext() const {
+    inline GLContext *getNativeGLContext() const {
         return m_GLContext;
     }
 
@@ -71,10 +71,10 @@ public:
 private:
     NativeGLState(Nidium::NML::NativeContext *nctx);
 
-    NativeGLResources m_Resources;
+    GLResources m_Resources;
 
     bool m_Shared;
-    NativeGLContext *m_GLContext;
+    GLContext *m_GLContext;
 };
 
 } // namespace Graphics

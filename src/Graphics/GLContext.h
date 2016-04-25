@@ -30,13 +30,13 @@ namespace Graphics {
 
     #define NIDIUM_GL_CALL(IFACE, X)                         \
         do {                                                 \
-            Graphics::NativeGLContext::GLCallback(IFACE->m_Interface);  \
+            Graphics::GLContext::GLCallback(IFACE->m_Interface);  \
             (IFACE)->m_Interface->fFunctions.f##X;            \
         } while (false)
 
     #define NIDIUM_GL_CALL_RET(IFACE, X, RET)   \
         do {                                    \
-            Graphics::NativeGLContext::GLCallback(IFACE->m_Interface);  \
+            Graphics::GLContext::GLCallback(IFACE->m_Interface);  \
             (RET) =  (IFACE)->m_Interface->fFunctions.f##X;   \
         } while (false)
 
@@ -44,7 +44,7 @@ namespace Graphics {
     #define NIDIUM_GL_CALL(IFACE, X)                         \
         do {                                                 \
             uint32_t __err;                                  \
-            Graphics::NativeGLContext::GLCallback(IFACE->m_Interface); \
+            Graphics::GLContext::GLCallback(IFACE->m_Interface); \
             (IFACE)->m_Interface->fFunctions.f##X;           \
             if ((__err = (IFACE)->m_Interface->fFunctions.fGetError()) != GR_GL_NO_ERROR) { \
                 NLOG("[Nidium GL Error : gl%s() returned %d", #X, __err);    \
@@ -54,7 +54,7 @@ namespace Graphics {
     #define NIDIUM_GL_CALL_RET(IFACE, X, RET)   \
         do {                                    \
             uint32_t __err; \
-            Graphics::NativeGLContext::GLCallback(IFACE->m_Interface);  \
+            Graphics::GLContext::GLCallback(IFACE->m_Interface);  \
             (RET) =  (IFACE)->m_Interface->fFunctions.f##X;   \
             if ((__err = (IFACE)->m_Interface->fFunctions.fGetError()) != GR_GL_NO_ERROR) { \
                 NLOG("[Nidium GL Error : gl%s() returned %d", #X, __err);    \
@@ -67,11 +67,11 @@ namespace Graphics {
 #define NATIVE_GL_CALL_RET_MAIN(X, RET) NIDIUM_GL_CALL_RET(NATIVE_GL_MAIN_IFACE, X, RET)
 // }}}
 
-// {{{ NativeGLContext
-class NativeGLContext
+// {{{ GLContext
+class GLContext
 {
     public:
-        NativeGLContext(Nidium::Interface::NativeUIInterface *ui,
+        GLContext(Nidium::Interface::NativeUIInterface *ui,
             SDL_GLContext wrappedCtx = NULL, bool webgl = false) :
             m_Interface(NULL), m_UI(ui)
         {
@@ -118,7 +118,7 @@ class NativeGLContext
             return m_UI->makeGLCurrent(m_SDLGLCtx);
         }
 
-        ~NativeGLContext() {
+        ~GLContext() {
             if (!m_Wrapped) {
                 m_UI->makeMainGLCurrent();
                 /*
@@ -138,7 +138,7 @@ class NativeGLContext
         }
 
         inline static void GLCallback(const GrGLInterface *interface) {
-            NativeGLContext *_this = (NativeGLContext *)interface->fCallbackData;
+            GLContext *_this = (GLContext *)interface->fCallbackData;
             _this->makeCurrent();
         }
 
@@ -155,7 +155,7 @@ class NativeGLContext
                 exit(1);
             }
 
-            ((GrGLInterface *)m_Interface)->fCallback = NativeGLContext::GLCallback;
+            ((GrGLInterface *)m_Interface)->fCallback = GLContext::GLCallback;
             ((GrGLInterface *)m_Interface)->fCallbackData = (uintptr_t)this;
         }
 

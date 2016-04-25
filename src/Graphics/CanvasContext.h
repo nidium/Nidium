@@ -92,7 +92,7 @@ class CanvasContext
         return m_GLState;
     }
 
-    inline NativeGLContext *getGLContext() const {
+    inline GLContext *getGLContext() const {
         if (!m_GLState) {
             NLOG("getGLContext() invalid glstate on %p", this);
             return NULL;
@@ -139,7 +139,7 @@ class CanvasContext
 
     static uint32_t CreatePassThroughVertex();
     static uint32_t CreatePassThroughFragment();
-    static uint32_t CreatePassThroughProgram(NativeGLResources &resource);
+    static uint32_t CreatePassThroughProgram(GLResources &resource);
 
 
     void preComposeOn(Nidium::Binding::Canvas2DContext *layer,
@@ -150,7 +150,7 @@ protected:
     SkMatrix44 m_Transform;
     CanvasHandler *m_Handler;
     NativeGLState *m_GLState;
-    NativeGLResources m_Resources;
+    GLResources m_Resources;
     void updateMatrix(double left, double top, int layerWidth,
         int layerHeight, NativeGLState *glstate);
 
