@@ -43,7 +43,7 @@ void NFSStream::stop()
     */
 }
 
-int NativeNFSStream_getContent(void *arg)
+int NFSStream_getContent(void *arg)
 {
     ((NFSStream *)arg)->_getContent();
 
@@ -53,7 +53,7 @@ int NativeNFSStream_getContent(void *arg)
 void NFSStream::getContent()
 {
     ape_global *ape = Binding::NidiumJS::GetNet();
-    timer_dispatch_async_unprotected(NativeNFSStream_getContent, this);
+    timer_dispatch_async_unprotected(NFSStream_getContent, this);
 }
 
 void NFSStream::_getContent()
@@ -173,7 +173,6 @@ const unsigned char *NFSStream::onGetNextPacket(size_t *len, int *err)
 }
 
 // }}}
-
 
 } // namespace IO
 } // namespace Nidium
