@@ -220,7 +220,7 @@ void NativeContext::createDebugCanvas()
 {
     Nidium::Binding::Canvas2DContext *context = static_cast<Nidium::Binding::Canvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
-    m_DebugHandler = new Nidium::Graphics::NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
+    m_DebugHandler = new Nidium::Graphics::CanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
     Nidium::Binding::Canvas2DContext *ctx2d =  new Nidium::Binding::Canvas2DContext(m_DebugHandler,
          context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
     m_DebugHandler->setContext(ctx2d);
@@ -237,7 +237,7 @@ void NativeContext::createDebug2Canvas()
 {
     Nidium::Binding::Canvas2DContext *context = static_cast<Nidium::Binding::Canvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
-    m_Debug2Handler = new Nidium::Graphics::NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
+    m_Debug2Handler = new Nidium::Graphics::CanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
     Nidium::Binding::Canvas2DContext *ctx2d =  new Nidium::Binding::Canvas2DContext(m_Debug2Handler,
          context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
     m_Debug2Handler->setContext(ctx2d);
@@ -539,9 +539,9 @@ bool NativeContext::initShaderLang()
 
 void NativeContext::initHandlers(int width, int height)
 {
-    Nidium::Graphics::NativeCanvasHandler::m_LastIdx = 0;
+    Nidium::Graphics::CanvasHandler::m_LastIdx = 0;
 
-    m_RootHandler = new Nidium::Graphics::NativeCanvasHandler(width, height, this);
+    m_RootHandler = new Nidium::Graphics::CanvasHandler(width, height, this);
 
     m_RootHandler->setContext(new Nidium::Binding::Canvas2DContext(m_RootHandler, width, height, m_UI));
     m_RootHandler->getContext()->setGLState(this->getGLState());
@@ -590,7 +590,7 @@ void NativeContext::execPendingCanvasChanges()
     ape_htable_item_t *item, *tmpItem;
     for (item = m_CanvasPendingJobs.accessCStruct()->first; item != NULL; item = tmpItem) {
         tmpItem = item->lnext;
-        Nidium::Graphics::NativeCanvasHandler *handler = static_cast<Nidium::Graphics::NativeCanvasHandler *>(item->content.addrs);
+        Nidium::Graphics::CanvasHandler *handler = static_cast<Nidium::Graphics::CanvasHandler *>(item->content.addrs);
         handler->execPending();
     }
 }

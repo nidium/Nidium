@@ -92,7 +92,7 @@ struct NativeLayerSiblingContext {
 
 // {{{ NativeLayerizeContext
 struct NativeLayerizeContext {
-    class NativeCanvasHandler *m_Layer;
+    class CanvasHandler *m_Layer;
     double m_pLeft;
     double m_pTop;
     double m_aOpacity;
@@ -113,8 +113,8 @@ struct NativeLayerizeContext {
 };
 // }}}
 
-// {{{ NativeCanvasHandler
-class NativeCanvasHandler : public Nidium::Core::Events
+// {{{ CanvasHandler
+class CanvasHandler : public Nidium::Core::Events
 {
     public:
         friend class NativeSkia;
@@ -468,10 +468,10 @@ class NativeCanvasHandler : public Nidium::Core::Events
             return m_FluidWidth;
         }
 
-        NativeCanvasHandler(int width, int height,
+        CanvasHandler(int width, int height,
             Nidium::NML::NativeContext *NativeCtx, bool lazyLoad = false);
 
-        virtual ~NativeCanvasHandler();
+        virtual ~CanvasHandler();
 
         void unrootHierarchy();
 
@@ -492,7 +492,7 @@ class NativeCanvasHandler : public Nidium::Core::Events
         void updateChildrenSize(bool width, bool height);
         void setSize(int width, int height, bool redraw = true);
         void setPadding(int padding);
-        void setPositioning(NativeCanvasHandler::COORD_POSITION mode);
+        void setPositioning(CanvasHandler::COORD_POSITION mode);
         void setScrollTop(int value);
         void setScrollLeft(int value);
         void computeAbsolutePosition();
@@ -504,11 +504,11 @@ class NativeCanvasHandler : public Nidium::Core::Events
 
         void bringToFront();
         void sendToBack();
-        void addChild(NativeCanvasHandler *insert,
-            NativeCanvasHandler::Position position = POSITION_FRONT);
+        void addChild(CanvasHandler *insert,
+            CanvasHandler::Position position = POSITION_FRONT);
 
-        void insertBefore(NativeCanvasHandler *insert, NativeCanvasHandler *ref);
-        void insertAfter(NativeCanvasHandler *insert, NativeCanvasHandler *ref);
+        void insertBefore(CanvasHandler *insert, CanvasHandler *ref);
+        void insertAfter(CanvasHandler *insert, CanvasHandler *ref);
 
         int getContentWidth(bool inner = false);
         int getContentHeight(bool inner = false);
@@ -519,28 +519,28 @@ class NativeCanvasHandler : public Nidium::Core::Events
         void setOpacity(double val);
         void setZoom(double val);
         void removeFromParent(bool willBeAdopted = false);
-        void getChildren(NativeCanvasHandler **out) const;
+        void getChildren(CanvasHandler **out) const;
 
         bool checkLoaded();
 
         void setCursor(int cursor);
         int getCursor();
 
-        NativeCanvasHandler *getParent() const { return m_Parent; }
-        NativeCanvasHandler *getFirstChild() const { return m_Children; }
-        NativeCanvasHandler *getLastChild() const { return m_Last; }
-        NativeCanvasHandler *getNextSibling() const { return m_Next; }
-        NativeCanvasHandler *getPrevSibling() const { return m_Prev; }
+        CanvasHandler *getParent() const { return m_Parent; }
+        CanvasHandler *getFirstChild() const { return m_Children; }
+        CanvasHandler *getLastChild() const { return m_Last; }
+        CanvasHandler *getNextSibling() const { return m_Next; }
+        CanvasHandler *getPrevSibling() const { return m_Prev; }
         int32_t countChildren() const;
         bool containsPoint(double x, double y) const;
         void layerize(NativeLayerizeContext &layerContext, bool draw);
 
-        NativeCanvasHandler *m_Parent;
-        NativeCanvasHandler *m_Children;
+        CanvasHandler *m_Parent;
+        CanvasHandler *m_Children;
 
-        NativeCanvasHandler *m_Next;
-        NativeCanvasHandler *m_Prev;
-        NativeCanvasHandler *m_Last;
+        CanvasHandler *m_Next;
+        CanvasHandler *m_Prev;
+        CanvasHandler *m_Last;
 
         static void _JobResize(void *arg);
         bool _handleEvent(Nidium::NML::InputEvent *ev);
@@ -549,8 +549,8 @@ class NativeCanvasHandler : public Nidium::Core::Events
 
         void execPending();
     protected:
-        NativeCanvasHandler *getPrevInlineSibling() const {
-            NativeCanvasHandler *prev;
+        CanvasHandler *getPrevInlineSibling() const {
+            CanvasHandler *prev;
             for (prev = m_Prev; prev != NULL; prev = prev->m_Prev) {
                 if (prev->m_FlowMode & kFlowInlinePreviousSibling) {
                     return prev;
@@ -565,8 +565,8 @@ class NativeCanvasHandler : public Nidium::Core::Events
 
         void deviceSetSize(int width, int height);
         void onMouseEvent(Nidium::NML::InputEvent *ev);
-        void onDrag(Nidium::NML::InputEvent *ev, NativeCanvasHandler *target, bool end = false);
-        void onDrop(Nidium::NML::InputEvent *ev, NativeCanvasHandler *droped);
+        void onDrag(Nidium::NML::InputEvent *ev, CanvasHandler *target, bool end = false);
+        void onDrop(Nidium::NML::InputEvent *ev, CanvasHandler *droped);
 
         int32_t m_nChildren;
         void dispatchMouseEvents(NativeLayerizeContext &layerContext);

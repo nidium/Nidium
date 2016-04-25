@@ -12,9 +12,9 @@
 namespace Nidium {
 namespace Graphics {
 
-int NativeCanvasHandler::m_LastIdx = 0;
+int CanvasHandler::m_LastIdx = 0;
 
-NativeCanvasHandler::NativeCanvasHandler(int width, int height,
+CanvasHandler::CanvasHandler(int width, int height,
     Nidium::NML::NativeContext *nativeCtx, bool lazyLoad) :
     m_Context(NULL),
     m_JsCx(nativeCtx->getNJS()->getJSContext()), m_Left(0.0), m_Top(0.0),
@@ -30,7 +30,7 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height,
     /*
         TODO: thread safe
     */
-    m_Identifier.idx = ++NativeCanvasHandler::m_LastIdx;
+    m_Identifier.idx = ++CanvasHandler::m_LastIdx;
 
     asprintf(&m_Identifier.str, "%zd", m_Identifier.idx);
 
@@ -65,7 +65,7 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height,
     m_CoordMode = kLeft_Coord | kTop_Coord;
 }
 
-void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mode)
+void CanvasHandler::setPositioning(CanvasHandler::COORD_POSITION mode)
 {
     if (mode == COORD_INLINE) {
         mode = COORD_RELATIVE;
@@ -81,7 +81,7 @@ void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mod
     this->computeAbsolutePosition();
 }
 
-void NativeCanvasHandler::setId(const char *str)
+void CanvasHandler::setId(const char *str)
 {
     if (!str) {
         return;
@@ -94,13 +94,13 @@ void NativeCanvasHandler::setId(const char *str)
     m_Identifier.str = strdup(str);
 }
 
-void NativeCanvasHandler::translate(double x, double y)
+void CanvasHandler::translate(double x, double y)
 {
     m_Translate_s.x += x;
     m_Translate_s.y += y;
 }
 
-bool NativeCanvasHandler::setMinWidth(int width)
+bool CanvasHandler::setMinWidth(int width)
 {
     if (width < 1) width = 1;
 
@@ -113,7 +113,7 @@ bool NativeCanvasHandler::setMinWidth(int width)
     return true;
 }
 
-bool NativeCanvasHandler::setMinHeight(int height)
+bool CanvasHandler::setMinHeight(int height)
 {
     if (height < 1) height = 1;
 
@@ -126,7 +126,7 @@ bool NativeCanvasHandler::setMinHeight(int height)
     return true;
 }
 
-bool NativeCanvasHandler::setMaxWidth(int width)
+bool CanvasHandler::setMaxWidth(int width)
 {
     if (width < 1) width = 1;
 
@@ -139,7 +139,7 @@ bool NativeCanvasHandler::setMaxWidth(int width)
     return true;
 }
 
-bool NativeCanvasHandler::setMaxHeight(int height)
+bool CanvasHandler::setMaxHeight(int height)
 {
     if (height < 1) height = 1;
 
@@ -152,7 +152,7 @@ bool NativeCanvasHandler::setMaxHeight(int height)
     return true;
 }
 
-bool NativeCanvasHandler::setWidth(int width, bool force)
+bool CanvasHandler::setWidth(int width, bool force)
 {
     width = m_MaxWidth ? nidium_clamp(width, m_MinWidth, m_MaxWidth) :
                            nidium_max(width, m_MinWidth);
@@ -174,7 +174,7 @@ bool NativeCanvasHandler::setWidth(int width, bool force)
     return true;
 }
 
-bool NativeCanvasHandler::setHeight(int height, bool force)
+bool CanvasHandler::setHeight(int height, bool force)
 {
     if (!force && !this->hasFixedHeight()) {
         return false;
@@ -195,7 +195,7 @@ bool NativeCanvasHandler::setHeight(int height, bool force)
     return true;
 }
 
-void NativeCanvasHandler::setSize(int width, int height, bool redraw)
+void CanvasHandler::setSize(int width, int height, bool redraw)
 {
 
     height = m_MaxHeight ? nidium_clamp(height, m_MinHeight, m_MaxHeight) :
@@ -216,7 +216,7 @@ void NativeCanvasHandler::setSize(int width, int height, bool redraw)
     updateChildrenSize(true, true);
 }
 
-void NativeCanvasHandler::deviceSetSize(int width, int height)
+void CanvasHandler::deviceSetSize(int width, int height)
 {
     if (m_Context) {
         m_Context->setSize(width + (m_Padding.global * 2),
@@ -227,13 +227,13 @@ void NativeCanvasHandler::deviceSetSize(int width, int height)
 
     arg[0].set(width);
     arg[1].set(height);
-    this->fireEvent<NativeCanvasHandler>(RESIZE_EVENT, arg);
+    this->fireEvent<CanvasHandler>(RESIZE_EVENT, arg);
 }
 
 
-void NativeCanvasHandler::updateChildrenSize(bool width, bool height)
+void CanvasHandler::updateChildrenSize(bool width, bool height)
 {
-    NativeCanvasHandler *cur;
+    CanvasHandler *cur;
 
     for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
         bool updateWidth = false, updateHeight = false;
@@ -254,7 +254,7 @@ void NativeCanvasHandler::updateChildrenSize(bool width, bool height)
     }
 }
 
-void NativeCanvasHandler::setPadding(int padding)
+void CanvasHandler::setPadding(int padding)
 {
     if (padding < 0) padding = 0;
 
@@ -276,21 +276,21 @@ void NativeCanvasHandler::setPadding(int padding)
     }
 }
 
-void NativeCanvasHandler::setScrollLeft(int value)
+void CanvasHandler::setScrollLeft(int value)
 {
     if (value < 0 && !m_AllowNegativeScroll) value = 0;
 
     m_Content.scrollLeft = value;
 }
 
-void NativeCanvasHandler::setScrollTop(int value)
+void CanvasHandler::setScrollTop(int value)
 {
     if (value < 0 && !m_AllowNegativeScroll) value = 0;
 
     m_Content.scrollTop = value;
 }
 
-void NativeCanvasHandler::bringToFront()
+void CanvasHandler::bringToFront()
 {
     if (!m_Parent) {
         return;
@@ -299,7 +299,7 @@ void NativeCanvasHandler::bringToFront()
     m_Parent->addChild(this, POSITION_FRONT);
 }
 
-void NativeCanvasHandler::sendToBack()
+void CanvasHandler::sendToBack()
 {
     if (!m_Parent) {
         return;
@@ -308,8 +308,8 @@ void NativeCanvasHandler::sendToBack()
     m_Parent->addChild(this, POSITION_BACK);
 }
 
-void NativeCanvasHandler::insertBefore(NativeCanvasHandler *insert,
-    NativeCanvasHandler *ref)
+void CanvasHandler::insertBefore(CanvasHandler *insert,
+    CanvasHandler *ref)
 {
     if (!ref || !insert) {
         this->addChild(insert, POSITION_FRONT);
@@ -335,8 +335,8 @@ void NativeCanvasHandler::insertBefore(NativeCanvasHandler *insert,
     m_nChildren++;
 }
 
-void NativeCanvasHandler::insertAfter(NativeCanvasHandler *insert,
-    NativeCanvasHandler *ref)
+void CanvasHandler::insertAfter(CanvasHandler *insert,
+    CanvasHandler *ref)
 {
     if (!ref) {
         this->addChild(insert, POSITION_FRONT);
@@ -346,8 +346,8 @@ void NativeCanvasHandler::insertAfter(NativeCanvasHandler *insert,
     this->insertBefore(insert, ref->m_Next);
 }
 
-void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
-    NativeCanvasHandler::Position position)
+void CanvasHandler::addChild(CanvasHandler *insert,
+    CanvasHandler::Position position)
 {
     if (!insert || insert == this) {
         return;
@@ -386,7 +386,7 @@ void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
     m_nChildren++;
 }
 
-void NativeCanvasHandler::removeFromParent(bool willBeAdopted)
+void CanvasHandler::removeFromParent(bool willBeAdopted)
 {
     if (!m_Parent) {
         return;
@@ -421,7 +421,7 @@ void NativeCanvasHandler::removeFromParent(bool willBeAdopted)
     m_Prev = NULL;
 }
 
-void NativeCanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContext)
+void CanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContext)
 {
     Nidium::NML::InputEvent *ev = m_NativeContext->getInputEvents();
     if (ev == NULL) {
@@ -469,9 +469,9 @@ void NativeCanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContex
     }
 }
 
-void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool draw)
+void CanvasHandler::layerize(NativeLayerizeContext &layerContext, bool draw)
 {
-    NativeCanvasHandler *cur;
+    CanvasHandler *cur;
     NativeRect nclip;
     NativeLayerSiblingContext *sctx = layerContext.m_SiblingCtx;
 
@@ -490,7 +490,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
     if (m_CoordPosition == COORD_RELATIVE &&
         (m_FlowMode & kFlowBreakAndInlinePreviousSibling)) {
 
-        NativeCanvasHandler *prev = getPrevInlineSibling();
+        CanvasHandler *prev = getPrevInlineSibling();
 
         if (!prev) {
             m_Left = tmpLeft = m_Margin.left;
@@ -604,8 +604,8 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
         }
         /* Occlusion culling */
 #if 0
-        NativeCanvasHandler **culling = (NativeCanvasHandler **)malloc(
-                                        sizeof(NativeCanvasHandler *)
+        CanvasHandler **culling = (CanvasHandler **)malloc(
+                                        sizeof(CanvasHandler *)
                                         * m_nChildren);
 
         NativeRect culRect;
@@ -709,14 +709,14 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
 }
 
 // {{{ Getters
-int NativeCanvasHandler::getContentWidth(bool inner)
+int CanvasHandler::getContentWidth(bool inner)
 {
     this->computeContentSize(NULL, NULL, inner);
 
     return m_Content.width;
 }
 
-int NativeCanvasHandler::getContentHeight(bool inner)
+int CanvasHandler::getContentHeight(bool inner)
 {
     this->computeContentSize(NULL, NULL, inner);
 
@@ -724,7 +724,7 @@ int NativeCanvasHandler::getContentHeight(bool inner)
 }
 
 /* TODO: optimize tail recursion? */
-bool NativeCanvasHandler::hasAFixedAncestor() const
+bool CanvasHandler::hasAFixedAncestor() const
 {
     if (m_CoordPosition == COORD_FIXED) {
         return true;
@@ -733,7 +733,7 @@ bool NativeCanvasHandler::hasAFixedAncestor() const
 }
 
 /* Compute whether or the canvas is going to be drawn */
-bool NativeCanvasHandler::isDisplayed() const
+bool CanvasHandler::isDisplayed() const
 {
     if (m_Visibility == CANVAS_VISIBILITY_HIDDEN) {
         return false;
@@ -742,7 +742,7 @@ bool NativeCanvasHandler::isDisplayed() const
     return (m_Parent ? m_Parent->isDisplayed() : true);
 }
 
-void NativeCanvasHandler::computeAbsolutePosition()
+void CanvasHandler::computeAbsolutePosition()
 {
     if (m_CoordPosition == COORD_ABSOLUTE) {
         m_aTop = this->getTop();
@@ -758,7 +758,7 @@ void NativeCanvasHandler::computeAbsolutePosition()
             return;
         }
 
-        NativeCanvasHandler *elem, *prev = NULL;
+        CanvasHandler *elem, *prev = NULL;
 
         m_Parent->computeAbsolutePosition();
 
@@ -815,7 +815,7 @@ void NativeCanvasHandler::computeAbsolutePosition()
 
     double ctop = this->getTopScrolled(), cleft = this->getLeftScrolled();
 
-    NativeCanvasHandler *cparent = m_Parent;
+    CanvasHandler *cparent = m_Parent;
 
     while (cparent != NULL) {
 
@@ -834,13 +834,13 @@ void NativeCanvasHandler::computeAbsolutePosition()
 
 }
 
-bool NativeCanvasHandler::isOutOfBound()
+bool CanvasHandler::isOutOfBound()
 {
     if (!m_Parent) {
         return false;
     }
 
-    NativeCanvasHandler *cur;
+    CanvasHandler *cur;
 
     for (cur = m_Parent; cur != NULL; cur = cur->m_Parent) {
         if (!cur->m_Overflow) {
@@ -858,9 +858,9 @@ bool NativeCanvasHandler::isOutOfBound()
     return false;
 }
 
-NativeRect NativeCanvasHandler::getViewport()
+NativeRect CanvasHandler::getViewport()
 {
-    NativeCanvasHandler *cur = NULL;
+    CanvasHandler *cur = NULL;
 
     for (cur = m_Parent; cur != NULL; cur = cur->m_Parent) {
         if (!cur->m_Parent) break;
@@ -892,7 +892,7 @@ NativeRect NativeCanvasHandler::getViewport()
         cur->getLeft(true)+cur->getWidth()};
 }
 
-NativeRect NativeCanvasHandler::getVisibleRect()
+NativeRect CanvasHandler::getVisibleRect()
 {
     NativeRect vp = this->getViewport();
     this->computeAbsolutePosition();
@@ -905,9 +905,9 @@ NativeRect NativeCanvasHandler::getVisibleRect()
     };
 }
 
-void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight, bool inner)
+void CanvasHandler::computeContentSize(int *cWidth, int *cHeight, bool inner)
 {
-    NativeCanvasHandler *cur;
+    CanvasHandler *cur;
     m_Content.width = inner ? 0 : this->getWidth();
     m_Content.height = inner ? 0 : this->getHeight();
 
@@ -939,21 +939,21 @@ void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight, bool inn
 }
 
 
-bool NativeCanvasHandler::isHidden() const
+bool CanvasHandler::isHidden() const
 {
     return (m_Visibility == CANVAS_VISIBILITY_HIDDEN);
 }
 
-void NativeCanvasHandler::getChildren(NativeCanvasHandler **out) const
+void CanvasHandler::getChildren(CanvasHandler **out) const
 {
-    NativeCanvasHandler *cur;
+    CanvasHandler *cur;
     int i = 0;
     for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
         out[i++] = cur;
     }
 }
 
-int NativeCanvasHandler::getCursor()
+int CanvasHandler::getCursor()
 {
     if (m_Cursor != Nidium::Interface::NativeUIInterface::ARROW) {
         return m_Cursor;
@@ -965,18 +965,18 @@ int NativeCanvasHandler::getCursor()
 // }}}
 
 // {{{ Setters
-void NativeCanvasHandler::setCursor(int cursor)
+void CanvasHandler::setCursor(int cursor)
 {
     m_Cursor = cursor;
     Nidium::Interface::__NativeUI->setCursor((Nidium::Interface::NativeUIInterface::CURSOR_TYPE)this->getCursor());
 }
 
-void NativeCanvasHandler::setHidden(bool val)
+void CanvasHandler::setHidden(bool val)
 {
     m_Visibility = (val ? CANVAS_VISIBILITY_HIDDEN : CANVAS_VISIBILITY_VISIBLE);
 }
 
-void NativeCanvasHandler::setOpacity(double val)
+void CanvasHandler::setOpacity(double val)
 {
     if (val < 0.0 || val > 1.) {
         val = 1;
@@ -985,42 +985,42 @@ void NativeCanvasHandler::setOpacity(double val)
     m_Opacity = val;
 }
 
-void NativeCanvasHandler::setZoom(double zoom)
+void CanvasHandler::setZoom(double zoom)
 {
     m_Zoom = zoom;
 }
 // }}}
 
-void NativeCanvasHandler::setScale(double x, double y)
+void CanvasHandler::setScale(double x, double y)
 {
     this->recursiveScale(x, y, m_ScaleX, m_ScaleY);
     m_ScaleX = x;
     m_ScaleY = y;
 }
 
-void NativeCanvasHandler::setContext(CanvasContext *context)
+void CanvasHandler::setContext(CanvasContext *context)
 {
     m_Context = context;
     m_Context->translate(m_Padding.global, m_Padding.global);
 }
 
-bool NativeCanvasHandler::setFluidHeight(bool val)
+bool CanvasHandler::setFluidHeight(bool val)
 {
     m_FluidHeight = val;
     return true;
 }
 
-bool NativeCanvasHandler::setFluidWidth(bool val)
+bool CanvasHandler::setFluidWidth(bool val)
 {
     m_FluidWidth = val;
     return true;
 }
 // }}}
 
-void NativeCanvasHandler::recursiveScale(double x, double y,
+void CanvasHandler::recursiveScale(double x, double y,
     double oldX, double oldY)
 {
-    NativeCanvasHandler *cur = this;
+    CanvasHandler *cur = this;
 
     if (!cur->m_Context) return;
 
@@ -1031,21 +1031,21 @@ void NativeCanvasHandler::recursiveScale(double x, double y,
     }
 }
 
-int32_t NativeCanvasHandler::countChildren() const
+int32_t CanvasHandler::countChildren() const
 {
     return m_nChildren;
 }
 
-bool NativeCanvasHandler::containsPoint(double x, double y) const
+bool CanvasHandler::containsPoint(double x, double y) const
 {
     return (x >= getLeft(true) && x <= getLeft(true)+m_Width &&
             y >= getTop(true) && y <= getTop(true)+m_Height);
 }
 
-void NativeCanvasHandler::unrootHierarchy()
+void CanvasHandler::unrootHierarchy()
 {
     #if 0
-    NativeCanvasHandler *cur;
+    CanvasHandler *cur;
 
     for (cur = children; cur != NULL; cur = cur->next) {
         cur->unrootHierarchy();
@@ -1062,10 +1062,10 @@ void NativeCanvasHandler::unrootHierarchy()
     #endif
 }
 
-void NativeCanvasHandler::_JobResize(void *arg)
+void CanvasHandler::_JobResize(void *arg)
 {
     Nidium::Core::Args *args = (Nidium::Core::Args *)arg;
-    NativeCanvasHandler *handler = static_cast<NativeCanvasHandler *>(args[0][0].toPtr());
+    CanvasHandler *handler = static_cast<CanvasHandler *>(args[0][0].toPtr());
 
     int64_t height = args[0][1].toInt64();
 
@@ -1077,7 +1077,7 @@ void NativeCanvasHandler::_JobResize(void *arg)
     delete args;
 }
 
-void NativeCanvasHandler::setPendingFlags(int flags, bool append)
+void CanvasHandler::setPendingFlags(int flags, bool append)
 {
     if (!append) {
         m_Pending = 0;
@@ -1094,7 +1094,7 @@ void NativeCanvasHandler::setPendingFlags(int flags, bool append)
     }
 }
 
-void NativeCanvasHandler::execPending()
+void CanvasHandler::execPending()
 {
     if ((m_Pending & kPendingResizeHeight) || (m_Pending & kPendingResizeWidth)) {
         this->deviceSetSize(m_Width, m_Height);
@@ -1103,17 +1103,17 @@ void NativeCanvasHandler::execPending()
     this->setPendingFlags(0, false);
 }
 
-bool NativeCanvasHandler::checkLoaded()
+bool CanvasHandler::checkLoaded()
 {
     if (m_Loaded) {
         Nidium::Core::Args arg;
-        this->fireEvent<NativeCanvasHandler>(LOADED_EVENT, arg, true);
+        this->fireEvent<CanvasHandler>(LOADED_EVENT, arg, true);
         return true;
     }
     return false;
 }
 
-void NativeCanvasHandler::propertyChanged(EventsChangedProperty property)
+void CanvasHandler::propertyChanged(EventsChangedProperty property)
 {
     Nidium::Core::Args arg;
     arg[0].set(property);
@@ -1129,11 +1129,11 @@ void NativeCanvasHandler::propertyChanged(EventsChangedProperty property)
             break;
     }
 
-    this->fireEvent<NativeCanvasHandler>(CHANGE_EVENT, arg, true);
+    this->fireEvent<CanvasHandler>(CHANGE_EVENT, arg, true);
 }
 
 // {{{ Events
-void NativeCanvasHandler::onDrag(Nidium::NML::InputEvent *ev, NativeCanvasHandler *target, bool end)
+void CanvasHandler::onDrag(Nidium::NML::InputEvent *ev, CanvasHandler *target, bool end)
 {
     Nidium::Core::Args arg;
 
@@ -1157,17 +1157,17 @@ void NativeCanvasHandler::onDrag(Nidium::NML::InputEvent *ev, NativeCanvasHandle
         m_Flags |= kDrag_Flag;
     }
 
-    this->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg);
+    this->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg);
 
     if (!end) {
         arg[0].set(Nidium::NML::InputEvent::kMouseDragOver_Type);
         arg[7].set(this); // source
 
-        target->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg);
+        target->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg);
     }
 }
 
-void NativeCanvasHandler::onDrop(Nidium::NML::InputEvent *ev, NativeCanvasHandler *drop)
+void CanvasHandler::onDrop(Nidium::NML::InputEvent *ev, CanvasHandler *drop)
 {
     Nidium::Core::Args arg;
     arg[0].set(Nidium::NML::InputEvent::kMouseDrop_Type);
@@ -1179,12 +1179,12 @@ void NativeCanvasHandler::onDrop(Nidium::NML::InputEvent *ev, NativeCanvasHandle
     arg[6].set(ev->m_y - m_aTop);  // layerY
     arg[7].set(drop);
 
-    this->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg);
+    this->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg);
 }
 
-void NativeCanvasHandler::onMouseEvent(Nidium::NML::InputEvent *ev)
+void CanvasHandler::onMouseEvent(Nidium::NML::InputEvent *ev)
 {
-    NativeCanvasHandler *underneath = this;
+    CanvasHandler *underneath = this;
     if (Nidium::NML::InputEvent *tmpEvent = ev->getEventForNextCanvas()) {
         underneath = tmpEvent->m_Handler;
     }
@@ -1196,11 +1196,11 @@ void NativeCanvasHandler::onMouseEvent(Nidium::NML::InputEvent *ev)
             break;
         case Nidium::NML::InputEvent::kMouseClickRelease_Type:
             if (ev->m_data[0] == 1) {
-                NativeCanvasHandler *drag;
+                CanvasHandler *drag;
                 if ((drag = m_NativeContext->getCurrentClickedHandler()) &&
                     (drag->m_Flags & kDrag_Flag)) {
 
-                    NativeCanvasHandler *target = (drag == this) ? underneath : this;
+                    CanvasHandler *target = (drag == this) ? underneath : this;
 
                     drag->onDrag(ev, target, true);
                     target->onDrop(ev, drag);
@@ -1213,7 +1213,7 @@ void NativeCanvasHandler::onMouseEvent(Nidium::NML::InputEvent *ev)
             break;
         case Nidium::NML::InputEvent::kMouseMove_Type:
         {
-            NativeCanvasHandler *drag;
+            CanvasHandler *drag;
             if ((drag = m_NativeContext->getCurrentClickedHandler())) {
 
                 drag->onDrag(ev, (this == drag) ? underneath : this);
@@ -1230,9 +1230,9 @@ void NativeCanvasHandler::onMouseEvent(Nidium::NML::InputEvent *ev)
     Called by Nidium::NML::NativeContext whenever there are pending events on this canvas
     Currently only handle mouse events.
 */
-bool NativeCanvasHandler::_handleEvent(Nidium::NML::InputEvent *ev)
+bool CanvasHandler::_handleEvent(Nidium::NML::InputEvent *ev)
 {
-    for (NativeCanvasHandler *handler = this; handler != NULL;
+    for (CanvasHandler *handler = this; handler != NULL;
         handler = handler->getParent()) {
 
         Nidium::Core::Args arg;
@@ -1247,7 +1247,7 @@ bool NativeCanvasHandler::_handleEvent(Nidium::NML::InputEvent *ev)
         arg[7].set(this); // target
 
         /* fireEvent returns false if a stopPropagation is detected */
-        if (!handler->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg)) {
+        if (!handler->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg)) {
             break;
         }
 
@@ -1260,9 +1260,9 @@ bool NativeCanvasHandler::_handleEvent(Nidium::NML::InputEvent *ev)
 // }}}
 
 
-NativeCanvasHandler::~NativeCanvasHandler()
+CanvasHandler::~CanvasHandler()
 {
-    NativeCanvasHandler *cur = m_Children, *cnext;
+    CanvasHandler *cur = m_Children, *cnext;
 
     removeFromParent();
 

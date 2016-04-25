@@ -24,7 +24,7 @@ namespace Binding {
 #define CANVASCTX_GETTER(obj) ((class Canvas2DContext *)JS_GetPrivate(obj))
 #define NSKIA_NATIVE_GETTER(obj) ((class Nidium::Graphics::NativeSkia *)((class Canvas2DContext *)JS_GetPrivate(obj))->getSurface())
 #define NSKIA_NATIVE (CppObj->getSurface())
-#define HANDLER_GETTER(obj) ((Nidium::Graphics::NativeCanvasHandler *)((class JSCanvas *)JS_GetPrivate(obj))->getHandler())
+#define HANDLER_GETTER(obj) ((Nidium::Graphics::CanvasHandler *)((class JSCanvas *)JS_GetPrivate(obj))->getHandler())
 
 static JSClass imageData_class = {
     "ImageData", JSCLASS_HAS_PRIVATE,
@@ -681,7 +681,7 @@ static bool nidium_canvas2dctx_setTransform(JSContext *cx, unsigned argc, JS::Va
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double scalex, skewx, skewy, scaley, translatex, translatey;
 
-    Nidium::Graphics::NativeCanvasHandler *handler = CppObj->getHandler();
+    Nidium::Graphics::CanvasHandler *handler = CppObj->getHandler();
 
     if (!JS_ConvertArguments(cx, args, "dddddd", &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
     NIDIUM_LOG_2D_CALL();
@@ -2395,7 +2395,7 @@ void Canvas2DContext::translate(double x, double y)
     m_Skia->getCanvas()->translate(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
-Canvas2DContext::Canvas2DContext(Nidium::Graphics::NativeCanvasHandler *handler,
+Canvas2DContext::Canvas2DContext(Nidium::Graphics::CanvasHandler *handler,
     JSContext *cx, int width, int height, Nidium::Interface::NativeUIInterface *ui) :
     Nidium::Graphics::CanvasContext(handler),
     m_SetterDisabled(false), m_CurrentState(NULL)
@@ -2425,7 +2425,7 @@ Canvas2DContext::Canvas2DContext(Nidium::Graphics::NativeCanvasHandler *handler,
     this->resetSkiaContext(kVertex_GrGLBackendState);
 }
 
-Canvas2DContext::Canvas2DContext(Nidium::Graphics::NativeCanvasHandler *handler,
+Canvas2DContext::Canvas2DContext(Nidium::Graphics::CanvasHandler *handler,
     int width, int height, Nidium::Interface::NativeUIInterface *ui, bool isGL) :
     Nidium::Graphics::CanvasContext(handler), m_SetterDisabled(false)
 {

@@ -594,7 +594,7 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
 
     Nidium::NML::NativeContext *nctx = Nidium::NML::NativeContext::GetObject(m_Cx);
 
-    Graphics::NativeCanvasHandler *rootHandler = nctx->getRootHandler();
+    Graphics::CanvasHandler *rootHandler = nctx->getRootHandler();
 
     rootHandler->m_MousePosition.x = x;
     rootHandler->m_MousePosition.y = y;

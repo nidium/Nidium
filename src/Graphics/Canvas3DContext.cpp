@@ -26,7 +26,7 @@ Canvas3DContext::~Canvas3DContext()
     this->cleanUp();
 }
 
-Canvas3DContext::Canvas3DContext(NativeCanvasHandler *handler,
+Canvas3DContext::Canvas3DContext(CanvasHandler *handler,
     JSContext *cx, int width, int height, Nidium::Interface::NativeUIInterface *ui) :
     CanvasContext(handler), m_Flags(0)
 {

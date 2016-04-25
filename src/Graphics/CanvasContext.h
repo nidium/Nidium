@@ -24,13 +24,13 @@ namespace Nidium {
 namespace Graphics {
 
 struct NativeRect;
-class NativeCanvasHandler;
+class CanvasHandler;
 
 class CanvasContext
 {
   public:
 
-    explicit CanvasContext(NativeCanvasHandler *handler);
+    explicit CanvasContext(CanvasHandler *handler);
     virtual ~CanvasContext();
 
     /* Explicit name used by glBindAttribLocation */
@@ -76,7 +76,7 @@ class CanvasContext
         return m_GLState->getProgram();
     }
 
-    NativeCanvasHandler *getHandler() const {
+    CanvasHandler *getHandler() const {
         return m_Handler;
     }
 
@@ -148,7 +148,7 @@ class CanvasContext
 protected:
     /* Hold the current matrix (model) sent to the Vertex shader */
     SkMatrix44 m_Transform;
-    NativeCanvasHandler *m_Handler;
+    CanvasHandler *m_Handler;
     NativeGLState *m_GLState;
     NativeGLResources m_Resources;
     void updateMatrix(double left, double top, int layerWidth,

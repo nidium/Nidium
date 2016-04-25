@@ -9,7 +9,7 @@
 
 namespace Nidium {
     namespace Graphics {
-        class NativeCanvasHandler;
+        class CanvasHandler;
     }
 namespace Binding {
 
@@ -49,7 +49,7 @@ class JSWindow : public JSExposer<JSWindow>
 
     void initDataBase();
 
-    Graphics::NativeCanvasHandler *getCanvasHandler() const {
+    Graphics::CanvasHandler *getCanvasHandler() const {
         return m_Handler;
     }
 
@@ -84,7 +84,7 @@ class JSWindow : public JSExposer<JSWindow>
         }
     } *m_RequestedFrame;
 
-    Graphics::NativeCanvasHandler *m_Handler;
+    Graphics::CanvasHandler *m_Handler;
     JSDB *m_Db;
 
     bool m_Dragging;

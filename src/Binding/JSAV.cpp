@@ -2129,7 +2129,7 @@ void JSVideo::onMessage(const Core::SharedMessages::Message &msg)
 {
     if (m_IsDestructing) return;
 
-    if (msg.event() == NIDIUM_EVENT(Graphics::NativeCanvasHandler, RESIZE_EVENT) && (m_Width == -1 || m_Height == -1)) {
+    if (msg.event() == NIDIUM_EVENT(Graphics::CanvasHandler, RESIZE_EVENT) && (m_Width == -1 || m_Height == -1)) {
         this->setSize(m_Width, m_Height);
     } else {
         if (msg.event() == SOURCE_EVENT_PLAY) {
@@ -2162,7 +2162,7 @@ void JSVideo::onEvent(const struct AV::NativeAVSourceEvent *cev)
 void JSVideo::FrameCallback(uint8_t *data, void *custom)
 {
     JSVideo *v = (JSVideo *)custom;
-    Graphics::NativeCanvasHandler *handler = v->m_CanvasCtx->getHandler();
+    Graphics::CanvasHandler *handler = v->m_CanvasCtx->getHandler();
     Graphics::NativeSkia *surface = v->m_CanvasCtx->getSurface();
     JSContext *cx = v->cx;
 
@@ -2417,7 +2417,7 @@ static bool nidium_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp
         return true;
     }
 
-    Graphics::NativeCanvasHandler *handler = static_cast<class JSCanvas*>(
+    Graphics::CanvasHandler *handler = static_cast<class JSCanvas*>(
         JS_GetInstancePrivate(cx, canvas, &Canvas_class, &args))->getHandler();
 
     if (!handler) {

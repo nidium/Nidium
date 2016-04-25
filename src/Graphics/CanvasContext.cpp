@@ -236,7 +236,7 @@ uint32_t CanvasContext::CreatePassThroughProgram(NativeGLResources &resource)
     return programHandle;
 }
 
-CanvasContext::CanvasContext(NativeCanvasHandler *handler) :
+CanvasContext::CanvasContext(CanvasHandler *handler) :
     m_JsCx(handler->m_JsCx), m_Mode(CONTEXT_2D),
     m_Transform(SkMatrix44::kIdentity_Constructor),
     m_Handler(handler), m_GLState(NULL)

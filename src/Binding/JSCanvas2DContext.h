@@ -17,7 +17,7 @@ namespace Nidium {
     namespace Graphics {
         struct NativeRect;
         class NativeSkia;
-        class NativeCanvasHandler;
+        class CanvasHandler;
     }
 namespace Binding {
 
@@ -133,10 +133,10 @@ class Canvas2DContext : public Graphics::CanvasContext
 
         static void RegisterObject(JSContext *cx);
 
-        Canvas2DContext(Graphics::NativeCanvasHandler *handler,
+        Canvas2DContext(Graphics::CanvasHandler *handler,
             int width, int height, Interface::NativeUIInterface *ui, bool isGL = true);
 
-        Canvas2DContext(Graphics::NativeCanvasHandler *handler,
+        Canvas2DContext(Graphics::CanvasHandler *handler,
             struct JSContext *cx, int width, int height, Interface::NativeUIInterface *ui);
 
         virtual ~Canvas2DContext();

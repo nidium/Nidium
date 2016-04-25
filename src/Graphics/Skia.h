@@ -98,7 +98,7 @@ class NativeSkia
             BIND_ONSCREEN
         } m_NativeCanvasBindMode;
 
-        friend class NativeCanvasHandler;
+        friend class CanvasHandler;
         friend class JSCanvas;
 
         static SkCanvas *m_GlContext;

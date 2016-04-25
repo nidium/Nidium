@@ -99,7 +99,7 @@ static bool nidium_document_getElementById(JSContext *cx, unsigned argc, JS::Val
     }
 
     JSAutoByteString cid(cx, str);
-    Graphics::NativeCanvasHandler *elem = Nidium::NML::NativeContext::GetObject(cx)->getCanvasById(cid.ptr());
+    Graphics::CanvasHandler *elem = Nidium::NML::NativeContext::GetObject(cx)->getCanvasById(cid.ptr());
     if (elem) {
         args.rval().setObjectOrNull(elem->m_JsObj);
     } else {
@@ -113,7 +113,7 @@ static bool nidium_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    Graphics::NativeCanvasHandler *rootHandler = Nidium::NML::NativeContext::GetObject(cx)->getRootHandler();
+    Graphics::CanvasHandler *rootHandler = Nidium::NML::NativeContext::GetObject(cx)->getRootHandler();
     Canvas2DContext *context = static_cast<Canvas2DContext *>(rootHandler->getContext());
 
     int width, height;
@@ -150,7 +150,7 @@ static bool nidium_document_toDataArray(JSContext *cx, unsigned argc, JS::Value 
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    Graphics::NativeCanvasHandler *rootHandler = Nidium::NML::NativeContext::GetObject(cx)->getRootHandler();
+    Graphics::CanvasHandler *rootHandler = Nidium::NML::NativeContext::GetObject(cx)->getRootHandler();
     Canvas2DContext *context = static_cast<Canvas2DContext *>(rootHandler->getContext());
 
     int width, height;

@@ -13,7 +13,7 @@ namespace Nidium {
     }
 namespace Graphics {
 
-class NativeCanvasHandler;
+class CanvasHandler;
 
 class Canvas3DContext : public CanvasContext
 {
@@ -27,7 +27,7 @@ public:
     /*
         width and height is in logical pixel
     */
-    Canvas3DContext(NativeCanvasHandler *handler,
+    Canvas3DContext(CanvasHandler *handler,
         struct JSContext *cx, int width, int height, Nidium::Interface::NativeUIInterface *ui);
     virtual ~Canvas3DContext();
 

@@ -9,7 +9,7 @@ namespace Nidium {
         class NativeUIInterface;
     }
     namespace Graphics {
-        class NativeCanvasHandler;
+        class CanvasHandler;
     }
 namespace Binding {
 
@@ -20,12 +20,12 @@ public:
     virtual void onMessageLost(const Core::SharedMessages::Message &msg);
     static void RegisterObject(JSContext *cx);
     static JSObject *GenerateJSObject(JSContext *cx, int width, int height,
-        Graphics::NativeCanvasHandler **out);
+        Graphics::CanvasHandler **out);
 
-    JSCanvas(JS::HandleObject obj, JSContext *cx, Graphics::NativeCanvasHandler *handler);
+    JSCanvas(JS::HandleObject obj, JSContext *cx, Graphics::CanvasHandler *handler);
     ~JSCanvas();
 
-    Graphics::NativeCanvasHandler *getHandler() const {
+    Graphics::CanvasHandler *getHandler() const {
         return m_CanvasHandler;
     }
 
@@ -38,7 +38,7 @@ public:
     }
 
 private:
-    Graphics::NativeCanvasHandler *m_CanvasHandler;
+    Graphics::CanvasHandler *m_CanvasHandler;
     JS::Heap<JSObject *> m_Inherit;
 };
 

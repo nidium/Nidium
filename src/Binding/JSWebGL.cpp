@@ -2623,7 +2623,7 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
                 return false;
             }
         } else if (image && JS_GetClass(image) == &Canvas_class) {
-            Graphics::NativeCanvasHandler *handler = static_cast<Graphics::NativeCanvasHandler *>
+            Graphics::CanvasHandler *handler = static_cast<Graphics::CanvasHandler *>
                 (static_cast<JSCanvas*>(JS_GetPrivate(image))->getHandler());
             Canvas2DContext *ctx = static_cast<Canvas2DContext *>(handler->getContext());
 
