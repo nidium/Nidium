@@ -18,8 +18,8 @@ namespace Nidium {
 namespace Nidium {
 namespace Graphics {
 
-#define GL_CALL(X) NATIVE_GL_CALL(m_GLState->getNativeGLContext(), X)
-#define GL_CALL_RET(X, RET) NATIVE_GL_CALL_RET(m_GLState->getNativeGLContext(), X, RET)
+#define GL_CALL(X) NIDIUM_GL_CALL(m_GLState->getNativeGLContext(), X)
+#define GL_CALL_RET(X, RET) NIDIUM_GL_CALL_RET(m_GLState->getNativeGLContext(), X, RET)
 
 NativeCanvas3DContext::~NativeCanvas3DContext()
 {

@@ -314,7 +314,7 @@ void NativeCanvasContext::updateMatrix(double left, double top,
         /*
             Execute the call on the specified (should be main) OpenGL context
         */
-        NATIVE_GL_CALL(glstate->getNativeGLContext(),
+        NIDIUM_GL_CALL(glstate->getNativeGLContext(),
             UniformMatrix4fv(m_GLState->m_GLObjects.uniforms.u_projectionMatrix,
                 1, GL_FALSE, mat4));
     } else {
@@ -362,8 +362,8 @@ void NativeCanvasContext::preComposeOn(Nidium::Binding::Canvas2DContext *layer,
     /*
         Activate alpha blending
     */
-    NATIVE_GL_CALL(layer->m_GLState->getNativeGLContext(), Enable(GL_BLEND));
-    NATIVE_GL_CALL(layer->m_GLState->getNativeGLContext(), BlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+    NIDIUM_GL_CALL(layer->m_GLState->getNativeGLContext(), Enable(GL_BLEND));
+    NIDIUM_GL_CALL(layer->m_GLState->getNativeGLContext(), BlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
 
     /*
         Setup clipping
@@ -374,8 +374,8 @@ void NativeCanvasContext::preComposeOn(Nidium::Binding::Canvas2DContext *layer,
             SkDoubleToScalar(rclip->m_fTop*(double)ratio),
             SkDoubleToScalar(rclip->m_fRight*(double)ratio),
             SkDoubleToScalar(rclip->m_fBottom*(double)ratio));
-        NATIVE_GL_CALL(layer->m_GLState->getNativeGLContext(), Enable(GL_SCISSOR_TEST));
-        NATIVE_GL_CALL(layer->m_GLState->getNativeGLContext(), Scissor(r.left(),
+        NIDIUM_GL_CALL(layer->m_GLState->getNativeGLContext(), Enable(GL_SCISSOR_TEST));
+        NIDIUM_GL_CALL(layer->m_GLState->getNativeGLContext(), Scissor(r.left(),
            layerSize.height() - (r.top() + r.height()), r.width(), r.height()));
         revertScissor = true;
     }
@@ -398,14 +398,14 @@ void NativeCanvasContext::preComposeOn(Nidium::Binding::Canvas2DContext *layer,
     layer->drawTexture(this->getTextureID(), width, height, left*ratio, top*ratio);
 
     if (revertScissor) {
-        NATIVE_GL_CALL(layer->m_GLState->getNativeGLContext(), Disable(GR_GL_SCISSOR_TEST));
+        NIDIUM_GL_CALL(layer->m_GLState->getNativeGLContext(), Disable(GR_GL_SCISSOR_TEST));
     }
 }
 
 bool NativeCanvasContext::validateCurrentFBO()
 {
     GrGLenum status;
-    NATIVE_GL_CALL_RET(m_GLState->getNativeGLContext(),
+    NIDIUM_GL_CALL_RET(m_GLState->getNativeGLContext(),
         CheckFramebufferStatus(GR_GL_FRAMEBUFFER), status);
 
     switch(status) {

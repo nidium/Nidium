@@ -22,21 +22,21 @@ namespace Binding {
 // {{{ Preamble
 bool JSDocument::m_ShowFPS = false;
 
-static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_document_run(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Document_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSPropertySpec document_props[] = {
     JS_PS_END
 };
 
-static bool native_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_document_getElementById(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_document_toDataArray(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_document_getElementById(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_document_getScreenData(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_document_toDataArray(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass document_class = {
     "NativeDocument", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
@@ -51,27 +51,27 @@ template<>
 JSClass *JSExposer<JSDocument>::jsclass = &document_class;
 
 static JSFunctionSpec document_funcs[] = {
-    JS_FN("run", native_document_run, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("showFPS", native_document_showfps, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("setPasteBuffer", native_document_setPasteBuffer, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("getPasteBuffer", native_document_getPasteBuffer, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("loadFont", native_document_loadFont, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("getCanvasById", native_document_getElementById, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("getScreenData", native_document_getScreenData, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("toDataArray", native_document_toDataArray, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("parseNML", native_document_parseNML, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("run", nidium_document_run, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("showFPS", nidium_document_showfps, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("setPasteBuffer", nidium_document_setPasteBuffer, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("getPasteBuffer", nidium_document_getPasteBuffer, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("loadFont", nidium_document_loadFont, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("getCanvasById", nidium_document_getElementById, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("getScreenData", nidium_document_getScreenData, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("toDataArray", nidium_document_toDataArray, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("parseNML", nidium_document_parseNML, 1, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 // }}}
 
 // {{{ Implementation
-struct _native_document_restart_async
+struct _nidium_document_restart_async
 {
     Nidium::Interface::NativeUIInterface *ui;
     char *location;
 };
 
-static bool native_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -89,7 +89,7 @@ static bool native_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp
     return true;
 }
 
-static bool native_document_getElementById(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_document_getElementById(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -109,7 +109,7 @@ static bool native_document_getElementById(JSContext *cx, unsigned argc, JS::Val
     return true;
 }
 
-static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_document_getScreenData(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -146,7 +146,7 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     return true;
 }
 
-static bool native_document_toDataArray(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_document_toDataArray(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -191,7 +191,7 @@ static bool native_document_toDataArray(JSContext *cx, unsigned argc, JS::Value 
     return true;
 }
 
-static bool native_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -209,7 +209,7 @@ static bool native_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Val
     return true;
 }
 
-static bool native_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     size_t outputlen;
@@ -231,7 +231,7 @@ static bool native_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Val
     return true;
 }
 
-static bool native_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     bool show = false;
@@ -250,9 +250,9 @@ static bool native_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp)
 }
 
 
-static int native_document_restart(void *param)
+static int nidium_document_restart(void *param)
 {
-    struct _native_document_restart_async *ndra = (struct _native_document_restart_async *)param;
+    struct _nidium_document_restart_async *ndra = (struct _nidium_document_restart_async *)param;
 
     ndra->ui->restartApplication(ndra->location);
 
@@ -262,7 +262,7 @@ static int native_document_restart(void *param)
     return 0;
 }
 
-static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -274,13 +274,13 @@ static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
     Nidium::Interface::NativeUIInterface *NUI = Nidium::NML::NativeContext::GetObject(cx)->getUI();
     JSAutoByteString locationstr(cx, location);
 
-    struct _native_document_restart_async *ndra = (struct _native_document_restart_async *)malloc(sizeof(*ndra));
+    struct _nidium_document_restart_async *ndra = (struct _nidium_document_restart_async *)malloc(sizeof(*ndra));
 
     ndra->location = strdup(locationstr.ptr());
     ndra->ui = NUI;
     ape_global *ape = NidiumJS::GetObject(cx)->net;
 
-    timer_dispatch_async(native_document_restart, ndra);
+    timer_dispatch_async(nidium_document_restart, ndra);
 
     return true;
 }
@@ -354,7 +354,7 @@ bool JSDocument::loadFont(const char *path, const char *name,
     return true;
 }
 
-static bool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_INIT_OPT();
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);

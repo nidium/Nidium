@@ -16,14 +16,14 @@
 namespace Nidium {
 namespace Binding {
 
-#define NATIVE_GL_GETTER(obj) ((class CanvasWebGLContext*)JS_GetPrivate(obj))
+#define NIDIUM_GL_GETTER(obj) ((class CanvasWebGLContext*)JS_GetPrivate(obj))
 
 #define GL_CALL(IFACE, FN)\
-    NATIVE_GL_CALL((IFACE)->getGLContext(), FN); \
+    NIDIUM_GL_CALL((IFACE)->getGLContext(), FN); \
     { GLint err = glGetError(); if (err != 0) NLOG("err = %d / call = %s\n", err, #FN); }
 
 #define GL_CALL_RET(IFACE, FN, RET)\
-    NATIVE_GL_CALL_RET((IFACE)->getGLContext(), FN, RET); \
+    NIDIUM_GL_CALL_RET((IFACE)->getGLContext(), FN, RET); \
     { GLint err = glGetError(); if (err != 0) NLOG("err = %d / call = %s\n", err, #FN); }
 
 #define D_NGL_JS_FN(func_name) static bool func_name(JSContext *cx, unsigned int argc, JS::Value *vp);

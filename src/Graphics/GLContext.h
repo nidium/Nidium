@@ -21,27 +21,27 @@ namespace Graphics {
 // {{{ Macro's
 /*
     Make the context pointed by IFACE current and make a GL call
-    e.g. NATIVE_GL_CALL(this->context, Clear(0, 0, 0, 0));
+    e.g. NIDIUM_GL_CALL(this->context, Clear(0, 0, 0, 0));
 */
 
 #define NATIVE_GL_MAIN_IFACE (Nidium::Interface::__NativeUI->getNativeContext()->getGLState()->getNativeGLContext())
 
 #ifndef NATIVE_ENABLE_GL_ERROR
 
-    #define NATIVE_GL_CALL(IFACE, X)                         \
+    #define NIDIUM_GL_CALL(IFACE, X)                         \
         do {                                                 \
             Graphics::NativeGLContext::GLCallback(IFACE->m_Interface);  \
             (IFACE)->m_Interface->fFunctions.f##X;            \
         } while (false)
 
-    #define NATIVE_GL_CALL_RET(IFACE, X, RET)   \
+    #define NIDIUM_GL_CALL_RET(IFACE, X, RET)   \
         do {                                    \
             Graphics::NativeGLContext::GLCallback(IFACE->m_Interface);  \
             (RET) =  (IFACE)->m_Interface->fFunctions.f##X;   \
         } while (false)
 
 #else
-    #define NATIVE_GL_CALL(IFACE, X)                         \
+    #define NIDIUM_GL_CALL(IFACE, X)                         \
         do {                                                 \
             uint32_t __err;                                  \
             Graphics::NativeGLContext::GLCallback(IFACE->m_Interface); \
@@ -51,7 +51,7 @@ namespace Graphics {
             } \
         } while (false)
 
-    #define NATIVE_GL_CALL_RET(IFACE, X, RET)   \
+    #define NIDIUM_GL_CALL_RET(IFACE, X, RET)   \
         do {                                    \
             uint32_t __err; \
             Graphics::NativeGLContext::GLCallback(IFACE->m_Interface);  \
@@ -62,9 +62,9 @@ namespace Graphics {
         } while (false)
 #endif
 
-#define NATIVE_GL_CALL_MAIN(X) NATIVE_GL_CALL((NATIVE_GL_MAIN_IFACE), X)
+#define NATIVE_GL_CALL_MAIN(X) NIDIUM_GL_CALL((NATIVE_GL_MAIN_IFACE), X)
 
-#define NATIVE_GL_CALL_RET_MAIN(X, RET) NATIVE_GL_CALL_RET(NATIVE_GL_MAIN_IFACE, X, RET)
+#define NATIVE_GL_CALL_RET_MAIN(X, RET) NIDIUM_GL_CALL_RET(NATIVE_GL_MAIN_IFACE, X, RET)
 // }}}
 
 // {{{ NativeGLContext

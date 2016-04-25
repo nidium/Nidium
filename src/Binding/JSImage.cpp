@@ -25,11 +25,11 @@ enum {
     JSImage *nimg = static_cast<JSImage *>(JS_GetPrivate(parent));
 
 static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
-static bool native_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_image_markColorInAlpha(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_image_desaturate(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_image_print(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj, uint8_t id,
+static bool nidium_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_image_markColorInAlpha(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_image_desaturate(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_image_print(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_image_prop_set(JSContext *cx, JS::HandleObject obj, uint8_t id,
     bool strict, JS::MutableHandleValue vp);
 
 static JSClass Image_class = {
@@ -43,26 +43,26 @@ template<>
 JSClass *JSExposer<JSImage>::jsclass = &Image_class;
 
 static JSPropertySpec Image_props[] = {
-    NIDIUM_JS_PSS("src", IMAGE_PROP_SRC, native_image_prop_set),
+    NIDIUM_JS_PSS("src", IMAGE_PROP_SRC, nidium_image_prop_set),
     JS_PS_END
 };
 
 static JSFunctionSpec Image_funcs[] = {
-    JS_FN("shiftHue", native_image_shiftHue, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("markColorInAlpha", native_image_markColorInAlpha, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("desaturate", native_image_desaturate, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("print", native_image_print, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("shiftHue", nidium_image_shiftHue, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("markColorInAlpha", nidium_image_markColorInAlpha, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("desaturate", nidium_image_desaturate, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("print", nidium_image_print, 0, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 // }}}
 
 // {{{ Implementation
-static bool native_image_print(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_image_print(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     return true;
 }
 
-static bool native_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     int val;
@@ -79,7 +79,7 @@ static bool native_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_image_markColorInAlpha(JSContext *cx,
+static bool nidium_image_markColorInAlpha(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -91,7 +91,7 @@ static bool native_image_markColorInAlpha(JSContext *cx,
     return true;
 }
 
-static bool native_image_desaturate(JSContext *cx,
+static bool nidium_image_desaturate(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -103,7 +103,7 @@ static bool native_image_desaturate(JSContext *cx,
     return true;
 }
 
-static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
+static bool nidium_image_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
     JSImage *nimg = NATIVE_IMAGE_GETTER(obj);
@@ -169,7 +169,7 @@ void Image_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-static bool native_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSImage *nimg;
@@ -351,7 +351,7 @@ void JSImage::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_InitClass(cx, global, JS::NullPtr(), &Image_class,
-        native_Image_constructor,
+        nidium_Image_constructor,
         0, nullptr, Image_funcs, nullptr, nullptr);
 }
 

@@ -45,7 +45,7 @@ enum {
 };
 
 #if 0 && DEBUG
-#define NATIVE_LOG_2D_CALL() \
+#define NIDIUM_LOG_2D_CALL() \
     JS::RootedObject calObj(cx, &args.callee()); \
     if (JS_ObjectIsFunction(cx, calObj)) { \
         unsigned lineno; \
@@ -57,7 +57,7 @@ enum {
         NLOG("Canvas2D.%s()] called on %s:%d", _fun_namec.ptr(), filename.get(), lineno); \
     }
 #else
-#define NATIVE_LOG_2D_CALL()
+#define NIDIUM_LOG_2D_CALL()
 #endif
 
 static void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -96,105 +96,105 @@ static JSClass canvasPattern_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
+static bool nidium_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp);
-static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
+static bool nidium_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp);
 
-static bool native_canvas2dctx_breakText(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_shadow(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_fillRect(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_clearRect(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_fillText(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_strokeText(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_beginPath(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_moveTo(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_lineTo(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_fill(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_stroke(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_closePath(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_arc(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_arcTo(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_rect(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_breakText(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_shadow(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_fillRect(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_clearRect(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_fillText(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_strokeText(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_beginPath(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_moveTo(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_lineTo(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_fill(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_stroke(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_closePath(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_arc(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_arcTo(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_rect(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_canvas2dctx_rotate(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_scale(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_save(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_restore(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_translate(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_transform(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_iTransform(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_rotate(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_scale(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_save(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_restore(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_translate(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_transform(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_iTransform(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_setTransform(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_canvas2dctx_clip(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_createImageData(JSContext *cx,
+static bool nidium_canvas2dctx_clip(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_createImageData(JSContext *cx,
     unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_createPattern(JSContext *cx,
+static bool nidium_canvas2dctx_createPattern(JSContext *cx,
     unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_putImageData(JSContext *cx,
+static bool nidium_canvas2dctx_putImageData(JSContext *cx,
     unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_getImageData(JSContext *cx,
+static bool nidium_canvas2dctx_getImageData(JSContext *cx,
     unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_createLinearGradient(JSContext *cx,
+static bool nidium_canvas2dctx_createLinearGradient(JSContext *cx,
     unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_createRadialGradient(JSContext *cx,
+static bool nidium_canvas2dctx_createRadialGradient(JSContext *cx,
     unsigned argc, JS::Value *vp);
-static bool native_canvas2dctxGradient_addColorStop(JSContext *cx,
+static bool nidium_canvas2dctxGradient_addColorStop(JSContext *cx,
     unsigned argc, JS::Value *vp);
 
-static bool native_canvas2dctx_stub(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_stub(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_canvas2dctx_measureText(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_canvas2dctx_light(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_light(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_canvas2dctx_detachGLSLFragment(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_detachGLSLFragment(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
     JS::Value *vp);
 
 /* GLSL related */
-static bool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsigned argc,
     JS::Value *vp);
 
-static bool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc,
-    JS::Value *vp);
-
-static bool native_canvas2dctxGLProgram_uniform1iv(JSContext *cx, unsigned argc,
-    JS::Value *vp);
-static bool native_canvas2dctxGLProgram_uniform2iv(JSContext *cx, unsigned argc,
-    JS::Value *vp);
-static bool native_canvas2dctxGLProgram_uniform3iv(JSContext *cx, unsigned argc,
-    JS::Value *vp);
-static bool native_canvas2dctxGLProgram_uniform4iv(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc,
     JS::Value *vp);
 
-static bool native_canvas2dctxGLProgram_uniform1fv(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform1iv(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_canvas2dctxGLProgram_uniform2fv(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform2iv(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_canvas2dctxGLProgram_uniform3fv(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform3iv(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_canvas2dctxGLProgram_uniform4fv(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform4iv(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigned argc,
+
+static bool nidium_canvas2dctxGLProgram_uniform1fv(JSContext *cx, unsigned argc,
+    JS::Value *vp);
+static bool nidium_canvas2dctxGLProgram_uniform2fv(JSContext *cx, unsigned argc,
+    JS::Value *vp);
+static bool nidium_canvas2dctxGLProgram_uniform3fv(JSContext *cx, unsigned argc,
+    JS::Value *vp);
+static bool nidium_canvas2dctxGLProgram_uniform4fv(JSContext *cx, unsigned argc,
+    JS::Value *vp);
+static bool nidium_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigned argc,
     JS::Value *vp);
 
 static JSPropertySpec canvas2dctx_props[] = {
-#define CANVAS_2D_CTX_PROP(prop) NIDIUM_JS_PSGS(#prop, CTX_PROP_ ## prop, native_canvas2dctx_prop_get, native_canvas2dctx_prop_set),
-#define CANVAS_2D_CTX_PROP_GET(prop) NIDIUM_JS_PSG(#prop, CTX_PROP_ ## prop, native_canvas2dctx_prop_get),
+#define CANVAS_2D_CTX_PROP(prop) NIDIUM_JS_PSGS(#prop, CTX_PROP_ ## prop, nidium_canvas2dctx_prop_get, nidium_canvas2dctx_prop_set),
+#define CANVAS_2D_CTX_PROP_GET(prop) NIDIUM_JS_PSG(#prop, CTX_PROP_ ## prop, nidium_canvas2dctx_prop_get),
   #include "Graphics/Canvas2DContextProperties.h"
   JS_PS_END
 #undef CANVAS_2D_CTX_PROP
@@ -202,90 +202,90 @@ static JSPropertySpec canvas2dctx_props[] = {
 };
 
 static JSFunctionSpec canvas2dctx_funcs[] = {
-    JS_FN("breakText", native_canvas2dctx_breakText, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("shadow", native_canvas2dctx_shadow, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("onerror", native_canvas2dctx_stub, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("fillRect", native_canvas2dctx_fillRect, 4, NIDIUM_JS_FNPROPS),
-    JS_FN("fillText", native_canvas2dctx_fillText, 3, NIDIUM_JS_FNPROPS),
-    JS_FN("strokeText", native_canvas2dctx_strokeText, 3, NIDIUM_JS_FNPROPS),
-    JS_FN("strokeRect", native_canvas2dctx_strokeRect, 4, NIDIUM_JS_FNPROPS),
-    JS_FN("clearRect", native_canvas2dctx_clearRect, 4, NIDIUM_JS_FNPROPS),
-    JS_FN("beginPath", native_canvas2dctx_beginPath, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("moveTo", native_canvas2dctx_moveTo, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("lineTo", native_canvas2dctx_lineTo, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("fill", native_canvas2dctx_fill, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("stroke", native_canvas2dctx_stroke, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("closePath", native_canvas2dctx_closePath, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("clip", native_canvas2dctx_clip, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("arc", native_canvas2dctx_arc, 5, NIDIUM_JS_FNPROPS),
-    JS_FN("arcTo", native_canvas2dctx_arcTo, 5, NIDIUM_JS_FNPROPS),
-    JS_FN("rect", native_canvas2dctx_rect, 4, NIDIUM_JS_FNPROPS),
-    JS_FN("quadraticCurveTo", native_canvas2dctx_quadraticCurveTo, 4, NIDIUM_JS_FNPROPS),
-    JS_FN("bezierCurveTo", native_canvas2dctx_bezierCurveTo, 4, NIDIUM_JS_FNPROPS),
-    JS_FN("rotate", native_canvas2dctx_rotate, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("scale", native_canvas2dctx_scale, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("save", native_canvas2dctx_save, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("restore", native_canvas2dctx_restore, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("translate", native_canvas2dctx_translate, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("transform", native_canvas2dctx_transform, 6, NIDIUM_JS_FNPROPS),
-    JS_FN("iTransform", native_canvas2dctx_iTransform, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("setTransform", native_canvas2dctx_setTransform, 6, NIDIUM_JS_FNPROPS),
-    JS_FN("createLinearGradient", native_canvas2dctx_createLinearGradient, 4, NIDIUM_JS_FNPROPS),
-    JS_FN("createRadialGradient", native_canvas2dctx_createRadialGradient, 6, NIDIUM_JS_FNPROPS),
-    JS_FN("createImageData", native_canvas2dctx_createImageData, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("createPattern", native_canvas2dctx_createPattern, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("putImageData", native_canvas2dctx_putImageData, 3, NIDIUM_JS_FNPROPS),
-    JS_FN("getImageData", native_canvas2dctx_getImageData, 4, NIDIUM_JS_FNPROPS),
-    JS_FN("drawImage", native_canvas2dctx_drawImage, 3, NIDIUM_JS_FNPROPS),
-    JS_FN("measureText", native_canvas2dctx_measureText, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("isPointInPath", native_canvas2dctx_isPointInPath, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("getPathBounds", native_canvas2dctx_getPathBounds, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("light", native_canvas2dctx_light, 3, NIDIUM_JS_FNPROPS),
-    JS_FN("attachFragmentShader", native_canvas2dctx_attachGLSLFragment, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("detachFragmentShader", native_canvas2dctx_detachGLSLFragment, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("setVertexOffset", native_canvas2dctx_setVertexOffset, 3, NIDIUM_JS_FNPROPS),
+    JS_FN("breakText", nidium_canvas2dctx_breakText, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("shadow", nidium_canvas2dctx_shadow, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("onerror", nidium_canvas2dctx_stub, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("fillRect", nidium_canvas2dctx_fillRect, 4, NIDIUM_JS_FNPROPS),
+    JS_FN("fillText", nidium_canvas2dctx_fillText, 3, NIDIUM_JS_FNPROPS),
+    JS_FN("strokeText", nidium_canvas2dctx_strokeText, 3, NIDIUM_JS_FNPROPS),
+    JS_FN("strokeRect", nidium_canvas2dctx_strokeRect, 4, NIDIUM_JS_FNPROPS),
+    JS_FN("clearRect", nidium_canvas2dctx_clearRect, 4, NIDIUM_JS_FNPROPS),
+    JS_FN("beginPath", nidium_canvas2dctx_beginPath, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("moveTo", nidium_canvas2dctx_moveTo, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("lineTo", nidium_canvas2dctx_lineTo, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("fill", nidium_canvas2dctx_fill, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("stroke", nidium_canvas2dctx_stroke, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("closePath", nidium_canvas2dctx_closePath, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("clip", nidium_canvas2dctx_clip, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("arc", nidium_canvas2dctx_arc, 5, NIDIUM_JS_FNPROPS),
+    JS_FN("arcTo", nidium_canvas2dctx_arcTo, 5, NIDIUM_JS_FNPROPS),
+    JS_FN("rect", nidium_canvas2dctx_rect, 4, NIDIUM_JS_FNPROPS),
+    JS_FN("quadraticCurveTo", nidium_canvas2dctx_quadraticCurveTo, 4, NIDIUM_JS_FNPROPS),
+    JS_FN("bezierCurveTo", nidium_canvas2dctx_bezierCurveTo, 4, NIDIUM_JS_FNPROPS),
+    JS_FN("rotate", nidium_canvas2dctx_rotate, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("scale", nidium_canvas2dctx_scale, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("save", nidium_canvas2dctx_save, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("restore", nidium_canvas2dctx_restore, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("translate", nidium_canvas2dctx_translate, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("transform", nidium_canvas2dctx_transform, 6, NIDIUM_JS_FNPROPS),
+    JS_FN("iTransform", nidium_canvas2dctx_iTransform, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("setTransform", nidium_canvas2dctx_setTransform, 6, NIDIUM_JS_FNPROPS),
+    JS_FN("createLinearGradient", nidium_canvas2dctx_createLinearGradient, 4, NIDIUM_JS_FNPROPS),
+    JS_FN("createRadialGradient", nidium_canvas2dctx_createRadialGradient, 6, NIDIUM_JS_FNPROPS),
+    JS_FN("createImageData", nidium_canvas2dctx_createImageData, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("createPattern", nidium_canvas2dctx_createPattern, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("putImageData", nidium_canvas2dctx_putImageData, 3, NIDIUM_JS_FNPROPS),
+    JS_FN("getImageData", nidium_canvas2dctx_getImageData, 4, NIDIUM_JS_FNPROPS),
+    JS_FN("drawImage", nidium_canvas2dctx_drawImage, 3, NIDIUM_JS_FNPROPS),
+    JS_FN("measureText", nidium_canvas2dctx_measureText, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("isPointInPath", nidium_canvas2dctx_isPointInPath, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("getPathBounds", nidium_canvas2dctx_getPathBounds, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("light", nidium_canvas2dctx_light, 3, NIDIUM_JS_FNPROPS),
+    JS_FN("attachFragmentShader", nidium_canvas2dctx_attachGLSLFragment, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("detachFragmentShader", nidium_canvas2dctx_detachGLSLFragment, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("setVertexOffset", nidium_canvas2dctx_setVertexOffset, 3, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec gradient_funcs[] = {
 
-    JS_FN("addColorStop", native_canvas2dctxGradient_addColorStop, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("addColorStop", nidium_canvas2dctxGradient_addColorStop, 2, NIDIUM_JS_FNPROPS),
 
     JS_FS_END
 };
 
 static JSFunctionSpec glprogram_funcs[] = {
 
-    JS_FN("getUniformLocation", native_canvas2dctxGLProgram_getUniformLocation, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("getActiveUniforms", native_canvas2dctxGLProgram_getActiveUniforms, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("uniform1i", native_canvas2dctxGLProgram_uniform1i, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("uniform1f", native_canvas2dctxGLProgram_uniform1f, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("uniform1iv", native_canvas2dctxGLProgram_uniform1iv, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("uniform2iv", native_canvas2dctxGLProgram_uniform2iv, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("uniform3iv", native_canvas2dctxGLProgram_uniform3iv, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("uniform4iv", native_canvas2dctxGLProgram_uniform4iv, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("getUniformLocation", nidium_canvas2dctxGLProgram_getUniformLocation, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("getActiveUniforms", nidium_canvas2dctxGLProgram_getActiveUniforms, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("uniform1i", nidium_canvas2dctxGLProgram_uniform1i, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("uniform1f", nidium_canvas2dctxGLProgram_uniform1f, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("uniform1iv", nidium_canvas2dctxGLProgram_uniform1iv, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("uniform2iv", nidium_canvas2dctxGLProgram_uniform2iv, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("uniform3iv", nidium_canvas2dctxGLProgram_uniform3iv, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("uniform4iv", nidium_canvas2dctxGLProgram_uniform4iv, 2, NIDIUM_JS_FNPROPS),
 
-    JS_FN("uniform1fv", native_canvas2dctxGLProgram_uniform1fv, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("uniform2fv", native_canvas2dctxGLProgram_uniform2fv, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("uniform3fv", native_canvas2dctxGLProgram_uniform3fv, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("uniform4fv", native_canvas2dctxGLProgram_uniform4fv, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("uniform1fv", nidium_canvas2dctxGLProgram_uniform1fv, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("uniform2fv", nidium_canvas2dctxGLProgram_uniform2fv, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("uniform3fv", nidium_canvas2dctxGLProgram_uniform3fv, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("uniform4fv", nidium_canvas2dctxGLProgram_uniform4fv, 2, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 // }}}
 
 // {{{ Implementation
-static bool native_canvas2dctx_stub(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_stub(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
 
     return true;
 }
 
-static bool native_canvas2dctx_fillRect(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_fillRect(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
 
     double x, y, width, height, rx = 0, ry = 0;
 
@@ -303,12 +303,12 @@ static bool native_canvas2dctx_fillRect(JSContext *cx, unsigned argc, JS::Value 
     return true;
 }
 
-static bool native_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y, width, height, rx = 0, ry = 0;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dddd/dd", &x, &y, &width, &height, &rx, &ry)) {
         return false;
     }
@@ -323,13 +323,13 @@ static bool native_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, JS::Valu
     return true;
 }
 
-static bool native_canvas2dctx_clearRect(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_clearRect(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     double x, y, width, height;
 
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dddd", &x, &y, &width, &height)) {
         return false;
     }
@@ -339,12 +339,12 @@ static bool native_canvas2dctx_clearRect(JSContext *cx, unsigned argc, JS::Value
     return true;
 }
 
-static bool native_canvas2dctx_breakText(JSContext *cx,
+static bool nidium_canvas2dctx_breakText(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, JSPROP_PERMANENT | JSPROP_READONLY | \
@@ -396,12 +396,12 @@ static bool native_canvas2dctx_breakText(JSContext *cx,
 #undef SET_PROP
 }
 
-static bool native_canvas2dctx_fillText(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_fillText(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     int x, y, maxwidth;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     JS::RootedString str(cx);
     if (!JS_ConvertArguments(cx, args, "Sii/i", str.address(), &x, &y, &maxwidth)) {
         return false;
@@ -415,12 +415,12 @@ static bool native_canvas2dctx_fillText(JSContext *cx, unsigned argc, JS::Value 
     return true;
 }
 
-static bool native_canvas2dctx_strokeText(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_strokeText(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     int x, y, maxwidth;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     JS::RootedString str(cx);
     if (!JS_ConvertArguments(cx, args, "Sii/i", str.address(), &x, &y, &maxwidth)) {
         return false;
@@ -434,28 +434,28 @@ static bool native_canvas2dctx_strokeText(JSContext *cx, unsigned argc, JS::Valu
     return true;
 }
 
-static bool native_canvas2dctx_shadow(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_shadow(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     //NSKIA_NATIVE->setShadow();
     return true;
 }
 
-static bool native_canvas2dctx_beginPath(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_beginPath(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
 
     NSKIA_NATIVE->beginPath();
 
     return true;
 }
 
-static bool native_canvas2dctx_moveTo(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_moveTo(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dd", &x, &y)) {
         return false;
     }
@@ -465,12 +465,12 @@ static bool native_canvas2dctx_moveTo(JSContext *cx, unsigned argc, JS::Value *v
     return true;
 }
 
-static bool native_canvas2dctx_lineTo(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_lineTo(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dd", &x, &y)) {
         return false;
     }
@@ -480,47 +480,47 @@ static bool native_canvas2dctx_lineTo(JSContext *cx, unsigned argc, JS::Value *v
     return true;
 }
 
-static bool native_canvas2dctx_fill(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_fill(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     NSKIA_NATIVE->fill();
 
     return true;
 }
 
-static bool native_canvas2dctx_stroke(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_stroke(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     NSKIA_NATIVE->stroke();
 
     return true;
 }
-static bool native_canvas2dctx_closePath(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_closePath(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     NSKIA_NATIVE->closePath();
 
     return true;
 }
 
-static bool native_canvas2dctx_clip(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_clip(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     NSKIA_NATIVE->clip();
 
     return true;
 }
 
-static bool native_canvas2dctx_rect(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_rect(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y, width, height;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dddd", &x, &y, &width, &height)) {
         return false;
     }
@@ -530,14 +530,14 @@ static bool native_canvas2dctx_rect(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_canvas2dctx_arc(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_arc(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     int x, y, radius;
     double startAngle, endAngle;
     bool CCW = false;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "iiidd/b", &x, &y, &radius, &startAngle,
         &endAngle, &CCW)) {
         return false;
@@ -548,12 +548,12 @@ static bool native_canvas2dctx_arc(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_canvas2dctx_arcTo(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_arcTo(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     int x1, y1, x2, y2, radius;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "iiiii", &x1, &y1, &x2, &y2, &radius)) {
         return false;
     }
@@ -563,7 +563,7 @@ static bool native_canvas2dctx_arcTo(JSContext *cx, unsigned argc, JS::Value *vp
     return true;
 }
 
-static bool native_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
@@ -577,13 +577,13 @@ static bool native_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool native_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y, cpx, cpy, cpx2, cpy2;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dddddd", &cpx, &cpy, &cpx2, &cpy2,
         &x, &y)) {
         return false;
@@ -594,12 +594,12 @@ static bool native_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool native_canvas2dctx_rotate(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_rotate(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double angle;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "d", &angle)) {
         return false;
     }
@@ -609,12 +609,12 @@ static bool native_canvas2dctx_rotate(JSContext *cx, unsigned argc, JS::Value *v
     return true;
 }
 
-static bool native_canvas2dctx_scale(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_scale(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dd", &x, &y)) {
         return false;
     }
@@ -624,12 +624,12 @@ static bool native_canvas2dctx_scale(JSContext *cx, unsigned argc, JS::Value *vp
     return true;
 }
 
-static bool native_canvas2dctx_translate(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_translate(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dd", &x, &y)) {
         return false;
     }
@@ -639,12 +639,12 @@ static bool native_canvas2dctx_translate(JSContext *cx, unsigned argc, JS::Value
     return true;
 }
 
-static bool native_canvas2dctx_transform(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_transform(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double scalex, skewx, skewy, scaley, translatex, translatey, rotate;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dddddd/d", &scalex, &skewx, &skewy,
         &scaley, &translatex, &translatey, &rotate)) {
         return false;
@@ -660,12 +660,12 @@ static bool native_canvas2dctx_transform(JSContext *cx, unsigned argc, JS::Value
     return true;
 }
 
-static bool native_canvas2dctx_iTransform(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_iTransform(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double scalex, skewx, skewy, scaley, translatex, translatey;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dddddd", &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
         return false;
     }
@@ -676,7 +676,7 @@ static bool native_canvas2dctx_iTransform(JSContext *cx, unsigned argc, JS::Valu
     return true;
 }
 
-static bool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_setTransform(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double scalex, skewx, skewy, scaley, translatex, translatey;
@@ -684,7 +684,7 @@ static bool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc, JS::Va
     Nidium::Graphics::NativeCanvasHandler *handler = CppObj->getHandler();
 
     if (!JS_ConvertArguments(cx, args, "dddddd", &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
         return false;
     }
 
@@ -694,10 +694,10 @@ static bool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc, JS::Va
     return true;
 }
 
-static bool native_canvas2dctx_save(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_save(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
 
     /*
         TODO: limit? (avoid while(1) ctx.save())
@@ -708,10 +708,10 @@ static bool native_canvas2dctx_save(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_canvas2dctx_restore(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_restore(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
 
     CppObj->popState();
     NSKIA_NATIVE->restore();
@@ -719,11 +719,11 @@ static bool native_canvas2dctx_restore(JSContext *cx, unsigned argc, JS::Value *
     return true;
 }
 
-static bool native_canvas2dctx_createLinearGradient(JSContext *cx,
+static bool nidium_canvas2dctx_createLinearGradient(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     double x1, y1, x2, y2;
 
     if (!JS_ConvertArguments(cx, args, "dddd", &x1, &y1, &x2, &y2)) {
@@ -739,14 +739,14 @@ static bool native_canvas2dctx_createLinearGradient(JSContext *cx,
     return true;
 }
 
-static bool native_canvas2dctx_getImageData(JSContext *cx,
+static bool nidium_canvas2dctx_getImageData(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     int left, top, width, height;
     uint8_t *data;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "iiii", &left, &top, &width, &height)) {
         return false;
     }
@@ -769,7 +769,7 @@ static bool native_canvas2dctx_getImageData(JSContext *cx,
 }
 
 /* TODO: Huge memory leak? */
-static bool native_canvas2dctx_putImageData(JSContext *cx,
+static bool nidium_canvas2dctx_putImageData(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
@@ -777,7 +777,7 @@ static bool native_canvas2dctx_putImageData(JSContext *cx,
     uint8_t *pixels;
     int32_t w, h;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     JS::RootedObject dataObject(cx);
     if (!JS_ConvertArguments(cx, args, "oii", dataObject.address(), &x, &y)) {
         return false;
@@ -807,13 +807,13 @@ static bool native_canvas2dctx_putImageData(JSContext *cx,
 }
 
 /* TODO: clamp max size */
-static bool native_canvas2dctx_createImageData(JSContext *cx,
+static bool nidium_canvas2dctx_createImageData(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     unsigned long x, y;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "uu", &x, &y)) {
         return false;
     }
@@ -845,12 +845,12 @@ static bool native_canvas2dctx_createImageData(JSContext *cx,
     return true;
 }
 
-static bool native_canvas2dctx_createPattern(JSContext *cx,
+static bool nidium_canvas2dctx_createPattern(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     JS::RootedObject jsimage(cx);
     JS::RootedString mode(cx);
     if (!JS_ConvertArguments(cx, args, "oS", jsimage.address(), mode.address())) {
@@ -888,13 +888,13 @@ static bool native_canvas2dctx_createPattern(JSContext *cx,
     return true;
 }
 
-static bool native_canvas2dctx_createRadialGradient(JSContext *cx,
+static bool nidium_canvas2dctx_createRadialGradient(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     double x1, y1, x2, y2, r1, r2;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dddddd", &x1, &y1, &r1, &x2, &y2, &r2)) {
         return false;
     }
@@ -907,7 +907,7 @@ static bool native_canvas2dctx_createRadialGradient(JSContext *cx,
     return true;
 }
 
-static bool native_canvas2dctxGradient_addColorStop(JSContext *cx,
+static bool nidium_canvas2dctxGradient_addColorStop(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -916,7 +916,7 @@ static bool native_canvas2dctxGradient_addColorStop(JSContext *cx,
     double position;
     Nidium::Graphics::NativeSkGradient *gradient;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dS", &position, color.address())) {
         return false;
     }
@@ -931,7 +931,7 @@ static bool native_canvas2dctxGradient_addColorStop(JSContext *cx,
 }
 
 
-static bool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     Nidium::Graphics::NativeSkImage *image;
@@ -939,7 +939,7 @@ static bool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value
     int sx, sy, swidth, sheight;
     int need_free = 0;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     JS::RootedObject jsimage(cx);
     if (argc == 9) {
          if (!JS_ConvertArguments(cx, args, "oiiiidddd", jsimage.address(),
@@ -994,7 +994,7 @@ static bool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value
     return true;
 }
 
-static bool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_measureText(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
@@ -1002,7 +1002,7 @@ static bool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
 #define OBJ_PROP(name, val) JS_DefineProperty(cx, obj, name, \
     val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "S", text.address())) {
         return false;
     }
@@ -1021,13 +1021,13 @@ static bool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dd", &x, &y)) {
         vp->setBoolean(false);
         return false;
@@ -1041,7 +1041,7 @@ static bool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
 }
 
 /* TODO: return undefined if the path is invalid */
-static bool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
 #define OBJ_PROP(name, val) JS_DefineProperty(cx, obj, name, \
@@ -1050,7 +1050,7 @@ static bool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     double left = 0, right = 0, top = 0, bottom = 0;
     JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     NSKIA_NATIVE->getPathBounds(&left, &right, &top, &bottom);
     JS::RootedValue leftVal(cx, DOUBLE_TO_JSVAL(left));
     JS::RootedValue rightVal(cx, DOUBLE_TO_JSVAL(right));
@@ -1066,18 +1066,18 @@ static bool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool native_canvas2dctx_detachGLSLFragment(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_detachGLSLFragment(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
 
     CppObj->detachShader();
 
     return true;
 }
 
-static bool native_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
@@ -1085,7 +1085,7 @@ static bool native_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
     uint32_t vertex;
     double x, y;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "udd", &vertex, &x, &y)) {
         return false;
     }
@@ -1095,13 +1095,13 @@ static bool native_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     size_t program;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     JS::RootedString glsl(cx);
     if (!JS_ConvertArguments(cx, args, "S", glsl.address())) {
         return false;
@@ -1121,7 +1121,7 @@ static bool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -1129,7 +1129,7 @@ static bool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsign
     uint32_t program;
     int ret;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     JS::RootedString location(cx);
     if (!JS_ConvertArguments(cx, args, "S", location.address())) {
         return false;
@@ -1144,7 +1144,7 @@ static bool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsign
     return true;
 }
 
-static bool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -1152,7 +1152,7 @@ static bool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
     int location, val;
     uint32_t program;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "ii", &location, &val)) {
         return false;
     }
@@ -1170,7 +1170,7 @@ static bool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool native_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -1179,7 +1179,7 @@ static bool native_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc,
     double val;
     uint32_t program;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "id", &location, &val)) {
         return false;
     }
@@ -1198,7 +1198,7 @@ static bool native_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx,
+static bool nidium_canvas2dctxGLProgram_uniformXiv(JSContext *cx,
     unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -1209,7 +1209,7 @@ static bool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx,
     uint32_t program;
     program = (size_t)JS_GetPrivate(caller);
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     JS::RootedObject array(cx);
     if (!JS_ConvertArguments(cx, args, "io", &location, array.address())) {
         return false;
@@ -1256,7 +1256,7 @@ static bool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx,
     return true;
 }
 
-static bool native_canvas2dctxGLProgram_uniformXfv(JSContext *cx,
+static bool nidium_canvas2dctxGLProgram_uniformXfv(JSContext *cx,
     unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -1267,7 +1267,7 @@ static bool native_canvas2dctxGLProgram_uniformXfv(JSContext *cx,
     uint32_t program;
     program = (size_t)JS_GetPrivate(caller);
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     JS::RootedObject array(cx);
     if (!JS_ConvertArguments(cx, args, "io", &location, array.address())) {
         return false;
@@ -1313,55 +1313,55 @@ static bool native_canvas2dctxGLProgram_uniformXfv(JSContext *cx,
     return true;
 }
 
-static bool native_canvas2dctxGLProgram_uniform1iv(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform1iv(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    return native_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 1);
+    return nidium_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 1);
 }
 
-static bool native_canvas2dctxGLProgram_uniform2iv(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform2iv(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    return native_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 2);
+    return nidium_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 2);
 }
 
-static bool native_canvas2dctxGLProgram_uniform3iv(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform3iv(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    return native_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 3);
+    return nidium_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 3);
 }
 
-static bool native_canvas2dctxGLProgram_uniform4iv(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform4iv(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    return native_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 4);
+    return nidium_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 4);
 }
 
-static bool native_canvas2dctxGLProgram_uniform1fv(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform1fv(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    return native_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 1);
+    return nidium_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 1);
 }
 
-static bool native_canvas2dctxGLProgram_uniform2fv(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform2fv(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    return native_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 2);
+    return nidium_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 2);
 }
 
-static bool native_canvas2dctxGLProgram_uniform3fv(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform3fv(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    return native_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 3);
+    return nidium_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 3);
 }
 
-static bool native_canvas2dctxGLProgram_uniform4fv(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_uniform4fv(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    return native_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 4);
+    return nidium_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 4);
 }
 
-static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
@@ -1369,7 +1369,7 @@ static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigne
         JSPROP_ENUMERATE)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     uint32_t program = (size_t)JS_GetPrivate(caller);
     int nactives = 0;
 
@@ -1398,13 +1398,13 @@ static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigne
 #undef SET_PROP
 }
 
-static bool native_canvas2dctx_light(JSContext *cx, unsigned argc,
+static bool nidium_canvas2dctx_light(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y, z;
 
-    NATIVE_LOG_2D_CALL();
+    NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "ddd", &x, &y, &z)) {
         return false;
     }
@@ -1414,7 +1414,7 @@ static bool native_canvas2dctx_light(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
+static bool nidium_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
 #define CTX_PROP(prop) CTX_PROP_ ## prop
@@ -1738,7 +1738,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 #undef CTX_PROP
 }
 
-static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
+static bool nidium_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
 #define CTX_PROP(prop) CTX_PROP_ ## prop
@@ -1930,26 +1930,26 @@ uint32_t Canvas2DContext::createProgram(const char *data)
 
     Nidium::Graphics::NativeGLContext *iface = m_GLState->getNativeGLContext();
 
-    NATIVE_GL_CALL_RET(iface, CreateProgram(), programHandle);
+    NIDIUM_GL_CALL_RET(iface, CreateProgram(), programHandle);
 
     GLint linkSuccess;
 
-    NATIVE_GL_CALL(iface, AttachShader(programHandle, vertex));
-    NATIVE_GL_CALL(iface, AttachShader(programHandle, coop));
-    NATIVE_GL_CALL(iface, AttachShader(programHandle, fragment));
+    NIDIUM_GL_CALL(iface, AttachShader(programHandle, vertex));
+    NIDIUM_GL_CALL(iface, AttachShader(programHandle, coop));
+    NIDIUM_GL_CALL(iface, AttachShader(programHandle, fragment));
 
-    NATIVE_GL_CALL(iface, BindAttribLocation(programHandle,
+    NIDIUM_GL_CALL(iface, BindAttribLocation(programHandle,
         Nidium::Graphics::NativeCanvasContext::SH_ATTR_POSITION, "Position"));
 
-    NATIVE_GL_CALL(iface, BindAttribLocation(programHandle,
+    NIDIUM_GL_CALL(iface, BindAttribLocation(programHandle,
         Nidium::Graphics::NativeCanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn"));
 
-    NATIVE_GL_CALL(iface, LinkProgram(programHandle));
+    NIDIUM_GL_CALL(iface, LinkProgram(programHandle));
 
-    NATIVE_GL_CALL(iface, GetProgramiv(programHandle, GR_GL_LINK_STATUS, &linkSuccess));
+    NIDIUM_GL_CALL(iface, GetProgramiv(programHandle, GR_GL_LINK_STATUS, &linkSuccess));
     if (linkSuccess == GL_FALSE) {
         GLchar messages[256];
-        NATIVE_GL_CALL(iface, GetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]));
+        NIDIUM_GL_CALL(iface, GetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]));
         NLOG("createProgram error : %s", messages);
         return 0;
     }
@@ -2274,15 +2274,15 @@ uint32_t Canvas2DContext::attachShader(const char *string)
 
         Nidium::Graphics::NativeGLContext *iface = m_GLState->getNativeGLContext();
 
-        NATIVE_GL_CALL_RET(iface,
+        NIDIUM_GL_CALL_RET(iface,
             GetUniformLocation(program, "n_Resolution"),
             m_GLState->m_GLObjects.uniforms.u_resolution);
 
-        NATIVE_GL_CALL_RET(iface,
+        NIDIUM_GL_CALL_RET(iface,
             GetUniformLocation(program, "n_Position"),
             m_GLState->m_GLObjects.uniforms.u_position);
 
-        NATIVE_GL_CALL_RET(iface,
+        NIDIUM_GL_CALL_RET(iface,
             GetUniformLocation(program, "n_Padding"),
             m_GLState->m_GLObjects.uniforms.u_padding);
     }
@@ -2474,7 +2474,7 @@ Canvas2DContext::~Canvas2DContext()
     if (m_Skia) delete m_Skia;
 }
 
-static bool native_Canvas2DContext_constructor(JSContext *cx,
+static bool nidium_Canvas2DContext_constructor(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     JS_ReportError(cx, "Illegal constructor");
@@ -2487,7 +2487,7 @@ void Canvas2DContext::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_InitClass(cx, global, JS::NullPtr(), &Canvas2DContext_class,
-    native_Canvas2DContext_constructor, 0, canvas2dctx_props,
+    nidium_Canvas2DContext_constructor, 0, canvas2dctx_props,
     canvas2dctx_funcs, nullptr, nullptr);
 }
 // }}}
