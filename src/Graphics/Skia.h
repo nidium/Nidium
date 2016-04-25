@@ -21,7 +21,7 @@ namespace Nidium {
 namespace Graphics {
 
 class NativeSkImage;
-class NativeSkGradient;
+class Gradient;
 class ShadowLooper;
 
 typedef uint32_t SkPMColor;
@@ -188,11 +188,11 @@ class NativeSkia
             m_FontSkew = val;
         }
         void setFillColor(const char *str);
-        void setFillColor(NativeSkGradient *gradient);
+        void setFillColor(Gradient *gradient);
         void setFillColor(Binding::CanvasPattern *pattern);
         void setFillColor(uint32_t color);
         void setStrokeColor(const char *str);
-        void setStrokeColor(NativeSkGradient *gradient);
+        void setStrokeColor(Gradient *gradient);
         void setStrokeColor(uint32_t color);
         void setLineWidth(double size);
         void setMiterLimit(double size);

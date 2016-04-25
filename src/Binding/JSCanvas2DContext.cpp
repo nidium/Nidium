@@ -731,7 +731,7 @@ static bool nidium_canvas2dctx_createLinearGradient(JSContext *cx,
     }
 
     JS::RootedObject linearObject(cx, JS_NewObject(cx, &canvasGradient_class, JS::NullPtr(), JS::NullPtr()));
-    JS_SetPrivate(linearObject, new Nidium::Graphics::NativeSkGradient(x1, y1, x2, y2));
+    JS_SetPrivate(linearObject, new Nidium::Graphics::Gradient(x1, y1, x2, y2));
     JS_DefineFunctions(cx, linearObject, gradient_funcs);
 
     args.rval().setObjectOrNull(linearObject);
@@ -900,7 +900,7 @@ static bool nidium_canvas2dctx_createRadialGradient(JSContext *cx,
     }
 
     JS::RootedObject linearObject(cx, JS_NewObject(cx, &canvasGradient_class, JS::NullPtr(), JS::NullPtr()));
-    JS_SetPrivate(linearObject, new Nidium::Graphics::NativeSkGradient(x1, y1, r1, x2, y2, r2));
+    JS_SetPrivate(linearObject, new Nidium::Graphics::Gradient(x1, y1, r1, x2, y2, r2));
     JS_DefineFunctions(cx, linearObject, gradient_funcs);
     args.rval().setObjectOrNull(linearObject);
 
@@ -914,14 +914,14 @@ static bool nidium_canvas2dctxGradient_addColorStop(JSContext *cx,
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     JS::RootedString color(cx);
     double position;
-    Nidium::Graphics::NativeSkGradient *gradient;
+    Nidium::Graphics::Gradient *gradient;
 
     NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dS", &position, color.address())) {
         return false;
     }
 
-    if ((gradient = static_cast<Nidium::Graphics::NativeSkGradient *>(JS_GetPrivate(caller))) != NULL) {
+    if ((gradient = static_cast<Nidium::Graphics::Gradient *>(JS_GetPrivate(caller))) != NULL) {
         JSAutoByteString colorstr(cx, color);
 
         gradient->addColorStop(position, colorstr.ptr());
@@ -1598,7 +1598,7 @@ static bool nidium_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
                 JS_GetClass(&vp.toObject()) == &canvasGradient_class) {
 
                 JS::RootedObject vpObj(cx, &vp.toObject());
-                Nidium::Graphics::NativeSkGradient *gradient = (class Nidium::Graphics::NativeSkGradient *) JS_GetPrivate(vpObj);
+                Nidium::Graphics::Gradient *gradient = (class Nidium::Graphics::Gradient *) JS_GetPrivate(vpObj);
 
                 curSkia->setFillColor(gradient);
 
@@ -1637,7 +1637,7 @@ static bool nidium_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
             } else if (vp.isObject() &&
                 JS_GetClass(&vp.toObject()) == &canvasGradient_class) {
                 JS::RootedObject vpObj(cx, &vp.toObject());
-                Nidium::Graphics::NativeSkGradient *gradient = (class Nidium::Graphics::NativeSkGradient *) JS_GetPrivate(vpObj);
+                Nidium::Graphics::Gradient *gradient = (class Nidium::Graphics::Gradient *) JS_GetPrivate(vpObj);
 
                 curSkia->setStrokeColor(gradient);
 
@@ -1846,7 +1846,7 @@ static bool nidium_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
 
 void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    Nidium::Graphics::NativeSkGradient *gradient = (class Nidium::Graphics::NativeSkGradient *)JS_GetPrivate(obj);
+    Nidium::Graphics::Gradient *gradient = (class Nidium::Graphics::Gradient *)JS_GetPrivate(obj);
     if (gradient != NULL) {
         delete gradient;
     }

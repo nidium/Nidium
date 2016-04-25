@@ -11,7 +11,7 @@
 namespace Nidium {
 namespace Graphics {
 
-NativeSkGradient::NativeSkGradient(double x1, double y1, double x2, double y2)
+Gradient::Gradient(double x1, double y1, double x2, double y2)
 {
     m_StartPoint.x = x1;
     m_StartPoint.y = y1;
@@ -30,7 +30,7 @@ NativeSkGradient::NativeSkGradient(double x1, double y1, double x2, double y2)
     m_CurrentShader = NULL;
 }
 
-NativeSkGradient::NativeSkGradient(double x0, double y0, double r0,
+Gradient::Gradient(double x0, double y0, double r0,
     double x1, double y1, double r1)
 {
     m_StartPoint.x = x0;
@@ -52,7 +52,7 @@ NativeSkGradient::NativeSkGradient(double x0, double y0, double r0,
     m_CurrentShader = NULL;
 }
 
-void NativeSkGradient::addColorStop(double position, char *color)
+void Gradient::addColorStop(double position, char *color)
 {
 
     if (m_ColorsStop.count == m_ColorsStop.allocated) {
@@ -70,7 +70,7 @@ void NativeSkGradient::addColorStop(double position, char *color)
 
 }
 
-SkShader *NativeSkGradient::build()
+SkShader *Gradient::build()
 {
     if (!m_NeedUpdate) {
         return m_CurrentShader;
@@ -112,7 +112,7 @@ SkShader *NativeSkGradient::build()
     return m_CurrentShader;
 }
 
-NativeSkGradient::~NativeSkGradient()
+Gradient::~Gradient()
 {
     //if (currentShader)
         //NLOG("Free gradient %d for %p", (currentShader ? currentShader->getRefCnt() : 0), currentShader);

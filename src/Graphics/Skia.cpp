@@ -1531,7 +1531,7 @@ void NativeSkia::setFillColor(Nidium::Binding::CanvasPattern *pattern)
     }
 }
 
-void NativeSkia::setFillColor(NativeSkGradient *gradient)
+void NativeSkia::setFillColor(Gradient *gradient)
 {
     SkShader *shader;
 
@@ -1585,7 +1585,7 @@ void NativeSkia::setStrokeColor(const char *str)
 
 }
 
-void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
+void NativeSkia::setStrokeColor(Gradient *gradient)
 {
     SkShader *shader;
 
