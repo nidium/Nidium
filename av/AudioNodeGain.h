@@ -9,7 +9,7 @@ namespace AV {
 
 class AudioProcessorGain;
 
-class AudioNodeGain: public NativeAudioNodeProcessor
+class AudioNodeGain: public AudioNodeProcessor
 {
     public :
         AudioNodeGain(int inCount, int outCount, NativeAudio *audio);
@@ -18,7 +18,7 @@ class AudioNodeGain: public NativeAudioNodeProcessor
             GAIN
         };
 
-        static void argCallback(NativeAudioNode *node, int id, void *val, int size);
+        static void argCallback(AudioNode *node, int id, void *val, int size);
 
         ~AudioNodeGain() {};
     private :

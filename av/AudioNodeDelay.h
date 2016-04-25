@@ -12,7 +12,7 @@ namespace AV {
 
 class AudioProcessorDelay;
 
-class AudioNodeDelay: public NativeAudioNodeProcessor
+class AudioNodeDelay: public AudioNodeProcessor
 {
     public :
         AudioNodeDelay(int inCount, int outCount, NativeAudio *audio);
@@ -21,7 +21,7 @@ class AudioNodeDelay: public NativeAudioNodeProcessor
             WET, DELAY, FEEDBACK
         };
 
-        static void argCallback(NativeAudioNode *node, int id, void *val, int size);
+        static void argCallback(AudioNode *node, int id, void *val, int size);
 
         ~AudioNodeDelay() {};
     private :

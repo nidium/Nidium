@@ -4,7 +4,7 @@ namespace Nidium {
 namespace AV {
 
 AudioNodeDelay::AudioNodeDelay(int inCount, int outCount, NativeAudio *audio)
-    : NativeAudioNodeProcessor(inCount, outCount, audio)
+    : AudioNodeProcessor(inCount, outCount, audio)
 {
     m_Args[0] = new ExportsArgs("wet", DOUBLE, WET, AudioNodeDelay::argCallback);
     m_Args[1] = new ExportsArgs("delay", INT, DELAY, AudioNodeDelay::argCallback);
@@ -16,7 +16,7 @@ AudioNodeDelay::AudioNodeDelay(int inCount, int outCount, NativeAudio *audio)
     this->setProcessor(1, m_DelayProcessor);
 }
 
-void AudioNodeDelay::argCallback(NativeAudioNode *node, int id, void *tmp, int size)
+void AudioNodeDelay::argCallback(AudioNode *node, int id, void *tmp, int size)
 {
     AudioNodeDelay *thiz = static_cast<AudioNodeDelay*>(node);
     switch (id) {

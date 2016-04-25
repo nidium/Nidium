@@ -149,7 +149,7 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Core::Messages
 
             try {
                 m_Node = audio->m_Audio->createNode(type, in, out);
-            } catch (AV::NativeAudioNodeException *e) {
+            } catch (AV::AudioNodeException *e) {
                 throw;
             }
 
@@ -165,7 +165,7 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Core::Messages
         }
 
         JSAudioNode(JS::HandleObject obj, JSContext *cx,
-               AV::NativeAudio::Node type, AV::NativeAudioNode *node, JSAudio *audio)
+               AV::NativeAudio::Node type, AV::AudioNode *node, JSAudio *audio)
             :  JSExposer<JSAudioNode>(obj, cx), m_nJs(NULL), m_Audio(audio), m_Node(node), m_NodeType(type),
                m_NodeObj(nullptr), m_HashObj(nullptr), m_ArrayContent(NULL), m_IsDestructing(false)
         {
@@ -194,16 +194,16 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Core::Messages
         // Common
         NidiumJS *m_nJs;
         JSAudio *m_Audio;
-        AV::NativeAudioNode *m_Node;
+        AV::AudioNode *m_Node;
         AV::NativeAudio::Node m_NodeType;
 
         // Custom m_Node
         JSTransferableFunction *m_TransferableFuncs[END_FN];
         static void CustomCallback(const struct AV::NodeEvent *ev);
-        static void SetPropCallback(AV::NativeAudioNode *node, void *custom);
-        static void ShutdownCallback(AV::NativeAudioNode *node, void *custom);
-        static void InitCustomObject(AV::NativeAudioNode *node, void *custom);
-        static void DeleteTransferableFunc(AV::NativeAudioNode *node, void *custom);
+        static void SetPropCallback(AV::AudioNode *node, void *custom);
+        static void ShutdownCallback(AV::AudioNode *node, void *custom);
+        static void InitCustomObject(AV::AudioNode *node, void *custom);
+        static void DeleteTransferableFunc(AV::AudioNode *node, void *custom);
         bool createHashObj();
 
         JS::PersistentRootedObject *m_NodeObj;

@@ -29,17 +29,17 @@ namespace AV {
 
 typedef void PaUtilConverter(void*, int, void*, int, unsigned int, struct PaUtilTriangularDitherGenerator*);
 
-class NativeAudioNode;
+class AudioNode;
 
 enum TypeIO {INPUT, OUTPUT};
 enum ArgType {INT, DOUBLE};
 
 // {{{ NodeIO
 struct NodeIO {
-    NativeAudioNode *node;
+    AudioNode *node;
     bool feedback;
     float *frame;
-    NodeIO(NativeAudioNode *node, float *frame) : node(node), feedback(false), frame(frame) {};
+    NodeIO(AudioNode *node, float *frame) : node(node), feedback(false), frame(frame) {};
 };
 // }}}
 
@@ -56,11 +56,11 @@ struct NodeLink {
     int count;
     int channel;
     bool haveFeedback;
-    NativeAudioNode *node;
+    AudioNode *node;
     NodeIO *wire[NATIVE_AUDIONODE_WIRE_SIZE];
     TypeIO type;
 
-    NodeLink (TypeIO type, int channel, NativeAudioNode *node) :
+    NodeLink (TypeIO type, int channel, AudioNode *node) :
         count(0), channel(channel), haveFeedback(false), node(node), type(type)
     {
         for (int i = 0; i < NATIVE_AUDIONODE_WIRE_SIZE; i++) {
@@ -72,11 +72,11 @@ struct NodeLink {
 
 // TODO : Cleanup callbacks
 typedef void (*NodeCallback)(const struct NodeEvent *ev); // Simple on thread callback
-typedef void (*ArgCallback)(NativeAudioNode *m_Node, int m_Id, void *m_Val, int m_Size); // Callback for node arguments
-typedef void (*NodeMessageCallback)(NativeAudioNode *m_Node, void *m_Custom); // Message posting to thread TODO : Normalize m_Args
+typedef void (*ArgCallback)(AudioNode *m_Node, int m_Id, void *m_Val, int m_Size); // Callback for node arguments
+typedef void (*NodeMessageCallback)(AudioNode *m_Node, void *m_Custom); // Message posting to thread TODO : Normalize m_Args
 
-// {{{ NativeAudioNode
-class NativeAudioNode
+// {{{ AudioNode
+class AudioNode
 {
     public :
         struct ExportsArgs {
@@ -96,19 +96,19 @@ class NativeAudioNode
 
         // XXX : Normalize callbacks ?
         struct Message {
-            NativeAudioNode *m_Node;
+            AudioNode *m_Node;
             ExportsArgs *m_Arg;
             unsigned long m_Size;
             void *m_Val;
-            Message(NativeAudioNode *node, ExportsArgs *arg, void *val, unsigned long size);
+            Message(AudioNode *node, ExportsArgs *arg, void *val, unsigned long size);
             ~Message();
         };
 
         struct CallbackMessage {
             NodeMessageCallback m_Cbk;
-            NativeAudioNode *m_Node;
+            AudioNode *m_Node;
             void *m_Custom;
-            CallbackMessage(NodeMessageCallback cbk, NativeAudioNode *node, void *custom)
+            CallbackMessage(NodeMessageCallback cbk, AudioNode *node, void *custom)
                 : m_Cbk(cbk), m_Node(node), m_Custom(custom) {}
         };
         float **m_Frames;
@@ -125,14 +125,14 @@ class NativeAudioNode
         // (but for now JS need access to it)
         NativeAudio *m_Audio;
 
-        NativeAudioNode(int inCount, int outCount, NativeAudio *audio);
+        AudioNode(int inCount, int outCount, NativeAudio *audio);
         void resetFrames();
         void resetFrame(int channel);
         void callback(NodeMessageCallback cbk, void *custom);
         void callback(NodeMessageCallback cbk, void *custom, bool block);
         bool set(const char *name, ArgType type, void *value, unsigned long size);
         void get(const char *name);
-        void updateFeedback(NativeAudioNode *nOut);
+        void updateFeedback(AudioNode *nOut);
         void updateWiresFrame(int channel, float *frame);
         void updateWiresFrame(int channel, float *frame, float *discardFrame);
         bool queue(NodeLink *in, NodeLink *out);
@@ -147,7 +147,7 @@ class NativeAudioNode
         virtual bool isActive() {
             return true;
         }
-        virtual ~NativeAudioNode() = 0;
+        virtual ~AudioNode() = 0;
     protected:
         bool m_DoNotProcess;
         float *newFrame();
@@ -172,21 +172,21 @@ class NativeAudioNode
 };
 // }}}
 
-// {{{ NativeAudioNodeTarget
-class NativeAudioNodeTarget : public NativeAudioNode
+// {{{ AudioNodeTarget
+class AudioNodeTarget : public AudioNode
 {
     public :
-        NativeAudioNodeTarget(int inCount, int outCount, NativeAudio *audio);
+        AudioNodeTarget(int inCount, int outCount, NativeAudio *audio);
 
         virtual bool process();
 };
 // }}}
 
-// {{{ NativeAudioNodeCustom
-class NativeAudioNodeCustom : public NativeAudioNode
+// {{{ AudioNodeCustom
+class AudioNodeCustom : public AudioNode
 {
     public :
-        NativeAudioNodeCustom(int inCount, int outCount, NativeAudio *audio);
+        AudioNodeCustom(int inCount, int outCount, NativeAudio *audio);
 
         void setCallback(NodeCallback cbk, void *custom);
 
@@ -197,11 +197,11 @@ class NativeAudioNodeCustom : public NativeAudioNode
 };
 // }}}
 
-// {{{ NativeAudioNodeStereoEnhance
-class NativeAudioNodeStereoEnhancer : public NativeAudioNode
+// {{{ AudioNodeStereoEnhance
+class AudioNodeStereoEnhancer : public AudioNode
 {
     public :
-        NativeAudioNodeStereoEnhancer(int inCount, int outCount, NativeAudio *audio);
+        AudioNodeStereoEnhancer(int inCount, int outCount, NativeAudio *audio);
 
         double m_Width;
 
@@ -209,11 +209,11 @@ class NativeAudioNodeStereoEnhancer : public NativeAudioNode
 };
 // }}}
 
-// {{{ NativeAudioNodeReverb
-class NativeAudioNodeReverb : public NativeAudioNode
+// {{{ AudioNodeReverb
+class AudioNodeReverb : public AudioNode
 {
     public :
-        NativeAudioNodeReverb(int inCount, int outCount, NativeAudio *audio);
+        AudioNodeReverb(int inCount, int outCount, NativeAudio *audio);
 
         double m_Delay;
 
@@ -222,12 +222,12 @@ class NativeAudioNodeReverb : public NativeAudioNode
 // }}}
 
 #if 0
-// {{{ NativeAudioNodeMixer
-class NativeAudioNodeMixer : public NativeAudioNode
+// {{{ AudioNodeMixer
+class AudioNodeMixer : public AudioNode
 {
     public :
-        NativeAudioNodeMixer(int m_InCount, int m_OutCount, AudioParameters *params) :
-          NativeAudioNode(m_InCount, m_OutCount, params)
+        AudioNodeMixer(int m_InCount, int m_OutCount, AudioParameters *params) :
+          AudioNode(m_InCount, m_OutCount, params)
         {
             fprintf(stdout, "Mixer init\n");
             fprintf(stdout, "count %d/%d\n", m_InCount, m_OutCount);
@@ -268,7 +268,7 @@ class NativeAudioNodeMixer : public NativeAudioNode
 #endif
 
 // {{{ NativeAudioSource
-class NativeAudioSource: public NativeAudioNode, public NativeAVSource
+class NativeAudioSource: public AudioNode, public NativeAVSource
 {
     public:
         NativeAudioSource(int out, NativeAudio *audio, bool external);
@@ -348,11 +348,11 @@ class NativeAudioSource: public NativeAudioNode, public NativeAVSource
 // }}}
 
 // {{{ NativeAudioCustomSource
-class NativeAudioCustomSource : public NativeAudioNodeCustom, public NativeAVSourceEventInterface
+class NativeAudioCustomSource : public AudioNodeCustom, public NativeAVSourceEventInterface
 {
     public:
         NativeAudioCustomSource(int out, NativeAudio *audio)
-            : NativeAudioNodeCustom(0, out, audio), m_Playing(false),
+            : AudioNodeCustom(0, out, audio), m_Playing(false),
               m_SeekCallback(NULL), m_Custom(NULL), m_SeekTime(0.0f)
         {
         }
@@ -370,7 +370,7 @@ class NativeAudioCustomSource : public NativeAudioNodeCustom, public NativeAVSou
         void pause();
         void stop();
         void seek(double pos);
-        static void seekMethod(NativeAudioNode *node, void *custom);
+        static void seekMethod(AudioNode *node, void *custom);
 
         bool process();
         bool isActive();
@@ -386,12 +386,12 @@ class AudioProcessor
 };
 // }}}
 
-// {{{ NativeAudioNodeProcessor
-class NativeAudioNodeProcessor: public NativeAudioNode
+// {{{ AudioNodeProcessor
+class AudioNodeProcessor: public AudioNode
 {
   public:
-    NativeAudioNodeProcessor(int inCount, int outCount, NativeAudio *audio)
-        : NativeAudioNode(inCount, outCount, audio)
+    AudioNodeProcessor(int inCount, int outCount, NativeAudio *audio)
+        : AudioNode(inCount, outCount, audio)
     {
         for (int i = 0; i < NATIVE_AUDIONODE_CHANNEL_SIZE; i++) {
             for (int j = 0; j < NATIVE_AUDIONODE_CHANNEL_SIZE; j++) {
@@ -440,17 +440,17 @@ class NativeAudioNodeProcessor: public NativeAudioNode
         return true;
     };
 
-    ~NativeAudioNodeProcessor() {}
+    ~AudioNodeProcessor() {}
   private:
     AudioProcessor *m_Processor[NATIVE_AUDIONODE_CHANNEL_SIZE][NATIVE_AUDIONODE_CHANNEL_SIZE];
 };
 // }}}
 
-// {{{ NativeAudioNodeException
-class NativeAudioNodeException : public std::exception
+// {{{ AudioNodeException
+class AudioNodeException : public std::exception
 {
     public:
-        NativeAudioNodeException (const char *err)
+        AudioNodeException (const char *err)
             : m_Err(err)
         {
         }
@@ -460,7 +460,7 @@ class NativeAudioNodeException : public std::exception
             return m_Err;
         }
 
-        virtual ~NativeAudioNodeException() throw () {}
+        virtual ~AudioNodeException() throw () {}
     private:
         const char *m_Err;
 };

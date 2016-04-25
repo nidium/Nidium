@@ -207,13 +207,13 @@ void NativeAudio::readMessages(bool flush)
     while (((!flush && ++nread < MAX_MSG_IN_ROW) || flush) && (msg = m_SharedMsg->readMessage())) {
         switch (msg->event()) {
             case NATIVE_AUDIO_NODE_CALLBACK : {
-                NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg->dataPtr());
+                AudioNode::CallbackMessage *cbkMsg = static_cast<AudioNode::CallbackMessage*>(msg->dataPtr());
                 cbkMsg->m_Cbk(cbkMsg->m_Node, cbkMsg->m_Custom);
                 delete cbkMsg;
             }
             break;
             case NATIVE_AUDIO_NODE_SET : {
-                NativeAudioNode::Message *nodeMsg =  static_cast<NativeAudioNode::Message *>(msg->dataPtr());
+                AudioNode::Message *nodeMsg =  static_cast<AudioNode::Message *>(msg->dataPtr());
                 if (nodeMsg->m_Arg->m_Ptr == NULL) {
                     nodeMsg->m_Arg->m_Cbk(nodeMsg->m_Node, nodeMsg->m_Arg->m_Id, nodeMsg->m_Val, nodeMsg->m_Size);
                 } else {
@@ -467,7 +467,7 @@ bool NativeAudio::haveSourceActive(bool excludeExternal)
     NativeAudioSources *sources = m_Sources;
     while (sources != NULL)
     {
-        NativeAudioNode *node = sources->curr;
+        AudioNode *node = sources->curr;
         if (node != NULL && (!excludeExternal || (excludeExternal && !sources->externallyManaged))) {
             if (node->isActive()) {
                 pthread_mutex_unlock(&m_SourcesLock);
@@ -498,7 +498,7 @@ double NativeAudio::getLatency() {
     return paLatency + nativeAudioLatency;
 }
 
-NativeAudioNode *NativeAudio::addSource(NativeAudioNode *source, bool externallyManaged)
+AudioNode *NativeAudio::addSource(AudioNode *source, bool externallyManaged)
 {
     NativeAudioSources *sources = new NativeAudioSources();
 
@@ -557,19 +557,19 @@ void NativeAudio::removeSource(NativeAudioSource *source)
     this->unlockQueue();
 }
 
-NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int output)
+AudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int output)
 {
     try {
         switch (node) {
             case SOURCE:
                 {
-                    NativeAudioNode *source = new NativeAudioSource(output, this, false);
+                    AudioNode *source = new NativeAudioSource(output, this, false);
                     return this->addSource(source, false);
                 }
                 break;
             case CUSTOM_SOURCE:
                 {
-                    NativeAudioNode *source = new NativeAudioCustomSource(output, this);
+                    AudioNode *source = new NativeAudioCustomSource(output, this);
                     return this->addSource(source, true);
                 }
                 break;
@@ -577,20 +577,20 @@ NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int 
                     return new AudioNodeGain(input, output, this);
                 break;
             case CUSTOM:
-                    return new NativeAudioNodeCustom(input, output, this);
+                    return new AudioNodeCustom(input, output, this);
                 break;
             case REVERB:
-                    return new NativeAudioNodeReverb(input, output, this);
+                    return new AudioNodeReverb(input, output, this);
                 break;
             case DELAY:
                     return new AudioNodeDelay(input, output, this);
                 break;
             case STEREO_ENHANCER:
-                    return new NativeAudioNodeStereoEnhancer(input, output, this);
+                    return new AudioNodeStereoEnhancer(input, output, this);
                 break;
             case TARGET:
                     if (m_Output == NULL) {
-                        m_Output = new NativeAudioNodeTarget(input, output, this);
+                        m_Output = new AudioNodeTarget(input, output, this);
                         return m_Output;
                     }
                     return NULL;
@@ -598,7 +598,7 @@ NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int 
             default :
                 break;
         }
-    } catch (NativeAudioNodeException *e) {
+    } catch (AudioNodeException *e) {
         throw;
     }
 

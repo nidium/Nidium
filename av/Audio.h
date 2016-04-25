@@ -34,8 +34,8 @@ namespace AV {
 }\
 
 class NativeAudioSource;
-class NativeAudioNode;
-class NativeAudioNodeTarget;
+class AudioNode;
+class AudioNodeTarget;
 struct NodeLink;
 typedef void (*AudioMessageCallback)(void *custom);
 
@@ -77,7 +77,7 @@ class NativeAudio
         int m_SourcesCount;
         int64_t m_PlaybackStartTime;
         int64_t m_PlaybackConsumedFrame;
-        NativeAudioNodeTarget *m_Output;
+        AudioNodeTarget *m_Output;
 
         static void *queueThread(void *args);
         static void *decodeThread(void *args);
@@ -87,9 +87,9 @@ class NativeAudio
         static int GetOutputBufferSize(AudioParameters *params);
         int openOutput();
         int openInput();
-        NativeAudioNode *addSource(NativeAudioNode *source, bool externallyManaged);
+        AudioNode *addSource(AudioNode *source, bool externallyManaged);
         void removeSource(NativeAudioSource *source);
-        NativeAudioNode *createNode(NativeAudio::Node node, int input, int ouput);
+        AudioNode *createNode(NativeAudio::Node node, int input, int ouput);
         bool connect(NodeLink *input, NodeLink *output);
         bool disconnect(NodeLink *input, NodeLink *output);
         void setVolume(float volume);
@@ -117,7 +117,7 @@ class NativeAudio
         ~NativeAudio();
     private:
         struct NativeAudioSources {
-            NativeAudioNode *curr;
+            AudioNode *curr;
             bool externallyManaged;
 
             NativeAudioSources *next;
