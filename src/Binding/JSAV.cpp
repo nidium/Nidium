@@ -1206,7 +1206,7 @@ static bool nidium_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAudio *jaudio = JSAudio::GetContext();
 
     if (jaudio) {
-        AV::NativeAudioParameters *params = jaudio->m_Audio->m_OutputParameters;
+        AV::AudioParameters *params = jaudio->m_Audio->m_OutputParameters;
         if (params->m_AskedBufferSize != bufferSize ||
             params->m_Channels != channels ||
             params->m_SampleRate != sampleRate) {
@@ -1498,7 +1498,7 @@ static bool nidium_audio_prop_getter(JSContext *cx, JS::HandleObject obj, uint8_
 
     CHECK_INVALID_CTX(jaudio);
 
-    AV::NativeAudioParameters *params = jaudio->m_Audio->m_OutputParameters;
+    AV::AudioParameters *params = jaudio->m_Audio->m_OutputParameters;
 
     switch(id) {
         case AUDIO_PROP_BUFFERSIZE:

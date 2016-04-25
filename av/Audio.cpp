@@ -67,7 +67,7 @@ NativeAudio::NativeAudio(ape_global *n, unsigned int bufferSize, unsigned int ch
 
     int actualBufferSize = bufferSize;
     if (bufferSize == 0) {
-        NativeAudioParameters tmp(0, 0, channels, NativeAudio::FLOAT32, sampleRate);
+        AudioParameters tmp(0, 0, channels, NativeAudio::FLOAT32, sampleRate);
         actualBufferSize = NativeAudio::GetOutputBufferSize(&tmp);
         if (actualBufferSize == 0) {
             fprintf(stderr, "[NativeAudio] Failed to request optimal buffer size. Defaulting to 4096\n");
@@ -81,7 +81,7 @@ NativeAudio::NativeAudio(ape_global *n, unsigned int bufferSize, unsigned int ch
         }
     }
 
-    m_OutputParameters = new NativeAudioParameters(bufferSize, actualBufferSize, channels, NativeAudio::FLOAT32, sampleRate);
+    m_OutputParameters = new AudioParameters(bufferSize, actualBufferSize, channels, NativeAudio::FLOAT32, sampleRate);
 
     /*
      * Portaudio ring buffer require a power of two
@@ -323,7 +323,7 @@ void *NativeAudio::decodeThread(void *args)
     return NULL;
 }
 
-int NativeAudio::InitPortAudioOutput(NativeAudioParameters *params, \
+int NativeAudio::InitPortAudioOutput(AudioParameters *params, \
         PaStream **outputStream, PaStreamCallback *callback, void *userData) {
     const PaDeviceInfo *infos;
     PaDeviceIndex device;
@@ -375,7 +375,7 @@ int NativeAudio::InitPortAudioOutput(NativeAudioParameters *params, \
  * stream is running. It's intended  to get an estimation of the audio bufer size selected by
  * portaudio before allocating the buffers for NativeAudio
  */
-int NativeAudio::GetOutputBufferSize(NativeAudioParameters *params) {
+int NativeAudio::GetOutputBufferSize(AudioParameters *params) {
     PaStream *outputStream = NULL;
 
     NativeAudio::InitPortAudioOutput(params, &outputStream, nullptr, nullptr);

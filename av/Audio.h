@@ -71,8 +71,8 @@ class NativeAudio
 
         ape_global *m_Net;
 
-        NativeAudioParameters *m_OutputParameters;
-        NativeAudioParameters *m_InputParameters;
+        AudioParameters *m_OutputParameters;
+        AudioParameters *m_InputParameters;
         Nidium::Core::SharedMessages *m_SharedMsg;
         int m_SourcesCount;
         int64_t m_PlaybackStartTime;
@@ -82,9 +82,9 @@ class NativeAudio
         static void *queueThread(void *args);
         static void *decodeThread(void *args);
         void bufferData();
-        static int InitPortAudioOutput(NativeAudioParameters *params,
+        static int InitPortAudioOutput(AudioParameters *params,
                 PaStream **outputStream, PaStreamCallback *callback, void *userData);
-        static int GetOutputBufferSize(NativeAudioParameters *params);
+        static int GetOutputBufferSize(AudioParameters *params);
         int openOutput();
         int openInput();
         NativeAudioNode *addSource(NativeAudioNode *source, bool externallyManaged);

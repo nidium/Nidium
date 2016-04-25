@@ -138,10 +138,10 @@ class NativeAVStreamReader : public NativeAVReader, public Nidium::Core::Message
 };
 // }}}
 
-// {{{ NativeAudioParameters
-struct NativeAudioParameters {
+// {{{ AudioParameters
+struct AudioParameters {
     int  m_AskedBufferSize, m_BufferSize, m_Channels, m_SampleFmt, m_SampleRate, m_FramesPerBuffer;
-    NativeAudioParameters(int askedBufferSize, int bufferSize, int channels,
+    AudioParameters(int askedBufferSize, int bufferSize, int channels,
                           int sampleFmt, int sampleRate)
         : m_AskedBufferSize(askedBufferSize), m_BufferSize(bufferSize),
           m_Channels(channels), m_SampleFmt(sampleFmt), m_SampleRate(sampleRate),

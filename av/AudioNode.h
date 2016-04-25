@@ -226,7 +226,7 @@ class NativeAudioNodeReverb : public NativeAudioNode
 class NativeAudioNodeMixer : public NativeAudioNode
 {
     public :
-        NativeAudioNodeMixer(int m_InCount, int m_OutCount, NativeAudioParameters *params) :
+        NativeAudioNodeMixer(int m_InCount, int m_OutCount, AudioParameters *params) :
           NativeAudioNode(m_InCount, m_OutCount, params)
         {
             fprintf(stdout, "Mixer init\n");
@@ -276,7 +276,7 @@ class NativeAudioSource: public NativeAudioNode, public NativeAVSource
         friend class Video;
         friend class VideoAudioSource;
 
-        NativeAudioParameters *m_OutputParameters;
+        AudioParameters *m_OutputParameters;
         pthread_cond_t *m_BufferNotEmpty;
         PaUtilRingBuffer *m_rBufferOut;
         NativeAVReader *m_Reader;
