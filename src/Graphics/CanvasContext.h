@@ -26,12 +26,12 @@ namespace Graphics {
 struct NativeRect;
 class NativeCanvasHandler;
 
-class NativeCanvasContext
+class CanvasContext
 {
   public:
 
-    explicit NativeCanvasContext(NativeCanvasHandler *handler);
-    virtual ~NativeCanvasContext();
+    explicit CanvasContext(NativeCanvasHandler *handler);
+    virtual ~CanvasContext();
 
     /* Explicit name used by glBindAttribLocation */
     enum {
@@ -56,7 +56,7 @@ class NativeCanvasContext
     /*
         Create a CanvasContext of type |type|
     */
-    static NativeCanvasContext *Create(Nidium::NML::ContextType type);
+    static CanvasContext *Create(Nidium::NML::ContextType type);
 
     mode getContextType() const {
         return m_Mode;

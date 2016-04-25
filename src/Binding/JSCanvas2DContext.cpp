@@ -956,9 +956,9 @@ static bool nidium_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value
         TODO: work with WebGL canvas
     */
     if (jsimage && JS_GetClass(jsimage) == &Canvas_class) {
-        Nidium::Graphics::NativeCanvasContext *drawctx = HANDLER_GETTER(jsimage)->getContext();
+        Nidium::Graphics::CanvasContext *drawctx = HANDLER_GETTER(jsimage)->getContext();
 
-        if (drawctx == NULL || drawctx->getContextType() != Nidium::Graphics::NativeCanvasContext::CONTEXT_2D) {
+        if (drawctx == NULL || drawctx->getContextType() != Nidium::Graphics::CanvasContext::CONTEXT_2D) {
             JS_ReportError(cx, "Invalid image canvas (must be backed by a 2D context)");
             return false;
         }
@@ -1908,7 +1908,7 @@ char *Canvas2DContext::genModifiedFragmentShader(const char *data)
 
 uint32_t Canvas2DContext::createProgram(const char *data)
 {
-    char *pdata = Nidium::Graphics::NativeCanvasContext::ProcessShader(data, Nidium::Graphics::NativeCanvasContext::SHADER_FRAGMENT);
+    char *pdata = Nidium::Graphics::CanvasContext::ProcessShader(data, Nidium::Graphics::CanvasContext::SHADER_FRAGMENT);
 
     if (pdata == NULL) {
         return 0;
@@ -1916,7 +1916,7 @@ uint32_t Canvas2DContext::createProgram(const char *data)
 
     char *nshader = this->genModifiedFragmentShader(pdata);
 
-    uint32_t fragment = Nidium::Graphics::NativeCanvasContext::CompileShader(nshader, GL_FRAGMENT_SHADER);
+    uint32_t fragment = Nidium::Graphics::CanvasContext::CompileShader(nshader, GL_FRAGMENT_SHADER);
     uint32_t coop = this->compileCoopFragmentShader();
     uint32_t vertex = this->CreatePassThroughVertex();
 
@@ -1939,10 +1939,10 @@ uint32_t Canvas2DContext::createProgram(const char *data)
     NIDIUM_GL_CALL(iface, AttachShader(programHandle, fragment));
 
     NIDIUM_GL_CALL(iface, BindAttribLocation(programHandle,
-        Nidium::Graphics::NativeCanvasContext::SH_ATTR_POSITION, "Position"));
+        Nidium::Graphics::CanvasContext::SH_ATTR_POSITION, "Position"));
 
     NIDIUM_GL_CALL(iface, BindAttribLocation(programHandle,
-        Nidium::Graphics::NativeCanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn"));
+        Nidium::Graphics::CanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn"));
 
     NIDIUM_GL_CALL(iface, LinkProgram(programHandle));
 
@@ -2397,7 +2397,7 @@ void Canvas2DContext::translate(double x, double y)
 
 Canvas2DContext::Canvas2DContext(Nidium::Graphics::NativeCanvasHandler *handler,
     JSContext *cx, int width, int height, Nidium::Interface::NativeUIInterface *ui) :
-    Nidium::Graphics::NativeCanvasContext(handler),
+    Nidium::Graphics::CanvasContext(handler),
     m_SetterDisabled(false), m_CurrentState(NULL)
 {
     m_Mode = CONTEXT_2D;
@@ -2427,7 +2427,7 @@ Canvas2DContext::Canvas2DContext(Nidium::Graphics::NativeCanvasHandler *handler,
 
 Canvas2DContext::Canvas2DContext(Nidium::Graphics::NativeCanvasHandler *handler,
     int width, int height, Nidium::Interface::NativeUIInterface *ui, bool isGL) :
-    Nidium::Graphics::NativeCanvasContext(handler), m_SetterDisabled(false)
+    Nidium::Graphics::CanvasContext(handler), m_SetterDisabled(false)
 {
     m_Mode = CONTEXT_2D;
 

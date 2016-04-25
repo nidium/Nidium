@@ -26,7 +26,7 @@ namespace Nidium {
     namespace Graphics {
         class NativeSkia;
         class NativeCanvasHandler;
-        class NativeCanvasContext;
+        class CanvasContext;
         class NativeGLState;
     }
     namespace Binding {

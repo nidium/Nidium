@@ -679,22 +679,22 @@ static bool nidium_canvas_getContext(JSContext *cx, unsigned argc,
 
     JS::RootedString mode(cx, args[0].toString());
     JSAutoByteString cmode(cx, mode);
-    Nidium::Graphics::NativeCanvasContext::mode ctxmode = Nidium::Graphics::NativeCanvasContext::CONTEXT_2D;
+    Nidium::Graphics::CanvasContext::mode ctxmode = Nidium::Graphics::CanvasContext::CONTEXT_2D;
     if (strncmp(cmode.ptr(), "2d", 2) == 0) {
-        ctxmode = Nidium::Graphics::NativeCanvasContext::CONTEXT_2D;
+        ctxmode = Nidium::Graphics::CanvasContext::CONTEXT_2D;
     } else if (strncmp(cmode.ptr(), "webgl", 5) == 0) {
-        ctxmode = Nidium::Graphics::NativeCanvasContext::CONTEXT_WEBGL;
+        ctxmode = Nidium::Graphics::CanvasContext::CONTEXT_WEBGL;
     } else {
         args.rval().setNull();
         return true;
     }
 
-    Nidium::Graphics::NativeCanvasContext *canvasctx = NativeObject->getContext();
+    Nidium::Graphics::CanvasContext *canvasctx = NativeObject->getContext();
 
     /* The context is lazy-created */
     if (canvasctx == NULL) {
         switch(ctxmode) {
-            case Nidium::Graphics::NativeCanvasContext::CONTEXT_2D:
+            case Nidium::Graphics::CanvasContext::CONTEXT_2D:
             {
                 Canvas2DContext *ctx2d = new Canvas2DContext(NativeObject, cx,
                         NativeObject->getWidth() + (NativeObject->m_Padding.global * 2),
@@ -712,7 +712,7 @@ static bool nidium_canvas_getContext(JSContext *cx, unsigned argc,
 
                 break;
             }
-            case Nidium::Graphics::NativeCanvasContext::CONTEXT_WEBGL:
+            case Nidium::Graphics::CanvasContext::CONTEXT_WEBGL:
                 /*
                     TODO :
                     NativeObject->setContext(new CanvasWebGLContext(...))
@@ -756,9 +756,9 @@ static bool nidium_canvas_setContext(JSContext *cx, unsigned argc,
         return true;
     }
 
-    Nidium::Graphics::NativeCanvasContext *context;
+    Nidium::Graphics::CanvasContext *context;
 
-    if (!(context = static_cast<Nidium::Graphics::NativeCanvasContext *>(JS_GetInstancePrivate(cx,
+    if (!(context = static_cast<Nidium::Graphics::CanvasContext *>(JS_GetInstancePrivate(cx,
             obj, &Canvas2DContext_class, &args)))) {
         JS_ReportError(cx, "setContext() argument must a CanvasRenderingContext2D object");
         return false;

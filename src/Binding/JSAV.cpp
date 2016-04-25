@@ -2425,8 +2425,8 @@ static bool nidium_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp
         return false;
     }
 
-    Graphics::NativeCanvasContext *ncc = handler->getContext();
-    if (ncc == NULL || ncc->m_Mode != Graphics::NativeCanvasContext::CONTEXT_2D) {
+    Graphics::CanvasContext *ncc = handler->getContext();
+    if (ncc == NULL || ncc->m_Mode != Graphics::CanvasContext::CONTEXT_2D) {
         JS_ReportError(cx, "Invalid canvas context. Did you called canvas.getContext('2d') ?");
         return false;
     }

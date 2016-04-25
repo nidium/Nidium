@@ -12,7 +12,7 @@
 /*
     - Handle a canvas layer.
     - Agnostic to any renderer.
-    - All size are in logical pixels (device ratio is handled by NativeCanvasContext)
+    - All size are in logical pixels (device ratio is handled by CanvasContext)
 */
 
 
@@ -33,7 +33,7 @@ namespace Nidium {
 namespace Graphics {
 
 class NativeSkia;
-class NativeCanvasContext;
+class CanvasContext;
 
 // {{{ NativeRect
 struct NativeRect
@@ -173,7 +173,7 @@ class NativeCanvasHandler : public Nidium::Core::Events
             CANVAS_VISIBILITY_HIDDEN
         };
 
-        NativeCanvasContext *m_Context;
+        CanvasContext *m_Context;
         JS::Heap<JSObject *> m_JsObj;
         JSContext *m_JsCx;
 
@@ -219,7 +219,7 @@ class NativeCanvasHandler : public Nidium::Core::Events
 
         bool m_Overflow;
 
-        NativeCanvasContext *getContext() const {
+        CanvasContext *getContext() const {
             return m_Context;
         }
 
@@ -475,7 +475,7 @@ class NativeCanvasHandler : public Nidium::Core::Events
 
         void unrootHierarchy();
 
-        void setContext(NativeCanvasContext *context);
+        void setContext(CanvasContext *context);
 
         bool setWidth(int width, bool force = false);
         bool setHeight(int height, bool force = false);

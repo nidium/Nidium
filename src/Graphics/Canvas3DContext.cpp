@@ -28,7 +28,7 @@ Canvas3DContext::~Canvas3DContext()
 
 Canvas3DContext::Canvas3DContext(NativeCanvasHandler *handler,
     JSContext *cx, int width, int height, Nidium::Interface::NativeUIInterface *ui) :
-    NativeCanvasContext(handler), m_Flags(0)
+    CanvasContext(handler), m_Flags(0)
 {
     m_Mode = CONTEXT_WEBGL;
 

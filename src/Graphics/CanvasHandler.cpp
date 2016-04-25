@@ -998,7 +998,7 @@ void NativeCanvasHandler::setScale(double x, double y)
     m_ScaleY = y;
 }
 
-void NativeCanvasHandler::setContext(NativeCanvasContext *context)
+void NativeCanvasHandler::setContext(CanvasContext *context)
 {
     m_Context = context;
     m_Context->translate(m_Padding.global, m_Padding.global);

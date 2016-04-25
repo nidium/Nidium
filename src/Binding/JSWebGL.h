@@ -66,7 +66,7 @@ struct NGLContextAttributes {
 // }}}
 
 // {{{ CanvasWebGLContext
-class CanvasWebGLContext: public Graphics::NativeCanvasContext
+class CanvasWebGLContext: public Graphics::CanvasContext
 {
     public :
         CanvasWebGLContext(JSContext *cx, NGLContextAttributes *attributes, int width, int height);

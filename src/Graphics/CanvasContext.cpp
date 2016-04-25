@@ -16,7 +16,7 @@
 namespace Nidium {
 namespace Graphics {
 
-char *NativeCanvasContext::ProcessShader(const char *content, shaderType type)
+char *CanvasContext::ProcessShader(const char *content, shaderType type)
 {
     ShHandle compiler = NULL;
 
@@ -53,7 +53,7 @@ char *NativeCanvasContext::ProcessShader(const char *content, shaderType type)
     return ocode;
 }
 
-uint32_t NativeCanvasContext::CompileShader(const char *data, int type)
+uint32_t CanvasContext::CompileShader(const char *data, int type)
 {
     GLuint shaderHandle = glCreateShader(type);
 
@@ -79,7 +79,7 @@ uint32_t NativeCanvasContext::CompileShader(const char *data, int type)
     return shaderHandle;
 }
 
-Nidium::NML::Vertices *NativeCanvasContext::BuildVerticesStripe(int resolution)
+Nidium::NML::Vertices *CanvasContext::BuildVerticesStripe(int resolution)
 {
     int x = resolution;
     int y = resolution;
@@ -152,14 +152,14 @@ Nidium::NML::Vertices *NativeCanvasContext::BuildVerticesStripe(int resolution)
     return info;
 }
 
-void NativeCanvasContext::resetGLContext()
+void CanvasContext::resetGLContext()
 {
     if (m_GLState) {
         m_GLState->setActive();
     }
 }
 
-uint32_t NativeCanvasContext::CreatePassThroughVertex()
+uint32_t CanvasContext::CreatePassThroughVertex()
 {
     /* PassThrough Vertex shader */
     const char *vertex_s = "attribute vec4 Position;\n"
@@ -172,12 +172,12 @@ uint32_t NativeCanvasContext::CreatePassThroughVertex()
     "    TexCoordOut = TexCoordIn;\n"
     "}";
 
-    uint32_t vertexshader = NativeCanvasContext::CompileShader(vertex_s, GL_VERTEX_SHADER);
+    uint32_t vertexshader = CanvasContext::CompileShader(vertex_s, GL_VERTEX_SHADER);
 
     return vertexshader;
 }
 
-uint32_t NativeCanvasContext::CreatePassThroughFragment()
+uint32_t CanvasContext::CreatePassThroughFragment()
 {
     const char *fragment_s = "\n"
     "uniform sampler2D Texture;\n"
@@ -187,15 +187,15 @@ uint32_t NativeCanvasContext::CreatePassThroughFragment()
     "    gl_FragColor = texture2D(Texture, TexCoordOut.xy) * u_opacity;\n"
     "}";
 
-    uint32_t fragmentshader = NativeCanvasContext::CompileShader(fragment_s, GL_FRAGMENT_SHADER);
+    uint32_t fragmentshader = CanvasContext::CompileShader(fragment_s, GL_FRAGMENT_SHADER);
 
     return fragmentshader;
 }
 
-uint32_t NativeCanvasContext::CreatePassThroughProgram(NativeGLResources &resource)
+uint32_t CanvasContext::CreatePassThroughProgram(NativeGLResources &resource)
 {
-    uint32_t vertexshader = NativeCanvasContext::CreatePassThroughVertex();
-    uint32_t fragmentshader = NativeCanvasContext::CreatePassThroughFragment();
+    uint32_t vertexshader = CanvasContext::CreatePassThroughVertex();
+    uint32_t fragmentshader = CanvasContext::CreatePassThroughFragment();
 
     if (vertexshader == 0 || fragmentshader == 0) {
         return 0;
@@ -214,13 +214,13 @@ uint32_t NativeCanvasContext::CreatePassThroughProgram(NativeGLResources &resour
     NATIVE_GL_CALL_MAIN(AttachShader(programHandle, fragmentshader));
 
     NATIVE_GL_CALL_MAIN(BindAttribLocation(programHandle,
-        NativeCanvasContext::SH_ATTR_POSITION, "Position"));
+        CanvasContext::SH_ATTR_POSITION, "Position"));
 
     NATIVE_GL_CALL_MAIN(BindAttribLocation(programHandle,
-        NativeCanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn"));
+        CanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn"));
 
     NATIVE_GL_CALL_MAIN(BindAttribLocation(programHandle,
-        NativeCanvasContext::SH_ATTR_MODIFIER, "Modifier"));
+        CanvasContext::SH_ATTR_MODIFIER, "Modifier"));
 
     NATIVE_GL_CALL_MAIN(LinkProgram(programHandle));
 
@@ -236,14 +236,14 @@ uint32_t NativeCanvasContext::CreatePassThroughProgram(NativeGLResources &resour
     return programHandle;
 }
 
-NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
+CanvasContext::CanvasContext(NativeCanvasHandler *handler) :
     m_JsCx(handler->m_JsCx), m_Mode(CONTEXT_2D),
     m_Transform(SkMatrix44::kIdentity_Constructor),
     m_Handler(handler), m_GLState(NULL)
 {
 }
 
-NativeCanvasContext::~NativeCanvasContext()
+CanvasContext::~CanvasContext()
 {
     if (m_GLState) {
         m_GLState->destroy();
@@ -264,7 +264,7 @@ static void dump_Matrix(float *matrix)
 }
 #endif
 
-void NativeCanvasContext::updateMatrix(double left, double top,
+void CanvasContext::updateMatrix(double left, double top,
     int layerWidth, int layerHeight, NativeGLState *glstate)
 {
 
@@ -323,7 +323,7 @@ void NativeCanvasContext::updateMatrix(double left, double top,
 }
 
 
-void NativeCanvasContext::setupShader(float opacity, int width, int height,
+void CanvasContext::setupShader(float opacity, int width, int height,
     int left, int top, int wWidth, int wHeight)
 {
     uint32_t program = this->getProgram();
@@ -349,7 +349,7 @@ void NativeCanvasContext::setupShader(float opacity, int width, int height,
 
 }
 
-void NativeCanvasContext::preComposeOn(Nidium::Binding::Canvas2DContext *layer,
+void CanvasContext::preComposeOn(Nidium::Binding::Canvas2DContext *layer,
     double left, double top, double opacity,
     double zoom, const NativeRect *rclip)
 {
@@ -402,7 +402,7 @@ void NativeCanvasContext::preComposeOn(Nidium::Binding::Canvas2DContext *layer,
     }
 }
 
-bool NativeCanvasContext::validateCurrentFBO()
+bool CanvasContext::validateCurrentFBO()
 {
     GrGLenum status;
     NIDIUM_GL_CALL_RET(m_GLState->getNativeGLContext(),
@@ -429,7 +429,7 @@ bool NativeCanvasContext::validateCurrentFBO()
 /*
     TODO: implement
 */
-NativeCanvasContext *NativeCanvasContext::Create(Nidium::NML::ContextType type)
+CanvasContext *CanvasContext::Create(Nidium::NML::ContextType type)
 {
     switch (type) {
         case Nidium::NML::kWebGL_ContextType:

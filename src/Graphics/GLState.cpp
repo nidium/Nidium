@@ -78,13 +78,13 @@ bool NativeGLState::initGLBase(bool withProgram)
     m_Resources.add(m_GLObjects.vbo[1], NativeGLResources::RBUFFER);
     m_Resources.add(m_GLObjects.vao, NativeGLResources::RVERTEX_ARRAY);
 
-    Nidium::NML::Vertices *vtx = m_GLObjects.vtx = NativeCanvasContext::BuildVerticesStripe(4);
+    Nidium::NML::Vertices *vtx = m_GLObjects.vtx = CanvasContext::BuildVerticesStripe(4);
 
     NATIVE_GL_CALL_MAIN(BindVertexArray(m_GLObjects.vao));
 
-    NATIVE_GL_CALL_MAIN(EnableVertexAttribArray(NativeCanvasContext::SH_ATTR_POSITION));
-    NATIVE_GL_CALL_MAIN(EnableVertexAttribArray(NativeCanvasContext::SH_ATTR_TEXCOORD));
-    NATIVE_GL_CALL_MAIN(EnableVertexAttribArray(NativeCanvasContext::SH_ATTR_MODIFIER));
+    NATIVE_GL_CALL_MAIN(EnableVertexAttribArray(CanvasContext::SH_ATTR_POSITION));
+    NATIVE_GL_CALL_MAIN(EnableVertexAttribArray(CanvasContext::SH_ATTR_TEXCOORD));
+    NATIVE_GL_CALL_MAIN(EnableVertexAttribArray(CanvasContext::SH_ATTR_MODIFIER));
 
     /* Upload the list of vertex */
     NATIVE_GL_CALL_MAIN(BindBuffer(GR_GL_ARRAY_BUFFER, m_GLObjects.vbo[0]));
@@ -96,19 +96,19 @@ bool NativeGLState::initGLBase(bool withProgram)
     NATIVE_GL_CALL_MAIN(BufferData(GR_GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * vtx->nindices,
         vtx->indices, GL_STATIC_DRAW));
 
-    NATIVE_GL_CALL_MAIN(VertexAttribPointer(NativeCanvasContext::SH_ATTR_POSITION, 3, GR_GL_FLOAT, GR_GL_FALSE,
+    NATIVE_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_POSITION, 3, GR_GL_FLOAT, GR_GL_FALSE,
                           sizeof(Nidium::NML::Vertex), 0));
 
-    NATIVE_GL_CALL_MAIN(VertexAttribPointer(NativeCanvasContext::SH_ATTR_TEXCOORD, 2, GR_GL_FLOAT, GR_GL_FALSE,
+    NATIVE_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_TEXCOORD, 2, GR_GL_FLOAT, GR_GL_FALSE,
                           sizeof(Nidium::NML::Vertex),
                           (GLvoid*) offsetof(Nidium::NML::Vertex, TexCoord)));
 
-    NATIVE_GL_CALL_MAIN(VertexAttribPointer(NativeCanvasContext::SH_ATTR_MODIFIER, 2, GR_GL_FLOAT, GR_GL_FALSE,
+    NATIVE_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_MODIFIER, 2, GR_GL_FLOAT, GR_GL_FALSE,
                           sizeof(Nidium::NML::Vertex),
                           (GLvoid*) offsetof(Nidium::NML::Vertex, Modifier)));
 
     if (withProgram) {
-        m_GLObjects.program = NativeCanvasContext::CreatePassThroughProgram(m_Resources);
+        m_GLObjects.program = CanvasContext::CreatePassThroughProgram(m_Resources);
 
         if (m_GLObjects.program == 0) {
             return false;

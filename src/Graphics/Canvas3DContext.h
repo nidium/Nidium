@@ -15,7 +15,7 @@ namespace Graphics {
 
 class NativeCanvasHandler;
 
-class Canvas3DContext : public NativeCanvasContext
+class Canvas3DContext : public CanvasContext
 {
 public:
 

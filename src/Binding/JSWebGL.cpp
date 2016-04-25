@@ -1463,8 +1463,8 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
     NGL_GET_RESOURCE(Shader, shader, cshader);
     shaderData = cshader->getShaderData();
 
-    if (!(shaderStr = Graphics::NativeCanvasContext::ProcessShader(
-            shaderData->source, (Graphics::NativeCanvasContext::shaderType)shaderData->type))) {
+    if (!(shaderStr = Graphics::CanvasContext::ProcessShader(
+            shaderData->source, (Graphics::CanvasContext::shaderType)shaderData->type))) {
         return false;
     }
 

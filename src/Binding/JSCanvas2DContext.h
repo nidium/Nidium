@@ -62,7 +62,7 @@ struct Canvas2DContextState
 // }}}
 
 // {{{ Canvas2DContext
-class Canvas2DContext : public Graphics::NativeCanvasContext
+class Canvas2DContext : public Graphics::CanvasContext
 {
     public:
 
