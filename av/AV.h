@@ -60,33 +60,33 @@ pthread_mutex_unlock(mutexRef##Lock);\
 pthread_cond_signal(mutexRef);
 
 class AudioTrack;
-class NativeAVSource;
+class AVSource;
 
-// {{{ NativeAVReader
-class NativeAVReader
+// {{{ AVReader
+class AVReader
 {
     public:
-        NativeAVReader() : m_Pending(false), m_NeedWakup(false), m_Async(false)  {};
+        AVReader() : m_Pending(false), m_NeedWakup(false), m_Async(false)  {};
 
         bool m_Pending;
         bool m_NeedWakup;
         bool m_Async;
 
         virtual void finish() = 0;
-        virtual ~NativeAVReader() {};
+        virtual ~AVReader() {};
 };
 // }}}
 
-// {{{ NativeAVBufferReader
-class NativeAVBufferReader : public NativeAVReader
+// {{{ AVBufferReader
+class AVBufferReader : public AVReader
 {
     public:
-        NativeAVBufferReader(uint8_t *buffer, unsigned long bufferSize);
+        AVBufferReader(uint8_t *buffer, unsigned long bufferSize);
         static int read(void *opaque, uint8_t *buffer, int size);
         static int64_t seek(void *opaque, int64_t offset, int whence);
 
         void finish() {};
-        ~NativeAVBufferReader() {};
+        ~AVBufferReader() {};
     private:
         uint8_t *m_Buffer;
         unsigned long m_BufferSize;
@@ -96,14 +96,14 @@ class NativeAVBufferReader : public NativeAVReader
 
 typedef void (*NativeAVStreamReadCallback)(void *m_CallbackPrivate);
 
-// {{{ NativeAVStreamReader
-class NativeAVStreamReader : public NativeAVReader, public Nidium::Core::Messages
+// {{{ AVStreamReader
+class AVStreamReader : public AVReader, public Nidium::Core::Messages
 {
     public:
-        NativeAVStreamReader(const char *src, NativeAVStreamReadCallback readCallback,
-            void *callbackPrivate, NativeAVSource *source, ape_global *net);
+        AVStreamReader(const char *src, NativeAVStreamReadCallback readCallback,
+            void *callbackPrivate, AVSource *source, ape_global *net);
 
-        NativeAVSource *m_Source;
+        AVSource *m_Source;
         int64_t m_TotalRead;
 
         static int read(void *opaque, uint8_t *buffer, int size);
@@ -111,7 +111,7 @@ class NativeAVStreamReader : public NativeAVReader, public Nidium::Core::Message
 
         void onAvailableData(size_t len);
         void finish();
-        ~NativeAVStreamReader();
+        ~AVStreamReader();
     private:
         enum {
             MSG_SEEK,
@@ -180,7 +180,7 @@ enum {
     ERR_MAX
 };
 
-const char * const NativeAVErrorsStr[ERR_MAX] = {
+const char * const AVErrorsStr[ERR_MAX] = {
     "Failed to open media file",
     "Failed to read media file",
     "Failed to find stream information",
@@ -199,58 +199,58 @@ const char * const NativeAVErrorsStr[ERR_MAX] = {
 // }}}
 
 // Used for event (play, pause, stop, error, buffered...)
-typedef void (*NativeAVSourceEventCallback)(const struct NativeAVSourceEvent*m_Ev);
+typedef void (*AVSourceEventCallback)(const struct AVSourceEvent*m_Ev);
 
-// {{{ NativeAVSourceEvent
-struct NativeAVSourceEvent {
+// {{{ AVSourceEvent
+struct AVSourceEvent {
     int m_Ev;
     Nidium::Core::Args m_Args;
     void *m_Custom;
     bool m_FromThread;
-    NativeAVSourceEvent(int ev, void *custom, bool fromThread)
+    AVSourceEvent(int ev, void *custom, bool fromThread)
         : m_Ev(ev), m_Custom(custom), m_FromThread(fromThread)
     {
     };
 };
 // }}}
 
-// {{{ NativeAVSourceEventInterface
-class NativeAVSourceEventInterface {
+// {{{ AVSourceEventInterface
+class AVSourceEventInterface {
     public:
-        void eventCallback(NativeAVSourceEventCallback cbk, void *custom) {
+        void eventCallback(AVSourceEventCallback cbk, void *custom) {
             m_EventCbk = cbk;
             m_EventCbkCustom = custom;
         };
 
-        NativeAVSourceEvent *createEvent(int ev, bool fromThread) {
-            return new NativeAVSourceEvent(ev, m_EventCbkCustom, fromThread);
+        AVSourceEvent *createEvent(int ev, bool fromThread) {
+            return new AVSourceEvent(ev, m_EventCbkCustom, fromThread);
         };
 
         void sendEvent(int type, int value, bool fromThread) {
-            NativeAVSourceEvent *ev = this->createEvent(type, fromThread);
+            AVSourceEvent *ev = this->createEvent(type, fromThread);
             ev->m_Args[0].set(value);
             this->sendEvent(ev);
         };
 
-        void sendEvent(NativeAVSourceEvent *ev) {
+        void sendEvent(AVSourceEvent *ev) {
             if (m_EventCbk != NULL) {
                 m_EventCbk(ev);
             }
         };
 
     private:
-        NativeAVSourceEventCallback m_EventCbk;
+        AVSourceEventCallback m_EventCbk;
         void *m_EventCbkCustom;
 };
 // }}}
 
-// {{{ NativeAVSource
-class NativeAVSource : public Nidium::Core::Messages, public NativeAVSourceEventInterface
+// {{{ AVSource
+class AVSource : public Nidium::Core::Messages, public AVSourceEventInterface
 {
     public :
-        NativeAVSource();
+        AVSource();
 
-        friend class NativeAVStreamReader;
+        friend class AVStreamReader;
 
         bool m_Opened;
         bool m_Eof;
@@ -275,7 +275,7 @@ class NativeAVSource : public Nidium::Core::Messages, public NativeAVSourceEvent
             MSG_CLOSE
         };
 
-        virtual ~NativeAVSource() = 0;
+        virtual ~AVSource() = 0;
     protected:
         AVFormatContext *m_Container;
 

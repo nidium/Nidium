@@ -17,15 +17,15 @@ extern "C" {
 namespace Nidium {
 namespace AV {
 
-pthread_mutex_t NativeAVSource::m_FfmpegLock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t AVSource::m_FfmpegLock = PTHREAD_MUTEX_INITIALIZER;
 
-// {{{ NativeAVBufferReader
-NativeAVBufferReader::NativeAVBufferReader(uint8_t *buffer, unsigned long bufferSize)
+// {{{ AVBufferReader
+AVBufferReader::AVBufferReader(uint8_t *buffer, unsigned long bufferSize)
     : m_Buffer(buffer), m_BufferSize(bufferSize), m_Pos(0) {}
 
-int NativeAVBufferReader::read(void *opaque, uint8_t *buffer, int size)
+int AVBufferReader::read(void *opaque, uint8_t *buffer, int size)
 {
-    NativeAVBufferReader *reader = static_cast<NativeAVBufferReader *>(opaque);
+    AVBufferReader *reader = static_cast<AVBufferReader *>(opaque);
 
     if (reader->m_Pos + size > reader->m_BufferSize) {
         size = reader->m_BufferSize - reader->m_Pos;
@@ -39,9 +39,9 @@ int NativeAVBufferReader::read(void *opaque, uint8_t *buffer, int size)
     return size;
 }
 
-int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
+int64_t AVBufferReader::seek(void *opaque, int64_t offset, int whence)
 {
-    NativeAVBufferReader *reader = static_cast<NativeAVBufferReader *>(opaque);
+    AVBufferReader *reader = static_cast<AVBufferReader *>(opaque);
     int64_t pos = 0;
     switch(whence)
     {
@@ -70,10 +70,10 @@ int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
 }
 // }}}
 
-// {{{ NativeAVStreamReader
+// {{{ AVStreamReader
 #define STREAM_BUFFER_SIZE NATIVE_AVIO_BUFFER_SIZE*6
-NativeAVStreamReader::NativeAVStreamReader(const char *src,
-        NativeAVStreamReadCallback readCallback, void *callbackPrivate, NativeAVSource *source, ape_global *net)
+AVStreamReader::AVStreamReader(const char *src,
+        NativeAVStreamReadCallback readCallback, void *callbackPrivate, AVSource *source, ape_global *net)
     : m_Source(source), m_TotalRead(0), m_ReadCallback(readCallback),
       m_CallbackPrivate(callbackPrivate), m_Opened(false),
       m_StreamRead(STREAM_BUFFER_SIZE), m_StreamPacketSize(0), m_StreamErr(-1),
@@ -88,11 +88,11 @@ NativeAVStreamReader::NativeAVStreamReader(const char *src,
     NATIVE_PTHREAD_VAR_INIT(&m_ThreadCond);
 }
 
-int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
+int AVStreamReader::read(void *opaque, uint8_t *buffer, int size)
 {
-    NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(opaque);
+    AVStreamReader *thiz = static_cast<AVStreamReader *>(opaque);
     if (thiz->m_StreamErr == AVERROR_EXIT) {
-        SPAM(("NativeAVStreamReader, streamErr is EXIT\n"));
+        SPAM(("AVStreamReader, streamErr is EXIT\n"));
         thiz->m_Pending = false;
         thiz->m_NeedWakup = false;
         return AVERROR_EXIT;
@@ -125,7 +125,7 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
     SPAM(("streamSize = %lld\n", thiz->m_StreamSize));
     // No more data inside buffer, need to get more
     for(; ;) {
-        thiz->postMessage(opaque, NativeAVStreamReader::MSG_READ);
+        thiz->postMessage(opaque, AVStreamReader::MSG_READ);
         NATIVE_PTHREAD_WAIT(&thiz->m_ThreadCond);
         SPAM(("store streamBuffer=%p / size=%d / err=%d\n", thiz->m_StreamBuffer, thiz->m_StreamPacketSize, thiz->m_StreamErr));
         if (!thiz->m_StreamBuffer) {
@@ -195,12 +195,12 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
     return 0;
 }
 
-int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
+int64_t AVStreamReader::seek(void *opaque, int64_t offset, int whence)
 {
-    NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(opaque);
+    AVStreamReader *thiz = static_cast<AVStreamReader *>(opaque);
     int64_t pos = 0;
     off_t size = thiz->m_Stream->getFileSize();
-    SPAM(("NativeAVStreamReader::seek to %llu / %d\n", offset, whence));
+    SPAM(("AVStreamReader::seek to %llu / %d\n", offset, whence));
 
     switch(whence)
     {
@@ -242,16 +242,16 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
     if (Nidium::Core::Utils::IsMainThread()) {
         thiz->m_Stream->seek(pos);
     } else {
-        thiz->postMessage(opaque, NativeAVStreamReader::MSG_SEEK);
+        thiz->postMessage(opaque, AVStreamReader::MSG_SEEK);
         NATIVE_PTHREAD_WAIT(&thiz->m_ThreadCond);
     }
 
     return pos;
 }
 
-void NativeAVStreamReader::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void AVStreamReader::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
-    //NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(msg.dataPtr());
+    //AVStreamReader *thiz = static_cast<AVStreamReader *>(msg.dataPtr());
 
     switch (msg.event()) {
         case Nidium::IO::Stream::EVENT_AVAILABLE_DATA:
@@ -274,7 +274,7 @@ void NativeAVStreamReader::onMessage(const Nidium::Core::SharedMessages::Message
             return;
         }
         case Nidium::IO::Stream::EVENT_PROGRESS: {
-            NativeAVSourceEvent *ev = m_Source->createEvent(SOURCE_EVENT_BUFFERING, false);
+            AVSourceEvent *ev = m_Source->createEvent(SOURCE_EVENT_BUFFERING, false);
             ev->m_Args[0].set(msg.args[0].toInt64());
             ev->m_Args[1].set(msg.args[1].toInt64());
             ev->m_Args[2].set(msg.args[2].toInt64());
@@ -301,14 +301,14 @@ void NativeAVStreamReader::onMessage(const Nidium::Core::SharedMessages::Message
 }
 
 /*
-void NativeAVStreamReader::onProgress(size_t buffered, size_t len)
+void AVStreamReader::onProgress(size_t buffered, size_t len)
 {
     this->source->onProgress(buffered, len);
 }
 */
 
 /*
-void NativeAVStreamReader::onError(NativeStream::StreamError err)
+void AVStreamReader::onError(NativeStream::StreamError err)
 {
     int error;
     switch (err)
@@ -325,7 +325,7 @@ void NativeAVStreamReader::onError(NativeStream::StreamError err)
 }
 */
 
-void NativeAVStreamReader::onAvailableData(size_t len)
+void AVStreamReader::onAvailableData(size_t len)
 {
     m_Error = 0;
     m_HaveDataAvailable = true;
@@ -344,7 +344,7 @@ void NativeAVStreamReader::onAvailableData(size_t len)
     }
 }
 
-void NativeAVStreamReader::finish()
+void AVStreamReader::finish()
 {
     m_StreamBuffer = NULL;
     m_StreamErr = AVERROR_EXIT;
@@ -356,26 +356,26 @@ void NativeAVStreamReader::finish()
     NATIVE_PTHREAD_SIGNAL(&m_ThreadCond);
 }
 
-NativeAVStreamReader::~NativeAVStreamReader()
+AVStreamReader::~AVStreamReader()
 {
     if (Nidium::Core::Utils::IsMainThread()) {
         delete m_Stream;
     } else {
-        this->postMessage(this, NativeAVStreamReader::MSG_STOP);
+        this->postMessage(this, AVStreamReader::MSG_STOP);
         NATIVE_PTHREAD_WAIT(&m_ThreadCond);
     }
 }
 // }}}
 
-// {{{ NativeAVSource
-NativeAVSource::NativeAVSource()
+// {{{ AVSource
+AVSource::AVSource()
     : m_Opened(false), m_Eof(false), m_Container(NULL), m_Coro(NULL), m_MainCoro(NULL),
       m_Seeking(false), m_DoSemek(false), m_DoSeekTime(0.0f), m_SeekFlags(0),  m_Error(0),
       m_SourceDoOpen(false)
 {
 }
 
-AVDictionary *NativeAVSource::getMetadata()
+AVDictionary *AVSource::getMetadata()
 {
     if (!m_Opened) {
         return NULL;
@@ -384,7 +384,7 @@ AVDictionary *NativeAVSource::getMetadata()
     return m_Container ? m_Container->metadata : NULL;
 }
 
-AVFormatContext *NativeAVSource::getAVFormatContext()
+AVFormatContext *AVSource::getAVFormatContext()
 {
     if (!m_Opened) {
         return NULL;
@@ -392,12 +392,12 @@ AVFormatContext *NativeAVSource::getAVFormatContext()
     return m_Container;
 }
 
-int NativeAVSource::getBitrate()
+int AVSource::getBitrate()
 {
     return m_Container ? m_Container->bit_rate : 0;
 }
 
-double NativeAVSource::getDuration()
+double AVSource::getDuration()
 {
     if (!m_Opened) {
         return 0;
@@ -406,7 +406,7 @@ double NativeAVSource::getDuration()
     return m_Container->duration/AV_TIME_BASE;
 }
 
-int NativeAVSource::readError(int err)
+int AVSource::readError(int err)
 {
     SPAM(("readError Got error %d/%d\n", err, AVERROR_EOF));
     if (err == AVERROR_EOF || (m_Container->pb && m_Container->pb->eof_reached)) {
@@ -422,7 +422,7 @@ int NativeAVSource::readError(int err)
 }
 
 
-void NativeAVSource::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void AVSource::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case MSG_CLOSE:
@@ -431,7 +431,7 @@ void NativeAVSource::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     }
 }
 
-NativeAVSource::~NativeAVSource()
+AVSource::~AVSource()
 {
 }
 // }}}

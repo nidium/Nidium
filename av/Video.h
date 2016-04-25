@@ -34,7 +34,7 @@ namespace AV {
 typedef void (*VideoCallback)(uint8_t *data, void *custom);
 
 // {{{ Video
-class Video : public NativeAVSource
+class Video : public AVSource
 {
     friend class VideoAudioSource;
 
@@ -147,7 +147,7 @@ class Video : public NativeAVSource
 
         ~Video();
     private :
-        NativeAVReader *m_Reader;
+        AVReader *m_Reader;
         Audio *m_Audio;
         bool m_Buffering;
         bool m_Seeking;

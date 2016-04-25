@@ -423,12 +423,12 @@ static JS::HandleValue consumeSourceMessage(JSContext *cx, JS::HandleObject obj,
 
         delete ptr;
     } else {
-        AV::NativeAVSourceEvent *cmsg =
-                static_cast<struct AV::NativeAVSourceEvent*>(msg.dataPtr());
+        AV::AVSourceEvent *cmsg =
+                static_cast<struct AV::AVSourceEvent*>(msg.dataPtr());
 
         if (cmsg->m_Ev == SOURCE_EVENT_ERROR) {
             int errorCode = cmsg->m_Args[0].toInt();
-            const char *errorStr = AV::NativeAVErrorsStr[errorCode];
+            const char *errorStr = AV::AVErrorsStr[errorCode];
             JS::RootedString jstr(cx, JS_NewStringCopyN(cx, errorStr, strlen(errorStr)));
 
             JS::RootedValue code(cx);
@@ -914,7 +914,7 @@ void JSAudioNode::onMessage(const Core::SharedMessages::Message &msg)
     }
 }
 
-void JSAudioNode::onEvent(const struct AV::NativeAVSourceEvent *cev)
+void JSAudioNode::onEvent(const struct AV::AVSourceEvent *cev)
 {
     JSAudioNode *jnode = static_cast<JSAudioNode *>(cev->m_Custom);
     jnode->postMessage((void *)cev, cev->m_Ev);
@@ -2153,7 +2153,7 @@ void JSVideo::onMessage(const Core::SharedMessages::Message &msg)
     }
 }
 
-void JSVideo::onEvent(const struct AV::NativeAVSourceEvent *cev)
+void JSVideo::onEvent(const struct AV::AVSourceEvent *cev)
 {
     JSVideo *thiz = static_cast<JSVideo *>(cev->m_Custom);
     thiz->postMessage((void *)cev, cev->m_Ev);
@@ -2497,7 +2497,7 @@ static void Video_Finalize(JSFreeOp *fop, JSObject *obj) {
     }
 }
 
-bool JSAVSource::PropSetter(AV::NativeAVSource *source, uint8_t id, JS::MutableHandleValue vp)
+bool JSAVSource::PropSetter(AV::AVSource *source, uint8_t id, JS::MutableHandleValue vp)
 {
     switch(id) {
         case SOURCE_PROP_POSITION:
@@ -2523,7 +2523,7 @@ void CopyMetaDataToJS(AVDictionary *dict, JSContext *cx, JS::HandleObject obj) {
         JS_DefineProperty(cx, obj, tag->key, value, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
     }
 }
-bool JSAVSource::PropGetter(AV::NativeAVSource *source, JSContext *cx, uint8_t id, JS::MutableHandleValue vp)
+bool JSAVSource::PropGetter(AV::AVSource *source, JSContext *cx, uint8_t id, JS::MutableHandleValue vp)
 {
     switch(id) {
         case SOURCE_PROP_POSITION:

@@ -82,14 +82,14 @@ int Video::open(void *buffer, int size)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Reader = new NativeAVBufferReader((uint8_t *)buffer, size);
+    m_Reader = new AVBufferReader((uint8_t *)buffer, size);
     m_Container = avformat_alloc_context();
     if (!m_Container || !m_Reader) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
     m_Container->pb = avio_alloc_context(m_AvioBuffer, NATIVE_AVIO_BUFFER_SIZE,
-        0, m_Reader, NativeAVBufferReader::read, NULL, NativeAVBufferReader::seek);
+        0, m_Reader, AVBufferReader::read, NULL, AVBufferReader::seek);
     if (!m_Container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -119,14 +119,14 @@ int Video::open(const char *src)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Reader = new NativeAVStreamReader(src, Video::sourceNeedWork, this, this, m_Net);
+    m_Reader = new AVStreamReader(src, Video::sourceNeedWork, this, this, m_Net);
     m_Container = avformat_alloc_context();
     if (!m_Container) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
     m_Container->pb = avio_alloc_context(m_AvioBuffer, NATIVE_AVIO_BUFFER_SIZE,
-        0, m_Reader, NativeAVStreamReader::read, NULL, NativeAVStreamReader::seek);
+        0, m_Reader, AVStreamReader::read, NULL, AVStreamReader::seek);
     if (!m_Container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -157,7 +157,7 @@ void Video::openInitCoro(void *arg)
         thiz->sendEvent(SOURCE_EVENT_ERROR, ret, false);
         // Send a message to close the source from the main thread
         // (As we can't close a source from a coroutine/thread)
-        thiz->postMessage(thiz, NativeAVSource::MSG_CLOSE);
+        thiz->postMessage(thiz, AVSource::MSG_CLOSE);
     }
     Coro_switchTo_(thiz->m_Coro, thiz->m_MainCoro);
 }
@@ -179,7 +179,7 @@ int Video::openInitInternal()
         return ERR_INTERNAL;
     }
 
-    Nidium::Core::PthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
+    Nidium::Core::PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
         fprintf(stderr, "Couldn't find stream information");
         return ERR_NO_INFORMATION;
@@ -1431,7 +1431,7 @@ void Video::unlockDecodeThread()
 void Video::closeFFMpeg()
 {
     if (m_Opened) {
-        Nidium::Core::PthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
+        Nidium::Core::PthreadAutoLock lock(&AVSource::m_FfmpegLock);
         avcodec_close(m_CodecCtx);
         av_free(m_Container->pb);
         avformat_close_input(&m_Container);

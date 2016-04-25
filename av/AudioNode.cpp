@@ -783,7 +783,7 @@ return err;
     m_MainCoro = Coro_new();
     Coro_initializeMainCoro(m_MainCoro);
 
-    m_Reader = new NativeAVStreamReader(src, Audio::sourceNeedWork, m_Audio, this, m_Audio->m_Net);
+    m_Reader = new AVStreamReader(src, Audio::sourceNeedWork, m_Audio, this, m_Audio->m_Net);
 
     m_AvioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
     if (!m_AvioBuffer) {
@@ -796,7 +796,7 @@ return err;
     }
 
     m_Container->pb = avio_alloc_context(m_AvioBuffer, NATIVE_AVIO_BUFFER_SIZE,
-         0, m_Reader, NativeAVStreamReader::read, NULL, NativeAVStreamReader::seek);
+         0, m_Reader, AVStreamReader::read, NULL, AVStreamReader::seek);
     if (!m_Container) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -816,7 +816,7 @@ void AudioSource::openInitCoro(void *arg)
 {
 #define RETURN_WITH_ERROR(err) \
 thiz->sendEvent(SOURCE_EVENT_ERROR, err, false);\
-thiz->postMessage(thiz, NativeAVSource::MSG_CLOSE);\
+thiz->postMessage(thiz, AVSource::MSG_CLOSE);\
 Coro_switchTo_(thiz->m_Coro, thiz->m_MainCoro);
     AudioSource *thiz = static_cast<AudioSource *>(arg);
     thiz->m_SourceDoOpen = false;
@@ -846,7 +846,7 @@ return err;
         this->closeInternal(true);
     }
 
-    m_Reader = new NativeAVBufferReader((uint8_t *)buffer, size);
+    m_Reader = new AVBufferReader((uint8_t *)buffer, size);
 
     m_AvioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
     if (!m_AvioBuffer) {
@@ -859,7 +859,7 @@ return err;
     }
 
     m_Container->pb = avio_alloc_context(m_AvioBuffer, NATIVE_AVIO_BUFFER_SIZE,
-        0, m_Reader, NativeAVBufferReader::read, NULL, NativeAVBufferReader::seek);
+        0, m_Reader, AVBufferReader::read, NULL, AVBufferReader::seek);
     if (!m_Container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -890,7 +890,7 @@ int AudioSource::initStream()
         return ERR_INTERNAL;
     }
 
-    Nidium::Core::PthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
+    Nidium::Core::PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     // Retrieve stream information
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
         fprintf(stderr, "Couldn't find stream information\n");
@@ -931,7 +931,7 @@ int AudioSource::initInternal()
         return ERR_NO_CODEC;
     }
 
-    Nidium::Core::PthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
+    Nidium::Core::PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     if (avcodec_open2(m_CodecCtx, codec, NULL) < 0) {
         fprintf(stderr, "Could not find or open the needed codec\n");
         return ERR_NO_CODEC;
@@ -1507,7 +1507,7 @@ void AudioSource::closeInternal(bool reset)
 
     if (m_Opened) {
         if (!m_ExternallyManaged) {
-            Nidium::Core::PthreadAutoLock lock(&NativeAVSource::m_FfmpegLock);
+            Nidium::Core::PthreadAutoLock lock(&AVSource::m_FfmpegLock);
 
             avcodec_close(m_CodecCtx);
             av_free(m_Container->pb);

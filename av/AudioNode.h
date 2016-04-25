@@ -268,7 +268,7 @@ class AudioNodeMixer : public AudioNode
 #endif
 
 // {{{ AudioSource
-class AudioSource: public AudioNode, public NativeAVSource
+class AudioSource: public AudioNode, public AVSource
 {
     public:
         AudioSource(int out, Audio *audio, bool external);
@@ -279,7 +279,7 @@ class AudioSource: public AudioNode, public NativeAVSource
         AudioParameters *m_OutputParameters;
         pthread_cond_t *m_BufferNotEmpty;
         PaUtilRingBuffer *m_rBufferOut;
-        NativeAVReader *m_Reader;
+        AVReader *m_Reader;
         bool m_ExternallyManaged;
         bool m_Playing;
         bool m_PlayWhenReady;
@@ -348,7 +348,7 @@ class AudioSource: public AudioNode, public NativeAVSource
 // }}}
 
 // {{{ AudioCustomSource
-class AudioCustomSource : public AudioNodeCustom, public NativeAVSourceEventInterface
+class AudioCustomSource : public AudioNodeCustom, public AVSourceEventInterface
 {
     public:
         AudioCustomSource(int out, Audio *audio)

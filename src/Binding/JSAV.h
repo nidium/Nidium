@@ -81,8 +81,8 @@ class JSTransferableFunction
 class JSAVSource
 {
     public:
-        static inline bool PropSetter(AV::NativeAVSource *source, uint8_t id, JS::MutableHandleValue vp);
-        static inline bool PropGetter(AV::NativeAVSource *source, JSContext *ctx, uint8_t id, JS::MutableHandleValue vp);
+        static inline bool PropSetter(AV::AVSource *source, uint8_t id, JS::MutableHandleValue vp);
+        static inline bool PropGetter(AV::AVSource *source, JSContext *ctx, uint8_t id, JS::MutableHandleValue vp);
 };
 // }}}
 
@@ -214,7 +214,7 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Core::Messages
         // Source m_Node
         void *m_ArrayContent;
         void onMessage(const Core::SharedMessages::Message &msg);
-        static void onEvent(const struct AV::NativeAVSourceEvent *cev);
+        static void onEvent(const struct AV::AVSourceEvent *cev);
 
         // Custom source m_Node
         static void SeekCallback(AV::AudioCustomSource *node, double seekTime, void *custom);
@@ -251,7 +251,7 @@ class JSVideo : public JSExposer<JSVideo>, public Core::Messages
         static void RegisterObject(JSContext *cx);
         static void FrameCallback(uint8_t *data, void *custom);
         void onMessage(const Core::SharedMessages::Message &msg);
-        static void onEvent(const struct AV::NativeAVSourceEvent *cev);
+        static void onEvent(const struct AV::AVSourceEvent *cev);
 
         ~JSVideo();
     private :
