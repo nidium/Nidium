@@ -934,7 +934,7 @@ static bool nidium_canvas2dctxGradient_addColorStop(JSContext *cx,
 static bool nidium_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
-    Nidium::Graphics::NativeSkImage *image;
+    Nidium::Graphics::Image *image;
     double x, y, width, height;
     int sx, sy, swidth, sheight;
     int need_free = 0;
@@ -962,10 +962,10 @@ static bool nidium_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value
             JS_ReportError(cx, "Invalid image canvas (must be backed by a 2D context)");
             return false;
         }
-        image = new Nidium::Graphics::NativeSkImage((static_cast<Canvas2DContext *>(drawctx))->getSurface()->getCanvas());
+        image = new Nidium::Graphics::Image((static_cast<Canvas2DContext *>(drawctx))->getSurface()->getCanvas());
         need_free = 1;
     } else if (!jsimage || !JSImage::JSObjectIs(cx, jsimage) ||
-        (image = JSImage::JSObjectToNativeSkImage(jsimage)) == NULL) {
+        (image = JSImage::JSObjectToImage(jsimage)) == NULL) {
 
         JS_ReportWarning(cx, "Invalid image given");
         return true;

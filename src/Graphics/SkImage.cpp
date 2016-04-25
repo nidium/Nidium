@@ -13,7 +13,7 @@ namespace Nidium {
 namespace Graphics {
 
 // {{{ Constructors
-NativeSkImage::NativeSkImage(SkCanvas *canvas)
+Image::Image(SkCanvas *canvas)
 {
     //canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
 
@@ -23,7 +23,7 @@ NativeSkImage::NativeSkImage(SkCanvas *canvas)
     m_Image = NULL;
 }
 
-NativeSkImage::NativeSkImage(void *data, size_t len) :
+Image::Image(void *data, size_t len) :
     m_CanvasRef(NULL)
 {
     m_Image = new SkBitmap();
@@ -36,7 +36,7 @@ NativeSkImage::NativeSkImage(void *data, size_t len) :
     }
 }
 
-NativeSkImage::NativeSkImage(void *data, int width, int height)
+Image::Image(void *data, int width, int height)
 {
     uint8_t *px = (uint8_t *)data;
     m_Image = new SkBitmap();
@@ -76,7 +76,7 @@ static SkData* dataToData(void *data, size_t size) {
 }
 #endif
 
-const uint8_t *NativeSkImage::getPixels(size_t *len)
+const uint8_t *Image::getPixels(size_t *len)
 {
     if (len) {
         *len = 0;
@@ -95,7 +95,7 @@ const uint8_t *NativeSkImage::getPixels(size_t *len)
     return (const uint8_t *)m_Image->getPixels();
 }
 
-SkData *NativeSkImage::getPNG()
+SkData *Image::getPNG()
 {
     if (!m_Image) {
         return NULL;
@@ -104,17 +104,17 @@ SkData *NativeSkImage::getPNG()
     return SkImageEncoder::EncodeData(*m_Image, SkImageEncoder::kPNG_Type, 100);
 }
 
-int NativeSkImage::getWidth()
+int Image::getWidth()
 {
     return m_Image->width();
 }
 
-int NativeSkImage::getHeight()
+int Image::getHeight()
 {
     return m_Image->height();
 }
 
-void NativeSkImage::shiftHue(int val, U8CPU alpha)
+void Image::shiftHue(int val, U8CPU alpha)
 {
     if (!m_Image) return;
 
@@ -142,7 +142,7 @@ void NativeSkImage::shiftHue(int val, U8CPU alpha)
     m_Image->notifyPixelsChanged();
 }
 
-void NativeSkImage::markColorsInAlpha()
+void Image::markColorsInAlpha()
 {
     if (!m_Image) return;
 
@@ -173,7 +173,7 @@ void NativeSkImage::markColorsInAlpha()
 
 }
 
-void NativeSkImage::desaturate()
+void Image::desaturate()
 {
     if (!m_Image) return;
 
@@ -198,7 +198,7 @@ void NativeSkImage::desaturate()
 }
 
 
-bool NativeSkImage::ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba,
+bool Image::ConvertToRGBA(Image *nimg, unsigned char* rgba,
         bool flipY, bool premultiply)
 {
 #if 1
@@ -246,7 +246,7 @@ bool NativeSkImage::ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba,
 }
 // }}}
 
-NativeSkImage::~NativeSkImage()
+Image::~Image()
 {
     if (m_CanvasRef) m_CanvasRef->unref();
     if (m_Image) {

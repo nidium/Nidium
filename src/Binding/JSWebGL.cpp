@@ -2615,7 +2615,7 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
 
             pixels = (unsigned char*)malloc(nimg->m_Image->m_Image->getSize());
 
-           if (!Graphics::NativeSkImage::ConvertToRGBA(nimg->m_Image, pixels,
+           if (!Graphics::Image::ConvertToRGBA(nimg->m_Image, pixels,
                     CppObj->hasFlag(Graphics::Canvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag),
                     CppObj->hasFlag(Graphics::Canvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag))) {
 

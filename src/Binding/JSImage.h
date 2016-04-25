@@ -5,11 +5,11 @@
 #include <IO/Stream.h>
 #include <Binding/JSExposer.h>
 
-class NativeSkImage;
+class Image;
 
 namespace Nidium {
     namespace Graphics {
-        class NativeSkImage;
+        class Image;
     }
 namespace Binding {
 
@@ -22,13 +22,13 @@ class JSImage : public JSExposer<JSImage>,
     JSImage(JS::HandleObject obj, JSContext *cx);
     virtual ~JSImage();
 
-    Graphics::NativeSkImage *m_Image;
+    Graphics::Image *m_Image;
     IO::Stream *m_Stream;
 
-    static Graphics::NativeSkImage *JSObjectToNativeSkImage(JS::HandleObject obj);
+    static Graphics::Image *JSObjectToImage(JS::HandleObject obj);
     static void RegisterObject(JSContext *cx);
     static bool JSObjectIs(JSContext *cx, JS::HandleObject obj);
-    static JSObject *BuildImageObject(JSContext *cx, Graphics::NativeSkImage *image,
+    static JSObject *BuildImageObject(JSContext *cx, Graphics::Image *image,
         const char name[] = NULL);
 
     void onMessage(const Core::SharedMessages::Message &msg);

@@ -160,7 +160,7 @@ static bool nidium_document_toDataArray(JSContext *cx, unsigned argc, JS::Value 
 
     uint8_t *fb = nctx->getUI()->readScreenPixel();
 
-    Graphics::NativeSkImage *img = new Graphics::NativeSkImage(fb, width, height);
+    Graphics::Image *img = new Graphics::Image(fb, width, height);
     SkData *data;
 
     data = img->getPNG();

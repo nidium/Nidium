@@ -12,6 +12,7 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
+
 #define IMAGE_RESERVED_SLOT 0
 
 enum {
@@ -195,7 +196,7 @@ bool JSImage::JSObjectIs(JSContext *cx, JS::HandleObject obj)
     return obj && JS_GetClass(obj) == &Image_class;
 }
 
-Graphics::NativeSkImage *JSImage::JSObjectToNativeSkImage(JS::HandleObject obj)
+Graphics::Image *JSImage::JSObjectToImage(JS::HandleObject obj)
 {
     return NATIVE_IMAGE_GETTER(obj)->m_Image;
 }
@@ -242,7 +243,7 @@ bool JSImage::setupWithBuffer(buffer *buf)
         return false;
     }
 
-    Graphics::NativeSkImage *ImageObject = new Graphics::NativeSkImage(buf->data, buf->used);
+    Graphics::Image *ImageObject = new Graphics::Image(buf->data, buf->used);
     if (ImageObject->m_Image == NULL) {
         delete ImageObject;
 
@@ -273,7 +274,7 @@ void JSImage::onGetContent(const char *data, size_t len)
         return;
     }
 
-    Graphics::NativeSkImage *ImageObject = new Graphics::NativeSkImage((void *)data, len);
+    Graphics::Image *ImageObject = new Graphics::Image((void *)data, len);
     if (ImageObject->m_Image == NULL) {
         timer_dispatch_async(delete_stream, stream);
         stream = NULL;
@@ -301,7 +302,7 @@ void JSImage::onGetContent(const char *data, size_t len)
 }
 #endif
 
-JSObject *JSImage::BuildImageObject(JSContext *cx, Graphics::NativeSkImage *image,
+JSObject *JSImage::BuildImageObject(JSContext *cx, Graphics::Image *image,
     const char name[])
 {
     JS::RootedValue proto(cx);

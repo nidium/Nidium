@@ -20,7 +20,7 @@ namespace Nidium {
     }
 namespace Graphics {
 
-class NativeSkImage;
+class Image;
 class Gradient;
 class ShadowLooper;
 
@@ -130,10 +130,10 @@ class NativeSkia
         void drawPixels(uint8_t *pixels, int width, int height, int x, int y);
         void drawText(const char *text, int x, int y, bool stroke = false);
         void drawTextf(int x, int y, const char *text, ...);
-        void drawImage(NativeSkImage *image, double x, double y);
-        void drawImage(NativeSkImage *image, double x, double y,
+        void drawImage(Image *image, double x, double y);
+        void drawImage(Image *image, double x, double y,
             double width, double height);
-        void drawImage(NativeSkImage *image,
+        void drawImage(Image *image,
             int sx, int sy, int swidth, int sheight,
             double dx, double dy, double dwidth, double dheight);
         void drawRect(double x, double y, double width,

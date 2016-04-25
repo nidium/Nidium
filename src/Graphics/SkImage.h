@@ -11,7 +11,7 @@ class SkData;
 namespace Nidium {
 namespace Graphics {
 
-class NativeSkImage
+class Image
 {
   public:
     int m_IsCanvas;
@@ -20,17 +20,17 @@ class NativeSkImage
 #if 0
     SkImage *fixedImg;
 #endif
-    NativeSkImage(SkCanvas *canvas);
-    NativeSkImage(void *data, size_t len);
-    NativeSkImage(void *data, int width, int height);
+    Image(SkCanvas *canvas);
+    Image(void *data, size_t len);
+    Image(void *data, int width, int height);
 
 
     SkData *getPNG();
 
-    static bool ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba,
+    static bool ConvertToRGBA(Image *nimg, unsigned char* rgba,
         bool flipY, bool premultiply);
 
-    ~NativeSkImage();
+    ~Image();
 
     const uint8_t *getPixels(size_t *len);
 

@@ -1251,7 +1251,7 @@ void NativeSkia::drawRect(double x, double y, double width,
         (stroke ? *PAINT_STROKE : *PAINT));
 }
 
-void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
+void NativeSkia::drawImage(Image *image, double x, double y)
 {
     SkColor old = PAINT->getColor();
     PAINT->setColor(SK_ColorBLACK);
@@ -1272,7 +1272,7 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
     CANVAS_FLUSH();
 }
 
-void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
+void NativeSkia::drawImage(Image *image, double x, double y,
     double width, double height)
 {
     SkRect r;
@@ -1294,7 +1294,7 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
     CANVAS_FLUSH();
 }
 
-void NativeSkia::drawImage(NativeSkImage *image,
+void NativeSkia::drawImage(Image *image,
     int sx, int sy, int swidth, int sheight,
     double dx, double dy, double dwidth, double dheight)
 {
