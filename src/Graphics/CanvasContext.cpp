@@ -349,7 +349,7 @@ void NativeCanvasContext::setupShader(float opacity, int width, int height,
 
 }
 
-void NativeCanvasContext::preComposeOn(Nidium::Binding::NativeCanvas2DContext *layer,
+void NativeCanvasContext::preComposeOn(Nidium::Binding::Canvas2DContext *layer,
     double left, double top, double opacity,
     double zoom, const NativeRect *rclip)
 {

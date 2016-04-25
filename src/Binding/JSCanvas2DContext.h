@@ -23,7 +23,7 @@ namespace Binding {
 
 /*
     Create a new 2D context using Graphics::NativeSkia.
-    A new JSObject is created with NativeCanvas2DContext as private
+    A new JSObject is created with Canvas2DContext as private
     The class is auto destroyed if no reference is retained to the JSObject
 
     i.e.
@@ -32,22 +32,22 @@ namespace Binding {
 
     Don't manually delete the instance.
 */
-class NativeJSCanvas;
+class JSCanvas;
 class JSImage;
 
 /*
     JSAPI tracer is told to trace JS::Heap stored in this chain of state
 */
-// {{{ NativeCanvas2dContextState
-struct NativeCanvas2DContextState
+// {{{ Canvas2DContextState
+struct Canvas2DContextState
 {
-    NativeCanvas2DContextState() :
+    Canvas2DContextState() :
         m_CurrentShader(JS::UndefinedValue()),
         m_CurrentStrokeShader(JS::UndefinedValue()),
         m_Next(NULL) {
     }
 
-    NativeCanvas2DContextState(NativeCanvas2DContextState *other) :
+    Canvas2DContextState(Canvas2DContextState *other) :
         m_CurrentShader(other->m_CurrentShader),
         m_CurrentStrokeShader(other->m_CurrentStrokeShader),
         m_Next(other) {
@@ -57,18 +57,18 @@ struct NativeCanvas2DContextState
     JS::Heap<JS::Value> m_CurrentShader;
     JS::Heap<JS::Value> m_CurrentStrokeShader;
 
-    NativeCanvas2DContextState *m_Next;
+    Canvas2DContextState *m_Next;
 };
 // }}}
 
-// {{{ NativeCanvas2DContext
-class NativeCanvas2DContext : public Graphics::NativeCanvasContext
+// {{{ Canvas2DContext
+class Canvas2DContext : public Graphics::NativeCanvasContext
 {
     public:
 
         static JSClass *jsclass;
 
-        friend class NativeJSCanvas;
+        friend class JSCanvas;
 
         bool m_SetterDisabled;
 
@@ -105,13 +105,13 @@ class NativeCanvas2DContext : public Graphics::NativeCanvasContext
             uint32_t height, uint32_t left, uint32_t top);
 
 
-        NativeCanvas2DContextState *getCurrentState() const {
+        Canvas2DContextState *getCurrentState() const {
             return m_CurrentState;
         }
         void pushNewState() {
-            NativeCanvas2DContextState *state =
-                m_CurrentState ? new NativeCanvas2DContextState(m_CurrentState)
-                               : new NativeCanvas2DContextState();
+            Canvas2DContextState *state =
+                m_CurrentState ? new Canvas2DContextState(m_CurrentState)
+                               : new Canvas2DContextState();
 
             m_CurrentState = state;
         }
@@ -124,7 +124,7 @@ class NativeCanvas2DContext : public Graphics::NativeCanvasContext
                 return;
             }
 
-            NativeCanvas2DContextState *tmp = m_CurrentState->m_Next;
+            Canvas2DContextState *tmp = m_CurrentState->m_Next;
 
             delete m_CurrentState;
 
@@ -133,16 +133,16 @@ class NativeCanvas2DContext : public Graphics::NativeCanvasContext
 
         static void RegisterObject(JSContext *cx);
 
-        NativeCanvas2DContext(Graphics::NativeCanvasHandler *handler,
+        Canvas2DContext(Graphics::NativeCanvasHandler *handler,
             int width, int height, Interface::NativeUIInterface *ui, bool isGL = true);
 
-        NativeCanvas2DContext(Graphics::NativeCanvasHandler *handler,
+        Canvas2DContext(Graphics::NativeCanvasHandler *handler,
             struct JSContext *cx, int width, int height, Interface::NativeUIInterface *ui);
 
-        virtual ~NativeCanvas2DContext();
+        virtual ~Canvas2DContext();
     private:
         Graphics::NativeSkia *m_Skia;
-        NativeCanvas2DContextState *m_CurrentState;
+        Canvas2DContextState *m_CurrentState;
 
 
         void initCopyTex();
@@ -157,8 +157,8 @@ class NativeCanvas2DContext : public Graphics::NativeCanvasContext
 };
 // }}}
 
-// {{{ NativeCanvasPattern
-class NativeCanvasPattern
+// {{{ CanvasPattern
+class CanvasPattern
 {
     public:
         JSImage *m_JsImg;
@@ -171,7 +171,7 @@ class NativeCanvasPattern
             PATTERN_REPEAT_MIRROR
         } m_Mode;
 
-        NativeCanvasPattern(JSImage *img, PATTERN_MODE repeat) :
+        CanvasPattern(JSImage *img, PATTERN_MODE repeat) :
             m_JsImg(img), m_Mode(repeat) {
         };
 };

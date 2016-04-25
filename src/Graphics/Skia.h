@@ -16,7 +16,7 @@ class SkGpuDevice;
 namespace Nidium {
     namespace Binding {
          class JSDocument;
-         class NativeCanvasPattern;
+         class CanvasPattern;
     }
 namespace Graphics {
 
@@ -99,7 +99,7 @@ class NativeSkia
         } m_NativeCanvasBindMode;
 
         friend class NativeCanvasHandler;
-        friend class NativeJSCanvas;
+        friend class JSCanvas;
 
         static SkCanvas *m_GlContext;
 
@@ -189,7 +189,7 @@ class NativeSkia
         }
         void setFillColor(const char *str);
         void setFillColor(NativeSkGradient *gradient);
-        void setFillColor(Binding::NativeCanvasPattern *pattern);
+        void setFillColor(Binding::CanvasPattern *pattern);
         void setFillColor(uint32_t color);
         void setStrokeColor(const char *str);
         void setStrokeColor(NativeSkGradient *gradient);

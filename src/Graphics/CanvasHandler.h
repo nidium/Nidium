@@ -21,7 +21,7 @@ namespace Nidium {
         class NativeUIInterface;
     }
     namespace Binding {
-        class NativeJSCanvas;
+        class JSCanvas;
     }
     namespace NML {
         class NativeContext;
@@ -119,7 +119,7 @@ class NativeCanvasHandler : public Nidium::Core::Events
     public:
         friend class NativeSkia;
         friend class NativeContext;
-        friend class Nidium::Binding::NativeJSCanvas;
+        friend class Nidium::Binding::JSCanvas;
 
         static const uint8_t EventID = 1;
         static int m_LastIdx;

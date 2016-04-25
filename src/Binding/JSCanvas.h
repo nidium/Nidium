@@ -13,7 +13,7 @@ namespace Nidium {
     }
 namespace Binding {
 
-class NativeJSCanvas: public JSExposer<NativeJSCanvas>, public Core::Messages
+class JSCanvas: public JSExposer<JSCanvas>, public Core::Messages
 {
 public:
     virtual void onMessage(const Core::SharedMessages::Message &msg);
@@ -22,8 +22,8 @@ public:
     static JSObject *GenerateJSObject(JSContext *cx, int width, int height,
         Graphics::NativeCanvasHandler **out);
 
-    NativeJSCanvas(JS::HandleObject obj, JSContext *cx, Graphics::NativeCanvasHandler *handler);
-    ~NativeJSCanvas();
+    JSCanvas(JS::HandleObject obj, JSContext *cx, Graphics::NativeCanvasHandler *handler);
+    ~JSCanvas();
 
     Graphics::NativeCanvasHandler *getHandler() const {
         return m_CanvasHandler;

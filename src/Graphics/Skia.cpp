@@ -1477,7 +1477,7 @@ bool NativeSkia::setFontFile(const char *str)
     return true;
 }
 
-void NativeSkia::setFillColor(Nidium::Binding::NativeCanvasPattern *pattern)
+void NativeSkia::setFillColor(Nidium::Binding::CanvasPattern *pattern)
 {
     SkShader *shader = NULL;
 
@@ -1485,14 +1485,14 @@ void NativeSkia::setFillColor(Nidium::Binding::NativeCanvasPattern *pattern)
         bool repeat_x = false, repeat_y = false;
 
         switch(pattern->m_Mode) {
-            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_MIRROR:
-            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT:
+            case Nidium::Binding::CanvasPattern::PATTERN_REPEAT_MIRROR:
+            case Nidium::Binding::CanvasPattern::PATTERN_REPEAT:
                 repeat_x = repeat_y = true;
                 break;
-            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_X:
+            case Nidium::Binding::CanvasPattern::PATTERN_REPEAT_X:
                 repeat_x = true;
                 break;
-            case Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_Y:
+            case Nidium::Binding::CanvasPattern::PATTERN_REPEAT_Y:
                 repeat_y = true;
                 break;
             default:
@@ -1501,9 +1501,9 @@ void NativeSkia::setFillColor(Nidium::Binding::NativeCanvasPattern *pattern)
 
         if (repeat_x && repeat_y) {
             shader = SkShader::CreateBitmapShader(*pattern->m_JsImg->m_Image->m_Image,
-                pattern->m_Mode == Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_MIRROR ?
+                pattern->m_Mode == Nidium::Binding::CanvasPattern::PATTERN_REPEAT_MIRROR ?
                     SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode,
-                pattern->m_Mode == Nidium::Binding::NativeCanvasPattern::PATTERN_REPEAT_MIRROR ?
+                pattern->m_Mode == Nidium::Binding::CanvasPattern::PATTERN_REPEAT_MIRROR ?
                     SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode);
         } else {
             SkShader::TileMode tileModeX = repeat_x ? SkShader::kRepeat_TileMode : SkShader::kClamp_TileMode;

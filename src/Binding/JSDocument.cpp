@@ -114,7 +114,7 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     Graphics::NativeCanvasHandler *rootHandler = Nidium::NML::NativeContext::GetObject(cx)->getRootHandler();
-    NativeCanvas2DContext *context = static_cast<NativeCanvas2DContext *>(rootHandler->getContext());
+    Canvas2DContext *context = static_cast<Canvas2DContext *>(rootHandler->getContext());
 
     int width, height;
     context->getSize(&width, &height);
@@ -136,7 +136,7 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     JS::RootedValue widthVal(cx, JS::Int32Value(width));
     JS::RootedValue heightVal(cx, JS::Int32Value(height));
     JS::RootedValue arVal(cx, JS::ObjectOrNullValue(arrBuffer));
-    JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::jsclass, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject dataObject(cx, JS_NewObject(cx,  Canvas2DContext::jsclass, JS::NullPtr(), JS::NullPtr()));
     JS_DefineProperty(cx, dataObject, "width", widthVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "height", heightVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "data", arVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
@@ -151,7 +151,7 @@ static bool native_document_toDataArray(JSContext *cx, unsigned argc, JS::Value 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     Graphics::NativeCanvasHandler *rootHandler = Nidium::NML::NativeContext::GetObject(cx)->getRootHandler();
-    NativeCanvas2DContext *context = static_cast<NativeCanvas2DContext *>(rootHandler->getContext());
+    Canvas2DContext *context = static_cast<Canvas2DContext *>(rootHandler->getContext());
 
     int width, height;
     context->getSize(&width, &height);
@@ -181,7 +181,7 @@ static bool native_document_toDataArray(JSContext *cx, unsigned argc, JS::Value 
     JS::RootedValue widthVal(cx, JS::Int32Value(width));
     JS::RootedValue heightVal(cx, JS::Int32Value(height));
     JS::RootedValue arVal(cx, JS::ObjectOrNullValue(arrBuffer));
-    JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::jsclass, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject dataObject(cx, JS_NewObject(cx,  Canvas2DContext::jsclass, JS::NullPtr(), JS::NullPtr()));
     JS_DefineProperty(cx, dataObject, "width", widthVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "height", heightVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "data", arVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);

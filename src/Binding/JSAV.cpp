@@ -2106,7 +2106,7 @@ void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
 }
 
 NativeJSVideo::NativeJSVideo(JS::HandleObject obj,
-    NativeCanvas2DContext *canvasCtx, JSContext *cx) :
+    Canvas2DContext *canvasCtx, JSContext *cx) :
     JSExposer<NativeJSVideo>(obj, cx),
     m_Video(NULL), m_AudioNode(NULL), m_ArrayContent(NULL),
     m_Width(-1), m_Height(-1), m_Left(0), m_Top(0), m_IsDestructing(false),
@@ -2417,7 +2417,7 @@ static bool native_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp
         return true;
     }
 
-    Graphics::NativeCanvasHandler *handler = static_cast<class NativeJSCanvas*>(
+    Graphics::NativeCanvasHandler *handler = static_cast<class JSCanvas*>(
         JS_GetInstancePrivate(cx, canvas, &Canvas_class, &args))->getHandler();
 
     if (!handler) {
@@ -2435,7 +2435,7 @@ static bool native_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp
     NJS->rootObjectUntilShutdown(ret);
     JS_DefineFunctions(cx, ret, Video_funcs);
     JS_DefineProperties(cx, ret, Video_props);
-    NativeJSVideo *v = new NativeJSVideo(ret, (NativeCanvas2DContext*)ncc, cx);
+    NativeJSVideo *v = new NativeJSVideo(ret, (Canvas2DContext*)ncc, cx);
     JS_SetPrivate(ret, v);
 
     JS_DefineProperty(cx, ret, "canvas", args[0], JSPROP_PERMANENT | JSPROP_READONLY);

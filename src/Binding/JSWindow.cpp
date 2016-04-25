@@ -1357,7 +1357,7 @@ void JSWindow::initDataBase()
 
 void JSWindow::createMainCanvas(int width, int height, JS::HandleObject docObj)
 {
-    JS::RootedObject canvas(m_Cx, NativeJSCanvas::GenerateJSObject(m_Cx, width, height, &m_Handler));
+    JS::RootedObject canvas(m_Cx, JSCanvas::GenerateJSObject(m_Cx, width, height, &m_Handler));
     Nidium::NML::NativeContext::GetObject(m_Cx)->getRootHandler()->addChild(m_Handler);
     JS::RootedValue canval(m_Cx, OBJECT_TO_JSVAL(canvas));
     JS_DefineProperty(m_Cx, docObj, "canvas", canval, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);

@@ -16,7 +16,7 @@
 
 namespace Nidium {
     namespace Binding {
-        class NativeCanvas2DContext;
+        class Canvas2DContext;
     }
 }
 
@@ -142,7 +142,7 @@ class NativeCanvasContext
     static uint32_t CreatePassThroughProgram(NativeGLResources &resource);
 
 
-    void preComposeOn(Nidium::Binding::NativeCanvas2DContext *layer,
+    void preComposeOn(Nidium::Binding::Canvas2DContext *layer,
         double left, double top, double opacity,
         double zoom, const NativeRect *rclip);
 protected:

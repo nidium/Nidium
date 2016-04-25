@@ -78,7 +78,7 @@ class CanvasWebGLContext: public Graphics::NativeCanvasContext
         void clear(uint32_t color) {};
         void flush() {};
 
-        void composeWith(NativeCanvas2DContext *layer,
+        void composeWith(Canvas2DContext *layer,
             double left, double top, double opacity,
             double zoom, const Graphics::NativeRect *rclip);
 

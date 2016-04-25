@@ -43,7 +43,7 @@ namespace Nidium {
 }
 
 class NativeJSAudioNode;
-class NativeCanvas2DContext;
+class Canvas2DContext;
 
 // {{{ NativeJSAVMessageCallback
 struct NativeJSAVMessageCallback {
@@ -236,7 +236,7 @@ class NativeJSAudioNode: public JSExposer<NativeJSAudioNode>, public Core::Messa
 class NativeJSVideo : public JSExposer<NativeJSVideo>, public Core::Messages
 {
     public :
-        NativeJSVideo(JS::HandleObject obj, NativeCanvas2DContext *canvasCtx, JSContext *cx);
+        NativeJSVideo(JS::HandleObject obj, Canvas2DContext *canvasCtx, JSContext *cx);
 
         AV::NativeVideo *m_Video;
 
@@ -261,7 +261,7 @@ class NativeJSVideo : public JSExposer<NativeJSVideo>, public Core::Messages
     private :
         void releaseAudioNode();
         bool m_IsDestructing;
-        NativeCanvas2DContext *m_CanvasCtx;
+        Canvas2DContext *m_CanvasCtx;
         JSContext *cx;
 };
 // }}}
