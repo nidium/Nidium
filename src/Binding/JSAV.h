@@ -217,7 +217,7 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Core::Messages
         static void onEvent(const struct AV::NativeAVSourceEvent *cev);
 
         // Custom source m_Node
-        static void SeekCallback(AV::NativeAudioCustomSource *node, double seekTime, void *custom);
+        static void SeekCallback(AV::AudioCustomSource *node, double seekTime, void *custom);
         static bool PropSetter(JSAudioNode *node, JSContext *cx,
                 uint8_t id, JS::MutableHandleValue vp);
 

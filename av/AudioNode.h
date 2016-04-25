@@ -267,11 +267,11 @@ class AudioNodeMixer : public AudioNode
 // }}}
 #endif
 
-// {{{ NativeAudioSource
-class NativeAudioSource: public AudioNode, public NativeAVSource
+// {{{ AudioSource
+class AudioSource: public AudioNode, public NativeAVSource
 {
     public:
-        NativeAudioSource(int out, NativeAudio *audio, bool external);
+        AudioSource(int out, NativeAudio *audio, bool external);
 
         friend class Video;
         friend class VideoAudioSource;
@@ -314,7 +314,7 @@ class NativeAudioSource: public AudioNode, public NativeAVSource
         double drop(double ms);
         void closeInternal(bool reset);
 
-        virtual ~NativeAudioSource();
+        virtual ~AudioSource();
     private:
         AVCodecContext *m_CodecCtx;
 
@@ -347,17 +347,17 @@ class NativeAudioSource: public AudioNode, public NativeAVSource
 };
 // }}}
 
-// {{{ NativeAudioCustomSource
-class NativeAudioCustomSource : public AudioNodeCustom, public NativeAVSourceEventInterface
+// {{{ AudioCustomSource
+class AudioCustomSource : public AudioNodeCustom, public NativeAVSourceEventInterface
 {
     public:
-        NativeAudioCustomSource(int out, NativeAudio *audio)
+        AudioCustomSource(int out, NativeAudio *audio)
             : AudioNodeCustom(0, out, audio), m_Playing(false),
               m_SeekCallback(NULL), m_Custom(NULL), m_SeekTime(0.0f)
         {
         }
 
-        typedef void (*SeekCallback)(NativeAudioCustomSource *m_Node, double ms, void *m_Custom);
+        typedef void (*SeekCallback)(AudioCustomSource *m_Node, double ms, void *m_Custom);
 
         bool m_Playing;
         SeekCallback m_SeekCallback;

@@ -748,8 +748,8 @@ bool AudioNodeCustom::process()
 }
 // }}}
 
-// {{{ NativeAudioSource
-NativeAudioSource::NativeAudioSource(int out, NativeAudio *audio, bool external) :
+// {{{ AudioSource
+AudioSource::AudioSource(int out, NativeAudio *audio, bool external) :
     AudioNode(0, out, audio), m_OutputParameters(NULL),
     m_BufferNotEmpty(NULL), m_rBufferOut(NULL), m_Reader(NULL),
     m_ExternallyManaged(external), m_Playing(false), m_PlayWhenReady(false),
@@ -768,7 +768,7 @@ NativeAudioSource::NativeAudioSource(int out, NativeAudio *audio, bool external)
     m_TmpFrame.nbSamples = 0;
 }
 
-int NativeAudioSource::open(const char *src)
+int AudioSource::open(const char *src)
 {
 #define RETURN_WITH_ERROR(err) \
 this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
@@ -805,20 +805,20 @@ return err;
 #undef RETURN_WITH_ERROR
 }
 
-int NativeAudioSource::openInit()
+int AudioSource::openInit()
 {
     m_SourceDoOpen = true;
     NATIVE_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
     return 0;
 }
 
-void NativeAudioSource::openInitCoro(void *arg)
+void AudioSource::openInitCoro(void *arg)
 {
 #define RETURN_WITH_ERROR(err) \
 thiz->sendEvent(SOURCE_EVENT_ERROR, err, false);\
 thiz->postMessage(thiz, NativeAVSource::MSG_CLOSE);\
 Coro_switchTo_(thiz->m_Coro, thiz->m_MainCoro);
-    NativeAudioSource *thiz = static_cast<NativeAudioSource *>(arg);
+    AudioSource *thiz = static_cast<AudioSource *>(arg);
     thiz->m_SourceDoOpen = false;
 
     int ret;
@@ -834,7 +834,7 @@ Coro_switchTo_(thiz->m_Coro, thiz->m_MainCoro);
 #undef RETURN_WITH_ERROR
 }
 
-int NativeAudioSource::open(void *buffer, int size)
+int AudioSource::open(void *buffer, int size)
 {
 #define RETURN_WITH_ERROR(err) \
 this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
@@ -878,7 +878,7 @@ return err;
 #undef RETURN_WITH_ERROR
 }
 
-int NativeAudioSource::initStream()
+int AudioSource::initStream()
 {
     // Open input
     int ret = avformat_open_input(&m_Container, "dummyFile", NULL, NULL);
@@ -915,7 +915,7 @@ int NativeAudioSource::initStream()
     return 0;
 }
 
-int NativeAudioSource::initInternal()
+int AudioSource::initInternal()
 {
     AVCodec *codec;
 
@@ -1002,12 +1002,12 @@ int NativeAudioSource::initInternal()
     return 0;
 }
 
-int NativeAudioSource::avail()
+int AudioSource::avail()
 {
     return m_Opened ? (int) PaUtil_GetRingBufferReadAvailable(m_rBufferOut) : 0;
 }
 
-bool NativeAudioSource::buffer()
+bool AudioSource::buffer()
 {
     if (m_Reader->m_Async) {
         if (m_Buffering || m_DoSemek) {
@@ -1017,7 +1017,7 @@ bool NativeAudioSource::buffer()
         }
 
         m_Buffering = true;
-        Coro_startCoro_(m_MainCoro, m_Coro, this, NativeAudioSource::bufferCoro);
+        Coro_startCoro_(m_MainCoro, m_Coro, this, AudioSource::bufferCoro);
 
         if (!m_Reader->m_Pending) {
             m_Buffering = false;
@@ -1030,7 +1030,7 @@ bool NativeAudioSource::buffer()
     }
 }
 
-bool NativeAudioSource::bufferInternal()
+bool AudioSource::bufferInternal()
 {
     for (; ;) {
         int ret = av_read_frame(m_Container, m_TmpPacket);
@@ -1053,8 +1053,8 @@ bool NativeAudioSource::bufferInternal()
     return true;
 }
 
-void NativeAudioSource::bufferCoro(void *arg) {
-    NativeAudioSource *t = static_cast<NativeAudioSource*>(arg);
+void AudioSource::bufferCoro(void *arg) {
+    AudioSource *t = static_cast<AudioSource*>(arg);
     t->bufferInternal();
 
     Coro_switchTo_(t->m_Coro, t->m_MainCoro);
@@ -1062,12 +1062,12 @@ void NativeAudioSource::bufferCoro(void *arg) {
 
 // This method is used when the source is externally managed
 // (To fill a packet to the source)
-void NativeAudioSource::buffer(AVPacket *pkt) {
+void AudioSource::buffer(AVPacket *pkt) {
     m_TmpPacket = pkt;
     m_PacketConsumed = false;
 }
 
-bool NativeAudioSource::work()
+bool AudioSource::work()
 {
     if (!m_ExternallyManaged) {
         if (!m_Reader) {
@@ -1075,7 +1075,7 @@ bool NativeAudioSource::work()
         }
 
         if (m_SourceDoOpen) {
-            Coro_startCoro_(m_MainCoro, m_Coro, this, NativeAudioSource::openInitCoro);
+            Coro_startCoro_(m_MainCoro, m_Coro, this, AudioSource::openInitCoro);
             return true;
         }
 
@@ -1097,7 +1097,7 @@ bool NativeAudioSource::work()
         if (!m_Reader->m_Async) {
             this->seekInternal(m_DoSeekTime);
         } else {
-            Coro_startCoro_(m_MainCoro, m_Coro, this, NativeAudioSource::seekCoro);
+            Coro_startCoro_(m_MainCoro, m_Coro, this, AudioSource::seekCoro);
         }
     }
 
@@ -1132,7 +1132,7 @@ bool NativeAudioSource::work()
 
     return true;
 }
-bool NativeAudioSource::decode()
+bool AudioSource::decode()
 {
 #define RETURN_WITH_ERROR(err) \
 av_free(tmpFrame); \
@@ -1237,7 +1237,7 @@ return false;
 #undef RETURN_WITH_ERROR
 }
 
-int NativeAudioSource::resample(int destSamples) {
+int AudioSource::resample(int destSamples) {
     int channels = m_NbChannel;
 
     if (m_fCvt) {
@@ -1327,7 +1327,7 @@ int NativeAudioSource::resample(int destSamples) {
     return 0;
 }
 
-double NativeAudioSource::getClock() {
+double AudioSource::getClock() {
     if (!m_Opened) return 0;
 
     ring_buffer_size_t decodedSamples = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
@@ -1342,7 +1342,7 @@ double NativeAudioSource::getClock() {
     return ret < 0 ? 0 : ret;
 }
 
-double NativeAudioSource::drop(double sec)
+double AudioSource::drop(double sec)
 {
     ring_buffer_size_t drop = ceil(sec/1.0 * m_Audio->m_OutputParameters->m_SampleRate);
     ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
@@ -1357,7 +1357,7 @@ double NativeAudioSource::drop(double sec)
     return actualDropDuration;
 }
 
-void NativeAudioSource::seek(double time)
+void AudioSource::seek(double time)
 {
     if (!m_Opened || m_DoSemek) {
         return;
@@ -1369,12 +1369,12 @@ void NativeAudioSource::seek(double time)
     NATIVE_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
 }
 
-void NativeAudioSource::seekCoro(void *arg)
+void AudioSource::seekCoro(void *arg)
 {
-    NativeAudioSource *source = static_cast<NativeAudioSource *>(arg);
+    AudioSource *source = static_cast<AudioSource *>(arg);
     source->seekInternal(source->m_DoSeekTime);
 }
-void NativeAudioSource::seekInternal(double time)
+void AudioSource::seekInternal(double time)
 {
     if (m_ExternallyManaged) {
         avcodec_flush_buffers(m_CodecCtx);
@@ -1436,7 +1436,7 @@ void NativeAudioSource::seekInternal(double time)
     }
 }
 
-bool NativeAudioSource::process() {
+bool AudioSource::process() {
     if (!m_Opened) {
         SPAM(("Not opened\n"));
         return false;
@@ -1494,7 +1494,7 @@ bool NativeAudioSource::process() {
     return true;
 }
 
-void NativeAudioSource::closeInternal(bool reset)
+void AudioSource::closeInternal(bool reset)
 {
     // Finish the reader first, any pending call
     // will be finished (seek, read) so we can lock the thread
@@ -1577,7 +1577,7 @@ void NativeAudioSource::closeInternal(bool reset)
     m_Audio->unlockSources();
 }
 
-void NativeAudioSource::play()
+void AudioSource::play()
 {
     if (!m_Opened) {
         m_PlayWhenReady = true;
@@ -1595,7 +1595,7 @@ void NativeAudioSource::play()
     this->sendEvent(SOURCE_EVENT_PLAY, 0, false);
 }
 
-void NativeAudioSource::pause()
+void AudioSource::pause()
 {
     if (!m_Opened) {
         return;
@@ -1605,7 +1605,7 @@ void NativeAudioSource::pause()
     this->sendEvent(SOURCE_EVENT_PAUSE, 0, false);
 }
 
-void NativeAudioSource::stop()
+void AudioSource::stop()
 {
     if (!m_ExternallyManaged) {
         this->seek(0);
@@ -1620,25 +1620,25 @@ void NativeAudioSource::stop()
     this->sendEvent(SOURCE_EVENT_STOP, 0, false);
 }
 
-void NativeAudioSource::close()
+void AudioSource::close()
 {
     this->closeInternal(false);
 }
 
-bool NativeAudioSource::isActive()
+bool AudioSource::isActive()
 {
     return m_Playing && m_Error != AVERROR_EOF;
 }
 
 
-NativeAudioSource::~NativeAudioSource() {
+AudioSource::~AudioSource() {
     m_Audio->removeSource(this);
     this->closeInternal(false);
 }
 // }}}
 
-// {{{ NativeAudioCustomSource
-void NativeAudioCustomSource::play()
+// {{{ AudioCustomSource
+void AudioCustomSource::play()
 {
     m_Playing = true;
 
@@ -1648,14 +1648,14 @@ void NativeAudioCustomSource::play()
 }
 
 
-void NativeAudioCustomSource::pause()
+void AudioCustomSource::pause()
 {
     m_Playing = false;
 
     this->sendEvent(SOURCE_EVENT_PAUSE, 0, false);
 }
 
-void NativeAudioCustomSource::stop()
+void AudioCustomSource::stop()
 {
     m_Playing = false;
     this->seek(0);
@@ -1663,28 +1663,28 @@ void NativeAudioCustomSource::stop()
     this->sendEvent(SOURCE_EVENT_STOP, 0, false);
 }
 
-void NativeAudioCustomSource::setSeek(SeekCallback cbk, void *custom)
+void AudioCustomSource::setSeek(SeekCallback cbk, void *custom)
 {
     m_SeekCallback = cbk;
     m_Custom = custom;
 }
 
-void NativeAudioCustomSource::seek(double ms)
+void AudioCustomSource::seek(double ms)
 {
     m_SeekTime = ms;
     if (m_SeekCallback != NULL) {
-        this->callback(NativeAudioCustomSource::seekMethod, NULL);
+        this->callback(AudioCustomSource::seekMethod, NULL);
     }
 }
 
 // Called from Audio thread
-void NativeAudioCustomSource::seekMethod(AudioNode *node, void *custom)
+void AudioCustomSource::seekMethod(AudioNode *node, void *custom)
 {
-    NativeAudioCustomSource *thiz = static_cast<NativeAudioCustomSource*>(node);
-    thiz->m_SeekCallback(static_cast<NativeAudioCustomSource*>(node), thiz->m_SeekTime, thiz->m_Custom);
+    AudioCustomSource *thiz = static_cast<AudioCustomSource*>(node);
+    thiz->m_SeekCallback(static_cast<AudioCustomSource*>(node), thiz->m_SeekTime, thiz->m_Custom);
 }
 
-bool NativeAudioCustomSource::process()
+bool AudioCustomSource::process()
 {
     if (!m_Playing) return false;
 
@@ -1695,7 +1695,7 @@ bool NativeAudioCustomSource::process()
     return true;
 }
 
-bool NativeAudioCustomSource::isActive()
+bool AudioCustomSource::isActive()
 {
     return m_Playing;
 }

@@ -238,7 +238,7 @@ void NativeAudio::readMessages(bool flush)
 void NativeAudio::processQueue()
 {
     SPAM(("process queue\n"));
-    NativeAudioSources *sources = m_Sources;
+    AudioSources *sources = m_Sources;
 
     while (sources!= NULL)
     {
@@ -255,8 +255,8 @@ void *NativeAudio::decodeThread(void *args)
 {
     NativeAudio *audio = static_cast<NativeAudio *>(args);
 
-    NativeAudioSources *sources;
-    NativeAudioSource *source;
+    AudioSources *sources;
+    AudioSource *source;
     int haveEnought, sourcesCount;
 
     for(; ;) {
@@ -272,7 +272,7 @@ void *NativeAudio::decodeThread(void *args)
             haveEnought = 0;
 
             if (sources->curr != NULL && !sources->externallyManaged) {
-                source = static_cast<NativeAudioSource*>(sources->curr);
+                source = static_cast<AudioSource*>(sources->curr);
 
                 // Loop as long as there is data to read and write
                 while (source->work()) {}
@@ -464,7 +464,7 @@ int NativeAudio::paOutputCallback(const void *inputBuffer, void *outputBuffer,
 bool NativeAudio::haveSourceActive(bool excludeExternal)
 {
     pthread_mutex_lock(&m_SourcesLock);
-    NativeAudioSources *sources = m_Sources;
+    AudioSources *sources = m_Sources;
     while (sources != NULL)
     {
         AudioNode *node = sources->curr;
@@ -500,7 +500,7 @@ double NativeAudio::getLatency() {
 
 AudioNode *NativeAudio::addSource(AudioNode *source, bool externallyManaged)
 {
-    NativeAudioSources *sources = new NativeAudioSources();
+    AudioSources *sources = new AudioSources();
 
     this->lockSources();
     this->lockQueue();
@@ -523,12 +523,12 @@ AudioNode *NativeAudio::addSource(AudioNode *source, bool externallyManaged)
     return sources->curr;
 }
 
-void NativeAudio::removeSource(NativeAudioSource *source)
+void NativeAudio::removeSource(AudioSource *source)
 {
     this->lockSources();
     this->lockQueue();
 
-    NativeAudioSources *sources = m_Sources;
+    AudioSources *sources = m_Sources;
 
     while (sources != NULL)
     {
@@ -563,13 +563,13 @@ AudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int output
         switch (node) {
             case SOURCE:
                 {
-                    AudioNode *source = new NativeAudioSource(output, this, false);
+                    AudioNode *source = new AudioSource(output, this, false);
                     return this->addSource(source, false);
                 }
                 break;
             case CUSTOM_SOURCE:
                 {
-                    AudioNode *source = new NativeAudioCustomSource(output, this);
+                    AudioNode *source = new AudioCustomSource(output, this);
                     return this->addSource(source, true);
                 }
                 break;

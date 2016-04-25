@@ -33,7 +33,7 @@ namespace AV {
     return NULL;\
 }\
 
-class NativeAudioSource;
+class AudioSource;
 class AudioNode;
 class AudioNodeTarget;
 struct NodeLink;
@@ -45,8 +45,8 @@ class NativeAudio
         NativeAudio(ape_global *net, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate);
 
         friend class Video;
-        friend class NativeAudioSource;
-        friend class NativeAudioCustomSource;
+        friend class AudioSource;
+        friend class AudioCustomSource;
 
         enum SampleFormat {
             FLOAT32 = sizeof(float),
@@ -88,7 +88,7 @@ class NativeAudio
         int openOutput();
         int openInput();
         AudioNode *addSource(AudioNode *source, bool externallyManaged);
-        void removeSource(NativeAudioSource *source);
+        void removeSource(AudioSource *source);
         AudioNode *createNode(NativeAudio::Node node, int input, int ouput);
         bool connect(NodeLink *input, NodeLink *output);
         bool disconnect(NodeLink *input, NodeLink *output);
@@ -116,12 +116,12 @@ class NativeAudio
 
         ~NativeAudio();
     private:
-        struct NativeAudioSources {
+        struct AudioSources {
             AudioNode *curr;
             bool externallyManaged;
 
-            NativeAudioSources *next;
-            NativeAudioSources *prev;
+            AudioSources *next;
+            AudioSources *prev;
         };
 
         PaStream *m_InputStream;
@@ -141,7 +141,7 @@ class NativeAudio
         bool m_QueueFreeLock;
         bool m_SharedMsgFlush;
         bool m_ThreadShutdown;
-        NativeAudioSources *m_Sources;
+        AudioSources *m_Sources;
         int m_QueueCount;
 
         void readMessages();

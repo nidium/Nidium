@@ -76,7 +76,7 @@ class Video : public NativeAVSource
         int m_TimersDelay;
 
         ape_global *m_Net;
-        NativeAudioSource *m_AudioSource;
+        AudioSource *m_AudioSource;
 
         VideoCallback m_FrameCbk;
         void *m_FrameCbkArg;
@@ -136,7 +136,7 @@ class Video : public NativeAVSource
 
         void frameCallback(VideoCallback cbk, void *arg);
 
-        NativeAudioSource *getAudioNode(NativeAudio *audio);
+        AudioSource *getAudioNode(NativeAudio *audio);
         static void* decode(void *args);
         static int display(void *custom);
         void setSize(int width, int height);
@@ -197,11 +197,11 @@ class Video : public NativeAVSource
 // }}}
 
 // {{{ VideoAudioSource
-class VideoAudioSource: public NativeAudioSource
+class VideoAudioSource: public AudioSource
 {
   public:
       VideoAudioSource(int out, Video *video, bool external) :
-          NativeAudioSource(out, video->m_Audio, external),
+          AudioSource(out, video->m_Audio, external),
           m_Video(video), m_FreePacket(NULL)
       {
       };

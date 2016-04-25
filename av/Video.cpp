@@ -654,7 +654,7 @@ void Video::frameAt(double time, bool keyframe)
 }
 // }}}
 
-NativeAudioSource *Video::getAudioNode(NativeAudio *audio)
+AudioSource *Video::getAudioNode(NativeAudio *audio)
 {
 
     if (m_AudioSource) {
