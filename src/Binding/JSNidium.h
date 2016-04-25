@@ -10,15 +10,15 @@ namespace Nidium {
     }
 namespace Binding {
 
-class NativeJSNative : public JSExposer<NativeJSNative>
+class JSNidium : public JSExposer<JSNidium>
 {
   public:
-    NativeJSNative(JS::HandleObject obj, JSContext *cx) :
-        JSExposer<NativeJSNative>(obj, cx)
+    JSNidium(JS::HandleObject obj, JSContext *cx) :
+        JSExposer<JSNidium>(obj, cx)
     {
 
     }
-    ~NativeJSNative() {};
+    ~JSNidium() {};
 
     static void RegisterObject(JSContext *cx);
 

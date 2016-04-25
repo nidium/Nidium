@@ -168,7 +168,7 @@ void NativeContext::loadNativeObjects(int width, int height)
     Nidium::Binding::JSWebGLShaderPrecisionFormat::RegisterObject(cx);
 #endif
     /* Native() object */
-    Nidium::Binding::NativeJSNative::RegisterObject(cx);
+    Nidium::Binding::JSNidium::RegisterObject(cx);
     /* document() object */
     JS::RootedObject docObj(cx, Nidium::Binding::JSDocument::RegisterObject(cx));
     /* window() object */

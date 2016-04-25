@@ -13,10 +13,10 @@ static JSClass Native_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-JSClass *NativeJSNative::jsclass = &Native_class;
+JSClass *JSNidium::jsclass = &Native_class;
 
 template<>
-JSClass *JSExposer<NativeJSNative>::jsclass = &Native_class;
+JSClass *JSExposer<JSNidium>::jsclass = &Native_class;
 
 
 static JSFunctionSpec Native_funcs[] = {
@@ -25,7 +25,7 @@ static JSFunctionSpec Native_funcs[] = {
 
 void Native_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeJSNative *jnative = NativeJSNative::GetObject(obj);
+    JSNidium *jnative = JSNidium::GetObject(obj);
 
     if (jnative != NULL) {
         delete jnative;
@@ -34,17 +34,17 @@ void Native_Finalize(JSFreeOp *fop, JSObject *obj)
 // }}}
 
 // {{{ Registration
-void NativeJSNative::RegisterObject(JSContext *cx)
+void JSNidium::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject NativeObj(cx, JS_DefineObject(cx, global,
-        NativeJSNative::GetJSObjectName(), &Native_class , nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
+        JSNidium::GetJSObjectName(), &Native_class , nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
-    NativeJSNative *jnative = new NativeJSNative(NativeObj, cx);
+    JSNidium *jnative = new JSNidium(NativeObj, cx);
     JS_DefineFunctions(cx, NativeObj, Native_funcs);
     JS_SetPrivate(NativeObj, jnative);
 
-    NidiumJS::GetObject(cx)->jsobjects.set(NativeJSNative::GetJSObjectName(), NativeObj);
+    NidiumJS::GetObject(cx)->jsobjects.set(JSNidium::GetJSObjectName(), NativeObj);
 
     //JS::RootedObject titleBar(cx, JSCanvas::GenerateJSObject(cx, width, 35));
     //((NativeCanvasHandler *)JS_GetPrivate(canvas))->translate(0, 35);
