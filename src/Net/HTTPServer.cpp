@@ -31,7 +31,7 @@ namespace Net {
 static struct {
     uint16_t code;
     const char *desc;
-} NativeHTTP_Codes[] = {
+} HTTPCodes[] = {
     {100, "Continue"},
     {101, "Switching Protocols"},
     {200, "OK"},
@@ -714,9 +714,9 @@ const buffer *HTTPResponse::getDataBuffer()
 
 const char *HTTPResponse::getStatusDesc() const
 {
-    for (int i = 0; NativeHTTP_Codes[i].desc != NULL; i++) {
-        if (NativeHTTP_Codes[i].code == m_Statuscode) {
-            return NativeHTTP_Codes[i].desc;
+    for (int i = 0; HTTPCodes[i].desc != NULL; i++) {
+        if (HTTPCodes[i].code == m_Statuscode) {
+            return HTTPCodes[i].desc;
         }
     }
 
