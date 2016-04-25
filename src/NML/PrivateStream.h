@@ -59,14 +59,14 @@ public:
 
 #else
 
-class PrivateStream : public NativeNFSStream
+class PrivateStream : public NFSStream
 {
 public:
     explicit PrivateStream(const char *location) :
 #if 0
-        NativeNFSStream((std::string("/private") + location).c_str())
+        NFSStream((std::string("/private") + location).c_str())
 #else
-        NativeNFSStream(location)
+        NFSStream(location)
 #endif
     {
     }
