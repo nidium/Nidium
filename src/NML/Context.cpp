@@ -254,7 +254,7 @@ void NativeContext::postDraw()
 {
     if (Nidium::Binding::JSDocument::m_ShowFPS && m_DebugHandler) {
 
-        Nidium::Graphics::NativeSkia *s = (static_cast<Nidium::Binding::Canvas2DContext *>(m_DebugHandler->getContext())->getSurface());
+        Nidium::Graphics::Skia *s = (static_cast<Nidium::Binding::Canvas2DContext *>(m_DebugHandler->getContext())->getSurface());
         m_DebugHandler->bringToFront();
 
         s->setFillColor(0xFF000000u);
@@ -290,7 +290,7 @@ void NativeContext::postDraw()
     if (m_Debug2Handler) {
         m_Debug2Handler->bringToFront();
         m_Debug2Handler->getContext()->clear();
-        Nidium::Graphics::NativeSkia *rootctx = (static_cast<Nidium::Binding::Canvas2DContext *>(m_Debug2Handler->getContext())->getSurface());
+        Nidium::Graphics::Skia *rootctx = (static_cast<Nidium::Binding::Canvas2DContext *>(m_Debug2Handler->getContext())->getSurface());
         rootctx->save();
 
         rootctx->setFillColor("black");
@@ -355,7 +355,7 @@ NativeContext::~NativeContext()
     delete m_GLState;
     delete m_WS;
 
-    Nidium::Graphics::NativeSkia::m_GlContext = NULL;
+    Nidium::Graphics::Skia::m_GlContext = NULL;
 
     ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
     this->clearInputEvents();

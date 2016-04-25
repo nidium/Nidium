@@ -2163,7 +2163,7 @@ void JSVideo::FrameCallback(uint8_t *data, void *custom)
 {
     JSVideo *v = (JSVideo *)custom;
     Graphics::CanvasHandler *handler = v->m_CanvasCtx->getHandler();
-    Graphics::NativeSkia *surface = v->m_CanvasCtx->getSurface();
+    Graphics::Skia *surface = v->m_CanvasCtx->getSurface();
     JSContext *cx = v->cx;
 
     surface->setFillColor(0xFF000000);

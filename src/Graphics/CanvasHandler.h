@@ -32,7 +32,7 @@ namespace Nidium {
 namespace Nidium {
 namespace Graphics {
 
-class NativeSkia;
+class Skia;
 class CanvasContext;
 
 // {{{ NativeRect
@@ -117,7 +117,7 @@ struct NativeLayerizeContext {
 class CanvasHandler : public Nidium::Core::Events
 {
     public:
-        friend class NativeSkia;
+        friend class Skia;
         friend class NativeContext;
         friend class Nidium::Binding::JSCanvas;
 

@@ -128,7 +128,7 @@ static bool nidium_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
 
     memcpy(pixels, fb, width * height * 4);
 
-    //NativeSkia *skia = context->getSurface();
+    //Skia *skia = context->getSurface();
     //skia->readPixels(0, 0, width, height, pixels);
     //glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
     //glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);

@@ -355,7 +355,7 @@ void CanvasContext::preComposeOn(Nidium::Binding::Canvas2DContext *layer,
     bool revertScissor = false;
     float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
 
-    NativeSkia *skia = layer->getSurface();
+    Skia *skia = layer->getSurface();
     SkISize layerSize = skia->getCanvas()->getDeviceSize();
 
     /*

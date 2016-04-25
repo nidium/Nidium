@@ -803,7 +803,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
             }
             JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString color(cx, vpStr);
-            uint32_t icolor = Graphics::NativeSkia::ParseColor(color.ptr());
+            uint32_t icolor = Graphics::Skia::ParseColor(color.ptr());
 
             NUI->setTitleBarRGBAColor(
                 (icolor & 0x00FF0000) >> 16,

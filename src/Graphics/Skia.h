@@ -68,8 +68,8 @@ struct _nativeState {
 };
 // }}}
 
-// {{{ NativeSkia
-class NativeSkia
+// {{{ Skia
+class Skia
 {
     private:
         struct _nativeState *m_State;
@@ -88,8 +88,8 @@ class NativeSkia
         double m_FontSkew;
 
     public:
-        ~NativeSkia();
-        NativeSkia();
+        ~Skia();
+        Skia();
 
         enum BindMode {
             BIND_NO,
@@ -240,8 +240,8 @@ class NativeSkia
         static uint32_t ParseColor(const char *str);
         static SkPMColor HSLToSKColor(U8CPU alpha, float hsl[3]);
 #if 0
-        static NativeSkia &GetInstance() {
-            static NativeSkia ret;
+        static Skia &GetInstance() {
+            static Skia ret;
 
             return ret;
         }

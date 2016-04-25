@@ -16,13 +16,13 @@ namespace Nidium {
     }
     namespace Graphics {
         struct NativeRect;
-        class NativeSkia;
+        class Skia;
         class CanvasHandler;
     }
 namespace Binding {
 
 /*
-    Create a new 2D context using Graphics::NativeSkia.
+    Create a new 2D context using Graphics::Skia.
     A new JSObject is created with Canvas2DContext as private
     The class is auto destroyed if no reference is retained to the JSObject
 
@@ -93,7 +93,7 @@ class Canvas2DContext : public Graphics::CanvasContext
 
         void setVertexDeformation(uint32_t vertex, float x, float y);
 
-        Graphics::NativeSkia *getSurface() const {
+        Graphics::Skia *getSurface() const {
             return m_Skia;
         }
 
@@ -141,7 +141,7 @@ class Canvas2DContext : public Graphics::CanvasContext
 
         virtual ~Canvas2DContext();
     private:
-        Graphics::NativeSkia *m_Skia;
+        Graphics::Skia *m_Skia;
         Canvas2DContextState *m_CurrentState;
 
 
