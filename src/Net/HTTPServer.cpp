@@ -359,7 +359,7 @@ void HTTPServer::onClientConnect(ape_socket *client, ape_global *ape)
     this->onClientConnect((HTTPClientConnection *)client->ctx);
 }
 
-int NativeHTTPClientConnection_checktimeout(void *arg)
+int HTTPClientConnection_checktimeout(void *arg)
 {
     HTTPClientConnection *con = (HTTPClientConnection *)arg;
     uint64_t timeout = con->getTimeoutAfterMs();
@@ -398,7 +398,7 @@ HTTPClientConnection::HTTPClientConnection(HTTPServer *httpserver,
     m_HttpState.parser.data = this;
 
     ape_timer_t *timer = APE_timer_create(socket->ape, 1000,
-        NativeHTTPClientConnection_checktimeout, this);
+        HTTPClientConnection_checktimeout, this);
 
     m_TimeoutTimer = APE_timer_getid(timer);
 
