@@ -1,21 +1,11 @@
 #include "NativeX11UIInterface.h"
+#include "NativeSystem.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdarg.h>
-#include <string.h>
-#include <strings.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <math.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <ape_netlib.h>
 
 #include <X11/cursorfont.h>
 #include <../build/include/SDL_config.h>
 #include <SDL.h>
-#include <SDL_opengl.h>
 #include <SDL_syswm.h>
 
 
@@ -23,23 +13,6 @@
 #include <gtk/gtk.h>
 #endif
 
-#ifdef NATIVE_USE_QT
-#include <QtGui>
-#include <QFileDialog>
-#include <QString>
-#endif
-
-#include "NativeJSWindow.h"
-#include "NativeApp.h"
-#include "NativeContext.h"
-#include "NativeSystem.h"
-#include "NativeNML.h"
-
-#define kNativeWidth 1280
-#define kNativeHeight 600
-
-#define kNativeVSYNC 1
-#define kNativeTitleBarHeight 0
 
 #if 0
 static Window *NativeX11Window(SDL_Window *m_Win)
@@ -180,74 +153,15 @@ void NativeX11UIInterface::openFileDialog(const char *files[],
 
     free(lst);
 #endif
-#ifdef NATIVE_USE_QT
-    QApplication app(0, NULL);
-    QString fileName = QFileDialog::getOpenFileName(NULL,
-               "Open file", NULL, "Image Files (*.png *.jpg *.bmp)");
-#endif
-}
-
-void NativeX11UIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
-    uint8_t b, uint8_t a)
-{
-
-}
-
-void NativeX11UIInterface::initControls()
-{
-
-}
-
-void NativeX11UIInterface::setWindowControlsOffset(double x, double y)
-{
 
 }
 
 void NativeX11UIInterface::runLoop()
 {
-
     APE_timer_create(m_Gnet, 1, NativeUIInterface::HandleEvents, (void *)this);
-
     APE_loop_run(m_Gnet);
 }
 
-NativeUIX11Console::NativeUIX11Console ()
-{
-}
-
-void NativeUIX11Console::log(const char *str)
-{
-    if (strcmp("\n", str) == 0) {
-        fprintf(stdout, "\n");
-    } else {
-        fprintf(stdout, "[CONSOLE] %s", str);
-    }
-}
-
-void NativeUIX11Console::show()
-{
-}
-
-void NativeUIX11Console::hide()
-{
-}
-
-bool NativeUIX11Console::hidden()
-{
-    return true;
-}
-
-void NativeUIX11Console::clear()
-{
-}
-
-void NativeUIX11Console::flush()
-{
-}
-
-NativeUIX11Console::~NativeUIX11Console()
-{
-}
 
 void NativeX11UIInterface::log(const char *buf)
 {
@@ -317,5 +231,14 @@ void NativeX11UIInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
         XDefineCursor(d, info.info.x11.window, c);
         XFlush(d);
         XFreeCursor(d, c);
+    }
+}
+
+void NativeUIX11Console::log(const char *str)
+{
+    if (strcmp("\n", str) == 0) {
+        fprintf(stdout, "\n");
+    } else {
+        fprintf(stdout, "[CONSOLE] %s", str);
     }
 }

@@ -3,14 +3,14 @@
 class NativeUIX11Console : public NativeUIInterface::NativeUIConsole
 {
     public:
-        NativeUIX11Console();
-        ~NativeUIX11Console();
+        NativeUIX11Console(){};
+        ~NativeUIX11Console(){};
         void log(const char *str);
-        void show();
-        void hide();
-        void clear();
-        void flush();
-        bool hidden();
+        void show(){};
+        void hide(){};
+        void clear(){};
+        void flush(){};
+        bool hidden() { return true; };
 };
 
 class NativeX11UIInterface : public NativeUIInterface
@@ -19,12 +19,12 @@ class NativeX11UIInterface : public NativeUIInterface
         NativeX11UIInterface();
         void runLoop();
         void quitApplication();
-        void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
-        void setWindowControlsOffset(double x, double y);
+        void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {};
+        void setWindowControlsOffset(double x, double y) {};
         void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags = 0);
 
-        void initControls();
+        void initControls() {};
         NativeUIX11Console *getConsole(bool create=false, bool *created=NULL) {
             return this->console;
         }
