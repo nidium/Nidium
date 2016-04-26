@@ -7,8 +7,8 @@
 
 #include <Net/HTTPStream.h>
 
-#include "NML/PrivateStream.h"
-#include "NML/SystemStream.h"
+#include "IO/PrivateStream.h"
+#include "IO/SystemStream.h"
 #include "NML/Context.h"
 #include "Graphics/OpenGLHeader.h"
 
@@ -24,10 +24,10 @@ NativeUIInterface::NativeUIInterface() :
     m_MainGLCtx(NULL), m_SystemMenu(this)
 {
     Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("file://",    Nidium::IO::FileStream,    false), true); // default
-    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("private://", Nidium::NML::PrivateStream, false));
+    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("private://", Nidium::IO::PrivateStream, false));
 #if 1
-    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("system://",  Nidium::NML::SystemStream,  false));
-    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("user://",    Nidium::NML::UserStream,    false));
+    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("system://",  Nidium::IO::SystemStream,  false));
+    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("user://",    Nidium::IO::UserStream,    false));
 #endif
     Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("http://",    Nidium::Net::HTTPStream,    true));
     Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("https://",   Nidium::Net::HTTPStream,    true));

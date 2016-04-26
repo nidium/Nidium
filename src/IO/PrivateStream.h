@@ -17,29 +17,62 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef nml_systemstream_h__
-#define nml_systemstream_h__
+#ifndef io_privatestream_h__
+#define io_privatestream_h__
 
 #include <string>
 
 #include <IO/FileStream.h>
+#include <IO/NFSStream.h>
 
 #include <SystemInterface.h>
 
-namespace Nidium {
-namespace NML {
+#ifndef NATIVE_EMBED_PRIVATE
 
-// {{{ SystemStream
-class SystemStream : public Nidium::IO::FileStream
+namespace Nidium {
+namespace IO {
+
+class PrivateStream : public Nidium::IO::FileStream
 {
 public:
-    explicit SystemStream(const char *location) :
+    explicit PrivateStream(const char *location) :
         Nidium::IO::FileStream(location)
     {
     }
 
     static Nidium::IO::Stream *CreateStream(const char *location) {
-        return new SystemStream(location);
+        return new PrivateStream(location);
+    }
+
+    static bool AllowLocalFileStream() {
+        return true;
+    }
+
+    static bool AllowSyncStream() {
+        return true;
+    }
+
+    static const char *GetBaseDir() {
+        return Nidium::Interface::NativeSystemInterface::GetInstance()->getPrivateDirectory();
+    }
+};
+
+#else
+
+class PrivateStream : public NFSStream
+{
+public:
+    explicit PrivateStream(const char *location) :
+#if 0
+        NFSStream((std::string("/private") + location).c_str())
+#else
+        NFSStream(location)
+#endif
+    {
+    }
+
+    static Nidium::IO::Stream *CreateStream(const char *location) {
+        return new PrivateStream(location);
     }
 
     static bool AllowLocalFileStream() {
@@ -54,37 +87,11 @@ public:
         return "/";
     }
 };
-// }}}
-
-// {{{ UserStream
-class UserStream : public Nidium::IO::FileStream
-{
-public:
-    explicit UserStream(const char *location) :
-        Nidium::IO::FileStream(location)
-    {
-    }
-
-    static Nidium::IO::Stream *CreateStream(const char *location) {
-        return new UserStream(location);
-    }
-
-    static bool AllowLocalFileStream() {
-        return true;
-    }
-
-    static bool AllowSyncStream() {
-        return true;
-    }
-
-    static const char *GetBaseDir() {
-        return Nidium::Interface::NativeSystemInterface::GetInstance()->getUserDirectory();
-    }
-};
-// }}}
-
-} // namespace NML
-} // namespace Nidium
 
 #endif
+
+#endif
+
+} // namespace IO
+} // namespace Nidium
 
