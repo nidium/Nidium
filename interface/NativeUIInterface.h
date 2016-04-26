@@ -142,16 +142,6 @@ class NativeUIInterface
         */
         virtual void runLoop()=0;
 
-        virtual void stopApplication();
-        virtual void restartApplication(const char *path=NULL);
-
-        virtual void refreshApplication(bool clearConsole = false);
-
-        virtual bool runJSWithoutNML(const char *path, int width = 800,
-            int height = 600) {
-            return false;
-        };
-
 
         /*
             Create the initial window
@@ -178,6 +168,22 @@ class NativeUIInterface
             Run the NML at the specified path
         */
         virtual bool runApplication(const char *path);
+
+        /*
+            Stop the current running nml application
+        */
+        virtual void stopApplication();
+
+        /*
+            Start a new application
+        */
+        virtual void restartApplication(const char *path=NULL);
+
+        /*
+            Refresh the current application
+            Internally calls restartApplication with the current NML Path
+        */
+        virtual void refreshApplication(bool clearConsole = false);
 
         /*
             Schedule a cursor change

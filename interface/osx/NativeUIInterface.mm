@@ -139,38 +139,6 @@ void NativeCocoaUIInterface::stopApplication()
     NativeUIInterface::stopApplication();
 }
 
-bool NativeCocoaUIInterface::runJSWithoutNML(const char *path, int width, int height)
-{
-    NativeMessages::initReader(m_Gnet);
-    if (path != this->m_FilePath) {
-        if (this->m_FilePath) {
-            free(this->m_FilePath);
-        }
-        this->m_FilePath = strdup(path);
-    }
-    if (strlen(path) < 5) {
-        return false;
-    }
-
-    if (!this->createWindow(
-        width, height+kNativeTitleBarHeight)) {
-        return false;
-    }
-
-    this->setWindowTitle("Nidium");
-
-    NativeJS::initNet(m_Gnet);
-
-    NativePath jspath(path);
-
-    NativePath::cd(jspath.dir());
-    NativePath::chroot(jspath.dir());
-
-    m_NativeCtx->getNJS()->LoadScript(path);
-
-    return true;
-}
-
 NativeCocoaUIInterface::NativeCocoaUIInterface() :
     NativeUIInterface(), m_StatusItem(NULL), m_DragNSView(nil)
 {
