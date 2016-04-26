@@ -723,7 +723,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
             }
 
             JS::ToInt32(cx, vp, &dval);
-            NUI->setWindowPosition((int)dval, NATIVE_WINDOWPOS_UNDEFINED_MASK);
+            NUI->setWindowPosition((int)dval, NIDIUM_WINDOWPOS_UNDEFINED_MASK);
 
             break;
         }
@@ -737,7 +737,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
             }
 
             JS::ToInt32(cx, vp, &dval);
-            NUI->setWindowPosition(NATIVE_WINDOWPOS_UNDEFINED_MASK, (int)dval);
+            NUI->setWindowPosition(NIDIUM_WINDOWPOS_UNDEFINED_MASK, (int)dval);
 
             break;
         }
@@ -1119,10 +1119,10 @@ static bool native_window_setPosition(JSContext *cx, unsigned argc, JS::Value *v
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     int x = (args[0].isUndefined() || args[0].isNull()) ?
-        NATIVE_WINDOWPOS_UNDEFINED_MASK : args[0].toInt32();
+        NIDIUM_WINDOWPOS_UNDEFINED_MASK : args[0].toInt32();
 
     int y = (args[1].isUndefined() || args[1].isNull()) ?
-        NATIVE_WINDOWPOS_UNDEFINED_MASK : args[1].toInt32();
+        NIDIUM_WINDOWPOS_UNDEFINED_MASK : args[1].toInt32();
 
     Nidium::Frontend::Context::GetObject(cx)->getUI()->setWindowPosition(x, y);
 
@@ -1264,7 +1264,7 @@ static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
         JSAutoByteString cxstr(cx, xstr);
 
         if (strcmp(cxstr.ptr(), "center") == 0) {
-            x = NATIVE_WINDOWPOS_CENTER_MASK;
+            x = NIDIUM_WINDOWPOS_CENTER_MASK;
         }
 
     } else if (args[0].isNumber()) {
@@ -1279,7 +1279,7 @@ static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
         JSAutoByteString cystr(cx, ystr);
 
         if (strcmp(cystr.ptr(), "center") == 0) {
-            y = NATIVE_WINDOWPOS_CENTER_MASK;
+            y = NIDIUM_WINDOWPOS_CENTER_MASK;
         }
 
     } else if (args[1].isNumber()) {

@@ -392,21 +392,21 @@ void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
     CGRect oldframe = [nswindow frame];
 
     int screen_width, screen_height;
-    if (x == NATIVE_WINDOWPOS_CENTER_MASK || y == NATIVE_WINDOWPOS_CENTER_MASK) {
+    if (x == NIDIUM_WINDOWPOS_CENTER_MASK || y == NIDIUM_WINDOWPOS_CENTER_MASK) {
         this->getScreenSize(&screen_width, &screen_height);
 
-        if (x == NATIVE_WINDOWPOS_CENTER_MASK) {
+        if (x == NIDIUM_WINDOWPOS_CENTER_MASK) {
             x = (screen_width - w) / 2;
         }
-        if (y == NATIVE_WINDOWPOS_CENTER_MASK) {
+        if (y == NIDIUM_WINDOWPOS_CENTER_MASK) {
             y = (screen_height - h) / 2;
         }
     }
 
-    if (x == NATIVE_WINDOWPOS_UNDEFINED_MASK) {
+    if (x == NIDIUM_WINDOWPOS_UNDEFINED_MASK) {
         x = oldframe.origin.x;
     }
-    if (y == NATIVE_WINDOWPOS_UNDEFINED_MASK) {
+    if (y == NIDIUM_WINDOWPOS_UNDEFINED_MASK) {
         y = oldframe.origin.y;
     }
 

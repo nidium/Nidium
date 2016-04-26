@@ -71,7 +71,7 @@ int64_t AVBufferReader::seek(void *opaque, int64_t offset, int whence)
 // }}}
 
 // {{{ AVStreamReader
-#define STREAM_BUFFER_SIZE NATIVE_AVIO_BUFFER_SIZE*6
+#define STREAM_BUFFER_SIZE NIDIUM_AVIO_BUFFER_SIZE*6
 AVStreamReader::AVStreamReader(const char *src,
         NativeAVStreamReadCallback readCallback, void *callbackPrivate, AVSource *source, ape_global *net)
     : m_Source(source), m_TotalRead(0), m_ReadCallback(readCallback),
@@ -126,7 +126,7 @@ int AVStreamReader::read(void *opaque, uint8_t *buffer, int size)
     // No more data inside buffer, need to get more
     for(; ;) {
         thiz->postMessage(opaque, AVStreamReader::MSG_READ);
-        NATIVE_PTHREAD_WAIT(&thiz->m_ThreadCond);
+        NIDIUM_PTHREAD_WAIT(&thiz->m_ThreadCond);
         SPAM(("store streamBuffer=%p / size=%d / err=%d\n", thiz->m_StreamBuffer, thiz->m_StreamPacketSize, thiz->m_StreamErr));
         if (!thiz->m_StreamBuffer) {
             switch (thiz->m_StreamErr) {
@@ -243,7 +243,7 @@ int64_t AVStreamReader::seek(void *opaque, int64_t offset, int whence)
         thiz->m_Stream->seek(pos);
     } else {
         thiz->postMessage(opaque, AVStreamReader::MSG_SEEK);
-        NATIVE_PTHREAD_WAIT(&thiz->m_ThreadCond);
+        NIDIUM_PTHREAD_WAIT(&thiz->m_ThreadCond);
     }
 
     return pos;
@@ -297,7 +297,7 @@ void AVStreamReader::onMessage(const Nidium::Core::SharedMessages::Message &msg)
             return;
     }
 
-    NATIVE_PTHREAD_SIGNAL(&m_ThreadCond);
+    NIDIUM_PTHREAD_SIGNAL(&m_ThreadCond);
 }
 
 /*
@@ -353,7 +353,7 @@ void AVStreamReader::finish()
     // (we can have a MSG_READ/MSG_SEEK event if we were waiting for stream data/seek)
     this->delMessages();
 
-    NATIVE_PTHREAD_SIGNAL(&m_ThreadCond);
+    NIDIUM_PTHREAD_SIGNAL(&m_ThreadCond);
 }
 
 AVStreamReader::~AVStreamReader()
@@ -362,7 +362,7 @@ AVStreamReader::~AVStreamReader()
         delete m_Stream;
     } else {
         this->postMessage(this, AVStreamReader::MSG_STOP);
-        NATIVE_PTHREAD_WAIT(&m_ThreadCond);
+        NIDIUM_PTHREAD_WAIT(&m_ThreadCond);
     }
 }
 // }}}

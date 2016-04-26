@@ -148,7 +148,7 @@ void NativeSystem::alert(const char *message, AlertType type)
 void NativeSystem::initSystemUI()
 {
     if (!m_SystemUIReady) {
-#ifdef NATIVE_USE_GTK
+#ifdef NIDIUM_USE_GTK
         gtk_init(0, NULL);
 #endif
     }

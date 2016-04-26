@@ -695,7 +695,7 @@ void JSAudio::ShutdownCallback(void *custom)
         audio->m_JsTcx = NULL;
     }
 
-    NATIVE_PTHREAD_SIGNAL(&audio->m_ShutdownWait)
+    NIDIUM_PTHREAD_SIGNAL(&audio->m_ShutdownWait)
 }
 
 JSAudio::~JSAudio()
@@ -720,7 +720,7 @@ JSAudio::~JSAudio()
     // Unroot custom nodes objects and clear threaded js context
     m_Audio->postMessage(JSAudio::ShutdownCallback, this, true);
 
-    NATIVE_PTHREAD_WAIT(&m_ShutdownWait)
+    NIDIUM_PTHREAD_WAIT(&m_ShutdownWait)
 
     // Unlock the sources, so the decode thread can exit
     // when we call AV::Audio::shutdown()
@@ -958,7 +958,7 @@ void JSAudioNode::ShutdownCallback(AV::AudioNode *nnode, void *custom)
         node->m_TransferableFuncs[i] = NULL;
     }
 
-    NATIVE_PTHREAD_SIGNAL(&node->m_ShutdownWait)
+    NIDIUM_PTHREAD_SIGNAL(&node->m_ShutdownWait)
 }
 
 void JSAudioNode::DeleteTransferableFunc(AV::AudioNode *node, void *custom)
@@ -1075,7 +1075,7 @@ JSAudioNode::~JSAudioNode()
 
         m_Node->callback(JSAudioNode::ShutdownCallback, this, true);
 
-        NATIVE_PTHREAD_WAIT(&m_ShutdownWait);
+        NIDIUM_PTHREAD_WAIT(&m_ShutdownWait);
     }
 
     if (m_ArrayContent != NULL) {

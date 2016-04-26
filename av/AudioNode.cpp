@@ -785,7 +785,7 @@ return err;
 
     m_Reader = new AVStreamReader(src, Audio::sourceNeedWork, m_Audio, this, m_Audio->m_Net);
 
-    m_AvioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+    m_AvioBuffer = (unsigned char *)av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
     if (!m_AvioBuffer) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -795,7 +795,7 @@ return err;
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Container->pb = avio_alloc_context(m_AvioBuffer, NATIVE_AVIO_BUFFER_SIZE,
+    m_Container->pb = avio_alloc_context(m_AvioBuffer, NIDIUM_AVIO_BUFFER_SIZE,
          0, m_Reader, AVStreamReader::read, NULL, AVStreamReader::seek);
     if (!m_Container) {
         RETURN_WITH_ERROR(ERR_OOM);
@@ -808,7 +808,7 @@ return err;
 int AudioSource::openInit()
 {
     m_SourceDoOpen = true;
-    NATIVE_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
+    NIDIUM_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
     return 0;
 }
 
@@ -848,7 +848,7 @@ return err;
 
     m_Reader = new AVBufferReader((uint8_t *)buffer, size);
 
-    m_AvioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+    m_AvioBuffer = (unsigned char *)av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
     if (!m_AvioBuffer) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -858,7 +858,7 @@ return err;
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Container->pb = avio_alloc_context(m_AvioBuffer, NATIVE_AVIO_BUFFER_SIZE,
+    m_Container->pb = avio_alloc_context(m_AvioBuffer, NIDIUM_AVIO_BUFFER_SIZE,
         0, m_Reader, AVBufferReader::read, NULL, AVBufferReader::seek);
     if (!m_Container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
@@ -942,7 +942,7 @@ int AudioSource::initInternal()
         m_fCvt = new Resampler();
         m_fCvt->setup(m_CodecCtx->sample_rate, m_Audio->m_OutputParameters->m_SampleRate, m_OutCount, 32);
 
-        if (!(m_fBufferOutData = (float *)malloc(NATIVE_RESAMPLER_BUFFER_SAMPLES * m_OutCount * Audio::FLOAT32))) {
+        if (!(m_fBufferOutData = (float *)malloc(NIDIUM_RESAMPLER_BUFFER_SAMPLES * m_OutCount * Audio::FLOAT32))) {
             fprintf(stderr, "Failed to init frequency resampler buffers");
             return ERR_OOM;
         }
@@ -950,20 +950,20 @@ int AudioSource::initInternal()
         m_fCvt->inp_count = m_fCvt->inpsize() / 2 -1;
         m_fCvt->inp_data = 0;
 
-        m_fCvt->out_count = NATIVE_RESAMPLER_BUFFER_SAMPLES;
+        m_fCvt->out_count = NIDIUM_RESAMPLER_BUFFER_SAMPLES;
         m_fCvt->out_data = m_fBufferOutData;
     }
 
     // Init output buffer
     int bufferSize = m_Audio->m_OutputParameters->m_BufferSize;
     m_rBufferOut = new PaUtilRingBuffer();
-    if (!(m_rBufferOutData = calloc(bufferSize * NATIVE_AUDIO_BUFFER_MULTIPLIER, Audio::FLOAT32 * m_OutCount))) {
+    if (!(m_rBufferOutData = calloc(bufferSize * NIDIUM_AUDIO_BUFFER_MULTIPLIER, Audio::FLOAT32 * m_OutCount))) {
         return ERR_OOM;
     }
 
     if (0 > PaUtil_InitializeRingBuffer(static_cast<PaUtilRingBuffer*>(m_rBufferOut),
             (Audio::FLOAT32 * m_OutCount),
-            bufferSize * NATIVE_AUDIO_BUFFER_MULTIPLIER,
+            bufferSize * NIDIUM_AUDIO_BUFFER_MULTIPLIER,
             m_rBufferOutData)) {
         fprintf(stderr, "Failed to init output ringbuffer\n");
         return ERR_OOM;
@@ -1249,7 +1249,7 @@ int AudioSource::resample(int destSamples) {
             sampleSize = channels * Audio::FLOAT32;
 
             // Output is empty
-            if (m_fCvt->out_count == NATIVE_RESAMPLER_BUFFER_SAMPLES) {
+            if (m_fCvt->out_count == NIDIUM_RESAMPLER_BUFFER_SAMPLES) {
                 m_fCvt->out_data = m_fBufferOutData;
                 m_SamplesConsumed = 0;
                 passCopied= 0;
@@ -1263,10 +1263,10 @@ int AudioSource::resample(int destSamples) {
                 }
             }
 
-            if (m_fCvt->out_count < NATIVE_RESAMPLER_BUFFER_SAMPLES) {
+            if (m_fCvt->out_count < NIDIUM_RESAMPLER_BUFFER_SAMPLES) {
                 int write, avail;
 
-                avail = NATIVE_RESAMPLER_BUFFER_SAMPLES - m_fCvt->out_count;
+                avail = NIDIUM_RESAMPLER_BUFFER_SAMPLES - m_fCvt->out_count;
                 write = destSamples > avail ? avail : destSamples;
                 write -= passCopied;
 
@@ -1366,7 +1366,7 @@ void AudioSource::seek(double time)
     m_DoSeekTime = time < 0 ? 0 : time;
     m_DoSemek = true;
 
-    NATIVE_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
+    NIDIUM_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
 }
 
 void AudioSource::seekCoro(void *arg)
@@ -1590,7 +1590,7 @@ void AudioSource::play()
 
     SPAM(("Play source @ %p\n", this));
 
-    NATIVE_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
+    NIDIUM_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
 
     this->sendEvent(SOURCE_EVENT_PLAY, 0, false);
 }
@@ -1642,7 +1642,7 @@ void AudioCustomSource::play()
 {
     m_Playing = true;
 
-    NATIVE_PTHREAD_SIGNAL(&m_Audio->m_QueueHaveData);
+    NIDIUM_PTHREAD_SIGNAL(&m_Audio->m_QueueHaveData);
 
     this->sendEvent(SOURCE_EVENT_PLAY, 0, false);
 }
@@ -1690,7 +1690,7 @@ bool AudioCustomSource::process()
 
     AudioNodeCustom::process();
 
-    NATIVE_PTHREAD_SIGNAL(&m_Audio->m_QueueHaveData);
+    NIDIUM_PTHREAD_SIGNAL(&m_Audio->m_QueueHaveData);
 
     return true;
 }

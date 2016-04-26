@@ -96,8 +96,8 @@ bool NativeUIInterface::createWindow(int width, int height)
 
     }
 
-    this->setWindowFrame(NATIVE_WINDOWPOS_UNDEFINED_MASK,
-        NATIVE_WINDOWPOS_UNDEFINED_MASK, width, height);
+    this->setWindowFrame(NIDIUM_WINDOWPOS_UNDEFINED_MASK,
+        NIDIUM_WINDOWPOS_UNDEFINED_MASK, width, height);
 
     Nidium::Frontend::Context::CreateAndAssemble(this, m_Gnet);
 
@@ -367,8 +367,8 @@ void NativeUIInterface::getScreenSize(int *width, int *height)
 void NativeUIInterface::setWindowPosition(int x, int y)
 {
     SDL_SetWindowPosition(this->m_Win,
-        (x == NATIVE_WINDOWPOS_UNDEFINED_MASK) ? SDL_WINDOWPOS_UNDEFINED_MASK : x,
-        (y == NATIVE_WINDOWPOS_UNDEFINED_MASK) ? SDL_WINDOWPOS_UNDEFINED_MASK : y);
+        (x == NIDIUM_WINDOWPOS_UNDEFINED_MASK) ? SDL_WINDOWPOS_UNDEFINED_MASK : x,
+        (y == NIDIUM_WINDOWPOS_UNDEFINED_MASK) ? SDL_WINDOWPOS_UNDEFINED_MASK : y);
 }
 
 void NativeUIInterface::getWindowPosition(int *x, int *y)
@@ -386,8 +386,8 @@ void NativeUIInterface::setWindowSize(int w, int h)
 
 void NativeUIInterface::setWindowFrame(int x, int y, int w, int h)
 {
-    if (x == NATIVE_WINDOWPOS_CENTER_MASK) x = SDL_WINDOWPOS_CENTERED;
-    if (y == NATIVE_WINDOWPOS_CENTER_MASK) y = SDL_WINDOWPOS_CENTERED;
+    if (x == NIDIUM_WINDOWPOS_CENTER_MASK) x = SDL_WINDOWPOS_CENTERED;
+    if (y == NIDIUM_WINDOWPOS_CENTER_MASK) y = SDL_WINDOWPOS_CENTERED;
 
     this->setWindowSize(w, h);
     this->setWindowPosition(x, y);

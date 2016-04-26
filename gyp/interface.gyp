@@ -58,13 +58,13 @@
                 ],
                 'conditions': [
                     ['nidium_use_gtk==1', {
-                        'defines': ['NATIVE_USE_GTK'],
+                        'defines': ['NIDIUM_USE_GTK'],
                         'cflags': [
                             '<!@(pkg-config --cflags gtk+-2.0)',
                         ],
                     }],
                     ['nidium_use_qt==1', {
-                        'defines': ['NATIVE_USE_QT'],
+                        'defines': ['NIDIUM_USE_QT'],
                         'cflags': [
                             '<!@(pkg-config --cflags QtCore QtGui)'
                         ],
@@ -76,13 +76,13 @@
                     ],
                     'conditions': [
                         ['nidium_use_gtk==1', {
-                            'defines': ['NATIVE_USE_GTK'],
+                            'defines': ['NIDIUM_USE_GTK'],
                             'libraries': [
                                 '<!@(pkg-config --libs gtk+-2.0)',
                             ]
                         }],
                         ['nidium_use_qt==1', {
-                            'defines': ['NATIVE_USE_QT'],
+                            'defines': ['NIDIUM_USE_QT'],
                             'libraries': [
                                 '<!@(pkg-config --libs QtCore QtGui)'
                             ]

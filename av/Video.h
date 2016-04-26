@@ -22,14 +22,14 @@ struct SwsContext;
 namespace Nidium {
 namespace AV {
 
-#define NATIVE_VIDEO_BUFFER_SAMPLES 16
-#define NATIVE_VIDEO_AUDIO_SYNC_THRESHOLD 0.1
-#define NATIVE_VIDEO_SYNC_THRESHOLD 0.01
-#define NATIVE_VIDEO_NOSYNC_THRESHOLD 10.0
-#define NATIVE_VIDEO_PACKET_BUFFER 64
+#define NIDIUM_VIDEO_BUFFER_SAMPLES 16
+#define NIDIUM_VIDEO_AUDIO_SYNC_THRESHOLD 0.1
+#define NIDIUM_VIDEO_SYNC_THRESHOLD 0.01
+#define NIDIUM_VIDEO_NOSYNC_THRESHOLD 10.0
+#define NIDIUM_VIDEO_PACKET_BUFFER 64
 
-#define NATIVE_VIDEO_SEEK_KEYFRAME 0x1
-#define NATIVE_VIDEO_SEEK_PREVIOUS 0x2
+#define NIDIUM_VIDEO_SEEK_KEYFRAME 0x1
+#define NIDIUM_VIDEO_SEEK_PREVIOUS 0x2
 
 typedef void (*VideoCallback)(uint8_t *data, void *custom);
 
@@ -68,7 +68,7 @@ class Video : public AVSource
             Frame() : data(NULL), pts(0) {};
         };
 
-        TimerItem *m_Timers[NATIVE_VIDEO_BUFFER_SAMPLES];
+        TimerItem *m_Timers[NIDIUM_VIDEO_BUFFER_SAMPLES];
         PacketQueue *m_AudioQueue;
         PacketQueue *m_VideoQueue;
         int m_TimerIdx;
@@ -106,7 +106,7 @@ class Video : public AVSource
         PaUtilRingBuffer *m_rBuff;
         uint8_t *m_Buff;
         unsigned char *m_AvioBuffer;
-        uint8_t *m_Frames[NATIVE_VIDEO_BUFFER_SAMPLES];
+        uint8_t *m_Frames[NIDIUM_VIDEO_BUFFER_SAMPLES];
         int m_FramesIdx;
         AVFrame *m_DecodedFrame;
         AVFrame *m_ConvertedFrame;

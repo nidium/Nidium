@@ -19,11 +19,11 @@
 #include <SDL_syswm.h>
 
 
-#ifdef NATIVE_USE_GTK
+#ifdef NIDIUM_USE_GTK
 #include <gtk/gtk.h>
 #endif
 
-#ifdef NATIVE_USE_QT
+#ifdef NIDIUM_USE_QT
 #include <QtGui>
 #include <QFileDialog>
 #include <QString>
@@ -69,7 +69,7 @@ NativeX11UIInterface::NativeX11UIInterface() :
 
 void NativeX11UIInterface::quitApplication()
 {
-#ifdef NATIVE_USE_GTK
+#ifdef NIDIUM_USE_GTK
     while (gtk_events_pending ()) {
         gtk_main_iteration();
     }
@@ -79,7 +79,7 @@ void NativeX11UIInterface::quitApplication()
 
 void NativeX11UIInterface::hitRefresh()
 {
-#ifdef NATIVE_USE_GTK
+#ifdef NIDIUM_USE_GTK
     while (gtk_events_pending ()) {
         gtk_main_iteration();
     }
@@ -97,7 +97,7 @@ void NativeX11UIInterface::onWindowCreated()
 void NativeX11UIInterface::openFileDialog(const char *files[],
     void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags)
 {
-#ifdef NATIVE_USE_GTK
+#ifdef NIDIUM_USE_GTK
     GtkWidget *dialog;
 
     dialog = gtk_file_chooser_dialog_new ("Open File",
@@ -188,7 +188,7 @@ void NativeX11UIInterface::openFileDialog(const char *files[],
 
     free(lst);
 #endif
-#ifdef NATIVE_USE_QT
+#ifdef NIDIUM_USE_QT
     QApplication app(0, NULL);
     QString fileName = QFileDialog::getOpenFileName(NULL,
                "Open file", NULL, "Image Files (*.png *.jpg *.bmp)");

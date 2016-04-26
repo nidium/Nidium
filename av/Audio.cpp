@@ -87,7 +87,7 @@ Audio::Audio(ape_global *n, unsigned int bufferSize, unsigned int channels, unsi
      * Portaudio ring buffer require a power of two
      * for the number of elements in the ring buffer
      */
-    uint32_t count = upperPow2(actualBufferSize * NATIVE_AUDIO_BUFFER_MULTIPLIER * channels);
+    uint32_t count = upperPow2(actualBufferSize * NIDIUM_AUDIO_BUFFER_MULTIPLIER * channels);
 
     m_rBufferOut = new PaUtilRingBuffer();
     m_rBufferOutData = (float *)calloc(count, Audio::FLOAT32);
@@ -112,7 +112,7 @@ void *Audio::queueThread(void *args)
 
         if (msgFlush && audio->m_SharedMsgFlush) {
             audio->m_SharedMsgFlush = false;
-            NATIVE_PTHREAD_SIGNAL(&audio->m_QueueMessagesFlushed);
+            NIDIUM_PTHREAD_SIGNAL(&audio->m_QueueMessagesFlushed);
         }
 
         // Using a trylock because we don't want to wait for another thread to
@@ -162,7 +162,7 @@ void *Audio::queueThread(void *args)
 
             if (wrote) {
                 SPAM(("Sending queueNeedData\n"));
-                NATIVE_PTHREAD_SIGNAL(&audio->m_QueueNeedData);
+                NIDIUM_PTHREAD_SIGNAL(&audio->m_QueueNeedData);
             }
         }
 
@@ -174,10 +174,10 @@ void *Audio::queueThread(void *args)
 
         if (needSpace) {
             SPAM(("Waiting for more space\n"));
-            NATIVE_PTHREAD_WAIT(&audio->m_QueueHaveSpace)
+            NIDIUM_PTHREAD_WAIT(&audio->m_QueueHaveSpace)
         } else {
             SPAM(("Waiting for more data\n"));
-            NATIVE_PTHREAD_WAIT(&audio->m_QueueHaveData)
+            NIDIUM_PTHREAD_WAIT(&audio->m_QueueHaveData)
         }
 
         if (audio->m_ThreadShutdown) break;
@@ -223,7 +223,7 @@ void Audio::readMessages(bool flush)
                 delete nodeMsg;
             }
             break;
-            case NATIVE_AUDIO_CALLBACK :
+            case NIDIUM_AUDIO_CALLBACK :
                 Audio::CallbackMessage *cbkMsg = static_cast<Audio::CallbackMessage*>(msg->dataPtr());
                 cbkMsg->m_Cbk(cbkMsg->m_Custom);
                 delete cbkMsg;
@@ -296,19 +296,19 @@ void *Audio::decodeThread(void *args)
         if (audio->m_SourcesCount > 0 /*&& haveEnought == sourcesCount*/) {
             if (audio->canWriteFrame()) {
                 SPAM(("Have data %lu\n", PaUtil_GetRingBufferWriteAvailable(audio->m_rBufferOut)));
-                NATIVE_PTHREAD_SIGNAL(&audio->m_QueueHaveData);
+                NIDIUM_PTHREAD_SIGNAL(&audio->m_QueueHaveData);
                 //audio->haveData = true;
             }  else {
                 SPAM(("dont Have data %lu\n", PaUtil_GetRingBufferWriteAvailable(audio->m_rBufferOut)));
             }
         }
 
-        NATIVE_AUDIO_CHECK_EXIT_THREAD
+        NIDIUM_AUDIO_CHECK_EXIT_THREAD
 
         // Wait for work to do unless some source need to wakeup
         if (!audio->m_SourceNeedWork) {
             SPAM(("Waitting for queueNeedData m_SourceNeedWork=%d\n", audio->m_SourceNeedWork));
-            NATIVE_PTHREAD_WAIT(&audio->m_QueueNeedData);
+            NIDIUM_PTHREAD_WAIT(&audio->m_QueueNeedData);
             SPAM(("QueueNeedData received\n"));
         } else {
             SPAM(("decodeThread not sleeping cause it need wakup\n"));
@@ -316,7 +316,7 @@ void *Audio::decodeThread(void *args)
 
         audio->m_SourceNeedWork = false;
 
-        NATIVE_AUDIO_CHECK_EXIT_THREAD
+        NIDIUM_AUDIO_CHECK_EXIT_THREAD
     }
 
     SPAM(("Exiting\n"));
@@ -444,7 +444,7 @@ int Audio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuffer,
         *out++ = 0.0f;
     }
 
-    NATIVE_PTHREAD_SIGNAL(&m_QueueHaveSpace);
+    NIDIUM_PTHREAD_SIGNAL(&m_QueueHaveSpace);
 
     return paContinue;
 }
@@ -630,10 +630,10 @@ void Audio::wakeup()
     m_SharedMsgFlush = true;
     m_QueueFreeLock = true;
 
-    NATIVE_PTHREAD_SIGNAL(&m_QueueHaveData);
-    NATIVE_PTHREAD_SIGNAL(&m_QueueHaveSpace);
+    NIDIUM_PTHREAD_SIGNAL(&m_QueueHaveData);
+    NIDIUM_PTHREAD_SIGNAL(&m_QueueHaveSpace);
 
-    NATIVE_PTHREAD_WAIT(&m_QueueMessagesFlushed);
+    NIDIUM_PTHREAD_WAIT(&m_QueueMessagesFlushed);
 
     m_QueueFreeLock = false;
 }
@@ -642,9 +642,9 @@ void Audio::shutdown()
 {
     m_ThreadShutdown = true;
 
-    NATIVE_PTHREAD_SIGNAL(&m_QueueHaveData)
-    NATIVE_PTHREAD_SIGNAL(&m_QueueHaveSpace)
-    NATIVE_PTHREAD_SIGNAL(&m_QueueNeedData)
+    NIDIUM_PTHREAD_SIGNAL(&m_QueueHaveData)
+    NIDIUM_PTHREAD_SIGNAL(&m_QueueHaveSpace)
+    NIDIUM_PTHREAD_SIGNAL(&m_QueueNeedData)
 
     pthread_join(m_ThreadQueue, NULL);
     pthread_join(m_ThreadDecode, NULL);
@@ -666,7 +666,7 @@ void Audio::sourceNeedWork(void *ptr)
 {
     Audio *thiz = static_cast<Audio*>(ptr);
     thiz->m_SourceNeedWork = true;
-    NATIVE_PTHREAD_SIGNAL(&thiz->m_QueueNeedData);
+    NIDIUM_PTHREAD_SIGNAL(&thiz->m_QueueNeedData);
 }
 
 void Audio::lockSources()
@@ -682,7 +682,7 @@ void Audio::unlockSources()
 void Audio::postMessage(AudioMessageCallback cbk, void *custom, bool block)
 {
     m_SharedMsg->postMessage((void *)new CallbackMessage(cbk, custom),
-            NATIVE_AUDIO_CALLBACK);
+            NIDIUM_AUDIO_CALLBACK);
 
     if (block) {
         this->wakeup();

@@ -21,13 +21,12 @@ struct PaUtilRingBuffer;
 namespace Nidium {
 namespace AV {
 
-#define NATIVE_AVIO_BUFFER_SIZE 32768
+#define NIDIUM_AVIO_BUFFER_SIZE 32768
 #define CORO_STACK_SIZE         4096*4
-#define NAV_IO_BUFFER_SIZE      NATIVE_AVIO_BUFFER_SIZE*8
 /* Audio processing buffer multiplier (must be power of 2) */
-#define NATIVE_AUDIO_BUFFER_MULTIPLIER 4
+#define NIDIUM_AUDIO_BUFFER_MULTIPLIER 4
 /* Max size for the resampling buffer */
-#define NATIVE_RESAMPLER_BUFFER_SAMPLES 16384
+#define NIDIUM_RESAMPLER_BUFFER_SAMPLES 16384
 
 #define SOURCE_EVENT_PLAY      0x01
 #define SOURCE_EVENT_PAUSE     0x02
@@ -47,7 +46,7 @@ pthread_cond_init(name, NULL);\
 pthread_mutex_init(name##Lock, NULL);\
 *(name##Cond) = false;
 
-#define NATIVE_PTHREAD_WAIT(mutexRef)\
+#define NIDIUM_PTHREAD_WAIT(mutexRef)\
 pthread_mutex_lock(mutexRef##Lock);\
 while (*(mutexRef##Cond) == false) {\
     pthread_cond_wait(mutexRef, mutexRef##Lock);\
@@ -55,7 +54,7 @@ while (*(mutexRef##Cond) == false) {\
 pthread_mutex_unlock(mutexRef##Lock);\
 *(mutexRef##Cond) = false;
 
-#define NATIVE_PTHREAD_SIGNAL(mutexRef)\
+#define NIDIUM_PTHREAD_SIGNAL(mutexRef)\
 *(mutexRef##Cond) = true;\
 pthread_cond_signal(mutexRef);
 
@@ -158,7 +157,7 @@ enum {
     NATIVE_AUDIO_NODE_ONSET_CALLBACK,
     NATIVE_AUDIO_NODE_CALLBACK,
     NATIVE_AUDIO_SOURCE_CALLBACK, // XXX : Not used?
-    NATIVE_AUDIO_CALLBACK,
+    NIDIUM_AUDIO_CALLBACK,
 };
 
 // Error code and description

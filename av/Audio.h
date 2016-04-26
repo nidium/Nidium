@@ -28,7 +28,7 @@ namespace AV {
   #define SPAM(a) (void)0
 #endif
 
-#define NATIVE_AUDIO_CHECK_EXIT_THREAD if (audio->m_ThreadShutdown) {\
+#define NIDIUM_AUDIO_CHECK_EXIT_THREAD if (audio->m_ThreadShutdown) {\
     SPAM(("Exiting\n"));\
     return NULL;\
 }\

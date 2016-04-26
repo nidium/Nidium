@@ -60,7 +60,7 @@ Video::Video(ape_global *n):
     m_DoSemek = false;
     m_Seeking = false;
 
-    for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
+    for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
         m_Timers[i] = new TimerItem();
         m_Frames[i] = NULL;
     }
@@ -78,7 +78,7 @@ int Video::open(void *buffer, int size)
         this->closeInternal(true);
     }
 
-    if (!(m_AvioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE))) {
+    if (!(m_AvioBuffer = (unsigned char *)av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE))) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
@@ -88,7 +88,7 @@ int Video::open(void *buffer, int size)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Container->pb = avio_alloc_context(m_AvioBuffer, NATIVE_AVIO_BUFFER_SIZE,
+    m_Container->pb = avio_alloc_context(m_AvioBuffer, NIDIUM_AVIO_BUFFER_SIZE,
         0, m_Reader, AVBufferReader::read, NULL, AVBufferReader::seek);
     if (!m_Container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
@@ -98,7 +98,7 @@ int Video::open(void *buffer, int size)
             RETURN_WITH_ERROR(ERR_INTERNAL);
         }
         m_ThreadCreated = true;
-        NATIVE_PTHREAD_SIGNAL(&m_BufferCond);
+        NIDIUM_PTHREAD_SIGNAL(&m_BufferCond);
     }
 
     return 0;
@@ -115,7 +115,7 @@ int Video::open(const char *src)
     m_Coro = Coro_new();
     Coro_initializeMainCoro(m_MainCoro);
 
-    if (!(m_AvioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE))) {
+    if (!(m_AvioBuffer = (unsigned char *)av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE))) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
@@ -125,7 +125,7 @@ int Video::open(const char *src)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Container->pb = avio_alloc_context(m_AvioBuffer, NATIVE_AVIO_BUFFER_SIZE,
+    m_Container->pb = avio_alloc_context(m_AvioBuffer, NIDIUM_AVIO_BUFFER_SIZE,
         0, m_Reader, AVStreamReader::read, NULL, AVStreamReader::seek);
     if (!m_Container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
@@ -144,7 +144,7 @@ int Video::openInit()
 {
     DPRINT("openInit()\n");
     m_SourceDoOpen = true;
-    NATIVE_PTHREAD_SIGNAL(&m_BufferCond);
+    NIDIUM_PTHREAD_SIGNAL(&m_BufferCond);
     return 0;
 }
 
@@ -218,7 +218,7 @@ int Video::openInitInternal()
 
     // Ringbuffer that hold reference to decoded frames
     m_rBuff = new PaUtilRingBuffer();
-    m_Buff = (uint8_t*) malloc(sizeof(Video::Frame) * NATIVE_VIDEO_BUFFER_SAMPLES);
+    m_Buff = (uint8_t*) malloc(sizeof(Video::Frame) * NIDIUM_VIDEO_BUFFER_SAMPLES);
 
     if (m_Buff == NULL) {
         fprintf(stderr, "Failed to alloc buffer\n");
@@ -227,7 +227,7 @@ int Video::openInitInternal()
 
     if (0 > PaUtil_InitializeRingBuffer(m_rBuff,
             sizeof(Video::Frame),
-            NATIVE_VIDEO_BUFFER_SAMPLES,
+            NIDIUM_VIDEO_BUFFER_SAMPLES,
             m_Buff)) {
         fprintf(stderr, "Failed to init ringbuffer\n");
         return ERR_OOM;
@@ -261,7 +261,7 @@ void Video::play() {
     m_FrameTimer = 0;
 
     bool haveTimer = false;
-    for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
+    for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
         if (m_Timers[i]->id == -1 && m_Timers[i]->delay != -1) {
             haveTimer = true;
             m_Timers[i]->id = this->addTimer(m_Timers[i]->delay);
@@ -313,7 +313,7 @@ void Video::stop() {
     this->flushBuffers();
     this->clearTimers(true);
 
-    NATIVE_PTHREAD_SIGNAL(&m_BufferCond);
+    NIDIUM_PTHREAD_SIGNAL(&m_BufferCond);
 
     this->sendEvent(SOURCE_EVENT_STOP, 0, false);
 }
@@ -339,7 +339,7 @@ void Video::seek(double time, uint32_t flags)
     this->clearTimers(true);
     this->flushBuffers();
 
-    NATIVE_PTHREAD_SIGNAL(&m_BufferCond);
+    NIDIUM_PTHREAD_SIGNAL(&m_BufferCond);
 
     this->scheduleDisplay(1, true);
 }
@@ -358,7 +358,7 @@ void Video::seekCoro(void *arg)
 bool Video::seekMethod(int64_t target, int flags)
 {
     DPRINT("av_seek_frame\n");
-    if (!(m_SeekFlags & NATIVE_VIDEO_SEEK_KEYFRAME)) {
+    if (!(m_SeekFlags & NIDIUM_VIDEO_SEEK_KEYFRAME)) {
         flags |= AVSEEK_FLAG_ANY;
     }
     int ret = av_seek_frame(m_Container, m_VideoStream, target, flags);
@@ -432,7 +432,7 @@ void Video::seekInternal(double time)
     target = this->seekTarget(time, &flags);
 
     DPRINT("[SEEK] diff = %f, time = %lld\n", diff, av_gettime());
-    if (diff > SEEK_THRESHOLD || diff <= 0 || (m_SeekFlags & NATIVE_VIDEO_SEEK_KEYFRAME)) {
+    if (diff > SEEK_THRESHOLD || diff <= 0 || (m_SeekFlags & NIDIUM_VIDEO_SEEK_KEYFRAME)) {
         // Flush all buffers
         this->clearAudioQueue();
         this->clearVideoQueue();
@@ -443,7 +443,7 @@ void Video::seekInternal(double time)
             m_AudioSource->resetFrames();
         }
 
-        if (m_SeekFlags & NATIVE_VIDEO_SEEK_PREVIOUS) {
+        if (m_SeekFlags & NIDIUM_VIDEO_SEEK_PREVIOUS) {
             flags |= AVSEEK_FLAG_BACKWARD;
         }
 
@@ -454,7 +454,7 @@ void Video::seekInternal(double time)
 
         avcodec_flush_buffers(m_CodecCtx);
 
-        if (m_SeekFlags & NATIVE_VIDEO_SEEK_KEYFRAME) {
+        if (m_SeekFlags & NIDIUM_VIDEO_SEEK_KEYFRAME) {
             return;
         }
     } else {
@@ -567,7 +567,7 @@ void Video::seekInternal(double time)
             if ((packet.flags & AV_PKT_FLAG_KEY) || keyframe) {
                 // We have our frame!
                 if ((pts >= time || seekTime == 0) && gotFrame) {
-                    if ((m_SeekFlags & NATIVE_VIDEO_SEEK_PREVIOUS) && (pts != time && seekTime != 0)) {
+                    if ((m_SeekFlags & NIDIUM_VIDEO_SEEK_PREVIOUS) && (pts != time && seekTime != 0)) {
                         DPRINT("[SEEK] Seeked too far, rewind\n");
                         // When seeking to the previous frame, we need to be at
                         // the exact frame. As it's not the case, seek backward
@@ -584,7 +584,7 @@ void Video::seekInternal(double time)
                     p->next = tmp;
                     m_VideoQueue->count++;
 
-                    if (m_SeekFlags & NATIVE_VIDEO_SEEK_PREVIOUS) {
+                    if (m_SeekFlags & NIDIUM_VIDEO_SEEK_PREVIOUS) {
                         this->processFrame(m_DecodedFrame);
                     }
                     break;
@@ -620,7 +620,7 @@ void Video::seekInternal(double time)
     DPRINT("Sending seekCond signal\n");
 #endif
     this->processVideo();
-    NATIVE_PTHREAD_SIGNAL(&m_BufferCond);
+    NIDIUM_PTHREAD_SIGNAL(&m_BufferCond);
 }
 #undef SEEK_THRESHOLD
 #undef SEEK_STEP
@@ -641,7 +641,7 @@ void Video::prevFrame()
     if (m_Playing || !m_Opened) {
         return;
     }
-    this->seek(this->getClock(), NATIVE_VIDEO_SEEK_PREVIOUS);
+    this->seek(this->getClock(), NIDIUM_VIDEO_SEEK_PREVIOUS);
 }
 
 void Video::frameAt(double time, bool keyframe)
@@ -650,7 +650,7 @@ void Video::frameAt(double time, bool keyframe)
         return;
     }
 
-    this->seek(time, keyframe ? NATIVE_VIDEO_SEEK_KEYFRAME : 0);
+    this->seek(time, keyframe ? NIDIUM_VIDEO_SEEK_KEYFRAME : 0);
 }
 // }}}
 
@@ -700,7 +700,7 @@ int Video::display(void *custom) {
     v->m_Timers[v->m_LastTimer]->delay = -1;
 
     v->m_LastTimer++;
-    if (v->m_LastTimer > NATIVE_VIDEO_BUFFER_SAMPLES-1) {
+    if (v->m_LastTimer > NIDIUM_VIDEO_BUFFER_SAMPLES-1) {
         v->m_LastTimer = 0;
     }
 
@@ -709,14 +709,14 @@ int Video::display(void *custom) {
         // Don't do anything
         v->scheduleDisplay(1, true);
         v->m_InDisplay = false;
-        NATIVE_PTHREAD_SIGNAL(&v->m_NotInDisplay);
+        NIDIUM_PTHREAD_SIGNAL(&v->m_NotInDisplay);
         return 0;
     }
 
     // Read frame from ring buffer
     if (PaUtil_GetRingBufferReadAvailable(v->m_rBuff) < 1) {
         if (!v->m_Buffering && !v->m_Seeking) {
-            NATIVE_PTHREAD_SIGNAL(&v->m_BufferCond);
+            NIDIUM_PTHREAD_SIGNAL(&v->m_BufferCond);
         }
         if (v->m_Eof) {
             DPRINT("No frame, eof reached\n");
@@ -727,7 +727,7 @@ int Video::display(void *custom) {
         }
 
         v->m_InDisplay = false;
-        NATIVE_PTHREAD_SIGNAL(&v->m_NotInDisplay);
+        NIDIUM_PTHREAD_SIGNAL(&v->m_NotInDisplay);
 
         return 0;
     }
@@ -762,16 +762,16 @@ int Video::display(void *custom) {
 
         DPRINT("Clocks audio=%f / video=%f / diff = %f\n", v->m_AudioSource->getClock(), pts, diff);
 
-        if (diff > NATIVE_VIDEO_AUDIO_SYNC_THRESHOLD && v->m_AudioSource->avail() > 0) {
+        if (diff > NIDIUM_VIDEO_AUDIO_SYNC_THRESHOLD && v->m_AudioSource->avail() > 0) {
             // Diff is too big an will be noticed
             // Let's drop some audio sample
             DPRINT("Dropping audio before=%f ", diff);
             diff -= v->m_AudioSource->drop(diff);
             DPRINT("after=%f sec)\n", diff);
         } else {
-            syncThreshold = (delay >= NATIVE_VIDEO_SYNC_THRESHOLD) ? delay : NATIVE_VIDEO_SYNC_THRESHOLD;
+            syncThreshold = (delay >= NIDIUM_VIDEO_SYNC_THRESHOLD) ? delay : NIDIUM_VIDEO_SYNC_THRESHOLD;
 
-            if (fabs(diff) < NATIVE_VIDEO_NOSYNC_THRESHOLD) {
+            if (fabs(diff) < NIDIUM_VIDEO_NOSYNC_THRESHOLD) {
                 if (diff <= -syncThreshold) {
                     DPRINT(" (diff < syncThreshold) ");
                     delay = 0;
@@ -792,11 +792,11 @@ int Video::display(void *custom) {
     DPRINT("Using delay %f diff=%d delay=%f\n", actualDelay, diff, delay);
 
     if (v->m_Playing) {
-        if (actualDelay <= NATIVE_VIDEO_SYNC_THRESHOLD && diff <= 0) {
+        if (actualDelay <= NIDIUM_VIDEO_SYNC_THRESHOLD && diff <= 0) {
             DPRINT("Droping video frame\n");
             v->display(v);
             v->m_InDisplay = false;
-            NATIVE_PTHREAD_SIGNAL(&v->m_NotInDisplay);
+            NIDIUM_PTHREAD_SIGNAL(&v->m_NotInDisplay);
             return 0;
         } else {
             DPRINT("Next display in %d\n", (int)(actualDelay * 1000));
@@ -804,7 +804,7 @@ int Video::display(void *custom) {
         }
     }
 
-    if (actualDelay > NATIVE_VIDEO_SYNC_THRESHOLD || diff > 0 || !v->m_Playing) {
+    if (actualDelay > NIDIUM_VIDEO_SYNC_THRESHOLD || diff > 0 || !v->m_Playing) {
         // If not playing, we can be here because user seeked
         // while the video is paused, so send the frame anyway
 
@@ -815,11 +815,11 @@ int Video::display(void *custom) {
     }
 
     if (v->m_Playing) {
-        NATIVE_PTHREAD_SIGNAL(&v->m_BufferCond);
+        NIDIUM_PTHREAD_SIGNAL(&v->m_BufferCond);
     }
 
     v->m_InDisplay = false;
-    NATIVE_PTHREAD_SIGNAL(&v->m_NotInDisplay);
+    NIDIUM_PTHREAD_SIGNAL(&v->m_NotInDisplay);
 
     return 0;
 }
@@ -829,7 +829,7 @@ int Video::setSizeInternal()
     m_NoDisplay = true;
 
     if (m_InDisplay) {
-        NATIVE_PTHREAD_WAIT(&m_NotInDisplay);
+        NIDIUM_PTHREAD_WAIT(&m_NotInDisplay);
     }
 
     // Flush buffers & timers to discard old frames
@@ -864,7 +864,7 @@ int Video::setSizeInternal()
 
     // Update the size of the frames in the frame pool
     int frameSize = avpicture_fill((AVPicture *)m_ConvertedFrame, NULL, PIX_FMT_RGBA, width, height);
-    for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
+    for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
         free(m_Frames[i]);
         m_Frames[i] = (uint8_t*) malloc(frameSize);
     }
@@ -894,7 +894,7 @@ int Video::setSizeInternal()
 
         PaUtil_WriteRingBuffer(m_rBuff, &frame, 1);
 
-        if (idx == NATIVE_VIDEO_BUFFER_SAMPLES - 1) {
+        if (idx == NIDIUM_VIDEO_BUFFER_SAMPLES - 1) {
             idx = 0;
         } else {
             idx++;
@@ -916,7 +916,7 @@ void Video::setSize(int width, int height)
 
     m_DoSetSize = true;
 
-    //NATIVE_PTHREAD_SIGNAL(&this->bufferCond);
+    //NIDIUM_PTHREAD_SIGNAL(&this->bufferCond);
 }
 
 // {{{ Buffer
@@ -968,9 +968,9 @@ void Video::bufferInternal()
 
     if (m_Playing) {
         if (m_AudioSource != NULL && m_AudioSource->m_IsConnected) {
-            needAudio = NATIVE_VIDEO_PACKET_BUFFER - m_AudioQueue->count;
+            needAudio = NIDIUM_VIDEO_PACKET_BUFFER - m_AudioQueue->count;
         }
-        needVideo = NATIVE_VIDEO_PACKET_BUFFER - m_VideoQueue->count;
+        needVideo = NIDIUM_VIDEO_PACKET_BUFFER - m_VideoQueue->count;
     } else {
         needVideo = 1;
     }
@@ -1091,7 +1091,7 @@ void *Video::decode(void *args)
             v->unlockDecodeThread();
         } else if (!v->m_DoSemek) {
             DPRINT("wait bufferCond, no work needed\n");
-            NATIVE_PTHREAD_WAIT(&v->m_BufferCond);
+            NIDIUM_PTHREAD_WAIT(&v->m_BufferCond);
             DPRINT("Waked up from bufferCond!");
         }
     }
@@ -1117,7 +1117,7 @@ void Video::sourceNeedWork(void *ptr)
 {
     Video *thiz = static_cast<Video*>(ptr);
     thiz->m_SourceNeedWork = true;
-    NATIVE_PTHREAD_SIGNAL(&thiz->m_BufferCond);
+    NIDIUM_PTHREAD_SIGNAL(&thiz->m_BufferCond);
 }
 
 // {{{ process
@@ -1140,7 +1140,7 @@ bool Video::processAudio()
     // if source had processed data
     if (m_Audio->canWriteFrame()) {
         DPRINT("Wakeup thread\n");
-        NATIVE_PTHREAD_SIGNAL(&m_Audio->m_QueueHaveData);
+        NIDIUM_PTHREAD_SIGNAL(&m_Audio->m_QueueHaveData);
     }
 
     return true;
@@ -1199,7 +1199,7 @@ bool Video::processFrame(AVFrame *avFrame)
     // later by Video::display() (UI Thread)
     PaUtil_WriteRingBuffer(m_rBuff, &frame, 1);
 
-    if (m_FramesIdx == NATIVE_VIDEO_BUFFER_SAMPLES - 1) {
+    if (m_FramesIdx == NIDIUM_VIDEO_BUFFER_SAMPLES - 1) {
         m_FramesIdx = 0;
     } else {
         m_FramesIdx++;
@@ -1285,7 +1285,7 @@ void Video::scheduleDisplay(int delay, bool force) {
 
     m_TimerIdx++;
 
-    if (m_TimerIdx > NATIVE_VIDEO_BUFFER_SAMPLES-1) {
+    if (m_TimerIdx > NIDIUM_VIDEO_BUFFER_SAMPLES-1) {
         m_TimerIdx = 0;
     }
 }
@@ -1340,7 +1340,7 @@ Video::Packet *Video::getPacket(PacketQueue *queue)
 
 void Video::clearTimers(bool reset)
 {
-    for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
+    for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
         if (m_Timers[i]->id != -1 && m_Timers[i]->delay != -1) {
             APE_timer_clearbyid(m_Net, m_Timers[i]->id, 1);
         }
@@ -1459,7 +1459,7 @@ void Video::closeInternal(bool reset)
 
         this->unlockDecodeThread();
 
-        NATIVE_PTHREAD_SIGNAL(&m_BufferCond);
+        NIDIUM_PTHREAD_SIGNAL(&m_BufferCond);
         pthread_join(m_ThreadDecode, NULL);
         m_ThreadCreated = false;
 
@@ -1473,7 +1473,7 @@ void Video::closeInternal(bool reset)
 
     this->flushBuffers();
 
-    for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
+    for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
         free(m_Frames[i]);
         m_Frames[i] = NULL;
     }

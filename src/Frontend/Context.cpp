@@ -25,11 +25,11 @@
 #include <Binding/JSDebug.h>
 #endif
 
-#ifdef NATIVE_AUDIO_ENABLED
+#ifdef NIDIUM_AUDIO_ENABLED
 #include "Binding/JSAV.h"
 #endif
 
-#ifdef NATIVE_WEBGL_ENABLED
+#ifdef NIDIUM_WEBGL_ENABLED
 #include <Binding/JSProcess.h>
 #include "Graphics/GLHeader.h"
 #include "Graphics/GLState.h"
@@ -150,13 +150,13 @@ void Context::loadNativeObjects(int width, int height)
     /* Image() object */
     Nidium::Binding::JSImage::RegisterObject(cx);
     /* Audio() object */
-#ifdef NATIVE_AUDIO_ENABLED
+#ifdef NIDIUM_AUDIO_ENABLED
     Nidium::Binding::JSAudio::RegisterObject(cx);
     Nidium::Binding::JSAudioNode::RegisterObject(cx);
     Nidium::Binding::JSVideo::RegisterObject(cx);
 #endif
     /* WebGL*() object */
-#ifdef NATIVE_WEBGL_ENABLED
+#ifdef NIDIUM_WEBGL_ENABLED
     Nidium::Binding::JSWebGLRenderingContext::RegisterObject(cx);
     Nidium::Binding::JSWebGLBuffer::RegisterObject(cx);
     Nidium::Binding::JSWebGLFramebuffer::RegisterObject(cx);
