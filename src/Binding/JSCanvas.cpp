@@ -1472,6 +1472,7 @@ static bool nidium_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
         lazyLoad = __curopt.toBoolean();
     }
     lazyLoad = false; /* Always lazy load for now.  */
+
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Canvas_class, args));
     handler = new Nidium::Graphics::CanvasHandler(width, height, Nidium::Frontend::Context::GetObject(cx), true);
     handler->m_Context = NULL;
@@ -1564,7 +1565,7 @@ void JSCanvas::onMessage(const Core::SharedMessages::Message &msg)
     switch (msg.event()) {
         case NIDIUM_EVENT(Nidium::Graphics::CanvasHandler, RESIZE_EVENT):
         {
-            // TODO : fireEvent
+            // TODO : fireEvent            
             JSOBJ_CALLFUNCNAME(ro, "onresize", JS::HandleValueArray::empty());
             break;
         }
@@ -1623,6 +1624,7 @@ void JSCanvas::onMessage(const Core::SharedMessages::Message &msg)
                 case Nidium::Frontend::InputEvent::kMouseMove_Type:
                 case Nidium::Frontend::InputEvent::kMouseDrag_Type:
                 case Nidium::Frontend::InputEvent::kMouseDragOver_Type:
+                case Nidium::Frontend::InputEvent::kMouseWheel_Type:
                     obj.set("xrel", msg.args[4].toInt());
                     obj.set("yrel", msg.args[5].toInt());
                     break;

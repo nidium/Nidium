@@ -19,20 +19,16 @@ class NativeCocoaUIInterface : public NativeUIInterface
 {
     public:
         NativeCocoaUIInterface();
-        void setWindowTitle(const char *);
-        const char *getWindowTitle() const;
-        void setCursor(CURSOR_TYPE);
+
+        void quitApplication();
         void runLoop();
         void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
         void setWindowControlsOffset(double x, double y);
         void initControls();
-        void setClipboardText(const char *text);
-        char *getClipboardText();
         void stopApplication();
         void setWindowSize(int w, int h);
         void setWindowFrame(int x, int y, int w, int h);
         void restartApplication(const char *path=NULL);
-        bool runApplication(const char *path);
         bool runJSWithoutNML(const char *path, int width = 800, int height = 600);
         void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags = 0);
@@ -58,8 +54,6 @@ class NativeCocoaUIInterface : public NativeUIInterface
             size_t offset;
         } m_Mainjs;
 
-        void onNMLLoaded();
-
         void log(const char *buf);
         void logf(const char *format, ...);
         void vlog(const char *format, va_list ap);
@@ -69,6 +63,8 @@ class NativeCocoaUIInterface : public NativeUIInterface
         virtual bool makeGLCurrent(SDL_GLContext ctx);
         virtual SDL_GLContext getCurrentGLContext();
 #endif
+    protected:
+        void setSystemCursor(CURSOR_TYPE cursor);
     private:
         void renderSystemTray();
         bool initContext();

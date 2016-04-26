@@ -11,7 +11,7 @@
 #define NATIVE_WINDOWPOS_UNDEFINED_MASK   0xFFFFFFF0
 #define NATIVE_WINDOWPOS_CENTER_MASK   0xFFFFFFF1
 
-struct SDL_Window; //FIXME: This is not correct
+struct SDL_Window;
 
 namespace Nidium {
     namespace Frontend {
@@ -143,7 +143,7 @@ class NativeUIInterface
         Nidium::Frontend::Context *m_NativeCtx;
         Nidium::Frontend::NML *m_Nml;
         SDL_Window *m_Win;
-        ape_global *m_Gnet;
+        _ape_global *m_Gnet;
         int m_Argc = 0;
         char **m_Argv = nullptr;
 
@@ -164,15 +164,41 @@ class NativeUIInterface
             m_Argc = argc;
             m_Argv = argv;
         }
-        virtual bool runApplication(const char *path)=0;
-        virtual void setWindowTitle(const char *)=0;
-        virtual const char *getWindowTitle() const=0;
-        virtual void setCursor(CURSOR_TYPE)=0;
+
+
+        /*
+            Create the initial window
+            ::onWindowCreated() is then called on the subclass
+        */
+        virtual bool createWindow(int width, int height);
+
+        /*
+            Set the system window title
+        */
+        virtual void setWindowTitle(const char *title);
+
+        /*
+            Get the system window title
+        */
+        virtual const char *getWindowTitle() const;
+
+        /*
+            Shutdown the application
+        */
+        virtual void quitApplication()=0;
+
+        virtual bool runApplication(const char *path);
+
+        /*
+
+        */
+        virtual void setCursor(CURSOR_TYPE);
+
         virtual void runLoop()=0;
         virtual void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {};
         virtual void setWindowControlsOffset(double x, double y) {};
-        virtual void setClipboardText(const char *text)=0;
-        virtual char *getClipboardText()=0;
+        virtual void setClipboardText(const char *text);
+        virtual char *getClipboardText();
         virtual void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags=0)=0;
         virtual const char *getCacheDirectory() const=0;
@@ -251,9 +277,22 @@ class NativeUIInterface
             return m_SystemMenu;
         }
 
-    protected:
-        virtual void renderSystemTray() {};
+        static int HandleEvents(NativeUIInterface *NUII);
 
+        static void OnNMLLoaded(void *arg);
+    protected:
+        virtual void initControls() {};
+        virtual void onWindowCreated() {};
+        virtual void onNMLLoaded();
+        virtual void renderSystemTray() {};
+        virtual void setSystemCursor(CURSOR_TYPE cursor)=0;
+
+        /*
+            Ctrl+R action
+            OSX: does nothing, this is handled by the menu action
+        */
+        virtual void hitRefresh() {}
+        
         int m_Width;
         int m_Height;
         char *m_FilePath;

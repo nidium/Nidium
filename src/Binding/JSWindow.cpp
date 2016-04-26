@@ -256,7 +256,7 @@ bool JSWindow::onClose()
 void JSWindow::assetReady(const Nidium::Frontend::NMLTag &tag)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-        val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS)
+        val, JSPROP_PERMANENT | JSPROP_ENUMERATE)
 
     JSContext *cx = m_Cx;
     JS::AutoValueArray<1> jevent(cx);
@@ -310,9 +310,17 @@ void JSWindow::windowBlur()
 void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-    val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_READONLY)
+    val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
 
     JSAutoRequest ar(m_Cx);
+
+    Nidium::Frontend::Context *nctx = Nidium::Frontend::Context::GetObject(m_Cx);
+    Nidium::Frontend::InputEvent *ev = new Nidium::Frontend::InputEvent(Nidium::Frontend::InputEvent::kMouseWheel_Type, x, y);
+
+    ev->setData(0, xrel);
+    ev->setData(1, yrel);
+
+    nctx->addInputEvent(ev);
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class, JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue xrelv(m_Cx, INT_TO_JSVAL(xrel));
@@ -438,7 +446,7 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
         Nidium::Frontend::InputEvent::kMouseClick_Type :
         Nidium::Frontend::InputEvent::kMouseClickRelease_Type, x, y);
 
-    ev->m_data[0] = button;
+    ev->setData(0, button);
 
     nctx->addInputEvent(ev);
 
@@ -450,7 +458,7 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
     if (clicks % 2 == 0 && !state) {
         Nidium::Frontend::InputEvent *ev = new Nidium::Frontend::InputEvent(Nidium::Frontend::InputEvent::kMouseDoubleClick_Type, x, y);
 
-        ev->m_data[0] = button;
+        ev->setData(0, button);
         nctx->addInputEvent(ev);
     }
     JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
@@ -603,8 +611,9 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
     rootHandler->m_MousePosition.consumed = false;
 
     Nidium::Frontend::InputEvent *ev = new Nidium::Frontend::InputEvent(Nidium::Frontend::InputEvent::kMouseMove_Type, x, y);
-    ev->m_data[0] = xrel;
-    ev->m_data[1] = yrel;
+
+    ev->setData(0, xrel);
+    ev->setData(1, yrel);
 
     nctx->addInputEvent(ev);
 
