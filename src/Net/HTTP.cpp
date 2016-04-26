@@ -751,7 +751,7 @@ bool HTTPRequest::resetURL(const char *url)
 
 void HTTPRequest::setDefaultHeaders()
 {
-    this->setHeader("User-Agent", "Mozilla/5.0 (Unknown arch) nidium/" NATIVE_VERSION_STR " (nidium, like Gecko) nidium/" NATIVE_VERSION_STR);
+    this->setHeader("User-Agent", "Mozilla/5.0 (Unknown arch) nidium/" NIDIUM_VERSION_STR " (nidium, like Gecko) nidium/" NIDIUM_VERSION_STR);
     this->setHeader("Accept-Charset", "UTF-8");
     this->setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
 }

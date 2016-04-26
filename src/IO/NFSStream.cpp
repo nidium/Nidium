@@ -19,15 +19,15 @@ namespace IO {
 
 // {{{ Implementation
 
-#ifdef NATIVE_EMBED_PRIVATE
-  #include NATIVE_EMBED_PRIVATE
+#ifdef NIDIUM_EMBED_PRIVATE
+  #include NIDIUM_EMBED_PRIVATE
 #endif
 NFSStream::NFSStream(const char *location) :
     Stream(location)
 {
     static NFS *nfs = NULL;
 
-#ifdef NATIVE_EMBED_PRIVATE
+#ifdef NIDIUM_EMBED_PRIVATE
     if (nfs == NULL) {
         nfs = new NFS(private_bin, sizeof(private_bin));
     }

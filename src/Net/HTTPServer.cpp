@@ -494,7 +494,7 @@ HTTPResponse::HTTPResponse(uint16_t code) :
     m_Headers(ape_array_new(8)), m_Statuscode(code),
     m_Content(NULL), m_Headers_str(NULL), m_HeaderSent(false), m_Chunked(false)
 {
-    this->setHeader("Server", "nidium/" NATIVE_VERSION_STR);
+    this->setHeader("Server", "nidium/" NIDIUM_VERSION_STR);
 }
 
 HTTPResponse::~HTTPResponse()
