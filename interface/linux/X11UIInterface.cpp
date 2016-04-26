@@ -1,40 +1,17 @@
 #include "X11UIInterface.h"
+#include "System.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdarg.h>
-#include <string.h>
-#include <strings.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <math.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <ape_netlib.h>
 
 #include <X11/cursorfont.h>
 #include <../build/include/SDL_config.h>
 #include <SDL.h>
-#include <SDL_opengl.h>
 #include <SDL_syswm.h>
 
 
 #ifdef NIDIUM_USE_GTK
 #include <gtk/gtk.h>
 #endif
-
-#ifdef NIDIUM_USE_QT
-#include <QtGui>
-#include <QFileDialog>
-#include <QString>
-#endif
-
-#include "Binding/JSWindow.h"
-#include "Frontend/App.h"
-#include "Frontend/Context.h"
-#include "Frontend/NML.h"
-
-#include "System.h"
 
 namespace Nidium {
 namespace Interface {
@@ -51,13 +28,6 @@ static Window *NativeX11Window(SDL_Window *m_Win)
     return (Window*)info.info.x11.window;
 }
 #endif
-
-
-static int NativeProcessUI(void *arg)
-{
-    return NativeUIInterface::HandleEvents((NativeUIInterface *)arg);
-}
-
 // }}}
 
 // {{{ NativeX11UIinterface
@@ -188,52 +158,14 @@ void NativeX11UIInterface::openFileDialog(const char *files[],
 
     free(lst);
 #endif
-#ifdef NIDIUM_USE_QT
-    QApplication app(0, NULL);
-    QString fileName = QFileDialog::getOpenFileName(NULL,
-               "Open file", NULL, "Image Files (*.png *.jpg *.bmp)");
-#endif
-}
-
-void NativeX11UIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
-    uint8_t b, uint8_t a)
-{
-
-}
-
-void NativeX11UIInterface::initControls()
-{
-
-}
-
-void NativeX11UIInterface::setWindowControlsOffset(double x, double y)
-{
-
 }
 
 void NativeX11UIInterface::runLoop()
 {
-
-    APE_timer_create(m_Gnet, 1, NativeProcessUI, (void *)this);
-
+    APE_timer_create(m_Gnet, 1, NativeUIInterface::HandleEvents, (void *)this);
     APE_loop_run(m_Gnet);
 }
 
-void NativeX11UIInterface::stopApplication()
-{
-    if (this->m_Nml) delete this->m_Nml;
-    if (this->m_NativeCtx) {
-        delete this->m_NativeCtx;
-        this->m_NativeCtx = NULL;
-        Nidium::Core::Messages::DestroyReader();
-    }
-    this->m_Nml = NULL;
-    glClearColor(1, 1, 1, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    /* Also clear the front buffer */
-    SDL_GL_SwapWindow(this->m_Win);
-    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-}
 
 void NativeX11UIInterface::log(const char *buf)
 {
@@ -309,10 +241,6 @@ void NativeX11UIInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
 // }}}
 
 // {{{ NativeUIX11Console
-NativeUIX11Console::NativeUIX11Console ()
-{
-}
-
 void NativeUIX11Console::log(const char *str)
 {
     if (strcmp("\n", str) == 0) {
@@ -320,31 +248,6 @@ void NativeUIX11Console::log(const char *str)
     } else {
         fprintf(stdout, "[CONSOLE] %s", str);
     }
-}
-
-void NativeUIX11Console::show()
-{
-}
-
-void NativeUIX11Console::hide()
-{
-}
-
-bool NativeUIX11Console::hidden()
-{
-    return true;
-}
-
-void NativeUIX11Console::clear()
-{
-}
-
-void NativeUIX11Console::flush()
-{
-}
-
-NativeUIX11Console::~NativeUIX11Console()
-{
 }
 // }}}
 

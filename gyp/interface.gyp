@@ -18,7 +18,7 @@
             '<(nidium_nidiumcore_path)/gyp/jsoncpp.gyp:jsoncpp',
         ],
         'sources': [
-            '<(nidium_interface_path)/UIInterface_base.cpp',
+            '<(nidium_interface_path)/UIInterface.cpp',
         ],
         'conditions': [
             ['OS=="mac"', {
@@ -29,7 +29,7 @@
                     ],
                 },
                 'sources': [
-                    '<(nidium_interface_path)/osx/UIInterface.mm',
+                    '<(nidium_interface_path)/osx/CocoaUIInterface.mm',
                     '<(nidium_interface_path)/osx/UIConsole.mm',
                     '<(nidium_interface_path)/osx/System.mm',
                     '<(nidium_interface_path)/osx/DragNSView.mm',
@@ -37,7 +37,7 @@
             }],
             ['OS=="linux"', {
                 'sources': [
-                    '<(nidium_interface_path)/linux/UIInterface.cpp',
+                    '<(nidium_interface_path)/linux/X11UIInterface.cpp',
                     '<(nidium_interface_path)/linux/System.cpp',
                 ],
                 'include_dirs': [

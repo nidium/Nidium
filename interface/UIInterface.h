@@ -6,12 +6,11 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <ape_netlib.h>
-
 #define NIDIUM_WINDOWPOS_UNDEFINED_MASK   0xFFFFFFF0
 #define NIDIUM_WINDOWPOS_CENTER_MASK   0xFFFFFFF1
 
 struct SDL_Window;
+typedef struct _ape_global ape_global;
 
 namespace Nidium {
     namespace Frontend {
@@ -146,18 +145,16 @@ class NativeUIInterface
             return m_NativeCtx;
         }
 
-        NativeUIInterface();
+
         virtual ~NativeUIInterface() {};
 
-        virtual void stopApplication()=0;
-        virtual void restartApplication(const char *path=NULL);
+        /*
+            Start the window main loop
+            This call must be the last one upon initialization
+            (it blocks by running the APE event loop)
+        */
+        virtual void runLoop()=0;
 
-        virtual void refreshApplication(bool clearConsole = false);
-
-        virtual bool runJSWithoutNML(const char *path, int width = 800,
-            int height = 600) {
-            return false;
-        };
 
         /*
             Create the initial window
@@ -186,6 +183,22 @@ class NativeUIInterface
         virtual bool runApplication(const char *path);
 
         /*
+            Stop the current running nml application
+        */
+        virtual void stopApplication();
+
+        /*
+            Start a new application
+        */
+        virtual void restartApplication(const char *path=NULL);
+
+        /*
+            Refresh the current application
+            Internally calls restartApplication with the current NML Path
+        */
+        virtual void refreshApplication(bool clearConsole = false);
+
+        /*
             Schedule a cursor change
         */
         virtual void setCursor(CURSOR_TYPE);
@@ -200,7 +213,7 @@ class NativeUIInterface
         */
         virtual void setWindowFrame(int x, int y, int w, int h);
 
-        virtual void runLoop()=0;
+
         virtual void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {};
         virtual void setWindowControlsOffset(double x, double y) {};
         virtual void setClipboardText(const char *text);
@@ -234,17 +247,8 @@ class NativeUIInterface
             return this->m_Height; 
         }
 
-
-        class NativeUIConsole
-        {
-            public:
-            virtual void log(const char *str)=0;
-            virtual void show()=0;
-            virtual void hide()=0;
-            virtual void clear()=0;
-            virtual bool hidden()=0;
-        };
-        virtual NativeUIConsole *getConsole(bool create=false, bool *created=NULL)=0;
+        virtual void hideWindow();
+        virtual void showWindow();
 
         virtual bool makeMainGLCurrent();
         virtual bool makeGLCurrent(SDL_GLContext ctx);
@@ -281,8 +285,6 @@ class NativeUIInterface
             return m_FrameBuffer;
         }
 
-        virtual void hideWindow();
-        virtual void showWindow();
         bool isWindowHidden() const {
             return m_Hidden;
         }
@@ -291,18 +293,32 @@ class NativeUIInterface
             return m_SystemMenu;
         }
 
-        static int HandleEvents(NativeUIInterface *NUII);
+        static int HandleEvents(void *arg);
 
         static void OnNMLLoaded(void *arg);
 
-        Nidium::Frontend::Context *m_NativeCtx;
-        Nidium::Frontend::NML *m_Nml;
+
+        class NativeUIConsole
+        {
+            public:
+            virtual void log(const char *str)=0;
+            virtual void show()=0;
+            virtual void hide()=0;
+            virtual void clear()=0;
+            virtual bool hidden()=0;
+        };
+        virtual NativeUIConsole *getConsole(bool create=false, bool *created=NULL)=0;
+
+
+        Frontend::Context *m_NativeCtx;
+        Frontend::NML *m_Nml;
         SDL_Window *m_Win;
-        _ape_global *m_Gnet;
+        ape_global *m_Gnet;
         int m_Argc = 0;
         char **m_Argv = nullptr;
 
     protected:
+        NativeUIInterface();
         virtual void initControls() {};
         virtual void onWindowCreated() {};
         virtual void onNMLLoaded();

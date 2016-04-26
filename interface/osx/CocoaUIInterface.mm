@@ -7,10 +7,12 @@
 
 #import <native_netlib.h>
 
+#import "CocoaUIInterface.h"
 #import <SDL.h>
 #import <SDL_opengl.h>
 #import <SDL_syswm.h>
-#import "SDL_keycode_translate.h"
+#import <Cocoa/Cocoa.h>
+#import <sys/stat.h>
 
 #import <Core/Messages.h>
 #import <Core/Path.h>
@@ -19,10 +21,8 @@
 #import <Frontend/Context.h>
 #import <Frontend/NML.h>
 #import <Frontend/App.h>
-#import <Graphics/SkiaContext.h>
 #import <Binding/JSWindow.h>
 
-#import "Macros.h"
 #import "System.h"
 #import "UIConsole.h"
 #import "DragNSView.h"
@@ -60,14 +60,6 @@ static NSWindow *NativeCocoaWindow(SDL_Window *win)
 void NativeCocoaUIInterface::quitApplication()
 {
     [[NSApplication sharedApplication] terminate:nil];
-}
-
-/*
-    TODO: useless indirection?
-*/
-static int NativeProcessUI(void *arg)
-{
-    return NativeUIInterface::HandleEvents((NativeUIInterface *)arg)
 }
 
 static int NativeProcessSystemLoop(void *arg)
@@ -145,53 +137,7 @@ void NativeCocoaUIInterface::stopApplication()
     this->disableSysTray();
     m_SystemMenu.deleteItems();
 
-    if (this->m_Nml) {
-        delete this->m_Nml;
-        this->m_Nml = NULL;
-    }
-    if (this->m_NativeCtx) {
-        delete this->m_NativeCtx;
-        this->m_NativeCtx = NULL;
-        Nidium::Core::Messages::DestroyReader();
-    }
-
-    glClearColor(1, 1, 1, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    /* Also clear the front buffer */
-    SDL_GL_SwapWindow(this->m_Win);
-    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-}
-
-bool NativeCocoaUIInterface::runJSWithoutNML(const char *path, int width, int height)
-{
-    Nidium::Core::Messages::InitReader(m_Gnet);
-    if (path != this->m_FilePath) {
-        if (this->m_FilePath) {
-            free(this->m_FilePath);
-        }
-        this->m_FilePath = strdup(path);
-    }
-    if (strlen(path) < 5) {
-        return false;
-    }
-
-    if (!this->createWindow(
-        width, height+kNativeTitleBarHeight)) {
-        return false;
-    }
-
-    this->setWindowTitle("Nidium");
-
-    NativeJS::InitNet(m_Gnet);
-
-    Nidium::Core::Path jspath(path);
-
-    Nidium::Core::Path::CD(jspath.dir());
-    Nidium::Core::Path::Chroot(jspath.dir());
-
-    m_NativeCtx->getNJS()->LoadScript(path);
-
-    return true;
+    UIInterface::stopApplication();
 }
 
 NativeCocoaUIInterface::NativeCocoaUIInterface() :

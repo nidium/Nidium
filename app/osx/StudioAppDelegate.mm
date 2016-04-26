@@ -148,14 +148,16 @@ NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:@"Testing!"] autorelease];
     [[NSUserNotificationCenter defaultUserNotificationCenter] setDelegate:self];
 
     NSUserDefaults *args = [NSUserDefaults standardUserDefaults];
+#if 0
     BOOL noNML = ([args objectForKey:@"no-nml"] != nil);
+#endif
     int appWidth = 0, appHeight = 0;
-
+#if 0
     if (noNML) {
         appWidth  = [args integerForKey:@"width"];
         appHeight = [args integerForKey:@"height"];
     }
-
+#endif
     //[self setupWorkingDirectory:YES];
     _ape_seed = time(NULL) ^ (getpid() << 16);
     //NativeConsole *console = [[NativeConsole alloc] init];
@@ -176,17 +178,12 @@ NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:@"Testing!"] autorelease];
         } else {
             filename = [self.appfile UTF8String];
         }
-        if (!noNML) {
-            if (!nUI->runApplication(filename)) {
-                [[NSApplication sharedApplication] terminate:nil];
-                return;
-            }
-        } else {
-            if (!nUI->runJSWithoutNML(filename, appWidth, appHeight)) {
-                [[NSApplication sharedApplication] terminate:nil];
-                return;
-            }
+        
+        if (!nUI->runApplication(filename)) {
+            [[NSApplication sharedApplication] terminate:nil];
+            return;
         }
+    
         nUI->runLoop();
 #if NIDIUM_DISPATCH_MAINTHREAD
     });
