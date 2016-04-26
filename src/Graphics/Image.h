@@ -1,5 +1,5 @@
-#ifndef graphics_skimage_h__
-#define graphics_skimage_h__
+#ifndef graphics_image_h__
+#define graphics_image_h__
 
 #include <SkBitmap.h>
 #include <SkImage.h>

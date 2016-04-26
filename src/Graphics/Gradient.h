@@ -1,5 +1,5 @@
-#ifndef graphics_skgradient_h__
-#define graphics_skgradient_h__
+#ifndef graphics_gradient_h__
+#define graphics_gradient_h__
 
 #include <stdint.h>
 

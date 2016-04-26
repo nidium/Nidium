@@ -1,5 +1,5 @@
-#ifndef nml_macros_h__
-#define nml_macros_h__
+#ifndef macros_h__
+#define macros_h__
 
 #include <string.h>
 
