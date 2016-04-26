@@ -233,23 +233,6 @@ void NativeCocoaUIInterface::onWindowCreated()
 
 }
 
-const char *NativeCocoaUIInterface::getCacheDirectory() const
-{
-    NSArray* paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
-    NSString* cacheDir = [paths objectAtIndex:0];
-
-    if (cacheDir) {
-        NSString *path = [NSString stringWithFormat:@"%@/nidium/",cacheDir];
-        const char *cpath = [path cStringUsingEncoding:NSASCIIStringEncoding];
-        if (mkdir(cpath, 0777) == -1 && errno != EEXIST) {
-            NLOG("Cant create cache directory %s", cpath);
-            return NULL;
-        }
-        return cpath;
-    }
-    return NULL;
-}
-
 void NativeCocoaUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
     uint8_t b, uint8_t a)
 {

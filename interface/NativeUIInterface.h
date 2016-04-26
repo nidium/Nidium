@@ -194,7 +194,6 @@ class NativeUIInterface
         virtual char *getClipboardText();
         virtual void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags=0)=0;
-        virtual const char *getCacheDirectory() const=0;
 
         virtual void getScreenSize(int *width, int *height);
         virtual void setWindowPosition(int x, int y);

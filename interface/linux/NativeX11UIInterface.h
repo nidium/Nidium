@@ -23,9 +23,7 @@ class NativeX11UIInterface : public NativeUIInterface
         void setWindowControlsOffset(double x, double y);
         void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags = 0);
-        const char *getCacheDirectory() const {
-            return "/tmp/";
-        };
+
         void initControls();
         NativeUIX11Console *getConsole(bool create=false, bool *created=NULL) {
             return this->console;
