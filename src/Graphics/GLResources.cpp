@@ -1,6 +1,6 @@
 #include "Graphics/GLResources.h"
 
-#include "Graphics/OpenGLHeader.h"
+#include "Graphics/GLHeader.h"
 
 namespace Nidium {
 namespace Graphics {

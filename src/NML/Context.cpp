@@ -31,7 +31,7 @@
 
 #ifdef NATIVE_WEBGL_ENABLED
 #include <Binding/JSProcess.h>
-#include "Graphics/OpenGLHeader.h"
+#include "Graphics/GLHeader.h"
 #include "Graphics/GLState.h"
 #include "Binding/JSWebGL.h"
 #endif

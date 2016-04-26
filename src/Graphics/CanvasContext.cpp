@@ -10,7 +10,7 @@
 #include <SystemInterface.h>
 
 #include "Graphics/GLState.h"
-#include "Graphics/OpenGLHeader.h"
+#include "Graphics/GLHeader.h"
 #include "Graphics/Canvas2DContext.h"
 #include "Binding/JSCanvas2DContext.h"
 

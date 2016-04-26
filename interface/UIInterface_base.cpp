@@ -10,7 +10,7 @@
 #include "IO/PrivateStream.h"
 #include "IO/SystemStream.h"
 #include "NML/Context.h"
-#include "Graphics/OpenGLHeader.h"
+#include "Graphics/GLHeader.h"
 
 namespace Nidium {
 namespace Interface {

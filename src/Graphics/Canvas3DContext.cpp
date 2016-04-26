@@ -6,7 +6,7 @@
 
 #include <SystemInterface.h>
 
-#include "Graphics/OpenGLHeader.h"
+#include "Graphics/GLHeader.h"
 
 namespace Nidium {
     namespace Binding {

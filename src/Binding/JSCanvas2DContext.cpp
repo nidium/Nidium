@@ -12,7 +12,7 @@
 
 #include "Graphics/Image.h"
 #include "Graphics/Gradient.h"
-#include "Graphics/OpenGLHeader.h"
+#include "Graphics/GLHeader.h"
 #include "Graphics/Canvas2DContext.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSDocument.h"
