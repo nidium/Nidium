@@ -70,14 +70,14 @@ enum {
     NAVIGATOR_PROP_USERAGENT
 };
 
-static JSClass navigator_class = {
+static JSClass Navigator_class = {
     "Navigator", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-static JSClass storage_class = {
+static JSClass Storage_class = {
     "NidiumStorage", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Storage_Finalize,
@@ -89,14 +89,14 @@ extern JSClass global_class;
 template<>
 JSClass *JSExposer<JSWindow>::jsclass = &global_class;
 
-static JSClass mouseEvent_class = {
+static JSClass MouseEvent_class = {
     "MouseEvent", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-static JSClass dragEvent_class = {
+static JSClass DragEvent_class = {
     "DragEvent", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
@@ -104,7 +104,7 @@ static JSClass dragEvent_class = {
 };
 
 #if 0
-static JSClass windowEvent_class = {
+static JSClass WindowEvent_class = {
     "WindowEvent", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
@@ -112,14 +112,14 @@ static JSClass windowEvent_class = {
 };
 #endif
 
-static JSClass textEvent_class = {
+static JSClass TextEvent_class = {
     "TextInputEvent", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-static JSClass keyEvent_class = {
+static JSClass KeyEvent_class = {
     "keyEvent", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
@@ -314,7 +314,7 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
 
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &mouseEvent_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class, JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue xrelv(m_Cx, INT_TO_JSVAL(xrel));
     JS::RootedValue yrelv(m_Cx, INT_TO_JSVAL(yrel));
     JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
@@ -352,7 +352,7 @@ void JSWindow::keyupdown(int keycode, int mod, int state, int repeat, int locati
 
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &keyEvent_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &KeyEvent_class, JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue keyV(m_Cx, INT_TO_JSVAL(keycode));
     JS::RootedValue locationV(m_Cx, INT_TO_JSVAL(location));
     JS::RootedValue alt(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NIDIUM_KEY_ALT)));
@@ -394,7 +394,7 @@ void JSWindow::textInput(const char *data)
 
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &textEvent_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &TextEvent_class, JS::NullPtr(), JS::NullPtr()));
     JS::RootedString str(m_Cx, JSUtils::NewStringWithEncoding(m_Cx, data, strlen(data), "utf8"));
     EVENT_PROP("val", str);
 
@@ -431,7 +431,7 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
 
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &mouseEvent_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class, JS::NullPtr(), JS::NullPtr()));
 
     Nidium::NML::NativeContext *nctx = Nidium::NML::NativeContext::GetObject(m_Cx);
     Nidium::NML::InputEvent *ev = new Nidium::NML::InputEvent(state ?
@@ -483,7 +483,7 @@ bool JSWindow::dragEvent(const char *name, int x, int y)
     val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &dragEvent_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &DragEvent_class, JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
     JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
     EVENT_PROP("x", xv);
@@ -608,7 +608,7 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
 
     nctx->addInputEvent(ev);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &mouseEvent_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class, JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
     JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
     JS::RootedValue xrelv(m_Cx, INT_TO_JSVAL(xrel));
@@ -1365,7 +1365,7 @@ void JSWindow::createMainCanvas(int width, int height, JS::HandleObject docObj)
 
 void JSWindow::createStorage()
 {
-    JS::RootedObject storage(m_Cx, JS_NewObject(m_Cx, &storage_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject storage(m_Cx, JS_NewObject(m_Cx, &Storage_class, JS::NullPtr(), JS::NullPtr()));
     JS_DefineFunctions(m_Cx, storage, storage_funcs);
     JS::RootedValue jsstorage(m_Cx, OBJECT_TO_JSVAL(storage));
     JS::RootedObject obj(m_Cx, m_JSObject);
@@ -1495,7 +1495,7 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx, int width,
     JS_SetProperty(cx, windowObj, "__nidium__", val);
 
     //  Set the navigator properties
-    JS::RootedObject navigatorObj(cx, JS_NewObject(cx, &navigator_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject navigatorObj(cx, JS_NewObject(cx, &Navigator_class, JS::NullPtr(), JS::NullPtr()));
     JS_DefineProperties(cx, navigatorObj, navigator_props);
 
     val = OBJECT_TO_JSVAL(navigatorObj);

@@ -26,14 +26,14 @@ namespace Binding {
 #define NSKIA_NATIVE (CppObj->getSurface())
 #define HANDLER_GETTER(obj) ((Nidium::Graphics::CanvasHandler *)((class JSCanvas *)JS_GetPrivate(obj))->getHandler())
 
-static JSClass imageData_class = {
+static JSClass ImageData_class = {
     "ImageData", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-JSClass *Canvas2DContext::jsclass = &imageData_class;
+JSClass *Canvas2DContext::jsclass = &ImageData_class;
 
 enum {
 #define CANVAS_2D_CTX_PROP(prop) CTX_PROP_ ## prop,
@@ -75,21 +75,21 @@ JSClass Canvas2DContext_class = {
     nullptr, nullptr, nullptr, Canvas2DContext_Trace, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-static JSClass canvasGradient_class = {
+static JSClass CanvasGradient_class = {
     "CanvasGradient", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, CanvasGradient_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-static JSClass canvasGLProgram_class = {
+static JSClass CanvasGLProgram_class = {
     "CanvasGLProgram", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-static JSClass canvasPattern_class = {
+static JSClass CanvasPattern_class = {
     "CanvasPattern", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, CanvasPattern_Finalize,
@@ -730,7 +730,7 @@ static bool nidium_canvas2dctx_createLinearGradient(JSContext *cx,
         return false;
     }
 
-    JS::RootedObject linearObject(cx, JS_NewObject(cx, &canvasGradient_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject linearObject(cx, JS_NewObject(cx, &CanvasGradient_class, JS::NullPtr(), JS::NullPtr()));
     JS_SetPrivate(linearObject, new Nidium::Graphics::Gradient(x1, y1, x2, y2));
     JS_DefineFunctions(cx, linearObject, gradient_funcs);
 
@@ -758,7 +758,7 @@ static bool nidium_canvas2dctx_getImageData(JSContext *cx,
     JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
     JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
     JS::RootedValue arVal(cx, OBJECT_TO_JSVAL(arrBuffer));
-    JS::RootedObject dataObject(cx, JS_NewObject(cx, &imageData_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject dataObject(cx, JS_NewObject(cx, &ImageData_class, JS::NullPtr(), JS::NullPtr()));
     JS_DefineProperty(cx, dataObject, "width", widthVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "height", heightVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "data", arVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
@@ -783,7 +783,7 @@ static bool nidium_canvas2dctx_putImageData(JSContext *cx,
         return false;
     }
 
-    if (!dataObject || JS_GetClass(dataObject) != &imageData_class) {
+    if (!dataObject || JS_GetClass(dataObject) != &ImageData_class) {
         JS_ReportError(cx, "First argument must be a imageData object");
         return false;
     }
@@ -834,7 +834,7 @@ static bool nidium_canvas2dctx_createImageData(JSContext *cx,
     JS::RootedValue array(cx, OBJECT_TO_JSVAL(arrBuffer));
     JS::RootedValue width(cx, UINT_TO_JSVAL(x));
     JS::RootedValue height(cx, UINT_TO_JSVAL(y));
-    JS::RootedObject dataObject(cx, JS_NewObject(cx, &imageData_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject dataObject(cx, JS_NewObject(cx, &ImageData_class, JS::NullPtr(), JS::NullPtr()));
     JS_DefineProperty(cx, dataObject, "width", width, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "height", height, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "data", array, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
@@ -862,7 +862,7 @@ static bool nidium_canvas2dctx_createPattern(JSContext *cx,
         return false;
     }
 
-    JS::RootedObject patternObject(cx, JS_NewObject(cx, &canvasPattern_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject patternObject(cx, JS_NewObject(cx, &CanvasPattern_class, JS::NullPtr(), JS::NullPtr()));
     JSImage *img = static_cast<JSImage *>(JS_GetPrivate(jsimage));
     JS_SetReservedSlot(patternObject, 0, OBJECT_TO_JSVAL(img->getJSObject()));
     CanvasPattern::PATTERN_MODE pmode = CanvasPattern::PATTERN_REPEAT;
@@ -899,7 +899,7 @@ static bool nidium_canvas2dctx_createRadialGradient(JSContext *cx,
         return false;
     }
 
-    JS::RootedObject linearObject(cx, JS_NewObject(cx, &canvasGradient_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject linearObject(cx, JS_NewObject(cx, &CanvasGradient_class, JS::NullPtr(), JS::NullPtr()));
     JS_SetPrivate(linearObject, new Nidium::Graphics::Gradient(x1, y1, r1, x2, y2, r2));
     JS_DefineFunctions(cx, linearObject, gradient_funcs);
     args.rval().setObjectOrNull(linearObject);
@@ -1112,7 +1112,7 @@ static bool nidium_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
         JS_ReportError(cx, "Failed to compile GLSL shader");
         return false;
     }
-    JS::RootedObject canvasProgram(cx, JS_NewObject(cx, &canvasGLProgram_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject canvasProgram(cx, JS_NewObject(cx, &CanvasGLProgram_class, JS::NullPtr(), JS::NullPtr()));
     JS_DefineFunctions(cx, canvasProgram, glprogram_funcs);
     JS_SetPrivate(canvasProgram, (void *)program);
 
@@ -1595,7 +1595,7 @@ static bool nidium_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
                 state->m_CurrentShader.setUndefined();
 
             } else if (vp.isObject() &&
-                JS_GetClass(&vp.toObject()) == &canvasGradient_class) {
+                JS_GetClass(&vp.toObject()) == &CanvasGradient_class) {
 
                 JS::RootedObject vpObj(cx, &vp.toObject());
                 Nidium::Graphics::Gradient *gradient = (class Nidium::Graphics::Gradient *) JS_GetPrivate(vpObj);
@@ -1607,7 +1607,7 @@ static bool nidium_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
                 state->m_CurrentShader.set(vp);
 
             } else if (vp.isObject() &&
-                JS_GetClass(&vp.toObject()) == &canvasPattern_class) {
+                JS_GetClass(&vp.toObject()) == &CanvasPattern_class) {
 
                 JS::RootedObject vpObj(cx, &vp.toObject());
                 CanvasPattern *pattern = (class CanvasPattern *) JS_GetPrivate(vpObj);
@@ -1635,7 +1635,7 @@ static bool nidium_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
                 state->m_CurrentStrokeShader.setUndefined();
 
             } else if (vp.isObject() &&
-                JS_GetClass(&vp.toObject()) == &canvasGradient_class) {
+                JS_GetClass(&vp.toObject()) == &CanvasGradient_class) {
                 JS::RootedObject vpObj(cx, &vp.toObject());
                 Nidium::Graphics::Gradient *gradient = (class Nidium::Graphics::Gradient *) JS_GetPrivate(vpObj);
 

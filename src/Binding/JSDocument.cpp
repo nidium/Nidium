@@ -38,17 +38,17 @@ static bool nidium_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
 static bool nidium_document_toDataArray(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static JSClass document_class = {
+static JSClass Document_class = {
     "NativeDocument", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Document_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-JSClass *JSDocument::jsclass = &document_class;
+JSClass *JSDocument::jsclass = &Document_class;
 
 template<>
-JSClass *JSExposer<JSDocument>::jsclass = &document_class;
+JSClass *JSExposer<JSDocument>::jsclass = &Document_class;
 
 static JSFunctionSpec document_funcs[] = {
     JS_FN("run", nidium_document_run, 1, NIDIUM_JS_FNPROPS),
@@ -421,7 +421,7 @@ JSObject *JSDocument::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject documentObj(cx, JS_DefineObject(cx, global,
-        JSDocument::GetJSObjectName(), &document_class , nullptr,
+        JSDocument::GetJSObjectName(), &Document_class , nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE));
 
     NidiumJS *njs = NidiumJS::GetObject(cx);

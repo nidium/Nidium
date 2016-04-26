@@ -126,7 +126,7 @@ static JSClass AudioContext_class = {
 template<>
 JSClass *JSExposer<JSAudio>::jsclass = &AudioContext_class;
 
-static JSClass global_AudioThread_class = {
+static JSClass Global_AudioThread_class = {
     "_GLOBALAudioThread", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
@@ -614,7 +614,7 @@ bool JSAudio::createContext()
     options.setVersion(JSVERSION_LATEST);
 
     JS::RootedObject global(m_JsTcx, JS_NewGlobalObject(m_JsTcx,
-        &global_AudioThread_class, nullptr, JS::DontFireOnNewGlobalHook, options));
+        &Global_AudioThread_class, nullptr, JS::DontFireOnNewGlobalHook, options));
 
     JSAutoCompartment ac(m_JsTcx, global);
 
