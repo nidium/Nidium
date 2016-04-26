@@ -161,12 +161,6 @@ void NativeCocoaUIInterface::stopApplication()
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-void NativeCocoaUIInterface::restartApplication(const char *path)
-{
-    this->stopApplication();
-    this->runApplication(path == NULL ? this->m_FilePath : path);
-}
-
 bool NativeCocoaUIInterface::runJSWithoutNML(const char *path, int width, int height)
 {
     NativeMessages::initReader(m_Gnet);
@@ -413,31 +407,6 @@ void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
     [nswindow setFrame:newframe display:YES];
 
     [pool drain];
-}
-
-void NativeCocoaUIInterface::setWindowSize(int w, int h)
-{
-    NSLog(@"set window size");
-    NSWindow *nswindow = NativeCocoaWindow(this->m_Win);
-
-    NSSize size;
-    size.width = w;
-    size.height = h;
-
-    this->m_Width = w;
-    this->m_Height = h;
-
-    NSRect frame = [nswindow frame];
-    frame.origin.y += frame.size.height;
-    frame.origin.y -= h;
-
-    frame.size = size;
-
-    //[nswindow setFrame:frame display:YES];
-
-    SDL_SetWindowSize(this->m_Win, w, h);
-    //[(NSOpenGLContext *)this->getGLContext() update];
-    //[nswindow setContentSize:size];
 }
 
 void NativeCocoaUIInterface::alert(const char *message)

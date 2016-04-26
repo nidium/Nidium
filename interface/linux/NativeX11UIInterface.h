@@ -32,8 +32,6 @@ class NativeX11UIInterface : public NativeUIInterface
         }
 
         void stopApplication();
-        void restartApplication(const char *path=NULL);
-        void setWindowSize(int w, int h);
 
         void vlog(const char *buf, va_list ap);
         void log(const char *buf);

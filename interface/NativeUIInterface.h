@@ -136,7 +136,7 @@ class NativeUIInterface
         virtual ~NativeUIInterface() {};
 
         virtual void stopApplication()=0;
-        virtual void restartApplication(const char *path=NULL)=0;
+        virtual void restartApplication(const char *path=NULL);
 
         virtual void refreshApplication(bool clearConsole = false);
 
@@ -144,12 +144,6 @@ class NativeUIInterface
             int height = 600) {
             return false;
         };
-
-
-        void setArguments(int argc, char **argv) {
-            m_Argc = argc;
-            m_Argv = argv;
-        }
 
 
         /*
@@ -183,6 +177,16 @@ class NativeUIInterface
         */
         virtual void setCursor(CURSOR_TYPE);
 
+        /*
+            Change the window width and height
+        */
+        virtual void setWindowSize(int w, int h);
+
+        /*
+            Change the window position and size
+        */
+        virtual void setWindowFrame(int x, int y, int w, int h);
+
         virtual void runLoop()=0;
         virtual void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {};
         virtual void setWindowControlsOffset(double x, double y) {};
@@ -192,8 +196,6 @@ class NativeUIInterface
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags=0)=0;
         virtual const char *getCacheDirectory() const=0;
 
-        virtual void setWindowSize(int w, int h);
-        virtual void setWindowFrame(int x, int y, int w, int h);
         virtual void getScreenSize(int *width, int *height);
         virtual void setWindowPosition(int x, int y);
         virtual void getWindowPosition(int *x, int *y);
@@ -208,8 +210,22 @@ class NativeUIInterface
 
         virtual void refresh();
 
-        int getWidth() const { return this->m_Width; }
-        int getHeight() const { return this->m_Height; }
+
+        void setArguments(int argc, char **argv) {
+            m_Argc = argc;
+            m_Argv = argv;
+        }
+
+        int getWidth() const {
+            return this->m_Width;
+
+        }
+
+        int getHeight() const {
+            return this->m_Height; 
+        }
+
+
         class NativeUIConsole
         {
             public:

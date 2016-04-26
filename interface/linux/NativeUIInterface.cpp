@@ -255,12 +255,6 @@ NativeUIX11Console::~NativeUIX11Console()
 {
 }
 
-void NativeX11UIInterface::restartApplication(const char *path)
-{
-    this->stopApplication();
-    this->runApplication(path == NULL ? this->m_FilePath : path);
-}
-
 void NativeX11UIInterface::stopApplication()
 {
     if (this->m_Nml) delete this->m_Nml;
@@ -277,13 +271,6 @@ void NativeX11UIInterface::stopApplication()
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-
-void NativeX11UIInterface::setWindowSize(int w, int h)
-{
-    SDL_SetWindowSize(m_Win, w, h);
-    this->m_Width = w;
-    this->m_Height = h;
-}
 
 void NativeX11UIInterface::log(const char *buf)
 {
