@@ -130,10 +130,10 @@ class Audio
         float m_volume;
         pthread_t m_ThreadDecode;
         pthread_t m_ThreadQueue;
-        NATIVE_PTHREAD_VAR_DECL(m_QueueHaveData)
-        NATIVE_PTHREAD_VAR_DECL(m_QueueHaveSpace)
-        NATIVE_PTHREAD_VAR_DECL(m_QueueNeedData)
-        NATIVE_PTHREAD_VAR_DECL(m_QueueMessagesFlushed)
+        NIDIUM_PTHREAD_VAR_DECL(m_QueueHaveData)
+        NIDIUM_PTHREAD_VAR_DECL(m_QueueHaveSpace)
+        NIDIUM_PTHREAD_VAR_DECL(m_QueueNeedData)
+        NIDIUM_PTHREAD_VAR_DECL(m_QueueMessagesFlushed)
         pthread_mutex_t m_ShutdownLock, m_RecurseLock, m_SourcesLock;
         PaUtilRingBuffer *m_rBufferOut;
         bool m_HaveData, m_NotEmpty;

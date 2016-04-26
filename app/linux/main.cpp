@@ -26,7 +26,7 @@ namespace App {
 int _nativebuild = 1002;
 char _root[PATH_MAX]; // Using _root to store the location of nidium exec
 
-#ifdef NATIVE_ENABLE_BREAKPAD
+#ifdef NIDIUM_ENABLE_CRASHREPORTER
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
         void* context,
         bool succeeded)
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 {
     Nidium::Interface::NativeX11UIInterface UI;
 
-#ifdef NATIVE_ENABLE_BREAKPAD
+#ifdef NIDIUM_ENABLE_CRASHREPORTER
     google_breakpad::MinidumpDescriptor descriptor(UI.getCacheDirectory());
     google_breakpad::ExceptionHandler eh(descriptor,
             NULL,

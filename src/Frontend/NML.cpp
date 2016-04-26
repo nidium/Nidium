@@ -95,7 +95,7 @@ void NML::loadDefaultItems(Assets *assets)
         return;
     }
 
-    Assets::Item *falcon = new Assets::Item("private://" NATIVE_FRAMEWORK_STR "/native.js",
+    Assets::Item *falcon = new Assets::Item("private://" NIDIUM_FRAMEWORK_STR "/native.js",
         Assets::Item::ITEM_SCRIPT, m_Net);
 
     assets->addToPendingList(falcon);

@@ -27,7 +27,7 @@
 
 #include <SystemInterface.h>
 
-#ifndef NATIVE_EMBED_PRIVATE
+#ifndef NIDIUM_EMBED_PRIVATE
 
 namespace Nidium {
 namespace IO {

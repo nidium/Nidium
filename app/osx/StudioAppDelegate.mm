@@ -206,7 +206,7 @@ NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:@"Testing!"] autorelease];
     return true;
 }
 
-#ifdef NATIVE_ENABLE_BREAKPAD
+#ifdef NIDIUM_ENABLE_CRASHREPORTER
 static BreakpadRef InitBreakpad(void) {
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
@@ -228,15 +228,15 @@ static BreakpadRef InitBreakpad(void) {
         forKey:@BREAKPAD_INSPECTOR_LOCATION];
     [config setObject:reporter
         forKey:@BREAKPAD_REPORTER_EXE_LOCATION];
-    [config setObject:@"http://"NATIVE_CRASH_COLLECTOR_HOST":"STR(NATIVE_CRASH_COLLECTOR_PORT)""NATIVE_CRASH_COLLECTOR_ENDPOINT
+    [config setObject:@"http://"NIDIUM_CRASH_COLLECTOR_HOST":"STR(NIDIUM_CRASH_COLLECTOR_PORT)""NIDIUM_CRASH_COLLECTOR_ENDPOINT
         forKey:@BREAKPAD_URL];
-    [config setObject:@NATIVE_VERSION_STR
+    [config setObject:@NIDIUM_VERSION_STR
         forKey:@BREAKPAD_VERSION];
 
     breakpad = BreakpadCreate(config);
 
-    SetCrashKeyValue(breakpad, @"version", @NATIVE_VERSION_STR);
-    SetCrashKeyValue(breakpad, @"build", @NATIVE_BUILD);
+    SetCrashKeyValue(breakpad, @"version", @NIDIUM_VERSION_STR);
+    SetCrashKeyValue(breakpad, @"build", @NIDIUM_BUILD);
     SetCrashKeyValue(breakpad, @"product", @"Nidium");
 
     [pool release];
