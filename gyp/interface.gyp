@@ -18,7 +18,7 @@
             '<(native_nativejscore_path)/gyp/jsoncpp.gyp:jsoncpp',
         ],
         'sources': [
-            '<(native_interface_path)/NativeUIInterface_base.cpp',
+            '<(native_interface_path)/NativeUIInterface.cpp',
         ],
         'conditions': [
             ['OS=="mac"', {
@@ -29,7 +29,7 @@
                     ],
                 },
                 'sources': [
-                    '<(native_interface_path)/osx/NativeUIInterface.mm',
+                    '<(native_interface_path)/osx/NativeCocoaUIInterface.mm',
                     '<(native_interface_path)/osx/NativeUIConsole.mm',
                     '<(native_interface_path)/osx/NativeSystem.mm',
                     '<(native_interface_path)/osx/NativeDragNSView.mm',
@@ -37,7 +37,7 @@
 			}],
             ['OS=="linux"', {
                 'sources': [
-                    '<(native_interface_path)/linux/NativeUIInterface.cpp',
+                    '<(native_interface_path)/linux/NativeX11UIInterface.cpp',
                     '<(native_interface_path)/linux/NativeSystem.cpp',
                 ],
                 'include_dirs': [

@@ -132,7 +132,7 @@ class NativeUIInterface
             return m_NativeCtx;
         }
 
-        NativeUIInterface();
+        
         virtual ~NativeUIInterface() {};
 
         /*
@@ -305,7 +305,7 @@ class NativeUIInterface
         char **m_Argv = nullptr;
 
     protected:
-        
+        NativeUIInterface();
         virtual void initControls() {};
         virtual void onWindowCreated() {};
         virtual void onNMLLoaded();
