@@ -62,8 +62,8 @@ void GLState::setVertexDeformation(uint32_t vertex, float x, float y)
     float mod[2] = {x, y};
 
     NATIVE_GL_CALL_MAIN(BufferSubData(GL_ARRAY_BUFFER,
-        (sizeof(Nidium::NML::Vertex) * vertex) + offsetof(Nidium::NML::Vertex, Modifier),
-        sizeof(((Nidium::NML::Vertex *)0)->Modifier),
+        (sizeof(Vertex) * vertex) + offsetof(Vertex, Modifier),
+        sizeof(((Vertex *)0)->Modifier),
         &mod));
 }
 
@@ -78,7 +78,7 @@ bool GLState::initGLBase(bool withProgram)
     m_Resources.add(m_GLObjects.vbo[1], GLResources::RBUFFER);
     m_Resources.add(m_GLObjects.vao, GLResources::RVERTEX_ARRAY);
 
-    Nidium::NML::Vertices *vtx = m_GLObjects.vtx = CanvasContext::BuildVerticesStripe(4);
+    Vertices *vtx = m_GLObjects.vtx = CanvasContext::BuildVerticesStripe(4);
 
     NATIVE_GL_CALL_MAIN(BindVertexArray(m_GLObjects.vao));
 
@@ -88,7 +88,7 @@ bool GLState::initGLBase(bool withProgram)
 
     /* Upload the list of vertex */
     NATIVE_GL_CALL_MAIN(BindBuffer(GR_GL_ARRAY_BUFFER, m_GLObjects.vbo[0]));
-    NATIVE_GL_CALL_MAIN(BufferData(GR_GL_ARRAY_BUFFER, sizeof(Nidium::NML::Vertex) * vtx->nvertices,
+    NATIVE_GL_CALL_MAIN(BufferData(GR_GL_ARRAY_BUFFER, sizeof(Vertex) * vtx->nvertices,
         vtx->vertices, GL_DYNAMIC_DRAW));
 
     /* Upload the indexes for triangle strip */
@@ -97,15 +97,15 @@ bool GLState::initGLBase(bool withProgram)
         vtx->indices, GL_STATIC_DRAW));
 
     NATIVE_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_POSITION, 3, GR_GL_FLOAT, GR_GL_FALSE,
-                          sizeof(Nidium::NML::Vertex), 0));
+                          sizeof(Vertex), 0));
 
     NATIVE_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_TEXCOORD, 2, GR_GL_FLOAT, GR_GL_FALSE,
-                          sizeof(Nidium::NML::Vertex),
-                          (GLvoid*) offsetof(Nidium::NML::Vertex, TexCoord)));
+                          sizeof(Vertex),
+                          (GLvoid*) offsetof(Vertex, TexCoord)));
 
     NATIVE_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_MODIFIER, 2, GR_GL_FLOAT, GR_GL_FALSE,
-                          sizeof(Nidium::NML::Vertex),
-                          (GLvoid*) offsetof(Nidium::NML::Vertex, Modifier)));
+                          sizeof(Vertex),
+                          (GLvoid*) offsetof(Vertex, Modifier)));
 
     if (withProgram) {
         m_GLObjects.program = CanvasContext::CreatePassThroughProgram(m_Resources);

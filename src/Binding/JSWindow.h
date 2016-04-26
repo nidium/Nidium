@@ -1,11 +1,9 @@
 #ifndef binding_jswindow_h__
 #define binding_jswindow_h__
 
+#include <NML/NML.h>
 #include <Binding/JSExposer.h>
 #include <Binding/JSDB.h>
-
-#include "NML/Types.h"
-
 
 namespace Nidium {
     namespace Graphics {

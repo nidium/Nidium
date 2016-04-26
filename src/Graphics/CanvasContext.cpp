@@ -10,6 +10,7 @@
 #include <SystemInterface.h>
 
 #include "Graphics/Skia.h"
+#include "Graphics/GLState.h"
 #include "Graphics/OpenGLHeader.h"
 #include "Binding/JSCanvas2DContext.h"
 
@@ -79,7 +80,7 @@ uint32_t CanvasContext::CompileShader(const char *data, int type)
     return shaderHandle;
 }
 
-Nidium::NML::Vertices *CanvasContext::BuildVerticesStripe(int resolution)
+Vertices *CanvasContext::BuildVerticesStripe(int resolution)
 {
     int x = resolution;
     int y = resolution;
@@ -91,16 +92,16 @@ Nidium::NML::Vertices *CanvasContext::BuildVerticesStripe(int resolution)
     float txstep = 1.  / ((float)x-1.);
     float tystep = 1.  / ((float)y-1.);
 
-    Nidium::NML::Vertices *info = (Nidium::NML::Vertices *)malloc(sizeof(Nidium::NML::Vertices));
+    Vertices *info = (Vertices *)malloc(sizeof(Vertices));
 
-    info->vertices = (Nidium::NML::Vertex *)malloc(sizeof(Nidium::NML::Vertex) * x * y);
+    info->vertices = (Vertex *)malloc(sizeof(Vertex) * x * y);
 
     info->nvertices = x*y;
 
     info->indices = (unsigned int *)malloc((sizeof(int) * x * y) * 2);
     info->nindices = 0;
 
-    Nidium::NML::Vertex *vert = info->vertices;
+    Vertex *vert = info->vertices;
     unsigned int *indices = info->indices;
 
     for (int i = 0; i < y; i++) {
@@ -428,12 +429,12 @@ bool CanvasContext::validateCurrentFBO()
 /*
     TODO: implement
 */
-CanvasContext *CanvasContext::Create(Nidium::NML::ContextType type)
+CanvasContext *CanvasContext::Create(ContextType type)
 {
     switch (type) {
-        case Nidium::NML::kWebGL_ContextType:
+        case ContextType_kWebGL:
             return NULL;
-        case Nidium::NML::kSkia2D_ContextType:
+        case ContextType_kSkia2D:
             return NULL;
         default:
             NLOG("[Error] Invalid CanvasContext requested");

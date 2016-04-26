@@ -5,10 +5,9 @@
 
 #include <Binding/JSStream.h>
 
-#include "NML/Assets.h"
-#include "NML/Types.h"
 #include "external/rapidxml.hpp"
 
+#include "NML/Assets.h"
 
 #define XML_VP_MAX_WIDTH 8000
 #define XML_VP_MAX_HEIGHT 8000
@@ -21,6 +20,17 @@ namespace NML {
 class NML;
 
 typedef void (*NMLLoadedCallback)(void *arg);
+
+typedef struct _NMLTag {
+    const char *id;
+    const char *tag;
+
+    struct {
+        const unsigned char *data;
+        size_t len;
+        bool isBinary;
+    } content;
+} NMLTag;
 
 class NML : public Nidium::Core::Messages
 {

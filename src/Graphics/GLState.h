@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "NML/Types.h"
 #include "NML/Macros.h"
 #include "Graphics/GLResources.h"
 #include "Graphics/GLContext.h"
@@ -14,6 +13,20 @@ namespace Nidium {
         class NativeUIInterface;
     }
 namespace Graphics {
+
+typedef struct _Vertex {
+    float Position[3];
+    float TexCoord[2];
+    float Modifier[2];
+} Vertex;
+
+typedef struct _Vertices {
+    Vertex *vertices;
+    unsigned int *indices;
+    unsigned int nvertices;
+    unsigned int nindices;
+} Vertices;
+
 
 class GLState
 {
@@ -55,7 +68,7 @@ public:
     struct {
         uint32_t vbo[2];
         uint32_t vao;
-        Nidium::NML::Vertices *vtx;
+        Vertices *vtx;
         uint32_t program;
         struct {
             int32_t u_projectionMatrix;

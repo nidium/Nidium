@@ -12,7 +12,6 @@
 
 #include <Binding/NidiumJS.h>
 
-#include "NML/Types.h"
 #include "Graphics/GLResources.h"
 
 namespace Nidium {

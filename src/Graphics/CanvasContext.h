@@ -8,11 +8,9 @@
 #include <SkMatrix44.h>
 #include <jsapi.h>
 
-#include "NML/Types.h"
 #include "Graphics/GLResources.h"
 #include "Graphics/GLState.h"
 #include "Graphics/GLContext.h"
-
 
 namespace Nidium {
     namespace Binding {
@@ -25,6 +23,11 @@ namespace Graphics {
 
 struct Rect;
 class CanvasHandler;
+
+enum ContextType {
+    ContextType_kSkia2D,
+    ContextType_kWebGL
+};
 
 class CanvasContext
 {
@@ -56,7 +59,7 @@ class CanvasContext
     /*
         Create a CanvasContext of type |type|
     */
-    static CanvasContext *Create(Nidium::NML::ContextType type);
+    static CanvasContext *Create(ContextType type);
 
     mode getContextType() const {
         return m_Mode;
@@ -135,7 +138,7 @@ class CanvasContext
         Scheme : http://dan.lecocq.us/wordpress/wp-content/uploads/2009/12/strip.png
         Details: http://en.wikipedia.org/wiki/Triangle_strip
     */
-    static Nidium::NML::Vertices *BuildVerticesStripe(int resolution);
+    static Vertices *BuildVerticesStripe(int resolution);
 
     static uint32_t CreatePassThroughVertex();
     static uint32_t CreatePassThroughFragment();
