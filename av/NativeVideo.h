@@ -4,7 +4,7 @@
 #include <pthread.h>
 #include <stdint.h>
 
-#include <native_netlib.h>
+#include <ape_netlib.h>
 
 #include "NativeAudio.h"
 #include "NativeAudioNode.h"
