@@ -111,7 +111,7 @@ void Messages::postMessage(SharedMessages::Message *msg, bool forceAsync)
         // Ensure that we don't break the FIFO rule.
         // Post the message first and then read all pendings messages
         g_MessagesList->postMessage(msg);
-        (void)NativeMessages_handle(nullptr);
+        (void)Messages_handle(nullptr);
 
         g_PostingSyncMsg = nullptr;
     } else {

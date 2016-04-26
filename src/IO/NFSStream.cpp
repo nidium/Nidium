@@ -36,7 +36,6 @@ NFSStream::NFSStream(const char *location) :
     m_File.pos = 0;
 }
 
-<<<<<<< HEAD:src/IO/NFSStream.cpp
 void NFSStream::stop()
 {
     /*

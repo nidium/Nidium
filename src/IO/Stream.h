@@ -116,8 +116,8 @@ protected:
     /*
         Send a message to the listener
     */
-    void notify(SharedMessages::Message *msg);
-    void notifySync(SharedMessages::Message *msg);
+    void notify(Core::SharedMessages::Message *msg);
+    void notifySync(Core::SharedMessages::Message *msg);
 
     /*
         Send an error message
@@ -139,7 +139,7 @@ protected:
     bool    m_NeedToSendUpdate;
     bool    m_PendingSeek;
 
-    Messages *m_Listener;
+    Core::Messages *m_Listener;
 
     struct {
         buffer *back, *front;

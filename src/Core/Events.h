@@ -39,7 +39,7 @@ public:
     }
 
     template <typename T>
-    bool fireEventSync(typename T::Events event, const NativeArgs &args) {
+    bool fireEventSync(typename T::Events event, const Args &args) {
         return this->fireEventImpl<T>(event, args, kPropagation_Sync);
     }
 
@@ -79,7 +79,7 @@ private:
             Messages *receiver = (Messages *)item->content.addrs;
 
             SharedMessages::Message *msg = 
-                new SharedMessages::Message(NATIVE_EVENTS_MESSAGE_BITS(event) | (T::EventID << 16));
+                new SharedMessages::Message(NIDIUM_EVENTS_MESSAGE_BITS(event) | (T::EventID << 16));
 
             msg->args[0].set(static_cast<T *>(this));
 

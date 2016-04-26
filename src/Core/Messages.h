@@ -36,6 +36,7 @@ public:
     void postMessage(void *dataptr, int event, bool forceAsync = false);
     void postMessage(uint64_t dataint, int event, bool forceAsync = false);
     void postMessage(SharedMessages::Message *msg, bool forceAsync = false);
+    void postMessageSync(SharedMessages::Message *msg);
     void delMessages(int event = -1);
 
     static void InitReader(ape_global *ape);
