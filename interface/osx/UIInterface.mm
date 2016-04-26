@@ -162,12 +162,6 @@ void NativeCocoaUIInterface::stopApplication()
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-void NativeCocoaUIInterface::restartApplication(const char *path)
-{
-    this->stopApplication();
-    this->runApplication(path == NULL ? this->m_FilePath : path);
-}
-
 bool NativeCocoaUIInterface::runJSWithoutNML(const char *path, int width, int height)
 {
     Nidium::Core::Messages::InitReader(m_Gnet);
@@ -238,23 +232,6 @@ void NativeCocoaUIInterface::onWindowCreated()
     [openglview setWantsBestResolutionOpenGLSurface:YES];
 #endif
 
-}
-
-const char *NativeCocoaUIInterface::getCacheDirectory() const
-{
-    NSArray* paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
-    NSString* cacheDir = [paths objectAtIndex:0];
-
-    if (cacheDir) {
-        NSString *path = [NSString stringWithFormat:@"%@/nidium/",cacheDir];
-        const char *cpath = [path cStringUsingEncoding:NSASCIIStringEncoding];
-        if (mkdir(cpath, 0777) == -1 && errno != EEXIST) {
-            NLOG("Cant create cache directory %s", cpath);
-            return NULL;
-        }
-        return cpath;
-    }
-    return NULL;
 }
 
 void NativeCocoaUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
@@ -416,35 +393,6 @@ void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
     [pool drain];
 }
 
-void NativeCocoaUIInterface::setWindowSize(int w, int h)
-{
-    NSLog(@"set window size");
-    NSWindow *nswindow = NativeCocoaWindow(this->m_Win);
-
-    NSSize size;
-    size.width = w;
-    size.height = h;
-
-    this->m_Width = w;
-    this->m_Height = h;
-
-    NSRect frame = [nswindow frame];
-    frame.origin.y += frame.size.height;
-    frame.origin.y -= h;
-
-    frame.size = size;
-
-    //[nswindow setFrame:frame display:YES];
-
-    SDL_SetWindowSize(this->m_Win, w, h);
-    //[(NSOpenGLContext *)this->getGLContext() update];
-    //[nswindow setContentSize:size];
-}
-
-void NativeCocoaUIInterface::alert(const char *message)
-{
-
-}
 #if 0
 bool NativeCocoaUIInterface::makeMainGLCurrent()
 {

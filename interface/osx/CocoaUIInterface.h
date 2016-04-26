@@ -26,20 +26,16 @@ class NativeCocoaUIInterface : public NativeUIInterface
         void setWindowControlsOffset(double x, double y);
         void initControls();
         void stopApplication();
-        void setWindowSize(int w, int h);
         void setWindowFrame(int x, int y, int w, int h);
-        void restartApplication(const char *path=NULL);
         bool runJSWithoutNML(const char *path, int width = 800, int height = 600);
         void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags = 0);
-        const char *getCacheDirectory() const;
         NativeUICocoaConsole *getConsole(bool create=false, bool *created = NULL);
         void enableSysTray(const void *imgData = NULL, size_t imageDataSize = 0);
         void disableSysTray();
 
         void hideWindow();
         void showWindow();
-        void alert(const char *message);
         void quit();
 
         struct {

@@ -28,7 +28,7 @@ typedef void *SDL_GLContext;
 class NativeSystemMenuItem {
 public:
     NativeSystemMenuItem(char *title = NULL, char *id = NULL) :
-        m_Next(NULL), m_Id(NULL), m_Title(NULL), m_Enabled(false)
+        m_Id(NULL), m_Title(NULL), m_Enabled(false), m_Next(NULL)
     {
         this->id(id);
         this->title(title);
@@ -38,7 +38,7 @@ public:
         free(m_Title);
         free(m_Id);
     };
-    NativeSystemMenuItem *m_Next;
+    
 
     bool enabled(bool val) {
         m_Enabled = val;
@@ -71,6 +71,8 @@ public:
         }
         m_Title = title ? strdup(title) : NULL;
     }
+
+    NativeSystemMenuItem *m_Next;
 
 private:
     char *m_Id;
@@ -140,31 +142,22 @@ class NativeUIInterface
             kOpenFile_AlloMultipleSelection = 1 << 2
         };
 
-        Nidium::Frontend::Context *m_NativeCtx;
-        Nidium::Frontend::NML *m_Nml;
-        SDL_Window *m_Win;
-        _ape_global *m_Gnet;
-        int m_Argc = 0;
-        char **m_Argv = nullptr;
-
         inline Nidium::Frontend::Context *getNativeContext() const {
             return m_NativeCtx;
         }
 
         NativeUIInterface();
         virtual ~NativeUIInterface() {};
+
         virtual void stopApplication()=0;
-        virtual void restartApplication(const char *path=NULL)=0;
+        virtual void restartApplication(const char *path=NULL);
 
         virtual void refreshApplication(bool clearConsole = false);
-        virtual bool runJSWithoutNML(const char *path, int width = 800, int height = 600) {
+
+        virtual bool runJSWithoutNML(const char *path, int width = 800,
+            int height = 600) {
             return false;
         };
-        void setArguments(int argc, char **argv) {
-            m_Argc = argc;
-            m_Argv = argv;
-        }
-
 
         /*
             Create the initial window
@@ -187,12 +180,25 @@ class NativeUIInterface
         */
         virtual void quitApplication()=0;
 
+        /*
+            Run the NML at the specified path
+        */
         virtual bool runApplication(const char *path);
 
         /*
-
+            Schedule a cursor change
         */
         virtual void setCursor(CURSOR_TYPE);
+
+        /*
+            Change the window width and height
+        */
+        virtual void setWindowSize(int w, int h);
+
+        /*
+            Change the window position and size
+        */
+        virtual void setWindowFrame(int x, int y, int w, int h);
 
         virtual void runLoop()=0;
         virtual void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {};
@@ -201,10 +207,7 @@ class NativeUIInterface
         virtual char *getClipboardText();
         virtual void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags=0)=0;
-        virtual const char *getCacheDirectory() const=0;
 
-        virtual void setWindowSize(int w, int h);
-        virtual void setWindowFrame(int x, int y, int w, int h);
         virtual void getScreenSize(int *width, int *height);
         virtual void setWindowPosition(int x, int y);
         virtual void getWindowPosition(int *x, int *y);
@@ -214,13 +217,24 @@ class NativeUIInterface
         virtual void logf(const char *format, ...)=0;
         virtual void vlog(const char *buf, va_list ap)=0;
         virtual void logclear()=0;
-
-        virtual void alert(const char *message)=0;
-
         virtual void refresh();
 
-        int getWidth() const { return this->m_Width; }
-        int getHeight() const { return this->m_Height; }
+
+        void setArguments(int argc, char **argv) {
+            m_Argc = argc;
+            m_Argv = argv;
+        }
+
+        int getWidth() const {
+            return this->m_Width;
+
+        }
+
+        int getHeight() const {
+            return this->m_Height; 
+        }
+
+
         class NativeUIConsole
         {
             public:
@@ -280,6 +294,14 @@ class NativeUIInterface
         static int HandleEvents(NativeUIInterface *NUII);
 
         static void OnNMLLoaded(void *arg);
+
+        Nidium::Frontend::Context *m_NativeCtx;
+        Nidium::Frontend::NML *m_Nml;
+        SDL_Window *m_Win;
+        _ape_global *m_Gnet;
+        int m_Argc = 0;
+        char **m_Argv = nullptr;
+
     protected:
         virtual void initControls() {};
         virtual void onWindowCreated() {};

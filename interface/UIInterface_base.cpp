@@ -542,8 +542,14 @@ bool NativeUIInterface::runApplication(const char *path)
     this->m_Nml->loadFile(path, NativeUIInterface::OnNMLLoaded, this);
 
     return true;
-
 }
+
+void NativeUIInterface::restartApplication(const char *path)
+{
+    this->stopApplication();
+    this->runApplication(path == NULL ? this->m_FilePath : path);
+}
+
 
 void NativeUIInterface::hideWindow()
 {

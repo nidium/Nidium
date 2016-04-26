@@ -21,14 +21,6 @@
             '<(nidium_interface_path)/UIInterface_base.cpp',
         ],
         'conditions': [
-            ['nidium_interface=="terminal"', {
-                'sources': [
-                    '<(nidium_interface_path)/terminal/TerminalUIInterface.cpp',
-                ],
-                'include_dirs': [
-                    '<(nidium_interface_path)/terminal/',
-                ],
-            }],
             ['OS=="mac"', {
                 'xcode_settings': {
                     'OTHER_CFLAGS': [
