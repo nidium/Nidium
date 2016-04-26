@@ -36,14 +36,14 @@ public:
 
     template <typename T>
     bool fireEventSync(typename T::Events event, const NativeArgs &args) {
-        return this->fireEventImpl<T>(event, args, SYNC);
+        return this->fireEventImpl<T>(event, args, kPropagation_Sync);
     }
 
     template <typename T>
     bool fireEvent(typename T::Events event, const NativeArgs &args,
         bool forceAsync = false) {
 
-        return this->fireEventImpl<T>(event, args, forceAsync ? ASYNC : AUTO);
+        return this->fireEventImpl<T>(event, args, forceAsync ? kPropagation_Async : kPropagation_Auto);
     }
 
     virtual ~NativeEvents() {
@@ -58,16 +58,16 @@ public:
 
 private:
     enum PropagationMode {
-        AUTO,
-        ASYNC,
-        SYNC
+        kPropagation_Auto,
+        kPropagation_Sync,
+        kPropagation_Async 
     };
 
     NativeHash64<NativeMessages *> m_Listeners;
 
     template <typename T>
     bool fireEventImpl(typename T::Events event, const NativeArgs &args,
-        PropagationMode propagation = AUTO) {
+        PropagationMode propagation = kPropagation_Auto) {
 
         ape_htable_item_t *item;
 
@@ -84,10 +84,10 @@ private:
             }
             msg->priv = 0;
 
-            if (propagation == SYNC) {
+            if (propagation == kPropagation_Sync) {
                 receiver->postMessageSync(msg);
             } else {
-                receiver->postMessage(msg, propagation == ASYNC ? true : false);
+                receiver->postMessage(msg, propagation == kPropagation_Async ? true : false);
             }
 #if 0
             /* TODO FIX : Use after free here */
