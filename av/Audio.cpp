@@ -47,10 +47,10 @@ Audio::Audio(ape_global *n, unsigned int bufferSize, unsigned int channels, unsi
       m_rBufferOutData(NULL), m_volume(1), m_SourceNeedWork(false), m_QueueFreeLock(false),
       m_SharedMsgFlush(false), m_ThreadShutdown(false), m_Sources(NULL), m_MainCtx(NULL)
 {
-    NATIVE_PTHREAD_VAR_INIT(&m_QueueHaveData);
-    NATIVE_PTHREAD_VAR_INIT(&m_QueueHaveSpace);
-    NATIVE_PTHREAD_VAR_INIT(&m_QueueNeedData);
-    NATIVE_PTHREAD_VAR_INIT(&m_QueueMessagesFlushed);
+    NIDIUM_PTHREAD_VAR_INIT(&m_QueueHaveData);
+    NIDIUM_PTHREAD_VAR_INIT(&m_QueueHaveSpace);
+    NIDIUM_PTHREAD_VAR_INIT(&m_QueueNeedData);
+    NIDIUM_PTHREAD_VAR_INIT(&m_QueueMessagesFlushed);
 
     pthread_mutexattr_t mta;
     pthread_mutexattr_init(&mta);

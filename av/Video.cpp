@@ -44,8 +44,8 @@ Video::Video(ape_global *n):
     m_DoSetSize(false), m_NewWidth(0), m_NewHeight(0), m_NoDisplay(false),
     m_InDisplay(false)
 {
-    NATIVE_PTHREAD_VAR_INIT(&m_BufferCond);
-    NATIVE_PTHREAD_VAR_INIT(&m_NotInDisplay);
+    NIDIUM_PTHREAD_VAR_INIT(&m_BufferCond);
+    NIDIUM_PTHREAD_VAR_INIT(&m_NotInDisplay);
 
     pthread_mutex_init(&m_AudioLock, NULL);
 

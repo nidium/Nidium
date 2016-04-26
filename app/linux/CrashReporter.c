@@ -70,14 +70,14 @@ int main(int argc, char **argv)
         return -2;
     }
 
-    if ((hostaddr = gethostbyname(NATIVE_CRASH_COLLECTOR_HOST)) == NULL) {
+    if ((hostaddr = gethostbyname(NIDIUM_CRASH_COLLECTOR_HOST)) == NULL) {
         fprintf(stderr, "Unable to get host\n");
         return -2;
     }
 
     dest.sin_family = AF_INET;
     dest.sin_addr.s_addr = ((struct in_addr *)hostaddr->h_addr_list[0])->s_addr;
-    dest.sin_port = htons(NATIVE_CRASH_COLLECTOR_PORT);
+    dest.sin_port = htons(NIDIUM_CRASH_COLLECTOR_PORT);
 
     if (connect(sock, (const struct sockaddr *)&dest, sizeof(struct sockaddr)) != 0) {
         fprintf(stderr, "Failed to connect\n");
@@ -98,10 +98,10 @@ int main(int argc, char **argv)
     FORGE("Nidium\r\n", data_ptr);
     FORGE("--"HTTP_BOUNDARY, data_ptr);
     FORGE("Content-Disposition: form-data; name=\"build\"\r\n\r\n", data_ptr);
-    FORGE(NATIVE_BUILD"\r\n", data_ptr);
+    FORGE(NIDIUM_BUILD"\r\n", data_ptr);
     FORGE("--"HTTP_BOUNDARY, data_ptr);
     FORGE("Content-Disposition: form-data; name=\"version\"\r\n\r\n", data_ptr);
-    FORGE(NATIVE_VERSION_STR"\r\n", data_ptr);
+    FORGE(NIDIUM_VERSION_STR"\r\n", data_ptr);
     FORGE("--"HTTP_BOUNDARY, data_ptr);
     FORGE(cd_minidump, data_ptr);
     FORGE("Content-Type: application/octet-stream\r\n\r\n", data_ptr);
@@ -110,9 +110,9 @@ int main(int argc, char **argv)
     char cl_header[64];
     sprintf(cl_header, "Content-Length:%d\r\n", strlen(data) + strlen(HTTP_BOUNDARY_END) + minidum_size);
     // Send the data
-    SEND("POST "NATIVE_CRASH_COLLECTOR_ENDPOINT" HTTP/1.1\r\n");
+    SEND("POST "NIDIUM_CRASH_COLLECTOR_ENDPOINT" HTTP/1.1\r\n");
     SEND("User-Agent: Native crash reporter V0.1\r\n");
-    SEND("Host: "NATIVE_CRASH_COLLECTOR_HOST"\r\n");
+    SEND("Host: "NIDIUM_CRASH_COLLECTOR_HOST"\r\n");
     SEND(cl_header);
     SEND("Content-Type: multipart/form-data; boundary="HTTP_BOUNDARY"\r\n\r\n");
     //fprintf(stdout, "%s\n", data);

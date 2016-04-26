@@ -20,7 +20,7 @@ enum {
     IMAGE_NPROP
 };
 
-#define NATIVE_IMAGE_GETTER(obj) (static_cast<class JSImage *>(JS_GetPrivate(obj)))
+#define IMAGE_GETTER(obj) (static_cast<class JSImage *>(JS_GetPrivate(obj)))
 #define IMAGE_FROM_CALLEE(nimg) \
     JS::RootedObject parent(cx, JS_GetParent(&args.callee())); \
     JSImage *nimg = static_cast<JSImage *>(JS_GetPrivate(parent));
@@ -107,7 +107,7 @@ static bool nidium_image_desaturate(JSContext *cx,
 static bool nidium_image_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
-    JSImage *nimg = NATIVE_IMAGE_GETTER(obj);
+    JSImage *nimg = IMAGE_GETTER(obj);
     switch(id) {
         case IMAGE_PROP_SRC:
         {
@@ -160,7 +160,7 @@ static bool nidium_image_prop_set(JSContext *cx, JS::HandleObject obj,
 
 void Image_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    JSImage *img = NATIVE_IMAGE_GETTER(obj);
+    JSImage *img = IMAGE_GETTER(obj);
     if (img != NULL) {
         if (img->m_Stream) {
             img->m_Stream->setListener(NULL);
@@ -198,7 +198,7 @@ bool JSImage::JSObjectIs(JSContext *cx, JS::HandleObject obj)
 
 Graphics::Image *JSImage::JSObjectToImage(JS::HandleObject obj)
 {
-    return NATIVE_IMAGE_GETTER(obj)->m_Image;
+    return IMAGE_GETTER(obj)->m_Image;
 }
 
 static int delete_stream(void *arg)

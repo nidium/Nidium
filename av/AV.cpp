@@ -85,7 +85,7 @@ AVStreamReader::AVStreamReader(const char *src,
     //m_Stream->setAutoClose(false);
     m_Stream->start(STREAM_BUFFER_SIZE);
     m_Stream->setListener(this);
-    NATIVE_PTHREAD_VAR_INIT(&m_ThreadCond);
+    NIDIUM_PTHREAD_VAR_INIT(&m_ThreadCond);
 }
 
 int AVStreamReader::read(void *opaque, uint8_t *buffer, int size)

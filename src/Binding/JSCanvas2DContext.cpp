@@ -22,8 +22,8 @@ namespace Binding {
 
 // {{{ Preamble
 #define CANVASCTX_GETTER(obj) ((class Canvas2DContext *)JS_GetPrivate(obj))
-#define NSKIA_NATIVE_GETTER(obj) ((class Nidium::Graphics::SkiaContext *)((class Canvas2DContext *)JS_GetPrivate(obj))->getSurface())
-#define NSKIA_NATIVE (CppObj->getSurface())
+#define SKIACTX_GETTER(obj) ((class Nidium::Graphics::SkiaContext *)((class Canvas2DContext *)JS_GetPrivate(obj))->getSurface())
+#define SKIACTX (CppObj->getSurface())
 #define HANDLER_GETTER(obj) ((Nidium::Graphics::CanvasHandler *)((class JSCanvas *)JS_GetPrivate(obj))->getHandler())
 
 static JSClass ImageData_class = {
@@ -294,10 +294,9 @@ static bool nidium_canvas2dctx_fillRect(JSContext *cx, unsigned argc, JS::Value 
     }
 
     if (argc > 4) {
-        NSKIA_NATIVE->drawRect(x, y, width, height,
-            rx, (argc == 5 ? rx : ry), 0);
+        SKIACTX->drawRect(x, y, width, height, rx, (argc == 5 ? rx : ry), 0);
     } else {
-        NSKIA_NATIVE->drawRect(x, y, width, height, 0);
+        SKIACTX->drawRect(x, y, width, height, 0);
     }
 
     return true;
@@ -314,10 +313,9 @@ static bool nidium_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, JS::Valu
     }
 
     if (argc > 4) {
-        NSKIA_NATIVE->drawRect(x, y, width, height,
-            rx, (argc == 5 ? rx : ry), 1);
+        SKIACTX->drawRect(x, y, width, height, rx, (argc == 5 ? rx : ry), 1);
     } else {
-        NSKIA_NATIVE->drawRect(x, y, width, height, 1);
+        SKIACTX->drawRect(x, y, width, height, 1);
     }
 
     return true;
@@ -410,7 +408,7 @@ static bool nidium_canvas2dctx_fillText(JSContext *cx, unsigned argc, JS::Value 
     JSAutoByteString text;
     text.encodeUtf8(cx, str);
 
-    NSKIA_NATIVE->drawText(text.ptr(), x, y);
+    SKIACTX->drawText(text.ptr(), x, y);
 
     return true;
 }
@@ -429,14 +427,14 @@ static bool nidium_canvas2dctx_strokeText(JSContext *cx, unsigned argc, JS::Valu
     JSAutoByteString text;
     text.encodeUtf8(cx, str);
 
-    NSKIA_NATIVE->drawText(text.ptr(), x, y, true);
+    SKIACTX->drawText(text.ptr(), x, y, true);
 
     return true;
 }
 
 static bool nidium_canvas2dctx_shadow(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    //NSKIA_NATIVE->setShadow();
+    //SKIACTX->setShadow();
     return true;
 }
 
@@ -445,7 +443,7 @@ static bool nidium_canvas2dctx_beginPath(JSContext *cx, unsigned argc, JS::Value
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     NIDIUM_LOG_2D_CALL();
 
-    NSKIA_NATIVE->beginPath();
+    SKIACTX->beginPath();
 
     return true;
 }
@@ -460,7 +458,7 @@ static bool nidium_canvas2dctx_moveTo(JSContext *cx, unsigned argc, JS::Value *v
         return false;
     }
 
-    NSKIA_NATIVE->moveTo(x, y);
+    SKIACTX->moveTo(x, y);
 
     return true;
 }
@@ -475,7 +473,7 @@ static bool nidium_canvas2dctx_lineTo(JSContext *cx, unsigned argc, JS::Value *v
         return false;
     }
 
-    NSKIA_NATIVE->lineTo(x, y);
+    SKIACTX->lineTo(x, y);
 
     return true;
 }
@@ -484,7 +482,7 @@ static bool nidium_canvas2dctx_fill(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     NIDIUM_LOG_2D_CALL();
-    NSKIA_NATIVE->fill();
+    SKIACTX->fill();
 
     return true;
 }
@@ -493,7 +491,7 @@ static bool nidium_canvas2dctx_stroke(JSContext *cx, unsigned argc, JS::Value *v
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     NIDIUM_LOG_2D_CALL();
-    NSKIA_NATIVE->stroke();
+    SKIACTX->stroke();
 
     return true;
 }
@@ -501,7 +499,7 @@ static bool nidium_canvas2dctx_closePath(JSContext *cx, unsigned argc, JS::Value
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     NIDIUM_LOG_2D_CALL();
-    NSKIA_NATIVE->closePath();
+    SKIACTX->closePath();
 
     return true;
 }
@@ -510,7 +508,7 @@ static bool nidium_canvas2dctx_clip(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     NIDIUM_LOG_2D_CALL();
-    NSKIA_NATIVE->clip();
+    SKIACTX->clip();
 
     return true;
 }
@@ -525,7 +523,7 @@ static bool nidium_canvas2dctx_rect(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NSKIA_NATIVE->rect(x, y, width, height);
+    SKIACTX->rect(x, y, width, height);
 
     return true;
 }
@@ -543,7 +541,7 @@ static bool nidium_canvas2dctx_arc(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NSKIA_NATIVE->arc(x, y, radius, startAngle, endAngle, CCW);
+    SKIACTX->arc(x, y, radius, startAngle, endAngle, CCW);
 
     return true;
 }
@@ -558,7 +556,7 @@ static bool nidium_canvas2dctx_arcTo(JSContext *cx, unsigned argc, JS::Value *vp
         return false;
     }
 
-    NSKIA_NATIVE->arcTo(x1, y1, x2, y2, radius);
+    SKIACTX->arcTo(x1, y1, x2, y2, radius);
 
     return true;
 }
@@ -572,7 +570,7 @@ static bool nidium_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc,
         return false;
     }
 
-    NSKIA_NATIVE->quadraticCurveTo(cpx, cpy, x, y);
+    SKIACTX->quadraticCurveTo(cpx, cpy, x, y);
 
     return true;
 }
@@ -589,7 +587,7 @@ static bool nidium_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc,
         return false;
     }
 
-    NSKIA_NATIVE->bezierCurveTo(cpx, cpy, cpx2, cpy2, x, y);
+    SKIACTX->bezierCurveTo(cpx, cpy, cpx2, cpy2, x, y);
 
     return true;
 }
@@ -604,7 +602,7 @@ static bool nidium_canvas2dctx_rotate(JSContext *cx, unsigned argc, JS::Value *v
         return false;
     }
 
-    NSKIA_NATIVE->rotate(angle);
+    SKIACTX->rotate(angle);
 
     return true;
 }
@@ -619,7 +617,7 @@ static bool nidium_canvas2dctx_scale(JSContext *cx, unsigned argc, JS::Value *vp
         return false;
     }
 
-    NSKIA_NATIVE->scale(x, y);
+    SKIACTX->scale(x, y);
 
     return true;
 }
@@ -634,7 +632,7 @@ static bool nidium_canvas2dctx_translate(JSContext *cx, unsigned argc, JS::Value
         return false;
     }
 
-    NSKIA_NATIVE->translate(x, y);
+    SKIACTX->translate(x, y);
 
     return true;
 }
@@ -650,11 +648,11 @@ static bool nidium_canvas2dctx_transform(JSContext *cx, unsigned argc, JS::Value
         return false;
     }
 
-    NSKIA_NATIVE->transform(scalex, skewx, skewy, scaley,
+    SKIACTX->transform(scalex, skewx, skewy, scaley,
         translatex, translatey, 0);
 
     if (argc == 7) {
-        NSKIA_NATIVE->rotate(rotate);
+        SKIACTX->rotate(rotate);
     }
 
     return true;
@@ -670,7 +668,7 @@ static bool nidium_canvas2dctx_iTransform(JSContext *cx, unsigned argc, JS::Valu
         return false;
     }
 
-    NSKIA_NATIVE->itransform(scalex, skewx, skewy, scaley,
+    SKIACTX->itransform(scalex, skewx, skewy, scaley,
         translatex, translatey);
 
     return true;
@@ -688,7 +686,7 @@ static bool nidium_canvas2dctx_setTransform(JSContext *cx, unsigned argc, JS::Va
         return false;
     }
 
-    NSKIA_NATIVE->transform(scalex, skewx, skewy, scaley,
+    SKIACTX->transform(scalex, skewx, skewy, scaley,
         translatex+handler->m_Padding.global, translatey+handler->m_Padding.global, 1);
 
     return true;
@@ -714,7 +712,7 @@ static bool nidium_canvas2dctx_restore(JSContext *cx, unsigned argc, JS::Value *
     NIDIUM_LOG_2D_CALL();
 
     CppObj->popState();
-    NSKIA_NATIVE->restore();
+    SKIACTX->restore();
 
     return true;
 }
@@ -754,7 +752,7 @@ static bool nidium_canvas2dctx_getImageData(JSContext *cx,
     JS::RootedObject arrBuffer(cx, JS_NewUint8ClampedArray(cx, width*height * 4));
     data = JS_GetUint8ClampedArrayData(arrBuffer);
 
-    NSKIA_NATIVE->readPixels(top, left, width, height, data);
+    SKIACTX->readPixels(top, left, width, height, data);
     JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
     JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
     JS::RootedValue arVal(cx, OBJECT_TO_JSVAL(arrBuffer));
@@ -801,7 +799,7 @@ static bool nidium_canvas2dctx_putImageData(JSContext *cx,
     JS::ToInt32(cx, jwidth, &w);
     JS::ToInt32(cx, jheight, &h);
 
-    NSKIA_NATIVE->drawPixels(pixels, w, h, x, y);
+    SKIACTX->drawPixels(pixels, w, h, x, y);
 
     return true;
 }
@@ -973,13 +971,13 @@ static bool nidium_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value
 
     switch(argc) {
         case 3:
-            NSKIA_NATIVE->drawImage(image, x, y);
+            SKIACTX->drawImage(image, x, y);
             break;
         case 5:
-            NSKIA_NATIVE->drawImage(image, x, y, width, height);
+            SKIACTX->drawImage(image, x, y, width, height);
             break;
         case 9:
-            NSKIA_NATIVE->drawImage(image, sx, sy, swidth, sheight,
+            SKIACTX->drawImage(image, sx, sy, swidth, sheight,
                 x, y, width, height);
             break;
         default:
@@ -1012,7 +1010,7 @@ static bool nidium_canvas2dctx_measureText(JSContext *cx, unsigned argc,
     JSAutoByteString ctext;
     ctext.encodeUtf8(cx, text);
 
-    Nidium::Graphics::SkiaContext *n = NSKIA_NATIVE;
+    Nidium::Graphics::SkiaContext *n = SKIACTX;
     JS::RootedValue widthVal(cx, DOUBLE_TO_JSVAL(n->measureText(ctext.ptr(), strlen(ctext.ptr()))));
     OBJ_PROP("width", widthVal);
 
@@ -1033,7 +1031,7 @@ static bool nidium_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
         return false;
     }
 
-    Nidium::Graphics::SkiaContext *n = NSKIA_NATIVE;
+    Nidium::Graphics::SkiaContext *n = SKIACTX;
 
     vp->setBoolean(n->SkPathContainsPoint(x, y));
 
@@ -1051,7 +1049,7 @@ static bool nidium_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
     NIDIUM_LOG_2D_CALL();
-    NSKIA_NATIVE->getPathBounds(&left, &right, &top, &bottom);
+    SKIACTX->getPathBounds(&left, &right, &top, &bottom);
     JS::RootedValue leftVal(cx, DOUBLE_TO_JSVAL(left));
     JS::RootedValue rightVal(cx, DOUBLE_TO_JSVAL(right));
     JS::RootedValue topVal(cx, DOUBLE_TO_JSVAL(top));
@@ -1409,7 +1407,7 @@ static bool nidium_canvas2dctx_light(JSContext *cx, unsigned argc,
         return false;
     }
 
-    NSKIA_NATIVE->light(x, y, z);
+    SKIACTX->light(x, y, z);
 
     return true;
 }
@@ -1423,7 +1421,7 @@ static bool nidium_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         return true;
     }
 
-    Nidium::Graphics::SkiaContext *curSkia = NSKIA_NATIVE_GETTER(obj);
+    Nidium::Graphics::SkiaContext *curSkia = SKIACTX_GETTER(obj);
     switch (id) {
         case CTX_PROP(imageSmoothingEnabled):
         {
@@ -1742,7 +1740,7 @@ static bool nidium_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
 #define CTX_PROP(prop) CTX_PROP_ ## prop
-    Nidium::Graphics::SkiaContext *curSkia = NSKIA_NATIVE_GETTER(obj);
+    Nidium::Graphics::SkiaContext *curSkia = SKIACTX_GETTER(obj);
     Canvas2DContext *ctx = CANVASCTX_GETTER(obj);
 
     switch (id) {

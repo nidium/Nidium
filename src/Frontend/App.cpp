@@ -16,7 +16,7 @@
 namespace Nidium {
 namespace Frontend {
 
-#define NATIVE_MANIFEST "manifest.json"
+#define NIDIUM_MANIFEST "manifest.json"
 
 // {{{ NativeExtractor
 struct NativeExtractor_s
@@ -270,17 +270,17 @@ int App::extractApp(const char *path,
         return 0;
     }
 #if 0
-#define NATIVE_CACHE_DIR "./cache/"
-    if (mkdir(NATIVE_CACHE_DIR, 0777) == -1 && errno != EEXIST) {
+#define NIDIUM_CACHE_DIR "./cache/"
+    if (mkdir(NIDIUM_CACHE_DIR, 0777) == -1 && errno != EEXIST) {
         printf("Cant create cache directory\n");
         return 0;
     }
     fullpath = (char *)malloc(sizeof(char) *
-                (strlen(m_Path) + sizeof(NATIVE_CACHE_DIR) + 16));
+                (strlen(m_Path) + sizeof(NIDIUM_CACHE_DIR) + 16));
 
-    sprintf(fullpath, NATIVE_CACHE_DIR "%s", m_Path);
+    sprintf(fullpath, NIDIUM_CACHE_DIR "%s", m_Path);
 
-#undef NATIVE_CACHE_DIR
+#undef NIDIUM_CACHE_DIR
 #endif
     int ret = 0;
     if ((ret = mkdir(fullpath, 0777)) == -1 && errno != EEXIST) {
@@ -395,11 +395,11 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
     struct zip_file *manifest;
     struct zip_stat stat;
 
-    if ((index = zip_name_locate(m_fZip, NATIVE_MANIFEST, ZIP_FL_NODIR)) == -1 ||
-        strcmp(zip_get_name(m_fZip, index, ZIP_FL_UNCHANGED), NATIVE_MANIFEST) != 0 ||
+    if ((index = zip_name_locate(m_fZip, NIDIUM_MANIFEST, ZIP_FL_NODIR)) == -1 ||
+        strcmp(zip_get_name(m_fZip, index, ZIP_FL_UNCHANGED), NIDIUM_MANIFEST) != 0 ||
         (manifest = zip_fopen_index(m_fZip, index, ZIP_FL_UNCHANGED)) == NULL) {
 
-        printf(NATIVE_MANIFEST " not found\n");
+        printf(NIDIUM_MANIFEST " not found\n");
         return 0;
     }
 

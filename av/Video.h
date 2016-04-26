@@ -112,7 +112,7 @@ class Video : public AVSource
         AVFrame *m_ConvertedFrame;
 
         pthread_t m_ThreadDecode;
-        NATIVE_PTHREAD_VAR_DECL(m_BufferCond);
+        NIDIUM_PTHREAD_VAR_DECL(m_BufferCond);
 
         void play();
         void pause();
@@ -159,7 +159,7 @@ class Video : public AVSource
         bool m_NoDisplay;
         bool m_InDisplay;
         pthread_mutex_t m_AudioLock;
-        NATIVE_PTHREAD_VAR_DECL(m_NotInDisplay);
+        NIDIUM_PTHREAD_VAR_DECL(m_NotInDisplay);
         pthread_mutex_t m_DecodeThreadLock;
 
         void closeInternal(bool reset);

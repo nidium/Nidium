@@ -110,7 +110,7 @@ class JSAudio: public JSExposer<JSAudio>
         Nodes *m_Nodes;
         pthread_t m_ThreadIO;
 
-        NATIVE_PTHREAD_VAR_DECL(m_ShutdownWait)
+        NIDIUM_PTHREAD_VAR_DECL(m_ShutdownWait)
 
         JS::Heap<JSObject*> m_JsGlobalObj;
 
@@ -154,7 +154,7 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Core::Messages
             }
 
             if (type == AV::Audio::CUSTOM || type == AV::Audio::CUSTOM_SOURCE) {
-                NATIVE_PTHREAD_VAR_INIT(&m_ShutdownWait);
+                NIDIUM_PTHREAD_VAR_INIT(&m_ShutdownWait);
             }
 
             this->add();
@@ -209,7 +209,7 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Core::Messages
         JS::PersistentRootedObject *m_NodeObj;
         JS::PersistentRootedObject *m_HashObj;
 
-        NATIVE_PTHREAD_VAR_DECL(m_ShutdownWait)
+        NIDIUM_PTHREAD_VAR_DECL(m_ShutdownWait)
 
         // Source m_Node
         void *m_ArrayContent;

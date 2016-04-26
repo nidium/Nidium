@@ -43,7 +43,7 @@ if (!JS_ReportPendingException(cx)) {\
     JS_ClearPendingException(cx); \
 }
 
-#define JSNATIVE_AV_GET_NODE(type, var)\
+#define GET_NODE(type, var)\
     NIDIUM_JS_PROLOGUE_CLASS(JSAudioNode, &AudioNode_class); \
     var = static_cast<type *>(CppObj->m_Node);
 
@@ -583,7 +583,7 @@ JSAudio::JSAudio(AV::Audio *audio, JSContext *cx, JS::HandleObject obj)
     JS_DefineFunctions(cx, ob, AudioContext_funcs);
     JS_DefineProperties(cx, ob, AudioContext_props);
 
-    NATIVE_PTHREAD_VAR_INIT(&m_ShutdownWait)
+    NIDIUM_PTHREAD_VAR_INIT(&m_ShutdownWait)
 
     m_Audio->postMessage(JSAudio::CtxCallback, static_cast<void *>(this), true);
 }
@@ -1954,7 +1954,7 @@ static bool nidium_audionode_source_play(JSContext *cx, unsigned argc, JS::Value
 {
     AV::AudioSource *source;
 
-    JSNATIVE_AV_GET_NODE(AV::AudioSource, source);
+    GET_NODE(AV::AudioSource, source);
 
     source->play();
 
@@ -1967,7 +1967,7 @@ static bool nidium_audionode_source_pause(JSContext *cx, unsigned argc, JS::Valu
 {
     AV::AudioSource *source;
 
-    JSNATIVE_AV_GET_NODE(AV::AudioSource, source);
+    GET_NODE(AV::AudioSource, source);
 
     source->pause();
 
@@ -1978,7 +1978,7 @@ static bool nidium_audionode_source_stop(JSContext *cx, unsigned argc, JS::Value
 {
     AV::AudioSource *source;
 
-    JSNATIVE_AV_GET_NODE(AV::AudioSource, source);
+    GET_NODE(AV::AudioSource, source);
 
     source->stop();
 
@@ -1989,7 +1989,7 @@ static bool nidium_audionode_source_close(JSContext *cx, unsigned argc, JS::Valu
 {
     AV::AudioSource *source;
 
-    JSNATIVE_AV_GET_NODE(AV::AudioSource, source);
+    GET_NODE(AV::AudioSource, source);
 
     source->close();
 
@@ -2024,7 +2024,7 @@ static bool nidium_audionode_custom_source_play(JSContext *cx, unsigned argc, JS
 {
     AV::AudioCustomSource *source;
 
-    JSNATIVE_AV_GET_NODE(AV::AudioCustomSource, source);
+    GET_NODE(AV::AudioCustomSource, source);
 
     source->play();
 
@@ -2037,7 +2037,7 @@ static bool nidium_audionode_custom_source_pause(JSContext *cx, unsigned argc, J
 {
     AV::AudioCustomSource *source;
 
-    JSNATIVE_AV_GET_NODE(AV::AudioCustomSource, source);
+    GET_NODE(AV::AudioCustomSource, source);
 
     source->pause();
 
@@ -2048,7 +2048,7 @@ static bool nidium_audionode_custom_source_stop(JSContext *cx, unsigned argc, JS
 {
     AV::AudioCustomSource *source;
 
-    JSNATIVE_AV_GET_NODE(AV::AudioCustomSource, source);
+    GET_NODE(AV::AudioCustomSource, source);
 
     source->stop();
 

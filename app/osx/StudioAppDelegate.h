@@ -21,12 +21,12 @@ class NativeCocoaUIInterface;
     NSString *appfile;
     NativeCocoaUIInterface *UI;
     BOOL isRunning;
-#ifdef NATIVE_ENABLE_BREAKPAD
+#ifdef NIDIUM_ENABLE_CRASHREPORTER
     BreakpadRef breakpad;
 #endif
 }
 
-#ifdef NATIVE_ENABLE_BREAKPAD
+#ifdef NIDIUM_ENABLE_CRASHREPORTER
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
 #endif
 

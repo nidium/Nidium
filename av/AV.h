@@ -37,12 +37,12 @@ namespace AV {
 #define SOURCE_EVENT_BUFFERING 0x06
 #define SOURCE_EVENT_READY     0x07
 
-#define NATIVE_PTHREAD_VAR_DECL(name)\
+#define NIDIUM_PTHREAD_VAR_DECL(name)\
 pthread_cond_t name;\
 pthread_mutex_t name##Lock;\
 bool name##Cond;\
 
-#define NATIVE_PTHREAD_VAR_INIT(name)\
+#define NIDIUM_PTHREAD_VAR_INIT(name)\
 pthread_cond_init(name, NULL);\
 pthread_mutex_init(name##Lock, NULL);\
 *(name##Cond) = false;
@@ -119,7 +119,7 @@ class AVStreamReader : public AVReader, public Nidium::Core::Messages
             MSG_STOP
         };
         void onMessage(const Nidium::Core::SharedMessages::Message &msg);
-        NATIVE_PTHREAD_VAR_DECL(m_ThreadCond);
+        NIDIUM_PTHREAD_VAR_DECL(m_ThreadCond);
 
         Nidium::IO::Stream *m_Stream;
         NativeAVStreamReadCallback m_ReadCallback;
