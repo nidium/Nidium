@@ -4,7 +4,7 @@
 
 {
     'targets': [{
-        'target_name': 'nativejscore-includes',
+        'target_name': 'nidiumcore-includes',
         'type': 'none',
         'direct_dependent_settings': {
             'include_dirs': [
@@ -27,14 +27,14 @@
                 '-Wno-mismatched-tags',
                 # Include our own js-config.h so it is automatically
                 # versioned for our build flavour
-                '-include <(native_output_third_party)/js-config.h'
+                '-include <(nidium_output_third_party)/js-config.h'
             ],
             'xcode_settings': {
                 'OTHER_CFLAGS': [
                     '-Wno-c++0x-extensions',
                     '-Wno-invalid-offsetof',
                     '-Wno-mismatched-tags',
-                    '-include <(native_output_third_party)/js-config.h',
+                    '-include <(nidium_output_third_party)/js-config.h',
                 ],
                 "OTHER_LDFLAGS": [
                     '-stdlib=libc++'
@@ -45,7 +45,7 @@
             },
         },
     }, {
-        'target_name': 'nativejscore-link',
+        'target_name': 'nidiumcore-link',
         'type': 'none',
         'direct_dependent_settings': {
             'conditions': [
@@ -78,12 +78,12 @@
             ],
         },
     }, {
-        'target_name': 'nativejscore',
+        'target_name': 'nidiumcore',
         'type': 'static_library',
         'dependencies': [
             '../network/gyp/network.gyp:*',
             'jsoncpp.gyp:jsoncpp',
-            'nidiumcore.gyp:nativejscore-includes',
+            'nidiumcore.gyp:nidiumcore-includes',
         ],
         'conditions': [
             ['OS=="mac"', {

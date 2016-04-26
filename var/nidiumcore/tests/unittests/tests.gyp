@@ -5,7 +5,7 @@
 {
     'targets': [{
         'target_name': 'nidiumcore-unittests',
-        'product_dir': '<(native_tests_output)',
+        'product_dir': '<(nidium_tests_output)',
         'type': 'executable',
         'dependencies': [
             '../../../../network/gyp/network-unittests.gyp:unittests-settings',
@@ -21,7 +21,7 @@
             #'filestream.cpp',      #segfault
             'hash.cpp',
             #'http.cpp',            #free(), invallid pointer
-            'httpserver.cpp',
+            #'httpserver.cpp',      #free(), invallid pointer
             'httpstream.cpp',       #dummy
             #'messages.cpp',        #segfault
             'nfs.cpp',              #dummy

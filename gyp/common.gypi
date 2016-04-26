@@ -8,7 +8,7 @@
     ],
     'target_defaults': {
         'defines': [
-            'NIDIUM_VERSION_STR="<(native_version)"',
+            'NIDIUM_VERSION_STR="<(nidium_version)"',
             'NIDIUM_NO_PRIVATE_DIR'
         ],
 
