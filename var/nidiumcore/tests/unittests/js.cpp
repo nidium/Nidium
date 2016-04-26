@@ -105,7 +105,7 @@ TEST(JS, Simple)
     njs.logclear();
     EXPECT_EQ(logcounter, -10);
 
-    APE_destroy(g_ape);
+    //APE_destroy(g_ape);
 }
 
 
@@ -119,7 +119,7 @@ TEST(NidiumJS, Quick)
     EXPECT_TRUE(njs.net == g_ape);
     EXPECT_TRUE(njs.GetNet() == g_ape);
 
-    APE_destroy(g_ape);
+    //APE_destroy(g_ape);
 }
 
 TEST(NidiumJS, Code)
@@ -144,7 +144,7 @@ TEST(NidiumJS, Code)
     JS_GetProperty(njs.cx, globObj, "b", &rval);
     EXPECT_EQ(JSVAL_TO_INT(rval), 100);
 
-    APE_destroy(g_ape);
+    //APE_destroy(g_ape);
 }
 
 TEST(NidiumJS, Messages)
@@ -174,6 +174,6 @@ TEST(NidiumJS, Messages)
     APE_loop_stop();
     void postMessage(void *dataPtr, int ev);
 
-    APE_destroy(g_ape);
+    //APE_destroy(g_ape);
 }
 
