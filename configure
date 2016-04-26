@@ -27,7 +27,7 @@ Deps.set(
     "libcoroutine",
     "SDL2",
     "ffmpeg",
-    Deps.Konstruct("nativejscore", "nativejscore/configure")
+    Deps.Konstruct("nidiumcore", "nativejscore/configure")
 )
 
 Platform.setEnviron("MACOSX_DEPLOYMENT_TARGET=10.7")
@@ -210,15 +210,15 @@ def auotTestStudio(autoTests):
     dokumentor = os.path.join(dokumentor, "dokumentor.py")
 
     if "core" in autoTests:
-	Utils.run(dokumentor + " exampletest nativejscore/var/rawdoc/ > nativejscore/var/js/tests/autotests/auto_suites.js")
+        Utils.run(dokumentor + " exampletest nativejscore/var/rawdoc/ > nativejscore/var/js/tests/autotests/auto_suites.js")
         tests.append("nativejscore/var/js/tests/autotests/autotests.nml")
 
     if "studio" in autoTests:
-	Utils.run(dokumentor + " exampletest var/rawdoc/ > var/js/tests/autotests/auto_suites.js")
+        Utils.run(dokumentor + " exampletest var/rawdoc/ > var/js/tests/autotests/auto_suites.js")
         tests.append("var/js/tests/autotests/autotests.nml")
 
     if "framework" in autoTests:
-	Utils.run(dokumentor + " exampletest framework/var/rawdoc/ > framework/var/js/tests/autotests/auto_suites.js")
+        Utils.run(dokumentor + " exampletest framework/var/rawdoc/ > framework/var/js/tests/autotests/auto_suites.js")
         tests.append("framework/var/js/tests/autotests/autotests.nml")
 
     Tests.register(["%s %s" % (nidium, t) for t in tests])
@@ -249,4 +249,4 @@ if __name__ == '__main__':
     # since it's not a real dependency, we do the patch "by hand"
     Utils.patch(".", os.path.join(Deps.getDir(), "rapidxml.patch"));
 
-    Konstruct.start() 
+    Konstruct.start()

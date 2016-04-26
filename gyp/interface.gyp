@@ -1,32 +1,32 @@
 {
     'targets': [{
-        'target_name': 'nativeinterface',
+        'target_name': 'nidiuminterface',
         'type': 'static_library',
         'include_dirs': [
             '../src/',
-            '<(native_network_path)',
-            '<(native_nativejscore_path)/',
-            '<(native_interface_path)/',
+            '<(nidium_network_path)',
+            '<(nidium_nidiumcore_path)/',
+            '<(nidium_interface_path)/',
             '<(third_party_path)/libzip/lib/',
             '<(third_party_path)/SDL2/include/',
             '<(third_party_path)/c-ares/',
             '<(third_party_path)/angle/include/',
         ],
         'dependencies': [
-            '<(native_network_path)/gyp/network.gyp:nativenetwork-includes',
-            '<(native_nativejscore_path)/gyp/nidiumcore.gyp:nativejscore-includes',
-            '<(native_nativejscore_path)/gyp/jsoncpp.gyp:jsoncpp',
+            '<(nidium_network_path)/gyp/network.gyp:network-includes',
+            '<(nidium_nidiumcore_path)/gyp/nidiumcore.gyp:nidiumcore-includes',
+            '<(nidium_nidiumcore_path)/gyp/jsoncpp.gyp:jsoncpp',
         ],
         'sources': [
-            '<(native_interface_path)/UIInterface_base.cpp',
+            '<(nidium_interface_path)/UIInterface_base.cpp',
         ],
         'conditions': [
-            ['native_interface=="terminal"', {
+            ['nidium_interface=="terminal"', {
                 'sources': [
-                    '<(native_interface_path)/terminal/TerminalUIInterface.cpp',
+                    '<(nidium_interface_path)/terminal/TerminalUIInterface.cpp',
                 ],
                 'include_dirs': [
-                    '<(native_interface_path)/terminal/',
+                    '<(nidium_interface_path)/terminal/',
                 ],
             }],
             ['OS=="mac"', {
@@ -37,19 +37,19 @@
                     ],
                 },
                 'sources': [
-                    '<(native_interface_path)/osx/UIInterface.mm',
-                    '<(native_interface_path)/osx/UIConsole.mm',
-                    '<(native_interface_path)/osx/System.mm',
-                    '<(native_interface_path)/osx/DragNSView.mm',
+                    '<(nidium_interface_path)/osx/UIInterface.mm',
+                    '<(nidium_interface_path)/osx/UIConsole.mm',
+                    '<(nidium_interface_path)/osx/System.mm',
+                    '<(nidium_interface_path)/osx/DragNSView.mm',
                 ],
             }],
             ['OS=="linux"', {
                 'sources': [
-                    '<(native_interface_path)/linux/UIInterface.cpp',
-                    '<(native_interface_path)/linux/System.cpp',
+                    '<(nidium_interface_path)/linux/UIInterface.cpp',
+                    '<(nidium_interface_path)/linux/System.cpp',
                 ],
                 'include_dirs': [
-                    '<(native_interface_path)/linux/',
+                    '<(nidium_interface_path)/linux/',
                 ],
                 'cflags': [
                     '-Wno-c++0x-extensions',
@@ -57,13 +57,13 @@
                     '-Wno-invalid-offsetof'
                 ],
                 'conditions': [
-                    ['native_use_gtk==1', {
+                    ['nidium_use_gtk==1', {
                         'defines': ['NATIVE_USE_GTK'],
                         'cflags': [
                             '<!@(pkg-config --cflags gtk+-2.0)',
                         ],
                     }],
-                    ['native_use_qt==1', {
+                    ['nidium_use_qt==1', {
                         'defines': ['NATIVE_USE_QT'],
                         'cflags': [
                             '<!@(pkg-config --cflags QtCore QtGui)'
@@ -75,13 +75,13 @@
                         '-lX11',
                     ],
                     'conditions': [
-                        ['native_use_gtk==1', {
+                        ['nidium_use_gtk==1', {
                             'defines': ['NATIVE_USE_GTK'],
                             'libraries': [
                                 '<!@(pkg-config --libs gtk+-2.0)',
                             ]
                         }],
-                        ['native_use_qt==1', {
+                        ['nidium_use_qt==1', {
                             'defines': ['NATIVE_USE_QT'],
                             'libraries': [
                                 '<!@(pkg-config --libs QtCore QtGui)'

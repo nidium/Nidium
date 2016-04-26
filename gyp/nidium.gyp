@@ -1,19 +1,19 @@
 {
     'targets': [{
-        'target_name': 'nativestudio',
+        'target_name': 'nidiumstudio',
         'type': 'static_library',
         'dependencies': [
-            '<(native_network_path)/gyp/network.gyp:nativenetwork-includes',
-            '<(native_nativejscore_path)/gyp/nidiumcore.gyp:nativejscore-includes',
-            '<(native_nativejscore_path)/gyp/jsoncpp.gyp:jsoncpp',
+            '<(nidium_network_path)/gyp/network.gyp:network-includes',
+            '<(nidium_nidiumcore_path)/gyp/nidiumcore.gyp:nidiumcore-includes',
+            '<(nidium_nidiumcore_path)/gyp/jsoncpp.gyp:jsoncpp',
             'angle.gyp:*',
         ],
         'include_dirs': [
-            '<(native_src_path)',
-            '<(native_interface_path)/',
-            '<(native_nativejscore_path)/src/',
-            '<(native_network_path)/',
-            '<(native_av_path)',
+            '<(nidium_src_path)',
+            '<(nidium_interface_path)/',
+            '<(nidium_nidiumcore_path)/src/',
+            '<(nidium_network_path)/',
+            '<(nidium_av_path)',
             '<(third_party_path)/skia/',
             '<(third_party_path)/skia/include/core',
             '<(third_party_path)/skia/include/pipe',
@@ -110,42 +110,42 @@
                     '-Wno-invalid-offsetof'
                 ],
             }],
-            ['native_audio==1', {
+            ['nidium_audio==1', {
                 'sources': [
-                    '<(native_src_path)/Binding/JSAV.cpp',
+                    '<(nidium_src_path)/Binding/JSAV.cpp',
                  ],
                  'defines+': [ 'NATIVE_AUDIO_ENABLED' ],
                  'dependencies': [
-                    'av.gyp:nativeav'
+                    'av.gyp:nidiumav'
                  ]
             }],
-            ['native_webgl==1', {
+            ['nidium_webgl==1', {
                 'sources': [
-                    '<(native_src_path)/Binding/JSWebGL.cpp',
+                    '<(nidium_src_path)/Binding/JSWebGL.cpp',
                  ],
                  'defines+': [ 'NATIVE_WEBGL_ENABLED' ],
             }],
         ],
         'sources': [
-            '<(native_src_path)/Frontend/App.cpp',
-            '<(native_src_path)/Frontend/NML.cpp',
-            '<(native_src_path)/Frontend/Assets.cpp',
-            '<(native_src_path)/Frontend/Context.cpp',
-            '<(native_src_path)/Graphics/Gradient.cpp',
-            '<(native_src_path)/Graphics/Image.cpp',
-            '<(native_src_path)/Graphics/ShadowLooper.cpp',
-            '<(native_src_path)/Graphics/GLResources.cpp',
-            '<(native_src_path)/Graphics/GLState.cpp',
-            '<(native_src_path)/Graphics/CanvasContext.cpp',
-            '<(native_src_path)/Graphics/CanvasHandler.cpp',
-            '<(native_src_path)/Graphics/Canvas3DContext.cpp',
-            '<(native_src_path)/Graphics/SkiaContext.cpp',
-            '<(native_src_path)/Binding/JSImage.cpp',
-            '<(native_src_path)/Binding/JSNidium.cpp',
-            '<(native_src_path)/Binding/JSWindow.cpp',
-            '<(native_src_path)/Binding/JSDocument.cpp',
-            '<(native_src_path)/Binding/JSCanvas.cpp',
-            '<(native_src_path)/Binding/JSCanvas2DContext.cpp',
+            '<(nidium_src_path)/Frontend/App.cpp',
+            '<(nidium_src_path)/Frontend/NML.cpp',
+            '<(nidium_src_path)/Frontend/Assets.cpp',
+            '<(nidium_src_path)/Frontend/Context.cpp',
+            '<(nidium_src_path)/Graphics/Gradient.cpp',
+            '<(nidium_src_path)/Graphics/Image.cpp',
+            '<(nidium_src_path)/Graphics/ShadowLooper.cpp',
+            '<(nidium_src_path)/Graphics/GLResources.cpp',
+            '<(nidium_src_path)/Graphics/GLState.cpp',
+            '<(nidium_src_path)/Graphics/CanvasContext.cpp',
+            '<(nidium_src_path)/Graphics/CanvasHandler.cpp',
+            '<(nidium_src_path)/Graphics/Canvas3DContext.cpp',
+            '<(nidium_src_path)/Graphics/SkiaContext.cpp',
+            '<(nidium_src_path)/Binding/JSImage.cpp',
+            '<(nidium_src_path)/Binding/JSNidium.cpp',
+            '<(nidium_src_path)/Binding/JSWindow.cpp',
+            '<(nidium_src_path)/Binding/JSDocument.cpp',
+            '<(nidium_src_path)/Binding/JSCanvas.cpp',
+            '<(nidium_src_path)/Binding/JSCanvas2DContext.cpp',
         ],
     }],
 }

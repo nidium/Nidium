@@ -1,20 +1,20 @@
 {
     'targets': [{
-        'target_name': '<(native_exec_name)',
+        'target_name': '<(nidium_exec_name)',
         'type': 'executable',
         'mac_bundle': 1,
-        'product_dir': '<(native_exec_path)',
+        'product_dir': '<(nidium_exec_path)',
         'dependencies': [
-            'native.gyp:*',
-            '<(native_network_path)/gyp/network.gyp:*',
-            '<(native_nativejscore_path)/gyp/nidiumcore.gyp:*',
-            '<(native_nativejscore_path)/gyp/jsoncpp.gyp:jsoncpp',
-            'interface.gyp:nativeinterface',
+            'nidium.gyp:*',
+            '<(nidium_network_path)/gyp/network.gyp:*',
+            '<(nidium_nidiumcore_path)/gyp/nidiumcore.gyp:*',
+            '<(nidium_nidiumcore_path)/gyp/jsoncpp.gyp:jsoncpp',
+            'interface.gyp:nidiuminterface',
         ],
         'include_dirs': [
-            '<(native_src_path)',
-            '<(native_network_path)',
-            '<(native_interface_path)',
+            '<(nidium_src_path)',
+            '<(nidium_network_path)',
+            '<(nidium_interface_path)',
             '<(third_party_path)/breakpad/src/',
             '<(third_party_path)/SDL2/include/',
             '<(third_party_path)/mozilla-central/js/src/dist/include/',
@@ -23,7 +23,7 @@
         'conditions': [
             ['OS=="linux"', {
                 'conditions': [
-                    ['native_enable_breakpad==1', {
+                    ['nidium_enable_breakpad==1', {
                         'dependencies': [
                             'crashreporter.gyp:nidium-crash-reporter',
                             'breakpad.gyp:*'
@@ -81,17 +81,17 @@
                     ],
                 },
                 'include_dirs': [
-                    '<(native_interface_path)/linux/',
+                    '<(nidium_interface_path)/linux/',
                 ],
                 'sources': [
-                    '<(native_app_path)/linux/main.cpp',
+                    '<(nidium_app_path)/linux/main.cpp',
                     '<(third_party_path)/portaudio/src/common/pa_ringbuffer.o'
                 ],
                 #'actions': [{
                 #    'action_name': 'strip',
-                #    'inputs': '$(PRODUCT_DIR)/<(native_exec_name)',
-                #    'outputs': '$(PRODUCT_DIR)/<(native_exec_name)',
-                #    'action': ['strip', '$(PRODUCT_DIR)/<(native_exec_name)']
+                #    'inputs': '$(PRODUCT_DIR)/<(nidium_exec_name)',
+                #    'outputs': '$(PRODUCT_DIR)/<(nidium_exec_name)',
+                #    'action': ['strip', '$(PRODUCT_DIR)/<(nidium_exec_name)']
                 #}]
             }],
             ['OS=="mac"', {
@@ -103,7 +103,7 @@
                     'DEAD_CODE_STRIPPING': 'YES'
                 },
                 'conditions': [
-                    ['native_enable_breakpad==1', {
+                    ['nidium_enable_breakpad==1', {
                         'dependencies+': [
                             'breakpad.gyp:*'
                          ],
@@ -169,20 +169,20 @@
                         '-O2',
                         '-Wall',
                     ],
-                    'INFOPLIST_FILE': '<(native_resources_path)/osx/Info.plist',
+                    'INFOPLIST_FILE': '<(nidium_resources_path)/osx/Info.plist',
                 },
                 'mac_bundle_resources': [
-                    '<(native_resources_path)/osx/en.lproj/InfoPlist.strings',
-                    '<(native_resources_path)/osx/en.lproj/MainMenu.xib',
+                    '<(nidium_resources_path)/osx/en.lproj/InfoPlist.strings',
+                    '<(nidium_resources_path)/osx/en.lproj/MainMenu.xib',
                 ],
                 'include_dirs': [
-                    '<(native_interface_path)/osx/',
+                    '<(nidium_interface_path)/osx/',
                     '<(third_party_path)/breakpad/src/client/mac/Framework/',
                     '<(third_party_path)/breakpad/src/client/apple/Framework/'
                 ],
                 'sources': [
-                    '<(native_app_path)/osx/main.mm',
-                    '<(native_app_path)/osx/StudioAppDelegate.mm',
+                    '<(nidium_app_path)/osx/main.mm',
+                    '<(nidium_app_path)/osx/StudioAppDelegate.mm',
                     '<(third_party_path)/portaudio/src/common/pa_ringbuffer.o'
                 ],
                 'postbuilds': [
@@ -190,8 +190,8 @@
                     #    'postbuild_name': 'Copy Frameworks',
                     #    'action': [
                     #        'ditto',
-                    #        '<(native_output)/third-party-libs/.libs/SDL2.framework/',
-                    #        '<(native_exec_path)/<(native_exec_name).app/Contents/Frameworks/SDL2.framework'
+                    #        '<(nidium_output)/third-party-libs/.libs/SDL2.framework/',
+                    #        '<(nidium_exec_path)/<(nidium_exec_name).app/Contents/Frameworks/SDL2.framework'
                     #    ]
                     #},
                     {
@@ -199,15 +199,15 @@
                         'action': [
                             'cp',
                             '-r',
-                            '<(native_resources_path)/osx/',
-                            '<(native_exec_path)/<(native_exec_name).app/Contents/Resources/'
+                            '<(nidium_resources_path)/osx/',
+                            '<(nidium_exec_path)/<(nidium_exec_name).app/Contents/Resources/'
                         ]
                     },
                     {
                         'postbuild_name': 'Increment build number',
                         'action': [
                             './osx/incbuild.sh',
-                            '<(native_exec_path)/<(native_exec_name).app/Contents/'
+                            '<(nidium_exec_path)/<(nidium_exec_name).app/Contents/'
                         ]
                     }
                 ]
