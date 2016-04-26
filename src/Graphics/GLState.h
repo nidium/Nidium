@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "NML/Macros.h"
+#include "Macros.h"
 #include "Graphics/GLResources.h"
 #include "Graphics/GLContext.h"
 

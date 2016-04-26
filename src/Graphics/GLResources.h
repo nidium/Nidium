@@ -6,7 +6,7 @@
 
 #include <Core/Hash.h>
 
-#include "NML/Macros.h"
+#include "Macros.h"
 
 namespace Nidium {
 namespace Graphics {
