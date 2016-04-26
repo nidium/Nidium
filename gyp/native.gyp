@@ -128,8 +128,8 @@
         ],
         'sources': [
             '<(native_src_path)/Graphics/Skia.cpp',
-            '<(native_src_path)/Graphics/SkGradient.cpp',
-            '<(native_src_path)/Graphics/SkImage.cpp',
+            '<(native_src_path)/Graphics/Gradient.cpp',
+            '<(native_src_path)/Graphics/Image.cpp',
             '<(native_src_path)/Graphics/ShadowLooper.cpp',
             '<(native_src_path)/NML/App.cpp',
             '<(native_src_path)/NML/NML.cpp',

@@ -1,4 +1,4 @@
-#include "Graphics/SkGradient.h"
+#include "Graphics/Gradient.h"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -13,7 +13,7 @@
 
 #include "NML/NML.h"
 #include "Graphics/CanvasHandler.h"
-#include "Graphics/SkImage.h"
+#include "Graphics/Image.h"
 #include "Binding/JSCanvas2DContext.h"
 
 namespace Nidium {

@@ -6,7 +6,7 @@
 
 #include <Binding/JSFileIO.h>
 
-#include "Graphics/SkImage.h"
+#include "Graphics/Image.h"
 
 namespace Nidium {
 namespace Binding {

@@ -1,4 +1,4 @@
-#include "Graphics/SkImage.h"
+#include "Graphics/Image.h"
 
 #include <stdio.h>
 

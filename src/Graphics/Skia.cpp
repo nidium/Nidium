@@ -23,8 +23,8 @@
 
 #include <SystemInterface.h>
 
-#include "Graphics/SkGradient.h"
-#include "Graphics/SkImage.h"
+#include "Graphics/Gradient.h"
+#include "Graphics/Image.h"
 #include "Graphics/ShadowLooper.h"
 #include "Binding/JSDocument.h"
 #include "Binding/JSCanvas2DContext.h"

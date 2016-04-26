@@ -7,7 +7,7 @@
 
 #include <SystemInterface.h>
 
-#include "Graphics/SkImage.h"
+#include "Graphics/Image.h"
 #include "Graphics/Skia.h"
 #include "Graphics/Canvas3DContext.h"
 #include "Binding/JSCanvas.h"

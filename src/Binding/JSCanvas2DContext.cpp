@@ -11,8 +11,8 @@
 #include <SystemInterface.h>
 
 #include "Graphics/Skia.h"
-#include "Graphics/SkGradient.h"
-#include "Graphics/SkImage.h"
+#include "Graphics/Gradient.h"
+#include "Graphics/Image.h"
 #include "Graphics/OpenGLHeader.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSDocument.h"
