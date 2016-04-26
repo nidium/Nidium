@@ -6,7 +6,7 @@
 
 #include <SkGradientShader.h>
 
-#include "Graphics/Skia.h"
+#include "Graphics/Canvas2DContext.h"
 
 namespace Nidium {
 namespace Graphics {

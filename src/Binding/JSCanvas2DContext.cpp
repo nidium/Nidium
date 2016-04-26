@@ -10,10 +10,10 @@
 
 #include <SystemInterface.h>
 
-#include "Graphics/Skia.h"
-#include "Graphics/Gradient.h"
 #include "Graphics/Image.h"
+#include "Graphics/Gradient.h"
 #include "Graphics/OpenGLHeader.h"
+#include "Graphics/Canvas2DContext.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSDocument.h"
 

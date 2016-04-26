@@ -7,9 +7,9 @@
 
 #include <Binding/Nidium.JS.h>
 
-#include "Skia.h"
-#include "App.h"
-#include "NML.h"
+#include "Graphics/Canvas2DContext.h"
+#include "NML/App.h"
+#include "NML/NML.h"
 
 namespace Nidium {
 namespace Interface {

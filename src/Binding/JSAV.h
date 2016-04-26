@@ -8,7 +8,7 @@
 #include <AudioNode.h>
 #include <Video.h>
 
-#include <Graphics/Skia.h>
+#include <Graphics/Canvas2DContext.h>
 
 #define CUSTOM_SOURCE_SEND 100
 

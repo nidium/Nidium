@@ -9,9 +9,9 @@
 
 #include <SystemInterface.h>
 
-#include "Graphics/Skia.h"
 #include "Graphics/GLState.h"
 #include "Graphics/OpenGLHeader.h"
+#include "Graphics/Canvas2DContext.h"
 #include "Binding/JSCanvas2DContext.h"
 
 namespace Nidium {

@@ -1,5 +1,5 @@
-#ifndef graphics_skia_h__
-#define graphics_skia_h__
+#ifndef graphics_canvas2dcontext_h__
+#define graphics_canvas2dcontext_h__
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -29,7 +29,7 @@ typedef uint32_t SkColor;
 typedef unsigned U8CPU;
 
 // {{{ _NativeShadow
-typedef struct _NativeShadow
+typedef struct _Shadow
 {
     double x;
     double y;
@@ -38,7 +38,7 @@ typedef struct _NativeShadow
     SkColor color;
 
 } NativeShadow_t;
-// }}
+// }}}
 
 // {{{ _NativeLine and Baseline
 struct _NativeLine

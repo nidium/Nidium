@@ -16,11 +16,11 @@
 #import <Core/Path.h>
 #import <Binding/NidiumJS.h>
 
-#import <Context.h>
-#import <Skia.h>
-#import <NML.h>
-#import <App.h>
-#import <JSWindow.h>
+#import <NML/Context.h>
+#import <NML/NML.h>
+#import <NML/App.h>
+#import <Graphics/Canvas2DContext.h>
+#import <Binding/JSWindow.h>
 
 #import "Macros.h"
 #import "System.h"

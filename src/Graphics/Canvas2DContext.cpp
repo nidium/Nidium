@@ -1,4 +1,4 @@
-#include "Graphics/Skia.h"
+#include "Graphics/Canvas2DContext.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,8 +23,8 @@
 
 #include <SystemInterface.h>
 
-#include "Graphics/Gradient.h"
 #include "Graphics/Image.h"
+#include "Graphics/Gradient.h"
 #include "Graphics/ShadowLooper.h"
 #include "Binding/JSDocument.h"
 #include "Binding/JSCanvas2DContext.h"

@@ -13,8 +13,8 @@
 
 #include "NML/NML.h"
 #include "NML/Context.h"
-#include "Graphics/Skia.h"
 #include "Graphics/Image.h"
+#include "Graphics/Canvas2DContext.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSImage.h"
 

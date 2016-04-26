@@ -10,7 +10,7 @@
 #include <Net/WebSocket.h>
 
 #include "NML/NML.h"
-#include "Graphics/Skia.h"
+#include "Graphics/Canvas2DContext.h"
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSNidium.h"
 #include "Binding/JSDocument.h"
