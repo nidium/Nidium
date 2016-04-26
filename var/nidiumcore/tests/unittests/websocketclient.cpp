@@ -12,6 +12,7 @@
 
 #include <Net/WebSocketClient.h>
 
+#if 0
 TEST(Websocketclient, Simple)
 {
     ape_global * g_ape;
@@ -25,4 +26,4 @@ TEST(Websocketclient, Simple)
     APE_loop_run(g_ape);
     APE_destroy(g_ape);
 }
-
+#endif
