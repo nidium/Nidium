@@ -105,7 +105,7 @@ void NativeMessages::postMessage(NativeSharedMessages::Message *msg, bool forceA
 
         g_PostingSyncMsg = msg;
 
-        // Ensure that so we don't break the FIFO rule.
+        // Ensure that we don't break the FIFO rule.
         // Post the message first and then read all pendings messages
         g_MessagesList->postMessage(msg);
         (void)NativeMessages_handle(nullptr);
