@@ -30,7 +30,6 @@ class NativeCocoaUIInterface : public NativeUIInterface
 
         void hideWindow();
         void showWindow();
-        void alert(const char *message);
         void quit();
 
         struct {

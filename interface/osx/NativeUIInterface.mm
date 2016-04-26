@@ -392,10 +392,6 @@ void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
     [pool drain];
 }
 
-void NativeCocoaUIInterface::alert(const char *message)
-{
-
-}
 #if 0
 bool NativeCocoaUIInterface::makeMainGLCurrent()
 {
