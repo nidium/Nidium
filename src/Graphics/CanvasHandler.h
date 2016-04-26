@@ -22,7 +22,7 @@ namespace Nidium {
     namespace Binding {
         class JSCanvas;
     }
-    namespace NML {
+    namespace Frontend {
         class NativeContext;
         class InputEvent;
     }
@@ -331,7 +331,7 @@ class CanvasHandler : public Nidium::Core::Events
             return m_MaxHeight;
         }
 
-        Nidium::NML::NativeContext *getNativeContext() const {
+        Nidium::Frontend::NativeContext *getNativeContext() const {
             return m_NativeContext;
         }
 
@@ -468,7 +468,7 @@ class CanvasHandler : public Nidium::Core::Events
         }
 
         CanvasHandler(int width, int height,
-            Nidium::NML::NativeContext *NativeCtx, bool lazyLoad = false);
+            Nidium::Frontend::NativeContext *NativeCtx, bool lazyLoad = false);
 
         virtual ~CanvasHandler();
 
@@ -542,7 +542,7 @@ class CanvasHandler : public Nidium::Core::Events
         CanvasHandler *m_Last;
 
         static void _JobResize(void *arg);
-        bool _handleEvent(Nidium::NML::InputEvent *ev);
+        bool _handleEvent(Nidium::Frontend::InputEvent *ev);
 
         uint32_t m_Flags;
 
@@ -563,9 +563,9 @@ class CanvasHandler : public Nidium::Core::Events
     private:
 
         void deviceSetSize(int width, int height);
-        void onMouseEvent(Nidium::NML::InputEvent *ev);
-        void onDrag(Nidium::NML::InputEvent *ev, CanvasHandler *target, bool end = false);
-        void onDrop(Nidium::NML::InputEvent *ev, CanvasHandler *droped);
+        void onMouseEvent(Nidium::Frontend::InputEvent *ev);
+        void onDrag(Nidium::Frontend::InputEvent *ev, CanvasHandler *target, bool end = false);
+        void onDrop(Nidium::Frontend::InputEvent *ev, CanvasHandler *droped);
 
         int32_t m_nChildren;
         void dispatchMouseEvents(LayerizeContext &layerContext);
@@ -580,7 +580,7 @@ class CanvasHandler : public Nidium::Core::Events
         bool m_AllowNegativeScroll;
         bool m_FluidWidth, m_FluidHeight;
 
-        Nidium::NML::NativeContext *m_NativeContext;
+        Nidium::Frontend::NativeContext *m_NativeContext;
 
         struct {
             uint64_t idx;

@@ -1,5 +1,5 @@
-#ifndef nml_nml_h__
-#define nml_nml_h__
+#ifndef frontend_nml_h__
+#define frontend_nml_h__
 
 #include <ape_netlib.h>
 
@@ -7,7 +7,7 @@
 
 #include "external/rapidxml.hpp"
 
-#include "NML/Assets.h"
+#include "Frontend/Assets.h"
 
 #define XML_VP_MAX_WIDTH 8000
 #define XML_VP_MAX_HEIGHT 8000
@@ -15,7 +15,7 @@
 #define XML_VP_DEFAULT_HEIGHT 700
 
 namespace Nidium {
-namespace NML {
+namespace Frontend {
 
 class NML;
 
@@ -140,7 +140,7 @@ private:
     bool m_LoadDefaultItems;
 };
 
-} // namespace NML
+} // namespace Frontend
 } // namespace Nidium
 
 #endif

@@ -15,7 +15,7 @@ namespace Graphics {
 int CanvasHandler::m_LastIdx = 0;
 
 CanvasHandler::CanvasHandler(int width, int height,
-    Nidium::NML::NativeContext *nativeCtx, bool lazyLoad) :
+    Nidium::Frontend::NativeContext *nativeCtx, bool lazyLoad) :
     m_Context(NULL),
     m_JsCx(nativeCtx->getNJS()->getJSContext()), m_Left(0.0), m_Top(0.0),
     m_aLeft(0), m_aTop(0), m_Right(0.0), m_Bottom(0.0), m_Overflow(true),
@@ -423,7 +423,7 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
 
 void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
 {
-    Nidium::NML::InputEvent *ev = m_NativeContext->getInputEvents();
+    Nidium::Frontend::InputEvent *ev = m_NativeContext->getInputEvents();
     if (ev == NULL) {
         return;
     }
@@ -458,7 +458,7 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
                 evlist = ape_new_pool_list(0, 4);
             }
 
-            Nidium::NML::InputEvent *dup = ev->dupWithHandler(this);
+            Nidium::Frontend::InputEvent *dup = ev->dupWithHandler(this);
 
             ape_pool_push(evlist, dup);
         }
@@ -1133,16 +1133,16 @@ void CanvasHandler::propertyChanged(EventsChangedProperty property)
 }
 
 // {{{ Events
-void CanvasHandler::onDrag(Nidium::NML::InputEvent *ev, CanvasHandler *target, bool end)
+void CanvasHandler::onDrag(Nidium::Frontend::InputEvent *ev, CanvasHandler *target, bool end)
 {
     Nidium::Core::Args arg;
 
     if (!end) {
         arg[0].set((m_Flags & kDrag_Flag) == 0 ?
-            Nidium::NML::InputEvent::kMouseDragStart_Type :
-            Nidium::NML::InputEvent::kMouseDrag_Type);
+            Nidium::Frontend::InputEvent::kMouseDragStart_Type :
+            Nidium::Frontend::InputEvent::kMouseDrag_Type);
     } else {
-        arg[0].set(Nidium::NML::InputEvent::kMouseDragEnd_Type);
+        arg[0].set(Nidium::Frontend::InputEvent::kMouseDragEnd_Type);
     }
 
     arg[1].set(ev->m_x);
@@ -1160,17 +1160,17 @@ void CanvasHandler::onDrag(Nidium::NML::InputEvent *ev, CanvasHandler *target, b
     this->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg);
 
     if (!end) {
-        arg[0].set(Nidium::NML::InputEvent::kMouseDragOver_Type);
+        arg[0].set(Nidium::Frontend::InputEvent::kMouseDragOver_Type);
         arg[7].set(this); // source
 
         target->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg);
     }
 }
 
-void CanvasHandler::onDrop(Nidium::NML::InputEvent *ev, CanvasHandler *drop)
+void CanvasHandler::onDrop(Nidium::Frontend::InputEvent *ev, CanvasHandler *drop)
 {
     Nidium::Core::Args arg;
-    arg[0].set(Nidium::NML::InputEvent::kMouseDrop_Type);
+    arg[0].set(Nidium::Frontend::InputEvent::kMouseDrop_Type);
     arg[1].set(ev->m_x);
     arg[2].set(ev->m_y);
     arg[3].set((int64_t)0);
@@ -1182,19 +1182,19 @@ void CanvasHandler::onDrop(Nidium::NML::InputEvent *ev, CanvasHandler *drop)
     this->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg);
 }
 
-void CanvasHandler::onMouseEvent(Nidium::NML::InputEvent *ev)
+void CanvasHandler::onMouseEvent(Nidium::Frontend::InputEvent *ev)
 {
     CanvasHandler *underneath = this;
-    if (Nidium::NML::InputEvent *tmpEvent = ev->getEventForNextCanvas()) {
+    if (Nidium::Frontend::InputEvent *tmpEvent = ev->getEventForNextCanvas()) {
         underneath = tmpEvent->m_Handler;
     }
 
     switch (ev->getType()) {
-        case Nidium::NML::InputEvent::kMouseClick_Type:
+        case Nidium::Frontend::InputEvent::kMouseClick_Type:
             if (ev->m_data[0] == 1) // left click
                 m_NativeContext->setCurrentClickedHandler(this);
             break;
-        case Nidium::NML::InputEvent::kMouseClickRelease_Type:
+        case Nidium::Frontend::InputEvent::kMouseClickRelease_Type:
             if (ev->m_data[0] == 1) {
                 CanvasHandler *drag;
                 if ((drag = m_NativeContext->getCurrentClickedHandler()) &&
@@ -1211,7 +1211,7 @@ void CanvasHandler::onMouseEvent(Nidium::NML::InputEvent *ev)
                 m_NativeContext->setCurrentClickedHandler(NULL);
             }
             break;
-        case Nidium::NML::InputEvent::kMouseMove_Type:
+        case Nidium::Frontend::InputEvent::kMouseMove_Type:
         {
             CanvasHandler *drag;
             if ((drag = m_NativeContext->getCurrentClickedHandler())) {
@@ -1227,10 +1227,10 @@ void CanvasHandler::onMouseEvent(Nidium::NML::InputEvent *ev)
 }
 
 /*
-    Called by Nidium::NML::NativeContext whenever there are pending events on this canvas
+    Called by Nidium::Frontend::NativeContext whenever there are pending events on this canvas
     Currently only handle mouse events.
 */
-bool CanvasHandler::_handleEvent(Nidium::NML::InputEvent *ev)
+bool CanvasHandler::_handleEvent(Nidium::Frontend::InputEvent *ev)
 {
     for (CanvasHandler *handler = this; handler != NULL;
         handler = handler->getParent()) {

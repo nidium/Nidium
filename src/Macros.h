@@ -9,7 +9,7 @@ namespace Nidium {
     namespace Interface {
         extern NativeUIInterface *__NativeUI;
     }
-namespace NML {
+namespace Frontend {
 
 #define __FILENAME__ \
     (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
@@ -17,7 +17,7 @@ namespace NML {
 #define NLOG(format, ...) \
     Nidium::Interface::__NativeUI->logf("[%s:%d] " format "\n", __FILENAME__, __LINE__, ##__VA_ARGS__)
 
-} // namespace NML
+} // namespace Frontend
 } // namespace Nidium
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef nml_context_h__
-#define nml_context_h__
+#ifndef frontend_context_h__
+#define frontend_context_h__
 
 #include <stdint.h>
 #include <stddef.h>
@@ -33,7 +33,7 @@ namespace Nidium {
 
         class JSWindow;
     }
-namespace NML {
+namespace Frontend {
 
 class NML;
 
@@ -318,7 +318,7 @@ class NativeContext : public Nidium::Core::Messages
 };
 // }}}
 
-} // namespace NML
+} // namespace Frontend
 } // namespace Nidium
 
 #endif

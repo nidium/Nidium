@@ -30,9 +30,9 @@
 #endif
 
 #include "Binding/JSWindow.h"
-#include "NML/App.h"
-#include "NML/Context.h"
-#include "NML/NML.h"
+#include "Frontend/App.h"
+#include "Frontend/Context.h"
+#include "Frontend/NML.h"
 
 #include "System.h"
 
@@ -285,7 +285,7 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     NativeX11UIInterface *ui = (NativeX11UIInterface *)closure;
     chdir(fpath);
     fprintf(stdout, "Changing directory to : %s\n", fpath);
-    ui->m_Nml = new Nidium::NML::NML(ui->m_Gnet);
+    ui->m_Nml = new Nidium::Frontend::NML(ui->m_Gnet);
     ui->m_Nml->setNJS(ui->NJS);
     ui->m_Nml->loadFile("./index.nml");
 }
@@ -299,7 +299,7 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     }
     fprintf(stdout, "Changing directory to : %s\n", fpath);
 
-    ui->m_Nml = new Nidium::NML::NML(ui->m_Gnet);
+    ui->m_Nml = new Nidium::Frontend::NML(ui->m_Gnet);
     ui->m_Nml->loadFile("./index.nml", NativeX11UIInterface_onNMLLoaded, ui);
 }
 // }}}
@@ -399,7 +399,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
         this->setWindowSize(width, height);
     }
 
-    Nidium::NML::NativeContext::CreateAndAssemble(this, m_Gnet);
+    Nidium::Frontend::NativeContext::CreateAndAssemble(this, m_Gnet);
 
     return true;
 }
@@ -641,7 +641,7 @@ bool NativeX11UIInterface::runApplication(const char *path)
         if (main == NULL) {
             return false;
         }
-        Nidium::NML::App *app = new Nidium::NML::App(path);
+        Nidium::Frontend::App *app = new Nidium::Frontend::App(path);
         if (app->open()) {
             if (!this->createWindow(app->getWidth()*2, 2*app->getHeight()+kNativeTitleBarHeight)) {
                 return false;
@@ -667,7 +667,7 @@ bool NativeX11UIInterface::runApplication(const char *path)
             delete app;
         }
     } else {
-        this->m_Nml = new Nidium::NML::NML(this->m_Gnet);
+        this->m_Nml = new Nidium::Frontend::NML(this->m_Gnet);
         this->m_Nml->loadFile(path, NativeX11UIInterface_onNMLLoaded, this);
 
         return true;

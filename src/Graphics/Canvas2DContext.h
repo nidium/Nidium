@@ -119,8 +119,8 @@ class Skia
             struct _Line lines[], double maxWidth, int *length = NULL);
         int bindOnScreen(int width, int height);
         static SkCanvas *CreateGLCanvas(int width, int height,
-            Nidium::NML::NativeContext *nativectx);
-        int bindGL(int width, int height, Nidium::NML::NativeContext *nativectx);
+            Nidium::Frontend::NativeContext *nativectx);
+        int bindGL(int width, int height, Nidium::Frontend::NativeContext *nativectx);
         void flush();
         void unlink();
 

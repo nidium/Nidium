@@ -674,7 +674,7 @@ static bool nidium_canvas_getContext(JSContext *cx, unsigned argc,
     NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
     NIDIUM_JS_CHECK_ARGS("getContext", 1);
 
-    Nidium::NML::NativeContext *nctx = Nidium::NML::NativeContext::GetObject(cx);
+    Nidium::Frontend::NativeContext *nctx = Nidium::Frontend::NativeContext::GetObject(cx);
     Nidium::Interface::NativeUIInterface *ui = nctx->getUI();
 
     JS::RootedString mode(cx, args[0].toString());
@@ -707,7 +707,7 @@ static bool nidium_canvas_getContext(JSContext *cx, unsigned argc,
                 }
                 NativeObject->setContext(ctx2d);
 
-                /* Inherit from the Nidium::NML::NativeContext glstate */
+                /* Inherit from the Nidium::Frontend::NativeContext glstate */
                 ctx2d->setGLState(nctx->getGLState());
 
                 break;
@@ -1473,7 +1473,7 @@ static bool nidium_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
     }
     lazyLoad = false; /* Always lazy load for now.  */
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Canvas_class, args));
-    handler = new Nidium::Graphics::CanvasHandler(width, height, Nidium::NML::NativeContext::GetObject(cx), true);
+    handler = new Nidium::Graphics::CanvasHandler(width, height, Nidium::Frontend::NativeContext::GetObject(cx), true);
     handler->m_Context = NULL;
     handler->m_JsObj = ret;
     handler->m_JsCx = cx;
@@ -1526,7 +1526,7 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx, int width,
     int height, Nidium::Graphics::CanvasHandler **out)
 {
     Nidium::Graphics::CanvasHandler *handler;
-    Nidium::NML::NativeContext *nctx = Nidium::NML::NativeContext::GetObject(cx);
+    Nidium::Frontend::NativeContext *nctx = Nidium::Frontend::NativeContext::GetObject(cx);
     Nidium::Interface::NativeUIInterface *ui = nctx->getUI();
 
     JS::RootedObject ret(cx, JS_NewObject(cx, &Canvas_class, JS::NullPtr(), JS::NullPtr()));
@@ -1617,12 +1617,12 @@ void JSCanvas::onMessage(const Core::SharedMessages::Message &msg)
             obj.set("layerY", msg.args[7].toInt());
             obj.set("target", target->m_JsObj);
 
-            int evtype = (Nidium::NML::InputEvent::Type)msg.args[1].toInt();
+            int evtype = (Nidium::Frontend::InputEvent::Type)msg.args[1].toInt();
 
             switch (evtype) {
-                case Nidium::NML::InputEvent::kMouseMove_Type:
-                case Nidium::NML::InputEvent::kMouseDrag_Type:
-                case Nidium::NML::InputEvent::kMouseDragOver_Type:
+                case Nidium::Frontend::InputEvent::kMouseMove_Type:
+                case Nidium::Frontend::InputEvent::kMouseDrag_Type:
+                case Nidium::Frontend::InputEvent::kMouseDragOver_Type:
                     obj.set("xrel", msg.args[4].toInt());
                     obj.set("yrel", msg.args[5].toInt());
                     break;
@@ -1631,18 +1631,18 @@ void JSCanvas::onMessage(const Core::SharedMessages::Message &msg)
             }
 
             switch (evtype) {
-                case Nidium::NML::InputEvent::kMouseClick_Type:
-                case Nidium::NML::InputEvent::kMouseDoubleClick_Type:
-                case Nidium::NML::InputEvent::kMouseClickRelease_Type:
+                case Nidium::Frontend::InputEvent::kMouseClick_Type:
+                case Nidium::Frontend::InputEvent::kMouseDoubleClick_Type:
+                case Nidium::Frontend::InputEvent::kMouseClickRelease_Type:
                     obj.set("which", msg.args[4].toInt());
                     break;
-                case Nidium::NML::InputEvent::kMouseDrag_Type:
-                case Nidium::NML::InputEvent::kMouseDragStart_Type:
-                case Nidium::NML::InputEvent::kMouseDragEnd_Type:
+                case Nidium::Frontend::InputEvent::kMouseDrag_Type:
+                case Nidium::Frontend::InputEvent::kMouseDragStart_Type:
+                case Nidium::Frontend::InputEvent::kMouseDragEnd_Type:
                     obj.set("source", this->getJSObject());
                     break;
-                case Nidium::NML::InputEvent::kMouseDragOver_Type:
-                case Nidium::NML::InputEvent::kMouseDrop_Type:
+                case Nidium::Frontend::InputEvent::kMouseDragOver_Type:
+                case Nidium::Frontend::InputEvent::kMouseDrop_Type:
                     obj.set("source", target->m_JsObj);
                     obj.set("target", this->getJSObject());
                     break;
@@ -1650,7 +1650,7 @@ void JSCanvas::onMessage(const Core::SharedMessages::Message &msg)
                     break;
             }
             JS::RootedValue rval(cx, obj.jsval());
-            if (!this->fireJSEvent(Nidium::NML::InputEvent::GetName(msg.args[1].toInt()), &rval)) {
+            if (!this->fireJSEvent(Nidium::Frontend::InputEvent::GetName(msg.args[1].toInt()), &rval)) {
                 break;
             }
 

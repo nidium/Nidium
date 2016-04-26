@@ -23,7 +23,7 @@ GLState::GLState(Nidium::Interface::NativeUIInterface *ui, bool withProgram, boo
     }
 }
 
-GLState::GLState(Nidium::NML::NativeContext *nctx) :
+GLState::GLState(Nidium::Frontend::NativeContext *nctx) :
     m_Shared(true)
 {
     Nidium::Interface::NativeUIInterface *ui = nctx->getUI();
@@ -34,7 +34,7 @@ GLState::GLState(Nidium::NML::NativeContext *nctx) :
     m_GLContext = new GLContext(ui, ui->getGLContext(), false);
 }
 
-void GLState::CreateForContext(Nidium::NML::NativeContext *nctx)
+void GLState::CreateForContext(Nidium::Frontend::NativeContext *nctx)
 {
     Nidium::Interface::NativeUIInterface *ui;
     if ((ui = nctx->getUI()) == NULL || ui->m_NativeCtx->getGLState()) {

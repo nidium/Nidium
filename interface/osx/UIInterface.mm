@@ -16,9 +16,9 @@
 #import <Core/Path.h>
 #import <Binding/NidiumJS.h>
 
-#import <NML/Context.h>
-#import <NML/NML.h>
-#import <NML/App.h>
+#import <Frontend/Context.h>
+#import <Frontend/NML.h>
+#import <Frontend/App.h>
 #import <Graphics/Canvas2DContext.h>
 #import <Binding/JSWindow.h>
 
@@ -294,7 +294,7 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     }
     fprintf(stdout, "Changing directory to : %s\n", fpath);
 
-    ui->m_Nml = new Nidium::NML::NML(ui->m_Gnet);
+    ui->m_Nml = new Nidium::Frontend::NML(ui->m_Gnet);
     ui->m_Nml->loadFile("./index.nml", NativeCocoaUIInterface_onNMLLoaded, ui);
 }
 
@@ -436,7 +436,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
         if (main == NULL) {
             return false;
         }
-        Nidium::NML::App *app = new Nidium::NML::App(path);
+        Nidium::Frontend::App *app = new Nidium::Frontend::App(path);
         if (app->open()) {
             if (!this->createWindow(app->getWidth(), app->getHeight()+kNativeTitleBarHeight)) {
                 return false;
@@ -462,7 +462,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
             delete app;
         }
     } else {
-        this->m_Nml = new Nidium::NML::NML(this->m_Gnet);
+        this->m_Nml = new Nidium::Frontend::NML(this->m_Gnet);
         this->m_Nml->loadFile(path, NativeCocoaUIInterface_onNMLLoaded, this);
 
         return true;
@@ -588,7 +588,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     this->setWindowFrame(NATIVE_WINDOWPOS_UNDEFINED_MASK,
         NATIVE_WINDOWPOS_UNDEFINED_MASK, width, height);
 
-    Nidium::NML::NativeContext::CreateAndAssemble(this, m_Gnet);
+    Nidium::Frontend::NativeContext::CreateAndAssemble(this, m_Gnet);
 
     [this->m_DragNSView setResponder:JSWindow::GetObject(m_NativeCtx->getNJS())];
 
@@ -879,7 +879,7 @@ static const char *drawRect_Associated_obj = "_NativeUIInterface";
 {
     NSPointer *idthis = objc_getAssociatedObject(self, drawRect_Associated_obj);
     NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)idthis->m_Ptr;
-    Nidium::NML::NativeContext *ctx = UI->getNativeContext();
+    Nidium::Frontend::NativeContext *ctx = UI->getNativeContext();
 
     if (ctx && ctx->isSizeDirty()) {
         [(NSOpenGLContext *)UI->getGLContext() update];

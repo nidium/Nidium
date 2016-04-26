@@ -1,7 +1,7 @@
 #ifndef binding_jswindow_h__
 #define binding_jswindow_h__
 
-#include <NML/NML.h>
+#include <Frontend/NML.h>
 #include <Binding/JSExposer.h>
 #include <Binding/JSDB.h>
 
@@ -25,7 +25,7 @@ class JSWindow : public JSExposer<JSWindow>
 
     void onReady(JS::HandleObject layout);
     bool onClose();
-    void assetReady(const Nidium::NML::NMLTag &tag);
+    void assetReady(const Nidium::Frontend::NMLTag &tag);
     void windowFocus();
     void windowBlur();
     void resized(int width, int height);

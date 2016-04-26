@@ -7,7 +7,7 @@
 #include <UIInterface.h>
 
 #include "Macros.h"
-#include "NML/Context.h"
+#include "Frontend/Context.h"
 
 typedef void *SDL_GLContext;
 

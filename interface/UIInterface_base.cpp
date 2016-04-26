@@ -9,7 +9,7 @@
 
 #include "IO/PrivateStream.h"
 #include "IO/SystemStream.h"
-#include "NML/Context.h"
+#include "Frontend/Context.h"
 #include "Graphics/GLHeader.h"
 
 namespace Nidium {

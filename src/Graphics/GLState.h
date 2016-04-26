@@ -79,10 +79,10 @@ public:
         } uniforms;
     } m_GLObjects;
 
-    static void CreateForContext(Nidium::NML::NativeContext *nctx);
+    static void CreateForContext(Nidium::Frontend::NativeContext *nctx);
 
 private:
-    GLState(Nidium::NML::NativeContext *nctx);
+    GLState(Nidium::Frontend::NativeContext *nctx);
 
     GLResources m_Resources;
 

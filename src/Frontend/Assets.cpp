@@ -1,11 +1,11 @@
-#include "NML/Assets.h"
+#include "Frontend/Assets.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 
 namespace Nidium {
-namespace NML {
+namespace Frontend {
 
 Assets::Assets(readyItem cb, readyAssets rcb, void *arg) :
     m_ItemReady(cb), m_AssetsReady(rcb), m_ReadyArg(arg), m_Nitems(0)
@@ -194,6 +194,6 @@ void Assets::pendingListUpdate()
     }
 }
 
-} // namespace NML
+} // namespace Frontend
 } // namespace Nidium
 

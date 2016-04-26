@@ -1,5 +1,5 @@
-#ifndef nml_app_h__
-#define nml_app_h__
+#ifndef frontend_app_h__
+#define frontend_app_h__
 
 #include <pthread.h>
 
@@ -11,7 +11,7 @@
 #include <Binding/NidiumJS.h>
 
 namespace Nidium {
-namespace NML {
+namespace Frontend {
 
 typedef bool (* AppExtractCallback)(const char * buf,
     int len, size_t offset, size_t total, void *user);
@@ -99,7 +99,7 @@ private:
     ape_global *m_Net;
 };
 
-} // namespace NML
+} // namespace Frontend
 } // namespace Nidium
 
 #endif

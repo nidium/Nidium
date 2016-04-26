@@ -14,7 +14,7 @@
 struct SDL_Window; //FIXME: This is not correct
 
 namespace Nidium {
-    namespace NML {
+    namespace Frontend {
         class NativeContext;
         class NML;
     }
@@ -140,14 +140,14 @@ class NativeUIInterface
             kOpenFile_AlloMultipleSelection = 1 << 2
         };
 
-        Nidium::NML::NativeContext *m_NativeCtx;
-        Nidium::NML::NML *m_Nml;
+        Nidium::Frontend::NativeContext *m_NativeCtx;
+        Nidium::Frontend::NML *m_Nml;
         SDL_Window *m_Win;
         ape_global *m_Gnet;
         int m_Argc = 0;
         char **m_Argv = nullptr;
 
-        inline Nidium::NML::NativeContext *getNativeContext() const {
+        inline Nidium::Frontend::NativeContext *getNativeContext() const {
             return m_NativeCtx;
         }
 
@@ -279,8 +279,8 @@ class NativeUIInterface
 };
 // }}}
 
-} // namespace Nidium
 } // namespace Interface
+} // namespace Nidium
 
 #endif
 

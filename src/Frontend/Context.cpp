@@ -1,4 +1,4 @@
-#include "NML/Context.h"
+#include "Frontend/Context.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +9,7 @@
 
 #include <Net/WebSocket.h>
 
-#include "NML/NML.h"
+#include "Frontend/NML.h"
 #include "Graphics/Canvas2DContext.h"
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSNidium.h"
@@ -37,7 +37,7 @@
 #endif
 
 namespace Nidium {
-namespace NML {
+namespace Frontend {
 
 enum {
     NIDIUM_SCTAG_IMAGEDATA = Nidium::Binding::NIDIUM_SCTAG_MAX,
@@ -706,6 +706,6 @@ void NativeContext::forceLinking()
 #endif
 }
 
-} // namespace NML
+} // namespace Frontend
 } // namespace Nidium
 

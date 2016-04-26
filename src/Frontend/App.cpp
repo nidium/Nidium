@@ -1,4 +1,4 @@
-#include "NML/App.h"
+#include "Frontend/App.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +14,7 @@
 #include <Binding/NidiumJS.h>
 
 namespace Nidium {
-namespace NML {
+namespace Frontend {
 
 #define NATIVE_MANIFEST "manifest.json"
 
@@ -467,6 +467,6 @@ App::~App()
 }
 // }}}
 
-} // namespace NML
+} // namespace Frontend
 } // namespace Nidium
 

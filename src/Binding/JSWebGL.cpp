@@ -2872,7 +2872,7 @@ NGL_JS_FN(WebGLRenderingContext_getError)
 NGL_JS_FN(WebGLRenderingContext_swapBuffer)
 //{
 #if 0
-    Nidium::NML::NativeContext::GetObject(cx)->getUI()->swapGLBuffer();
+    Nidium::Frontend::NativeContext::GetObject(cx)->getUI()->swapGLBuffer();
 
     return true;
 #endif

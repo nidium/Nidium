@@ -1,5 +1,5 @@
-#ifndef nml_assets_h__
-#define nml_assets_h__
+#ifndef frontend_assets_h__
+#define frontend_assets_h__
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -12,7 +12,7 @@
 #include <Core/Messages.h>
 
 namespace Nidium {
-namespace NML {
+namespace Frontend {
 
 class NativeStream;
 
@@ -108,7 +108,7 @@ class Assets
         } m_Pending_list;
 };
 
-} // namespace NML
+} // namespace Frontend
 } // namespace Nidium
 
 #endif

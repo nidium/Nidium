@@ -1,4 +1,4 @@
-#include "NML/NML.h"
+#include "Frontend/NML.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,7 +15,7 @@
 #include "Binding/JSDocument.h"
 
 namespace Nidium {
-namespace NML {
+namespace Frontend {
 
 // {{{ NML
 /*@FIXME:: refractor the constructor, so that m_JSObjectLayout get's njs'javascript context*/
@@ -558,6 +558,6 @@ NML::nidium_xml_ret_t NML::loadLayout(rapidxml::xml_node<> &node)
     return NIDIUM_XML_OK;
 }
 
-} // namespace NML
+} // namespace Frontend
 } // namespace Nidium
 
