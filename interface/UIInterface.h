@@ -15,7 +15,7 @@ struct SDL_Window; //FIXME: This is not correct
 
 namespace Nidium {
     namespace Frontend {
-        class NativeContext;
+        class Context;
         class NML;
     }
 namespace Interface {
@@ -140,14 +140,14 @@ class NativeUIInterface
             kOpenFile_AlloMultipleSelection = 1 << 2
         };
 
-        Nidium::Frontend::NativeContext *m_NativeCtx;
+        Nidium::Frontend::Context *m_NativeCtx;
         Nidium::Frontend::NML *m_Nml;
         SDL_Window *m_Win;
         ape_global *m_Gnet;
         int m_Argc = 0;
         char **m_Argv = nullptr;
 
-        inline Nidium::Frontend::NativeContext *getNativeContext() const {
+        inline Nidium::Frontend::Context *getNativeContext() const {
             return m_NativeCtx;
         }
 

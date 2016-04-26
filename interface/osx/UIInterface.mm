@@ -588,7 +588,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     this->setWindowFrame(NATIVE_WINDOWPOS_UNDEFINED_MASK,
         NATIVE_WINDOWPOS_UNDEFINED_MASK, width, height);
 
-    Nidium::Frontend::NativeContext::CreateAndAssemble(this, m_Gnet);
+    Nidium::Frontend::Context::CreateAndAssemble(this, m_Gnet);
 
     [this->m_DragNSView setResponder:JSWindow::GetObject(m_NativeCtx->getNJS())];
 
@@ -879,7 +879,7 @@ static const char *drawRect_Associated_obj = "_NativeUIInterface";
 {
     NSPointer *idthis = objc_getAssociatedObject(self, drawRect_Associated_obj);
     NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)idthis->m_Ptr;
-    Nidium::Frontend::NativeContext *ctx = UI->getNativeContext();
+    Nidium::Frontend::Context *ctx = UI->getNativeContext();
 
     if (ctx && ctx->isSizeDirty()) {
         [(NSOpenGLContext *)UI->getGLContext() update];

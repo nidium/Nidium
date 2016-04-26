@@ -674,7 +674,7 @@ static bool nidium_canvas_getContext(JSContext *cx, unsigned argc,
     NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
     NIDIUM_JS_CHECK_ARGS("getContext", 1);
 
-    Nidium::Frontend::NativeContext *nctx = Nidium::Frontend::NativeContext::GetObject(cx);
+    Nidium::Frontend::Context *nctx = Nidium::Frontend::Context::GetObject(cx);
     Nidium::Interface::NativeUIInterface *ui = nctx->getUI();
 
     JS::RootedString mode(cx, args[0].toString());
@@ -707,7 +707,7 @@ static bool nidium_canvas_getContext(JSContext *cx, unsigned argc,
                 }
                 NativeObject->setContext(ctx2d);
 
-                /* Inherit from the Nidium::Frontend::NativeContext glstate */
+                /* Inherit from the Nidium::Frontend::Context glstate */
                 ctx2d->setGLState(nctx->getGLState());
 
                 break;
@@ -1473,7 +1473,7 @@ static bool nidium_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
     }
     lazyLoad = false; /* Always lazy load for now.  */
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Canvas_class, args));
-    handler = new Nidium::Graphics::CanvasHandler(width, height, Nidium::Frontend::NativeContext::GetObject(cx), true);
+    handler = new Nidium::Graphics::CanvasHandler(width, height, Nidium::Frontend::Context::GetObject(cx), true);
     handler->m_Context = NULL;
     handler->m_JsObj = ret;
     handler->m_JsCx = cx;
@@ -1526,7 +1526,7 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx, int width,
     int height, Nidium::Graphics::CanvasHandler **out)
 {
     Nidium::Graphics::CanvasHandler *handler;
-    Nidium::Frontend::NativeContext *nctx = Nidium::Frontend::NativeContext::GetObject(cx);
+    Nidium::Frontend::Context *nctx = Nidium::Frontend::Context::GetObject(cx);
     Nidium::Interface::NativeUIInterface *ui = nctx->getUI();
 
     JS::RootedObject ret(cx, JS_NewObject(cx, &Canvas_class, JS::NullPtr(), JS::NullPtr()));

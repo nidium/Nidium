@@ -66,7 +66,7 @@ int NativeContext_LogClear()
 }
 // }}}
 
-void NativeContext::initStats()
+void Context::initStats()
 {
     m_Stats.nframe = 0;
     m_Stats.starttime = Nidium::Core::Utils::GetTick();
@@ -81,12 +81,12 @@ void NativeContext::initStats()
     memset(m_Stats.samples, 0, sizeof(m_Stats.samples));
 }
 
-void NativeContext::CreateAndAssemble(Nidium::Interface::NativeUIInterface *ui, ape_global *gnet)
+void Context::CreateAndAssemble(Nidium::Interface::NativeUIInterface *ui, ape_global *gnet)
 {
-    new NativeContext(ui, ui->m_Nml, ui->getWidth(), ui->getHeight(), gnet);
+    new Context(ui, ui->m_Nml, ui->getWidth(), ui->getHeight(), gnet);
 }
 
-NativeContext::NativeContext(Nidium::Interface::NativeUIInterface *nui, NML *nml,
+Context::Context(Nidium::Interface::NativeUIInterface *nui, NML *nml,
     int width, int height, ape_global *net) :
     m_RootHandler(NULL), m_DebugHandler(NULL),
 #if DEBUG
@@ -109,7 +109,7 @@ m_Debug2Handler(NULL),
     this->initShaderLang();
     this->initHandlers(width, height);
 
-    m_JS->setStructuredCloneAddition(NativeContext::WriteStructuredCloneOp, NativeContext::ReadStructuredCloneOp);
+    m_JS->setStructuredCloneAddition(Context::WriteStructuredCloneOp, Context::ReadStructuredCloneOp);
     m_JS->setPrivate(this);
     m_JS->loadGlobalObjects();
     JS::RootedObject globalObj(m_JS->cx, JS::CurrentGlobalOrNull(m_JS->cx));
@@ -139,7 +139,7 @@ m_Debug2Handler(NULL),
     m_Jobs.queue = NULL;
 }
 
-void NativeContext::loadNativeObjects(int width, int height)
+void Context::loadNativeObjects(int width, int height)
 {
     JSContext *cx = m_JS->cx;
 
@@ -182,7 +182,7 @@ void NativeContext::loadNativeObjects(int width, int height)
 #endif
 }
 
-void NativeContext::setWindowSize(int w, int h)
+void Context::setWindowSize(int w, int h)
 {
     m_SizeDirty = true;
     /* OS window */
@@ -191,7 +191,7 @@ void NativeContext::setWindowSize(int w, int h)
     this->sizeChanged(w, h);
 }
 
-void NativeContext::setWindowFrame(int x, int y, int w, int h)
+void Context::setWindowFrame(int x, int y, int w, int h)
 {
     m_SizeDirty = true;
     /* OS window */
@@ -200,7 +200,7 @@ void NativeContext::setWindowFrame(int x, int y, int w, int h)
     this->sizeChanged(w, h);
 }
 
-void NativeContext::sizeChanged(int w, int h)
+void Context::sizeChanged(int w, int h)
 {
     if (!m_SizeDirty) {
         return;
@@ -216,7 +216,7 @@ void NativeContext::sizeChanged(int w, int h)
     m_UI->refresh();
 }
 
-void NativeContext::createDebugCanvas()
+void Context::createDebugCanvas()
 {
     Nidium::Binding::Canvas2DContext *context = static_cast<Nidium::Binding::Canvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
@@ -233,7 +233,7 @@ void NativeContext::createDebugCanvas()
 }
 
 #if DEBUG
-void NativeContext::createDebug2Canvas()
+void Context::createDebug2Canvas()
 {
     Nidium::Binding::Canvas2DContext *context = static_cast<Nidium::Binding::Canvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
@@ -250,7 +250,7 @@ void NativeContext::createDebug2Canvas()
 }
 #endif
 
-void NativeContext::postDraw()
+void Context::postDraw()
 {
     if (Nidium::Binding::JSDocument::m_ShowFPS && m_DebugHandler) {
 
@@ -302,7 +302,7 @@ void NativeContext::postDraw()
 }
 
 /* TODO, move out */
-void NativeContext::callFrame()
+void Context::callFrame()
 {
     uint64_t tmptime = Nidium::Core::Utils::GetTick();
     m_Stats.nframe++;
@@ -336,7 +336,7 @@ void NativeContext::callFrame()
 
 }
 
-NativeContext::~NativeContext()
+Context::~Context()
 {
     if (m_DebugHandler != NULL) {
         delete m_DebugHandler->getContext();
@@ -363,14 +363,14 @@ NativeContext::~NativeContext()
     ShFinalize();
 }
 
-void NativeContext::rendered(uint8_t *pdata, int width, int height)
+void Context::rendered(uint8_t *pdata, int width, int height)
 {
     if (m_WSClient) {
         m_WSClient->write((unsigned char *)pdata, width*height*4, true);
     }
 }
 
-void NativeContext::frame(bool draw)
+void Context::frame(bool draw)
 {
     //this->execJobs();
     /*
@@ -434,7 +434,7 @@ void NativeContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
     delete ev;
 }
 
-void NativeContext::triggerEvents()
+void Context::triggerEvents()
 {
     void *val;
 
@@ -453,7 +453,7 @@ void NativeContext::triggerEvents()
 
 // From third-party/mozilla-central/content/canvas/src/WebGLContextValidate.cpp
 // TODO : Handle OpenGL ESJSVAL_
-bool NativeContext::initShaderLang()
+bool Context::initShaderLang()
 {
     GLint maxVertexAttribs;
     GLint maxTextureUnits;
@@ -537,7 +537,7 @@ bool NativeContext::initShaderLang()
     return true;
 }
 
-void NativeContext::initHandlers(int width, int height)
+void Context::initHandlers(int width, int height)
 {
     Nidium::Graphics::CanvasHandler::m_LastIdx = 0;
 
@@ -547,7 +547,7 @@ void NativeContext::initHandlers(int width, int height)
     m_RootHandler->getContext()->setGLState(this->getGLState());
 }
 
-void NativeContext::addJob(void (*job)(void *arg), void *arg)
+void Context::addJob(void (*job)(void *arg), void *arg)
 {
     struct JobQueue *obj = (struct JobQueue *)malloc(sizeof(struct JobQueue));
 
@@ -565,7 +565,7 @@ void NativeContext::addJob(void (*job)(void *arg), void *arg)
     }
 }
 
-void NativeContext::execJobs()
+void Context::execJobs()
 {
     if (m_Jobs.head == NULL) {
         return;
@@ -585,7 +585,7 @@ void NativeContext::execJobs()
     m_Jobs.queue = NULL;
 }
 
-void NativeContext::execPendingCanvasChanges()
+void Context::execPendingCanvasChanges()
 {
     ape_htable_item_t *item, *tmpItem;
     for (item = m_CanvasPendingJobs.accessCStruct()->first; item != NULL; item = tmpItem) {
@@ -595,7 +595,7 @@ void NativeContext::execPendingCanvasChanges()
     }
 }
 
-void NativeContext::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void Context::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case NIDIUM_EVENT(Nidium::Net::WebSocketServer, SERVER_CONNECT):
@@ -605,7 +605,7 @@ void NativeContext::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     }
 }
 
-bool NativeContext::WriteStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+bool Context::WriteStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
                                      JS::HandleObject obj, void *closure)
 {
 
@@ -648,7 +648,7 @@ bool NativeContext::WriteStructuredCloneOp(JSContext *cx, JSStructuredCloneWrite
     return false;
 }
 
-JSObject *NativeContext::ReadStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
+JSObject *Context::ReadStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
                                        uint32_t tag, uint32_t data, void *closure)
 {
     switch (tag) {
@@ -681,7 +681,7 @@ JSObject *NativeContext::ReadStructuredCloneOp(JSContext *cx, JSStructuredCloneR
     return JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr());
 }
 
-void NativeContext::addInputEvent(InputEvent *ev)
+void Context::addInputEvent(InputEvent *ev)
 {
     if (m_InputEvents.head == NULL) {
         m_InputEvents.head = ev;
@@ -694,7 +694,7 @@ void NativeContext::addInputEvent(InputEvent *ev)
     m_InputEvents.queue = ev;
 }
 
-void NativeContext::forceLinking()
+void Context::forceLinking()
 {
 #ifdef __linux__
     CreateJPEGImageDecoder();

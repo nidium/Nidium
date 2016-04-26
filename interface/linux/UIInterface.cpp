@@ -399,7 +399,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
         this->setWindowSize(width, height);
     }
 
-    Nidium::Frontend::NativeContext::CreateAndAssemble(this, m_Gnet);
+    Nidium::Frontend::Context::CreateAndAssemble(this, m_Gnet);
 
     return true;
 }

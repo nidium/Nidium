@@ -23,7 +23,7 @@ namespace Nidium {
         class JSCanvas;
     }
     namespace Frontend {
-        class NativeContext;
+        class Context;
         class InputEvent;
     }
 }
@@ -117,7 +117,7 @@ class CanvasHandler : public Nidium::Core::Events
 {
     public:
         friend class SkiaContext;
-        friend class NativeContext;
+        friend class Context;
         friend class Nidium::Binding::JSCanvas;
 
         static const uint8_t EventID = 1;
@@ -331,7 +331,7 @@ class CanvasHandler : public Nidium::Core::Events
             return m_MaxHeight;
         }
 
-        Nidium::Frontend::NativeContext *getNativeContext() const {
+        Nidium::Frontend::Context *getNativeContext() const {
             return m_NativeContext;
         }
 
@@ -468,7 +468,7 @@ class CanvasHandler : public Nidium::Core::Events
         }
 
         CanvasHandler(int width, int height,
-            Nidium::Frontend::NativeContext *NativeCtx, bool lazyLoad = false);
+            Nidium::Frontend::Context *NativeCtx, bool lazyLoad = false);
 
         virtual ~CanvasHandler();
 
@@ -580,7 +580,7 @@ class CanvasHandler : public Nidium::Core::Events
         bool m_AllowNegativeScroll;
         bool m_FluidWidth, m_FluidHeight;
 
-        Nidium::Frontend::NativeContext *m_NativeContext;
+        Nidium::Frontend::Context *m_NativeContext;
 
         struct {
             uint64_t idx;

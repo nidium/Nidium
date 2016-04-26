@@ -81,7 +81,7 @@ void Assets::Item::download()
 
         /*
             setContent to NULL .
-            In async way (3rd param) so that NativeContext
+            In async way (3rd param) so that Context
             has time to set setNJS().
         */
         this->setContent(NULL, 0, true);

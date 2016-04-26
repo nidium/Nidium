@@ -404,7 +404,7 @@ void glcb(const GrGLInterface*) {
 }
 
 SkCanvas *SkiaContext::CreateGLCanvas(int width, int height,
-    Nidium::Frontend::NativeContext *nativectx)
+    Nidium::Frontend::Context *nativectx)
 {
 
     if (!nativectx) {
@@ -472,7 +472,7 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height,
 
 }
 
-int SkiaContext::bindGL(int width, int height, Nidium::Frontend::NativeContext *nativectx)
+int SkiaContext::bindGL(int width, int height, Nidium::Frontend::Context *nativectx)
 {
     m_NativeCanvasBindMode = SkiaContext::BIND_GL;
 

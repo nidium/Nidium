@@ -15,7 +15,7 @@ namespace Graphics {
 int CanvasHandler::m_LastIdx = 0;
 
 CanvasHandler::CanvasHandler(int width, int height,
-    Nidium::Frontend::NativeContext *nativeCtx, bool lazyLoad) :
+    Nidium::Frontend::Context *nativeCtx, bool lazyLoad) :
     m_Context(NULL),
     m_JsCx(nativeCtx->getNJS()->getJSContext()), m_Left(0.0), m_Top(0.0),
     m_aLeft(0), m_aTop(0), m_Right(0.0), m_Bottom(0.0), m_Overflow(true),
@@ -1227,7 +1227,7 @@ void CanvasHandler::onMouseEvent(Nidium::Frontend::InputEvent *ev)
 }
 
 /*
-    Called by Nidium::Frontend::NativeContext whenever there are pending events on this canvas
+    Called by Nidium::Frontend::Context whenever there are pending events on this canvas
     Currently only handle mouse events.
 */
 bool CanvasHandler::_handleEvent(Nidium::Frontend::InputEvent *ev)

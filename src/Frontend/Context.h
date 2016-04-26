@@ -125,16 +125,16 @@ private:
 
 struct GrGLInterface;
 
-// {{{ NativeContext
-class NativeContext : public Nidium::Core::Messages
+// {{{ Context
+class Context : public Nidium::Core::Messages
 {
     public:
 
     friend class Nidium::Graphics::CanvasHandler;
 
-    NativeContext(Nidium::Interface::NativeUIInterface *nui, NML *nml,
+    Context(Nidium::Interface::NativeUIInterface *nui, NML *nml,
         int width, int height, ape_global *net);
-    ~NativeContext();
+    ~Context();
 
     Nidium::Interface::NativeUIInterface *getUI() const {
         return m_UI;
@@ -171,16 +171,16 @@ class NativeContext : public Nidium::Core::Messages
         return &m_ShResources;
     }
 
-    static NativeContext *GetObject() {
-        return static_cast<NativeContext *>(Nidium::Binding::NidiumJS::GetObject(NULL)->getPrivate());
+    static Context *GetObject() {
+        return static_cast<Context *>(Nidium::Binding::NidiumJS::GetObject(NULL)->getPrivate());
     }
 
-    static NativeContext *GetObject(struct JSContext *cx) {
-        return static_cast<NativeContext *>(Nidium::Binding::NidiumJS::GetObject(cx)->getPrivate());
+    static Context *GetObject(struct JSContext *cx) {
+        return static_cast<Context *>(Nidium::Binding::NidiumJS::GetObject(cx)->getPrivate());
     }
 
-    static NativeContext *GetObject(Nidium::Binding::NidiumJS *njs) {
-        return static_cast<NativeContext *>(njs->getPrivate());
+    static Context *GetObject(Nidium::Binding::NidiumJS *njs) {
+        return static_cast<Context *>(njs->getPrivate());
     }
 
     void callFrame();
