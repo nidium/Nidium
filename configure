@@ -9,7 +9,7 @@ from konstructor import Tests
 
 Gyp = Builder.Gyp
 
-Variables.set('product', 'nativeserver')
+Variables.set('product', 'nidiumserver')
 
 @Deps.register("jemalloc")
 def jemalloc():
@@ -20,7 +20,7 @@ def jemalloc():
     }
 
 Deps.set(
-    Deps.Konstruct("nativejscore", "nativejscore/configure"),
+    Deps.Konstruct("nidiumcore", "nativejscore/configure"),
 )
 
 @CommandLine.option("--jemalloc", default=False)

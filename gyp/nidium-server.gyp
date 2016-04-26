@@ -1,27 +1,27 @@
 {
     'targets': [{
-        'target_name': '<(native_exec_name)',
+        'target_name': '<(nidium_exec_name)',
         'type': 'executable',
-        'product_dir': '<(native_exec_path)',
+        'product_dir': '<(nidium_exec_path)',
         'dependencies': [
-            '<(native_nativejscore_path)/gyp/nidiumcore.gyp:*',
-            '<(native_network_path)/gyp/network.gyp:*'
+            '<(nidium_nidiumcore_path)/gyp/nidiumcore.gyp:*',
+            '<(nidium_network_path)/gyp/network.gyp:*'
         ],
         'include_dirs': [
-            '<(native_network_path)',
+            '<(nidium_network_path)',
             '<(third_party_path)/mozilla-central/js/src/dist/include/',
             '<(third_party_path)/http-parser/',
-            '<(native_src_path)',
+            '<(nidium_src_path)',
         ],
         'sources': [
-            '<(native_src_path)/Server/nidium_server_main.cpp',
-            '<(native_src_path)/Server/Server.cpp',
-            '<(native_src_path)/Server/Context.cpp',
-            '<(native_src_path)/Server/REPL.cpp',
-            '<(native_src_path)/Binding/JSSystem.cpp',
-            '<(native_src_path)/Binding/JSConsole.cpp',
-            '<(native_src_path)/external/setproctitle.c',
-            '<(native_src_path)/external/linenoise.c',
+            '<(nidium_src_path)/Server/nidium_server_main.cpp',
+            '<(nidium_src_path)/Server/Server.cpp',
+            '<(nidium_src_path)/Server/Context.cpp',
+            '<(nidium_src_path)/Server/REPL.cpp',
+            '<(nidium_src_path)/Binding/JSSystem.cpp',
+            '<(nidium_src_path)/Binding/JSConsole.cpp',
+            '<(nidium_src_path)/external/setproctitle.c',
+            '<(nidium_src_path)/external/linenoise.c',
 
         ],
         'conditions': [
@@ -32,7 +32,7 @@
                 'cflags': [
                     '-fno-rtti',
                     # Not sure this makes any big difference. At least here.
-                    # Could be better in network common.gypi 
+                    # Could be better in network common.gypi
                     # See :http://stackoverflow.com/questions/4274804/query-on-ffunction-section-fdata-sections-options-of-gcc
                     #'-ffunction-sections',
                     #'-fdata-sections',

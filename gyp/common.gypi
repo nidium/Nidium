@@ -4,16 +4,16 @@
     ],
     'target_defaults': {
         'defines': [
-            'NATIVE_VERSION_STR="<(native_version)"',
-            'NATIVE_BUILD="<!@(git rev-parse HEAD)"',
-            'NATIVE_NO_PRIVATE_DIR'
+            'NIDIUM_VERSION_STR="<(nidium_version)"',
+            'NIDIUM_BUILD="<!@(git rev-parse HEAD)"',
+            'NIDIUM_NO_PRIVATE_DIR'
         ],
         'configurations': {
             'Debug': {
-                'product_dir': '<(native_output)/debug/',
+                'product_dir': '<(nidium_output)/debug/',
             },
             'Release': {
-                'product_dir': '<(native_output)/release/',
+                'product_dir': '<(nidium_output)/release/',
             }
 	    }
     }
