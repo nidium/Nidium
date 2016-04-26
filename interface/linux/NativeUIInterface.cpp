@@ -53,12 +53,6 @@ static Window *NativeX11Window(SDL_Window *m_Win)
 #endif
 
 
-static int NativeProcessUI(void *arg)
-{
-    return NativeUIInterface::HandleEvents((NativeUIInterface *)arg);
-}
-
-
 NativeX11UIInterface::NativeX11UIInterface() :
     NativeUIInterface(), console(NULL)
 {
@@ -212,7 +206,7 @@ void NativeX11UIInterface::setWindowControlsOffset(double x, double y)
 void NativeX11UIInterface::runLoop()
 {
 
-    APE_timer_create(m_Gnet, 1, NativeProcessUI, (void *)this);
+    APE_timer_create(m_Gnet, 1, NativeUIInterface::HandleEvents, (void *)this);
 
     APE_loop_run(m_Gnet);
 }

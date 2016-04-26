@@ -61,14 +61,6 @@ void NativeCocoaUIInterface::quitApplication()
     [[NSApplication sharedApplication] terminate:nil];
 }
 
-/*
-    TODO: useless indirection?
-*/
-static int NativeProcessUI(void *arg)
-{
-    return NativeUIInterface::HandleEvents((NativeUIInterface *)arg)
-}
-
 static int NativeProcessSystemLoop(void *arg)
 {
     SDL_PumpEvents();
@@ -352,7 +344,7 @@ void NativeCocoaUIInterface::openFileDialog(const char *files[],
 
 void NativeCocoaUIInterface::runLoop()
 {
-    APE_timer_create(m_Gnet, 1, NativeProcessUI, (void *)this);
+    APE_timer_create(m_Gnet, 1, NativeUIInterface::HandleEvents, (void *)this);
     APE_timer_create(m_Gnet, 1, NativeProcessSystemLoop, (void *)this);
 
     APE_loop_run(m_Gnet);

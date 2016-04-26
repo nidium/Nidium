@@ -278,7 +278,7 @@ class NativeUIInterface
             return m_SystemMenu;
         }
 
-        static int HandleEvents(NativeUIInterface *NUII);
+        static int HandleEvents(void *arg);
 
         static void OnNMLLoaded(void *arg);
 

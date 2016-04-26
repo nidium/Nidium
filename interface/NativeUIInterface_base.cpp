@@ -103,8 +103,10 @@ bool NativeUIInterface::createWindow(int width, int height)
     return true;
 }
 
-int NativeUIInterface::HandleEvents(NativeUIInterface *NUII)
+int NativeUIInterface::HandleEvents(void *arg)
 {
+    NativeUIInterface *NUII = (NativeUIInterface *)arg;
+    
     SDL_Event event;
     int nrefresh = 0;
     int nevents = 0;
