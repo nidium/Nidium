@@ -80,7 +80,7 @@ void Stream::notify(Core::SharedMessages::Message *msg)
     }
 }
 
-void BaseStream::notifySync(SharedMessages::Message *msg)
+void Stream::notifySync(Core::SharedMessages::Message *msg)
 {
     if (m_Listener) {
         m_Listener->postMessageSync(msg);
@@ -89,7 +89,7 @@ void BaseStream::notifySync(SharedMessages::Message *msg)
     }
 }
 
-void NativeBaseStream::error(StreamErrors err, unsigned int code)
+void Stream::error(Errors err, unsigned int code)
 {
     CREATE_MESSAGE(message, EVENT_ERROR);
     message->args[0].set(err);
@@ -98,7 +98,7 @@ void NativeBaseStream::error(StreamErrors err, unsigned int code)
     this->notify(message);
 }
 
-void BaseStream::errorSync(StreamErrors err, unsigned int code)
+void Stream::errorSync(Errors err, unsigned int code)
 {
     CREATE_MESSAGE(message, EVENT_ERROR);
     message->args[0].set(err);
@@ -107,7 +107,7 @@ void BaseStream::errorSync(StreamErrors err, unsigned int code)
     this->notifySync(message);
 }
 
-void NativeBaseStream::swapBuffer()
+void Stream::swapBuffer()
 {
     buffer *tmp =           m_DataBuffer.back;
     m_DataBuffer.back =     m_DataBuffer.front;
