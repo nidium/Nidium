@@ -11,7 +11,7 @@
 
 #include "Graphics/GLState.h"
 #include "Graphics/GLHeader.h"
-#include "Graphics/Canvas2DContext.h"
+#include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas2DContext.h"
 
 namespace Nidium {
@@ -356,7 +356,7 @@ void CanvasContext::preComposeOn(Nidium::Binding::Canvas2DContext *layer,
     bool revertScissor = false;
     float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
 
-    Skia *skia = layer->getSurface();
+    SkiaContext *skia = layer->getSurface();
     SkISize layerSize = skia->getCanvas()->getDeviceSize();
 
     /*

@@ -5,7 +5,7 @@
 
 namespace Nidium {
     namespace Graphics {
-        class Skia;
+        class SkiaContext;
         class CanvasHandler;
     }
 namespace Binding {

@@ -23,7 +23,7 @@ namespace Nidium {
         class WebSocketClientConnection;
     }
     namespace Graphics {
-        class Skia;
+        class SkiaContext;
         class CanvasHandler;
         class CanvasContext;
         class GLState;

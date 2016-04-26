@@ -6,7 +6,7 @@
 
 #include <SkGradientShader.h>
 
-#include "Graphics/Canvas2DContext.h"
+#include "Graphics/SkiaContext.h"
 
 namespace Nidium {
 namespace Graphics {
@@ -62,7 +62,7 @@ void Gradient::addColorStop(double position, char *color)
             sizeof(struct _colorStop) * m_ColorsStop.allocated);
     }
 
-    m_ColorsStop.items[m_ColorsStop.count].color    = Skia::ParseColor(color);
+    m_ColorsStop.items[m_ColorsStop.count].color    = SkiaContext::ParseColor(color);
     m_ColorsStop.items[m_ColorsStop.count].position = SkDoubleToScalar(position);
 
     m_ColorsStop.count++;

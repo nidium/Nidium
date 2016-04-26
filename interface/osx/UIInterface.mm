@@ -19,7 +19,7 @@
 #import <Frontend/Context.h>
 #import <Frontend/NML.h>
 #import <Frontend/App.h>
-#import <Graphics/Canvas2DContext.h>
+#import <Graphics/SkiaContext.h>
 #import <Binding/JSWindow.h>
 
 #import "Macros.h"

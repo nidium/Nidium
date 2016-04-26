@@ -1,5 +1,5 @@
-#ifndef graphics_canvas2dcontext_h__
-#define graphics_canvas2dcontext_h__
+#ifndef graphics_skiacontext_h__
+#define graphics_skiacontext_h__
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -68,8 +68,8 @@ struct _State {
 };
 // }}}
 
-// {{{ Skia
-class Skia
+// {{{ SkiaContext
+class SkiaContext
 {
     private:
         struct _State *m_State;
@@ -88,8 +88,8 @@ class Skia
         double m_FontSkew;
 
     public:
-        ~Skia();
-        Skia();
+        ~SkiaContext();
+        SkiaContext();
 
         enum BindMode {
             BIND_NO,
@@ -240,8 +240,8 @@ class Skia
         static uint32_t ParseColor(const char *str);
         static SkPMColor HSLToSKColor(U8CPU alpha, float hsl[3]);
 #if 0
-        static Skia &GetInstance() {
-            static Skia ret;
+        static SkiaContext &GetInstance() {
+            static SkiaContext ret;
 
             return ret;
         }

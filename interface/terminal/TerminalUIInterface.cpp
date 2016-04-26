@@ -7,7 +7,7 @@
 
 #include <Binding/Nidium.JS.h>
 
-#include "Graphics/Canvas2DContext.h"
+#include "Graphics/SkiaContext.h"
 #include "Frontend/App.h"
 #include "Frontend/NML.h"
 
