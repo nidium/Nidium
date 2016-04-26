@@ -18,7 +18,7 @@ typedef void *SDL_GLContext;
 class NativeSystemMenuItem {
 public:
     NativeSystemMenuItem(char *title = NULL, char *id = NULL) :
-        m_Next(NULL), m_Id(NULL), m_Title(NULL), m_Enabled(false)
+        m_Id(NULL), m_Title(NULL), m_Enabled(false), m_Next(NULL)
     {
         this->id(id);
         this->title(title);
@@ -28,7 +28,7 @@ public:
         free(m_Title);
         free(m_Id);
     };
-    NativeSystemMenuItem *m_Next;
+    
 
     bool enabled(bool val) {
         m_Enabled = val;
@@ -61,6 +61,8 @@ public:
         }
         m_Title = title ? strdup(title) : NULL;
     }
+
+    NativeSystemMenuItem *m_Next;
 
 private:
     char *m_Id;
@@ -126,26 +128,24 @@ class NativeUIInterface
             kOpenFile_AlloMultipleSelection = 1 << 2
         };
 
-        NativeContext *m_NativeCtx;
-        NativeNML *m_Nml;
-        struct SDL_Window *m_Win;
-        struct _ape_global *m_Gnet;
-        int m_Argc = 0;
-        char **m_Argv = nullptr;
-
         inline NativeContext *getNativeContext() const {
             return m_NativeCtx;
         }
 
         NativeUIInterface();
         virtual ~NativeUIInterface() {};
+
         virtual void stopApplication()=0;
         virtual void restartApplication(const char *path=NULL)=0;
 
         virtual void refreshApplication(bool clearConsole = false);
-        virtual bool runJSWithoutNML(const char *path, int width = 800, int height = 600) {
+
+        virtual bool runJSWithoutNML(const char *path, int width = 800,
+            int height = 600) {
             return false;
         };
+
+
         void setArguments(int argc, char **argv) {
             m_Argc = argc;
             m_Argv = argv;
@@ -173,10 +173,13 @@ class NativeUIInterface
         */
         virtual void quitApplication()=0;
 
+        /*
+            Run the NML at the specified path
+        */
         virtual bool runApplication(const char *path);
 
         /*
-
+            Schedule a cursor change
         */
         virtual void setCursor(CURSOR_TYPE);
 
@@ -266,6 +269,14 @@ class NativeUIInterface
         static int HandleEvents(NativeUIInterface *NUII);
 
         static void OnNMLLoaded(void *arg);
+
+        NativeContext *m_NativeCtx;
+        NativeNML *m_Nml;
+        struct SDL_Window *m_Win;
+        struct _ape_global *m_Gnet;
+        int m_Argc = 0;
+        char **m_Argv = nullptr;
+
     protected:
         
         virtual void initControls() {};

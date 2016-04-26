@@ -21,14 +21,6 @@
             '<(native_interface_path)/NativeUIInterface_base.cpp',
         ],
         'conditions': [
-            ['native_interface=="terminal"', {
-                'sources': [
-                    '<(native_interface_path)/terminal/NativeTerminalUIInterface.cpp',
-                ],
-                'include_dirs': [
-                    '<(native_interface_path)/terminal/',
-                ],
-            }],
             ['OS=="mac"', {
                 'xcode_settings': {
                     'OTHER_CFLAGS': [
