@@ -37,36 +37,17 @@ public:
             listener->listenFor(this, false);
         }
     }
+
+    template <typename T>
+    bool fireEventSync(typename T::Events event, const NativeArgs &args) {
+        return this->fireEventImpl<T>(event, args, kPropagation_Sync);
+    }
+
     template <typename T>
     bool fireEvent(typename T::Events event, const Args &args,
         bool forceAsync = false) {
 
-        ape_htable_item_t *item;
-
-        for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
-            Messages *receiver = (Messages *)item->content.addrs;
-
-            SharedMessages::Message *msg = new SharedMessages::Message(NIDIUM_EVENTS_MESSAGE_BITS(event) |
-                                                                                   (T::EventID << 16));
-
-            msg->args[0].set(static_cast<T *>(this));
-
-            for (int i = 0; i < args.size(); i++) {
-                msg->args[i+1].set(args[i].toInt64());
-            }
-            msg->priv = 0;
-
-            receiver->postMessage(msg, forceAsync);
-#if 0
-            /* TODO FIX : Use after free here */
-            /* stop propagation */
-            if (msg->priv) {
-                return false;
-            }
-#endif
-        }
-
-        return true;
+        return this->fireEventImpl<T>(event, args, forceAsync ? kPropagation_Async : kPropagation_Auto);
     }
 
     virtual ~Events() {
@@ -80,8 +61,49 @@ public:
     }
 
 private:
+    enum PropagationMode {
+        kPropagation_Auto,
+        kPropagation_Sync,
+        kPropagation_Async 
+    };
 
     Hash64<Messages *> m_Listeners;
+
+    template <typename T>
+    bool fireEventImpl(typename T::Events event, const Args &args,
+        PropagationMode propagation = kPropagation_Auto) {
+
+        ape_htable_item_t *item;
+
+        for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
+            Messages *receiver = (Messages *)item->content.addrs;
+
+            SharedMessages::Message *msg = 
+                new SharedMessages::Message(NATIVE_EVENTS_MESSAGE_BITS(event) | (T::EventID << 16));
+
+            msg->args[0].set(static_cast<T *>(this));
+
+            for (int i = 0; i < args.size(); i++) {
+                msg->args[i+1].set(args[i].toInt64());
+            }
+            msg->priv = 0;
+
+            if (propagation == kPropagation_Sync) {
+                receiver->postMessageSync(msg);
+            } else {
+                receiver->postMessage(msg, propagation == kPropagation_Async ? true : false);
+            }
+#if 0
+            /* TODO FIX : Use after free here */
+            /* stop propagation */
+            if (msg->priv) {
+                return false;
+            }
+#endif
+        }
+
+        return true;
+    }
 };
 
 } // namespace Core

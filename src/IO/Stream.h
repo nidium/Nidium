@@ -116,12 +116,14 @@ protected:
     /*
         Send a message to the listener
     */
-    void notify(Nidium::Core::SharedMessages::Message *msg);
+    void notify(SharedMessages::Message *msg);
+    void notifySync(SharedMessages::Message *msg);
 
     /*
         Send an error message
     */
     void error(Errors, unsigned int code);
+    void errorSync(Errors, unsigned int code);
 
     /*
         Swap back and front buffer.
@@ -137,7 +139,7 @@ protected:
     bool    m_NeedToSendUpdate;
     bool    m_PendingSeek;
 
-    Nidium::Core::Messages *m_Listener;
+    Messages *m_Listener;
 
     struct {
         buffer *back, *front;

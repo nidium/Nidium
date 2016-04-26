@@ -1,5 +1,5 @@
 /*
- Filestream  Copyright 2016 Nidium Inc. All rights reserved.
+   Copyright 2016 Nidium Inc. All rights reserved.
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
@@ -131,7 +131,7 @@ void WebSocketClientConnection::onDisconnect(ape_global *ape)
         m_PingTimer = 0;
     }
 
-    m_HTTPServer->fireEvent<WebSocketServer>(WebSocketServer::SERVER_CLOSE, args);
+    m_HTTPServer->fireEventSync<WebSocketServer>(WebSocketServer::SERVER_CLOSE, args);
 }
 
 void WebSocketClientConnection::onUpgrade(const char *to)
@@ -170,7 +170,7 @@ void WebSocketClientConnection::onUpgrade(const char *to)
         WebSocketClientConnection::PingTimer, this);
 
     m_PingTimer = APE_timer_getid(timer);
-    m_HTTPServer->fireEvent<WebSocketServer>(WebSocketServer::SERVER_CONNECT, args);
+    m_HTTPServer->fireEventSync<WebSocketServer>(WebSocketServer::SERVER_CONNECT, args);
 
 }
 
@@ -190,8 +190,9 @@ void WebSocketClientConnection::onFrame(const char *data, size_t len,
     args[2].set(len);
     args[3].set(binary);
 
-    m_HTTPServer->fireEvent<WebSocketServer>(WebSocketServer::SERVER_FRAME, args);
+    m_HTTPServer->fireEventSync<WebSocketServer>(WebSocketServer::SERVER_FRAME, args);
 }
+
 // }}}
 
 } // namespace Net

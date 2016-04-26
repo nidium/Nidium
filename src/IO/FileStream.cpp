@@ -150,16 +150,16 @@ void FileStream::onMessage(const Core::SharedMessages::Message &msg)
             /* do nothing */
             break;
         case File::OPEN_ERROR:
-            this->error(ERROR_OPEN, msg.args[0].toInt());
+            this->errorSync(ERROR_OPEN, msg.args[0].toInt());
             break;
         case File::SEEK_ERROR:
-            this->error(ERROR_SEEK, -1);
+            this->errorSync(ERROR_SEEK, -1);
             /* fall through */
         case File::SEEK_SUCCESS:
             m_PendingSeek = false;
             break;
         case File::READ_ERROR:
-            this->error(ERROR_READ, msg.args[0].toInt());
+            this->errorSync(ERROR_READ, msg.args[0].toInt());
             break;
         case File::READ_SUCCESS:
         {
@@ -192,7 +192,7 @@ void FileStream::onMessage(const Core::SharedMessages::Message &msg)
                         CREATE_MESSAGE(message_available,
                             EVENT_AVAILABLE_DATA);
                         message_available->args[0].set(buf->used);
-                        this->notify(message_available);
+                        this->notifySync(message_available);
                     }
                 }
             }
@@ -200,11 +200,7 @@ void FileStream::onMessage(const Core::SharedMessages::Message &msg)
             CREATE_MESSAGE(message, EVENT_READ_BUFFER);
             message->args[0].set(buf);
 
-            /*
-                The underlying object is notified in a sync way
-                since it's on the same thread.
-            */
-            this->notify(message);
+            this->notifySync(message);
 
             break;
         }

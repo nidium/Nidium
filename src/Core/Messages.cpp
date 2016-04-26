@@ -18,22 +18,31 @@ namespace Core {
     TODO: make thread local storage
 */
 static SharedMessages *g_MessagesList;
+static SharedMessages::Message *g_PostingSyncMsg = nullptr;
 
 static int Messages_handle(void *arg)
 {
 #define MAX_MSG_IN_ROW 256
     int nread = 0;
-
+    bool stopOnAsync = false;
     SharedMessages::Message *msg;
 
-    /*
-        TODO: need a lock for "obj"
-    */
-    while (++nread < MAX_MSG_IN_ROW && (msg = g_MessagesList->readMessage())) {
+    while (++nread < MAX_MSG_IN_ROW &&
+            (msg = g_MessagesList->readMessage(stopOnAsync))) {
+
         Messages *obj = static_cast<Messages *>(msg->dest());
         obj->onMessage(*msg);
 
         delete msg;
+
+        if (g_PostingSyncMsg == msg) {
+            /*
+                Found the message being synchronously processed.
+                After this message, any async message must be
+                deffered to the next event loop.
+            */
+            stopOnAsync = true;
+        }
     }
 
     return 8;
@@ -75,21 +84,41 @@ void Messages::postMessage(uint64_t dataint, int event, bool forceAsync)
     this->postMessage(msg, forceAsync);
 }
 
+/*
+    Post message in a synchronous way.
+    XXX : This method does not ensure FIFO with postMessage() queue
+*/
+void Messages::postMessageSync(SharedMessages::Message *msg)
+{
+    this->onMessage(*msg);
+}
+
 void Messages::postMessage(SharedMessages::Message *msg, bool forceAsync)
 {
     msg->setDest(this);
 
     /*
-        Message sent from the same thread. Don't need
-        to be sent in an asynchronous way
+       Check if the message can be posted synchronously :
+        - Must be sent on the same thread
+        - Must not recursively post sync message
+        - Must not have forced async message in queue
     */
-    if (!forceAsync && pthread_equal(m_GenesisThread, pthread_self())) {
-        // Make sure pending messagess are read so that we don't break the FIFO rule
-        (void)Messages_handle(NULL);
+    if (!forceAsync && pthread_equal(m_GenesisThread, pthread_self()) &&
+            g_MessagesList->hasAsyncMessages() && !g_PostingSyncMsg) {
 
-        this->onMessage(*msg);
-        delete msg;
+        g_PostingSyncMsg = msg;
+
+        // Ensure that we don't break the FIFO rule.
+        // Post the message first and then read all pendings messages
+        g_MessagesList->postMessage(msg);
+        (void)NativeMessages_handle(nullptr);
+
+        g_PostingSyncMsg = nullptr;
     } else {
+        if (forceAsync) {
+            msg->setForceAsync();
+        }
+
         g_MessagesList->postMessage(msg);
     }
 }

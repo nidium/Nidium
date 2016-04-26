@@ -36,6 +36,7 @@ NFSStream::NFSStream(const char *location) :
     m_File.pos = 0;
 }
 
+<<<<<<< HEAD:src/IO/NFSStream.cpp
 void NFSStream::stop()
 {
     /*
@@ -62,7 +63,7 @@ void NFSStream::_getContent()
     m_File.pos = 0;
 
     if (m_File.data == NULL) {
-        this->error(ERROR_OPEN, 0);
+        this->errorSync(ERROR_OPEN, 0);
 
         return;
     }
@@ -76,7 +77,7 @@ void NFSStream::_getContent()
     CREATE_MESSAGE(message, EVENT_READ_BUFFER);
     message->args[0].set(&buf);
 
-    this->notify(message);
+    this->notifySync(message);
 }
 
 bool NFSStream::getContentSync(char **data, size_t *len, bool mmap)
@@ -110,7 +111,7 @@ size_t NFSStream::getFileSize() const
 void NFSStream::seek(size_t pos)
 {
     if (pos > m_File.len) {
-        this->error(ERROR_SEEK, -1);
+        this->errorSync(ERROR_SEEK, -1);
         return;
     }
     m_File.pos = pos;
@@ -126,7 +127,7 @@ void NFSStream::onStart(size_t packets, size_t seek)
     m_File.pos = 0;
 
     if (m_File.data == NULL) {
-        this->error(ERROR_OPEN, 0);
+        this->errorSync(ERROR_OPEN, 0);
 
         return;
     }
@@ -135,7 +136,7 @@ void NFSStream::onStart(size_t packets, size_t seek)
         EVENT_AVAILABLE_DATA);
     message_available->args[0].set(nidium_min(packets, m_File.len));
 
-    this->notify(message_available);
+    this->notifySync(message_available);
 
     buffer buf;
     buffer_init(&buf);
@@ -146,11 +147,7 @@ void NFSStream::onStart(size_t packets, size_t seek)
     CREATE_MESSAGE(message, EVENT_READ_BUFFER);
     message->args[0].set(&buf);
 
-    /*
-        The underlying object is notified in a sync way
-        since it's on the same thread.
-    */
-    this->notify(message);
+    this->notifySync(message);
 }
 
 const unsigned char *NFSStream::onGetNextPacket(size_t *len, int *err)

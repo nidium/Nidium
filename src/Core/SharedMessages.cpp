@@ -19,6 +19,7 @@ SharedMessages::SharedMessages() :
     m_Cleaner(NULL)
 {
     messageslist.count = 0;
+    messageslist.asyncCount = 0;
     messageslist.head  = NULL;
     messageslist.queue = NULL;
 
@@ -32,67 +33,50 @@ SharedMessages::~SharedMessages()
 
 void SharedMessages::postMessage(Message *message)
 {
-    PthreadAutoLock lock(&messageslist.lock);
-
-    if (messageslist.head) {
-        messageslist.head->prev = message;
-    }
-
-    if (messageslist.queue == NULL) {
-        messageslist.queue = message;
-    }
-
-    messageslist.head = message;
-    messageslist.count++;
+    this->addMessage(message);
 }
 
 void SharedMessages::postMessage(void *dataptr, int event)
 {
-    Message *message;
-
-    message = new Message(dataptr, event);
-
-    PthreadAutoLock lock(&messageslist.lock);
-
-    if (messageslist.head) {
-        messageslist.head->prev = message;
-    }
-
-    if (messageslist.queue == NULL) {
-        messageslist.queue = message;
-    }
-
-    messageslist.head = message;
-    messageslist.count++;
+    this->addMessage(new Message(dataptr, event));
 }
 
 void SharedMessages::postMessage(uint64_t dataint, int event)
 {
-    Message *message;
+    this->addMessage(new Message(dataint, event));
+}
 
-    message = new Message(dataint, event);
-
+void SharedMessages::addMessage(Message *msg) 
+{
     PthreadAutoLock lock(&messageslist.lock);
 
     if (messageslist.head) {
-        messageslist.head->prev = message;
+        messageslist.head->prev = msg;
     }
 
     if (messageslist.queue == NULL) {
-        messageslist.queue = message;
+        messageslist.queue = msg;
     }
 
-    messageslist.head = message;
+    if (msg->forceAsync()) {
+        messageslist.asyncCount++;
+    }
+
+    messageslist.head = msg;
     messageslist.count++;
 }
 
-SharedMessages::Message *SharedMessages::readMessage()
+SharedMessages::Message *SharedMessages::readMessage(bool stopOnAsync)
 {
     PthreadAutoLock lock(&messageslist.lock);
 
     Message *message = messageslist.queue;
 
     if (message == NULL) {
+        return NULL;
+    }
+
+    if (stopOnAsync && message->forceAsync()) {
         return NULL;
     }
 
@@ -102,40 +86,8 @@ SharedMessages::Message *SharedMessages::readMessage()
         messageslist.head = NULL;
     }
 
-    messageslist.count--;
-
-    return message;
-}
-
-SharedMessages::Message *SharedMessages::readMessage(int type)
-{
-    PthreadAutoLock lock(&messageslist.lock);
-
-    Message *message = messageslist.queue;
-    Message *next = NULL;
-
-    if (message == NULL) {
-        printf("no message to delete\n");
-        return NULL;
-    }
-
-    while (message != NULL && message->event() != type) {
-        next = message;
-        message = message->prev;
-    }
-
-    if (message == NULL) {
-        return NULL;
-    }
-
-    if (message == messageslist.queue) {
-        messageslist.queue = message->prev;
-    } else {
-        next->prev = message->prev;
-    }
-
-    if (messageslist.queue == NULL) {
-        messageslist.head = NULL;
+    if (message->forceAsync()) {
+        messageslist.asyncCount--;
     }
 
     messageslist.count--;
@@ -165,6 +117,11 @@ void SharedMessages::delMessagesForDest(void *dest, int event)
             if (messageslist.queue == NULL) {
                 messageslist.head = NULL;
             }
+
+            if (message->forceAsync()) {
+                messageslist.asyncCount--;
+            }
+
             if (m_Cleaner) {
                 m_Cleaner(*message);
             }
