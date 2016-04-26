@@ -106,7 +106,7 @@ bool NativeUIInterface::createWindow(int width, int height)
 int NativeUIInterface::HandleEvents(void *arg)
 {
     NativeUIInterface *NUII = (NativeUIInterface *)arg;
-    
+
     SDL_Event event;
     int nrefresh = 0;
     int nevents = 0;
@@ -545,12 +545,30 @@ bool NativeUIInterface::runApplication(const char *path)
     return true;
 }
 
+void NativeUIInterface::stopApplication()
+{
+    if (this->m_Nml) {
+        delete this->m_Nml;
+        this->m_Nml = NULL;
+    }
+    if (this->m_NativeCtx) {
+        delete this->m_NativeCtx;
+        this->m_NativeCtx = NULL;
+        NativeMessages::destroyReader();
+    }
+
+    glClearColor(1, 1, 1, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    /* Also clear the front buffer */
+    SDL_GL_SwapWindow(this->m_Win);
+    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+}
+
 void NativeUIInterface::restartApplication(const char *path)
 {
     this->stopApplication();
     this->runApplication(path == NULL ? this->m_FilePath : path);
 }
-
 
 void NativeUIInterface::hideWindow()
 {

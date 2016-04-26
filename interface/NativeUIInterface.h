@@ -135,7 +135,14 @@ class NativeUIInterface
         NativeUIInterface();
         virtual ~NativeUIInterface() {};
 
-        virtual void stopApplication()=0;
+        /*
+            Start the window main loop
+            This call must be the last one upon initialization
+            (it blocks by running the APE event loop)
+        */
+        virtual void runLoop()=0;
+
+        virtual void stopApplication();
         virtual void restartApplication(const char *path=NULL);
 
         virtual void refreshApplication(bool clearConsole = false);
@@ -187,7 +194,7 @@ class NativeUIInterface
         */
         virtual void setWindowFrame(int x, int y, int w, int h);
 
-        virtual void runLoop()=0;
+        
         virtual void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {};
         virtual void setWindowControlsOffset(double x, double y) {};
         virtual void setClipboardText(const char *text);
@@ -221,17 +228,8 @@ class NativeUIInterface
             return this->m_Height; 
         }
 
-
-        class NativeUIConsole
-        {
-            public:
-            virtual void log(const char *str)=0;
-            virtual void show()=0;
-            virtual void hide()=0;
-            virtual void clear()=0;
-            virtual bool hidden()=0;
-        };
-        virtual NativeUIConsole *getConsole(bool create=false, bool *created=NULL)=0;
+        virtual void hideWindow();
+        virtual void showWindow();
 
         virtual bool makeMainGLCurrent();
         virtual bool makeGLCurrent(SDL_GLContext ctx);
@@ -268,8 +266,6 @@ class NativeUIInterface
             return m_FrameBuffer;
         }
 
-        virtual void hideWindow();
-        virtual void showWindow();
         bool isWindowHidden() const {
             return m_Hidden;
         }
@@ -281,6 +277,19 @@ class NativeUIInterface
         static int HandleEvents(void *arg);
 
         static void OnNMLLoaded(void *arg);
+
+
+        class NativeUIConsole
+        {
+            public:
+            virtual void log(const char *str)=0;
+            virtual void show()=0;
+            virtual void hide()=0;
+            virtual void clear()=0;
+            virtual bool hidden()=0;
+        };
+        virtual NativeUIConsole *getConsole(bool create=false, bool *created=NULL)=0;
+
 
         NativeContext *m_NativeCtx;
         NativeNML *m_Nml;

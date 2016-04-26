@@ -249,23 +249,6 @@ NativeUIX11Console::~NativeUIX11Console()
 {
 }
 
-void NativeX11UIInterface::stopApplication()
-{
-    if (this->m_Nml) delete this->m_Nml;
-    if (this->m_NativeCtx) {
-        delete this->m_NativeCtx;
-        this->m_NativeCtx = NULL;
-        NativeMessages::destroyReader();
-    }
-    this->m_Nml = NULL;
-    glClearColor(1, 1, 1, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    /* Also clear the front buffer */
-    SDL_GL_SwapWindow(this->m_Win);
-    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-}
-
-
 void NativeX11UIInterface::log(const char *buf)
 {
     fwrite(buf, sizeof(char), strlen(buf), stdout);
