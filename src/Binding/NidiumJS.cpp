@@ -544,7 +544,7 @@ NidiumJS::NidiumJS(ape_global *net) :
 
     messages = new SharedMessages();
     registeredMessages = (nidium_thread_message_t*)calloc(16, sizeof(nidium_thread_message_t));
-    registeredMessagesIdx = 8; // The 8 first slots are reserved for Nidium internals messages
+    registeredMessagesIdx = 7; // The 8 first slots (0 to 7) are reserved for Nidium internals messages
     registeredMessagesSize = 16;
 
 #if 0
