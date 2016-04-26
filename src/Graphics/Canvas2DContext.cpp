@@ -300,7 +300,7 @@ void Skia::initPaints()
         TODO : setHintingScaleFactor(m_hintingScaleFactor);
         http://code.google.com/p/webkit-mirror/source/browse/Source/WebCore/platform/graphics/skia/PlatformContextSkia.cpp#363
     */
-    memset(&currentShadow, 0, sizeof(NativeShadow_t));
+    memset(&currentShadow, 0, sizeof(Shadow_t));
     currentShadow.color = SkColorSetARGB(0, 0, 0, 0);
 
     PAINT->setARGB(255, 0, 0, 0);
@@ -384,7 +384,7 @@ int Skia::bindOnScreen(int width, int height)
     m_GlobalAlpha = 255;
     m_CurrentPath = NULL;
 
-    m_State = new struct _nativeState;
+    m_State = new struct _State;
     m_State->next = NULL;
 
     initPaints();
@@ -487,7 +487,7 @@ int Skia::bindGL(int width, int height, Nidium::NML::NativeContext *nativectx)
     m_GlobalAlpha = 255;
     m_CurrentPath = NULL;
 
-    m_State = new struct _nativeState;
+    m_State = new struct _State;
     m_State->next = NULL;
 
     initPaints();
@@ -949,7 +949,7 @@ void Skia::translate(double x, double y)
 
 void Skia::save()
 {
-    struct _nativeState *nstate = new struct _nativeState;
+    struct _State *nstate = new struct _State;
 
     nstate->m_Paint = new SkPaint(*PAINT);
     nstate->m_PaintStroke = new SkPaint(*PAINT_STROKE);
@@ -964,7 +964,7 @@ void Skia::save()
 void Skia::restore()
 {
     if (m_State->next) {
-        struct _nativeState *dstate = m_State->next;
+        struct _State *dstate = m_State->next;
         delete m_State->m_Paint;
         delete m_State->m_PaintStroke;
         delete m_State;
@@ -1787,7 +1787,7 @@ void Skia::drawTextf(int x, int y, const char text[], ...)
 }
 
 double Skia::breakText(const char *str, size_t len,
-    struct _NativeLine lines[], double maxWidth, int *length)
+    struct _Line lines[], double maxWidth, int *length)
 {
     struct {
         SkScalar curWordWidth;
@@ -1854,13 +1854,13 @@ double Skia::measureText(const char *str, size_t length)
 
 Skia::~Skia()
 {
-    struct _nativeState *nstate = m_State;
+    struct _State *nstate = m_State;
 
     if (m_Canvas != NULL) {
         m_Canvas->flush();
     }
     while (nstate) {
-        struct _nativeState *tmp = nstate->next;
+        struct _State *tmp = nstate->next;
         //NLOG("Delete pain %p with shader : %p", nstate->paint, nstate->paint->getShader());
         delete nstate->m_Paint;
         delete nstate->m_PaintStroke;

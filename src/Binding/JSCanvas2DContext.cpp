@@ -365,14 +365,14 @@ static bool nidium_canvas2dctx_breakText(JSContext *cx,
         return true;
     }
 
-    struct Nidium::Graphics::_NativeLine *lines = new struct Nidium::Graphics::_NativeLine[len];
+    struct Nidium::Graphics::_Line *lines = new struct Nidium::Graphics::_Line[len];
 
     if (!lines) {
         JS_ReportOutOfMemory(cx);
         return false;
     }
 
-    memset(lines, 0, len * sizeof(struct Nidium::Graphics::_NativeLine));
+    memset(lines, 0, len * sizeof(struct Nidium::Graphics::_Line));
 
     SkScalar ret = CppObj->getSurface()->breakText(text.ptr(), len,
                     lines, maxWidth, &length);

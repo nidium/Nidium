@@ -28,7 +28,7 @@ typedef uint32_t SkPMColor;
 typedef uint32_t SkColor;
 typedef unsigned U8CPU;
 
-// {{{ _NativeShadow
+// {{{ _Shadow
 typedef struct _Shadow
 {
     double x;
@@ -37,17 +37,17 @@ typedef struct _Shadow
 
     SkColor color;
 
-} NativeShadow_t;
+} Shadow_t;
 // }}}
 
-// {{{ _NativeLine and Baseline
-struct _NativeLine
+// {{{ _Line and Baseline
+struct _Line
 {
     const char *line;
     size_t len;
 };
 
-enum _NativeBaseline
+enum _Baseline
 {
     BASELINE_ALPHABETIC,
     BASELINE_TOP,
@@ -58,13 +58,13 @@ enum _NativeBaseline
 };
 // }}}
 
-// {{{ _nativeState
-struct _nativeState {
+// {{{ _State
+struct _State {
     SkPaint *m_Paint;
     SkPaint *m_PaintStroke;
-    enum _NativeBaseline m_Baseline;
+    enum _Baseline m_Baseline;
 
-    struct _nativeState *next;
+    struct _State *next;
 };
 // }}}
 
@@ -72,14 +72,14 @@ struct _nativeState {
 class Skia
 {
     private:
-        struct _nativeState *m_State;
+        struct _State *m_State;
 
         SkPaint *m_PaintSystem;
         SkPath *m_CurrentPath;
         uint8_t m_GlobalAlpha;
         uint8_t m_AsComposite;
         SkBitmap *screen;
-        NativeShadow_t currentShadow;
+        Shadow_t currentShadow;
         ShadowLooper *buildShadow();
         SkCanvas *m_Canvas;
         void initPaints();
@@ -116,7 +116,7 @@ class Skia
         SkGpuDevice *createNewGPUDevice(GrContext *gr, int width, int height);
 
         double breakText(const char *str, size_t len,
-            struct _NativeLine lines[], double maxWidth, int *length = NULL);
+            struct _Line lines[], double maxWidth, int *length = NULL);
         int bindOnScreen(int width, int height);
         static SkCanvas *CreateGLCanvas(int width, int height,
             Nidium::NML::NativeContext *nativectx);
