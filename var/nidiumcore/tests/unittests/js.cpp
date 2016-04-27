@@ -55,7 +55,7 @@ TEST_F(NidiumJS, Simple)
     table = njs->jsobjects.accessCStruct();
     EXPECT_TRUE(table != NULL);
     EXPECT_TRUE(njs->registeredMessages != NULL);
-    EXPECT_EQ(njs->registeredMessagesIdx, 8);
+    EXPECT_EQ(njs->registeredMessagesIdx, 7);
     EXPECT_EQ(njs->registeredMessagesSize, 16);
     EXPECT_EQ(njs->isShuttingDown(), false);
 
