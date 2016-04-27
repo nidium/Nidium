@@ -25,7 +25,7 @@ Tests.registerAsync("SourceNode open invalid file", function(next) {
         node.removeEventListener("error");
         // Remove ready event otherwise it will be fired by the next test
         node.removeEventListener("ready");
-        Assert.strictEqual(ev.code, 1, "Invalid error code returned")
+        Assert.strictEqual(ev.code, 0, "Invalid error code returned")
         next();
     });
 
