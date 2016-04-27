@@ -559,10 +559,6 @@ static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
 
     file = NJSFIO->getFile();
 
-    if (!file->isOpen()) {
-        file->open("a+");
-    }
-
     if (args[0].isString()) {
         //printf("got a string to write\n");
         JS::RootedString str(cx, args[0].toString());
@@ -627,10 +623,6 @@ static bool nidium_file_read(JSContext *cx, unsigned argc, JS::Value *vp)
     file = NJSFIO->getFile();
 
     NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
-
-    if (!file->isOpen()) {
-        file->open("r");
-    }
 
     file->read((uint64_t)read_size, callback.toObjectOrNull());
 #if FILE_ROOT_DEBUG
