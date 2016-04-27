@@ -114,6 +114,10 @@ void SharedMessages::delMessagesForDest(void *dest, int event)
                 messageslist.queue = message->prev;
             }
 
+            if (message == messageslist.head) {
+                messageslist.head = next;
+            }
+
             if (messageslist.queue == NULL) {
                 messageslist.head = NULL;
             }
