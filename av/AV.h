@@ -151,16 +151,19 @@ struct AudioParameters {
 // }}}
 
 // {{{ Enums and texts
-// Shared messages enum
+// {{{ Shared messages enum
 enum {
-    NATIVE_AUDIO_NODE_SET,
-    NATIVE_AUDIO_NODE_ONSET_CALLBACK,
-    NATIVE_AUDIO_NODE_CALLBACK,
-    NATIVE_AUDIO_SOURCE_CALLBACK, // XXX : Not used?
     NIDIUM_AUDIO_CALLBACK,
+    NIDIUM_AUDIO_NODE_SET,
+    NIDIUM_AUDIO_NODE_CALLBACK,
+    NIDIUM_AUDIO_NODE_ONSET_CALLBACK, // XXX : Not used
+    NIDIUM_AUDIO_SOURCE_CALLBACK,     // XXX : Not used
+    NIDIUM_AUDIO_TRACK_CALLBACK,      // XXX : Not used
+    NIDIUM_AUDIO_SHUTDOWN,            // XXX : Not used
 };
+// }}}
 
-// Error code and description
+// {{{ Error code and description
 enum {
     ERR_FAILED_OPEN,
     ERR_READING,
@@ -195,6 +198,7 @@ const char * const AVErrorsStr[ERR_MAX] = {
     "Internal error",
     "Input/Output error"
 };
+// }}}
 // }}}
 
 // Used for event (play, pause, stop, error, buffered...)

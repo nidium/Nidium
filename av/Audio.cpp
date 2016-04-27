@@ -206,13 +206,13 @@ void Audio::readMessages(bool flush)
     int nread = 0;
     while (((!flush && ++nread < MAX_MSG_IN_ROW) || flush) && (msg = m_SharedMsg->readMessage())) {
         switch (msg->event()) {
-            case NATIVE_AUDIO_NODE_CALLBACK : {
+            case NIDIUM_AUDIO_NODE_CALLBACK : {
                 AudioNode::CallbackMessage *cbkMsg = static_cast<AudioNode::CallbackMessage*>(msg->dataPtr());
                 cbkMsg->m_Cbk(cbkMsg->m_Node, cbkMsg->m_Custom);
                 delete cbkMsg;
             }
             break;
-            case NATIVE_AUDIO_NODE_SET : {
+            case NIDIUM_AUDIO_NODE_SET : {
                 AudioNode::Message *nodeMsg =  static_cast<AudioNode::Message *>(msg->dataPtr());
                 if (nodeMsg->m_Arg->m_Ptr == NULL) {
                     nodeMsg->m_Arg->m_Cbk(nodeMsg->m_Node, nodeMsg->m_Arg->m_Id, nodeMsg->m_Val, nodeMsg->m_Size);

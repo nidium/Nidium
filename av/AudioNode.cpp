@@ -37,7 +37,7 @@ AudioNode::AudioNode(int inCount, int outCount, Audio *audio)
     int max;
 
     // Init exports array
-    for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
+    for (int i = 0; i < NIDIUM_AUDIO_NODE_ARGS_SIZE; i++) {
         m_Args[i] = NULL;
     }
 
@@ -90,7 +90,7 @@ void AudioNode::callback(NodeMessageCallback cbk, void *custom)
 }
 void AudioNode::callback(NodeMessageCallback cbk, void *custom, bool block)
 {
-    m_Audio->m_SharedMsg->postMessage((void *)new CallbackMessage(cbk, this, custom), NATIVE_AUDIO_NODE_CALLBACK);
+    m_Audio->m_SharedMsg->postMessage((void *)new CallbackMessage(cbk, this, custom), NIDIUM_AUDIO_NODE_CALLBACK);
     if (block) {
         m_Audio->wakeup();
     }
@@ -98,7 +98,7 @@ void AudioNode::callback(NodeMessageCallback cbk, void *custom, bool block)
 
 bool AudioNode::set(const char *name, ArgType type, void *value, unsigned long size)
 {
-    for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
+    for (int i = 0; i < NIDIUM_AUDIO_NODE_ARGS_SIZE; i++) {
         ExportsArgs *arg = m_Args[i];
         if (arg != NULL && strcmp(name, arg->m_Name) == 0) {
             void *val = value;
@@ -134,7 +134,7 @@ bool AudioNode::set(const char *name, ArgType type, void *value, unsigned long s
                     break;
                 }
             }
-            this->post(NATIVE_AUDIO_NODE_SET, arg, val, size);
+            this->post(NIDIUM_AUDIO_NODE_SET, arg, val, size);
             return true;
         }
     }
@@ -563,7 +563,7 @@ AudioNode::~AudioNode() {
         delete m_Output[i];
     }
 
-    for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
+    for (int i = 0; i < NIDIUM_AUDIO_NODE_ARGS_SIZE; i++) {
         if (m_Args[i] != NULL) {
             delete m_Args[i];
         }

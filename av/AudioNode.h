@@ -11,9 +11,9 @@
 #include "AV.h"
 #include "Audio.h"
 
-#define NATIVE_AUDIONODE_ARGS_SIZE      32
-#define NATIVE_AUDIONODE_WIRE_SIZE      256
-#define NATIVE_AUDIONODE_CHANNEL_SIZE   32
+#define NIDIUM_AUDIO_NODE_ARGS_SIZE      32
+#define NIDIUM_AUDIO_NODE_WIRE_SIZE      256
+#define NIDIUM_AUDIO_NODE_CHANNEL_SIZE   32
 
 struct AVFormatContext;
 struct AVCodecContext;
@@ -57,13 +57,13 @@ struct NodeLink {
     int channel;
     bool haveFeedback;
     AudioNode *node;
-    NodeIO *wire[NATIVE_AUDIONODE_WIRE_SIZE];
+    NodeIO *wire[NIDIUM_AUDIO_NODE_WIRE_SIZE];
     TypeIO type;
 
     NodeLink (TypeIO type, int channel, AudioNode *node) :
         count(0), channel(channel), haveFeedback(false), node(node), type(type)
     {
-        for (int i = 0; i < NATIVE_AUDIONODE_WIRE_SIZE; i++) {
+        for (int i = 0; i < NIDIUM_AUDIO_NODE_WIRE_SIZE; i++) {
             wire[i] = NULL;
         }
     };
@@ -92,7 +92,7 @@ class AudioNode
                m_Name(name), m_Type(type), m_Ptr(NULL), m_Cbk(cbk), m_Id(id)  {};
         };
 
-        ExportsArgs *m_Args[NATIVE_AUDIONODE_ARGS_SIZE];
+        ExportsArgs *m_Args[NIDIUM_AUDIO_NODE_ARGS_SIZE];
 
         // XXX : Normalize callbacks ?
         struct Message {
@@ -162,7 +162,7 @@ class AudioNode
         }
         NodeIO **getWire(NodeLink *link)
         {
-            for (int i = 0; i < NATIVE_AUDIONODE_WIRE_SIZE; i++) {
+            for (int i = 0; i < NIDIUM_AUDIO_NODE_WIRE_SIZE; i++) {
                 if (link->wire[i] == NULL) {
                     return &link->wire[i];
                 }
@@ -393,8 +393,8 @@ class AudioNodeProcessor: public AudioNode
     AudioNodeProcessor(int inCount, int outCount, Audio *audio)
         : AudioNode(inCount, outCount, audio)
     {
-        for (int i = 0; i < NATIVE_AUDIONODE_CHANNEL_SIZE; i++) {
-            for (int j = 0; j < NATIVE_AUDIONODE_CHANNEL_SIZE; j++) {
+        for (int i = 0; i < NIDIUM_AUDIO_NODE_CHANNEL_SIZE; i++) {
+            for (int j = 0; j < NIDIUM_AUDIO_NODE_CHANNEL_SIZE; j++) {
                 m_Processor[i][j] = NULL;
             }
         }
@@ -415,7 +415,7 @@ class AudioNodeProcessor: public AudioNode
     }
 
     void setProcessor(int channel, AudioProcessor *processor) {
-        for (int i = 0; i < NATIVE_AUDIONODE_CHANNEL_SIZE; i++) {
+        for (int i = 0; i < NIDIUM_AUDIO_NODE_CHANNEL_SIZE; i++) {
             if (m_Processor[channel][i] == NULL) {
                 m_Processor[channel][i] = processor;
                 break;
@@ -427,7 +427,7 @@ class AudioNodeProcessor: public AudioNode
     {
         for (int i = 0; i < m_Audio->m_OutputParameters->m_FramesPerBuffer; i++) {
             for (int j = 0; j < m_InCount; j++) {
-                for (int k = 0; k < NATIVE_AUDIONODE_CHANNEL_SIZE; k++) {
+                for (int k = 0; k < NIDIUM_AUDIO_NODE_CHANNEL_SIZE; k++) {
                     AudioProcessor *p = m_Processor[m_Input[j]->channel][k];
                     if (p != NULL) {
                         p->process(&m_Frames[m_Input[j]->channel][i], &i);
@@ -442,7 +442,7 @@ class AudioNodeProcessor: public AudioNode
 
     ~AudioNodeProcessor() {}
   private:
-    AudioProcessor *m_Processor[NATIVE_AUDIONODE_CHANNEL_SIZE][NATIVE_AUDIONODE_CHANNEL_SIZE];
+    AudioProcessor *m_Processor[NIDIUM_AUDIO_NODE_CHANNEL_SIZE][NIDIUM_AUDIO_NODE_CHANNEL_SIZE];
 };
 // }}}
 
