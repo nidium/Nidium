@@ -988,7 +988,7 @@ void NidiumJS::loadGlobalObjects()
 
 int NidiumJS::registerMessage(nidium_thread_message_t cbk)
 {
-    if (registeredMessagesIdx >= registeredMessagesSize) {
+    if (registeredMessagesIdx >= registeredMessagesSize - 1) {
         void *ptr = realloc(registeredMessages, (registeredMessagesSize + 16) * sizeof(nidium_thread_message_t));
         if (ptr == NULL) {
             return -1;
@@ -1007,8 +1007,8 @@ int NidiumJS::registerMessage(nidium_thread_message_t cbk)
 
 void NidiumJS::registerMessage(nidium_thread_message_t cbk, int id)
 {
-    if (id > 8) {
-        printf("ERROR : You can't register a message with idx > 8.\n");
+    if (id < 0 || id > 7) {
+        printf("ERROR : Message id must be between 0 and 7.\n");
         return;
     }
 

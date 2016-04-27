@@ -153,20 +153,25 @@ TEST(NidiumJS, Messages)
     Nidium::Binding::NidiumJS njs(g_ape);
     size_t i;
 
-    EXPECT_EQ(njs.registeredMessagesIdx, 8);
+    EXPECT_EQ(njs.registeredMessagesIdx, 7);
     EXPECT_EQ(njs.registeredMessagesSize, 16);
     for (i = 0; i < 8; i++) {
         EXPECT_TRUE(njs.registeredMessages[i] == NULL);
     }
+
     njs.registerMessage(msg_cb_t);
-    EXPECT_EQ(njs.registeredMessagesIdx, 9);
+    EXPECT_EQ(njs.registeredMessagesIdx, 8);
     EXPECT_EQ(njs.registeredMessagesSize, 16);
-    for (i = 10; i < 18; i++) {
-        printf("%ud %d %d\n", i, njs.registeredMessagesIdx, njs.registeredMessagesSize);
+
+    int start = njs.registeredMessagesIdx;
+    int end = njs.registeredMessagesSize + 2;
+    for (i = start; i < end + 1; i++) {
+        printf("index=%u njs.registeredMessagesIdx=%d njs.registeredMessagesSize=%d\n", i, njs.registeredMessagesIdx, njs.registeredMessagesSize);
         njs.registerMessage(msg_cb_t);
         EXPECT_TRUE(njs.registeredMessages[i] != NULL);
     }
-    EXPECT_EQ(njs.registeredMessagesIdx, 17);
+
+    EXPECT_EQ(njs.registeredMessagesIdx, end);
     EXPECT_EQ(njs.registeredMessagesSize, 32);
 
     njs.registerMessage(msg_cb_t, 0);
