@@ -22,28 +22,28 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
+static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp);
-static bool native_window_prop_get(JSContext *cx, JS::HandleObject obj,
+static bool nidium_window_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp);
-static bool native_navigator_prop_get(JSContext *cx, JS::HandleObject obj,
+static bool nidium_navigator_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp);
-static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_window_center(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_window_setPosition(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_window_notify(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_window_quit(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_window_close(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_window_open(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_window_exec(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_storage_set(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_center(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_setPosition(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_notify(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_quit(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_close(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_open(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_exec(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_storage_set(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_storage_get(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static void Storage_Finalize(JSFreeOp *fop, JSObject *obj);
 
@@ -134,33 +134,33 @@ static JSClass NMLEvent_class = {
 };
 
 static JSFunctionSpec storage_funcs[] = {
-    JS_FN("set", native_storage_set, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("get", native_storage_get, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("set", nidium_storage_set, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("get", nidium_storage_get, 1, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 
 static JSFunctionSpec window_funcs[] = {
-    JS_FN("openFileDialog", native_window_openFileDialog, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("openDirDialog", native_window_openDirDialog, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("setSize", native_window_setSize, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("requestAnimationFrame", native_window_requestAnimationFrame, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("center", native_window_center, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("setPosition", native_window_setPosition, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("setFrame", native_window_setFrame, 4, NIDIUM_JS_FNPROPS),
-    JS_FN("notify", native_window_notify, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("quit", native_window_quit, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("close", native_window_close, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("open", native_window_open, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("setSystemTray", native_window_setSystemTray, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("openURL", native_window_openURLInBrowser, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("exec", native_window_exec, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("openFileDialog", nidium_window_openFileDialog, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("openDirDialog", nidium_window_openDirDialog, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("setSize", nidium_window_setSize, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("requestAnimationFrame", nidium_window_requestAnimationFrame, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("center", nidium_window_center, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("setPosition", nidium_window_setPosition, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("setFrame", nidium_window_setFrame, 4, NIDIUM_JS_FNPROPS),
+    JS_FN("notify", nidium_window_notify, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("quit", nidium_window_quit, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("close", nidium_window_close, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("open", nidium_window_open, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("setSystemTray", nidium_window_setSystemTray, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("openURL", nidium_window_openURLInBrowser, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("exec", nidium_window_exec, 1, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 
-static struct native_cursors {
+static struct nidium_cursors {
     const char *str;
     Nidium::Interface::NativeUIInterface::CURSOR_TYPE type;
-} native_cursors_list[] = {
+} nidium_cursors_list[] = {
     {"default",             Nidium::Interface::NativeUIInterface::ARROW},
     {"arrow",               Nidium::Interface::NativeUIInterface::ARROW},
     {"beam",                Nidium::Interface::NativeUIInterface::BEAM},
@@ -176,31 +176,31 @@ static struct native_cursors {
 
 static JSPropertySpec window_props[] = {
 
-    NIDIUM_JS_PSG("devicePixelRatio", WINDOW_PROP_DEVICE_PIXELRATIO, native_window_prop_get),
+    NIDIUM_JS_PSG("devicePixelRatio", WINDOW_PROP_DEVICE_PIXELRATIO, nidium_window_prop_get),
 
-    NIDIUM_JS_PSGS("left", WINDOW_PROP_LEFT, native_window_prop_get, native_window_prop_set),
-    NIDIUM_JS_PSGS("top", WINDOW_PROP_TOP, native_window_prop_get, native_window_prop_set),
-    NIDIUM_JS_PSGS("innerWidth", WINDOW_PROP_WIDTH, native_window_prop_get, native_window_prop_set),
-    NIDIUM_JS_PSGS("outerWidth", WINDOW_PROP_WIDTH, native_window_prop_get, native_window_prop_set),
-    NIDIUM_JS_PSGS("innerHeight", WINDOW_PROP_HEIGHT, native_window_prop_get, native_window_prop_set),
-    NIDIUM_JS_PSGS("outerHeight", WINDOW_PROP_HEIGHT, native_window_prop_get, native_window_prop_set),
-    NIDIUM_JS_PSGS("title", WINDOW_PROP_TITLE, native_window_prop_get, native_window_prop_set),
-    NIDIUM_JS_PSGS("cursor", WINDOW_PROP_CURSOR, native_window_prop_get, native_window_prop_set),
-    NIDIUM_JS_PSS("titleBarColor", WINDOW_PROP_TITLEBAR_COLOR, native_window_prop_set),
-    NIDIUM_JS_PSS("titleBarControlsOffsetX", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, native_window_prop_set),
-    NIDIUM_JS_PSS("titleBarControlsOffsetY", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, native_window_prop_set),
+    NIDIUM_JS_PSGS("left", WINDOW_PROP_LEFT, nidium_window_prop_get, nidium_window_prop_set),
+    NIDIUM_JS_PSGS("top", WINDOW_PROP_TOP, nidium_window_prop_get, nidium_window_prop_set),
+    NIDIUM_JS_PSGS("innerWidth", WINDOW_PROP_WIDTH, nidium_window_prop_get, nidium_window_prop_set),
+    NIDIUM_JS_PSGS("outerWidth", WINDOW_PROP_WIDTH, nidium_window_prop_get, nidium_window_prop_set),
+    NIDIUM_JS_PSGS("innerHeight", WINDOW_PROP_HEIGHT, nidium_window_prop_get, nidium_window_prop_set),
+    NIDIUM_JS_PSGS("outerHeight", WINDOW_PROP_HEIGHT, nidium_window_prop_get, nidium_window_prop_set),
+    NIDIUM_JS_PSGS("title", WINDOW_PROP_TITLE, nidium_window_prop_get, nidium_window_prop_set),
+    NIDIUM_JS_PSGS("cursor", WINDOW_PROP_CURSOR, nidium_window_prop_get, nidium_window_prop_set),
+    NIDIUM_JS_PSS("titleBarColor", WINDOW_PROP_TITLEBAR_COLOR, nidium_window_prop_set),
+    NIDIUM_JS_PSS("titleBarControlsOffsetX", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, nidium_window_prop_set),
+    NIDIUM_JS_PSS("titleBarControlsOffsetY", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, nidium_window_prop_set),
 
     JS_PS_END
 };
 
 static JSPropertySpec navigator_props[] = {
 
-    NIDIUM_JS_PSG("language", NAVIGATOR_PROP_LANGUAGE, native_navigator_prop_get),
-    NIDIUM_JS_PSG("vibrate", NAVIGATOR_PROP_VIBRATE, native_navigator_prop_get),
-    NIDIUM_JS_PSG("appName", NAVIGATOR_PROP_APPNAME, native_navigator_prop_get),
-    NIDIUM_JS_PSG("appVersion", NAVIGATOR_PROP_APPVERSION, native_navigator_prop_get),
-    NIDIUM_JS_PSG("platform", NAVIGATOR_PROP_PLATFORM, native_navigator_prop_get),
-    NIDIUM_JS_PSG("userAgent", NAVIGATOR_PROP_USERAGENT, native_navigator_prop_get),
+    NIDIUM_JS_PSG("language", NAVIGATOR_PROP_LANGUAGE, nidium_navigator_prop_get),
+    NIDIUM_JS_PSG("vibrate", NAVIGATOR_PROP_VIBRATE, nidium_navigator_prop_get),
+    NIDIUM_JS_PSG("appName", NAVIGATOR_PROP_APPNAME, nidium_navigator_prop_get),
+    NIDIUM_JS_PSG("appVersion", NAVIGATOR_PROP_APPVERSION, nidium_navigator_prop_get),
+    NIDIUM_JS_PSG("platform", NAVIGATOR_PROP_PLATFORM, nidium_navigator_prop_get),
+    NIDIUM_JS_PSG("userAgent", NAVIGATOR_PROP_USERAGENT, nidium_navigator_prop_get),
     JS_PS_END
 };
 // }}}
@@ -650,7 +650,7 @@ static void Storage_Finalize(JSFreeOp *fop, JSObject *obj)
 
 }
 
-static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
+static bool nidium_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
     Nidium::Interface::NativeUIInterface *NUI = Nidium::Frontend::Context::GetObject(m_Cx)->getUI();
@@ -692,10 +692,10 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
         {
             const char * cCursor;
 
-            cCursor = native_cursors_list[1].str;
-            for (size_t i = 0; native_cursors_list[i].str != NULL; i++) {
-                if (native_cursors_list[i].type == NUI->m_CurrentCursor) {
-                    cCursor = native_cursors_list[i].str;
+            cCursor = nidium_cursors_list[1].str;
+            for (size_t i = 0; nidium_cursors_list[i].str != NULL; i++) {
+                if (nidium_cursors_list[i].type == NUI->m_CurrentCursor) {
+                    cCursor = nidium_cursors_list[i].str;
                     break;
                 }
             }
@@ -709,7 +709,7 @@ static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
     return true;
 }
 
-static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
+static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
     Nidium::Interface::NativeUIInterface *NUI = Nidium::Frontend::Context::GetObject(cx)->getUI();
@@ -794,10 +794,10 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
             JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString type(cx, vpStr);
-            for (size_t i = 0; native_cursors_list[i].str != NULL; i++) {
-                if (strncasecmp(native_cursors_list[i].str, type.ptr(),
-                    strlen(native_cursors_list[i].str)) == 0) {
-                    NUI->setCursor(native_cursors_list[i].type);
+            for (size_t i = 0; nidium_cursors_list[i].str != NULL; i++) {
+                if (strncasecmp(nidium_cursors_list[i].str, type.ptr(),
+                    strlen(nidium_cursors_list[i].str)) == 0) {
+                    NUI->setCursor(nidium_cursors_list[i].type);
                     break;
                 }
             }
@@ -869,7 +869,7 @@ static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
     return true;
 }
 
-static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
+static bool nidium_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
 #define APP_NAME "nidium"
@@ -947,7 +947,7 @@ struct _nativeopenfile
     JS::PersistentRootedValue cb;
 };
 
-static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len)
+static void nidium_window_openfilecb(void *_nof, const char *lst[], uint32_t len)
 {
     struct _nativeopenfile *nof = (struct _nativeopenfile *)_nof;
     JS::RootedObject arr(nof->cx, JS_NewArrayObject(nof->cx, len));
@@ -967,7 +967,7 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
     free(nof);
 }
 
-static bool native_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     double w, h;
@@ -981,7 +981,7 @@ static bool native_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -997,7 +997,7 @@ static bool native_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Val
     return true;
 }
 
-static bool native_window_exec(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_window_exec(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -1015,7 +1015,7 @@ static bool native_window_exec(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -1030,14 +1030,14 @@ static bool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value 
 
     Nidium::Frontend::Context::GetObject(cx)->getUI()->openFileDialog(
         NULL,
-        native_window_openfilecb, nof,
+        nidium_window_openfilecb, nof,
         Nidium::Interface::NativeUIInterface::kOpenFile_CanChooseDir);
 
     return true;
 }
 
 /* TODO: leak if the user click "cancel" */
-static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -1080,7 +1080,7 @@ static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
 
     Nidium::Frontend::Context::GetObject(cx)->getUI()->openFileDialog(
         (const char **)ctypes,
-        native_window_openfilecb, nof,
+        nidium_window_openfilecb, nof,
         Nidium::Interface::NativeUIInterface::kOpenFile_CanChooseFile | Nidium::Interface::NativeUIInterface::kOpenFile_AlloMultipleSelection);
 
     if (ctypes) {
@@ -1092,7 +1092,7 @@ static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
     return true;
 }
 
-static bool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_CHECK_ARGS("requestAnimationFrame", 1);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -1105,14 +1105,14 @@ static bool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS
     return true;
 }
 
-static bool native_window_center(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_window_center(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     Nidium::Frontend::Context::GetObject(cx)->getUI()->centerWindow();
 
     return true;
 }
 
-static bool native_window_setPosition(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_window_setPosition(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_CHECK_ARGS("setPosition", 2);
 
@@ -1129,7 +1129,7 @@ static bool native_window_setPosition(JSContext *cx, unsigned argc, JS::Value *v
     return true;
 }
 
-static bool native_window_notify(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_window_notify(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_CHECK_ARGS("notify", 2);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -1152,7 +1152,7 @@ static bool native_window_notify(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_window_quit(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_window_quit(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     Nidium::Interface::NativeUIInterface *NUI = Nidium::Frontend::Context::GetObject(cx)->getUI();
 
@@ -1161,7 +1161,7 @@ static bool native_window_quit(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_window_close(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_window_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     Nidium::Interface::NativeUIInterface *NUI = Nidium::Frontend::Context::GetObject(cx)->getUI();
 
@@ -1170,7 +1170,7 @@ static bool native_window_close(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_window_open(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_window_open(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     Nidium::Interface::NativeUIInterface *NUI = Nidium::Frontend::Context::GetObject(cx)->getUI();
 
@@ -1179,7 +1179,7 @@ static bool native_window_open(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_CHECK_ARGS("setSystemTray", 1);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -1250,7 +1250,7 @@ static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
     return true;
 }
 
-static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_CHECK_ARGS("setFrame", 4);
 
@@ -1381,7 +1381,7 @@ void JSWindow::createStorage()
     JS_SetProperty(m_Cx, obj, "storage", jsstorage);
 }
 
-bool native_storage_set(JSContext *cx, unsigned argc, JS::Value *vp)
+bool nidium_storage_set(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -1404,7 +1404,7 @@ bool native_storage_set(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
+bool nidium_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     std::string data;

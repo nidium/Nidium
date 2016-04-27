@@ -169,7 +169,7 @@ static int Nidium_handle_app_messages(void *arg)
 {
 #define MAX_MSG_IN_ROW 32
     App *app = static_cast<App *>(arg);
-    struct App::native_app_msg *ptr;
+    struct App::app_msg *ptr;
     int nread = 0;
 
     Nidium::Core::SharedMessages::Message *msg;
@@ -177,7 +177,7 @@ static int Nidium_handle_app_messages(void *arg)
     while (++nread < MAX_MSG_IN_ROW && (msg = app->m_Messages->readMessage())) {
         switch (msg->event()) {
             case App::APP_MESSAGE_READ:
-                ptr = static_cast<struct App::native_app_msg *>(msg->dataPtr());
+                ptr = static_cast<struct App::app_msg *>(msg->dataPtr());
                 ptr->cb(ptr->data, ptr->len, ptr->offset, ptr->total, ptr->user);
                 free(ptr->data);
                 delete ptr;
@@ -194,7 +194,7 @@ static int Nidium_handle_app_messages(void *arg)
 void App::actionExtractRead(const char *buf, int len,
     size_t offset, size_t total)
 {
-    struct native_app_msg *msg = new struct native_app_msg;
+    struct app_msg *msg = new struct app_msg;
     msg->data = (char *)malloc(len);
     msg->len  = len;
     msg->total = total;

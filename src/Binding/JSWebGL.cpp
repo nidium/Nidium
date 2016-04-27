@@ -2880,7 +2880,7 @@ NGL_JS_FN(WebGLRenderingContext_swapBuffer)
 }
 
 #if 0
-static bool native_NativeGL_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_NidiumGL_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 

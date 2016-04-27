@@ -66,7 +66,7 @@ public:
     void actionExtractRead(const char *buf, int len,
         size_t offset, size_t total);
 
-    struct native_app_msg
+    struct app_msg
     {
         size_t total;
         size_t offset;
