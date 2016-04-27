@@ -4,26 +4,26 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-static void Native_Finalize(JSFreeOp *fop, JSObject *obj);
+static void Nidium_Finalize(JSFreeOp *fop, JSObject *obj);
 
-static JSClass Native_class = {
+static JSClass Nidium_class = {
     "native", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Native_Finalize,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Nidium_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-JSClass *JSNidium::jsclass = &Native_class;
+JSClass *JSNidium::jsclass = &Nidium_class;
 
 template<>
-JSClass *JSExposer<JSNidium>::jsclass = &Native_class;
+JSClass *JSExposer<JSNidium>::jsclass = &Nidium_class;
 
 
-static JSFunctionSpec Native_funcs[] = {
+static JSFunctionSpec Nidium_funcs[] = {
     JS_FS_END
 };
 
-void Native_Finalize(JSFreeOp *fop, JSObject *obj)
+void Nidium_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     JSNidium *jnative = JSNidium::GetObject(obj);
 
@@ -38,10 +38,10 @@ void JSNidium::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject NativeObj(cx, JS_DefineObject(cx, global,
-        JSNidium::GetJSObjectName(), &Native_class , nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
+        JSNidium::GetJSObjectName(), &Nidium_class , nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
     JSNidium *jnative = new JSNidium(NativeObj, cx);
-    JS_DefineFunctions(cx, NativeObj, Native_funcs);
+    JS_DefineFunctions(cx, NativeObj, Nidium_funcs);
     JS_SetPrivate(NativeObj, jnative);
 
     NidiumJS::GetObject(cx)->jsobjects.set(JSNidium::GetJSObjectName(), NativeObj);
