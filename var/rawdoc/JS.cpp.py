@@ -12,7 +12,7 @@ try {
 } catch(e) {
 	console.log("Could not open '" + filename + "': " + e.message)
 }"""),
-		ExampleDoc( """console.log( pwd( )  + '\\n' + __dirname + '\\n' + __filename + '\\n' );"""),
+		ExampleDoc( """console.log( cwd( )  + '\\n' + __dirname + '\\n' + __filename + '\\n' );"""),
 		ExampleDoc( """var t = setTimeout( function() {
 	console.log( "Nidium" );}, 1000 );
 clearTimeout( t );"""),
@@ -22,7 +22,7 @@ clearInterval( t );"""),
 )
 
 FieldDoc( "global.__dirname", "The path (without the filename) of the current JavaScript file ending with a '/'.",
-	[ SeeDoc( "global.__filename" ), SeeDoc( "global.pwd" ), SeeDoc( "fs" ), SeeDoc( "File" ) ],
+	[ SeeDoc( "global.__filename" ), SeeDoc( "global.cwd" ), SeeDoc( "fs" ), SeeDoc( "File" ) ],
 	NO_Examples,
 	IS_Static, IS_Public, IS_Readonly,
 	'string',
@@ -30,7 +30,7 @@ FieldDoc( "global.__dirname", "The path (without the filename) of the current Ja
 )
 
 FieldDoc( "global.__filename", "The path (with the filename) of the current JavaScript file.",
-	[ SeeDoc( "global.__dirname" ), SeeDoc( "global.pwd" ) ],
+	[ SeeDoc( "global.__dirname" ), SeeDoc( "global.cwd" ) ],
 	NO_Examples,
 	IS_Static, IS_Public, IS_Readonly,
 	'string',
@@ -45,9 +45,9 @@ FieldDoc( "global.window", "The main window object.",
 	NO_Default
 )
 
-FunctionDoc( "global.pwd", "Get the current working directory.",
-	[ SeeDoc( "global.__filename" ), SeeDoc( "global.__dirname" ), SeeDoc( "File.isDir" ), SeeDoc( "File.rmrf" ), SeeDoc( "File.listFiles" ), SeeDoc( "fs" ), SeeDoc( "global.pwd" ) ],
-	[ExampleDoc( """console.log( pwd( ) );""" )],
+FunctionDoc( "global.cwd", "Get the current working directory.",
+	[ SeeDoc( "global.__filename" ), SeeDoc( "global.__dirname" ), SeeDoc( "File.isDir" ), SeeDoc( "File.rmrf" ), SeeDoc( "File.listFiles" ), SeeDoc( "fs" ), SeeDoc( "global.cwd" ) ],
+	[ExampleDoc( """console.log( cwd( ) );""" )],
 	IS_Static, IS_Public, IS_Fast,
 	NO_Params,
 	ReturnDoc( "The current path", "string" )

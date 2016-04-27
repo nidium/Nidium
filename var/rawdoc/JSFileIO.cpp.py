@@ -5,7 +5,7 @@
 from dokumentor import *
 
 ClassDoc( "File", "File handling class.",
-	[ SeeDoc( "fs" ), SeeDoc( "global.pwd"), SeeDoc( "global.__filename" ), SeeDoc( "global.__dirname" ) ],
+	[ SeeDoc( "fs" ), SeeDoc( "global.cwd"), SeeDoc( "global.__filename" ), SeeDoc( "global.__dirname" ) ],
 	[ ExampleDoc( """File.read("foo.txt", {encoding: "utf8"}, function(err, buffer) {
 	// buffer is an UTF8 string containing the data
 	console.log( buffer );
@@ -37,7 +37,7 @@ FieldDoc( "File.filename", "The name of the opened file.",
 )
 
 ConstructorDoc( "File", "Constructor for a File object that can do operations on files.",
-	[ SeeDoc( "global.__filename" ), SeeDoc( "global.__dirname" ), SeeDoc( "global.pwd" ), SeeDoc( "fs" ) ],
+	[ SeeDoc( "global.__filename" ), SeeDoc( "global.__dirname" ), SeeDoc( "global.cwd" ), SeeDoc( "fs" ) ],
 	[ ExampleDoc( """var f = new File("tmp_0.txt", { encoding: "utf8" });
 f.open("rw", function(err) {
 	if (!err) {
@@ -78,7 +78,7 @@ f.open("rw", function( err ) {
 )
 
 FunctionDoc( "File.isDir", "Determines if the file is a Directory.",
-	SeesDocs( "File.isDir|File.rmrf|File.listFiles|fs|global.pwd" ),
+	SeesDocs( "File.isDir|File.rmrf|File.listFiles|fs|global.cwd" ),
 	[ExampleDoc( """var f = new File( ".", { encoding: "utf8" } );
 		if  ( f.isDir( ) ) {
 			//f.rmrf( );
@@ -90,7 +90,7 @@ FunctionDoc( "File.isDir", "Determines if the file is a Directory.",
 )
 
 FunctionDoc( "File.rmrf", "Deletes the directory and it's content.",
-	[SeeDoc( "File.isDir" ), SeeDoc( "File.rmrf" ), SeeDoc( "File.listFiles" ), SeeDoc( "fs" ), SeeDoc( "global.pwd" ) ],
+	[SeeDoc( "File.isDir" ), SeeDoc( "File.rmrf" ), SeeDoc( "File.listFiles" ), SeeDoc( "fs" ), SeeDoc( "global.cwd" ) ],
 	[ExampleDoc( """var f = new File( "tmp_0.txt", { encoding: "utf8" } );
 		if  ( f.isDir( ) ) {
 			//f.rmrf( );
@@ -102,7 +102,7 @@ FunctionDoc( "File.rmrf", "Deletes the directory and it's content.",
 )
 
 FunctionDoc( "File.listFiles", "List the files in a directory.",
-	[SeeDoc( "File.isDir" ), SeeDoc( "File.rmrf" ), SeeDoc( "File.listFiles" ), SeeDoc( "fs" ), SeeDoc( "global.pwd" ) ],
+	[SeeDoc( "File.isDir" ), SeeDoc( "File.rmrf" ), SeeDoc( "File.listFiles" ), SeeDoc( "fs" ), SeeDoc( "global.cwd" ) ],
 	[ExampleDoc( """var f = new File( ".", { encoding: "utf8" } );
 		if  ( f.isDir( ) ) {
 			f.listFiles( function( error, entries ) {
