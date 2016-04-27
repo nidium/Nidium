@@ -1354,13 +1354,16 @@ void JSWindow::initDataBase()
         NLOG("[Notice] Unable to create window.storage (no NML provided)");
         return;
     }
-
-    m_Db = new JSDB(nml->getIdentifier());
-
+    const char * name = nml->getIdentifier();
+    if (name == NULL) {
+        name = "nidium";
+        NLOG("[Notice] Creating default window.storage (empty identifier tag in NML)");
+    }
+    m_Db = new JSDB(name);
     if (m_Db->ok()) {
         this->createStorage();
     } else {
-        NLOG("[Notice] Unable to create window.storage (empty identifier tag in NML?)");
+        NLOG("[Notice] Unable to create window.storage '%s'", name);
     }
 }
 
