@@ -16,7 +16,7 @@ namespace Core {
 
 // {{{ Preamble
 char *g_m_Root = NULL;
-char *g_m_Pwd = NULL;
+char *g_m_Cwd = NULL;
 
 int Path::g_m_SchemesCount = 0;
 struct Path::schemeInfo *Path::g_m_DefaultScheme = NULL;
@@ -31,7 +31,7 @@ Path::Path(const char *origin, bool allowAll, bool noFilter) :
         return;
     }
 
-    if (!Path::GetPwd() || noFilter) {
+    if (!Path::GetCwd() || noFilter) {
         const char *pOrigin;
         schemeInfo *scheme = Path::GetScheme(origin, &pOrigin);
 
@@ -56,7 +56,7 @@ Path::Path(const char *origin, bool allowAll, bool noFilter) :
         return;
     }
 
-    schemeInfo *rootScheme = Path::GetPwdScheme();
+    schemeInfo *rootScheme = Path::GetCwdScheme();
     bool localRoot = rootScheme->AllowLocalFileStream();
 
     // Remote Chroot trying to access local file.
@@ -84,7 +84,7 @@ void Path::parse(const char *origin)
     const char *pOrigin;
     const char *baseDir;
     schemeInfo *scheme = Path::GetScheme(origin, &pOrigin);
-    schemeInfo *rootScheme = Path::GetPwdScheme();
+    schemeInfo *rootScheme = Path::GetCwdScheme();
     const char *root = Path::GetRoot();
     char *path = strdup(pOrigin);
     PtrAutoDelete<char *> _path(path, free);
@@ -145,7 +145,7 @@ void Path::parse(const char *origin)
         baseDir = &root[strlen(scheme->str) + strlen(m_Host)];
     } else if (SCHEME_MATCH(scheme, "file")) {
         // Relative file on disk
-        baseDir = Path::GetPwd();
+        baseDir = Path::GetCwd();
     } else {
         // Prefixed scheme with a base directory
         baseDir = scheme->GetBaseDir();

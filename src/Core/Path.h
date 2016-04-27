@@ -33,7 +33,7 @@ namespace Core {
 
 
 extern char *g_m_Root;
-extern char *g_m_Pwd;
+extern char *g_m_Cwd;
 
 #define SCHEME_DEFINE(prefix, streamclass, keepprefix) (struct Nidium::Core::Path::schemeInfo) { \
     .str        = prefix, \
@@ -124,10 +124,10 @@ public:
     }
 
     static void CD(const char *dir) {
-        if (g_m_Pwd != NULL && dir != g_m_Pwd) {
-            free(g_m_Pwd);
+        if (g_m_Cwd != NULL && dir != g_m_Cwd) {
+            free(g_m_Cwd);
         }
-        g_m_Pwd = (dir != NULL ? strdup(dir) : NULL);
+        g_m_Cwd = (dir != NULL ? strdup(dir) : NULL);
     }
 
     static char *GetDir(const char *fullpath);
@@ -136,15 +136,15 @@ public:
         return g_m_Root;
     }
 
-    static const char *GetPwd() {
-        return g_m_Pwd;
+    static const char *GetCwd() {
+        return g_m_Cwd;
     }
 
-    static schemeInfo *GetPwdScheme() {
-        if (!g_m_Pwd) {
+    static schemeInfo *GetCwdScheme() {
+        if (!g_m_Cwd) {
             return NULL;
         }
-        return Path::GetScheme(g_m_Pwd);
+        return Path::GetScheme(g_m_Cwd);
     }
 
     static int g_m_SchemesCount;

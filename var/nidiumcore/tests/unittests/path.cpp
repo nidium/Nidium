@@ -259,7 +259,7 @@ TEST(Path, CdLocal)
 {
     Path::CD(TEST_DIR);
 
-    ASSERT_STREQ(TEST_DIR, Path::GetPwd());
+    ASSERT_STREQ(TEST_DIR, Path::GetCwd());
 }
 
 TEST(Path, ChrootLocal)
@@ -445,7 +445,7 @@ TEST(Path, CdLocalSubdir)
 {
     Path::CD(TEST_DIR "/bar/");
 
-    ASSERT_STREQ(TEST_DIR "/bar/", Path::GetPwd());
+    ASSERT_STREQ(TEST_DIR "/bar/", Path::GetCwd());
 }
 
 TEST(Path, RelativeFileDifferentCwd)
@@ -462,7 +462,7 @@ TEST(Path, CdRemote)
 {
     Path::CD(TEST_URL_DIR);
 
-    ASSERT_STREQ(TEST_URL_DIR, Path::GetPwd());
+    ASSERT_STREQ(TEST_URL_DIR, Path::GetCwd());
 }
 
 TEST(Path, ChrootRemote)
@@ -522,7 +522,7 @@ TEST(Path, CdRemoteSlash)
 {
     Path::CD(TEST_URL);
 
-    ASSERT_STREQ(TEST_URL, Path::GetPwd());
+    ASSERT_STREQ(TEST_URL, Path::GetCwd());
 }
 
 TEST(Path, ChrootRemoteSlash)

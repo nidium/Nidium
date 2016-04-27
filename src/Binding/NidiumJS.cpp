@@ -90,7 +90,7 @@ JSClass global_class = {
 static bool nidium_global_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t, JS::MutableHandleValue vp);
 
-static bool nidium_pwd(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_cwd(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -104,7 +104,7 @@ static int nidium_timerng_wrapper(void *arg);
 
 static JSFunctionSpec glob_funcs[] = {
     JS_FN("load", nidium_load, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("pwd", nidium_pwd, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("cwd", nidium_cwd, 0, NIDIUM_JS_FNPROPS),
     JS_FN("setTimeout", nidium_set_timeout, 2, NIDIUM_JS_FNPROPS),
     JS_FN("setImmediate", nidium_set_immediate, 1, NIDIUM_JS_FNPROPS),
     JS_FN("setInterval", nidium_set_interval, 2, NIDIUM_JS_FNPROPS),
@@ -1057,7 +1057,7 @@ static bool nidium_global_prop_get(JSContext *cx, JS::HandleObject obj,
     return true;
 }
 
-static bool nidium_pwd(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_cwd(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     Path cur(JSUtils::CurrentJSCaller(cx), false, true);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -1089,7 +1089,7 @@ static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString scriptstr(cx, script);
     Path scriptpath(scriptstr.ptr());
 
-    Path::schemeInfo *schemePwd = Path::GetPwdScheme();
+    Path::schemeInfo *schemeCwd = Path::GetCwdScheme();
 
     if (scriptpath.path() == NULL) {
         JS_ReportError(cx, "script error : invalid file location");
@@ -1097,14 +1097,14 @@ static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     /* only private are allowed in an http context */
-    if (SCHEME_MATCH(schemePwd, "http") &&
+    if (SCHEME_MATCH(schemeCwd, "http") &&
         !URLSCHEME_MATCH(scriptstr.ptr(), "private")) {
         JS_ReportError(cx, "script access error : cannot load in this context");
         return false;
     }
 
     if (!scriptpath.GetScheme()->AllowSyncStream()) {
-        JS_ReportError(cx, "script error : \"%s\" scheme can't load in a sync way", schemePwd->str);
+        JS_ReportError(cx, "script error : \"%s\" scheme can't load in a sync way", schemeCwd->str);
         return false;
     }
 

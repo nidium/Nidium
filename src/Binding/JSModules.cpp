@@ -241,7 +241,7 @@ JS::Value JSModule::require(char *name)
         this->filePath = realpath(filename.get(), NULL);
 
         if (this->filePath == NULL) {
-            this->absoluteDir = strdup(Path::GetPwd());
+            this->absoluteDir = strdup(Path::GetCwd());
         } else {
             // absoluteDir is needed for FindModulePath
             Path p(this->filePath, false, true);
