@@ -11,38 +11,34 @@
 #include <ape_netlib.h>
 #include <Binding/JSHTTP.h>
 
-TEST(JSHTTP, Simple)
+NIDIUMJS_FIXTURE(JSHTTP)
+
+TEST_F(JSHTTP, Simple)
 {
-    ape_global * g_ape = APE_init();
-    Nidium::Binding::NidiumJS njs(g_ape);
     bool success;
 
-    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = JS_GetProperty(njs.cx, globObj, "Http", &rval);
+    JS::RootedObject globObj(njs->cx, JS::CurrentGlobalOrNull(njs->cx));
+    JS::RootedValue rval(njs->cx, JSVAL_VOID);
+    success = JS_GetProperty(njs->cx, globObj, "Http", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSHTTP::RegisterObject(njs.cx);
+    Nidium::Binding::JSHTTP::RegisterObject(njs->cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globObj, "Http", &rval);
+    success = JS_GetProperty(njs->cx, globObj, "Http", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
-
-    APE_destroy(g_ape);
 }
 
-TEST(JSHTTP, init)
+TEST_F(JSHTTP, init)
 {
-    ape_global * g_ape = APE_init();
-    Nidium::Binding::NidiumJS njs(g_ape);
     char * url = strdup("http://nidium.com:80/new.html");
 
-    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    Nidium::Binding::JSHTTP ht(globObj, njs.cx, url);
+    JS::RootedObject globObj(njs->cx, JS::CurrentGlobalOrNull(njs->cx));
+    Nidium::Binding::JSHTTP ht(globObj, njs->cx, url);
 
     EXPECT_TRUE(ht.getJSObject() == globObj);
-    EXPECT_TRUE(ht.getJSContext() == njs.cx);
+    EXPECT_TRUE(ht.getJSContext() == njs->cx);
 
     EXPECT_TRUE(ht.request == JSVAL_NULL);
     EXPECT_TRUE(ht.refHttp == NULL);
@@ -50,6 +46,5 @@ TEST(JSHTTP, init)
     EXPECT_TRUE(strcmp(ht.m_URL, url) == 0);
 
     free(url);
-    APE_destroy(g_ape);
 }
 

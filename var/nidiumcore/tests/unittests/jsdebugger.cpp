@@ -11,25 +11,22 @@
 #include <ape_netlib.h>
 #include <Binding/JSDebugger.h>
 
-TEST(JSDebugger, Simple)
+NIDIUMJS_FIXTURE(JSDebugger)
+
+TEST_F(JSDebugger, Simple)
 {
-    ape_global * g_ape = APE_init();
-    Nidium::Binding::NidiumJS njs(g_ape);
     bool success;
 
-
-    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = JS_GetProperty(njs.cx, globObj, "Debugger", &rval);
+    JS::RootedObject globObj(njs->cx, JS::CurrentGlobalOrNull(njs->cx));
+    JS::RootedValue rval(njs->cx, JSVAL_VOID);
+    success = JS_GetProperty(njs->cx, globObj, "Debugger", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSDebugger::RegisterObject(njs.cx);
+    Nidium::Binding::JSDebugger::RegisterObject(njs->cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globObj, "Debugger", &rval);
+    success = JS_GetProperty(njs->cx, globObj, "Debugger", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
-
-    APE_destroy(g_ape);
 }
 

@@ -11,29 +11,27 @@
 #include <ape_netlib.h>
 #include <Binding/JSHTTPServer.h>
 
-TEST(JSHTTPServer, Simple)
+NIDIUMJS_FIXTURE(JSHTTPServer)
+
+TEST_F(JSHTTPServer, Simple)
 {
-    ape_global * g_ape = APE_init();
-    Nidium::Binding::NidiumJS njs(g_ape);
     bool success;
 
-    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = JS_GetProperty(njs.cx, globObj, "HTTPListener", &rval);
+    JS::RootedObject globObj(njs->cx, JS::CurrentGlobalOrNull(njs->cx));
+    JS::RootedValue rval(njs->cx, JSVAL_VOID);
+    success = JS_GetProperty(njs->cx, globObj, "HTTPListener", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSHTTPServer::RegisterObject(njs.cx);
+    Nidium::Binding::JSHTTPServer::RegisterObject(njs->cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globObj, "HTTPListener", &rval);
+    success = JS_GetProperty(njs->cx, globObj, "HTTPListener", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
-
-    APE_destroy(g_ape);
 }
 
 /*
-TEST(JSServer, Connection)
+TEST_F(JSServer, Connection)
 {
     ape_global * g_ape = APE_init();
     Nidium::Binding::NidiumJS njs(g_ape);
@@ -41,27 +39,22 @@ TEST(JSServer, Connection)
     JS::RootedValue args(cx);
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &HTTPServer_class, args));
     Nidium::Binding::JSHTTPServer server(ret, 8080, "0.0.0.0");
-    Nidium::Binding::JSHTTPClientConnection conn(njs.cx, &server, socket);
+    Nidium::Binding::JSHTTPClientConnection conn(njs->cx, &server, socket);
     EXPECT_EQ(conn.getHTTPServer(), &server);
 
     APE_destroy(g_ape);
 }
 */
 
-TEST(JSHTTPServer, Server)
+TEST_F(JSHTTPServer, Server)
 {
-    ape_global * g_ape = APE_init();
-    Nidium::Binding::NidiumJS njs(g_ape);
-
-    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    Nidium::Binding::JSHTTPServer lis(globObj, njs.cx, 8080, "127.0.0.1");
+    JS::RootedObject globObj(njs->cx, JS::CurrentGlobalOrNull(njs->cx));
+    Nidium::Binding::JSHTTPServer lis(globObj, njs->cx, 8080, "127.0.0.1");
 
     EXPECT_TRUE(lis.getJSObject() == globObj);
-    EXPECT_TRUE(lis.getJSContext() == njs.cx);
+    EXPECT_TRUE(lis.getJSContext() == njs->cx);
 
     EXPECT_EQ(lis.getPort(), 8080);
     EXPECT_TRUE(strcmp(lis.getIP(), "127.0.0.1") == 0);
-
-    APE_destroy(g_ape);
 }
 

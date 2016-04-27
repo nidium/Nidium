@@ -11,5 +11,20 @@
 extern int ape_running;
 extern unsigned long _ape_seed;
 
+#define NIDIUMJS_FIXTURE(name) \
+class  name: public ::testing::Test {\
+protected:\
+    ape_global *ape;\
+    ::Nidium::Binding::NidiumJS *njs;\
+    name(){\
+        ape = APE_init();\
+        njs = new ::Nidium::Binding::NidiumJS(ape);\
+    };\
+    ~name() {\
+        delete njs;\
+        APE_destroy(ape);\
+    };\
+};
+
 #endif
 

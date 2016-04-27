@@ -11,41 +11,34 @@
 #include <ape_netlib.h>
 #include <Binding/JSDebug.h>
 
-TEST(JSDebug, Simple)
+NIDIUMJS_FIXTURE(JSDebug)
+
+TEST_F(JSDebug, Simple)
 {
-    ape_global * g_ape = APE_init();
-    Nidium::Binding::NidiumJS njs(g_ape);
     bool success;
 
 
-    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = JS_GetProperty(njs.cx, globObj, "Debug", &rval);
+    JS::RootedObject globObj(njs->cx, JS::CurrentGlobalOrNull(njs->cx));
+    JS::RootedValue rval(njs->cx, JSVAL_VOID);
+    success = JS_GetProperty(njs->cx, globObj, "Debug", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSDebug::RegisterObject(njs.cx);
+    Nidium::Binding::JSDebug::RegisterObject(njs->cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globObj, "Debug", &rval);
+    success = JS_GetProperty(njs->cx, globObj, "Debug", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
-
-    APE_destroy(g_ape);
 }
 
-TEST(JSDebug, Init)
+TEST_F(JSDebug, Init)
 {
-    ape_global * g_ape = APE_init();
-    Nidium::Binding::NidiumJS njs(g_ape);
-
-    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    Nidium::Binding::JSDebug nd(globObj, njs.cx);
+    JS::RootedObject globObj(njs->cx, JS::CurrentGlobalOrNull(njs->cx));
+    Nidium::Binding::JSDebug nd(globObj, njs->cx);
 
     EXPECT_TRUE(nd.getJSObject() == globObj);
-    EXPECT_TRUE(nd.getJSContext() == njs.cx);
+    EXPECT_TRUE(nd.getJSContext() == njs->cx);
 
     EXPECT_TRUE(strcmp(nd.GetJSObjectName(), "Debug") == 0);
-
-    APE_destroy(g_ape);
 }
 

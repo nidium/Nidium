@@ -11,27 +11,26 @@
 #include <ape_netlib.h>
 #include <Binding/JSConsole.h>
 
-TEST(JSNFS, Simple)
+NIDIUMJS_FIXTURE(JSNFS)
+
+TEST_F(JSNFS, Simple)
 {
-    ape_global * g_ape = APE_init();
-    Nidium::Binding::NidiumJS njs(g_ape);
     //bool success;
-    JS::RootedValue rval(njs.cx, JSVAL_VOID);
+    JS::RootedValue rval(njs->cx, JSVAL_VOID);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    /*JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    JS::RootedValue rval(njs.cx, JSVAL_VOID);
-    success = JS_GetProperty(njs.cx, globObj, "nfs", &rval);
+    /*
+    JS::RootedObject globObj(njs->cx, JS::CurrentGlobalOrNull(njs->cx));
+    JS::RootedValue rval(njs->cx, JSVAL_VOID);
+    success = JS_GetProperty(njs->cx, globObj, "nfs", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSNFS::RegisterObject(njs.cx);
+    Nidium::Binding::JSNFS::RegisterObject(njs->cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globObj, "nfs", &rval);
+    success = JS_GetProperty(njs->cx, globObj, "nfs", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
-*/
-
-    APE_destroy(g_ape);
+    */
 }
 

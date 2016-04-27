@@ -12,27 +12,26 @@
 #include <Binding/NidiumJS.h>
 #include <Binding/JSDB.h>
 
-TEST(JSDB, Simple)
+NIDIUMJS_FIXTURE(JSDB)
+
+TEST_F(JSDB, Simple)
 {
-    ape_global * g_ape = APE_init();
-    Nidium::Binding::NidiumJS njs(g_ape);
     bool success;
 
-    JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
-    JS::RootedValue rval(njs.cx, JSVAL_VOID);
+    JS::RootedObject globObj(njs->cx, JS::CurrentGlobalOrNull(njs->cx));
+    JS::RootedValue rval(njs->cx, JSVAL_VOID);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 /*
-    success = JS_GetProperty(njs.cx, globObj, "db", &rval);
+    success = JS_GetProperty(njs->cx, globObj, "db", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSConsole::RegisterObject(njs.cx);
+    Nidium::Binding::JSConsole::RegisterObject(njs->cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs.cx, globObj, "db", &rval);
+    success = JS_GetProperty(njs->cx, globObj, "db", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
     //TODO insert
 */
-    APE_destroy(g_ape);
 }
 
