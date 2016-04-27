@@ -33,9 +33,8 @@ static bool nidium_nidium_language(JSContext *cx, unsigned argc, jsval *vp)
 
     Nidium::Interface::NativeSystemInterface* interface = Nidium::Interface::NativeSystemInterface::GetInstance();
     const char *clang = interface->getLanguage();
-    JS::RootedString str(cx, JS_NewStringCopyZ(cx, clang));
 
-    args.rval().setString(str);
+    args.rval().setString(JS_NewStringCopyZ(cx, clang));
 
     return true;
 
