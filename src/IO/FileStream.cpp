@@ -145,12 +145,21 @@ const unsigned char *FileStream::onGetNextPacket(size_t *len, int *err)
 
 void FileStream::onMessage(const Core::SharedMessages::Message &msg)
 {
+    /*
+        If the file failed to be opened, ignore subsequent messages
+        as they will all fail (unless the event is a successful opening)
+    */
+    if (m_OpenFailed && msg.event() != File::OPEN_SUCCESS) {
+        return;
+    }
+
     switch (msg.event()) {
         case File::OPEN_SUCCESS:
-            /* do nothing */
+            m_OpenFailed = false;
             break;
         case File::OPEN_ERROR:
             this->errorSync(ERROR_OPEN, msg.args[0].toInt());
+            m_OpenFailed = true;
             break;
         case File::SEEK_ERROR:
             this->errorSync(ERROR_SEEK, -1);

@@ -53,6 +53,7 @@ protected:
     virtual void onStart(size_t packets, size_t seek);
 private:
     File m_File;
+    bool m_OpenFailed = false;
 };
 
 } // namespace IO
