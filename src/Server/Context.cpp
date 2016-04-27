@@ -65,7 +65,7 @@ Context::Context(ape_global *net, Worker *worker,
     JSconsole::RegisterObject(m_JS->cx);
     JSSystem::RegisterObject(m_JS->cx);
 
-    m_JS->setPath(Nidium::Core::Path::GetPwd());
+    m_JS->setPath(Nidium::Core::Path::GetCwd());
 
     APE_timer_create(net, 1, Context_ping, (void *)m_JS);
 }
