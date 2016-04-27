@@ -57,11 +57,11 @@ void GLState::destroy()
 
 void GLState::setVertexDeformation(uint32_t vertex, float x, float y)
 {
-    NATIVE_GL_CALL_MAIN(BindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]));
+    NIDIUM_GL_CALL_MAIN(BindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]));
 
     float mod[2] = {x, y};
 
-    NATIVE_GL_CALL_MAIN(BufferSubData(GL_ARRAY_BUFFER,
+    NIDIUM_GL_CALL_MAIN(BufferSubData(GL_ARRAY_BUFFER,
         (sizeof(Vertex) * vertex) + offsetof(Vertex, Modifier),
         sizeof(((Vertex *)0)->Modifier),
         &mod));
@@ -71,8 +71,8 @@ bool GLState::initGLBase(bool withProgram)
 {
     //glctx->iface()->fExtensions.print();
 
-    NATIVE_GL_CALL_MAIN(GenBuffers(2, m_GLObjects.vbo));
-    NATIVE_GL_CALL_MAIN(GenVertexArrays(1, &m_GLObjects.vao));
+    NIDIUM_GL_CALL_MAIN(GenBuffers(2, m_GLObjects.vbo));
+    NIDIUM_GL_CALL_MAIN(GenVertexArrays(1, &m_GLObjects.vao));
 
     m_Resources.add(m_GLObjects.vbo[0], GLResources::RBUFFER);
     m_Resources.add(m_GLObjects.vbo[1], GLResources::RBUFFER);
@@ -80,30 +80,30 @@ bool GLState::initGLBase(bool withProgram)
 
     Vertices *vtx = m_GLObjects.vtx = CanvasContext::BuildVerticesStripe(4);
 
-    NATIVE_GL_CALL_MAIN(BindVertexArray(m_GLObjects.vao));
+    NIDIUM_GL_CALL_MAIN(BindVertexArray(m_GLObjects.vao));
 
-    NATIVE_GL_CALL_MAIN(EnableVertexAttribArray(CanvasContext::SH_ATTR_POSITION));
-    NATIVE_GL_CALL_MAIN(EnableVertexAttribArray(CanvasContext::SH_ATTR_TEXCOORD));
-    NATIVE_GL_CALL_MAIN(EnableVertexAttribArray(CanvasContext::SH_ATTR_MODIFIER));
+    NIDIUM_GL_CALL_MAIN(EnableVertexAttribArray(CanvasContext::SH_ATTR_POSITION));
+    NIDIUM_GL_CALL_MAIN(EnableVertexAttribArray(CanvasContext::SH_ATTR_TEXCOORD));
+    NIDIUM_GL_CALL_MAIN(EnableVertexAttribArray(CanvasContext::SH_ATTR_MODIFIER));
 
     /* Upload the list of vertex */
-    NATIVE_GL_CALL_MAIN(BindBuffer(GR_GL_ARRAY_BUFFER, m_GLObjects.vbo[0]));
-    NATIVE_GL_CALL_MAIN(BufferData(GR_GL_ARRAY_BUFFER, sizeof(Vertex) * vtx->nvertices,
+    NIDIUM_GL_CALL_MAIN(BindBuffer(GR_GL_ARRAY_BUFFER, m_GLObjects.vbo[0]));
+    NIDIUM_GL_CALL_MAIN(BufferData(GR_GL_ARRAY_BUFFER, sizeof(Vertex) * vtx->nvertices,
         vtx->vertices, GL_DYNAMIC_DRAW));
 
     /* Upload the indexes for triangle strip */
-    NATIVE_GL_CALL_MAIN(BindBuffer(GR_GL_ELEMENT_ARRAY_BUFFER, m_GLObjects.vbo[1]));
-    NATIVE_GL_CALL_MAIN(BufferData(GR_GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * vtx->nindices,
+    NIDIUM_GL_CALL_MAIN(BindBuffer(GR_GL_ELEMENT_ARRAY_BUFFER, m_GLObjects.vbo[1]));
+    NIDIUM_GL_CALL_MAIN(BufferData(GR_GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * vtx->nindices,
         vtx->indices, GL_STATIC_DRAW));
 
-    NATIVE_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_POSITION, 3, GR_GL_FLOAT, GR_GL_FALSE,
+    NIDIUM_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_POSITION, 3, GR_GL_FLOAT, GR_GL_FALSE,
                           sizeof(Vertex), 0));
 
-    NATIVE_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_TEXCOORD, 2, GR_GL_FLOAT, GR_GL_FALSE,
+    NIDIUM_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_TEXCOORD, 2, GR_GL_FLOAT, GR_GL_FALSE,
                           sizeof(Vertex),
                           (GLvoid*) offsetof(Vertex, TexCoord)));
 
-    NATIVE_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_MODIFIER, 2, GR_GL_FLOAT, GR_GL_FALSE,
+    NIDIUM_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_MODIFIER, 2, GR_GL_FLOAT, GR_GL_FALSE,
                           sizeof(Vertex),
                           (GLvoid*) offsetof(Vertex, Modifier)));
 
@@ -114,14 +114,14 @@ bool GLState::initGLBase(bool withProgram)
             return false;
         }
 
-        NATIVE_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_projectionMatrix"),
+        NIDIUM_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_projectionMatrix"),
             m_GLObjects.uniforms.u_projectionMatrix);
 
-        NATIVE_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_opacity"),
+        NIDIUM_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_opacity"),
             m_GLObjects.uniforms.u_opacity);
     }
 
-    NATIVE_GL_CALL_MAIN(BindVertexArray(0));
+    NIDIUM_GL_CALL_MAIN(BindVertexArray(0));
 
     return true;
 }
@@ -130,16 +130,16 @@ void GLState::setProgram(uint32_t program)
 {
     m_GLObjects.program = program;
 
-    NATIVE_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_projectionMatrix"),
+    NIDIUM_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_projectionMatrix"),
         m_GLObjects.uniforms.u_projectionMatrix);
-    NATIVE_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_opacity"),
+    NIDIUM_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_opacity"),
         m_GLObjects.uniforms.u_opacity);
 }
 
 void GLState::setActive()
 {
-    NATIVE_GL_CALL_MAIN(BindVertexArray(m_GLObjects.vao));
-    NATIVE_GL_CALL_MAIN(ActiveTexture(GR_GL_TEXTURE0));
+    NIDIUM_GL_CALL_MAIN(BindVertexArray(m_GLObjects.vao));
+    NIDIUM_GL_CALL_MAIN(ActiveTexture(GR_GL_TEXTURE0));
 }
 
 GLState::~GLState()

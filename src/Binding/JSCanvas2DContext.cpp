@@ -2152,21 +2152,21 @@ void Canvas2DContext::setupCommonDraw()
 void Canvas2DContext::drawTexture(uint32_t textureID, uint32_t width,
     uint32_t height, uint32_t left, uint32_t top)
 {
-    NATIVE_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, textureID));
+    NIDIUM_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, textureID));
 
-    NATIVE_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
-    NATIVE_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
+    NIDIUM_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
+    NIDIUM_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
 
     /* Anti Aliasing */
-    NATIVE_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    NATIVE_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    NIDIUM_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    NIDIUM_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
-    NATIVE_GL_CALL_MAIN(DrawElements(GR_GL_TRIANGLE_STRIP, m_GLState->m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0));
+    NIDIUM_GL_CALL_MAIN(DrawElements(GR_GL_TRIANGLE_STRIP, m_GLState->m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0));
 
-    NATIVE_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, 0));
+    NIDIUM_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, 0));
 
     /* Unbind vertex array bound by resetGLContext() */
-    NATIVE_GL_CALL_MAIN(BindVertexArray(0));
+    NIDIUM_GL_CALL_MAIN(BindVertexArray(0));
 }
 
 #if 0

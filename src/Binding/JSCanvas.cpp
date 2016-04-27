@@ -15,7 +15,7 @@ namespace Binding {
 // {{{ Preamble
 extern JSClass Canvas2DContext_class;
 
-#define NATIVE_PROLOGUE(ofclass) \
+#define NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(ofclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
     if (!thisobj.get()) return false; \
@@ -167,8 +167,6 @@ static bool nidium_canvas_clear(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_canvas_setZoom(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_canvas_setScale(JSContext *cx, unsigned argc, JS::Value *vp);
 
-#define NATIVE_JS_PROP JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS
-
 static JSPropertySpec canvas_props[] = {
     NIDIUM_JS_PSGS("opacity", CANVAS_PROP_OPACITY, nidium_canvas_prop_get, nidium_canvas_prop_set),
     NIDIUM_JS_PSGS("overflow", CANVAS_PROP_OVERFLOW, nidium_canvas_prop_get, nidium_canvas_prop_set),
@@ -200,8 +198,6 @@ static JSPropertySpec canvas_props[] = {
     NIDIUM_JS_PSGS("marginTop", CANVAS_PROP_MARGINTOP, nidium_canvas_prop_get, nidium_canvas_prop_set),
     NIDIUM_JS_PSGS("marginBottom", CANVAS_PROP_MARGINBOTTOM, nidium_canvas_prop_get, nidium_canvas_prop_set),
     NIDIUM_JS_PSGS("cursor", CANVAS_PROP_CURSOR, nidium_canvas_prop_get, nidium_canvas_prop_set),
-
-
     NIDIUM_JS_PSG("clientWidth", CANVAS_PROP_CLIENTWIDTH, nidium_canvas_prop_get),
     NIDIUM_JS_PSG("clientHeight", CANVAS_PROP_CLIENTHEIGHT, nidium_canvas_prop_get),
     NIDIUM_JS_PSG("clientTop", CANVAS_PROP_CLIENTTOP, nidium_canvas_prop_get),
@@ -299,7 +295,7 @@ static Nidium::Graphics::CanvasHandler *HANDLER_GETTER_SAFE(JSContext *cx, JS::H
 
 static bool nidium_canvas_show(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     NativeObject->setHidden(false);
 
@@ -308,7 +304,7 @@ static bool nidium_canvas_show(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool nidium_canvas_hide(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     NativeObject->setHidden(true);
 
@@ -317,7 +313,7 @@ static bool nidium_canvas_hide(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool nidium_canvas_clear(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     if (NativeObject->m_Context) {
         NativeObject->m_Context->clear(0x00000000);
@@ -328,7 +324,7 @@ static bool nidium_canvas_clear(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool nidium_canvas_setZoom(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     double zoom;
 
@@ -343,7 +339,7 @@ static bool nidium_canvas_setZoom(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool nidium_canvas_setScale(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     double x, y;
 
@@ -358,7 +354,7 @@ static bool nidium_canvas_setScale(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool nidium_canvas_setSize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     int width, height;
 
@@ -374,7 +370,7 @@ static bool nidium_canvas_setSize(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool nidium_canvas_removeFromParent(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     NativeObject->removeFromParent();
 
@@ -384,7 +380,7 @@ static bool nidium_canvas_removeFromParent(JSContext *cx, unsigned argc,
 static bool nidium_canvas_bringToFront(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     NativeObject->bringToFront();
 
@@ -394,7 +390,7 @@ static bool nidium_canvas_bringToFront(JSContext *cx, unsigned argc,
 static bool nidium_canvas_sendToBack(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     NativeObject->sendToBack();
 
@@ -404,7 +400,7 @@ static bool nidium_canvas_sendToBack(JSContext *cx, unsigned argc,
 static bool nidium_canvas_getParent(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     Nidium::Graphics::CanvasHandler *parent = NativeObject->getParent();
     if (parent) {
@@ -419,7 +415,7 @@ static bool nidium_canvas_getParent(JSContext *cx, unsigned argc,
 static bool nidium_canvas_getFirstChild(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     Nidium::Graphics::CanvasHandler *val = NativeObject->getFirstChild();
     if (val) {
@@ -434,7 +430,7 @@ static bool nidium_canvas_getFirstChild(JSContext *cx, unsigned argc,
 static bool nidium_canvas_getLastChild(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     Nidium::Graphics::CanvasHandler *val = NativeObject->getLastChild();
     if (val) {
@@ -449,7 +445,7 @@ static bool nidium_canvas_getLastChild(JSContext *cx, unsigned argc,
 static bool nidium_canvas_getNextSibling(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     Nidium::Graphics::CanvasHandler *val = NativeObject->getNextSibling();
     if (val) {
@@ -464,7 +460,7 @@ static bool nidium_canvas_getNextSibling(JSContext *cx, unsigned argc,
 static bool nidium_canvas_getPrevSibling(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     Nidium::Graphics::CanvasHandler *val = NativeObject->getPrevSibling();
     if (val) {
@@ -479,7 +475,7 @@ static bool nidium_canvas_getPrevSibling(JSContext *cx, unsigned argc,
 static bool nidium_canvas_getChildren(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     uint32_t i;
     int32_t count = NativeObject->countChildren();
@@ -508,7 +504,7 @@ static bool nidium_canvas_getChildren(JSContext *cx, unsigned argc,
 static bool nidium_canvas_getVisibleRect(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     Nidium::Graphics::Rect rect = NativeObject->getVisibleRect();
     JS::RootedObject ret(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
@@ -531,7 +527,7 @@ static bool nidium_canvas_getVisibleRect(JSContext *cx, unsigned argc,
 static bool nidium_canvas_setCoordinates(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     double left, top;
 
@@ -548,7 +544,7 @@ static bool nidium_canvas_setCoordinates(JSContext *cx, unsigned argc,
 static bool nidium_canvas_translate(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     double left, top;
 
@@ -564,7 +560,7 @@ static bool nidium_canvas_translate(JSContext *cx, unsigned argc,
 static bool nidium_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     Nidium::Graphics::CanvasHandler *handler = NULL;
 
@@ -597,7 +593,7 @@ static bool nidium_canvas_addSubCanvas(JSContext *cx, unsigned argc,
 static bool nidium_canvas_insertBefore(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     Nidium::Graphics::CanvasHandler *handler_insert = NULL, *handler_ref = NULL;
 
@@ -634,7 +630,7 @@ static bool nidium_canvas_insertBefore(JSContext *cx, unsigned argc,
 static bool nidium_canvas_insertAfter(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
 
     Nidium::Graphics::CanvasHandler *handler_insert = NULL, *handler_ref = NULL;
 
@@ -671,7 +667,7 @@ static bool nidium_canvas_insertAfter(JSContext *cx, unsigned argc,
 static bool nidium_canvas_getContext(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
     NIDIUM_JS_CHECK_ARGS("getContext", 1);
 
     Nidium::Frontend::Context *nctx = Nidium::Frontend::Context::GetObject(cx);
@@ -748,7 +744,7 @@ static bool nidium_canvas_getContext(JSContext *cx, unsigned argc,
 static bool nidium_canvas_setContext(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NATIVE_PROLOGUE(Nidium::Graphics::CanvasHandler);
+    NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(Nidium::Graphics::CanvasHandler);
     NIDIUM_JS_CHECK_ARGS("setContext", 1);
 
     JS::RootedObject obj(cx, args[0].toObjectOrNull());

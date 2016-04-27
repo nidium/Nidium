@@ -24,7 +24,7 @@ namespace Graphics {
     e.g. NIDIUM_GL_CALL(this->context, Clear(0, 0, 0, 0));
 */
 
-#define NATIVE_GL_MAIN_IFACE (Nidium::Interface::__NativeUI->getNativeContext()->getGLState()->getNativeGLContext())
+#define NIDIUM_GL_MAIN_IFACE (Nidium::Interface::__NativeUI->getNativeContext()->getGLState()->getNativeGLContext())
 
 #ifndef NATIVE_ENABLE_GL_ERROR
 
@@ -62,9 +62,9 @@ namespace Graphics {
         } while (false)
 #endif
 
-#define NATIVE_GL_CALL_MAIN(X) NIDIUM_GL_CALL((NATIVE_GL_MAIN_IFACE), X)
+#define NIDIUM_GL_CALL_MAIN(X) NIDIUM_GL_CALL((NIDIUM_GL_MAIN_IFACE), X)
 
-#define NATIVE_GL_CALL_RET_MAIN(X, RET) NIDIUM_GL_CALL_RET(NATIVE_GL_MAIN_IFACE, X, RET)
+#define NIDIUM_GL_CALL_RET_MAIN(X, RET) NIDIUM_GL_CALL_RET(NIDIUM_GL_MAIN_IFACE, X, RET)
 // }}}
 
 // {{{ GLContext
