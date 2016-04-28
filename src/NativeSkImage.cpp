@@ -46,8 +46,6 @@ const uint8_t *NativeSkImage::getPixels(size_t *len)
     }
     void *data = m_Image->getPixels();
 
-    printf("Pixels : %x %d\n", ((uint8_t *)data)[500], m_Image->height());
-
     return (const uint8_t *)m_Image->getPixels();
 }
 

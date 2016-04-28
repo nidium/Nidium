@@ -417,8 +417,7 @@ void NativeCocoaUIInterface::patchSDLView(NSView *sdlview)
     [idthis release];
 }
 
-void NativeCocoaUIInterface::enableSysTray(const void *imgData,
-    size_t imageDataSize)
+void NativeCocoaUIInterface::enableSysTray()
 {
 #if 0
     m_StatusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];

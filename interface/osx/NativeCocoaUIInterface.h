@@ -24,7 +24,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
         void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags = 0);
         NativeUICocoaConsole *getConsole(bool create=false, bool *created = NULL);
-        void enableSysTray(const void *imgData = NULL, size_t imageDataSize = 0);
+        void enableSysTray();
         void disableSysTray();
 
         void hideWindow();
