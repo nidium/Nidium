@@ -1,6 +1,6 @@
 {
     'targets': [{
-        'target_name': 'native',
+        'target_name': 'nidiumapp',
         'type': 'none',
         'dependencies': [
             'app.gyp:nidium',

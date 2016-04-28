@@ -236,7 +236,7 @@
                 {
                     'target_name': 'crash_inspector',
                     'type': 'executable',
-                    'product_dir': '<(native_resources_path)/osx/',
+                    'product_dir': '<(nidium_resources_path)/osx/',
                     'variables': {
                         'mac_real_dsym': 1,
                     },
@@ -268,7 +268,7 @@
                 {
                     'target_name': 'crash_report_sender',
                     'type': 'executable',
-                    'product_dir': '<(native_resources_path)/osx/',
+                    'product_dir': '<(nidium_resources_path)/osx/',
                     'mac_bundle': 1,
                     'variables': {
                         'mac_real_dsym': 1,

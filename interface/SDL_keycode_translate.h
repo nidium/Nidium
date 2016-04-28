@@ -1,5 +1,5 @@
-#ifndef nativesdlkeycodetranslate_h__
-#define nativesdlkeycodetranslate_h__
+#ifndef interface_sdlkeycodetranslate_h__
+#define interface_sdlkeycodetranslate_h__
 
 #include <stdint.h>
 
@@ -11,6 +11,9 @@
 #define L1(X) (X | (1 << 24))
 #define L2(X) (X | (2 << 24))
 
+
+namespace Nidium {
+namespace Interface {
 
 static const int32_t SDL_TO_DOM_KEYCODES[512] = {
 /*  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 */
@@ -49,6 +52,9 @@ static const int32_t SDL_TO_DOM_KEYCODES[512] = {
 
 #undef L1
 #undef L2
+
+} // namespace Nidium
+} // namespace Interface
 
 #endif
 

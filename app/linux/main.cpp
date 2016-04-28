@@ -7,37 +7,47 @@
 
 #include <client/linux/handler/exception_handler.h>
 
-#include "NativeX11UIInterface.h"
-#include "NativeSystem.h"
+#include "X11UIInterface.h"
+#include "System.h"
 
-NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
-NativeUIInterface *__NativeUI;
-
-
-int _nativebuild = 1002;
 unsigned long _ape_seed;
 
+namespace Nidium {
+    namespace Interface {
+        class NativeSystemInterface;
+        class NativeUIInterface;
+        class NativeX11Interface;
+
+        NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
+        NativeUIInterface *__NativeUI;
+    }
+namespace App {
+
+int _nativebuild = 1002;
 char _root[PATH_MAX]; // Using _root to store the location of nidium exec
 
-#ifdef NATIVE_ENABLE_BREAKPAD
+#ifdef NIDIUM_ENABLE_CRASHREPORTER
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
         void* context,
         bool succeeded)
 {
     fprintf(stderr, "Nidium crash - Sending report - No personal information is transmited\n");
     char reporter[PATH_MAX];
-    snprintf(reporter, PATH_MAX, "%s/nidium-crash-reporter", _root);
+    snprintf(reporter, PATH_MAX, "%s/nidium-crash-reporter", Nidium::App::_root);
     int ret = execl(reporter, "nidium-crash-reporter", descriptor.path(), NULL);
     fprintf(stdout, "Crash reporter returned %d\n", ret);
     return succeeded;
 }
 #endif
 
+} // namespace App
+} // namespace Nidium
+
 int main(int argc, char **argv)
 {
-    NativeX11UIInterface UI;
+    Nidium::Interface::NativeX11UIInterface UI;
 
-#ifdef NATIVE_ENABLE_BREAKPAD
+#ifdef NIDIUM_ENABLE_CRASHREPORTER
     google_breakpad::MinidumpDescriptor descriptor(UI.getCacheDirectory());
     google_breakpad::ExceptionHandler eh(descriptor,
             NULL,
@@ -47,14 +57,14 @@ int main(int argc, char **argv)
             -1);
 #endif
 
-    __NativeUI = &UI;
+    Nidium::Interface::__NativeUI = &UI;
     _ape_seed = time(NULL) ^ (getpid() << 16);
-    if (getcwd(_root, PATH_MAX)) {
-        int l = strlen(_root);
-        _root[l] = '/';
+    if (getcwd(Nidium::App::_root, PATH_MAX)) {
+        int l = strlen(Nidium::App::_root);
+        Nidium::App::_root[l] = '/';
         l += 1;
-        strncpy(&_root[l], argv[0], PATH_MAX - l);
-        dirname(_root);
+        strncpy(&Nidium::App::_root[l], argv[0], PATH_MAX - l);
+        dirname(Nidium::App::_root);
     }
 
     const char *nml = NULL;

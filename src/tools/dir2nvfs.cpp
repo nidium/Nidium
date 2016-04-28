@@ -10,18 +10,19 @@
 #include <jsapi.h>
 #include <ape_netlib.h>
 
-#include <NativeNFS.h>
-#include <NativeStreamInterface.h>
-#include <NativeFileStream.h>
-#include <NativeUtils.h>
+#include <Core/Utils.h>
+#include <IO/FileStream.h>
+#include <Binding/JSNFS.h>
 
 #ifndef DIR2NFS_OUTPUT
 #define DIR2NFS_OUTPUT stdout
 #endif
 
+using Nidium::Binding::NativeJSNSFS;
+
 unsigned long _ape_seed;
 
-void listdir(NativeNFS *nfs, DIR *dir, std::string fullpath, int strip)
+void listdir(NativeJSNFS *nfs, DIR *dir, std::string fullpath, int strip)
 {
     dirent *cur;
 
@@ -47,8 +48,8 @@ void listdir(NativeNFS *nfs, DIR *dir, std::string fullpath, int strip)
             listdir(nfs, opendir(newpath.c_str()), newpath, strip);
         } else if (cur->d_type & DT_REG) {
 
-            //NativePtrAutoDelete<NativeBaseStream *> stream(NativeBaseStream::create(newpath.c_str()));
-            NativeBaseStream *stream = NativeBaseStream::create(newpath.c_str());
+            //NativePtrAutoDelete<Nidium::IO::Stream *> stream(Nidium::IO::Stream::Create(newpath.c_str()));
+            Nidium::IO::Stream *stream = Nidium::IO::Stream::Create(newpath.c_str());
 
             if (stream == NULL) {
                 fprintf(stderr, "Could not create stream for file %s\n", newpath.c_str());
@@ -74,23 +75,23 @@ void listdir(NativeNFS *nfs, DIR *dir, std::string fullpath, int strip)
     closedir(dir);
 }
 
-void initNativeJSCore()
+static void initNidiumJSCore()
 {
     _ape_seed = time(NULL) ^ (getpid() << 16);
 
     /*
         This is required to create a stream (file is the default)
     */
-    NativePath::registerScheme(SCHEME_DEFINE("file://", NativeFileStream, false), true);
-    NativeTaskManager::createManager();
+    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("file://", Nidium::IO::FileStream, false), true);
+    Nidium::Core::TaskManager::CreateManager();
     ape_global *gnet = native_netlib_init();
-    NativeMessages::initReader(gnet);
+    Nidium::Core::Messages::initReader(gnet);
 
 }
 
 int main(int argc, char **argv)
 {
-    initNativeJSCore();
+    initNidiumJSCore();
 
     if (argc <= 1) {
         printf("$ %s <path> [prefix] [> out]\n", argv[0]);
@@ -118,9 +119,7 @@ int main(int argc, char **argv)
     JS_SetOptions(cx, JSOPTION_NO_SCRIPT_RVAL);
     JS_SetVersion(cx, JSVERSION_LATEST);
 
-    NativeNFS *nfs = new NativeNFS();
-
-    nfs->initJSWithCX(cx);
+    NativeJSNFS *nfs = new NativeJSNFS(cx);
 
     if (argc == 3) {
         std::string prefix = "/";
