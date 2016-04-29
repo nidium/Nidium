@@ -2259,7 +2259,7 @@ uint32_t Canvas2DContext::attachShader(const char *string)
     uint32_t program = this->createProgram(string);
 
     if (program) {
-        Nidium::Interface::NativeUIInterface *ui = m_GLState->getNativeGLContext()->getUI();
+        Nidium::Interface::UIInterface *ui = m_GLState->getNativeGLContext()->getUI();
         /* Destroy the old context (if it's not shared) */
         m_GLState->destroy();
         /* Create a new state without program */
@@ -2342,7 +2342,7 @@ void Canvas2DContext::setSize(int width, int height, bool redraw)
     SkBaseDevice *ndev = NULL;
     SkCanvas *ncanvas;
 
-    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
     if (m_Skia->m_NativeCanvasBindMode == Nidium::Graphics::SkiaContext::BIND_GL) {
         if ((ncanvas = Nidium::Graphics::SkiaContext::CreateGLCanvas(width, height,
@@ -2394,7 +2394,7 @@ void Canvas2DContext::translate(double x, double y)
 }
 
 Canvas2DContext::Canvas2DContext(Nidium::Graphics::CanvasHandler *handler,
-    JSContext *cx, int width, int height, Nidium::Interface::NativeUIInterface *ui) :
+    JSContext *cx, int width, int height, Nidium::Interface::UIInterface *ui) :
     Nidium::Graphics::CanvasContext(handler),
     m_SetterDisabled(false), m_CurrentState(NULL)
 {
@@ -2424,7 +2424,7 @@ Canvas2DContext::Canvas2DContext(Nidium::Graphics::CanvasHandler *handler,
 }
 
 Canvas2DContext::Canvas2DContext(Nidium::Graphics::CanvasHandler *handler,
-    int width, int height, Nidium::Interface::NativeUIInterface *ui, bool isGL) :
+    int width, int height, Nidium::Interface::UIInterface *ui, bool isGL) :
     Nidium::Graphics::CanvasContext(handler), m_SetterDisabled(false)
 {
     m_Mode = CONTEXT_2D;

@@ -31,13 +31,13 @@
 
 #define kNativeVSYNC 1
 
-@interface NativeCocoaUIInterfaceWrapper: NSObject {
-    NativeCocoaUIInterface *base;
+@interface UICocoaUIIInterfaceWrapper: NSObject {
+    UICocoaUIIInterface *base;
 }
 
 - (NSMenu *) renderSystemTray;
 - (void) menuClicked:(id)ev;
-- (id) initWithUI:(NativeCocoaUIInterface *)ui;
+- (id) initWithUI:(UICocoaUIIInterface *)ui;
 
 @end
 
@@ -57,7 +57,7 @@ static NSWindow *NativeCocoaWindow(SDL_Window *win)
     return (NSWindow *)info.info.cocoa.window;
 }
 
-void NativeCocoaUIInterface::quitApplication()
+void UICocoaUIIInterface::quitApplication()
 {
     [[NSApplication sharedApplication] terminate:nil];
 }
@@ -65,7 +65,7 @@ void NativeCocoaUIInterface::quitApplication()
 static int NativeProcessSystemLoop(void *arg)
 {
     SDL_PumpEvents();
-    NativeCocoaUIInterface *ui = (NativeCocoaUIInterface *)arg;
+    UICocoaUIIInterface *ui = (UICocoaUIIInterface *)arg;
 
     if (ui->m_NativeCtx) {
         ui->makeMainGLCurrent();
@@ -75,7 +75,7 @@ static int NativeProcessSystemLoop(void *arg)
 
 static void NativeDoneExtracting(void *closure, const char *fpath)
 {
-    NativeCocoaUIInterface *ui = (NativeCocoaUIInterface *)closure;
+    UICocoaUIIInterface *ui = (UICocoaUIIInterface *)closure;
     if (chdir(fpath) != 0) {
         fprintf(stderr, "Cant enter cache directory (%d)\n", errno);
         return;
@@ -83,10 +83,10 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     fprintf(stdout, "Changing directory to : %s\n", fpath);
 
     ui->m_Nml = new Nidium::Frontend::NML(ui->m_Gnet);
-    ui->m_Nml->loadFile("./index.nml", NativeCocoaUIInterface_onNMLLoaded, ui);
+    ui->m_Nml->loadFile("./index.nml", UICocoaUIIInterface_onNMLLoaded, ui);
 }
 
-void NativeCocoaUIInterface::log(const char *buf)
+void UICocoaUIIInterface::log(const char *buf)
 {
     if (this->m_Console && !this->m_Console->m_IsHidden) {
         this->m_Console->log(buf);
@@ -96,7 +96,7 @@ void NativeCocoaUIInterface::log(const char *buf)
     }
 }
 
-void NativeCocoaUIInterface::logf(const char *format, ...)
+void UICocoaUIIInterface::logf(const char *format, ...)
 {
     char *buff;
     int len;
@@ -111,7 +111,7 @@ void NativeCocoaUIInterface::logf(const char *format, ...)
     free(buff);
 }
 
-void NativeCocoaUIInterface::vlog(const char *format, va_list ap)
+void UICocoaUIIInterface::vlog(const char *format, va_list ap)
 {
     char *buff;
     int len;
@@ -123,7 +123,7 @@ void NativeCocoaUIInterface::vlog(const char *format, va_list ap)
     free(buff);
 }
 
-void NativeCocoaUIInterface::logclear()
+void UICocoaUIIInterface::logclear()
 {
     if (this->m_Console && !this->m_Console->m_IsHidden) {
         this->m_Console->clear();
@@ -131,7 +131,7 @@ void NativeCocoaUIInterface::logclear()
 }
 
 
-void NativeCocoaUIInterface::stopApplication()
+void UICocoaUIIInterface::stopApplication()
 {
     [this->m_DragNSView setResponder:nil];
     this->disableSysTray();
@@ -140,26 +140,26 @@ void NativeCocoaUIInterface::stopApplication()
     UIInterface::stopApplication();
 }
 
-NativeCocoaUIInterface::NativeCocoaUIInterface() :
-    NativeUIInterface(), m_StatusItem(NULL), m_DragNSView(nil)
+UICocoaUIIInterface::UICocoaUIIInterface() :
+    UIInterface(), m_StatusItem(NULL), m_DragNSView(nil)
 {
-    m_Wrapper = [[NativeCocoaUIInterfaceWrapper alloc] initWithUI:this];
+    m_Wrapper = [[UICocoaUIIInterfaceWrapper alloc] initWithUI:this];
 }
 
-NativeUICocoaConsole *NativeCocoaUIInterface::getConsole(bool create, bool *created) {
+UICocoaConsole *UICocoaUIIInterface::getConsole(bool create, bool *created) {
     if (created) *created = false;
     if (this->m_Console == NULL && create) {
-        this->m_Console = new NativeUICocoaConsole;
+        this->m_Console = new UICocoaConsole;
         if (created) *created = true;
     }
     return this->m_Console;
 }
 
-void NativeCocoaUIInterface::onWindowCreated()
+void UICocoaUIIInterface::onWindowCreated()
 {
     NSWindow *window = NativeCocoaWindow(m_Win);
 
-    m_DragNSView = [[NativeDragNSView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
+    m_DragNSView = [[DragNSView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
     [[window contentView] addSubview:this->m_DragNSView];
     [this->m_DragNSView setResponder:NativeJSwindow::getNativeClass(m_NativeCtx->getNJS())];
 
@@ -180,7 +180,7 @@ void NativeCocoaUIInterface::onWindowCreated()
 
 }
 
-void NativeCocoaUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
+void UICocoaUIIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
     uint8_t b, uint8_t a)
 {
     NSWindow *window = NativeCocoaWindow(m_Win);
@@ -201,7 +201,7 @@ void NativeCocoaUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
                    alpha:((double)a)/255]];
 }
 
-void NativeCocoaUIInterface::initControls()
+void UICocoaUIIInterface::initControls()
 {
     NSWindow *window = NativeCocoaWindow(m_Win);
     NSButton *close = [window standardWindowButton:NSWindowCloseButton];
@@ -221,7 +221,7 @@ void NativeCocoaUIInterface::initControls()
     }
 }
 
-void NativeCocoaUIInterface::setWindowControlsOffset(double x, double y)
+void UICocoaUIIInterface::setWindowControlsOffset(double x, double y)
 {
     NSWindow *window = NativeCocoaWindow(m_Win);
     NSButton *close = [window standardWindowButton:NSWindowCloseButton];
@@ -251,7 +251,7 @@ void NativeCocoaUIInterface::setWindowControlsOffset(double x, double y)
     }
 }
 
-void NativeCocoaUIInterface::openFileDialog(const char *files[],
+void UICocoaUIIInterface::openFileDialog(const char *files[],
     void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags)
 {
     NSOpenPanel* openDlg = [NSOpenPanel openPanel];
@@ -297,7 +297,7 @@ void NativeCocoaUIInterface::openFileDialog(const char *files[],
 #endif
 }
 
-void NativeCocoaUIInterface::runLoop()
+void UICocoaUIIInterface::runLoop()
 {
     APE_timer_create(m_Gnet, 1, NativeProcessUI, (void *)this);
     APE_timer_create(m_Gnet, 1, NativeProcessSystemLoop, (void *)this);
@@ -305,7 +305,7 @@ void NativeCocoaUIInterface::runLoop()
     APE_loop_run(m_Gnet);
 }
 
-void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
+void UICocoaUIIInterface::setWindowFrame(int x, int y, int w, int h)
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSWindow *nswindow = NativeCocoaWindow(m_Win);
@@ -340,21 +340,21 @@ void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
 }
 
 #if 0
-bool NativeCocoaUIInterface::makeMainGLCurrent()
+bool UICocoaUIIInterface::makeMainGLCurrent()
 {
     [((NSOpenGLContext *)m_mainGLCtx) makeCurrentContext];
 
     return true;
 }
 
-SDL_GLContext NativeCocoaUIInterface::getCurrentGLContext()
+SDL_GLContext UICocoaUIIInterface::getCurrentGLContext()
 {
     return (SDL_GLContext)[NSOpenGLContext currentContext];
 }
 #endif
 
 #if 0
-bool NativeCocoaUIInterface::makeGLCurrent(SDL_GLContext ctx)
+bool UICocoaUIIInterface::makeGLCurrent(SDL_GLContext ctx)
 {
     [((NSOpenGLContext *)ctx) makeCurrentContext];
 
@@ -362,7 +362,7 @@ bool NativeCocoaUIInterface::makeGLCurrent(SDL_GLContext ctx)
 }
 #endif
 
-static const char *drawRect_Associated_obj = "_NativeUIInterface";
+static const char *drawRect_Associated_obj = "_UIInterface";
 
 @interface NSPointer : NSObject
 {
@@ -392,7 +392,7 @@ static const char *drawRect_Associated_obj = "_NativeUIInterface";
 - (void) drawRect:(NSRect)dirtyRect
 {
     NSPointer *idthis = objc_getAssociatedObject(self, drawRect_Associated_obj);
-    NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)idthis->m_Ptr;
+    UICocoaUIIInterface *UI = (UICocoaUIIInterface *)idthis->m_Ptr;
     Nidium::Frontend::Context *ctx = UI->getNativeContext();
 
     if (ctx && ctx->isSizeDirty()) {
@@ -402,7 +402,7 @@ static const char *drawRect_Associated_obj = "_NativeUIInterface";
 }
 @end
 
-void NativeCocoaUIInterface::patchSDLView(NSView *sdlview)
+void UICocoaUIIInterface::patchSDLView(NSView *sdlview)
 {
     Class SDLView = NSClassFromString(@"SDLView");
     Method drawRectNewMeth = class_getInstanceMethod([NativeDrawRectResponder class], @selector(drawRect:));
@@ -418,7 +418,7 @@ void NativeCocoaUIInterface::patchSDLView(NSView *sdlview)
     [idthis release];
 }
 
-void NativeCocoaUIInterface::enableSysTray()
+void UICocoaUIIInterface::enableSysTray()
 {
 #if 0
     m_StatusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
@@ -451,7 +451,7 @@ void NativeCocoaUIInterface::enableSysTray()
     this->renderSystemTray();
 }
 
-void NativeCocoaUIInterface::disableSysTray()
+void UICocoaUIIInterface::disableSysTray()
 {
     if (!m_StatusItem) {
         return;
@@ -462,14 +462,14 @@ void NativeCocoaUIInterface::disableSysTray()
     m_StatusItem = NULL;
 }
 
-void NativeCocoaUIInterface::quit()
+void UICocoaUIIInterface::quit()
 {
     this->stopApplication();
     SDL_Quit();
     [[NSApplication sharedApplication] terminate:nil];
 }
 
-void NativeCocoaUIInterface::hideWindow()
+void UICocoaUIIInterface::hideWindow()
 {
     if (!m_Hidden) {
         m_Hidden = true;
@@ -482,7 +482,7 @@ void NativeCocoaUIInterface::hideWindow()
     }
 }
 
-void NativeCocoaUIInterface::showWindow()
+void UICocoaUIIInterface::showWindow()
 {
     if (m_Hidden) {
         m_Hidden = false;
@@ -494,9 +494,9 @@ void NativeCocoaUIInterface::showWindow()
     }
 }
 
-void NativeCocoaUIInterface::renderSystemTray()
+void UICocoaUIIInterface::renderSystemTray()
 {
-    NativeSystemMenuItem *item = m_SystemMenu.items();
+    SystemMenuItem *item = m_SystemMenu.items();
     if (!item) {
         return;
     }
@@ -540,28 +540,28 @@ void NativeCocoaUIInterface::renderSystemTray()
     [m_StatusItem setMenu:stackMenu];
 }
 
-void NativeCocoaUIInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
+void UICocoaUIIInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
 {
     switch(cursorvalue) {
-        case NativeCocoaUIInterface::ARROW:
+        case UICocoaUIIInterface::ARROW:
             [[NSCursor arrowCursor] set];
             break;
-        case NativeCocoaUIInterface::BEAM:
+        case UICocoaUIIInterface::BEAM:
             [[NSCursor IBeamCursor] set];
             break;
-        case NativeCocoaUIInterface::CROSS:
+        case UICocoaUIIInterface::CROSS:
             [[NSCursor crosshairCursor] set];
             break;
-        case NativeCocoaUIInterface::POINTING:
+        case UICocoaUIIInterface::POINTING:
             [[NSCursor pointingHandCursor] set];
             break;
-        case NativeCocoaUIInterface::CLOSEDHAND:
+        case UICocoaUIIInterface::CLOSEDHAND:
             [[NSCursor closedHandCursor] set];
             break;
-        case NativeCocoaUIInterface::RESIZELEFTRIGHT:
+        case UICocoaUIIInterface::RESIZELEFTRIGHT:
             [[NSCursor resizeLeftRightCursor] set];
             break;
-        case NativeCocoaUIInterface::HIDDEN:
+        case UICocoaUIIInterface::HIDDEN:
             SDL_ShowCursor(0);
             break;
         default:
@@ -569,9 +569,9 @@ void NativeCocoaUIInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
     }
 }
 
-@implementation NativeCocoaUIInterfaceWrapper
+@implementation UICocoaUIIInterfaceWrapper
 
-- (id) initWithUI:(NativeCocoaUIInterface *)ui
+- (id) initWithUI:(UICocoaUIIInterface *)ui
 {
     if (self = [super init]) {
         self->base = ui;
@@ -591,10 +591,10 @@ void NativeCocoaUIInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
 
 - (NSMenu *) renderSystemTray
 {
-    NativeCocoaUIInterface *ui = self->base;
-    NativeSystemMenu &m_SystemMenu = ui->getSystemMenu();
+    UICocoaUIIInterface *ui = self->base;
+    SystemMenu &m_SystemMenu = ui->getSystemMenu();
 
-    NativeSystemMenuItem *item = m_SystemMenu.items();
+    SystemMenuItem *item = m_SystemMenu.items();
     if (!item) {
         return nil;
     }

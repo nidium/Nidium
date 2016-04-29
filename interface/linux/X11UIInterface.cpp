@@ -30,14 +30,14 @@ static Window *NativeX11Window(SDL_Window *m_Win)
 #endif
 // }}}
 
-// {{{ NativeX11UIinterface
-NativeX11UIInterface::NativeX11UIInterface() :
-    NativeUIInterface(), console(NULL)
+// {{{ UIX11Interface
+UIX11Interface::UIX11Interface() :
+    UIInterface(), console(NULL)
 {
 
 }
 
-void NativeX11UIInterface::quitApplication()
+void UIX11Interface::quitApplication()
 {
 #ifdef NIDIUM_USE_GTK
     while (gtk_events_pending ()) {
@@ -47,7 +47,7 @@ void NativeX11UIInterface::quitApplication()
     exit(1);
 }
 
-void NativeX11UIInterface::hitRefresh()
+void UIX11Interface::hitRefresh()
 {
 #ifdef NIDIUM_USE_GTK
     while (gtk_events_pending ()) {
@@ -57,14 +57,14 @@ void NativeX11UIInterface::hitRefresh()
     this->restartApplication();
 }
 
-void NativeX11UIInterface::onWindowCreated()
+void UIX11Interface::onWindowCreated()
 {
-    console = new NativeUIX11Console();
-    static_cast<NativeSystem *>(NativeSystemInterface::_interface)->initSystemUI();
+    console = new UIX11Console();
+    static_cast<System *>(SystemInterface::_interface)->initSystemUI();
 }
 
 
-void NativeX11UIInterface::openFileDialog(const char *files[],
+void UIX11Interface::openFileDialog(const char *files[],
     void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags)
 {
     GtkWidget *dialog;
@@ -161,7 +161,7 @@ void NativeX11UIInterface::openFileDialog(const char *files[],
 static int NativeProcessSystemLoop(void *arg)
 {
     //SDL_PumpEvents();
-    NativeX11UIInterface *ui = (NativeX11UIInterface *)arg;
+    UIX11Interface *ui = (UIX11Interface *)arg;
 
     /*if (ui->m_NativeCtx) {
         ui->makeMainGLCurrent();
@@ -172,21 +172,21 @@ static int NativeProcessSystemLoop(void *arg)
 }
 
 
-void NativeX11UIInterface::runLoop()
+void UIX11Interface::runLoop()
 {
-    APE_timer_create(m_Gnet, 1, NativeUIInterface::HandleEvents, (void *)this);
+    APE_timer_create(m_Gnet, 1, UIInterface::HandleEvents, (void *)this);
     APE_timer_create(m_Gnet, 1, NativeProcessSystemLoop, (void *)this);
     APE_loop_run(m_Gnet);
 }
 
 
-void NativeX11UIInterface::log(const char *buf)
+void UIX11Interface::log(const char *buf)
 {
     fwrite(buf, sizeof(char), strlen(buf), stdout);
     fflush(stdout);
 }
 
-void NativeX11UIInterface::logf(const char *format, ...)
+void UIX11Interface::logf(const char *format, ...)
 {
     char *buff;
     int len;
@@ -201,7 +201,7 @@ void NativeX11UIInterface::logf(const char *format, ...)
     free(buff);
 }
 
-void NativeX11UIInterface::vlog(const char *format, va_list ap)
+void UIX11Interface::vlog(const char *format, va_list ap)
 {
     char *buff;
     int len;
@@ -213,25 +213,25 @@ void NativeX11UIInterface::vlog(const char *format, va_list ap)
     free(buff);
 }
 
-void NativeX11UIInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
+void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)
 {
     int cursor;
     SDL_SysWMinfo info;
 
     switch(cursorvalue) {
-        case NativeX11UIInterface::ARROW:
+        case UIX11Interface::ARROW:
             cursor = XC_left_ptr;
             break;
-        case NativeX11UIInterface::BEAM:
+        case UIX11Interface::BEAM:
             cursor = XC_xterm;
             break;
-        case NativeX11UIInterface::CROSS:
+        case UIX11Interface::CROSS:
             cursor = XC_crosshair;
             break;
-        case NativeX11UIInterface::POINTING:
+        case UIX11Interface::POINTING:
             cursor = XC_hand2;
             break;
-        case NativeX11UIInterface::CLOSEDHAND:
+        case UIX11Interface::CLOSEDHAND:
             cursor = XC_hand1;
             break;
         default:
@@ -258,9 +258,9 @@ void tray_icon_on_click(GtkStatusIcon *status_icon,
 }
 
 
-void NativeX11UIInterface::enableSysTray()
+void UIX11Interface::enableSysTray()
 {
-    NativeSystemMenuItem *item = m_SystemMenu.items();
+    SystemMenuItem *item = m_SystemMenu.items();
     if (!item) {
         return;
     }
@@ -281,19 +281,19 @@ void NativeX11UIInterface::enableSysTray()
         gtk_status_icon_set_from_pixbuf(statusicon, gicon);
 
         gtk_status_icon_set_visible(statusicon, TRUE);
-        
+
     }
 }
 
-void NativeX11UIInterface::renderSystemTray()
+void UIX11Interface::renderSystemTray()
 {
-    
+
 }
 
 // }}}
 
-// {{{ NativeUIX11Console
-void NativeUIX11Console::log(const char *str)
+// {{{ UIX11Console
+void UIX11Console::log(const char *str)
 {
     if (strcmp("\n", str) == 0) {
         fprintf(stdout, "\n");
@@ -303,5 +303,6 @@ void NativeUIX11Console::log(const char *str)
 }
 // }}}
 
-} // namespace Nidium
 } // namespace Interface
+} // namespace Nidium
+

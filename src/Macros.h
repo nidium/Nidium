@@ -7,7 +7,7 @@
 
 namespace Nidium {
     namespace Interface {
-        extern NativeUIInterface *__NativeUI;
+        extern UIInterface *__NativeUI;
     }
 namespace Frontend {
 

@@ -5,7 +5,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-NativeSystem::NativeSystem()
+System::System()
 {
 #if NIDIUM_ENABLE_HIDPI
     m_fBackingStorePixelRatio = [[NSScreen mainScreen] backingScaleFactor];
@@ -15,7 +15,7 @@ NativeSystem::NativeSystem()
     fprintf(stdout, "Canvas Ratio (HIDPI) : %f\n", m_fBackingStorePixelRatio);
 }
 
-float NativeSystem::backingStorePixelRatio()
+float System::backingStorePixelRatio()
 {
     return m_fBackingStorePixelRatio;
 }
@@ -50,20 +50,20 @@ static NSString *runCommand(NSString *commandToRun)
     return output;
 }
 
-const char *NativeSystem::execute(const char *cmd)
+const char *System::execute(const char *cmd)
 {
     NSString *ret = runCommand([NSString stringWithCString:cmd encoding:NSUTF8StringEncoding]);
 
     return [ret UTF8String];
 }
 
-void NativeSystem::openURLInBrowser(const char *url)
+void System::openURLInBrowser(const char *url)
 {
     NSString *nsurl = [NSString stringWithCString:url encoding:NSASCIIStringEncoding];
     [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:nsurl]];
 }
 
-const char *NativeSystem::getPrivateDirectory()
+const char *System::getPrivateDirectory()
 {
     static char parentdir[MAXPATHLEN];
     static bool resolved = false;
@@ -87,7 +87,7 @@ const char *NativeSystem::getPrivateDirectory()
     return parentdir;
 }
 
-const char *NativeSystem::getCacheDirectory()
+const char *System::getCacheDirectory()
 {
     NSArray* paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
     NSString* cacheDir = [paths objectAtIndex:0];
@@ -104,7 +104,7 @@ const char *NativeSystem::getCacheDirectory()
     return NULL;
 }
 
-const char *NativeSystem::getUserDirectory()
+const char *System::getUserDirectory()
 {
     NSString* userDir = [NSString stringWithFormat:@"%@/", NSHomeDirectory()];
 
@@ -115,7 +115,7 @@ const char *NativeSystem::getUserDirectory()
     return [userDir cStringUsingEncoding:NSUTF8StringEncoding];
 }
 
-void NativeSystem::alert(const char *message, AlertType type)
+void System::alert(const char *message, AlertType type)
 {
     NSAlert *alert = [[NSAlert alloc] init];
 
@@ -131,7 +131,7 @@ void NativeSystem::alert(const char *message, AlertType type)
 }
 
 
-const char *NativeSystem::pwd()
+const char *System::pwd()
 {
     static char dir[MAXPATHLEN];
 
@@ -140,7 +140,7 @@ const char *NativeSystem::pwd()
     return dir;
 }
 
-const char *NativeSystem::getLanguage()
+const char *System::getLanguage()
 {
     NSString* language = [[NSLocale preferredLanguages] objectAtIndex:0];
     const char *clang = [language cStringUsingEncoding:NSASCIIStringEncoding];
@@ -148,7 +148,7 @@ const char *NativeSystem::getLanguage()
     return clang;
 }
 
-void NativeSystem::sendNotification(const char *title, const char *content, bool sound)
+void System::sendNotification(const char *title, const char *content, bool sound)
 {
     NSUserNotification *notification = [[NSUserNotification alloc] init];
 

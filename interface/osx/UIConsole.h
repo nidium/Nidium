@@ -25,11 +25,11 @@ namespace Interface {
 @end
 
 
-class NativeUICocoaConsole : public NativeUIInterface::NativeUIConsole
+class UICocoaConsole : public UIInterface::UIConsole
 {
     public:
-        NativeUICocoaConsole();
-        ~NativeUICocoaConsole();
+        UICocoaConsole();
+        ~UICocoaConsole();
         void log(const char *str);
         void show();
         void hide();
@@ -42,8 +42,8 @@ class NativeUICocoaConsole : public NativeUIInterface::NativeUIConsole
         bool m_NeedFlush;
 };
 
-} // namespace Nidium
 } // namespace Interface
+} // namespace Nidium
 
 #endif
 

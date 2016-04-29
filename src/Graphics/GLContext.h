@@ -14,7 +14,7 @@ typedef void *SDL_GLContext;
 
 namespace Nidium {
     namespace Interface {
-        extern NativeUIInterface *__NativeUI;
+        extern UIInterface *__NativeUI;
     }
 namespace Graphics {
 
@@ -71,7 +71,7 @@ namespace Graphics {
 class GLContext
 {
     public:
-        GLContext(Nidium::Interface::NativeUIInterface *ui,
+        GLContext(Nidium::Interface::UIInterface *ui,
             SDL_GLContext wrappedCtx = NULL, bool webgl = false) :
             m_Interface(NULL), m_UI(ui)
         {
@@ -133,7 +133,7 @@ class GLContext
             }
         }
 
-        Nidium::Interface::NativeUIInterface *getUI() const {
+        Nidium::Interface::UIInterface *getUI() const {
             return m_UI;
         }
 
@@ -160,7 +160,7 @@ class GLContext
         }
 
         SDL_GLContext m_SDLGLCtx;
-        Nidium::Interface::NativeUIInterface *m_UI;
+        Nidium::Interface::UIInterface *m_UI;
         bool m_Wrapped;
 };
 // }}}

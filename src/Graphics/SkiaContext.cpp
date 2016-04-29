@@ -362,7 +362,7 @@ int SkiaContext::bindOnScreen(int width, int height)
         return 0;
     }
 
-    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
 #if 0
     SkBaseDevice *dev = SkiaContext::m_GlContext
@@ -433,7 +433,7 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height,
         }
 
     }
-    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
     GrBackendRenderTargetDesc desc;
     //GrGLRenderTarget *t = new GrGLRenderTarget();
@@ -669,7 +669,7 @@ void SkiaContext::stroke()
     m_Canvas->resetMatrix();
 
     SkScalar lineWidth = PAINT_STROKE->getStrokeWidth();
-    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
     PAINT_STROKE->setStrokeWidth(SkFloatToScalar(ratio) * lineWidth);
 
@@ -1067,7 +1067,7 @@ void SkiaContext::transform(double scalex, double skewy, double skewx,
 
     float ratio = 1.0f;
     if (set) {
-        ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
+        ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
     }
 
     m.setScaleX(SkDoubleToScalar(scalex*ratio));

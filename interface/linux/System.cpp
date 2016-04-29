@@ -56,8 +56,8 @@ static void get_dpi(int *x, int *y)
 }
 // }}}
 
-// {{{ NativeSystem
-NativeSystem::NativeSystem() : m_SystemUIReady(false)
+// {{{ System
+System::System() : m_SystemUIReady(false)
 {
     int x, y;
     get_dpi(&x, &y);
@@ -69,12 +69,12 @@ NativeSystem::NativeSystem() : m_SystemUIReady(false)
     m_fBackingStorePixelRatio = 1.0;
 }
 
-float NativeSystem::backingStorePixelRatio()
+float System::backingStorePixelRatio()
 {
     return m_fBackingStorePixelRatio;
 }
 
-const char *NativeSystem::getPrivateDirectory()
+const char *System::getPrivateDirectory()
 {
     static char privatedir[MAXPATHLEN];
 
@@ -84,7 +84,7 @@ const char *NativeSystem::getPrivateDirectory()
     return privatedir;
 }
 
-const char *NativeSystem::getCacheDirectory()
+const char *System::getCacheDirectory()
 {
     const char *homedir = getUserDirectory();
     char nHome[2048];
@@ -99,7 +99,7 @@ const char *NativeSystem::getCacheDirectory()
     return strdup(nHome);
 }
 
-const char *NativeSystem::getUserDirectory()
+const char *System::getUserDirectory()
 {
     static char retHome[2048];
 
@@ -113,10 +113,10 @@ const char *NativeSystem::getUserDirectory()
     return retHome;
 }
 
-void NativeSystem::alert(const char *message, AlertType type)
+void System::alert(const char *message, AlertType type)
 {
     // SystemUI (GTK/QT) must be initialized after SDL (or GTK crash)
-    // Since NativeSystem::alert() can be called before SDL is initialized
+    // Since System::alert() can be called before SDL is initialized
     // we initialize system UI on the fly if needed
     this->initSystemUI();
 
@@ -146,7 +146,7 @@ void NativeSystem::alert(const char *message, AlertType type)
     gtk_widget_destroy (dialog);
 }
 
-void NativeSystem::initSystemUI()
+void System::initSystemUI()
 {
     if (!m_SystemUIReady) {
 #ifdef NIDIUM_USE_GTK
@@ -156,7 +156,7 @@ void NativeSystem::initSystemUI()
 }
 
 
-const char *NativeSystem::pwd()
+const char *System::pwd()
 {
     static char dir[MAXPATHLEN];
 
@@ -164,7 +164,7 @@ const char *NativeSystem::pwd()
 
     return dir;
 }
-const char *NativeSystem::getLanguage()
+const char *System::getLanguage()
 {
 
     const char * lang;
@@ -175,6 +175,6 @@ const char *NativeSystem::getLanguage()
 }
 // }}}
 
-} // namespace Nidium
 } // namespace Interface
+} // namespace Nidium
 

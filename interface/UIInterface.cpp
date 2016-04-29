@@ -23,8 +23,8 @@ namespace Nidium {
 namespace Interface {
 
 // {{{ NativUIInterface
-NativeUIInterface::NativeUIInterface() :
-    m_CurrentCursor(NativeUIInterface::ARROW), m_NativeCtx(NULL), m_Nml(NULL),
+UIInterface::UIInterface() :
+    m_CurrentCursor(UIInterface::ARROW), m_NativeCtx(NULL), m_Nml(NULL),
     m_Win(NULL), m_Gnet(APE_init()), m_Width(0), m_Height(0), m_FilePath(NULL),
     m_Initialized(false), m_IsOffscreen(false), m_ReadPixelInBuffer(false),
     m_Hidden(false), m_FBO(0), m_FrameBuffer(NULL), m_Console(NULL),
@@ -43,7 +43,7 @@ NativeUIInterface::NativeUIInterface() :
     Nidium::Core::TaskManager::CreateManager();
 }
 
-bool NativeUIInterface::createWindow(int width, int height)
+bool UIInterface::createWindow(int width, int height)
 {
     if (!m_Initialized) {
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1) {
@@ -104,9 +104,9 @@ bool NativeUIInterface::createWindow(int width, int height)
     return true;
 }
 
-int NativeUIInterface::HandleEvents(void *arg)
+int UIInterface::HandleEvents(void *arg)
 {
-    NativeUIInterface *NUII = (NativeUIInterface *)arg;
+    UIInterface *NUII = (UIInterface *)arg;
 
     SDL_Event event;
     int nrefresh = 0;
@@ -222,9 +222,9 @@ int NativeUIInterface::HandleEvents(void *arg)
         NUII->m_NativeCtx->getNJS()->gc();
     }
 
-    if (NUII->m_CurrentCursor != NativeUIInterface::NOCHANGE) {
+    if (NUII->m_CurrentCursor != UIInterface::NOCHANGE) {
         NUII->setSystemCursor(NUII->m_CurrentCursor);
-        NUII->m_CurrentCursor = NativeUIInterface::NOCHANGE;
+        NUII->m_CurrentCursor = UIInterface::NOCHANGE;
     }
 
     if (NUII->m_NativeCtx) {
@@ -254,13 +254,13 @@ int NativeUIInterface::HandleEvents(void *arg)
     return 16;
 }
 
-void NativeUIInterface::OnNMLLoaded(void *arg)
+void UIInterface::OnNMLLoaded(void *arg)
 {
-    NativeUIInterface *UI = (NativeUIInterface *)arg;
+    UIInterface *UI = (UIInterface *)arg;
     UI->onNMLLoaded();
 }
 
-void NativeUIInterface::onNMLLoaded()
+void UIInterface::onNMLLoaded()
 {
     if (!this->createWindow(
         this->m_Nml->getMetaWidth(),
@@ -271,23 +271,23 @@ void NativeUIInterface::onNMLLoaded()
     this->setWindowTitle(this->m_Nml->getMetaTitle());
 }
 
-bool NativeUIInterface::makeMainGLCurrent()
+bool UIInterface::makeMainGLCurrent()
 {
     if (!m_MainGLCtx) return false;
     return (SDL_GL_MakeCurrent(this->m_Win, m_MainGLCtx) == 0);
 }
 
-SDL_GLContext NativeUIInterface::getCurrentGLContext()
+SDL_GLContext UIInterface::getCurrentGLContext()
 {
     return SDL_GL_GetCurrentContext();
 }
 
-bool NativeUIInterface::makeGLCurrent(SDL_GLContext ctx)
+bool UIInterface::makeGLCurrent(SDL_GLContext ctx)
 {
     return (SDL_GL_MakeCurrent(this->m_Win, ctx) == 0);
 }
 
-SDL_GLContext NativeUIInterface::createSharedContext(bool webgl)
+SDL_GLContext UIInterface::createSharedContext(bool webgl)
 {
     SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
 
@@ -296,45 +296,45 @@ SDL_GLContext NativeUIInterface::createSharedContext(bool webgl)
     return created;
 }
 
-void NativeUIInterface::setWindowTitle(const char *name)
+void UIInterface::setWindowTitle(const char *name)
 {
     SDL_SetWindowTitle(m_Win, (name == NULL || *name == '\0' ? "nidium" : name));
 }
 
-const char *NativeUIInterface::getWindowTitle() const
+const char *UIInterface::getWindowTitle() const
 {
     return SDL_GetWindowTitle(m_Win);
 }
 
-void NativeUIInterface::setClipboardText(const char *text)
+void UIInterface::setClipboardText(const char *text)
 {
     SDL_SetClipboardText(text);
 }
 
-char *NativeUIInterface::getClipboardText()
+char *UIInterface::getClipboardText()
 {
     return SDL_GetClipboardText();
 }
 
 
-void NativeUIInterface::setCursor(CURSOR_TYPE type)
+void UIInterface::setCursor(CURSOR_TYPE type)
 {
     this->m_CurrentCursor = type;
 }
 
 
-void NativeUIInterface::deleteGLContext(SDL_GLContext ctx)
+void UIInterface::deleteGLContext(SDL_GLContext ctx)
 {
     SDL_GL_DeleteContext(ctx);
 }
 
-void NativeUIInterface::quit()
+void UIInterface::quit()
 {
     this->stopApplication();
     SDL_Quit();
 }
 
-void NativeUIInterface::refresh()
+void UIInterface::refresh()
 {
     int oswap = SDL_GL_GetSwapInterval();
     SDL_GL_SetSwapInterval(0);
@@ -349,13 +349,13 @@ void NativeUIInterface::refresh()
     SDL_GL_SetSwapInterval(oswap);
 }
 
-void NativeUIInterface::centerWindow()
+void UIInterface::centerWindow()
 {
     SDL_SetWindowPosition(this->m_Win, SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED);
 }
 
-void NativeUIInterface::getScreenSize(int *width, int *height)
+void UIInterface::getScreenSize(int *width, int *height)
 {
     SDL_Rect bounds;
     int displayIndex = SDL_GetWindowDisplayIndex(this->m_Win);
@@ -366,19 +366,19 @@ void NativeUIInterface::getScreenSize(int *width, int *height)
     if (height) *height = bounds.h;
 }
 
-void NativeUIInterface::setWindowPosition(int x, int y)
+void UIInterface::setWindowPosition(int x, int y)
 {
     SDL_SetWindowPosition(this->m_Win,
         (x == NIDIUM_WINDOWPOS_UNDEFINED_MASK) ? SDL_WINDOWPOS_UNDEFINED_MASK : x,
         (y == NIDIUM_WINDOWPOS_UNDEFINED_MASK) ? SDL_WINDOWPOS_UNDEFINED_MASK : y);
 }
 
-void NativeUIInterface::getWindowPosition(int *x, int *y)
+void UIInterface::getWindowPosition(int *x, int *y)
 {
     SDL_GetWindowPosition(this->m_Win, x, y);
 }
 
-void NativeUIInterface::setWindowSize(int w, int h)
+void UIInterface::setWindowSize(int w, int h)
 {
     this->m_Width = w;
     this->m_Height = h;
@@ -386,7 +386,7 @@ void NativeUIInterface::setWindowSize(int w, int h)
     SDL_SetWindowSize(this->m_Win, w, h);
 }
 
-void NativeUIInterface::setWindowFrame(int x, int y, int w, int h)
+void UIInterface::setWindowFrame(int x, int y, int w, int h)
 {
     if (x == NIDIUM_WINDOWPOS_CENTER_MASK) x = SDL_WINDOWPOS_CENTERED;
     if (y == NIDIUM_WINDOWPOS_CENTER_MASK) y = SDL_WINDOWPOS_CENTERED;
@@ -395,7 +395,7 @@ void NativeUIInterface::setWindowFrame(int x, int y, int w, int h)
     this->setWindowPosition(x, y);
 }
 
-void NativeUIInterface::toggleOfflineBuffer(bool val)
+void UIInterface::toggleOfflineBuffer(bool val)
 {
     if (val && !m_ReadPixelInBuffer) {
         this->initPBOs();
@@ -407,7 +407,7 @@ void NativeUIInterface::toggleOfflineBuffer(bool val)
     m_ReadPixelInBuffer = val;
 }
 
-void NativeUIInterface::initPBOs()
+void UIInterface::initPBOs()
 {
     if (m_ReadPixelInBuffer) {
         return;
@@ -429,7 +429,7 @@ void NativeUIInterface::initPBOs()
     m_FrameBuffer = (uint8_t *)malloc(screenPixelSize);
 }
 
-uint8_t *NativeUIInterface::readScreenPixel()
+uint8_t *UIInterface::readScreenPixel()
 {
     if (!m_ReadPixelInBuffer) {
         this->toggleOfflineBuffer(true);
@@ -470,7 +470,7 @@ uint8_t *NativeUIInterface::readScreenPixel()
     return m_FrameBuffer;
 }
 
-int NativeUIInterface::useOffScreenRendering(bool val)
+int UIInterface::useOffScreenRendering(bool val)
 {
     if (!val && m_IsOffscreen) {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -506,11 +506,11 @@ int NativeUIInterface::useOffScreenRendering(bool val)
     return 0;
 }
 
-void NativeUIInterface::refreshApplication(bool clearConsole)
+void UIInterface::refreshApplication(bool clearConsole)
 {
 
     if (clearConsole) {
-        NativeUIConsole *console = this->getConsole();
+        UIConsole *console = this->getConsole();
         if (console && !console->hidden()) {
             console->clear();
         }
@@ -524,7 +524,7 @@ void NativeUIInterface::refreshApplication(bool clearConsole)
     this->restartApplication();
 }
 
-bool NativeUIInterface::runApplication(const char *path)
+bool UIInterface::runApplication(const char *path)
 {
     Nidium::Core::Messages::InitReader(m_Gnet);
 
@@ -541,12 +541,12 @@ bool NativeUIInterface::runApplication(const char *path)
     const char *ext = &path[strlen(path)-4];
 
     this->m_Nml = new Nidium::Frontend::NML(this->m_Gnet);
-    this->m_Nml->loadFile(path, NativeUIInterface::OnNMLLoaded, this);
+    this->m_Nml->loadFile(path, UIInterface::OnNMLLoaded, this);
 
     return true;
 }
 
-void NativeUIInterface::stopApplication()
+void UIInterface::stopApplication()
 {
     if (this->m_Nml) {
         delete this->m_Nml;
@@ -565,13 +565,13 @@ void NativeUIInterface::stopApplication()
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-void NativeUIInterface::restartApplication(const char *path)
+void UIInterface::restartApplication(const char *path)
 {
     this->stopApplication();
     this->runApplication(path == NULL ? this->m_FilePath : path);
 }
 
-void NativeUIInterface::hideWindow()
+void UIInterface::hideWindow()
 {
     if (!m_Hidden) {
         m_Hidden = true;
@@ -581,7 +581,7 @@ void NativeUIInterface::hideWindow()
     }
 }
 
-void NativeUIInterface::showWindow()
+void UIInterface::showWindow()
 {
     if (m_Hidden) {
         m_Hidden = false;
@@ -592,16 +592,16 @@ void NativeUIInterface::showWindow()
 }
 // }}}
 
-// {{{ NativeSystemMenu
-void NativeSystemMenu::addItem(NativeSystemMenuItem *item)
+// {{{ SystemMenu
+void SystemMenu::addItem(SystemMenuItem *item)
 {
     item->m_Next = m_Items;
     m_Items = item;
 }
 
-void NativeSystemMenu::deleteItems()
+void SystemMenu::deleteItems()
 {
-    NativeSystemMenuItem *tmp = NULL, *cur = m_Items;
+    SystemMenuItem *tmp = NULL, *cur = m_Items;
     while (cur != NULL) {
         tmp = cur->m_Next;
         delete cur;
@@ -611,7 +611,7 @@ void NativeSystemMenu::deleteItems()
     m_Items = NULL;
 }
 
-void NativeSystemMenu::setIcon(const uint8_t *data, size_t width, size_t height)
+void SystemMenu::setIcon(const uint8_t *data, size_t width, size_t height)
 {
     m_Icon.data = data;
     m_Icon.len = width * height * 4;
@@ -619,19 +619,19 @@ void NativeSystemMenu::setIcon(const uint8_t *data, size_t width, size_t height)
     m_Icon.height = height;
 }
 
-NativeSystemMenu::NativeSystemMenu(NativeUIInterface *ui) : m_UI(ui)
+SystemMenu::SystemMenu(UIInterface *ui) : m_UI(ui)
 {
     m_Items = NULL;
     m_Icon.data = NULL;
     m_Icon.len = 0;
 }
 
-NativeSystemMenu::~NativeSystemMenu()
+SystemMenu::~SystemMenu()
 {
     this->deleteItems();
 }
 // }}}
 
-} // namespace Nidium
 } // namespace Interface
+} // namespace Nidium
 

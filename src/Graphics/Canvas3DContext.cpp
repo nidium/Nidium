@@ -27,7 +27,7 @@ Canvas3DContext::~Canvas3DContext()
 }
 
 Canvas3DContext::Canvas3DContext(CanvasHandler *handler,
-    JSContext *cx, int width, int height, Nidium::Interface::NativeUIInterface *ui) :
+    JSContext *cx, int width, int height, Nidium::Interface::UIInterface *ui) :
     CanvasContext(handler), m_Flags(0)
 {
     m_Mode = CONTEXT_WEBGL;
@@ -43,7 +43,7 @@ Canvas3DContext::Canvas3DContext(CanvasHandler *handler,
 
     JS_SetPrivate(m_JsObj, this);
 
-    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
     m_Device.width = width * ratio;
     m_Device.height = height * ratio;
@@ -79,7 +79,7 @@ void Canvas3DContext::setSize(int width, int height, bool redraw)
 
     this->cleanUp();
 
-    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
     m_Device.width = width * ratio;
     m_Device.height = height * ratio;

@@ -63,9 +63,9 @@ void NML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
 
     m_Stream = Nidium::IO::Stream::Create(path);
     if (m_Stream == NULL) {
-        Nidium::Interface::NativeSystemInterface::GetInstance()->
+        Nidium::Interface::SystemInterface::GetInstance()->
             alert("NML error : stream error",
-            Nidium::Interface::NativeSystemInterface::ALERT_CRITIC);
+            Nidium::Interface::SystemInterface::ALERT_CRITIC);
         exit(1);
     }
     /*
@@ -106,7 +106,7 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
     using namespace rapidxml;
 
     if (len == 0 || data == NULL) {
-        Nidium::Interface::NativeSystemInterface::GetInstance()->alert("NML error : empty file", Nidium::Interface::NativeSystemInterface::ALERT_CRITIC);
+        Nidium::Interface::SystemInterface::GetInstance()->alert("NML error : empty file", Nidium::Interface::SystemInterface::ALERT_CRITIC);
         return false;
     }
 
@@ -116,14 +116,14 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
         char cerr[2048];
 
         sprintf(cerr, "NML error : %s", err.what());
-        Nidium::Interface::NativeSystemInterface::GetInstance()->alert(cerr, Nidium::Interface::NativeSystemInterface::ALERT_CRITIC);
+        Nidium::Interface::SystemInterface::GetInstance()->alert(cerr, Nidium::Interface::SystemInterface::ALERT_CRITIC);
 
         return false;
     }
 
     xml_node<> *node = doc.first_node("application");
     if (node == NULL) {
-        Nidium::Interface::NativeSystemInterface::GetInstance()->alert("<application> node not found", Nidium::Interface::NativeSystemInterface::ALERT_CRITIC);
+        Nidium::Interface::SystemInterface::GetInstance()->alert("<application> node not found", Nidium::Interface::SystemInterface::ALERT_CRITIC);
         return false;
     }
 
@@ -145,7 +145,7 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
 
                 if ((ret = (this->*m_NmlTags[i].cb)(*child)) != NIDIUM_XML_OK) {
                     printf("XML : Nidium error (%d)\n", ret);
-                    Nidium::Interface::NativeSystemInterface::GetInstance()->alert("NML ERROR", Nidium::Interface::NativeSystemInterface::ALERT_CRITIC);
+                    Nidium::Interface::SystemInterface::GetInstance()->alert("NML ERROR", Nidium::Interface::SystemInterface::ALERT_CRITIC);
                     return false;
                 }
             }
@@ -153,7 +153,7 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
     }
 
     if (!this->meta.loaded) {
-        Nidium::Interface::NativeSystemInterface::GetInstance()->alert("<meta> tag is missing in the NML file", Nidium::Interface::NativeSystemInterface::ALERT_CRITIC);
+        Nidium::Interface::SystemInterface::GetInstance()->alert("<meta> tag is missing in the NML file", Nidium::Interface::SystemInterface::ALERT_CRITIC);
         return false;
     }
 
@@ -276,9 +276,9 @@ void NML::onMessage(const Nidium::Core::SharedMessages::Message &msg)
         }
         case Nidium::IO::Stream::EVENT_ERROR:
         {
-            Nidium::Interface::NativeSystemInterface::GetInstance()->
+            Nidium::Interface::SystemInterface::GetInstance()->
                 alert("NML error : stream error",
-                Nidium::Interface::NativeSystemInterface::ALERT_CRITIC);
+                Nidium::Interface::SystemInterface::ALERT_CRITIC);
             exit(1);
             break;
         }

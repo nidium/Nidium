@@ -78,7 +78,7 @@ public:
     }
 
     static const char *GetBaseDir() {
-        return Nidium::Interface::NativeSystemInterface::GetInstance()->getUserDirectory();
+        return Nidium::Interface::SystemInterface::GetInstance()->getUserDirectory();
     }
 };
 // }}}

@@ -1,7 +1,7 @@
 #ifndef interface_osx_system_h__
 #define interface_osx_system_h__
 
-#include "../NativeSystemInterface.h"
+#include "../SystemInterface.h"
 
 namespace Nidium {
 namespace Interface {
@@ -11,11 +11,11 @@ namespace Interface {
 */
 #define NIDIUM_ENABLE_HIDPI 1
 
-class NativeSystem : public NativeSystemInterface
+class System : public SystemInterface
 {
     public:
-        NativeSystem();
-        ~NativeSystem() {};
+        System();
+        ~System() {};
         float backingStorePixelRatio();
         const char *getCacheDirectory();
         const char *getPrivateDirectory();
@@ -28,8 +28,8 @@ class NativeSystem : public NativeSystemInterface
         const char *execute(const char *cmd);
 };
 
-} // namespace Nidium
 } // namespace Interface
+} // namespace Nidium
 
 #endif
 

@@ -2851,7 +2851,7 @@ NGL_JS_FN(WebGLRenderingContext_viewport)
 //{
     GLint x, y, w, h;
 
-    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
     if (!JS_ConvertArguments(cx, args, "iiii", &x, &y, &w, &h)) {
         return false;

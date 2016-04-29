@@ -29,19 +29,19 @@ extern JSClass Canvas2DContext_class;
 
 static struct nidium_cursors {
     const char *str;
-    Nidium::Interface::NativeUIInterface::CURSOR_TYPE type;
+    Nidium::Interface::UIInterface::CURSOR_TYPE type;
 } nidium_cursors_list[] = {
-    {"default",             Nidium::Interface::NativeUIInterface::ARROW},
-    {"arrow",               Nidium::Interface::NativeUIInterface::ARROW},
-    {"beam",                Nidium::Interface::NativeUIInterface::BEAM},
-    {"text",                Nidium::Interface::NativeUIInterface::BEAM},
-    {"pointer",             Nidium::Interface::NativeUIInterface::POINTING},
-    {"grabbing",            Nidium::Interface::NativeUIInterface::CLOSEDHAND},
-    {"drag",                Nidium::Interface::NativeUIInterface::CLOSEDHAND},
-    {"hidden",              Nidium::Interface::NativeUIInterface::HIDDEN},
-    {"none",                Nidium::Interface::NativeUIInterface::HIDDEN},
-    {"col-resize",          Nidium::Interface::NativeUIInterface::RESIZELEFTRIGHT},
-    {NULL,                  Nidium::Interface::NativeUIInterface::NOCHANGE},
+    {"default",             Nidium::Interface::UIInterface::ARROW},
+    {"arrow",               Nidium::Interface::UIInterface::ARROW},
+    {"beam",                Nidium::Interface::UIInterface::BEAM},
+    {"text",                Nidium::Interface::UIInterface::BEAM},
+    {"pointer",             Nidium::Interface::UIInterface::POINTING},
+    {"grabbing",            Nidium::Interface::UIInterface::CLOSEDHAND},
+    {"drag",                Nidium::Interface::UIInterface::CLOSEDHAND},
+    {"hidden",              Nidium::Interface::UIInterface::HIDDEN},
+    {"none",                Nidium::Interface::UIInterface::HIDDEN},
+    {"col-resize",          Nidium::Interface::UIInterface::RESIZELEFTRIGHT},
+    {NULL,                  Nidium::Interface::UIInterface::NOCHANGE},
 };
 
 enum {
@@ -671,7 +671,7 @@ static bool nidium_canvas_getContext(JSContext *cx, unsigned argc,
     NIDIUM_JS_CHECK_ARGS("getContext", 1);
 
     Nidium::Frontend::Context *nctx = Nidium::Frontend::Context::GetObject(cx);
-    Nidium::Interface::NativeUIInterface *ui = nctx->getUI();
+    Nidium::Interface::UIInterface *ui = nctx->getUI();
 
     JS::RootedString mode(cx, args[0].toString());
     JSAutoByteString cmode(cx, mode);
@@ -1524,7 +1524,7 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx, int width,
 {
     Nidium::Graphics::CanvasHandler *handler;
     Nidium::Frontend::Context *nctx = Nidium::Frontend::Context::GetObject(cx);
-    Nidium::Interface::NativeUIInterface *ui = nctx->getUI();
+    Nidium::Interface::UIInterface *ui = nctx->getUI();
 
     JS::RootedObject ret(cx, JS_NewObject(cx, &Canvas_class, JS::NullPtr(), JS::NullPtr()));
     JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit",
@@ -1561,7 +1561,7 @@ void JSCanvas::onMessage(const Core::SharedMessages::Message &msg)
     switch (msg.event()) {
         case NIDIUM_EVENT(Nidium::Graphics::CanvasHandler, RESIZE_EVENT):
         {
-            // TODO : fireEvent            
+            // TODO : fireEvent
             JSOBJ_CALLFUNCNAME(ro, "onresize", JS::HandleValueArray::empty());
             break;
         }
@@ -1701,6 +1701,6 @@ void JSCanvas::RegisterObject(JSContext *cx)
 }
 // }}}
 
-} // namespace Nidium
 } // namespace Binding
+} // namespace Nidium
 
