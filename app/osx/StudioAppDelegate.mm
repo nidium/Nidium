@@ -13,15 +13,15 @@ unsigned long _ape_seed;
 
 namespace Nidium {
     namespace Interface {
-        NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
-        NativeUIInterface *__NativeUI;
+        SystemInterface *SystemInterface::_interface = new System();
+        UIInterface *__UI;
     }
 
 namespace App {
 
 int _nativebuild = 1002;
 
-@implementation NativeStudioAppDelegate
+@implementation StudioAppDelegate
 
 @synthesize position, appfile;
 
@@ -74,7 +74,7 @@ int _nativebuild = 1002;
 - (void) refreshApp
 {
     self->UI->refreshApplication();
-    NativeUICocoaConsole *console = self->UI->getConsole(false, NULL);
+    UICocoaConsole *console = self->UI->getConsole(false, NULL);
     if (console) {
         console->clear();
     }
@@ -83,7 +83,7 @@ int _nativebuild = 1002;
 - (void) openConsole
 {
     bool created;
-    NativeUICocoaConsole *console = self->UI->getConsole(true, &created);
+    UICocoaConsole *console = self->UI->getConsole(true, &created);
 
     if (!created) {
         if (console->hidden()) {
@@ -160,9 +160,9 @@ NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:@"Testing!"] autorelease];
 #endif
     //[self setupWorkingDirectory:YES];
     _ape_seed = time(NULL) ^ (getpid() << 16);
-    //NativeConsole *console = [[NativeConsole alloc] init];
+    //Console *console = [[Console alloc] init];
     //[console attachToStdout];
-    NativeCocoaUIInterface *nUI = new NativeCocoaUIInterface;
+    CocoaUIInterface *nUI = new CocoaUIInterface;
     __NativeUI = nUI;
     nUI->setArguments(*_NSGetArgc(), *_NSGetArgv());
 
@@ -178,12 +178,12 @@ NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:@"Testing!"] autorelease];
         } else {
             filename = [self.appfile UTF8String];
         }
-        
+
         if (!nUI->runApplication(filename)) {
             [[NSApplication sharedApplication] terminate:nil];
             return;
         }
-    
+
         nUI->runLoop();
 #if NIDIUM_DISPATCH_MAINTHREAD
     });

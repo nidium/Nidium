@@ -6,7 +6,7 @@
 
 namespace Nidium {
     namespace Interface {
-        class NativeUIInterface;
+        class UIInterface;
     }
     namespace Graphics {
         class CanvasHandler;
@@ -42,8 +42,8 @@ private:
     JS::Heap<JSObject *> m_Inherit;
 };
 
-} // namespace Nidium
 } // namespace Binding
+} // namespace Nidium
 
 #endif
 

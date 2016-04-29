@@ -14,12 +14,12 @@ unsigned long _ape_seed;
 
 namespace Nidium {
     namespace Interface {
-        class NativeSystemInterface;
-        class NativeUIInterface;
+        class SystemInterface;
+        class UIInterface;
         class NativeX11Interface;
 
-        NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
-        NativeUIInterface *__NativeUI;
+        SystemInterface *SystemInterface::_interface = new System();
+        UIInterface *__NativeUI;
     }
 namespace App {
 
@@ -45,7 +45,7 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 
 int main(int argc, char **argv)
 {
-    Nidium::Interface::NativeX11UIInterface UI;
+    Nidium::Interface::UIX11Interface UI;
 
 #ifdef NIDIUM_ENABLE_CRASHREPORTER
     google_breakpad::MinidumpDescriptor descriptor(UI.getCacheDirectory());

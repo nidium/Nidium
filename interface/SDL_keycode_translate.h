@@ -53,8 +53,8 @@ static const int32_t SDL_TO_DOM_KEYCODES[512] = {
 #undef L1
 #undef L2
 
-} // namespace Nidium
 } // namespace Interface
+} // namespace Nidium
 
 #endif
 

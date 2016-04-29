@@ -81,12 +81,12 @@ void Context::initStats()
     memset(m_Stats.samples, 0, sizeof(m_Stats.samples));
 }
 
-void Context::CreateAndAssemble(Nidium::Interface::NativeUIInterface *ui, ape_global *gnet)
+void Context::CreateAndAssemble(Nidium::Interface::UIInterface *ui, ape_global *gnet)
 {
     new Context(ui, ui->m_Nml, ui->getWidth(), ui->getHeight(), gnet);
 }
 
-Context::Context(Nidium::Interface::NativeUIInterface *nui, NML *nml,
+Context::Context(Nidium::Interface::UIInterface *nui, NML *nml,
     int width, int height, ape_global *net) :
     m_RootHandler(NULL), m_DebugHandler(NULL),
 #if DEBUG

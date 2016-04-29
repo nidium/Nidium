@@ -29,8 +29,8 @@ class JSNidium : public JSExposer<JSNidium>
     static JSClass *jsclass;
 };
 
-} // namespace Nidium
 } // namespace Binding
+} // namespace Nidium
 
 #endif
 

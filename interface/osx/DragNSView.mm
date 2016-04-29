@@ -1,7 +1,7 @@
 #import "DragNSView.h"
 #import <JSWindow.h>
 
-@implementation NativeDragNSView
+@implementation DragNSView
 
 @synthesize responder = _responder;
 

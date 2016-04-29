@@ -12,7 +12,7 @@ class SkCanvas;
 
 namespace Nidium {
     namespace Interface {
-        class NativeUIInterface;
+        class UIInterface;
     }
     namespace Graphics {
         struct Rect;
@@ -134,10 +134,10 @@ class Canvas2DContext : public Graphics::CanvasContext
         static void RegisterObject(JSContext *cx);
 
         Canvas2DContext(Graphics::CanvasHandler *handler,
-            int width, int height, Interface::NativeUIInterface *ui, bool isGL = true);
+            int width, int height, Interface::UIInterface *ui, bool isGL = true);
 
         Canvas2DContext(Graphics::CanvasHandler *handler,
-            struct JSContext *cx, int width, int height, Interface::NativeUIInterface *ui);
+            struct JSContext *cx, int width, int height, Interface::UIInterface *ui);
 
         virtual ~Canvas2DContext();
     private:

@@ -2152,21 +2152,21 @@ void Canvas2DContext::setupCommonDraw()
 void Canvas2DContext::drawTexture(uint32_t textureID, uint32_t width,
     uint32_t height, uint32_t left, uint32_t top)
 {
-    NATIVE_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, textureID));
+    NIDIUM_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, textureID));
 
-    NATIVE_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
-    NATIVE_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
+    NIDIUM_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
+    NIDIUM_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
 
     /* Anti Aliasing */
-    NATIVE_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    NATIVE_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    NIDIUM_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    NIDIUM_GL_CALL_MAIN(TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
-    NATIVE_GL_CALL_MAIN(DrawElements(GR_GL_TRIANGLE_STRIP, m_GLState->m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0));
+    NIDIUM_GL_CALL_MAIN(DrawElements(GR_GL_TRIANGLE_STRIP, m_GLState->m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0));
 
-    NATIVE_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, 0));
+    NIDIUM_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, 0));
 
     /* Unbind vertex array bound by resetGLContext() */
-    NATIVE_GL_CALL_MAIN(BindVertexArray(0));
+    NIDIUM_GL_CALL_MAIN(BindVertexArray(0));
 }
 
 #if 0
@@ -2259,7 +2259,7 @@ uint32_t Canvas2DContext::attachShader(const char *string)
     uint32_t program = this->createProgram(string);
 
     if (program) {
-        Nidium::Interface::NativeUIInterface *ui = m_GLState->getNativeGLContext()->getUI();
+        Nidium::Interface::UIInterface *ui = m_GLState->getNativeGLContext()->getUI();
         /* Destroy the old context (if it's not shared) */
         m_GLState->destroy();
         /* Create a new state without program */
@@ -2342,7 +2342,7 @@ void Canvas2DContext::setSize(int width, int height, bool redraw)
     SkBaseDevice *ndev = NULL;
     SkCanvas *ncanvas;
 
-    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
     if (m_Skia->m_NativeCanvasBindMode == Nidium::Graphics::SkiaContext::BIND_GL) {
         if ((ncanvas = Nidium::Graphics::SkiaContext::CreateGLCanvas(width, height,
@@ -2394,7 +2394,7 @@ void Canvas2DContext::translate(double x, double y)
 }
 
 Canvas2DContext::Canvas2DContext(Nidium::Graphics::CanvasHandler *handler,
-    JSContext *cx, int width, int height, Nidium::Interface::NativeUIInterface *ui) :
+    JSContext *cx, int width, int height, Nidium::Interface::UIInterface *ui) :
     Nidium::Graphics::CanvasContext(handler),
     m_SetterDisabled(false), m_CurrentState(NULL)
 {
@@ -2424,7 +2424,7 @@ Canvas2DContext::Canvas2DContext(Nidium::Graphics::CanvasHandler *handler,
 }
 
 Canvas2DContext::Canvas2DContext(Nidium::Graphics::CanvasHandler *handler,
-    int width, int height, Nidium::Interface::NativeUIInterface *ui, bool isGL) :
+    int width, int height, Nidium::Interface::UIInterface *ui, bool isGL) :
     Nidium::Graphics::CanvasContext(handler), m_SetterDisabled(false)
 {
     m_Mode = CONTEXT_2D;

@@ -6,9 +6,9 @@
 namespace Nidium {
 namespace Interface {
 
-class NativeSystem;
+class System;
 
-class NativeSystemInterface
+class SystemInterface
 {
     public:
 
@@ -34,20 +34,20 @@ class NativeSystemInterface
         virtual const char *pwd()=0;
         virtual const char *getLanguage()=0;
         virtual void sendNotification(const char *title, const char *content, bool sound = false) {};
-        static NativeSystemInterface* GetInstance()
+        static SystemInterface* GetInstance()
         {
-            return NativeSystemInterface::_interface;
+            return SystemInterface::_interface;
         }
-        static NativeSystemInterface *_interface;
-        virtual ~NativeSystemInterface() {};
+        static SystemInterface *_interface;
+        virtual ~SystemInterface() {};
     private:
-        void operator=(NativeSystem const&);
+        void operator=(System const&);
     protected:
         float m_fBackingStorePixelRatio;
 };
 
-} // namespace Nidium
 } // namespace Interface
+} // namespace Nidium
 
 #endif
 

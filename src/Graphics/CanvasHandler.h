@@ -17,7 +17,7 @@
 
 namespace Nidium {
     namespace Interface {
-        class NativeUIInterface;
+        class UIInterface;
     }
     namespace Binding {
         class JSCanvas;

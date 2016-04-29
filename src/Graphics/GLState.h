@@ -10,7 +10,7 @@
 
 namespace Nidium {
     namespace Interface {
-        class NativeUIInterface;
+        class UIInterface;
     }
 namespace Graphics {
 
@@ -33,7 +33,7 @@ class GLState
 
 public:
 
-    GLState(Nidium::Interface::NativeUIInterface *ui,
+    GLState(Nidium::Interface::UIInterface *ui,
         bool withProgram = true, bool webgl = false);
     ~GLState();
 

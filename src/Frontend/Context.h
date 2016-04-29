@@ -16,7 +16,7 @@
 
 namespace Nidium {
     namespace Interface {
-        class NativeUIInterface;
+        class UIInterface;
     }
     namespace Net {
         class WebSocketServer;
@@ -138,11 +138,11 @@ class Context : public Nidium::Core::Messages
 
     friend class Nidium::Graphics::CanvasHandler;
 
-    Context(Nidium::Interface::NativeUIInterface *nui, NML *nml,
+    Context(Nidium::Interface::UIInterface *nui, NML *nml,
         int width, int height, ape_global *net);
     ~Context();
 
-    Nidium::Interface::NativeUIInterface *getUI() const {
+    Nidium::Interface::UIInterface *getUI() const {
         return m_UI;
     }
     Nidium::Graphics::CanvasHandler *getRootHandler() const {
@@ -254,7 +254,7 @@ class Context : public Nidium::Core::Messages
         return m_CurrentClickedHandler;
     }
 
-    static void CreateAndAssemble(Nidium::Interface::NativeUIInterface *ui, ape_global *gnet);
+    static void CreateAndAssemble(Nidium::Interface::UIInterface *ui, ape_global *gnet);
 
     private:
     Nidium::Graphics::GLResources               m_Resources;
@@ -264,7 +264,7 @@ class Context : public Nidium::Core::Messages
 #ifdef DEBUG
     Nidium::Graphics::CanvasHandler *           m_Debug2Handler;
 #endif
-    Nidium::Interface::NativeUIInterface *      m_UI;
+    Nidium::Interface::UIInterface *            m_UI;
     NML *                                       m_NML;
     Nidium::Graphics::GLState *                 m_GLState;
     Nidium::Net::WebSocketServer * m_WS;

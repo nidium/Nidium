@@ -8,14 +8,14 @@ namespace Interface {
 
 class JSWindow;
 
-@interface NativeDragNSView : NSView
+@interface DragNSView : NSView
 
 @property (assign, nonatomic) JSWindow *responder;
 
 @end
 
-} // namespace Nidium
 } // namespace Interface
+} // namespace Nidium
 
 #endif
 

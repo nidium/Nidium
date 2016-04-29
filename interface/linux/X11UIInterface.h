@@ -6,26 +6,26 @@
 namespace Nidium {
 namespace Interface {
 
-// {{{ NativeUIX11Console
-class NativeUIX11Console : public NativeUIInterface::NativeUIConsole
+// {{{ UIX11Console
+class UIX11Console : public UIInterface::UIConsole
 {
     public:
-        NativeUIX11Console(){};
-        ~NativeUIX11Console(){};
+        UIX11Console() {};
+        ~UIX11Console() {};
         void log(const char *str);
-        void show(){};
-        void hide(){};
-        void clear(){};
-        void flush(){};
+        void show() {};
+        void hide() {};
+        void clear() {};
+        void flush() {};
         bool hidden() { return true; };
 };
 // }}}
 
-// {{{ NativeX11UIInterface
-class NativeX11UIInterface : public NativeUIInterface
+// {{{ UIX11Interface
+class UIX11Interface : public UIInterface
 {
     public:
-        NativeX11UIInterface();
+        UIX11Interface();
         void runLoop();
         void quitApplication();
         void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {};
@@ -34,9 +34,9 @@ class NativeX11UIInterface : public NativeUIInterface
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags = 0);
 
         void enableSysTray();
-        
+
         void initControls() {};
-        NativeUIX11Console *getConsole(bool create=false, bool *created=NULL) {
+        UIX11Console *getConsole(bool create=false, bool *created=NULL) {
             return this->console;
         }
 
@@ -63,12 +63,12 @@ class NativeX11UIInterface : public NativeUIInterface
         void hitRefresh();
         void onWindowCreated();
     private:
-        NativeUIX11Console *console;
+        UIX11Console *console;
 };
 // }}}
 
-} // namespace Nidium
 } // namespace Interface
+} // namespace Nidium
 
 #endif
 

@@ -18,8 +18,8 @@ namespace Frontend {
 
 #define NIDIUM_MANIFEST "manifest.json"
 
-// {{{ NativeExtractor
-struct NativeExtractor_s
+// {{{ Extractor
+struct Extractor_s
 {
     App *app;
     uint64_t curIndex;
@@ -34,10 +34,10 @@ struct NativeExtractor_s
     } data;
 };
 
-static bool NativeExtractor(const char * buf,
+static bool Extractor(const char * buf,
     int len, size_t offset, size_t total, void *user)
 {
-    struct NativeExtractor_s *arg = (struct NativeExtractor_s *)user;
+    struct Extractor_s *arg = (struct Extractor_s *)user;
 
     /* First call (open the file) */
     if (arg->data.offset == 0) {
@@ -82,7 +82,7 @@ static bool NativeExtractor(const char * buf,
 
             /* Extract next file */
             arg->data.len = arg->app->extractFile(arg->fName,
-                                NativeExtractor, arg);
+                                Extractor, arg);
 
             return true;
         }
@@ -165,11 +165,11 @@ static void *native_appworker_thread(void *arg)
     return NULL;
 }
 
-static int Native_handle_app_messages(void *arg)
+static int Nidium_handle_app_messages(void *arg)
 {
 #define MAX_MSG_IN_ROW 32
     App *app = static_cast<App *>(arg);
-    struct App::native_app_msg *ptr;
+    struct App::app_msg *ptr;
     int nread = 0;
 
     Nidium::Core::SharedMessages::Message *msg;
@@ -177,7 +177,7 @@ static int Native_handle_app_messages(void *arg)
     while (++nread < MAX_MSG_IN_ROW && (msg = app->m_Messages->readMessage())) {
         switch (msg->event()) {
             case App::APP_MESSAGE_READ:
-                ptr = static_cast<struct App::native_app_msg *>(msg->dataPtr());
+                ptr = static_cast<struct App::app_msg *>(msg->dataPtr());
                 ptr->cb(ptr->data, ptr->len, ptr->offset, ptr->total, ptr->user);
                 free(ptr->data);
                 delete ptr;
@@ -194,7 +194,7 @@ static int Native_handle_app_messages(void *arg)
 void App::actionExtractRead(const char *buf, int len,
     size_t offset, size_t total)
 {
-    struct native_app_msg *msg = new struct native_app_msg;
+    struct app_msg *msg = new struct app_msg;
     msg->data = (char *)malloc(len);
     msg->len  = len;
     msg->total = total;
@@ -217,7 +217,7 @@ void App::runWorker(ape_global *net)
     m_Action.stop = false;
 
     m_Timer = APE_timer_create(net, 1,
-        Native_handle_app_messages, this);
+        Nidium_handle_app_messages, this);
 
     pthread_mutex_init(&m_ThreadMutex, NULL);
     pthread_cond_init(&m_ThreadCond, NULL);
@@ -317,7 +317,7 @@ int App::extractApp(const char *path,
     if (first == -1) {
         return 0;
     }
-    struct NativeExtractor_s *arg = new NativeExtractor_s;
+    struct Extractor_s *arg = new Extractor_s;
     arg->app = this;
     arg->curIndex = first;
     arg->fName = zip_get_name(m_fZip, first, ZIP_FL_UNCHANGED);
@@ -326,7 +326,7 @@ int App::extractApp(const char *path,
     arg->fDir = fullpath;
     arg->done = done;
     arg->closure = closure;
-    arg->data.len = this->extractFile(arg->fName, NativeExtractor, arg);
+    arg->data.len = this->extractFile(arg->fName, Extractor, arg);
 
     return (arg->data.len != 0);
 }

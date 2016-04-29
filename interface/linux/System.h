@@ -6,11 +6,11 @@
 namespace Nidium {
 namespace Interface {
 
-class NativeSystem : public NativeSystemInterface
+class System : public SystemInterface
 {
     public:
-        NativeSystem();
-        ~NativeSystem() {};
+        System();
+        ~System() {};
         float backingStorePixelRatio();
         const char *getCacheDirectory();
         const char *getPrivateDirectory();
@@ -23,8 +23,8 @@ class NativeSystem : public NativeSystemInterface
         bool m_SystemUIReady;
 };
 
-} // namespace Nidium
 } // namespace Interface
+} // namespace Nidium
 
 #endif
 

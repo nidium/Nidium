@@ -13,13 +13,13 @@
 namespace Nidium {
 namespace App {
 
-class NativeCocoaUIInterface;
+class UICocoaUIIInterface;
 
 @interface NativeStudioAppDelegate : NSObject <NSApplicationDelegate, NSUserNotificationCenterDelegate>
 {
     NSArray *position;
     NSString *appfile;
-    NativeCocoaUIInterface *UI;
+    UICocoaUIIInterface *UI;
     BOOL isRunning;
 #ifdef NIDIUM_ENABLE_CRASHREPORTER
     BreakpadRef breakpad;

@@ -14,7 +14,7 @@ typedef void *SDL_GLContext;
 
 namespace Nidium {
     namespace Interface {
-        extern NativeUIInterface *__NativeUI;
+        extern UIInterface *__NativeUI;
     }
 namespace Graphics {
 
@@ -24,7 +24,7 @@ namespace Graphics {
     e.g. NIDIUM_GL_CALL(this->context, Clear(0, 0, 0, 0));
 */
 
-#define NATIVE_GL_MAIN_IFACE (Nidium::Interface::__NativeUI->getNativeContext()->getGLState()->getNativeGLContext())
+#define NIDIUM_GL_MAIN_IFACE (Nidium::Interface::__NativeUI->getNativeContext()->getGLState()->getNativeGLContext())
 
 #ifndef NATIVE_ENABLE_GL_ERROR
 
@@ -62,16 +62,16 @@ namespace Graphics {
         } while (false)
 #endif
 
-#define NATIVE_GL_CALL_MAIN(X) NIDIUM_GL_CALL((NATIVE_GL_MAIN_IFACE), X)
+#define NIDIUM_GL_CALL_MAIN(X) NIDIUM_GL_CALL((NIDIUM_GL_MAIN_IFACE), X)
 
-#define NATIVE_GL_CALL_RET_MAIN(X, RET) NIDIUM_GL_CALL_RET(NATIVE_GL_MAIN_IFACE, X, RET)
+#define NIDIUM_GL_CALL_RET_MAIN(X, RET) NIDIUM_GL_CALL_RET(NIDIUM_GL_MAIN_IFACE, X, RET)
 // }}}
 
 // {{{ GLContext
 class GLContext
 {
     public:
-        GLContext(Nidium::Interface::NativeUIInterface *ui,
+        GLContext(Nidium::Interface::UIInterface *ui,
             SDL_GLContext wrappedCtx = NULL, bool webgl = false) :
             m_Interface(NULL), m_UI(ui)
         {
@@ -133,7 +133,7 @@ class GLContext
             }
         }
 
-        Nidium::Interface::NativeUIInterface *getUI() const {
+        Nidium::Interface::UIInterface *getUI() const {
             return m_UI;
         }
 
@@ -160,7 +160,7 @@ class GLContext
         }
 
         SDL_GLContext m_SDLGLCtx;
-        Nidium::Interface::NativeUIInterface *m_UI;
+        Nidium::Interface::UIInterface *m_UI;
         bool m_Wrapped;
 };
 // }}}

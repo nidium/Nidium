@@ -25,7 +25,7 @@ CanvasHandler::CanvasHandler(int width, int height,
     m_CoordMode(kLeft_Coord | kTop_Coord), m_Opacity(1.0), m_Zoom(1.0),
     m_ScaleX(1.0), m_ScaleY(1.0), m_AllowNegativeScroll(false),
     m_NativeContext(nativeCtx), m_Pending(0), m_Loaded(!lazyLoad),
-     m_Cursor(Nidium::Interface::NativeUIInterface::ARROW)
+     m_Cursor(Nidium::Interface::UIInterface::ARROW)
 {
     /*
         TODO: thread safe
@@ -955,12 +955,12 @@ void CanvasHandler::getChildren(CanvasHandler **out) const
 
 int CanvasHandler::getCursor()
 {
-    if (m_Cursor != Nidium::Interface::NativeUIInterface::ARROW) {
+    if (m_Cursor != Nidium::Interface::UIInterface::ARROW) {
         return m_Cursor;
     }
 
     /* Inherit from parent when default */
-    return m_Parent ? m_Parent->getCursor() : Nidium::Interface::NativeUIInterface::ARROW;
+    return m_Parent ? m_Parent->getCursor() : Nidium::Interface::UIInterface::ARROW;
 }
 // }}}
 
@@ -968,7 +968,7 @@ int CanvasHandler::getCursor()
 void CanvasHandler::setCursor(int cursor)
 {
     m_Cursor = cursor;
-    Nidium::Interface::__NativeUI->setCursor((Nidium::Interface::NativeUIInterface::CURSOR_TYPE)this->getCursor());
+    Nidium::Interface::__NativeUI->setCursor((Nidium::Interface::UIInterface::CURSOR_TYPE)this->getCursor());
 }
 
 void CanvasHandler::setHidden(bool val)
@@ -1223,7 +1223,7 @@ void CanvasHandler::onMouseEvent(Nidium::Frontend::InputEvent *ev)
         default:
             break;
     }
-    Nidium::Interface::__NativeUI->setCursor((Nidium::Interface::NativeUIInterface::CURSOR_TYPE)this->getCursor());
+    Nidium::Interface::__NativeUI->setCursor((Nidium::Interface::UIInterface::CURSOR_TYPE)this->getCursor());
 }
 
 /*

@@ -210,22 +210,22 @@ uint32_t CanvasContext::CreatePassThroughProgram(GLResources &resource)
 
     GLint linkSuccess;
 
-    NATIVE_GL_CALL_MAIN(AttachShader(programHandle, vertexshader));
+    NIDIUM_GL_CALL_MAIN(AttachShader(programHandle, vertexshader));
 
-    NATIVE_GL_CALL_MAIN(AttachShader(programHandle, fragmentshader));
+    NIDIUM_GL_CALL_MAIN(AttachShader(programHandle, fragmentshader));
 
-    NATIVE_GL_CALL_MAIN(BindAttribLocation(programHandle,
+    NIDIUM_GL_CALL_MAIN(BindAttribLocation(programHandle,
         CanvasContext::SH_ATTR_POSITION, "Position"));
 
-    NATIVE_GL_CALL_MAIN(BindAttribLocation(programHandle,
+    NIDIUM_GL_CALL_MAIN(BindAttribLocation(programHandle,
         CanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn"));
 
-    NATIVE_GL_CALL_MAIN(BindAttribLocation(programHandle,
+    NIDIUM_GL_CALL_MAIN(BindAttribLocation(programHandle,
         CanvasContext::SH_ATTR_MODIFIER, "Modifier"));
 
-    NATIVE_GL_CALL_MAIN(LinkProgram(programHandle));
+    NIDIUM_GL_CALL_MAIN(LinkProgram(programHandle));
 
-    NATIVE_GL_CALL_MAIN(GetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess));
+    NIDIUM_GL_CALL_MAIN(GetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess));
 
     if (linkSuccess == GL_FALSE) {
         GLchar messages[256];
@@ -327,24 +327,24 @@ void CanvasContext::setupShader(float opacity, int width, int height,
     int left, int top, int wWidth, int wHeight)
 {
     uint32_t program = this->getProgram();
-    NATIVE_GL_CALL_MAIN(UseProgram(program));
+    NIDIUM_GL_CALL_MAIN(UseProgram(program));
 
-    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
     if (program > 0) {
         if (m_GLState->m_GLObjects.uniforms.u_opacity != -1) {
-            NATIVE_GL_CALL_MAIN(Uniform1f(m_GLState->m_GLObjects.uniforms.u_opacity, opacity));
+            NIDIUM_GL_CALL_MAIN(Uniform1f(m_GLState->m_GLObjects.uniforms.u_opacity, opacity));
         }
         float padding = this->getHandler()->m_Padding.global * ratio;
 
         if (m_GLState->m_GLObjects.uniforms.u_resolution != -1)
-            NATIVE_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_resolution,
+            NIDIUM_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_resolution,
                (width) - (padding * 2), (height) - (padding * 2)));
         if (m_GLState->m_GLObjects.uniforms.u_position  != -1)
-            NATIVE_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_position,
+            NIDIUM_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_position,
             ratio * left, ratio * wHeight - (height + ratio * top)));
         if (m_GLState->m_GLObjects.uniforms.u_padding != -1)
-            NATIVE_GL_CALL_MAIN(Uniform1f(m_GLState->m_GLObjects.uniforms.u_padding, padding));
+            NIDIUM_GL_CALL_MAIN(Uniform1f(m_GLState->m_GLObjects.uniforms.u_padding, padding));
     }
 
 }
@@ -354,7 +354,7 @@ void CanvasContext::preComposeOn(Nidium::Binding::Canvas2DContext *layer,
     double zoom, const Rect *rclip)
 {
     bool revertScissor = false;
-    float ratio = Nidium::Interface::NativeSystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
     SkiaContext *skia = layer->getSurface();
     SkISize layerSize = skia->getCanvas()->getDeviceSize();

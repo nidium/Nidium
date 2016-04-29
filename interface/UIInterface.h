@@ -19,25 +19,24 @@ namespace Nidium {
     }
 namespace Interface {
 
-class NativeUIInterface;
+class UIInterface;
 
 typedef void *SDL_GLContext;
 
-// {{{ NativeSystemMenuItem
-class NativeSystemMenuItem {
+// {{{ SystemMenuItem
+class SystemMenuItem {
 public:
-    NativeSystemMenuItem(char *title = NULL, char *id = NULL) :
-        m_Id(NULL), m_Title(NULL), m_Enabled(false), m_Next(NULL)
+    SystemMenuItem(char *title = NULL, char *id = NULL) :
+        m_Next(NULL), m_Id(NULL), m_Title(NULL), m_Enabled(false)
     {
         this->id(id);
         this->title(title);
     }
 
-    ~NativeSystemMenuItem() {
+    ~SystemMenuItem() {
         free(m_Title);
         free(m_Id);
     };
-    
 
     bool enabled(bool val) {
         m_Enabled = val;
@@ -71,7 +70,7 @@ public:
         m_Title = title ? strdup(title) : NULL;
     }
 
-    NativeSystemMenuItem *m_Next;
+    SystemMenuItem *m_Next;
 
 private:
     char *m_Id;
@@ -80,15 +79,15 @@ private:
 };
 // }}}
 
-// {{{ NativeSystemMen
-class NativeSystemMenu {
+// {{{ SystemMenu
+class SystemMenu {
 public:
-    NativeSystemMenu(NativeUIInterface *ui);
-    ~NativeSystemMenu();
+    SystemMenu(UIInterface *ui);
+    ~SystemMenu();
 
     void enable(bool val);
     void setIcon(const uint8_t *data, size_t width, size_t height);
-    void addItem(NativeSystemMenuItem *item);
+    void addItem(SystemMenuItem *item);
     void deleteItems();
     const uint8_t *getIcon(size_t *len, size_t *width, size_t *height) const {
         *len = m_Icon.len;
@@ -97,7 +96,7 @@ public:
         return m_Icon.data;
     }
 
-    NativeSystemMenuItem *items() const {
+    SystemMenuItem *items() const {
         return m_Items;
     }
 private:
@@ -107,16 +106,16 @@ private:
         size_t width, height;
     } m_Icon;
 
-    NativeSystemMenuItem *m_Items;
-    NativeUIInterface *m_UI;
+    SystemMenuItem *m_Items;
+    UIInterface *m_UI;
 };
 // }}}
 
-// {{{ NativeUIInterface
-class NativeUIInterface
+// {{{ UIInterface
+class UIInterface
 {
     public:
-        friend class NativeSystemMenu;
+        friend class SystemMenu;
 
         enum CURSOR_TYPE {
             ARROW,
@@ -146,7 +145,7 @@ class NativeUIInterface
         }
 
 
-        virtual ~NativeUIInterface() {};
+        virtual ~UIInterface() {};
 
         /*
             Start the window main loop
@@ -244,7 +243,7 @@ class NativeUIInterface
         }
 
         int getHeight() const {
-            return this->m_Height; 
+            return this->m_Height;
         }
 
         virtual void hideWindow();
@@ -289,7 +288,7 @@ class NativeUIInterface
             return m_Hidden;
         }
 
-        NativeSystemMenu &getSystemMenu() {
+        SystemMenu &getSystemMenu() {
             return m_SystemMenu;
         }
 
@@ -298,7 +297,7 @@ class NativeUIInterface
         static void OnNMLLoaded(void *arg);
 
 
-        class NativeUIConsole
+        class UIConsole
         {
             public:
             virtual void log(const char *str)=0;
@@ -307,7 +306,7 @@ class NativeUIInterface
             virtual void clear()=0;
             virtual bool hidden()=0;
         };
-        virtual NativeUIConsole *getConsole(bool create=false, bool *created=NULL)=0;
+        virtual UIConsole *getConsole(bool create=false, bool *created=NULL)=0;
 
 
         Frontend::Context *m_NativeCtx;
@@ -318,7 +317,7 @@ class NativeUIInterface
         char **m_Argv = nullptr;
 
     protected:
-        NativeUIInterface();
+        UIInterface();
         virtual void initControls() {};
         virtual void onWindowCreated() {};
         virtual void onNMLLoaded();
@@ -329,7 +328,7 @@ class NativeUIInterface
             OSX: does nothing, this is handled by the menu action
         */
         virtual void hitRefresh() {}
-        
+
         int m_Width;
         int m_Height;
         char *m_FilePath;
@@ -349,9 +348,9 @@ class NativeUIInterface
         } m_PBOs;
 
 
-        NativeUIConsole *m_Console;
+        UIConsole *m_Console;
         SDL_GLContext m_MainGLCtx;
-        NativeSystemMenu m_SystemMenu;
+        SystemMenu m_SystemMenu;
 };
 // }}}
 

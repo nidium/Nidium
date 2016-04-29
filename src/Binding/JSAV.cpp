@@ -1795,7 +1795,7 @@ static bool nidium_audionode_custom_get(JSContext *cx, unsigned argc, JS::Value 
     printf("hello get\n");
     printf("get node\n");
 
-    jsNode = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
+    jsNode = GET_NODE(JS_THIS_OBJECT(cx, vp));
 
     printf("convert\n");
     JS::RootedString name(cx);
@@ -2659,6 +2659,6 @@ void JSAudio::RegisterObject(JSContext *cx)
 NIDIUM_JS_OBJECT_EXPOSE(Video);
 // }}}
 
-} // namespace Nidium
 } // namespace Binding
+} // namespace Nidium
 

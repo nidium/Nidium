@@ -137,7 +137,7 @@
 
 @end
 
-NativeUICocoaConsole::NativeUICocoaConsole()
+UICocoaConsole::UICocoaConsole()
 {
     this->m_Window = [[NativeConsole alloc] init];
     this->m_NeedFlush = false;
@@ -146,7 +146,7 @@ NativeUICocoaConsole::NativeUICocoaConsole()
     //this->hide();
 }
 
-void NativeUICocoaConsole::clear()
+void UICocoaConsole::clear()
 {
     if (![NSThread isMainThread]) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -160,7 +160,7 @@ void NativeUICocoaConsole::clear()
 
 }
 
-void NativeUICocoaConsole::flush()
+void UICocoaConsole::flush()
 {
     if (m_NeedFlush) {
         [[[this->m_Window textview] textStorage] endEditing];
@@ -169,7 +169,7 @@ void NativeUICocoaConsole::flush()
     }
 }
 
-void NativeUICocoaConsole::hide()
+void UICocoaConsole::hide()
 {
     if (this->m_IsHidden) {
         return;
@@ -179,12 +179,12 @@ void NativeUICocoaConsole::hide()
     [this->m_Window setIsHidden:YES];
 }
 
-bool NativeUICocoaConsole::hidden()
+bool UICocoaConsole::hidden()
 {
     return this->m_IsHidden;
 }
 
-void NativeUICocoaConsole::show()
+void UICocoaConsole::show()
 {
     if (!this->m_IsHidden) {
         return;
@@ -194,7 +194,7 @@ void NativeUICocoaConsole::show()
     [this->m_Window setIsHidden:NO];
 }
 
-void NativeUICocoaConsole::log(const char *str)
+void UICocoaConsole::log(const char *str)
 {
     char *copy_str = strdup(str);
     typedef void(^_closure)();
@@ -222,7 +222,7 @@ void NativeUICocoaConsole::log(const char *str)
     }
 }
 
-NativeUICocoaConsole::~NativeUICocoaConsole()
+UICocoaConsole::~UICocoaConsole()
 {
     [this->m_Window release];
 }

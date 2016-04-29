@@ -262,8 +262,8 @@ class JSVideo : public JSExposer<JSVideo>, public Core::Messages
 };
 // }}}
 
-} // namespace Nidium
 } // namespace Binding
+} // namespace Nidium
 
 #endif
 

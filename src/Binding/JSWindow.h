@@ -89,8 +89,8 @@ class JSWindow : public JSExposer<JSWindow>
     JS::Heap<JSObject *> m_DraggedFiles;
 };
 
-} // namespace Nidium
 } // namespace Binding
+} // namespace Nidium
 
 #endif
 

@@ -10,15 +10,15 @@
 namespace Nidium {
 namespace Interface {
 
-class NativeUICocoaConsole;
+class UICocoaConsole;
 
-@class NativeDragNSView;
-@class NativeCocoaUIInterfaceWrapper;
+@class DragNSView;
+@class UICocoaInterfaceWrapper;
 
-class NativeCocoaUIInterface : public NativeUIInterface
+class UICocoaInterface : public UIInterface
 {
     public:
-        NativeCocoaUIInterface();
+        UICocoaInterface();
 
         void quitApplication();
         void runLoop();
@@ -29,8 +29,8 @@ class NativeCocoaUIInterface : public NativeUIInterface
         void setWindowFrame(int x, int y, int w, int h);
         void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags = 0);
-        NativeUICocoaConsole *getConsole(bool create=false, bool *created = NULL);
-        void enableSysTray();
+        UICocoaConsole *getConsole(bool create=false, bool *created = NULL);
+        void enableSysTray(const void *imgData = NULL, size_t imageDataSize = 0);
         void disableSysTray();
 
         void hideWindow();
@@ -72,10 +72,10 @@ class NativeCocoaUIInterface : public NativeUIInterface
         */
         void patchSDLView(NSView *sdlview);
 
-        NativeUICocoaConsole *m_Console;
-        NativeDragNSView *m_DragNSView;
+        UICocoaConsole *m_Console;
+        DragNSView *m_DragNSView;
         NSStatusItem *m_StatusItem;
-        NativeCocoaUIInterfaceWrapper *m_Wrapper;
+        UICocoaInterfaceWrapper *m_Wrapper;
 };
 
 } // namespace Nidium

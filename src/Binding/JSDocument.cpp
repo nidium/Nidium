@@ -67,7 +67,7 @@ static JSFunctionSpec document_funcs[] = {
 // {{{ Implementation
 struct _nidium_document_restart_async
 {
-    Nidium::Interface::NativeUIInterface *ui;
+    Nidium::Interface::UIInterface *ui;
     char *location;
 };
 
@@ -271,7 +271,7 @@ static bool nidium_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    Nidium::Interface::NativeUIInterface *NUI = Nidium::Frontend::Context::GetObject(cx)->getUI();
+    Nidium::Interface::UIInterface *NUI = Nidium::Frontend::Context::GetObject(cx)->getUI();
     JSAutoByteString locationstr(cx, location);
 
     struct _nidium_document_restart_async *ndra = (struct _nidium_document_restart_async *)malloc(sizeof(*ndra));
@@ -450,6 +450,6 @@ JSObject *JSDocument::RegisterObject(JSContext *cx)
 }
 // }}}
 
-} // namespace Nidium
 } // namespace Binding
+} // namespace Nidium
 
