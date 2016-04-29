@@ -27,7 +27,7 @@ typedef void *SDL_GLContext;
 class SystemMenuItem {
 public:
     SystemMenuItem(char *title = NULL, char *id = NULL) :
-        m_Id(NULL), m_Title(NULL), m_Enabled(false), m_Next(NULL)
+        m_Next(NULL), m_Id(NULL), m_Title(NULL), m_Enabled(false)
     {
         this->id(id);
         this->title(title);
@@ -79,7 +79,7 @@ private:
 };
 // }}}
 
-// {{{ SystemMen
+// {{{ SystemMenu
 class SystemMenu {
 public:
     SystemMenu(UIInterface *ui);

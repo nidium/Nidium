@@ -22,7 +22,7 @@ uint32_t ttfps = 0;
 namespace Nidium {
 namespace Interface {
 
-// {{{ NativUIInterface
+// {{{ UIInterface
 UIInterface::UIInterface() :
     m_CurrentCursor(UIInterface::ARROW), m_NativeCtx(NULL), m_Nml(NULL),
     m_Win(NULL), m_Gnet(APE_init()), m_Width(0), m_Height(0), m_FilePath(NULL),
@@ -135,7 +135,7 @@ int UIInterface::HandleEvents(void *arg)
                 }
                 break;
             case SDL_TEXTINPUT:
-                if (window && event.text.text && strlen(event.text.text) > 0) {
+                if (window && &event.text.text[0] && strlen(event.text.text) > 0) {
                     window->textInput(event.text.text);
                 }
                 break;
@@ -538,7 +538,7 @@ bool UIInterface::runApplication(const char *path)
         return false;
     }
     //    FILE *main = fopen("index.nml", "r");
-    const char *ext = &path[strlen(path)-4];
+    //    const char *ext = &path[strlen(path)-4];
 
     this->m_Nml = new Nidium::Frontend::NML(this->m_Gnet);
     this->m_Nml->loadFile(path, UIInterface::OnNMLLoaded, this);
