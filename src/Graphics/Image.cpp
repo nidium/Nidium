@@ -9,6 +9,7 @@
 
 #include <Core/Utils.h>
 
+
 namespace Nidium {
 namespace Graphics {
 

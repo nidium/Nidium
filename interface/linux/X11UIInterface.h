@@ -33,6 +33,8 @@ class NativeX11UIInterface : public NativeUIInterface
         void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags = 0);
 
+        void enableSysTray();
+        
         void initControls() {};
         NativeUIX11Console *getConsole(bool create=false, bool *created=NULL) {
             return this->console;
@@ -56,6 +58,7 @@ class NativeX11UIInterface : public NativeUIInterface
             size_t offset;
         } mainjs;
     protected:
+        void renderSystemTray();
         void setSystemCursor(CURSOR_TYPE cursor);
         void hitRefresh();
         void onWindowCreated();

@@ -22,6 +22,7 @@ class NativeSystem : public NativeSystemInterface
         const char *getUserDirectory();
         void openURLInBrowser(const char *url);
         const char *pwd();
+        const char *getLanguage();
         void alert(const char *message, AlertType type = ALERT_INFO);
         void sendNotification(const char *title, const char *content, bool sound = false);
         const char *execute(const char *cmd);

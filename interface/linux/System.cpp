@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <locale.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/param.h>
@@ -162,6 +163,15 @@ const char *NativeSystem::pwd()
     getcwd(dir, MAXPATHLEN);
 
     return dir;
+}
+const char *NativeSystem::getLanguage()
+{
+
+    const char * lang;
+
+    lang = setlocale(LC_IDENTIFICATION, NULL);
+
+    return lang;
 }
 // }}}
 

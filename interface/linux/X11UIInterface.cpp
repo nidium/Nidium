@@ -3,15 +3,15 @@
 
 #include <ape_netlib.h>
 
+#include <gdk-pixbuf/gdk-pixbuf.h>
+#include <gtk/gtk.h>
+
+
 #include <X11/cursorfont.h>
 #include <../build/include/SDL_config.h>
 #include <SDL.h>
 #include <SDL_syswm.h>
 
-
-#ifdef NIDIUM_USE_GTK
-#include <gtk/gtk.h>
-#endif
 
 namespace Nidium {
 namespace Interface {
@@ -67,7 +67,6 @@ void NativeX11UIInterface::onWindowCreated()
 void NativeX11UIInterface::openFileDialog(const char *files[],
     void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags)
 {
-#ifdef NIDIUM_USE_GTK
     GtkWidget *dialog;
 
     dialog = gtk_file_chooser_dialog_new ("Open File",
@@ -157,12 +156,26 @@ void NativeX11UIInterface::openFileDialog(const char *files[],
     }
 
     free(lst);
-#endif
 }
+
+static int NativeProcessSystemLoop(void *arg)
+{
+    //SDL_PumpEvents();
+    NativeX11UIInterface *ui = (NativeX11UIInterface *)arg;
+
+    /*if (ui->m_NativeCtx) {
+        ui->makeMainGLCurrent();
+    }*/
+
+    gtk_main_iteration_do(FALSE);
+    return 4;
+}
+
 
 void NativeX11UIInterface::runLoop()
 {
     APE_timer_create(m_Gnet, 1, NativeUIInterface::HandleEvents, (void *)this);
+    APE_timer_create(m_Gnet, 1, NativeProcessSystemLoop, (void *)this);
     APE_loop_run(m_Gnet);
 }
 
@@ -236,6 +249,45 @@ void NativeX11UIInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
         XFlush(d);
         XFreeCursor(d, c);
     }
+}
+
+void tray_icon_on_click(GtkStatusIcon *status_icon, 
+                        gpointer user_data)
+{
+        printf("Clicked on tray icon\n");
+}
+
+
+void NativeX11UIInterface::enableSysTray()
+{
+    NativeSystemMenuItem *item = m_SystemMenu.items();
+    if (!item) {
+        return;
+    }
+
+    size_t icon_len, icon_width, icon_height;
+    const uint8_t *icon_custom = m_SystemMenu.getIcon(&icon_len,
+                                    &icon_width, &icon_height);
+
+    if (icon_custom) {
+        GBytes *bytes = g_bytes_new(icon_custom, icon_len);
+
+        GdkPixbuf *gicon = gdk_pixbuf_new_from_bytes(bytes, GDK_COLORSPACE_RGB,
+            TRUE, 8, icon_width, icon_height, 4*icon_width);
+
+        GtkStatusIcon *statusicon = gtk_status_icon_new();
+        g_signal_connect(G_OBJECT(statusicon), "activate", 
+                         G_CALLBACK(tray_icon_on_click), NULL);
+        gtk_status_icon_set_from_pixbuf(statusicon, gicon);
+
+        gtk_status_icon_set_visible(statusicon, TRUE);
+        
+    }
+}
+
+void NativeX11UIInterface::renderSystemTray()
+{
+    
 }
 
 // }}}

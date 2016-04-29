@@ -1,5 +1,7 @@
 #include "Binding/JSNidium.h"
 
+#include <SystemInterface.h>
+
 namespace Nidium {
 namespace Binding {
 
@@ -14,14 +16,30 @@ static JSClass Nidium_class = {
 };
 
 JSClass *JSNidium::jsclass = &Nidium_class;
+static bool nidium_nidium_language(JSContext *cx, unsigned argc, jsval *vp);
 
 template<>
 JSClass *JSExposer<JSNidium>::jsclass = &Nidium_class;
 
-
 static JSFunctionSpec Nidium_funcs[] = {
+    JS_FN("language", nidium_nidium_language, 0, 0),
     JS_FS_END
 };
+// }}}
+
+/// {{{ Implementation
+static bool nidium_nidium_language(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    Nidium::Interface::NativeSystemInterface* interface = Nidium::Interface::NativeSystemInterface::GetInstance();
+    const char *clang = interface->getLanguage();
+
+    args.rval().setString(JS_NewStringCopyZ(cx, clang));
+
+    return true;
+
+}
 
 void Nidium_Finalize(JSFreeOp *fop, JSObject *obj)
 {

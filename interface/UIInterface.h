@@ -255,7 +255,7 @@ class NativeUIInterface
         virtual SDL_GLContext getCurrentGLContext();
         virtual int useOffScreenRendering(bool val);
         virtual void toggleOfflineBuffer(bool val);
-        virtual void enableSysTray(const void *imgData = NULL, size_t imageDataSize = 0) {};
+        virtual void enableSysTray() {};
         virtual void disableSysTray() {};
 
         virtual void quit();
@@ -322,7 +322,6 @@ class NativeUIInterface
         virtual void initControls() {};
         virtual void onWindowCreated() {};
         virtual void onNMLLoaded();
-        virtual void renderSystemTray() {};
         virtual void setSystemCursor(CURSOR_TYPE cursor)=0;
 
         /*

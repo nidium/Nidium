@@ -18,6 +18,7 @@ class NativeSystem : public NativeSystemInterface
         void alert(const char *message, AlertType type = ALERT_INFO);
         void initSystemUI();
         const char *pwd();
+        const char *getLanguage();
     private:
         bool m_SystemUIReady;
 };

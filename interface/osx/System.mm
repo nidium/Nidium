@@ -140,6 +140,13 @@ const char *NativeSystem::pwd()
     return dir;
 }
 
+const char *NativeSystem::getLanguage()
+{
+    NSString* language = [[NSLocale preferredLanguages] objectAtIndex:0];
+    const char *clang = [language cStringUsingEncoding:NSASCIIStringEncoding];
+
+    return clang;
+}
 
 void NativeSystem::sendNotification(const char *title, const char *content, bool sound)
 {
