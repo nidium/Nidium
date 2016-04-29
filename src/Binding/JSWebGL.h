@@ -531,8 +531,8 @@ NIDIUM_GL_NEW_CLASS(WebGLShaderPrecisionFormat)
 #define NGL_BROWSER_DEFAULT_WEBGL           0x9244
 // }}}
 
-} // namespace Nidium
 } // namespace Binding
+} // namespace Nidium
 
 #endif
 

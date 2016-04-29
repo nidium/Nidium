@@ -10,13 +10,13 @@ namespace Interface {
 class UIX11Console : public UIInterface::UIConsole
 {
     public:
-        UIX11Console(){};
-        ~UIX11Console(){};
+        UIX11Console() {};
+        ~UIX11Console() {};
         void log(const char *str);
-        void show(){};
-        void hide(){};
-        void clear(){};
-        void flush(){};
+        void show() {};
+        void hide() {};
+        void clear() {};
+        void flush() {};
         bool hidden() { return true; };
 };
 // }}}

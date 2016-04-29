@@ -73,7 +73,7 @@ bool UIInterface::createWindow(int width, int height)
         m_Height = height;
 
         this->onWindowCreated();
-        
+
         if ((m_MainGLCtx = SDL_GL_CreateContext(m_Win)) == NULL) {
             NLOG("Failed to create OpenGL context : %s", SDL_GetError());
             return false;

@@ -56,8 +56,8 @@ class JSDocument : public JSExposer<JSDocument>
 };
 // }}}
 
-} // namespace Nidium
 } // namespace Binding
+} // namespace Nidium
 
 #endif
 

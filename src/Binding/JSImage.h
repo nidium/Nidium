@@ -37,8 +37,8 @@ private:
     bool setupWithBuffer(buffer *buf);
 };
 
-} // namespace Nidium
 } // namespace Binding
+} // namespace Nidium
 
 #endif
 

@@ -251,8 +251,7 @@ void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)
     }
 }
 
-void tray_icon_on_click(GtkStatusIcon *status_icon, 
-                        gpointer user_data)
+void tray_icon_on_click(GtkStatusIcon *status_icon, gpointer user_data)
 {
         printf("Clicked on tray icon\n");
 }
@@ -276,7 +275,7 @@ void UIX11Interface::enableSysTray()
             TRUE, 8, icon_width, icon_height, 4*icon_width);
 
         GtkStatusIcon *statusicon = gtk_status_icon_new();
-        g_signal_connect(G_OBJECT(statusicon), "activate", 
+        g_signal_connect(G_OBJECT(statusicon), "activate",
                          G_CALLBACK(tray_icon_on_click), NULL);
         gtk_status_icon_set_from_pixbuf(statusicon, gicon);
 

@@ -456,7 +456,8 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
         Only trigger for even number on release.
     */
     if (clicks % 2 == 0 && !state) {
-        Nidium::Frontend::InputEvent *ev = new Nidium::Frontend::InputEvent(Nidium::Frontend::InputEvent::kMouseDoubleClick_Type, x, y);
+        Nidium::Frontend::InputEvent *ev = new Nidium::Frontend::InputEvent( \
+            Nidium::Frontend::InputEvent::kMouseDoubleClick_Type, x, y);
 
         ev->setData(0, button);
         nctx->addInputEvent(ev);

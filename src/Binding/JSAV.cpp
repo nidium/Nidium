@@ -2659,6 +2659,6 @@ void JSAudio::RegisterObject(JSContext *cx)
 NIDIUM_JS_OBJECT_EXPOSE(Video);
 // }}}
 
-} // namespace Nidium
 } // namespace Binding
+} // namespace Nidium
 

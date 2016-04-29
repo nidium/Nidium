@@ -359,6 +359,6 @@ void JSImage::RegisterObject(JSContext *cx)
 //NIDIUM_JS_OBJECT_EXPOSE(Image)
 // }}}
 
-} // namespace Nidium
 } // namespace Binding
+} // namespace Nidium
 
