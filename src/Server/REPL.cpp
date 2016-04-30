@@ -19,7 +19,7 @@ enum {
 
 static void *nidium_repl_thread(void *arg)
 {
-    REPL * repl = (REPL *)arg;
+    REPL * repl = static_cast<REPL *>(arg);
     char *line;
     const char *homedir;
     char historyPath[PATH_MAX];
@@ -72,7 +72,7 @@ REPL::REPL(Nidium::Binding::NidiumJS *js)
 
 void REPL::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
-    buffer_append_string(m_Buffer, (char *)msg.dataPtr());
+    buffer_append_string(m_Buffer, static_cast<char *>(msg.dataPtr()));
 
     JS::RootedObject rgbl(m_JS->cx, JS::CurrentGlobalOrNull(m_JS->cx));
 
@@ -81,7 +81,7 @@ void REPL::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 
         m_Continue = false;
 
-        char *ret = m_JS->LoadScriptContentAndGetResult((char *)m_Buffer->data,
+        char *ret = m_JS->LoadScriptContentAndGetResult(reinterpret_cast<char *>(m_Buffer->data),
             m_Buffer->used, "commandline");
 
         if (ret) {

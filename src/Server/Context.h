@@ -15,11 +15,11 @@ public:
     ~Context();
 
     static Context *GetObject(struct JSContext *cx) {
-        return (Context *)Nidium::Binding::NidiumJS::GetObject(cx)->getPrivate();
+        return static_cast<Context *>(Nidium::Binding::NidiumJS::GetObject(cx)->getPrivate());
     }
 
     static Context *GetObject(Nidium::Binding::NidiumJS *njs) {
-        return (Context *)njs->getPrivate();
+        return static_cast<Context *>(njs->getPrivate());
     }
 
     Nidium::Binding::NidiumJS *getNJS() const {

@@ -22,7 +22,7 @@ namespace Server {
 static int Context_ping(void *arg)
 {
     static uint64_t framecount = 0;
-    Nidium::Binding::NidiumJS *js = (Nidium::Binding::NidiumJS *)arg;
+    Nidium::Binding::NidiumJS *js = static_cast<Nidium::Binding::NidiumJS *>(arg);
 
     if (++framecount % 1000 == 0) {
         js->gc();
