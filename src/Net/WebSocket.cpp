@@ -45,7 +45,7 @@ static void nidium_on_ws_frame(websocket_state *state,
         return;
     }
 
-    WebSocketClientConnection *con = (WebSocketClientConnection *)sock->ctx;
+    WebSocketClientConnection *con = static_cast<WebSocketClientConnection *>(sock->ctx);
 
     if (con == NULL) {
         return;
@@ -75,7 +75,7 @@ void WebSocketClientConnection::ping()
 
 int WebSocketClientConnection::PingTimer(void *arg)
 {
-    WebSocketClientConnection *con = (WebSocketClientConnection *)arg;
+    WebSocketClientConnection *con = static_cast<WebSocketClientConnection *>(arg);
 
     con->ping();
 

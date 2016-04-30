@@ -125,7 +125,7 @@ static void
 ngx_gmtime(time_t t, struct tm *tp)
 {
     int32_t   yday;
-    uint32_t  n, sec, min, hour, mday, mon, year, wday, days, leap;
+    uint32_t  n, sec, min, hour, mday, mon, year, wday, days;
 
     /* the calculation is valid for positive time_t only */
 
@@ -163,6 +163,8 @@ ngx_gmtime(time_t t, struct tm *tp)
     yday = days - (365 * year + year / 4 - year / 100 + year / 400);
 
     if (yday < 0) {
+        uint32_t leap;
+
         leap = (year % 4 == 0) && (year % 100 || (year % 400 == 0));
         yday = 365 + leap + yday;
         year--;

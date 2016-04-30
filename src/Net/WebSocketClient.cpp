@@ -20,25 +20,25 @@ namespace Net {
 static void nidium_ws_connected(ape_socket *s,
     ape_global *ape, void *arg)
 {
-    ((WebSocketClient *)arg)->onConnected();
+    static_cast<WebSocketClient *>(arg)->onConnected();
 }
 
 static void nidium_ws_read_handshake(ape_socket *s,
     const uint8_t *data, size_t len, ape_global *ape, void *arg)
 {
-    ((WebSocketClient *)arg)->onDataHandshake(data, len);
+    static_cast<WebSocketClient *>(arg)->onDataHandshake(data, len);
 }
 
 static void nidium_ws_read_ws(ape_socket *s,
     const uint8_t *data, size_t len, ape_global *ape, void *arg)
 {
-    ((WebSocketClient *)arg)->onDataWS(data, len);
+    static_cast<WebSocketClient *>(arg)->onDataWS(data, len);
 }
 
 static void nidium_ws_disconnect(ape_socket *s,
     ape_global *ape, void *arg)
 {
-    ((WebSocketClient *)arg)->onClose();
+    static_cast<WebSocketClient *>(arg)->onClose();
 }
 
 static void nidium_on_ws_client_frame(websocket_state *state,
@@ -49,7 +49,7 @@ static void nidium_on_ws_client_frame(websocket_state *state,
         return;
     }
 
-    WebSocketClient *con = (WebSocketClient *)sock->ctx;
+    WebSocketClient *con = static_cast<WebSocketClient *>(sock->ctx);
 
     if (con == NULL) {
         return;
@@ -174,24 +174,21 @@ void WebSocketClient::onConnected()
 
     PACK_TCP(m_Socket->s.fd);
 
-    int ret = 0;
-
-    ret = APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN("GET "), APE_DATA_STATIC);
-    ret = APE_socket_write(m_Socket, m_URL, strlen(m_URL), APE_DATA_OWN);
-    ret = APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN(" HTTP/1.1\r\nHost: "), APE_DATA_STATIC);
-
-    ret = APE_socket_write(m_Socket, m_Host, strlen(m_Host), APE_DATA_OWN);
+    APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN("GET "), APE_DATA_STATIC);
+    APE_socket_write(m_Socket, m_URL, strlen(m_URL), APE_DATA_OWN);
+    APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN(" HTTP/1.1\r\nHost: "), APE_DATA_STATIC);
+    APE_socket_write(m_Socket, m_Host, strlen(m_Host), APE_DATA_OWN);
 
     if (m_Port != 80 && m_Port != 443) {
         char portstr[8];
         int ret = sprintf(portstr, ":%hu", m_Port);
 
-        ret = APE_socket_write(m_Socket, portstr, ret, APE_DATA_STATIC);
+        APE_socket_write(m_Socket, portstr, ret, APE_DATA_STATIC);
 
     }
 
-    ret = APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN("\r\n"), APE_DATA_STATIC);
-    ret = APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN(
+    APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN("\r\n"), APE_DATA_STATIC);
+    APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN(
         "Connection: Upgrade\r\n"
         "Pragma: no-cache\r\n"
         "Upgrade: websocket\r\n"
@@ -203,8 +200,8 @@ void WebSocketClient::onConnected()
     /*
         Send the handshake key
     */
-    ret = APE_socket_write(m_Socket, m_HandShakeKey, strlen(m_HandShakeKey), APE_DATA_STATIC);
-    ret = APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN("\r\n\r\n"), APE_DATA_STATIC);
+    APE_socket_write(m_Socket, m_HandShakeKey, strlen(m_HandShakeKey), APE_DATA_STATIC);
+    APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN("\r\n\r\n"), APE_DATA_STATIC);
 
     FLUSH_TCP(m_Socket->s.fd);
 }

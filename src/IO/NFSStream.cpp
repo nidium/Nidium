@@ -45,7 +45,7 @@ void NFSStream::stop()
 
 int NFSStream_getContent(void *arg)
 {
-    ((NFSStream *)arg)->_getContent();
+    static_cast<NFSStream *>(arg)->_getContent();
 
     return 0;
 }

@@ -144,7 +144,7 @@ public:
         if (!g_m_Cwd) {
             return NULL;
         }
-        return Path::GetScheme(g_m_Cwd);
+        return GetScheme(g_m_Cwd);
     }
 
     static int g_m_SchemesCount;

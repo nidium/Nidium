@@ -56,7 +56,7 @@ size_t HTTPStream::getFileSize() const
 
 int Nidium_HTTPStream_notifyAvailable(void *arg)
 {
-    HTTPStream *http = (HTTPStream *)arg;
+    HTTPStream *http = static_cast<HTTPStream *>(arg);
 
     http->notifyAvailable();
     return 0;

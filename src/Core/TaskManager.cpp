@@ -40,7 +40,7 @@ void *TaskManager::workerInfo::work()
         SharedMessages::Message *msg;
 
         while ((msg = m_Messages.readMessage())) {
-            Task *task = (Task *)msg->dataPtr();
+            Task *task = static_cast<Task *>(msg->dataPtr());
             task->getFunction()(task);
             Atomic::Dec(&task->getObject()->m_TaskQueued);
 
@@ -68,7 +68,7 @@ void TaskManager::workerInfo::waitTerminate()
 
 void TaskManager_workerInfo_MessageCleaner(const SharedMessages::Message &msg)
 {
-    Task *task = (Task *)msg.dataPtr();
+    Task *task = static_cast<Task *>(msg.dataPtr());
     delete task;
 }
 
@@ -173,7 +173,7 @@ TaskManager::workerInfo *TaskManager::getAvailableWorker()
 
 TaskManager *TaskManager::GetManager()
 {
-    return (TaskManager *)pthread_getspecific(gManager);
+    return static_cast<TaskManager *>(pthread_getspecific(gManager));
 }
 
 void TaskManager::CreateManager()

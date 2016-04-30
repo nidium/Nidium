@@ -32,7 +32,6 @@ public:
     };
 
     http_parser m_Parser;
-    bool m_Parser_rdy;
     struct {
         ape_array_t *list;
         buffer *tkey;

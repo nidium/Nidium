@@ -76,8 +76,7 @@ public:
     */
     ArgsValue& operator[] (int idx) {
         if (idx >= m_numArgs) {
-            m_Args = (ArgsValue **)realloc(m_Args,
-                sizeof(ArgsValue *) * (idx+1));
+            m_Args = (ArgsValue **)realloc(m_Args, sizeof(ArgsValue *) * (idx+1));
 
             for (int i = m_numArgs; i <= idx; i++) {
                 m_Args[i] = new ArgsValue();

@@ -150,7 +150,7 @@ File::~File()
 */
 void File_dispatchTask(Task *task)
 {
-    File *file = (File *)task->getObject();
+    File *file = static_cast<File *>(task->getObject());
     uint64_t type = task->args[0].toInt64();
     void *arg = task->args[7].toPtr();
 
@@ -340,7 +340,7 @@ void File::listFilesTask(void *arg)
     }
 
     dirent *cur;
-    DirEntries *entries = (DirEntries *)malloc(sizeof(DirEntries));
+    DirEntries *entries = static_cast<DirEntries *>(malloc(sizeof(*entries)));
     entries->allocated = 64;
     entries->lst = (dirent *)malloc(sizeof(dirent) * entries->allocated);
 
@@ -615,7 +615,7 @@ void File::onMessage(const SharedMessages::Message &msg)
         }
         case File::LISTFILES_ENTRIES:
         {
-            DirEntries *entries = (DirEntries *)msg.args[0].toPtr();
+            DirEntries *entries = static_cast<DirEntries *>(msg.args[0].toPtr());
             free(entries->lst);
             free(entries);
             break;
@@ -634,7 +634,7 @@ void File::onMessageLost(const SharedMessages::Message &msg)
         }
         case File::LISTFILES_ENTRIES:
         {
-            DirEntries *entries = (DirEntries *)msg.args[0].toPtr();
+            DirEntries *entries = static_cast<DirEntries *>(msg.args[0].toPtr());
             free(entries->lst);
             free(entries);
             break;

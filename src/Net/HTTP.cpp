@@ -79,7 +79,7 @@ static http_parser_settings settings =
 
 static int message_begin_cb(http_parser *p)
 {
-    HTTP *nhttp = (HTTP *)p->data;
+    HTTP *nhttp = static_cast<HTTP *>(p->data);
 
     nhttp->clearState();
 
@@ -92,7 +92,7 @@ static int message_begin_cb(http_parser *p)
 
 static int headers_complete_cb(http_parser *p)
 {
-    HTTP *nhttp = (HTTP *)p->data;
+    HTTP *nhttp = static_cast<HTTP *>(p->data);
 
     if (nhttp->http.headers.tval != NULL) {
         buffer_append_char(nhttp->http.headers.tval, '\0');
@@ -116,7 +116,7 @@ static int headers_complete_cb(http_parser *p)
 
 static int message_complete_cb(http_parser *p)
 {
-    HTTP *nhttp = (HTTP *)p->data;
+    HTTP *nhttp = static_cast<HTTP *>(p->data);
 
     nhttp->requestEnded();
 
@@ -125,7 +125,7 @@ static int message_complete_cb(http_parser *p)
 
 static int header_field_cb(http_parser *p, const char *buf, size_t len)
 {
-    HTTP *nhttp = (HTTP *)p->data;
+    HTTP *nhttp = static_cast<HTTP *>(p->data);
 
     switch (nhttp->http.headers.prevstate) {
         case HTTP::PSTATE_NOTHING:
@@ -153,7 +153,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
 
 static int header_value_cb(http_parser *p, const char *buf, size_t len)
 {
-    HTTP *nhttp = (HTTP *)p->data;
+    HTTP *nhttp = static_cast<HTTP *>(p->data);
 
     switch (nhttp->http.headers.prevstate) {
         case HTTP::PSTATE_NOTHING:
@@ -184,7 +184,7 @@ static int request_url_cb(http_parser *p, const char *buf, size_t len)
 
 static int body_cb(http_parser *p, const char *buf, size_t len)
 {
-    HTTP *nhttp = (HTTP *)p->data;
+    HTTP *nhttp = static_cast<HTTP *>(p->data);
 
     if (nhttp->http.data == NULL) {
         nhttp->http.data = buffer_new(2048);
@@ -209,7 +209,7 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
 static void nidium_http_connected(ape_socket *s,
     ape_global *ape, void *socket_arg)
 {
-    HTTP *nhttp = (HTTP *)s->ctx;
+    HTTP *nhttp = static_cast<HTTP *>(s->ctx);
 
     if (nhttp == NULL) return;
 
@@ -242,7 +242,7 @@ static void nidium_http_connected(ape_socket *s,
 static void nidium_http_disconnect(ape_socket *s,
     ape_global *ape, void *socket_arg)
 {
-    HTTP *nhttp = (HTTP *)s->ctx;
+    HTTP *nhttp = static_cast<HTTP *>(s->ctx);
 
     if (nhttp == NULL ||
         (nhttp->m_CurrentSock != NULL && s != nhttp->m_CurrentSock)) {
@@ -274,7 +274,7 @@ static void nidium_http_read(ape_socket *s,
     const uint8_t *data, size_t len, ape_global *ape, void *socket_arg)
 {
     size_t nparsed;
-    HTTP *nhttp = (HTTP *)s->ctx;
+    HTTP *nhttp = static_cast<HTTP *>(s->ctx);
 
     if (nhttp == NULL || nhttp->http.ended) {
         return;
@@ -509,7 +509,7 @@ bool HTTP::isKeepAlive()
 
 static int Nidium_HTTP_handle_timeout(void *arg)
 {
-    ((HTTP *)arg)->stopRequest(true);
+    static_cast<HTTP *>(arg)->stopRequest(true);
 
     return 0;
 }

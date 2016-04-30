@@ -26,7 +26,7 @@ class Events
 {
 public:
     void addListener(Messages *listener) {
-        m_Listeners.set((uint64_t)(Messages *)listener, listener);
+        m_Listeners.set((uint64_t)(static_cast<Messages *>(listener)), listener);
 
         listener->listenFor(this, true);
     }
@@ -54,7 +54,7 @@ public:
         ape_htable_item_t *item;
 
         for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
-            Messages *receiver = (Messages *)item->content.addrs;
+            Messages *receiver = static_cast<Messages *>(item->content.addrs);
 
             receiver->listenFor(this, false);
         }
@@ -76,7 +76,7 @@ private:
         ape_htable_item_t *item;
 
         for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
-            Messages *receiver = (Messages *)item->content.addrs;
+            Messages *receiver = static_cast<Messages *>(item->content.addrs);
 
             SharedMessages::Message *msg = 
                 new SharedMessages::Message(NIDIUM_EVENTS_MESSAGE_BITS(event) | (T::EventID << 16));

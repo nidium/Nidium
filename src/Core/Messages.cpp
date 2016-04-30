@@ -67,7 +67,7 @@ Messages::~Messages()
     ape_htable_item_t *item;
 
     for (item = m_Listening.accessCStruct()->first; item != NULL; item = item->lnext) {
-        Events *sender = (Events *)item->content.addrs;
+        Events *sender = static_cast<Events *>(item->content.addrs);
         sender->removeListener(this, false);
     }
 }

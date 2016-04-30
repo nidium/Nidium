@@ -13,7 +13,7 @@
 #include "Path.h"
 
 #ifndef NIDIUM_NO_PRIVATE_DIR
-#  include "../interface/NativeSystemInterface.h"
+#  include "../interface/SystemInterface.h"
 #endif
 
 
@@ -33,7 +33,7 @@ DB::DB(const char *name) :
     }
     leveldb::Options options;
 #ifndef NIDIUM_NO_PRIVATE_DIR
-    std::string sdir(NativeSystemInterface::GetInstance()->getCacheDirectory());
+    std::string sdir(SystemInterface::GetInstance()->getCacheDirectory());
 #else
     std::string sdir("./");
 #endif

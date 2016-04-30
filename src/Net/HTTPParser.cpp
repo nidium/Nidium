@@ -40,7 +40,7 @@ static http_parser_settings settings =
 
 static int message_begin_cb(http_parser *p)
 {
-    HTTPParser *nhttp = (HTTPParser *)p->data;
+    HTTPParser *nhttp = static_cast<HTTPParser *>(p->data);
 
     nhttp->HTTPClearState();
 
@@ -51,7 +51,7 @@ static int message_begin_cb(http_parser *p)
 
 static int message_complete_cb(http_parser *p)
 {
-    HTTPParser *nhttp = (HTTPParser *)p->data;
+    HTTPParser *nhttp = static_cast<HTTPParser *>(p->data);
 
     nhttp->HTTPRequestEnded();
 
@@ -60,7 +60,7 @@ static int message_complete_cb(http_parser *p)
 
 static int body_cb(http_parser *p, const char *buf, size_t len)
 {
-    HTTPParser *nhttp = (HTTPParser *)p->data;
+    HTTPParser *nhttp = static_cast<HTTPParser *>(p->data);
 
     if (nhttp->m_Data == NULL) {
         nhttp->m_Data = buffer_new(2048);
@@ -82,7 +82,7 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
 
 static int header_field_cb(http_parser *p, const char *buf, size_t len)
 {
-    HTTPParser *nhttp = (HTTPParser *)p->data;
+    HTTPParser *nhttp = static_cast<HTTPParser *>(p->data);
 
     switch (nhttp->m_Headers.prevstate) {
         case HTTPParser::PSTATE_NOTHING:
@@ -110,7 +110,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
 
 static int header_value_cb(http_parser *p, const char *buf, size_t len)
 {
-    HTTPParser *nhttp = (HTTPParser *)p->data;
+    HTTPParser *nhttp = static_cast<HTTPParser *>(p->data);
 
     switch (nhttp->m_Headers.prevstate) {
         case HTTPParser::PSTATE_NOTHING:
@@ -141,7 +141,7 @@ static int request_url_cb(http_parser *p, const char *buf, size_t len)
 
 static int headers_complete_cb(http_parser *p)
 {
-    HTTPParser *nhttp = (HTTPParser *)p->data;
+    HTTPParser *nhttp = static_cast<HTTPParser *>(p->data);
 
     if (nhttp->m_Headers.tval != NULL) {
         buffer_append_char(nhttp->m_Headers.tval, '\0');
@@ -172,7 +172,7 @@ bool HTTPParser::HTTPParse(const char *data, size_t len)
     nparsed = http_parser_execute(&m_Parser, &settings,
         (const char *)data, len);
 
-    return true;
+    return nparsed != 0;
 }
 
 void HTTPParser::HTTPClearState()

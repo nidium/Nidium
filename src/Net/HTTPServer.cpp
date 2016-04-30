@@ -24,8 +24,8 @@ namespace Net {
 
 // {{{ Preamble
 #define GET_HTTP_OR_FAIL(obj) \
-    (HTTPServer *)obj->ctx; \
-    HTTPServer *___http___ = (HTTPServer *)obj->ctx; \
+    static_cast<HTTPServer *>(obj->ctx); \
+    HTTPServer *___http___ = static_cast<HTTPServer *>(obj->ctx); \
     if (___http___ == NULL) return;
 
 static struct {
@@ -100,7 +100,7 @@ static http_parser_settings settings =
 
 static int message_begin_cb(http_parser *p)
 {
-    HTTPClientConnection *con = (HTTPClientConnection *)p->data;
+    HTTPClientConnection *con = static_cast<HTTPClientConnection *>(p->data);
     HTTPClientConnection::HTTPData *http_data = con->getHTTPState();
 
     /*
@@ -118,7 +118,7 @@ static int message_begin_cb(http_parser *p)
 
 static int header_field_cb(http_parser *p, const char *buf, size_t len)
 {
-    HTTPClientConnection *con = (HTTPClientConnection *)p->data;
+    HTTPClientConnection *con = static_cast<HTTPClientConnection *>(p->data);
     HTTPClientConnection::HTTPData *http_data = con->getHTTPState();
 
     switch (http_data->headers.prevstate) {
@@ -147,7 +147,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
 
 static int header_value_cb(http_parser *p, const char *buf, size_t len)
 {
-    HTTPClientConnection *con = (HTTPClientConnection *)p->data;
+    HTTPClientConnection *con = static_cast<HTTPClientConnection *>(p->data);
     HTTPClientConnection::HTTPData *http_data = con->getHTTPState();
 
     switch (http_data->headers.prevstate) {
@@ -174,7 +174,7 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
 
 static int headers_complete_cb(http_parser *p)
 {
-    HTTPClientConnection *con = (HTTPClientConnection *)p->data;
+    HTTPClientConnection *con = static_cast<HTTPClientConnection *>(p->data);
     HTTPClientConnection::HTTPData *http_data = con->getHTTPState();
 
     if (http_data->headers.tval != NULL) {
@@ -202,7 +202,7 @@ static int headers_complete_cb(http_parser *p)
 
 static int message_complete_cb(http_parser *p)
 {
-    HTTPClientConnection *client = (HTTPClientConnection *)p->data;
+    HTTPClientConnection *client = static_cast<HTTPClientConnection *>(p->data);
 
     client->_createResponse();
     client->increaseRequestsCount();
@@ -223,7 +223,7 @@ static int message_complete_cb(http_parser *p)
 
 static int body_cb(http_parser *p, const char *buf, size_t len)
 {
-    HTTPClientConnection *client = (HTTPClientConnection *)p->data;
+    HTTPClientConnection *client = static_cast<HTTPClientConnection *>(p->data);
 
     if (client->getHTTPState()->data == NULL) {
         client->getHTTPState()->data = buffer_new(2048);
@@ -241,7 +241,7 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
 
 static int request_url_cb(http_parser *p, const char *buf, size_t len)
 {
-    HTTPClientConnection *client = (HTTPClientConnection *)p->data;
+    HTTPClientConnection *client = static_cast<HTTPClientConnection *>(p->data);
     if (client->getHTTPState()->url == NULL) {
         client->getHTTPState()->url = buffer_new(512);
     }
@@ -270,7 +270,7 @@ static void nidium_socket_onaccept(ape_socket *socket_server,
 static void nidium_socket_client_read(ape_socket *socket_client, const uint8_t *data, size_t len,
     ape_global *ape, void *socket_arg)
 {
-    HTTPClientConnection *con = (HTTPClientConnection *)socket_client->ctx;
+    HTTPClientConnection *con = static_cast<HTTPClientConnection *>(socket_client->ctx);
     if (!con) {
         return;
     }
@@ -282,7 +282,7 @@ static void nidium_socket_client_read_after_upgrade(ape_socket *socket_client,
     const uint8_t *data, size_t len,
     ape_global *ape, void *socket_arg)
 {
-    HTTPClientConnection *con = (HTTPClientConnection *)socket_client->ctx;
+    HTTPClientConnection *con = static_cast<HTTPClientConnection *>(socket_client->ctx);
     if (!con) {
         return;
     }
@@ -292,7 +292,7 @@ static void nidium_socket_client_read_after_upgrade(ape_socket *socket_client,
 static void nidium_socket_client_disconnect(ape_socket *socket_client,
     ape_global *ape, void *socket_arg)
 {
-    HTTPClientConnection *con = (HTTPClientConnection *)socket_client->ctx;
+    HTTPClientConnection *con = static_cast<HTTPClientConnection *>(socket_client->ctx);
     if (!con) {
         return;
     }
@@ -307,7 +307,6 @@ static void nidium_socket_client_disconnect(ape_socket *socket_client,
 // }}}
 
 // {{{ HTTPServer Implementation
-
 HTTPServer::HTTPServer(uint16_t port, const char *ip)
 {
     ape_global *ape = Binding::NidiumJS::GetNet();
@@ -356,12 +355,12 @@ void HTTPServer::onClientConnect(ape_socket *client, ape_global *ape)
 {
     client->ctx = new HTTPClientConnection(this, client);
 
-    this->onClientConnect((HTTPClientConnection *)client->ctx);
+    this->onClientConnect(static_cast<HTTPClientConnection *>(client->ctx));
 }
 
 int HTTPClientConnection_checktimeout(void *arg)
 {
-    HTTPClientConnection *con = (HTTPClientConnection *)arg;
+    HTTPClientConnection *con = static_cast<HTTPClientConnection *>(arg);
     uint64_t timeout = con->getTimeoutAfterMs();
     /*
         Never timeout if set to 0
