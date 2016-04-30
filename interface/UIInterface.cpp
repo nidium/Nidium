@@ -106,7 +106,7 @@ bool UIInterface::createWindow(int width, int height)
 
 int UIInterface::HandleEvents(void *arg)
 {
-    UIInterface *NUII = (UIInterface *)arg;
+    UIInterface *NUII = static_cast<UIInterface *>(arg);
 
     SDL_Event event;
     int nrefresh = 0;
@@ -256,7 +256,7 @@ int UIInterface::HandleEvents(void *arg)
 
 void UIInterface::OnNMLLoaded(void *arg)
 {
-    UIInterface *UI = (UIInterface *)arg;
+    UIInterface *UI = static_cast<UIInterface *>(arg);
     UI->onNMLLoaded();
 }
 
@@ -426,7 +426,7 @@ void UIInterface::initPBOs()
     m_PBOs.vram2sys = 0;
     m_PBOs.gpu2vram = NUM_PBOS-1;
 
-    m_FrameBuffer = (uint8_t *)malloc(screenPixelSize);
+    m_FrameBuffer = static_cast<uint8_t *>(malloc(screenPixelSize));
 }
 
 uint8_t *UIInterface::readScreenPixel()

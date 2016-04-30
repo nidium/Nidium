@@ -27,7 +27,7 @@ NML::NML(ape_global *net) :
     m_AssetsList.size = 0;
     m_AssetsList.allocated = 4;
 
-    m_AssetsList.list = (Assets **)malloc(sizeof(Assets *) * m_AssetsList.allocated);
+    m_AssetsList.list = static_cast<Assets **>(malloc(sizeof(Assets *) * m_AssetsList.allocated));
 
     this->meta.title = NULL;
     this->meta.size.width = 0;
@@ -181,7 +181,7 @@ JSObject *NML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 #define NODE_PROP(where, name, val) JS_DefineProperty(cx, where, name, \
     val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 #define NODE_STR(data, len) STRING_TO_JSVAL(Nidium::Binding::JSUtils::NewStringWithEncoding(cx, \
-        (const char *)data, len, "utf8"))
+        static_cast<const char *>(data), len, "utf8"))
 
     using namespace rapidxml;
 
@@ -257,7 +257,7 @@ void NML::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     switch (msg.event()) {
         case Nidium::IO::Stream::EVENT_READ_BUFFER:
         {
-            buffer *buf = (buffer *)msg.args[0].toPtr();
+            buffer *buf = static_cast<buffer *>(msg.args[0].toPtr());
 
             /*
                 Some stream can have dynamic path (e.g http 301 or 302).
@@ -295,12 +295,13 @@ void NML::onGetContent(const char *data, size_t len)
     bool needRelease = false;
 
     if (data[len] != '\0') {
-        data_nullterminated = (char *)malloc(len + 1);
+        data_nullterminated = static_cast<char *>(malloc(len + 1));
         memcpy(data_nullterminated, data, len);
         data_nullterminated[len] = '\0';
         needRelease = true;
     } else {
-        data_nullterminated = (char *)data;
+        //TODO: new style cast
+        data_nullterminated = (char *)(data);
     }
 
     if (this->loadData(data_nullterminated, len, doc)) {
@@ -372,7 +373,7 @@ void NML::onAssetsItemReady(Assets::Item *item)
         switch(item->m_FileType) {
             case Assets::Item::ITEM_SCRIPT:
             {
-                m_Njs->LoadScriptContent((const char *)data, len, item->getName());
+                m_Njs->LoadScriptContent(reinterpret_cast<const char *>(data), len, item->getName());
 
                 break;
             }
@@ -382,7 +383,8 @@ void NML::onAssetsItemReady(Assets::Item *item)
                 if (jdoc == NULL) {
                     return;
                 }
-                jdoc->populateStyle(m_Njs->cx, (const char *)data,
+                //TODO: new style cast
+                jdoc->populateStyle(m_Njs->cx, (const char *)(data),
                     len, item->getName());
                 break;
             }
@@ -397,7 +399,7 @@ void NML::onAssetsItemReady(Assets::Item *item)
 
 static void NML_onAssetsItemRead(Assets::Item *item, void *arg)
 {
-    class NML *nml = (class NML *)arg;
+    class NML *nml = static_cast<class NML *>(arg);
 
     nml->onAssetsItemReady(item);
 }
@@ -414,7 +416,7 @@ void NML::onAssetsBlockReady(Assets *asset)
 
 static void NML_onAssetsReady(Assets *assets, void *arg)
 {
-    class NML *nml = (class NML *)arg;
+    class NML *nml = static_cast<class NML *>(arg);
 
     nml->onAssetsBlockReady(assets);
 }
@@ -424,8 +426,8 @@ void NML::addAsset(Assets *asset)
     m_nAssets++;
     if (m_AssetsList.size == m_AssetsList.allocated) {
         m_AssetsList.allocated *= 2;
-        m_AssetsList.list = (Assets **)realloc(m_AssetsList.list,
-            sizeof(Assets *) * m_AssetsList.allocated);
+        m_AssetsList.list = static_cast<Assets **>(realloc(m_AssetsList.list,
+            sizeof(Assets *) * m_AssetsList.allocated));
     }
 
     m_AssetsList.list[m_AssetsList.size] = asset;
@@ -446,16 +448,16 @@ NML::nidium_xml_ret_t NML::loadMeta(rapidxml::xml_node<> &node)
             if (this->meta.title)
                 free(this->meta.title);
 
-            this->meta.title = (char *)malloc(sizeof(char) *
-                (child->value_size() + 1));
+            this->meta.title = static_cast<char *>(malloc(sizeof(char) *
+                (child->value_size() + 1)));
 
             memcpy(this->meta.title, child->value(), child->value_size());
             this->meta.title[child->value_size()] = '\0';
 
         } else if (strncasecmp(child->name(), "viewport", 8) == 0) {
             char *pos;
-            if ((pos = (char *)memchr(child->value(), 'x',
-                child->value_size())) == NULL) {
+            if ((pos = static_cast<char *>(memchr(child->value(), 'x',
+                child->value_size()))) == NULL) {
 
                 return NIDIUM_XML_ERR_VIEWPORT_SIZE;
             }
@@ -465,7 +467,7 @@ NML::nidium_xml_ret_t NML::loadMeta(rapidxml::xml_node<> &node)
                 return NIDIUM_XML_ERR_VIEWPORT_SIZE;
             }
             this->meta.size.width = width;
-            *(char *)(child->value()+child->value_size()) = '\0';
+            *static_cast<char *>(child->value()+child->value_size()) = '\0';
 
             int height = atoi(pos+1);
 
@@ -480,8 +482,8 @@ NML::nidium_xml_ret_t NML::loadMeta(rapidxml::xml_node<> &node)
             if (this->meta.identifier)
                 free(this->meta.identifier);
 
-            this->meta.identifier = (char *)malloc(sizeof(char) *
-                (child->value_size() + 1));
+            this->meta.identifier = static_cast<char *>(malloc(sizeof(char) *
+                (child->value_size() + 1)));
 
             memcpy(this->meta.identifier, child->value(), child->value_size());
             this->meta.identifier[child->value_size()] = '\0';

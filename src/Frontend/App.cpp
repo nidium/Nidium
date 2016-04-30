@@ -42,8 +42,8 @@ static bool Extractor(const char * buf,
     /* First call (open the file) */
     if (arg->data.offset == 0) {
 
-        char *fpath = (char *)malloc(sizeof(char) *
-                        (strlen(arg->fDir) + strlen(arg->fName) + 1));
+        char *fpath = static_cast<char *>(malloc(sizeof(char) *
+                        (strlen(arg->fDir) + strlen(arg->fName) + 1)));
 
         sprintf(fpath, "%s%s", arg->fDir, arg->fName);
 
@@ -138,7 +138,7 @@ static void *native_appworker_thread(void *arg)
                     break;
                 }
 
-                char *content = (char *)malloc(sizeof(char) * APP_READ_SIZE);
+                char *content = static_cast<char *>(malloc(sizeof(char) * APP_READ_SIZE));
                 size_t total = 0;
                 int r = 0;
 
@@ -195,11 +195,11 @@ void App::actionExtractRead(const char *buf, int len,
     size_t offset, size_t total)
 {
     struct app_msg *msg = new struct app_msg;
-    msg->data = (char *)malloc(len);
+    msg->data = static_cast<char *>(malloc(len));
     msg->len  = len;
     msg->total = total;
     msg->offset = offset;
-    msg->cb = (AppExtractCallback)m_Action.cb;
+    msg->cb = reinterpret_cast<AppExtractCallback>(m_Action.cb);
     msg->user = m_Action.user;
 
     memcpy(msg->data, buf, len);
@@ -275,8 +275,8 @@ int App::extractApp(const char *path,
         printf("Cant create cache directory\n");
         return 0;
     }
-    fullpath = (char *)malloc(sizeof(char) *
-                (strlen(m_Path) + sizeof(NIDIUM_CACHE_DIR) + 16));
+    fullpath = static_cast<char *>(malloc(sizeof(char) *
+                (strlen(m_Path) + sizeof(NIDIUM_CACHE_DIR) + 16)));
 
     sprintf(fullpath, NIDIUM_CACHE_DIR "%s", m_Path);
 
@@ -371,7 +371,7 @@ uint64_t App::extractFile(const char *file, AppExtractCallback cb, void *user)
     m_Action.ptr  = strdup(file);
     m_Action.u32  = index;
     m_Action.u64  = stat.size;
-    m_Action.cb = (void *)cb;
+    m_Action.cb = reinterpret_cast<void *>(cb);
     m_Action.user = user;
     pthread_cond_signal(&m_ThreadCond);
     pthread_mutex_unlock(&m_ThreadMutex);
@@ -417,7 +417,7 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
         return 0;
     }
 
-    content = (char *)malloc(sizeof(char) * stat.size);
+    content = static_cast<char *>(malloc(sizeof(char) * stat.size));
     int r = 0;
     if ((r = zip_fread(manifest, content, stat.size)) == -1) {
         zip_fclose(manifest);

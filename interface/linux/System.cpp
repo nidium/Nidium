@@ -44,13 +44,13 @@ static void get_dpi(int *x, int *y)
      *         = N pixels / (M inch / 25.4)
      *         = N * 25.4 pixels / M inch
      */
-    xres = ((((double) DisplayWidth(dpy, scr)) * 25.4) /
-            ((double) DisplayWidthMM(dpy, scr)));
-    yres = ((((double) DisplayHeight(dpy, scr)) * 25.4) /
-            ((double) DisplayHeightMM(dpy, scr)));
+    xres = (((static_cast<double>(DisplayWidth(dpy, scr))) * 25.4) /
+             (static_cast<double>(DisplayWidthMM(dpy, scr))));
+    yres = (((static_cast<double>(DisplayHeight(dpy, scr))) * 25.4) /
+             (static_cast<double>(DisplayHeightMM(dpy, scr))));
 
-    *x = (int) (xres + 0.5);
-    *y = (int) (yres + 0.5);
+    *x = static_cast<int>(xres + 0.5);
+    *y = static_cast<int>(yres + 0.5);
 
     XCloseDisplay (dpy);
 }
@@ -65,7 +65,7 @@ System::System() : m_SystemUIReady(false)
         exit(3);
     }
 
-    m_fBackingStorePixelRatio = float(x) / 96.f;
+    m_fBackingStorePixelRatio = static_cast<float>(x) / 96.f;
     m_fBackingStorePixelRatio = 1.0;
 }
 

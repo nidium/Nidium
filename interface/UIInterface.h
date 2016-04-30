@@ -49,7 +49,7 @@ public:
     }
 
     const char *id() const {
-        return (const char *)m_Id;
+        return static_cast<const char *>(m_Id);
     }
 
     void id(const char *id) {

@@ -18,7 +18,7 @@ class AudioProcessorDelay: public AudioProcessor
     {
         int size = ceil(m_MaxDelay/1000) * sampleRate;
 
-        m_Buffer = (float *)calloc(size, Audio::FLOAT32);
+        m_Buffer = static_cast<float *>(calloc(size, Audio::FLOAT32));
         m_BufferSize = size;
         m_MaxSamples = m_BufferSize * 0.5;
 

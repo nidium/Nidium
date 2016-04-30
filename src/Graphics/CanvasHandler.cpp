@@ -604,9 +604,9 @@ void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
         }
         /* Occlusion culling */
 #if 0
-        CanvasHandler **culling = (CanvasHandler **)malloc(
+        CanvasHandler **culling = static_cast<CanvasHandler **>(malloc(
                                         sizeof(CanvasHandler *)
-                                        * m_nChildren);
+                                        * m_nChildren));
 
         Rect culRect;
         for (cur = last; cur != NULL; cur = cur->prev) {

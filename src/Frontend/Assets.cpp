@@ -34,14 +34,14 @@ Assets::Item::Item(const char *url, FileType t,
     m_Data.len = 0;
 }
 
-
 void Assets::Item::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case Nidium::IO::Stream::EVENT_READ_BUFFER:
         {
-            buffer *buf = (buffer *)msg.args[0].toPtr();
-            this->setContent((const char *)buf->data, buf->used);
+            //TODO: new style cast
+            buffer *buf = reinterpret_cast<buffer *>(msg.args[0].toPtr());
+            this->setContent((const char *)(buf->data), buf->used);
             break;
         }
         case Nidium::IO::Stream::EVENT_ERROR:
@@ -108,7 +108,7 @@ void Assets::Item::setContent(const char *data, size_t len, bool async) {
     m_State = ITEM_LOADED;
 
     if (len) {
-        m_Data.data = (unsigned char *)malloc(len);
+        m_Data.data = static_cast<unsigned char *>(malloc(len));
         memcpy(m_Data.data, data, len);
     } else {
         m_Data.data = NULL;

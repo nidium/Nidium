@@ -19,7 +19,7 @@ void AudioNodeGain::argCallback(AudioNode *node, int id, void *tmp, int size)
     AudioNodeGain *thiz = static_cast<AudioNodeGain*>(node);
     switch (id) {
         case GAIN:
-            thiz->m_GainProcessor->setGain(*(double*)tmp);
+            thiz->m_GainProcessor->setGain(*static_cast<double*>(tmp));
         break;
     }
 }

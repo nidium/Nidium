@@ -34,7 +34,7 @@ char *CanvasContext::ProcessShader(const char *content, shaderType type)
             SH_ENFORCE_PACKING_RESTRICTIONS | SH_MAP_LONG_VARIABLE_NAMES)) {
         size_t logLen;
         ShGetInfo(compiler, SH_INFO_LOG_LENGTH, &logLen);
-        char *log = (char *)malloc(logLen);
+        char *log = static_cast<char *>(malloc(logLen));
 
         ShGetInfoLog(compiler, log);
         NLOG("Shader error : %s", log);
@@ -45,7 +45,7 @@ char *CanvasContext::ProcessShader(const char *content, shaderType type)
     size_t bufferLen;
     ShGetInfo(compiler, SH_OBJECT_CODE_LENGTH, &bufferLen);
 
-    char *ocode = (char *)malloc(bufferLen);
+    char *ocode = static_cast<char *>(malloc(bufferLen));
 
     ShGetObjectCode(compiler, ocode);
 
@@ -86,19 +86,19 @@ Vertices *CanvasContext::BuildVerticesStripe(int resolution)
     int y = resolution;
     int t = 0;
 
-    float xstep = 2. / ((float)x-1.);
-    float ystep = 2. / ((float)y-1.);
+    float xstep = 2. / (static_cast<float>(x) - 1.);
+    float ystep = 2. / (static_cast<float>(y) - 1.);
 
-    float txstep = 1.  / ((float)x-1.);
-    float tystep = 1.  / ((float)y-1.);
+    float txstep = 1.  / (static_cast<float>(x) - 1.);
+    float tystep = 1.  / (static_cast<float>(y) - 1.);
 
-    Vertices *info = (Vertices *)malloc(sizeof(Vertices));
+    Vertices *info = static_cast<Vertices *>(malloc(sizeof(Vertices)));
 
-    info->vertices = (Vertex *)malloc(sizeof(Vertex) * x * y);
+    info->vertices = static_cast<Vertex *>(malloc(sizeof(Vertex) * x * y));
 
     info->nvertices = x*y;
 
-    info->indices = (unsigned int *)malloc((sizeof(int) * x * y) * 2);
+    info->indices = static_cast<unsigned int *>(malloc((sizeof(int) * x * y) * 2));
     info->nindices = 0;
 
     Vertex *vert = info->vertices;
@@ -107,14 +107,14 @@ Vertices *CanvasContext::BuildVerticesStripe(int resolution)
     for (int i = 0; i < y; i++) {
         for (int j = 0; j < x; j++, t++) {
             /* TODO: Normalize using glAttributeVertex? */
-            vert[t].Position[0] = -1. + ((float)j*xstep);
-            vert[t].Position[1] = 1. - ((float)i*ystep);
+            vert[t].Position[0] = -1. + (static_cast<float>(j) * xstep);
+            vert[t].Position[1] = 1. - (static_cast<float>(i) * ystep);
             vert[t].Position[2] = 0.;
 
             //NLOG("Create vertex: %f %f", vert[t].Position[0], vert[t].Position[1]);
 
-            vert[t].TexCoord[0] = ((float)j*txstep);
-            vert[t].TexCoord[1] = 1-(((float)i*tystep));
+            vert[t].TexCoord[0] = (static_cast<float>(j) * txstep);
+            vert[t].TexCoord[1] = 1 - ((static_cast<float>(i) * tystep));
 
             vert[t].Modifier[0] = 0.;
             vert[t].Modifier[1] = 0.;
@@ -273,7 +273,7 @@ void CanvasContext::updateMatrix(double left, double top,
         return;
     }
 
-    float px = (float)layerWidth, py = (float)layerHeight;
+    float px = static_cast<float>(layerWidth), py = static_cast<float>(layerHeight);
     int w, h;
 
     /* get the size in device pixels */
@@ -290,11 +290,11 @@ void CanvasContext::updateMatrix(double left, double top,
         We therefore have to translate the canvas back to its original position
     */
 
-    float ratioX = ((float)w)/px, ratioY = ((float)h)/py;
-    float offsetX = -1.+ratioX, offsetY = 1-ratioY;
+    float ratioX = (static_cast<float>(w)) / px, ratioY = (static_cast<float>(h))/py;
+    float offsetX = -1. + ratioX, offsetY = 1 - ratioY;
 
-    float ratioL = ((float)left)/px;
-    float ratioT = ((float)top)/py;
+    float ratioL = (static_cast<float>(left)) / px;
+    float ratioT = (static_cast<float>(top)) / py;
 
     m_Transform.preTranslate(
         /*
@@ -370,10 +370,10 @@ void CanvasContext::preComposeOn(Nidium::Binding::Canvas2DContext *layer,
     */
     if (rclip != NULL) {
         SkRect r;
-        r.set(SkDoubleToScalar(rclip->m_fLeft*(double)ratio),
-            SkDoubleToScalar(rclip->m_fTop*(double)ratio),
-            SkDoubleToScalar(rclip->m_fRight*(double)ratio),
-            SkDoubleToScalar(rclip->m_fBottom*(double)ratio));
+        r.set(SkDoubleToScalar(rclip->m_fLeft * static_cast<double>(ratio)),
+            SkDoubleToScalar(rclip->m_fTop * static_cast<double>(ratio)),
+            SkDoubleToScalar(rclip->m_fRight * static_cast<double>(ratio)),
+            SkDoubleToScalar(rclip->m_fBottom * static_cast<double>(ratio)));
         NIDIUM_GL_CALL(layer->m_GLState->getNativeGLContext(), Enable(GL_SCISSOR_TEST));
         NIDIUM_GL_CALL(layer->m_GLState->getNativeGLContext(), Scissor(r.left(),
            layerSize.height() - (r.top() + r.height()), r.width(), r.height()));
@@ -387,10 +387,10 @@ void CanvasContext::preComposeOn(Nidium::Binding::Canvas2DContext *layer,
 
     this->getSize(&width, &height);
 
-    this->setupShader((float)opacity, width, height,
+    this->setupShader(static_cast<float>(opacity), width, height,
         left, top,
-        (int)layer->getHandler()->getWidth(),
-        (int)layer->getHandler()->getHeight());
+        static_cast<int>(layer->getHandler()->getWidth()),
+        static_cast<int>(layer->getHandler()->getHeight()));
 
     this->updateMatrix(left*ratio, top*ratio, layerSize.width(),
         layerSize.height(), layer->m_GLState);

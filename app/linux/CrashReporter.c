@@ -79,7 +79,7 @@ int main(int argc, char **argv)
     dest.sin_addr.s_addr = ((struct in_addr *)hostaddr->h_addr_list[0])->s_addr;
     dest.sin_port = htons(NIDIUM_CRASH_COLLECTOR_PORT);
 
-    if (connect(sock, (const struct sockaddr *)&dest, sizeof(struct sockaddr)) != 0) {
+    if (connect(sock, static_cast<const struct sockaddr *>(&dest), sizeof(struct sockaddr)) != 0) {
         fprintf(stderr, "Failed to connect\n");
         return -2;
     }

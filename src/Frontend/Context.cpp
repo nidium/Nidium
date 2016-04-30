@@ -195,7 +195,7 @@ void Context::setWindowFrame(int x, int y, int w, int h)
 {
     m_SizeDirty = true;
     /* OS window */
-    m_UI->setWindowFrame((int)x, (int)y, (int)w, (int)h);
+    m_UI->setWindowFrame(static_cast<int>(x), static_cast<int>(y), static_cast<int>(w), static_cast<int>(h));
     /* Root canvases */
     this->sizeChanged(w, h);
 }
@@ -209,9 +209,9 @@ void Context::sizeChanged(int w, int h)
     m_SizeDirty = false;
 
     /* Skia GL */
-    this->getRootHandler()->setSize((int)w, (int)h);
+    this->getRootHandler()->setSize(static_cast<int>(w), static_cast<int>(h));
     /* Native Canvas */
-    m_JSWindow->getCanvasHandler()->setSize((int)w, (int)h);
+    m_JSWindow->getCanvasHandler()->setSize(static_cast<int>(w), static_cast<int>(h));
     /* Redraw */
     m_UI->refresh();
 }
@@ -261,7 +261,8 @@ void Context::postDraw()
         s->drawRect(0, 0, m_DebugHandler->getWidth(), m_DebugHandler->getHeight(), 0);
         s->setFillColor(0xFFEEEEEEu);
 
-        s->setFontType((char *)"monospace");
+        //TODO: new style cast
+        s->setFontType((char *)("monospace"));
         s->drawTextf(5, 12, "NATiVE build %s %s", __DATE__, __TIME__);
         s->drawTextf(5, 25, "Frame: %lld (%lldms)\n", m_Stats.nframe, m_Stats.lastdifftime / 1000000LL);
         s->drawTextf(5, 38, "Time : %lldns\n", m_Stats.lastmeasuredtime-m_Stats.starttime);
@@ -277,7 +278,7 @@ void Context::postDraw()
             s->setStrokeColor(0xFF00BB00u);
             s->drawLine(m_DebugHandler->getWidth() - 20 - i * 3, 55,
                 m_DebugHandler->getWidth() - 20 - i * 3,
-                nidium_min(60 - ((40.f / 62.f) * (float)m_Stats.samples[i]), 55));
+                nidium_min(60 - ((40.f / 62.f) * static_cast<float>(m_Stats.samples[i])), 55));
         }
         //s->setLineWidth(1.0);
 
@@ -311,23 +312,23 @@ void Context::callFrame()
     m_Stats.lastmeasuredtime = tmptime;
 
     /* convert to ms */
-    m_Stats.cumultimems += (float)m_Stats.lastdifftime / 1000000.f;
+    m_Stats.cumultimems += static_cast<float>(m_Stats.lastdifftime) / 1000000.f;
     m_Stats.cumulframe++;
 
     m_Stats.minfps = nidium_min(m_Stats.minfps, 1000.f/(m_Stats.lastdifftime/1000000.f));
     //printf("FPS : %f\n", 1000.f/(m_Stats.lastdifftime/1000000.f));
 
-    //printf("Last diff : %f\n", (float)(m_Stats.lastdifftime/1000000.f));
+    //printf("Last diff : %f\n", static_cast<float>(m_Stats.lastdifftime/1000000.f));
 
     /* Sample every 1000ms */
     if (m_Stats.cumultimems >= 1000.f) {
-        m_Stats.fps = 1000.f/(float)(m_Stats.cumultimems/(float)m_Stats.cumulframe);
+        m_Stats.fps = 1000.f / static_cast<float>(m_Stats.cumultimems) / static_cast<float>(m_Stats.cumulframe);
         m_Stats.cumulframe = 0;
         m_Stats.cumultimems = 0.f;
         m_Stats.sampleminfps = m_Stats.minfps;
         m_Stats.minfps = UINT32_MAX;
 
-        memmove(&m_Stats.samples[1], m_Stats.samples, sizeof(m_Stats.samples)-sizeof(float));
+        memmove(&m_Stats.samples[1], m_Stats.samples, sizeof(m_Stats.samples) - sizeof(float));
 
         m_Stats.samples[0] = m_Stats.fps;
     }
@@ -366,7 +367,7 @@ Context::~Context()
 void Context::rendered(uint8_t *pdata, int width, int height)
 {
     if (m_WSClient) {
-        m_WSClient->write((unsigned char *)pdata, width*height*4, true);
+        m_WSClient->write(static_cast<unsigned char *>(pdata), width*height*4, true);
     }
 }
 
@@ -549,7 +550,7 @@ void Context::initHandlers(int width, int height)
 
 void Context::addJob(void (*job)(void *arg), void *arg)
 {
-    struct JobQueue *obj = (struct JobQueue *)malloc(sizeof(struct JobQueue));
+    struct JobQueue *obj = static_cast<struct JobQueue *>(malloc(sizeof(struct JobQueue)));
 
     obj->job = job;
     obj->arg = arg;

@@ -5,7 +5,7 @@ namespace App {
 
 int main(int argc, char *argv[])
 {
-    return NSApplicationMain(argc, (const char **)argv);
+    return NSApplicationMain(argc, static_cast<const char **>(argv));
 }
 
 } // namespace App

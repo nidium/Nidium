@@ -55,7 +55,7 @@ AudioNode::AudioNode(int inCount, int outCount, Audio *audio)
 
     // Malloc node I/O frames
     max = (inCount > outCount ? inCount : outCount);
-    m_Frames = (float **)calloc(max, sizeof(void *));
+    m_Frames = static_cast<float **>(calloc(max, sizeof(void *)));
 
     for (int i = 0; i < max; i++) {
         m_Frames[i] = NULL;
@@ -90,7 +90,7 @@ void AudioNode::callback(NodeMessageCallback cbk, void *custom)
 }
 void AudioNode::callback(NodeMessageCallback cbk, void *custom, bool block)
 {
-    m_Audio->m_SharedMsg->postMessage((void *)new CallbackMessage(cbk, this, custom), NIDIUM_AUDIO_NODE_CALLBACK);
+    m_Audio->m_SharedMsg->postMessage(static_cast<void *>(new CallbackMessage(cbk, this, custom)), NIDIUM_AUDIO_NODE_CALLBACK);
     if (block) {
         m_Audio->wakeup();
     }
@@ -112,7 +112,7 @@ bool AudioNode::set(const char *name, ArgType type, void *value, unsigned long s
                     case DOUBLE: {
                         if (arg->m_Type == INT) {
                             size = sizeof(int);
-                            intVal = static_cast<int>(*((double*)value));
+                            intVal = static_cast<int>(*(static_cast<double*>(value)));
                             val = &intVal;
                         } else {
                             return false;
@@ -122,7 +122,7 @@ bool AudioNode::set(const char *name, ArgType type, void *value, unsigned long s
                     case INT: {
                         if (arg->m_Type == DOUBLE) {
                             size = sizeof(double);
-                            doubleVal = static_cast<double>(*((int*)value));
+                            doubleVal = static_cast<double>(*(static_cast<int*>(value)));
                             val = &doubleVal;
                         } else {
                             return false;
@@ -437,12 +437,12 @@ void AudioNode::processQueue()
 float *AudioNode::newFrame()
 {
 #define FRAME_SIZE m_Audio->m_OutputParameters->m_BufferSize/m_Audio->m_OutputParameters->m_Channels
-    float *ret = (float *)calloc(FRAME_SIZE + sizeof(void *), Audio::FLOAT32);
+    float *ret = static_cast<float *>(calloc(FRAME_SIZE + sizeof(void *), Audio::FLOAT32));
     if (ret != NULL) {
         // Store at the end of the frame array
         // a pointer to the frame owner
         ptrdiff_t addr = reinterpret_cast<ptrdiff_t>(this);
-        void *p = (void *)addr;
+        void *p = reinterpret_cast<void *>(addr);
         float *tmp = &ret[FRAME_SIZE];
         memcpy(tmp, &p, sizeof(void *));
     }
@@ -451,7 +451,7 @@ float *AudioNode::newFrame()
 }
 
 void AudioNode::post(int msg, ExportsArgs *arg, void *val, unsigned long size) {
-    m_Audio->m_SharedMsg->postMessage((void *)new Message(this, arg, val, size), msg);
+    m_Audio->m_SharedMsg->postMessage(static_cast<void *>(new Message(this, arg, val, size)), msg);
 }
 
 AudioNode::~AudioNode() {
@@ -675,7 +675,7 @@ bool AudioNodeReverb::process()
 {
 #if 0
     int delayMilliseconds = 3; // half a second
-    int delaySamples = (int)((float)delayMilliseconds * 44.1f); // assumes 44100 Hz sample rate
+    int delaySamples = static_cast<int>(static_cast<float>(delayMilliseconds) * 44.1f); // assumes 44100 Hz sample rate
     float decay = 0.5f;
     int length = m_Audio->m_OutputParameters->m_FramesPerBuffer;
 
@@ -683,7 +683,7 @@ bool AudioNodeReverb::process()
         for (int i = 0; i < length - delaySamples; i++)
         {
             // WARNING: overflow potential
-            m_Frames[j][i + delaySamples] += (short)((float)m_Frames[j][i] * decay);
+            m_Frames[j][i + delaySamples] += static_cast<short>(static_cast<float>(m_Frames[j][i]) * decay);
         }
     }
 #endif
@@ -785,7 +785,7 @@ return err;
 
     m_Reader = new AVStreamReader(src, Audio::sourceNeedWork, m_Audio, this, m_Audio->m_Net);
 
-    m_AvioBuffer = (unsigned char *)av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+    m_AvioBuffer = static_cast<unsigned char *>(av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE));
     if (!m_AvioBuffer) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -848,7 +848,7 @@ return err;
 
     m_Reader = new AVBufferReader((uint8_t *)buffer, size);
 
-    m_AvioBuffer = (unsigned char *)av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+    m_AvioBuffer = static_cast<unsigned char *>(av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE));
     if (!m_AvioBuffer) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -942,7 +942,7 @@ int AudioSource::initInternal()
         m_fCvt = new Resampler();
         m_fCvt->setup(m_CodecCtx->sample_rate, m_Audio->m_OutputParameters->m_SampleRate, m_OutCount, 32);
 
-        if (!(m_fBufferOutData = (float *)malloc(NIDIUM_RESAMPLER_BUFFER_SAMPLES * m_OutCount * Audio::FLOAT32))) {
+        if (!(m_fBufferOutData = static_cast<float *>(malloc(NIDIUM_RESAMPLER_BUFFER_SAMPLES * m_OutCount * Audio::FLOAT32)))) {
             fprintf(stderr, "Failed to init frequency resampler buffers");
             return ERR_OOM;
         }
@@ -1004,7 +1004,7 @@ int AudioSource::initInternal()
 
 int AudioSource::avail()
 {
-    return m_Opened ? (int) PaUtil_GetRingBufferReadAvailable(m_rBufferOut) : 0;
+    return m_Opened ? static_cast<int>(PaUtil_GetRingBufferReadAvailable(m_rBufferOut)) : 0;
 }
 
 bool AudioSource::buffer()
@@ -1201,7 +1201,7 @@ return false;
                 free(m_TmpFrame.data);
             }
             m_TmpFrame.size = tmpFrame->linesize[0];
-            m_TmpFrame.data = (float *)malloc(tmpFrame->nb_samples * Audio::FLOAT32 * 2);
+            m_TmpFrame.data = static_cast<float *>(malloc(tmpFrame->nb_samples * Audio::FLOAT32 * 2));
             // XXX : Right now, source output is always stereo
             if (m_TmpFrame.data == NULL) {
                 RETURN_WITH_ERROR(ERR_OOM);
@@ -1467,7 +1467,7 @@ bool AudioSource::process() {
 
         j = 0;
         // TODO : malloc each time could be avoided?
-        tmp = (float *)malloc(m_Audio->m_OutputParameters->m_BufferSize * m_OutCount);
+        tmp = static_cast<float *>(malloc(m_Audio->m_OutputParameters->m_BufferSize * m_OutCount));
 
         PaUtil_ReadRingBuffer(m_rBufferOut, tmp, m_Audio->m_OutputParameters->m_FramesPerBuffer);
 

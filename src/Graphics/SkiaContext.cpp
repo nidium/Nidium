@@ -113,7 +113,7 @@ rgba_from_rgba_string(const char *str, short *ok) {
         }
       }
     }
-    return *ok = 1, argb_from_rgba(r, g, b, (int) (a * 255));
+    return *ok = 1, argb_from_rgba(r, g, b, static_cast<int>(a * 255));
   }
   return *ok = 0;
 }

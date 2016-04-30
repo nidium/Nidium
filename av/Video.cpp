@@ -79,7 +79,7 @@ int Video::open(void *buffer, int size)
         this->closeInternal(true);
     }
 
-    if (!(m_AvioBuffer = (unsigned char *)av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE))) {
+    if (!(m_AvioBuffer = static_cast<unsigned char *>(av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE)))) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
@@ -116,7 +116,7 @@ int Video::open(const char *src)
     m_Coro = Coro_new();
     Coro_initializeMainCoro(m_MainCoro);
 
-    if (!(m_AvioBuffer = (unsigned char *)av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE))) {
+    if (!(m_AvioBuffer = static_cast<unsigned char *>(av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE)))) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
@@ -866,10 +866,10 @@ int Video::setSizeInternal()
     }
 
     // Update the size of the frames in the frame pool
-    int frameSize = avpicture_fill((AVPicture *)m_ConvertedFrame, NULL, PIX_FMT_RGBA, width, height);
+    int frameSize = avpicture_fill(reinterpret_cast<AVPicture *>(m_ConvertedFrame), NULL, PIX_FMT_RGBA, width, height);
     for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
         free(m_Frames[i]);
-        m_Frames[i] = (uint8_t*) malloc(frameSize);
+        m_Frames[i] = static_cast<uint8_t*>(malloc(frameSize));
     }
 
     m_Width = width;
@@ -887,8 +887,8 @@ int Video::setSizeInternal()
     for (ring_buffer_size_t i = 0; i < avail; i++) {
         Frame frame;
 
-        data = (uint8_t*) malloc(frameSize);
-        PaUtil_ReadRingBuffer(m_rBuff, (void *)&frame, 1);
+        data = static_cast<uint8_t*>(malloc(frameSize));
+        PaUtil_ReadRingBuffer(m_rBuff, static_cast<void *>(&frame), 1);
 
         this->convertFrame(&frame, data);
 

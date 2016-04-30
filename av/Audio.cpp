@@ -90,7 +90,7 @@ Audio::Audio(ape_global *n, unsigned int bufferSize, unsigned int channels, unsi
     uint32_t count = upperPow2(actualBufferSize * NIDIUM_AUDIO_BUFFER_MULTIPLIER * channels);
 
     m_rBufferOut = new PaUtilRingBuffer();
-    m_rBufferOutData = (float *)calloc(count, Audio::FLOAT32);
+    m_rBufferOutData = static_cast<float *>(calloc(count, Audio::FLOAT32));
 
     PaUtil_InitializeRingBuffer(m_rBufferOut, Audio::FLOAT32,
             count/Audio::FLOAT32, m_rBufferOutData);
@@ -410,7 +410,7 @@ int Audio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuffer,
     (void) statusFlags;
     (void) inputBuffer;
 
-    float *out = (float*)outputBuffer;
+    float *out = static_cast<float*>(outputBuffer);
     int channels = m_OutputParameters->m_Channels;
     ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(m_rBufferOut) / channels;
     avail = framesPerBuffer > avail ? avail : framesPerBuffer;
@@ -488,9 +488,9 @@ double Audio::getLatency() {
     if (m_PlaybackStartTime != 0) {
         int64_t now = av_gettime();
         double playbackDuration = ((1.0/m_OutputParameters->m_SampleRate)
-                    * (double)m_PlaybackConsumedFrame);
+                    * static_cast<double>(m_PlaybackConsumedFrame));
 
-        paLatency = playbackDuration - (double)(now - m_PlaybackStartTime)/1000000;
+        paLatency = playbackDuration - static_cast<double>(now - m_PlaybackStartTime)/1000000;
     }
 
     SPAM(("latency=%f native=%f pa=%f\n", paLatency + nativeAudioLatency, nativeAudioLatency, paLatency));
@@ -681,7 +681,7 @@ void Audio::unlockSources()
 
 void Audio::postMessage(AudioMessageCallback cbk, void *custom, bool block)
 {
-    m_SharedMsg->postMessage((void *)new CallbackMessage(cbk, custom),
+    m_SharedMsg->postMessage(static_cast<void *>(new CallbackMessage(cbk, custom)),
             NIDIUM_AUDIO_CALLBACK);
 
     if (block) {

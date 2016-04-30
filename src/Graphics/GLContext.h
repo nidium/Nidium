@@ -154,9 +154,9 @@ class GLContext
                 printf("[Fatal OpenGL Error] Failed to create GrGL Interface...exiting\n");
                 exit(1);
             }
-
+            //TODO: new style cast
             ((GrGLInterface *)m_Interface)->fCallback = GLContext::GLCallback;
-            ((GrGLInterface *)m_Interface)->fCallbackData = (uintptr_t)this;
+            ((GrGLInterface *)m_Interface)->fCallbackData = (uintptr_t)(this);
         }
 
         SDL_GLContext m_SDLGLCtx;

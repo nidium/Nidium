@@ -21,13 +21,13 @@ void AudioNodeDelay::argCallback(AudioNode *node, int id, void *tmp, int size)
     AudioNodeDelay *thiz = static_cast<AudioNodeDelay*>(node);
     switch (id) {
         case DELAY:
-            thiz->m_DelayProcessor->setDelay(*(int*)tmp);
+            thiz->m_DelayProcessor->setDelay(*static_cast<int*>(tmp));
         break;
         case WET:
-            thiz->m_DelayProcessor->setWet(*(double*)tmp);
+            thiz->m_DelayProcessor->setWet(*static_cast<double*>(tmp));
         break;
         case FEEDBACK:
-            thiz->m_DelayProcessor->setFeedback(*(double*)tmp);
+            thiz->m_DelayProcessor->setFeedback(*static_cast<double*>(tmp));
         break;
     }
 }

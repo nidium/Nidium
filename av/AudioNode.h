@@ -158,7 +158,7 @@ class AudioNode
         {
             void *tmp = (void *)*((ptrdiff_t *)&(frame[m_Audio->m_OutputParameters->m_BufferSize
                 / m_Audio->m_OutputParameters->m_Channels]));
-            return tmp == (void*)this;
+            return tmp == static_cast<void*>(this);
         }
         NodeIO **getWire(NodeLink *link)
         {

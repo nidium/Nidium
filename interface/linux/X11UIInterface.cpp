@@ -24,7 +24,7 @@ static Window *UIX11Interface(SDL_Window *m_Win)
     SDL_VERSION(&info.version);
     SDL_GetWindowWMInfo(m_Win, &info);
 
-    return (Window*)info.info.x11.window;
+    return static_cast<Window*>(info.info.x11.window);
 }
 #endif
 // }}}
@@ -69,11 +69,11 @@ void UIX11Interface::openFileDialog(const char *files[],
     GtkWidget *dialog;
 
     dialog = gtk_file_chooser_dialog_new ("Open File",
-            (GtkWindow *)NULL,
+            static_cast<GtkWindow *>(NULL),
             GTK_FILE_CHOOSER_ACTION_OPEN,
             GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
             GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
-            (gchar *)NULL);
+            static_cast<gchar *>(NULL));
 
     if (files != NULL) {
         GtkFileFilter *filter;
@@ -84,7 +84,7 @@ void UIX11Interface::openFileDialog(const char *files[],
         filter = gtk_file_filter_new();
 
         for (int i = 0; files[i] != NULL; i++) {
-            char *name = (char *)calloc(sizeof(char), strlen(files[i]) + 3);
+            char *name = static_cast<char *>(calloc(sizeof(char), strlen(files[i]) + 3));
             if (!name) continue;
 
             strcat(name, "*.");
@@ -112,13 +112,13 @@ void UIX11Interface::openFileDialog(const char *files[],
     gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(dialog), TRUE);
     const char **lst = NULL;
     int i = 0;
-    if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
+    if (gtk_dialog_run (GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
     {
         GSList *filenames, *list;
         filenames = gtk_file_chooser_get_filenames (GTK_FILE_CHOOSER(dialog));
         guint len = g_slist_length(filenames);
 
-        lst = (const char **)malloc(sizeof(char *) * len);
+        lst = static_cast<const char **>(malloc(sizeof(char *) * len));
         if (!lst) {
             return;
         }
@@ -127,7 +127,7 @@ void UIX11Interface::openFileDialog(const char *files[],
 
         while (list) {
             if (list->data) {
-                lst[i] = strdup((const char *)list->data);
+                lst[i] = strdup(static_cast<const char *>(list->data));
                 g_free (list->data);
                 i++;
             }
@@ -148,7 +148,8 @@ void UIX11Interface::openFileDialog(const char *files[],
         cb(arg, lst, i);
 
         for (int j = 0; j < i; j++) {
-            free((void *)lst[j]);
+            //TODO: new style cast
+            free((void *)(lst[j]));
         }
     } else {
         cb(arg, NULL, 0);
@@ -173,8 +174,8 @@ static int ProcessSystemLoop(void *arg)
 
 void UIX11Interface::runLoop()
 {
-    APE_timer_create(m_Gnet, 1, UIInterface::HandleEvents, (void *)this);
-    APE_timer_create(m_Gnet, 1, ProcessSystemLoop, (void *)this);
+    APE_timer_create(m_Gnet, 1, UIInterface::HandleEvents, static_cast<void *>(this));
+    APE_timer_create(m_Gnet, 1, ProcessSystemLoop, static_cast<void *>(this));
     APE_loop_run(m_Gnet);
 }
 
