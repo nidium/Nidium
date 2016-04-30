@@ -241,10 +241,7 @@ class AVSourceEventInterface {
                 m_EventCbk(ev);
             }
         };
-        ~AVSourceEventInterface() {
-            m_EventCbk = NULL;
-            m_EventCbkCustom = NULL;
-         };
+        virtual ~AVSourceEventInterface() { };
 
     private:
         AVSourceEventCallback m_EventCbk;
