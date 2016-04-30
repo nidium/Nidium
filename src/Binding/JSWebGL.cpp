@@ -81,7 +81,8 @@ public:
 
     WebGLResource(uint32_t id, ResourceType type,
         Graphics::Canvas3DContext *ctx, JS::HandleObject jsobj) :
-        m_GlIdentifier(id), m_GLctx(ctx), m_Type(type), m_JSObj(jsobj) {};
+        m_GlIdentifier(id), m_GLctx(ctx), m_Type(type), m_JSObj(jsobj), 
+        m_ShaderData({ NGL_VERTEX_SHADER, NULL}) {};
 
     ~WebGLResource() {
         JS_SetPrivate(m_JSObj, nullptr);

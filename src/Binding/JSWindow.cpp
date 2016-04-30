@@ -888,7 +888,6 @@ static bool nidium_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
             vp.setBoolean(false);
             }
             break;
-           break;
         case NAVIGATOR_PROP_APPVERSION:
             {
             JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, NIDIUM_VERSION_STR));

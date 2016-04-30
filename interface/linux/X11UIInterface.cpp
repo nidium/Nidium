@@ -30,7 +30,7 @@ static Window *UIX11Interface(SDL_Window *m_Win)
 // }}}
 
 // {{{ UIX11Interface
-UIX11Interface::UIX11Interface() : UIInterface(), console(NULL)
+UIX11Interface::UIX11Interface() : UIInterface(), mainjs({0, 0, 0}), console(NULL)
 {
 
 }
@@ -161,7 +161,7 @@ void UIX11Interface::openFileDialog(const char *files[],
 static int ProcessSystemLoop(void *arg)
 {
     //SDL_PumpEvents();
-    UIX11Interface *ui = (UIX11Interface *)arg;
+    UIX11Interface *ui = static_cast<UIX11Interface *>(arg);
 
     /*if (ui->m_NativeCtx) {
         ui->makeMainGLCurrent();
@@ -188,11 +188,10 @@ void UIX11Interface::log(const char *buf)
 void UIX11Interface::logf(const char *format, ...)
 {
     char *buff;
-    int len;
     va_list val;
 
     va_start(val, format);
-    len = vasprintf(&buff, format, val);
+    vasprintf(&buff, format, val);
     va_end(val);
 
     this->log(buff);
@@ -203,9 +202,8 @@ void UIX11Interface::logf(const char *format, ...)
 void UIX11Interface::vlog(const char *format, va_list ap)
 {
     char *buff;
-    int len;
 
-    len = vasprintf(&buff, format, ap);
+    vasprintf(&buff, format, ap);
 
     this->log(buff);
 

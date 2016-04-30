@@ -93,7 +93,6 @@ class Video : public AVSource
 
         bool m_Playing;
         bool m_Stopped;
-        int m_SeekFlags;
 
         int m_Width;
         int m_Height;
@@ -150,7 +149,6 @@ class Video : public AVSource
         AVReader *m_Reader;
         Audio *m_Audio;
         bool m_Buffering;
-        bool m_Seeking;
         bool m_ThreadCreated;
         bool m_SourceNeedWork;
         bool m_DoSetSize;

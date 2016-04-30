@@ -36,7 +36,7 @@ Video::Video(ape_global *n):
     m_AudioSource(NULL), m_FrameCbk(NULL), m_FrameCbkArg(NULL),
     m_Shutdown(false), m_TmpFrame(0), m_FrameBuffer(0), m_FrameTimer(0),
     m_LastPts(0), m_VideoClock(0.0f), m_AudioClock(0.0f), m_LastDelay(0),
-    m_Playing(false), m_Stopped(false), m_SeekFlags(0), m_Width(0), m_Height(0),
+    m_Playing(false), m_Stopped(false),  m_Width(0), m_Height(0),
     m_SwsCtx(NULL), m_CodecCtx(NULL), m_VideoStream(-1), m_AudioStream(-1),
     m_rBuff(NULL), m_Buff(NULL), m_AvioBuffer(NULL), m_FramesIdx(0),
     m_DecodedFrame(NULL), m_ConvertedFrame(NULL), m_Reader(NULL), m_Audio(NULL),
@@ -59,6 +59,7 @@ Video::Video(ape_global *n):
 
     m_DoSemek = false;
     m_Seeking = false;
+    m_SeekFlags = 0;
 
     for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
         m_Timers[i] = new TimerItem();
@@ -463,11 +464,11 @@ void Video::seekInternal(double time)
         // read packet until we hit the desired time
         keyframe = true;
         if (m_AudioSource != NULL) {
-            double tmp;
             // "in memory" seeking, we need to drop audio packet
             for (; ;) {
-                p = this->getPacket(m_AudioQueue);
+                double tmp;
 
+                p = this->getPacket(m_AudioQueue);
                 if (p == NULL) {
                     break;
                 }
@@ -737,7 +738,7 @@ int Video::display(void *custom) {
 
     double pts = frame.pts;
     double diff = 0;
-    double delay, actualDelay, syncThreshold;
+    double delay, actualDelay;
 
     if (v->m_FrameTimer == 0) {
         v->m_FrameTimer = (av_gettime() / 1000.0);
@@ -769,6 +770,8 @@ int Video::display(void *custom) {
             diff -= v->m_AudioSource->drop(diff);
             DPRINT("after=%f sec)\n", diff);
         } else {
+            double syncThreshold;
+
             syncThreshold = (delay >= NIDIUM_VIDEO_SYNC_THRESHOLD) ? delay : NIDIUM_VIDEO_SYNC_THRESHOLD;
 
             if (fabs(diff) < NIDIUM_VIDEO_NOSYNC_THRESHOLD) {

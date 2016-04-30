@@ -77,7 +77,7 @@ void ShadowLooper::flatten(SkWriteBuffer& buffer) const {
 }
 
 bool ShadowLooper::asABlurShadow(BlurShadowRec* rec) const {
-    if (m_fSigma <= 0 || (m_fBlurFlags & m_fBlurFlags & kIgnoreTransform_BlurFlag)) {
+    if (m_fSigma <= 0 || (m_fBlurFlags & kIgnoreTransform_BlurFlag)) {
         return false;
     }
 

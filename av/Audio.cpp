@@ -257,19 +257,19 @@ void *Audio::decodeThread(void *args)
 
     AudioSources *sources;
     AudioSource *source;
-    int haveEnought, sourcesCount;
 
     for(; ;) {
+        int haveEnough, sourcesCount;
         // Go through all the sources that need data to be decoded
         pthread_mutex_lock(&audio->m_SourcesLock);
 
         sources = audio->m_Sources;
-        haveEnought = 0;
+        haveEnough = 0;
         sourcesCount = audio->m_SourcesCount;
 
         while (sources != NULL)
         {
-            haveEnought = 0;
+            haveEnough = 0;
 
             if (sources->curr != NULL && !sources->externallyManaged) {
                 source = static_cast<AudioSource*>(sources->curr);
@@ -278,7 +278,7 @@ void *Audio::decodeThread(void *args)
                 while (source->work()) {}
 
                 if (source->avail() >= audio->m_OutputParameters->m_FramesPerBuffer * audio->m_OutputParameters->m_Channels) {
-                    haveEnought++;
+                    haveEnough++;
                     //audio->notEmpty = false;
                 }
 
@@ -289,11 +289,11 @@ void *Audio::decodeThread(void *args)
             sources = sources->next;
         }
         pthread_mutex_unlock(&audio->m_SourcesLock);
-        SPAM(("haveEnought %d / sourcesCount %d\n", haveEnought, audio->m_SourcesCount));
+        SPAM(("haveEnough %d / sourcesCount %d\n", haveEnough, audio->m_SourcesCount));
 
         // FIXME : find out why when playing multiple song,
         // the commented expression bellow fail to work
-        if (audio->m_SourcesCount > 0 /*&& haveEnought == sourcesCount*/) {
+        if (audio->m_SourcesCount > 0 /*&& haveEnough == sourcesCount*/) {
             if (audio->canWriteFrame()) {
                 SPAM(("Have data %lu\n", PaUtil_GetRingBufferWriteAvailable(audio->m_rBufferOut)));
                 NIDIUM_PTHREAD_SIGNAL(&audio->m_QueueHaveData);

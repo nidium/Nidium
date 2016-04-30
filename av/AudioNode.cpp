@@ -1244,10 +1244,6 @@ int AudioSource::resample(int destSamples) {
         int copied = 0;
         int passCopied = 0;
         for (; ;) {
-            int sampleSize;
-
-            sampleSize = channels * Audio::FLOAT32;
-
             // Output is empty
             if (m_fCvt->out_count == NIDIUM_RESAMPLER_BUFFER_SAMPLES) {
                 m_fCvt->out_data = m_fBufferOutData;
@@ -1294,11 +1290,9 @@ int AudioSource::resample(int destSamples) {
             }
         }
     } else {
-        int sampleSize, copied;
+        int copied;
 
-        sampleSize = m_NbChannel * Audio::FLOAT32;
         copied = 0;
-
         for (; ;) {
             int write, avail;
 

@@ -278,8 +278,8 @@ static bool nidium_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
 
     ndra->location = strdup(locationstr.ptr());
     ndra->ui = NUI;
-    ape_global *ape = NidiumJS::GetObject(cx)->net;
 
+    ape_global *ape = NidiumJS::GetObject(cx)->net;
     timer_dispatch_async(nidium_document_restart, ndra);
 
     return true;

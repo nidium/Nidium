@@ -308,8 +308,8 @@ static JSPropertySpec Video_props[] = {
 // {{{ Implementation
 static int FFT(int dir, int nn, double *x, double *y)
 {
-   long m, i, i1, j, k, i2, l, l1, l2;
-   double c1, c2, tx, ty, t1, t2, u1, u2, z;
+   long m, i, i1, j, i2, l, l2;
+   double c1, c2, tx, ty, t1, t2, z;
 
    m = log2(nn);
 
@@ -317,6 +317,8 @@ static int FFT(int dir, int nn, double *x, double *y)
    i2 = nn >> 1;
    j = 0;
    for (i = 0; i < nn - 1; i++) {
+      long k;
+
       if (i < j) {
          tx = x[i];
          ty = y[i];
@@ -338,6 +340,9 @@ static int FFT(int dir, int nn, double *x, double *y)
    c2 = 0.0;
    l2 = 1;
    for (l = 0; l < m; l++) {
+      long l1;
+      double u1, u2;
+
       l1 = l2;
       l2 <<= 1;
       u1 = 1.0;

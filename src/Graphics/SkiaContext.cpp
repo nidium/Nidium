@@ -630,9 +630,10 @@ void SkiaContext::fill()
     }
 
     SkShader *shader = PAINT->getShader();
-    SkShader *tmpShader;
 
     if (shader != NULL) {
+        SkShader *tmpShader;
+
         tmpShader = SkShader::CreateLocalMatrixShader(shader, m_Canvas->getTotalMatrix());
         shader->ref();
         PAINT->setShader(tmpShader)->unref();
@@ -656,9 +657,10 @@ void SkiaContext::stroke()
         return;
     }
     SkShader *shader = PAINT_STROKE->getShader();
-    SkShader *tmpShader;
 
     if (shader != NULL) {
+        SkShader *tmpShader;
+
         tmpShader = SkShader::CreateLocalMatrixShader(shader, m_Canvas->getTotalMatrix());
         shader->ref();
         PAINT->setShader(tmpShader)->unref();
@@ -1479,9 +1481,8 @@ bool SkiaContext::setFontFile(const char *str)
 
 void SkiaContext::setFillColor(Nidium::Binding::CanvasPattern *pattern)
 {
-    SkShader *shader = NULL;
-
     if (pattern->m_JsImg->m_Image->m_Image != NULL) {
+        SkShader *shader = NULL;
         bool repeat_x = false, repeat_y = false;
 
         switch(pattern->m_Mode) {

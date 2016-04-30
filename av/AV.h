@@ -220,6 +220,7 @@ struct AVSourceEvent {
 // {{{ AVSourceEventInterface
 class AVSourceEventInterface {
     public:
+        AVSourceEventInterface(): m_EventCbk(NULL), m_EventCbkCustom(NULL) {};
         void eventCallback(AVSourceEventCallback cbk, void *custom) {
             m_EventCbk = cbk;
             m_EventCbkCustom = custom;
@@ -240,6 +241,10 @@ class AVSourceEventInterface {
                 m_EventCbk(ev);
             }
         };
+        ~AVSourceEventInterface() {
+            m_EventCbk = NULL;
+            m_EventCbkCustom = NULL;
+         };
 
     private:
         AVSourceEventCallback m_EventCbk;

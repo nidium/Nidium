@@ -251,9 +251,11 @@ static bool CanvasInherit_get(JSContext *cx, JS::HandleObject obj, JS::HandleId 
         return true;
     }
 
-    Nidium::Graphics::CanvasHandler *handler = jscanvas->getHandler(), *parent;
+    Nidium::Graphics::CanvasHandler *handler = jscanvas->getHandler();
 
     if (vp.isNull()) {
+        Nidium::Graphics::CanvasHandler *parent;
+
         if ((parent = handler->getParent()) == NULL || !parent->m_JsObj) {
             return true;
         }

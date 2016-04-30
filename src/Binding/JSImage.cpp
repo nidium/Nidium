@@ -212,11 +212,11 @@ static int delete_stream(void *arg)
 
 void JSImage::onMessage(const Core::SharedMessages::Message &msg)
 {
-    ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
 
     switch (msg.event()) {
         case IO::Stream::EVENT_READ_BUFFER:
         {
+            ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
             JS::RootedValue onload_callback(m_Cx);
             JS::RootedObject obj(m_Cx, m_JSObject);
             if (this->setupWithBuffer((buffer *)msg.args[0].toPtr())) {
@@ -266,9 +266,9 @@ bool JSImage::setupWithBuffer(buffer *buf)
 #if 0
 void JSImage::onGetContent(const char *data, size_t len)
 {
-    ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
 
     if (data == NULL || len == 0) {
+        ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
         timer_dispatch_async(delete_stream, stream);
         stream = NULL;
         return;
