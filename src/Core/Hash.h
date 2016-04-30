@@ -43,7 +43,7 @@ class Hash64 : public NonCopyable
         }
 
         T get(uint64_t key) const {
-            return (T)hashtbl_seek64(this->table, key);
+            return static_cast<T>(hashtbl_seek64(this->table, key));
         }
 
         void erase(uint64_t key) {
@@ -54,7 +54,7 @@ class Hash64 : public NonCopyable
             hashtbl_set_cleaner(this->table, (val ? Hash64<T>::Cleaner : NULL));
         }
         static void Cleaner(ape_htable_item_t *item) {
-            delete (T)item->content.addrs;
+            delete static_cast<T>(item->content.addrs);
         }
 
         struct _ape_htable *accessCStruct() const {
@@ -89,7 +89,7 @@ class Hash : public NonCopyable
         }
 
         T get(const char *key) const {
-            return (T)hashtbl_seek(this->table, key, strlen(key));
+            return static_cast<T>(hashtbl_seek(this->table, key, strlen(key)));
         }
 
         void erase(const char *key) {
@@ -100,7 +100,7 @@ class Hash : public NonCopyable
             hashtbl_set_cleaner(this->table, (val ? Hash<T>::Cleaner : NULL));
         }
         static void Cleaner(ape_htable_item_t *item) {
-            delete (T)item->content.addrs;
+            delete static_cast<T>(item->content.addrs);
         }
         struct _ape_htable *accessCStruct() const {
             return table;
@@ -118,7 +118,7 @@ class Hash : public NonCopyable
                     return  ptr != other.ptr;
                 }
                 T operator->() {
-                    return (T)ptr->content.addrs;
+                    return static_cast<T>(ptr->content.addrs);
                 }
             private:
                 ape_htable_item_t *ptr;

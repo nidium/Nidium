@@ -64,7 +64,7 @@ File::File(const char *name) :
 bool File::checkEOF()
 {
     if (m_Fd &&
-        ((m_Eof = (bool)feof(m_Fd)) == true ||
+        ((m_Eof = static_cast<bool>(feof(m_Fd))) == true ||
         (m_Eof = (ftell(m_Fd) == this->m_Filesize)))) {
 
         if (m_AutoClose) {
@@ -157,7 +157,7 @@ void File_dispatchTask(Task *task)
     switch (type) {
         case FILE_TASK_OPEN:
         {
-            char *modes = (char *)task->args[1].toPtr();
+            char *modes = static_cast<char *>(task->args[1].toPtr());
             file->openTask(modes, arg);
             free(modes);
             break;
@@ -176,7 +176,7 @@ void File_dispatchTask(Task *task)
         case FILE_TASK_WRITE:
         {
             uint64_t buflen = task->args[1].toInt64();
-            char *buf = (char *)task->args[2].toPtr();
+            char *buf = static_cast<char *>(task->args[2].toPtr());
 
             file->writeTask(buf, buflen, arg);
 
@@ -246,7 +246,7 @@ void File::closeTask(void *arg)
     closeFd();
 
     if (!m_OpenSync) {
-        NIDIUM_FILE_NOTIFY((void *)NULL, File::CLOSE_SUCCESS, arg);
+        NIDIUM_FILE_NOTIFY(static_cast<void *>(NULL), File::CLOSE_SUCCESS, arg);
     }
 }
 
@@ -256,7 +256,7 @@ void File::closeTask(void *arg)
 void File::readTask(size_t size, void *arg)
 {
     if (!this->isOpen() || this->isDir()) {
-        NIDIUM_FILE_NOTIFY((void *)NULL, File::READ_ERROR, arg);
+        NIDIUM_FILE_NOTIFY(static_cast<void *>(NULL), File::READ_ERROR, arg);
         return;
     }
 
@@ -269,7 +269,7 @@ void File::readTask(size_t size, void *arg)
         Read an empty file
     */
     if (clamped_len == 0) {
-        NIDIUM_FILE_NOTIFY((void *)buf, File::READ_SUCCESS, arg);
+        NIDIUM_FILE_NOTIFY(static_cast<void *>(buf), File::READ_SUCCESS, arg);
         buf->data[0] = '\0';
         return;
     }
@@ -284,7 +284,7 @@ void File::readTask(size_t size, void *arg)
 
     buf->data[buf->used] = '\0';
 
-    NIDIUM_FILE_NOTIFY((void *)buf, File::READ_SUCCESS, arg);
+    NIDIUM_FILE_NOTIFY(static_cast<void *>(buf), File::READ_SUCCESS, arg);
 }
 
 /*
@@ -293,7 +293,7 @@ void File::readTask(size_t size, void *arg)
 void File::writeTask(char *buf, size_t buflen, void *arg)
 {
     if (!this->isOpen() || this->isDir()) {
-        NIDIUM_FILE_NOTIFY((void *)NULL, File::WRITE_ERROR, arg);
+        NIDIUM_FILE_NOTIFY(static_cast<void *>(NULL), File::WRITE_ERROR, arg);
         return;
     }
 
@@ -327,7 +327,7 @@ void File::seekTask(size_t pos, void *arg)
 
     this->checkEOF();
 
-    NIDIUM_FILE_NOTIFY((void *)NULL, File::SEEK_SUCCESS, arg);
+    NIDIUM_FILE_NOTIFY(static_cast<void *>(NULL), File::SEEK_SUCCESS, arg);
 }
 
 /*
@@ -342,7 +342,7 @@ void File::listFilesTask(void *arg)
     dirent *cur;
     DirEntries *entries = static_cast<DirEntries *>(malloc(sizeof(*entries)));
     entries->allocated = 64;
-    entries->lst = (dirent *)malloc(sizeof(dirent) * entries->allocated);
+    entries->lst = static_cast<dirent *>(malloc(sizeof(dirent) * entries->allocated));
 
     entries->size = 0;
 
@@ -356,8 +356,8 @@ void File::listFilesTask(void *arg)
 
         if (entries->size == entries->allocated) {
             entries->allocated *= 2;
-            entries->lst = (dirent *)realloc(entries->lst,
-                sizeof(dirent) * entries->allocated);
+            entries->lst = static_cast<dirent *>(realloc(entries->lst,
+                sizeof(dirent) * entries->allocated));
         }
     }
 
@@ -406,7 +406,7 @@ void File::read(size_t size, void *arg)
 
 void File::write(char *buf, size_t size, void *arg)
 {
-    unsigned char *newbuf = (unsigned char *)malloc(size);
+    unsigned char *newbuf = static_cast<unsigned char *>(malloc(size));
     memcpy(newbuf, buf, size);
 
     Task *task = new Task();
@@ -525,7 +525,7 @@ ssize_t File::mmapSync(char **buffer, int *err)
 
     m_Mmap.size = size;
 
-    *buffer = (char *)m_Mmap.addr;
+    *buffer = static_cast<char *>(m_Mmap.addr);
 
     return this->getFileSize();
 }
@@ -550,7 +550,7 @@ ssize_t File::readSync(uint64_t len, char **buffer, int *err)
         return 0;
     }
 
-    char *data = (char *)malloc(clamped_len + 1);
+    char *data = static_cast<char *>(malloc(clamped_len + 1));
     size_t readsize = 0;
 
     if ((readsize = fread(data, sizeof(char), clamped_len, m_Fd)) == 0) {
@@ -609,7 +609,7 @@ void File::onMessage(const SharedMessages::Message &msg)
     switch(msg.event()) {
         case File::READ_SUCCESS:
         {
-            buffer *buf = (buffer *)msg.args[0].toPtr();
+            buffer *buf = static_cast<buffer *>(msg.args[0].toPtr());
             buffer_delete(buf);
             break;
         }
@@ -628,7 +628,7 @@ void File::onMessageLost(const SharedMessages::Message &msg)
     switch(msg.event()) {
         case File::READ_SUCCESS:
         {
-            buffer *buf = (buffer *)msg.args[0].toPtr();
+            buffer *buf = static_cast<buffer *>(msg.args[0].toPtr());
             buffer_delete(buf);
             break;
         }

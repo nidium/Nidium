@@ -89,10 +89,11 @@ void JSWebSocketServer::onMessage(const Core::SharedMessages::Message &msg)
         {
             JS::AutoValueArray<2> arg(cx);
 
-            const char *data = (const char *)msg.args[2].toPtr();
+            const char *data = static_cast<const char *>(msg.args[2].toPtr());
             int len = msg.args[3].toInt();
             bool binary = msg.args[4].toBool();
 
+            //TODO: New style cast
             JS::RootedObject jclient(cx, (JSObject *)((WebSocketClientConnection *)msg.args[1].toPtr())->getData());
 
             if (!jclient.get()) {
@@ -121,7 +122,7 @@ void JSWebSocketServer::onMessage(const Core::SharedMessages::Message &msg)
             JS::AutoValueArray<1> arg(cx);
 
             JSObject *jclient = this->createClient(
-                (WebSocketClientConnection *)msg.args[1].toPtr());
+                static_cast<WebSocketClientConnection *>(msg.args[1].toPtr()));
 
             arg[0].setObject(*jclient);
 
@@ -133,9 +134,9 @@ void JSWebSocketServer::onMessage(const Core::SharedMessages::Message &msg)
         }
         case NIDIUM_EVENT(WebSocketServer, SERVER_CLOSE):
         {
-            WebSocketClientConnection *client = (WebSocketClientConnection *)msg.args[1].toPtr();
+            WebSocketClientConnection *client = static_cast<WebSocketClientConnection *>(msg.args[1].toPtr());
             JS::AutoValueArray<1> arg(cx);
-            JS::RootedObject jclient(cx, (JSObject *)client->getData());
+            JS::RootedObject jclient(cx, static_cast<JSObject *>(client->getData()));
             JS::RootedObject obj(cx, this->getJSObject());
 
             arg[0].setObject(*jclient);
@@ -178,7 +179,7 @@ static bool nidium_websocketclient_send(JSContext *cx, unsigned argc, JS::Value 
         JS::RootedString str(cx, args[0].toString());
         cdata.encodeUtf8(cx, str);
 
-        CppObj->write((unsigned char *)cdata.ptr(),
+        CppObj->write(reinterpret_cast<unsigned char *>(cdata.ptr()),
             strlen(cdata.ptr()), false, APE_DATA_COPY);
 
         args.rval().setInt32(0);
@@ -193,7 +194,7 @@ static bool nidium_websocketclient_send(JSContext *cx, unsigned argc, JS::Value 
         uint32_t len = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
 
-        CppObj->write((unsigned char *)data, len, true, APE_DATA_COPY);
+        CppObj->write(static_cast<unsigned char *>(data), len, true, APE_DATA_COPY);
 
         args.rval().setInt32(0);
 
@@ -244,8 +245,8 @@ static bool nidium_WebSocketServer_constructor(JSContext *cx,
     JSAutoByteString curl(cx, url);
 
     char *durl = strdup(curl.ptr());
-    char *host = (char *)calloc(curl.length(), sizeof(char));
-    char *path = (char *)calloc(curl.length(), sizeof(char));
+    char *host = static_cast<char *>(calloc(curl.length(), sizeof(char)));
+    char *path = static_cast<char *>(calloc(curl.length(), sizeof(char)));
 
     u_short port = 80;
     u_short default_port = 80;
@@ -298,7 +299,7 @@ static bool nidium_WebSocketServer_constructor(JSContext *cx,
 
 static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    JSWebSocketServer *wss = (JSWebSocketServer *)JS_GetPrivate(obj);
+    JSWebSocketServer *wss = static_cast<JSWebSocketServer *>(JS_GetPrivate(obj));
 
     if (wss != NULL) {
         delete wss;

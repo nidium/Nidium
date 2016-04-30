@@ -145,7 +145,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data_tolower(nhttp->http.headers.tkey,
-            (const unsigned char *)buf, len);
+            reinterpret_cast<const unsigned char *>(buf), len);
     }
 
     return 0;
@@ -172,7 +172,7 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data(nhttp->http.headers.tval,
-            (const unsigned char *)buf, len);
+            reinterpret_cast<const unsigned char *>(buf), len);
     }
     return 0;
 }
@@ -190,13 +190,13 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
         nhttp->http.data = buffer_new(2048);
     }
 
-    if ((uint64_t)(nhttp->http.data->used + len) > HTTP_MAX_CL) {
+    if (static_cast<uint64_t>(nhttp->http.data->used + len) > HTTP_MAX_CL) {
         return -1;
     }
 
     if (len != 0) {
         buffer_append_data(nhttp->http.data,
-            (const unsigned char *)buf, len);
+            reinterpret_cast<const unsigned char *>(buf), len);
     }
 
     nhttp->onData(nhttp->http.data->used - len, len);
@@ -229,7 +229,8 @@ static void nidium_http_connected(ape_socket *s,
 
         /* APE_DATA_OWN? Warum? It's good as long as
         the lifetime of the data is tied to the socket lifetime */
-        APE_socket_write(s, (unsigned char *)request->getData(),
+        //TODO: new style cast
+        APE_socket_write(s, (unsigned char *)(request->getData()),
             nhttp->getRequest()->getDataLength(), APE_DATA_OWN);
         FLUSH_TCP(s->s.fd);
     } else {
@@ -282,11 +283,11 @@ static void nidium_http_read(ape_socket *s,
 
     nhttp->parsing(true);
     nparsed = http_parser_execute(&nhttp->http.parser, &settings,
-        (const char *)data, len);
+        reinterpret_cast<const char *>(data), len);
     nhttp->parsing(false);
 
     if (nparsed != len && !nhttp->http.ended) {
-        fprintf(stderr, "[HTTP] (socket %p) Parser returned %ld with error %s\n", s, (unsigned long) nparsed,
+        fprintf(stderr, "[HTTP] (socket %p) Parser returned %ld with error %s\n", s, static_cast<unsigned long>(nparsed),
             http_errno_description(HTTP_PARSER_ERRNO(&nhttp->http.parser)));
 
         nhttp->setPendingError(HTTP::ERROR_RESPONSE);
@@ -351,7 +352,7 @@ void HTTP::headerEnded()
             int i;
 
             for (i = 0; nidium_mime[i].str != NULL; i++) {
-                if (strncasecmp(nidium_mime[i].str, (const char *)content_type->data,
+                if (strncasecmp(nidium_mime[i].str, reinterpret_cast<const char *>(content_type->data),
                     strlen(nidium_mime[i].str)) == 0) {
                     nidium_http_data_type = nidium_mime[i].data_type;
                     break;
@@ -361,8 +362,8 @@ void HTTP::headerEnded()
 
         if (http.parser.status_code == 206 &&
             (content_range = REQUEST_HEADER("Content-Range")) != NULL) {
-            char *ptr = (char *)memchr(content_range->data,
-                '/', content_range->used);
+            char *ptr = static_cast<char *>(memchr(content_range->data,
+                '/', content_range->used));
 
             if (ptr != NULL) {
                 m_FileSize = atoll(&ptr[1]);
@@ -377,7 +378,7 @@ void HTTP::headerEnded()
             m_FileSize = 0;
 
             m_Redirect.enabled = true;
-            m_Redirect.to = (const char *)location->data;
+            m_Redirect.to = reinterpret_cast<const char *>(location->data);
             m_Redirect.count++;
 
             if (m_Redirect.count > m_MaxRedirect) {
@@ -624,7 +625,7 @@ bool HTTP::request(HTTPRequest *req,
 const char *HTTP::getHeader(const char *key)
 {
     buffer *ret = ape_array_lookup_cstr(http.headers.list, key, strlen(key));
-    return ret ? (const char *)ret->data : NULL;
+    return ret ? reinterpret_cast<const char *>(ret->data) : NULL;
 }
 
 int HTTP::ParseURI(char *url, size_t url_len, char *host,
@@ -710,12 +711,12 @@ bool HTTPRequest::resetURL(const char *url)
     if (this->path) free(this->path);
 
     size_t url_len = strlen(url);
-    char *durl = (char *)malloc(sizeof(char) * (url_len+1));
+    char *durl = static_cast<char *>(malloc(sizeof(char) * (url_len+1)));
 
     memcpy(durl, url, url_len+1);
 
-    this->host = (char *)malloc(url_len+1);
-    this->path = (char *)malloc(url_len+1);
+    this->host = static_cast<char *>(malloc(url_len+1));
+    this->path = static_cast<char *>(malloc(url_len+1));
 
     memset(this->host, 0, url_len+1);
     memset(this->path, 0, url_len+1);
@@ -792,9 +793,9 @@ buffer *HTTPRequest::getHeadersData() const
 
     buffer *k, *v;
     APE_A_FOREACH(this->getHeaders(), k, v) {
-        buffer_append_string_n(ret, (char *)k->data, k->used);
+        buffer_append_string_n(ret, reinterpret_cast<char *>(k->data), k->used);
         buffer_append_string_n(ret, ": ", 2);
-        buffer_append_string_n(ret, (char *)v->data, v->used);
+        buffer_append_string_n(ret, reinterpret_cast<char *>(v->data), v->used);
         buffer_append_string_n(ret, CONST_STR_LEN("\r\n"));
     }
 

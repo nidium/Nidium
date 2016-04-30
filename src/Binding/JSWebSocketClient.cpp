@@ -53,7 +53,7 @@ JSWebSocket::JSWebSocket(JS::HandleObject obj, JSContext *cx,
     unsigned short port, const char *path, bool ssl) : JSExposer<JSWebSocket>(obj, cx)
 {
     m_WebSocketClient = new WebSocketClient(port, path, host);
-    bool ret = m_WebSocketClient->connect(ssl, (ape_global *)JS_GetContextPrivate(cx));
+    bool ret = m_WebSocketClient->connect(ssl, static_cast<ape_global *>(JS_GetContextPrivate(cx)));
 
     if (!ret) {
         JS_ReportWarning(cx, "Failed to connect to WS endpoint\n");
@@ -75,7 +75,7 @@ void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
         {
             JS::AutoValueArray<1> arg(cx);
 
-            const char *data = (const char *)msg.args[2].toPtr();
+            const char *data = static_cast<const char *>(msg.args[2].toPtr());
             int len = msg.args[3].toInt();
             bool binary = msg.args[4].toBool();
 
@@ -138,7 +138,7 @@ static bool nidium_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp)
         JS::RootedString str(cx, args[0].toString());
         cdata.encodeUtf8(cx, str);
 
-        CppObj->ws()->write((unsigned char *)cdata.ptr(),
+        CppObj->ws()->write(reinterpret_cast<unsigned char *>(cdata.ptr()),
             strlen(cdata.ptr()), false);
 
         args.rval().setInt32(0);
@@ -153,7 +153,7 @@ static bool nidium_websocket_send(JSContext *cx, unsigned argc, JS::Value *vp)
         uint32_t len = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
 
-        CppObj->ws()->write((unsigned char *)data, len, true);
+        CppObj->ws()->write(static_cast<unsigned char *>(data), len, true);
 
         args.rval().setInt32(0);
 
@@ -205,8 +205,8 @@ static bool nidium_WebSocket_constructor(JSContext *cx,
     JSAutoByteString curl(cx, url);
 
     char *durl = strdup(curl.ptr());
-    char *host = (char *)calloc(curl.length(), sizeof(char));
-    char *path = (char *)calloc(curl.length(), sizeof(char));
+    char *host = static_cast<char *>(calloc(curl.length(), sizeof(char)));
+    char *path = static_cast<char *>(calloc(curl.length(), sizeof(char)));
 
     u_short port = 80;
     u_short default_port = 80;
@@ -250,7 +250,7 @@ static bool nidium_WebSocket_constructor(JSContext *cx,
 
 static void WebSocket_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    JSWebSocket *wss = (JSWebSocket *)JS_GetPrivate(obj);
+    JSWebSocket *wss = static_cast<JSWebSocket *>(JS_GetPrivate(obj));
 
     if (wss != NULL) {
         delete wss;

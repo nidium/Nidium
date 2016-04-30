@@ -67,7 +67,7 @@ class HTTPRequest
         const char *getHeader(const char *key)
         {
             buffer *ret = ape_array_lookup(headers, key, strlen(key));
-            return ret ? (const char *)ret->data : NULL;
+            return ret ? reinterpret_cast<const char *>(ret->data) : NULL;
         }
 
         buffer *getHeadersData() const;

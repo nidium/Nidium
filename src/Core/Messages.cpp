@@ -138,9 +138,9 @@ void Messages::InitReader(ape_global *ape)
 void Messages::listenFor(Events *obj, bool enable)
 {
     if (enable) {
-        m_Listening.set((uint64_t)obj, obj);
+        m_Listening.set(reinterpret_cast<uint64_t>(obj), obj);
     } else {
-        m_Listening.erase((uint64_t)obj);
+        m_Listening.erase(reinterpret_cast<uint64_t>(obj));
     }
 }
 

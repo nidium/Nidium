@@ -61,7 +61,7 @@ DB::DB(const char *name) :
 
 bool DB::insert(const char *key, const uint8_t *data, size_t data_len)
 {
-    leveldb::Slice input((const char *)data, data_len);
+    leveldb::Slice input(reinterpret_cast<const char *>(data), data_len);
     leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, input);
 
     return status.ok();

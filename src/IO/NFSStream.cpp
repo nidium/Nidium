@@ -58,7 +58,7 @@ void NFSStream::getContent()
 
 void NFSStream::_getContent()
 {
-    m_File.data = (const unsigned char *)m_NFS->readFile(m_Location, &m_File.len);
+    m_File.data = reinterpret_cast<const unsigned char *>(m_NFS->readFile(m_Location, &m_File.len));
     m_File.pos = 0;
 
     if (m_File.data == NULL) {
@@ -70,7 +70,8 @@ void NFSStream::_getContent()
     buffer buf;
     buffer_init(&buf);
 
-    buf.data = (unsigned char *)m_File.data;
+    //TODO: new style cast
+    buf.data = (unsigned char *)(m_File.data);
     buf.size = buf.used = m_File.len;
 
     CREATE_MESSAGE(message, EVENT_READ_BUFFER);
@@ -91,12 +92,13 @@ bool NFSStream::getContentSync(char **data, size_t *len, bool mmap)
     }
 
     if (!mmap) {
-        *data = (char *)malloc(*len + 1);
+        *data = static_cast<char *>(malloc(*len + 1));
         memcpy(*data, ret, *len);
         (*data)[*len] = '\0';
     } else {
         /* /!\ data is not null terminated */
-        *data = (char *)ret;
+        //TODO: new style cast
+        *data = (char *)(ret);
     }
 
     return true;
@@ -122,7 +124,7 @@ void NFSStream::seek(size_t pos)
 
 void NFSStream::onStart(size_t packets, size_t seek)
 {
-    m_File.data = (const unsigned char *)m_NFS->readFile(m_Location, &m_File.len);
+    m_File.data = reinterpret_cast<const unsigned char *>(m_NFS->readFile(m_Location, &m_File.len));
     m_File.pos = 0;
 
     if (m_File.data == NULL) {
@@ -140,7 +142,8 @@ void NFSStream::onStart(size_t packets, size_t seek)
     buffer buf;
     buffer_init(&buf);
 
-    buf.data = (unsigned char *)m_File.data;
+    // TODO: new style cast
+    buf.data = (unsigned char *)(m_File.data);
     buf.size = buf.used = m_File.len;
 
     CREATE_MESSAGE(message, EVENT_READ_BUFFER);

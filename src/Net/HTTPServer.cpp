@@ -139,7 +139,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data_tolower(http_data->headers.tkey,
-            (const unsigned char *)buf, len);
+            reinterpret_cast<const unsigned char *>(buf), len);
     }
 
     return 0;
@@ -167,7 +167,7 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data(http_data->headers.tval,
-            (const unsigned char *)buf, len);
+            reinterpret_cast<const unsigned char *>(buf), len);
     }
     return 0;
 }
@@ -231,7 +231,7 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data(client->getHTTPState()->data,
-            (const unsigned char *)buf, len);
+            reinterpret_cast<const unsigned char *>(buf), len);
     }
 
     client->getHTTPServer()->onData(client, buf, len);
@@ -248,7 +248,7 @@ static int request_url_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data(client->getHTTPState()->url,
-            (const unsigned char *)buf, len);
+            reinterpret_cast<const unsigned char *>(buf), len);
     }
 
     //printf("Request URL cb %.*s\n", (int)len, buf);
@@ -275,7 +275,7 @@ static void nidium_socket_client_read(ape_socket *socket_client, const uint8_t *
         return;
     }
 
-    con->onRead((const char *)data, len, ape);
+    con->onRead(reinterpret_cast<const char *>(data), len, ape);
 }
 
 static void nidium_socket_client_read_after_upgrade(ape_socket *socket_client,
@@ -286,7 +286,7 @@ static void nidium_socket_client_read_after_upgrade(ape_socket *socket_client,
     if (!con) {
         return;
     }
-    con->onContent((const char *)data, len);
+    con->onContent(reinterpret_cast<const char *>(data), len);
 }
 
 static void nidium_socket_client_disconnect(ape_socket *socket_client,
@@ -334,7 +334,7 @@ bool HTTPServer::start(bool reuseport, int timeout)
         APE_socket_setTimeout(m_Socket, timeout);
     }
 
-    return (APE_socket_listen(m_Socket, m_Port, m_IP, 1, (int)reuseport) != -1);
+    return (APE_socket_listen(m_Socket, m_Port, m_IP, 1, static_cast<int>(reuseport)) != -1);
 }
 
 void HTTPServer::stop()
@@ -450,7 +450,7 @@ const char *HTTPClientConnection::getHeader(const char *key)
 {
     buffer *ret = ape_array_lookup_cstr(getHTTPState()->headers.list,
         key, strlen(key));
-    return ret ? (const char *)ret->data : NULL;
+    return ret ? reinterpret_cast<const char *>(ret->data) : NULL;
 }
 
 HTTPResponse *HTTPClientConnection::onCreateResponse()
@@ -693,9 +693,9 @@ const buffer &HTTPResponse::getHeadersString()
     buffer *k, *v;
     if (this->getHeaders()) {
         APE_A_FOREACH(this->getHeaders(), k, v) {
-            buffer_append_string_n(m_Headers_str, (char *)k->data, k->used);
+            buffer_append_string_n(m_Headers_str, reinterpret_cast<char *>(k->data), k->used);
             buffer_append_string_n(m_Headers_str, ": ", 2);
-            buffer_append_string_n(m_Headers_str, (char *)v->data, v->used);
+            buffer_append_string_n(m_Headers_str, reinterpret_cast<char *>(v->data), v->used);
             buffer_append_string_n(m_Headers_str, CONST_STR_LEN("\r\n"));
         }
     } else {

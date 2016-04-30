@@ -365,7 +365,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
     jdata.setNull();
 
     APE_A_FOREACH(h->headers.list, k, v) {
-        JS::RootedString jstr(m_Cx, JS_NewStringCopyN(m_Cx, (char *)v->data,
+        JS::RootedString jstr(m_Cx, JS_NewStringCopyN(m_Cx, reinterpret_cast<char *>(v->data),
             v->used-1));
         NIDIUM_JSOBJ_SET_PROP_FLAGS(headers, k->data, jstr, JSPROP_ENUMERATE);
     }
@@ -397,7 +397,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
         case HTTP::DATA_STRING:
             NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "string");
 
-            JSUtils::StrToJsval(cx, (const char *)h->data->data,
+            JSUtils::StrToJsval(cx, reinterpret_cast<const char *>(h->data->data),
                 h->data->used, &jdata, "utf8");
             break;
         case HTTP::DATA_JSON:
@@ -407,7 +407,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
             size_t clen;
             NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "json");
 
-            JS::RootedString str(cx, JS_NewStringCopyN(cx, (const char *)h->data->data,
+            JS::RootedString str(cx, JS_NewStringCopyN(cx, reinterpret_cast<const char *>(h->data->data),
                 h->data->used));
             if (str == NULL) {
                 printf("Cant encode json string\n");
@@ -418,7 +418,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
             if (JS_ParseJSON(cx, chars, clen, &jdata) == false) {
                 jdata.setNull();
                 printf("Cant parse JSON of size %ld :\n = %.*s\n = \n",
-                    (unsigned long) h->data->used, (int)h->data->used, h->data->data);
+                    static_cast<unsigned long>(h->data->used), static_cast<int>(h->data->used), h->data->data);
             }
 
             break;

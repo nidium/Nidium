@@ -33,7 +33,7 @@ enum {
 };
 
 /* only use on connected clients */
-#define SOCKET_JSOBJECT(socket) (((JSSocket *)socket)->getJSObject())
+#define SOCKET_JSOBJECT(socket) (static_cast<JSSocket *>(socket)->getJSObject())
 
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj);
@@ -213,8 +213,9 @@ void JSSocket::onRead(const char *data, size_t len)
         size_t tlen = len;
         char *eol;
 
-        while (tlen > 0 && (eol = (char *)memchr(pBuf,
-            this->getFrameDelimiter(), tlen)) != NULL) {
+        //TODO: new style cast
+        while (tlen > 0 && (eol = (char *)(memchr(pBuf,
+            this->getFrameDelimiter(), tlen))) != NULL) {
 
             size_t pLen = eol - pBuf;
             tlen -= pLen;
@@ -224,7 +225,7 @@ void JSSocket::onRead(const char *data, size_t len)
             }
         }
 
-        if (tlen && tlen+this->lineBuffer.pos <= SOCKET_LINEBUFFER_MAX) {
+        if (tlen && tlen + this->lineBuffer.pos <= SOCKET_LINEBUFFER_MAX) {
             memcpy(this->lineBuffer.data+this->lineBuffer.pos, pBuf, tlen);
             this->lineBuffer.pos += tlen;
         } else if (tlen) {
@@ -277,7 +278,7 @@ JSSocket::~JSSocket()
 static bool nidium_socket_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
-    JSSocket *nsocket = (JSSocket *)JS_GetPrivate(obj);
+    JSSocket *nsocket = static_cast<JSSocket *>(JS_GetPrivate(obj));
 
     if (nsocket == NULL) {
         JS_ReportError(cx, "Invalid socket object");
@@ -306,7 +307,7 @@ static bool nidium_socket_prop_get(JSContext *cx, JS::HandleObject obj,
 static bool nidium_socket_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
-    JSSocket *nsocket = (JSSocket *)JS_GetPrivate(obj);
+    JSSocket *nsocket = static_cast<JSSocket *>(JS_GetPrivate(obj));
 
     if (nsocket == NULL) {
         JS_ReportError(cx, "Invalid socket object");
@@ -337,8 +338,8 @@ static bool nidium_socket_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 if (nsocket->lineBuffer.data == NULL) {
 
-                    nsocket->lineBuffer.data = (char *)malloc(sizeof(char)
-                        * SOCKET_LINEBUFFER_MAX);
+                    nsocket->lineBuffer.data = static_cast<char *>(malloc(sizeof(char)
+                        * SOCKET_LINEBUFFER_MAX));
                     nsocket->lineBuffer.pos = 0;
                 }
 
@@ -424,7 +425,7 @@ static void nidium_socket_wrapper_client_onmessage(ape_socket *socket_server,
     struct sockaddr_in *addr, void *socket_arg)
 {
     JSContext *cx;
-    JSSocket *nsocket = (JSSocket *)socket_server->ctx;
+    JSSocket *nsocket = static_cast<JSSocket *>(socket_server->ctx);
 
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
@@ -444,7 +445,8 @@ static void nidium_socket_wrapper_client_onmessage(ape_socket *socket_server,
         jparams[0].setObject(*arrayBuffer);
 
     } else {
-        JS::RootedString jstr(cx, JSUtils::NewStringWithEncoding(cx, (char *)packet, len, nsocket->m_Encoding));
+        //TODO: new style cast
+        JS::RootedString jstr(cx, JSUtils::NewStringWithEncoding(cx, (char *)(packet), len, nsocket->m_Encoding));
 
         jparams[0].setString(jstr);
     }
@@ -480,7 +482,7 @@ static void nidium_socket_wrapper_onaccept(ape_socket *socket_server,
 {
     JSContext *m_Cx;
 
-    JSSocket *nsocket = (JSSocket *)socket_server->ctx;
+    JSSocket *nsocket = static_cast<JSSocket *>(socket_server->ctx);
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -502,8 +504,8 @@ static void nidium_socket_wrapper_onaccept(ape_socket *socket_server,
     sobj->socket = socket_client;
 
     if (sobj->getFlags() & SOCKET_READLINE) {
-        sobj->lineBuffer.data = (char *)malloc(sizeof(char)
-            * SOCKET_LINEBUFFER_MAX);
+        sobj->lineBuffer.data = static_cast<char *>(malloc(sizeof(char)
+            * SOCKET_LINEBUFFER_MAX));
         sobj->lineBuffer.pos = 0;
     }
 
@@ -537,13 +539,13 @@ static void nidium_socket_wrapper_client_read(ape_socket *socket_client,
     const uint8_t *data, size_t len,
     ape_global *ape, void *socket_arg)
 {
-    JSSocket *client = (JSSocket *)socket_client->ctx;
+    JSSocket *client = static_cast<JSSocket *>(socket_client->ctx);
 
     if (client == NULL) {
         return;
     }
 
-    client->onRead((const char *)data, len);
+    client->onRead(reinterpret_cast<const char *>(data), len);
 }
 
 static void nidium_socket_wrapper_client_disconnect(ape_socket *socket_client,
@@ -551,7 +553,7 @@ static void nidium_socket_wrapper_client_disconnect(ape_socket *socket_client,
 {
     JSContext *cx;
 
-    JSSocket *csocket = (JSSocket *)socket_client->ctx;
+    JSSocket *csocket = static_cast<JSSocket *>(socket_client->ctx);
     if (!csocket || !csocket->isClientFromOwnServer()) {
         return;
     }
@@ -590,7 +592,7 @@ static bool nidium_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
     ape_socket_proto protocol = APE_SOCKET_PT_TCP;
     bool isLZ4 = false;
 
-    ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
+    ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(cx));
 
     NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &Socket_class);
 
@@ -655,7 +657,7 @@ static bool nidium_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    JSSocket *nsocket = (JSSocket *)JS_GetPrivate(obj);
+    JSSocket *nsocket = static_cast<JSSocket *>(JS_GetPrivate(obj));
 
     if (nsocket != NULL) {
         delete nsocket;
@@ -680,7 +682,7 @@ static bool nidium_socket_write(JSContext *cx, unsigned argc, JS::Value *vp)
         JS::RootedString str(cx, args[0].toString());
         cdata.encodeUtf8(cx, str);
 
-        int ret = CppObj->write((unsigned char*)cdata.ptr(),
+        int ret = CppObj->write(reinterpret_cast<unsigned char*>(cdata.ptr()),
             strlen(cdata.ptr()), APE_DATA_COPY);
 
         args.rval().setInt32(ret);
@@ -733,7 +735,7 @@ static bool nidium_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    JSSocket *nsocket = (JSSocket *)JS_GetPrivate(caller);
+    JSSocket *nsocket = static_cast<JSSocket *>(JS_GetPrivate(caller));
 
     if (nsocket == NULL || !nsocket->isAttached()) {
         return true;
@@ -757,7 +759,7 @@ static bool nidium_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
     if (args[2].isString()) {
         JSAutoByteString cdata(cx, args[2].toString());
 
-        ape_socket_write_udp(nsocket->socket, cdata.ptr(), cdata.length(), cip.ptr(), (uint16_t)port);
+        ape_socket_write_udp(nsocket->socket, cdata.ptr(), cdata.length(), cip.ptr(), static_cast<uint16_t>(port));
     } else if (args[2].isObject()) {
         JSObject *objdata = args[2].toObjectOrNull();
 
@@ -768,7 +770,7 @@ static bool nidium_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
         uint32_t len = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
 
-        ape_socket_write_udp(nsocket->socket, (char *)data, len, cip.ptr(), (uint16_t)port);
+        ape_socket_write_udp(nsocket->socket, reinterpret_cast<char *>(data), len, cip.ptr(), static_cast<uint16_t>(port));
 
     } else {
         JS_ReportError(cx, "sendTo() invalid data (must be either a string or an ArrayBuffer)");
@@ -785,7 +787,7 @@ static void nidium_socket_wrapper_onconnected(ape_socket *s, ape_global *ape,
 {
     JSContext *cx;
 
-    JSSocket *nsocket = (JSSocket *)s->ctx;
+    JSSocket *nsocket = static_cast<JSSocket *>(s->ctx);
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -810,20 +812,20 @@ static void nidium_socket_wrapper_read(ape_socket *s,
     const uint8_t *data, size_t len, ape_global *ape,
     void *socket_arg)
 {
-    JSSocket *nsocket = (JSSocket *)s->ctx;
+    JSSocket *nsocket = static_cast<JSSocket *>(s->ctx);
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
     }
 
-    nsocket->onRead((const char *)data, len);
+    nsocket->onRead(reinterpret_cast<const char *>(data), len);
 }
 
 static void nidium_socket_wrapper_disconnect(ape_socket *s, ape_global *ape,
     void *socket_arg)
 {
     JSContext *cx;
-    JSSocket *nsocket = (JSSocket *)s->ctx;
+    JSSocket *nsocket = static_cast<JSSocket *>(s->ctx);
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -849,7 +851,7 @@ static void nidium_socket_wrapper_client_ondrain(ape_socket *socket_server,
     ape_global *ape, void *socket_arg)
 {
     JSContext *cx;
-    JSSocket *nsocket = (JSSocket *)socket_server->ctx;
+    JSSocket *nsocket = static_cast<JSSocket *>(socket_server->ctx);
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -876,7 +878,7 @@ static bool nidium_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
     uint16_t localport = 0;
     bool isLZ4 = false;
 
-    ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
+    ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(cx));
 
     NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &Socket_class);
 
@@ -899,7 +901,7 @@ static bool nidium_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
             isLZ4 = true;
         }
 
-        localport = (args.length() > 1 && args[1].isNumber() ? (uint16_t)args[1].toInt32() : 0);
+        localport = (args.length() > 1 && args[1].isNumber() ? static_cast<uint16_t>(args[1].toInt32()) : 0);
     }
 
     if ((socket = APE_socket_new(protocol, 0, net)) == NULL) {
@@ -941,7 +943,7 @@ static bool nidium_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
 }
 static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj)
 {
-    JSSocket *nsocket = (JSSocket *)JS_GetPrivate(obj);
+    JSSocket *nsocket = static_cast<JSSocket *>(JS_GetPrivate(obj));
 
     if (nsocket != NULL) {
 
@@ -1000,7 +1002,7 @@ static bool nidium_socket_client_write(JSContext *cx,
         JS::RootedString str(cx, args[0].toString());
         cdata.encodeUtf8(cx, str);
 
-        int ret = CppObj->write((unsigned char *)cdata.ptr(),
+        int ret = CppObj->write(reinterpret_cast<unsigned char *>(cdata.ptr()),
             strlen(cdata.ptr()), APE_DATA_COPY);
 
         args.rval().setInt32(ret);

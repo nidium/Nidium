@@ -159,7 +159,7 @@ class PtrAutoDelete {
         if (!m_Ptr) return;
 
         if (!m_Free) {
-            delete (T) m_Ptr;
+            delete static_cast<T>(m_Ptr);
         } else {
             m_Free(m_Ptr);
         }

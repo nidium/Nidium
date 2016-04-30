@@ -117,7 +117,7 @@ bool NFS::mkdir(const char *name_utf8, size_t name_len)
 
     newdir->meta.children = NULL;
 
-    newdir->filename_utf8 = (char *)malloc(path_len + 1);
+    newdir->filename_utf8 = static_cast<char *>(malloc(path_len + 1));
     memcpy(newdir->filename_utf8, path.ptr(), path_len);
     newdir->filename_utf8[path_len] = '\0';
 
@@ -167,10 +167,10 @@ bool NFS::writeFile(const char *name_utf8, size_t name_len, char *content,
 
     NFSTree *newfile = new NFSTree;
 
-    newfile->meta.content = (uint8_t *)content;
+    newfile->meta.content = reinterpret_cast<uint8_t *>(content);
     newfile->header.size = len;
 
-    newfile->filename_utf8 = (char *)malloc(path_len + 1);
+    newfile->filename_utf8 = static_cast<char *>(malloc(path_len + 1));
     memcpy(newfile->filename_utf8, path.ptr(), path_len);
     newfile->filename_utf8[path_len] = '\0';
     newfile->header.flags = flags;
@@ -201,7 +201,7 @@ const char *NFS::readFile(const char *filename, size_t *len,
 
     *len = file->header.size;
 
-    return (const char *)file->meta.content;
+    return reinterpret_cast<const char *>(file->meta.content);
 }
 
 bool NFS::save(FILE *fd)
@@ -261,7 +261,7 @@ void NFS::readTree(NFSTree *parent)
     parent->meta.children = item;
 
     this->readContent(&item->header, sizeof(struct nfs_file_header_s));
-    item->filename_utf8 = (char *)malloc(item->header.filename_length + 1);
+    item->filename_utf8 = static_cast<char *>(malloc(item->header.filename_length + 1));
     this->readContent(item->filename_utf8, item->header.filename_length);
     item->filename_utf8[item->header.filename_length] = '\0';
 

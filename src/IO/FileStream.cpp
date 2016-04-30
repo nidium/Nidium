@@ -180,7 +180,7 @@ void FileStream::onMessage(const Core::SharedMessages::Message &msg)
                 the buffer is automatically detroyed by File
                 after the return of this function
             */
-            buffer *buf = (buffer *)msg.args[0].toPtr();
+            buffer *buf = static_cast<buffer *>(msg.args[0].toPtr());
 
             if (m_File.eof()) {
                 m_DataBuffer.ended = true;

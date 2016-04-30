@@ -210,7 +210,8 @@ const unsigned char *HTTPStream::onGetNextPacket(size_t *len, int *err)
     ssize_t byteLeft = m_Mapped.size - m_LastReadUntil;
     *len = nidium_min(m_PacketsSize, byteLeft);
 
-    data = (unsigned char *)m_Mapped.addr + m_LastReadUntil;
+    //TODO: new style cast
+    data = (unsigned char *)(m_Mapped.addr) + m_LastReadUntil;
     m_LastReadUntil += *len;
 
     return data;
@@ -223,7 +224,7 @@ void HTTPStream::onRequest(HTTP::HTTPData *h, HTTP::DataType)
     buffer buf;
     buffer_init(&buf);
 
-    buf.data = (unsigned char *)m_Mapped.addr;
+    buf.data = static_cast<unsigned char *>(m_Mapped.addr);
     buf.size = buf.used = m_Mapped.size;
 
     CREATE_MESSAGE(message, Stream::EVENT_READ_BUFFER);
@@ -242,7 +243,8 @@ void HTTPStream::onProgress(size_t offset, size_t len,
         return;
     }
 
-    memcpy((char *)m_Mapped.addr + m_BytesBuffered,
+    // TODO: new style cast
+    memcpy((char *)(m_Mapped.addr) + m_BytesBuffered,
         &h->data->data[offset], len);
 
     m_BytesBuffered += len;

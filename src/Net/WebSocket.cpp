@@ -51,7 +51,7 @@ static void nidium_on_ws_frame(websocket_state *state,
         return;
     }
 
-    con->onFrame((const char *)data, length, (bool)binary);
+    con->onFrame(reinterpret_cast<const char *>(data), length, static_cast<bool>(binary));
 }
 
 WebSocketClientConnection::WebSocketClientConnection(
@@ -85,8 +85,8 @@ int WebSocketClientConnection::PingTimer(void *arg)
 void WebSocketClientConnection::write(unsigned char *data,
     size_t len, bool binary, ape_socket_data_autorelease type)
 {
-    ape_ws_write(&m_WSState, (unsigned char *)data, len,
-        (int)binary, type);
+    ape_ws_write(&m_WSState, static_cast<unsigned char *>(data), len,
+        static_cast<int>(binary), type);
 }
 
 void WebSocketClientConnection::close()
@@ -148,13 +148,14 @@ void WebSocketClientConnection::onUpgrade(const char *to)
         return;
     }
 
-    char *ws_computed_key = ape_ws_compute_key((const char *)ws_key->data,
+    char *ws_computed_key = ape_ws_compute_key(reinterpret_cast<const char *>(ws_key->data),
         ws_key->used-1);
 
+    // TODO: new style cast
     APE_socket_write(m_SocketClient,
-        (void *)CONST_STR_LEN(WEBSOCKET_HARDCODED_HEADERS), APE_DATA_STATIC);
+        (void *) CONST_STR_LEN(WEBSOCKET_HARDCODED_HEADERS), APE_DATA_STATIC);
     APE_socket_write(m_SocketClient,
-        (void*)CONST_STR_LEN("Sec-WebSocket-Accept: "), APE_DATA_STATIC);
+        (void *)CONST_STR_LEN("Sec-WebSocket-Accept: "), APE_DATA_STATIC);
     APE_socket_write(m_SocketClient,
         ws_computed_key, strlen(ws_computed_key), APE_DATA_AUTORELEASE);
     APE_socket_write(m_SocketClient,
@@ -186,7 +187,7 @@ void WebSocketClientConnection::onFrame(const char *data, size_t len,
 {
     Args args;
     args[0].set(this);
-    args[1].set((void *)data);
+    args[1].set((void *)(data)); // TODO: new style cast
     args[2].set(len);
     args[3].set(binary);
 

@@ -20,7 +20,7 @@ static pthread_key_t gManager = 0;
 
 void *TaskManager_Worker(void *arg)
 {
-    return ((TaskManager::workerInfo *)arg)->work();
+    return static_cast<TaskManager::workerInfo *>(arg)->work();
 }
 // }}}
 

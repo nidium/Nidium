@@ -63,8 +63,8 @@ class JSModules
     public:
         JSModules(JSContext *cx) : m_TopDir("/"), cx(cx)
         {
-            m_Paths[0] = (const char *)"modules";
-            m_Paths[1] = (const char *)"node_modules";
+            m_Paths[0] = static_cast<const char *>("modules");
+            m_Paths[1] = static_cast<const char *>("node_modules");
         }
 
         ~JSModules()

@@ -131,7 +131,7 @@ void Path::parse(const char *origin)
         int hostLen = (hostEnd - &root[hostStart]);
 
         m_Scheme = rootScheme;
-        m_Host = (char *)malloc((hostLen + 1) * sizeof(char));
+        m_Host = static_cast<char *>(malloc((hostLen + 1) * sizeof(char)));
         strncpy(m_Host, &root[hostStart], hostLen);
         m_Host[hostLen] = '\0';
     }
@@ -152,7 +152,7 @@ void Path::parse(const char *origin)
     }
 
     if (baseDir) {
-        char *tmp = (char *)malloc((strlen(path) + strlen(baseDir) + 1) * sizeof(char));
+        char *tmp = static_cast<char *>(malloc((strlen(path) + strlen(baseDir) + 1) * sizeof(char)));
         strcpy(tmp, baseDir);
         strcat(tmp, path);
 
@@ -170,7 +170,7 @@ void Path::parse(const char *origin)
 
     // Path have a host, prepend it to the final path
     if (m_Host) {
-        char *tmp = (char *)malloc((strlen(m_Path) + strlen(m_Host) + strlen(m_Scheme->str) + 1) * sizeof(char));
+        char *tmp = static_cast<char *>(malloc((strlen(m_Path) + strlen(m_Host) + strlen(m_Scheme->str) + 1) * sizeof(char)));
         strcpy(tmp, m_Scheme->str);
         strcat(tmp, m_Host);
         strcat(tmp, m_Path);
@@ -211,7 +211,7 @@ char *Path::GetDir(const char *fullpath)
     if (len == 0) {
         return NULL;
     }
-    ret = (char *)malloc(sizeof(char) * (len + 1));
+    ret = static_cast<char *>(malloc(sizeof(char) * (len + 1)));
     memcpy(ret, fullpath, len + 1);
 
     char *pos = strrchr(ret, '/');
@@ -251,7 +251,8 @@ void Path::UnRegisterSchemes()
 
     for (int i = 0; i < Path::g_m_SchemesCount; i++) {
         scheme = &Path::g_m_Schemes[i];
-        free((char*)scheme->str);
+        // TODO: new style cast
+        free((char*)(scheme->str));
     }
     Path::g_m_SchemesCount = 0;
 }

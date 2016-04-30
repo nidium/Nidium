@@ -103,7 +103,7 @@ static __inline uint64_t mach_absolute_time()
 #endif
     clock_gettime(USED_CLOCK, &t);
 
-    return (uint64_t)t.tv_sec * 1000000000 + (uint64_t)t.tv_nsec;
+    return static_cast<uint64_t>(t.tv_sec) * 1000000000 + static_cast<uint64_t>(t.tv_nsec);
 }
 #endif
 #endif
@@ -129,7 +129,7 @@ ngx_gmtime(time_t t, struct tm *tp)
 
     /* the calculation is valid for positive time_t only */
 
-    n = (uint32_t) t;
+    n = static_cast<uint32_t>(t);
 
     days = n / 86400;
 
@@ -206,13 +206,13 @@ ngx_gmtime(time_t t, struct tm *tp)
          */
     }
 
-    tp->tm_sec = (int)sec;
-    tp->tm_min =  (int)min;
-    tp->tm_hour = (int)hour;
-    tp->tm_mday = (int)mday;
-    tp->tm_mon = (int)mon;
-    tp->tm_year = (int)year;
-    tp->tm_wday = (int)wday;
+    tp->tm_sec = static_cast<int>(sec);
+    tp->tm_min =  static_cast<int>(min);
+    tp->tm_hour = static_cast<int>(hour);
+    tp->tm_mday = static_cast<int>(mday);
+    tp->tm_mon = static_cast<int>(mon);
+    tp->tm_year = static_cast<int>(year);
+    tp->tm_wday = static_cast<int>(wday);
 }
 
 void Utils::HTTPTime(char *buf)
@@ -245,17 +245,20 @@ static uint8_t nibbleFromChar(char c)
 void Utils::SHA1hmac(const unsigned char *key, uint32_t keylen,
     const unsigned char *buf, uint32_t buflen, unsigned char out[20])
 {
-    sha1_hmac((unsigned char *)key, keylen, (unsigned char *)buf, buflen, out);
+    //TODO: new style cast
+    sha1_hmac((unsigned char *)(key), keylen, (unsigned char *)(buf), buflen, out);
 }
 
 void Utils::SHA1(const unsigned char *buf, uint32_t buflen, unsigned char out[20])
 {
-    sha1_csum((unsigned char *)buf, buflen, out);
+    //TODO: new style cast
+    sha1_csum((unsigned char *)(buf), buflen, out);
 }
 
 char *Utils::B64Encode(const unsigned char *buf, size_t len)
 {
-    return base64_encode((unsigned char *)buf, len);
+    //TODO: new style cast
+    return base64_encode((unsigned char *)(buf), len);
 }
 
 int Utils::B64Decode(unsigned char *out, const char *in, int out_length)
@@ -296,7 +299,7 @@ void Utils::BlowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len)
     xr = ntohl(xr);
 
     memcpy(data, &xl, sizeof(uint32_t));
-    memcpy(data+sizeof(uint32_t), &xr, sizeof(uint32_t));
+    memcpy(data + sizeof(uint32_t), &xr, sizeof(uint32_t));
 }
 // }}}
 

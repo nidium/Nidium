@@ -33,7 +33,7 @@ public:
         }
 
         bool toBool() const {
-            return (bool)m_Value;
+            return static_cast<bool>(m_Value);
         }
 
         bool isSet() const {
@@ -58,7 +58,7 @@ public:
     };
     Args() {
         m_numArgs = 8;
-        m_Args = (ArgsValue **)malloc(sizeof(ArgsValue *) * m_numArgs);
+        m_Args = static_cast<ArgsValue **>(malloc(sizeof(ArgsValue *) * m_numArgs));
 
         for (int i = 0; i < m_numArgs; i++) {
             m_Args[i] = new ArgsValue();
@@ -76,7 +76,7 @@ public:
     */
     ArgsValue& operator[] (int idx) {
         if (idx >= m_numArgs) {
-            m_Args = (ArgsValue **)realloc(m_Args, sizeof(ArgsValue *) * (idx+1));
+            m_Args = static_cast<ArgsValue **>(realloc(m_Args, sizeof(ArgsValue *) * (idx+1)));
 
             for (int i = m_numArgs; i <= idx; i++) {
                 m_Args[i] = new ArgsValue();

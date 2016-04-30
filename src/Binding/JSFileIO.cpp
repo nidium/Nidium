@@ -101,7 +101,7 @@ static JSFunctionSpec File_static_funcs[] = {
 
 static void File_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    JSFileIO *NJSFIO = (JSFileIO *)JS_GetPrivate(obj);
+    JSFileIO *NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(obj));
     if (NJSFIO != NULL) {
 #if FILE_ROOT_DEBUG
         printf("Finalize %p\n", obj);
@@ -319,8 +319,8 @@ JSObject *JSFileIO::GenerateJSObject(JSContext *cx, const char *path)
 
 File *JSFileIO::GetFileFromJSObject(JSContext *cx, JS::HandleObject jsobj)
 {
-    JSFileIO *nfio = (JSFileIO *)JS_GetInstancePrivate(cx, jsobj,
-        &File_class, NULL);
+    JSFileIO *nfio = static_cast<JSFileIO *>(JS_GetInstancePrivate(cx, jsobj,
+        &File_class, NULL));
 
     return nfio ? nfio->getFile() : NULL;
 }
@@ -448,7 +448,7 @@ static bool nidium_file_rmrf(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NJSFIO = (JSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
 
     file = NJSFIO->getFile();
 
@@ -484,7 +484,7 @@ static bool nidium_file_seek(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
-    NJSFIO = (JSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
 
     file = NJSFIO->getFile();
 
@@ -507,7 +507,7 @@ static bool nidium_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NJSFIO = (JSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
 
     NIDIUM_JS_CHECK_ARGS("listFiles", 1);
 
@@ -548,7 +548,7 @@ static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NJSFIO = (JSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
 
     NIDIUM_JS_CHECK_ARGS("write", 2);
 
@@ -611,7 +611,7 @@ static bool nidium_file_read(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NJSFIO = (JSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
 
     NIDIUM_JS_CHECK_ARGS("read", 2);
 
@@ -624,7 +624,7 @@ static bool nidium_file_read(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
-    file->read((uint64_t)read_size, callback.toObjectOrNull());
+    file->read(static_cast<uint64_t>(read_size), callback.toObjectOrNull());
 #if FILE_ROOT_DEBUG
     printf("Root read %p\n", caller);
 #endif
@@ -645,7 +645,7 @@ static bool nidium_file_close(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NJSFIO = (JSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
 
     file = NJSFIO->getFile();
 
@@ -682,7 +682,7 @@ static bool nidium_file_open(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NJSFIO = (JSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
 
     file = NJSFIO->getFile();
 
@@ -790,7 +790,7 @@ static bool nidium_file_closeSync(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NJSFIO = (JSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
 
     file = NJSFIO->getFile();
 

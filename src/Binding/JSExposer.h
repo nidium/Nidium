@@ -18,7 +18,7 @@
 #define NIDIUM_JS_PROLOGUE(ofclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
-    ofclass *CppObj = (ofclass *)JS_GetPrivate(thisobj); \
+    ofclass *CppObj = static_cast<ofclass *>(JS_GetPrivate(thisobj)); \
     args.rval().setUndefined();
 
 #define NIDIUM_JS_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
@@ -28,7 +28,7 @@
         JS_ReportError(cx, "Illegal invocation"); \
         return false; \
     } \
-    ofclass *CppObj = (ofclass *)JS_GetInstancePrivate(cx, thisobj, fclass, NULL); \
+    ofclass *CppObj = static_cast<ofclass *>(JS_GetInstancePrivate(cx, thisobj, fclass, NULL)); \
     if (!CppObj) { \
         JS_ReportError(cx, "Illegal invocation"); \
         return false; \
@@ -98,7 +98,7 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
     }
 
 #define NIDIUM_JSOBJ_SET_PROP_FLAGS(where, name, val, flags) JS_DefineProperty(m_Cx, where, \
-    (const char *)name, val, flags)
+    reinterpret_cast<const char *>(name), val, flags)
 
 #define NIDIUM_JSOBJ_SET_PROP(where, name, val) NIDIUM_JSOBJ_SET_PROP_FLAGS(where, name, val, \
         JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
@@ -451,11 +451,11 @@ class JSExposer
     {
         if (cx != NULL) {
             if (JS_GetClass(obj) == T::jsclass) {
-                return (T *)JS_GetPrivate(obj);
+                return static_cast<T *>(JS_GetPrivate(obj));
             }
             return NULL;
         }
-        return (T *)JS_GetPrivate(obj);
+        return static_cast<T *>(JS_GetPrivate(obj));
     }
 
     static T* GetObject(NidiumJS *njs) {
@@ -463,7 +463,7 @@ class JSExposer
         if (obj == NULL) {
             return NULL;
         }
-        return (T *)JS_GetPrivate(obj);
+        return static_cast<T *>(JS_GetPrivate(obj));
     }
 
     static T* GetObject(JSContext *cx) {
@@ -736,7 +736,7 @@ public:
         TODO : need to check against instance
     */
     static T *GetObject(JSObject *jsobj) {
-        return (T *)JS_GetPrivate(jsobj);
+        return static_cast<T *>(JS_GetPrivate(jsobj));
     }
 protected:
     JSClass *m_JSClass;

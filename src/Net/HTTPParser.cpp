@@ -66,13 +66,13 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
         nhttp->m_Data = buffer_new(2048);
     }
 
-    if ((uint64_t)(nhttp->m_Data->used + len) > HTTP_MAX_CL) {
+    if (static_cast<uint64_t>(nhttp->m_Data->used + len) > HTTP_MAX_CL) {
         return -1;
     }
 
     if (len != 0) {
         buffer_append_data(nhttp->m_Data,
-            (const unsigned char *)buf, len);
+            reinterpret_cast<const unsigned char *>(buf), len);
     }
 
     nhttp->HTTPOnData(nhttp->m_Data->used - len, len);
@@ -102,7 +102,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data_tolower(nhttp->m_Headers.tkey,
-            (const unsigned char *)buf, len);
+            reinterpret_cast<const unsigned char *>(buf), len);
     }
 
     return 0;
@@ -129,7 +129,7 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data(nhttp->m_Headers.tval,
-            (const unsigned char *)buf, len);
+            reinterpret_cast<const unsigned char *>(buf), len);
     }
     return 0;
 }
@@ -170,7 +170,7 @@ bool HTTPParser::HTTPParse(const char *data, size_t len)
     size_t nparsed;
 
     nparsed = http_parser_execute(&m_Parser, &settings,
-        (const char *)data, len);
+        static_cast<const char *>(data), len);
 
     return nparsed != 0;
 }
@@ -205,7 +205,7 @@ HTTPParser::~HTTPParser()
 const char *HTTPParser::HTTPGetHeader(const char *key)
 {
     buffer *ret = ape_array_lookup_cstr(m_Headers.list, key, strlen(key));
-    return ret ? (const char *)ret->data : NULL;
+    return ret ? reinterpret_cast<const char *>(ret->data) : NULL;
 }
 // }}}
 

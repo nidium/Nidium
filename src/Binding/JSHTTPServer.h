@@ -56,7 +56,7 @@ public:
 
         NIDIUM_JSOBJ_SET_PROP_CSTR(obj, "ip", APE_socket_ipv4(client));
 
-        HTTPServer::onClientConnect((Nidium::Net::HTTPClientConnection *)client->ctx);
+        HTTPServer::onClientConnect(static_cast<Nidium::Net::HTTPClientConnection *>(client->ctx));
     }
     virtual void onClientDisconnect(Nidium::Net::HTTPClientConnection *client);
     virtual void onData(Nidium::Net::HTTPClientConnection *client, const char *buf, size_t len);

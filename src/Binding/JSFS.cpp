@@ -51,7 +51,7 @@ public:
         switch(msg.event()) {
             case JSFS_MSG_READDIR_FILE:
             {
-                dirent *cur = (dirent *)msg.dataPtr();
+                dirent *cur = static_cast<dirent *>(msg.dataPtr());
                 JSObject *callback = this->getCallback(0);
                 JSContext *cx, *m_Cx = this->getJSContext();
 
@@ -81,11 +81,11 @@ public:
 
     static void readDirTask(Task *task)
     {
-        JSFSAsyncHandler *handler = (JSFSAsyncHandler *)task->getObject();
+        JSFSAsyncHandler *handler = static_cast<JSFSAsyncHandler *>(task->getObject());
 
         DIR *dir;
 
-        if (!(dir = opendir((const char *)task->args[0].toPtr()))) {
+        if (!(dir = opendir(static_cast<const char *>(task->args[0].toPtr())))) {
             return;
         }
 
@@ -95,7 +95,7 @@ public:
             if (strcmp(cur->d_name, ".") == 0 || strcmp(cur->d_name, "..") == 0) {
                 continue;
             }
-            dirent *curcpy = (dirent *)malloc(sizeof(dirent));
+            dirent *curcpy = static_cast<dirent *>(malloc(sizeof(dirent)));
             memcpy(curcpy, cur, sizeof(dirent));
             handler->postMessage(curcpy, JSFS_MSG_READDIR_FILE);
         }

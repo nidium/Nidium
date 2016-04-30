@@ -139,7 +139,7 @@ static void gccb(JSRuntime *rt, JSGCStatus status)
 
 static void NidiumTraceBlack(JSTracer *trc, void *data)
 {
-    class NidiumJS *self = (class NidiumJS *)data;
+    class NidiumJS *self = static_cast<NidiumJS *>(data);
 
     if (self->isShuttingDown()) {
         return;
@@ -148,10 +148,10 @@ static void NidiumTraceBlack(JSTracer *trc, void *data)
     ape_htable_item_t *item;
 
     for (item = self->rootedObj->first; item != NULL; item = item->lnext) {
-        uintptr_t oldaddr = (uintptr_t)item->content.addrs;
+        uintptr_t oldaddr = reinterpret_cast<uintptr_t>(item->content.addrs);
         uintptr_t newaddr = oldaddr;
 
-        JS_CallObjectTracer(trc, (JSObject **)&newaddr, "NidiumRoot");
+        JS_CallObjectTracer(trc, reinterpret_cast<JSObject **>(&newaddr), "NidiumRoot");
 
         if (oldaddr != newaddr) {
             printf("Address changed\n");
@@ -171,19 +171,19 @@ void NidiumJS::rootObjectUntilShutdown(JSObject *obj)
 {
     //m_RootedSet->put(obj);
     //JS::AutoHashSetRooter<JSObject *> rooterhash(cx, 0);
-    hashtbl_append64(this->rootedObj, (uint64_t)obj, obj);
+    hashtbl_append64(this->rootedObj, reinterpret_cast<uint64_t>(obj), obj);
 }
 
 void NidiumJS::unrootObject(JSObject *obj)
 {
     //m_RootedSet->remove(obj);
-    hashtbl_erase64(this->rootedObj, (uint64_t)obj);
+    hashtbl_erase64(this->rootedObj, reinterpret_cast<uint64_t>(obj));
 }
 
 JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
                                            uint32_t tag, uint32_t data, void *closure)
 {
-    NidiumJS *js = (NidiumJS *)closure;
+    NidiumJS *js = static_cast<NidiumJS *>(closure);
 
     switch(tag) {
         case NIDIUM_SCTAG_FUNCTION:
@@ -191,7 +191,7 @@ JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
             const char pre[] = "return (";
             const char end[] = ").apply(this, Array.prototype.slice.apply(arguments));";
 
-            char *pdata = (char *)malloc(data + 256);
+            char *pdata = static_cast<char *>(malloc(data + 256));
             memcpy(pdata, pre, sizeof(pre));
 
             if (!JS_ReadBytes(r, pdata+(sizeof(pre)-1), data)) {
@@ -247,7 +247,7 @@ bool NidiumJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
 {
     JS::RootedValue vobj(cx, JS::ObjectValue(*obj));
     JSType type = JS_TypeOfValue(cx, vobj);
-    NidiumJS *js = (NidiumJS *)closure;
+    NidiumJS *js = static_cast<NidiumJS *>(closure);
 
     switch(type) {
         /* Serialize function into a string */
@@ -293,9 +293,9 @@ bool NidiumJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
 NidiumJS *NidiumJS::GetObject(JSContext *cx)
 {
     if (cx == NULL) {
-        return (NidiumJS *)pthread_getspecific(gJS);
+        return static_cast<NidiumJS *>(pthread_getspecific(gJS));
     }
-    return ((class NidiumJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)));
+    return static_cast<class NidiumJS *>(JS_GetRuntimePrivate(JS_GetRuntime(cx)));
 }
 
 ape_global *NidiumJS::GetNet()
@@ -303,7 +303,7 @@ ape_global *NidiumJS::GetNet()
     if (gAPE == 0) {
         return NULL;
     }
-    return (ape_global *)pthread_getspecific(gAPE);
+    return static_cast<ape_global *>(pthread_getspecific(gAPE));
 }
 
 void NidiumJS::InitNet(ape_global *net)
@@ -410,7 +410,7 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
         if (prefix)
             js->logf("%s", prefix);
 
-        char *tmpwrite = (char *)malloc((ctmp - message)+1);
+        char *tmpwrite = static_cast<char *>(malloc((ctmp - message) + 1));
         memcpy(tmpwrite, message, ctmp - message);
         tmpwrite[ctmp - message] = '\0';
         js->logf("%s", tmpwrite);
@@ -543,7 +543,7 @@ NidiumJS::NidiumJS(ape_global *net) :
     JS_SetRuntimePrivate(rt, this);
 
     messages = new SharedMessages();
-    registeredMessages = (nidium_thread_message_t*)calloc(16, sizeof(nidium_thread_message_t));
+    registeredMessages = static_cast<nidium_thread_message_t*>(calloc(16, sizeof(nidium_thread_message_t)));
     registeredMessagesIdx = 7; // The 8 first slots (0 to 7) are reserved for Nidium internals messages
     registeredMessagesSize = 16;
 
@@ -658,7 +658,7 @@ NidiumJS::~NidiumJS()
     rt = JS_GetRuntime(cx);
     shutdown = true;
 
-    ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
+    ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(cx));
 
     /* clear all non protected timers */
     APE_timers_destroy_unprotected(net);
@@ -685,7 +685,7 @@ NidiumJS::~NidiumJS()
 static int Nidium_handle_messages(void *arg)
 {
 #define MAX_MSG_IN_ROW 20
-    NidiumJS *njs = (NidiumJS *)arg;
+    NidiumJS *njs = static_cast<NidiumJS *>(arg);
     JSContext *cx = njs->cx;
     int nread = 0;
 
@@ -762,7 +762,7 @@ int NidiumJS::LoadScriptReturn(JSContext *cx, const char *data,
 {
     JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
 
-    char *func = (char *)malloc(sizeof(char) * (len + 64));
+    char *func = static_cast<char *>(malloc(sizeof(char) * (len + 64)));
     memset(func, 0, sizeof(char) * (len + 64));
 
     strcat(func, "return (");
@@ -826,8 +826,9 @@ int NidiumJS::LoadScriptContent(const char *data, size_t len,
     /*
         Detect JSBytecode using XDR magic number ad defined in xdr.h
     */
+    //TODO: static cast...
     if ((*(uint32_t *)data & 0xFFFFFF00) == 0xb973c000) {
-        return this->LoadBytecode((void *)data, len, filename);
+        return this->LoadBytecode((void *)(data), len, filename);
     }
 
     JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
@@ -932,7 +933,8 @@ int NidiumJS::LoadScript(const char *filename)
 
 int NidiumJS::LoadBytecode(NidiumBytecodeScript *script)
 {
-    return this->LoadBytecode((void *)script->data, script->size, script->name);
+    //TODO: new style cast
+    return this->LoadBytecode((void *)(script->data), script->size, script->name);
 }
 
 int NidiumJS::LoadBytecode(void *data, int size, const char *filename)
@@ -994,7 +996,7 @@ int NidiumJS::registerMessage(nidium_thread_message_t cbk)
             return -1;
         }
 
-        registeredMessages = (nidium_thread_message_t *)ptr;
+        registeredMessages = static_cast<nidium_thread_message_t *>(ptr);
         registeredMessagesSize += 16;
     }
 
@@ -1126,7 +1128,7 @@ static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
 // {{{ Timers
 static int nidium_timer_deleted(void *arg)
 {
-    struct nidium_sm_timer *params = (struct nidium_sm_timer *)arg;
+    struct nidium_sm_timer *params = static_cast<struct nidium_sm_timer *>(arg);
 
     if (params == NULL) {
         return 0;
@@ -1178,12 +1180,12 @@ static bool nidium_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp)
 
     params->func.set(func);
 
-    for (i = 0; i < (int)argc-1; i++) {
-        params->argv[i]->set(args[i+1]);
+    for (i = 0; i < static_cast<int>(argc) - 1; i++) {
+        params->argv[i]->set(args[i + 1]);
     }
 
-    ape_timer_async_t *async = APE_async((ape_global *)JS_GetContextPrivate(cx),
-                nidium_timerng_wrapper, (void *)params);
+    ape_timer_async_t *async = APE_async(static_cast<ape_global *>(JS_GetContextPrivate(cx)),
+                nidium_timerng_wrapper, static_cast<void *>(params));
 
     APE_async_setclearfunc(async, nidium_timer_deleted);
 
@@ -1234,18 +1236,18 @@ static bool nidium_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
 
     params->func.set(func);
 
-    for (i = 0; i < (int)argc-2; i++) {
-        params->argv[i]->set(args[i+2]);
+    for (i = 0; i < static_cast<int>(argc) - 2; i++) {
+        params->argv[i]->set(args[i + 2]);
     }
 
-    ape_timer_t *timer = APE_timer_create((ape_global *)JS_GetContextPrivate(cx),
+    ape_timer_t *timer = APE_timer_create(static_cast<ape_global *>(JS_GetContextPrivate(cx)),
         nidium_max(ms, 8), nidium_timerng_wrapper,
-        (void *)params);
+        static_cast<void *>(params));
 
     APE_timer_unprotect(timer);
     APE_timer_setclearfunc(timer, nidium_timer_deleted);
 
-    args.rval().setNumber((double)APE_timer_getid(timer));
+    args.rval().setNumber(static_cast<double>(APE_timer_getid(timer)));
 
     return true;
 }
@@ -1293,18 +1295,18 @@ static bool nidium_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
 
     params->ms = nidium_max(8, ms);
 
-    for (i = 0; i < (int)argc-2; i++) {
-        params->argv[i]->set(args.array()[i+2]);
+    for (i = 0; i < static_cast<int>(argc) - 2; i++) {
+        params->argv[i]->set(args.array()[i + 2]);
     }
 
-    ape_timer_t *timer = APE_timer_create((ape_global *)JS_GetContextPrivate(cx),
+    ape_timer_t *timer = APE_timer_create(static_cast<ape_global *>(JS_GetContextPrivate(cx)),
         params->ms, nidium_timerng_wrapper,
-        (void *)params);
+        static_cast<void *>(params));
 
     APE_timer_unprotect(timer);
     APE_timer_setclearfunc(timer, nidium_timer_deleted);
 
-    args.rval().setNumber((double)APE_timer_getid(timer));
+    args.rval().setNumber(static_cast<double>(APE_timer_getid(timer)));
 
     return true;
 }
@@ -1319,15 +1321,15 @@ static bool nidium_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    APE_timer_clearbyid((ape_global *)JS_GetContextPrivate(cx),
-        (uint64_t)identifier, 0);
+    APE_timer_clearbyid(static_cast<ape_global *>(JS_GetContextPrivate(cx)),
+        static_cast<uint64_t>(identifier), 0);
 
     return true;
 }
 
 static int nidium_timerng_wrapper(void *arg)
 {
-    struct nidium_sm_timer *params = (struct nidium_sm_timer *)arg;
+    struct nidium_sm_timer *params = static_cast<struct nidium_sm_timer *>(arg);
 
     JSAutoRequest       ar(params->cx);
     JS::RootedValue     rval(params->cx);
@@ -1359,7 +1361,7 @@ static bool nidium_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
         JS::RootedString str(cx, args[0].toString());
         cdata.encodeUtf8(cx, str);
 
-        char *ret = Utils::B64Encode((unsigned char *)cdata.ptr(), cdata.length());
+        char *ret = Utils::B64Encode(reinterpret_cast<unsigned char *>(cdata.ptr()), cdata.length());
 
         args.rval().setString(JS_NewStringCopyZ(cx, ret));
 

@@ -20,7 +20,7 @@ bool JSDB::insert(const char *key, JSContext *cx, JS::HandleValue val)
     if (!JS_WriteStructuredClone(cx, val, &data, &data_len, NULL, NULL, JS::NullHandleValue)) {
         return false;
     }
-    leveldb::Slice input((char *)data, data_len);
+    leveldb::Slice input(reinterpret_cast<char *>(data), data_len);
     leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, input);
 
     JS_ClearStructuredClone(data, data_len, nullptr, nullptr);

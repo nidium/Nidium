@@ -110,7 +110,7 @@ void JSStream::onMessage(const Core::SharedMessages::Message &msg)
             break;
         case Stream::EVENT_ERROR:
             {
-            Stream::Errors err = (Stream::Errors)msg.args[0].toInt();
+            Stream::Errors err = static_cast<Stream::Errors>(msg.args[0].toInt());
             int code = msg.args[1].toInt();
             switch (err) {
                 case Stream::ERROR_OPEN:
@@ -144,7 +144,7 @@ static bool nidium_stream_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
 
-    JSStream *stream = (JSStream *)JS_GetPrivate(obj);
+    JSStream *stream = static_cast<JSStream *>(JS_GetPrivate(obj));
 
     switch(id) {
         case STREAM_PROP_FILESIZE:
@@ -164,7 +164,7 @@ static bool nidium_stream_stop(JSContext *cx, unsigned argc, JS::Value *vp)
         return true;
     }
 
-    ((JSStream *)JS_GetPrivate(caller))->getStream()->stop();
+    static_cast<JSStream *>(JS_GetPrivate(caller))->getStream()->stop();
 
     return true;
 }
@@ -183,7 +183,7 @@ static bool nidium_stream_seek(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    ((JSStream *)JS_GetPrivate(caller))->getStream()->seek(pos);
+    static_cast<JSStream *>(JS_GetPrivate(caller))->getStream()->seek(pos);
 
     return true;
 }
@@ -205,7 +205,7 @@ static bool nidium_stream_start(JSContext *cx, unsigned argc, JS::Value *vp)
         }
     }
 
-    ((JSStream *)JS_GetPrivate(caller))->getStream()->start(packetlen);
+    static_cast<JSStream *>(JS_GetPrivate(caller))->getStream()->start(packetlen);
 
     NidiumJSObj(cx)->rootObjectUntilShutdown(caller);
 
@@ -225,7 +225,7 @@ static bool nidium_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value 
     int                   err;
     const unsigned char   *ret;
 
-    ret = ((JSStream *)JS_GetPrivate(caller))->
+    ret = static_cast<JSStream *>(JS_GetPrivate(caller))->
         getStream()->getNextPacket(&len, &err);
 
     if (ret == NULL) {
@@ -275,7 +275,7 @@ static bool nidium_Stream_constructor(JSContext *cx, unsigned argc, JS::Value *v
     JSAutoByteString curl(cx, url);
 
     JSStream *jstream = new JSStream(ret, cx,
-        (ape_global *)JS_GetContextPrivate(cx), curl.ptr());
+        static_cast<ape_global *>(JS_GetContextPrivate(cx)), curl.ptr());
 
     if (jstream->getStream() == NULL) {
         JS_ReportError(cx, "Failed to create stream");
@@ -294,7 +294,7 @@ static bool nidium_Stream_constructor(JSContext *cx, unsigned argc, JS::Value *v
 
 static void Stream_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    JSStream *nstream = (JSStream *)JS_GetPrivate(obj);
+    JSStream *nstream = static_cast<JSStream *>(JS_GetPrivate(obj));
 
     if (nstream != NULL) {
         delete nstream;

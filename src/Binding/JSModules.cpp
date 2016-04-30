@@ -82,7 +82,7 @@ bool JSModule::initMain()
 
     JS::RootedObject funObj(cx, JS_GetFunctionObject(fun));
 
-    js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
+    js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL(static_cast<void *>(this)));
 
     this->exports = NULL; // Main module is not a real module, thus no exports
 
@@ -136,7 +136,7 @@ bool JSModule::initNidium()
         return false;
     }
 
-    register_module_t registerModule = (register_module_t)dlsym(module, "__NidiumRegisterModule");
+    register_module_t registerModule = reinterpret_cast<register_module_t>(dlsym(module, "__NidiumRegisterModule"));
     if (registerModule && !registerModule(this->cx, exports)) {
         printf("Failed to register module\n");
         return false;
@@ -168,7 +168,7 @@ bool JSModule::initJS()
 
     funObj = JS_GetFunctionObject(fun);
 
-    js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
+    js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL(static_cast<void *>(this)));
 
     JS::RootedObject exports(cx, JS_NewObject(this->cx, NULL, JS::NullPtr(), JS::NullPtr()));
     JS::RootedObject module(cx, JS_NewObject(this->cx, &nidium_modules_class, JS::NullPtr(), JS::NullPtr()));
@@ -339,7 +339,7 @@ JS::Value JSModule::require(char *name)
                     return ret;
                 }
 
-                jchars = (jschar *)JS_malloc(cx, len * sizeof(jschar));
+                jchars = static_cast<jschar *>(JS_malloc(cx, len * sizeof(jschar)));
                 if (!jchars) {
                     return ret;
                 }

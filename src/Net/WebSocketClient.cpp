@@ -55,7 +55,7 @@ static void nidium_on_ws_client_frame(websocket_state *state,
         return;
     }
 
-    con->onFrame((const char *)data, length, (bool)binary);
+    con->onFrame(reinterpret_cast<const char *>(data), length, (bool)binary);
 }
 // }}}
 
@@ -68,7 +68,7 @@ WebSocketClient::WebSocketClient(uint16_t port, const char *url,
     m_URL  = strdup(url);
 
     uint64_t r64 = Core::Utils::RandInt<uint64_t>();
-    base64_encode_b_safe((unsigned char *)&r64, m_HandShakeKey, sizeof(uint64_t), 0);
+    base64_encode_b_safe(reinterpret_cast<unsigned char *>(&r64), m_HandShakeKey, sizeof(uint64_t), 0);
 
     m_ComputedKey = ape_ws_compute_key(m_HandShakeKey, strlen(m_HandShakeKey));
 }
@@ -174,6 +174,7 @@ void WebSocketClient::onConnected()
 
     PACK_TCP(m_Socket->s.fd);
 
+    //TODO: new style cast
     APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN("GET "), APE_DATA_STATIC);
     APE_socket_write(m_Socket, m_URL, strlen(m_URL), APE_DATA_OWN);
     APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN(" HTTP/1.1\r\nHost: "), APE_DATA_STATIC);
@@ -187,6 +188,7 @@ void WebSocketClient::onConnected()
 
     }
 
+    // TODO: new style cast
     APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN("\r\n"), APE_DATA_STATIC);
     APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN(
         "Connection: Upgrade\r\n"
@@ -201,6 +203,7 @@ void WebSocketClient::onConnected()
         Send the handshake key
     */
     APE_socket_write(m_Socket, m_HandShakeKey, strlen(m_HandShakeKey), APE_DATA_STATIC);
+    //TODO: new style cast
     APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN("\r\n\r\n"), APE_DATA_STATIC);
 
     FLUSH_TCP(m_Socket->s.fd);
@@ -208,19 +211,21 @@ void WebSocketClient::onConnected()
 
 void WebSocketClient::onDataHandshake(const uint8_t *data, size_t len)
 {
-    this->HTTPParse((char *)data, len);
+    //TODO: new style cast
+    this->HTTPParse((char *)(data), len);
 }
 
 void WebSocketClient::onDataWS(const uint8_t *data, size_t len)
 {
-    ape_ws_process_frame(&m_WSState, (char *)data, len);
+    //TODO: new style cast
+    ape_ws_process_frame(&m_WSState, (char *)(data), len);
 }
 
 void WebSocketClient::onFrame(const char *data, size_t len, bool binary)
 {
     Args args;
     args[0].set(this);
-    args[1].set((void *)data);
+    args[1].set((void *)(data)); // TODO: new style cast
     args[2].set(len);
     args[3].set(binary);
 

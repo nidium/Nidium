@@ -26,12 +26,12 @@ class Events
 {
 public:
     void addListener(Messages *listener) {
-        m_Listeners.set((uint64_t)(static_cast<Messages *>(listener)), listener);
+        m_Listeners.set(reinterpret_cast<uint64_t>((static_cast<Messages *>(listener))), listener);
 
         listener->listenFor(this, true);
     }
     void removeListener(Messages *listener, bool propagate = true) {
-        m_Listeners.erase((uint64_t)listener);
+        m_Listeners.erase(reinterpret_cast<uint64_t>(listener));
 
         if (propagate) {
             listener->listenFor(this, false);

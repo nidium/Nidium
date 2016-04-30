@@ -55,10 +55,10 @@ bool JSNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
 
     NFSTree *newfile = new NFSTree;
 
-    newfile->meta.content = (uint8_t *)content;
+    newfile->meta.content = reinterpret_cast<uint8_t *>(content);
     newfile->header.size = len;
 
-    newfile->filename_utf8 = (char *)malloc(path_len + 1);
+    newfile->filename_utf8 = static_cast<char *>(malloc(path_len + 1));
     memcpy(newfile->filename_utf8, path.ptr(), path_len);
     newfile->filename_utf8[path_len] = '\0';
     newfile->header.flags = flags;
@@ -67,12 +67,12 @@ bool JSNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
         uint32_t bytecode_len;
         uint8_t *bytecode;
 
-        if ((bytecode = (uint8_t *)this->buildJS(content, len, newfile->filename_utf8, &bytecode_len)) == NULL) {
+        if ((bytecode = static_cast<uint8_t *>(this->buildJS(content, len, newfile->filename_utf8, &bytecode_len))) == NULL) {
             delete newfile;
             return false;
         }
 
-        newfile->meta.content = (uint8_t *)bytecode;
+        newfile->meta.content = static_cast<uint8_t *>(bytecode);
         newfile->header.size = bytecode_len;
 
         newfile->header.flags = flags | NFS_FILE_JSBYTECODE;
