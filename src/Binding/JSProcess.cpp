@@ -37,7 +37,7 @@ static JSFunctionSpec Process_funcs[] = {
 static int ape_kill_handler(int code, ape_global *ape)
 {
     NidiumJS *njs = NidiumJS::GetObject();
-    JSContext *cx = njs->cx;
+    JSContext *cx = njs->m_Cx;
     JS::RootedValue     rval(cx);
 
     JSProcess *jProcess = JSProcess::GetObject(njs);
@@ -113,7 +113,7 @@ void JSProcess::RegisterObject(JSContext *cx, char **argv, int argc, int workerI
 
     JS_SetPrivate(ProcessObj, jProcess);
 
-    njs->jsobjects.set(JSProcess::GetJSObjectName(), ProcessObj);
+    njs->m_JsObjects.set(JSProcess::GetJSObjectName(), ProcessObj);
 
     JS_DefineFunctions(cx, ProcessObj, Process_funcs);
 

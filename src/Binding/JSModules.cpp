@@ -63,7 +63,7 @@ static bool nidium_modules_require(JSContext *cx, unsigned argc, JS::Value *vp);
 
 // {{{ JSModule
 JSModule::JSModule(JSContext *cx, JSModules *modules, JSModule *parent, const char *name)
-    : absoluteDir(NULL), filePath(NULL), m_Name(strdup(name)), m_ModuleType(NONE),
+    : m_AbsoluteDir(NULL), m_FilePath(NULL), m_Name(strdup(name)), m_ModuleType(NONE),
       m_Cached(false), m_Exports(NULL), m_Parent(parent), m_Modules(modules), m_Cx(cx)
 {
 }
@@ -96,28 +96,28 @@ bool JSModule::init()
     DPRINT("name = %s\n", m_Name);
 
     if (m_Parent) {
-        this->filePath = JSModules::FindModulePath(m_Parent, this);
+        m_FilePath = JSModules::FindModulePath(m_Parent, this);
     } else {
-        this->filePath = realpath(m_Name, NULL);
+        m_FilePath = realpath(m_Name, NULL);
     }
 
-    if (!this->filePath) {
+    if (!m_FilePath) {
         // Module not found
         return false;
     }
 
-    Path p(this->filePath, false, true);
+    Path p(m_FilePath, false, true);
 
     if (!p.dir()) {
         return false;
     }
 
-    this->absoluteDir = strdup(p.dir());
+    m_AbsoluteDir = strdup(p.dir());
 
-    DPRINT("filepath = %s\n", this->filePath);
+    DPRINT("filepath = %s\n", m_FilePath);
     DPRINT("name = %s\n", m_Name);
 
-    DPRINT("absolute dir for %s\n", this->absoluteDir);
+    DPRINT("absolute dir for %s\n", m_AbsoluteDir);
 
     return true;
 }
@@ -130,7 +130,7 @@ bool JSModule::initNidium()
         return false;
     }
 
-    void *module = dlopen(this->filePath, RTLD_LAZY);
+    void *module = dlopen(m_FilePath, RTLD_LAZY);
     if (!module) {
         printf("Failed to open module : %s\n", dlerror());
         return false;
@@ -217,7 +217,7 @@ JS::Value JSModule::require(char *name)
     ret.setUndefined();
 
     // require() have been called from the main module
-    if (this == m_Modules->main) {
+    if (this == m_Modules->m_Main) {
         /*
          * This little hack is needed to conform CommonJS :
          *  - Cyclic deps
@@ -235,17 +235,17 @@ JS::Value JSModule::require(char *name)
         JS::AutoFilename filename;
         JS::DescribeScriptedCaller(m_Cx, &filename, &lineno);
 
-        free(this->filePath);
-        free(this->absoluteDir);
+        free(m_FilePath);
+        free(m_AbsoluteDir);
         // filePath is needed for cyclic deps check
-        this->filePath = realpath(filename.get(), NULL);
+        m_FilePath = realpath(filename.get(), NULL);
 
-        if (this->filePath == NULL) {
-            this->absoluteDir = strdup(Path::GetCwd());
+        if (m_FilePath == NULL) {
+            m_AbsoluteDir = strdup(Path::GetCwd());
         } else {
             // absoluteDir is needed for FindModulePath
-            Path p(this->filePath, false, true);
-            this->absoluteDir = strdup(p.dir());
+            Path p(m_FilePath, false, true);
+            m_AbsoluteDir = strdup(p.dir());
             DPRINT("Global scope loading\n");
         }
     } else {
@@ -267,7 +267,7 @@ JS::Value JSModule::require(char *name)
         DPRINT("Module is not cached\n");
         cmodule = tmp;
     } else {
-        DPRINT("Module is cached %s\n", cached->filePath);
+        DPRINT("Module is cached %s\n", cached->m_FilePath);
         cmodule = cached;
         delete tmp;
     }
@@ -277,7 +277,7 @@ JS::Value JSModule::require(char *name)
         if (!m || !m->m_Exports) break;
 
         // Found a cyclic dependency
-        if (strcmp(cmodule->filePath, m->filePath) == 0) {
+        if (strcmp(cmodule->m_FilePath, m->m_FilePath) == 0) {
             JS::RootedObject gbl(m_Cx, m->m_Exports);
             JS::RootedValue module(m_Cx);
             JS_GetProperty(m_Cx, gbl, "module", &module);
@@ -303,7 +303,7 @@ JS::Value JSModule::require(char *name)
             JS::RootedFunction fn(m_Cx);
             JS::RootedValue rval(m_Cx);
 
-            if (!JSModules::GetFileContent(cmodule->filePath, &data, &filesize) || data == NULL) {
+            if (!JSModules::GetFileContent(cmodule->m_FilePath, &data, &filesize) || data == NULL) {
                 JS_ReportError(m_Cx, "Failed to open module %s\n", cmodule->m_Name);
                 return ret;
             }
@@ -318,7 +318,7 @@ JS::Value JSModule::require(char *name)
             if (cmodule->m_ModuleType == JS) {
                 JS::RootedObject expObj(m_Cx, cmodule->m_Exports);
                 JS::CompileOptions options(m_Cx);
-                options.setFileAndLine(cmodule->filePath, 1).setUTF8(true);
+                options.setFileAndLine(cmodule->m_FilePath, 1).setUTF8(true);
 
                 fn = JS::CompileFunction(m_Cx, expObj, options, NULL, 0, NULL, data, strlen(data));
 
@@ -384,13 +384,13 @@ JS::Value JSModule::require(char *name)
 
 JSModule::~JSModule()
 {
-    if (this->filePath && m_Cached) {
+    if (m_FilePath && m_Cached) {
         m_Modules->remove(this);
     }
 
     free(m_Name);
-    free(this->absoluteDir);
-    free(this->filePath);
+    free(m_AbsoluteDir);
+    free(m_FilePath);
 
 }
 // }}}
@@ -426,11 +426,11 @@ bool JSModules::init()
         m_EnvPaths[0] = NULL;
     }
 
-    this->main = new JSModule(m_Cx, this, NULL, "MAIN");
+    m_Main = new JSModule(m_Cx, this, NULL, "MAIN");
 
-    if (!main) return false;
+    if (!m_Main) return false;
 
-    return this->main->initMain();
+    return m_Main->initMain();
 }
 
 bool JSModules::init(JSModule *module)
@@ -475,13 +475,13 @@ char *JSModules::FindModulePath(JSModule *parent, JSModule *module)
 
     if (module->m_Name[0] == '.') {
         // Relative module, only look in current script directory
-        modulePath = JSModules::FindModuleInPath(module, parent->absoluteDir);
+        modulePath = JSModules::FindModuleInPath(module, parent->m_AbsoluteDir);
     }  else if (module->m_Name[0] == '/') {
         modulePath = JSModules::FindModuleInPath(module, topDir);
     }  else {
-        std::string path = parent->absoluteDir;
+        std::string path = parent->m_AbsoluteDir;
 
-        DPRINT("[FindModulePath] absolute topDir=%s dir=%s path=%s\n", topDir, parent->absoluteDir, path.c_str());
+        DPRINT("[FindModulePath] absolute topDir=%s dir=%s path=%s\n", topDir, parent->m_AbsoluteDir, path.c_str());
 
         // Look for the module in all parent directory until it's found
         // or if the top level working directory is reached

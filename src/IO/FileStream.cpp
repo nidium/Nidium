@@ -158,7 +158,7 @@ void FileStream::onMessage(const Core::SharedMessages::Message &msg)
             m_OpenFailed = false;
             break;
         case File::OPEN_ERROR:
-            this->errorSync(ERROR_OPEN, msg.args[0].toInt());
+            this->errorSync(ERROR_OPEN, msg.m_Args[0].toInt());
             m_OpenFailed = true;
             break;
         case File::SEEK_ERROR:
@@ -168,7 +168,7 @@ void FileStream::onMessage(const Core::SharedMessages::Message &msg)
             m_PendingSeek = false;
             break;
         case File::READ_ERROR:
-            this->errorSync(ERROR_READ, msg.args[0].toInt());
+            this->errorSync(ERROR_READ, msg.m_Args[0].toInt());
             break;
         case File::READ_SUCCESS:
         {
@@ -180,7 +180,7 @@ void FileStream::onMessage(const Core::SharedMessages::Message &msg)
                 the buffer is automatically detroyed by File
                 after the return of this function
             */
-            buffer *buf = static_cast<buffer *>(msg.args[0].toPtr());
+            buffer *buf = static_cast<buffer *>(msg.m_Args[0].toPtr());
 
             if (m_File.eof()) {
                 m_DataBuffer.ended = true;
@@ -200,14 +200,14 @@ void FileStream::onMessage(const Core::SharedMessages::Message &msg)
                         m_NeedToSendUpdate = false;
                         CREATE_MESSAGE(message_available,
                             EVENT_AVAILABLE_DATA);
-                        message_available->args[0].set(buf->used);
+                        message_available->m_Args[0].set(buf->used);
                         this->notifySync(message_available);
                     }
                 }
             }
 
             CREATE_MESSAGE(message, EVENT_READ_BUFFER);
-            message->args[0].set(buf);
+            message->m_Args[0].set(buf);
 
             this->notifySync(message);
 

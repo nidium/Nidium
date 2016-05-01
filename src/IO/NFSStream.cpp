@@ -75,7 +75,7 @@ void NFSStream::_getContent()
     buf.size = buf.used = m_File.len;
 
     CREATE_MESSAGE(message, EVENT_READ_BUFFER);
-    message->args[0].set(&buf);
+    message->m_Args[0].set(&buf);
 
     this->notifySync(message);
 }
@@ -135,7 +135,7 @@ void NFSStream::onStart(size_t packets, size_t seek)
 
     CREATE_MESSAGE(message_available,
         EVENT_AVAILABLE_DATA);
-    message_available->args[0].set(nidium_min(packets, m_File.len));
+    message_available->m_Args[0].set(nidium_min(packets, m_File.len));
 
     this->notifySync(message_available);
 
@@ -147,7 +147,7 @@ void NFSStream::onStart(size_t packets, size_t seek)
     buf.size = buf.used = m_File.len;
 
     CREATE_MESSAGE(message, EVENT_READ_BUFFER);
-    message->args[0].set(&buf);
+    message->m_Args[0].set(&buf);
 
     this->notifySync(message);
 }

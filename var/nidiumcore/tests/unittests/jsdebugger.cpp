@@ -17,15 +17,15 @@ TEST_F(JSDebugger, Simple)
 {
     bool success;
 
-    JS::RootedObject globObj(njs->cx, JS::CurrentGlobalOrNull(njs->cx));
-    JS::RootedValue rval(njs->cx, JSVAL_VOID);
-    success = JS_GetProperty(njs->cx, globObj, "Debugger", &rval);
+    JS::RootedObject globObj(njs->m_Cx, JS::CurrentGlobalOrNull(njs->m_Cx));
+    JS::RootedValue rval(njs->m_Cx, JSVAL_VOID);
+    success = JS_GetProperty(njs->m_Cx, globObj, "Debugger", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSDebugger::RegisterObject(njs->cx);
+    Nidium::Binding::JSDebugger::RegisterObject(njs->m_Cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs->cx, globObj, "Debugger", &rval);
+    success = JS_GetProperty(njs->m_Cx, globObj, "Debugger", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 }

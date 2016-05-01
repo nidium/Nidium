@@ -32,85 +32,85 @@ class HTTPRequest
             HTTP_HEAD,
             HTTP_PUT,
             HTTP_DELETE
-        } method;
+        } m_Method;
 
         explicit HTTPRequest(const char *url);
 
         ~HTTPRequest() {
-            ape_array_destroy(this->headers);
-            if (m_data != NULL && m_Datafree != NULL) {
-                m_Datafree(m_data);
+            ape_array_destroy(m_Headers);
+            if (m_Data != NULL && m_Datafree != NULL) {
+                m_Datafree(m_Data);
             }
-            free(host);
-            free(path);
+            free(m_Host);
+            free(m_Path);
         };
 
         void recycle() {
-            ape_array_destroy(this->headers);
-            this->headers = ape_array_new(8);
-            if (m_data != NULL && m_Datafree != NULL) {
-                m_Datafree(m_data);
+            ape_array_destroy(m_Headers);
+            m_Headers = ape_array_new(8);
+            if (m_Data != NULL && m_Datafree != NULL) {
+                m_Datafree(m_Data);
             }
-            m_data = NULL;
-            datalen = 0;
-            method = HTTP_GET;
+            m_Data = NULL;
+            m_DataLen = 0;
+            m_Method = HTTP_GET;
 
-            this->setDefaultHeaders();
+            setDefaultHeaders();
         }
 
         void setHeader(const char *key, const char *val)
         {
-            ape_array_add_camelkey_n(this->headers,
+            ape_array_add_camelkey_n(m_Headers,
                 key, strlen(key), val, strlen(val));
         }
 
         const char *getHeader(const char *key)
         {
-            buffer *ret = ape_array_lookup(headers, key, strlen(key));
+            buffer *ret = ape_array_lookup(m_Headers, key, strlen(key));
             return ret ? reinterpret_cast<const char *>(ret->data) : NULL;
         }
 
         buffer *getHeadersData() const;
 
         const bool isValid() const {
-            return (this->host[0] != 0);
+            return (m_Host[0] != 0);
         }
 
         const char *getHost() const {
-            return this->host;
+            return m_Host;
         }
 
         const char *getPath() const {
-            return this->path;
+            return m_Path;
         }
 
         void setPath(const char *lpath) {
-            if (this->path && lpath != this->path) {
-                free(this->path);
+            if (m_Path && lpath != m_Path) {
+                free(m_Path);
             }
 
-            this->path = strdup(lpath);
+            m_Path = strdup(lpath);
         }
 
         u_short getPort() const {
-            return this->port;
+            return m_Port;
         }
 
         ape_array_t *getHeaders() const {
-            return this->headers;
+            return m_Headers;
         }
 
         void setData(char *data, size_t len) {
-            this->m_data = data;
-            this->datalen = len;
+            m_Data = data;
+            m_DataLen = len;
         }
 
         const char *getData() const {
-            return this->m_data;
+            return m_Data;
         }
 
         size_t getDataLength() const {
-            return this->datalen;
+            return m_DataLen;
         }
 
         void setDataReleaser(void (*datafree)(void *))
@@ -127,14 +127,14 @@ class HTTPRequest
 
         void setDefaultHeaders();
 
-        char *host;
-        char *path;
-        char *m_data;
-        size_t datalen;
+        char *m_Host;
+        char *m_Path;
+        char *m_Data;
+        size_t m_DataLen;
         void (*m_Datafree)(void *);
-        u_short port;
+        u_short m_Port;
 
-        ape_array_t *headers;
+        ape_array_t *m_Headers;
 
         bool m_isSSL;
 };
@@ -173,7 +173,7 @@ public:
         PSTATE_VALUE
     };
 
-    ape_global *net;
+    ape_global *m_Net;
     ape_socket *m_CurrentSock;
 
     int m_Err;
@@ -190,11 +190,11 @@ public:
             buffer *tkey;
             buffer *tval;
             PrevState prevstate;
-        } headers;
-        buffer *data;
-        int ended;
-        uint64_t contentlength;
-    } http;
+        } m_Headers;
+        buffer *m_Data;
+        int m_Ended;
+        uint64_t m_ContentLength;
+    } m_HTTP;
 
     static int ParseURI(char *url, size_t url_len, char *host,
     u_short *port, char *file, const char *prefix = "http://", u_short default_port = 80);
@@ -215,10 +215,10 @@ public:
     }
 
     void resetData() {
-        if (http.data == NULL) {
+        if (m_HTTP.m_Data == NULL) {
             return;
         }
-        http.data->used = 0;
+        m_HTTP.m_Data->used = 0;
     }
 
     uint64_t getFileSize() const {
@@ -226,7 +226,7 @@ public:
     }
 
     uint16_t getStatusCode() const {
-        return http.parser.status_code;
+        return m_HTTP.parser.status_code;
     }
 
     HTTPRequest *getRequest() const {
@@ -319,7 +319,7 @@ class HTTPDelegate
         HTTP::DataType)=0;
     virtual void onError(HTTP::HTTPError err)=0;
     virtual void onHeader()=0;
-    HTTP *httpref;
+    HTTP *m_HTTPRef;
 };
 // }}}
 

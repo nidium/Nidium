@@ -124,7 +124,7 @@ void JSDebug::RegisterObject(JSContext *cx)
 
     JS_SetPrivate(debugObj, jdebug);
 
-    njs->jsobjects.set(JSDebug::GetJSObjectName(), debugObj);
+    njs->m_JsObjects.set(JSDebug::GetJSObjectName(), debugObj);
 
     JS_DefineFunctions(cx, debugObj, debug_funcs);
 }

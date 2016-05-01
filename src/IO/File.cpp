@@ -29,8 +29,8 @@ namespace IO {
 #define NIDIUM_FILE_NOTIFY(param, event, arg) \
     do {   \
         SharedMessages::Message *__msg = new SharedMessages::Message(event); \
-        __msg->args[0].set(param); \
-        __msg->args[7].set(arg); \
+        __msg->m_Args[0].set(param); \
+        __msg->m_Args[7].set(arg); \
         this->postMessage(__msg); \
     } while(0);
 
@@ -151,13 +151,13 @@ File::~File()
 void File_dispatchTask(Task *task)
 {
     File *file = static_cast<File *>(task->getObject());
-    uint64_t type = task->args[0].toInt64();
-    void *arg = task->args[7].toPtr();
+    uint64_t type = task->m_Args[0].toInt64();
+    void *arg = task->m_Args[7].toPtr();
 
     switch (type) {
         case FILE_TASK_OPEN:
         {
-            char *modes = static_cast<char *>(task->args[1].toPtr());
+            char *modes = static_cast<char *>(task->m_Args[1].toPtr());
             file->openTask(modes, arg);
             free(modes);
             break;
@@ -169,14 +169,14 @@ void File_dispatchTask(Task *task)
         }
         case FILE_TASK_READ:
         {
-            uint64_t size = task->args[1].toInt64();
+            uint64_t size = task->m_Args[1].toInt64();
             file->readTask(size, arg);
             break;
         }
         case FILE_TASK_WRITE:
         {
-            uint64_t buflen = task->args[1].toInt64();
-            char *buf = static_cast<char *>(task->args[2].toPtr());
+            uint64_t buflen = task->m_Args[1].toInt64();
+            char *buf = static_cast<char *>(task->m_Args[2].toPtr());
 
             file->writeTask(buf, buflen, arg);
 
@@ -185,7 +185,7 @@ void File_dispatchTask(Task *task)
         }
         case FILE_TASK_SEEK:
         {
-            uint64_t pos = task->args[1].toInt64();
+            uint64_t pos = task->m_Args[1].toInt64();
             file->seekTask(pos, arg);
             break;
         }
@@ -372,9 +372,9 @@ void File::listFilesTask(void *arg)
 void File::open(const char *mode, void *arg)
 {
     Task *task = new Task();
-    task->args[0].set(FILE_TASK_OPEN);
-    task->args[1].set(strdup(mode));
-    task->args[7].set(arg);
+    task->m_Args[0].set(FILE_TASK_OPEN);
+    task->m_Args[1].set(strdup(mode));
+    task->m_Args[7].set(arg);
 
     task->setFunction(File_dispatchTask);
 
@@ -384,8 +384,8 @@ void File::open(const char *mode, void *arg)
 void File::close(void *arg)
 {
     Task *task = new Task();
-    task->args[0].set(FILE_TASK_CLOSE);
-    task->args[7].set(arg);
+    task->m_Args[0].set(FILE_TASK_CLOSE);
+    task->m_Args[7].set(arg);
 
     task->setFunction(File_dispatchTask);
 
@@ -395,9 +395,9 @@ void File::close(void *arg)
 void File::read(size_t size, void *arg)
 {
     Task *task = new Task();
-    task->args[0].set(FILE_TASK_READ);
-    task->args[1].set(size);
-    task->args[7].set(arg);
+    task->m_Args[0].set(FILE_TASK_READ);
+    task->m_Args[1].set(size);
+    task->m_Args[7].set(arg);
 
     task->setFunction(File_dispatchTask);
 
@@ -410,10 +410,10 @@ void File::write(char *buf, size_t size, void *arg)
     memcpy(newbuf, buf, size);
 
     Task *task = new Task();
-    task->args[0].set(FILE_TASK_WRITE);
-    task->args[1].set(size);
-    task->args[2].set(newbuf);
-    task->args[7].set(arg);
+    task->m_Args[0].set(FILE_TASK_WRITE);
+    task->m_Args[1].set(size);
+    task->m_Args[2].set(newbuf);
+    task->m_Args[7].set(arg);
 
     task->setFunction(File_dispatchTask);
 
@@ -423,9 +423,9 @@ void File::write(char *buf, size_t size, void *arg)
 void File::seek(size_t pos, void *arg)
 {
     Task *task = new Task();
-    task->args[0].set(FILE_TASK_SEEK);
-    task->args[1].set(pos);
-    task->args[7].set(arg);
+    task->m_Args[0].set(FILE_TASK_SEEK);
+    task->m_Args[1].set(pos);
+    task->m_Args[7].set(arg);
 
     task->setFunction(File_dispatchTask);
 
@@ -435,8 +435,8 @@ void File::seek(size_t pos, void *arg)
 void File::listFiles(void *arg)
 {
     Task *task = new Task();
-    task->args[0].set(FILE_TASK_LISTFILES);
-    task->args[7].set(arg);
+    task->m_Args[0].set(FILE_TASK_LISTFILES);
+    task->m_Args[7].set(arg);
 
     task->setFunction(File_dispatchTask);
 
@@ -609,13 +609,13 @@ void File::onMessage(const SharedMessages::Message &msg)
     switch(msg.event()) {
         case File::READ_SUCCESS:
         {
-            buffer *buf = static_cast<buffer *>(msg.args[0].toPtr());
+            buffer *buf = static_cast<buffer *>(msg.m_Args[0].toPtr());
             buffer_delete(buf);
             break;
         }
         case File::LISTFILES_ENTRIES:
         {
-            DirEntries *entries = static_cast<DirEntries *>(msg.args[0].toPtr());
+            DirEntries *entries = static_cast<DirEntries *>(msg.m_Args[0].toPtr());
             free(entries->lst);
             free(entries);
             break;
@@ -628,13 +628,13 @@ void File::onMessageLost(const SharedMessages::Message &msg)
     switch(msg.event()) {
         case File::READ_SUCCESS:
         {
-            buffer *buf = static_cast<buffer *>(msg.args[0].toPtr());
+            buffer *buf = static_cast<buffer *>(msg.m_Args[0].toPtr());
             buffer_delete(buf);
             break;
         }
         case File::LISTFILES_ENTRIES:
         {
-            DirEntries *entries = static_cast<DirEntries *>(msg.args[0].toPtr());
+            DirEntries *entries = static_cast<DirEntries *>(msg.m_Args[0].toPtr());
             free(entries->lst);
             free(entries);
             break;

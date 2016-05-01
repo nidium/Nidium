@@ -47,16 +47,16 @@ TEST_F(NidiumJS, Simple)
     struct _ape_htable *table;
 
     //check the init
-    EXPECT_TRUE(njs->net == ape);
+    EXPECT_TRUE(njs->m_Net == ape);
     EXPECT_TRUE(njs->GetNet() == ape);
-    EXPECT_TRUE(njs->cx != NULL);
-    EXPECT_TRUE(njs->getJSContext() == njs->cx);
-    EXPECT_TRUE(njs->messages != NULL);
-    table = njs->jsobjects.accessCStruct();
+    EXPECT_TRUE(njs->m_Cx != NULL);
+    EXPECT_TRUE(njs->getJSContext() == njs->m_Cx);
+    EXPECT_TRUE(njs->m_Messages != NULL);
+    table = njs->m_JsObjects.accessCStruct();
     EXPECT_TRUE(table != NULL);
-    EXPECT_TRUE(njs->registeredMessages != NULL);
-    EXPECT_EQ(njs->registeredMessagesIdx, 7);
-    EXPECT_EQ(njs->registeredMessagesSize, 16);
+    EXPECT_TRUE(njs->m_RegisteredMessages != NULL);
+    EXPECT_EQ(njs->m_RegisteredMessagesIdx, 7);
+    EXPECT_EQ(njs->m_RegisteredMessagesSize, 16);
     EXPECT_EQ(njs->isShuttingDown(), false);
 
     //check the private
@@ -75,14 +75,14 @@ TEST_F(NidiumJS, Simple)
     njs->gc();
 
     //store objects
-    JS::RootedObject d(njs->cx, JS_NewObject(njs->cx, NULL, JS::NullPtr(), JS::NullPtr()));
-    JS::RootedValue rval(njs->cx, INT_TO_JSVAL(1));
-    JS_SetProperty(njs->cx, d, "a", rval);
+    JS::RootedObject d(njs->m_Cx, JS_NewObject(njs->m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedValue rval(njs->m_Cx, INT_TO_JSVAL(1));
+    JS_SetProperty(njs->m_Cx, d, "a", rval);
     njs->rootObjectUntilShutdown(d);
     njs->unrootObject(d);
-    JS::RootedObject dc(njs->cx, JS_NewObject(njs->cx, NULL, JS::NullPtr(), JS::NullPtr()));
-    njs->CopyProperties(njs->cx, d, &dc);
-    JS_GetProperty(njs->cx, dc, "a", &rval);
+    JS::RootedObject dc(njs->m_Cx, JS_NewObject(njs->m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    njs->CopyProperties(njs->m_Cx, d, &dc);
+    JS_GetProperty(njs->m_Cx, dc, "a", &rval);
     EXPECT_EQ(JSVAL_TO_INT(rval), 1);
 
     //check the loggers
@@ -113,7 +113,7 @@ TEST_F(NidiumJS, Simple)
 TEST_F(NidiumJS, Quick)
 {
     njs->InitNet(ape);
-    EXPECT_TRUE(njs->net == ape);
+    EXPECT_TRUE(njs->m_Net == ape);
     EXPECT_TRUE(njs->GetNet() == ape);
 }
 
@@ -126,15 +126,15 @@ TEST_F(NidiumJS, Code)
     success = njs->LoadScriptContent(srcA, strlen(srcA), __FILE__);
     EXPECT_EQ(success, 1);
 
-    JS::RootedValue rval(njs->cx);
-    JS::RootedObject globObj(njs->cx, JS::CurrentGlobalOrNull(njs->cx));
-    JS_GetProperty(njs->cx, globObj, "a", &rval);
+    JS::RootedValue rval(njs->m_Cx);
+    JS::RootedObject globObj(njs->m_Cx, JS::CurrentGlobalOrNull(njs->m_Cx));
+    JS_GetProperty(njs->m_Cx, globObj, "a", &rval);
     EXPECT_EQ(JSVAL_TO_INT(rval), 121);
 
-    success = njs->LoadScriptReturn(njs->cx, srcB, strlen(srcB), __FILE__, &rval);
+    success = njs->LoadScriptReturn(njs->m_Cx, srcB, strlen(srcB), __FILE__, &rval);
     EXPECT_EQ(success, 1);
     EXPECT_EQ(JSVAL_TO_INT(rval), 100);
-    JS_GetProperty(njs->cx, globObj, "b", &rval);
+    JS_GetProperty(njs->m_Cx, globObj, "b", &rval);
     EXPECT_EQ(JSVAL_TO_INT(rval), 100);
 }
 
@@ -142,31 +142,31 @@ TEST_F(NidiumJS, Messages)
 {
     size_t i;
 
-    EXPECT_EQ(njs->registeredMessagesIdx, 7);
-    EXPECT_EQ(njs->registeredMessagesSize, 16);
+    EXPECT_EQ(njs->m_RegisteredMessagesIdx, 7);
+    EXPECT_EQ(njs->m_RegisteredMessagesSize, 16);
     for (i = 0; i < 8; i++) {
-        EXPECT_TRUE(njs->registeredMessages[i] == NULL);
+        EXPECT_TRUE(njs->m_RegisteredMessages[i] == NULL);
     }
 
     njs->registerMessage(msg_cb_t);
-    EXPECT_EQ(njs->registeredMessagesIdx, 8);
-    EXPECT_EQ(njs->registeredMessagesSize, 16);
+    EXPECT_EQ(njs->m_RegisteredMessagesIdx, 8);
+    EXPECT_EQ(njs->m_RegisteredMessagesSize, 16);
 
-    int start = njs->registeredMessagesIdx;
-    int end = njs->registeredMessagesSize + 2;
+    int start = njs->m_RegisteredMessagesIdx;
+    int end = njs->m_RegisteredMessagesSize + 2;
     for (i = start; i < end; i++) {
-        printf("index=%u njs->registeredMessagesIdx=%d njs->registeredMessagesSize=%d\n", i, njs->registeredMessagesIdx, njs->registeredMessagesSize);
+        printf("index=%u njs->m_RegisteredMessagesIdx=%d njs->m_RegisteredMessagesSize=%d\n", i, njs->m_RegisteredMessagesIdx, njs->m_RegisteredMessagesSize);
         njs->registerMessage(msg_cb_t);
-        EXPECT_TRUE(njs->registeredMessages[i] != NULL);
+        EXPECT_TRUE(njs->m_RegisteredMessages[i] != NULL);
     }
 
-    EXPECT_EQ(njs->registeredMessagesIdx, end);
-    EXPECT_EQ(njs->registeredMessagesSize, 32);
+    EXPECT_EQ(njs->m_RegisteredMessagesIdx, end);
+    EXPECT_EQ(njs->m_RegisteredMessagesSize, 32);
 
     njs->registerMessage(msg_cb_t, 0);
     msgcounter = 0;
     APE_loop_stop();
-    void postMessage(void *dataPtr, int ev);
+    //void postMessage(void *dataPtr, int ev);
 }
 
 } // Namespace

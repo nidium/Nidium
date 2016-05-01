@@ -110,8 +110,8 @@ void JSStream::onMessage(const Core::SharedMessages::Message &msg)
             break;
         case Stream::EVENT_ERROR:
             {
-            Stream::Errors err = static_cast<Stream::Errors>(msg.args[0].toInt());
-            int code = msg.args[1].toInt();
+            Stream::Errors err = static_cast<Stream::Errors>(msg.m_Args[0].toInt());
+            int code = msg.m_Args[1].toInt();
             switch (err) {
                 case Stream::ERROR_OPEN:
                     break;

@@ -75,9 +75,9 @@ void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
         {
             JS::AutoValueArray<1> arg(cx);
 
-            const char *data = static_cast<const char *>(msg.args[2].toPtr());
-            int len = msg.args[3].toInt();
-            bool binary = msg.args[4].toBool();
+            const char *data = static_cast<const char *>(msg.m_Args[2].toPtr());
+            int len = msg.m_Args[3].toInt();
+            bool binary = msg.m_Args[4].toBool();
 
             JS::RootedObject obj(m_Cx, this->getJSObject());
             if (JS_GetProperty(m_Cx, obj, "onmessage", &oncallback) &&

@@ -85,7 +85,7 @@ public:
 
         DIR *dir;
 
-        if (!(dir = opendir(static_cast<const char *>(task->args[0].toPtr())))) {
+        if (!(dir = opendir(static_cast<const char *>(task->m_Args[0].toPtr())))) {
             return;
         }
 
@@ -143,7 +143,7 @@ static bool nidium_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
 
     Task *task = new Task();
     task->setFunction(JSFSAsyncHandler::readDirTask);
-    task->args[0].set(strdup(cpath.ptr()));
+    task->m_Args[0].set(strdup(cpath.ptr()));
 
     handler->setCallback(0, callback.toObjectOrNull());
     handler->addTask(task);

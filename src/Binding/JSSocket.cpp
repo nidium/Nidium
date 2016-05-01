@@ -100,14 +100,14 @@ static JSPropertySpec Socket_props[] = {
 // {{{ JSSocket
 JSSocket::JSSocket(JS::HandleObject obj, JSContext *cx,
     const char *host, unsigned short port)
-    :  JSExposer<JSSocket>(obj, cx), m_Socket(NULL), flags(0), m_FrameDelimiter('\n'), 
+    :  JSExposer<JSSocket>(obj, cx), m_Socket(NULL), m_Flags(0), m_FrameDelimiter('\n'), 
        m_ParentServer(NULL), m_TCPTimeout(0)
 {
     m_Host = strdup(host);
     m_Port = port;
 
-    lineBuffer.pos = 0;
-    lineBuffer.data = NULL;
+    m_LineBuffer.pos = 0;
+    m_LineBuffer.data = NULL;
 
     m_Encoding = NULL;
 }
@@ -121,12 +121,12 @@ void JSSocket::readFrame(const char *buf, size_t len)
     JS::RootedString jstr(m_Cx);
     jstr = tstr;
 
-    if (this->lineBuffer.pos && (this->getFlags() & SOCKET_READLINE)) {
-        JS::RootedString left(m_Cx, JSUtils::NewStringWithEncoding(m_Cx, this->lineBuffer.data,
-            this->lineBuffer.pos, this->getEncoding()));
+    if (m_LineBuffer.pos && (this->getFlags() & SOCKET_READLINE)) {
+        JS::RootedString left(m_Cx, JSUtils::NewStringWithEncoding(m_Cx, m_LineBuffer.data,
+            m_LineBuffer.pos, this->getEncoding()));
 
         jstr = JS_ConcatStrings(m_Cx, left, tstr);
-        this->lineBuffer.pos = 0;
+        m_LineBuffer.pos = 0;
     }
 
     if (isClientFromOwnServer()) {
@@ -225,11 +225,11 @@ void JSSocket::onRead(const char *data, size_t len)
             }
         }
 
-        if (tlen && tlen + this->lineBuffer.pos <= SOCKET_LINEBUFFER_MAX) {
-            memcpy(this->lineBuffer.data+this->lineBuffer.pos, pBuf, tlen);
-            this->lineBuffer.pos += tlen;
+        if (tlen && tlen + m_LineBuffer.pos <= SOCKET_LINEBUFFER_MAX) {
+            memcpy(m_LineBuffer.data+m_LineBuffer.pos, pBuf, tlen);
+            m_LineBuffer.pos += tlen;
         } else if (tlen) {
-            this->lineBuffer.pos = 0;
+            m_LineBuffer.pos = 0;
         }
 
         return;
@@ -264,8 +264,8 @@ JSSocket::~JSSocket()
         this->disconnect();
     }
     free(m_Host);
-    if (lineBuffer.data) {
-        free(lineBuffer.data);
+    if (m_LineBuffer.data) {
+        free(m_LineBuffer.data);
     }
 
     if (m_Encoding) {
@@ -287,10 +287,10 @@ static bool nidium_socket_prop_get(JSContext *cx, JS::HandleObject obj,
 
     switch(id) {
         case SOCKET_PROP_BINARY:
-            vp.setBoolean(nsocket->flags & SOCKET_ISBINARY);
+            vp.setBoolean(nsocket->m_Flags & SOCKET_ISBINARY);
             break;
         case SOCKET_PROP_READLINE:
-            vp.setBoolean(nsocket->flags & SOCKET_READLINE);
+            vp.setBoolean(nsocket->m_Flags & SOCKET_READLINE);
             break;
         case SOCKET_PROP_ENCODING:
             vp.setString(JS_NewStringCopyZ(cx, nsocket->m_Encoding ? nsocket->m_Encoding : "ascii"));
@@ -318,9 +318,9 @@ static bool nidium_socket_prop_set(JSContext *cx, JS::HandleObject obj,
         case SOCKET_PROP_BINARY:
         {
             if (vp.isBoolean()) {
-                nsocket->flags = (vp.toBoolean() == true ?
-                    nsocket->flags | SOCKET_ISBINARY :
-                    nsocket->flags & ~SOCKET_ISBINARY);
+                nsocket->m_Flags = (vp.toBoolean() == true ?
+                    nsocket->m_Flags | SOCKET_ISBINARY :
+                    nsocket->m_Flags & ~SOCKET_ISBINARY);
 
             } else {
                 vp.set(JSVAL_FALSE);
@@ -334,13 +334,13 @@ static bool nidium_socket_prop_set(JSContext *cx, JS::HandleObject obj,
 
             if (isactive) {
 
-                nsocket->flags |= SOCKET_READLINE;
+                nsocket->m_Flags |= SOCKET_READLINE;
 
-                if (nsocket->lineBuffer.data == NULL) {
+                if (nsocket->m_LineBuffer.data == NULL) {
 
-                    nsocket->lineBuffer.data = static_cast<char *>(malloc(sizeof(char)
+                    nsocket->m_LineBuffer.data = static_cast<char *>(malloc(sizeof(char)
                         * SOCKET_LINEBUFFER_MAX));
-                    nsocket->lineBuffer.pos = 0;
+                    nsocket->m_LineBuffer.pos = 0;
                 }
 
                 /*
@@ -349,7 +349,7 @@ static bool nidium_socket_prop_set(JSContext *cx, JS::HandleObject obj,
                 nsocket->m_FrameDelimiter = vp.isBoolean() ? '\n' : vp.toInt32() & 0xFF;
 
             } else {
-                nsocket->flags &= ~SOCKET_READLINE;
+                nsocket->m_Flags &= ~SOCKET_READLINE;
 
                 vp.set(JSVAL_FALSE);
                 return true;
@@ -437,7 +437,7 @@ static void nidium_socket_wrapper_client_onmessage(ape_socket *socket_server,
     JS::RootedValue onmessage(cx);
     JS::RootedValue rval(cx);
 
-    if (nsocket->flags & SOCKET_ISBINARY) {
+    if (nsocket->m_Flags & SOCKET_ISBINARY) {
         JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
         uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
         memcpy(data, packet, len);
@@ -504,9 +504,9 @@ static void nidium_socket_wrapper_onaccept(ape_socket *socket_server,
     sobj->m_Socket = socket_client;
 
     if (sobj->getFlags() & SOCKET_READLINE) {
-        sobj->lineBuffer.data = static_cast<char *>(malloc(sizeof(char)
+        sobj->m_LineBuffer.data = static_cast<char *>(malloc(sizeof(char)
             * SOCKET_LINEBUFFER_MAX));
-        sobj->lineBuffer.pos = 0;
+        sobj->m_LineBuffer.pos = 0;
     }
 
     socket_client->ctx = sobj;
@@ -650,7 +650,7 @@ static bool nidium_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
 
     args.rval().setObjectOrNull(thisobj);
 
-    CppObj->flags |= SOCKET_ISSERVER;
+    CppObj->m_Flags |= SOCKET_ISSERVER;
 
     return true;
 }
@@ -741,7 +741,7 @@ static bool nidium_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
         return true;
     }
 
-    if (!(nsocket->flags & SOCKET_ISSERVER)) {
+    if (!(nsocket->m_Flags & SOCKET_ISSERVER)) {
         JS_ReportError(cx, "sendto() is only available on listening socket");
         return false;
     }

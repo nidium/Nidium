@@ -89,12 +89,12 @@ void JSWebSocketServer::onMessage(const Core::SharedMessages::Message &msg)
         {
             JS::AutoValueArray<2> arg(cx);
 
-            const char *data = static_cast<const char *>(msg.args[2].toPtr());
-            int len = msg.args[3].toInt();
-            bool binary = msg.args[4].toBool();
+            const char *data = static_cast<const char *>(msg.m_Args[2].toPtr());
+            int len = msg.m_Args[3].toInt();
+            bool binary = msg.m_Args[4].toBool();
 
             //TODO: New style cast
-            JS::RootedObject jclient(cx, (JSObject *)((WebSocketClientConnection *)msg.args[1].toPtr())->getData());
+            JS::RootedObject jclient(cx, (JSObject *)((WebSocketClientConnection *)msg.m_Args[1].toPtr())->getData());
 
             if (!jclient.get()) {
                 return;
@@ -122,7 +122,7 @@ void JSWebSocketServer::onMessage(const Core::SharedMessages::Message &msg)
             JS::AutoValueArray<1> arg(cx);
 
             JSObject *jclient = this->createClient(
-                static_cast<WebSocketClientConnection *>(msg.args[1].toPtr()));
+                static_cast<WebSocketClientConnection *>(msg.m_Args[1].toPtr()));
 
             arg[0].setObject(*jclient);
 
@@ -134,7 +134,7 @@ void JSWebSocketServer::onMessage(const Core::SharedMessages::Message &msg)
         }
         case NIDIUM_EVENT(WebSocketServer, SERVER_CLOSE):
         {
-            WebSocketClientConnection *client = static_cast<WebSocketClientConnection *>(msg.args[1].toPtr());
+            WebSocketClientConnection *client = static_cast<WebSocketClientConnection *>(msg.m_Args[1].toPtr());
             JS::AutoValueArray<1> arg(cx);
             JS::RootedObject jclient(cx, static_cast<JSObject *>(client->getData()));
             JS::RootedObject obj(cx, this->getJSObject());

@@ -18,22 +18,22 @@ TEST_F(JSWebsocketClient, Simple)
 {
     bool success;
 
-    JS::RootedObject globObj(njs->cx, JS::CurrentGlobalOrNull(njs->cx));
-    JS::RootedValue rval(njs->cx, JSVAL_VOID);
-    success = JS_GetProperty(njs->cx, globObj, "WebSocket", &rval);
+    JS::RootedObject globObj(njs->m_Cx, JS::CurrentGlobalOrNull(njs->m_Cx));
+    JS::RootedValue rval(njs->m_Cx, JSVAL_VOID);
+    success = JS_GetProperty(njs->m_Cx, globObj, "WebSocket", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
-    success = JS_GetProperty(njs->cx, globObj, "WebSocket", &rval);
+    success = JS_GetProperty(njs->m_Cx, globObj, "WebSocket", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSWebSocket::RegisterObject(njs->cx);
+    Nidium::Binding::JSWebSocket::RegisterObject(njs->m_Cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs->cx, globObj, "WebSocket", &rval);
+    success = JS_GetProperty(njs->m_Cx, globObj, "WebSocket", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs->cx, globObj, "WebSocket", &rval);
+    success = JS_GetProperty(njs->m_Cx, globObj, "WebSocket", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 

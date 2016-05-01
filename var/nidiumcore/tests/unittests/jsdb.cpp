@@ -18,17 +18,17 @@ TEST_F(JSDB, Simple)
 {
     bool success;
 
-    JS::RootedObject globObj(njs->cx, JS::CurrentGlobalOrNull(njs->cx));
-    JS::RootedValue rval(njs->cx, JSVAL_VOID);
+    JS::RootedObject globObj(njs->m_Cx, JS::CurrentGlobalOrNull(njs->m_Cx));
+    JS::RootedValue rval(njs->m_Cx, JSVAL_VOID);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 /*
-    success = JS_GetProperty(njs->cx, globObj, "db", &rval);
+    success = JS_GetProperty(njs->m_Cx, globObj, "db", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSConsole::RegisterObject(njs->cx);
+    Nidium::Binding::JSConsole::RegisterObject(njs->m_Cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs->cx, globObj, "db", &rval);
+    success = JS_GetProperty(njs->m_Cx, globObj, "db", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
     //TODO insert

@@ -16,19 +16,19 @@ NIDIUMJS_FIXTURE(JSNFS)
 TEST_F(JSNFS, Simple)
 {
     //bool success;
-    JS::RootedValue rval(njs->cx, JSVAL_VOID);
+    JS::RootedValue rval(njs->m_Cx, JSVAL_VOID);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
     /*
-    JS::RootedObject globObj(njs->cx, JS::CurrentGlobalOrNull(njs->cx));
-    JS::RootedValue rval(njs->cx, JSVAL_VOID);
-    success = JS_GetProperty(njs->cx, globObj, "nfs", &rval);
+    JS::RootedObject globObj(njs->m_Cx, JS::CurrentGlobalOrNull(njs->m_Cx));
+    JS::RootedValue rval(njs->m_Cx, JSVAL_VOID);
+    success = JS_GetProperty(njs->m_Cx, globObj, "nfs", &rval);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
-    Nidium::Binding::JSNFS::RegisterObject(njs->cx);
+    Nidium::Binding::JSNFS::RegisterObject(njs->m_Cx);
 
     rval = JSVAL_VOID;
-    success = JS_GetProperty(njs->cx, globObj, "nfs", &rval);
+    success = JS_GetProperty(njs->m_Cx, globObj, "nfs", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
     */

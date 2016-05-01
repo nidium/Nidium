@@ -118,16 +118,16 @@ template <typename T>
 // {{{ PthreadLock
 class PthreadAutoLock {
   public:
-    PthreadAutoLock(pthread_mutex_t *mutex) : lock(mutex) {
+    PthreadAutoLock(pthread_mutex_t *mutex) : m_Lock(mutex) {
 
-        pthread_mutex_lock(lock);
+        pthread_mutex_lock(m_Lock);
     }
 
     ~PthreadAutoLock() {
-        pthread_mutex_unlock(lock);
+        pthread_mutex_unlock(m_Lock);
     }
   private:
-    pthread_mutex_t *lock;
+    pthread_mutex_t *m_Lock;
 };
 // }}}
 

@@ -27,20 +27,20 @@ class JSThread : public JSExposer<JSThread>, public Nidium::Core::Messages
     void onComplete(JS::HandleValue vp);
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 
-    JS::Heap<JSString *> jsFunction;
+    JS::Heap<JSString *> m_JsFunction;
 
-    JSRuntime *jsRuntime;
-    JSContext *jsCx;
-    JSObject *jsObject;
-    NidiumJS *njs;
+    JSRuntime *m_JsRuntime;
+    JSContext *m_JsCx;
+    JSObject *m_JsObject;
+    NidiumJS *m_Njs;
     struct {
         int argc;
         uint64_t **argv;
         size_t *nbytes;
-    } params;
-    bool markedStop;
+    } m_Params;
+    bool m_MarkedStop;
 
-    pthread_t threadHandle;
+    pthread_t m_ThreadHandle;
 
     char *m_CallerFileName;
     uint32_t m_CallerLineNo;

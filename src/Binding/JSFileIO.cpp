@@ -137,7 +137,7 @@ public:
         switch (msg.event()) {
             case Stream::EVENT_ERROR: {
                 Stream::Errors err =
-                static_cast<Stream::Errors>(msg.args[0].toInt());
+                static_cast<Stream::Errors>(msg.m_Args[0].toInt());
                 printf("Got an error : %d\n", err);
                 params[0].setString(JS_NewStringCopyZ(cx, "Stream error"));
             }
@@ -145,7 +145,7 @@ public:
             case Stream::EVENT_READ_BUFFER:
             {
                 JS::RootedValue ret(cx);
-                buffer *buf = static_cast<buffer *>(msg.args[0].toPtr());
+                buffer *buf = static_cast<buffer *>(msg.m_Args[0].toPtr());
                 if (JSUtils::StrToJsval(cx, reinterpret_cast<const char *>(buf->data),
                     buf->used, &ret, encoding)) {
 
@@ -236,17 +236,17 @@ bool JSFileIO::callbackForMessage(JSContext *cx,
         switch (msg.event()) {
             case File::READ_SUCCESS:
             {
-                buffer *buf = static_cast<buffer *>(msg.args[0].toPtr());
+                buffer *buf = static_cast<buffer *>(msg.m_Args[0].toPtr());
                 JSUtils::StrToJsval(cx, reinterpret_cast<const char *>(buf->data),
                     buf->used, params[1], encoding);
                 break;
             }
             case File::WRITE_SUCCESS:
-                params[1].setDouble(msg.args[0].toInt64());
+                params[1].setDouble(msg.m_Args[0].toInt64());
                 break;
             case File::LISTFILES_ENTRIES:
             {
-                File::DirEntries *entries = (File::DirEntries *)msg.args[0].toPtr();
+                File::DirEntries *entries = (File::DirEntries *)msg.m_Args[0].toPtr();
                 JS::RootedObject arr(cx, JS_NewArrayObject(cx, entries->size));
 
                 for (int i = 0; i < entries->size; i++) {
@@ -267,7 +267,7 @@ bool JSFileIO::callbackForMessage(JSContext *cx,
             }
         }
     }
-    JSObject *callback = static_cast<JSObject *>(msg.args[7].toPtr());
+    JSObject *callback = static_cast<JSObject *>(msg.m_Args[7].toPtr());
 
     if (!this->getFile()->m_TaskQueued) {
 #if FILE_ROOT_DEBUG

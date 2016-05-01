@@ -67,17 +67,17 @@ class NidiumJS
         typedef int (*vlogger)(const char *format, va_list ap);
         typedef int (*logger_clear)();
 
-        JSContext *cx;
-        Nidium::Core::SharedMessages *messages;
+        JSContext *m_Cx;
+        Nidium::Core::SharedMessages *m_Messages;
 
-        Nidium::Core::Hash<JSObject *> jsobjects;
+        Nidium::Core::Hash<JSObject *> m_JsObjects;
 
-        struct _ape_htable *rootedObj;
+        struct _ape_htable *m_RootedObj;
         struct _ape_global *m_Net;
 
-        nidium_thread_message_t *registeredMessages;
-        int registeredMessagesIdx;
-        int registeredMessagesSize;
+        nidium_thread_message_t *m_RegisteredMessages;
+        int m_RegisteredMessagesIdx;
+        int m_RegisteredMessagesSize;
 
         static NidiumJS *GetObject(JSContext *cx = NULL);
         static ape_global *GetNet();
@@ -86,23 +86,23 @@ class NidiumJS
         static void Init();
 
         void setPrivate(void *arg) {
-            this->privateslot = arg;
+            m_Privateslot = arg;
         }
         void *getPrivate() const {
-            return this->privateslot;
+            return m_Privateslot;
         }
         const char *getPath() const {
-            return this->relPath;
+            return m_RelPath;
         }
 
         JSContext *getJSContext() const {
-            return this->cx;
+            return this->m_Cx;
         }
 
         void setPath(const char *path);
 
         bool isShuttingDown() const {
-            return this->shutdown;
+            return m_Shutdown;
         }
 
         void setLogger(logger lfunc) {
@@ -145,7 +145,7 @@ class NidiumJS
         void registerMessage(nidium_thread_message_t cbk, int id);
         void postMessage(void *dataPtr, int ev);
 
-        static JSStructuredCloneCallbacks *jsscc;
+        static JSStructuredCloneCallbacks *m_JsScc;
         static JSObject *readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
                                                    uint32_t tag, uint32_t data, void *closure);
 
@@ -173,10 +173,10 @@ class NidiumJS
         static JSObject *CreateJSGlobal(JSContext *cx);
         static void SetJSRuntimeOptions(JSRuntime *rt);
     private:
-        JSModules *modules;
-        void *privateslot;
-        bool shutdown;
-        const char *relPath;
+        JSModules *m_Modules;
+        void *m_Privateslot;
+        bool m_Shutdown;
+        const char *m_RelPath;
         JSCompartment *m_Compartment;
         bool m_JSStrictMode;
 

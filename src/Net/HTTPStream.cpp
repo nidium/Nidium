@@ -112,7 +112,7 @@ void HTTPStream::notifyAvailable()
     m_NeedToSendUpdate = false;
 
     CREATE_MESSAGE(message_available, Stream::EVENT_AVAILABLE_DATA);
-    message_available->args[0].set(m_BytesBuffered - m_LastReadUntil);
+    message_available->m_Args[0].set(m_BytesBuffered - m_LastReadUntil);
 
     this->notifySync(message_available);
 }
@@ -228,7 +228,7 @@ void HTTPStream::onRequest(HTTP::HTTPData *h, HTTP::DataType)
     buf.size = buf.used = m_Mapped.size;
 
     CREATE_MESSAGE(message, Stream::EVENT_READ_BUFFER);
-    message->args[0].set(&buf);
+    message->m_Args[0].set(&buf);
 
     this->notifySync(message);
 }
@@ -245,7 +245,7 @@ void HTTPStream::onProgress(size_t offset, size_t len,
 
     // TODO: new style cast
     memcpy((char *)(m_Mapped.addr) + m_BytesBuffered,
-        &h->data->data[offset], len);
+        &h->m_Data->data[offset], len);
 
     m_BytesBuffered += len;
 
@@ -253,10 +253,10 @@ void HTTPStream::onProgress(size_t offset, size_t len,
     m_Http->resetData();
 
     CREATE_MESSAGE(msg_progress, Stream::EVENT_PROGRESS);
-    msg_progress->args[0].set(m_Http->getFileSize());
-    msg_progress->args[1].set(m_StartPosition);
-    msg_progress->args[2].set(m_BytesBuffered);
-    msg_progress->args[3].set(m_LastReadUntil);
+    msg_progress->m_Args[0].set(m_Http->getFileSize());
+    msg_progress->m_Args[1].set(m_StartPosition);
+    msg_progress->m_Args[2].set(m_BytesBuffered);
+    msg_progress->m_Args[3].set(m_LastReadUntil);
 
     this->notifySync(msg_progress);
 
@@ -311,8 +311,8 @@ void HTTPStream::onHeader()
 
     m_PendingSeek = false;
 
-    m_Mapped.size = (!m_Http->http.contentlength ?
-        MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH : m_Http->http.contentlength);
+    m_Mapped.size = (!m_Http->m_HTTP.m_ContentLength ?
+        MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH : m_Http->m_HTTP.m_ContentLength);
 
     if (ftruncate(m_Mapped.fd, m_Mapped.size) == -1) {
         m_Mapped.size = 0;

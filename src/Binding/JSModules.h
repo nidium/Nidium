@@ -31,8 +31,8 @@ class JSModule
             NONE, JS, NIDIUM, JSON
         };
 
-        char *absoluteDir;
-        char *filePath;
+        char *m_AbsoluteDir;
+        char *m_FilePath;
         char *m_Name;
         int m_ModuleType;
         bool m_Cached;
@@ -61,7 +61,7 @@ class JSModule
 class JSModules
 {
     public:
-        JSModules(JSContext *cx) : main(NULL), m_TopDir("/"), m_Cx(cx)
+        JSModules(JSContext *cx) : m_Main(NULL), m_TopDir("/"), m_Cx(cx)
         {
             m_Paths[0] = static_cast<const char *>("modules");
             m_Paths[1] = static_cast<const char *>("node_modules");
@@ -73,26 +73,26 @@ class JSModules
             for (int i = 0; m_EnvPaths[i] != NULL; i++) {
                 free(m_EnvPaths[i]);
             }
-            delete this->main;
+            delete m_Main;
         }
 
-        JSModule *main;
+        JSModule *m_Main;
         const char *m_TopDir;
 
         void add(JSModule *module)
         {
-            m_Cache.set(module->filePath, module);
+            m_Cache.set(module->m_FilePath, module);
             module->m_Cached = true;
         }
 
         void remove(JSModule *module)
         {
-            m_Cache.erase(module->filePath);
+            m_Cache.erase(module->m_FilePath);
         }
 
         JSModule *find(JSModule *module)
         {
-            return m_Cache.get(module->filePath);
+            return m_Cache.get(module->m_FilePath);
         }
 
         void setPath(const char *topDir)

@@ -33,11 +33,11 @@ class SharedMessages
         public:
             Message(void *ptr, int type, void *dest = NULL)
             : prev(NULL), m_Type(type), m_Dest(dest) {
-                msgdata.dataptr = ptr;
+                m_Msgdata.dataptr = ptr;
             }
             Message(uint64_t dataint, int type, void *dest = NULL)
             : prev(NULL), m_Type(type), m_Dest(dest) {
-                msgdata.dataint = dataint;
+                m_Msgdata.dataint = dataint;
             }
 
             Message(int type) : prev(NULL), m_Type(type), m_Dest(NULL) {
@@ -48,7 +48,7 @@ class SharedMessages
             Message() {}
 
             void *dataPtr() const {
-                return msgdata.dataptr;
+                return m_Msgdata.dataptr;
             }
 
             void *dest() const {
@@ -68,7 +68,7 @@ class SharedMessages
             }
 
             uint64_t dataUInt() const {
-                return msgdata.dataint;
+                return m_Msgdata.dataint;
             }
 
             int event() const {
@@ -76,14 +76,14 @@ class SharedMessages
             }
 
             Message *prev;
-            Args args;
-            uint32_t priv;
+            Args m_Args;
+            uint32_t m_Priv;
         private:
 
             union {
                 void *dataptr;
                 uint64_t dataint;
-            } msgdata;
+            } m_Msgdata;
 
             int m_Type;
             void *m_Dest;
@@ -105,11 +105,11 @@ class SharedMessages
     }
 
     bool hasAsyncMessages() {
-        return messageslist.asyncCount != 0;
+        return m_MessagesList.asyncCount != 0;
     }
 
     bool hasPendingMessages() const {
-        return messageslist.count != 0;
+        return m_MessagesList.count != 0;
     }
   private:
 
@@ -121,7 +121,7 @@ class SharedMessages
         Message *queue;
         pthread_mutex_t lock;
 
-    } messageslist;
+    } m_MessagesList;
 
     nidium_shared_message_cleaner m_Cleaner;
 

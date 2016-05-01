@@ -81,12 +81,12 @@ private:
             SharedMessages::Message *msg =
                 new SharedMessages::Message(NIDIUM_EVENTS_MESSAGE_BITS(event) | (T::EventID << 16));
 
-            msg->args[0].set(static_cast<T *>(this));
+            msg->m_Args[0].set(static_cast<T *>(this));
 
             for (int i = 0; i < args.size(); i++) {
-                msg->args[i+1].set(args[i].toInt64());
+                msg->m_Args[i+1].set(args[i].toInt64());
             }
-            msg->priv = 0;
+            msg->m_Priv = 0;
 
             if (propagation == kPropagation_Sync) {
                 receiver->postMessageSync(msg);

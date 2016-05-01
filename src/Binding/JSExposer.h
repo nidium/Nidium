@@ -185,7 +185,7 @@ static const JSClass JSEvent_class = {
 struct JSEvent
 {
     JSEvent(JSContext *cx, JS::HandleValue func) : m_Function(func) {
-        once = false;
+        m_Once = false;
         next = prev = NULL;
 
         m_Cx = cx;
@@ -200,7 +200,7 @@ struct JSEvent
     JSContext *m_Cx;
     JS::Heap<JS::Value> m_Function;
 
-    bool once;
+    bool m_Once;
 
     JSEvent *next;
     JSEvent *prev;
@@ -437,7 +437,7 @@ class JSExposer
         JSObject *jobj;
         const char *name = T::GetJSObjectName();
 
-        if ((jobj = njs->jsobjects.get(name)) == NULL) {
+        if ((jobj = njs->m_JsObjects.get(name)) == NULL) {
             return NULL;
         }
 

@@ -90,7 +90,7 @@ public:
         return m_Obj;
     }
 
-    Args args;
+    Args m_Args;
 
     friend class Managed;
 private:

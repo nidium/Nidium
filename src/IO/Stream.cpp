@@ -92,8 +92,8 @@ void Stream::notifySync(Core::SharedMessages::Message *msg)
 void Stream::error(Errors err, unsigned int code)
 {
     CREATE_MESSAGE(message, EVENT_ERROR);
-    message->args[0].set(err);
-    message->args[1].set(code);
+    message->m_Args[0].set(err);
+    message->m_Args[1].set(code);
 
     this->notify(message);
 }
@@ -101,8 +101,8 @@ void Stream::error(Errors err, unsigned int code)
 void Stream::errorSync(Errors err, unsigned int code)
 {
     CREATE_MESSAGE(message, EVENT_ERROR);
-    message->args[0].set(err);
-    message->args[1].set(code);
+    message->m_Args[0].set(err);
+    message->m_Args[1].set(code);
 
     this->notifySync(message);
 }

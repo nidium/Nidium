@@ -49,11 +49,11 @@ public:
 
     void setParentServer(JSSocket *parent) {
         m_ParentServer = parent;
-        flags |= SOCKET_ISCONNECTEDCLIENT;
+        m_Flags |= SOCKET_ISCONNECTEDCLIENT;
     }
 
     int getFlags() const {
-        return m_ParentServer ? m_ParentServer->flags : flags;
+        return m_ParentServer ? m_ParentServer->m_Flags : m_Flags;
     }
 
     const char *getEncoding() const {
@@ -75,14 +75,14 @@ public:
     char *m_Host;
     unsigned short m_Port;
     ape_socket *m_Socket;
-    int flags;
+    int m_Flags;
 
     char *m_Encoding;
 
     struct {
         char *data;
         size_t pos;
-    } lineBuffer;
+    } m_LineBuffer;
 
     uint8_t m_FrameDelimiter;
 

@@ -131,15 +131,15 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
         JS::RootedString method(cx, __curopt.toString());
         JSAutoByteString cmethod(cx, method);
         if (strcmp("POST", cmethod.ptr()) == 0) {
-            req->method = HTTPRequest::HTTP_POST;
+            req->m_Method = HTTPRequest::HTTP_POST;
         } else if (strcmp("HEAD", cmethod.ptr()) == 0) {
-            req->method = HTTPRequest::HTTP_HEAD;
+            req->m_Method = HTTPRequest::HTTP_HEAD;
         } else if (strcmp("PUT", cmethod.ptr()) == 0) {
-            req->method = HTTPRequest::HTTP_PUT;
+            req->m_Method = HTTPRequest::HTTP_PUT;
         } else if (strcmp("DELETE", cmethod.ptr()) == 0) {
-            req->method = HTTPRequest::HTTP_DELETE;
+            req->m_Method = HTTPRequest::HTTP_DELETE;
         }  else {
-            req->method = HTTPRequest::HTTP_GET;
+            req->m_Method = HTTPRequest::HTTP_GET;
         }
     }
 
@@ -184,8 +184,8 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
             req->setData(hdata, strlen(hdata));
             req->setDataReleaser(js_free);
 
-            if (req->method != HTTPRequest::HTTP_PUT) {
-                req->method = HTTPRequest::HTTP_POST;
+            if (req->m_Method != HTTPRequest::HTTP_PUT) {
+                req->m_Method = HTTPRequest::HTTP_POST;
             }
 
             char num[16];
@@ -228,7 +228,7 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NidiumJSObj(cx)->rootObjectUntilShutdown(caller);
 
-    //printf("Request : %s\n", req->getHeadersData()->data);
+    //printf("Request : %s\n", req->getHeadersData()->m_Data);
 
     if (!nhttp->request(req, jshttp)) {
         JS_ReportError(cx, "Failed to exec request");
@@ -312,7 +312,7 @@ void JSHTTP::onProgress(size_t offset, size_t len,
 
     JS::RootedObject event(cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
-    NIDIUM_JSOBJ_SET_PROP(event, "total", (double)h->contentlength);
+    NIDIUM_JSOBJ_SET_PROP(event, "total", (double)h->m_ContentLength);
     NIDIUM_JSOBJ_SET_PROP(event, "read", (double)(offset + len));
 
     switch(type) {
@@ -322,7 +322,7 @@ void JSHTTP::onProgress(size_t offset, size_t len,
             NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "string");
 
             jdata.setString(JS_NewStringCopyN(cx,
-                (const char *)&h->data->data[offset], len));
+                (const char *)&h->m_Data->data[offset], len));
 
             break;
         default:
@@ -330,7 +330,7 @@ void JSHTTP::onProgress(size_t offset, size_t len,
             JS::RootedObject arr(cx, JS_NewArrayBuffer(cx, len));
             uint8_t *data = JS_GetArrayBufferData(arr);
 
-            memcpy(data, &h->data->data[offset], len);
+            memcpy(data, &h->m_Data->data[offset], len);
 
             NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "binary");
 
@@ -364,7 +364,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 
     jdata.setNull();
 
-    APE_A_FOREACH(h->headers.list, k, v) {
+    APE_A_FOREACH(h->m_Headers.list, k, v) {
         JS::RootedString jstr(m_Cx, JS_NewStringCopyN(m_Cx, reinterpret_cast<char *>(v->data),
             v->used-1));
         NIDIUM_JSOBJ_SET_PROP_FLAGS(headers, k->data, jstr, JSPROP_ENUMERATE);
@@ -373,7 +373,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
     NIDIUM_JSOBJ_SET_PROP(event, "headers", headers);
     NIDIUM_JSOBJ_SET_PROP(event, "statusCode", h->parser.status_code);
 
-    if (h->data == NULL) {
+    if (h->m_Data == NULL) {
         NIDIUM_JSOBJ_SET_PROP(event, "data", JS::NullHandleValue);
 
         jevent[0].setObject(*event);
@@ -397,8 +397,8 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
         case HTTP::DATA_STRING:
             NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "string");
 
-            JSUtils::StrToJsval(cx, reinterpret_cast<const char *>(h->data->data),
-                h->data->used, &jdata, "utf8");
+            JSUtils::StrToJsval(cx, reinterpret_cast<const char *>(h->m_Data->data),
+                h->m_Data->used, &jdata, "utf8");
             break;
         case HTTP::DATA_JSON:
         {
@@ -407,8 +407,8 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
             size_t clen;
             NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "json");
 
-            JS::RootedString str(cx, JS_NewStringCopyN(cx, reinterpret_cast<const char *>(h->data->data),
-                h->data->used));
+            JS::RootedString str(cx, JS_NewStringCopyN(cx, reinterpret_cast<const char *>(h->m_Data->data),
+                h->m_Data->used));
             if (str == NULL) {
                 printf("Cant encode json string\n");
                 break;
@@ -418,7 +418,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
             if (JS_ParseJSON(cx, chars, clen, &jdata) == false) {
                 jdata.setNull();
                 printf("Cant parse JSON of size %ld :\n = %.*s\n = \n",
-                    static_cast<unsigned long>(h->data->used), static_cast<int>(h->data->used), h->data->data);
+                    static_cast<unsigned long>(h->m_Data->used), static_cast<int>(h->m_Data->used), h->m_Data->data);
             }
 
             break;
@@ -430,17 +430,17 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
             SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
                 CONST_STR_LEN("image"))));
 
-            nimg = new NativeSkImage(h->data->data, h->data->used);
+            nimg = new NativeSkImage(h->m_Data->data, h->m_Data->used);
             jdata = OBJECT_TO_JSVAL(NidiumJSImage::BuildImageObject(cx, nimg));
 
             break;
         }
         case HTTP::DATA_AUDIO:
         {
-            JSObject *arr = JS_NewArrayBuffer(cx, h->data->used);
+            JSObject *arr = JS_NewArrayBuffer(cx, h->m_Data->used);
             uint8_t *data = JS_GetArrayBufferData(arr);
 
-            memcpy(data, h->data->data, h->data->used);
+            memcpy(data, h->m_Data->data, h->m_Data->used);
 
             SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
                 CONST_STR_LEN("audio"))));
@@ -452,10 +452,10 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 #endif
         default:
         {
-            JS::RootedObject arr(cx, JS_NewArrayBuffer(cx, h->data->used));
+            JS::RootedObject arr(cx, JS_NewArrayBuffer(cx, h->m_Data->used));
             uint8_t *data = JS_GetArrayBufferData(arr);
 
-            memcpy(data, h->data->data, h->data->used);
+            memcpy(data, h->m_Data->data, h->m_Data->used);
 
             NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "binary");
 
