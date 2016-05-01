@@ -432,7 +432,7 @@ JSObject *JSDocument::RegisterObject(JSContext *cx)
     /* We have to root it since the user can replace the document object */
     njs->rootObjectUntilShutdown(documentObj);
 
-    njs->jsobjects.set(JSDocument::GetJSObjectName(), documentObj);
+    njs->m_JsObjects.set(JSDocument::GetJSObjectName(), documentObj);
 
     JS::RootedObject styleObj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
     jdoc->m_Stylesheet = styleObj;

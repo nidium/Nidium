@@ -61,7 +61,7 @@ void JSNidium::RegisterObject(JSContext *cx)
     JS_DefineFunctions(cx, NativeObj, Nidium_funcs);
     JS_SetPrivate(NativeObj, jnative);
 
-    NidiumJS::GetObject(cx)->jsobjects.set(JSNidium::GetJSObjectName(), NativeObj);
+    NidiumJS::GetObject(cx)->m_JsObjects.set(JSNidium::GetJSObjectName(), NativeObj);
 
     //JS::RootedObject titleBar(cx, JSCanvas::GenerateJSObject(cx, width, 35));
     //((CanvasHandler *)JS_GetPrivate(canvas))->translate(0, 35);

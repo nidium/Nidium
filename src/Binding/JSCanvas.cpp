@@ -1578,14 +1578,14 @@ void JSCanvas::onMessage(const Core::SharedMessages::Message &msg)
             const char *name = NULL;
             JS::RootedValue value(cx);
 
-            switch (msg.args[1].toInt()) {
+            switch (msg.m_Args[1].toInt()) {
                 case Nidium::Graphics::CanvasHandler::kContentWidth_Changed:
                     name = "contentWidth";
-                    value.setInt32(msg.args[2].toInt());
+                    value.setInt32(msg.m_Args[2].toInt());
                     break;
                 case Nidium::Graphics::CanvasHandler::kContentHeight_Changed:
                     name = "contentHeight";
-                    value.setInt32(msg.args[2].toInt());
+                    value.setInt32(msg.m_Args[2].toInt());
                     break;
             }
 
@@ -1606,25 +1606,25 @@ void JSCanvas::onMessage(const Core::SharedMessages::Message &msg)
         case NIDIUM_EVENT(Nidium::Graphics::CanvasHandler, MOUSE_EVENT):
         {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
-            Nidium::Graphics::CanvasHandler *target = static_cast<Nidium::Graphics::CanvasHandler *>(msg.args[8].toPtr());
+            Nidium::Graphics::CanvasHandler *target = static_cast<Nidium::Graphics::CanvasHandler *>(msg.m_Args[8].toPtr());
             JSObjectBuilder obj(m_Cx, eventObj);
-            obj.set("x", msg.args[2].toInt());
-            obj.set("y", msg.args[3].toInt());
-            obj.set("clientX", msg.args[2].toInt());
-            obj.set("clientY", msg.args[3].toInt());
-            obj.set("layerX", msg.args[6].toInt());
-            obj.set("layerY", msg.args[7].toInt());
+            obj.set("x", msg.m_Args[2].toInt());
+            obj.set("y", msg.m_Args[3].toInt());
+            obj.set("clientX", msg.m_Args[2].toInt());
+            obj.set("clientY", msg.m_Args[3].toInt());
+            obj.set("layerX", msg.m_Args[6].toInt());
+            obj.set("layerY", msg.m_Args[7].toInt());
             obj.set("target", target->m_JsObj);
 
-            int evtype = (Nidium::Frontend::InputEvent::Type)msg.args[1].toInt();
+            int evtype = (Nidium::Frontend::InputEvent::Type)msg.m_Args[1].toInt();
 
             switch (evtype) {
                 case Nidium::Frontend::InputEvent::kMouseMove_Type:
                 case Nidium::Frontend::InputEvent::kMouseDrag_Type:
                 case Nidium::Frontend::InputEvent::kMouseDragOver_Type:
                 case Nidium::Frontend::InputEvent::kMouseWheel_Type:
-                    obj.set("xrel", msg.args[4].toInt());
-                    obj.set("yrel", msg.args[5].toInt());
+                    obj.set("xrel", msg.m_Args[4].toInt());
+                    obj.set("yrel", msg.m_Args[5].toInt());
                     break;
                 default:
                     break;
@@ -1634,7 +1634,7 @@ void JSCanvas::onMessage(const Core::SharedMessages::Message &msg)
                 case Nidium::Frontend::InputEvent::kMouseClick_Type:
                 case Nidium::Frontend::InputEvent::kMouseDoubleClick_Type:
                 case Nidium::Frontend::InputEvent::kMouseClickRelease_Type:
-                    obj.set("which", msg.args[4].toInt());
+                    obj.set("which", msg.m_Args[4].toInt());
                     break;
                 case Nidium::Frontend::InputEvent::kMouseDrag_Type:
                 case Nidium::Frontend::InputEvent::kMouseDragStart_Type:
@@ -1650,7 +1650,7 @@ void JSCanvas::onMessage(const Core::SharedMessages::Message &msg)
                     break;
             }
             JS::RootedValue rval(cx, obj.jsval());
-            if (!this->fireJSEvent(Nidium::Frontend::InputEvent::GetName(msg.args[1].toInt()), &rval)) {
+            if (!this->fireJSEvent(Nidium::Frontend::InputEvent::GetName(msg.m_Args[1].toInt()), &rval)) {
                 break;
             }
 
@@ -1660,7 +1660,7 @@ void JSCanvas::onMessage(const Core::SharedMessages::Message &msg)
                 if (cancelBubble.isBoolean() && cancelBubble.toBoolean()) {
                     /* TODO: sort out this dirty hack */
                     Core::SharedMessages::Message *nonconstmsg = (Core::SharedMessages::Message *)&msg;
-                    nonconstmsg->priv = 1;
+                    nonconstmsg->m_Priv = 1;
                 }
             }
         }

@@ -40,7 +40,7 @@ void Assets::Item::onMessage(const Nidium::Core::SharedMessages::Message &msg)
         case Nidium::IO::Stream::EVENT_READ_BUFFER:
         {
             //TODO: new style cast
-            buffer *buf = reinterpret_cast<buffer *>(msg.args[0].toPtr());
+            buffer *buf = reinterpret_cast<buffer *>(msg.m_Args[0].toPtr());
             this->setContent((const char *)(buf->data), buf->used);
             break;
         }

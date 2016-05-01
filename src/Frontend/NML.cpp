@@ -240,7 +240,7 @@ JSObject *NML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 */
 JSObject *NML::buildLayoutTree(rapidxml::xml_node<> &node)
 {
-    return BuildLSTFromNode(m_Njs->cx, node);
+    return BuildLSTFromNode(m_Njs->m_Cx, node);
 }
 
 static int delete_stream(void *arg)
@@ -257,7 +257,7 @@ void NML::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     switch (msg.event()) {
         case Nidium::IO::Stream::EVENT_READ_BUFFER:
         {
-            buffer *buf = static_cast<buffer *>(msg.args[0].toPtr());
+            buffer *buf = static_cast<buffer *>(msg.m_Args[0].toPtr());
 
             /*
                 Some stream can have dynamic path (e.g http 301 or 302).
@@ -379,12 +379,12 @@ void NML::onAssetsItemReady(Assets::Item *item)
             }
             case Assets::Item::ITEM_NSS:
             {
-                Nidium::Binding::JSDocument *jdoc = Nidium::Binding::JSDocument::GetObject(m_Njs->cx);
+                Nidium::Binding::JSDocument *jdoc = Nidium::Binding::JSDocument::GetObject(m_Njs->m_Cx);
                 if (jdoc == NULL) {
                     return;
                 }
                 //TODO: new style cast
-                jdoc->populateStyle(m_Njs->cx, (const char *)(data),
+                jdoc->populateStyle(m_Njs->m_Cx, (const char *)(data),
                     len, item->getName());
                 break;
             }
@@ -409,7 +409,7 @@ void NML::onAssetsBlockReady(Assets *asset)
     m_nAssets--;
 
     if (m_nAssets == 0) {
-        JS::RootedObject layoutObj(m_Njs->cx, m_JSObjectLayout);
+        JS::RootedObject layoutObj(m_Njs->m_Cx, m_JSObjectLayout);
         Nidium::Binding::JSWindow::GetObject(m_Njs)->onReady(layoutObj);
     }
 }

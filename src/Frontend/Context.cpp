@@ -112,8 +112,8 @@ m_Debug2Handler(NULL),
     m_JS->setStructuredCloneAddition(Context::WriteStructuredCloneOp, Context::ReadStructuredCloneOp);
     m_JS->setPrivate(this);
     m_JS->loadGlobalObjects();
-    JS::RootedObject globalObj(m_JS->cx, JS::CurrentGlobalOrNull(m_JS->cx));
-    JS_InitReflect(m_JS->cx, globalObj);
+    JS::RootedObject globalObj(m_JS->m_Cx, JS::CurrentGlobalOrNull(m_JS->m_Cx));
+    JS_InitReflect(m_JS->m_Cx, globalObj);
     this->loadNativeObjects(width, height);
 
     m_JS->setLogger(NativeContext_Logger);
@@ -141,7 +141,7 @@ m_Debug2Handler(NULL),
 
 void Context::loadNativeObjects(int width, int height)
 {
-    JSContext *cx = m_JS->cx;
+    JSContext *cx = m_JS->m_Cx;
 
     /* CanvasRenderingContext2D object */
     Nidium::Binding::Canvas2DContext::RegisterObject(cx);
@@ -600,7 +600,7 @@ void Context::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case NIDIUM_EVENT(Nidium::Net::WebSocketServer, SERVER_CONNECT):
-            m_WSClient = static_cast<Nidium::Net::WebSocketClientConnection *>(msg.args[0].toPtr());
+            m_WSClient = static_cast<Nidium::Net::WebSocketClientConnection *>(msg.m_Args[0].toPtr());
             printf("New WS client for render :)\n");
             break;
     }

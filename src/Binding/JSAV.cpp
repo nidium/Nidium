@@ -610,7 +610,7 @@ bool JSAudio::createContext()
         return false;
     }
 
-    JS_SetStructuredCloneCallbacks(m_JsRt, NidiumJS::jsscc);
+    JS_SetStructuredCloneCallbacks(m_JsRt, NidiumJS::m_JsScc);
 
     JSAutoRequest ar(m_JsTcx);
 

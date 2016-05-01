@@ -219,7 +219,7 @@ void JSImage::onMessage(const Core::SharedMessages::Message &msg)
             ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
             JS::RootedValue onload_callback(m_Cx);
             JS::RootedObject obj(m_Cx, m_JSObject);
-            if (this->setupWithBuffer((buffer *)msg.args[0].toPtr())) {
+            if (this->setupWithBuffer((buffer *)msg.m_Args[0].toPtr())) {
                 if (JS_GetProperty(m_Cx, obj, "onload", &onload_callback) &&
                     JS_TypeOfValue(m_Cx, onload_callback) == JSTYPE_FUNCTION) {
 
