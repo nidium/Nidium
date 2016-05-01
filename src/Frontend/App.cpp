@@ -21,17 +21,17 @@ namespace Frontend {
 // {{{ Extractor
 struct Extractor_s
 {
-    App *app;
-    uint64_t curIndex;
-    const char *fName;
-    char *fDir;
-    void (*done)(void *, const char *m_Path);
-    void *closure;
+    App *m_App;
+    uint64_t m_CurIndex;
+    const char *m_FileName;
+    char *m_FileDir;
+    void (*m_Done)(void *, const char *m_Path);
+    void *m_Closure;
     struct {
         size_t len;
         size_t offset;
         FILE *fp;
-    } data;
+    } m_Data;
 };
 
 static bool Extractor(const char * buf,
@@ -40,14 +40,14 @@ static bool Extractor(const char * buf,
     struct Extractor_s *arg = (struct Extractor_s *)user;
 
     /* First call (open the file) */
-    if (arg->data.offset == 0) {
+    if (arg->m_Data.offset == 0) {
 
         char *fpath = static_cast<char *>(malloc(sizeof(char) *
-                        (strlen(arg->fDir) + strlen(arg->fName) + 1)));
+                        (strlen(arg->m_FileDir) + strlen(arg->m_FileName) + 1)));
 
-        sprintf(fpath, "%s%s", arg->fDir, arg->fName);
+        sprintf(fpath, "%s%s", arg->m_FileDir, arg->m_FileName);
 
-        if ((arg->data.fp = fopen(fpath, "w")) == NULL) {
+        if ((arg->m_Data.fp = fopen(fpath, "w")) == NULL) {
             free(fpath);
             return false;
         }
@@ -55,43 +55,43 @@ static bool Extractor(const char * buf,
         free(fpath);
     }
 
-    if (fwrite(buf, 1, len, arg->data.fp) != len) {
+    if (fwrite(buf, 1, len, arg->m_Data.fp) != len) {
         /* TODO: handle error */
     }
-    arg->data.offset += len;
+    arg->m_Data.offset += len;
 
     /* File extracting finished */
     if (offset == total) {
-        if (arg->data.fp) {
-            fclose(arg->data.fp);
+        if (arg->m_Data.fp) {
+            fclose(arg->m_Data.fp);
         }
 
-        if (arg->curIndex < (arg->app->m_NumFiles-1)) {
-            arg->data.offset = 0;
-            arg->data.fp = NULL;
+        if (arg->m_CurIndex < (arg->m_App->m_NumFiles-1)) {
+            arg->m_Data.offset = 0;
+            arg->m_Data.fp = NULL;
 
             /* skip directories */
-            while (++arg->curIndex) {
-                arg->fName = zip_get_name(arg->app->m_fZip,
-                    arg->curIndex, ZIP_FL_UNCHANGED);
+            while (++arg->m_CurIndex) {
+                arg->m_FileName = zip_get_name(arg->m_App->m_fZip,
+                    arg->m_CurIndex, ZIP_FL_UNCHANGED);
 
-                if (arg->fName[strlen(arg->fName)-1] != '/') {
+                if (arg->m_FileName[strlen(arg->m_FileName)-1] != '/') {
                     break;
                 }
             }
 
             /* Extract next file */
-            arg->data.len = arg->app->extractFile(arg->fName,
+            arg->m_Data.len = arg->m_App->extractFile(arg->m_FileName,
                                 Extractor, arg);
 
             return true;
         }
 
-        if (arg->done != NULL) {
-            arg->done(arg->closure, arg->fDir);
+        if (arg->m_Done != NULL) {
+            arg->m_Done(arg->m_Closure, arg->m_FileDir);
         }
         /* Complete extracting finished */
-        free(arg->fDir);
+        free(arg->m_FileDir);
         delete arg;
 
         return false;
@@ -318,17 +318,17 @@ int App::extractApp(const char *path,
         return 0;
     }
     struct Extractor_s *arg = new Extractor_s;
-    arg->app = this;
-    arg->curIndex = first;
-    arg->fName = zip_get_name(m_fZip, first, ZIP_FL_UNCHANGED);
-    arg->data.offset = 0;
-    arg->data.fp = NULL;
-    arg->fDir = fullpath;
-    arg->done = done;
-    arg->closure = closure;
-    arg->data.len = this->extractFile(arg->fName, Extractor, arg);
+    arg->m_App = this;
+    arg->m_CurIndex = first;
+    arg->m_FileName = zip_get_name(m_fZip, first, ZIP_FL_UNCHANGED);
+    arg->m_Data.offset = 0;
+    arg->m_Data.fp = NULL;
+    arg->m_FileDir = fullpath;
+    arg->m_Done = done;
+    arg->m_Closure = closure;
+    arg->m_Data.len = this->extractFile(arg->m_FileName, Extractor, arg);
 
-    return (arg->data.len != 0);
+    return (arg->m_Data.len != 0);
 }
 
 uint64_t App::extractFile(const char *file, AppExtractCallback cb, void *user)
@@ -439,10 +439,10 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
     MPROP(info, "width", Int, width);
     MPROP(info, "height", Int, height);
 
-    this->appInfos.title = title;
-    this->appInfos.udid = uid;
-    this->appInfos.width = width.asInt();
-    this->appInfos.height = height.asInt();
+    m_AppInfos.title = title;
+    m_AppInfos.udid = uid;
+    m_AppInfos.width = width.asInt();
+    m_AppInfos.height = height.asInt();
 
     return 1;
 }

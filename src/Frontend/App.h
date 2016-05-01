@@ -29,16 +29,16 @@ public:
     ~App();
 
     const char *getTitle() const {
-        return this->appInfos.title.asCString();
+        return m_AppInfos.title.asCString();
     }
     const char *getUDID() const {
-        return this->appInfos.udid.asCString();
+        return m_AppInfos.udid.asCString();
     }
     int getWidth() const {
-        return this->appInfos.width;
+        return m_AppInfos.width;
     }
     int getHeight() const {
-        return this->appInfos.height;
+        return m_AppInfos.height;
     }
     enum ACTION_TYPE {
         APP_ACTION_EXTRACT
@@ -93,7 +93,7 @@ private:
 
         int width;
         int height;
-    } appInfos;
+    } m_AppInfos;
 
     ape_timer_t *m_Timer;
     ape_global *m_Net;

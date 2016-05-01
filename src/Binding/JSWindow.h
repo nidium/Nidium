@@ -75,10 +75,10 @@ class JSWindow : public JSExposer<JSWindow>
     void createStorage();
 
     struct _requestedFrame {
-        JS::PersistentRootedValue cb;
-        struct _requestedFrame *next;
-        _requestedFrame(JSContext *cx): cb(cx) {
-            next = NULL;
+        JS::PersistentRootedValue m_Cb;
+        struct _requestedFrame *m_Next;
+        _requestedFrame(JSContext *cx): m_Cb(cx) {
+            m_Next = NULL;
         }
     } *m_RequestedFrame;
 

@@ -37,7 +37,7 @@ class UIX11Interface : public UIInterface
 
         void initControls() {};
         UIX11Console *getConsole(bool create=false, bool *created=NULL) {
-            return this->console;
+            return m_Console;
         }
 
         void vlog(const char *buf, va_list ap);
@@ -49,21 +49,21 @@ class UIX11Interface : public UIInterface
             CGRect closeFrame;
             CGRect zoomFrame;
             CGRect minFrame;
-        } controls;
+        } m_Controls;
         */
 
         struct {
             char *buf;
             size_t len;
             size_t offset;
-        } mainjs;
+        } m_Mainjs;
     protected:
         void renderSystemTray();
         void setSystemCursor(CURSOR_TYPE cursor);
         void hitRefresh();
         void onWindowCreated();
     private:
-        UIX11Console *console;
+        UIX11Console *m_Console;
 };
 // }}}
 

@@ -60,16 +60,16 @@ public:
     void onGetContent(const char *data, size_t len);
 
     const char *getMetaTitle() const {
-        return this->meta.title;
+        return m_Meta.title;
     }
     const char *getIdentifier() const {
-        return this->meta.identifier;
+        return m_Meta.identifier;
     }
     int getMetaWidth() const {
-        return this->meta.size.width;
+        return m_Meta.size.width;
     }
     int getMetaHeight() const {
-        return this->meta.size.height;
+        return m_Meta.size.height;
     }
 
     rapidxml::xml_node<> *getLayout() const {
@@ -123,7 +123,7 @@ private:
             int width;
             int height;
         } size;
-    } meta;
+    } m_Meta;
 
     struct {
         Assets **list;

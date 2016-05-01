@@ -29,15 +29,15 @@ NML::NML(ape_global *net) :
 
     m_AssetsList.list = static_cast<Assets **>(malloc(sizeof(Assets *) * m_AssetsList.allocated));
 
-    this->meta.title = NULL;
-    this->meta.size.width = 0;
-    this->meta.size.height = 0;
-    this->meta.identifier = NULL;
+    m_Meta.title = NULL;
+    m_Meta.size.width = 0;
+    m_Meta.size.height = 0;
+    m_Meta.identifier = NULL;
 
     /* Make sure Nidium::Binding::NidiumJS already has the netlib set */
     Nidium::Binding::NidiumJS::InitNet(net);
 
-    memset(&this->meta, 0, sizeof(this->meta));
+    memset(&m_Meta, 0, sizeof(m_Meta));
 }
 
 void NML::setNJS(Nidium::Binding::NidiumJS *js)
@@ -152,7 +152,7 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
         }
     }
 
-    if (!this->meta.loaded) {
+    if (!m_Meta.loaded) {
         Nidium::Interface::SystemInterface::GetInstance()->alert("<meta> tag is missing in the NML file", Nidium::Interface::SystemInterface::ALERT_CRITIC);
         return false;
     }
@@ -344,8 +344,8 @@ NML::~NML()
         delete m_AssetsList.list[i];
     }
     free(m_AssetsList.list);
-    if (this->meta.title) {
-        free(this->meta.title);
+    if (m_Meta.title) {
+        free(m_Meta.title);
     }
 
     Nidium::Core::Path::CD(NULL);
@@ -445,14 +445,14 @@ NML::nidium_xml_ret_t NML::loadMeta(rapidxml::xml_node<> &node)
         child = child->next_sibling())
     {
         if (strncasecmp(child->name(), "title", 5) == 0) {
-            if (this->meta.title)
-                free(this->meta.title);
+            if (m_Meta.title)
+                free(m_Meta.title);
 
-            this->meta.title = static_cast<char *>(malloc(sizeof(char) *
+            m_Meta.title = static_cast<char *>(malloc(sizeof(char) *
                 (child->value_size() + 1)));
 
-            memcpy(this->meta.title, child->value(), child->value_size());
-            this->meta.title[child->value_size()] = '\0';
+            memcpy(m_Meta.title, child->value(), child->value_size());
+            m_Meta.title[child->value_size()] = '\0';
 
         } else if (strncasecmp(child->name(), "viewport", 8) == 0) {
             char *pos;
@@ -466,7 +466,7 @@ NML::nidium_xml_ret_t NML::loadMeta(rapidxml::xml_node<> &node)
             if (width < 1 || width > XML_VP_MAX_WIDTH) {
                 return NIDIUM_XML_ERR_VIEWPORT_SIZE;
             }
-            this->meta.size.width = width;
+            m_Meta.size.width = width;
             *static_cast<char *>(child->value()+child->value_size()) = '\0';
 
             int height = atoi(pos+1);
@@ -474,30 +474,30 @@ NML::nidium_xml_ret_t NML::loadMeta(rapidxml::xml_node<> &node)
             if (height < 0 || height > XML_VP_MAX_HEIGHT) {
                 return NIDIUM_XML_ERR_VIEWPORT_SIZE;
             }
-            this->meta.size.height = height;
+            m_Meta.size.height = height;
         } else if (strncasecmp(child->name(), "identifier", 10) == 0) {
             if (child->value_size() > 128) {
                 return NIDIUM_XML_ERR_IDENTIFIER_TOOLONG;
             }
-            if (this->meta.identifier)
-                free(this->meta.identifier);
+            if (m_Meta.identifier)
+                free(m_Meta.identifier);
 
-            this->meta.identifier = static_cast<char *>(malloc(sizeof(char) *
+            m_Meta.identifier = static_cast<char *>(malloc(sizeof(char) *
                 (child->value_size() + 1)));
 
-            memcpy(this->meta.identifier, child->value(), child->value_size());
-            this->meta.identifier[child->value_size()] = '\0';
+            memcpy(m_Meta.identifier, child->value(), child->value_size());
+            m_Meta.identifier[child->value_size()] = '\0';
         }
     }
 
     if (this->getMetaWidth() == 0) {
-        this->meta.size.width = XML_VP_DEFAULT_WIDTH;
+        m_Meta.size.width = XML_VP_DEFAULT_WIDTH;
     }
     if (this->getMetaHeight() == 0) {
-        this->meta.size.height = XML_VP_DEFAULT_HEIGHT;
+        m_Meta.size.height = XML_VP_DEFAULT_HEIGHT;
     }
 
-    this->meta.loaded = true;
+    m_Meta.loaded = true;
 
     return NIDIUM_XML_OK;
 }
@@ -505,7 +505,7 @@ NML::nidium_xml_ret_t NML::loadMeta(rapidxml::xml_node<> &node)
 NML::nidium_xml_ret_t NML::loadAssets(rapidxml::xml_node<> &node)
 {
 
-    if (!this->meta.loaded) return NIDIUM_XML_ERR_META_MISSING;
+    if (!m_Meta.loaded) return NIDIUM_XML_ERR_META_MISSING;
 
     using namespace rapidxml;
 
@@ -553,7 +553,7 @@ NML::nidium_xml_ret_t NML::loadAssets(rapidxml::xml_node<> &node)
 
 NML::nidium_xml_ret_t NML::loadLayout(rapidxml::xml_node<> &node)
 {
-    if (!this->meta.loaded) return NIDIUM_XML_ERR_META_MISSING;
+    if (!m_Meta.loaded) return NIDIUM_XML_ERR_META_MISSING;
 
     m_Layout = node.document()->clone_node(&node);
 

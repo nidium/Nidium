@@ -376,7 +376,7 @@ static bool nidium_canvas2dctx_breakText(JSContext *cx,
                     lines, maxWidth, &length);
     JS::RootedObject alines(cx, JS_NewArrayObject(cx, length));
     for (int i = 0; i < len && i < length; i++) {
-        JS::RootedString str(cx, JS_NewStringCopyN(cx, lines[i].line, lines[i].len));
+        JS::RootedString str(cx, JS_NewStringCopyN(cx, lines[i].m_Line, lines[i].m_Len));
         JS::RootedValue val(cx, STRING_TO_JSVAL(str));
         JS_SetElement(cx, alines, i, val);
     }

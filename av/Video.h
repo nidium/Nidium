@@ -51,8 +51,7 @@ class Video : public AVSource
             AVPacket curr;
             Packet *next;
 
-            Packet()
-                : next(NULL) {}
+            Packet() : next(NULL) {}
         };
 
         struct PacketQueue {

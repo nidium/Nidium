@@ -184,7 +184,7 @@ static SkBitmap load_bitmap() {
 // {{{ SkiaContext
 SkiaContext::SkiaContext() :
     m_State(NULL), m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0),
-    m_AsComposite(0), screen(NULL), currentShadow({0, 0, 0, 0}),
+    m_AsComposite(0), m_Screen(NULL), m_CurrentShadow({0, 0, 0, 0}),
     m_Canvas(NULL), m_Debug(false), m_FontSkew(-0.25),
     m_NativeCanvasBindMode(SkiaContext::BIND_NO)
 {
@@ -300,8 +300,8 @@ void SkiaContext::initPaints()
         TODO : setHintingScaleFactor(m_hintingScaleFactor);
         http://code.google.com/p/webkit-mirror/source/browse/Source/WebCore/platform/graphics/skia/PlatformContextSkia.cpp#363
     */
-    memset(&currentShadow, 0, sizeof(Shadow_t));
-    currentShadow.color = SkColorSetARGB(0, 0, 0, 0);
+    memset(&m_CurrentShadow, 0, sizeof(Shadow_t));
+    m_CurrentShadow.m_Color = SkColorSetARGB(0, 0, 0, 0);
 
     PAINT->setARGB(255, 0, 0, 0);
     PAINT->setAntiAlias(true);
@@ -543,14 +543,14 @@ void SkiaContext::system(const char *text, int x, int y)
 
 ShadowLooper *SkiaContext::buildShadow()
 {
-    if (currentShadow.blur == 0) {
+    if (m_CurrentShadow.m_Blur == 0) {
         return NULL;
     }
 
-    return ShadowLooper::Create(SkDoubleToScalar(currentShadow.blur),
-                                SkDoubleToScalar(currentShadow.x),
-                                SkDoubleToScalar(currentShadow.y),
-                                currentShadow.color,
+    return ShadowLooper::Create(SkDoubleToScalar(m_CurrentShadow.m_Blur),
+                                SkDoubleToScalar(m_CurrentShadow.m_X),
+                                SkDoubleToScalar(m_CurrentShadow.m_Y),
+                                m_CurrentShadow.m_Color,
                                 SkBlurDrawLooper::kIgnoreTransform_BlurFlag |
                                 SkBlurDrawLooper::kHighQuality_BlurFlag);
 }
@@ -1333,8 +1333,8 @@ void SkiaContext::drawImage(Image *image,
 void SkiaContext::redrawScreen()
 {
     m_Canvas->readPixels(SkIRect::MakeSize(m_Canvas->getDeviceSize()),
-        screen);
-    m_Canvas->writePixels(*screen, 0, 0);
+        m_Screen);
+    m_Canvas->writePixels(*m_Screen, 0, 0);
     CANVAS_FLUSH();
 }
 
@@ -1611,22 +1611,22 @@ void SkiaContext::setStrokeColor(uint32_t color)
 
 void SkiaContext::setShadowOffsetX(double x)
 {
-    if (currentShadow.x == x) return;
-    currentShadow.x = x;
+    if (m_CurrentShadow.m_X == x) return;
+    m_CurrentShadow.m_X = x;
     SkSafeUnref(PAINT->setLooper(buildShadow()));
 }
 
 void SkiaContext::setShadowOffsetY(double y)
 {
-    if (currentShadow.y == y) return;
-    currentShadow.y = y;
+    if (m_CurrentShadow.m_Y == y) return;
+    m_CurrentShadow.m_Y = y;
     SkSafeUnref(PAINT->setLooper(buildShadow()));
 }
 
 void SkiaContext::setShadowBlur(double blur)
 {
-    if (currentShadow.blur == blur) return;
-    currentShadow.blur = blur;
+    if (m_CurrentShadow.m_Blur == blur) return;
+    m_CurrentShadow.m_Blur = blur;
 
     SkSafeUnref(PAINT->setLooper(buildShadow()));
 }
@@ -1635,8 +1635,8 @@ void SkiaContext::setShadowColor(const char *str)
 {
     SkColor color = ParseColor(str);
 
-    if (currentShadow.color == color) return;
-    currentShadow.color = color;
+    if (m_CurrentShadow.m_Color == color) return;
+    m_CurrentShadow.m_Color = color;
 
     SkSafeUnref(PAINT->setLooper(buildShadow()));
 }
@@ -1809,12 +1809,12 @@ double SkiaContext::breakText(const char *str, size_t len,
     curState.curWordLen   = 0;
     curState.curLine = 0;
 
-    lines[0].line = str;
-    lines[0].len  = 0;
+    lines[0].m_Line = str;
+    lines[0].m_Len  = 0;
 
     for (i = 0; i < len; i++) {
 
-        lines[curState.curLine].len++;
+        lines[curState.curLine].m_Len++;
 
         if (isBreakable((unsigned char)str[i])) {
             curState.ptr = &str[i+1];
@@ -1831,16 +1831,16 @@ double SkiaContext::breakText(const char *str, size_t len,
         curState.curLineWidth += widths[i];
 
         if (curState.curLineWidth > maxWidth) {
-            lines[curState.curLine].len = curState.ptr - lines[curState.curLine].line;
+            lines[curState.curLine].m_Len = curState.ptr - lines[curState.curLine].m_Line;
             curState.curLine++;
 
-            lines[curState.curLine].line = curState.ptr;
-            lines[curState.curLine].len = 0;
+            lines[curState.curLine].m_Line = curState.ptr;
+            lines[curState.curLine].m_Len = 0;
             curState.curLineWidth = curState.curWordWidth;
         }
     }
 
-    lines[curState.curLine].len = &str[i] - lines[curState.curLine].line;
+    lines[curState.curLine].m_Len = &str[i] - lines[curState.curLine].m_Line;
     if (length) {
         *length = curState.curLine+1;
     }

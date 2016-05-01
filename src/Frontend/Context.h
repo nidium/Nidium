@@ -216,7 +216,7 @@ class Context : public Nidium::Core::Messages
         return m_SizeDirty;
     }
 
-    Nidium::Core::Hash<Nidium::Binding::NidiumBytecodeScript *> preload;
+    Nidium::Core::Hash<Nidium::Binding::NidiumBytecodeScript *> m_Preload;
 
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
     void addJob(void (*job)(void *arg), void *arg);

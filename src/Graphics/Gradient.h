@@ -13,8 +13,8 @@ namespace Graphics {
 
 struct _colorStop
 {
-    SkColor color;
-    SkScalar position;
+    SkColor m_Color;
+    SkScalar m_Position;
 };
 
 class Gradient

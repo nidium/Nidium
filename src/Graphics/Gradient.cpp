@@ -62,8 +62,8 @@ void Gradient::addColorStop(double position, char *color)
             sizeof(struct _colorStop) * m_ColorsStop.allocated);
     }
 
-    m_ColorsStop.items[m_ColorsStop.count].color    = SkiaContext::ParseColor(color);
-    m_ColorsStop.items[m_ColorsStop.count].position = SkDoubleToScalar(position);
+    m_ColorsStop.items[m_ColorsStop.count].m_Color    = SkiaContext::ParseColor(color);
+    m_ColorsStop.items[m_ColorsStop.count].m_Position = SkDoubleToScalar(position);
 
     m_ColorsStop.count++;
     m_NeedUpdate = 1;
@@ -92,8 +92,8 @@ SkShader *Gradient::build()
     SkScalar pos[m_ColorsStop.count];
 
     for (unsigned int i = 0; i < m_ColorsStop.count; i++) {
-        colors[i] = m_ColorsStop.items[i].color;
-        pos[i] = m_ColorsStop.items[i].position;
+        colors[i] = m_ColorsStop.items[i].m_Color;
+        pos[i] = m_ColorsStop.items[i].m_Position;
     }
 
     m_NeedUpdate = 0;

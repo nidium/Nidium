@@ -31,20 +31,18 @@ typedef unsigned U8CPU;
 // {{{ _Shadow
 typedef struct _Shadow
 {
-    double x;
-    double y;
-    double blur;
-
-    SkColor color;
-
+    double m_X;
+    double m_Y;
+    double m_Blur;
+    SkColor m_Color;
 } Shadow_t;
 // }}}
 
 // {{{ _Line and Baseline
 struct _Line
 {
-    const char *line;
-    size_t len;
+    const char *m_Line;
+    size_t m_Len;
 };
 
 enum _Baseline
@@ -78,8 +76,8 @@ class SkiaContext
         SkPath *m_CurrentPath;
         uint8_t m_GlobalAlpha;
         uint8_t m_AsComposite;
-        SkBitmap *screen;
-        Shadow_t currentShadow;
+        SkBitmap *m_Screen;
+        Shadow_t m_CurrentShadow;
         ShadowLooper *buildShadow();
         SkCanvas *m_Canvas;
         void initPaints();
@@ -151,22 +149,22 @@ class SkiaContext
 
         double getShadowOffsetX() const
         {
-            return currentShadow.x;
+            return m_CurrentShadow.m_X;
         }
 
         double getShadowOffsetY() const
         {
-            return currentShadow.y;
+            return m_CurrentShadow.m_Y;
         }
 
         double getShadowBlur() const
         {
-            return currentShadow.blur;
+            return m_CurrentShadow.m_Blur;
         }
 
         uint32_t getShadowColor() const
         {
-            return currentShadow.color;
+            return m_CurrentShadow.m_Color;
         }
 
         const char *getLineCap() const;

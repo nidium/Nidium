@@ -158,8 +158,8 @@ static JSFunctionSpec window_funcs[] = {
 };
 
 static struct nidium_cursors {
-    const char *str;
-    Nidium::Interface::UIInterface::CURSOR_TYPE type;
+    const char *m_Str;
+    Nidium::Interface::UIInterface::CURSOR_TYPE m_Type;
 } nidium_cursors_list[] = {
     {"default",             Nidium::Interface::UIInterface::ARROW},
     {"arrow",               Nidium::Interface::UIInterface::ARROW},
@@ -693,10 +693,10 @@ static bool nidium_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
         {
             const char * cCursor;
 
-            cCursor = nidium_cursors_list[1].str;
-            for (size_t i = 0; nidium_cursors_list[i].str != NULL; i++) {
-                if (nidium_cursors_list[i].type == NUI->m_CurrentCursor) {
-                    cCursor = nidium_cursors_list[i].str;
+            cCursor = nidium_cursors_list[1].m_Str;
+            for (size_t i = 0; nidium_cursors_list[i].m_Str != NULL; i++) {
+                if (nidium_cursors_list[i].m_Type == NUI->m_CurrentCursor) {
+                    cCursor = nidium_cursors_list[i].m_Str;
                     break;
                 }
             }
@@ -795,10 +795,10 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
             JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString type(cx, vpStr);
-            for (size_t i = 0; nidium_cursors_list[i].str != NULL; i++) {
-                if (strncasecmp(nidium_cursors_list[i].str, type.ptr(),
-                    strlen(nidium_cursors_list[i].str)) == 0) {
-                    NUI->setCursor(nidium_cursors_list[i].type);
+            for (size_t i = 0; nidium_cursors_list[i].m_Str != NULL; i++) {
+                if (strncasecmp(nidium_cursors_list[i].m_Str, type.ptr(),
+                    strlen(nidium_cursors_list[i].m_Str)) == 0) {
+                    NUI->setCursor(nidium_cursors_list[i].m_Type);
                     break;
                 }
             }
@@ -943,27 +943,27 @@ static bool nidium_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
 
 struct _nativeopenfile
 {
-    JSContext *cx;
-    JS::PersistentRootedValue cb;
+    JSContext *m_Cx;
+    JS::PersistentRootedValue m_Cb;
 };
 
 static void nidium_window_openfilecb(void *_nof, const char *lst[], uint32_t len)
 {
     struct _nativeopenfile *nof = (struct _nativeopenfile *)_nof;
-    JS::RootedObject arr(nof->cx, JS_NewArrayObject(nof->cx, len));
+    JS::RootedObject arr(nof->m_Cx, JS_NewArrayObject(nof->m_Cx, len));
     for (int i = 0; i < len; i++) {
-        JS::RootedValue val(nof->cx, OBJECT_TO_JSVAL(JSFileIO::GenerateJSObject(nof->cx, lst[i])));
-        JS_SetElement(nof->cx, arr, i, val);
+        JS::RootedValue val(nof->m_Cx, OBJECT_TO_JSVAL(JSFileIO::GenerateJSObject(nof->m_Cx, lst[i])));
+        JS_SetElement(nof->m_Cx, arr, i, val);
     }
 
-    JS::AutoValueArray<1> jarr(nof->cx);
+    JS::AutoValueArray<1> jarr(nof->m_Cx);
     jarr[0].setObjectOrNull(arr);
-    JS::RootedValue rval(nof->cx);
-    JS::RootedValue cb(nof->cx, nof->cb);
-    JS::RootedObject global(nof->cx, JS::CurrentGlobalOrNull(nof->cx));
-    JS_CallFunctionValue(nof->cx, global, cb, jarr, &rval);
+    JS::RootedValue rval(nof->m_Cx);
+    JS::RootedValue cb(nof->m_Cx, nof->m_Cb);
+    JS::RootedObject global(nof->m_Cx, JS::CurrentGlobalOrNull(nof->m_Cx));
+    JS_CallFunctionValue(nof->m_Cx, global, cb, jarr, &rval);
 
-    nof->cx = NULL;
+    nof->m_Cx = NULL;
     free(nof);
 }
 
@@ -1025,8 +1025,8 @@ static bool nidium_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value 
     }
 
     struct _nativeopenfile *nof = (struct _nativeopenfile *)malloc(sizeof(*nof));
-    nof->cb = callback;
-    nof->cx = cx;
+    nof->m_Cb = callback;
+    nof->m_Cx = cx;
 
     Nidium::Frontend::Context::GetObject(cx)->getUI()->openFileDialog(
         NULL,
@@ -1075,8 +1075,8 @@ static bool nidium_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
     }
 
     struct _nativeopenfile *nof = (struct _nativeopenfile *)malloc(sizeof(*nof));
-    nof->cb = callback;
-    nof->cx = cx;
+    nof->m_Cb = callback;
+    nof->m_Cx = cx;
 
     Nidium::Frontend::Context::GetObject(cx)->getUI()->openFileDialog(
         (const char **)ctypes,
@@ -1318,8 +1318,8 @@ static bool nidium_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
 void JSWindow::addFrameCallback(JS::MutableHandleValue cb)
 {
     struct _requestedFrame *frame = new struct _requestedFrame(m_Cx);
-    frame->next = m_RequestedFrame;
-    frame->cb = cb;
+    frame->m_Next = m_RequestedFrame;
+    frame->m_Cb = cb;
 
     m_RequestedFrame = frame;
 }
@@ -1337,11 +1337,11 @@ void JSWindow::callFrameCallbacks(double ts, bool garbage)
     while (frame != NULL) {
         if (!garbage) {
             JS::RootedObject global(m_Cx, JS::CurrentGlobalOrNull(m_Cx));
-            JS::RootedValue cb(m_Cx, frame->cb);
+            JS::RootedValue cb(m_Cx, frame->m_Cb);
             JS::RootedValue rval(m_Cx);
             JS_CallFunctionValue(m_Cx, global, cb, arg, &rval);
         }
-        struct _requestedFrame *tmp = frame->next;
+        struct _requestedFrame *tmp = frame->m_Next;
         delete frame;
         frame = tmp;
     }

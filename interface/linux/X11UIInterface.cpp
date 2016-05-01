@@ -30,7 +30,7 @@ static Window *UIX11Interface(SDL_Window *m_Win)
 // }}}
 
 // {{{ UIX11Interface
-UIX11Interface::UIX11Interface() : UIInterface(), mainjs({0, 0, 0}), console(NULL)
+UIX11Interface::UIX11Interface() : UIInterface(), m_Mainjs({0, 0, 0}), m_Console(NULL)
 {
 
 }
@@ -57,7 +57,7 @@ void UIX11Interface::hitRefresh()
 
 void UIX11Interface::onWindowCreated()
 {
-    console = new UIX11Console();
+    m_Console = new UIX11Console();
     static_cast<System *>(SystemInterface::_interface)->initSystemUI();
 }
 
