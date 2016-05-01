@@ -33,14 +33,14 @@ class JSModule
 
         char *absoluteDir;
         char *filePath;
-        char *name;
+        char *m_Name;
         int m_ModuleType;
         bool m_Cached;
 
-        JS::Heap<JSObject *> exports;
+        JS::Heap<JSObject *> m_Exports;
 
-        JSModule *parent;
-        JSModules *modules;
+        JSModule *m_Parent;
+        JSModules *m_Modules;
 
         bool init();
         bool initJS();
@@ -51,7 +51,7 @@ class JSModule
 
         ~JSModule();
     private:
-        JSContext *cx;
+        JSContext *m_Cx;
 
         JS::Value load(JS::Value &scope);
 };
@@ -61,7 +61,7 @@ class JSModule
 class JSModules
 {
     public:
-        JSModules(JSContext *cx) : main(NULL), m_TopDir("/"), cx(cx)
+        JSModules(JSContext *cx) : main(NULL), m_TopDir("/"), m_Cx(cx)
         {
             m_Paths[0] = static_cast<const char *>("modules");
             m_Paths[1] = static_cast<const char *>("node_modules");
@@ -109,7 +109,7 @@ class JSModules
         Nidium::Core::Hash<JSModule *> m_Cache;
         const char *m_Paths[2];
         char *m_EnvPaths[64];
-        JSContext *cx;
+        JSContext *m_Cx;
 
         bool initJS(JSModule *cmodule);
 

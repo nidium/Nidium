@@ -68,7 +68,7 @@ void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
     JSContext *cx = m_Cx;
 
     JS::RootedValue oncallback(cx);
-    JS::RootedValue rval(cx);
+    JS::RootedValue val(cx);
 
     switch (msg.event()) {
         case NIDIUM_EVENT(WebSocketClient, CLIENT_FRAME):
@@ -91,7 +91,7 @@ void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
 
                 arg[0].setObjectOrNull(event);
 
-                JS_CallFunctionValue(m_Cx, obj, oncallback, arg, &rval);
+                JS_CallFunctionValue(m_Cx, obj, oncallback, arg, &val);
             }
 
             break;

@@ -72,9 +72,9 @@ public:
         return m_ParentServer ? m_ParentServer->getJSObject() : this->getJSObject();
     }
 
-    char *host;
-    unsigned short port;
-    ape_socket *socket;
+    char *m_Host;
+    unsigned short m_Port;
+    ape_socket *m_Socket;
     int flags;
 
     char *m_Encoding;

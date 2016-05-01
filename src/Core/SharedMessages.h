@@ -32,15 +32,15 @@ class SharedMessages
     {
         public:
             Message(void *ptr, int type, void *dest = NULL)
-            : prev(NULL), type(type), m_Dest(dest) {
+            : prev(NULL), m_Type(type), m_Dest(dest) {
                 msgdata.dataptr = ptr;
             }
             Message(uint64_t dataint, int type, void *dest = NULL)
-            : prev(NULL), type(type), m_Dest(dest) {
+            : prev(NULL), m_Type(type), m_Dest(dest) {
                 msgdata.dataint = dataint;
             }
 
-            Message(int type) : prev(NULL), type(type), m_Dest(NULL) {
+            Message(int type) : prev(NULL), m_Type(type), m_Dest(NULL) {
             }
 
             ~Message() {}
@@ -72,7 +72,7 @@ class SharedMessages
             }
 
             int event() const {
-                return type;
+                return m_Type;
             }
 
             Message *prev;
@@ -85,7 +85,7 @@ class SharedMessages
                 uint64_t dataint;
             } msgdata;
 
-            int type;
+            int m_Type;
             void *m_Dest;
             bool m_ForceAsync = false;
     };

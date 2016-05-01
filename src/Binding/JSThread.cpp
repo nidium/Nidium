@@ -175,13 +175,13 @@ static void *nidium_thread(void *arg)
             arglst.resize(nthread->params.argc);
 
             for (size_t i = 0; i < nthread->params.argc; i++) {
-                JS::RootedValue arg(tcx);
+                JS::RootedValue args(tcx);
                 JS_ReadStructuredClone(tcx,
                             nthread->params.argv[i],
                             nthread->params.nbytes[i],
-                            JS_STRUCTURED_CLONE_VERSION, &arg, NULL, NULL);
+                            JS_STRUCTURED_CLONE_VERSION, &args, NULL, NULL);
 
-                arglst[i] = arg;
+                arglst[i] = args;
                 JS_ClearStructuredClone(nthread->params.argv[i], nthread->params.nbytes[i], NULL, NULL);
             }
 

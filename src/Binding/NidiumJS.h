@@ -73,7 +73,7 @@ class NidiumJS
         Nidium::Core::Hash<JSObject *> jsobjects;
 
         struct _ape_htable *rootedObj;
-        struct _ape_global *net;
+        struct _ape_global *m_Net;
 
         nidium_thread_message_t *registeredMessages;
         int registeredMessagesIdx;

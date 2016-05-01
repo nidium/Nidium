@@ -29,41 +29,41 @@ class Hash64 : public NonCopyable
         explicit Hash64(int size = 0)
         {
             if (!size) {
-                this->table = hashtbl_init(APE_HASH_INT);
+                this->m_table = hashtbl_init(APE_HASH_INT);
             } else {
-                this->table = hashtbl_init_with_size(APE_HASH_INT, size);
+                this->m_table = hashtbl_init_with_size(APE_HASH_INT, size);
             }
         }
         ~Hash64() {
-            hashtbl_free(this->table);
+            hashtbl_free(this->m_table);
         }
 
         void set(uint64_t key, T val) {
-            hashtbl_append64(this->table, key, val);
+            hashtbl_append64(this->m_table, key, val);
         }
 
         T get(uint64_t key) const {
-            return static_cast<T>(hashtbl_seek64(this->table, key));
+            return static_cast<T>(hashtbl_seek64(this->m_table, key));
         }
 
         void erase(uint64_t key) {
-            hashtbl_erase64(this->table, key);
+            hashtbl_erase64(this->m_table, key);
         }
 
         void setAutoDelete(bool val) {
-            hashtbl_set_cleaner(this->table, (val ? Hash64<T>::Cleaner : NULL));
+            hashtbl_set_cleaner(this->m_table, (val ? Hash64<T>::Cleaner : NULL));
         }
         static void Cleaner(ape_htable_item_t *item) {
             delete static_cast<T>(item->content.addrs);
         }
 
         struct _ape_htable *accessCStruct() const {
-            return table;
+            return m_table;
         }
 
     private:
 
-        struct _ape_htable *table;
+        struct _ape_htable *m_table;
 };
 // }}}
 
@@ -75,61 +75,61 @@ class Hash : public NonCopyable
         Hash(int size = 0)
         {
            if (!size) {
-                this->table = hashtbl_init(APE_HASH_STR);
+                this->m_table = hashtbl_init(APE_HASH_STR);
             } else {
-                this->table = hashtbl_init_with_size(APE_HASH_STR, size);
+                this->m_table = hashtbl_init_with_size(APE_HASH_STR, size);
             }
         }
         ~Hash() {
-            hashtbl_free(this->table);
+            hashtbl_free(this->m_table);
         }
 
         void set(const char *key, T val) {
-            hashtbl_append(this->table, key, strlen(key), val);
+            hashtbl_append(this->m_table, key, strlen(key), val);
         }
 
         T get(const char *key) const {
-            return static_cast<T>(hashtbl_seek(this->table, key, strlen(key)));
+            return static_cast<T>(hashtbl_seek(this->m_table, key, strlen(key)));
         }
 
         void erase(const char *key) {
-            hashtbl_erase(this->table, key, strlen(key));
+            hashtbl_erase(this->m_table, key, strlen(key));
         }
 
         void setAutoDelete(bool val) {
-            hashtbl_set_cleaner(this->table, (val ? Hash<T>::Cleaner : NULL));
+            hashtbl_set_cleaner(this->m_table, (val ? Hash<T>::Cleaner : NULL));
         }
         static void Cleaner(ape_htable_item_t *item) {
             delete static_cast<T>(item->content.addrs);
         }
         struct _ape_htable *accessCStruct() const {
-            return table;
+            return this->m_table;
         }
 
         class iterator: public std::iterator<std::input_iterator_tag, T>
         {
             public:
-                iterator(ape_htable_item_t *ptr): ptr(ptr) {}
+                iterator(ape_htable_item_t *ptr): m_ptr(ptr) {}
                 iterator& operator++() {
-                    ptr = ptr->lnext;
+                    m_ptr = m_ptr->lnext;
                     return *this;
                 }
                 bool operator != (iterator& other) {
-                    return  ptr != other.ptr;
+                    return  m_ptr != other.m_ptr;
                 }
                 T operator->() {
-                    return static_cast<T>(ptr->content.addrs);
+                    return static_cast<T>(m_ptr->content.addrs);
                 }
             private:
-                ape_htable_item_t *ptr;
+                ape_htable_item_t *m_ptr;
         };
 
         iterator begin()
         {
-            if (!table->first) {
+            if (!m_table->first) {
                 return iterator(NULL);
             } else {
-                return iterator(table->first);
+                return iterator(m_table->first);
             }
         }
 
@@ -139,7 +139,7 @@ class Hash : public NonCopyable
         }
     private:
 
-        struct _ape_htable *table;
+        struct _ape_htable *m_table;
 };
 // }}}
 
@@ -149,25 +149,25 @@ class Hash<uint32_t> : public NonCopyable
 {
     public:
         Hash() {
-            this->table = hashtbl_init(APE_HASH_STR);
+            this->m_table = hashtbl_init(APE_HASH_STR);
         }
         ~Hash() {
-            hashtbl_free(this->table);
+            hashtbl_free(this->m_table);
         }
 
         void set(const char *key, uint32_t val) {
-            hashtbl_append_val32(this->table, key, strlen(key), val);
+            hashtbl_append_val32(this->m_table, key, strlen(key), val);
         }
 
         uint32_t get(const char *key) const {
-            return hashtbl_seek_val32(this->table, key, strlen(key));
+            return hashtbl_seek_val32(this->m_table, key, strlen(key));
         }
 
         void erase(const char *key) {
-            hashtbl_erase(this->table, key, strlen(key));
+            hashtbl_erase(this->m_table, key, strlen(key));
         }
     private:
-        struct _ape_htable *table;
+        struct _ape_htable *m_table;
 };
 // }}}
 

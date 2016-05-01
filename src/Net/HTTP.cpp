@@ -299,9 +299,9 @@ static void nidium_http_read(ape_socket *s,
 
 // {{{ HTTP Implementation
 HTTP::HTTP(ape_global *n) :
-    ptr(NULL), net(n), m_CurrentSock(NULL),
-    err(0), m_Timeout(HTTP_DEFAULT_TIMEOUT),
-    m_TimeoutTimer(0), delegate(NULL),
+    m_Ptr(NULL), net(n), m_CurrentSock(NULL),
+    m_Err(0), m_Timeout(HTTP_DEFAULT_TIMEOUT),
+    m_TimeoutTimer(0), m_Delegate(NULL),
     m_FileSize(0), m_isParsing(false), m_Request(NULL), m_CanDoRequest(true),
     m_PendingError(ERROR_NOERR), m_MaxRedirect(8), m_FollowLocation(true)
 {
@@ -314,8 +314,8 @@ HTTP::HTTP(ape_global *n) :
 
 void HTTP::reportPendingError()
 {
-    if (this->delegate && m_PendingError != ERROR_NOERR) {
-        this->delegate->onError(m_PendingError);
+    if (m_Delegate && m_PendingError != ERROR_NOERR) {
+        m_Delegate->onError(m_PendingError);
     }
 
     m_PendingError = ERROR_NOERR;
@@ -323,18 +323,18 @@ void HTTP::reportPendingError()
 
 void HTTP::setPrivate(void *ptr)
 {
-    this->ptr = ptr;
+    m_Ptr = ptr;
 }
 
 void *HTTP::getPrivate()
 {
-    return this->ptr;
+    return m_Ptr;
 }
 
 void HTTP::onData(size_t offset, size_t len)
 {
-    this->delegate->onProgress(offset, len,
-        &this->http, this->nidium_http_data_type);
+    m_Delegate->onProgress(offset, len, &this->http, 
+        this->nidium_http_data_type);
 }
 
 void HTTP::headerEnded()
@@ -395,17 +395,17 @@ void HTTP::headerEnded()
         case 1:
         case 2:
         case 3:
-            this->delegate->onHeader();
+            m_Delegate->onHeader();
             break;
         case 4:
         case 5:
         default:
-            this->delegate->onError(ERROR_HTTPCODE);
+            m_Delegate->onError(ERROR_HTTPCODE);
             break;
     }
 */
 
-    this->delegate->onHeader();
+    m_Delegate->onHeader();
 
 #undef REQUEST_HEADER
 }
@@ -452,7 +452,7 @@ void HTTP::requestEnded()
 
         }
         this->clearState();
-        this->request(m_Request, delegate, true);
+        this->request(m_Request, m_Delegate, true);
         return;
     }
 
@@ -461,7 +461,7 @@ void HTTP::requestEnded()
         bool doclose = !this->isKeepAlive();
 
         if (!hasPendingError()) {
-            delegate->onRequest(&http, nidium_http_data_type);
+            m_Delegate->onRequest(&http, nidium_http_data_type);
         }
 
         this->clearState();
@@ -535,7 +535,7 @@ bool HTTP::createConnection()
         APE_SOCKET_PT_SSL : APE_SOCKET_PT_TCP, 0, net)) == NULL) {
 
         printf("[Socket] Cant load socket (new)\n");
-        if (this->delegate) {
+        if (m_Delegate) {
             this->setPendingError(ERROR_SOCKET);
         }
         return false;
@@ -543,7 +543,7 @@ bool HTTP::createConnection()
 
     if (APE_socket_connect(socket, m_Request->getPort(), m_Request->getHost(), 0) == -1) {
         printf("[Socket] Cant connect (0)\n");
-        if (this->delegate) {
+        if (m_Delegate) {
             this->setPendingError(ERROR_SOCKET);
         }
         return false;
@@ -599,7 +599,7 @@ bool HTTP::request(HTTPRequest *req,
 
     m_Path += req->getPath();
 
-    this->delegate = delegate;
+    m_Delegate = delegate;
     http.ended = 0;
 
     delegate->httpref = this;
@@ -687,7 +687,7 @@ HTTP::~HTTP()
         delete m_Request;
     }
 
-    this->delegate = NULL;
+    m_Delegate = NULL;
     m_PendingError = ERROR_NOERR;
 
     this->clearState();
@@ -697,8 +697,8 @@ HTTP::~HTTP()
 
 // {{{ HTTPRequest Implementation
 HTTPRequest::HTTPRequest(const char *url) :
-    method(HTTP_GET), host(NULL), path(NULL), data(NULL), datalen(0),
-    datafree(free), headers(ape_array_new(8)), m_isSSL(false)
+    method(HTTP_GET), host(NULL), path(NULL), m_data(NULL), datalen(0),
+    m_Datafree(free), headers(ape_array_new(8)), m_isSSL(false)
 {
     this->resetURL(url);
     this->setDefaultHeaders();

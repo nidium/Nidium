@@ -472,11 +472,11 @@ NidiumJS::NidiumJS(ape_global *net) :
 
     shutdown = false;
 
-    this->net = NULL;
+    m_Net = NULL;
 
     rootedObj = hashtbl_init(APE_HASH_INT);
 
-    NidiumJS::InitNet(net);
+    NidiumJS::InitNet(m_Net);
 
     if (gJS == 0) {
         pthread_key_create(&gJS, NULL);
@@ -538,7 +538,7 @@ NidiumJS::NidiumJS(ape_global *net) :
 
     js::SetDefaultObjectForContext(cx, gbl);
 
-    this->bindNetObject(net);
+    this->bindNetObject(m_Net);
 
     JS_SetRuntimePrivate(rt, this);
 
@@ -601,14 +601,14 @@ static bool test_extracting(const char *buf, int len,
 
 int NidiumJS::LoadApplication(const char *path)
 {
-    if (this->net == NULL) {
+    if (m_Net == NULL) {
         printf("LoadApplication: bind a net object first\n");
         return 0;
     }
     NativeApp *app = new NativeApp("./demo.zip");
     if (app->open()) {
         this->UI->setWindowTitle(app->getTitle());
-        app->runWorker(this->net);
+        app->runWorker(m_Net);
         size_t size = app->extractFile("main.js", test_extracting, this);
         if (size == 0) {
             printf("Cant exctract file\n");
@@ -708,7 +708,7 @@ static int Nidium_handle_messages(void *arg)
 void NidiumJS::bindNetObject(ape_global *net)
 {
     JS_SetContextPrivate(cx, net);
-    this->net = net;
+    m_Net = net;
 
     ape_timer_t *timer = APE_timer_create(net, 1,
         Nidium_handle_messages, this);

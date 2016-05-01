@@ -38,8 +38,8 @@ class HTTPRequest
 
         ~HTTPRequest() {
             ape_array_destroy(this->headers);
-            if (data != NULL && datafree != NULL) {
-                datafree(data);
+            if (m_data != NULL && m_Datafree != NULL) {
+                m_Datafree(m_data);
             }
             free(host);
             free(path);
@@ -48,10 +48,10 @@ class HTTPRequest
         void recycle() {
             ape_array_destroy(this->headers);
             this->headers = ape_array_new(8);
-            if (data != NULL && datafree != NULL) {
-                datafree(data);
+            if (m_data != NULL && m_Datafree != NULL) {
+                m_Datafree(m_data);
             }
-            data = NULL;
+            m_data = NULL;
             datalen = 0;
             method = HTTP_GET;
 
@@ -101,12 +101,12 @@ class HTTPRequest
         }
 
         void setData(char *data, size_t len) {
-            this->data = data;
+            this->m_data = data;
             this->datalen = len;
         }
 
         const char *getData() const {
-            return this->data;
+            return this->m_data;
         }
 
         size_t getDataLength() const {
@@ -115,7 +115,7 @@ class HTTPRequest
 
         void setDataReleaser(void (*datafree)(void *))
         {
-            this->datafree = datafree;
+            m_Datafree = datafree;
         }
 
         bool isSSL() const {
@@ -129,9 +129,9 @@ class HTTPRequest
 
         char *host;
         char *path;
-        char *data;
+        char *m_data;
         size_t datalen;
-        void (*datafree)(void *);
+        void (*m_Datafree)(void *);
         u_short port;
 
         ape_array_t *headers;
@@ -145,7 +145,7 @@ class HTTPDelegate;
 class HTTP :  public Nidium::Core::Messages
 {
 private:
-    void *ptr;
+    void *m_Ptr;
 public:
     enum DataType {
         DATA_STRING = 1,
@@ -176,11 +176,11 @@ public:
     ape_global *net;
     ape_socket *m_CurrentSock;
 
-    int err;
+    int m_Err;
     uint32_t m_Timeout;
     uint64_t m_TimeoutTimer;
 
-    HTTPDelegate *delegate;
+    HTTPDelegate *m_Delegate;
 
     struct HTTPData {
         http_parser parser;
