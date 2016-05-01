@@ -45,7 +45,7 @@ class SharedMessages
 
             ~Message() {}
 
-            Message() {};
+            Message() {}
 
             void *dataPtr() const {
                 return msgdata.dataptr;

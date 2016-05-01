@@ -100,8 +100,8 @@ static JSPropertySpec Socket_props[] = {
 // {{{ JSSocket
 JSSocket::JSSocket(JS::HandleObject obj, JSContext *cx,
     const char *host, unsigned short port)
-    :  JSExposer<JSSocket>(obj, cx),
-    socket(NULL), flags(0), m_ParentServer(NULL), m_TCPTimeout(0)
+    :  JSExposer<JSSocket>(obj, cx), socket(NULL), flags(0), m_ParentServer(NULL), 
+    m_FrameDelimiter('\n'), m_TCPTimeout(0)
 {
     this->host = strdup(host);
     this->port = port;

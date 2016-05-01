@@ -78,7 +78,7 @@ private:
         for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
             Messages *receiver = static_cast<Messages *>(item->content.addrs);
 
-            SharedMessages::Message *msg = 
+            SharedMessages::Message *msg =
                 new SharedMessages::Message(NIDIUM_EVENTS_MESSAGE_BITS(event) | (T::EventID << 16));
 
             msg->args[0].set(static_cast<T *>(this));

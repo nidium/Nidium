@@ -23,8 +23,6 @@ static JSClass debug_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-JSClass *JSDebug::jsclass = &debug_class;
-
 template<>
 JSClass *JSExposer<JSDebug>::jsclass = &debug_class;
 

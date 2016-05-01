@@ -61,10 +61,11 @@ class JSModule
 class JSModules
 {
     public:
-        JSModules(JSContext *cx) : m_TopDir("/"), cx(cx)
+        JSModules(JSContext *cx) : main(NULL), m_TopDir("/"), cx(cx)
         {
             m_Paths[0] = static_cast<const char *>("modules");
             m_Paths[1] = static_cast<const char *>("node_modules");
+            memset(&m_EnvPaths[0], '\0', sizeof(m_EnvPaths));
         }
 
         ~JSModules()

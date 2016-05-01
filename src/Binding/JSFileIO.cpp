@@ -37,7 +37,7 @@ enum {
     FILE_PROP_ASYNC
 };
 
-#define NJSFIO_GETTER(obj) ((class JSFileIO *)JS_GetPrivate(obj))
+#define NJSFIO_GETTER(obj) (static_cast<JSFileIO *>(JS_GetPrivate(obj)))
 
 static void File_Finalize(JSFreeOp *fop, JSObject *obj);
 
@@ -122,22 +122,22 @@ public:
     void onMessage(const SharedMessages::Message &msg)
     {
 
-        JSContext *cx = (JSContext *)m_Args[0].toPtr();
+        JSContext *cx = static_cast<JSContext *>(m_Args[0].toPtr());
         JS::AutoValueArray<2> params(cx);
         params[0].setNull();
         params[1].setUndefined();
         JS::RootedValue rval(cx);
 
-        Stream *stream = (Stream *)m_Args[2].toPtr();
+        Stream *stream = static_cast<Stream *>(m_Args[2].toPtr());
 
-        JS::RootedObject callback(cx, (JSObject *)m_Args[7].toPtr());
+        JS::RootedObject callback(cx, static_cast<JSObject *>(m_Args[7].toPtr()));
 
-        char *encoding = (char *)m_Args[1].toPtr();
+        char *encoding = static_cast<char *>(m_Args[1].toPtr());
 
         switch (msg.event()) {
             case Stream::EVENT_ERROR: {
                 Stream::Errors err =
-                (Stream::Errors)msg.args[0].toInt();
+                static_cast<Stream::Errors>(msg.args[0].toInt());
                 printf("Got an error : %d\n", err);
                 params[0].setString(JS_NewStringCopyZ(cx, "Stream error"));
             }
@@ -145,8 +145,8 @@ public:
             case Stream::EVENT_READ_BUFFER:
             {
                 JS::RootedValue ret(cx);
-                buffer *buf = (buffer *)msg.args[0].toPtr();
-                if (JSUtils::StrToJsval(cx, (const char *)buf->data,
+                buffer *buf = static_cast<buffer *>(msg.args[0].toPtr());
+                if (JSUtils::StrToJsval(cx, reinterpret_cast<const char *>(buf->data),
                     buf->used, &ret, encoding)) {
 
                     params[1].set(ret);
@@ -236,8 +236,8 @@ bool JSFileIO::callbackForMessage(JSContext *cx,
         switch (msg.event()) {
             case File::READ_SUCCESS:
             {
-                buffer *buf = (buffer *)msg.args[0].toPtr();
-                JSUtils::StrToJsval(cx, (const char *)buf->data,
+                buffer *buf = static_cast<buffer *>(msg.args[0].toPtr());
+                JSUtils::StrToJsval(cx, reinterpret_cast<const char *>(buf->data),
                     buf->used, params[1], encoding);
                 break;
             }
@@ -267,7 +267,7 @@ bool JSFileIO::callbackForMessage(JSContext *cx,
             }
         }
     }
-    JSObject *callback = (JSObject *)msg.args[7].toPtr();
+    JSObject *callback = static_cast<JSObject *>(msg.args[7].toPtr());
 
     if (!this->getFile()->m_TaskQueued) {
 #if FILE_ROOT_DEBUG
@@ -426,7 +426,7 @@ static bool nidium_file_isDir(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NJSFIO = (JSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
 
     file = NJSFIO->getFile();
 
@@ -581,7 +581,7 @@ static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
 
         NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
-        file->write((char *)data, len, callback.toObjectOrNull());
+        file->write(reinterpret_cast<char *>(data), len, callback.toObjectOrNull());
 
     } else {
         JS_ReportError(cx, "INVALID_VALUE : only accept string or ArrayBuffer");

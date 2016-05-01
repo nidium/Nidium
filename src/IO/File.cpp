@@ -641,7 +641,6 @@ void File::onMessageLost(const SharedMessages::Message &msg)
         }
     }
 }
-
 // }}}
 
 } // namespace IO

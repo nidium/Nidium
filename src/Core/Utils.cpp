@@ -64,7 +64,7 @@ clock_gettime(int X, struct timeval *tv)
         usePerformanceCounter = QueryPerformanceFrequency(&performanceFrequency);
         if (usePerformanceCounter) {
             QueryPerformanceCounter(&offset);
-            frequencyToMicroseconds = (double)performanceFrequency.QuadPart / 1000000.;
+            frequencyToMicroseconds = static_cast<double>(performanceFrequency.QuadPart) / 1000000.;
         } else {
             offset = getFILETIMEoffset();
             frequencyToMicroseconds = 10.;
@@ -79,7 +79,7 @@ clock_gettime(int X, struct timeval *tv)
     }
 
     t.QuadPart -= offset.QuadPart;
-    microseconds = (double)t.QuadPart / frequencyToMicroseconds;
+    microseconds = static_cast<double>(t.QuadPart) / frequencyToMicroseconds;
     t.QuadPart = microseconds;
     tv->tv_sec = t.QuadPart / 1000000;
     tv->tv_usec = t.QuadPart % 1000000;

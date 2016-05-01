@@ -67,7 +67,7 @@ struct nidium_sm_timer
     unsigned argc;
     int ms;
 
-    nidium_sm_timer(JSContext *cx) : global(cx), func(cx) { }
+    nidium_sm_timer(JSContext *cx) : cx(cx), global(cx), argv(NULL), func(cx), argc(0), ms(0) { }
     ~nidium_sm_timer() { }
 };
 
@@ -194,12 +194,12 @@ JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
             char *pdata = static_cast<char *>(malloc(data + 256));
             memcpy(pdata, pre, sizeof(pre));
 
-            if (!JS_ReadBytes(r, pdata+(sizeof(pre)-1), data)) {
+            if (!JS_ReadBytes(r, pdata + (sizeof(pre) - 1), data)) {
                 free(pdata);
                 return NULL;
             }
 
-            memcpy(pdata+sizeof(pre) + data-1, end, sizeof(end));
+            memcpy(pdata + sizeof(pre) + data - 1, end, sizeof(end));
             JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
             JS::CompileOptions options(cx);
             options.setUTF8(true);
@@ -592,7 +592,7 @@ NidiumJS::NidiumJS(ape_global *net) :
 static bool test_extracting(const char *buf, int len,
     size_t offset, size_t total, void *user)
 {
-    //NidiumJS *njs = (NidiumJS *)user;
+    //NidiumJS *njs = static_cast<NidiumJS *>(user);
 
     printf("Got a packet of size %ld out of %ld\n", offset, total);
     return true;
@@ -1300,8 +1300,7 @@ static bool nidium_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     ape_timer_t *timer = APE_timer_create(static_cast<ape_global *>(JS_GetContextPrivate(cx)),
-        params->ms, nidium_timerng_wrapper,
-        static_cast<void *>(params));
+        params->ms, nidium_timerng_wrapper, static_cast<void *>(params));
 
     APE_timer_unprotect(timer);
     APE_timer_setclearfunc(timer, nidium_timer_deleted);

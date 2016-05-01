@@ -30,8 +30,8 @@ public:
     /*
         Derived classes must implement this in order to catch messages
     */
-    virtual void onMessage(const SharedMessages::Message &msg) {};
-    virtual void onMessageLost(const SharedMessages::Message &msg) {};
+    virtual void onMessage(const SharedMessages::Message &msg) {}
+    virtual void onMessageLost(const SharedMessages::Message &msg) {}
 
     void postMessage(void *dataptr, int event, bool forceAsync = false);
     void postMessage(uint64_t dataint, int event, bool forceAsync = false);

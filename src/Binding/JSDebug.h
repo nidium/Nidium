@@ -23,8 +23,6 @@ class JSDebug : public JSExposer<JSDebug>
     static const char *GetJSObjectName() {
         return "Debug";
     }
-
-    static JSClass *jsclass;
 };
 
 } // namespace Binding

@@ -23,10 +23,8 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-
 extern void reportError(JSContext *cx, const char *message,
     JSErrorReport *report);
-
 static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Thread_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool nidium_thread_start(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -71,7 +69,7 @@ static bool JSThreadCallback(JSContext *cx)
 {
     JSThread *nthread;
 
-    if ((nthread = (JSThread *)JS_GetContextPrivate(cx)) == NULL ||
+    if ((nthread = static_cast<JSThread *>(JS_GetContextPrivate(cx))) == NULL ||
         nthread->markedStop) {
         return false;
     }
@@ -100,7 +98,7 @@ JSObject *_CreateJSGlobal(JSContext *cx)
 
 static void *nidium_thread(void *arg)
 {
-    JSThread *nthread = (JSThread *)arg;
+    JSThread *nthread = static_cast<JSThread *>(arg);
 
     JSRuntime *rt;
     JSContext *tcx;
@@ -161,7 +159,7 @@ static void *nidium_thread(void *arg)
             JS_SetContextPrivate(tcx, nthread);
 
             JS::CompileOptions options(tcx);
-            options.setFileAndLine(nthread->m_CallerFileName, nthread->m_CallerLineno)
+            options.setFileAndLine(nthread->m_CallerFileName, nthread->m_CallerLineNo)
                    .setUTF8(true);
 
             JS::RootedFunction cf(tcx);
@@ -206,11 +204,11 @@ static void *nidium_thread(void *arg)
 // }}}
 
 // {{{ JSThread
-
 JSThread::JSThread(JS::HandleObject obj, JSContext *cx) :
     JSExposer<JSThread>(obj, cx),
     jsRuntime(NULL), jsCx(NULL),
-    jsObject(NULL), njs(NULL), markedStop(false), m_CallerFileName(NULL)
+    jsObject(NULL), njs(NULL), params({0, NULL, 0}), markedStop(false),
+    m_CallerFileName(NULL), m_CallerLineNo(0)
 {
     /* cx hold the main context (caller) */
     /* jsCx hold the newly created context (along with jsRuntime) */
@@ -312,7 +310,7 @@ static bool nidium_thread_start(JSContext *cx, unsigned argc, JS::Value *vp)
         return true;
     }
 
-    if ((nthread = (JSThread *)JS_GetPrivate(caller)) == NULL) {
+    if ((nthread = static_cast<JSThread *>(JS_GetPrivate(caller))) == NULL) {
         return true;
     }
 
@@ -321,7 +319,7 @@ static bool nidium_thread_start(JSContext *cx, unsigned argc, JS::Value *vp)
     nthread->params.nbytes = (argc ?
         (size_t *)malloc(sizeof(*nthread->params.nbytes) * argc) : NULL);
 
-    for (int i = 0; i < (int)argc; i++) {
+    for (int i = 0; i < static_cast<int>(argc); i++) {
 
         if (!JS_WriteStructuredClone(cx, args[i],
             &nthread->params.argv[i], &nthread->params.nbytes[i],
@@ -347,7 +345,7 @@ static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp)
     uint64_t *datap;
     size_t nbytes;
 
-    JSThread *nthread = (JSThread *)JS_GetContextPrivate(cx);
+    JSThread *nthread = static_cast<JSThread *>(JS_GetContextPrivate(cx));
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -400,7 +398,7 @@ static bool nidium_Thread_constructor(JSContext *cx, unsigned argc, JS::Value *v
     nthread->njs 		= NJS;
 
     JS::AutoFilename af;
-    JS::DescribeScriptedCaller(cx, &af, &nthread->m_CallerLineno);
+    JS::DescribeScriptedCaller(cx, &af, &nthread->m_CallerLineNo);
 
     nthread->m_CallerFileName = strdup(af.get());
 
@@ -415,7 +413,7 @@ static bool nidium_Thread_constructor(JSContext *cx, unsigned argc, JS::Value *v
 
 static void Thread_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    JSThread *nthread = (JSThread *)JS_GetPrivate(obj);
+    JSThread *nthread = static_cast<JSThread *>(JS_GetPrivate(obj));
 
     if (nthread != NULL) {
         delete nthread;

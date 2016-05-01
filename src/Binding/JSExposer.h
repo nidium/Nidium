@@ -259,10 +259,11 @@ public:
 
     bool fire(JS::HandleValue evobj, JSObject *thisobj) {
         JSEvent *ev;
-        JSContext *cx;
         m_IsFiring = true;
 
         for (ev = m_Head; ev != NULL;) {
+            JSContext *cx;
+
             JS::AutoValueArray<1> params(ev->m_Cx);
             JS::RootedValue rval(ev->m_Cx);
             JS::RootedObject obj(ev->m_Cx, thisobj);

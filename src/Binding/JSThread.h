@@ -43,7 +43,7 @@ class JSThread : public JSExposer<JSThread>, public Nidium::Core::Messages
     pthread_t threadHandle;
 
     char *m_CallerFileName;
-    uint32_t m_CallerLineno;
+    uint32_t m_CallerLineNo;
 };
 
 enum {

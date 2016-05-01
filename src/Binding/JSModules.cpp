@@ -318,8 +318,7 @@ JS::Value JSModule::require(char *name)
             if (cmodule->m_ModuleType == JS) {
                 JS::RootedObject expObj(cx, cmodule->exports);
                 JS::CompileOptions options(cx);
-                options.setFileAndLine(cmodule->filePath, 1)
-                       .setUTF8(true);
+                options.setFileAndLine(cmodule->filePath, 1).setUTF8(true);
 
                 fn = JS::CompileFunction(cx, expObj, options, NULL, 0, NULL, data, strlen(data));
 
