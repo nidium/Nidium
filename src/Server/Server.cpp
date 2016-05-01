@@ -301,7 +301,6 @@ int Worker::run(int argc, char **argv, bool jsstrict)
         fprintf(stdout, "[JS] Strict mode is enabled\n");
     }
     if (argc >= 1) {
-        Nidium::Binding::NidiumJS *js = ctx.getNJS();
         if (!js) {
             fprintf(stderr, "Failed to get JS\n");
             return 0;

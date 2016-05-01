@@ -62,8 +62,8 @@ Context::Context(ape_global *net, Worker *worker,
 
     m_JS->loadGlobalObjects();
 
-    JSconsole::RegisterObject(m_JS->cx);
-    JSSystem::RegisterObject(m_JS->cx);
+    JSconsole::RegisterObject(m_JS->m_Cx);
+    JSSystem::RegisterObject(m_JS->m_Cx);
 
     m_JS->setPath(Nidium::Core::Path::GetCwd());
 

@@ -74,9 +74,9 @@ void REPL::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 {
     buffer_append_string(m_Buffer, static_cast<char *>(msg.dataPtr()));
 
-    JS::RootedObject rgbl(m_JS->cx, JS::CurrentGlobalOrNull(m_JS->cx));
+    JS::RootedObject rgbl(m_JS->m_Cx, JS::CurrentGlobalOrNull(m_JS->m_Cx));
 
-    if (JS_BufferIsCompilableUnit(m_JS->cx, rgbl,
+    if (JS_BufferIsCompilableUnit(m_JS->m_Cx, rgbl,
         (char *)m_Buffer->data, m_Buffer->used)) {
 
         m_Continue = false;
