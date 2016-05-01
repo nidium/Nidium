@@ -43,13 +43,13 @@ class Canvas2DContext;
 
 // {{{ JSAVMessageCallback
 struct JSAVMessageCallback {
-    JS::PersistentRootedObject callee;
-    int ev;
-    int arg1;
-    int arg2;
+    JS::PersistentRootedObject m_Callee;
+    int m_Ev;
+    int m_Arg1;
+    int m_Arg2;
 
     JSAVMessageCallback(JSContext *cx, JS::HandleObject callee, int ev, int arg1, int arg2)
-        : callee(cx, callee), ev(ev), arg1(arg1), arg2(arg2) {};
+        : m_Callee(cx, callee), m_Ev(ev), m_Arg1(arg1), m_Arg2(arg2) {};
 };
 // }}}
 
@@ -258,7 +258,7 @@ class JSVideo : public JSExposer<JSVideo>, public Core::Messages
         void releaseAudioNode();
         bool m_IsDestructing;
         Canvas2DContext *m_CanvasCtx;
-        JSContext *cx;
+        JSContext *m_Cx;
 };
 // }}}
 

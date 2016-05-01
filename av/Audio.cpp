@@ -607,12 +607,12 @@ AudioNode *Audio::createNode(Audio::Node node, int input, int output)
 
 bool Audio::connect(NodeLink *input, NodeLink *output)
 {
-    return output->node->queue(input, output);
+    return output->m_Node->queue(input, output);
 }
 
 bool Audio::disconnect(NodeLink *input, NodeLink *output)
 {
-    return output->node->unqueue(input, output);
+    return output->m_Node->unqueue(input, output);
 }
 
 void Audio::setVolume(float volume)

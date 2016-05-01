@@ -129,14 +129,14 @@ static bool nidium_image_prop_set(JSContext *cx, JS::HandleObject obj,
                 stream->setListener(nimg);
                 stream->getContent();
             } else if (vp.isObject()) {
-                JS::RootedObject obj(cx, vp.toObjectOrNull());
-                IO::File *file = JSFileIO::GetFileFromJSObject(cx, obj);
+                JS::RootedObject fileObj(cx, vp.toObjectOrNull());
+                IO::File *file = JSFileIO::GetFileFromJSObject(cx, fileObj);
                 if (!file) {
                     vp.setNull();
                     return true;
                 }
 
-                NidiumJSObj(cx)->rootObjectUntilShutdown(obj);
+                NidiumJSObj(cx)->rootObjectUntilShutdown(fileObj);
 
                 IO::Stream *stream = IO::Stream::Create(file->getFullPath());
                 if (stream == NULL) {

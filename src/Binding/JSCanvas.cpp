@@ -1400,9 +1400,9 @@ static bool nidium_canvas_prop_get(JSContext *cx, JS::HandleObject obj,
         }
         case CANVAS_PROP_ID:
         {
-            char *id;
-            handler->getIdentifier(&id);
-            JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, id));
+            char *cid;
+            handler->getIdentifier(&cid);
+            JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, cid));
             vp.setString(jstr);
 
             break;

@@ -36,10 +36,10 @@ enum ArgType {INT, DOUBLE};
 
 // {{{ NodeIO
 struct NodeIO {
-    AudioNode *node;
-    bool feedback;
-    float *frame;
-    NodeIO(AudioNode *node, float *frame) : node(node), feedback(false), frame(frame) {};
+    AudioNode *m_Node;
+    bool m_Feedback;
+    float *m_Frame;
+    NodeIO(AudioNode *node, float *frame) : m_Node(node), m_Feedback(false), m_Frame(frame) {};
 };
 // }}}
 
@@ -53,15 +53,15 @@ struct NodeEvent {
 
 // {{{ NodeLink
 struct NodeLink {
-    int count;
-    int channel;
-    bool haveFeedback;
-    AudioNode *node;
+    int m_Count;
+    int m_Channel;
+    bool m_HaveFeedback;
+    AudioNode *m_Node;
     NodeIO *wire[NIDIUM_AUDIO_NODE_WIRE_SIZE];
-    TypeIO type;
+    TypeIO m_Type;
 
     NodeLink (TypeIO type, int channel, AudioNode *node) :
-        count(0), channel(channel), haveFeedback(false), node(node), type(type)
+        m_Count(0), m_Channel(channel), m_HaveFeedback(false), m_Node(node), m_Type(type)
     {
         for (int i = 0; i < NIDIUM_AUDIO_NODE_WIRE_SIZE; i++) {
             wire[i] = NULL;
@@ -428,9 +428,9 @@ class AudioNodeProcessor: public AudioNode
         for (int i = 0; i < m_Audio->m_OutputParameters->m_FramesPerBuffer; i++) {
             for (int j = 0; j < m_InCount; j++) {
                 for (int k = 0; k < NIDIUM_AUDIO_NODE_CHANNEL_SIZE; k++) {
-                    AudioProcessor *p = m_Processor[m_Input[j]->channel][k];
+                    AudioProcessor *p = m_Processor[m_Input[j]->m_Channel][k];
                     if (p != NULL) {
-                        p->process(&m_Frames[m_Input[j]->channel][i], &i);
+                        p->process(&m_Frames[m_Input[j]->m_Channel][i], &i);
                     } else {
                         break;
                     }

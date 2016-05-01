@@ -1403,12 +1403,12 @@ static bool nidium_audio_connect(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    if (nlink1->type == AV::INPUT && nlink2->type == AV::OUTPUT) {
+    if (nlink1->m_Type == AV::INPUT && nlink2->m_Type == AV::OUTPUT) {
         if (!audio->connect(nlink2, nlink1)) {
             JS_ReportError(cx, "connect() failed (max connection reached)\n");
             return false;
         }
-    } else if (nlink1->type == AV::OUTPUT && nlink2->type == AV::INPUT) {
+    } else if (nlink1->m_Type == AV::OUTPUT && nlink2->m_Type == AV::INPUT) {
         if (!audio->connect(nlink1, nlink2)) {
             JS_ReportError(cx, "connect() failed (max connection reached)\n");
             return false;
@@ -1447,9 +1447,9 @@ static bool nidium_audio_disconnect(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    if (nlink1->type == AV::INPUT && nlink2->type == AV::OUTPUT) {
+    if (nlink1->m_Type == AV::INPUT && nlink2->m_Type == AV::OUTPUT) {
         audio->disconnect(nlink2, nlink1);
-    } else if (nlink1->type == AV::OUTPUT && nlink2->type == AV::INPUT) {
+    } else if (nlink1->m_Type == AV::OUTPUT && nlink2->m_Type == AV::INPUT) {
         audio->disconnect(nlink1, nlink2);
     } else {
         JS_ReportError(cx, "disconnect() take one input and one output\n");
@@ -2115,7 +2115,7 @@ JSVideo::JSVideo(JS::HandleObject obj,
     JSExposer<JSVideo>(obj, cx),
     m_Video(NULL), m_AudioNode(NULL), m_ArrayContent(NULL),
     m_Width(-1), m_Height(-1), m_Left(0), m_Top(0), m_IsDestructing(false),
-    m_CanvasCtx(canvasCtx), cx(cx)
+    m_CanvasCtx(canvasCtx), m_Cx(cx)
 {
     m_Video = new AV::Video((ape_global *)JS_GetContextPrivate(cx));
     m_Video->frameCallback(JSVideo::FrameCallback, this);
@@ -2141,7 +2141,7 @@ void JSVideo::onMessage(const Core::SharedMessages::Message &msg)
             this->setSize(m_Width, m_Height);
         }
 
-        JS::RootedObject obj(cx, this->getJSObject());
+        JS::RootedObject obj(m_Cx, this->getJSObject());
         const char *evName = nullptr;
         JS::RootedValue ev(m_Cx);
 
@@ -2150,7 +2150,7 @@ void JSVideo::onMessage(const Core::SharedMessages::Message &msg)
             return;
         }
 
-        ev = consumeSourceMessage(cx, obj, msg);
+        ev = consumeSourceMessage(m_Cx, obj, msg);
 
         if (!ev.isNull()) {
             this->fireJSEvent(evName, &ev);
@@ -2169,14 +2169,14 @@ void JSVideo::FrameCallback(uint8_t *data, void *custom)
     JSVideo *v = (JSVideo *)custom;
     Graphics::CanvasHandler *handler = v->m_CanvasCtx->getHandler();
     Graphics::SkiaContext *surface = v->m_CanvasCtx->getSurface();
-    JSContext *cx = v->cx;
+    JSContext *cx = v->m_Cx;
 
     surface->setFillColor(0xFF000000);
     surface->drawRect(0, 0, handler->getWidth(), handler->getHeight(), 0);
     surface->drawPixels(data, v->m_Video->m_Width, v->m_Video->m_Height, v->m_Left, v->m_Top);
 
-    JS::RootedValue onframe(v->cx);
-    JS::RootedObject vobj(v->cx, v->getJSObject());
+    JS::RootedValue onframe(v->m_Cx);
+    JS::RootedObject vobj(v->m_Cx, v->getJSObject());
     JS::RootedObject evObj(cx);
 
     evObj = JSEvents::CreateEventObject(cx);
@@ -2454,7 +2454,7 @@ static bool nidium_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp
 void JSVideo::releaseAudioNode()
 {
     if (m_AudioNode) {
-        JSAudioNode *node = JSAudioNode::GetObject(m_AudioNode, cx);
+        JSAudioNode *node = JSAudioNode::GetObject(m_AudioNode, m_Cx);
 
         NJS->unrootObject(m_AudioNode);
 
@@ -2478,7 +2478,7 @@ void JSVideo::close()
 
 JSVideo::~JSVideo()
 {
-    JSAutoRequest ar(cx);
+    JSAutoRequest ar(m_Cx);
     m_IsDestructing = true;
 
     // Release JS AudioNode

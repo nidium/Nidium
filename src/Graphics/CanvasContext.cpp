@@ -68,7 +68,7 @@ uint32_t CanvasContext::CompileShader(const char *data, int type)
 
     if (compileSuccess == GL_FALSE) {
         GLchar messages[512];
-        int len;
+
         glGetShaderInfoLog(shaderHandle, sizeof(messages), &len, messages);
         if (glGetError() != GL_NO_ERROR) {
             return 0;
@@ -129,7 +129,7 @@ Vertices *CanvasContext::BuildVerticesStripe(int resolution)
 
     for (r = 0; r < rowSteps; r++) {
         for (c = 0; c < colSteps; c++, pos++) {
-            int t = c + r * colSteps;
+            int tc = c + r * colSteps;
 
             if (c == colSteps - 1) {
                 indices[pos] = n;
@@ -137,13 +137,13 @@ Vertices *CanvasContext::BuildVerticesStripe(int resolution)
             else {
                 indices[pos] = n;
 
-                if (t % 2 == 0) {
+                if (tc % 2 == 0) {
                     n += x;
                 } else {
-                    if (r%2 == 0) {
-                        n -= x-1;
+                    if (r % 2 == 0) {
+                        n -= x - 1;
                     } else {
-                        n -= x+1;
+                        n -= x + 1;
                     }
                 }
             }
