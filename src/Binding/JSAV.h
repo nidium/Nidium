@@ -18,7 +18,7 @@ using Nidium::AV::Audio;
 using Nidium::AV::AudioNode;
 using Nidium::AV::AudioNodeException;
 using Nidium::AV::NodeEvent;
-using Nidium::AV::AudioCustomSource;
+using Nidium::AV::AudioSourceCustom;
 using Nidium::AV::AVSourceEvent;
 using Nidium::AV::AVSource;
 using Nidium::AV::Video;
@@ -228,7 +228,7 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Messages
         static void onEvent(const struct AVSourceEvent *cev);
 
         // Custom source m_Node
-        static void SeekCallback(AudioCustomSource *node, double seekTime, void *custom);
+        static void SeekCallback(AudioSourceCustom *node, double seekTime, void *custom);
         static bool PropSetter(JSAudioNode *node, JSContext *cx,
                 uint8_t id, JS::MutableHandleValue vp);
 

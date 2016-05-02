@@ -347,17 +347,17 @@ class AudioSource: public AudioNode, public AVSource
 };
 // }}}
 
-// {{{ AudioCustomSource
-class AudioCustomSource : public AudioNodeCustom, public AVSourceEventInterface
+// {{{ AudioSourceCustom
+class AudioSourceCustom : public AudioNodeCustom, public AVSourceEventInterface
 {
     public:
-        AudioCustomSource(int out, Audio *audio)
+        AudioSourceCustom(int out, Audio *audio)
             : AudioNodeCustom(0, out, audio), m_Playing(false),
               m_SeekCallback(NULL), m_Custom(NULL), m_SeekTime(0.0f)
         {
         }
 
-        typedef void (*SeekCallback)(AudioCustomSource *m_Node, double ms, void *m_Custom);
+        typedef void (*SeekCallback)(AudioSourceCustom *m_Node, double ms, void *m_Custom);
 
         bool m_Playing;
         SeekCallback m_SeekCallback;

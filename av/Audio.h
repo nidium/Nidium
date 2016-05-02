@@ -48,7 +48,7 @@ class Audio
 
         friend class Video;
         friend class AudioSource;
-        friend class AudioCustomSource;
+        friend class AudioSourceCustom;
 
         enum SampleFormat {
             FLOAT32 = sizeof(float),

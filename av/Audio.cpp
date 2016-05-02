@@ -572,7 +572,7 @@ AudioNode *Audio::createNode(Audio::Node node, int input, int output)
                 break;
             case CUSTOM_SOURCE:
                 {
-                    AudioNode *source = new AudioCustomSource(output, this);
+                    AudioNode *source = new AudioSourceCustom(output, this);
                     return this->addSource(source, true);
                 }
                 break;

@@ -1630,8 +1630,8 @@ AudioSource::~AudioSource() {
 }
 // }}}
 
-// {{{ AudioCustomSource
-void AudioCustomSource::play()
+// {{{ AudioSourceCustom
+void AudioSourceCustom::play()
 {
     m_Playing = true;
 
@@ -1641,14 +1641,14 @@ void AudioCustomSource::play()
 }
 
 
-void AudioCustomSource::pause()
+void AudioSourceCustom::pause()
 {
     m_Playing = false;
 
     this->sendEvent(SOURCE_EVENT_PAUSE, 0, false);
 }
 
-void AudioCustomSource::stop()
+void AudioSourceCustom::stop()
 {
     m_Playing = false;
     this->seek(0);
@@ -1656,28 +1656,28 @@ void AudioCustomSource::stop()
     this->sendEvent(SOURCE_EVENT_STOP, 0, false);
 }
 
-void AudioCustomSource::setSeek(SeekCallback cbk, void *custom)
+void AudioSourceCustom::setSeek(SeekCallback cbk, void *custom)
 {
     m_SeekCallback = cbk;
     m_Custom = custom;
 }
 
-void AudioCustomSource::seek(double ms)
+void AudioSourceCustom::seek(double ms)
 {
     m_SeekTime = ms;
     if (m_SeekCallback != NULL) {
-        this->callback(AudioCustomSource::seekMethod, NULL);
+        this->callback(AudioSourceCustom::seekMethod, NULL);
     }
 }
 
 // Called from Audio thread
-void AudioCustomSource::seekMethod(AudioNode *node, void *custom)
+void AudioSourceCustom::seekMethod(AudioNode *node, void *custom)
 {
-    AudioCustomSource *thiz = static_cast<AudioCustomSource*>(node);
-    thiz->m_SeekCallback(static_cast<AudioCustomSource*>(node), thiz->m_SeekTime, thiz->m_Custom);
+    AudioSourceCustom *thiz = static_cast<AudioSourceCustom*>(node);
+    thiz->m_SeekCallback(static_cast<AudioSourceCustom*>(node), thiz->m_SeekTime, thiz->m_Custom);
 }
 
-bool AudioCustomSource::process()
+bool AudioSourceCustom::process()
 {
     if (!m_Playing) return false;
 
@@ -1688,7 +1688,7 @@ bool AudioCustomSource::process()
     return true;
 }
 
-bool AudioCustomSource::isActive()
+bool AudioSourceCustom::isActive()
 {
     return m_Playing;
 }
