@@ -31,8 +31,7 @@ class JSFileIO : public JSExposer<JSFileIO>,
         JSObject *thisobj, const char *encoding = NULL);
 
     JSFileIO(JS::HandleObject obj, JSContext *cx) :
-        JSExposer<JSFileIO>(obj, cx), m_Encoding(NULL) {
-            m_File = NULL;
+        JSExposer<JSFileIO>(obj, cx), m_Encoding(NULL), m_File(NULL) {
     };
 
     ~JSFileIO() {
