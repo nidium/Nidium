@@ -34,19 +34,19 @@ public:
         return false;
     }
 
-    virtual void stop();
-    virtual void getContent();
+    virtual void stop() override;
+    virtual void getContent() override;
     virtual void seek(size_t pos) override;
 
-    virtual size_t getFileSize() const;
-    virtual bool hasDataAvailable() const;
+    virtual size_t getFileSize() const override;
+    virtual bool hasDataAvailable() const override;
 
     virtual const char *getPath() const override;
 
     void notifyAvailable();
 protected:
-    virtual const unsigned char *onGetNextPacket(size_t *len, int *err);
-    virtual void onStart(size_t packets, size_t seek);
+    virtual const unsigned char *onGetNextPacket(size_t *len, int *err) override;
+    virtual void onStart(size_t packets, size_t seek) override;
 
     bool readComplete() const {
         return m_BytesBuffered == m_Mapped.size;
@@ -54,10 +54,10 @@ protected:
 private:
     HTTP *m_Http;
 
-    void onRequest(HTTP::HTTPData *h, HTTP::DataType);
-    void onProgress(size_t offset, size_t len, HTTP::HTTPData *h, HTTP::DataType);
-    void onError(HTTP::HTTPError err);
-    void onHeader();
+    void onRequest(HTTP::HTTPData *h, HTTP::DataType) override;
+    void onProgress(size_t offset, size_t len, HTTP::HTTPData *h, HTTP::DataType) override;
+    void onError(HTTP::HTTPError err) override;
+    void onHeader() override;
     void cleanCacheFile();
 
     struct {
