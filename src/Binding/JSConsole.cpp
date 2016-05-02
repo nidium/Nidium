@@ -12,6 +12,8 @@
 namespace Nidium {
 namespace Server {
 
+using Nidium::Binding::NidiumJS;
+
 // {{{ Preamble
 static bool nidium_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp);
@@ -90,7 +92,7 @@ static bool nidium_console_log(JSContext *cx, unsigned argc,
 static bool nidium_console_write(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    Nidium::Binding::NidiumJS *js = Nidium::Binding::NidiumJS::GetObject(cx);
+    NidiumJS *js = NidiumJS::GetObject(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     NIDIUM_JS_CHECK_ARGS("write", 1);

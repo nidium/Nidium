@@ -15,6 +15,8 @@
 
 #include "external/linenoise.h"
 
+using Nidium::Core::SharedMessages;
+
 namespace Nidium {
 namespace Server {
 
@@ -75,7 +77,7 @@ REPL::REPL(Nidium::Binding::NidiumJS *js)
 }
 
 
-void REPL::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void REPL::onMessage(const SharedMessages::Message &msg)
 {
     buffer_append_string(m_Buffer, static_cast<char *>(msg.dataPtr()));
 
@@ -104,7 +106,7 @@ void REPL::onMessage(const Nidium::Core::SharedMessages::Message &msg)
     sem_post(&m_ReadLineLock);
 }
 
-void REPL::onMessageLost(const Nidium::Core::SharedMessages::Message &msg)
+void REPL::onMessageLost(const SharedMessages::Message &msg)
 {
     free(msg.dataPtr());
 }

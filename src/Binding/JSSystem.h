@@ -3,10 +3,12 @@
 
 #include <Binding/JSExposer.h>
 
+using Nidium::Binding::JSExposer;
+
 namespace Nidium {
 namespace Server {
 
-class JSSystem : public Nidium::Binding::JSExposer<JSSystem>
+class JSSystem : public JSExposer<JSSystem>
 {
   public:
     static void RegisterObject(JSContext *cx);

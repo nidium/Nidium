@@ -13,15 +13,19 @@ namespace Nidium {
         class NidiumJS;
    }
 
+using Nidium::Core::Messages;
+using Nidium::Core::SharedMessages;
+using Nidium::Binding::NidiumJS;
+
 namespace Server {
 
-class REPL : public Nidium::Core::Messages
+class REPL : public Messages
 {
 public:
-    REPL(Nidium::Binding::NidiumJS *js);
+    REPL(NidiumJS *js);
     ~REPL();
-    void onMessage(const Nidium::Core::SharedMessages::Message &msg);
-    void onMessageLost(const Nidium::Core::SharedMessages::Message &msg);
+    void onMessage(const SharedMessages::Message &msg);
+    void onMessageLost(const SharedMessages::Message &msg);
 
     sem_t *getReadLineLock() {
         return &m_ReadLineLock;
@@ -44,7 +48,7 @@ private:
     pthread_t m_ThreadHandle;
     sem_t m_ReadLineLock;
 
-    Nidium::Binding::NidiumJS *m_JS;
+    NidiumJS *m_JS;
 
     buffer *m_Buffer;
 
