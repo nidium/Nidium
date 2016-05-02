@@ -81,12 +81,12 @@ class Canvas2DContext : public Graphics::CanvasContext
         void resetSkiaContext(uint32_t flags = 0);
 
         uint8_t *getPixels() override;
-        uint32_t getTextureID() const;
-        void flush();
+        uint32_t getTextureID() const override;
+        void flush() override;
         virtual void setSize(int width, int height, bool redraw = true) override;
-        void translate(double x, double y);
+        void translate(double x, double y) override;
 
-        void getSize(int *width, int *height) const;
+        void getSize(int *width, int *height) const override ;
 
         uint32_t attachShader(const char *string);
         void detachShader();
@@ -97,7 +97,7 @@ class Canvas2DContext : public Graphics::CanvasContext
             return m_Skia;
         }
 
-        void setScale(double x, double y, double px=1, double py=1);
+        void setScale(double x, double y, double px=1, double py=1) override;
 
         uint32_t createProgram(const char *data);
 
