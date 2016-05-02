@@ -238,11 +238,11 @@ def testStudio(unitTests):
     tests = []
 
     if "core" in unitTests:
-        tests.append("framework/dist/nidium nativejscore/var/js/tests/unittests/unittests.nml")
+        tests.append(("./nidium ../../nativejscore/var/js/tests/unittests/unittests.nml", "./framework/dist"))
     if "studio" in unitTests:
-        tests.append("framework/dist/nidium var/js/tests/unittests/unittests.nml")
+        tests.append(("./nidium ../../var/js/tests/unittests/unittests.nml", "./framework/dist"))
     if "framework" in unitTests:
-        tests.append("framework/dist/nidium framework/var/js/tests/unittests/unittests.nml")
+        tests.append(("./nidium ../../framework/var/js/tests/unittests/unittests.nml", "./framework/dist"))
 
     Tests.register(tests)
 
