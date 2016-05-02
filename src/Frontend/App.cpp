@@ -9,10 +9,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <ape_netlib.h>
-
-#include <Binding/NidiumJS.h>
-
 namespace Nidium {
 namespace Frontend {
 

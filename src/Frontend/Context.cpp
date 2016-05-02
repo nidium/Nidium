@@ -9,8 +9,6 @@
 
 #include <Net/WebSocket.h>
 
-#include "Frontend/NML.h"
-#include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSNidium.h"
 #include "Binding/JSDocument.h"

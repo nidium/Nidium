@@ -1,12 +1,18 @@
 #include "X11UIInterface.h"
-#include "System.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <math.h>
 
 #include <ape_netlib.h>
 
 #include <X11/cursorfont.h>
 #include <../build/include/SDL_config.h>
-#include <SDL.h>
 #include <SDL_syswm.h>
+
+#include "System.h"
 
 #ifdef NIDIUM_USE_GTK
 #include <gtk/gtk.h>

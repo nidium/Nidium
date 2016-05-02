@@ -9,7 +9,6 @@
 
 #include <SystemInterface.h>
 
-#include "Graphics/GLState.h"
 #include "Graphics/GLHeader.h"
 #include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas2DContext.h"

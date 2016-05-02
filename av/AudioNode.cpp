@@ -16,8 +16,6 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
-#include <Core/Utils.h>
-
 namespace Nidium {
 namespace AV {
 
