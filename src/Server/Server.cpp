@@ -1,13 +1,17 @@
 #define _HAVE_SSL_SUPPORT 1
-#include <ape_netlib.h>
-#include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <signal.h>
 #include <list>
 #ifdef __linux__
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
 #endif
@@ -16,7 +20,6 @@
 
 #include "Server/Server.h"
 #include "Server/Context.h"
-#include "Server/Macros.h"
 #include "Server/REPL.h"
 
 unsigned long _ape_seed;

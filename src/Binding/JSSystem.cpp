@@ -1,8 +1,5 @@
 #include "Binding/JSSystem.h"
 
-#include <Binding/NidiumJS.h>
-
-#include <errno.h>
 #include <sys/stat.h>
 
 #ifdef __linux__
@@ -10,9 +7,6 @@
   #include <sys/resource.h>
   #include <linux/stat.h>
 #endif
-
-#include "Server/Context.h"
-#include "Server/Macros.h"
 
 namespace Nidium {
 namespace Server {

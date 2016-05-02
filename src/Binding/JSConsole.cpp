@@ -1,11 +1,12 @@
 #include "Binding/JSConsole.h"
 
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+
 #include <Binding/NidiumJS.h>
 
-#include <js/OldDebugAPI.h>
-
 #include "Server/Context.h"
-#include "Server/Macros.h"
 #include "Server/Server.h"
 
 namespace Nidium {

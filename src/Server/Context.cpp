@@ -1,17 +1,13 @@
 #define _HAVE_SSL_SUPPORT 1
+#include "Server/Context.h"
 
+#include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
-#include <ape_netlib.h>
-
-#include <Core/Messages.h>
-#include <Core/Path.h>
 #include <IO/FileStream.h>
 #include <Net/HTTPStream.h>
-#include <Binding/NidiumJS.h>
 
-#include "Server/Context.h"
-#include "Server/Macros.h"
 #include "Binding/JSConsole.h"
 #include "Binding/JSSystem.h"
 
