@@ -259,7 +259,7 @@ void AVStreamReader::onMessage(const Nidium::Core::SharedMessages::Message &msg)
             return;
         case Nidium::IO::Stream::EVENT_ERROR: {
             int err;
-            int streamErr = msg.args[0].toInt();
+            int streamErr = msg.m_Args[0].toInt();
 
             if (streamErr == Nidium::IO::Stream::ERROR_OPEN) {
                 err = ERR_FAILED_OPEN;
@@ -275,9 +275,9 @@ void AVStreamReader::onMessage(const Nidium::Core::SharedMessages::Message &msg)
         }
         case Nidium::IO::Stream::EVENT_PROGRESS: {
             AVSourceEvent *ev = m_Source->createEvent(SOURCE_EVENT_BUFFERING, false);
-            ev->m_Args[0].set(msg.args[0].toInt64());
-            ev->m_Args[1].set(msg.args[1].toInt64());
-            ev->m_Args[2].set(msg.args[2].toInt64());
+            ev->m_Args[0].set(msg.m_Args[0].toInt64());
+            ev->m_Args[1].set(msg.m_Args[1].toInt64());
+            ev->m_Args[2].set(msg.m_Args[2].toInt64());
             m_Source->sendEvent(ev);
             return;
         }
