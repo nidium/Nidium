@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "JSFileIO.h"
+#include "Binding/JSFileIO.h"
 
 // sync API should have a different constructor (new FileSync)
 
@@ -17,7 +17,7 @@
 #include <sys/stat.h>
 
 #include "IO/Stream.h"
-#include "JSUtils.h"
+#include "Binding/JSUtils.h"
 
 using Nidium::Core::Path;
 using Nidium::Core::SharedMessages;

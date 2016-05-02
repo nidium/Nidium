@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NidiumJS.h"
+#include "Binding/NidiumJS.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,20 +20,20 @@
 
 #include "IO/Stream.h"
 
-#include "JSSocket.h"
-#include "JSThread.h"
-#include "JSHTTP.h"
-#include "JSFileIO.h"
-#include "JSModules.h"
-#include "JSStream.h"
-#include "JSWebSocket.h"
-#include "JSWebSocketClient.h"
-#include "JSHTTPServer.h"
-#include "JSDebug.h"
-#include "JSConsole.h"
-#include "JSUtils.h"
-#include "JSFS.h"
-#include "JSDebugger.h"
+#include "Binding/JSSocket.h"
+#include "Binding/JSThread.h"
+#include "Binding/JSHTTP.h"
+#include "Binding/JSFileIO.h"
+#include "Binding/JSModules.h"
+#include "Binding/JSStream.h"
+#include "Binding/JSWebSocket.h"
+#include "Binding/JSWebSocketClient.h"
+#include "Binding/JSHTTPServer.h"
+#include "Binding/JSDebug.h"
+#include "Binding/JSConsole.h"
+#include "Binding/JSUtils.h"
+#include "Binding/JSFS.h"
+#include "Binding/JSDebugger.h"
 
 using namespace Nidium::Core;
 using namespace Nidium::IO;

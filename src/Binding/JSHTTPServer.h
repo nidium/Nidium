@@ -6,8 +6,8 @@
 #ifndef binding_jshttpserver_h__
 #define binding_jshttpserver_h__
 
-#include "JSExposer.h"
 #include "Net/HTTPServer.h"
+#include "Binding/JSExposer.h"
 
 namespace Nidium {
 namespace Binding {

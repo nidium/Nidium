@@ -3,10 +3,13 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "Utils.h"
+#include "Core/Utils.h"
 
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 
 #include <ape_sha1.h>
 #include <ape_base64.h>

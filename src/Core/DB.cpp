@@ -3,14 +3,16 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "DB.h"
+#include "Core/DB.h"
 
+#include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include <leveldb/db.h>
 #include <leveldb/filter_policy.h>
 
-#include "Path.h"
+#include "Core/Path.h"
 
 #ifndef NIDIUM_NO_PRIVATE_DIR
 #  include "../interface/SystemInterface.h"

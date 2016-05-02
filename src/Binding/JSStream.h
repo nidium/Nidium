@@ -7,8 +7,8 @@
 #define binding_jsstream_h__
 
 #include "Core/Messages.h"
-#include "JSExposer.h"
 #include "IO/Stream.h"
+#include "Binding/JSExposer.h"
 
 namespace Nidium {
 namespace Binding {

@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "JSThread.h"
+#include "Binding/JSThread.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +17,7 @@
 
 #include <js/OldDebugAPI.h>
 
-#include "JSConsole.h"
+#include "Binding/JSConsole.h"
 
 namespace Nidium {
 namespace Binding {

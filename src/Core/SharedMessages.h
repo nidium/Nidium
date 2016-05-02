@@ -9,7 +9,7 @@
 #include <pthread.h>
 #include <stdint.h>
 
-#include "Args.h"
+#include "Core/Args.h"
 
 /*
     TODO: Add "max messages in queue" to guard memory congestion in case of allocation

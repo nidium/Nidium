@@ -8,8 +8,8 @@
 
 #include "Core/Messages.h"
 
-#include "Stream.h"
-#include "File.h"
+#include "IO/Stream.h"
+#include "IO/File.h"
 
 namespace Nidium {
 namespace IO {

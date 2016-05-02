@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "JSSocket.h"
+#include "Binding/JSSocket.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -16,7 +16,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "JSUtils.h"
+#include "Binding/JSUtils.h"
 
 namespace Nidium {
 namespace Binding {

@@ -8,7 +8,7 @@
 
 #include "Core/Messages.h"
 #include "Net/WebSocket.h"
-#include "JSExposer.h"
+#include "Binding/JSExposer.h"
 
 namespace Nidium {
 namespace Binding {

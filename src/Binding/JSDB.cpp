@@ -3,10 +3,9 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "JSDB.h"
+#include "Binding/JSDB.h"
 
 #include <leveldb/db.h>
-#include <jsapi.h>
 #include <js/StructuredClone.h>
 
 namespace Nidium {

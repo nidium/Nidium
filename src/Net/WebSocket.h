@@ -8,7 +8,7 @@
 
 #include <ape_websocket.h>
 
-#include "HTTPServer.h"
+#include "Net/HTTPServer.h"
 
 namespace Nidium {
 namespace Net {

@@ -9,7 +9,7 @@
 #include <ape_websocket.h>
 
 #include "Core/Events.h"
-#include "HTTPParser.h"
+#include "Net/HTTPParser.h"
 
 namespace Nidium {
 namespace Net {

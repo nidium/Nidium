@@ -3,7 +3,11 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "JSNFS.h"
+#include "Binding/JSNFS.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 
 #include <jsapi.h>
 

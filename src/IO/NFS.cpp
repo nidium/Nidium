@@ -3,8 +3,11 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NFS.h"
+#include "IO/NFS.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include "Core/Path.h"

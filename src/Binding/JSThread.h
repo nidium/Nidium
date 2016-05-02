@@ -10,7 +10,7 @@
 
 #include "Core/SharedMessages.h"
 #include "Core/Messages.h"
-#include "JSExposer.h"
+#include "Binding/JSExposer.h"
 
 
 namespace Nidium {

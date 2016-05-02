@@ -3,14 +3,14 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "NFSStream.h"
+#include "IO/NFSStream.h"
+
+#include <stdlib.h>
+#include <string.h>
 
 #include <ape_netlib.h>
-#include <ape_buffer.h>
 
-#include "Core/Utils.h"
-
-#include "NFS.h"
+#include "IO/NFS.h"
 
 #include "Binding/NidiumJS.h"
 

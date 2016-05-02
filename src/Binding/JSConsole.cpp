@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "JSConsole.h"
+#include "Binding/JSConsole.h"
 
 #include <string.h>
 #include <math.h>

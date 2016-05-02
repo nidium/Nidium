@@ -6,7 +6,7 @@
 #ifndef binding_jsconsole_h__
 #define binding_jsconsole_h__
 
-#include "JSExposer.h"
+#include "Binding/JSExposer.h"
 
 namespace Nidium {
 namespace Binding {

@@ -8,7 +8,7 @@
 
 #include <ape_netlib.h>
 
-#include "JSExposer.h"
+#include "Binding/JSExposer.h"
 
 namespace Nidium {
 namespace Binding {

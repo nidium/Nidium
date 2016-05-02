@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "WebSocket.h"
+#include "Net/WebSocket.h"
 
 #include <stdio.h>
 #include <stdbool.h>

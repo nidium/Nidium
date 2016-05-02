@@ -11,7 +11,7 @@
 
 #include "Core/TaskManager.h"
 
-#include "NidiumJS.h"
+#include "Binding/NidiumJS.h"
 
 // {{{ Macros
 // {{{ JSClass macro's

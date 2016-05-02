@@ -3,9 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "JSWebSocketClient.h"
+#include "Binding/JSWebSocketClient.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -16,7 +15,7 @@
 #include <sys/socket.h>
 
 #include "Net/HTTP.h"
-#include "JSUtils.h"
+#include "Binding/JSUtils.h"
 
 using Nidium::Net::WebSocketClient;
 

@@ -3,14 +3,14 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "TaskManager.h"
+#include "Core/TaskManager.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <pthread.h>
 
-#include "Atomic.h"
+#include "Core/Atomic.h"
 
 namespace Nidium {
 namespace Core {

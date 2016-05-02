@@ -3,13 +3,20 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "Path.h"
+#include "Core/Path.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <stdbool.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <string>
 #include <vector>
-#include <sys/stat.h>
 
-#include "Utils.h"
+#include "Core/Utils.h"
 
 namespace Nidium {
 namespace Core {

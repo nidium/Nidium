@@ -3,13 +3,14 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "Messages.h"
+#include "Core/Messages.h"
 
+#include <stdbool.h>
 #include <pthread.h>
 
 #include <ape_netlib.h>
 
-#include "Events.h"
+#include "Core/Events.h"
 
 namespace Nidium {
 namespace Core {

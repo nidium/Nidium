@@ -6,8 +6,8 @@
 #ifndef core_events_h__
 #define core_events_h__
 
-#include "Hash.h"
-#include "Messages.h"
+#include "Core/Hash.h"
+#include "Core/Messages.h"
 
 namespace Nidium {
 namespace Core {

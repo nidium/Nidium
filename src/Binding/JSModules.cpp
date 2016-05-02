@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "JSModules.h"
+#include "Binding/JSModules.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +19,7 @@
 #include <jsoncpp.h>
 
 #include "IO/Stream.h"
-#include "JSExposer.h"
+#include "Binding/JSExposer.h"
 
 using Nidium::IO::Stream;
 using Nidium::Core::Path;

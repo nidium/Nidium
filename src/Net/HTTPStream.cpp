@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "HTTPStream.h"
+#include "Net/HTTPStream.h"
 
 #include <stdio.h>
 #include <stdlib.h>

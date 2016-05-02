@@ -3,11 +3,9 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "SharedMessages.h"
+#include "Core/SharedMessages.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <pthread.h>
 
 #include "Utils.h"
 

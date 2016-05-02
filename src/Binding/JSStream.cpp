@@ -3,11 +3,9 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "JSStream.h"
+#include "Binding/JSStream.h"
 
-#include <string>
-
-#include "IO/Stream.h"
+#include <string.h>
 
 using Nidium::IO::Stream;
 

@@ -3,11 +3,15 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+
 #include <jswrapper.h>
 #include <vm/Debugger.h>
 
-#include "JSDebugger.h"
-#include "JSConsole.h"
+#include "Binding/JSDebugger.h"
+#include "Binding/JSConsole.h"
 
 namespace Nidium {
 namespace Binding {

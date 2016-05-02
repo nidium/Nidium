@@ -3,12 +3,12 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "JSHTTPServer.h"
+#include "Binding/JSHTTPServer.h"
 
 #include <stdbool.h>
 #include <unistd.h>
 
-#include "JSUtils.h"
+#include "Binding/JSUtils.h"
 
 using Nidium::Net::HTTPServer;
 using Nidium::Net::HTTPClientConnection;

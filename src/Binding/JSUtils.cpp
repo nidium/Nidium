@@ -3,17 +3,15 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "JSUtils.h"
+#include "Binding/JSUtils.h"
 
 #include <string.h>
 #include <strings.h>
 
 #include <jsfriendapi.h>
 #include <js/CharacterEncoding.h>
-#include <js/OldDebugAPI.h>
 
 #include "Binding/NidiumJS.h"
-#include "Core/Utils.h"
 
 namespace Nidium {
 namespace Binding {

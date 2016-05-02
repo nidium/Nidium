@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "FileStream.h"
+#include "IO/FileStream.h"
 
 #include <stdbool.h>
 #include <unistd.h>

@@ -3,8 +3,14 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "JSHTTP.h"
-#include "JSUtils.h"
+#include "Binding/JSHTTP.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+
+#include "Binding/JSUtils.h"
 
 using Nidium::Net::HTTP;
 using Nidium::Net::HTTPRequest;

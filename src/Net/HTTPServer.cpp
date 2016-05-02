@@ -14,7 +14,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#include "HTTPServer.h"
+#include "Net/HTTPServer.h"
 #include "Binding/NidiumJS.h"
 
 using Nidium::Core::Utils;

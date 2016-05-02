@@ -3,13 +3,11 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "Stream.h"
+#include "IO/Stream.h"
 
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
-
-#include "Core/Path.h"
 
 using Nidium::Core::Path;
 

@@ -9,7 +9,7 @@
 #include <ape_netlib.h>
 #include <ape_array.h>
 
-#include "JSExposer.h"
+#include "Binding/JSExposer.h"
 #include "Net/HTTP.h"
 
 namespace Nidium {

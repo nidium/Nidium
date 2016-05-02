@@ -9,8 +9,8 @@
 #include <stdio.h>
 #include <pthread.h>
 
-#include "Messages.h"
-#include "SharedMessages.h"
+#include "Core/Messages.h"
+#include "Core/SharedMessages.h"
 
 namespace Nidium {
 namespace Core {

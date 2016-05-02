@@ -8,8 +8,8 @@
 
 #include <pthread.h>
 
-#include "SharedMessages.h"
-#include "Hash.h"
+#include "Core/SharedMessages.h"
+#include "Core/Hash.h"
 
 typedef struct _ape_global ape_global;
 
