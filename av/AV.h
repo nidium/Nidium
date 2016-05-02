@@ -18,6 +18,11 @@ struct AVFormatContext;
 struct AVDictionary;
 struct PaUtilRingBuffer;
 
+using Nidium::Core::Messages;
+using Nidium::Core::SharedMessages;
+using Nidium::IO::Stream;
+using Nidium::Core::Args;
+
 namespace Nidium {
 namespace AV {
 
@@ -96,7 +101,7 @@ class AVBufferReader : public AVReader
 typedef void (*NativeAVStreamReadCallback)(void *m_CallbackPrivate);
 
 // {{{ AVStreamReader
-class AVStreamReader : public AVReader, public Nidium::Core::Messages
+class AVStreamReader : public AVReader, public Messages
 {
     public:
         AVStreamReader(const char *src, NativeAVStreamReadCallback readCallback,
@@ -117,10 +122,10 @@ class AVStreamReader : public AVReader, public Nidium::Core::Messages
             MSG_READ,
             MSG_STOP
         };
-        void onMessage(const Nidium::Core::SharedMessages::Message &msg);
+        void onMessage(const SharedMessages::Message &msg);
         NIDIUM_PTHREAD_VAR_DECL(m_ThreadCond);
 
-        Nidium::IO::Stream *m_Stream;
+        Stream *m_Stream;
         NativeAVStreamReadCallback m_ReadCallback;
         void *m_CallbackPrivate;
 
@@ -207,7 +212,7 @@ typedef void (*AVSourceEventCallback)(const struct AVSourceEvent*m_Ev);
 // {{{ AVSourceEvent
 struct AVSourceEvent {
     int m_Ev;
-    Nidium::Core::Args m_Args;
+    Args m_Args;
     void *m_Custom;
     bool m_FromThread;
     AVSourceEvent(int ev, void *custom, bool fromThread)
@@ -248,7 +253,7 @@ class AVSourceEventInterface {
 // }}}
 
 // {{{ AVSource
-class AVSource : public Nidium::Core::Messages, public AVSourceEventInterface
+class AVSource : public Messages, public AVSourceEventInterface
 {
     public :
         AVSource();
@@ -295,7 +300,7 @@ class AVSource : public Nidium::Core::Messages, public AVSourceEventInterface
 
         int readError(int err);
 
-        void onMessage(const Nidium::Core::SharedMessages::Message &msg);
+        void onMessage(const SharedMessages::Message &msg);
 };
 // }}}
 

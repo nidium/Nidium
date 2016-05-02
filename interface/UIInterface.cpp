@@ -19,6 +19,19 @@
 
 uint32_t ttfps = 0;
 
+using Nidium::Core::Path;
+using Nidium::Core::TaskManager;
+using Nidium::Core::Messages;
+using Nidium::IO::FileStream;
+using Nidium::IO::PrivateStream;
+using Nidium::IO::UserStream;
+using Nidium::IO::SystemStream;
+using Nidium::IO::NFSStream;
+using Nidium::Net::HTTPStream;
+using Nidium::Binding::JSWindow;
+using Nidium::Frontend::Context;
+using Nidium::Frontend::NML;
+
 namespace Nidium {
 namespace Interface {
 
@@ -30,17 +43,17 @@ UIInterface::UIInterface() :
     m_Hidden(false), m_FBO(0), m_FrameBuffer(NULL), m_Console(NULL),
     m_MainGLCtx(NULL), m_SystemMenu(this)
 {
-    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("file://",    Nidium::IO::FileStream,    false), true); // default
-    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("private://", Nidium::IO::PrivateStream, false));
+    Path::RegisterScheme(SCHEME_DEFINE("file://",    FileStream,    false), true); // default
+    Path::RegisterScheme(SCHEME_DEFINE("private://", PrivateStream, false));
 #if 1
-    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("system://",  Nidium::IO::SystemStream,  false));
-    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("user://",    Nidium::IO::UserStream,    false));
+    Path::RegisterScheme(SCHEME_DEFINE("system://",  SystemStream,  false));
+    Path::RegisterScheme(SCHEME_DEFINE("user://",    UserStream,    false));
 #endif
-    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("http://",    Nidium::Net::HTTPStream,    true));
-    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("https://",   Nidium::Net::HTTPStream,    true));
-    Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("nvfs://",    Nidium::IO::NFSStream,     false));
+    Path::RegisterScheme(SCHEME_DEFINE("http://",    HTTPStream,    true));
+    Path::RegisterScheme(SCHEME_DEFINE("https://",   HTTPStream,    true));
+    Path::RegisterScheme(SCHEME_DEFINE("nvfs://",    NFSStream,     false));
 
-    Nidium::Core::TaskManager::CreateManager();
+    TaskManager::CreateManager();
 }
 
 bool UIInterface::createWindow(int width, int height)
@@ -99,7 +112,7 @@ bool UIInterface::createWindow(int width, int height)
     this->setWindowFrame(NIDIUM_WINDOWPOS_UNDEFINED_MASK,
         NIDIUM_WINDOWPOS_UNDEFINED_MASK, width, height);
 
-    Nidium::Frontend::Context::CreateAndAssemble(this, m_Gnet);
+    Context::CreateAndAssemble(this, m_Gnet);
 
     return true;
 }
@@ -113,10 +126,10 @@ int UIInterface::HandleEvents(void *arg)
     int nevents = 0;
 
     while(SDL_PollEvent(&event)) {
-        Nidium::Binding::JSWindow *window = NULL;
+        JSWindow *window = NULL;
         if (NUII->m_NativeCtx) {
             NUII->makeMainGLCurrent();
-            window = Nidium::Binding::JSWindow::GetObject(NUII->m_NativeCtx->getNJS());
+            window = JSWindow::GetObject(NUII->m_NativeCtx->getNJS());
         }
         nevents++;
         switch(event.type) {
@@ -526,7 +539,7 @@ void UIInterface::refreshApplication(bool clearConsole)
 
 bool UIInterface::runApplication(const char *path)
 {
-    Nidium::Core::Messages::InitReader(m_Gnet);
+    Messages::InitReader(m_Gnet);
 
     if (path != this->m_FilePath) {
         if (this->m_FilePath) {
@@ -540,7 +553,7 @@ bool UIInterface::runApplication(const char *path)
     //    FILE *main = fopen("index.nml", "r");
     //    const char *ext = &path[strlen(path)-4];
 
-    this->m_Nml = new Nidium::Frontend::NML(this->m_Gnet);
+    this->m_Nml = new NML(this->m_Gnet);
     this->m_Nml->loadFile(path, UIInterface::OnNMLLoaded, this);
 
     return true;
@@ -555,7 +568,7 @@ void UIInterface::stopApplication()
     if (this->m_NativeCtx) {
         delete this->m_NativeCtx;
         this->m_NativeCtx = NULL;
-        Nidium::Core::Messages::DestroyReader();
+        Messages::DestroyReader();
     }
 
     glClearColor(1, 1, 1, 1);

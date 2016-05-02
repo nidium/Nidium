@@ -26,19 +26,23 @@
 
 #include <SystemInterface.h>
 
+using Nidium::Interface::SystemInterface;
+using Nidium::IO::Stream;
+using Nidium::IO::FileStream;
+
 namespace Nidium {
 namespace IO {
 
 // {{{ SystemStream
-class SystemStream : public Nidium::IO::FileStream
+class SystemStream : public FileStream
 {
 public:
     explicit SystemStream(const char *location) :
-        Nidium::IO::FileStream(location)
+        FileStream(location)
     {
     }
 
-    static Nidium::IO::Stream *CreateStream(const char *location) {
+    static Stream *CreateStream(const char *location) {
         return new SystemStream(location);
     }
 
@@ -57,15 +61,15 @@ public:
 // }}}
 
 // {{{ UserStream
-class UserStream : public Nidium::IO::FileStream
+class UserStream : public FileStream
 {
 public:
     explicit UserStream(const char *location) :
-        Nidium::IO::FileStream(location)
+        FileStream(location)
     {
     }
 
-    static Nidium::IO::Stream *CreateStream(const char *location) {
+    static Stream *CreateStream(const char *location) {
         return new UserStream(location);
     }
 
@@ -78,7 +82,7 @@ public:
     }
 
     static const char *GetBaseDir() {
-        return Nidium::Interface::SystemInterface::GetInstance()->getUserDirectory();
+        return SystemInterface::GetInstance()->getUserDirectory();
     }
 };
 // }}}

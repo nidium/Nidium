@@ -17,6 +17,12 @@ namespace Nidium {
         class Context;
         class NML;
     }
+}
+
+using Nidium::Frontend::Context;
+using Nidium::Frontend::NML;
+
+namespace Nidium {
 namespace Interface {
 
 class UIInterface;
@@ -140,7 +146,7 @@ class UIInterface
             kOpenFile_AlloMultipleSelection = 1 << 2
         };
 
-        inline Nidium::Frontend::Context *getNativeContext() const {
+        inline Context *getNativeContext() const {
             return m_NativeCtx;
         }
 
@@ -309,8 +315,8 @@ class UIInterface
         virtual UIConsole *getConsole(bool create=false, bool *created=NULL)=0;
 
 
-        Frontend::Context *m_NativeCtx;
-        Frontend::NML *m_Nml;
+        Context *m_NativeCtx;
+        NML *m_Nml;
         SDL_Window *m_Win;
         ape_global *m_Gnet;
         int m_Argc = 0;

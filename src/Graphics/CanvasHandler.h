@@ -28,9 +28,15 @@ namespace Nidium {
     }
 }
 
+using Nidium::Core::Events;
+using Nidium::Frontend::Context;
+using Nidium::Frontend::InputEvent;
+using Nidium::Binding::JSCanvas;
+
 namespace Nidium {
 namespace Graphics {
 
+class CanvasHandler;
 class SkiaContext;
 class CanvasContext;
 
@@ -91,7 +97,7 @@ struct LayerSiblingContext {
 
 // {{{ LayerizeContext
 struct LayerizeContext {
-    class CanvasHandler *m_Layer;
+    CanvasHandler *m_Layer;
     double m_pLeft;
     double m_pTop;
     double m_aOpacity;
@@ -113,12 +119,12 @@ struct LayerizeContext {
 // }}}
 
 // {{{ CanvasHandler
-class CanvasHandler : public Nidium::Core::Events
+class CanvasHandler : public Events
 {
     public:
         friend class SkiaContext;
-        friend class Context;
-        friend class Nidium::Binding::JSCanvas;
+        friend class Nidium::Frontend::Context;
+        friend class JSCanvas;
 
         static const uint8_t EventID = 1;
         static int m_LastIdx;
@@ -331,7 +337,7 @@ class CanvasHandler : public Nidium::Core::Events
             return m_MaxHeight;
         }
 
-        Nidium::Frontend::Context *getNativeContext() const {
+        Context *getNativeContext() const {
             return m_NativeContext;
         }
 
@@ -468,7 +474,7 @@ class CanvasHandler : public Nidium::Core::Events
         }
 
         CanvasHandler(int width, int height,
-            Nidium::Frontend::Context *NativeCtx, bool lazyLoad = false);
+            Context *NativeCtx, bool lazyLoad = false);
 
         virtual ~CanvasHandler();
 
@@ -542,11 +548,10 @@ class CanvasHandler : public Nidium::Core::Events
         CanvasHandler *m_Last;
 
         static void _JobResize(void *arg);
-        bool _handleEvent(Nidium::Frontend::InputEvent *ev);
+        bool _handleEvent(InputEvent *ev);
 
         uint32_t m_Flags;
 
-        void execPending();
     protected:
         CanvasHandler *getPrevInlineSibling() const {
             CanvasHandler *prev;
@@ -561,11 +566,11 @@ class CanvasHandler : public Nidium::Core::Events
 
         void propertyChanged(EventsChangedProperty property);
     private:
-
+        void execPending();
         void deviceSetSize(int width, int height);
-        void onMouseEvent(Nidium::Frontend::InputEvent *ev);
-        void onDrag(Nidium::Frontend::InputEvent *ev, CanvasHandler *target, bool end = false);
-        void onDrop(Nidium::Frontend::InputEvent *ev, CanvasHandler *droped);
+        void onMouseEvent(InputEvent *ev);
+        void onDrag(InputEvent *ev, CanvasHandler *target, bool end = false);
+        void onDrop(InputEvent *ev, CanvasHandler *droped);
 
         int32_t m_nChildren;
         void dispatchMouseEvents(LayerizeContext &layerContext);
@@ -580,7 +585,7 @@ class CanvasHandler : public Nidium::Core::Events
         bool m_AllowNegativeScroll;
         bool m_FluidWidth, m_FluidHeight;
 
-        Nidium::Frontend::Context *m_NativeContext;
+        Context *m_NativeContext;
 
         struct {
             uint64_t idx;

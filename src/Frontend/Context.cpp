@@ -34,6 +34,41 @@
 #include "Binding/JSWebGL.h"
 #endif
 
+using Nidium::Core::SharedMessages;
+using Nidium::Core::Path;
+using Nidium::Core::Utils;
+using Nidium::Interface::UIInterface;
+using Nidium::Net::WebSocketServer;
+using Nidium::Net::WebSocketClientConnection;
+using Nidium::Graphics::GLState;
+using Nidium::Graphics::SkiaContext;
+using Nidium::Graphics::CanvasHandler;
+using Nidium::Graphics::LayerizeContext;
+using Nidium::Graphics::LayerSiblingContext;
+using Nidium::Binding::JSDocument;
+#ifdef DEBUG
+using Nidium::Binding::JSDebug;
+#endif
+using Nidium::Binding::JSWindow;
+using Nidium::Binding::JSCanvas;
+using Nidium::Binding::NidiumJS;
+using Nidium::Binding::Canvas2DContext;
+using Nidium::Binding::JSImage;
+using Nidium::Binding::JSAudio;
+using Nidium::Binding::JSAudioNode;
+using Nidium::Binding::JSVideo;
+using Nidium::Binding::JSWebGLRenderingContext;
+using Nidium::Binding::JSWebGLBuffer;
+using Nidium::Binding::JSWebGLFramebuffer;
+using Nidium::Binding::JSWebGLProgram;
+using Nidium::Binding::JSWebGLRenderbuffer;
+using Nidium::Binding::JSWebGLShader;
+using Nidium::Binding::JSWebGLTexture;
+using Nidium::Binding::JSWebGLUniformLocation;
+using Nidium::Binding::JSWebGLShaderPrecisionFormat;
+using Nidium::Binding::JSNidium;
+using Nidium::Binding::JSProcess;
+
 namespace Nidium {
 namespace Frontend {
 
@@ -67,7 +102,7 @@ int NativeContext_LogClear()
 void Context::initStats()
 {
     m_Stats.nframe = 0;
-    m_Stats.starttime = Nidium::Core::Utils::GetTick();
+    m_Stats.starttime = Utils::GetTick();
     m_Stats.lastmeasuredtime = m_Stats.starttime;
     m_Stats.lastdifftime = 0;
     m_Stats.cumulframe = 0;
@@ -79,12 +114,12 @@ void Context::initStats()
     memset(m_Stats.samples, 0, sizeof(m_Stats.samples));
 }
 
-void Context::CreateAndAssemble(Nidium::Interface::UIInterface *ui, ape_global *gnet)
+void Context::CreateAndAssemble(UIInterface *ui, ape_global *gnet)
 {
     new Context(ui, ui->m_Nml, ui->getWidth(), ui->getHeight(), gnet);
 }
 
-Context::Context(Nidium::Interface::UIInterface *nui, NML *nml,
+Context::Context(UIInterface *nui, NML *nml,
     int width, int height, ape_global *net) :
     m_RootHandler(NULL), m_DebugHandler(NULL),
 #if DEBUG
@@ -100,9 +135,9 @@ m_Debug2Handler(NULL),
 
     m_UI->m_NativeCtx = this;
 
-    Nidium::Graphics::GLState::CreateForContext(this);
+    GLState::CreateForContext(this);
 
-    m_JS = new Nidium::Binding::NidiumJS(net);
+    m_JS = new NidiumJS(net);
     this->initStats();
     this->initShaderLang();
     this->initHandlers(width, height);
@@ -125,11 +160,11 @@ m_Debug2Handler(NULL),
     /*
         Set path for modules
     */
-    m_JS->setPath(Nidium::Core::Path::GetCwd());
+    m_JS->setPath(Path::GetCwd());
 
     m_WSClient = NULL;
     m_WS = NULL;
-    /*m_WS = new Nidium::Net::WebSocketServer(4000, "127.0.0.1");
+    /*m_WS = new WebSocketServer(4000, "127.0.0.1");
     m_WS->addListener(this);
     m_WS->start();*/
 
@@ -141,42 +176,34 @@ void Context::loadNativeObjects(int width, int height)
 {
     JSContext *cx = m_JS->m_Cx;
 
-    /* CanvasRenderingContext2D object */
-    Nidium::Binding::Canvas2DContext::RegisterObject(cx);
-    /* Canvas() object */
-    Nidium::Binding::JSCanvas::RegisterObject(cx);
-    /* Image() object */
-    Nidium::Binding::JSImage::RegisterObject(cx);
-    /* Audio() object */
+    Canvas2DContext::RegisterObject(cx);
+    JSCanvas::RegisterObject(cx);
+    JSImage::RegisterObject(cx);
 #ifdef NIDIUM_AUDIO_ENABLED
-    Nidium::Binding::JSAudio::RegisterObject(cx);
-    Nidium::Binding::JSAudioNode::RegisterObject(cx);
-    Nidium::Binding::JSVideo::RegisterObject(cx);
+    JSAudio::RegisterObject(cx);
+    JSAudioNode::RegisterObject(cx);
+    JSVideo::RegisterObject(cx);
 #endif
-    /* WebGL*() object */
 #ifdef NIDIUM_WEBGL_ENABLED
-    Nidium::Binding::JSWebGLRenderingContext::RegisterObject(cx);
-    Nidium::Binding::JSWebGLBuffer::RegisterObject(cx);
-    Nidium::Binding::JSWebGLFramebuffer::RegisterObject(cx);
-    Nidium::Binding::JSWebGLProgram::RegisterObject(cx);
-    Nidium::Binding::JSWebGLRenderbuffer::RegisterObject(cx);
-    Nidium::Binding::JSWebGLShader::RegisterObject(cx);
-    Nidium::Binding::JSWebGLTexture::RegisterObject(cx);
-    Nidium::Binding::JSWebGLUniformLocation::RegisterObject(cx);
-    Nidium::Binding::JSWebGLShaderPrecisionFormat::RegisterObject(cx);
+    JSWebGLRenderingContext::RegisterObject(cx);
+    JSWebGLBuffer::RegisterObject(cx);
+    JSWebGLFramebuffer::RegisterObject(cx);
+    JSWebGLProgram::RegisterObject(cx);
+    JSWebGLRenderbuffer::RegisterObject(cx);
+    JSWebGLShader::RegisterObject(cx);
+    JSWebGLTexture::RegisterObject(cx);
+    JSWebGLUniformLocation::RegisterObject(cx);
+    JSWebGLShaderPrecisionFormat::RegisterObject(cx);
 #endif
-    /* Native() object */
-    Nidium::Binding::JSNidium::RegisterObject(cx);
-    /* document() object */
-    JS::RootedObject docObj(cx, Nidium::Binding::JSDocument::RegisterObject(cx));
-    /* window() object */
-    m_JSWindow = Nidium::Binding::JSWindow::RegisterObject(cx, width, height, docObj);
+    JSNidium::RegisterObject(cx);
+    JS::RootedObject docObj(cx, JSDocument::RegisterObject(cx));
+    m_JSWindow = JSWindow::RegisterObject(cx, width, height, docObj);
 
-    Nidium::Binding::JSProcess::RegisterObject(cx, m_UI->m_Argv, m_UI->m_Argc, 0);
+    JSProcess::RegisterObject(cx, m_UI->m_Argv, m_UI->m_Argc, 0);
 
 #if DEBUG
     createDebug2Canvas();
-    Nidium::Binding::JSDebug::RegisterObject(cx);
+    JSDebug::RegisterObject(cx);
 #endif
 }
 
@@ -216,10 +243,10 @@ void Context::sizeChanged(int w, int h)
 
 void Context::createDebugCanvas()
 {
-    Nidium::Binding::Canvas2DContext *context = static_cast<Nidium::Binding::Canvas2DContext *>(m_RootHandler->getContext());
+    Canvas2DContext *context = static_cast<Canvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
-    m_DebugHandler = new Nidium::Graphics::CanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
-    Nidium::Binding::Canvas2DContext *ctx2d =  new Nidium::Binding::Canvas2DContext(m_DebugHandler,
+    m_DebugHandler = new CanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
+    Canvas2DContext *ctx2d =  new Canvas2DContext(m_DebugHandler,
          context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
     m_DebugHandler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
@@ -233,10 +260,10 @@ void Context::createDebugCanvas()
 #if DEBUG
 void Context::createDebug2Canvas()
 {
-    Nidium::Binding::Canvas2DContext *context = static_cast<Nidium::Binding::Canvas2DContext *>(m_RootHandler->getContext());
+    Canvas2DContext *context = static_cast<Canvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
-    m_Debug2Handler = new Nidium::Graphics::CanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
-    Nidium::Binding::Canvas2DContext *ctx2d =  new Nidium::Binding::Canvas2DContext(m_Debug2Handler,
+    m_Debug2Handler = new CanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
+    Canvas2DContext *ctx2d =  new Canvas2DContext(m_Debug2Handler,
          context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
     m_Debug2Handler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
@@ -250,9 +277,9 @@ void Context::createDebug2Canvas()
 
 void Context::postDraw()
 {
-    if (Nidium::Binding::JSDocument::m_ShowFPS && m_DebugHandler) {
+    if (JSDocument::m_ShowFPS && m_DebugHandler) {
 
-        Nidium::Graphics::SkiaContext *s = (static_cast<Nidium::Binding::Canvas2DContext *>(m_DebugHandler->getContext())->getSurface());
+        SkiaContext *s = (static_cast<Canvas2DContext *>(m_DebugHandler->getContext())->getSurface());
         m_DebugHandler->bringToFront();
 
         s->setFillColor(0xFF000000u);
@@ -289,7 +316,7 @@ void Context::postDraw()
     if (m_Debug2Handler) {
         m_Debug2Handler->bringToFront();
         m_Debug2Handler->getContext()->clear();
-        Nidium::Graphics::SkiaContext *rootctx = (static_cast<Nidium::Binding::Canvas2DContext *>(m_Debug2Handler->getContext())->getSurface());
+        SkiaContext *rootctx = (static_cast<Canvas2DContext *>(m_Debug2Handler->getContext())->getSurface());
         rootctx->save();
 
         rootctx->setFillColor("black");
@@ -303,7 +330,7 @@ void Context::postDraw()
 /* TODO, move out */
 void Context::callFrame()
 {
-    uint64_t tmptime = Nidium::Core::Utils::GetTick();
+    uint64_t tmptime = Utils::GetTick();
     m_Stats.nframe++;
 
     m_Stats.lastdifftime = tmptime - m_Stats.lastmeasuredtime;
@@ -354,7 +381,7 @@ Context::~Context()
     delete m_GLState;
     delete m_WS;
 
-    Nidium::Graphics::SkiaContext::m_GlContext = NULL;
+    SkiaContext::m_GlContext = NULL;
 
     ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
     this->clearInputEvents();
@@ -398,9 +425,9 @@ void Context::frame(bool draw)
 
     /* We draw on the UI fbo */
     glBindFramebuffer(GL_FRAMEBUFFER, m_UI->getFBO());
-    Nidium::Graphics::LayerizeContext ctx;
+    LayerizeContext ctx;
     ctx.reset();
-    Nidium::Graphics::LayerSiblingContext sctx;
+    LayerSiblingContext sctx;
     ctx.m_SiblingCtx = &sctx;
 
     m_CanvasOrderedEvents.clear();
@@ -415,7 +442,7 @@ void Context::frame(bool draw)
 
     m_UI->makeMainGLCurrent();
     /* Skia context is dirty after a call to layerize */
-    (static_cast<Nidium::Binding::Canvas2DContext *>(m_RootHandler->getContext()))->resetSkiaContext();
+    (static_cast<Canvas2DContext *>(m_RootHandler->getContext()))->resetSkiaContext();
 }
 
 void NativeContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
@@ -538,11 +565,11 @@ bool Context::initShaderLang()
 
 void Context::initHandlers(int width, int height)
 {
-    Nidium::Graphics::CanvasHandler::m_LastIdx = 0;
+    CanvasHandler::m_LastIdx = 0;
 
-    m_RootHandler = new Nidium::Graphics::CanvasHandler(width, height, this);
+    m_RootHandler = new CanvasHandler(width, height, this);
 
-    m_RootHandler->setContext(new Nidium::Binding::Canvas2DContext(m_RootHandler, width, height, m_UI));
+    m_RootHandler->setContext(new Canvas2DContext(m_RootHandler, width, height, m_UI));
     m_RootHandler->getContext()->setGLState(this->getGLState());
 }
 
@@ -589,16 +616,16 @@ void Context::execPendingCanvasChanges()
     ape_htable_item_t *item, *tmpItem;
     for (item = m_CanvasPendingJobs.accessCStruct()->first; item != NULL; item = tmpItem) {
         tmpItem = item->lnext;
-        Nidium::Graphics::CanvasHandler *handler = static_cast<Nidium::Graphics::CanvasHandler *>(item->content.addrs);
+        CanvasHandler *handler = static_cast<CanvasHandler *>(item->content.addrs);
         handler->execPending();
     }
 }
 
-void Context::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void Context::onMessage(const SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case NIDIUM_EVENT(Nidium::Net::WebSocketServer, SERVER_CONNECT):
-            m_WSClient = static_cast<Nidium::Net::WebSocketClientConnection *>(msg.m_Args[0].toPtr());
+        case NIDIUM_EVENT(WebSocketServer, SERVER_CONNECT):
+            m_WSClient = static_cast<WebSocketClientConnection *>(msg.m_Args[0].toPtr());
             printf("New WS client for render :)\n");
             break;
     }
@@ -615,7 +642,7 @@ bool Context::WriteStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
         return false;
     }
 
-    if (JS_GetClass(obj) == Nidium::Binding::Canvas2DContext::jsclass) {
+    if (JS_GetClass(obj) == Canvas2DContext::jsclass) {
         uint32_t dwidth, dheight;
 
         JS::RootedValue iwidth(cx);
@@ -665,7 +692,7 @@ JSObject *Context::ReadStructuredCloneOp(JSContext *cx, JSStructuredCloneReader 
             JS::RootedValue arr(cx);
             JS_ReadTypedArray(r, &arr);
 
-            JS::RootedObject dataObject(cx, JS_NewObject(cx,  Nidium::Binding::Canvas2DContext::jsclass, JS::NullPtr(), JS::NullPtr()));
+            JS::RootedObject dataObject(cx, JS_NewObject(cx,  Canvas2DContext::jsclass, JS::NullPtr(), JS::NullPtr()));
             JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
             JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
             JS_DefineProperty(cx, dataObject, "width", widthVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);

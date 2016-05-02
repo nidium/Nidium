@@ -7,10 +7,13 @@
 #include "Graphics/CanvasContext.h"
 #include "Graphics/GLHeader.h"
 
+using Nidium::Frontend::Context;
+using Nidium::Interface::UIInterface;
+
 namespace Nidium {
 namespace Graphics {
 
-GLState::GLState(Nidium::Interface::UIInterface *ui, bool withProgram, bool webgl) :
+GLState::GLState(UIInterface *ui, bool withProgram, bool webgl) :
     m_Shared(true)
 {
     memset(&m_GLObjects, 0, sizeof(m_GLObjects));
@@ -23,10 +26,10 @@ GLState::GLState(Nidium::Interface::UIInterface *ui, bool withProgram, bool webg
     }
 }
 
-GLState::GLState(Nidium::Frontend::Context *nctx) :
+GLState::GLState(Context *nctx) :
     m_Shared(true)
 {
-    Nidium::Interface::UIInterface *ui = nctx->getUI();
+    UIInterface *ui = nctx->getUI();
 
     memset(&m_GLObjects, 0, sizeof(m_GLObjects));
     memset(&m_GLObjects.uniforms, -1, sizeof(m_GLObjects.uniforms));
@@ -34,9 +37,9 @@ GLState::GLState(Nidium::Frontend::Context *nctx) :
     m_GLContext = new GLContext(ui, ui->getGLContext(), false);
 }
 
-void GLState::CreateForContext(Nidium::Frontend::Context *nctx)
+void GLState::CreateForContext(Context *nctx)
 {
-    Nidium::Interface::UIInterface *ui;
+    UIInterface *ui;
     if ((ui = nctx->getUI()) == NULL || ui->m_NativeCtx->getGLState()) {
         NLOG("Failed to init the first GLState");
         return;

@@ -15,6 +15,8 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+using Nidium::Core::PthreadAutoLock;
+
 namespace Nidium {
 namespace AV {
 
@@ -180,7 +182,7 @@ int Video::openInitInternal()
         return ERR_INTERNAL;
     }
 
-    Nidium::Core::PthreadAutoLock lock(&AVSource::m_FfmpegLock);
+    PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
         fprintf(stderr, "Couldn't find stream information");
         return ERR_NO_INFORMATION;
@@ -1106,7 +1108,7 @@ void *Video::decode(void *args)
 
 void Video::stopAudio()
 {
-    Nidium::Core::PthreadAutoLock lock(&m_AudioLock);
+    PthreadAutoLock lock(&m_AudioLock);
 
     this->clearAudioQueue();
 
@@ -1126,7 +1128,7 @@ void Video::sourceNeedWork(void *ptr)
 // {{{ process
 bool Video::processAudio()
 {
-    Nidium::Core::PthreadAutoLock lock(&m_AudioLock);
+    PthreadAutoLock lock(&m_AudioLock);
     DPRINT("processing audio\n");
 
     if (m_AudioSource == NULL) {
@@ -1434,7 +1436,7 @@ void Video::unlockDecodeThread()
 void Video::closeFFMpeg()
 {
     if (m_Opened) {
-        Nidium::Core::PthreadAutoLock lock(&AVSource::m_FfmpegLock);
+        PthreadAutoLock lock(&AVSource::m_FfmpegLock);
         avcodec_close(m_CodecCtx);
         av_free(m_Container->pb);
         avformat_close_input(&m_Container);

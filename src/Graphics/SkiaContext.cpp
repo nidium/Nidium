@@ -29,6 +29,14 @@
 #include "Binding/JSDocument.h"
 #include "Binding/JSCanvas2DContext.h"
 
+using Nidium::Core::PtrAutoDelete;
+using Nidium::Core::Path;
+using Nidium::Interface::SystemInterface;
+using Nidium::IO::Stream;
+using Nidium::Binding::JSDocument;
+using Nidium::Binding::CanvasPattern;
+using Nidium::Frontend::Context;
+
 namespace Nidium {
 namespace Graphics {
 
@@ -362,7 +370,7 @@ int SkiaContext::bindOnScreen(int width, int height)
         return 0;
     }
 
-    float ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
 #if 0
     SkBaseDevice *dev = SkiaContext::m_GlContext
@@ -404,7 +412,7 @@ void glcb(const GrGLInterface*) {
 }
 
 SkCanvas *SkiaContext::CreateGLCanvas(int width, int height,
-    Nidium::Frontend::Context *nativectx)
+    Context *nativectx)
 {
 
     if (!nativectx) {
@@ -433,7 +441,7 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height,
         }
 
     }
-    float ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
     GrBackendRenderTargetDesc desc;
     //GrGLRenderTarget *t = new GrGLRenderTarget();
@@ -472,7 +480,7 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height,
 
 }
 
-int SkiaContext::bindGL(int width, int height, Nidium::Frontend::Context *nativectx)
+int SkiaContext::bindGL(int width, int height, Context *nativectx)
 {
     m_NativeCanvasBindMode = SkiaContext::BIND_GL;
 
@@ -671,7 +679,7 @@ void SkiaContext::stroke()
     m_Canvas->resetMatrix();
 
     SkScalar lineWidth = PAINT_STROKE->getStrokeWidth();
-    float ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
     PAINT_STROKE->setStrokeWidth(SkFloatToScalar(ratio) * lineWidth);
 
@@ -1069,7 +1077,7 @@ void SkiaContext::transform(double scalex, double skewy, double skewx,
 
     float ratio = 1.0f;
     if (set) {
-        ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
+        ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
     }
 
     m.setScaleX(SkDoubleToScalar(scalex*ratio));
@@ -1416,7 +1424,7 @@ void SkiaContext::setFontStyle(const char *style)
     PAINT->setTextSkewX(strcasestr(style, "italic") ? m_FontSkew : 0);
 }
 
-void SkiaContext::setFontType(char *str, Nidium::Binding::JSDocument *doc)
+void SkiaContext::setFontType(char *str, JSDocument *doc)
 {
     if (doc) {
         SkTypeface *tf = doc->getFont(str);
@@ -1427,7 +1435,7 @@ void SkiaContext::setFontType(char *str, Nidium::Binding::JSDocument *doc)
             return;
         }
     }
-    //Nidium::Binding::JSDocument *jdoc = Nidium::Binding::JSDocument::
+    //JSDocument *jdoc = JSDocument::
     SkTypeface *tf = SkTypeface::CreateFromName(str,
         SkTypeface::kNormal);
     // Workarround for skia bug #1648
@@ -1449,14 +1457,14 @@ bool SkiaContext::setFontFile(const char *str)
     char *data;
     size_t len;
 
-    Nidium::Core::Path fontPath(str);
-    Nidium::IO::Stream *stream;
+    Path fontPath(str);
+    Stream *stream;
 
     if ((stream = fontPath.CreateStream(true)) == NULL) {
         return false;
     }
 
-    Nidium::Core::PtrAutoDelete<Nidium::IO::Stream *> npad(stream);
+    PtrAutoDelete<Stream *> npad(stream);
 
     if (!stream->getContentSync(&data, &len)) {
         return false;
@@ -1479,21 +1487,21 @@ bool SkiaContext::setFontFile(const char *str)
     return true;
 }
 
-void SkiaContext::setFillColor(Nidium::Binding::CanvasPattern *pattern)
+void SkiaContext::setFillColor(CanvasPattern *pattern)
 {
     if (pattern->m_JsImg->m_Image->m_Image != NULL) {
         SkShader *shader = NULL;
         bool repeat_x = false, repeat_y = false;
 
         switch(pattern->m_Mode) {
-            case Nidium::Binding::CanvasPattern::PATTERN_REPEAT_MIRROR:
-            case Nidium::Binding::CanvasPattern::PATTERN_REPEAT:
+            case CanvasPattern::PATTERN_REPEAT_MIRROR:
+            case CanvasPattern::PATTERN_REPEAT:
                 repeat_x = repeat_y = true;
                 break;
-            case Nidium::Binding::CanvasPattern::PATTERN_REPEAT_X:
+            case CanvasPattern::PATTERN_REPEAT_X:
                 repeat_x = true;
                 break;
-            case Nidium::Binding::CanvasPattern::PATTERN_REPEAT_Y:
+            case CanvasPattern::PATTERN_REPEAT_Y:
                 repeat_y = true;
                 break;
             default:
@@ -1502,9 +1510,9 @@ void SkiaContext::setFillColor(Nidium::Binding::CanvasPattern *pattern)
 
         if (repeat_x && repeat_y) {
             shader = SkShader::CreateBitmapShader(*pattern->m_JsImg->m_Image->m_Image,
-                pattern->m_Mode == Nidium::Binding::CanvasPattern::PATTERN_REPEAT_MIRROR ?
+                pattern->m_Mode == CanvasPattern::PATTERN_REPEAT_MIRROR ?
                     SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode,
-                pattern->m_Mode == Nidium::Binding::CanvasPattern::PATTERN_REPEAT_MIRROR ?
+                pattern->m_Mode == CanvasPattern::PATTERN_REPEAT_MIRROR ?
                     SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode);
         } else {
             SkShader::TileMode tileModeX = repeat_x ? SkShader::kRepeat_TileMode : SkShader::kClamp_TileMode;

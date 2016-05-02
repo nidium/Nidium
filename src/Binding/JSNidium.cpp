@@ -2,6 +2,8 @@
 
 #include <SystemInterface.h>
 
+using Nidium::Interface::SystemInterface;
+
 namespace Nidium {
 namespace Binding {
 
@@ -31,7 +33,7 @@ static bool nidium_nidium_language(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    Nidium::Interface::SystemInterface* interface = Nidium::Interface::SystemInterface::GetInstance();
+    SystemInterface* interface = SystemInterface::GetInstance();
     const char *clang = interface->getLanguage();
 
     args.rval().setString(JS_NewStringCopyZ(cx, clang));

@@ -14,6 +14,15 @@
 #include "Binding/JSWindow.h"
 #include "Binding/JSDocument.h"
 
+using Nidium::Core::SharedMessages;
+using Nidium::Core::Path;
+using Nidium::IO::Stream;
+using Nidium::Binding::NidiumJS;
+using Nidium::Binding::JSUtils;
+using Nidium::Binding::JSWindow;
+using Nidium::Binding::JSDocument;
+using Nidium::Interface::SystemInterface;
+
 namespace Nidium {
 namespace Frontend {
 
@@ -34,13 +43,13 @@ NML::NML(ape_global *net) :
     m_Meta.size.height = 0;
     m_Meta.identifier = NULL;
 
-    /* Make sure Nidium::Binding::NidiumJS already has the netlib set */
-    Nidium::Binding::NidiumJS::InitNet(net);
+    /* Make sure NidiumJS already has the netlib set */
+    NidiumJS::InitNet(net);
 
     memset(&m_Meta, 0, sizeof(m_Meta));
 }
 
-void NML::setNJS(Nidium::Binding::NidiumJS *js)
+void NML::setNJS(NidiumJS *js)
 {
     m_Njs = js;
     /*
@@ -57,22 +66,22 @@ void NML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
     m_Loaded = cb;
     m_LoadedArg = arg;
 
-    Nidium::Core::Path path(file);
+    Path path(file);
 
     printf("NML path : %s\n", path.path());
 
-    m_Stream = Nidium::IO::Stream::Create(path);
+    m_Stream = Stream::Create(path);
     if (m_Stream == NULL) {
-        Nidium::Interface::SystemInterface::GetInstance()->
+        SystemInterface::GetInstance()->
             alert("NML error : stream error",
-            Nidium::Interface::SystemInterface::ALERT_CRITIC);
+            SystemInterface::ALERT_CRITIC);
         exit(1);
     }
     /*
         Set the global working directory at the NML location
     */
-    Nidium::Core::Path::CD(path.dir());
-    Nidium::Core::Path::Chroot(path.dir());
+    Path::CD(path.dir());
+    Path::Chroot(path.dir());
 
     m_Stream->setListener(this);
     m_Stream->getContent();
@@ -106,7 +115,7 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
     using namespace rapidxml;
 
     if (len == 0 || data == NULL) {
-        Nidium::Interface::SystemInterface::GetInstance()->alert("NML error : empty file", Nidium::Interface::SystemInterface::ALERT_CRITIC);
+        SystemInterface::GetInstance()->alert("NML error : empty file", SystemInterface::ALERT_CRITIC);
         return false;
     }
 
@@ -116,14 +125,14 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
         char cerr[2048];
 
         sprintf(cerr, "NML error : %s", err.what());
-        Nidium::Interface::SystemInterface::GetInstance()->alert(cerr, Nidium::Interface::SystemInterface::ALERT_CRITIC);
+        SystemInterface::GetInstance()->alert(cerr, SystemInterface::ALERT_CRITIC);
 
         return false;
     }
 
     xml_node<> *node = doc.first_node("application");
     if (node == NULL) {
-        Nidium::Interface::SystemInterface::GetInstance()->alert("<application> node not found", Nidium::Interface::SystemInterface::ALERT_CRITIC);
+        SystemInterface::GetInstance()->alert("<application> node not found", SystemInterface::ALERT_CRITIC);
         return false;
     }
 
@@ -145,7 +154,7 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
 
                 if ((ret = (this->*m_NmlTags[i].cb)(*child)) != NIDIUM_XML_OK) {
                     printf("XML : Nidium error (%d)\n", ret);
-                    Nidium::Interface::SystemInterface::GetInstance()->alert("NML ERROR", Nidium::Interface::SystemInterface::ALERT_CRITIC);
+                    SystemInterface::GetInstance()->alert("NML ERROR", SystemInterface::ALERT_CRITIC);
                     return false;
                 }
             }
@@ -153,7 +162,7 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
     }
 
     if (!m_Meta.loaded) {
-        Nidium::Interface::SystemInterface::GetInstance()->alert("<meta> tag is missing in the NML file", Nidium::Interface::SystemInterface::ALERT_CRITIC);
+        SystemInterface::GetInstance()->alert("<meta> tag is missing in the NML file", SystemInterface::ALERT_CRITIC);
         return false;
     }
 
@@ -180,7 +189,7 @@ JSObject *NML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 {
 #define NODE_PROP(where, name, val) JS_DefineProperty(cx, where, name, \
     val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
-#define NODE_STR(data, len) STRING_TO_JSVAL(Nidium::Binding::JSUtils::NewStringWithEncoding(cx, \
+#define NODE_STR(data, len) STRING_TO_JSVAL(JSUtils::NewStringWithEncoding(cx, \
         static_cast<const char *>(data), len, "utf8"))
 
     using namespace rapidxml;
@@ -245,17 +254,17 @@ JSObject *NML::buildLayoutTree(rapidxml::xml_node<> &node)
 
 static int delete_stream(void *arg)
 {
-    Nidium::IO::Stream *stream = static_cast<Nidium::IO::Stream *>(arg);
+    Stream *stream = static_cast<Stream *>(arg);
 
     delete stream;
 
     return 0;
 }
 
-void NML::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void NML::onMessage(const SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case Nidium::IO::Stream::EVENT_READ_BUFFER:
+        case Stream::EVENT_READ_BUFFER:
         {
             buffer *buf = static_cast<buffer *>(msg.m_Args[0].toPtr());
 
@@ -266,19 +275,19 @@ void NML::onMessage(const Nidium::Core::SharedMessages::Message &msg)
             const char *streamPath = m_Stream->getPath();
 
             if (streamPath != NULL) {
-                Nidium::Core::Path path(streamPath);
-                Nidium::Core::Path::CD(path.dir());
-                Nidium::Core::Path::Chroot(path.dir());
+                Path path(streamPath);
+                Path::CD(path.dir());
+                Path::Chroot(path.dir());
             }
 
             this->onGetContent((const char *)buf->data, buf->used);
             break;
         }
-        case Nidium::IO::Stream::EVENT_ERROR:
+        case Stream::EVENT_ERROR:
         {
-            Nidium::Interface::SystemInterface::GetInstance()->
+            SystemInterface::GetInstance()->
                 alert("NML error : stream error",
-                Nidium::Interface::SystemInterface::ALERT_CRITIC);
+                SystemInterface::ALERT_CRITIC);
             exit(1);
             break;
         }
@@ -348,8 +357,8 @@ NML::~NML()
         free(m_Meta.title);
     }
 
-    Nidium::Core::Path::CD(NULL);
-    Nidium::Core::Path::Chroot(NULL);
+    Path::CD(NULL);
+    Path::Chroot(NULL);
 }
 // }}}
 
@@ -379,7 +388,7 @@ void NML::onAssetsItemReady(Assets::Item *item)
             }
             case Assets::Item::ITEM_NSS:
             {
-                Nidium::Binding::JSDocument *jdoc = Nidium::Binding::JSDocument::GetObject(m_Njs->m_Cx);
+                JSDocument *jdoc = JSDocument::GetObject(m_Njs->m_Cx);
                 if (jdoc == NULL) {
                     return;
                 }
@@ -394,7 +403,7 @@ void NML::onAssetsItemReady(Assets::Item *item)
     }
     /* TODO: allow the callback to change content ? */
 
-    Nidium::Binding::JSWindow::GetObject(m_Njs)->assetReady(tag);
+    JSWindow::GetObject(m_Njs)->assetReady(tag);
 }
 
 static void NML_onAssetsItemRead(Assets::Item *item, void *arg)
@@ -410,7 +419,7 @@ void NML::onAssetsBlockReady(Assets *asset)
 
     if (m_nAssets == 0) {
         JS::RootedObject layoutObj(m_Njs->m_Cx, m_JSObjectLayout);
-        Nidium::Binding::JSWindow::GetObject(m_Njs)->onReady(layoutObj);
+        JSWindow::GetObject(m_Njs)->onReady(layoutObj);
     }
 }
 

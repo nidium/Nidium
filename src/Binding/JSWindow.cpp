@@ -17,6 +17,17 @@
 #include "Binding/JSCanvas.h"
 #include "Binding/JSImage.h"
 
+using Nidium::Frontend::NMLTag;
+using Nidium::Frontend::Context;
+using Nidium::Frontend::InputEvent;
+using Nidium::Graphics::Image;
+using Nidium::Graphics::SkiaContext;
+using Nidium::Graphics::CanvasHandler;
+using Nidium::Interface::UIInterface;
+using Nidium::Interface::SystemMenu;
+using Nidium::Interface::SystemInterface;
+using Nidium::Interface::SystemMenuItem;
+
 namespace Nidium {
 namespace Binding {
 
@@ -158,19 +169,19 @@ static JSFunctionSpec window_funcs[] = {
 
 static struct nidium_cursors {
     const char *m_Str;
-    Nidium::Interface::UIInterface::CURSOR_TYPE m_Type;
+    UIInterface::CURSOR_TYPE m_Type;
 } nidium_cursors_list[] = {
-    {"default",             Nidium::Interface::UIInterface::ARROW},
-    {"arrow",               Nidium::Interface::UIInterface::ARROW},
-    {"beam",                Nidium::Interface::UIInterface::BEAM},
-    {"text",                Nidium::Interface::UIInterface::BEAM},
-    {"pointer",             Nidium::Interface::UIInterface::POINTING},
-    {"grabbing",            Nidium::Interface::UIInterface::CLOSEDHAND},
-    {"drag",                Nidium::Interface::UIInterface::CLOSEDHAND},
-    {"hidden",              Nidium::Interface::UIInterface::HIDDEN},
-    {"none",                Nidium::Interface::UIInterface::HIDDEN},
-    {"col-resize",          Nidium::Interface::UIInterface::RESIZELEFTRIGHT},
-    {NULL,                  Nidium::Interface::UIInterface::NOCHANGE},
+    {"default",             UIInterface::ARROW},
+    {"arrow",               UIInterface::ARROW},
+    {"beam",                UIInterface::BEAM},
+    {"text",                UIInterface::BEAM},
+    {"pointer",             UIInterface::POINTING},
+    {"grabbing",            UIInterface::CLOSEDHAND},
+    {"drag",                UIInterface::CLOSEDHAND},
+    {"hidden",              UIInterface::HIDDEN},
+    {"none",                UIInterface::HIDDEN},
+    {"col-resize",          UIInterface::RESIZELEFTRIGHT},
+    {NULL,                  UIInterface::NOCHANGE},
 };
 
 static JSPropertySpec window_props[] = {
@@ -252,7 +263,7 @@ bool JSWindow::onClose()
     return true;
 }
 
-void JSWindow::assetReady(const Nidium::Frontend::NMLTag &tag)
+void JSWindow::assetReady(const NMLTag &tag)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
         val, JSPROP_PERMANENT | JSPROP_ENUMERATE)
@@ -313,8 +324,8 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
 
     JSAutoRequest ar(m_Cx);
 
-    Nidium::Frontend::Context *nctx = Nidium::Frontend::Context::GetObject(m_Cx);
-    Nidium::Frontend::InputEvent *ev = new Nidium::Frontend::InputEvent(Nidium::Frontend::InputEvent::kMouseWheel_Type, x, y);
+    Context *nctx = Context::GetObject(m_Cx);
+    InputEvent *ev = new InputEvent(InputEvent::kMouseWheel_Type, x, y);
 
     ev->setData(0, xrel);
     ev->setData(1, yrel);
@@ -440,10 +451,10 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class, JS::NullPtr(), JS::NullPtr()));
 
-    Nidium::Frontend::Context *nctx = Nidium::Frontend::Context::GetObject(m_Cx);
-    Nidium::Frontend::InputEvent *ev = new Nidium::Frontend::InputEvent(state ?
-        Nidium::Frontend::InputEvent::kMouseClick_Type :
-        Nidium::Frontend::InputEvent::kMouseClickRelease_Type, x, y);
+    Context *nctx = Context::GetObject(m_Cx);
+    InputEvent *ev = new InputEvent(state ?
+        InputEvent::kMouseClick_Type :
+        InputEvent::kMouseClickRelease_Type, x, y);
 
     ev->setData(0, button);
 
@@ -455,8 +466,8 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
         Only trigger for even number on release.
     */
     if (clicks % 2 == 0 && !state) {
-        Nidium::Frontend::InputEvent *dcEv = new Nidium::Frontend::InputEvent( \
-            Nidium::Frontend::InputEvent::kMouseDoubleClick_Type, x, y);
+        InputEvent *dcEv = new InputEvent( \
+            InputEvent::kMouseDoubleClick_Type, x, y);
 
         dcEv->setData(0, button);
         nctx->addInputEvent(dcEv);
@@ -592,7 +603,7 @@ void JSWindow::dragEnd()
 
 void JSWindow::resized(int width, int height)
 {
-    Nidium::Frontend::Context::GetObject(m_Cx)->sizeChanged(width, height);
+    Context::GetObject(m_Cx)->sizeChanged(width, height);
 }
 
 void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
@@ -600,9 +611,9 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
-    Nidium::Frontend::Context *nctx = Nidium::Frontend::Context::GetObject(m_Cx);
+    Context *nctx = Context::GetObject(m_Cx);
 
-    Graphics::CanvasHandler *rootHandler = nctx->getRootHandler();
+    CanvasHandler *rootHandler = nctx->getRootHandler();
 
     rootHandler->m_MousePosition.x = x;
     rootHandler->m_MousePosition.y = y;
@@ -610,7 +621,7 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
     rootHandler->m_MousePosition.yrel += yrel;
     rootHandler->m_MousePosition.consumed = false;
 
-    Nidium::Frontend::InputEvent *ev = new Nidium::Frontend::InputEvent(Nidium::Frontend::InputEvent::kMouseMove_Type, x, y);
+    InputEvent *ev = new InputEvent(InputEvent::kMouseMove_Type, x, y);
 
     ev->setData(0, xrel);
     ev->setData(1, yrel);
@@ -653,7 +664,7 @@ static void Storage_Finalize(JSFreeOp *fop, JSObject *obj)
 static bool nidium_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
-    Nidium::Interface::UIInterface *NUI = Nidium::Frontend::Context::GetObject(m_Cx)->getUI();
+    UIInterface *NUI = Context::GetObject(m_Cx)->getUI();
 
     switch (id) {
         case WINDOW_PROP_DEVICE_PIXELRATIO:
@@ -712,7 +723,7 @@ static bool nidium_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
 static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
-    Nidium::Interface::UIInterface *NUI = Nidium::Frontend::Context::GetObject(cx)->getUI();
+    UIInterface *NUI = Context::GetObject(cx)->getUI();
     switch(id) {
         case WINDOW_PROP_LEFT:
         {
@@ -753,7 +764,7 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
             dval = ape_max(dval, 1);
 
-            Nidium::Frontend::Context::GetObject(cx)->setWindowSize((int)dval, NUI->getHeight());
+            Context::GetObject(cx)->setWindowSize((int)dval, NUI->getHeight());
 
             break;
         }
@@ -769,7 +780,7 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
             dval = ape_max(dval, 1);
 
-            Nidium::Frontend::Context::GetObject(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
+            Context::GetObject(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
 
             break;
         }
@@ -812,7 +823,7 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
             }
             JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString color(cx, vpStr);
-            uint32_t icolor = Graphics::SkiaContext::ParseColor(color.ptr());
+            uint32_t icolor = SkiaContext::ParseColor(color.ptr());
 
             NUI->setTitleBarRGBAColor(
                 (icolor & 0x00FF0000) >> 16,
@@ -975,7 +986,7 @@ static bool nidium_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    Nidium::Frontend::Context::GetObject(cx)->setWindowSize(w, h);
+    Context::GetObject(cx)->setWindowSize(w, h);
 
     return true;
 }
@@ -991,7 +1002,7 @@ static bool nidium_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Val
 
     JSAutoByteString curl(cx, url);
 
-    Nidium::Interface::SystemInterface::GetInstance()->openURLInBrowser(curl.ptr());
+    SystemInterface::GetInstance()->openURLInBrowser(curl.ptr());
 
     return true;
 }
@@ -1006,7 +1017,7 @@ static bool nidium_window_exec(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     JSAutoByteString curl(cx, url);
-    const char *ret = Nidium::Interface::SystemInterface::GetInstance()->execute(curl.ptr());
+    const char *ret = SystemInterface::GetInstance()->execute(curl.ptr());
 
     JS::RootedString retStr(cx, JS_NewStringCopyZ(cx, ret));
     args.rval().setString(retStr);
@@ -1027,10 +1038,10 @@ static bool nidium_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value 
     nof->m_Cb = callback;
     nof->m_Cx = cx;
 
-    Nidium::Frontend::Context::GetObject(cx)->getUI()->openFileDialog(
+    Context::GetObject(cx)->getUI()->openFileDialog(
         NULL,
         nidium_window_openfilecb, nof,
-        Nidium::Interface::UIInterface::kOpenFile_CanChooseDir);
+        UIInterface::kOpenFile_CanChooseDir);
 
     return true;
 }
@@ -1077,10 +1088,10 @@ static bool nidium_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
     nof->m_Cb = callback;
     nof->m_Cx = cx;
 
-    Nidium::Frontend::Context::GetObject(cx)->getUI()->openFileDialog(
+    Context::GetObject(cx)->getUI()->openFileDialog(
         (const char **)ctypes,
         nidium_window_openfilecb, nof,
-        Nidium::Interface::UIInterface::kOpenFile_CanChooseFile | Nidium::Interface::UIInterface::kOpenFile_AlloMultipleSelection);
+        UIInterface::kOpenFile_CanChooseFile | UIInterface::kOpenFile_AlloMultipleSelection);
 
     if (ctypes) {
         for (int i = 0; i < len; i++) {
@@ -1106,7 +1117,7 @@ static bool nidium_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS
 
 static bool nidium_window_center(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    Nidium::Frontend::Context::GetObject(cx)->getUI()->centerWindow();
+    Context::GetObject(cx)->getUI()->centerWindow();
 
     return true;
 }
@@ -1123,7 +1134,7 @@ static bool nidium_window_setPosition(JSContext *cx, unsigned argc, JS::Value *v
     int y = (args[1].isUndefined() || args[1].isNull()) ?
         NIDIUM_WINDOWPOS_UNDEFINED_MASK : args[1].toInt32();
 
-    Nidium::Frontend::Context::GetObject(cx)->getUI()->setWindowPosition(x, y);
+    Context::GetObject(cx)->getUI()->setWindowPosition(x, y);
 
     return true;
 }
@@ -1146,14 +1157,14 @@ static bool nidium_window_notify(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString cbody;
     cbody.encodeUtf8(cx, body);
 
-    Nidium::Interface::SystemInterface::GetInstance()->sendNotification(ctitle.ptr(), cbody.ptr(), sound);
+    SystemInterface::GetInstance()->sendNotification(ctitle.ptr(), cbody.ptr(), sound);
 
     return true;
 }
 
 static bool nidium_window_quit(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    Nidium::Interface::UIInterface *NUI = Nidium::Frontend::Context::GetObject(cx)->getUI();
+    UIInterface *NUI = Context::GetObject(cx)->getUI();
 
     NUI->quit();
 
@@ -1162,7 +1173,7 @@ static bool nidium_window_quit(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool nidium_window_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    Nidium::Interface::UIInterface *NUI = Nidium::Frontend::Context::GetObject(cx)->getUI();
+    UIInterface *NUI = Context::GetObject(cx)->getUI();
 
     NUI->hideWindow();
 
@@ -1171,7 +1182,7 @@ static bool nidium_window_close(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool nidium_window_open(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    Nidium::Interface::UIInterface *NUI = Nidium::Frontend::Context::GetObject(cx)->getUI();
+    UIInterface *NUI = Context::GetObject(cx)->getUI();
 
     NUI->showWindow();
 
@@ -1182,7 +1193,7 @@ static bool nidium_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
 {
     NIDIUM_JS_CHECK_ARGS("setSystemTray", 1);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    Nidium::Interface::UIInterface *NUI = Nidium::Frontend::Context::GetObject(cx)->getUI();
+    UIInterface *NUI = Context::GetObject(cx)->getUI();
     JS::RootedObject jobj(cx, &args[0].toObject());
     if (!jobj.get()) {
         NUI->disableSysTray();
@@ -1191,12 +1202,12 @@ static bool nidium_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
 
     NIDIUM_JS_INIT_OPT();
 
-    Nidium::Interface::SystemMenu &menu = NUI->getSystemMenu();
+    SystemMenu &menu = NUI->getSystemMenu();
     menu.deleteItems();
 
     NIDIUM_JS_GET_OPT_TYPE(jobj, "icon", Object) {
         JS::RootedObject jsimg(cx, __curopt.toObjectOrNull());
-        Graphics::Image *skimage;
+        Image *skimage;
         if (JSImage::JSObjectIs(cx, jsimg) &&
             (skimage = JSImage::JSObjectToImage(jsimg))) {
 
@@ -1220,7 +1231,7 @@ static bool nidium_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
                 JS_GetElement(cx, arr, i, &val);
                 if (val.isObject()) {
                     JS::RootedObject valObj(cx, &val.toObject());
-                    Nidium::Interface::SystemMenuItem *menuItem = new Nidium::Interface::SystemMenuItem();
+                    SystemMenuItem *menuItem = new SystemMenuItem();
                     NIDIUM_JS_GET_OPT_TYPE(valObj, "title", String) {
 
                         JSAutoByteString ctitle;
@@ -1309,7 +1320,7 @@ static bool nidium_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
 
-    Nidium::Frontend::Context::GetObject(cx)->setWindowFrame((int)x, (int)y, (int) w, (int) h);
+    Context::GetObject(cx)->setWindowFrame((int)x, (int)y, (int) w, (int) h);
 
     return true;
 }
@@ -1348,7 +1359,7 @@ void JSWindow::callFrameCallbacks(double ts, bool garbage)
 
 void JSWindow::initDataBase()
 {
-    Nidium::Frontend::NML *nml = Nidium::Frontend::Context::GetObject(m_Cx)->getNML();
+    NML *nml = Context::GetObject(m_Cx)->getNML();
     if (!nml) {
         NLOG("[Notice] Unable to create window.storage (no NML provided)");
         return;
@@ -1369,7 +1380,7 @@ void JSWindow::initDataBase()
 void JSWindow::createMainCanvas(int width, int height, JS::HandleObject docObj)
 {
     JS::RootedObject canvas(m_Cx, JSCanvas::GenerateJSObject(m_Cx, width, height, &m_Handler));
-    Nidium::Frontend::Context::GetObject(m_Cx)->getRootHandler()->addChild(m_Handler);
+    Context::GetObject(m_Cx)->getRootHandler()->addChild(m_Handler);
     JS::RootedValue canval(m_Cx, OBJECT_TO_JSVAL(canvas));
     JS_DefineProperty(m_Cx, docObj, "canvas", canval, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
@@ -1460,12 +1471,12 @@ bool nidium_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
 
 JSWindow* JSWindow::GetObject(JSContext *cx)
 {
-    return Nidium::Frontend::Context::GetObject(cx)->getJSWindow();
+    return Context::GetObject(cx)->getJSWindow();
 }
 
 JSWindow* JSWindow::GetObject(NidiumJS *njs)
 {
-    return Nidium::Frontend::Context::GetObject(njs)->getJSWindow();
+    return Context::GetObject(njs)->getJSWindow();
 }
 // }}}
 

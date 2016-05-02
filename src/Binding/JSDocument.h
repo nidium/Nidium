@@ -5,6 +5,8 @@
 
 class SkTypeface;
 
+using Nidium::Core::Hash;
+
 namespace Nidium {
 namespace Binding {
 
@@ -47,7 +49,7 @@ class JSDocument : public JSExposer<JSDocument>
 
     JS::Heap<JSObject *> m_Stylesheet;
 
-    Core::Hash<NidiumFont *>m_Fonts;
+    Hash<NidiumFont *>m_Fonts;
 
     bool loadFont(const char *path, const char *name, int weight = 400,
         NidiumFont::Style = NidiumFont::kNativeFontNormal);

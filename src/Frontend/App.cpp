@@ -9,6 +9,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+using Nidium::Core::SharedMessages;
+
 namespace Nidium {
 namespace Frontend {
 
@@ -168,7 +170,7 @@ static int Nidium_handle_app_messages(void *arg)
     struct App::app_msg *ptr;
     int nread = 0;
 
-    Nidium::Core::SharedMessages::Message *msg;
+   SharedMessages::Message *msg;
 
     while (++nread < MAX_MSG_IN_ROW && (msg = app->m_Messages->readMessage())) {
         switch (msg->event()) {
@@ -205,7 +207,7 @@ void App::actionExtractRead(const char *buf, int len,
 
 void App::runWorker(ape_global *net)
 {
-    m_Messages = new Nidium::Core::SharedMessages();
+    m_Messages = new SharedMessages();
 
     m_Net = net;
 

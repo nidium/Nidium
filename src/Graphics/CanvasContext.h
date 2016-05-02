@@ -18,6 +18,8 @@ namespace Nidium {
     }
 }
 
+using Nidium::Binding::Canvas2DContext;
+
 namespace Nidium {
 namespace Graphics {
 
@@ -145,7 +147,7 @@ class CanvasContext
     static uint32_t CreatePassThroughProgram(GLResources &resource);
 
 
-    void preComposeOn(Nidium::Binding::Canvas2DContext *layer,
+    void preComposeOn(Canvas2DContext *layer,
         double left, double top, double opacity,
         double zoom, const Rect *rclip);
 protected:

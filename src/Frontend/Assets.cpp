@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <string.h>
 
+using Nidium::Core::SharedMessages;
+using Nidium::Core::Path;
+using Nidium::IO::Stream;
+
 namespace Nidium {
 namespace Frontend {
 
@@ -34,17 +38,17 @@ Assets::Item::Item(const char *url, FileType t,
     m_Data.len = 0;
 }
 
-void Assets::Item::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void Assets::Item::onMessage(const SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case Nidium::IO::Stream::EVENT_READ_BUFFER:
+        case Stream::EVENT_READ_BUFFER:
         {
             //TODO: new style cast
             buffer *buf = reinterpret_cast<buffer *>(msg.m_Args[0].toPtr());
             this->setContent((const char *)(buf->data), buf->used);
             break;
         }
-        case Nidium::IO::Stream::EVENT_ERROR:
+        case Stream::EVENT_ERROR:
         {
             this->setContent(NULL, 0);
             break;
@@ -74,7 +78,7 @@ Assets::Item::~Item()
 
 void Assets::Item::download()
 {
-    m_Stream = Nidium::IO::Stream::Create(Nidium::Core::Path(m_Url));
+    m_Stream = Stream::Create(Path(m_Url));
 
     if (m_Stream == NULL) {
         this->setName(m_Url);

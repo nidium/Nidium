@@ -5,33 +5,37 @@
 #include <IO/Stream.h>
 #include <Binding/JSExposer.h>
 
-class Image;
-
 namespace Nidium {
     namespace Graphics {
         class Image;
     }
+}
+
+using Nidium::Core::Messages;
+using Nidium::Core::SharedMessages;
+using Nidium::IO::Stream;
+using Nidium::Graphics::Image;
+
+namespace Nidium {
 namespace Binding {
 
-
-class JSImage : public JSExposer<JSImage>,
-                      public Core::Messages
+class JSImage : public JSExposer<JSImage>, public Messages
 {
   public:
 
     JSImage(JS::HandleObject obj, JSContext *cx);
     virtual ~JSImage();
 
-    Graphics::Image *m_Image;
-    IO::Stream *m_Stream;
+    Image *m_Image;
+    Stream *m_Stream;
 
-    static Graphics::Image *JSObjectToImage(JS::HandleObject obj);
+    static Image *JSObjectToImage(JS::HandleObject obj);
     static void RegisterObject(JSContext *cx);
     static bool JSObjectIs(JSContext *cx, JS::HandleObject obj);
-    static JSObject *BuildImageObject(JSContext *cx, Graphics::Image *image,
+    static JSObject *BuildImageObject(JSContext *cx, Image *image,
         const char name[] = NULL);
 
-    void onMessage(const Core::SharedMessages::Message &msg);
+    void onMessage(const SharedMessages::Message &msg);
 
 private:
     bool setupWithBuffer(buffer *buf);

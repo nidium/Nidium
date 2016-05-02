@@ -13,6 +13,11 @@
 #include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas2DContext.h"
 
+using Nidium::Interface::SystemInterface;
+using Nidium::Frontend::Context;
+using Nidium::Binding::Canvas2DContext;
+using Nidium::Binding::NidiumJS;
+
 namespace Nidium {
 namespace Graphics {
 
@@ -22,7 +27,7 @@ char *CanvasContext::ProcessShader(const char *content, shaderType type)
 
     compiler = ShConstructCompiler((ShShaderType)type,
         SH_WEBGL_SPEC, SH_GLSL_OUTPUT,
-        Nidium::Frontend::Context::GetObject(Nidium::Binding::NidiumJS::GetObject())->getShaderResources());
+        Context::GetObject(NidiumJS::GetObject())->getShaderResources());
 
     if (compiler == NULL) {
         NLOG("Shader : Compiler not supported");
@@ -328,7 +333,7 @@ void CanvasContext::setupShader(float opacity, int width, int height,
     uint32_t program = this->getProgram();
     NIDIUM_GL_CALL_MAIN(UseProgram(program));
 
-    float ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
     if (program > 0) {
         if (m_GLState->m_GLObjects.uniforms.u_opacity != -1) {
@@ -348,12 +353,12 @@ void CanvasContext::setupShader(float opacity, int width, int height,
 
 }
 
-void CanvasContext::preComposeOn(Nidium::Binding::Canvas2DContext *layer,
+void CanvasContext::preComposeOn(Canvas2DContext *layer,
     double left, double top, double opacity,
     double zoom, const Rect *rclip)
 {
     bool revertScissor = false;
-    float ratio = Nidium::Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
     SkiaContext *skia = layer->getSurface();
     SkISize layerSize = skia->getCanvas()->getDeviceSize();

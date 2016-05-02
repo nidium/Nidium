@@ -8,6 +8,12 @@
 
 #include "Graphics/Image.h"
 
+using Nidium::Core::SharedMessages;
+using Nidium::Core::Path;
+using Nidium::Graphics::Image;
+using Nidium::IO::Stream;
+using Nidium::IO::File;
+
 namespace Nidium {
 namespace Binding {
 
@@ -117,7 +123,7 @@ static bool nidium_image_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 NidiumJSObj(cx)->rootObjectUntilShutdown(obj);
 
-                IO::Stream *stream = IO::Stream::Create(Core::Path(imgPath.ptr()));
+                Stream *stream = Stream::Create(Path(imgPath.ptr()));
 
                 if (stream == NULL) {
                     JS_ReportError(cx, "Invalid path");
@@ -130,7 +136,7 @@ static bool nidium_image_prop_set(JSContext *cx, JS::HandleObject obj,
                 stream->getContent();
             } else if (vp.isObject()) {
                 JS::RootedObject fileObj(cx, vp.toObjectOrNull());
-                IO::File *file = JSFileIO::GetFileFromJSObject(cx, fileObj);
+                File *file = JSFileIO::GetFileFromJSObject(cx, fileObj);
                 if (!file) {
                     vp.setNull();
                     return true;
@@ -138,7 +144,7 @@ static bool nidium_image_prop_set(JSContext *cx, JS::HandleObject obj,
 
                 NidiumJSObj(cx)->rootObjectUntilShutdown(fileObj);
 
-                IO::Stream *stream = IO::Stream::Create(file->getFullPath());
+                Stream *stream = Stream::Create(file->getFullPath());
                 if (stream == NULL) {
                     break;
                 }
@@ -196,25 +202,25 @@ bool JSImage::JSObjectIs(JSContext *cx, JS::HandleObject obj)
     return obj && JS_GetClass(obj) == &Image_class;
 }
 
-Graphics::Image *JSImage::JSObjectToImage(JS::HandleObject obj)
+Image *JSImage::JSObjectToImage(JS::HandleObject obj)
 {
     return IMAGE_GETTER(obj)->m_Image;
 }
 
 static int delete_stream(void *arg)
 {
-    IO::Stream *stream = (IO::Stream *)arg;
+    Stream *stream = (Stream *)arg;
 
     delete stream;
 
     return 0;
 }
 
-void JSImage::onMessage(const Core::SharedMessages::Message &msg)
+void JSImage::onMessage(const SharedMessages::Message &msg)
 {
 
     switch (msg.event()) {
-        case IO::Stream::EVENT_READ_BUFFER:
+        case Stream::EVENT_READ_BUFFER:
         {
             ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
             JS::RootedValue onload_callback(m_Cx);
@@ -243,7 +249,7 @@ bool JSImage::setupWithBuffer(buffer *buf)
         return false;
     }
 
-    Graphics::Image *ImageObject = new Graphics::Image(buf->data, buf->used);
+    Image *ImageObject = new Image(buf->data, buf->used);
     if (ImageObject->m_Image == NULL) {
         delete ImageObject;
 
@@ -274,7 +280,7 @@ void JSImage::onGetContent(const char *data, size_t len)
         return;
     }
 
-    Graphics::Image *ImageObject = new Graphics::Image((void *)data, len);
+    Image *ImageObject = new Image((void *)data, len);
     if (ImageObject->m_Image == NULL) {
         timer_dispatch_async(delete_stream, stream);
         stream = NULL;
@@ -302,7 +308,7 @@ void JSImage::onGetContent(const char *data, size_t len)
 }
 #endif
 
-JSObject *JSImage::BuildImageObject(JSContext *cx, Graphics::Image *image,
+JSObject *JSImage::BuildImageObject(JSContext *cx, Image *image,
     const char name[])
 {
     JS::RootedValue proto(cx);

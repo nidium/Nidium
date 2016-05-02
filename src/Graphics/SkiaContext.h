@@ -18,6 +18,13 @@ namespace Nidium {
          class JSDocument;
          class CanvasPattern;
     }
+}
+
+using Nidium::Frontend::Context;
+using Nidium::Binding::JSDocument;
+using Nidium::Binding::CanvasPattern;
+
+namespace Nidium {
 namespace Graphics {
 
 class Image;
@@ -116,9 +123,8 @@ class SkiaContext
         double breakText(const char *str, size_t len,
             struct _Line lines[], double maxWidth, int *length = NULL);
         int bindOnScreen(int width, int height);
-        static SkCanvas *CreateGLCanvas(int width, int height,
-            Nidium::Frontend::Context *nativectx);
-        int bindGL(int width, int height, Nidium::Frontend::Context *nativectx);
+        static SkCanvas *CreateGLCanvas(int width, int height, Context *nativectx);
+        int bindGL(int width, int height, Context *nativectx);
         void flush();
         void unlink();
 
@@ -187,7 +193,7 @@ class SkiaContext
         }
         void setFillColor(const char *str);
         void setFillColor(Gradient *gradient);
-        void setFillColor(Binding::CanvasPattern *pattern);
+        void setFillColor(CanvasPattern *pattern);
         void setFillColor(uint32_t color);
         void setStrokeColor(const char *str);
         void setStrokeColor(Gradient *gradient);
@@ -198,7 +204,7 @@ class SkiaContext
         void setGlobalComposite(const char *str);
         void setLineCap(const char *capStyle);
         void setLineJoin(const char *joinStyle);
-        void setFontType(char *str, Nidium::Binding::JSDocument *doc = NULL);
+        void setFontType(char *str, JSDocument *doc = NULL);
         bool setFontFile(const char *str);
 
         void clearRect(double, double, double, double);

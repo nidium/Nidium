@@ -17,6 +17,23 @@
 
 #include "Binding/JSCanvas2DContext.h"
 
+using Nidium::Core::SharedMessages;
+using Nidium::Graphics::SkiaContext;
+using Nidium::Graphics::CanvasContext;
+using Nidium::Graphics::CanvasHandler;
+using Nidium::AV::Video;
+using Nidium::AV::NodeLink;
+using Nidium::AV::ArgType;
+using Nidium::AV::AVSource;
+using Nidium::AV::AVSourceEvent;
+using Nidium::AV::Audio;
+using Nidium::AV::AudioNode;
+using Nidium::AV::AudioNodeException;
+using Nidium::AV::AudioNodeCustom;
+using Nidium::AV::AudioSource;
+using Nidium::AV::AudioParameters;
+using Nidium::AV::AudioCustomSource;
+
 extern "C" {
 #include <libavformat/avformat.h>
 }
@@ -25,7 +42,6 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-
 extern JSClass Canvas_class;
 
 JSAudio *JSAudio::m_Instance = NULL;
@@ -48,7 +64,7 @@ if (!JS_ReportPendingException(cx)) {\
     var = static_cast<type *>(CppObj->m_Node);
 
 #define CHECK_INVALID_CTX(obj) if (!obj) {\
-JS_ReportError(cx, "Invalid AV::Audio context"); \
+JS_ReportError(cx, "Invalid Audio context"); \
 return false; \
 }
 
@@ -410,7 +426,7 @@ const char *JSAVEventRead(int ev)
     }
 }
 
-static JS::HandleValue consumeSourceMessage(JSContext *cx, JS::HandleObject obj, const Core::SharedMessages::Message &msg)
+static JS::HandleValue consumeSourceMessage(JSContext *cx, JS::HandleObject obj, const SharedMessages::Message &msg)
 {
     JS::RootedObject evObj(cx, JSEvents::CreateEventObject(cx));
     JSObjectBuilder ev(cx, evObj);
@@ -428,8 +444,8 @@ static JS::HandleValue consumeSourceMessage(JSContext *cx, JS::HandleObject obj,
 
         delete ptr;
     } else {
-        AV::AVSourceEvent *cmsg =
-                static_cast<struct AV::AVSourceEvent*>(msg.dataPtr());
+        AVSourceEvent *cmsg =
+                static_cast<struct AVSourceEvent*>(msg.dataPtr());
 
         if (cmsg->m_Ev == SOURCE_EVENT_ERROR) {
             int errorCode = cmsg->m_Args[0].toInt();
@@ -513,10 +529,10 @@ JSAudio *JSAudio::GetContext(JSContext *cx, JS::HandleObject obj, \
     unsigned int bufferSize, unsigned int channels, unsigned int sampleRate)
 {
     ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(cx));
-    AV::Audio *audio;
+    Audio *audio;
 
     try {
-        audio = new AV::Audio(net, bufferSize, channels, sampleRate);
+        audio = new Audio(net, bufferSize, channels, sampleRate);
     } catch (...) {
         return NULL;
     }
@@ -573,7 +589,7 @@ JSAudio *JSAudio::GetContext()
     return JSAudio::m_Instance;
 }
 
-JSAudio::JSAudio(AV::Audio *audio, JSContext *cx, JS::HandleObject obj)
+JSAudio::JSAudio(Audio *audio, JSContext *cx, JS::HandleObject obj)
     :
       JSExposer<JSAudio>(obj, cx),
       m_Audio(audio), m_Nodes(NULL), m_JsGlobalObj(NULL), m_JsRt(NULL), m_JsTcx(NULL),
@@ -683,8 +699,8 @@ void JSAudio::ShutdownCallback(void *custom)
 
     // Let's shutdown all custom nodes
     while (nodes != NULL) {
-        if (nodes->curr->m_NodeType == AV::Audio::CUSTOM ||
-            nodes->curr->m_NodeType == AV::Audio::CUSTOM_SOURCE) {
+        if (nodes->curr->m_NodeType == Audio::CUSTOM ||
+            nodes->curr->m_NodeType == Audio::CUSTOM_SOURCE) {
             nodes->curr->ShutdownCallback(nodes->curr->m_Node, nodes->curr);
         }
 
@@ -728,7 +744,7 @@ JSAudio::~JSAudio()
     NIDIUM_PTHREAD_WAIT(&m_ShutdownWait)
 
     // Unlock the sources, so the decode thread can exit
-    // when we call AV::Audio::shutdown()
+    // when we call Audio::shutdown()
     m_Audio->unlockSources();
 
     // Shutdown the audio
@@ -773,7 +789,7 @@ void nidium_audio_node_custom_set_internal(JSContext *cx, JSAudioNode *node,
     }
 }
 
-void JSAudioNode::SetPropCallback(AV::AudioNode *node, void *custom)
+void JSAudioNode::SetPropCallback(AudioNode *node, void *custom)
 {
     JSContext *tcx;
     JSAudioNode::Message *msg;
@@ -822,7 +838,7 @@ void JSAudioNode::SetPropCallback(AV::AudioNode *node, void *custom)
     delete msg;
 }
 
-void JSAudioNode::CustomCallback(const struct AV::NodeEvent *ev)
+void JSAudioNode::CustomCallback(const struct NodeEvent *ev)
 {
     JSAudioNode *thiz;
     JSContext *tcx;
@@ -855,7 +871,7 @@ void JSAudioNode::CustomCallback(const struct AV::NodeEvent *ev)
     for (int i = 0; i < count; i++) {
         uint8_t *data;
 
-        // TODO : Avoid memcpy (custom allocator for AV::AudioNode?)
+        // TODO : Avoid memcpy (custom allocator for AudioNode?)
         JS::RootedObject arrBuff(tcx, JS_NewArrayBuffer(tcx, size));
         data = JS_GetArrayBufferData(arrBuff);
         memcpy(data, ev->data[i], size);
@@ -899,7 +915,7 @@ void JSAudioNode::CustomCallback(const struct AV::NodeEvent *ev)
     }
 }
 
-void JSAudioNode::onMessage(const Core::SharedMessages::Message &msg)
+void JSAudioNode::onMessage(const SharedMessages::Message &msg)
 {
     if (m_IsDestructing) return;
     JS::RootedObject obj(m_Cx, m_JSObject);
@@ -919,7 +935,7 @@ void JSAudioNode::onMessage(const Core::SharedMessages::Message &msg)
     }
 }
 
-void JSAudioNode::onEvent(const struct AV::AVSourceEvent *cev)
+void JSAudioNode::onEvent(const struct AVSourceEvent *cev)
 {
     JSAudioNode *jnode = static_cast<JSAudioNode *>(cev->m_Custom);
     jnode->postMessage((void *)cev, cev->m_Ev);
@@ -948,7 +964,7 @@ void JSAudio::CtxCallback(void *custom)
     }
 }
 
-void JSAudioNode::ShutdownCallback(AV::AudioNode *nnode, void *custom)
+void JSAudioNode::ShutdownCallback(AudioNode *nnode, void *custom)
 {
     JSAudioNode *node = static_cast<JSAudioNode *>(custom);
     JSAutoRequest ar(node->m_Audio->m_JsTcx);
@@ -966,13 +982,13 @@ void JSAudioNode::ShutdownCallback(AV::AudioNode *nnode, void *custom)
     NIDIUM_PTHREAD_SIGNAL(&node->m_ShutdownWait)
 }
 
-void JSAudioNode::DeleteTransferableFunc(AV::AudioNode *node, void *custom)
+void JSAudioNode::DeleteTransferableFunc(AudioNode *node, void *custom)
 {
     JSTransferableFunction *fun = static_cast<JSTransferableFunction*>(custom);
     delete fun;
 }
 
-void JSAudioNode::InitCustomObject(AV::AudioNode *node, void *custom)
+void JSAudioNode::InitCustomObject(AudioNode *node, void *custom)
 {
     JSAudioNode *jnode = static_cast<JSAudioNode *>(custom);
     JSContext *tcx = jnode->m_Audio->m_JsTcx;
@@ -1026,7 +1042,7 @@ JSAudioNode::~JSAudioNode()
 
     m_IsDestructing = true;
 
-    // Block Nidium::Audio threads execution.
+    // Block Audio threads execution.
     // While the node is destructed we don't want any thread
     // to call some method on a node that is being destroyed
     m_Audio->m_Audio->lockQueue();
@@ -1037,8 +1053,8 @@ JSAudioNode::~JSAudioNode()
     // later for this node.
     m_Audio->m_Audio->wakeup();
 
-    if (m_NodeType == AV::Audio::SOURCE) {
-        // Only source from AV::Video has reserved slot
+    if (m_NodeType == Audio::SOURCE) {
+        // Only source from Video has reserved slot
         JS::RootedValue source(m_Cx, JS_GetReservedSlot(m_JSObject, 0));
         JS::RootedObject obj(m_Cx, source.toObjectOrNull());
         if (obj.get()) {
@@ -1075,8 +1091,8 @@ JSAudioNode::~JSAudioNode()
 
     // Custom nodes and sources must release all JS object on the JS thread
     if (m_Node != NULL && m_Audio->m_JsTcx != NULL &&
-            (m_NodeType == AV::Audio::CUSTOM ||
-             m_NodeType == AV::Audio::CUSTOM_SOURCE)) {
+            (m_NodeType == Audio::CUSTOM ||
+             m_NodeType == Audio::CUSTOM_SOURCE)) {
 
         m_Node->callback(JSAudioNode::ShutdownCallback, this, true);
 
@@ -1211,7 +1227,7 @@ static bool nidium_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAudio *jaudio = JSAudio::GetContext();
 
     if (jaudio) {
-        AV::AudioParameters *params = jaudio->m_Audio->m_OutputParameters;
+        AudioParameters *params = jaudio->m_Audio->m_OutputParameters;
         if (params->m_AskedBufferSize != bufferSize ||
             params->m_Channels != channels ||
             params->m_SampleRate != sampleRate) {
@@ -1315,17 +1331,17 @@ static bool nidium_audio_createnode(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString cname(cx, name);
     try {
         if (strcmp("source", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, AV::Audio::SOURCE, in, out, audio);
+            node = new JSAudioNode(ret, cx, Audio::SOURCE, in, out, audio);
 
-            AV::AudioSource *source = static_cast<AV::AudioSource*>(node->m_Node);
+            AudioSource *source = static_cast<AudioSource*>(node->m_Node);
             source->eventCallback(JSAudioNode::onEvent, node);
 
             JS_DefineFunctions(cx, ret, AudioNodeSource_funcs);
             JS_DefineProperties(cx, ret, AudioNodeSource_props);
         } else if (strcmp("custom-source", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, AV::Audio::CUSTOM_SOURCE, in, out, audio);
+            node = new JSAudioNode(ret, cx, Audio::CUSTOM_SOURCE, in, out, audio);
 
-            AV::AudioCustomSource *source = static_cast<AV::AudioCustomSource*>(node->m_Node);
+            AudioCustomSource *source = static_cast<AudioCustomSource*>(node->m_Node);
             source->eventCallback(JSAudioNode::onEvent, node);
 
             JS::RootedValue tmp(cx, JS::NumberValue(0));
@@ -1337,30 +1353,30 @@ static bool nidium_audio_createnode(JSContext *cx, unsigned argc, JS::Value *vp)
             JS_DefineFunctions(cx, ret, AudioNodeCustom_funcs);
             JS_DefineFunctions(cx, ret, AudioNodeCustomSource_funcs);
         } else if (strcmp("custom", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, AV::Audio::CUSTOM, in, out, audio);
+            node = new JSAudioNode(ret, cx, Audio::CUSTOM, in, out, audio);
             JS_DefineFunctions(cx, ret, AudioNodeCustom_funcs);
         } else if (strcmp("reverb", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, AV::Audio::REVERB, in, out, audio);
+            node = new JSAudioNode(ret, cx, Audio::REVERB, in, out, audio);
         } else if (strcmp("delay", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, AV::Audio::DELAY, in, out, audio);
+            node = new JSAudioNode(ret, cx, Audio::DELAY, in, out, audio);
         } else if (strcmp("gain", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, AV::Audio::GAIN, in, out, audio);
+            node = new JSAudioNode(ret, cx, Audio::GAIN, in, out, audio);
         } else if (strcmp("target", cname.ptr()) == 0) {
             if (audio->m_Target != NULL) {
                 JS::RootedObject retObj(cx, audio->m_Target->getJSObject());
                 args.rval().setObjectOrNull(retObj);
                 return true;
             } else {
-                node = new JSAudioNode(ret, cx, AV::Audio::TARGET, in, out, audio);
+                node = new JSAudioNode(ret, cx, Audio::TARGET, in, out, audio);
                 audio->m_Target = node;
             }
         } else if (strcmp("stereo-enhancer", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, AV::Audio::STEREO_ENHANCER, in, out, audio);
+            node = new JSAudioNode(ret, cx, Audio::STEREO_ENHANCER, in, out, audio);
         } else {
             JS_ReportError(cx, "Unknown node name : %s\n", cname.ptr());
             return false;
         }
-    } catch (AV::AudioNodeException *e) {
+    } catch (AudioNodeException *e) {
         delete node;
         JS_ReportError(cx, "Error while creating node : %s\n", e->what());
         return false;
@@ -1381,13 +1397,13 @@ static bool nidium_audio_createnode(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool nidium_audio_connect(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    AV::NodeLink *nlink1;
-    AV::NodeLink *nlink2;
+    NodeLink *nlink1;
+    NodeLink *nlink2;
     JSAudio *jaudio;
 
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSAudio, &AudioContext_class);
     jaudio = CppObj;
-    AV::Audio *audio = jaudio->m_Audio;
+    Audio *audio = jaudio->m_Audio;
 
     JS::RootedObject link1(cx);
     JS::RootedObject link2(cx);
@@ -1395,8 +1411,8 @@ static bool nidium_audio_connect(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    nlink1 = (AV::NodeLink *)JS_GetInstancePrivate(cx, link1, &AudioNodeLink_class, &args);
-    nlink2 = (AV::NodeLink *)JS_GetInstancePrivate(cx, link2, &AudioNodeLink_class, &args);
+    nlink1 = (NodeLink *)JS_GetInstancePrivate(cx, link1, &AudioNodeLink_class, &args);
+    nlink2 = (NodeLink *)JS_GetInstancePrivate(cx, link2, &AudioNodeLink_class, &args);
 
     if (nlink1 == NULL || nlink2 == NULL) {
         JS_ReportError(cx, "Bad AudioNodeLink\n");
@@ -1425,13 +1441,13 @@ static bool nidium_audio_connect(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool nidium_audio_disconnect(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    AV::NodeLink *nlink1;
-    AV::NodeLink *nlink2;
+    NodeLink *nlink1;
+    NodeLink *nlink2;
     JSAudio *jaudio;
 
     NIDIUM_JS_PROLOGUE_CLASS(JSAudio, &AudioContext_class);
     jaudio = CppObj;
-    AV::Audio *audio = jaudio->m_Audio;
+    Audio *audio = jaudio->m_Audio;
 
     JS::RootedObject link1(cx);
     JS::RootedObject link2(cx);
@@ -1439,8 +1455,8 @@ static bool nidium_audio_disconnect(JSContext *cx, unsigned argc, JS::Value *vp)
         return true;
     }
 
-    nlink1 = (AV::NodeLink *)JS_GetInstancePrivate(cx, link1, &AudioNodeLink_class, &args);
-    nlink2 = (AV::NodeLink *)JS_GetInstancePrivate(cx, link2, &AudioNodeLink_class, &args);
+    nlink1 = (NodeLink *)JS_GetInstancePrivate(cx, link1, &AudioNodeLink_class, &args);
+    nlink2 = (NodeLink *)JS_GetInstancePrivate(cx, link2, &AudioNodeLink_class, &args);
 
     if (nlink1 == NULL || nlink2 == NULL) {
         JS_ReportError(cx, "Bad AudioNodeLink\n");
@@ -1503,7 +1519,7 @@ static bool nidium_audio_prop_getter(JSContext *cx, JS::HandleObject obj, uint8_
 
     CHECK_INVALID_CTX(jaudio);
 
-    AV::AudioParameters *params = jaudio->m_Audio->m_OutputParameters;
+    AudioParameters *params = jaudio->m_Audio->m_OutputParameters;
 
     switch(id) {
         case AUDIO_PROP_BUFFERSIZE:
@@ -1532,9 +1548,9 @@ static bool nidium_AudioNode_constructor(JSContext *cx, unsigned argc, JS::Value
     return false;
 }
 
-static void nidium_audionode_set_internal(JSContext *cx, AV::AudioNode *node, const char *prop, JS::HandleValue val)
+static void nidium_audionode_set_internal(JSContext *cx, AudioNode *node, const char *prop, JS::HandleValue val)
 {
-    AV::ArgType type;
+    ArgType type;
     void *value;
     int intVal = 0;
     double doubleVal = 0;
@@ -1566,7 +1582,7 @@ static bool nidium_audionode_set(JSContext *cx, unsigned argc, JS::Value *vp)
     NIDIUM_JS_PROLOGUE_CLASS(JSAudioNode, &AudioNode_class);
     jnode = CppObj;
 
-    AV::AudioNode *node = jnode->m_Node;
+    AudioNode *node = jnode->m_Node;
 
     NIDIUM_JS_CHECK_ARGS("set", 1)
 
@@ -1613,7 +1629,7 @@ static bool nidium_audionode_get(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool nidium_audionode_custom_set(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JSAudioNode::Message *msg;
-    AV::AudioNodeCustom *node;
+    AudioNodeCustom *node;
     JSAudioNode *jnode;
 
     NIDIUM_JS_PROLOGUE_CLASS(JSAudioNode, &AudioNode_class);
@@ -1645,7 +1661,7 @@ static bool nidium_audionode_custom_set(JSContext *cx, unsigned argc, JS::Value 
         return false;
     }
 
-    node = static_cast<AV::AudioNodeCustom *>(jnode->m_Node);
+    node = static_cast<AudioNodeCustom *>(jnode->m_Node);
 
     msg = new JSAudioNode::Message();
 
@@ -1677,7 +1693,7 @@ static bool nidium_audionode_custom_assign(JSContext *cx, JSAudioNode *jnode, \
 {
     JSTransferableFunction *fun;
     JSAudioNode::TransferableFunction funID;
-    AV::AudioNode *node = static_cast<AV::AudioNode *>(jnode->m_Node);
+    AudioNode *node = static_cast<AudioNode *>(jnode->m_Node);
 
     switch (callbackID) {
         case NODE_CUSTOM_PROCESS_CALLBACK:
@@ -1728,7 +1744,7 @@ static bool nidium_audionode_custom_assign_processor(JSContext *cx, unsigned arg
     NIDIUM_JS_PROLOGUE_CLASS(JSAudioNode, &AudioNode_class);
     NIDIUM_JS_CHECK_ARGS("assignProcessor", 1);
 
-    AV::AudioNodeCustom *node = static_cast<AV::AudioNodeCustom *>(CppObj->m_Node);
+    AudioNodeCustom *node = static_cast<AudioNodeCustom *>(CppObj->m_Node);
 
     if (!nidium_audionode_custom_assign(cx, CppObj, NODE_CUSTOM_PROCESS_CALLBACK, args[0])) {
         return false;
@@ -1760,7 +1776,7 @@ static bool nidium_audionode_custom_assign_seek(JSContext *cx, unsigned argc, JS
     NIDIUM_JS_PROLOGUE_CLASS(JSAudioNode, &AudioNode_class);
     NIDIUM_JS_CHECK_ARGS("assignSeek", 1);
 
-    AV::AudioCustomSource *node = static_cast<AV::AudioCustomSource *>(CppObj->m_Node);
+    AudioCustomSource *node = static_cast<AudioCustomSource *>(CppObj->m_Node);
 
     if (!nidium_audionode_custom_assign(cx, CppObj, NODE_CUSTOM_SEEK_CALLBACK, args[0])) {
         return false;
@@ -1775,7 +1791,7 @@ static bool nidium_audionode_custom_source_position_setter(JSContext *cx, unsign
 {
     NIDIUM_JS_PROLOGUE_CLASS(JSAudioNode, &AudioNode_class);
 
-    AV::AudioCustomSource *source = static_cast<AV::AudioCustomSource*>(CppObj->m_Node);
+    AudioCustomSource *source = static_cast<AudioCustomSource*>(CppObj->m_Node);
 
     if (args[0].isNumber()) {
         source->seek(args[0].toNumber());
@@ -1925,7 +1941,7 @@ static bool nidium_audionode_source_open(JSContext *cx, unsigned argc, JS::Value
     NIDIUM_JS_PROLOGUE_CLASS(JSAudioNode, &AudioNode_class);
     jnode = CppObj;
 
-    AV::AudioSource *source = (AV::AudioSource *)jnode->m_Node;
+    AudioSource *source = (AudioSource *)jnode->m_Node;
 
     JS::RootedValue src(cx, args[0]);
 
@@ -1957,9 +1973,9 @@ static bool nidium_audionode_source_open(JSContext *cx, unsigned argc, JS::Value
 }
 static bool nidium_audionode_source_play(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    AV::AudioSource *source;
+    AudioSource *source;
 
-    GET_NODE(AV::AudioSource, source);
+    GET_NODE(AudioSource, source);
 
     source->play();
 
@@ -1970,9 +1986,9 @@ static bool nidium_audionode_source_play(JSContext *cx, unsigned argc, JS::Value
 
 static bool nidium_audionode_source_pause(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    AV::AudioSource *source;
+    AudioSource *source;
 
-    GET_NODE(AV::AudioSource, source);
+    GET_NODE(AudioSource, source);
 
     source->pause();
 
@@ -1981,9 +1997,9 @@ static bool nidium_audionode_source_pause(JSContext *cx, unsigned argc, JS::Valu
 
 static bool nidium_audionode_source_stop(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    AV::AudioSource *source;
+    AudioSource *source;
 
-    GET_NODE(AV::AudioSource, source);
+    GET_NODE(AudioSource, source);
 
     source->stop();
 
@@ -1992,9 +2008,9 @@ static bool nidium_audionode_source_stop(JSContext *cx, unsigned argc, JS::Value
 
 static bool nidium_audionode_source_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    AV::AudioSource *source;
+    AudioSource *source;
 
-    GET_NODE(AV::AudioSource, source);
+    GET_NODE(AudioSource, source);
 
     source->close();
 
@@ -2008,7 +2024,7 @@ static bool nidium_audionode_source_prop_getter(JSContext *cx, JS::HandleObject 
 
     CHECK_INVALID_CTX(jnode);
 
-    AV::AudioSource *source = static_cast<AV::AudioSource *>(jnode->m_Node);
+    AudioSource *source = static_cast<AudioSource *>(jnode->m_Node);
 
     return JSAVSource::PropGetter(source, cx, id, vp);
 }
@@ -2020,16 +2036,16 @@ static bool nidium_audionode_source_prop_setter(JSContext *cx, JS::HandleObject 
 
     CHECK_INVALID_CTX(jnode);
 
-    AV::AudioSource *source = static_cast<AV::AudioSource*>(jnode->m_Node);
+    AudioSource *source = static_cast<AudioSource*>(jnode->m_Node);
 
     return JSAVSource::PropSetter(source, id, vp);
 }
 
 static bool nidium_audionode_custom_source_play(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    AV::AudioCustomSource *source;
+    AudioCustomSource *source;
 
-    GET_NODE(AV::AudioCustomSource, source);
+    GET_NODE(AudioCustomSource, source);
 
     source->play();
 
@@ -2040,9 +2056,9 @@ static bool nidium_audionode_custom_source_play(JSContext *cx, unsigned argc, JS
 
 static bool nidium_audionode_custom_source_pause(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    AV::AudioCustomSource *source;
+    AudioCustomSource *source;
 
-    GET_NODE(AV::AudioCustomSource, source);
+    GET_NODE(AudioCustomSource, source);
 
     source->pause();
 
@@ -2051,9 +2067,9 @@ static bool nidium_audionode_custom_source_pause(JSContext *cx, unsigned argc, J
 
 static bool nidium_audionode_custom_source_stop(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    AV::AudioCustomSource *source;
+    AudioCustomSource *source;
 
-    GET_NODE(AV::AudioCustomSource, source);
+    GET_NODE(AudioCustomSource, source);
 
     source->stop();
 
@@ -2117,7 +2133,7 @@ JSVideo::JSVideo(JS::HandleObject obj,
     m_Width(-1), m_Height(-1), m_Left(0), m_Top(0), m_IsDestructing(false),
     m_CanvasCtx(canvasCtx), m_Cx(cx)
 {
-    m_Video = new AV::Video((ape_global *)JS_GetContextPrivate(cx));
+    m_Video = new Video((ape_global *)JS_GetContextPrivate(cx));
     m_Video->frameCallback(JSVideo::FrameCallback, this);
     m_Video->eventCallback(JSVideo::onEvent, this);
     m_CanvasCtx->getHandler()->addListener(this);
@@ -2130,11 +2146,11 @@ void JSVideo::stopAudio()
     this->releaseAudioNode();
 }
 
-void JSVideo::onMessage(const Core::SharedMessages::Message &msg)
+void JSVideo::onMessage(const SharedMessages::Message &msg)
 {
     if (m_IsDestructing) return;
 
-    if (msg.event() == NIDIUM_EVENT(Graphics::CanvasHandler, RESIZE_EVENT) && (m_Width == -1 || m_Height == -1)) {
+    if (msg.event() == NIDIUM_EVENT(CanvasHandler, RESIZE_EVENT) && (m_Width == -1 || m_Height == -1)) {
         this->setSize(m_Width, m_Height);
     } else {
         if (msg.event() == SOURCE_EVENT_PLAY) {
@@ -2158,7 +2174,7 @@ void JSVideo::onMessage(const Core::SharedMessages::Message &msg)
     }
 }
 
-void JSVideo::onEvent(const struct AV::AVSourceEvent *cev)
+void JSVideo::onEvent(const struct AVSourceEvent *cev)
 {
     JSVideo *thiz = static_cast<JSVideo *>(cev->m_Custom);
     thiz->postMessage((void *)cev, cev->m_Ev);
@@ -2167,8 +2183,8 @@ void JSVideo::onEvent(const struct AV::AVSourceEvent *cev)
 void JSVideo::FrameCallback(uint8_t *data, void *custom)
 {
     JSVideo *v = (JSVideo *)custom;
-    Graphics::CanvasHandler *handler = v->m_CanvasCtx->getHandler();
-    Graphics::SkiaContext *surface = v->m_CanvasCtx->getSurface();
+    CanvasHandler *handler = v->m_CanvasCtx->getHandler();
+    SkiaContext *surface = v->m_CanvasCtx->getSurface();
     JSContext *cx = v->m_Cx;
 
     surface->setFillColor(0xFF000000);
@@ -2322,14 +2338,14 @@ static bool nidium_video_get_audionode(JSContext *cx, unsigned argc, JS::Value *
         return true;
     }
 
-    AV::AudioSource *source = v->m_Video->getAudioNode(jaudio->m_Audio);
+    AudioSource *source = v->m_Video->getAudioNode(jaudio->m_Audio);
 
     if (source != NULL) {
         JS::RootedObject audioNode(cx, JS_NewObjectForConstructor(cx, &AudioNode_class, args));
         v->m_AudioNode = audioNode;
 
         JSAudioNode *node = new JSAudioNode(audioNode, cx,
-          AV::Audio::SOURCE, static_cast<class AV::AudioNode *>(source), jaudio);
+          Audio::SOURCE, static_cast<class AudioNode *>(source), jaudio);
 
         JS::RootedString name(cx, JS_NewStringCopyN(cx, "video-source", 12));
         JS::RootedObject an(cx, v->m_AudioNode);
@@ -2422,7 +2438,7 @@ static bool nidium_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp
         return true;
     }
 
-    Graphics::CanvasHandler *handler = static_cast<class JSCanvas*>(
+    CanvasHandler *handler = static_cast<class JSCanvas*>(
         JS_GetInstancePrivate(cx, canvas, &Canvas_class, &args))->getHandler();
 
     if (!handler) {
@@ -2430,8 +2446,8 @@ static bool nidium_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp
         return false;
     }
 
-    Graphics::CanvasContext *ncc = handler->getContext();
-    if (ncc == NULL || ncc->m_Mode != Graphics::CanvasContext::CONTEXT_2D) {
+    CanvasContext *ncc = handler->getContext();
+    if (ncc == NULL || ncc->m_Mode != CanvasContext::CONTEXT_2D) {
         JS_ReportError(cx, "Invalid canvas context. Did you called canvas.getContext('2d') ?");
         return false;
     }
@@ -2460,7 +2476,7 @@ void JSVideo::releaseAudioNode()
 
         if (node) {
             JS_SetReservedSlot(node->getJSObject(), 0, JSVAL_NULL);
-            // will remove the source from JSAudio and AV::Audio
+            // will remove the source from JSAudio and Audio
             delete node;
         }
 
@@ -2502,7 +2518,7 @@ static void Video_Finalize(JSFreeOp *fop, JSObject *obj) {
     }
 }
 
-bool JSAVSource::PropSetter(AV::AVSource *source, uint8_t id, JS::MutableHandleValue vp)
+bool JSAVSource::PropSetter(AVSource *source, uint8_t id, JS::MutableHandleValue vp)
 {
     switch(id) {
         case SOURCE_PROP_POSITION:
@@ -2528,7 +2544,7 @@ void CopyMetaDataToJS(AVDictionary *dict, JSContext *cx, JS::HandleObject obj) {
         JS_DefineProperty(cx, obj, tag->key, value, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
     }
 }
-bool JSAVSource::PropGetter(AV::AVSource *source, JSContext *cx, uint8_t id, JS::MutableHandleValue vp)
+bool JSAVSource::PropGetter(AVSource *source, JSContext *cx, uint8_t id, JS::MutableHandleValue vp)
 {
     switch(id) {
         case SOURCE_PROP_POSITION:
@@ -2604,7 +2620,7 @@ bool JSAVSource::PropGetter(AV::AVSource *source, JSContext *cx, uint8_t id, JS:
 bool JSAudioNode::PropSetter(JSAudioNode *jnode, JSContext *cx,
         uint8_t id, JS::MutableHandleValue vp)
 {
-    AV::AudioCustomSource *source = static_cast<AV::AudioCustomSource*>(jnode->m_Node);
+    AudioCustomSource *source = static_cast<AudioCustomSource*>(jnode->m_Node);
 
     switch(id) {
         case SOURCE_PROP_POSITION:
@@ -2619,7 +2635,7 @@ bool JSAudioNode::PropSetter(JSAudioNode *jnode, JSContext *cx,
     return true;
 }
 
-void JSAudioNode::SeekCallback(AV::AudioCustomSource *node, double seekTime, void *custom)
+void JSAudioNode::SeekCallback(AudioCustomSource *node, double seekTime, void *custom)
 {
     JSAudioNode *jnode = static_cast<JSAudioNode*>(custom);
     JSContext *threadCx = jnode->m_Audio->m_JsTcx;

@@ -8,6 +8,8 @@
 
 #include "Macros.h"
 
+using Nidium::Core::Hash64;
+
 namespace Nidium {
 namespace Graphics {
 
@@ -57,7 +59,7 @@ public:
     }
 
 private:
-    Nidium::Core::Hash64<Resource *> m_List;
+    Hash64<Resource *> m_List;
 
     uint64_t genId(uint32_t glid, ResourceType type) const
     {

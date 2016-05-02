@@ -20,6 +20,8 @@ extern "C" {
 #include "AudioNodeGain.h"
 #include "AudioNodeDelay.h"
 
+using Nidium::Core::SharedMessages;
+
 namespace Nidium {
 namespace AV {
 
@@ -64,7 +66,7 @@ Audio::Audio(ape_global *n, unsigned int bufferSize, unsigned int channels, unsi
 
     Pa_Initialize();
 
-    m_SharedMsg = new Nidium::Core::SharedMessages();
+    m_SharedMsg = new SharedMessages();
 
     int actualBufferSize = bufferSize;
     if (bufferSize == 0) {
@@ -203,7 +205,7 @@ void Audio::readMessages()
 void Audio::readMessages(bool flush)
 {
 #define MAX_MSG_IN_ROW 1024
-    Nidium::Core::SharedMessages::Message *msg;
+    SharedMessages::Message *msg;
     int nread = 0;
     while (((!flush && ++nread < MAX_MSG_IN_ROW) || flush) && (msg = m_SharedMsg->readMessage())) {
         switch (msg->event()) {

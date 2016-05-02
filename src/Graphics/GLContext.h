@@ -16,6 +16,11 @@ namespace Nidium {
     namespace Interface {
         extern UIInterface *__NativeUI;
     }
+}
+
+using Nidium::Interface::UIInterface;
+
+namespace Nidium {
 namespace Graphics {
 
 // {{{ Macro's
@@ -30,13 +35,13 @@ namespace Graphics {
 
     #define NIDIUM_GL_CALL(IFACE, X)                         \
         do {                                                 \
-            Graphics::GLContext::GLCallback(IFACE->m_Interface);  \
+            GLContext::GLCallback(IFACE->m_Interface);  \
             (IFACE)->m_Interface->fFunctions.f##X;            \
         } while (false)
 
     #define NIDIUM_GL_CALL_RET(IFACE, X, RET)   \
         do {                                    \
-            Graphics::GLContext::GLCallback(IFACE->m_Interface);  \
+            GLContext::GLCallback(IFACE->m_Interface);  \
             (RET) =  (IFACE)->m_Interface->fFunctions.f##X;   \
         } while (false)
 
@@ -44,7 +49,7 @@ namespace Graphics {
     #define NIDIUM_GL_CALL(IFACE, X)                         \
         do {                                                 \
             uint32_t __err;                                  \
-            Graphics::GLContext::GLCallback(IFACE->m_Interface); \
+            GLContext::GLCallback(IFACE->m_Interface); \
             (IFACE)->m_Interface->fFunctions.f##X;           \
             if ((__err = (IFACE)->m_Interface->fFunctions.fGetError()) != GR_GL_NO_ERROR) { \
                 NLOG("[Nidium GL Error : gl%s() returned %d", #X, __err);    \
@@ -54,7 +59,7 @@ namespace Graphics {
     #define NIDIUM_GL_CALL_RET(IFACE, X, RET)   \
         do {                                    \
             uint32_t __err; \
-            Graphics::GLContext::GLCallback(IFACE->m_Interface);  \
+            GLContext::GLCallback(IFACE->m_Interface);  \
             (RET) =  (IFACE)->m_Interface->fFunctions.f##X;   \
             if ((__err = (IFACE)->m_Interface->fFunctions.fGetError()) != GR_GL_NO_ERROR) { \
                 NLOG("[Nidium GL Error : gl%s() returned %d", #X, __err);    \
@@ -71,7 +76,7 @@ namespace Graphics {
 class GLContext
 {
     public:
-        GLContext(Nidium::Interface::UIInterface *ui,
+        GLContext(UIInterface *ui,
             SDL_GLContext wrappedCtx = NULL, bool webgl = false) :
             m_Interface(NULL), m_UI(ui)
         {
@@ -133,7 +138,7 @@ class GLContext
             }
         }
 
-        Nidium::Interface::UIInterface *getUI() const {
+        UIInterface *getUI() const {
             return m_UI;
         }
 
@@ -160,7 +165,7 @@ class GLContext
         }
 
         SDL_GLContext m_SDLGLCtx;
-        Nidium::Interface::UIInterface *m_UI;
+        UIInterface *m_UI;
         bool m_Wrapped;
 };
 // }}}

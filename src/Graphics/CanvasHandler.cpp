@@ -9,13 +9,20 @@
 
 #include "Binding/JSCanvas2DContext.h"
 
+using Nidium::Core::Args;
+using Nidium::Frontend::Context;
+using Nidium::Frontend::InputEvent;
+using Nidium::Graphics::CanvasHandler;
+using Nidium::Binding::Canvas2DContext;
+using Nidium::Interface::UIInterface;
+
 namespace Nidium {
 namespace Graphics {
 
 int CanvasHandler::m_LastIdx = 0;
 
 CanvasHandler::CanvasHandler(int width, int height,
-    Nidium::Frontend::Context *nativeCtx, bool lazyLoad) :
+    Context *nativeCtx, bool lazyLoad) :
     m_Context(NULL),
     m_JsCx(nativeCtx->getNJS()->getJSContext()), m_Left(0.0), m_Top(0.0),
     m_aLeft(0), m_aTop(0), m_Right(0.0), m_Bottom(0.0), m_Overflow(true),
@@ -25,7 +32,7 @@ CanvasHandler::CanvasHandler(int width, int height,
     m_CoordMode(kLeft_Coord | kTop_Coord), m_Opacity(1.0), m_Zoom(1.0),
     m_ScaleX(1.0), m_ScaleY(1.0), m_AllowNegativeScroll(false),
     m_NativeContext(nativeCtx), m_Pending(0), m_Loaded(!lazyLoad),
-     m_Cursor(Nidium::Interface::UIInterface::ARROW)
+     m_Cursor(UIInterface::ARROW)
 {
     /*
         TODO: thread safe
@@ -223,7 +230,7 @@ void CanvasHandler::deviceSetSize(int width, int height)
             height + (m_Padding.global * 2));
     }
 
-    Nidium::Core::Args arg;
+    Args arg;
 
     arg[0].set(width);
     arg[1].set(height);
@@ -423,7 +430,7 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
 
 void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
 {
-    Nidium::Frontend::InputEvent *ev = m_NativeContext->getInputEvents();
+    InputEvent *ev = m_NativeContext->getInputEvents();
     if (ev == NULL) {
         return;
     }
@@ -458,7 +465,7 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
                 evlist = ape_new_pool_list(0, 4);
             }
 
-            Nidium::Frontend::InputEvent *dup = ev->dupWithHandler(this);
+            InputEvent *dup = ev->dupWithHandler(this);
 
             ape_pool_push(evlist, dup);
         }
@@ -564,7 +571,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
                 m_aTop + m_Padding.global + this->getHeight())));
 
         if (draw && m_Context && willDraw) {
-            m_Context->preComposeOn(static_cast<Nidium::Binding::Canvas2DContext *>(layerContext.m_Layer->m_Context),
+            m_Context->preComposeOn(static_cast<Canvas2DContext *>(layerContext.m_Layer->m_Context),
                 m_aLeft - m_Padding.global,
                 m_aTop - m_Padding.global, popacity, m_Zoom,
                 (m_CoordPosition == COORD_ABSOLUTE) ? NULL : layerContext.m_Clip);
@@ -955,12 +962,12 @@ void CanvasHandler::getChildren(CanvasHandler **out) const
 
 int CanvasHandler::getCursor()
 {
-    if (m_Cursor != Nidium::Interface::UIInterface::ARROW) {
+    if (m_Cursor != UIInterface::ARROW) {
         return m_Cursor;
     }
 
     /* Inherit from parent when default */
-    return m_Parent ? m_Parent->getCursor() : Nidium::Interface::UIInterface::ARROW;
+    return m_Parent ? m_Parent->getCursor() : UIInterface::ARROW;
 }
 // }}}
 
@@ -968,7 +975,7 @@ int CanvasHandler::getCursor()
 void CanvasHandler::setCursor(int cursor)
 {
     m_Cursor = cursor;
-    Nidium::Interface::__NativeUI->setCursor((Nidium::Interface::UIInterface::CURSOR_TYPE)this->getCursor());
+    Nidium::Interface::__NativeUI->setCursor((UIInterface::CURSOR_TYPE)this->getCursor());
 }
 
 void CanvasHandler::setHidden(bool val)
@@ -1064,7 +1071,7 @@ void CanvasHandler::unrootHierarchy()
 
 void CanvasHandler::_JobResize(void *arg)
 {
-    Nidium::Core::Args *args = (Nidium::Core::Args *)arg;
+    Args *args = (Args *)arg;
     CanvasHandler *handler = static_cast<CanvasHandler *>(args[0][0].toPtr());
 
     int64_t height = args[0][1].toInt64();
@@ -1106,7 +1113,7 @@ void CanvasHandler::execPending()
 bool CanvasHandler::checkLoaded()
 {
     if (m_Loaded) {
-        Nidium::Core::Args arg;
+        Args arg;
         this->fireEvent<CanvasHandler>(LOADED_EVENT, arg, true);
         return true;
     }
@@ -1115,7 +1122,7 @@ bool CanvasHandler::checkLoaded()
 
 void CanvasHandler::propertyChanged(EventsChangedProperty property)
 {
-    Nidium::Core::Args arg;
+    Args arg;
     arg[0].set(property);
 
     switch (property) {
@@ -1133,16 +1140,16 @@ void CanvasHandler::propertyChanged(EventsChangedProperty property)
 }
 
 // {{{ Events
-void CanvasHandler::onDrag(Nidium::Frontend::InputEvent *ev, CanvasHandler *target, bool end)
+void CanvasHandler::onDrag(InputEvent *ev, CanvasHandler *target, bool end)
 {
-    Nidium::Core::Args arg;
+    Args arg;
 
     if (!end) {
         arg[0].set((m_Flags & kDrag_Flag) == 0 ?
-            Nidium::Frontend::InputEvent::kMouseDragStart_Type :
-            Nidium::Frontend::InputEvent::kMouseDrag_Type);
+            InputEvent::kMouseDragStart_Type :
+            InputEvent::kMouseDrag_Type);
     } else {
-        arg[0].set(Nidium::Frontend::InputEvent::kMouseDragEnd_Type);
+        arg[0].set(InputEvent::kMouseDragEnd_Type);
     }
 
     arg[1].set(ev->m_x);
@@ -1160,17 +1167,17 @@ void CanvasHandler::onDrag(Nidium::Frontend::InputEvent *ev, CanvasHandler *targ
     this->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg);
 
     if (!end) {
-        arg[0].set(Nidium::Frontend::InputEvent::kMouseDragOver_Type);
+        arg[0].set(InputEvent::kMouseDragOver_Type);
         arg[7].set(this); // source
 
         target->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg);
     }
 }
 
-void CanvasHandler::onDrop(Nidium::Frontend::InputEvent *ev, CanvasHandler *drop)
+void CanvasHandler::onDrop(InputEvent *ev, CanvasHandler *drop)
 {
-    Nidium::Core::Args arg;
-    arg[0].set(Nidium::Frontend::InputEvent::kMouseDrop_Type);
+    Args arg;
+    arg[0].set(InputEvent::kMouseDrop_Type);
     arg[1].set(ev->m_x);
     arg[2].set(ev->m_y);
     arg[3].set((int64_t)0);
@@ -1182,19 +1189,19 @@ void CanvasHandler::onDrop(Nidium::Frontend::InputEvent *ev, CanvasHandler *drop
     this->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg);
 }
 
-void CanvasHandler::onMouseEvent(Nidium::Frontend::InputEvent *ev)
+void CanvasHandler::onMouseEvent(InputEvent *ev)
 {
     CanvasHandler *underneath = this;
-    if (Nidium::Frontend::InputEvent *tmpEvent = ev->getEventForNextCanvas()) {
+    if (InputEvent *tmpEvent = ev->getEventForNextCanvas()) {
         underneath = tmpEvent->m_Handler;
     }
 
     switch (ev->getType()) {
-        case Nidium::Frontend::InputEvent::kMouseClick_Type:
+        case InputEvent::kMouseClick_Type:
             if (ev->m_data[0] == 1) // left click
                 m_NativeContext->setCurrentClickedHandler(this);
             break;
-        case Nidium::Frontend::InputEvent::kMouseClickRelease_Type:
+        case InputEvent::kMouseClickRelease_Type:
             if (ev->m_data[0] == 1) {
                 CanvasHandler *drag;
                 if ((drag = m_NativeContext->getCurrentClickedHandler()) &&
@@ -1211,7 +1218,7 @@ void CanvasHandler::onMouseEvent(Nidium::Frontend::InputEvent *ev)
                 m_NativeContext->setCurrentClickedHandler(NULL);
             }
             break;
-        case Nidium::Frontend::InputEvent::kMouseMove_Type:
+        case InputEvent::kMouseMove_Type:
         {
             CanvasHandler *drag;
             if ((drag = m_NativeContext->getCurrentClickedHandler())) {
@@ -1223,19 +1230,19 @@ void CanvasHandler::onMouseEvent(Nidium::Frontend::InputEvent *ev)
         default:
             break;
     }
-    Nidium::Interface::__NativeUI->setCursor((Nidium::Interface::UIInterface::CURSOR_TYPE)this->getCursor());
+    Nidium::Interface::__NativeUI->setCursor((UIInterface::CURSOR_TYPE)this->getCursor());
 }
 
 /*
-    Called by Nidium::Frontend::Context whenever there are pending events on this canvas
+    Called by Context whenever there are pending events on this canvas
     Currently only handle mouse events.
 */
-bool CanvasHandler::_handleEvent(Nidium::Frontend::InputEvent *ev)
+bool CanvasHandler::_handleEvent(InputEvent *ev)
 {
     for (CanvasHandler *handler = this; handler != NULL;
         handler = handler->getParent()) {
 
-        Nidium::Core::Args arg;
+        Args arg;
 
         arg[0].set(ev->getType());
         arg[1].set(ev->m_x);

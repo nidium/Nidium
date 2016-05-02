@@ -15,6 +15,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
 }
+using Nidium::Core::PthreadAutoLock;
 
 namespace Nidium {
 namespace AV {
@@ -888,7 +889,7 @@ int AudioSource::initStream()
         return ERR_INTERNAL;
     }
 
-    Nidium::Core::PthreadAutoLock lock(&AVSource::m_FfmpegLock);
+    PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     // Retrieve stream information
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
         fprintf(stderr, "Couldn't find stream information\n");
@@ -929,7 +930,7 @@ int AudioSource::initInternal()
         return ERR_NO_CODEC;
     }
 
-    Nidium::Core::PthreadAutoLock lock(&AVSource::m_FfmpegLock);
+    PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     if (avcodec_open2(m_CodecCtx, codec, NULL) < 0) {
         fprintf(stderr, "Could not find or open the needed codec\n");
         return ERR_NO_CODEC;
@@ -1499,7 +1500,7 @@ void AudioSource::closeInternal(bool reset)
 
     if (m_Opened) {
         if (!m_ExternallyManaged) {
-            Nidium::Core::PthreadAutoLock lock(&AVSource::m_FfmpegLock);
+            PthreadAutoLock lock(&AVSource::m_FfmpegLock);
 
             avcodec_close(m_CodecCtx);
             av_free(m_Container->pb);

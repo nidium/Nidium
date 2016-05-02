@@ -11,6 +11,10 @@
 #include <IO/Stream.h>
 #include <Core/Messages.h>
 
+using Nidium::Core::SharedMessages;
+using Nidium::Core::Messages;
+using Nidium::IO::Stream;
+
 namespace Nidium {
 namespace Frontend {
 
@@ -20,7 +24,7 @@ class Assets
 {
     public:
 
-        class Item : public Nidium::Core::Messages
+        class Item : public Messages
         {
             friend class Assets;
             public:
@@ -66,8 +70,8 @@ class Assets
                     m_Tagname = strdup(name);
                 }
 
-                Nidium::IO::Stream *m_Stream;
-                void onMessage(const Nidium::Core::SharedMessages::Message &msg);
+                Stream *m_Stream;
+                void onMessage(const SharedMessages::Message &msg);
             private:
                 const char *m_Url;
                 ape_global *m_Net;

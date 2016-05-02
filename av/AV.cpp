@@ -14,6 +14,11 @@ extern "C" {
 
 #include "AudioNode.h"
 
+using Nidium::Core::Utils;
+using Nidium::Core::Path;
+using Nidium::Core::SharedMessages;
+using Nidium::IO::Stream;
+
 namespace Nidium {
 namespace AV {
 
@@ -81,7 +86,7 @@ AVStreamReader::AVStreamReader(const char *src,
       m_HaveDataAvailable(false)
 {
     m_Async = true;
-    m_Stream = Nidium::IO::Stream::Create(Nidium::Core::Path(src));
+    m_Stream = Stream::Create(Path(src));
     //m_Stream->setAutoClose(false);
     m_Stream->start(STREAM_BUFFER_SIZE);
     m_Stream->setListener(this);
@@ -135,15 +140,15 @@ int AVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                     thiz->m_Pending = false;
                     thiz->m_NeedWakup = false;
                     return AVERROR_EXIT;
-                case Nidium::IO::Stream::DATA_STATUS_END:
-                case Nidium::IO::Stream::DATA_STATUS_ERROR:
+                case Stream::DATA_STATUS_END:
+                case Stream::DATA_STATUS_ERROR:
                     thiz->m_Error = AVERROR_EOF;
                     SPAM(("Got EOF\n"));
                     thiz->m_Pending = false;
                     thiz->m_NeedWakup = false;
                     return copied > 0 ? copied : thiz->m_Error;
                 break;
-                case Nidium::IO::Stream::DATA_STATUS_EAGAIN:
+                case Stream::DATA_STATUS_EAGAIN:
                     SPAM(("Got eagain\n"));
                     if (!thiz->m_HaveDataAvailable) {
                         // Got EAGAIN, switch back to main coro
@@ -239,7 +244,7 @@ int64_t AVStreamReader::seek(void *opaque, int64_t offset, int whence)
         return pos;
     }
 
-    if (Nidium::Core::Utils::IsMainThread()) {
+    if (Utils::IsMainThread()) {
         thiz->m_Stream->seek(pos);
     } else {
         thiz->postMessage(opaque, AVStreamReader::MSG_SEEK);
@@ -249,21 +254,21 @@ int64_t AVStreamReader::seek(void *opaque, int64_t offset, int whence)
     return pos;
 }
 
-void AVStreamReader::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void AVStreamReader::onMessage(const SharedMessages::Message &msg)
 {
     //AVStreamReader *thiz = static_cast<AVStreamReader *>(msg.dataPtr());
 
     switch (msg.event()) {
-        case Nidium::IO::Stream::EVENT_AVAILABLE_DATA:
+        case Stream::EVENT_AVAILABLE_DATA:
             this->onAvailableData(0);
             return;
-        case Nidium::IO::Stream::EVENT_ERROR: {
+        case Stream::EVENT_ERROR: {
             int err;
             int streamErr = msg.m_Args[0].toInt();
 
-            if (streamErr == Nidium::IO::Stream::ERROR_OPEN) {
+            if (streamErr == Stream::ERROR_OPEN) {
                 err = ERR_FAILED_OPEN;
-            } else if (streamErr == Nidium::IO::Stream::ERROR_READ) {
+            } else if (streamErr == Stream::ERROR_READ) {
                 err = ERR_READING;
             } else {
                 err = ERR_IO;
@@ -273,7 +278,7 @@ void AVStreamReader::onMessage(const Nidium::Core::SharedMessages::Message &msg)
 
             return;
         }
-        case Nidium::IO::Stream::EVENT_PROGRESS: {
+        case Stream::EVENT_PROGRESS: {
             AVSourceEvent *ev = m_Source->createEvent(SOURCE_EVENT_BUFFERING, false);
             ev->m_Args[0].set(msg.m_Args[0].toInt64());
             ev->m_Args[1].set(msg.m_Args[1].toInt64());
@@ -281,7 +286,7 @@ void AVStreamReader::onMessage(const Nidium::Core::SharedMessages::Message &msg)
             m_Source->sendEvent(ev);
             return;
         }
-        case Nidium::IO::Stream::EVENT_READ_BUFFER:
+        case Stream::EVENT_READ_BUFFER:
             return;
         case MSG_SEEK:
             m_Stream->seek(m_StreamSeekPos);
@@ -358,7 +363,7 @@ void AVStreamReader::finish()
 
 AVStreamReader::~AVStreamReader()
 {
-    if (Nidium::Core::Utils::IsMainThread()) {
+    if (Utils::IsMainThread()) {
         delete m_Stream;
     } else {
         this->postMessage(this, AVStreamReader::MSG_STOP);
@@ -422,7 +427,7 @@ int AVSource::readError(int err)
 }
 
 
-void AVSource::onMessage(const Nidium::Core::SharedMessages::Message &msg)
+void AVSource::onMessage(const SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case MSG_CLOSE:

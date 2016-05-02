@@ -5,10 +5,17 @@
 #include <Binding/JSExposer.h>
 #include <Binding/JSDB.h>
 
+using Nidium::Frontend::NMLTag;
+
 namespace Nidium {
     namespace Graphics {
         class CanvasHandler;
     }
+}
+
+using Nidium::Graphics::CanvasHandler;
+
+namespace Nidium {
 namespace Binding {
 
 class JSWindow : public JSExposer<JSWindow>
@@ -25,7 +32,7 @@ class JSWindow : public JSExposer<JSWindow>
 
     void onReady(JS::HandleObject layout);
     bool onClose();
-    void assetReady(const Nidium::Frontend::NMLTag &tag);
+    void assetReady(const NMLTag &tag);
     void windowFocus();
     void windowBlur();
     void resized(int width, int height);
@@ -47,7 +54,7 @@ class JSWindow : public JSExposer<JSWindow>
 
     void initDataBase();
 
-    Graphics::CanvasHandler *getCanvasHandler() const {
+    CanvasHandler *getCanvasHandler() const {
         return m_Handler;
     }
 
@@ -82,7 +89,7 @@ class JSWindow : public JSExposer<JSWindow>
         }
     } *m_RequestedFrame;
 
-    Graphics::CanvasHandler *m_Handler;
+    CanvasHandler *m_Handler;
     JSDB *m_Db;
 
     bool m_Dragging;
