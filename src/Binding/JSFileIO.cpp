@@ -30,11 +30,11 @@ namespace Binding {
 // {{{ Preamble
 #define FILE_ROOT_DEBUG 0
 
-enum {
-    FILE_PROP_FILESIZE,
-    FILE_PROP_FILENAME,
-    FILE_PROP_BINARY,
-    FILE_PROP_ASYNC
+enum FileProp {
+    kFileProp_FileSize,
+    kFileProp_FileName,
+    kFileProp_Binary, // not used
+    kFileProp_Async   // not used
 };
 
 #define NJSFIO_GETTER(obj) (static_cast<JSFileIO *>(JS_GetPrivate(obj)))
@@ -74,8 +74,8 @@ static bool nidium_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
 static bool nidium_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSPropertySpec File_props[] = {
-    NIDIUM_JS_PSG("filesize", FILE_PROP_FILESIZE, nidium_file_prop_get),
-    NIDIUM_JS_PSG("filename", FILE_PROP_FILENAME, nidium_file_prop_get),
+    NIDIUM_JS_PSG("filesize", kFileProp_FileSize, nidium_file_prop_get),
+    NIDIUM_JS_PSG("filename", kFileProp_FileName, nidium_file_prop_get),
     JS_PS_END
 };
 
@@ -335,10 +335,10 @@ static bool nidium_file_prop_get(JSContext *cx, JS::HandleObject obj,
     File *file = NJSFIO_GETTER(obj)->getFile();
 
     switch(id) {
-        case FILE_PROP_FILESIZE:
+        case kFileProp_FileSize:
             vp.set(JS_NumberValue(file->getFileSize()));
             break;
-        case FILE_PROP_FILENAME:
+        case kFileProp_FileName:
             vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, file->getFullPath())));
             break;
         default:break;

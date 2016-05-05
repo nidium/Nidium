@@ -19,9 +19,6 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-enum {
-    JSFS_MSG_READDIR_FILE = 1
-};
 
 static bool nidium_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp);
 
@@ -42,13 +39,14 @@ static JSFunctionSpec FS_static_funcs[] = {
 class JSFSAsyncHandler : public JSAsyncHandler
 {
 public:
-    JSFSAsyncHandler(JSContext *ctx) : JSAsyncHandler(ctx) {
-
-    }
+    JSFSAsyncHandler(JSContext *ctx) : JSAsyncHandler(ctx) { }
+    enum {
+        kMessage_ReadDir = 1
+    };
 
     void onMessage(const SharedMessages::Message &msg) {
         switch(msg.event()) {
-            case JSFS_MSG_READDIR_FILE:
+            case kMessage_ReadDir:
             {
                 dirent *cur = static_cast<dirent *>(msg.dataPtr());
                 JSObject *callback = this->getCallback(0);
@@ -96,7 +94,7 @@ public:
             }
             dirent *curcpy = static_cast<dirent *>(malloc(sizeof(dirent)));
             memcpy(curcpy, cur, sizeof(dirent));
-            handler->postMessage(curcpy, JSFS_MSG_READDIR_FILE);
+            handler->postMessage(curcpy, kMessage_ReadDir);
         }
 
         closedir(dir);
@@ -105,7 +103,7 @@ public:
     void onMessageLost(const SharedMessages::Message &msg)
     {
         switch (msg.event()) {
-            case JSFS_MSG_READDIR_FILE:
+            case kMessage_ReadDir:
                 free(msg.dataPtr());
                 break;
             default:

@@ -226,9 +226,9 @@ void JSThread::onMessage(const Core::SharedMessages::Message &msg)
     ptr = static_cast<struct nidium_thread_msg *>(msg.dataPtr());
     memset(prop, 0, sizeof(prop));
 
-    if (ev == NIDIUM_THREAD_MESSAGE) {
+    if (ev == JSThread::kThread_Message) {
         strcpy(prop, "onmessage");
-    } else if (ev == NIDIUM_THREAD_COMPLETE) {
+    } else if (ev == JSThread::kThread_Complete) {
         strcpy(prop, "oncomplete");
     }
 
@@ -274,7 +274,7 @@ void JSThread::onComplete(JS::HandleValue vp)
 
     msg->callee = m_JsObject;
 
-    this->postMessage(msg, NIDIUM_THREAD_COMPLETE);
+    this->postMessage(msg, JSThread::kThread_Complete);
 
     m_Njs->unrootObject(m_JsObject);
 }
@@ -369,8 +369,7 @@ static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp)
     msg->nbytes = nbytes;
     msg->callee = nthread->m_JsObject;
 
-    //nthread->m_Njs->messages->postMessage(msg, NIDIUM_THREAD_MESSAGE);
-    nthread->postMessage(msg, NIDIUM_THREAD_MESSAGE);
+    nthread->postMessage(msg, JSThread::kThread_Message);
 
     return true;
 }

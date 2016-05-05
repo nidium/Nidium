@@ -63,7 +63,7 @@ static bool nidium_modules_require(JSContext *cx, unsigned argc, JS::Value *vp);
 
 // {{{ JSModule
 JSModule::JSModule(JSContext *cx, JSModules *modules, JSModule *parent, const char *name)
-    : m_AbsoluteDir(NULL), m_FilePath(NULL), m_Name(strdup(name)), m_ModuleType(NONE),
+    : m_AbsoluteDir(NULL), m_FilePath(NULL), m_Name(strdup(name)), m_ModuleType(JSModule::kModuleType_None),
       m_Cached(false), m_Exports(NULL), m_Parent(parent), m_Modules(modules), m_Cx(cx)
 {
 }
@@ -296,7 +296,7 @@ JS::Value JSModule::require(char *name)
             return ret;
         }
 
-        if (cmodule->m_ModuleType == JSON || cmodule->m_ModuleType == JS) {
+        if (cmodule->m_ModuleType == JSModule::kModuleType_JSON || cmodule->m_ModuleType == JSModule::kModuleType_JS) {
             size_t filesize;
             char *data;
 
@@ -315,7 +315,7 @@ JS::Value JSModule::require(char *name)
                 return ret;
             }
 
-            if (cmodule->m_ModuleType == JS) {
+            if (cmodule->m_ModuleType == JSModule::kModuleType_JS) {
                 JS::RootedObject expObj(m_Cx, cmodule->m_Exports);
                 JS::CompileOptions options(m_Cx);
                 options.setFileAndLine(cmodule->m_FilePath, 1)
@@ -363,7 +363,7 @@ JS::Value JSModule::require(char *name)
     }
 
     switch (cmodule->m_ModuleType) {
-        case JS:
+        case JSModule::kModuleType_JS:
         {
             JS::RootedValue module(m_Cx);
             JS::RootedObject expObj(m_Cx, cmodule->m_Exports);
@@ -372,8 +372,8 @@ JS::Value JSModule::require(char *name)
             JS_GetProperty(m_Cx, modObj, "exports", &ret);
         }
         break;
-        case JSON:
-        case NIDIUM:
+        case JSModule::kModuleType_JSON:
+        case JSModule::kModuleType_Nidium:
         {
             ret = OBJECT_TO_JSVAL(cmodule->m_Exports);
         }
@@ -437,12 +437,12 @@ bool JSModules::init()
 bool JSModules::init(JSModule *module)
 {
     switch (module->m_ModuleType) {
-        case JSModule::NIDIUM:
+        case JSModule::kModuleType_Nidium:
             if (!module->initNidium()) {
                 return false;
             }
             break;
-        case JSModule::JS:
+        case JSModule::kModuleType_JS:
             if (!module->initJS()) {
                 return false;
             }
@@ -566,7 +566,7 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
         // XXX : Refactor this code. It's a bit messy.
         switch (i) {
             case 0: // directory or exact filename
-                module->m_ModuleType = JSModule::JS;
+                module->m_ModuleType = JSModule::kModuleType_JS;
                 struct stat sb;
                 if (stat(tmp.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode)) {
                     if (JSModules::LoadDirectoryModule(tmp)) {
@@ -579,7 +579,7 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
                     // No extension, assume it's a JS file
                     if (pos == std::string::npos) {
                         DPRINT("      No extension found. Assuming JS file\n");
-                        module->m_ModuleType = JSModule::JS;
+                        module->m_ModuleType = JSModule::kModuleType_JS;
                         return tmp;
                     }
 
@@ -588,13 +588,13 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
                         if (tmpPos != std::string::npos) {
                             switch (j) {
                                 case 1:
-                                    module->m_ModuleType = JSModule::JS;
+                                    module->m_ModuleType = JSModule::kModuleType_JS;
                                     break;
                                 case 2:
-                                    module->m_ModuleType = JSModule::NIDIUM;
+                                    module->m_ModuleType = JSModule::kModuleType_Nidium;
                                     break;
                                 case 3:
-                                    module->m_ModuleType = JSModule::JSON;
+                                    module->m_ModuleType = JSModule::kModuleType_JSON;
                                     break;
                             }
                             return tmp;
@@ -603,13 +603,13 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
                 }
                 continue;
             case 1: // .js
-                module->m_ModuleType = JSModule::JS;
+                module->m_ModuleType = JSModule::kModuleType_JS;
                 break;
             case 2: // nidium module
-                module->m_ModuleType = JSModule::NIDIUM;
+                module->m_ModuleType = JSModule::kModuleType_Nidium;
                 break;
             case 3: // json file
-                module->m_ModuleType = JSModule::JSON;
+                module->m_ModuleType = JSModule::kModuleType_JSON;
                 break;
         }
         DPRINT("    [JSModule] FOUND IT\n");

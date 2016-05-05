@@ -13,8 +13,8 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-enum {
-    STREAM_PROP_FILESIZE
+enum StreamProp {
+    StreamProp_Filesize
 };
 
 static bool nidium_stream_prop_get(JSContext *cx, JS::HandleObject obj,
@@ -45,7 +45,7 @@ static JSFunctionSpec Stream_funcs[] = {
 };
 
 static JSPropertySpec Stream_props[] = {
-    NIDIUM_JS_PSG("filesize", STREAM_PROP_FILESIZE, nidium_stream_prop_get),
+    NIDIUM_JS_PSG("filesize", StreamProp_Filesize, nidium_stream_prop_get),
     JS_PS_END
 };
 // }}}
@@ -145,7 +145,7 @@ static bool nidium_stream_prop_get(JSContext *cx, JS::HandleObject obj,
     JSStream *stream = static_cast<JSStream *>(JS_GetPrivate(obj));
 
     switch(id) {
-        case STREAM_PROP_FILESIZE:
+        case StreamProp_Filesize:
             vp.setInt32(stream->getStream()->getFileSize());
             break;
         default:break;

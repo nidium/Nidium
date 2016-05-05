@@ -26,17 +26,17 @@ class JSModules;
 
 #define NIDIUM_JS_FNPROPS JSPROP_ENUMERATE | JSPROP_PERMANENT
 
-enum {
-    NIDIUM_SCTAG_FUNCTION = JS_SCTAG_USER_MIN + 1,
-    NIDIUM_SCTAG_HIDDEN,
-    NIDIUM_SCTAG_MAX
+enum sctag {
+    kSctag_Function = JS_SCTAG_USER_MIN + 1,
+    kSctag_Hidden,
+    kSctag_Max
 };
 
-enum {
-    NIDIUM_KEY_SHIFT = 1 << 0,
-    NIDIUM_KEY_ALT = 1 << 1,
-    NIDIUM_KEY_CTRL = 1 << 2,
-    NIDIUM_KEY_META = 1 << 3
+enum KeyModifier {
+    kKeyModifier_Shift = 1 << 0,
+    kKeyModifier_Alt = 1 << 1,
+    kKeyModifier_Control = 1 << 2,
+    kKeyModifier_Meta = 1 << 3
 };
 
 struct nidium_thread_msg

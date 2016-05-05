@@ -35,10 +35,10 @@ class UserAgentUtils
 {
 public:
     enum OS {
-        WINDOWS,
-        MAC,
-        UNIX,
-        OTHER
+        kOS_Windows,
+        kOS_Mac,
+        kOS_Unix,
+        kOS_Other
     };
 
     /* Fast OS detection */
@@ -46,7 +46,7 @@ public:
         const char *paddr = strchr(ua, '(');
 
         if (!paddr || !paddr[1] || !paddr[2]) {
-            return OTHER;
+            return UserAgentUtils::kOS_Other;
         }
 
         switch (paddr[1]) {
@@ -54,19 +54,19 @@ public:
             case 'w': /* windows */
             case 'c': /* compatible */
             case 'C': /* Compatible */
-                return WINDOWS;
+                return UserAgentUtils::kOS_Windows;
             case 'X': /* X11 */
-                return UNIX;
+                return UserAgentUtils::kOS_Unix;
             case 'M':
             {
                 if (paddr[2] == 'S') { /* MSIE */
-                    return WINDOWS;
+                    return UserAgentUtils::kOS_Windows;
                 } else if (paddr[2] == 'a') { /* Macintosh */
-                    return MAC;
+                    return UserAgentUtils::kOS_Mac;
                 }
             }
         }
-        return OTHER;
+        return UserAgentUtils::kOS_Other;
     }
 
 };

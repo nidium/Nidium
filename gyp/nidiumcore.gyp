@@ -97,6 +97,8 @@
                 ]
             }]
         ],
+        'cflags': [
+        ],
         'sources': [
             '../src/Net/HTTP.cpp',
             '../src/Net/HTTPParser.cpp',

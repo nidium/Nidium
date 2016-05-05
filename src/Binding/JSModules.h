@@ -28,7 +28,10 @@ class JSModule
         JSModule(JSContext *cx, JSModules *modules, JSModule *parent, const char *name);
 
         enum ModuleType {
-            NONE, JS, NIDIUM, JSON
+            kModuleType_None,
+            kModuleType_JS,
+            kModuleType_Nidium,
+            kModuleType_JSON
         };
 
         char *m_AbsoluteDir;

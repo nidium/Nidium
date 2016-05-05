@@ -40,14 +40,14 @@ public:
 
     template <typename T>
     bool fireEventSync(typename T::Events event, const Args &args) {
-        return this->fireEventImpl<T>(event, args, kPropagation_Sync);
+        return this->fireEventImpl<T>(event, args, Events::kPropagationMode_Sync);
     }
 
     template <typename T>
     bool fireEvent(typename T::Events event, const Args &args,
         bool forceAsync = false) {
 
-        return this->fireEventImpl<T>(event, args, forceAsync ? kPropagation_Async : kPropagation_Auto);
+        return this->fireEventImpl<T>(event, args, forceAsync ? Events::kPropagationMode_Async : Events::kPropagationMode_Auto);
     }
 
     virtual ~Events() {
@@ -62,16 +62,16 @@ public:
 
 private:
     enum PropagationMode {
-        kPropagation_Auto,
-        kPropagation_Sync,
-        kPropagation_Async 
+        kPropagationMode_Auto,
+        kPropagationMode_Sync,
+        kPropagationMode_Async
     };
 
     Hash64<Messages *> m_Listeners;
 
     template <typename T>
     bool fireEventImpl(typename T::Events event, const Args &args,
-        PropagationMode propagation = kPropagation_Auto) {
+        PropagationMode propagation = Events::kPropagationMode_Auto) {
 
         ape_htable_item_t *item;
 
@@ -88,10 +88,10 @@ private:
             }
             msg->m_Priv = 0;
 
-            if (propagation == kPropagation_Sync) {
+            if (propagation == Events::kPropagationMode_Sync) {
                 receiver->postMessageSync(msg);
             } else {
-                receiver->postMessage(msg, propagation == kPropagation_Async ? true : false);
+                receiver->postMessage(msg, propagation == Events::kPropagationMode_Async ? true : false);
             }
 #if 0
             /* TODO FIX : Use after free here */

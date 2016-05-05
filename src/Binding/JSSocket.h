@@ -13,13 +13,6 @@
 namespace Nidium {
 namespace Binding {
 
-enum {
-    SOCKET_ISBINARY          = 1 << 0,
-    SOCKET_READLINE          = 1 << 1,
-    SOCKET_ISSERVER          = 1 << 2,
-    SOCKET_ISCONNECTEDCLIENT = 1 << 3
-};
-
 #define SOCKET_LINEBUFFER_MAX 8192
 
 class JSSocket : public JSExposer<JSSocket>
@@ -30,6 +23,12 @@ public:
         const char *host, unsigned short port);
     ~JSSocket();
 
+    enum SocketType{
+        kSocketType_Binary          = 1 << 0,
+        kSocketType_Readline        = 1 << 1,
+        kSocketType_Server          = 1 << 2,
+        kSocketType_ConnectedClient = 1 << 3
+    };
     int write(unsigned char *data, size_t len,
         ape_socket_data_autorelease data_type);
 
@@ -49,7 +48,7 @@ public:
 
     void setParentServer(JSSocket *parent) {
         m_ParentServer = parent;
-        m_Flags |= SOCKET_ISCONNECTEDCLIENT;
+        m_Flags |= JSSocket::kSocketType_ConnectedClient;
     }
 
     int getFlags() const {

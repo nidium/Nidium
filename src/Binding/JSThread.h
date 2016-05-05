@@ -20,9 +20,14 @@ class NidiumJS;
 
 class JSThread : public JSExposer<JSThread>, public Nidium::Core::Messages
 {
+
   public:
     JSThread(JS::HandleObject obj, JSContext *cx);
-    ~JSThread();
+     enum {
+        kThread_Message = 0,
+        kThread_Complete = 1
+    };
+   ~JSThread();
     static void RegisterObject(JSContext *cx);
     void onComplete(JS::HandleValue vp);
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
@@ -45,12 +50,6 @@ class JSThread : public JSExposer<JSThread>, public Nidium::Core::Messages
     char *m_CallerFileName;
     uint32_t m_CallerLineNo;
 };
-
-enum {
-    NIDIUM_THREAD_MESSAGE = 0,
-    NIDIUM_THREAD_COMPLETE = 1
-};
-
 #endif
 
 } // namespace Binding

@@ -322,13 +322,13 @@ void Path::Makedirs(const char* dirWithSlashes)
 // XXX : Only works with path (not URIs)
 char *Path::Sanitize(const char *path, bool *external)
 {
-    enum {
-        PATH_STATE_START,
-        PATH_STATE_DOT,
-        PATH_STATE_DOUBLE_DOT,
-        PATH_STATE_NAME,
-        PATH_STATE_SLASH
-    } state = PATH_STATE_SLASH;
+    enum PathState {
+        kPathState_Start,
+        kPathState_Dot,
+        kPathState_DoubleDot,
+        kPathState_Name,
+        kPathState_Slash
+    } state = kPathState_Slash;
 
     if (external) {
         *external = false;
@@ -353,17 +353,17 @@ char *Path::Sanitize(const char *path, bool *external)
         switch (path[i]) {
             case '.':
                 switch (state) {
-                    case PATH_STATE_DOT:
-                        state = PATH_STATE_DOUBLE_DOT;
+                    case kPathState_Dot:
+                        state = kPathState_DoubleDot;
                         break;
-                    case PATH_STATE_DOUBLE_DOT:
-                        state = PATH_STATE_NAME;
+                    case kPathState_DoubleDot:
+                        state = kPathState_Name;
                         break;
-                    case PATH_STATE_NAME:
+                    case kPathState_Name:
                         elements[counterPos] += path[i];
                         break;
-                    case PATH_STATE_SLASH:
-                        state = PATH_STATE_DOT;
+                    case kPathState_Slash:
+                        state = kPathState_Dot;
                         break;
                     default:
                         break;
@@ -371,30 +371,30 @@ char *Path::Sanitize(const char *path, bool *external)
                 break;
             case '/':
                 switch (state) {
-                    case PATH_STATE_DOT:
+                    case kPathState_Dot:
                         break;
-                    case PATH_STATE_NAME:
+                    case kPathState_Name:
                         counter++;
                         counterPos++;
                         break;
-                    case PATH_STATE_DOUBLE_DOT:
+                    case kPathState_DoubleDot:
                         HANDLE_DOUBLE_DOT()
                         break;
-                    case PATH_STATE_SLASH:
+                    case kPathState_Slash:
                         break;
                     default:
                         break;
                 }
-                state = PATH_STATE_SLASH;
+                state = kPathState_Slash;
                 break;
             default:
                 elements[counterPos] += path[i];
-                state = PATH_STATE_NAME;
+                state = kPathState_Name;
                 break;
         }
     }
 
-    if (state == PATH_STATE_DOUBLE_DOT) {
+    if (state == kPathState_DoubleDot) {
         HANDLE_DOUBLE_DOT()
     }
 
@@ -412,7 +412,7 @@ char *Path::Sanitize(const char *path, bool *external)
         finalPath += elements[i] + "/";
     }
 
-    if (finalPath.length() > 0 && state == PATH_STATE_NAME) {
+    if (finalPath.length() > 0 && state == kPathState_Name) {
         finalPath[finalPath.length()-1] = '\0';
     }
 

@@ -186,7 +186,7 @@ JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
     NidiumJS *js = static_cast<NidiumJS *>(closure);
 
     switch(tag) {
-        case NIDIUM_SCTAG_FUNCTION:
+        case kSctag_Function:
         {
             const char pre[] = "return (";
             const char end[] = ").apply(this, Array.prototype.slice.apply(arguments));";
@@ -222,7 +222,7 @@ JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
 
             return JS_GetFunctionObject(cf);
         }
-        case NIDIUM_SCTAG_HIDDEN:
+        case kSctag_Hidden:
         {
             uint8_t nullbyte;
             if (!JS_ReadBytes(r, &nullbyte, data)) {
@@ -260,7 +260,7 @@ bool NidiumJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
             JSAutoByteString cfunc(cx, func);
             size_t flen = cfunc.length();
 
-            JS_WriteUint32Pair(w, NIDIUM_SCTAG_FUNCTION, flen);
+            JS_WriteUint32Pair(w, kSctag_Function, flen);
             JS_WriteBytes(w, cfunc.ptr(), flen);
             break;
         }
@@ -278,7 +278,7 @@ bool NidiumJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
             }
             const uint8_t nullbyte = '\0';
 
-            JS_WriteUint32Pair(w, NIDIUM_SCTAG_HIDDEN, 1);
+            JS_WriteUint32Pair(w, kSctag_Hidden, 1);
             JS_WriteBytes(w, &nullbyte, 1);
 
             break;

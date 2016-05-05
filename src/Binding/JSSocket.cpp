@@ -24,12 +24,12 @@ namespace Binding {
 // {{{ Preamble
 #define SOCKET_RESERVED_SLOT 0
 
-enum {
-    SOCKET_PROP_BINARY = SOCKET_RESERVED_SLOT,
-    SOCKET_PROP_READLINE,
-    SOCKET_PROP_ENCODING,
-    SOCKET_PROP_TIMEOUT,
-    SOCKET_NPROP
+enum SocketProp {
+    kSocketProp_Binary = SOCKET_RESERVED_SLOT,
+    kSocketProp_Readline,
+    kSocketProp_Encoding,
+    kSocketProp_Timeout,
+    kSocketProp_END
 };
 
 /* only use on connected clients */
@@ -55,7 +55,7 @@ static bool nidium_socket_client_close(JSContext *cx,
     unsigned argc, JS::Value *vp);
 
 static JSClass Socket_class = {
-    "Socket", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(SOCKET_NPROP+1),
+    "Socket", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(kSocketProp_END + 1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Socket_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
@@ -88,10 +88,10 @@ static JSFunctionSpec socket_funcs[] = {
 };
 
 static JSPropertySpec Socket_props[] = {
-    NIDIUM_JS_PSGS("binary", SOCKET_PROP_BINARY, nidium_socket_prop_get, nidium_socket_prop_set),
-    NIDIUM_JS_PSGS("readline", SOCKET_PROP_READLINE, nidium_socket_prop_get, nidium_socket_prop_set),
-    NIDIUM_JS_PSGS("encoding", SOCKET_PROP_ENCODING, nidium_socket_prop_get, nidium_socket_prop_set),
-    NIDIUM_JS_PSGS("timeout", SOCKET_PROP_TIMEOUT, nidium_socket_prop_get, nidium_socket_prop_set),
+    NIDIUM_JS_PSGS("binary", kSocketProp_Binary, nidium_socket_prop_get, nidium_socket_prop_set),
+    NIDIUM_JS_PSGS("readline", kSocketProp_Readline, nidium_socket_prop_get, nidium_socket_prop_set),
+    NIDIUM_JS_PSGS("encoding", kSocketProp_Encoding, nidium_socket_prop_get, nidium_socket_prop_set),
+    NIDIUM_JS_PSGS("timeout", kSocketProp_Timeout, nidium_socket_prop_get, nidium_socket_prop_set),
     JS_PS_END
 };
 
@@ -121,7 +121,7 @@ void JSSocket::readFrame(const char *buf, size_t len)
     JS::RootedString jstr(m_Cx);
     jstr = tstr;
 
-    if (m_LineBuffer.pos && (this->getFlags() & SOCKET_READLINE)) {
+    if (m_LineBuffer.pos && (this->getFlags() & JSSocket::kSocketType_Readline)) {
         JS::RootedString left(m_Cx, JSUtils::NewStringWithEncoding(m_Cx, m_LineBuffer.data,
             m_LineBuffer.pos, this->getEncoding()));
 
@@ -201,14 +201,14 @@ void JSSocket::onRead(const char *data, size_t len)
         dataPosition = 0;
     }
 
-    if (this->getFlags() & SOCKET_ISBINARY) {
+    if (this->getFlags() & JSSocket::kSocketType_Binary) {
         JS::RootedObject arrayBuffer(m_Cx, JS_NewArrayBuffer(m_Cx, len));
         uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
         memcpy(adata, data, len);
 
         jparams[dataPosition].setObject(*arrayBuffer);
 
-    } else if (this->getFlags() & SOCKET_READLINE) {
+    } else if (this->getFlags() & JSSocket::kSocketType_Readline) {
         const char *pBuf = data;
         size_t tlen = len;
         char *eol;
@@ -286,16 +286,16 @@ static bool nidium_socket_prop_get(JSContext *cx, JS::HandleObject obj,
     }
 
     switch(id) {
-        case SOCKET_PROP_BINARY:
-            vp.setBoolean(nsocket->m_Flags & SOCKET_ISBINARY);
+        case kSocketProp_Binary:
+            vp.setBoolean(nsocket->m_Flags & JSSocket::kSocketType_Binary);
             break;
-        case SOCKET_PROP_READLINE:
-            vp.setBoolean(nsocket->m_Flags & SOCKET_READLINE);
+        case kSocketProp_Readline:
+            vp.setBoolean(nsocket->m_Flags & JSSocket::kSocketType_Readline);
             break;
-        case SOCKET_PROP_ENCODING:
+        case kSocketProp_Encoding:
             vp.setString(JS_NewStringCopyZ(cx, nsocket->m_Encoding ? nsocket->m_Encoding : "ascii"));
             break;
-        case SOCKET_PROP_TIMEOUT:
+        case kSocketProp_Timeout:
             vp.setInt32(nsocket->m_TCPTimeout);
             break;
         default:
@@ -315,12 +315,12 @@ static bool nidium_socket_prop_set(JSContext *cx, JS::HandleObject obj,
     }
 
     switch(id) {
-        case SOCKET_PROP_BINARY:
+        case kSocketProp_Binary:
         {
             if (vp.isBoolean()) {
                 nsocket->m_Flags = (vp.toBoolean() == true ?
-                    nsocket->m_Flags | SOCKET_ISBINARY :
-                    nsocket->m_Flags & ~SOCKET_ISBINARY);
+                    nsocket->m_Flags | JSSocket::kSocketType_Binary :
+                    nsocket->m_Flags & ~JSSocket::kSocketType_Binary);
 
             } else {
                 vp.set(JSVAL_FALSE);
@@ -328,13 +328,13 @@ static bool nidium_socket_prop_set(JSContext *cx, JS::HandleObject obj,
             }
         }
         break;
-        case SOCKET_PROP_READLINE:
+        case kSocketProp_Readline:
         {
             bool isactive = ((vp.isBoolean() && vp.toBoolean() == true) || vp.isInt32());
 
             if (isactive) {
 
-                nsocket->m_Flags |= SOCKET_READLINE;
+                nsocket->m_Flags |= JSSocket::kSocketType_Readline;
 
                 if (nsocket->m_LineBuffer.data == NULL) {
 
@@ -349,14 +349,14 @@ static bool nidium_socket_prop_set(JSContext *cx, JS::HandleObject obj,
                 nsocket->m_FrameDelimiter = vp.isBoolean() ? '\n' : vp.toInt32() & 0xFF;
 
             } else {
-                nsocket->m_Flags &= ~SOCKET_READLINE;
+                nsocket->m_Flags &= ~JSSocket::kSocketType_Readline;
 
                 vp.set(JSVAL_FALSE);
                 return true;
             }
         }
         break;
-        case SOCKET_PROP_ENCODING:
+        case kSocketProp_Encoding:
         {
             if (vp.isString()) {
                 JSAutoByteString enc(cx, vp.toString());
@@ -364,7 +364,7 @@ static bool nidium_socket_prop_set(JSContext *cx, JS::HandleObject obj,
             }
         }
         break;
-        case SOCKET_PROP_TIMEOUT:
+        case kSocketProp_Timeout:
         {
             if (vp.isNumber()) {
                 nsocket->m_TCPTimeout = APE_ABS(vp.toInt32());
@@ -437,7 +437,7 @@ static void nidium_socket_wrapper_client_onmessage(ape_socket *socket_server,
     JS::RootedValue onmessage(cx);
     JS::RootedValue rval(cx);
 
-    if (nsocket->m_Flags & SOCKET_ISBINARY) {
+    if (nsocket->m_Flags & JSSocket::kSocketType_Binary) {
         JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
         uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
         memcpy(data, packet, len);
@@ -503,7 +503,7 @@ static void nidium_socket_wrapper_onaccept(ape_socket *socket_server,
     sobj->m_ParentServer = nsocket;
     sobj->m_Socket = socket_client;
 
-    if (sobj->getFlags() & SOCKET_READLINE) {
+    if (sobj->getFlags() & JSSocket::kSocketType_Readline) {
         sobj->m_LineBuffer.data = static_cast<char *>(malloc(sizeof(char)
             * SOCKET_LINEBUFFER_MAX));
         sobj->m_LineBuffer.pos = 0;
@@ -650,7 +650,7 @@ static bool nidium_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
 
     args.rval().setObjectOrNull(thisobj);
 
-    CppObj->m_Flags |= SOCKET_ISSERVER;
+    CppObj->m_Flags |= JSSocket::kSocketType_Server;
 
     return true;
 }
@@ -741,7 +741,7 @@ static bool nidium_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
         return true;
     }
 
-    if (!(nsocket->m_Flags & SOCKET_ISSERVER)) {
+    if (!(nsocket->m_Flags & JSSocket::kSocketType_Server)) {
         JS_ReportError(cx, "sendto() is only available on listening socket");
         return false;
     }
