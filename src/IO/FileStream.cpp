@@ -158,8 +158,8 @@ void FileStream::onMessage(const Core::SharedMessages::Message &msg)
             m_OpenFailed = false;
             break;
         case File::OPEN_ERROR:
-            this->errorSync(ERROR_OPEN, msg.m_Args[0].toInt());
             m_OpenFailed = true;
+            this->errorSync(ERROR_OPEN, msg.m_Args[0].toInt());
             break;
         case File::SEEK_ERROR:
             this->errorSync(ERROR_SEEK, -1);
