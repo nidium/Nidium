@@ -373,10 +373,10 @@ void JSWindow::keyupdown(int keycode, int mod, int state, int repeat, int locati
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &KeyEvent_class, JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue keyV(m_Cx, INT_TO_JSVAL(keycode));
     JS::RootedValue locationV(m_Cx, INT_TO_JSVAL(location));
-    JS::RootedValue alt(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NIDIUM_KEY_ALT)));
-    JS::RootedValue ctl(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NIDIUM_KEY_CTRL)));
-    JS::RootedValue shift(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NIDIUM_KEY_SHIFT)));
-    JS::RootedValue meta(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NIDIUM_KEY_META)));
+    JS::RootedValue alt(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & kKeyModifier_Alt)));
+    JS::RootedValue ctl(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & kKeyModifier_Control)));
+    JS::RootedValue shift(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & kKeyModifier_Shift)));
+    JS::RootedValue meta(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & kKeyModifier_Meta)));
     JS::RootedValue space(m_Cx, BOOLEAN_TO_JSVAL(keycode == 32));
     JS::RootedValue rep(m_Cx, BOOLEAN_TO_JSVAL(!!(repeat)));
     EVENT_PROP("keyCode", keyV);
