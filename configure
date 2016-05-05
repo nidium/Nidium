@@ -60,7 +60,7 @@ def zitaresampler():
 def giflib():
     return {
         "location": "http://downloads.sourceforge.net/project/giflib/giflib-4.x/giflib-4.2.3.tar.gz",
-        "build": ["./configure", "make"],
+        "build": ["./configure", "make coverity"],
         "outputs": ["lib/.libs/libgif.a"]
     }
 
