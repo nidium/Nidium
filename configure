@@ -18,6 +18,7 @@ Deps.set(
     "portaudio",
     "zita-resampler",
     "depot_tools",
+    "giflib",
     "skia",
     "libzip",
     "lss",
@@ -55,6 +56,14 @@ def zitaresampler():
         "outputs": ["libzita-resampler(.a|.lib)"]
     }
 
+@Deps.register("giflib")
+def giflib():
+    return {
+        "location": "http://downloads.sourceforge.net/project/giflib/giflib-4.x/giflib-4.2.3.tar.gz",
+        "build": ["./configure", "make"],
+        "outputs": ["lib/.libs/libgif.a"]
+    }
+
 @Deps.register("skia")
 def skia():
     if Platform.wordSize == 64:
@@ -62,8 +71,8 @@ def skia():
     else:
         exports = "GYP_DEFINES='skia_arch_width=32 skia_osx_deployment_target=10.7'"
 
-    exports += " CPPFLAGS=-I%s" % (os.path.join(Deps.getDir(), "zlib"))
-    exports += " LDFLAGS=-L%s" % (os.path.join(Deps.getDir(), "zlib"))
+    exports += " CPPFLAGS=\"-I%s -I%s\"" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/"))
+    exports += " LDFLAGS=\"-L%s -L%s\"" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/.libs"))
 
     makeFlags = ""
     if Variables.get("verbose"):
