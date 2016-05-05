@@ -150,10 +150,10 @@ TEST(Utils, PtrAuteDelete)
 
 TEST(Utils, UserAgentUtils_GetOS)
 {
-	EXPECT_TRUE(Nidium::Core::UserAgentUtils::WINDOWS == Nidium::Core::UserAgentUtils::GetOS("Mozilla/5.0 (compatible; U; ABrowse 0.6; Syllable) AppleWebKit/420+ (KHTML, like Gecko)"));
-	EXPECT_TRUE(Nidium::Core::UserAgentUtils::WINDOWS == Nidium::Core::UserAgentUtils::GetOS("Mozilla/4.0 (compatible; Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; Acoo Browser 1.98.744; .NET CLR 3.5.30729); Windows NT 5.1; Trident/4.0)"));
-	EXPECT_TRUE(Nidium::Core::UserAgentUtils::WINDOWS == Nidium::Core::UserAgentUtils::GetOS("Mozilla/4.0 (compatible; MSIE 7.0; AOL 9.1; AOLBuild 4334.5000; Windows NT 5.1; Trident/4.0)"));
-	EXPECT_TRUE(Nidium::Core::UserAgentUtils::OTHER == Nidium::Core::UserAgentUtils::GetOS("wget"));
+	EXPECT_TRUE(Nidium::Core::UserAgentUtils::kOS_Windows == Nidium::Core::UserAgentUtils::GetOS("Mozilla/5.0 (compatible; U; ABrowse 0.6; Syllable) AppleWebKit/420+ (KHTML, like Gecko)"));
+	EXPECT_TRUE(Nidium::Core::UserAgentUtils::kOS_Windows == Nidium::Core::UserAgentUtils::GetOS("Mozilla/4.0 (compatible; Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; Acoo Browser 1.98.744; .NET CLR 3.5.30729); Windows NT 5.1; Trident/4.0)"));
+	EXPECT_TRUE(Nidium::Core::UserAgentUtils::kOS_Windows == Nidium::Core::UserAgentUtils::GetOS("Mozilla/4.0 (compatible; MSIE 7.0; AOL 9.1; AOLBuild 4334.5000; Windows NT 5.1; Trident/4.0)"));
+	EXPECT_TRUE(Nidium::Core::UserAgentUtils::kOS_Other == Nidium::Core::UserAgentUtils::GetOS("wget"));
 }
 
 TEST(Utils, ConstStrLenMacro)
