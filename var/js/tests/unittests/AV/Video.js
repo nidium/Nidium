@@ -1,3 +1,9 @@
+/*
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
+
 var c = new Canvas(1280, 1024);
 var ctx = c.getContext("2d");
 var dsp = Audio.getContext();
