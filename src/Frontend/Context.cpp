@@ -78,7 +78,7 @@ namespace Nidium {
 namespace Frontend {
 
 enum {
-    NIDIUM_SCTAG_IMAGEDATA = Nidium::Binding::NIDIUM_SCTAG_MAX,
+    NIDIUM_SCTAG_IMAGEDATA = Nidium::Binding::kSctag_Max,
 };
 
 // {{{ Logging

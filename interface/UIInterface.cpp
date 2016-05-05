@@ -214,16 +214,16 @@ int UIInterface::HandleEvents(void *arg)
                 }
 
                 if (event.key.keysym.mod & KMOD_SHIFT || SDL_KEYCODE_GET_CODE(keyCode) == 16) {
-                    mod |= Nidium::Binding::NIDIUM_KEY_SHIFT;
+                    mod |= Nidium::Binding::kKeyModifier_Shift;
                 }
                 if (event.key.keysym.mod & KMOD_ALT || SDL_KEYCODE_GET_CODE(keyCode) == 18) {
-                    mod |= Nidium::Binding::NIDIUM_KEY_ALT;
+                    mod |= Nidium::Binding::kKeyModifier_Alt;
                 }
                 if (event.key.keysym.mod & KMOD_CTRL || SDL_KEYCODE_GET_CODE(keyCode) == 17) {
-                    mod |= Nidium::Binding::NIDIUM_KEY_CTRL;
+                    mod |= Nidium::Binding::kKeyModifier_Control;
                 }
                 if (event.key.keysym.mod & KMOD_GUI || SDL_KEYCODE_GET_CODE(keyCode) == 91) {
-                    mod |= Nidium::Binding::NIDIUM_KEY_META;
+                    mod |= Nidium::Binding::kKeyModifier_Meta;
                 }
                 if (window) {
                     window->keyupdown(SDL_KEYCODE_GET_CODE(keyCode), mod,
