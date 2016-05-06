@@ -10,7 +10,7 @@
 
 #include <Binding/JSStream.h>
 
-#include "external/rapidxml.hpp"
+#include "rapidxml.hpp"
 
 #include "Frontend/Assets.h"
 

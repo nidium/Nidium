@@ -32,6 +32,7 @@ Deps.set(
     "basekit",
     "libcoroutine",
     "SDL2",
+    "rapidxml",
     "ffmpeg",
     Deps.Konstruct("nidiumcore", "nativejscore/configure")
 )
@@ -181,6 +182,13 @@ def libcoro():
         "outputs": [["_build/lib/liblibcoroutine(.a|.lib)", "libcoroutine\\1"]]
     }
 
+@Deps.register("rapidxml")
+def rapidxml():
+    return {
+        "location": "http://downloads.sourceforge.net/project/rapidxml/rapidxml/rapidxml%201.13/rapidxml-1.13.zip",
+        "patchs": [  os.path.join(CONFIGURE_PATH, "var", "patch", "rapidxml.patch")],
+    }
+
 @Deps.register("ffmpeg")
 def ffmpeg():
     return {
@@ -263,9 +271,5 @@ def testStudio(unitTests):
 Build.add(Gyp("gyp/all.gyp"));
 
 if __name__ == '__main__':
-    # We need to apply patch to rapidxml.hpp, 
-    # since it's not a real dependency, we do the patch "by hand"
-    Utils.patch(".", os.path.join(CONFIGURE_PATH, "var", "patch", "rapidxml.patch"));
-
     Konstruct.start()
 

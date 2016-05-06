@@ -36,6 +36,7 @@
             '<(third_party_path)/skia/include/utils/mac',
             '<(third_party_path)/skia/include/lazy',
             '<(third_party_path)/libzip/lib',
+            '<(third_party_path)/rapidxml',
             '<(third_party_path)/ffmpeg/',
             '<(third_party_path)/libcoroutine/source/',
             '<(third_party_path)/basekit/source/',

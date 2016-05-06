@@ -1,5 +1,5 @@
---- a/src/external/rapidxml.hpp
-+++ b/src/external/rapidxml.hpp
+--- rapidxml/rapidxml.hpp
++++ rapidxml/rapidxml.hpp
 @@ -1,6 +1,8 @@
  #ifndef RAPIDXML_HPP_INCLUDED
  #define RAPIDXML_HPP_INCLUDED
