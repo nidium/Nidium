@@ -12,7 +12,6 @@
             'nidium.gyp:*',
             '<(nidium_network_path)/gyp/network.gyp:*',
             '<(nidium_nidiumcore_path)/gyp/nidiumcore.gyp:*',
-            '<(nidium_nidiumcore_path)/gyp/jsoncpp.gyp:jsoncpp',
             'interface.gyp:nidiuminterface',
         ],
         'include_dirs': [

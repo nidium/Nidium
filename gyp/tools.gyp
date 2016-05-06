@@ -14,7 +14,6 @@
             '<(nidium_nidiumcore_path)/gyp/nidiumcore.gyp:nidiumcore',
             '<(nidium_nidiumcore_path)/gyp/nidiumcore.gyp:nidiumcore-includes',
             '<(nidium_nidiumcore_path)/gyp/nidiumcore.gyp:nidiumcore-link',
-            '<(nidium_nidiumcore_path)/gyp/jsoncpp.gyp:jsoncpp'
         ],
         'sources': [
             '<(nidium_src_path)/Tools/dir2nvfs.cpp',

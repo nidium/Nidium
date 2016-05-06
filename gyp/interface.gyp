@@ -20,7 +20,6 @@
         'dependencies': [
             '<(nidium_network_path)/gyp/network.gyp:network-includes',
             '<(nidium_nidiumcore_path)/gyp/nidiumcore.gyp:nidiumcore-includes',
-            '<(nidium_nidiumcore_path)/gyp/jsoncpp.gyp:jsoncpp',
         ],
         'sources': [
             '<(nidium_interface_path)/UIInterface.cpp',

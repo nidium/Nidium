@@ -9,7 +9,7 @@
 #include <pthread.h>
 
 #include <zip.h>
-#include <jsoncpp.h>
+#include <json/json.h>
 
 #include <ape_timers_next.h>
 
