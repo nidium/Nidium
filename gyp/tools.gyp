@@ -17,7 +17,7 @@
             '<(nidium_nidiumcore_path)/gyp/jsoncpp.gyp:jsoncpp'
         ],
         'sources': [
-            '<(nidium_src_path)/tools/dir2nvfs.cpp',
+            '<(nidium_src_path)/Tools/dir2nvfs.cpp',
         ],
         'defines': [
             'DIR2NFS_OUTPUT="<(nidium_private_bin)"',

@@ -11,7 +11,7 @@
                 'action_name': 'Generating Private',
                 'inputs': [
                     # Any change to dir2nvfs will trigger the action
-                    '<(nidium_src_path)/tools/dir2nvfs.cpp',
+                    '<(nidium_src_path)/Tools/dir2nvfs.cpp',
                     '<(nidium_tools_path)dir2nvfs',
                     # If I use find command inside a variable, output is not 
                     # considered as multiple files using it in inputs works fine

@@ -30,6 +30,9 @@ using Nidium::IO::Stream;
 using Nidium::IO::FileStream;
 using Nidium::Binding::NativeJSNSFS;
 
+namespace Nidium {
+namespace Tools {
+
 unsigned long _ape_seed;
 
 void listdir(NativeJSNFS *nfs, DIR *dir, std::string fullpath, int strip)
@@ -156,3 +159,5 @@ int main(int argc, char **argv)
     return 0;
 }
 
+} //namespace Tools
+} //namespace Nidium
