@@ -20,8 +20,8 @@ using Nidium::Core::SharedMessages;
 namespace Nidium {
 namespace Server {
 
-enum {
-    MESSAGE_READLINE
+enum ReplMessage {
+    kReplMessage_Readline
 };
 
 static void *nidium_repl_thread(void *arg)
@@ -46,7 +46,7 @@ repl:
         linenoiseHistoryAdd(line);
         linenoiseHistorySave(historyPath);
 
-        repl->postMessage(line, MESSAGE_READLINE);
+        repl->postMessage(line, kReplMessage_Readline);
 
         sem_wait(repl->getReadLineLock());
     }
