@@ -21,6 +21,7 @@ Deps.set(
     "mozilla-central",
     "leveldb",
     "http-parser",
+    "jsoncpp",
     Deps.Konstruct("network", "network/configure")
 )
 
@@ -83,6 +84,13 @@ def httpParser():
         "location": Deps.GitRepo("https://github.com/nodejs/http-parser.git", tag="v2.6.2"),
         "build": ["make package"],
         "outputs": ["libhttp_parser.a"]
+    }
+
+@Deps.register("jsoncpp")
+def jsoncpp():
+    return {
+        "location": Deps.GitRepo("https://github.com/open-source-parsers/jsoncpp.git", tag="1.7.2"),
+        "build": ["python amalgamate.py"]
     }
 
 @CommandLine.option("--unit-tests")
