@@ -19,7 +19,7 @@
             '<(nidium_src_path)',
         ],
         'sources': [
-            '<(nidium_src_path)/Server/nidium_server_main.cpp',
+            '<(nidium_src_path)/App/nidium_server_main.cpp',
             '<(nidium_src_path)/Server/Server.cpp',
             '<(nidium_src_path)/Server/Context.cpp',
             '<(nidium_src_path)/Server/REPL.cpp',
