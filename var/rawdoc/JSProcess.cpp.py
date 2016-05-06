@@ -35,15 +35,32 @@ FieldDoc( "NidiumProcess.workerId", "The identifier for the current worker.",
 	NO_Default
 )
 
-FunctionDoc("NidiumProcess.setUser", "Set a user or a group to a process.",
-	SeesDocs("NidiumProcess|Threads|NidiumProcess.setSignalHandler|NidiumProcess.exit"),
-	[ExampleDoc("""process.setUser('daemon', 'www-data');""")],
+FunctionDoc("NidiumProcess.setOwner", """Set a user and optionaly a group to a process.
+
+The `setOwner` function is permitted if the effective user/group name is that of the super user, or if the specified user/group name is the same as the effective user/group name.
+
+On failure this function throws an exception.""",
+	SeesDocs("NidiumProcess.getOwner"),
+	[ExampleDoc("""process.setOwner('daemon', 'www-data');""")],
 	IS_Dynamic, IS_Public, IS_Fast,
 	[
-            ParamDoc("user", "User whom should run this process", 'string', NO_Params, IS_Obligated),
-	    ParamDoc("group", "Group whom should run this process", 'string', NO_Params, IS_Optional)
+            ParamDoc("user", "User whom should run this process", 'string|int', NO_Params, IS_Obligated),
+	    ParamDoc("group", "Group whom should run this process", 'string|int', NO_Params, IS_Optional)
         ],
 	NO_Returns
+)
+
+FunctionDoc("NidiumProcess.getOwner", """Return an object with information about the owner of the process.""",
+	SeesDocs("NidiumProcess.setOwner"),
+	[ExampleDoc("""process.setOwner('daemon', 'www-data');""")],
+	IS_Dynamic, IS_Public, IS_Fast,
+	NO_Params,
+	ObjectDoc([
+	    ("uid", "User ID", "integer"), 
+	    ("gid", "Group ID", "integer"), 
+	    ("user", "User name", "string"), 
+	    ("group", "Group name", "string"), 
+	])
 )
 
 FunctionDoc("NidiumProcess.setSignalHandler", "Attach a javascript callback to a signal.",

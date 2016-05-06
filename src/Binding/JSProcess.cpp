@@ -16,7 +16,8 @@ namespace Binding {
 // {{{ Preamble
 
 static void Process_Finalize(JSFreeOp *fop, JSObject *obj);
-static bool nidium_process_setuser(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_process_getowner(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_process_setowner(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_process_exit(JSContext *cx, unsigned argc, JS::Value *vp);
 
@@ -33,7 +34,8 @@ template<>
 JSClass *JSExposer<JSProcess>::jsclass = &Process_class;
 
 static JSFunctionSpec Process_funcs[] = {
-    JS_FN("setUser", nidium_process_setuser, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("getOwner", nidium_process_getowner, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("setOwner", nidium_process_setowner, 1, NIDIUM_JS_FNPROPS),
     JS_FN("setSignalHandler", nidium_setSignalHandler, 1, NIDIUM_JS_FNPROPS),
     JS_FN("exit", nidium_process_exit, 1, NIDIUM_JS_FNPROPS),
     JS_FS_END
@@ -61,58 +63,157 @@ static int ape_kill_handler(int code, ape_global *ape)
 // }}}
 
 // {{{ Implementation
-static bool nidium_process_setuser(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_process_getowner(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-	JS::RootedString user(cx);
-	JS::RootedString group(cx);
-	JSAutoByteString cuser;
-	JSAutoByteString cgroup;
-	struct group *grp;
-	bool groupOk = true;
-	bool userOk = true;
+	int uid = getuid();
+	int gid = getgid();
+	struct passwd *userInfo = getpwuid(uid);
+	struct group *groupInfo = getgrgid(gid);
 
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSProcess, &Process_class);
 
-	if (!JS_ConvertArguments(cx, args, "S/S", user.address(), group.address())) {
+	if (!userInfo || !groupInfo) {
+		JS_ReportError(cx, "Failed to retrieve process owner");
 		return false;
 	}
 
-	if (user.get()) {
-	    struct passwd *pwd;
+	JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
+	JS::RootedString userStr(cx, JS_NewStringCopyZ(cx, userInfo->pw_name));
+	JS::RootedString groupStr(cx, JS_NewStringCopyZ(cx, groupInfo->gr_name));
+
+	JS_DefineProperty(cx, obj, "uid", uid, 
+			JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE);
+	JS_DefineProperty(cx, obj, "gid", gid, 
+			JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE);
+	JS_DefineProperty(cx, obj, "user", userStr, 
+			JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE);
+	JS_DefineProperty(cx, obj, "group", groupStr, 
+			JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE);
+
+	JS::RootedValue val(cx);
+	val.setObjectOrNull(obj);
+
+	args.rval().set(val);
+
+	return true;
+}
+
+static bool nidium_process_setowner(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+	struct passwd *userInfo = nullptr;
+	struct group *groupInfo = nullptr;
+
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSProcess, &Process_class);
+	NIDIUM_JS_CHECK_ARGS("setOwner", 1);
+
+	if (args[0].isNumber()) {
+		int uid = args[0].toInt32();
+
+		userInfo = getpwuid(uid);
+
+        if (userInfo == nullptr) {
+            if (errno == 0) {
+                JS_ReportError(cx,
+                        "User ID \"%d\" not found", uid);
+            } else {
+                JS_ReportError(cx,
+                        "Error retrieving user ID \"%d\" error : %s", 
+                        uid, strerror(errno));
+            }
+            return false;
+        }
+	} else if (args[0].isString()) {
+		JS::RootedString user(cx, args[0].toString());
+		JSAutoByteString cuser;
 		cuser.encodeUtf8(cx, user);
-		pwd = getpwnam(cuser.ptr());
 
-		if (pwd->pw_uid == 0) {
-			return false;
-		}
+		userInfo = getpwnam(cuser.ptr());
 
-		userOk = (setuid(pwd->pw_uid) != -1);
+        if (userInfo == nullptr) {
+            if (errno == 0) {
+                JS_ReportError(cx,
+                        "User name \"%s\" not found", cuser.ptr());
+            } else {
+                JS_ReportError(cx,
+                        "Error retrieving user name \"%s\" error : %s", 
+                        cuser.ptr(), strerror(errno));
+            }
+            return false;
+        }
+	} else {
+		JS_ReportError(cx, "Invalid first argument (Number or String expected)");
+		return false;
 	}
 
-	if (group.get()) {
+	if (argc > 1 && args[1].isNumber()) {
+		int gid = args[0].toInt32();
+	
+		groupInfo = getgrgid(gid);
+
+        if (groupInfo == nullptr) {
+            if (errno == 0) {
+                JS_ReportError(cx,
+                        "Group ID \"%d\" not found", gid);
+            } else {
+                JS_ReportError(cx,
+                        "Error retrieving group ID \"%d\" error : %s", 
+                        gid, strerror(errno));
+            }
+            return false;
+        }
+	} else if (argc > 1) {
+		JS::RootedString group(cx, args[1].toString());
+		JSAutoByteString cgroup;
+
 		cgroup.encodeUtf8(cx, group);
-		grp = getgrnam(cgroup.ptr());
+		groupInfo = getgrnam(cgroup.ptr());
 
-		if (grp->gr_gid == 0) {
-			return false;
-		}
-
-		//@TODO: check capabities
-		groupOk = (setgid(grp->gr_gid) != -1);
+        if (groupInfo == nullptr) {
+            if (errno == 0) {
+                JS_ReportError(cx,
+                        "Group name \"%s\" not found", cgroup.ptr());
+            } else {
+                JS_ReportError(cx,
+                        "Error retrieving group name \"%s\" error : %s", 
+                        cgroup.ptr(), strerror(errno));
+            }
+            return false;
+        }
 	}
 
+    /* 
+		When dropping privileges from root, the setgroups call will
+		remove any extraneous groups. If we don't call this, then
+		even though our uid has dropped, we may still have groups
+		that enable us to do super-user things. This will fail if we
+		aren't root, so don't bother checking the return value, this
+		is just done as an optimistic privilege dropping function.
+    */
 	setgroups(0, NULL);
 
-	if (cuser.ptr() && cgroup.ptr()) {
-		initgroups(cuser.ptr(), grp->gr_gid);
+	if (groupInfo != nullptr && setgid(groupInfo->gr_gid) != 0) {
+		JS_ReportError(cx, "Failed to set group ID to \"%d\" error : %s", 
+				groupInfo->gr_gid,
+				strerror(errno));
+		return false;
 	}
 
-	if (getuid() == 0 || getgid() == 0) {
-		fprintf(stderr, "Running as root!");
+	if (setuid(userInfo->pw_uid) != 0) {
+		JS_ReportError(cx, "Failed to set user ID to \"%d\", error : %s", 
+				userInfo->pw_uid,
+				strerror(errno));
+		return false;
 	}
 
-	args.rval().setBoolean(userOk && groupOk);
+	if (groupInfo != nullptr) {
+		if (initgroups(userInfo->pw_name, groupInfo->gr_gid) == 0) {
+            JS_ReportError(cx, 
+                    "Failed to initialize supplementary group access list. Error : %s",
+                    strerror(errno));
+            return false;
+        }
+	}
 
 	return true;
 }
