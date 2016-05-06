@@ -1,8 +1,18 @@
-# NativeServer A.K.A Nidium Server
+# Nidium-server - Fast cross-platform Javascriptable high performance server
 
-This repository handles all the pieces for the “Native server-side”.
+## Background
 
-### History lesson
+This server is fast.
+This server is cross-platform.
+This server can run javascript.
+handles all the pieces for the “Native server-side”.
 
-This project is based on libapenetwork and build upon the experience 
-that was gathered during the APE-Project.
+## Javascript API
+
+See the documentation for mor details
+
+## License
+
+Copyright 2016 Nidium Inc. All rights reserved.
+Use of this source code is governed by a MIT license that can be found in the LICENSE file.
+
