@@ -59,7 +59,7 @@ def mozilla():
     nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/"))
     nsprFlags = "--with-nspr-cflags=\"-I" + nsprDir + "/dist/include/nspr/\" --with-nspr-libs=\"" + nsprDir + "/dist/lib/libnspr4.a " + nsprDir + "/dist/lib/libplds4.a " + nsprDir + "/dist/lib/libplc4.a\""
 
-    configureEnvVars = "MOZ_ZLIB_CFLAGS=-I%s MOZ_ZLIB_LIBS=\"-L%s -lz\"" % (os.path.abspath("zlib"), os.path.abspath("zlib"))
+    configureEnvVars = "CXXFLAGS=\"-Wno-null-conversion\" MOZ_ZLIB_CFLAGS=-I%s MOZ_ZLIB_LIBS=\"-L%s -lz\"" % (os.path.abspath("zlib"), os.path.abspath("zlib"))
     configure = "%s ./js/src/configure\
             --disable-shared-js\
             --enable-threadsafe\
