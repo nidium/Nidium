@@ -18,7 +18,7 @@
 
 #include <Binding/NidiumJS.h>
 
-#include "external/linenoise.h"
+#include "linenoise.h"
 
 using Nidium::Core::SharedMessages;
 

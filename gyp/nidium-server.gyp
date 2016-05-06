@@ -15,6 +15,7 @@
             '<(nidium_network_path)',
             '<(third_party_path)/mozilla-central/js/src/dist/include/',
             '<(third_party_path)/http-parser/',
+            '<(third_party_path)/linenoise/',
             '<(nidium_src_path)',
         ],
         'sources': [
@@ -25,7 +26,7 @@
             '<(nidium_src_path)/Binding/JSSystem.cpp',
             '<(nidium_src_path)/Binding/JSConsole.cpp',
             '<(nidium_src_path)/external/setproctitle.c',
-            '<(nidium_src_path)/external/linenoise.c',
+            '<(third_party_path)/linenoise/linenoise.c',
 
         ],
         'conditions': [

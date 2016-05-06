@@ -20,8 +20,15 @@ def jemalloc():
     }
 
 Deps.set(
+    "linenoise",
     Deps.Konstruct("nidiumcore", "nativejscore/configure"),
 )
+
+@Deps.register("linenoise")
+def linenoise():
+    return {
+        "location": Deps.GitRepo("https://github.com/antirez/linenoise.git", tag="1.0"),
+    }
 
 @CommandLine.option("--jemalloc", default=False)
 def jemalloc(jemalloc):
