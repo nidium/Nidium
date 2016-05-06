@@ -1,0 +1,6 @@
+build/*
+third-party/*
+.ycm_extra_conf.py
+tags
+*.pyc
+
