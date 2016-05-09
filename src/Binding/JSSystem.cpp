@@ -28,8 +28,7 @@ static JSClass system_class = {
 };
 
 static JSFunctionSpec system_funcs[] = {
-    JS_FN("getOpenFileStats", nidium_system_getOpenFileStats, 0, 0),
-
+    JS_FN("getOpenFileStats", nidium_system_getOpenFileStats, 0, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 // }}}
