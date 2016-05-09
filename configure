@@ -1,4 +1,9 @@
 #!/usr/bin/env python2.7
+
+# Copyright 2016 Nidium Inc. All rights reserved.
+# Use of this source code is governed by a MIT license
+# that can be found in the LICENSE file.
+
 from konstructor import Build
 from konstructor import Builder
 from konstructor import Konstruct
@@ -7,21 +12,40 @@ from konstructor import Deps
 from konstructor import CommandLine
 from konstructor import Tests
 
+import os
+
+CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
+
 Gyp = Builder.Gyp
 
-Variables.set('product', 'nativeserver')
+Variables.set('product', 'nidiumserver')
 
 @Deps.register("jemalloc")
 def jemalloc():
     return {
-        "location": "http://www.canonware.com/download/jemalloc/jemalloc-3.6.0.tar.bz2",
-        "build": ["./configure --enable-prof", "make"],
+        "location": Deps.GitRepo("https://github.com/jemalloc/jemalloc.git", tag="4.1.0"),
+        "build": ["./autogen.sh", "./configure --enable-prof", "make"],
         "outputs": ["lib/libjemalloc.a"]
     }
 
 Deps.set(
-    Deps.Konstruct("nativejscore", "nativejscore/configure"),
+    "linenoise",
+    "libnostd",
+    Deps.Konstruct("nidiumcore", "nativejscore/configure"),
 )
+
+@Deps.register("libnostd")
+def libnostd():
+    return {
+        "location": Deps.GitRepo("http://25thandClement.com/~william/projects/libnostd.git", revision="5b04fba951f5912a50c4baf47808cfca24f41c19"),
+        "patchs": [os.path.join(CONFIGURE_PATH, "var", "patch", "setproctitle.patch")],
+    }
+
+@Deps.register("linenoise")
+def linenoise():
+    return {
+        "location": Deps.GitRepo("https://github.com/antirez/linenoise.git", tag="1.0"),
+    }
 
 @CommandLine.option("--jemalloc", default=False)
 def jemalloc(jemalloc):
@@ -58,5 +82,5 @@ def testServer(unitTests, autoTests):
 
 if __name__ == '__main__':
     Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
-    Build.add(Gyp("gyp/native-server.gyp"));
+    Build.add(Gyp("gyp/nidium-server.gyp"));
     Konstruct.start()

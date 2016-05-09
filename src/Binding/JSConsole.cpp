@@ -1,22 +1,29 @@
-#include "NativeJSConsole.h"
-#include "NativeJS.h"
-#include "NativeContext.h"
-#include "NativeMacros.h"
+/*
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
 
-#include <NativeJSProfiler.h>
-#include <js/OldDebugAPI.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
 
-#include "NativeServer.h"
+#include "Binding/JSConsole.h"
+#include <Binding/NidiumJS.h>
 
-static bool native_console_log(JSContext *cx, unsigned argc,
+#include "Server/Context.h"
+#include "Server/Server.h"
+
+namespace Nidium {
+namespace Server {
+
+using Nidium::Binding::NidiumJS;
+
+// {{{ Preamble
+static bool nidium_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp);
-
-#ifdef NATIVE_JS_PROFILER
-static bool native_console_profile_start(JSContext *cx, unsigned argc,
+static bool nidium_console_write(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static bool native_console_profile_end(JSContext *cx, unsigned argc,
-    JS::Value *vp);
-#endif
 
 static JSClass console_class = {
     "Console", 0,
@@ -26,41 +33,18 @@ static JSClass console_class = {
 };
 
 static JSFunctionSpec console_funcs[] = {
-    JS_FN("log", native_console_log, 0, 0),
-    JS_FN("info", native_console_log, 0, 0),
-    JS_FN("error", native_console_log, 0, 0),
-    JS_FN("warn", native_console_log, 0, 0),
-#ifdef NATIVE_JS_PROFILER
-    JS_FN("profile", native_console_profile_start, 0, 0),
-    JS_FN("profileEnd", native_console_profile_end, 0, 0),
-#endif
+    JS_FN("log", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("write", nidium_console_write, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("info", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("error", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("warn", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
-#ifdef NATIVE_JS_PROFILER
-static bool native_console_profile_start(JSContext *cx, unsigned argc,
-    JS::Value *vp)
-{
-    NativeProfiler *tracer = NativeProfiler::getInstance(cx);
-    tracer->start(NULL);
+// }}}
 
-    return true;
-}
-static bool native_console_profile_end(JSContext *cx, unsigned argc,
-    JS::Value *vp)
-{
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+// {{{ Implementation
 
-    NativeProfiler *tracer = NativeProfiler::getInstance(cx);
-    tracer->stop();
-    JS::RootedValue val(cx, OBJECT_TO_JSVAL(tracer->getJSObject()));
-
-    args.rval().set(val);
-
-    return true;
-}
-#endif
-
-static bool native_console_log(JSContext *cx, unsigned argc,
+static bool nidium_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     unsigned i;
@@ -85,7 +69,7 @@ static bool native_console_log(JSContext *cx, unsigned argc,
         filename_parent = &fname[1];
     }
 
-    NativeContext *nctx = NativeContext::getNativeClass(cx);
+    Context *nctx = Context::GetObject(cx);
 
     for (i = 0; i < args.length(); i++) {
         JS::RootedString str(cx, JS::ToString(cx, args[i]));
@@ -96,7 +80,7 @@ static bool native_console_log(JSContext *cx, unsigned argc,
             return false;
         if (i) {
             printf(" ");
-        } else {
+        } else if (!nctx->isREPL()) {
             printf("(worker %d) [%s:%d] ", nctx->getWorker()->getIdentifier(), filename_parent, lineno);
         }
         printf("%s", bytes);
@@ -110,11 +94,41 @@ static bool native_console_log(JSContext *cx, unsigned argc,
     return true;
 }
 
-void NativeJSconsole::registerObject(JSContext *cx)
+static bool nidium_console_write(JSContext *cx, unsigned argc,
+    JS::Value *vp)
+{
+    NidiumJS *js = NidiumJS::GetObject(cx);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    NIDIUM_JS_CHECK_ARGS("write", 1);
+
+    JS::RootedString str(cx, args[0].toString());
+    if (!str) {
+        JS_ReportError(cx, "Bad argument");
+        return false;
+    }
+
+    JSAutoByteString cstr;
+
+    cstr.encodeUtf8(cx, str);
+
+    js->log(cstr.ptr());
+
+    args.rval().setUndefined();
+    return true;
+}
+// }}}
+
+// {{{ Registration
+void JSconsole::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject consoleObj(cx, JS_DefineObject(cx, global,
         "console", &console_class , nullptr, 0));
     JS_DefineFunctions(cx, consoleObj, console_funcs);
 }
+// }}}
+
+} // namespace Nidium
+} // namespace Server
 

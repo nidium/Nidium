@@ -1,5 +1,11 @@
-#ifndef nativeserver_h__
-#define nativeserver_h__
+/*
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
+
+#ifndef server_server_h__
+#define server_server_h__
 
 #include <stdlib.h>
 #include <map>
@@ -24,12 +30,16 @@ void setproctitle(const char *fmt, ...);
 #endif
 #endif
 
-class NativeServer
+namespace Nidium {
+namespace Server {
+
+// {{{ Server
+class Server
 {
 public:
     static int Start(int argc, char **argv);
 private:
-    NativeServer(int argc, char **argv);
+    Server(int argc, char **argv);
     int init();
     void Usage(struct option * long_options, const char ** text_blocks);
 
@@ -52,12 +62,14 @@ private:
     bool m_JSStrictMode;
     int m_NWorkers;
 };
+// }}}
 
-class NativeWorker
+// {{{ Worker
+class Worker
 {
 public:
-     NativeWorker(int idx, bool repl = false);
-    ~NativeWorker();
+    Worker(int idx, bool repl = false);
+    ~Worker();
     int run(int argc, char **argv, bool jsstrict = false);
 
     int getIdentifier() const {
@@ -67,6 +79,10 @@ private:
     int m_Idx;
     bool m_RunREPL;
 };
+// }}}
+
+} // namespace Server
+} // namespace Nidium
 
 #endif
 

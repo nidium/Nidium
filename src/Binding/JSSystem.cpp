@@ -1,18 +1,23 @@
-#include "NativeJSSystem.h"
-#include <NativeJS.h>
+/*
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
+#include "Binding/JSSystem.h"
 
-#include "NativeContext.h"
-#include "NativeMacros.h"
+#include <sys/stat.h>
 
 #ifdef __linux__
   #include <sys/time.h>
   #include <sys/resource.h>
   #include <linux/stat.h>
 #endif
-#include <errno.h>
-#include <sys/stat.h>
 
-static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
+namespace Nidium {
+namespace Server {
+
+// {{{ Preamble
+static bool nidium_system_getOpenFileStats(JSContext *cx, unsigned argc,
     JS::Value *vp);
 
 static JSClass system_class = {
@@ -23,13 +28,13 @@ static JSClass system_class = {
 };
 
 static JSFunctionSpec system_funcs[] = {
-    JS_FN("getOpenFileStats", native_system_getOpenFileStats, 0, 0),
-
+    JS_FN("getOpenFileStats", nidium_system_getOpenFileStats, 0, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
+// }}}
 
-
-static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
+// {{{ Implementation
+static bool nidium_system_getOpenFileStats(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     struct rlimit rl;
@@ -46,12 +51,12 @@ static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
 
     JS::RootedObject ret(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
-    JSOBJ_SET_PROP_INT(ret, "cur", (int) rl.rlim_cur);
-    JSOBJ_SET_PROP_INT(ret, "max", (int) rl.rlim_max);
+    NIDIUM_JSOBJ_SET_PROP_INT(ret, "cur", (int) rl.rlim_cur);
+    NIDIUM_JSOBJ_SET_PROP_INT(ret, "max", (int) rl.rlim_max);
 
     int fdcounter = 0, sockcounter = 0, othercount = 0;
 
-    for (size_t i = 0; i <= rl.rlim_cur; i++ ) {
+    for (size_t i = 0; i <= rl.rlim_cur; i++) {
         if (fstat(i, &stats) == 0) {
             fdcounter++;
             if ((stats.st_mode & S_IFMT) == S_IFSOCK) {
@@ -65,20 +70,26 @@ static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
 
     }
 
-    JSOBJ_SET_PROP_INT(ret, "open", fdcounter);
-    JSOBJ_SET_PROP_INT(ret, "sockets", sockcounter);
-    JSOBJ_SET_PROP_INT(ret, "files", othercount);
+    NIDIUM_JSOBJ_SET_PROP_INT(ret, "open", fdcounter);
+    NIDIUM_JSOBJ_SET_PROP_INT(ret, "sockets", sockcounter);
+    NIDIUM_JSOBJ_SET_PROP_INT(ret, "files", othercount);
 
     args.rval().setObjectOrNull(ret);
 
     return true;
 }
+// }}}
 
-void NativeJSSystem::registerObject(JSContext *cx)
+// {{{ Registration
+void JSSystem::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject systemObj(cx, JS_DefineObject(cx, global,
         "System", &system_class , nullptr, 0));
     JS_DefineFunctions(cx, systemObj, system_funcs);
 }
+// }}}
+
+} // namespace Server
+} // namespce Nidium
 
