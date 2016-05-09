@@ -55,13 +55,6 @@ class NidiumJS
             kSctag_Hidden,
             kSctag_Max
         };
-
-        enum KeyModifier {
-            kKeyModifier_Shift = 1 << 0,
-            kKeyModifier_Alt = 1 << 1,
-            kKeyModifier_Control = 1 << 2,
-            kKeyModifier_Meta = 1 << 3
-        };
         typedef int (*logger)(const char *format);
         typedef int (*vlogger)(const char *format, va_list ap);
         typedef int (*logger_clear)();
