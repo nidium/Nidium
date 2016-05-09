@@ -26,18 +26,7 @@ using Nidium::Core::SharedMessages;
 using Nidium::Graphics::SkiaContext;
 using Nidium::Graphics::CanvasContext;
 using Nidium::Graphics::CanvasHandler;
-using Nidium::AV::Video;
-using Nidium::AV::NodeLink;
-using Nidium::AV::ArgType;
-using Nidium::AV::AVSource;
-using Nidium::AV::AVSourceEvent;
-using Nidium::AV::Audio;
-using Nidium::AV::AudioNode;
-using Nidium::AV::AudioNodeException;
-using Nidium::AV::AudioNodeCustom;
-using Nidium::AV::AudioSource;
-using Nidium::AV::AudioParameters;
-using Nidium::AV::AudioSourceCustom;
+using namespace Nidium::AV;
 
 extern "C" {
 #include <libavformat/avformat.h>

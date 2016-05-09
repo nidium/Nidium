@@ -22,16 +22,8 @@
 #include "Binding/JSCanvas.h"
 #include "Binding/JSDocument.h"
 
-using Nidium::Graphics::Image;
-using Nidium::Graphics::SkiaContext;
-using Nidium::Graphics::GLContext;
-using Nidium::Graphics::GLState;
-using Nidium::Graphics::CanvasContext;
-using Nidium::Graphics::CanvasHandler;
-using Nidium::Graphics::Gradient;
-using Nidium::Graphics::_Line;
+using namespace Nidium::Graphics;
 using Nidium::Interface::UIInterface;
-using Nidium::Interface::SystemInterface;
 
 namespace Nidium {
 namespace Binding {
@@ -2358,11 +2350,11 @@ void Canvas2DContext::setSize(int width, int height, bool redraw)
     SkBaseDevice *ndev = NULL;
     SkCanvas *ncanvas;
 
-    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
     if (m_Skia->m_NativeCanvasBindMode == SkiaContext::BIND_GL) {
         if ((ncanvas = SkiaContext::CreateGLCanvas(width, height,
-            Nidium::Interface::__NativeUI->getNativeContext())) == NULL) {
+            Interface::__NativeUI->getNativeContext())) == NULL) {
             NLOG("[Error] Couldnt resize the canvas to %dx%d", width, height);
             return;
         }
