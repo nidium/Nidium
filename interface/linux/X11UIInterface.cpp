@@ -264,6 +264,7 @@ void tray_icon_on_click(GtkStatusIcon *status_icon, gpointer user_data)
 }
 void UIX11Interface::enableSysTray()
 {
+#if 0
     SystemMenuItem *item = m_SystemMenu.items();
     if (!item) {
         return;
@@ -287,6 +288,7 @@ void UIX11Interface::enableSysTray()
         gtk_status_icon_set_visible(statusicon, TRUE);
 
     }
+#endif
 }
 
 void UIX11Interface::renderSystemTray()
