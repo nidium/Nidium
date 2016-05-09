@@ -145,6 +145,13 @@ class UIInterface
             NOCHANGE
         } m_CurrentCursor;
 
+        enum KeyModifier {
+            kKeyModifier_Shift = 1 << 0,
+            kKeyModifier_Alt = 1 << 1,
+            kKeyModifier_Control = 1 << 2,
+            kKeyModifier_Meta = 1 << 3
+        };
+
         enum OPENFILE_FLAGS {
             kOpenFile_CanChooseDir = 1 << 0,
             kOpenFile_CanChooseFile = 1 << 1,

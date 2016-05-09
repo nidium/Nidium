@@ -27,15 +27,11 @@ uint32_t ttfps = 0;
 using Nidium::Core::Path;
 using Nidium::Core::TaskManager;
 using Nidium::Core::Messages;
-using Nidium::IO::FileStream;
-using Nidium::IO::PrivateStream;
-using Nidium::IO::UserStream;
-using Nidium::IO::SystemStream;
-using Nidium::IO::NFSStream;
 using Nidium::Net::HTTPStream;
 using Nidium::Binding::JSWindow;
 using Nidium::Frontend::Context;
 using Nidium::Frontend::NML;
+using namespace Nidium::IO;
 
 namespace Nidium {
 namespace Interface {
@@ -214,16 +210,16 @@ int UIInterface::HandleEvents(void *arg)
                 }
 
                 if (event.key.keysym.mod & KMOD_SHIFT || SDL_KEYCODE_GET_CODE(keyCode) == 16) {
-                    mod |= Nidium::Binding::kKeyModifier_Shift;
+                    mod |= kKeyModifier_Shift;
                 }
                 if (event.key.keysym.mod & KMOD_ALT || SDL_KEYCODE_GET_CODE(keyCode) == 18) {
-                    mod |= Nidium::Binding::kKeyModifier_Alt;
+                    mod |= kKeyModifier_Alt;
                 }
                 if (event.key.keysym.mod & KMOD_CTRL || SDL_KEYCODE_GET_CODE(keyCode) == 17) {
-                    mod |= Nidium::Binding::kKeyModifier_Control;
+                    mod |= kKeyModifier_Control;
                 }
                 if (event.key.keysym.mod & KMOD_GUI || SDL_KEYCODE_GET_CODE(keyCode) == 91) {
-                    mod |= Nidium::Binding::kKeyModifier_Meta;
+                    mod |= kKeyModifier_Meta;
                 }
                 if (window) {
                     window->keyupdown(SDL_KEYCODE_GET_CODE(keyCode), mod,
