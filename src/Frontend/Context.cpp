@@ -42,63 +42,36 @@
 using Nidium::Core::SharedMessages;
 using Nidium::Core::Path;
 using Nidium::Core::Utils;
-using Nidium::Interface::UIInterface;
 using Nidium::Net::WebSocketServer;
 using Nidium::Net::WebSocketClientConnection;
-using Nidium::Graphics::GLState;
-using Nidium::Graphics::SkiaContext;
-using Nidium::Graphics::CanvasHandler;
-using Nidium::Graphics::LayerizeContext;
-using Nidium::Graphics::LayerSiblingContext;
-using Nidium::Binding::JSDocument;
-#ifdef DEBUG
-using Nidium::Binding::JSDebug;
-#endif
-using Nidium::Binding::JSWindow;
-using Nidium::Binding::JSCanvas;
-using Nidium::Binding::NidiumJS;
-using Nidium::Binding::Canvas2DContext;
-using Nidium::Binding::JSImage;
-using Nidium::Binding::JSAudio;
-using Nidium::Binding::JSAudioNode;
-using Nidium::Binding::JSVideo;
-using Nidium::Binding::JSWebGLRenderingContext;
-using Nidium::Binding::JSWebGLBuffer;
-using Nidium::Binding::JSWebGLFramebuffer;
-using Nidium::Binding::JSWebGLProgram;
-using Nidium::Binding::JSWebGLRenderbuffer;
-using Nidium::Binding::JSWebGLShader;
-using Nidium::Binding::JSWebGLTexture;
-using Nidium::Binding::JSWebGLUniformLocation;
-using Nidium::Binding::JSWebGLShaderPrecisionFormat;
-using Nidium::Binding::JSNidium;
-using Nidium::Binding::JSProcess;
+using namespace Nidium::Graphics;
+using namespace Nidium::Binding;
 
 namespace Nidium {
 namespace Frontend {
 
 enum {
-    NIDIUM_SCTAG_IMAGEDATA = Nidium::Binding::kSctag_Max,
+    NIDIUM_SCTAG_IMAGEDATA = NidiumJS::kSctag_Max,
 };
 
 // {{{ Logging
 int NativeContext_Logger(const char *format)
 {
-    Nidium::Interface::__NativeUI->log(format);
+    Interface::__NativeUI->log(format);
 
     return 0;
 }
 
 int NativeContext_vLogger(const char *format, va_list ap)
 {
-    Nidium::Interface::__NativeUI->vlog(format, ap);
+    Interface::__NativeUI->vlog(format, ap);
 
     return 0;
 }
 
 int NativeContext_LogClear()
 {
-    Nidium::Interface::__NativeUI->logclear();
+    Interface::__NativeUI->logclear();
 
     return 0;
 }
@@ -119,12 +92,12 @@ void Context::initStats()
     memset(m_Stats.samples, 0, sizeof(m_Stats.samples));
 }
 
-void Context::CreateAndAssemble(UIInterface *ui, ape_global *gnet)
+void Context::CreateAndAssemble(Interface::UIInterface *ui, ape_global *gnet)
 {
     new Context(ui, ui->m_Nml, ui->getWidth(), ui->getHeight(), gnet);
 }
 
-Context::Context(UIInterface *nui, NML *nml,
+Context::Context(Interface::UIInterface *nui, NML *nml,
     int width, int height, ape_global *net) :
     m_RootHandler(NULL), m_DebugHandler(NULL),
 #if DEBUG
