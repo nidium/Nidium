@@ -12,7 +12,7 @@
 #include <SkGradientShader.h>
 
 #include "Graphics/SkiaContext.h"
-#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
+#include "Macros.h"
 
 namespace Nidium {
 namespace Graphics {
@@ -121,7 +121,7 @@ SkShader *Gradient::build()
 Gradient::~Gradient()
 {
     //if (currentShader)
-        //NLOG("Free gradient %d for %p", (currentShader ? currentShader->getRefCnt() : 0), currentShader);
+        //NUI_LOG("Free gradient %d for %p", (currentShader ? currentShader->getRefCnt() : 0), currentShader);
     free(m_ColorsStop.items);
     SkSafeUnref(m_CurrentShader);
 }

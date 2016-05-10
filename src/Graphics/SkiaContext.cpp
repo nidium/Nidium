@@ -33,7 +33,7 @@
 #include "Graphics/ShadowLooper.h"
 #include "Binding/JSDocument.h"
 #include "Binding/JSCanvas2DContext.h"
-#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
+#include "Macros.h"
 
 using Nidium::Core::PtrAutoDelete;
 using Nidium::Core::Path;
@@ -422,7 +422,7 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height,
 {
 
     if (!nativectx) {
-        NLOG("CreateGLCanvas() : invalid native context");
+        NUI_LOG("CreateGLCanvas() : invalid native context");
         return NULL;
     }
 
@@ -435,7 +435,7 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height,
     } else {
 
         if ((interface = nativectx->getGLState()->getNativeGLContext()->iface()) == NULL) {
-            NLOG("Cant get OpenGL interface");
+            NUI_LOG("Cant get OpenGL interface");
             return NULL;
         }
 
@@ -467,13 +467,13 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height,
     GrRenderTarget * target = context->wrapBackendRenderTarget(desc);
 
     if (target == NULL) {
-        NLOG("Failed to init Skia render target");
+        NUI_LOG("Failed to init Skia render target");
         return NULL;
     }
     SkGpuDevice *dev = new SkGpuDevice(context, target);
 
     if (dev == NULL) {
-        NLOG("Failed to init Skia GPU device");
+        NUI_LOG("Failed to init Skia GPU device");
         return NULL;
     }
     SkCanvas *ret;
@@ -987,7 +987,7 @@ void SkiaContext::restore()
 
         m_State = dstate;
     } else {
-        NLOG("restore() without matching save()\n");
+        NUI_LOG("restore() without matching save()\n");
     }
 
     m_Canvas->restore();
@@ -1553,13 +1553,13 @@ void SkiaContext::setFillColor(Gradient *gradient)
     if ((shader = gradient->build()) == NULL) {
         /* Make paint invalid (no future draw) */
         //paint->setShader(NULL);
-        NLOG("Invalid gradient");
+        NUI_LOG("Invalid gradient");
         return;
     }
     PAINT->setColor(SK_ColorBLACK);
 
     PAINT->setShader(shader);
-    //NLOG("Add gradient : %p (%d)", shader, shader->getRefCnt());
+    //NUI_LOG("Add gradient : %p (%d)", shader, shader->getRefCnt());
 }
 
 void SkiaContext::setFillColor(const char *str)
@@ -1876,7 +1876,7 @@ SkiaContext::~SkiaContext()
     }
     while (nstate) {
         struct _State *tmp = nstate->next;
-        //NLOG("Delete pain %p with shader : %p", nstate->paint, nstate->paint->getShader());
+        //NUI_LOG("Delete pain %p with shader : %p", nstate->paint, nstate->paint->getShader());
         delete nstate->m_Paint;
         delete nstate->m_PaintStroke;
         delete nstate;

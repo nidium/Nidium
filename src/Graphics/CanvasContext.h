@@ -16,7 +16,7 @@
 #include "Graphics/GLResources.h"
 #include "Graphics/GLState.h"
 #include "Graphics/GLContext.h"
-#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
+#include "Macros.h"
 
 namespace Nidium {
     namespace Binding {
@@ -105,7 +105,7 @@ class CanvasContext
 
     inline GLContext *getGLContext() const {
         if (!m_GLState) {
-            NLOG("getGLContext() invalid glstate on %p", this);
+            NUI_LOG("getGLContext() invalid glstate on %p", this);
             return NULL;
         }
 

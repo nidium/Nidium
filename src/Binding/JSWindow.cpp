@@ -21,7 +21,7 @@
 #include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSImage.h"
-#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
+#include "Macros.h"
 
 using Nidium::Frontend::NMLTag;
 using Nidium::Frontend::Context;
@@ -1364,19 +1364,19 @@ void JSWindow::initDataBase()
 {
     NML *nml = Context::GetObject(m_Cx)->getNML();
     if (!nml) {
-        NLOG("[Notice] Unable to create window.storage (no NML provided)");
+        NUI_LOG("[Notice] Unable to create window.storage (no NML provided)");
         return;
     }
     const char * name = nml->getIdentifier();
     if (name == NULL) {
         name = "nidium";
-        NLOG("[Notice] Creating default window.storage (empty identifier tag in NML)");
+        NUI_LOG("[Notice] Creating default window.storage (empty identifier tag in NML)");
     }
     m_Db = new JSDB(name);
     if (m_Db->ok()) {
         this->createStorage();
     } else {
-        NLOG("[Notice] Unable to create window.storage '%s'", name);
+        NUI_LOG("[Notice] Unable to create window.storage '%s'", name);
     }
 }
 

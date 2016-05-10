@@ -21,7 +21,7 @@
 #include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSDocument.h"
-#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
+#include "Macros.h"
 
 using namespace Nidium::Graphics;
 using Nidium::Interface::UIInterface;
@@ -63,7 +63,7 @@ enum {
         JS::RootedValue calVal(cx, OBJECT_TO_JSVAL(calObj)); \
         JS::RootedString _fun_name(cx, JS_GetFunctionDisplayId(JS_ValueToFunction(cx, calVal))); \
         JSAutoByteString _fun_namec(cx, _fun_name); \
-        NLOG("Canvas2D.%s()] called on %s:%d", _fun_namec.ptr(), filename.get(), lineno); \
+        NUI_LOG("Canvas2D.%s()] called on %s:%d", _fun_namec.ptr(), filename.get(), lineno); \
     }
 #else
 #define NIDIUM_LOG_2D_CALL()
@@ -1957,7 +1957,7 @@ uint32_t Canvas2DContext::createProgram(const char *data)
     if (linkSuccess == GL_FALSE) {
         GLchar messages[256];
         NIDIUM_GL_CALL(iface, GetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]));
-        NLOG("createProgram error : %s", messages);
+        NUI_LOG("createProgram error : %s", messages);
         return 0;
     }
 
@@ -2315,7 +2315,7 @@ void Canvas2DContext::setVertexDeformation(uint32_t vertex,
         If the GL state is shared among other Canvas, create a new one
     */
     if (state->isShared()) {
-        NLOG("New GL state created !");
+        NUI_LOG("New GL state created !");
         state = new GLState(m_GLState->getNativeGLContext()->getUI());
         state->setShared(false);
 
@@ -2356,7 +2356,7 @@ void Canvas2DContext::setSize(int width, int height, bool redraw)
     if (m_Skia->m_NativeCanvasBindMode == SkiaContext::BIND_GL) {
         if ((ncanvas = SkiaContext::CreateGLCanvas(width, height,
             Interface::__NativeUI->getNativeContext())) == NULL) {
-            NLOG("[Error] Couldnt resize the canvas to %dx%d", width, height);
+            NUI_LOG("[Error] Couldnt resize the canvas to %dx%d", width, height);
             return;
         }
 
@@ -2449,7 +2449,7 @@ Canvas2DContext::Canvas2DContext(CanvasHandler *handler,
     }
 
     if (!state) {
-        NLOG("Failed to create canvas");
+        NUI_LOG("Failed to create canvas");
         delete m_Skia;
         m_Skia = NULL;
         return;
@@ -2477,7 +2477,7 @@ uint8_t *Canvas2DContext::getPixels()
 
 Canvas2DContext::~Canvas2DContext()
 {
-    //NLOG("Delete skia %p", skia);
+    //NUI_LOG("Delete skia %p", skia);
     if (m_Skia) delete m_Skia;
 }
 

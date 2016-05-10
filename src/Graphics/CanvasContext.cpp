@@ -17,7 +17,7 @@
 #include "Graphics/GLHeader.h"
 #include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas2DContext.h"
-#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
+#include "Macros.h"
 
 using Nidium::Interface::SystemInterface;
 using Nidium::Frontend::Context;
@@ -36,7 +36,7 @@ char *CanvasContext::ProcessShader(const char *content, shaderType type)
         Context::GetObject(NidiumJS::GetObject())->getShaderResources());
 
     if (compiler == NULL) {
-        NLOG("Shader : Compiler not supported");
+        NUI_LOG("Shader : Compiler not supported");
         return NULL;
     }
 
@@ -47,7 +47,7 @@ char *CanvasContext::ProcessShader(const char *content, shaderType type)
         char *log = static_cast<char *>(malloc(logLen));
 
         ShGetInfoLog(compiler, log);
-        NLOG("Shader error : %s", log);
+        NUI_LOG("Shader error : %s", log);
 
         free(log);
         return NULL;
@@ -83,7 +83,7 @@ uint32_t CanvasContext::CompileShader(const char *data, int type)
         if (glGetError() != GL_NO_ERROR) {
             return 0;
         }
-        NLOG("Shader error %d : %s\n%s", len, messages, data);
+        NUI_LOG("Shader error %d : %s\n%s", len, messages, data);
         return 0;
     }
 
@@ -121,7 +121,7 @@ Vertices *CanvasContext::BuildVerticesStripe(int resolution)
             vert[t].Position[1] = 1. - (static_cast<float>(i) * ystep);
             vert[t].Position[2] = 0.;
 
-            //NLOG("Create vertex: %f %f", vert[t].Position[0], vert[t].Position[1]);
+            //NUI_LOG("Create vertex: %f %f", vert[t].Position[0], vert[t].Position[1]);
 
             vert[t].TexCoord[0] = (static_cast<float>(j) * txstep);
             vert[t].TexCoord[1] = 1 - ((static_cast<float>(i) * tystep));
@@ -240,7 +240,7 @@ uint32_t CanvasContext::CreatePassThroughProgram(GLResources &resource)
     if (linkSuccess == GL_FALSE) {
         GLchar messages[256];
         glGetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]);
-        NLOG("createProgram error : %s", messages);
+        NUI_LOG("createProgram error : %s", messages);
         return 0;
     }
 
@@ -328,7 +328,7 @@ void CanvasContext::updateMatrix(double left, double top,
             UniformMatrix4fv(m_GLState->m_GLObjects.uniforms.u_projectionMatrix,
                 1, GL_FALSE, mat4));
     } else {
-        NLOG("No uniform found");
+        NUI_LOG("No uniform found");
     }
 }
 
@@ -447,7 +447,7 @@ CanvasContext *CanvasContext::Create(ContextType type)
         case ContextType_kSkia2D:
             return NULL;
         default:
-            NLOG("[Error] Invalid CanvasContext requested");
+            NUI_LOG("[Error] Invalid CanvasContext requested");
             return NULL;
     }
 }

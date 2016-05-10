@@ -17,7 +17,7 @@
 #include "Graphics/Canvas3DContext.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSCanvas2DContext.h"
-#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
+#include "Macros.h"
 
 using Nidium::Frontend::Context;
 using Nidium::Interface::SystemInterface;
@@ -34,11 +34,11 @@ namespace Binding {
 
 #define GL_CALL(IFACE, FN)\
     NIDIUM_GL_CALL((IFACE)->getGLContext(), FN); \
-    { GLint err = glGetError(); if (err != 0) NLOG("err = %d / call = %s\n", err, #FN); }
+    { GLint err = glGetError(); if (err != 0) NUI_LOG("err = %d / call = %s\n", err, #FN); }
 
 #define GL_CALL_RET(IFACE, FN, RET)\
     NIDIUM_GL_CALL_RET((IFACE)->getGLContext(), FN, RET); \
-    { GLint err = glGetError(); if (err != 0) NLOG("err = %d / call = %s\n", err, #FN); }
+    { GLint err = glGetError(); if (err != 0) NUI_LOG("err = %d / call = %s\n", err, #FN); }
 
 #define D_NGL_JS_FN(func_name) static bool func_name(JSContext *cx, unsigned int argc, JS::Value *vp);
 

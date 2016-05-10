@@ -18,7 +18,7 @@
 #include "Graphics/GLHeader.h"
 #include "Binding/JSWindow.h"
 #include "SDL_keycode_translate.h"
-#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
+#include "Macros.h"
 
 #define kNativeTitleBarHeight 0
 #define kNativeVSYNC 1
@@ -62,7 +62,7 @@ bool UIInterface::createWindow(int width, int height)
 {
     if (!m_Initialized) {
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1) {
-            NLOG("Can't init SDL:  %s\n", SDL_GetError());
+            NUI_LOG("Can't init SDL:  %s\n", SDL_GetError());
             return false;
         }
 
@@ -80,7 +80,7 @@ bool UIInterface::createWindow(int width, int height)
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
 
         if (m_Win == NULL) {
-            NLOG("Cant create window (SDL)\n");
+            NUI_LOG("Cant create window (SDL)\n");
             return false;
         }
 
@@ -90,7 +90,7 @@ bool UIInterface::createWindow(int width, int height)
         this->onWindowCreated();
 
         if ((m_MainGLCtx = SDL_GL_CreateContext(m_Win)) == NULL) {
-            NLOG("Failed to create OpenGL context : %s", SDL_GetError());
+            NUI_LOG("Failed to create OpenGL context : %s", SDL_GetError());
             return false;
         }
 
@@ -105,7 +105,7 @@ bool UIInterface::createWindow(int width, int height)
         }
 
         //glViewport(0, 0, width*2, height*2);
-        NLOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
+        NUI_LOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
 
         this->m_Initialized = true;
 

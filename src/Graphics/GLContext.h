@@ -12,7 +12,7 @@
 #include <UIInterface.h>
 
 #include "Frontend/Context.h"
-#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
+#include "Macros.h"
 
 typedef void *SDL_GLContext;
 
@@ -56,7 +56,7 @@ namespace Graphics {
             GLContext::GLCallback(IFACE->m_Interface); \
             (IFACE)->m_Interface->fFunctions.f##X;           \
             if ((__err = (IFACE)->m_Interface->fFunctions.fGetError()) != GR_GL_NO_ERROR) { \
-                NLOG("[Nidium GL Error : gl%s() returned %d", #X, __err);    \
+                NUI_LOG("[Nidium GL Error : gl%s() returned %d", #X, __err);    \
             } \
         } while (false)
 
@@ -66,7 +66,7 @@ namespace Graphics {
             GLContext::GLCallback(IFACE->m_Interface);  \
             (RET) =  (IFACE)->m_Interface->fFunctions.f##X;   \
             if ((__err = (IFACE)->m_Interface->fFunctions.fGetError()) != GR_GL_NO_ERROR) { \
-                NLOG("[Nidium GL Error : gl%s() returned %d", #X, __err);    \
+                NUI_LOG("[Nidium GL Error : gl%s() returned %d", #X, __err);    \
             } \
         } while (false)
 #endif
@@ -99,19 +99,19 @@ class GLContext
 
             /* The new context share with the "main" GL context */
             if (!m_UI->makeMainGLCurrent()) {
-                NLOG("Cant make main current");
+                NUI_LOG("Cant make main current");
             }
 
             m_SDLGLCtx = m_UI->createSharedContext(webgl);
             if (m_SDLGLCtx == NULL) {
-                NLOG("Cant create context");
+                NUI_LOG("Cant create context");
             }
 
             this->createInterface();
 
             /* Restore to the old GL Context */
             if (!m_UI->makeGLCurrent(oldctx)) {
-                NLOG("Cant restore old ctx");
+                NUI_LOG("Cant restore old ctx");
             }
         }
 

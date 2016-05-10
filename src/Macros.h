@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include <UIInterface.h>
+#include "Macros.h"
 
 namespace Nidium {
     namespace Interface {
@@ -11,7 +12,7 @@ namespace Nidium {
     }
 namespace Frontend {
 
-#define NLOG(format, ...) \
+#define NUI_LOG(format, ...) \
     Nidium::Interface::__NativeUI->logf("[%s:%d] " format "\n", __FILENAME__, __LINE__, ##__VA_ARGS__)
 
 } // namespace Frontend

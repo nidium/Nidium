@@ -6,7 +6,7 @@
 
 #include "Graphics/CanvasContext.h"
 #include "Graphics/GLHeader.h"
-#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
+#include "Macros.h"
 
 using Nidium::Frontend::Context;
 using Nidium::Interface::UIInterface;
@@ -23,7 +23,7 @@ GLState::GLState(UIInterface *ui, bool withProgram, bool webgl) :
     m_GLContext = new GLContext(ui, webgl ? NULL : ui->getGLContext(), webgl);
 
     if (!this->initGLBase(withProgram)) {
-        NLOG("[OpenGL] Failed to init base GL");
+        NUI_LOG("[OpenGL] Failed to init base GL");
     }
 }
 
@@ -42,7 +42,7 @@ void GLState::CreateForContext(Context *nctx)
 {
     UIInterface *ui;
     if ((ui = nctx->getUI()) == NULL || ui->m_NativeCtx->getGLState()) {
-        NLOG("Failed to init the first GLState");
+        NUI_LOG("Failed to init the first GLState");
         return;
     }
 

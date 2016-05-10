@@ -13,7 +13,7 @@
 #include <js/GCAPI.h>
 
 #include "Binding/JSCanvas2DContext.h"
-#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
+#include "Macros.h"
 
 using Nidium::Core::Args;
 using Nidium::Frontend::Context;
@@ -261,7 +261,7 @@ void CanvasHandler::updateChildrenSize(bool width, bool height)
         if (!updateHeight && !updateWidth) {
             continue;
         }
-        //NLOG("Update size of %p through parent", cur);
+        //NUI_LOG("Update size of %p through parent", cur);
         cur->setSize(updateWidth ? cur->getWidth() : cur->m_Width,
             updateHeight ? cur->getHeight() : cur->m_Height);
     }
