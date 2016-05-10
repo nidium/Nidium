@@ -11,7 +11,14 @@
             'NIDIUM_VERSION_STR="<(nidium_version)"',
             'NIDIUM_NO_PRIVATE_DIR'
         ],
-
+        'conditions': [
+            ['<(nidium_version)=="library"', {
+                'defines': [
+                    'NIDIUM_PRODUCT_LIBRARY="1"'
+                    ]
+                }
+            ]
+        ],
         'cflags_cc': [
             '-std=c++11'
         ],
