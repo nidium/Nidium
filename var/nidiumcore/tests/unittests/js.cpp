@@ -9,38 +9,37 @@
 #include "unittest.h"
 
 #include <ape_netlib.h>
-#include <Binding/NidiumJS.h>
 
-namespace {
+#include <Binding/NidiumJS.h>
 
 using namespace JS;
 
 NIDIUMJS_FIXTURE(NidiumJS)
 
-static int logcounter;
+#define LOG_ARRAY_SIZE
+static char log_array[LOG_ARRAY_SIZE] = {'\0'};
 static int msgcounter;
+
+
 void msg_cb_t(JSContext *cx, Nidium::Core::SharedMessages::Message *msg)
 {
     msgcounter++;
     APE_loop_stop();
 }
 
-int dummyLogger(const char *format)
-{
-    return logcounter += strcmp(format, "tt %s") ;
-}
-
 int dummyVLogger(const char *format, va_list ap)
 {
-    return logcounter += strcmp(format, "tt %s");
+    vsprintf(log_array + strlen(log_array), format, ap);
+    return strlen(log_array);
 }
+
 
 int dummyLoggerClear()
 {
-    logcounter = -10;
+    memset( log_array, '\0', sizeof(log_array));
+
     return 0;
 }
-
 TEST_F(NidiumJS, Simple)
 {
     int i = 1, *p;
@@ -84,31 +83,25 @@ TEST_F(NidiumJS, Simple)
     njs->CopyProperties(njs->m_Cx, d, &dc);
     JS_GetProperty(njs->m_Cx, dc, "a", &rval);
     EXPECT_EQ(JSVAL_TO_INT(rval), 1);
-
-    //check the loggers
-    logcounter = 0;
-    njs->log("%s");
-    EXPECT_EQ(logcounter, 0);
-
-    njs->setLogger(dummyLogger);
-    njs->logf("tt %s", "a");
-    EXPECT_EQ(logcounter, 0);
-    njs->log("%s");
-    EXPECT_EQ(logcounter, -79);
-
-    njs->setLogger(dummyVLogger);
-    njs->logf("tt %s", "a");
-    EXPECT_EQ(logcounter, -79);
-    njs->log("%s");
-    EXPECT_EQ(logcounter, -158);
-
-    njs->logclear();
-    EXPECT_EQ(logcounter, -158);
-    njs->setLogger(dummyLoggerClear);
-    njs->logclear();
-    EXPECT_EQ(logcounter, -10);
 }
 
+TEST_F(NidiumJS, Loggers)
+{
+    memset( log_array, '\0', sizeof(log_array));
+    njs->log("Normal logging to stdout");
+    EXPECT_EQ(strlen(log_array), 0);
+
+    njs->setLogger(dummyVLogger);
+    njs->log("Logging" " " "Normal");
+    njs->logf("Logging %s %s", "with", "args");
+    EXPECT_EQ(strlen(log_array), 31);
+
+    njs->logclear();
+    EXPECT_EQ(strlen(log_array), 31);
+    njs->setLogger(dummyLoggerClear);
+    njs->logclear();
+    EXPECT_EQ(strlen(log_array), 0);
+}
 
 TEST_F(NidiumJS, Quick)
 {
@@ -168,6 +161,4 @@ TEST_F(NidiumJS, Messages)
     APE_loop_stop();
     //void postMessage(void *dataPtr, int ev);
 }
-
-} // Namespace
 

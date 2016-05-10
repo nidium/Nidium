@@ -451,7 +451,7 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
 }
 
 NidiumJS::NidiumJS(ape_global *net) :
-    m_JSStrictMode(false), m_Logger(NULL), m_vLogger(NULL), m_LogClear(NULL)
+    m_JSStrictMode(false), m_vLogger(NULL), m_LogClear(NULL)
 {
     JSRuntime *rt;
     m_Privateslot = NULL;
@@ -635,10 +635,10 @@ void NidiumJS::logf(const char *format, ...)
 
 void NidiumJS::log(const char *format)
 {
-    if (!m_Logger) {
+    if (!m_vLogger) {
         fwrite(format, sizeof(char), strlen(format), stdout);
     } else {
-        m_Logger(format);
+        logf("%s", format);
     }
 }
 

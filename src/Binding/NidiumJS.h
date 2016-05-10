@@ -55,7 +55,6 @@ class NidiumJS
             kSctag_Hidden,
             kSctag_Max
         };
-        typedef int (*logger)(const char *format);
         typedef int (*vlogger)(const char *format, va_list ap);
         typedef int (*logger_clear)();
 
@@ -97,9 +96,6 @@ class NidiumJS
             return m_Shutdown;
         }
 
-        void setLogger(logger lfunc) {
-            m_Logger = lfunc;
-        }
         void setLogger(vlogger lfunc) {
             m_vLogger = lfunc;
         }
@@ -171,9 +167,6 @@ class NidiumJS
         const char *m_RelPath;
         JSCompartment *m_Compartment;
         bool m_JSStrictMode;
-
-        /* argument list (...) */
-        logger m_Logger;
 
         /* va_list argument */
         vlogger m_vLogger;
