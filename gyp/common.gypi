@@ -8,6 +8,7 @@
     ],
     'target_defaults': {
         'defines': [
+            'NIDIUM_PRODUCT_SERVER="1"',
             'NIDIUM_VERSION_STR="<(nidium_version)"',
             'NIDIUM_BUILD="<!@(git rev-parse HEAD)"',
             'NIDIUM_NO_PRIVATE_DIR'
@@ -22,3 +23,4 @@
         }
     }
 }
+

@@ -13,7 +13,6 @@
 #include <IO/FileStream.h>
 #include <Net/HTTPStream.h>
 
-#include "Binding/JSConsole.h"
 #include "Binding/JSSystem.h"
 
 using Nidium::Core::Path;
@@ -68,7 +67,6 @@ Context::Context(ape_global *net, Worker *worker,
 
     m_JS->loadGlobalObjects();
 
-    JSconsole::RegisterObject(m_JS->m_Cx);
     JSSystem::RegisterObject(m_JS->m_Cx);
 
     m_JS->setPath(Path::GetCwd());
