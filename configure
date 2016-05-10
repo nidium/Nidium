@@ -45,6 +45,7 @@ def libnostd():
 def linenoise():
     return {
         "location": Deps.GitRepo("https://github.com/antirez/linenoise.git", tag="1.0"),
+        "patchs":  [os.path.join(CONFIGURE_PATH, "var", "patch", "linenoise.patch")]
     }
 
 @CommandLine.option("--jemalloc", default=False)
