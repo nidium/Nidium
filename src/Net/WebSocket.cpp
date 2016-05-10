@@ -11,7 +11,7 @@
 #include <string.h>
 #include <strings.h>
 
-#include "Binding/NidiumJS.h"
+#include "Binding/Nidiumcore.h"
 
 using Nidium::Core::Args;
 
@@ -106,7 +106,7 @@ WebSocketClientConnection::~WebSocketClientConnection()
     }
 
     if (m_PingTimer) {
-        ape_global *ape = Binding::NidiumJS::GetNet();
+        ape_global *ape = Binding::Nidiumcore::GetNet();
 
         APE_timer_clearbyid(ape, m_PingTimer, 1);
 

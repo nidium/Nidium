@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef binding_nidiumjs_h__
-#define binding_nidiumjs_h__
+#ifndef binding_nidiumcore_h__
+#define binding_nidiumcore_h__
 
 #include <stdint.h>
 #include <stddef.h>
@@ -44,11 +44,11 @@ typedef struct _NidiumBytecodeScript {
 
 class NidiumJSDelegate;
 
-class NidiumJS
+class Nidiumcore
 {
     public:
-        explicit NidiumJS(ape_global *net);
-        ~NidiumJS();
+        explicit Nidiumcore(ape_global *net);
+        ~Nidiumcore();
 
         enum sctag {
             kSctag_Function = JS_SCTAG_USER_MIN + 1,
@@ -70,7 +70,7 @@ class NidiumJS
         int m_RegisteredMessagesIdx;
         int m_RegisteredMessagesSize;
 
-        static NidiumJS *GetObject(JSContext *cx = NULL);
+        static Nidiumcore *GetObject(JSContext *cx = NULL);
         static ape_global *GetNet();
         static void InitNet(ape_global *net);
 

@@ -15,7 +15,7 @@
 #include <sys/socket.h>
 
 #include "Net/HTTPServer.h"
-#include "Binding/NidiumJS.h"
+#include "Binding/Nidiumcore.h"
 
 using Nidium::Core::Utils;
 
@@ -309,7 +309,7 @@ static void nidium_socket_client_disconnect(ape_socket *socket_client,
 // {{{ HTTPServer Implementation
 HTTPServer::HTTPServer(uint16_t port, const char *ip)
 {
-    ape_global *ape = Binding::NidiumJS::GetNet();
+    ape_global *ape = Binding::Nidiumcore::GetNet();
     m_Socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, ape);
 
     m_IP = strdup(ip);
@@ -461,7 +461,7 @@ HTTPResponse *HTTPClientConnection::onCreateResponse()
 HTTPClientConnection::~HTTPClientConnection()
 {
     if (m_TimeoutTimer) {
-        ape_global *ape = Binding::NidiumJS::GetNet();
+        ape_global *ape = Binding::Nidiumcore::GetNet();
 
         APE_timer_clearbyid(ape, m_TimeoutTimer, 1);
 

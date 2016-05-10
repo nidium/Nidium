@@ -12,7 +12,7 @@
 #include "Core/Path.h"
 #include "Core/Utils.h"
 #include "IO/Stream.h"
-#include "Binding/NidiumJS.h"
+#include "Binding/Nidiumcore.h"
 #include "Binding/JSUtils.h"
 
 using Nidium::Core::Path;
@@ -85,7 +85,7 @@ struct nidium_sm_timer
 };
 
 
-JSStructuredCloneCallbacks *NidiumJS::m_JsScc = NULL;
+JSStructuredCloneCallbacks *Nidiumcore::m_JsScc = NULL;
 
 JSClass global_class = {
     "global", JSCLASS_GLOBAL_FLAGS_WITH_SLOTS(16) | JSCLASS_HAS_PRIVATE,
@@ -154,7 +154,7 @@ static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NidiumJS *njs = NidiumJS::GetObject(cx);
+    Nidiumcore *njs = Nidiumcore::GetObject(cx);
     JSAutoByteString scriptstr(cx, script);
     Path scriptpath(scriptstr.ptr());
 

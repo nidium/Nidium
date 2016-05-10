@@ -43,7 +43,7 @@ static bool nidium_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp)
     size_t data_len;
 
     if (!JS_WriteStructuredClone(cx, args[0], &data, &data_len,
-        NULL, NidiumJS::GetObject(cx), JS::NullHandleValue)) {
+        NULL, Nidiumcore::GetObject(cx), JS::NullHandleValue)) {
         JS_ReportError(cx, "serialize() failed");
         return false;
     }
@@ -91,7 +91,7 @@ static bool nidium_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp
     }
 
     if (!JS_ReadStructuredClone(cx, (uint64_t *)(data+offset), len-offset,
-        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NidiumJS::GetObject(cx))) {
+        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, Nidiumcore::GetObject(cx))) {
         JS_ReportError(cx, "unserialize() invalid data");
         return false;
     }
@@ -114,7 +114,7 @@ static void Debug_Finalize(JSFreeOp *fop, JSObject *obj)
 // {{{ Registration
 void JSDebug::RegisterObject(JSContext *cx)
 {
-    NidiumJS *njs = NidiumJS::GetObject(cx);
+    Nidiumcore *njs = Nidiumcore::GetObject(cx);
 
     JS::RootedObject debugObj(cx, JS_DefineObject(cx, JS::CurrentGlobalOrNull(cx),
         JSDebug::GetJSObjectName(),

@@ -29,7 +29,7 @@ static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Thread_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool nidium_thread_start(JSContext *cx, unsigned argc, JS::Value *vp);
 
-#define NJS (NidiumJS::GetObject(cx))
+#define NJS (Nidiumcore::GetObject(cx))
 
 static JSClass global_Thread_class = {
     "_GLOBALThread", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
@@ -108,7 +108,7 @@ static void *nidium_thread(void *arg)
         return NULL;
     }
 
-    NidiumJS::SetJSRuntimeOptions(rt);
+    Nidiumcore::SetJSRuntimeOptions(rt);
 
     if ((tcx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
@@ -118,7 +118,7 @@ static void *nidium_thread(void *arg)
         JSAutoRequest ar(tcx);
         JS_SetGCParameterForThread(tcx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
 
-        JS_SetStructuredCloneCallbacks(rt, NidiumJS::m_JsScc);
+        JS_SetStructuredCloneCallbacks(rt, Nidiumcore::m_JsScc);
         JS_SetInterruptCallback(rt, JSThreadCallback);
 
         nthread->m_JsRuntime = rt;

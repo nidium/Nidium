@@ -11,7 +11,7 @@
 #include <jsfriendapi.h>
 #include <js/CharacterEncoding.h>
 
-#include "Binding/NidiumJS.h"
+#include "Binding/Nidiumcore.h"
 
 namespace Nidium {
 namespace Binding {
@@ -90,7 +90,7 @@ char * JSUtils::CurrentJSCaller(JSContext *cx)
 {
     if (cx == NULL) {
         /* lookup in the TLS */
-        NidiumJS *js = NidiumJS::GetObject();
+        Nidiumcore *js = Nidiumcore::GetObject();
         if (!js || (cx = js->getJSContext()) == NULL) {
             return NULL;
         }

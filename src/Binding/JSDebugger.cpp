@@ -123,7 +123,7 @@ static bool nidium_debugger_create(JSContext* cx, unsigned argc, JS::Value* vp)
     JS::RootedObject mainGbl(cx, JS::CurrentGlobalOrNull(cx));
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    JS::RootedObject gbl(cx, NidiumJS::CreateJSGlobal(cx));
+    JS::RootedObject gbl(cx, Nidiumcore::CreateJSGlobal(cx));
     if (!gbl) {
         fprintf(stderr, "Failed to create global object\n");
         return false;
