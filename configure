@@ -213,8 +213,17 @@ def ffmpeg():
         ]
     }
 
+def getNidiumPath():
+    nidium = ""
+    if Platform.system == "Linux":
+        return ("framework/dist", "./nidium")
+    elif Platform.system == "Darwin":
+        nidium = ("framework/dist", "./nidium.app/Contents/MacOS/nidium")
+    else:
+        raise Exception("TODO : Unsupported platform, cannot find nidum executable")
+
 @CommandLine.option("--auto-tests")
-def auotTestStudio(autoTests):
+def autoTestStudio(autoTests):
     if autoTests is None:
         return
 
@@ -222,14 +231,7 @@ def auotTestStudio(autoTests):
         autoTests = "core,studio,framework"
 
     tests = []
-    nidium = ""
-    if Platform.system == "Linux":
-        nidium = "framework/dist/nidium"
-    elif Platform.system == "Darwin":
-        nidium = "framework/dist/nidium.app/Contents/MacOS/nidium"
-    else:
-        # TODO
-        Utils.exit("TODO : Unsupported platform for tests")
+    nidium = getNidiumPath()
 
     # Find Konstrutor path, to run Dokumentor
     dokumentor = os.path.dirname(os.path.abspath(sys.modules[Konstruct.__module__].__file__))
@@ -247,7 +249,7 @@ def auotTestStudio(autoTests):
         Utils.run(dokumentor + " exampletest framework/var/rawdoc/ > framework/var/js/tests/autotests/auto_suites.js")
         tests.append("framework/var/js/tests/autotests/autotests.nml")
 
-    Tests.register(["%s %s" % (nidium, t) for t in tests])
+    Tests.register([("%s ../../%s" % (nidium[1], t), nidium[0]) for t in tests])
 
 @CommandLine.option("--unit-tests")
 def testStudio(unitTests):
@@ -258,13 +260,14 @@ def testStudio(unitTests):
         unitTests = "core,studio,framework"
 
     tests = []
+    nidium = getNidiumPath()
 
     if "core" in unitTests:
-        tests.append(("./nidium ../../nativejscore/var/js/tests/unittests/unittests.nml", "./framework/dist"))
+        tests.append((nidium[1] + " ../../nativejscore/var/js/tests/unittests/unittests.nml", nidium[0]))
     if "studio" in unitTests:
-        tests.append(("./nidium ../../var/js/tests/unittests/unittests.nml", "./framework/dist"))
+        tests.append((nidium[1] + "../../var/js/tests/unittests/unittests.nml", nidium[0]))
     if "framework" in unitTests:
-        tests.append(("./nidium ../../framework/var/js/tests/unittests/unittests.nml", "./framework/dist"))
+        tests.append((nidium[1] + "../../framework/var/js/tests/unittests/unittests.nml", nidium[0]))
 
     Tests.register(tests)
 
