@@ -5,14 +5,9 @@
 */
 #include "Binding/JSGlobal.h"
 
-#include <glob.h>
-
 #include <ape_timers_next.h>
 
-#include "Core/Path.h"
-#include "Core/Utils.h"
 #include "IO/Stream.h"
-#include "Binding/Nidiumcore.h"
 #include "Binding/JSUtils.h"
 
 using Nidium::Core::Path;

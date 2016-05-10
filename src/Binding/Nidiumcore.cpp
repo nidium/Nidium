@@ -17,8 +17,6 @@
 #include <js/OldDebugAPI.h>
 #include <jsprf.h>
 
-#include "IO/Stream.h"
-
 #include "Binding/JSSocket.h"
 #include "Binding/JSThread.h"
 #include "Binding/JSHTTP.h"
@@ -30,7 +28,6 @@
 #include "Binding/JSHTTPServer.h"
 #include "Binding/JSDebug.h"
 #include "Binding/JSConsole.h"
-#include "Binding/JSUtils.h"
 #include "Binding/JSFS.h"
 #include "Binding/JSDebugger.h"
 #include "Binding/JSGlobal.h"
