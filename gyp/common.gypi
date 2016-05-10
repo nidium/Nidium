@@ -8,6 +8,7 @@
     ],
     'target_defaults': {
         'defines': [
+            'NIDIUM_PRODUCT_UI="1"',
             'NIDIUM_VERSION_STR="<(nidium_version)"',
             'NIDIUM_FRAMEWORK_STR="<(nidium_framework)"',
             'NIDIUM_BUILD="<!@(git rev-parse HEAD)"',
