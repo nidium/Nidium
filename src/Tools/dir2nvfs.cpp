@@ -88,7 +88,7 @@ void listdir(NativeJSNFS *nfs, DIR *dir, std::string fullpath, int strip)
     closedir(dir);
 }
 
-static void initNidiumJSCore()
+static void initNidiumcore()
 {
     _ape_seed = time(NULL) ^ (getpid() << 16);
 
@@ -104,7 +104,7 @@ static void initNidiumJSCore()
 
 int main(int argc, char **argv)
 {
-    initNidiumJSCore();
+    initNidiumcore();
 
     if (argc <= 1) {
         printf("$ %s <path> [prefix] [> out]\n", argv[0]);

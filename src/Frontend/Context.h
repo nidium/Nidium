@@ -15,7 +15,7 @@
 
 #include <GLSLANG/ShaderLang.h>
 
-#include <Binding/NidiumJS.h>
+#include <Binding/Nidiumcore.h>
 
 #include "Graphics/GLResources.h"
 
@@ -34,7 +34,7 @@ namespace Nidium {
         class GLState;
     }
     namespace Binding {
-        class NidiumJS;
+        class Nidiumcore;
         class JSWindow;
     }
 }
@@ -46,7 +46,7 @@ using Nidium::Interface::UIInterface;
 using Nidium::Net::WebSocketServer;
 using Nidium::Net::WebSocketClientConnection;
 using Nidium::Binding::JSWindow;
-using Nidium::Binding::NidiumJS;
+using Nidium::Binding::Nidiumcore;
 using Nidium::Binding::NidiumBytecodeScript;
 using Nidium::Graphics::CanvasHandler;
 using Nidium::Graphics::GLState;
@@ -169,7 +169,7 @@ class Context : public Messages
         return m_RootHandler;
     }
 
-    NidiumJS *getNJS() const {
+    Nidiumcore *getNJS() const {
         return m_JS;
     }
 
@@ -198,14 +198,14 @@ class Context : public Messages
     }
 
     static Context *GetObject() {
-        return static_cast<Context *>(NidiumJS::GetObject(NULL)->getPrivate());
+        return static_cast<Context *>(Nidiumcore::GetObject(NULL)->getPrivate());
     }
 
     static Context *GetObject(struct JSContext *cx) {
-        return static_cast<Context *>(NidiumJS::GetObject(cx)->getPrivate());
+        return static_cast<Context *>(Nidiumcore::GetObject(cx)->getPrivate());
     }
 
-    static Context *GetObject(NidiumJS *njs) {
+    static Context *GetObject(Nidiumcore *njs) {
         return static_cast<Context *>(njs->getPrivate());
     }
 
@@ -278,7 +278,7 @@ class Context : public Messages
 
     private:
     GLResources                m_Resources;
-    NidiumJS *                 m_JS;
+    Nidiumcore *               m_JS;
     CanvasHandler *            m_RootHandler;
     CanvasHandler *            m_DebugHandler;
 #ifdef DEBUG

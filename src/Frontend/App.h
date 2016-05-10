@@ -13,7 +13,7 @@
 
 #include <ape_timers_next.h>
 
-#include <Binding/NidiumJS.h>
+#include <Binding/Nidiumcore.h>
 
 using Nidium::Core::SharedMessages;
 

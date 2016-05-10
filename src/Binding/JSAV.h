@@ -47,7 +47,7 @@ enum {
     CUSTOM_SOURCE_PROP_SEEK
 };
 
-class NidiumJS;
+class Nidiumcore;
 
 class JSAudioNode;
 class Canvas2DContext;
@@ -203,7 +203,7 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Messages
         };
 
         // Common
-        NidiumJS *m_nJs;
+        Nidiumcore *m_nJs;
         JSAudio *m_Audio;
         AudioNode *m_Node;
         Audio::Node m_NodeType;

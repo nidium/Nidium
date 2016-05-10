@@ -551,7 +551,7 @@ bool JSWindow::dragBegin(int x, int y, const char * const *files, size_t nfiles)
     m_Dragging = true; //Duh..
 
     m_DraggedFiles = JS_NewArrayObject(m_Cx, (int)nfiles);
-    NidiumJS::GetObject(m_Cx)->rootObjectUntilShutdown(m_DraggedFiles);
+    Nidiumcore::GetObject(m_Cx)->rootObjectUntilShutdown(m_DraggedFiles);
 
     JS::RootedObject dragged(m_Cx, m_DraggedFiles);
 
@@ -598,7 +598,7 @@ void JSWindow::dragEnd()
         return;
     }
 
-    NidiumJS::GetObject(m_Cx)->unrootObject(m_DraggedFiles);
+    Nidiumcore::GetObject(m_Cx)->unrootObject(m_DraggedFiles);
 
     m_DraggedFiles = NULL;
     m_Dragging = false;
@@ -1477,7 +1477,7 @@ JSWindow* JSWindow::GetObject(JSContext *cx)
     return Context::GetObject(cx)->getJSWindow();
 }
 
-JSWindow* JSWindow::GetObject(NidiumJS *njs)
+JSWindow* JSWindow::GetObject(Nidiumcore *njs)
 {
     return Context::GetObject(njs)->getJSWindow();
 }

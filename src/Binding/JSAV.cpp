@@ -46,7 +46,7 @@ JSAudio *JSAudio::m_Instance = NULL;
 // TODO : When stop/pause/kill fade out sound
 
 
-#define NJS (NidiumJS::GetObject(m_Cx))
+#define NJS (Nidiumcore::GetObject(m_Cx))
 #define JS_PROPAGATE_ERROR(cx, ...)\
 JS_ReportError(cx, __VA_ARGS__); \
 if (!JS_ReportPendingException(cx)) {\
@@ -620,7 +620,7 @@ bool JSAudio::createContext()
         return false;
     }
 
-    JS_SetStructuredCloneCallbacks(m_JsRt, NidiumJS::m_JsScc);
+    JS_SetStructuredCloneCallbacks(m_JsRt, Nidiumcore::m_JsScc);
 
     JSAutoRequest ar(m_JsTcx);
 
@@ -645,7 +645,7 @@ bool JSAudio::createContext()
     JS_DefineFunctions(m_JsTcx, global, glob_funcs_threaded);
     JSConsole::RegisterObject(m_JsTcx);
 
-    JS_SetRuntimePrivate(m_JsRt, NidiumJS::GetObject(m_Audio->getMainCtx()));
+    JS_SetRuntimePrivate(m_JsRt, Nidiumcore::GetObject(m_Audio->getMainCtx()));
 
     //JS_SetContextPrivate(this->tcx, static_cast<void *>(this));
 

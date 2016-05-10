@@ -75,7 +75,7 @@ class JSWindow : public JSExposer<JSWindow>
     }
 
     static JSWindow* GetObject(JSContext *cx);
-    static JSWindow* GetObject(NidiumJS *njs);
+    static JSWindow* GetObject(Nidiumcore *njs);
 
     static JSClass *jsclass;
 
