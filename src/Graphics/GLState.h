@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "Macros.h"
 #include "Graphics/GLResources.h"
 #include "Graphics/GLContext.h"
 

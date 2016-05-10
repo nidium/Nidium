@@ -21,6 +21,7 @@
 #include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSImage.h"
+#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
 
 using Nidium::Frontend::NMLTag;
 using Nidium::Frontend::Context;

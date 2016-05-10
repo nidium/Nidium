@@ -16,6 +16,7 @@
 #include "Graphics/GLResources.h"
 #include "Graphics/GLState.h"
 #include "Graphics/GLContext.h"
+#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
 
 namespace Nidium {
     namespace Binding {

@@ -11,11 +11,10 @@
 
 #include <UIInterface.h>
 
-#include "Macros.h"
 #include "Frontend/Context.h"
+#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
 
 typedef void *SDL_GLContext;
-
 
 namespace Nidium {
     namespace Interface {

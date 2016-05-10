@@ -21,6 +21,7 @@
 #include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSDocument.h"
+#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
 
 using namespace Nidium::Graphics;
 using Nidium::Interface::UIInterface;

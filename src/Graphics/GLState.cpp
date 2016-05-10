@@ -6,6 +6,7 @@
 
 #include "Graphics/CanvasContext.h"
 #include "Graphics/GLHeader.h"
+#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
 
 using Nidium::Frontend::Context;
 using Nidium::Interface::UIInterface;

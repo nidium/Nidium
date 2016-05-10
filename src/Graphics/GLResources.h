@@ -11,8 +11,6 @@
 
 #include <Core/Hash.h>
 
-#include "Macros.h"
-
 using Nidium::Core::Hash64;
 
 namespace Nidium {

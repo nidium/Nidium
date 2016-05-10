@@ -11,9 +11,6 @@ namespace Nidium {
     }
 namespace Frontend {
 
-#define __FILENAME__ \
-    (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-
 #define NLOG(format, ...) \
     Nidium::Interface::__NativeUI->logf("[%s:%d] " format "\n", __FILENAME__, __LINE__, ##__VA_ARGS__)
 

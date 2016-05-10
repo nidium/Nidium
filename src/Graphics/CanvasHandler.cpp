@@ -13,6 +13,7 @@
 #include <js/GCAPI.h>
 
 #include "Binding/JSCanvas2DContext.h"
+#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
 
 using Nidium::Core::Args;
 using Nidium::Frontend::Context;

@@ -17,6 +17,7 @@
 #include "Graphics/Canvas3DContext.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSCanvas2DContext.h"
+#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
 
 using Nidium::Frontend::Context;
 using Nidium::Interface::SystemInterface;

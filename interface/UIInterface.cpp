@@ -18,6 +18,7 @@
 #include "Graphics/GLHeader.h"
 #include "Binding/JSWindow.h"
 #include "SDL_keycode_translate.h"
+#include "Macros.h" // This overrides Nidium::Core::Utils's NLOG
 
 #define kNativeTitleBarHeight 0
 #define kNativeVSYNC 1
