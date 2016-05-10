@@ -55,13 +55,6 @@ enum {
 };
 
 // {{{ Logging
-int NativeContext_Logger(const char *format)
-{
-    Interface::__NativeUI->log(format);
-
-    return 0;
-}
-
 int NativeContext_vLogger(const char *format, va_list ap)
 {
     Interface::__NativeUI->vlog(format, ap);
@@ -127,7 +120,6 @@ m_Debug2Handler(NULL),
     JS_InitReflect(m_JS->m_Cx, globalObj);
     this->loadNativeObjects(width, height);
 
-    m_JS->setLogger(NativeContext_Logger);
     m_JS->setLogger(NativeContext_vLogger);
     m_JS->setLogger(NativeContext_LogClear);
 
