@@ -35,6 +35,7 @@
             'websocketclient.cpp',  #dummy
 
             'js.cpp',               #dummy
+            'jsglobal.cpp',         #dummy
             'jsdb.cpp',             #dummy
             'jsconsole.cpp',        #dummy
             'jsdebug.cpp',          #dummy

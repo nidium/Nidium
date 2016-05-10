@@ -14,7 +14,7 @@
 TEST(JSFileIO, Simple)
 {
     ape_global * g_ape = APE_init();
-    Nidium::Binding::NidiumJS njs(g_ape);
+    Nidium::Binding::Nidiumcore njs(g_ape);
     bool success;
 
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
@@ -36,7 +36,7 @@ TEST(JSFileIO, Simple)
 TEST(JSFileIO, Init)
 {
     ape_global * g_ape = APE_init();
-    Nidium::Binding::NidiumJS njs(g_ape);
+    Nidium::Binding::Nidiumcore njs(g_ape);
 
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     //Nidium::Core::Path::RegisterScheme(SCHEME_DEFINE("file://", Nidium::IO::FileStream, false), true);

@@ -9,12 +9,12 @@
 #include "unittest.h"
 
 #include <Net/HTTPServer.h>
-#include <Binding/NidiumJS.h>
+#include <Binding/Nidiumcore.h>
 
 TEST(HTTPServer, Simple)
 {
     ape_global *g_ape = APE_init();
-    Nidium::Binding::NidiumJS g_native(g_ape);
+    Nidium::Binding::Nidiumcore g_native(g_ape);
 
     Nidium::Net::HTTPServer nl(8111);
 

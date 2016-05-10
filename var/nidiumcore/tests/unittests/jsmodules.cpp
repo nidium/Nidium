@@ -9,13 +9,13 @@
 #include "unittest.h"
 
 #include <ape_netlib.h>
-#include <Binding/NidiumJS.h>
+#include <Binding/Nidiumcore.h>
 #include <Binding/JSModules.h>
 
 TEST(JSModules, ModulesSimple)
 {
     ape_global * g_ape = APE_init();
-    Nidium::Binding::NidiumJS njs(g_ape);
+    Nidium::Binding::Nidiumcore njs(g_ape);
     Nidium::Binding::JSModules modules(njs.cx);
     EXPECT_TRUE(modules.main == NULL);
     EXPECT_TRUE(strcmp(modules.m_TopDir, "/") == 0);
@@ -30,7 +30,7 @@ TEST(JSModules, ModulesSimple)
 TEST(JSModules, ModuleSimple)
 {
     ape_global * g_ape = APE_init();
-    Nidium::Binding::NidiumJS njs(g_ape);
+    Nidium::Binding::Nidiumcore njs(g_ape);
     Nidium::Binding::JSModules modules(njs.cx);
     Nidium::Binding::JSModule module(njs.cx, &modules, NULL, "dummy");
     EXPECT_TRUE(module.absoluteDir == NULL);
