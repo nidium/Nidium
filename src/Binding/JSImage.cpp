@@ -225,7 +225,7 @@ void JSImage::onMessage(const SharedMessages::Message &msg)
 {
 
     switch (msg.event()) {
-        case Stream::EVENT_READ_BUFFER:
+        case Stream::kEvents_ReadBuffer:
         {
             ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
             JS::RootedValue onload_callback(m_Cx);

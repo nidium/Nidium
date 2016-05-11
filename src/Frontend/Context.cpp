@@ -592,7 +592,7 @@ void Context::execPendingCanvasChanges()
 void Context::onMessage(const SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case NIDIUM_EVENT(WebSocketServer, SERVER_CONNECT):
+        case NIDIUM_EVENT(WebSocketServer, WebSocketServer::kEvents_ServerConnect):
             m_WSClient = static_cast<WebSocketClientConnection *>(msg.m_Args[0].toPtr());
             printf("New WS client for render :)\n");
             break;
