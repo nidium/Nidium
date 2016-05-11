@@ -109,6 +109,7 @@
             '../src/Net/WebSocketClient.cpp',
 
             '../src/Binding/NidiumJS.cpp',
+            '../src/Binding/JSGlobal.cpp',
             '../src/Binding/JSExposer.cpp',
             '../src/Binding/JSFileIO.cpp',
             '../src/Binding/JSHTTP.cpp',
@@ -124,6 +125,7 @@
             '../src/Binding/JSProcess.cpp',
             '../src/Binding/JSUtils.cpp',
             '../src/Binding/JSStream.cpp',
+            '../src/Binding/JSSystem.cpp',
             '../src/Binding/JSWebSocket.cpp',
             '../src/Binding/JSWebSocketClient.cpp',
             '../src/Binding/JSDB.cpp',
