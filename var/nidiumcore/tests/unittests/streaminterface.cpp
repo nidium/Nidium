@@ -38,7 +38,7 @@ protected:
     const unsigned char * onGetNextPacket(size_t *len, int *err) {
         counter++;
         if (counter == 2) {
-            this->error(ERROR_UNKNOWN, 666);
+            this->error(Stream::kErrors_Unknown, 666);
         }
         return NULL;
 
