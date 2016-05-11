@@ -22,7 +22,7 @@ clearInterval( t );"""),
 )
 
 FieldDoc( "global.__dirname", "The path (without the filename) of the current JavaScript file ending with a '/'.",
-	[ SeeDoc( "global.__filename" ), SeeDoc( "global.cwd" ), SeeDoc( "fs" ), SeeDoc( "File" ) ],
+	[ SeeDoc( "global.__filename" ), SeeDoc( "process.cwd" ), SeeDoc( "fs" ), SeeDoc( "File" ) ],
 	NO_Examples,
 	IS_Static, IS_Public, IS_Readonly,
 	'string',
@@ -30,7 +30,7 @@ FieldDoc( "global.__dirname", "The path (without the filename) of the current Ja
 )
 
 FieldDoc( "global.__filename", "The path (with the filename) of the current JavaScript file.",
-	[ SeeDoc( "global.__dirname" ), SeeDoc( "global.cwd" ) ],
+	[ SeeDoc( "global.__dirname" ), SeeDoc( "process.cwd" ) ],
 	NO_Examples,
 	IS_Static, IS_Public, IS_Readonly,
 	'string',
