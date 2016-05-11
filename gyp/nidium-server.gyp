@@ -23,7 +23,6 @@
             '<(nidium_src_path)/Server/Server.cpp',
             '<(nidium_src_path)/Server/Context.cpp',
             '<(nidium_src_path)/Server/REPL.cpp',
-            '<(nidium_src_path)/Binding/JSSystem.cpp',
 
             '<(third_party_path)/libnostd/bsd/stdlib/setproctitle.c',
             '<(third_party_path)/linenoise/linenoise.c',
