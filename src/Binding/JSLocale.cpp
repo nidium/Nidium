@@ -1,4 +1,4 @@
-#include "Binding/JSNidium.h"
+#include "Binding/JSLocale.h"
 
 #include <SystemInterface.h>
 
@@ -10,20 +10,20 @@ namespace Binding {
 // {{{ Preamble
 static void Nidium_Finalize(JSFreeOp *fop, JSObject *obj);
 
-static JSClass Nidium_class = {
-    "native", JSCLASS_HAS_PRIVATE,
+static JSClass Locale_class = {
+    "Locale", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Nidium_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-JSClass *JSNidium::jsclass = &Nidium_class;
+JSClass *JSLocale::jsclass = &Locale_class;
 static bool nidium_nidium_language(JSContext *cx, unsigned argc, jsval *vp);
 
 template<>
-JSClass *JSExposer<JSNidium>::jsclass = &Nidium_class;
+JSClass *JSExposer<JSLocale>::jsclass = &Locale_class;
 
-static JSFunctionSpec Nidium_funcs[] = {
+static JSFunctionSpec locale_funcs[] = {
     JS_FN("language", nidium_nidium_language, 0, 0),
     JS_FS_END
 };
@@ -44,7 +44,7 @@ static bool nidium_nidium_language(JSContext *cx, unsigned argc, jsval *vp)
 
 void Nidium_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    JSNidium *jnative = JSNidium::GetObject(obj);
+    JSLocale *jnative = JSLocale::GetObject(obj);
 
     if (jnative != NULL) {
         delete jnative;
@@ -53,17 +53,17 @@ void Nidium_Finalize(JSFreeOp *fop, JSObject *obj)
 // }}}
 
 // {{{ Registration
-void JSNidium::RegisterObject(JSContext *cx)
+void JSLocale::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject NativeObj(cx, JS_DefineObject(cx, global,
-        JSNidium::GetJSObjectName(), &Nidium_class , nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
+        JSLocale::GetJSObjectName(), &Locale_class , nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
-    JSNidium *jnative = new JSNidium(NativeObj, cx);
-    JS_DefineFunctions(cx, NativeObj, Nidium_funcs);
+    JSLocale *jnative = new JSLocale(NativeObj, cx);
+    JS_DefineFunctions(cx, NativeObj, locale_funcs);
     JS_SetPrivate(NativeObj, jnative);
 
-    Nidiumcore::GetObject(cx)->m_JsObjects.set(JSNidium::GetJSObjectName(), NativeObj);
+    Nidiumcore::GetObject(cx)->m_JsObjects.set(JSLocale::GetJSObjectName(), NativeObj);
 
     //JS::RootedObject titleBar(cx, JSCanvas::GenerateJSObject(cx, width, 35));
     //((CanvasHandler *)JS_GetPrivate(canvas))->translate(0, 35);

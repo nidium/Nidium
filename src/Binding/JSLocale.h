@@ -10,15 +10,15 @@ namespace Nidium {
     }
 namespace Binding {
 
-class JSNidium : public JSExposer<JSNidium>
+class JSLocale : public JSExposer<JSLocale>
 {
   public:
-    JSNidium(JS::HandleObject obj, JSContext *cx) :
-        JSExposer<JSNidium>(obj, cx)
+    JSLocale(JS::HandleObject obj, JSContext *cx) :
+        JSExposer<JSLocale>(obj, cx)
     {
 
     }
-    ~JSNidium() {};
+    ~JSLocale() {};
 
     static void RegisterObject(JSContext *cx);
 
