@@ -19,7 +19,6 @@
 #include <jsprf.h>
 
 #include "IO/Stream.h"
-
 #include "Binding/JSSocket.h"
 #include "Binding/JSThread.h"
 #include "Binding/JSHTTP.h"
@@ -71,11 +70,11 @@ struct nidium_sm_timer
     ~nidium_sm_timer() { }
 };
 
-enum {
-    GLOBAL_PROP___DIRNAME,
-    GLOBAL_PROP___FILENAME,
-    GLOBAL_PROP_GLOBAL,
-    GLOBAL_PROP_WINDOW
+enum GlobalProp {
+    kGlobalProp___Dirname,
+    kGlobalProp___Filename,
+    kGlobalProp_Global,
+    kGlobalProp_Window
 };
 
 JSStructuredCloneCallbacks *NidiumJS::m_JsScc = NULL;
@@ -115,11 +114,11 @@ static JSFunctionSpec glob_funcs[] = {
 };
 
 static JSPropertySpec glob_props[] = {
-    NIDIUM_JS_PSG("__filename", GLOBAL_PROP___FILENAME, nidium_global_prop_get),
-    NIDIUM_JS_PSG("__dirname", GLOBAL_PROP___DIRNAME, nidium_global_prop_get),
-    NIDIUM_JS_PSG("global", GLOBAL_PROP_GLOBAL, nidium_global_prop_get),
+    NIDIUM_JS_PSG("__filename", kGlobalProp___Filename, nidium_global_prop_get),
+    NIDIUM_JS_PSG("__dirname", kGlobalProp___Dirname, nidium_global_prop_get),
+    NIDIUM_JS_PSG("global", kGlobalProp_Global, nidium_global_prop_get),
 #ifndef NATIVE_DISABLE_WINDOW_GLOBAL
-    NIDIUM_JS_PSG("window", GLOBAL_PROP_WINDOW, nidium_global_prop_get),
+    NIDIUM_JS_PSG("window", kGlobalProp_Window, nidium_global_prop_get),
 #endif
     JS_PS_END
 };
@@ -1033,21 +1032,21 @@ static bool nidium_global_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
     switch(id) {
-        case GLOBAL_PROP___FILENAME:
+        case kGlobalProp___Filename:
         {
             char *filename = JSUtils::CurrentJSCaller(cx);
             vp.setString(JS_NewStringCopyZ(cx, filename));
             free(filename);
             break;
         }
-        case GLOBAL_PROP___DIRNAME:
+        case kGlobalProp___Dirname:
         {
             Path path(JSUtils::CurrentJSCaller(cx), false, true);
             vp.setString(JS_NewStringCopyZ(cx, path.dir()));
             break;
         }
-        case GLOBAL_PROP_WINDOW:
-        case GLOBAL_PROP_GLOBAL:
+        case kGlobalProp_Window:
+        case kGlobalProp_Global:
         {
             JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
             vp.setObjectOrNull(global);

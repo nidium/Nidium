@@ -40,7 +40,7 @@ class JSFSAsyncHandler : public JSAsyncHandler
 {
 public:
     JSFSAsyncHandler(JSContext *ctx) : JSAsyncHandler(ctx) { }
-    enum {
+    enum Message {
         kMessage_ReadDir = 1
     };
 

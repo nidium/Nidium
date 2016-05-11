@@ -23,7 +23,7 @@ public:
         const char *host, unsigned short port);
     ~JSSocket();
 
-    enum SocketType{
+    enum SocketType {
         kSocketType_Binary          = 1 << 0,
         kSocketType_Readline        = 1 << 1,
         kSocketType_Server          = 1 << 2,

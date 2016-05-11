@@ -85,10 +85,10 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
     HTTPParser *nhttp = static_cast<HTTPParser *>(p->data);
 
     switch (nhttp->m_Headers.prevstate) {
-        case HTTPParser::PSTATE_NOTHING:
+        case HTTPParser::kPrevState_Nothing:
             nhttp->m_Headers.list = ape_array_new(16);
             /* fall through */
-        case HTTPParser::PSTATE_VALUE:
+        case HTTPParser::kPrevState_Value:
             nhttp->m_Headers.tkey = buffer_new(16);
             if (nhttp->m_Headers.tval != NULL) {
                 buffer_append_char(nhttp->m_Headers.tval, '\0');
@@ -98,7 +98,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
             break;
     }
 
-    nhttp->m_Headers.prevstate = HTTPParser::PSTATE_FIELD;
+    nhttp->m_Headers.prevstate = HTTPParser::kPrevState_Field;
 
     if (len != 0) {
         buffer_append_data_tolower(nhttp->m_Headers.tkey,
@@ -113,9 +113,9 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
     HTTPParser *nhttp = static_cast<HTTPParser *>(p->data);
 
     switch (nhttp->m_Headers.prevstate) {
-        case HTTPParser::PSTATE_NOTHING:
+        case HTTPParser::kPrevState_Nothing:
             return -1;
-        case HTTPParser::PSTATE_FIELD:
+        case HTTPParser::kPrevState_Field:
             nhttp->m_Headers.tval = buffer_new(64);
             buffer_append_char(nhttp->m_Headers.tkey, '\0');
             ape_array_add_b(nhttp->m_Headers.list,
@@ -125,7 +125,7 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
             break;
     }
 
-    nhttp->m_Headers.prevstate = HTTPParser::PSTATE_VALUE;
+    nhttp->m_Headers.prevstate = HTTPParser::kPrevState_Value;
 
     if (len != 0) {
         buffer_append_data(nhttp->m_Headers.tval,
@@ -182,7 +182,7 @@ void HTTPParser::HTTPClearState()
     m_Data = NULL;
 
     memset(&m_Headers, 0, sizeof(m_Headers));
-    m_Headers.prevstate = PSTATE_NOTHING;
+    m_Headers.prevstate = kPrevState_Nothing;
 }
 
 HTTPParser::HTTPParser() :
@@ -191,7 +191,7 @@ HTTPParser::HTTPParser() :
     http_parser_init(&m_Parser, HTTP_RESPONSE);
     m_Parser.data = this;
 
-    m_Headers.prevstate = PSTATE_NOTHING;
+    m_Headers.prevstate = kPrevState_Nothing;
     m_Headers.list = NULL;
     m_Headers.tkey = NULL;
     m_Headers.tval = NULL;

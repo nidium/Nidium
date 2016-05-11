@@ -26,12 +26,12 @@ namespace Net {
 class HTTPRequest
 {
     public:
-        enum {
-            HTTP_GET,
-            HTTP_POST,
-            HTTP_HEAD,
-            HTTP_PUT,
-            HTTP_DELETE
+        enum HTTPMethod {
+            kHTTPMethod_Get,
+            kHTTPMethod_Post,
+            kHTTPMethod_Head,
+            kHTTPMethod_Put,
+            kHTTPMethod_Delete
         } m_Method;
 
         explicit HTTPRequest(const char *url);
@@ -53,7 +53,7 @@ class HTTPRequest
             }
             m_Data = NULL;
             m_DataLen = 0;
-            m_Method = HTTP_GET;
+            m_Method = kHTTPMethod_Get;
 
             setDefaultHeaders();
         }

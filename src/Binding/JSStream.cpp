@@ -14,7 +14,7 @@ namespace Binding {
 
 // {{{ Preamble
 enum StreamProp {
-    StreamProp_Filesize
+    kStreamProp_Filesize
 };
 
 static bool nidium_stream_prop_get(JSContext *cx, JS::HandleObject obj,
@@ -45,7 +45,7 @@ static JSFunctionSpec Stream_funcs[] = {
 };
 
 static JSPropertySpec Stream_props[] = {
-    NIDIUM_JS_PSG("filesize", StreamProp_Filesize, nidium_stream_prop_get),
+    NIDIUM_JS_PSG("filesize", kStreamProp_Filesize, nidium_stream_prop_get),
     JS_PS_END
 };
 // }}}
@@ -99,23 +99,23 @@ void JSStream::onMessage(const Core::SharedMessages::Message &msg)
     JS::RootedObject obj(m_Cx, m_JSObject);
 
     switch (msg.event()) {
-        case Stream::EVENT_AVAILABLE_DATA:
+        case Stream::kEvents_AvailableData:
             if (JS_GetProperty(m_Cx, obj, "onavailabledata", &onavailable_callback) &&
                 JS_TypeOfValue(m_Cx, onavailable_callback) == JSTYPE_FUNCTION) {
 
                 JS_CallFunctionValue(m_Cx, obj, onavailable_callback, JS::HandleValueArray::empty(), &rval);
             }
             break;
-        case Stream::EVENT_ERROR:
+        case Stream::kEvents_Error:
             {
             Stream::Errors err = static_cast<Stream::Errors>(msg.m_Args[0].toInt());
             int code = msg.m_Args[1].toInt();
             switch (err) {
-                case Stream::ERROR_OPEN:
+                case Stream::kErrors_Open:
                     break;
-                case Stream::ERROR_READ:
+                case Stream::kErrors_Read:
                     break;
-                case Stream::ERROR_SEEK:
+                case Stream::kErrors_Seek:
 
                     break;
                 default:
@@ -145,7 +145,7 @@ static bool nidium_stream_prop_get(JSContext *cx, JS::HandleObject obj,
     JSStream *stream = static_cast<JSStream *>(JS_GetPrivate(obj));
 
     switch(id) {
-        case StreamProp_Filesize:
+        case kStreamProp_Filesize:
             vp.setInt32(stream->getStream()->getFileSize());
             break;
         default:break;
@@ -228,13 +228,13 @@ static bool nidium_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value 
 
     if (ret == NULL) {
         switch(err) {
-            case Stream::DATA_STATUS_END:
+            case Stream::Stream::kDataStatus_End:
                 JS_ReportError(cx, "Stream has ended");
                 return false;
-            case Stream::DATA_STATUS_ERROR:
+            case Stream::Stream::kDataStatus_Error:
                 JS_ReportError(cx, "Stream error (unknown)");
                 return false;
-            case Stream::DATA_STATUS_EAGAIN:
+            case Stream::Stream::kDataStatus_Again:
                 args.rval().setNull();
                 return true;
         }

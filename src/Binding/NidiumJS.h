@@ -50,7 +50,7 @@ class NidiumJS
         explicit NidiumJS(ape_global *net);
         ~NidiumJS();
 
-        enum sctag {
+        enum Sctag {
             kSctag_Function = JS_SCTAG_USER_MIN + 1,
             kSctag_Hidden,
             kSctag_Max

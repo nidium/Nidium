@@ -114,7 +114,7 @@ const unsigned char *FileStream::onGetNextPacket(size_t *len, int *err)
     unsigned char *data;
 
     if (m_DataBuffer.back == NULL) {
-        *err = DATA_STATUS_ERROR;
+        *err = Stream::kDataStatus_Error;
         return NULL;
     }
 
@@ -124,7 +124,7 @@ const unsigned char *FileStream::onGetNextPacket(size_t *len, int *err)
         */
         m_NeedToSendUpdate = !m_DataBuffer.ended;
         *err = (m_DataBuffer.ended && m_DataBuffer.alreadyRead && !m_PendingSeek ?
-            DATA_STATUS_END : DATA_STATUS_EAGAIN);
+            Stream::kDataStatus_End : Stream::kDataStatus_Again);
 
         return NULL;
     }
@@ -149,28 +149,28 @@ void FileStream::onMessage(const Core::SharedMessages::Message &msg)
         If the file failed to be opened, ignore subsequent messages
         as they will all fail (unless the event is a successful opening)
     */
-    if (m_OpenFailed && msg.event() != File::OPEN_SUCCESS) {
+    if (m_OpenFailed && msg.event() != File::kEvents_OpenSuccess) {
         return;
     }
 
     switch (msg.event()) {
-        case File::OPEN_SUCCESS:
+        case File::kEvents_OpenSuccess:
             m_OpenFailed = false;
             break;
-        case File::OPEN_ERROR:
+        case File::kEvents_OpenError:
             m_OpenFailed = true;
-            this->errorSync(ERROR_OPEN, msg.m_Args[0].toInt());
+            this->errorSync(Stream::kErrors_Open, msg.m_Args[0].toInt());
             break;
-        case File::SEEK_ERROR:
-            this->errorSync(ERROR_SEEK, -1);
+        case File::kEvents_SeekError:
+            this->errorSync(Stream::kErrors_Seek, -1);
             /* fall through */
-        case File::SEEK_SUCCESS:
+        case File::kEvents_SeekSuccess:
             m_PendingSeek = false;
             break;
-        case File::READ_ERROR:
-            this->errorSync(ERROR_READ, msg.m_Args[0].toInt());
+        case File::kEvents_ReadError:
+            this->errorSync(Stream::kErrors_Read, msg.m_Args[0].toInt());
             break;
-        case File::READ_SUCCESS:
+        case File::kEvents_ReadSuccess:
         {
             if (m_PendingSeek) {
                 break;
@@ -199,14 +199,14 @@ void FileStream::onMessage(const Core::SharedMessages::Message &msg)
                     if (m_NeedToSendUpdate) {
                         m_NeedToSendUpdate = false;
                         CREATE_MESSAGE(message_available,
-                            EVENT_AVAILABLE_DATA);
+                            Stream::kEvents_AvailableData);
                         message_available->m_Args[0].set(buf->used);
                         this->notifySync(message_available);
                     }
                 }
             }
 
-            CREATE_MESSAGE(message, EVENT_READ_BUFFER);
+            CREATE_MESSAGE(message, Stream::kEvents_ReadBuffer);
             message->m_Args[0].set(buf);
 
             this->notifySync(message);

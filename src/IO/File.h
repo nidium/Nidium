@@ -26,16 +26,16 @@ public:
     static const uint8_t EventID = 2;
 
     enum Events {
-        OPEN_ERROR     = NIDIUM_FILE_MESSAGE_BITS(1),
-        OPEN_SUCCESS   = NIDIUM_FILE_MESSAGE_BITS(2),
-        CLOSE_SUCCESS  = NIDIUM_FILE_MESSAGE_BITS(3),
-        READ_SUCCESS   = NIDIUM_FILE_MESSAGE_BITS(4),
-        READ_ERROR     = NIDIUM_FILE_MESSAGE_BITS(5),
-        WRITE_SUCCESS  = NIDIUM_FILE_MESSAGE_BITS(6),
-        WRITE_ERROR    = NIDIUM_FILE_MESSAGE_BITS(7),
-        SEEK_SUCCESS   = NIDIUM_FILE_MESSAGE_BITS(8),
-        SEEK_ERROR     = NIDIUM_FILE_MESSAGE_BITS(9),
-        LISTFILES_ENTRIES = NIDIUM_FILE_MESSAGE_BITS(10),
+        kEvents_OpenError     = NIDIUM_FILE_MESSAGE_BITS(1),
+        kEvents_OpenSuccess   = NIDIUM_FILE_MESSAGE_BITS(2),
+        kEvents_CloseSuccess  = NIDIUM_FILE_MESSAGE_BITS(3),
+        kEvents_ReadSuccess   = NIDIUM_FILE_MESSAGE_BITS(4),
+        kEvents_ReadError     = NIDIUM_FILE_MESSAGE_BITS(5),
+        kEvents_WriteSuccess  = NIDIUM_FILE_MESSAGE_BITS(6),
+        kEvents_WriteError    = NIDIUM_FILE_MESSAGE_BITS(7),
+        kEvents_SeekSuccess   = NIDIUM_FILE_MESSAGE_BITS(8),
+        kEvents_SeekError     = NIDIUM_FILE_MESSAGE_BITS(9),
+        kEvents_ListFiles     = NIDIUM_FILE_MESSAGE_BITS(10),
     };
 
     struct DirEntries {

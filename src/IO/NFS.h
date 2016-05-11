@@ -50,11 +50,11 @@ typedef struct nfs_tree_s {
 class NFS
 {
 public:
-    enum fileType {
-        NFS_FILE_BINARY         = 1 << 0,
-        NFS_FILE_JSBYTECODE     = 1 << 1,
-        NFS_FILE_TEXT           = 1 << 2,
-        NFS_FILE_DIR            = 1 << 3
+    enum NFSFileType {
+        kNFSFileType_Binary         = 1 << 0,
+        kNFSFileType_JSBytecode     = 1 << 1,
+        kNFSFileType_Text           = 1 << 2,
+        kNFSFileType_Dir            = 1 << 3
     };
 
     bool validateArchive();

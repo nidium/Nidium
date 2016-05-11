@@ -21,9 +21,9 @@ public:
     static const uint8_t EventID = 4;
 
     enum Events {
-        SERVER_CONNECT = 1,
-        SERVER_FRAME,
-        SERVER_CLOSE
+        kEvents_ServerConnect = 1,
+        kEvents_ServerFrame,
+        kEvents_ServerClose
     };
 
     WebSocketServer(uint16_t port, const char *ip = "0.0.0.0");

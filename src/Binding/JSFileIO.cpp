@@ -135,14 +135,15 @@ public:
         char *encoding = static_cast<char *>(m_Args[1].toPtr());
 
         switch (msg.event()) {
-            case Stream::EVENT_ERROR: {
+            case Stream::kEvents_Error:
+            {
                 Stream::Errors err =
                 static_cast<Stream::Errors>(msg.m_Args[0].toInt());
                 printf("Got an error : %d\n", err);
                 params[0].setString(JS_NewStringCopyZ(cx, "Stream error"));
             }
                 break;
-            case Stream::EVENT_READ_BUFFER:
+            case Stream::kEvents_ReadBuffer:
             {
                 JS::RootedValue ret(cx);
                 buffer *buf = static_cast<buffer *>(msg.m_Args[0].toPtr());
@@ -184,17 +185,17 @@ bool JSFileIO::HandleError(JSContext *cx, const SharedMessages::Message &msg,
     JS::MutableHandleValue vals)
 {
     switch (msg.event()) {
-        case File::OPEN_ERROR:
+        case File::kEvents_OpenError:
             // todo : replace by error object
             vals.setString(JS_NewStringCopyZ(cx, "Open error"));
             break;
-        case File::SEEK_ERROR:
+        case File::kEvents_SeekError:
             vals.setString(JS_NewStringCopyZ(cx, "Seek error"));
             break;
-        case File::READ_ERROR:
+        case File::kEvents_ReadError:
             vals.setString(JS_NewStringCopyZ(cx, "read error"));
             break;
-        case File::WRITE_ERROR:
+        case File::kEvents_WriteError:
             vals.setString(JS_NewStringCopyZ(cx, "write error"));
             break;
         default:
@@ -234,17 +235,17 @@ bool JSFileIO::callbackForMessage(JSContext *cx,
     JS::RootedObject jsthis(cx, thisobj);
     if (!JSFileIO::HandleError(cx, msg, params[0])) {
         switch (msg.event()) {
-            case File::READ_SUCCESS:
+            case File::kEvents_ReadSuccess:
             {
                 buffer *buf = static_cast<buffer *>(msg.m_Args[0].toPtr());
                 JSUtils::StrToJsval(cx, reinterpret_cast<const char *>(buf->data),
                     buf->used, params[1], encoding);
                 break;
             }
-            case File::WRITE_SUCCESS:
+            case File::kEvents_WriteSuccess:
                 params[1].setDouble(msg.m_Args[0].toInt64());
                 break;
-            case File::LISTFILES_ENTRIES:
+            case File::kEvents_ListFiles:
             {
                 File::DirEntries *entries = (File::DirEntries *)msg.m_Args[0].toPtr();
                 JS::RootedObject arr(cx, JS_NewArrayObject(cx, entries->size));

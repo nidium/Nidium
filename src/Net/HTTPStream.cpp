@@ -111,7 +111,7 @@ void HTTPStream::notifyAvailable()
     m_PendingSeek = false;
     m_NeedToSendUpdate = false;
 
-    CREATE_MESSAGE(message_available, Stream::EVENT_AVAILABLE_DATA);
+    CREATE_MESSAGE(message_available, Stream::kEvents_AvailableData);
     message_available->m_Args[0].set(m_BytesBuffered - m_LastReadUntil);
 
     this->notifySync(message_available);
@@ -193,17 +193,17 @@ const unsigned char *HTTPStream::onGetNextPacket(size_t *len, int *err)
     unsigned char *data;
 
     if (!m_Mapped.addr) {
-        *err = DATA_STATUS_ERROR;
+        *err = Stream::kDataStatus_Error;
         return NULL;
     }
 
     if (m_Mapped.size == m_LastReadUntil) {
-        *err = DATA_STATUS_END;
+        *err = Stream::kDataStatus_End;
         return NULL;
     }
     if (!this->hasDataAvailable()) {
         m_NeedToSendUpdate = true;
-        *err = DATA_STATUS_EAGAIN;
+        *err = Stream::kDataStatus_Again;
         return NULL;
     }
 
@@ -227,7 +227,7 @@ void HTTPStream::onRequest(HTTP::HTTPData *h, HTTP::DataType)
     buf.data = static_cast<unsigned char *>(m_Mapped.addr);
     buf.size = buf.used = m_Mapped.size;
 
-    CREATE_MESSAGE(message, Stream::EVENT_READ_BUFFER);
+    CREATE_MESSAGE(message, Stream::kEvents_ReadBuffer);
     message->m_Args[0].set(&buf);
 
     this->notifySync(message);
@@ -252,7 +252,7 @@ void HTTPStream::onProgress(size_t offset, size_t len,
     /* Reset the data buffer, so that data doesn't grow in memory */
     m_Http->resetData();
 
-    CREATE_MESSAGE(msg_progress, Stream::EVENT_PROGRESS);
+    CREATE_MESSAGE(msg_progress, Stream::kEvents_Progress);
     msg_progress->m_Args[0].set(m_Http->getFileSize());
     msg_progress->m_Args[1].set(m_StartPosition);
     msg_progress->m_Args[2].set(m_BytesBuffered);
@@ -270,19 +270,19 @@ void HTTPStream::onError(HTTP::HTTPError err)
     this->cleanCacheFile();
 
     if (m_PendingSeek) {
-        this->errorSync(ERROR_SEEK, -1);
+        this->errorSync(Stream::kErrors_Seek, -1);
         m_PendingSeek = false;
         this->stop();
         return;
     }
     switch (err) {
         case HTTP::ERROR_HTTPCODE:
-            this->errorSync(ERROR_OPEN, m_Http->getStatusCode());
+            this->errorSync(Stream::kErrors_Open, m_Http->getStatusCode());
             break;
         case HTTP::ERROR_RESPONSE:
         case HTTP::ERROR_SOCKET:
         case HTTP::ERROR_TIMEOUT:
-            this->errorSync(ERROR_OPEN, -1);
+            this->errorSync(Stream::kErrors_Open, -1);
             break;
         default:
             break;
@@ -302,7 +302,7 @@ void HTTPStream::onHeader()
         HTTP didn't returned a partial content (HTTP 206) (seek failed?)
     */
     if (m_PendingSeek && m_Http->getStatusCode() != 206) {
-        this->errorSync(ERROR_SEEK, -1);
+        this->errorSync(Stream::kErrors_Seek, -1);
 
         m_PendingSeek = false;
         this->stop();

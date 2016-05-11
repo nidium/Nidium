@@ -32,7 +32,7 @@ public:
     static const uint8_t EventID = 3;
 
     enum Events {
-        NONE_EVENT = 1
+        kEvents_None = 1
     };
 
     HTTPServer(uint16_t port, const char *ip = "0.0.0.0");

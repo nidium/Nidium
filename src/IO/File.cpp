@@ -34,13 +34,13 @@ namespace IO {
         this->postMessage(__msg); \
     } while(0);
 
-enum {
-    FILE_TASK_OPEN,
-    FILE_TASK_CLOSE,
-    FILE_TASK_READ,
-    FILE_TASK_WRITE,
-    FILE_TASK_SEEK,
-    FILE_TASK_LISTFILES
+enum FileTask {
+    kFileTask_Open,
+    kFileTask_Close,
+    kFileTask_Read,
+    kFileTask_Write,
+    kFileTask_Seek,
+    kFileTask_Listfiles
 };
 
 static int File_compare(const FTSENT** one, const FTSENT** two)
@@ -86,7 +86,7 @@ void File::checkRead(bool async, void *arg)
     }
 
     if (async && err != -1) {
-        NIDIUM_FILE_NOTIFY(err, File::READ_ERROR, arg);
+        NIDIUM_FILE_NOTIFY(err, File::kEvents_ReadError, arg);
     }
 }
 
@@ -155,25 +155,25 @@ void File_dispatchTask(Task *task)
     void *arg = task->m_Args[7].toPtr();
 
     switch (type) {
-        case FILE_TASK_OPEN:
+        case kFileTask_Open:
         {
             char *modes = static_cast<char *>(task->m_Args[1].toPtr());
             file->openTask(modes, arg);
             free(modes);
             break;
         }
-        case FILE_TASK_CLOSE:
+        case kFileTask_Close:
         {
             file->closeTask();
             break;
         }
-        case FILE_TASK_READ:
+        case kFileTask_Read:
         {
             uint64_t size = task->m_Args[1].toInt64();
             file->readTask(size, arg);
             break;
         }
-        case FILE_TASK_WRITE:
+        case kFileTask_Write:
         {
             uint64_t buflen = task->m_Args[1].toInt64();
             char *buf = static_cast<char *>(task->m_Args[2].toPtr());
@@ -183,13 +183,13 @@ void File_dispatchTask(Task *task)
             free(buf);
             break;
         }
-        case FILE_TASK_SEEK:
+        case kFileTask_Seek:
         {
             uint64_t pos = task->m_Args[1].toInt64();
             file->seekTask(pos, arg);
             break;
         }
-        case FILE_TASK_LISTFILES:
+        case kFileTask_Listfiles:
         {
             file->listFilesTask(arg);
             break;
@@ -206,7 +206,7 @@ void File::openTask(const char *mode, void *arg)
 {
     if (this->isOpen()) {
         // seek(0)?
-        NIDIUM_FILE_NOTIFY(m_Fd, File::OPEN_SUCCESS, arg);
+        NIDIUM_FILE_NOTIFY(m_Fd, File::kEvents_OpenSuccess, arg);
         return;
     }
 
@@ -219,7 +219,7 @@ void File::openTask(const char *mode, void *arg)
         m_Dir = opendir(m_Path);
         if (!m_Dir) {
             printf("Failed to open dir %s : %s\n", m_Path, strerror(errno));
-            NIDIUM_FILE_NOTIFY(errno, File::OPEN_ERROR, arg);
+            NIDIUM_FILE_NOTIFY(errno, File::kEvents_OpenError, arg);
             return;
         }
         m_isDir = true;
@@ -227,7 +227,7 @@ void File::openTask(const char *mode, void *arg)
     } else {
         m_Fd = fopen(m_Path, mode);
         if (m_Fd == NULL) {
-            NIDIUM_FILE_NOTIFY(errno, File::OPEN_ERROR, arg);
+            NIDIUM_FILE_NOTIFY(errno, File::kEvents_OpenError, arg);
             return;
         }
 
@@ -235,7 +235,7 @@ void File::openTask(const char *mode, void *arg)
         m_isDir = false;
     }
 
-    NIDIUM_FILE_NOTIFY(m_Fd, File::OPEN_SUCCESS, arg);
+    NIDIUM_FILE_NOTIFY(m_Fd, File::kEvents_OpenSuccess, arg);
 }
 
 /*
@@ -246,7 +246,7 @@ void File::closeTask(void *arg)
     closeFd();
 
     if (!m_OpenSync) {
-        NIDIUM_FILE_NOTIFY(static_cast<void *>(NULL), File::CLOSE_SUCCESS, arg);
+        NIDIUM_FILE_NOTIFY(static_cast<void *>(NULL), File::kEvents_CloseSuccess, arg);
     }
 }
 
@@ -256,7 +256,7 @@ void File::closeTask(void *arg)
 void File::readTask(size_t size, void *arg)
 {
     if (!this->isOpen() || this->isDir()) {
-        NIDIUM_FILE_NOTIFY(static_cast<void *>(NULL), File::READ_ERROR, arg);
+        NIDIUM_FILE_NOTIFY(static_cast<void *>(NULL), File::kEvents_ReadError, arg);
         return;
     }
 
@@ -269,7 +269,7 @@ void File::readTask(size_t size, void *arg)
         Read an empty file
     */
     if (clamped_len == 0) {
-        NIDIUM_FILE_NOTIFY(static_cast<void *>(buf), File::READ_SUCCESS, arg);
+        NIDIUM_FILE_NOTIFY(static_cast<void *>(buf), File::kEvents_ReadSuccess, arg);
         buf->data[0] = '\0';
         return;
     }
@@ -284,7 +284,7 @@ void File::readTask(size_t size, void *arg)
 
     buf->data[buf->used] = '\0';
 
-    NIDIUM_FILE_NOTIFY(static_cast<void *>(buf), File::READ_SUCCESS, arg);
+    NIDIUM_FILE_NOTIFY(static_cast<void *>(buf), File::kEvents_ReadSuccess, arg);
 }
 
 /*
@@ -293,7 +293,7 @@ void File::readTask(size_t size, void *arg)
 void File::writeTask(char *buf, size_t buflen, void *arg)
 {
     if (!this->isOpen() || this->isDir()) {
-        NIDIUM_FILE_NOTIFY(static_cast<void *>(NULL), File::WRITE_ERROR, arg);
+        NIDIUM_FILE_NOTIFY(static_cast<void *>(NULL), File::kEvents_WriteError, arg);
         return;
     }
 
@@ -306,7 +306,7 @@ void File::writeTask(char *buf, size_t buflen, void *arg)
     */
     m_Filesize = ftell(m_Fd);
 
-    NIDIUM_FILE_NOTIFY(writelen, File::WRITE_SUCCESS, arg);
+    NIDIUM_FILE_NOTIFY(writelen, File::kEvents_WriteSuccess, arg);
 }
 
 /*
@@ -316,18 +316,18 @@ void File::seekTask(size_t pos, void *arg)
 {
     if (!this->isOpen() || this->isDir()) {
         int err = 0;
-        NIDIUM_FILE_NOTIFY(err, File::SEEK_ERROR, arg);
+        NIDIUM_FILE_NOTIFY(err, File::kEvents_SeekError, arg);
         return;
     }
 
     if (fseek(m_Fd, pos, SEEK_SET) == -1) {
-        NIDIUM_FILE_NOTIFY(errno, File::SEEK_ERROR, arg);
+        NIDIUM_FILE_NOTIFY(errno, File::kEvents_SeekError, arg);
         return;
     }
 
     this->checkEOF();
 
-    NIDIUM_FILE_NOTIFY(static_cast<void *>(NULL), File::SEEK_SUCCESS, arg);
+    NIDIUM_FILE_NOTIFY(static_cast<void *>(NULL), File::kEvents_SeekSuccess, arg);
 }
 
 /*
@@ -361,7 +361,7 @@ void File::listFilesTask(void *arg)
         }
     }
 
-    NIDIUM_FILE_NOTIFY(entries, File::LISTFILES_ENTRIES, arg);
+    NIDIUM_FILE_NOTIFY(entries, File::kEvents_ListFiles, arg);
 
     rewinddir(m_Dir);
 }
@@ -372,7 +372,7 @@ void File::listFilesTask(void *arg)
 void File::open(const char *mode, void *arg)
 {
     Task *task = new Task();
-    task->m_Args[0].set(FILE_TASK_OPEN);
+    task->m_Args[0].set(kFileTask_Open);
     task->m_Args[1].set(strdup(mode));
     task->m_Args[7].set(arg);
 
@@ -384,7 +384,7 @@ void File::open(const char *mode, void *arg)
 void File::close(void *arg)
 {
     Task *task = new Task();
-    task->m_Args[0].set(FILE_TASK_CLOSE);
+    task->m_Args[0].set(kFileTask_Close);
     task->m_Args[7].set(arg);
 
     task->setFunction(File_dispatchTask);
@@ -395,7 +395,7 @@ void File::close(void *arg)
 void File::read(size_t size, void *arg)
 {
     Task *task = new Task();
-    task->m_Args[0].set(FILE_TASK_READ);
+    task->m_Args[0].set(kFileTask_Read);
     task->m_Args[1].set(size);
     task->m_Args[7].set(arg);
 
@@ -410,7 +410,7 @@ void File::write(char *buf, size_t size, void *arg)
     memcpy(newbuf, buf, size);
 
     Task *task = new Task();
-    task->m_Args[0].set(FILE_TASK_WRITE);
+    task->m_Args[0].set(kFileTask_Write);
     task->m_Args[1].set(size);
     task->m_Args[2].set(newbuf);
     task->m_Args[7].set(arg);
@@ -423,7 +423,7 @@ void File::write(char *buf, size_t size, void *arg)
 void File::seek(size_t pos, void *arg)
 {
     Task *task = new Task();
-    task->m_Args[0].set(FILE_TASK_SEEK);
+    task->m_Args[0].set(kFileTask_Seek);
     task->m_Args[1].set(pos);
     task->m_Args[7].set(arg);
 
@@ -435,7 +435,7 @@ void File::seek(size_t pos, void *arg)
 void File::listFiles(void *arg)
 {
     Task *task = new Task();
-    task->m_Args[0].set(FILE_TASK_LISTFILES);
+    task->m_Args[0].set(kFileTask_Listfiles);
     task->m_Args[7].set(arg);
 
     task->setFunction(File_dispatchTask);
@@ -607,13 +607,13 @@ void File::onMessage(const SharedMessages::Message &msg)
     }
 
     switch(msg.event()) {
-        case File::READ_SUCCESS:
+        case File::kEvents_ReadSuccess:
         {
             buffer *buf = static_cast<buffer *>(msg.m_Args[0].toPtr());
             buffer_delete(buf);
             break;
         }
-        case File::LISTFILES_ENTRIES:
+        case File::kEvents_ListFiles:
         {
             DirEntries *entries = static_cast<DirEntries *>(msg.m_Args[0].toPtr());
             free(entries->lst);
@@ -626,13 +626,13 @@ void File::onMessage(const SharedMessages::Message &msg)
 void File::onMessageLost(const SharedMessages::Message &msg)
 {
     switch(msg.event()) {
-        case File::READ_SUCCESS:
+        case File::kEvents_ReadSuccess:
         {
             buffer *buf = static_cast<buffer *>(msg.m_Args[0].toPtr());
             buffer_delete(buf);
             break;
         }
-        case File::LISTFILES_ENTRIES:
+        case File::kEvents_ListFiles:
         {
             DirEntries *entries = static_cast<DirEntries *>(msg.m_Args[0].toPtr());
             free(entries->lst);
