@@ -31,7 +31,6 @@ enum {
 static bool nidium_global_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t, JS::MutableHandleValue vp);
 
-static bool nidium_cwd(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -44,7 +43,6 @@ static int nidium_timerng_wrapper(void *arg);
 
 JSFunctionSpec glob_funcs[] = {
     JS_FN("load", nidium_load, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("cwd", nidium_cwd, 0, NIDIUM_JS_FNPROPS),
     JS_FN("setTimeout", nidium_set_timeout, 2, NIDIUM_JS_FNPROPS),
     JS_FN("setImmediate", nidium_set_immediate, 1, NIDIUM_JS_FNPROPS),
     JS_FN("setInterval", nidium_set_interval, 2, NIDIUM_JS_FNPROPS),
@@ -116,23 +114,6 @@ static bool nidium_global_prop_get(JSContext *cx, JS::HandleObject obj,
         default:
             return false;
     }
-    return true;
-}
-
-static bool nidium_cwd(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    Path cur(JSUtils::CurrentJSCaller(cx), false, true);
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
-    if (cur.dir() == NULL) {
-        args.rval().setUndefined();
-        return true;
-    }
-
-    JS::RootedString res(cx, JS_NewStringCopyZ(cx, cur.dir()));
-
-    args.rval().setString(res);
-
     return true;
 }
 

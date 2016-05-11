@@ -45,14 +45,6 @@ FieldDoc( "global.window", "The main window object.",
 	NO_Default
 )
 
-FunctionDoc( "global.cwd", "Get the current working directory.",
-	[ SeeDoc( "global.__filename" ), SeeDoc( "global.__dirname" ), SeeDoc( "File.isDir" ), SeeDoc( "File.rmrf" ), SeeDoc( "File.listFiles" ), SeeDoc( "fs" ), SeeDoc( "global.cwd" ) ],
-	[ExampleDoc( """console.log( cwd( ) );""" )],
-	IS_Static, IS_Public, IS_Fast,
-	NO_Params,
-	ReturnDoc( "The current path", "string" )
-)
-
 FunctionDoc( "global.load", """Load the specified script in a synchronous way.
 
 This function is only available if the nidium application is running a NML file that was loaded from a local source (e.g. file://)

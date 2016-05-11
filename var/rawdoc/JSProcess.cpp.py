@@ -57,3 +57,12 @@ if (realy) {
 	NO_Returns
 )
 
+FunctionDoc( "NidiumProcess.cwd", "Get the current working directory.",
+	[ SeeDoc( "global.__filename" ), SeeDoc( "global.__dirname" ), SeeDoc( "File.isDir" ), SeeDoc( "File.rmrf" ), SeeDoc( "File.listFiles" ), SeeDoc( "fs" ), SeeDoc( "NidiumProcess.cwd" ) ],
+	[ExampleDoc( """console.log( cwd( ) );""" )],
+	IS_Static, IS_Public, IS_Fast,
+	NO_Params,
+	ReturnDoc( "The current path", "string" )
+)
+
+
