@@ -16,7 +16,7 @@
 namespace Nidium {
 namespace Binding {
 
-class Nidiumcore;
+class NidiumJS;
 
 class JSThread : public JSExposer<JSThread>, public Nidium::Core::Messages
 {
@@ -37,7 +37,7 @@ class JSThread : public JSExposer<JSThread>, public Nidium::Core::Messages
     JSRuntime *m_JsRuntime;
     JSContext *m_JsCx;
     JSObject *m_JsObject;
-    Nidiumcore *m_Njs;
+    NidiumJS *m_Njs;
     struct {
         int argc;
         uint64_t **argv;

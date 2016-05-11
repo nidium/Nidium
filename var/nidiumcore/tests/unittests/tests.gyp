@@ -34,7 +34,7 @@
             'websocket.cpp',        #dummy
             'websocketclient.cpp',  #dummy
 
-            'js.cpp',               #dummy
+            'nidiumjs.cpp',         #dummy
             'jsglobal.cpp',         #dummy
             'jsdb.cpp',             #dummy
             'jsconsole.cpp',        #dummy

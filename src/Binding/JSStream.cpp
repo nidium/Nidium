@@ -55,7 +55,7 @@ JSStream::JSStream(JS::HandleObject obj, JSContext *cx,
     ape_global *net, const char *url) : JSExposer<JSStream>(obj, cx)
 {
     std::string str = url;
-    //str += Nidiumcore::getNidiumClass(cx)->getPath();
+    //str += NidiumJS::getNidiumClass(cx)->getPath();
 
     m_Stream = Stream::Create(Core::Path(str.c_str()));
 

@@ -17,7 +17,7 @@ static const char * srcFun = "function counterInc() {counter++;};";
 TEST(JSExposer, Event)
 {
     ape_global * g_ape = APE_init();
-    Nidium::Binding::Nidiumcore njs(g_ape);
+    Nidium::Binding::NidiumJS njs(g_ape);
 
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     JS::RootedValue func(njs.cx);
@@ -38,7 +38,7 @@ TEST(JSExposer, Event)
 TEST(JSExposer, Events)
 {
     ape_global * g_ape = APE_init();
-    Nidium::Binding::Nidiumcore njs(g_ape);
+    Nidium::Binding::NidiumJS njs(g_ape);
     char * name = strdup("dummy");
 
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
@@ -75,7 +75,7 @@ public:
 TEST(JSExposer, ObjectMapper)
 {
     ape_global * g_ape = APE_init();
-    Nidium::Binding::Nidiumcore njs(g_ape);
+    Nidium::Binding::NidiumJS njs(g_ape);
 
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     Dummy njm(njs.cx);
@@ -93,7 +93,7 @@ TEST(JSExposer, ObjectMapper)
 TEST(JSExposer, ObjectBuilder)
 {
     ape_global * g_ape = APE_init();
-    Nidium::Binding::Nidiumcore njs(g_ape);
+    Nidium::Binding::NidiumJS njs(g_ape);
     JS::RootedValue rval(njs.cx);
 
     JS::RootedObject obj(njs.cx);
@@ -145,7 +145,7 @@ TEST(JSExposer, ObjectBuilder)
 TEST(JSExposer, ObjectBuilderObj)
 {
     ape_global * g_ape = APE_init();
-    Nidium::Binding::Nidiumcore njs(g_ape);
+    Nidium::Binding::NidiumJS njs(g_ape);
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));
     JS::RootedObject jsobj(njs.cx, JS_NewObject(njs.cx, NULL, JS::NullPtr(), JS::NullPtr()));
     JS::RootedObject obj(njs.cx);

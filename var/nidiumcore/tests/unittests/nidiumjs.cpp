@@ -10,11 +10,11 @@
 
 #include <ape_netlib.h>
 
-#include <Binding/Nidiumcore.h>
+#include <Binding/NidiumJS.h>
 
 using namespace JS;
 
-NIDIUMJS_FIXTURE(Nidiumcore)
+NIDIUMJS_FIXTURE(NidiumJS)
 
 #define LOG_ARRAY_SIZE 1024
 static char log_array[LOG_ARRAY_SIZE] = {'\0'};
@@ -42,7 +42,7 @@ int dummyLoggerClear()
 
     return 0;
 }
-TEST_F(Nidiumcore, Simple)
+TEST_F(NidiumJS, Simple)
 {
     int i = 1, *p;
     struct _ape_htable *table;
@@ -87,7 +87,7 @@ TEST_F(Nidiumcore, Simple)
     EXPECT_EQ(JSVAL_TO_INT(rval), 1);
 }
 
-TEST_F(Nidiumcore, Loggers)
+TEST_F(NidiumJS, Loggers)
 {
     memset( log_array, '\0', sizeof(log_array));
     njs->log("Normal logging to stdout");
@@ -104,14 +104,14 @@ TEST_F(Nidiumcore, Loggers)
     njs->logclear();
     EXPECT_EQ(strlen(log_array), 0);
 }
-TEST_F(Nidiumcore, Quick)
+TEST_F(NidiumJS, Quick)
 {
     njs->InitNet(ape);
     EXPECT_TRUE(njs->m_Net == ape);
     EXPECT_TRUE(njs->GetNet() == ape);
 }
 
-TEST_F(Nidiumcore, Code)
+TEST_F(NidiumJS, Code)
 {
     const char * srcA = "a = 11*11;";
     const char * srcB = "b = a - 21";
@@ -132,7 +132,7 @@ TEST_F(Nidiumcore, Code)
     EXPECT_EQ(JSVAL_TO_INT(rval), 100);
 }
 
-TEST_F(Nidiumcore, Messages)
+TEST_F(NidiumJS, Messages)
 {
     size_t i;
 

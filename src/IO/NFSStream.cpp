@@ -12,7 +12,7 @@
 
 #include "IO/NFS.h"
 
-#include "Binding/Nidiumcore.h"
+#include "Binding/NidiumJS.h"
 
 namespace Nidium {
 namespace IO {
@@ -52,7 +52,7 @@ int NFSStream_getContent(void *arg)
 
 void NFSStream::getContent()
 {
-    ape_global *ape = Binding::Nidiumcore::GetNet();
+    ape_global *ape = Binding::NidiumJS::GetNet();
     timer_dispatch_async_unprotected(NFSStream_getContent, this);
 }
 

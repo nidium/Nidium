@@ -164,7 +164,7 @@ public:
             JS_CallFunctionValue(cx, JS::NullPtr(), cb, params, &rval);
         }
 
-        Nidiumcore::GetObject(cx)->unrootObject(callback);
+        NidiumJS::GetObject(cx)->unrootObject(callback);
 
         stream->setListener(NULL);
 
@@ -273,7 +273,7 @@ bool JSFileIO::callbackForMessage(JSContext *cx,
 #if FILE_ROOT_DEBUG
         printf("Unroot %p\n", thisobj);
 #endif
-        Nidiumcore::GetObject(cx)->unrootObject(jsthis);
+        NidiumJS::GetObject(cx)->unrootObject(jsthis);
     }
 
     if (!callback) {
@@ -287,7 +287,7 @@ bool JSFileIO::callbackForMessage(JSContext *cx,
         JS_CallFunctionValue(cx, jsthis, cb, params, &rval);
     }
 
-    Nidiumcore::GetObject(cx)->unrootObject(callback);
+    NidiumJS::GetObject(cx)->unrootObject(callback);
 
     return true;
 }
@@ -482,7 +482,7 @@ static bool nidium_file_seek(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    Nidiumcore::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
+    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
     NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
 
@@ -490,7 +490,7 @@ static bool nidium_file_seek(JSContext *cx, unsigned argc, JS::Value *vp)
 
     file->seek(seek_pos, callback.toObjectOrNull());
 
-    Nidiumcore::GetObject(cx)->rootObjectUntilShutdown(caller);
+    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(caller);
 
     return true;
 }
@@ -518,7 +518,7 @@ static bool nidium_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp)
 
     file = NJSFIO->getFile();
 
-    Nidiumcore::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
+    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
     /*
         If the directory is not open, open it anyway
@@ -528,7 +528,7 @@ static bool nidium_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp)
     }
     file->listFiles(callback.toObjectOrNull());
 
-    Nidiumcore::GetObject(cx)->rootObjectUntilShutdown(caller);
+    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(caller);
 
     return true;
 }
@@ -565,7 +565,7 @@ static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
         JSAutoByteString cstr(cx, str);
         size_t len = strlen(cstr.ptr());
 
-        Nidiumcore::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
+        NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
         file->write(cstr.ptr(), len, callback.toObjectOrNull());
 
@@ -579,7 +579,7 @@ static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
         uint32_t len = JS_GetArrayBufferByteLength(jsobj);
         uint8_t *data = JS_GetArrayBufferData(jsobj);
 
-        Nidiumcore::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
+        NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
         file->write(reinterpret_cast<char *>(data), len, callback.toObjectOrNull());
 
@@ -588,7 +588,7 @@ static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    Nidiumcore::GetObject(cx)->rootObjectUntilShutdown(caller);
+    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(caller);
 
     return true;
 }
@@ -622,13 +622,13 @@ static bool nidium_file_read(JSContext *cx, unsigned argc, JS::Value *vp)
 
     file = NJSFIO->getFile();
 
-    Nidiumcore::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
+    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
     file->read(static_cast<uint64_t>(read_size), callback.toObjectOrNull());
 #if FILE_ROOT_DEBUG
     printf("Root read %p\n", caller);
 #endif
-    Nidiumcore::GetObject(cx)->rootObjectUntilShutdown(caller);
+    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(caller);
 
     return true;
 }
@@ -653,7 +653,7 @@ static bool nidium_file_close(JSContext *cx, unsigned argc, JS::Value *vp)
 #if FILE_ROOT_DEBUG
     printf("Root close %p\n", caller);
 #endif
-    Nidiumcore::GetObject(cx)->rootObjectUntilShutdown(caller);
+    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(caller);
 
     return true;
 }
@@ -688,12 +688,12 @@ static bool nidium_file_open(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JSAutoByteString cmodes(cx, modes);
 
-    Nidiumcore::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
+    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
     file->open(cmodes.ptr(), callback.toObjectOrNull());
 #if FILE_ROOT_DEBUG
     printf("Root open %p\n", caller);
 #endif
-    Nidiumcore::GetObject(cx)->rootObjectUntilShutdown(caller);
+    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(caller);
 
     return true;
 }
@@ -730,7 +730,7 @@ static bool nidium_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     JSAutoByteString cfilename(cx, filename);
-    Nidiumcore::GetObject(cx)->rootObjectUntilShutdown(&callback.toObject());
+    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(&callback.toObject());
 
     Stream *stream = Stream::Create(Path(cfilename.ptr()));
 

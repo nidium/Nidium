@@ -11,7 +11,7 @@
 
 #include "Core/TaskManager.h"
 
-#include "Binding/Nidiumcore.h"
+#include "Binding/NidiumJS.h"
 
 // {{{ Macros
 // {{{ JSClass macro's
@@ -52,7 +52,7 @@
 // {{{ Object macro's
 typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 
-#define NidiumJSObj(cx) (Nidium::Binding::Nidiumcore::GetObject(cx))
+#define NidiumJSObj(cx) (Nidium::Binding::NidiumJS::GetObject(cx))
 
 #define NIDIUM_JS_OBJECT_EXPOSE(name) \
     void  JS ## name::RegisterObject(JSContext *cx) \
@@ -191,11 +191,11 @@ struct JSEvent
 
         m_Cx = cx;
 
-        Nidiumcore::GetObject(m_Cx)->rootObjectUntilShutdown(func.toObjectOrNull());
+        NidiumJS::GetObject(m_Cx)->rootObjectUntilShutdown(func.toObjectOrNull());
     }
 
     ~JSEvent() {
-        Nidiumcore::GetObject(m_Cx)->unrootObject(m_Function.toObjectOrNull());
+        NidiumJS::GetObject(m_Cx)->unrootObject(m_Function.toObjectOrNull());
     }
 
     JSContext *m_Cx;
@@ -434,7 +434,7 @@ class JSExposer
 
     static const char *GetJSObjectName() { return NULL; }
 
-    static JSObject *GetJSGlobalObject(Nidiumcore *njs) {
+    static JSObject *GetJSGlobalObject(NidiumJS *njs) {
         JSObject *jobj;
         const char *name = T::GetJSObjectName();
 
@@ -446,7 +446,7 @@ class JSExposer
     }
 
     static JSObject *GetJSGlobalObject(JSContext *cx) {
-        return T::GetJSGlobalObject(Nidiumcore::GetObject(cx));
+        return T::GetJSGlobalObject(NidiumJS::GetObject(cx));
     }
 
     static T* GetObject(JSObject *obj, JSContext *cx = NULL)
@@ -460,7 +460,7 @@ class JSExposer
         return static_cast<T *>(JS_GetPrivate(obj));
     }
 
-    static T* GetObject(Nidiumcore *njs) {
+    static T* GetObject(NidiumJS *njs) {
         JSObject *obj = T::GetJSGlobalObject(njs);
         if (obj == NULL) {
             return NULL;
@@ -469,7 +469,7 @@ class JSExposer
     }
 
     static T* GetObject(JSContext *cx) {
-        return T::GetObject(Nidiumcore::GetObject(cx));
+        return T::GetObject(NidiumJS::GetObject(cx));
     }
 
     bool fireJSEvent(const char *name, JS::MutableHandleValue evobj) {
@@ -659,7 +659,7 @@ public:
 
         for (int i = 0; i < NIDIUM_ASYNC_MAXCALLBACK; i++) {
             if (m_CallBack[i] != NULL) {
-                Nidiumcore::GetObject(m_Ctx)->unrootObject(m_CallBack[i]);
+                NidiumJS::GetObject(m_Ctx)->unrootObject(m_CallBack[i]);
             }
         }
     }
@@ -671,11 +671,11 @@ public:
         }
 
         if (m_CallBack[idx] != NULL) {
-            Nidiumcore::GetObject(m_Ctx)->unrootObject(m_CallBack[idx]);
+            NidiumJS::GetObject(m_Ctx)->unrootObject(m_CallBack[idx]);
         }
 
         if (callback) {
-            Nidiumcore::GetObject(m_Ctx)->rootObjectUntilShutdown(callback);
+            NidiumJS::GetObject(m_Ctx)->rootObjectUntilShutdown(callback);
         }
         m_CallBack[idx] = callback;
     }

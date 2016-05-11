@@ -34,7 +34,7 @@ TEST_F(JSHTTPServer, Simple)
 TEST_F(JSServer, Connection)
 {
     ape_global * g_ape = APE_init();
-    Nidium::Binding::Nidiumcore njs(g_ape);
+    Nidium::Binding::NidiumJS njs(g_ape);
     ape_socket *socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, g_ape);
     JS::RootedValue args(cx);
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &HTTPServer_class, args));

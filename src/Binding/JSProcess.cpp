@@ -36,7 +36,7 @@ static JSFunctionSpec Process_funcs[] = {
 
 static int ape_kill_handler(int code, ape_global *ape)
 {
-    Nidiumcore *njs = Nidiumcore::GetObject();
+    NidiumJS *njs = NidiumJS::GetObject();
     JSContext *cx = njs->m_Cx;
     JS::RootedValue     rval(cx);
 
@@ -104,7 +104,7 @@ static void Process_Finalize(JSFreeOp *fop, JSObject *obj)
 
 void JSProcess::RegisterObject(JSContext *cx, char **argv, int argc, int workerId)
 {
-    Nidiumcore *njs = Nidiumcore::GetObject(cx);
+    NidiumJS *njs = NidiumJS::GetObject(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject ProcessObj(cx, JS_DefineObject(cx, global, JSProcess::GetJSObjectName(),
         &Process_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
@@ -130,7 +130,7 @@ void JSProcess::RegisterObject(JSContext *cx, char **argv, int argc, int workerI
     JS::RootedValue workerid_v(cx, JS::Int32Value(workerId));
     JS_SetProperty(cx, ProcessObj, "workerId", workerid_v);
 
-    Nidiumcore::GetNet()->kill_handler = ape_kill_handler;
+    NidiumJS::GetNet()->kill_handler = ape_kill_handler;
     jProcess->m_SignalFunction.set(JS::NullHandleValue);
 
 }

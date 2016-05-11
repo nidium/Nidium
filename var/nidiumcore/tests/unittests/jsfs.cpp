@@ -9,13 +9,13 @@
 #include "unittest.h"
 
 #include <ape_netlib.h>
-#include <Binding/Nidiumcore.h>
+#include <Binding/NidiumJS.h>
 #include <Binding/JSFS.h>
 
 TEST(JSFS, Simple)
 {
     ape_global * g_ape = APE_init();
-    Nidium::Binding::Nidiumcore njs(g_ape);
+    Nidium::Binding::NidiumJS njs(g_ape);
     bool success;
 
     JS::RootedObject globObj(njs.cx, JS::CurrentGlobalOrNull(njs.cx));

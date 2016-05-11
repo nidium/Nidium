@@ -15,10 +15,10 @@ extern unsigned long _ape_seed;
 class  name: public ::testing::Test {\
 protected:\
     ape_global *ape;\
-    ::Nidium::Binding::Nidiumcore *njs;\
+    ::Nidium::Binding::NidiumJS *njs;\
     name(){\
         ape = APE_init();\
-        njs = new ::Nidium::Binding::Nidiumcore(ape);\
+        njs = new ::Nidium::Binding::NidiumJS(ape);\
     };\
     ~name() {\
         delete njs;\

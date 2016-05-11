@@ -80,7 +80,7 @@ struct nidium_sm_timer
 };
 
 
-JSStructuredCloneCallbacks *Nidiumcore::m_JsScc = NULL;
+JSStructuredCloneCallbacks *NidiumJS::m_JsScc = NULL;
 
 JSClass global_class = {
     "global", JSCLASS_GLOBAL_FLAGS_WITH_SLOTS(16) | JSCLASS_HAS_PRIVATE,
@@ -149,7 +149,7 @@ static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    Nidiumcore *njs = Nidiumcore::GetObject(cx);
+    NidiumJS *njs = NidiumJS::GetObject(cx);
     JSAutoByteString scriptstr(cx, script);
     Path scriptpath(scriptstr.ptr());
 
