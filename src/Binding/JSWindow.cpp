@@ -1526,6 +1526,18 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx, int width,
     val = OBJECT_TO_JSVAL(navigatorObj);
     JS_SetProperty(cx, windowObj, "navigator", val);
 
+#if 0
+    //@TODO: intented to be used in a future
+    JS::RootedObject titleBar(cx, JSCanvas::GenerateJSObject(cx, width, 35));
+    static_cast<CanvasHandler *>(JS_GetPrivate(canvas))->translate(0, 35);
+
+    /* Set the newly generated CanvasHandler as first child of rootHandler */
+    NJS->rootHandler->addChild((CanvasHandler *)JS_GetPrivate(titleBar));
+
+    JS::RootedValue titleVal(cx, OBJECT_TO_JSVAL(titleBar));
+    JS_DefineProperty(cx, NativeObj, "titleBar", titleVal, JSPROP_READONLY | JSPROP_PERMANENT | JSPROP_PERMANENT | JSPROP_ENUMERATE);
+#endif
+
     return jwin;
 }
 // }}}
