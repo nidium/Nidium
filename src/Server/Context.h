@@ -8,7 +8,6 @@
 
 #include <Binding/NidiumJS.h>
 
-using Nidium::Binding::NidiumJS;
 
 namespace Nidium {
 namespace Server {
@@ -22,14 +21,14 @@ public:
     ~Context();
 
     static Context *GetObject(struct JSContext *cx) {
-        return static_cast<Context *>(NidiumJS::GetObject(cx)->getPrivate());
+        return static_cast<Context *>(Binding::NidiumJS::GetObject(cx)->getPrivate());
     }
 
-    static Context *GetObject(NidiumJS *njs) {
+    static Context *GetObject(Binding::NidiumJS *njs) {
         return static_cast<Context *>(njs->getPrivate());
     }
 
-    NidiumJS *getNJS() const {
+    Binding::NidiumJS *getNJS() const {
         return m_JS;
     }
 
@@ -41,7 +40,7 @@ public:
         return m_RunInREPL;
     }
 private:
-    NidiumJS *m_JS;
+    Binding::NidiumJS *m_JS;
     Worker *m_Worker;
     bool m_RunInREPL;
 };

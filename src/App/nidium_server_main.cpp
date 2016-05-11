@@ -5,8 +5,10 @@
 */
 #include "Server/Server.h"
 
+using namespace Nidium::Server;
+
 int main(int argc, char **argv)
 {
-    return Nidium::Server::Server::Start(argc, argv);
+    return Server::Start(argc, argv);
 }
 
