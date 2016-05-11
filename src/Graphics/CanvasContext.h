@@ -19,14 +19,9 @@
 #include "Macros.h"
 
 namespace Nidium {
-    namespace Binding {
-        class Canvas2DContext;
-    }
+namespace Binding {
+    class Canvas2DContext;
 }
-
-using Nidium::Binding::Canvas2DContext;
-
-namespace Nidium {
 namespace Graphics {
 
 struct Rect;
@@ -153,7 +148,7 @@ class CanvasContext
     static uint32_t CreatePassThroughProgram(GLResources &resource);
 
 
-    void preComposeOn(Canvas2DContext *layer,
+    void preComposeOn(Binding::Canvas2DContext *layer,
         double left, double top, double opacity,
         double zoom, const Rect *rclip);
 protected:

@@ -12,17 +12,6 @@
 
 #define CUSTOM_SOURCE_SEND 100
 
-using Nidium::Core::Messages;
-using Nidium::Core::SharedMessages;
-using Nidium::AV::Audio;
-using Nidium::AV::AudioNode;
-using Nidium::AV::AudioNodeException;
-using Nidium::AV::NodeEvent;
-using Nidium::AV::AudioSourceCustom;
-using Nidium::AV::AVSourceEvent;
-using Nidium::AV::AVSource;
-using Nidium::AV::Video;
-
 namespace Nidium {
 namespace Binding {
 
@@ -92,8 +81,8 @@ class JSTransferableFunction
 class JSAVSource
 {
     public:
-        static inline bool PropSetter(AVSource *source, uint8_t id, JS::MutableHandleValue vp);
-        static inline bool PropGetter(AVSource *source, JSContext *ctx, uint8_t id, JS::MutableHandleValue vp);
+        static inline bool PropSetter(AV::AVSource *source, uint8_t id, JS::MutableHandleValue vp);
+        static inline bool PropGetter(AV::AVSource *source, JSContext *ctx, uint8_t id, JS::MutableHandleValue vp);
 };
 // }}}
 
@@ -117,7 +106,7 @@ class JSAudio: public JSExposer<JSAudio>
                 : curr(NULL), prev(NULL), next(NULL) {}
         };
 
-        Audio *m_Audio;
+        AV::Audio *m_Audio;
         Nodes *m_Nodes;
         pthread_t m_ThreadIO;
 
@@ -141,17 +130,17 @@ class JSAudio: public JSExposer<JSAudio>
 
         ~JSAudio();
     private :
-        JSAudio(Audio *audio, JSContext *cx, JS::HandleObject obj);
+        JSAudio(AV::Audio *audio, JSContext *cx, JS::HandleObject obj);
         static JSAudio *m_Instance;
 };
 // }}}
 
 // {{{ JSAudioNode
-class JSAudioNode: public JSExposer<JSAudioNode>, public Messages
+class JSAudioNode: public JSExposer<JSAudioNode>, public Core::Messages
 {
     public :
         JSAudioNode(JS::HandleObject obj, JSContext *cx,
-            Audio::Node type, int in, int out, JSAudio *audio)
+            AV::Audio::Node type, int in, int out, JSAudio *audio)
             :   JSExposer<JSAudioNode>(obj, cx), m_nJs(NULL),
                 m_Audio(audio), m_Node(NULL), m_NodeType(type), m_NodeObj(nullptr), m_HashObj(nullptr),
                 m_ArrayContent(NULL), m_IsDestructing(false)
@@ -160,11 +149,11 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Messages
 
             try {
                 m_Node = audio->m_Audio->createNode(type, in, out);
-            } catch (AudioNodeException *e) {
+            } catch (AV::AudioNodeException *e) {
                 throw;
             }
 
-            if (type == Audio::CUSTOM || type == Audio::CUSTOM_SOURCE) {
+            if (type == AV::Audio::CUSTOM || type == AV::Audio::CUSTOM_SOURCE) {
                 NIDIUM_PTHREAD_VAR_INIT(&m_ShutdownWait);
             }
 
@@ -176,7 +165,7 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Messages
         }
 
         JSAudioNode(JS::HandleObject obj, JSContext *cx,
-               Audio::Node type, AudioNode *node, JSAudio *audio)
+               AV::Audio::Node type, AV::AudioNode *node, JSAudio *audio)
             :  JSExposer<JSAudioNode>(obj, cx), m_nJs(NULL), m_Audio(audio), m_Node(node), m_NodeType(type),
                m_NodeObj(nullptr), m_HashObj(nullptr), m_ArrayContent(NULL), m_IsDestructing(false)
         {
@@ -205,16 +194,16 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Messages
         // Common
         NidiumJS *m_nJs;
         JSAudio *m_Audio;
-        AudioNode *m_Node;
-        Audio::Node m_NodeType;
+        AV::AudioNode *m_Node;
+        AV::Audio::Node m_NodeType;
 
         // Custom m_Node
         JSTransferableFunction *m_TransferableFuncs[END_FN];
-        static void CustomCallback(const struct NodeEvent *ev);
-        static void SetPropCallback(AudioNode *node, void *custom);
-        static void ShutdownCallback(AudioNode *node, void *custom);
-        static void InitCustomObject(AudioNode *node, void *custom);
-        static void DeleteTransferableFunc(AudioNode *node, void *custom);
+        static void CustomCallback(const struct AV::NodeEvent *ev);
+        static void SetPropCallback(AV::AudioNode *node, void *custom);
+        static void ShutdownCallback(AV::AudioNode *node, void *custom);
+        static void InitCustomObject(AV::AudioNode *node, void *custom);
+        static void DeleteTransferableFunc(AV::AudioNode *node, void *custom);
         bool createHashObj();
 
         JS::PersistentRootedObject *m_NodeObj;
@@ -224,11 +213,11 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Messages
 
         // Source m_Node
         void *m_ArrayContent;
-        void onMessage(const SharedMessages::Message &msg);
-        static void onEvent(const struct AVSourceEvent *cev);
+        void onMessage(const Core::SharedMessages::Message &msg);
+        static void onEvent(const struct AV::AVSourceEvent *cev);
 
         // Custom source m_Node
-        static void SeekCallback(AudioSourceCustom *node, double seekTime, void *custom);
+        static void SeekCallback(AV::AudioSourceCustom *node, double seekTime, void *custom);
         static bool PropSetter(JSAudioNode *node, JSContext *cx,
                 uint8_t id, JS::MutableHandleValue vp);
 
@@ -240,12 +229,12 @@ class JSAudioNode: public JSExposer<JSAudioNode>, public Messages
 // }}}
 
 // {{{ JSVideo
-class JSVideo : public JSExposer<JSVideo>, public Messages
+class JSVideo : public JSExposer<JSVideo>, public Core::Messages
 {
     public :
         JSVideo(JS::HandleObject obj, Canvas2DContext *canvasCtx, JSContext *cx);
 
-        Video *m_Video;
+        AV::Video *m_Video;
 
         JS::Heap<JSObject *> m_AudioNode;
         void *m_ArrayContent;
@@ -261,8 +250,8 @@ class JSVideo : public JSExposer<JSVideo>, public Messages
 
         static void RegisterObject(JSContext *cx);
         static void FrameCallback(uint8_t *data, void *custom);
-        void onMessage(const SharedMessages::Message &msg);
-        static void onEvent(const struct AVSourceEvent *cev);
+        void onMessage(const Core::SharedMessages::Message &msg);
+        static void onEvent(const struct AV::AVSourceEvent *cev);
 
         ~JSVideo();
     private :

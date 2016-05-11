@@ -20,39 +20,23 @@
 #include "Graphics/GLResources.h"
 
 namespace Nidium {
-    namespace Interface {
-        class UIInterface;
-    }
-    namespace Net {
-        class WebSocketServer;
-        class WebSocketClientConnection;
-    }
-    namespace Graphics {
-        class SkiaContext;
-        class CanvasHandler;
-        class CanvasContext;
-        class GLState;
-    }
-    namespace Binding {
-        class NidiumJS;
-        class JSWindow;
-    }
+namespace Interface {
+    class UIInterface;
 }
-
-using Nidium::Core::Hash;
-using Nidium::Core::Messages;
-using Nidium::Core::SharedMessages;
-using Nidium::Interface::UIInterface;
-using Nidium::Net::WebSocketServer;
-using Nidium::Net::WebSocketClientConnection;
-using Nidium::Binding::JSWindow;
-using Nidium::Binding::NidiumJS;
-using Nidium::Binding::NidiumBytecodeScript;
-using Nidium::Graphics::CanvasHandler;
-using Nidium::Graphics::GLState;
-using Nidium::Graphics::GLResources;
-
-namespace Nidium {
+namespace Net {
+    class WebSocketServer;
+    class WebSocketClientConnection;
+}
+namespace Graphics {
+    class SkiaContext;
+    class CanvasHandler;
+    class CanvasContext;
+    class GLState;
+}
+namespace Binding {
+    class NidiumJS;
+    class JSWindow;
+}
 namespace Frontend {
 
 class NML;
@@ -103,7 +87,7 @@ public:
         }
     }
 
-    InputEvent *dupWithHandler(CanvasHandler *handler) {
+    InputEvent *dupWithHandler(Graphics::CanvasHandler *handler) {
         InputEvent *dup = new InputEvent(*this);
         dup->m_Handler = handler;
         dup->m_Origin = this;
@@ -141,7 +125,7 @@ public:
     uint32_t m_data[8];
     InputEvent *m_Next;
     InputEvent *m_PassThroughEvent;
-    CanvasHandler *m_Handler;
+    Graphics::CanvasHandler *m_Handler;
     InputEvent *m_Origin;
     unsigned m_depthAffectedCanvas;
 private:
@@ -152,24 +136,24 @@ private:
 struct GrGLInterface;
 
 // {{{ Context
-class Context : public Messages
+class Context : public Core::Messages
 {
     public:
 
     friend class Nidium::Graphics::CanvasHandler;
 
-    Context(UIInterface *nui, NML *nml,
+    Context(Interface::UIInterface *nui, NML *nml,
         int width, int height, ape_global *net);
     ~Context();
 
-    UIInterface *getUI() const {
+    Interface::UIInterface *getUI() const {
         return m_UI;
     }
-    CanvasHandler *getRootHandler() const {
+    Graphics::CanvasHandler *getRootHandler() const {
         return m_RootHandler;
     }
 
-    NidiumJS *getNJS() const {
+    Binding::NidiumJS *getNJS() const {
         return m_JS;
     }
 
@@ -177,19 +161,19 @@ class Context : public Messages
         return m_NML;
     }
 
-    JSWindow *getJSWindow() const {
+    Binding::JSWindow *getJSWindow() const {
         return m_JSWindow;
     }
 
-    void setJSWindow(JSWindow *obj) {
+    void setJSWindow(Binding::JSWindow *obj) {
         m_JSWindow = obj;
     }
 
-    inline GLState *getGLState() const {
+    inline Graphics::GLState *getGLState() const {
         return m_GLState;
     }
 
-    void setGLState(GLState *state) {
+    void setGLState(Graphics::GLState *state) {
         m_GLState = state;
     }
 
@@ -198,14 +182,14 @@ class Context : public Messages
     }
 
     static Context *GetObject() {
-        return static_cast<Context *>(NidiumJS::GetObject(NULL)->getPrivate());
+        return static_cast<Context *>(Binding::NidiumJS::GetObject(NULL)->getPrivate());
     }
 
     static Context *GetObject(struct JSContext *cx) {
-        return static_cast<Context *>(NidiumJS::GetObject(cx)->getPrivate());
+        return static_cast<Context *>(Binding::NidiumJS::GetObject(cx)->getPrivate());
     }
 
-    static Context *GetObject(NidiumJS *njs) {
+    static Context *GetObject(Binding::NidiumJS *njs) {
         return static_cast<Context *>(njs->getPrivate());
     }
 
@@ -236,12 +220,12 @@ class Context : public Messages
         return m_SizeDirty;
     }
 
-    Hash<NidiumBytecodeScript *> m_Preload;
+    Core::Hash<Binding::NidiumBytecodeScript *> m_Preload;
 
-    void onMessage(const SharedMessages::Message &msg);
+    void onMessage(const Core::SharedMessages::Message &msg);
     void addJob(void (*job)(void *arg), void *arg);
 
-    CanvasHandler *getCanvasById(const char *str) {
+    Graphics::CanvasHandler *getCanvasById(const char *str) {
         return m_CanvasList.get(str);
     }
 
@@ -266,31 +250,31 @@ class Context : public Messages
         return m_InputEvents.head;
     }
 
-    void setCurrentClickedHandler(CanvasHandler *handler) {
+    void setCurrentClickedHandler(Graphics::CanvasHandler *handler) {
         m_CurrentClickedHandler = handler;
     }
 
-    CanvasHandler *getCurrentClickedHandler() const {
+    Graphics::CanvasHandler *getCurrentClickedHandler() const {
         return m_CurrentClickedHandler;
     }
 
-    static void CreateAndAssemble(UIInterface *ui, ape_global *gnet);
+    static void CreateAndAssemble(Interface::UIInterface *ui, ape_global *gnet);
 
     private:
-    GLResources                m_Resources;
-    NidiumJS *                 m_JS;
-    CanvasHandler *            m_RootHandler;
-    CanvasHandler *            m_DebugHandler;
+    Graphics::GLResources      m_Resources;
+    Binding::NidiumJS *        m_JS;
+    Graphics::CanvasHandler *  m_RootHandler;
+    Graphics::CanvasHandler *  m_DebugHandler;
 #ifdef DEBUG
-    CanvasHandler *            m_Debug2Handler;
+    Graphics::CanvasHandler *  m_Debug2Handler;
 #endif
-    UIInterface *              m_UI;
+    Interface::UIInterface *   m_UI;
     NML *                      m_NML;
-    GLState *                  m_GLState;
-    WebSocketServer *          m_WS;
-    WebSocketClientConnection *m_WSClient;
+    Graphics::GLState *        m_GLState;
+    Net::WebSocketServer *     m_WS;
+    Net::WebSocketClientConnection *m_WSClient;
     ShBuiltInResources         m_ShResources;
-    JSWindow *                 m_JSWindow;
+    Binding::JSWindow *        m_JSWindow;
     bool                       m_SizeDirty;
 
     struct {
@@ -323,14 +307,14 @@ class Context : public Messages
     } m_Jobs;
 
     /* Hash of all canvases (key: identifier string) */
-    Hash<CanvasHandler *> m_CanvasList;
+    Core::Hash<Graphics::CanvasHandler *> m_CanvasList;
     /* Hash of all canvases with pending jobs (key: addr) */
-    Hash64<CanvasHandler *> m_CanvasPendingJobs;
-    std::vector<CanvasHandler *> m_CanvasOrderedEvents;
+    Core::Hash64<Graphics::CanvasHandler *> m_CanvasPendingJobs;
+    std::vector<Graphics::CanvasHandler *> m_CanvasOrderedEvents;
 
     ape_pool_list_t m_CanvasEventsCanvas;
 
-    CanvasHandler *m_CurrentClickedHandler;
+    Graphics::CanvasHandler *m_CurrentClickedHandler;
 
     void execJobs();
     void execPendingCanvasChanges();

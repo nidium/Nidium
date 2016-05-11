@@ -35,9 +35,6 @@ class JS ## name: public JSExposer<JS ## name>\
 #include "Graphics/CanvasContext.h"
 #include "Graphics/GLContext.h"
 
-using Nidium::Graphics::CanvasContext;
-using Nidium::Graphics::Rect;
-
 namespace Nidium {
 namespace Binding {
 
@@ -74,7 +71,7 @@ struct NGLContextAttributes {
 // }}}
 
 // {{{ CanvasWebGLContext
-class CanvasWebGLContext: public CanvasContext
+class CanvasWebGLContext: public Graphics::CanvasContext
 {
     public :
         CanvasWebGLContext(JSContext *cx, NGLContextAttributes *attributes, int width, int height);
@@ -88,7 +85,7 @@ class CanvasWebGLContext: public CanvasContext
 
         void composeWith(Canvas2DContext *layer,
             double left, double top, double opacity,
-            double zoom, const Rect *rclip);
+            double zoom, const Graphics::Rect *rclip);
 
         bool m_UnpackFlipY;
         bool m_UnpackPremultiplyAlpha;

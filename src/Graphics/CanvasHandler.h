@@ -21,24 +21,16 @@
 */
 
 namespace Nidium {
-    namespace Interface {
-        class UIInterface;
-    }
-    namespace Binding {
-        class JSCanvas;
-    }
-    namespace Frontend {
-        class Context;
-        class InputEvent;
-    }
+namespace Interface {
+    class UIInterface;
 }
-
-using Nidium::Core::Events;
-using Nidium::Frontend::Context;
-using Nidium::Frontend::InputEvent;
-using Nidium::Binding::JSCanvas;
-
-namespace Nidium {
+namespace Binding {
+    class JSCanvas;
+}
+namespace Frontend {
+    class Context;
+    class InputEvent;
+}
 namespace Graphics {
 
 class CanvasHandler;
@@ -124,12 +116,12 @@ struct LayerizeContext {
 // }}}
 
 // {{{ CanvasHandler
-class CanvasHandler : public Events
+class CanvasHandler : public Core::Events
 {
     public:
         friend class SkiaContext;
         friend class Nidium::Frontend::Context;
-        friend class JSCanvas;
+        friend class Binding::JSCanvas;
 
         static const uint8_t EventID = 1;
         static int m_LastIdx;
@@ -342,7 +334,7 @@ class CanvasHandler : public Events
             return m_MaxHeight;
         }
 
-        Context *getNativeContext() const {
+        Frontend::Context *getNativeContext() const {
             return m_NativeContext;
         }
 
@@ -479,7 +471,7 @@ class CanvasHandler : public Events
         }
 
         CanvasHandler(int width, int height,
-            Context *NativeCtx, bool lazyLoad = false);
+            Frontend::Context *NativeCtx, bool lazyLoad = false);
 
         virtual ~CanvasHandler();
 
@@ -553,7 +545,7 @@ class CanvasHandler : public Events
         CanvasHandler *m_Last;
 
         static void _JobResize(void *arg);
-        bool _handleEvent(InputEvent *ev);
+        bool _handleEvent(Frontend::InputEvent *ev);
 
         uint32_t m_Flags;
 
@@ -573,9 +565,9 @@ class CanvasHandler : public Events
     private:
         void execPending();
         void deviceSetSize(int width, int height);
-        void onMouseEvent(InputEvent *ev);
-        void onDrag(InputEvent *ev, CanvasHandler *target, bool end = false);
-        void onDrop(InputEvent *ev, CanvasHandler *droped);
+        void onMouseEvent(Frontend::InputEvent *ev);
+        void onDrag(Frontend::InputEvent *ev, CanvasHandler *target, bool end = false);
+        void onDrop(Frontend::InputEvent *ev, CanvasHandler *droped);
 
         int32_t m_nChildren;
         void dispatchMouseEvents(LayerizeContext &layerContext);
@@ -590,7 +582,7 @@ class CanvasHandler : public Events
         bool m_AllowNegativeScroll;
         bool m_FluidWidth, m_FluidHeight;
 
-        Context *m_NativeContext;
+        Frontend::Context *m_NativeContext;
 
         struct {
             uint64_t idx;

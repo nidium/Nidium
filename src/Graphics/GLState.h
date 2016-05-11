@@ -12,15 +12,11 @@
 #include "Graphics/GLResources.h"
 #include "Graphics/GLContext.h"
 
-using Nidium::Interface::UIInterface;
-using Nidium::Frontend::Context;
-
 namespace Nidium {
-    namespace Interface {
-        class UIInterface;
-    }
+namespace Interface {
+    class UIInterface;
+}
 namespace Graphics {
-
 
 typedef struct _Vertex {
     float Position[3];
@@ -41,7 +37,7 @@ class GLState
 
 public:
 
-    GLState(UIInterface *ui,
+    GLState(Interface::UIInterface *ui,
         bool withProgram = true, bool webgl = false);
     ~GLState();
 
@@ -87,10 +83,10 @@ public:
         } uniforms;
     } m_GLObjects;
 
-    static void CreateForContext(Context *nctx);
+    static void CreateForContext(Frontend::Context *nctx);
 
 private:
-    GLState(Context *nctx);
+    GLState(Frontend::Context *nctx);
 
     GLResources m_Resources;
 

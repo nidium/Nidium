@@ -15,8 +15,6 @@
 
 #include <Binding/NidiumJS.h>
 
-using Nidium::Core::SharedMessages;
-
 namespace Nidium {
 namespace Frontend {
 
@@ -67,7 +65,7 @@ public:
     pthread_mutex_t m_ThreadMutex;
     pthread_cond_t m_ThreadCond;
 
-    SharedMessages *m_Messages;
+    Core::SharedMessages *m_Messages;
     struct zip *m_fZip;
 
     void actionExtractRead(const char *buf, int len,

@@ -11,8 +11,6 @@
 
 #include <Core/Hash.h>
 
-using Nidium::Core::Hash64;
-
 namespace Nidium {
 namespace Graphics {
 
@@ -62,7 +60,7 @@ public:
     }
 
 private:
-    Hash64<Resource *> m_List;
+    Core::Hash64<Resource *> m_List;
 
     uint64_t genId(uint32_t glid, ResourceType type) const
     {

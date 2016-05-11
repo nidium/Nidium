@@ -19,10 +19,6 @@
 #define XML_VP_DEFAULT_WIDTH 980
 #define XML_VP_DEFAULT_HEIGHT 700
 
-using Nidium::Core::SharedMessages;
-using Nidium::Binding::NidiumJS;
-using Nidium::IO::Stream;
-
 namespace Nidium {
 namespace Frontend {
 
@@ -41,7 +37,7 @@ typedef struct _NMLTag {
     } content;
 } NMLTag;
 
-class NML : public Messages
+class NML : public Core::Messages
 {
 public:
     explicit NML(_ape_global *net);
@@ -56,7 +52,7 @@ public:
 
     typedef nidium_xml_ret_t (NML::*tag_callback)(rapidxml::xml_node<> &node);
 
-    void onMessage(const SharedMessages::Message &msg);
+    void onMessage(const Core::SharedMessages::Message &msg);
     void loadFile(const char *filename, NMLLoadedCallback cb, void *arg);
 
     void loadDefaultItems(Assets *assets);
@@ -91,7 +87,7 @@ public:
 
     JSObject *buildLayoutTree(rapidxml::xml_node<> &node);
 
-    void setNJS(NidiumJS *js);
+    void setNJS(Binding::NidiumJS *js);
 
     /*
         str must be null-terminated.
@@ -106,7 +102,7 @@ private:
     bool loadData(char *data, size_t len, rapidxml::xml_document<> &doc);
     void addAsset(Assets *);
     ape_global *m_Net;
-    Stream *m_Stream;
+    IO::Stream *m_Stream;
 
     /* Define callbacks for tags in <application> */
     struct _nml_tags {
@@ -122,7 +118,7 @@ private:
 
     uint32_t m_nAssets;
 
-    NidiumJS *m_Njs;
+    Binding::NidiumJS *m_Njs;
 
     struct {
         char *identifier;

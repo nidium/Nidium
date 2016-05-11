@@ -22,8 +22,6 @@ typedef unsigned long PaStreamCallbackFlags;
 typedef int PaStreamCallback(const void *input, void *output, unsigned long frameCount,
         const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags, void *userData);
 
-using Nidium::Core::SharedMessages;
-
 namespace Nidium {
 namespace AV {
 
@@ -80,7 +78,7 @@ class Audio
 
         AudioParameters *m_OutputParameters;
         AudioParameters *m_InputParameters;
-        SharedMessages *m_SharedMsg;
+        Core::SharedMessages *m_SharedMsg;
         int m_SourcesCount;
         int64_t m_PlaybackStartTime;
         int64_t m_PlaybackConsumedFrame;

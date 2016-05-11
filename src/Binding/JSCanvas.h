@@ -5,34 +5,27 @@
 #include <Core/Messages.h>
 
 namespace Nidium {
-    namespace Interface {
-        class UIInterface;
-    }
-    namespace Graphics {
-        class CanvasHandler;
-    }
+namespace Interface {
+    class UIInterface;
 }
-
-using Nidium::Core::Messages;
-using Nidium::Core::SharedMessages;
-using Nidium::Graphics::CanvasHandler;
-
-namespace Nidium {
+namespace Graphics {
+    class CanvasHandler;
+}
 namespace Binding {
 
-class JSCanvas: public JSExposer<JSCanvas>, public Messages
+class JSCanvas: public JSExposer<JSCanvas>, public Core::Messages
 {
 public:
-    virtual void onMessage(const SharedMessages::Message &msg);
-    virtual void onMessageLost(const SharedMessages::Message &msg);
+    virtual void onMessage(const Core::SharedMessages::Message &msg);
+    virtual void onMessageLost(const Core::SharedMessages::Message &msg);
     static void RegisterObject(JSContext *cx);
     static JSObject *GenerateJSObject(JSContext *cx, int width, int height,
-        CanvasHandler **out);
+        Graphics::CanvasHandler **out);
 
-    JSCanvas(JS::HandleObject obj, JSContext *cx, CanvasHandler *handler);
+    JSCanvas(JS::HandleObject obj, JSContext *cx, Graphics::CanvasHandler *handler);
     ~JSCanvas();
 
-    CanvasHandler *getHandler() const {
+    Graphics::CanvasHandler *getHandler() const {
         return m_CanvasHandler;
     }
 
@@ -45,7 +38,7 @@ public:
     }
 
 private:
-    CanvasHandler *m_CanvasHandler;
+    Graphics::CanvasHandler *m_CanvasHandler;
     JS::Heap<JSObject *> m_Inherit;
 };
 

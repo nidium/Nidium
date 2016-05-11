@@ -29,22 +29,18 @@
 
 #ifndef NIDIUM_EMBED_PRIVATE
 
-using Nidium::Interface::SystemInterface;
-using Nidium::IO::Stream;
-using Nidium::IO::FileStream;
-
 namespace Nidium {
 namespace IO {
 
-class PrivateStream : public FileStream
+class PrivateStream : public IO::FileStream
 {
 public:
     explicit PrivateStream(const char *location) :
-        FileStream(location)
+        IO::FileStream(location)
     {
     }
 
-    static Stream *CreateStream(const char *location) {
+    static IO::Stream *CreateStream(const char *location) {
         return new PrivateStream(location);
     }
 
@@ -57,7 +53,7 @@ public:
     }
 
     static const char *GetBaseDir() {
-        return SystemInterface::GetInstance()->getPrivateDirectory();
+        return Interface::SystemInterface::GetInstance()->getPrivateDirectory();
     }
 };
 
@@ -75,7 +71,7 @@ public:
     {
     }
 
-    static Stream *CreateStream(const char *location) {
+    static IO::Stream *CreateStream(const char *location) {
         return new PrivateStream(location);
     }
 

@@ -13,14 +13,9 @@
 #include "Graphics/CanvasContext.h"
 
 namespace Nidium {
-    namespace Interface {
-        class UIInterface;
-    }
+namespace Interface {
+    class UIInterface;
 }
-
-using Nidium::Interface::UIInterface;
-
-namespace Nidium {
 namespace Graphics {
 
 class CanvasHandler;
@@ -38,7 +33,7 @@ public:
         width and height is in logical pixel
     */
     Canvas3DContext(CanvasHandler *handler,
-        struct JSContext *cx, int width, int height, UIInterface *ui);
+        struct JSContext *cx, int width, int height, Interface::UIInterface *ui);
     virtual ~Canvas3DContext();
 
     virtual void translate(double x, double y) override;

@@ -16,21 +16,14 @@
 class SkCanvas;
 
 namespace Nidium {
-    namespace Interface {
-        class UIInterface;
-    }
-    namespace Graphics {
-        struct Rect;
-        class SkiaContext;
-        class CanvasHandler;
-    }
+namespace Interface {
+    class UIInterface;
 }
-
-using Nidium::Graphics::CanvasHandler;
-using Nidium::Graphics::SkiaContext;
-using Nidium::Graphics::CanvasContext;
-
-namespace Nidium {
+namespace Graphics {
+    struct Rect;
+    class SkiaContext;
+    class CanvasHandler;
+}
 namespace Binding {
 
 /*
@@ -74,7 +67,7 @@ struct Canvas2DContextState
 // }}}
 
 // {{{ Canvas2DContext
-class Canvas2DContext : public CanvasContext
+class Canvas2DContext : public Graphics::CanvasContext
 {
     public:
 
@@ -105,7 +98,7 @@ class Canvas2DContext : public CanvasContext
 
         void setVertexDeformation(uint32_t vertex, float x, float y);
 
-        SkiaContext *getSurface() const {
+        Graphics::SkiaContext *getSurface() const {
             return m_Skia;
         }
 
@@ -145,15 +138,15 @@ class Canvas2DContext : public CanvasContext
 
         static void RegisterObject(JSContext *cx);
 
-        Canvas2DContext(CanvasHandler *handler,
+        Canvas2DContext(Graphics::CanvasHandler *handler,
             int width, int height, Interface::UIInterface *ui, bool isGL = true);
 
-        Canvas2DContext(CanvasHandler *handler,
+        Canvas2DContext(Graphics::CanvasHandler *handler,
             struct JSContext *cx, int width, int height, Interface::UIInterface *ui);
 
         virtual ~Canvas2DContext();
     private:
-        SkiaContext *m_Skia;
+        Graphics::SkiaContext *m_Skia;
         Canvas2DContextState *m_CurrentState;
 
 

@@ -23,6 +23,7 @@
 #include "Binding/JSImage.h"
 #include "Macros.h"
 
+using Nidium::Frontend::NML;
 using Nidium::Frontend::NMLTag;
 using Nidium::Frontend::Context;
 using Nidium::Frontend::InputEvent;
