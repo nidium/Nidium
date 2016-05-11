@@ -22,7 +22,7 @@
 using Nidium::Core::SharedMessages;
 using Nidium::Core::Path;
 using Nidium::IO::Stream;
-using Nidium::Binding::Nidiumcore;
+using Nidium::Binding::NidiumJS;
 using Nidium::Binding::JSUtils;
 using Nidium::Binding::JSWindow;
 using Nidium::Binding::JSDocument;
@@ -48,13 +48,13 @@ NML::NML(ape_global *net) :
     m_Meta.size.height = 0;
     m_Meta.identifier = NULL;
 
-    /* Make sure Nidiumcore already has the netlib set */
-    Nidiumcore::InitNet(net);
+    /* Make sure NidiumJS already has the netlib set */
+    NidiumJS::InitNet(net);
 
     memset(&m_Meta, 0, sizeof(m_Meta));
 }
 
-void NML::setNJS(Nidiumcore *js)
+void NML::setNJS(NidiumJS *js)
 {
     m_Njs = js;
     /*

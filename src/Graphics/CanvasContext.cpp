@@ -22,7 +22,7 @@
 using Nidium::Interface::SystemInterface;
 using Nidium::Frontend::Context;
 using Nidium::Binding::Canvas2DContext;
-using Nidium::Binding::Nidiumcore;
+using Nidium::Binding::NidiumJS;
 
 namespace Nidium {
 namespace Graphics {
@@ -33,7 +33,7 @@ char *CanvasContext::ProcessShader(const char *content, shaderType type)
 
     compiler = ShConstructCompiler((ShShaderType)type,
         SH_WEBGL_SPEC, SH_GLSL_OUTPUT,
-        Context::GetObject(Nidiumcore::GetObject())->getShaderResources());
+        Context::GetObject(NidiumJS::GetObject())->getShaderResources());
 
     if (compiler == NULL) {
         NUI_LOG("Shader : Compiler not supported");

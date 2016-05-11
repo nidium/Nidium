@@ -294,7 +294,7 @@ static bool nidium_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
     ndra->location = strdup(locationstr.ptr());
     ndra->ui = NUI;
 
-    ape_global *ape = Nidiumcore::GetObject(cx)->m_Net;
+    ape_global *ape = NidiumJS::GetObject(cx)->m_Net;
     timer_dispatch_async(nidium_document_restart, ndra);
 
     return true;
@@ -317,13 +317,13 @@ bool JSDocument::populateStyle(JSContext *cx, const char *data,
     }
 
     JS::RootedValue ret(cx);
-    if (!Nidiumcore::LoadScriptReturn(cx, data, len, filename, &ret)) {
+    if (!NidiumJS::LoadScriptReturn(cx, data, len, filename, &ret)) {
         return false;
     }
 
     JS::RootedObject style(cx, m_Stylesheet);
     JS::RootedObject jret(cx, ret.toObjectOrNull());
-    Nidiumcore::CopyProperties(cx, jret, &style);
+    NidiumJS::CopyProperties(cx, jret, &style);
 
     return true;
 }
@@ -439,7 +439,7 @@ JSObject *JSDocument::RegisterObject(JSContext *cx)
         JSDocument::GetJSObjectName(), &Document_class , nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE));
 
-    Nidiumcore *njs = Nidiumcore::GetObject(cx);
+    NidiumJS *njs = NidiumJS::GetObject(cx);
 
     JSDocument *jdoc = new JSDocument(documentObj, cx);
     JS_SetPrivate(documentObj, jdoc);

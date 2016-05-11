@@ -51,7 +51,7 @@ namespace Nidium {
 namespace Frontend {
 
 enum {
-    NIDIUM_SCTAG_IMAGEDATA = Nidiumcore::kSctag_Max,
+    NIDIUM_SCTAG_IMAGEDATA = NidiumJS::kSctag_Max,
 };
 
 // {{{ Logging
@@ -108,7 +108,7 @@ m_Debug2Handler(NULL),
 
     GLState::CreateForContext(this);
 
-    m_JS = new Nidiumcore(net);
+    m_JS = new NidiumJS(net);
     this->initStats();
     this->initShaderLang();
     this->initHandlers(width, height);

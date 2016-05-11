@@ -63,7 +63,7 @@ void JSLocale::RegisterObject(JSContext *cx)
     JS_DefineFunctions(cx, NativeObj, locale_funcs);
     JS_SetPrivate(NativeObj, jnative);
 
-    Nidiumcore::GetObject(cx)->m_JsObjects.set(JSLocale::GetJSObjectName(), NativeObj);
+    NidiumJS::GetObject(cx)->m_JsObjects.set(JSLocale::GetJSObjectName(), NativeObj);
 
     //JS::RootedObject titleBar(cx, JSCanvas::GenerateJSObject(cx, width, 35));
     //((CanvasHandler *)JS_GetPrivate(canvas))->translate(0, 35);

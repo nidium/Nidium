@@ -20,7 +20,7 @@
 #define XML_VP_DEFAULT_HEIGHT 700
 
 using Nidium::Core::SharedMessages;
-using Nidium::Binding::Nidiumcore;
+using Nidium::Binding::NidiumJS;
 using Nidium::IO::Stream;
 
 namespace Nidium {
@@ -91,7 +91,7 @@ public:
 
     JSObject *buildLayoutTree(rapidxml::xml_node<> &node);
 
-    void setNJS(Nidiumcore *js);
+    void setNJS(NidiumJS *js);
 
     /*
         str must be null-terminated.
@@ -122,7 +122,7 @@ private:
 
     uint32_t m_nAssets;
 
-    Nidiumcore *m_Njs;
+    NidiumJS *m_Njs;
 
     struct {
         char *identifier;
