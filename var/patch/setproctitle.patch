@@ -1,0 +1,50 @@
+--- libnostd/bsd/stdlib/setproctitle.c	2016-05-09 07:14:59.962555311 +0200
++++ libnostd/bsd/stdlib/setproctitle_redis.c	2016-05-09 07:15:32.913996427 +0200
+@@ -2,6 +2,8 @@
+  * setproctitle.c - Linux/Darwin setproctitle.
+  * --------------------------------------------------------------------------
+  * Copyright (C) 2010  William Ahern
++ * Copyright (C) 2013  Salvatore Sanfilippo
++ * Copyright (C) 2013  Stam He
+  *
+  * Permission is hereby granted, free of charge, to any person obtaining a
+  * copy of this software and associated documentation files (the
+@@ -36,15 +38,15 @@
+ 
+ #include <errno.h>	/* errno program_invocation_name program_invocation_short_name */
+ 
+-
+ #if !defined(HAVE_SETPROCTITLE)
+ #define HAVE_SETPROCTITLE (defined __NetBSD__ || defined __FreeBSD__ || defined __OpenBSD__)
+ #endif
+ 
+ 
+ #if !HAVE_SETPROCTITLE
+-#if (defined __linux || defined __APPLE__) && defined __GNUC__
++#if (defined __linux || defined __APPLE__)
+ 
++extern char **environ;
+ 
+ static struct {
+ 	/* original value */
+@@ -81,7 +83,7 @@
+ 	return 0;
+ #else
+ 	extern char **environ;
+-	char **tmp;
++	static char **tmp;
+ 
+ 	if (!(tmp = malloc(sizeof *tmp)))
+ 		return errno;
+@@ -143,9 +145,8 @@
+ } /* spt_copyargs() */
+ 
+ 
+-void spt_init(int argc, char *argv[], char *envp[]) __attribute__((constructor));
+-
+-void spt_init(int argc, char *argv[], char *envp[]) {
++void spt_init(int argc, char *argv[]) {
++        char **envp = environ;
+ 	char *base, *end, *nul, *tmp;
+ 	int i, error;
+ 
