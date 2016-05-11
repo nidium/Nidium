@@ -99,7 +99,7 @@ static bool nidium_process_exit(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool nidium_process_cwd(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    Path cur(JSUtils::CurrentJSCaller(cx), false, true);
+    Path cur(Path::GetCwd());
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (cur.dir() == NULL) {
