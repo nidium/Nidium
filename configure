@@ -30,16 +30,8 @@ def jemalloc():
 
 Deps.set(
     "linenoise",
-    "libnostd",
     Deps.Konstruct("nidiumcore", "nativejscore/configure"),
 )
-
-@Deps.register("libnostd")
-def libnostd():
-    return {
-        "location": Deps.GitRepo("http://25thandClement.com/~william/projects/libnostd.git", revision="5b04fba951f5912a50c4baf47808cfca24f41c19"),
-        "patchs": [os.path.join(CONFIGURE_PATH, "var", "patch", "setproctitle.patch")],
-    }
 
 @Deps.register("linenoise")
 def linenoise():
