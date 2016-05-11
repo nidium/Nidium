@@ -269,7 +269,7 @@ static int delete_stream(void *arg)
 void NML::onMessage(const SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case Stream::EVENT_READ_BUFFER:
+        case Stream::kEvents_ReadBuffer:
         {
             buffer *buf = static_cast<buffer *>(msg.m_Args[0].toPtr());
 
@@ -288,7 +288,7 @@ void NML::onMessage(const SharedMessages::Message &msg)
             this->onGetContent((const char *)buf->data, buf->used);
             break;
         }
-        case Stream::EVENT_ERROR:
+        case Stream::kEvents_Error:
         {
             SystemInterface::GetInstance()->
                 alert("NML error : stream error",

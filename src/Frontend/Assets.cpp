@@ -46,14 +46,14 @@ Assets::Item::Item(const char *url, FileType t,
 void Assets::Item::onMessage(const SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case Stream::EVENT_READ_BUFFER:
+        case Stream::kEvents_ReadBuffer:
         {
             //TODO: new style cast
             buffer *buf = reinterpret_cast<buffer *>(msg.m_Args[0].toPtr());
             this->setContent((const char *)(buf->data), buf->used);
             break;
         }
-        case Stream::EVENT_ERROR:
+        case Stream::kEvents_Error:
         {
             this->setContent(NULL, 0);
             break;

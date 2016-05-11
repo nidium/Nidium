@@ -145,15 +145,15 @@ int AVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                     thiz->m_Pending = false;
                     thiz->m_NeedWakup = false;
                     return AVERROR_EXIT;
-                case Stream::DATA_STATUS_END:
-                case Stream::DATA_STATUS_ERROR:
+                case Stream::kDataStatus_End:
+                case Stream::kDataStatus_Error:
                     thiz->m_Error = AVERROR_EOF;
                     SPAM(("Got EOF\n"));
                     thiz->m_Pending = false;
                     thiz->m_NeedWakup = false;
                     return copied > 0 ? copied : thiz->m_Error;
                 break;
-                case Stream::DATA_STATUS_EAGAIN:
+                case Stream::kDataStatus_Again:
                     SPAM(("Got eagain\n"));
                     if (!thiz->m_HaveDataAvailable) {
                         // Got EAGAIN, switch back to main coro
@@ -264,16 +264,16 @@ void AVStreamReader::onMessage(const SharedMessages::Message &msg)
     //AVStreamReader *thiz = static_cast<AVStreamReader *>(msg.dataPtr());
 
     switch (msg.event()) {
-        case Stream::EVENT_AVAILABLE_DATA:
+        case Stream::kEvents_AvailableData:
             this->onAvailableData(0);
             return;
-        case Stream::EVENT_ERROR: {
+        case Stream::kEvents_Error: {
             int err;
             int streamErr = msg.m_Args[0].toInt();
 
-            if (streamErr == Stream::ERROR_OPEN) {
+            if (streamErr == Stream::kErrors_Open) {
                 err = ERR_FAILED_OPEN;
-            } else if (streamErr == Stream::ERROR_READ) {
+            } else if (streamErr == Stream::kErrors_Read) {
                 err = ERR_READING;
             } else {
                 err = ERR_IO;
@@ -283,7 +283,7 @@ void AVStreamReader::onMessage(const SharedMessages::Message &msg)
 
             return;
         }
-        case Stream::EVENT_PROGRESS: {
+        case Stream::kEvents_Progress: {
             AVSourceEvent *ev = m_Source->createEvent(SOURCE_EVENT_BUFFERING, false);
             ev->m_Args[0].set(msg.m_Args[0].toInt64());
             ev->m_Args[1].set(msg.m_Args[1].toInt64());
@@ -291,7 +291,7 @@ void AVStreamReader::onMessage(const SharedMessages::Message &msg)
             m_Source->sendEvent(ev);
             return;
         }
-        case Stream::EVENT_READ_BUFFER:
+        case Stream::kEvents_ReadBuffer:
             return;
         case MSG_SEEK:
             m_Stream->seek(m_StreamSeekPos);
