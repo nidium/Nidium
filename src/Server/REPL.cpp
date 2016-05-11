@@ -16,7 +16,7 @@
 #include <semaphore.h>
 #include <sys/types.h>
 
-#include <Binding/NidiumJS.h>
+#include <Binding/Nidiumcore.h>
 
 #include "linenoise.h"
 
@@ -71,7 +71,7 @@ repl:
 }
 
 // {{{ REPL
-REPL::REPL(Nidium::Binding::NidiumJS *js)
+REPL::REPL(Nidium::Binding::Nidiumcore *js)
     : m_JS(js), m_Continue(false), m_ExitCount(0)
 {
     m_Buffer = buffer_new(512);

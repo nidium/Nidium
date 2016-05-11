@@ -6,9 +6,9 @@
 #ifndef server_context_h__
 #define server_context_h__
 
-#include <Binding/NidiumJS.h>
+#include <Binding/Nidiumcore.h>
 
-using Nidium::Binding::NidiumJS;
+using Nidium::Binding::Nidiumcore;
 
 namespace Nidium {
 namespace Server {
@@ -22,14 +22,14 @@ public:
     ~Context();
 
     static Context *GetObject(struct JSContext *cx) {
-        return static_cast<Context *>(NidiumJS::GetObject(cx)->getPrivate());
+        return static_cast<Context *>(Nidiumcore::GetObject(cx)->getPrivate());
     }
 
-    static Context *GetObject(NidiumJS *njs) {
+    static Context *GetObject(Nidiumcore *njs) {
         return static_cast<Context *>(njs->getPrivate());
     }
 
-    NidiumJS *getNJS() const {
+    Nidiumcore *getNJS() const {
         return m_JS;
     }
 
@@ -41,7 +41,7 @@ public:
         return m_RunInREPL;
     }
 private:
-    NidiumJS *m_JS;
+    Nidiumcore *m_JS;
     Worker *m_Worker;
     bool m_RunInREPL;
 };

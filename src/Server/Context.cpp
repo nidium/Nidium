@@ -18,7 +18,7 @@
 using Nidium::Core::Path;
 using Nidium::Core::TaskManager;
 using Nidium::Core::Messages;
-using Nidium::Binding::NidiumJS;
+using Nidium::Binding::Nidiumcore;
 
 namespace Nidium {
 namespace Server {
@@ -27,7 +27,7 @@ namespace Server {
 static int Context_ping(void *arg)
 {
     static uint64_t framecount = 0;
-    NidiumJS *js = static_cast<NidiumJS *>(arg);
+    Nidiumcore *js = static_cast<Nidiumcore *>(arg);
 
     if (++framecount % 1000 == 0) {
         js->gc();
@@ -54,7 +54,7 @@ Context::Context(ape_global *net, Worker *worker,
         fprintf(stderr, "[Warn] Failed to get current working directory\n");
     }
 
-    m_JS = new NidiumJS(net);
+    m_JS = new Nidiumcore(net);
     m_JS->setPrivate(this);
     m_JS->setStrictMode(jsstrict);
 

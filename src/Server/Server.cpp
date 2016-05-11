@@ -28,7 +28,7 @@
 #include "Server/Context.h"
 #include "Server/REPL.h"
 
-using Nidium::Binding::NidiumJS;
+using Nidium::Binding::Nidiumcore;
 using Nidium::Binding::JSProcess;
 
 unsigned long _ape_seed;
@@ -298,7 +298,7 @@ int Worker::run(int argc, char **argv, bool jsstrict)
     signal(SIGPIPE, SIG_IGN);
 
     Context ctx(net, this, jsstrict, m_RunREPL);
-    const NidiumJS *js = ctx.getNJS();
+    const Nidiumcore *js = ctx.getNJS();
     JSProcess::RegisterObject(js->getJSContext(), argv, argc,
         this->getIdentifier());
 
@@ -321,7 +321,7 @@ int Worker::run(int argc, char **argv, bool jsstrict)
     }
 
     /* Heap allocated because we need to be
-    sure that it's deleted before NidiumJS */
+    sure that it's deleted before Nidiumcore */
     if (m_RunREPL) {
         repl = new REPL(ctx.getNJS());
     }
