@@ -15,7 +15,6 @@
 #include <Net/WebSocket.h>
 
 #include "Binding/JSCanvas2DContext.h"
-#include "Binding/JSLocale.h"
 #include "Binding/JSDocument.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSWindow.h"
@@ -165,7 +164,6 @@ void Context::loadNativeObjects(int width, int height)
     JSWebGLUniformLocation::RegisterObject(cx);
     JSWebGLShaderPrecisionFormat::RegisterObject(cx);
 #endif
-    JSLocale::RegisterObject(cx);
     JS::RootedObject docObj(cx, JSDocument::RegisterObject(cx));
     m_JSWindow = JSWindow::RegisterObject(cx, width, height, docObj);
 
