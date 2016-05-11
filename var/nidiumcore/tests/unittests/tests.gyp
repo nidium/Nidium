@@ -50,6 +50,7 @@
             'jsprocess.cpp',        #dummy
             'jssocket.cpp',         #dummy
             'jsstream.cpp',         #dummy
+            'jssystem.cpp',         #dummy
             #'jsthread.cpp',        #segfault
             'jsutils.cpp',
             #'jswebsocket.cpp',     #segfault

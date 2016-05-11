@@ -125,6 +125,7 @@
             '../src/Binding/JSProcess.cpp',
             '../src/Binding/JSUtils.cpp',
             '../src/Binding/JSStream.cpp',
+            '../src/Binding/JSSystem.cpp',
             '../src/Binding/JSWebSocket.cpp',
             '../src/Binding/JSWebSocketClient.cpp',
             '../src/Binding/JSDB.cpp',

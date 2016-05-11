@@ -31,6 +31,7 @@
 #include "Binding/JSFS.h"
 #include "Binding/JSDebugger.h"
 #include "Binding/JSGlobal.h"
+#include "Binding/JSSystem.h"
 
 using namespace Nidium::Core;
 using namespace Nidium::IO;
@@ -905,6 +906,7 @@ void NidiumJS::loadGlobalObjects()
     JSFS::RegisterObject(m_Cx);
     JSDebug::RegisterObject(m_Cx);
     JSDebugger::RegisterObject(m_Cx);
+    JSSystem::RegisterObject(m_Cx);
 
     m_Modules = new JSModules(m_Cx);
     if (!m_Modules) {
