@@ -20,4 +20,11 @@ FunctionDoc( "System.getOpenFileStats", "Provide information about the openfiles
 										("sockets", "Open sockes", "integer"),
 										("files", "Open Files", "integer")]))
 )
+FunctionDoc( "System.language", "Get the system language.",
+	SeesDocs( "System.language" ),
+	[ExampleDoc("console.log(System.language)")],
+	IS_Static, IS_Public, IS_Fast,
+	NO_Params,
+	NO_Returns
+)
 

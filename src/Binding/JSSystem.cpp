@@ -5,6 +5,13 @@
 */
 #include "Binding/JSSystem.h"
 
+#if 0
+#ifdef NIDIUM_PRODUCT_UI
+#include <SystemInterface.h>
+#endif
+#endif
+
+
 #include <sys/stat.h>
 
 #ifdef __linux__
@@ -29,6 +36,11 @@ static JSClass system_class = {
 
 static JSFunctionSpec system_funcs[] = {
     JS_FN("getOpenFileStats", nidium_system_getOpenFileStats, 0, NIDIUM_JS_FNPROPS),
+#if 0
+#ifdef NIDIUM_PRODUCT_UI
+    JS_FN("language", nidium_nidium_language, 0, NIDIUM_JS_FNPROPS),
+#endif
+#endif
     JS_FS_END
 };
 // }}}
@@ -78,6 +90,22 @@ static bool nidium_system_getOpenFileStats(JSContext *cx, unsigned argc,
 
     return true;
 }
+
+#if 0
+#ifdef NIDIUM_PRODUCT_UI
+static bool nidium_nidium_language(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    SystemInterface* interface = SystemInterface::GetInstance();
+    const char *clang = interface->getLanguage();
+
+    args.rval().setString(JS_NewStringCopyZ(cx, clang));
+
+    return true;
+}
+#endif
+#endif
 // }}}
 
 // {{{ Registration
