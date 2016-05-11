@@ -42,7 +42,6 @@ int dummyLoggerClear()
 
     return 0;
 }
-/*
 TEST_F(NidiumJS, Simple)
 {
     int i = 1, *p;
@@ -87,7 +86,6 @@ TEST_F(NidiumJS, Simple)
     JS_GetProperty(njs->m_Cx, dc, "a", &rval);
     EXPECT_EQ(JSVAL_TO_INT(rval), 1);
 }
-*/
 
 TEST_F(NidiumJS, Loggers)
 {
@@ -106,7 +104,6 @@ TEST_F(NidiumJS, Loggers)
     njs->logclear();
     EXPECT_EQ(strlen(log_array), 0);
 }
-/*
 TEST_F(NidiumJS, Quick)
 {
     njs->InitNet(ape);
@@ -165,5 +162,4 @@ TEST_F(NidiumJS, Messages)
     APE_loop_stop();
     //void postMessage(void *dataPtr, int ev);
 }
-*/
 

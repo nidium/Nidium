@@ -34,7 +34,8 @@
             'websocket.cpp',        #dummy
             'websocketclient.cpp',  #dummy
 
-            'js.cpp',               #dummy
+            'nidiumjs.cpp',         #dummy
+            'jsglobal.cpp',         #dummy
             'jsdb.cpp',             #dummy
             'jsconsole.cpp',        #dummy
             'jsdebug.cpp',          #dummy
@@ -49,6 +50,7 @@
             'jsprocess.cpp',        #dummy
             'jssocket.cpp',         #dummy
             'jsstream.cpp',         #dummy
+            'jssystem.cpp',         #dummy
             #'jsthread.cpp',        #segfault
             'jsutils.cpp',
             #'jswebsocket.cpp',     #segfault
