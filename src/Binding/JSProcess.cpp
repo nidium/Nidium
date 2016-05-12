@@ -7,14 +7,21 @@
 
 #include <ape_netlib.h>
 
+#include "Core/Path.h"
+#include "Binding/JSUtils.h"
+
+using Nidium::Core::Path;
+using Nidium::Binding::JSUtils;
+
 namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
 
 static void Process_Finalize(JSFreeOp *fop, JSObject *obj);
-static bool nidium_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_process_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_process_exit(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_process_cwd(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass Process_class = {
     "NidiumProcess", JSCLASS_HAS_PRIVATE,
@@ -29,8 +36,9 @@ template<>
 JSClass *JSExposer<JSProcess>::jsclass = &Process_class;
 
 static JSFunctionSpec Process_funcs[] = {
-    JS_FN("setSignalHandler", nidium_setSignalHandler, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("setSignalHandler", nidium_process_setSignalHandler, 1, NIDIUM_JS_FNPROPS),
     JS_FN("exit", nidium_process_exit, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("cwd", nidium_process_cwd, 0, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
 
@@ -57,7 +65,7 @@ static int ape_kill_handler(int code, ape_global *ape)
 
 // {{{ Implementation
 
-static bool nidium_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_process_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS(JSProcess, &Process_class);
     NIDIUM_JS_CHECK_ARGS("setSignalHandler", 1);
@@ -88,6 +96,24 @@ static bool nidium_process_exit(JSContext *cx, unsigned argc, JS::Value *vp)
 
     return true;
 }
+
+static bool nidium_process_cwd(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    Path cur(Path::GetCwd());
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    if (cur.dir() == NULL) {
+        args.rval().setUndefined();
+        return true;
+    }
+
+    JS::RootedString res(cx, JS_NewStringCopyZ(cx, cur.dir()));
+
+    args.rval().setString(res);
+
+    return true;
+}
+
 
 static void Process_Finalize(JSFreeOp *fop, JSObject *obj)
 {

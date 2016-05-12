@@ -22,7 +22,7 @@ clearInterval( t );"""),
 )
 
 FieldDoc( "global.__dirname", "The path (without the filename) of the current JavaScript file ending with a '/'.",
-	[ SeeDoc( "global.__filename" ), SeeDoc( "global.cwd" ), SeeDoc( "fs" ), SeeDoc( "File" ) ],
+	[ SeeDoc( "global.__filename" ), SeeDoc( "process.cwd" ), SeeDoc( "fs" ), SeeDoc( "File" ) ],
 	NO_Examples,
 	IS_Static, IS_Public, IS_Readonly,
 	'string',
@@ -30,7 +30,7 @@ FieldDoc( "global.__dirname", "The path (without the filename) of the current Ja
 )
 
 FieldDoc( "global.__filename", "The path (with the filename) of the current JavaScript file.",
-	[ SeeDoc( "global.__dirname" ), SeeDoc( "global.cwd" ) ],
+	[ SeeDoc( "global.__dirname" ), SeeDoc( "process.cwd" ) ],
 	NO_Examples,
 	IS_Static, IS_Public, IS_Readonly,
 	'string',
@@ -43,14 +43,6 @@ FieldDoc( "global.window", "The main window object.",
 	IS_Static, IS_Public, IS_ReadWrite,
 	'Window',
 	NO_Default
-)
-
-FunctionDoc( "global.cwd", "Get the current working directory.",
-	[ SeeDoc( "global.__filename" ), SeeDoc( "global.__dirname" ), SeeDoc( "File.isDir" ), SeeDoc( "File.rmrf" ), SeeDoc( "File.listFiles" ), SeeDoc( "fs" ), SeeDoc( "global.cwd" ) ],
-	[ExampleDoc( """console.log( cwd( ) );""" )],
-	IS_Static, IS_Public, IS_Fast,
-	NO_Params,
-	ReturnDoc( "The current path", "string" )
 )
 
 FunctionDoc( "global.load", """Load the specified script in a synchronous way.
