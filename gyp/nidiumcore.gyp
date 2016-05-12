@@ -136,6 +136,7 @@
             '../src/Core/DB.cpp',
             '../src/Core/TaskManager.cpp',
             '../src/Core/Path.cpp',
+            '../src/Core/Context.cpp',
 
             '../src/IO/File.cpp',
             '../src/IO/Stream.cpp',
