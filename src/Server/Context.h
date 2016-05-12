@@ -7,30 +7,19 @@
 #define server_context_h__
 
 #include <Binding/NidiumJS.h>
-
+#include "Core/Context.h"
 
 namespace Nidium {
 namespace Server {
 
 class Worker;
 
-class Context
+class Context : public Core::Context
 {
 public:
     Context(ape_global *ape, Worker *worker, bool jsstrict = false, bool runInREPL = false);
-    ~Context();
+    virtual ~Context();
 
-    static Context *GetObject(struct JSContext *cx) {
-        return static_cast<Context *>(Binding::NidiumJS::GetObject(cx)->getPrivate());
-    }
-
-    static Context *GetObject(Binding::NidiumJS *njs) {
-        return static_cast<Context *>(njs->getPrivate());
-    }
-
-    Binding::NidiumJS *getNJS() const {
-        return m_JS;
-    }
 
     Worker *getWorker() const {
         return m_Worker;
@@ -40,7 +29,6 @@ public:
         return m_RunInREPL;
     }
 private:
-    Binding::NidiumJS *m_JS;
     Worker *m_Worker;
     bool m_RunInREPL;
 };

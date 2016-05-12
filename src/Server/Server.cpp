@@ -297,7 +297,8 @@ int Worker::run(int argc, char **argv, bool jsstrict)
 
     signal(SIGPIPE, SIG_IGN);
 
-    Context ctx(net, this, jsstrict, m_RunREPL);
+    Nidium::Server::Context ctx(net, this, jsstrict, m_RunREPL);
+
     const NidiumJS *js = ctx.getNJS();
     JSProcess::RegisterObject(js->getJSContext(), argv, argc,
         this->getIdentifier());
