@@ -21,7 +21,8 @@ namespace Nidium {
 namespace Core {
 
 
-Context::Context(ape_global *ape)
+Context::Context(ape_global *ape) :
+    m_APECtx(ape)
 {
     m_JS = new NidiumJS(ape);
     m_JS->setPrivate(this);
@@ -35,7 +36,7 @@ Context::Context(ape_global *ape)
 
     m_JS->loadGlobalObjects();
 
-    APE_timer_create(ape, 1, Ping, (void *)m_JS);
+    m_PingTimer = APE_timer_create(ape, 1, Ping, (void *)m_JS);
 }
 
 int Context::Ping(void *arg)
@@ -52,6 +53,7 @@ int Context::Ping(void *arg)
 
 Context::~Context()
 {
+    APE_timer_destroy(m_APECtx, m_PingTimer);
     delete m_JS;
 }
 

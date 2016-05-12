@@ -8,6 +8,9 @@
 
 #include "Binding/NidiumJS.h"
 
+typedef struct _ape_timer_t ape_timer_t;
+typedef struct _ape_global ape_global;
+
 namespace Nidium {
 
 namespace Binding
@@ -34,10 +37,12 @@ public:
     Binding::NidiumJS *getNJS() const {
         return m_JS;
     }
-    
+
 
 protected:
     Binding::NidiumJS *m_JS;
+    ape_global *m_APECtx;
+    ape_timer_t *m_PingTimer;
 
     static int Ping(void *arg);
 };
