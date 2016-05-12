@@ -114,7 +114,10 @@ bool UIInterface::createWindow(int width, int height)
     this->setWindowFrame(NIDIUM_WINDOWPOS_UNDEFINED_MASK,
         NIDIUM_WINDOWPOS_UNDEFINED_MASK, width, height);
 
-    Context::CreateAndAssemble(this, m_Gnet);
+    /*
+        This will create root canvas, initial size and so on
+    */
+    m_NativeCtx->setUIObject(this);
 
     return true;
 }
@@ -129,7 +132,7 @@ int UIInterface::HandleEvents(void *arg)
 
     while(SDL_PollEvent(&event)) {
         JSWindow *window = NULL;
-        if (NUII->m_NativeCtx) {
+        if (NUII->isContextReady()) {
             NUII->makeMainGLCurrent();
             window = JSWindow::GetObject(NUII->m_NativeCtx->getNJS());
         }
@@ -233,7 +236,7 @@ int UIInterface::HandleEvents(void *arg)
         }
     }
 
-    if (ttfps%300 == 0 && NUII->m_NativeCtx != NULL) {
+    if (ttfps%300 == 0 && NUII->isContextReady()) {
         NUII->m_NativeCtx->getNJS()->gc();
     }
 
@@ -242,7 +245,7 @@ int UIInterface::HandleEvents(void *arg)
         NUII->m_CurrentCursor = UIInterface::NOCHANGE;
     }
 
-    if (NUII->m_NativeCtx) {
+    if (NUII->isContextReady()) {
         NUII->makeMainGLCurrent();
         NUII->m_NativeCtx->frame(true);
     }
@@ -267,6 +270,11 @@ int UIInterface::HandleEvents(void *arg)
 
     ttfps++;
     return 16;
+}
+
+bool UIInterface::isContextReady()
+{
+    return (this->m_NativeCtx && m_NativeCtx->getUI());
 }
 
 void UIInterface::OnNMLLoaded(void *arg)
@@ -553,8 +561,9 @@ bool UIInterface::runApplication(const char *path)
     //    FILE *main = fopen("index.nml", "r");
     //    const char *ext = &path[strlen(path)-4];
 
-    this->m_Nml = new NML(this->m_Gnet);
-    this->m_Nml->loadFile(path, UIInterface::OnNMLLoaded, this);
+    m_NativeCtx = new Context(this->m_Gnet);
+    m_Nml = new NML(this->m_Gnet);
+    m_Nml->loadFile(path, UIInterface::OnNMLLoaded, this);
 
     return true;
 }

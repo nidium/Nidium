@@ -144,8 +144,7 @@ class Context : public Core::Context, public Core::Messages
 
     friend class Nidium::Graphics::CanvasHandler;
 
-    Context(Interface::UIInterface *nui, NML *nml,
-        int width, int height, ape_global *net);
+    Context(ape_global *net);
     virtual ~Context();
 
     Interface::UIInterface *getUI() const {
@@ -195,6 +194,7 @@ class Context : public Core::Context, public Core::Messages
     void setWindowFrame(int x, int y, int width, int height);
     void sizeChanged(int w, int h);
 
+    void setUIObject(Interface::UIInterface *ui);
     void setNML(NML *nml) {
         m_NML = nml;
     }
@@ -244,9 +244,7 @@ class Context : public Core::Context, public Core::Messages
     Graphics::CanvasHandler *getCurrentClickedHandler() const {
         return m_CurrentClickedHandler;
     }
-
-    static void CreateAndAssemble(Interface::UIInterface *ui, ape_global *gnet);
-
+    
     private:
     Graphics::GLResources      m_Resources;
     Graphics::CanvasHandler *  m_RootHandler;
