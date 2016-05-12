@@ -18,6 +18,11 @@
 #include "Binding/JSDocument.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSWindow.h"
+#include "Binding/JSProcess.h"
+
+#include "Graphics/CanvasHandler.h"
+#include "Graphics/SkiaContext.h"
+#include "Graphics/GLHeader.h"
 
 #ifdef __linux__
 #include <SkImageDecoder.h>
