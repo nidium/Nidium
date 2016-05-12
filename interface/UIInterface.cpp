@@ -541,8 +541,6 @@ void UIInterface::refreshApplication(bool clearConsole)
 
 bool UIInterface::runApplication(const char *path)
 {
-    Messages::InitReader(m_Gnet);
-
     if (path != this->m_FilePath) {
         if (this->m_FilePath) {
             free(this->m_FilePath);

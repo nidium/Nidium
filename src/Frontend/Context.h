@@ -19,6 +19,8 @@
 
 #include "Graphics/GLResources.h"
 
+#include "Core/Context.h"
+
 namespace Nidium {
 namespace Interface {
     class UIInterface;
@@ -136,7 +138,7 @@ private:
 struct GrGLInterface;
 
 // {{{ Context
-class Context : public Core::Messages
+class Context : public Core::Context, public Core::Messages
 {
     public:
 
@@ -144,17 +146,13 @@ class Context : public Core::Messages
 
     Context(Interface::UIInterface *nui, NML *nml,
         int width, int height, ape_global *net);
-    ~Context();
+    virtual ~Context();
 
     Interface::UIInterface *getUI() const {
         return m_UI;
     }
     Graphics::CanvasHandler *getRootHandler() const {
         return m_RootHandler;
-    }
-
-    Binding::NidiumJS *getNJS() const {
-        return m_JS;
     }
 
     NML *getNML() const {
@@ -181,17 +179,6 @@ class Context : public Core::Messages
         return &m_ShResources;
     }
 
-    static Context *GetObject() {
-        return static_cast<Context *>(Binding::NidiumJS::GetObject(NULL)->getPrivate());
-    }
-
-    static Context *GetObject(struct JSContext *cx) {
-        return static_cast<Context *>(Binding::NidiumJS::GetObject(cx)->getPrivate());
-    }
-
-    static Context *GetObject(Binding::NidiumJS *njs) {
-        return static_cast<Context *>(njs->getPrivate());
-    }
 
     void callFrame();
     void createDebugCanvas();
@@ -262,7 +249,6 @@ class Context : public Core::Messages
 
     private:
     Graphics::GLResources      m_Resources;
-    Binding::NidiumJS *        m_JS;
     Graphics::CanvasHandler *  m_RootHandler;
     Graphics::CanvasHandler *  m_DebugHandler;
 #ifdef DEBUG

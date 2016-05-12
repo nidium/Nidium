@@ -114,7 +114,7 @@ static bool nidium_document_getElementById(JSContext *cx, unsigned argc, JS::Val
     }
 
     JSAutoByteString cid(cx, str);
-    CanvasHandler *elem = Context::GetObject(cx)->getCanvasById(cid.ptr());
+    CanvasHandler *elem = Context::GetObject<Frontend::Context>(cx)->getCanvasById(cid.ptr());
     if (elem) {
         args.rval().setObjectOrNull(elem->m_JsObj);
     } else {
@@ -128,7 +128,7 @@ static bool nidium_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    CanvasHandler *rootHandler = Context::GetObject(cx)->getRootHandler();
+    CanvasHandler *rootHandler = Context::GetObject<Frontend::Context>(cx)->getRootHandler();
     Canvas2DContext *context = static_cast<Canvas2DContext *>(rootHandler->getContext());
 
     int width, height;
@@ -137,7 +137,7 @@ static bool nidium_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     JS::RootedObject arrBuffer(cx, JS_NewUint8ClampedArray(cx, width * height * 4));
     uint8_t *pixels = JS_GetUint8ClampedArrayData(arrBuffer);
 
-    Context *nctx = Context::GetObject(cx);
+    Context *nctx = Context::GetObject<Frontend::Context>(cx);
 
     uint8_t *fb = nctx->getUI()->readScreenPixel();
 
@@ -165,13 +165,13 @@ static bool nidium_document_toDataArray(JSContext *cx, unsigned argc, JS::Value 
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    CanvasHandler *rootHandler = Context::GetObject(cx)->getRootHandler();
+    CanvasHandler *rootHandler = Context::GetObject<Frontend::Context>(cx)->getRootHandler();
     Canvas2DContext *context = static_cast<Canvas2DContext *>(rootHandler->getContext());
 
     int width, height;
     context->getSize(&width, &height);
 
-    Context *nctx = Context::GetObject(cx);
+    Context *nctx = Context::GetObject<Frontend::Context>(cx);
 
     uint8_t *fb = nctx->getUI()->readScreenPixel();
 
@@ -217,7 +217,7 @@ static bool nidium_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Val
 
     char *text = JS_EncodeStringToUTF8(cx, str);
 
-    Context::GetObject(cx)->getUI()->setClipboardText(text);
+    Context::GetObject<Frontend::Context>(cx)->getUI()->setClipboardText(text);
 
     js_free(text);
 
@@ -229,7 +229,7 @@ static bool nidium_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Val
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     size_t outputlen;
     char16_t * jsc;
-    char *text = Context::GetObject(cx)->getUI()->getClipboardText();
+    char *text = Context::GetObject<Frontend::Context>(cx)->getUI()->getClipboardText();
 
     if (text == NULL) {
         args.rval().setNull();
@@ -258,7 +258,7 @@ static bool nidium_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp)
     JSDocument::m_ShowFPS = show;
 
     if (show) {
-        Context::GetObject(cx)->createDebugCanvas();
+        Context::GetObject<Frontend::Context>(cx)->createDebugCanvas();
     }
 
     return true;
@@ -286,7 +286,7 @@ static bool nidium_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    UIInterface *NUI = Context::GetObject(cx)->getUI();
+    UIInterface *NUI = Context::GetObject<Frontend::Context>(cx)->getUI();
     JSAutoByteString locationstr(cx, location);
 
     struct _nidium_document_restart_async *ndra = (struct _nidium_document_restart_async *)malloc(sizeof(*ndra));

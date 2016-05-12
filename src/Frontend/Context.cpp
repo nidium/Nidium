@@ -96,6 +96,7 @@ void Context::CreateAndAssemble(Interface::UIInterface *ui, ape_global *gnet)
 
 Context::Context(Interface::UIInterface *nui, NML *nml,
     int width, int height, ape_global *net) :
+    Core::Context(net),
     m_RootHandler(NULL), m_DebugHandler(NULL),
 #if DEBUG
 m_Debug2Handler(NULL),
@@ -112,14 +113,12 @@ m_Debug2Handler(NULL),
 
     GLState::CreateForContext(this);
 
-    m_JS = new NidiumJS(net);
     this->initStats();
     this->initShaderLang();
     this->initHandlers(width, height);
 
     m_JS->setStructuredCloneAddition(Context::WriteStructuredCloneOp, Context::ReadStructuredCloneOp);
-    m_JS->setPrivate(this);
-    m_JS->loadGlobalObjects();
+
     JS::RootedObject globalObj(m_JS->m_Cx, JS::CurrentGlobalOrNull(m_JS->m_Cx));
     JS_InitReflect(m_JS->m_Cx, globalObj);
     this->loadNativeObjects(width, height);
@@ -350,7 +349,6 @@ Context::~Context()
     m_JSWindow->callFrameCallbacks(0, true);
 
     delete m_JSWindow;
-    delete m_JS;
     delete m_GLState;
     delete m_WS;
 
