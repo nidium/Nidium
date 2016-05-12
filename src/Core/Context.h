@@ -17,18 +17,21 @@ namespace Binding
 
 namespace Core {
 
+
 class Context
 {
 public:
     Context(ape_global *ape);
     virtual ~Context();
 
-    static Context *GetObject(struct JSContext *cx) {
-        return static_cast<Context *>(Binding::NidiumJS::GetObject(cx)->getPrivate());
+    template <typename T>
+    static T *GetObject(struct JSContext *cx) {
+        return static_cast<T *>(Binding::NidiumJS::GetObject(cx)->getPrivate());
     }
 
-    static Context *GetObject(Binding::NidiumJS *njs) {
-        return static_cast<Context *>(njs->getPrivate());
+    template <typename T>
+    static T *GetObject(Binding::NidiumJS *njs) {
+        return static_cast<T *>(njs->getPrivate());
     }
 
     Binding::NidiumJS *getNJS() const {
