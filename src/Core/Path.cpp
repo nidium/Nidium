@@ -233,7 +233,6 @@ bool Path::HasScheme(const char *str)
 {
     for (int i = 0; i < Path::g_m_SchemesCount; i++) {
         if (strcasecmp(Path::g_m_Schemes[i].str, str) == 0) {
-            printf("Sheme already found\n");
             return true;
         }
     }
