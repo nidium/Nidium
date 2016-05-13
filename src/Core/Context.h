@@ -41,13 +41,18 @@ public:
         return m_JS;
     }
 
-
 protected:
+    static int Ping(void *arg);
+
+    void destroyJS() {
+        if (m_JS) {
+            delete m_JS;
+            m_JS = NULL;
+        }
+    }
     Binding::NidiumJS *m_JS;
     ape_global *m_APECtx;
     ape_timer_t *m_PingTimer;
-
-    static int Ping(void *arg);
 };
 
 } // namespace Core
