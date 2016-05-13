@@ -89,65 +89,59 @@ void Context::initStats()
     memset(m_Stats.samples, 0, sizeof(m_Stats.samples));
 }
 
-void Context::CreateAndAssemble(Interface::UIInterface *ui, ape_global *gnet)
-{
-    new Context(ui, ui->m_Nml, ui->getWidth(), ui->getHeight(), gnet);
-}
 
-Context::Context(Interface::UIInterface *nui, NML *nml,
-    int width, int height, ape_global *net) :
+Context::Context(ape_global *net) :
+    Core::Context(net),
     m_RootHandler(NULL), m_DebugHandler(NULL),
 #if DEBUG
 m_Debug2Handler(NULL),
 #endif
-    m_UI(nui), m_NML(nml), m_GLState(NULL), m_JSWindow(NULL), m_SizeDirty(false),
-    m_CurrentClickedHandler(NULL)
+    m_UI(NULL), m_NML(NULL), m_GLState(NULL), m_JSWindow(NULL), m_SizeDirty(false),
+    m_CurrentClickedHandler(NULL), m_WSClient(NULL), m_WS(NULL)
 {
 
     this->resetInputEvents();
 
     ape_init_pool_list(&m_CanvasEventsCanvas, 0, 8);
 
-    m_UI->m_NativeCtx = this;
-
-    GLState::CreateForContext(this);
-
-    m_JS = new NidiumJS(net);
-    this->initStats();
-    this->initShaderLang();
-    this->initHandlers(width, height);
-
     m_JS->setStructuredCloneAddition(Context::WriteStructuredCloneOp, Context::ReadStructuredCloneOp);
-    m_JS->setPrivate(this);
-    m_JS->loadGlobalObjects();
+
     JS::RootedObject globalObj(m_JS->m_Cx, JS::CurrentGlobalOrNull(m_JS->m_Cx));
     JS_InitReflect(m_JS->m_Cx, globalObj);
-    this->loadNativeObjects(width, height);
-
+    
     m_JS->setLogger(NativeContext_vLogger);
     m_JS->setLogger(NativeContext_LogClear);
 
-    if (m_NML) {
-        m_NML->setNJS(m_JS);
-    }
 
     /*
         Set path for modules
     */
     m_JS->setPath(Path::GetCwd());
 
-    m_WSClient = NULL;
-    m_WS = NULL;
-    /*m_WS = new WebSocketServer(4000, "127.0.0.1");
-    m_WS->addListener(this);
-    m_WS->start();*/
-
     m_Jobs.head = NULL;
     m_Jobs.queue = NULL;
 }
 
+
+void Context::setUIObject(Interface::UIInterface *ui)
+{
+    m_UI = ui;
+    m_NML = m_UI->m_Nml;
+    m_NML->setNJS(m_JS);
+
+    GLState::CreateForContext(this);
+
+    this->initStats();
+    this->initShaderLang();
+    this->initHandlers(ui->getWidth(), ui->getHeight());
+    this->loadNativeObjects(ui->getWidth(), ui->getHeight());
+}
+
+
 void Context::loadNativeObjects(int width, int height)
 {
+    assert(m_UI != NULL);
+
     JSContext *cx = m_JS->m_Cx;
 
     Canvas2DContext::RegisterObject(cx);
@@ -182,6 +176,8 @@ void Context::loadNativeObjects(int width, int height)
 
 void Context::setWindowSize(int w, int h)
 {
+    assert(m_UI != NULL);
+
     m_SizeDirty = true;
     /* OS window */
     m_UI->setWindowSize((int)w, (int)h);
@@ -191,6 +187,8 @@ void Context::setWindowSize(int w, int h)
 
 void Context::setWindowFrame(int x, int y, int w, int h)
 {
+    assert(m_UI != NULL);
+
     m_SizeDirty = true;
     /* OS window */
     m_UI->setWindowFrame(static_cast<int>(x), static_cast<int>(y), static_cast<int>(w), static_cast<int>(h));
@@ -200,6 +198,8 @@ void Context::setWindowFrame(int x, int y, int w, int h)
 
 void Context::sizeChanged(int w, int h)
 {
+    assert(m_UI != NULL);
+
     if (!m_SizeDirty) {
         return;
     }
@@ -303,6 +303,8 @@ void Context::postDraw()
 /* TODO, move out */
 void Context::callFrame()
 {
+    assert(m_JSWindow != NULL);
+
     uint64_t tmptime = Utils::GetTick();
     m_Stats.nframe++;
 
@@ -335,32 +337,6 @@ void Context::callFrame()
 
 }
 
-Context::~Context()
-{
-    if (m_DebugHandler != NULL) {
-        delete m_DebugHandler->getContext();
-        delete m_DebugHandler;
-    }
-
-    if (m_RootHandler != NULL) {
-        delete m_RootHandler->getContext();
-        delete m_RootHandler;
-    }
-
-    m_JSWindow->callFrameCallbacks(0, true);
-
-    delete m_JSWindow;
-    delete m_JS;
-    delete m_GLState;
-    delete m_WS;
-
-    SkiaContext::m_GlContext = NULL;
-
-    ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
-    this->clearInputEvents();
-
-    ShFinalize();
-}
 
 void Context::rendered(uint8_t *pdata, int width, int height)
 {
@@ -371,6 +347,7 @@ void Context::rendered(uint8_t *pdata, int width, int height)
 
 void Context::frame(bool draw)
 {
+    assert(m_UI != NULL);
     //this->execJobs();
     /*
         Pending canvas events.
@@ -538,6 +515,8 @@ bool Context::initShaderLang()
 
 void Context::initHandlers(int width, int height)
 {
+    assert(m_UI != NULL);
+
     CanvasHandler::m_LastIdx = 0;
 
     m_RootHandler = new CanvasHandler(width, height, this);
@@ -703,6 +682,40 @@ void Context::forceLinking()
     CreateICOImageDecoder();
     CreateWBMPImageDecoder();
 #endif
+}
+
+Context::~Context()
+{
+    if (m_DebugHandler != NULL) {
+        delete m_DebugHandler->getContext();
+        delete m_DebugHandler;
+    }
+
+    if (m_RootHandler != NULL) {
+        delete m_RootHandler->getContext();
+        delete m_RootHandler;
+    }
+
+    m_JSWindow->callFrameCallbacks(0, true);
+
+    delete m_JSWindow;
+
+    /*
+        Don't let the base class destroy the JS.
+        CanvasHandler are released by the JS engine (unroot) and require
+        this context to be available in their destructor.
+    */
+    destroyJS();
+
+    delete m_GLState;
+    delete m_WS;
+
+    SkiaContext::m_GlContext = NULL;
+
+    ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
+    this->clearInputEvents();
+
+    ShFinalize();
 }
 
 } // namespace Frontend

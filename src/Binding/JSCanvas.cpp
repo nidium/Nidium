@@ -686,7 +686,7 @@ static bool nidium_canvas_getContext(JSContext *cx, unsigned argc,
     NIDIUM_JS_PROLOGUE_CANVASCLASS_NO_RET(CanvasHandler);
     NIDIUM_JS_CHECK_ARGS("getContext", 1);
 
-    Context *nctx = Context::GetObject(cx);
+    Context *nctx = Context::GetObject<Frontend::Context>(cx);
     UIInterface *ui = nctx->getUI();
 
     JS::RootedString mode(cx, args[0].toString());
@@ -1486,7 +1486,7 @@ static bool nidium_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
     lazyLoad = false; /* Always lazy load for now.  */
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Canvas_class, args));
-    handler = new CanvasHandler(width, height, Context::GetObject(cx), true);
+    handler = new CanvasHandler(width, height, Context::GetObject<Frontend::Context>(cx), true);
     handler->m_Context = NULL;
     handler->m_JsObj = ret;
     handler->m_JsCx = cx;
@@ -1539,7 +1539,7 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx, int width,
     int height, CanvasHandler **out)
 {
     CanvasHandler *handler;
-    Context *nctx = Context::GetObject(cx);
+    Context *nctx = Context::GetObject<Frontend::Context>(cx);
     UIInterface *ui = nctx->getUI();
 
     JS::RootedObject ret(cx, JS_NewObject(cx, &Canvas_class, JS::NullPtr(), JS::NullPtr()));

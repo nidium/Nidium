@@ -330,6 +330,7 @@ class UIInterface
 
     protected:
         UIInterface();
+        bool isContextReady();
         virtual void initControls() {};
         virtual void onWindowCreated() {};
         virtual void onNMLLoaded();

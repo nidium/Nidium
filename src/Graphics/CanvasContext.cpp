@@ -33,7 +33,7 @@ char *CanvasContext::ProcessShader(const char *content, shaderType type)
 
     compiler = ShConstructCompiler((ShShaderType)type,
         SH_WEBGL_SPEC, SH_GLSL_OUTPUT,
-        Context::GetObject(NidiumJS::GetObject())->getShaderResources());
+        Context::GetObject<Frontend::Context>(NidiumJS::GetObject())->getShaderResources());
 
     if (compiler == NULL) {
         NUI_LOG("Shader : Compiler not supported");
