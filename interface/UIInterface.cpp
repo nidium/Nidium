@@ -27,7 +27,6 @@ uint32_t ttfps = 0;
 
 using Nidium::Core::Path;
 using Nidium::Core::TaskManager;
-using Nidium::Core::Messages;
 using Nidium::Net::HTTPStream;
 using Nidium::Binding::JSWindow;
 using Nidium::Frontend::Context;
@@ -54,8 +53,6 @@ UIInterface::UIInterface() :
     Path::RegisterScheme(SCHEME_DEFINE("http://",    HTTPStream,    true));
     Path::RegisterScheme(SCHEME_DEFINE("https://",   HTTPStream,    true));
     Path::RegisterScheme(SCHEME_DEFINE("nvfs://",    NFSStream,     false));
-
-    TaskManager::CreateManager();
 }
 
 bool UIInterface::createWindow(int width, int height)
@@ -577,7 +574,6 @@ void UIInterface::stopApplication()
     if (this->m_NativeCtx) {
         delete this->m_NativeCtx;
         this->m_NativeCtx = NULL;
-        Messages::DestroyReader();
     }
 
     glClearColor(1, 1, 1, 1);

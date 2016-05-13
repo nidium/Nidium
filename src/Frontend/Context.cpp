@@ -337,31 +337,6 @@ void Context::callFrame()
 
 }
 
-Context::~Context()
-{
-    if (m_DebugHandler != NULL) {
-        delete m_DebugHandler->getContext();
-        delete m_DebugHandler;
-    }
-
-    if (m_RootHandler != NULL) {
-        delete m_RootHandler->getContext();
-        delete m_RootHandler;
-    }
-
-    m_JSWindow->callFrameCallbacks(0, true);
-
-    delete m_JSWindow;
-    delete m_GLState;
-    delete m_WS;
-
-    SkiaContext::m_GlContext = NULL;
-
-    ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
-    this->clearInputEvents();
-
-    ShFinalize();
-}
 
 void Context::rendered(uint8_t *pdata, int width, int height)
 {
@@ -707,6 +682,40 @@ void Context::forceLinking()
     CreateICOImageDecoder();
     CreateWBMPImageDecoder();
 #endif
+}
+
+Context::~Context()
+{
+    if (m_DebugHandler != NULL) {
+        delete m_DebugHandler->getContext();
+        delete m_DebugHandler;
+    }
+
+    if (m_RootHandler != NULL) {
+        delete m_RootHandler->getContext();
+        delete m_RootHandler;
+    }
+
+    m_JSWindow->callFrameCallbacks(0, true);
+
+    delete m_JSWindow;
+
+    /*
+        Don't let the base class destroy the JS.
+        CanvasHandler are released by the JS engine (unroot) and require
+        this context to be available in their destructor.
+    */
+    destroyJS();
+
+    delete m_GLState;
+    delete m_WS;
+
+    SkiaContext::m_GlContext = NULL;
+
+    ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
+    this->clearInputEvents();
+
+    ShFinalize();
 }
 
 } // namespace Frontend
