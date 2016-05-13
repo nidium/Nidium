@@ -173,11 +173,21 @@ TaskManager::workerInfo *TaskManager::getAvailableWorker()
 
 TaskManager *TaskManager::GetManager()
 {
+    if (gManager == 0) {
+        return NULL;
+    }
     return static_cast<TaskManager *>(pthread_getspecific(gManager));
 }
 
 void TaskManager::CreateManager()
 {
+    /*
+        Don't recreate if TaskManager
+        if already setup in the current thread
+    */
+    if (GetManager()) {
+        return;
+    }
     TaskManager *manager = new TaskManager();
     if (gManager == 0) {
         pthread_key_create(&gManager, NULL);

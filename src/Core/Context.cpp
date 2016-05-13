@@ -54,6 +54,7 @@ int Context::Ping(void *arg)
 Context::~Context()
 {
     APE_timer_destroy(m_APECtx, m_PingTimer);
+    Messages::DestroyReader();
     delete m_JS;
 }
 
