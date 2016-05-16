@@ -33,6 +33,8 @@
 #include "Binding/JSGlobal.h"
 #include "Binding/JSSystem.h"
 
+#include "Core/Context.h"
+
 using namespace Nidium::Core;
 using namespace Nidium::IO;
 
@@ -556,23 +558,20 @@ int NidiumJS::LoadApplication(const char *path)
 
 void NidiumJS::logf(const char *format, ...)
 {
+    Core::Context *nctx = (Core::Context *)getPrivate();
     va_list args;
     va_start(args, format);
-    if (m_vLogger == NULL) {
-        vprintf(format, args);
-    } else {
-        m_vLogger(format, args);
-    }
+
+    nctx->vlog(format, args);
+
     va_end(args);
 }
 
 void NidiumJS::log(const char *format)
 {
-    if (!m_vLogger) {
-        fwrite(format, sizeof(char), strlen(format), stdout);
-    } else {
-        logf("%s", format);
-    }
+    Core::Context *nctx = (Core::Context *)getPrivate();
+
+    nctx->log(format);
 }
 
 void NidiumJS::logclear()

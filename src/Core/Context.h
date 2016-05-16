@@ -38,6 +38,8 @@ public:
         return m_JS;
     }
 
+    virtual void log(const char *str);
+    virtual void vlog(const char *format, va_list ap);
 
 protected:
     Binding::NidiumJS *m_JS;

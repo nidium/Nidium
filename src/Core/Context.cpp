@@ -51,6 +51,20 @@ int Context::Ping(void *arg)
     return 8;
 }
 
+void Context::log(const char *str)
+{
+    fwrite(str, sizeof(char), strlen(str), stdout);
+}
+
+void Context::vlog(const char *format, va_list ap)
+{
+    char *buff;
+
+    vasprintf(&buff, format, ap);
+
+    this->log(buff);
+}
+
 Context::~Context()
 {
     APE_timer_destroy(m_APECtx, m_PingTimer);
