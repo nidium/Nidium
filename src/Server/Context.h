@@ -28,6 +28,9 @@ public:
     bool isREPL() const {
         return m_RunInREPL;
     }
+
+    void log(const char *str) override;
+
 private:
     Worker *m_Worker;
     bool m_RunInREPL;

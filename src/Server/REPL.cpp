@@ -41,7 +41,7 @@ static void *nidium_repl_thread(void *arg)
     }
 
     sprintf(historyPath, "%s/%s", homedir, ".nidium-repl-history");
-
+    linenoiseInit();
     linenoiseHistoryLoad(historyPath);
 
 repl:

@@ -13,6 +13,7 @@
 #include <IO/FileStream.h>
 #include <Net/HTTPStream.h>
 
+#include "linenoise.h"
 
 using Nidium::Core::Path;
 using Nidium::Core::TaskManager;
@@ -43,6 +44,13 @@ Context::Context(ape_global *net, Worker *worker,
     m_JS->setStrictMode(jsstrict);
     m_JS->setPath(Path::GetCwd());
 
+}
+
+void Context::log(const char *str)
+{
+    linenoisePause();
+    Core::Context::log(str);
+    linenoiseResume();
 }
 
 Context::~Context()
