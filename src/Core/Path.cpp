@@ -229,15 +229,27 @@ char *Path::GetDir(const char *fullpath)
     return ret;
 }
 
+bool Path::HasScheme(const char *str)
+{
+    for (int i = 0; i < Path::g_m_SchemesCount; i++) {
+        if (strcasecmp(Path::g_m_Schemes[i].str, str) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void Path::RegisterScheme(const Path::schemeInfo &scheme,
     bool isDefault)
 {
-    if (Path::g_m_SchemesCount + 1 >= MAX_REGISTERED_SCHEMES) {
+    if (HasScheme(scheme.str) ||
+        Path::g_m_SchemesCount + 1 >= MAX_REGISTERED_SCHEMES) {
+
         return;
     }
 
     schemeInfo *newScheme = &Path::g_m_Schemes[Path::g_m_SchemesCount];
-
+    
     newScheme->str = strdup(scheme.str);
     newScheme->base = scheme.base;
     newScheme->keepPrefix = scheme.keepPrefix;

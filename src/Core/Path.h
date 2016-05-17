@@ -98,6 +98,8 @@ public:
         return m_Scheme;
     }
 
+    bool static HasScheme(const char *str);
+
     bool static IsRelative(const char *path);
 
     ~Path() {

@@ -60,7 +60,7 @@ TestsRunner = function() {
 TestsRunner.prototype = {
     reportLastException: function() {
             log.error("Exception : " + this.lastException.exception + "\n");
-            var regex = new RegExp( '^' + cwd() + '[^/]+$');
+            var regex = new RegExp( '^' + process.cwd() + '[^/]+$');
             for (var i = 0; i < this.lastException.trace.length; i++) {
                 var frame = this.lastException.trace[i];
                 // This is not 100% ideal, but the noisyness in the stacktrace is reduced

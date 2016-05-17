@@ -20,18 +20,21 @@ namespace Binding
 
 namespace Core {
 
+
 class Context
 {
 public:
     Context(ape_global *ape);
     virtual ~Context();
 
-    static Context *GetObject(struct JSContext *cx) {
-        return static_cast<Context *>(Binding::NidiumJS::GetObject(cx)->getPrivate());
+    template <typename T>
+    static T *GetObject(struct JSContext *cx) {
+        return static_cast<T *>(Binding::NidiumJS::GetObject(cx)->getPrivate());
     }
 
-    static Context *GetObject(Binding::NidiumJS *njs) {
-        return static_cast<Context *>(njs->getPrivate());
+    template <typename T>
+    static T *GetObject(Binding::NidiumJS *njs) {
+        return static_cast<T *>(njs->getPrivate());
     }
 
     Binding::NidiumJS *getNJS() const {
@@ -42,11 +45,17 @@ public:
     virtual void vlog(const char *format, va_list ap);
 
 protected:
+    static int Ping(void *arg);
+
+    void destroyJS() {
+        if (m_JS) {
+            delete m_JS;
+            m_JS = NULL;
+        }
+    }
     Binding::NidiumJS *m_JS;
     ape_global *m_APECtx;
     ape_timer_t *m_PingTimer;
-
-    static int Ping(void *arg);
 };
 
 } // namespace Core
