@@ -387,7 +387,7 @@ void NML::onAssetsItemReady(Assets::Item *item)
         switch(item->m_FileType) {
             case Assets::Item::ITEM_SCRIPT:
             {
-                m_Njs->LoadScriptContent(reinterpret_cast<const char *>(data), len, item->getName());
+                m_Njs->LoadScriptContent((char *)data, len, item->getName());
 
                 break;
             }
