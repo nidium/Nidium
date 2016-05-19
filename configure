@@ -136,8 +136,7 @@ def angle():
 @Deps.register("breakpad")
 def breakpad():
     return {
-        "location": Deps.SvnRepo("http://google-breakpad.googlecode.com/svn/trunk/", 1435)
-       #"location": Deps.GitRepo("https://chromium.googlesource.com/breakpad/breakpad", branch="chrome_49")    }
+        "location": Deps.GitRepo("https://chromium.googlesource.com/breakpad/breakpad", revision="48b9a40539689743bacbe20df01182b0c367c2c0")
     }
 
 @Deps.register("SDL2")
