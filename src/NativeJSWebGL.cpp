@@ -14,6 +14,17 @@
 
 extern JSClass Canvas_class;
 
+#define NGL_STR_(X) #X
+#define NGL_STR(X) NGL_STR_(X)
+
+#define NGL_JS_NEW_CLASS_OBJECT(NAME, VAR) \
+    JS::RootedValue NAME ## Proto(cx); \
+    JS::RootedObject __global(cx, JS::CurrentGlobalOrNull(cx));\
+    JS_GetProperty(cx, __global, NGL_STR(NAME), &NAME ## Proto); \
+    JS::RootedObject NAME ## ProtoObj(cx, NAME ## Proto.toObjectOrNull()); \
+    JS::RootedObject VAR(cx, JS_NewObject(cx,  \
+                &NAME ## _class, NAME ## ProtoObj, JS::NullPtr()));
+
 #define NATIVE_GL_GETTER(obj) ((class NativeCanvasWebGLContext*)JS_GetPrivate(obj))
 
 #define GL_CALL(IFACE, FN)\
@@ -123,19 +134,23 @@ public:
     }
 
     void bindTo(GLenum target) {
-        JS::RootedObject bound(m_JSCx, 
-                JS_GetReservedSlot(m_JSGLctx, m_Type).toObjectOrNull());
+        JS::RootedValue slot(m_JSCx, JS_GetReservedSlot(m_JSGLctx, m_Type));
+        if (slot.isUndefined()) slot.setNull();
 
-        if (!bound) {
-            bound = JS_NewObject(m_JSCx, nullptr, JS::NullPtr(), JS::NullPtr());
+        JS::RootedObject bindObject(m_JSCx, slot.toObjectOrNull());
+
+        if (!bindObject) {
+            bindObject = JS_NewObject(m_JSCx, nullptr, JS::NullPtr(), JS::NullPtr());
             JS_SetReservedSlot(m_JSGLctx, m_Type,
-                    OBJECT_TO_JSVAL(bound));
+                    OBJECT_TO_JSVAL(bindObject));
         }
 
         JS::RootedValue val(m_JSCx, OBJECT_TO_JSVAL(m_JSObj));
-        const char targetStr = (const char)target;
 
-        JS_SetProperty(m_JSCx, bound, &targetStr, val);
+        char targetStr[11];
+        snprintf(targetStr, 11, "%d", target);
+
+        JS_SetProperty(m_JSCx, bindObject, targetStr, val);
 
         m_IsBound = true;
     }
@@ -262,6 +277,29 @@ static JSClass WebGLActiveInfo_class = {
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
+
+JS::HandleObject NativeJSWebGLActiveInfo::create(JSContext *cx, 
+		GLint csize, GLenum ctype, const char *cname)
+{
+	NGL_JS_NEW_CLASS_OBJECT(WebGLActiveInfo, obj);
+
+    JS::RootedValue size(cx);
+    JS::RootedValue type(cx);
+    JS::RootedValue name(cx);
+
+    size.setInt32(csize);
+    type.setNumber(ctype);
+    name.setString(JS_NewStringCopyZ(cx, cname));
+
+    JS_DefineProperty(cx, obj, "size", size, 
+            JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_PERMANENT);
+    JS_DefineProperty(cx, obj, "type", type,
+            JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_PERMANENT);
+    JS_DefineProperty(cx, obj, "name", name,
+            JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_PERMANENT);
+
+	return obj;
+}
 
 static void Buffer_Finalize(JSFreeOp *fop, JSObject *obj)
 {
@@ -1091,15 +1129,6 @@ static JSFunctionSpec WebGLActiveInfo_funcs[] = {
 };
 
 static JSPropertySpec WebGLActiveInfo_props[] = {
-    {"size", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_NULLWRAPPER,
-        JSOP_NULLWRAPPER},
-    {"type", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_NULLWRAPPER,
-        JSOP_NULLWRAPPER},
-    {"name", JSPROP_PERMANENT | JSPROP_ENUMERATE |  JSPROP_READONLY,
-        JSOP_NULLWRAPPER,
-        JSOP_NULLWRAPPER},
     JS_PS_END
 };
 
@@ -1435,6 +1464,11 @@ NGL_JS_FN(WebGLRenderingContext_clear)
     if (!JS_ConvertArguments(cx, args, "i", &bits)) {
         return false;
     }
+
+    GLint err = glGetError();
+    if (err != 0) {
+		printf("before clear err\n");
+	}
 
     GL_CALL(CppObj, Clear(bits | GL_DEPTH_BUFFER_BIT));
 
@@ -1869,12 +1903,15 @@ NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
     NGL_GET_RESOURCE(Program, program, cprogram);
 
     cname = JS_EncodeString(cx, name);
+    printf("getting location for %s\n", cname);
 
     GL_CALL_RET(CppObj, GetUniformLocation(cprogram->id(), cname), location);
 
     if (location < 0) {
+        printf("no location\n");
         args.rval().setNull();
     } else {
+        printf("new unfirm location is %d\n", location);
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
         JS_GetProperty(cx, global, "WebGLUniformLocation", &proto);
 
@@ -2032,10 +2069,10 @@ NGL_JS_FN(WebGLRenderingContext_generateMipmap)
 NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
 //{
     WebGLResource *cprogram;
-    char buff[2048];
-    unsigned int ctype = 0;
+    char name[2048];
+    unsigned int type = 0;
     unsigned int index;
-    int csize = 0;
+    int size = 0;
 
     JS::RootedObject program(cx);
     if (!JS_ConvertArguments(cx, args, "ou", program.address(), &index)) {
@@ -2043,34 +2080,20 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
     }
 
     NGL_GET_RESOURCE(Program, program, cprogram)
+printf("get active attrib\n");
 
-    //int len;
-    //GL_CALL(CppObj, GetActiveAttrib(cprogram->id(), index, 2048, &len, &csize, &ctype, buff))
+    int len;
+    //GL_CALL(CppObj, GetActiveAttrib(cprogram->id(), index, 2048, &len, &size, &type, name))
+    glGetActiveAttrib(cprogram->id(), index, 2048, &len, &size, &type, name);
 
     GLint err = glGetError();
     if (err != 0) {
+printf("ERRRRR\n");
         args.rval().setNull();
         return true;
     }
 
-    JS::RootedValue proto(cx);
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS_GetProperty(cx, global, "WebGLActiveInfo", &proto);
-    JS::RootedObject protoObj(cx, proto.toObjectOrNull());
-
-    JS::RootedValue size(cx);
-    JS::RootedValue type(cx);
-    JS::RootedValue name(cx);
-
-    size.setInt32(csize);
-    type.setNumber(ctype);
-    JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, buff));
-    name.setString(jstr);
-
-    JS::RootedObject obj(cx, JS_NewObject(cx, &WebGLActiveInfo_class, protoObj, JS::NullPtr()));
-    JS_SetProperty(cx, obj, "size", size);
-    JS_SetProperty(cx, obj, "type", type);
-    JS_SetProperty(cx, obj, "name", name);
+	JS::RootedObject obj(cx, NativeJSWebGLActiveInfo::create(cx, size, type, name));
 
     args.rval().setObjectOrNull(obj);
 
@@ -2079,16 +2102,36 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
 
 NGL_JS_FN(WebGLRenderingContext_getActiveUniform)
 //{
-#if 0
-    GLenum target;
+    WebGLResource *cprogram;
+    GLuint index;
 
-    if (!JS_ConvertArguments(cx, args, "u", &target)) {
+    char name[2048];
+    GLsizei length;
+    GLint size;
+    GLenum type;
+
+    JS::RootedObject program(cx);
+    if (!JS_ConvertArguments(cx, args, "ou", program.address(), &index)) {
         return false;
     }
 
-    GL_CALL(CppObj, GenerateMipmap(target));
+    NGL_GET_RESOURCE(Program, program, cprogram);
+printf("get actve uniform\n");
 
-#endif
+    //GL_CALL(CppObj, getActiveUniform);
+    // XXX : Missing getActiveUniform in skia interface
+    glGetActiveUniform(cprogram->id(), index, 2048, &length, &size, &type, name);
+    GLint err = glGetError();
+    if (err != 0) {
+		printf("get attrib err\n");
+        args.rval().setNull();
+        return true;
+    }
+
+	JS::RootedObject obj(cx, NativeJSWebGLActiveInfo::create(cx, size, type, name));
+
+    args.rval().setObjectOrNull(obj);
+
     return true;
 }
 
@@ -2423,7 +2466,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
 
         default:
             JS_ReportError(cx, "getParameter invalue value");
-            return true;
+            return false;
     }
 
     args.rval().set(value);

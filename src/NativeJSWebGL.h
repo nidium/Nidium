@@ -94,7 +94,17 @@ NEW_CLASS(WebGLShader)
 NEW_CLASS(WebGLTexture)
 NEW_CLASS(WebGLUniformLocation)
 NEW_CLASS(WebGLShaderPrecisionFormat)
-NEW_CLASS(WebGLActiveInfo)
+class NativeJSWebGLActiveInfo : public NativeJSExposer<NativeJSWebGLActiveInfo>
+{
+    public :
+        NativeJSWebGLActiveInfo();
+        ~NativeJSWebGLActiveInfo();
+		static JS::HandleObject create(JSContext *cx, 
+				GLint size, GLenum type, const char *name);
+        static void registerObject(JSContext *cx);
+};
+
+#undef NEW_CLASS
 
 /* ClearBufferMask */
 #define NGL_DEPTH_BUFFER_BIT                0x00000100
