@@ -9,8 +9,11 @@
 #include <libgen.h>
 #include <time.h>
 #include <sys/types.h>
+#include <linux/limits.h>
 
+#ifdef NIDIUM_ENABLE_CRASHREPORTER
 #include <client/linux/handler/exception_handler.h>
+#endif
 
 #include "X11UIInterface.h"
 #include "System.h"
