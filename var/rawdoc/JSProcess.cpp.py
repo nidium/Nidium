@@ -35,6 +35,34 @@ FieldDoc( "process.workerId", "The identifier for the current worker.",
 	NO_Default
 )
 
+FunctionDoc("process.setOwner", """Set a user and optionaly a group to a process.
+
+The `setOwner` function is permitted if the effective user/group name is that of the super user, or if the specified user/group name is the same as the effective user/group name.
+
+On failure this function throws an exception.""",
+	SeesDocs("process.getOwner"),
+	[ExampleDoc("""process.setOwner('daemon', 'www-data');""")],
+	IS_Dynamic, IS_Public, IS_Fast,
+	[
+            ParamDoc("user", "User whom should run this process", 'string|int', NO_Params, IS_Obligated),
+	    ParamDoc("group", "Group whom should run this process", 'string|int', NO_Params, IS_Optional)
+        ],
+	NO_Returns
+)
+
+FunctionDoc("process.getOwner", """Return an object with information about the owner of the process.""",
+	SeesDocs("process.setOwner"),
+	[ExampleDoc("""process.setOwner('daemon', 'www-data');""")],
+	IS_Dynamic, IS_Public, IS_Fast,
+	NO_Params,
+	ObjectDoc([
+	    ("uid", "User ID", "integer"), 
+	    ("gid", "Group ID", "integer"), 
+	    ("user", "User name", "string"), 
+	    ("group", "Group name", "string"), 
+	])
+)
+
 FunctionDoc("process.setSignalHandler", "Attach a javascript callback to a signal.",
 	SeesDocs("process|Threads|process.setSignalHandler|process.exit"),
 	[ExampleDoc("""process.setSignalHandler(function(){
