@@ -298,9 +298,9 @@ static JSClass WebGLActiveInfo_class = {
 };
 
 JS::HandleObject JSWebGLActiveInfo::Create(JSContext *cx, 
-		GLint csize, GLenum ctype, const char *cname)
+        GLint csize, GLenum ctype, const char *cname)
 {
-	NGL_JS_NEW_CLASS_OBJECT(WebGLActiveInfo, obj);
+    NGL_JS_NEW_CLASS_OBJECT(WebGLActiveInfo, obj);
 
     JS::RootedValue size(cx);
     JS::RootedValue type(cx);
@@ -317,7 +317,7 @@ JS::HandleObject JSWebGLActiveInfo::Create(JSContext *cx,
     JS_DefineProperty(cx, obj, "name", name,
             JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_PERMANENT);
 
-	return obj;
+    return obj;
 }
 
 static void Buffer_Finalize(JSFreeOp *fop, JSObject *obj)
@@ -1488,8 +1488,8 @@ NGL_JS_FN(WebGLRenderingContext_clear)
 
     GLint err = glGetError();
     if (err != 0) {
-		printf("before clear err\n");
-	}
+        printf("before clear err\n");
+    }
 
     GL_CALL(CppObj, Clear(bits | GL_DEPTH_BUFFER_BIT));
 
@@ -2114,7 +2114,7 @@ printf("ERRRRR\n");
         return true;
     }
 
-	JS::RootedObject obj(cx, JSWebGLActiveInfo::Create(cx, size, type, name));
+    JS::RootedObject obj(cx, JSWebGLActiveInfo::Create(cx, size, type, name));
 
     args.rval().setObjectOrNull(obj);
 
@@ -2144,12 +2144,12 @@ printf("get actve uniform\n");
     glGetActiveUniform(cprogram->id(), index, 2048, &length, &size, &type, name);
     GLint err = glGetError();
     if (err != 0) {
-		printf("get attrib err\n");
+        printf("get attrib err\n");
         args.rval().setNull();
         return true;
     }
 
-	JS::RootedObject obj(cx, JSWebGLActiveInfo::Create(cx, size, type, name));
+    JS::RootedObject obj(cx, JSWebGLActiveInfo::Create(cx, size, type, name));
 
     args.rval().setObjectOrNull(obj);
 
