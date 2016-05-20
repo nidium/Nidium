@@ -97,18 +97,7 @@ class CanvasWebGLContext: public Graphics::CanvasContext
 };
 // }}}
 
-// {{{ NidiumJSWebGLActiveInfo
-class NidiumJSWebGLActiveInfo : public JSExposer<NidiumJSWebGLActiveInfo>
-{
-    public :
-        NidiumJSWebGLActiveInfo();
-        ~NidiumJSWebGLActiveInfo();
-        JS::PersistentRootedObject m_JsObj;
-        static void RegisterObject(JSContext *cx);
-};
-// }}}
-
-// {{{ Classes and Macros
+// {{{ WebGL Classes declaration
 NIDIUM_GL_NEW_CLASS(WebGLRenderingContext)
 NIDIUM_GL_NEW_CLASS(WebGLObject)
 NIDIUM_GL_NEW_CLASS(WebGLBuffer)
@@ -119,7 +108,20 @@ NIDIUM_GL_NEW_CLASS(WebGLShader)
 NIDIUM_GL_NEW_CLASS(WebGLTexture)
 NIDIUM_GL_NEW_CLASS(WebGLUniformLocation)
 NIDIUM_GL_NEW_CLASS(WebGLShaderPrecisionFormat)
+class JSWebGLActiveInfo : public JSExposer<JSWebGLActiveInfo>
+{
+    public :
+        JSWebGLActiveInfo();
+        ~JSWebGLActiveInfo();
+		static JS::HandleObject Create(JSContext *cx, 
+				GLint size, GLenum type, const char *name);
+        static void RegisterObject(JSContext *cx);
+};
 
+#undef NIDIUM_GL_NEW_CLASS
+// }}}
+
+// {{{ OpenGL defines
 /* ClearBufferMask */
 #define NGL_DEPTH_BUFFER_BIT                0x00000100
 #define NGL_STENCIL_BUFFER_BIT              0x00000400

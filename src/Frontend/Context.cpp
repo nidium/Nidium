@@ -162,6 +162,7 @@ void Context::loadNativeObjects(int width, int height)
     JSWebGLTexture::RegisterObject(cx);
     JSWebGLUniformLocation::RegisterObject(cx);
     JSWebGLShaderPrecisionFormat::RegisterObject(cx);
+    JSWebGLActiveInfo::RegisterObject(cx);
 #endif
     JS::RootedObject docObj(cx, JSDocument::RegisterObject(cx));
     m_JSWindow = JSWindow::RegisterObject(cx, width, height, docObj);
