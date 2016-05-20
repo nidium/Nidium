@@ -2,6 +2,7 @@ konstructor.log
 configurec
 bin
 build
+tools/pprof
 third-party/
 !third-party/setproctitle/
 !third-party/rapidxml/
