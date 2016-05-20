@@ -8,9 +8,9 @@
         'product_dir': '<(nidium_tests_output)',
         'type': 'executable',
         'dependencies': [
+            'libnidiumcore.gyp:*',
             '<(nidium_network_path)/gyp/network-unittests.gyp:unittests-settings',
             '<(nidium_network_path)gyp/network.gyp:*',
-            'libnidiumcore.gyp:*',
         ],
         'sources': [
             '<(nidium_tests_path)unittest.cpp',
