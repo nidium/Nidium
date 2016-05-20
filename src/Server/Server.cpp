@@ -177,10 +177,36 @@ int Server::Start(int argc, char *argv[])
     return server->init();
 }
 
+void Server::Usage( struct option * long_options, const char ** text_blocks)
+{
+    struct option *opt;
+    char const * text;
+    size_t i;
+
+    opt = long_options;
+    i = 0;
+    Server::displayVersion();
+    fprintf(stdout, "Usage: %s [options] JS_FILE\n\toptions: \n", "nidium-server");
+    while( opt->name != NULL) {
+        text = text_blocks[i];
+        fprintf(stdout, "\t-%c --%-10s %s\n", opt->val, opt->name, text );
+        opt++;
+        i++;
+    }
+}
+
 int Server::init()
 {
     bool daemon = false;
     int workers = 1;
+
+    static char const * text_blocks[5] = {
+        "Enable Strict mode",
+        "Run as daemon",
+        "Start multiple workers",
+        "Set process name",
+        "This text"
+    };
 
     static struct option long_options[] =
     {
@@ -188,6 +214,7 @@ int Server::init()
         {"daemon",     no_argument,       0, 'd'},
         {"workers",    required_argument, 0, 'w'},
         {"name",       required_argument, 0, 'n'},
+        {"help",       no_argument,       0, 'h'},
         {0, 0, 0, 0}
     };
 
@@ -199,15 +226,12 @@ int Server::init()
     //signal(SIGCHLD, SIG_IGN);
 
     int ch;
-    //opterr = 0;
-
     /*
         Needed on macosx so that arguments doesn't fail after the .js file
     */
     setenv("POSIXLY_CORRECT", "1", 1);
 
-    while ((ch = getopt_long(m_Args.argc, m_Args.argv, "sdnw:", long_options, NULL)) != -1) {
-        //printf("Got %c (%s)\n", ch, optarg);
+    while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dsw:n:h?", long_options, NULL)) != -1) {
         switch (ch) {
             case 'd':
                 daemon = true;
@@ -215,7 +239,10 @@ int Server::init()
             case 's':
                 m_JSStrictMode = true;
                 break;
+            case ':':
+            case 'h':
             case '?':
+                Server::Usage(&long_options[0], text_blocks);
                 exit(1);
                 break;
             case 'w':
@@ -228,6 +255,7 @@ int Server::init()
                 break;
         }
     }
+
     /*
         Only 'forward' the 'rest' of the arguments to the js Process/worker
     */
@@ -242,11 +270,13 @@ int Server::init()
     /*
         Don't demonize if no JS file was provided
     */
-    if (daemon && m_Args.argc >= 1) {
+    if (daemon && m_Args.argc > 0) {
         m_HasREPL = false;
         this->daemonize();
     } else if (daemon) {
         fprintf(stderr, "Can't demonize if no JS file is provided\n");
+        Server::Usage(&long_options[0], text_blocks);
+        exit(1);
     }
 
     if (workers) {
