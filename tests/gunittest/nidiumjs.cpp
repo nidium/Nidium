@@ -66,11 +66,6 @@ TEST_F(NidiumJS, Simple)
     EXPECT_EQ(p, &i);
     EXPECT_EQ(*p, i);
 
-    //check the path
-    EXPECT_TRUE(njs->getPath() == NULL);
-    njs->setPath("/tmp/");
-    EXPECT_TRUE(strcmp(njs->getPath(), "/tmp/") == 0);
-
     //some others
     njs->loadGlobalObjects();
     njs->gc();

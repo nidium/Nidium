@@ -64,7 +64,7 @@ class JSModule
 class JSModules
 {
     public:
-        JSModules(JSContext *cx) : m_Main(NULL), m_TopDir("/"), m_Cx(cx)
+        JSModules(JSContext *cx) : m_Main(NULL), m_Cx(cx)
         {
             m_Paths[0] = static_cast<const char *>("modules");
             m_Paths[1] = static_cast<const char *>("node_modules");
@@ -80,7 +80,6 @@ class JSModules
         }
 
         JSModule *m_Main;
-        const char *m_TopDir;
 
         void add(JSModule *module)
         {
@@ -96,11 +95,6 @@ class JSModules
         JSModule *find(JSModule *module)
         {
             return m_Cache.get(module->m_FilePath);
-        }
-
-        void setPath(const char *topDir)
-        {
-            m_TopDir = topDir;
         }
 
         bool init();

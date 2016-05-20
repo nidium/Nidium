@@ -390,7 +390,6 @@ NidiumJS::NidiumJS(ape_global *net) :
 {
     JSRuntime *rt;
     m_Privateslot = NULL;
-    m_RelPath = NULL;
     m_Modules = NULL;
 
     m_StructuredCloneAddition.read = NULL;
@@ -883,13 +882,6 @@ int NidiumJS::LoadBytecode(void *data, int size, const char *filename)
         return 0;
     }
     return 1;
-}
-
-void NidiumJS::setPath(const char *path) {
-    m_RelPath = path;
-    if (m_Modules) {
-        m_Modules->setPath(path);
-    }
 }
 
 void NidiumJS::loadGlobalObjects()

@@ -472,7 +472,7 @@ char *JSModules::FindModulePath(JSModule *parent, JSModule *module)
 {
     std::string modulePath;
     JSModules *modules = module->m_Modules;
-    const char *topDir = modules->m_TopDir;
+    const char *topDir = Path::GetCwd();
 
     if (module->m_Name[0] == '.') {
         // Relative module, only look in current script directory

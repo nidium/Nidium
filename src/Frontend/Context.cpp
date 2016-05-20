@@ -112,12 +112,6 @@ m_Debug2Handler(NULL),
     m_JS->setLogger(NativeContext_vLogger);
     m_JS->setLogger(NativeContext_LogClear);
 
-
-    /*
-        Set path for modules
-    */
-    m_JS->setPath(Path::GetCwd());
-
     m_Jobs.head = NULL;
     m_Jobs.queue = NULL;
 }

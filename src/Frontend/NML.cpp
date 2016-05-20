@@ -450,7 +450,7 @@ void NML::addAsset(Assets *asset)
 }
 // }}}
 
-/// {{{ xml
+// {{{ xml
 NML::nidium_xml_ret_t NML::loadMeta(rapidxml::xml_node<> &node)
 {
     using namespace rapidxml;
@@ -573,6 +573,8 @@ NML::nidium_xml_ret_t NML::loadLayout(rapidxml::xml_node<> &node)
 
     return NIDIUM_XML_OK;
 }
+
+// }}}
 
 } // namespace Frontend
 } // namespace Nidium

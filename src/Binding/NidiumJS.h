@@ -82,9 +82,6 @@ class NidiumJS
         void *getPrivate() const {
             return m_Privateslot;
         }
-        const char *getPath() const {
-            return m_RelPath;
-        }
 
         JSContext *getJSContext() const {
             return this->m_Cx;
@@ -164,7 +161,6 @@ class NidiumJS
         JSModules *m_Modules;
         void *m_Privateslot;
         bool m_Shutdown;
-        const char *m_RelPath;
         JSCompartment *m_Compartment;
         bool m_JSStrictMode;
 
