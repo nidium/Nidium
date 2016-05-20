@@ -2,6 +2,7 @@ konstructor.log
 configurec
 bin
 build
+tests/jsautotest/autotests.js
 tools/pprof
 third-party/
 !third-party/setproctitle/

@@ -7,9 +7,18 @@
 		<version>1.0</version>
 		<date>2013-09-05</date>
 		<robots>index, follow</robots>
-		<identifier>com.nidium.tests.unittests</identifier>
+		<identifier>com.nidium.tests.autotests</identifier>
 	</meta>
 	<assets>
-		<script src="unittests.js"></script>
+		<script>
+            var TestsRunner = require('../testrunner.js');
+
+            var tr = new TestsRunner();
+            tr.load(["autotests.js"]);
+            tr.run(function() {
+                tr.report(exit=true);
+            });
+
+        </script>
 	</assets>
 </application>
