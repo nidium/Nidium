@@ -1,0 +1,8 @@
+konstructor.log
+configurec
+bin
+build
+third-party/
+!third-party/setproctitle/
+!third-party/rapidxml/
+**.pyc

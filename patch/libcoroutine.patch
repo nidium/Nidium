@@ -1,0 +1,42 @@
+--- libcoroutine/Makefile.lib 2009-10-20 21:20:10.000000000 +0200
++++ libcoroutine.old/Makefile.lib 2013-03-12 10:48:38.626672271 +0100
+@@ -132,7 +132,7 @@
+ 
+ DLL_L := $(dependson)
+ DLL_L := $(addprefix $(LINKDIRFLAG)../,$(DLL_L))
+-DLL_L := $(addsuffix /_build/dll,$(DLL_L))
++DLL_L := $(addsuffix /_build/lib/,$(DLL_L))
+ 
+ DLL_l := $(dependson)
+ DLL_l := $(addprefix $(LINKLIBFLAG),$(DLL_l))
+
+--- libcoroutine/Makefile	2013-03-12 21:03:34.649354376 +0100
++++ libcoroutine/Makefile-patch	2013-03-12 21:04:00.165354988 +0100
+@@ -2,6 +2,6 @@
+ CFLAGS += -DBUILDING_CORO_DLL $(IOVMALLFLAGS)
+ 
+ # Manually control which coro implementation to use
+-#CFLAGS += -DUSE_UCONTEXT   	# preferred on OSX, Linux and friends
++CFLAGS += -DUSE_UCONTEXT   	# preferred on OSX, Linux and friends
+ #CFLAGS += -DUSE_FIBERS		# preferred on Windows
+ #CFLAGS += -DUSE_SETJMP		# method of last resort
+--- libcoroutine/Makefile.lib	2014-08-04 12:02:09.000000000 +0200
++++ libcoroutine/Makefile.lib	2014-09-08 18:36:26.000000000 +0200
+@@ -58,7 +58,7 @@
+ SYS ?= $(shell uname -s)
+ 
+ ifeq ($(SYS),Darwin)
+-CFLAGS += -falign-loops=16
++#CFLAGS += -falign-loops=16
+ CFLAGS += -fPIC
+ DLL_SUFFIX := dylib
+ DLL_COMMAND := -dynamiclib
+@@ -70,7 +70,7 @@
+ endif
+ 
+ ifeq ($(SYS),Linux)
+-CFLAGS += -falign-loops=16
++#CFLAGS += -falign-loops=16
+ CFLAGS += -fPIC
+ endif
+ 

@@ -1,0 +1,14 @@
+<!-- Native Markup Language Draft 0.1 -->
+<application version="0.1">
+	<meta>
+		<title>Autotest</title>
+		<description>Nidium tests suites</description>
+		<viewport>1024x768</viewport>
+		<version>1.0</version>
+		<date>2013-09-05</date>
+		<robots>index, follow</robots>
+	</meta>
+	<assets>
+		<script src="manual_suites.js"></script>
+	</assets>
+</application>

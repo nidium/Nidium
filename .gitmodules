@@ -1,0 +1,3 @@
+[submodule "src/libapenetwork"]
+	path = src/libapenetwork
+	url = git@github.com:nidium/libapenetwork.git
