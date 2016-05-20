@@ -113,7 +113,7 @@ class JSWebGLActiveInfo : public JSExposer<JSWebGLActiveInfo>
     public :
         JSWebGLActiveInfo();
         ~JSWebGLActiveInfo();
-		static JS::HandleObject create(JSContext *cx, 
+		static JS::HandleObject Create(JSContext *cx, 
 				GLint size, GLenum type, const char *name);
         static void RegisterObject(JSContext *cx);
 };

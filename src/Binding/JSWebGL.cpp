@@ -297,7 +297,7 @@ static JSClass WebGLActiveInfo_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-JS::HandleObject JSWebGLActiveInfo::create(JSContext *cx, 
+JS::HandleObject JSWebGLActiveInfo::Create(JSContext *cx, 
 		GLint csize, GLenum ctype, const char *cname)
 {
 	NGL_JS_NEW_CLASS_OBJECT(WebGLActiveInfo, obj);
@@ -2114,7 +2114,7 @@ printf("ERRRRR\n");
         return true;
     }
 
-	JS::RootedObject obj(cx, JSWebGLActiveInfo::create(cx, size, type, name));
+	JS::RootedObject obj(cx, JSWebGLActiveInfo::Create(cx, size, type, name));
 
     args.rval().setObjectOrNull(obj);
 
@@ -2149,7 +2149,7 @@ printf("get actve uniform\n");
         return true;
     }
 
-	JS::RootedObject obj(cx, JSWebGLActiveInfo::create(cx, size, type, name));
+	JS::RootedObject obj(cx, JSWebGLActiveInfo::Create(cx, size, type, name));
 
     args.rval().setObjectOrNull(obj);
 
