@@ -1,16 +1,16 @@
 <!-- Native Markup Language Draft 0.1 -->
 <application version="0.1">
-	<meta>
-		<title>Autotest</title>
-		<description>This is a test run for manual designed testcases</description>
-		<viewport>1024x768</viewport>
-		<version>1.0</version>
-		<date>2013-09-05</date>
-		<robots>index, follow</robots>
-		<identifier>com.nidium.tests.autotests</identifier>
-	</meta>
-	<assets>
-		<script>
+    <meta>
+        <title>Autotest</title>
+        <description>This is a test run for manual designed testcases</description>
+        <viewport>1024x768</viewport>
+        <version>1.0</version>
+        <date>2013-09-05</date>
+        <robots>index, follow</robots>
+        <identifier>com.nidium.tests.autotests</identifier>
+    </meta>
+    <assets>
+        <script>
             var TestsRunner = require('../testrunner.js');
 
             var tr = new TestsRunner();
@@ -20,5 +20,5 @@
             });
 
         </script>
-	</assets>
+    </assets>
 </application>
