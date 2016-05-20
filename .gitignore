@@ -1,6 +1,10 @@
-build
 konstruct.log
-tags
-tags.sh
+configurec
 *.pyc
+tags
+com
+build
+testrun
+third-party/*
+.ycm_extra_conf.py
 

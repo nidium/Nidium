@@ -1,3 +1,9 @@
+/*
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
+
 var dsp;
 var node;
 
@@ -25,7 +31,7 @@ Tests.registerAsync("SourceNode open invalid file", function(next) {
         node.removeEventListener("error");
         // Remove ready event otherwise it will be fired by the next test
         node.removeEventListener("ready");
-        Assert.strictEqual(ev.code, 1, "Invalid error code returned")
+        Assert.strictEqual(ev.code, 0, "Invalid error code returned")
         next();
     });
 

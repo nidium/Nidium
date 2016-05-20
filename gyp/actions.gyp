@@ -1,3 +1,7 @@
+# Copyright 2016 Nidium Inc. All rights reserved.
+# Use of this source code is governed by a MIT license
+# that can be found in the LICENSE file.
+
 {
     'targets': [{
         'target_name': 'generate-private',
@@ -7,25 +11,25 @@
                 'action_name': 'Generating Private',
                 'inputs': [
                     # Any change to dir2nvfs will trigger the action
-                    '<(native_src_path)/tools/dir2nvfs.cpp',
-                    '<(native_tools_path)dir2nvfs',
+                    '<(nidium_src_path)/Tools/dir2nvfs.cpp',
+                    '<(nidium_tools_path)dir2nvfs',
                     # If I use find command inside a variable, output is not 
                     # considered as multiple files using it in inputs works fine
-                    '<!@(find <(native_private_dir) -type f)',
+                    '<!@(find <(nidium_private_dir) -type f)',
                 ],
                 'outputs': [
-                    '<(native_private_bin)'
+                    '<(nidium_private_bin)'
                 ],
-                'action': ['<@(native_tools_path)dir2nvfs', '<(native_private_dir)', '<@(_outputs)'],
+                'action': ['<@(nidium_tools_path)dir2nvfs', '<(nidium_private_dir)', '<@(_outputs)'],
                 'process_outputs_as_sources': 1
             },
             {
                 'action_name': 'Converting Private',
                 'inputs': [
-                    '<(native_private_bin)'
+                    '<(nidium_private_bin)'
                 ],
                 'outputs': [
-                    '<(native_private_bin_header)'
+                    '<(nidium_private_bin_header)'
                 ],
                 'action': ['xxd', '-i', '<@(_inputs)', '<@(_outputs)'],
                 'process_outputs_as_sources': 1
@@ -33,7 +37,7 @@
             {
                 'action_name': 'Renaming Private C Header',
                 'inputs': [
-                    '<(native_private_bin_header)'
+                    '<(nidium_private_bin_header)'
                 ],
                 'outputs': [
                     'dummyFile' # We need to set something here, otherwise action is not executed (OSX)
@@ -51,3 +55,4 @@
         ]
     }]
 }
+

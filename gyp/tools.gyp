@@ -1,25 +1,28 @@
+# Copyright 2016 Nidium Inc. All rights reserved.
+# Use of this source code is governed by a MIT license
+# that can be found in the LICENSE file.
+
 {
     'targets': [{
         'target_name': 'dir2nvfs',
         'type': 'executable',
         'product_dir': '../tools/',
         'dependencies': [
-            '<(native_network_path)/gyp/network.gyp:nativenetwork',
-            '<(native_network_path)/gyp/network.gyp:nativenetwork-includes',
-            '<(native_network_path)/gyp/network.gyp:nativenetwork-link',
-            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
-            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore-includes',
-            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore-link',
-            '<(native_nativejscore_path)/gyp/jsoncpp.gyp:jsoncpp'
+            '<(nidium_network_path)/gyp/network.gyp:network',
+            '<(nidium_network_path)/gyp/network.gyp:network-includes',
+            '<(nidium_network_path)/gyp/network.gyp:network-link',
+            '<(nidium_nidiumcore_path)/gyp/nidiumcore.gyp:nidiumcore',
+            '<(nidium_nidiumcore_path)/gyp/nidiumcore.gyp:nidiumcore-includes',
+            '<(nidium_nidiumcore_path)/gyp/nidiumcore.gyp:nidiumcore-link',
         ],
         'sources': [
-            '<(native_src_path)/tools/dir2nvfs.cpp',
+            '<(nidium_src_path)/Tools/dir2nvfs.cpp',
         ],
         'defines': [
-            'DIR2NFS_OUTPUT="<(native_private_bin)"',
+            'DIR2NFS_OUTPUT="<(nidium_private_bin)"',
         ],
         "xcode_settings": {
-            'OTHER_LDFLAGS': [ 
+            'OTHER_LDFLAGS': [
                 '-stdlib=libc++',
             ],
         },
