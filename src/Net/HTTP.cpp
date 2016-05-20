@@ -221,8 +221,8 @@ static void nidium_http_connected(ape_socket *s,
     buffer *headers = request->getHeadersData();
 
     if (request->getData() != NULL &&
-        (request->m_Method == HTTPRequest::HTTP_POST ||
-            request->m_Method == HTTPRequest::HTTP_PUT)) {
+        (request->m_Method == HTTPRequest::kHTTPMethod_Post ||
+            request->m_Method == HTTPRequest::kHTTPMethod_Put)) {
 
         PACK_TCP(s->s.fd);
         APE_socket_write(s, headers->data, headers->used, APE_DATA_COPY);
@@ -697,7 +697,7 @@ HTTP::~HTTP()
 
 // {{{ HTTPRequest Implementation
 HTTPRequest::HTTPRequest(const char *url) :
-    m_Method(HTTP_GET), m_Host(NULL), m_Path(NULL), m_Data(NULL), m_DataLen(0),
+    m_Method(kHTTPMethod_Get), m_Host(NULL), m_Path(NULL), m_Data(NULL), m_DataLen(0),
     m_Datafree(free), m_Headers(ape_array_new(8)), m_isSSL(false)
 {
     this->resetURL(url);

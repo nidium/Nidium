@@ -118,7 +118,7 @@ void WebSocketClient::HTTPRequestEnded()
     Args args;
     args[0].set(this);
 
-    this->fireEvent<WebSocketClient>(WebSocketClient::CLIENT_CONNECT, args);
+    this->fireEvent<WebSocketClient>(WebSocketClient::kEvents_ClientConnect, args);
 }
 
 void WebSocketClient::write(uint8_t *data, size_t len, bool binary)
@@ -229,7 +229,7 @@ void WebSocketClient::onFrame(const char *data, size_t len, bool binary)
     args[2].set(len);
     args[3].set(binary);
 
-    this->fireEvent<WebSocketClient>(WebSocketClient::CLIENT_FRAME, args);
+    this->fireEvent<WebSocketClient>(WebSocketClient::kEvents_ClientFrame, args);
 }
 
 void WebSocketClient::onClose()
@@ -239,7 +239,7 @@ void WebSocketClient::onClose()
     Args args;
     args[0].set(this);
 
-    this->fireEvent<WebSocketClient>(WebSocketClient::CLIENT_CLOSE, args);
+    this->fireEvent<WebSocketClient>(WebSocketClient::kEvents_ClientClose, args);
 }
 // }}}
 

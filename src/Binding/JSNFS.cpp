@@ -52,7 +52,7 @@ bool JSNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
         parent = &m_Root;
     } else {
         parent = m_Hash.get(dir.ptr());
-        if (!parent || !(parent->header.flags & NFS_FILE_DIR)) {
+        if (!parent || !(parent->header.flags & kNFSFileType_Dir)) {
             return false;
         }
     }
@@ -79,7 +79,7 @@ bool JSNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
         newfile->meta.content = static_cast<uint8_t *>(bytecode);
         newfile->header.size = bytecode_len;
 
-        newfile->header.flags = flags | NFS_FILE_JSBYTECODE;
+        newfile->header.flags = flags | kNFSFileType_JSBytecode;
     }
 
     newfile->next = parent->meta.children;

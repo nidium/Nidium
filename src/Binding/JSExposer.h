@@ -24,6 +24,7 @@
 #define NIDIUM_JS_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
+    (void)(args); \
     if (!thisobj) { \
         JS_ReportError(cx, "Illegal invocation"); \
         return false; \

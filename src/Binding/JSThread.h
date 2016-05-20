@@ -23,7 +23,7 @@ class JSThread : public JSExposer<JSThread>, public Nidium::Core::Messages
 
   public:
     JSThread(JS::HandleObject obj, JSContext *cx);
-     enum {
+     enum Thread {
         kThread_Message = 0,
         kThread_Complete = 1
     };

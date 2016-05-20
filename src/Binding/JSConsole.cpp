@@ -8,6 +8,16 @@
 #include <string.h>
 #include <math.h>
 
+#if 0
+#ifdef NIDIUM_PRODUCT_SERVER
+#include "Server/Context.h"
+#include "Server/Server.h"
+
+using Nidium::Server::Context;
+using Nidium::Server::Worker;
+#endif
+#endif
+
 namespace Nidium {
 namespace Binding {
 
@@ -47,9 +57,11 @@ static bool nidium_console_hide(JSContext *cx, unsigned argc,
 {
 
 #if 0
+#ifdef NIDIUM_PRODUCT_UI
     if (NativeContext::GetObject(cx)->getUI()->getConsole()) {
         NativeContext::GetObject(cx)->getUI()->getConsole()->hide();
     }
+#endif
 #endif
     return true;
 }
@@ -58,7 +70,9 @@ static bool nidium_console_show(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
 #if 0
+#ifdef NIDIUM_PRODUCT_UI
     NativeContext::GetObject(cx)->getUI()->getConsole(true)->show();
+#endif
 #endif
     return true;
 }
@@ -70,9 +84,11 @@ static bool nidium_console_clear(JSContext *cx, unsigned argc,
 
     js->logclear();
 #if 0
+#ifdef NIDIUM_PRODUCT_UI
     if (NativeContext::GetObject(cx)->getUI()->getConsole()) {
         NativeContext::GetObject(cx)->getUI()->getConsole()->clear();
     }
+#endif
 #endif
     return true;
 }
@@ -111,7 +127,17 @@ static bool nidium_console_log(JSContext *cx, unsigned argc,
         if (i) {
             js->log(" ");
         } else {
+#if 0
+#ifdef NIDIUM_PRODUCT_SERVER
+            Context *nctx = Context::GetObject(cx);
+
+            if (!nctx->isREPL()) {
+                js->logf("(worker %d) [%s:%d] ", nctx->getWorker()->getIdentifier(), filename_parent, lineno);
+            }
+#else
             js->logf("[%s:%d] ", filename_parent, lineno);
+#endif
+#endif
         }
         js->log(bytes);
 

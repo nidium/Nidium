@@ -20,9 +20,9 @@ public:
     static const uint8_t EventID = 5;
 
     enum Events {
-        CLIENT_CONNECT,
-        CLIENT_FRAME,
-        CLIENT_CLOSE
+        kEvents_ClientConnect,
+        kEvents_ClientFrame,
+        kEvents_ClientClose
     };
 
     WebSocketClient(uint16_t port, const char *url,

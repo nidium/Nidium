@@ -70,7 +70,7 @@ void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
     JS::RootedValue val(cx);
 
     switch (msg.event()) {
-        case NIDIUM_EVENT(WebSocketClient, CLIENT_FRAME):
+        case NIDIUM_EVENT(WebSocketClient, WebSocketClient::kEvents_ClientFrame):
         {
             JS::AutoValueArray<1> arg(cx);
 
@@ -95,7 +95,7 @@ void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
 
             break;
         }
-        case NIDIUM_EVENT(WebSocketClient, CLIENT_CONNECT):
+        case NIDIUM_EVENT(WebSocketClient, WebSocketClient::kEvents_ClientConnect):
         {
             JS::RootedObject obj(cx, this->getJSObject());
 
@@ -103,7 +103,7 @@ void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
 
             break;
         }
-        case NIDIUM_EVENT(WebSocketClient, CLIENT_CLOSE):
+        case NIDIUM_EVENT(WebSocketClient, WebSocketClient::kEvents_ClientClose):
         {
             JS::RootedObject obj(cx, this->getJSObject());
 

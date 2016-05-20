@@ -49,7 +49,7 @@ void NFS::initRoot()
     m_Root.filename_utf8 = strdup("/");
     m_Root.next = NULL;
     m_Root.meta.children = NULL;
-    m_Root.header.flags = NFS_FILE_DIR;
+    m_Root.header.flags = kNFSFileType_Dir;
     m_Root.header.size = 0;
 
     m_Hash.set(m_Root.filename_utf8, &m_Root);
@@ -111,7 +111,7 @@ bool NFS::mkdir(const char *name_utf8, size_t name_len)
         parent = &m_Root;
     } else {
         parent = m_Hash.get(dir.ptr());
-        if (!parent || !(parent->header.flags & NFS_FILE_DIR)) {
+        if (!parent || !(parent->header.flags & kNFSFileType_Dir)) {
             return false;
         }
     }
@@ -126,7 +126,7 @@ bool NFS::mkdir(const char *name_utf8, size_t name_len)
 
     newdir->next = parent->meta.children;
 
-    newdir->header.flags = NFS_FILE_DIR;
+    newdir->header.flags = kNFSFileType_Dir;
     newdir->header.filename_length = path_len;
     newdir->header.size = 0;
 
@@ -163,7 +163,7 @@ bool NFS::writeFile(const char *name_utf8, size_t name_len, char *content,
         parent = &m_Root;
     } else {
         parent = m_Hash.get(dir.ptr());
-        if (!parent || !(parent->header.flags & NFS_FILE_DIR)) {
+        if (!parent || !(parent->header.flags & kNFSFileType_Dir)) {
             return false;
         }
     }
@@ -194,7 +194,7 @@ const char *NFS::readFile(const char *filename, size_t *len,
     int *flags) const
 {
     NFSTree *file = m_Hash.get(filename);
-    if (file == NULL || (file->header.flags & NFS_FILE_DIR)) {
+    if (file == NULL || (file->header.flags & kNFSFileType_Dir)) {
         return NULL;
     }
 
@@ -243,9 +243,9 @@ void NFS::writeTree(FILE *fd, NFSTree *cur)
     fwrite(&cur->header, sizeof(struct nfs_file_header_s), 1, fd);
     fwrite(cur->filename_utf8, sizeof(char), cur->header.filename_length, fd);
 
-    if (!(cur->header.flags & NFS_FILE_DIR)) {
+    if (!(cur->header.flags & kNFSFileType_Dir)) {
         fwrite(cur->meta.content, 1, cur->header.size, fd);
-    } else if (cur->header.flags & NFS_FILE_DIR) {
+    } else if (cur->header.flags & kNFSFileType_Dir) {
         this->writeTree(fd, cur->meta.children);
     }
 
@@ -270,10 +270,10 @@ void NFS::readTree(NFSTree *parent)
 
     m_Hash.set(item->filename_utf8, item);
 
-    if (!(item->header.flags & NFS_FILE_DIR)) {
+    if (!(item->header.flags & kNFSFileType_Dir)) {
         item->meta.content = m_Content + m_ContentPtr;
         m_ContentPtr += item->header.size;
-    } else if (item->header.flags & NFS_FILE_DIR) {
+    } else if (item->header.flags & kNFSFileType_Dir) {
         this->readTree(item);
     }
 
@@ -301,7 +301,7 @@ void NFS::releaseTree(NFSTree *root)
 
     this->releaseTree(root->next);
 
-    if (root->header.flags & NFS_FILE_DIR) {
+    if (root->header.flags & kNFSFileType_Dir) {
         this->releaseTree(root->meta.children);
     }
 

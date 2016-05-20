@@ -25,23 +25,23 @@ class Stream
 {
 public:
     enum Events {
-        EVENT_ERROR             = STREAM_MESSAGE_BITS(1),
-        EVENT_READ_BUFFER       = STREAM_MESSAGE_BITS(2),
-        EVENT_AVAILABLE_DATA    = STREAM_MESSAGE_BITS(3),
-        EVENT_PROGRESS          = STREAM_MESSAGE_BITS(4)
+        kEvents_Error           = STREAM_MESSAGE_BITS(1),
+        kEvents_ReadBuffer      = STREAM_MESSAGE_BITS(2),
+        kEvents_AvailableData   = STREAM_MESSAGE_BITS(3),
+        kEvents_Progress        = STREAM_MESSAGE_BITS(4)
     };
 
     enum Errors {
-        ERROR_OPEN,
-        ERROR_SEEK,
-        ERROR_READ,
-        ERROR_UNKNOWN,
+        kErrors_Open,
+        kErrors_Seek,
+        kErrors_Read,
+        kErrors_Unknown,
     };
 
     enum DataStatus {
-        DATA_STATUS_EAGAIN  = -1,
-        DATA_STATUS_ERROR   = -2,
-        DATA_STATUS_END     = -3
+        kDataStatus_Again  = -1,
+        kDataStatus_Error   = -2,
+        kDataStatus_End     = -3
     };
 
     virtual ~Stream();

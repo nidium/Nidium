@@ -13,6 +13,7 @@
                 '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
                 '<(third_party_path)/http-parser/',
                 '<(third_party_path)/leveldb/include/',
+                '<(third_party_path)/jsoncpp/dist',
                 '../src/',
             ],
             'defines': [
@@ -56,7 +57,7 @@
                             'libhttp_parser.a',
                             'libnspr4.a',
                             'libjs_static.a',
-                            'libleveldb.a'
+                            'libleveldb.a',
                         ]
                     }
                 }],
@@ -71,7 +72,7 @@
                             '-ldl',
                             '-lcares',
                             '-lhttp_parser',
-                            '-lleveldb'
+                            '-lleveldb',
                         ]
                     }
                 }]
@@ -82,7 +83,6 @@
         'type': 'static_library',
         'dependencies': [
             '../network/gyp/network.gyp:*',
-            'jsoncpp.gyp:jsoncpp',
             'nidiumcore.gyp:nidiumcore-includes',
         ],
         'conditions': [
@@ -100,6 +100,7 @@
         'cflags': [
         ],
         'sources': [
+            '<(third_party_path)/jsoncpp/dist/jsoncpp.cpp',
             '../src/Net/HTTP.cpp',
             '../src/Net/HTTPParser.cpp',
             '../src/Net/HTTPServer.cpp',
@@ -108,6 +109,7 @@
             '../src/Net/WebSocketClient.cpp',
 
             '../src/Binding/NidiumJS.cpp',
+            '../src/Binding/JSGlobal.cpp',
             '../src/Binding/JSExposer.cpp',
             '../src/Binding/JSFileIO.cpp',
             '../src/Binding/JSHTTP.cpp',
@@ -123,6 +125,7 @@
             '../src/Binding/JSProcess.cpp',
             '../src/Binding/JSUtils.cpp',
             '../src/Binding/JSStream.cpp',
+            '../src/Binding/JSSystem.cpp',
             '../src/Binding/JSWebSocket.cpp',
             '../src/Binding/JSWebSocketClient.cpp',
             '../src/Binding/JSDB.cpp',
@@ -133,6 +136,7 @@
             '../src/Core/DB.cpp',
             '../src/Core/TaskManager.cpp',
             '../src/Core/Path.cpp',
+            '../src/Core/Context.cpp',
 
             '../src/IO/File.cpp',
             '../src/IO/Stream.cpp',

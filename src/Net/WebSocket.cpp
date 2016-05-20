@@ -131,7 +131,7 @@ void WebSocketClientConnection::onDisconnect(ape_global *ape)
         m_PingTimer = 0;
     }
 
-    m_HTTPServer->fireEventSync<WebSocketServer>(WebSocketServer::SERVER_CLOSE, args);
+    m_HTTPServer->fireEventSync<WebSocketServer>(WebSocketServer::kEvents_ServerClose, args);
 }
 
 void WebSocketClientConnection::onUpgrade(const char *to)
@@ -171,7 +171,7 @@ void WebSocketClientConnection::onUpgrade(const char *to)
         WebSocketClientConnection::PingTimer, this);
 
     m_PingTimer = APE_timer_getid(timer);
-    m_HTTPServer->fireEventSync<WebSocketServer>(WebSocketServer::SERVER_CONNECT, args);
+    m_HTTPServer->fireEventSync<WebSocketServer>(WebSocketServer::kEvents_ServerConnect, args);
 
 }
 
@@ -191,7 +191,7 @@ void WebSocketClientConnection::onFrame(const char *data, size_t len,
     args[2].set(len);
     args[3].set(binary);
 
-    m_HTTPServer->fireEventSync<WebSocketServer>(WebSocketServer::SERVER_FRAME, args);
+    m_HTTPServer->fireEventSync<WebSocketServer>(WebSocketServer::kEvents_ServerFrame, args);
 }
 
 // }}}

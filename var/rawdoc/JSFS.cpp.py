@@ -5,13 +5,13 @@
 from dokumentor import *
 
 NamespaceDoc( "fs", "Filesystem access.",
-	[ SeeDoc( "global.cwd" ), SeeDoc( "File"  ) ],
+	[ SeeDoc( "process.cwd" ), SeeDoc( "File"  ) ],
 	[ ExampleDoc( """fs.readDir( function( err, entries ) {
 		console.log( JSON.stringify( entries ) ); } );""") ]
 )
 
 FunctionDoc( "fs.readDir", "Read the content of a directory.",
-	[ SeeDoc( "global.cwd" ), SeeDoc( "File.isDir" ),
+	[ SeeDoc( "process.cwd" ), SeeDoc( "File.isDir" ),
 	 SeeDoc( "global.listDir" ), SeeDoc( "File.rmrf" ) ],
 	[ ExampleDoc( """fs.readDir( function( err, entries ) {
 		console.log( JSON.stringify( entries ) ) ; } );""") ] ,

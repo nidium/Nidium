@@ -26,19 +26,6 @@ class JSModules;
 
 #define NIDIUM_JS_FNPROPS JSPROP_ENUMERATE | JSPROP_PERMANENT
 
-enum sctag {
-    kSctag_Function = JS_SCTAG_USER_MIN + 1,
-    kSctag_Hidden,
-    kSctag_Max
-};
-
-enum KeyModifier {
-    kKeyModifier_Shift = 1 << 0,
-    kKeyModifier_Alt = 1 << 1,
-    kKeyModifier_Control = 1 << 2,
-    kKeyModifier_Meta = 1 << 3
-};
-
 struct nidium_thread_msg
 {
     uint64_t *data;
@@ -63,7 +50,11 @@ class NidiumJS
         explicit NidiumJS(ape_global *net);
         ~NidiumJS();
 
-        typedef int (*logger)(const char *format);
+        enum Sctag {
+            kSctag_Function = JS_SCTAG_USER_MIN + 1,
+            kSctag_Hidden,
+            kSctag_Max
+        };
         typedef int (*vlogger)(const char *format, va_list ap);
         typedef int (*logger_clear)();
 
@@ -105,9 +96,6 @@ class NidiumJS
             return m_Shutdown;
         }
 
-        void setLogger(logger lfunc) {
-            m_Logger = lfunc;
-        }
         void setLogger(vlogger lfunc) {
             m_vLogger = lfunc;
         }
@@ -179,9 +167,6 @@ class NidiumJS
         const char *m_RelPath;
         JSCompartment *m_Compartment;
         bool m_JSStrictMode;
-
-        /* argument list (...) */
-        logger m_Logger;
 
         /* va_list argument */
         vlogger m_vLogger;

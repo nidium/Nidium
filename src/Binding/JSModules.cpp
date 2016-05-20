@@ -16,7 +16,7 @@
 
 #include <algorithm>
 
-#include <jsoncpp.h>
+#include <json/json.h>
 
 #include "IO/Stream.h"
 #include "Binding/JSExposer.h"

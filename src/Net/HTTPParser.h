@@ -26,9 +26,9 @@ public:
     virtual void HTTPOnData(size_t offset, size_t len)=0;
 
     enum PrevState {
-        PSTATE_NOTHING,
-        PSTATE_FIELD,
-        PSTATE_VALUE
+        kPrevState_Nothing,
+        kPrevState_Field,
+        kPrevState_Value
     };
 
     http_parser m_Parser;
