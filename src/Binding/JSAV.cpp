@@ -420,7 +420,7 @@ const char *JSAVEventRead(int ev)
     }
 }
 
-static JS::HandleValue consumeSourceMessage(JSContext *cx, JS::HandleObject obj, const SharedMessages::Message &msg)
+static JS::Value consumeSourceMessage(JSContext *cx, const SharedMessages::Message &msg)
 {
     JS::RootedObject evObj(cx, JSEvents::CreateEventObject(cx));
     JSObjectBuilder ev(cx, evObj);
@@ -912,18 +912,13 @@ void JSAudioNode::CustomCallback(const struct NodeEvent *ev)
 void JSAudioNode::onMessage(const SharedMessages::Message &msg)
 {
     if (m_IsDestructing) return;
-    JS::RootedObject obj(m_Cx, m_JSObject);
 
-    const char *evName = nullptr;
-    JS::RootedValue ev(m_Cx);
-
-    evName = JSAVEventRead(msg.event());
+    const char *evName = JSAVEventRead(msg.event());
     if (!evName) {
         return;
     }
 
-    ev = consumeSourceMessage(m_Cx, obj, msg);
-
+    JS::RootedValue ev(m_Cx, consumeSourceMessage(m_Cx, msg));
     if (!ev.isNull()) {
         this->fireJSEvent(evName, &ev);
     }
@@ -2151,17 +2146,12 @@ void JSVideo::onMessage(const SharedMessages::Message &msg)
             this->setSize(m_Width, m_Height);
         }
 
-        JS::RootedObject obj(m_Cx, this->getJSObject());
-        const char *evName = nullptr;
-        JS::RootedValue ev(m_Cx);
-
-        evName = JSAVEventRead(msg.event());
+        const char *evName = JSAVEventRead(msg.event());
         if (!evName) {
             return;
         }
 
-        ev = consumeSourceMessage(m_Cx, obj, msg);
-
+        JS::RootedValue ev(m_Cx, consumeSourceMessage(m_Cx, msg));
         if (!ev.isNull()) {
             this->fireJSEvent(evName, &ev);
         }
