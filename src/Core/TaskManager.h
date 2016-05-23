@@ -11,6 +11,7 @@
 
 #include "Core/Messages.h"
 #include "Core/SharedMessages.h"
+#include <semaphore.h>
 
 namespace Nidium {
 namespace Core {
@@ -110,14 +111,19 @@ class Managed : public Messages
 public:
     Managed() : m_TaskQueued(0), m_Worker(NULL) {
         m_Manager = TaskManager::GetManager();
+        sem_init(&m_Sem, 0, 1);
     }
+
     ~Managed() {
         if (m_Worker) {
             m_Worker->getMessages()->delMessagesForDest(this);
         }
     };
+
     void addTask(Task *task);
     int32_t m_TaskQueued;
+    sem_t m_Sem;
+
 private:
     TaskManager *m_Manager;
     TaskManager::workerInfo *m_Worker;

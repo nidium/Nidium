@@ -41,8 +41,13 @@ void *TaskManager::workerInfo::work()
 
         while ((msg = m_Messages.readMessage())) {
             Task *task = static_cast<Task *>(msg->dataPtr());
+            Managed *managed = task->getObject();
+
+            sem_wait(&managed->m_Sem);
             task->getFunction()(task);
-            Atomic::Dec(&task->getObject()->m_TaskQueued);
+            sem_post(&managed->m_Sem);
+
+            Atomic::Dec(&managed->m_TaskQueued);
 
             delete task;
             delete msg;
