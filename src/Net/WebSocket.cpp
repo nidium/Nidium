@@ -151,7 +151,7 @@ void WebSocketClientConnection::onUpgrade(const char *to)
     char *ws_computed_key = ape_ws_compute_key(reinterpret_cast<const char *>(ws_key->data),
         ws_key->used-1);
 
-    // TODO: new style cast
+    PACK_TCP(m_SocketClient->s.fd);
     APE_socket_write(m_SocketClient,
         (void *) CONST_STR_LEN(WEBSOCKET_HARDCODED_HEADERS), APE_DATA_STATIC);
     APE_socket_write(m_SocketClient,
@@ -161,6 +161,7 @@ void WebSocketClientConnection::onUpgrade(const char *to)
     APE_socket_write(m_SocketClient,
         (void *)CONST_STR_LEN("\r\nSec-WebSocket-Origin: 127.0.0.1\r\n\r\n"),
         APE_DATA_STATIC);
+    FLUSH_TCP(m_SocketClient->s.fd);
 
     m_Handshaked = true;
 
