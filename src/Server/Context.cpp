@@ -42,8 +42,6 @@ Context::Context(ape_global *net, Worker *worker,
     }
 
     m_JS->setStrictMode(jsstrict);
-    m_JS->setPath(Path::GetCwd());
-
 }
 
 void Context::log(const char *str)
