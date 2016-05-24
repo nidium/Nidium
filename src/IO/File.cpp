@@ -139,10 +139,10 @@ File::~File()
         The File needs to be closed synchronously because the task manager
         will be destructed right after.
 
-        Since a task might be currently running we are using a semaphore
-        to avoid concurrent access.
+        Since a task might be currently running we need to lock the tasks 
+        worker to avoid concurrent access
     */
-    sem_wait(&m_Sem);
+    this->lockTasks();
 
     if (this->isOpen()) {
         this->closeTask();
@@ -150,7 +150,7 @@ File::~File()
 
     free(m_Path);
 
-    sem_post(&m_Sem);
+    this->unlockTasks();
 }
 
 // }}}

@@ -43,9 +43,9 @@ void *TaskManager::workerInfo::work()
             Task *task = static_cast<Task *>(msg->dataPtr());
             Managed *managed = task->getObject();
 
-            sem_wait(&managed->m_Sem);
+            managed->lockTasks();
             task->getFunction()(task);
-            sem_post(&managed->m_Sem);
+            managed->unlockTasks();
 
             Atomic::Dec(&managed->m_TaskQueued);
 
@@ -213,6 +213,16 @@ TaskManager::~TaskManager()
 // }}}
 
 // {{{ Managed
+void Managed::lockTasks()
+{
+    pthread_mutex_lock(&m_Lock);
+}
+
+void Managed::unlockTasks()
+{
+    pthread_mutex_unlock(&m_Lock);
+}
+
 void Managed::addTask(Task *task)
 {
     if (m_Manager == NULL) {
