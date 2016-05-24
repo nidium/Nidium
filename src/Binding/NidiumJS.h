@@ -20,6 +20,9 @@
 struct _ape_htable;
 
 namespace Nidium {
+    namespace Core {
+        class Context;
+    }
 namespace Binding {
 
 class JSModules;
@@ -47,7 +50,7 @@ class NidiumJSDelegate;
 class NidiumJS
 {
     public:
-        explicit NidiumJS(ape_global *net);
+        explicit NidiumJS(ape_global *net, Core::Context *context);
         ~NidiumJS();
 
         enum Sctag {
@@ -55,8 +58,6 @@ class NidiumJS
             kSctag_Hidden,
             kSctag_Max
         };
-        typedef int (*vlogger)(const char *format, va_list ap);
-        typedef int (*logger_clear)();
 
         JSContext *m_Cx;
         Nidium::Core::SharedMessages *m_Messages;
@@ -76,11 +77,8 @@ class NidiumJS
 
         static void Init();
 
-        void setPrivate(void *arg) {
-            m_Privateslot = arg;
-        }
-        void *getPrivate() const {
-            return m_Privateslot;
+        Core::Context *getContext() {
+            return m_Context;
         }
 
         JSContext *getJSContext() const {
@@ -91,14 +89,6 @@ class NidiumJS
 
         bool isShuttingDown() const {
             return m_Shutdown;
-        }
-
-        void setLogger(vlogger lfunc) {
-            m_vLogger = lfunc;
-        }
-
-        void setLogger(logger_clear clearfunc) {
-            m_LogClear = clearfunc;
         }
 
         void setStrictMode(bool val) {
@@ -159,15 +149,10 @@ class NidiumJS
         static void SetJSRuntimeOptions(JSRuntime *rt);
     private:
         JSModules *m_Modules;
-        void *m_Privateslot;
         bool m_Shutdown;
         JSCompartment *m_Compartment;
         bool m_JSStrictMode;
-
-        /* va_list argument */
-        vlogger m_vLogger;
-
-        logger_clear m_LogClear;
+        Core::Context *m_Context;
 
         struct {
             WriteStructuredCloneOp write;

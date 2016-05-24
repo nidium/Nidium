@@ -4,19 +4,10 @@
    that can be found in the LICENSE file.
 */
 #include "Binding/JSConsole.h"
+#include "Core/Context.h"
 
 #include <string.h>
 #include <math.h>
-
-#if 0
-#ifdef NIDIUM_PRODUCT_SERVER
-#include "Server/Context.h"
-#include "Server/Server.h"
-
-using Nidium::Server::Context;
-using Nidium::Server::Worker;
-#endif
-#endif
 
 namespace Nidium {
 namespace Binding {
@@ -55,48 +46,38 @@ static JSFunctionSpec console_funcs[] = {
 static bool nidium_console_hide(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
+    NIDIUM_JS_PROLOGUE()
 
-#if 0
-#ifdef NIDIUM_PRODUCT_UI
-    if (NativeContext::GetObject(cx)->getUI()->getConsole()) {
-        NativeContext::GetObject(cx)->getUI()->getConsole()->hide();
-    }
-#endif
-#endif
+    NidiumJS::GetObject(cx)->getContext()->logHide();
+
     return true;
 }
 
 static bool nidium_console_show(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-#if 0
-#ifdef NIDIUM_PRODUCT_UI
-    NativeContext::GetObject(cx)->getUI()->getConsole(true)->show();
-#endif
-#endif
+    NIDIUM_JS_PROLOGUE()
+
+    NidiumJS::GetObject(cx)->getContext()->logShow();
+
     return true;
 }
 
 static bool nidium_console_clear(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    NidiumJS *js = NidiumJS::GetObject(cx);
+    NIDIUM_JS_PROLOGUE()
 
-    js->logclear();
-#if 0
-#ifdef NIDIUM_PRODUCT_UI
-    if (NativeContext::GetObject(cx)->getUI()->getConsole()) {
-        NativeContext::GetObject(cx)->getUI()->getConsole()->clear();
-    }
-#endif
-#endif
+    NidiumJS::GetObject(cx)->getContext()->logClear();
+
     return true;
 }
 
 static bool nidium_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    NIDIUM_JS_PROLOGUE()
+
     unsigned i;
     char *bytes;
     const char *filename_parent;
@@ -106,6 +87,7 @@ static bool nidium_console_log(JSContext *cx, unsigned argc,
     JS::DescribeScriptedCaller(cx, &filename, &lineno);
 
     NidiumJS *js = NidiumJS::GetObject(cx);
+    Core::Context *nctx = js->getContext();
     filename_parent = filename.get();
     if (filename_parent == NULL) {
         filename_parent = "(null)";
@@ -117,20 +99,22 @@ static bool nidium_console_log(JSContext *cx, unsigned argc,
     }
 
     for (i = 0; i < args.length(); i++) {
-
         JS::RootedString str(cx, JS::ToString(cx, args[i]));
-        if (!str)
+        if (!str) {
             return false;
+        }
+
         bytes = JS_EncodeStringToUTF8(cx, str);
-        if (!bytes)
+        if (!bytes) {
             return false;
+        }
+
         if (i) {
-            js->log(" ");
+            nctx->log(" ");
         } else {
 #if 0
 #ifdef NIDIUM_PRODUCT_SERVER
             Context *nctx = Context::GetObject(cx);
-
             if (!nctx->isREPL()) {
                 js->logf("(worker %d) [%s:%d] ", nctx->getWorker()->getIdentifier(), filename_parent, lineno);
             }
@@ -139,11 +123,13 @@ static bool nidium_console_log(JSContext *cx, unsigned argc,
 #endif
 #endif
         }
-        js->log(bytes);
+
+        nctx->log(bytes);
 
         JS_free(cx, bytes);
     }
-    js->log("\n");
+
+    nctx->log("\n");
 
     args.rval().setUndefined();
 
@@ -153,8 +139,10 @@ static bool nidium_console_log(JSContext *cx, unsigned argc,
 static bool nidium_console_write(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
+    NIDIUM_JS_PROLOGUE()
+
     NidiumJS *js = NidiumJS::GetObject(cx);
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    Core::Context *nctx = js->getContext();
 
     NIDIUM_JS_CHECK_ARGS("write", 1);
 
@@ -168,7 +156,7 @@ static bool nidium_console_write(JSContext *cx, unsigned argc,
 
     cstr.encodeUtf8(cx, str);
 
-    js->log(cstr.ptr());
+    nctx->log(cstr.ptr());
 
     args.rval().setUndefined();
     return true;

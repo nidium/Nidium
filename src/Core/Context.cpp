@@ -24,8 +24,7 @@ namespace Core {
 Context::Context(ape_global *ape) :
     m_APECtx(ape)
 {
-    m_JS = new NidiumJS(ape);
-    m_JS->setPrivate(this);
+    m_JS = new NidiumJS(ape, this);
 
     Path::RegisterScheme(SCHEME_DEFINE("file://", FileStream, false), true);
     Path::RegisterScheme(SCHEME_DEFINE("http://", HTTPStream,    true));
@@ -56,13 +55,17 @@ void Context::log(const char *str)
     fwrite(str, sizeof(char), strlen(str), stdout);
 }
 
-void Context::vlog(const char *format, va_list ap)
+void Context::vlog(const char *format, ...)
 {
     char *buff;
+    va_list args;
+    va_start(args, format);
 
-    vasprintf(&buff, format, ap);
+    vasprintf(&buff, format, args);
 
     this->log(buff);
+
+    va_end(args);
 }
 
 Context::~Context()

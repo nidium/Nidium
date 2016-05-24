@@ -15,13 +15,11 @@
 
 // {{{ Macros
 // {{{ JSClass macro's
-#define NIDIUM_JS_PROLOGUE(ofclass) \
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
-    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
-    ofclass *CppObj = static_cast<ofclass *>(JS_GetPrivate(thisobj)); \
+#define NIDIUM_JS_PROLOGUE() \
+    NIDIUM_JS_PROLOGUE_NO_RET()\
     args.rval().setUndefined();
 
-#define NIDIUM_JS_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
+#define NIDIUM_JS_PROLOGUE_NO_RET() \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
     (void)(args); \
@@ -29,6 +27,9 @@
         JS_ReportError(cx, "Illegal invocation"); \
         return false; \
     } \
+
+#define NIDIUM_JS_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
+    NIDIUM_JS_PROLOGUE_NO_RET() \
     ofclass *CppObj = static_cast<ofclass *>(JS_GetInstancePrivate(cx, thisobj, fclass, NULL)); \
     if (!CppObj) { \
         JS_ReportError(cx, "Illegal invocation"); \

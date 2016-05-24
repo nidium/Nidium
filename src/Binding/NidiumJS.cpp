@@ -310,26 +310,32 @@ void NidiumJS::Init()
 void reportError(JSContext *cx, const char *message, JSErrorReport *report)
 {
     NidiumJS *js = NidiumJS::GetObject(cx);
+    Context *nctx = nullptr;
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
-    if (js == NULL) {
+    if (js == nullptr) {
         printf("Error reporter failed (wrong JSContext?) (%s:%d > %s)\n", report->filename, report->lineno, message);
         return;
     }
 
+    nctx = js->getContext();
+
     if (!report) {
-        js->logf("%s\n", message);
+        nctx->vlog("%s\n", message);
         return;
     }
 
     char *prefix = NULL;
-    if (report->filename)
+    if (report->filename) {
         prefix = JS_smprintf("%s:", report->filename);
+    }
+
     if (report->lineno) {
         char *tmp = prefix;
         prefix = JS_smprintf("%s%u:%u ", tmp ? tmp : "", report->lineno, report->column);
         JS_free(cx, tmp);
     }
+
     if (JSREPORT_IS_WARNING(report->flags)) {
         char *tmp = prefix;
         prefix = JS_smprintf("%s%swarning: ",
@@ -342,27 +348,29 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
     const char *ctmp;
     while ((ctmp = strchr(message, '\n')) != 0) {
         ctmp++;
-        if (prefix)
-            js->logf("%s", prefix);
+        if (prefix) {
+            nctx->vlog("%s", prefix);
+        }
 
         char *tmpwrite = static_cast<char *>(malloc((ctmp - message) + 1));
         memcpy(tmpwrite, message, ctmp - message);
         tmpwrite[ctmp - message] = '\0';
-        js->logf("%s", tmpwrite);
+        nctx->vlog("%s", tmpwrite);
         free(tmpwrite);
 
         message = ctmp;
     }
 
     /* If there were no filename or lineno, the prefix might be empty */
-    if (prefix)
-        js->logf("%s", prefix);
-    js->logf("%s", message);
+    if (prefix) {
+        nctx->vlog("%s", prefix);
+    }
+    nctx->vlog("%s", message);
 
     if (report->linebuf) {
         /* report->linebuf usually ends with a newline. */
         int n = strlen(report->linebuf);
-        js->logf(":\n%s%s%s%s",
+        nctx->vlog(":\n%s%s%s%s",
                 prefix,
                 report->linebuf,
                 (n > 0 && report->linebuf[n-1] == '\n') ? "" : "\n",
@@ -371,25 +379,24 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
         for (int i = 0, j = 0; i < n; i++) {
             if (report->linebuf[i] == '\t') {
                 for (int k = (j + 8) & ~7; j < k; j++) {
-                    js->logf("%c", '.');
+                    nctx->vlog("%c", '.');
                 }
                 continue;
             }
-            js->logf("%c", '.');
+            nctx->vlog("%c", '.');
             j++;
         }
-        js->logf("%c", '^');
+        nctx->vlog("%c", '^');
     }
-    js->logf("%c", '\n');
+    nctx->vlog("%c", '\n');
     fflush(stdout);
     JS_free(cx, prefix);
 }
 
-NidiumJS::NidiumJS(ape_global *net) :
-    m_JSStrictMode(false), m_vLogger(NULL), m_LogClear(NULL)
+NidiumJS::NidiumJS(ape_global *net, Context *context) :
+    m_JSStrictMode(false), m_Context(context)
 {
     JSRuntime *rt;
-    m_Privateslot = NULL;
     m_Modules = NULL;
 
     m_StructuredCloneAddition.read = NULL;
@@ -554,34 +561,6 @@ int NidiumJS::LoadApplication(const char *path)
     return 0;
 }
 #endif
-
-void NidiumJS::logf(const char *format, ...)
-{
-    Core::Context *nctx = (Core::Context *)getPrivate();
-    va_list args;
-    va_start(args, format);
-
-    nctx->vlog(format, args);
-
-    va_end(args);
-}
-
-void NidiumJS::log(const char *format)
-{
-    Core::Context *nctx = (Core::Context *)getPrivate();
-
-    nctx->log(format);
-}
-
-void NidiumJS::logclear()
-{
-    if (!m_LogClear) {
-        return;
-    }
-
-    m_LogClear();
-}
-
 
 NidiumJS::~NidiumJS()
 {
