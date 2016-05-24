@@ -56,36 +56,30 @@ public:
 
         bool m_isSet;
     };
-    Args() {
-        m_numArgs = 8;
-        m_Args = static_cast<ArgsValue **>(malloc(sizeof(ArgsValue *) * m_numArgs));
-
-        for (int i = 0; i < m_numArgs; i++) {
-            m_Args[i] = new ArgsValue();
-        }
+    Args() : m_fillArgs(0) {
+        m_numArgs = 10;
+        m_Args = new ArgsValue[m_numArgs];
     }
     ~Args() {
-        for (int i = 0; i < m_numArgs; i++) {
-            delete m_Args[i];
-        }
-        free(m_Args);
+        delete[] m_Args;
     }
 
     /*
         Overflow values are automatically allocated
     */
     ArgsValue& operator[] (int idx) {
-        if (idx >= m_numArgs) {
-            m_Args = static_cast<ArgsValue **>(realloc(m_Args, sizeof(ArgsValue *) * (idx+1)));
-
-            for (int i = m_numArgs; i <= idx; i++) {
-                m_Args[i] = new ArgsValue();
-            }
-            m_numArgs = idx+1;
-
+        if (idx >= m_fillArgs) {
+            m_fillArgs = idx+1;
         }
 
-        return *m_Args[idx];
+        if (idx >= m_numArgs) {
+
+            m_numArgs = idx+1;
+            printf("[Err] Args overflow\n");
+            *(volatile int*)0 = 42;
+        }
+
+        return m_Args[idx];
     }
 
     /*
@@ -94,17 +88,18 @@ public:
     const ArgsValue& operator[] (int idx) const {
         if (idx >= m_numArgs) {
             printf("/!\\ Overflow in accessing Args value. Beggining of the array returned\n");
-            return *m_Args[0];
+            return m_Args[0];
         }
-        return *m_Args[idx];
+        return m_Args[idx];
     }
 
     int size() const {
-        return m_numArgs;
+        return m_fillArgs;
     }
 private:
-    ArgsValue **m_Args;
+    ArgsValue *m_Args;
     int m_numArgs;
+    int m_fillArgs;
 };
 
 } // namespace Core
