@@ -9,6 +9,7 @@
 #include "unittest.h"
 
 #include <ape_netlib.h>
+#include <Core/Context.h>
 #include <Binding/JSConsole.h>
 
 NIDIUMJS_FIXTURE(JSNFS)

@@ -9,6 +9,7 @@
 #include "unittest.h"
 
 #include <ape_netlib.h>
+#include <Core/Context.h>
 #include <Binding/JSStream.h>
 #include <IO/FileStream.h>
 
@@ -20,12 +21,9 @@ TEST_F(JSStream, Simple)
 
     JS::RootedObject globObj(njs->m_Cx, JS::CurrentGlobalOrNull(njs->m_Cx));
     JS::RootedValue rval(njs->m_Cx, JSVAL_VOID);
-    success = JS_GetProperty(njs->m_Cx, globObj, "Stream", &rval);
-    EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
     Nidium::Binding::JSStream::RegisterObject(njs->m_Cx);
 
-    rval = JSVAL_VOID;
     success = JS_GetProperty(njs->m_Cx, globObj, "Stream", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);

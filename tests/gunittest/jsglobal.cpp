@@ -9,7 +9,7 @@
 #include "unittest.h"
 
 #include <ape_netlib.h>
-
+#include <Core/Context.h>
 #include <Binding/JSGlobal.h>
 
 using namespace JS;
@@ -24,8 +24,6 @@ TEST_F(JSGlobal, Simple)
     JS::RootedValue rval(njs->m_Cx, JSVAL_VOID);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
     success = JS_GetProperty(njs->m_Cx, globObj, "load", &rval);
-    EXPECT_TRUE(JSTYPE_FUNCTION == JS_TypeOfValue(njs->m_Cx, rval));
-    success = JS_GetProperty(njs->m_Cx, globObj, "cwd", &rval);
     EXPECT_TRUE(JSTYPE_FUNCTION == JS_TypeOfValue(njs->m_Cx, rval));
     success = JS_GetProperty(njs->m_Cx, globObj, "setTimeout", &rval);
     EXPECT_TRUE(JSTYPE_FUNCTION == JS_TypeOfValue(njs->m_Cx, rval));

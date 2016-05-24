@@ -10,6 +10,7 @@
 
 #include <ape_netlib.h>
 
+#include <Core/Context.h>
 #include <Binding/NidiumJS.h>
 
 using namespace JS;
@@ -42,15 +43,16 @@ int dummyLoggerClear()
 
     return 0;
 }
+
 TEST_F(NidiumJS, Simple)
 {
-    int i = 1, *p;
     struct _ape_htable *table;
-    //check the init
 
+    //check the init
     EXPECT_TRUE(njs->m_Net == ape);
     EXPECT_TRUE(njs->GetNet() == ape);
     EXPECT_TRUE(njs->m_Cx != NULL);
+    EXPECT_TRUE(njs->getContext() == context);
     EXPECT_TRUE(njs->getJSContext() == njs->m_Cx);
     EXPECT_TRUE(njs->m_Messages != NULL);
     table = njs->m_JsObjects.accessCStruct();
@@ -59,12 +61,6 @@ TEST_F(NidiumJS, Simple)
     EXPECT_EQ(njs->m_RegisteredMessagesIdx, 7);
     EXPECT_EQ(njs->m_RegisteredMessagesSize, 16);
     EXPECT_EQ(njs->isShuttingDown(), false);
-
-    //check the private
-    njs->setPrivate(&i);
-    p = (int*)njs->getPrivate();
-    EXPECT_EQ(p, &i);
-    EXPECT_EQ(*p, i);
 
     //some others
     njs->loadGlobalObjects();
@@ -82,6 +78,8 @@ TEST_F(NidiumJS, Simple)
     EXPECT_EQ(JSVAL_TO_INT(rval), 1);
 }
 
+// XXX : Logger has been moved to Core/Context.cpp this test needs to be ported
+#if 0
 TEST_F(NidiumJS, Loggers)
 {
     memset( log_array, '\0', sizeof(log_array));
@@ -99,9 +97,10 @@ TEST_F(NidiumJS, Loggers)
     njs->logclear();
     EXPECT_EQ(strlen(log_array), 0);
 }
+#endif
+
 TEST_F(NidiumJS, Quick)
 {
-    njs->InitNet(ape);
     EXPECT_TRUE(njs->m_Net == ape);
     EXPECT_TRUE(njs->GetNet() == ape);
 }
