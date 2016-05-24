@@ -5,26 +5,26 @@
 from dokumentor import *
 
 NamespaceDoc( "System", "System statistics.",
-	NO_Sees,
-	NO_Examples
+    NO_Sees,
+    NO_Examples
 )
 
 FunctionDoc( "System.getOpenFileStats", "Provide information about the openfiles.",
-	NO_Sees,
-	[ExampleDoc( "console.log( JSON.stringify( System.getOpenFileStats() ));" )],
-	IS_Static, IS_Public, IS_Fast,
-	NO_Params,
-	ReturnDoc( "statistics", ObjectDoc([("cur", "Current open files accourding to rlimit",  "integer"),
-										("max", "Maximum open files accourding to rlimit", "integer"),
-										("open", "Open files", "integer"),
-										("sockets", "Open sockes", "integer"),
-										("files", "Open Files", "integer")]))
+    NO_Sees,
+    [ExampleDoc( "console.log( JSON.stringify( System.getOpenFileStats() ));" )],
+    IS_Static, IS_Public, IS_Fast,
+    NO_Params,
+    ReturnDoc( "statistics", ObjectDoc([("cur", "Current open files accourding to rlimit",  "integer"),
+                                        ("max", "Maximum open files accourding to rlimit", "integer"),
+                                        ("open", "Open files", "integer"),
+                                        ("sockets", "Open sockes", "integer"),
+                                        ("files", "Open Files", "integer")]))
 )
 FunctionDoc( "System.language", "Get the system language.",
-	SeesDocs( "System.language" ),
-	[ExampleDoc("console.log(System.language)")],
-	IS_Static, IS_Public, IS_Fast,
-	NO_Params,
-	NO_Returns
+    SeesDocs( "System.language" ),
+    [ExampleDoc("console.log(System.language)")],
+    IS_Static, IS_Public, IS_Fast,
+    NO_Params,
+    NO_Returns
 )
 
