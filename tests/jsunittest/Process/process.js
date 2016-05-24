@@ -52,3 +52,7 @@ Tests.register("process.setOwner(user, group)/getOwner", function() {
 	Assert.equal(process.getOwner().user, owner.user);
 	Assert.equal(process.getOwner().group, owner.group);
 });
+
+Tests.register("process.cwd", function() {
+	Assert.equal(global.__dirname.substr(0, global.__dirname.length -8), process.cwd());
+});
