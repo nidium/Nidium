@@ -14,17 +14,17 @@ hello.nml
 
 ```
 <application version="0.2">
-	<meta>
-		<title>My Application</title>
-		<description>Such a great description</description>
-		<viewport>355x140</viewport>
-		<identifier>com.company.app</identifier>
-		<author>Company Inc.</author>
-	</meta>
-	<assets>
-		<style src="style.nss"></style>
-		<script src="hello.js"></script>
-	</assets>
+    <meta>
+        <title>My Application</title>
+        <description>Such a great description</description>
+        <viewport>355x140</viewport>
+        <identifier>com.company.app</identifier>
+        <author>Company Inc.</author>
+    </meta>
+    <assets>
+        <style src="style.nss"></style>
+        <script src="hello.js"></script>
+    </assets>
     </application>
 ```
 
