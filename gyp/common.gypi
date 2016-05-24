@@ -3,19 +3,13 @@
 # that can be found in the LICENSE file.
 
 {
-    'includes': [
-        '../src/libapenetwork/gyp/common.gypi'
-    ],
-
     'target_defaults': {
+        'default_configuration': 'Release',
         'defines': [
             'NIDIUM_VERSION_STR="<(nidium_version)"',
             'NIDIUM_NO_PRIVATE_DIR',
             'NIDIUM_FRAMEWORK_STR="delete me"', # XXX Remove this
             'NIDIUM_BUILD="<!@(git rev-parse HEAD)"',
-            'NIDIUM_CRASH_COLLECTOR_HOST="<(nidium_crash_collector_host)"',
-            'NIDIUM_CRASH_COLLECTOR_PORT=<(nidium_crash_collector_port)',
-            'NIDIUM_CRASH_COLLECTOR_ENDPOINT="<(nidium_crash_collector_endpoint)"',
             #'UINT32_MAX=4294967295u',
             #'_FILE_OFFSET_BITS=64',
             #'_HAVE_SSL_SUPPORT'
@@ -105,6 +99,9 @@
         },
 
         'conditions': [
+            ['target_os=="android"', {
+                'defines': ['__ANDROID__', 'ANDROID'],
+            }],
             ['nidium_enable_breakpad==1', {
                 'defines': [ 'NIDIUM_ENABLE_CRASHREPORTER' ],
             }],
@@ -139,7 +136,7 @@
                         '-fsanitize=address'
                     ],
                 }
-            }]
+            }],
         ],
 
         'target_conditions': [

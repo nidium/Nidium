@@ -22,23 +22,30 @@
                 'JSGC_USE_EXACT_ROOTING'
             ],
             'cflags': [
+                '-fno-rtti',
+                #'-fno-exceptions', # rapidxml use exception :/
                 '-Wno-c++0x-extensions',
+
+                '-ffunction-sections',
+                '-fdata-sections',
+
                 # Flags needed to silent some SM warning
                 '-Wno-invalid-offsetof',
                 '-Wno-mismatched-tags',
+
                 # Include our own js-config.h so it is automatically
                 # versioned for our build flavour
                 '-include <(nidium_output_third_party)/js-config.h'
             ],
             'xcode_settings': {
                 'OTHER_CFLAGS': [
+                    '-fno-rtti',
+                    #'-fno-exceptions', # rapidxml use exception :/
+                    '-Wno-c++0x-extensions',
                     '-Wno-c++0x-extensions',
                     '-Wno-invalid-offsetof',
                     '-Wno-mismatched-tags',
                     '-include <(nidium_output_third_party)/js-config.h',
-                ],
-                "OTHER_LDFLAGS": [
-                    '-stdlib=libc++'
                 ],
                 'OTHER_CPLUSPLUSFLAGS': [ 
                     '$inherited',
@@ -62,9 +69,11 @@
                     }
                 }],
                 ['OS=="linux"', {
+                    'ldflags': [
+                        '-Wl,--gc-sections',
+                    ],
                     "link_settings": {
                         'libraries': [
-                            '-rdynamic',
                             '-ljs_static',
                             '-lnspr4',
                             '-lpthread',
@@ -96,8 +105,6 @@
                     'DSO_EXTENSION=".so"'
                 ]
             }]
-        ],
-        'cflags': [
         ],
         'sources': [
             '<(third_party_path)/jsoncpp/dist/jsoncpp.cpp',

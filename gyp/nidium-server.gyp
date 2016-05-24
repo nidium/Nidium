@@ -12,9 +12,6 @@
             '<(nidium_network_path)/gyp/network.gyp:*'
         ],
         'include_dirs': [
-            '<(nidium_network_path)',
-            '<(third_party_path)/mozilla-central/js/src/dist/include/',
-            '<(third_party_path)/http-parser/',
             '<(third_party_path)/linenoise/',
             '<(nidium_src_path)',
         ],

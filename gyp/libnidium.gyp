@@ -104,29 +104,21 @@
                     'JS_THREADSAFE',
                     'GR_GL_CUSTOM_SETUP_HEADER=<../patch/skia_gl_config.h>'
                 ],
-                'cflags+': [
-                    '-fno-rtti',
-                    '-fvisibility=hidden',
-                    '-fvisibility-inlines-hidden',
-                    '-Wno-c++0x-extensions',
-                    '-std=c++11',
-                    '-Wno-invalid-offsetof'
-                ],
             }],
             ['nidium_audio==1', {
                 'sources': [
                     '<(nidium_src_path)/Binding/JSAV.cpp',
                  ],
                  'defines': [ 'NIDIUM_AUDIO_ENABLED' ],
-                 'includes': [
-                    'av.gyp'
-                 ]
+                     'includes': [
+                        'av.gypi'
+                     ]
             }],
             ['nidium_webgl==1', {
                 'sources': [
                     '<(nidium_src_path)/Binding/JSWebGL.cpp',
                  ],
-                 'defines+': [ 'NIDIUM_WEBGL_ENABLED' ],
+                 'defines': [ 'NIDIUM_WEBGL_ENABLED' ],
             }],
         ],
         'sources': [

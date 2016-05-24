@@ -10,77 +10,58 @@
         'product_dir': '<(nidium_exec_path)',
         'dependencies': [
             'libnidium.gyp:*',
-            '<(nidium_network_path)/gyp/network.gyp:*',
             'libnidiumcore.gyp:*',
-            'interface.gyp:nidiuminterface',
+            '<(nidium_network_path)/gyp/network.gyp:*',
+        ],
+        'includes': [
+            'interface.gypi',
         ],
         'include_dirs': [
-            '<(nidium_src_path)',
-            '<(nidium_network_path)',
-            '<(nidium_interface_path)',
-            '<(third_party_path)/breakpad/src/',
             '<(third_party_path)/SDL2/include/',
-            '<(third_party_path)/mozilla-central/js/src/dist/include/',
-            '<(third_party_path)/http-parser/',
         ],
         'conditions': [
+            ['nidium_enable_breakpad==1', {
+                'dependencies': [
+                    'crashreporter.gyp:nidium-crash-reporter',
+                    'third-party/breakpad.gyp:*'
+                 ],
+                'defines': [
+                    'NIDIUM_CRASH_COLLECTOR_HOST="<(nidium_crash_collector_host)"',
+                    'NIDIUM_CRASH_COLLECTOR_PORT=<(nidium_crash_collector_port)',
+                    'NIDIUM_CRASH_COLLECTOR_ENDPOINT="<(nidium_crash_collector_endpoint)"',
+                ],
+            }],
             ['OS=="linux"', {
                 'conditions': [
                     ['nidium_enable_breakpad==1', {
                         'dependencies': [
                             'crashreporter.gyp:nidium-crash-reporter',
-                            'third-party/breakpad.gyp:*'
                          ],
                     }],
                 ],
-                'cflags': [
-                    '-fno-rtti',
-                    '-ffunction-sections',
-                    '-fdata-sections',
-                    '-fno-exceptions',
-                    '-DTRIMMED',
-                    '-freorder-blocks',
-                    '-fomit-frame-pointer',
-                    '-std=c++11',
-                    '-Wno-invalid-offsetof'
-                ],
                 'link_settings': {
                     'libraries': [
-                        '-rdynamic',
                         '-Wl,--start-group',
+                        '-lskia_images',
+                        '-lskia_sfnt',
+                        '-lskia_skgpu',
+                        '-lskia_utils',
+                        '-lskia_ports',
+                        '-lskia_core',
+                        '-lskia_effects',
+                        '-lskia_opts',
+                        '-lskia_opts_ssse3',
+                        '-Wl,--end-group',
+
+                        '-lSDL2',
                         '-lGL',
-                        '-lasound',
-                        '-lpthread',
                         '-lpng',
                         '-lfreetype',
                         '-lrt',
-                        '-lz',
                         '-lbz2',
                         '-ldl',
-
-                        '-Wl,-Bstatic ',
-                        '-lSDL2',
                         '-lzip',
-                        '-lportaudio',
-                        '-lzita-resampler',
-                        '-lcoroutine',
-                        '-Wl,-Bdynamic',
-                        '-lswresample',
-                        '-lswscale',
-                        '-lavformat',
-                        '-lavcodec',
-                        '-lavutil',
                         '-ljpeg',
-                        '-lskia_sfnt',
-                        '-lskia_opts_ssse3',
-                        '-lskia_opts',
-                        '-lskia_utils',
-                        '-lskia_ports',
-                        '-lskia_images',
-                        '-lskia_skgpu',
-                        '-lskia_effects',
-                        '-lskia_core',
-                        '-Wl,--end-group',
                     ],
                 },
                 'include_dirs': [
@@ -88,7 +69,6 @@
                 ],
                 'sources': [
                     '<(nidium_app_path)/linux/main.cpp',
-                    '<(third_party_path)/portaudio/src/common/pa_ringbuffer.o'
                 ],
                 #'actions': [{
                 #    'action_name': 'strip',
@@ -107,9 +87,10 @@
                 },
                 'conditions': [
                     ['nidium_enable_breakpad==1', {
-                        'dependencies+': [
-                            'breakpad.gyp:*'
-                         ],
+                        'include_dirs': [
+                            '<(third_party_path)/breakpad/src/client/mac/Framework/',
+                            '<(third_party_path)/breakpad/src/client/apple/Framework/'
+                        ],
                         "xcode_settings": {
                             'DEBUG_INFORMATION_FORMAT': 'dwarf-with-dsym',
                             'DEPLOYEMENT_POSTPROCESSING': 'YES',
@@ -123,12 +104,6 @@
                         '$(SDKROOT)/System/Library/Frameworks/IOKit.framework',
                         '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
                         '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
-                        '$(SDKROOT)/System/Library/Frameworks/CoreAudio.framework',
-                        '$(SDKROOT)/System/Library/Frameworks/CoreVideo.framework',
-                        '$(SDKROOT)/System/Library/Frameworks/VideoDecodeAcceleration.framework',
-                        '$(SDKROOT)/System/Library/Frameworks/CoreAudioKit.framework',
-                        '$(SDKROOT)/System/Library/Frameworks/AudioToolbox.framework',
-                        '$(SDKROOT)/System/Library/Frameworks/AudioUnit.framework',
                         'libSDL2.a',
                         'libskia_sfnt.a',
                         'libskia_opts_ssse3.a',
@@ -139,18 +114,7 @@
                         'libskia_effects.a',
                         'libskia_images.a',
                         'libskia_skgpu.a',
-                        'libportaudio.a',
-                        'libzita-resampler.a',
-                        'libavcodec.a',
-                        'libavformat.a',
-                        'libavutil.a',
-                        'libswscale.a',
-                        'libswresample.a',
                         'libzip.a',
-                        'libcoroutine.a',
-                        #'..//third-party/angle/libpreprocessor.a',
-                        #'..//third-party/angle/libtranslator_common.a',
-                        #'..//third-party/angle/libtranslator_glsl.a',
                         '/usr/lib/libbz2.dylib',
                         '/usr/lib/libz.dylib',
                         'libiconv.dylib'
@@ -169,13 +133,10 @@
                 ],
                 'include_dirs': [
                     '<(nidium_interface_path)/osx/',
-                    '<(third_party_path)/breakpad/src/client/mac/Framework/',
-                    '<(third_party_path)/breakpad/src/client/apple/Framework/'
                 ],
                 'sources': [
                     '<(nidium_app_path)/osx/main.mm',
                     '<(nidium_app_path)/osx/StudioAppDelegate.mm',
-                    '<(third_party_path)/portaudio/src/common/pa_ringbuffer.o'
                 ],
                 'postbuilds': [
                     #{
