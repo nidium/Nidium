@@ -48,9 +48,6 @@ NML::NML(ape_global *net) :
     m_Meta.size.height = 0;
     m_Meta.identifier = NULL;
 
-    /* Make sure NidiumJS already has the netlib set */
-    NidiumJS::InitNet(net);
-
     memset(&m_Meta, 0, sizeof(m_Meta));
 }
 
