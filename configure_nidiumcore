@@ -104,6 +104,28 @@ def testCore(unitTests):
         "build/tests/libnidiumcore-unittests"
     ], builders=[Gyp("gyp/libnidiumcore-tests.gyp")])
 
+@CommandLine.option("--asan", default=False)
+def asan(asan):
+    if asan:
+        Gyp.set("asan", 1)
+
+@CommandLine.option("--cpu-profiling", default=False)
+def profiler(profiler):
+    if profiler:
+        Gyp.set("profiler", 1)
+        Deps.set("gperftools")
+
+        @Konstruct.hook("postBuild")
+        def profilerPostBuild(success):
+            if not success:
+                return
+
+            Log.info("-------------------------------------")
+            Log.info("You have enabled CPU profiling, you must set the following environement variables to enable CPU profiling when running your application : ")
+            Log.info("CPUPROFILE=/tmp/profile.nidium")
+            Log.info("LD_LIBRARY_PATH=" + ROOT + "/build/third-party/${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH:-}")
+            Log.info("-------------------------------------")
+
 if __name__ == '__main__':
     if not Builder.Gyp._defines.has_key('nidium_version'):
         Gyp.set('nidium_version', 'library')
