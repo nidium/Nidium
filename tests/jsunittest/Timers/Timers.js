@@ -12,26 +12,26 @@ Tests.registerAsync("clearTimeout", function(next) {
         Assert(false, "clearTimeout didn't clear the timer");
     }, 100);
 
-	setTimeout(function() {
-		next();
-	}, 200);
+    setTimeout(function() {
+        next();
+    }, 200);
 
-	clearTimeout(timer);
+    clearTimeout(timer);
 }, 1000);  
 
 Tests.registerAsync("setInterval", function(next) {
-	var counter = 0;
-	var timer = setInterval(function() {
-		counter++;
-		if (counter == 5) {
-			clearTimeout(timer);
-			next();
-		}
-	}, 10);
+    var counter = 0;
+    var timer = setInterval(function() {
+        counter++;
+        if (counter == 5) {
+            clearTimeout(timer);
+            next();
+        }
+    }, 10);
 }, 1000);  
 
 Tests.registerAsync("setImmediate", function(next) {
-	setImmediate(function() {
-		next();
-	});
+    setImmediate(function() {
+        next();
+    });
 }, 1000);  

@@ -17,42 +17,42 @@ Tests.register("process.setOwner (invalid calls)", function() {
         Assert(("" + e).indexOf("Error") == 0);
     }
 
-	var owner = process.getOwner();
-	if (owner.uid != 0) {
-		try {
-			process.setOwner("root");
-		} catch(e) {
-			Assert(("" + e).indexOf("Operation not permitted") != -1);
-		}
-	}
+    var owner = process.getOwner();
+    if (owner.uid != 0) {
+        try {
+            process.setOwner("root");
+        } catch(e) {
+            Assert(("" + e).indexOf("Operation not permitted") != -1);
+        }
+    }
 });
 
 Tests.register("process.setOwner(uid, gid)/getOwner", function() {
-	var owner = process.getOwner();
-	if (owner.uid == 0) {
-		console.log("Setting owner with uid & gid = 1000");
-		process.setOwner(1000, 1000);
+    var owner = process.getOwner();
+    if (owner.uid == 0) {
+        console.log("Setting owner with uid & gid = 1000");
+        process.setOwner(1000, 1000);
 
-		Assert.equal(process.getOwner().uid, 1000);
-		Assert.equal(process.getOwner().gid, 1000);
-	} else {
-		console.log("Setting same user (non root caller)");
-		process.setOwner(owner.uid, owner.gid);
+        Assert.equal(process.getOwner().uid, 1000);
+        Assert.equal(process.getOwner().gid, 1000);
+    } else {
+        console.log("Setting same user (non root caller)");
+        process.setOwner(owner.uid, owner.gid);
 
-		Assert.equal(process.getOwner().uid, 1000);
-		Assert.equal(process.getOwner().gid, 1000);
-	}
+        Assert.equal(process.getOwner().uid, 1000);
+        Assert.equal(process.getOwner().gid, 1000);
+    }
 });
 
 Tests.register("process.setOwner(user, group)/getOwner", function() {
-	var owner = process.getOwner();
+    var owner = process.getOwner();
 
-	process.setOwner(owner.user, owner.group);
+    process.setOwner(owner.user, owner.group);
 
-	Assert.equal(process.getOwner().user, owner.user);
-	Assert.equal(process.getOwner().group, owner.group);
+    Assert.equal(process.getOwner().user, owner.user);
+    Assert.equal(process.getOwner().group, owner.group);
 });
 
 Tests.register("process.cwd", function() {
-	Assert.equal(global.__dirname.substr(0, global.__dirname.length -8), process.cwd());
+    Assert.equal(global.__dirname.substr(0, global.__dirname.length -8), process.cwd());
 });
