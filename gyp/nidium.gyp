@@ -158,19 +158,8 @@
 
                 },
                 "xcode_settings": {
-                    'MACOSX_DEPLOYMENT_TARGET': [
-                        '10.7'
-                    ],
                     'LD_RUNPATH_SEARCH_PATHS': [
                         '@loader_path/../Frameworks'
-                    ],
-                    'OTHER_LDFLAGS': [
-                        '-stdlib=libc++',
-                    ],
-                    'OTHER_CFLAGS': [ 
-                        '-g',
-                        '-O2',
-                        '-Wall',
                     ],
                     'INFOPLIST_FILE': '<(nidium_resources_path)/osx/Info.plist',
                 },
