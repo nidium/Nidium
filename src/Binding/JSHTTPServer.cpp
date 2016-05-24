@@ -176,7 +176,10 @@ static bool nidium_HTTPServer_constructor(JSContext *cx,
     JS::RootedString ip_bind(cx);
     bool reuseport = false;
     JSHTTPServer *listener;
+    JS::RootedObject options(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    NIDIUM_JS_INIT_OPT();
 
     if (!args.isConstructing()) {
         JS_ReportError(cx, "Bad constructor");
@@ -185,8 +188,13 @@ static bool nidium_HTTPServer_constructor(JSContext *cx,
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &HTTPServer_class, args));
 
-    if (!JS_ConvertArguments(cx, args, "c/bS", &port, &reuseport, ip_bind.address())) {
+    if (!JS_ConvertArguments(cx, args, "c/So", 
+                &port, ip_bind.address(), options.address())) {
         return false;
+    }
+
+    NIDIUM_JS_GET_OPT_TYPE(options, "reusePort", Boolean) {
+        reuseport = __curopt.toBoolean();
     }
 
     if (ip_bind) {

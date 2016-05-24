@@ -100,9 +100,14 @@ EventDoc( "HTTPListener.onrequest", "Event that fires when the server has read t
 ConstructorDoc( "HTTPListener", "Constructor for HTTPListener object.",
     NO_Sees,
     NO_Examples,
-    [ ParamDoc( "port", "The port to listen to", "integer", NO_Default, IS_Obligated ),
-      ParamDoc( "reuse", "Re-use address/port", "boolean", 'true', IS_Optional ),
-      ParamDoc( "ip", "The ip address to bind to", "string", "0.0.0.0", IS_Optional ), ],
+    [ 
+        ParamDoc( "port", "The port to listen to", "integer", NO_Default, IS_Obligated ),
+        ParamDoc( "ip", "The ip address to bind to", "string", "0.0.0.0", IS_Optional ), 
+        ParamDoc("options", "HTTPListner options",
+            ObjectDoc([
+                ("reusePort", "Allows multiple HTTPListener to bind to the same port,", "boolean", 'false'),
+        ]), NO_Default, IS_Optional)
+    ],
     ReturnDoc( "Webserver object", "HTTPListener" )
 )
 
