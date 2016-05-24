@@ -29,21 +29,6 @@
             ['nofork==1', {
                 'defines':['NIDIUM_NO_FORK']
             }],
-            ['OS=="linux"', {
-                'cflags': [
-                    '-fno-rtti',
-                    # Not sure this makes any big difference. At least here.
-                    # Could be better in network common.gypi
-                    # See :http://stackoverflow.com/questions/4274804/query-on-ffunction-section-fdata-sections-options-of-gcc
-                    #'-ffunction-sections',
-                    #'-fdata-sections',
-                    #'-fno-exceptions',
-                    #'-freorder-blocks',
-                    # Not sure this is interesting for us
-                    # See : http://stackoverflow.com/questions/1942801/when-should-i-omit-the-frame-pointer
-                    #'-fomit-frame-pointer',
-                ],
-            }],
         ],
     }]
 }
