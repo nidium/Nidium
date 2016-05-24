@@ -9,6 +9,7 @@
 #include "unittest.h"
 
 #include <ape_netlib.h>
+#include <Core/Context.h>
 #include <Binding/JSSocket.h>
 
 NIDIUMJS_FIXTURE(JSSocket)
@@ -19,12 +20,9 @@ TEST_F(JSSocket, Simple)
 
     JS::RootedObject globObj(njs->m_Cx, JS::CurrentGlobalOrNull(njs->m_Cx));
     JS::RootedValue rval(njs->m_Cx, JSVAL_VOID);
-    success = JS_GetProperty(njs->m_Cx, globObj, "Socket", &rval);
-    EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
     Nidium::Binding::JSSocket::RegisterObject(njs->m_Cx);
 
-    rval = JSVAL_VOID;
     success = JS_GetProperty(njs->m_Cx, globObj, "Socket", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);

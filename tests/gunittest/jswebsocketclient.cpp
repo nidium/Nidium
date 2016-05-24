@@ -10,6 +10,7 @@
 
 #include "unittest.h"
 
+#include <Core/Context.h>
 #include <Binding/JSWebSocketClient.h>
 
 NIDIUMJS_FIXTURE(JSWebsocketClient)

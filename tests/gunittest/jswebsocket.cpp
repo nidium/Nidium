@@ -8,6 +8,7 @@
 
 #include "unittest.h"
 
+#include <Core/Context.h>
 #include <Binding/JSWebSocket.h>
 
 NIDIUMJS_FIXTURE(JSWebsocket)

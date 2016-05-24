@@ -9,6 +9,7 @@
 #include "unittest.h"
 
 #include <ape_netlib.h>
+#include <Core/Context.h>
 #include <Binding/JSDebug.h>
 
 NIDIUMJS_FIXTURE(JSDebug)
@@ -20,12 +21,9 @@ TEST_F(JSDebug, Simple)
 
     JS::RootedObject globObj(njs->m_Cx, JS::CurrentGlobalOrNull(njs->m_Cx));
     JS::RootedValue rval(njs->m_Cx, JSVAL_VOID);
-    success = JS_GetProperty(njs->m_Cx, globObj, "Debug", &rval);
-    EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
     Nidium::Binding::JSDebug::RegisterObject(njs->m_Cx);
 
-    rval = JSVAL_VOID;
     success = JS_GetProperty(njs->m_Cx, globObj, "Debug", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);

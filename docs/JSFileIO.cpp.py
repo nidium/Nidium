@@ -199,7 +199,7 @@ f.open("rw", function( err ) {
 	}
 });"""), ExampleDoc( """var f = new File.openSync( "foo.txt", { encoding: 'utf8' } );
 f.close( ); """) ],
-	IS_Dynamic, IS_Public, IS_Fast,
+	IS_Dynamic, IS_Public, IS_Slow,
 	NO_Params,
 	NO_Returns
 )

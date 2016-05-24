@@ -49,7 +49,7 @@ struct JobQueue {
     void *arg;
 };
 
-// {{ InputEvent
+// {{{ InputEvent
 static const char * InputEvent_Names[] = {
     "mousemove",
     "mousedown",

@@ -37,7 +37,6 @@
 #endif
 
 #ifdef NIDIUM_WEBGL_ENABLED
-#include <Binding/JSProcess.h>
 #include "Graphics/GLHeader.h"
 #include "Graphics/GLState.h"
 #include "Binding/JSWebGL.h"
@@ -109,9 +108,6 @@ m_Debug2Handler(NULL),
     JS::RootedObject globalObj(m_JS->m_Cx, JS::CurrentGlobalOrNull(m_JS->m_Cx));
     JS_InitReflect(m_JS->m_Cx, globalObj);
     
-    m_JS->setLogger(NativeContext_vLogger);
-    m_JS->setLogger(NativeContext_LogClear);
-
     m_Jobs.head = NULL;
     m_Jobs.queue = NULL;
 }

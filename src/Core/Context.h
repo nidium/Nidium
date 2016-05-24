@@ -29,12 +29,12 @@ public:
 
     template <typename T>
     static T *GetObject(struct JSContext *cx) {
-        return static_cast<T *>(Binding::NidiumJS::GetObject(cx)->getPrivate());
+        return static_cast<T *>(Binding::NidiumJS::GetObject(cx)->getContext());
     }
 
     template <typename T>
     static T *GetObject(Binding::NidiumJS *njs) {
-        return static_cast<T *>(njs->getPrivate());
+        return static_cast<T *>(njs->getContext());
     }
 
     Binding::NidiumJS *getNJS() const {
@@ -42,7 +42,10 @@ public:
     }
 
     virtual void log(const char *str);
-    virtual void vlog(const char *format, va_list ap);
+    virtual void vlog(const char *format, ...);
+    virtual void logClear() {};
+    virtual void logShow() {};
+    virtual void logHide() {};
 
 protected:
     static int Ping(void *arg);

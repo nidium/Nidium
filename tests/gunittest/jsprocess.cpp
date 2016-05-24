@@ -9,6 +9,7 @@
 #include "unittest.h"
 
 #include <ape_netlib.h>
+#include <Core/Context.h>
 #include <Binding/JSProcess.h>
 
 NIDIUMJS_FIXTURE(JSProcess)
@@ -30,8 +31,13 @@ TEST_F(JSProcess, Simple)
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 
+    JS::RootedObject obj(njs->m_Cx, rval.toObjectOrNull());
+
+    rval = JSVAL_VOID;
+    success = JS_GetProperty(njs->m_Cx, obj, "cwd", &rval);
+    EXPECT_TRUE(JSTYPE_FUNCTION == JS_TypeOfValue(njs->m_Cx, rval));
+
     JS::RootedValue argv(njs->m_Cx, JSVAL_VOID);
-    JS::RootedObject obj(njs->m_Cx, JSVAL_TO_OBJECT(rval));
     JS_GetProperty(njs->m_Cx, obj, "argv", &argv);
     EXPECT_TRUE(JSVAL_IS_VOID(argv) == false);
 

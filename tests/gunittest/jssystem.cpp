@@ -9,7 +9,7 @@
 #include "unittest.h"
 
 #include <ape_netlib.h>
-#include <Binding/NidiumJS.h>
+#include <Core/Context.h>
 #include <Binding/JSSystem.h>
 
 NIDIUMJS_FIXTURE(JSSystem)
@@ -20,14 +20,9 @@ TEST_F(JSSystem, Simple)
 
     JS::RootedObject globObj(njs->m_Cx, JS::CurrentGlobalOrNull(njs->m_Cx));
     JS::RootedValue rval(njs->m_Cx, JSVAL_VOID);
-    EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
-
-    success = JS_GetProperty(njs->m_Cx, globObj, "System", &rval);
-    EXPECT_TRUE(JSVAL_IS_VOID(rval) == true);
 
     Nidium::Binding::JSSystem::RegisterObject(njs->m_Cx);
 
-    rval = JSVAL_VOID;
     success = JS_GetProperty(njs->m_Cx, globObj, "System", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);

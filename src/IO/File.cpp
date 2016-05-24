@@ -134,11 +134,23 @@ File::~File()
     if (m_Mmap.addr) {
         munmap(m_Mmap.addr, m_Mmap.size);
     }
+
+    /*
+        The File needs to be closed synchronously because the task manager
+        will be destructed right after.
+
+        Since a task might be currently running we are using a semaphore
+        to avoid concurrent access.
+    */
+    sem_wait(&m_Sem);
+
     if (this->isOpen()) {
         this->closeTask();
     }
 
     free(m_Path);
+
+    sem_post(&m_Sem);
 }
 
 // }}}

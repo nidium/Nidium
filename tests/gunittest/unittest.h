@@ -16,12 +16,14 @@ class  name: public ::testing::Test {\
 protected:\
     ape_global *ape;\
     ::Nidium::Binding::NidiumJS *njs;\
+    ::Nidium::Core::Context *context;\
     name(){\
         ape = APE_init();\
-        njs = new ::Nidium::Binding::NidiumJS(ape);\
+        context = new ::Nidium::Core::Context(ape);\
+        njs = context->getNJS();\
     };\
     ~name() {\
-        delete njs;\
+        delete context;\
         APE_destroy(ape);\
     };\
 };

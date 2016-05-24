@@ -9,7 +9,7 @@
 #include "unittest.h"
 
 #include <ape_netlib.h>
-#include <Binding/NidiumJS.h>
+#include <Core/Context.h>
 #include <Binding/JSDB.h>
 
 NIDIUMJS_FIXTURE(JSDB)

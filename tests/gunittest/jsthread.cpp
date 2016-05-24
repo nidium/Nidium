@@ -1,4 +1,4 @@
-njs->m_C
+/*
    Copyright 2016 Nidium Inc. All rights reserved.
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
@@ -9,6 +9,7 @@ njs->m_C
 #include "unittest.h"
 
 #include <ape_netlib.h>
+#include <Core/Context.h>
 #include <Binding/JSThread.h>
 
 NIDIUMJS_FIXTURE(JSThread)
