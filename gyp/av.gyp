@@ -3,49 +3,26 @@
 # that can be found in the LICENSE file.
 
 {
-    'targets': [{
-        'target_name': 'nidiumav',
-        'type': 'static_library',
-        'include_dirs': [
-            '<(nidium_src_path)',
-            '<(third_party_path)/portaudio/src/common/',
-            '<(third_party_path)/portaudio/include/',
-            '<(third_party_path)/zita-resampler/libs/',
-            '<(third_party_path)/ffmpeg/',
-            '<(third_party_path)/libcoroutine/source/',
-            '<(third_party_path)/basekit/source/',
-        ],
-        'dependencies': [
-            '<(nidium_network_path)/gyp/network.gyp:network-includes',
-            'libnidiumcore.gyp:libnidiumcore-includes',
-        ],
-        'defines': [
-            '__STDC_CONSTANT_MACROS'
-        ],
-        'conditions': [
-            ['OS=="mac"', {
-                 'cflags+': [
-                    '-Wno-c++0x-extensions',
-                    '-std=c++11',
-                  ]
-                }
-            ],
-            ['OS=="linux"', {
-                'cflags+': [
-                    '-Wno-c++0x-extensions',
-                    '-std=c++11',
-                  ]
-                }
-            ],
-        ],
-        'sources': [
-            '<(nidium_av_path)AV.cpp',
-            '<(nidium_av_path)AudioNode.cpp',
-            '<(nidium_av_path)Audio.cpp',
-            '<(nidium_av_path)Video.cpp',
-            '<(nidium_av_path)AudioNodeGain.cpp',
-            '<(nidium_av_path)AudioNodeDelay.cpp',
-        ],
-    }],
+    'include_dirs': [
+        '<(nidium_src_path)',
+        '<(third_party_path)/portaudio/src/common/',
+        '<(third_party_path)/portaudio/include/',
+        '<(third_party_path)/zita-resampler/libs/',
+        '<(third_party_path)/ffmpeg/',
+        '<(third_party_path)/libcoroutine/source/',
+        '<(third_party_path)/basekit/source/',
+    ],
+    'dependencies': [
+        '<(nidium_network_path)/gyp/network.gyp:network-includes',
+        'libnidiumcore.gyp:libnidiumcore-includes',
+    ],
+    'sources': [
+        '<(nidium_av_path)AV.cpp',
+        '<(nidium_av_path)AudioNode.cpp',
+        '<(nidium_av_path)Audio.cpp',
+        '<(nidium_av_path)Video.cpp',
+        '<(nidium_av_path)AudioNodeGain.cpp',
+        '<(nidium_av_path)AudioNodeDelay.cpp',
+    ],
 }
 

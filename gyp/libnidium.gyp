@@ -117,9 +117,9 @@
                 'sources': [
                     '<(nidium_src_path)/Binding/JSAV.cpp',
                  ],
-                 'defines+': [ 'NIDIUM_AUDIO_ENABLED' ],
-                 'dependencies': [
-                    'av.gyp:nidiumav'
+                 'defines': [ 'NIDIUM_AUDIO_ENABLED' ],
+                 'includes': [
+                    'av.gyp'
                  ]
             }],
             ['nidium_webgl==1', {
