@@ -92,6 +92,7 @@ void Messages::postMessage(uint64_t dataint, int event, bool forceAsync)
 void Messages::postMessageSync(SharedMessages::Message *msg)
 {
     this->onMessage(*msg);
+    delete msg;
 }
 
 void Messages::postMessage(SharedMessages::Message *msg, bool forceAsync)
