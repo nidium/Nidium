@@ -247,7 +247,7 @@ def testStudio(unitTests):
     tests = []
     nidium = getNidiumPath()
 
-    tests.append((nidium[1] + " ../tests/jsunittest/unittests.nml", nidium[0]))
+    tests.append((nidium[1] + " ../tests/jsunittest/unittests.nml --frontend", nidium[0]))
 
     Tests.register(tests)
 

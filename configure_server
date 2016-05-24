@@ -65,9 +65,9 @@ def testServer(unitTests, autoTests):
     tests = []
 
     if unitTests:
-        tests.append("dist/nidium-server nativejscore/var/js/tests/unittests/manual_suites.js")
+        tests.append(("../../bin/nidium-server unittests.js", "tests/jsunittest/"))
 
-    # Autotests does not have a "loader" for testing with Nidium Server yet
+    # XXX : Nidium server needs only a subset of the auto tests. How to handle this ?
     # if autoTests:
     #     tests.append("dist/nidium-server nativejscore/var/js/tests/autotests/auto_suites.js")
 
