@@ -15,9 +15,8 @@
 #include "Core/Path.h"
 
 #ifndef NIDIUM_NO_PRIVATE_DIR
-#  include "../interface/SystemInterface.h"
+#include <Interface/SystemInterface.h>
 #endif
-
 
 namespace Nidium {
 namespace Core {
@@ -25,40 +24,40 @@ namespace Core {
 DB::DB(const char *name) :
     m_Database(NULL), m_Status(false)
 {
-    char * chdir;
-    bool found;
-    size_t i;
-
     if (name == NULL) {
         m_Status = false;
         return;
     }
-    leveldb::Options options;
+
 #ifndef NIDIUM_NO_PRIVATE_DIR
-    std::string sdir(SystemInterface::GetInstance()->getCacheDirectory());
+    const char *cacheDir = Interface::SystemInterface::GetInstance()->getCacheDirectory();
 #else
-    std::string sdir("./");
+    const char *cacheDir = "";
 #endif
-    /*
-     change dots to slashes, to avoid a cluttered directory structure
-    */
-    sdir += name;
-    chdir = strdup(sdir.c_str());
-    found = false;
-    for (i = 0; i < strlen(chdir); i++) {
-        if (chdir[i] == '.' && found) {
-            chdir[i] = '/';
-        } else {
-            found = true;
-        }
-    }
-    Path::Makedirs(chdir);
+    char *destDir = nullptr;
+    leveldb::Options options;
     options.create_if_missing = true;
     options.filter_policy = leveldb::NewBloomFilterPolicy(8);
+  
+    /*
+        Change dots to slashes, to avoid a cluttered directory structure
+    */
+    if (asprintf(&destDir, "%s/db/%s", cacheDir, name) == -1) {
+        return;
+    }
 
-    leveldb::Status status = leveldb::DB::Open(options, chdir, &m_Database);
+    for (int i = strlen(cacheDir) - 1; i < strlen(destDir); i++) {
+        if (destDir[i] == '.') {
+            destDir[i] = '/';
+        }
+    }
+
+    Path::Makedirs(destDir);
+
+    leveldb::Status status = leveldb::DB::Open(options, destDir, &m_Database);
     m_Status = status.ok();
-    free(chdir);
+
+    free(destDir);
 }
 
 bool DB::insert(const char *key, const uint8_t *data, size_t data_len)

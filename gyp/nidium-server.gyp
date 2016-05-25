@@ -24,7 +24,10 @@
             '<(third_party_path)/setproctitle/setproctitle.c',
             '<(third_party_path)/linenoise/linenoise.c',
         ],
-        'defines':['LINENOISE_INTERRUPTIBLE'],
+        'defines':[
+            'LINENOISE_INTERRUPTIBLE',
+            'NIDIUM_NO_PRIVATE_DIR'
+        ],
         'conditions': [
             ['nofork==1', {
                 'defines':['NIDIUM_NO_FORK']

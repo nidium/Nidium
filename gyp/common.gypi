@@ -7,7 +7,6 @@
         'default_configuration': 'Release',
         'defines': [
             'NIDIUM_VERSION_STR="<(nidium_version)"',
-            'NIDIUM_NO_PRIVATE_DIR',
             'NIDIUM_FRAMEWORK_STR="delete me"', # XXX Remove this
             'NIDIUM_BUILD="<!@(git rev-parse HEAD)"',
             #'UINT32_MAX=4294967295u',
