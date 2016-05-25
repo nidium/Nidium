@@ -92,9 +92,9 @@ const char *System::getPrivateDirectory()
 const char *System::getCacheDirectory()
 {
     const char *homedir = getUserDirectory();
-    char nHome[2048];
+    char nHome[4096];
 
-    snprintf(nHome, 2048, "%s.nidium/", homedir);
+    snprintf(nHome, 4096, "%s.config/nidium/", homedir);
 
     if (mkdir(nHome, 0755) == -1 && errno != EEXIST) {
         fprintf(stderr, "Cant create cache directory %s\n", nHome);
@@ -106,14 +106,14 @@ const char *System::getCacheDirectory()
 
 const char *System::getUserDirectory()
 {
-    static char retHome[2048];
+    static char retHome[4096];
 
     char *homedir = getenv("HOME");
     if (!homedir) {
         homedir = getpwuid(getuid())->pw_dir;
     }
 
-    sprintf(retHome, "%s/", homedir);
+    snprintf(retHome, 4096, "%s/", homedir);
 
     return retHome;
 }
