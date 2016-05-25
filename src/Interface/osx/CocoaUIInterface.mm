@@ -10,7 +10,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import <native_netlib.h>
+#import <ape_netlib.h>
 
 #import "CocoaUIInterface.h"
 #import <SDL.h>
@@ -32,9 +32,8 @@
 #import "UIConsole.h"
 #import "DragNSView.h"
 
-#define kNativeTitleBarHeight 0
-
-#define kNativeVSYNC 1
+#define NIDIUM_TITLEBAR_HEIGHT 0
+#define NIDIUM_VSYNC 1
 
 @interface UICocoaInterfaceWrapper: NSObject {
     UICocoaInterface *base;
@@ -53,7 +52,7 @@ static __inline__ void ConvertNSRect(NSRect *r)
     r->origin.y = CGDisplayPixelsHigh(kCGDirectMainDisplay) - r->origin.y - r->size.height;
 }
 
-static NSWindow *NativeCocoaWindow(SDL_Window *win)
+static NSWindow *NidiumCocoaWindow(SDL_Window *win)
 {
     SDL_SysWMinfo info;
     SDL_VERSION(&info.version);
@@ -67,18 +66,18 @@ void UICocoaInterface::quitApplication()
     [[NSApplication sharedApplication] terminate:nil];
 }
 
-static int NativeProcessSystemLoop(void *arg)
+static int NidiumProcessSystemLoop(void *arg)
 {
     SDL_PumpEvents();
     UICocoaInterface *ui = (UICocoaInterface *)arg;
 
-    if (ui->m_NativeCtx) {
+    if (ui->getNidiumContext()) {
         ui->makeMainGLCurrent();
     }
     return 4;
 }
 
-static void NativeDoneExtracting(void *closure, const char *fpath)
+static void NidiumDoneExtracting(void *closure, const char *fpath)
 {
     UICocoaInterface *ui = (UICocoaInterface *)closure;
     if (chdir(fpath) != 0) {
@@ -146,12 +145,12 @@ void UICocoaInterface::stopApplication()
 }
 
 UICocoaInterface::UICocoaInterface() :
-    NativeUIInterface(), m_StatusItem(NULL), m_DragNSView(nil)
+    UIInterface(), m_StatusItem(NULL), m_DragNSView(nil)
 {
     m_Wrapper = [[UICocoaInterfaceWrapper alloc] initWithUI:this];
 }
 
-NativeUICocoaConsole *UICocoaInterface::getConsole(bool create, bool *created) {
+UICocoaConsole *UICocoaInterface::getConsole(bool create, bool *created) {
     if (created) *created = false;
     if (this->m_Console == NULL && create) {
         this->m_Console = new UICocoaConsole;
@@ -162,19 +161,19 @@ NativeUICocoaConsole *UICocoaInterface::getConsole(bool create, bool *created) {
 
 void UICocoaInterface::onWindowCreated()
 {
-    NSWindow *window = NativeCocoaWindow(m_Win);
+    NSWindow *window = NidiumCocoaWindow(m_Win);
 
     m_DragNSView = [[DragNSView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
     [[window contentView] addSubview:this->m_DragNSView];
-    [this->m_DragNSView setResponder:NativeJSwindow::getNativeClass(m_NativeCtx->getNJS())];
+    [this->m_DragNSView setResponder:JSwindow::getNativeClass(m_NidiumCtx->getNJS())];
 
     this->patchSDLView([window contentView]);
 
     [window setCollectionBehavior:
              NSWindowCollectionBehaviorFullScreenPrimary];
 
-    [window setFrameAutosaveName:@"nativeMainWindow"];
-    if (kNativeTitleBarHeight != 0) {
+    [window setFrameAutosaveName:@"nidiumMainWindow"];
+    if (NIDIUM_TITLEBAR_HEIGHT != 0) {
         [window setStyleMask:NSTexturedBackgroundWindowMask|NSTitledWindowMask];
     }
 
@@ -188,7 +187,7 @@ void UICocoaInterface::onWindowCreated()
 void UICocoaInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
     uint8_t b, uint8_t a)
 {
-    NSWindow *window = NativeCocoaWindow(m_Win);
+    NSWindow *window = NidiumCocoaWindow(m_Win);
     NSUInteger mask = [window styleMask];
 
     fprintf(stdout, "setting titlebar color\n");
@@ -208,7 +207,7 @@ void UICocoaInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
 
 void UICocoaInterface::initControls()
 {
-    NSWindow *window = NativeCocoaWindow(m_Win);
+    NSWindow *window = NidiumCocoaWindow(m_Win);
     NSButton *close = [window standardWindowButton:NSWindowCloseButton];
     NSButton *min = [window standardWindowButton:NSWindowMiniaturizeButton];
     NSButton *max = [window standardWindowButton:NSWindowZoomButton];
@@ -228,7 +227,7 @@ void UICocoaInterface::initControls()
 
 void UICocoaInterface::setWindowControlsOffset(double x, double y)
 {
-    NSWindow *window = NativeCocoaWindow(m_Win);
+    NSWindow *window = NidiumCocoaWindow(m_Win);
     NSButton *close = [window standardWindowButton:NSWindowCloseButton];
     NSButton *min = [window standardWindowButton:NSWindowMiniaturizeButton];
     NSButton *max = [window standardWindowButton:NSWindowZoomButton];
@@ -279,7 +278,7 @@ void UICocoaInterface::openFileDialog(const char *files[],
 #if 1
     // TODO: set a flag so that nidium can't be refreshed and unset after the block is called
 
-    [openDlg beginSheetModalForWindow:NativeCocoaWindow(m_Win) completionHandler:^(NSInteger result) {
+    [openDlg beginSheetModalForWindow:NidiumCocoaWindow(m_Win) completionHandler:^(NSInteger result) {
         if (result == NSFileHandlingPanelOKButton) {
             uint32_t len = [openDlg.URLs count];
             const char **lst = (const char **)malloc(sizeof(char **) * len);
@@ -304,16 +303,15 @@ void UICocoaInterface::openFileDialog(const char *files[],
 
 void UICocoaInterface::runLoop()
 {
-    APE_timer_create(m_Gnet, 1, NativeProcessUI, (void *)this);
-    APE_timer_create(m_Gnet, 1, NativeProcessSystemLoop, (void *)this);
-
+    APE_timer_create(m_Gnet, 1, UIInterface::HandleEvents, static_cast<void *>(this));
+    APE_timer_create(m_Gnet, 1, ProcessSystemLoop, static_cast<void *>(this));
     APE_loop_run(m_Gnet);
 }
 
 void UICocoaInterface::setWindowFrame(int x, int y, int w, int h)
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    NSWindow *nswindow = NativeCocoaWindow(m_Win);
+    NSWindow *nswindow = NidiumCocoaWindow(m_Win);
 
     this->m_Width = w;
     this->m_Height = h;
@@ -389,16 +387,16 @@ static const char *drawRect_Associated_obj = "_UIInterface";
     return self;
 }
 @end
-@interface NativeDrawRectResponder : NSView
+@interface NidiumDrawRectResponder : NSView
     - (void) drawRect:(NSRect)dirtyRect;
 @end
 
-@implementation NativeDrawRectResponder
+@implementation NidiumDrawRectResponder
 - (void) drawRect:(NSRect)dirtyRect
 {
     NSPointer *idthis = objc_getAssociatedObject(self, drawRect_Associated_obj);
     UICocoaInterface *UI = (UICocoaInterface *)idthis->m_Ptr;
-    Nidium::Frontend::Context *ctx = UI->getNativeContext();
+    Nidium::Frontend::Context *ctx = UI->getNidiumContext();
 
     if (ctx && ctx->isSizeDirty()) {
         [(NSOpenGLContext *)UI->getGLContext() update];
@@ -410,7 +408,7 @@ static const char *drawRect_Associated_obj = "_UIInterface";
 void UICocoaInterface::patchSDLView(NSView *sdlview)
 {
     Class SDLView = NSClassFromString(@"SDLView");
-    Method drawRectNewMeth = class_getInstanceMethod([NativeDrawRectResponder class], @selector(drawRect:));
+    Method drawRectNewMeth = class_getInstanceMethod([NidiumDrawRectResponder class], @selector(drawRect:));
     IMP drawRectNewImp = method_getImplementation(drawRectNewMeth);
     const char *types = method_getTypeEncoding(drawRectNewMeth);
 
@@ -589,7 +587,7 @@ void UICocoaInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
 {
     NSString *identifier = [sender representedObject];
 
-    JSWindow *window = JSWindow::GetObject(self->base->m_NativeCtx->getNJS());
+    JSWindow *window = JSWindow::GetObject(self->base->m_NidiumCtx->getNJS());
     if (window) {
         window->systemMenuClicked([identifier cStringUsingEncoding:NSUTF8StringEncoding]);
     }
@@ -598,7 +596,7 @@ void UICocoaInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
 - (NSMenu *) renderSystemTray
 {
     UICocoaInterface *ui = self->base;
-    NativeSystemMenu &m_SystemMenu = ui->getSystemMenu();
+    SystemMenu &m_SystemMenu = ui->getSystemMenu();
 
     SystemMenuItem *item = m_SystemMenu.items();
     if (!item) {

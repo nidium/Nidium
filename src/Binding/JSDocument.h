@@ -15,9 +15,9 @@ class NidiumFont
     SkTypeface *m_Typeface;
 
     enum Style {
-        kNativeFontBold,
-        kNativeFontNormal,
-        kNativeFontItalic
+        kFontStyle_Bold,
+        kFontStyle_Normal,
+        kFontStyle_Italic
     } m_Style;
 
     int m_Weight;
@@ -50,7 +50,7 @@ class JSDocument : public JSExposer<JSDocument>
     Core::Hash<NidiumFont *>m_Fonts;
 
     bool loadFont(const char *path, const char *name, int weight = 400,
-        NidiumFont::Style = NidiumFont::kNativeFontNormal);
+        NidiumFont::Style = NidiumFont::kFontStyle_Normal);
 
     SkTypeface *getFont(char *name);
 };

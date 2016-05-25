@@ -12,7 +12,7 @@ namespace App {
 
 class UICocoaUIIInterface;
 
-@interface NativeStudioAppDelegate : NSObject <NSApplicationDelegate, NSUserNotificationCenterDelegate>
+@interface AppDelegate : NSObject <NSApplicationDelegate, NSUserNotificationCenterDelegate>
 {
     NSArray *position;
     NSString *appfile;

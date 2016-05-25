@@ -221,7 +221,7 @@ int Video::openInitInternal()
         return ERR_NO_CODEC;
     }
 
-    // NativeAV stuff
+    // AV stuff
     m_LastDelay = 40e-3; // 40ms, default delay between frames a 30fps
 
     // Ringbuffer that hold reference to decoded frames

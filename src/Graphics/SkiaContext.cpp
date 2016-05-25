@@ -200,7 +200,7 @@ SkiaContext::SkiaContext() :
     m_State(NULL), m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0),
     m_AsComposite(0), m_Screen(NULL), m_CurrentShadow({0, 0, 0, 0}),
     m_Canvas(NULL), m_Debug(false), m_FontSkew(-0.25),
-    m_NativeCanvasBindMode(SkiaContext::BIND_NO)
+    m_CanvasBindMode(SkiaContext::BIND_NO)
 {
 
 }
@@ -407,7 +407,7 @@ int SkiaContext::bindOnScreen(int width, int height)
 
     m_Canvas->clear(0x00000000);
 
-    m_NativeCanvasBindMode = SkiaContext::BIND_ONSCREEN;
+    m_CanvasBindMode = SkiaContext::BIND_ONSCREEN;
 
     return 1;
 }
@@ -418,11 +418,11 @@ void glcb(const GrGLInterface*) {
 }
 
 SkCanvas *SkiaContext::CreateGLCanvas(int width, int height,
-    Context *nativectx)
+    Context *nctx)
 {
 
-    if (!nativectx) {
-        NUI_LOG("CreateGLCanvas() : invalid native context");
+    if (!nctx) {
+        NUI_LOG("CreateGLCanvas() : invalid nidium context");
         return NULL;
     }
 
@@ -434,7 +434,7 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height,
         context->ref();
     } else {
 
-        if ((interface = nativectx->getGLState()->getNativeGLContext()->iface()) == NULL) {
+        if ((interface = nctx->getGLState()->getNidiumGLContext()->iface()) == NULL) {
             NUI_LOG("Cant get OpenGL interface");
             return NULL;
         }
@@ -486,11 +486,11 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height,
 
 }
 
-int SkiaContext::bindGL(int width, int height, Context *nativectx)
+int SkiaContext::bindGL(int width, int height, Context *nctx)
 {
-    m_NativeCanvasBindMode = SkiaContext::BIND_GL;
+    m_CanvasBindMode = SkiaContext::BIND_GL;
 
-    if ((m_Canvas = SkiaContext::CreateGLCanvas(width, height, nativectx)) == NULL) {
+    if ((m_Canvas = SkiaContext::CreateGLCanvas(width, height, nctx)) == NULL) {
         return 0;
     }
 
@@ -569,10 +569,10 @@ ShadowLooper *SkiaContext::buildShadow()
                                 SkBlurDrawLooper::kHighQuality_BlurFlag);
 }
 
-static struct _native_xfer_mode {
+static struct _nidium_xfer_mode {
     const char *str;
     SkXfermode::Mode mode;
-} native_xfer_mode[] = {
+} nidium_xfer_mode[] = {
     {"source-over",        SkXfermode::kSrcOver_Mode},
     {"source-in",          SkXfermode::kSrcIn_Mode},
     {"source-out",         SkXfermode::kSrcOut_Mode},
@@ -1678,9 +1678,9 @@ void SkiaContext::setSmooth(bool val, int level)
 
 void SkiaContext::setGlobalComposite(const char *str)
 {
-    for (int i = 0; native_xfer_mode[i].str != NULL; i++) {
-        if (strcasecmp(native_xfer_mode[i].str, str) == 0) {
-            SkXfermode *mode = SkXfermode::Create(native_xfer_mode[i].mode);
+    for (int i = 0; nidium_xfer_mode[i].str != NULL; i++) {
+        if (strcasecmp(nidium_xfer_mode[i].str, str) == 0) {
+            SkXfermode *mode = SkXfermode::Create(nidium_xfer_mode[i].mode);
             PAINT->setXfermode(mode);
             PAINT_STROKE->setXfermode(mode);
             SkSafeUnref(mode);

@@ -152,8 +152,8 @@ class UIInterface
             kOpenFile_AlloMultipleSelection = 1 << 2
         };
 
-        inline Frontend::Context *getNativeContext() const {
-            return m_NativeCtx;
+        inline Frontend::Context *getNidiumContext() const {
+            return m_NidiumCtx;
         }
 
 
@@ -321,7 +321,7 @@ class UIInterface
         virtual UIConsole *getConsole(bool create=false, bool *created=NULL)=0;
 
 
-        Frontend::Context *m_NativeCtx;
+        Frontend::Context *m_NidiumCtx;
         Frontend::NML *m_Nml;
         SDL_Window *m_Win;
         ape_global *m_Gnet;

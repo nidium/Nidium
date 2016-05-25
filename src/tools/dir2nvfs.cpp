@@ -28,14 +28,14 @@ using Nidium::Core::Messages;
 using Nidium::Core::TaskManager;
 using Nidium::IO::Stream;
 using Nidium::IO::FileStream;
-using Nidium::Binding::NativeJSNSFS;
+using Nidium::Binding::JSNSFS;
 
 namespace Nidium {
 namespace Tools {
 
 unsigned long _ape_seed;
 
-void listdir(NativeJSNFS *nfs, DIR *dir, std::string fullpath, int strip)
+void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
 {
     dirent *cur;
 
@@ -61,7 +61,7 @@ void listdir(NativeJSNFS *nfs, DIR *dir, std::string fullpath, int strip)
             listdir(nfs, opendir(newpath.c_str()), newpath, strip);
         } else if (cur->d_type & DT_REG) {
 
-            //NativePtrAutoDelete<Stream *> stream(Stream::Create(newpath.c_str()));
+            //PtrAutoDelete<Stream *> stream(Stream::Create(newpath.c_str()));
             Stream *stream = Stream::Create(newpath.c_str());
 
             if (stream == NULL) {
@@ -97,7 +97,7 @@ static void initNidiumJS()
     */
     Path::RegisterScheme(SCHEME_DEFINE("file://", FileStream, false), true);
     TaskManager::CreateManager();
-    ape_global *gnet = native_netlib_init();
+    ape_global *gnet = APE_init();
     Messages::initReader(gnet);
 
 }
@@ -132,7 +132,7 @@ int main(int argc, char **argv)
     JS_SetOptions(cx, JSOPTION_NO_SCRIPT_RVAL);
     JS_SetVersion(cx, JSVERSION_LATEST);
 
-    NativeJSNFS *nfs = new NativeJSNFS(cx);
+    JSNFS *nfs = new JSNFS(cx);
 
     if (argc == 3) {
         std::string prefix = "/";

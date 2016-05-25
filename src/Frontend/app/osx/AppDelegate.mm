@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#import "NativeStudioAppDelegate.h"
+#import "NidiumAppDelegate.h"
 #import <pthread.h>
 
 #import <dispatch/dispatch.h>
@@ -24,9 +24,7 @@ namespace Nidium {
 
 namespace App {
 
-int _nativebuild = 1002;
-
-@implementation StudioAppDelegate
+@implementation AppDelegate
 
 @synthesize position, appfile;
 
@@ -43,7 +41,7 @@ int _nativebuild = 1002;
         [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(handleURLEvent:withReplyEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
 
         CFStringRef bundleID = (CFStringRef)[[NSBundle mainBundle] bundleIdentifier];
-        LSSetDefaultHandlerForURLScheme(CFSTR("native"), bundleID);
+        LSSetDefaultHandlerForURLScheme(CFSTR("nidium"), bundleID);
     }
     return self;
 }
@@ -67,7 +65,7 @@ int _nativebuild = 1002;
 {
     NSString* filename = [[event paramDescriptorForKeyword:keyDirectObject] stringValue];
 
-    NSString *f = [[[NSString alloc] initWithFormat:@"http%@", [filename substringFromIndex:sizeof("native")-1]] autorelease];
+    NSString *f = [[[NSString alloc] initWithFormat:@"http%@", [filename substringFromIndex:sizeof("nidium")-1]] autorelease];
 
     self.appfile = f;
 
@@ -168,7 +166,7 @@ NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:@"Testing!"] autorelease];
     //Console *console = [[Console alloc] init];
     //[console attachToStdout];
     CocoaUIInterface *nUI = new CocoaUIInterface;
-    __NativeUI = nUI;
+    __NidiumUI = nUI;
     nUI->setArguments(*_NSGetArgc(), *_NSGetArgv());
 
     self->UI = nUI;

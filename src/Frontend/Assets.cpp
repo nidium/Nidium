@@ -97,7 +97,7 @@ void Assets::Item::download()
         return;
     }
 
-    /* Reset the name with the new location forged by NativeStream */
+    /* Reset the name with the new location forged by Stream*/
     this->setName(m_Stream->getLocation());
 
     m_Stream->setListener(this);

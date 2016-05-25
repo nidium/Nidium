@@ -18,7 +18,7 @@ typedef void *SDL_GLContext;
 
 namespace Nidium {
 namespace Interface {
-    extern UIInterface *__NativeUI;
+    extern UIInterface *__NidiumUI;
 }
 namespace Graphics {
 
@@ -28,9 +28,9 @@ namespace Graphics {
     e.g. NIDIUM_GL_CALL(this->context, Clear(0, 0, 0, 0));
 */
 
-#define NIDIUM_GL_MAIN_IFACE (Nidium::Interface::__NativeUI->getNativeContext()->getGLState()->getNativeGLContext())
+#define NIDIUM_GL_MAIN_IFACE (Nidium::Interface::__NidiumUI->getNidiumContext()->getGLState()->getNidiumGLContext())
 
-#ifndef NATIVE_ENABLE_GL_ERROR
+#ifndef NIDIUM_ENABLE_GL_ERROR
 
     #define NIDIUM_GL_CALL(IFACE, X)                         \
         do {                                                 \

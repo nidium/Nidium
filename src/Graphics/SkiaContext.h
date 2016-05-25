@@ -99,7 +99,7 @@ class SkiaContext
             BIND_GL,
             BIND_OFFSCREEN,
             BIND_ONSCREEN
-        } m_NativeCanvasBindMode;
+        } m_CanvasBindMode;
 
         friend class CanvasHandler;
         friend class JSCanvas;
@@ -121,8 +121,8 @@ class SkiaContext
         double breakText(const char *str, size_t len,
             struct _Line lines[], double maxWidth, int *length = NULL);
         int bindOnScreen(int width, int height);
-        static SkCanvas *CreateGLCanvas(int width, int height, Frontend::Context *nativectx);
-        int bindGL(int width, int height, Frontend::Context *nativectx);
+        static SkCanvas *CreateGLCanvas(int width, int height, Frontend::Context *nctx);
+        int bindGL(int width, int height, Frontend::Context *nctx);
         void flush();
         void unlink();
 

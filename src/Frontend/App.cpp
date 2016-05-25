@@ -111,7 +111,7 @@ App::App(const char *path) :
     m_Path = strdup(path);
 }
 
-static void *native_appworker_thread(void *arg)
+static void *nidium_appworker_thread(void *arg)
 {
     App *app = static_cast<App *>(arg);
 
@@ -227,7 +227,7 @@ void App::runWorker(ape_global *net)
 
     m_WorkerIsRunning = true;
 
-    pthread_create(&m_ThreadHandle, NULL, native_appworker_thread, this);
+    pthread_create(&m_ThreadHandle, NULL, nidium_appworker_thread, this);
 
     pthread_mutex_lock(&m_ThreadMutex);
         pthread_cond_signal(&m_ThreadCond);

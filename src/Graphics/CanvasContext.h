@@ -104,7 +104,7 @@ class CanvasContext
             return NULL;
         }
 
-        return m_GLState->getNativeGLContext();
+        return m_GLState->getNidiumGLContext();
     }
 
     bool makeGLCurrent() {

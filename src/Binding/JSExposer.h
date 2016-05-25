@@ -74,25 +74,6 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
         JS_DefineProperties(cx, name ## Obj, name ## _props); \
     }
 
-#define NATIVE_OBJECT_EXPOSE(name) \
-    void NativeJS ## name::RegisterObject(JSContext *cx) \
-    { \
-        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
-        JS_InitClass(cx, global, JS::NullPtr(), &name ## _class, \
-            native_ ## name ## _constructor, \
-            0, NULL, NULL, NULL, NULL); \
-    }
-
-#define NATIVE_OBJECT_EXPOSE_NOT_INST(name) \
-    void NativeJS ## name::RegisterObject(JSContext *cx) \
-    { \
-        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
-        JS::RootedObject name ## Obj(cx, JS_DefineObject(cx, global, #name, \
-            &name ## _class , NULL, 0)); \
-        JS_DefineFunctions(cx, name ## Obj, name ## _funcs); \
-        JS_DefineProperties(cx, name ## Obj, name ## _props); \
-    }
-
 #define NIDIUM_JS_REGISTER_MODULE(constructor) \
     extern "C" __attribute__((__visibility__("default"))) bool __NidiumRegisterModule(JSContext *cx, JS::HandleObject exports) \
     { \

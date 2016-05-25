@@ -546,7 +546,7 @@ int NidiumJS::LoadApplication(const char *path)
         printf("LoadApplication: bind a net object first\n");
         return 0;
     }
-    NativeApp *app = new NativeApp("./demo.zip");
+    App *app = new App("./demo.zip");
     if (app->open()) {
         this->UI->setWindowTitle(app->getTitle());
         app->runWorker(m_Net);

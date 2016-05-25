@@ -54,7 +54,7 @@ static bool nidium_document_toDataArray(JSContext *cx, unsigned argc, JS::Value 
 static bool nidium_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass Document_class = {
-    "NativeDocument", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
+    "NidiumDocument", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Document_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS

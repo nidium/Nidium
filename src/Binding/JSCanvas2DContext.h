@@ -32,7 +32,7 @@ namespace Binding {
     The class is auto destroyed if no reference is retained to the JSObject
 
     i.e.
-    foo = new NativeCanvas2DObject();
+    foo = new Canvas2Context();
     foo->m_JsObj Must either be JS_AddObjectRoot'ed or given to the userland
 
     Don't manually delete the instance.

@@ -695,7 +695,7 @@ bool AudioNodeReverb::process()
 }
 // }}}
 
-// {{{ NativeAudoNodeStereoEnhancer
+// {{{ AudoNodeStereoEnhancer
 AudioNodeStereoEnhancer::AudioNodeStereoEnhancer(int inCount, int outCount, Audio *audio)
     : AudioNode(inCount, outCount, audio), m_Width(0)
 {

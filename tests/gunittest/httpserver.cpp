@@ -14,7 +14,7 @@
 TEST(HTTPServer, Simple)
 {
     ape_global *g_ape = APE_init();
-    Nidium::Binding::NidiumJS g_native(g_ape);
+    Nidium::Binding::NidiumJS njs(g_ape);
 
     Nidium::Net::HTTPServer nl(8111);
 

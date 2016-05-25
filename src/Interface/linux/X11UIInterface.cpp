@@ -174,7 +174,7 @@ static int ProcessSystemLoop(void *arg)
     //SDL_PumpEvents();
     UIX11Interface *ui = static_cast<UIX11Interface *>(arg);
 
-    /*if (ui->m_NativeCtx) {
+    /*if (ui->getNidiumContext()) {
         ui->makeMainGLCurrent();
     }*/
 

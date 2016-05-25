@@ -83,7 +83,7 @@ int64_t AVBufferReader::seek(void *opaque, int64_t offset, int whence)
 // {{{ AVStreamReader
 #define STREAM_BUFFER_SIZE NIDIUM_AVIO_BUFFER_SIZE*6
 AVStreamReader::AVStreamReader(const char *src,
-        NativeAVStreamReadCallback readCallback, void *callbackPrivate, AVSource *source, ape_global *net)
+        AVStreamReadCallback readCallback, void *callbackPrivate, AVSource *source, ape_global *net)
     : m_Source(source), m_TotalRead(0), m_ReadCallback(readCallback),
       m_CallbackPrivate(callbackPrivate), m_Opened(false),
       m_StreamRead(STREAM_BUFFER_SIZE), m_StreamPacketSize(0), m_StreamErr(-1),
@@ -318,12 +318,12 @@ void AVStreamReader::onProgress(size_t buffered, size_t len)
 */
 
 /*
-void AVStreamReader::onError(NativeStream::StreamError err)
+void AVStreamReader::onError(Stream::StreamError err)
 {
     int error;
     switch (err)
     {
-        case NativeStream::STREAM_ERROR_OPEN:
+        case Stream::STREAM_ERROR_OPEN:
             error = ERR_FAILED_OPEN;
         break;
         default:

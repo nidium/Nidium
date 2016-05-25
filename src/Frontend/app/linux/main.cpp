@@ -24,14 +24,12 @@ namespace Nidium {
     namespace Interface {
         class SystemInterface;
         class UIInterface;
-        class NativeX11Interface;
 
         SystemInterface *SystemInterface::_interface = new System();
-        UIInterface *__NativeUI;
+        UIInterface *__NidiumUI;
     }
 namespace App {
 
-int _nativebuild = 1002;
 char _root[PATH_MAX]; // Using _root to store the location of nidium exec
 
 #ifdef NIDIUM_ENABLE_CRASHREPORTER
@@ -65,7 +63,7 @@ int main(int argc, char **argv)
             -1);
 #endif
 
-    Nidium::Interface::__NativeUI = &UI;
+    Nidium::Interface::__NidiumUI = &UI;
     _ape_seed = time(NULL) ^ (getpid() << 16);
     if (getcwd(Nidium::App::_root, PATH_MAX)) {
         int l = strlen(Nidium::App::_root);

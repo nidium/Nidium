@@ -28,16 +28,16 @@ namespace Graphics {
 int CanvasHandler::m_LastIdx = 0;
 
 CanvasHandler::CanvasHandler(int width, int height,
-    Context *nativeCtx, bool lazyLoad) :
+    Context *nctx, bool lazyLoad) :
     m_Context(NULL),
-    m_JsCx(nativeCtx->getNJS()->getJSContext()), m_Left(0.0), m_Top(0.0),
+    m_JsCx(nctx->getNJS()->getJSContext()), m_Left(0.0), m_Top(0.0),
     m_aLeft(0), m_aTop(0), m_Right(0.0), m_Bottom(0.0), m_Overflow(true),
     m_Parent(NULL), m_Children(NULL), m_Next(NULL), m_Prev(NULL), m_Last(NULL),
     m_Flags(0), m_nChildren(0), m_CoordPosition(COORD_RELATIVE),
     m_Visibility(CANVAS_VISIBILITY_VISIBLE), m_FlowMode(kFlowDoesntInteract),
     m_CoordMode(kLeft_Coord | kTop_Coord), m_Opacity(1.0), m_Zoom(1.0),
     m_ScaleX(1.0), m_ScaleY(1.0), m_AllowNegativeScroll(false),
-    m_NativeContext(nativeCtx), m_Pending(0), m_Loaded(!lazyLoad),
+    m_NidiumContext(nctx), m_Pending(0), m_Loaded(!lazyLoad),
      m_Cursor(UIInterface::ARROW)
 {
     /*
@@ -47,7 +47,7 @@ CanvasHandler::CanvasHandler(int width, int height,
 
     asprintf(&m_Identifier.str, "%zd", m_Identifier.idx);
 
-    m_NativeContext->m_CanvasList.set(m_Identifier.str, this);
+    m_NidiumContext->m_CanvasList.set(m_Identifier.str, this);
 
     m_Width = nidium_max(width, 1);
     m_Height = nidium_max(height, 1);
@@ -100,8 +100,8 @@ void CanvasHandler::setId(const char *str)
         return;
     }
 
-    m_NativeContext->m_CanvasList.erase(m_Identifier.str);
-    m_NativeContext->m_CanvasList.set(str, this);
+    m_NidiumContext->m_CanvasList.erase(m_Identifier.str);
+    m_NidiumContext->m_CanvasList.set(str, this);
 
     free(m_Identifier.str);
     m_Identifier.str = strdup(str);
@@ -405,8 +405,8 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
         return;
     }
 
-    if (!willBeAdopted && m_NativeContext->getCurrentClickedHandler() == this) {
-        m_NativeContext->setCurrentClickedHandler(NULL);
+    if (!willBeAdopted && m_NidiumContext->getCurrentClickedHandler() == this) {
+        m_NidiumContext->setCurrentClickedHandler(NULL);
     }
 
     if (m_JsObj && JS::IsIncrementalBarrierNeeded(JS_GetRuntime(m_JsCx))) {
@@ -436,7 +436,7 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
 
 void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
 {
-    InputEvent *ev = m_NativeContext->getInputEvents();
+    InputEvent *ev = m_NidiumContext->getInputEvents();
     if (ev == NULL) {
         return;
     }
@@ -478,7 +478,7 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
     }
 
     if (evlist) {
-        ape_pool_push(&m_NativeContext->m_CanvasEventsCanvas, evlist);
+        ape_pool_push(&m_NidiumContext->m_CanvasEventsCanvas, evlist);
     }
 }
 
@@ -981,7 +981,7 @@ int CanvasHandler::getCursor()
 void CanvasHandler::setCursor(int cursor)
 {
     m_Cursor = cursor;
-    Nidium::Interface::__NativeUI->setCursor((UIInterface::CURSOR_TYPE)this->getCursor());
+    Nidium::Interface::__NidiumUI->setCursor((UIInterface::CURSOR_TYPE)this->getCursor());
 }
 
 void CanvasHandler::setHidden(bool val)
@@ -1099,11 +1099,11 @@ void CanvasHandler::setPendingFlags(int flags, bool append)
     m_Pending |= flags;
 
     if (m_Pending == 0) {
-        m_NativeContext->m_CanvasPendingJobs.erase((uint64_t)this);
+        m_NidiumContext->m_CanvasPendingJobs.erase((uint64_t)this);
         return;
     }
-    if (!m_NativeContext->m_CanvasPendingJobs.get((uint64_t)this)) {
-        m_NativeContext->m_CanvasPendingJobs.set((uint64_t)this, this);
+    if (!m_NidiumContext->m_CanvasPendingJobs.get((uint64_t)this)) {
+        m_NidiumContext->m_CanvasPendingJobs.set((uint64_t)this, this);
     }
 }
 
@@ -1205,12 +1205,12 @@ void CanvasHandler::onMouseEvent(InputEvent *ev)
     switch (ev->getType()) {
         case InputEvent::kMouseClick_Type:
             if (ev->m_data[0] == 1) // left click
-                m_NativeContext->setCurrentClickedHandler(this);
+                m_NidiumContext->setCurrentClickedHandler(this);
             break;
         case InputEvent::kMouseClickRelease_Type:
             if (ev->m_data[0] == 1) {
                 CanvasHandler *drag;
-                if ((drag = m_NativeContext->getCurrentClickedHandler()) &&
+                if ((drag = m_NidiumContext->getCurrentClickedHandler()) &&
                     (drag->m_Flags & kDrag_Flag)) {
 
                     CanvasHandler *target = (drag == this) ? underneath : this;
@@ -1221,13 +1221,13 @@ void CanvasHandler::onMouseEvent(InputEvent *ev)
                     drag->m_Flags &= ~kDrag_Flag;
 
                 }
-                m_NativeContext->setCurrentClickedHandler(NULL);
+                m_NidiumContext->setCurrentClickedHandler(NULL);
             }
             break;
         case InputEvent::kMouseMove_Type:
         {
             CanvasHandler *drag;
-            if ((drag = m_NativeContext->getCurrentClickedHandler())) {
+            if ((drag = m_NidiumContext->getCurrentClickedHandler())) {
 
                 drag->onDrag(ev, (this == drag) ? underneath : this);
             }
@@ -1236,7 +1236,7 @@ void CanvasHandler::onMouseEvent(InputEvent *ev)
         default:
             break;
     }
-    Nidium::Interface::__NativeUI->setCursor((UIInterface::CURSOR_TYPE)this->getCursor());
+    Nidium::Interface::__NidiumUI->setCursor((UIInterface::CURSOR_TYPE)this->getCursor());
 }
 
 /*
@@ -1287,11 +1287,11 @@ CanvasHandler::~CanvasHandler()
         cur = cnext;
     }
 
-    m_NativeContext->m_CanvasList.erase(m_Identifier.str);
+    m_NidiumContext->m_CanvasList.erase(m_Identifier.str);
 
     free(m_Identifier.str);
 
-    m_NativeContext->m_CanvasPendingJobs.erase((uint64_t)this);
+    m_NidiumContext->m_CanvasPendingJobs.erase((uint64_t)this);
 }
 
 } // namespace Graphics

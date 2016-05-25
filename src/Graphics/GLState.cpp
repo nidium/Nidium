@@ -41,7 +41,7 @@ GLState::GLState(Context *nctx) :
 void GLState::CreateForContext(Context *nctx)
 {
     UIInterface *ui;
-    if ((ui = nctx->getUI()) == NULL || ui->m_NativeCtx->getGLState()) {
+    if ((ui = nctx->getUI()) == NULL || ui->m_NidiumCtx->getGLState()) {
         NUI_LOG("Failed to init the first GLState");
         return;
     }

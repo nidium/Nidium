@@ -19,8 +19,6 @@
 namespace Nidium {
 namespace Frontend {
 
-class NativeStream;
-
 class Assets
 {
     public:

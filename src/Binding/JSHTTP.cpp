@@ -432,11 +432,11 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 #if 0
         case HTTP::DATA_IMAGE:
         {
-            NativeSkImage *nimg;
+            Image *nimg;
             SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
                 CONST_STR_LEN("image"))));
 
-            nimg = new NativeSkImage(h->m_Data->data, h->m_Data->used);
+            nimg = new Image(h->m_Data->data, h->m_Data->used);
             jdata = OBJECT_TO_JSVAL(NidiumJSImage::BuildImageObject(cx, nimg));
 
             break;

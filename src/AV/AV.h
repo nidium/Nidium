@@ -98,13 +98,13 @@ class AVBufferReader : public AVReader
 };
 // }}}
 
-typedef void (*NativeAVStreamReadCallback)(void *m_CallbackPrivate);
+typedef void (*AVStreamReadCallback)(void *m_CallbackPrivate);
 
 // {{{ AVStreamReader
 class AVStreamReader : public AVReader, public Core::Messages
 {
     public:
-        AVStreamReader(const char *src, NativeAVStreamReadCallback readCallback,
+        AVStreamReader(const char *src, AVStreamReadCallback readCallback,
             void *callbackPrivate, AVSource *source, ape_global *net);
 
         AVSource *m_Source;
@@ -126,7 +126,7 @@ class AVStreamReader : public AVReader, public Core::Messages
         NIDIUM_PTHREAD_VAR_DECL(m_ThreadCond);
 
         IO::Stream *m_Stream;
-        NativeAVStreamReadCallback m_ReadCallback;
+        AVStreamReadCallback m_ReadCallback;
         void *m_CallbackPrivate;
 
         bool m_Opened;

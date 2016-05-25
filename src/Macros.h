@@ -8,12 +8,12 @@
 
 namespace Nidium {
     namespace Interface {
-        extern UIInterface *__NativeUI;
+        extern UIInterface *__NidiumUI;
     }
 namespace Frontend {
 
 #define NUI_LOG(format, ...) \
-    Nidium::Interface::__NativeUI->logf("[%s:%d] " format "\n", __FILENAME__, __LINE__, ##__VA_ARGS__)
+    Nidium::Interface::__NidiumUI->logf("[%s:%d] " format "\n", __FILENAME__, __LINE__, ##__VA_ARGS__)
 
 } // namespace Frontend
 } // namespace Nidium

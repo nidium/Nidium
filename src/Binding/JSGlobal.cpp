@@ -56,7 +56,7 @@ JSPropertySpec glob_props[] = {
     NIDIUM_JS_PSG("__filename", GLOBAL_PROP___FILENAME, nidium_global_prop_get),
     NIDIUM_JS_PSG("__dirname", GLOBAL_PROP___DIRNAME, nidium_global_prop_get),
     NIDIUM_JS_PSG("global", GLOBAL_PROP_GLOBAL, nidium_global_prop_get),
-#ifndef NATIVE_DISABLE_WINDOW_GLOBAL
+#ifndef NIDIUM_DISABLE_WINDOW_GLOBAL
     NIDIUM_JS_PSG("window", GLOBAL_PROP_WINDOW, nidium_global_prop_get),
 #endif
     JS_PS_END

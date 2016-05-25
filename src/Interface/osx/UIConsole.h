@@ -13,7 +13,7 @@
 namespace Nidium {
 namespace Interface {
 
-@interface NativeConsole : NSObject
+@interface NidiumConsole : NSObject
 {
     NSWindow *m_Window;
     NSTextView *textview;
@@ -43,7 +43,7 @@ class UICocoaConsole : public UIInterface::UIConsole
         bool hidden();
         bool m_IsHidden;
     private:
-        NativeConsole *m_Window;
+        NidiumConsole *m_Window;
         bool m_NeedFlush;
 };
 

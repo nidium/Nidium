@@ -20,8 +20,8 @@
 #include "SDL_keycode_translate.h"
 #include "Macros.h"
 
-#define kNativeTitleBarHeight 0
-#define kNativeVSYNC 1
+#define NIDIUM_TITLEBAR_HEIGHT 0
+#define NIDIUM_VSYNC 1
 
 uint32_t ttfps = 0;
 
@@ -38,7 +38,7 @@ namespace Interface {
 
 // {{{ UIInterface
 UIInterface::UIInterface() :
-    m_CurrentCursor(UIInterface::ARROW), m_NativeCtx(NULL), m_Nml(NULL),
+    m_CurrentCursor(UIInterface::ARROW), m_NidiumCtx(NULL), m_Nml(NULL),
     m_Win(NULL), m_Gnet(APE_init()), m_Width(0), m_Height(0), m_FilePath(NULL),
     m_Initialized(false), m_IsOffscreen(false), m_ReadPixelInBuffer(false),
     m_Hidden(false), m_FBO(0), m_FrameBuffer(NULL), m_Console(NULL),
@@ -97,7 +97,7 @@ bool UIInterface::createWindow(int width, int height)
         /*
             Enable vertical sync
         */
-        if (SDL_GL_SetSwapInterval(kNativeVSYNC) == -1) {
+        if (SDL_GL_SetSwapInterval(NIDIUM_VSYNC) == -1) {
             fprintf(stdout, "Cant vsync\n");
         }
 
@@ -114,7 +114,7 @@ bool UIInterface::createWindow(int width, int height)
     /*
         This will create root canvas, initial size and so on
     */
-    m_NativeCtx->setUIObject(this);
+    m_NidiumCtx->setUIObject(this);
 
     return true;
 }
@@ -131,7 +131,7 @@ int UIInterface::HandleEvents(void *arg)
         JSWindow *window = NULL;
         if (NUII->isContextReady()) {
             NUII->makeMainGLCurrent();
-            window = JSWindow::GetObject(NUII->m_NativeCtx->getNJS());
+            window = JSWindow::GetObject(NUII->m_NidiumCtx->getNJS());
         }
         nevents++;
         switch(event.type) {
@@ -167,7 +167,7 @@ int UIInterface::HandleEvents(void *arg)
                 break;
             case SDL_MOUSEMOTION:
                 if (window) {
-                    window->mouseMove(event.motion.x, event.motion.y - kNativeTitleBarHeight,
+                    window->mouseMove(event.motion.x, event.motion.y - NIDIUM_TITLEBAR_HEIGHT,
                                event.motion.xrel, event.motion.yrel);
                 }
                 break;
@@ -176,14 +176,14 @@ int UIInterface::HandleEvents(void *arg)
                 int cx, cy;
                 SDL_GetMouseState(&cx, &cy);
                 if (window) {
-                    window->mouseWheel(event.wheel.x, event.wheel.y, cx, cy - kNativeTitleBarHeight);
+                    window->mouseWheel(event.wheel.x, event.wheel.y, cx, cy - NIDIUM_TITLEBAR_HEIGHT);
                 }
                 break;
             }
             case SDL_MOUSEBUTTONUP:
             case SDL_MOUSEBUTTONDOWN:
                 if (window) {
-                    window->mouseClick(event.button.x, event.button.y - kNativeTitleBarHeight,
+                    window->mouseClick(event.button.x, event.button.y - NIDIUM_TITLEBAR_HEIGHT,
                                 event.button.state, event.button.button, event.button.clicks);
                 }
             break;
@@ -234,7 +234,7 @@ int UIInterface::HandleEvents(void *arg)
     }
 
     if (ttfps%300 == 0 && NUII->isContextReady()) {
-        NUII->m_NativeCtx->getNJS()->gc();
+        NUII->m_NidiumCtx->getNJS()->gc();
     }
 
     if (NUII->m_CurrentCursor != UIInterface::NOCHANGE) {
@@ -244,7 +244,7 @@ int UIInterface::HandleEvents(void *arg)
 
     if (NUII->isContextReady()) {
         NUII->makeMainGLCurrent();
-        NUII->m_NativeCtx->frame(true);
+        NUII->m_NidiumCtx->frame(true);
     }
 #if 0
     TODO : OSX
@@ -252,14 +252,14 @@ int UIInterface::HandleEvents(void *arg)
         NUII->getConsole()->flush();
     }
 #endif
-    if (NUII->getFBO() != 0 && NUII->m_NativeCtx) {
+    if (NUII->getFBO() != 0 && NUII->m_NidiumCtx) {
 
         glReadBuffer(GL_COLOR_ATTACHMENT0);
 
         glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
         uint8_t *pdata = NUII->getFrameBufferData();
 
-        NUII->m_NativeCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
+        NUII->m_NidiumCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
     } else {
         NUII->makeMainGLCurrent();
         SDL_GL_SwapWindow(NUII->m_Win);
@@ -271,7 +271,7 @@ int UIInterface::HandleEvents(void *arg)
 
 bool UIInterface::isContextReady()
 {
-    return (this->m_NativeCtx && m_NativeCtx->getUI());
+    return (this->m_NidiumCtx && m_NidiumCtx->getUI());
 }
 
 void UIInterface::OnNMLLoaded(void *arg)
@@ -284,7 +284,7 @@ void UIInterface::onNMLLoaded()
 {
     if (!this->createWindow(
         this->m_Nml->getMetaWidth(),
-        this->m_Nml->getMetaHeight() + kNativeTitleBarHeight)) {
+        this->m_Nml->getMetaHeight() + NIDIUM_TITLEBAR_HEIGHT)) {
         exit(2);
     }
 
@@ -359,9 +359,9 @@ void UIInterface::refresh()
     int oswap = SDL_GL_GetSwapInterval();
     SDL_GL_SetSwapInterval(0);
 
-    if (this->m_NativeCtx) {
+    if (this->m_NidiumCtx) {
         this->makeMainGLCurrent();
-        this->m_NativeCtx->frame();
+        this->m_NidiumCtx->frame();
     }
 
     SDL_GL_SwapWindow(this->m_Win);
@@ -537,8 +537,8 @@ void UIInterface::refreshApplication(bool clearConsole)
     }
 
     /* Trigger GC before refreshing */
-    if (m_NativeCtx && m_NativeCtx->getNJS()) {
-        m_NativeCtx->getNJS()->gc();
+    if (m_NidiumCtx && m_NidiumCtx->getNJS()) {
+        m_NidiumCtx->getNJS()->gc();
     }
 
     this->restartApplication();
@@ -558,7 +558,7 @@ bool UIInterface::runApplication(const char *path)
     //    FILE *main = fopen("index.nml", "r");
     //    const char *ext = &path[strlen(path)-4];
 
-    m_NativeCtx = new Context(this->m_Gnet);
+    m_NidiumCtx = new Context(this->m_Gnet);
     m_Nml = new NML(this->m_Gnet);
     m_Nml->loadFile(path, UIInterface::OnNMLLoaded, this);
 
@@ -571,9 +571,9 @@ void UIInterface::stopApplication()
         delete this->m_Nml;
         this->m_Nml = NULL;
     }
-    if (this->m_NativeCtx) {
-        delete this->m_NativeCtx;
-        this->m_NativeCtx = NULL;
+    if (this->m_NidiumCtx) {
+        delete this->m_NidiumCtx;
+        this->m_NidiumCtx = NULL;
     }
 
     glClearColor(1, 1, 1, 1);

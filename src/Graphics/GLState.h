@@ -65,7 +65,7 @@ public:
 
     void setVertexDeformation(uint32_t vertex, float x, float y);
 
-    inline GLContext *getNativeGLContext() const {
+    inline GLContext *getNidiumGLContext() const {
         return m_GLContext;
     }
 

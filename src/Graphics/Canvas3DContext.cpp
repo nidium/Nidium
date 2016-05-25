@@ -28,8 +28,8 @@ using Nidium::Binding::WebGLRenderingContext_const;
 namespace Nidium {
 namespace Graphics {
 
-#define GL_CALL(X) NIDIUM_GL_CALL(m_GLState->getNativeGLContext(), X)
-#define GL_CALL_RET(X, RET) NIDIUM_GL_CALL_RET(m_GLState->getNativeGLContext(), X, RET)
+#define GL_CALL(X) NIDIUM_GL_CALL(m_GLState->getNidiumGLContext(), X)
+#define GL_CALL_RET(X, RET) NIDIUM_GL_CALL_RET(m_GLState->getNidiumGLContext(), X, RET)
 
 Canvas3DContext::~Canvas3DContext()
 {
@@ -62,7 +62,7 @@ Canvas3DContext::Canvas3DContext(CanvasHandler *handler,
 }
 
 #if 0
-static bool native_Canvas3DContext_constructor(JSContext *cx,
+static bool nidium_Canvas3DContext_constructor(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     JS_ReportError(cx, "Illegal constructor");
@@ -202,7 +202,7 @@ bool Canvas3DContext::createFBO(int width, int height)
         Create a WebGL context with passthrough program
     */
     if (!m_GLState) {
-        m_GLState = new GLState(Interface::__NativeUI, true, true);
+        m_GLState = new GLState(Interface::__NidiumUI, true, true);
         m_GLState->setShared(false);
     }
 

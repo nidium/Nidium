@@ -955,7 +955,7 @@ static bool nidium_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
 }
 
 
-struct _nativeopenfile
+struct _nidiumopenfile
 {
     JSContext *m_Cx;
     JS::PersistentRootedValue m_Cb;
@@ -963,7 +963,7 @@ struct _nativeopenfile
 
 static void nidium_window_openfilecb(void *_nof, const char *lst[], uint32_t len)
 {
-    struct _nativeopenfile *nof = (struct _nativeopenfile *)_nof;
+    struct _nidiumopenfile *nof = (struct _nidiumopenfile *)_nof;
     JS::RootedObject arr(nof->m_Cx, JS_NewArrayObject(nof->m_Cx, len));
     for (int i = 0; i < len; i++) {
         JS::RootedValue val(nof->m_Cx, OBJECT_TO_JSVAL(JSFileIO::GenerateJSObject(nof->m_Cx, lst[i])));
@@ -1038,7 +1038,7 @@ static bool nidium_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value 
         return false;
     }
 
-    struct _nativeopenfile *nof = (struct _nativeopenfile *)malloc(sizeof(*nof));
+    struct _nidiumopenfile *nof = (struct _nidiumopenfile *)malloc(sizeof(*nof));
     nof->m_Cb = callback;
     nof->m_Cx = cx;
 
@@ -1088,7 +1088,7 @@ static bool nidium_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
         ctypes[j] = NULL;
     }
 
-    struct _nativeopenfile *nof = (struct _nativeopenfile *)malloc(sizeof(*nof));
+    struct _nidiumopenfile *nof = (struct _nidiumopenfile *)malloc(sizeof(*nof));
     nof->m_Cb = callback;
     nof->m_Cx = cx;
 
@@ -1536,7 +1536,7 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx, int width,
     NJS->rootHandler->addChild((CanvasHandler *)JS_GetPrivate(titleBar));
 
     JS::RootedValue titleVal(cx, OBJECT_TO_JSVAL(titleBar));
-    JS_DefineProperty(cx, NativeObj, "titleBar", titleVal, JSPROP_READONLY | JSPROP_PERMANENT | JSPROP_PERMANENT | JSPROP_ENUMERATE);
+    JS_DefineProperty(cx, NidiumObj, "titleBar", titleVal, JSPROP_READONLY | JSPROP_PERMANENT | JSPROP_PERMANENT | JSPROP_ENUMERATE);
 #endif
 
     return jwin;

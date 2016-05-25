@@ -15,7 +15,7 @@ namespace Nidium {
 namespace IO {
 
 class FileStream : public Stream,
-                         public Nidium::Core::Messages
+                   public Nidium::Core::Messages
 {
 public:
     explicit FileStream(const char *location);

@@ -116,7 +116,7 @@ int main(int argc, char **argv)
     sprintf(cl_header, "Content-Length:%d\r\n", strlen(data) + strlen(HTTP_BOUNDARY_END) + minidum_size);
     // Send the data
     SEND("POST "NIDIUM_CRASH_COLLECTOR_ENDPOINT" HTTP/1.1\r\n");
-    SEND("User-Agent: Native crash reporter V0.1\r\n");
+    SEND("User-Agent: Nidium crash reporter V0.1\r\n");
     SEND("Host: "NIDIUM_CRASH_COLLECTOR_HOST"\r\n");
     SEND(cl_header);
     SEND("Content-Type: multipart/form-data; boundary="HTTP_BOUNDARY"\r\n\r\n");

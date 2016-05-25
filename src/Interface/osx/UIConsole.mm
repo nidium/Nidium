@@ -6,7 +6,7 @@
 #import "UIConsole.h"
 
 
-@implementation NativeConsole
+@implementation NidiumConsole
 
 @synthesize m_Window, textview, m_IsHidden;
 
@@ -18,7 +18,7 @@
 
     self.m_Window = [[NSWindow alloc] initWithContentRect:NSMakeRect(100, 100, 700, 480) styleMask: NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
 
-    [self.m_Window setFrameAutosaveName:@"nativeConsole"];
+    [self.m_Window setFrameAutosaveName:@"nidiumConsole"];
     [self.m_Window setTitle:@"nidium console"];
     CGRect frame = [[self.m_Window contentView] frame];
     NSButton *btn = [[NSButton alloc] initWithFrame:NSMakeRect(10, 3, 100, 25)];
@@ -145,7 +145,7 @@
 
 UICocoaConsole::UICocoaConsole()
 {
-    this->m_Window = [[NativeConsole alloc] init];
+    this->m_Window = [[NidiumConsole alloc] init];
     this->m_NeedFlush = false;
     //[this->m_Window attachToStdout];
     this->show();

@@ -334,8 +334,8 @@ class CanvasHandler : public Core::Events
             return m_MaxHeight;
         }
 
-        Frontend::Context *getNativeContext() const {
-            return m_NativeContext;
+        Frontend::Context *getNidiumContext() const {
+            return m_NidiumContext;
         }
 
         bool hasFixedWidth() const {
@@ -471,7 +471,7 @@ class CanvasHandler : public Core::Events
         }
 
         CanvasHandler(int width, int height,
-            Frontend::Context *NativeCtx, bool lazyLoad = false);
+            Frontend::Context *nctx, bool lazyLoad = false);
 
         virtual ~CanvasHandler();
 
@@ -582,7 +582,7 @@ class CanvasHandler : public Core::Events
         bool m_AllowNegativeScroll;
         bool m_FluidWidth, m_FluidHeight;
 
-        Frontend::Context *m_NativeContext;
+        Frontend::Context *m_NidiumContext;
 
         struct {
             uint64_t idx;

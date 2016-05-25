@@ -58,16 +58,16 @@ enum {
 };
 
 // {{{ Logging
-int NativeContext_vLogger(const char *format, va_list ap)
+int NidiumContext_vLogger(const char *format, va_list ap)
 {
-    Interface::__NativeUI->vlog(format, ap);
+    Interface::__NidiumUI->vlog(format, ap);
 
     return 0;
 }
 
-int NativeContext_LogClear()
+int NidumContext_LogClear()
 {
-    Interface::__NativeUI->logclear();
+    Interface::__NidiumUI->logclear();
 
     return 0;
 }
@@ -199,7 +199,7 @@ void Context::sizeChanged(int w, int h)
 
     /* Skia GL */
     this->getRootHandler()->setSize(static_cast<int>(w), static_cast<int>(h));
-    /* Native Canvas */
+    /* Nidium Canvas */
     m_JSWindow->getCanvasHandler()->setSize(static_cast<int>(w), static_cast<int>(h));
     /* Redraw */
     m_UI->refresh();
@@ -252,7 +252,7 @@ void Context::postDraw()
 
         //TODO: new style cast
         s->setFontType((char *)("monospace"));
-        s->drawTextf(5, 12, "NATiVE build %s %s", __DATE__, __TIME__);
+        s->drawTextf(5, 12, "Nidium build %s %s", __DATE__, __TIME__);
         s->drawTextf(5, 25, "Frame: %lld (%lldms)\n", m_Stats.nframe, m_Stats.lastdifftime / 1000000LL);
         s->drawTextf(5, 38, "Time : %lldns\n", m_Stats.lastmeasuredtime-m_Stats.starttime);
         s->drawTextf(5, 51, "FPS  : %.2f (%.2f)", m_Stats.fps, m_Stats.sampleminfps);
@@ -386,7 +386,7 @@ void Context::frame(bool draw)
     (static_cast<Canvas2DContext *>(m_RootHandler->getContext()))->resetSkiaContext();
 }
 
-void NativeContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
+void NidiumContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
 {
     if (!pool->ptr.data) {
         return;
@@ -408,7 +408,7 @@ void Context::triggerEvents()
     APE_P_FOREACH_REVERSE((&m_CanvasEventsCanvas), val) {
         /* process through the cleaner callback avoiding a complete iteration */
         ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
-                NativeContext_destroy_and_handle_events, NULL);
+                NidiumContext_destroy_and_handle_events, NULL);
         __pool_item->ptr.data = NULL;
     }
 

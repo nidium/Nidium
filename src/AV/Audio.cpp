@@ -490,7 +490,7 @@ bool Audio::haveSourceActive(bool excludeExternal)
 
 double Audio::getLatency() {
     ring_buffer_size_t queuedAudio = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
-    double nativeAudioLatency = (((queuedAudio) * (1.0/m_OutputParameters->m_SampleRate)) / m_OutputParameters->m_Channels);
+    double nidiumAudioLatency = (((queuedAudio) * (1.0/m_OutputParameters->m_SampleRate)) / m_OutputParameters->m_Channels);
     double paLatency = 0;
 
     if (m_PlaybackStartTime != 0) {
@@ -501,9 +501,9 @@ double Audio::getLatency() {
         paLatency = playbackDuration - static_cast<double>(now - m_PlaybackStartTime)/1000000;
     }
 
-    SPAM(("latency=%f native=%f pa=%f\n", paLatency + nativeAudioLatency, nativeAudioLatency, paLatency));
+    SPAM(("latency=%f nidium=%f pa=%f\n", paLatency + nidiumAudioLatency, nidiumAudioLatency, paLatency));
 
-    return paLatency + nativeAudioLatency;
+    return paLatency + nidiumAudioLatency;
 }
 
 AudioNode *Audio::addSource(AudioNode *source, bool externallyManaged)

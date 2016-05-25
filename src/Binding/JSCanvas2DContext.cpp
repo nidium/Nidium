@@ -1935,7 +1935,7 @@ uint32_t Canvas2DContext::createProgram(const char *data)
 
     GLuint programHandle;
 
-    GLContext *iface = m_GLState->getNativeGLContext();
+    GLContext *iface = m_GLState->getNidiumGLContext();
 
     NIDIUM_GL_CALL_RET(iface, CreateProgram(), programHandle);
 
@@ -2268,7 +2268,7 @@ uint32_t Canvas2DContext::attachShader(const char *string)
     uint32_t program = this->createProgram(string);
 
     if (program) {
-        UIInterface *ui = m_GLState->getNativeGLContext()->getUI();
+        UIInterface *ui = m_GLState->getNidiumGLContext()->getUI();
         /* Destroy the old context (if it's not shared) */
         m_GLState->destroy();
         /* Create a new state without program */
@@ -2279,7 +2279,7 @@ uint32_t Canvas2DContext::attachShader(const char *string)
 
         m_GLState->setProgram(program);
 
-        GLContext *iface = m_GLState->getNativeGLContext();
+        GLContext *iface = m_GLState->getNidiumGLContext();
 
         NIDIUM_GL_CALL_RET(iface,
             GetUniformLocation(program, "n_Resolution"),
@@ -2316,7 +2316,7 @@ void Canvas2DContext::setVertexDeformation(uint32_t vertex,
     */
     if (state->isShared()) {
         NUI_LOG("New GL state created !");
-        state = new GLState(m_GLState->getNativeGLContext()->getUI());
+        state = new GLState(m_GLState->getNidiumGLContext()->getUI());
         state->setShared(false);
 
         m_GLState = state;
@@ -2353,9 +2353,9 @@ void Canvas2DContext::setSize(int width, int height, bool redraw)
 
     float ratio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
-    if (m_Skia->m_NativeCanvasBindMode == SkiaContext::BIND_GL) {
+    if (m_Skia->m_CanvasBindMode == SkiaContext::BIND_GL) {
         if ((ncanvas = SkiaContext::CreateGLCanvas(width, height,
-            Interface::__NativeUI->getNativeContext())) == NULL) {
+            Interface::__NidiumUI->getNidiumContext())) == NULL) {
             NUI_LOG("[Error] Couldnt resize the canvas to %dx%d", width, height);
             return;
         }
@@ -2392,7 +2392,7 @@ void Canvas2DContext::setSize(int width, int height, bool redraw)
     m_Skia->setCanvas(ncanvas);
     ncanvas->unref();
 
-    if (m_Skia->m_NativeCanvasBindMode == SkiaContext::BIND_GL) {
+    if (m_Skia->m_CanvasBindMode == SkiaContext::BIND_GL) {
         m_Skia->drawRect(0, 0, 1, 1, 0);
     }
 }
@@ -2443,7 +2443,7 @@ Canvas2DContext::Canvas2DContext(CanvasHandler *handler,
 
     if (isGL) {
 
-        state = m_Skia->bindGL(width, height, ui->getNativeContext());
+        state = m_Skia->bindGL(width, height, ui->getNidiumContext());
     } else {
         state = m_Skia->bindOnScreen(width, height);
     }
