@@ -5,7 +5,7 @@
 from dokumentor import *
 
 ClassDoc( "Http", "Download a webpage asynchronously.",
-    [ SeeDoc( "Socket" ), SeeDoc( "HTTPListener" ) ],
+    [ SeeDoc( "Socket" ), SeeDoc( "HTTPServer" ) ],
     [ ExampleDoc( """var url = "http://www.somewhere.com/image.png";
 var params = { foo : "bar", id : 14 };
 var h = new Http(url, params, function(event){

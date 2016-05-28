@@ -23,7 +23,7 @@ TEST_F(JSHTTPServer, Simple)
 
     Nidium::Binding::JSHTTPServer::RegisterObject(njs->m_Cx);
 
-    success = JS_GetProperty(njs->m_Cx, globObj, "HTTPListener", &rval);
+    success = JS_GetProperty(njs->m_Cx, globObj, "HTTPServer", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 }

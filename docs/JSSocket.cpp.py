@@ -12,7 +12,7 @@ Nidium Socket API was designed to connect to:
 * to listen to a port as a server to handle incomming client connections.
 
 The underlying system is powered by a powerful, non-blocking event-driven engine.""",
-    SeesDocs( "Http|HTTPListener|SocketClient|WebSocket|WebSocketClient" ),
+    SeesDocs( "Http|HTTPServer|SocketClient|WebSocket|WebSocketClient" ),
     [ ExampleDoc( """//Client Example
 var socket = new Socket("nidium.com", 80).connect();
 socket.onconnect = function() {
@@ -40,7 +40,7 @@ socket.onread = function(clientSocket, data) {
 )
 
 ClassDoc( "SocketClient", "A connected client.",
-    SeesDocs( "Http|HTTPListener|SocketClient|WebSocket|WebSocketClient" ),
+    SeesDocs( "Http|HTTPServer|SocketClient|WebSocket|WebSocketClient" ),
     NO_Examples,
     [ "Socket" ],
     NO_Extends,
@@ -129,7 +129,7 @@ socket.onconnect = function( clientSocket ) {
 )
 
 FieldDoc( "SocketClient.ip", "The ip address of the connected Socket.",
-    SeesDocs( "Socket|HTTPListener" ),
+    SeesDocs( "Socket|HTTPServer" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Readonly,
     'string',
@@ -196,7 +196,7 @@ EventDoc( "Socket.ondisconnect", "Function to execute on a socket upon the disco
 )
 
 ConstructorDoc( "Socket", "Create a new Socket object ready for connecting or listening.",
-    SeesDocs( "Http|HTTPListener|Socket.encoding|Socket.readline|Socket.binary|Socket|SocketClient" ),
+    SeesDocs( "Http|HTTPServer|Socket.encoding|Socket.readline|Socket.binary|Socket|SocketClient" ),
     [ ExampleDoc("""//Client
 var client = new Socket("google.com", 80);
 client.connect();
@@ -211,7 +211,7 @@ server.listen();""" ) ],
 FunctionDoc( "Socket.listen", """Starts a server.
 
 The server will listen to the host and port that were specified in the constructor.""",
-    SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.disconnect|HTTPListener" ),
+    SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.disconnect|HTTPServer" ),
     [ExampleDoc("""var socket = new Socket("0.0.0.0", 8006).listen();
 
 socket.onaccept = function(clientSocket) {
@@ -226,7 +226,7 @@ socket.onaccept = function(clientSocket) {
 FunctionDoc( "Socket.connect", """Starts a client.
 
 Connect the socket to the tuple host and port that were specified in the constructor.""",
-    SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.disconnect|HTTPListener" ),
+    SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.disconnect|HTTPServer" ),
      [ExampleDoc("""var client = new Socket("nidium.com", 80).connect();"""),
     ExampleDoc("""var client = new Socket("google.com", 80).connect("ssl");""") ] ,
     IS_Dynamic, IS_Public, IS_Fast,
@@ -239,7 +239,7 @@ FunctionDoc( "SocketClient.write", """Write data to a connected server/client so
 If 'Socket.write' returns 0, the data is internally saved and sent as soon as possible.
 In order to avoid high memory usage, one should stop calling 'Socket.write' when a previous call to 'Socket.write' returned '0' and wait for the 'Socket.ondrain' event to be sent.
 """,
-    SeesDocs( "SocketClient.listen|SocketClient.sendFile|SocketClient.write|SocketClient.disconnect|HTTPListener" ).append( "Socket.write " ),
+    SeesDocs( "SocketClient.listen|SocketClient.sendFile|SocketClient.write|SocketClient.disconnect|HTTPServer" ).append( "Socket.write " ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ParamDoc( 'data', "data to send", "string|ArrayBuffer", NO_Default, IS_Obligated ) ],
@@ -247,7 +247,7 @@ In order to avoid high memory usage, one should stop calling 'Socket.write' when
 )
 
 FunctionDoc( "Socket.write", "Write data.",
-    SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.write|SocketClient.disconnect|HTTPListener" ),
+    SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.write|SocketClient.disconnect|HTTPServer" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ParamDoc( 'data', "data to send", "string|ArrayBuffer", NO_Default, IS_Obligated ) ],
@@ -257,7 +257,7 @@ FunctionDoc( "Socket.write", "Write data.",
 FunctionDoc( "SocketClient.disconnect", """Close the socket on an extisting connection.
 
 This can be done by both the server (after the 'Socket.onaccept') and the client (after the 'Socket.connect').""",
-    SeesDocs( "SocketClient.sendFile|SocketClient.write|SocketClient.disconnect|HTTPListener|Socket.connect|Socket.listen" ),
+    SeesDocs( "SocketClient.sendFile|SocketClient.write|SocketClient.disconnect|HTTPServer|Socket.connect|Socket.listen" ),
     [ExampleDoc("""var s = new Socket("0.0.0.0", 8007).listen();
 
 s.onaccept = function(clientSocket) {
@@ -276,7 +276,7 @@ socket.onconnect = function(clientSocket) {
 )
 
 FunctionDoc( "Socket.close", "Close a socket connection.",
-    SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.write|SocketClient.disconnect|HTTPListener" ),
+    SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.write|SocketClient.disconnect|HTTPServer" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
@@ -284,7 +284,7 @@ FunctionDoc( "Socket.close", "Close a socket connection.",
 )
 
 FunctionDoc( "Socket.sendTo", "Send data from a socket server to a client via udp.",
-    SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.write|SocketClient.disconnect|HTTPListener" ),
+    SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.write|SocketClient.disconnect|HTTPServer" ),
     [ExampleDoc("""var s = new Socket("0.0.0.0", 8008).listen("udp");
 
 s.onaccept = function(clientSocket) {

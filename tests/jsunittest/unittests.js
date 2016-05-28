@@ -31,7 +31,7 @@ for (var i = 0; i < process.argv.length; i++) {
 var Suites = [
     'File/File_listFiles.js',
     'Process/process.js',
-    'HTTPListener.js',
+    'HTTPServer.js',
 
     //'Thread/Thread_simple.js',
     //'Thread/Thread_complex.js',
