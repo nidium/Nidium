@@ -1,5 +1,9 @@
 # Nidium - Cross platform rendering with javascript
 
+## Taglines:
+
+**Nidium - Cross platform rendering with javascript**
+
 ~~Nidium - Revolutionary way to create cross platform applications with javascript~~
 
 ~~Nidium - Bare metal environment to write visual applications out of the browser using JavaScript.~~
@@ -92,10 +96,11 @@ $ ./bin/nidium
 
 ## FAQ
 
-**Q:** _Will there be a kind of push module?_
+**Q:** _Will there be a kind of `comet` or `push` module?_
 
 **A:** Yes! This project is build around the networklayer that was also used in the
-   [APE-Project](http://ape-project.org/).
+   [APE-Project](http://ape-project.org/). You can expect some cool things rather
+    soon.
 
 
 **Q:** _Why did you make a server version?_
@@ -133,31 +138,31 @@ $ ./bin/nidium
 **A:** Not. That uses actionscript; Nidium lets you use plain javascript.
 
 
-**Q:** _How does it compare to openframeworks?_
+**Q:** _How does it compare to `openframeworks`?_
 
 **A:** Not. There you program in c++; Nidium lets you use plain javascript.
 
 
-**Q:** _Can I use ES6 features?_
+**Q:** _Can I use `ES6` features?_
 
 **A:** Yes [several](https://kangax.github.io/compat-table/es6/#firefox31). Currently 
    we are focussing to add more features and modules; but we will defenitly 
    extend es6 support.
 
 
-**Q:** _Can i reuse Node.js modules?_
+**Q:** _Can i reuse `Node.js` modules?_
 
 **A:** Probably yes; Nidium is designed to be API compatible with Node.js.
    No support, No guarantees, No endorsments.
 
 
-**Q:** _It runs on linux, BSD, OsX. What about Windows, Android, Raspberry Py, iOS?_
+**Q:** _It runs on `linux`, `BSD`, `OsX`. What about `Windows`, `Android`, `Raspberry Pi`, `iOS`?_
 
 **A:** The port to the android platform is in progress, the next step will be Windows.
    Contact us if you would like us to increase focus on one or the other area.
 
 
-**Q:** _What is this konstrucktor.py?_
+**Q:** _What is this `konstrucktor.py`?_
 
 **A:** That is a nifty tool to download dependencies, generate gyp files, and pass 
    configuration flags around.
@@ -169,7 +174,7 @@ $ ./bin/nidium
   describe all of its awesome in just one sentence.
 
 
-**Q:** _Can I persuade you to focus on ... ?_
+**Q:** _Can I persuade you to focus on `...` ?_
 
 **A:** Sure!
 
