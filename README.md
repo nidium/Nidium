@@ -66,10 +66,71 @@ You can start by doing something like this :
 $ apt-get install git subversion \
                   wget \
                   make cmake \
-                  python2.7 gcc g++ clang3.5 yasm/nasm \
-                  libpng12-dev libgif-dev libpng-dev mesa-common-dev libglu1-mesa-dev libfreetype6-dev libgtk2.0-dev \
+                  python2.7 gcc g++ clang3.5 yasm nasm \
+                  mesa-common-dev \
+                  libpng12-dev libglu1-mesa-dev libfreetype6-dev libgtk2.0-dev \
                   libasound2 libbz2-1.0 libjack0
-$ git clone --recursive git@github.com:nidium/NativeStudio.git
-$ cd NativeStudio
-$ ./configure
+$ git clone https@github.com/nidium/NativeTools.git
+$ git clone --recursive https@github.com/nidium/Nidium.git
+$ export PYTHONPATH=$(pwd)/NativeTools/src
+$ cd Nidium
+$ ./configure_frontend
+$ ./configure_server
+$ ./bin/nidium
 ```
+
+## FAQ
+
+Q: Will there be a kind of push module?
+A: Yes! This project is build around the networklayer that was also used in the
+   [APE-Project](http://ape-project.org/).
+
+Q: Why did you make a server version?
+A: The core components were designed to be reused as a library.
+   In our dayjobs we needed a very fast, low latency, robust server. 
+   As the async network layer is very fast and we dogfooded nidium to outperform 
+   Node.js/Socket.IO. This server is battle tested (>810 M req / day, < 60 ms)
+   Don't forget that nidium (frontend) has the 'same' server built in, which can
+   give your application amazing posibilities.
+
+Q: Are you aware that nidium is a kind of gameengine?
+A: Yes & No. It does an amazing job at rendering but there is no physics-engine built in.
+
+Q: Are you aware that nidium is a kind of browser?
+A: Yes & No. It does all the things that a browser does, except html.
+
+Q: How does it compare to Node-webkit?
+A: Not. That uses html; Nidium lets you use plain javascript
+
+Q: How does it compare to electron?
+A: Not. That uses html; Nidium lets you use plain javascript
+
+Q: How does it compare to flash?
+A: Not. There you program in actionscript; Nidium lets you use plain javascript
+
+Q: How does it compare to openframeworks?
+A: Not. There you program in c++; Nidium lets you use plain javascript
+
+Q: Can I use ES6 features?
+A: Yes [several](https://kangax.github.io/compat-table/es6/#firefox31). Currently 
+   we are focussing to add more features and modules; but we will defenitly 
+   extend es6 support.
+
+Q: Can i reuse Node.js modules?
+A: Probably yes; Nidium is designed to be API compatible with Node.js.
+   No support, No guarantees, No endorsments
+
+Q: It runs on linux, BSD, OsX. What about Windows, Android, Raspberry Py, iOS?
+A: The port to the android platform is in progress, the next step will be Windows.
+   Contact us if you would like us to increase focus on one or the other area.
+
+Q: What is this konstrucktor.py?
+A: That is a nifty tool to download dependencies, generate gyp files, and pass 
+   configuration flags around.
+
+Q: Can I persuade you to focus on ... ?
+A: Sure!
+
+Q: Can I help?
+A: Sure!
+
