@@ -1,4 +1,15 @@
-# Nidium - Tool-kit for writing server, games, desktop software and mobile apps
+# Nidium - Cross platform rendering with javascript
+
+~~Nidium - Revolutionary way to create cross platform applications with javascript~~
+
+~~Nidium - Bare metal environment to write visual applications out of the browser using JavaScript.~~
+
+~~Nidium - Render target for writing games with JavaScript~~
+
+~~Nidium - Tool-kit for writing server, games, desktop software and mobile apps~~
+
+~~Nidium - A new breed of browser~~
+
 
 ## Background
 
@@ -81,56 +92,88 @@ $ ./bin/nidium
 
 ## FAQ
 
-Q: Will there be a kind of push module?
-A: Yes! This project is build around the networklayer that was also used in the
+**Q:** _Will there be a kind of push module?_
+
+**A:** Yes! This project is build around the networklayer that was also used in the
    [APE-Project](http://ape-project.org/).
 
-Q: Why did you make a server version?
-A: The core components were designed to be reused as a library.
+
+**Q:** _Why did you make a server version?_
+
+**A:** The core components were designed to be reused as a library.
    In our dayjobs we needed a very fast, low latency, robust server. 
    As the async network layer is very fast and we dogfooded nidium to outperform 
    Node.js/Socket.IO. This server is battle tested (>810 M req / day, < 60 ms)
    Don't forget that nidium (frontend) has the 'same' server built in, which can
    give your application amazing posibilities.
 
-Q: Are you aware that nidium is a kind of gameengine?
-A: Yes & No. It does an amazing job at rendering but there is no physics-engine built in.
 
-Q: Are you aware that nidium is a kind of browser?
-A: Yes & No. It does all the things that a browser does, except html.
+**Q:** _Are you aware that nidium is a kind of game-engine?_
 
-Q: How does it compare to Node-webkit?
-A: Not. That uses html; Nidium lets you use plain javascript
+**A:** Yes & No. It does an amazing job at rendering but there is no physics-engine built in.
 
-Q: How does it compare to electron?
-A: Not. That uses html; Nidium lets you use plain javascript
 
-Q: How does it compare to flash?
-A: Not. There you program in actionscript; Nidium lets you use plain javascript
+**Q:** _Are you aware that nidium is a kind of browser?_
 
-Q: How does it compare to openframeworks?
-A: Not. There you program in c++; Nidium lets you use plain javascript
+**A:** Yes & No. It does all the things that a browser does, except html.
 
-Q: Can I use ES6 features?
-A: Yes [several](https://kangax.github.io/compat-table/es6/#firefox31). Currently 
+
+**Q:** _How does it compare to `node-webkit`?_
+
+**A:** Not. That uses html; Nidium lets you use plain javascript.
+
+
+**Q:** _How does it compare to `electron`?_
+
+**A:** Not. That uses html; Nidium lets you use plain javascript.
+
+
+**Q:** _How does it compare to `flash`?_
+
+**A:** Not. That uses actionscript; Nidium lets you use plain javascript.
+
+
+**Q:** _How does it compare to openframeworks?_
+
+**A:** Not. There you program in c++; Nidium lets you use plain javascript.
+
+
+**Q:** _Can I use ES6 features?_
+
+**A:** Yes [several](https://kangax.github.io/compat-table/es6/#firefox31). Currently 
    we are focussing to add more features and modules; but we will defenitly 
    extend es6 support.
 
-Q: Can i reuse Node.js modules?
-A: Probably yes; Nidium is designed to be API compatible with Node.js.
-   No support, No guarantees, No endorsments
 
-Q: It runs on linux, BSD, OsX. What about Windows, Android, Raspberry Py, iOS?
-A: The port to the android platform is in progress, the next step will be Windows.
+**Q:** _Can i reuse Node.js modules?_
+
+**A:** Probably yes; Nidium is designed to be API compatible with Node.js.
+   No support, No guarantees, No endorsments.
+
+
+**Q:** _It runs on linux, BSD, OsX. What about Windows, Android, Raspberry Py, iOS?_
+
+**A:** The port to the android platform is in progress, the next step will be Windows.
    Contact us if you would like us to increase focus on one or the other area.
 
-Q: What is this konstrucktor.py?
-A: That is a nifty tool to download dependencies, generate gyp files, and pass 
+
+**Q:** _What is this konstrucktor.py?_
+
+**A:** That is a nifty tool to download dependencies, generate gyp files, and pass 
    configuration flags around.
 
-Q: Can I persuade you to focus on ... ?
-A: Sure!
 
-Q: Can I help?
-A: Sure!
+**Q:** _What is going on with these taglines? Do you have an identity crisis?_
+
+**A:** Not realy but as nidium is so multifunctional, we found it very hard to 
+  describe all of its awesome in just one sentence.
+
+
+**Q:** _Can I persuade you to focus on ... ?_
+
+**A:** Sure!
+
+**Q:** _Can I help?_
+
+**A:** Sure!
 
