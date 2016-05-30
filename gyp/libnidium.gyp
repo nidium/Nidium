@@ -9,7 +9,7 @@
         'dependencies': [
             '<(nidium_network_path)/gyp/network.gyp:network-includes',
             'libnidiumcore.gyp:libnidiumcore-includes',
-            './angle.gyp:*',
+            'third-party/angle.gyp:*',
         ],
         'include_dirs': [
             '<(nidium_src_path)',
