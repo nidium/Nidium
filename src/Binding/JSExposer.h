@@ -19,6 +19,13 @@
     NIDIUM_JS_PROLOGUE_NO_RET()\
     args.rval().setUndefined();
 
+#define NIDIUM_JS_CONSTRUCTOR_PROLOGUE() \
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
+    if (!args.isConstructing()) { \
+        JS_ReportError(cx, "Illegal constructor invocation"); \
+        return false; \
+    }\
+
 #define NIDIUM_JS_PROLOGUE_NO_RET() \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
@@ -65,7 +72,7 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
     }
 
 #define NIDIUM_JS_OBJECT_EXPOSE_NOT_INST(name) \
-    void NidiumJS ## name::RegisterObject(JSContext *cx) \
+    void JS ## name::RegisterObject(JSContext *cx) \
     { \
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
         JS::RootedObject name ## Obj(cx, JS_DefineObject(cx, global, #name, \
