@@ -8,20 +8,20 @@
 
 #include "Core/DB.h"
 
+#include "Binding/JSExposer.h"
+
 #include <jsapi.h>
 
 namespace Nidium {
 namespace Binding {
 
-class JSDB: public Nidium::Core::DB
+class JSDB: public JSExposer<JSDB>, public Nidium::Core::DB 
 {
     public:
-        using DB::DB;
-        /*
-            Caller is responsible for knowing how to
-            decode the data during a get()
-        */
-        bool insert(const char *key, JSContext *cx, JS::HandleValue val);
+        JSDB(JSContext *cx, JS::HandleObject obj, const char *name);
+        bool set(JSContext *cx, const char *key, JS::HandleValue val);
+        bool get(JSContext *cx, const char *key, JS::MutableHandleValue val);
+        static void RegisterObject(JSContext *cx);
 };
 
 } // namespace Binding

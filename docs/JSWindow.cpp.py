@@ -9,12 +9,6 @@ NamespaceDoc( "Window", "Window class.",
     NO_Examples
 )
 
-NamespaceDoc( "NidiumStorage", """Storage class.
-You can set/get key-values in an internal database.""",
-    NO_Sees,
-    NO_Examples
-)
-
 NamespaceDoc( "MouseEvent", "Class that describes mouse events.",
     SeesDocs( "NMLEvent|Window|WindowEvent|keyEvent|TextInputEvent|MouseEvent|DragEvent" ),
     NO_Examples
@@ -292,31 +286,6 @@ FieldDoc( "Window.canvas", "The main canvas instance.",
     IS_Static, IS_Public, IS_ReadWrite,
     'Canvas',
     NO_Default
-)
-
-FieldDoc( "Window.storage", "The main storage instance.",
-    [ SeeDoc( "NidiumStorage" ) ],
-    NO_Examples,
-    IS_Static, IS_Public, IS_ReadWrite,
-    'NidiumStorage',
-    NO_Default
-)
-
-FunctionDoc( "NidiumStorage.set", "Register a value to a key in the internal database.",
-    SeesDocs( "NidiumStorage|NidiumStorage.set|NidiumStorage.get|Window.storage" ),
-    NO_Examples,
-    IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "key", "The lookup key", "string", NO_Default, IS_Obligated ),
-      ParamDoc( "value", "The value to set", "mixed", NO_Default, IS_Obligated ) ],
-    ReturnDoc( "success", 'boolean' )
-)
-
-FunctionDoc( "NidiumStorage.get", "Retrieve a value from a key in the internal database.",
-    SeesDocs( "NidiumStorage|NidiumStorage.set|NidiumStorage.get|Window.storage" ),
-    NO_Examples,
-    IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "key", "The lookup key", "string", NO_Default, IS_Obligated ) ] ,
-    ReturnDoc( "value", 'mixed' )
 )
 
 NamespaceDoc( "Navigator", "Navigator/browser description.",

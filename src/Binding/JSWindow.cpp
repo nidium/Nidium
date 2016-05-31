@@ -56,10 +56,6 @@ static bool nidium_window_open(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_window_exec(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_storage_set(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_storage_get(JSContext *cx, unsigned argc, JS::Value *vp);
-
-static void Storage_Finalize(JSFreeOp *fop, JSObject *obj);
 
 enum {
     WINDOW_PROP_LEFT = JSCLASS_GLOBAL_SLOT_COUNT,
@@ -88,13 +84,6 @@ static JSClass Navigator_class = {
     "Navigator", 0,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
-
-static JSClass Storage_class = {
-    "NidiumStorage", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Storage_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
@@ -145,12 +134,6 @@ static JSClass NMLEvent_class = {
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
-
-static JSFunctionSpec storage_funcs[] = {
-    JS_FN("set", nidium_storage_set, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("get", nidium_storage_get, 1, NIDIUM_JS_FNPROPS),
-    JS_FS_END
 };
 
 static JSFunctionSpec window_funcs[] = {
@@ -224,9 +207,6 @@ JSWindow::~JSWindow()
 {
     if (m_Dragging) {
         /* cleanup drag files */
-    }
-    if (m_Db) {
-        delete m_Db;
     }
 };
 
@@ -659,11 +639,6 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
 #undef EVENT_PROP
 }
 
-
-static void Storage_Finalize(JSFreeOp *fop, JSObject *obj)
-{
-
-}
 
 static bool nidium_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
@@ -1361,116 +1336,12 @@ void JSWindow::callFrameCallbacks(double ts, bool garbage)
     }
 }
 
-void JSWindow::initDataBase()
-{
-    NML *nml = Context::GetObject<Frontend::Context>(m_Cx)->getNML();
-    if (!nml) {
-        NUI_LOG("[Notice] Unable to create window.storage (no NML provided)");
-        return;
-    }
-    const char * name = nml->getIdentifier();
-    if (name == NULL) {
-        name = "nidium";
-        NUI_LOG("[Notice] Creating default window.storage (empty identifier tag in NML)");
-    }
-    m_Db = new JSDB(name);
-    if (m_Db->ok()) {
-        this->createStorage();
-    } else {
-        NUI_LOG("[Notice] Unable to create window.storage '%s'", name);
-    }
-}
-
 void JSWindow::createMainCanvas(int width, int height, JS::HandleObject docObj)
 {
     JS::RootedObject canvas(m_Cx, JSCanvas::GenerateJSObject(m_Cx, width, height, &m_Handler));
     Context::GetObject<Frontend::Context>(m_Cx)->getRootHandler()->addChild(m_Handler);
     JS::RootedValue canval(m_Cx, OBJECT_TO_JSVAL(canvas));
     JS_DefineProperty(m_Cx, docObj, "canvas", canval, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
-}
-
-void JSWindow::createStorage()
-{
-    JS::RootedObject storage(m_Cx, JS_NewObject(m_Cx, &Storage_class, JS::NullPtr(), JS::NullPtr()));
-    JS_DefineFunctions(m_Cx, storage, storage_funcs);
-    JS::RootedValue jsstorage(m_Cx, OBJECT_TO_JSVAL(storage));
-    JS::RootedObject obj(m_Cx, m_JSObject);
-    JS_SetProperty(m_Cx, obj, "storage", jsstorage);
-}
-
-bool nidium_storage_set(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
-    NIDIUM_JS_CHECK_ARGS("set", 2);
-    if (!args[0].isString()) {
-        JS_ReportError(cx, "set() : key must be a string");
-        return false;
-    }
-
-    JSAutoByteString key(cx, args[0].toString());
-    if (!JSWindow::GetObject(cx)->getDataBase()->
-        insert(key.ptr(), cx, args[1])) {
-
-        JS_ReportError(cx, "Cant insert data in storage");
-        return false;
-    }
-
-    args.rval().setBoolean(true);
-
-    return true;
-}
-
-bool nidium_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    std::string data;
-
-    NIDIUM_JS_CHECK_ARGS("get", 1);
-    if (!args[0].isString()) {
-        JS_ReportError(cx, "get() : key must be a string");
-        return false;
-    }
-
-    JSDB *db = JSWindow::GetObject(cx)->getDataBase();
-
-
-    JSAutoByteString key(cx, args[0].toString());
-    if (!db->get(key.ptr(), data)) {
-        args.rval().setUndefined();
-        return true;
-    }
-    JS::RootedValue ret(cx);
-
-    uint64_t *aligned_data;
-
-    /*
-        ReadStructuredClone requires 8-bytes aligned memory
-    */
-    if (((uintptr_t)data.data() & 7) == 0) {
-        aligned_data = (uint64_t *)data.data();
-    } else {
-        if (posix_memalign((void **)&aligned_data, 8, data.length()) != 0) {
-            return false;
-        }
-
-        memcpy(aligned_data, data.data(), data.length());
-    }
-
-    if (!JS_ReadStructuredClone(cx, aligned_data, data.length(),
-        JS_STRUCTURED_CLONE_VERSION, &ret, nullptr, NULL)) {
-
-        JS_ReportError(cx, "Unable to read internal data");
-        return false;
-    }
-
-    args.rval().set(ret);
-
-    if ((void *)aligned_data != data.data()) {
-        free(aligned_data);
-    }
-
-    return true;
 }
 
 JSWindow* JSWindow::GetObject(JSContext *cx)
@@ -1494,7 +1365,6 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx, int width,
 
     JS_SetPrivate(globalObj, jwin);
 
-    jwin->initDataBase();
     jwin->createMainCanvas(width, height, docObj);
     JS_DefineFunctions(cx, windowObj, window_funcs);
     JS_DefineProperties(cx, windowObj, window_props);

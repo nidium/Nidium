@@ -32,6 +32,7 @@
 #include "Binding/JSDebugger.h"
 #include "Binding/JSGlobal.h"
 #include "Binding/JSSystem.h"
+#include "Binding/JSDB.h"
 
 #include "Core/Context.h"
 
@@ -878,6 +879,7 @@ void NidiumJS::loadGlobalObjects()
     JSDebug::RegisterObject(m_Cx);
     JSDebugger::RegisterObject(m_Cx);
     JSSystem::RegisterObject(m_Cx);
+    JSDB::RegisterObject(m_Cx);
 
     m_Modules = new JSModules(m_Cx);
     if (!m_Modules) {

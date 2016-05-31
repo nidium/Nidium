@@ -12,7 +12,7 @@
 
 static const char * secret = "tetetetetetetetet";
 
-TEST(DB, Simple)
+TEST(DB, SetAndGet)
 {
     bool inserted, success;
     std::string ret;
@@ -21,20 +21,23 @@ TEST(DB, Simple)
     EXPECT_TRUE(db != NULL);
     EXPECT_TRUE(db->ok() == true);
 
-    inserted = db->insert("picard", (const uint8_t *) secret, strlen(secret));
+    inserted = db->set("picard", (const uint8_t *) secret, strlen(secret));
     EXPECT_EQ(inserted, true);
+
     success =     db->get("picard", ret);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(strcmp(ret.c_str(), secret) == 0);
 
-    inserted = db->insert("ricard", secret);
+    inserted = db->set("ricard", secret);
     EXPECT_EQ(inserted, true);
+
     success =     db->get("ricard", ret);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(strcmp(ret.c_str(), secret) == 0);
 
-    inserted = db->insert("pernod", ret);
+    inserted = db->set("pernod", ret);
     EXPECT_EQ(inserted, true);
+
     success =     db->get("ricard", ret);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(strcmp(ret.c_str(), secret) == 0);
@@ -42,7 +45,7 @@ TEST(DB, Simple)
     delete db;
 }
 
-TEST(Db, StillThere)
+TEST(DB, StillThere)
 {
     bool success;
     std::string ret;
@@ -58,3 +61,31 @@ TEST(Db, StillThere)
     delete db;
 }
 
+TEST(DB, Del)
+{
+    class Nidium::Core::DB *db = new Nidium::Core::DB("testrun");
+
+    db->del("ricard");
+
+    std::string ret;
+
+    db->get("ricard", ret);
+    EXPECT_TRUE(ret.length() == 0);
+
+    printf("del=%s\n", ret.c_str());
+
+    delete db;
+}
+
+TEST(DB, Cleanup)
+{
+    std::string ret;
+    class Nidium::Core::DB *db = new Nidium::Core::DB("testrun");
+
+    db->drop();
+
+    EXPECT_FALSE(db->set("foo", "bar"));
+    EXPECT_FALSE(db->get("foo", ret));
+
+    delete db;
+}

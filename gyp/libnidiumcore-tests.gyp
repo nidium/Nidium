@@ -7,9 +7,6 @@
         'target_name': 'libnidiumcore-unittests',
         'product_dir': '<(nidium_tests_output)',
         'type': 'executable',
-        'includes': [
-            'interface.gypi',
-        ],
         'dependencies': [
             'libnidiumcore.gyp:*',
             '<(nidium_network_path)/gyp/network-unittests.gyp:unittests-settings',

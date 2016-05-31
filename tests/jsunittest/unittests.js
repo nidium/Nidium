@@ -32,6 +32,7 @@ var Suites = [
     'File/File_listFiles.js',
     'Process/process.js',
     'HTTPServer.js',
+    'DB.js',
 
     //'Thread/Thread_simple.js',
     //'Thread/Thread_complex.js',

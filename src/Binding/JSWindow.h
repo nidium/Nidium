@@ -8,7 +8,6 @@
 
 #include <Frontend/NML.h>
 #include <Binding/JSExposer.h>
-#include <Binding/JSDB.h>
 
 namespace Nidium {
 namespace Graphics {
@@ -21,7 +20,7 @@ class JSWindow : public JSExposer<JSWindow>
   public:
     JSWindow(JS::HandleObject jsobj, JSContext *cx) :
         JSExposer<JSWindow>(jsobj, cx),
-        m_RequestedFrame(NULL), m_Handler(NULL), m_Db(NULL),
+        m_RequestedFrame(NULL), m_Handler(NULL),
         m_Dragging(false)
     {
     };
@@ -56,10 +55,6 @@ class JSWindow : public JSExposer<JSWindow>
         return m_Handler;
     }
 
-    JSDB *getDataBase() const {
-        return m_Db;
-    }
-
     static JSWindow *RegisterObject(JSContext *cx, int width,
         int height, JS::HandleObject doc);
 
@@ -77,7 +72,6 @@ class JSWindow : public JSExposer<JSWindow>
     bool dragEvent(const char *name, int x, int y);
 
     void createMainCanvas(int width, int height, JS::HandleObject docObj);
-    void createStorage();
 
     struct _requestedFrame {
         JS::PersistentRootedValue m_Cb;
@@ -88,7 +82,6 @@ class JSWindow : public JSExposer<JSWindow>
     } *m_RequestedFrame;
 
     Graphics::CanvasHandler *m_Handler;
-    JSDB *m_Db;
 
     bool m_Dragging;
     JS::Heap<JSObject *> m_DraggedFiles;

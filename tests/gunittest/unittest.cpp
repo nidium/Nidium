@@ -7,15 +7,5 @@
 
 #include <jsapi.h>
 
-#include "System.h"
-
 unsigned long _ape_seed = 31415961;
-
-namespace Nidium {
-    namespace Interface {
-        class SystemInterface;
-
-        SystemInterface *SystemInterface::_interface = new System();
-    }
-}
 
