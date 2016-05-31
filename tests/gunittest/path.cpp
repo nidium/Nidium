@@ -145,6 +145,24 @@ TEST(Path, SanitizeDotSlash)
     free(sanitized);
 }
 
+TEST(Path, SanitizeDotFile)
+{
+    char *sanitized = Path::Sanitize("dir/.config");
+
+    ASSERT_STREQ("dir/.config", sanitized);
+
+    free(sanitized);
+}
+
+TEST(Path, SanitizeFileDot)
+{
+    char *sanitized = Path::Sanitize("dir/config.");
+
+    ASSERT_STREQ("dir/config.", sanitized);
+
+    free(sanitized);
+}
+
 TEST(Path, SanitizeNull)
 {
     char *sanitized = Path::Sanitize(nullptr);

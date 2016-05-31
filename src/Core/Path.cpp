@@ -400,6 +400,10 @@ char *Path::Sanitize(const char *path, bool *external)
                 state = kPathState_Slash;
                 break;
             default:
+                if (state == kPathState_Dot) {
+                    // File starting with a dot (ie : config/.nidium)
+                    elements[counterPos] += '.';
+                }
                 elements[counterPos] += path[i];
                 state = kPathState_Name;
                 break;
