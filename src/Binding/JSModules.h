@@ -17,8 +17,6 @@
 namespace Nidium {
 namespace Binding {
 
-#define NIDIUM_MODULES_PATHS_COUNT 2
-
 class JSModules;
 
 // {{{ JSModule
@@ -30,7 +28,8 @@ class JSModule
         enum ModuleType {
             kModuleType_None,
             kModuleType_JS,
-            kModuleType_Nidium,
+            kModuleType_Native,
+            kModuleType_NativeEmbedded,
             kModuleType_JSON
         };
 
@@ -48,7 +47,8 @@ class JSModule
         bool init();
         bool initJS();
         bool initMain();
-        bool initNidium();
+        bool initNative();
+        bool initNativeEmbedded();
 
         JS::Value require(char *name);
 
@@ -71,6 +71,9 @@ class JSModules
             memset(&m_EnvPaths[0], '\0', sizeof(m_EnvPaths));
         }
 
+        JSModule *m_Main;
+        typedef JSObject * (*EmbeddedCallback)(JSContext *cx);
+
         ~JSModules()
         {
             for (int i = 0; m_EnvPaths[i] != NULL; i++) {
@@ -78,8 +81,6 @@ class JSModules
             }
             delete m_Main;
         }
-
-        JSModule *m_Main;
 
         void add(JSModule *module)
         {
@@ -100,10 +101,14 @@ class JSModules
         bool init();
         bool init(JSModule *module);
 
+        static void RegisterEmbedded(const char *name, 
+                EmbeddedCallback registerCallback);
+        static EmbeddedCallback FindEmbedded(const char *name);
         static char *FindModulePath(JSModule *parent, JSModule *module);
         static bool GetFileContent(const char *file, char **content, size_t *size);
     private:
-        Nidium::Core::Hash<JSModule *> m_Cache;
+        Core::Hash<JSModule *> m_Cache;
+        static Core::Hash<void *> m_EmbeddedModules;
         const char *m_Paths[2];
         char *m_EnvPaths[64];
         JSContext *m_Cx;

@@ -21,6 +21,8 @@
 #include "IO/Stream.h"
 #include "Binding/JSExposer.h"
 
+#define NIDIUM_MODULES_PATHS_COUNT 2
+
 using Nidium::IO::Stream;
 using Nidium::Core::Path;
 
@@ -35,6 +37,7 @@ namespace Binding {
 #endif
 
 static void Exports_Finalize(JSFreeOp *fop, JSObject *obj);
+Core::Hash<void *> JSModules::m_EmbeddedModules;
 
 static JSClass nidium_modules_exports_class = {
     "Exports", JSCLASS_HAS_PRIVATE,
@@ -106,13 +109,15 @@ bool JSModule::init()
         return false;
     }
 
-    Path p(m_FilePath, false, true);
+    if (m_ModuleType != kModuleType_NativeEmbedded) {
+        Path p(m_FilePath, false, true);
 
-    if (!p.dir()) {
-        return false;
+        if (!p.dir()) {
+            return false;
+        }
+
+        m_AbsoluteDir = strdup(p.dir());
     }
-
-    m_AbsoluteDir = strdup(p.dir());
 
     DPRINT("filepath = %s\n", m_FilePath);
     DPRINT("name = %s\n", m_Name);
@@ -122,7 +127,7 @@ bool JSModule::init()
     return true;
 }
 
-bool JSModule::initNidium()
+bool JSModule::initNative()
 {
     JS::RootedObject exports(m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
     NidiumJS *njs = NidiumJS::GetObject(m_Cx);
@@ -143,6 +148,22 @@ bool JSModule::initNidium()
     }
 
     m_Exports = exports;
+    njs->rootObjectUntilShutdown(m_Exports);
+
+    return true;
+}
+
+bool JSModule::initNativeEmbedded()
+{
+    NidiumJS *njs = NidiumJS::GetObject(m_Cx);
+    JSModules::EmbeddedCallback registerCallback = JSModules::FindEmbedded(m_Name);
+
+    if (!registerCallback) return false;
+
+    JS::RootedObject obj(m_Cx, registerCallback(m_Cx));
+    if (!obj) return false;
+
+    m_Exports = obj;
     njs->rootObjectUntilShutdown(m_Exports);
 
     return true;
@@ -373,7 +394,8 @@ JS::Value JSModule::require(char *name)
         }
         break;
         case JSModule::kModuleType_JSON:
-        case JSModule::kModuleType_Nidium:
+        case JSModule::kModuleType_Native:
+        case JSModule::kModuleType_NativeEmbedded:
         {
             ret = OBJECT_TO_JSVAL(cmodule->m_Exports);
         }
@@ -437,8 +459,13 @@ bool JSModules::init()
 bool JSModules::init(JSModule *module)
 {
     switch (module->m_ModuleType) {
-        case JSModule::kModuleType_Nidium:
-            if (!module->initNidium()) {
+        case JSModule::kModuleType_NativeEmbedded:
+            if (!module->initNativeEmbedded()) {
+                return false;
+            }
+            break;
+        case JSModule::kModuleType_Native:
+            if (!module->initNative()) {
                 return false;
             }
             break;
@@ -452,6 +479,16 @@ bool JSModules::init(JSModule *module)
     this->add(module);
 
     return true;
+}
+
+void JSModules::RegisterEmbedded(const char *name, EmbeddedCallback registerCallback)
+{
+    JSModules::m_EmbeddedModules.set(name, reinterpret_cast<void *>(registerCallback));
+}
+
+JSModules::EmbeddedCallback JSModules::FindEmbedded(const char *name)
+{
+    return reinterpret_cast<EmbeddedCallback>(m_EmbeddedModules.get(name));
 }
 
 void JSModules::DirName(std::string &source)
@@ -507,13 +544,24 @@ char *JSModules::FindModulePath(JSModule *parent, JSModule *module)
             }
         } while (modulePath.empty() && !stop);
 
+        // Check in system directories if module hasn't been found
         if (modulePath.empty()) {
-            // Check in system directories if module hasn't been found
             for (int i = 0; modules->m_EnvPaths[i] != NULL && modulePath.empty(); i++) {
                 char *tmp = modules->m_EnvPaths[i];
                 DPRINT("Looking for module %s in %s\n", module->m_Name, tmp);
                 modulePath = JSModules::FindModuleInPath(module, tmp);
                 DPRINT("module path is %s\n", modulePath.c_str());
+            }
+        }
+
+        // Check if module is not an embedded module
+        if (m_EmbeddedModules.get(module->m_Name) != nullptr) {
+            char *ret = nullptr;
+            if (asprintf(&ret, "embedded_module://%s", module->m_Name) != -1) {
+                module->m_ModuleType = JSModule::kModuleType_NativeEmbedded;
+                return ret;
+            } else {
+                return nullptr;
             }
         }
     }
@@ -591,7 +639,7 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
                                     module->m_ModuleType = JSModule::kModuleType_JS;
                                     break;
                                 case 2:
-                                    module->m_ModuleType = JSModule::kModuleType_Nidium;
+                                    module->m_ModuleType = JSModule::kModuleType_Native;
                                     break;
                                 case 3:
                                     module->m_ModuleType = JSModule::kModuleType_JSON;
@@ -605,8 +653,8 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
             case 1: // .js
                 module->m_ModuleType = JSModule::kModuleType_JS;
                 break;
-            case 2: // nidium module
-                module->m_ModuleType = JSModule::kModuleType_Nidium;
+            case 2: // native module
+                module->m_ModuleType = JSModule::kModuleType_Native;
                 break;
             case 3: // json file
                 module->m_ModuleType = JSModule::kModuleType_JSON;
