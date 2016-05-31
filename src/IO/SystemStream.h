@@ -65,17 +65,17 @@ public:
 };
 // }}}
 
-// {{{ CacheStream 
-class CacheStream : public IO::FileStream
+// {{{ PrivateStream 
+class PrivateStream : public IO::FileStream
 {
 public:
-    explicit CacheStream(const char *location) :
+    explicit PrivateStream(const char *location) :
         IO::FileStream(location)
     {
     }
 
     static IO::Stream *CreateStream(const char *location) {
-        return new CacheStream(location);
+        return new PrivateStream(location);
     }
 
     static bool AllowLocalFileStream() {

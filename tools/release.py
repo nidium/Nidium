@@ -289,15 +289,15 @@ def uploadExecutable(path, name):
 # }}}
 
 if not os.path.exists("tools/dir2nvfs"):
-    # In Release mode, we need to embed the private
-    # Dir2NFS is needed in order to generate the privates
+    # In Release mode, we need to package the embed
+    # Dir2NFS is needed in order to generate a package of the embeded files
     Gyp("gyp/tools.gyp").run("dir2nvfs")
 
-Gyp("gyp/actions.gyp").run("generate-private", parallel=False)
+Gyp("gyp/actions.gyp").run("generate-embed", parallel=False)
 
-# Now that the privates are build
-# we can add add native_embed_private flag
-Gyp.set("native_embed_private", 1)
+# Now that the embed are packaged
+# we can add add nidium_package_embed flag
+Gyp.set("nidium_package_embed", 1)
 
 if __name__ == '__main__':
     Konstruct.start() 

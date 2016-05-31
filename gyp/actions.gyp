@@ -4,50 +4,50 @@
 
 {
     'targets': [{
-        'target_name': 'generate-private',
+        'target_name': 'generate-embed',
         'type': 'none',
         'actions': [
             {
-                'action_name': 'Generating Private',
+                'action_name': 'Generating embed',
                 'inputs': [
                     # Any change to dir2nvfs will trigger the action
                     '<(nidium_src_path)/Tools/dir2nvfs.cpp',
                     '<(nidium_tools_path)dir2nvfs',
                     # If I use find command inside a variable, output is not 
                     # considered as multiple files using it in inputs works fine
-                    '<!@(find <(nidium_private_dir) -type f)',
+                    '<!@(find <(nidium_embed_dir) -type f)',
                 ],
                 'outputs': [
-                    '<(nidium_private_bin)'
+                    '<(nidium_embed_bin)'
                 ],
-                'action': ['<@(nidium_tools_path)dir2nvfs', '<(nidium_private_dir)', '<@(_outputs)'],
+                'action': ['<@(nidium_tools_path)dir2nvfs', '<(nidium_embed_dir)', '<@(_outputs)'],
                 'process_outputs_as_sources': 1
             },
             {
-                'action_name': 'Converting Private',
+                'action_name': 'Converting embed',
                 'inputs': [
-                    '<(nidium_private_bin)'
+                    '<(nidium_embed_bin)'
                 ],
                 'outputs': [
-                    '<(nidium_private_bin_header)'
+                    '<(nidium_embed_bin_header)'
                 ],
                 'action': ['xxd', '-i', '<@(_inputs)', '<@(_outputs)'],
                 'process_outputs_as_sources': 1
             },
             {
-                'action_name': 'Renaming Private C Header',
+                'action_name': 'Renaming embed C Header',
                 'inputs': [
-                    '<(nidium_private_bin_header)'
+                    '<(nidium_embed_bin_header)'
                 ],
                 'outputs': [
                     'dummyFile' # We need to set something here, otherwise action is not executed (OSX)
                 ],
                 'conditions': [
                     ['OS=="mac"', {
-                        'action': ['sed', '-i', '""', '-e', '1s/.*/unsigned char private_bin[] = {/', '<@(_inputs)'],
+                        'action': ['sed', '-i', '""', '-e', '1s/.*/unsigned char embed_bin[] = {/', '<@(_inputs)'],
                     }],
                     ['OS=="linux"', {
-                        'action': ['sed', '-i', '-e', '1s/.*/unsigned char private_bin[] = {/', '<@(_inputs)'],
+                        'action': ['sed', '-i', '-e', '1s/.*/unsigned char embed_bin[] = {/', '<@(_inputs)'],
                     }]
                 ],
                 'process_outputs_as_sources': 1

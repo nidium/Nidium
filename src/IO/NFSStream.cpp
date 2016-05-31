@@ -19,17 +19,17 @@ namespace IO {
 
 // {{{ Implementation
 
-#ifdef NIDIUM_EMBED_PRIVATE
-  #include NIDIUM_EMBED_PRIVATE
+#ifdef NIDIUM_PACKAGE_EMBED
+  #include NIDIUM_EMBED_FILE
 #endif
 NFSStream::NFSStream(const char *location) :
     Stream(location)
 {
     static NFS *nfs = NULL;
 
-#ifdef NIDIUM_EMBED_PRIVATE
+#ifdef NIDIUM_PACKAGE_EMBED
     if (nfs == NULL) {
-        nfs = new NFS(private_bin, sizeof(private_bin));
+        nfs = new NFS(embed_bin, sizeof(embed_bin));
     }
 #endif
     m_NFS = nfs;

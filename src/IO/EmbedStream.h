@@ -4,8 +4,8 @@
    that can be found in the LICENSE file.
 */
 
-#ifndef io_privatestream_h__
-#define io_privatestream_h__
+#ifndef io_embedstream_h__
+#define io_embedstream_h__
 
 #include <string>
 
@@ -19,16 +19,16 @@
 namespace Nidium {
 namespace IO {
 
-class PrivateStream : public IO::FileStream
+class EmbedStream : public IO::FileStream
 {
 public:
-    explicit PrivateStream(const char *location) :
+    explicit EmbedStream(const char *location) :
         IO::FileStream(location)
     {
     }
 
     static IO::Stream *CreateStream(const char *location) {
-        return new PrivateStream(location);
+        return new EmbedStream(location);
     }
 
     static bool AllowLocalFileStream() {
@@ -40,18 +40,18 @@ public:
     }
 
     static const char *GetBaseDir() {
-        return Interface::SystemInterface::GetInstance()->getPrivateDirectory();
+        return Interface::SystemInterface::GetInstance()->getEmbedDirectory();
     }
 };
 
 #else
 
-class PrivateStream : public NFSStream
+class EmbedStream : public NFSStream
 {
 public:
-    explicit PrivateStream(const char *location) :
+    explicit EmbedStream(const char *location) :
 #if 0
-        NFSStream((std::string("/private") + location).c_str())
+        NFSStream((std::string("/embed") + location).c_str())
 #else
         NFSStream(location)
 #endif
@@ -59,7 +59,7 @@ public:
     }
 
     static IO::Stream *CreateStream(const char *location) {
-        return new PrivateStream(location);
+        return new EmbedStream(location);
     }
 
     static bool AllowLocalFileStream() {

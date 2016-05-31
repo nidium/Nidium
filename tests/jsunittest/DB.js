@@ -1,12 +1,12 @@
 var DB = require("DB");
 
 Tests.register("DB", function() {
-    var db = new DB("cache://tests");
+    var db = new DB("private://tests");
     db.close();
 });
 
 Tests.register("DB.close", function() {
-    var db = new DB("cache://tests");
+    var db = new DB("private://tests");
 
     db.close();
 
@@ -25,7 +25,7 @@ Tests.register("DB.close", function() {
 });
 
 Tests.register("DB.set/get(string)", function() {
-    var db = new DB("cache://tests");
+    var db = new DB("private://tests");
 
     db.set("foo", "bar");
 
@@ -35,7 +35,7 @@ Tests.register("DB.set/get(string)", function() {
 });
 
 Tests.register("DB.set/get(object)", function() {
-    var db = new DB("cache://tests");
+    var db = new DB("private://tests");
 
     db.set("foo", {"foo":"bar"});
 
@@ -45,7 +45,7 @@ Tests.register("DB.set/get(object)", function() {
 });
 
 Tests.register("DB.del", function() {
-    var db = new DB("cache://tests");
+    var db = new DB("private://tests");
 
     db.set("fooDel", "bar");
     Assert(db.get("fooDel") == "bar");
@@ -57,7 +57,7 @@ Tests.register("DB.del", function() {
 });
 
 Tests.register("DB.drop", function() {
-    var db = new DB("cache://tests");
+    var db = new DB("private://tests");
 
     db.drop();
 

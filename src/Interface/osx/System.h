@@ -23,7 +23,7 @@ class System : public SystemInterface
         ~System() {};
         float backingStorePixelRatio();
         const char *getCacheDirectory();
-        const char *getPrivateDirectory();
+        const char *getEmbedDirectory();
         const char *getUserDirectory();
         void openURLInBrowser(const char *url);
         const char *pwd();

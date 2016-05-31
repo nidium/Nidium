@@ -68,7 +68,7 @@ void System::openURLInBrowser(const char *url)
     [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:nsurl]];
 }
 
-const char *System::getPrivateDirectory()
+const char *System::getEmbedDirectory()
 {
     static char parentdir[MAXPATHLEN];
     static bool resolved = false;
@@ -83,7 +83,7 @@ const char *System::getPrivateDirectory()
     CFURLRef url = CFBundleCopyBundleURL(CFBundleGetMainBundle());
     CFURLRef url2 = CFURLCreateCopyDeletingLastPathComponent(0, url);
     if (CFURLGetFileSystemRepresentation(url2, 1, (UInt8 *)parentdir, MAXPATHLEN)) {
-        strcat(parentdir, "/private/");
+        strcat(parentdir, "/embed/");
         resolved = true;
     }
     CFRelease(url);

@@ -79,14 +79,14 @@ float System::backingStorePixelRatio()
     return m_fBackingStorePixelRatio;
 }
 
-const char *System::getPrivateDirectory()
+const char *System::getEmbedDirectory()
 {
-    static char privatedir[MAXPATHLEN];
+    static char embeddir[MAXPATHLEN];
 
-    strncpy(privatedir, this->pwd(), MAXPATHLEN - (sizeof("/private/") + 1));
-    strcat(privatedir, "/private/");
+    strncpy(embeddir, this->pwd(), MAXPATHLEN - (sizeof("/embed/") + 1));
+    strcat(embeddir, "/embed/");
 
-    return privatedir;
+    return embeddir;
 }
 
 const char *System::getCacheDirectory()

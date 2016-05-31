@@ -19,7 +19,7 @@
             '<(nidium_src_path)/Tools/dir2nvfs.cpp',
         ],
         'defines': [
-            'DIR2NFS_OUTPUT="<(nidium_private_bin)"',
+            'DIR2NFS_OUTPUT="<(nidium_embed_bin)"',
         ],
         "xcode_settings": {
             'OTHER_LDFLAGS': [

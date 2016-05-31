@@ -12,10 +12,10 @@ namespace Nidium {
     }
 
 namespace IO {
-// {{{ CacheStream Implementation
-const char *CacheStream::m_BaseDir = nullptr;
+// {{{ PrivateStream Implementation
+const char *PrivateStream::m_BaseDir = nullptr;
 
-const char *CacheStream::GetBaseDir()
+const char *PrivateStream::GetBaseDir()
 {
     if (m_BaseDir == nullptr) {
         m_BaseDir = Interface::SystemInterface::GetInstance()->getCacheDirectory();

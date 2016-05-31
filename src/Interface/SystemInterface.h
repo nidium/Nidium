@@ -31,7 +31,7 @@ class SystemInterface
             return NULL;
         }
         virtual const char *getCacheDirectory()=0;
-        virtual const char *getPrivateDirectory()=0;
+        virtual const char *getEmbedDirectory()=0;
         virtual const char *getUserDirectory() {
             return "~/";
         };

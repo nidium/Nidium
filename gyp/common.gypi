@@ -105,9 +105,9 @@
                 'defines': [ 'NIDIUM_ENABLE_CRASHREPORTER' ],
             }],
             # XXX : Remove me once we switched to .nfs file for privates
-            ['nidium_embed_private==1', {
+            ['nidium_package_embed==1', {
                 'defines': [
-                    'NIDIUM_EMBED_PRIVATE="<(nidium_private_bin_header)"'
+                    'NIDIUM_EMBED_FILE="<(nidium_embed_bin_header)"'
                 ]
             }],
             ['asan==1', {
