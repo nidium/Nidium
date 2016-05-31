@@ -42,6 +42,9 @@
 #include "Binding/JSWebGL.h"
 #endif
 
+#include "IO/PrivateStream.h"
+#include "IO/SystemStream.h"
+
 using Nidium::Core::SharedMessages;
 using Nidium::Core::Path;
 using Nidium::Core::Utils;
@@ -49,6 +52,7 @@ using Nidium::Net::WebSocketServer;
 using Nidium::Net::WebSocketClientConnection;
 using namespace Nidium::Graphics;
 using namespace Nidium::Binding;
+using namespace Nidium::IO;
 
 namespace Nidium {
 namespace Frontend {
@@ -98,6 +102,10 @@ m_Debug2Handler(NULL),
     m_UI(NULL), m_NML(NULL), m_GLState(NULL), m_JSWindow(NULL), m_SizeDirty(false),
     m_CurrentClickedHandler(NULL), m_WSClient(NULL), m_WS(NULL)
 {
+    Path::RegisterScheme(SCHEME_DEFINE("private://", PrivateStream, false));
+    Path::RegisterScheme(SCHEME_DEFINE("system://",  SystemStream,  false));
+    Path::RegisterScheme(SCHEME_DEFINE("user://",    UserStream,    false));
+    Path::RegisterScheme(SCHEME_DEFINE("cache://",   CacheStream,   false));
 
     this->resetInputEvents();
 

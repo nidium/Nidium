@@ -12,8 +12,6 @@
 
 #include <Net/HTTPStream.h>
 
-#include "IO/PrivateStream.h"
-#include "IO/SystemStream.h"
 #include "Frontend/Context.h"
 #include "Graphics/GLHeader.h"
 #include "Binding/JSWindow.h"
@@ -31,7 +29,6 @@ using Nidium::Net::HTTPStream;
 using Nidium::Binding::JSWindow;
 using Nidium::Frontend::Context;
 using Nidium::Frontend::NML;
-using namespace Nidium::IO;
 
 namespace Nidium {
 namespace Interface {
@@ -44,15 +41,6 @@ UIInterface::UIInterface() :
     m_Hidden(false), m_FBO(0), m_FrameBuffer(NULL), m_Console(NULL),
     m_MainGLCtx(NULL), m_SystemMenu(this)
 {
-    Path::RegisterScheme(SCHEME_DEFINE("file://",    FileStream,    false), true); // default
-    Path::RegisterScheme(SCHEME_DEFINE("private://", PrivateStream, false));
-#if 1
-    Path::RegisterScheme(SCHEME_DEFINE("system://",  SystemStream,  false));
-    Path::RegisterScheme(SCHEME_DEFINE("user://",    UserStream,    false));
-#endif
-    Path::RegisterScheme(SCHEME_DEFINE("http://",    HTTPStream,    true));
-    Path::RegisterScheme(SCHEME_DEFINE("https://",   HTTPStream,    true));
-    Path::RegisterScheme(SCHEME_DEFINE("nvfs://",    NFSStream,     false));
 }
 
 bool UIInterface::createWindow(int width, int height)

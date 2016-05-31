@@ -10,8 +10,6 @@
 
 #include <IO/FileStream.h>
 
-#include <SystemInterface.h>
-
 namespace Nidium {
 namespace IO {
 
@@ -63,9 +61,34 @@ public:
         return true;
     }
 
-    static const char *GetBaseDir() {
-        return Interface::SystemInterface::GetInstance()->getUserDirectory();
+    static const char *GetBaseDir();
+};
+// }}}
+
+// {{{ CacheStream 
+class CacheStream : public IO::FileStream
+{
+public:
+    explicit CacheStream(const char *location) :
+        IO::FileStream(location)
+    {
     }
+
+    static IO::Stream *CreateStream(const char *location) {
+        return new CacheStream(location);
+    }
+
+    static bool AllowLocalFileStream() {
+        return true;
+    }
+
+    static bool AllowSyncStream() {
+        return true;
+    }
+
+    static const char *GetBaseDir();
+private:
+    static const char *m_BaseDir;
 };
 // }}}
 
