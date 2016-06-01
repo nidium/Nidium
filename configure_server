@@ -30,7 +30,7 @@ def jemalloc():
 
 Deps.set(
     "linenoise",
-    Deps.Konstruct("nidiumcore", "configure_nidiumcore"),
+    Deps.Konstruct("libnidiumcore", "configure_libnidiumcore"),
 )
 
 @Deps.register("linenoise")

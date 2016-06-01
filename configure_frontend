@@ -34,7 +34,7 @@ Deps.set(
     "SDL2",
     "rapidxml",
     "ffmpeg",
-    Deps.Konstruct("nidiumcore", "configure_nidiumcore")
+    Deps.Konstruct("libnidiumcore", "configure_libnidiumcore")
 )
 
 Platform.setEnviron("MACOSX_DEPLOYMENT_TARGET=10.7")
