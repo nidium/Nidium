@@ -136,7 +136,7 @@
                 ],
                 'sources': [
                     '<(nidium_app_path)/osx/main.mm',
-                    '<(nidium_app_path)/osx/StudioAppDelegate.mm',
+                    '<(nidium_app_path)/osx/AppDelegate.mm',
                 ],
                 'postbuilds': [
                     #{
@@ -159,7 +159,7 @@
                     {
                         'postbuild_name': 'Increment build number',
                         'action': [
-                            './osx/incbuild.sh',
+                            '<(nidium_tools_path)/osx_incbuild.sh',
                             '<(nidium_exec_path)/<(nidium_exec_name).app/Contents/'
                         ]
                     }

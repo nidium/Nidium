@@ -124,9 +124,10 @@
     dup2([[pipe fileHandleForWriting] fileDescriptor], fileno(stdout));
 
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(handleNotification:)
-                                                 name:NSFileHandleReadCompletionNotification
-                                               object:pipeReadHandle];
+            selector:@selector(handleNotification:)
+            name:NSFileHandleReadCompletionNotification
+            object:pipeReadHandle];
+
     [pipeReadHandle readInBackgroundAndNotify];
 
 }
@@ -138,10 +139,12 @@
     NSString *str = [[NSString alloc] initWithData: [[notification userInfo] objectForKey: NSFileHandleNotificationDataItem] encoding: NSASCIIStringEncoding];
 
     [self log:str];
-
 }
 
 @end
+
+namespace Nidium {
+namespace Interface {
 
 UICocoaConsole::UICocoaConsole()
 {
@@ -232,3 +235,7 @@ UICocoaConsole::~UICocoaConsole()
 {
     [this->m_Window release];
 }
+
+} // namespace Interface
+} // namespace Nidium
+

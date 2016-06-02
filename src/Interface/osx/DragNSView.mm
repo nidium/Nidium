@@ -4,7 +4,7 @@
    that can be found in the LICENSE file.
 */
 #import "DragNSView.h"
-#import <JSWindow.h>
+#import <Binding/JSWindow.h>
 
 @implementation DragNSView
 

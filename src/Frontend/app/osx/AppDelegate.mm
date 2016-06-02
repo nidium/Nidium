@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#import "NidiumAppDelegate.h"
+#import "AppDelegate.h"
 #import <pthread.h>
 
 #import <dispatch/dispatch.h>
@@ -19,10 +19,9 @@ unsigned long _ape_seed;
 namespace Nidium {
     namespace Interface {
         SystemInterface *SystemInterface::_interface = new System();
-        UIInterface *__UI;
+        UIInterface *__NidiumUI;
     }
-
-namespace App {
+}
 
 @implementation AppDelegate
 
@@ -77,7 +76,7 @@ namespace App {
 - (void) refreshApp
 {
     self->UI->refreshApplication();
-    UICocoaConsole *console = self->UI->getConsole(false, NULL);
+    Nidium::Interface::UICocoaConsole *console = self->UI->getConsole(false, NULL);
     if (console) {
         console->clear();
     }
@@ -86,7 +85,7 @@ namespace App {
 - (void) openConsole
 {
     bool created;
-    UICocoaConsole *console = self->UI->getConsole(true, &created);
+    Nidium::Interface::UICocoaConsole *console = self->UI->getConsole(true, &created);
 
     if (!created) {
         if (console->hidden()) {
@@ -165,8 +164,8 @@ NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:@"Testing!"] autorelease];
     _ape_seed = time(NULL) ^ (getpid() << 16);
     //Console *console = [[Console alloc] init];
     //[console attachToStdout];
-    CocoaUIInterface *nUI = new CocoaUIInterface;
-    __NidiumUI = nUI;
+    Nidium::Interface::UICocoaInterface *nUI = new Nidium::Interface::UICocoaInterface;
+    Nidium::Interface::__NidiumUI = nUI;
     nUI->setArguments(*_NSGetArgc(), *_NSGetArgv());
 
     self->UI = nUI;
@@ -272,7 +271,3 @@ void SetCrashKeyValue(BreakpadRef breakpad, NSString *key, NSString *value) {
 #endif
 
 @end
-
-} // namespace App
-} // namespace Nidium
-

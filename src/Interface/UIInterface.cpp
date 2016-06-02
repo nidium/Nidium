@@ -43,6 +43,19 @@ UIInterface::UIInterface() :
 {
 }
 
+void UIInterface::setGLContextAttribute()
+{
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
+    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+}
+
 bool UIInterface::createWindow(int width, int height)
 {
     if (!m_Initialized) {
@@ -51,15 +64,7 @@ bool UIInterface::createWindow(int width, int height)
             return false;
         }
 
-        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
-        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
-        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
-        SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        this->setGLContextAttribute();
 
         m_Win = SDL_CreateWindow("nidium", 100, 100, width, height,
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
@@ -71,8 +76,6 @@ bool UIInterface::createWindow(int width, int height)
 
         m_Width  = width;
         m_Height = height;
-
-        this->onWindowCreated();
 
         if ((m_MainGLCtx = SDL_GL_CreateContext(m_Win)) == NULL) {
             NUI_LOG("Failed to create OpenGL context : %s", SDL_GetError());
@@ -92,8 +95,9 @@ bool UIInterface::createWindow(int width, int height)
         //glViewport(0, 0, width*2, height*2);
         NUI_LOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
 
-        this->m_Initialized = true;
+        this->onWindowCreated();
 
+        this->m_Initialized = true;
     }
 
     this->setWindowFrame(NIDIUM_WINDOWPOS_UNDEFINED_MASK,

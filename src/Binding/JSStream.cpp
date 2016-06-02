@@ -6,6 +6,7 @@
 #include "Binding/JSStream.h"
 
 #include <string.h>
+#include <string>
 
 using Nidium::IO::Stream;
 

@@ -5,18 +5,21 @@
 */
 #import <Cocoa/Cocoa.h>
 #import <AppKit/AppKit.h>
+#ifdef NIDIUM_ENABLE_CRASHREPORTER
 #import <client/mac/Framework/Breakpad.h>
+#endif
 
 namespace Nidium {
-namespace App {
-
-class UICocoaUIIInterface;
+    namespace Interface {
+        class UICocoaInterface;
+    }
+}
 
 @interface AppDelegate : NSObject <NSApplicationDelegate, NSUserNotificationCenterDelegate>
 {
     NSArray *position;
     NSString *appfile;
-    UICocoaUIIInterface *UI;
+    Nidium::Interface::UICocoaInterface *UI;
     BOOL isRunning;
 #ifdef NIDIUM_ENABLE_CRASHREPORTER
     BreakpadRef breakpad;
@@ -31,7 +34,4 @@ class UICocoaUIIInterface;
 @property (retain, nonatomic) NSString *appfile;
 
 @end
-
-} // namespace App
-} // namespace Nidium
 

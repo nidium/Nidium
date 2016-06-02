@@ -168,6 +168,11 @@ class UIInterface
 
 
         /*
+            Set OpenGL context attribute
+         */
+        virtual void setGLContextAttribute();
+
+        /*
             Create the initial window
             ::onWindowCreated() is then called on the subclass
         */

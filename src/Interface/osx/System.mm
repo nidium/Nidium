@@ -10,6 +10,9 @@
 
 #import <Cocoa/Cocoa.h>
 
+namespace Nidium {
+namespace Interface {
+
 System::System()
 {
 #if NIDIUM_ENABLE_HIDPI
@@ -165,4 +168,7 @@ void System::sendNotification(const char *title, const char *content, bool sound
 
     [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
 }
+
+} // namespace Interface
+} // namespace Nidium
 

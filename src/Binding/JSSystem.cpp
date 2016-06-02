@@ -14,10 +14,12 @@
 
 #include <sys/stat.h>
 
-#ifdef __linux__
+#if defined(__linux__)
   #include <sys/time.h>
   #include <sys/resource.h>
   #include <linux/stat.h>
+#elif defined(__APPLE__)
+    #include <sys/errno.h>
 #endif
 
 namespace Nidium {

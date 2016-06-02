@@ -10,9 +10,6 @@
 
 #import <Cocoa/Cocoa.h>
 
-namespace Nidium {
-namespace Interface {
-
 @interface NidiumConsole : NSObject
 {
     NSWindow *m_Window;
@@ -29,6 +26,8 @@ namespace Interface {
 @property (retain, nonatomic) NSTextView *textview;
 @end
 
+namespace Nidium {
+namespace Interface {
 
 class UICocoaConsole : public UIInterface::UIConsole
 {

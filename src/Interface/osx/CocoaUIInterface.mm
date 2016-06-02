@@ -35,15 +35,115 @@
 #define NIDIUM_TITLEBAR_HEIGHT 0
 #define NIDIUM_VSYNC 1
 
+static const char *drawRect_Associated_obj = "_UIInterface";
+
 @interface UICocoaInterfaceWrapper: NSObject {
-    UICocoaInterface *base;
+    Nidium::Interface::UICocoaInterface *base;
 }
 
 - (NSMenu *) renderSystemTray;
 - (void) menuClicked:(id)ev;
-- (id) initWithUI:(UICocoaInterface *)ui;
+- (id) initWithUI:(Nidium::Interface::UICocoaInterface *)ui;
 
 @end
+
+@interface NSPointer : NSObject
+{
+@public
+    void *m_Ptr;
+}
+
+- (id) initWithPtr:(void *)ptr;
+@end
+
+@implementation NSPointer
+- (id) initWithPtr:(void *)ptr
+{
+    self = [super init];
+    if (!self) return nil;
+
+    self->m_Ptr = ptr;
+
+    return self;
+}
+@end
+@interface NidiumDrawRectResponder : NSView
+    - (void) drawRect:(NSRect)dirtyRect;
+@end
+
+@implementation NidiumDrawRectResponder
+- (void) drawRect:(NSRect)dirtyRect
+{
+    NSPointer *idthis = objc_getAssociatedObject(self, drawRect_Associated_obj);
+    Nidium::Interface::UICocoaInterface *UI = (Nidium::Interface::UICocoaInterface *)idthis->m_Ptr;
+    Nidium::Frontend::Context *ctx = UI->getNidiumContext();
+
+    if (ctx && ctx->isSizeDirty()) {
+        [(NSOpenGLContext *)UI->getGLContext() update];
+        ctx->sizeChanged(UI->getWidth(), UI->getHeight());
+    }
+}
+@end
+
+@implementation UICocoaInterfaceWrapper
+
+- (id) initWithUI:(Nidium::Interface::UICocoaInterface *)ui
+{
+    if (self = [super init]) {
+        self->base = ui;
+    }
+    return self;
+}
+
+- (void) menuClicked:(id)sender
+{
+    NSString *identifier = [sender representedObject];
+
+    Nidium::Binding::JSWindow *window = Nidium::Binding::JSWindow::GetObject(self->base->m_NidiumCtx->getNJS());
+    if (window) {
+        window->systemMenuClicked([identifier cStringUsingEncoding:NSUTF8StringEncoding]);
+    }
+}
+
+- (NSMenu *) renderSystemTray
+{
+    Nidium::Interface::UICocoaInterface *ui = self->base;
+    Nidium::Interface::SystemMenu &m_SystemMenu = ui->getSystemMenu();
+
+    Nidium::Interface::SystemMenuItem *item = m_SystemMenu.items();
+    if (!item) {
+        return nil;
+    }
+
+    NSMenu *stackMenu = [[[NSMenu alloc] initWithTitle:@""] retain];
+
+    while (item) {
+        NSString *title = [NSString stringWithCString:item->title() encoding:NSUTF8StringEncoding];
+        NSString *identifier = [NSString stringWithCString:item->id() encoding:NSUTF8StringEncoding];
+        NSMenuItem *curMenu;
+        if ([title isEqualToString:@"-"]) {
+            curMenu = [NSMenuItem separatorItem];
+        } else {
+            curMenu =
+                [[[NSMenuItem alloc] initWithTitle:title action:@selector(menuClicked:) keyEquivalent:@""] autorelease];
+        }
+        [stackMenu addItem:curMenu];
+        [curMenu setEnabled:YES];
+
+        item = item->m_Next;
+        curMenu.target = self;
+
+        [curMenu setRepresentedObject:identifier];
+    }
+
+    return stackMenu;
+}
+
+@end
+
+
+namespace Nidium {
+namespace Interface {
 
 uint64_t ttfps = 0;
 
@@ -66,7 +166,7 @@ void UICocoaInterface::quitApplication()
     [[NSApplication sharedApplication] terminate:nil];
 }
 
-static int NidiumProcessSystemLoop(void *arg)
+static int ProcessSystemLoop(void *arg)
 {
     SDL_PumpEvents();
     UICocoaInterface *ui = (UICocoaInterface *)arg;
@@ -75,19 +175,6 @@ static int NidiumProcessSystemLoop(void *arg)
         ui->makeMainGLCurrent();
     }
     return 4;
-}
-
-static void NidiumDoneExtracting(void *closure, const char *fpath)
-{
-    UICocoaInterface *ui = (UICocoaInterface *)closure;
-    if (chdir(fpath) != 0) {
-        fprintf(stderr, "Cant enter cache directory (%d)\n", errno);
-        return;
-    }
-    fprintf(stdout, "Changing directory to : %s\n", fpath);
-
-    ui->m_Nml = new Nidium::Frontend::NML(ui->m_Gnet);
-    ui->m_Nml->loadFile("./index.nml", UICocoaInterface_onNMLLoaded, ui);
 }
 
 void UICocoaInterface::log(const char *buf)
@@ -163,9 +250,9 @@ void UICocoaInterface::onWindowCreated()
 {
     NSWindow *window = NidiumCocoaWindow(m_Win);
 
-    m_DragNSView = [[DragNSView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
+    m_DragNSView = [[DragNSView alloc] initWithFrame:NSMakeRect(0, 0, m_Width, m_Height)];
     [[window contentView] addSubview:this->m_DragNSView];
-    [this->m_DragNSView setResponder:JSwindow::getNativeClass(m_NidiumCtx->getNJS())];
+    [this->m_DragNSView setResponder:Binding::JSWindow::GetObject(m_NidiumCtx->getNJS())];
 
     this->patchSDLView([window contentView]);
 
@@ -203,6 +290,14 @@ void UICocoaInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
                    green:((double)g)/255.
                     blue:((double)b)/255.
                    alpha:((double)a)/255]];
+}
+
+void UICocoaInterface::setGLContextAttribute()
+{
+    UIInterface::setGLContextAttribute();
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 }
 
 void UICocoaInterface::initControls()
@@ -365,46 +460,6 @@ bool UICocoaInterface::makeGLCurrent(SDL_GLContext ctx)
 }
 #endif
 
-static const char *drawRect_Associated_obj = "_UIInterface";
-
-@interface NSPointer : NSObject
-{
-@public
-    void *m_Ptr;
-}
-
-- (id) initWithPtr:(void *)ptr;
-@end
-
-@implementation NSPointer
-- (id) initWithPtr:(void *)ptr
-{
-    self = [super init];
-    if (!self) return nil;
-
-    self->m_Ptr = ptr;
-
-    return self;
-}
-@end
-@interface NidiumDrawRectResponder : NSView
-    - (void) drawRect:(NSRect)dirtyRect;
-@end
-
-@implementation NidiumDrawRectResponder
-- (void) drawRect:(NSRect)dirtyRect
-{
-    NSPointer *idthis = objc_getAssociatedObject(self, drawRect_Associated_obj);
-    UICocoaInterface *UI = (UICocoaInterface *)idthis->m_Ptr;
-    Nidium::Frontend::Context *ctx = UI->getNidiumContext();
-
-    if (ctx && ctx->isSizeDirty()) {
-        [(NSOpenGLContext *)UI->getGLContext() update];
-        ctx->sizeChanged(UI->getWidth(), UI->getHeight());
-    }
-}
-@end
-
 void UICocoaInterface::patchSDLView(NSView *sdlview)
 {
     Class SDLView = NSClassFromString(@"SDLView");
@@ -482,7 +537,7 @@ void UICocoaInterface::hideWindow()
         /* Hide the Application (Dock, etc...) */
         [NSApp setActivationPolicy: NSApplicationActivationPolicyAccessory];
 
-        set_timer_to_low_resolution(&this->m_Gnet->timersng, 1);
+        APE_timer_setlowresolution(this->m_Gnet, 1);
     }
 }
 
@@ -494,7 +549,7 @@ void UICocoaInterface::showWindow()
 
         [NSApp setActivationPolicy: NSApplicationActivationPolicyRegular];
 
-        set_timer_to_low_resolution(&this->m_Gnet->timersng, 0);
+        APE_timer_setlowresolution(this->m_Gnet, 0);
     }
 }
 
@@ -573,58 +628,6 @@ void UICocoaInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
     }
 }
 
-@implementation UICocoaInterfaceWrapper
+} // namespace Interface
+} // namespace Nidium
 
-- (id) initWithUI:(UICocoaInterface *)ui
-{
-    if (self = [super init]) {
-        self->base = ui;
-    }
-    return self;
-}
-
-- (void) menuClicked:(id)sender
-{
-    NSString *identifier = [sender representedObject];
-
-    JSWindow *window = JSWindow::GetObject(self->base->m_NidiumCtx->getNJS());
-    if (window) {
-        window->systemMenuClicked([identifier cStringUsingEncoding:NSUTF8StringEncoding]);
-    }
-}
-
-- (NSMenu *) renderSystemTray
-{
-    UICocoaInterface *ui = self->base;
-    SystemMenu &m_SystemMenu = ui->getSystemMenu();
-
-    SystemMenuItem *item = m_SystemMenu.items();
-    if (!item) {
-        return nil;
-    }
-
-    NSMenu *stackMenu = [[[NSMenu alloc] initWithTitle:@""] retain];
-
-    while (item) {
-        NSString *title = [NSString stringWithCString:item->title() encoding:NSUTF8StringEncoding];
-        NSString *identifier = [NSString stringWithCString:item->id() encoding:NSUTF8StringEncoding];
-        NSMenuItem *curMenu;
-        if ([title isEqualToString:@"-"]) {
-            curMenu = [NSMenuItem separatorItem];
-        } else {
-            curMenu =
-                [[[NSMenuItem alloc] initWithTitle:title action:@selector(menuClicked:) keyEquivalent:@""] autorelease];
-        }
-        [stackMenu addItem:curMenu];
-        [curMenu setEnabled:YES];
-
-        item = item->m_Next;
-        curMenu.target = self;
-
-        [curMenu setRepresentedObject:identifier];
-    }
-
-    return stackMenu;
-}
-
-@end
