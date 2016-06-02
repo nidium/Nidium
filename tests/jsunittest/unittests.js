@@ -32,7 +32,6 @@ var Suites = [
     'File/File_listFiles.js',
     'Process/process.js',
     'HTTPServer.js',
-    'DB.js',
 
     //'Thread/Thread_simple.js',
     //'Thread/Thread_complex.js',
@@ -51,6 +50,7 @@ if (args["frontend"]) {
         'AV/AudioThread.js',
         'AV/GainNode.js',
         'AV/Video.js',
+        'DB.js', // Only for frontend, beacause server does not support "cache://"
     ]);
 }
 
