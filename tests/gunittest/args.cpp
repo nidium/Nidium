@@ -11,31 +11,36 @@
 
 #include <Core/Args.h>
 
+#define MAX_ARGS_SIZE 10
 
 TEST(Args, Simple)
 {
-    int i, max;
     Nidium::Core::Args args;
 
-    i = max = 99;
-    EXPECT_EQ(args[0].isSet(), false);
-    args[0].set((void*)&i);
-    EXPECT_EQ(args[0].isSet(), true);
+    EXPECT_EQ(args.size(), 0);
 
-    max = args.size() + 2;
-    EXPECT_EQ(args.size(), 8);
-    for (i = 1; i < max; i++) {
+    for (int i = 0; i < MAX_ARGS_SIZE; i++) {
+        // Test for default values
         EXPECT_EQ(args[i].isSet(), false);
-
-        EXPECT_TRUE(args[i].toPtr() == NULL);
+        EXPECT_EQ(args[i].toPtr(), nullptr);
         EXPECT_EQ(args[i].toInt64(), 0);
+        EXPECT_EQ(args[i].toInt(), 0);
         EXPECT_EQ(args[i].toBool(), false);
 
-        args[i].set(max);
+        // Test assignation
+        args[i].set(i);
         EXPECT_EQ(args[i].isSet(), true);
-        EXPECT_EQ(args[i].toInt(), (uint32_t)max);
+        EXPECT_EQ(args[i].toInt(), i);
+
+        EXPECT_EQ(args.size(), i + 1);
     }
 
-    EXPECT_EQ(args.size(), 10);
 }
 
+TEST(Args, OverflowDeath)
+{
+    
+    Nidium::Core::Args args;
+
+    ASSERT_DEATH(args[MAX_ARGS_SIZE + 1].isSet(), "ASAN:SIGSEGV");
+}
