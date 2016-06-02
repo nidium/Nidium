@@ -72,8 +72,6 @@ TEST(DB, Del)
     db->get("ricard", ret);
     EXPECT_TRUE(ret.length() == 0);
 
-    printf("del=%s\n", ret.c_str());
-
     delete db;
 }
 
