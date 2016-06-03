@@ -15,7 +15,14 @@
 #include <IO/FileStream.h>
 #include <Net/HTTPStream.h>
 
+#ifdef __APPLE__
+#define TEST_DIR "/private/tmp/"
+#define TEST_DIR_DEPTH "../../"
+#else
 #define TEST_DIR "/tmp/"
+#define TEST_DIR_DEPTH "../"
+#endif
+
 #define TEST_DIR_OUTSIDE "/foo/bar/"
 #define TEST_HOST "www.nidium.com"
 #define TEST_URL "http://" TEST_HOST "/"
@@ -26,7 +33,7 @@
 #define TEST_ABS_FILE TEST_DIR TEST_FILE
 #define TEST_ABS_OUTSIDE_FILE TEST_DIR_OUTSIDE TEST_FILE
 #define TEST_REL_FILE TEST_FILE
-#define TEST_REL_OUTSIDE_FILE "../" TEST_FILE
+#define TEST_REL_OUTSIDE_FILE TEST_DIR_DEPTH TEST_FILE
 #define TEST_URL_FILE TEST_URL TEST_FILE
 #define TEST_URL_DIR TEST_URL "tmp/"
 #define TEST_PREFIX_FILE TEST_PREFIX TEST_FILE
@@ -174,7 +181,7 @@ TEST(Path, SanitizeNull)
 
 TEST(Path, SanitizeAbsoluteInvalid)
 {
-    char *sanitized = Path::Sanitize(TEST_DIR "../../");
+    char *sanitized = Path::Sanitize(TEST_DIR TEST_DIR_DEPTH "../");
 
     ASSERT_STREQ(nullptr, sanitized);
 
@@ -184,7 +191,7 @@ TEST(Path, SanitizeAbsoluteInvalid)
 TEST(Path, SanitizeAbsolute)
 {
     // Path is : /tmp/../tmp/file 
-    char *sanitized = Path::Sanitize(TEST_DIR ".." TEST_DIR TEST_FILE);
+    char *sanitized = Path::Sanitize(TEST_DIR TEST_DIR_DEPTH TEST_DIR TEST_FILE);
 
     ASSERT_STREQ(TEST_DIR TEST_FILE, sanitized);
 
