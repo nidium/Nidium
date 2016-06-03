@@ -3,6 +3,7 @@
 # that can be found in the LICENSE file.
 
 {
+    'includes': ["../src/libapenetwork/gyp/config.gypi"],
     'variables' : {
         'nidium_version': '0.1',
         'nidium_webgl%': 1,
@@ -23,7 +24,7 @@
         'nidium_exec_name': 'nidium',
         'nidium_exec_path': '../bin/',
 
-        'nidium_output': '<(DEPTH)/build/',
+        'nidium_output': '../build/',
 
         # Hack to workaround two gyp issues : 
         # - Variables defined in command line are not relativized (at all)
