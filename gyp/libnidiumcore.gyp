@@ -91,7 +91,7 @@
         'target_name': 'libnidiumcore',
         'type': 'static_library',
         'dependencies': [
-            '../src/libapenetwork/gyp/network.gyp:*',
+            '<(nidium_network_path)/gyp/network.gyp:*',
             'libnidiumcore.gyp:libnidiumcore-includes',
         ],
         'conditions': [
