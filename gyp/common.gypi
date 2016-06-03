@@ -21,14 +21,14 @@
             '-Wall',
         ],
         'ldflags': [
-            '-L<(nidium_output_third_party)',
+            '-L<(nidium_output_third_party_path)',
         ],
 
         'xcode_settings': {
             "OTHER_LDFLAGS": [
                 '-stdlib=libc++',
-                '-L<(nidium_output_third_party)',
-                '-F<(nidium_output_third_party)'
+                '-L<(nidium_output_third_party_path)',
+                '-F<(nidium_output_third_party_path)'
             ],
             'OTHER_CPLUSPLUSFLAGS': [ 
                 '-std=c++11',
@@ -50,13 +50,12 @@
             'VCLinkerTool': {
                 'LinkTimeCodeGeneration': 1,
                 'SubSystem': '1',  # console app
-                "AdditionalLibraryDirectories": ["<(nidium_output_third_party)"]
+                "AdditionalLibraryDirectories": ["<(nidium_output_third_party_path)"]
             }
         },
 
         'configurations': {
             'Debug': {
-                'product_dir': '<(nidium_output)/debug/',
                 'defines': ['NIDIUM_DEBUG', 'DEBUG', '_DEBUG'],
                 'ldflags': [
                     # Skia need to be linked with its own libjpeg
@@ -76,7 +75,6 @@
                 }
             },
             'Release': {
-                'product_dir': '<(nidium_output)/release/',
                 'defines': [ 'NDEBUG'],
                 'ldflags': [
                     # Skia need to be linked with his own libjpeg

@@ -5,7 +5,7 @@
 {
     'targets': [{
         'target_name': 'libnidiumcore-unittests',
-        'product_dir': '<(nidium_tests_output)',
+        'product_dir': '<(nidium_tests_output_path)',
         'type': 'executable',
         'dependencies': [
             'libnidiumcore.gyp:*',

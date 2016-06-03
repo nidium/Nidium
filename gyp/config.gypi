@@ -23,21 +23,21 @@
         'nidium_exec_name': 'nidium',
         'nidium_exec_path': '../bin/',
 
-        'nidium_output%': '../out/',
-        'nidium_tests_output%': 'tests/',
-        'nidium_output_third_party%': '../out/third-party-libs/release/',
-        'third_party_path': '../third-party/',
+        'nidium_output': '<(DEPTH)/build/',
 
         # Hack to workaround two gyp issues : 
         # - Variables defined in command line are not relativized (at all)
         #   https://code.google.com/p/gyp/issues/detail?id=72
-        #
-        # - Variables named with a "%" at the end are not relativized
-        #   https://code.google.com/p/gyp/issues/detail?id=444
+        # - Variables defined in the top scope, cannot be referenced by another one
         'variables': {
-            'third_party%': 'third-party'
+            'third_party%': 'third-party',
+
+            'nidium_output_third_party_path': '<(nidium_output)/third-party/',
+            'nidium_tests_output_path': '<(nidium_output)/tests/',
         },
         'third_party_path': '<(DEPTH)/<(third_party)',
+        'nidium_output_third_party_path': '<(nidium_output_third_party_path)',
+        'nidium_tests_output_path': '<(nidium_tests_output_path)',
 
         'asan%': 0,
         'jemalloc%': 0,

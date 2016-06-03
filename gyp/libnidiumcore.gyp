@@ -35,7 +35,7 @@
 
                 # Include our own js-config.h so it is automatically
                 # versioned for our build flavour
-                '-include <(nidium_output_third_party)/js-config.h'
+                '-include <(nidium_output_third_party_path)/js-config.h'
             ],
             'xcode_settings': {
                 'OTHER_CFLAGS': [
@@ -45,7 +45,7 @@
                     '-Wno-c++0x-extensions',
                     '-Wno-invalid-offsetof',
                     '-Wno-mismatched-tags',
-                    '-include <(nidium_output_third_party)/js-config.h',
+                    '-include <(nidium_output_third_party_path)/js-config.h',
                 ],
                 'OTHER_CPLUSPLUSFLAGS': [ 
                     '$inherited',
