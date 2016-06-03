@@ -71,7 +71,7 @@ class UICocoaInterface : public UIInterface
         */
         void patchSDLView(NSView *sdlview);
 
-        UICocoaConsole *m_Console;
+        UICocoaConsole *m_Console = nullptr;
         DragNSView *m_DragNSView;
         NSStatusItem *m_StatusItem;
         UICocoaInterfaceWrapper *m_Wrapper;
