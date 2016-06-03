@@ -28,8 +28,8 @@ linenoiseResume()
 
 diff --git a/linenoise.c b/linenoise.c
 index c10557d..b122174 100644
---- linenoise.c
-+++ linenoise.c
+--- linenoise/linenoise.c
++++ linenoise/linenoise.c
 @@ -715,6 +715,97 @@ void linenoiseEditDeletePrevWord(struct linenoiseState *l) {
      refreshLine(l);
  }
@@ -156,8 +156,8 @@ index c10557d..b122174 100644
  }
 diff --git a/linenoise.h b/linenoise.h
 index fbb01cf..7d5e4b3 100644
---- linenoise.h
-+++ linenoise.h
+--- linenoise/linenoise.h
++++ linenoise/linenoise.h
 @@ -61,6 +61,10 @@ void linenoiseClearScreen(void);
  void linenoiseSetMultiLine(int ml);
  void linenoisePrintKeyCodes(void);
