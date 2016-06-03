@@ -29,11 +29,6 @@ TEST(Utils, NativeTick)
     EXPECT_TRUE(tick > 10);
 }
 
-TEST(Utils, Mainthread)
-{
-    EXPECT_TRUE(Nidium::Core::Utils::IsMainThread());
-}
-
 TEST(Utils, SHA1hmac)
 {
     char * key = strdup("dvorak");

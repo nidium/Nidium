@@ -123,6 +123,8 @@ class AVStreamReader : public AVReader, public Core::Messages
             MSG_STOP
         };
         void onMessage(const Core::SharedMessages::Message &msg);
+        bool isGenesisThread();
+
         NIDIUM_PTHREAD_VAR_DECL(m_ThreadCond);
 
         IO::Stream *m_Stream;
@@ -139,6 +141,7 @@ class AVStreamReader : public AVReader, public Core::Messages
         unsigned const char* m_StreamBuffer;
         int m_Error;
         bool m_HaveDataAvailable;
+        pthread_t m_GenesisThread;
 };
 // }}}
 

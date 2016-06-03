@@ -88,7 +88,7 @@ AVStreamReader::AVStreamReader(const char *src,
       m_CallbackPrivate(callbackPrivate), m_Opened(false),
       m_StreamRead(STREAM_BUFFER_SIZE), m_StreamPacketSize(0), m_StreamErr(-1),
       m_StreamSeekPos(0), m_StreamSize(0), m_StreamBuffer(NULL), m_Error(0),
-      m_HaveDataAvailable(false)
+      m_HaveDataAvailable(false), m_GenesisThread(pthread_self())
 {
     m_Async = true;
     m_Stream = Stream::Create(Path(src));
@@ -249,7 +249,7 @@ int64_t AVStreamReader::seek(void *opaque, int64_t offset, int whence)
         return pos;
     }
 
-    if (Utils::IsMainThread()) {
+    if (thiz->isGenesisThread()) {
         thiz->m_Stream->seek(pos);
     } else {
         thiz->postMessage(opaque, AVStreamReader::MSG_SEEK);
@@ -310,6 +310,10 @@ void AVStreamReader::onMessage(const SharedMessages::Message &msg)
     NIDIUM_PTHREAD_SIGNAL(&m_ThreadCond);
 }
 
+bool AVStreamReader::isGenesisThread() {
+    return pthread_equal(m_GenesisThread, pthread_self());
+}
+
 /*
 void AVStreamReader::onProgress(size_t buffered, size_t len)
 {
@@ -368,7 +372,7 @@ void AVStreamReader::finish()
 
 AVStreamReader::~AVStreamReader()
 {
-    if (Utils::IsMainThread()) {
+    if (this->isGenesisThread()) {
         delete m_Stream;
     } else {
         this->postMessage(this, AVStreamReader::MSG_STOP);

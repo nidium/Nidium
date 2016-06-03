@@ -77,12 +77,6 @@ class Utils
 {
 public:
     static uint64_t GetTick(bool ms = false);
-    static bool IsMainThread()
-    {
-        // TODO : Windows support and better implementation
-        return getpid() == syscall(SYS_gettid);
-    }
-
     static void SHA1hmac(const unsigned char *key, uint32_t keylen,
         const unsigned char *buf, uint32_t buflen, unsigned char out[20]);
     static void SHA1(const unsigned char *buf, uint32_t buflen, unsigned char out[20]);
