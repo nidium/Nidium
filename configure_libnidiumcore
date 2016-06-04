@@ -31,14 +31,21 @@ Gyp = Builder.Gyp
 
 @Deps.register("leveldb")
 def leveldb():
-    flags = ""
+    cxxflags = ""
+    extraCmd = ""
 
     if Platform.system == "Darwin":
-        flags = "CXXFLAGS='-stdlib=libc++ -mmacosx-version-min=10.7' CFLAGS='-mmacosx-version-min=10.7'"
+        cxxflags = "-stdlib=libc++ -mmacosx-version-min=10.7"
 
+    if Konstruct.config("asan"):
+        # Fix ASAN container overflow false positive :
+        # https://github.com/google/sanitizers/wiki/AddressSanitizerContainerOverflow#false-positives
+        cxxflags += " -fsanitize=address"
+        
     return {
         "location": Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.18"),
-        "build": [flags + " make"], 
+        "build": ["CXXFLAGS='%s' make" % (cxxflags)], 
+        "onNewConfig": ["make clean"], # leveldb make doest not detect CXXFLAGS changes
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "leveldb.patch")],
         "outputs": ["libleveldb(.a|.lib)"]
     }
@@ -107,6 +114,7 @@ def testCore(unitTests):
 @CommandLine.option("--asan", default=False)
 def asan(asan):
     if asan:
+        Konstruct.setConfigs(["asan"])
         Gyp.set("asan", 1)
 
 @CommandLine.option("--cpu-profiling", default=False)
