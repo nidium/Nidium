@@ -189,38 +189,6 @@ void UIX11Interface::runLoop()
     APE_loop_run(m_Gnet);
 }
 
-
-void UIX11Interface::log(const char *buf)
-{
-    fwrite(buf, sizeof(char), strlen(buf), stdout);
-    fflush(stdout);
-}
-
-void UIX11Interface::logf(const char *format, ...)
-{
-    char *buff;
-    va_list val;
-
-    va_start(val, format);
-    vasprintf(&buff, format, val);
-    va_end(val);
-
-    this->log(buff);
-
-    free(buff);
-}
-
-void UIX11Interface::vlog(const char *format, va_list ap)
-{
-    char *buff;
-
-    vasprintf(&buff, format, ap);
-
-    this->log(buff);
-
-    free(buff);
-}
-
 void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)
 {
     int cursor;

@@ -22,7 +22,7 @@ class UIX11Console : public UIInterface::UIConsole
         void hide() {};
         void clear() {};
         void flush() {};
-        bool hidden() { return true; };
+        bool hidden() { return false; };
 };
 // }}}
 
@@ -37,18 +37,12 @@ class UIX11Interface : public UIInterface
         void setWindowControlsOffset(double x, double y) {};
         void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags = 0);
-
         void enableSysTray();
 
-        void initControls() {};
         UIX11Console *getConsole(bool create=false, bool *created=NULL) {
             return m_Console;
         }
 
-        void vlog(const char *buf, va_list ap);
-        void log(const char *buf);
-        void logf(const char *format, ...);
-        void logclear() {};
         /*
         struct {
             CGRect closeFrame;
