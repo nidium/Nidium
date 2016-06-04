@@ -177,51 +177,6 @@ static int ProcessSystemLoop(void *arg)
     return 4;
 }
 
-void UICocoaInterface::log(const char *buf)
-{
-    if (this->m_Console && !this->m_Console->m_IsHidden) {
-        this->m_Console->log(buf);
-    } else {
-        fwrite(buf, sizeof(char), strlen(buf), stdout);
-        fflush(stdout);
-    }
-}
-
-void UICocoaInterface::logf(const char *format, ...)
-{
-    char *buff;
-    int len;
-    va_list val;
-
-    va_start(val, format);
-    len = vasprintf(&buff, format, val);
-    va_end(val);
-
-    this->log(buff);
-
-    free(buff);
-}
-
-void UICocoaInterface::vlog(const char *format, va_list ap)
-{
-    char *buff;
-    int len;
-
-    len = vasprintf(&buff, format, ap);
-
-    this->log(buff);
-
-    free(buff);
-}
-
-void UICocoaInterface::logclear()
-{
-    if (this->m_Console && !this->m_Console->m_IsHidden) {
-        this->m_Console->clear();
-    }
-}
-
-
 void UICocoaInterface::stopApplication()
 {
     [this->m_DragNSView setResponder:nil];
@@ -239,7 +194,7 @@ UICocoaInterface::UICocoaInterface() :
 
 UICocoaConsole *UICocoaInterface::getConsole(bool create, bool *created) {
     if (created) *created = false;
-    if (this->m_Console == NULL && create) {
+    if (this->m_Console == nullptr && create) {
         this->m_Console = new UICocoaConsole;
         if (created) *created = true;
     }

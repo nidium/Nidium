@@ -238,12 +238,11 @@ int UIInterface::HandleEvents(void *arg)
         NUII->makeMainGLCurrent();
         NUII->m_NidiumCtx->frame(true);
     }
-#if 0
-    TODO : OSX
+
     if (NUII->getConsole()) {
         NUII->getConsole()->flush();
     }
-#endif
+
     if (NUII->getFBO() != 0 && NUII->m_NidiumCtx) {
 
         glReadBuffer(GL_COLOR_ATTACHMENT0);

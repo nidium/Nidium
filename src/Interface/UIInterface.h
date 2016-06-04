@@ -242,12 +242,7 @@ class UIInterface
         virtual void getWindowPosition(int *x, int *y);
         virtual void centerWindow();
 
-        virtual void log(const char *buf)=0;
-        virtual void logf(const char *format, ...)=0;
-        virtual void vlog(const char *buf, va_list ap)=0;
-        virtual void logclear()=0;
         virtual void refresh();
-
 
         void setArguments(int argc, char **argv) {
             m_Argc = argc;
@@ -313,7 +308,6 @@ class UIInterface
 
         static void OnNMLLoaded(void *arg);
 
-
         class UIConsole
         {
             public:
@@ -321,10 +315,10 @@ class UIInterface
             virtual void show()=0;
             virtual void hide()=0;
             virtual void clear()=0;
+            virtual void flush()=0;
             virtual bool hidden()=0;
         };
         virtual UIConsole *getConsole(bool create=false, bool *created=NULL)=0;
-
 
         Frontend::Context *m_NidiumCtx;
         Frontend::NML *m_Nml;

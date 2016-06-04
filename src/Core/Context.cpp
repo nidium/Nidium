@@ -53,19 +53,27 @@ int Context::Ping(void *arg)
 void Context::log(const char *str)
 {
     fwrite(str, sizeof(char), strlen(str), stdout);
+    fflush(stdout);
 }
 
 void Context::vlog(const char *format, ...)
 {
-    char *buff;
     va_list args;
+
     va_start(args, format);
+    this->vlog(format, args);
+    va_end(args);
+}
+
+void Context::vlog(const char *format, va_list args)
+{
+    char *buff;
 
     vasprintf(&buff, format, args);
 
     this->log(buff);
 
-    va_end(args);
+    free(buff);
 }
 
 Context::~Context()

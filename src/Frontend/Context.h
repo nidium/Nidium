@@ -244,6 +244,11 @@ class Context : public Core::Context, public Core::Messages
     Graphics::CanvasHandler *getCurrentClickedHandler() const {
         return m_CurrentClickedHandler;
     }
+
+    void log(const char *str);
+    void logClear();
+    void logShow();
+    void logHide();
     
     private:
     Graphics::GLResources      m_Resources;

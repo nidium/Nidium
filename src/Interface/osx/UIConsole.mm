@@ -22,8 +22,8 @@
     [self.m_Window setTitle:@"nidium console"];
     CGRect frame = [[self.m_Window contentView] frame];
     NSButton *btn = [[NSButton alloc] initWithFrame:NSMakeRect(10, 3, 100, 25)];
-    [btn setButtonType:NSMomentaryLightButton]; //Set what type button You want
-    [btn setBezelStyle:NSRegularSquareBezelStyle]; //Set what style You want
+    [btn setButtonType:NSMomentaryLightButton];
+    [btn setBezelStyle:NSRegularSquareBezelStyle];
     btn.title = @"Clear";
     [btn setTarget:self];
     [btn setAction:@selector(clearPressed)];
@@ -150,6 +150,7 @@ UICocoaConsole::UICocoaConsole()
 {
     this->m_Window = [[NidiumConsole alloc] init];
     this->m_NeedFlush = false;
+    this->m_IsHidden = false;
     //[this->m_Window attachToStdout];
     this->show();
     //this->hide();
@@ -213,6 +214,7 @@ void UICocoaConsole::log(const char *str)
             [[[this->m_Window textview] textStorage] beginEditing];
             m_NeedFlush = true;
         }
+
         if (this->m_IsHidden) {
             return;
         }

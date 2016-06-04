@@ -44,12 +44,14 @@
 
 #include "IO/EmbedStream.h"
 #include "IO/SystemStream.h"
+#include "Interface/UIInterface.h"
 
 using Nidium::Core::SharedMessages;
 using Nidium::Core::Path;
 using Nidium::Core::Utils;
 using Nidium::Net::WebSocketServer;
 using Nidium::Net::WebSocketClientConnection;
+using Nidium::Interface::UIInterface;
 using namespace Nidium::Graphics;
 using namespace Nidium::Binding;
 using namespace Nidium::IO;
@@ -62,18 +64,38 @@ enum {
 };
 
 // {{{ Logging
-int NidiumContext_vLogger(const char *format, va_list ap)
+void Context::log(const char *str)
 {
-    Interface::__NidiumUI->vlog(format, ap);
-
-    return 0;
+    UIInterface::UIConsole *console = Interface::__NidiumUI->getConsole(true);
+    if (console && !console->hidden()) {
+        console->log(str);
+    } else {
+        Core::Context::log(str);
+    }
 }
 
-int NidumContext_LogClear()
+void Context::logClear()
 {
-    Interface::__NidiumUI->logclear();
+    UIInterface::UIConsole *console = Interface::__NidiumUI->getConsole(true);
+    if (console && !console->hidden()) {
+        console->clear();
+    }
+}
 
-    return 0;
+void Context::logShow()
+{
+    UIInterface::UIConsole *console = Interface::__NidiumUI->getConsole(true);
+    if (console && console->hidden()) {
+        console->show();
+    }
+}
+
+void Context::logHide()
+{
+    UIInterface::UIConsole *console = Interface::__NidiumUI->getConsole(true);
+    if (console && !console->hidden()) {
+        console->hide();
+    }
 }
 // }}}
 
