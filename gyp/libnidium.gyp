@@ -65,16 +65,6 @@
                     'JS_THREADSAFE',
                     'GR_GL_CUSTOM_SETUP_HEADER=<../patch/skia_gl_config.h>'
                 ],
-                'xcode_settings': {
-                    'OTHER_CFLAGS': [
-                        '-Qunused-arguments',
-                        '-fvisibility=hidden',
-                        '-fvisibility-inlines-hidden',
-                        '-Wno-c++0x-extensions',
-                        '-Wno-unused-function',
-                        '-Wno-invalid-offsetof'
-                    ],
-                },
             }],
             ['OS=="linux"', {
                 'defines+': [
