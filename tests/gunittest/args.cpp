@@ -42,5 +42,5 @@ TEST(Args, OverflowDeath)
     
     Nidium::Core::Args args;
 
-    ASSERT_DEATH(args[MAX_ARGS_SIZE + 1].isSet(), "");
+    EXPECT_DEATH_IF_SUPPORTED(args[MAX_ARGS_SIZE + 1].isSet(), "");
 }
