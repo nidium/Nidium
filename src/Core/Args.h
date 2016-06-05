@@ -76,7 +76,6 @@ public:
         }
 
         if (idx >= m_NumArgs) {
-            m_NumArgs = idx + 1;
             printf("[Err] Args overflow\n");
             *(volatile int*)0 = 42;
         }
