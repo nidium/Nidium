@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 
     const char *nml = NULL;
 
-    nml = argc > 1 ? argv[1] : "private://default.nml";
+    nml = argc > 1 ? argv[1] : "embed://default.nml";
 
     UI.setArguments(argc, argv);
 

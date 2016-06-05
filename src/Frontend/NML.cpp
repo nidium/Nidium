@@ -97,7 +97,7 @@ void NML::loadDefaultItems(Assets *assets)
 
     m_DefaultItemsLoaded = true;
 
-    Assets::Item *preload = new Assets::Item("private://preload.js",
+    Assets::Item *preload = new Assets::Item("embed://preload.js",
         Assets::Item::ITEM_SCRIPT, m_Net);
 
     assets->addToPendingList(preload);
@@ -106,7 +106,7 @@ void NML::loadDefaultItems(Assets *assets)
         return;
     }
 
-    Assets::Item *falcon = new Assets::Item("private://" NIDIUM_FRAMEWORK_STR "/native.js",
+    Assets::Item *falcon = new Assets::Item("embed://" NIDIUM_FRAMEWORK_STR "/native.js",
         Assets::Item::ITEM_SCRIPT, m_Net);
 
     assets->addToPendingList(falcon);

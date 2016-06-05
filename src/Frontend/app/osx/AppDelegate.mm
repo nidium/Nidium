@@ -176,7 +176,7 @@ NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:@"Testing!"] autorelease];
         const char *filename;
 
         if (self.appfile == nil) {
-            filename = "private://default.nml";
+            filename = "embed://default.nml";
         } else {
             filename = [self.appfile UTF8String];
         }
