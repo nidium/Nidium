@@ -9,7 +9,7 @@
         'nidium_webgl%': 1,
         'nidium_audio%': 1,
         'nidium_package_embed%': 0,
-        'nidium_embed_dir': '../src/JS/',
+        'nidium_embed_dir': '../src/Embed/',
         'nidium_embed_bin_header': '../src/nidium_private_bin.h',
         'nidium_embed_bin': '../resources/private.bin',
 
