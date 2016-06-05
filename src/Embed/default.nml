@@ -1,0 +1,14 @@
+<application version="0.1">
+    <meta>
+        <title>nidium</title>
+        <viewport>800x600</viewport>
+        <version>1.0</version>
+        <date>2012-03-15</date>
+        <robots>index, follow</robots>
+        <identifier>com.nidium.app</identifier>
+        <author>Nidium Inc.</author>
+    </meta>
+    <assets>
+    </assets>
+</application>
+
