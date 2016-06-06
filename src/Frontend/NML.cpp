@@ -13,8 +13,10 @@
 #include <unistd.h>
 
 #include <Binding/JSUtils.h>
+#include <Binding/JSExposer.h>
 
 #include <SystemInterface.h>
+#include <Macros.h>
 
 #include "Binding/JSWindow.h"
 #include "Binding/JSDocument.h"
@@ -26,6 +28,7 @@ using Nidium::Binding::NidiumJS;
 using Nidium::Binding::JSUtils;
 using Nidium::Binding::JSWindow;
 using Nidium::Binding::JSDocument;
+using Nidium::Binding::JSObjectBuilder;
 using Nidium::Interface::SystemInterface;
 
 namespace Nidium {
@@ -36,7 +39,7 @@ namespace Frontend {
 NML::NML(ape_global *net) :
     m_Net(net), m_Stream(NULL), m_nAssets(0),
     m_Njs(NULL), m_Loaded(NULL), m_LoadedArg(NULL), m_Layout(NULL),
-    m_JSObjectLayout(NULL), m_DefaultItemsLoaded(false), m_LoadDefaultItems(true)
+    m_JSObjectLayout(NULL), m_DefaultItemsLoaded(false), m_LoadFramework(true)
 {
     m_AssetsList.size = 0;
     m_AssetsList.allocated = 4;
@@ -99,17 +102,9 @@ void NML::loadDefaultItems(Assets *assets)
 
     Assets::Item *preload = new Assets::Item("embed://preload.js",
         Assets::Item::ITEM_SCRIPT, m_Net);
+    preload->setTagName("__NidiumPreload__");
 
     assets->addToPendingList(preload);
-
-    if (!m_LoadDefaultItems) {
-        return;
-    }
-
-    Assets::Item *falcon = new Assets::Item("embed://" NIDIUM_FRAMEWORK_STR "/native.js",
-        Assets::Item::ITEM_SCRIPT, m_Net);
-
-    assets->addToPendingList(falcon);
 }
 
 bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
@@ -142,7 +137,7 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
 
     if (framework) {
         if (strncasecmp(framework->value(), CONST_STR_LEN("false")) == 0) {
-            m_LoadDefaultItems = false;
+            m_LoadFramework = false;
         }
     }
 
@@ -385,6 +380,26 @@ void NML::onAssetsItemReady(Assets::Item *item)
             case Assets::Item::ITEM_SCRIPT:
             {
                 m_Njs->LoadScriptContent((char *)data, len, item->getName());
+
+                if (strcmp(item->getTagName(), "__NidiumPreload__") == 0) {
+                    JSContext *cx = m_Njs->getJSContext();
+                    JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
+                    JS::AutoValueArray<1> args(cx);
+                    JSObjectBuilder obj(cx);
+                    JS::RootedValue rval(cx);
+
+                    args[0].setObjectOrNull(obj.obj());
+
+                    obj.set("framework", m_LoadFramework);
+
+                    JS_CallFunctionName(cx, gbl, "__nidiumPreload", args, &rval);
+
+                    if (JS_IsExceptionPending(cx)) {
+                        if (!JS_ReportPendingException(cx)) {
+                            JS_ClearPendingException(cx);
+                        }
+                    }
+                }
 
                 break;
             }

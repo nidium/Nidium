@@ -892,8 +892,7 @@ static bool nidium_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
         case NAVIGATOR_PROP_USERAGENT:
             {
             JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_NAME "/"
-                NIDIUM_VERSION_STR "(" APP_LOCALE "; rv:" NIDIUM_BUILD ") "
-                NIDIUM_FRAMEWORK_STR));
+                NIDIUM_VERSION_STR "(" APP_LOCALE "; rv:" NIDIUM_BUILD ") "));
             vp.setString(jStr);
             }
             break;
@@ -1381,8 +1380,8 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx, int width,
     JS::RootedString jVersion(cx, JS_NewStringCopyZ(cx, NIDIUM_VERSION_STR));
     JS_DefineProperty(cx, nidiumObj, "version", jVersion, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    JS::RootedString jFramework(cx, JS_NewStringCopyZ(cx, NIDIUM_FRAMEWORK_STR));
-    JS_DefineProperty(cx, nidiumObj, "build", jFramework, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS::RootedString jBuild(cx, JS_NewStringCopyZ(cx, NIDIUM_BUILD));
+    JS_DefineProperty(cx, nidiumObj, "build", jBuild, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     JS::RootedString jRevision(cx, JS_NewStringCopyZ(cx, NIDIUM_BUILD));
     JS_DefineProperty(cx, nidiumObj, "revision", jRevision, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);

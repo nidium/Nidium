@@ -7,7 +7,6 @@
         'default_configuration': 'Release',
         'defines': [
             'NIDIUM_VERSION_STR="<(nidium_version)"',
-            'NIDIUM_FRAMEWORK_STR="delete me"', # XXX Remove this
             'NIDIUM_BUILD="<!@(git rev-parse HEAD)"',
             #'UINT32_MAX=4294967295u',
             #'_FILE_OFFSET_BITS=64',
@@ -108,7 +107,8 @@
             # XXX : Remove me once we switched to .nfs file for privates
             ['nidium_package_embed==1', {
                 'defines': [
-                    'NIDIUM_EMBED_FILE="<(nidium_embed_bin_header)"'
+                    'NIDIUM_EMBED_FILE="<(nidium_embed_bin_header)"',
+                    'NIDIUM_PACKAGE_EMBED',
                 ]
             }],
             ['asan==1', {

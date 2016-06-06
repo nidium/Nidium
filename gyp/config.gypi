@@ -11,8 +11,8 @@
         'nidium_ui_console%': 1,
         'nidium_package_embed%': 0,
         'nidium_embed_dir': '../src/Embed/',
-        'nidium_embed_bin_header': '../src/nidium_private_bin.h',
-        'nidium_embed_bin': '../resources/private.bin',
+        'nidium_embed_bin_header': '../src/nidium_embed_bin.h',
+        'nidium_embed_bin': '../resources/embed.bin',
 
         'nidium_src_path': '../src/',
         'nidium_av_path': '<(nidium_src_path)/AV/',

@@ -26,6 +26,7 @@ class System : public SystemInterface
         const char *getLanguage();
     private:
         bool m_SystemUIReady;
+        char *m_EmbedPath;
 };
 
 } // namespace Interface

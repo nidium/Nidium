@@ -14,7 +14,7 @@
 
 #include <SystemInterface.h>
 
-#ifndef NIDIUM_EMBED_PRIVATE
+#ifndef NIDIUM_PACKAGE_EMBED
 
 namespace Nidium {
 namespace IO {
@@ -50,11 +50,7 @@ class EmbedStream : public NFSStream
 {
 public:
     explicit EmbedStream(const char *location) :
-#if 0
-        NFSStream((std::string("/embed") + location).c_str())
-#else
         NFSStream(location)
-#endif
     {
     }
 
@@ -77,8 +73,8 @@ public:
 
 #endif
 
-#endif
-
 } // namespace IO
 } // namespace Nidium
+
+#endif
 

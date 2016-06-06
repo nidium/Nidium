@@ -18,6 +18,7 @@
 #include <gtk/gtk.h>
 
 #include "System.h"
+#include <libgen.h>
 
 namespace Nidium {
 namespace Interface {
@@ -72,6 +73,24 @@ System::System() : m_SystemUIReady(false)
 
     m_fBackingStorePixelRatio = static_cast<float>(x) / 96.f;
     m_fBackingStorePixelRatio = 1.0;
+
+	char procPath[PATH_MAX];
+	char nidiumPath[PATH_MAX];
+	pid_t pid = getpid();
+
+	sprintf(procPath, "/proc/%d/exe", pid);
+
+	if (readlink(procPath, nidiumPath, PATH_MAX) == -1)
+		m_EmbedPath = nullptr;
+	else {
+		const char *embed = "src/Embed/";
+		char *dir = dirname(dirname(nidiumPath));
+		size_t len = strlen(dir) + strlen(embed) + 2;
+
+		m_EmbedPath = static_cast<char *>(malloc(sizeof(char) * len));
+
+		snprintf(m_EmbedPath, len, "%s/%s", dir, embed);
+	}
 }
 
 float System::backingStorePixelRatio()
@@ -81,12 +100,7 @@ float System::backingStorePixelRatio()
 
 const char *System::getEmbedDirectory()
 {
-    static char embeddir[MAXPATHLEN];
-
-    strncpy(embeddir, this->pwd(), MAXPATHLEN - (sizeof("/embed/") + 1));
-    strcat(embeddir, "/embed/");
-
-    return embeddir;
+	return m_EmbedPath;
 }
 
 const char *System::getCacheDirectory()

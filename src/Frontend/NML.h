@@ -142,7 +142,7 @@ private:
     JS::Heap<JSObject *> m_JSObjectLayout;
 
     bool m_DefaultItemsLoaded;
-    bool m_LoadDefaultItems;
+    bool m_LoadFramework;
 };
 
 } // namespace Frontend
