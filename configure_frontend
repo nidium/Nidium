@@ -96,7 +96,8 @@ def skia():
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "skia_defines.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_python27.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_clang.patch")],
+                   os.path.join(CONFIGURE_PATH, "patch", "skia_clang.patch"),
+                   os.path.join(CONFIGURE_PATH, "patch", "skia_zlib_osx.patch")],
         "outputs": [
             "out/Release/libskia_pdf.a",
             "out/Release/libskia_ports.a",
