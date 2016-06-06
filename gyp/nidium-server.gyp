@@ -26,7 +26,6 @@
         ],
         'defines':[
             'LINENOISE_INTERRUPTIBLE',
-            'NIDIUM_NO_PRIVATE_DIR'
         ],
         'conditions': [
             ['nofork==1', {
