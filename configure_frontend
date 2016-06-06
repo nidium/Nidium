@@ -237,6 +237,7 @@ def autoTestStudio(autoTests):
 
     Utils.run(dokumentor + " exampletest docs/ > tests/jsautotest/autotests.js")
 
+    Gyp.set("nidium_ui_console", "0")
     tests.append((nidium[1] + " ../tests/jsautotest/autotests.nml", nidium[0]))
 
     Tests.register(tests)
@@ -249,6 +250,7 @@ def testStudio(unitTests):
     tests = []
     nidium = getNidiumPath()
 
+    Gyp.set("nidium_ui_console", "0")
     tests.append((nidium[1] + " ../tests/jsunittest/unittests.nml --frontend", nidium[0]))
 
     Tests.register(tests)

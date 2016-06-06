@@ -193,9 +193,14 @@ UICocoaInterface::UICocoaInterface() :
 }
 
 UICocoaConsole *UICocoaInterface::getConsole(bool create, bool *created) {
+#ifdef NIDIUM_DISABLE_UI_CONSOLE
+    return nullptr;
+#endif
+
     if (created) *created = false;
     if (this->m_Console == nullptr && create) {
         this->m_Console = new UICocoaConsole;
+
         if (created) *created = true;
     }
     return this->m_Console;

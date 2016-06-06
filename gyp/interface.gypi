@@ -42,6 +42,9 @@
                 '<!@(pkg-config --libs gtk+-2.0)',
             ],
         }],
+        ['nidium_ui_console==0', {
+            'defines': ['NIDIUM_DISABLE_UI_CONSOLE']
+        }]
     ],
 }
 
