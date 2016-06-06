@@ -49,7 +49,8 @@ def portaudio():
     return {
         "location": DEPEDENCY_REPO + "/portaudio.tgz",
         "build": ["./configure --without-jack --without-asihpi --without-winapi --enable-cxx", "make -j1", "make  src/common/pa_ringbuffer.o"],
-        "outputs": ["lib/.libs/libportaudio.a"]
+        "outputs": ["lib/.libs/libportaudio.a"],
+        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "portaudio.patch")]
     }
 
 @Deps.register("zita-resampler")
