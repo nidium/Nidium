@@ -7,6 +7,7 @@
 
 #import <sys/stat.h>
 #include <unistd.h>
+#include <libgen.h>
 
 #import <Cocoa/Cocoa.h>
 
@@ -21,6 +22,20 @@ System::System()
     m_fBackingStorePixelRatio = 1.0;
 #endif
     fprintf(stdout, "Canvas Ratio (HIDPI) : %f\n", m_fBackingStorePixelRatio);
+
+    char embedPath[MAXPATHLEN];
+
+    CFURLRef url = CFBundleCopyBundleURL(CFBundleGetMainBundle());
+    CFURLRef url2 = CFURLCreateCopyDeletingLastPathComponent(0, url);
+    if (CFURLGetFileSystemRepresentation(url2, 1, (UInt8 *)embedPath, MAXPATHLEN)) {
+        char *dir = dirname(embedPath);
+        snprintf(m_EmbedPath, MAXPATHLEN, "%s/%s", dir, "src/Embed/");
+    } else {
+        m_EmbedPath[0] = '/';
+        m_EmbedPath[1] = '\0';
+    }
+    CFRelease(url);
+    CFRelease(url2);
 }
 
 float System::backingStorePixelRatio()
@@ -73,26 +88,7 @@ void System::openURLInBrowser(const char *url)
 
 const char *System::getEmbedDirectory()
 {
-    static char parentdir[MAXPATHLEN];
-    static bool resolved = false;
-
-    if (resolved) {
-        return parentdir;
-    }
-
-    parentdir[0] = '/';
-    parentdir[1] = '\0';
-
-    CFURLRef url = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-    CFURLRef url2 = CFURLCreateCopyDeletingLastPathComponent(0, url);
-    if (CFURLGetFileSystemRepresentation(url2, 1, (UInt8 *)parentdir, MAXPATHLEN)) {
-        strcat(parentdir, "/embed/");
-        resolved = true;
-    }
-    CFRelease(url);
-    CFRelease(url2);
-
-    return parentdir;
+    return m_EmbedPath;
 }
 
 const char *System::getCacheDirectory()

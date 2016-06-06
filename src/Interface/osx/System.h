@@ -7,6 +7,7 @@
 #define interface_osx_system_h__
 
 #include "../SystemInterface.h"
+#include <sys/param.h> /* for MAXPATHLEN */
 
 namespace Nidium {
 namespace Interface {
@@ -31,6 +32,8 @@ class System : public SystemInterface
         void alert(const char *message, AlertType type = ALERT_INFO);
         void sendNotification(const char *title, const char *content, bool sound = false);
         const char *execute(const char *cmd);
+    private:
+        char m_EmbedPath[MAXPATHLEN];
 };
 
 } // namespace Interface
