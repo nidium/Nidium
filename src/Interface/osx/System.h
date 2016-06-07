@@ -27,7 +27,7 @@ class System : public SystemInterface
         const char *getEmbedDirectory();
         const char *getUserDirectory();
         void openURLInBrowser(const char *url);
-        const char *pwd();
+        const char *cwd();
         const char *getLanguage();
         void alert(const char *message, AlertType type = ALERT_INFO);
         void sendNotification(const char *title, const char *content, bool sound = false);

@@ -60,7 +60,7 @@ public:
     };
 
     /*
-        allowAll defines if origin must match "pwd" stream class (if false)
+        allowAll defines if origin must match "cwd" stream class (if false)
     */
     explicit Path(const char *origin, bool allowAll = false,
         bool noFilter = false);

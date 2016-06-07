@@ -22,7 +22,7 @@ class System : public SystemInterface
         const char *getUserDirectory();
         void alert(const char *message, AlertType type = ALERT_INFO);
         void initSystemUI();
-        const char *pwd();
+        const char *cwd();
         const char *getLanguage();
     private:
         bool m_SystemUIReady;

@@ -175,7 +175,7 @@ void System::initSystemUI()
 }
 
 
-const char *System::pwd()
+const char *System::cwd()
 {
     static char dir[MAXPATHLEN];
 
