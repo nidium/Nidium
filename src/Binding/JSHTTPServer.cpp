@@ -124,7 +124,7 @@ bool JSHTTPServer::onEnd(HTTPClientConnection *client)
     if (client->getHTTPState()->parser.method == HTTP_POST) {
         JS::RootedValue strdata(m_Cx);
         if (data == NULL || data->used == 0) {
-            strdata.setObjectOrNull(&JS_GetEmptyStringValue(m_Cx).toObject());
+            strdata.set(JS_GetEmptyStringValue(m_Cx));
         } else {
             JSUtils::StrToJsval(m_Cx, (const char *)data->data,
                 data->used, &strdata, "utf8");
