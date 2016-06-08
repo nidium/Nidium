@@ -252,12 +252,6 @@ static JSPropertySpec AudioNodeSource_props[] = {
     JS_PS_END
 };
 
-static JSFunctionSpec glob_funcs_threaded[] = {
-    JS_FN("echo", nidium_audiothread_print, 1, NIDIUM_JS_FNPROPS),
-    JS_FS_END
-};
-
-
 static bool nidium_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_video_play(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_video_pause(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -642,7 +636,6 @@ bool JSAudio::createContext()
     }
     JS_SetErrorReporter(m_JsTcx, reportError);
     JS_FireOnNewGlobalObject(m_JsTcx, global);
-    JS_DefineFunctions(m_JsTcx, global, glob_funcs_threaded);
     JSConsole::RegisterObject(m_JsTcx);
 
     JS_SetRuntimePrivate(m_JsRt, NidiumJS::GetObject(m_Audio->getMainCtx()));
