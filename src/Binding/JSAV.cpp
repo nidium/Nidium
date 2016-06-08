@@ -602,7 +602,7 @@ bool JSAudio::createContext()
     if (m_JsRt != NULL) return false;
 
     if ((m_JsRt = JS_NewRuntime(128L * 1024L * 1024L, JS_USE_HELPER_THREADS)) == NULL) {
-        printf("Failed to init JS runtime\n");
+        NUI_LOG("Failed to init JS runtime\n");
         return false;
     }
 
@@ -610,7 +610,7 @@ bool JSAudio::createContext()
     JS_SetGCParameter(m_JsRt, JSGC_SLICE_TIME_BUDGET, 15);
 
     if ((m_JsTcx = JS_NewContext(m_JsRt, 8192)) == NULL) {
-        printf("Failed to init JS context\n");
+        NUI_LOG("Failed to init JS context\n");
         return false;
     }
 
@@ -631,7 +631,7 @@ bool JSAudio::createContext()
 
     js::SetDefaultObjectForContext(m_JsTcx, global);
     if (!JS_InitStandardClasses(m_JsTcx, global)) {
-        printf("Failed to init std class\n");
+        NUI_LOG("Failed to init std class\n");
         return false;
     }
     JS_SetErrorReporter(m_JsTcx, reportError);
@@ -649,7 +649,7 @@ bool JSAudio::createContext()
 bool JSAudio::run(char *str)
 {
     if (!m_JsTcx) {
-        printf("No JS context for audio thread\n");
+        NUI_LOG("No JS context for audio thread\n");
         return false;
     }
     JSAutoRequest ar(m_JsTcx);
@@ -940,7 +940,7 @@ void JSAudio::CtxCallback(void *custom)
     JSAudio *audio = static_cast<JSAudio*>(custom);
 
     if (!audio->createContext()) {
-        printf("Failed to create audio thread context\n");
+        NUI_LOG("Failed to create audio thread context\n");
         //JS_ReportError(jsNode->audio->cx, "Failed to create audio thread context\n");
         // XXX : Can't report error from another thread?
     }
@@ -1475,7 +1475,7 @@ static bool nidium_audiothread_print(JSContext *cx, unsigned argc, JS::Value *vp
     if (!bytes)
         return true;
 
-    printf("%s\n", bytes);
+    NUI_LOG("%s\n", bytes);
 
     JS_free(cx, bytes);
 
@@ -1795,27 +1795,27 @@ static bool nidium_audionode_custom_get(JSContext *cx, unsigned argc, JS::Value 
 {
     JSAudioNode *jsNode;
 
-    printf("hello get\n");
-    printf("get node\n");
+    NUI_LOG("hello get\n");
+    NUI_LOG("get node\n");
 
     jsNode = GET_NODE(JS_THIS_OBJECT(cx, vp));
 
-    printf("convert\n");
+    NUI_LOG("convert\n");
     JS::RootedString name(cx);
     if (!JS_ConvertArguments(cx, m_Args, "S", name, address())) {
         return true;
     }
 
-    printf("str\n");
+    NUI_LOG("str\n");
     JSAutoByteString str(cx, name);
     JS_SetRuntimeThread(JS_GetRuntime(cx));
 
-    printf("get\n");
+    NUI_LOG("get\n");
     JS::RootedObject m_HashObj(cx, jnode->m_HashObj);
     JS::RootedValuel val(cx);
     JS_GetProperty(jsNode->m_Audio->m_JsTcx, m_HashObj, str.ptr(), val.address());
 
-    printf("return\n");
+    NUI_LOG("return\n");
     JS_ClearRuntimeThread(JS_GetRuntime(cx));
 
     m_Args.rval().set(val);
