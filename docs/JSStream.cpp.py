@@ -8,7 +8,8 @@ ClassDoc( "Stream", "Class to work with IO streams.",
     [ SeeDoc( "File" ), SeeDoc( "Http" ) ],
     NO_Examples,
     NO_Extends,
-    NO_Inherrits
+    NO_Inherrits,
+    products=["Frontend", "Server"]
 )
 
 FieldDoc( "Stream.fileSize", "The size of the stream in bytes.",

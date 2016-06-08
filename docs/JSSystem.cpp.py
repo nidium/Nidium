@@ -6,7 +6,8 @@ from dokumentor import *
 
 NamespaceDoc( "System", "System statistics.",
     NO_Sees,
-    NO_Examples
+    NO_Examples,
+    products=["Frontend", "Server"]
 )
 
 FunctionDoc( "System.getOpenFileStats", "Provide information about the openfiles.",

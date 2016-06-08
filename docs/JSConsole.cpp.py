@@ -6,30 +6,28 @@ from dokumentor import *
 
 NamespaceDoc( "Console", "Output, profile and logging functions.",
     [SeeDoc("global.console")],
-    [ ExampleDoc( "console.log( 'Nidium' );" ) ]
+    [ ExampleDoc( "console.log( 'Nidium' );" ) ],
+    products=["Frontend", "Server"]
 )
 FunctionDoc( "Console.hide", "Hides the console.",
     [ SeeDoc( "Console.show" ) ],
     [ExampleDoc( "console.hide( );" )],
-    IS_Static, IS_Public, IS_Fast,
-    NO_Params,
-    NO_Returns
+    IS_Static, 
+    products=["Frontend"]
 )
 
 FunctionDoc( "Console.show", "Opens the console.",
     [ SeeDoc( "Console.hide" ) ],
     [ExampleDoc( "console.show( );" )],
-    IS_Static, IS_Public, IS_Fast,
-    NO_Params,
-    NO_Returns
+    IS_Static,
+    products=["Frontend"]
 )
 
 FunctionDoc( "Console.clear", "Clears the console.",
     [ SeeDoc( "Console.log" ), SeeDoc( "Console.info" ), SeeDoc( "Console.warn" ), SeeDoc( "Console.write" ) ],
     [ExampleDoc( "console.clear( );" )],
-    IS_Static, IS_Public, IS_Fast,
-    NO_Params,
-    NO_Returns
+    IS_Static,
+    products=["Frontend"]
 )
 
 FunctionDoc( "Console.log", "Logs output to the console.",
@@ -64,7 +62,9 @@ FunctionDoc( "Console.warn", "Logs output to the console, marked as warn.",
     NO_Returns
 )
 
-FunctionDoc( "Console.write", "Write output to the console.",
+FunctionDoc( "Console.write", """Log output to the console without processing.
+
+The string printed will not contain the JS file or line number and new line at the end of the string.""",
     [ SeeDoc( "Console.log" ), SeeDoc( "Console.info" ), SeeDoc( "Console.warn" ), SeeDoc( "Console.clear" ) ],
     [ExampleDoc( "console.write( 'Nidium', 'A new breed of browser' );" )],
     IS_Static, IS_Public, IS_Fast,

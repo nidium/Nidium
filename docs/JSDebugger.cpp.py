@@ -9,6 +9,7 @@ NamespaceDoc("Debugger", """Javascript Debugger for Nidium. The Debugger object 
 Nidium is extending SpiderMonkey's Debugger object with two static method to help you create the debugger into another <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Compartmentshttps://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Compartments">compartement</a> and then run code inside the Debugger compartement""", 
     [ SeeDoc( "Debugger.run" ) ],
     NO_Examples,
+    products=["Frontend", "Server"]
 )
 ClassDoc("DebuggerContext", "Javascript Debugger Context for Nidium.", 
     SeesDocs("Debugger|Debugger.create|Debugger.run|DebuggerContext"),

@@ -12,6 +12,7 @@ ClassDoc( "File", "File handling class.",
 });""" ) ],
     NO_Inherrits,
     NO_Extends,
+    products=["Frontend", "Server"]
 )
 
 FieldDoc( "File.filesize", "The size of the file in bytes.",

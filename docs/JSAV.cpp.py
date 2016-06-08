@@ -26,7 +26,8 @@ dsp.connect(src.output[1], out.input[1]);
 source.open("path/to/file.mp3");
 
 // * And play it
-source.play();""") ]
+source.play();""") ],
+    products=["Frontend"]
 )
 
 NamespaceDoc( "AudioContext", "The context/thread where the audio originated.",
@@ -48,7 +49,7 @@ source.assignProcessor(function(frames, scope) {
 });
 source.play();
 """) ],
-    section="Audio"
+    section="Audio",
 )
 
 NamespaceDoc( "_GLOBALAudioThread", """The global object for the audio thread. This thread is seperated from the UI/Network thread.""",

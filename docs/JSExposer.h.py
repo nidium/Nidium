@@ -6,7 +6,8 @@ from dokumentor import *
 
 NamespaceDoc( "NidiumEvent", "Event coordinator.\n\n Every object exposed by Nidium inherits from NidiumEvent.",
     SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" ),
-    NO_Examples
+    NO_Examples,
+    products=["Frontend", "Server"]
 )
 
 EventDoc( "NidiumEvent.stopProgagation", "Stops the propagation of an event.",

@@ -9,7 +9,8 @@ ClassDoc("DB", """Key/Value store backed by LevelDB""",
     [ExampleDoc("""var DB = require("DB");
 var db = new DB("mydb");
 db.set("foo", "bar");
-console.log(db.get("foo"));""")])
+console.log(db.get("foo"));""")],
+    products=["Frontend", "Server"])
 
 ConstructorDoc("DB", """Open a database
         

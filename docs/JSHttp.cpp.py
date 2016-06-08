@@ -21,7 +21,8 @@ h.onerror = function(event){
     console.log(event.error);
 }; """ ) ],
     NO_Inherrits, NO_Extends,
-        section="HTTP Client & Server",
+    section="HTTP Client & Server",
+    products=["Frontend", "Server"]
 )
 
 ConstructorDoc( "Http", "Constructor for a Http Object.",

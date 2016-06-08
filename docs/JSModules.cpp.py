@@ -6,10 +6,11 @@ from dokumentor import *
 
 NamespaceDoc( "module", "Module that is exported.",
     SeesDocs( "global.modules" ),
-        examples=[
-            ExampleDoc("module.exports = {\"lorem\":\"ipsum\"}"), 
-            ExampleDoc("var foobar = require(\"foobar.js\");\n console.log(foobar.lorem); // Print \"ipsum\"")
-        ]
+    examples=[
+        ExampleDoc("module.exports = {\"lorem\":\"ipsum\"}"), 
+        ExampleDoc("var foobar = require(\"foobar.js\");\n console.log(foobar.lorem); // Print \"ipsum\"")
+    ],
+    products=["Frontend", "Server"]
 )
 
 FieldDoc( "module.exports", "Exported Module.",

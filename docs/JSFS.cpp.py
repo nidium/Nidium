@@ -7,7 +7,8 @@ from dokumentor import *
 NamespaceDoc( "fs", "Filesystem access.",
     [ SeeDoc( "process.cwd" ), SeeDoc( "File"  ) ],
     [ ExampleDoc( """fs.readDir( function( err, entries ) {
-        console.log( JSON.stringify( entries ) ); } );""") ]
+        console.log( JSON.stringify( entries ) ); } );""") ],
+    products=["Frontend", "Server"]
 )
 
 FunctionDoc( "fs.readDir", "Read the content of a directory.",

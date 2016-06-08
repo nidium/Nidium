@@ -32,7 +32,8 @@ img.onload = function(){
 img.src = "http://www.nidium.com/static/img/island.png";
 """)],
     NO_Extends,
-    NO_Inherrits
+    NO_Inherrits,
+    products=["Frontend"]
 )
 
 FunctionDoc( "Image.print", "Does nothing.",

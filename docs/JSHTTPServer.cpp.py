@@ -21,7 +21,8 @@ ws.onrequest = function( request, client ) {
 } ;""") ],
     NO_Inherrits,
     NO_Extends,
-        section="HTTP Client & Server",
+    section="HTTP Client & Server",
+    products=["Frontend", "Server"]
 )
 
 ClassDoc( "HTTPRequest", "Http request object spawned by HTTPServer.",

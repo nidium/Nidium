@@ -5,9 +5,12 @@
 from dokumentor import *
 
 NamespaceDoc("WebSocket Client & Server", """Native implemntation of WebSocket Client & Server
+
 * Client : Connect to a WebSocket server.
 * Server : Create a WebSocker server where clients cant connect to.
-""")
+""",
+    products=["Frontend", "Server"]
+)
 
 ClassDoc( "WebSocketServer", "Websocket Server handling.",
     SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),

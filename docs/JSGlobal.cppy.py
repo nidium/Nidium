@@ -19,7 +19,8 @@ try {
 clearTimeout( t );"""),
         ExampleDoc( """var t = setInterval( console.log, 1000, "Nidium" );
 clearInterval( t );"""),
-    ]
+    ],
+    products=["Server", "Frontend"]
 )
 
 FieldDoc( "global.__dirname", "The path (without the filename) of the current JavaScript file ending with a '/'.",
@@ -43,7 +44,8 @@ FieldDoc( "global.window", "The main window object.",
     NO_Examples,
     IS_Static, IS_Public, IS_ReadWrite,
     'Window',
-    NO_Default
+    NO_Default,
+    products=["Frontend"]
 )
 
 FunctionDoc( "global.load", """Load the specified script in a synchronous way.

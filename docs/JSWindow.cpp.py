@@ -6,7 +6,8 @@ from dokumentor import *
 
 NamespaceDoc( "Window", "Window class.",
     [ SeeDoc( "global" ) ],
-    NO_Examples
+    NO_Examples,
+    products=["Frontend"]
 )
 
 NamespaceDoc( "MouseEvent", "Class that describes mouse events.",
@@ -22,7 +23,7 @@ NamespaceDoc( "MouseDrag", "Class that describes drag events.",
 NamespaceDoc( "WindowEvent", "Class that describes window events.",
     SeesDocs( "NMLEvent|Window|WindowEvent|keyEvent|TextInputEvent|MouseEvent|DragEvent" ),
     NO_Examples,
-        section="Window"
+    section="Window"
 )
 
 NamespaceDoc( "TextInputEvent", "Class that describes textinput events.",

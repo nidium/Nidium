@@ -28,7 +28,8 @@ document.canvas.add(canvas);
 // Get its 2D context
 var context = canvas.getContext("2d");""")],
     "CanvasInherrit",
-    NO_Extends
+    products=["Frontend"]
+
 )
 
 NamespaceDoc( "CanvasInherrit", "Parent/Prototype class for Canvas.",

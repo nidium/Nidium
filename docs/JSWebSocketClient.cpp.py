@@ -9,7 +9,8 @@ ClassDoc( "WebSocket", "Websocket handling.",
     NO_Examples,
     NO_Inherrits,
     NO_Extends,
-    section="WebSocket Client & Server"
+    section="WebSocket Client & Server",
+    products=["Frontend", "Server"]
 )
 
 FunctionDoc("WebSocket.close", "Closes an existing websocket connection.",

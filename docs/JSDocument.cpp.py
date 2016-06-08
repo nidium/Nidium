@@ -6,7 +6,8 @@ from dokumentor import *
 
 NamespaceDoc( "document", "Document class.",
     SeesDocs( "Window|Canvas" ),
-    NO_Examples
+    NO_Examples,
+    products=["Server"]
 )
 
 FunctionDoc( "document.parseNML", "Parses a NML string and sets this as a document.",

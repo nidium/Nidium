@@ -6,7 +6,8 @@ from dokumentor import *
 
 NamespaceDoc( "_GLOBALThread", "Global threadnamespace.",
     [SeeDoc( "Thread" ), SeeDoc( "ThreadMessageEvent" )  ],
-        section="Thread"
+    section="Thread",
+    products=["Frontend", "Server"]
 )
 
 ClassDoc( "Thread", """Run a CPU intensive task in the background, with out locking the main UI interface.

@@ -9,6 +9,7 @@ ClassDoc( "process", "Object providing various information and interfaces to int
     [ExampleDoc("""console.log(JSON.stringify(process));""")],
     NO_Inherrits,
     NO_Extends,
+    products=["Frontend", "Server"]
 )
 
 FieldDoc( "global.process", "Instance of the the `process` class.",

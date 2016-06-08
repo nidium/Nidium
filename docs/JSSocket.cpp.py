@@ -36,7 +36,8 @@ socket.onread = function(clientSocket, data) {
     //console.log("=>", data);
 }""") ],
     NO_Inherrits,
-    NO_Extends
+    NO_Extends,
+    products=["Frontend", "Server"]
 )
 
 ClassDoc( "SocketClient", "A connected client.",
