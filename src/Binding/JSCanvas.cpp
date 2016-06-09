@@ -1567,14 +1567,20 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
     switch (msg.event()) {
         case NIDIUM_EVENT(CanvasHandler, RESIZE_EVENT):
         {
-            // TODO : fireEvent
-            JSOBJ_CALLFUNCNAME(ro, "onresize", JS::HandleValueArray::empty());
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            JS::RootedValue eventValue(m_Cx);
+
+            eventValue.setObjectOrNull(eventObj);
+            this->fireJSEvent("resize", &eventValue);
             break;
         }
         case NIDIUM_EVENT(CanvasHandler, LOADED_EVENT):
         {
-            // TODO : fireEvent
-            JSOBJ_CALLFUNCNAME(ro, "onload", JS::HandleValueArray::empty());
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            JS::RootedValue eventValue(m_Cx);
+
+            eventValue.setObjectOrNull(eventObj);
+            this->fireJSEvent("load", &eventValue);
             break;
         }
         case NIDIUM_EVENT(CanvasHandler, CHANGE_EVENT):
@@ -1593,14 +1599,14 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
                     break;
             }
 
-            JS::RootedObject ev(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
-            NIDIUM_JSOBJ_SET_PROP_CSTR(ev, "property", name);
-            NIDIUM_JSOBJ_SET_PROP(ev, "value", value);
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            JSObjectBuilder obj(m_Cx, eventObj);
+            JS::RootedValue eventValue(m_Cx, obj.jsval());
+            obj.set("property", name);
+            obj.set("value", value);
 
-            JS::AutoValueArray<1> arg(cx);
-            arg[0].set(OBJECT_TO_JSVAL(ev));
-            // TODO : fireEvent
-            JSOBJ_CALLFUNCNAME(ro, "onchange", arg);
+            this->fireJSEvent("change", &eventValue);
+
             break;
         }
         case NIDIUM_EVENT(CanvasHandler, DRAG_EVENT):
@@ -1653,8 +1659,9 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
                 default:
                     break;
             }
-            JS::RootedValue rval(cx, obj.jsval());
-            if (!this->fireJSEvent(InputEvent::GetName(msg.m_Args[1].toInt()), &rval)) {
+
+            JS::RootedValue evVal(cx, obj.jsval());
+            if (!this->fireJSEvent(InputEvent::GetName(msg.m_Args[1].toInt()), &evVal)) {
                 break;
             }
 
