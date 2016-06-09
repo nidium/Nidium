@@ -1,6 +1,3 @@
-This Software includes third-party libraries which are listed below with their
-respective licence.
-
 ###############################################################################
 nidium - Tool-kit for writing server, games, desktop software and mobile apps
 ###############################################################################
@@ -28,10 +25,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-
-
-
-
+This Software includes third-party libraries which are listed below with their
+respective licence.
 
 ###############################################################################
 Angle - Almost Native Graphics Layer Engine
