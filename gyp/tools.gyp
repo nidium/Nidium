@@ -8,12 +8,12 @@
         'type': 'executable',
         'product_dir': '../tools/',
         'dependencies': [
-            '<(nidium_network_path)/gyp/network.gyp:network',
-            '<(nidium_network_path)/gyp/network.gyp:network-includes',
-            '<(nidium_network_path)/gyp/network.gyp:network-link',
             'libnidiumcore.gyp:libnidiumcore',
             'libnidiumcore.gyp:libnidiumcore-includes',
             'libnidiumcore.gyp:libnidiumcore-link',
+            '<(nidium_network_path)/gyp/network.gyp:network',
+            '<(nidium_network_path)/gyp/network.gyp:network-includes',
+            '<(nidium_network_path)/gyp/network.gyp:network-link',
         ],
         'sources': [
             '<(nidium_src_path)/Tools/dir2nvfs.cpp',

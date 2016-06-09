@@ -16,6 +16,7 @@
 #include <ape_netlib.h>
 
 #include <Core/Utils.h>
+#include <Core/Context.h>
 #include <IO/FileStream.h>
 #include <Binding/JSNFS.h>
 
@@ -28,12 +29,12 @@ using Nidium::Core::Messages;
 using Nidium::Core::TaskManager;
 using Nidium::IO::Stream;
 using Nidium::IO::FileStream;
-using Nidium::Binding::JSNSFS;
+using Nidium::Binding::JSNFS;
+
+unsigned long _ape_seed;
 
 namespace Nidium {
 namespace Tools {
-
-unsigned long _ape_seed;
 
 void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
 {
@@ -88,23 +89,17 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
     closedir(dir);
 }
 
-static void initNidiumJS()
+static Core::Context *initNidiumJS()
 {
     _ape_seed = time(NULL) ^ (getpid() << 16);
-
-    /*
-        This is required to create a stream (file is the default)
-    */
-    Path::RegisterScheme(SCHEME_DEFINE("file://", FileStream, false), true);
-    TaskManager::CreateManager();
-    ape_global *gnet = APE_init();
-    Messages::initReader(gnet);
-
+    ape_global *net = APE_init();
+    return new Core::Context(net);
 }
 
-int main(int argc, char **argv)
+static int Embed(int argc, char **argv)
 {
-    initNidiumJS();
+    Core::Context *ncx = initNidiumJS();
+    JSContext *cx = ncx->getNJS()->getJSContext();
 
     if (argc <= 1) {
         printf("$ %s <path> [prefix] [> out]\n", argv[0]);
@@ -116,21 +111,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "Cant open dir %s\n", argv[1]);
     }
 
-    /* Init Spidermonkey */
-    JSRuntime *rt = JS_NewRuntime(32L * 1024L * 1024L, JS_USE_HELPER_THREADS);
-    if (rt == NULL) {
-       return 1;
-    }
-
-    JSContext *cx = JS_NewContext(rt, 8192);
-    if (cx == NULL) {
-       return 1;
-    }
-
     JS_BeginRequest(cx);
-
-    JS_SetOptions(cx, JSOPTION_NO_SCRIPT_RVAL);
-    JS_SetVersion(cx, JSVERSION_LATEST);
 
     JSNFS *nfs = new JSNFS(cx);
 
@@ -151,13 +132,14 @@ int main(int argc, char **argv)
 
     JS_EndRequest(cx);
 
-    JS_DestroyContext(cx);
-    JS_DestroyRuntime(rt);
-
-    JS_ShutDown();
+    delete ncx;
 
     return 0;
 }
 
 } //namespace Tools
 } //namespace Nidium
+
+int main(int argc, char **argv) {
+    return Nidium::Tools::Embed(argc, argv);
+}

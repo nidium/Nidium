@@ -14,10 +14,10 @@
 
 #include <SystemInterface.h>
 
-#ifndef NIDIUM_PACKAGE_EMBED
-
 namespace Nidium {
 namespace IO {
+
+#ifndef NIDIUM_PACKAGE_EMBED
 
 class EmbedStream : public IO::FileStream
 {
@@ -46,7 +46,7 @@ public:
 
 #else
 
-class EmbedStream : public NFSStream
+class EmbedStream : public IO::NFSStream
 {
 public:
     explicit EmbedStream(const char *location) :
