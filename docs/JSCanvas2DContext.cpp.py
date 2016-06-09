@@ -4,75 +4,114 @@
 
 from dokumentor import *
 
-NamespaceDoc( "ImageData", "ImageData Class.",
-    SeesDocs( "Image|Canvas" ),
-    NO_Examples,
-    section="Image"
-)
-
-NamespaceDoc( "CanvasRenderingContext2D", "Class to render a 2D canvas.",
-    SeesDocs( "Canvas|CanvasGLProgram|CanvasPattern|CanvasRenderingContext2D" ),
+NamespaceDoc("ImageData", "ImageData Class.",
+    SeesDocs("Canvas|Canvas.getImageData|Canvas.putImageData" ),
     NO_Examples,
     section="Canvas"
 )
 
-NamespaceDoc( "CanvasGradient", "Canvas gradient Class.",
-    SeesDocs( "Canvas|CanvasGLProgram|CanvasPattern|CanvasRenderingContext2D" ),
+items = {"width": "integer", "height": "integer", "data": "Image"}
+for i, typed in items.items():
+    FieldDoc( "ImageData." + i, "The " + i + " value.",
+        SeesDocs( "ImageData.width|Image|ImageData.height|ImageData.data" ),
+        NO_Examples,
+        IS_Dynamic, IS_Public, IS_Readonly,
+        typed,
+        NO_Default
+    )
+
+NamespaceDoc("CanvasRenderingContext2D", "Class to render a 2D canvas.",
+    SeesDocs("Canvas|CanvasGLProgram|CanvasPattern|CanvasRenderingContext2D" ),
     NO_Examples,
     section="Canvas"
 )
 
-NamespaceDoc( "CanvasGLProgram", "Canvas GL program Class.",
-    SeesDocs( "Canvas|CanvasGLProgram|CanvasPattern|CanvasRenderingContext2D" ),
+NamespaceDoc("CanvasGradient", "Canvas gradient Class.",
+    SeesDocs("Canvas|CanvasGLProgram|CanvasPattern|CanvasRenderingContext2D" ),
     NO_Examples,
     section="Canvas"
 )
 
-NamespaceDoc( "CanvasPattern", "Canvas pattern Class.",
-    SeesDocs( "Canvas|CanvasGLProgram|CanvasPattern|CanvasRenderingContext2D" ),
+NamespaceDoc("CanvasGLProgram", "Canvas GL program Class.",
+    SeesDocs("Canvas|CanvasGLProgram|CanvasPattern|CanvasRenderingContext2D" ),
     NO_Examples,
     section="Canvas"
 )
 
-FunctionDoc( "CanvasRenderingContext2D.breakText", "Wrap text over multiple lines based on a maximum width.",
-    SeesDocs( "CanvasRenderingContext2D.breakText|CanvasRenderingContext2D.fontSize|CanvasRenderingContext2D.fillText|CanvasRenderingContext2D.strokeText|CanvasRenderingContext2D.measureText" ),
+NamespaceDoc("CanvasPattern", "Canvas pattern Class.",
+    SeesDocs("Canvas|CanvasGLProgram|CanvasPattern|CanvasRenderingContext2D" ),
     NO_Examples,
-    IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "text", "Text string", "string", NO_Default, IS_Obligated ),
-    ParamDoc( "maxWidth", "The maximal width where the text should fit in", "float", NO_Default, IS_Obligated ) ],
-    ReturnDoc( "Dimensions", ObjectDoc([("height", "The heigth of the surrounding box", "float"),
-                                        ("lines", "The wrapped text lines", "string")]))
+    section="Canvas"
+)
+
+FunctionDoc("CanvasRenderingContext2D.breakText", 
+    "Wrap text over multiple lines based on a maximum width.",
+    sees=SeesDocs("CanvasRenderingContext2D.fontSize|CanvasRenderingContext2D.fillText|CanvasRenderingContext2D.strokeText|CanvasRenderingContext2D.measureText" ),
+    examples=[
+        ExampleDoc("""var canvas = new Canvas(200, 200);
+var ctx = canvas.getContext("2d");
+document.canvas.add(canvas)
+
+// Draw a background color
+ctx.fillStyle = "blue";
+ctx.fillRect(0, 0, 200, 200);
+    
+// Set the font size (this will impact breakText() computation)
+ctx.fontSize = 15;
+
+// Call breaktext to calculate how the line should spawn on multiple lines given a maximum width
+var text = ctx.breakText("Lorem ipsum dolor sit amet, consectetur adipiscing elit.", 200);
+  
+var lineOffset = (text.height / text.lines.length) + 5
+ctx.fillStyle = "black";
+
+for (var i = 0; i < text.lines.length; i++) {
+    ctx.fillText(text.lines[i], 20, lineOffset * i + 20);
+}   
+""")
+    ],
+    params=[
+        ParamDoc( "text", "Text string", "string", NO_Default, IS_Obligated ),
+        ParamDoc( "maxWidth", "The maximal width where the text should fit in", "float", NO_Default, IS_Obligated )
+    ],
+    returns=ReturnDoc( "Dimensions", ObjectDoc([
+        ("height", "The heigth of the surrounding box", "float"),
+        ("lines", "The wrapped text lines", "string")
+    ]))
 )
 
 FunctionDoc( "CanvasRenderingContext2D.fillText", "Put text in a textbox.",
-    SeesDocs( "CanvasRenderingContext2D.breakText|CanvasRenderingContext2D.fontSize|CanvasRenderingContext2D.fillText|CanvasRenderingContext2D.strokeText|CanvasRenderingContext2D.measureText" ),
+    SeesDocs( "CanvasRenderingContext2D.breakText|CanvasRenderingContext2D.fontSize|CanvasRenderingContext2D.strokeText|CanvasRenderingContext2D.measureText" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "text", "Text string", "string", NO_Default, IS_Obligated ),
-    ParamDoc( "x_pos", "X position", "integer", NO_Default, IS_Obligated ),
-    ParamDoc( "y_pos", "Y position", "integer", NO_Default, IS_Obligated ),
+    ParamDoc( "x", "X position", "integer", NO_Default, IS_Obligated ),
+    ParamDoc( "y", "Y position", "integer", NO_Default, IS_Obligated ),
     ParamDoc( "maxWidth", "Maximum width where the text must fit in.", "integer", NO_Default, IS_Obligated ) ],
     NO_Returns
 )
 
 FunctionDoc( "CanvasRenderingContext2D.strokeText", "Stroke text.",
-    SeesDocs( "CanvasRenderingContext2D.breakText|CanvasRenderingContext2D.fontSize|CanvasRenderingContext2D.fillText|CanvasRenderingContext2D.strokeText|CanvasRenderingContext2D.measureText" ),
+    SeesDocs( "CanvasRenderingContext2D.breakText|CanvasRenderingContext2D.fontSize|CanvasRenderingContext2D.fillText|CanvasRenderingContext2D.measureText" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "text", "Text string", "string", NO_Default, IS_Obligated ),
-    ParamDoc( "x_pos", "X position", "integer", NO_Default, IS_Obligated ),
-    ParamDoc( "y_pos", "Y position", "integer", NO_Default, IS_Obligated ),
+    ParamDoc( "x", "X position", "integer", NO_Default, IS_Obligated ),
+    ParamDoc( "y", "Y position", "integer", NO_Default, IS_Obligated ),
     ParamDoc( "maxWidth", "Maximum width where the text must fit in.", "integer", NO_Default, IS_Obligated ) ],
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.shadow", "Put a shadow around on object.",
+# NOOP, commented in nidium source code
+"""
+FunctionDoc( "CanvasRenderingContext2D.shadow", "Put a shadow around a canvas.",
     SeesDocs( "CanvasRenderingContext2D.shadow" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
     NO_Returns
 )
+"""
 
 FunctionDoc( "CanvasRenderingContext2D.beginPath", "Begin a path.",
     SeesDocs( "CanvasRenderingContext2D.beginPath|CanvasRenderingContext2D.moveTo|CanvasRenderingContext2D.lineTo|CanvasRenderingContext2D.closePath|CanvasRenderingContext2D.quadraticCurveTo|CanvasRenderingContext2D.bezierCurveTo" ),
@@ -86,21 +125,34 @@ FunctionDoc( "CanvasRenderingContext2D.moveTo", "Set the next coordinate on a pa
     SeesDocs( "CanvasRenderingContext2D.beginPath|CanvasRenderingContext2D.moveTo|CanvasRenderingContext2D.lineTo|CanvasRenderingContext2D.closePath|CanvasRenderingContext2D.quadraticCurveTo|CanvasRenderingContext2D.bezierCurveTo" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "x_pos", "X position", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "y_pos", "Y position", "float", NO_Default, IS_Obligated ) ],
+    [ ParamDoc( "x", "X position", "float", NO_Default, IS_Obligated ),
+     ParamDoc( "y", "Y position", "float", NO_Default, IS_Obligated ) ],
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.lineTo", "Set the next coordinate on a line.",
+FunctionDoc( "CanvasRenderingContext2D.lineTo", "Adds a new point to a line.\n\n The line created is from the last specified point to that point.",
     SeesDocs( "CanvasRenderingContext2D.beginPath|CanvasRenderingContext2D.moveTo|CanvasRenderingContext2D.lineTo|CanvasRenderingContext2D.closePath|CanvasRenderingContext2D.quadraticCurveTo|CanvasRenderingContext2D.bezierCurveTo" ),
-    NO_Examples,
-    IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "x_pos", "X position", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "y_pos", "Y position", "float", NO_Default, IS_Obligated ) ],
+    examples=[
+        ExampleDoc("""var c = new Canvas(200, 200);
+var ctx = c.getContext("2d");
+
+// Create the line
+ctx.beginPath();
+ctx.moveTo(0,0);
+ctx.lineTo(200,200);
+
+// Draw the line
+ctx.stroke();
+""")
+    ],
+    params=[
+        ParamDoc("x", "X position", "float", NO_Default, IS_Obligated),
+        ParamDoc("y", "Y position", "float", NO_Default, IS_Obligated) 
+    ],
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.fill", "Fill an object.",
+FunctionDoc( "CanvasRenderingContext2D.fill", "Fill a path.",
     SeesDocs( "CanvasRenderingContext2D.fill|CanvasRenderingContext2D.stroke|CanvasRenderingContext2D.clip" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
@@ -108,7 +160,7 @@ FunctionDoc( "CanvasRenderingContext2D.fill", "Fill an object.",
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.stroke", "Stroke an object.",
+FunctionDoc( "CanvasRenderingContext2D.stroke", "Actually draw a path",
     SeesDocs( "CanvasRenderingContext2D.fill|CanvasRenderingContext2D.stroke|CanvasRenderingContext2D.clip" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
@@ -124,7 +176,7 @@ FunctionDoc( "CanvasRenderingContext2D.closePath", "Close the path.",
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.clip", "Clip an object.",
+FunctionDoc( "CanvasRenderingContext2D.clip", "Clip a region of any shape or size.",
     SeesDocs( "CanvasRenderingContext2D.fill|CanvasRenderingContext2D.stroke|CanvasRenderingContext2D.clip" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
@@ -132,94 +184,100 @@ FunctionDoc( "CanvasRenderingContext2D.clip", "Clip an object.",
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.rect", "Draw a rectangle.",
+FunctionDoc( "CanvasRenderingContext2D.rect", "Create a rectangle.",
     SeesDocs( "CanvasRenderingContext2D.rect|CanvasRenderingContext2D.arc|CanvasRenderingContext.arcTo" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "x1", "X1 position", "integer", NO_Default, IS_Obligated ),
-     ParamDoc( "y1", "Y1 position", "integer", NO_Default, IS_Obligated ),
-     ParamDoc( "x2", "X2 position", "integer", NO_Default, IS_Obligated ),
-     ParamDoc( "y2", "Y2 position", "integer", NO_Default, IS_Obligated ),
-     ParamDoc( "radius", "Radius", "float", NO_Default, IS_Obligated )],
+    [
+        ParamDoc("x", "X position", "float", NO_Default, IS_Obligated),
+        ParamDoc("y", "Y position", "float", NO_Default, IS_Obligated),
+        ParamDoc("width", "Width", "float", NO_Default, IS_Obligated),
+        ParamDoc("height", "Height", "float", NO_Default, IS_Obligated) 
+    ],
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.arcTo", "Draw a arc to a position.",
+FunctionDoc( "CanvasRenderingContext2D.arcTo", "Adds an arc to the path with the given control points and radius, connected to the previous point by a straight line.",
     SeesDocs( "CanvasRenderingContext2D.rect|CanvasRenderingContext2D.arc|CanvasRenderingContext.arcTo" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "x_pos", "X position", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "y_pos", "Y position", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "width", "Width", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "height", "Height", "float", NO_Default, IS_Obligated ) ],
+    [
+        ParamDoc("x1", "X1 position", "integer", NO_Default, IS_Obligated),
+        ParamDoc("y1", "Y1 position", "integer", NO_Default, IS_Obligated),
+        ParamDoc("x2", "X2 position", "integer", NO_Default, IS_Obligated),
+        ParamDoc("y2", "Y2 position", "integer", NO_Default, IS_Obligated),
+        ParamDoc("radius", "Radius", "float", NO_Default, IS_Obligated)
+    ],
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.arc", "Draw an arc.",
+FunctionDoc( "CanvasRenderingContext2D.arc", "Create an arc.",
     SeesDocs( "CanvasRenderingContext2D.rect|CanvasRenderingContext2D.arc|CanvasRenderingContext.arcTo" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "x_pos", "X position", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "y_pos", "Y position", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "radius", "Radius", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "start", "Start Angle", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "end", "End Angle", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "ccw", "cww", "boolean", "false", IS_Optional ) ],
+    [ 
+        ParamDoc("x", "X position", "float", NO_Default, IS_Obligated),
+        ParamDoc("y", "Y position", "float", NO_Default, IS_Obligated),
+        ParamDoc("radius", "Radius", "float", NO_Default, IS_Obligated),
+        ParamDoc("start", "Start Angle", "float", NO_Default, IS_Obligated),
+        ParamDoc("end", "End Angle", "float", NO_Default, IS_Obligated),
+        ParamDoc("ccw", "cww", "boolean", "false", IS_Optional)
+    ],
     NO_Returns
 )
 
 FunctionDoc( "CanvasRenderingContext2D.quadraticCurveTo", "Set the next coordinate for a quadratic curve on a path.",
-    SeesDocs( "CanvasRenderingContext2D.beginPath|CanvasRenderingContext2D.moveTo|CanvasRenderingContext2D.lineTo|CanvasRenderingContext2D.closePath|CanvasRenderingContext2D.quadraticCurveTo|CanvasRenderingContext2D.bezierCurveTo" ),
+    SeesDocs( "CanvasRenderingContext2D.beginPath|CanvasRenderingContext2D.moveTo|CanvasRenderingContext2D.lineTo|CanvasRenderingContext2D.closePath|CanvasRenderingContext2D.bezierCurveTo" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "cx", "cX position", "float", NO_Default, IS_Obligated ),
      ParamDoc( "cy", "cY position", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "x_pos", "X position", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "y_pos", "Y position", "float", NO_Default, IS_Obligated ) ],
+     ParamDoc( "x", "X position", "float", NO_Default, IS_Obligated ),
+     ParamDoc( "y", "Y position", "float", NO_Default, IS_Obligated ) ],
     NO_Returns
 )
 
 FunctionDoc( "CanvasRenderingContext2D.bezierCurveTo", "Set the next coordinate for a bezier curve on a path.",
-    SeesDocs( "CanvasRenderingContext2D.beginPath|CanvasRenderingContext2D.moveTo|CanvasRenderingContext2D.lineTo|CanvasRenderingContext2D.closePath|CanvasRenderingContext2D.quadraticCurveTo|CanvasRenderingContext2D.bezierCurveTo" ),
+    SeesDocs( "CanvasRenderingContext2D.beginPath|CanvasRenderingContext2D.moveTo|CanvasRenderingContext2D.lineTo|CanvasRenderingContext2D.closePath|CanvasRenderingContext2D.quadraticCurveTo" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "cx1", "cX1position", "float", NO_Default, IS_Obligated ),
      ParamDoc( "cy1", "cY1position", "float", NO_Default, IS_Obligated ),
      ParamDoc( "cx2", "cX2position", "float", NO_Default, IS_Obligated ),
      ParamDoc( "cy2", "cY2 position", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "x_pos", "X position", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "y_pos", "Y position", "float", NO_Default, IS_Obligated ) ],
+     ParamDoc( "x", "X position", "float", NO_Default, IS_Obligated ),
+     ParamDoc( "y", "Y position", "float", NO_Default, IS_Obligated ) ],
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.rotate", "Rotate an object.",
-    SeesDocs( "CanvasRenderingContext2D.rotate|CanvasRenderingContext2D.scale|CanvasRenderingContext2D.translate|CanvasRenderingContext2D.transform" ),
+FunctionDoc( "CanvasRenderingContext2D.rotate", "Rotate the current drawing.",
+    SeesDocs( "CanvasRenderingContext2D.scale|CanvasRenderingContext2D.translate|CanvasRenderingContext2D.transform" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "angle", "Angle", "float", NO_Default, IS_Obligated ) ],
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.scale", "Scale an object.",
-    SeesDocs( "CanvasRenderingContext2D.rotate|CanvasRenderingContext2D.scale|CanvasRenderingContext2D.translate|CanvasRenderingContext2D.transform" ),
+FunctionDoc( "CanvasRenderingContext2D.scale", "Scale the current drawing.",
+    SeesDocs( "CanvasRenderingContext2D.rotate|CanvasRenderingContext2D.translate|CanvasRenderingContext2D.transform" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "x_pos", "X Position", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "y_pos", "Y Position", "float", NO_Default, IS_Obligated ) ],
+    [ ParamDoc( "x", "X Position", "float", NO_Default, IS_Obligated ),
+     ParamDoc( "y", "Y Position", "float", NO_Default, IS_Obligated ) ],
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.translate", "Translate an object.",
-    SeesDocs( "CanvasRenderingContext2D.rotate|CanvasRenderingContext2D.scale|CanvasRenderingContext2D.translate|CanvasRenderingContext2D.transform" ),
+FunctionDoc( "CanvasRenderingContext2D.translate", "Translate the current drawing.",
+    SeesDocs( "CanvasRenderingContext2D.rotate|CanvasRenderingContext2D.scale|CanvasRenderingContext2D.transform" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "x_pos", "X Position", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "y_pos", "Y Position", "float", NO_Default, IS_Obligated ) ],
+    [ ParamDoc( "x", "X Position", "float", NO_Default, IS_Obligated ),
+     ParamDoc( "y", "Y Position", "float", NO_Default, IS_Obligated ) ],
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.transform", "Transform an object.",
-    SeesDocs( "CanvasRenderingContext2D.rotate|CanvasRenderingContext2D.scale|CanvasRenderingContext2D.translate|CanvasRenderingContext2D.transform|CanvasRenderingContext2D.iTransform|CanvasRenderingContext2D.setTransfrom" ),
+FunctionDoc( "CanvasRenderingContext2D.transform", "Transform the current drawing.",
+    SeesDocs( "CanvasRenderingContext2D.rotate|CanvasRenderingContext2D.scale|CanvasRenderingContext2D.translate|CanvasRenderingContext2D.iTransform|CanvasRenderingContext2D.setTransfrom" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "scaleX", "Scale X", "float", NO_Default, IS_Obligated ),
@@ -232,7 +290,20 @@ FunctionDoc( "CanvasRenderingContext2D.transform", "Transform an object.",
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.iTransform", "Transform an object.",
+FunctionDoc( "CanvasRenderingContext2D.iTransform", "Transform a drawing.",
+    SeesDocs( "CanvasRenderingContext2D.transform|CanvasRenderingContext2D.setTransfrom" ),
+    NO_Examples,
+    IS_Dynamic, IS_Public, IS_Fast,
+    [ ParamDoc( "scaleX", "Scale X", "float", NO_Default, IS_Obligated ),
+     ParamDoc( "skewX", "Skew X", "float", NO_Default, IS_Obligated ),
+     ParamDoc( "skewY", "Skew Y", "float", NO_Default, IS_Obligated ),
+     ParamDoc( "scaleY", "Scale Y", "float", NO_Default, IS_Obligated ),
+     ParamDoc( "translateX", "Translate X", "float", NO_Default, IS_Obligated ),
+     ParamDoc( "translateY", "Translate Y", "float", NO_Default, IS_Obligated ) ],
+    NO_Returns
+)
+
+FunctionDoc( "CanvasRenderingContext2D.setTransform", "Set the transform of a drawing.",
     SeesDocs( "CanvasRenderingContext2D.transform|CanvasRenderingContext2D.iTransform|CanvasRenderingContext2D.setTransfrom" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
@@ -245,29 +316,16 @@ FunctionDoc( "CanvasRenderingContext2D.iTransform", "Transform an object.",
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.setTransform", "Set the transform of an object.",
-    SeesDocs( "CanvasRenderingContext2D.transform|CanvasRenderingContext2D.iTransform|CanvasRenderingContext2D.setTransfrom" ),
-    NO_Examples,
-    IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "scaleX", "Scale X", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "skewX", "Skew X", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "skewY", "Skew Y", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "scaleY", "Scale Y", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "translateX", "Translate X", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "translateY", "Translate Y", "float", NO_Default, IS_Obligated ) ],
-    NO_Returns
-)
-
-FunctionDoc( "CanvasRenderingContext2D.save", "Save an object.",
-    SeesDocs( "CanvasRenderingContext2D.save|CanvasRenderingContext2D.restore" ),
+FunctionDoc( "CanvasRenderingContext2D.save", "Save a drawing.",
+    SeesDocs( "CanvasRenderingContext2D.restore" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.restore", "Restore an object.",
-    SeesDocs( "CanvasRenderingContext2D.save|CanvasRenderingContext2D.restore" ),
+FunctionDoc( "CanvasRenderingContext2D.restore", "Restore a drawing.",
+    SeesDocs( "CanvasRenderingContext2D.save" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
@@ -275,7 +333,7 @@ FunctionDoc( "CanvasRenderingContext2D.restore", "Restore an object.",
 )
 
 FunctionDoc( "CanvasRenderingContext2D.createLinearGradient", "Create a linear gradient.",
-    SeesDocs( "CanvasRenderingContext2D.createLinearGradient|CanvasRenderingContext2D.createRadialGradient|CanvasRenderingContext2D.createImageData|CanvasRenderingContext2D.createPattern" ),
+    SeesDocs( "CanvasRenderingContext2D.createRadialGradient|CanvasRenderingContext2D.createImageData|CanvasRenderingContext2D.createPattern" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "x1", "X1 value", "float", NO_Default, IS_Obligated ),
@@ -285,8 +343,8 @@ FunctionDoc( "CanvasRenderingContext2D.createLinearGradient", "Create a linear g
     ReturnDoc( "Gradient instance", "CanvasGradient" )
 )
 
-FunctionDoc( "CanvasRenderingContext2D.getImageData", "Get an ImageData.",
-    SeesDocs( "Image|ImageData.getImageData|ImageData.putImageData|ImageData.createImageData|CanvasRenderingContext2D.drawImage" ),
+FunctionDoc( "CanvasRenderingContext2D.getImageData", "Returns an `ImageData` object that copies the pixel data for the specified rectangle on a canvas.",
+    SeesDocs( "Image|CanvasRenderingContext2D.putImageData|CanvasRenderingContext2D.createImageData|CanvasRenderingContext2D.drawImage" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "left", "Left", "integer", NO_Default, IS_Obligated ),
@@ -296,18 +354,8 @@ FunctionDoc( "CanvasRenderingContext2D.getImageData", "Get an ImageData.",
     ReturnDoc( "ImageData instance", "ImageData" )
 )
 
-items = {"width": "integer", "height": "integer", "data": "Image"}
-for i, typed in items.items():
-    FieldDoc( "ImageData." + i, "The " + i + " value.",
-        SeesDocs( "ImageData.width|Image|ImageData.height|ImageData.data" ),
-        NO_Examples,
-        IS_Dynamic, IS_Public, IS_Readonly,
-        typed,
-        NO_Default
-    )
-
-FunctionDoc( "CanvasRenderingContext2D.putImageData", "Put an 'ImageData' object on the canvas.",
-    SeesDocs( "Image|ImageData.getImageData|ImageData.putImageData|ImageData.createImageData|CanvasRenderingContext2D.drawImage" ),
+FunctionDoc( "CanvasRenderingContext2D.putImageData", "Puts the image data (from a specified `ImageData` object) back onto the canvas.",
+    SeesDocs( "CanvasRenderingContext2D.getImageData|CanvasRenderingContext2D.createImageData|CanvasRenderingContext2D.drawImage" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [
@@ -318,19 +366,19 @@ FunctionDoc( "CanvasRenderingContext2D.putImageData", "Put an 'ImageData' object
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.createImageData", "Create a ImageData.",
+FunctionDoc( "CanvasRenderingContext2D.createImageData", "Create a new blank `ImageData`.",
     SeesDocs( "Image|ImageData.getImageData|ImageData.putImageData|ImageData.createImageData|CanvasRenderingContext2D.drawImage" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "x_pos", "X Position", "integer", NO_Default, IS_Obligated ),
-      ParamDoc( "y_pos", "Y Position", "integer", NO_Default, IS_Obligated ) ],
+    [ ParamDoc( "x", "X Position", "integer", NO_Default, IS_Obligated ),
+      ParamDoc( "y", "Y Position", "integer", NO_Default, IS_Obligated ) ],
     ReturnDoc( "ImageData instance", "ImageData" )
 )
 
 FunctionDoc( "CanvasRenderingContext2D.createPattern", """Create a pattern.
 
-The pattern-mode can be any of 'repeat'|'no-repeat'|'repeat-x'|'repeat-y'|'repeat-mirror'.""",
-    SeesDocs( "CanvasRenderingContext2D.createLinearGradient|CanvasRenderingContext2D.createRadialGradient|CanvasRenderingContext2D.createImageData|CanvasRenderingContext2D.createPattern" ),
+The pattern-mode can be any of : `repeat`,`no-repeat`,`repeat-x`,`repeat-y`,`repeat-mirror`.""",
+    SeesDocs( "CanvasRenderingContext2D.createLinearGradient|CanvasRenderingContext2D.createRadialGradient|CanvasRenderingContext2D.createImageData"),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "image", "Image object", "Image", NO_Default, IS_Obligated ),
@@ -366,13 +414,13 @@ FunctionDoc( "CanvasGradient.addColorStop", "Perform a color stop on a gradient.
 
 #TODO: describe the alternative parameters
 FunctionDoc( "CanvasRenderingContext2D.drawImage", "Draw an Image.",
-    SeesDocs( "Image|ImageData.getImageData|ImageData.putImageData|ImageData.createImageData|CanvasRenderingContext2D.drawImage" ),
+    SeesDocs( "CanvasRenderingContext2D.getImageData|CanvasRenderingContext2D.putImageData|CanvasRenderingContext2D.createImageData" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [
         ParamDoc( "image", "Image object", "Image", NO_Default, IS_Obligated ),
-        ParamDoc( "x_pos", "X Position", "integer", NO_Default, IS_Obligated ),
-        ParamDoc( "y_pos", "Y Position", "integer", NO_Default, IS_Obligated ),
+        ParamDoc( "x", "X Position", "integer", NO_Default, IS_Obligated ),
+        ParamDoc( "y", "Y Position", "integer", NO_Default, IS_Obligated ),
         ParamDoc( "width", "Width", "integer", NO_Default, IS_Obligated ),
         ParamDoc( "heigth", "Heigth", "integer", NO_Default, IS_Obligated )
     ],
@@ -380,7 +428,7 @@ FunctionDoc( "CanvasRenderingContext2D.drawImage", "Draw an Image.",
 )
 
 FunctionDoc( "CanvasRenderingContext2D.measureText", "Deterimine the size of text.",
-    SeesDocs( "CanvasRenderingContext2D.breakText|CanvasRenderingContext2D.fontSize|CanvasRenderingContext2D.fillText|CanvasRenderingContext2D.strokeText|CanvasRenderingContext2D.measureText" ),
+    SeesDocs( "CanvasRenderingContext2D.breakText|CanvasRenderingContext2D.fontSize|CanvasRenderingContext2D.fillText|CanvasRenderingContext2D.strokeText" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "text", "Text string", "string", NO_Default, IS_Obligated ) ],
@@ -391,8 +439,8 @@ FunctionDoc( "CanvasRenderingContext2D.isPointPath", "Determine if the path cons
     SeesDocs( "CanvasRenderingContext2D.isPointPath|CanvasRenderingContext2D.getPathBounds" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "x_pos", "X position", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "y_pos", "Y position", "float", NO_Default, IS_Obligated ) ],
+    [ ParamDoc( "x", "X position", "float", NO_Default, IS_Obligated ),
+     ParamDoc( "y", "Y position", "float", NO_Default, IS_Obligated ) ],
     ReturnDoc( "is it a point path", "boolean" )
 )
 
@@ -407,7 +455,7 @@ FunctionDoc( "CanvasRenderingContext2D.getPathBounds", "Get the outer bounds of 
                                         ("bottom", "bottom size", "float")]) )
 )
 
-FunctionDoc( "CanvasRenderingContext2D.detachFragmentShader", "Detach a shader.",
+FunctionDoc( "CanvasRenderingContext2D.detachFragmentShader", "Detach a fragment shader.",
     SeesDocs( "CanvasRenderingContext2D.attachFragmentShader|CanvasRenderingContext2D.detachFragmentShader" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
@@ -420,8 +468,8 @@ FunctionDoc( "CanvasRenderingContext2D.setVertexOffset", "Set a vertexOffset.",
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "vertex", "Vertex", "integer", NO_Default, IS_Obligated ) ,
-     ParamDoc( "x_pos", "X y2yPosition", "float", NO_Default, IS_Obligated ),
-     ParamDoc( "y_pos", "Y Position", "float", NO_Default, IS_Obligated )],
+     ParamDoc( "x", "X y2yPosition", "float", NO_Default, IS_Obligated ),
+     ParamDoc( "y", "Y Position", "float", NO_Default, IS_Obligated )],
     NO_Returns
 )
 
@@ -479,7 +527,6 @@ FunctionDoc( "CanvasGLProgram.getUniforms", "Get the uniforms.",
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     NO_Params,
-    #ReturnDoc( "Array of objects", "Object" )
     ReturnDoc( "Array of objects", ObjectDoc([  ("name", "variable", "string"), 
                                                 ("location", "location marker", "integer")],IS_Array) )
 )
@@ -488,14 +535,16 @@ FunctionDoc( "CanvasGLProgram.light", "Lights.",
     SeesDocs( "CanvasRenderingContext2D|CanvasRenderingContext2D.light" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
-    [ ParamDoc( "x_pos", "X Position", "float", NO_Default, IS_Obligated  ),
-    ParamDoc( "y_pos", "Y Position", "float", NO_Default, IS_Obligated  ),
-    ParamDoc( "z_pos", "Z Position", "float", NO_Default, IS_Obligated  ) ],
+    [
+        ParamDoc("x", "X Position", "float", NO_Default, IS_Obligated),
+        ParamDoc("y", "Y Position", "float", NO_Default, IS_Obligated),
+        ParamDoc("z", "Z Position", "float", NO_Default, IS_Obligated) 
+    ],
     NO_Returns
 )
 
 FieldDoc( "CanvasRenderingContext2D.imageSmoothingEnabled", "Get or set the imageSmooting flag.",
-    SeesDocs( "Canvas|Image|ImageData|CanvasRenderingContext2D|CanvasRenderingContext2D.imageSmoothingEnabled" ),
+    SeesDocs( "Canvas|CanvasRenderingContext2D|CanvasRenderingContext2D.imageSmoothingEnabled" ),
     NO_Examples,
     IS_Static, IS_Public, IS_ReadWrite,
     "boolean",
@@ -503,7 +552,7 @@ FieldDoc( "CanvasRenderingContext2D.imageSmoothingEnabled", "Get or set the imag
 )
 
 FieldDoc( "CanvasRenderingContext2D.shadowOffsetX", "Get or set the shadowOffsetX.",
-    SeesDocs( "CanvasRenderingContext2D.shadowOffsetXnvasRenderingContext2D.shadowOffsetY|CanvasRenderingContext2D.shadowBlur|CanvasRenderingContext2D.shadowColor" ),
+    SeesDocs( "CanvasRenderingContext2D.shadowOffsetY|CanvasRenderingContext2D.shadowBlur|CanvasRenderingContext2D.shadowColor" ),
     NO_Examples,
     IS_Static, IS_Public, IS_ReadWrite,
     "float",
@@ -511,7 +560,7 @@ FieldDoc( "CanvasRenderingContext2D.shadowOffsetX", "Get or set the shadowOffset
 )
 
 FieldDoc( "CanvasRenderingContext2D.shadowOffsetY", "Get or set the shadowOffsetY.",
-    SeesDocs( "CanvasRenderingContext2D.shadowOffsetXnvasRenderingContext2D.shadowOffsetY|CanvasRenderingContext2D.shadowBlur|CanvasRenderingContext2D.shadowColor" ),
+    SeesDocs( "CanvasRenderingContext2D.shadowOffsetX|CanvasRenderingContext2D.shadowBlur|CanvasRenderingContext2D.shadowColor" ),
     NO_Examples,
     IS_Static, IS_Public, IS_ReadWrite,
     "float",
@@ -519,7 +568,7 @@ FieldDoc( "CanvasRenderingContext2D.shadowOffsetY", "Get or set the shadowOffset
 )
 
 FieldDoc( "CanvasRenderingContext2D.shadowBlur", "Get or set the shadowBlur.",
-    SeesDocs( "CanvasRenderingContext2D.shadowOffsetXnvasRenderingContext2D.shadowOffsetY|CanvasRenderingContext2D.shadowBlur|CanvasRenderingContext2D.shadowColor" ),
+    SeesDocs( "CanvasRenderingContext2D.shadowOffsetX|CanvasRenderingContext2D.shadowOffsetY|CanvasRenderingContext2D.shadowColor" ),
     NO_Examples,
     IS_Static, IS_Public, IS_ReadWrite,
     "float",
@@ -527,7 +576,7 @@ FieldDoc( "CanvasRenderingContext2D.shadowBlur", "Get or set the shadowBlur.",
 )
 
 FieldDoc( "CanvasRenderingContext2D.shadowColor", "Get or set the shadowColor.",
-    SeesDocs( "CanvasRenderingContext2D.shadowOffsetXnvasRenderingContext2D.shadowOffsetY|CanvasRenderingContext2D.shadowBlur|CanvasRenderingContext2D.shadowColor" ),
+    SeesDocs( "CanvasRenderingContext2D.shadowOffsetX|CanvasRenderingContext2D.shadowOffsetY|CanvasRenderingContext2D.shadowBlur"),
     NO_Examples,
     IS_Static, IS_Public, IS_ReadWrite,
     "string",
