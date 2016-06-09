@@ -15,7 +15,7 @@ class System : public SystemInterface
 {
     public:
         System();
-        ~System() {};
+        ~System();
         float backingStorePixelRatio();
         const char *getCacheDirectory();
         const char *getEmbedDirectory();
@@ -24,6 +24,7 @@ class System : public SystemInterface
         void initSystemUI();
         const char *cwd();
         const char *getLanguage();
+        void sendNotification(const char *title, const char *content, bool sound);
     private:
         bool m_SystemUIReady;
         char *m_EmbedPath;

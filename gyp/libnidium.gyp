@@ -67,7 +67,15 @@
                 ],
             }],
             ['OS=="linux"', {
-                'defines+': [
+                "direct_dependent_settings": {
+                    'libraries': [
+                        '<!@(pkg-config --libs libnotify)',
+                    ],
+                },
+                'cflags': [
+                    '<!@(pkg-config --cflags libnotify)',
+                ],
+                'defines': [
                     'EXPORT_JS_API',
                     'IMPL_MFBT',
                     'USE_SYSTEM_MALLOC=1',

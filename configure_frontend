@@ -37,6 +37,9 @@ Deps.set(
     Deps.Konstruct("libnidiumcore", "configure_libnidiumcore")
 )
 
+if Platform.system == "Linux":
+    Deps.set("libnotify")
+
 Platform.setEnviron("MACOSX_DEPLOYMENT_TARGET=10.7")
 
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
@@ -213,6 +216,15 @@ def ffmpeg():
             "libswscale/libswscale(.a|.lib)"
         ]
     }
+
+@Deps.register("libnotify")
+def libnotify():
+    return {
+        "location": DEPEDENCY_REPO + "/libnotify-0.7.6.tar.gz",
+        "build": ["./configure", "make"],
+        "outputs": ["libnotify/.libs/libnotify.a"]
+    }
+
 
 def getNidiumPath():
     nidium = ""

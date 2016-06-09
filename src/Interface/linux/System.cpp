@@ -16,6 +16,7 @@
 
 #include <X11/Xlib.h>
 #include <gtk/gtk.h>
+#include <libnotify/notify.h>
 
 #include "System.h"
 #include <libgen.h>
@@ -91,6 +92,13 @@ System::System() : m_SystemUIReady(false)
 
 		snprintf(m_EmbedPath, len, "%s/%s", dir, embed);
 	}
+
+	notify_init("Nidium");
+}
+
+System::~System()
+{
+	notify_uninit();
 }
 
 float System::backingStorePixelRatio()
@@ -191,6 +199,16 @@ const char *System::getLanguage()
     lang = setlocale(LC_IDENTIFICATION, NULL);
 
     return lang;
+}
+
+void System::sendNotification(const char *title, const char *content, bool sound)
+{
+	NotifyNotification *notification =
+        notify_notification_new(title, content, nullptr);
+
+    notify_notification_show(notification, nullptr /* error reporter */);
+
+    g_object_unref(G_OBJECT(notification));
 }
 // }}}
 
