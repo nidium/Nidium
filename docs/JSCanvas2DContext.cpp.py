@@ -59,7 +59,7 @@ ctx.fillRect(0, 0, 200, 200);
 // Set the font size (this will impact breakText() computation)
 ctx.fontSize = 15;
 
-// Call breaktext to calculate how the line should spawn on multiple lines given a maximum width
+// Call breaktTxt to calculate how the text should spawn on multiple lines given a maximum width
 var text = ctx.breakText("Lorem ipsum dolor sit amet, consectetur adipiscing elit.", 200);
   
 var lineOffset = (text.height / text.lines.length) + 5
@@ -149,7 +149,7 @@ ctx.stroke();
         ParamDoc("x", "X position", "float", NO_Default, IS_Obligated),
         ParamDoc("y", "Y position", "float", NO_Default, IS_Obligated) 
     ],
-    NO_Returns
+    returns=NO_Returns
 )
 
 FunctionDoc( "CanvasRenderingContext2D.fill", "Fill a path.",
