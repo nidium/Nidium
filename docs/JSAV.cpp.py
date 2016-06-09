@@ -30,7 +30,9 @@ source.play();""") ],
     products=["Frontend"]
 )
 
-NamespaceDoc( "AudioContext", "The context/thread where the audio originated.",
+NamespaceDoc( "AudioContext", """The AudioContext represents a set of `AudioNode` linked together along with audio parameters (buffer size, number of channel, sample rate).
+        
+An audio context controls both the creation of the nodes it contains and the execution of the audio processing, or decoding. You need to create an AudioContext before you do anything else, as everything happens inside a context.""",
     SeesDocs( "Thread|Audio|Audio|AudioContext|_GLOBALAudioThread|AudioNodeLink|AudioNode" ),
     [ ExampleDoc("""var dsp = Audio.getContext();
 var source = dsp.createNode("custom-source", 0, 2);
@@ -52,13 +54,13 @@ source.play();
     section="Audio",
 )
 
-NamespaceDoc( "_GLOBALAudioThread", """The global object for the audio thread. This thread is seperated from the UI/Network thread.""",
+NamespaceDoc( "_GLOBALAudioThread", """The global object for the audio thread. This thread is seperated from the UI/Network thread. This object is shared between all the `AudioNode` you can use it to share variables between the nodes.""",
     SeesDocs( "_GLOBALThread|Audio|AudioContext|AudioNodeLink|AudioNode" ),
     NO_Examples,
     section="Audio"
 )
 
-ClassDoc( "AudioNodeLink", "AudioNodeLink class. This class is returned by the audio node `input` or `output` array",
+ClassDoc( "AudioNodeLink", "`AudioNodeLink` opaque object. This object is returned by the audio node `input` or `output` array",
     SeesDocs( "Audio|AudioContext|_GLOBALAudioThread|AudioNodeLink|AudioNode" ),
     NO_Examples,
     NO_Inherrits,
@@ -68,9 +70,9 @@ ClassDoc( "AudioNodeLink", "AudioNodeLink class. This class is returned by the a
 
 NamespaceDoc( "AudioNode", """AudioNode class.
 
-An audionode can be either a source a processor or a target.
+An `AudioNode` can be either a source a processor or a target.
 
-* A source delivers a -content of a file as- stream, which can be decoded and played (mp3, wav, ogg, wma, aac). 
+* A source delivers a stream, which can be decoded and played (mp3, wav, ogg, wma, aac). 
 * A processor can alterate the stream of data (gain, reverb, delay, ...).
 * A target is the audio system output (speakers)""",
     SeesDocs( "Thread|Audio|AudioContext|_GLOBALAudioThread|AudioNodeLink|AudioNode" ),
@@ -171,7 +173,7 @@ node.addEventListener("buffering", function(ev) {
             ]
     )
 
-    EventDoc( klass + ".ready", "Event fired when the source is opened and ready to play.",
+    EventDoc( klass + ".ready", "Event fired when the source is opened and ready to be played.",
             SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
             [ExampleDoc("""var dsp = Audio.getContext();
 var node = dsp.createNode("source", 0, 2);
@@ -264,18 +266,18 @@ dsp.run(function() {
 #     NO_Returns
 # )
 
-FunctionDoc( "AudioContext.createNode", """Create a new 'AudioNode' of the specified type.
+FunctionDoc( "AudioContext.createNode", """Create a new `AudioNode` of the specified type.
 
 The following nodes are currently supported :
 
 || **Type** || **Description** || **Input** || **Output** ||
-|| source || Play a file or a stream || 0 || 1 or 2 ||
-|| custom-source || Generate sound with JavaScript || 0 || 1 or 2 ||
-|| custom || Process sound in JavaScript || up to 32 || up to 32 ||
-|| reverb || Simulate sound reverberation || up to 32 || up to 32 ||
-|| delay || Delay a sound || up to 32 || up to 32 ||
-|| gain || Lower or raise the amplitude of the sound || up to 32 || up to 32 ||
-|| target || An audio node that represent audio output (computer speaker) || 1 or 2 || 0 ||
+|| `source` || Play a file or a stream || 0 || 1 or 2 ||
+|| `custom-source` || Generate sound with JavaScript || 0 || 1 or 2 ||
+|| `custom` || Process sound in JavaScript || up to 32 || up to 32 ||
+|| `reverb` || Simulate sound reverberation || up to 32 || up to 32 ||
+|| `delay` || Delay a sound || up to 32 || up to 32 ||
+|| `gain` || Lower or raise the amplitude of the sound || up to 32 || up to 32 ||
+|| `target` || An audio node that represent audio output (computer speaker) || 1 or 2 || 0 ||
 """,
     SeesDocs( "Audio|AudioContext|AudioContext.run|AudioContext.createNode|AudioContext.connect|AudioContext.disconnect" ),
     [ExampleDoc("""var dsp = Audio.getContext();
@@ -294,7 +296,7 @@ try {
 
 EventDoc( "AudioNode.message", """Event fired when a custom node or custom-source node is sending a message from the audio thread to the main thread.
 
-As the 'AudioContext' has it's own thread, communitation between threads must be done via messages.""",
+As the `AudioContext` has it's own thread, communitation between threads must be done via messages.""",
     SeesDocs( "AudioNode.set|AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter" ),
     NO_Examples,
     [ ParamDoc( "event", "The event object", 
@@ -304,7 +306,7 @@ As the 'AudioContext' has it's own thread, communitation between threads must be
         ]
 )
 
-FunctionDoc( "AudioNode.assignSeek", """Callback when the `AudioNode.position` is changed on a custom-source node.""",
+FunctionDoc( "AudioNode.assignSeek", """Assign to the node a function to be called when the `AudioNode.position` is changed on a `custom-source` node.""",
     SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter|AudioNode.position" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
@@ -314,11 +316,9 @@ FunctionDoc( "AudioNode.assignSeek", """Callback when the `AudioNode.position` i
     ])]
 )
 
-FunctionDoc( "AudioNode.assignProcessor", """Callback when the node needs to process audio data.
+FunctionDoc( "AudioNode.assignProcessor", """Assign to the node a function to be called when the node needs to process audio data.
 
-This can be used to fill the audiobuffers of the node.
-
-This callback runs is another thread than the main nidium UI. Variables must expicitly set with 'AudioNode.set'.""",
+This can be used to fill the audiobuffers of the node. This callback runs is another thread than the main nidium UI. If you need to pass Variables you must expicitly set them with `AudioNode.set`.""",
     SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter|AVNode.message" ),
     [ExampleDoc("""var dsp = Audio.getContext();
 var source = dsp.createNode("custom-source", 0, 2);
@@ -382,7 +382,7 @@ source.play();
     ]
 )
 
-FunctionDoc( "AudioNode.assignInit", "Event fired when the custom-source or custom node is initialized.\n> * This method is only available on custom-source and custom node.\n> * Nodes are initialized when they are starting to process data.",
+FunctionDoc( "AudioNode.assignInit", "Assign a function to a `custom-source` or `custom` node called when the node is initialized.\n\n> * Nodes are initialized when they are starting to process data.",
     SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
@@ -391,7 +391,7 @@ FunctionDoc( "AudioNode.assignInit", "Event fired when the custom-source or cust
     ])]
 )
 
-FunctionDoc( "AudioNode.assignSetter", """Callback called inside the Audio thread when a variable has been set on the node with `AudioNode.set`.
+FunctionDoc( "AudioNode.assignSetter", """Assign a function to the node called when a variable has been set on the node with `AudioNode.set`.
 This is very usefull if you need to do some extra processing on the variable being set.""",
     SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|Audio|AudioNode.get|AudioNode.set|AudioNode.assignInit" ),
     [ExampleDoc("""var dsp = Audio.getContext();
@@ -441,13 +441,14 @@ One channel needs to be an input channel, the other channel needs to be an outpu
 
 FunctionDoc( "_GLOBALAudioThread.console", "Expose the console object on the Audio thread",
     [ SeeDoc( "Console" ) ],
-    NO_Examples,
-    IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "text", "Text to print", "string", NO_Default, IS_Obligated ) ],
-    NO_Returns
+    [ExampleDoc("""var dsp = Audio.getContext();
+dsp.run(function() {
+    console.log("Hello Audio");
+});""" ) ],
+    IS_Static, IS_Public, IS_Fast,
 )
 
-FieldDoc( "AudioContext.bufferSize", "Get the number of samples per buffer for the 'AudioContext'.",
+FieldDoc( "AudioContext.bufferSize", "Get the number of samples per buffer for the `AudioContext`.",
     SeesDocs( "Audio|AudioContext|AudioContext.volume|AudioContext.bufferSize|AudioContext.channels|AudioContext.sampleRate" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Readonly,
@@ -455,7 +456,7 @@ FieldDoc( "AudioContext.bufferSize", "Get the number of samples per buffer for t
     NO_Default
 )
 
-FieldDoc( "AudioContext.channels", "Get the number of channels for the 'AudioContext'.",
+FieldDoc( "AudioContext.channels", "Get the number of channels for the `AudioContext`.",
     SeesDocs( "Audio|AudioContext|AudioContext.volume|AudioContext.bufferSize|AudioContext.channels|AudioContext.sampleRate" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Readonly,
@@ -463,7 +464,7 @@ FieldDoc( "AudioContext.channels", "Get the number of channels for the 'AudioCon
     NO_Default
 )
 
-FieldDoc( "AudioContext.sampleRate", "Get the samplerate for the 'AudioContext'.",
+FieldDoc( "AudioContext.sampleRate", "Get the samplerate for the `AudioContext`.",
     SeesDocs( "Audio|AudioContext|AudioContext.volume|AudioContext.bufferSize|AudioContext.channels|AudioContext.sampleRate" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Readonly,
@@ -471,7 +472,7 @@ FieldDoc( "AudioContext.sampleRate", "Get the samplerate for the 'AudioContext'.
     NO_Default
 )
 
-FieldDoc( "AudioContext.volume", "Set or Get volume on the 'AudioContext'.",
+FieldDoc( "AudioContext.volume", "Set or Get volume on the `AudioContext`.",
     SeesDocs( "Audio|AudioContext|AudioContext.volume|AudioContext.bufferSize|AudioContext.channels|AudioContext.sampleRate" ),
     [ExampleDoc("""var dsp = Audio.getContext();
 console.log("Volume is " + dsp.volume);
@@ -545,9 +546,9 @@ FunctionDoc( "AudioNode.get", "Get a value from a custom AudioNode object.\n> Va
     ReturnDoc( "The value belonging to 'key'", "mixed" )
 )
 
-FunctionDoc( "AudioNode.send", """Send a message from a custom-source node or a custom node, to the main thread.
+FunctionDoc( "AudioNode.send", """Send a message from a `custom-source` node or a `custom` node, to the main thread.
 
-The values are copied and can be accessed with the 'AudioNode.message' event.""",
+The values are copied and can be accessed with the `message` event.""",
     SeesDocs( "Audio|AudioNode.send|AudioNode.get|AudioNode.set|AudioNode.message" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
