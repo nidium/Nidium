@@ -1,0 +1,182 @@
+#!/usr/bin/env python
+
+# Copyright 2016 Nidium Inc. All rights reserved.
+# Use of this source code is governed by a MIT license
+# that can be found in the LICENSE file.
+
+import sys, os, imp
+import shutil
+
+from konstructor import Konstruct
+from konstructor import Builder
+from konstructor import Platform
+from konstructor import Utils
+from konstructor import Log
+from konstructor import Variables
+from konstructor import CommandLine
+
+Gyp = Builder.Gyp
+
+Konstruct.setConfigs(["release"])
+Gyp.setConfiguration("Release")
+Variables.set("verbose", True)
+
+Gyp.set("native_enable_breakpad", 0)
+
+OUTPUT_BINARY = None
+SIGN_IDENTITY = None
+
+LICENSE = """Nidium is released under MIT License. This software is provided as is without warranty of any kind.
+
+This Software includes third-party libraries released with various open source license. Please refer to https://github.com/nidium/Nidium/blob/master/LICENSE for more information.
+"""
+
+@CommandLine.option("--sign", help="Sign .dmg file with the identity providen")
+def sign(sign):
+    if not sign:
+        return
+
+    SIGN_IDENTITY = sign
+
+if Platform.system == "Darwin":
+    OUTPUT_BINARY = "bin/nidium.app/Contents/MacOS/nidium"
+elif Platform.system == "Linux":
+    OUTPUT_BINARY = "bin/nidium"
+
+def signCode(path):
+    Log.info("Signing nidium package...")
+
+    code, output = Utils.run(" ".join([
+        "codesign",
+        "--force",
+        "--sign",
+        "'Developer ID Application: %s '" % SIGN_IDENTITY,
+        path
+    ]), failExit=False)
+
+    if code != 0:
+        Log.error("WARNING : App signing failed with identity %s. Not signing app" % identity)
+        Log.error(output)
+
+    Log.info(path)
+
+def stripExecutable():
+    Log.info("Striping executable")
+    if Platform.system == "Darwin":
+        Utils.run("strip bin/nidium.app/Contents/MacOS/nidium")
+        return
+    elif Platform.system == "Linux":
+        Utils.run("strip " + OUTPUT_BINARY)
+    else:
+        # Window TODO
+        print("TODO")
+
+def packageExecutable():
+    import time
+    import subprocess
+    import tarfile 
+
+    revision = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip()
+    tag = None
+    path = "bin/"
+    resources = "resources/"
+    arch = ""
+    name = ""
+
+    try:
+        tag = subprocess.check_output(["git", "describe",  "--exact-match", revision], stderr=subprocess.PIPE)
+        print "Tag is " + tag
+    except:
+        tag = None
+
+    if Platform.wordSize == 64:
+        arch = "x86_64"
+    else:
+        arch = "i386"
+
+    if tag is None:
+        datetime = time.strftime("%Y%m%d_%H%M%S")
+        name = "Nidium_%s_%s_%s_%s" % (datetime, revision, Platform.system, arch)
+    else:
+        name = "Nidium_%s_%s_%s" % (tag, Platform.system, arch)
+
+    Log.info("Packaging executable")
+
+    tmpDir = os.path.join("build", "package", "nidium.tmp")
+    Utils.mkdir(tmpDir)
+
+    Utils.run("echo \"%s\" > %s/LICENSE" % (LICENSE, tmpDir))
+
+    if Platform.system == "Darwin":
+        signCode(path + "nidium.app")
+
+        Log.info("Create dmg...")
+
+        resources += "osx/"
+        name += ".dmg"
+        cmd = [
+            "tools/installer/osx/create-dmg",
+            "--volname 'Nidium'",
+            "--no-internet-enable",
+            "--volicon " + resources + "/nidium.icns",
+            "--background " + resources + "/dmg-background.png",
+            "--window-size 555 394",
+            "--icon-size 96",
+            "--eula %s/LICENSE" % tmpDir,
+            "--app-drop-link 460 290",
+            "--icon 'nidium' 460 80",
+            "build/package/%s" % name,
+            path + "nidium.app/"
+        ]
+        code, output = Utils.run(" ".join(cmd))
+        if code != 0:
+            Utils.exit("Failed to build dmg")
+    elif Platform.system == "Linux":
+        resources += "linux/"
+        name += ".run"
+
+        Utils.mkdir(tmpDir + "/dist/")
+        Utils.mkdir(tmpDir + "/resources/")
+
+        shutil.copy(resources + "/nidium.desktop", tmpDir + "/resources/")
+        shutil.copy(resources + "/x-application-nidium.xml", tmpDir + "/resources/")
+        shutil.copy(resources + "/nidium.png", tmpDir + "/resources/")
+        shutil.copy(resources + "/installer.sh", tmpDir)
+        shutil.copy(path + "nidium",  tmpDir + "/dist/")
+
+        # XXX : Uncomment once breakpad & landing net are back
+        #shutil.copy(path + "nidium-crash-reporter", tmpDir + "dist/")
+
+        Utils.run("tools/installer/linux/makeself.sh --license %s/LICENSE %s build/package/%s 'Nidium installer' ./installer.sh " % (tmpDir, tmpDir, name))
+    else:
+        # Window TODO
+        print("TODO")
+
+    #shutil.rmtree(tmpDir);
+
+def package():
+    stripExecutable()
+    packageExecutable()
+
+if __name__ == '__main__':
+    # First, parse command line arguments, so we can 
+    # so we can print the help message (if needed) 
+    # and exit before doing anything else
+    CommandLine.parse()
+
+    imp.load_source("configure", "configure_frontend");
+
+    if not os.path.exists("tools/dir2nvfs"):
+        # In Release mode, we need to package the embed
+        # Dir2NFS is needed in order to generate a package of the embeded files
+        Gyp("gyp/tools.gyp").run("dir2nvfs")
+
+    Gyp("gyp/actions.gyp").run("generate-embed", parallel=False)
+
+    # Now that the embed are packaged
+    # we can add add nidium_package_embed flag
+    Gyp.set("nidium_package_embed", 1)
+
+    Konstruct.start() 
+
+    package()
