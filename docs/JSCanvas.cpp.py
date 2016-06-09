@@ -4,9 +4,9 @@
 
 from dokumentor import *
 
-ClassDoc( "Canvas", """Canvas class.
+ClassDoc( "Canvas", """Canvas object.
 
-A 'Canvas' instance is the base surface for any drawing. It is defined by a size and a position.
+A `Canvas` instance is the base surface for any drawing. It is defined by a size and a position.
 
 By default, canvas are exposed without any context (container-only canvas), but before drawing elements can be added to a canvas, the type of context needs to be set.
 
@@ -15,24 +15,29 @@ Nidium is currently supporting the following context types:
 * 2D Context is based on the [2DContext API](http://www.w3.org/html/wg/drafts/2dcontext/html5_canvas/).
 * A WebGL Context is based on the [WebGL API](https://www.khronos.org/registry/webgl/specs/1.0/).
 
-The 'document' object has a 2D canvas ( 'document.canvas') created by default. This is called the "the root canvas".
+The 'document' object has a 2D canvas (`document.canvas`) created by default. This is called the "the root canvas".
 Every canvas, except the root canvas, has a parent canvas. Only canvas instances that are descendents of the root canvas are visible on the screen.
-The parent of a canvas can be set by using methods like 'Canvas.add'.
-
-""",
+The parent of a canvas can be set by using methods like `Canvas.add`.""",
     SeesDocs( "global|Window|NativeDocument|WebGL|global.document.canvas|Canvas.add" ),
     [ExampleDoc("""// Create a new 200x100 canvas (logical pixels)
 var canvas = new Canvas(200, 100);
+
 // Add it to the root hierarchy
 document.canvas.add(canvas);
+
 // Get its 2D context
-var context = canvas.getContext("2d");""")],
+var ctx= canvas.getContext("2d");
+
+// Draw something into it
+ctx.fillStyle = "blue";
+ctx.fillRect(0, 0, 100, 100);
+""")],
     "CanvasInherrit",
     products=["Frontend"]
 
 )
 
-NamespaceDoc( "CanvasInherrit", "Parent/Prototype class for Canvas.",
+NamespaceDoc( "CanvasInherrit", "Parent/Prototype object for `Canvas`.",
     [ SeeDoc( "Canvas" ) ],
     NO_Examples,
     section="Canvas"
@@ -51,14 +56,6 @@ canvas.show();""" ) ],
 FunctionDoc( "Canvas.show", "Hides a canvas and all it's children.",
     SeesDocs( "Canvas.show|Canvas.hide" ),
     [ExampleDoc( """canvas.show();""" ) ],
-    IS_Dynamic, IS_Public, IS_Fast,
-    NO_Params,
-    NO_Returns
-)
-
-FunctionDoc( "Canvas.show", "Display a canvas.",
-    SeesDocs( "Canvas.show|Canvas.hide" ),
-    NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
     NO_Returns
@@ -99,7 +96,7 @@ FunctionDoc( "Canvas.setScale", "Set a canvas object to a certain scale.",
 FunctionDoc( "Canvas.setSize", """Set a canvas object to a certain size.
 
 The operation is slow when the canvas' context is already instantiated with 'Canvas.getContext', because it needs to restructure several things internally.
-If the canvas' context did not have a 'Canvas.getContext' call yet, it is a fast method.""",
+If the canvas context did not have a `Canvas.getContext` call yet, it is a fast method.""",
     SeesDocs( "Canvas.setCoordinates|Canvas.setSize|Canvas.setZoom|Canvas.setScale" ),
     [ExampleDoc("""var canvas = new Canvas(200, 400);
 var ctx = canvas.getContext("2d");
@@ -113,7 +110,7 @@ canvas.setSize(300, 300);
 
 FunctionDoc( "Canvas.removeFromParent", """Detach a canvas from it's parent canvas.
 
-If the parent does not have a parent, this method does nothing.
+If the canvas does not have a parent, this method does nothing.
 Only canvas instances that are descendents from the root canvas can be displayed.
 The root canvas does NOT have a parent.
 
@@ -308,7 +305,7 @@ FunctionDoc( "Canvas.insertAfter", "Insert a canvas after another canvas.",
 
 FunctionDoc( "Canvas.getContext", """Creates a new Canvas context.
 
-The created 'Canvas' object provides methods and properties for drawing and manipulating images and graphics on a canvas element.
+The created `Canvas` object provides methods and properties for drawing and manipulating images and graphics on a canvas element.
 A context object includes information about colors, line widths, fonts, and other graphic parameters that can be drawn on a canvas.
 
 Nidium is currently supporting the following context types:
@@ -337,8 +334,6 @@ FunctionDoc( "Canvas.setContext", "Sets the canvas context.",
     NO_Returns
 )
 
-#grep CANVAS_PROP NativeJSCanvas.cpp |grep -v case|grep '"'|grep -v READONLY|tr '{' ' '|cut -d',' -f1|sort
-
 FieldDoc( "Canvas.position", """Set the coordinate model that is used for the drawing of the canvas layout.
 
 
@@ -346,8 +341,8 @@ This may be any of:
 
 * 'absolute' Placement is relative to the top-left corner of the application window.
 * 'fixed' Placement is relative to the parent canvas but not affected by the scroll position of the parent.
-* 'inline' Placement is ...
-* 'inline-break' Placement is ...
+* 'inline' Placement is relative to the previous sibling. The canvas will be placed to the right of the previous sibling.
+* 'inline-break' Same as inline, but if the canvas does not fit inside his parent, the new canvas will be pushed bellow.
 * 'relative' Placement is relative to the parent-canvas.
 """,
     NO_Sees,
@@ -445,7 +440,7 @@ canvas.left = 100;"""
 
 FieldDoc( "Canvas.right", """Get or set the position of the top-right corner of the canvas.
 
-The behavior depends on the value of the 'Canvas.position' property.""",
+The behavior depends on the value of the `Canvas.position` property.""",
     SeesDocs( "Canvas.left|Canvas.right|Canvas.marginLeft|Canvas.marginRight|Canvas.staticLeft|Canvas.staticRight" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_ReadWrite,
@@ -455,7 +450,7 @@ The behavior depends on the value of the 'Canvas.position' property.""",
 
 FieldDoc( "Canvas.top", """Get or set the top position of the top-left corner of the canvas.
 
-The behavior depends on the value of the 'Canvas.position' property.""",
+The behavior depends on the value of the `Canvas.position` property.""",
     SeesDocs( "Canvas.top|Canvas.bottom|Canvas.marginTop|Canvas.marginBottom|Canvas.staticTop|Canvas.staticBottom" ),
     [ExampleDoc("""var canvas = new Canvas(200, 400);
 var ctx = canvas.getContext("2d");
@@ -469,7 +464,9 @@ canvas.top = 100;
     NO_Default
 )
 
-FieldDoc( "Canvas.bottom", "Get or set the bottom position of the canvas.",
+FieldDoc( "Canvas.bottom", """Get or set the bottom position of the canvas.
+
+The behavior depends on the value of the `Canvas.position` property.""",
     SeesDocs( "Canvas.top|Canvas.bottom|Canvas.marginTop|Canvas.marginBottom|Canvas.staticTop|Canvas.staticBottom" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_ReadWrite,
@@ -479,12 +476,11 @@ FieldDoc( "Canvas.bottom", "Get or set the bottom position of the canvas.",
 
 FieldDoc( "Canvas.scrollLeft", """Get or set the horizontal scroll position of the canvas.
 
-The offset is applied to the left property of all children.
-Children with a 'fixed' 'Canvas.position' or an 'absolute' 'Canvas.position' are not impacted.
+The offset is applied to the left property of all with a `fixed` or `absolute` position.
 
 This property is useful to implement mouse scrolling or to move multiple canvases at once.
 
-The value can't be negative unless the property 'Canvas.allowNegativeScroll' is set to 'true'.  """,
+The value can't be negative unless the property 'Canvas.allowNegativeScroll' is set to 'true'.""",
     SeesDocs( "Canvas.scrollTop|Canvas.scrollLeft|Canvas.scrollBottom|Canvas.allowNegativeScroll" ),
     [ExampleDoc("""var canvas = new Canvas(200, 400);
 var ctx = canvas.getContext("2d");
@@ -602,7 +598,7 @@ FieldDoc( "Canvas.staticRight", "Get or set the static-right flag of the canvas.
 )
 
 FieldDoc( "Canvas.staticTop", "Get or set the static-right flag of the canvas.",
-    SeesDocs( "Canvas.top|Canvas.bottom|Canvas.marginTop|Canvas.marginBottom|Canvas.staticTop|Canvas.staticBottom" ),
+    SeesDocs( "Canvas.top|Canvas.bottom|Canvas.marginTop|Canvas.marginBottom|Canvas.staticBottom" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_ReadWrite,
     "boolean",
@@ -610,7 +606,7 @@ FieldDoc( "Canvas.staticTop", "Get or set the static-right flag of the canvas.",
 )
 
 FieldDoc( "Canvas.staticBottom", "Get or set the static-top flag of the canvas.",
-    SeesDocs( "Canvas.top|Canvas.bottom|Canvas.marginTop|Canvas.marginBottom|Canvas.staticTop|Canvas.staticBottom" ),
+    SeesDocs( "Canvas.top|Canvas.bottom|Canvas.marginTop|Canvas.marginBottom|Canvas.staticTop" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_ReadWrite,
     "boolean",
@@ -626,7 +622,7 @@ FieldDoc( "Canvas.fluidHeight", "Get or set the fluid-height flag of the canvas.
 )
 
 FieldDoc( "Canvas.fluidWidth", "Get or set the fluid-width flag of the canvas.",
-    SeesDocs( "Canvas.fluidHeight|Canvas.fluidWidth" ),
+    SeesDocs( "Canvas.fluidHeight" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_ReadWrite,
     "boolean",
@@ -634,7 +630,7 @@ FieldDoc( "Canvas.fluidWidth", "Get or set the fluid-width flag of the canvas.",
 )
 
 FieldDoc( "Canvas.id", "Get or set the id for this canvas.",
-    SeesDocs( "Canvas.fluidHeight|Canvas.fluidWidth" ),
+    NO_Sees,
     NO_Examples,
     IS_Dynamic, IS_Public, IS_ReadWrite,
     "string",
@@ -642,7 +638,7 @@ FieldDoc( "Canvas.id", "Get or set the id for this canvas.",
 )
 
 FieldDoc( "Canvas.marginLeft", "Get or set the left margin for the canvas.",
-    SeesDocs( "Canvas.left|Canvas.right|Canvas.marginLeft|Canvas.marginRight|Canvas.staticLeft|Canvas.staticRight" ),
+    SeesDocs( "Canvas.left|Canvas.right|Canvas.marginRight|Canvas.staticLeft|Canvas.staticRight" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_ReadWrite,
     "float",
@@ -650,7 +646,7 @@ FieldDoc( "Canvas.marginLeft", "Get or set the left margin for the canvas.",
 )
 
 FieldDoc( "Canvas.marginRight", "Get or set the right margin for the canvas.",
-    SeesDocs( "Canvas.left|Canvas.right|Canvas.marginLeft|Canvas.marginRight|Canvas.staticLeft|Canvas.staticRight" ),
+    SeesDocs( "Canvas.left|Canvas.right|Canvas.marginLeft|Canvas.staticLeft|Canvas.staticRight" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_ReadWrite,
     "float",
@@ -658,7 +654,7 @@ FieldDoc( "Canvas.marginRight", "Get or set the right margin for the canvas.",
 )
 
 FieldDoc( "Canvas.marginTop", "Get or set the top margin for the canvas.",
-    SeesDocs( "Canvas.top|Canvas.bottom|Canvas.marginTop|Canvas.marginBottom|Canvas.staticTop|Canvas.staticBottom" ),
+    SeesDocs( "Canvas.top|Canvas.bottom|Canvas.marginBottom|Canvas.staticTop|Canvas.staticBottom" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_ReadWrite,
     "boolean",
@@ -666,7 +662,7 @@ FieldDoc( "Canvas.marginTop", "Get or set the top margin for the canvas.",
 )
 
 FieldDoc( "Canvas.marginBottom", "Get or set the bottom margin for the canvas.",
-    SeesDocs( "Canvas.top|Canvas.bottom|Canvas.marginTop|Canvas.marginBottom|Canvas.staticTop|Canvas.staticBottom" ),
+    SeesDocs( "Canvas.top|Canvas.bottom|Canvas.marginTop|Canvas.staticTop|Canvas.staticBottom" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_ReadWrite,
     "boolean",
@@ -676,7 +672,7 @@ FieldDoc( "Canvas.marginBottom", "Get or set the bottom margin for the canvas.",
 FunctionDoc( "Canvas.cursor", """Set the cursor for this canvas.
 
 The cursortype may be any of "default"|"arrow"|"beam"|"text"|"pointer"|"grabbing"|"drag"|"hidden"|"none"|"col-resize".""",
-    SeesDocs( "Canvas.cursor" ),
+    NO_Sees,
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "type", "Cursor name", "string", NO_Default, IS_Obligated ) ],
@@ -686,7 +682,7 @@ The cursortype may be any of "default"|"arrow"|"beam"|"text"|"pointer"|"grabbing
 FieldDoc( "Canvas.clientWidth", """Get the clientWidth of this canvas.
 
 This is the physical width of a canvas including the left and right coating on each side.""",
-    SeesDocs( "Canvas.clientHeight|Canvas.clientWidth|Canvas.clientTop|Canvas.clientLeft" ),
+    SeesDocs( "Canvas.clientHeight|Canvas.clientTop|Canvas.clientLeft" ),
     [ExampleDoc("""var canvas = new Canvas(100, 100); // create a 100x100 canvas
 canvas.coating = 30; // add a coating (padding) of 30 outside the canvas
 console.log(canvas.width) // ---> 100
@@ -700,7 +696,7 @@ console.log(canvas.clientWidth) // ---> 160 (30 coating left + 100 width + 30 co
 FieldDoc( "Canvas.clientHeight", """Get the clientHeight of this canvas.
 
 This is the physical height of a canvas including the top and bottom coating.""",
-    SeesDocs( "Canvas.clientHeight|Canvas.clientWidth|Canvas.clientTop|Canvas.clientLeft" ),
+    SeesDocs( "Canvas.clientWidth|Canvas.clientTop|Canvas.clientLeft" ),
     [ExampleDoc("""var canvas = new Canvas(100, 100); // create a 100x100 canvas
 canvas.coating = 30; // add a coating (padding) of 30 outside the canvas
 console.log(canvas.height) // ---> 100
@@ -816,42 +812,125 @@ FieldDoc( "Canvas.inherrit", "Object instance of CanvasInherrit class.",
 
 ConstructorDoc( "Canvas", """Constructs a canvas instance.
 
-The new canvas is automatically orphaned and doesn't belong to the view hierarchy until added as a child to the root hierarchy.
-A canvas will not be displayed until it is a descendent of the root canvas ('document.canvas').""",
-    SeesDocs( "CanvasInherrits|Canvas|document.canvas" ),
+The new canvas is orphaned and doesn't belong to the view hierarchy until added as a child to the root hierarchy.
+A canvas will not be displayed until it is a descendent of the root canvas (`document.canvas`).""",
+    SeesDocs( "CanvasInherrits|document.canvas" ),
     [ExampleDoc("""// Create a new 200x100 canvas (logical pixels)
 var myCanvas = new Canvas(200, 100);
-// at this stage, myCanvas is an orphaned canvas
-// now we add myCanvas to the root canvas (with the add() method)
+// At this stage, myCanvas is an orphaned canvas.
+// Now we add myCanvas to the root canvas (with the add() method)
 document.canvas.add(myCanvas);
-// at this stage, myCanvas is "rooted" and document.canvas becomes its parent.
+// At this stage, myCanvas is "rooted" and document.canvas becomes its parent.
 """)],
-    [ ParamDoc( "width", "Width size", "integer", NO_Default, IS_Obligated ),
-     ParamDoc( "height", "Height size", "integer", NO_Default, IS_Obligated ),
-     ParamDoc( "options", "Options object", ObjectDoc([("lazy", "lazy evaluation", "boolean")]), NO_Default, IS_Optional ) ],
+    [ 
+        ParamDoc( "width", "Width size", "integer", NO_Default, IS_Obligated ),
+        ParamDoc( "height", "Height size", "integer", NO_Default, IS_Obligated ),
+        ParamDoc( "options", "Options object", ObjectDoc([("lazy", "lazy evaluation", "boolean")]), NO_Default, IS_Optional )
+    ],
     ReturnDoc( "Canvas instance", "Canvas" )
 )
 
-items = [ "onresize", "onload" ]
-for i in items:
-    EventDoc( "Canvas." + i, "Callback for " + i + " events.",
-        SeesDocs( "Canvas.onresize|Canvas.onload|Canvas.onchange" ),
-        NO_Examples,
-        NO_Params
-    )
-
-EventDoc( "Canvas.onchange", "Callback for onchange events.",
-    SeesDocs( "Canvas.onresize|Canvas.onload|Canvas.onchange" ),
-    NO_Examples,
-    [ ParamDoc( "obj", "event object", ObjectDoc([("property", "propertyname", "string"),
-                                                ("value", "changed value", "string|float|integer|boolean")]), NO_Default, IS_Obligated ) ]
+EventDoc("Canvas.load", 
+    "Event fired when the canvas will be draw for the first time.",
+    params=[ParamDoc("event", "Event object", ObjectDoc([]))]
 )
 
-items = [ "onmouse*" ]
-for i in items:
-    EventDoc( "Canvas." + i, "Callback for " + i + " events.",
-        SeesDocs( "Canvas.cancelbubble|Canvas.drag|Canvas" + "|Canvas.".join(items) ),
-        NO_Examples,
-        [ParamDoc( "obj", "messageObject", ObjectDoc([]), NO_Default, IS_Obligated ) ]
-    )
+EventDoc("Canvas.resize", 
+    "Event fired after a canvas has been resized",
+    params=[ParamDoc("event", "Event object", ObjectDoc([]))]
+)
 
+EventDoc("Canvas.change", "Callback for change events.\n\nChange event are fired when the size of the canvas is updated",
+    SeesDocs( "Canvas.onresize|Canvas.onload|Canvas.change" ),
+    NO_Examples,
+    [
+        ParamDoc("obj", "event object", ObjectDoc([
+            ("property", "Name of the property being changed", "string"),
+            ("value", "Value of the property being changed", "string|float|integer|boolean")
+        ]))
+    ]
+)
+
+baseMouseEventObject = [
+    ("x",       "Horizontal cursor position", "int"),
+    ("y",       "Vertical cursor position", "int"),
+    ("clientX", "??", "int"),
+    ("clientY", "??", "int"),
+    ("layerX",  "Horizontal cursor position relative to the canvas", "int"),
+    ("layerY",  "Vertical cursor position relative to the canvas", "int"),
+    ("target",  "`Canvas` where the event is taking place", "Canvas")
+]
+
+mouseEventPosition = list(baseMouseEventObject)
+mouseEventPosition.extend([
+    ("xrel", "Relative value of `x` compared to the previous event", "int"),
+    ("yrel", "Relative value of `y` compared to the previous event", "int")
+])
+mouseEventPosition = [ParamDoc("event", "Event object", ObjectDoc(mouseEventPosition))]
+
+
+mouseEventClick = list(baseMouseEventObject)
+mouseEventClick.extend([
+    ("which", "ID of the button pressed", "int")
+])
+mouseEventClick = [ParamDoc("event", "Event object", ObjectDoc(mouseEventClick))]
+
+
+mouseEventDrag = list(baseMouseEventObject)
+mouseEventDrag.extend([
+    ("source", "Source canvas for this event", "Canvas")
+])
+mouseEventDrag = [ParamDoc("event", "Event object", ObjectDoc(mouseEventDrag))]
+
+
+mouseEventDragTarget = list(baseMouseEventObject)
+mouseEventDragTarget.extend([
+    ("source", "Source canvas for this event", "Canvas"),
+    ("target", "Target canvas for this event", "Canvas")
+])
+mouseEventDragTarget = [ParamDoc("event", "Event object", ObjectDoc(mouseEventDragTarget))]
+
+
+EventDoc("Canvas.mousemove", 
+    "Event fired when the mouse pointer is moving over the canvas",
+    params=mouseEventPosition
+)
+
+EventDoc("Canvas.mousedown", 
+    "Event fired when the mouse pointer is over the element, and the mouse button is pressed.",
+    params=[ParamDoc("event", "Event object", ObjectDoc(baseMouseEventObject))]
+)
+
+EventDoc("Canvas.mouseup", 
+    "Event fired when the mouse pointer is over the element, and the mouse button has been pressed and then released.",
+    params=[ParamDoc("event", "Event object", ObjectDoc(baseMouseEventObject))]
+)
+
+EventDoc("Canvas.dblclick", 
+    "Event fired when the mouse pointer is over the element, and the mouse button has been pressed twice.",
+    params=mouseEventClick
+)
+
+EventDoc("Canvas.dragstart", 
+    "Event fired when the user starts to drag a canvas",
+    params=mouseEventDrag
+)
+
+EventDoc("Canvas.dragend", "Event fired when the user has finished dragging a canvas",
+    params=mouseEventDrag
+)
+
+EventDoc("Canvas.dragover", 
+    "Event fired when a canvas is being dragged over a target canvas.\n This event is fired on the targeted canvas.",
+    params=mouseEventDragTarget
+)
+
+EventDoc("Canvas.drop",
+    "Event fired when a canvas has been dragged over a target canvas.\n This event is fired on the targeted canvas.",
+    params=mouseEventDragTarget
+)
+
+EventDoc("Canvas.mousewheel", 
+    "Event fired when the mouse wheel is actived onto a canvas.",
+    params=[ParamDoc("event", "Event object", ObjectDoc(baseMouseEventObject))]
+)
