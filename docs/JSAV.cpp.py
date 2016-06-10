@@ -139,7 +139,7 @@ ClassDoc( "Video", "Video playing.",
 
 for klass in ["AudioNode", "Video"]:
     EventDoc( klass + ".error", "Event fired when the source fails to be opened or if a read error happens while playing the media file.",
-            SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
+            SeesDocs(  klass + ".pause|" + klass + ".play|"+ klass + ".stop|" + klass + ".buffering|" + klass + ".ready|" + klass + ".end"),
             [ExampleDoc("""var dsp = Audio.getContext();
 var node = dsp.createNode("source", 0, 2);
 node.open("invalid_file.wav");
@@ -156,7 +156,7 @@ node.addEventListener("error", function(ev) {
     )
 
     EventDoc( klass + ".buffering", "Event fired when the source is buffering data.",
-            SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
+            SeesDocs(  klass + ".pause|" + klass + ".play|"+ klass + ".stop|" + klass + ".error|" + klass + ".ready|" + klass + ".end"),
             [ExampleDoc("""var dsp = Audio.getContext();
 var node = dsp.createNode("source", 0, 2);
 node.open("test.wav");
@@ -174,7 +174,7 @@ node.addEventListener("buffering", function(ev) {
     )
 
     EventDoc( klass + ".ready", "Event fired when the source is opened and ready to be played.",
-            SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
+            SeesDocs(  klass + ".pause|" + klass + ".play|"+ klass + ".stop|" + klass + ".error|" + klass + ".buffering|" + klass + ".end"),
             [ExampleDoc("""var dsp = Audio.getContext();
 var node = dsp.createNode("source", 0, 2);
 node.open("test.wav");
@@ -186,13 +186,19 @@ node.addEventListener("ready", function() {
     )
 
     EventDoc( klass + ".pause", "Event fired when the source is put on pause.",
-            SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
+            SeesDocs(klass + ".play|"+ klass + ".stop|" + klass + ".error|" + klass + ".buffering|" + klass + ".ready|" + klass + ".end" ),
             NO_Examples,
             [ ParamDoc("event", "Event object", NO_Params, NO_Default, IS_Obligated) ]
     )
 
     EventDoc( klass + ".play", "Event fired when the source is put on play.",
-            SeesDocs( "ThreadMessageEvent|AVSource.pause|AVSource.play|AVNode.stop|AVSource.error|AVSource.buffering|AVSource.ready" ),
+            SeesDocs(  klass + ".pause|"+ klass + ".stop|" + klass + ".error|" + klass + ".buffering|" + klass + ".ready|" + klass + ".end" ),
+            NO_Examples,
+            [ ParamDoc("event", "Event object", NO_Params, NO_Default, IS_Obligated) ]
+    )
+
+    EventDoc( klass + ".end", "Event fired when the source reached the end of the file.",
+            SeesDocs(  klass + ".pause|" + klass + ".play|"+ klass + ".stop|" + klass + ".error|" + klass + ".buffering|" + klass + ".ready" ),
             NO_Examples,
             [ ParamDoc("event", "Event object", NO_Params, NO_Default, IS_Obligated) ]
     )
