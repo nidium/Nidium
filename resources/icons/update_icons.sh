@@ -26,4 +26,10 @@ resize nidium.png 256   nidium_256x256.png
 resize nidium.png 512   nidium_512x512.png
 resize nidium.png 1024  nidium_1024x1024.png
 
+if [[ $platform == 'Darwin' ]]; then
+    cd ../osx/
+    ./update_icns.sh
+    cd -
+fi
+
 printf "=> Done !\n"
