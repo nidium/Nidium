@@ -83,7 +83,7 @@ def packageExecutable():
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip()
     tag = None
     path = "bin/"
-    resources = "resources/"
+    baseResources = "resources/"
     arch = ""
     name = ""
 
@@ -116,7 +116,7 @@ def packageExecutable():
 
         Log.info("Create dmg...")
 
-        resources += "osx/"
+        resources = "%s/osx/" % (baseResources)
         name += ".dmg"
         cmd = [
             "tools/installer/osx/create-dmg",
@@ -124,7 +124,7 @@ def packageExecutable():
             "--no-internet-enable",
             "--volicon " + resources + "/nidium.icns",
             "--background " + resources + "/dmg-background.png",
-            "--window-size 555 394",
+            "--window-size 555 418",
             "--icon-size 96",
             "--eula %s/LICENSE" % tmpDir,
             "--app-drop-link 460 290",
@@ -136,8 +136,7 @@ def packageExecutable():
         if code != 0:
             Utils.exit("Failed to build dmg")
     elif Platform.system == "Linux":
-        baseResources = resources
-        resources += "linux/"
+        resources = "%s/linux/" % (baseResources)
         name += ".run"
 
         Utils.mkdir(tmpDir + "/dist/")
@@ -145,7 +144,7 @@ def packageExecutable():
 
         shutil.copy(resources + "/nidium.desktop", tmpDir + "/resources/")
         shutil.copy(resources + "/x-application-nidium.xml", tmpDir + "/resources/")
-        shutil.copy(baseResources + "/icons/nidium.iconset/nidium_32x32@2x.png", tmpDir + "/resources/nidium.png")
+        shutil.copy(baseResources + "/icons/nidium_64x64.png", tmpDir + "/resources/nidium.png")
         shutil.copy(resources + "/installer.sh", tmpDir)
         shutil.copy(path + "nidium",  tmpDir + "/dist/")
 
