@@ -44,6 +44,10 @@ elif Platform.system == "Linux":
     OUTPUT_BINARY = "bin/nidium"
 
 def signCode(path):
+    if SIGN_IDENTITY is None:
+        Log.info("No identity providen, not signing app")
+        return
+
     Log.info("Signing nidium package...")
 
     code, output = Utils.run(" ".join([
@@ -124,7 +128,7 @@ def packageExecutable():
             "--icon-size 96",
             "--eula %s/LICENSE" % tmpDir,
             "--app-drop-link 460 290",
-            "--icon 'nidium' 460 80",
+            "--icon 'nidium.app' 460 80",
             "build/package/%s" % name,
             path + "nidium.app/"
         ]
