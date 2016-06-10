@@ -71,6 +71,18 @@ try {
 // It's okay to re-use the same DB once it has been closed
 var otherInstance = new DB("mydb");""")])
 
+FunctionDoc("DB.delete", "Delete a key from the DB", 
+    NO_Sees,
+    [ExampleDoc("""var DB = require("DB");
+var db = new DB("mydb");
+
+db.set("foo", "bar");
+console.log(db.get("foo"));
+
+db.delete("foo");
+console.log(db.get("foo");
+""")])
+
 FunctionDoc("DB.drop", "Drop the database (delete it)", 
     NO_Sees,
     [ExampleDoc("""var DB = require("DB");

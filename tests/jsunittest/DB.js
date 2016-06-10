@@ -20,7 +20,7 @@ Tests.register("DB.close", function() {
     });
 
     Assert.throws(function() {
-        db.del("foo");
+        db.delete("foo");
     });
 });
 
@@ -44,13 +44,13 @@ Tests.register("DB.set/get(object)", function() {
     db.close();
 });
 
-Tests.register("DB.del", function() {
+Tests.register("DB.delete", function() {
     var db = new DB("private://tests");
 
     db.set("fooDel", "bar");
     Assert(db.get("fooDel") == "bar");
 
-    db.del("fooDel");
+    db.delete("fooDel");
     Assert(db.get("fooDel") == undefined);
 
     db.close();

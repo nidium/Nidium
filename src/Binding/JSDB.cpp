@@ -16,7 +16,7 @@ namespace Binding {
 // {{{ Preamble
 static bool jsdb_get(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool jsdb_set(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool jsdb_del(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool jsdb_delete(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool jsdb_close(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool jsdb_drop(JSContext *cx, unsigned argc, JS::Value *vp);
 static void JSDB_Finalizer(JSFreeOp *fop, JSObject *obj);
@@ -33,7 +33,7 @@ template<> JSClass *JSExposer<JSDB>::jsclass = &JSDB_class;
 static JSFunctionSpec JSDB_funcs[] = {
     JS_FN("get", jsdb_get, 1, NIDIUM_JS_FNPROPS),
     JS_FN("set", jsdb_set, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("del", jsdb_del, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("delete", jsdb_delete, 1, NIDIUM_JS_FNPROPS),
     JS_FN("close", jsdb_close, 0, NIDIUM_JS_FNPROPS),
     JS_FN("drop", jsdb_drop, 0, NIDIUM_JS_FNPROPS),
     JS_FS_END
@@ -123,14 +123,14 @@ static bool jsdb_get(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool jsdb_del(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool jsdb_delete(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS(JSDB, &JSDB_class);
 
-    NIDIUM_JS_CHECK_ARGS("del", 1);
+    NIDIUM_JS_CHECK_ARGS("delete", 1);
 
     if (!args[0].isString()) {
-        JS_ReportError(cx, "del() : key must be a string");
+        JS_ReportError(cx, "delete() : key must be a string");
         return false;
     }
 
