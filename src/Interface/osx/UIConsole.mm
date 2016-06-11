@@ -152,8 +152,8 @@ UICocoaConsole::UICocoaConsole()
     this->m_NeedFlush = false;
     this->m_IsHidden = false;
     //[this->m_Window attachToStdout];
-    this->show();
-    //this->hide();
+    //this->show();
+    this->hide();
 }
 
 void UICocoaConsole::clear()
@@ -186,7 +186,7 @@ void UICocoaConsole::hide()
     }
     [this->m_Window.m_Window orderOut:nil];
     this->m_IsHidden = true;
-    [this->m_Window setIsHidden:YES];
+    [this->m_Window setM_IsHidden:YES];
 }
 
 bool UICocoaConsole::hidden()
@@ -201,7 +201,7 @@ void UICocoaConsole::show()
     }
     [this->m_Window.m_Window orderFront:nil];
     this->m_IsHidden = false;
-    [this->m_Window setIsHidden:NO];
+    [this->m_Window setM_IsHidden:NO];
 }
 
 void UICocoaConsole::log(const char *str)
