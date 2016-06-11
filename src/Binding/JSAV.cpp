@@ -83,8 +83,6 @@ static bool nidium_audio_createnode(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool nidium_audio_connect(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_audio_disconnect(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static bool nidium_audiothread_print(JSContext *cx, unsigned argc, JS::Value *vp);
-
 static bool nidium_AudioNode_constructor(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_audionode_set(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_audionode_get(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -1453,31 +1451,6 @@ static bool nidium_audio_disconnect(JSContext *cx, unsigned argc, JS::Value *vp)
         JS_ReportError(cx, "disconnect() take one input and one output\n");
         return false;
     }
-
-    return true;
-}
-
-static bool nidium_audiothread_print(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    if (argc == 0) {
-        return true;
-    }
-
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    char *bytes;
-
-    JS::RootedString str(cx, args[0].toString());
-    if (!str) {
-        return true;
-    }
-
-    bytes = JS_EncodeString(cx, str);
-    if (!bytes)
-        return true;
-
-    NUI_LOG("%s\n", bytes);
-
-    JS_free(cx, bytes);
 
     return true;
 }
