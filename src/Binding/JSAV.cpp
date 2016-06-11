@@ -604,6 +604,8 @@ bool JSAudio::createContext()
         return false;
     }
 
+    NidiumJS::SetJSRuntimeOptions(m_JsRt);
+
     JS_SetGCParameter(m_JsRt, JSGC_MAX_BYTES, 0xffffffff);
     JS_SetGCParameter(m_JsRt, JSGC_SLICE_TIME_BUDGET, 15);
 
