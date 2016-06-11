@@ -269,11 +269,7 @@ void UIX11Interface::renderSystemTray()
 // {{{ UIX11Console
 void UIX11Console::log(const char *str)
 {
-    if (strcmp("\n", str) == 0) {
-        fprintf(stdout, "\n");
-    } else {
-        fprintf(stdout, "[CONSOLE] %s", str);
-    }
+    fprintf(stdout, "%s", str);
 }
 // }}}
 
