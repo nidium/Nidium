@@ -7,18 +7,18 @@ from dokumentor import *
 NamespaceDoc("HTTP Client & Server", """Native implemntation of HTTP Client & Server
 * HTTP : Connect to a HTTP server.
 * HTTPServer : Create an HTTP server where clients cant connect to.
-"""
-)
+""")
 
 ClassDoc( "HTTPServer", "Http server.",
     [ SeeDoc( "HTTPRequest" ), SeeDoc( "Socket" ), SeeDoc( "Http" ) ],
-    [ ExampleDoc( """var ws = new HTTPServer(  8080, true, "127.0.0.1" );
-ws.onrequest = function( request, client ) {
-    console.log( request.method + " " + request.url );
-    console.log( JSON.stringify( request.headers ) );
-    console.log( JSON.stringify( client ) );
-    client.write( "hello, this is nidium" );
-} ;""") ],
+    [ ExampleDoc( """var http = new HTTPServer(8080, "127.0.0.1");
+http.onrequest = function(request, client) {
+    console.log(request.method + " " + request.url);
+    console.log(JSON.stringify(request.headers));
+    console.log(JSON.stringify(client ));
+    client.write("Hello! ");
+    client.end("This is Nidium");
+};""") ],
     NO_Inherrits,
     NO_Extends,
     section="HTTP Client & Server",
@@ -30,13 +30,13 @@ ClassDoc( "HTTPRequest", "Http request object spawned by HTTPServer.",
     NO_Examples,
     NO_Inherrits,
     NO_Extends,
-        section="HTTP Client & Server",
+    section="HTTP Client & Server",
 )
 
 NamespaceDoc( "HTTPResponse", "HTTPResponse class.",
     SeesDocs( "HTTPServer|HTTPRequest|Http" ),
     NO_Examples,
-        section="HTTP Client & Server",
+    section="HTTP Client & Server",
 )
 
 EventDoc( "HTTPServer.onDisconnect", "Event that fires on disconnect.",
@@ -56,7 +56,7 @@ FieldDoc( "HTTPRequest.method", "Http request Method that was recieved. Can be '
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Readonly,
     'string',
-     "UNKNOWN"
+    "UNKNOWN"
 )
 
 FieldDoc( "HTTPRequest.url", "The url that was requested.",
@@ -64,7 +64,7 @@ FieldDoc( "HTTPRequest.url", "The url that was requested.",
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Readonly,
     'string',
-     NO_Default
+    NO_Default
 )
 
 FieldDoc( "HTTPRequest.data", "The data (utf-8') that was received by the server.",
@@ -72,7 +72,7 @@ FieldDoc( "HTTPRequest.data", "The data (utf-8') that was received by the server
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Readonly,
     'string',
-     'null, if it was a non POST method'
+    'null, if it was a non POST method'
 )
 
 FieldDoc( "HTTPRequest.headers", "An object of key/value pairs describing the headers.",
@@ -88,7 +88,7 @@ FieldDoc( "HTTPRequest.client", "An object that describes the connected client."
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Readonly,
     ObjectDoc([]),
-     NO_Default
+    NO_Default
 )
 
 EventDoc( "HTTPServer.onrequest", "Event that fires when the server has read the complete http request.",
