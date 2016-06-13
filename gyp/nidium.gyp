@@ -58,7 +58,6 @@
                         '-lpng',
                         '-lfreetype',
                         '-lrt',
-                        '-lbz2',
                         '-ldl',
                         '-lzip',
                         '-ljpeg',
