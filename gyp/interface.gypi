@@ -11,7 +11,8 @@
         '<(third_party_path)/SDL2/include/',
         '<(third_party_path)/c-ares/',
         '<(third_party_path)/angle/include/',
-        '<(third_party_path)/rapidxml',
+        '<(third_party_path)/rapidxml/',
+        '<(third_party_path)/libnotify/',
     ],
     'sources': [
         '<(nidium_interface_path)/UIInterface.cpp',
@@ -40,6 +41,7 @@
             'libraries': [
                 '-lX11',
                 '<!@(pkg-config --libs gtk+-2.0)',
+                '-lnotify',
             ],
         }],
         ['nidium_ui_console==0', {
