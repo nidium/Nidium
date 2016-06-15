@@ -89,7 +89,7 @@ Tests.registerAsync("Video.position", function(next) {
         // Seek is done to the closest keyframe, 1.240 for our video
         Assert.strictEqual(video.position, 1.24, "Video position is invalid. Position :" + video.position + " (was expecting 1.24)");
         next();
-    }, 200);
+    }, 500);
 }, 5000);
 
 Tests.registerAsync("Video.nextFrame", function(next) {
@@ -98,7 +98,7 @@ Tests.registerAsync("Video.nextFrame", function(next) {
         video.removeEventListener("frame");
         Assert.strictEqual(video.position, 1.28, "Video position is invalid. Position " + video.position + " (was expecting 1.28)");
         next();
-    }, 200);
+    }, 500);
 }, 5000);
 
 // XXX : prevFrame is jumping one frame :/
