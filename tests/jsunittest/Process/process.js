@@ -28,7 +28,6 @@ Tests.register("process.setOwner (invalid calls)", function() {
 });
 
 Tests.register("process.setOwner(uid, gid)/getOwner", function() {
-    var owner = process.getOwner();
     if (owner.uid == 0) {
         console.log("Setting owner with uid & gid = 1000");
         process.setOwner(1000, 1000);
@@ -37,10 +36,12 @@ Tests.register("process.setOwner(uid, gid)/getOwner", function() {
         Assert.equal(process.getOwner().gid, 1000);
     } else {
         console.log("Setting same user (non root caller)");
+        var owner = process.getOwner();
+
         process.setOwner(owner.uid, owner.gid);
 
-        Assert.equal(process.getOwner().uid, 1000);
-        Assert.equal(process.getOwner().gid, 1000);
+        Assert.equal(process.getOwner().uid, owner.uid);
+        Assert.equal(process.getOwner().gid, owner.gid);
     }
 });
 
