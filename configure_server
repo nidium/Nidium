@@ -59,8 +59,8 @@ def heapProfiling(profiling):
 
 
 
-@CommandLine.option("--unit-tests")
-@CommandLine.option("--auto-tests")
+@CommandLine.option("--unit-tests", default=False)
+@CommandLine.option("--auto-tests", default=False)
 def testServer(unitTests, autoTests):
     tests = []
 

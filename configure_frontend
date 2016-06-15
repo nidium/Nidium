@@ -235,7 +235,7 @@ def getNidiumPath():
     else:
         raise Exception("TODO : Unsupported platform, cannot find nidum executable")
 
-@CommandLine.option("--auto-tests")
+@CommandLine.option("--auto-tests", default=False)
 def autoTestStudio(autoTests):
     if autoTests is None:
         return
