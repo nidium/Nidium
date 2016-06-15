@@ -80,7 +80,7 @@ db.set("foo", "bar");
 console.log(db.get("foo"));
 
 db.delete("foo");
-console.log(db.get("foo");
+console.log(db.get("foo"));
 """)])
 
 FunctionDoc("DB.drop", "Drop the database (delete it)", 
