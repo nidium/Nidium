@@ -87,7 +87,7 @@ Tests.registerAsync("Video.position", function(next) {
     video.position = 1;
     setTimeout(function() {
         // Seek is done to the closest keyframe, 1.240 for our video
-        Assert.strictEqual(video.position, 1.24, "Video position is invalid");
+        Assert.strictEqual(video.position, 1.24, "Video position is invalid. Position :" + video.position + " (was expecting 1.24)");
         next();
     }, 200);
 }, 5000);
@@ -96,7 +96,7 @@ Tests.registerAsync("Video.nextFrame", function(next) {
     video.nextFrame();
     video.addEventListener("frame", function() {
         video.removeEventListener("frame");
-        Assert.strictEqual(video.position, 1.28, "Video position is invalid");
+        Assert.strictEqual(video.position, 1.28, "Video position is invalid. Position " + video.position + " (was expecting 1.28)");
         next();
     }, 200);
 }, 5000);
