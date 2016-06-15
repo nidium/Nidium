@@ -1,70 +1,51 @@
-# Nidium - Cross platform rendering with javascript
+# ɳidium
 
-## Taglines:
+ɳidium enables you to build graphical softwares with JavaScript. It's not NodeJS, QT, Chromium, or a WebKit derivate, It's built from scratch, has a small codebase written in c++, and leverage the combination of Skia Graphics toolkit from Google and SpiderMonkey JavaScript engine from Mozilla. 
 
-**Nidium - Cross platform rendering with javascript**
+## Download
 
-~~Nidium - Revolutionary way to create cross platform applications with javascript~~
+You can find Nidium latest build on http://downloads.nidium.com/
 
-~~Nidium - Bare metal environment to write visual applications out of the browser using JavaScript.~~
-
-~~Nidium - Render target for writing games with JavaScript~~
-
-~~Nidium - Tool-kit for writing server, games, desktop software and mobile apps~~
-
-~~Nidium - A new breed of browser~~
-
-
-## Background
-
-In the 1990's it was impossible to picture what the web would become by the year 2014.
-
-Nidium is the first attempt to handle what's coming: the fusion of desktop applications, mobile applications and next-generation webapps.
-
-It is a brand new solution to create and browse next-generation web and server based applications that run on every platform.
-
-Nidium is so simple to use that you can create apps in minutes. Edit your javascript, add your stylesheet and distribute it.
+## Hello world
 
 hello.nml
 
 ```
-<application version="0.2">
+<application>
     <meta>
         <title>My Application</title>
         <description>Such a great description</description>
-        <viewport>355x140</viewport>
+        <viewport>300x300</viewport>
         <identifier>com.company.app</identifier>
         <author>Company Inc.</author>
     </meta>
     <assets>
-        <style src="style.nss"></style>
-        <script src="hello.js"></script>
+        <script>
+            var c = new Canvas(200, 200);
+            var ctx = c.getContext("2d");
+
+            document.canvas.add(c);
+
+            ctx.fillStyle = "blue";
+            ctx.fillRect(0, 0, 200, 200);
+        </script>
     </assets>
     </application>
 ```
 
-style.nss
+## Building Nidium
+
+To build Nidium you need at least 5GB of disk space. Depending of the speed of your computer a build from scratch will take between 30min to 1H30.
 
 ```
-{
-    "button" : {
-        background : "blue",
-        color : "rgba(255, 255, 255, 0.8)"
-        label : "Default"
-    },
+$ apt-get install python2.7 git build-essential clang cmake pkg-config libgtk2.0-dev libgtk-3-dev mesa-common-dev libglu1-mesa-dev yasm libasound2 libasound2-dev libbz2-1.0
 
-    "label" : {
-        background : "black",
-        color : "#ffffff"
-    }
-}
-```
-hello.js
-
-```
-var b = new UIButton(document);
-b.label = "Hello World";
-b.center();
+$ git clone https@github.com/nidium/NidiumTools.git
+$ git clone --recursive https@github.com/nidium/Nidium.git
+$ export PYTHONPATH=$(pwd)/NidiumTools/src
+$ cd Nidium
+$ ./configure_frontend
+$ ./bin/nidium
 ```
 
 ## License
@@ -72,75 +53,61 @@ b.center();
 Copyright 2016 Nidium Inc. All rights reserved.
 Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-
-## How to get up and running
-
-You can start by doing something like this :
-
-```
-$ apt-get install git subversion \
-                  wget \
-                  make cmake \
-                  python2.7 gcc g++ clang3.5 yasm nasm \
-                  mesa-common-dev \
-                  libpng12-dev libglu1-mesa-dev libfreetype6-dev libgtk2.0-dev \
-                  libasound2 libbz2-1.0 libjack0
-$ git clone https@github.com/nidium/NativeTools.git
-$ git clone --recursive https@github.com/nidium/Nidium.git
-$ export PYTHONPATH=$(pwd)/NativeTools/src
-$ cd Nidium
-$ ./configure_frontend
-$ ./configure_server
-$ ./bin/nidium
-```
-
 ## FAQ
 
-**Q:** _Will there be a kind of `comet` or `push` module?_
+**Q:** _What is the prupose of Nidium?_
 
-**A:** Yes! This project is build around the networklayer that was also used in the
-   [APE-Project](http://ape-project.org/). You can expect some cool things rather
-    soon.
+**A:** Building graphical application with JavaScript and without the browser stack.
+
+
+**Q:** _Does Nidium require a GPU?_
+
+**A:** Yes
+
+
+**Q:** _What platform Nidium currently support?_
+
+**A:** As of today Nidium runs on `linux` and `OSX`. The port to Android is a work in progress. Window port is in our top priorty list. 
+Contact us if you would like us to increase focus on a specific platform.
+
+
+**Q:** _Are you aware that Nidium is a kind of game-engine?_
+
+**A:** Yes & No. It does an amazing job at rendering but there is no physics-engine or 3D engine built in.
+
+
+**Q:** _Are you aware that Nidium is a kind of browser?_
+
+**A:** Yes & No. Nidium has similarities with a browser, but it's definitely not a browser (No HTML)
+
+
+**Q:** _How does it compare to `node-webkit` or `electron` ?_
+
+**A:**  Nidium is not built on top of a browser.
+
+
+**Q:** _How does it compare to `flash`?_
+
+**A:** Nidium just like flash use vector graphics, but Nidium is not a plugin that run in the browser, it use JavaScript and not ActionScript. And of course, it's open source :)
+
+
+**Q:** _How does it compare to `openframeworks`?_
+
+**A:** There you program in c++; Nidium lets you use plain javascript.
 
 
 **Q:** _Why did you make a server version?_
 
 **A:** The core components were designed to be reused as a library.
-   In our dayjobs we needed a very fast, low latency, robust server. 
-   As the async network layer is very fast and we dogfooded nidium to outperform 
-   Node.js/Socket.IO. This server is battle tested (>810 M req / day, < 60 ms)
-   Don't forget that nidium (frontend) has the 'same' server built in, which can
-   give your application amazing posibilities.
+   We needed a very fast, low latency, robust server. As the async network layer is very fast and we dogfooded Nidium to outperform Node.js/Socket.IO. 
+   This server has been tested in production environement (>810 M req / day).
+   Don't forget that Nidium (frontend) has the same server built in, which can give your application amazing posibilities.
 
 
-**Q:** _Are you aware that nidium is a kind of game-engine?_
+**Q:** _Will there be a kind of `comet` or `push` module?_
 
-**A:** Yes & No. It does an amazing job at rendering but there is no physics-engine built in.
-
-
-**Q:** _Are you aware that nidium is a kind of browser?_
-
-**A:** Yes & No. It does all the things that a browser does, except html.
-
-
-**Q:** _How does it compare to `node-webkit`?_
-
-**A:** Not. That uses html; Nidium lets you use plain javascript.
-
-
-**Q:** _How does it compare to `electron`?_
-
-**A:** Not. That uses html; Nidium lets you use plain javascript.
-
-
-**Q:** _How does it compare to `flash`?_
-
-**A:** Not. That uses actionscript; Nidium lets you use plain javascript.
-
-
-**Q:** _How does it compare to `openframeworks`?_
-
-**A:** Not. There you program in c++; Nidium lets you use plain javascript.
+**A:** Yes! This project is build around the networklayer that was also used in the
+   [APE-Project](http://ape-project.org/). You can expect some cool things in a near future.
 
 
 **Q:** _Can I use `ES6` features?_
@@ -152,15 +119,11 @@ $ ./bin/nidium
 
 **Q:** _Can i reuse `Node.js` modules?_
 
-**A:** Probably yes; Nidium is designed to be API compatible with Node.js.
-   No support, No guarantees, No endorsments.
+**A:** Yes & No. Nidium has support for `require()` but NodeJS API has not been ported to Nidium. So this means that any modules that use NodeJS specific API/features will not work. 
 
+**Q:** _Any plans to make Nidium compatible with NodeJS API?_
 
-**Q:** _It runs on `linux`, `BSD`, `OsX`. What about `Windows`, `Android`, `Raspberry Pi`, `iOS`?_
-
-**A:** The port to the android platform is in progress, the next step will be Windows.
-   Contact us if you would like us to increase focus on one or the other area.
-
+**A:** Yes, but this is not _yet_ on our top priority list. 
 
 **Q:** _What is this `konstrucktor.py`?_
 
@@ -168,17 +131,11 @@ $ ./bin/nidium
    configuration flags around.
 
 
-**Q:** _What is going on with these taglines? Do you have an identity crisis?_
-
-**A:** Not realy but as nidium is so multifunctional, we found it very hard to 
-  describe all of its awesome in just one sentence.
-
-
 **Q:** _Can I persuade you to focus on `...` ?_
 
-**A:** Sure!
+**A:** Sure! Head over our slack channel and chat with us :)
+
 
 **Q:** _Can I help?_
 
 **A:** Sure!
-
