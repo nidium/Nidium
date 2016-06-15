@@ -155,7 +155,7 @@ static bool nidium_process_setowner(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     if (argc > 1 && args[1].isNumber()) {
-        int gid = args[0].toInt32();
+        int gid = args[1].toInt32();
     
         groupInfo = getgrgid(gid);
 
