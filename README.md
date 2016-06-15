@@ -118,6 +118,7 @@ Contact us if you would like us to increase focus on a specific platform.
 **A:** Yes! This project is build around the networklayer that was also used in the
    [APE-Project](http://ape-project.org/). You can expect some cool things in a near future.
 
+---
 
 **Q:** _Can I use `ES6` features?_
 
