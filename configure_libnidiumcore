@@ -142,3 +142,12 @@ if __name__ == '__main__':
     Build.add(Gyp("gyp/libnidiumcore.gyp"))
 
     Konstruct.start()
+
+@CommandLine.option("--auto-tests", default=False)
+def autoTestStudio(autoTests):
+    if not autoTests:
+        return
+
+    @Konstruct.hook("postBuild")
+    def runNidiumAutoTests(success):
+        Tests.runTest(success)
