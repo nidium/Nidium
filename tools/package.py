@@ -14,6 +14,7 @@ from konstructor import Utils
 from konstructor import Log
 from konstructor import Variables
 from konstructor import CommandLine
+from konstructor import Deps
 
 Gyp = Builder.Gyp
 
@@ -25,11 +26,36 @@ Gyp.set("native_enable_breakpad", 0)
 
 OUTPUT_BINARY = None
 SIGN_IDENTITY = None
+FLAVOUR = "frontend"
 
 LICENSE = """Nidium is released under MIT License. This software is provided as is without warranty of any kind.
 
 This Software includes third-party libraries released with various open source license. Please refer to https://github.com/nidium/Nidium/blob/master/LICENSE for more information.
 """
+
+@CommandLine.option("--server", help="Package Nidium Server", default=False)
+def server(server):
+    global FLAVOUR, OUTPUT_BINARY
+
+    if not server:
+        return
+
+    FLAVOUR = "server"
+    OUTPUT_BINARY = "bin/nidium-server"
+
+@CommandLine.option("--frontend", help="Package Nidium Frontend", default=False)
+def frontend(frontend):
+    global FLAVOUR, OUTPUT_BINARY
+
+    if not frontend:
+        return
+
+    FLAVOUR = "frontend"
+
+    if Platform.system == "Darwin":
+        OUTPUT_BINARY = "bin/nidium.app/Contents/MacOS/nidium"
+    elif Platform.system == "Linux":
+        OUTPUT_BINARY = "bin/nidium"
 
 @CommandLine.option("--sign", help="Sign .dmg file with the identity providen")
 def sign(sign):
@@ -37,11 +63,6 @@ def sign(sign):
         return
 
     SIGN_IDENTITY = sign
-
-if Platform.system == "Darwin":
-    OUTPUT_BINARY = "bin/nidium.app/Contents/MacOS/nidium"
-elif Platform.system == "Linux":
-    OUTPUT_BINARY = "bin/nidium"
 
 def signCode(path):
     if SIGN_IDENTITY is None:
@@ -66,24 +87,14 @@ def signCode(path):
 
 def stripExecutable():
     Log.info("Striping executable")
-    if Platform.system == "Darwin":
-        Utils.run("strip bin/nidium.app/Contents/MacOS/nidium")
-        return
-    elif Platform.system == "Linux":
-        Utils.run("strip " + OUTPUT_BINARY)
-    else:
-        # Window TODO
-        print("TODO")
+    Utils.run("strip " + OUTPUT_BINARY)
 
-def packageExecutable():
+def getPackageName():
     import time
     import subprocess
-    import tarfile 
 
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip()
     tag = None
-    path = "bin/"
-    baseResources = "resources/"
     arch = ""
     name = ""
 
@@ -100,11 +111,35 @@ def packageExecutable():
 
     if tag is None:
         datetime = time.strftime("%Y%m%d_%H%M%S")
-        name = "Nidium_%s_%s_%s_%s" % (datetime, revision, Platform.system, arch)
+        name = "Nidium_%s_%s_%s_%s_%s" % (FLAVOUR, datetime, revision, Platform.system, arch)
     else:
-        name = "Nidium_%s_%s_%s" % (tag, Platform.system, arch)
+        name = "Nidium_%s_%s_%s_%s" % (FLAVOUR, tag, Platform.system, arch)
 
-    Log.info("Packaging executable")
+    return name
+
+def packageServer():
+    name = getPackageName()
+
+    tmpDir = os.path.join("build", "package", "nidium-server")
+
+    Utils.mkdir(tmpDir)
+
+    Utils.run("echo \"%s\" > %s/LICENSE" % (LICENSE, tmpDir))
+
+    shutil.copy(OUTPUT_BINARY, tmpDir)
+
+    with Utils.Chdir("build/package/"):
+        Utils.run("tar -czvf %s.tar.gz nidium-server/" % (name))
+
+    shutil.rmtree(tmpDir);
+
+def packageFrontend():
+    import tarfile 
+
+    path = "bin/"
+    baseResources = "resources/"
+
+    name = getPackageName()
 
     tmpDir = os.path.join("build", "package", "nidium.tmp")
     Utils.mkdir(tmpDir)
@@ -156,11 +191,17 @@ def packageExecutable():
         # Window TODO
         print("TODO")
 
-    #shutil.rmtree(tmpDir);
+    shutil.rmtree(tmpDir);
 
 def package():
     stripExecutable()
-    packageExecutable()
+
+    Log.info("Packaging %s" % FLAVOUR)
+
+    if FLAVOUR == "frontend":
+        packageFrontend()
+    elif FLAVOUR == "server":
+        packageServer()
 
 if __name__ == '__main__':
     # First, parse command line arguments, so we can 
@@ -168,18 +209,25 @@ if __name__ == '__main__':
     # and exit before doing anything else
     CommandLine.parse()
 
-    imp.load_source("configure", "configure_frontend");
+    if FLAVOUR == "frontend":
+        imp.load_source("configure", "configure_frontend");
 
-    if not os.path.exists("tools/dir2nvfs"):
-        # In Release mode, we need to package the embed
-        # Dir2NFS is needed in order to generate a package of the embeded files
-        Gyp("gyp/tools.gyp").run("dir2nvfs")
+        # Make sure we are using the correct deps for the 
+        # current configuration before building dir2nvfs
+        Deps._process()
 
-    Gyp("gyp/actions.gyp").run("generate-embed", parallel=False)
+        if not os.path.exists("tools/dir2nvfs"):
+            # In Release mode, we need to package the embed
+            # Dir2NFS is needed in order to generate a package of the embeded files
+            Gyp("gyp/tools.gyp").run("dir2nvfs")
 
-    # Now that the embed are packaged
-    # we can add add nidium_package_embed flag
-    Gyp.set("nidium_package_embed", 1)
+        Gyp("gyp/actions.gyp").run("generate-embed", parallel=False)
+
+        # Now that the embed are packaged
+        # we can add add nidium_package_embed flag
+        Gyp.set("nidium_package_embed", 1)
+    else:
+        imp.load_source("configure", "configure_server");
 
     Konstruct.start() 
 
