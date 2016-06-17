@@ -105,7 +105,7 @@ def getPackageName():
         tag = None
 
     if Platform.wordSize == 64:
-        arch = "x86_64"
+        arch = "x86-64"
     else:
         arch = "i386"
 
