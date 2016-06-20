@@ -60,6 +60,7 @@ if (args["file"]) {
             'AV/AudioThread.js',
             'AV/GainNode.js',
             'AV/Video.js',
+            'Image.js',
             'DB.js', // Only for frontend, beacause server does not support "cache://"
         ]);
     }

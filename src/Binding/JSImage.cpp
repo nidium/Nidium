@@ -225,22 +225,43 @@ void JSImage::onMessage(const SharedMessages::Message &msg)
 {
 
     switch (msg.event()) {
+        case Stream::kEvents_Error:
+        {
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            JS::RootedValue eventValue(m_Cx);
+            JSObjectBuilder obj(m_Cx, eventObj);
+            char err[128];
+
+            eventValue.setObjectOrNull(eventObj);
+
+            snprintf(err, 128, "Stream error. Code : %d\n", msg.m_Args[0].toInt());
+            obj.set("error", err);
+
+            this->fireJSEvent("error", &eventValue);
+
+            // XXX : Should we delete the stream here ?
+
+            break;
+        }
         case Stream::kEvents_ReadBuffer:
         {
             ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
-            JS::RootedValue onload_callback(m_Cx);
-            JS::RootedObject obj(m_Cx, m_JSObject);
-            if (this->setupWithBuffer((buffer *)msg.m_Args[0].toPtr())) {
-                if (JS_GetProperty(m_Cx, obj, "onload", &onload_callback) &&
-                    JS_TypeOfValue(m_Cx, onload_callback) == JSTYPE_FUNCTION) {
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            JS::RootedValue eventValue(m_Cx);
+            JSObjectBuilder obj(m_Cx, eventObj);
 
-                    JS::RootedValue rval(m_Cx);
-                    JS_CallFunctionValue(m_Cx, obj, onload_callback, JS::HandleValueArray::empty(), &rval);
-                }
+            eventValue.setObjectOrNull(eventObj);
+
+            if (this->setupWithBuffer((buffer *)msg.m_Args[0].toPtr())) {
+                this->fireJSEvent("load", &eventValue);
+            } else {
+                obj.set("error", "Invalid data");
+                this->fireJSEvent("error", &eventValue);
             }
 
             timer_dispatch_async(delete_stream, m_Stream);
             m_Stream = NULL;
+
             break;
         }
     }

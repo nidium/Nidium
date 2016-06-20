@@ -100,9 +100,26 @@ ConstructorDoc( "Image", "Image loader.",
     ReturnDoc( "Image object", "Image" )
 )
 
-EventDoc( "Image.onload", "Event triggered on load event.",
+EventDoc( "Image.load", "Event triggered when the image is loaded.",
     NO_Sees,
-    NO_Examples,
-    [ParamDoc( "image", "Image instance", "Image", NO_Default, IS_Obligated ) ]
+    [ExampleDoc(""" var img = new Image();
+img.addEventListener("load", function() {
+    console.log("Image loaded ! ");
+});
+img.src = "http://tests.nidium.com/nidium.png";""")],
+    [ParamDoc( "event", "Event object", ObjectDoc([]), NO_Default, IS_Obligated ) ]
+)
+
+EventDoc( "Image.error", "Event triggered when an error happen durring the loading of the image.",
+    NO_Sees,
+    [ExampleDoc(""" var img = new Image();
+img.addEventListener("error", function() {
+    console.log("Image loaded ! ");
+});
+img.src = "http://www.nidium.com/file_that_does_not_exist.png";""")],
+    [ParamDoc( "event", "Event object", ObjectDoc([
+            ("error", "Description of the error", "string")
+        ]), NO_Default, IS_Obligated) 
+    ]
 )
 
