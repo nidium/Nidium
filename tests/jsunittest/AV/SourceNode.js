@@ -82,9 +82,9 @@ Tests.registerAsync("SourceNode seek", function(next) {
     setTimeout(function() {
         // Truncate the position, because node.position returns a float
         // and seek is not accurate to the milisecond
-        Assert.strictEqual((node.position | 0), 20, "Source position is invalid");
+        Assert.strictEqual((node.position | 0), 20, "Source position is invalid. Position : " + node.position + " (was expecting 20)");
         next();
-    }, 200);
+    }, 500);
 }, 5000);
 
 Tests.registerAsync("SourceNode stop", function(next) {
