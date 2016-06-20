@@ -5,32 +5,22 @@
 from dokumentor import *
 
 ClassDoc( "Image", "Image handling.",
-    [SeeDoc( "Video" ) ],
-    [ExampleDoc( """document.background = "#333333";
-document.opacity = 0;
+    [SeeDoc( "Canvas.drawImage" ) ],
+    [ExampleDoc( """var img = new Image();
+var c = new Canvas(200, 200);
+var ctx = c.getContext("2d");
 
-var pic = new UI.element(document, {
-    visible : false,
-    width : 1,
-    height : 1,
-    radius : 6,
-    shadowBlur : 6,
-    shadowColor : "black"
+document.canvas.add(c);
+
+img.addEventListener("load", function() {
+    ctx.drawImage(img, 0, 0);
+});                    
+
+img.addEventListener("error", function(ev) {
+    console.log(ev.error);
 });
-
-var img = new Image();
-
-img.onload = function(){
-    pic.setBackgroundImage(img);
-    pic.width = img.width;
-    pic.height = img.height;
-    pic.visible = true;
-    pic.center();
-    document.fadeIn(850);
-};
-
-img.src = "http://www.nidium.com/static/img/island.png";
-""")],
+                       
+img.src = "http://tests.nidium.com/img/nidium.png";""")],
     NO_Extends,
     NO_Inherrits,
     products=["Frontend"]
