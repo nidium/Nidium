@@ -127,6 +127,10 @@ TestsRunner.prototype = {
     },
 
     register: function(name, fn, watchdogDelay=0, async=false) {
+        if (this.testRegex && !this.testRegex.test(name)) {
+            return;
+        }
+
         this.tests.push({
             "name": name, 
             "function": fn, 
@@ -141,8 +145,16 @@ TestsRunner.prototype = {
         this.register(name, fn, watchdogDelay, true);
     },
 
-    load: function(suites) {
+    setTestRegex: function(regex) {
+        if (!(regex instanceof RegExp)) {
+            regex = new RegExp(regex);
+        }
+        this.testRegex = regex;
+    },
+
+    load: function(suites, regex) {
         log.info("Loading tests...\n");
+
         for (var i = 0; i < suites.length; i++) {
             var includeName = suites[i];
             console.write("- " + includeName);

@@ -28,33 +28,43 @@ for (var i = 0; i < process.argv.length; i++) {
 
 }
 
-var Suites = [
-    'File/File_listFiles.js',
-    'Process/process.js',
-    'HTTPServer.js',
+var tr = new TestsRunner();
+var Suites = [];
 
-    //'Thread/Thread_simple.js',
-    //'Thread/Thread_complex.js',
-
-    'JS/JS_btoa.js',
-    'JS/JS_timers.js'
-];
-
-if (args["frontend"]) {
-    Suites = Suites.concat([
-        'Navigator/Navigator_language.js',
-        'AV/AudioContext.js',
-        'AV/SourceNode.js',
-        'AV/CustomeNode.js',
-        'AV/CustomSourceNode.js',
-        'AV/AudioThread.js',
-        'AV/GainNode.js',
-        'AV/Video.js',
-        'DB.js', // Only for frontend, beacause server does not support "cache://"
-    ]);
+if (args["regex"]) {
+    tr.setTestRegex(args["regex"]);
 }
 
-var tr = new TestsRunner();
+if (args["file"]) {
+    Suites.push(args["file"]);
+} else {
+    Suites = [
+        'File/File_listFiles.js',
+        'Process/process.js',
+        'HTTPServer.js',
+
+        //'Thread/Thread_simple.js',
+        //'Thread/Thread_complex.js',
+
+        'JS/JS_btoa.js',
+        'JS/JS_timers.js'
+    ];
+
+    if (args["frontend"]) {
+        Suites = Suites.concat([
+            'Navigator/Navigator_language.js',
+            'AV/AudioContext.js',
+            'AV/SourceNode.js',
+            'AV/CustomeNode.js',
+            'AV/CustomSourceNode.js',
+            'AV/AudioThread.js',
+            'AV/GainNode.js',
+            'AV/Video.js',
+            'DB.js', // Only for frontend, beacause server does not support "cache://"
+        ]);
+    }
+};
+
 tr.load(Suites);
 tr.run(function() {
     tr.report(exit=true);
