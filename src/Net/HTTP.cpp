@@ -762,19 +762,19 @@ buffer *HTTPRequest::getHeadersData() const
     buffer *ret = buffer_new(1024);
 
     switch (m_Method) {
-        case HTTP_GET:
+        case kHTTPMethod_Get:
             buffer_append_string_n(ret, CONST_STR_LEN("GET "));
             break;
-        case HTTP_HEAD:
+        case kHTTPMethod_Head:
             buffer_append_string_n(ret, CONST_STR_LEN("HEAD "));
             break;
-        case HTTP_POST:
+        case kHTTPMethod_Post:
             buffer_append_string_n(ret, CONST_STR_LEN("POST "));
             break;
-        case HTTP_PUT:
+        case kHTTPMethod_Put:
             buffer_append_string_n(ret, CONST_STR_LEN("PUT "));
             break;
-        case HTTP_DELETE:
+        case kHTTPMethod_Delete:
             buffer_append_string_n(ret, CONST_STR_LEN("DELETE "));
             break;
     }
