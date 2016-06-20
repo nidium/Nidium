@@ -270,6 +270,7 @@ void UIX11Interface::renderSystemTray()
 void UIX11Console::log(const char *str)
 {
     fprintf(stdout, "%s", str);
+    fflush(stdout);
 }
 // }}}
 
