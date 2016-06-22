@@ -45,7 +45,8 @@ if (args["file"]) {
         'File/File_isDir.js',
         'File/File_listFiles.js',
         'Process/process.js',
-        'HTTPServer.js',
+        'HTTP/HTTPServer.js',
+        //'HTTP/HTTPClient.js',
 
         //'Thread/Thread_simple.js',
         //'Thread/Thread_complex.js',

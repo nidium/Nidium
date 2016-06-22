@@ -6,20 +6,29 @@ from dokumentor import *
 
 ClassDoc( "Http", "Download a webpage asynchronously.",
     [ SeeDoc( "Socket" ), SeeDoc( "HTTPServer" ) ],
-    [ ExampleDoc( """var url = "http://www.somewhere.com/image.png";
-var params = { foo : "bar", id : 14 };
-var h = new Http(url, params, function(event){
-    for (var h in event.headers){
-        console.log(h, event.headers[h]);
-    }
-    console.log("Complete");
-});
-h.ondata = function(event){
-    console.log(event.percent +"%");
-};
-h.onerror = function(event){
-    console.log(event.error);
-}; """ ) ],
+    [ ExampleDoc( """var h = new Http("http://nidium.com:80/docs");
+        function req() {
+            h.request({
+                headers: {
+                    "foo":"bar"
+                },
+                data: "1234567890",
+                timeout: 15,
+                maxredirect: 6,
+                followlocation: true,
+                eval: false,
+                path: "docs/api/core/class/Image.html"
+            }, function(ev) {
+                console.log("Got reply")
+                console.log(JSON.stringify(ev));
+                req();
+            });
+        }
+        h.onerror = function(err) {
+            console.log("Err", JSON.stringify(err))
+        }
+        req();
+""" ) ],
     NO_Inherrits, NO_Extends,
     section="HTTP Client & Server",
     products=["Frontend", "Server"]
@@ -27,35 +36,7 @@ h.onerror = function(event){
 
 ConstructorDoc( "Http", "Constructor for a Http Object.",
     NO_Sees,
-    [ ExampleDoc("""
-var url = "http://www.somewhere.com/image.png";
-var params = { foo : "bar", id : 14 };
-var r = new Http(url);
-r.ondata = function(event){
-    // get the % loaded with event.total and event.read
-    var p = Number(event.total) != 0 ? Number(event.read) * 100 / event.total : 0;
-    var size = (event.type == "binary" ? event.data.byteLength : event.data.length);
-    var percent = Math.round(p*100)/100;
-};
-r.onerror = function(event){
-    console.log('Error: ' + event.error);
-};
-var options = {
-    method : "POST",
-    headers : {
-        "User-Agent" : "some user agent"
-    },
-    data : {
-        foo : 4,
-        bar : 8
-    }
-};
-r.request(options, function(event){
-    console.log("Complete.");
-    for (var h in event.headers){
-        console.log(h + " : " + event.headers[h]);
-    }
-});""" ) ],
+    NoExamples,
     [ParamDoc( "url", "The url to download", "string", NO_Default, IS_Obligated ) ],
     ReturnDoc( "Http instance on success", "Http" )
 )
