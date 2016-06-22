@@ -1486,11 +1486,6 @@ NGL_JS_FN(WebGLRenderingContext_clear)
         return false;
     }
 
-    GLint err = glGetError();
-    if (err != 0) {
-        printf("before clear err\n");
-    }
-
     GL_CALL(CppObj, Clear(bits | GL_DEPTH_BUFFER_BIT));
 
     return true;
@@ -1924,15 +1919,12 @@ NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
     NGL_GET_RESOURCE(Program, program, cprogram);
 
     cname = JS_EncodeString(cx, name);
-    printf("getting location for %s\n", cname);
 
     GL_CALL_RET(CppObj, GetUniformLocation(cprogram->id(), cname), location);
 
     if (location < 0) {
-        printf("no location\n");
         args.rval().setNull();
     } else {
-        printf("new unfirm location is %d\n", location);
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
         JS_GetProperty(cx, global, "WebGLUniformLocation", &proto);
 
@@ -2101,7 +2093,6 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
     }
 
     NGL_GET_RESOURCE(Program, program, cprogram)
-printf("get active attrib\n");
 
     int len;
     //GL_CALL(CppObj, GetActiveAttrib(cprogram->id(), index, 2048, &len, &size, &type, name))
@@ -2109,7 +2100,6 @@ printf("get active attrib\n");
 
     GLint err = glGetError();
     if (err != 0) {
-printf("ERRRRR\n");
         args.rval().setNull();
         return true;
     }
@@ -2137,14 +2127,12 @@ NGL_JS_FN(WebGLRenderingContext_getActiveUniform)
     }
 
     NGL_GET_RESOURCE(Program, program, cprogram);
-printf("get actve uniform\n");
 
     //GL_CALL(CppObj, getActiveUniform);
     // XXX : Missing getActiveUniform in skia interface
     glGetActiveUniform(cprogram->id(), index, 2048, &length, &size, &type, name);
     GLint err = glGetError();
     if (err != 0) {
-        printf("get attrib err\n");
         args.rval().setNull();
         return true;
     }
@@ -3019,39 +3007,6 @@ NGL_JS_FN(WebGLRenderingContext_swapBuffer)
 #endif
     return true;
 }
-
-#if 0
-static bool nidium_NidiumGL_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
-    JS::RootedValuel proto(cx);
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    CanvasWebGLContext *ngl = new CanvasWebGLContext(cx);
-
-    JS_GetProperty(cx, global, "WebGLRenderingContext", &proto);
-    JS::RootedObject protoObj(cx);
-    JS_ValueToObject(cx, proto, &protoObj);
-    JS::RootedObject webGLContext(cx, JS_NewObject(cx, &WebGLRenderingContext_class, protoObj, JS::NullPtr()));
-
-    if (!webGLContext.get()) {
-        JS_ReportError(cx, "Failed to create WebGLRenderingContext");
-        return false;
-    }
-
-    JS_SetPrivate(webGLContext, static_cast<void *>(ngl));
-    ngl->jsobj = webGLContext;
-
-    // Compatibility OpenGL/WebGL
-    // XXX : Is this belongs here ?
-    GL_CALL(CppObj, Enable(GL_VERTEX_PROGRAM_POINT_SIZE));
-    //GL_CALL(CppObj, Enable(GL_POINT_SPRITE));
-    //GL_ARB_point
-    args.rval().setObject(webGLContext);
-
-    return true;
-}
-#endif
 
 static bool JSWebGLRenderingContext_constructor(JSContext *cx,
     unsigned argc, JS::Value *vp)
