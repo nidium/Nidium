@@ -36,7 +36,7 @@ ClassDoc( "Http", "Download a webpage asynchronously.",
 
 ConstructorDoc( "Http", "Constructor for a Http Object.",
     NO_Sees,
-    NoExamples,
+    NO_Examples,
     [ParamDoc( "url", "The url to download", "string", NO_Default, IS_Obligated ) ],
     ReturnDoc( "Http instance on success", "Http" )
 )
