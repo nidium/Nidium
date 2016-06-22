@@ -25,18 +25,23 @@ Tests.register("SourceNode with invalid input", function() {
 
 Tests.registerAsync("SourceNode open invalid file", function(next) {
     node.open("invalidfile")
+
     node.addEventListener("error", function(ev) {
-        // XXX : NativeStream triggers two error
-        // workaround this issue otherwise callback is executed twice
-        node.removeEventListener("error");
         // Remove ready event otherwise it will be fired by the next test
+        node.removeEventListener("error");
         node.removeEventListener("ready");
+
         Assert.strictEqual(ev.code, 0, "Invalid error code returned")
+
         next();
     });
 
     node.addEventListener("ready", function() {
+        node.removeEventListener("error");
+        node.removeEventListener("ready");
+
         Assert(false, "Node fired onready callback oO");
+
         next();
     });
 }, 5000);
