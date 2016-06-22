@@ -225,7 +225,7 @@ void File::openTask(const char *mode, void *arg)
     struct stat s;
     int ret;
 
-    ret = lstat(m_Path, &s);
+    ret = stat(m_Path, &s);
 
     if (ret == 0 && S_ISDIR(s.st_mode)) {
         m_Dir = opendir(m_Path);
@@ -470,7 +470,7 @@ int File::openSync(const char *modes, int *err)
     struct stat s;
     int ret;
 
-    ret = lstat(m_Path, &s);
+    ret = stat(m_Path, &s);
 
     if (ret == 0 && S_ISDIR(s.st_mode)) {
         m_Dir = opendir(m_Path);
