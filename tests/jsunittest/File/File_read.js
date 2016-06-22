@@ -5,19 +5,15 @@
 */
 
 Tests.registerAsync("File.read", function(next) {
-	var content = "123456789";
-
-	var path = "File/doesexists/."
-	//var path = "doesexists/."
+	var fileContent = "123456789";
+	var path = "File/doesexists/";
 	var fileName = "simplefile.txt";
-	var b = ''
-	File.read( path + fileName, {encoding: 'utf8' }, function( err, buffer ) { 
-		Assert( err != 0);
-		Assert(buffer == content);
-		console.log(buffer);
+
+	File.read(path + fileName, {encoding: 'utf8'}, function(err, buffer) { 
+		Assert(err != 0);
+		Assert(buffer == fileContent);
+
+        next();
 	});
-	setTimeout(function(){
-		Assert(b == content);
-		next();
-}, 100);
+
 });
