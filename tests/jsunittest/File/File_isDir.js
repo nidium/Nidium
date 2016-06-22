@@ -5,11 +5,25 @@
 */
 
 Tests.register("File.isDir",  function() {
-    var file;
-
-    file = new File('.');
-    console.log(JSON.stringify(file));
-    Assert.equal(file.isDir(), true);
+	var cases = {
+	'.': true, 
+	'./': true, 
+	'..': true, 
+	'../': true, 
+	'../File': true, 
+	'../File/': true, 
+	'doesexists': true,
+	'./doesexists': true,
+	'./doesnotexist': false, 
+	'doesnotexist': false, 
+	'..': false		//notallowed
+	};
+for( var path  in cases) {
+	var expected = cases[path];
+	var file_object = new File(path);
+	//console.log(JSON.stringify(file_object));
+	Assert.equal(file_object.isDir(), expected);
+}
 
 });
 

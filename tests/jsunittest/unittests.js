@@ -39,6 +39,7 @@ if (args["file"]) {
     Suites.push(args["file"]);
 } else {
     Suites = [
+        'File/File_isDir.js',
         'File/File_listFiles.js',
         'Process/process.js',
         'HTTPServer.js',
@@ -61,7 +62,7 @@ if (args["file"]) {
             'AV/GainNode.js',
             'AV/Video.js',
             'Image.js',
-            'DB.js', // Only for frontend, beacause server does not support "cache://"
+            'DB.js', // Only for frontend, because server does not support "cache://"
         ]);
     }
 };
