@@ -205,6 +205,18 @@ f.close( ); """) ],
     NO_Returns
 )
 
+FunctionDoc( "File.openSync", "Open a file in a synchronous way.",
+    [ SeeDoc( "File.readSync" ), SeeDoc( "File.closeSync" ), SeeDoc( "File.writeSync" ) ],
+    [ ExampleDoc( """var f = new File( "tmp_0.txt");
+f.openSync("r");
+var data = f.readSync(1024);
+f.closeSync();
+""")],
+    IS_Dynamic, IS_Public, IS_Slow,
+    NO_Params,
+    NO_Returns
+)
+
 FunctionDoc( "File.readSync", "Read a file in a synchronous way.",
     [SeeDoc( "File.read") ],
     [ExampleDoc( """var buffer = File.readSync("tmp_0.txt");"""),

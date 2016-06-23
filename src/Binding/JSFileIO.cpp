@@ -765,6 +765,25 @@ static bool nidium_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static bool nidium_file_openSync(JSContext *cx, unsigned argc, JS::Value *vp)
 {
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSFileIO, &File_class);
+
+    NIDIUM_JS_CHECK_ARGS("openSync", 1);
+
+    if (!args[0].isString()) {
+        JS_ReportError(cx, "First argument must be a string");
+        return false;
+    }
+
+    JSAutoByteString mode(cx, args[0].toString());
+    int err = 0;
+
+    File *file = CppObj->getFile();
+
+    if (!file->openSync(mode.ptr(), &err)) {
+        JS_ReportError(cx, "Failed to open file : %s (errno %d)\n", strerror(err), err);
+        return false;
+    }
+
     return true;
 }
 #if 0
