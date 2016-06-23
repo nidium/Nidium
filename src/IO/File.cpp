@@ -227,7 +227,12 @@ void File::openTask(const char *mode, void *arg)
 
     ret = stat(m_Path, &s);
 
-    if (ret == 0 && S_ISDIR(s.st_mode)) {
+    if (ret != 0) {
+        NIDIUM_FILE_NOTIFY(errno, File::kEvents_OpenError, arg);
+        return;
+    }
+
+    if (S_ISDIR(s.st_mode)) {
         m_Dir = opendir(m_Path);
         if (!m_Dir) {
             printf("Failed to open dir %s : %s\n", m_Path, strerror(errno));
@@ -243,7 +248,7 @@ void File::openTask(const char *mode, void *arg)
             return;
         }
 
-        m_Filesize = ret == 0 ? s.st_size : 0;
+        m_Filesize = s.st_size;
         m_isDir = false;
     }
 
@@ -471,8 +476,14 @@ int File::openSync(const char *modes, int *err)
     int ret;
 
     ret = stat(m_Path, &s);
+    if (ret != 0) {
+        printf("Failed to open : %s errno=%d\n", m_Path, errno);
 
-    if (ret == 0 && S_ISDIR(s.st_mode)) {
+        *err = errno;
+        return 0;
+    }
+
+    if (S_ISDIR(s.st_mode)) {
         m_Dir = opendir(m_Path);
         if (!m_Dir) {
             printf("Failed to open : %s errno=%d\n", m_Path, errno);
@@ -491,6 +502,7 @@ int File::openSync(const char *modes, int *err)
 
          m_Filesize = s.st_size;
     }
+
     m_OpenSync = true;
 
     return 1;
