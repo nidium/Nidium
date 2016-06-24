@@ -104,7 +104,13 @@
                 'defines': [
                     'DSO_EXTENSION=".so"'
                 ]
+            }],
+            ['nidium_js_disable_window_global==1', {
+                'defines':[
+                    'NIDIUM_DISABLE_WINDOW_GLOBAL'
+                ],
             }]
+
         ],
         'sources': [
             '<(third_party_path)/jsoncpp/dist/jsoncpp.cpp',

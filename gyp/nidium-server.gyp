@@ -26,6 +26,7 @@
         ],
         'defines':[
             'LINENOISE_INTERRUPTIBLE',
+            'NIDIUM_DISABLE_WINDOW_GLOBAL'
         ],
         'conditions': [
             ['nofork==1', {
