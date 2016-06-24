@@ -44,8 +44,8 @@ def leveldb():
         
     return {
         "location": Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.18"),
-        "build": ["CXXFLAGS='%s' make" % (cxxflags)], 
-        "onNewConfig": ["make clean"], # leveldb make doest not detect CXXFLAGS changes
+        # leveldb make doest not detect CXXFLAGS changes, so we force "make clean"
+        "build": ["make clean", "CXXFLAGS='%s' make" % (cxxflags)], 
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "leveldb.patch")],
         "outputs": ["libleveldb(.a|.lib)"]
     }
