@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <ape_netlib.h>
 
 #include "IO/Stream.h"
 #include "Binding/JSUtils.h"
@@ -121,10 +122,19 @@ static void File_Finalize(JSFreeOp *fop, JSObject *obj)
 class JSFileAsyncReader : public Core::Messages
 {
 public:
+    static int DeleteStream(void *arg) {
+        Stream *stream = static_cast<Stream *>(arg);
+
+        delete stream;
+
+        return 0;
+    }
+
     void onMessage(const SharedMessages::Message &msg)
     {
 
         JSContext *cx = static_cast<JSContext *>(m_Args[0].toPtr());
+        ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
         JS::AutoValueArray<2> params(cx);
         params[0].setNull();
         params[1].setUndefined();
@@ -173,8 +183,9 @@ public:
 
         free(encoding);
 
-        delete stream;
         delete this;
+
+        APE_timer_create(ape, 0, JSFileAsyncReader::DeleteStream, stream);
     }
 
     Core::Args m_Args;
