@@ -40,6 +40,7 @@ if (args["file"]) {
 } else {
     Suites = [
         'Global/Global_require.js',
+        'File/File.js',
         'File/File_read.js',
         'File/File_readSync.js',
         'File/File_isDir.js',

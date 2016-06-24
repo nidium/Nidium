@@ -9,6 +9,7 @@
 #include <ape_buffer.h>
 
 #include "Core/Messages.h"
+#include "Core/Path.h"
 #include "IO/File.h"
 #include "Binding/JSExposer.h"
 
@@ -30,9 +31,18 @@ class JSFileIO : public JSExposer<JSFileIO>,
         const Nidium::Core::SharedMessages::Message &msg,
         JSObject *thisobj, const char *encoding = NULL);
 
-    JSFileIO(JS::HandleObject obj, JSContext *cx) :
-        JSExposer<JSFileIO>(obj, cx), m_Encoding(NULL), m_File(NULL) {
+    JSFileIO(JS::HandleObject obj, JSContext *cx, const char *path, bool allowAll = false) :
+        JSExposer<JSFileIO>(obj, cx), m_Encoding(NULL), m_File(NULL), 
+        m_Path(Core::Path(path, allowAll)) {
     };
+
+    bool allowSyncStream() {
+        return m_Path.GetScheme()->AllowSyncStream();
+    }
+
+    const char *getPath() {
+        return m_Path.path();
+    }
 
     ~JSFileIO() {
         if (m_Encoding) {
@@ -46,6 +56,7 @@ class JSFileIO : public JSExposer<JSFileIO>,
     char *m_Encoding;
   private:
     Nidium::IO::File *m_File;
+    Core::Path m_Path;
 };
 
 } // namespace Binding
