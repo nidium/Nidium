@@ -61,6 +61,7 @@ JSClass *JSExposer<JSFileIO>::jsclass = &File_class;
 
 static bool nidium_file_open(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_openSync(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_readSync(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_read(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_seek(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_close(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -82,6 +83,7 @@ static JSPropertySpec File_props[] = {
 static JSFunctionSpec File_funcs[] = {
     JS_FN("open", nidium_file_open, 1, NIDIUM_JS_FNPROPS),
     JS_FN("openSync", nidium_file_openSync, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("readSync", nidium_file_readSync, 1, NIDIUM_JS_FNPROPS),
     JS_FN("read", nidium_file_read, 2, NIDIUM_JS_FNPROPS),
     JS_FN("seek", nidium_file_seek, 2, NIDIUM_JS_FNPROPS),
     JS_FN("close", nidium_file_close, 0, NIDIUM_JS_FNPROPS),
@@ -786,12 +788,52 @@ static bool nidium_file_openSync(JSContext *cx, unsigned argc, JS::Value *vp)
 
     return true;
 }
-#if 0
 static bool nidium_file_readSync(JSContext *cx, unsigned argc, JS::Value *vp)
 {
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSFileIO, &File_class);
+
+    int err;
+    char *bufferPtr;
+    JS::RootedValue ret(cx);
+
+    File *file = CppObj->getFile();
+
+    if (!CppObj->getFile()->isOpen()) {
+        int openError = 0;
+        if (!CppObj->getFile()->openSync("r", &openError)) {
+            JS_ReportError(cx, "Failed to open file : %s (errno %d)", strerror(openError), openError);
+            return false;
+        }
+
+    }
+
+    uint64_t len = CppObj->getFile()->getFileSize();
+    if (argc > 0 && args[0].isNumber()) {
+        JS::ToUint64(cx, args[0], &len);
+    }
+
+    ssize_t readSize = file->readSync(len, &bufferPtr, &err);
+    Core::PtrAutoDelete<char *> buffer(bufferPtr, free);
+
+    if (readSize < 0) {
+        if (err == 0) {
+            JS_ReportError(cx, "Unable to read file (is it a directory?)");
+        } else {
+            JS_ReportError(cx, "Failed to read file : %s (errno %d)", strerror(err), err);
+        }
+        return false;
+    }
+
+    if (!JSUtils::StrToJsval(cx, buffer, readSize, &ret, CppObj->m_Encoding)) {
+        return false;
+    }
+
+    args.rval().set(ret);
+
     return true;
 }
 
+#if 0
 static bool nidium_file_writeSync(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     return true;

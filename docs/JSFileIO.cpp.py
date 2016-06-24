@@ -217,7 +217,7 @@ f.closeSync();
     NO_Returns
 )
 
-FunctionDoc( "File.readSync", "Read a file in a synchronous way.",
+FunctionDoc( "File.readSync", "Open, read and close a file in a synchronous way.",
     [SeeDoc( "File.read") ],
     [ExampleDoc( """var buffer = File.readSync("tmp_0.txt");"""),
      ExampleDoc("""var string = File.readSync("tmp_0.txt", { encoding: "utf8" });""") ],
@@ -225,6 +225,15 @@ FunctionDoc( "File.readSync", "Read a file in a synchronous way.",
     [ParamDoc( "path", "File path relative to the current NML", 'string', NO_Default, IS_Obligated ),
       ParamDoc( "options", "Options object (encoding)", ObjectDoc([("encoding", "encoding string (e.g. 'utf8')", "string")]), NO_Default, IS_Optional )],
     ReturnDoc( "The file's content", 'string' )
+)
+
+FunctionDoc("File.readSync", "Read a file in a synchronous way.",
+    [SeeDoc("File.openSync"), SeeDoc("File.writeSync"), SeeDoc("File.closeSync")],
+    [ExampleDoc( """var f = new File("filename", {encoding: "utf8"});
+var string = f.readSync();""")],
+    IS_Dynamic, IS_Public, IS_Slow,
+    [ParamDoc("readSize", "Number of bytes to read", 'number', 'The size of the file', IS_Optional)],
+    ReturnDoc("The file's content", 'string|ArrayBuffer')
 )
 
 FunctionDoc( "File.closeSync", "Close a file in a synchronous way.",
@@ -242,27 +251,26 @@ f.openSync( "rw", function( err ) {
     NO_Returns
 )
 
-FunctionDoc( "File.read", "Read a file in a synchronous way.",
+FunctionDoc( "File.read", "Open, read and close a file.",
     [SeeDoc( "File.readSync") ],
     [ExampleDoc( """File.read("tmp_0.txt", function(err, buffer) {
     // buffer is an array buffer containing the data
-    });""" ),
+});""" ),
     ExampleDoc( """File.read("tmp_test0.txt", {encoding: "utf8"}, function(err, buffer) {
         // buffer is an UTF8 string containing the data
-    }); """ ),
+});""" ),
     ExampleDoc( """//readFile can be used with any protocol supported by nidium (e.g. http):
     File.readFile("http://www.example.com/foo.txt", {encoding: "utf8"}, function(err, buffer) {
         // buffer is an UTF8 string containing the data
-    });
-    """ ) ],
+});""" ) ],
     IS_Static, IS_Public, IS_Fast,
-    [ParamDoc( "path", "File path relative to the current NML", 'string', NO_Default, IS_Obligated ),
-      ParamDoc( "options", "Options object (encoding)", ObjectDoc([("encoding", "encoding string (e.g. 'utf8')", "string")]), NO_Default, IS_Optional ),
-     CallbackDoc( "callback", "Read callback function", [
+    [
+        ParamDoc( "path", "File path relative to the current NML", 'string', NO_Default, IS_Obligated ),
+        ParamDoc( "options", "Options object (encoding)", ObjectDoc([("encoding", "encoding string (e.g. 'utf8')", "string")]), NO_Default, IS_Optional ),
+        CallbackDoc( "callback", "Read callback function", [
         ParamDoc( "err", "Error description", "string", NO_Default, IS_Obligated ),
         ParamDoc( "buffer", "The filecontent", "string", NO_Default, IS_Obligated) ])
     ],
-
     ReturnDoc( "The file's content", 'string')
 )
 
