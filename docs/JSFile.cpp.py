@@ -239,7 +239,7 @@ f.open("r", function(err ) {
         f.close();
     }
 });""")],
-    IS_Dynamic, IS_Public, IS_Slow,
+    IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
     NO_Returns
 )
