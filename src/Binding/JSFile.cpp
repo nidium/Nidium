@@ -65,9 +65,11 @@ static bool nidium_file_openSync(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_read(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_readSync(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_seek(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_seekSync(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_close(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_closeSync(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_writeSync(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_isDir(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_rm(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -88,9 +90,11 @@ static JSFunctionSpec File_funcs[] = {
     JS_FN("read", nidium_file_read, 2, NIDIUM_JS_FNPROPS),
     JS_FN("readSync", nidium_file_readSync, 1, NIDIUM_JS_FNPROPS),
     JS_FN("seek", nidium_file_seek, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("seekSync", nidium_file_seekSync, 1, NIDIUM_JS_FNPROPS),
     JS_FN("close", nidium_file_close, 0, NIDIUM_JS_FNPROPS),
     JS_FN("closeSync", nidium_file_closeSync, 0, NIDIUM_JS_FNPROPS),
     JS_FN("write", nidium_file_write, 2, NIDIUM_JS_FNPROPS),
+    JS_FN("writeSync", nidium_file_writeSync, 1, NIDIUM_JS_FNPROPS),
     JS_FN("isDir", nidium_file_isDir, 0, NIDIUM_JS_FNPROPS),
     JS_FN("listFiles", nidium_file_listFiles, 1, NIDIUM_JS_FNPROPS),
     JS_FN("rm", nidium_file_rm, 0, NIDIUM_JS_FNPROPS),
@@ -343,7 +347,7 @@ File *JSFile::GetFileFromJSObject(JSContext *cx, JS::HandleObject jsobj)
 // }}}
 
 // {{{ Implementation
-
+// {{{ Constructor, getter
 static bool nidium_file_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
@@ -422,7 +426,8 @@ static bool nidium_File_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 
     return true;
 }
-
+// }}}
+// {{{ Directory operation
 static bool nidium_file_isDir(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSFile, &File_class);
@@ -470,6 +475,45 @@ static bool nidium_file_rmrf(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
+static bool nidium_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    JS::RootedValue callback(cx);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    JSFile *jsfile;
+    File *file;
+
+    if (JS_InstanceOf(cx, caller, &File_class, &args) == false) {
+        return false;
+    }
+
+    jsfile = static_cast<JSFile *>(JS_GetPrivate(caller));
+
+    NIDIUM_JS_CHECK_ARGS("listFiles", 1);
+
+    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &callback)) {
+        JS_ReportError(cx, "listFiles() bad callback");
+        return false;
+    }
+
+    file = jsfile->getFile();
+
+    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
+
+    /*
+        If the directory is not open, open it anyway
+    */
+    if (!file->isOpen()) {
+        file->open("r");
+    }
+    file->listFiles(callback.toObjectOrNull());
+
+    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(caller);
+
+    return true;
+}
+// }}}
+// {{{ Async implementation
 static bool nidium_file_seek(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedValue callback(cx);
@@ -508,45 +552,6 @@ static bool nidium_file_seek(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool nidium_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    JS::RootedValue callback(cx);
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-    JSFile *jsfile;
-    File *file;
-
-    if (JS_InstanceOf(cx, caller, &File_class, &args) == false) {
-        return false;
-    }
-
-    jsfile = static_cast<JSFile *>(JS_GetPrivate(caller));
-
-    NIDIUM_JS_CHECK_ARGS("listFiles", 1);
-
-    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &callback)) {
-        JS_ReportError(cx, "listFiles() bad callback");
-        return false;
-    }
-
-    file = jsfile->getFile();
-
-    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
-
-    /*
-        If the directory is not open, open it anyway
-    */
-    if (!file->isOpen()) {
-        file->open("r");
-    }
-    file->listFiles(callback.toObjectOrNull());
-
-    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(caller);
-
-    return true;
-}
-
-// {{{ Async implementation
 static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSFile, &File_class);
@@ -565,7 +570,6 @@ static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
     file = jsfile->getFile();
 
     if (args[0].isString()) {
-        //printf("got a string to write\n");
         JS::RootedString str(cx, args[0].toString());
         JSAutoByteString cstr;
 
@@ -767,7 +771,6 @@ static bool nidium_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
 }
 
 // }}}
-
 // {{{ Sync implementation
 static bool nidium_file_openSync(JSContext *cx, unsigned argc, JS::Value *vp)
 {
@@ -847,12 +850,81 @@ static bool nidium_file_readSync(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-#if 0
-static bool nidium_file_writeSync(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool nidium_file_seekSync(JSContext *cx, unsigned argc, JS::Value *vp)
 {
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSFile, &File_class);
+
+    NIDIUM_JS_CHECK_ARGS("seekSync", 1);
+
+    JSFile *jsfile = CppObj;
+    File *file = jsfile->getFile();
+
+    double seekPos;
+    int err;
+    int ret;
+
+    if (!args[0].isNumber()) {
+        JS_ReportError(cx, "First argument must be a number");
+        return false;
+    }
+
+    seekPos = args[0].toNumber();
+    ret = file->seekSync(seekPos, &err);
+
+    if (ret != 0) {
+        if (err == 0) {
+            JS_ReportError(cx, "Unable to seek to %zu : %s", 
+                    (size_t)seekPos, !file->isOpen() ? "not opened" : "is it a directory?");
+            return false;
+        } else {
+            JS_ReportError(cx, "Failed to seek to %zu : %s (errno %d)", 
+                    (size_t)seekPos, strerror(err), err);
+            return false;
+        }
+    }
+
     return true;
 }
-#endif
+
+static bool nidium_file_writeSync(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSFile, &File_class);
+
+    NIDIUM_JS_CHECK_ARGS("writeSync", 1);
+
+    File *file = CppObj->getFile();
+    int err;
+
+    if (args[0].isString()) {
+        JS::RootedString str(cx, args[0].toString());
+        JSAutoByteString cstr;
+
+        if (strcmp(CppObj->m_Encoding, "utf8") == 0) {
+            cstr.encodeUtf8(cx, str);
+        } else {
+            cstr.encodeLatin1(cx, str);
+        }
+
+        file->writeSync(cstr.ptr(), cstr.length(), &err);
+    } else if (args[0].isObject()) {
+        JS::RootedObject jsobj(cx, args[0].toObjectOrNull());
+
+        if (jsobj == NULL || !JS_IsArrayBufferObject(jsobj)) {
+            JS_ReportError(cx, "INVALID_VALUE : only accept string or ArrayBuffer");
+            return false;
+        }
+
+        uint32_t len = JS_GetArrayBufferByteLength(jsobj);
+        uint8_t *data = JS_GetArrayBufferData(jsobj);
+
+        file->writeSync(reinterpret_cast<char *>(data), len, &err);
+    } else {
+        JS_ReportError(cx, "INVALID_VALUE : only accept string or ArrayBuffer");
+        return false;
+    }
+
+    return true;
+}
 
 static bool nidium_file_closeSync(JSContext *cx, unsigned argc, JS::Value *vp)
 {
@@ -920,7 +992,6 @@ static bool nidium_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
 }
 
 // }}}
-
 // }}}
 
 // {{{ Registration

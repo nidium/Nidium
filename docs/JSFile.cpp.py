@@ -56,22 +56,22 @@ f.open("w", function(err) {
     ReturnDoc( "FileHandler", "File" )
 )
 
-FunctionDoc( "File.write", "Writes a `string` or `arraybuffer` to a file. If the file is not opened yet, it will be opened in 'a+' mode.",
+FunctionDoc( "File.write", "Writes a `string` or `arraybuffer` to a file.",
     [SeeDoc( "File.open" ), SeeDoc( "File.read" ), SeeDoc( "File.seek" ), SeeDoc( "File.close" ) ],
     [ExampleDoc( """var f = new File("foo.txt", { encoding: "utf8" });
 f.open("w+", function(err) {
     if (err) return;
 
     f.write("hello", function(err) {
-	    if (err) return;
+        if (err) return;
 
         f.seek(0, function(err) {
             if (err) return;
 
-	        f.read(5, function(err, buffer) {
-		        console.log(buffer);
-		        f.close();
-	        });
+            f.read(5, function(err, buffer) {
+                console.log(buffer);
+                f.close();
+            });
         });
     })
 });""") ],
@@ -81,6 +81,21 @@ f.open("w+", function(err) {
         CallbackDoc( "callback", "Read callback function", [
             ParamDoc( "err", "Error description", "string", NO_Default, IS_Obligated ),
         ])
+    ],
+    NO_Returns
+)
+
+FunctionDoc("File.writeSync", "Writes a `string` or `arraybuffer` to a file in a synchronous way.",
+    [SeeDoc( "File.openSync|File.readSync|File.seekSync|File.write" )],
+    [ExampleDoc( """var f = new File("foo.txt", { encoding: "utf8" });
+f.openSync("w+");
+f.writeSync("Hello world!");
+console.log(f.readySync();
+f.close();
+});""") ],
+    IS_Dynamic, IS_Public, IS_Slow,
+    [
+        ParamDoc( "buffer", "The content to write to the file", 'string|ArrayBuffer', NO_Default, IS_Obligated ),
     ],
     NO_Returns
 )
@@ -196,19 +211,19 @@ f.open("r", function(err) {
 
 FunctionDoc( "File.seek", "Moves to a certain offset from the beginning of the file.",
     [SeeDoc( "File.open" ), SeeDoc( "File.read" ), SeeDoc( "File.seek" ), SeeDoc( "File.close" ) ],
-    [ExampleDoc( """var f = new File(__filename, { encoding: "utf8" });
-f.open("r", function( err ) {
+    [ExampleDoc( """var f = new File(__filename, {encoding: "utf8"});
+f.open("r", function(err) {
     if (err) return;
 
     f.seek(50, function() {
         f.read(20, function(err, buffer) {
-            console.log( buffer );
+            console.log(buffer);
         });
     })
 });""") ],
     IS_Dynamic, IS_Public, IS_Fast,
     [
-        ParamDoc( "offset", "Move to this `offset` from the beginning of the file. The `offset` is expressed in bytes.", 'integer', 0, IS_Obligated ),
+        ParamDoc( "offset", "Move to the `offset` from the beginning of the file. The `offset` is expressed in bytes.", 'integer', 0, IS_Obligated ),
         CallbackDoc( "callback", "Read callback function", [
             ParamDoc( "err", "Error description", "string", NO_Default, IS_Obligated ),
         ])
@@ -231,7 +246,7 @@ f.open("r", function(err ) {
 
 FunctionDoc( "File.openSync", "Open a file in a synchronous way.",
     [ SeeDoc( "File.readSync" ), SeeDoc( "File.closeSync" ), SeeDoc( "File.writeSync" ) ],
-    [ ExampleDoc( """var f = new File(__filename);
+    [ ExampleDoc( """var f = new File(__filename, {encoding:"utf8"});
 f.openSync("r");
 var data = f.readSync(1024);
 console.log(data);
@@ -267,6 +282,21 @@ console.log(string);""")],
     IS_Dynamic, IS_Public, IS_Slow,
     [ParamDoc("readSize", "Number of bytes to read", 'number', 'The size of the file', IS_Optional)],
     ReturnDoc("The file's content", 'string|ArrayBuffer')
+)
+
+FunctionDoc("File.seekSync", "Moves to a certain offset from the beginning of the file.",
+    [SeeDoc( "File.openSync|File.closeSync|File.readSync|File.writeSync|File.seek")],
+    [ExampleDoc( """var f = new File(__filename, {encoding: "utf8"});
+f.seekSync(10);
+console.log(f.readSync(100));""") ],
+    IS_Dynamic, IS_Public, IS_Fast,
+    [
+        ParamDoc( "offset", "Move to the `offset` from the beginning of the file. The `offset` is expressed in bytes.", 'integer', 0, IS_Obligated ),
+        CallbackDoc( "callback", "Read callback function", [
+            ParamDoc( "err", "Error description", "string", NO_Default, IS_Obligated ),
+        ])
+    ],
+    NO_Returns
 )
 
 FunctionDoc("File.closeSync", "Close a file in a synchronous way.",
