@@ -131,6 +131,21 @@ private:
 };
 // }}}
 
+// {{{ TasksAutoLock
+class TasksAutoLock {
+public:
+    TasksAutoLock(Managed *managed): m_Managed(managed) {
+        m_Managed->lockTasks();
+    }
+
+    ~TasksAutoLock() {
+        m_Managed->unlockTasks();
+    }
+private:
+    Managed *m_Managed;
+};
+// }}}
+
 } // namespace Core
 } // namespace Nidium
 

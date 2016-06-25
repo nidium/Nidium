@@ -19,6 +19,7 @@
 #include <ape_buffer.h>
 
 using Nidium::Core::Task;
+using Nidium::Core::TasksAutoLock;
 using Nidium::Core::SharedMessages;
 
 namespace Nidium {
@@ -242,6 +243,7 @@ void File::openTask(const char *mode, void *arg)
         if (!readOnly) {
             printf("Cannot open directory %s for writing\n", m_Path);
             NIDIUM_FILE_NOTIFY(EISDIR, File::kEvents_OpenError, arg);
+            return;
         }
 
         m_Dir = opendir(m_Path);
@@ -476,6 +478,8 @@ void File::listFiles(void *arg)
 // {{{ Sync operations
 int File::openSync(const char *modes, int *err)
 {
+    TasksAutoLock tasksLock(this);
+
     *err = 0;
 
     if (this->isOpen()) {
@@ -528,6 +532,8 @@ int File::openSync(const char *modes, int *err)
 
 ssize_t File::writeSync(char *data, uint64_t len, int *err)
 {
+    TasksAutoLock tasksLock(this);
+
     *err = 0;
 
     if (!this->isOpen() || this->isDir()) {
@@ -548,6 +554,8 @@ ssize_t File::writeSync(char *data, uint64_t len, int *err)
 
 ssize_t File::mmapSync(char **buffer, int *err)
 {
+    TasksAutoLock tasksLock(this);
+
     *err = 0;
 
     if (!this->isOpen() || this->isDir()) {
@@ -574,6 +582,8 @@ ssize_t File::mmapSync(char **buffer, int *err)
 
 ssize_t File::readSync(uint64_t len, char **buffer, int *err)
 {
+    TasksAutoLock tasksLock(this);
+
     *err = 0;
 
     *buffer = NULL;
@@ -615,6 +625,8 @@ ssize_t File::readSync(uint64_t len, char **buffer, int *err)
 
 void File::closeSync()
 {
+    TasksAutoLock tasksLock(this);
+
     if (!this->isOpen()) {
         return;
     }
@@ -624,6 +636,8 @@ void File::closeSync()
 
 int File::seekSync(size_t pos, int *err)
 {
+    TasksAutoLock tasksLock(this);
+
     *err = 0;
     if (!this->isOpen() || this->isDir()) {
         return -1;
