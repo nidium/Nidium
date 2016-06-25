@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "Binding/JSFileIO.h"
+#include "Binding/JSFile.h"
 
 // sync API should have a different constructor (new FileSync)
 
@@ -38,7 +38,7 @@ enum FileProp {
     kFileProp_Async   // not used
 };
 
-#define NJSFIO_GETTER(obj) (static_cast<JSFileIO *>(JS_GetPrivate(obj)))
+#define JSFILE_GETTER(obj) (static_cast<JSFile *>(JS_GetPrivate(obj)))
 
 static void File_Finalize(JSFreeOp *fop, JSObject *obj);
 
@@ -58,7 +58,7 @@ JSClass File_class = {
 };
 
 template<>
-JSClass *JSExposer<JSFileIO>::jsclass = &File_class;
+JSClass *JSExposer<JSFile>::jsclass = &File_class;
 
 static bool nidium_file_open(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_openSync(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -104,14 +104,14 @@ static JSFunctionSpec File_static_funcs[] = {
 
 static void File_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    JSFileIO *NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(obj));
-    if (NJSFIO != NULL) {
+    JSFile *jsfile = static_cast<JSFile *>(JS_GetPrivate(obj));
+    if (jsfile != NULL) {
 #if FILE_ROOT_DEBUG
         printf("Finalize %p\n", obj);
 #endif
-        File *file = NJSFIO->getFile();
+        File *file = jsfile->getFile();
         delete file;
-        delete NJSFIO;
+        delete jsfile;
     }
 }
 
@@ -192,8 +192,8 @@ public:
 
 // }}}
 
-// {{{ JSFileIO
-bool JSFileIO::HandleError(JSContext *cx, const SharedMessages::Message &msg,
+// {{{ JSFile
+bool JSFile::HandleError(JSContext *cx, const SharedMessages::Message &msg,
     JS::MutableHandleValue vals)
 {
     switch (msg.event()) {
@@ -218,7 +218,7 @@ bool JSFileIO::HandleError(JSContext *cx, const SharedMessages::Message &msg,
     return true;
 }
 
-static const char *JSFileIO_dirtype_to_str(const dirent *entry)
+static const char *JSFile_dirtype_to_str(const dirent *entry)
 {
     switch (entry->d_type) {
         case DT_DIR:
@@ -234,7 +234,7 @@ static const char *JSFileIO_dirtype_to_str(const dirent *entry)
     }
 }
 
-bool JSFileIO::callbackForMessage(JSContext *cx,
+bool JSFile::callbackForMessage(JSContext *cx,
     const SharedMessages::Message &msg, JSObject *thisobj,
     const char *encoding)
 {
@@ -245,7 +245,7 @@ bool JSFileIO::callbackForMessage(JSContext *cx,
     JSContext *m_Cx = cx;
 
     JS::RootedObject jsthis(cx, thisobj);
-    if (!JSFileIO::HandleError(cx, msg, params[0])) {
+    if (!JSFile::HandleError(cx, msg, params[0])) {
         switch (msg.event()) {
             case File::kEvents_ReadSuccess:
             {
@@ -272,7 +272,7 @@ bool JSFileIO::callbackForMessage(JSContext *cx,
                     NIDIUM_JSOBJ_SET_PROP_STR(entry, "name", name);
 
                     NIDIUM_JSOBJ_SET_PROP_CSTR(entry, "type",
-                        JSFileIO_dirtype_to_str(&entries->lst[i]));
+                        JSFile_dirtype_to_str(&entries->lst[i]));
 
                 }
 
@@ -305,34 +305,34 @@ bool JSFileIO::callbackForMessage(JSContext *cx,
     return true;
 }
 
-void JSFileIO::onMessage(const SharedMessages::Message &msg)
+void JSFile::onMessage(const SharedMessages::Message &msg)
 {
     this->callbackForMessage(m_Cx, msg, m_JSObject, m_Encoding);
 }
 
-JSObject *JSFileIO::GenerateJSObject(JSContext *cx, const char *path)
+JSObject *JSFile::GenerateJSObject(JSContext *cx, const char *path)
 {
     JS::RootedObject ret(cx, JS_NewObject(cx, &File_class, JS::NullPtr(), JS::NullPtr()));
     File *file;
-    JSFileIO *NJSFIO;
+    JSFile *jsfile;
 
-    NJSFIO = new JSFileIO(ret, cx, path);
+    jsfile = new JSFile(ret, cx, path);
     file = new File(path);
-    file->setListener(NJSFIO);
+    file->setListener(jsfile);
 
-    NJSFIO->setFile(file);
+    jsfile->setFile(file);
 
     JS_DefineFunctions(cx, ret, File_funcs);
     JS_DefineProperties(cx, ret, File_props);
 
-    JS_SetPrivate(ret, NJSFIO);
+    JS_SetPrivate(ret, jsfile);
 
     return ret;
 }
 
-File *JSFileIO::GetFileFromJSObject(JSContext *cx, JS::HandleObject jsobj)
+File *JSFile::GetFileFromJSObject(JSContext *cx, JS::HandleObject jsobj)
 {
-    JSFileIO *nfio = static_cast<JSFileIO *>(JS_GetInstancePrivate(cx, jsobj,
+    JSFile *nfio = static_cast<JSFile *>(JS_GetInstancePrivate(cx, jsobj,
         &File_class, NULL));
 
     return nfio ? nfio->getFile() : NULL;
@@ -345,7 +345,7 @@ File *JSFileIO::GetFileFromJSObject(JSContext *cx, JS::HandleObject jsobj)
 static bool nidium_file_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
-    File *file = NJSFIO_GETTER(obj)->getFile();
+    File *file = JSFILE_GETTER(obj)->getFile();
 
     switch(id) {
         case kFileProp_FileSize:
@@ -366,7 +366,7 @@ static bool nidium_file_prop_get(JSContext *cx, JS::HandleObject obj,
 static bool nidium_file_prop_set(JSContext *cx, JS::HandleObject obj,
     JS::HandleId id, bool strict, JS::MutableHandleValue vp)
 {
-    JSFileIO *nfio = NJSFIO_GETTER(obj);
+    JSFile *jsfile = JSFILE_GETTER(obj);
 
     if (nfio == NULL) {
         return true;
@@ -381,7 +381,7 @@ static bool nidium_File_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
     NIDIUM_JS_CONSTRUCTOR_PROLOGUE()
 
     File *file;
-    JSFileIO *NJSFIO;
+    JSFile *jsfile;
 
     JS::RootedString url(cx);
     JS::RootedObject opt(cx);
@@ -393,37 +393,37 @@ static bool nidium_File_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JSAutoByteString curl(cx, url);
 
-    NJSFIO = new JSFileIO(ret, cx, curl.ptr());
-    if (!NJSFIO->getPath() || !NJSFIO->allowSyncStream()) {
+    jsfile = new JSFile(ret, cx, curl.ptr());
+    if (!jsfile->getPath() || !jsfile->allowSyncStream()) {
         JS_ReportError(cx, "FileIO : Invalid file path");
         return false;
     }
 
-    file = new File(NJSFIO->getPath());
-    file->setListener(NJSFIO);
+    file = new File(jsfile->getPath());
+    file->setListener(jsfile);
 
     NIDIUM_JS_INIT_OPT();
 
     NIDIUM_JS_GET_OPT_TYPE(opt, "encoding", String) {
         JSAutoByteString encoding(cx, __curopt.toString());
-        NJSFIO->m_Encoding = strdup(encoding.ptr());
+        jsfile->m_Encoding = strdup(encoding.ptr());
     }
 
-    NJSFIO->setFile(file);
+    jsfile->setFile(file);
 
     args.rval().setObjectOrNull(ret);
 
     JS_DefineFunctions(cx, ret, File_funcs);
     JS_DefineProperties(cx, ret, File_props);
 
-    JS_SetPrivate(ret, NJSFIO);
+    JS_SetPrivate(ret, jsfile);
 
     return true;
 }
 
 static bool nidium_file_isDir(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSFileIO, &File_class);
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSFile, &File_class);
 
     File *file = CppObj->getFile();
 
@@ -443,16 +443,16 @@ static bool nidium_file_rmrf(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-    JSFileIO *NJSFIO;
+    JSFile *jsfile;
     File *file;
 
     if (JS_InstanceOf(cx, caller, &File_class, &args) == false) {
         return false;
     }
 
-    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
+    jsfile = static_cast<JSFile *>(JS_GetPrivate(caller));
 
-    file = NJSFIO->getFile();
+    file = jsfile->getFile();
 
     file->rmrf();
 
@@ -465,7 +465,7 @@ static bool nidium_file_seek(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
-    JSFileIO *NJSFIO;
+    JSFile *jsfile;
     File *file;
     double seek_pos;
 
@@ -486,9 +486,9 @@ static bool nidium_file_seek(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
-    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
+    jsfile = static_cast<JSFile *>(JS_GetPrivate(caller));
 
-    file = NJSFIO->getFile();
+    file = jsfile->getFile();
 
     file->seek(seek_pos, callback.toObjectOrNull());
 
@@ -502,14 +502,14 @@ static bool nidium_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-    JSFileIO *NJSFIO;
+    JSFile *jsfile;
     File *file;
 
     if (JS_InstanceOf(cx, caller, &File_class, &args) == false) {
         return false;
     }
 
-    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
+    jsfile = static_cast<JSFile *>(JS_GetPrivate(caller));
 
     NIDIUM_JS_CHECK_ARGS("listFiles", 1);
 
@@ -518,7 +518,7 @@ static bool nidium_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    file = NJSFIO->getFile();
+    file = jsfile->getFile();
 
     NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
@@ -543,14 +543,14 @@ static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
-    JSFileIO *NJSFIO;
+    JSFile *jsfile;
     File *file;
 
     if (JS_InstanceOf(cx, caller, &File_class, &args) == false) {
         return false;
     }
 
-    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
+    jsfile = static_cast<JSFile *>(JS_GetPrivate(caller));
 
     NIDIUM_JS_CHECK_ARGS("write", 2);
 
@@ -559,7 +559,7 @@ static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    file = NJSFIO->getFile();
+    file = jsfile->getFile();
 
     if (args[0].isString()) {
         //printf("got a string to write\n");
@@ -601,7 +601,7 @@ static bool nidium_file_read(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
-    JSFileIO *NJSFIO;
+    JSFile *jsfile;
     File *file;
     double read_size;
 
@@ -613,7 +613,7 @@ static bool nidium_file_read(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
+    jsfile = static_cast<JSFile *>(JS_GetPrivate(caller));
 
     NIDIUM_JS_CHECK_ARGS("read", 2);
 
@@ -622,7 +622,7 @@ static bool nidium_file_read(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    file = NJSFIO->getFile();
+    file = jsfile->getFile();
 
     NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
@@ -640,16 +640,16 @@ static bool nidium_file_close(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
-    JSFileIO *NJSFIO;
+    JSFile *jsfile;
     File *file;
 
     if (JS_InstanceOf(cx, caller, &File_class, &args) == false) {
         return false;
     }
 
-    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
+    jsfile = static_cast<JSFile *>(JS_GetPrivate(caller));
 
-    file = NJSFIO->getFile();
+    file = jsfile->getFile();
 
     file->close();
 #if FILE_ROOT_DEBUG
@@ -665,7 +665,7 @@ static bool nidium_file_open(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-    JSFileIO *NJSFIO;
+    JSFile *jsfile;
     File *file;
     JS::RootedString modes(cx);
 
@@ -684,9 +684,9 @@ static bool nidium_file_open(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NJSFIO = static_cast<JSFileIO *>(JS_GetPrivate(caller));
+    jsfile = static_cast<JSFile *>(JS_GetPrivate(caller));
 
-    file = NJSFIO->getFile();
+    file = jsfile->getFile();
 
     JSAutoByteString cmodes(cx, modes);
 
@@ -765,7 +765,7 @@ static bool nidium_file_readFile(JSContext *cx, unsigned argc, JS::Value *vp)
 // {{{ Sync implementation
 static bool nidium_file_openSync(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSFileIO, &File_class);
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSFile, &File_class);
 
     NIDIUM_JS_CHECK_ARGS("openSync", 1);
 
@@ -793,7 +793,7 @@ static bool nidium_file_openSync(JSContext *cx, unsigned argc, JS::Value *vp)
 }
 static bool nidium_file_readSync(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSFileIO, &File_class);
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSFile, &File_class);
 
     int err;
     char *bufferPtr;
@@ -851,7 +851,7 @@ static bool nidium_file_writeSync(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool nidium_file_closeSync(JSContext *cx, unsigned argc, JS::Value *vp)
 {
 
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSFileIO, &File_class);
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSFile, &File_class);
 
     if (!CppObj->allowSyncStream()) {
         JS_ReportError(cx, "Can't close this file synchronously");
@@ -918,7 +918,7 @@ static bool nidium_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp
 // }}}
 
 // {{{ Registration
-void JSFileIO::RegisterObject(JSContext *cx)
+void JSFile::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_InitClass(cx, global, JS::NullPtr(), &File_class,

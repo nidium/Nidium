@@ -20,7 +20,7 @@
 #include "Binding/JSSocket.h"
 #include "Binding/JSThread.h"
 #include "Binding/JSHTTP.h"
-#include "Binding/JSFileIO.h"
+#include "Binding/JSFile.h"
 #include "Binding/JSModules.h"
 #include "Binding/JSStream.h"
 #include "Binding/JSWebSocket.h"
@@ -866,7 +866,7 @@ int NidiumJS::LoadBytecode(void *data, int size, const char *filename)
 
 void NidiumJS::loadGlobalObjects()
 {
-    JSFileIO::RegisterObject(m_Cx);
+    JSFile::RegisterObject(m_Cx);
     JSSocket::RegisterObject(m_Cx);
     JSThread::RegisterObject(m_Cx);
     JSHTTP::RegisterObject(m_Cx);

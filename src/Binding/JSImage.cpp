@@ -9,7 +9,7 @@
 
 #include <ape_netlib.h>
 
-#include <Binding/JSFileIO.h>
+#include <Binding/JSFile.h>
 
 #include "Graphics/Image.h"
 
@@ -141,7 +141,7 @@ static bool nidium_image_prop_set(JSContext *cx, JS::HandleObject obj,
                 stream->getContent();
             } else if (vp.isObject()) {
                 JS::RootedObject fileObj(cx, vp.toObjectOrNull());
-                File *file = JSFileIO::GetFileFromJSObject(cx, fileObj);
+                File *file = JSFile::GetFileFromJSObject(cx, fileObj);
                 if (!file) {
                     vp.setNull();
                     return true;

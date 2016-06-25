@@ -124,7 +124,7 @@
             '../src/Binding/NidiumJS.cpp',
             '../src/Binding/JSGlobal.cpp',
             '../src/Binding/JSExposer.cpp',
-            '../src/Binding/JSFileIO.cpp',
+            '../src/Binding/JSFile.cpp',
             '../src/Binding/JSHTTP.cpp',
             '../src/Binding/JSHTTPServer.cpp',
             '../src/Binding/JSModules.cpp',

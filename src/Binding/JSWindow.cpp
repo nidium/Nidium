@@ -11,7 +11,7 @@
 #include <string.h>
 #include <strings.h>
 
-#include <Binding/JSFileIO.h>
+#include <Binding/JSFile.h>
 #include <Binding/JSUtils.h>
 
 #include <SystemInterface.h>
@@ -537,7 +537,7 @@ bool JSWindow::dragBegin(int x, int y, const char * const *files, size_t nfiles)
     JS::RootedObject dragged(m_Cx, m_DraggedFiles);
 
     for (int i = 0; i < nfiles; i++) {
-        JS::RootedValue val(m_Cx, OBJECT_TO_JSVAL(JSFileIO::GenerateJSObject(m_Cx, files[i])));
+        JS::RootedValue val(m_Cx, OBJECT_TO_JSVAL(JSFile::GenerateJSObject(m_Cx, files[i])));
         JS_SetElement(m_Cx, dragged, i, val);
     }
 
@@ -940,7 +940,7 @@ static void nidium_window_openfilecb(void *_nof, const char *lst[], uint32_t len
     struct _nidiumopenfile *nof = (struct _nidiumopenfile *)_nof;
     JS::RootedObject arr(nof->m_Cx, JS_NewArrayObject(nof->m_Cx, len));
     for (int i = 0; i < len; i++) {
-        JS::RootedValue val(nof->m_Cx, OBJECT_TO_JSVAL(JSFileIO::GenerateJSObject(nof->m_Cx, lst[i])));
+        JS::RootedValue val(nof->m_Cx, OBJECT_TO_JSVAL(JSFile::GenerateJSObject(nof->m_Cx, lst[i])));
         JS_SetElement(nof->m_Cx, arr, i, val);
     }
 
