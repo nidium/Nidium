@@ -567,13 +567,17 @@ static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
     if (args[0].isString()) {
         //printf("got a string to write\n");
         JS::RootedString str(cx, args[0].toString());
-        JSAutoByteString cstr(cx, str);
-        size_t len = strlen(cstr.ptr());
+        JSAutoByteString cstr;
+
+        if (strcmp(CppObj->m_Encoding, "utf8") == 0) {
+            cstr.encodeUtf8(cx, str);
+        } else {
+            cstr.encodeLatin1(cx, str);
+        }
 
         NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
-        file->write(cstr.ptr(), len, callback.toObjectOrNull());
-
+        file->write(cstr.ptr(), cstr.length(), callback.toObjectOrNull());
     } else if (args[0].isObject()) {
         JS::RootedObject jsobj(cx, args[0].toObjectOrNull());
 
@@ -587,7 +591,6 @@ static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp)
         NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
         file->write(reinterpret_cast<char *>(data), len, callback.toObjectOrNull());
-
     } else {
         JS_ReportError(cx, "INVALID_VALUE : only accept string or ArrayBuffer");
         return false;
@@ -828,7 +831,7 @@ static bool nidium_file_readSync(JSContext *cx, unsigned argc, JS::Value *vp)
 
     if (readSize < 0) {
         if (err == 0) {
-            JS_ReportError(cx, "Unable to read file (is it a directory?)");
+            JS_ReportError(cx, "Unable to read file : %s", !file->isOpen() ? "not opened" : "is it a directory?");
         } else {
             JS_ReportError(cx, "Failed to read file : %s (errno %d)", strerror(err), err);
         }
