@@ -227,17 +227,23 @@ void File::openTask(const char *mode, void *arg)
         return;
     }
 
+    bool readOnly = !mode || (mode && strlen(mode) == 1 && mode[0] == 'r');
     struct stat s;
     int ret;
 
     ret = stat(m_Path, &s);
-
-    if (ret != 0) {
+    if (ret != 0 && readOnly) {
+        // Opened in read-only, but file does not exists
         NIDIUM_FILE_NOTIFY(errno, File::kEvents_OpenError, arg);
         return;
     }
 
     if (S_ISDIR(s.st_mode)) {
+        if (!readOnly) {
+            printf("Cannot open directory %s for writing\n", m_Path);
+            NIDIUM_FILE_NOTIFY(EISDIR, File::kEvents_OpenError, arg);
+        }
+
         m_Dir = opendir(m_Path);
         if (!m_Dir) {
             printf("Failed to open dir %s : %s\n", m_Path, strerror(errno));
@@ -468,7 +474,6 @@ void File::listFiles(void *arg)
 // }}}
 
 // {{{ Sync operations
-
 int File::openSync(const char *modes, int *err)
 {
     *err = 0;
@@ -479,16 +484,23 @@ int File::openSync(const char *modes, int *err)
 
     struct stat s;
     int ret;
+    bool readOnly = !modes || (modes && strlen(modes) == 1 && modes[0] == 'r');
 
     ret = stat(m_Path, &s);
-    if (ret != 0) {
+    if (ret != 0 && readOnly) {
+        // Opened in read-only, but file does not exists
         printf("Failed to open : %s errno=%d\n", m_Path, errno);
-
         *err = errno;
         return 0;
     }
 
     if (S_ISDIR(s.st_mode)) {
+        if (!readOnly) {
+            *err = EISDIR;
+            printf("Cannot open directory %s for writing\n", m_Path);
+            return 0;
+        }
+
         m_Dir = opendir(m_Path);
         if (!m_Dir) {
             printf("Failed to open : %s errno=%d\n", m_Path, errno);
@@ -496,6 +508,7 @@ int File::openSync(const char *modes, int *err)
             *err = errno;
             return 0;
         }
+
         m_isDir = true;
         m_Filesize = 0;
     } else {
