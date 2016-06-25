@@ -12,13 +12,6 @@ Tests.register("File (remote URL exception)", function() {
     });
 });
 
-Tests.register("File (inexistent file exception)", function() {
-    Assert.throws(function() {
-        var f = new File("does_not_exists");
-        f.openSync("r");
-    });
-});
-
 Tests.register("File (outside root)", function() {
     if (IS_SERVER) {
         var f = new File("..");
@@ -29,6 +22,51 @@ Tests.register("File (outside root)", function() {
             new File("..");
         });
     }
+});
+
+Tests.register("File.open (inexistent file exception)", function() {
+    Assert.throws(function() {
+        var f = new File("does_not_exists");
+        f.open("r");
+    });
+});
+
+Tests.registerAsync("File.open (writing)", function(next) {
+    var f = new File("File/file_open_write_test");
+    f.open("w+", function(err) {
+        Assert.equal(err, undefined, 
+                "Got an error while trying to open file for writing : " + err);
+        f.rm();
+        next();
+    });
+});
+
+Tests.registerAsync("File.open (reading)", function(next) {
+    var f = new File(__filename);
+    f.open("r", function(err) {
+        Assert.equal(err, undefined, 
+                "Got an error while trying to open file " + __filename + 
+                " for reading : " + err);
+        next();
+    });
+});
+
+Tests.register("File.openSync (inexistent file exception)", function() {
+    Assert.throws(function() {
+        var f = new File("does_not_exists");
+        f.openSync("r");
+    });
+});
+
+Tests.register("File.openSync (writing)", function(next) {
+    var f = new File("File/file_opensync_write_test");
+    f.openSync("w+");
+    f.rm();
+});
+
+Tests.register("File.openSync (reading)", function(next) {
+    var f = new File(__filename);
+    f.openSync("r");
 });
 
 Tests.registerAsync("File.listFiles", function(next) {
@@ -86,6 +124,18 @@ Tests.register("File.isDir",  function() {
 
 Tests.registerAsync("File.read", function(next) {
     var fileContent = "123456789";
+    var f = new File("File/doesexists/simplefile.txt", {encoding:"utf8"});
+    f.openSync("r");
+    f.read(f.filesize, function(err, buffer) {
+        Assert.equal(err, undefined, "Got an unexpected error while writing : " + err);
+        Assert(buffer == fileContent);
+
+        next();
+    });
+});
+
+Tests.registerAsync("File.read (static)", function(next) {
+    var fileContent = "123456789";
     var path = "File/doesexists/";
     var fileName = "simplefile.txt";
 
@@ -95,7 +145,6 @@ Tests.registerAsync("File.read", function(next) {
 
         next();
     });
-
 });
 
 Tests.register("File.readSync", function(next) {
@@ -123,4 +172,60 @@ Tests.register("File.readSync (with read size)", function(next) {
 
     Assert.equal(buffer, content,
             "Expected buffer to be \"" + content + "\" but got \"" + buffer + "\"");
+});
+
+Tests.registerAsync("File.seek", function(next) {
+    var f = new File("File/doesexists/simplefile.txt", {encoding:"utf8"});
+    f.openSync("r");
+    f.seek(5, function(err) {
+        Assert.equal(err, undefined, "Got an unexpected error while seeking : " + err);
+        var content = f.readSync();
+        Assert(content, "6789", "Got " + content + " but expected 6789");
+        next();
+    });
+});
+
+Tests.register("File.rm", function() {
+    var f = new File("File/file_to_rm_test");
+    f.openSync("w+");
+    f.rm();
+
+    Assert.throws(function() {
+        var f = new File("File/file_rm_test");
+        f.open("r");
+    });
+});
+
+Tests.registerAsync("File.write", function(next) {
+    var content = "nidium";
+    var f = new File("File/file_write_test", {encoding: "utf8"});
+    f.openSync("w+");
+    f.write(content, function(err) {
+        Assert.equal(err, null, "Error while trying to write : " + err);
+
+        f.seek(0, function() {
+            var wroteContent = f.readSync();
+            Assert.equal(wroteContent, content, 
+                    "Expected wrote content to be \"" + content + "\" but got \"" + wroteContent + "\"");
+            f.rm();
+            next();
+        });
+    });
+});
+
+Tests.registerAsync("File.write (utf8)", function(next) {
+    var content = "♥ nidium ♥";
+    var f = new File("File/file_write_utf8_test", {encoding: "utf8"});
+    f.openSync("w+");
+    f.write(content, function(err) {
+        Assert.equal(err, null, "Error while trying to write : " + err);
+
+        f.seek(0, function() {
+            var wroteContent = f.readSync();
+            Assert.equal(wroteContent, content, 
+                    "Expected wrote content to be \"" + content + "\" but got \"" + wroteContent + "\"");
+            f.rm();
+            next();
+        });
+    });
 });
