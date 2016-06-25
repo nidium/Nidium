@@ -54,6 +54,7 @@ public:
     void seek(size_t pos, void *arg = NULL);
     void listFiles(void *arg = NULL);
     void rmrf();
+    int rm();
 
     int openSync(const char *modes, int *err);
     ssize_t readSync(uint64_t len, char **buffer, int *err);

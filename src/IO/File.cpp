@@ -90,12 +90,17 @@ void File::checkRead(bool async, void *arg)
     }
 }
 
+int File::rm()
+{
+    int ret = unlink(m_Path);
+
+    closeFd();
+
+    return ret;
+}
+
 void File::rmrf()
 {
-    if (!isDir()) {
-        return;
-    }
-
     FTS *tree;
     FTSENT *f;
 
