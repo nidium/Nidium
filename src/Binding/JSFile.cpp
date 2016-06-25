@@ -70,6 +70,7 @@ static bool nidium_file_closeSync(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_write(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_isDir(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_listFiles(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_file_rm(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_file_rmrf(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static bool nidium_file_readFileSync(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -92,6 +93,7 @@ static JSFunctionSpec File_funcs[] = {
     JS_FN("write", nidium_file_write, 2, NIDIUM_JS_FNPROPS),
     JS_FN("isDir", nidium_file_isDir, 0, NIDIUM_JS_FNPROPS),
     JS_FN("listFiles", nidium_file_listFiles, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("rm", nidium_file_rm, 0, NIDIUM_JS_FNPROPS),
     JS_FN("rmrf", nidium_file_rmrf, 0, NIDIUM_JS_FNPROPS),
     JS_FS_END
 };
@@ -436,6 +438,15 @@ static bool nidium_file_isDir(JSContext *cx, unsigned argc, JS::Value *vp)
 #if FILE_ROOT_DEBUG
     printf("Catching %s %d\n", file->getFullPath(), file->isDir());
 #endif
+    return true;
+}
+
+static bool nidium_file_rm(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSFile, &File_class);
+
+    CppObj->getFile()->rm();
+
     return true;
 }
 
