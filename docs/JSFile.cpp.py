@@ -86,7 +86,7 @@ f.open("w+", function(err) {
 )
 
 FunctionDoc("File.writeSync", "Writes a `string` or `arraybuffer` to a file in a synchronous way.",
-    [SeeDoc( "File.openSync|File.readSync|File.seekSync|File.write" )],
+    [SeesDocs( "File.openSync|File.readSync|File.seekSync|File.write" )],
     [ExampleDoc( """var f = new File("foo.txt", { encoding: "utf8" });
 f.openSync("w+");
 f.writeSync("Hello world!");
@@ -113,7 +113,7 @@ f.open(function(err) {
 });""") ],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
-    ReturnDoc( "Returns `true` if the filename exists and is a is a directory, `false` otherwise", "boolean" )
+    ReturnDoc( "Returns `true` if the filename exists and is a directory, `false` otherwise", "boolean" )
 )
 
 FunctionDoc( "File.rmrf", "Deletes the directory and it's content.",
@@ -285,7 +285,7 @@ console.log(string);""")],
 )
 
 FunctionDoc("File.seekSync", "Moves to a certain offset from the beginning of the file.",
-    [SeeDoc( "File.openSync|File.closeSync|File.readSync|File.writeSync|File.seek")],
+    [SeesDocs( "File.openSync|File.closeSync|File.readSync|File.writeSync|File.seek")],
     [ExampleDoc( """var f = new File(__filename, {encoding: "utf8"});
 f.seekSync(10);
 console.log(f.readSync(100));""") ],
