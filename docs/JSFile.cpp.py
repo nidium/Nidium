@@ -86,7 +86,7 @@ f.open("w+", function(err) {
 )
 
 FunctionDoc("File.writeSync", "Writes a `string` or `arraybuffer` to a file in a synchronous way.",
-    [SeesDocs( "File.openSync|File.readSync|File.seekSync|File.write" )],
+    SeesDocs( "File.openSync|File.readSync|File.seekSync|File.write" ),
     [ExampleDoc( """var f = new File("foo.txt", { encoding: "utf8" });
 f.openSync("w+");
 f.writeSync("Hello world!");
@@ -114,6 +114,15 @@ f.open(function(err) {
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
     ReturnDoc( "Returns `true` if the filename exists and is a directory, `false` otherwise", "boolean" )
+)
+
+FunctionDoc( "File.rm", "Remove a file.",
+    SeesDocs( "File.rmrf|fs" ),
+    [ExampleDoc( """var f = new File("foobar", {encoding: "utf8"});
+f.rm();""" ) ],
+    IS_Dynamic, IS_Public, IS_Fast,
+    NO_Params,
+    NO_Returns
 )
 
 FunctionDoc( "File.rmrf", "Deletes the directory and it's content.",
@@ -256,7 +265,7 @@ f.closeSync();""")],
     NO_Returns
 )
 
-FunctionDoc("File.readSync", "Open, read and close a file in a synchronous way.",
+FunctionDoc("File.readSync", "Reads entire file in a synchronous way.",
     [SeeDoc("File.read")],
     [
         ExampleDoc("""var buffer = File.readSync("tmp_0.txt");"""),
@@ -285,7 +294,7 @@ console.log(string);""")],
 )
 
 FunctionDoc("File.seekSync", "Moves to a certain offset from the beginning of the file.",
-    [SeesDocs( "File.openSync|File.closeSync|File.readSync|File.writeSync|File.seek")],
+    SeesDocs( "File.openSync|File.closeSync|File.readSync|File.writeSync|File.seek"),
     [ExampleDoc( """var f = new File(__filename, {encoding: "utf8"});
 f.seekSync(10);
 console.log(f.readSync(100));""") ],
@@ -310,7 +319,9 @@ f.closeSync();""")],
     NO_Returns
 )
 
-FunctionDoc( "File.read", "Reads entire file.",
+FunctionDoc( "File.read", """Reads entire file.
+
+This method also accept `http` file or any protocol supported by Nidium""",
     [SeeDoc( "File.readSync") ],
     [ExampleDoc( """File.read(__filename, function(err, buffer) {
     // buffer is an array buffer containing the data
