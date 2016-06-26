@@ -90,9 +90,8 @@ FunctionDoc("File.writeSync", "Writes a `string` or `arraybuffer` to a file in a
     [ExampleDoc( """var f = new File("foo.txt", { encoding: "utf8" });
 f.openSync("w+");
 f.writeSync("Hello world!");
-console.log(f.readySync();
-f.close();
-});""") ],
+console.log(f.readySync());
+f.close();""") ],
     IS_Dynamic, IS_Public, IS_Slow,
     [
         ParamDoc( "buffer", "The content to write to the file", 'string|ArrayBuffer', NO_Default, IS_Obligated ),
