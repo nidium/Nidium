@@ -6,6 +6,7 @@
 
 var IS_SERVER = typeof window == "undefined";
 
+// {{{ Constructor
 Tests.register("File (remote URL exception)", function() {
     Assert.throws(function() {
         new File("http://www.nidium.com");
@@ -23,7 +24,23 @@ Tests.register("File (outside root)", function() {
         });
     }
 });
+// }}}
+// {{{ Properties
+Tests.register("File.filename", function() {
+    var f = new File(__filename);
+    Assert.equal(f.filename, __filename, 
+            "Expected filename to be \"" + __filename + "\" but got " + f.filename + "\"");
+});
 
+Tests.register("File.filesize", function() {
+    var f = new File("File/doesexists/simplefile.txt");
+    f.openSync("r");
+    Assert.equal(f.filesize, 9, 
+            "Expected filesize to be \"9\" but got \"" + f.filesize+ "\"");
+});
+// }}}
+
+// {{{ Open
 Tests.register("File.open (inexistent file exception)", function() {
     Assert.throws(function() {
         var f = new File("does_not_exists");
@@ -68,7 +85,9 @@ Tests.register("File.openSync (reading)", function(next) {
     var f = new File(__filename);
     f.openSync("r");
 });
+// }}}
 
+// {{{ Directory operation
 Tests.registerAsync("File.listFiles", function(next) {
     var expected = {
         "File": "dir",
@@ -122,6 +141,19 @@ Tests.register("File.isDir",  function() {
 
 });
 
+Tests.register("File.rm", function() {
+    var f = new File("File/file_to_rm_test");
+    f.openSync("w+");
+    f.rm();
+
+    Assert.throws(function() {
+        var f = new File("File/file_rm_test");
+        f.open("r");
+    });
+});
+// }}}
+
+// {{{ Read
 Tests.registerAsync("File.read", function(next) {
     var fileContent = "123456789";
     var f = new File("File/doesexists/simplefile.txt", {encoding:"utf8"});
@@ -173,7 +205,9 @@ Tests.register("File.readSync (with read size)", function(next) {
     Assert.equal(buffer, content,
             "Expected buffer to be \"" + content + "\" but got \"" + buffer + "\"");
 });
+// }}}
 
+// {{{ Seek
 Tests.registerAsync("File.seek", function(next) {
     var f = new File("File/doesexists/simplefile.txt", {encoding:"utf8"});
     f.openSync("r");
@@ -184,18 +218,20 @@ Tests.registerAsync("File.seek", function(next) {
         next();
     });
 });
+Tests.register("File.seekSync", function() {
+    var f = new File("File/doesexists/simplefile.txt", {encoding:"utf8"});
 
-Tests.register("File.rm", function() {
-    var f = new File("File/file_to_rm_test");
-    f.openSync("w+");
-    f.rm();
+    f.openSync("r");
+    f.seekSync(5);
 
-    Assert.throws(function() {
-        var f = new File("File/file_rm_test");
-        f.open("r");
-    });
+    var content = f.readSync();
+
+    Assert(content, "6789", "Got " + content + " but expected 6789");
 });
+// }}}
 
+
+// {{{ Write
 Tests.registerAsync("File.write", function(next) {
     var content = "nidium";
     var f = new File("File/file_write_test", {encoding: "utf8"});
@@ -205,12 +241,36 @@ Tests.registerAsync("File.write", function(next) {
 
         f.seek(0, function() {
             var wroteContent = f.readSync();
+
+            Assert.equal(f.filesize, content.length, 
+                    "Expected filesize to be " + content.length + " but got " + f.filesize);
+
             Assert.equal(wroteContent, content, 
                     "Expected wrote content to be \"" + content + "\" but got \"" + wroteContent + "\"");
             f.rm();
             next();
         });
     });
+});
+
+Tests.register("File.writeSync", function(next) {
+    var content = "nidium";
+    var wroteContent = null;
+    var f = new File("File/file_write_sync_test", {encoding: "utf8"});
+
+    f.openSync("w+");
+    f.writeSync(content);
+    f.seekSync(0);
+
+    wroteContent = f.readSync();
+
+    Assert.equal(f.filesize, content.length,
+            "Expected filesize to be " + content.length + " but got " + f.filesize);
+
+    Assert.equal(wroteContent, content, 
+            "Expected wrote content to be \"" + content + "\" but got \"" + wroteContent + "\"");
+
+    f.rm();
 });
 
 Tests.registerAsync("File.write (utf8)", function(next) {
@@ -229,3 +289,22 @@ Tests.registerAsync("File.write (utf8)", function(next) {
         });
     });
 });
+
+Tests.register("File.writeSync (utf8)", function(next) {
+    var content = "♥ nidium ♥";
+    var wroteContent = null;
+    var f = new File("File/file_write_sync_utf8_test", {encoding: "utf8"});
+
+    f.openSync("w+");
+    f.writeSync(content);
+    f.seekSync(0);
+
+    wroteContent = f.readSync();
+
+    Assert.equal(wroteContent, content, 
+            "Expected wrote content to be \"" + content + "\" but got \"" + wroteContent + "\"");
+
+    f.rm();
+});
+
+// }}}
