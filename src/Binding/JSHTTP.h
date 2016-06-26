@@ -22,10 +22,10 @@ class JSHTTP : public JSExposer<JSHTTP>, public Nidium::Net::HTTPDelegate
     JSHTTP(JS::HandleObject obj, JSContext *cx, char *url);
     virtual ~JSHTTP();
 
-    JS::Heap<JS::Value> request;
-    JS::Heap<JSObject *>jsobj;
+    JS::Heap<JS::Value> m_Request;
+    JS::Heap<JSObject *> m_JSObj;
 
-    Net::HTTP *refHttp;
+    Net::HTTP *m_HTTP;
 
     void onRequest(Net::HTTP::HTTPData *h, Nidium::Net::HTTP::DataType);
     void onProgress(size_t offset, size_t len,

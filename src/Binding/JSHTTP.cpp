@@ -68,8 +68,8 @@ static bool nidium_HTTP_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
     jshttp = new JSHTTP(ret, cx, curl.ptr());
 
     nhttp->setPrivate(jshttp);
-    jshttp->refHttp = nhttp;
-    jshttp->jsobj = ret;
+    jshttp->m_HTTP = nhttp;
+    jshttp->m_JSObj = ret;
 
     JS_SetPrivate(ret, jshttp);
 
@@ -112,7 +112,7 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
         return true;
     }
 
-    nhttp = jshttp->refHttp;
+    nhttp = jshttp->m_HTTP;
 
     if (!nhttp->canDoRequest()) {
         JS_ReportError(cx, "A request is already pending.");
@@ -229,7 +229,7 @@ static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
 
     }
 
-    jshttp->request = callback;
+    jshttp->m_Request = callback;
     JS_SetReservedSlot(caller, 0, callback);
 
     NidiumJSObj(cx)->rootObjectUntilShutdown(caller);
@@ -261,7 +261,7 @@ void JSHTTP::onError(HTTP::HTTPError err)
     JS::RootedValue rval(cx);
     JS::RootedValue onerror_callback(cx);
     JS::RootedValue jevent(cx);
-    JS::RootedObject obj(cx, jsobj);
+    JS::RootedObject obj(cx, m_JSObj);
 
     if (!JS_GetProperty(m_Cx, obj, "onerror", &onerror_callback) ||
             JS_TypeOfValue(m_Cx, onerror_callback) != JSTYPE_FUNCTION) {
@@ -298,7 +298,7 @@ void JSHTTP::onError(HTTP::HTTPError err)
 
     JS_CallFunctionValue(cx, obj, onerror_callback, event, &rval);
 
-    NidiumJSObj(cx)->unrootObject(this->jsobj);
+    NidiumJSObj(cx)->unrootObject(m_JSObj);
 }
 
 void JSHTTP::onProgress(size_t offset, size_t len,
@@ -309,7 +309,7 @@ void JSHTTP::onProgress(size_t offset, size_t len,
     JS::RootedValue ondata_callback(cx);
     JS::RootedValue jdata(cx);
     JS::AutoValueArray<1> jevent(cx);
-    JS::RootedObject obj(cx, jsobj);
+    JS::RootedObject obj(cx, m_JSObj);
 
     if (!JS_GetProperty(cx, obj, "ondata", &ondata_callback) ||
             JS_TypeOfValue(cx, ondata_callback) != JSTYPE_FUNCTION) {
@@ -363,7 +363,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 
     JS::RootedObject event(cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
     JS::RootedObject headers(cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
-    JS::RootedObject obj(cx, jsobj);
+    JS::RootedObject obj(cx, m_JSObj);
     JS::RootedValue jdata(cx);
     JS::RootedValue rval(cx);
     JS::AutoValueArray<1> jevent(cx);
@@ -385,12 +385,12 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
         jevent[0].setObject(*event);
         NIDIUM_JSOBJ_SET_PROP_CSTR(event, "type", "null");
 
-        JS::RootedValue req(cx, request);
+        JS::RootedValue req(cx, m_Request);
         JS_CallFunctionValue(cx, obj, req, jevent, &rval);
 
-        NidiumJSObj(cx)->unrootObject(this->jsobj);
+        NidiumJSObj(cx)->unrootObject(m_JSObj);
 
-        JS_SetReservedSlot(jsobj, 0, JSVAL_NULL);
+        JS_SetReservedSlot(m_JSObj, 0, JSVAL_NULL);
 
         return;
     }
@@ -475,24 +475,24 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 
     jevent[0].setObject(*event);
 
-    JS::RootedValue req(cx, request);
+    JS::RootedValue req(cx, m_Request);
     JS_CallFunctionValue(cx, obj, req, jevent, &rval);
 
-    NidiumJSObj(cx)->unrootObject(this->jsobj);
-    JS_SetReservedSlot(jsobj, 0, JSVAL_NULL);
+    NidiumJSObj(cx)->unrootObject(m_JSObj);
+    JS_SetReservedSlot(m_JSObj, 0, JSVAL_NULL);
 }
 
 JSHTTP::JSHTTP(JS::HandleObject obj, JSContext *cx, char *url) :
     JSExposer<JSHTTP>(obj, cx),
-    request(JSVAL_NULL), refHttp(NULL), m_Eval(true)
+    m_Request(JSVAL_NULL), m_HTTP(NULL), m_Eval(true)
 {
     m_URL = strdup(url);
 }
 
 JSHTTP::~JSHTTP()
 {
-    if (refHttp) {
-        delete refHttp;
+    if (m_HTTP) {
+        delete m_HTTP;
     }
     free(m_URL);
 }
