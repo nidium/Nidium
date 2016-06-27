@@ -22,19 +22,30 @@ class JSHTTP : public JSExposer<JSHTTP>, public Nidium::Net::HTTPDelegate
     JSHTTP(JS::HandleObject obj, JSContext *cx, char *url);
     virtual ~JSHTTP();
 
-    JS::Heap<JS::Value> m_Request;
-    JS::Heap<JSObject *> m_JSObj;
-
-    Net::HTTP *m_HTTP;
-
+    bool request(JSContext *cx, JS::HandleObject options, 
+            JS::HandleValue callback=JS::NullHandleValue);
     void onRequest(Net::HTTP::HTTPData *h, Nidium::Net::HTTP::DataType);
     void onProgress(size_t offset, size_t len,
         Net::HTTP::HTTPData *h, Nidium::Net::HTTP::DataType);
     void onError(Net::HTTP::HTTPError err);
-    void onHeader() {};
+    void onError(const char *err);
+    void onError(int code, const char *err);
+    void onHeader();
 
-    bool m_Eval;
-    char *m_URL;
+	void fireJSEvent(const char *name, JS::MutableHandleValue ev);
+	void parseOptions(JSContext *cx, JS::HandleObject options, Net::HTTPRequest *req);
+	Net::HTTPRequest *getRequest(JSContext *cx);
+
+    Net::HTTP *m_HTTP = nullptr;
+
+    JS::Heap<JS::Value> m_JSCallback;
+    JS::Heap<JSObject *> m_JSObj;
+
+    bool m_Eval = true;
+    char *m_URL = nullptr;
+	Net::HTTPRequest *m_HTTPRequest = nullptr;
+  private:
+	void headersToJSObject(JS::MutableHandleObject obj);
 };
 
 } // namespace Binding
