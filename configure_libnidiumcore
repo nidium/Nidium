@@ -14,6 +14,8 @@ from konstructor import Platform
 from konstructor import Variables
 from konstructor import Konstruct
 from konstructor import Tests
+from konstructor import Utils 
+from konstructor import Log
 from konstructor import ROOT, OUTPUT
 
 Deps.set(
@@ -142,6 +144,38 @@ if __name__ == '__main__':
     Build.add(Gyp("gyp/libnidiumcore.gyp"))
 
     Konstruct.start()
+
+@CommandLine.option("--unit-tests")
+def nidiumCoreTests(unitTests):
+    if not unitTests:
+        return
+
+    def query(path="/"):
+        import urllib2
+
+        try:
+            urllib2.urlopen("http://127.0.0.1:8000%s" % path).read()
+        except Exception as e:
+            import traceback
+            Log.error("Failed to query HTTP Server for tests")
+            traceback.print_exc()
+            return False
+
+        return True
+
+    @Konstruct.hook("preTests")
+    def preNidiumCoreTests():
+        import time
+	Utils.run("tests/jsunittest/simplehttpserver.py --fork")
+        time.sleep(1)
+        if not query():
+            Utils.exit("Failed to start HTTP Server for tests. Aborting")
+
+    @Konstruct.hook("postTests")
+    def postNidiumCoreTests(success):
+        if not query("/kill"):
+            Log.warn("Failed to kill HTTP Server for tests")
+
 
 @CommandLine.option("--auto-tests", default=False)
 def autoTestStudio(autoTests):
