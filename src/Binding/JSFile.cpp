@@ -873,11 +873,11 @@ static bool nidium_file_seekSync(JSContext *cx, unsigned argc, JS::Value *vp)
 
     if (ret != 0) {
         if (err == 0) {
-            JS_ReportError(cx, "Unable to seek to %f : %s",
+            JS_ReportError(cx, "Unable to seek to %dl : %s",
                     seekPos, (!file->isOpen() ? "not opened" : "is it a directory?"));
             return false;
         } else {
-            JS_ReportError(cx, "Failed to seek to %f : %s (errno %d)",
+            JS_ReportError(cx, "Failed to seek to %ld : %s (errno %d)",
                     seekPos, strerror(err), err);
             return false;
         }
