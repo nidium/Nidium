@@ -23,7 +23,7 @@ TEST_F(JSHTTP, Simple)
 
     Nidium::Binding::JSHTTP::RegisterObject(njs->m_Cx);
 
-    success = JS_GetProperty(njs->m_Cx, globObj, "Http", &rval);
+    success = JS_GetProperty(njs->m_Cx, globObj, "HTTP", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 }
@@ -38,8 +38,8 @@ TEST_F(JSHTTP, init)
     EXPECT_TRUE(ht.getJSObject() == globObj);
     EXPECT_TRUE(ht.getJSContext() == njs->m_Cx);
 
-    EXPECT_TRUE(ht.request == JSVAL_NULL);
-    EXPECT_TRUE(ht.refHttp == NULL);
+    EXPECT_TRUE(ht.m_JSCallback == JSVAL_NULL);
+    EXPECT_TRUE(ht.m_HTTP == NULL);
     EXPECT_TRUE(ht.m_Eval == true);
     EXPECT_TRUE(strcmp(ht.m_URL, url) == 0);
 
