@@ -435,6 +435,8 @@ void HTTP::stopRequest(bool timeout)
         if (!m_isParsing && m_HTTP.parser_rdy) {
             http_parser_execute(&m_HTTP.parser, &settings, NULL, 0);
         }
+
+        m_CanDoRequest = true;
     }
 }
 
