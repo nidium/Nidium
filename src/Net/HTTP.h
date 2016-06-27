@@ -164,8 +164,11 @@ public:
         ERROR_DISCONNECTED,
         ERROR_SOCKET,
         ERROR_HTTPCODE,
-        ERROR_REDIRECTMAX
+        ERROR_REDIRECTMAX,
+        _ERROR_END_
     };
+
+    const static char* HTTPErrorDescription[];
 
     enum PrevState {
         PSTATE_NOTHING,

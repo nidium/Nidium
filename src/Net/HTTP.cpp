@@ -32,6 +32,16 @@ namespace Net {
 #define SOCKET_WRITE_OWN(data) APE_socket_write(s, (unsigned char *)data, \
     strlen(data), APE_DATA_OWN)
 
+const char *HTTP::HTTPErrorDescription[_ERROR_END_] = {
+    "Unknown error",
+    "Timeout",
+    "Invalid response",
+    "Disconnected",
+    "Socket error",
+    "Failed to parse response",
+    "Max redirect exceeded"
+};
+
 static struct nidium_http_mime {
     const char *m_Str;
     HTTP::DataType m_DataType;
