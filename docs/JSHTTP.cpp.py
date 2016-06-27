@@ -13,7 +13,7 @@ optionParam = ParamDoc("params", "object with details", ObjectDoc([
     ("eval", "Evaluate the data based on the `content-type` header for now only `application/json` and `text/html` are supported, other content-type are converted to an `ArrayBuffer`, `", "boolean", True),
     ("path", "The requested path", "string"),
     ("followLocation", "Follow HTTP redirect", "boolean", False),
-), NO_Default, IS_Optional)
+]), NO_Default, IS_Optional)
 
 responseEventObject = [
     ("headers", "An object representing the response headers", ObjectDoc([])),
