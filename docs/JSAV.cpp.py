@@ -305,11 +305,11 @@ EventDoc( "AudioNode.message", """Event fired when a custom node or custom-sourc
 As the `AudioContext` has it's own thread, communitation between threads must be done via messages.""",
     SeesDocs( "AudioNode.set|AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter" ),
     NO_Examples,
-    [ ParamDoc( "event", "The event object", 
-            ObjectDoc([
-                ( "data", "Data of the message", "mixed" ),
-            ]), NO_Default, IS_Obligated ),
-        ]
+    [ParamDoc( "event", "The event object", 
+        ObjectDoc([
+            ( "data", "Data of the message", "mixed" ),
+        ]), NO_Default, IS_Obligated ),
+    ]
 )
 
 FunctionDoc( "AudioNode.assignSeek", """Assign to the node a function to be called when the `AudioNode.position` is changed on a `custom-source` node.""",
@@ -318,7 +318,7 @@ FunctionDoc( "AudioNode.assignSeek", """Assign to the node a function to be call
     IS_Dynamic, IS_Public, IS_Fast,
     [CallbackDoc( "callback", "Function to execute when the node position is changed", [
         ParamDoc( "postition", "The new position in seconds.", "float", NO_Default, IS_Obligated ),
-            ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated ) 
+        ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated ) 
     ])]
 )
 
