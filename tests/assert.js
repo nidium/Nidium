@@ -95,7 +95,7 @@ assert.AssertionError = function AssertionError(options) {
     this.expected = options.expected;
     this.operator = options.operator;
     if (options.message) {
-        this.message = options.message;
+        this.message = getMessage(this) + " (" + options.message + ")";
         this.generatedMessage = false;
     } else {
         this.message = getMessage(this);
