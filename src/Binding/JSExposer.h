@@ -165,13 +165,6 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ JSEvent
-static const JSClass JSEvent_class = {
-    "NidiumEvent", 0,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
-
 struct JSEvent
 {
     JSEvent(JSContext *cx, JS::HandleValue func) : m_Function(func) {
@@ -201,21 +194,8 @@ struct JSEvent
 class JSEvents
 {
 public:
-    static JSObject *CreateEventObject(JSContext *cx) {
-        static JSFunctionSpec JSEvents_funcs[] = {
-            JS_FN("stopPropagation",
-                JSEvents::Nidium_jsevents_stopPropagation, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
-            JS_FN("preventDefault",
-                JSEvents::Nidium_jsevents_stub, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
-            JS_FN("forcePropagation",
-                JSEvents::Nidium_jsevents_stub, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
-            JS_FS_END
-        };
-
-        JS::RootedObject ret(cx, JS_NewObject(cx, &JSEvent_class, JS::NullPtr(), JS::NullPtr()));
-        JS_DefineFunctions(cx, ret, JSEvents_funcs);
-        return ret;
-    }
+    static JSObject *CreateEventObject(JSContext *cx);
+    static JSObject *CreateErrorEventObject(JSContext *cx, int code, const char *error);
 
     JSEvents(char *name) :
         m_Head(NULL), m_Queue(NULL), m_Name(strdup(name)),
@@ -339,30 +319,6 @@ private:
     JSEvent *m_TmpEv;
     bool m_IsFiring;
     bool m_DeleteAfterFire;
-
-    static bool Nidium_jsevents_stopPropagation(JSContext *cx,
-        unsigned argc, JS::Value *vp)
-    {
-        JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp));
-        if (!thisobj) {
-            JS_ReportError(cx, "Illegal invocation");
-            return false;
-        }
-        if (!JS_InstanceOf(cx, thisobj, &JSEvent_class, NULL)) {
-            JS_ReportError(cx, "Illegal invocation");
-            return false;
-        }
-        JS::RootedValue cancelBubble(cx, JS::BooleanValue(true));
-        JS_SetProperty(cx, thisobj, "cancelBubble", cancelBubble);
-
-        return true;
-    }
-    static bool Nidium_jsevents_stub(JSContext *cx,
-        unsigned argc, JS::Value *vp)
-    {
-
-        return true;
-    }
 };
 // }}}
 
@@ -751,8 +707,15 @@ public:
         m_Cx = cx;
     };
 
-    void set (const char *name, JS::HandleValue jval) {
+    void set(const char *name, JS::HandleValue jval) {
         JS::RootedObject obj(m_Cx, m_Obj);
+        NIDIUM_JSOBJ_SET_PROP(obj, name, jval);
+    }
+
+    void set(const char *name, JS::HandleObject jobj) {
+        JS::RootedObject obj(m_Cx, m_Obj);
+		JS::RootedValue jval(m_Cx);
+		jval.setObjectOrNull(jobj);
         NIDIUM_JSOBJ_SET_PROP(obj, name, jval);
     }
 
