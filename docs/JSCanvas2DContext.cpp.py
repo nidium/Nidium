@@ -44,7 +44,7 @@ NamespaceDoc("CanvasPattern", "Canvas pattern Class.",
     section="Canvas"
 )
 
-FunctionDoc("CanvasRenderingContext2D.breakText", 
+FunctionDoc("CanvasRenderingContext2D.breakText",
     "Wrap text over multiple lines based on a maximum width.",
     sees=SeesDocs("CanvasRenderingContext2D.fontSize|CanvasRenderingContext2D.fillText|CanvasRenderingContext2D.strokeText|CanvasRenderingContext2D.measureText" ),
     examples=[
@@ -55,19 +55,19 @@ document.canvas.add(canvas)
 // Draw a background color
 ctx.fillStyle = "blue";
 ctx.fillRect(0, 0, 200, 200);
-    
+
 // Set the font size (this will impact breakText() computation)
 ctx.fontSize = 15;
 
 // Call breaktTxt to calculate how the text should spawn on multiple lines given a maximum width
 var text = ctx.breakText("Lorem ipsum dolor sit amet, consectetur adipiscing elit.", 200);
-  
+
 var lineOffset = (text.height / text.lines.length) + 5
 ctx.fillStyle = "black";
 
 for (var i = 0; i < text.lines.length; i++) {
     ctx.fillText(text.lines[i], 20, lineOffset * i + 20);
-}   
+}
 """)
     ],
     params=[
@@ -78,6 +78,19 @@ for (var i = 0; i < text.lines.length; i++) {
         ("height", "The heigth of the surrounding box", "float"),
         ("lines", "The wrapped text lines", "string")
     ]))
+)
+
+FunctionDoc( "CanvasRenderingContext2D.fillRect", "Fill a rectangle.",
+    SeesDocs( "CanvasRenderingContext2D.fillRect|CanvasRenderingContext2D.fillText"),
+    NO_Examples,
+    IS_Dynamic, IS_Public, IS_Fast,
+    [ ParamDoc( "x1", "X1 position", "float", NO_Default, IS_Obligated ),
+    ParamDoc( "y1", "Y1 position", "float", NO_Default, IS_Obligated ),
+    ParamDoc( "width", "width", "float", NO_Default, IS_Obligated ),
+    ParamDoc( "height", "height", "float", NO_Default, IS_Obligated ),
+    ParamDoc( "rx", "Radius X", "float", NO_Default, IS_Optional ),
+    ParamDoc( "ry", "radius Y", "float", NO_Default, IS_Optional )],
+    NO_Returns
 )
 
 FunctionDoc( "CanvasRenderingContext2D.fillText", "Put text in a textbox.",
@@ -147,7 +160,7 @@ ctx.stroke();
     ],
     params=[
         ParamDoc("x", "X position", "float", NO_Default, IS_Obligated),
-        ParamDoc("y", "Y position", "float", NO_Default, IS_Obligated) 
+        ParamDoc("y", "Y position", "float", NO_Default, IS_Obligated)
     ],
     returns=NO_Returns
 )
@@ -192,7 +205,7 @@ FunctionDoc( "CanvasRenderingContext2D.rect", "Create a rectangle.",
         ParamDoc("x", "X position", "float", NO_Default, IS_Obligated),
         ParamDoc("y", "Y position", "float", NO_Default, IS_Obligated),
         ParamDoc("width", "Width", "float", NO_Default, IS_Obligated),
-        ParamDoc("height", "Height", "float", NO_Default, IS_Obligated) 
+        ParamDoc("height", "Height", "float", NO_Default, IS_Obligated)
     ],
     NO_Returns
 )
@@ -215,7 +228,7 @@ FunctionDoc( "CanvasRenderingContext2D.arc", "Create an arc.",
     SeesDocs( "CanvasRenderingContext2D.rect|CanvasRenderingContext2D.arc|CanvasRenderingContext.arcTo" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
-    [ 
+    [
         ParamDoc("x", "X position", "float", NO_Default, IS_Obligated),
         ParamDoc("y", "Y position", "float", NO_Default, IS_Obligated),
         ParamDoc("radius", "Radius", "float", NO_Default, IS_Obligated),
@@ -451,7 +464,7 @@ FunctionDoc( "CanvasRenderingContext2D.getPathBounds", "Get the outer bounds of 
     NO_Params,
     ReturnDoc( "dimensions", ObjectDoc([("left",  "left size", "float"),
                                         ("right", "right size", "float"),
-                                        ("top", "top size", "float"), 
+                                        ("top", "top size", "float"),
                                         ("bottom", "bottom size", "float")]) )
 )
 
@@ -527,7 +540,7 @@ FunctionDoc( "CanvasGLProgram.getUniforms", "Get the uniforms.",
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     NO_Params,
-    ReturnDoc( "Array of objects", ObjectDoc([  ("name", "variable", "string"), 
+    ReturnDoc( "Array of objects", ObjectDoc([  ("name", "variable", "string"),
                                                 ("location", "location marker", "integer")],IS_Array) )
 )
 
@@ -538,7 +551,7 @@ FunctionDoc( "CanvasGLProgram.light", "Lights.",
     [
         ParamDoc("x", "X Position", "float", NO_Default, IS_Obligated),
         ParamDoc("y", "Y Position", "float", NO_Default, IS_Obligated),
-        ParamDoc("z", "Z Position", "float", NO_Default, IS_Obligated) 
+        ParamDoc("z", "Z Position", "float", NO_Default, IS_Obligated)
     ],
     NO_Returns
 )
