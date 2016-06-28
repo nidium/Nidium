@@ -43,7 +43,7 @@ if (args["file"]) {
         'File/File.js',
         'Process/process.js',
         'HTTP/HTTPServer.js',
-        //'HTTP/HTTPClient.js',
+        'HTTP/HTTPClient.js',
 
         //'Thread/Thread_simple.js',
         //'Thread/Thread_complex.js',
