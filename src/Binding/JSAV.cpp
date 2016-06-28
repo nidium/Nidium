@@ -414,8 +414,7 @@ const char *JSAVEventRead(int ev)
 
 static JS::Value consumeSourceMessage(JSContext *cx, const SharedMessages::Message &msg)
 {
-    JS::RootedObject evObj(cx, JSEvents::CreateEventObject(cx));
-    JSObjectBuilder ev(cx, evObj);
+    JS::RootedValue ev(cx);
 
     if (msg.event() == CUSTOM_SOURCE_SEND) {
         nidium_thread_msg *ptr = static_cast<struct nidium_thread_msg *>(msg.dataPtr());
@@ -426,7 +425,12 @@ static JS::Value consumeSourceMessage(JSContext *cx, const SharedMessages::Messa
             return JS::UndefinedHandleValue;
         }
 
-        ev.set("data", inval);
+        JS::RootedObject evObj(cx, JSEvents::CreateEventObject(cx));
+        JSObjectBuilder evBuilder(cx, evObj);
+
+        evBuilder.set("data", inval);
+
+        ev = evBuilder.jsval();
 
         delete ptr;
     } else {
@@ -436,27 +440,24 @@ static JS::Value consumeSourceMessage(JSContext *cx, const SharedMessages::Messa
         if (cmsg->m_Ev == SOURCE_EVENT_ERROR) {
             int errorCode = cmsg->m_Args[0].toInt();
             const char *errorStr = AV::AVErrorsStr[errorCode];
-            JS::RootedString jstr(cx, JS_NewStringCopyN(cx, errorStr, strlen(errorStr)));
-
-            JS::RootedValue code(cx);
-            code.setInt32(errorCode);
-
-            JS::RootedValue err(cx);
-            err.setString(jstr);
-
-            ev.set("code", code);
-            ev.set("error", err);
+            JS::RootedObject evObj(cx, JSEvents::CreateErrorEventObject(cx, errorCode, errorStr));
+            ev = OBJECT_TO_JSVAL(evObj);
         } else if (cmsg->m_Ev == SOURCE_EVENT_BUFFERING) {
-            ev.set("filesize", cmsg->m_Args[0].toInt());
-            ev.set("startByte", cmsg->m_Args[1].toInt());
-            ev.set("bufferedBytes", cmsg->m_Args[2].toInt());
+            JS::RootedObject evObj(cx, JSEvents::CreateEventObject(cx));
+            JSObjectBuilder evBuilder(cx, evObj);
+
+            evBuilder.set("filesize", cmsg->m_Args[0].toInt());
+            evBuilder.set("startByte", cmsg->m_Args[1].toInt());
+            evBuilder.set("bufferedBytes", cmsg->m_Args[2].toInt());
+
+            ev = evBuilder.jsval();
         }
 
         delete cmsg;
     }
 
     JS::RootedValue rval(cx);
-    rval.set(ev.jsval());
+    rval.set(ev);
     return rval;
 }
 

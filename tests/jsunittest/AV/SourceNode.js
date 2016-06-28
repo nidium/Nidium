@@ -14,13 +14,9 @@ Tests.register("SourceNode create", function() {
 });
 
 Tests.register("SourceNode with invalid input", function() {
-    try {
+    Assert.throws(function() {
         dsp.createNode("source", "foobar", "foobar");
-    } catch (e) {
-        return;
-    }
-
-    Assert("Exception was expected");
+    });
 });
 
 Tests.registerAsync("SourceNode open inexistent file", function(next) {
@@ -31,7 +27,7 @@ Tests.registerAsync("SourceNode open inexistent file", function(next) {
         node.removeEventListener("error");
         node.removeEventListener("ready");
 
-        Assert.strictEqual(ev.code, 0, "Invalid error code returned")
+        Assert.strictEqual(ev.errorCode, 0, "Invalid error code returned")
 
         next();
     });
@@ -40,7 +36,7 @@ Tests.registerAsync("SourceNode open inexistent file", function(next) {
         node.removeEventListener("error");
         node.removeEventListener("ready");
 
-        Assert(false, "Node fired onready callback oO");
+        throw new Error("Node fired onready callback oO");
 
         next();
     });
@@ -53,7 +49,7 @@ Tests.registerAsync("SourceNode open invalid file", function(next) {
         node.removeEventListener("error");
         node.removeEventListener("ready");
 
-        Assert.strictEqual(ev.code, 0, "Invalid error code returned")
+        Assert.strictEqual(ev.errorCode, 0, "Invalid error code returned")
 
         next();
     });
