@@ -49,7 +49,7 @@ static struct nidium_http_mime {
     {"text/plain",                  HTTP::DATA_STRING},
     {"application/x-javascript",    HTTP::DATA_STRING},
     {"application/javascript",      HTTP::DATA_STRING},
-    {"application/octet-stream",    HTTP::DATA_STRING},
+    {"application/octet-stream",    HTTP::DATA_BINARY},
     {"image/jpeg",                  HTTP::DATA_IMAGE},
     {"image/png",                   HTTP::DATA_IMAGE},
     {"audio/mp3",                   HTTP::DATA_AUDIO},
@@ -61,7 +61,6 @@ static struct nidium_http_mime {
     {"audio/webm",                  HTTP::DATA_AUDIO},
     {"application/json",            HTTP::DATA_JSON},
     {"text/html",                   HTTP::DATA_STRING}, /* TODO: use dom.js */
-    {"application/octet-stream",    HTTP::DATA_BINARY},
     {NULL,                          HTTP::DATA_END}
 };
 // }}}
