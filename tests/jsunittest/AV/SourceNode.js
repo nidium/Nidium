@@ -23,7 +23,7 @@ Tests.register("SourceNode with invalid input", function() {
     Assert("Exception was expected");
 });
 
-Tests.registerAsync("SourceNode open invalid file", function(next) {
+Tests.registerAsync("SourceNode open inexistent file", function(next) {
     node.open("invalidfile")
 
     node.addEventListener("error", function(ev) {
@@ -46,11 +46,33 @@ Tests.registerAsync("SourceNode open invalid file", function(next) {
     });
 }, 5000);
 
+Tests.registerAsync("SourceNode open invalid file", function(next) {
+    node.open("/tmp/foo.mp3")
+
+    node.addEventListener("error", function(ev) {
+        node.removeEventListener("error");
+        node.removeEventListener("ready");
+
+        Assert.strictEqual(ev.code, 0, "Invalid error code returned")
+
+        next();
+    });
+
+    node.addEventListener("ready", function() {
+        node.removeEventListener("error");
+        node.removeEventListener("ready");
+
+        throw new Error("Node fired onready callback oO");
+
+        next();
+    });
+}, 5000);
+
 Tests.registerAsync("SourceNode open file", function(next) {
     node.open("AV/test.mp3")
     node.addEventListener("error", function(e) {
         node.removeEventListener("error");
-        Assert(false, "Failed to open media file");
+        throw new Error("Failed to open media file : " + JSON.stringify(e));
         next();
     });
 

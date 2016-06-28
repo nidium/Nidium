@@ -90,12 +90,16 @@ AVStreamReader::AVStreamReader(const char *src,
       m_StreamSeekPos(0), m_StreamSize(0), m_StreamBuffer(NULL), m_Error(0),
       m_HaveDataAvailable(false), m_GenesisThread(pthread_self())
 {
+    NIDIUM_PTHREAD_VAR_INIT(&m_ThreadCond);
     m_Async = true;
     m_Stream = Stream::Create(Path(src));
+    if (!m_Stream) {
+        m_Source->sendEvent(SOURCE_EVENT_ERROR, ERR_FAILED_OPEN, false);
+        return;
+    }
     //m_Stream->setAutoClose(false);
     m_Stream->start(STREAM_BUFFER_SIZE);
     m_Stream->setListener(this);
-    NIDIUM_PTHREAD_VAR_INIT(&m_ThreadCond);
 }
 
 int AVStreamReader::read(void *opaque, uint8_t *buffer, int size)
