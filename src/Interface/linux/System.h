@@ -25,6 +25,7 @@ class System : public SystemInterface
         const char *cwd();
         const char *getLanguage();
         void sendNotification(const char *title, const char *content, bool sound);
+        const char *execute(const char *cmd);
     private:
         bool m_SystemUIReady;
         char *m_EmbedPath;

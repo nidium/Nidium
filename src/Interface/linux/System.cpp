@@ -20,6 +20,7 @@
 
 #include "System.h"
 #include <libgen.h>
+#include <string>
 
 namespace Nidium {
 namespace Interface {
@@ -209,6 +210,30 @@ void System::sendNotification(const char *title, const char *content, bool sound
     notify_notification_show(notification, nullptr /* error reporter */);
 
     g_object_unref(G_OBJECT(notification));
+}
+
+const char *System::execute(const char *cmd)
+{
+    char buffer[128];
+    FILE *fp;
+    std::string *result = new std::string(); 
+
+    fp = popen(cmd, "r");
+    if (fp == nullptr) {
+        return nullptr;
+    }
+
+    while (!feof(fp)) {
+        if (fgets(buffer, 128, fp) != nullptr) {
+            result->append(buffer);
+        }
+    }
+
+    pclose(fp);
+    
+    // FIXME : Memory leak, caller should have to free the
+    // memory but osx implementation is different from linux
+    return result->c_str();
 }
 // }}}
 
