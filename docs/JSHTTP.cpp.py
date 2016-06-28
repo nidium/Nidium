@@ -66,7 +66,7 @@ If `params` and  `callback` arguments are providen the HTTP request will be exec
 
 FunctionDoc( "HTTP.request", """Perform the HTTP request
 
-Once a request is finished, if you need to run another HTTP request, you can call the `request` method once again with different options.""",
+Once a request is finished (`response` or `error` event has been fired), you can call the `request` method once again to run a new HTTP request. The options from the first request are reseted.""",
     SeesDocs("HTTP.error|HTTP.progress|HTTP.response|HTTP.stop"),
     [ExampleDoc( """var h = new HTTP("http://www.nidium.com/");
 
