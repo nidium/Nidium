@@ -283,7 +283,7 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
     }
 
     NIDIUM_JS_GET_OPT(options, "data") {
-        JS::RootedObject obj(cx, __curopt.toObjectOrNull());
+        JS::RootedObject obj(cx, __curopt.isObject() ? __curopt.toObjectOrNull() : nullptr);
         char *data;
         size_t dataLen;
 
