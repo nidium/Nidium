@@ -33,7 +33,7 @@ class JSHTTP : public JSExposer<JSHTTP>, public Nidium::Net::HTTPDelegate
     void onHeader();
 
 	void fireJSEvent(const char *name, JS::MutableHandleValue ev);
-	void parseOptions(JSContext *cx, JS::HandleObject options, Net::HTTPRequest *req);
+	void parseOptions(JSContext *cx, JS::HandleObject options);
 	Net::HTTPRequest *getRequest(JSContext *cx);
 
     Net::HTTP *m_HTTP = nullptr;

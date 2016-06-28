@@ -119,6 +119,8 @@ static bool nidium_HTTP_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 
         getOptionsAndCallback(cx, &args, 1, &options, &callback);
 
+        jshttp->parseOptions(cx, options);
+
         if (!callback.isNull()) {
             // Have a callback, directly execute the request
             if (!jshttp->request(cx, options, callback)) {
@@ -210,7 +212,9 @@ bool JSHTTP::request(JSContext *cx, JS::HandleObject options, JS::HandleValue ca
         req->recycle();
     }
 
-    this->parseOptions(cx, options, req);
+    if (options) {
+        this->parseOptions(cx, options);
+    }
 
     if (!callback.isNull()) {
         m_JSCallback = callback;
@@ -227,7 +231,7 @@ bool JSHTTP::request(JSContext *cx, JS::HandleObject options, JS::HandleValue ca
     return true;
 }
 
-void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options, Net::HTTPRequest *req)
+void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
 {
     NIDIUM_JS_INIT_OPT();
 
@@ -235,15 +239,15 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options, Net::HTTPRequ
         JS::RootedString method(cx, __curopt.toString());
         JSAutoByteString cmethod(cx, method);
         if (strcmp("POST", cmethod.ptr()) == 0) {
-            req->m_Method = HTTPRequest::kHTTPMethod_Post;
+            m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Post;
         } else if (strcmp("HEAD", cmethod.ptr()) == 0) {
-            req->m_Method = HTTPRequest::kHTTPMethod_Head;
+            m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Head;
         } else if (strcmp("PUT", cmethod.ptr()) == 0) {
-            req->m_Method = HTTPRequest::kHTTPMethod_Put;
+            m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Put;
         } else if (strcmp("DELETE", cmethod.ptr()) == 0) {
-            req->m_Method = HTTPRequest::kHTTPMethod_Delete;
+            m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Delete;
         }  else {
-            req->m_Method = HTTPRequest::kHTTPMethod_Get;
+            m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Get;
         }
     }
 
@@ -273,7 +277,7 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options, Net::HTTPRequ
                 }
                 JSAutoByteString cvalstr(cx, idstr);
 
-                req->setHeader(cidstr.ptr(), cvalstr.ptr());
+                m_HTTPRequest->setHeader(cidstr.ptr(), cvalstr.ptr());
             }
         }
     }
@@ -283,16 +287,16 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options, Net::HTTPRequ
         JS::RootedString data(cx, __curopt.toString());
         if (data != NULL) {
             char *hdata = JS_EncodeStringToUTF8(cx, data);
-            req->setData(hdata, strlen(hdata));
-            req->setDataReleaser(js_free);
+            m_HTTPRequest->setData(hdata, strlen(hdata));
+            m_HTTPRequest->setDataReleaser(js_free);
 
-            if (req->m_Method != HTTPRequest::kHTTPMethod_Put) {
-                req->m_Method = HTTPRequest::kHTTPMethod_Post;
+            if (m_HTTPRequest->m_Method != HTTPRequest::kHTTPMethod_Put) {
+                m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Post;
             }
 
             char num[16];
-            sprintf(num, "%zu", req->getDataLength());
-            req->setHeader("Content-Length", num);
+            sprintf(num, "%zu", m_HTTPRequest->getDataLength());
+            m_HTTPRequest->setHeader("Content-Length", num);
         }
     }
 
@@ -317,9 +321,10 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options, Net::HTTPRequ
 
     NIDIUM_JS_GET_OPT_TYPE(options, "path", String) {
         JSAutoByteString cstr(cx, __curopt.toString());
-        req->setPath(cstr.ptr());
+        m_HTTPRequest->setPath(cstr.ptr());
     }
 }
+
 void JSHTTP::onError(HTTP::HTTPError err)
 {
     this->onError(err, HTTP::HTTPErrorDescription[err]);
