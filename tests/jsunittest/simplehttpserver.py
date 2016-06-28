@@ -34,12 +34,13 @@ class myHandlerClass(BaseHTTPRequestHandler):
             else:
                 data = self.rfile.read(int(self.headers.getheader('content-length', 0)))
 
-            self.send_header('Content-type','text/html')
+            self.send_header("Content-type", self.headers.getheader("content-type", "text/html"))
 
             for name in self.headers:
                 if name.lower() == "content-length":
                     name = "request-content-length"
                 self.send_header(name, self.headers.get(name))
+
 
             self.send_header('Content-Length', len(data))
             self.end_headers()
