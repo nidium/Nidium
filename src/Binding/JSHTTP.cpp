@@ -28,7 +28,7 @@ static bool nidium_http_stop(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Http_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass HTTP_class = {
-    "HTTP", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
+    "HTTP", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(2),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Http_Finalize,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
@@ -238,13 +238,13 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
     NIDIUM_JS_GET_OPT_TYPE(options, "method", String) {
         JS::RootedString method(cx, __curopt.toString());
         JSAutoByteString cmethod(cx, method);
-        if (strcmp("POST", cmethod.ptr()) == 0) {
+        if (strcasecmp("POST", cmethod.ptr()) == 0) {
             m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Post;
-        } else if (strcmp("HEAD", cmethod.ptr()) == 0) {
+        } else if (strcasecmp("HEAD", cmethod.ptr()) == 0) {
             m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Head;
-        } else if (strcmp("PUT", cmethod.ptr()) == 0) {
+        } else if (strcasecmp("PUT", cmethod.ptr()) == 0) {
             m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Put;
-        } else if (strcmp("DELETE", cmethod.ptr()) == 0) {
+        } else if (strcasecmp("DELETE", cmethod.ptr()) == 0) {
             m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Delete;
         }  else {
             m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Get;
@@ -282,22 +282,36 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
         }
     }
 
-    NIDIUM_JS_GET_OPT_TYPE(options, "data", String) {
-        /* TODO: handle ArrayBuffer */
-        JS::RootedString data(cx, __curopt.toString());
-        if (data != NULL) {
-            char *hdata = JS_EncodeStringToUTF8(cx, data);
-            m_HTTPRequest->setData(hdata, strlen(hdata));
+    NIDIUM_JS_GET_OPT(options, "data") {
+        JS::RootedObject obj(cx, __curopt.toObjectOrNull());
+        char *data;
+        size_t dataLen;
+
+        if (__curopt.isObject() && JS_IsArrayBufferObject(obj)) {
+            data = reinterpret_cast<char *>(JS_GetArrayBufferData(obj));
+            dataLen = JS_GetArrayBufferByteLength(obj);
+
+            // Since the data may not be used right away
+            // we need to root them until they request is done
+            JS_SetReservedSlot(m_JSObj, 1, __curopt);
+        } else {
+            JS::RootedString str(cx, JS::ToString(cx, __curopt));
+
+            data = JS_EncodeStringToUTF8(cx, str);
+            dataLen = strlen(data);
+
             m_HTTPRequest->setDataReleaser(js_free);
-
-            if (m_HTTPRequest->m_Method != HTTPRequest::kHTTPMethod_Put) {
-                m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Post;
-            }
-
-            char num[16];
-            sprintf(num, "%zu", m_HTTPRequest->getDataLength());
-            m_HTTPRequest->setHeader("Content-Length", num);
         }
+
+        m_HTTPRequest->setData(data, dataLen);
+
+        if (m_HTTPRequest->m_Method != HTTPRequest::kHTTPMethod_Put) {
+            m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Post;
+        }
+
+        char num[64];
+        snprintf(num, 64, "%zu", m_HTTPRequest->getDataLength());
+        m_HTTPRequest->setHeader("Content-Length", num);
     }
 
     NIDIUM_JS_GET_OPT_TYPE(options, "timeout", Number) {
@@ -343,7 +357,8 @@ void JSHTTP::onError(int code, const char *error)
 
     this->fireJSEvent("error", &eventValue);
 
-    JS_SetReservedSlot(m_JSObj, 0, JSVAL_NULL);
+    JS_SetReservedSlot(m_JSObj, 0, JS::NullValue());
+    JS_SetReservedSlot(m_JSObj, 1, JS::NullValue());
     NidiumJSObj(m_Cx)->unrootObject(m_JSObj);
 }
 
@@ -449,7 +464,8 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
         this->fireJSEvent("response", &eventValue);
 
         NidiumJSObj(m_Cx)->unrootObject(m_JSObj);
-        JS_SetReservedSlot(m_JSObj, 0, JSVAL_NULL);
+        JS_SetReservedSlot(m_JSObj, 0, JS::NullValue());
+        JS_SetReservedSlot(m_JSObj, 1, JS::NullValue());
         return;
     }
 
@@ -542,7 +558,9 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
     this->fireJSEvent("response", &eventValue);
 
     NidiumJSObj(m_Cx)->unrootObject(m_JSObj);
-    JS_SetReservedSlot(m_JSObj, 0, JSVAL_NULL);
+
+    JS_SetReservedSlot(m_JSObj, 0, JS::NullValue());
+    JS_SetReservedSlot(m_JSObj, 1, JS::NullValue());
 }
 
 JSHTTP::JSHTTP(JS::HandleObject obj, JSContext *cx, char *url) :

@@ -9,7 +9,7 @@ optionParam = ParamDoc("params", "object with details", ObjectDoc([
     ("headers", "Object with http headers", ObjectDoc([])),
     ("timeout", "Timeout duration for the socket (in milliseconds)", "integer"),
     ("maxRedirects", "Maximum number of redirects", "integer"),
-    ("data", "The content (POST method only)", "string"),
+    ("data", "The content (POST method only).", "string|ArrayBuffer"),
     ("eval", "Evaluate the data based on the `content-type` header for now only `application/json` and `text/html` are supported, other content-type are converted to an `ArrayBuffer`, `", "boolean", True),
     ("path", "The requested path", "string"),
     ("followLocation", "Follow HTTP redirect", "boolean", False),

@@ -161,7 +161,7 @@ Tests.registerAsync("HTTP.request (event response)", function(next) {
 }, 1000);
 
 Tests.registerAsync("HTTP.request (constructor options)", function(next) {
-    var h = new HTTP(TEST_URL,{
+    var h = new HTTP(TEST_URL, {
         "headers": {
             "foo": "bar"
         },
@@ -210,6 +210,33 @@ Tests.registerAsync("HTTP.request (GET with options)", function(next) {
     });
 }, 1000);
 
+Tests.registerAsync("HTTP.request (POST with \"integer\" data)", function(next) {
+    var h = new HTTP(TEST_URL);
+
+    h.addEventListener("response", function(ev) {
+        testResponse(ev);
+
+        Assert.equal(typeof ev.headers, "object", "Invalid header");
+        Assert.equal(ev.headers.foo, "bar", "Invalid header value");
+        Assert.equal(ev.data, 1234, "Invalid content");
+
+        next();
+    });
+
+    h.addEventListener("error", function(ev) {
+        throw new Error("Was not expecting an error event " + JSON.stringify(ev));
+    });
+
+    h.request({
+        "headers": {
+            "foo": "bar"
+        },
+        "method": "POST",
+        "data": 1234,
+        "path": "/echo"
+    });
+});
+
 Tests.registerAsync("HTTP.request (POST with options)", function(next) {
     var h = new HTTP(TEST_URL);
 
@@ -231,7 +258,7 @@ Tests.registerAsync("HTTP.request (POST with options)", function(next) {
         "headers": {
             "foo": "bar"
         },
-        "method": "post",
+        "method": "POST",
         "data": TEST_DATA,
         "path": "/echo"
     });
@@ -293,6 +320,36 @@ Tests.registerAsync("HTTP.request (too large content length)", function(next) {
 });
 */
 
+Tests.registerAsync("HTTP.request (ArrayBuffer data)", function(next) {
+    var data = new ArrayBuffer(8);
+    var view = new Uint8Array(data);
+    var start = 65;
+
+    for (var i = 0; i < view.length; i++) {
+        view[i] = start + i;
+    }
+
+    var h = new HTTP(TEST_URL + "/echo", {
+        method:"POST",
+        data: data,
+        eval: true,
+        headers: {
+            "content-type": "application/octet-stream" // Force binary response
+        }
+    }, function(ev) {
+        testResponse(ev);
+
+        Assert.equal(ev.data instanceof ArrayBuffer, true, "Response is not an ArrayBuffer " + typeof ev.data);
+
+        var bufView = new DataView(ev.data);
+        for (var i = 0; i < bufView.length; i++) {
+            Assert.equal(bufView.getUint8(i), start + i, "Unexpected character at position " + i)
+        }
+
+        next();
+    });
+});
+
 Tests.registerAsync("HTTP.request (ArrayBuffer response)", function(next) {
     var h = new HTTP(TEST_URL + "/no-content-type", function(ev) {
         testResponse(ev);
@@ -344,7 +401,7 @@ Tests.registerAsync("HTTP.request (multiple request)", function(next) {
             Assert.equal(ev.data, "Hello World !", "Unexpected data");
 
             setTimeout(function() {
-                h.request({path: "/echo", method: "POST", data:"hello"});
+                h.request({path: "/echo", method: "POST", data: "hello"});
             }, 1);
         } else {
             Assert.equal(ev.data, "hello", "Unexpected data");
