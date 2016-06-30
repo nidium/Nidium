@@ -16,6 +16,7 @@ from konstructor import Konstruct
 from konstructor import Utils
 from konstructor import Variables 
 from konstructor import Tests
+from konstructor import ROOT
 
 Gyp = Builder.Gyp
 
@@ -93,12 +94,16 @@ def skia():
     # Add depot_tools to path needed for skia
     Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
 
+    # depot_tools and skia needs python2.7 but use "python" as the default 
+    # interpreter which could be python3.x on some system. Workaround that
+    # by using a custom python wrapper that will redirect to the correct python version
+    Platform.setEnviron("PATH=" + os.path.join(ROOT, "tools") + ":" + os.environ.get("PATH", ""))
+
     return {
         "location": Deps.Gclient("https://skia.googlesource.com/skia.git", revision="ed4dc2afaa4285a6d10a16fca77d1b9cbe3083d3"),
         "build": [exports + " ./gyp_skia", exports + " make tests BUILDTYPE=Release " + makeFlags + " -j " + str(Platform.cpuCount)],
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "skia_defines.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_python27.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_clang.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_zlib_osx.patch")],
         "outputs": [
