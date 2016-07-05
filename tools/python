@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Copyright 2016 Nidium Inc. All rights reserved.
+# Use of this source code is governed by a MIT license
+# that can be found in the LICENSE file.
+
+# This script force the usage of python2.x
+
+which python2.7 2>&1 > /dev/null
+if [ $? -ne 0 ]; then
+    if grep --quiet "Python 2" `python -V`; then
+        PYTHON27="python"
+    else
+        echo "Python 2.7 not found, you may want to edit this script (`readlink -f $0`) to provide the correct path to python2.7"
+        exit 2
+    fi
+else
+    PYTHON27="python2.7"
+fi
+
+$PYTHON27 "$@"
