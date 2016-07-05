@@ -38,10 +38,10 @@ hello.nml
 To build Nidium you need at least 5GB of disk space. Depending of the speed of your computer a build from scratch will take between 30min to 1H30.
 
 ```
-$ apt-get install python2.7 git build-essential clang cmake pkg-config libgtk2.0-dev libgtk-3-dev mesa-common-dev libglu1-mesa-dev yasm libasound2 libasound2-dev libbz2-1.0
+$ apt-get install python2.7 git make patch clang pkg-config libgtk2.0-dev libgtk-3-dev mesa-common-dev libglu1-mesa-dev yasm libasound2 libasound2-dev libbz2-1.0
 
-$ git clone https@github.com/nidium/NidiumTools.git
-$ git clone --recursive https@github.com/nidium/Nidium.git
+$ git clone https://github.com/nidium/NidiumTools.git
+$ git clone --recursive https://github.com/nidium/Nidium.git
 $ export PYTHONPATH=$(pwd)/NidiumTools/src
 $ cd Nidium
 $ ./configure_frontend
