@@ -27,10 +27,10 @@ Tests.register("Element.style ", function() {
 Tests.register("Element.style (properties are defined)", function() {
     var el = new UI.Element();
 
-	// Property proxied to canvas
+    // Property proxied to canvas
     Assert.notEqual(el.style.width, undefined, "Element.style.width property should exist");
 
-	// Builtin property
+    // Builtin property
     //Assert.notEqual(el.style.backgroundColor, undefined, "Element.style.backgroundColor property should exist");
 });
 
@@ -104,108 +104,108 @@ Tests.register("NSS", function(next) {
 
 Tests.register("NSS.addProperty", function(next) {
     UI.NSS.addProperty("foo", {
-		default: "foo"
-	});
+        default: "foo"
+    });
 
-	var el = new UI.Element();
-	Assert.equal(el.style.foo, "foo", "Element.style.foo should be \"foo\"");
+    var el = new UI.Element();
+    Assert.equal(el.style.foo, "foo", "Element.style.foo should be \"foo\"");
 });
 
 Tests.register("NSS.addProperty (re-define throws)", function(next) {
-	Assert.throws(function() {
-		UI.NSS.addProperty("foo", {
-			default: "foo"
-		});
-	});
+    Assert.throws(function() {
+        UI.NSS.addProperty("foo", {
+            default: "foo"
+        });
+    });
 });
 
 Tests.register("NSS.addProperty (setter)", function() {
-	var setterCalled = false;
+    var setterCalled = false;
     UI.NSS.addProperty("testSetter", {
-		onSet: function(key, value, private) {
-			Assert.equal(key, "testSetter", "Expected key to be \"testSetter\"");
-			Assert.equal(value, "42", "Expected value to be \"42\"");
-    		Assert.notEqual(typeof private, "undefined", "private should be defined");
-			
-			setterCalled = true;
-		},
-		
-	});
+        onSet: function(key, value, private) {
+            Assert.equal(key, "testSetter", "Expected key to be \"testSetter\"");
+            Assert.equal(value, "42", "Expected value to be \"42\"");
+            Assert.notEqual(typeof private, "undefined", "private should be defined");
+            
+            setterCalled = true;
+        },
+        
+    });
 
-	var el = new UI.Element();
+    var el = new UI.Element();
 
-	// Bonus : No default, should be undefined
-	Assert.equal(typeof el.style.testSetter, "undefined", "Element.style.testSetter should be \"undefined\"");
+    // Bonus : No default, should be undefined
+    Assert.equal(typeof el.style.testSetter, "undefined", "Element.style.testSetter should be \"undefined\"");
 
-	el.style.testSetter = 42;
+    el.style.testSetter = 42;
 
-	Assert.equal(el.style.testSetter, 42, "Element.style.testSetter should be \"42\"");
-	Assert.equal(setterCalled, true, "Setter has not been called");
+    Assert.equal(el.style.testSetter, 42, "Element.style.testSetter should be \"42\"");
+    Assert.equal(setterCalled, true, "Setter has not been called");
 });
 
 Tests.registerAsync("NSS.addProperty (redraw/preDraw/postDraw)", function(next) {
-	var preDraw = 0;
-	var postDraw = 0;
+    var preDraw = 0;
+    var postDraw = 0;
     UI.NSS.addProperty("testRedraw", {
-		redraw: true,
-		preDraw: function(canvas, context, private) {
-			preDraw++;
-		},
-		postDraw: function(canvas, context, private) {
-			postDraw++;
-		}
-	});
+        redraw: true,
+        preDraw: function(canvas, context, private) {
+            preDraw++;
+        },
+        postDraw: function(canvas, context, private) {
+            postDraw++;
+        }
+    });
 
-	var el = new UI.Element();
+    var el = new UI.Element();
 
-	requestAnimationFrame(function() {
-		el.style.testRedraw = "draw_me_a_sheep";
-		requestAnimationFrame(function() {
-			Assert.equal(preDraw, 2, "preDraw() callback should have been called twice");
-			Assert.equal(postDraw, 2, "postDraw() callback should have been called twice");
-			next();
-		});
-	});
+    requestAnimationFrame(function() {
+        el.style.testRedraw = "draw_me_a_sheep";
+        requestAnimationFrame(function() {
+            Assert.equal(preDraw, 2, "preDraw() callback should have been called twice");
+            Assert.equal(postDraw, 2, "postDraw() callback should have been called twice");
+            next();
+        });
+    });
 
-	// Element must be added to be drawn a first time
-	document.add(el);
+    // Element must be added to be drawn a first time
+    document.add(el);
 });
 
 if (0) {
 // XXX : API draft for addProperty
 Tests.registerAsync("NSS.addProperty", function(next) {
-	var InvalidateReason = UI.Element.InvalidateReason;
+    var InvalidateReason = UI.Element.InvalidateReason;
     UI.NSS.addProperty("myProperty", {
         default: "bar", // Default value for the property
 
-		redraw: true, 	// Property value update triggers redraw
-		reflow: true, 	// Property value update triggers reflow
+        redraw: true,   // Property value update triggers redraw
+        reflow: true,   // Property value update triggers reflow
 
-		onSet: function(key, value, private) {
-			// Called when the property is set
-			console.log("property set", key, value, private);
-		},
-		onReflow: function(ev, canvas, context, private) {
-			// Called whenever : 
-			// - The element is reflowed (size, padding, margin updated)
-			// - The element is added / removed from his parent
-			// - Direct children are added / removed / reflowed
+        onSet: function(key, value, private) {
+            // Called when the property is set
+            console.log("property set", key, value, private);
+        },
+        onReflow: function(ev, canvas, context, private) {
+            // Called whenever : 
+            // - The element is reflowed (size, padding, margin updated)
+            // - The element is added / removed from his parent
+            // - Direct children are added / removed / reflowed
 
-			/*
-			UI.Element.InvalidateReason.ELEMENT_REFLOW
-			UI.Element.InvalidateReason.ELEMENT_ADDED
-			UI.Element.InvalidateReason.ELEMENT_REMOVED
-			UI.Element.InvalidateReason.CHILD_REFLOW
-			UI.Element.InvalidateReason.CHILD_ADDED
-			UI.Element.InvalidateReason.CHILD_REMOVED
-			*/
-		},
-		preDraw: function(canvas, context, private) {
-			// Called before the element is going to be drawn
-		},
-		postDraw: function(canvas, context, private) {
-			// Called after the element is drawn
-		}
+            /*
+            UI.Element.InvalidateReason.ELEMENT_REFLOW
+            UI.Element.InvalidateReason.ELEMENT_ADDED
+            UI.Element.InvalidateReason.ELEMENT_REMOVED
+            UI.Element.InvalidateReason.CHILD_REFLOW
+            UI.Element.InvalidateReason.CHILD_ADDED
+            UI.Element.InvalidateReason.CHILD_REMOVED
+            */
+        },
+        preDraw: function(canvas, context, private) {
+            // Called before the element is going to be drawn
+        },
+        postDraw: function(canvas, context, private) {
+            // Called after the element is drawn
+        }
     });
 
 });
@@ -213,25 +213,25 @@ Tests.registerAsync("NSS.addProperty", function(next) {
 // XXX : API draft for addTheme
 Tests.registerAsync("NSS.addTheme", function(next) {
     UI.NSS.addTheme("foo", {
-		// Base Colors
-		primaryColor: "#0000FF",
-		altColor: "#00FF00",
-		textColor: "#000000",
-		altTextColor: "#FFFFFF",
+        // Base Colors
+        primaryColor: "#0000FF",
+        altColor: "#00FF00",
+        textColor: "#000000",
+        altTextColor: "#FFFFFF",
 
-		// Default to be used for any UI Element
-		default: {
-			textSize: 30
-		},
-		
-		// Specific style for a class
-		".className": {
-			backgroundColor: "#FF0000"
-		},
+        // Default to be used for any UI Element
+        default: {
+            textSize: 30
+        },
+        
+        // Specific style for a class
+        ".className": {
+            backgroundColor: "#FF0000"
+        },
 
-		// Specific drawing for UI Element
-		"UI.Radio": function() {
-		}
+        // Specific drawing for UI Element
+        "UI.Radio": function() {
+        }
     });
 });
 
