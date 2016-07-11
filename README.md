@@ -1,10 +1,10 @@
 # ɳidium
 
-ɳidium enables you to build graphical softwares with JavaScript. It's not NodeJS, QT, Chromium, or a WebKit derivate, It's built from scratch, has a small codebase written in c++, and leverage the combination of Skia Graphics toolkit from Google and SpiderMonkey JavaScript engine from Mozilla. 
+ɳidium helps you create graphical softwares with JavaScript. It's not NodeJS, QT, Chromium, or a WebKit derivate. It has been designed from scratch and has a small codebase written in C++. ɳidium leverages the combination of Skia Graphics from Google, and Mozilla's JavaScript Engine (SpiderMonkey). 
 
 ## Download
 
-You can find Nidium latest build on http://downloads.nidium.com/
+You can find ɳidium's latest builds on http://downloads.nidium.com/
 
 ## Hello world
 
@@ -33,15 +33,15 @@ hello.nml
     </application>
 ```
 
-## Building Nidium
+## Building ɳidium
 
-To build Nidium you need at least 5GB of disk space. Depending of the speed of your computer a build from scratch will take between 30min to 1H30.
+To build ɳidium you need at least 5GB of disk space. A build from scratch will take between 30min to 1H30, depending of the speed of your computer.
 
 ```
-$ apt-get install python2.7 git build-essential clang cmake pkg-config libgtk2.0-dev libgtk-3-dev mesa-common-dev libglu1-mesa-dev yasm libasound2 libasound2-dev libbz2-1.0
+$ apt-get install python2.7 git make patch clang pkg-config libgtk2.0-dev libgtk-3-dev mesa-common-dev libglu1-mesa-dev yasm libasound2 libasound2-dev libbz2-1.0
 
-$ git clone https@github.com/nidium/NidiumTools.git
-$ git clone --recursive https@github.com/nidium/Nidium.git
+$ git clone https://github.com/nidium/NidiumTools.git
+$ git clone --recursive https://github.com/nidium/Nidium.git
 $ export PYTHONPATH=$(pwd)/NidiumTools/src
 $ cd Nidium
 $ ./configure_frontend
@@ -55,32 +55,32 @@ Use of this source code is governed by a MIT license that can be found in the LI
 
 ## FAQ
 
-**Q:** _What is the prupose of Nidium?_
+**Q:** _What is the prupose of ɳidium?_
 
-**A:** Building graphical application with JavaScript and without the browser stack.
+**A:** Creating high performance JavaScript applications without the browser stack.
 
 ---
 
-**Q:** _Does Nidium require a GPU?_
+**Q:** _Does ɳidium require a GPU?_
 
 **A:** Yes
 
 ---
 
-**Q:** _What platform Nidium currently support?_
+**Q:** _What platform ɳidium currently support?_
 
-**A:** As of today Nidium runs on `linux` and `OSX`. The port to Android is a work in progress. Window port is in our top priorty list. 
-Contact us if you would like us to increase focus on a specific platform.
-
----
-
-**Q:** _Are you aware that Nidium is a kind of game-engine?_
-
-**A:** Yes & No. It does an amazing job at rendering but there is no physics-engine or 3D engine built in.
+**A:** As of today, ɳidium runs on `linux` and `OSX`. The port to Android is still a work in progress. Windows port is in our top priority list.  
+Feel free to contact us if you need information on a specific platform.
 
 ---
 
-**Q:** _Are you aware that Nidium is a kind of browser?_
+**Q:** _Can I use ɳidium as a kind of game-engine?_
+
+**A:** Yes. It does an amazing job at rendering, but there is no physic-engine behind, or any 3D engine built in.
+
+---
+
+**Q:** _Is ɳidium a kind of browser?_
 
 **A:** Yes & No. Nidium has similarities with a browser, but it's definitely not a browser (No HTML)
 
@@ -88,53 +88,53 @@ Contact us if you would like us to increase focus on a specific platform.
 
 **Q:** _How does it compare to `node-webkit` or `electron` ?_
 
-**A:**  Nidium is not built on top of a browser.
+**A:**  ɳidium is not built on top of a browser.
 
 ---
 
 **Q:** _How does it compare to `flash`?_
 
-**A:** Nidium just like flash use vector graphics, but Nidium is not a plugin that run in the browser, it use JavaScript and not ActionScript. And of course, it's open source :)
+**A:** Both ɳidium and flash use vector graphics, but ɳidium is not a browser plugin. With ɳidium, you write application using JavaScript instead of ActionScript. And of course, it's open source :)
 
 ---
 
 **Q:** _How does it compare to `openframeworks`?_
 
-**A:** There you program in c++; Nidium lets you use plain javascript.
+**A:** ɳidium lets you use plain JavaScript instead of C++.
 
 ---
 
 **Q:** _Why did you make a server version?_
 
 **A:** The core components were designed to be reused as a library.
-   We needed a very fast, low latency, robust server. As the async network layer is very fast and we dogfooded Nidium to outperform Node.js/Socket.IO. 
-   This server has been tested in production environement (>810 M req / day).
-   Don't forget that Nidium (frontend) has the same server built in, which can give your application amazing posibilities.
+   We needed a very fast, low latency, robust server. As the async network layer is very fast and we dogfooded ɳidium to outperform Node.js/Socket.IO. 
+   This server has been tested in production environement (>810M requests / day).
+   Off course, ɳidium (frontend) has the same built-in server, which can give your application amazing posibilities.
 
 ---
 
 **Q:** _Will there be a kind of `comet` or `push` module?_
 
 **A:** Yes! This project is build around the networklayer that was also used in the
-   [APE-Project](http://ape-project.org/). You can expect some cool things in a near future.
+   [APE-Project](http://ape-project.org/). You can expect some cool stuffs in a near future.
 
 ---
 
 **Q:** _Can I use `ES6` features?_
 
 **A:** Yes [several](https://kangax.github.io/compat-table/es6/#firefox31). Currently 
-   we are focussing to add more features and modules; but we will defenitly 
+   we are focussing to add more features and modules, but we will definitely 
    extend es6 support.
 
 ---
 
-**Q:** _Can i reuse `Node.js` modules?_
+**Q:** _Can I reuse `Node.js` modules?_
 
-**A:** Yes & No. Nidium has support for `require()` but NodeJS API has not been ported to Nidium. So this means that any modules that use NodeJS specific API/features will not work. 
+**A:** Yes & No. Nidium has support for `require()` but NodeJS API has not been ported to Nidium. So this means that any modules that use NodeJS specific API/features will not work.
 
 ---
 
-**Q:** _Any plans to make Nidium compatible with NodeJS API?_
+**Q:** _Any plan to make ɳidium compatible with NodeJS API?_
 
 **A:** Yes, but this is not _yet_ on our top priority list. 
 
@@ -147,12 +147,6 @@ Contact us if you would like us to increase focus on a specific platform.
 
 ---
 
-**Q:** _Can I persuade you to focus on `...` ?_
+**Q:** _How can I help?_
 
-**A:** Sure! Head over our slack channel and chat with us :)
-
----
-
-**Q:** _Can I help?_
-
-**A:** Sure!
+**A:** Head over our slack channel and come chat with us :)
