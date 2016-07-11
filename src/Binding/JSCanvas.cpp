@@ -13,6 +13,7 @@
 #include "Graphics/Canvas3DContext.h"
 #include "Graphics/CanvasHandler.h"
 #include "Binding/JSCanvas2DContext.h"
+#include "JSCanvasProperties.h"
 
 using Nidium::Core::SharedMessages;
 using Nidium::Interface::UIInterface;
@@ -50,59 +51,6 @@ static struct nidium_cursors {
     {NULL,                  UIInterface::NOCHANGE},
 };
 
-enum {
-    CANVAS_PROP_WIDTH = 1,
-    CANVAS_PROP_HEIGHT,
-    CANVAS_PROP_POSITION,
-    /* relative positions */
-    CANVAS_PROP_TOP,
-    CANVAS_PROP_LEFT,
-    CANVAS_PROP_RIGHT,
-    CANVAS_PROP_BOTTOM,
-    /* .show()/.hide() */
-    CANVAS_PROP_VISIBLE,
-    /* Element is going to be drawn */
-    CANVAS_PROP___VISIBLE,
-    /* Absolute positions */
-    CANVAS_PROP___TOP,
-    CANVAS_PROP___LEFT,
-    /* conveniance getter for getContext("2D") */
-    CANVAS_PROP_CTX,
-
-    CANVAS_PROP_COATING,
-    CANVAS_PROP_CLIENTLEFT,
-    CANVAS_PROP_CLIENTTOP,
-    CANVAS_PROP_CLIENTWIDTH,
-    CANVAS_PROP_CLIENTHEIGHT,
-    CANVAS_PROP_OPACITY,
-    CANVAS_PROP_OVERFLOW,
-    CANVAS_PROP_CONTENTWIDTH,
-    CANVAS_PROP_INNERWIDTH,
-    CANVAS_PROP_CONTENTHEIGHT,
-    CANVAS_PROP_INNERHEIGHT,
-    CANVAS_PROP_SCROLLTOP,
-    CANVAS_PROP_SCROLLLEFT,
-    CANVAS_PROP___FIXED,
-    CANVAS_PROP___OUTOFBOUND,
-    CANVAS_PROP_ALLOWNEGATIVESCROLL,
-    CANVAS_PROP_STATICLEFT,
-    CANVAS_PROP_STATICRIGHT,
-    CANVAS_PROP_STATICTOP,
-    CANVAS_PROP_STATICBOTTOM,
-    CANVAS_PROP_MINWIDTH,
-    CANVAS_PROP_MINHEIGHT,
-    CANVAS_PROP_MAXWIDTH,
-    CANVAS_PROP_MAXHEIGHT,
-    CANVAS_PROP_FLUIDHEIGHT,
-    CANVAS_PROP_FLUIDWIDTH,
-    CANVAS_PROP_ID,
-    CANVAS_PROP_MARGINLEFT,
-    CANVAS_PROP_MARGINRIGHT,
-    CANVAS_PROP_MARGINTOP,
-    CANVAS_PROP_MARGINBOTTOM,
-    CANVAS_PROP_CURSOR
-};
-
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Canvas_Trace(JSTracer *trc, JSObject *obj);
 
@@ -125,7 +73,7 @@ static JSClass Canvas_Inherit_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-static bool nidium_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
+bool nidium_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp);
 static bool nidium_canvas_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp);
@@ -780,7 +728,7 @@ static bool nidium_canvas_setContext(JSContext *cx, unsigned argc,
 
 
 /* TODO: do not change the value when a wrong type is set */
-static bool nidium_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
+bool nidium_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
     CanvasHandler *handler = HANDLER_GETTER_SAFE(cx, obj);

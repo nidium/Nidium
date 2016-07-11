@@ -38,6 +38,7 @@ namespace Graphics {
 namespace Binding {
     class NidiumJS;
     class JSWindow;
+    class JSFalcon;
 }
 namespace Frontend {
 
@@ -162,6 +163,10 @@ class Context : public Core::Context, public Core::Messages
         return m_JSWindow;
     }
 
+    Binding::JSFalcon *getJSFalcon() const {
+        return m_JSFalcon;
+    }
+
     void setJSWindow(Binding::JSWindow *obj) {
         m_JSWindow = obj;
     }
@@ -264,6 +269,7 @@ class Context : public Core::Context, public Core::Messages
     Net::WebSocketClientConnection *m_WSClient;
     ShBuiltInResources         m_ShResources;
     Binding::JSWindow *        m_JSWindow;
+    Binding::JSFalcon *        m_JSFalcon;
     bool                       m_SizeDirty;
 
     struct {

@@ -19,6 +19,7 @@
 #include "Binding/JSCanvas.h"
 #include "Binding/JSWindow.h"
 #include "Binding/JSProcess.h"
+#include "Binding/JSFalcon.h"
 
 #include "Graphics/CanvasHandler.h"
 #include "Graphics/SkiaContext.h"
@@ -186,6 +187,7 @@ void Context::loadNativeObjects(int width, int height)
 #endif
     JS::RootedObject docObj(cx, JSDocument::RegisterObject(cx));
     m_JSWindow = JSWindow::RegisterObject(cx, width, height, docObj);
+    m_JSFalcon = JSFalcon::RegisterObject(cx);
 
     JSProcess::RegisterObject(cx, m_UI->m_Argv, m_UI->m_Argc, 0);
 
@@ -354,8 +356,8 @@ void Context::callFrame()
         m_Stats.samples[0] = m_Stats.fps;
     }
 
+    m_JSFalcon->onFrame();
     m_JSWindow->callFrameCallbacks(tmptime);
-
 }
 
 

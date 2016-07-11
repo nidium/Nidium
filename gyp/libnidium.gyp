@@ -130,6 +130,7 @@
             '<(nidium_src_path)/Binding/JSDocument.cpp',
             '<(nidium_src_path)/Binding/JSCanvas.cpp',
             '<(nidium_src_path)/Binding/JSCanvas2DContext.cpp',
+            '<(nidium_src_path)/Binding/JSFalcon.cpp',
             '<(nidium_src_path)/IO/SystemStream.cpp',
         ],
     }],
