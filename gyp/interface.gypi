@@ -36,12 +36,13 @@
             ],
             'defines': ['NIDIUM_USE_GTK'],
             'cflags': [
-                '<!@(pkg-config --cflags gtk+-2.0)',
+                '<!@(pkg-config --cflags gtk+-3.0)',
             ],
             'libraries': [
                 '-lX11',
-                '<!@(pkg-config --libs gtk+-2.0)',
+                '<!@(pkg-config --libs gtk+-3.0)',
                 '-lnotify',
+                '-lfontconfig',
             ],
         }],
         ['nidium_ui_console==0', {

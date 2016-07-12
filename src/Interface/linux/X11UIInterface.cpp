@@ -18,9 +18,7 @@
 
 #include "System.h"
 
-#ifdef NIDIUM_USE_GTK
 #include <gtk/gtk.h>
-#endif
 
 namespace Nidium {
 namespace Interface {
@@ -47,21 +45,15 @@ UIX11Interface::UIX11Interface() : UIInterface(), m_Mainjs({0, 0, 0}), m_Console
 
 void UIX11Interface::quitApplication()
 {
-#ifdef NIDIUM_USE_GTK
-    while (gtk_events_pending ()) {
-        gtk_main_iteration();
-    }
-#endif
+    this->processGtkPendingEvents();
+
     exit(1);
 }
 
 void UIX11Interface::hitRefresh()
 {
-#ifdef NIDIUM_USE_GTK
-    while (gtk_events_pending ()) {
-        gtk_main_iteration();
-    }
-#endif
+    this->processGtkPendingEvents();
+
     this->restartApplication();
 }
 
@@ -75,15 +67,16 @@ void UIX11Interface::onWindowCreated()
 void UIX11Interface::openFileDialog(const char *files[],
     void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags)
 {
-#ifdef NIDIUM_USE_GTK
     GtkWidget *dialog;
 
     dialog = gtk_file_chooser_dialog_new ("Open File",
-            static_cast<GtkWindow *>(NULL),
+            nullptr,
             GTK_FILE_CHOOSER_ACTION_OPEN,
-            GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-            GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
-            static_cast<gchar *>(NULL));
+            "_Cancel",
+            GTK_RESPONSE_CANCEL,
+            "_Open",
+            GTK_RESPONSE_ACCEPT,
+            nullptr);
 
     if (files != NULL) {
         GtkFileFilter *filter;
@@ -150,9 +143,7 @@ void UIX11Interface::openFileDialog(const char *files[],
 
     gtk_widget_destroy(dialog);
 
-    while (gtk_events_pending ()) {
-        gtk_main_iteration();
-    }
+    this->processGtkPendingEvents();
 
     if (i > 0) {
         cb(arg, lst, i);
@@ -166,7 +157,6 @@ void UIX11Interface::openFileDialog(const char *files[],
     }
 
     free(lst);
-#endif
 }
 
 static int ProcessSystemLoop(void *arg)
@@ -187,6 +177,13 @@ void UIX11Interface::runLoop()
     APE_timer_create(m_Gnet, 1, UIInterface::HandleEvents, static_cast<void *>(this));
     APE_timer_create(m_Gnet, 1, ProcessSystemLoop, static_cast<void *>(this));
     APE_loop_run(m_Gnet);
+}
+
+void UIX11Interface::processGtkPendingEvents()
+{
+    while (gtk_events_pending ()) {
+        gtk_main_iteration();
+    }
 }
 
 void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)

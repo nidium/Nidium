@@ -62,6 +62,8 @@ class UIX11Interface : public UIInterface
         void hitRefresh();
         void onWindowCreated();
     private:
+        void processGtkPendingEvents();
+
         UIX11Console *m_Console;
 };
 // }}}
