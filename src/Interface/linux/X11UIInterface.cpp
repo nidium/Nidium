@@ -59,7 +59,7 @@ void UIX11Interface::hitRefresh()
 
 void UIX11Interface::onWindowCreated()
 {
-    m_Console = new UIX11Console();
+    m_Console = new UIX11Console(this);
     static_cast<System *>(SystemInterface::_interface)->initSystemUI();
 }
 
@@ -266,8 +266,77 @@ void UIX11Interface::renderSystemTray()
 // {{{ UIX11Console
 void UIX11Console::log(const char *str)
 {
-    fprintf(stdout, "%s", str);
-    fflush(stdout);
+    if (m_IsOpen) {
+        GtkScrolledWindow *scroll = GTK_SCROLLED_WINDOW(m_Scroll);
+        GtkTextMark *mark = gtk_text_buffer_get_insert(m_Buffer);
+        GtkTextIter iter;
+    
+        // Add the text
+        gtk_text_buffer_get_iter_at_mark (m_Buffer , &iter, mark);
+        gtk_text_buffer_insert (m_Buffer, &iter, str, -1);
+
+        // Scroll the window
+        GtkAdjustment *adjustment = 
+            gtk_scrolled_window_get_vadjustment(scroll);
+
+        gtk_adjustment_set_value(adjustment, gtk_adjustment_get_upper(adjustment));
+
+        m_Interface->processGtkPendingEvents();
+    } else {
+        fprintf(stdout, "%s", str);
+        fflush(stdout);
+    }
+}
+
+static void consoleHidden(GtkWidget *widget, GdkEvent *ev, gpointer priv)
+{
+    UIX11Console *console = static_cast<UIX11Console *>(priv);
+    console->hide();
+}
+
+void UIX11Console::show()
+{
+    if (m_IsOpen) return;
+
+    if (!m_Window) {
+        GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+
+        m_TextView = gtk_text_view_new();
+        m_Window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+        m_Buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(m_TextView));
+        m_Scroll = gtk_scrolled_window_new(NULL, NULL);
+
+        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(m_Scroll), 
+            GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+
+        gtk_text_view_set_editable(GTK_TEXT_VIEW(m_TextView), FALSE);
+        gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(m_TextView), FALSE);
+        gtk_text_view_set_monospace(GTK_TEXT_VIEW(m_TextView), TRUE);
+
+        gtk_window_set_default_size(GTK_WINDOW(m_Window), 300, 200);
+        gtk_window_set_title(GTK_WINDOW(m_Window), "Nidium Console");
+
+        gtk_container_add(GTK_CONTAINER(m_Scroll), m_TextView);
+
+        gtk_box_pack_start(GTK_BOX(vbox), m_Scroll, TRUE, TRUE, 0);
+
+        gtk_container_add(GTK_CONTAINER(m_Window), vbox);
+
+        g_signal_connect(m_Window, "delete-event", G_CALLBACK(consoleHidden), this);
+    }
+
+    gtk_widget_show_all(m_Window);
+
+    m_IsOpen = true;
+}
+
+void UIX11Console::hide()
+{
+    if (!m_Window || !m_IsOpen) return;
+
+    printf("hide\n");
+
+    gtk_widget_hide(m_Window);
 }
 // }}}
 
