@@ -311,7 +311,8 @@ void UIX11Console::show()
 
         gtk_text_view_set_editable(GTK_TEXT_VIEW(m_TextView), FALSE);
         gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(m_TextView), FALSE);
-        gtk_text_view_set_monospace(GTK_TEXT_VIEW(m_TextView), TRUE);
+
+        g_object_set(m_TextView, "monospace", TRUE, NULL);
 
         gtk_window_set_default_size(GTK_WINDOW(m_Window), 300, 200);
         gtk_window_set_title(GTK_WINDOW(m_Window), "Nidium Console");
