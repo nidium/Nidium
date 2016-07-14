@@ -357,6 +357,12 @@ class JSExposer
                 JSExposer<T>::Nidium_jsevent_removeEventListener, 1, JSPROP_ENUMERATE | JSPROP_PERMANENT),
             JS_FN("fireEvent",
                 JSExposer<T>::Nidium_jsevent_fireEvent, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+
+            // Expose shorthand alias too
+            JS_FN("on",
+                JSExposer<T>::Nidium_jsevent_addEventListener, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+            JS_FN("emit",
+                JSExposer<T>::Nidium_jsevent_fireEvent, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
             JS_FS_END
         };
 
