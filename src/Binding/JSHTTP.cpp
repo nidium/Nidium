@@ -292,8 +292,12 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
             dataLen = JS_GetArrayBufferByteLength(obj);
 
             // Since the data may not be used right away
-            // we need to root them until they request is done
+            // we need to root them until the request is done
             JS_SetReservedSlot(m_JSObj, 1, __curopt);
+
+            // Disable auto release of the
+            // data, as it's owned by the JS.
+            m_HTTPRequest->setDataReleaser(nullptr);
         } else {
             JS::RootedString str(cx, JS::ToString(cx, __curopt));
 
