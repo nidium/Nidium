@@ -1,7 +1,7 @@
 <application version="0.1">
     <meta>
         <title>nidium</title>
-        <viewport>800x600</viewport>
+        <viewport>300x300</viewport>
         <version>1.0</version>
         <date>2012-03-15</date>
         <robots>index, follow</robots>
@@ -9,6 +9,38 @@
         <author>Nidium Inc.</author>
     </meta>
     <assets>
+    <script>
+        var c = new Canvas(window.innerWidth, window.innerHeight);
+        var ctx = c.getContext("2d");
+
+        document.canvas.add(c);
+
+        // Background
+        ctx.fillStyle = "#1e242e";
+        ctx.fillRect(0, 0, c.width, c.height);
+
+        // Logo background
+        var size = 100;
+        var x = c.width/2 - size/2;
+        var y = c.height/2 - size/2 - 20;
+
+        ctx.fillStyle = "#FFF";
+        ctx.fillRect(x, y, size, size, size);
+
+        // Logo text
+        ctx.fontSize = 70;
+        ctx.fillStyle = "#1e242e";
+
+        var tmp = ctx.measureText("ɳ");
+
+        ctx.fillText("ɳ", x + size/2 - tmp.width/2, y + size/2 + 15);
+
+        // Nidium website
+        ctx.fontSize = 15;
+        ctx.fillStyle = "#2e3440";
+        var tmp = ctx.measureText("http://www.nidium.com");
+        ctx.fillText("http://www.nidium.com", c.width / 2 - tmp.width / 2, y + size + 30);
+    </script>
     </assets>
 </application>
 
