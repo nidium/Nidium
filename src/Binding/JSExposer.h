@@ -421,21 +421,46 @@ class JSExposer
     }
 
     bool fireJSEvent(const char *name, JS::MutableHandleValue evobj) {
+        JS::RootedObject thisobj(m_Cx, m_JSObject);
+        JS::AutoValueArray<1> params(m_Cx);
+        JS::RootedValue callback(m_Cx);
+        char onEv[128] = "on";
+
+        params[0].set(evobj);
+
+        strncat(onEv, name, 128 - 3);
+
+        JS_GetProperty(m_Cx, thisobj, onEv, &callback);
+
+        if (callback.isObject() &&
+                JS_ObjectIsCallable(m_Cx, callback.toObjectOrNull())) {
+            JS::RootedValue rval(m_Cx);
+
+            JS_CallFunctionValue(m_Cx, thisobj, callback, params, &rval);
+
+            if (JS_IsExceptionPending(m_Cx)) {
+                if (!JS_ReportPendingException(m_Cx)) {
+                    JS_ClearPendingException(m_Cx);
+                }
+            }
+        }
+
         if (!m_Events) {
             return false;
         }
+
         /*
         if (0 && !JS_InstanceOf(m_Cx, evobj.toObjectOrNull(),
             &JSEvent_class, NULL)) {
             evobj.setUndefined();
         }*/
+
         JSEvents *events = m_Events->get(name);
         if (!events) {
             return false;
         }
 
-        JS::RootedObject obj(m_Cx, m_JSObject);
-        events->fire(m_Cx, evobj, obj);
+        events->fire(m_Cx, evobj, thisobj);
 
         return true;
     }

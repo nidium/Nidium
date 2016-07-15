@@ -16,6 +16,20 @@ Tests.registerAsync("Image.src", function(next) {
     img.src = "http://tests.nidium.com/img/nidium.png";
 }, 2000);
 
+Tests.registerAsync("Image.src (onload property)", function(next) {
+    var img = new Image();
+
+    img.onload = function() {
+        next();
+    };
+
+    img.onerror = function() {
+        throw new Error("Error happened during image loading : " + ev.error);
+    };
+
+    img.src = "http://tests.nidium.com/img/nidium.png";
+}, 2000);
+
 Tests.registerAsync("Image.src (non existent file)", function(next) {
     var img = new Image();
 
