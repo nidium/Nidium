@@ -10,15 +10,21 @@ NamespaceDoc("ImageData", "ImageData Class.",
     section="Canvas"
 )
 
-items = {"width": "integer", "height": "integer", "data": "Image"}
-for i, typed in items.items():
-    FieldDoc( "ImageData." + i, "The " + i + " value.",
-        SeesDocs( "ImageData.width|Image|ImageData.height|ImageData.data" ),
-        NO_Examples,
-        IS_Dynamic, IS_Public, IS_Readonly,
-        typed,
-        NO_Default
-    )
+items = {"width": "integer", "height": "integer", "data": "ArrayBuffer"}
+FieldDoc( "ImageData.width", "The width of the image (pixel)",
+    sees=SeesDocs( "ImageData.height|ImageData.data" ),
+    typed="integer",
+)
+
+FieldDoc( "ImageData.height", "The height of the image (pixel)",
+    sees=SeesDocs( "ImageData.width|ImageData.data" ),
+    typed="integer",
+)
+
+FieldDoc( "ImageData.data", "An `ArrayBuffer` with the actual data (pixels) of the canvas",
+    sees=SeesDocs( "ImageData.width|ImageData.height" ),
+    typed="ArrayBuffer",
+)
 
 NamespaceDoc("CanvasRenderingContext2D", "Class to render a 2D canvas.",
     SeesDocs("Canvas|CanvasGLProgram|CanvasPattern|CanvasRenderingContext2D" ),
