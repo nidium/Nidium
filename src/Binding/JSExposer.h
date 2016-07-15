@@ -227,19 +227,17 @@ public:
         m_Queue = ev;
     }
 
-    bool fire(JS::HandleValue evobj, JSObject *thisobj) {
+    bool fire(JSContext *cx, JS::HandleValue evobj, JS::HandleObject obj) {
         JSEvent *ev;
         m_IsFiring = true;
 
+        JS::RootedObject thisobj(cx, obj);
+        JS::AutoValueArray<1> params(cx);
+        params[0].set(evobj);
+
         for (ev = m_Head; ev != NULL;) {
-            JSContext *cx;
-
-            JS::AutoValueArray<1> params(ev->m_Cx);
-            JS::RootedValue rval(ev->m_Cx);
-            JS::RootedObject obj(ev->m_Cx, thisobj);
-            JS::RootedValue fun(ev->m_Cx, ev->m_Function);
-
-            params[0].set(evobj);
+            JS::RootedValue rval(cx);
+            JS::RootedValue fun(cx, ev->m_Function);
 
             /*
                 Keep a reference to the next event in case the event is self
@@ -248,9 +246,8 @@ public:
                 to the next valid event.
             */
             m_TmpEv = ev->next;
-            cx = ev->m_Cx;
 
-            JS_CallFunctionValue(ev->m_Cx, obj, fun, params, &rval);
+            JS_CallFunctionValue(cx, thisobj, fun, params, &rval);
 
             if (JS_IsExceptionPending(cx)) {
                 if (!JS_ReportPendingException(cx)) {
@@ -437,7 +434,8 @@ class JSExposer
             return false;
         }
 
-        events->fire(evobj, m_JSObject);
+        JS::RootedObject obj(m_Cx, m_JSObject);
+        events->fire(m_Cx, evobj, obj);
 
         return true;
     }
