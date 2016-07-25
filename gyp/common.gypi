@@ -27,7 +27,9 @@
             "OTHER_LDFLAGS": [
                 '-stdlib=libc++',
                 # Because of an issue with gyp & xcode we need to hardcode this path : 
-                # - On OSX xcodeproj files are generated inside the gyp/ directory of the gyp file called. Settings --generator-output flag does not have any effect. XCode will "cd" inside the directory of the xcodeproj file (this is problematic when building libapenetwork unit-tests)
+                # - On OSX xcodeproj files are generated inside the gyp/ directory of the gyp file called. 
+                #     Settings --generator-output flag does not have any effect. XCode will "cd" inside 
+                #     the directory of the xcodeproj file (this is problematic when building libapenetwork unit-tests)
                 # - On Linux Makefie are generated inside the build/ directory at the root of the repo no mater what.
                 '-L<(DEPTH)/build/third-party',
                 #'-L<(nidium_output_third_party_path)',
