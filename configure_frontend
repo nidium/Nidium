@@ -202,7 +202,7 @@ def rapidxml():
 @Deps.register("ffmpeg")
 def ffmpeg():
     return {
-        "location": Deps.GitRepo("git://source.ffmpeg.org/ffmpeg.git", tag="n2.5.11"),
+        "location": Deps.GitRepo("git://git.ffmpeg.org/ffmpeg.git", tag="n2.5.11"),
         "patch": [],
         "build":
         [
