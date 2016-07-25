@@ -39,6 +39,9 @@
                          ],
                     }],
                 ],
+                'ldflags': [
+                    '-rdynamic',
+                ],
                 'link_settings': {
                     'libraries': [
                         '-Wl,--start-group',
@@ -82,7 +85,10 @@
                     'STRIP_INSTALLED_PRODUCT': 'YES',
                     'COPY_PHASE_STRIP': 'YES',
                     'DEBUGGING_SYMBOLS': 'NO',
-                    'DEAD_CODE_STRIPPING': 'YES'
+                    'DEAD_CODE_STRIPPING': 'YES',
+                    "OTHER_LDFLAGS": [
+                        '-rdynamic',
+                    ]
                 },
                 'conditions': [
                     ['nidium_enable_breakpad==1', {
