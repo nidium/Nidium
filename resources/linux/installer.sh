@@ -5,7 +5,7 @@ BASE_INSTALL_DIR="${HOME}/nidium"
 if [ "$(id -u)" = "0" ]
 then
     IS_ROOT=1
-    BASE_INSTALL_DIR="/opt/nidium"
+    BASE_INSTALL_DIR="/usr/local/bin/nidium"
 else
     echo "------------"
     echo "NOTE : You are running this script as \"$(whoami)\". Nidium will only be installed for this user."

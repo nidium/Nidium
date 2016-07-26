@@ -9,9 +9,9 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="64.879364mm"
-   height="64.879364mm"
-   viewBox="0 0 229.88751 229.88751"
+   width="180.93848mm"
+   height="180.93848mm"
+   viewBox="0 0 641.12059 641.12058"
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
@@ -25,21 +25,30 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.7"
-     inkscape:cx="-155.80442"
-     inkscape:cy="30.93675"
+     inkscape:zoom="0.5"
+     inkscape:cx="126.25496"
+     inkscape:cy="319.33133"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
+     inkscape:showpageshadow="true"
+     showguides="true"
      inkscape:window-width="1438"
      inkscape:window-height="884"
      inkscape:window-x="0"
      inkscape:window-y="14"
-     inkscape:window-maximized="1"
-     fit-margin-top="2"
-     fit-margin-left="2"
-     fit-margin-right="2"
-     fit-margin-bottom="2" />
+     inkscape:window-maximized="0"
+     fit-margin-top="5"
+     fit-margin-left="5"
+     fit-margin-right="5"
+     fit-margin-bottom="5"
+     borderlayer="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid4175"
+       originx="-47.388047"
+       originy="-192.42193" />
+  </sodipodi:namedview>
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -56,23 +65,29 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-252.91339,-363.84702)">
+     transform="translate(-47.388048,-218.81972)">
     <circle
-       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#2b3442;fill-opacity:1;fill-rule:nonzero;stroke-width:1.25;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
-       id="path3336"
-       cx="367.85715"
-       cy="478.79077"
-       r="107.85714" />
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#1e242e;fill-opacity:1;fill-rule:nonzero;stroke-width:1.25;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       id="path4147"
+       cx="367.94833"
+       cy="539.38"
+       r="302.84375" />
+    <path
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.72067308px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.55319148"
+       d="m 232.54095,654.66384 46.67403,0 c -3.60336,-191.14658 183.77164,-191.14658 178.735,-0.16499 l 48.27703,-0.003 c 0,0 0,-219.80529 -136.92789,-230.61539 -136.92789,10.80977 -136.75817,230.78327 -136.75817,230.78327 z"
+       id="path4177-3"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:136.19241333px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="319.5752"
-       y="508.32773"
-       id="text4138"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="170.71577"
+       y="544.25549"
+       id="text4272"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
-         id="tspan4140"
-         x="319.5752"
-         y="508.32773">ɳ</tspan></text>
+         id="tspan4274"
+         x="170.71577"
+         y="544.25549" /></text>
   </g>
 </svg>
