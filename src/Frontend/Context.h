@@ -178,6 +178,10 @@ class Context : public Core::Context, public Core::Messages
         return &m_ShResources;
     }
 
+    ShShaderOutput getShaderOutputVersion() {
+        return m_ShShaderOutput;
+    }
+
 
     void callFrame();
     void createDebugCanvas();
@@ -263,6 +267,7 @@ class Context : public Core::Context, public Core::Messages
     Net::WebSocketServer *     m_WS;
     Net::WebSocketClientConnection *m_WSClient;
     ShBuiltInResources         m_ShResources;
+    ShShaderOutput             m_ShShaderOutput;
     Binding::JSWindow *        m_JSWindow;
     bool                       m_SizeDirty;
 

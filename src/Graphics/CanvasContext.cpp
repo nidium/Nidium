@@ -31,37 +31,34 @@ char *CanvasContext::ProcessShader(const char *content, shaderType type)
 {
     ShHandle compiler = NULL;
 
-    compiler = ShConstructCompiler((ShShaderType)type,
-        SH_WEBGL_SPEC, SH_GLSL_OUTPUT,
-        Context::GetObject<Frontend::Context>(NidiumJS::GetObject())->getShaderResources());
+    Frontend::Context *frontendContext = 
+        Context::GetObject<Frontend::Context>(NidiumJS::GetObject());
+
+    compiler = ShConstructCompiler((sh::GLenum)type,
+        SH_WEBGL_SPEC, frontendContext->getShaderOutputVersion(),
+        frontendContext->getShaderResources());
 
     if (compiler == NULL) {
         NUI_LOG("Shader : Compiler not supported");
         return NULL;
     }
 
-    if (!ShCompile(compiler, &content, 1, SH_OBJECT_CODE | SH_ATTRIBUTES_UNIFORMS |
-            SH_ENFORCE_PACKING_RESTRICTIONS | SH_MAP_LONG_VARIABLE_NAMES)) {
-        size_t logLen;
-        ShGetInfo(compiler, SH_INFO_LOG_LENGTH, &logLen);
-        char *log = static_cast<char *>(malloc(logLen));
+    if (!ShCompile(compiler, &content, 1, 
+            SH_VARIABLES | SH_ENFORCE_PACKING_RESTRICTIONS |
+            SH_OBJECT_CODE | SH_INIT_VARYINGS_WITHOUT_STATIC_USE | 
+            SH_LIMIT_CALL_STACK_DEPTH | SH_INIT_GL_POSITION)) {
 
-        ShGetInfoLog(compiler, log);
-        NUI_LOG("Shader error : %s", log);
+        std::string log = ShGetInfoLog(compiler);
+        printf("Shader error : %s", log.c_str());
 
-        free(log);
         return NULL;
     }
-    size_t bufferLen;
-    ShGetInfo(compiler, SH_OBJECT_CODE_LENGTH, &bufferLen);
 
-    char *ocode = static_cast<char *>(malloc(bufferLen));
-
-    ShGetObjectCode(compiler, ocode);
+    std::string buffer = ShGetObjectCode(compiler);
 
     ShDestruct(compiler);
 
-    return ocode;
+    return strdup(buffer.c_str());
 }
 
 uint32_t CanvasContext::CompileShader(const char *data, int type)
