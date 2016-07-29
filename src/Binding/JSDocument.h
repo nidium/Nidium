@@ -31,9 +31,9 @@ class JSDocument : public JSExposer<JSDocument>
 {
   public:
     JSDocument(JS::HandleObject obj, JSContext *cx) :
-    JSExposer<JSDocument>(obj, cx, false),
-    m_Fonts(256000) {};
-    ~JSDocument() {};
+        JSExposer<JSDocument>(obj, cx, false),
+        m_Fonts(256000) {};
+        ~JSDocument() {};
 
     static bool m_ShowFPS;
     bool populateStyle(JSContext *cx, const char *data,
