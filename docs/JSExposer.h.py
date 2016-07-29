@@ -6,26 +6,19 @@ from dokumentor import *
 
 NamespaceDoc( "NidiumEvent", "Event coordinator.\n\n Every object exposed by Nidium inherits from NidiumEvent.",
     SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" ),
-    NO_Examples,
     products=["Frontend", "Server"]
 )
 
-FieldDoc( "NidiumEvent.stopProgagation", "Stops the propagation of an event.",
-    SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" ),
-    NO_Examples,
-    NO_Params
+FunctionDoc( "NidiumEvent.stopProgagation", "Stops the propagation of an event.",
+    SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" )
 )
 
-FieldDoc( "NidiumEvent.preventDefault", "Prevents further listener to receive this event.",
-    SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" ),
-    NO_Examples,
-    NO_Params
+FunctionDoc( "NidiumEvent.preventDefault", "Prevents further listener to receive this event.",
+    SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" )
 )
 
-FieldDoc( "NidiumEvent.forcePropagation", "Forces further listener to receive this event..",
-    SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" ),
-    NO_Examples,
-    NO_Params
+FunctionDoc( "NidiumEvent.forcePropagation", "Forces further listener to receive this event..",
+    SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" )
 )
 
 """
