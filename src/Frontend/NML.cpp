@@ -144,7 +144,7 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
     }
 
     if (html5) {
-        if (strncasecmp(framework->value(), CONST_STR_LEN("true")) == 0) {
+        if (strncasecmp(html5->value(), CONST_STR_LEN("true")) == 0) {
             m_LoadHTML5 = true;
         }
     }
