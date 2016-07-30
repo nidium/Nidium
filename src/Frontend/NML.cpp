@@ -39,7 +39,8 @@ namespace Frontend {
 NML::NML(ape_global *net) :
     m_Net(net), m_Stream(NULL), m_nAssets(0),
     m_Njs(NULL), m_Loaded(NULL), m_LoadedArg(NULL), m_Layout(NULL),
-    m_JSObjectLayout(NULL), m_DefaultItemsLoaded(false), m_LoadFramework(true)
+    m_JSObjectLayout(NULL), m_DefaultItemsLoaded(false),
+    m_LoadFramework(true), m_LoadHTML5(false)
 {
     m_AssetsList.size = 0;
     m_AssetsList.allocated = 4;
@@ -134,10 +135,17 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
     }
 
     xml_attribute<char> *framework = node->first_attribute(CONST_STR_LEN("framework"), false);
+    xml_attribute<char> *html5 = node->first_attribute(CONST_STR_LEN("html5"), false);
 
     if (framework) {
         if (strncasecmp(framework->value(), CONST_STR_LEN("false")) == 0) {
             m_LoadFramework = false;
+        }
+    }
+
+    if (html5) {
+        if (strncasecmp(framework->value(), CONST_STR_LEN("true")) == 0) {
+            m_LoadHTML5 = true;
         }
     }
 
@@ -391,6 +399,7 @@ void NML::onAssetsItemReady(Assets::Item *item)
                     args[0].setObjectOrNull(obj.obj());
 
                     obj.set("framework", m_LoadFramework);
+                    obj.set("html5", m_LoadHTML5);
 
                     JS_CallFunctionName(cx, gbl, "__nidiumPreload", args, &rval);
 

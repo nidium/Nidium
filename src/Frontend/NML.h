@@ -143,6 +143,7 @@ private:
 
     bool m_DefaultItemsLoaded;
     bool m_LoadFramework;
+    bool m_LoadHTML5;
 };
 
 } // namespace Frontend
