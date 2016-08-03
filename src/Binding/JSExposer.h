@@ -43,6 +43,13 @@
         return false; \
     } \
 
+#define NIDIUM_JS_PROLOGUE_CLASS_NO_RET_FOR_OBJ(ofclass, fclass, obj) \
+    ofclass *CppObj = static_cast<ofclass *>(JS_GetInstancePrivate(cx, obj, fclass, NULL)); \
+    if (!CppObj) { \
+        JS_ReportError(cx, "Illegal invocation"); \
+        return false; \
+    } \
+
 #define NIDIUM_JS_PROLOGUE_CLASS(ofclass, fclass) \
     NIDIUM_JS_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
     args.rval().setUndefined();
@@ -142,8 +149,10 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
     {{JS_CAST_NATIVE_TO((JSPropertyAccessors::NullGetter<tinyid>), JSPropertyOp), nullptr}}
 
 /* Getter only */
+// XXX : JSPROP_READONLY make an assertion in jsobj.cpp when calling Object.getOwnPropertyDescriptor
+
 #define NIDIUM_JS_PSG(name, tinyid, getter_func) \
-    {name, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
+    {name, JSPROP_PERMANENT | /*JSPROP_READONLY |*/ JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS, \
         NIDIUM_JS_GETTER(tinyid, getter_func), \
         JSOP_NULLWRAPPER}
 
