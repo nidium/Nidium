@@ -31,7 +31,6 @@ namespace Binding {
 
 // {{{ Preamble
 #define CANVASCTX_GETTER(obj) (static_cast<Canvas2DContext *>(JS_GetPrivate(obj)))
-#define SKIACTX_GETTER(obj) ((class SkiaContext *)((class Canvas2DContext *)JS_GetPrivate(obj))->getSurface())
 #define SKIACTX (CppObj->getSurface())
 #define HANDLER_GETTER(obj) ((CanvasHandler *)((class JSCanvas *)JS_GetPrivate(obj))->getHandler())
 
@@ -1426,11 +1425,14 @@ static bool nidium_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
 {
 #define CTX_PROP(prop) CTX_PROP_ ## prop
 
-    if (CANVASCTX_GETTER(obj)->m_SetterDisabled) {
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET_FOR_OBJ(Canvas2DContext, &Canvas2DContext_class, obj);
+
+    if (CppObj->m_SetterDisabled) {
         return true;
     }
 
-    SkiaContext *curSkia = SKIACTX_GETTER(obj);
+    SkiaContext *curSkia = CppObj->getSurface();
+
     switch (id) {
         case CTX_PROP(imageSmoothingEnabled):
         {
@@ -1592,7 +1594,7 @@ static bool nidium_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         break;
         case CTX_PROP(fillStyle):
         {
-            Canvas2DContextState *state = CANVASCTX_GETTER(obj)->getCurrentState();
+            Canvas2DContextState *state = CppObj->getCurrentState();
 
             if (vp.isString()) {
                 JS::RootedString vpStr(cx, JS::ToString(cx, vp));
@@ -1632,7 +1634,7 @@ static bool nidium_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
         break;
         case CTX_PROP(strokeStyle):
         {
-            Canvas2DContextState *state = CANVASCTX_GETTER(obj)->getCurrentState();
+            Canvas2DContextState *state = CppObj->getCurrentState();
 
             if (vp.isString()) {
                 JS::RootedString vpStr(cx, JS::ToString(cx, vp));
@@ -1749,8 +1751,11 @@ static bool nidium_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
     uint8_t id, JS::MutableHandleValue vp)
 {
 #define CTX_PROP(prop) CTX_PROP_ ## prop
-    SkiaContext *curSkia = SKIACTX_GETTER(obj);
-    Canvas2DContext *ctx = CANVASCTX_GETTER(obj);
+
+    NIDIUM_JS_PROLOGUE_CLASS_NO_RET_FOR_OBJ(Canvas2DContext, &Canvas2DContext_class, obj);
+
+    SkiaContext *curSkia = CppObj->getSurface();
+    Canvas2DContext *ctx = CppObj;
 
     switch (id) {
         case CTX_PROP(width):
