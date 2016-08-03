@@ -6,28 +6,22 @@ from dokumentor import *
 
 NamespaceDoc( "NidiumEvent", "Event coordinator.\n\n Every object exposed by Nidium inherits from NidiumEvent.",
     SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" ),
-    NO_Examples,
     products=["Frontend", "Server"]
 )
 
-EventDoc( "NidiumEvent.stopProgagation", "Stops the propagation of an event.",
-    SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" ),
-    NO_Examples,
-    NO_Params
+FunctionDoc( "NidiumEvent.stopProgagation", "Stops the propagation of an event.",
+    SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" )
 )
 
-EventDoc( "NidiumEvent.preventDefault", "Prevents further listener to receive this event.",
-    SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" ),
-    NO_Examples,
-    NO_Params
+FunctionDoc( "NidiumEvent.preventDefault", "Prevents further listener to receive this event.",
+    SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" )
 )
 
-EventDoc( "NidiumEvent.forcePropagation", "Forces further listener to receive this event..",
-    SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" ),
-    NO_Examples,
-    NO_Params
+FunctionDoc( "NidiumEvent.forcePropagation", "Forces further listener to receive this event..",
+    SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" )
 )
 
+"""
 FunctionDoc( "NidiumEvent.fireEvent", "Fire the event on all the listener of the object.",
     SeesDocs( "NidiumEvent.addEventListener|NidiumEvent.fireEvent" ),
     NO_Examples,
@@ -45,4 +39,4 @@ FunctionDoc( "NidiumEvent.addEventListener", "Register a callback for an event."
       CallbackDoc( "callback", "The function to execute once the event occurs", [ParamDoc("param", "Arguments", ObjectDoc([]), NO_Default, IS_Obligated ) ] )],
     NO_Returns
 )
-
+"""

@@ -12,34 +12,24 @@
     <script>
         var c = new Canvas(window.innerWidth, window.innerHeight);
         var ctx = c.getContext("2d");
+        var size = 128;
+		var img = new Image();
+		var x = c.width / 2 - size / 2;
+		var y = c.height / 2 - (size / 2) - 20;
 
         document.canvas.add(c);
 
-        // Background
-        ctx.fillStyle = "#1e242e";
-        ctx.fillRect(0, 0, c.width, c.height);
+		img.src = "embed://logo.png";
 
-        // Logo background
-        var size = 100;
-        var x = c.width/2 - size/2;
-        var y = c.height/2 - size/2 - 20;
+		img.addEventListener("load", function() {
+			ctx.drawImage(img, x, y);
 
-        ctx.fillStyle = "#FFF";
-        ctx.fillRect(x, y, size, size, size);
-
-        // Logo text
-        ctx.fontSize = 70;
-        ctx.fillStyle = "#1e242e";
-
-        var tmp = ctx.measureText("ɳ");
-
-        ctx.fillText("ɳ", x + size/2 - tmp.width/2, y + size/2 + 15);
-
-        // Nidium website
-        ctx.fontSize = 15;
-        ctx.fillStyle = "#2e3440";
-        var tmp = ctx.measureText("http://www.nidium.com");
-        ctx.fillText("http://www.nidium.com", c.width / 2 - tmp.width / 2, y + size + 30);
+			// Nidium website
+			ctx.fontSize = 15;
+			ctx.fillStyle = "#2e3440";
+			var tmp = ctx.measureText("http://www.nidium.com");
+			ctx.fillText("http://www.nidium.com", c.width / 2 - tmp.width / 2, y + size + 30);
+		});
     </script>
     </assets>
 </application>

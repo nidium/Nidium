@@ -24,12 +24,12 @@ Deps.set(
     "portaudio",
     "zita-resampler",
     "depot_tools",
+    "angle",
     "giflib",
     "skia",
     "libzip",
     "lss",
     "breakpad",
-    "angle",
     "basekit",
     "libcoroutine",
     "SDL2",
@@ -136,12 +136,26 @@ def lss():
         "location": Deps.GitRepo("https://chromium.googlesource.com/linux-syscall-support", revision="348bdf8d32b37c8fb2627df7a0a977d1d640e1fc")
     }
 
+def fixAngleThinArchive():
+    if Platform.system == "Linux" or Platform.system == "Darwin":
+        Utils.run("sed -i \"s/$ar rcsT/$ar rcs/\" out/Release/build.ninja")
+    
 @Deps.register("angle")
 def angle():
     return {
-         "location": DEPEDENCY_REPO + "/angle.tar.gz"
-        #"location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chrome_m36"),
-        #"build": ["python src/commit_id.py src/commit_id.h"]
+        "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785"),
+        "build": [
+            "GYP_GENERATORS=ninja python scripts/bootstrap.py", 
+            "GYP_GENERATORS=ninja gclient sync",
+            fixAngleThinArchive,
+            "ninja -C out/Release/"
+        ],
+        "outputs": [
+            "out/Release/obj/src/libpreprocessor.a",
+            "out/Release/obj/src/libtranslator.a",
+            "out/Release/obj/src/libtranslator_lib.a",
+            "out/Release/obj/src/libangle_common.a"
+        ]
     }
 
 @Deps.register("breakpad")
@@ -166,7 +180,7 @@ def SDL2():
 def depotTools():
     Deps.Gclient.setExec(os.path.join("depot_tools", "gclient"))
     return {
-        "location": Deps.GitRepo("https://chromium.googlesource.com/chromium/tools/depot_tools.git", revision="aa6235b1f6dbc9a7fa5139ef8964928b6348a4c4")
+        "location": Deps.GitRepo("https://chromium.googlesource.com/chromium/tools/depot_tools.git", revision="8bf327c")
     }
 
 @Deps.register("basekit")

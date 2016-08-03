@@ -39,6 +39,9 @@
                          ],
                     }],
                 ],
+                'ldflags': [
+                    '-rdynamic',
+                ],
                 'link_settings': {
                     'libraries': [
                         '-Wl,--start-group',
@@ -53,6 +56,10 @@
                         '-lskia_opts_ssse3',
                         '-Wl,--end-group',
 
+                        '-ltranslator',
+                        '-ltranslator_lib',
+                        '-lpreprocessor',
+                        '-langle_common',
                         '-lSDL2',
                         '-lGL',
                         '-lpng',
@@ -82,7 +89,10 @@
                     'STRIP_INSTALLED_PRODUCT': 'YES',
                     'COPY_PHASE_STRIP': 'YES',
                     'DEBUGGING_SYMBOLS': 'NO',
-                    'DEAD_CODE_STRIPPING': 'YES'
+                    'DEAD_CODE_STRIPPING': 'YES',
+                    "OTHER_LDFLAGS": [
+                        '-rdynamic',
+                    ]
                 },
                 'conditions': [
                     ['nidium_enable_breakpad==1', {
@@ -103,6 +113,10 @@
                         '$(SDKROOT)/System/Library/Frameworks/IOKit.framework',
                         '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
                         '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
+                        'libtranslator.a',
+                        'libtranslator_lib.a',
+                        'libpreprocessor.a',
+                        'libangle_common.a',
                         'libSDL2.a',
                         'libskia_sfnt.a',
                         'libskia_opts_ssse3.a',

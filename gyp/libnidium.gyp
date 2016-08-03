@@ -9,7 +9,6 @@
         'dependencies': [
             '<(nidium_network_path)/gyp/network.gyp:network-includes',
             'libnidiumcore.gyp:libnidiumcore-includes',
-            'third-party/angle.gyp:*',
         ],
         'include_dirs': [
             '<(nidium_src_path)',
@@ -38,6 +37,7 @@
             '<(third_party_path)/ffmpeg/',
             '<(third_party_path)/libcoroutine/source/',
             '<(third_party_path)/basekit/source/',
+            '<(third_party_path)/angle/include/'
         ],
 
         'conditions': [
@@ -130,7 +130,7 @@
             '<(nidium_src_path)/Binding/JSDocument.cpp',
             '<(nidium_src_path)/Binding/JSCanvas.cpp',
             '<(nidium_src_path)/Binding/JSCanvas2DContext.cpp',
-            '<(nidium_src_path)/IO/SystemStream.cpp',
+            '<(nidium_src_path)/IO/SystemStream.cpp'
         ],
     }],
 }

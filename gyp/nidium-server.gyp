@@ -29,6 +29,18 @@
             'NIDIUM_DISABLE_WINDOW_GLOBAL'
         ],
         'conditions': [
+            ['OS=="linux"', {
+                'ldflags': [
+                    '-rdynamic',
+                ],
+            }],
+            ['OS=="mac"', {
+                "xcode_settings": {
+                    "OTHER_LDFLAGS": [
+                        '-rdynamic',
+                    ]
+                },
+            }],
             ['nofork==1', {
                 'defines':['NIDIUM_NO_FORK']
             }],

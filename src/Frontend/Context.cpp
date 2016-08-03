@@ -52,6 +52,7 @@ using Nidium::Core::Utils;
 using Nidium::Net::WebSocketServer;
 using Nidium::Net::WebSocketClientConnection;
 using Nidium::Interface::UIInterface;
+using Nidium::Graphics::GLState;
 using namespace Nidium::Graphics;
 using namespace Nidium::Binding;
 using namespace Nidium::IO;
@@ -448,7 +449,134 @@ void Context::triggerEvents()
     ape_pool_rewind(&m_CanvasEventsCanvas);
 }
 
-// From third-party/mozilla-central/content/canvas/src/WebGLContextValidate.cpp
+// From Mozilla gfx/gl/GLContext.cpp
+static int GetGLSLVersion()
+{
+    /**
+     * OpenGL 2.x, 3.x, 4.x specifications:
+     *  The VERSION and SHADING_LANGUAGE_VERSION strings are laid out as follows:
+     *
+     *    <version number><space><vendor-specific information>
+     *
+     *  The version number is either of the form major_number.minor_number or
+     *  major_number.minor_number.release_number, where the numbers all have
+     *  one or more digits.
+     *
+     * SHADING_LANGUAGE_VERSION is *almost* identical to VERSION. The
+     * difference is that the minor version always has two digits and the
+     * prefix has an additional 'GLSL ES'
+     *
+     *
+     * OpenGL ES 2.0, 3.0 specifications:
+     *  The VERSION string is laid out as follows:
+     *
+     *     "OpenGL ES N.M vendor-specific information"
+     *
+     *  The version number is either of the form major_number.minor_number or
+     *  major_number.minor_number.release_number, where the numbers all have
+     *  one or more digits.
+     *
+     *
+     * Note:
+     *  We don't care about release_number.
+     */
+    const unsigned char* tmp;
+    const char * versionString;
+    int err;
+
+    NIDIUM_GL_CALL_RET_MAIN(GetString(GL_SHADING_LANGUAGE_VERSION), tmp);
+
+    NIDIUM_GL_CALL_RET_MAIN(GetError(), err);
+
+    if (err != GL_NO_ERROR) {
+        NUI_LOG("Failed to parse GL's major-minor version number separator.\n");
+        return -1;
+    }
+
+    versionString = (const char *)tmp;
+
+    if (!versionString) {
+        // This happens on the Android emulators. We'll just return 100
+        return 100;
+    }
+
+    const auto fnSkipPrefix = [&versionString](const char* prefix) {
+        const auto len = strlen(prefix);
+        if (strncmp(versionString, prefix, len) == 0) {
+            versionString += len;
+        }
+    };
+
+    const char kGLESVersionPrefix[] = "OpenGL ES GLSL ES";
+    fnSkipPrefix(kGLESVersionPrefix);
+
+    const char* itr = versionString;
+    char* end = nullptr;
+    auto majorVersion = strtol(itr, &end, 10);
+
+    if (!end) {
+        NUI_LOG("Failed to parse the GL major version number.\n");
+        return -1;
+    }
+
+    if (*end != '.') {
+        NUI_LOG("Failed to parse GL's major-minor version number separator.\n");
+        return -1;
+    }
+
+    // we skip the '.' between the major and the minor version
+    itr = end + 1;
+    end = nullptr;
+
+    auto minorVersion = strtol(itr, &end, 10);
+    if (!end) {
+        NUI_LOG("Failed to parse GL's minor version number.\n");
+        return -1;
+    }
+
+    if (majorVersion <= 0 || majorVersion >= 100) {
+        NUI_LOG("Invalid major version.\n");
+        return false;
+    }
+
+    if (minorVersion < 0 || minorVersion >= 100) {
+        NUI_LOG("Invalid minor version.\n");
+        return false;
+    }
+
+    return (uint32_t) majorVersion * 100 + (uint32_t) minorVersion;
+}
+
+// From Mozilla dom/canvas/WebGLShaderValidator.cpp
+static ShShaderOutput GetShaderOutputVersion()
+{
+    if (false /* opengles context */) {
+        return SH_ESSL_OUTPUT;
+    } else {
+        int version = GetGLSLVersion();
+        switch (version) {
+            case 100: return SH_GLSL_COMPATIBILITY_OUTPUT;
+            case 120: return SH_GLSL_COMPATIBILITY_OUTPUT;
+            case 130: return SH_GLSL_130_OUTPUT;
+            case 140: return SH_GLSL_140_OUTPUT;
+            case 150: return SH_GLSL_150_CORE_OUTPUT;
+            case 330: return SH_GLSL_330_CORE_OUTPUT;
+            case 400: return SH_GLSL_400_CORE_OUTPUT;
+            case 410: return SH_GLSL_410_CORE_OUTPUT;
+            case 420: return SH_GLSL_420_CORE_OUTPUT;
+            case 430: return SH_GLSL_430_CORE_OUTPUT;
+            case 440: return SH_GLSL_440_CORE_OUTPUT;
+            case 450: return SH_GLSL_450_CORE_OUTPUT;
+            default:
+                NUI_LOG("Unexpected GLSL version.\n");
+                exit(1);
+            }
+    }
+
+    return SH_GLSL_COMPATIBILITY_OUTPUT;
+}
+
+// From Mozilla canvas/src/WebGLContextValidate.cpp
 // TODO : Handle OpenGL ESJSVAL_
 bool Context::initShaderLang()
 {
@@ -475,6 +603,8 @@ bool Context::initShaderLang()
     maxFragmentUniformVectors /= 4;
     glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &maxVertexUniformVectors);
     maxVertexUniformVectors /= 4;
+
+    m_ShShaderOutput = GetShaderOutputVersion();
 
 #if 0
     GLint maxVaryingVectors;
@@ -528,8 +658,9 @@ bool Context::initShaderLang()
     m_ShResources.FragmentPrecisionHigh = 1;
 
     // FIXME : Check if extension is supported and enable or not
-    m_ShResources.OES_standard_derivatives = 0;
+    m_ShResources.OES_standard_derivatives = 1;
     m_ShResources.OES_EGL_image_external = 0;
+    m_ShResources.EXT_shader_texture_lod = 1;
 
     return true;
 }

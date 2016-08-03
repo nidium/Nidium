@@ -440,8 +440,8 @@ FunctionDoc( "CanvasRenderingContext2D.drawImage", "Draw an Image.",
         ParamDoc( "image", "Image object", "Image", NO_Default, IS_Obligated ),
         ParamDoc( "x", "X Position", "integer", NO_Default, IS_Obligated ),
         ParamDoc( "y", "Y Position", "integer", NO_Default, IS_Obligated ),
-        ParamDoc( "width", "Width", "integer", NO_Default, IS_Obligated ),
-        ParamDoc( "heigth", "Heigth", "integer", NO_Default, IS_Obligated )
+        ParamDoc( "width", "Width", "integer", NO_Default, IS_Optional),
+        ParamDoc( "heigth", "Heigth", "integer", NO_Default, IS_Optional)
     ],
     NO_Returns
 )

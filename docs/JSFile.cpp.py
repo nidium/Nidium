@@ -101,8 +101,7 @@ f.close();""") ],
 
 FunctionDoc( "File.isDir", """Determines if the file is a directory or a file.
 
-> The file needs to be opened before calling this method
-""",
+> The file needs to be opened before calling this method""",
     SeesDocs( "File.rmrf|File.listFiles|File.open|fs|process.cwd" ),
     [ExampleDoc( """var f = new File(".", {encoding: "utf8"});
 f.open(function(err) {
@@ -137,8 +136,7 @@ if  (f.isDir()) {
 
 FunctionDoc( "File.listFiles", """List the files in a directory.
 
-> The file needs to be opened before calling this method
-""",
+> The file needs to be opened before calling this method""",
     [SeeDoc( "File.isDir" ), SeeDoc( "File.rmrf" ), SeeDoc( "fs" ), SeeDoc( "process.cwd" ) ],
     [ExampleDoc( """var f = new File(".", {encoding: "utf8"});
 f.open(function(err) {
