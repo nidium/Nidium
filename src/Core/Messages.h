@@ -7,6 +7,7 @@
 #define core_messages_h__
 
 #include <pthread.h>
+#include <set>
 
 #include "Core/SharedMessages.h"
 #include "Core/Hash.h"
@@ -49,7 +50,7 @@ private:
     pthread_t m_GenesisThread;
 
     /* Keep track on which objects we are listening events */
-    Hash64<Events *>m_Listening;
+    std::set<Events *>m_Listening_s;
 };
 
 } // namespace Core

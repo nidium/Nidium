@@ -55,8 +55,7 @@ static void Messages_lost(const SharedMessages::Message &msg)
     obj->onMessageLost(msg);
 }
 
-Messages::Messages() :
-    m_Listening(8)
+Messages::Messages()
 {
     m_GenesisThread = pthread_self();
 }
@@ -65,12 +64,10 @@ Messages::~Messages()
 {
     g_MessagesList->delMessagesForDest(this);
 
-    ape_htable_item_t *item;
-
-    for (item = m_Listening.accessCStruct()->first; item != NULL; item = item->lnext) {
-        Events *sender = static_cast<Events *>(item->content.addrs);
+    for (Events * const &sender : m_Listening_s) {
         sender->removeListener(this, false);
     }
+
 }
 
 void Messages::postMessage(void *dataptr, int event, bool forceAsync)
@@ -140,9 +137,9 @@ void Messages::InitReader(ape_global *ape)
 void Messages::listenFor(Events *obj, bool enable)
 {
     if (enable) {
-        m_Listening.set(reinterpret_cast<uint64_t>(obj), obj);
+        m_Listening_s.insert(obj);
     } else {
-        m_Listening.erase(reinterpret_cast<uint64_t>(obj));
+        m_Listening_s.erase(obj);
     }
 }
 

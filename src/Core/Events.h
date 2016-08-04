@@ -9,6 +9,8 @@
 #include "Core/Hash.h"
 #include "Core/Messages.h"
 
+#include <set>
+
 namespace Nidium {
 namespace Core {
 
@@ -26,12 +28,12 @@ class Events
 {
 public:
     void addListener(Messages *listener) {
-        m_Listeners.set(reinterpret_cast<uint64_t>((static_cast<Messages *>(listener))), listener);
+        m_Listeners_s.insert(listener);
 
         listener->listenFor(this, true);
     }
     void removeListener(Messages *listener, bool propagate = true) {
-        m_Listeners.erase(reinterpret_cast<uint64_t>(listener));
+        m_Listeners_s.erase(listener);
 
         if (propagate) {
             listener->listenFor(this, false);
@@ -51,11 +53,7 @@ public:
     }
 
     virtual ~Events() {
-        ape_htable_item_t *item;
-
-        for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
-            Messages *receiver = static_cast<Messages *>(item->content.addrs);
-
+        for (Messages  * const &receiver : m_Listeners_s) {
             receiver->listenFor(this, false);
         }
     }
@@ -67,7 +65,7 @@ private:
         kPropagationMode_Async
     };
 
-    Hash64<Messages *> m_Listeners;
+    std::set<Messages *> m_Listeners_s;
 
     template <typename T>
     bool fireEventImpl(typename T::Events event, const Args &args,
@@ -75,9 +73,7 @@ private:
 
         ape_htable_item_t *item;
 
-        for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
-            Messages *receiver = static_cast<Messages *>(item->content.addrs);
-
+        for (Messages  * const &receiver : m_Listeners_s) {
             SharedMessages::Message *msg =
                 new SharedMessages::Message(NIDIUM_EVENTS_MESSAGE_BITS(event) | (T::EventID << 16));
 
@@ -101,6 +97,7 @@ private:
             }
 #endif
         }
+
 
         return true;
     }
