@@ -79,8 +79,9 @@ void Context::vlog(const char *format, va_list args)
 Context::~Context()
 {
     APE_timer_destroy(m_APECtx, m_PingTimer);
-    Messages::DestroyReader();
     destroyJS();
+
+    Messages::DestroyReader();
 }
 
 
