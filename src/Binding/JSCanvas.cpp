@@ -1644,7 +1644,7 @@ void JSCanvas::onMessageLost(const SharedMessages::Message &msg)
 
 JSCanvas::JSCanvas(JS::HandleObject obj, JSContext *cx,
     CanvasHandler *handler) :
-    JSExposer<JSCanvas>(obj, cx),
+    JSExposer<JSCanvas>(obj, cx, false),
     m_CanvasHandler(handler)
 {
     m_CanvasHandler->addListener(this);
@@ -1665,8 +1665,10 @@ JSCanvas::~JSCanvas()
 void JSCanvas::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS_InitClass(cx, global, JS::NullPtr(), &Canvas_class, nidium_Canvas_constructor, 2, canvas_props, canvas_funcs,
-        nullptr, nullptr);
+    JS::RootedObject proto(cx, JS_InitClass(cx, global, JS::NullPtr(), &Canvas_class, nidium_Canvas_constructor, 2, canvas_props, canvas_funcs,
+        nullptr, nullptr));
+
+    JSExposer<JSCanvas>::InstallEventsOnPrototype(cx, proto);
 }
 // }}}
 
