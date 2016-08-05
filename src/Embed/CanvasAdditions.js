@@ -21,7 +21,7 @@
 /* -------------------------------------------------------------------------- */
 
 
-Object.defineProperty(Canvas.prototype, "inh", {
+Object.defineProperty(Canvas.prototype, "inherit", {
     get: function() {
         if (!this.__inheritProxy) {
             this.__inheritProxy = new Proxy({}, {

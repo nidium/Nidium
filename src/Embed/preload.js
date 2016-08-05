@@ -24,4 +24,5 @@ function __nidiumPreload(options) {
     if (options.html5) {
         load("embed://html5.js");
     }
+    load("embed://CanvasAdditions.js");
 }
