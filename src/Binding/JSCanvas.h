@@ -29,17 +29,9 @@ public:
         return m_CanvasHandler;
     }
 
-    void setInherit(JS::HandleObject obj) {
-        m_Inherit = obj;
-    }
-
-    JSObject *getInherit() const {
-        return m_Inherit;
-    }
 
 private:
     Graphics::CanvasHandler *m_CanvasHandler;
-    JS::Heap<JSObject *> m_Inherit;
 };
 
 } // namespace Binding

@@ -106,8 +106,6 @@ enum {
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Canvas_Trace(JSTracer *trc, JSObject *obj);
 
-static bool CanvasInherit_get(JSContext *cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp);
-
 JSClass Canvas_class = {
     "Canvas", JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -118,12 +116,6 @@ JSClass Canvas_class = {
 template<>
 JSClass *JSExposer<JSCanvas>::jsclass = &Canvas_class;
 
-static JSClass Canvas_Inherit_class = {
-    "CanvasInherit", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_DeletePropertyStub, CanvasInherit_get, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
 
 static bool nidium_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
     uint8_t id, bool strict, JS::MutableHandleValue vp);
@@ -248,33 +240,6 @@ static JSFunctionSpec canvas_funcs[] = {
 // }}}
 
 // {{{ Implementation
-static bool CanvasInherit_get(JSContext *cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp)
-{
-    JSCanvas *jscanvas = (class JSCanvas *)JS_GetPrivate(obj);
-    if (!jscanvas) {
-        return true;
-    }
-
-    CanvasHandler *handler = jscanvas->getHandler();
-
-    if (vp.isNull()) {
-        CanvasHandler *parent;
-
-        if ((parent = handler->getParent()) == NULL || !parent->m_JsObj) {
-            return true;
-        }
-
-        JSCanvas *jscanvas_parent =
-            (class JSCanvas *)JS_GetPrivate(parent->m_JsObj);
-
-        JS::RootedValue ret(cx);
-        JS::RootedObject parentObj(cx, jscanvas_parent->getInherit());
-        JS_GetPropertyById(cx, parentObj, id, &ret);
-        vp.set(ret);
-    }
-
-    return true;
-}
 
 CanvasHandler *HANDLER_GETTER(JSObject *obj)
 {
@@ -1482,12 +1447,8 @@ static bool nidium_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
     handler->m_JsCx = cx;
 
     JSCanvas *jscanvas = new JSCanvas(ret, cx, handler);
-    JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, nullptr,
-        JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
-    jscanvas->setInherit(inherit);
 
     JS_SetPrivate(ret, jscanvas);
-    JS_SetPrivate(inherit, jscanvas);
 
     args.rval().setObjectOrNull(ret);
 
@@ -1513,6 +1474,7 @@ void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
 static void Canvas_Trace(JSTracer *trc, JSObject *obj)
 {
     CanvasHandler *handler = HANDLER_GETTER(obj);
+
     if (handler != NULL) {
         CanvasHandler *cur;
 
@@ -1533,9 +1495,6 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx, int width,
     UIInterface *ui = nctx->getUI();
 
     JS::RootedObject ret(cx, JS_NewObject(cx, &Canvas_class, JS::NullPtr(), JS::NullPtr()));
-    JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit",
-        &Canvas_Inherit_class, nullptr,
-        JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
 
     handler = new CanvasHandler(width, height, nctx);
     handler->setContext(new Canvas2DContext(handler, cx, width, height, ui));
@@ -1550,10 +1509,7 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx, int width,
 
     JSCanvas *jscanvas = new JSCanvas(ret, cx, handler);
 
-    jscanvas->setInherit(inherit);
-
     JS_SetPrivate(ret, jscanvas);
-    JS_SetPrivate(inherit, jscanvas);
 
     *out = handler;
 
