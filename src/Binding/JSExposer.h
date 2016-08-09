@@ -778,6 +778,116 @@ private:
     (addroot/unroot or if jsobject life define obj life (finalizer))
 */
 
+
+template <typename T>
+class ClassMapper
+{
+public:
+
+    static bool JSConstructor(JSContext *cx, unsigned argc, JS::Value *vp)
+    {
+        T *obj;
+        JSClass *jsclass = ClassMapper<T>::GetJSClass();
+
+        JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+        if (!args.isConstructing()) {
+            JS_ReportError(cx, "Bad constructor");
+            return false;
+        }
+
+        JS::RootedObject ret(
+            cx, JS_NewObjectForConstructor(cx, jsclass, args));
+
+        if ((obj = T::Constructor(cx, args)) == nullptr) {
+            return false;
+        }
+
+        obj->m_Instance = ret;
+        obj->m_Cx = cx;
+        obj->m_Rooted = false;
+
+        JS_SetPrivate(ret, obj);
+
+        args.rval().setObjectOrNull(ret);
+ 
+        return true;
+    }
+
+    static void JSFinalizer(JSFreeOp *fop, JSObject *obj)
+    {
+        T *cppobj = (T *)JS_GetPrivate(obj);
+
+        if (cppobj) {
+            delete cppobj;
+        }
+    }
+
+    static JSClass *GetJSClass()
+    {
+        static JSClass jsclass = { NULL,
+                                   JSCLASS_HAS_PRIVATE,
+                                   JS_PropertyStub,
+                                   JS_DeletePropertyStub,
+                                   JS_PropertyStub,
+                                   JS_StrictPropertyStub,
+                                   JS_EnumerateStub,
+                                   JS_ResolveStub,
+                                   JS_ConvertStub,
+                                   JSCLASS_NO_OPTIONAL_MEMBERS };
+
+        return &jsclass;
+    }
+
+    static void ExposeClassWithName(JSContext *cx, const char *name)
+    {
+
+        JSClass *jsclass = ClassMapper<T>::GetJSClass();
+
+        jsclass->name = name;
+        jsclass->finalize = ClassMapper<T>::JSFinalizer;
+
+        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+
+        JS_InitClass(cx, global, JS::NullPtr(), jsclass,
+                    ClassMapper<T>::JSConstructor, 0, NULL, NULL, NULL, NULL);
+
+    }
+
+    void root()
+    {
+        if (m_Rooted) {
+            return;
+        }
+
+        NidiumJSObj(m_Cx)->rootObjectUntilShutdown(m_Instance);
+        m_Rooted = true;
+    }
+
+    void unroot()
+    {
+        if (!m_Rooted) {
+            return;
+        }
+
+        NidiumJSObj(m_Cx)->unrootObject(m_Instance);
+        m_Rooted = false;
+    }
+
+    virtual ~ClassMapper()
+    {
+        JS_SetPrivate(m_Instance, nullptr);
+        
+        this->unroot();
+    }
+
+protected:
+
+    JS::Heap<JSObject *> m_Instance;
+    JSContext *m_Cx;
+    bool m_Rooted;
+};
+
 // {{{ JSObjectMapper
 template <typename T>
 class JSObjectMapper
