@@ -18,32 +18,36 @@ namespace Graphics {
 
 
 /// {{{ Construct and init
-ShadowLooper::ShadowLooper(SkScalar radius, SkScalar dx, SkScalar dy,
-                                   SkColor color, uint32_t flags) {
+ShadowLooper::ShadowLooper(
+    SkScalar radius, SkScalar dx, SkScalar dy, SkColor color, uint32_t flags)
+{
     this->init(SkBlurMask::ConvertRadiusToSigma(radius), dx, dy, color, flags);
 }
 
-ShadowLooper::ShadowLooper(SkColor color, SkScalar sigma,
-                                   SkScalar dx, SkScalar dy, uint32_t flags) {
+ShadowLooper::ShadowLooper(
+    SkColor color, SkScalar sigma, SkScalar dx, SkScalar dy, uint32_t flags)
+{
     this->init(sigma, dx, dy, color, flags);
 }
 
-ShadowLooper::ShadowLooper(SkReadBuffer& buffer) : INHERITED(buffer) {
+ShadowLooper::ShadowLooper(SkReadBuffer &buffer) : INHERITED(buffer)
+{
 
-    m_fSigma = buffer.readScalar();
-    m_fDx = buffer.readScalar();
-    m_fDy = buffer.readScalar();
+    m_fSigma     = buffer.readScalar();
+    m_fDx        = buffer.readScalar();
+    m_fDy        = buffer.readScalar();
     m_fBlurColor = buffer.readColor();
     m_fBlurFlags = buffer.readUInt() & kAll_BlurFlag;
 
     this->initEffects();
 }
 
-void ShadowLooper::init(SkScalar sigma, SkScalar dx, SkScalar dy,
-                            SkColor color, uint32_t flags) {
-    m_fSigma = sigma;
-    m_fDx = dx;
-    m_fDy = dy;
+void ShadowLooper::init(
+    SkScalar sigma, SkScalar dx, SkScalar dy, SkColor color, uint32_t flags)
+{
+    m_fSigma     = sigma;
+    m_fDx        = dx;
+    m_fDy        = dy;
     m_fBlurColor = color;
     m_fBlurFlags = flags;
 
@@ -54,15 +58,16 @@ void ShadowLooper::initEffects()
 {
     SkASSERT(m_fBlurFlags <= kAll_BlurFlag);
     if (m_fSigma > 0) {
-        uint32_t flags = m_fBlurFlags & kIgnoreTransform_BlurFlag ?
-                            SkBlurMaskFilter::kIgnoreTransform_BlurFlag :
-                            SkBlurMaskFilter::kNone_BlurFlag;
+        uint32_t flags = m_fBlurFlags & kIgnoreTransform_BlurFlag
+                             ? SkBlurMaskFilter::kIgnoreTransform_BlurFlag
+                             : SkBlurMaskFilter::kNone_BlurFlag;
 
-        flags |= m_fBlurFlags & kHighQuality_BlurFlag ?
-                    SkBlurMaskFilter::kHighQuality_BlurFlag :
-                    SkBlurMaskFilter::kNone_BlurFlag;
+        flags |= m_fBlurFlags & kHighQuality_BlurFlag
+                     ? SkBlurMaskFilter::kHighQuality_BlurFlag
+                     : SkBlurMaskFilter::kNone_BlurFlag;
 
-        m_fBlur = SkBlurMaskFilter::Create(kNormal_SkBlurStyle, m_fSigma, flags);
+        m_fBlur
+            = SkBlurMaskFilter::Create(kNormal_SkBlurStyle, m_fSigma, flags);
     } else {
         m_fBlur = NULL;
     }
@@ -72,7 +77,8 @@ void ShadowLooper::initEffects()
 // }}}
 
 // {{{ Methods
-void ShadowLooper::flatten(SkWriteBuffer& buffer) const {
+void ShadowLooper::flatten(SkWriteBuffer &buffer) const
+{
     this->INHERITED::flatten(buffer);
     buffer.writeScalar(m_fSigma);
     buffer.writeScalar(m_fDx);
@@ -81,7 +87,8 @@ void ShadowLooper::flatten(SkWriteBuffer& buffer) const {
     buffer.write32(m_fBlurFlags);
 }
 
-bool ShadowLooper::asABlurShadow(BlurShadowRec* rec) const {
+bool ShadowLooper::asABlurShadow(BlurShadowRec *rec) const
+{
     if (m_fSigma <= 0 || (m_fBlurFlags & kIgnoreTransform_BlurFlag)) {
         return false;
     }
@@ -90,15 +97,17 @@ bool ShadowLooper::asABlurShadow(BlurShadowRec* rec) const {
         rec->fSigma = m_fSigma;
         rec->fColor = m_fBlurColor;
         rec->fOffset.set(m_fDx, m_fDy);
-        rec->fStyle = kNormal_SkBlurStyle;
-        rec->fQuality = (m_fBlurFlags & kHighQuality_BlurFlag) ?
-                        kHigh_SkBlurQuality : kLow_SkBlurQuality;
+        rec->fStyle   = kNormal_SkBlurStyle;
+        rec->fQuality = (m_fBlurFlags & kHighQuality_BlurFlag)
+                            ? kHigh_SkBlurQuality
+                            : kLow_SkBlurQuality;
     }
     return true;
 }
 
 #if 1
-void ShadowLooper::toString(SkString* str) const {
+void ShadowLooper::toString(SkString *str) const
+{
     str->append("SkBlurDrawLooper: ");
 
     str->append("dx: ");
@@ -115,31 +124,39 @@ void ShadowLooper::toString(SkString* str) const {
         str->append("None");
     } else {
         bool needsSeparator = false;
-        SkAddFlagToString(str, SkToBool(kIgnoreTransform_BlurFlag & m_fBlurFlags), "IgnoreTransform",
-                          &needsSeparator);
-        SkAddFlagToString(str, SkToBool(kOverrideColor_BlurFlag & m_fBlurFlags), "OverrideColor",
-                          &needsSeparator);
-        SkAddFlagToString(str, SkToBool(kHighQuality_BlurFlag & m_fBlurFlags), "HighQuality",
-                          &needsSeparator);
+        SkAddFlagToString(str,
+                          SkToBool(kIgnoreTransform_BlurFlag & m_fBlurFlags),
+                          "IgnoreTransform", &needsSeparator);
+        SkAddFlagToString(str, SkToBool(kOverrideColor_BlurFlag & m_fBlurFlags),
+                          "OverrideColor", &needsSeparator);
+        SkAddFlagToString(str, SkToBool(kHighQuality_BlurFlag & m_fBlurFlags),
+                          "HighQuality", &needsSeparator);
     }
     str->append(")");
 
-    // TODO: add optional "fBlurFilter->toString(str);" when SkMaskFilter::toString is added
-    // alternatively we could cache the radius in SkBlurDrawLooper and just add it here
+    // TODO: add optional "fBlurFilter->toString(str);" when
+    // SkMaskFilter::toString is added
+    // alternatively we could cache the radius in SkBlurDrawLooper and just add
+    // it here
 }
 // }}}
 
 // {{{ Context
-ShadowLooper::Context* ShadowLooper::createContext(SkCanvas*, void* storage) const {
+ShadowLooper::Context *ShadowLooper::createContext(SkCanvas *,
+                                                   void *storage) const
+{
     return SkNEW_PLACEMENT_ARGS(storage, ShadowLooperContext, (this));
 }
 
 
 ShadowLooper::ShadowLooperContext::ShadowLooperContext(
-        const ShadowLooper* looper)
-    : m_fLooper(looper), m_fState(ShadowLooper::kBeforeEdge) {}
+    const ShadowLooper *looper)
+    : m_fLooper(looper), m_fState(ShadowLooper::kBeforeEdge)
+{
+}
 
-bool ShadowLooper::ShadowLooperContext::next(SkCanvas* canvas, SkPaint* paint) {
+bool ShadowLooper::ShadowLooperContext::next(SkCanvas *canvas, SkPaint *paint)
+{
     U8CPU a;
     switch (m_fState) {
         case kBeforeEdge:
@@ -178,7 +195,8 @@ bool ShadowLooper::ShadowLooperContext::next(SkCanvas* canvas, SkPaint* paint) {
 // }}}
 
 // {{{ Destruct
-ShadowLooper::~ShadowLooper() {
+ShadowLooper::~ShadowLooper()
+{
     SkSafeUnref(m_fBlur);
     SkSafeUnref(m_fColorFilter);
 }
@@ -188,4 +206,3 @@ ShadowLooper::~ShadowLooper() {
 } // namespace Nidium
 
 #endif
-

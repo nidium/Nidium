@@ -10,22 +10,40 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-static const JSClass JSEvent_class = {
-    "NidiumEvent", 0,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static const JSClass JSEvent_class = { "NidiumEvent",
+                                       0,
+                                       JS_PropertyStub,
+                                       JS_DeletePropertyStub,
+                                       JS_PropertyStub,
+                                       JS_StrictPropertyStub,
+                                       JS_EnumerateStub,
+                                       JS_ResolveStub,
+                                       JS_ConvertStub,
+                                       NULL,
+                                       nullptr,
+                                       nullptr,
+                                       nullptr,
+                                       nullptr,
+                                       JSCLASS_NO_INTERNAL_MEMBERS };
 
-static const JSClass JSErrorEvent_class = {
-    "NidiumErrorEvent", 0,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static const JSClass JSErrorEvent_class = { "NidiumErrorEvent",
+                                            0,
+                                            JS_PropertyStub,
+                                            JS_DeletePropertyStub,
+                                            JS_PropertyStub,
+                                            JS_StrictPropertyStub,
+                                            JS_EnumerateStub,
+                                            JS_ResolveStub,
+                                            JS_ConvertStub,
+                                            NULL,
+                                            nullptr,
+                                            nullptr,
+                                            nullptr,
+                                            nullptr,
+                                            JSCLASS_NO_INTERNAL_MEMBERS };
 
-static bool Nidium_jsevents_stopPropagation(JSContext *cx,
-    unsigned argc, JS::Value *vp)
+static bool
+Nidium_jsevents_stopPropagation(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp));
     if (!thisobj) {
@@ -42,37 +60,42 @@ static bool Nidium_jsevents_stopPropagation(JSContext *cx,
     return true;
 }
 
-static bool Nidium_jsevents_stub(JSContext *cx,
-    unsigned argc, JS::Value *vp)
+static bool Nidium_jsevents_stub(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     return true;
 }
 
-static JSFunctionSpec JSEvents_funcs[] = {
-	JS_FN("stopPropagation",
-		Nidium_jsevents_stopPropagation, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
-	JS_FN("preventDefault",
-		Nidium_jsevents_stub, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
-	JS_FN("forcePropagation",
-		Nidium_jsevents_stub, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
-	JS_FS_END
-};
+static JSFunctionSpec JSEvents_funcs[]
+    = { JS_FN("stopPropagation",
+              Nidium_jsevents_stopPropagation,
+              0,
+              JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+        JS_FN("preventDefault",
+              Nidium_jsevents_stub,
+              0,
+              JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+        JS_FN("forcePropagation",
+              Nidium_jsevents_stub,
+              0,
+              JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+        JS_FS_END };
 // }}}
 
 // {{{ JSEvents
 JSObject *JSEvents::CreateEventObject(JSContext *cx)
 {
-    JS::RootedObject ret(cx, 
-        JS_NewObject(cx, &JSEvent_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject ret(
+        cx, JS_NewObject(cx, &JSEvent_class, JS::NullPtr(), JS::NullPtr()));
     JS_DefineFunctions(cx, ret, JSEvents_funcs);
 
     return ret;
 }
 
-JSObject *JSEvents::CreateErrorEventObject(JSContext *cx, int code, const char *err)
+JSObject *
+JSEvents::CreateErrorEventObject(JSContext *cx, int code, const char *err)
 {
-    JS::RootedObject ret(cx, 
-        JS_NewObject(cx, &JSErrorEvent_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject ret(cx, JS_NewObject(cx, &JSErrorEvent_class,
+                                          JS::NullPtr(), JS::NullPtr()));
     JS_DefineFunctions(cx, ret, JSEvents_funcs);
 
     JSContext *m_Cx = cx;
@@ -86,4 +109,3 @@ JSObject *JSEvents::CreateErrorEventObject(JSContext *cx, int code, const char *
 
 } // namespace Binding
 } // namespace Nidium
-

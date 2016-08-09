@@ -22,47 +22,41 @@ namespace Net {
 
 // {{{ Preamble
 #ifndef ULLONG_MAX
-# define ULLONG_MAX ((uint64_t) -1) /* 2^64-1 */
+#define ULLONG_MAX ((uint64_t)-1) /* 2^64-1 */
 #endif
 
 #define HTTP_PREFIX "http://"
-#define SOCKET_WRITE_STATIC(data) APE_socket_write(s, \
-    (unsigned char *)CONST_STR_LEN(data), APE_DATA_STATIC)
+#define SOCKET_WRITE_STATIC(data) \
+    APE_socket_write(s, (unsigned char *)CONST_STR_LEN(data), APE_DATA_STATIC)
 
-#define SOCKET_WRITE_OWN(data) APE_socket_write(s, (unsigned char *)data, \
-    strlen(data), APE_DATA_OWN)
+#define SOCKET_WRITE_OWN(data) \
+    APE_socket_write(s, (unsigned char *)data, strlen(data), APE_DATA_OWN)
 
-const char *HTTP::HTTPErrorDescription[_ERROR_END_] = {
-    "Unknown error",
-    "Timeout",
-    "Invalid response",
-    "Disconnected",
-    "Socket error",
-    "Failed to parse response",
-    "Max redirect exceeded"
-};
+const char *HTTP::HTTPErrorDescription[_ERROR_END_]
+    = { "Unknown error",        "Timeout",      "Invalid response",
+        "Disconnected",         "Socket error", "Failed to parse response",
+        "Max redirect exceeded" };
 
-static struct nidium_http_mime {
+static struct nidium_http_mime
+{
     const char *m_Str;
     HTTP::DataType m_DataType;
-} nidium_mime[] = {
-    {"text/plain",                  HTTP::DATA_STRING},
-    {"application/x-javascript",    HTTP::DATA_STRING},
-    {"application/javascript",      HTTP::DATA_STRING},
-    {"application/octet-stream",    HTTP::DATA_BINARY},
-    {"image/jpeg",                  HTTP::DATA_IMAGE},
-    {"image/png",                   HTTP::DATA_IMAGE},
-    {"audio/mp3",                   HTTP::DATA_AUDIO},
-    {"audio/mpeg",                  HTTP::DATA_AUDIO},
-    {"audio/wave",                  HTTP::DATA_AUDIO},
-    {"audio/ogg",                   HTTP::DATA_AUDIO},
-    {"audio/x-wav",                 HTTP::DATA_AUDIO},
-    {"video/ogg",                   HTTP::DATA_AUDIO},
-    {"audio/webm",                  HTTP::DATA_AUDIO},
-    {"application/json",            HTTP::DATA_JSON},
-    {"text/html",                   HTTP::DATA_STRING}, /* TODO: use dom.js */
-    {NULL,                          HTTP::DATA_END}
-};
+} nidium_mime[] = { { "text/plain", HTTP::DATA_STRING },
+                    { "application/x-javascript", HTTP::DATA_STRING },
+                    { "application/javascript", HTTP::DATA_STRING },
+                    { "application/octet-stream", HTTP::DATA_BINARY },
+                    { "image/jpeg", HTTP::DATA_IMAGE },
+                    { "image/png", HTTP::DATA_IMAGE },
+                    { "audio/mp3", HTTP::DATA_AUDIO },
+                    { "audio/mpeg", HTTP::DATA_AUDIO },
+                    { "audio/wave", HTTP::DATA_AUDIO },
+                    { "audio/ogg", HTTP::DATA_AUDIO },
+                    { "audio/x-wav", HTTP::DATA_AUDIO },
+                    { "video/ogg", HTTP::DATA_AUDIO },
+                    { "audio/webm", HTTP::DATA_AUDIO },
+                    { "application/json", HTTP::DATA_JSON },
+                    { "text/html", HTTP::DATA_STRING }, /* TODO: use dom.js */
+                    { NULL, HTTP::DATA_END } };
 // }}}
 
 // {{{ HTTP Parser callbacks
@@ -74,16 +68,14 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len);
 static int request_url_cb(http_parser *p, const char *buf, size_t len);
 static int body_cb(http_parser *p, const char *buf, size_t len);
 
-static http_parser_settings settings =
-{
-    .on_message_begin = message_begin_cb,
-    .on_header_field = header_field_cb,
-    .on_header_value = header_value_cb,
-    .on_url = request_url_cb,
-    .on_body = body_cb,
-    .on_headers_complete = headers_complete_cb,
-    .on_message_complete = message_complete_cb
-};
+static http_parser_settings settings
+    = {.on_message_begin    = message_begin_cb,
+       .on_header_field     = header_field_cb,
+       .on_header_value     = header_value_cb,
+       .on_url              = request_url_cb,
+       .on_body             = body_cb,
+       .on_headers_complete = headers_complete_cb,
+       .on_message_complete = message_complete_cb };
 
 
 static int message_begin_cb(http_parser *p)
@@ -139,7 +131,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
     switch (nhttp->m_HTTP.m_Headers.prevstate) {
         case HTTP::PSTATE_NOTHING:
             nhttp->m_HTTP.m_Headers.list = ape_array_new(16);
-            /* fall through */
+        /* fall through */
         case HTTP::PSTATE_VALUE:
             nhttp->m_HTTP.m_Headers.tkey = buffer_new(16);
             if (nhttp->m_HTTP.m_Headers.tval != NULL) {
@@ -154,7 +146,8 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data_tolower(nhttp->m_HTTP.m_Headers.tkey,
-            reinterpret_cast<const unsigned char *>(buf), len);
+                                   reinterpret_cast<const unsigned char *>(buf),
+                                   len);
     }
 
     return 0;
@@ -171,7 +164,8 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
             nhttp->m_HTTP.m_Headers.tval = buffer_new(64);
             buffer_append_char(nhttp->m_HTTP.m_Headers.tkey, '\0');
             ape_array_add_b(nhttp->m_HTTP.m_Headers.list,
-                    nhttp->m_HTTP.m_Headers.tkey, nhttp->m_HTTP.m_Headers.tval);
+                            nhttp->m_HTTP.m_Headers.tkey,
+                            nhttp->m_HTTP.m_Headers.tval);
             break;
         default:
             break;
@@ -181,7 +175,7 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data(nhttp->m_HTTP.m_Headers.tval,
-            reinterpret_cast<const unsigned char *>(buf), len);
+                           reinterpret_cast<const unsigned char *>(buf), len);
     }
     return 0;
 }
@@ -205,7 +199,7 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data(nhttp->m_HTTP.m_Data,
-            reinterpret_cast<const unsigned char *>(buf), len);
+                           reinterpret_cast<const unsigned char *>(buf), len);
     }
 
     nhttp->onData(nhttp->m_HTTP.m_Data->used - len, len);
@@ -215,8 +209,8 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
 // }}}
 
 // {{{ HTTP callbacks (connect/disconnect/read)
-static void nidium_http_connected(ape_socket *s,
-    ape_global *ape, void *socket_arg)
+static void
+nidium_http_connected(ape_socket *s, ape_global *ape, void *socket_arg)
 {
     HTTP *nhttp = static_cast<HTTP *>(s->ctx);
 
@@ -224,23 +218,23 @@ static void nidium_http_connected(ape_socket *s,
 
     http_parser_init(&nhttp->m_HTTP.parser, HTTP_RESPONSE);
     nhttp->m_HTTP.parser.data = nhttp;
-    nhttp->m_HTTP.parser_rdy = true;
+    nhttp->m_HTTP.parser_rdy  = true;
 
     HTTPRequest *request = nhttp->getRequest();
-    buffer *headers = request->getHeadersData();
+    buffer *headers      = request->getHeadersData();
 
-    if (request->getData() != NULL &&
-        (request->m_Method == HTTPRequest::kHTTPMethod_Post ||
-            request->m_Method == HTTPRequest::kHTTPMethod_Put)) {
+    if (request->getData() != NULL
+        && (request->m_Method == HTTPRequest::kHTTPMethod_Post
+            || request->m_Method == HTTPRequest::kHTTPMethod_Put)) {
 
         PACK_TCP(s->s.fd);
         APE_socket_write(s, headers->data, headers->used, APE_DATA_COPY);
 
         /* APE_DATA_OWN? Warum? It's good as long as
         the lifetime of the data is tied to the socket lifetime */
-        //TODO: new style cast
+        // TODO: new style cast
         APE_socket_write(s, (unsigned char *)(request->getData()),
-            nhttp->getRequest()->getDataLength(), APE_DATA_OWN);
+                         nhttp->getRequest()->getDataLength(), APE_DATA_OWN);
         FLUSH_TCP(s->s.fd);
     } else {
         APE_socket_write(s, headers->data, headers->used, APE_DATA_COPY);
@@ -249,21 +243,20 @@ static void nidium_http_connected(ape_socket *s,
     buffer_destroy(headers);
 }
 
-static void nidium_http_disconnect(ape_socket *s,
-    ape_global *ape, void *socket_arg)
+static void
+nidium_http_disconnect(ape_socket *s, ape_global *ape, void *socket_arg)
 {
     HTTP *nhttp = static_cast<HTTP *>(s->ctx);
 
-    if (nhttp == NULL ||
-        (nhttp->m_CurrentSock != NULL && s != nhttp->m_CurrentSock)) {
+    if (nhttp == NULL
+        || (nhttp->m_CurrentSock != NULL && s != nhttp->m_CurrentSock)) {
         return;
     }
 
     nhttp->clearTimeout();
 
     if (!nhttp->isParsing() && nhttp->m_HTTP.parser_rdy) {
-        http_parser_execute(&nhttp->m_HTTP.parser, &settings,
-            NULL, 0);
+        http_parser_execute(&nhttp->m_HTTP.parser, &settings, NULL, 0);
     }
 
     nhttp->m_CurrentSock = NULL;
@@ -277,11 +270,13 @@ static void nidium_http_disconnect(ape_socket *s,
     nhttp->canDoRequest(true);
 
     s->ctx = NULL;
-
 }
 
 static void nidium_http_read(ape_socket *s,
-    const uint8_t *data, size_t len, ape_global *ape, void *socket_arg)
+                             const uint8_t *data,
+                             size_t len,
+                             ape_global *ape,
+                             void *socket_arg)
 {
     size_t nparsed;
     HTTP *nhttp = static_cast<HTTP *>(s->ctx);
@@ -292,11 +287,13 @@ static void nidium_http_read(ape_socket *s,
 
     nhttp->parsing(true);
     nparsed = http_parser_execute(&nhttp->m_HTTP.parser, &settings,
-        reinterpret_cast<const char *>(data), len);
+                                  reinterpret_cast<const char *>(data), len);
     nhttp->parsing(false);
 
     if (nparsed != len && !nhttp->m_HTTP.m_Ended) {
-        fprintf(stderr, "[HTTP] (socket %p) Parser returned %ld with error %s\n", s, static_cast<unsigned long>(nparsed),
+        fprintf(
+            stderr, "[HTTP] (socket %p) Parser returned %ld with error %s\n", s,
+            static_cast<unsigned long>(nparsed),
             http_errno_description(HTTP_PARSER_ERRNO(&nhttp->m_HTTP.parser)));
 
         nhttp->setPendingError(HTTP::ERROR_RESPONSE);
@@ -307,18 +304,17 @@ static void nidium_http_read(ape_socket *s,
 // }}}
 
 // {{{ HTTP Implementation
-HTTP::HTTP(ape_global *n) :
-    m_Ptr(NULL), m_Net(n), m_CurrentSock(NULL),
-    m_Err(0), m_Timeout(HTTP_DEFAULT_TIMEOUT),
-    m_TimeoutTimer(0), m_Delegate(NULL),
-    m_FileSize(0), m_isParsing(false), m_Request(NULL), m_CanDoRequest(true),
-    m_PendingError(ERROR_NOERR), m_MaxRedirect(8), m_FollowLocation(true)
+HTTP::HTTP(ape_global *n)
+    : m_Ptr(NULL), m_Net(n), m_CurrentSock(NULL), m_Err(0),
+      m_Timeout(HTTP_DEFAULT_TIMEOUT), m_TimeoutTimer(0), m_Delegate(NULL),
+      m_FileSize(0), m_isParsing(false), m_Request(NULL), m_CanDoRequest(true),
+      m_PendingError(ERROR_NOERR), m_MaxRedirect(8), m_FollowLocation(true)
 {
     memset(&m_HTTP, 0, sizeof(m_HTTP));
     memset(&m_Redirect, 0, sizeof(m_Redirect));
 
     m_HTTP.m_Headers.prevstate = HTTP::PSTATE_NOTHING;
-    nidium_http_data_type = DATA_NULL;
+    nidium_http_data_type      = DATA_NULL;
 }
 
 void HTTP::reportPendingError()
@@ -342,37 +338,39 @@ void *HTTP::getPrivate()
 
 void HTTP::onData(size_t offset, size_t len)
 {
-    m_Delegate->onProgress(offset, len, &m_HTTP, 
-        this->nidium_http_data_type);
+    m_Delegate->onProgress(offset, len, &m_HTTP, this->nidium_http_data_type);
 }
 
 void HTTP::headerEnded()
 {
-#define REQUEST_HEADER(header) ape_array_lookup(m_HTTP.m_Headers.list, \
-    CONST_STR_LEN(header "\0"))
+#define REQUEST_HEADER(header) \
+    ape_array_lookup(m_HTTP.m_Headers.list, CONST_STR_LEN(header "\0"))
 
     m_Redirect.enabled = false;
 
     if (m_HTTP.m_Headers.list != NULL) {
         buffer *content_type, *content_range, *location;
 
-        if ((content_type = REQUEST_HEADER("Content-Type")) != NULL &&
-            content_type->used > 3) {
+        if ((content_type = REQUEST_HEADER("Content-Type")) != NULL
+            && content_type->used > 3) {
             int i;
 
             for (i = 0; nidium_mime[i].m_Str != NULL; i++) {
-                if (strncasecmp(nidium_mime[i].m_Str, reinterpret_cast<const char *>(content_type->data),
-                    strlen(nidium_mime[i].m_Str)) == 0) {
+                if (strncasecmp(
+                        nidium_mime[i].m_Str,
+                        reinterpret_cast<const char *>(content_type->data),
+                        strlen(nidium_mime[i].m_Str))
+                    == 0) {
                     nidium_http_data_type = nidium_mime[i].m_DataType;
                     break;
                 }
             }
         }
 
-        if (m_HTTP.parser.status_code == 206 &&
-            (content_range = REQUEST_HEADER("Content-Range")) != NULL) {
-            char *ptr = static_cast<char *>(memchr(content_range->data,
-                '/', content_range->used));
+        if (m_HTTP.parser.status_code == 206
+            && (content_range = REQUEST_HEADER("Content-Range")) != NULL) {
+            char *ptr = static_cast<char *>(
+                memchr(content_range->data, '/', content_range->used));
 
             if (ptr != NULL) {
                 m_FileSize = atoll(&ptr[1]);
@@ -380,14 +378,14 @@ void HTTP::headerEnded()
                     m_FileSize = 0;
                 }
             }
-        } else if (m_FollowLocation && (m_HTTP.parser.status_code == 301 ||
-                    m_HTTP.parser.status_code == 302) &&
-                (location = REQUEST_HEADER("Location")) != NULL) {
+        } else if (m_FollowLocation && (m_HTTP.parser.status_code == 301
+                                        || m_HTTP.parser.status_code == 302)
+                   && (location = REQUEST_HEADER("Location")) != NULL) {
 
             m_FileSize = 0;
 
             m_Redirect.enabled = true;
-            m_Redirect.to = reinterpret_cast<const char *>(location->data);
+            m_Redirect.to      = reinterpret_cast<const char *>(location->data);
             m_Redirect.count++;
 
             if (m_Redirect.count > m_MaxRedirect) {
@@ -399,7 +397,7 @@ void HTTP::headerEnded()
             m_FileSize = m_HTTP.m_ContentLength;
         }
     }
-/*
+    /*
     switch (m_HTTP.parser.status_code/100) {
         case 1:
         case 2:
@@ -460,7 +458,6 @@ void HTTP::requestEnded()
 
         } else {
             m_Request->setPath(m_Redirect.to);
-
         }
         this->clearState();
         this->request(m_Request, m_Delegate, true);
@@ -469,7 +466,7 @@ void HTTP::requestEnded()
 
     if (!m_HTTP.m_Ended) {
         m_HTTP.m_Ended = 1;
-        bool doclose = !this->isKeepAlive();
+        bool doclose   = !this->isKeepAlive();
 
         if (!hasPendingError()) {
             m_Delegate->onRequest(&m_HTTP, nidium_http_data_type);
@@ -494,7 +491,6 @@ void HTTP::clearState()
 
     memset(&m_HTTP.m_Headers, 0, sizeof(m_HTTP.m_Headers));
     m_HTTP.m_Headers.prevstate = HTTP::PSTATE_NOTHING;
-
 }
 
 bool HTTP::isKeepAlive()
@@ -542,8 +538,10 @@ bool HTTP::createConnection()
 
     ape_socket *socket;
 
-    if ((socket = APE_socket_new(m_Request->isSSL() ?
-        APE_SOCKET_PT_SSL : APE_SOCKET_PT_TCP, 0, m_Net)) == NULL) {
+    if ((socket = APE_socket_new(m_Request->isSSL() ? APE_SOCKET_PT_SSL
+                                                    : APE_SOCKET_PT_TCP,
+                                 0, m_Net))
+        == NULL) {
 
         printf("[Socket] Cant load socket (new)\n");
         if (m_Delegate) {
@@ -552,7 +550,9 @@ bool HTTP::createConnection()
         return false;
     }
 
-    if (APE_socket_connect(socket, m_Request->getPort(), m_Request->getHost(), 0) == -1) {
+    if (APE_socket_connect(socket, m_Request->getPort(), m_Request->getHost(),
+                           0)
+        == -1) {
         printf("[Socket] Cant connect (0)\n");
         if (m_Delegate) {
             this->setPendingError(ERROR_SOCKET);
@@ -572,7 +572,8 @@ bool HTTP::createConnection()
 }
 
 bool HTTP::request(HTTPRequest *req,
-    HTTPDelegate *delegate, bool forceNewConnection)
+                   HTTPDelegate *delegate,
+                   bool forceNewConnection)
 {
     if (!canDoRequest()) {
         this->clearState();
@@ -584,7 +585,7 @@ bool HTTP::request(HTTPRequest *req,
         delete m_Request;
     }
 
-    m_Request = req;
+    m_Request      = req;
     bool reusesock = (m_CurrentSock != NULL);
 
     if (reusesock && forceNewConnection) {
@@ -602,7 +603,9 @@ bool HTTP::request(HTTPRequest *req,
         return false;
     }
 
-    m_Path = req->isSSL() ? std::string("https://") : std::string("http://") + std::string(req->getHost());
+    m_Path = req->isSSL()
+                 ? std::string("https://")
+                 : std::string("http://") + std::string(req->getHost());
 
     if (req->getPort() != 80 && req->getPort() != 443) {
         m_Path += std::string(":") + std::to_string(req->getPort());
@@ -610,15 +613,15 @@ bool HTTP::request(HTTPRequest *req,
 
     m_Path += req->getPath();
 
-    m_Delegate = delegate;
+    m_Delegate     = delegate;
     m_HTTP.m_Ended = 0;
 
     delegate->m_HTTPRef = this;
 
     if (m_Timeout) {
         ape_timer_t *ctimer;
-        ctimer = APE_timer_create(m_Net, m_Timeout,
-            Nidium_HTTP_handle_timeout, this);
+        ctimer = APE_timer_create(m_Net, m_Timeout, Nidium_HTTP_handle_timeout,
+                                  this);
 
         APE_timer_unprotect(ctimer);
         m_TimeoutTimer = APE_timer_getid(ctimer);
@@ -635,12 +638,18 @@ bool HTTP::request(HTTPRequest *req,
 
 const char *HTTP::getHeader(const char *key)
 {
-    buffer *ret = ape_array_lookup_cstr(m_HTTP.m_Headers.list, key, strlen(key));
+    buffer *ret
+        = ape_array_lookup_cstr(m_HTTP.m_Headers.list, key, strlen(key));
     return ret ? reinterpret_cast<const char *>(ret->data) : NULL;
 }
 
-int HTTP::ParseURI(char *url, size_t url_len, char *host,
-    u_short *port, char *file, const char *prefix, u_short default_port)
+int HTTP::ParseURI(char *url,
+                   size_t url_len,
+                   char *host,
+                   u_short *port,
+                   char *file,
+                   const char *prefix,
+                   u_short default_port)
 {
     char *p;
     const char *p2;
@@ -653,7 +662,7 @@ int HTTP::ParseURI(char *url, size_t url_len, char *host,
 
     url += len;
 
-    memcpy(host, url, (url_len-len));
+    memcpy(host, url, (url_len - len));
 
     p = strchr(host, '/');
     if (p != NULL) {
@@ -664,19 +673,17 @@ int HTTP::ParseURI(char *url, size_t url_len, char *host,
     }
     if (file != NULL) {
         /* Generate request file */
-        if (p2 == NULL)
-            p2 = "";
+        if (p2 == NULL) p2 = "";
         sprintf(file, "/%s", p2);
     }
 
     p = strchr(host, ':');
 
     if (p != NULL) {
-        *p = '\0';
+        *p    = '\0';
         *port = atoi(p + 1);
 
-        if (*port == 0)
-            return -1;
+        if (*port == 0) return -1;
     } else
         *port = default_port;
 
@@ -698,18 +705,18 @@ HTTP::~HTTP()
         delete m_Request;
     }
 
-    m_Delegate = NULL;
+    m_Delegate     = NULL;
     m_PendingError = ERROR_NOERR;
 
     this->clearState();
-
 }
 // }}}
 
 // {{{ HTTPRequest Implementation
-HTTPRequest::HTTPRequest(const char *url) :
-    m_Method(kHTTPMethod_Get), m_Host(NULL), m_Path(NULL), m_Data(NULL), m_DataLen(0),
-    m_Datafree(free), m_Headers(ape_array_new(8)), m_isSSL(false)
+HTTPRequest::HTTPRequest(const char *url)
+    : m_Method(kHTTPMethod_Get), m_Host(NULL), m_Path(NULL), m_Data(NULL),
+      m_DataLen(0), m_Datafree(free), m_Headers(ape_array_new(8)),
+      m_isSSL(false)
 {
     this->resetURL(url);
     this->setDefaultHeaders();
@@ -722,9 +729,9 @@ bool HTTPRequest::resetURL(const char *url)
     if (m_Path) free(m_Path);
 
     size_t url_len = strlen(url);
-    char *durl = static_cast<char *>(malloc(sizeof(char) * (url_len+1)));
+    char *durl     = static_cast<char *>(malloc(sizeof(char) * (url_len + 1)));
 
-    memcpy(durl, url, url_len+1);
+    memcpy(durl, url, url_len + 1);
 
     m_Host = static_cast<char *>(malloc(url_len + 1));
     m_Path = static_cast<char *>(malloc(url_len + 1));
@@ -736,8 +743,8 @@ bool HTTPRequest::resetURL(const char *url)
 
     const char *prefix = NULL;
     if (strncasecmp(url, CONST_STR_LEN("https://")) == 0) {
-        prefix = "https://";
-        m_isSSL = true;
+        prefix       = "https://";
+        m_isSSL      = true;
         default_port = 443;
     } else if (strncasecmp(url, CONST_STR_LEN("http://")) == 0) {
         prefix = "http://";
@@ -746,8 +753,9 @@ bool HTTPRequest::resetURL(const char *url)
         prefix = "";
     }
 
-    if (HTTP::ParseURI(durl, url_len, m_Host,
-        &m_Port, m_Path, prefix, default_port) == -1) {
+    if (HTTP::ParseURI(durl, url_len, m_Host, &m_Port, m_Path, prefix,
+                       default_port)
+        == -1) {
         memset(m_Host, 0, url_len + 1);
         memset(m_Path, 0, url_len + 1);
         m_Port = 0;
@@ -763,9 +771,13 @@ bool HTTPRequest::resetURL(const char *url)
 
 void HTTPRequest::setDefaultHeaders()
 {
-    this->setHeader("User-Agent", "Mozilla/5.0 (Unknown arch) nidium/" NIDIUM_VERSION_STR " (nidium, like Gecko) nidium/" NIDIUM_VERSION_STR);
+    this->setHeader("User-Agent",
+                    "Mozilla/5.0 (Unknown arch) nidium/" NIDIUM_VERSION_STR
+                    " (nidium, like Gecko) nidium/" NIDIUM_VERSION_STR);
     this->setHeader("Accept-Charset", "UTF-8");
-    this->setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+    this->setHeader("Accept",
+                    "text/html,application/xhtml+xml,application/"
+                    "xml;q=0.9,image/webp,*/*;q=0.8");
 }
 
 buffer *HTTPRequest::getHeadersData() const
@@ -803,7 +815,8 @@ buffer *HTTPRequest::getHeadersData() const
     buffer_append_string_n(ret, CONST_STR_LEN("\r\n"));
 
     buffer *k, *v;
-    APE_A_FOREACH(this->getHeaders(), k, v) {
+    APE_A_FOREACH(this->getHeaders(), k, v)
+    {
         buffer_append_string_n(ret, reinterpret_cast<char *>(k->data), k->used);
         buffer_append_string_n(ret, ": ", 2);
         buffer_append_string_n(ret, reinterpret_cast<char *>(v->data), v->used);
@@ -816,6 +829,5 @@ buffer *HTTPRequest::getHeadersData() const
 }
 // }}}
 
-} //namespace Net
-} //namespace Nidium
-
+} // namespace Net
+} // namespace Nidium

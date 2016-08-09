@@ -36,28 +36,43 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
-    uint8_t id, bool strict, JS::MutableHandleValue vp);
-static bool nidium_window_prop_get(JSContext *cx, JS::HandleObject obj,
-    uint8_t id, JS::MutableHandleValue vp);
-static bool nidium_navigator_prop_get(JSContext *cx, JS::HandleObject obj,
-    uint8_t id, JS::MutableHandleValue vp);
-static bool nidium_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_prop_set(JSContext *cx,
+                                   JS::HandleObject obj,
+                                   uint8_t id,
+                                   bool strict,
+                                   JS::MutableHandleValue vp);
+static bool nidium_window_prop_get(JSContext *cx,
+                                   JS::HandleObject obj,
+                                   uint8_t id,
+                                   JS::MutableHandleValue vp);
+static bool nidium_navigator_prop_get(JSContext *cx,
+                                      JS::HandleObject obj,
+                                      uint8_t id,
+                                      JS::MutableHandleValue vp);
+static bool
+nidium_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool
+nidium_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool nidium_window_requestAnimationFrame(JSContext *cx,
+                                                unsigned argc,
+                                                JS::Value *vp);
 static bool nidium_window_center(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_window_setPosition(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool
+nidium_window_setPosition(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_window_notify(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_window_quit(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_window_close(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_window_open(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool
+nidium_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool
+nidium_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_window_exec(JSContext *cx, unsigned argc, JS::Value *vp);
 
-enum {
+enum
+{
     WINDOW_PROP_LEFT = JSCLASS_GLOBAL_SLOT_COUNT,
     WINDOW_PROP_TOP,
     WINDOW_PROP_WIDTH,
@@ -71,7 +86,8 @@ enum {
 };
 
 
-enum {
+enum
+{
     NAVIGATOR_PROP_LANGUAGE,
     NAVIGATOR_PROP_VIBRATE,
     NAVIGATOR_PROP_APPNAME,
@@ -80,31 +96,58 @@ enum {
     NAVIGATOR_PROP_USERAGENT
 };
 
-static JSClass Navigator_class = {
-    "Navigator", 0,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass Navigator_class = { "Navigator",
+                                   0,
+                                   JS_PropertyStub,
+                                   JS_DeletePropertyStub,
+                                   JS_PropertyStub,
+                                   JS_StrictPropertyStub,
+                                   JS_EnumerateStub,
+                                   JS_ResolveStub,
+                                   JS_ConvertStub,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   JSCLASS_NO_INTERNAL_MEMBERS };
 
 extern JSClass global_class;
 
-template<>
+template <>
 JSClass *JSExposer<JSWindow>::jsclass = &global_class;
 
-static JSClass MouseEvent_class = {
-    "MouseEvent", 0,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass MouseEvent_class = { "MouseEvent",
+                                    0,
+                                    JS_PropertyStub,
+                                    JS_DeletePropertyStub,
+                                    JS_PropertyStub,
+                                    JS_StrictPropertyStub,
+                                    JS_EnumerateStub,
+                                    JS_ResolveStub,
+                                    JS_ConvertStub,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    JSCLASS_NO_INTERNAL_MEMBERS };
 
-static JSClass DragEvent_class = {
-    "DragEvent", 0,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass DragEvent_class = { "DragEvent",
+                                   0,
+                                   JS_PropertyStub,
+                                   JS_DeletePropertyStub,
+                                   JS_PropertyStub,
+                                   JS_StrictPropertyStub,
+                                   JS_EnumerateStub,
+                                   JS_ResolveStub,
+                                   JS_ConvertStub,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   JSCLASS_NO_INTERNAL_MEMBERS };
 
 #if 0
 static JSClass WindowEvent_class = {
@@ -115,32 +158,62 @@ static JSClass WindowEvent_class = {
 };
 #endif
 
-static JSClass TextEvent_class = {
-    "TextInputEvent", 0,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass TextEvent_class = { "TextInputEvent",
+                                   0,
+                                   JS_PropertyStub,
+                                   JS_DeletePropertyStub,
+                                   JS_PropertyStub,
+                                   JS_StrictPropertyStub,
+                                   JS_EnumerateStub,
+                                   JS_ResolveStub,
+                                   JS_ConvertStub,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   JSCLASS_NO_INTERNAL_MEMBERS };
 
-static JSClass KeyEvent_class = {
-    "keyEvent", 0,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass KeyEvent_class = { "keyEvent",
+                                  0,
+                                  JS_PropertyStub,
+                                  JS_DeletePropertyStub,
+                                  JS_PropertyStub,
+                                  JS_StrictPropertyStub,
+                                  JS_EnumerateStub,
+                                  JS_ResolveStub,
+                                  JS_ConvertStub,
+                                  nullptr,
+                                  nullptr,
+                                  nullptr,
+                                  nullptr,
+                                  nullptr,
+                                  JSCLASS_NO_INTERNAL_MEMBERS };
 
-static JSClass NMLEvent_class = {
-    "NMLEvent", 0,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass NMLEvent_class = { "NMLEvent",
+                                  0,
+                                  JS_PropertyStub,
+                                  JS_DeletePropertyStub,
+                                  JS_PropertyStub,
+                                  JS_StrictPropertyStub,
+                                  JS_EnumerateStub,
+                                  JS_ResolveStub,
+                                  JS_ConvertStub,
+                                  nullptr,
+                                  nullptr,
+                                  nullptr,
+                                  nullptr,
+                                  nullptr,
+                                  JSCLASS_NO_INTERNAL_MEMBERS };
 
 static JSFunctionSpec window_funcs[] = {
     JS_FN("openFileDialog", nidium_window_openFileDialog, 2, NIDIUM_JS_FNPROPS),
     JS_FN("openDirDialog", nidium_window_openDirDialog, 1, NIDIUM_JS_FNPROPS),
     JS_FN("setSize", nidium_window_setSize, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("requestAnimationFrame", nidium_window_requestAnimationFrame, 1, NIDIUM_JS_FNPROPS),
+    JS_FN("requestAnimationFrame",
+          nidium_window_requestAnimationFrame,
+          1,
+          NIDIUM_JS_FNPROPS),
     JS_FN("center", nidium_window_center, 0, NIDIUM_JS_FNPROPS),
     JS_FN("setPosition", nidium_window_setPosition, 2, NIDIUM_JS_FNPROPS),
     JS_FN("setFrame", nidium_window_setFrame, 4, NIDIUM_JS_FNPROPS),
@@ -150,54 +223,87 @@ static JSFunctionSpec window_funcs[] = {
     JS_FN("open", nidium_window_open, 0, NIDIUM_JS_FNPROPS),
     JS_FN("setSystemTray", nidium_window_setSystemTray, 1, NIDIUM_JS_FNPROPS),
     JS_FN("openURL", nidium_window_openURLInBrowser, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("exec", nidium_window_exec, 1, NIDIUM_JS_FNPROPS),
-    JS_FS_END
+    JS_FN("exec", nidium_window_exec, 1, NIDIUM_JS_FNPROPS), JS_FS_END
 };
 
-static struct nidium_cursors {
+static struct nidium_cursors
+{
     const char *m_Str;
     UIInterface::CURSOR_TYPE m_Type;
 } nidium_cursors_list[] = {
-    {"default",             UIInterface::ARROW},
-    {"arrow",               UIInterface::ARROW},
-    {"beam",                UIInterface::BEAM},
-    {"text",                UIInterface::BEAM},
-    {"pointer",             UIInterface::POINTING},
-    {"grabbing",            UIInterface::CLOSEDHAND},
-    {"drag",                UIInterface::CLOSEDHAND},
-    {"hidden",              UIInterface::HIDDEN},
-    {"none",                UIInterface::HIDDEN},
-    {"col-resize",          UIInterface::RESIZELEFTRIGHT},
-    {NULL,                  UIInterface::NOCHANGE},
+    { "default", UIInterface::ARROW },
+    { "arrow", UIInterface::ARROW },
+    { "beam", UIInterface::BEAM },
+    { "text", UIInterface::BEAM },
+    { "pointer", UIInterface::POINTING },
+    { "grabbing", UIInterface::CLOSEDHAND },
+    { "drag", UIInterface::CLOSEDHAND },
+    { "hidden", UIInterface::HIDDEN },
+    { "none", UIInterface::HIDDEN },
+    { "col-resize", UIInterface::RESIZELEFTRIGHT },
+    { NULL, UIInterface::NOCHANGE },
 };
 
 static JSPropertySpec window_props[] = {
 
-    NIDIUM_JS_PSG("devicePixelRatio", WINDOW_PROP_DEVICE_PIXELRATIO, nidium_window_prop_get),
+    NIDIUM_JS_PSG("devicePixelRatio",
+                  WINDOW_PROP_DEVICE_PIXELRATIO,
+                  nidium_window_prop_get),
 
-    NIDIUM_JS_PSGS("left", WINDOW_PROP_LEFT, nidium_window_prop_get, nidium_window_prop_set),
-    NIDIUM_JS_PSGS("top", WINDOW_PROP_TOP, nidium_window_prop_get, nidium_window_prop_set),
-    NIDIUM_JS_PSGS("innerWidth", WINDOW_PROP_WIDTH, nidium_window_prop_get, nidium_window_prop_set),
-    NIDIUM_JS_PSGS("outerWidth", WINDOW_PROP_WIDTH, nidium_window_prop_get, nidium_window_prop_set),
-    NIDIUM_JS_PSGS("innerHeight", WINDOW_PROP_HEIGHT, nidium_window_prop_get, nidium_window_prop_set),
-    NIDIUM_JS_PSGS("outerHeight", WINDOW_PROP_HEIGHT, nidium_window_prop_get, nidium_window_prop_set),
-    NIDIUM_JS_PSGS("title", WINDOW_PROP_TITLE, nidium_window_prop_get, nidium_window_prop_set),
-    NIDIUM_JS_PSGS("cursor", WINDOW_PROP_CURSOR, nidium_window_prop_get, nidium_window_prop_set),
-    NIDIUM_JS_PSS("titleBarColor", WINDOW_PROP_TITLEBAR_COLOR, nidium_window_prop_set),
-    NIDIUM_JS_PSS("titleBarControlsOffsetX", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, nidium_window_prop_set),
-    NIDIUM_JS_PSS("titleBarControlsOffsetY", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, nidium_window_prop_set),
+    NIDIUM_JS_PSGS("left",
+                   WINDOW_PROP_LEFT,
+                   nidium_window_prop_get,
+                   nidium_window_prop_set),
+    NIDIUM_JS_PSGS(
+        "top", WINDOW_PROP_TOP, nidium_window_prop_get, nidium_window_prop_set),
+    NIDIUM_JS_PSGS("innerWidth",
+                   WINDOW_PROP_WIDTH,
+                   nidium_window_prop_get,
+                   nidium_window_prop_set),
+    NIDIUM_JS_PSGS("outerWidth",
+                   WINDOW_PROP_WIDTH,
+                   nidium_window_prop_get,
+                   nidium_window_prop_set),
+    NIDIUM_JS_PSGS("innerHeight",
+                   WINDOW_PROP_HEIGHT,
+                   nidium_window_prop_get,
+                   nidium_window_prop_set),
+    NIDIUM_JS_PSGS("outerHeight",
+                   WINDOW_PROP_HEIGHT,
+                   nidium_window_prop_get,
+                   nidium_window_prop_set),
+    NIDIUM_JS_PSGS("title",
+                   WINDOW_PROP_TITLE,
+                   nidium_window_prop_get,
+                   nidium_window_prop_set),
+    NIDIUM_JS_PSGS("cursor",
+                   WINDOW_PROP_CURSOR,
+                   nidium_window_prop_get,
+                   nidium_window_prop_set),
+    NIDIUM_JS_PSS(
+        "titleBarColor", WINDOW_PROP_TITLEBAR_COLOR, nidium_window_prop_set),
+    NIDIUM_JS_PSS("titleBarControlsOffsetX",
+                  WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX,
+                  nidium_window_prop_set),
+    NIDIUM_JS_PSS("titleBarControlsOffsetY",
+                  WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY,
+                  nidium_window_prop_set),
 
     JS_PS_END
 };
 
 static JSPropertySpec navigator_props[] = {
 
-    NIDIUM_JS_PSG("language", NAVIGATOR_PROP_LANGUAGE, nidium_navigator_prop_get),
+    NIDIUM_JS_PSG(
+        "language", NAVIGATOR_PROP_LANGUAGE, nidium_navigator_prop_get),
     NIDIUM_JS_PSG("vibrate", NAVIGATOR_PROP_VIBRATE, nidium_navigator_prop_get),
     NIDIUM_JS_PSG("appName", NAVIGATOR_PROP_APPNAME, nidium_navigator_prop_get),
-    NIDIUM_JS_PSG("appVersion", NAVIGATOR_PROP_APPVERSION, nidium_navigator_prop_get),
-    NIDIUM_JS_PSG("platform", NAVIGATOR_PROP_PLATFORM, nidium_navigator_prop_get),
-    NIDIUM_JS_PSG("userAgent", NAVIGATOR_PROP_USERAGENT, nidium_navigator_prop_get),
+    NIDIUM_JS_PSG(
+        "appVersion", NAVIGATOR_PROP_APPVERSION, nidium_navigator_prop_get),
+    NIDIUM_JS_PSG(
+        "platform", NAVIGATOR_PROP_PLATFORM, nidium_navigator_prop_get),
+    NIDIUM_JS_PSG(
+        "userAgent", NAVIGATOR_PROP_USERAGENT, nidium_navigator_prop_get),
     JS_PS_END
 };
 // }}}
@@ -223,9 +329,8 @@ void JSWindow::onReady(JS::HandleObject layout)
     }
     JS::RootedObject obj(m_Cx, m_JSObject);
     JS::RootedValue onready(m_Cx);
-    if (JS_GetProperty(m_Cx, obj, "_onready", &onready) &&
-            onready.isObject() &&
-            JS_ObjectIsCallable(m_Cx, &onready.toObject())) {
+    if (JS_GetProperty(m_Cx, obj, "_onready", &onready) && onready.isObject()
+        && JS_ObjectIsCallable(m_Cx, &onready.toObject())) {
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, obj, onready, arg, &rval);
     }
@@ -235,11 +340,12 @@ bool JSWindow::onClose()
 {
     JS::RootedValue onclose(m_Cx);
     JS::RootedObject obj(m_Cx, m_JSObject);
-    if (JS_GetProperty(m_Cx, obj, "_onbeforeclose", &onclose) &&
-            onclose.isObject() &&
-            JS_ObjectIsCallable(m_Cx, &onclose.toObject())) {
+    if (JS_GetProperty(m_Cx, obj, "_onbeforeclose", &onclose)
+        && onclose.isObject()
+        && JS_ObjectIsCallable(m_Cx, &onclose.toObject())) {
         JS::RootedValue rval(m_Cx);
-        JS_CallFunctionValue(m_Cx, obj, onclose, JS::HandleValueArray::empty(), &rval);
+        JS_CallFunctionValue(m_Cx, obj, onclose, JS::HandleValueArray::empty(),
+                             &rval);
 
         return (rval.isUndefined() || rval.toBoolean());
     }
@@ -249,27 +355,30 @@ bool JSWindow::onClose()
 
 void JSWindow::assetReady(const NMLTag &tag)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-        val, JSPROP_PERMANENT | JSPROP_ENUMERATE)
+#define EVENT_PROP(name, val)                 \
+    JS_DefineProperty(m_Cx, event, name, val, \
+                      JSPROP_PERMANENT | JSPROP_ENUMERATE)
 
     JSContext *cx = m_Cx;
     JS::AutoValueArray<1> jevent(cx);
 
-    JS::RootedObject event(cx, JS_NewObject(cx, &NMLEvent_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(
+        cx, JS_NewObject(cx, &NMLEvent_class, JS::NullPtr(), JS::NullPtr()));
     jevent[0].set(OBJECT_TO_JSVAL(event));
     JS::RootedString tagStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.tag));
     JS::RootedString idStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.id));
-    JS::RootedString dataStr(cx, JSUtils::NewStringWithEncoding(cx,
-        (const char *)tag.content.data, tag.content.len, "utf8"));
+    JS::RootedString dataStr(
+        cx, JSUtils::NewStringWithEncoding(cx, (const char *)tag.content.data,
+                                           tag.content.len, "utf8"));
     EVENT_PROP("tag", tagStr);
     EVENT_PROP("id", idStr);
     EVENT_PROP("data", dataStr);
 
     JS::RootedValue onassetready(cx);
     JS::RootedObject obj(cx, m_JSObject);
-    if (JS_GetProperty(cx, obj, "_onassetready", &onassetready) &&
-        onassetready.isObject() &&
-        JS_ObjectIsCallable(cx, &onassetready.toObject())) {
+    if (JS_GetProperty(cx, obj, "_onassetready", &onassetready)
+        && onassetready.isObject()
+        && JS_ObjectIsCallable(cx, &onassetready.toObject())) {
 
         JS::RootedValue rval(cx);
         JS_CallFunctionValue(cx, event, onassetready, jevent, &rval);
@@ -281,11 +390,11 @@ void JSWindow::windowFocus()
 {
     JS::RootedValue onfocus(m_Cx);
     JS::RootedObject obj(m_Cx, m_JSObject);
-    if (JS_GetProperty(m_Cx, obj, "_onfocus", &onfocus) &&
-        onfocus.isObject() &&
-        JS_ObjectIsCallable(m_Cx, &onfocus.toObject())) {
-            JS::RootedValue rval(m_Cx);
-            JS_CallFunctionValue(m_Cx, JS::NullPtr(), onfocus, JS::HandleValueArray::empty(), &rval);
+    if (JS_GetProperty(m_Cx, obj, "_onfocus", &onfocus) && onfocus.isObject()
+        && JS_ObjectIsCallable(m_Cx, &onfocus.toObject())) {
+        JS::RootedValue rval(m_Cx);
+        JS_CallFunctionValue(m_Cx, JS::NullPtr(), onfocus,
+                             JS::HandleValueArray::empty(), &rval);
     }
 }
 
@@ -293,22 +402,23 @@ void JSWindow::windowBlur()
 {
     JS::RootedValue onblur(m_Cx);
     JS::RootedObject obj(m_Cx, m_JSObject);
-    if (JS_GetProperty(m_Cx, obj, "_onblur", &onblur) &&
-        onblur.isObject() &&
-        JS_ObjectIsCallable(m_Cx, &onblur.toObject())) {
-            JS::RootedValue rval(m_Cx);
-            JS_CallFunctionValue(m_Cx, JS::NullPtr(), onblur, JS::HandleValueArray::empty(), &rval);
+    if (JS_GetProperty(m_Cx, obj, "_onblur", &onblur) && onblur.isObject()
+        && JS_ObjectIsCallable(m_Cx, &onblur.toObject())) {
+        JS::RootedValue rval(m_Cx);
+        JS_CallFunctionValue(m_Cx, JS::NullPtr(), onblur,
+                             JS::HandleValueArray::empty(), &rval);
     }
 }
 
 void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-    val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
+#define EVENT_PROP(name, val)                 \
+    JS_DefineProperty(m_Cx, event, name, val, \
+                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
 
     JSAutoRequest ar(m_Cx);
 
-    Context *nctx = Context::GetObject<Frontend::Context>(m_Cx);
+    Context *nctx  = Context::GetObject<Frontend::Context>(m_Cx);
     InputEvent *ev = new InputEvent(InputEvent::kMouseWheel_Type, x, y);
 
     ev->setData(0, xrel);
@@ -316,7 +426,8 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
 
     nctx->addInputEvent(ev);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class,
+                                              JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue xrelv(m_Cx, INT_TO_JSVAL(xrel));
     JS::RootedValue yrelv(m_Cx, INT_TO_JSVAL(yrel));
     JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
@@ -331,15 +442,15 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
 
     JS::RootedObject obj(m_Cx, m_JSObject);
     JS::RootedValue onwheel(m_Cx);
-    if (JS_GetProperty(m_Cx, obj, "_onmousewheel", &onwheel) &&
-            onwheel.isObject() &&
-            JS_ObjectIsCallable(m_Cx, &onwheel.toObject())) {
+    if (JS_GetProperty(m_Cx, obj, "_onmousewheel", &onwheel)
+        && onwheel.isObject()
+        && JS_ObjectIsCallable(m_Cx, &onwheel.toObject())) {
 
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, event, onwheel, jevent, &rval);
     }
 
-    /*
+/*
     JS::RootedObject obje(cx, JSEvents::CreateEventObject(m_Cx));
     this->fireJSEvent("wheel", OBJECT_TO_JSVAL(obje));
     */
@@ -347,20 +458,27 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
 #undef EVENT_PROP
 }
 
-void JSWindow::keyupdown(int keycode, int mod, int state, int repeat, int location)
+void JSWindow::keyupdown(
+    int keycode, int mod, int state, int repeat, int location)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-    val, JSPROP_PERMANENT | JSPROP_ENUMERATE)
+#define EVENT_PROP(name, val)                 \
+    JS_DefineProperty(m_Cx, event, name, val, \
+                      JSPROP_PERMANENT | JSPROP_ENUMERATE)
 
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &KeyEvent_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &KeyEvent_class,
+                                              JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue keyV(m_Cx, INT_TO_JSVAL(keycode));
     JS::RootedValue locationV(m_Cx, INT_TO_JSVAL(location));
-    JS::RootedValue alt(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Alt)));
-    JS::RootedValue ctl(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Control)));
-    JS::RootedValue shift(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Shift)));
-    JS::RootedValue meta(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Meta)));
+    JS::RootedValue alt(
+        m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Alt)));
+    JS::RootedValue ctl(
+        m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Control)));
+    JS::RootedValue shift(
+        m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Shift)));
+    JS::RootedValue meta(
+        m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Meta)));
     JS::RootedValue space(m_Cx, BOOLEAN_TO_JSVAL(keycode == 32));
     JS::RootedValue rep(m_Cx, BOOLEAN_TO_JSVAL(!!(repeat)));
     EVENT_PROP("keyCode", keyV);
@@ -377,10 +495,10 @@ void JSWindow::keyupdown(int keycode, int mod, int state, int repeat, int locati
 
     JS::RootedObject obj(m_Cx, m_JSObject);
     JS::RootedValue onkeyupdown(m_Cx);
-    if (JS_GetProperty(m_Cx, obj,
-        (state ? "_onkeydown" : "_onkeyup"), &onkeyupdown) &&
-        onkeyupdown.isObject() &&
-        JS_ObjectIsCallable(m_Cx, &onkeyupdown.toObject())) {
+    if (JS_GetProperty(m_Cx, obj, (state ? "_onkeydown" : "_onkeyup"),
+                       &onkeyupdown)
+        && onkeyupdown.isObject()
+        && JS_ObjectIsCallable(m_Cx, &onkeyupdown.toObject())) {
 
         JS::RootedValue rval(m_Cx);
 
@@ -391,13 +509,16 @@ void JSWindow::keyupdown(int keycode, int mod, int state, int repeat, int locati
 
 void JSWindow::textInput(const char *data)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-    val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+#define EVENT_PROP(name, val)                 \
+    JS_DefineProperty(m_Cx, event, name, val, \
+                      JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &TextEvent_class, JS::NullPtr(), JS::NullPtr()));
-    JS::RootedString str(m_Cx, JSUtils::NewStringWithEncoding(m_Cx, data, strlen(data), "utf8"));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &TextEvent_class,
+                                              JS::NullPtr(), JS::NullPtr()));
+    JS::RootedString str(
+        m_Cx, JSUtils::NewStringWithEncoding(m_Cx, data, strlen(data), "utf8"));
     EVENT_PROP("val", str);
 
     JS::AutoValueArray<1> jevent(m_Cx);
@@ -405,9 +526,9 @@ void JSWindow::textInput(const char *data)
 
     JS::RootedValue ontextinput(m_Cx);
     JS::RootedObject obj(m_Cx, m_JSObject);
-    if (JS_GetProperty(m_Cx, obj, "_ontextinput", &ontextinput) &&
-            ontextinput.isObject() &&
-            JS_ObjectIsCallable(m_Cx, &ontextinput.toObject())) {
+    if (JS_GetProperty(m_Cx, obj, "_ontextinput", &ontextinput)
+        && ontextinput.isObject()
+        && JS_ObjectIsCallable(m_Cx, &ontextinput.toObject())) {
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, event, ontextinput, jevent, &rval);
     }
@@ -417,7 +538,8 @@ void JSWindow::textInput(const char *data)
 void JSWindow::systemMenuClicked(const char *id)
 {
     JSContext *cx = m_Cx;
-    JS::RootedObject event(cx, JS_NewObject(m_Cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(
+        cx, JS_NewObject(m_Cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
     NIDIUM_JSOBJ_SET_PROP_CSTR(event, "id", id);
     JS::AutoValueArray<1> ev(cx);
@@ -428,17 +550,19 @@ void JSWindow::systemMenuClicked(const char *id)
 
 void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-    val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+#define EVENT_PROP(name, val)                 \
+    JS_DefineProperty(m_Cx, event, name, val, \
+                      JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class,
+                                              JS::NullPtr(), JS::NullPtr()));
 
-    Context *nctx = Context::GetObject<Frontend::Context>(m_Cx);
-    InputEvent *ev = new InputEvent(state ?
-        InputEvent::kMouseClick_Type :
-        InputEvent::kMouseClickRelease_Type, x, y);
+    Context *nctx  = Context::GetObject<Frontend::Context>(m_Cx);
+    InputEvent *ev = new InputEvent(state ? InputEvent::kMouseClick_Type
+                                          : InputEvent::kMouseClickRelease_Type,
+                                    x, y);
 
     ev->setData(0, button);
 
@@ -450,8 +574,8 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
         Only trigger for even number on release.
     */
     if (clicks % 2 == 0 && !state) {
-        InputEvent *dcEv = new InputEvent( \
-            InputEvent::kMouseDoubleClick_Type, x, y);
+        InputEvent *dcEv
+            = new InputEvent(InputEvent::kMouseDoubleClick_Type, x, y);
 
         dcEv->setData(0, button);
         nctx->addInputEvent(dcEv);
@@ -469,10 +593,10 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
     jevent[0].setObjectOrNull(event);
     JS::RootedValue onclick(m_Cx);
     JS::RootedObject obj(m_Cx, m_JSObject);
-    if (JS_GetProperty(m_Cx, obj,
-        (state ? "_onmousedown" : "_onmouseup"), &onclick) &&
-        onclick.isObject() &&
-        JS_ObjectIsCallable(m_Cx, &onclick.toObject())) {
+    if (JS_GetProperty(m_Cx, obj, (state ? "_onmousedown" : "_onmouseup"),
+                       &onclick)
+        && onclick.isObject()
+        && JS_ObjectIsCallable(m_Cx, &onclick.toObject())) {
 
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, event, onclick, jevent, &rval);
@@ -482,11 +606,13 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
 
 bool JSWindow::dragEvent(const char *name, int x, int y)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-    val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+#define EVENT_PROP(name, val)                 \
+    JS_DefineProperty(m_Cx, event, name, val, \
+                      JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &DragEvent_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &DragEvent_class,
+                                              JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
     JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
     EVENT_PROP("x", xv);
@@ -504,9 +630,8 @@ bool JSWindow::dragEvent(const char *name, int x, int y)
 
     JS::RootedValue ondragevent(m_Cx);
     JS::RootedObject obj(m_Cx, m_JSObject);
-    if (JS_GetProperty(m_Cx, obj, name, &ondragevent) &&
-            ondragevent.isObject() &&
-            JS_ObjectIsCallable(m_Cx, &ondragevent.toObject())) {
+    if (JS_GetProperty(m_Cx, obj, name, &ondragevent) && ondragevent.isObject()
+        && JS_ObjectIsCallable(m_Cx, &ondragevent.toObject())) {
         JS::RootedValue rval(m_Cx);
 
         if (!JS_CallFunctionValue(m_Cx, event, ondragevent, jevent, &rval)) {
@@ -521,15 +646,16 @@ bool JSWindow::dragEvent(const char *name, int x, int y)
 #undef EVENT_PROP
 }
 
-bool JSWindow::dragBegin(int x, int y, const char * const *files, size_t nfiles)
+bool JSWindow::dragBegin(int x, int y, const char *const *files, size_t nfiles)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-    val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+#define EVENT_PROP(name, val)                 \
+    JS_DefineProperty(m_Cx, event, name, val, \
+                      JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
     if (m_Dragging) {
         return false;
     }
-    m_Dragging = true; //Duh..
+    m_Dragging = true; // Duh..
 
     m_DraggedFiles = JS_NewArrayObject(m_Cx, (int)nfiles);
     NidiumJS::GetObject(m_Cx)->rootObjectUntilShutdown(m_DraggedFiles);
@@ -537,7 +663,8 @@ bool JSWindow::dragBegin(int x, int y, const char * const *files, size_t nfiles)
     JS::RootedObject dragged(m_Cx, m_DraggedFiles);
 
     for (int i = 0; i < nfiles; i++) {
-        JS::RootedValue val(m_Cx, OBJECT_TO_JSVAL(JSFile::GenerateJSObject(m_Cx, files[i])));
+        JS::RootedValue val(
+            m_Cx, OBJECT_TO_JSVAL(JSFile::GenerateJSObject(m_Cx, files[i])));
         JS_SetElement(m_Cx, dragged, i, val);
     }
 
@@ -582,7 +709,7 @@ void JSWindow::dragEnd()
     NidiumJS::GetObject(m_Cx)->unrootObject(m_DraggedFiles);
 
     m_DraggedFiles = NULL;
-    m_Dragging = false;
+    m_Dragging     = false;
 }
 
 void JSWindow::resized(int width, int height)
@@ -592,8 +719,9 @@ void JSWindow::resized(int width, int height)
 
 void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-    val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+#define EVENT_PROP(name, val)                 \
+    JS_DefineProperty(m_Cx, event, name, val, \
+                      JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
     Context *nctx = Context::GetObject<Frontend::Context>(m_Cx);
 
@@ -612,7 +740,8 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
 
     nctx->addInputEvent(ev);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class,
+                                              JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
     JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
     JS::RootedValue xrelv(m_Cx, INT_TO_JSVAL(xrel));
@@ -629,9 +758,8 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
 
     JS::RootedValue onmove(m_Cx);
     JS::RootedObject obj(m_Cx, m_JSObject);
-    if (JS_GetProperty(m_Cx, obj, "_onmousemove", &onmove) &&
-        onmove.isObject() &&
-        JS_ObjectIsCallable(m_Cx, &onmove.toObject())) {
+    if (JS_GetProperty(m_Cx, obj, "_onmousemove", &onmove) && onmove.isObject()
+        && JS_ObjectIsCallable(m_Cx, &onmove.toObject())) {
 
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, event, onmove, jevent, &rval);
@@ -640,8 +768,10 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
 }
 
 
-static bool nidium_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
-    uint8_t id, JS::MutableHandleValue vp)
+static bool nidium_window_prop_get(JSContext *m_Cx,
+                                   JS::HandleObject obj,
+                                   uint8_t id,
+                                   JS::MutableHandleValue vp)
 {
     UIInterface *NUI = Context::GetObject<Frontend::Context>(m_Cx)->getUI();
 
@@ -650,15 +780,13 @@ static bool nidium_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
             /* TODO: Actual value */
             vp.setInt32(1);
             break;
-        case WINDOW_PROP_LEFT:
-        {
+        case WINDOW_PROP_LEFT: {
             int x;
             NUI->getWindowPosition(&x, NULL);
             vp.setInt32(x);
             break;
         }
-        case WINDOW_PROP_TOP:
-        {
+        case WINDOW_PROP_TOP: {
             int y;
             NUI->getWindowPosition(NULL, &y);
             vp.setInt32(y);
@@ -670,17 +798,14 @@ static bool nidium_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
         case WINDOW_PROP_HEIGHT:
             vp.setInt32(NUI->getHeight());
             break;
-        case WINDOW_PROP_TITLE:
-        {
-            const char *title =  NUI->getWindowTitle();
-            JS::RootedString str(m_Cx, JSUtils::NewStringWithEncoding(m_Cx, title,
-                strlen(title), "utf8"));
+        case WINDOW_PROP_TITLE: {
+            const char *title = NUI->getWindowTitle();
+            JS::RootedString str(m_Cx, JSUtils::NewStringWithEncoding(
+                                           m_Cx, title, strlen(title), "utf8"));
             vp.setString(str);
-        }
-        break;
-        case WINDOW_PROP_CURSOR:
-        {
-            const char * cCursor;
+        } break;
+        case WINDOW_PROP_CURSOR: {
+            const char *cCursor;
 
             cCursor = nidium_cursors_list[1].m_Str;
             for (size_t i = 0; nidium_cursors_list[i].m_Str != NULL; i++) {
@@ -691,21 +816,23 @@ static bool nidium_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
             }
 
             vp.setString(JS_NewStringCopyZ(m_Cx, cCursor));
-        }
-        break;
-        default: break;
+        } break;
+        default:
+            break;
     }
 
     return true;
 }
 
-static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
-    uint8_t id, bool strict, JS::MutableHandleValue vp)
+static bool nidium_window_prop_set(JSContext *cx,
+                                   JS::HandleObject obj,
+                                   uint8_t id,
+                                   bool strict,
+                                   JS::MutableHandleValue vp)
 {
     UIInterface *NUI = Context::GetObject<Frontend::Context>(cx)->getUI();
-    switch(id) {
-        case WINDOW_PROP_LEFT:
-        {
+    switch (id) {
+        case WINDOW_PROP_LEFT: {
             int32_t dval;
             if (!vp.isNumber()) {
 
@@ -718,8 +845,7 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
             break;
         }
 
-        case WINDOW_PROP_TOP:
-        {
+        case WINDOW_PROP_TOP: {
             int32_t dval;
             if (!vp.isNumber()) {
 
@@ -731,8 +857,7 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
             break;
         }
-        case WINDOW_PROP_WIDTH:
-        {
+        case WINDOW_PROP_WIDTH: {
             int32_t dval;
             if (!vp.isNumber()) {
 
@@ -743,12 +868,12 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
             dval = ape_max(dval, 1);
 
-            Context::GetObject<Frontend::Context>(cx)->setWindowSize((int)dval, NUI->getHeight());
+            Context::GetObject<Frontend::Context>(cx)
+                ->setWindowSize((int)dval, NUI->getHeight());
 
             break;
         }
-        case WINDOW_PROP_HEIGHT:
-        {
+        case WINDOW_PROP_HEIGHT: {
             int32_t dval;
             if (!vp.isNumber()) {
 
@@ -759,12 +884,12 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
             dval = ape_max(dval, 1);
 
-            Context::GetObject<Frontend::Context>(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
+            Context::GetObject<Frontend::Context>(cx)
+                ->setWindowSize((int)NUI->getWidth(), (int)dval);
 
             break;
         }
-        case WINDOW_PROP_TITLE:
-        {
+        case WINDOW_PROP_TITLE: {
             if (!vp.isString()) {
 
                 return true;
@@ -775,8 +900,7 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
             NUI->setWindowTitle(title.ptr());
             break;
         }
-        case WINDOW_PROP_CURSOR:
-        {
+        case WINDOW_PROP_CURSOR: {
             if (!vp.isString()) {
 
                 return true;
@@ -786,7 +910,8 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
             JSAutoByteString type(cx, vpStr);
             for (size_t i = 0; nidium_cursors_list[i].m_Str != NULL; i++) {
                 if (strncasecmp(nidium_cursors_list[i].m_Str, type.ptr(),
-                    strlen(nidium_cursors_list[i].m_Str)) == 0) {
+                                strlen(nidium_cursors_list[i].m_Str))
+                    == 0) {
                     NUI->setCursor(nidium_cursors_list[i].m_Type);
                     break;
                 }
@@ -794,8 +919,7 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
             break;
         }
-        case WINDOW_PROP_TITLEBAR_COLOR:
-        {
+        case WINDOW_PROP_TITLEBAR_COLOR: {
             if (!vp.isString()) {
 
                 return true;
@@ -804,16 +928,13 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
             JSAutoByteString color(cx, vpStr);
             uint32_t icolor = SkiaContext::ParseColor(color.ptr());
 
-            NUI->setTitleBarRGBAColor(
-                (icolor & 0x00FF0000) >> 16,
-                (icolor & 0x0000FF00) >> 8,
-                 icolor & 0x000000FF,
-                 icolor >> 24);
+            NUI->setTitleBarRGBAColor((icolor & 0x00FF0000) >> 16,
+                                      (icolor & 0x0000FF00) >> 8,
+                                      icolor & 0x000000FF, icolor >> 24);
 
             break;
         }
-        case WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX:
-        {
+        case WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX: {
             double dval, oval;
             if (!vp.isNumber()) {
 
@@ -823,7 +944,8 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
             dval = vp.toNumber();
             JS::RootedValue offsety(cx);
 
-            if (JS_GetProperty(cx, obj, "titleBarControlsOffsetY", &offsety) == false) {
+            if (JS_GetProperty(cx, obj, "titleBarControlsOffsetY", &offsety)
+                == false) {
                 offsety = DOUBLE_TO_JSVAL(0);
             }
             if (!offsety.isNumber()) {
@@ -833,8 +955,7 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
             NUI->setWindowControlsOffset(dval, oval);
             break;
         }
-        case WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY:
-        {
+        case WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY: {
             double dval, oval;
             if (!vp.isNumber()) {
 
@@ -843,7 +964,8 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
 
             dval = vp.toNumber();
             JS::RootedValue offsetx(cx);
-            if (JS_GetProperty(cx, obj, "titleBarControlsOffsetX", &offsetx) == false) {
+            if (JS_GetProperty(cx, obj, "titleBarControlsOffsetX", &offsetx)
+                == false) {
                 offsetx = DOUBLE_TO_JSVAL(0);
             }
             if (!offsetx.isNumber()) {
@@ -859,47 +981,41 @@ static bool nidium_window_prop_set(JSContext *cx, JS::HandleObject obj,
     return true;
 }
 
-static bool nidium_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
-    uint8_t id, JS::MutableHandleValue vp)
+static bool nidium_navigator_prop_get(JSContext *m_Cx,
+                                      JS::HandleObject obj,
+                                      uint8_t id,
+                                      JS::MutableHandleValue vp)
 {
 #define APP_NAME "nidium"
 #define APP_LANGUAGE "en"
 #define APP_LOCALE APP_LANGUAGE "-US"
-    switch(id) {
-       case NAVIGATOR_PROP_LANGUAGE:
-            {
+    switch (id) {
+        case NAVIGATOR_PROP_LANGUAGE: {
             JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_LANGUAGE));
             vp.setString(jStr);
-            }
-            break;
-        case NAVIGATOR_PROP_VIBRATE:
-            {
+        } break;
+        case NAVIGATOR_PROP_VIBRATE: {
             vp.setBoolean(false);
-            }
-            break;
-        case NAVIGATOR_PROP_APPVERSION:
-            {
-            JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, NIDIUM_VERSION_STR));
+        } break;
+        case NAVIGATOR_PROP_APPVERSION: {
+            JS::RootedString jStr(m_Cx,
+                                  JS_NewStringCopyZ(m_Cx, NIDIUM_VERSION_STR));
             vp.setString(jStr);
-            }
-            break;
-        case NAVIGATOR_PROP_APPNAME:
-            {
+        } break;
+        case NAVIGATOR_PROP_APPNAME: {
             JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_NAME));
             vp.setString(jStr);
-            }
-            break;
-        case NAVIGATOR_PROP_USERAGENT:
-            {
-            JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_NAME "/"
-                NIDIUM_VERSION_STR "(" APP_LOCALE "; rv:" NIDIUM_BUILD ") "));
+        } break;
+        case NAVIGATOR_PROP_USERAGENT: {
+            JS::RootedString jStr(
+                m_Cx, JS_NewStringCopyZ(m_Cx, APP_NAME
+                                        "/" NIDIUM_VERSION_STR "(" APP_LOCALE
+                                        "; rv:" NIDIUM_BUILD ") "));
             vp.setString(jStr);
-            }
-            break;
-        case NAVIGATOR_PROP_PLATFORM:
-            {
+        } break;
+        case NAVIGATOR_PROP_PLATFORM: {
             const char *platform;
-            // http://stackoverflow.com/questions/19877924/what-is-the-list-of-possible-values-for-navigator-platform-as-of-today
+// http://stackoverflow.com/questions/19877924/what-is-the-list-of-possible-values-for-navigator-platform-as-of-today
 #if defined(_WIN32) || defined(_WIN64)
             platform = "Win32";
 #elif defined(__APPLE) || defined(_WIN64)
@@ -919,8 +1035,7 @@ static bool nidium_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
 #endif
             JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, platform));
             vp.setString(jStr);
-            }
-            break;
+        } break;
     }
 #undef APP_NAME
 #undef APP_LANGUAGE
@@ -935,12 +1050,14 @@ struct _nidiumopenfile
     JS::PersistentRootedValue m_Cb;
 };
 
-static void nidium_window_openfilecb(void *_nof, const char *lst[], uint32_t len)
+static void
+nidium_window_openfilecb(void *_nof, const char *lst[], uint32_t len)
 {
     struct _nidiumopenfile *nof = (struct _nidiumopenfile *)_nof;
     JS::RootedObject arr(nof->m_Cx, JS_NewArrayObject(nof->m_Cx, len));
     for (int i = 0; i < len; i++) {
-        JS::RootedValue val(nof->m_Cx, OBJECT_TO_JSVAL(JSFile::GenerateJSObject(nof->m_Cx, lst[i])));
+        JS::RootedValue val(nof->m_Cx, OBJECT_TO_JSVAL(JSFile::GenerateJSObject(
+                                           nof->m_Cx, lst[i])));
         JS_SetElement(nof->m_Cx, arr, i, val);
     }
 
@@ -969,7 +1086,8 @@ static bool nidium_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool nidium_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -1003,7 +1121,8 @@ static bool nidium_window_exec(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool nidium_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -1012,30 +1131,33 @@ static bool nidium_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value 
         return false;
     }
 
-    struct _nidiumopenfile *nof = (struct _nidiumopenfile *)malloc(sizeof(*nof));
+    struct _nidiumopenfile *nof
+        = (struct _nidiumopenfile *)malloc(sizeof(*nof));
     nof->m_Cb = callback;
     nof->m_Cx = cx;
 
     Context::GetObject<Frontend::Context>(cx)->getUI()->openFileDialog(
-        NULL,
-        nidium_window_openfilecb, nof,
+        NULL, nidium_window_openfilecb, nof,
         UIInterface::kOpenFile_CanChooseDir);
 
     return true;
 }
 
 /* TODO: leak if the user click "cancel" */
-static bool nidium_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     JS::RootedObject types(cx);
     JS::RootedValue callback(cx);
-    if (!JS_ConvertArguments(cx, args, "ov", types.address(), callback.address())) {
+    if (!JS_ConvertArguments(cx, args, "ov", types.address(),
+                             callback.address())) {
         return false;
     }
 
-    if (!JSVAL_IS_NULL(OBJECT_TO_JSVAL(types)) && !JS_IsArrayObject(cx, types)) {
+    if (!JSVAL_IS_NULL(OBJECT_TO_JSVAL(types))
+        && !JS_IsArrayObject(cx, types)) {
         JS_ReportError(cx, "First parameter must be an array or null");
         return false;
     }
@@ -1046,8 +1168,8 @@ static bool nidium_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
     if (!JSVAL_IS_NULL(OBJECT_TO_JSVAL(types))) {
         JS_GetArrayLength(cx, types, &len);
 
-        ctypes = (char **)malloc(sizeof(char *) * (len+1));
-        memset(ctypes, 0, sizeof(char *) * (len+1));
+        ctypes = (char **)malloc(sizeof(char *) * (len + 1));
+        memset(ctypes, 0, sizeof(char *) * (len + 1));
         int j = 0;
         for (int i = 0; i < len; i++) {
             JS::RootedValue val(cx);
@@ -1062,14 +1184,15 @@ static bool nidium_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
         ctypes[j] = NULL;
     }
 
-    struct _nidiumopenfile *nof = (struct _nidiumopenfile *)malloc(sizeof(*nof));
+    struct _nidiumopenfile *nof
+        = (struct _nidiumopenfile *)malloc(sizeof(*nof));
     nof->m_Cb = callback;
     nof->m_Cx = cx;
 
     Context::GetObject<Frontend::Context>(cx)->getUI()->openFileDialog(
-        (const char **)ctypes,
-        nidium_window_openfilecb, nof,
-        UIInterface::kOpenFile_CanChooseFile | UIInterface::kOpenFile_AlloMultipleSelection);
+        (const char **)ctypes, nidium_window_openfilecb, nof,
+        UIInterface::kOpenFile_CanChooseFile
+            | UIInterface::kOpenFile_AlloMultipleSelection);
 
     if (ctypes) {
         for (int i = 0; i < len; i++) {
@@ -1080,7 +1203,8 @@ static bool nidium_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
     return true;
 }
 
-static bool nidium_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_CHECK_ARGS("requestAnimationFrame", 1);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -1100,17 +1224,20 @@ static bool nidium_window_center(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool nidium_window_setPosition(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_window_setPosition(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_CHECK_ARGS("setPosition", 2);
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    int x = (args[0].isUndefined() || args[0].isNull()) ?
-        NIDIUM_WINDOWPOS_UNDEFINED_MASK : args[0].toInt32();
+    int x = (args[0].isUndefined() || args[0].isNull())
+                ? NIDIUM_WINDOWPOS_UNDEFINED_MASK
+                : args[0].toInt32();
 
-    int y = (args[1].isUndefined() || args[1].isNull()) ?
-        NIDIUM_WINDOWPOS_UNDEFINED_MASK : args[1].toInt32();
+    int y = (args[1].isUndefined() || args[1].isNull())
+                ? NIDIUM_WINDOWPOS_UNDEFINED_MASK
+                : args[1].toInt32();
 
     Context::GetObject<Frontend::Context>(cx)->getUI()->setWindowPosition(x, y);
 
@@ -1121,11 +1248,12 @@ static bool nidium_window_notify(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_CHECK_ARGS("notify", 2);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    bool sound = false;
+    bool sound        = false;
 
     JS::RootedString title(cx);
     JS::RootedString body(cx);
-    if (!JS_ConvertArguments(cx, args, "SS/b", title.address(), body.address(), &sound)) {
+    if (!JS_ConvertArguments(cx, args, "SS/b", title.address(), body.address(),
+                             &sound)) {
         return false;
     }
 
@@ -1135,7 +1263,8 @@ static bool nidium_window_notify(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString cbody;
     cbody.encodeUtf8(cx, body);
 
-    SystemInterface::GetInstance()->sendNotification(ctitle.ptr(), cbody.ptr(), sound);
+    SystemInterface::GetInstance()->sendNotification(ctitle.ptr(), cbody.ptr(),
+                                                     sound);
 
     return true;
 }
@@ -1167,7 +1296,8 @@ static bool nidium_window_open(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool nidium_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_CHECK_ARGS("setSystemTray", 1);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -1183,19 +1313,21 @@ static bool nidium_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
     SystemMenu &menu = NUI->getSystemMenu();
     menu.deleteItems();
 
-    NIDIUM_JS_GET_OPT_TYPE(jobj, "icon", Object) {
+    NIDIUM_JS_GET_OPT_TYPE(jobj, "icon", Object)
+    {
         JS::RootedObject jsimg(cx, __curopt.toObjectOrNull());
         Image *skimage;
-        if (JSImage::JSObjectIs(cx, jsimg) &&
-            (skimage = JSImage::JSObjectToImage(jsimg))) {
+        if (JSImage::JSObjectIs(cx, jsimg)
+            && (skimage = JSImage::JSObjectToImage(jsimg))) {
 
             const uint8_t *pixels = skimage->getPixels(NULL);
             menu.setIcon(pixels, skimage->getWidth(), skimage->getHeight());
         }
     }
 
-    NIDIUM_JS_GET_OPT_TYPE(jobj, "menu", Object) {
-        JS::RootedObject arr(cx,  __curopt.toObjectOrNull());
+    NIDIUM_JS_GET_OPT_TYPE(jobj, "menu", Object)
+    {
+        JS::RootedObject arr(cx, __curopt.toObjectOrNull());
         if (JS_IsArrayObject(cx, arr)) {
             uint32_t len;
             JS_GetArrayLength(cx, arr, &len);
@@ -1204,27 +1336,33 @@ static bool nidium_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value 
                 The list is a FIFO
                 Walk in inverse order to keep the same Array definition order
             */
-            for (int i = len-1; i >= 0; i--) {
+            for (int i = len - 1; i >= 0; i--) {
                 JS::RootedValue val(cx);
                 JS_GetElement(cx, arr, i, &val);
                 if (val.isObject()) {
                     JS::RootedObject valObj(cx, &val.toObject());
                     SystemMenuItem *menuItem = new SystemMenuItem();
-                    NIDIUM_JS_GET_OPT_TYPE(valObj, "title", String) {
+                    NIDIUM_JS_GET_OPT_TYPE(valObj, "title", String)
+                    {
 
                         JSAutoByteString ctitle;
                         JS::RootedString str(cx, __curopt.toString());
                         ctitle.encodeUtf8(cx, str);
                         menuItem->title(ctitle.ptr());
-                    } else {
+                    }
+                    else
+                    {
                         menuItem->title("");
                     }
-                    NIDIUM_JS_GET_OPT_TYPE(valObj, "id", String) {
+                    NIDIUM_JS_GET_OPT_TYPE(valObj, "id", String)
+                    {
                         JSAutoByteString cid;
                         JS::RootedString str(cx, __curopt.toString());
                         cid.encodeUtf8(cx, str);
                         menuItem->id(cid.ptr());
-                    } else {
+                    }
+                    else
+                    {
                         menuItem->id("");
                     }
                     menu.addItem(menuItem);
@@ -1298,7 +1436,8 @@ static bool nidium_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
 
-    Context::GetObject<Frontend::Context>(cx)->setWindowFrame((int)x, (int)y, (int) w, (int) h);
+    Context::GetObject<Frontend::Context>(cx)
+        ->setWindowFrame((int)x, (int)y, (int)w, (int)h);
 
     return true;
 }
@@ -1306,8 +1445,8 @@ static bool nidium_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
 void JSWindow::addFrameCallback(JS::MutableHandleValue cb)
 {
     struct _requestedFrame *frame = new struct _requestedFrame(m_Cx);
-    frame->m_Next = m_RequestedFrame;
-    frame->m_Cb = cb;
+    frame->m_Next                 = m_RequestedFrame;
+    frame->m_Cb                   = cb;
 
     m_RequestedFrame = frame;
 }
@@ -1337,26 +1476,31 @@ void JSWindow::callFrameCallbacks(double ts, bool garbage)
 
 void JSWindow::createMainCanvas(int width, int height, JS::HandleObject docObj)
 {
-    JS::RootedObject canvas(m_Cx, JSCanvas::GenerateJSObject(m_Cx, width, height, &m_Handler));
-    Context::GetObject<Frontend::Context>(m_Cx)->getRootHandler()->addChild(m_Handler);
+    JS::RootedObject canvas(
+        m_Cx, JSCanvas::GenerateJSObject(m_Cx, width, height, &m_Handler));
+    Context::GetObject<Frontend::Context>(m_Cx)->getRootHandler()->addChild(
+        m_Handler);
     JS::RootedValue canval(m_Cx, OBJECT_TO_JSVAL(canvas));
-    JS_DefineProperty(m_Cx, docObj, "canvas", canval, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+    JS_DefineProperty(m_Cx, docObj, "canvas", canval,
+                      JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
 
-JSWindow* JSWindow::GetObject(JSContext *cx)
+JSWindow *JSWindow::GetObject(JSContext *cx)
 {
     return Context::GetObject<Frontend::Context>(cx)->getJSWindow();
 }
 
-JSWindow* JSWindow::GetObject(NidiumJS *njs)
+JSWindow *JSWindow::GetObject(NidiumJS *njs)
 {
     return Context::GetObject<Frontend::Context>(njs)->getJSWindow();
 }
 // }}}
 
 // {{{ Registration
-JSWindow *JSWindow::RegisterObject(JSContext *cx, int width,
-    int height, JS::HandleObject docObj)
+JSWindow *JSWindow::RegisterObject(JSContext *cx,
+                                   int width,
+                                   int height,
+                                   JS::HandleObject docObj)
 {
     JS::RootedObject globalObj(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject windowObj(cx, globalObj);
@@ -1375,22 +1519,27 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx, int width,
     JS_SetProperty(cx, windowObj, "titleBarControlsOffsetY", val);
 
     // Set the __nidium__ properties
-    JS::RootedObject nidiumObj(cx, JS_NewObject(cx,  nullptr, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject nidiumObj(
+        cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
     JS::RootedString jVersion(cx, JS_NewStringCopyZ(cx, NIDIUM_VERSION_STR));
-    JS_DefineProperty(cx, nidiumObj, "version", jVersion, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, nidiumObj, "version", jVersion,
+                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     JS::RootedString jBuild(cx, JS_NewStringCopyZ(cx, NIDIUM_BUILD));
-    JS_DefineProperty(cx, nidiumObj, "build", jBuild, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, nidiumObj, "build", jBuild,
+                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     JS::RootedString jRevision(cx, JS_NewStringCopyZ(cx, NIDIUM_BUILD));
-    JS_DefineProperty(cx, nidiumObj, "revision", jRevision, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, nidiumObj, "revision", jRevision,
+                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     val = OBJECT_TO_JSVAL(nidiumObj);
     JS_SetProperty(cx, windowObj, "__nidium__", val);
 
     //  Set the navigator properties
-    JS::RootedObject navigatorObj(cx, JS_NewObject(cx, &Navigator_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject navigatorObj(
+        cx, JS_NewObject(cx, &Navigator_class, JS::NullPtr(), JS::NullPtr()));
     JS_DefineProperties(cx, navigatorObj, navigator_props);
 
     val = OBJECT_TO_JSVAL(navigatorObj);
@@ -1414,4 +1563,3 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx, int width,
 
 } // namespace Binding
 } // namespace Nidium
-

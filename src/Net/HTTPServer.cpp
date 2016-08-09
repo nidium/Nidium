@@ -23,57 +23,56 @@ namespace Nidium {
 namespace Net {
 
 // {{{ Preamble
-#define GET_HTTP_OR_FAIL(obj) \
-    static_cast<HTTPServer *>(obj->ctx); \
+#define GET_HTTP_OR_FAIL(obj)                                     \
+    static_cast<HTTPServer *>(obj->ctx);                          \
     HTTPServer *___http___ = static_cast<HTTPServer *>(obj->ctx); \
     if (___http___ == NULL) return;
 
-static struct {
+static struct
+{
     uint16_t code;
     const char *desc;
-} HTTPCodes[] = {
-    {100, "Continue"},
-    {101, "Switching Protocols"},
-    {200, "OK"},
-    {201, "Created"},
-    {202, "Accepted"},
-    {203, "Non-Authoritative Information"},
-    {204, "No Content"},
-    {205, "Reset Content"},
-    {206, "Partial Content"},
-    {300, "Multiple Choices"},
-    {301, "Moved Permanently"},
-    {302, "Found"},
-    {303, "See Other"},
-    {304, "Not Modified"},
-    {305, "Use Proxy"},
-    {307, "Temporary Redirect"},
-    {400, "Bad Request"},
-    {401, "Unauthorized"},
-    {402, "Payment Required"},
-    {403, "Forbidden"},
-    {404, "Not Found"},
-    {405, "Method Not Allowed"},
-    {406, "Not Acceptable"},
-    {407, "Proxy Authentication Required"},
-    {408, "Request Time-out"},
-    {409, "Conflict"},
-    {410, "Gone"},
-    {411, "Length Required"},
-    {412, "Precondition Failed"},
-    {413, "Request Entity Too Large"},
-    {414, "Request-URI Too Large"},
-    {415, "Unsupported Media Type"},
-    {416, "Requested range not satisfiable"},
-    {417, "Expectation Failed"},
-    {500, "Internal Server Error"},
-    {501, "Not Implemented"},
-    {502, "Bad Gateway"},
-    {503, "Service Unavailable"},
-    {504, "Gateway Time-out"},
-    {505, "HTTP Version not support"},
-    {0, NULL}
-};
+} HTTPCodes[] = { { 100, "Continue" },
+                  { 101, "Switching Protocols" },
+                  { 200, "OK" },
+                  { 201, "Created" },
+                  { 202, "Accepted" },
+                  { 203, "Non-Authoritative Information" },
+                  { 204, "No Content" },
+                  { 205, "Reset Content" },
+                  { 206, "Partial Content" },
+                  { 300, "Multiple Choices" },
+                  { 301, "Moved Permanently" },
+                  { 302, "Found" },
+                  { 303, "See Other" },
+                  { 304, "Not Modified" },
+                  { 305, "Use Proxy" },
+                  { 307, "Temporary Redirect" },
+                  { 400, "Bad Request" },
+                  { 401, "Unauthorized" },
+                  { 402, "Payment Required" },
+                  { 403, "Forbidden" },
+                  { 404, "Not Found" },
+                  { 405, "Method Not Allowed" },
+                  { 406, "Not Acceptable" },
+                  { 407, "Proxy Authentication Required" },
+                  { 408, "Request Time-out" },
+                  { 409, "Conflict" },
+                  { 410, "Gone" },
+                  { 411, "Length Required" },
+                  { 412, "Precondition Failed" },
+                  { 413, "Request Entity Too Large" },
+                  { 414, "Request-URI Too Large" },
+                  { 415, "Unsupported Media Type" },
+                  { 416, "Requested range not satisfiable" },
+                  { 417, "Expectation Failed" },
+                  { 500, "Internal Server Error" },
+                  { 501, "Not Implemented" },
+                  { 502, "Bad Gateway" },
+                  { 503, "Service Unavailable" },
+                  { 504, "Gateway Time-out" },
+                  { 505, "HTTP Version not support" },
+                  { 0, NULL } };
 
 // }}}
 
@@ -87,20 +86,18 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len);
 static int request_url_cb(http_parser *p, const char *buf, size_t len);
 static int body_cb(http_parser *p, const char *buf, size_t len);
 
-static http_parser_settings settings =
-{
-    .on_message_begin = message_begin_cb,
-    .on_header_field = header_field_cb,
-    .on_header_value = header_value_cb,
-    .on_url = request_url_cb,
-    .on_body = body_cb,
-    .on_headers_complete = headers_complete_cb,
-    .on_message_complete = message_complete_cb
-};
+static http_parser_settings settings
+    = {.on_message_begin    = message_begin_cb,
+       .on_header_field     = header_field_cb,
+       .on_header_value     = header_value_cb,
+       .on_url              = request_url_cb,
+       .on_body             = body_cb,
+       .on_headers_complete = headers_complete_cb,
+       .on_message_complete = message_complete_cb };
 
 static int message_begin_cb(http_parser *p)
 {
-    HTTPClientConnection *con = static_cast<HTTPClientConnection *>(p->data);
+    HTTPClientConnection *con                 = static_cast<HTTPClientConnection *>(p->data);
     HTTPClientConnection::HTTPData *http_data = con->getHTTPState();
 
     /*
@@ -118,13 +115,13 @@ static int message_begin_cb(http_parser *p)
 
 static int header_field_cb(http_parser *p, const char *buf, size_t len)
 {
-    HTTPClientConnection *con = static_cast<HTTPClientConnection *>(p->data);
+    HTTPClientConnection *con                 = static_cast<HTTPClientConnection *>(p->data);
     HTTPClientConnection::HTTPData *http_data = con->getHTTPState();
 
     switch (http_data->headers.prevstate) {
         case HTTPClientConnection::PSTATE_NOTHING:
             http_data->headers.list = ape_array_new(16);
-            /* fall through */
+        /* fall through */
         case HTTPClientConnection::PSTATE_VALUE:
             http_data->headers.tkey = buffer_new(16);
             if (http_data->headers.tval != NULL) {
@@ -139,7 +136,8 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data_tolower(http_data->headers.tkey,
-            reinterpret_cast<const unsigned char *>(buf), len);
+                                   reinterpret_cast<const unsigned char *>(buf),
+                                   len);
     }
 
     return 0;
@@ -147,7 +145,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
 
 static int header_value_cb(http_parser *p, const char *buf, size_t len)
 {
-    HTTPClientConnection *con = static_cast<HTTPClientConnection *>(p->data);
+    HTTPClientConnection *con                 = static_cast<HTTPClientConnection *>(p->data);
     HTTPClientConnection::HTTPData *http_data = con->getHTTPState();
 
     switch (http_data->headers.prevstate) {
@@ -156,8 +154,8 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
         case HTTPClientConnection::PSTATE_FIELD:
             http_data->headers.tval = buffer_new(64);
             buffer_append_char(http_data->headers.tkey, '\0');
-            ape_array_add_b(http_data->headers.list,
-                    http_data->headers.tkey, http_data->headers.tval);
+            ape_array_add_b(http_data->headers.list, http_data->headers.tkey,
+                            http_data->headers.tval);
             break;
         default:
             break;
@@ -167,14 +165,14 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data(http_data->headers.tval,
-            reinterpret_cast<const unsigned char *>(buf), len);
+                           reinterpret_cast<const unsigned char *>(buf), len);
     }
     return 0;
 }
 
 static int headers_complete_cb(http_parser *p)
 {
-    HTTPClientConnection *con = static_cast<HTTPClientConnection *>(p->data);
+    HTTPClientConnection *con                 = static_cast<HTTPClientConnection *>(p->data);
     HTTPClientConnection::HTTPData *http_data = con->getHTTPState();
 
     if (http_data->headers.tval != NULL) {
@@ -192,7 +190,7 @@ static int headers_complete_cb(http_parser *p)
     }
 
     /* /!\ TODO: what happend if there is no content-length? */
-    //if (p->content_length) http_data->data = buffer_new(p->content_length);
+    // if (p->content_length) http_data->data = buffer_new(p->content_length);
 
     http_data->contentlength = p->content_length;
     con->onHeaderEnded();
@@ -231,7 +229,7 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data(client->getHTTPState()->data,
-            reinterpret_cast<const unsigned char *>(buf), len);
+                           reinterpret_cast<const unsigned char *>(buf), len);
     }
 
     client->getHTTPServer()->onData(client, buf, len);
@@ -248,10 +246,10 @@ static int request_url_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data(client->getHTTPState()->url,
-            reinterpret_cast<const unsigned char *>(buf), len);
+                           reinterpret_cast<const unsigned char *>(buf), len);
     }
 
-    //printf("Request URL cb %.*s\n", (int)len, buf);
+    // printf("Request URL cb %.*s\n", (int)len, buf);
     return 0;
 }
 
@@ -260,17 +258,23 @@ static int request_url_cb(http_parser *p, const char *buf, size_t len)
 // {{{ Socket callbacks
 
 static void nidium_socket_onaccept(ape_socket *socket_server,
-    ape_socket *socket_client, ape_global *ape, void *socket_arg)
+                                   ape_socket *socket_client,
+                                   ape_global *ape,
+                                   void *socket_arg)
 {
     HTTPServer *http = GET_HTTP_OR_FAIL(socket_server);
 
     http->onClientConnect(socket_client, ape);
 }
 
-static void nidium_socket_client_read(ape_socket *socket_client, const uint8_t *data, size_t len,
-    ape_global *ape, void *socket_arg)
+static void nidium_socket_client_read(ape_socket *socket_client,
+                                      const uint8_t *data,
+                                      size_t len,
+                                      ape_global *ape,
+                                      void *socket_arg)
 {
-    HTTPClientConnection *con = static_cast<HTTPClientConnection *>(socket_client->ctx);
+    HTTPClientConnection *con
+        = static_cast<HTTPClientConnection *>(socket_client->ctx);
     if (!con) {
         return;
     }
@@ -279,10 +283,13 @@ static void nidium_socket_client_read(ape_socket *socket_client, const uint8_t *
 }
 
 static void nidium_socket_client_read_after_upgrade(ape_socket *socket_client,
-    const uint8_t *data, size_t len,
-    ape_global *ape, void *socket_arg)
+                                                    const uint8_t *data,
+                                                    size_t len,
+                                                    ape_global *ape,
+                                                    void *socket_arg)
 {
-    HTTPClientConnection *con = static_cast<HTTPClientConnection *>(socket_client->ctx);
+    HTTPClientConnection *con
+        = static_cast<HTTPClientConnection *>(socket_client->ctx);
     if (!con) {
         return;
     }
@@ -290,9 +297,11 @@ static void nidium_socket_client_read_after_upgrade(ape_socket *socket_client,
 }
 
 static void nidium_socket_client_disconnect(ape_socket *socket_client,
-    ape_global *ape, void *socket_arg)
+                                            ape_global *ape,
+                                            void *socket_arg)
 {
-    HTTPClientConnection *con = static_cast<HTTPClientConnection *>(socket_client->ctx);
+    HTTPClientConnection *con
+        = static_cast<HTTPClientConnection *>(socket_client->ctx);
     if (!con) {
         return;
     }
@@ -310,9 +319,9 @@ static void nidium_socket_client_disconnect(ape_socket *socket_client,
 HTTPServer::HTTPServer(uint16_t port, const char *ip)
 {
     ape_global *ape = Binding::NidiumJS::GetNet();
-    m_Socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, ape);
+    m_Socket        = APE_socket_new(APE_SOCKET_PT_TCP, 0, ape);
 
-    m_IP = strdup(ip);
+    m_IP   = strdup(ip);
     m_Port = port;
 }
 
@@ -328,13 +337,15 @@ bool HTTPServer::start(bool reuseport, int timeout)
     m_Socket->callbacks.on_message    = NULL; // no udp on http
     m_Socket->callbacks.on_drain      = NULL;
     m_Socket->callbacks.arg           = NULL;
-    m_Socket->ctx = this;
+    m_Socket->ctx                     = this;
 
     if (timeout) {
         APE_socket_setTimeout(m_Socket, timeout);
     }
 
-    return (APE_socket_listen(m_Socket, m_Port, m_IP, 1, static_cast<int>(reuseport)) != -1);
+    return (APE_socket_listen(m_Socket, m_Port, m_IP, 1,
+                              static_cast<int>(reuseport))
+            != -1);
 }
 
 void HTTPServer::stop()
@@ -361,7 +372,7 @@ void HTTPServer::onClientConnect(ape_socket *client, ape_global *ape)
 int HTTPClientConnection_checktimeout(void *arg)
 {
     HTTPClientConnection *con = static_cast<HTTPClientConnection *>(arg);
-    uint64_t timeout = con->getTimeoutAfterMs();
+    uint64_t timeout          = con->getTimeoutAfterMs();
     /*
         Never timeout if set to 0
     */
@@ -377,43 +388,41 @@ int HTTPClientConnection_checktimeout(void *arg)
 // {{{ HTTPClientConnection Implementation
 
 HTTPClientConnection::HTTPClientConnection(HTTPServer *httpserver,
-    ape_socket *socket) :
-    m_Ctx(NULL), m_SocketClient(socket),
-    m_HTTPServer(httpserver), m_Response(NULL),
-    m_RequestsCount(0), m_MaxRequestsCount(0)
+                                           ape_socket *socket)
+    : m_Ctx(NULL), m_SocketClient(socket), m_HTTPServer(httpserver),
+      m_Response(NULL), m_RequestsCount(0), m_MaxRequestsCount(0)
 {
     m_HttpState.headers.prevstate = PSTATE_NOTHING;
 
     m_HttpState.headers.list = NULL;
     m_HttpState.headers.tkey = NULL;
     m_HttpState.headers.tval = NULL;
-    m_HttpState.ended = 0;
-    m_HttpState.data  = NULL;
-    m_HttpState.url  = NULL;
+    m_HttpState.ended        = 0;
+    m_HttpState.data         = NULL;
+    m_HttpState.url          = NULL;
 
     m_ClientTimeoutMs = 10000;
 
     http_parser_init(&m_HttpState.parser, HTTP_REQUEST);
     m_HttpState.parser.data = this;
 
-    ape_timer_t *timer = APE_timer_create(socket->ape, 1000,
-        HTTPClientConnection_checktimeout, this);
+    ape_timer_t *timer = APE_timer_create(
+        socket->ape, 1000, HTTPClientConnection_checktimeout, this);
 
     m_TimeoutTimer = APE_timer_getid(timer);
 
     m_LastAcitivty = Utils::GetTick(true);
 }
 
-void HTTPClientConnection::onRead(const char *data,
-    size_t len, ape_global *ape)
+void HTTPClientConnection::onRead(const char *data, size_t len, ape_global *ape)
 {
-#define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
-    CONST_STR_LEN(header "\0"))
+#define REQUEST_HEADER(header) \
+    ape_array_lookup(m_HttpState.headers.list, CONST_STR_LEN(header "\0"))
 
     m_LastAcitivty = Utils::GetTick(true);
 
-    int nparsed = http_parser_execute(&m_HttpState.parser, &settings,
-        data, len);
+    int nparsed
+        = http_parser_execute(&m_HttpState.parser, &settings, data, len);
 
     if (m_HttpState.parser.upgrade) {
         buffer *upgrade_header = REQUEST_HEADER("upgrade");
@@ -426,10 +435,12 @@ void HTTPClientConnection::onRead(const char *data,
             }
 
             /* Change the callback for the next on_read calls */
-            m_SocketClient->callbacks.on_read = nidium_socket_client_read_after_upgrade;
+            m_SocketClient->callbacks.on_read
+                = nidium_socket_client_read_after_upgrade;
         }
     } else if (nparsed != len) {
-        printf("Http error : %s\n", http_errno_description(HTTP_PARSER_ERRNO(&m_HttpState.parser)));
+        printf("Http error : %s\n",
+               http_errno_description(HTTP_PARSER_ERRNO(&m_HttpState.parser)));
     }
 #undef REQUEST_HEADER
 }
@@ -448,8 +459,8 @@ void HTTPClientConnection::write(char *buf, size_t len)
 
 const char *HTTPClientConnection::getHeader(const char *key)
 {
-    buffer *ret = ape_array_lookup_cstr(getHTTPState()->headers.list,
-        key, strlen(key));
+    buffer *ret
+        = ape_array_lookup_cstr(getHTTPState()->headers.list, key, strlen(key));
     return ret ? reinterpret_cast<const char *>(ret->data) : NULL;
 }
 
@@ -489,9 +500,9 @@ HTTPClientConnection::~HTTPClientConnection()
 
 // {{{ HTTPResponse
 
-HTTPResponse::HTTPResponse(uint16_t code) :
-    m_Headers(ape_array_new(8)), m_Statuscode(code),
-    m_Content(NULL), m_Headers_str(NULL), m_HeaderSent(false), m_Chunked(false)
+HTTPResponse::HTTPResponse(uint16_t code)
+    : m_Headers(ape_array_new(8)), m_Statuscode(code), m_Content(NULL),
+      m_Headers_str(NULL), m_HeaderSent(false), m_Chunked(false)
 {
     this->setHeader("Server", "nidium/" NIDIUM_VERSION_STR);
 }
@@ -527,16 +538,18 @@ void HTTPResponse::sendHeaders(bool chunked)
 
     const buffer &headers = this->getHeadersString();
 
-    APE_socket_write(m_Con->getSocket(), headers.data,
-        headers.used, APE_DATA_AUTORELEASE);
+    APE_socket_write(m_Con->getSocket(), headers.data, headers.used,
+                     APE_DATA_AUTORELEASE);
 
     m_HeaderSent = true;
 
     this->dataOwnershipTransfered(true);
 }
 
-void HTTPResponse::sendChunk(char *buf, size_t len,
-    ape_socket_data_autorelease datatype, bool willEnd)
+void HTTPResponse::sendChunk(char *buf,
+                             size_t len,
+                             ape_socket_data_autorelease datatype,
+                             bool willEnd)
 {
     if (!m_Con || m_Con->getSocket() == NULL || !len) {
         return;
@@ -567,7 +580,8 @@ void HTTPResponse::sendChunk(char *buf, size_t len,
 
     APE_socket_write(m_Con->getSocket(), tmpbuf, tmplen, APE_DATA_STATIC);
     APE_socket_write(m_Con->getSocket(), buf, len, datatype);
-    APE_socket_write(m_Con->getSocket(), (char *)CONST_STR_LEN("\r\n"), APE_DATA_STATIC);
+    APE_socket_write(m_Con->getSocket(), (char *)CONST_STR_LEN("\r\n"),
+                     APE_DATA_STATIC);
 
     FLUSH_TCP(m_Con->getSocket()->s.fd);
 }
@@ -585,14 +599,13 @@ void HTTPResponse::send(ape_socket_data_autorelease datatype)
     if (!m_HeaderSent) {
         const buffer &headers = this->getHeadersString();
 
-        APE_socket_write(m_Con->getSocket(), headers.data,
-            headers.used, APE_DATA_AUTORELEASE);
+        APE_socket_write(m_Con->getSocket(), headers.data, headers.used,
+                         APE_DATA_AUTORELEASE);
 
         m_HeaderSent = true;
     }
     if (data && data->used) {
-        APE_socket_write(m_Con->getSocket(), data->data,
-            data->used, datatype);
+        APE_socket_write(m_Con->getSocket(), data->data, data->used, datatype);
     }
     FLUSH_TCP(m_Con->getSocket()->s.fd);
 
@@ -621,8 +634,8 @@ void HTTPResponse::end()
     }
 
     if (m_Chunked) {
-        APE_socket_write(m_Con->getSocket(),
-            (char *)CONST_STR_LEN("0\r\n\r\n"), APE_DATA_STATIC);
+        APE_socket_write(m_Con->getSocket(), (char *)CONST_STR_LEN("0\r\n\r\n"),
+                         APE_DATA_STATIC);
     }
 
     if (m_Con->shouldCloseConnection()) {
@@ -648,7 +661,7 @@ void HTTPResponse::setData(char *buf, size_t len)
     if (m_Content) {
         return;
     }
-    m_Content = buffer_new(0);
+    m_Content       = buffer_new(0);
     m_Content->data = (unsigned char *)buf;
     m_Content->size = m_Content->used = len;
 }
@@ -692,10 +705,13 @@ const buffer &HTTPResponse::getHeadersString()
 
     buffer *k, *v;
     if (this->getHeaders()) {
-        APE_A_FOREACH(this->getHeaders(), k, v) {
-            buffer_append_string_n(m_Headers_str, reinterpret_cast<char *>(k->data), k->used);
+        APE_A_FOREACH(this->getHeaders(), k, v)
+        {
+            buffer_append_string_n(m_Headers_str,
+                                   reinterpret_cast<char *>(k->data), k->used);
             buffer_append_string_n(m_Headers_str, ": ", 2);
-            buffer_append_string_n(m_Headers_str, reinterpret_cast<char *>(v->data), v->used);
+            buffer_append_string_n(m_Headers_str,
+                                   reinterpret_cast<char *>(v->data), v->used);
             buffer_append_string_n(m_Headers_str, CONST_STR_LEN("\r\n"));
         }
     } else {
@@ -740,4 +756,3 @@ void HTTPResponse::dataOwnershipTransfered(bool onlyHeaders)
 
 } // namespace Net
 } // namespace Nidium
-

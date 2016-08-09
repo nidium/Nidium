@@ -14,27 +14,30 @@
 namespace Nidium {
 namespace IO {
 
-class FileStream : public Stream,
-                   public Nidium::Core::Messages
+class FileStream : public Stream, public Nidium::Core::Messages
 {
 public:
     explicit FileStream(const char *location);
 
-    static Stream *CreateStream(const char *location) {
+    static Stream *CreateStream(const char *location)
+    {
         return new FileStream(location);
     }
-    static const char *GetBaseDir() {
+    static const char *GetBaseDir()
+    {
         return Nidium::Core::Path::GetRoot();
     }
 
-    static bool AllowLocalFileStream() {
+    static bool AllowLocalFileStream()
+    {
         return true;
     }
-    static bool AllowSyncStream() {
+    static bool AllowSyncStream()
+    {
         return true;
     }
 
-    virtual ~FileStream() {};
+    virtual ~FileStream(){};
 
     virtual void stop();
     virtual void getContent();
@@ -48,9 +51,11 @@ public:
     virtual void seek(size_t pos);
 
     virtual void onMessage(const Nidium::Core::SharedMessages::Message &msg);
+
 protected:
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err);
     virtual void onStart(size_t packets, size_t seek);
+
 private:
     File m_File;
     bool m_OpenFailed = false;
@@ -60,4 +65,3 @@ private:
 } // namespace Nidium
 
 #endif
-

@@ -7,14 +7,13 @@
 
 namespace Nidium {
 namespace Graphics {
-    class Image;
+class Image;
 }
 namespace Binding {
 
 class JSImage : public JSExposer<JSImage>, public Core::Messages
 {
-  public:
-
+public:
     JSImage(JS::HandleObject obj, JSContext *cx);
     virtual ~JSImage();
 
@@ -24,8 +23,9 @@ class JSImage : public JSExposer<JSImage>, public Core::Messages
     static Graphics::Image *JSObjectToImage(JS::HandleObject obj);
     static void RegisterObject(JSContext *cx);
     static bool JSObjectIs(JSContext *cx, JS::HandleObject obj);
-    static JSObject *BuildImageObject(JSContext *cx, Graphics::Image *image,
-        const char name[] = NULL);
+    static JSObject *BuildImageObject(JSContext *cx,
+                                      Graphics::Image *image,
+                                      const char name[] = NULL);
 
     void onMessage(const Core::SharedMessages::Message &msg);
 
@@ -37,4 +37,3 @@ private:
 } // namespace Nidium
 
 #endif
-

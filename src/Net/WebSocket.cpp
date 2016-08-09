@@ -19,15 +19,14 @@ namespace Nidium {
 namespace Net {
 
 // {{{ Preamble
-#define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
-    CONST_STR_LEN(header "\0"))
+#define REQUEST_HEADER(header) \
+    ape_array_lookup(m_HttpState.headers.list, CONST_STR_LEN(header "\0"))
 // }}}
 
 // {{{ WebSocketServer
-WebSocketServer::WebSocketServer(uint16_t port, const char *ip) :
-    HTTPServer(port, ip)
+WebSocketServer::WebSocketServer(uint16_t port, const char *ip)
+    : HTTPServer(port, ip)
 {
-
 }
 
 void WebSocketServer::onClientConnect(ape_socket *client, ape_global *ape)
@@ -38,30 +37,34 @@ void WebSocketServer::onClientConnect(ape_socket *client, ape_global *ape)
 
 // {{{ WebSocketClientConnection Implementation
 static void nidium_on_ws_frame(websocket_state *state,
-    const unsigned char *data, ssize_t length, int binary)
+                               const unsigned char *data,
+                               ssize_t length,
+                               int binary)
 {
     ape_socket *sock = state->socket;
     if (sock == NULL) {
         return;
     }
 
-    WebSocketClientConnection *con = static_cast<WebSocketClientConnection *>(sock->ctx);
+    WebSocketClientConnection *con
+        = static_cast<WebSocketClientConnection *>(sock->ctx);
 
     if (con == NULL) {
         return;
     }
 
-    con->onFrame(reinterpret_cast<const char *>(data), length, static_cast<bool>(binary));
+    con->onFrame(reinterpret_cast<const char *>(data), length,
+                 static_cast<bool>(binary));
 }
 
-WebSocketClientConnection::WebSocketClientConnection(
-        HTTPServer *httpserver, ape_socket *socket) :
-    HTTPClientConnection(httpserver, socket), m_Handshaked(false),
-    m_PingTimer(0), m_Data(NULL)
+WebSocketClientConnection::WebSocketClientConnection(HTTPServer *httpserver,
+                                                     ape_socket *socket)
+    : HTTPClientConnection(httpserver, socket), m_Handshaked(false),
+      m_PingTimer(0), m_Data(NULL)
 {
     m_ClientTimeoutMs = 0; /* Disable HTTP timeout */
     ape_ws_init(&m_WSState, 0);
-    m_WSState.socket = socket;
+    m_WSState.socket   = socket;
     m_WSState.on_frame = nidium_on_ws_frame;
 }
 
@@ -75,7 +78,8 @@ void WebSocketClientConnection::ping()
 
 int WebSocketClientConnection::PingTimer(void *arg)
 {
-    WebSocketClientConnection *con = static_cast<WebSocketClientConnection *>(arg);
+    WebSocketClientConnection *con
+        = static_cast<WebSocketClientConnection *>(arg);
 
     con->ping();
 
@@ -83,10 +87,12 @@ int WebSocketClientConnection::PingTimer(void *arg)
 }
 
 void WebSocketClientConnection::write(unsigned char *data,
-    size_t len, bool binary, ape_socket_data_autorelease type)
+                                      size_t len,
+                                      bool binary,
+                                      ape_socket_data_autorelease type)
 {
     ape_ws_write(&m_WSState, static_cast<unsigned char *>(data), len,
-        static_cast<int>(binary), type);
+                 static_cast<int>(binary), type);
 }
 
 void WebSocketClientConnection::close()
@@ -118,7 +124,6 @@ WebSocketClientConnection::~WebSocketClientConnection()
 // {{{ WebSocketClientConnection Events
 void WebSocketClientConnection::onHeaderEnded()
 {
-
 }
 
 void WebSocketClientConnection::onDisconnect(ape_global *ape)
@@ -131,7 +136,8 @@ void WebSocketClientConnection::onDisconnect(ape_global *ape)
         m_PingTimer = 0;
     }
 
-    m_HTTPServer->fireEventSync<WebSocketServer>(WebSocketServer::kEvents_ServerClose, args);
+    m_HTTPServer->fireEventSync<WebSocketServer>(
+        WebSocketServer::kEvents_ServerClose, args);
 }
 
 void WebSocketClientConnection::onUpgrade(const char *to)
@@ -148,17 +154,20 @@ void WebSocketClientConnection::onUpgrade(const char *to)
         return;
     }
 
-    char *ws_computed_key = ape_ws_compute_key(reinterpret_cast<const char *>(ws_key->data),
-        ws_key->used-1);
+    char *ws_computed_key = ape_ws_compute_key(
+        reinterpret_cast<const char *>(ws_key->data), ws_key->used - 1);
 
     PACK_TCP(m_SocketClient->s.fd);
     APE_socket_write(m_SocketClient,
-        (void *) CONST_STR_LEN(WEBSOCKET_HARDCODED_HEADERS), APE_DATA_STATIC);
+                     (void *)CONST_STR_LEN(WEBSOCKET_HARDCODED_HEADERS),
+                     APE_DATA_STATIC);
     APE_socket_write(m_SocketClient,
-        (void *)CONST_STR_LEN("Sec-WebSocket-Accept: "), APE_DATA_STATIC);
-    APE_socket_write(m_SocketClient,
-        ws_computed_key, strlen(ws_computed_key), APE_DATA_AUTORELEASE);
-    APE_socket_write(m_SocketClient,
+                     (void *)CONST_STR_LEN("Sec-WebSocket-Accept: "),
+                     APE_DATA_STATIC);
+    APE_socket_write(m_SocketClient, ws_computed_key, strlen(ws_computed_key),
+                     APE_DATA_AUTORELEASE);
+    APE_socket_write(
+        m_SocketClient,
         (void *)CONST_STR_LEN("\r\nSec-WebSocket-Origin: 127.0.0.1\r\n\r\n"),
         APE_DATA_STATIC);
     FLUSH_TCP(m_SocketClient->s.fd);
@@ -168,12 +177,13 @@ void WebSocketClientConnection::onUpgrade(const char *to)
     Args args;
     args[0].set(this);
 
-    ape_timer_t *timer = APE_timer_create(m_SocketClient->ape, WEBSOCKET_PING_INTERVAL,
-        WebSocketClientConnection::PingTimer, this);
+    ape_timer_t *timer
+        = APE_timer_create(m_SocketClient->ape, WEBSOCKET_PING_INTERVAL,
+                           WebSocketClientConnection::PingTimer, this);
 
     m_PingTimer = APE_timer_getid(timer);
-    m_HTTPServer->fireEventSync<WebSocketServer>(WebSocketServer::kEvents_ServerConnect, args);
-
+    m_HTTPServer->fireEventSync<WebSocketServer>(
+        WebSocketServer::kEvents_ServerConnect, args);
 }
 
 void WebSocketClientConnection::onContent(const char *data, size_t len)
@@ -183,8 +193,9 @@ void WebSocketClientConnection::onContent(const char *data, size_t len)
     ape_ws_process_frame(&m_WSState, data, len);
 }
 
-void WebSocketClientConnection::onFrame(const char *data, size_t len,
-    bool binary)
+void WebSocketClientConnection::onFrame(const char *data,
+                                        size_t len,
+                                        bool binary)
 {
     Args args;
     args[0].set(this);
@@ -192,11 +203,11 @@ void WebSocketClientConnection::onFrame(const char *data, size_t len,
     args[2].set(len);
     args[3].set(binary);
 
-    m_HTTPServer->fireEventSync<WebSocketServer>(WebSocketServer::kEvents_ServerFrame, args);
+    m_HTTPServer->fireEventSync<WebSocketServer>(
+        WebSocketServer::kEvents_ServerFrame, args);
 }
 
 // }}}
 
 } // namespace Net
 } // namespace Nidium
-

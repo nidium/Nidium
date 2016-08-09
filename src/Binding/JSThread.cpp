@@ -23,54 +23,78 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-extern void reportError(JSContext *cx, const char *message,
-    JSErrorReport *report);
+extern void
+reportError(JSContext *cx, const char *message, JSErrorReport *report);
 static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Thread_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool nidium_thread_start(JSContext *cx, unsigned argc, JS::Value *vp);
 
 #define NJS (NidiumJS::GetObject(cx))
 
-static JSClass global_Thread_class = {
-    "_GLOBALThread", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, JS_GlobalObjectTraceHook, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass global_Thread_class = { "_GLOBALThread",
+                                       JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
+                                       JS_PropertyStub,
+                                       JS_DeletePropertyStub,
+                                       JS_PropertyStub,
+                                       JS_StrictPropertyStub,
+                                       JS_EnumerateStub,
+                                       JS_ResolveStub,
+                                       JS_ConvertStub,
+                                       nullptr,
+                                       nullptr,
+                                       nullptr,
+                                       nullptr,
+                                       JS_GlobalObjectTraceHook,
+                                       JSCLASS_NO_INTERNAL_MEMBERS };
 
-static JSClass Thread_class = {
-    "Thread", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Thread_Finalize,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass Thread_class
+    = { "Thread",
+        JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
+        JS_PropertyStub,
+        JS_DeletePropertyStub,
+        JS_PropertyStub,
+        JS_StrictPropertyStub,
+        JS_EnumerateStub,
+        JS_ResolveStub,
+        JS_ConvertStub,
+        Thread_Finalize,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        JSCLASS_NO_INTERNAL_MEMBERS };
 
-template<>
+template <>
 JSClass *JSExposer<JSThread>::jsclass = &Thread_class;
 
-static JSClass messageEvent_class = {
-    "ThreadMessageEvent", 0,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass messageEvent_class = { "ThreadMessageEvent",
+                                      0,
+                                      JS_PropertyStub,
+                                      JS_DeletePropertyStub,
+                                      JS_PropertyStub,
+                                      JS_StrictPropertyStub,
+                                      JS_EnumerateStub,
+                                      JS_ResolveStub,
+                                      JS_ConvertStub,
+                                      NULL,
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      JSCLASS_NO_INTERNAL_MEMBERS };
 
-static JSFunctionSpec glob_funcs_threaded[] = {
-    JS_FN("send", nidium_post_message, 1, NIDIUM_JS_FNPROPS),
-    JS_FS_END
-};
+static JSFunctionSpec glob_funcs_threaded[]
+    = { JS_FN("send", nidium_post_message, 1, NIDIUM_JS_FNPROPS), JS_FS_END };
 
-static JSFunctionSpec Thread_funcs[] = {
-    JS_FN("start", nidium_thread_start, 0, NIDIUM_JS_FNPROPS),
-    JS_FS_END
-};
+static JSFunctionSpec Thread_funcs[]
+    = { JS_FN("start", nidium_thread_start, 0, NIDIUM_JS_FNPROPS), JS_FS_END };
 
 static bool JSThreadCallback(JSContext *cx)
 {
     JSThread *nthread;
 
-    if ((nthread = static_cast<JSThread *>(JS_GetContextPrivate(cx))) == NULL ||
-        nthread->m_MarkedStop) {
+    if ((nthread = static_cast<JSThread *>(JS_GetContextPrivate(cx))) == NULL
+        || nthread->m_MarkedStop) {
         return false;
     }
     return true;
@@ -81,8 +105,9 @@ JSObject *_CreateJSGlobal(JSContext *cx)
     JS::CompartmentOptions options;
     options.setVersion(JSVERSION_LATEST);
 
-    JS::RootedObject glob(cx, JS_NewGlobalObject(cx, &global_Thread_class, nullptr,
-                                             JS::DontFireOnNewGlobalHook, options));
+    JS::RootedObject glob(
+        cx, JS_NewGlobalObject(cx, &global_Thread_class, nullptr,
+                               JS::DontFireOnNewGlobalHook, options));
     JSAutoCompartment ac(cx, glob);
     JS_InitStandardClasses(cx, glob);
     JS_DefineDebuggerObject(cx, glob);
@@ -90,9 +115,9 @@ JSObject *_CreateJSGlobal(JSContext *cx)
     JS_FireOnNewGlobalObject(cx, glob);
 
     return glob;
-    //JS::RegisterPerfMeasurement(cx, glob);
+    // JS::RegisterPerfMeasurement(cx, glob);
 
-    //https://bugzilla.mozilla.org/show_bug.cgi?id=880330
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=880330
     // context option vs compile option?
 }
 
@@ -103,7 +128,8 @@ static void *nidium_thread(void *arg)
     JSRuntime *rt;
     JSContext *tcx;
 
-    if ((rt = JS_NewRuntime(128L * 1024L * 1024L, JS_USE_HELPER_THREADS)) == NULL) {
+    if ((rt = JS_NewRuntime(128L * 1024L * 1024L, JS_USE_HELPER_THREADS))
+        == NULL) {
         printf("Failed to init JS runtime\n");
         return NULL;
     }
@@ -116,7 +142,8 @@ static void *nidium_thread(void *arg)
         return NULL;
     } else {
         JSAutoRequest ar(tcx);
-        JS_SetGCParameterForThread(tcx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
+        JS_SetGCParameterForThread(tcx, JSGC_MAX_CODE_CACHE_BYTES,
+                                   16 * 1024 * 1024);
 
         JS_SetStructuredCloneCallbacks(rt, NidiumJS::m_JsScc);
         JS_SetInterruptCallback(rt, JSThreadCallback);
@@ -151,7 +178,8 @@ static void *nidium_thread(void *arg)
                     }).apply(this, Array.prototype.slice.apply(arguments));
                 };
             */
-            sprintf(scoped, "return %c%s%s", '(', str.ptr(), ").apply(this, Array.prototype.slice.apply(arguments));");
+            sprintf(scoped, "return %c%s%s", '(', str.ptr(),
+                    ").apply(this, Array.prototype.slice.apply(arguments));");
 
             JS_SetReservedSlot(nthread->getJSObject(), 0, JS::NullHandleValue);
 
@@ -159,11 +187,13 @@ static void *nidium_thread(void *arg)
             JS_SetContextPrivate(tcx, nthread);
 
             JS::CompileOptions options(tcx);
-            options.setFileAndLine(nthread->m_CallerFileName, nthread->m_CallerLineNo)
-                   .setUTF8(true);
+            options.setFileAndLine(nthread->m_CallerFileName,
+                                   nthread->m_CallerLineNo)
+                .setUTF8(true);
 
             JS::RootedFunction cf(tcx);
-            cf = JS::CompileFunction(tcx, gbl, options, NULL, 0, NULL, scoped, strlen(scoped));
+            cf = JS::CompileFunction(tcx, gbl, options, NULL, 0, NULL, scoped,
+                                     strlen(scoped));
             delete[] scoped;
 
             if (cf == NULL) {
@@ -176,13 +206,14 @@ static void *nidium_thread(void *arg)
 
             for (size_t i = 0; i < nthread->m_Params.argc; i++) {
                 JS::RootedValue args(tcx);
-                JS_ReadStructuredClone(tcx,
-                            nthread->m_Params.argv[i],
-                            nthread->m_Params.nbytes[i],
-                            JS_STRUCTURED_CLONE_VERSION, &args, NULL, NULL);
+                JS_ReadStructuredClone(
+                    tcx, nthread->m_Params.argv[i], nthread->m_Params.nbytes[i],
+                    JS_STRUCTURED_CLONE_VERSION, &args, NULL, NULL);
 
                 arglst[i] = args;
-                JS_ClearStructuredClone(nthread->m_Params.argv[i], nthread->m_Params.nbytes[i], NULL, NULL);
+                JS_ClearStructuredClone(nthread->m_Params.argv[i],
+                                        nthread->m_Params.nbytes[i], NULL,
+                                        NULL);
             }
 
             if (JS_CallFunction(tcx, gbl, cf, arglst, &rval) == false) {
@@ -196,7 +227,7 @@ static void *nidium_thread(void *arg)
     JS_DestroyContext(tcx);
     JS_DestroyRuntime(rt);
     nthread->m_JsRuntime = NULL;
-    nthread->m_JsCx = NULL;
+    nthread->m_JsCx      = NULL;
 
     return NULL;
 }
@@ -204,11 +235,10 @@ static void *nidium_thread(void *arg)
 // }}}
 
 // {{{ JSThread
-JSThread::JSThread(JS::HandleObject obj, JSContext *cx) :
-    JSExposer<JSThread>(obj, cx),
-    m_JsRuntime(NULL), m_JsCx(NULL),
-    m_JsObject(NULL), m_Njs(NULL), m_Params({0, NULL, 0}), m_MarkedStop(false),
-    m_CallerFileName(NULL), m_CallerLineNo(0)
+JSThread::JSThread(JS::HandleObject obj, JSContext *cx)
+    : JSExposer<JSThread>(obj, cx), m_JsRuntime(NULL), m_JsCx(NULL),
+      m_JsObject(NULL), m_Njs(NULL), m_Params({ 0, NULL, 0 }),
+      m_MarkedStop(false), m_CallerFileName(NULL), m_CallerLineNo(0)
 {
     /* cx hold the main context (caller) */
     /* jsCx hold the newly created context (along with jsRuntime) */
@@ -217,8 +247,9 @@ JSThread::JSThread(JS::HandleObject obj, JSContext *cx) :
 
 void JSThread::onMessage(const Core::SharedMessages::Message &msg)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
-    val, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+#define EVENT_PROP(name, val)                 \
+    JS_DefineProperty(m_Cx, event, name, val, \
+                      JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     struct nidium_thread_msg *ptr;
     char prop[16];
     int ev = msg.event();
@@ -234,7 +265,8 @@ void JSThread::onMessage(const Core::SharedMessages::Message &msg)
 
     JS::RootedValue inval(m_Cx, JSVAL_NULL);
     if (!JS_ReadStructuredClone(m_Cx, ptr->data, ptr->nbytes,
-        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
+                                JS_STRUCTURED_CLONE_VERSION, &inval, NULL,
+                                NULL)) {
 
         printf("Failed to read input data (readMessage)\n");
 
@@ -244,8 +276,11 @@ void JSThread::onMessage(const Core::SharedMessages::Message &msg)
 
     JS::RootedValue jscbk(m_Cx);
     JS::RootedObject callee(m_Cx, ptr->callee);
-    if (JS_GetProperty(m_Cx, callee, prop, &jscbk) && JS_TypeOfValue(m_Cx, jscbk) == JSTYPE_FUNCTION) {
-        JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &messageEvent_class, JS::NullPtr(), JS::NullPtr()));
+    if (JS_GetProperty(m_Cx, callee, prop, &jscbk)
+        && JS_TypeOfValue(m_Cx, jscbk) == JSTYPE_FUNCTION) {
+        JS::RootedObject event(m_Cx,
+                               JS_NewObject(m_Cx, &messageEvent_class,
+                                            JS::NullPtr(), JS::NullPtr()));
         EVENT_PROP("data", inval);
 
         JS::AutoValueArray<1> jevent(m_Cx);
@@ -265,10 +300,10 @@ void JSThread::onComplete(JS::HandleValue vp)
 {
     struct nidium_thread_msg *msg = new struct nidium_thread_msg;
 
-    if (!JS_WriteStructuredClone(m_JsCx, vp, &msg->data, &msg->nbytes,
-        NULL, NULL, JS::NullHandleValue)) {
+    if (!JS_WriteStructuredClone(m_JsCx, vp, &msg->data, &msg->nbytes, NULL,
+                                 NULL, JS::NullHandleValue)) {
 
-        msg->data = NULL;
+        msg->data   = NULL;
         msg->nbytes = 0;
     }
 
@@ -312,16 +347,18 @@ static bool nidium_thread_start(JSContext *cx, unsigned argc, JS::Value *vp)
         return true;
     }
 
-    nthread->m_Params.argv = (argc ?
-        (uint64_t **)malloc(sizeof(*nthread->m_Params.argv) * argc) : NULL);
-    nthread->m_Params.nbytes = (argc ?
-        (size_t *)malloc(sizeof(*nthread->m_Params.nbytes) * argc) : NULL);
+    nthread->m_Params.argv
+        = (argc ? (uint64_t **)malloc(sizeof(*nthread->m_Params.argv) * argc)
+                : NULL);
+    nthread->m_Params.nbytes
+        = (argc ? (size_t *)malloc(sizeof(*nthread->m_Params.nbytes) * argc)
+                : NULL);
 
     for (int i = 0; i < static_cast<int>(argc); i++) {
 
-        if (!JS_WriteStructuredClone(cx, args[i],
-            &nthread->m_Params.argv[i], &nthread->m_Params.nbytes[i],
-            NULL, NULL, JS::NullHandleValue)) {
+        if (!JS_WriteStructuredClone(cx, args[i], &nthread->m_Params.argv[i],
+                                     &nthread->m_Params.nbytes[i], NULL, NULL,
+                                     JS::NullHandleValue)) {
 
             return false;
         }
@@ -330,8 +367,7 @@ static bool nidium_thread_start(JSContext *cx, unsigned argc, JS::Value *vp)
     nthread->m_Params.argc = argc;
 
     /* TODO: check if already running */
-    pthread_create(&nthread->m_ThreadHandle, NULL,
-                            nidium_thread, nthread);
+    pthread_create(&nthread->m_ThreadHandle, NULL, nidium_thread, nthread);
 
     nthread->m_Njs->rootObjectUntilShutdown(caller);
 
@@ -350,14 +386,16 @@ static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp)
     NIDIUM_JS_CHECK_ARGS("postMessage", 1);
 
     if (nthread == NULL || nthread->m_MarkedStop) {
-        JS_ReportError(cx, "thread.send() Could not retrieve thread (or marked for stopping)");
+        JS_ReportError(
+            cx,
+            "thread.send() Could not retrieve thread (or marked for stopping)");
         return false;
     }
 
     struct nidium_thread_msg *msg;
 
-    if (!JS_WriteStructuredClone(cx, args[0], &datap, &nbytes,
-        NULL, NULL, JS::NullHandleValue)) {
+    if (!JS_WriteStructuredClone(cx, args[0], &datap, &nbytes, NULL, NULL,
+                                 JS::NullHandleValue)) {
         JS_ReportError(cx, "Failed to write strclone");
         /* TODO: exception */
         return false;
@@ -375,24 +413,26 @@ static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp)
 }
 
 
-static bool nidium_Thread_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_Thread_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Thread_class, args));
+    JS::RootedObject ret(cx,
+                         JS_NewObjectForConstructor(cx, &Thread_class, args));
 
     JS::RootedScript parent(cx);
 
     JSThread *nthread = new JSThread(ret, cx);
     JS::RootedFunction nfn(cx);
 
-    if ((nfn = JS_ValueToFunction(cx, args[0])) == NULL ||
-        (nthread->m_JsFunction = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
+    if ((nfn = JS_ValueToFunction(cx, args[0])) == NULL
+        || (nthread->m_JsFunction = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
         printf("Failed to read Threaded function\n");
         return true;
     }
 
     nthread->m_JsObject = ret;
-    nthread->m_Njs = NJS;
+    nthread->m_Njs      = NJS;
 
     JS::AutoFilename af;
     JS::DescribeScriptedCaller(cx, &af, &nthread->m_CallerLineNo);
@@ -427,4 +467,3 @@ NIDIUM_JS_OBJECT_EXPOSE(Thread)
 
 } // namespace Binding
 } // namespace Nidium
-

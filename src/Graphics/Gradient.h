@@ -24,8 +24,7 @@ struct _colorStop
 
 class Gradient
 {
-  private:
-
+private:
     struct
     {
         double x;
@@ -40,7 +39,8 @@ class Gradient
         double radius;
     } m_EndPoint;
 
-    struct {
+    struct
+    {
         uint32_t count;
         uint32_t allocated;
 
@@ -51,18 +51,15 @@ class Gradient
     int m_NeedUpdate;
     SkShader *m_CurrentShader;
 
-  public:
+public:
     ~Gradient();
     Gradient(double x1, double y1, double x2, double y2);
-    Gradient(double x0, double y0, double r0, double x1,
-      double y1, double r1);
+    Gradient(double x0, double y0, double r0, double x1, double y1, double r1);
     void addColorStop(double position, char *color);
     SkShader *build();
-
 };
 
 } // namespace Graphics
 } // namespace Nidium
 
 #endif
-

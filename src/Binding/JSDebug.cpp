@@ -14,23 +14,32 @@ namespace Binding {
 
 static void Debug_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool nidium_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool
+nidium_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static JSClass debug_class = {
-    "NidiumDebug", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Debug_Finalize,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass debug_class = { "NidiumDebug",
+                               JSCLASS_HAS_PRIVATE,
+                               JS_PropertyStub,
+                               JS_DeletePropertyStub,
+                               JS_PropertyStub,
+                               JS_StrictPropertyStub,
+                               JS_EnumerateStub,
+                               JS_ResolveStub,
+                               JS_ConvertStub,
+                               Debug_Finalize,
+                               nullptr,
+                               nullptr,
+                               nullptr,
+                               nullptr,
+                               JSCLASS_NO_INTERNAL_MEMBERS };
 
-template<>
+template <>
 JSClass *JSExposer<JSDebug>::jsclass = &debug_class;
 
-static JSFunctionSpec debug_funcs[] = {
-    JS_FN("serialize", nidium_debug_serialize, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("unserialize", nidium_debug_unserialize, 1, NIDIUM_JS_FNPROPS),
-    JS_FS_END
-};
+static JSFunctionSpec debug_funcs[]
+    = { JS_FN("serialize", nidium_debug_serialize, 1, NIDIUM_JS_FNPROPS),
+        JS_FN("unserialize", nidium_debug_unserialize, 1, NIDIUM_JS_FNPROPS),
+        JS_FS_END };
 // }}}
 
 //  {{{ Implementation
@@ -42,8 +51,9 @@ static bool nidium_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp)
     uint64_t *data;
     size_t data_len;
 
-    if (!JS_WriteStructuredClone(cx, args[0], &data, &data_len,
-        NULL, NidiumJS::GetObject(cx), JS::NullHandleValue)) {
+    if (!JS_WriteStructuredClone(cx, args[0], &data, &data_len, NULL,
+                                 NidiumJS::GetObject(cx),
+                                 JS::NullHandleValue)) {
         JS_ReportError(cx, "serialize() failed");
         return false;
     }
@@ -59,14 +69,16 @@ static bool nidium_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JS_ClearStructuredClone(data, data_len, nullptr, nullptr);
 
-    JS::RootedObject arraybuffer(cx, JS_NewArrayBufferWithContents(cx, data_len, content));
+    JS::RootedObject arraybuffer(
+        cx, JS_NewArrayBufferWithContents(cx, data_len, content));
 
     args.rval().setObjectOrNull(arraybuffer);
 
     return true;
 }
 
-static bool nidium_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject objdata(cx);
@@ -80,7 +92,7 @@ static bool nidium_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp
         JS_ReportError(cx, "unserialize() invalid data (not an ArrayBuffer)");
         return false;
     }
-    uint32_t len = JS_GetArrayBufferByteLength(objdata);
+    uint32_t len  = JS_GetArrayBufferByteLength(objdata);
     uint8_t *data = JS_GetArrayBufferData(objdata);
 
     JS::RootedValue inval(cx);
@@ -90,8 +102,9 @@ static bool nidium_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp
         return false;
     }
 
-    if (!JS_ReadStructuredClone(cx, (uint64_t *)(data+offset), len-offset,
-        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NidiumJS::GetObject(cx))) {
+    if (!JS_ReadStructuredClone(cx, (uint64_t *)(data + offset), len - offset,
+                                JS_STRUCTURED_CLONE_VERSION, &inval, NULL,
+                                NidiumJS::GetObject(cx))) {
         JS_ReportError(cx, "unserialize() invalid data");
         return false;
     }
@@ -116,9 +129,11 @@ void JSDebug::RegisterObject(JSContext *cx)
 {
     NidiumJS *njs = NidiumJS::GetObject(cx);
 
-    JS::RootedObject debugObj(cx, JS_DefineObject(cx, JS::CurrentGlobalOrNull(cx),
-        JSDebug::GetJSObjectName(),
-        &debug_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
+    JS::RootedObject debugObj(
+        cx,
+        JS_DefineObject(cx, JS::CurrentGlobalOrNull(cx),
+                        JSDebug::GetJSObjectName(), &debug_class, NULL,
+                        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
     JSDebug *jdebug = new JSDebug(debugObj, cx);
 
@@ -132,4 +147,3 @@ void JSDebug::RegisterObject(JSContext *cx)
 
 } // namespace Binding
 } // namespace Nidium
-

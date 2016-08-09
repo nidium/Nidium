@@ -39,19 +39,37 @@ namespace Binding {
 static void Exports_Finalize(JSFreeOp *fop, JSObject *obj);
 Core::Hash<void *> JSModules::m_EmbeddedModules;
 
-static JSClass nidium_modules_exports_class = {
-    "Exports", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Exports_Finalize,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass nidium_modules_exports_class = { "Exports",
+                                                JSCLASS_HAS_PRIVATE,
+                                                JS_PropertyStub,
+                                                JS_DeletePropertyStub,
+                                                JS_PropertyStub,
+                                                JS_StrictPropertyStub,
+                                                JS_EnumerateStub,
+                                                JS_ResolveStub,
+                                                JS_ConvertStub,
+                                                Exports_Finalize,
+                                                nullptr,
+                                                nullptr,
+                                                nullptr,
+                                                nullptr,
+                                                JSCLASS_NO_INTERNAL_MEMBERS };
 
-static JSClass nidium_modules_class = {
-    "Module", 0,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass nidium_modules_class = { "Module",
+                                        0,
+                                        JS_PropertyStub,
+                                        JS_DeletePropertyStub,
+                                        JS_PropertyStub,
+                                        JS_StrictPropertyStub,
+                                        JS_EnumerateStub,
+                                        JS_ResolveStub,
+                                        JS_ConvertStub,
+                                        NULL,
+                                        nullptr,
+                                        nullptr,
+                                        nullptr,
+                                        nullptr,
+                                        JSCLASS_NO_INTERNAL_MEMBERS };
 
 #if 0
 static JSPropertySpec nidium_modules_exports_props[] = {
@@ -65,9 +83,13 @@ static bool nidium_modules_require(JSContext *cx, unsigned argc, JS::Value *vp);
 // }}}
 
 // {{{ JSModule
-JSModule::JSModule(JSContext *cx, JSModules *modules, JSModule *parent, const char *name)
-    : m_AbsoluteDir(NULL), m_FilePath(NULL), m_Name(strdup(name)), m_ModuleType(JSModule::kModuleType_None),
-      m_Cached(false), m_Exports(NULL), m_Parent(parent), m_Modules(modules), m_Cx(cx)
+JSModule::JSModule(JSContext *cx,
+                   JSModules *modules,
+                   JSModule *parent,
+                   const char *name)
+    : m_AbsoluteDir(NULL), m_FilePath(NULL), m_Name(strdup(name)),
+      m_ModuleType(JSModule::kModuleType_None), m_Cached(false),
+      m_Exports(NULL), m_Parent(parent), m_Modules(modules), m_Cx(cx)
 {
 }
 
@@ -76,8 +98,9 @@ bool JSModule::initMain()
     m_Name = strdup("__MAIN__");
     JS::RootedObject global(m_Cx, JS::CurrentGlobalOrNull(m_Cx));
 
-    JS::RootedFunction fun(m_Cx, js::DefineFunctionWithReserved(m_Cx, global,
-            "require", nidium_modules_require, 1, 0));
+    JS::RootedFunction fun(
+        m_Cx, js::DefineFunctionWithReserved(m_Cx, global, "require",
+                                             nidium_modules_require, 1, 0));
 
     if (!fun) {
         return false;
@@ -85,7 +108,8 @@ bool JSModule::initMain()
 
     JS::RootedObject funObj(m_Cx, JS_GetFunctionObject(fun));
 
-    js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL(static_cast<void *>(this)));
+    js::SetFunctionNativeReserved(funObj, 0,
+                                  PRIVATE_TO_JSVAL(static_cast<void *>(this)));
 
     m_Exports = NULL; // Main module is not a real module, thus no exports
 
@@ -129,7 +153,8 @@ bool JSModule::init()
 
 bool JSModule::initNative()
 {
-    JS::RootedObject exports(m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject exports(
+        m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
     NidiumJS *njs = NidiumJS::GetObject(m_Cx);
     if (!exports) {
         return false;
@@ -141,7 +166,8 @@ bool JSModule::initNative()
         return false;
     }
 
-    register_module_t registerModule = reinterpret_cast<register_module_t>(dlsym(module, "__NidiumRegisterModule"));
+    register_module_t registerModule = reinterpret_cast<register_module_t>(
+        dlsym(module, "__NidiumRegisterModule"));
     if (registerModule && !registerModule(m_Cx, exports)) {
         printf("Failed to register module\n");
         return false;
@@ -156,7 +182,8 @@ bool JSModule::initNative()
 bool JSModule::initNativeEmbedded()
 {
     NidiumJS *njs = NidiumJS::GetObject(m_Cx);
-    JSModules::EmbeddedCallback registerCallback = JSModules::FindEmbedded(m_Name);
+    JSModules::EmbeddedCallback registerCallback
+        = JSModules::FindEmbedded(m_Name);
 
     if (!registerCallback) return false;
 
@@ -171,8 +198,12 @@ bool JSModule::initNativeEmbedded()
 
 bool JSModule::initJS()
 {
-#define TRY_OR_DIE(call) if (call == false) { return false; }
-    JS::RootedObject gbl(m_Cx, JS_NewObject(m_Cx, &nidium_modules_exports_class, JS::NullPtr(), JS::NullPtr()));
+#define TRY_OR_DIE(call) \
+    if (call == false) { \
+        return false;    \
+    }
+    JS::RootedObject gbl(m_Cx, JS_NewObject(m_Cx, &nidium_modules_exports_class,
+                                            JS::NullPtr(), JS::NullPtr()));
     if (!gbl) {
         return false;
     }
@@ -182,24 +213,29 @@ bool JSModule::initJS()
     JS_SetPrivate(gbl, this);
 
     JS::RootedObject funObj(m_Cx);
-    JSFunction *fun = js::DefineFunctionWithReserved(m_Cx, gbl, "require", nidium_modules_require, 1, 0);
+    JSFunction *fun = js::DefineFunctionWithReserved(
+        m_Cx, gbl, "require", nidium_modules_require, 1, 0);
     if (!fun) {
         return false;
     }
 
     funObj = JS_GetFunctionObject(fun);
 
-    js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL(static_cast<void *>(this)));
+    js::SetFunctionNativeReserved(funObj, 0,
+                                  PRIVATE_TO_JSVAL(static_cast<void *>(this)));
 
-    JS::RootedObject exports(m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
-    JS::RootedObject module(m_Cx, JS_NewObject(m_Cx, &nidium_modules_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject exports(
+        m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject module(m_Cx, JS_NewObject(m_Cx, &nidium_modules_class,
+                                               JS::NullPtr(), JS::NullPtr()));
 
     if (!exports || !module) {
         return false;
     }
 
     JS::RootedValue id(m_Cx);
-    JS::RootedString idstr(m_Cx, JS_NewStringCopyN(m_Cx, m_Name, strlen(m_Name)));
+    JS::RootedString idstr(m_Cx,
+                           JS_NewStringCopyN(m_Cx, m_Name, strlen(m_Name)));
     if (!idstr) {
         return false;
     }
@@ -294,7 +330,7 @@ JS::Value JSModule::require(char *name)
     }
 
     // Is there is a cyclic dependency
-    for (JSModule *m = cmodule->m_Parent; ;) {
+    for (JSModule *m = cmodule->m_Parent;;) {
         if (!m || !m->m_Exports) break;
 
         // Found a cyclic dependency
@@ -313,19 +349,24 @@ JS::Value JSModule::require(char *name)
 
     if (!cached) {
         if (!m_Modules->init(cmodule)) {
-            JS_ReportError(m_Cx, "Failed to initialize module %s\n", cmodule->m_Name);
+            JS_ReportError(m_Cx, "Failed to initialize module %s\n",
+                           cmodule->m_Name);
             return ret;
         }
 
-        if (cmodule->m_ModuleType == JSModule::kModuleType_JSON || cmodule->m_ModuleType == JSModule::kModuleType_JS) {
+        if (cmodule->m_ModuleType == JSModule::kModuleType_JSON
+            || cmodule->m_ModuleType == JSModule::kModuleType_JS) {
             size_t filesize;
             char *data;
 
             JS::RootedFunction fn(m_Cx);
             JS::RootedValue rval(m_Cx);
 
-            if (!JSModules::GetFileContent(cmodule->m_FilePath, &data, &filesize) || data == NULL) {
-                JS_ReportError(m_Cx, "Failed to open module %s\n", cmodule->m_Name);
+            if (!JSModules::GetFileContent(cmodule->m_FilePath, &data,
+                                           &filesize)
+                || data == NULL) {
+                JS_ReportError(m_Cx, "Failed to open module %s\n",
+                               cmodule->m_Name);
                 return ret;
             }
 
@@ -339,16 +380,17 @@ JS::Value JSModule::require(char *name)
             if (cmodule->m_ModuleType == JSModule::kModuleType_JS) {
                 JS::RootedObject expObj(m_Cx, cmodule->m_Exports);
                 JS::CompileOptions options(m_Cx);
-                options.setFileAndLine(cmodule->m_FilePath, 1)
-                       .setUTF8(true);
+                options.setFileAndLine(cmodule->m_FilePath, 1).setUTF8(true);
 
-                fn = JS::CompileFunction(m_Cx, expObj, options, NULL, 0, NULL, data, strlen(data));
+                fn = JS::CompileFunction(m_Cx, expObj, options, NULL, 0, NULL,
+                                         data, strlen(data));
 
                 if (!fn) {
                     return ret;
                 }
 
-                if (!JS_CallFunction(m_Cx, expObj, fn, JS::HandleValueArray::empty(), &rval)) {
+                if (!JS_CallFunction(m_Cx, expObj, fn,
+                                     JS::HandleValueArray::empty(), &rval)) {
                     return ret;
                 }
             } else {
@@ -360,7 +402,8 @@ JS::Value JSModule::require(char *name)
                     return ret;
                 }
 
-                jchars = static_cast<jschar *>(JS_malloc(m_Cx, len * sizeof(jschar)));
+                jchars = static_cast<jschar *>(
+                    JS_malloc(m_Cx, len * sizeof(jschar)));
                 if (!jchars) {
                     return ret;
                 }
@@ -384,22 +427,18 @@ JS::Value JSModule::require(char *name)
     }
 
     switch (cmodule->m_ModuleType) {
-        case JSModule::kModuleType_JS:
-        {
+        case JSModule::kModuleType_JS: {
             JS::RootedValue module(m_Cx);
             JS::RootedObject expObj(m_Cx, cmodule->m_Exports);
             JS_GetProperty(m_Cx, expObj, "module", &module);
             JS::RootedObject modObj(m_Cx, &module.toObject());
             JS_GetProperty(m_Cx, modObj, "exports", &ret);
-        }
-        break;
+        } break;
         case JSModule::kModuleType_JSON:
         case JSModule::kModuleType_Native:
-        case JSModule::kModuleType_NativeEmbedded:
-        {
+        case JSModule::kModuleType_NativeEmbedded: {
             ret = OBJECT_TO_JSVAL(cmodule->m_Exports);
-        }
-        break;
+        } break;
     }
 
     return ret;
@@ -414,7 +453,6 @@ JSModule::~JSModule()
     free(m_Name);
     free(m_AbsoluteDir);
     free(m_FilePath);
-
 }
 // }}}
 
@@ -426,8 +464,8 @@ bool JSModules::init()
     if (paths) {
         char *token;
         char *originalPaths = strdup(paths);
-        char *tmp = originalPaths;
-        int i = 0;
+        char *tmp           = originalPaths;
+        int i               = 0;
 
         while ((token = strsep(&tmp, ":")) != NULL && i < 63) {
             if (i > 63) {
@@ -438,8 +476,11 @@ bool JSModules::init()
         }
 
         if (token != NULL && i == 63) {
-            fprintf(stderr, "Warning : require path ignored %s."
-                            " A maximum of 63 search path is allowed. All subsequent paths will be ignored.\n", token);
+            fprintf(stderr,
+                    "Warning : require path ignored %s."
+                    " A maximum of 63 search path is allowed. All subsequent "
+                    "paths will be ignored.\n",
+                    token);
         }
 
         m_EnvPaths[i] = NULL;
@@ -481,9 +522,11 @@ bool JSModules::init(JSModule *module)
     return true;
 }
 
-void JSModules::RegisterEmbedded(const char *name, EmbeddedCallback registerCallback)
+void JSModules::RegisterEmbedded(const char *name,
+                                 EmbeddedCallback registerCallback)
 {
-    JSModules::m_EmbeddedModules.set(name, reinterpret_cast<void *>(registerCallback));
+    JSModules::m_EmbeddedModules.set(
+        name, reinterpret_cast<void *>(registerCallback));
 }
 
 JSModules::EmbeddedCallback JSModules::FindEmbedded(const char *name)
@@ -502,7 +545,8 @@ void JSModules::DirName(std::string &source)
         source.resize(source.size() - 1);
     }
 
-    source.erase(std::find(source.rbegin(), source.rend(), '/').base(), source.end());
+    source.erase(std::find(source.rbegin(), source.rend(), '/').base(),
+                 source.end());
 }
 
 char *JSModules::FindModulePath(JSModule *parent, JSModule *module)
@@ -514,24 +558,28 @@ char *JSModules::FindModulePath(JSModule *parent, JSModule *module)
     if (module->m_Name[0] == '.') {
         // Relative module, only look in current script directory
         modulePath = JSModules::FindModuleInPath(module, parent->m_AbsoluteDir);
-    }  else if (module->m_Name[0] == '/') {
+    } else if (module->m_Name[0] == '/') {
         modulePath = JSModules::FindModuleInPath(module, topDir);
-    }  else {
+    } else {
         std::string path = parent->m_AbsoluteDir;
 
-        DPRINT("[FindModulePath] absolute topDir=%s dir=%s path=%s\n", topDir, parent->m_AbsoluteDir, path.c_str());
+        DPRINT("[FindModulePath] absolute topDir=%s dir=%s path=%s\n", topDir,
+               parent->m_AbsoluteDir, path.c_str());
 
         // Look for the module in all parent directory until it's found
         // or if the top level working directory is reached
         bool stop = false;
         do {
             // Try local search path
-            for (int i = 0; i < NIDIUM_MODULES_PATHS_COUNT && modulePath.empty(); i++) {
+            for (int i = 0;
+                 i < NIDIUM_MODULES_PATHS_COUNT && modulePath.empty(); i++) {
                 std::string currentPath = path;
                 currentPath += modules->m_Paths[i];
 
-                DPRINT("Looking for module %s in %s\n", module->m_Name, currentPath.c_str());
-                modulePath = JSModules::FindModuleInPath(module, currentPath.c_str());
+                DPRINT("Looking for module %s in %s\n", module->m_Name,
+                       currentPath.c_str());
+                modulePath
+                    = JSModules::FindModuleInPath(module, currentPath.c_str());
                 DPRINT("module path is %s\n", modulePath.c_str());
             }
 
@@ -546,7 +594,8 @@ char *JSModules::FindModulePath(JSModule *parent, JSModule *module)
 
         // Check in system directories if module hasn't been found
         if (modulePath.empty()) {
-            for (int i = 0; modules->m_EnvPaths[i] != NULL && modulePath.empty(); i++) {
+            for (int i = 0;
+                 modules->m_EnvPaths[i] != NULL && modulePath.empty(); i++) {
                 char *tmp = modules->m_EnvPaths[i];
                 DPRINT("Looking for module %s in %s\n", module->m_Name, tmp);
                 modulePath = JSModules::FindModuleInPath(module, tmp);
@@ -592,9 +641,10 @@ bool JSModules::GetFileContent(const char *file, char **content, size_t *size)
 std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
 {
 #define MAX_EXT_SIZE 13
-    const char *extensions[] = {NULL, ".js", DSO_EXTENSION, ".json"};
+    const char *extensions[] = { NULL, ".js", DSO_EXTENSION, ".json" };
 
-    std::string tmp = std::string(path) + std::string("/") + std::string(module->m_Name);
+    std::string tmp
+        = std::string(path) + std::string("/") + std::string(module->m_Name);
     size_t len = tmp.length();
 
     DPRINT("    tmp is %s\n", tmp.c_str());
@@ -632,17 +682,21 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
                     }
 
                     for (int j = 1; j < 4; j++) {
-                        size_t tmpPos = tmp.find(extensions[j], pos, len - 1 - pos);
+                        size_t tmpPos
+                            = tmp.find(extensions[j], pos, len - 1 - pos);
                         if (tmpPos != std::string::npos) {
                             switch (j) {
                                 case 1:
-                                    module->m_ModuleType = JSModule::kModuleType_JS;
+                                    module->m_ModuleType
+                                        = JSModule::kModuleType_JS;
                                     break;
                                 case 2:
-                                    module->m_ModuleType = JSModule::kModuleType_Native;
+                                    module->m_ModuleType
+                                        = JSModule::kModuleType_Native;
                                     break;
                                 case 3:
-                                    module->m_ModuleType = JSModule::kModuleType_JSON;
+                                    module->m_ModuleType
+                                        = JSModule::kModuleType_JSON;
                                     break;
                             }
                             return tmp;
@@ -669,8 +723,8 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
 
 bool JSModules::LoadDirectoryModule(std::string &dir)
 {
-    const char *files[] = {"/index.js", "/package.json"};
-    size_t len = dir.length();
+    const char *files[] = { "/index.js", "/package.json" };
+    size_t len          = dir.length();
 
     for (int i = 0; i < 2; i++) {
         dir.erase(len);
@@ -686,7 +740,8 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
                 char *data = NULL;
                 size_t size;
 
-                if (!JSModules::GetFileContent(dir.c_str(), &data, &size) || data == NULL) {
+                if (!JSModules::GetFileContent(dir.c_str(), &data, &size)
+                    || data == NULL) {
                     fprintf(stderr, "Failed to open %s\n", dir.c_str());
                     return false;
                 }
@@ -698,7 +753,8 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
                 bool parsingSuccessful = reader.parse(data, data + size, root);
 
                 if (!parsingSuccessful) {
-                    fprintf(stderr, "Failed to parse %s\n  %s\n", dir.c_str(), reader.getFormatedErrorMessages().c_str());
+                    fprintf(stderr, "Failed to parse %s\n  %s\n", dir.c_str(),
+                            reader.getFormatedErrorMessages().c_str());
                     return false;
                 }
 
@@ -714,7 +770,6 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
                 return true;
                 break;
         }
-
     }
 
     return false;
@@ -768,4 +823,3 @@ void Exports_Finalize(JSFreeOp *fop, JSObject *obj)
 
 } // namespace Binding
 } // namespace Nidium
-

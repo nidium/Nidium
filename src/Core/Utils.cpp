@@ -20,13 +20,15 @@ namespace Core {
 
 // {{{ Time related
 
-/* TODO : http://nadeausoftware.com/articles/2012/04/c_c_tip_how_measure_elapsed_real_time_benchmarking */
+/* TODO :
+ * http://nadeausoftware.com/articles/2012/04/c_c_tip_how_measure_elapsed_real_time_benchmarking
+ */
 
 #if defined(__APPLE__)
-  #include <mach/mach_time.h>
+#include <mach/mach_time.h>
 #else
-  #include <time.h>
-  #include <arpa/inet.h>
+#include <time.h>
+#include <arpa/inet.h>
 
 #ifdef __WIN32
 LARGE_INTEGER
@@ -36,12 +38,12 @@ getFILETIMEoffset()
     FILETIME f;
     LARGE_INTEGER t;
 
-    s.wYear = 1970;
-    s.wMonth = 1;
-    s.wDay = 1;
-    s.wHour = 0;
-    s.wMinute = 0;
-    s.wSecond = 0;
+    s.wYear         = 1970;
+    s.wMonth        = 1;
+    s.wDay          = 1;
+    s.wHour         = 0;
+    s.wMinute       = 0;
+    s.wSecond       = 0;
     s.wMilliseconds = 0;
     SystemTimeToFileTime(&s, &f);
     t.QuadPart = f.dwHighDateTime;
@@ -50,30 +52,32 @@ getFILETIMEoffset()
     return (t);
 }
 
-int
-clock_gettime(int X, struct timeval *tv)
+int clock_gettime(int X, struct timeval *tv)
 {
-    LARGE_INTEGER           t;
-    FILETIME            f;
-    double                  microseconds;
-    static LARGE_INTEGER    offset;
-    static double           frequencyToMicroseconds;
-    static int              initialized = 0;
-    static BOOL             usePerformanceCounter = 0;
+    LARGE_INTEGER t;
+    FILETIME f;
+    double microseconds;
+    static LARGE_INTEGER offset;
+    static double frequencyToMicroseconds;
+    static int initialized            = 0;
+    static BOOL usePerformanceCounter = 0;
 
     if (!initialized) {
         LARGE_INTEGER performanceFrequency;
         initialized = 1;
-        usePerformanceCounter = QueryPerformanceFrequency(&performanceFrequency);
+        usePerformanceCounter
+            = QueryPerformanceFrequency(&performanceFrequency);
         if (usePerformanceCounter) {
             QueryPerformanceCounter(&offset);
-            frequencyToMicroseconds = static_cast<double>(performanceFrequency.QuadPart) / 1000000.;
+            frequencyToMicroseconds
+                = static_cast<double>(performanceFrequency.QuadPart) / 1000000.;
         } else {
-            offset = getFILETIMEoffset();
+            offset                  = getFILETIMEoffset();
             frequencyToMicroseconds = 10.;
         }
     }
-    if (usePerformanceCounter) QueryPerformanceCounter(&t);
+    if (usePerformanceCounter)
+        QueryPerformanceCounter(&t);
     else {
         GetSystemTimeAsFileTime(&f);
         t.QuadPart = f.dwHighDateTime;
@@ -83,8 +87,8 @@ clock_gettime(int X, struct timeval *tv)
 
     t.QuadPart -= offset.QuadPart;
     microseconds = static_cast<double>(t.QuadPart) / frequencyToMicroseconds;
-    t.QuadPart = microseconds;
-    tv->tv_sec = t.QuadPart / 1000000;
+    t.QuadPart   = microseconds;
+    tv->tv_sec   = t.QuadPart / 1000000;
     tv->tv_usec = t.QuadPart % 1000000;
     return (0);
 }
@@ -93,42 +97,43 @@ static __inline uint64_t mach_absolute_time()
     struct timeval t;
     clock_gettime(0, &t);
 
-    return ((uint64_t)t.tv_sec * 1000000 + (uint64_t)t.tv_usec)*1000;
+    return ((uint64_t)t.tv_sec * 1000000 + (uint64_t)t.tv_usec) * 1000;
 }
 #else // !__WIN32
 static __inline uint64_t mach_absolute_time()
 {
     struct timespec t;
 #ifdef CLOCK_MONOTONIC_RAW
-  #define USED_CLOCK CLOCK_MONOTONIC_RAW
+#define USED_CLOCK CLOCK_MONOTONIC_RAW
 #else
-  #define USED_CLOCK CLOCK_MONOTONIC
+#define USED_CLOCK CLOCK_MONOTONIC
 #endif
     clock_gettime(USED_CLOCK, &t);
 
-    return static_cast<uint64_t>(t.tv_sec) * 1000000000 + static_cast<uint64_t>(t.tv_nsec);
+    return static_cast<uint64_t>(t.tv_sec) * 1000000000
+           + static_cast<uint64_t>(t.tv_nsec);
 }
 #endif
 #endif
 
-/* TODO: iOS : http://shiftedbits.org/2008/10/01/mach_absolute_time-on-the-iphone/ */
+/* TODO: iOS :
+ * http://shiftedbits.org/2008/10/01/mach_absolute_time-on-the-iphone/ */
 uint64_t Utils::GetTick(bool ms)
 {
     return mach_absolute_time() / (ms ? 1000000LL : 1LL);
 }
 
-static const char  *week[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-static const char  *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+static const char *week[]   = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+static const char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 /*
     Taken from ngx_time.c
 */
-static void
-ngx_gmtime(time_t t, struct tm *tp)
+static void ngx_gmtime(time_t t, struct tm *tp)
 {
-    int32_t   yday;
-    uint32_t  n, sec, min, hour, mday, mon, year, wday, days;
+    int32_t yday;
+    uint32_t n, sec, min, hour, mday, mon, year, wday, days;
 
     /* the calculation is valid for positive time_t only */
 
@@ -209,11 +214,11 @@ ngx_gmtime(time_t t, struct tm *tp)
          */
     }
 
-    tp->tm_sec = static_cast<int>(sec);
-    tp->tm_min =  static_cast<int>(min);
+    tp->tm_sec  = static_cast<int>(sec);
+    tp->tm_min  = static_cast<int>(min);
     tp->tm_hour = static_cast<int>(hour);
     tp->tm_mday = static_cast<int>(mday);
-    tp->tm_mon = static_cast<int>(mon);
+    tp->tm_mon  = static_cast<int>(mon);
     tp->tm_year = static_cast<int>(year);
     tp->tm_wday = static_cast<int>(wday);
 }
@@ -224,43 +229,44 @@ void Utils::HTTPTime(char *buf)
 
     ngx_gmtime(time(NULL), &timenow);
 
-    sprintf(buf, "%s, %02d %s %4d %02d:%02d:%02d GMT",
-                           week[timenow.tm_wday],
-                           timenow.tm_mday,
-                           months[timenow.tm_mon - 1],
-                           timenow.tm_year,
-                           timenow.tm_hour,
-                           timenow.tm_min,
-                           timenow.tm_sec);
+    sprintf(buf, "%s, %02d %s %4d %02d:%02d:%02d GMT", week[timenow.tm_wday],
+            timenow.tm_mday, months[timenow.tm_mon - 1], timenow.tm_year,
+            timenow.tm_hour, timenow.tm_min, timenow.tm_sec);
 }
 // }}}
 
 // {{{ Conversion/Hashing related
 static uint8_t nibbleFromChar(char c)
 {
-    if(c >= '0' && c <= '9') return c - '0';
-    if(c >= 'a' && c <= 'f') return c - 'a' + 10;
-    if(c >= 'A' && c <= 'F') return c - 'A' + 10;
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
 
     return 255;
 }
 
-void Utils::SHA1hmac(const unsigned char *key, uint32_t keylen,
-    const unsigned char *buf, uint32_t buflen, unsigned char out[20])
+void Utils::SHA1hmac(const unsigned char *key,
+                     uint32_t keylen,
+                     const unsigned char *buf,
+                     uint32_t buflen,
+                     unsigned char out[20])
 {
-    //TODO: new style cast
-    sha1_hmac((unsigned char *)(key), keylen, (unsigned char *)(buf), buflen, out);
+    // TODO: new style cast
+    sha1_hmac((unsigned char *)(key), keylen, (unsigned char *)(buf), buflen,
+              out);
 }
 
-void Utils::SHA1(const unsigned char *buf, uint32_t buflen, unsigned char out[20])
+void Utils::SHA1(const unsigned char *buf,
+                 uint32_t buflen,
+                 unsigned char out[20])
 {
-    //TODO: new style cast
+    // TODO: new style cast
     sha1_csum((unsigned char *)(buf), buflen, out);
 }
 
 char *Utils::B64Encode(const unsigned char *buf, size_t len)
 {
-    //TODO: new style cast
+    // TODO: new style cast
     return base64_encode((unsigned char *)(buf), len);
 }
 
@@ -308,4 +314,3 @@ void Utils::BlowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len)
 
 } // namespace Core
 } // namespace Nidium
-

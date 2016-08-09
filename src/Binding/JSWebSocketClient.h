@@ -18,14 +18,19 @@ namespace Binding {
 class JSWebSocket : public JSExposer<JSWebSocket>, public Nidium::Core::Messages
 {
 public:
-    JSWebSocket(JS::HandleObject obj, JSContext *cx,
-        const char *host, unsigned short port, const char *path, bool ssl = false);
+    JSWebSocket(JS::HandleObject obj,
+                JSContext *cx,
+                const char *host,
+                unsigned short port,
+                const char *path,
+                bool ssl = false);
     ~JSWebSocket();
     bool start();
     static void RegisterObject(JSContext *cx);
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 
-    Nidium::Net::WebSocketClient *ws() const {
+    Nidium::Net::WebSocketClient *ws() const
+    {
         return m_WebSocketClient;
     }
 
@@ -37,4 +42,3 @@ private:
 } // namespace Nidium
 
 #endif
-

@@ -17,24 +17,27 @@ namespace AV {
 
 class AudioProcessorDelay;
 
-class AudioNodeDelay: public AudioNodeProcessor
+class AudioNodeDelay : public AudioNodeProcessor
 {
-    public :
-        AudioNodeDelay(int inCount, int outCount, Audio *audio);
+public:
+    AudioNodeDelay(int inCount, int outCount, Audio *audio);
 
-        enum Args {
-            WET, DELAY, FEEDBACK
-        };
+    enum Args
+    {
+        WET,
+        DELAY,
+        FEEDBACK
+    };
 
-        static void argCallback(AudioNode *node, int id, void *val, int size);
+    static void argCallback(AudioNode *node, int id, void *val, int size);
 
-        ~AudioNodeDelay() {};
-    private :
-        AudioProcessorDelay *m_DelayProcessor;
+    ~AudioNodeDelay(){};
+
+private:
+    AudioProcessorDelay *m_DelayProcessor;
 };
 
 } // namespace AV
 } // namespace Nidium
 
 #endif
-

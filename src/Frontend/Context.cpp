@@ -60,7 +60,8 @@ using namespace Nidium::IO;
 namespace Nidium {
 namespace Frontend {
 
-enum {
+enum
+{
     NIDIUM_SCTAG_IMAGEDATA = NidiumJS::kSctag_Max,
 };
 
@@ -102,51 +103,52 @@ void Context::logHide()
 
 void Context::initStats()
 {
-    m_Stats.nframe = 0;
-    m_Stats.starttime = Utils::GetTick();
+    m_Stats.nframe           = 0;
+    m_Stats.starttime        = Utils::GetTick();
     m_Stats.lastmeasuredtime = m_Stats.starttime;
-    m_Stats.lastdifftime = 0;
-    m_Stats.cumulframe = 0;
-    m_Stats.cumultimems = 0.f;
-    m_Stats.fps = 0.f;
-    m_Stats.minfps = UINT32_MAX;
-    m_Stats.sampleminfps = 0.f;
+    m_Stats.lastdifftime     = 0;
+    m_Stats.cumulframe       = 0;
+    m_Stats.cumultimems      = 0.f;
+    m_Stats.fps              = 0.f;
+    m_Stats.minfps           = UINT32_MAX;
+    m_Stats.sampleminfps     = 0.f;
 
     memset(m_Stats.samples, 0, sizeof(m_Stats.samples));
 }
 
 
-Context::Context(ape_global *net) :
-    Core::Context(net),
-    m_RootHandler(NULL), m_DebugHandler(NULL),
+Context::Context(ape_global *net)
+    : Core::Context(net), m_RootHandler(NULL), m_DebugHandler(NULL),
 #if DEBUG
-m_Debug2Handler(NULL),
+      m_Debug2Handler(NULL),
 #endif
-    m_UI(NULL), m_NML(NULL), m_GLState(NULL), m_JSWindow(NULL), m_SizeDirty(false),
-    m_CurrentClickedHandler(NULL), m_WSClient(NULL), m_WS(NULL)
+      m_UI(NULL), m_NML(NULL), m_GLState(NULL), m_JSWindow(NULL),
+      m_SizeDirty(false), m_CurrentClickedHandler(NULL), m_WSClient(NULL),
+      m_WS(NULL)
 {
-    Path::RegisterScheme(SCHEME_DEFINE("embed://",   EmbedStream, false));
-    Path::RegisterScheme(SCHEME_DEFINE("system://",  SystemStream,  false));
-    Path::RegisterScheme(SCHEME_DEFINE("user://",    UserStream,    false));
-    Path::RegisterScheme(SCHEME_DEFINE("private://", PrivateStream,   false));
+    Path::RegisterScheme(SCHEME_DEFINE("embed://", EmbedStream, false));
+    Path::RegisterScheme(SCHEME_DEFINE("system://", SystemStream, false));
+    Path::RegisterScheme(SCHEME_DEFINE("user://", UserStream, false));
+    Path::RegisterScheme(SCHEME_DEFINE("private://", PrivateStream, false));
 
     this->resetInputEvents();
 
     ape_init_pool_list(&m_CanvasEventsCanvas, 0, 8);
 
-    m_JS->setStructuredCloneAddition(Context::WriteStructuredCloneOp, Context::ReadStructuredCloneOp);
+    m_JS->setStructuredCloneAddition(Context::WriteStructuredCloneOp,
+                                     Context::ReadStructuredCloneOp);
 
     JS::RootedObject globalObj(m_JS->m_Cx, JS::CurrentGlobalOrNull(m_JS->m_Cx));
     JS_InitReflect(m_JS->m_Cx, globalObj);
-    
-    m_Jobs.head = NULL;
+
+    m_Jobs.head  = NULL;
     m_Jobs.queue = NULL;
 }
 
 
 void Context::setUIObject(Interface::UIInterface *ui)
 {
-    m_UI = ui;
+    m_UI  = ui;
     m_NML = m_UI->m_Nml;
     m_NML->setNJS(m_JS);
 
@@ -213,7 +215,8 @@ void Context::setWindowFrame(int x, int y, int w, int h)
 
     m_SizeDirty = true;
     /* OS window */
-    m_UI->setWindowFrame(static_cast<int>(x), static_cast<int>(y), static_cast<int>(w), static_cast<int>(h));
+    m_UI->setWindowFrame(static_cast<int>(x), static_cast<int>(y),
+                         static_cast<int>(w), static_cast<int>(h));
     /* Root canvases */
     this->sizeChanged(w, h);
 }
@@ -231,18 +234,22 @@ void Context::sizeChanged(int w, int h)
     /* Skia GL */
     this->getRootHandler()->setSize(static_cast<int>(w), static_cast<int>(h));
     /* Nidium Canvas */
-    m_JSWindow->getCanvasHandler()->setSize(static_cast<int>(w), static_cast<int>(h));
+    m_JSWindow->getCanvasHandler()->setSize(static_cast<int>(w),
+                                            static_cast<int>(h));
     /* Redraw */
     m_UI->refresh();
 }
 
 void Context::createDebugCanvas()
 {
-    Canvas2DContext *context = static_cast<Canvas2DContext *>(m_RootHandler->getContext());
+    Canvas2DContext *context
+        = static_cast<Canvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
-    m_DebugHandler = new CanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
-    Canvas2DContext *ctx2d =  new Canvas2DContext(m_DebugHandler,
-         context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
+    m_DebugHandler = new CanvasHandler(context->getSurface()->getWidth(),
+                                       DEBUG_HEIGHT, this);
+    Canvas2DContext *ctx2d
+        = new Canvas2DContext(m_DebugHandler, context->getSurface()->getWidth(),
+                              DEBUG_HEIGHT, NULL, false);
     m_DebugHandler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
 
@@ -255,11 +262,14 @@ void Context::createDebugCanvas()
 #if DEBUG
 void Context::createDebug2Canvas()
 {
-    Canvas2DContext *context = static_cast<Canvas2DContext *>(m_RootHandler->getContext());
+    Canvas2DContext *context
+        = static_cast<Canvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
-    m_Debug2Handler = new CanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
-    Canvas2DContext *ctx2d =  new Canvas2DContext(m_Debug2Handler,
-         context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
+    m_Debug2Handler = new CanvasHandler(context->getSurface()->getWidth(),
+                                        DEBUG_HEIGHT, this);
+    Canvas2DContext *ctx2d = new Canvas2DContext(
+        m_Debug2Handler, context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL,
+        false);
     m_Debug2Handler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
 
@@ -274,44 +284,56 @@ void Context::postDraw()
 {
     if (JSDocument::m_ShowFPS && m_DebugHandler) {
 
-        SkiaContext *s = (static_cast<Canvas2DContext *>(m_DebugHandler->getContext())->getSurface());
+        SkiaContext *s
+            = (static_cast<Canvas2DContext *>(m_DebugHandler->getContext())
+                   ->getSurface());
         m_DebugHandler->bringToFront();
 
         s->setFillColor(0xFF000000u);
-        s->drawRect(0, 0, m_DebugHandler->getWidth(), m_DebugHandler->getHeight(), 0);
+        s->drawRect(0, 0, m_DebugHandler->getWidth(),
+                    m_DebugHandler->getHeight(), 0);
         s->setFillColor(0xFFEEEEEEu);
 
-        //TODO: new style cast
+        // TODO: new style cast
         s->setFontType((char *)("monospace"));
         s->drawTextf(5, 12, "Nidium build %s %s", __DATE__, __TIME__);
-        s->drawTextf(5, 25, "Frame: %lld (%lldms)\n", m_Stats.nframe, m_Stats.lastdifftime / 1000000LL);
-        s->drawTextf(5, 38, "Time : %lldns\n", m_Stats.lastmeasuredtime-m_Stats.starttime);
-        s->drawTextf(5, 51, "FPS  : %.2f (%.2f)", m_Stats.fps, m_Stats.sampleminfps);
+        s->drawTextf(5, 25, "Frame: %lld (%lldms)\n", m_Stats.nframe,
+                     m_Stats.lastdifftime / 1000000LL);
+        s->drawTextf(5, 38, "Time : %lldns\n",
+                     m_Stats.lastmeasuredtime - m_Stats.starttime);
+        s->drawTextf(5, 51, "FPS  : %.2f (%.2f)", m_Stats.fps,
+                     m_Stats.sampleminfps);
 
         s->setLineWidth(0.0);
 
         for (int i = 0; i < sizeof(m_Stats.samples) / sizeof(float); i++) {
-            //s->drawLine(300 + i * 3, 55, 300 + i * 3, (40 / 60) * m_Stats.samples[i]);
+            // s->drawLine(300 + i * 3, 55, 300 + i * 3, (40 / 60) *
+            // m_Stats.samples[i]);
             s->setStrokeColor(0xFF004400u);
             s->drawLine(m_DebugHandler->getWidth() - 20 - i * 3, 55,
-                m_DebugHandler->getWidth() - 20 - i * 3, 20.f);
+                        m_DebugHandler->getWidth() - 20 - i * 3, 20.f);
             s->setStrokeColor(0xFF00BB00u);
-            s->drawLine(m_DebugHandler->getWidth() - 20 - i * 3, 55,
+            s->drawLine(
+                m_DebugHandler->getWidth() - 20 - i * 3, 55,
                 m_DebugHandler->getWidth() - 20 - i * 3,
-                nidium_min(60 - ((40.f / 62.f) * static_cast<float>(m_Stats.samples[i])), 55));
+                nidium_min(60 - ((40.f / 62.f)
+                                 * static_cast<float>(m_Stats.samples[i])),
+                           55));
         }
-        //s->setLineWidth(1.0);
+        // s->setLineWidth(1.0);
 
-        //s->translate(10, 10);
-        //sprintf(fps, "%d fps", currentFPS);
-        //s->system(fps, 5, 10);
+        // s->translate(10, 10);
+        // sprintf(fps, "%d fps", currentFPS);
+        // s->system(fps, 5, 10);
         s->flush();
     }
 #if DEBUG
     if (m_Debug2Handler) {
         m_Debug2Handler->bringToFront();
         m_Debug2Handler->getContext()->clear();
-        SkiaContext *rootctx = (static_cast<Canvas2DContext *>(m_Debug2Handler->getContext())->getSurface());
+        SkiaContext *rootctx
+            = (static_cast<Canvas2DContext *>(m_Debug2Handler->getContext())
+                   ->getSurface());
         rootctx->save();
 
         rootctx->setFillColor("black");
@@ -330,47 +352,51 @@ void Context::callFrame()
     uint64_t tmptime = Utils::GetTick();
     m_Stats.nframe++;
 
-    m_Stats.lastdifftime = tmptime - m_Stats.lastmeasuredtime;
+    m_Stats.lastdifftime     = tmptime - m_Stats.lastmeasuredtime;
     m_Stats.lastmeasuredtime = tmptime;
 
     /* convert to ms */
     m_Stats.cumultimems += static_cast<float>(m_Stats.lastdifftime) / 1000000.f;
     m_Stats.cumulframe++;
 
-    m_Stats.minfps = nidium_min(m_Stats.minfps, 1000.f/(m_Stats.lastdifftime/1000000.f));
-    //printf("FPS : %f\n", 1000.f/(m_Stats.lastdifftime/1000000.f));
+    m_Stats.minfps = nidium_min(m_Stats.minfps,
+                                1000.f / (m_Stats.lastdifftime / 1000000.f));
+    // printf("FPS : %f\n", 1000.f/(m_Stats.lastdifftime/1000000.f));
 
-    //printf("Last diff : %f\n", static_cast<float>(m_Stats.lastdifftime/1000000.f));
+    // printf("Last diff : %f\n",
+    // static_cast<float>(m_Stats.lastdifftime/1000000.f));
 
     /* Sample every 1000ms */
     if (m_Stats.cumultimems >= 1000.f) {
-        m_Stats.fps = 1000.f / static_cast<float>(m_Stats.cumultimems) / static_cast<float>(m_Stats.cumulframe);
-        m_Stats.cumulframe = 0;
-        m_Stats.cumultimems = 0.f;
+        m_Stats.fps = 1000.f / static_cast<float>(m_Stats.cumultimems)
+                      / static_cast<float>(m_Stats.cumulframe);
+        m_Stats.cumulframe   = 0;
+        m_Stats.cumultimems  = 0.f;
         m_Stats.sampleminfps = m_Stats.minfps;
-        m_Stats.minfps = UINT32_MAX;
+        m_Stats.minfps       = UINT32_MAX;
 
-        memmove(&m_Stats.samples[1], m_Stats.samples, sizeof(m_Stats.samples) - sizeof(float));
+        memmove(&m_Stats.samples[1], m_Stats.samples,
+                sizeof(m_Stats.samples) - sizeof(float));
 
         m_Stats.samples[0] = m_Stats.fps;
     }
 
     m_JSWindow->callFrameCallbacks(tmptime);
-
 }
 
 
 void Context::rendered(uint8_t *pdata, int width, int height)
 {
     if (m_WSClient) {
-        m_WSClient->write(static_cast<unsigned char *>(pdata), width*height*4, true);
+        m_WSClient->write(static_cast<unsigned char *>(pdata),
+                          width * height * 4, true);
     }
 }
 
 void Context::frame(bool draw)
 {
     assert(m_UI != NULL);
-    //this->execJobs();
+    // this->execJobs();
     /*
         Pending canvas events.
         (e.g. resize events requested between frames,
@@ -414,7 +440,8 @@ void Context::frame(bool draw)
 
     m_UI->makeMainGLCurrent();
     /* Skia context is dirty after a call to layerize */
-    (static_cast<Canvas2DContext *>(m_RootHandler->getContext()))->resetSkiaContext();
+    (static_cast<Canvas2DContext *>(m_RootHandler->getContext()))
+        ->resetSkiaContext();
 }
 
 void NidiumContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
@@ -436,10 +463,12 @@ void Context::triggerEvents()
 {
     void *val;
 
-    APE_P_FOREACH_REVERSE((&m_CanvasEventsCanvas), val) {
+    APE_P_FOREACH_REVERSE((&m_CanvasEventsCanvas), val)
+    {
         /* process through the cleaner callback avoiding a complete iteration */
         ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
-                NidiumContext_destroy_and_handle_events, NULL);
+                                      NidiumContext_destroy_and_handle_events,
+                                      NULL);
         __pool_item->ptr.data = NULL;
     }
 
@@ -454,7 +483,8 @@ static int GetGLSLVersion()
 {
     /**
      * OpenGL 2.x, 3.x, 4.x specifications:
-     *  The VERSION and SHADING_LANGUAGE_VERSION strings are laid out as follows:
+     *  The VERSION and SHADING_LANGUAGE_VERSION strings are laid out as
+     * follows:
      *
      *    <version number><space><vendor-specific information>
      *
@@ -480,8 +510,8 @@ static int GetGLSLVersion()
      * Note:
      *  We don't care about release_number.
      */
-    const unsigned char* tmp;
-    const char * versionString;
+    const unsigned char *tmp;
+    const char *versionString;
     int err;
 
     NIDIUM_GL_CALL_RET_MAIN(GetString(GL_SHADING_LANGUAGE_VERSION), tmp);
@@ -500,7 +530,7 @@ static int GetGLSLVersion()
         return 100;
     }
 
-    const auto fnSkipPrefix = [&versionString](const char* prefix) {
+    const auto fnSkipPrefix = [&versionString](const char *prefix) {
         const auto len = strlen(prefix);
         if (strncmp(versionString, prefix, len) == 0) {
             versionString += len;
@@ -510,8 +540,8 @@ static int GetGLSLVersion()
     const char kGLESVersionPrefix[] = "OpenGL ES GLSL ES";
     fnSkipPrefix(kGLESVersionPrefix);
 
-    const char* itr = versionString;
-    char* end = nullptr;
+    const char *itr   = versionString;
+    char *end         = nullptr;
     auto majorVersion = strtol(itr, &end, 10);
 
     if (!end) {
@@ -544,7 +574,7 @@ static int GetGLSLVersion()
         return false;
     }
 
-    return (uint32_t) majorVersion * 100 + (uint32_t) minorVersion;
+    return (uint32_t)majorVersion * 100 + (uint32_t)minorVersion;
 }
 
 // From Mozilla dom/canvas/WebGLShaderValidator.cpp
@@ -555,22 +585,34 @@ static ShShaderOutput GetShaderOutputVersion()
     } else {
         int version = GetGLSLVersion();
         switch (version) {
-            case 100: return SH_GLSL_COMPATIBILITY_OUTPUT;
-            case 120: return SH_GLSL_COMPATIBILITY_OUTPUT;
-            case 130: return SH_GLSL_130_OUTPUT;
-            case 140: return SH_GLSL_140_OUTPUT;
-            case 150: return SH_GLSL_150_CORE_OUTPUT;
-            case 330: return SH_GLSL_330_CORE_OUTPUT;
-            case 400: return SH_GLSL_400_CORE_OUTPUT;
-            case 410: return SH_GLSL_410_CORE_OUTPUT;
-            case 420: return SH_GLSL_420_CORE_OUTPUT;
-            case 430: return SH_GLSL_430_CORE_OUTPUT;
-            case 440: return SH_GLSL_440_CORE_OUTPUT;
-            case 450: return SH_GLSL_450_CORE_OUTPUT;
+            case 100:
+                return SH_GLSL_COMPATIBILITY_OUTPUT;
+            case 120:
+                return SH_GLSL_COMPATIBILITY_OUTPUT;
+            case 130:
+                return SH_GLSL_130_OUTPUT;
+            case 140:
+                return SH_GLSL_140_OUTPUT;
+            case 150:
+                return SH_GLSL_150_CORE_OUTPUT;
+            case 330:
+                return SH_GLSL_330_CORE_OUTPUT;
+            case 400:
+                return SH_GLSL_400_CORE_OUTPUT;
+            case 410:
+                return SH_GLSL_410_CORE_OUTPUT;
+            case 420:
+                return SH_GLSL_420_CORE_OUTPUT;
+            case 430:
+                return SH_GLSL_430_CORE_OUTPUT;
+            case 440:
+                return SH_GLSL_440_CORE_OUTPUT;
+            case 450:
+                return SH_GLSL_450_CORE_OUTPUT;
             default:
                 NUI_LOG("Unexpected GLSL version.\n");
                 exit(1);
-            }
+        }
     }
 
     return SH_GLSL_COMPATIBILITY_OUTPUT;
@@ -597,9 +639,11 @@ bool Context::initShaderLang()
     glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &maxCubeMapTextureSize);
     glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxRenderbufferSize);
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
-    glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &maxVertexTextureImageUnits);
+    glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS,
+                  &maxVertexTextureImageUnits);
 
-    glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &maxFragmentUniformVectors);
+    glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS,
+                  &maxFragmentUniformVectors);
     maxFragmentUniformVectors /= 4;
     glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &maxVertexUniformVectors);
     maxVertexUniformVectors /= 4;
@@ -646,21 +690,21 @@ bool Context::initShaderLang()
 
     ShInitBuiltInResources(&m_ShResources);
 
-    m_ShResources.MaxVertexAttribs = maxVertexAttribs;
-    m_ShResources.MaxVertexUniformVectors = maxVertexUniformVectors;
-    m_ShResources.MaxVaryingVectors = 16;
-    m_ShResources.MaxVertexTextureImageUnits = maxVertexTextureImageUnits;
+    m_ShResources.MaxVertexAttribs             = maxVertexAttribs;
+    m_ShResources.MaxVertexUniformVectors      = maxVertexUniformVectors;
+    m_ShResources.MaxVaryingVectors            = 16;
+    m_ShResources.MaxVertexTextureImageUnits   = maxVertexTextureImageUnits;
     m_ShResources.MaxCombinedTextureImageUnits = maxTextureImageUnits;
-    m_ShResources.MaxTextureImageUnits = maxTextureImageUnits;
-    m_ShResources.MaxFragmentUniformVectors = maxFragmentUniformVectors;
-    m_ShResources.MaxDrawBuffers = 1;
+    m_ShResources.MaxTextureImageUnits         = maxTextureImageUnits;
+    m_ShResources.MaxFragmentUniformVectors    = maxFragmentUniformVectors;
+    m_ShResources.MaxDrawBuffers               = 1;
 
     m_ShResources.FragmentPrecisionHigh = 1;
 
     // FIXME : Check if extension is supported and enable or not
     m_ShResources.OES_standard_derivatives = 1;
-    m_ShResources.OES_EGL_image_external = 0;
-    m_ShResources.EXT_shader_texture_lod = 1;
+    m_ShResources.OES_EGL_image_external   = 0;
+    m_ShResources.EXT_shader_texture_lod   = 1;
 
     return true;
 }
@@ -673,16 +717,18 @@ void Context::initHandlers(int width, int height)
 
     m_RootHandler = new CanvasHandler(width, height, this);
 
-    m_RootHandler->setContext(new Canvas2DContext(m_RootHandler, width, height, m_UI));
+    m_RootHandler->setContext(
+        new Canvas2DContext(m_RootHandler, width, height, m_UI));
     m_RootHandler->getContext()->setGLState(this->getGLState());
 }
 
 void Context::addJob(void (*job)(void *arg), void *arg)
 {
-    struct JobQueue *obj = static_cast<struct JobQueue *>(malloc(sizeof(struct JobQueue)));
+    struct JobQueue *obj
+        = static_cast<struct JobQueue *>(malloc(sizeof(struct JobQueue)));
 
-    obj->job = job;
-    obj->arg = arg;
+    obj->job  = job;
+    obj->arg  = arg;
     obj->next = NULL;
 
     if (m_Jobs.head == NULL) {
@@ -711,16 +757,18 @@ void Context::execJobs()
         free(obj);
     }
 
-    m_Jobs.head = NULL;
+    m_Jobs.head  = NULL;
     m_Jobs.queue = NULL;
 }
 
 void Context::execPendingCanvasChanges()
 {
     ape_htable_item_t *item, *tmpItem;
-    for (item = m_CanvasPendingJobs.accessCStruct()->first; item != NULL; item = tmpItem) {
+    for (item = m_CanvasPendingJobs.accessCStruct()->first; item != NULL;
+         item = tmpItem) {
         tmpItem = item->lnext;
-        CanvasHandler *handler = static_cast<CanvasHandler *>(item->content.addrs);
+        CanvasHandler *handler
+            = static_cast<CanvasHandler *>(item->content.addrs);
         handler->execPending();
     }
 }
@@ -728,15 +776,19 @@ void Context::execPendingCanvasChanges()
 void Context::onMessage(const SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case NIDIUM_EVENT(WebSocketServer, WebSocketServer::kEvents_ServerConnect):
-            m_WSClient = static_cast<WebSocketClientConnection *>(msg.m_Args[0].toPtr());
+        case NIDIUM_EVENT(WebSocketServer,
+                          WebSocketServer::kEvents_ServerConnect):
+            m_WSClient = static_cast<WebSocketClientConnection *>(
+                msg.m_Args[0].toPtr());
             printf("New WS client for render :)\n");
             break;
     }
 }
 
-bool Context::WriteStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
-                                     JS::HandleObject obj, void *closure)
+bool Context::WriteStructuredCloneOp(JSContext *cx,
+                                     JSStructuredCloneWriter *w,
+                                     JS::HandleObject obj,
+                                     void *closure)
 {
 
     JS::RootedValue vobj(cx, OBJECT_TO_JSVAL(obj));
@@ -762,11 +814,11 @@ bool Context::WriteStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
             return false;
         }
 
-        dwidth = iwidth.toInt32();
+        dwidth  = iwidth.toInt32();
         dheight = iheight.toInt32();
 
         JS_WriteUint32Pair(w, NIDIUM_SCTAG_IMAGEDATA,
-            (sizeof(uint32_t) * 2) + dwidth * dheight * 4);
+                           (sizeof(uint32_t) * 2) + dwidth * dheight * 4);
 
         JS_WriteBytes(w, &dwidth, sizeof(uint32_t));
         JS_WriteBytes(w, &dheight, sizeof(uint32_t));
@@ -778,14 +830,18 @@ bool Context::WriteStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
     return false;
 }
 
-JSObject *Context::ReadStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
-                                       uint32_t tag, uint32_t data, void *closure)
+JSObject *Context::ReadStructuredCloneOp(JSContext *cx,
+                                         JSStructuredCloneReader *r,
+                                         uint32_t tag,
+                                         uint32_t data,
+                                         void *closure)
 {
     switch (tag) {
-        case NIDIUM_SCTAG_IMAGEDATA:
-        {
+        case NIDIUM_SCTAG_IMAGEDATA: {
             if (data < sizeof(uint32_t) * 2 + 1) {
-                JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+                JS::RootedObject obj(
+                    cx,
+                    JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
                 return obj;
             }
             uint32_t width, height;
@@ -796,12 +852,20 @@ JSObject *Context::ReadStructuredCloneOp(JSContext *cx, JSStructuredCloneReader 
             JS::RootedValue arr(cx);
             JS_ReadTypedArray(r, &arr);
 
-            JS::RootedObject dataObject(cx, JS_NewObject(cx,  Canvas2DContext::jsclass, JS::NullPtr(), JS::NullPtr()));
+            JS::RootedObject dataObject(
+                cx, JS_NewObject(cx, Canvas2DContext::jsclass, JS::NullPtr(),
+                                 JS::NullPtr()));
             JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
             JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
-            JS_DefineProperty(cx, dataObject, "width", widthVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-            JS_DefineProperty(cx, dataObject, "height", heightVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-            JS_DefineProperty(cx, dataObject, "data", arr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+            JS_DefineProperty(cx, dataObject, "width", widthVal,
+                              JSPROP_PERMANENT | JSPROP_ENUMERATE
+                                  | JSPROP_READONLY);
+            JS_DefineProperty(cx, dataObject, "height", heightVal,
+                              JSPROP_PERMANENT | JSPROP_ENUMERATE
+                                  | JSPROP_READONLY);
+            JS_DefineProperty(cx, dataObject, "data", arr,
+                              JSPROP_PERMANENT | JSPROP_ENUMERATE
+                                  | JSPROP_READONLY);
 
             return dataObject;
         }
@@ -829,7 +893,7 @@ void Context::forceLinking()
 #ifdef __linux__
     CreateJPEGImageDecoder();
     CreatePNGImageDecoder();
-    //CreateGIFImageDecoder();
+    // CreateGIFImageDecoder();
     CreateBMPImageDecoder();
     CreateICOImageDecoder();
     CreateWBMPImageDecoder();
@@ -872,4 +936,3 @@ Context::~Context()
 
 } // namespace Frontend
 } // namespace Nidium
-

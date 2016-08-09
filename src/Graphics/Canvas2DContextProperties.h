@@ -25,4 +25,3 @@ CANVAS_2D_CTX_PROP(shadowColor)
 CANVAS_2D_CTX_PROP(imageSmoothingEnabled)
 CANVAS_2D_CTX_PROP_GET(width)
 CANVAS_2D_CTX_PROP_GET(height)
-

@@ -11,4 +11,3 @@ int main(int argc, char **argv)
 {
     return Server::Start(argc, argv);
 }
-

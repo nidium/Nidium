@@ -10,13 +10,13 @@
 #endif
 
 namespace Nidium {
-    namespace Interface {
-        class UICocoaInterface;
-    }
+namespace Interface {
+class UICocoaInterface;
+}
 }
 
-@interface AppDelegate : NSObject <NSApplicationDelegate, NSUserNotificationCenterDelegate>
-{
+@interface AppDelegate
+    : NSObject <NSApplicationDelegate, NSUserNotificationCenterDelegate> {
     NSArray *position;
     NSString *appfile;
     Nidium::Interface::UICocoaInterface *UI;
@@ -27,11 +27,11 @@ namespace Nidium {
 }
 
 #ifdef NIDIUM_ENABLE_CRASHREPORTER
-- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
+- (NSApplicationTerminateReply)applicationShouldTerminate:
+    (NSApplication *)sender;
 #endif
 
 @property (retain, nonatomic) NSArray *position;
 @property (retain, nonatomic) NSString *appfile;
 
 @end
-

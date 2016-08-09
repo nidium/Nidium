@@ -19,18 +19,22 @@ public:
     explicit HTTPStream(const char *location);
     virtual ~HTTPStream();
 
-    static Nidium::IO::Stream *CreateStream(const char *location) {
+    static Nidium::IO::Stream *CreateStream(const char *location)
+    {
         return new HTTPStream(location);
     }
-    static const char *GetBaseDir() {
+    static const char *GetBaseDir()
+    {
         return NULL;
     }
 
-    static bool AllowLocalFileStream() {
+    static bool AllowLocalFileStream()
+    {
         return false;
     }
 
-    static bool AllowSyncStream() {
+    static bool AllowSyncStream()
+    {
         return false;
     }
 
@@ -44,23 +48,31 @@ public:
     virtual const char *getPath() const override;
 
     void notifyAvailable();
+
 protected:
-    virtual const unsigned char *onGetNextPacket(size_t *len, int *err) override;
+    virtual const unsigned char *onGetNextPacket(size_t *len,
+                                                 int *err) override;
     virtual void onStart(size_t packets, size_t seek) override;
 
-    bool readComplete() const {
+    bool readComplete() const
+    {
         return m_BytesBuffered == m_Mapped.size;
     }
+
 private:
     HTTP *m_Http;
 
     void onRequest(HTTP::HTTPData *h, HTTP::DataType) override;
-    void onProgress(size_t offset, size_t len, HTTP::HTTPData *h, HTTP::DataType) override;
+    void onProgress(size_t offset,
+                    size_t len,
+                    HTTP::HTTPData *h,
+                    HTTP::DataType) override;
     void onError(HTTP::HTTPError err) override;
     void onHeader() override;
     void cleanCacheFile();
 
-    struct {
+    struct
+    {
         int fd;
         void *addr;
         size_t size;
@@ -75,4 +87,3 @@ private:
 } // namespace Nidium
 
 #endif
-

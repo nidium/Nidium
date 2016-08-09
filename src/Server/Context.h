@@ -17,15 +17,20 @@ class Worker;
 class Context : public Core::Context
 {
 public:
-    Context(ape_global *ape, Worker *worker, bool jsstrict = false, bool runInREPL = false);
+    Context(ape_global *ape,
+            Worker *worker,
+            bool jsstrict  = false,
+            bool runInREPL = false);
     virtual ~Context();
 
 
-    Worker *getWorker() const {
+    Worker *getWorker() const
+    {
         return m_Worker;
     }
 
-    bool isREPL() const {
+    bool isREPL() const
+    {
         return m_RunInREPL;
     }
 
@@ -40,4 +45,3 @@ private:
 } // namespace Nidium
 
 #endif
-

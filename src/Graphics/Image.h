@@ -18,7 +18,7 @@ namespace Graphics {
 
 class Image
 {
-  public:
+public:
     int m_IsCanvas;
     SkCanvas *m_CanvasRef;
     SkBitmap *m_Image;
@@ -32,8 +32,10 @@ class Image
 
     SkData *getPNG();
 
-    static bool ConvertToRGBA(Image *nimg, unsigned char* rgba,
-        bool flipY, bool premultiply);
+    static bool ConvertToRGBA(Image *nimg,
+                              unsigned char *rgba,
+                              bool flipY,
+                              bool premultiply);
 
     ~Image();
 
@@ -50,4 +52,3 @@ class Image
 } // namespace Nidium
 
 #endif
-

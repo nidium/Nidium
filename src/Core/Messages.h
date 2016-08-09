@@ -19,20 +19,26 @@ namespace Core {
 
 class Events;
 
-#define CREATE_MESSAGE(var, ev) Nidium::Core::SharedMessages::Message *var = new Nidium::Core::SharedMessages::Message(ev);
+#define CREATE_MESSAGE(var, ev)                \
+    Nidium::Core::SharedMessages::Message *var \
+        = new Nidium::Core::SharedMessages::Message(ev);
 
 class Messages
 {
 public:
     friend class Events;
     Messages();
-    virtual ~Messages()=0;
+    virtual ~Messages() = 0;
 
     /*
         Derived classes must implement this in order to catch messages
     */
-    virtual void onMessage(const SharedMessages::Message &msg) {}
-    virtual void onMessageLost(const SharedMessages::Message &msg) {}
+    virtual void onMessage(const SharedMessages::Message &msg)
+    {
+    }
+    virtual void onMessageLost(const SharedMessages::Message &msg)
+    {
+    }
 
     void postMessage(void *dataptr, int event, bool forceAsync = false);
     void postMessage(uint64_t dataint, int event, bool forceAsync = false);
@@ -50,11 +56,10 @@ private:
     pthread_t m_GenesisThread;
 
     /* Keep track on which objects we are listening events */
-    std::set<Events *>m_Listening_s;
+    std::set<Events *> m_Listening_s;
 };
 
 } // namespace Core
 } // namespace Nidium
 
 #endif
-

@@ -40,42 +40,60 @@ bool JSDocument::m_ShowFPS = false;
 static bool nidium_document_run(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Document_Finalize(JSFreeOp *fop, JSObject *obj);
 
-static JSPropertySpec document_props[] = {
-    JS_PS_END
-};
+static JSPropertySpec document_props[] = { JS_PS_END };
 
-static bool nidium_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_document_getElementById(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_document_getScreenData(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_document_toDataArray(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool
+nidium_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool
+nidium_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool
+nidium_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool
+nidium_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool
+nidium_document_getElementById(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool
+nidium_document_getScreenData(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool
+nidium_document_toDataArray(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool
+nidium_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static JSClass Document_class = {
-    "NidiumDocument", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Document_Finalize,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass Document_class
+    = { "NidiumDocument",
+        JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
+        JS_PropertyStub,
+        JS_DeletePropertyStub,
+        JS_PropertyStub,
+        JS_StrictPropertyStub,
+        JS_EnumerateStub,
+        JS_ResolveStub,
+        JS_ConvertStub,
+        Document_Finalize,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        JSCLASS_NO_INTERNAL_MEMBERS };
 
 JSClass *JSDocument::jsclass = &Document_class;
 
-template<>
+template <>
 JSClass *JSExposer<JSDocument>::jsclass = &Document_class;
 
 static JSFunctionSpec document_funcs[] = {
     JS_FN("run", nidium_document_run, 1, NIDIUM_JS_FNPROPS),
     JS_FN("showFPS", nidium_document_showfps, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("setPasteBuffer", nidium_document_setPasteBuffer, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("getPasteBuffer", nidium_document_getPasteBuffer, 0, NIDIUM_JS_FNPROPS),
+    JS_FN(
+        "setPasteBuffer", nidium_document_setPasteBuffer, 1, NIDIUM_JS_FNPROPS),
+    JS_FN(
+        "getPasteBuffer", nidium_document_getPasteBuffer, 0, NIDIUM_JS_FNPROPS),
     JS_FN("loadFont", nidium_document_loadFont, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("getCanvasById", nidium_document_getElementById, 1, NIDIUM_JS_FNPROPS),
+    JS_FN(
+        "getCanvasById", nidium_document_getElementById, 1, NIDIUM_JS_FNPROPS),
     JS_FN("getScreenData", nidium_document_getScreenData, 0, NIDIUM_JS_FNPROPS),
     JS_FN("toDataArray", nidium_document_toDataArray, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("parseNML", nidium_document_parseNML, 1, NIDIUM_JS_FNPROPS),
-    JS_FS_END
+    JS_FN("parseNML", nidium_document_parseNML, 1, NIDIUM_JS_FNPROPS), JS_FS_END
 };
 // }}}
 
@@ -86,7 +104,8 @@ struct _nidium_document_restart_async
     char *location;
 };
 
-static bool nidium_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -104,7 +123,8 @@ static bool nidium_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp
     return true;
 }
 
-static bool nidium_document_getElementById(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_document_getElementById(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -114,7 +134,8 @@ static bool nidium_document_getElementById(JSContext *cx, unsigned argc, JS::Val
     }
 
     JSAutoByteString cid(cx, str);
-    CanvasHandler *elem = Context::GetObject<Frontend::Context>(cx)->getCanvasById(cid.ptr());
+    CanvasHandler *elem
+        = Context::GetObject<Frontend::Context>(cx)->getCanvasById(cid.ptr());
     if (elem) {
         args.rval().setObjectOrNull(elem->m_JsObj);
     } else {
@@ -124,17 +145,21 @@ static bool nidium_document_getElementById(JSContext *cx, unsigned argc, JS::Val
     return true;
 }
 
-static bool nidium_document_getScreenData(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_document_getScreenData(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    CanvasHandler *rootHandler = Context::GetObject<Frontend::Context>(cx)->getRootHandler();
-    Canvas2DContext *context = static_cast<Canvas2DContext *>(rootHandler->getContext());
+    CanvasHandler *rootHandler
+        = Context::GetObject<Frontend::Context>(cx)->getRootHandler();
+    Canvas2DContext *context
+        = static_cast<Canvas2DContext *>(rootHandler->getContext());
 
     int width, height;
     context->getSize(&width, &height);
 
-    JS::RootedObject arrBuffer(cx, JS_NewUint8ClampedArray(cx, width * height * 4));
+    JS::RootedObject arrBuffer(cx,
+                               JS_NewUint8ClampedArray(cx, width * height * 4));
     uint8_t *pixels = JS_GetUint8ClampedArrayData(arrBuffer);
 
     Context *nctx = Context::GetObject<Frontend::Context>(cx);
@@ -143,30 +168,39 @@ static bool nidium_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
 
     memcpy(pixels, fb, width * height * 4);
 
-    //Skia *skia = context->getSurface();
-    //skia->readPixels(0, 0, width, height, pixels);
-    //glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
-    //glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    // Skia *skia = context->getSurface();
+    // skia->readPixels(0, 0, width, height, pixels);
+    // glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA,
+    // GL_UNSIGNED_BYTE,
+    // NUII->getFrameBufferData());
+    // glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
     JS::RootedValue widthVal(cx, JS::Int32Value(width));
     JS::RootedValue heightVal(cx, JS::Int32Value(height));
     JS::RootedValue arVal(cx, JS::ObjectOrNullValue(arrBuffer));
-    JS::RootedObject dataObject(cx, JS_NewObject(cx,  Canvas2DContext::jsclass, JS::NullPtr(), JS::NullPtr()));
-    JS_DefineProperty(cx, dataObject, "width", widthVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-    JS_DefineProperty(cx, dataObject, "height", heightVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-    JS_DefineProperty(cx, dataObject, "data", arVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS::RootedObject dataObject(cx, JS_NewObject(cx, Canvas2DContext::jsclass,
+                                                 JS::NullPtr(), JS::NullPtr()));
+    JS_DefineProperty(cx, dataObject, "width", widthVal,
+                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "height", heightVal,
+                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "data", arVal,
+                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     args.rval().setObjectOrNull(dataObject);
 
     return true;
 }
 
-static bool nidium_document_toDataArray(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_document_toDataArray(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    CanvasHandler *rootHandler = Context::GetObject<Frontend::Context>(cx)->getRootHandler();
-    Canvas2DContext *context = static_cast<Canvas2DContext *>(rootHandler->getContext());
+    CanvasHandler *rootHandler
+        = Context::GetObject<Frontend::Context>(cx)->getRootHandler();
+    Canvas2DContext *context
+        = static_cast<Canvas2DContext *>(rootHandler->getContext());
 
     int width, height;
     context->getSize(&width, &height);
@@ -196,17 +230,22 @@ static bool nidium_document_toDataArray(JSContext *cx, unsigned argc, JS::Value 
     JS::RootedValue widthVal(cx, JS::Int32Value(width));
     JS::RootedValue heightVal(cx, JS::Int32Value(height));
     JS::RootedValue arVal(cx, JS::ObjectOrNullValue(arrBuffer));
-    JS::RootedObject dataObject(cx, JS_NewObject(cx,  Canvas2DContext::jsclass, JS::NullPtr(), JS::NullPtr()));
-    JS_DefineProperty(cx, dataObject, "width", widthVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-    JS_DefineProperty(cx, dataObject, "height", heightVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-    JS_DefineProperty(cx, dataObject, "data", arVal, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS::RootedObject dataObject(cx, JS_NewObject(cx, Canvas2DContext::jsclass,
+                                                 JS::NullPtr(), JS::NullPtr()));
+    JS_DefineProperty(cx, dataObject, "width", widthVal,
+                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "height", heightVal,
+                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "data", arVal,
+                      JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     args.rval().setObjectOrNull(dataObject);
 
     return true;
 }
 
-static bool nidium_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -224,12 +263,15 @@ static bool nidium_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Val
     return true;
 }
 
-static bool nidium_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     size_t outputlen;
-    char16_t * jsc;
-    char *text = Context::GetObject<Frontend::Context>(cx)->getUI()->getClipboardText();
+    char16_t *jsc;
+    char *text = Context::GetObject<Frontend::Context>(cx)
+                     ->getUI()
+                     ->getClipboardText();
 
     if (text == NULL) {
         args.rval().setNull();
@@ -249,7 +291,7 @@ static bool nidium_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Val
 static bool nidium_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    bool show = false;
+    bool show         = false;
 
     if (!JS_ConvertArguments(cx, args, "b", &show)) {
         return false;
@@ -267,7 +309,8 @@ static bool nidium_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static int nidium_document_restart(void *param)
 {
-    struct _nidium_document_restart_async *ndra = (struct _nidium_document_restart_async *)param;
+    struct _nidium_document_restart_async *ndra
+        = (struct _nidium_document_restart_async *)param;
 
     ndra->ui->restartApplication(ndra->location);
 
@@ -289,10 +332,11 @@ static bool nidium_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
     UIInterface *NUI = Context::GetObject<Frontend::Context>(cx)->getUI();
     JSAutoByteString locationstr(cx, location);
 
-    struct _nidium_document_restart_async *ndra = (struct _nidium_document_restart_async *)malloc(sizeof(*ndra));
+    struct _nidium_document_restart_async *ndra
+        = (struct _nidium_document_restart_async *)malloc(sizeof(*ndra));
 
     ndra->location = strdup(locationstr.ptr());
-    ndra->ui = NUI;
+    ndra->ui       = NUI;
 
     ape_global *ape = NidiumJS::GetObject(cx)->m_Net;
     timer_dispatch_async(nidium_document_restart, ndra);
@@ -309,8 +353,10 @@ static void Document_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-bool JSDocument::populateStyle(JSContext *cx, const char *data,
-    size_t len, const char *filename)
+bool JSDocument::populateStyle(JSContext *cx,
+                               const char *data,
+                               size_t len,
+                               const char *filename)
 {
     if (!m_Stylesheet) {
         return false;
@@ -329,8 +375,10 @@ bool JSDocument::populateStyle(JSContext *cx, const char *data,
 }
 
 // todo destroy with Hash cleaner
-bool JSDocument::loadFont(const char *path, const char *name,
-    int weight, NidiumFont::Style style)
+bool JSDocument::loadFont(const char *path,
+                          const char *name,
+                          int weight,
+                          NidiumFont::Style style)
 {
     Stream *stream = Stream::Create(path);
     if (!stream) {
@@ -358,8 +406,8 @@ bool JSDocument::loadFont(const char *path, const char *name,
     NidiumFont *oldfont = m_Fonts.get(name);
 
     NidiumFont *newfont = new NidiumFont();
-    newfont->m_Weight = weight;
-    newfont->m_Style = style;
+    newfont->m_Weight   = weight;
+    newfont->m_Style    = style;
     newfont->m_Typeface = tf;
 
     newfont->m_Next = oldfont;
@@ -369,7 +417,8 @@ bool JSDocument::loadFont(const char *path, const char *name,
     return true;
 }
 
-static bool nidium_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_INIT_OPT();
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -383,18 +432,24 @@ static bool nidium_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp
 
     JSAutoByteString cfile, cname;
 
-    NIDIUM_JS_GET_OPT_TYPE(fontdef, "file", String) {
+    NIDIUM_JS_GET_OPT_TYPE(fontdef, "file", String)
+    {
         JS::RootedString file(cx, __curopt.toString());
         cfile.encodeUtf8(cx, file);
-    } else {
+    }
+    else
+    {
         JS_ReportError(cx, "Missing 'file' (string) value");
         return false;
     }
 
-    NIDIUM_JS_GET_OPT_TYPE(fontdef, "name", String) {
+    NIDIUM_JS_GET_OPT_TYPE(fontdef, "name", String)
+    {
         JS::RootedString name(cx, __curopt.toString());
         cname.encodeLatin1(cx, name);
-    } else {
+    }
+    else
+    {
         JS_ReportError(cx, "Missing 'name' (string) value");
         return false;
     }
@@ -435,9 +490,10 @@ SkTypeface *JSDocument::getFont(char *name)
 JSObject *JSDocument::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS::RootedObject documentObj(cx, JS_DefineObject(cx, global,
-        JSDocument::GetJSObjectName(), &Document_class , nullptr,
-        JSPROP_PERMANENT | JSPROP_ENUMERATE));
+    JS::RootedObject documentObj(
+        cx, JS_DefineObject(cx, global, JSDocument::GetJSObjectName(),
+                            &Document_class, nullptr,
+                            JSPROP_PERMANENT | JSPROP_ENUMERATE));
 
     NidiumJS *njs = NidiumJS::GetObject(cx);
 
@@ -449,7 +505,8 @@ JSObject *JSDocument::RegisterObject(JSContext *cx)
 
     njs->m_JsObjects.set(JSDocument::GetJSObjectName(), documentObj);
 
-    JS::RootedObject styleObj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject styleObj(
+        cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
     jdoc->m_Stylesheet = styleObj;
 
     JS::RootedValue objV(cx, JS::ObjectOrNullValue(jdoc->m_Stylesheet));
@@ -467,4 +524,3 @@ JSObject *JSDocument::RegisterObject(JSContext *cx)
 
 } // namespace Binding
 } // namespace Nidium
-

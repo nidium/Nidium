@@ -17,8 +17,8 @@ namespace Graphics {
 class GLResources
 {
 public:
-
-    enum ResourceType {
+    enum ResourceType
+    {
         RTEXTURE,
         RPROGRAM,
         RSHADER,
@@ -26,13 +26,13 @@ public:
         RVERTEX_ARRAY
     };
 
-    class Resource {
+    class Resource
+    {
     public:
-        Resource(uint32_t glid,
-            GLResources::ResourceType type,
-            char *name);
+        Resource(uint32_t glid, GLResources::ResourceType type, char *name);
 
         ~Resource();
+
     private:
         uint32_t m_Glid;
         ResourceType m_Type;
@@ -45,7 +45,7 @@ public:
 
         m_List.setAutoDelete(true);
     };
-    ~GLResources() {};
+    ~GLResources(){};
 
     void add(uint32_t glid, ResourceType type, const char *name = NULL);
 
@@ -72,4 +72,3 @@ private:
 } // namespace Nidium
 
 #endif
-

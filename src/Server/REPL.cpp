@@ -25,13 +25,14 @@ using Nidium::Core::SharedMessages;
 namespace Nidium {
 namespace Server {
 
-enum ReplMessage {
+enum ReplMessage
+{
     kReplMessage_Readline
 };
 
 static void *nidium_repl_thread(void *arg)
 {
-    REPL * repl = static_cast<REPL *>(arg);
+    REPL *repl = static_cast<REPL *>(arg);
     char *line;
     const char *homedir;
     char historyPath[PATH_MAX];
@@ -45,7 +46,8 @@ static void *nidium_repl_thread(void *arg)
     linenoiseHistoryLoad(historyPath);
 
 repl:
-    while ((line = linenoise(repl->isContinuing() ? "... " : "nidium> ")) != NULL) {
+    while ((line = linenoise(repl->isContinuing() ? "... " : "nidium> "))
+           != NULL) {
         repl->setExitCount(0);
 
         linenoiseHistoryAdd(line);
@@ -58,7 +60,7 @@ repl:
 
     int exitcount = repl->getExitCount();
 
-    repl->setExitCount(exitcount+1);
+    repl->setExitCount(exitcount + 1);
 
     if (exitcount == 0) {
         printf("(To exit, press ^C again)\n");
@@ -88,13 +90,14 @@ void REPL::onMessage(const SharedMessages::Message &msg)
 
     JS::RootedObject rgbl(m_JS->m_Cx, JS::CurrentGlobalOrNull(m_JS->m_Cx));
 
-    if (JS_BufferIsCompilableUnit(m_JS->m_Cx, rgbl,
-        (char *)m_Buffer->data, m_Buffer->used)) {
+    if (JS_BufferIsCompilableUnit(m_JS->m_Cx, rgbl, (char *)m_Buffer->data,
+                                  m_Buffer->used)) {
 
         m_Continue = false;
 
-        char *ret = m_JS->LoadScriptContentAndGetResult(reinterpret_cast<char *>(m_Buffer->data),
-            m_Buffer->used, "commandline");
+        char *ret = m_JS->LoadScriptContentAndGetResult(
+            reinterpret_cast<char *>(m_Buffer->data), m_Buffer->used,
+            "commandline");
 
         if (ret) {
             printf("%s\n", ret);
@@ -127,4 +130,3 @@ REPL::~REPL()
 
 } // namespace Server
 } // namespace Nidium
-

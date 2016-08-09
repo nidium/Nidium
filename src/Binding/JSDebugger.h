@@ -13,7 +13,7 @@ namespace Binding {
 
 class JSDebugger : public JSExposer<JSDebugger>
 {
-  public:
+public:
     static void RegisterObject(JSContext *cx);
 };
 
@@ -21,4 +21,3 @@ class JSDebugger : public JSExposer<JSDebugger>
 } // namespace Nidium
 
 #endif
-

@@ -21,18 +21,17 @@ namespace Graphics {
 // {{{ Constructors
 Image::Image(SkCanvas *canvas)
 {
-    //canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
+    // canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
 
-    m_IsCanvas = 1;
+    m_IsCanvas  = 1;
     m_CanvasRef = canvas;
     canvas->ref();
     m_Image = NULL;
 }
 
-Image::Image(void *data, size_t len) :
-    m_CanvasRef(NULL)
+Image::Image(void *data, size_t len) : m_CanvasRef(NULL)
 {
-    m_Image = new SkBitmap();
+    m_Image    = new SkBitmap();
     m_IsCanvas = 0;
 
     if (!SkImageDecoder::DecodeMemory(data, len, m_Image)) {
@@ -45,8 +44,8 @@ Image::Image(void *data, size_t len) :
 Image::Image(void *data, int width, int height)
 {
     uint8_t *px = (uint8_t *)data;
-    m_Image = new SkBitmap();
-    m_IsCanvas = 0;
+    m_Image     = new SkBitmap();
+    m_IsCanvas  = 0;
 
     m_Image->setConfig(SkBitmap::kARGB_8888_Config, width, height);
 
@@ -96,7 +95,8 @@ const uint8_t *Image::getPixels(size_t *len)
     }
     void *data = m_Image->getPixels();
 
-    printf("Pixels : %x %d\n", (static_cast<uint8_t *>(data)[500]), m_Image->height());
+    printf("Pixels : %x %d\n", (static_cast<uint8_t *>(data)[500]),
+           m_Image->height());
 
     return static_cast<const uint8_t *>(m_Image->getPixels());
 }
@@ -176,7 +176,6 @@ void Image::markColorsInAlpha()
     }
 
     m_Image->notifyPixelsChanged();
-
 }
 
 void Image::desaturate()
@@ -204,8 +203,10 @@ void Image::desaturate()
 }
 
 
-bool Image::ConvertToRGBA(Image *nimg, unsigned char* rgba,
-        bool flipY, bool premultiply)
+bool Image::ConvertToRGBA(Image *nimg,
+                          unsigned char *rgba,
+                          bool flipY,
+                          bool premultiply)
 {
 #if 1
     int length;
@@ -214,26 +215,28 @@ bool Image::ConvertToRGBA(Image *nimg, unsigned char* rgba,
     int width;
 
     nimg->m_Image->lockPixels();
-    if ((pixels = static_cast<const unsigned char*>(nimg->m_Image->getPixels())) == NULL) {
+    if ((pixels
+         = static_cast<const unsigned char *>(nimg->m_Image->getPixels()))
+        == NULL) {
         nimg->m_Image->unlockPixels();
         return false;
     }
 
-    width = nimg->getWidth();
+    width  = nimg->getWidth();
     length = width * nimg->getHeight() * 4;
     width *= 4;
-    k = flipY ? length - width: 0;
+    k = flipY ? length - width : 0;
 
     for (int i = 0; i < length; i += 4) {
-        const uint32_t pixel = *reinterpret_cast<const uint32_t*>(&pixels[i]);
-        int alpha = SkGetPackedA32(pixel);
+        const uint32_t pixel = *reinterpret_cast<const uint32_t *>(&pixels[i]);
+        int alpha            = SkGetPackedA32(pixel);
 
         if (alpha != 0 && alpha != 255 && !premultiply) {
             SkColor unmultiplied = SkUnPreMultiply::PMColorToColor(pixel);
-            rgba[k + 0] = SkColorGetR(unmultiplied);
-            rgba[k + 1] = SkColorGetG(unmultiplied);
-            rgba[k + 2] = SkColorGetB(unmultiplied);
-            rgba[k + 3] = alpha;
+            rgba[k + 0]          = SkColorGetR(unmultiplied);
+            rgba[k + 1]          = SkColorGetG(unmultiplied);
+            rgba[k + 2]          = SkColorGetB(unmultiplied);
+            rgba[k + 3]          = alpha;
         } else {
             rgba[k + 0] = SkGetPackedR32(pixel);
             rgba[k + 1] = SkGetPackedG32(pixel);
@@ -241,8 +244,8 @@ bool Image::ConvertToRGBA(Image *nimg, unsigned char* rgba,
             rgba[k + 3] = alpha;
         }
 
-        if (flipY && (i+4) % width == 0) {
-            k = length - (i+4) - width;
+        if (flipY && (i + 4) % width == 0) {
+            k = length - (i + 4) - width;
         } else {
             k += 4;
         }
@@ -262,4 +265,3 @@ Image::~Image()
 
 } // namespace Graphics
 } // namespace Nidium
-

@@ -19,14 +19,14 @@ class WebSocketClient : public Nidium::Core::Events, public HTTPParser
 public:
     static const uint8_t EventID = 5;
 
-    enum Events {
+    enum Events
+    {
         kEvents_ClientConnect,
         kEvents_ClientFrame,
         kEvents_ClientClose
     };
 
-    WebSocketClient(uint16_t port, const char *url,
-        const char *ip);
+    WebSocketClient(uint16_t port, const char *url, const char *ip);
     bool connect(bool ssl, ape_global *ape);
     void write(uint8_t *data, size_t len, bool binary = false);
     void close();
@@ -40,7 +40,8 @@ public:
     void onFrame(const char *data, size_t len, bool binary);
     void onClose();
 
-    void printInfo() {
+    void printInfo()
+    {
         printf("(Socket : %d)\n", m_Socket->s.fd);
     }
 
@@ -64,4 +65,3 @@ private:
 } // namespace Nidium
 
 #endif
-

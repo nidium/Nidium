@@ -21,18 +21,20 @@ public:
     void HTTPClearState();
     const char *HTTPGetHeader(const char *key);
 
-    virtual void HTTPHeaderEnded()=0;
-    virtual void HTTPRequestEnded()=0;
-    virtual void HTTPOnData(size_t offset, size_t len)=0;
+    virtual void HTTPHeaderEnded() = 0;
+    virtual void HTTPRequestEnded() = 0;
+    virtual void HTTPOnData(size_t offset, size_t len) = 0;
 
-    enum PrevState {
+    enum PrevState
+    {
         kPrevState_Nothing,
         kPrevState_Field,
         kPrevState_Value
     };
 
     http_parser m_Parser;
-    struct {
+    struct
+    {
         ape_array_t *list;
         buffer *tkey;
         buffer *tval;
@@ -42,6 +44,7 @@ public:
     buffer *m_Data;
     int m_Ended;
     uint64_t m_Contentlength;
+
 protected:
     HTTPParser();
 };
@@ -50,4 +53,3 @@ protected:
 } // namespace Nidium
 
 #endif
-

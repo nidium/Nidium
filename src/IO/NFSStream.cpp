@@ -20,10 +20,9 @@ namespace IO {
 // {{{ Implementation
 
 #ifdef NIDIUM_PACKAGE_EMBED
-  #include NIDIUM_EMBED_FILE
+#include NIDIUM_EMBED_FILE
 #endif
-NFSStream::NFSStream(const char *location) :
-    Stream(location)
+NFSStream::NFSStream(const char *location) : Stream(location)
 {
     static NFS *nfs = NULL;
 
@@ -32,7 +31,7 @@ NFSStream::NFSStream(const char *location) :
         nfs = new NFS(embed_bin, sizeof(embed_bin));
     }
 #endif
-    m_NFS = nfs;
+    m_NFS      = nfs;
     m_File.pos = 0;
 }
 
@@ -58,7 +57,8 @@ void NFSStream::getContent()
 
 void NFSStream::_getContent()
 {
-    m_File.data = reinterpret_cast<const unsigned char *>(m_NFS->readFile(m_Location, &m_File.len));
+    m_File.data = reinterpret_cast<const unsigned char *>(
+        m_NFS->readFile(m_Location, &m_File.len));
     m_File.pos = 0;
 
     if (m_File.data == NULL) {
@@ -70,7 +70,7 @@ void NFSStream::_getContent()
     buffer buf;
     buffer_init(&buf);
 
-    //TODO: new style cast
+    // TODO: new style cast
     buf.data = (unsigned char *)(m_File.data);
     buf.size = buf.used = m_File.len;
 
@@ -97,7 +97,7 @@ bool NFSStream::getContentSync(char **data, size_t *len, bool mmap)
         (*data)[*len] = '\0';
     } else {
         /* /!\ data is not null terminated */
-        //TODO: new style cast
+        // TODO: new style cast
         *data = (char *)(ret);
     }
 
@@ -124,7 +124,8 @@ void NFSStream::seek(size_t pos)
 
 void NFSStream::onStart(size_t packets, size_t seek)
 {
-    m_File.data = reinterpret_cast<const unsigned char *>(m_NFS->readFile(m_Location, &m_File.len));
+    m_File.data = reinterpret_cast<const unsigned char *>(
+        m_NFS->readFile(m_Location, &m_File.len));
     m_File.pos = 0;
 
     if (m_File.data == NULL) {
@@ -133,8 +134,7 @@ void NFSStream::onStart(size_t packets, size_t seek)
         return;
     }
 
-    CREATE_MESSAGE(message_available,
-        Events::kEvents_AvailableData);
+    CREATE_MESSAGE(message_available, Events::kEvents_AvailableData);
     message_available->m_Args[0].set(nidium_min(packets, m_File.len));
 
     this->notifySync(message_available);
@@ -175,4 +175,3 @@ const unsigned char *NFSStream::onGetNextPacket(size_t *len, int *err)
 
 } // namespace IO
 } // namespace Nidium
-

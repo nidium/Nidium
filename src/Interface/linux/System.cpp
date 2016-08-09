@@ -31,11 +31,13 @@ static void get_dpi(int *x, int *y)
     double xres, yres;
     Display *dpy;
     char *displayname = NULL;
-    int scr = 0; /* Screen number */
+    int scr           = 0; /* Screen number */
 
-    if ((NULL == x) || (NULL == y)) { return ; }
+    if ((NULL == x) || (NULL == y)) {
+        return;
+    }
 
-    dpy = XOpenDisplay (displayname);
+    dpy = XOpenDisplay(displayname);
     if (dpy == nullptr) {
         *x = -1;
         *y = -1;
@@ -52,15 +54,15 @@ static void get_dpi(int *x, int *y)
      *         = N pixels / (M inch / 25.4)
      *         = N * 25.4 pixels / M inch
      */
-    xres = (((static_cast<double>(DisplayWidth(dpy, scr))) * 25.4) /
-             (static_cast<double>(DisplayWidthMM(dpy, scr))));
-    yres = (((static_cast<double>(DisplayHeight(dpy, scr))) * 25.4) /
-             (static_cast<double>(DisplayHeightMM(dpy, scr))));
+    xres = (((static_cast<double>(DisplayWidth(dpy, scr))) * 25.4)
+            / (static_cast<double>(DisplayWidthMM(dpy, scr))));
+    yres = (((static_cast<double>(DisplayHeight(dpy, scr))) * 25.4)
+            / (static_cast<double>(DisplayHeightMM(dpy, scr))));
 
     *x = static_cast<int>(xres + 0.5);
     *y = static_cast<int>(yres + 0.5);
 
-    XCloseDisplay (dpy);
+    XCloseDisplay(dpy);
 }
 // }}}
 
@@ -76,30 +78,30 @@ System::System() : m_SystemUIReady(false)
     m_fBackingStorePixelRatio = static_cast<float>(x) / 96.f;
     m_fBackingStorePixelRatio = 1.0;
 
-	char procPath[PATH_MAX];
-	char nidiumPath[PATH_MAX];
-	pid_t pid = getpid();
+    char procPath[PATH_MAX];
+    char nidiumPath[PATH_MAX];
+    pid_t pid = getpid();
 
-	sprintf(procPath, "/proc/%d/exe", pid);
+    sprintf(procPath, "/proc/%d/exe", pid);
 
-	if (readlink(procPath, nidiumPath, PATH_MAX) == -1)
-		m_EmbedPath = nullptr;
-	else {
-		const char *embed = "src/Embed/";
-		char *dir = dirname(dirname(nidiumPath));
-		size_t len = strlen(dir) + strlen(embed) + 2;
+    if (readlink(procPath, nidiumPath, PATH_MAX) == -1)
+        m_EmbedPath = nullptr;
+    else {
+        const char *embed = "src/Embed/";
+        char *dir         = dirname(dirname(nidiumPath));
+        size_t len        = strlen(dir) + strlen(embed) + 2;
 
-		m_EmbedPath = static_cast<char *>(malloc(sizeof(char) * len));
+        m_EmbedPath = static_cast<char *>(malloc(sizeof(char) * len));
 
-		snprintf(m_EmbedPath, len, "%s/%s", dir, embed);
-	}
+        snprintf(m_EmbedPath, len, "%s/%s", dir, embed);
+    }
 
-	notify_init("Nidium");
+    notify_init("Nidium");
 }
 
 System::~System()
 {
-	notify_uninit();
+    notify_uninit();
 }
 
 float System::backingStorePixelRatio()
@@ -109,7 +111,7 @@ float System::backingStorePixelRatio()
 
 const char *System::getEmbedDirectory()
 {
-	return m_EmbedPath;
+    return m_EmbedPath;
 }
 
 const char *System::getCacheDirectory()
@@ -163,15 +165,13 @@ void System::alert(const char *message, AlertType type)
             break;
     }
 
-    GtkWidget *dialog = gtk_message_dialog_new ((GtkWindow *)NULL,
-            GTK_DIALOG_DESTROY_WITH_PARENT,
-            gtkType,
-            GTK_BUTTONS_CLOSE,
-            "%s", message);
+    GtkWidget *dialog = gtk_message_dialog_new(
+        (GtkWindow *)NULL, GTK_DIALOG_DESTROY_WITH_PARENT, gtkType,
+        GTK_BUTTONS_CLOSE, "%s", message);
 
-    gtk_dialog_run (GTK_DIALOG (dialog));
+    gtk_dialog_run(GTK_DIALOG(dialog));
 
-    gtk_widget_destroy (dialog);
+    gtk_widget_destroy(dialog);
 }
 
 void System::initSystemUI()
@@ -195,17 +195,19 @@ const char *System::cwd()
 const char *System::getLanguage()
 {
 
-    const char * lang;
+    const char *lang;
 
     lang = setlocale(LC_IDENTIFICATION, NULL);
 
     return lang;
 }
 
-void System::sendNotification(const char *title, const char *content, bool sound)
+void System::sendNotification(const char *title,
+                              const char *content,
+                              bool sound)
 {
-	NotifyNotification *notification =
-        notify_notification_new(title, content, nullptr);
+    NotifyNotification *notification
+        = notify_notification_new(title, content, nullptr);
 
     notify_notification_show(notification, nullptr /* error reporter */);
 
@@ -216,7 +218,7 @@ const char *System::execute(const char *cmd)
 {
     char buffer[128];
     FILE *fp;
-    std::string *result = new std::string(); 
+    std::string *result = new std::string();
 
     fp = popen(cmd, "r");
     if (fp == nullptr) {
@@ -230,7 +232,7 @@ const char *System::execute(const char *cmd)
     }
 
     pclose(fp);
-    
+
     // FIXME : Memory leak, caller should have to free the
     // memory but osx implementation is different from linux
     return result->c_str();
@@ -240,4 +242,3 @@ const char *System::execute(const char *cmd)
 
 } // namespace Interface
 } // namespace Nidium
-

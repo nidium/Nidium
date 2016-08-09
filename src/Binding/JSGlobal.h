@@ -19,4 +19,3 @@ extern JSFunctionSpec glob_funcs[];
 } // namespace Nidium
 
 #endif
-

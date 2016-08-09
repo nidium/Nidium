@@ -21,25 +21,28 @@
 unsigned long _ape_seed;
 
 namespace Nidium {
-    namespace Interface {
-        class SystemInterface;
-        class UIInterface;
+namespace Interface {
+class SystemInterface;
+class UIInterface;
 
-        SystemInterface *SystemInterface::_interface = new System();
-        UIInterface *__NidiumUI;
-    }
+SystemInterface *SystemInterface::_interface = new System();
+UIInterface *__NidiumUI;
+}
 namespace App {
 
 char _root[PATH_MAX]; // Using _root to store the location of nidium exec
 
 #ifdef NIDIUM_ENABLE_CRASHREPORTER
-static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
-        void* context,
-        bool succeeded)
+static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor,
+                         void *context,
+                         bool succeeded)
 {
-    fprintf(stderr, "Nidium crash - Sending report - No personal information is transmited\n");
+    fprintf(stderr,
+            "Nidium crash - Sending report - No personal information is "
+            "transmited\n");
     char reporter[PATH_MAX];
-    snprintf(reporter, PATH_MAX, "%s/nidium-crash-reporter", Nidium::App::_root);
+    snprintf(reporter, PATH_MAX, "%s/nidium-crash-reporter",
+             Nidium::App::_root);
     int ret = execl(reporter, "nidium-crash-reporter", descriptor.path(), NULL);
     fprintf(stdout, "Crash reporter returned %d\n", ret);
     return succeeded;
@@ -55,18 +58,14 @@ int main(int argc, char **argv)
 
 #ifdef NIDIUM_ENABLE_CRASHREPORTER
     google_breakpad::MinidumpDescriptor descriptor(UI.getCacheDirectory());
-    google_breakpad::ExceptionHandler eh(descriptor,
-            NULL,
-            dumpCallback,
-            NULL,
-            true,
-            -1);
+    google_breakpad::ExceptionHandler eh(descriptor, NULL, dumpCallback, NULL,
+                                         true, -1);
 #endif
 
     Nidium::Interface::__NidiumUI = &UI;
     _ape_seed = time(NULL) ^ (getpid() << 16);
     if (getcwd(Nidium::App::_root, PATH_MAX)) {
-        int l = strlen(Nidium::App::_root);
+        int l                 = strlen(Nidium::App::_root);
         Nidium::App::_root[l] = '/';
         l += 1;
         strncpy(&Nidium::App::_root[l], argv[0], PATH_MAX - l);
@@ -87,4 +86,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-

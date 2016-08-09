@@ -22,24 +22,27 @@ namespace IO {
 class EmbedStream : public IO::FileStream
 {
 public:
-    explicit EmbedStream(const char *location) :
-        IO::FileStream(location)
+    explicit EmbedStream(const char *location) : IO::FileStream(location)
     {
     }
 
-    static IO::Stream *CreateStream(const char *location) {
+    static IO::Stream *CreateStream(const char *location)
+    {
         return new EmbedStream(location);
     }
 
-    static bool AllowLocalFileStream() {
+    static bool AllowLocalFileStream()
+    {
         return true;
     }
 
-    static bool AllowSyncStream() {
+    static bool AllowSyncStream()
+    {
         return true;
     }
 
-    static const char *GetBaseDir() {
+    static const char *GetBaseDir()
+    {
         return Interface::SystemInterface::GetInstance()->getEmbedDirectory();
     }
 };
@@ -49,24 +52,27 @@ public:
 class EmbedStream : public IO::NFSStream
 {
 public:
-    explicit EmbedStream(const char *location) :
-        NFSStream(location)
+    explicit EmbedStream(const char *location) : NFSStream(location)
     {
     }
 
-    static IO::Stream *CreateStream(const char *location) {
+    static IO::Stream *CreateStream(const char *location)
+    {
         return new EmbedStream(location);
     }
 
-    static bool AllowLocalFileStream() {
+    static bool AllowLocalFileStream()
+    {
         return true;
     }
 
-    static bool AllowSyncStream() {
+    static bool AllowSyncStream()
+    {
         return true;
     }
 
-    static const char *GetBaseDir() {
+    static const char *GetBaseDir()
+    {
         return "/";
     }
 };
@@ -77,4 +83,3 @@ public:
 } // namespace Nidium
 
 #endif
-

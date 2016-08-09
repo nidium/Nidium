@@ -10,16 +10,15 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface NidiumConsole : NSObject
-{
+@interface NidiumConsole : NSObject {
     NSWindow *m_Window;
     NSTextView *textview;
     BOOL m_IsHidden;
 }
 
-- (void) log:(NSString *)str;
-- (void) attachToStdout;
-- (void) clear;
+- (void)log:(NSString *)str;
+- (void)attachToStdout;
+- (void)clear;
 
 @property (assign, nonatomic) BOOL m_IsHidden;
 @property (retain, nonatomic) NSWindow *m_Window;
@@ -31,23 +30,23 @@ namespace Interface {
 
 class UICocoaConsole : public UIInterface::UIConsole
 {
-    public:
-        UICocoaConsole();
-        ~UICocoaConsole();
-        void log(const char *str);
-        void show();
-        void hide();
-        void clear();
-        void flush();
-        bool hidden();
-        bool m_IsHidden;
-    private:
-        NidiumConsole *m_Window;
-        bool m_NeedFlush;
+public:
+    UICocoaConsole();
+    ~UICocoaConsole();
+    void log(const char *str);
+    void show();
+    void hide();
+    void clear();
+    void flush();
+    bool hidden();
+    bool m_IsHidden;
+
+private:
+    NidiumConsole *m_Window;
+    bool m_NeedFlush;
 };
 
 } // namespace Interface
 } // namespace Nidium
 
 #endif
-

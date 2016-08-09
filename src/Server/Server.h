@@ -38,17 +38,19 @@ class Server
 {
 public:
     static int Start(int argc, char **argv);
+
 private:
     Server(int argc, char **argv);
     int init();
-    void Usage(struct option * long_options, const char ** text_blocks);
+    void Usage(struct option *long_options, const char **text_blocks);
 
     void daemonize(int pidfile = 0);
     int initWorker(int *idx);
     void wait();
     void displayVersion();
 
-    struct {
+    struct
+    {
         int argc;
         char **argv;
     } m_Args;
@@ -72,9 +74,11 @@ public:
     ~Worker();
     int run(int argc, char **argv, bool jsstrict = false);
 
-    int getIdentifier() const {
+    int getIdentifier() const
+    {
         return m_Idx;
     }
+
 private:
     int m_Idx;
     bool m_RunREPL;
@@ -85,4 +89,3 @@ private:
 } // namespace Nidium
 
 #endif
-

@@ -23,7 +23,8 @@ class Task;
 class TaskManager
 {
 public:
-    class workerInfo {
+    class workerInfo
+    {
     public:
         workerInfo();
         ~workerInfo();
@@ -34,13 +35,16 @@ public:
         void addTask(Task *task);
         void waitTerminate();
 
-        void setManager(TaskManager *manager) {
+        void setManager(TaskManager *manager)
+        {
             m_Manager = manager;
         }
 
-        SharedMessages *getMessages() {
+        SharedMessages *getMessages()
+        {
             return &m_Messages;
         }
+
     private:
         pthread_t m_Handle;
         pthread_mutex_t m_Lock;
@@ -60,7 +64,8 @@ public:
     static void CreateManager();
 
 private:
-    struct {
+    struct
+    {
         int count;
         int size;
 
@@ -75,26 +80,33 @@ class Task
 {
 #define MAX_ARG 8
 public:
-    typedef void (* task_func)(Task *arg);
-    Task() : m_Obj(NULL), m_Func(NULL) {}
+    typedef void (*task_func)(Task *arg);
+    Task() : m_Obj(NULL), m_Func(NULL)
+    {
+    }
 
-    void setFunction(task_func func) {
+    void setFunction(task_func func)
+    {
         m_Func = func;
     }
 
-    task_func getFunction() const {
+    task_func getFunction() const
+    {
         return m_Func;
     }
 
-    Managed *getObject() const {
+    Managed *getObject() const
+    {
         return m_Obj;
     }
 
     Args m_Args;
 
     friend class Managed;
+
 private:
-    void setObject(Managed *obj) {
+    void setObject(Managed *obj)
+    {
         m_Obj = obj;
     }
 
@@ -108,12 +120,14 @@ private:
 class Managed : public Messages
 {
 public:
-    Managed() : m_TaskQueued(0), m_Worker(NULL) {
+    Managed() : m_TaskQueued(0), m_Worker(NULL)
+    {
         m_Manager = TaskManager::GetManager();
         pthread_mutex_init(&m_Lock, NULL);
     }
 
-    ~Managed() {
+    ~Managed()
+    {
         if (m_Worker) {
             m_Worker->getMessages()->delMessagesForDest(this);
         }
@@ -132,15 +146,19 @@ private:
 // }}}
 
 // {{{ TasksAutoLock
-class TasksAutoLock {
+class TasksAutoLock
+{
 public:
-    TasksAutoLock(Managed *managed): m_Managed(managed) {
+    TasksAutoLock(Managed *managed) : m_Managed(managed)
+    {
         m_Managed->lockTasks();
     }
 
-    ~TasksAutoLock() {
+    ~TasksAutoLock()
+    {
         m_Managed->unlockTasks();
     }
+
 private:
     Managed *m_Managed;
 };
@@ -150,4 +168,3 @@ private:
 } // namespace Nidium
 
 #endif
-

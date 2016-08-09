@@ -13,18 +13,23 @@
 namespace Nidium {
 namespace Binding {
 
-class JSStream :  public JSExposer<JSStream>, public Nidium::Core::Messages
+class JSStream : public JSExposer<JSStream>, public Nidium::Core::Messages
 {
-  public:
+public:
     static void RegisterObject(JSContext *cx);
-    JSStream(JS::HandleObject obj, JSContext *cx, ape_global *net, const char *url);
+    JSStream(JS::HandleObject obj,
+             JSContext *cx,
+             ape_global *net,
+             const char *url);
     ~JSStream();
-    Nidium::IO::Stream *getStream() const {
+    Nidium::IO::Stream *getStream() const
+    {
         return m_Stream;
     }
 
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
-  private:
+
+private:
     Nidium::IO::Stream *m_Stream;
 };
 
@@ -32,4 +37,3 @@ class JSStream :  public JSExposer<JSStream>, public Nidium::Core::Messages
 } // namespace Nidium
 
 #endif
-

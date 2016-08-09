@@ -14,8 +14,7 @@ using Nidium::Interface::UIInterface;
 namespace Nidium {
 namespace Graphics {
 
-GLState::GLState(UIInterface *ui, bool withProgram, bool webgl) :
-    m_Shared(true)
+GLState::GLState(UIInterface *ui, bool withProgram, bool webgl) : m_Shared(true)
 {
     memset(&m_GLObjects, 0, sizeof(m_GLObjects));
     memset(&m_GLObjects.uniforms, -1, sizeof(m_GLObjects.uniforms));
@@ -27,8 +26,7 @@ GLState::GLState(UIInterface *ui, bool withProgram, bool webgl) :
     }
 }
 
-GLState::GLState(Context *nctx) :
-    m_Shared(true)
+GLState::GLState(Context *nctx) : m_Shared(true)
 {
     UIInterface *ui = nctx->getUI();
 
@@ -63,17 +61,16 @@ void GLState::setVertexDeformation(uint32_t vertex, float x, float y)
 {
     NIDIUM_GL_CALL_MAIN(BindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]));
 
-    float mod[2] = {x, y};
+    float mod[2] = { x, y };
 
-    NIDIUM_GL_CALL_MAIN(BufferSubData(GL_ARRAY_BUFFER,
-        (sizeof(Vertex) * vertex) + offsetof(Vertex, Modifier),
-        sizeof(((Vertex *)0)->Modifier),
-        &mod));
+    NIDIUM_GL_CALL_MAIN(BufferSubData(
+        GL_ARRAY_BUFFER, (sizeof(Vertex) * vertex) + offsetof(Vertex, Modifier),
+        sizeof(((Vertex *)0)->Modifier), &mod));
 }
 
 bool GLState::initGLBase(bool withProgram)
 {
-    //glctx->iface()->fExtensions.print();
+    // glctx->iface()->fExtensions.print();
 
     NIDIUM_GL_CALL_MAIN(GenBuffers(2, m_GLObjects.vbo));
     NIDIUM_GL_CALL_MAIN(GenVertexArrays(1, &m_GLObjects.vao));
@@ -86,42 +83,52 @@ bool GLState::initGLBase(bool withProgram)
 
     NIDIUM_GL_CALL_MAIN(BindVertexArray(m_GLObjects.vao));
 
-    NIDIUM_GL_CALL_MAIN(EnableVertexAttribArray(CanvasContext::SH_ATTR_POSITION));
-    NIDIUM_GL_CALL_MAIN(EnableVertexAttribArray(CanvasContext::SH_ATTR_TEXCOORD));
-    NIDIUM_GL_CALL_MAIN(EnableVertexAttribArray(CanvasContext::SH_ATTR_MODIFIER));
+    NIDIUM_GL_CALL_MAIN(
+        EnableVertexAttribArray(CanvasContext::SH_ATTR_POSITION));
+    NIDIUM_GL_CALL_MAIN(
+        EnableVertexAttribArray(CanvasContext::SH_ATTR_TEXCOORD));
+    NIDIUM_GL_CALL_MAIN(
+        EnableVertexAttribArray(CanvasContext::SH_ATTR_MODIFIER));
 
     /* Upload the list of vertex */
     NIDIUM_GL_CALL_MAIN(BindBuffer(GR_GL_ARRAY_BUFFER, m_GLObjects.vbo[0]));
-    NIDIUM_GL_CALL_MAIN(BufferData(GR_GL_ARRAY_BUFFER, sizeof(Vertex) * vtx->nvertices,
-        vtx->vertices, GL_DYNAMIC_DRAW));
+    NIDIUM_GL_CALL_MAIN(BufferData(GR_GL_ARRAY_BUFFER,
+                                   sizeof(Vertex) * vtx->nvertices,
+                                   vtx->vertices, GL_DYNAMIC_DRAW));
 
     /* Upload the indexes for triangle strip */
-    NIDIUM_GL_CALL_MAIN(BindBuffer(GR_GL_ELEMENT_ARRAY_BUFFER, m_GLObjects.vbo[1]));
-    NIDIUM_GL_CALL_MAIN(BufferData(GR_GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * vtx->nindices,
-        vtx->indices, GL_STATIC_DRAW));
+    NIDIUM_GL_CALL_MAIN(
+        BindBuffer(GR_GL_ELEMENT_ARRAY_BUFFER, m_GLObjects.vbo[1]));
+    NIDIUM_GL_CALL_MAIN(BufferData(GR_GL_ELEMENT_ARRAY_BUFFER,
+                                   sizeof(int) * vtx->nindices, vtx->indices,
+                                   GL_STATIC_DRAW));
 
-    NIDIUM_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_POSITION, 3, GR_GL_FLOAT, GR_GL_FALSE,
-                          sizeof(Vertex), 0));
+    NIDIUM_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_POSITION, 3,
+                                            GR_GL_FLOAT, GR_GL_FALSE,
+                                            sizeof(Vertex), 0));
 
-    NIDIUM_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_TEXCOORD, 2, GR_GL_FLOAT, GR_GL_FALSE,
-                          sizeof(Vertex),
-                          (GLvoid*) offsetof(Vertex, TexCoord)));
+    NIDIUM_GL_CALL_MAIN(VertexAttribPointer(
+        CanvasContext::SH_ATTR_TEXCOORD, 2, GR_GL_FLOAT, GR_GL_FALSE,
+        sizeof(Vertex), (GLvoid *)offsetof(Vertex, TexCoord)));
 
-    NIDIUM_GL_CALL_MAIN(VertexAttribPointer(CanvasContext::SH_ATTR_MODIFIER, 2, GR_GL_FLOAT, GR_GL_FALSE,
-                          sizeof(Vertex),
-                          (GLvoid*) offsetof(Vertex, Modifier)));
+    NIDIUM_GL_CALL_MAIN(VertexAttribPointer(
+        CanvasContext::SH_ATTR_MODIFIER, 2, GR_GL_FLOAT, GR_GL_FALSE,
+        sizeof(Vertex), (GLvoid *)offsetof(Vertex, Modifier)));
 
     if (withProgram) {
-        m_GLObjects.program = CanvasContext::CreatePassThroughProgram(m_Resources);
+        m_GLObjects.program
+            = CanvasContext::CreatePassThroughProgram(m_Resources);
 
         if (m_GLObjects.program == 0) {
             return false;
         }
 
-        NIDIUM_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_projectionMatrix"),
+        NIDIUM_GL_CALL_RET_MAIN(
+            GetUniformLocation(m_GLObjects.program, "u_projectionMatrix"),
             m_GLObjects.uniforms.u_projectionMatrix);
 
-        NIDIUM_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_opacity"),
+        NIDIUM_GL_CALL_RET_MAIN(
+            GetUniformLocation(m_GLObjects.program, "u_opacity"),
             m_GLObjects.uniforms.u_opacity);
     }
 
@@ -134,9 +141,11 @@ void GLState::setProgram(uint32_t program)
 {
     m_GLObjects.program = program;
 
-    NIDIUM_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_projectionMatrix"),
+    NIDIUM_GL_CALL_RET_MAIN(
+        GetUniformLocation(m_GLObjects.program, "u_projectionMatrix"),
         m_GLObjects.uniforms.u_projectionMatrix);
-    NIDIUM_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_opacity"),
+    NIDIUM_GL_CALL_RET_MAIN(
+        GetUniformLocation(m_GLObjects.program, "u_opacity"),
         m_GLObjects.uniforms.u_opacity);
 }
 
@@ -159,4 +168,3 @@ GLState::~GLState()
 
 } // namespace Graphics
 } // namespace Nidium
-

@@ -15,26 +15,30 @@ namespace IO {
 
 class NFS;
 
-class NFSStream :  public Stream
+class NFSStream : public Stream
 {
 public:
     explicit NFSStream(const char *location);
 
-    static Stream *CreateStream(const char *location) {
+    static Stream *CreateStream(const char *location)
+    {
         return new NFSStream(location);
     }
-    static const char *GetBaseDir() {
+    static const char *GetBaseDir()
+    {
         return "/";
     }
 
-    static bool AllowLocalFileStream() {
+    static bool AllowLocalFileStream()
+    {
         return true;
     }
-    static bool AllowSyncStream() {
+    static bool AllowSyncStream()
+    {
         return true;
     }
 
-    virtual ~NFSStream() {};
+    virtual ~NFSStream(){};
 
     virtual void stop();
     virtual void getContent();
@@ -47,10 +51,12 @@ public:
 protected:
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err);
     virtual void onStart(size_t packets, size_t seek);
+
 private:
     NFS *m_NFS;
 
-    struct {
+    struct
+    {
         const unsigned char *data;
         size_t len;
         off_t pos;
@@ -61,4 +67,3 @@ private:
 } // namespace Nidium
 
 #endif
-

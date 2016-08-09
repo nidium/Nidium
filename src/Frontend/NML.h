@@ -26,11 +26,13 @@ class NML;
 
 typedef void (*NMLLoadedCallback)(void *arg);
 
-typedef struct _NMLTag {
+typedef struct _NMLTag
+{
     const char *id;
     const char *tag;
 
-    struct {
+    struct
+    {
         const unsigned char *data;
         size_t len;
         bool isBinary;
@@ -64,24 +66,30 @@ public:
     void onAssetsBlockReady(Assets *asset);
     void onGetContent(const char *data, size_t len);
 
-    const char *getMetaTitle() const {
+    const char *getMetaTitle() const
+    {
         return m_Meta.title;
     }
-    const char *getIdentifier() const {
+    const char *getIdentifier() const
+    {
         return m_Meta.identifier;
     }
-    int getMetaWidth() const {
+    int getMetaWidth() const
+    {
         return m_Meta.size.width;
     }
-    int getMetaHeight() const {
+    int getMetaHeight() const
+    {
         return m_Meta.size.height;
     }
 
-    rapidxml::xml_node<> *getLayout() const {
+    rapidxml::xml_node<> *getLayout() const
+    {
         return m_Layout;
     }
 
-    JSObject *getJSObjectLayout() const {
+    JSObject *getJSObjectLayout() const
+    {
         return m_JSObjectLayout;
     }
 
@@ -96,8 +104,8 @@ public:
     static JSObject *BuildLST(JSContext *cx, char *str);
 
 private:
-
-    static JSObject *BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node);
+    static JSObject *BuildLSTFromNode(JSContext *cx,
+                                      rapidxml::xml_node<> &node);
 
     bool loadData(char *data, size_t len, rapidxml::xml_document<> &doc);
     void addAsset(Assets *);
@@ -105,32 +113,34 @@ private:
     IO::Stream *m_Stream;
 
     /* Define callbacks for tags in <application> */
-    struct _nml_tags {
+    struct _nml_tags
+    {
         const char *str;
         tag_callback cb; // Call : (this->*cb)()
         bool unique;
-    } m_NmlTags[4] = {
-        {"assets",   &NML::loadAssets, false},
-        {"meta", &NML::loadMeta, true},
-        {"layout", &NML::loadLayout, true},
-        {NULL,       NULL, false}
-    };
+    } m_NmlTags[4] = { { "assets", &NML::loadAssets, false },
+                       { "meta", &NML::loadMeta, true },
+                       { "layout", &NML::loadLayout, true },
+                       { NULL, NULL, false } };
 
     uint32_t m_nAssets;
 
     Binding::NidiumJS *m_Njs;
 
-    struct {
+    struct
+    {
         char *identifier;
         char *title;
         bool loaded;
-        struct {
+        struct
+        {
             int width;
             int height;
         } size;
     } m_Meta;
 
-    struct {
+    struct
+    {
         Assets **list;
         uint32_t allocated;
         uint32_t size;
@@ -150,4 +160,3 @@ private:
 } // namespace Nidium
 
 #endif
-

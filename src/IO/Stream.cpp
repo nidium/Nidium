@@ -14,17 +14,17 @@ using Nidium::Core::Path;
 namespace Nidium {
 namespace IO {
 
-Stream::Stream(const char *location) :
-    m_PacketsSize(0), m_NeedToSendUpdate(false), m_PendingSeek(false),
-    m_Listener(NULL)
+Stream::Stream(const char *location)
+    : m_PacketsSize(0), m_NeedToSendUpdate(false), m_PendingSeek(false),
+      m_Listener(NULL)
 {
     m_Location = strdup(location);
 
-    m_DataBuffer.back =         NULL;
-    m_DataBuffer.front =        NULL;
-    m_DataBuffer.alreadyRead =  true;
-    m_DataBuffer.fresh =        true;
-    m_DataBuffer.ended =        false;
+    m_DataBuffer.back        = NULL;
+    m_DataBuffer.front       = NULL;
+    m_DataBuffer.alreadyRead = true;
+    m_DataBuffer.fresh       = true;
+    m_DataBuffer.ended       = false;
 }
 
 Stream::~Stream()
@@ -42,8 +42,8 @@ Stream *Stream::Create(const char *location)
     const char *pLocation;
     Path::schemeInfo *info;
 
-    if (location == NULL ||
-        (info = Path::GetScheme(location, &pLocation)) == NULL) {
+    if (location == NULL
+        || (info = Path::GetScheme(location, &pLocation)) == NULL) {
         return NULL;
     }
 
@@ -57,7 +57,7 @@ void Stream::start(size_t packets, size_t seek)
         return;
     }
 
-    m_PacketsSize = packets;
+    m_PacketsSize      = packets;
     m_NeedToSendUpdate = true;
     this->onStart(packets, seek);
 }
@@ -107,10 +107,10 @@ void Stream::errorSync(Errors err, unsigned int code)
 
 void Stream::swapBuffer()
 {
-    buffer *tmp =           m_DataBuffer.back;
-    m_DataBuffer.back =     m_DataBuffer.front;
-    m_DataBuffer.front =    tmp;
-    m_DataBuffer.fresh =    true;
+    buffer *tmp        = m_DataBuffer.back;
+    m_DataBuffer.back  = m_DataBuffer.front;
+    m_DataBuffer.front = tmp;
+    m_DataBuffer.fresh = true;
 
     /*  If we have remaining data in our old backbuffer
         we place it in our new backbuffer.
@@ -124,7 +124,7 @@ void Stream::swapBuffer()
         m_DataBuffer.back->data = &m_DataBuffer.front->data[m_PacketsSize];
         m_DataBuffer.back->used = m_DataBuffer.front->used - m_PacketsSize;
         m_DataBuffer.back->size = m_DataBuffer.back->used;
-        m_DataBuffer.fresh = false;
+        m_DataBuffer.fresh      = false;
 
         if (m_DataBuffer.back->used >= m_PacketsSize) {
             m_DataBuffer.alreadyRead = false;
@@ -136,4 +136,3 @@ void Stream::swapBuffer()
 
 } // namespace IO
 } // namespace Nidium
-

@@ -46,10 +46,10 @@ namespace Binding {
 extern JSClass global_class;
 
 static pthread_key_t gAPE = 0;
-static pthread_key_t gJS = 0;
+static pthread_key_t gJS  = 0;
 
 /* Assume that we can not use more than 5e5 bytes of C stack by default. */
-#if (defined(DEBUG) && defined(__SUNPRO_CC))  || defined(JS_CPU_SPARC)
+#if (defined(DEBUG) && defined(__SUNPRO_CC)) || defined(JS_CPU_SPARC)
 /* Sun compiler uses larger stack space for js_Interpret() with debug
    Use a bigger gMaxStackSize to make "make check" happy. */
 #define DEFAULT_MAX_STACK_SIZE 5000000
@@ -57,7 +57,7 @@ static pthread_key_t gJS = 0;
 #define DEFAULT_MAX_STACK_SIZE 500000
 #endif
 
-size_t gMaxStackSize = DEFAULT_MAX_STACK_SIZE;
+size_t gMaxStackSize                          = DEFAULT_MAX_STACK_SIZE;
 JSStructuredCloneCallbacks *NidiumJS::m_JsScc = NULL;
 
 // }}}
@@ -87,12 +87,13 @@ static void NidiumTraceBlack(JSTracer *trc, void *data)
         uintptr_t oldaddr = reinterpret_cast<uintptr_t>(item->content.addrs);
         uintptr_t newaddr = oldaddr;
 
-        JS_CallObjectTracer(trc, reinterpret_cast<JSObject **>(&newaddr), "NidiumRoot");
+        JS_CallObjectTracer(trc, reinterpret_cast<JSObject **>(&newaddr),
+                            "NidiumRoot");
 
         if (oldaddr != newaddr) {
             printf("Address changed\n");
         }
-        //printf("Tracing object at %p\n", item->addrs);
+        // printf("Tracing object at %p\n", item->addrs);
     }
 }
 #endif
@@ -105,27 +106,30 @@ void NidiumJS::gc()
 /* Use obj address as key */
 void NidiumJS::rootObjectUntilShutdown(JSObject *obj)
 {
-    //m_RootedSet->put(obj);
-    //JS::AutoHashSetRooter<JSObject *> rooterhash(cx, 0);
+    // m_RootedSet->put(obj);
+    // JS::AutoHashSetRooter<JSObject *> rooterhash(cx, 0);
     hashtbl_append64(this->m_RootedObj, reinterpret_cast<uint64_t>(obj), obj);
 }
 
 void NidiumJS::unrootObject(JSObject *obj)
 {
-    //m_RootedSet->remove(obj);
+    // m_RootedSet->remove(obj);
     hashtbl_erase64(this->m_RootedObj, reinterpret_cast<uint64_t>(obj));
 }
 
-JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
-                                           uint32_t tag, uint32_t data, void *closure)
+JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx,
+                                          JSStructuredCloneReader *r,
+                                          uint32_t tag,
+                                          uint32_t data,
+                                          void *closure)
 {
     NidiumJS *js = static_cast<NidiumJS *>(closure);
 
-    switch(tag) {
-        case kSctag_Function:
-        {
+    switch (tag) {
+        case kSctag_Function: {
             const char pre[] = "return (";
-            const char end[] = ").apply(this, Array.prototype.slice.apply(arguments));";
+            const char end[]
+                = ").apply(this, Array.prototype.slice.apply(arguments));";
 
             char *pdata = static_cast<char *>(malloc(data + 256));
             memcpy(pdata, pre, sizeof(pre));
@@ -142,7 +146,8 @@ JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
 
             JS::RootedFunction cf(cx);
 
-            cf = JS::CompileFunction(cx, global, options, NULL, 0, NULL, pdata, strlen(pdata));
+            cf = JS::CompileFunction(cx, global, options, NULL, 0, NULL, pdata,
+                                     strlen(pdata));
 
             free(pdata);
 
@@ -158,16 +163,14 @@ JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
 
             return JS_GetFunctionObject(cf);
         }
-        case kSctag_Hidden:
-        {
+        case kSctag_Hidden: {
             uint8_t nullbyte;
             if (!JS_ReadBytes(r, &nullbyte, data)) {
                 return NULL;
             }
             return JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
         }
-        default:
-        {
+        default: {
             ReadStructuredCloneOp op;
             if (js && (op = js->getReadStructuredCloneAddition())) {
                 return op(cx, r, tag, data, closure);
@@ -178,21 +181,22 @@ JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
     return JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
 }
 
-bool NidiumJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
-                                         JS::HandleObject obj, void *closure)
+bool NidiumJS::writeStructuredCloneOp(JSContext *cx,
+                                      JSStructuredCloneWriter *w,
+                                      JS::HandleObject obj,
+                                      void *closure)
 {
     JS::RootedValue vobj(cx, JS::ObjectValue(*obj));
-    JSType type = JS_TypeOfValue(cx, vobj);
+    JSType type  = JS_TypeOfValue(cx, vobj);
     NidiumJS *js = static_cast<NidiumJS *>(closure);
 
-    switch(type) {
+    switch (type) {
         /* Serialize function into a string */
-        case JSTYPE_FUNCTION:
-        {
+        case JSTYPE_FUNCTION: {
 
             JS::RootedFunction fun(cx, JS_ValueToFunction(cx, vobj));
-            JS::RootedString func(cx, JS_DecompileFunction(cx,
-                fun, 0 | JS_DONT_PRETTY_PRINT));
+            JS::RootedString func(
+                cx, JS_DecompileFunction(cx, fun, 0 | JS_DONT_PRETTY_PRINT));
             JSAutoByteString cfunc(cx, func);
             size_t flen = cfunc.length();
 
@@ -200,17 +204,15 @@ bool NidiumJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
             JS_WriteBytes(w, cfunc.ptr(), flen);
             break;
         }
-        default:
-        {
+        default: {
             if (js && type == JSTYPE_OBJECT) {
 
                 WriteStructuredCloneOp op;
-                if ((op = js->getWriteStructuredCloneAddition()) &&
-                    op(cx, w, obj, closure)) {
+                if ((op = js->getWriteStructuredCloneAddition())
+                    && op(cx, w, obj, closure)) {
 
                     return true;
                 }
-
             }
             const uint8_t nullbyte = '\0';
 
@@ -219,7 +221,6 @@ bool NidiumJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
 
             break;
         }
-
     }
 
     return true;
@@ -231,7 +232,8 @@ NidiumJS *NidiumJS::GetObject(JSContext *cx)
     if (cx == NULL) {
         return static_cast<NidiumJS *>(pthread_getspecific(gJS));
     }
-    return static_cast<class NidiumJS *>(JS_GetRuntimePrivate(JS_GetRuntime(cx)));
+    return static_cast<class NidiumJS *>(
+        JS_GetRuntimePrivate(JS_GetRuntime(cx)));
 }
 
 ape_global *NidiumJS::GetNet()
@@ -257,7 +259,8 @@ JSObject *NidiumJS::CreateJSGlobal(JSContext *cx)
     options.setVersion(JSVERSION_LATEST);
 
     JS::RootedObject glob(cx, JS_NewGlobalObject(cx, &global_class, nullptr,
-                                             JS::DontFireOnNewGlobalHook, options));
+                                                 JS::DontFireOnNewGlobalHook,
+                                                 options));
 
     JSAutoCompartment ac(cx, glob);
 
@@ -270,23 +273,21 @@ JSObject *NidiumJS::CreateJSGlobal(JSContext *cx)
     JS_FireOnNewGlobalObject(cx, glob);
 
     return glob;
-    //JS::RegisterPerfMeasurement(cx, glob);
+    // JS::RegisterPerfMeasurement(cx, glob);
 
-    //https://bugzilla.mozilla.org/show_bug.cgi?id=880330
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=880330
     // context option vs compile option?
 }
 
 void NidiumJS::SetJSRuntimeOptions(JSRuntime *rt)
 {
-    JS::RuntimeOptionsRef(rt).setBaseline(true)
-                             .setIon(true)
-                             .setAsmJS(true);
+    JS::RuntimeOptionsRef(rt).setBaseline(true).setIon(true).setAsmJS(true);
 
     JS_SetGCParameter(rt, JSGC_MAX_BYTES, 0xffffffff);
     JS_SetGCParameter(rt, JSGC_SLICE_TIME_BUDGET, 15);
     JS_SetNativeStackQuota(rt, gMaxStackSize);
 
-    //rt->profilingScripts For profiling?
+    // rt->profilingScripts For profiling?
 }
 
 #if 0
@@ -310,12 +311,13 @@ void NidiumJS::Init()
 
 void reportError(JSContext *cx, const char *message, JSErrorReport *report)
 {
-    NidiumJS *js = NidiumJS::GetObject(cx);
+    NidiumJS *js  = NidiumJS::GetObject(cx);
     Context *nctx = nullptr;
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
     if (js == nullptr) {
-        printf("Error reporter failed (wrong JSContext?) (%s:%d > %s)\n", report->filename, report->lineno, message);
+        printf("Error reporter failed (wrong JSContext?) (%s:%d > %s)\n",
+               report->filename, report->lineno, message);
         return;
     }
 
@@ -333,15 +335,16 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
 
     if (report->lineno) {
         char *tmp = prefix;
-        prefix = JS_smprintf("%s%u:%u ", tmp ? tmp : "", report->lineno, report->column);
+        prefix = JS_smprintf("%s%u:%u ", tmp ? tmp : "", report->lineno,
+                             report->column);
         JS_free(cx, tmp);
     }
 
     if (JSREPORT_IS_WARNING(report->flags)) {
         char *tmp = prefix;
-        prefix = JS_smprintf("%s%swarning: ",
-                             tmp ? tmp : "",
-                             JSREPORT_IS_STRICT(report->flags) ? "strict " : "");
+        prefix
+            = JS_smprintf("%s%swarning: ", tmp ? tmp : "",
+                          JSREPORT_IS_STRICT(report->flags) ? "strict " : "");
         JS_free(cx, tmp);
     }
 
@@ -371,11 +374,9 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
     if (report->linebuf) {
         /* report->linebuf usually ends with a newline. */
         int n = strlen(report->linebuf);
-        nctx->vlog(":\n%s%s%s%s",
-                prefix,
-                report->linebuf,
-                (n > 0 && report->linebuf[n-1] == '\n') ? "" : "\n",
-                prefix);
+        nctx->vlog(":\n%s%s%s%s", prefix, report->linebuf,
+                   (n > 0 && report->linebuf[n - 1] == '\n') ? "" : "\n",
+                   prefix);
         n = report->tokenptr - report->linebuf;
         for (int i = 0, j = 0; i < n; i++) {
             if (report->linebuf[i] == '\t') {
@@ -394,23 +395,23 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
     JS_free(cx, prefix);
 }
 
-NidiumJS::NidiumJS(ape_global *net, Context *context) :
-    m_JSStrictMode(false), m_Context(context)
+NidiumJS::NidiumJS(ape_global *net, Context *context)
+    : m_JSStrictMode(false), m_Context(context)
 {
     JSRuntime *rt;
     m_Modules = NULL;
 
-    m_StructuredCloneAddition.read = NULL;
+    m_StructuredCloneAddition.read  = NULL;
     m_StructuredCloneAddition.write = NULL;
 
     static int isUTF8 = 0;
 
     /* TODO: BUG */
     if (!isUTF8) {
-        //JS_SetCStringsAreUTF8();
+        // JS_SetCStringsAreUTF8();
         isUTF8 = 1;
     }
-    //printf("New JS runtime\n");
+    // printf("New JS runtime\n");
 
     m_Shutdown = false;
 
@@ -427,15 +428,16 @@ NidiumJS::NidiumJS(ape_global *net, Context *context) :
 
     NidiumJS::Init();
 
-    if ((rt = JS_NewRuntime(128L * 1024L * 1024L,
-        JS_NO_HELPER_THREADS)) == NULL) {
+    if ((rt = JS_NewRuntime(128L * 1024L * 1024L, JS_NO_HELPER_THREADS))
+        == NULL) {
 
         printf("Failed to init JS runtime\n");
         return;
     }
 
     NidiumJS::SetJSRuntimeOptions(rt);
-    JS_SetGCParameterForThread(m_Cx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
+    JS_SetGCParameterForThread(m_Cx, JSGC_MAX_CODE_CACHE_BYTES,
+                               16 * 1024 * 1024);
 
     if ((m_Cx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
@@ -444,7 +446,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context) :
 #if 0
     JS_SetGCZeal(m_Cx, 2, 4);
 #endif
-    //JS_ScheduleGC(m_Cx, 1);
+// JS_ScheduleGC(m_Cx, 1);
 #if 0
     JS_SetGCCallback(rt, _gc_callback, NULL);
 #endif
@@ -452,27 +454,27 @@ NidiumJS::NidiumJS(ape_global *net, Context *context) :
     JS_BeginRequest(m_Cx);
     JS::RootedObject gbl(m_Cx);
 #if 0
-    #ifdef NIDIUM_DEBUG
+#ifdef NIDIUM_DEBUG
     JS_SetOptions(m_Cx, JSOPTION_VAROBJFIX);
-    #else
+#else
 
     JS_SetOptions(m_Cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT_ALWAYS |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION | JSOPTION_ASMJS | JSOPTION_BASELINE);
-    #endif
+#endif
 #endif
     JS_SetErrorReporter(m_Cx, reportError);
 
     gbl = NidiumJS::CreateJSGlobal(m_Cx);
 
     m_Compartment = JS_EnterCompartment(m_Cx, gbl);
-    //JSAutoCompartment ac(m_Cx, gbl);
+// JSAutoCompartment ac(m_Cx, gbl);
 #if 1
     JS_AddExtraGCRootsTracer(rt, NidiumTraceBlack, this);
 #endif
     if (NidiumJS::m_JsScc == NULL) {
-        NidiumJS::m_JsScc = new JSStructuredCloneCallbacks();
-        NidiumJS::m_JsScc->read = NidiumJS::readStructuredCloneOp;
-        NidiumJS::m_JsScc->write = NidiumJS::writeStructuredCloneOp;
+        NidiumJS::m_JsScc              = new JSStructuredCloneCallbacks();
+        NidiumJS::m_JsScc->read        = NidiumJS::readStructuredCloneOp;
+        NidiumJS::m_JsScc->write       = NidiumJS::writeStructuredCloneOp;
         NidiumJS::m_JsScc->reportError = NULL;
     }
 
@@ -484,9 +486,11 @@ NidiumJS::NidiumJS(ape_global *net, Context *context) :
 
     JS_SetRuntimePrivate(rt, this);
 
-    m_Messages = new SharedMessages();
-    m_RegisteredMessages = static_cast<nidium_thread_message_t*>(calloc(16, sizeof(nidium_thread_message_t)));
-    m_RegisteredMessagesIdx = 7; // The 8 first slots (0 to 7) are reserved for Nidium internals messages
+    m_Messages           = new SharedMessages();
+    m_RegisteredMessages = static_cast<nidium_thread_message_t *>(
+        calloc(16, sizeof(nidium_thread_message_t)));
+    m_RegisteredMessagesIdx = 7; // The 8 first slots (0 to 7) are reserved for
+                                 // Nidium internals messages
     m_RegisteredMessagesSize = 16;
 
 #if 0
@@ -526,7 +530,6 @@ NidiumJS::NidiumJS(ape_global *net, Context *context) :
 
     */
 #endif
-
 }
 
 
@@ -566,7 +569,7 @@ int NidiumJS::LoadApplication(const char *path)
 NidiumJS::~NidiumJS()
 {
     JSRuntime *rt;
-    rt = JS_GetRuntime(m_Cx);
+    rt         = JS_GetRuntime(m_Cx);
     m_Shutdown = true;
 
     ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(m_Cx));
@@ -576,7 +579,7 @@ NidiumJS::~NidiumJS()
 
     JS_LeaveCompartment(m_Cx, m_Compartment);
     JS_EndRequest(m_Cx);
-    //JS_LeaveCompartment(m_Cx);
+    // JS_LeaveCompartment(m_Cx);
 
     JS_DestroyContext(m_Cx);
 
@@ -598,7 +601,7 @@ static int Nidium_handle_messages(void *arg)
 #define MAX_MSG_IN_ROW 20
     NidiumJS *njs = static_cast<NidiumJS *>(arg);
     JSContext *cx = njs->m_Cx;
-    int nread = 0;
+    int nread     = 0;
 
     SharedMessages::Message *msg;
     JSAutoRequest ar(cx);
@@ -621,16 +624,17 @@ void NidiumJS::bindNetObject(ape_global *net)
     JS_SetContextPrivate(m_Cx, net);
     m_Net = net;
 
-    ape_timer_t *timer = APE_timer_create(net, 1,
-        Nidium_handle_messages, this);
+    ape_timer_t *timer = APE_timer_create(net, 1, Nidium_handle_messages, this);
 
     APE_timer_unprotect(timer);
 
-    //NidiumFileIO *io = new NidiumFileIO("/tmp/foobar", this, net);
-    //io->open();
+    // NidiumFileIO *io = new NidiumFileIO("/tmp/foobar", this, net);
+    // io->open();
 }
 
-void NidiumJS::CopyProperties(JSContext *cx, JS::HandleObject source, JS::MutableHandleObject into)
+void NidiumJS::CopyProperties(JSContext *cx,
+                              JS::HandleObject source,
+                              JS::MutableHandleObject into)
 {
 
     JS::AutoIdArray ida(cx, JS_Enumerate(cx, source));
@@ -646,13 +650,12 @@ void NidiumJS::CopyProperties(JSContext *cx, JS::HandleObject source, JS::Mutabl
             break;
         }
         /* TODO : has own property */
-        switch(JS_TypeOfValue(cx, val)) {
-            case JSTYPE_OBJECT:
-            {
+        switch (JS_TypeOfValue(cx, val)) {
+            case JSTYPE_OBJECT: {
                 JS::RootedValue oldval(cx);
 
-                if (!JS_GetPropertyById(cx, into, id, &oldval) ||
-                    oldval.isNullOrUndefined() || oldval.isPrimitive()) {
+                if (!JS_GetPropertyById(cx, into, id, &oldval)
+                    || oldval.isNullOrUndefined() || oldval.isPrimitive()) {
                     JS_SetPropertyById(cx, into, id, val);
                 } else {
                     JS::RootedObject oldvalobj(cx, &oldval.toObject());
@@ -668,8 +671,11 @@ void NidiumJS::CopyProperties(JSContext *cx, JS::HandleObject source, JS::Mutabl
     }
 }
 
-int NidiumJS::LoadScriptReturn(JSContext *cx, const char *data,
-    size_t len, const char *filename, JS::MutableHandleValue ret)
+int NidiumJS::LoadScriptReturn(JSContext *cx,
+                               const char *data,
+                               size_t len,
+                               const char *filename,
+                               JS::MutableHandleValue ret)
 {
     JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
 
@@ -683,10 +689,10 @@ int NidiumJS::LoadScriptReturn(JSContext *cx, const char *data,
     JS::RootedFunction cf(cx);
 
     JS::CompileOptions options(cx);
-    options.setFileAndLine(filename, 1)
-           .setUTF8(true);
+    options.setFileAndLine(filename, 1).setUTF8(true);
 
-    cf = JS::CompileFunction(cx, gbl, options, NULL, 0, NULL, func, strlen(func));
+    cf = JS::CompileFunction(cx, gbl, options, NULL, 0, NULL, func,
+                             strlen(func));
 
     free(func);
     if (cf == NULL) {
@@ -694,7 +700,8 @@ int NidiumJS::LoadScriptReturn(JSContext *cx, const char *data,
         return 0;
     }
 
-    if (JS_CallFunction(cx, gbl, cf, JS::HandleValueArray::empty(), ret) == false) {
+    if (JS_CallFunction(cx, gbl, cf, JS::HandleValueArray::empty(), ret)
+        == false) {
         printf("Got an error?\n"); /* or thread has ended */
 
         return 0;
@@ -704,7 +711,8 @@ int NidiumJS::LoadScriptReturn(JSContext *cx, const char *data,
 }
 
 int NidiumJS::LoadScriptReturn(JSContext *cx,
-    const char *filename, JS::MutableHandleValue ret)
+                               const char *filename,
+                               JS::MutableHandleValue ret)
 {
     int err;
     char *data;
@@ -727,8 +735,9 @@ int NidiumJS::LoadScriptReturn(JSContext *cx,
     return r;
 }
 
-int NidiumJS::LoadScriptContent(const char *data, size_t len,
-    const char *filename)
+int NidiumJS::LoadScriptContent(const char *data,
+                                size_t len,
+                                const char *filename)
 {
     if (!len) {
         /* silently success */
@@ -737,7 +746,7 @@ int NidiumJS::LoadScriptContent(const char *data, size_t len,
     /*
         Detect JSBytecode using XDR magic number ad defined in xdr.h
     */
-    //TODO: static cast...
+    // TODO: static cast...
     if ((*(uint32_t *)data & 0xFFFFFF00) == 0xb973c000) {
         return this->LoadBytecode((void *)(data), len, filename);
     }
@@ -753,12 +762,14 @@ int NidiumJS::LoadScriptContent(const char *data, size_t len,
     /* RAII helper that resets to origin options state */
     JS::AutoSaveContextOptions asco(m_Cx);
 
-    JS::ContextOptionsRef(m_Cx).setVarObjFix(true).setStrictMode(m_JSStrictMode);
+    JS::ContextOptionsRef(m_Cx).setVarObjFix(true).setStrictMode(
+        m_JSStrictMode);
 
     JS::CompileOptions options(m_Cx);
     options.setUTF8(true)
-           .setFileAndLine(filename, 1)
-           .setCompileAndGo(true).setNoScriptRval(true);
+        .setFileAndLine(filename, 1)
+        .setCompileAndGo(true)
+        .setNoScriptRval(true);
 
     script = JS::Compile(m_Cx, gbl, options, data, len);
 
@@ -773,8 +784,9 @@ int NidiumJS::LoadScriptContent(const char *data, size_t len,
     return 1;
 }
 
-char *NidiumJS::LoadScriptContentAndGetResult(const char *data, size_t len,
-    const char *filename)
+char *NidiumJS::LoadScriptContentAndGetResult(const char *data,
+                                              size_t len,
+                                              const char *filename)
 {
     if (!len) {
         return NULL;
@@ -791,12 +803,14 @@ char *NidiumJS::LoadScriptContentAndGetResult(const char *data, size_t len,
     /* RAII helper that resets to origin options state */
     JS::AutoSaveContextOptions asco(m_Cx);
 
-    JS::ContextOptionsRef(m_Cx).setVarObjFix(true).setStrictMode(m_JSStrictMode);
+    JS::ContextOptionsRef(m_Cx).setVarObjFix(true).setStrictMode(
+        m_JSStrictMode);
 
     JS::CompileOptions options(m_Cx);
     options.setUTF8(true)
-           .setFileAndLine(filename, 1)
-           .setCompileAndGo(true).setNoScriptRval(false);
+        .setFileAndLine(filename, 1)
+        .setCompileAndGo(true)
+        .setNoScriptRval(false);
 
     script = JS::Compile(m_Cx, gbl, options, data, len);
 
@@ -844,8 +858,9 @@ int NidiumJS::LoadScript(const char *filename)
 
 int NidiumJS::LoadBytecode(NidiumBytecodeScript *script)
 {
-    //TODO: new style cast
-    return this->LoadBytecode((void *)(script->data), script->size, script->name);
+    // TODO: new style cast
+    return this->LoadBytecode((void *)(script->data), script->size,
+                              script->name);
 }
 
 int NidiumJS::LoadBytecode(void *data, int size, const char *filename)
@@ -897,7 +912,9 @@ void NidiumJS::loadGlobalObjects()
 int NidiumJS::registerMessage(nidium_thread_message_t cbk)
 {
     if (m_RegisteredMessagesIdx >= m_RegisteredMessagesSize - 1) {
-        void *ptr = realloc(m_RegisteredMessages, (m_RegisteredMessagesSize + 16) * sizeof(nidium_thread_message_t));
+        void *ptr = realloc(m_RegisteredMessages,
+                            (m_RegisteredMessagesSize + 16)
+                                * sizeof(nidium_thread_message_t));
         if (ptr == NULL) {
             return -1;
         }
@@ -921,7 +938,10 @@ void NidiumJS::registerMessage(nidium_thread_message_t cbk, int id)
     }
 
     if (m_RegisteredMessages[id] != NULL) {
-        printf("ERROR : Trying to register a shared message at idx %d but slot is already reserved\n", id);
+        printf(
+            "ERROR : Trying to register a shared message at idx %d but slot is "
+            "already reserved\n",
+            id);
         return;
     }
 
@@ -935,4 +955,3 @@ void NidiumJS::postMessage(void *dataPtr, int ev)
 // }}}
 } // namespace Binding
 } // namespace Nidium
-

@@ -31,22 +31,22 @@ char *CanvasContext::ProcessShader(const char *content, shaderType type)
 {
     ShHandle compiler = NULL;
 
-    Frontend::Context *frontendContext = 
-        Context::GetObject<Frontend::Context>(NidiumJS::GetObject());
+    Frontend::Context *frontendContext
+        = Context::GetObject<Frontend::Context>(NidiumJS::GetObject());
 
-    compiler = ShConstructCompiler((sh::GLenum)type,
-        SH_WEBGL_SPEC, frontendContext->getShaderOutputVersion(),
-        frontendContext->getShaderResources());
+    compiler = ShConstructCompiler((sh::GLenum)type, SH_WEBGL_SPEC,
+                                   frontendContext->getShaderOutputVersion(),
+                                   frontendContext->getShaderResources());
 
     if (compiler == NULL) {
         NUI_LOG("Shader : Compiler not supported");
         return NULL;
     }
 
-    if (!ShCompile(compiler, &content, 1, 
-            SH_VARIABLES | SH_ENFORCE_PACKING_RESTRICTIONS |
-            SH_OBJECT_CODE | SH_INIT_VARYINGS_WITHOUT_STATIC_USE | 
-            SH_LIMIT_CALL_STACK_DEPTH | SH_INIT_GL_POSITION)) {
+    if (!ShCompile(compiler, &content, 1,
+                   SH_VARIABLES | SH_ENFORCE_PACKING_RESTRICTIONS
+                       | SH_OBJECT_CODE | SH_INIT_VARYINGS_WITHOUT_STATIC_USE
+                       | SH_LIMIT_CALL_STACK_DEPTH | SH_INIT_GL_POSITION)) {
 
         std::string log = ShGetInfoLog(compiler);
         printf("Shader error : %s", log.c_str());
@@ -96,19 +96,20 @@ Vertices *CanvasContext::BuildVerticesStripe(int resolution)
     float xstep = 2. / (static_cast<float>(x) - 1.);
     float ystep = 2. / (static_cast<float>(y) - 1.);
 
-    float txstep = 1.  / (static_cast<float>(x) - 1.);
-    float tystep = 1.  / (static_cast<float>(y) - 1.);
+    float txstep = 1. / (static_cast<float>(x) - 1.);
+    float tystep = 1. / (static_cast<float>(y) - 1.);
 
     Vertices *info = static_cast<Vertices *>(malloc(sizeof(Vertices)));
 
     info->vertices = static_cast<Vertex *>(malloc(sizeof(Vertex) * x * y));
 
-    info->nvertices = x*y;
+    info->nvertices = x * y;
 
-    info->indices = static_cast<unsigned int *>(malloc((sizeof(int) * x * y) * 2));
+    info->indices
+        = static_cast<unsigned int *>(malloc((sizeof(int) * x * y) * 2));
     info->nindices = 0;
 
-    Vertex *vert = info->vertices;
+    Vertex *vert          = info->vertices;
     unsigned int *indices = info->indices;
 
     for (int i = 0; i < y; i++) {
@@ -118,7 +119,8 @@ Vertices *CanvasContext::BuildVerticesStripe(int resolution)
             vert[t].Position[1] = 1. - (static_cast<float>(i) * ystep);
             vert[t].Position[2] = 0.;
 
-            //NUI_LOG("Create vertex: %f %f", vert[t].Position[0], vert[t].Position[1]);
+            // NUI_LOG("Create vertex: %f %f", vert[t].Position[0],
+            // vert[t].Position[1]);
 
             vert[t].TexCoord[0] = (static_cast<float>(j) * txstep);
             vert[t].TexCoord[1] = 1 - ((static_cast<float>(i) * tystep));
@@ -128,10 +130,10 @@ Vertices *CanvasContext::BuildVerticesStripe(int resolution)
         }
     }
 
-    int n   = 0;
+    int n        = 0;
     int colSteps = x * 2;
     int rowSteps = y - 1;
-    int pos = 0;
+    int pos      = 0;
     int r, c;
 
     for (r = 0; r < rowSteps; r++) {
@@ -140,8 +142,7 @@ Vertices *CanvasContext::BuildVerticesStripe(int resolution)
 
             if (c == colSteps - 1) {
                 indices[pos] = n;
-            }
-            else {
+            } else {
                 indices[pos] = n;
 
                 if (tc % 2 == 0) {
@@ -170,39 +171,44 @@ void CanvasContext::resetGLContext()
 uint32_t CanvasContext::CreatePassThroughVertex()
 {
     /* PassThrough Vertex shader */
-    const char *vertex_s = "attribute vec4 Position;\n"
-    "attribute vec2 TexCoordIn;\n"
-    "attribute vec2 Modifier;\n"
-    "varying vec2 TexCoordOut;\n"
-    "uniform mat4 u_projectionMatrix;\n"
-    "void main(void) {\n"
-    "    gl_Position = u_projectionMatrix * Position + vec4(Modifier, 0., 0.);\n"
-    "    TexCoordOut = TexCoordIn;\n"
-    "}";
+    const char *vertex_s
+        = "attribute vec4 Position;\n"
+          "attribute vec2 TexCoordIn;\n"
+          "attribute vec2 Modifier;\n"
+          "varying vec2 TexCoordOut;\n"
+          "uniform mat4 u_projectionMatrix;\n"
+          "void main(void) {\n"
+          "    gl_Position = u_projectionMatrix * Position + vec4(Modifier, "
+          "0., 0.);\n"
+          "    TexCoordOut = TexCoordIn;\n"
+          "}";
 
-    uint32_t vertexshader = CanvasContext::CompileShader(vertex_s, GL_VERTEX_SHADER);
+    uint32_t vertexshader
+        = CanvasContext::CompileShader(vertex_s, GL_VERTEX_SHADER);
 
     return vertexshader;
 }
 
 uint32_t CanvasContext::CreatePassThroughFragment()
 {
-    const char *fragment_s = "\n"
-    "uniform sampler2D Texture;\n"
-    "uniform float u_opacity;\n"
-    "varying vec2 TexCoordOut;\n"
-    "void main(void) {\n"
-    "    gl_FragColor = texture2D(Texture, TexCoordOut.xy) * u_opacity;\n"
-    "}";
+    const char *fragment_s
+        = "\n"
+          "uniform sampler2D Texture;\n"
+          "uniform float u_opacity;\n"
+          "varying vec2 TexCoordOut;\n"
+          "void main(void) {\n"
+          "    gl_FragColor = texture2D(Texture, TexCoordOut.xy) * u_opacity;\n"
+          "}";
 
-    uint32_t fragmentshader = CanvasContext::CompileShader(fragment_s, GL_FRAGMENT_SHADER);
+    uint32_t fragmentshader
+        = CanvasContext::CompileShader(fragment_s, GL_FRAGMENT_SHADER);
 
     return fragmentshader;
 }
 
 uint32_t CanvasContext::CreatePassThroughProgram(GLResources &resource)
 {
-    uint32_t vertexshader = CanvasContext::CreatePassThroughVertex();
+    uint32_t vertexshader   = CanvasContext::CreatePassThroughVertex();
     uint32_t fragmentshader = CanvasContext::CreatePassThroughFragment();
 
     if (vertexshader == 0 || fragmentshader == 0) {
@@ -221,18 +227,19 @@ uint32_t CanvasContext::CreatePassThroughProgram(GLResources &resource)
 
     NIDIUM_GL_CALL_MAIN(AttachShader(programHandle, fragmentshader));
 
-    NIDIUM_GL_CALL_MAIN(BindAttribLocation(programHandle,
-        CanvasContext::SH_ATTR_POSITION, "Position"));
+    NIDIUM_GL_CALL_MAIN(BindAttribLocation(
+        programHandle, CanvasContext::SH_ATTR_POSITION, "Position"));
 
-    NIDIUM_GL_CALL_MAIN(BindAttribLocation(programHandle,
-        CanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn"));
+    NIDIUM_GL_CALL_MAIN(BindAttribLocation(
+        programHandle, CanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn"));
 
-    NIDIUM_GL_CALL_MAIN(BindAttribLocation(programHandle,
-        CanvasContext::SH_ATTR_MODIFIER, "Modifier"));
+    NIDIUM_GL_CALL_MAIN(BindAttribLocation(
+        programHandle, CanvasContext::SH_ATTR_MODIFIER, "Modifier"));
 
     NIDIUM_GL_CALL_MAIN(LinkProgram(programHandle));
 
-    NIDIUM_GL_CALL_MAIN(GetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess));
+    NIDIUM_GL_CALL_MAIN(
+        GetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess));
 
     if (linkSuccess == GL_FALSE) {
         GLchar messages[256];
@@ -244,10 +251,10 @@ uint32_t CanvasContext::CreatePassThroughProgram(GLResources &resource)
     return programHandle;
 }
 
-CanvasContext::CanvasContext(CanvasHandler *handler) :
-    m_JsCx(handler->m_JsCx), m_Mode(CONTEXT_2D),
-    m_Transform(SkMatrix44::kIdentity_Constructor),
-    m_Handler(handler), m_GLState(NULL)
+CanvasContext::CanvasContext(CanvasHandler *handler)
+    : m_JsCx(handler->m_JsCx), m_Mode(CONTEXT_2D),
+      m_Transform(SkMatrix44::kIdentity_Constructor), m_Handler(handler),
+      m_GLState(NULL)
 {
 }
 
@@ -266,21 +273,23 @@ static void dump_Matrix(float *matrix)
 
     printf(" = = = = = \n");
     for (i = 0; i < 4; i++) {
-        printf("%f, %f, %f, %f\n", matrix[i*4], matrix[i*4+1], matrix[i*4+2], matrix[i*4+3]);
+        printf("%f, %f, %f, %f\n", matrix[i * 4], matrix[i * 4 + 1],
+               matrix[i * 4 + 2], matrix[i * 4 + 3]);
     }
     printf(" = = = = = \n");
 }
 #endif
 
-void CanvasContext::updateMatrix(double left, double top,
-    int layerWidth, int layerHeight, GLState *glstate)
+void CanvasContext::updateMatrix(
+    double left, double top, int layerWidth, int layerHeight, GLState *glstate)
 {
 
     if (!m_GLState) {
         return;
     }
 
-    float px = static_cast<float>(layerWidth), py = static_cast<float>(layerHeight);
+    float px = static_cast<float>(layerWidth),
+          py = static_cast<float>(layerHeight);
     int w, h;
 
     /* get the size in device pixels */
@@ -297,7 +306,8 @@ void CanvasContext::updateMatrix(double left, double top,
         We therefore have to translate the canvas back to its original position
     */
 
-    float ratioX = (static_cast<float>(w)) / px, ratioY = (static_cast<float>(h))/py;
+    float ratioX  = (static_cast<float>(w)) / px,
+          ratioY  = (static_cast<float>(h)) / py;
     float offsetX = -1. + ratioX, offsetY = 1 - ratioY;
 
     float ratioL = (static_cast<float>(left)) / px;
@@ -306,11 +316,11 @@ void CanvasContext::updateMatrix(double left, double top,
     m_Transform.preTranslate(
         /*
           We multiply by two because we're using the left-to-windowSize
-          percentage whereas the coordinate has a space from -1 to 1 (percentage*2)
+          percentage whereas the coordinate has a space from -1 to 1
+          (percentage*2)
         */
-        SkFloatToScalar(offsetX) + (SkFloatToScalar(ratioL)*2.f),
-        SkFloatToScalar(offsetY) - (SkFloatToScalar(ratioT)*2.f),
-        0);
+        SkFloatToScalar(offsetX) + (SkFloatToScalar(ratioL) * 2.f),
+        SkFloatToScalar(offsetY) - (SkFloatToScalar(ratioT) * 2.f), 0);
 
     m_Transform.preScale(SkFloatToScalar(ratioX), SkFloatToScalar(ratioY), 1);
 
@@ -321,17 +331,23 @@ void CanvasContext::updateMatrix(double left, double top,
         /*
             Execute the call on the specified (should be main) OpenGL context
         */
-        NIDIUM_GL_CALL(glstate->getNidiumGLContext(),
+        NIDIUM_GL_CALL(
+            glstate->getNidiumGLContext(),
             UniformMatrix4fv(m_GLState->m_GLObjects.uniforms.u_projectionMatrix,
-                1, GL_FALSE, mat4));
+                             1, GL_FALSE, mat4));
     } else {
         NUI_LOG("No uniform found");
     }
 }
 
 
-void CanvasContext::setupShader(float opacity, int width, int height,
-    int left, int top, int wWidth, int wHeight)
+void CanvasContext::setupShader(float opacity,
+                                int width,
+                                int height,
+                                int left,
+                                int top,
+                                int wWidth,
+                                int wHeight)
 {
     uint32_t program = this->getProgram();
     NIDIUM_GL_CALL_MAIN(UseProgram(program));
@@ -340,28 +356,34 @@ void CanvasContext::setupShader(float opacity, int width, int height,
 
     if (program > 0) {
         if (m_GLState->m_GLObjects.uniforms.u_opacity != -1) {
-            NIDIUM_GL_CALL_MAIN(Uniform1f(m_GLState->m_GLObjects.uniforms.u_opacity, opacity));
+            NIDIUM_GL_CALL_MAIN(
+                Uniform1f(m_GLState->m_GLObjects.uniforms.u_opacity, opacity));
         }
         float padding = this->getHandler()->m_Padding.global * ratio;
 
         if (m_GLState->m_GLObjects.uniforms.u_resolution != -1)
-            NIDIUM_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_resolution,
-               (width) - (padding * 2), (height) - (padding * 2)));
-        if (m_GLState->m_GLObjects.uniforms.u_position  != -1)
-            NIDIUM_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_position,
-            ratio * left, ratio * wHeight - (height + ratio * top)));
+            NIDIUM_GL_CALL_MAIN(
+                Uniform2f(m_GLState->m_GLObjects.uniforms.u_resolution,
+                          (width) - (padding * 2), (height) - (padding * 2)));
+        if (m_GLState->m_GLObjects.uniforms.u_position != -1)
+            NIDIUM_GL_CALL_MAIN(Uniform2f(
+                m_GLState->m_GLObjects.uniforms.u_position, ratio * left,
+                ratio * wHeight - (height + ratio * top)));
         if (m_GLState->m_GLObjects.uniforms.u_padding != -1)
-            NIDIUM_GL_CALL_MAIN(Uniform1f(m_GLState->m_GLObjects.uniforms.u_padding, padding));
+            NIDIUM_GL_CALL_MAIN(
+                Uniform1f(m_GLState->m_GLObjects.uniforms.u_padding, padding));
     }
-
 }
 
 void CanvasContext::preComposeOn(Canvas2DContext *layer,
-    double left, double top, double opacity,
-    double zoom, const Rect *rclip)
+                                 double left,
+                                 double top,
+                                 double opacity,
+                                 double zoom,
+                                 const Rect *rclip)
 {
     bool revertScissor = false;
-    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio        = SystemInterface::GetInstance()->backingStorePixelRatio();
 
     SkiaContext *skia = layer->getSurface();
     SkISize layerSize = skia->getCanvas()->getDeviceSize();
@@ -370,7 +392,8 @@ void CanvasContext::preComposeOn(Canvas2DContext *layer,
         Activate alpha blending
     */
     NIDIUM_GL_CALL(layer->m_GLState->getNidiumGLContext(), Enable(GL_BLEND));
-    NIDIUM_GL_CALL(layer->m_GLState->getNidiumGLContext(), BlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+    NIDIUM_GL_CALL(layer->m_GLState->getNidiumGLContext(),
+                   BlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
 
     /*
         Setup clipping
@@ -378,12 +401,15 @@ void CanvasContext::preComposeOn(Canvas2DContext *layer,
     if (rclip != NULL) {
         SkRect r;
         r.set(SkDoubleToScalar(rclip->m_fLeft * static_cast<double>(ratio)),
-            SkDoubleToScalar(rclip->m_fTop * static_cast<double>(ratio)),
-            SkDoubleToScalar(rclip->m_fRight * static_cast<double>(ratio)),
-            SkDoubleToScalar(rclip->m_fBottom * static_cast<double>(ratio)));
-        NIDIUM_GL_CALL(layer->m_GLState->getNidiumGLContext(), Enable(GL_SCISSOR_TEST));
-        NIDIUM_GL_CALL(layer->m_GLState->getNidiumGLContext(), Scissor(r.left(),
-           layerSize.height() - (r.top() + r.height()), r.width(), r.height()));
+              SkDoubleToScalar(rclip->m_fTop * static_cast<double>(ratio)),
+              SkDoubleToScalar(rclip->m_fRight * static_cast<double>(ratio)),
+              SkDoubleToScalar(rclip->m_fBottom * static_cast<double>(ratio)));
+        NIDIUM_GL_CALL(layer->m_GLState->getNidiumGLContext(),
+                       Enable(GL_SCISSOR_TEST));
+        NIDIUM_GL_CALL(layer->m_GLState->getNidiumGLContext(),
+                       Scissor(r.left(),
+                               layerSize.height() - (r.top() + r.height()),
+                               r.width(), r.height()));
         revertScissor = true;
     }
 
@@ -394,18 +420,19 @@ void CanvasContext::preComposeOn(Canvas2DContext *layer,
 
     this->getSize(&width, &height);
 
-    this->setupShader(static_cast<float>(opacity), width, height,
-        left, top,
-        static_cast<int>(layer->getHandler()->getWidth()),
-        static_cast<int>(layer->getHandler()->getHeight()));
+    this->setupShader(static_cast<float>(opacity), width, height, left, top,
+                      static_cast<int>(layer->getHandler()->getWidth()),
+                      static_cast<int>(layer->getHandler()->getHeight()));
 
-    this->updateMatrix(left*ratio, top*ratio, layerSize.width(),
-        layerSize.height(), layer->m_GLState);
+    this->updateMatrix(left * ratio, top * ratio, layerSize.width(),
+                       layerSize.height(), layer->m_GLState);
 
-    layer->drawTexture(this->getTextureID(), width, height, left*ratio, top*ratio);
+    layer->drawTexture(this->getTextureID(), width, height, left * ratio,
+                       top * ratio);
 
     if (revertScissor) {
-        NIDIUM_GL_CALL(layer->m_GLState->getNidiumGLContext(), Disable(GR_GL_SCISSOR_TEST));
+        NIDIUM_GL_CALL(layer->m_GLState->getNidiumGLContext(),
+                       Disable(GR_GL_SCISSOR_TEST));
     }
 }
 
@@ -413,9 +440,9 @@ bool CanvasContext::validateCurrentFBO()
 {
     GrGLenum status;
     NIDIUM_GL_CALL_RET(m_GLState->getNidiumGLContext(),
-        CheckFramebufferStatus(GR_GL_FRAMEBUFFER), status);
+                       CheckFramebufferStatus(GR_GL_FRAMEBUFFER), status);
 
-    switch(status) {
+    switch (status) {
         case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
             printf("fbo %x (incomplete multisample)\n", status);
             break;
@@ -451,4 +478,3 @@ CanvasContext *CanvasContext::Create(ContextType type)
 
 } // namespace Graphics
 } // namespace Nidium
-

@@ -17,14 +17,18 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ String conversions
-bool JSUtils::StrToJsval(JSContext *cx, const char *buf, size_t len, JS::MutableHandleValue ret,
-    const char *encoding)
+bool JSUtils::StrToJsval(JSContext *cx,
+                         const char *buf,
+                         size_t len,
+                         JS::MutableHandleValue ret,
+                         const char *encoding)
 {
     ret.setNull();
 
     if (encoding) {
 
-        JS::RootedString str(cx, JSUtils::NewStringWithEncoding(cx, buf, len, encoding));
+        JS::RootedString str(
+            cx, JSUtils::NewStringWithEncoding(cx, buf, len, encoding));
         if (!str) {
             ret.set(JS_GetEmptyStringValue(cx));
             return false;
@@ -50,20 +54,26 @@ bool JSUtils::StrToJsval(JSContext *cx, const char *buf, size_t len, JS::Mutable
 }
 
 char16_t *JSUtils::Utf8ToUtf16(JSContext *cx,
-  const char *str, size_t len, size_t *outputlen)
+                               const char *str,
+                               size_t len,
+                               size_t *outputlen)
 {
-    return JS::LossyUTF8CharsToNewTwoByteCharsZ(cx,
-      JS::UTF8Chars(str, len), outputlen).get();
+    return JS::LossyUTF8CharsToNewTwoByteCharsZ(cx, JS::UTF8Chars(str, len),
+                                                outputlen)
+        .get();
 }
 
-JSString *JSUtils::NewStringWithEncoding(JSContext *cx, const char *buf,
-        size_t len, const char *encoding)
+JSString *JSUtils::NewStringWithEncoding(JSContext *cx,
+                                         const char *buf,
+                                         size_t len,
+                                         const char *encoding)
 {
 
     if (encoding != NULL && strcasecmp(encoding, "utf8") == 0) {
         size_t jlen = 0;
 
-        Core::PtrAutoDelete<char16_t *> content(JSUtils::Utf8ToUtf16(cx, buf, len, &jlen), free);
+        Core::PtrAutoDelete<char16_t *> content(
+            JSUtils::Utf8ToUtf16(cx, buf, len, &jlen), free);
 
         if (content.ptr() == NULL) {
             JS_ReportError(cx, "Could not decode string to utf8");
@@ -78,7 +88,6 @@ JSString *JSUtils::NewStringWithEncoding(JSContext *cx, const char *buf,
         content.disable(); /* JS_NewUCString took ownership */
 
         return str;
-
     }
 
     return JS_NewStringCopyN(cx, buf, len);
@@ -86,7 +95,7 @@ JSString *JSUtils::NewStringWithEncoding(JSContext *cx, const char *buf,
 // }}}
 
 // {{{ JS
-char * JSUtils::CurrentJSCaller(JSContext *cx)
+char *JSUtils::CurrentJSCaller(JSContext *cx)
 {
     if (cx == NULL) {
         /* lookup in the TLS */
@@ -107,4 +116,3 @@ char * JSUtils::CurrentJSCaller(JSContext *cx)
 
 } // namespace Binding
 } // namespace Nidium
-

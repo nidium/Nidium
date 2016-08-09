@@ -25,20 +25,22 @@ class File : public Nidium::Core::Managed, public Nidium::Core::Events
 public:
     static const uint8_t EventID = 2;
 
-    enum Events {
-        kEvents_OpenError     = NIDIUM_FILE_MESSAGE_BITS(1),
-        kEvents_OpenSuccess   = NIDIUM_FILE_MESSAGE_BITS(2),
-        kEvents_CloseSuccess  = NIDIUM_FILE_MESSAGE_BITS(3),
-        kEvents_ReadSuccess   = NIDIUM_FILE_MESSAGE_BITS(4),
-        kEvents_ReadError     = NIDIUM_FILE_MESSAGE_BITS(5),
-        kEvents_WriteSuccess  = NIDIUM_FILE_MESSAGE_BITS(6),
-        kEvents_WriteError    = NIDIUM_FILE_MESSAGE_BITS(7),
-        kEvents_SeekSuccess   = NIDIUM_FILE_MESSAGE_BITS(8),
-        kEvents_SeekError     = NIDIUM_FILE_MESSAGE_BITS(9),
-        kEvents_ListFiles     = NIDIUM_FILE_MESSAGE_BITS(10),
+    enum Events
+    {
+        kEvents_OpenError    = NIDIUM_FILE_MESSAGE_BITS(1),
+        kEvents_OpenSuccess  = NIDIUM_FILE_MESSAGE_BITS(2),
+        kEvents_CloseSuccess = NIDIUM_FILE_MESSAGE_BITS(3),
+        kEvents_ReadSuccess  = NIDIUM_FILE_MESSAGE_BITS(4),
+        kEvents_ReadError    = NIDIUM_FILE_MESSAGE_BITS(5),
+        kEvents_WriteSuccess = NIDIUM_FILE_MESSAGE_BITS(6),
+        kEvents_WriteError   = NIDIUM_FILE_MESSAGE_BITS(7),
+        kEvents_SeekSuccess  = NIDIUM_FILE_MESSAGE_BITS(8),
+        kEvents_SeekError    = NIDIUM_FILE_MESSAGE_BITS(9),
+        kEvents_ListFiles    = NIDIUM_FILE_MESSAGE_BITS(10),
     };
 
-    struct DirEntries {
+    struct DirEntries
+    {
         int size;
         int allocated;
         dirent *lst;
@@ -71,48 +73,62 @@ public:
     void seekTask(size_t pos, void *arg = NULL);
     void listFilesTask(void *arg = NULL);
 
-    void setAutoClose(bool close) { m_AutoClose = close; }
-    void setListener(Messages *listener) {
+    void setAutoClose(bool close)
+    {
+        m_AutoClose = close;
+    }
+    void setListener(Messages *listener)
+    {
         m_Delegate = listener;
     }
-    size_t getFileSize() const {
+    size_t getFileSize() const
+    {
         return m_Filesize;
     }
 
-    bool isDir() const {
+    bool isDir() const
+    {
         return m_isDir;
     }
 
-    bool isOpen() const {
+    bool isOpen() const
+    {
         return m_Fd || m_Dir;
     }
 
-    bool eof() const {
+    bool eof() const
+    {
         return m_Fd == NULL || m_Eof;
     }
 
-    const char *getFullPath() const {
+    const char *getFullPath() const
+    {
         return m_Path;
     }
 
-    FILE *getFd() const {
+    FILE *getFd() const
+    {
         return m_Fd;
     }
 
-    DIR *GetDir() const {
+    DIR *GetDir() const
+    {
         return m_Dir;
     }
 
-    File *dup() {
+    File *dup()
+    {
         return new File(m_Path);
     }
 
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
     void onMessageLost(const Nidium::Core::SharedMessages::Message &msg);
+
 private:
     bool checkEOF();
     void checkRead(bool async = true, void *arg = NULL);
-    void closeFd() {
+    void closeFd()
+    {
         if (!isOpen()) {
             return;
         }
@@ -122,8 +138,8 @@ private:
             fclose(m_Fd);
         }
 
-        m_Fd = NULL;
-        m_Dir = NULL;
+        m_Fd    = NULL;
+        m_Dir   = NULL;
         m_isDir = false;
     }
 
@@ -138,7 +154,8 @@ private:
     bool m_OpenSync;
     bool m_isDir;
 
-    struct {
+    struct
+    {
         size_t size;
         void *addr;
     } m_Mmap;
@@ -148,4 +165,3 @@ private:
 } // namespace Nidium
 
 #endif
-

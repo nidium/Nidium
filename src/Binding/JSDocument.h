@@ -11,10 +11,11 @@ namespace Binding {
 // {{{ NidiumFont
 class NidiumFont
 {
-  public:
+public:
     SkTypeface *m_Typeface;
 
-    enum Style {
+    enum Style
+    {
         kFontStyle_Bold,
         kFontStyle_Normal,
         kFontStyle_Italic
@@ -29,17 +30,19 @@ class NidiumFont
 // {{{ JSDocument
 class JSDocument : public JSExposer<JSDocument>
 {
-  public:
-    JSDocument(JS::HandleObject obj, JSContext *cx) :
-        JSExposer<JSDocument>(obj, cx, false),
-        m_Fonts(256000) {};
-        ~JSDocument() {};
+public:
+    JSDocument(JS::HandleObject obj, JSContext *cx)
+        : JSExposer<JSDocument>(obj, cx, false), m_Fonts(256000){};
+    ~JSDocument(){};
 
     static bool m_ShowFPS;
-    bool populateStyle(JSContext *cx, const char *data,
-        size_t len, const char *filename);
+    bool populateStyle(JSContext *cx,
+                       const char *data,
+                       size_t len,
+                       const char *filename);
     static JSObject *RegisterObject(JSContext *cx);
-    static const char *GetJSObjectName() {
+    static const char *GetJSObjectName()
+    {
         return "document";
     }
 
@@ -47,10 +50,12 @@ class JSDocument : public JSExposer<JSDocument>
 
     JS::Heap<JSObject *> m_Stylesheet;
 
-    Core::Hash<NidiumFont *>m_Fonts;
+    Core::Hash<NidiumFont *> m_Fonts;
 
-    bool loadFont(const char *path, const char *name, int weight = 400,
-        NidiumFont::Style = NidiumFont::kFontStyle_Normal);
+    bool loadFont(const char *path,
+                  const char *name,
+                  int weight        = 400,
+                  NidiumFont::Style = NidiumFont::kFontStyle_Normal);
 
     SkTypeface *getFont(char *name);
 };
@@ -60,4 +65,3 @@ class JSDocument : public JSExposer<JSDocument>
 } // namespace Nidium
 
 #endif
-

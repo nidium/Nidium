@@ -24,24 +24,27 @@ namespace IO {
 class Stream
 {
 public:
-    enum Events {
-        kEvents_Error           = STREAM_MESSAGE_BITS(1),
-        kEvents_ReadBuffer      = STREAM_MESSAGE_BITS(2),
-        kEvents_AvailableData   = STREAM_MESSAGE_BITS(3),
-        kEvents_Progress        = STREAM_MESSAGE_BITS(4)
+    enum Events
+    {
+        kEvents_Error         = STREAM_MESSAGE_BITS(1),
+        kEvents_ReadBuffer    = STREAM_MESSAGE_BITS(2),
+        kEvents_AvailableData = STREAM_MESSAGE_BITS(3),
+        kEvents_Progress      = STREAM_MESSAGE_BITS(4)
     };
 
-    enum Errors {
+    enum Errors
+    {
         kErrors_Open,
         kErrors_Seek,
         kErrors_Read,
         kErrors_Unknown,
     };
 
-    enum DataStatus {
-        kDataStatus_Again  = -1,
-        kDataStatus_Error   = -2,
-        kDataStatus_End     = -3
+    enum DataStatus
+    {
+        kDataStatus_Again = -1,
+        kDataStatus_Error = -2,
+        kDataStatus_End   = -3
     };
 
     virtual ~Stream();
@@ -49,11 +52,13 @@ public:
     static Stream *Create(const Nidium::Core::Path &path);
     static Stream *Create(const char *location);
 
-    void setListener(Nidium::Core::Messages *listener) {
+    void setListener(Nidium::Core::Messages *listener)
+    {
         m_Listener = listener;
     }
 
-    const char *getLocation() const {
+    const char *getLocation() const
+    {
         return m_Location;
     }
 
@@ -62,7 +67,7 @@ public:
         @param packets  How much bytes should be filled in
                         the buffer before getting readable (unless eof reached)
     */
-    void start(size_t packets = 4096, size_t seek=0);
+    void start(size_t packets = 4096, size_t seek = 0);
 
     /*
         Get a packet from the stream
@@ -72,47 +77,51 @@ public:
     /*
         Stop streaming
     */
-    virtual void stop()=0;
+    virtual void stop() = 0;
 
     /*
         Get file as a whole
     */
-    virtual void getContent()=0;
+    virtual void getContent() = 0;
 
-    virtual bool getContentSync(char **data, size_t *len, bool mmap = false) {
+    virtual bool getContentSync(char **data, size_t *len, bool mmap = false)
+    {
         return false;
     }
 
     /*
         Return the base path for the stream
     */
-    virtual const char *getPath() const {
+    virtual const char *getPath() const
+    {
         return NULL;
     }
 
     /*
         Get file size
     */
-    virtual size_t getFileSize() const=0;
+    virtual size_t getFileSize() const = 0;
 
     /*
         Set file position
     */
-    virtual void seek(size_t pos)=0;
+    virtual void seek(size_t pos) = 0;
 
     /*
         Check whether there is data pending
     */
-    virtual bool hasDataAvailable() const {
-        return !m_PendingSeek && m_DataBuffer.back->used && (!m_DataBuffer.alreadyRead ||
-        (m_DataBuffer.ended && m_DataBuffer.back->used));
+    virtual bool hasDataAvailable() const
+    {
+        return !m_PendingSeek && m_DataBuffer.back->used
+               && (!m_DataBuffer.alreadyRead
+                   || (m_DataBuffer.ended && m_DataBuffer.back->used));
     }
 
 protected:
     explicit Stream(const char *location);
 
-    virtual const unsigned char *onGetNextPacket(size_t *len, int *err)=0;
-    virtual void onStart(size_t packets, size_t seek)=0;
+    virtual const unsigned char *onGetNextPacket(size_t *len, int *err) = 0;
+    virtual void onStart(size_t packets, size_t seek) = 0;
 
     /*
         Send a message to the listener
@@ -135,14 +144,15 @@ protected:
     */
     void swapBuffer();
 
-    char*   m_Location;
-    size_t  m_PacketsSize;
-    bool    m_NeedToSendUpdate;
-    bool    m_PendingSeek;
+    char *m_Location;
+    size_t m_PacketsSize;
+    bool m_NeedToSendUpdate;
+    bool m_PendingSeek;
 
     Core::Messages *m_Listener;
 
-    struct {
+    struct
+    {
         buffer *back, *front;
         bool alreadyRead;
         bool fresh;
@@ -154,4 +164,3 @@ protected:
 } // namespace Nidium
 
 #endif
-

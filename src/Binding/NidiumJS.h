@@ -20,9 +20,9 @@
 struct _ape_htable;
 
 namespace Nidium {
-    namespace Core {
-        class Context;
-    }
+namespace Core {
+class Context;
+}
 namespace Binding {
 
 class JSModules;
@@ -37,9 +37,11 @@ struct nidium_thread_msg
 };
 
 typedef struct _ape_global ape_global;
-typedef void (*nidium_thread_message_t)(JSContext *cx, Nidium::Core::SharedMessages::Message *msg);
+typedef void (*nidium_thread_message_t)(
+    JSContext *cx, Nidium::Core::SharedMessages::Message *msg);
 
-typedef struct _NidiumBytecodeScript {
+typedef struct _NidiumBytecodeScript
+{
     const char *name;
     int size;
     const unsigned char *data;
@@ -49,119 +51,138 @@ class NidiumJSDelegate;
 
 class NidiumJS
 {
-    public:
-        explicit NidiumJS(ape_global *net, Core::Context *context);
-        ~NidiumJS();
+public:
+    explicit NidiumJS(ape_global *net, Core::Context *context);
+    ~NidiumJS();
 
-        enum Sctag {
-            kSctag_Function = JS_SCTAG_USER_MIN + 1,
-            kSctag_Hidden,
-            kSctag_Max
-        };
+    enum Sctag
+    {
+        kSctag_Function = JS_SCTAG_USER_MIN + 1,
+        kSctag_Hidden,
+        kSctag_Max
+    };
 
-        JSContext *m_Cx;
-        Nidium::Core::SharedMessages *m_Messages;
+    JSContext *m_Cx;
+    Nidium::Core::SharedMessages *m_Messages;
 
-        Nidium::Core::Hash<JSObject *> m_JsObjects;
+    Nidium::Core::Hash<JSObject *> m_JsObjects;
 
-        struct _ape_htable *m_RootedObj;
-        struct _ape_global *m_Net;
+    struct _ape_htable *m_RootedObj;
+    struct _ape_global *m_Net;
 
-        nidium_thread_message_t *m_RegisteredMessages;
-        int m_RegisteredMessagesIdx;
-        int m_RegisteredMessagesSize;
+    nidium_thread_message_t *m_RegisteredMessages;
+    int m_RegisteredMessagesIdx;
+    int m_RegisteredMessagesSize;
 
-        static NidiumJS *GetObject(JSContext *cx = NULL);
-        static ape_global *GetNet();
-        static void InitNet(ape_global *net);
+    static NidiumJS *GetObject(JSContext *cx = NULL);
+    static ape_global *GetNet();
+    static void InitNet(ape_global *net);
 
-        static void Init();
+    static void Init();
 
-        Core::Context *getContext() {
-            return m_Context;
-        }
+    Core::Context *getContext()
+    {
+        return m_Context;
+    }
 
-        JSContext *getJSContext() const {
-            return this->m_Cx;
-        }
+    JSContext *getJSContext() const
+    {
+        return this->m_Cx;
+    }
 
-        void setPath(const char *path);
+    void setPath(const char *path);
 
-        bool isShuttingDown() const {
-            return m_Shutdown;
-        }
+    bool isShuttingDown() const
+    {
+        return m_Shutdown;
+    }
 
-        void setStrictMode(bool val) {
-            m_JSStrictMode = val;
-        }
+    void setStrictMode(bool val)
+    {
+        m_JSStrictMode = val;
+    }
 
-        void loadGlobalObjects();
+    void loadGlobalObjects();
 
-        static void CopyProperties(JSContext *cx, JS::HandleObject source, JS::MutableHandleObject into);
-        static int LoadScriptReturn(JSContext *cx, const char *data,
-            size_t len, const char *filename, JS::MutableHandleValue ret);
-        static int LoadScriptReturn(JSContext *cx,
-            const char *filename, JS::MutableHandleValue ret);
-        int LoadScriptContent(const char *data, size_t len,
-            const char *filename);
+    static void CopyProperties(JSContext *cx,
+                               JS::HandleObject source,
+                               JS::MutableHandleObject into);
+    static int LoadScriptReturn(JSContext *cx,
+                                const char *data,
+                                size_t len,
+                                const char *filename,
+                                JS::MutableHandleValue ret);
+    static int LoadScriptReturn(JSContext *cx,
+                                const char *filename,
+                                JS::MutableHandleValue ret);
+    int LoadScriptContent(const char *data, size_t len, const char *filename);
 
-        char *LoadScriptContentAndGetResult(const char *data,
-            size_t len, const char *filename);
-        int LoadScript(const char *filename);
-        int LoadBytecode(NidiumBytecodeScript *script);
-        int LoadBytecode(void *data, int size, const char *filename);
+    char *LoadScriptContentAndGetResult(const char *data,
+                                        size_t len,
+                                        const char *filename);
+    int LoadScript(const char *filename);
+    int LoadBytecode(NidiumBytecodeScript *script);
+    int LoadBytecode(void *data, int size, const char *filename);
 
-        void rootObjectUntilShutdown(JSObject *obj);
-        void unrootObject(JSObject *obj);
-        void gc();
-        void bindNetObject(ape_global *net);
+    void rootObjectUntilShutdown(JSObject *obj);
+    void unrootObject(JSObject *obj);
+    void gc();
+    void bindNetObject(ape_global *net);
 
-        int registerMessage(nidium_thread_message_t cbk);
-        void registerMessage(nidium_thread_message_t cbk, int id);
-        void postMessage(void *dataPtr, int ev);
+    int registerMessage(nidium_thread_message_t cbk);
+    void registerMessage(nidium_thread_message_t cbk, int id);
+    void postMessage(void *dataPtr, int ev);
 
-        static JSStructuredCloneCallbacks *m_JsScc;
-        static JSObject *readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
-                                                   uint32_t tag, uint32_t data, void *closure);
+    static JSStructuredCloneCallbacks *m_JsScc;
+    static JSObject *readStructuredCloneOp(JSContext *cx,
+                                           JSStructuredCloneReader *r,
+                                           uint32_t tag,
+                                           uint32_t data,
+                                           void *closure);
 
-        static bool writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
-                                                 JS::HandleObject obj, void *closure);
+    static bool writeStructuredCloneOp(JSContext *cx,
+                                       JSStructuredCloneWriter *w,
+                                       JS::HandleObject obj,
+                                       void *closure);
 
-        void logf(const char *format, ...);
-        void log(const char *format);
-        void logclear();
+    void logf(const char *format, ...);
+    void log(const char *format);
+    void logclear();
 
-        void setStructuredCloneAddition(WriteStructuredCloneOp write,
-            ReadStructuredCloneOp read)
-        {
-            m_StructuredCloneAddition.write = write;
-            m_StructuredCloneAddition.read = read;
-        }
+    void setStructuredCloneAddition(WriteStructuredCloneOp write,
+                                    ReadStructuredCloneOp read)
+    {
+        m_StructuredCloneAddition.write = write;
+        m_StructuredCloneAddition.read  = read;
+    }
 
-        ReadStructuredCloneOp getReadStructuredCloneAddition() const {
-            return m_StructuredCloneAddition.read;
-        }
-        WriteStructuredCloneOp getWriteStructuredCloneAddition() const {
-            return m_StructuredCloneAddition.write;
-        }
+    ReadStructuredCloneOp getReadStructuredCloneAddition() const
+    {
+        return m_StructuredCloneAddition.read;
+    }
+    WriteStructuredCloneOp getWriteStructuredCloneAddition() const
+    {
+        return m_StructuredCloneAddition.write;
+    }
 
-        static JSObject *CreateJSGlobal(JSContext *cx);
-        static void SetJSRuntimeOptions(JSRuntime *rt);
-    private:
-        JSModules *m_Modules;
-        bool m_Shutdown;
-        JSCompartment *m_Compartment;
-        bool m_JSStrictMode;
-        Core::Context *m_Context;
+    static JSObject *CreateJSGlobal(JSContext *cx);
+    static void SetJSRuntimeOptions(JSRuntime *rt);
 
-        struct {
-            WriteStructuredCloneOp write;
-            ReadStructuredCloneOp read;
-        } m_StructuredCloneAddition;
+private:
+    JSModules *m_Modules;
+    bool m_Shutdown;
+    JSCompartment *m_Compartment;
+    bool m_JSStrictMode;
+    Core::Context *m_Context;
+
+    struct
+    {
+        WriteStructuredCloneOp write;
+        ReadStructuredCloneOp read;
+    } m_StructuredCloneAddition;
 };
 
 } // namespace Binding
 } // namespace Nidium
 
 #endif
-

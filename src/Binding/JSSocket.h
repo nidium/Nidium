@@ -19,18 +19,22 @@ class JSSocket : public JSExposer<JSSocket>
 {
 public:
     static void RegisterObject(JSContext *cx);
-    JSSocket(JS::HandleObject obj, JSContext *cx,
-        const char *host, unsigned short port);
+    JSSocket(JS::HandleObject obj,
+             JSContext *cx,
+             const char *host,
+             unsigned short port);
     ~JSSocket();
 
-    enum SocketType {
+    enum SocketType
+    {
         kSocketType_Binary          = 1 << 0,
         kSocketType_Readline        = 1 << 1,
         kSocketType_Server          = 1 << 2,
         kSocketType_ConnectedClient = 1 << 3
     };
-    int write(unsigned char *data, size_t len,
-        ape_socket_data_autorelease data_type);
+    int write(unsigned char *data,
+              size_t len,
+              ape_socket_data_autorelease data_type);
 
     void disconnect();
     void shutdown();
@@ -42,33 +46,42 @@ public:
 
     void onRead(const char *data, size_t len);
 
-    JSSocket *getParentServer() const {
+    JSSocket *getParentServer() const
+    {
         return m_ParentServer;
     }
 
-    void setParentServer(JSSocket *parent) {
+    void setParentServer(JSSocket *parent)
+    {
         m_ParentServer = parent;
         m_Flags |= JSSocket::kSocketType_ConnectedClient;
     }
 
-    int getFlags() const {
+    int getFlags() const
+    {
         return m_ParentServer ? m_ParentServer->m_Flags : m_Flags;
     }
 
-    const char *getEncoding() const {
+    const char *getEncoding() const
+    {
         return m_ParentServer ? m_ParentServer->m_Encoding : m_Encoding;
     }
 
-    uint8_t getFrameDelimiter() const {
-        return m_ParentServer ? m_ParentServer->m_FrameDelimiter : m_FrameDelimiter;
+    uint8_t getFrameDelimiter() const
+    {
+        return m_ParentServer ? m_ParentServer->m_FrameDelimiter
+                              : m_FrameDelimiter;
     }
 
-    bool isClientFromOwnServer() const {
+    bool isClientFromOwnServer() const
+    {
         return (m_ParentServer != NULL);
     }
 
-    JSObject *getReceiverJSObject() const {
-        return m_ParentServer ? m_ParentServer->getJSObject() : this->getJSObject();
+    JSObject *getReceiverJSObject() const
+    {
+        return m_ParentServer ? m_ParentServer->getJSObject()
+                              : this->getJSObject();
     }
 
     char *m_Host;
@@ -78,7 +91,8 @@ public:
 
     char *m_Encoding;
 
-    struct {
+    struct
+    {
         char *data;
         size_t pos;
     } m_LineBuffer;
@@ -97,4 +111,3 @@ private:
 } // namespace Nidium
 
 #endif
-

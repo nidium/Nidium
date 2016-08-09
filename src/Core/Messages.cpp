@@ -24,12 +24,12 @@ static SharedMessages::Message *g_PostingSyncMsg = nullptr;
 static int Messages_handle(void *arg)
 {
 #define MAX_MSG_IN_ROW 256
-    int nread = 0;
+    int nread        = 0;
     bool stopOnAsync = false;
     SharedMessages::Message *msg;
 
-    while (++nread < MAX_MSG_IN_ROW &&
-            (msg = g_MessagesList->readMessage(stopOnAsync))) {
+    while (++nread < MAX_MSG_IN_ROW
+           && (msg = g_MessagesList->readMessage(stopOnAsync))) {
 
         Messages *obj = static_cast<Messages *>(msg->dest());
         obj->onMessage(*msg);
@@ -64,10 +64,9 @@ Messages::~Messages()
 {
     g_MessagesList->delMessagesForDest(this);
 
-    for (Events * const &sender : m_Listening_s) {
+    for (Events *const &sender : m_Listening_s) {
         sender->removeListener(this, false);
     }
-
 }
 
 void Messages::postMessage(void *dataptr, int event, bool forceAsync)
@@ -102,8 +101,8 @@ void Messages::postMessage(SharedMessages::Message *msg, bool forceAsync)
         - Must not recursively post sync message
         - Must not have forced async message in queue
     */
-    if (!forceAsync && pthread_equal(m_GenesisThread, pthread_self()) &&
-            g_MessagesList->hasAsyncMessages() && !g_PostingSyncMsg) {
+    if (!forceAsync && pthread_equal(m_GenesisThread, pthread_self())
+        && g_MessagesList->hasAsyncMessages() && !g_PostingSyncMsg) {
 
         g_PostingSyncMsg = msg;
 
@@ -128,8 +127,7 @@ void Messages::InitReader(ape_global *ape)
 
     g_MessagesList->setCleaner(Messages_lost);
 
-    ape_timer_t *timer = APE_timer_create(ape, 1,
-        Messages_handle, NULL);
+    ape_timer_t *timer = APE_timer_create(ape, 1, Messages_handle, NULL);
 
     APE_timer_unprotect(timer);
 }
@@ -160,4 +158,3 @@ SharedMessages *Messages::getSharedMessages()
 
 } // namespace Core
 } // namespace Nidium
-

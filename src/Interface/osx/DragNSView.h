@@ -9,9 +9,9 @@
 #import <Cocoa/Cocoa.h>
 
 namespace Nidium {
-    namespace Binding {
-        class JSWindow;
-    } 
+namespace Binding {
+class JSWindow;
+}
 }
 
 @interface DragNSView : NSView
@@ -21,4 +21,3 @@ namespace Nidium {
 @end
 
 #endif
-

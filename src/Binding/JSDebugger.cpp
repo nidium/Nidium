@@ -17,16 +17,25 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-static JSClass DebuggerContext_class = {
-    "DebuggerContext", JSCLASS_HAS_RESERVED_SLOTS(2),
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass DebuggerContext_class = { "DebuggerContext",
+                                         JSCLASS_HAS_RESERVED_SLOTS(2),
+                                         JS_PropertyStub,
+                                         JS_DeletePropertyStub,
+                                         JS_PropertyStub,
+                                         JS_StrictPropertyStub,
+                                         JS_EnumerateStub,
+                                         JS_ResolveStub,
+                                         JS_ConvertStub,
+                                         nullptr,
+                                         nullptr,
+                                         nullptr,
+                                         nullptr,
+                                         nullptr,
+                                         JSCLASS_NO_INTERNAL_MEMBERS };
 // }}}
 
 // {{{ Implementation
-static bool nidium_debugger_run(JSContext* cx, unsigned argc, JS::Value* vp)
+static bool nidium_debugger_run(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -37,7 +46,8 @@ static bool nidium_debugger_run(JSContext* cx, unsigned argc, JS::Value* vp)
         return false;
     }
 
-    JS::RootedObject debuggerContext(cx, js::CheckedUnwrap(args[0].toObjectOrNull()));
+    JS::RootedObject debuggerContext(
+        cx, js::CheckedUnwrap(args[0].toObjectOrNull()));
 
     if (!debuggerContext) {
         JS_ReportError(cx, "Invalid DebuggerContext");
@@ -48,9 +58,10 @@ static bool nidium_debugger_run(JSContext* cx, unsigned argc, JS::Value* vp)
         return false;
     }
 
-    if (!args[1].isObject() ||
-            !JS_ObjectIsCallable(cx, args[1].toObjectOrNull())) {
-        JS_ReportError(cx, "Invalid arguments. Second argument must be a function.");
+    if (!args[1].isObject()
+        || !JS_ObjectIsCallable(cx, args[1].toObjectOrNull())) {
+        JS_ReportError(
+            cx, "Invalid arguments. Second argument must be a function.");
         return false;
     }
 
@@ -59,8 +70,8 @@ static bool nidium_debugger_run(JSContext* cx, unsigned argc, JS::Value* vp)
         JS::RootedFunction fun(cx);
         JS::RootedString funStr(cx);
 
-        if ((fun = JS_ValueToFunction(cx, args[1])) == nullptr ||
-                (funStr = JS_DecompileFunction(cx, fun, 0)) == nullptr) {
+        if ((fun = JS_ValueToFunction(cx, args[1])) == nullptr
+            || (funStr = JS_DecompileFunction(cx, fun, 0)) == nullptr) {
             JS_ReportError(cx, "Invalid function");
             return false;
         }
@@ -68,7 +79,8 @@ static bool nidium_debugger_run(JSContext* cx, unsigned argc, JS::Value* vp)
         JSAutoByteString tmp(cx, funStr);
         scoped = new char[strlen(tmp.ptr()) + 128];
 
-        sprintf(scoped, "return %c%s%s", '(', tmp.ptr(), ").apply(this, Array.prototype.slice.apply(arguments));");
+        sprintf(scoped, "return %c%s%s", '(', tmp.ptr(),
+                ").apply(this, Array.prototype.slice.apply(arguments));");
     }
 
     JSCompartment *cpt = JS_EnterCompartment(cx, debuggerContext);
@@ -85,8 +97,8 @@ static bool nidium_debugger_run(JSContext* cx, unsigned argc, JS::Value* vp)
     JS::ContextOptionsRef(cx).setVarObjFix(true);
 
     options.setUTF8(true)
-           .setFileAndLine("Debugger.run", 1)
-           .setCompileAndGo(true);
+        .setFileAndLine("Debugger.run", 1)
+        .setCompileAndGo(true);
 
     JS::AutoValueVector params(cx);
     params.resize(argc - 1);
@@ -97,7 +109,9 @@ static bool nidium_debugger_run(JSContext* cx, unsigned argc, JS::Value* vp)
         params[i - 1] = tmp;
     }
 
-    JS::RootedFunction fn(cx, JS::CompileFunction(cx, gbl, options, nullptr, 0, nullptr, scoped, strlen(scoped)));
+    JS::RootedFunction fn(cx,
+                          JS::CompileFunction(cx, gbl, options, nullptr, 0,
+                                              nullptr, scoped, strlen(scoped)));
 
     if (fn == NULL) {
         JS_LeaveCompartment(cx, cpt);
@@ -118,7 +132,7 @@ static bool nidium_debugger_run(JSContext* cx, unsigned argc, JS::Value* vp)
     return true;
 }
 
-static bool nidium_debugger_create(JSContext* cx, unsigned argc, JS::Value* vp)
+static bool nidium_debugger_create(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedObject mainGbl(cx, JS::CurrentGlobalOrNull(cx));
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -141,12 +155,12 @@ static bool nidium_debugger_create(JSContext* cx, unsigned argc, JS::Value* vp)
     JS::RootedFunction cf(cx);
     JS::RootedValue ret(cx);
 
-    JS::RootedObject debuggerContext(cx, JS_NewObject(cx, &DebuggerContext_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject debuggerContext(
+        cx,
+        JS_NewObject(cx, &DebuggerContext_class, JS::NullPtr(), JS::NullPtr()));
 
     JS::ContextOptionsRef(cx).setVarObjFix(true);
-    options.setUTF8(true)
-           .setFileAndLine("Debugger", 1)
-           .setCompileAndGo(true);
+    options.setUTF8(true).setFileAndLine("Debugger", 1).setCompileAndGo(true);
 
     JS_WrapObject(cx, &mainGbl);
 
@@ -154,7 +168,8 @@ static bool nidium_debugger_create(JSContext* cx, unsigned argc, JS::Value* vp)
     const char *fargs[1];
     fargs[0] = "global";
 
-    cf = JS::CompileFunction(cx, gbl, options, "DebuggerCreate", 1, fargs, debuggerInit, strlen(debuggerInit));
+    cf = JS::CompileFunction(cx, gbl, options, "DebuggerCreate", 1, fargs,
+                             debuggerInit, strlen(debuggerInit));
 
     if (cf == NULL) {
         JS_LeaveCompartment(cx, cpt);
@@ -211,4 +226,3 @@ void JSDebugger::RegisterObject(JSContext *cx)
 
 } // namespace Binding
 } // namespace Nidium
-

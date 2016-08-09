@@ -14,10 +14,10 @@
 #include "Graphics/GLHeader.h"
 
 namespace Nidium {
-    namespace Binding {
-         extern JSClass WebGLRenderingContext_class;
-         extern JSConstDoubleSpec WebGLRenderingContext_const;
-    }
+namespace Binding {
+extern JSClass WebGLRenderingContext_class;
+extern JSConstDoubleSpec WebGLRenderingContext_const;
+}
 }
 
 using Nidium::Interface::UIInterface;
@@ -29,7 +29,8 @@ namespace Nidium {
 namespace Graphics {
 
 #define GL_CALL(X) NIDIUM_GL_CALL(m_GLState->getNidiumGLContext(), X)
-#define GL_CALL_RET(X, RET) NIDIUM_GL_CALL_RET(m_GLState->getNidiumGLContext(), X, RET)
+#define GL_CALL_RET(X, RET) \
+    NIDIUM_GL_CALL_RET(m_GLState->getNidiumGLContext(), X, RET)
 
 Canvas3DContext::~Canvas3DContext()
 {
@@ -37,25 +38,29 @@ Canvas3DContext::~Canvas3DContext()
 }
 
 Canvas3DContext::Canvas3DContext(CanvasHandler *handler,
-    JSContext *cx, int width, int height, UIInterface *ui) :
-    CanvasContext(handler), m_Flags(0)
+                                 JSContext *cx,
+                                 int width,
+                                 int height,
+                                 UIInterface *ui)
+    : CanvasContext(handler), m_Flags(0)
 {
     m_Mode = CONTEXT_WEBGL;
 
     memset(&m_CachedPixels, 0, sizeof(m_CachedPixels));
     memset(&m_GLObjects, 0, sizeof(m_GLObjects));
 
-    m_JsObj = JS_NewObject(cx, &WebGLRenderingContext_class, JS::NullPtr(), JS::NullPtr());
+    m_JsObj = JS_NewObject(cx, &WebGLRenderingContext_class, JS::NullPtr(),
+                           JS::NullPtr());
     JS::RootedObject obj(cx, m_JsObj);
     JS_DefineConstDoubles(cx, obj, &WebGLRenderingContext_const);
 
-    m_JsCx  = cx;
+    m_JsCx = cx;
 
     JS_SetPrivate(m_JsObj, this);
 
     float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
-    m_Device.width = width * ratio;
+    m_Device.width  = width * ratio;
     m_Device.height = height * ratio;
 
     this->createFBO(m_Device.width, m_Device.height);
@@ -77,7 +82,7 @@ void Canvas3DContext::translate(double x, double y)
         m_CachedPixels.pixels = NULL;
     }
 
-    m_CachedPixels.width = 0;
+    m_CachedPixels.width  = 0;
     m_CachedPixels.height = 0;
 }
 
@@ -91,7 +96,7 @@ void Canvas3DContext::setSize(int width, int height, bool redraw)
 
     float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
-    m_Device.width = width * ratio;
+    m_Device.width  = width * ratio;
     m_Device.height = height * ratio;
 
     this->createFBO(m_Device.width, m_Device.height);
@@ -99,7 +104,6 @@ void Canvas3DContext::setSize(int width, int height, bool redraw)
 
 void Canvas3DContext::setScale(double x, double y, double px, double py)
 {
-
 }
 
 void Canvas3DContext::clear(uint32_t color)
@@ -115,9 +119,9 @@ void Canvas3DContext::flush()
     GL_CALL(BindFramebuffer(GR_GL_READ_FRAMEBUFFER, m_GLObjects.fbo_sampled));
     GL_CALL(BindFramebuffer(GR_GL_DRAW_FRAMEBUFFER, m_GLObjects.fbo));
 
-    GL_CALL(BlitFramebuffer(0, 0, m_Device.width, m_Device.height,
-        0, 0, m_Device.width, m_Device.height,
-        GR_GL_COLOR_BUFFER_BIT, GR_GL_NEAREST));
+    GL_CALL(BlitFramebuffer(0, 0, m_Device.width, m_Device.height, 0, 0,
+                            m_Device.width, m_Device.height,
+                            GR_GL_COLOR_BUFFER_BIT, GR_GL_NEAREST));
 
     GL_CALL(BindFramebuffer(GR_GL_FRAMEBUFFER, m_GLObjects.fbo_sampled));
 }
@@ -174,24 +178,24 @@ uint8_t *Canvas3DContext::getPixels()
 {
     this->flush();
 
-    if (m_CachedPixels.pixels &&
-        (m_CachedPixels.width != m_Device.width ||
-        m_CachedPixels.height != m_Device.height)) {
+    if (m_CachedPixels.pixels
+        && (m_CachedPixels.width != m_Device.width
+            || m_CachedPixels.height != m_Device.height)) {
 
         free(m_CachedPixels.pixels);
         m_CachedPixels.pixels = NULL;
     }
 
     if (!m_CachedPixels.pixels) {
-        m_CachedPixels.width = m_Device.width;
+        m_CachedPixels.width  = m_Device.width;
         m_CachedPixels.height = m_Device.height;
 
-        m_CachedPixels.pixels = (uint8_t *)malloc(m_CachedPixels.width *
-            m_CachedPixels.height * 4);
+        m_CachedPixels.pixels = (uint8_t *)malloc(m_CachedPixels.width
+                                                  * m_CachedPixels.height * 4);
     }
 
-    GL_CALL(ReadPixels(0, 0, m_Device.width, m_Device.height,
-        GL_RGBA, GL_UNSIGNED_BYTE, m_CachedPixels.pixels));
+    GL_CALL(ReadPixels(0, 0, m_Device.width, m_Device.height, GL_RGBA,
+                       GL_UNSIGNED_BYTE, m_CachedPixels.pixels));
 
     return m_CachedPixels.pixels;
 }
@@ -214,19 +218,14 @@ bool Canvas3DContext::createFBO(int width, int height)
     GL_CALL(GenTextures(1, &m_GLObjects.texture));
     GL_CALL(BindTexture(GR_GL_TEXTURE_2D, m_GLObjects.texture));
 
-    GL_CALL(TexParameteri(GR_GL_TEXTURE_2D, GR_GL_TEXTURE_MIN_FILTER, GR_GL_LINEAR));
-    GL_CALL(TexParameteri(GR_GL_TEXTURE_2D, GR_GL_TEXTURE_MAG_FILTER, GR_GL_LINEAR));
+    GL_CALL(TexParameteri(GR_GL_TEXTURE_2D, GR_GL_TEXTURE_MIN_FILTER,
+                          GR_GL_LINEAR));
+    GL_CALL(TexParameteri(GR_GL_TEXTURE_2D, GR_GL_TEXTURE_MAG_FILTER,
+                          GR_GL_LINEAR));
 
     /* Allocate memory for the new texture */
-    GL_CALL(TexImage2D(
-            GR_GL_TEXTURE_2D,
-            0,
-            GR_GL_RGBA,
-            width, height,
-            0,
-            GR_GL_RGBA,
-            GR_GL_UNSIGNED_BYTE,
-            NULL));
+    GL_CALL(TexImage2D(GR_GL_TEXTURE_2D, 0, GR_GL_RGBA, width, height, 0,
+                       GR_GL_RGBA, GR_GL_UNSIGNED_BYTE, NULL));
 
     GL_CALL(BindTexture(GR_GL_TEXTURE_2D, 0));
 
@@ -236,7 +235,7 @@ bool Canvas3DContext::createFBO(int width, int height)
 
     /* Set the FBO backing store using the new texture */
     GL_CALL(FramebufferTexture2D(GR_GL_FRAMEBUFFER, GR_GL_COLOR_ATTACHMENT0,
-        GR_GL_TEXTURE_2D, m_GLObjects.texture, 0));
+                                 GR_GL_TEXTURE_2D, m_GLObjects.texture, 0));
 
     if (!validateCurrentFBO()) {
         printf("Failed on FBO step 1\n");
@@ -250,15 +249,23 @@ bool Canvas3DContext::createFBO(int width, int height)
     /* Generate color render buffer */
     GL_CALL(GenRenderbuffers(1, &m_GLObjects.colorbuffer));
     GL_CALL(BindRenderbuffer(GR_GL_RENDERBUFFER, m_GLObjects.colorbuffer));
-    GL_CALL(RenderbufferStorageMultisample(GR_GL_RENDERBUFFER, 4, GR_GL_RGBA8, width, height));
-    GL_CALL(FramebufferRenderbuffer(GR_GL_FRAMEBUFFER, GR_GL_COLOR_ATTACHMENT0, GR_GL_RENDERBUFFER, m_GLObjects.colorbuffer));
+    GL_CALL(RenderbufferStorageMultisample(GR_GL_RENDERBUFFER, 4, GR_GL_RGBA8,
+                                           width, height));
+    GL_CALL(FramebufferRenderbuffer(GR_GL_FRAMEBUFFER, GR_GL_COLOR_ATTACHMENT0,
+                                    GR_GL_RENDERBUFFER,
+                                    m_GLObjects.colorbuffer));
 
     /* Generate depth render buffer */
     GL_CALL(GenRenderbuffers(1, &m_GLObjects.renderbuffer));
     GL_CALL(BindRenderbuffer(GR_GL_RENDERBUFFER, m_GLObjects.renderbuffer));
-    GL_CALL(RenderbufferStorageMultisample(GR_GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, width, height));
-    GL_CALL(FramebufferRenderbuffer(GR_GL_FRAMEBUFFER, GR_GL_DEPTH_ATTACHMENT, GR_GL_RENDERBUFFER, m_GLObjects.renderbuffer));
-    GL_CALL(FramebufferRenderbuffer(GR_GL_FRAMEBUFFER, GR_GL_STENCIL_ATTACHMENT, GR_GL_RENDERBUFFER, m_GLObjects.renderbuffer));
+    GL_CALL(RenderbufferStorageMultisample(GR_GL_RENDERBUFFER, 4,
+                                           GL_DEPTH24_STENCIL8, width, height));
+    GL_CALL(FramebufferRenderbuffer(GR_GL_FRAMEBUFFER, GR_GL_DEPTH_ATTACHMENT,
+                                    GR_GL_RENDERBUFFER,
+                                    m_GLObjects.renderbuffer));
+    GL_CALL(FramebufferRenderbuffer(GR_GL_FRAMEBUFFER, GR_GL_STENCIL_ATTACHMENT,
+                                    GR_GL_RENDERBUFFER,
+                                    m_GLObjects.renderbuffer));
 
     if (!validateCurrentFBO()) {
         printf("Failde on FBO step 2\n");
@@ -305,4 +312,3 @@ bool Canvas3DContext::createFBO(int width, int height)
 
 } // namespace Graphics
 } // namespace Nidium
-

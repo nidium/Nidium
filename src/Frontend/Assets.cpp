@@ -16,8 +16,8 @@ using Nidium::IO::Stream;
 namespace Nidium {
 namespace Frontend {
 
-Assets::Assets(readyItem cb, readyAssets rcb, void *arg) :
-    m_ItemReady(cb), m_AssetsReady(rcb), m_ReadyArg(arg), m_Nitems(0)
+Assets::Assets(readyItem cb, readyAssets rcb, void *arg)
+    : m_ItemReady(cb), m_AssetsReady(rcb), m_ReadyArg(arg), m_Nitems(0)
 {
     m_Pending_list.head = NULL;
     m_Pending_list.foot = NULL;
@@ -34,27 +34,24 @@ Assets::~Assets()
     }
 }
 
-Assets::Item::Item(const char *url, FileType t,
-    ape_global *net) :
-    m_FileType(t), m_State(ITEM_LOADING), m_Stream(NULL),
-    m_Url(url), m_Net(net), m_Assets(NULL), m_Name(NULL), m_Tagname(NULL)
+Assets::Item::Item(const char *url, FileType t, ape_global *net)
+    : m_FileType(t), m_State(ITEM_LOADING), m_Stream(NULL), m_Url(url),
+      m_Net(net), m_Assets(NULL), m_Name(NULL), m_Tagname(NULL)
 {
     m_Data.data = NULL;
-    m_Data.len = 0;
+    m_Data.len  = 0;
 }
 
 void Assets::Item::onMessage(const SharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case Stream::kEvents_ReadBuffer:
-        {
-            //TODO: new style cast
+        case Stream::kEvents_ReadBuffer: {
+            // TODO: new style cast
             buffer *buf = static_cast<buffer *>(msg.m_Args[0].toPtr());
             this->setContent((const char *)(buf->data), buf->used);
             break;
         }
-        case Stream::kEvents_Error:
-        {
+        case Stream::kEvents_Error: {
             this->setContent(NULL, 0);
             break;
         }
@@ -113,7 +110,8 @@ static int Assets_pendingListUpdate(void *arg)
     return 0;
 }
 
-void Assets::Item::setContent(const char *data, size_t len, bool async) {
+void Assets::Item::setContent(const char *data, size_t len, bool async)
+{
     m_State = ITEM_LOADED;
 
     if (len) {
@@ -122,11 +120,12 @@ void Assets::Item::setContent(const char *data, size_t len, bool async) {
     } else {
         m_Data.data = NULL;
     }
-    m_Data.len  = len;
+    m_Data.len = len;
     if (m_Assets) {
         if (async) {
             ape_global *ape = m_Net;
-            timer_dispatch_async_unprotected(Assets_pendingListUpdate, m_Assets);
+            timer_dispatch_async_unprotected(Assets_pendingListUpdate,
+                                             m_Assets);
         } else {
             m_Assets->pendingListUpdate();
         }
@@ -138,9 +137,9 @@ void Assets::addToPendingList(Item *item)
     struct item_list *il = (struct item_list *)malloc(sizeof(*il));
 
     m_Nitems++;
-    il->item = item;
-    il->next = NULL;
-    item->m_State = Assets::Item::ITEM_LOADING;
+    il->item       = item;
+    il->next       = NULL;
+    item->m_State  = Assets::Item::ITEM_LOADING;
     item->m_Assets = this;
 
     if (m_Pending_list.head == NULL) {
@@ -176,7 +175,7 @@ void Assets::endListUpdate(ape_global *ape)
 
 void Assets::pendingListUpdate()
 {
-    bool worked = false;
+    bool worked          = false;
     struct item_list *il = m_Pending_list.head, *ilnext;
     while (il != NULL && il->item->m_State == Assets::Item::ITEM_LOADED) {
         m_Nitems--;
@@ -188,7 +187,7 @@ void Assets::pendingListUpdate()
             m_Pending_list.foot = NULL;
         }
 
-        ilnext = il->next;
+        ilnext          = il->next;
         ape_global *ape = il->item->m_Net;
         timer_dispatch_async_unprotected(Assets_deleteItem, il->item);
         free(il);
@@ -205,4 +204,3 @@ void Assets::pendingListUpdate()
 
 } // namespace Frontend
 } // namespace Nidium
-

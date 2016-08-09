@@ -34,12 +34,13 @@ namespace Nidium {
 namespace Interface {
 
 // {{{ UIInterface
-UIInterface::UIInterface() :
-    m_CurrentCursor(UIInterface::ARROW), m_NidiumCtx(NULL), m_Nml(NULL),
-    m_Win(NULL), m_Gnet(APE_init()), m_Width(0), m_Height(0), m_FilePath(NULL),
-    m_Initialized(false), m_IsOffscreen(false), m_ReadPixelInBuffer(false),
-    m_Hidden(false), m_FBO(0), m_FrameBuffer(NULL), m_Console(NULL),
-    m_MainGLCtx(NULL), m_SystemMenu(this)
+UIInterface::UIInterface()
+    : m_CurrentCursor(UIInterface::ARROW), m_NidiumCtx(NULL), m_Nml(NULL),
+      m_Win(NULL), m_Gnet(APE_init()), m_Width(0), m_Height(0),
+      m_FilePath(NULL), m_Initialized(false), m_IsOffscreen(false),
+      m_ReadPixelInBuffer(false), m_Hidden(false), m_FBO(0),
+      m_FrameBuffer(NULL), m_Console(NULL), m_MainGLCtx(NULL),
+      m_SystemMenu(this)
 {
 }
 
@@ -66,8 +67,9 @@ bool UIInterface::createWindow(int width, int height)
 
         this->setGLContextAttribute();
 
-        m_Win = SDL_CreateWindow("nidium", 100, 100, width, height,
-            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
+        m_Win = SDL_CreateWindow(
+            "nidium", 100, 100, width, height,
+            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /* | SDL_WINDOW_FULLSCREEN*/);
 
         if (m_Win == NULL) {
             NUI_LOG("Cant create window (SDL)\n");
@@ -92,7 +94,7 @@ bool UIInterface::createWindow(int width, int height)
             fprintf(stdout, "Cant vsync\n");
         }
 
-        //glViewport(0, 0, width*2, height*2);
+        // glViewport(0, 0, width*2, height*2);
         NUI_LOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
 
         this->onWindowCreated();
@@ -101,7 +103,7 @@ bool UIInterface::createWindow(int width, int height)
     }
 
     this->setWindowFrame(NIDIUM_WINDOWPOS_UNDEFINED_MASK,
-        NIDIUM_WINDOWPOS_UNDEFINED_MASK, width, height);
+                         NIDIUM_WINDOWPOS_UNDEFINED_MASK, width, height);
 
     /*
         This will create root canvas, initial size and so on
@@ -117,16 +119,16 @@ int UIInterface::HandleEvents(void *arg)
 
     SDL_Event event;
     int nrefresh = 0;
-    int nevents = 0;
+    int nevents  = 0;
 
-    while(SDL_PollEvent(&event)) {
+    while (SDL_PollEvent(&event)) {
         JSWindow *window = NULL;
         if (NUII->isContextReady()) {
             NUII->makeMainGLCurrent();
             window = JSWindow::GetObject(NUII->m_NidiumCtx->getNJS());
         }
         nevents++;
-        switch(event.type) {
+        switch (event.type) {
             case SDL_WINDOWEVENT:
                 if (window) {
                     switch (event.window.event) {
@@ -142,7 +144,8 @@ int UIInterface::HandleEvents(void *arg)
                 }
                 break;
             case SDL_TEXTINPUT:
-                if (window && &event.text.text[0] && strlen(event.text.text) > 0) {
+                if (window && &event.text.text[0]
+                    && strlen(event.text.text) > 0) {
                     window->textInput(event.text.text);
                 }
                 break;
@@ -159,34 +162,37 @@ int UIInterface::HandleEvents(void *arg)
                 break;
             case SDL_MOUSEMOTION:
                 if (window) {
-                    window->mouseMove(event.motion.x, event.motion.y - NIDIUM_TITLEBAR_HEIGHT,
-                               event.motion.xrel, event.motion.yrel);
+                    window->mouseMove(event.motion.x,
+                                      event.motion.y - NIDIUM_TITLEBAR_HEIGHT,
+                                      event.motion.xrel, event.motion.yrel);
                 }
                 break;
-            case SDL_MOUSEWHEEL:
-            {
+            case SDL_MOUSEWHEEL: {
                 int cx, cy;
                 SDL_GetMouseState(&cx, &cy);
                 if (window) {
-                    window->mouseWheel(event.wheel.x, event.wheel.y, cx, cy - NIDIUM_TITLEBAR_HEIGHT);
+                    window->mouseWheel(event.wheel.x, event.wheel.y, cx,
+                                       cy - NIDIUM_TITLEBAR_HEIGHT);
                 }
                 break;
             }
             case SDL_MOUSEBUTTONUP:
             case SDL_MOUSEBUTTONDOWN:
                 if (window) {
-                    window->mouseClick(event.button.x, event.button.y - NIDIUM_TITLEBAR_HEIGHT,
-                                event.button.state, event.button.button, event.button.clicks);
+                    window->mouseClick(event.button.x,
+                                       event.button.y - NIDIUM_TITLEBAR_HEIGHT,
+                                       event.button.state, event.button.button,
+                                       event.button.clicks);
                 }
-            break;
+                break;
             case SDL_KEYDOWN:
-            case SDL_KEYUP:
-            {
+            case SDL_KEYUP: {
                 int keyCode = 0;
-                int mod = 0;
+                int mod     = 0;
 
-                if ((&event.key)->keysym.sym == SDLK_r &&
-                    (event.key.keysym.mod & KMOD_CTRL) && event.type == SDL_KEYDOWN) {
+                if ((&event.key)->keysym.sym == SDLK_r
+                    && (event.key.keysym.mod & KMOD_CTRL)
+                    && event.type == SDL_KEYDOWN) {
 
                     if (++nrefresh > 1) {
                         break;
@@ -202,22 +208,26 @@ int UIInterface::HandleEvents(void *arg)
                     keyCode = SDL_KEYCODE_TO_DOMCODE(event.key.keysym.sym);
                 }
 
-                if (event.key.keysym.mod & KMOD_SHIFT || SDL_KEYCODE_GET_CODE(keyCode) == 16) {
+                if (event.key.keysym.mod & KMOD_SHIFT
+                    || SDL_KEYCODE_GET_CODE(keyCode) == 16) {
                     mod |= kKeyModifier_Shift;
                 }
-                if (event.key.keysym.mod & KMOD_ALT || SDL_KEYCODE_GET_CODE(keyCode) == 18) {
+                if (event.key.keysym.mod & KMOD_ALT
+                    || SDL_KEYCODE_GET_CODE(keyCode) == 18) {
                     mod |= kKeyModifier_Alt;
                 }
-                if (event.key.keysym.mod & KMOD_CTRL || SDL_KEYCODE_GET_CODE(keyCode) == 17) {
+                if (event.key.keysym.mod & KMOD_CTRL
+                    || SDL_KEYCODE_GET_CODE(keyCode) == 17) {
                     mod |= kKeyModifier_Control;
                 }
-                if (event.key.keysym.mod & KMOD_GUI || SDL_KEYCODE_GET_CODE(keyCode) == 91) {
+                if (event.key.keysym.mod & KMOD_GUI
+                    || SDL_KEYCODE_GET_CODE(keyCode) == 91) {
                     mod |= kKeyModifier_Meta;
                 }
                 if (window) {
                     window->keyupdown(SDL_KEYCODE_GET_CODE(keyCode), mod,
-                        event.key.state, event.key.repeat,
-                        SDL_KEYCODE_GET_LOCATION(keyCode));
+                                      event.key.state, event.key.repeat,
+                                      SDL_KEYCODE_GET_LOCATION(keyCode));
                 }
 
                 break;
@@ -225,7 +235,7 @@ int UIInterface::HandleEvents(void *arg)
         }
     }
 
-    if (ttfps%300 == 0 && NUII->isContextReady()) {
+    if (ttfps % 300 == 0 && NUII->isContextReady()) {
         NUII->m_NidiumCtx->getNJS()->gc();
     }
 
@@ -247,7 +257,8 @@ int UIInterface::HandleEvents(void *arg)
 
         glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-        glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
+        glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA,
+                     GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
         uint8_t *pdata = NUII->getFrameBufferData();
 
         NUII->m_NidiumCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
@@ -273,9 +284,9 @@ void UIInterface::OnNMLLoaded(void *arg)
 
 void UIInterface::onNMLLoaded()
 {
-    if (!this->createWindow(
-        this->m_Nml->getMetaWidth(),
-        this->m_Nml->getMetaHeight() + NIDIUM_TITLEBAR_HEIGHT)) {
+    if (!this->createWindow(this->m_Nml->getMetaWidth(),
+                            this->m_Nml->getMetaHeight()
+                                + NIDIUM_TITLEBAR_HEIGHT)) {
         exit(2);
     }
 
@@ -309,7 +320,8 @@ SDL_GLContext UIInterface::createSharedContext(bool webgl)
 
 void UIInterface::setWindowTitle(const char *name)
 {
-    SDL_SetWindowTitle(m_Win, (name == NULL || *name == '\0' ? "nidium" : name));
+    SDL_SetWindowTitle(m_Win,
+                       (name == NULL || *name == '\0' ? "nidium" : name));
 }
 
 const char *UIInterface::getWindowTitle() const
@@ -363,7 +375,7 @@ void UIInterface::refresh()
 void UIInterface::centerWindow()
 {
     SDL_SetWindowPosition(this->m_Win, SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED);
+                          SDL_WINDOWPOS_CENTERED);
 }
 
 void UIInterface::getScreenSize(int *width, int *height)
@@ -379,9 +391,12 @@ void UIInterface::getScreenSize(int *width, int *height)
 
 void UIInterface::setWindowPosition(int x, int y)
 {
-    SDL_SetWindowPosition(this->m_Win,
-        (x == NIDIUM_WINDOWPOS_UNDEFINED_MASK) ? SDL_WINDOWPOS_UNDEFINED_MASK : x,
-        (y == NIDIUM_WINDOWPOS_UNDEFINED_MASK) ? SDL_WINDOWPOS_UNDEFINED_MASK : y);
+    SDL_SetWindowPosition(this->m_Win, (x == NIDIUM_WINDOWPOS_UNDEFINED_MASK)
+                                           ? SDL_WINDOWPOS_UNDEFINED_MASK
+                                           : x,
+                          (y == NIDIUM_WINDOWPOS_UNDEFINED_MASK)
+                              ? SDL_WINDOWPOS_UNDEFINED_MASK
+                              : y);
 }
 
 void UIInterface::getWindowPosition(int *x, int *y)
@@ -391,7 +406,7 @@ void UIInterface::getWindowPosition(int *x, int *y)
 
 void UIInterface::setWindowSize(int w, int h)
 {
-    this->m_Width = w;
+    this->m_Width  = w;
     this->m_Height = h;
 
     SDL_SetWindowSize(this->m_Win, w, h);
@@ -435,7 +450,7 @@ void UIInterface::initPBOs()
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
     m_PBOs.vram2sys = 0;
-    m_PBOs.gpu2vram = NUM_PBOS-1;
+    m_PBOs.gpu2vram = NUM_PBOS - 1;
 
     m_FrameBuffer = static_cast<uint8_t *>(malloc(screenPixelSize));
 }
@@ -446,13 +461,13 @@ uint8_t *UIInterface::readScreenPixel()
         this->toggleOfflineBuffer(true);
     }
 
-    //uint32_t screenPixelSize = m_Width * 2 * m_Height * 2 * 4;
+    // uint32_t screenPixelSize = m_Width * 2 * m_Height * 2 * 4;
 
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[m_PBOs.gpu2vram]);
 
-    glReadPixels(0, 0, m_Width*2, m_Height*2, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glReadPixels(0, 0, m_Width * 2, m_Height * 2, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[m_PBOs.vram2sys]);
     uint8_t *ret = (uint8_t *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
@@ -465,17 +480,17 @@ uint8_t *UIInterface::readScreenPixel()
     /* Flip Y pixels (row by row) */
     for (uint32_t i = 0; i < m_Height * 2; i++) {
         memcpy(m_FrameBuffer + i * m_Width * 2 * 4,
-            &ret[(m_Height*2 - i - 1) * m_Width * 2 * 4], m_Width*2*4);
+               &ret[(m_Height * 2 - i - 1) * m_Width * 2 * 4], m_Width * 2 * 4);
     }
 
-    //memcpy(m_FrameBuffer, ret, screenPixelSize);
+    // memcpy(m_FrameBuffer, ret, screenPixelSize);
 
     glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
     int temp = m_PBOs.pbo[0];
-    for (int i=1; i<NUM_PBOS; i++)
-        m_PBOs.pbo[i-1] = m_PBOs.pbo[i];
+    for (int i = 1; i < NUM_PBOS; i++)
+        m_PBOs.pbo[i - 1]    = m_PBOs.pbo[i];
     m_PBOs.pbo[NUM_PBOS - 1] = temp;
 
     return m_FrameBuffer;
@@ -502,12 +517,12 @@ int UIInterface::useOffScreenRendering(bool val)
         glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA4, m_Width, m_Height);
 
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
-        glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER,
-            GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buf);
+        glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                  GL_RENDERBUFFER, render_buf);
 
         m_FBO = fbo;
 
-        m_FrameBuffer = (uint8_t *)malloc(m_Width*m_Height*4);
+        m_FrameBuffer = (uint8_t *)malloc(m_Width * m_Height * 4);
 
         SDL_HideWindow(m_Win);
 
@@ -605,7 +620,7 @@ void UIInterface::showWindow()
 void SystemMenu::addItem(SystemMenuItem *item)
 {
     item->m_Next = m_Items;
-    m_Items = item;
+    m_Items      = item;
 }
 
 void SystemMenu::deleteItems()
@@ -622,17 +637,17 @@ void SystemMenu::deleteItems()
 
 void SystemMenu::setIcon(const uint8_t *data, size_t width, size_t height)
 {
-    m_Icon.data = data;
-    m_Icon.len = width * height * 4;
-    m_Icon.width = width;
+    m_Icon.data   = data;
+    m_Icon.len    = width * height * 4;
+    m_Icon.width  = width;
     m_Icon.height = height;
 }
 
 SystemMenu::SystemMenu(UIInterface *ui) : m_UI(ui)
 {
-    m_Items = NULL;
+    m_Items     = NULL;
     m_Icon.data = NULL;
-    m_Icon.len = 0;
+    m_Icon.len  = 0;
 }
 
 SystemMenu::~SystemMenu()
@@ -643,4 +658,3 @@ SystemMenu::~SystemMenu()
 
 } // namespace Interface
 } // namespace Nidium
-

@@ -21,13 +21,14 @@ class NidiumJS;
 class JSThread : public JSExposer<JSThread>, public Nidium::Core::Messages
 {
 
-  public:
+public:
     JSThread(JS::HandleObject obj, JSContext *cx);
-     enum Thread {
-        kThread_Message = 0,
+    enum Thread
+    {
+        kThread_Message  = 0,
         kThread_Complete = 1
     };
-   ~JSThread();
+    ~JSThread();
     static void RegisterObject(JSContext *cx);
     void onComplete(JS::HandleValue vp);
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
@@ -38,7 +39,8 @@ class JSThread : public JSExposer<JSThread>, public Nidium::Core::Messages
     JSContext *m_JsCx;
     JSObject *m_JsObject;
     NidiumJS *m_Njs;
-    struct {
+    struct
+    {
         int argc;
         uint64_t **argv;
         size_t *nbytes;
@@ -54,4 +56,3 @@ class JSThread : public JSExposer<JSThread>, public Nidium::Core::Messages
 
 } // namespace Binding
 } // namespace Nidium
-

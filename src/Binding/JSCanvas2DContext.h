@@ -17,12 +17,12 @@ class SkCanvas;
 
 namespace Nidium {
 namespace Interface {
-    class UIInterface;
+class UIInterface;
 }
 namespace Graphics {
-    struct Rect;
-    class SkiaContext;
-    class CanvasHandler;
+struct Rect;
+class SkiaContext;
+class CanvasHandler;
 }
 namespace Binding {
 
@@ -46,16 +46,16 @@ class JSImage;
 // {{{ Canvas2DContextState
 struct Canvas2DContextState
 {
-    Canvas2DContextState() :
-        m_CurrentShader(JS::UndefinedValue()),
-        m_CurrentStrokeShader(JS::UndefinedValue()),
-        m_Next(NULL) {
+    Canvas2DContextState()
+        : m_CurrentShader(JS::UndefinedValue()),
+          m_CurrentStrokeShader(JS::UndefinedValue()), m_Next(NULL)
+    {
     }
 
-    Canvas2DContextState(Canvas2DContextState *other) :
-        m_CurrentShader(other->m_CurrentShader),
-        m_CurrentStrokeShader(other->m_CurrentStrokeShader),
-        m_Next(other) {
+    Canvas2DContextState(Canvas2DContextState *other)
+        : m_CurrentShader(other->m_CurrentShader),
+          m_CurrentStrokeShader(other->m_CurrentStrokeShader), m_Next(other)
+    {
     }
 
     /* either pattern or gradient (mutual exlusive) */
@@ -69,116 +69,133 @@ struct Canvas2DContextState
 // {{{ Canvas2DContext
 class Canvas2DContext : public Graphics::CanvasContext
 {
-    public:
+public:
+    static JSClass *jsclass;
 
-        static JSClass *jsclass;
+    friend class JSCanvas;
 
-        friend class JSCanvas;
+    bool m_SetterDisabled;
 
-        bool m_SetterDisabled;
+    void clear(uint32_t color = 0x00000000) override;
 
-        void clear(uint32_t color = 0x00000000) override;
+    /*
+        draw layer on top of "this"
+    */
 
+    void resetSkiaContext(uint32_t flags = 0);
+
+    uint8_t *getPixels() override;
+    uint32_t getTextureID() const override;
+    void flush() override;
+    virtual void setSize(int width, int height, bool redraw = true) override;
+    void translate(double x, double y) override;
+
+    void getSize(int *width, int *height) const override;
+
+    uint32_t attachShader(const char *string);
+    void detachShader();
+
+    void setVertexDeformation(uint32_t vertex, float x, float y);
+
+    Graphics::SkiaContext *getSurface() const
+    {
+        return m_Skia;
+    }
+
+    void setScale(double x, double y, double px = 1, double py = 1) override;
+
+    uint32_t createProgram(const char *data);
+
+    void drawTexture(uint32_t textureID,
+                     uint32_t width,
+                     uint32_t height,
+                     uint32_t left,
+                     uint32_t top);
+
+
+    Canvas2DContextState *getCurrentState() const
+    {
+        return m_CurrentState;
+    }
+    void pushNewState()
+    {
+        Canvas2DContextState *state
+            = m_CurrentState ? new Canvas2DContextState(m_CurrentState)
+                             : new Canvas2DContextState();
+
+        m_CurrentState = state;
+    }
+
+    void popState()
+    {
         /*
-            draw layer on top of "this"
+            can't be stateless
         */
-
-        void resetSkiaContext(uint32_t flags = 0);
-
-        uint8_t *getPixels() override;
-        uint32_t getTextureID() const override;
-        void flush() override;
-        virtual void setSize(int width, int height, bool redraw = true) override;
-        void translate(double x, double y) override;
-
-        void getSize(int *width, int *height) const override ;
-
-        uint32_t attachShader(const char *string);
-        void detachShader();
-
-        void setVertexDeformation(uint32_t vertex, float x, float y);
-
-        Graphics::SkiaContext *getSurface() const {
-            return m_Skia;
+        if (!m_CurrentState->m_Next) {
+            return;
         }
 
-        void setScale(double x, double y, double px=1, double py=1) override;
+        Canvas2DContextState *tmp = m_CurrentState->m_Next;
 
-        uint32_t createProgram(const char *data);
+        delete m_CurrentState;
 
-        void drawTexture(uint32_t textureID, uint32_t width,
-            uint32_t height, uint32_t left, uint32_t top);
+        m_CurrentState = tmp;
+    }
 
+    static void RegisterObject(JSContext *cx);
 
-        Canvas2DContextState *getCurrentState() const {
-            return m_CurrentState;
-        }
-        void pushNewState() {
-            Canvas2DContextState *state =
-                m_CurrentState ? new Canvas2DContextState(m_CurrentState)
-                               : new Canvas2DContextState();
+    Canvas2DContext(Graphics::CanvasHandler *handler,
+                    int width,
+                    int height,
+                    Interface::UIInterface *ui,
+                    bool isGL = true);
 
-            m_CurrentState = state;
-        }
+    Canvas2DContext(Graphics::CanvasHandler *handler,
+                    struct JSContext *cx,
+                    int width,
+                    int height,
+                    Interface::UIInterface *ui);
 
-        void popState() {
-            /*
-                can't be stateless
-            */
-            if (!m_CurrentState->m_Next) {
-                return;
-            }
+    virtual ~Canvas2DContext();
 
-            Canvas2DContextState *tmp = m_CurrentState->m_Next;
-
-            delete m_CurrentState;
-
-            m_CurrentState = tmp;
-        }
-
-        static void RegisterObject(JSContext *cx);
-
-        Canvas2DContext(Graphics::CanvasHandler *handler,
-            int width, int height, Interface::UIInterface *ui, bool isGL = true);
-
-        Canvas2DContext(Graphics::CanvasHandler *handler,
-            struct JSContext *cx, int width, int height, Interface::UIInterface *ui);
-
-        virtual ~Canvas2DContext();
-    private:
-        Graphics::SkiaContext *m_Skia;
-        Canvas2DContextState *m_CurrentState;
+private:
+    Graphics::SkiaContext *m_Skia;
+    Canvas2DContextState *m_CurrentState;
 
 
-        void initCopyTex();
-        uint32_t compileCoopFragmentShader();
-        char *genModifiedFragmentShader(const char *data);
-        void drawTexToFBO(uint32_t textureID);
-        void drawTexIDToFBO(uint32_t textureID, uint32_t width,
-            uint32_t height, uint32_t left, uint32_t top, uint32_t fbo);
+    void initCopyTex();
+    uint32_t compileCoopFragmentShader();
+    char *genModifiedFragmentShader(const char *data);
+    void drawTexToFBO(uint32_t textureID);
+    void drawTexIDToFBO(uint32_t textureID,
+                        uint32_t width,
+                        uint32_t height,
+                        uint32_t left,
+                        uint32_t top,
+                        uint32_t fbo);
 
-        uint32_t getSkiaTextureID(int *width = NULL, int *height = NULL);
-        uint32_t getMainFBO();
+    uint32_t getSkiaTextureID(int *width = NULL, int *height = NULL);
+    uint32_t getMainFBO();
 };
 // }}}
 
 // {{{ CanvasPattern
 class CanvasPattern
 {
-    public:
-        JSImage *m_JsImg;
+public:
+    JSImage *m_JsImg;
 
-        enum PATTERN_MODE {
-            PATTERN_REPEAT,
-            PATTERN_NOREPEAT,
-            PATTERN_REPEAT_X,
-            PATTERN_REPEAT_Y,
-            PATTERN_REPEAT_MIRROR
-        } m_Mode;
+    enum PATTERN_MODE
+    {
+        PATTERN_REPEAT,
+        PATTERN_NOREPEAT,
+        PATTERN_REPEAT_X,
+        PATTERN_REPEAT_Y,
+        PATTERN_REPEAT_MIRROR
+    } m_Mode;
 
-        CanvasPattern(JSImage *img, PATTERN_MODE repeat) :
-            m_JsImg(img), m_Mode(repeat) {
-        };
+    CanvasPattern(JSImage *img, PATTERN_MODE repeat)
+        : m_JsImg(img), m_Mode(repeat){};
 };
 // }}}
 
@@ -186,4 +203,3 @@ class CanvasPattern
 } // namespace Nidium
 
 #endif
-

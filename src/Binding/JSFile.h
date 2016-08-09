@@ -16,45 +16,60 @@
 namespace Nidium {
 namespace Binding {
 
-class JSFile : public JSExposer<JSFile>,
-                       public Nidium::Core::Messages
+class JSFile : public JSExposer<JSFile>, public Nidium::Core::Messages
 {
-  public:
+public:
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
 
-    static Nidium::IO::File *GetFileFromJSObject(JSContext *cx, JS::HandleObject jsobj);
+    static Nidium::IO::File *GetFileFromJSObject(JSContext *cx,
+                                                 JS::HandleObject jsobj);
     static void RegisterObject(JSContext *cx);
     static JSObject *GenerateJSObject(JSContext *cx, const char *path);
 
-    static bool HandleError(JSContext *cx, const Nidium::Core::SharedMessages::Message &msg, JS::MutableHandleValue vals);
+    static bool HandleError(JSContext *cx,
+                            const Nidium::Core::SharedMessages::Message &msg,
+                            JS::MutableHandleValue vals);
     bool callbackForMessage(JSContext *cx,
-        const Nidium::Core::SharedMessages::Message &msg,
-        JSObject *thisobj, const char *encoding = NULL);
+                            const Nidium::Core::SharedMessages::Message &msg,
+                            JSObject *thisobj,
+                            const char *encoding = NULL);
 
-    JSFile(JS::HandleObject obj, JSContext *cx, const char *path, bool allowAll = false) :
-        JSExposer<JSFile>(obj, cx), m_Encoding(NULL), m_File(NULL), 
-        m_Path(Core::Path(path, allowAll)) {
-    };
+    JSFile(JS::HandleObject obj,
+           JSContext *cx,
+           const char *path,
+           bool allowAll = false)
+        : JSExposer<JSFile>(obj, cx), m_Encoding(NULL), m_File(NULL),
+          m_Path(Core::Path(path, allowAll)){};
 
-    bool allowSyncStream() {
+    bool allowSyncStream()
+    {
         return m_Path.GetScheme()->AllowSyncStream();
     }
 
-    const char *getPath() {
+    const char *getPath()
+    {
         return m_Path.path();
     }
 
-    ~JSFile() {
+    ~JSFile()
+    {
         if (m_Encoding) {
             free(m_Encoding);
         }
     };
 
-    Nidium::IO::File *getFile() const { return m_File; }
-    void setFile(Nidium::IO::File *file) { m_File = file; }
+    Nidium::IO::File *getFile() const
+    {
+        return m_File;
+    }
+    void setFile(Nidium::IO::File *file)
+    {
+        m_File = file;
+    }
 
     char *m_Encoding;
-  private:
+
+private:
     Nidium::IO::File *m_File;
     Core::Path m_Path;
 };
@@ -63,4 +78,3 @@ class JSFile : public JSExposer<JSFile>,
 } // namespace Nidium
 
 #endif
-

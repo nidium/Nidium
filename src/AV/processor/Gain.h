@@ -6,14 +6,14 @@
 namespace Nidium {
 namespace AV {
 
-class AudioProcessorGain: public AudioProcessor
+class AudioProcessorGain : public AudioProcessor
 {
-  public:
-    AudioProcessorGain() : m_Gain(1) {};
+public:
+    AudioProcessorGain() : m_Gain(1){};
 
     void process(float *in, int *i)
     {
-        *in  = *in * m_Gain;
+        *in = *in * m_Gain;
     }
 
     void setGain(double gain)
@@ -21,8 +21,9 @@ class AudioProcessorGain: public AudioProcessor
         m_Gain = gain;
     }
 
-    ~AudioProcessorGain() {};
-  private:
+    ~AudioProcessorGain(){};
+
+private:
     double m_Gain;
 };
 
@@ -30,4 +31,3 @@ class AudioProcessorGain: public AudioProcessor
 } // namespace Nidium
 
 #endif
-

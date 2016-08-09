@@ -11,19 +11,16 @@
 
 namespace Nidium {
 namespace Graphics {
-    class CanvasHandler;
+class CanvasHandler;
 }
 namespace Binding {
 
 class JSWindow : public JSExposer<JSWindow>
 {
-  public:
-    JSWindow(JS::HandleObject jsobj, JSContext *cx) :
-        JSExposer<JSWindow>(jsobj, cx),
-        m_RequestedFrame(NULL), m_Handler(NULL),
-        m_Dragging(false)
-    {
-    };
+public:
+    JSWindow(JS::HandleObject jsobj, JSContext *cx)
+        : JSExposer<JSWindow>(jsobj, cx), m_RequestedFrame(NULL),
+          m_Handler(NULL), m_Dragging(false){};
 
     ~JSWindow();
 
@@ -38,7 +35,7 @@ class JSWindow : public JSExposer<JSWindow>
     void mouseClick(int x, int y, int state, int button, int clicks);
     void systemMenuClicked(const char *id);
 
-    bool dragBegin(int x, int y, const char * const *files, size_t nfiles);
+    bool dragBegin(int x, int y, const char *const *files, size_t nfiles);
     bool dragUpdate(int x, int y);
     bool dragDroped(int x, int y);
     void dragLeave();
@@ -51,35 +48,38 @@ class JSWindow : public JSExposer<JSWindow>
 
     void initDataBase();
 
-    Graphics::CanvasHandler *getCanvasHandler() const {
+    Graphics::CanvasHandler *getCanvasHandler() const
+    {
         return m_Handler;
     }
 
-    static JSWindow *RegisterObject(JSContext *cx, int width,
-        int height, JS::HandleObject doc);
+    static JSWindow *
+    RegisterObject(JSContext *cx, int width, int height, JS::HandleObject doc);
 
-    static const char *GetJSObjectName() {
+    static const char *GetJSObjectName()
+    {
         return "Window";
     }
 
-    static JSWindow* GetObject(JSContext *cx);
-    static JSWindow* GetObject(NidiumJS *njs);
+    static JSWindow *GetObject(JSContext *cx);
+    static JSWindow *GetObject(NidiumJS *njs);
 
     static JSClass *jsclass;
 
-  private:
-
+private:
     bool dragEvent(const char *name, int x, int y);
 
     void createMainCanvas(int width, int height, JS::HandleObject docObj);
 
-    struct _requestedFrame {
+    struct _requestedFrame
+    {
         JS::PersistentRootedValue m_Cb;
         struct _requestedFrame *m_Next;
-        _requestedFrame(JSContext *cx): m_Cb(cx) {
+        _requestedFrame(JSContext *cx) : m_Cb(cx)
+        {
             m_Next = NULL;
         }
-    } *m_RequestedFrame;
+    } * m_RequestedFrame;
 
     Graphics::CanvasHandler *m_Handler;
 
@@ -91,4 +91,3 @@ class JSWindow : public JSExposer<JSWindow>
 } // namespace Nidium
 
 #endif
-

@@ -19,42 +19,53 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-#define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
-    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
-        JSPROP_ENUMERATE)
+#define SET_PROP(where, name, val)                                    \
+    JS_DefineProperty(cx, where, (const char *)name, val, NULL, NULL, \
+                      JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
 static bool nidium_http_request(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_http_stop(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Http_Finalize(JSFreeOp *fop, JSObject *obj);
 
-static JSClass HTTP_class = {
-    "HTTP", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(2),
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Http_Finalize,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass HTTP_class
+    = { "HTTP",
+        JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(2),
+        JS_PropertyStub,
+        JS_DeletePropertyStub,
+        JS_PropertyStub,
+        JS_StrictPropertyStub,
+        JS_EnumerateStub,
+        JS_ResolveStub,
+        JS_ConvertStub,
+        Http_Finalize,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        JSCLASS_NO_INTERNAL_MEMBERS };
 
-template<>
+template <>
 JSClass *JSExposer<JSHTTP>::jsclass = &HTTP_class;
 
-static JSFunctionSpec http_funcs[] = {
-    JS_FN("request", nidium_http_request, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("stop", nidium_http_stop, 0, NIDIUM_JS_FNPROPS),
-    JS_FS_END
-};
+static JSFunctionSpec http_funcs[]
+    = { JS_FN("request", nidium_http_request, 2, NIDIUM_JS_FNPROPS),
+        JS_FN("stop", nidium_http_stop, 0, NIDIUM_JS_FNPROPS), JS_FS_END };
 // }}}
 
 // {{{ Implementation
-static void getOptionsAndCallback(JSContext *cx, JS::CallArgs *args,
-    int argsOffset, JS::MutableHandleObject options, JS::MutableHandleValue callback)
+static void getOptionsAndCallback(JSContext *cx,
+                                  JS::CallArgs *args,
+                                  int argsOffset,
+                                  JS::MutableHandleObject options,
+                                  JS::MutableHandleValue callback)
 {
     JS::RootedValue arg1(cx, args->get(argsOffset));
     JS::RootedValue arg2(cx, args->get(argsOffset + 1));
 
-    bool arg1Callable = arg1.isObject() &&
-            JS_ObjectIsCallable(cx, arg1.toObjectOrNull());
-    bool arg2Callable = arg2.isObject() &&
-            JS_ObjectIsCallable(cx, arg2.toObjectOrNull());
+    bool arg1Callable
+        = arg1.isObject() && JS_ObjectIsCallable(cx, arg1.toObjectOrNull());
+    bool arg2Callable
+        = arg2.isObject() && JS_ObjectIsCallable(cx, arg2.toObjectOrNull());
 
     callback.set(JS::NullHandleValue);
 
@@ -91,7 +102,7 @@ static bool nidium_HTTP_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
     jshttp = new JSHTTP(ret, cx, curl.ptr());
 
     nhttp->setPrivate(jshttp);
-    jshttp->m_HTTP = nhttp;
+    jshttp->m_HTTP  = nhttp;
     jshttp->m_JSObj = ret;
 
     JS_SetPrivate(ret, jshttp);
@@ -100,7 +111,7 @@ static bool nidium_HTTP_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JS_DefineFunctions(cx, ret, http_funcs);
 
-    HTTPRequest *req = new HTTPRequest(jshttp->m_URL);
+    HTTPRequest *req      = new HTTPRequest(jshttp->m_URL);
     jshttp->m_HTTPRequest = req;
 
     if (!req->isValid()) {
@@ -199,7 +210,9 @@ void JSHTTP::fireJSEvent(const char *name, JS::MutableHandleValue ev)
     }
 }
 
-bool JSHTTP::request(JSContext *cx, JS::HandleObject options, JS::HandleValue callback)
+bool JSHTTP::request(JSContext *cx,
+                     JS::HandleObject options,
+                     JS::HandleValue callback)
 {
     HTTPRequest *req = m_HTTPRequest;
 
@@ -235,7 +248,8 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
 {
     NIDIUM_JS_INIT_OPT();
 
-    NIDIUM_JS_GET_OPT_TYPE(options, "method", String) {
+    NIDIUM_JS_GET_OPT_TYPE(options, "method", String)
+    {
         JS::RootedString method(cx, __curopt.toString());
         JSAutoByteString cmethod(cx, method);
         if (strcasecmp("POST", cmethod.ptr()) == 0) {
@@ -246,12 +260,13 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
             m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Put;
         } else if (strcasecmp("DELETE", cmethod.ptr()) == 0) {
             m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Delete;
-        }  else {
+        } else {
             m_HTTPRequest->m_Method = HTTPRequest::kHTTPMethod_Get;
         }
     }
 
-    NIDIUM_JS_GET_OPT_TYPE(options, "headers", Object) {
+    NIDIUM_JS_GET_OPT_TYPE(options, "headers", Object)
+    {
         if (!__curopt.isPrimitive()) {
             JS::RootedObject headers(cx, __curopt.toObjectOrNull());
             JS::AutoIdArray ida(cx, JS_Enumerate(cx, headers));
@@ -271,7 +286,7 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
 
                 JS_GetPropertyById(cx, headers, id, &idval);
 
-                idstr = idval.toString() ;
+                idstr = idval.toString();
                 if (idstr == NULL) {
                     continue;
                 }
@@ -282,13 +297,15 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
         }
     }
 
-    NIDIUM_JS_GET_OPT(options, "data") {
-        JS::RootedObject obj(cx, __curopt.isObject() ? __curopt.toObjectOrNull() : nullptr);
+    NIDIUM_JS_GET_OPT(options, "data")
+    {
+        JS::RootedObject obj(cx, __curopt.isObject() ? __curopt.toObjectOrNull()
+                                                     : nullptr);
         char *data;
         size_t dataLen;
 
         if (__curopt.isObject() && JS_IsArrayBufferObject(obj)) {
-            data = reinterpret_cast<char *>(JS_GetArrayBufferData(obj));
+            data    = reinterpret_cast<char *>(JS_GetArrayBufferData(obj));
             dataLen = JS_GetArrayBufferByteLength(obj);
 
             // Since the data may not be used right away
@@ -301,7 +318,7 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
         } else {
             JS::RootedString str(cx, JS::ToString(cx, __curopt));
 
-            data = JS_EncodeStringToUTF8(cx, str);
+            data    = JS_EncodeStringToUTF8(cx, str);
             dataLen = strlen(data);
 
             m_HTTPRequest->setDataReleaser(js_free);
@@ -318,26 +335,31 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
         m_HTTPRequest->setHeader("Content-Length", num);
     }
 
-    NIDIUM_JS_GET_OPT_TYPE(options, "timeout", Number) {
+    NIDIUM_JS_GET_OPT_TYPE(options, "timeout", Number)
+    {
         m_HTTP->m_TimeoutTimer = __curopt.toInt32();
     }
 
-    NIDIUM_JS_GET_OPT_TYPE(options, "maxRedirects", Number) {
+    NIDIUM_JS_GET_OPT_TYPE(options, "maxRedirects", Number)
+    {
         uint32_t max = 8;
-        max = __curopt.toInt32();
+        max          = __curopt.toInt32();
 
         m_HTTP->setMaxRedirect(max);
     }
 
-    NIDIUM_JS_GET_OPT_TYPE(options, "followLocation", Boolean) {
+    NIDIUM_JS_GET_OPT_TYPE(options, "followLocation", Boolean)
+    {
         m_HTTP->setFollowLocation(__curopt.toBoolean());
     }
 
-    NIDIUM_JS_GET_OPT_TYPE(options, "eval", Boolean) {
+    NIDIUM_JS_GET_OPT_TYPE(options, "eval", Boolean)
+    {
         m_Eval = __curopt.toBoolean();
     }
 
-    NIDIUM_JS_GET_OPT_TYPE(options, "path", String) {
+    NIDIUM_JS_GET_OPT_TYPE(options, "path", String)
+    {
         JSAutoByteString cstr(cx, __curopt.toString());
         m_HTTPRequest->setPath(cstr.ptr());
     }
@@ -355,8 +377,8 @@ void JSHTTP::onError(const char *error)
 
 void JSHTTP::onError(int code, const char *error)
 {
-    JS::RootedObject eventObject(m_Cx,
-            JSEvents::CreateErrorEventObject(m_Cx, code, error));
+    JS::RootedObject eventObject(
+        m_Cx, JSEvents::CreateErrorEventObject(m_Cx, code, error));
     JS::RootedValue eventValue(m_Cx, OBJECT_TO_JSVAL(eventObject));
 
     this->fireJSEvent("error", &eventValue);
@@ -366,8 +388,10 @@ void JSHTTP::onError(int code, const char *error)
     NidiumJSObj(m_Cx)->unrootObject(m_JSObj);
 }
 
-void JSHTTP::onProgress(size_t offset, size_t len,
-    HTTP::HTTPData *h, HTTP::DataType type)
+void JSHTTP::onProgress(size_t offset,
+                        size_t len,
+                        HTTP::HTTPData *h,
+                        HTTP::DataType type)
 {
     JS::RootedObject eventObject(m_Cx, JSEvents::CreateEventObject(m_Cx));
     JSObjectBuilder eventBuilder(m_Cx, eventObject);
@@ -376,15 +400,13 @@ void JSHTTP::onProgress(size_t offset, size_t len,
     eventBuilder.set("total", (double)h->m_ContentLength);
     eventBuilder.set("read", (double)(offset + len));
 
-    switch(type) {
+    switch (type) {
         case HTTP::DATA_JSON:
         case HTTP::DATA_STRING:
             eventBuilder.set("type", "string");
-            eventBuilder.set("data",
-                    (const char *)&h->m_Data->data[offset]);
+            eventBuilder.set("data", (const char *)&h->m_Data->data[offset]);
             break;
-        default:
-        {
+        default: {
             JS::RootedValue arrVal(m_Cx);
             JS::RootedObject arr(m_Cx, JS_NewArrayBuffer(m_Cx, len));
             uint8_t *data = JS_GetArrayBufferData(arr);
@@ -412,10 +434,11 @@ void JSHTTP::headersToJSObject(JS::MutableHandleObject obj)
 
     obj.set(JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
-    APE_A_FOREACH(headers, k, v) {
-        JS::RootedString jstr(m_Cx,
-                JS_NewStringCopyN(m_Cx, reinterpret_cast<char *>(v->data),
-                v->used-1));
+    APE_A_FOREACH(headers, k, v)
+    {
+        JS::RootedString jstr(
+            m_Cx, JS_NewStringCopyN(m_Cx, reinterpret_cast<char *>(v->data),
+                                    v->used - 1));
 
         NIDIUM_JSOBJ_SET_PROP_FLAGS(obj, k->data, jstr, JSPROP_ENUMERATE);
     }
@@ -477,22 +500,24 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
         type = HTTP::DATA_STRING;
     }
 
-    switch(type) {
+    switch (type) {
         case HTTP::DATA_STRING:
             eventBuilder.set("type", "string");
 
-            JSUtils::StrToJsval(m_Cx, reinterpret_cast<const char *>(h->m_Data->data),
-                    h->m_Data->used, &jsdata, "utf8");
+            JSUtils::StrToJsval(m_Cx,
+                                reinterpret_cast<const char *>(h->m_Data->data),
+                                h->m_Data->used, &jsdata, "utf8");
             break;
-        case HTTP::DATA_JSON:
-        {
+        case HTTP::DATA_JSON: {
             const jschar *chars;
             size_t clen;
 
             eventBuilder.set("type", "json");
 
-            JS::RootedString str(m_Cx,
-                    JS_NewStringCopyN(m_Cx, reinterpret_cast<const char *>(h->m_Data->data), h->m_Data->used));
+            JS::RootedString str(
+                m_Cx, JS_NewStringCopyN(
+                          m_Cx, reinterpret_cast<const char *>(h->m_Data->data),
+                          h->m_Data->used));
 
             if (str == NULL) {
                 this->onError("Can't encode JSON string\n");
@@ -504,8 +529,8 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
             if (!JS_ParseJSON(m_Cx, chars, clen, &jsdata)) {
                 char *err;
                 asprintf(&err, "Cant parse JSON of size %ld :\n = %.*s\n = \n",
-                        static_cast<unsigned long>(h->m_Data->used),
-                        static_cast<int>(h->m_Data->used), h->m_Data->data);
+                         static_cast<unsigned long>(h->m_Data->used),
+                         static_cast<int>(h->m_Data->used), h->m_Data->data);
 
                 this->onError(err);
 
@@ -543,9 +568,9 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
             break;
         }
 #endif
-        default:
-        {
-            JS::RootedObject arr(m_Cx, JS_NewArrayBuffer(m_Cx, h->m_Data->used));
+        default: {
+            JS::RootedObject arr(m_Cx,
+                                 JS_NewArrayBuffer(m_Cx, h->m_Data->used));
             uint8_t *data = JS_GetArrayBufferData(arr);
 
             memcpy(data, h->m_Data->data, h->m_Data->used);
@@ -567,8 +592,9 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
     JS_SetReservedSlot(m_JSObj, 1, JS::NullValue());
 }
 
-JSHTTP::JSHTTP(JS::HandleObject obj, JSContext *cx, char *url) :
-    JSExposer<JSHTTP>(obj, cx), m_JSCallback(JS::NullValue()), m_JSObj(nullptr)
+JSHTTP::JSHTTP(JS::HandleObject obj, JSContext *cx, char *url)
+    : JSExposer<JSHTTP>(obj, cx), m_JSCallback(JS::NullValue()),
+      m_JSObj(nullptr)
 {
     m_URL = strdup(url);
 }
@@ -588,4 +614,3 @@ NIDIUM_JS_OBJECT_EXPOSE(HTTP)
 
 } // namespace Binding
 } // namespace Nidium
-

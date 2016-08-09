@@ -13,12 +13,15 @@ namespace Binding {
 
 class JSProcess : public JSExposer<JSProcess>
 {
-  public:
-    JSProcess(JS::HandleObject obj, JSContext *cx) : JSExposer<JSProcess>(obj, cx), m_SignalFunction(cx) {};
-    virtual ~JSProcess() {};
+public:
+    JSProcess(JS::HandleObject obj, JSContext *cx)
+        : JSExposer<JSProcess>(obj, cx), m_SignalFunction(cx){};
+    virtual ~JSProcess(){};
 
-    static void RegisterObject(JSContext *cx, char **argv, int argc, int workerId = 0);
-    static const char *GetJSObjectName() {
+    static void
+    RegisterObject(JSContext *cx, char **argv, int argc, int workerId = 0);
+    static const char *GetJSObjectName()
+    {
         return "process";
     }
 
@@ -31,4 +34,3 @@ class JSProcess : public JSExposer<JSProcess>
 } // namespace Nidium
 
 #endif
-

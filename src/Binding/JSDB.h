@@ -15,17 +15,16 @@
 namespace Nidium {
 namespace Binding {
 
-class JSDB: public JSExposer<JSDB>, public Nidium::Core::DB 
+class JSDB : public JSExposer<JSDB>, public Nidium::Core::DB
 {
-    public:
-        JSDB(JSContext *cx, JS::HandleObject obj, const char *name);
-        bool set(JSContext *cx, const char *key, JS::HandleValue val);
-        bool get(JSContext *cx, const char *key, JS::MutableHandleValue val);
-        static void RegisterObject(JSContext *cx);
+public:
+    JSDB(JSContext *cx, JS::HandleObject obj, const char *name);
+    bool set(JSContext *cx, const char *key, JS::HandleValue val);
+    bool get(JSContext *cx, const char *key, JS::MutableHandleValue val);
+    static void RegisterObject(JSContext *cx);
 };
 
 } // namespace Binding
 } // namespace Nidium
 
 #endif
-

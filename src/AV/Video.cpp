@@ -27,29 +27,29 @@ namespace AV {
 
 #undef DPRINT
 #if DEBUG && 0
-  #define DEBUG_PRINT
-  #define DPRINT(...) \
-    fprintf(stdout, ">%lld / ", av_gettime()/1000); \
+#define DEBUG_PRINT
+#define DPRINT(...)                                   \
+    fprintf(stdout, ">%lld / ", av_gettime() / 1000); \
     fprintf(stdout, __VA_ARGS__)
 #else
-  #define DPRINT(...) (void)0
+#define DPRINT(...) (void)0
 #endif
 
 // XXX : Well, Video need a better interaction with Audio.
 // There's a lot of little hack to work nicely with it.
 
-Video::Video(ape_global *n):
-    m_TimerIdx(0), m_LastTimer(0), m_TimersDelay(0), m_Net(n),
-    m_AudioSource(NULL), m_FrameCbk(NULL), m_FrameCbkArg(NULL),
-    m_Shutdown(false), m_TmpFrame(0), m_FrameBuffer(0), m_FrameTimer(0),
-    m_LastPts(0), m_VideoClock(0.0f), m_AudioClock(0.0f), m_LastDelay(0),
-    m_Playing(false), m_Stopped(false),  m_Width(0), m_Height(0),
-    m_SwsCtx(NULL), m_CodecCtx(NULL), m_VideoStream(-1), m_AudioStream(-1),
-    m_rBuff(NULL), m_Buff(NULL), m_AvioBuffer(NULL), m_FramesIdx(0),
-    m_DecodedFrame(NULL), m_ConvertedFrame(NULL), m_Reader(NULL), m_Audio(NULL),
-    m_Buffering(false), m_ThreadCreated(false), m_SourceNeedWork(false),
-    m_DoSetSize(false), m_NewWidth(0), m_NewHeight(0), m_NoDisplay(false),
-    m_InDisplay(false)
+Video::Video(ape_global *n)
+    : m_TimerIdx(0), m_LastTimer(0), m_TimersDelay(0), m_Net(n),
+      m_AudioSource(NULL), m_FrameCbk(NULL), m_FrameCbkArg(NULL),
+      m_Shutdown(false), m_TmpFrame(0), m_FrameBuffer(0), m_FrameTimer(0),
+      m_LastPts(0), m_VideoClock(0.0f), m_AudioClock(0.0f), m_LastDelay(0),
+      m_Playing(false), m_Stopped(false), m_Width(0), m_Height(0),
+      m_SwsCtx(NULL), m_CodecCtx(NULL), m_VideoStream(-1), m_AudioStream(-1),
+      m_rBuff(NULL), m_Buff(NULL), m_AvioBuffer(NULL), m_FramesIdx(0),
+      m_DecodedFrame(NULL), m_ConvertedFrame(NULL), m_Reader(NULL),
+      m_Audio(NULL), m_Buffering(false), m_ThreadCreated(false),
+      m_SourceNeedWork(false), m_DoSetSize(false), m_NewWidth(0),
+      m_NewHeight(0), m_NoDisplay(false), m_InDisplay(false)
 {
     NIDIUM_PTHREAD_VAR_INIT(&m_BufferCond);
     NIDIUM_PTHREAD_VAR_INIT(&m_NotInDisplay);
@@ -64,8 +64,8 @@ Video::Video(ape_global *n):
     m_AudioQueue = new PacketQueue();
     m_VideoQueue = new PacketQueue();
 
-    m_DoSemek = false;
-    m_Seeking = false;
+    m_DoSemek   = false;
+    m_Seeking   = false;
     m_SeekFlags = 0;
 
     for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
@@ -75,10 +75,10 @@ Video::Video(ape_global *n):
 }
 
 // {{{ Open
-#define RETURN_WITH_ERROR(err) \
-this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
-this->closeInternal(true);\
-return err;
+#define RETURN_WITH_ERROR(err)                       \
+    this->sendEvent(SOURCE_EVENT_ERROR, err, false); \
+    this->closeInternal(true);                       \
+    return err;
 
 int Video::open(void *buffer, int size)
 {
@@ -86,18 +86,20 @@ int Video::open(void *buffer, int size)
         this->closeInternal(true);
     }
 
-    if (!(m_AvioBuffer = static_cast<unsigned char *>(av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE)))) {
+    if (!(m_AvioBuffer = static_cast<unsigned char *>(av_malloc(
+              NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE)))) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Reader = new AVBufferReader((uint8_t *)buffer, size);
+    m_Reader    = new AVBufferReader((uint8_t *)buffer, size);
     m_Container = avformat_alloc_context();
     if (!m_Container || !m_Reader) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Container->pb = avio_alloc_context(m_AvioBuffer, NIDIUM_AVIO_BUFFER_SIZE,
-        0, m_Reader, AVBufferReader::read, NULL, AVBufferReader::seek);
+    m_Container->pb
+        = avio_alloc_context(m_AvioBuffer, NIDIUM_AVIO_BUFFER_SIZE, 0, m_Reader,
+                             AVBufferReader::read, NULL, AVBufferReader::seek);
     if (!m_Container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -123,18 +125,21 @@ int Video::open(const char *src)
     m_Coro = Coro_new();
     Coro_initializeMainCoro(m_MainCoro);
 
-    if (!(m_AvioBuffer = static_cast<unsigned char *>(av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE)))) {
+    if (!(m_AvioBuffer = static_cast<unsigned char *>(av_malloc(
+              NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE)))) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Reader = new AVStreamReader(src, Video::sourceNeedWork, this, this, m_Net);
+    m_Reader
+        = new AVStreamReader(src, Video::sourceNeedWork, this, this, m_Net);
     m_Container = avformat_alloc_context();
     if (!m_Container) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Container->pb = avio_alloc_context(m_AvioBuffer, NIDIUM_AVIO_BUFFER_SIZE,
-        0, m_Reader, AVStreamReader::read, NULL, AVStreamReader::seek);
+    m_Container->pb
+        = avio_alloc_context(m_AvioBuffer, NIDIUM_AVIO_BUFFER_SIZE, 0, m_Reader,
+                             AVStreamReader::read, NULL, AVStreamReader::seek);
     if (!m_Container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -159,7 +164,7 @@ int Video::openInit()
 void Video::openInitCoro(void *arg)
 {
     DPRINT("openInitCoro()\n");
-    Video *thiz = (static_cast<Video*>(arg));
+    Video *thiz = (static_cast<Video *>(arg));
     int ret = thiz->openInitInternal();
     if (ret != 0) {
         thiz->sendEvent(SOURCE_EVENT_ERROR, ret, false);
@@ -178,7 +183,8 @@ int Video::openInitInternal()
 
     av_register_all();
 
-    int ret = avformat_open_input(&m_Container, "In memory video file", NULL, NULL);
+    int ret
+        = avformat_open_input(&m_Container, "In memory video file", NULL, NULL);
 
     if (ret != 0) {
         char error[1024];
@@ -196,9 +202,12 @@ int Video::openInitInternal()
     av_dump_format(m_Container, 0, "Memory input", 0);
 
     for (unsigned int i = 0; i < m_Container->nb_streams; i++) {
-        if (m_Container->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO && m_VideoStream == -1) {
+        if (m_Container->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO
+            && m_VideoStream == -1) {
             m_VideoStream = i;
-        } else if (m_Container->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO && m_AudioStream == -1) {
+        } else if (m_Container->streams[i]->codec->codec_type
+                       == AVMEDIA_TYPE_AUDIO
+                   && m_AudioStream == -1) {
             m_AudioStream = i;
         }
     }
@@ -208,8 +217,8 @@ int Video::openInitInternal()
     }
 
     m_CodecCtx = m_Container->streams[m_VideoStream]->codec;
-    //this->codecCtx->get_buffer = Video::getBuffer;
-    //this->codecCtx->release_buffer = Video::releaseBuffer;
+    // this->codecCtx->get_buffer = Video::getBuffer;
+    // this->codecCtx->release_buffer = Video::releaseBuffer;
 
     codec = avcodec_find_decoder(m_CodecCtx->codec_id);
     if (!codec) {
@@ -226,17 +235,16 @@ int Video::openInitInternal()
 
     // Ringbuffer that hold reference to decoded frames
     m_rBuff = new PaUtilRingBuffer();
-    m_Buff = (uint8_t*) malloc(sizeof(Video::Frame) * NIDIUM_VIDEO_BUFFER_SAMPLES);
+    m_Buff
+        = (uint8_t *)malloc(sizeof(Video::Frame) * NIDIUM_VIDEO_BUFFER_SAMPLES);
 
     if (m_Buff == NULL) {
         fprintf(stderr, "Failed to alloc buffer\n");
         return ERR_OOM;
     }
 
-    if (0 > PaUtil_InitializeRingBuffer(m_rBuff,
-            sizeof(Video::Frame),
-            NIDIUM_VIDEO_BUFFER_SAMPLES,
-            m_Buff)) {
+    if (0 > PaUtil_InitializeRingBuffer(m_rBuff, sizeof(Video::Frame),
+                                        NIDIUM_VIDEO_BUFFER_SAMPLES, m_Buff)) {
         fprintf(stderr, "Failed to init ringbuffer\n");
         return ERR_OOM;
     }
@@ -255,23 +263,25 @@ int Video::openInitInternal()
 #undef RETURN_WITH_ERROR
 // }}}
 
-void Video::frameCallback(VideoCallback cbk, void *arg) {
-    m_FrameCbk = cbk;
+void Video::frameCallback(VideoCallback cbk, void *arg)
+{
+    m_FrameCbk    = cbk;
     m_FrameCbkArg = arg;
 }
 
-void Video::play() {
+void Video::play()
+{
     if (!m_Opened || m_Playing) {
         return;
     }
 
-    m_Playing = true;
+    m_Playing    = true;
     m_FrameTimer = 0;
 
     bool haveTimer = false;
     for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
         if (m_Timers[i]->id == -1 && m_Timers[i]->delay != -1) {
-            haveTimer = true;
+            haveTimer       = true;
             m_Timers[i]->id = this->addTimer(m_Timers[i]->delay);
         }
     }
@@ -298,19 +308,20 @@ void Video::pause()
 
 void Video::close()
 {
-    m_Playing = false;
+    m_Playing    = false;
     m_VideoClock = 0;
-    m_LastDelay = 40e-3;
-    m_Error = 0;
+    m_LastDelay  = 40e-3;
+    m_Error      = 0;
 
     this->closeInternal(true);
 }
 
-void Video::stop() {
-    m_Playing = false;
+void Video::stop()
+{
+    m_Playing    = false;
     m_VideoClock = 0;
-    m_LastDelay = 40e-3;
-    m_Error = 0;
+    m_LastDelay  = 40e-3;
+    m_Error      = 0;
 
     if (m_AudioSource != NULL) {
         m_AudioSource->stop();
@@ -341,8 +352,8 @@ void Video::seek(double time, uint32_t flags)
     }
 
     m_DoSeekTime = time < 0 ? 0 : time;
-    m_DoSemek = true;
-    m_SeekFlags = flags;
+    m_DoSemek    = true;
+    m_SeekFlags  = flags;
 
     this->clearTimers(true);
     this->flushBuffers();
@@ -354,7 +365,7 @@ void Video::seek(double time, uint32_t flags)
 
 void Video::seekCoro(void *arg)
 {
-    Video *v = static_cast<Video *>(arg);
+    Video *v     = static_cast<Video *>(arg);
     v->m_Seeking = true;
     v->flushBuffers();
     v->seekInternal(v->m_DoSeekTime);
@@ -398,13 +409,14 @@ bool Video::seekMethod(int64_t target, int flags)
 
 int64_t Video::seekTarget(double time, int *flags)
 {
-    double clock = m_LastPts;
+    double clock   = m_LastPts;
     int64_t target = 0;
 
     *flags = time > clock ? 0 : AVSEEK_FLAG_BACKWARD;
     target = time * AV_TIME_BASE;
 
-    return av_rescale_q(target, AV_TIME_BASE_Q, m_Container->streams[m_VideoStream]->time_base);
+    return av_rescale_q(target, AV_TIME_BASE_Q,
+                        m_Container->streams[m_VideoStream]->time_base);
 }
 
 #define SEEK_THRESHOLD 2
@@ -421,11 +433,11 @@ void Video::seekInternal(double time)
     double seekTime;
     double diff;
 
-    int gotFrame = 0;
-    double pts = 0;
+    int gotFrame  = 0;
+    double pts    = 0;
     bool keyframe = false;
-    bool frame = false;
-    Packet *p = NULL;
+    bool frame    = false;
+    Packet *p     = NULL;
     AVPacket packet;
 
     DPRINT("SeekInternal\n");
@@ -436,11 +448,12 @@ void Video::seekInternal(double time)
     }
 
     seekTime = time;
-    diff = time - this->getClock();
-    target = this->seekTarget(time, &flags);
+    diff     = time - this->getClock();
+    target   = this->seekTarget(time, &flags);
 
     DPRINT("[SEEK] diff = %f, time = %lld\n", diff, av_gettime());
-    if (diff > SEEK_THRESHOLD || diff <= 0 || (m_SeekFlags & NIDIUM_VIDEO_SEEK_KEYFRAME)) {
+    if (diff > SEEK_THRESHOLD || diff <= 0
+        || (m_SeekFlags & NIDIUM_VIDEO_SEEK_KEYFRAME)) {
         // Flush all buffers
         this->clearAudioQueue();
         this->clearVideoQueue();
@@ -472,7 +485,7 @@ void Video::seekInternal(double time)
         keyframe = true;
         if (m_AudioSource != NULL) {
             // "in memory" seeking, we need to drop audio packet
-            for (; ;) {
+            for (;;) {
                 double tmp;
 
                 p = this->getPacket(m_AudioQueue);
@@ -480,7 +493,8 @@ void Video::seekInternal(double time)
                     break;
                 }
 
-                tmp = av_q2d(m_Container->streams[m_AudioStream]->time_base) * p->curr.pts;
+                tmp = av_q2d(m_Container->streams[m_AudioStream]->time_base)
+                      * p->curr.pts;
                 DPRINT("[SEEK] Dropping audio packet @ %f\n", tmp);
 
                 av_free_packet(&p->curr);
@@ -502,8 +516,9 @@ void Video::seekInternal(double time)
 
     flags = 0;
 
-    for (; ;) {
-        DPRINT("[SEEK] loop gotFrame = %d pts = %f seekTime = %f time = %f\n", gotFrame, pts, seekTime, time);
+    for (;;) {
+        DPRINT("[SEEK] loop gotFrame = %d pts = %f seekTime = %f time = %f\n",
+               gotFrame, pts, seekTime, time);
         if ((pts > seekTime + SEEK_STEP || pts > time) && !keyframe) {
             seekTime = seekTime - SEEK_STEP;
             if (seekTime < 0) seekTime = 0;
@@ -514,8 +529,8 @@ void Video::seekInternal(double time)
             }
             avcodec_flush_buffers(m_CodecCtx);
             keyframe = false;
-            frame = false;
-            pts = 0;
+            frame    = false;
+            pts      = 0;
             flags = 0;
             this->clearVideoQueue();
         }
@@ -541,7 +556,8 @@ void Video::seekInternal(double time)
                     DPRINT("[SEEK] Got packet @ %f\n", tmp);
                     this->addPacket(m_VideoQueue, &packet);
                     count++;
-                    if ((tmp > seekTime + SEEK_STEP || tmp > time) && !keyframe) {
+                    if ((tmp > seekTime + SEEK_STEP || tmp > time)
+                        && !keyframe) {
                         pts = tmp;
                         break;
                     }
@@ -563,19 +579,22 @@ void Video::seekInternal(double time)
             packet = p->curr;
         }
 
-        DPRINT("[SEEK] reading packet stream = %d, pts = %lld/%lld\n", packet.stream_index, packet.pts, packet.dts);
+        DPRINT("[SEEK] reading packet stream = %d, pts = %lld/%lld\n",
+               packet.stream_index, packet.pts, packet.dts);
 
         if (packet.stream_index == m_VideoStream) {
-            pts = this->getPts(&packet);
+            pts   = this->getPts(&packet);
             frame = true;
 
-            DPRINT("[SEEK] got video frame at = %f flags = %d\n", pts, packet.flags);
+            DPRINT("[SEEK] got video frame at = %f flags = %d\n", pts,
+                   packet.flags);
 
 
             if ((packet.flags & AV_PKT_FLAG_KEY) || keyframe) {
                 // We have our frame!
                 if ((pts >= time || seekTime == 0) && gotFrame) {
-                    if ((m_SeekFlags & NIDIUM_VIDEO_SEEK_PREVIOUS) && (pts != time && seekTime != 0)) {
+                    if ((m_SeekFlags & NIDIUM_VIDEO_SEEK_PREVIOUS)
+                        && (pts != time && seekTime != 0)) {
                         DPRINT("[SEEK] Seeked too far, rewind\n");
                         // When seeking to the previous frame, we need to be at
                         // the exact frame. As it's not the case, seek backward
@@ -584,7 +603,7 @@ void Video::seekInternal(double time)
                         continue;
                     }
                     DPRINT("[SEEK] got seek frame at = %f\n", pts);
-                    Packet *tmp = m_VideoQueue->head;
+                    Packet *tmp        = m_VideoQueue->head;
                     m_VideoQueue->head = p;
                     if (tmp == NULL) {
                         m_VideoQueue->tail = p;
@@ -599,7 +618,8 @@ void Video::seekInternal(double time)
                 }
 
                 DPRINT("[SEEK]  its a keyframe\n");
-                avcodec_decode_video2(m_CodecCtx, m_DecodedFrame, &gotFrame, &packet);
+                avcodec_decode_video2(m_CodecCtx, m_DecodedFrame, &gotFrame,
+                                      &packet);
                 if (gotFrame) {
                     DPRINT("[SEEK] = = = = GOT FRAME\n");
                     if (!keyframe) {
@@ -618,13 +638,14 @@ void Video::seekInternal(double time)
     }
 
     m_FrameTimer = 0; // frameTimer will be init at next display
-    m_LastPts = time;
-    m_DoSemek = false;
+    m_LastPts    = time;
+    m_DoSemek    = false;
 
 
 #ifdef DEBUG_PRINT
     double end = av_gettime();
-    DPRINT("[SEEK] seek took %f / firstFrame to end = %f \n", end-start, end-startFrame);
+    DPRINT("[SEEK] seek took %f / firstFrame to end = %f \n", end - start,
+           end - startFrame);
     DPRINT("Sending seekCond signal\n");
 #endif
     this->processVideo();
@@ -676,7 +697,7 @@ AudioSource *Video::getAudioNode(Audio *audio)
         audio->addSource(m_AudioSource, true);
         m_AudioSource->m_AudioStream = m_AudioStream;
         m_AudioSource->m_Container = m_Container;
-        m_AudioSource->eventCallback(NULL, NULL); //Disable events callbacks
+        m_AudioSource->eventCallback(NULL, NULL); // Disable events callbacks
         if (0 != m_AudioSource->initInternal()) {
             this->sendEvent(SOURCE_EVENT_ERROR, ERR_INIT_VIDEO_AUDIO, false);
             delete m_AudioSource;
@@ -692,7 +713,8 @@ AudioSource *Video::getAudioNode(Audio *audio)
     return m_AudioSource;
 }
 
-int Video::display(void *custom) {
+int Video::display(void *custom)
+{
     Video *v = static_cast<Video *>(custom);
 
     // Set pthread cond to false, so
@@ -704,11 +726,11 @@ int Video::display(void *custom) {
     DPRINT("[DISPLAY] %d\n", v->m_NoDisplay);
 
     // Reset timer from queue
-    v->m_Timers[v->m_LastTimer]->id = -1;
+    v->m_Timers[v->m_LastTimer]->id    = -1;
     v->m_Timers[v->m_LastTimer]->delay = -1;
 
     v->m_LastTimer++;
-    if (v->m_LastTimer > NIDIUM_VIDEO_BUFFER_SAMPLES-1) {
+    if (v->m_LastTimer > NIDIUM_VIDEO_BUFFER_SAMPLES - 1) {
         v->m_LastTimer = 0;
     }
 
@@ -743,7 +765,7 @@ int Video::display(void *custom) {
     Frame frame;
     PaUtil_ReadRingBuffer(v->m_rBuff, (void *)&frame, 1);
 
-    double pts = frame.pts;
+    double pts  = frame.pts;
     double diff = 0;
     double delay, actualDelay;
 
@@ -763,14 +785,16 @@ int Video::display(void *custom) {
     }
 
     v->m_LastDelay = delay;
-    v->m_LastPts = pts;
+    v->m_LastPts   = pts;
 
     if (v->m_AudioSource != NULL && v->m_AudioSource->m_IsConnected) {
         diff = pts - v->m_AudioSource->getClock();
 
-        DPRINT("Clocks audio=%f / video=%f / diff = %f\n", v->m_AudioSource->getClock(), pts, diff);
+        DPRINT("Clocks audio=%f / video=%f / diff = %f\n",
+               v->m_AudioSource->getClock(), pts, diff);
 
-        if (diff > NIDIUM_VIDEO_AUDIO_SYNC_THRESHOLD && v->m_AudioSource->avail() > 0) {
+        if (diff > NIDIUM_VIDEO_AUDIO_SYNC_THRESHOLD
+            && v->m_AudioSource->avail() > 0) {
             // Diff is too big an will be noticed
             // Let's drop some audio sample
             DPRINT("Dropping audio before=%f ", diff);
@@ -779,7 +803,9 @@ int Video::display(void *custom) {
         } else {
             double syncThreshold;
 
-            syncThreshold = (delay >= NIDIUM_VIDEO_SYNC_THRESHOLD) ? delay : NIDIUM_VIDEO_SYNC_THRESHOLD;
+            syncThreshold = (delay >= NIDIUM_VIDEO_SYNC_THRESHOLD)
+                                ? delay
+                                : NIDIUM_VIDEO_SYNC_THRESHOLD;
 
             if (fabs(diff) < NIDIUM_VIDEO_NOSYNC_THRESHOLD) {
                 if (diff <= -syncThreshold) {
@@ -794,7 +820,8 @@ int Video::display(void *custom) {
         }
     }
 
-    DPRINT("frameTimer=%f delay=%f videoClock=%f\n", v->m_FrameTimer, delay, pts);
+    DPRINT("frameTimer=%f delay=%f videoClock=%f\n", v->m_FrameTimer, delay,
+           pts);
     if (delay < 0) delay = 0;
     v->m_FrameTimer += delay * 1000;
     actualDelay = (v->m_FrameTimer - (av_gettime() / 1000.0)) / 1000;
@@ -814,7 +841,8 @@ int Video::display(void *custom) {
         }
     }
 
-    if (actualDelay > NIDIUM_VIDEO_SYNC_THRESHOLD || diff > 0 || !v->m_Playing) {
+    if (actualDelay > NIDIUM_VIDEO_SYNC_THRESHOLD || diff > 0
+        || !v->m_Playing) {
         // If not playing, we can be here because user seeked
         // while the video is paused, so send the frame anyway
 
@@ -844,14 +872,14 @@ int Video::setSizeInternal()
 
     // Flush buffers & timers to discard old frames
     this->flushBuffers();
-    //this->clearTimers(true);
+    // this->clearTimers(true);
 
-    int width = m_NewWidth == 0 ? m_CodecCtx->width : m_NewWidth;
+    int width  = m_NewWidth == 0 ? m_CodecCtx->width : m_NewWidth;
     int height = m_NewHeight == 0 ? m_CodecCtx->height : m_NewHeight;
 
     if (!m_SwsCtx) {
         // First call to setSizeInternal, init frames
-        m_DecodedFrame = av_frame_alloc();
+        m_DecodedFrame   = av_frame_alloc();
         m_ConvertedFrame = av_frame_alloc();
 
         if (m_DecodedFrame == NULL || m_ConvertedFrame == NULL) {
@@ -863,9 +891,9 @@ int Video::setSizeInternal()
         sws_freeContext(m_SwsCtx);
     }
 
-    m_SwsCtx = sws_getContext(m_CodecCtx->width, m_CodecCtx->height, m_CodecCtx->pix_fmt,
-                                  width, height, PIX_FMT_RGBA,
-                                  SWS_BICUBIC, NULL, NULL, NULL);
+    m_SwsCtx = sws_getContext(m_CodecCtx->width, m_CodecCtx->height,
+                              m_CodecCtx->pix_fmt, width, height, PIX_FMT_RGBA,
+                              SWS_BICUBIC, NULL, NULL, NULL);
 
     if (!m_SwsCtx) {
         m_NoDisplay = false;
@@ -873,13 +901,15 @@ int Video::setSizeInternal()
     }
 
     // Update the size of the frames in the frame pool
-    int frameSize = avpicture_fill(reinterpret_cast<AVPicture *>(m_ConvertedFrame), NULL, PIX_FMT_RGBA, width, height);
+    int frameSize
+        = avpicture_fill(reinterpret_cast<AVPicture *>(m_ConvertedFrame), NULL,
+                         PIX_FMT_RGBA, width, height);
     for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
         free(m_Frames[i]);
-        m_Frames[i] = static_cast<uint8_t*>(malloc(frameSize));
+        m_Frames[i] = static_cast<uint8_t *>(malloc(frameSize));
     }
 
-    m_Width = width;
+    m_Width  = width;
     m_Height = height;
 
     m_NoDisplay = false;
@@ -921,12 +951,12 @@ void Video::setSize(int width, int height)
         return;
     }
 
-    m_NewWidth = width;
+    m_NewWidth  = width;
     m_NewHeight = height;
 
     m_DoSetSize = true;
 
-    //NIDIUM_PTHREAD_SIGNAL(&this->bufferCond);
+    // NIDIUM_PTHREAD_SIGNAL(&this->bufferCond);
 }
 
 // {{{ Buffer
@@ -954,8 +984,8 @@ void Video::buffer()
 
 void Video::bufferCoro(void *arg)
 {
-   Video *v = static_cast<Video*>(arg);
-   v->bufferInternal();
+    Video *v = static_cast<Video *>(arg);
+    v->bufferInternal();
 
     if (!v->m_Reader->m_Pending) {
         v->m_Buffering = false;
@@ -991,7 +1021,8 @@ void Video::bufferInternal()
     }
 
     while (loopCond) {
-        DPRINT("    => buffering loop needAudio=%d / needVideo=%d\n", needAudio, needVideo);
+        DPRINT("    => buffering loop needAudio=%d / needVideo=%d\n", needAudio,
+               needVideo);
         int ret = av_read_frame(m_Container, &packet);
         DPRINT("    -> post read frame\n");
 
@@ -1013,11 +1044,11 @@ void Video::bufferInternal()
         if (packet.stream_index == m_VideoStream) {
             this->addPacket(m_VideoQueue, &packet);
             needVideo--;
-        } else if (packet.stream_index == m_AudioStream &&
-            ((m_AudioSource != NULL && m_AudioSource->m_IsConnected) ||
-              this->getClock() == 0)) {
-                this->addPacket(m_AudioQueue, &packet);
-                needAudio--;
+        } else if (packet.stream_index == m_AudioStream
+                   && ((m_AudioSource != NULL && m_AudioSource->m_IsConnected)
+                       || this->getClock() == 0)) {
+            this->addPacket(m_AudioQueue, &packet);
+            needAudio--;
         } else {
             av_free_packet(&packet);
         }
@@ -1033,7 +1064,7 @@ void *Video::decode(void *args)
 {
     Video *v = static_cast<Video *>(args);
 
-    for (; ;) {
+    for (;;) {
         DPRINT("decode loop\n");
         v->lockDecodeThread();
 
@@ -1053,24 +1084,28 @@ void *Video::decode(void *args)
                         v->m_DoSemek = false;
                     } else {
                         DPRINT("    running seek coro\n");
-                        Coro_startCoro_(v->m_MainCoro, v->m_Coro, v, Video::seekCoro);
+                        Coro_startCoro_(v->m_MainCoro, v->m_Coro, v,
+                                        Video::seekCoro);
                     }
                     DPRINT("done seeking\n");
                 } else {
                     DPRINT("buffering\n");
-                    //DPRINT("Coro space main = %d coro = %d\n",
-                    //    Coro_stackSpaceAlmostGone(v->mainCoro), Coro_stackSpaceAlmostGone(v->coro));
+                    // DPRINT("Coro space main = %d coro = %d\n",
+                    //    Coro_stackSpaceAlmostGone(v->mainCoro),
+                    //    Coro_stackSpaceAlmostGone(v->coro));
                     v->buffer();
                 }
             }
 
-            DPRINT("doSeek=%d readFlag=%d seeking=%d\n", v->m_DoSemek, v->m_SourceNeedWork, v->m_Seeking);
+            DPRINT("doSeek=%d readFlag=%d seeking=%d\n", v->m_DoSemek,
+                   v->m_SourceNeedWork, v->m_Seeking);
             if (!v->m_DoSemek) {
                 DPRINT("processing\n");
                 bool videoFailed = !v->processVideo();
                 bool audioFailed = !v->processAudio();
 #ifdef DEBUG_PRINT
-                DPRINT("audioFailed=%d videoFailed=%d\n", audioFailed, videoFailed);
+                DPRINT("audioFailed=%d videoFailed=%d\n", audioFailed,
+                       videoFailed);
 #else
                 (void)videoFailed;
                 (void)audioFailed;
@@ -1079,7 +1114,8 @@ void *Video::decode(void *args)
         } else if (v->m_SourceDoOpen) {
             v->m_SourceDoOpen = false;
             if (v->m_Reader->m_Async) {
-                Coro_startCoro_(v->m_MainCoro, v->m_Coro, v, Video::openInitCoro);
+                Coro_startCoro_(v->m_MainCoro, v->m_Coro, v,
+                                Video::openInitCoro);
             } else {
                 v->openInitInternal();
             }
@@ -1125,7 +1161,7 @@ void Video::stopAudio()
 
 void Video::sourceNeedWork(void *ptr)
 {
-    Video *thiz = static_cast<Video*>(ptr);
+    Video *thiz            = static_cast<Video *>(ptr);
     thiz->m_SourceNeedWork = true;
     NIDIUM_PTHREAD_SIGNAL(&thiz->m_BufferCond);
 }
@@ -1144,7 +1180,8 @@ bool Video::processAudio()
         return false;
     }
 
-    while (m_AudioSource->work()) {}
+    while (m_AudioSource->work()) {
+    }
 
     // TODO : We should wakup the thread only
     // if source had processed data
@@ -1165,7 +1202,7 @@ bool Video::processVideo()
 
     if (m_DoSetSize) {
         m_DoSetSize = false;
-        int ret = this->setSizeInternal();
+        int ret     = this->setSizeInternal();
 
         if (ret < 0) {
             return false;
@@ -1201,9 +1238,9 @@ bool Video::processFrame(AVFrame *avFrame)
 {
     Frame frame;
     frame.data = m_Frames[m_FramesIdx];
-    frame.pts = this->getPts(avFrame);
+    frame.pts  = this->getPts(avFrame);
 
-    bool ret = this->convertFrame(avFrame, (uint8_t*) frame.data);
+    bool ret = this->convertFrame(avFrame, (uint8_t *)frame.data);
 
     // Write frame to rBuff, the frame will be consumed
     // later by Video::display() (UI Thread)
@@ -1223,14 +1260,13 @@ bool Video::convertFrame(AVFrame *avFrame, uint8_t *dst)
 {
     // Format the frame for sws_scale
     uint8_t *tmp[1];
-    tmp[0] = (uint8_t *)dst;
-    uint8_t * const *out = (uint8_t * const*)tmp;
+    tmp[0]              = (uint8_t *)dst;
+    uint8_t *const *out = (uint8_t * const *)tmp;
 
     // Convert the image from its native format to RGBA
     // TODO : Move this to a shader
-    sws_scale(m_SwsCtx,
-              avFrame->data, avFrame->linesize,
-              0, m_CodecCtx->height, out, m_ConvertedFrame->linesize);
+    sws_scale(m_SwsCtx, avFrame->data, avFrame->linesize, 0, m_CodecCtx->height,
+              out, m_ConvertedFrame->linesize);
 
     return true;
 }
@@ -1256,7 +1292,8 @@ double Video::getPts(AVFrame *frame)
 {
     uint64_t pts = av_frame_get_best_effort_timestamp(frame);
 
-    return this->syncVideo(pts) * av_q2d(m_Container->streams[m_VideoStream]->time_base);
+    return this->syncVideo(pts)
+           * av_q2d(m_Container->streams[m_VideoStream]->time_base);
 }
 
 double Video::getPts(AVPacket *packet)
@@ -1271,7 +1308,8 @@ double Video::getPts(AVPacket *packet)
         pts = 0;
     }
 
-    return this->syncVideo(pts) * av_q2d(m_Container->streams[m_VideoStream]->time_base);
+    return this->syncVideo(pts)
+           * av_q2d(m_Container->streams[m_VideoStream]->time_base);
 }
 
 void Video::scheduleDisplay(int delay)
@@ -1279,13 +1317,14 @@ void Video::scheduleDisplay(int delay)
     this->scheduleDisplay(delay, false);
 }
 
-void Video::scheduleDisplay(int delay, bool force) {
+void Video::scheduleDisplay(int delay, bool force)
+{
     if (!m_Opened) {
         return;
     }
 
     m_Timers[m_TimerIdx]->delay = delay;
-    m_Timers[m_TimerIdx]->id = -1;
+    m_Timers[m_TimerIdx]->id    = -1;
 
     DPRINT("scheduleDisplay in %d\n", delay);
 
@@ -1295,7 +1334,7 @@ void Video::scheduleDisplay(int delay, bool force) {
 
     m_TimerIdx++;
 
-    if (m_TimerIdx > NIDIUM_VIDEO_BUFFER_SAMPLES-1) {
+    if (m_TimerIdx > NIDIUM_VIDEO_BUFFER_SAMPLES - 1) {
         m_TimerIdx = 0;
     }
 }
@@ -1304,8 +1343,8 @@ int Video::addTimer(int delay)
 {
     /* XXX timer is protected by default and will not be cleared upon refresh.
         Is that the desired behaviour ? */
-    return APE_timer_getid(APE_timer_create(m_Net, delay,
-        Video::display, this));
+    return APE_timer_getid(
+        APE_timer_create(m_Net, delay, Video::display, this));
 }
 
 bool Video::addPacket(PacketQueue *queue, AVPacket *packet)
@@ -1313,7 +1352,7 @@ bool Video::addPacket(PacketQueue *queue, AVPacket *packet)
     av_dup_packet(packet);
 
     Packet *pkt = new Packet();
-    pkt->curr = *packet;
+    pkt->curr   = *packet;
 
     if (!queue->tail) {
         queue->head = pkt;
@@ -1355,7 +1394,7 @@ void Video::clearTimers(bool reset)
             APE_timer_clearbyid(m_Net, m_Timers[i]->id, 1);
         }
         if (reset) {
-            m_Timers[i]->id = -1;
+            m_Timers[i]->id    = -1;
             m_Timers[i]->delay = -1;
         } else {
             delete m_Timers[i];
@@ -1385,8 +1424,8 @@ void Video::clearAudioQueue()
         delete pkt;
         pkt = next;
     }
-    m_AudioQueue->head = NULL;
-    m_AudioQueue->tail = NULL;
+    m_AudioQueue->head  = NULL;
+    m_AudioQueue->tail  = NULL;
     m_AudioQueue->count = 0;
 }
 
@@ -1400,8 +1439,8 @@ void Video::clearVideoQueue()
         delete pkt;
         pkt = next;
     }
-    m_VideoQueue->head = NULL;
-    m_VideoQueue->tail = NULL;
+    m_VideoQueue->head  = NULL;
+    m_VideoQueue->tail  = NULL;
     m_VideoQueue->count = 0;
 }
 
@@ -1503,7 +1542,7 @@ void Video::closeInternal(bool reset)
         Coro_free(m_MainCoro);
         Coro_free(m_Coro);
         m_MainCoro = NULL;
-        m_Coro = NULL;
+        m_Coro     = NULL;
     }
 
     delete m_rBuff;
@@ -1515,26 +1554,27 @@ void Video::closeInternal(bool reset)
 
     free(m_Buff);
 
-    m_rBuff = NULL;
-    m_CodecCtx = NULL;
+    m_rBuff          = NULL;
+    m_CodecCtx       = NULL;
     m_ConvertedFrame = NULL;
-    m_DecodedFrame = NULL;
-    m_SwsCtx = NULL;
-    m_Buff = NULL;
-    m_Container = NULL;
-    m_Reader = NULL;
-    m_AvioBuffer = NULL;
+    m_DecodedFrame   = NULL;
+    m_SwsCtx         = NULL;
+    m_Buff           = NULL;
+    m_Container      = NULL;
+    m_Reader         = NULL;
+    m_AvioBuffer     = NULL;
 
     if (m_AudioSource != NULL) {
         delete m_AudioSource;
         m_AudioSource = NULL;
     }
 
-    m_Opened = false;
+    m_Opened       = false;
     m_SourceDoOpen = false;
 }
 
-Video::~Video() {
+Video::~Video()
+{
     this->closeInternal(false);
 }
 
@@ -1548,8 +1588,8 @@ bool VideoAudioSource::buffer()
         }
 
         Video::Packet *p = m_Video->getPacket(m_Video->m_AudioQueue);
-        m_TmpPacket = &p->curr;
-        m_FreePacket = p;
+        m_TmpPacket      = &p->curr;
+        m_FreePacket     = p;
         m_PacketConsumed = false;
 
         return true;
@@ -1560,4 +1600,3 @@ bool VideoAudioSource::buffer()
 
 } // namespace AV
 } // namespace Nidium
-

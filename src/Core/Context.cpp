@@ -21,14 +21,13 @@ namespace Nidium {
 namespace Core {
 
 
-Context::Context(ape_global *ape) :
-    m_APECtx(ape)
+Context::Context(ape_global *ape) : m_APECtx(ape)
 {
     m_JS = new NidiumJS(ape, this);
 
     Path::RegisterScheme(SCHEME_DEFINE("file://", FileStream, false), true);
-    Path::RegisterScheme(SCHEME_DEFINE("http://", HTTPStream,    true));
-    Path::RegisterScheme(SCHEME_DEFINE("https://", HTTPStream,    true));
+    Path::RegisterScheme(SCHEME_DEFINE("http://", HTTPStream, true));
+    Path::RegisterScheme(SCHEME_DEFINE("https://", HTTPStream, true));
 
     TaskManager::CreateManager();
     Messages::InitReader(ape);
@@ -41,7 +40,7 @@ Context::Context(ape_global *ape) :
 int Context::Ping(void *arg)
 {
     static uint64_t framecount = 0;
-    NidiumJS *js = static_cast<NidiumJS *>(arg);
+    NidiumJS *js               = static_cast<NidiumJS *>(arg);
 
     if (++framecount % 1000 == 0) {
         js->gc();
@@ -87,4 +86,3 @@ Context::~Context()
 
 } // namespace Core
 } // namespace Nidium
-

@@ -40,7 +40,7 @@ void *TaskManager::workerInfo::work()
         SharedMessages::Message *msg;
 
         while ((msg = m_Messages.readMessage())) {
-            Task *task = static_cast<Task *>(msg->dataPtr());
+            Task *task       = static_cast<Task *>(msg->dataPtr());
             Managed *managed = task->getObject();
 
             managed->lockTasks();
@@ -77,8 +77,7 @@ void TaskManager_workerInfo_MessageCleaner(const SharedMessages::Message &msg)
     delete task;
 }
 
-TaskManager::workerInfo::workerInfo() :
-    m_Stop(false), m_Manager(NULL)
+TaskManager::workerInfo::workerInfo() : m_Stop(false), m_Manager(NULL)
 {
     pthread_mutex_init(&m_Lock, NULL);
     pthread_cond_init(&m_Cond, NULL);
@@ -121,7 +120,7 @@ void TaskManager::workerInfo::addTask(Task *task)
 TaskManager::TaskManager()
 {
     m_Threadpool.count = 0;
-    m_Threadpool.size = NIDIUM_TASKMANAGER_MAX_THREAD;
+    m_Threadpool.size  = NIDIUM_TASKMANAGER_MAX_THREAD;
 
     m_Threadpool.worker = new workerInfo[NIDIUM_TASKMANAGER_MAX_THREAD];
 
@@ -142,12 +141,13 @@ int TaskManager::createWorker(int count)
         Limit reached
     */
     if (m_Threadpool.count + count > m_Threadpool.size) {
-        actualCount = count - ((m_Threadpool.count + count) - m_Threadpool.size);
+        actualCount
+            = count - ((m_Threadpool.count + count) - m_Threadpool.size);
     }
 
     for (int i = 0; i < actualCount; i++) {
 
-        workerInfo *worker = &m_Threadpool.worker[m_Threadpool.count+i];
+        workerInfo *worker = &m_Threadpool.worker[m_Threadpool.count + i];
 
         worker->setManager(this);
         worker->run();
@@ -243,4 +243,3 @@ void Managed::addTask(Task *task)
 
 } // namespace Core
 } // namespace Nidium
-

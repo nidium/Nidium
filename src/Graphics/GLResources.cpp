@@ -11,11 +11,13 @@ namespace Nidium {
 namespace Graphics {
 
 GLResources::Resource::Resource(uint32_t glid,
-    GLResources::ResourceType type, char *name) :
+                                GLResources::ResourceType type,
+                                char *name)
+    :
 
-    m_Glid(glid), m_Type(type)
+      m_Glid(glid),
+      m_Type(type)
 {
-
 }
 
 void GLResources::add(uint32_t glid, ResourceType type, const char *name)
@@ -24,8 +26,7 @@ void GLResources::add(uint32_t glid, ResourceType type, const char *name)
         return;
     }
 
-    GLResources::Resource *res = new GLResources::Resource(glid,
-        type, NULL);
+    GLResources::Resource *res = new GLResources::Resource(glid, type, NULL);
 
     m_List.set(this->genId(glid, type), res);
 }
@@ -33,7 +34,7 @@ void GLResources::add(uint32_t glid, ResourceType type, const char *name)
 
 GLResources::Resource::~Resource()
 {
-    switch(m_Type) {
+    switch (m_Type) {
         case GLResources::RPROGRAM:
             glDeleteProgram(m_Glid);
             break;
@@ -60,4 +61,3 @@ GLResources::Resource::~Resource()
 
 } // namespace Graphics
 } // namespace Nidium
-

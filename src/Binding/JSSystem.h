@@ -15,7 +15,7 @@ namespace Binding {
 
 class JSSystem : public JSExposer<JSSystem>
 {
-  public:
+public:
     static void RegisterObject(JSContext *cx);
 };
 
@@ -23,4 +23,3 @@ class JSSystem : public JSExposer<JSSystem>
 } // namespce Nidium
 
 #endif
-

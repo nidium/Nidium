@@ -18,8 +18,7 @@ using Nidium::Core::Path;
 namespace Nidium {
 namespace IO {
 
-NFS::NFS(uint8_t *content, size_t size) :
-    m_ContentPtr(0)
+NFS::NFS(uint8_t *content, size_t size) : m_ContentPtr(0)
 {
     m_Content = content;
     m_Size    = size;
@@ -31,26 +30,25 @@ NFS::NFS(uint8_t *content, size_t size) :
     }
 }
 
-NFS::NFS() :
-    m_Content(NULL), m_ContentPtr(0), m_Size(0)
+NFS::NFS() : m_Content(NULL), m_ContentPtr(0), m_Size(0)
 {
     this->initRoot();
 
-    m_Header.crc32 = 0;
-    m_Header.flags = 0;
+    m_Header.crc32       = 0;
+    m_Header.flags       = 0;
     m_Header.magicnumber = NIDIUM_NFS_MAGIC;
-    m_Header.minversion = 100;
-    m_Header.numfiles = 0;
+    m_Header.minversion  = 100;
+    m_Header.numfiles    = 0;
 }
 
 void NFS::initRoot()
 {
     m_Root.header.filename_length = 1;
-    m_Root.filename_utf8 = strdup("/");
-    m_Root.next = NULL;
-    m_Root.meta.children = NULL;
-    m_Root.header.flags = kNFSFileType_Dir;
-    m_Root.header.size = 0;
+    m_Root.filename_utf8          = strdup("/");
+    m_Root.next                   = NULL;
+    m_Root.meta.children          = NULL;
+    m_Root.header.flags           = kNFSFileType_Dir;
+    m_Root.header.size            = 0;
 
     m_Hash.set(m_Root.filename_utf8, &m_Root);
 }
@@ -67,7 +65,7 @@ struct nfs_file_header_s {
 
 bool NFS::validateArchive()
 {
-    if (m_Size < sizeof (struct nfs_header_s)) {
+    if (m_Size < sizeof(struct nfs_header_s)) {
         return false;
     }
 
@@ -104,7 +102,7 @@ bool NFS::mkdir(const char *name_utf8, size_t name_len)
     NFSTree *parent;
 
     if (strlen(dir.ptr())) {
-        dir.ptr()[strlen(dir.ptr())-1] = '\0';
+        dir.ptr()[strlen(dir.ptr()) - 1] = '\0';
     }
 
     if (strlen(dir.ptr()) == 0) {
@@ -126,9 +124,9 @@ bool NFS::mkdir(const char *name_utf8, size_t name_len)
 
     newdir->next = parent->meta.children;
 
-    newdir->header.flags = kNFSFileType_Dir;
+    newdir->header.flags           = kNFSFileType_Dir;
     newdir->header.filename_length = path_len;
-    newdir->header.size = 0;
+    newdir->header.size            = 0;
 
     parent->header.size++;
     parent->meta.children = newdir;
@@ -139,8 +137,11 @@ bool NFS::mkdir(const char *name_utf8, size_t name_len)
     return true;
 }
 
-bool NFS::writeFile(const char *name_utf8, size_t name_len, char *content,
-        size_t len, int flags)
+bool NFS::writeFile(const char *name_utf8,
+                    size_t name_len,
+                    char *content,
+                    size_t len,
+                    int flags)
 {
 
     PtrAutoDelete<char *> path(Path::Sanitize(name_utf8));
@@ -154,7 +155,7 @@ bool NFS::writeFile(const char *name_utf8, size_t name_len, char *content,
     PtrAutoDelete<char *> dir(Path::GetDir(name_utf8));
 
     if (strlen(dir.ptr())) {
-        dir.ptr()[strlen(dir.ptr())-1] = '\0';
+        dir.ptr()[strlen(dir.ptr()) - 1] = '\0';
     }
 
     NFSTree *parent;
@@ -171,14 +172,14 @@ bool NFS::writeFile(const char *name_utf8, size_t name_len, char *content,
     NFSTree *newfile = new NFSTree;
 
     newfile->meta.content = reinterpret_cast<uint8_t *>(content);
-    newfile->header.size = len;
+    newfile->header.size  = len;
 
     newfile->filename_utf8 = static_cast<char *>(malloc(path_len + 1));
     memcpy(newfile->filename_utf8, path.ptr(), path_len);
     newfile->filename_utf8[path_len] = '\0';
-    newfile->header.flags = flags;
+    newfile->header.flags            = flags;
 
-    newfile->next = parent->meta.children;
+    newfile->next                   = parent->meta.children;
     newfile->header.filename_length = path_len;
 
     parent->header.size++;
@@ -190,8 +191,7 @@ bool NFS::writeFile(const char *name_utf8, size_t name_len, char *content,
     return true;
 }
 
-const char *NFS::readFile(const char *filename, size_t *len,
-    int *flags) const
+const char *NFS::readFile(const char *filename, size_t *len, int *flags) const
 {
     NFSTree *file = m_Hash.get(filename);
     if (file == NULL || (file->header.flags & kNFSFileType_Dir)) {
@@ -260,11 +260,12 @@ void NFS::readTree(NFSTree *parent)
 
     NFSTree *item = new NFSTree;
 
-    item->next = parent->meta.children;
+    item->next            = parent->meta.children;
     parent->meta.children = item;
 
     this->readContent(&item->header, sizeof(struct nfs_file_header_s));
-    item->filename_utf8 = static_cast<char *>(malloc(item->header.filename_length + 1));
+    item->filename_utf8
+        = static_cast<char *>(malloc(item->header.filename_length + 1));
     this->readContent(item->filename_utf8, item->header.filename_length);
     item->filename_utf8[item->header.filename_length] = '\0';
 
@@ -318,4 +319,3 @@ NFS::~NFS()
 
 } // namespace IO
 } // namespace Nidium
-

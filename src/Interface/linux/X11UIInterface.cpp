@@ -38,9 +38,9 @@ static Window *UIX11Interface(SDL_Window *m_Win)
 // }}}
 
 // {{{ UIX11Interface
-UIX11Interface::UIX11Interface() : UIInterface(), m_Mainjs({0, 0, 0}), m_Console(NULL)
+UIX11Interface::UIX11Interface()
+    : UIInterface(), m_Mainjs({ 0, 0, 0 }), m_Console(NULL)
 {
-
 }
 
 void UIX11Interface::quitApplication()
@@ -65,18 +65,17 @@ void UIX11Interface::onWindowCreated()
 
 
 void UIX11Interface::openFileDialog(const char *files[],
-    void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags)
+                                    void (*cb)(void *nof,
+                                               const char *lst[],
+                                               uint32_t len),
+                                    void *arg,
+                                    int flags)
 {
     GtkWidget *dialog;
 
-    dialog = gtk_file_chooser_dialog_new ("Open File",
-            nullptr,
-            GTK_FILE_CHOOSER_ACTION_OPEN,
-            "_Cancel",
-            GTK_RESPONSE_CANCEL,
-            "_Open",
-            GTK_RESPONSE_ACCEPT,
-            nullptr);
+    dialog = gtk_file_chooser_dialog_new(
+        "Open File", nullptr, GTK_FILE_CHOOSER_ACTION_OPEN, "_Cancel",
+        GTK_RESPONSE_CANCEL, "_Open", GTK_RESPONSE_ACCEPT, nullptr);
 
     if (files != NULL) {
         GtkFileFilter *filter;
@@ -87,7 +86,8 @@ void UIX11Interface::openFileDialog(const char *files[],
         filter = gtk_file_filter_new();
 
         for (int i = 0; files[i] != NULL; i++) {
-            char *name = static_cast<char *>(calloc(sizeof(char), strlen(files[i]) + 3));
+            char *name = static_cast<char *>(
+                calloc(sizeof(char), strlen(files[i]) + 3));
             if (!name) continue;
 
             strcat(name, "*.");
@@ -95,7 +95,7 @@ void UIX11Interface::openFileDialog(const char *files[],
 
             gtk_file_filter_add_pattern(filter, name);
 
-            nameLength += strlen(files[i])+4;
+            nameLength += strlen(files[i]) + 4;
 
             if (nameLength < 256) {
                 strcat(names, name);
@@ -106,19 +106,20 @@ void UIX11Interface::openFileDialog(const char *files[],
         }
 
         if (nameLength > 0) {
-            gtk_file_filter_set_name(GTK_FILE_FILTER(filter), (const gchar *)names);
+            gtk_file_filter_set_name(GTK_FILE_FILTER(filter),
+                                     (const gchar *)names);
         }
 
-        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), GTK_FILE_FILTER(filter));
+        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog),
+                                    GTK_FILE_FILTER(filter));
     }
 
     gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(dialog), TRUE);
     const char **lst = NULL;
     int i = 0;
-    if (gtk_dialog_run (GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
-    {
+    if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
         GSList *filenames, *list;
-        filenames = gtk_file_chooser_get_filenames (GTK_FILE_CHOOSER(dialog));
+        filenames = gtk_file_chooser_get_filenames(GTK_FILE_CHOOSER(dialog));
         guint len = g_slist_length(filenames);
 
         lst = static_cast<const char **>(malloc(sizeof(char *) * len));
@@ -131,7 +132,7 @@ void UIX11Interface::openFileDialog(const char *files[],
         while (list) {
             if (list->data) {
                 lst[i] = strdup(static_cast<const char *>(list->data));
-                g_free (list->data);
+                g_free(list->data);
                 i++;
             }
             list = list->next;
@@ -149,7 +150,7 @@ void UIX11Interface::openFileDialog(const char *files[],
         cb(arg, lst, i);
 
         for (int j = 0; j < i; j++) {
-            //TODO: new style cast
+            // TODO: new style cast
             free((void *)(lst[j]));
         }
     } else {
@@ -161,7 +162,7 @@ void UIX11Interface::openFileDialog(const char *files[],
 
 static int ProcessSystemLoop(void *arg)
 {
-    //SDL_PumpEvents();
+    // SDL_PumpEvents();
     UIX11Interface *ui = static_cast<UIX11Interface *>(arg);
 
     /*if (ui->getNidiumContext()) {
@@ -174,14 +175,15 @@ static int ProcessSystemLoop(void *arg)
 
 void UIX11Interface::runLoop()
 {
-    APE_timer_create(m_Gnet, 1, UIInterface::HandleEvents, static_cast<void *>(this));
+    APE_timer_create(m_Gnet, 1, UIInterface::HandleEvents,
+                     static_cast<void *>(this));
     APE_timer_create(m_Gnet, 1, ProcessSystemLoop, static_cast<void *>(this));
     APE_loop_run(m_Gnet);
 }
 
 void UIX11Interface::processGtkPendingEvents()
 {
-    while (gtk_events_pending ()) {
+    while (gtk_events_pending()) {
         gtk_main_iteration();
     }
 }
@@ -191,7 +193,7 @@ void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)
     int cursor;
     SDL_SysWMinfo info;
 
-    switch(cursorvalue) {
+    switch (cursorvalue) {
         case UIX11Interface::ARROW:
             cursor = XC_left_ptr;
             break;
@@ -215,7 +217,7 @@ void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)
     SDL_VERSION(&info.version);
 
     if (SDL_GetWindowWMInfo(m_Win, &info)) {
-        Cursor c = XCreateFontCursor(info.info.x11.display, cursor);
+        Cursor c   = XCreateFontCursor(info.info.x11.display, cursor);
         Display *d = info.info.x11.display;
 
         XDefineCursor(d, info.info.x11.window, c);
@@ -225,7 +227,7 @@ void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)
 }
 void tray_icon_on_click(GtkStatusIcon *status_icon, gpointer user_data)
 {
-        printf("Clicked on tray icon\n");
+    printf("Clicked on tray icon\n");
 }
 void UIX11Interface::enableSysTray()
 {
@@ -258,7 +260,6 @@ void UIX11Interface::enableSysTray()
 
 void UIX11Interface::renderSystemTray()
 {
-
 }
 
 // }}}
@@ -268,18 +269,18 @@ void UIX11Console::log(const char *str)
 {
     if (m_IsOpen) {
         GtkScrolledWindow *scroll = GTK_SCROLLED_WINDOW(m_Scroll);
-        GtkTextMark *mark = gtk_text_buffer_get_insert(m_Buffer);
+        GtkTextMark *mark         = gtk_text_buffer_get_insert(m_Buffer);
         GtkTextIter iter;
-    
+
         // Add the text
-        gtk_text_buffer_get_iter_at_mark (m_Buffer , &iter, mark);
-        gtk_text_buffer_insert (m_Buffer, &iter, str, -1);
+        gtk_text_buffer_get_iter_at_mark(m_Buffer, &iter, mark);
+        gtk_text_buffer_insert(m_Buffer, &iter, str, -1);
 
         // Scroll the window
-        GtkAdjustment *adjustment = 
-            gtk_scrolled_window_get_vadjustment(scroll);
+        GtkAdjustment *adjustment = gtk_scrolled_window_get_vadjustment(scroll);
 
-        gtk_adjustment_set_value(adjustment, gtk_adjustment_get_upper(adjustment));
+        gtk_adjustment_set_value(adjustment,
+                                 gtk_adjustment_get_upper(adjustment));
 
         m_Interface->processGtkPendingEvents();
     } else {
@@ -302,12 +303,13 @@ void UIX11Console::show()
         GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
         m_TextView = gtk_text_view_new();
-        m_Window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-        m_Buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(m_TextView));
-        m_Scroll = gtk_scrolled_window_new(NULL, NULL);
+        m_Window   = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+        m_Buffer   = gtk_text_view_get_buffer(GTK_TEXT_VIEW(m_TextView));
+        m_Scroll   = gtk_scrolled_window_new(NULL, NULL);
 
-        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(m_Scroll), 
-            GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(m_Scroll),
+                                       GTK_POLICY_AUTOMATIC,
+                                       GTK_POLICY_AUTOMATIC);
 
         gtk_text_view_set_editable(GTK_TEXT_VIEW(m_TextView), FALSE);
         gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(m_TextView), FALSE);
@@ -323,7 +325,8 @@ void UIX11Console::show()
 
         gtk_container_add(GTK_CONTAINER(m_Window), vbox);
 
-        g_signal_connect(m_Window, "delete-event", G_CALLBACK(consoleHidden), this);
+        g_signal_connect(m_Window, "delete-event", G_CALLBACK(consoleHidden),
+                         this);
     }
 
     gtk_widget_show_all(m_Window);
@@ -343,4 +346,3 @@ void UIX11Console::hide()
 
 } // namespace Interface
 } // namespace Nidium
-

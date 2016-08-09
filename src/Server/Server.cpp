@@ -118,7 +118,8 @@ void Server::wait()
 
             if (WIFSIGNALED(state)) {
                 int idx_crash = m_PidIdxMapper[pid];
-                fprintf(stderr, "[Crash] Worker %d has crashed :'(\n", idx_crash);
+                fprintf(stderr, "[Crash] Worker %d has crashed :'(\n",
+                        idx_crash);
 
                 if (this->initWorker(&idx_crash) == 0) {
                     return;
@@ -131,8 +132,8 @@ void Server::wait()
 void Server::displayVersion()
 {
 #include "ASCII.h"
-    fprintf(stdout, nidium_ascii, NIDIUM_SERVER_VERSION,
-        __DATE__, __TIME__, getpid(), m_NWorkers);
+    fprintf(stdout, nidium_ascii, NIDIUM_SERVER_VERSION, __DATE__, __TIME__,
+            getpid(), m_NWorkers);
 }
 
 int Server::initWorker(int *idx)
@@ -142,14 +143,14 @@ int Server::initWorker(int *idx)
     }
 
     pid_t pid = 0;
-    /* Execute the worker for the child process and returns 0 */
+/* Execute the worker for the child process and returns 0 */
 #ifndef NIDIUM_NO_FORK
     if ((pid = fork()) == 0) {
 #endif
         Worker worker(*idx, (m_HasREPL && *idx == 1));
 
         setproctitle("Nidium-Server:<%s> (worker %d)",
-            m_InstanceName ? m_InstanceName : "noname", *idx);
+                     m_InstanceName ? m_InstanceName : "noname", *idx);
 
         worker.run(m_Args.argc, m_Args.argv, m_JSStrictMode);
 
@@ -177,19 +178,20 @@ int Server::Start(int argc, char *argv[])
     return server->init();
 }
 
-void Server::Usage( struct option * long_options, const char ** text_blocks)
+void Server::Usage(struct option *long_options, const char **text_blocks)
 {
     struct option *opt;
-    char const * text;
+    char const *text;
     size_t i;
 
     opt = long_options;
     i = 0;
     Server::displayVersion();
-    fprintf(stdout, "Usage: %s [options] JS_FILE\n\toptions: \n", "nidium-server");
-    while( opt->name != NULL) {
+    fprintf(stdout, "Usage: %s [options] JS_FILE\n\toptions: \n",
+            "nidium-server");
+    while (opt->name != NULL) {
         text = text_blocks[i];
-        fprintf(stdout, "\t-%c --%-10s %s\n", opt->val, opt->name, text );
+        fprintf(stdout, "\t-%c --%-10s %s\n", opt->val, opt->name, text);
         opt++;
         i++;
     }
@@ -200,30 +202,24 @@ int Server::init()
     bool daemon = false;
     int workers = 1;
 
-    static char const * text_blocks[5] = {
-        "Enable Strict mode",
-        "Run as daemon",
-        "Start multiple workers",
-        "Set process name",
-        "This text"
-    };
+    static char const *text_blocks[5]
+        = { "Enable Strict mode", "Run as daemon", "Start multiple workers",
+            "Set process name", "This text" };
 
-    static struct option long_options[] =
-    {
-        {"strict",     no_argument,       0, 's'},
-        {"daemon",     no_argument,       0, 'd'},
-        {"workers",    required_argument, 0, 'w'},
-        {"name",       required_argument, 0, 'n'},
-        {"help",       no_argument,       0, 'h'},
-        {0, 0, 0, 0}
-    };
+    static struct option long_options[]
+        = { { "strict", no_argument, 0, 's' },
+            { "daemon", no_argument, 0, 'd' },
+            { "workers", required_argument, 0, 'w' },
+            { "name", required_argument, 0, 'n' },
+            { "help", no_argument, 0, 'h' },
+            { 0, 0, 0, 0 } };
 
     _ape_seed = time(NULL) ^ (getpid() << 16);
 
     signal(SIGINT, &signal_handler);
     signal(SIGTERM, &signal_handler);
     signal(SIGQUIT, &signal_handler);
-    //signal(SIGCHLD, SIG_IGN);
+    // signal(SIGCHLD, SIG_IGN);
 
     int ch;
     /*
@@ -231,7 +227,9 @@ int Server::init()
     */
     setenv("POSIXLY_CORRECT", "1", 1);
 
-    while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dsw:n:h?", long_options, NULL)) != -1) {
+    while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dsw:n:h?", long_options,
+                             NULL))
+           != -1) {
         switch (ch) {
             case 'd':
                 daemon = true;
@@ -263,7 +261,8 @@ int Server::init()
     m_Args.argv += optind;
 
     if (workers > NIDIUM_MAX_WORKERS) {
-        fprintf(stderr, "[Error] Too many worker requested : max %d\n", NIDIUM_MAX_WORKERS);
+        fprintf(stderr, "[Error] Too many worker requested : max %d\n",
+                NIDIUM_MAX_WORKERS);
         exit(1);
     }
 
@@ -297,9 +296,9 @@ int Server::init()
     return 1;
 }
 
-Server::Server(int argc, char **argv) :
-    m_WorkerIdx(0), m_InstanceName(NULL), m_HasREPL(true),
-    m_JSStrictMode(false), m_NWorkers(0)
+Server::Server(int argc, char **argv)
+    : m_WorkerIdx(0), m_InstanceName(NULL), m_HasREPL(true),
+      m_JSStrictMode(false), m_NWorkers(0)
 {
     m_Args.argc = argc;
     m_Args.argv = argv;
@@ -307,20 +306,17 @@ Server::Server(int argc, char **argv) :
 // }}}
 
 // {{{ Worker
-Worker::Worker(int idx, bool repl) :
-    m_Idx(idx), m_RunREPL(repl)
+Worker::Worker(int idx, bool repl) : m_Idx(idx), m_RunREPL(repl)
 {
-
 }
 
 Worker::~Worker()
 {
-
 }
 
 int Worker::run(int argc, char **argv, bool jsstrict)
 {
-    REPL *repl = NULL;
+    REPL *repl      = NULL;
     ape_global *net = APE_init();
 
     inc_rlimit(64000);
@@ -331,9 +327,9 @@ int Worker::run(int argc, char **argv, bool jsstrict)
 
     const NidiumJS *js = ctx.getNJS();
     JSProcess::RegisterObject(js->getJSContext(), argv, argc,
-        this->getIdentifier());
+                              this->getIdentifier());
 
-    /*
+/*
         Daemon requires a .js to load
     */
 
@@ -373,4 +369,3 @@ int Worker::run(int argc, char **argv, bool jsstrict)
 
 } // namespace Server
 } // namespace Nidium
-

@@ -14,10 +14,9 @@
 #include <Core/Messages.h>
 
 namespace Nidium {
-    namespace Binding {
-        class NidiumJS;
-    }
-
+namespace Binding {
+class NidiumJS;
+}
 
 
 namespace Server {
@@ -30,23 +29,28 @@ public:
     void onMessage(const Core::SharedMessages::Message &msg);
     void onMessageLost(const Core::SharedMessages::Message &msg);
 
-    sem_t *getReadLineLock() {
+    sem_t *getReadLineLock()
+    {
         return &m_ReadLineLock;
     }
 
-    bool isContinuing() const {
+    bool isContinuing() const
+    {
         return m_Continue;
     }
 
-    int getExitCount() const {
+    int getExitCount() const
+    {
         return m_ExitCount;
     }
 
-    int setExitCount(int val) {
+    int setExitCount(int val)
+    {
         m_ExitCount = val;
 
         return m_ExitCount;
     }
+
 private:
     pthread_t m_ThreadHandle;
     sem_t m_ReadLineLock;
@@ -63,4 +67,3 @@ private:
 } // namespace Nidium
 
 #endif
-

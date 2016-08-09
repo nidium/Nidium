@@ -13,26 +13,26 @@ namespace Interface {
 
 class System : public SystemInterface
 {
-    public:
-        System();
-        ~System();
-        float backingStorePixelRatio();
-        const char *getCacheDirectory();
-        const char *getEmbedDirectory();
-        const char *getUserDirectory();
-        void alert(const char *message, AlertType type = ALERT_INFO);
-        void initSystemUI();
-        const char *cwd();
-        const char *getLanguage();
-        void sendNotification(const char *title, const char *content, bool sound);
-        const char *execute(const char *cmd);
-    private:
-        bool m_SystemUIReady;
-        char *m_EmbedPath;
+public:
+    System();
+    ~System();
+    float backingStorePixelRatio();
+    const char *getCacheDirectory();
+    const char *getEmbedDirectory();
+    const char *getUserDirectory();
+    void alert(const char *message, AlertType type = ALERT_INFO);
+    void initSystemUI();
+    const char *cwd();
+    const char *getLanguage();
+    void sendNotification(const char *title, const char *content, bool sound);
+    const char *execute(const char *cmd);
+
+private:
+    bool m_SystemUIReady;
+    char *m_EmbedPath;
 };
 
 } // namespace Interface
 } // namespace Nidium
 
 #endif
-

@@ -15,44 +15,50 @@ class System;
 
 class SystemInterface
 {
-    public:
+public:
+    enum AlertType
+    {
+        ALERT_WARNING = 0,
+        ALERT_INFO    = 1,
+        ALERT_CRITIC  = 2
+    };
 
-        enum AlertType {
-            ALERT_WARNING = 0,
-            ALERT_INFO = 1,
-            ALERT_CRITIC = 2
-        };
+    virtual float backingStorePixelRatio() = 0;
+    virtual void openURLInBrowser(const char *url)
+    {
+        return;
+    }
+    virtual const char *execute(const char *cmd)
+    {
+        return NULL;
+    }
+    virtual const char *getCacheDirectory() = 0;
+    virtual const char *getEmbedDirectory() = 0;
+    virtual const char *getUserDirectory()
+    {
+        return "~/";
+    };
+    virtual void alert(const char *message, AlertType type = ALERT_INFO) = 0;
+    virtual const char *cwd() = 0;
+    virtual const char *getLanguage() = 0;
+    virtual void sendNotification(const char *title,
+                                  const char *content,
+                                  bool sound = false){};
+    static SystemInterface *GetInstance()
+    {
+        return SystemInterface::_interface;
+    }
+    static SystemInterface *_interface;
+    virtual ~SystemInterface(){};
 
-        virtual float backingStorePixelRatio()=0;
-        virtual void openURLInBrowser(const char *url) {
-            return;
-        }
-        virtual const char *execute(const char *cmd) {
-            return NULL;
-        }
-        virtual const char *getCacheDirectory()=0;
-        virtual const char *getEmbedDirectory()=0;
-        virtual const char *getUserDirectory() {
-            return "~/";
-        };
-        virtual void alert(const char *message, AlertType type = ALERT_INFO)=0;
-        virtual const char *cwd()=0;
-        virtual const char *getLanguage()=0;
-        virtual void sendNotification(const char *title, const char *content, bool sound = false) {};
-        static SystemInterface* GetInstance()
-        {
-            return SystemInterface::_interface;
-        }
-        static SystemInterface *_interface;
-        virtual ~SystemInterface() {};
-    private:
-        void operator=(System const&);
-    protected:
-        float m_fBackingStorePixelRatio;
+private:
+    void operator=(System const &);
+
+protected:
+    float m_fBackingStorePixelRatio;
 };
 
 } // namespace Interface
 } // namespace Nidium
 
 #endif
-

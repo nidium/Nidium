@@ -13,7 +13,7 @@ namespace Binding {
 
 class JSConsole : public JSExposer<JSConsole>
 {
-  public:
+public:
     static void RegisterObject(JSContext *cx);
 };
 
@@ -21,4 +21,3 @@ class JSConsole : public JSExposer<JSConsole>
 } // namespace Nidium
 
 #endif
-

@@ -12,7 +12,8 @@
 #include "Core/Args.h"
 
 /*
-    TODO: Add "max messages in queue" to guard memory congestion in case of allocation
+    TODO: Add "max messages in queue" to guard memory congestion in case of
+   allocation
          (i.e. Nidium::Core:App extractor)
 */
 
@@ -27,70 +28,86 @@ typedef struct _nidium_shared_message
 
 class SharedMessages
 {
-  public:
+public:
     class Message
     {
-        public:
-            Message(void *ptr, int type, void *dest = NULL)
-            : prev(NULL), m_Type(type), m_Dest(dest) {
-                m_Msgdata.dataptr = ptr;
-            }
-            Message(uint64_t dataint, int type, void *dest = NULL)
-            : prev(NULL), m_Type(type), m_Dest(dest) {
-                m_Msgdata.dataint = dataint;
-            }
+    public:
+        Message(void *ptr, int type, void *dest = NULL)
+            : prev(NULL), m_Type(type), m_Dest(dest)
+        {
+            m_Msgdata.dataptr = ptr;
+        }
+        Message(uint64_t dataint, int type, void *dest = NULL)
+            : prev(NULL), m_Type(type), m_Dest(dest)
+        {
+            m_Msgdata.dataint = dataint;
+        }
 
-            Message(int type) : prev(NULL), m_Type(type), m_Dest(NULL) {
-            }
+        Message(int type) : prev(NULL), m_Type(type), m_Dest(NULL)
+        {
+        }
 
-            ~Message() {}
+        ~Message()
+        {
+        }
 
-            Message() {}
+        Message()
+        {
+        }
 
-            void *dataPtr() const {
-                return m_Msgdata.dataptr;
-            }
+        void *dataPtr() const
+        {
+            return m_Msgdata.dataptr;
+        }
 
-            void *dest() const {
-                return m_Dest;
-            }
+        void *dest() const
+        {
+            return m_Dest;
+        }
 
-            void setDest(void *dest) {
-                m_Dest = dest;
-            }
+        void setDest(void *dest)
+        {
+            m_Dest = dest;
+        }
 
-            void setForceAsync() {
-                m_ForceAsync = true;
-            }
+        void setForceAsync()
+        {
+            m_ForceAsync = true;
+        }
 
-            bool forceAsync() {
-                return m_ForceAsync;
-            }
+        bool forceAsync()
+        {
+            return m_ForceAsync;
+        }
 
-            uint64_t dataUInt() const {
-                return m_Msgdata.dataint;
-            }
+        uint64_t dataUInt() const
+        {
+            return m_Msgdata.dataint;
+        }
 
-            int event() const {
-                return m_Type;
-            }
+        int event() const
+        {
+            return m_Type;
+        }
 
-            Message *prev;
-            Args m_Args;
-            uint32_t m_Priv;
-        private:
+        Message *prev;
+        Args m_Args;
+        uint32_t m_Priv;
 
-            union {
-                void *dataptr;
-                uint64_t dataint;
-            } m_Msgdata;
+    private:
+        union
+        {
+            void *dataptr;
+            uint64_t dataint;
+        } m_Msgdata;
 
-            int m_Type;
-            void *m_Dest;
-            bool m_ForceAsync = false;
+        int m_Type;
+        void *m_Dest;
+        bool m_ForceAsync = false;
     };
 
-    typedef void (*nidium_shared_message_cleaner)(const SharedMessages::Message &msg);
+    typedef void (*nidium_shared_message_cleaner)(
+        const SharedMessages::Message &msg);
 
     SharedMessages();
     ~SharedMessages();
@@ -100,19 +117,22 @@ class SharedMessages
     void postMessage(uint64_t dataint, int event);
     Message *readMessage(bool stopOnAsync = false);
     void delMessagesForDest(void *dest, int event = -1);
-    void setCleaner(nidium_shared_message_cleaner cleaner) {
+    void setCleaner(nidium_shared_message_cleaner cleaner)
+    {
         m_Cleaner = cleaner;
     }
 
-    bool hasAsyncMessages() {
+    bool hasAsyncMessages()
+    {
         return m_MessagesList.asyncCount != 0;
     }
 
-    bool hasPendingMessages() const {
+    bool hasPendingMessages() const
+    {
         return m_MessagesList.count != 0;
     }
-  private:
 
+private:
     struct
     {
         int count;
@@ -132,4 +152,3 @@ class SharedMessages
 } // namespace Nidium
 
 #endif
-

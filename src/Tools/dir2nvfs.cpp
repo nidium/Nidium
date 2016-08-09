@@ -48,10 +48,11 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
 
     while ((cur = readdir(dir)) != NULL) {
         std::string newpath = fullpath + "/" + cur->d_name;
-        const char *vpath = &newpath.c_str()[strip];
+        const char *vpath   = &newpath.c_str()[strip];
 
         if (cur->d_type & DT_DIR) {
-            if (strcmp(cur->d_name, ".") == 0 || strcmp(cur->d_name, "..") == 0) {
+            if (strcmp(cur->d_name, ".") == 0
+                || strcmp(cur->d_name, "..") == 0) {
                 continue;
             }
 
@@ -63,18 +64,20 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
             listdir(nfs, opendir(newpath.c_str()), newpath, strip);
         } else if (cur->d_type & DT_REG) {
 
-            //PtrAutoDelete<Stream *> stream(Stream::Create(newpath.c_str()));
+            // PtrAutoDelete<Stream *> stream(Stream::Create(newpath.c_str()));
             Stream *stream = Stream::Create(newpath.c_str());
 
             if (stream == NULL) {
-                fprintf(stderr, "Could not create stream for file %s\n", newpath.c_str());
+                fprintf(stderr, "Could not create stream for file %s\n",
+                        newpath.c_str());
                 continue;
             }
             char *content;
             size_t len;
 
             if (!stream->getContentSync(&content, &len, true)) {
-                fprintf(stderr, "Could not read stream for file %s\n", newpath.c_str());
+                fprintf(stderr, "Could not read stream for file %s\n",
+                        newpath.c_str());
                 continue;
             }
 
@@ -92,7 +95,7 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
 
 static Core::Context *initNidiumJS()
 {
-    _ape_seed = time(NULL) ^ (getpid() << 16);
+    _ape_seed       = time(NULL) ^ (getpid() << 16);
     ape_global *net = APE_init();
     return new Core::Context(net);
 }
@@ -100,7 +103,7 @@ static Core::Context *initNidiumJS()
 static int Embed(int argc, char **argv)
 {
     Core::Context *ncx = initNidiumJS();
-    JSContext *cx = ncx->getNJS()->getJSContext();
+    JSContext *cx      = ncx->getNJS()->getJSContext();
 
     if (argc <= 1) {
         printf("$ %s <path> [prefix] [> out]\n", argv[0]);
@@ -138,9 +141,10 @@ static int Embed(int argc, char **argv)
     return 0;
 }
 
-} //namespace Tools
-} //namespace Nidium
+} // namespace Tools
+} // namespace Nidium
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     return Nidium::Tools::Embed(argc, argv);
 }

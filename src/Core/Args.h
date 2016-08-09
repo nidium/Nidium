@@ -16,44 +16,54 @@ namespace Core {
 class Args
 {
 public:
-    class ArgsValue {
+    class ArgsValue
+    {
     public:
-        ArgsValue() : m_Value(0LL), m_isSet(false) {
+        ArgsValue() : m_Value(0LL), m_isSet(false)
+        {
             m_ValuePtr = NULL;
         }
 
-        void *toPtr() const {
+        void *toPtr() const
+        {
             return m_ValuePtr;
         }
 
-        int64_t toInt64() const {
+        int64_t toInt64() const
+        {
             return m_Value;
         }
 
-        int32_t toInt() const {
+        int32_t toInt() const
+        {
             return static_cast<int32_t>(m_Value);
         }
 
-        bool toBool() const {
+        bool toBool() const
+        {
             return static_cast<bool>(m_Value);
         }
 
-        bool isSet() const {
+        bool isSet() const
+        {
             return m_isSet;
         }
 
-        void set(void *val) {
-            m_isSet = true;
+        void set(void *val)
+        {
+            m_isSet    = true;
             m_ValuePtr = val;
         }
 
-        void set(int64_t val) {
+        void set(int64_t val)
+        {
             m_isSet = true;
             m_Value = val;
         }
 
     private:
-        union {
+        union
+        {
             uint64_t m_Value;
             void *m_ValuePtr;
         };
@@ -61,23 +71,26 @@ public:
         bool m_isSet;
     };
 
-    Args() : m_FillArgs(0) {
+    Args() : m_FillArgs(0)
+    {
         m_NumArgs = 10;
-        m_Args = new ArgsValue[m_NumArgs];
+        m_Args    = new ArgsValue[m_NumArgs];
     }
 
-    ~Args() {
+    ~Args()
+    {
         delete[] m_Args;
     }
 
-    ArgsValue& operator[] (int idx) {
+    ArgsValue &operator[](int idx)
+    {
         if (idx >= m_FillArgs) {
             m_FillArgs = idx + 1;
         }
 
         if (idx >= m_NumArgs) {
             printf("[Err] Args overflow\n");
-            *(volatile int*)0 = 42;
+            *(volatile int *)0 = 42;
         }
 
         return m_Args[idx];
@@ -86,15 +99,19 @@ public:
     /*
         Const version protect against overflow
     */
-    const ArgsValue& operator[] (int idx) const {
+    const ArgsValue &operator[](int idx) const
+    {
         if (idx >= m_NumArgs) {
-            printf("/!\\ Overflow in accessing Args value. Beggining of the array returned\n");
+            printf(
+                "/!\\ Overflow in accessing Args value. Beggining of the array "
+                "returned\n");
             return m_Args[0];
         }
         return m_Args[idx];
     }
 
-    int size() const {
+    int size() const
+    {
         return m_FillArgs;
     }
 
@@ -108,4 +125,3 @@ private:
 } // namespace Nidium
 
 #endif
-

@@ -12,14 +12,15 @@
 namespace Nidium {
 namespace Core {
 
-SharedMessages::SharedMessages() :
+SharedMessages::SharedMessages()
+    :
 
-    m_Cleaner(NULL)
+      m_Cleaner(NULL)
 {
-    m_MessagesList.count = 0;
+    m_MessagesList.count      = 0;
     m_MessagesList.asyncCount = 0;
-    m_MessagesList.head  = NULL;
-    m_MessagesList.queue = NULL;
+    m_MessagesList.head       = NULL;
+    m_MessagesList.queue      = NULL;
 
     pthread_mutex_init(&m_MessagesList.lock, NULL);
 }
@@ -44,7 +45,7 @@ void SharedMessages::postMessage(uint64_t dataint, int event)
     this->addMessage(new Message(dataint, event));
 }
 
-void SharedMessages::addMessage(Message *msg) 
+void SharedMessages::addMessage(Message *msg)
 {
     PthreadAutoLock lock(&m_MessagesList.lock);
 
@@ -98,13 +99,13 @@ void SharedMessages::delMessagesForDest(void *dest, int event)
     PthreadAutoLock lock(&m_MessagesList.lock);
 
     Message *message = m_MessagesList.queue;
-    Message *next = NULL;
+    Message *next    = NULL;
 
     while (message != NULL) {
         Message *tmp = message->prev;
 
-        if ((dest == NULL || message->dest() == dest) &&
-            (event == -1 || event == message->event())) {
+        if ((dest == NULL || message->dest() == dest)
+            && (event == -1 || event == message->event())) {
 
             if (next != NULL) {
                 next->prev = message->prev;
@@ -140,4 +141,3 @@ void SharedMessages::delMessagesForDest(void *dest, int event)
 
 } // namespace Core
 } // namespace Nidium
-

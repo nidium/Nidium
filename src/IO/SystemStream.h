@@ -17,24 +17,27 @@ namespace IO {
 class SystemStream : public IO::FileStream
 {
 public:
-    explicit SystemStream(const char *location) :
-        IO::FileStream(location)
+    explicit SystemStream(const char *location) : IO::FileStream(location)
     {
     }
 
-    static IO::Stream *CreateStream(const char *location) {
+    static IO::Stream *CreateStream(const char *location)
+    {
         return new SystemStream(location);
     }
 
-    static bool AllowLocalFileStream() {
+    static bool AllowLocalFileStream()
+    {
         return true;
     }
 
-    static bool AllowSyncStream() {
+    static bool AllowSyncStream()
+    {
         return true;
     }
 
-    static const char *GetBaseDir() {
+    static const char *GetBaseDir()
+    {
         return "/";
     }
 };
@@ -44,20 +47,22 @@ public:
 class UserStream : public IO::FileStream
 {
 public:
-    explicit UserStream(const char *location) :
-        IO::FileStream(location)
+    explicit UserStream(const char *location) : IO::FileStream(location)
     {
     }
 
-    static IO::Stream *CreateStream(const char *location) {
+    static IO::Stream *CreateStream(const char *location)
+    {
         return new UserStream(location);
     }
 
-    static bool AllowLocalFileStream() {
+    static bool AllowLocalFileStream()
+    {
         return true;
     }
 
-    static bool AllowSyncStream() {
+    static bool AllowSyncStream()
+    {
         return true;
     }
 
@@ -65,28 +70,31 @@ public:
 };
 // }}}
 
-// {{{ PrivateStream 
+// {{{ PrivateStream
 class PrivateStream : public IO::FileStream
 {
 public:
-    explicit PrivateStream(const char *location) :
-        IO::FileStream(location)
+    explicit PrivateStream(const char *location) : IO::FileStream(location)
     {
     }
 
-    static IO::Stream *CreateStream(const char *location) {
+    static IO::Stream *CreateStream(const char *location)
+    {
         return new PrivateStream(location);
     }
 
-    static bool AllowLocalFileStream() {
+    static bool AllowLocalFileStream()
+    {
         return true;
     }
 
-    static bool AllowSyncStream() {
+    static bool AllowSyncStream()
+    {
         return true;
     }
 
     static const char *GetBaseDir();
+
 private:
     static const char *m_BaseDir;
 };
@@ -96,4 +104,3 @@ private:
 } // namespace Nidium
 
 #endif
-

@@ -13,14 +13,14 @@ namespace Binding {
 
 class JSDebug : public JSExposer<JSDebug>
 {
-  public:
-    JSDebug(JS::HandleObject obj, JSContext *cx) :
-    JSExposer<JSDebug>(obj, cx)
-    {};
-    virtual ~JSDebug() {};
+public:
+    JSDebug(JS::HandleObject obj, JSContext *cx)
+        : JSExposer<JSDebug>(obj, cx){};
+    virtual ~JSDebug(){};
 
     static void RegisterObject(JSContext *cx);
-    static const char *GetJSObjectName() {
+    static const char *GetJSObjectName()
+    {
         return "Debug";
     }
 };
@@ -29,4 +29,3 @@ class JSDebug : public JSExposer<JSDebug>
 } // namespace Nidium
 
 #endif
-

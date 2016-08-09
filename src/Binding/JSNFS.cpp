@@ -22,14 +22,17 @@ namespace Binding {
 
 // {{{ JSNFS
 
-JSNFS::JSNFS(JSContext *cx): IO::NFS()
+JSNFS::JSNFS(JSContext *cx) : IO::NFS()
 {
     m_JS.cx = cx;
     m_JS.rt = JS_GetRuntime(cx);
 }
 
-bool JSNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
-        size_t len, int flags)
+bool JSNFS::writeFile(const char *name_utf8,
+                      size_t name_len,
+                      char *content,
+                      size_t len,
+                      int flags)
 {
 
     PtrAutoDelete<char *> path(Path::Sanitize(name_utf8, NULL));
@@ -43,7 +46,7 @@ bool JSNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
     PtrAutoDelete<char *> dir(Path::GetDir(name_utf8));
 
     if (strlen(dir.ptr())) {
-        dir.ptr()[strlen(dir.ptr())-1] = '\0';
+        dir.ptr()[strlen(dir.ptr()) - 1] = '\0';
     }
 
     NFSTree *parent;
@@ -60,29 +63,32 @@ bool JSNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
     NFSTree *newfile = new NFSTree;
 
     newfile->meta.content = reinterpret_cast<uint8_t *>(content);
-    newfile->header.size = len;
+    newfile->header.size  = len;
 
     newfile->filename_utf8 = static_cast<char *>(malloc(path_len + 1));
     memcpy(newfile->filename_utf8, path.ptr(), path_len);
     newfile->filename_utf8[path_len] = '\0';
-    newfile->header.flags = flags;
+    newfile->header.flags            = flags;
 
-    if (strncasecmp(&newfile->filename_utf8[path_len-3], CONST_STR_LEN(".js")) == 0) {
+    if (strncasecmp(&newfile->filename_utf8[path_len - 3], CONST_STR_LEN(".js"))
+        == 0) {
         uint32_t bytecode_len;
         uint8_t *bytecode;
 
-        if ((bytecode = static_cast<uint8_t *>(this->buildJS(content, len, newfile->filename_utf8, &bytecode_len))) == NULL) {
+        if ((bytecode = static_cast<uint8_t *>(this->buildJS(
+                 content, len, newfile->filename_utf8, &bytecode_len)))
+            == NULL) {
             delete newfile;
             return false;
         }
 
         newfile->meta.content = static_cast<uint8_t *>(bytecode);
-        newfile->header.size = bytecode_len;
+        newfile->header.size  = bytecode_len;
 
         newfile->header.flags = flags | kNFSFileType_JSBytecode;
     }
 
-    newfile->next = parent->meta.children;
+    newfile->next                   = parent->meta.children;
     newfile->header.filename_length = path_len;
 
     parent->header.size++;
@@ -94,21 +100,23 @@ bool JSNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
     return true;
 }
 
-void *JSNFS::buildJS(const char *data, size_t len, const char *filename, uint32_t *outlen)
+void *JSNFS::buildJS(const char *data,
+                     size_t len,
+                     const char *filename,
+                     uint32_t *outlen)
 {
     JS::RootedObject gbl(m_JS.cx, JS::CurrentGlobalOrNull(m_JS.cx));
     JS::CompileOptions options(m_JS.cx);
 
-    options.setUTF8(true)
-           .setFileAndLine(filename, 1);
+    options.setUTF8(true).setFileAndLine(filename, 1);
 
     JS::RootedObject rgbl(m_JS.cx, gbl);
     JS::AutoSaveContextOptions asco(m_JS.cx);
 
-    JS::ContextOptionsRef(m_JS.cx).setNoScriptRval(true)
-                             .setVarObjFix(true);
+    JS::ContextOptionsRef(m_JS.cx).setNoScriptRval(true).setVarObjFix(true);
 
-    JS::RootedScript script(m_JS.cx, JS::Compile(m_JS.cx, rgbl, options, data, len));
+    JS::RootedScript script(m_JS.cx,
+                            JS::Compile(m_JS.cx, rgbl, options, data, len));
 
     if (!script) {
         if (JS_IsExceptionPending(m_JS.cx)) {
@@ -131,4 +139,3 @@ void JSNFS::initRoot()
 
 } // namespace Binding
 } // namespace Nidium
-

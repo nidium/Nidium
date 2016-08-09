@@ -16,8 +16,8 @@ namespace IO {
 
 // {{{ Implementation
 
-FileStream::FileStream(const char *location) :
-    Stream(location), m_File(location)
+FileStream::FileStream(const char *location)
+    : Stream(location), m_File(location)
 {
     /* We don't want the file to close when end of file is reached */
     m_File.setAutoClose(false);
@@ -83,10 +83,10 @@ void FileStream::seek(size_t pos)
 
     m_File.seek(pos);
     m_File.read(m_PacketsSize);
-    m_PendingSeek = true;
+    m_PendingSeek           = true;
     m_DataBuffer.back->used = 0;
-    m_NeedToSendUpdate = true;
-    m_DataBuffer.ended = false;
+    m_NeedToSendUpdate      = true;
+    m_DataBuffer.ended      = false;
 }
 
 // }}}
@@ -96,7 +96,7 @@ void FileStream::seek(size_t pos)
 void FileStream::onStart(size_t packets, size_t seek)
 {
     if (m_DataBuffer.back == NULL) {
-        m_DataBuffer.back = buffer_new(packets);
+        m_DataBuffer.back  = buffer_new(packets);
         m_DataBuffer.front = buffer_new(packets);
     }
 
@@ -123,14 +123,15 @@ const unsigned char *FileStream::onGetNextPacket(size_t *len, int *err)
             Notify the listener whenever data become available
         */
         m_NeedToSendUpdate = !m_DataBuffer.ended;
-        *err = (m_DataBuffer.ended && m_DataBuffer.alreadyRead && !m_PendingSeek ?
-            Stream::kDataStatus_End : Stream::kDataStatus_Again);
+        *err               = (m_DataBuffer.ended && m_DataBuffer.alreadyRead && !m_PendingSeek
+                    ? Stream::kDataStatus_End
+                    : Stream::kDataStatus_Again);
 
         return NULL;
     }
 
-    data = m_DataBuffer.back->data;
-    *len = nidium_min(m_DataBuffer.back->used, m_PacketsSize);
+    data                     = m_DataBuffer.back->data;
+    *len                     = nidium_min(m_DataBuffer.back->used, m_PacketsSize);
     m_DataBuffer.alreadyRead = true;
 
     this->swapBuffer();
@@ -163,15 +164,14 @@ void FileStream::onMessage(const Core::SharedMessages::Message &msg)
             break;
         case File::kEvents_SeekError:
             this->errorSync(Stream::kErrors_Seek, -1);
-            /* fall through */
+        /* fall through */
         case File::kEvents_SeekSuccess:
             m_PendingSeek = false;
             break;
         case File::kEvents_ReadError:
             this->errorSync(Stream::kErrors_Read, msg.m_Args[0].toInt());
             break;
-        case File::kEvents_ReadSuccess:
-        {
+        case File::kEvents_ReadSuccess: {
             if (m_PendingSeek) {
                 break;
             }
@@ -199,7 +199,7 @@ void FileStream::onMessage(const Core::SharedMessages::Message &msg)
                     if (m_NeedToSendUpdate) {
                         m_NeedToSendUpdate = false;
                         CREATE_MESSAGE(message_available,
-                            Stream::kEvents_AvailableData);
+                                       Stream::kEvents_AvailableData);
                         message_available->m_Args[0].set(buf->used);
                         this->notifySync(message_available);
                     }
@@ -220,4 +220,3 @@ void FileStream::onMessage(const Core::SharedMessages::Message &msg)
 
 } // namespace IO
 } // namespace Nidium
-

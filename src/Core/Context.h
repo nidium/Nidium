@@ -13,9 +13,8 @@ typedef struct _ape_global ape_global;
 
 namespace Nidium {
 
-namespace Binding
-{
-    class NidiumJS;
+namespace Binding {
+class NidiumJS;
 }
 
 namespace Core {
@@ -28,30 +27,34 @@ public:
     virtual ~Context();
 
     template <typename T>
-    static T *GetObject(struct JSContext *cx) {
+    static T *GetObject(struct JSContext *cx)
+    {
         return static_cast<T *>(Binding::NidiumJS::GetObject(cx)->getContext());
     }
 
     template <typename T>
-    static T *GetObject(Binding::NidiumJS *njs) {
+    static T *GetObject(Binding::NidiumJS *njs)
+    {
         return static_cast<T *>(njs->getContext());
     }
 
-    Binding::NidiumJS *getNJS() const {
+    Binding::NidiumJS *getNJS() const
+    {
         return m_JS;
     }
 
     virtual void log(const char *str);
     virtual void vlog(const char *format, ...);
-    virtual void vlog(const char *format, va_list args); 
-    virtual void logClear() {};
-    virtual void logShow() {};
-    virtual void logHide() {};
+    virtual void vlog(const char *format, va_list args);
+    virtual void logClear(){};
+    virtual void logShow(){};
+    virtual void logHide(){};
 
 protected:
     static int Ping(void *arg);
 
-    void destroyJS() {
+    void destroyJS()
+    {
         if (m_JS) {
             delete m_JS;
             m_JS = NULL;

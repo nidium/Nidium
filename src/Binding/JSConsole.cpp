@@ -20,31 +20,38 @@ static bool nidium_console_hide(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_console_show(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_console_clear(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static JSClass console_class = {
-    "Console", 0,
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass console_class = { "Console",
+                                 0,
+                                 JS_PropertyStub,
+                                 JS_DeletePropertyStub,
+                                 JS_PropertyStub,
+                                 JS_StrictPropertyStub,
+                                 JS_EnumerateStub,
+                                 JS_ResolveStub,
+                                 JS_ConvertStub,
+                                 NULL,
+                                 nullptr,
+                                 nullptr,
+                                 nullptr,
+                                 nullptr,
+                                 JSCLASS_NO_INTERNAL_MEMBERS };
 
-static JSFunctionSpec console_funcs[] = {
-    JS_FN("log", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("write", nidium_console_write, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("info", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("error", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("warn", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("hide", nidium_console_hide, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("show", nidium_console_show, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("clear", nidium_console_clear, 0, NIDIUM_JS_FNPROPS),
-    JS_FS_END
-};
+static JSFunctionSpec console_funcs[]
+    = { JS_FN("log", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
+        JS_FN("write", nidium_console_write, 0, NIDIUM_JS_FNPROPS),
+        JS_FN("info", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
+        JS_FN("error", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
+        JS_FN("warn", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
+        JS_FN("hide", nidium_console_hide, 0, NIDIUM_JS_FNPROPS),
+        JS_FN("show", nidium_console_show, 0, NIDIUM_JS_FNPROPS),
+        JS_FN("clear", nidium_console_clear, 0, NIDIUM_JS_FNPROPS),
+        JS_FS_END };
 
 // }}}
 
 // {{{ Implementation
 
-static bool nidium_console_hide(JSContext *cx, unsigned argc,
-    JS::Value *vp)
+static bool nidium_console_hide(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE()
 
@@ -53,8 +60,7 @@ static bool nidium_console_hide(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool nidium_console_show(JSContext *cx, unsigned argc,
-    JS::Value *vp)
+static bool nidium_console_show(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE()
 
@@ -63,8 +69,7 @@ static bool nidium_console_show(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool nidium_console_clear(JSContext *cx, unsigned argc,
-    JS::Value *vp)
+static bool nidium_console_clear(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE()
 
@@ -73,8 +78,7 @@ static bool nidium_console_clear(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool nidium_console_log(JSContext *cx, unsigned argc,
-    JS::Value *vp)
+static bool nidium_console_log(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE()
 
@@ -86,7 +90,7 @@ static bool nidium_console_log(JSContext *cx, unsigned argc,
     JS::AutoFilename filename;
     JS::DescribeScriptedCaller(cx, &filename, &lineno);
 
-    NidiumJS *js = NidiumJS::GetObject(cx);
+    NidiumJS *js        = NidiumJS::GetObject(cx);
     Core::Context *nctx = js->getContext();
     filename_parent = filename.get();
     if (filename_parent == NULL) {
@@ -136,12 +140,11 @@ static bool nidium_console_log(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool nidium_console_write(JSContext *cx, unsigned argc,
-    JS::Value *vp)
+static bool nidium_console_write(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NIDIUM_JS_PROLOGUE()
 
-    NidiumJS *js = NidiumJS::GetObject(cx);
+    NidiumJS *js        = NidiumJS::GetObject(cx);
     Core::Context *nctx = js->getContext();
 
     NIDIUM_JS_CHECK_ARGS("write", 1);
@@ -166,9 +169,9 @@ static bool nidium_console_write(JSContext *cx, unsigned argc,
 // {{{ Registration
 void JSConsole::RegisterObject(JSContext *cx)
 {
-    JS::RootedObject consoleObj(cx, JS_DefineObject(cx,
-        JS::CurrentGlobalOrNull(cx), "console",
-        &console_class, NULL, 0));
+    JS::RootedObject consoleObj(
+        cx, JS_DefineObject(cx, JS::CurrentGlobalOrNull(cx), "console",
+                            &console_class, NULL, 0));
 
     JS_DefineFunctions(cx, consoleObj, console_funcs);
 }
@@ -176,4 +179,3 @@ void JSConsole::RegisterObject(JSContext *cx)
 
 } // namespace Binding
 } // namespace Nidium
-

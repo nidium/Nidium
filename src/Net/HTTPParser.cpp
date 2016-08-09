@@ -12,10 +12,10 @@ namespace Net {
 
 // {{{ Preambule
 #ifndef ULLONG_MAX
-# define ULLONG_MAX ((uint64_t) -1) /* 2^64-1 */
+#define ULLONG_MAX ((uint64_t)-1) /* 2^64-1 */
 #endif
 
-#define HTTP_MAX_CL (1024ULL*1024ULL*1024ULL*2ULL)
+#define HTTP_MAX_CL (1024ULL * 1024ULL * 1024ULL * 2ULL)
 // }}}
 
 // {{{ Callbacks
@@ -27,16 +27,14 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len);
 static int request_url_cb(http_parser *p, const char *buf, size_t len);
 static int body_cb(http_parser *p, const char *buf, size_t len);
 
-static http_parser_settings settings =
-{
-    .on_message_begin    = message_begin_cb,
-    .on_header_field     = header_field_cb,
-    .on_header_value     = header_value_cb,
-    .on_url              = request_url_cb,
-    .on_body             = body_cb,
-    .on_headers_complete = headers_complete_cb,
-    .on_message_complete = message_complete_cb
-};
+static http_parser_settings settings
+    = {.on_message_begin    = message_begin_cb,
+       .on_header_field     = header_field_cb,
+       .on_header_value     = header_value_cb,
+       .on_url              = request_url_cb,
+       .on_body             = body_cb,
+       .on_headers_complete = headers_complete_cb,
+       .on_message_complete = message_complete_cb };
 
 static int message_begin_cb(http_parser *p)
 {
@@ -72,7 +70,7 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data(nhttp->m_Data,
-            reinterpret_cast<const unsigned char *>(buf), len);
+                           reinterpret_cast<const unsigned char *>(buf), len);
     }
 
     nhttp->HTTPOnData(nhttp->m_Data->used - len, len);
@@ -87,7 +85,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
     switch (nhttp->m_Headers.prevstate) {
         case HTTPParser::kPrevState_Nothing:
             nhttp->m_Headers.list = ape_array_new(16);
-            /* fall through */
+        /* fall through */
         case HTTPParser::kPrevState_Value:
             nhttp->m_Headers.tkey = buffer_new(16);
             if (nhttp->m_Headers.tval != NULL) {
@@ -102,7 +100,8 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data_tolower(nhttp->m_Headers.tkey,
-            reinterpret_cast<const unsigned char *>(buf), len);
+                                   reinterpret_cast<const unsigned char *>(buf),
+                                   len);
     }
 
     return 0;
@@ -118,8 +117,8 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
         case HTTPParser::kPrevState_Field:
             nhttp->m_Headers.tval = buffer_new(64);
             buffer_append_char(nhttp->m_Headers.tkey, '\0');
-            ape_array_add_b(nhttp->m_Headers.list,
-                    nhttp->m_Headers.tkey, nhttp->m_Headers.tval);
+            ape_array_add_b(nhttp->m_Headers.list, nhttp->m_Headers.tkey,
+                            nhttp->m_Headers.tval);
             break;
         default:
             break;
@@ -129,7 +128,7 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
 
     if (len != 0) {
         buffer_append_data(nhttp->m_Headers.tval,
-            reinterpret_cast<const unsigned char *>(buf), len);
+                           reinterpret_cast<const unsigned char *>(buf), len);
     }
     return 0;
 }
@@ -170,7 +169,7 @@ bool HTTPParser::HTTPParse(const char *data, size_t len)
     size_t nparsed;
 
     nparsed = http_parser_execute(&m_Parser, &settings,
-        static_cast<const char *>(data), len);
+                                  static_cast<const char *>(data), len);
 
     return nparsed != 0;
 }
@@ -185,21 +184,19 @@ void HTTPParser::HTTPClearState()
     m_Headers.prevstate = kPrevState_Nothing;
 }
 
-HTTPParser::HTTPParser() :
-    m_Data(NULL), m_Ended(0), m_Contentlength(0)
+HTTPParser::HTTPParser() : m_Data(NULL), m_Ended(0), m_Contentlength(0)
 {
     http_parser_init(&m_Parser, HTTP_RESPONSE);
     m_Parser.data = this;
 
     m_Headers.prevstate = kPrevState_Nothing;
-    m_Headers.list = NULL;
-    m_Headers.tkey = NULL;
-    m_Headers.tval = NULL;
+    m_Headers.list      = NULL;
+    m_Headers.tkey      = NULL;
+    m_Headers.tval      = NULL;
 }
 
 HTTPParser::~HTTPParser()
 {
-
 }
 
 const char *HTTPParser::HTTPGetHeader(const char *key)
@@ -211,4 +208,3 @@ const char *HTTPParser::HTTPGetHeader(const char *key)
 
 } // namespace Net
 } // namespace Nidium
-

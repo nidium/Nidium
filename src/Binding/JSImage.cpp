@@ -26,46 +26,62 @@ namespace Binding {
 
 #define IMAGE_RESERVED_SLOT 0
 
-enum {
+enum
+{
     IMAGE_PROP_SRC = IMAGE_RESERVED_SLOT,
     IMAGE_NPROP
 };
 
 #define IMAGE_GETTER(obj) (static_cast<class JSImage *>(JS_GetPrivate(obj)))
-#define IMAGE_FROM_CALLEE(nimg) \
+#define IMAGE_FROM_CALLEE(nimg)                                \
     JS::RootedObject parent(cx, JS_GetParent(&args.callee())); \
     JSImage *nimg = static_cast<JSImage *>(JS_GetPrivate(parent));
 
 static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool nidium_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_image_markColorInAlpha(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_image_desaturate(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool
+nidium_image_markColorInAlpha(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool
+nidium_image_desaturate(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool nidium_image_print(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_image_prop_set(JSContext *cx, JS::HandleObject obj, uint8_t id,
-    bool strict, JS::MutableHandleValue vp);
+static bool nidium_image_prop_set(JSContext *cx,
+                                  JS::HandleObject obj,
+                                  uint8_t id,
+                                  bool strict,
+                                  JS::MutableHandleValue vp);
 
-static JSClass Image_class = {
-    "Image", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(IMAGE_NPROP+1),
-    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Image_Finalize,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
+static JSClass Image_class
+    = { "Image",
+        JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(IMAGE_NPROP + 1),
+        JS_PropertyStub,
+        JS_DeletePropertyStub,
+        JS_PropertyStub,
+        JS_StrictPropertyStub,
+        JS_EnumerateStub,
+        JS_ResolveStub,
+        JS_ConvertStub,
+        Image_Finalize,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        JSCLASS_NO_INTERNAL_MEMBERS };
 
-template<>
+template <>
 JSClass *JSExposer<JSImage>::jsclass = &Image_class;
 
-static JSPropertySpec Image_props[] = {
-    NIDIUM_JS_PSS("src", IMAGE_PROP_SRC, nidium_image_prop_set),
-    JS_PS_END
-};
+static JSPropertySpec Image_props[]
+    = { NIDIUM_JS_PSS("src", IMAGE_PROP_SRC, nidium_image_prop_set),
+        JS_PS_END };
 
-static JSFunctionSpec Image_funcs[] = {
-    JS_FN("shiftHue", nidium_image_shiftHue, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("markColorInAlpha", nidium_image_markColorInAlpha, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("desaturate", nidium_image_desaturate, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("print", nidium_image_print, 0, NIDIUM_JS_FNPROPS),
-    JS_FS_END
-};
+static JSFunctionSpec Image_funcs[]
+    = { JS_FN("shiftHue", nidium_image_shiftHue, 2, NIDIUM_JS_FNPROPS),
+        JS_FN("markColorInAlpha",
+              nidium_image_markColorInAlpha,
+              0,
+              NIDIUM_JS_FNPROPS),
+        JS_FN("desaturate", nidium_image_desaturate, 0, NIDIUM_JS_FNPROPS),
+        JS_FN("print", nidium_image_print, 0, NIDIUM_JS_FNPROPS), JS_FS_END };
 // }}}
 
 // {{{ Implementation
@@ -91,8 +107,8 @@ static bool nidium_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool nidium_image_markColorInAlpha(JSContext *cx,
-    unsigned argc, JS::Value *vp)
+static bool
+nidium_image_markColorInAlpha(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     IMAGE_FROM_CALLEE(nimg);
@@ -103,8 +119,7 @@ static bool nidium_image_markColorInAlpha(JSContext *cx,
     return true;
 }
 
-static bool nidium_image_desaturate(JSContext *cx,
-    unsigned argc, JS::Value *vp)
+static bool nidium_image_desaturate(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     IMAGE_FROM_CALLEE(nimg);
@@ -115,13 +130,15 @@ static bool nidium_image_desaturate(JSContext *cx,
     return true;
 }
 
-static bool nidium_image_prop_set(JSContext *cx, JS::HandleObject obj,
-    uint8_t id, bool strict, JS::MutableHandleValue vp)
+static bool nidium_image_prop_set(JSContext *cx,
+                                  JS::HandleObject obj,
+                                  uint8_t id,
+                                  bool strict,
+                                  JS::MutableHandleValue vp)
 {
     JSImage *nimg = IMAGE_GETTER(obj);
-    switch(id) {
-        case IMAGE_PROP_SRC:
-        {
+    switch (id) {
+        case IMAGE_PROP_SRC: {
             if (vp.isString()) {
                 JS::RootedString vpStr(cx, JS::ToString(cx, vp));
                 JSAutoByteString imgPath(cx, vpStr);
@@ -161,8 +178,7 @@ static bool nidium_image_prop_set(JSContext *cx, JS::HandleObject obj,
                 vp.setNull();
                 return true;
             }
-        }
-        break;
+        } break;
         default:
             break;
     }
@@ -181,7 +197,8 @@ void Image_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-static bool nidium_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool
+nidium_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSImage *nimg;
@@ -191,7 +208,8 @@ static bool nidium_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp
         return false;
     }
 
-    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Image_class, args));
+    JS::RootedObject ret(cx,
+                         JS_NewObjectForConstructor(cx, &Image_class, args));
     nimg = new JSImage(ret, cx);
     JS_SetPrivate(ret, nimg);
     JS_DefineProperties(cx, ret, Image_props);
@@ -225,8 +243,7 @@ void JSImage::onMessage(const SharedMessages::Message &msg)
 {
 
     switch (msg.event()) {
-        case Stream::kEvents_Error:
-        {
+        case Stream::kEvents_Error: {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);
             JSObjectBuilder obj(m_Cx, eventObj);
@@ -234,7 +251,8 @@ void JSImage::onMessage(const SharedMessages::Message &msg)
 
             eventValue.setObjectOrNull(eventObj);
 
-            snprintf(err, 128, "Stream error. Code : %d\n", msg.m_Args[0].toInt());
+            snprintf(err, 128, "Stream error. Code : %d\n",
+                     msg.m_Args[0].toInt());
             obj.set("error", err);
 
             this->fireJSEvent("error", &eventValue);
@@ -243,8 +261,7 @@ void JSImage::onMessage(const SharedMessages::Message &msg)
 
             break;
         }
-        case Stream::kEvents_ReadBuffer:
-        {
+        case Stream::kEvents_ReadBuffer: {
             ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);
@@ -287,8 +304,10 @@ bool JSImage::setupWithBuffer(buffer *buf)
     JS::RootedObject obj(m_Cx, m_JSObject);
     JS::RootedValue widthVal(m_Cx, INT_TO_JSVAL(ImageObject->getWidth()));
     JS::RootedValue heightVal(m_Cx, INT_TO_JSVAL(ImageObject->getHeight()));
-    JS_DefineProperty(m_Cx, obj, "width", widthVal, JSPROP_PERMANENT | JSPROP_READONLY);
-    JS_DefineProperty(m_Cx, obj, "height", heightVal, JSPROP_PERMANENT | JSPROP_READONLY);
+    JS_DefineProperty(m_Cx, obj, "width", widthVal,
+                      JSPROP_PERMANENT | JSPROP_READONLY);
+    JS_DefineProperty(m_Cx, obj, "height", heightVal,
+                      JSPROP_PERMANENT | JSPROP_READONLY);
 
     NidiumJSObj(m_Cx)->unrootObject(m_JSObject);
 
@@ -334,38 +353,40 @@ void JSImage::onGetContent(const char *data, size_t len)
 }
 #endif
 
-JSObject *JSImage::BuildImageObject(JSContext *cx, Image *image,
-    const char name[])
+JSObject *
+JSImage::BuildImageObject(JSContext *cx, Image *image, const char name[])
 {
     JS::RootedValue proto(cx);
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_GetProperty(cx, global, "Image", &proto);
     JS::RootedObject protoObj(cx);
     protoObj.set(&proto.toObject());
-    JS::RootedObject ret(cx, JS_NewObject(cx, &Image_class, protoObj, JS::NullPtr()));
+    JS::RootedObject ret(
+        cx, JS_NewObject(cx, &Image_class, protoObj, JS::NullPtr()));
     JSImage *nimg = new JSImage(ret, cx);
 
-    nimg->m_Image   = image;
+    nimg->m_Image = image;
 
     JS_SetPrivate(ret, nimg);
 
     printf("Build image object\n");
     JS::RootedValue widthVal(cx, INT_TO_JSVAL(image->getWidth()));
     JS::RootedValue heightVal(cx, INT_TO_JSVAL(image->getHeight()));
-    JS::RootedString jstr(cx,  JS_NewStringCopyZ(cx, (name ? name : "unknown")));
+    JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, (name ? name : "unknown")));
     JS::RootedValue nameVal(cx, STRING_TO_JSVAL(jstr));
-    JS_DefineProperty(cx, ret, "width", widthVal, JSPROP_PERMANENT | JSPROP_READONLY);
-    JS_DefineProperty(cx, ret, "height", heightVal, JSPROP_PERMANENT | JSPROP_READONLY);
-    JS_DefineProperty(cx, ret, "src", nameVal, JSPROP_PERMANENT | JSPROP_READONLY);
+    JS_DefineProperty(cx, ret, "width", widthVal,
+                      JSPROP_PERMANENT | JSPROP_READONLY);
+    JS_DefineProperty(cx, ret, "height", heightVal,
+                      JSPROP_PERMANENT | JSPROP_READONLY);
+    JS_DefineProperty(cx, ret, "src", nameVal,
+                      JSPROP_PERMANENT | JSPROP_READONLY);
 
     return ret;
 }
 
-JSImage::JSImage(JS::HandleObject obj, JSContext *cx) :
-    JSExposer<JSImage>(obj, cx),
-    m_Image(NULL), m_Stream(NULL)
+JSImage::JSImage(JS::HandleObject obj, JSContext *cx)
+    : JSExposer<JSImage>(obj, cx), m_Image(NULL), m_Stream(NULL)
 {
-
 }
 
 JSImage::~JSImage()
@@ -384,13 +405,12 @@ void JSImage::RegisterObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_InitClass(cx, global, JS::NullPtr(), &Image_class,
-        nidium_Image_constructor,
-        0, nullptr, Image_funcs, nullptr, nullptr);
+                 nidium_Image_constructor, 0, nullptr, Image_funcs, nullptr,
+                 nullptr);
 }
 
-//NIDIUM_JS_OBJECT_EXPOSE(Image)
+// NIDIUM_JS_OBJECT_EXPOSE(Image)
 // }}}
 
 } // namespace Binding
 } // namespace Nidium
-

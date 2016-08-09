@@ -23,50 +23,43 @@
 
 namespace Nidium {
 namespace Interface {
-    class UIInterface;
+class UIInterface;
 }
 namespace Net {
-    class WebSocketServer;
-    class WebSocketClientConnection;
+class WebSocketServer;
+class WebSocketClientConnection;
 }
 namespace Graphics {
-    class SkiaContext;
-    class CanvasHandler;
-    class CanvasContext;
-    class GLState;
+class SkiaContext;
+class CanvasHandler;
+class CanvasContext;
+class GLState;
 }
 namespace Binding {
-    class NidiumJS;
-    class JSWindow;
+class NidiumJS;
+class JSWindow;
 }
 namespace Frontend {
 
 class NML;
 
-struct JobQueue {
+struct JobQueue
+{
     void (*job)(void *arg);
     struct JobQueue *next;
     void *arg;
 };
 
 // {{{ InputEvent
-static const char * InputEvent_Names[] = {
-    "mousemove",
-    "mousedown",
-    "mouseup",
-    "dblclick",
-    "dragstart",
-    "dragend",
-    "dragover",
-    "drop",
-    "drag",
-    "mousewheel"
-};
+static const char *InputEvent_Names[]
+    = { "mousemove", "mousedown", "mouseup", "dblclick", "dragstart",
+        "dragend",   "dragover",  "drop",    "drag",     "mousewheel" };
 
 class InputEvent
 {
 public:
-    enum Type {
+    enum Type
+    {
         kMouseMove_Type = 0,
         kMouseClick_Type,
         kMouseClickRelease_Type,
@@ -79,47 +72,59 @@ public:
         kMouseWheel_Type
     };
 
-    InputEvent(Type type, int ix, int iy,
-        uint32_t *idata = NULL, uint8_t idata_len = 0) :
-        m_x(ix), m_y(iy), m_Next(NULL), m_PassThroughEvent(NULL), m_Handler(NULL),
-        m_Origin(NULL), m_depthAffectedCanvas(0), m_Type(type) {
+    InputEvent(Type type,
+               int ix,
+               int iy,
+               uint32_t *idata   = NULL,
+               uint8_t idata_len = 0)
+        : m_x(ix), m_y(iy), m_Next(NULL), m_PassThroughEvent(NULL),
+          m_Handler(NULL), m_Origin(NULL), m_depthAffectedCanvas(0),
+          m_Type(type)
+    {
 
         if (idata && idata_len <= 8) {
             memcpy(m_data, idata, sizeof(uint32_t) * idata_len);
         }
     }
 
-    InputEvent *dupWithHandler(Graphics::CanvasHandler *handler) {
+    InputEvent *dupWithHandler(Graphics::CanvasHandler *handler)
+    {
         InputEvent *dup = new InputEvent(*this);
-        dup->m_Handler = handler;
-        dup->m_Origin = this;
+        dup->m_Handler  = handler;
+        dup->m_Origin   = this;
 
         m_PassThroughEvent = dup;
 
         return dup;
     }
 
-    Type getType() const {
+    Type getType() const
+    {
         return m_Type;
     }
 
-    void inc() {
+    void inc()
+    {
         m_depthAffectedCanvas++;
     }
 
-    unsigned getDepth() const {
+    unsigned getDepth() const
+    {
         return m_depthAffectedCanvas;
     }
 
-    static const char *GetName(int type) {
+    static const char *GetName(int type)
+    {
         return InputEvent_Names[type];
     }
 
-    InputEvent *getEventForNextCanvas() const {
+    InputEvent *getEventForNextCanvas() const
+    {
         return m_PassThroughEvent;
     }
 
-    void setData(int index, uint32_t data) {
+    void setData(int index, uint32_t data)
+    {
         m_data[index] = data;
     }
 
@@ -130,6 +135,7 @@ public:
     Graphics::CanvasHandler *m_Handler;
     InputEvent *m_Origin;
     unsigned m_depthAffectedCanvas;
+
 private:
     Type m_Type;
 };
@@ -140,45 +146,53 @@ struct GrGLInterface;
 // {{{ Context
 class Context : public Core::Context, public Core::Messages
 {
-    public:
-
+public:
     friend class Nidium::Graphics::CanvasHandler;
 
     Context(ape_global *net);
     virtual ~Context();
 
-    Interface::UIInterface *getUI() const {
+    Interface::UIInterface *getUI() const
+    {
         return m_UI;
     }
-    Graphics::CanvasHandler *getRootHandler() const {
+    Graphics::CanvasHandler *getRootHandler() const
+    {
         return m_RootHandler;
     }
 
-    NML *getNML() const {
+    NML *getNML() const
+    {
         return m_NML;
     }
 
-    Binding::JSWindow *getJSWindow() const {
+    Binding::JSWindow *getJSWindow() const
+    {
         return m_JSWindow;
     }
 
-    void setJSWindow(Binding::JSWindow *obj) {
+    void setJSWindow(Binding::JSWindow *obj)
+    {
         m_JSWindow = obj;
     }
 
-    inline Graphics::GLState *getGLState() const {
+    inline Graphics::GLState *getGLState() const
+    {
         return m_GLState;
     }
 
-    void setGLState(Graphics::GLState *state) {
+    void setGLState(Graphics::GLState *state)
+    {
         m_GLState = state;
     }
 
-    ShBuiltInResources *getShaderResources() {
+    ShBuiltInResources *getShaderResources()
+    {
         return &m_ShResources;
     }
 
-    ShShaderOutput getShaderOutputVersion() {
+    ShShaderOutput getShaderOutputVersion()
+    {
         return m_ShShaderOutput;
     }
 
@@ -199,15 +213,18 @@ class Context : public Core::Context, public Core::Messages
     void sizeChanged(int w, int h);
 
     void setUIObject(Interface::UIInterface *ui);
-    void setNML(NML *nml) {
+    void setNML(NML *nml)
+    {
         m_NML = nml;
     }
 
-    void sizeNeedUpdate() {
+    void sizeNeedUpdate()
+    {
         m_SizeDirty = true;
     }
 
-    bool isSizeDirty() const {
+    bool isSizeDirty() const
+    {
         return m_SizeDirty;
     }
 
@@ -216,36 +233,42 @@ class Context : public Core::Context, public Core::Messages
     void onMessage(const Core::SharedMessages::Message &msg);
     void addJob(void (*job)(void *arg), void *arg);
 
-    Graphics::CanvasHandler *getCanvasById(const char *str) {
+    Graphics::CanvasHandler *getCanvasById(const char *str)
+    {
         return m_CanvasList.get(str);
     }
 
     void addInputEvent(InputEvent *ev);
-    void resetInputEvents() {
-        m_InputEvents.head = NULL;
+    void resetInputEvents()
+    {
+        m_InputEvents.head  = NULL;
         m_InputEvents.queue = NULL;
     }
 
-    void clearInputEvents() {
+    void clearInputEvents()
+    {
         InputEvent *tmp;
         for (InputEvent *ev = m_InputEvents.head; ev != NULL; ev = tmp) {
             tmp = ev->m_Next;
 
-            delete(ev);
+            delete (ev);
         }
-        m_InputEvents.head = NULL;
+        m_InputEvents.head  = NULL;
         m_InputEvents.queue = NULL;
     }
 
-    InputEvent *getInputEvents() const {
+    InputEvent *getInputEvents() const
+    {
         return m_InputEvents.head;
     }
 
-    void setCurrentClickedHandler(Graphics::CanvasHandler *handler) {
+    void setCurrentClickedHandler(Graphics::CanvasHandler *handler)
+    {
         m_CurrentClickedHandler = handler;
     }
 
-    Graphics::CanvasHandler *getCurrentClickedHandler() const {
+    Graphics::CanvasHandler *getCurrentClickedHandler() const
+    {
         return m_CurrentClickedHandler;
     }
 
@@ -253,25 +276,26 @@ class Context : public Core::Context, public Core::Messages
     void logClear();
     void logShow();
     void logHide();
-    
-    private:
-    Graphics::GLResources      m_Resources;
-    Graphics::CanvasHandler *  m_RootHandler;
-    Graphics::CanvasHandler *  m_DebugHandler;
-#ifdef DEBUG
-    Graphics::CanvasHandler *  m_Debug2Handler;
-#endif
-    Interface::UIInterface *   m_UI;
-    NML *                      m_NML;
-    Graphics::GLState *        m_GLState;
-    Net::WebSocketServer *     m_WS;
-    Net::WebSocketClientConnection *m_WSClient;
-    ShBuiltInResources         m_ShResources;
-    ShShaderOutput             m_ShShaderOutput;
-    Binding::JSWindow *        m_JSWindow;
-    bool                       m_SizeDirty;
 
-    struct {
+private:
+    Graphics::GLResources m_Resources;
+    Graphics::CanvasHandler *m_RootHandler;
+    Graphics::CanvasHandler *m_DebugHandler;
+#ifdef DEBUG
+    Graphics::CanvasHandler *m_Debug2Handler;
+#endif
+    Interface::UIInterface *m_UI;
+    NML *m_NML;
+    Graphics::GLState *m_GLState;
+    Net::WebSocketServer *m_WS;
+    Net::WebSocketClientConnection *m_WSClient;
+    ShBuiltInResources m_ShResources;
+    ShShaderOutput m_ShShaderOutput;
+    Binding::JSWindow *m_JSWindow;
+    bool m_SizeDirty;
+
+    struct
+    {
         uint64_t nframe;
         uint64_t starttime;
         uint64_t lastmeasuredtime;
@@ -284,7 +308,8 @@ class Context : public Core::Context, public Core::Messages
         float sampleminfps;
     } m_Stats;
 
-    struct {
+    struct
+    {
         InputEvent *head;
         InputEvent *queue;
     } m_InputEvents;
@@ -295,7 +320,8 @@ class Context : public Core::Context, public Core::Messages
     void initStats();
     bool initShaderLang();
     void initHandlers(int width, int height);
-    struct {
+    struct
+    {
         struct JobQueue *head;
         struct JobQueue *queue;
     } m_Jobs;
@@ -314,11 +340,16 @@ class Context : public Core::Context, public Core::Messages
     void execPendingCanvasChanges();
     void triggerEvents();
 
-    static bool WriteStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
-                                         JS::HandleObject obj, void *closure);
+    static bool WriteStructuredCloneOp(JSContext *cx,
+                                       JSStructuredCloneWriter *w,
+                                       JS::HandleObject obj,
+                                       void *closure);
 
-    static JSObject *ReadStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
-                                           uint32_t tag, uint32_t data, void *closure);
+    static JSObject *ReadStructuredCloneOp(JSContext *cx,
+                                           JSStructuredCloneReader *r,
+                                           uint32_t tag,
+                                           uint32_t data,
+                                           void *closure);
 };
 // }}}
 
@@ -326,4 +357,3 @@ class Context : public Core::Context, public Core::Messages
 } // namespace Nidium
 
 #endif
-

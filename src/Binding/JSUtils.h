@@ -20,14 +20,19 @@ public:
         Encoding accepts : utf8, NULL, anything else.
         In case encoding is NULL, the jsval is an arraybuffer.
     */
-    static bool StrToJsval(JSContext *cx, const char *buf, size_t len,
-        JS::MutableHandleValue jval, const char *encoding);
+    static bool StrToJsval(JSContext *cx,
+                           const char *buf,
+                           size_t len,
+                           JS::MutableHandleValue jval,
+                           const char *encoding);
 
-    static JSString *NewStringWithEncoding(JSContext *cx, const char *buf,
-        size_t len, const char *encoding);
+    static JSString *NewStringWithEncoding(JSContext *cx,
+                                           const char *buf,
+                                           size_t len,
+                                           const char *encoding);
 
-    static char16_t *Utf8ToUtf16(JSContext *cx, const char *str, size_t len,
-        size_t *outputlen);
+    static char16_t *
+    Utf8ToUtf16(JSContext *cx, const char *str, size_t len, size_t *outputlen);
     static char *CurrentJSCaller(JSContext *cx = NULL);
 };
 
@@ -35,4 +40,3 @@ public:
 } // namespace Nidium
 
 #endif
-

@@ -21,14 +21,14 @@ namespace Net {
 
 // {{{ Preamble
 
-#define MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH (1024LL*1024LL*64LL)
+#define MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH (1024LL * 1024LL * 64LL)
 
 // }}}
 
 // {{{ Implementation
-HTTPStream::HTTPStream(const char *location) :
-    Stream(location), m_StartPosition(0),
-    m_BytesBuffered(0), m_LastReadUntil(0)
+HTTPStream::HTTPStream(const char *location)
+    : Stream(location), m_StartPosition(0), m_BytesBuffered(0),
+      m_LastReadUntil(0)
 {
 
     m_Mapped.addr = NULL;
@@ -69,12 +69,12 @@ void HTTPStream::seek(size_t pos)
     /*
         We can read directly from our buffer
     */
-    if (pos >= m_StartPosition && pos < max &&
-        (pos <= max - m_PacketsSize || this->readComplete())) {
+    if (pos >= m_StartPosition && pos < max
+        && (pos <= max - m_PacketsSize || this->readComplete())) {
 
-        ape_global *ape = Binding::NidiumJS::GetNet();
-        m_LastReadUntil = pos - m_StartPosition;
-        m_PendingSeek = true;
+        ape_global *ape    = Binding::NidiumJS::GetNet();
+        m_LastReadUntil    = pos - m_StartPosition;
+        m_PendingSeek      = true;
         m_NeedToSendUpdate = false;
 
         timer_dispatch_async(Nidium_HTTPStream_notifyAvailable, this);
@@ -108,7 +108,7 @@ void HTTPStream::seek(size_t pos)
 
 void HTTPStream::notifyAvailable()
 {
-    m_PendingSeek = false;
+    m_PendingSeek      = false;
     m_NeedToSendUpdate = false;
 
     CREATE_MESSAGE(message_available, Stream::kEvents_AvailableData);
@@ -145,8 +145,10 @@ bool HTTPStream::hasDataAvailable() const
         Returns true if we have either enough data buffered or
         if the stream reached the end of file
     */
-    return !m_PendingSeek && ((m_BytesBuffered - m_LastReadUntil >= m_PacketsSize ||
-        (m_LastReadUntil != m_BytesBuffered && this->readComplete())));
+    return !m_PendingSeek
+           && ((m_BytesBuffered - m_LastReadUntil >= m_PacketsSize
+                || (m_LastReadUntil != m_BytesBuffered
+                    && this->readComplete())));
 }
 
 void HTTPStream::cleanCacheFile()
@@ -203,14 +205,14 @@ const unsigned char *HTTPStream::onGetNextPacket(size_t *len, int *err)
     }
     if (!this->hasDataAvailable()) {
         m_NeedToSendUpdate = true;
-        *err = Stream::kDataStatus_Again;
+        *err               = Stream::kDataStatus_Again;
         return NULL;
     }
 
     ssize_t byteLeft = m_Mapped.size - m_LastReadUntil;
-    *len = nidium_min(m_PacketsSize, byteLeft);
+    *len             = nidium_min(m_PacketsSize, byteLeft);
 
-    //TODO: new style cast
+    // TODO: new style cast
     data = (unsigned char *)(m_Mapped.addr) + m_LastReadUntil;
     m_LastReadUntil += *len;
 
@@ -233,19 +235,21 @@ void HTTPStream::onRequest(HTTP::HTTPData *h, HTTP::DataType)
     this->notifySync(message);
 }
 
-void HTTPStream::onProgress(size_t offset, size_t len,
-    HTTP::HTTPData *h, HTTP::DataType)
+void HTTPStream::onProgress(size_t offset,
+                            size_t len,
+                            HTTP::HTTPData *h,
+                            HTTP::DataType)
 {
     /* overflow or invalid state */
-    if (!m_Mapped.fd || !m_Mapped.addr ||
-          m_BytesBuffered + len > m_Mapped.size) {
+    if (!m_Mapped.fd || !m_Mapped.addr
+        || m_BytesBuffered + len > m_Mapped.size) {
         m_Http->resetData();
         return;
     }
 
     // TODO: new style cast
-    memcpy((char *)(m_Mapped.addr) + m_BytesBuffered,
-        &h->m_Data->data[offset], len);
+    memcpy((char *)(m_Mapped.addr) + m_BytesBuffered, &h->m_Data->data[offset],
+           len);
 
     m_BytesBuffered += len;
 
@@ -311,8 +315,9 @@ void HTTPStream::onHeader()
 
     m_PendingSeek = false;
 
-    m_Mapped.size = (!m_Http->m_HTTP.m_ContentLength ?
-        MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH : m_Http->m_HTTP.m_ContentLength);
+    m_Mapped.size = (!m_Http->m_HTTP.m_ContentLength
+                         ? MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH
+                         : m_Http->m_HTTP.m_ContentLength);
 
     if (ftruncate(m_Mapped.fd, m_Mapped.size) == -1) {
         m_Mapped.size = 0;
@@ -321,10 +326,8 @@ void HTTPStream::onHeader()
         return;
     }
 
-    m_Mapped.addr = mmap(NULL, m_Mapped.size,
-        PROT_READ | PROT_WRITE,
-        MAP_SHARED,
-        m_Mapped.fd, 0);
+    m_Mapped.addr = mmap(NULL, m_Mapped.size, PROT_READ | PROT_WRITE,
+                         MAP_SHARED, m_Mapped.fd, 0);
 
     if (m_Mapped.addr == MAP_FAILED) {
         m_Mapped.addr = NULL;
@@ -339,4 +342,3 @@ void HTTPStream::onHeader()
 
 } // namespace Net
 } // namespace Nidium
-

@@ -14,17 +14,19 @@
 
 namespace Nidium {
 namespace Interface {
-    class UIInterface;
+class UIInterface;
 }
 namespace Graphics {
 
-typedef struct _Vertex {
+typedef struct _Vertex
+{
     float Position[3];
     float TexCoord[2];
     float Modifier[2];
 } Vertex;
 
-typedef struct _Vertices {
+typedef struct _Vertices
+{
     Vertex *vertices;
     unsigned int *indices;
     unsigned int nvertices;
@@ -36,45 +38,52 @@ class GLState
 {
 
 public:
-
     GLState(Interface::UIInterface *ui,
-        bool withProgram = true, bool webgl = false);
+            bool withProgram = true,
+            bool webgl = false);
     ~GLState();
 
     bool initGLBase(bool withProgram = true);
     void setActive();
     void destroy();
 
-    void setShared(bool val) {
+    void setShared(bool val)
+    {
         m_Shared = val;
     }
 
-    bool isShared() const {
+    bool isShared() const
+    {
         return m_Shared;
     }
 
-    uint32_t getProgram() const {
+    uint32_t getProgram() const
+    {
         return m_GLObjects.program;
     }
 
     void setProgram(uint32_t program);
 
-    inline bool makeGLCurrent() {
+    inline bool makeGLCurrent()
+    {
         return m_GLContext->makeCurrent();
     }
 
     void setVertexDeformation(uint32_t vertex, float x, float y);
 
-    inline GLContext *getNidiumGLContext() const {
+    inline GLContext *getNidiumGLContext() const
+    {
         return m_GLContext;
     }
 
-    struct {
+    struct
+    {
         uint32_t vbo[2];
         uint32_t vao;
         Vertices *vtx;
         uint32_t program;
-        struct {
+        struct
+        {
             int32_t u_projectionMatrix;
             int32_t u_opacity;
             int32_t u_resolution;
@@ -98,4 +107,3 @@ private:
 } // namespace Nidium
 
 #endif
-

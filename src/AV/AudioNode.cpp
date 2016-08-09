@@ -26,16 +26,21 @@ namespace Nidium {
 namespace AV {
 
 #define MAX_FAILED_DECODING 50
-#define NODE_IO_FOR(i, io) int I = 0;\
-while (I < io->m_Count) { \
-if (io->wire[i] != NULL) {\
-I++;
-#define NODE_IO_FOR_END(i) }i++;}
+#define NODE_IO_FOR(i, io)         \
+    int I = 0;                     \
+    while (I < io->m_Count) {      \
+        if (io->wire[i] != NULL) { \
+            I++;
+#define NODE_IO_FOR_END(i) \
+    }                      \
+    i++;                   \
+    }
 
 // {{{ AudioNode
 AudioNode::AudioNode(int inCount, int outCount, Audio *audio)
-    : m_NullFrames(true), m_Processed(false), m_IsConnected(false), m_InCount(inCount), m_OutCount(outCount),
-      m_Audio(audio), m_DoNotProcess(false)
+    : m_NullFrames(true), m_Processed(false), m_IsConnected(false),
+      m_InCount(inCount), m_OutCount(outCount), m_Audio(audio),
+      m_DoNotProcess(false)
 {
     SPAM(("AudioNode init located at %p\n", this));
     int max;
@@ -58,7 +63,7 @@ AudioNode::AudioNode(int inCount, int outCount, Audio *audio)
     }
 
     // Malloc node I/O frames
-    max = (inCount > outCount ? inCount : outCount);
+    max      = (inCount > outCount ? inCount : outCount);
     m_Frames = static_cast<float **>(calloc(max, sizeof(void *)));
 
     for (int i = 0; i < max; i++) {
@@ -77,14 +82,18 @@ AudioNode::AudioNode(int inCount, int outCount, Audio *audio)
     }
 }
 
-AudioNode::Message::Message(AudioNode *node, ExportsArgs *arg, void *val, unsigned long size)
-: m_Node(node), m_Arg(arg), m_Size(size)
+AudioNode::Message::Message(AudioNode *node,
+                            ExportsArgs *arg,
+                            void *val,
+                            unsigned long size)
+    : m_Node(node), m_Arg(arg), m_Size(size)
 {
     m_Val = malloc(size);
     memcpy(m_Val, val, size);
 }
 
-AudioNode::Message::~Message() {
+AudioNode::Message::~Message()
+{
     free(m_Val);
 }
 
@@ -94,13 +103,18 @@ void AudioNode::callback(NodeMessageCallback cbk, void *custom)
 }
 void AudioNode::callback(NodeMessageCallback cbk, void *custom, bool block)
 {
-    m_Audio->m_SharedMsg->postMessage(static_cast<void *>(new CallbackMessage(cbk, this, custom)), NIDIUM_AUDIO_NODE_CALLBACK);
+    m_Audio->m_SharedMsg->postMessage(
+        static_cast<void *>(new CallbackMessage(cbk, this, custom)),
+        NIDIUM_AUDIO_NODE_CALLBACK);
     if (block) {
         m_Audio->wakeup();
     }
 }
 
-bool AudioNode::set(const char *name, ArgType type, void *value, unsigned long size)
+bool AudioNode::set(const char *name,
+                    ArgType type,
+                    void *value,
+                    unsigned long size)
 {
     for (int i = 0; i < NIDIUM_AUDIO_NODE_ARGS_SIZE; i++) {
         ExportsArgs *arg = m_Args[i];
@@ -109,33 +123,33 @@ bool AudioNode::set(const char *name, ArgType type, void *value, unsigned long s
 
             // If posted type and expected type are different
             // try to typecast the value (only few are supported)
-            int intVal = 0;
+            int intVal       = 0;
             double doubleVal = 0;
             if (arg->m_Type != type) {
                 switch (type) {
                     case DOUBLE: {
                         if (arg->m_Type == INT) {
-                            size = sizeof(int);
-                            intVal = static_cast<int>(*(static_cast<double*>(value)));
+                            size   = sizeof(int);
+                            intVal = static_cast<int>(
+                                *(static_cast<double *>(value)));
                             val = &intVal;
                         } else {
                             return false;
                         }
-                    }
-                    break;
+                    } break;
                     case INT: {
                         if (arg->m_Type == DOUBLE) {
-                            size = sizeof(double);
-                            doubleVal = static_cast<double>(*(static_cast<int*>(value)));
+                            size      = sizeof(double);
+                            doubleVal = static_cast<double>(
+                                *(static_cast<int *>(value)));
                             val = &doubleVal;
                         } else {
                             return false;
                         }
-                    }
-                    break;
-                    default :
+                    } break;
+                    default:
                         return false;
-                    break;
+                        break;
                 }
             }
             this->post(NIDIUM_AUDIO_NODE_SET, arg, val, size);
@@ -150,19 +164,20 @@ bool AudioNode::set(const char *name, ArgType type, void *value, unsigned long s
 // Since many breaking changes have been introduced
 void AudioNode::updateFeedback(AudioNode *nOut)
 {
-    //SPAM(("updateFeedback called\n"));
+    // SPAM(("updateFeedback called\n"));
     for (int i = 0; i < m_InCount; i++) {
         for (int j = 0; j < m_Input[i]->m_Count; j++) {
-            //SPAM(("  checking input #%d wire %d; node = %p/%p\n", i, j, m_Input[i]->wire[j]->m_Node, nOut));
-            if (!m_Input[i]->wire[j]->m_Feedback &&
-                 m_Input[i]->wire[j]->m_Node == nOut) {
-                //SPAM(("= = = = = = = = = = Its a feedback\n"));
+            // SPAM(("  checking input #%d wire %d; node = %p/%p\n", i, j,
+            // m_Input[i]->wire[j]->m_Node, nOut));
+            if (!m_Input[i]->wire[j]->m_Feedback
+                && m_Input[i]->wire[j]->m_Node == nOut) {
+                // SPAM(("= = = = = = = = = = Its a feedback\n"));
                 // It's a feedback
                 m_Input[i]->wire[j]->m_Feedback = true;
-                m_Input[i]->m_HaveFeedback = true;
+                m_Input[i]->m_HaveFeedback      = true;
                 return;
             } else if (!m_Input[i]->wire[j]->m_Feedback) {
-                //SPAM(("Go back\n"));
+                // SPAM(("Go back\n"));
                 // Go back a node, and check
                 m_Input[i]->wire[j]->m_Node->updateFeedback(nOut);
             }
@@ -172,16 +187,17 @@ void AudioNode::updateFeedback(AudioNode *nOut)
     return;
 }
 
-void AudioNode::updateWiresFrame(int channel, float *frame) {
+void AudioNode::updateWiresFrame(int channel, float *frame)
+{
     this->updateWiresFrame(channel, frame, NULL);
 }
-void AudioNode::updateWiresFrame(int channel, float *frame, float *discardFrame) {
+void AudioNode::updateWiresFrame(int channel, float *frame, float *discardFrame)
+{
     // Stop updating wire when a framed owned by the node is met
     // Note : If the frame owned is the one that need to be updated
     // (dicardFrame) do not stop and update it
-    if (m_Frames[channel] != NULL &&
-            m_Frames[channel] != discardFrame &&
-            this->isFrameOwner(m_Frames[channel])) {
+    if (m_Frames[channel] != NULL && m_Frames[channel] != discardFrame
+        && this->isFrameOwner(m_Frames[channel])) {
         return;
     }
 
@@ -192,9 +208,9 @@ void AudioNode::updateWiresFrame(int channel, float *frame, float *discardFrame)
     }
 
     int count = m_Output[channel]->m_Count;
-    for (int i = 0; i < count; i++)
-    {
-        m_Output[channel]->wire[i]->m_Node->updateWiresFrame(channel, frame, discardFrame);
+    for (int i = 0; i < count; i++) {
+        m_Output[channel]->wire[i]->m_Node->updateWiresFrame(channel, frame,
+                                                             discardFrame);
     }
 
     return;
@@ -207,7 +223,7 @@ bool AudioNode::queue(NodeLink *in, NodeLink *out)
     NodeIO **outLink;
 
     // First, make sure we have enought space to connect wire
-    inLink = this->getWire(m_Input[out->m_Channel]);
+    inLink  = this->getWire(m_Input[out->m_Channel]);
     outLink = this->getWire(in->m_Node->m_Output[in->m_Channel]);
 
     if (inLink == NULL || outLink == NULL) {
@@ -219,24 +235,26 @@ bool AudioNode::queue(NodeLink *in, NodeLink *out)
     if (in->m_Node->m_Frames[in->m_Channel] == NULL) {
         SPAM(("Malloc frame\n"));
         in->m_Node->m_Frames[in->m_Channel] = in->m_Node->newFrame();
-        //m_Frames[out->m_Channel] = in->m_Node->m_Frames[in->m_Channel];
+        // m_Frames[out->m_Channel] = in->m_Node->m_Frames[in->m_Channel];
     }
 
     if (out->m_Count == 0 && in->m_Count == 0 && in->m_Node != out->m_Node) {
         SPAM(("frame previously assigned\n"));
         // Frame was previously assigned, update next outputs
         if (m_Frames[out->m_Channel] != NULL) {
-            float *discard = m_Frames[out->m_Channel];
+            float *discard           = m_Frames[out->m_Channel];
             m_Frames[out->m_Channel] = NULL;
 
             SPAM(("Update wires\n"));
-            this->updateWiresFrame(out->m_Channel, in->m_Node->m_Frames[in->m_Channel], discard);
+            this->updateWiresFrame(
+                out->m_Channel, in->m_Node->m_Frames[in->m_Channel], discard);
 
             SPAM(("Freeing frame @ %p\n", discard));
             free(discard);
         }
         m_Frames[out->m_Channel] = in->m_Node->m_Frames[in->m_Channel];
-    } else if (out->m_Count == 1 || in->m_Count == 1 || in->m_Node == out->m_Node) {
+    } else if (out->m_Count == 1 || in->m_Count == 1
+               || in->m_Node == out->m_Node) {
         // Multiple input or output on same channel
         // need to use an internal buffer
 
@@ -275,14 +293,14 @@ bool AudioNode::unqueue(NodeLink *input, NodeLink *output)
     NodeLink *wiresIn, *wiresOut;
     int count;
 
-    wiresIn = m_Input[output->m_Channel];
+    wiresIn  = m_Input[output->m_Channel];
     wiresOut = input->m_Node->m_Output[input->m_Channel];
 
     // Find connecting wires and delete them
     count = wiresIn->m_Count;
-    for (int i = 0; i < count; i++)
-    {
-        if (wiresIn->wire[i] != NULL && wiresIn->wire[i]->m_Node == input->m_Node) {
+    for (int i = 0; i < count; i++) {
+        if (wiresIn->wire[i] != NULL
+            && wiresIn->wire[i]->m_Node == input->m_Node) {
             delete wiresIn->wire[i];
             wiresIn->wire[i] = NULL;
             wiresIn->m_Count--;
@@ -291,9 +309,9 @@ bool AudioNode::unqueue(NodeLink *input, NodeLink *output)
     }
 
     count = wiresOut->m_Count;
-    for (int i = 0; i < count; i++)
-    {
-        if (wiresOut->wire[i] != NULL && wiresOut->wire[i]->m_Node == output->m_Node) {
+    for (int i = 0; i < count; i++) {
+        if (wiresOut->wire[i] != NULL
+            && wiresOut->wire[i]->m_Node == output->m_Node) {
             delete wiresOut->wire[i];
             wiresOut->wire[i] = NULL;
             wiresOut->m_Count--;
@@ -312,7 +330,8 @@ bool AudioNode::unqueue(NodeLink *input, NodeLink *output)
     if (empty) {
         // Output node input channel is orpheline, set his frame to null
         // If the frame is needed later, the fx queue will handle it
-        if (m_Frames[output->m_Channel] != NULL && this->isFrameOwner(m_Frames[output->m_Channel])) {
+        if (m_Frames[output->m_Channel] != NULL
+            && this->isFrameOwner(m_Frames[output->m_Channel])) {
             free(m_Frames[output->m_Channel]);
         }
         m_Frames[output->m_Channel] = NULL;
@@ -336,11 +355,12 @@ void AudioNode::processQueue()
 
     // Let's go for a new round.
     // First mark all output as unprocessed
-    for (int i = 0; i < m_OutCount ; i++) {
+    for (int i = 0; i < m_OutCount; i++) {
         int j = 0;
         NODE_IO_FOR(j, m_Output[i])
-            SPAM(("     Marking output at %p as unprocessed (%p)\n", m_Output[i]->wire[j]->m_Node, this));
-            m_Output[i]->wire[j]->m_Node->m_Processed = false;
+        SPAM(("     Marking output at %p as unprocessed (%p)\n",
+              m_Output[i]->wire[j]->m_Node, this));
+        m_Output[i]->wire[j]->m_Node->m_Processed = false;
         NODE_IO_FOR_END(j)
     }
 
@@ -348,17 +368,21 @@ void AudioNode::processQueue()
     for (int i = 0; i < m_InCount; i++) {
         int j = 0;
         NODE_IO_FOR(j, m_Input[i])
-            if (!m_Input[i]->wire[j]->m_Node->m_Processed && m_Input[i]->wire[j]->m_Node->m_IsConnected) {
-                SPAM(("     Input %p havn't been processed, return\n", m_Input[i]->wire[j]->m_Node));
-                // Needed data havn't been processed yet. Return.
-                return;
+        if (!m_Input[i]->wire[j]->m_Node->m_Processed
+            && m_Input[i]->wire[j]->m_Node->m_IsConnected) {
+            SPAM(("     Input %p havn't been processed, return\n",
+                  m_Input[i]->wire[j]->m_Node));
+            // Needed data havn't been processed yet. Return.
+            return;
+        } else {
+            if (!m_Input[i]->wire[j]->m_Node->m_IsConnected) {
+                SPAM(("     Input %p isn't connected. No need to process\n",
+                      m_Input[i]->wire[j]->m_Node));
             } else {
-                if (!m_Input[i]->wire[j]->m_Node->m_IsConnected) {
-                    SPAM(("     Input %p isn't connected. No need to process\n", m_Input[i]->wire[j]->m_Node));
-                } else {
-                    SPAM(("    Input at %p is already processed\n", m_Input[i]->wire[j]->m_Node));
-                }
+                SPAM(("    Input at %p is already processed\n",
+                      m_Input[i]->wire[j]->m_Node));
             }
+        }
         NODE_IO_FOR_END(j)
     }
 
@@ -376,20 +400,26 @@ void AudioNode::processQueue()
         if (m_Input[i]->m_Count > 1) {
             // Reset buffer
             if (!m_Input[i]->m_HaveFeedback) {
-                memset(m_Frames[i], 0, m_Audio->m_OutputParameters->m_BufferSize/m_Audio->m_OutputParameters->m_Channels);
+                memset(m_Frames[i], 0,
+                       m_Audio->m_OutputParameters->m_BufferSize
+                           / m_Audio->m_OutputParameters->m_Channels);
             }
 
             // Merge all input
             int j = 0;
             NODE_IO_FOR(j, m_Input[i])
-                if (m_Frames[i] != m_Input[i]->wire[j]->m_Frame) {
-                    SPAM(("     Merging input #%d from %p to %p\n", m_Input[i]->m_Channel, m_Input[i]->wire[j]->m_Node, this));
-                    SPAM(("     frames=%p from %p\n", m_Frames[i], m_Input[i]->wire[j]->m_Frame));
-                    for (int k = 0; k < m_Audio->m_OutputParameters->m_FramesPerBuffer; k++) {
-                        m_Frames[i][k] += m_Input[i]->wire[j]->m_Frame[k];
-                    }
+            if (m_Frames[i] != m_Input[i]->wire[j]->m_Frame) {
+                SPAM(("     Merging input #%d from %p to %p\n",
+                      m_Input[i]->m_Channel, m_Input[i]->wire[j]->m_Node,
+                      this));
+                SPAM(("     frames=%p from %p\n", m_Frames[i],
+                      m_Input[i]->wire[j]->m_Frame));
+                for (int k = 0;
+                     k < m_Audio->m_OutputParameters->m_FramesPerBuffer; k++) {
+                    m_Frames[i][k] += m_Input[i]->wire[j]->m_Frame[k];
                 }
-                NODE_IO_FOR_END(j)
+            }
+            NODE_IO_FOR_END(j)
         }
     }
 
@@ -409,11 +439,12 @@ void AudioNode::processQueue()
         if (m_Output[i]->m_Count > 1) {
             int j = 0;
             NODE_IO_FOR(j, m_Output[i])
-                if (m_Output[i]->wire[j]->m_Frame != m_Frames[i]) {
-                    for (int k = 0; k < m_Audio->m_OutputParameters->m_FramesPerBuffer; k++) {
-                        m_Output[i]->wire[j]->m_Frame[k] = m_Frames[i][k];
-                    }
+            if (m_Output[i]->wire[j]->m_Frame != m_Frames[i]) {
+                for (int k = 0;
+                     k < m_Audio->m_OutputParameters->m_FramesPerBuffer; k++) {
+                    m_Output[i]->wire[j]->m_Frame[k] = m_Frames[i][k];
                 }
+            }
             NODE_IO_FOR_END(j)
         }
     }
@@ -426,12 +457,12 @@ void AudioNode::processQueue()
     for (int i = 0; i < m_OutCount; i++) {
         int j = 0;
         NODE_IO_FOR(j, m_Output[i])
-            if (!m_Output[i]->wire[j]->m_Node->m_Processed) {
-                m_Output[i]->wire[j]->m_Node->processQueue();
-            }
-            if (m_Output[i]->wire[j]->m_Node->m_Processed) {
-                count++;
-            }
+        if (!m_Output[i]->wire[j]->m_Node->m_Processed) {
+            m_Output[i]->wire[j]->m_Node->processQueue();
+        }
+        if (m_Output[i]->wire[j]->m_Node->m_Processed) {
+            count++;
+        }
         NODE_IO_FOR_END(j)
     }
 
@@ -440,13 +471,16 @@ void AudioNode::processQueue()
 
 float *AudioNode::newFrame()
 {
-#define FRAME_SIZE m_Audio->m_OutputParameters->m_BufferSize/m_Audio->m_OutputParameters->m_Channels
-    float *ret = static_cast<float *>(calloc(FRAME_SIZE + sizeof(void *), Audio::FLOAT32));
+#define FRAME_SIZE                            \
+    m_Audio->m_OutputParameters->m_BufferSize \
+        / m_Audio->m_OutputParameters->m_Channels
+    float *ret = static_cast<float *>(
+        calloc(FRAME_SIZE + sizeof(void *), Audio::FLOAT32));
     if (ret != NULL) {
         // Store at the end of the frame array
         // a pointer to the frame owner
         ptrdiff_t addr = reinterpret_cast<ptrdiff_t>(this);
-        void *p = reinterpret_cast<void *>(addr);
+        void *p        = reinterpret_cast<void *>(addr);
         float *tmp = &ret[FRAME_SIZE];
         memcpy(tmp, &p, sizeof(void *));
     }
@@ -454,11 +488,14 @@ float *AudioNode::newFrame()
 #undef FRAME_SIZE
 }
 
-void AudioNode::post(int msg, ExportsArgs *arg, void *val, unsigned long size) {
-    m_Audio->m_SharedMsg->postMessage(static_cast<void *>(new Message(this, arg, val, size)), msg);
+void AudioNode::post(int msg, ExportsArgs *arg, void *val, unsigned long size)
+{
+    m_Audio->m_SharedMsg->postMessage(
+        static_cast<void *>(new Message(this, arg, val, size)), msg);
 }
 
-AudioNode::~AudioNode() {
+AudioNode::~AudioNode()
+{
     // NOTE : The caller is responsible for calling Audio::lockQueue();
     // before deleting a node
 
@@ -491,12 +528,14 @@ AudioNode::~AudioNode() {
                 AudioNode *outNode = m_Input[i]->wire[j]->m_Node;
                 SPAM(("    found a wire to node %p\n", outNode));
                 SPAM(("    output node have %d output\n", m_OutCount));
-                for (int k = 0; k < outNode->m_OutCount; k++) { // Go trought each output and wire
+                for (int k = 0; k < outNode->m_OutCount;
+                     k++) { // Go trought each output and wire
                     int wireCount = outNode->m_Output[k]->m_Count;
                     SPAM(("        #%d wire = %d\n", k, wireCount));
                     for (int l = 0; l < wireCount; l++) {
                         if (outNode->m_Output[k]->wire[l] != NULL) {
-                            SPAM(("        wire=%d node=%p\n", l, outNode->m_Output[k]->wire[l]->m_Node));
+                            SPAM(("        wire=%d node=%p\n", l,
+                                  outNode->m_Output[k]->wire[l]->m_Node));
                             // Found a wire connected to this node, delete it
                             if (outNode->m_Output[k]->wire[l]->m_Node == this) {
                                 SPAM(("        DELETE\n"));
@@ -520,7 +559,8 @@ AudioNode::~AudioNode() {
     SPAM(("--- Disconnect ouputs\n"));
     for (int i = 0; i < m_OutCount; i++) {
         int count = m_Output[i]->m_Count;
-        SPAM(("    node have %d output on channel %d/%d\n", count, m_Output[i]->m_Channel, i));
+        SPAM(("    node have %d output on channel %d/%d\n", count,
+              m_Output[i]->m_Channel, i));
         // Free remaining frames owned by the node
         // And forward update it
         if (m_Frames[i] != NULL && this->isFrameOwner(m_Frames[i])) {
@@ -539,7 +579,8 @@ AudioNode::~AudioNode() {
                     SPAM(("        #%d wire = %d\n", k, wireCount));
                     for (int l = 0; l < wireCount; l++) {
                         if (inNode->m_Input[k]->wire[l] != NULL) {
-                            SPAM(("        wire=%d node=%p\n", l, inNode->m_Input[k]->wire[l]->m_Node));
+                            SPAM(("        wire=%d node=%p\n", l,
+                                  inNode->m_Input[k]->wire[l]->m_Node));
                             if (inNode->m_Input[k]->wire[l]->m_Node == this) {
                                 SPAM(("       DELETE\n"));
                                 delete inNode->m_Input[k]->wire[l];
@@ -583,15 +624,14 @@ bool AudioNode::updateIsConnectedInput()
     SPAM(("    updateIsConnectedInput @ %p\n", this));
     if (m_InCount == 0) return true;
 
-    for (int i = 0; i < m_InCount; i++)
-    {
+    for (int i = 0; i < m_InCount; i++) {
         SPAM(("    input %d\n", i));
         int count = m_Input[i]->m_Count;
-        for (int j = 0; j < count; j++)
-        {
+        for (int j = 0; j < count; j++) {
             if (m_Input[i]->wire[j] != NULL) {
                 SPAM(("    Wire %d to %p\n", i, m_Input[i]->wire[j]->m_Node));
-                return m_Input[i]->wire[j]->m_Node->updateIsConnected(false, true);
+                return m_Input[i]->wire[j]->m_Node->updateIsConnected(false,
+                                                                      true);
             }
         }
     }
@@ -604,15 +644,14 @@ bool AudioNode::updateIsConnectedOutput()
     SPAM(("    updateIsConnectedOutput @ %p\n", this));
     if (m_OutCount == 0) return true;
 
-    for (int i = 0; i < m_OutCount; i++)
-    {
+    for (int i = 0; i < m_OutCount; i++) {
         int count = m_Output[i]->m_Count;
         SPAM(("    output %d count=%d\n", i, count));
-        for (int j = 0; j < count; j++)
-        {
+        for (int j = 0; j < count; j++) {
             if (m_Output[i]->wire[j] != NULL) {
                 SPAM(("    Wire %d to %p\n", i, m_Output[i]->wire[j]->m_Node));
-                return m_Output[i]->wire[j]->m_Node->updateIsConnected(true, false);
+                return m_Output[i]->wire[j]->m_Node->updateIsConnected(true,
+                                                                       false);
             }
         }
     }
@@ -622,21 +661,23 @@ bool AudioNode::updateIsConnectedOutput()
 
 // This method will check that the node
 // is connected to a source and a target
-bool AudioNode::updateIsConnected() {
+bool AudioNode::updateIsConnected()
+{
     return this->updateIsConnected(false, false);
 }
 
 bool AudioNode::updateIsConnected(bool input, bool output)
 {
     SPAM(("updateIsConnected @ %p input=%d output=%d\n", this, input, output));
-    m_IsConnected =
-        (input || this->updateIsConnectedInput()) &&
-        (output || this->updateIsConnectedOutput());
-    SPAM(("updateIsConnected finished @ %p / isConnected=%d\n", this, m_IsConnected));
+    m_IsConnected = (input || this->updateIsConnectedInput())
+                    && (output || this->updateIsConnectedOutput());
+    SPAM(("updateIsConnected finished @ %p / isConnected=%d\n", this,
+          m_IsConnected));
     return m_IsConnected;
 }
 
-void AudioNode::resetFrames() {
+void AudioNode::resetFrames()
+{
     if (!m_NullFrames) {
         for (int i = 0; i < m_OutCount; i++) {
             this->resetFrame(i);
@@ -647,7 +688,8 @@ void AudioNode::resetFrames() {
 
 void AudioNode::resetFrame(int channel)
 {
-    memset(m_Frames[channel], 0, m_Audio->m_OutputParameters->m_BufferSize/m_Audio->m_OutputParameters->m_Channels);
+    memset(m_Frames[channel], 0, m_Audio->m_OutputParameters->m_BufferSize
+                                     / m_Audio->m_OutputParameters->m_Channels);
 }
 
 
@@ -696,12 +738,15 @@ bool AudioNodeReverb::process()
 // }}}
 
 // {{{ AudoNodeStereoEnhancer
-AudioNodeStereoEnhancer::AudioNodeStereoEnhancer(int inCount, int outCount, Audio *audio)
+AudioNodeStereoEnhancer::AudioNodeStereoEnhancer(int inCount,
+                                                 int outCount,
+                                                 Audio *audio)
     : AudioNode(inCount, outCount, audio), m_Width(0)
 {
     m_Args[0] = new ExportsArgs("width", DOUBLE, &m_Width);
     if (inCount != 2 || outCount != 2) {
-        throw new AudioNodeException("Stereo enhancer must have 2 input and 2 output");
+        throw new AudioNodeException(
+            "Stereo enhancer must have 2 input and 2 output");
     }
 }
 
@@ -716,8 +761,8 @@ bool AudioNodeStereoEnhancer::process()
         double m = (l + r) * 0.5;
         double s = (r - l) * scale;
 
-        m_Frames[0][i] = m-s;
-        m_Frames[1][i] = m+s;
+        m_Frames[0][i] = m - s;
+        m_Frames[1][i] = m + s;
     }
 
     return true;
@@ -732,7 +777,7 @@ AudioNodeCustom::AudioNodeCustom(int inCount, int outCount, Audio *audio)
 
 void AudioNodeCustom::setCallback(NodeCallback cbk, void *custom)
 {
-    m_Cbk = cbk;
+    m_Cbk    = cbk;
     m_Custom = custom;
 }
 
@@ -741,8 +786,8 @@ bool AudioNodeCustom::process()
     if (m_Cbk != NULL) {
         NodeEvent ev;
 
-        ev.data = m_Frames;
-        ev.size = m_Audio->m_OutputParameters->m_FramesPerBuffer;
+        ev.data   = m_Frames;
+        ev.size   = m_Audio->m_OutputParameters->m_FramesPerBuffer;
         ev.custom = m_Custom;
 
         m_Cbk(&ev);
@@ -753,43 +798,45 @@ bool AudioNodeCustom::process()
 // }}}
 
 // {{{ AudioSource
-AudioSource::AudioSource(int out, Audio *audio, bool external) :
-    AudioNode(0, out, audio), m_OutputParameters(NULL),
-    m_BufferNotEmpty(NULL), m_rBufferOut(NULL), m_Reader(NULL),
-    m_ExternallyManaged(external), m_Playing(false), m_PlayWhenReady(false),
-    m_Stopped(false), m_Loop(false), m_NbChannel(0), m_CodecCtx(NULL),
-    m_TmpPacket(NULL), m_Clock(0), m_FrameConsumed(true), m_PacketConsumed(true),
-    m_SamplesConsumed(0), m_AudioStream(-1), m_FailedDecoding(0),
-    m_SwrCtx(NULL), m_sCvt(NULL), m_fCvt(NULL), m_AvioBuffer(NULL),
-    m_fBufferInData(NULL), m_fBufferOutData(NULL),
-    m_rBufferOutData(NULL), m_Buffering(false)
+AudioSource::AudioSource(int out, Audio *audio, bool external)
+    : AudioNode(0, out, audio), m_OutputParameters(NULL),
+      m_BufferNotEmpty(NULL), m_rBufferOut(NULL), m_Reader(NULL),
+      m_ExternallyManaged(external), m_Playing(false), m_PlayWhenReady(false),
+      m_Stopped(false), m_Loop(false), m_NbChannel(0), m_CodecCtx(NULL),
+      m_TmpPacket(NULL), m_Clock(0), m_FrameConsumed(true),
+      m_PacketConsumed(true), m_SamplesConsumed(0), m_AudioStream(-1),
+      m_FailedDecoding(0), m_SwrCtx(NULL), m_sCvt(NULL), m_fCvt(NULL),
+      m_AvioBuffer(NULL), m_fBufferInData(NULL), m_fBufferOutData(NULL),
+      m_rBufferOutData(NULL), m_Buffering(false)
 {
     m_DoSemek = false;
     m_Seeking = false;
 
-    m_TmpFrame.size = 0;
-    m_TmpFrame.data = NULL;
+    m_TmpFrame.size      = 0;
+    m_TmpFrame.data      = NULL;
     m_TmpFrame.nbSamples = 0;
 }
 
 int AudioSource::open(const char *src)
 {
-#define RETURN_WITH_ERROR(err) \
-this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
-this->closeInternal(true); \
-return err;
+#define RETURN_WITH_ERROR(err)                       \
+    this->sendEvent(SOURCE_EVENT_ERROR, err, false); \
+    this->closeInternal(true);                       \
+    return err;
     // If a previous file has been opened, close it
     if (m_Container != NULL) {
         this->closeInternal(true);
     }
 
-    m_Coro = Coro_new();
+    m_Coro     = Coro_new();
     m_MainCoro = Coro_new();
     Coro_initializeMainCoro(m_MainCoro);
 
-    m_Reader = new AVStreamReader(src, Audio::sourceNeedWork, m_Audio, this, m_Audio->m_Net);
+    m_Reader = new AVStreamReader(src, Audio::sourceNeedWork, m_Audio, this,
+                                  m_Audio->m_Net);
 
-    m_AvioBuffer = static_cast<unsigned char *>(av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE));
+    m_AvioBuffer = static_cast<unsigned char *>(
+        av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE));
     if (!m_AvioBuffer) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -799,8 +846,9 @@ return err;
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Container->pb = avio_alloc_context(m_AvioBuffer, NIDIUM_AVIO_BUFFER_SIZE,
-         0, m_Reader, AVStreamReader::read, NULL, AVStreamReader::seek);
+    m_Container->pb
+        = avio_alloc_context(m_AvioBuffer, NIDIUM_AVIO_BUFFER_SIZE, 0, m_Reader,
+                             AVStreamReader::read, NULL, AVStreamReader::seek);
     if (!m_Container) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -818,11 +866,11 @@ int AudioSource::openInit()
 
 void AudioSource::openInitCoro(void *arg)
 {
-#define RETURN_WITH_ERROR(err) \
-thiz->sendEvent(SOURCE_EVENT_ERROR, err, false);\
-thiz->postMessage(thiz, AVSource::MSG_CLOSE);\
-Coro_switchTo_(thiz->m_Coro, thiz->m_MainCoro);
-    AudioSource *thiz = static_cast<AudioSource *>(arg);
+#define RETURN_WITH_ERROR(err)                       \
+    thiz->sendEvent(SOURCE_EVENT_ERROR, err, false); \
+    thiz->postMessage(thiz, AVSource::MSG_CLOSE);    \
+    Coro_switchTo_(thiz->m_Coro, thiz->m_MainCoro);
+    AudioSource *thiz    = static_cast<AudioSource *>(arg);
     thiz->m_SourceDoOpen = false;
 
     int ret;
@@ -840,10 +888,10 @@ Coro_switchTo_(thiz->m_Coro, thiz->m_MainCoro);
 
 int AudioSource::open(void *buffer, int size)
 {
-#define RETURN_WITH_ERROR(err) \
-this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
-this->closeInternal(true); \
-return err;
+#define RETURN_WITH_ERROR(err)                       \
+    this->sendEvent(SOURCE_EVENT_ERROR, err, false); \
+    this->closeInternal(true);                       \
+    return err;
 
     // If a previous file has been opened, close it
     if (m_Container != NULL) {
@@ -852,7 +900,8 @@ return err;
 
     m_Reader = new AVBufferReader((uint8_t *)buffer, size);
 
-    m_AvioBuffer = static_cast<unsigned char *>(av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE));
+    m_AvioBuffer = static_cast<unsigned char *>(
+        av_malloc(NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE));
     if (!m_AvioBuffer) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -862,8 +911,9 @@ return err;
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Container->pb = avio_alloc_context(m_AvioBuffer, NIDIUM_AVIO_BUFFER_SIZE,
-        0, m_Reader, AVBufferReader::read, NULL, AVBufferReader::seek);
+    m_Container->pb
+        = avio_alloc_context(m_AvioBuffer, NIDIUM_AVIO_BUFFER_SIZE, 0, m_Reader,
+                             AVBufferReader::read, NULL, AVBufferReader::seek);
     if (!m_Container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -944,37 +994,43 @@ int AudioSource::initInternal()
     // Frequency resampling
     if (m_CodecCtx->sample_rate != m_Audio->m_OutputParameters->m_SampleRate) {
         m_fCvt = new Resampler();
-        m_fCvt->setup(m_CodecCtx->sample_rate, m_Audio->m_OutputParameters->m_SampleRate, m_OutCount, 32);
+        m_fCvt->setup(m_CodecCtx->sample_rate,
+                      m_Audio->m_OutputParameters->m_SampleRate, m_OutCount,
+                      32);
 
-        if (!(m_fBufferOutData = static_cast<float *>(malloc(NIDIUM_RESAMPLER_BUFFER_SAMPLES * m_OutCount * Audio::FLOAT32)))) {
+        if (!(m_fBufferOutData
+              = static_cast<float *>(malloc(NIDIUM_RESAMPLER_BUFFER_SAMPLES
+                                            * m_OutCount * Audio::FLOAT32)))) {
             fprintf(stderr, "Failed to init frequency resampler buffers");
             return ERR_OOM;
         }
 
-        m_fCvt->inp_count = m_fCvt->inpsize() / 2 -1;
-        m_fCvt->inp_data = 0;
+        m_fCvt->inp_count = m_fCvt->inpsize() / 2 - 1;
+        m_fCvt->inp_data  = 0;
 
         m_fCvt->out_count = NIDIUM_RESAMPLER_BUFFER_SAMPLES;
-        m_fCvt->out_data = m_fBufferOutData;
+        m_fCvt->out_data  = m_fBufferOutData;
     }
 
     // Init output buffer
     int bufferSize = m_Audio->m_OutputParameters->m_BufferSize;
     m_rBufferOut = new PaUtilRingBuffer();
-    if (!(m_rBufferOutData = calloc(bufferSize * NIDIUM_AUDIO_BUFFER_MULTIPLIER, Audio::FLOAT32 * m_OutCount))) {
+    if (!(m_rBufferOutData = calloc(bufferSize * NIDIUM_AUDIO_BUFFER_MULTIPLIER,
+                                    Audio::FLOAT32 * m_OutCount))) {
         return ERR_OOM;
     }
 
-    if (0 > PaUtil_InitializeRingBuffer(static_cast<PaUtilRingBuffer*>(m_rBufferOut),
-            (Audio::FLOAT32 * m_OutCount),
-            bufferSize * NIDIUM_AUDIO_BUFFER_MULTIPLIER,
-            m_rBufferOutData)) {
+    if (0 > PaUtil_InitializeRingBuffer(
+                static_cast<PaUtilRingBuffer *>(m_rBufferOut),
+                (Audio::FLOAT32 * m_OutCount),
+                bufferSize * NIDIUM_AUDIO_BUFFER_MULTIPLIER,
+                m_rBufferOutData)) {
         fprintf(stderr, "Failed to init output ringbuffer\n");
         return ERR_OOM;
     }
 
-    if (m_CodecCtx->sample_fmt != AV_SAMPLE_FMT_FLT ||
-        m_CodecCtx->channel_layout != AV_CH_LAYOUT_STEREO) {
+    if (m_CodecCtx->sample_fmt != AV_SAMPLE_FMT_FLT
+        || m_CodecCtx->channel_layout != AV_CH_LAYOUT_STEREO) {
         int64_t channelLayout;
 
         // Channel layout is not set, use default one
@@ -984,17 +1040,17 @@ int AudioSource::initInternal()
             channelLayout = m_CodecCtx->channel_layout;
         }
 
-        m_SwrCtx = swr_alloc_set_opts(NULL,
-                AV_CH_LAYOUT_STEREO_DOWNMIX, AV_SAMPLE_FMT_FLT, m_CodecCtx->sample_rate,
-                channelLayout, m_CodecCtx->sample_fmt, m_CodecCtx->sample_rate,
-                0, NULL);
+        m_SwrCtx = swr_alloc_set_opts(
+            NULL, AV_CH_LAYOUT_STEREO_DOWNMIX, AV_SAMPLE_FMT_FLT,
+            m_CodecCtx->sample_rate, channelLayout, m_CodecCtx->sample_fmt,
+            m_CodecCtx->sample_rate, 0, NULL);
         if (!m_SwrCtx || swr_init(m_SwrCtx) < 0) {
             fprintf(stderr, "Failed to init sample resampling converter\n");
             return ERR_NO_RESAMPLING_CONVERTER;
         }
     }
 
-    m_Opened = true;
+    m_Opened    = true;
     m_Processed = false;
 
     if (m_PlayWhenReady) {
@@ -1008,7 +1064,9 @@ int AudioSource::initInternal()
 
 int AudioSource::avail()
 {
-    return m_Opened ? static_cast<int>(PaUtil_GetRingBufferReadAvailable(m_rBufferOut)) : 0;
+    return m_Opened ? static_cast<int>(
+                          PaUtil_GetRingBufferReadAvailable(m_rBufferOut))
+                    : 0;
 }
 
 bool AudioSource::buffer()
@@ -1036,7 +1094,7 @@ bool AudioSource::buffer()
 
 bool AudioSource::bufferInternal()
 {
-    for (; ;) {
+    for (;;) {
         int ret = av_read_frame(m_Container, m_TmpPacket);
         if (m_TmpPacket->stream_index == m_AudioStream) {
             if (ret < 0) {
@@ -1057,8 +1115,9 @@ bool AudioSource::bufferInternal()
     return true;
 }
 
-void AudioSource::bufferCoro(void *arg) {
-    AudioSource *t = static_cast<AudioSource*>(arg);
+void AudioSource::bufferCoro(void *arg)
+{
+    AudioSource *t = static_cast<AudioSource *>(arg);
     t->bufferInternal();
 
     Coro_switchTo_(t->m_Coro, t->m_MainCoro);
@@ -1066,8 +1125,9 @@ void AudioSource::bufferCoro(void *arg) {
 
 // This method is used when the source is externally managed
 // (To fill a packet to the source)
-void AudioSource::buffer(AVPacket *pkt) {
-    m_TmpPacket = pkt;
+void AudioSource::buffer(AVPacket *pkt)
+{
+    m_TmpPacket      = pkt;
     m_PacketConsumed = false;
 }
 
@@ -1079,7 +1139,8 @@ bool AudioSource::work()
         }
 
         if (m_SourceDoOpen) {
-            Coro_startCoro_(m_MainCoro, m_Coro, this, AudioSource::openInitCoro);
+            Coro_startCoro_(m_MainCoro, m_Coro, this,
+                            AudioSource::openInitCoro);
             return true;
         }
 
@@ -1106,20 +1167,26 @@ bool AudioSource::work()
     }
 
     if (m_DoNotProcess || !m_Opened || m_Stopped) {
-        SPAM(("Source will not be decoded. doNotProcess = %d opened = %d stopped = %d",
-            m_DoNotProcess, m_Opened, m_Stopped));
+        SPAM(
+            ("Source will not be decoded. doNotProcess = %d opened = %d "
+             "stopped = %d",
+             m_DoNotProcess, m_Opened, m_Stopped));
         return false;
     }
 
     ring_buffer_size_t avail = PaUtil_GetRingBufferWriteAvailable(m_rBufferOut);
 
     if (avail < m_Audio->m_OutputParameters->m_FramesPerBuffer) {
-        SPAM(("Work failed because not enought space is available to write decoded packet %lu\n", avail));
+        SPAM(
+            ("Work failed because not enought space is available to write "
+             "decoded packet %lu\n",
+             avail));
         return false;
     }
 
     if (!this->decode()) {
-        SPAM(("Work failed because source is stoped or decoding failed %d\n", m_Stopped));
+        SPAM(("Work failed because source is stoped or decoding failed %d\n",
+              m_Stopped));
         return false;
     }
 
@@ -1129,8 +1196,10 @@ bool AudioSource::work()
         return true;
     }
 
-    avail = PaUtil_GetRingBufferWriteAvailable(m_rBufferOut);
-    int write = avail > m_Audio->m_OutputParameters->m_FramesPerBuffer ? m_Audio->m_OutputParameters->m_FramesPerBuffer : avail;
+    avail     = PaUtil_GetRingBufferWriteAvailable(m_rBufferOut);
+    int write = avail > m_Audio->m_OutputParameters->m_FramesPerBuffer
+                    ? m_Audio->m_OutputParameters->m_FramesPerBuffer
+                    : avail;
 
     this->resample(write);
 
@@ -1138,10 +1207,10 @@ bool AudioSource::work()
 }
 bool AudioSource::decode()
 {
-#define RETURN_WITH_ERROR(err) \
-av_free(tmpFrame); \
-this->sendEvent(SOURCE_EVENT_ERROR, err, true);\
-return false;
+#define RETURN_WITH_ERROR(err)                      \
+    av_free(tmpFrame);                              \
+    this->sendEvent(SOURCE_EVENT_ERROR, err, true); \
+    return false;
     if (m_Error) {
         SPAM(("decode() return false cause of error %d\n", m_Error));
         return false;
@@ -1166,7 +1235,8 @@ return false;
         }
 
         // Decode packet
-        len = avcodec_decode_audio4(m_CodecCtx, tmpFrame, &gotFrame, m_TmpPacket);
+        len = avcodec_decode_audio4(m_CodecCtx, tmpFrame, &gotFrame,
+                                    m_TmpPacket);
 
         if (len < 0) {
             if (m_FailedDecoding > MAX_FAILED_DECODING) {
@@ -1196,7 +1266,8 @@ return false;
         }
 
         if (m_TmpPacket->pts != AV_NOPTS_VALUE) {
-            m_Clock = av_q2d(m_Container->streams[m_AudioStream]->time_base) * m_TmpPacket->pts;
+            m_Clock = av_q2d(m_Container->streams[m_AudioStream]->time_base)
+                      * m_TmpPacket->pts;
         }
 
         // this->tmpFrame is too small to hold the new data
@@ -1205,7 +1276,8 @@ return false;
                 free(m_TmpFrame.data);
             }
             m_TmpFrame.size = tmpFrame->linesize[0];
-            m_TmpFrame.data = static_cast<float *>(malloc(tmpFrame->nb_samples * Audio::FLOAT32 * 2));
+            m_TmpFrame.data = static_cast<float *>(
+                malloc(tmpFrame->nb_samples * Audio::FLOAT32 * 2));
             // XXX : Right now, source output is always stereo
             if (m_TmpFrame.data == NULL) {
                 RETURN_WITH_ERROR(ERR_OOM);
@@ -1218,7 +1290,8 @@ return false;
 
             const uint8_t **in = (const uint8_t **)tmpFrame->data;
 
-            len = swr_convert(m_SwrCtx, out, tmpFrame->nb_samples, in, tmpFrame->nb_samples);
+            len = swr_convert(m_SwrCtx, out, tmpFrame->nb_samples, in,
+                              tmpFrame->nb_samples);
             m_TmpFrame.nbSamples = len;
         } else {
             memcpy(m_TmpFrame.data, tmpFrame->data[0], tmpFrame->linesize[0]);
@@ -1228,31 +1301,32 @@ return false;
         // Reset frequency converter input
         if (m_fCvt) {
             m_fCvt->inp_count = m_TmpFrame.nbSamples;
-            m_fCvt->inp_data = m_TmpFrame.data;
+            m_fCvt->inp_data  = m_TmpFrame.data;
         }
 
         av_free(tmpFrame);
 
         m_SamplesConsumed = 0;
-        m_FrameConsumed = false;
+        m_FrameConsumed   = false;
     }
 
     return true;
 #undef RETURN_WITH_ERROR
 }
 
-int AudioSource::resample(int destSamples) {
+int AudioSource::resample(int destSamples)
+{
     int channels = m_NbChannel;
 
     if (m_fCvt) {
-        int copied = 0;
+        int copied     = 0;
         int passCopied = 0;
-        for (; ;) {
+        for (;;) {
             // Output is empty
             if (m_fCvt->out_count == NIDIUM_RESAMPLER_BUFFER_SAMPLES) {
-                m_fCvt->out_data = m_fBufferOutData;
+                m_fCvt->out_data  = m_fBufferOutData;
                 m_SamplesConsumed = 0;
-                passCopied= 0;
+                passCopied        = 0;
 
                 // Resample as much data as possible
                 while (m_fCvt->out_count > 0 && m_fCvt->inp_count > 0) {
@@ -1270,7 +1344,9 @@ int AudioSource::resample(int destSamples) {
                 write = destSamples > avail ? avail : destSamples;
                 write -= passCopied;
 
-                PaUtil_WriteRingBuffer(m_rBufferOut, m_fBufferOutData + m_SamplesConsumed * channels, write);
+                PaUtil_WriteRingBuffer(
+                    m_rBufferOut,
+                    m_fBufferOutData + m_SamplesConsumed * channels, write);
 
                 m_SamplesConsumed += write;
                 m_fCvt->out_count += write;
@@ -1281,7 +1357,8 @@ int AudioSource::resample(int destSamples) {
                  * Since the samples has been pushed inside the
                  * decoded buffer we need to update the clock accordingly.
                  */
-                m_Clock += write * (1.0/m_Audio->m_OutputParameters->m_SampleRate);
+                m_Clock += write
+                           * (1.0 / m_Audio->m_OutputParameters->m_SampleRate);
 
                 if (copied == destSamples) {
                     return copied;
@@ -1297,19 +1374,22 @@ int AudioSource::resample(int destSamples) {
         int copied;
 
         copied = 0;
-        for (; ;) {
+        for (;;) {
             int write, avail;
 
             avail = m_TmpFrame.nbSamples - m_SamplesConsumed;
             write = destSamples > avail ? avail : destSamples;
             write -= copied;
 
-            PaUtil_WriteRingBuffer(m_rBufferOut, m_TmpFrame.data + m_SamplesConsumed * channels, write);
+            PaUtil_WriteRingBuffer(
+                m_rBufferOut, m_TmpFrame.data + m_SamplesConsumed * channels,
+                write);
 
             copied += write;
             m_SamplesConsumed += write;
 
-            m_Clock += write * (1.0/m_Audio->m_OutputParameters->m_SampleRate);
+            m_Clock
+                += write * (1.0 / m_Audio->m_OutputParameters->m_SampleRate);
 
             if (m_SamplesConsumed == m_TmpFrame.nbSamples) {
                 m_FrameConsumed = true;
@@ -1325,32 +1405,39 @@ int AudioSource::resample(int destSamples) {
     return 0;
 }
 
-double AudioSource::getClock() {
+double AudioSource::getClock()
+{
     if (!m_Opened) return 0;
 
-    ring_buffer_size_t decodedSamples = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
-    double decodedDuration = decodedSamples * (1.0/m_Audio->m_OutputParameters->m_SampleRate);
+    ring_buffer_size_t decodedSamples
+        = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
+    double decodedDuration
+        = decodedSamples * (1.0 / m_Audio->m_OutputParameters->m_SampleRate);
 
     double audioLatency = m_Audio->getLatency();
 
     double ret = m_Clock - decodedDuration - audioLatency;
 
-    SPAM(("source clock=%f decodingBuffer=%f originalClock=%f\n", ret, decodedDuration, m_Clock));
+    SPAM(("source clock=%f decodingBuffer=%f originalClock=%f\n", ret,
+          decodedDuration, m_Clock));
 
     return ret < 0 ? 0 : ret;
 }
 
 double AudioSource::drop(double sec)
 {
-    ring_buffer_size_t drop = ceil(sec/1.0 * m_Audio->m_OutputParameters->m_SampleRate);
-    ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
+    ring_buffer_size_t drop
+        = ceil(sec / 1.0 * m_Audio->m_OutputParameters->m_SampleRate);
+    ring_buffer_size_t avail      = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
     ring_buffer_size_t actualDrop = drop > avail ? avail : drop;
 
     PaUtil_AdvanceRingBufferReadIndex(m_rBufferOut, actualDrop);
 
-    double actualDropDuration = actualDrop * 1.0/m_Audio->m_OutputParameters->m_SampleRate;
+    double actualDropDuration
+        = actualDrop * 1.0 / m_Audio->m_OutputParameters->m_SampleRate;
 
-    SPAM(("drop=%f nbSample=%ld actualDrop=%ld/%f\n", sec, drop, actualDrop, actualDropDuration));
+    SPAM(("drop=%f nbSample=%ld actualDrop=%ld/%f\n", sec, drop, actualDrop,
+          actualDropDuration));
 
     return actualDropDuration;
 }
@@ -1362,7 +1449,7 @@ void AudioSource::seek(double time)
     }
 
     m_DoSeekTime = time < 0 ? 0 : time;
-    m_DoSemek = true;
+    m_DoSemek    = true;
 
     NIDIUM_PTHREAD_SIGNAL(&m_Audio->m_QueueNeedData);
 }
@@ -1378,13 +1465,13 @@ void AudioSource::seekInternal(double time)
         avcodec_flush_buffers(m_CodecCtx);
         PaUtil_FlushRingBuffer(m_rBufferOut);
         this->resetFrames();
-        m_Eof = false;
-        m_Error = 0;
+        m_Eof          = false;
+        m_Error        = 0;
         m_DoNotProcess = false;
     } else {
         int64_t target = 0;
-        int flags = 0;
-        double clock = this->getClock();
+        int flags      = 0;
+        double clock   = this->getClock();
 
         SPAM(("Seeking source to=%f / position=%f\n", time, m_Clock));
 
@@ -1392,7 +1479,8 @@ void AudioSource::seekInternal(double time)
 
         target = time * AV_TIME_BASE;
 
-        target = av_rescale_q(target, AV_TIME_BASE_Q, m_Container->streams[m_AudioStream]->time_base);
+        target = av_rescale_q(target, AV_TIME_BASE_Q,
+                              m_Container->streams[m_AudioStream]->time_base);
         int ret = av_seek_frame(m_Container, m_AudioStream, target, flags);
         if (ret >= 0) {
             SPAM(("Seeking success\n"));
@@ -1401,7 +1489,7 @@ void AudioSource::seekInternal(double time)
             this->resetFrames();
             m_Error = 0;
             if (m_Eof && flags == AVSEEK_FLAG_BACKWARD) {
-                m_Eof = false;
+                m_Eof          = false;
                 m_DoNotProcess = false;
                 if (m_Loop) {
                     this->play();
@@ -1425,7 +1513,7 @@ void AudioSource::seekInternal(double time)
     }
 
     m_PacketConsumed = true;
-    m_FrameConsumed = true;
+    m_FrameConsumed  = true;
 
     m_DoSemek = false;
 
@@ -1434,7 +1522,8 @@ void AudioSource::seekInternal(double time)
     }
 }
 
-bool AudioSource::process() {
+bool AudioSource::process()
+{
     if (!m_Opened) {
         SPAM(("Not opened\n"));
         return false;
@@ -1447,20 +1536,22 @@ bool AudioSource::process() {
     }
 
     // Make sure enought data is available
-    if (m_Audio->m_OutputParameters->m_FramesPerBuffer >= PaUtil_GetRingBufferReadAvailable(m_rBufferOut)) {
+    if (m_Audio->m_OutputParameters->m_FramesPerBuffer
+        >= PaUtil_GetRingBufferReadAvailable(m_rBufferOut)) {
         this->resetFrames();
-        //SPAM(("Not enought to read\n"));
+        // SPAM(("Not enought to read\n"));
         // EOF reached, send message to Audio
         if (m_Error == AVERROR_EOF && !m_Eof) {
             SPAM(("     => EOF loop=%d\n", m_Loop));
 
-            m_Eof = true;
+            m_Eof          = true;
             m_DoNotProcess = true;
             this->stop();
 
             this->sendEvent(SOURCE_EVENT_EOF, 0, true);
         }
-        SPAM(("Not enought data to read. return false %ld\n", PaUtil_GetRingBufferReadAvailable(m_rBufferOut)));
+        SPAM(("Not enought data to read. return false %ld\n",
+              PaUtil_GetRingBufferReadAvailable(m_rBufferOut)));
         return false;
     }
 
@@ -1471,11 +1562,14 @@ bool AudioSource::process() {
 
         j = 0;
         // TODO : malloc each time could be avoided?
-        tmp = static_cast<float *>(malloc(m_Audio->m_OutputParameters->m_BufferSize * m_OutCount));
+        tmp = static_cast<float *>(
+            malloc(m_Audio->m_OutputParameters->m_BufferSize * m_OutCount));
 
-        PaUtil_ReadRingBuffer(m_rBufferOut, tmp, m_Audio->m_OutputParameters->m_FramesPerBuffer);
+        PaUtil_ReadRingBuffer(m_rBufferOut, tmp,
+                              m_Audio->m_OutputParameters->m_FramesPerBuffer);
 
-        for (int i = 0; i < m_Audio->m_OutputParameters->m_FramesPerBuffer; i++) {
+        for (int i = 0; i < m_Audio->m_OutputParameters->m_FramesPerBuffer;
+             i++) {
             for (int c = 0; c < m_OutCount; c++) {
                 m_Frames[c][i] = tmp[j];
                 j++;
@@ -1484,7 +1578,8 @@ bool AudioSource::process() {
 
         free(tmp);
     } else {
-        PaUtil_ReadRingBuffer(m_rBufferOut, m_Frames[0], m_Audio->m_OutputParameters->m_FramesPerBuffer);
+        PaUtil_ReadRingBuffer(m_rBufferOut, m_Frames[0],
+                              m_Audio->m_OutputParameters->m_FramesPerBuffer);
     }
 
     m_NullFrames = false;
@@ -1516,8 +1611,8 @@ void AudioSource::closeInternal(bool reset)
         PaUtil_FlushRingBuffer(m_rBufferOut);
         free(m_rBufferOutData);
 
-        m_CodecCtx = NULL;
-        m_SwrCtx = NULL;
+        m_CodecCtx       = NULL;
+        m_SwrCtx         = NULL;
         m_rBufferOutData = NULL;
     } else {
         if (!m_ExternallyManaged && m_Reader != NULL) {
@@ -1534,7 +1629,7 @@ void AudioSource::closeInternal(bool reset)
     if (m_Coro != NULL) {
         Coro_free(m_Coro);
         Coro_free(m_MainCoro);
-        m_Coro = NULL;
+        m_Coro     = NULL;
         m_MainCoro = NULL;
     }
 
@@ -1550,7 +1645,7 @@ void AudioSource::closeInternal(bool reset)
         free(m_TmpFrame.data);
         m_TmpFrame.data = NULL;
     }
-    m_TmpFrame.size = 0;
+    m_TmpFrame.size      = 0;
     m_TmpFrame.nbSamples = 0;
 
     if (m_fCvt != NULL) {
@@ -1562,14 +1657,14 @@ void AudioSource::closeInternal(bool reset)
     delete m_rBufferOut;
     m_rBufferOut = NULL;
 
-    m_Playing = false;
-    m_PlayWhenReady = false;
-    m_FrameConsumed = true;
+    m_Playing        = false;
+    m_PlayWhenReady  = false;
+    m_FrameConsumed  = true;
     m_PacketConsumed = true;
-    m_Opened = false;
-    m_AudioStream = -1;
-    m_Container = NULL;
-    m_AvioBuffer = NULL;
+    m_Opened         = false;
+    m_AudioStream    = -1;
+    m_Container      = NULL;
+    m_AvioBuffer     = NULL;
 
     m_Audio->unlockQueue();
     m_Audio->unlockSources();
@@ -1582,8 +1677,8 @@ void AudioSource::play()
         return;
     }
 
-    m_Playing = true;
-    m_Stopped = false;
+    m_Playing       = true;
+    m_Stopped       = false;
     m_PlayWhenReady = false;
 
     SPAM(("Play source @ %p\n", this));
@@ -1609,8 +1704,8 @@ void AudioSource::stop()
         this->seek(0);
     }
 
-    m_Stopped = true;
-    m_Playing = false;
+    m_Stopped       = true;
+    m_Playing       = false;
     m_PlayWhenReady = false;
 
     this->resetFrames();
@@ -1629,7 +1724,8 @@ bool AudioSource::isActive()
 }
 
 
-AudioSource::~AudioSource() {
+AudioSource::~AudioSource()
+{
     m_Audio->removeSource(this);
     this->closeInternal(false);
 }
@@ -1664,7 +1760,7 @@ void AudioSourceCustom::stop()
 void AudioSourceCustom::setSeek(SeekCallback cbk, void *custom)
 {
     m_SeekCallback = cbk;
-    m_Custom = custom;
+    m_Custom       = custom;
 }
 
 void AudioSourceCustom::seek(double ms)
@@ -1678,8 +1774,9 @@ void AudioSourceCustom::seek(double ms)
 // Called from Audio thread
 void AudioSourceCustom::seekMethod(AudioNode *node, void *custom)
 {
-    AudioSourceCustom *thiz = static_cast<AudioSourceCustom*>(node);
-    thiz->m_SeekCallback(static_cast<AudioSourceCustom*>(node), thiz->m_SeekTime, thiz->m_Custom);
+    AudioSourceCustom *thiz = static_cast<AudioSourceCustom *>(node);
+    thiz->m_SeekCallback(static_cast<AudioSourceCustom *>(node),
+                         thiz->m_SeekTime, thiz->m_Custom);
 }
 
 bool AudioSourceCustom::process()
@@ -1700,9 +1797,8 @@ bool AudioSourceCustom::isActive()
 // }}}
 
 // {{{ AudioProcessor
-AudioProcessor::~AudioProcessor() {};
+AudioProcessor::~AudioProcessor(){};
 // }}}
 
 } // namespace AV
 } // namespace Nidium
-

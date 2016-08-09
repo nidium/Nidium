@@ -16,7 +16,7 @@
 #include "Core/Messages.h"
 #include "Core/Events.h"
 
-#define HTTP_MAX_CL (1024ULL*1024ULL*1024ULL*2ULL)
+#define HTTP_MAX_CL (1024ULL * 1024ULL * 1024ULL * 2ULL)
 #define HTTP_DEFAULT_TIMEOUT 15000
 
 namespace Nidium {
@@ -31,7 +31,8 @@ class HTTPServer : public Nidium::Core::Events
 public:
     static const uint8_t EventID = 3;
 
-    enum Events {
+    enum Events
+    {
         kEvents_None = 1
     };
 
@@ -45,7 +46,8 @@ public:
     bool start(bool reuseport = false, int timeout = 0);
     void stop();
 
-    ape_socket *getSocket() const {
+    ape_socket *getSocket() const
+    {
         return m_Socket;
     }
 
@@ -63,27 +65,31 @@ public:
     /*
         Callbacks for subclasses
     */
-    virtual void onClientConnect(HTTPClientConnection *client) {};
-    virtual void onClientDisconnect(HTTPClientConnection *client) {};
-    virtual void onData(HTTPClientConnection *client, const char *buf, size_t len) {};
+    virtual void onClientConnect(HTTPClientConnection *client){};
+    virtual void onClientDisconnect(HTTPClientConnection *client){};
+    virtual void
+    onData(HTTPClientConnection *client, const char *buf, size_t len){};
 
     /* return true to close the connection */
-    virtual bool onEnd(HTTPClientConnection *client) {
+    virtual bool onEnd(HTTPClientConnection *client)
+    {
         return true;
     };
 
-    uint16_t getPort() const {
+    uint16_t getPort() const
+    {
         return m_Port;
     }
 
-    const char *getIP() const {
+    const char *getIP() const
+    {
         return m_IP;
     }
 
 private:
-    ape_socket *      m_Socket;
-    char *            m_IP;
-    uint16_t          m_Port;
+    ape_socket *m_Socket;
+    char *m_IP;
+    uint16_t m_Port;
 };
 // }}}
 
@@ -94,7 +100,6 @@ private:
 class HTTPResponse
 {
 public:
-
     friend HTTPClientConnection;
 
     virtual ~HTTPResponse();
@@ -108,11 +113,13 @@ public:
     */
     void setData(char *buf, size_t len);
 
-    ape_array_t *getHeaders() const {
+    ape_array_t *getHeaders() const
+    {
         return m_Headers;
     }
 
-    void setStatusCode(uint16_t code) {
+    void setStatusCode(uint16_t code)
+    {
         m_Statuscode = code;
     }
 
@@ -123,9 +130,10 @@ public:
     /*
         Send a chunk of data
     */
-    void sendChunk(char *buf, size_t len,
-        ape_socket_data_autorelease datatype = APE_DATA_AUTORELEASE,
-        bool willEnd = false);
+    void sendChunk(char *buf,
+                   size_t len,
+                   ape_socket_data_autorelease datatype = APE_DATA_AUTORELEASE,
+                   bool willEnd = false);
 
     /*
         Send the request.
@@ -134,7 +142,8 @@ public:
     void send(ape_socket_data_autorelease datatype = APE_DATA_AUTORELEASE);
     void sendHeaders(bool chunked = false);
     void end();
-    bool isHeadersAlreadySent() const {
+    bool isHeadersAlreadySent() const
+    {
         return m_HeaderSent;
     }
 
@@ -154,6 +163,7 @@ private:
     bool m_Chunked;
 
     HTTPClientConnection *m_Con;
+
 protected:
     explicit HTTPResponse(uint16_t code = 200);
 };
@@ -163,18 +173,20 @@ protected:
 class HTTPClientConnection
 {
 public:
-    HTTPClientConnection(HTTPServer *httpserver,
-        ape_socket *socket);
+    HTTPClientConnection(HTTPServer *httpserver, ape_socket *socket);
     virtual ~HTTPClientConnection();
 
-    enum PrevState {
+    enum PrevState
+    {
         PSTATE_NOTHING,
         PSTATE_FIELD,
         PSTATE_VALUE
     };
-    struct HTTPData {
+    struct HTTPData
+    {
         http_parser parser;
-        struct {
+        struct
+        {
             ape_array_t *list;
             buffer *tkey;
             buffer *tval;
@@ -186,30 +198,36 @@ public:
         buffer *url;
     };
 
-    struct HTTPData *getHTTPState() {
+    struct HTTPData *getHTTPState()
+    {
         return &m_HttpState;
     }
 
-    ape_socket *getSocket() const {
+    ape_socket *getSocket() const
+    {
         return m_SocketClient;
     }
 
-    HTTPServer *getHTTPServer() const {
+    HTTPServer *getHTTPServer() const
+    {
         return m_HTTPServer;
     }
 
-    buffer *getData() const {
+    buffer *getData() const
+    {
         return m_HttpState.data;
     }
 
-    buffer *getURL() const {
+    buffer *getURL() const
+    {
         return m_HttpState.url;
     }
 
     /* Get a header value from the client request */
     const char *getHeader(const char *key);
 
-    void resetData() {
+    void resetData()
+    {
         if (m_HttpState.data != NULL) {
             m_HttpState.data->used = 0;
         }
@@ -220,63 +238,75 @@ public:
 
     void onRead(const char *data, size_t len, ape_global *ape);
     void write(char *buf, size_t len);
-    void setContext(void *arg) {
+    void setContext(void *arg)
+    {
         m_Ctx = arg;
     }
-    void *getContext() const {
+    void *getContext() const
+    {
         return m_Ctx;
     }
 
-    HTTPResponse *getResponse() {
+    HTTPResponse *getResponse()
+    {
         return m_Response;
     }
 
-    void setTimeout(int val) {
+    void setTimeout(int val)
+    {
         m_ClientTimeoutMs = val;
     }
 
-    uint64_t getTimeoutAfterMs() const {
+    uint64_t getTimeoutAfterMs() const
+    {
         return m_ClientTimeoutMs;
     }
 
-    uint64_t getLastActivity() const {
+    uint64_t getLastActivity() const
+    {
         return m_LastAcitivty;
     }
 
-    void increaseRequestsCount() {
+    void increaseRequestsCount()
+    {
         m_RequestsCount++;
     }
 
-    bool shouldCloseConnection() {
+    bool shouldCloseConnection()
+    {
         const char *header_connection = getHeader("connection");
 
-        return ((m_MaxRequestsCount && m_RequestsCount >= m_MaxRequestsCount) ||
-            (header_connection && strcasecmp(header_connection, "close") == 0));
+        return ((m_MaxRequestsCount && m_RequestsCount >= m_MaxRequestsCount)
+                || (header_connection
+                    && strcasecmp(header_connection, "close") == 0));
     }
 
-    void setMaxRequestsCount(uint64_t n) {
+    void setMaxRequestsCount(uint64_t n)
+    {
         m_MaxRequestsCount = n;
     }
 
     virtual HTTPResponse *onCreateResponse();
 
-    virtual void onHeaderEnded() {};
-    virtual void onDisconnect(ape_global *ape) {};
-    virtual void onUpgrade(const char *to) {};
-    virtual void onContent(const char *data, size_t len) {};
+    virtual void onHeaderEnded(){};
+    virtual void onDisconnect(ape_global *ape){};
+    virtual void onUpgrade(const char *to){};
+    virtual void onContent(const char *data, size_t len){};
 
     virtual void close();
 
-    void _createResponse() {
+    void _createResponse()
+    {
         HTTPResponse *resp = onCreateResponse();
         if (m_Response && resp != m_Response) {
             delete m_Response;
         }
-        m_Response = resp;
+        m_Response        = resp;
         m_Response->m_Con = this;
     }
 
     void *m_Ctx;
+
 protected:
     struct HTTPData m_HttpState;
     ape_socket *m_SocketClient;
@@ -285,8 +315,8 @@ protected:
     uint64_t m_TimeoutTimer;
     uint64_t m_LastAcitivty;
     int m_ClientTimeoutMs;
-    uint64_t          m_RequestsCount;
-    uint64_t          m_MaxRequestsCount;
+    uint64_t m_RequestsCount;
+    uint64_t m_MaxRequestsCount;
 };
 // }}}
 
@@ -294,5 +324,3 @@ protected:
 } // namespace Nidium
 
 #endif
-
-

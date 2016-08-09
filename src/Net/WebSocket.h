@@ -20,7 +20,8 @@ class WebSocketServer : public HTTPServer
 public:
     static const uint8_t EventID = 4;
 
-    enum Events {
+    enum Events
+    {
         kEvents_ServerConnect = 1,
         kEvents_ServerFrame,
         kEvents_ServerClose
@@ -29,7 +30,8 @@ public:
     WebSocketServer(uint16_t port, const char *ip = "0.0.0.0");
     virtual void onClientConnect(ape_socket *client, ape_global *ape) override;
 
-    virtual bool onEnd(HTTPClientConnection *client) override {
+    virtual bool onEnd(HTTPClientConnection *client) override
+    {
         return false;
     };
 };
@@ -45,25 +47,29 @@ public:
     /* TODO: support "buffering" detection + ondrain()
         (need ape_websocket.c modification)
     */
-    void write(unsigned char *data, size_t len,
-        bool binary = false,
-        ape_socket_data_autorelease type = APE_DATA_COPY);
+    void write(unsigned char *data,
+               size_t len,
+               bool binary                      = false,
+               ape_socket_data_autorelease type = APE_DATA_COPY);
 
     virtual void onHeaderEnded();
     virtual void onDisconnect(ape_global *ape);
     virtual void onUpgrade(const char *to);
     virtual void onContent(const char *data, size_t len);
 
-    virtual void setData(void *data) {
+    virtual void setData(void *data)
+    {
         m_Data = data;
     }
-    virtual void *getData() const {
+    virtual void *getData() const
+    {
         return m_Data;
     }
     virtual void close();
     void ping();
 
     static int PingTimer(void *arg);
+
 private:
     websocket_state m_WSState;
     bool m_Handshaked;
@@ -76,4 +82,3 @@ private:
 } // namespace Nidium
 
 #endif
-

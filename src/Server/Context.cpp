@@ -25,14 +25,13 @@ namespace Server {
 
 
 // {{{ Context
-Context::Context(ape_global *net, Worker *worker,
-    bool jsstrict, bool runInREPL) :
-    Core::Context(net), m_Worker(worker), m_RunInREPL(runInREPL)
+Context::Context(ape_global *net, Worker *worker, bool jsstrict, bool runInREPL)
+    : Core::Context(net), m_Worker(worker), m_RunInREPL(runInREPL)
 {
     char cwd[PATH_MAX];
 
     memset(&cwd[0], '\0', sizeof(cwd));
-    if (getcwd(cwd, sizeof(cwd)-1) != NULL) {
+    if (getcwd(cwd, sizeof(cwd) - 1) != NULL) {
         strcat(cwd, "/");
 
         Path::CD(cwd);
@@ -53,10 +52,8 @@ void Context::log(const char *str)
 
 Context::~Context()
 {
-
 }
 // }}}
 
 } // namespace Server
 } // namespace Nidium
-

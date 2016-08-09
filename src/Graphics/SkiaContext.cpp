@@ -14,8 +14,8 @@
 #include <unistd.h>
 #include <math.h>
 
-#if defined(__linux__) && ! defined(UINT32_MAX)
-   #define UINT32_MAX 4294967295u
+#if defined(__linux__) && !defined(UINT32_MAX)
+#define UINT32_MAX 4294967295u
 #endif
 
 #include <SkGpuDevice.h>
@@ -57,121 +57,118 @@ SkCanvas *SkiaContext::m_GlContext = NULL;
 #define PAINT_STROKE m_State->m_PaintStroke
 
 /* TODO: Move this to an util file */
-#define WHITESPACE \
-  while (' ' == *str) ++str;
+#define WHITESPACE      \
+    while (' ' == *str) \
+        ++str;
 
 /*
  * Parse color channel value
  */
 
-#define CHANNEL(NAME) \
-   c = 0; \
-   if (*str >= '0' && *str <= '9') { \
-     do { \
-       c *= 10; \
-       c += *str++ - '0'; \
-     } while (*str >= '0' && *str <= '9'); \
-   } else { \
-     return 0; \
-   } \
-   if (c > 255) c = 255; \
-   NAME = c; \
-   while (' ' == *str || ',' == *str) str++;
+#define CHANNEL(NAME)                         \
+    c = 0;                                    \
+    if (*str >= '0' && *str <= '9') {         \
+        do {                                  \
+            c *= 10;                          \
+            c += *str++ - '0';                \
+        } while (*str >= '0' && *str <= '9'); \
+    } else {                                  \
+        return 0;                             \
+    }                                         \
+    if (c > 255) c = 255;                     \
+    NAME = c;                                 \
+    while (' ' == *str || ',' == *str)        \
+        str++;
 
 
-static int count_separators(const char* str, const char* sep) {
+static int count_separators(const char *str, const char *sep)
+{
     char c;
     int separators = 0;
     while ((c = *str++) != '\0') {
-        if (strchr(sep, c) == NULL)
-            continue;
+        if (strchr(sep, c) == NULL) continue;
         do {
-            if ((c = *str++) == '\0')
-            goto goHome;
+            if ((c = *str++) == '\0') goto goHome;
         } while (strchr(sep, c) != NULL);
         separators++;
     }
-    goHome:
+goHome:
     return separators;
 }
 
-static inline int32_t
-argb_from_rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-  return a << 24
-    | r << 16
-    | g << 8
-    | b;
+static inline int32_t argb_from_rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+{
+    return a << 24 | r << 16 | g << 8 | b;
 }
 
-static int32_t
-rgba_from_rgba_string(const char *str, short *ok) {
-  if (str == strstr(str, "rgba(")) {
-    str += 5;
-    WHITESPACE;
-    uint8_t r = 0, g = 0, b = 0;
-    int c;
-    float a = 0;
-    CHANNEL(r);
-    CHANNEL(g);
-    CHANNEL(b);
-    if (*str >= '1' && *str <= '9') {
-      a = 1;
-    } else {
-      if ('0' == *str) ++str;
-      if ('.' == *str) {
-        ++str;
-        float n = .1;
-        while (*str >= '0' && *str <= '9') {
-          a += (*str++ - '0') * n;
-          n *= .1;
+static int32_t rgba_from_rgba_string(const char *str, short *ok)
+{
+    if (str == strstr(str, "rgba(")) {
+        str += 5;
+        WHITESPACE;
+        uint8_t r = 0, g = 0, b = 0;
+        int c;
+        float a = 0;
+        CHANNEL(r);
+        CHANNEL(g);
+        CHANNEL(b);
+        if (*str >= '1' && *str <= '9') {
+            a = 1;
+        } else {
+            if ('0' == *str) ++str;
+            if ('.' == *str) {
+                ++str;
+                float n = .1;
+                while (*str >= '0' && *str <= '9') {
+                    a += (*str++ - '0') * n;
+                    n *= .1;
+                }
+            }
         }
-      }
+        return *ok = 1, argb_from_rgba(r, g, b, static_cast<int>(a * 255));
     }
-    return *ok = 1, argb_from_rgba(r, g, b, static_cast<int>(a * 255));
-  }
-  return *ok = 0;
+    return *ok = 0;
 }
 
 
-static int32_t
-argb_from_rgb(uint8_t r, uint8_t g, uint8_t b) {
-  return argb_from_rgba(r, g, b, 255);
+static int32_t argb_from_rgb(uint8_t r, uint8_t g, uint8_t b)
+{
+    return argb_from_rgba(r, g, b, 255);
 }
 
 /*
  * Return rgb from "rgb()"
  */
 
-static int32_t
-rgba_from_rgb_string(const char *str, short *ok) {
-  if (str == strstr(str, "rgb(")) {
-    str += 4;
-    WHITESPACE;
-    uint8_t r = 0, g = 0, b = 0;
-    int c;
-    CHANNEL(r);
-    CHANNEL(g);
-    CHANNEL(b);
-    return *ok = 1, argb_from_rgb(r, g, b);
-  }
-  return *ok = 0;
+static int32_t rgba_from_rgb_string(const char *str, short *ok)
+{
+    if (str == strstr(str, "rgb(")) {
+        str += 4;
+        WHITESPACE;
+        uint8_t r = 0, g = 0, b = 0;
+        int c;
+        CHANNEL(r);
+        CHANNEL(g);
+        CHANNEL(b);
+        return *ok = 1, argb_from_rgb(r, g, b);
+    }
+    return *ok = 0;
 }
 
 
-static inline double calcHue(double temp1, double temp2, double hueVal) {
-  if (hueVal < 0.0)
-    hueVal++;
-  else if (hueVal > 1.0)
-    hueVal--;
+static inline double calcHue(double temp1, double temp2, double hueVal)
+{
+    if (hueVal < 0.0)
+        hueVal++;
+    else if (hueVal > 1.0)
+        hueVal--;
 
-  if (hueVal * 6.0 < 1.0)
-    return temp1 + (temp2 - temp1) * hueVal * 6.0;
-  if (hueVal * 2.0 < 1.0)
-    return temp2;
-  if (hueVal * 3.0 < 2.0)
-    return temp1 + (temp2 - temp1) * (2.0 / 3.0 - hueVal) * 6.0;
+    if (hueVal * 6.0 < 1.0) return temp1 + (temp2 - temp1) * hueVal * 6.0;
+    if (hueVal * 2.0 < 1.0) return temp2;
+    if (hueVal * 3.0 < 2.0)
+        return temp1 + (temp2 - temp1) * (2.0 / 3.0 - hueVal) * 6.0;
 
-  return temp1;
+    return temp1;
 }
 
 static inline bool isBreakable(const unsigned char c)
@@ -181,7 +178,8 @@ static inline bool isBreakable(const unsigned char c)
 
 /*
 static SkBitmap load_bitmap() {
-    SkStream* stream = new SkFILEStream("/skimages/sesame_street_ensemble-hp.jpg");
+    SkStream* stream = new
+SkFILEStream("/skimages/sesame_street_ensemble-hp.jpg");
     SkAutoUnref aur(stream);
 
     SkBitmap bm;
@@ -196,13 +194,12 @@ static SkBitmap load_bitmap() {
 // }}}
 
 // {{{ SkiaContext
-SkiaContext::SkiaContext() :
-    m_State(NULL), m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0),
-    m_AsComposite(0), m_Screen(NULL), m_CurrentShadow({0, 0, 0, 0}),
-    m_Canvas(NULL), m_Debug(false), m_FontSkew(-0.25),
-    m_CanvasBindMode(SkiaContext::BIND_NO)
+SkiaContext::SkiaContext()
+    : m_State(NULL), m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0),
+      m_AsComposite(0), m_Screen(NULL), m_CurrentShadow({ 0, 0, 0, 0 }),
+      m_Canvas(NULL), m_Debug(false), m_FontSkew(-0.25),
+      m_CanvasBindMode(SkiaContext::BIND_NO)
 {
-
 }
 
 #if 0
@@ -236,23 +233,27 @@ static SkColor SkPMColorToColor(SkPMColor pm)
 }
 #endif
 
-SkColor makeRGBAFromHSLA(double hue, double saturation, double lightness, double alpha)
+SkColor
+makeRGBAFromHSLA(double hue, double saturation, double lightness, double alpha)
 {
     const double scaleFactor = nextafter(256.0, 0.0);
 
     if (!saturation) {
         int greyValue = static_cast<int>(lightness * scaleFactor);
-        return SkColorSetARGB(static_cast<int>(alpha * scaleFactor),
-            greyValue, greyValue, greyValue);
+        return SkColorSetARGB(static_cast<int>(alpha * scaleFactor), greyValue,
+                              greyValue, greyValue);
     }
 
-    double temp2 = lightness < 0.5 ? lightness * (1.0 + saturation) : lightness + saturation - lightness * saturation;
+    double temp2 = lightness < 0.5
+                       ? lightness * (1.0 + saturation)
+                       : lightness + saturation - lightness * saturation;
     double temp1 = 2.0 * lightness - temp2;
 
-    return SkColorSetARGB(static_cast<int>(alpha * scaleFactor),
-                    static_cast<int>(calcHue(temp1, temp2, hue + 1.0 / 3.0) * scaleFactor),
-                    static_cast<int>(calcHue(temp1, temp2, hue) * scaleFactor),
-                    static_cast<int>(calcHue(temp1, temp2, hue - 1.0 / 3.0) * scaleFactor));
+    return SkColorSetARGB(
+        static_cast<int>(alpha * scaleFactor),
+        static_cast<int>(calcHue(temp1, temp2, hue + 1.0 / 3.0) * scaleFactor),
+        static_cast<int>(calcHue(temp1, temp2, hue) * scaleFactor),
+        static_cast<int>(calcHue(temp1, temp2, hue - 1.0 / 3.0) * scaleFactor));
 }
 
 /* TODO: Only accept ints int rgb(a)() */
@@ -286,16 +287,17 @@ uint32_t SkiaContext::ParseColor(const char *str)
         }
         array[3] = SK_Scalar1;
 
-        const char* end = SkParse::FindScalars(&str[(str[3] == 'a' ? 5 : 4)],
-            array, count);
+        const char *end
+            = SkParse::FindScalars(&str[(str[3] == 'a' ? 5 : 4)], array, count);
 
-        if (end == NULL) printf("Not found\n");
+        if (end == NULL)
+            printf("Not found\n");
         else {
             /* TODO: limits? */
-            return makeRGBAFromHSLA(SkScalarToDouble(array[0])/360.,
-                SkScalarToDouble(array[1])/100.,
-                SkScalarToDouble(array[2])/100.,
-                SkScalarToDouble(array[3]));
+            return makeRGBAFromHSLA(SkScalarToDouble(array[0]) / 360.,
+                                    SkScalarToDouble(array[1]) / 100.,
+                                    SkScalarToDouble(array[2]) / 100.,
+                                    SkScalarToDouble(array[3]));
         }
 
     } else {
@@ -333,7 +335,7 @@ void SkiaContext::initPaints()
 
     m_PaintSystem->setARGB(255, 255, 0, 0);
     m_PaintSystem->setAntiAlias(true);
-    //paint_system->setLCDRenderText(true);
+    // paint_system->setLCDRenderText(true);
     m_PaintSystem->setStyle(SkPaint::kFill_Style);
     PAINT->setSubpixelText(true);
     PAINT->setAutohinted(true);
@@ -342,7 +344,7 @@ void SkiaContext::initPaints()
 
     PAINT_STROKE->setARGB(255, 0, 0, 0);
     PAINT_STROKE->setAntiAlias(true);
-    //PAINT_STROKE->setLCDRenderText(true);
+    // PAINT_STROKE->setLCDRenderText(true);
     PAINT_STROKE->setStyle(SkPaint::kStroke_Style);
     PAINT_STROKE->setSubpixelText(true);
     PAINT_STROKE->setAutohinted(true);
@@ -356,15 +358,16 @@ void SkiaContext::initPaints()
     m_AsComposite = 0;
 }
 
-SkGpuDevice *SkiaContext::createNewGPUDevice(GrContext *gr, int width, int height)
+SkGpuDevice *
+SkiaContext::createNewGPUDevice(GrContext *gr, int width, int height)
 {
     GrTextureDesc desc;
-    desc.fConfig = kSkia8888_GrPixelConfig;
-    desc.fFlags = kRenderTarget_GrTextureFlagBit;
-    desc.fWidth = width;
-    desc.fHeight = height;
+    desc.fConfig    = kSkia8888_GrPixelConfig;
+    desc.fFlags     = kRenderTarget_GrTextureFlagBit;
+    desc.fWidth     = width;
+    desc.fHeight    = height;
     desc.fSampleCnt = 0;
-    GrTexture *tex = gr->createUncachedTexture(desc, NULL, 0);
+    GrTexture *tex  = gr->createUncachedTexture(desc, NULL, 0);
 
     return SkGpuDevice::Create(tex);
 }
@@ -383,8 +386,11 @@ int SkiaContext::bindOnScreen(int width, int height)
                         ->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                             width*ratio, height*ratio, false);
 #else
-    GrContext *gr = (static_cast<SkGpuDevice *>(SkiaContext::m_GlContext->getDevice())->context());
-    SkBaseDevice *dev = this->createNewGPUDevice(gr, width*ratio, height*ratio);
+    GrContext *gr
+        = (static_cast<SkGpuDevice *>(SkiaContext::m_GlContext->getDevice())
+               ->context());
+    SkBaseDevice *dev
+        = this->createNewGPUDevice(gr, width * ratio, height * ratio);
 #endif
     if (dev == NULL) {
         return 0;
@@ -398,7 +404,7 @@ int SkiaContext::bindOnScreen(int width, int height)
     m_GlobalAlpha = 255;
     m_CurrentPath = NULL;
 
-    m_State = new struct _State;
+    m_State       = new struct _State;
     m_State->next = NULL;
 
     initPaints();
@@ -413,12 +419,12 @@ int SkiaContext::bindOnScreen(int width, int height)
 }
 
 
-void glcb(const GrGLInterface*) {
+void glcb(const GrGLInterface *)
+{
     printf("Got a gl call\n");
 }
 
-SkCanvas *SkiaContext::CreateGLCanvas(int width, int height,
-    Context *nctx)
+SkCanvas *SkiaContext::CreateGLCanvas(int width, int height, Context *nctx)
 {
 
     if (!nctx) {
@@ -427,44 +433,46 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height,
     }
 
     const GrGLInterface *interface = NULL;
-    GrContext *context = NULL;
+    GrContext *context             = NULL;
 
     if (SkiaContext::m_GlContext) {
-        context = (static_cast<SkGpuDevice *>(SkiaContext::m_GlContext->getDevice())->context());
+        context
+            = (static_cast<SkGpuDevice *>(SkiaContext::m_GlContext->getDevice())
+                   ->context());
         context->ref();
     } else {
 
-        if ((interface = nctx->getGLState()->getNidiumGLContext()->iface()) == NULL) {
+        if ((interface = nctx->getGLState()->getNidiumGLContext()->iface())
+            == NULL) {
             NUI_LOG("Cant get OpenGL interface");
             return NULL;
         }
 
-        context = GrContext::Create(kOpenGL_GrBackend,
-            (GrBackendContext)interface);
+        context
+            = GrContext::Create(kOpenGL_GrBackend, (GrBackendContext)interface);
 
         if (context == NULL) {
             return NULL;
         }
-
     }
     float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
     GrBackendRenderTargetDesc desc;
-    //GrGLRenderTarget *t = new GrGLRenderTarget();
+    // GrGLRenderTarget *t = new GrGLRenderTarget();
 
-    desc.fWidth = SkScalarRoundToInt(width*ratio);
-    desc.fHeight = SkScalarRoundToInt(height*ratio);
-    desc.fConfig = kSkia8888_GrPixelConfig;
-    desc.fOrigin = kBottomLeft_GrSurfaceOrigin;
+    desc.fWidth       = SkScalarRoundToInt(width * ratio);
+    desc.fHeight      = SkScalarRoundToInt(height * ratio);
+    desc.fConfig      = kSkia8888_GrPixelConfig;
+    desc.fOrigin      = kBottomLeft_GrSurfaceOrigin;
     desc.fStencilBits = 0;
-    desc.fSampleCnt = 0;
-    //GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
+    desc.fSampleCnt   = 0;
+// GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
 #if 0
     GrGLint buffer = 0;
     GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
 #endif
     desc.fRenderTargetHandle = 0;
-    GrRenderTarget * target = context->wrapBackendRenderTarget(desc);
+    GrRenderTarget *target   = context->wrapBackendRenderTarget(desc);
 
     if (target == NULL) {
         NUI_LOG("Failed to init Skia render target");
@@ -483,7 +491,6 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height,
     context->unref();
 
     return ret;
-
 }
 
 int SkiaContext::bindGL(int width, int height, Context *nctx)
@@ -501,7 +508,7 @@ int SkiaContext::bindGL(int width, int height, Context *nctx)
     m_GlobalAlpha = 255;
     m_CurrentPath = NULL;
 
-    m_State = new struct _State;
+    m_State       = new struct _State;
     m_State->next = NULL;
 
     initPaints();
@@ -524,18 +531,18 @@ int SkiaContext::bindGL(int width, int height, Context *nctx)
 */
 void SkiaContext::clearRect(double x, double y, double width, double height)
 {
-/*
+    /*
     SkPaint paint;
     platformContext()->setupPaintForFilling(&paint);
     paint.setXfermodeMode(SkXfermode::kClear_Mode);
 */
-    //CANVAS_FLUSH();
-    //glClear(GL_COLOR_BUFFER_BIT);
+    // CANVAS_FLUSH();
+    // glClear(GL_COLOR_BUFFER_BIT);
     SkRect r;
     SkPaint clearPaint;
 
-    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
-        SkDoubleToScalar(width), SkDoubleToScalar(height));
+    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y), SkDoubleToScalar(width),
+              SkDoubleToScalar(height));
 
     clearPaint.setStyle(SkPaint::kFill_Style);
     clearPaint.setARGB(0, 0, 0, 0);
@@ -544,13 +551,12 @@ void SkiaContext::clearRect(double x, double y, double width, double height)
     m_Canvas->drawRect(r, clearPaint);
 
     CANVAS_FLUSH();
-
 }
 
 void SkiaContext::system(const char *text, int x, int y)
 {
-    m_Canvas->drawText(text, strlen(text),
-        SkIntToScalar(x), SkIntToScalar(y), *m_PaintSystem);
+    m_Canvas->drawText(text, strlen(text), SkIntToScalar(x), SkIntToScalar(y),
+                       *m_PaintSystem);
 
     CANVAS_FLUSH();
 }
@@ -565,29 +571,28 @@ ShadowLooper *SkiaContext::buildShadow()
                                 SkDoubleToScalar(m_CurrentShadow.m_X),
                                 SkDoubleToScalar(m_CurrentShadow.m_Y),
                                 m_CurrentShadow.m_Color,
-                                SkBlurDrawLooper::kIgnoreTransform_BlurFlag |
-                                SkBlurDrawLooper::kHighQuality_BlurFlag);
+                                SkBlurDrawLooper::kIgnoreTransform_BlurFlag
+                                    | SkBlurDrawLooper::kHighQuality_BlurFlag);
 }
 
-static struct _nidium_xfer_mode {
+static struct _nidium_xfer_mode
+{
     const char *str;
     SkXfermode::Mode mode;
-} nidium_xfer_mode[] = {
-    {"source-over",        SkXfermode::kSrcOver_Mode},
-    {"source-in",          SkXfermode::kSrcIn_Mode},
-    {"source-out",         SkXfermode::kSrcOut_Mode},
-    {"source-atop",        SkXfermode::kSrcATop_Mode},
-    {"destination-over",   SkXfermode::kDstOver_Mode},
-    {"destination-in",     SkXfermode::kDstIn_Mode},
-    {"destination-out",    SkXfermode::kDstOut_Mode},
-    {"destination-atop",   SkXfermode::kDstATop_Mode},
-    {"lighter",            SkXfermode::kPlus_Mode},
-    {"darker",             SkXfermode::kDarken_Mode},
-    {"copy",               SkXfermode::kSrc_Mode},
-    {"xor",                SkXfermode::kXor_Mode},
-    {"lighten",            SkXfermode::kColorDodge_Mode},
-    {NULL,                 SkXfermode::kSrcOver_Mode}
-};
+} nidium_xfer_mode[] = { { "source-over", SkXfermode::kSrcOver_Mode },
+                         { "source-in", SkXfermode::kSrcIn_Mode },
+                         { "source-out", SkXfermode::kSrcOut_Mode },
+                         { "source-atop", SkXfermode::kSrcATop_Mode },
+                         { "destination-over", SkXfermode::kDstOver_Mode },
+                         { "destination-in", SkXfermode::kDstIn_Mode },
+                         { "destination-out", SkXfermode::kDstOut_Mode },
+                         { "destination-atop", SkXfermode::kDstATop_Mode },
+                         { "lighter", SkXfermode::kPlus_Mode },
+                         { "darker", SkXfermode::kDarken_Mode },
+                         { "copy", SkXfermode::kSrc_Mode },
+                         { "xor", SkXfermode::kXor_Mode },
+                         { "lighten", SkXfermode::kColorDodge_Mode },
+                         { NULL, SkXfermode::kSrcOver_Mode } };
 
 void SkiaContext::beginPath()
 {
@@ -597,7 +602,7 @@ void SkiaContext::beginPath()
 
     m_CurrentPath = new SkPath();
 
-    //currentPath->moveTo(SkIntToScalar(0), SkIntToScalar(0));
+    // currentPath->moveTo(SkIntToScalar(0), SkIntToScalar(0));
 }
 
 /* TODO: bug? looks like we need to add to the previous value (strange) */
@@ -607,7 +612,7 @@ void SkiaContext::moveTo(double x, double y)
         beginPath();
     }
     const SkMatrix &m = m_Canvas->getTotalMatrix();
-    SkPoint pt = SkPoint::Make(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    SkPoint pt        = SkPoint::Make(SkDoubleToScalar(x), SkDoubleToScalar(y));
 
     SkMatrix::MapPtsProc proc = m.getMapPtsProc();
 
@@ -624,7 +629,7 @@ void SkiaContext::lineTo(double x, double y)
     }
 
     const SkMatrix &m = m_Canvas->getTotalMatrix();
-    SkPoint pt = SkPoint::Make(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    SkPoint pt        = SkPoint::Make(SkDoubleToScalar(x), SkDoubleToScalar(y));
 
     SkMatrix::MapPtsProc proc = m.getMapPtsProc();
 
@@ -648,7 +653,8 @@ void SkiaContext::fill()
     if (shader != NULL) {
         SkShader *tmpShader;
 
-        tmpShader = SkShader::CreateLocalMatrixShader(shader, m_Canvas->getTotalMatrix());
+        tmpShader = SkShader::CreateLocalMatrixShader(
+            shader, m_Canvas->getTotalMatrix());
         shader->ref();
         PAINT->setShader(tmpShader)->unref();
     }
@@ -675,7 +681,8 @@ void SkiaContext::stroke()
     if (shader != NULL) {
         SkShader *tmpShader;
 
-        tmpShader = SkShader::CreateLocalMatrixShader(shader, m_Canvas->getTotalMatrix());
+        tmpShader = SkShader::CreateLocalMatrixShader(
+            shader, m_Canvas->getTotalMatrix());
         shader->ref();
         PAINT->setShader(tmpShader)->unref();
     }
@@ -685,7 +692,7 @@ void SkiaContext::stroke()
     m_Canvas->resetMatrix();
 
     SkScalar lineWidth = PAINT_STROKE->getStrokeWidth();
-    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
+    float ratio        = SystemInterface::GetInstance()->backingStorePixelRatio();
 
     PAINT_STROKE->setStrokeWidth(SkFloatToScalar(ratio) * lineWidth);
 
@@ -713,7 +720,6 @@ void SkiaContext::closePath()
     }
 
     m_CurrentPath->close();
-
 }
 
 void SkiaContext::clip()
@@ -774,8 +780,9 @@ void SkiaContext::rect(double x, double y, double width, double height)
     }
     SkMatrix m = m_Canvas->getTotalMatrix();
 
-    SkRect r = SkRect::MakeXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
-        SkDoubleToScalar(width), SkDoubleToScalar(height));
+    SkRect r
+        = SkRect::MakeXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
+                           SkDoubleToScalar(width), SkDoubleToScalar(height));
 
     SkPath tmpPath;
 
@@ -784,17 +791,16 @@ void SkiaContext::rect(double x, double y, double width, double height)
     m_CurrentPath->addPath(tmpPath);
 }
 
-void SkiaContext::addPath(const SkPath& path, SkPath *to)
+void SkiaContext::addPath(const SkPath &path, SkPath *to)
 {
     SkPath::Iter iter(path, false);
     SkPoint pts[4];
-    SkPath::Verb    verb;
+    SkPath::Verb verb;
     int i = 0;
 
     while ((verb = iter.next(pts)) != SkPath::kDone_Verb) {
         switch (verb) {
-            case SkPath::kMove_Verb:
-            {
+            case SkPath::kMove_Verb: {
                 if (i == 0) break;
                 to->moveTo(pts[0]);
                 break;
@@ -814,32 +820,33 @@ void SkiaContext::addPath(const SkPath& path, SkPath *to)
             case SkPath::kClose_Verb:
                 to->close();
                 break;
-            default:break;
+            default:
+                break;
         }
         i++;
     }
 }
 
-void SkiaContext::arc(int x, int y, int r,
-    double startAngle, double endAngle, int CCW)
+void SkiaContext::arc(
+    int x, int y, int r, double startAngle, double endAngle, int CCW)
 {
     if (!m_CurrentPath || (!startAngle && !endAngle) || !r) {
         return;
     }
 
     double sweep = endAngle - startAngle;
-    SkMatrix m = m_Canvas->getTotalMatrix();
+    SkMatrix m   = m_Canvas->getTotalMatrix();
 
-    SkScalar cx = SkIntToScalar(x);
-    SkScalar cy = SkIntToScalar(y);
-    SkScalar s360 = SkIntToScalar(360);
+    SkScalar cx     = SkIntToScalar(x);
+    SkScalar cy     = SkIntToScalar(y);
+    SkScalar s360   = SkIntToScalar(360);
     SkScalar radius = SkIntToScalar(r);
 
     SkScalar start = SkDoubleToScalar(180 * startAngle / SK_ScalarPI);
-    SkScalar end = SkDoubleToScalar(180 * sweep / SK_ScalarPI);
+    SkScalar end   = SkDoubleToScalar(180 * sweep / SK_ScalarPI);
 
     SkRect rect;
-    rect.set(cx-radius, cy-radius, cx+radius, cy+radius);
+    rect.set(cx - radius, cy - radius, cx + radius, cy + radius);
 
     SkPath tmppath;
     bool dropfirst = false;
@@ -885,10 +892,10 @@ void SkiaContext::arcTo(int x1, int y1, int x2, int y2, int r)
         beginPath();
     }
 
-    SkScalar cx1 = SkIntToScalar(x1);
-    SkScalar cy1 = SkIntToScalar(y1);
-    SkScalar cx2 = SkIntToScalar(x2);
-    SkScalar cy2 = SkIntToScalar(y2);
+    SkScalar cx1    = SkIntToScalar(x1);
+    SkScalar cy1    = SkIntToScalar(y1);
+    SkScalar cx2    = SkIntToScalar(x2);
+    SkScalar cy2    = SkIntToScalar(y2);
     SkScalar radius = SkIntToScalar(r);
 
     m_CurrentPath->arcTo(cx1, cy1, cx2, cy2, radius);
@@ -914,8 +921,8 @@ void SkiaContext::quadraticCurveTo(double cpx, double cpy, double x, double y)
     m_CurrentPath->quadTo(cp, p);
 }
 
-void SkiaContext::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2,
-    double x, double y)
+void SkiaContext::bezierCurveTo(
+    double cpx, double cpy, double cpx2, double cpy2, double x, double y)
 {
     if (!m_CurrentPath) {
         return;
@@ -934,7 +941,6 @@ void SkiaContext::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2
     m.mapXY(SkDoubleToScalar(x), SkDoubleToScalar(y), &p3);
 
     m_CurrentPath->cubicTo(p1, p2, p3);
-
 }
 
 void SkiaContext::light(double x, double y, double z)
@@ -942,8 +948,8 @@ void SkiaContext::light(double x, double y, double z)
     SkPoint3 pt(SkDoubleToScalar(x), SkDoubleToScalar(y), SkDoubleToScalar(z));
 
     SkColor white(0xAAFFFFFF);
-    PAINT->setImageFilter(SkLightingImageFilter::CreatePointLitDiffuse(pt, white,
-        SkIntToScalar(1), SkIntToScalar(2)));
+    PAINT->setImageFilter(SkLightingImageFilter::CreatePointLitDiffuse(
+        pt, white, SkIntToScalar(1), SkIntToScalar(2)));
 
     printf("Light created\n");
 }
@@ -967,10 +973,10 @@ void SkiaContext::save()
 {
     struct _State *nstate = new struct _State;
 
-    nstate->m_Paint = new SkPaint(*PAINT);
+    nstate->m_Paint       = new SkPaint(*PAINT);
     nstate->m_PaintStroke = new SkPaint(*PAINT_STROKE);
-    nstate->next = m_State;
-    nstate->m_Baseline = BASELINE_ALPHABETIC;
+    nstate->next          = m_State;
+    nstate->m_Baseline    = BASELINE_ALPHABETIC;
 
     m_State = nstate;
 
@@ -1008,7 +1014,7 @@ bool SkiaContext::SkPathContainsPoint(double x, double y)
         return false;
     }
 
-    SkRect bounds = m_CurrentPath->getBounds();
+    SkRect bounds       = m_CurrentPath->getBounds();
     SkPath::FillType ft = SkPath::kWinding_FillType;
 
     // We can immediately return false if the point is outside the bounding
@@ -1017,25 +1023,30 @@ bool SkiaContext::SkPathContainsPoint(double x, double y)
     // to include them.
     SkScalar fX = SkDoubleToScalar(x);
     SkScalar fY = SkDoubleToScalar(y);
-    if (fX < bounds.fLeft || fX > bounds.fRight ||
-        fY < bounds.fTop || fY > bounds.fBottom)
+    if (fX < bounds.fLeft || fX > bounds.fRight || fY < bounds.fTop
+        || fY > bounds.fBottom)
         return false;
 
     // Scale the path to a large size before hit testing for two reasons:
-    // 1) Skia has trouble with coordinates close to the max signed 16-bit values, so we scale larger paths down.
-    //    TODO: when Skia is patched to work properly with large values, this will not be necessary.
-    // 2) Skia does not support analytic hit testing, so we scale paths up to do raster hit testing with subpixel accuracy.
+    // 1) Skia has trouble with coordinates close to the max signed 16-bit
+    // values, so we scale
+    // larger paths down.
+    //    TODO: when Skia is patched to work properly with large values, this
+    //    will not be necessary.
+    // 2) Skia does not support analytic hit testing, so we scale paths up to do
+    // raster hit testing
+    // with subpixel accuracy.
 
-    SkScalar biggestCoord = nidium_max(nidium_max(nidium_max(bounds.fRight,
-        bounds.fBottom), -bounds.fLeft), -bounds.fTop);
+    SkScalar biggestCoord = nidium_max(
+        nidium_max(nidium_max(bounds.fRight, bounds.fBottom), -bounds.fLeft),
+        -bounds.fTop);
 
-    if (SkScalarNearlyZero(biggestCoord))
-        return false;
+    if (SkScalarNearlyZero(biggestCoord)) return false;
 
     biggestCoord = nidium_max(nidium_max(biggestCoord, fX + 1), fY + 1);
 
     const SkScalar kMaxCoordinate = SkIntToScalar(1 << 15);
-    SkScalar scale = SkScalarDiv(kMaxCoordinate, biggestCoord);
+    SkScalar scale                = SkScalarDiv(kMaxCoordinate, biggestCoord);
 
     SkRegion rgn;
     SkRegion clip;
@@ -1058,14 +1069,18 @@ bool SkiaContext::SkPathContainsPoint(double x, double y)
     return contains;
 }
 
-void SkiaContext::itransform(double scalex, double skewy, double skewx,
-            double scaley, double translatex, double translatey)
+void SkiaContext::itransform(double scalex,
+                             double skewy,
+                             double skewx,
+                             double scaley,
+                             double translatex,
+                             double translatey)
 {
     SkMatrix m;
 
     m.setAll(SkDoubleToScalar(scalex), SkDoubleToScalar(skewx),
-        SkDoubleToScalar(translatex), SkDoubleToScalar(skewy),
-        SkDoubleToScalar(scaley), SkDoubleToScalar(translatey), 0, 0, 0);
+             SkDoubleToScalar(translatex), SkDoubleToScalar(skewy),
+             SkDoubleToScalar(scaley), SkDoubleToScalar(translatey), 0, 0, 0);
 
     SkMatrix im;
     if (m.invert(&im)) {
@@ -1076,8 +1091,13 @@ void SkiaContext::itransform(double scalex, double skewy, double skewx,
     }
 }
 
-void SkiaContext::transform(double scalex, double skewy, double skewx,
-            double scaley, double translatex, double translatey, int set)
+void SkiaContext::transform(double scalex,
+                            double skewy,
+                            double skewx,
+                            double scaley,
+                            double translatex,
+                            double translatey,
+                            int set)
 {
     SkMatrix m;
 
@@ -1086,13 +1106,13 @@ void SkiaContext::transform(double scalex, double skewy, double skewx,
         ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
     }
 
-    m.setScaleX(SkDoubleToScalar(scalex*ratio));
-    m.setSkewX(SkDoubleToScalar(skewx*ratio));
-    m.setTranslateX(SkDoubleToScalar(translatex*ratio));
+    m.setScaleX(SkDoubleToScalar(scalex * ratio));
+    m.setSkewX(SkDoubleToScalar(skewx * ratio));
+    m.setTranslateX(SkDoubleToScalar(translatex * ratio));
 
-    m.setScaleY(SkDoubleToScalar(scaley*ratio));
-    m.setSkewY(SkDoubleToScalar(skewy*ratio));
-    m.setTranslateY(SkDoubleToScalar(translatey*ratio));
+    m.setScaleY(SkDoubleToScalar(scaley * ratio));
+    m.setSkewY(SkDoubleToScalar(skewy * ratio));
+    m.setTranslateY(SkDoubleToScalar(translatey * ratio));
 
     m.setPerspX(0);
     m.setPerspY(0);
@@ -1106,11 +1126,11 @@ void SkiaContext::transform(double scalex, double skewy, double skewx,
     }
 }
 
-int SkiaContext::readPixels(int top, int left, int width, int height,
-    uint8_t *pixels)
+int SkiaContext::readPixels(
+    int top, int left, int width, int height, uint8_t *pixels)
 {
-    const SkImageInfo &info = SkImageInfo::Make(width, height,
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    const SkImageInfo &info = SkImageInfo::Make(
+        width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
 
     if (!m_Canvas->readPixels(info, pixels, width * 4, left, top)) {
         printf("Failed to read pixels\n");
@@ -1132,16 +1152,12 @@ void SkiaContext::GetStringColor(uint32_t color, char *out)
     */
     if (SkColorGetA(color) != 0xff) {
 
-        sprintf(out, "rgba(%d, %d, %d, %.2f)",
-            SkColorGetR(color),
-            SkColorGetG(color),
-            SkColorGetB(color),
-            SkColorGetA(color) / 255.f);
+        sprintf(out, "rgba(%d, %d, %d, %.2f)", SkColorGetR(color),
+                SkColorGetG(color), SkColorGetB(color),
+                SkColorGetA(color) / 255.f);
     } else {
-        sprintf(out, "#%.2x%.2x%.2x",
-            SkColorGetR(color),
-            SkColorGetG(color),
-            SkColorGetB(color));
+        sprintf(out, "#%.2x%.2x%.2x", SkColorGetR(color), SkColorGetG(color),
+                SkColorGetB(color));
     }
 }
 
@@ -1155,11 +1171,13 @@ int SkiaContext::getHeight()
     return m_Canvas->getDeviceSize().fHeight;
 }
 
-uint32_t SkiaContext::getFillColor() const {
+uint32_t SkiaContext::getFillColor() const
+{
     return PAINT->getColor();
 }
 
-uint32_t SkiaContext::getStrokeColor() const {
+uint32_t SkiaContext::getStrokeColor() const
+{
     return PAINT_STROKE->getColor();
 }
 
@@ -1192,17 +1210,19 @@ double SkiaContext::getMiterLimit() const
     composite :
     http://code.google.com/p/webkit-mirror/source/browse/Source/WebCore/platform/graphics/skia/SkiaUtils.cpp
 */
-void SkiaContext::getPathBounds(double *left, double *right,
-    double *top, double *bottom)
+void SkiaContext::getPathBounds(double *left,
+                                double *right,
+                                double *top,
+                                double *bottom)
 {
     if (m_CurrentPath == NULL) {
         return;
     }
     SkRect bounds = m_CurrentPath->getBounds();
 
-    *left = SkScalarToDouble(bounds.fLeft);
-    *right = SkScalarToDouble(bounds.fRight);
-    *top = SkScalarToDouble(bounds.fTop);
+    *left   = SkScalarToDouble(bounds.fLeft);
+    *right  = SkScalarToDouble(bounds.fRight);
+    *top    = SkScalarToDouble(bounds.fTop);
     *bottom = SkScalarToDouble(bounds.fBottom);
 }
 
@@ -1235,36 +1255,41 @@ const char *SkiaContext::getLineJoin() const
 
 // }}}
 // {{{ Draw
-void SkiaContext::drawRect(double x, double y, double width,
-    double height, int stroke)
+void SkiaContext::drawRect(
+    double x, double y, double width, double height, int stroke)
 {
     SkRect r;
 
-    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
-        SkDoubleToScalar(width), SkDoubleToScalar(height));
+    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y), SkDoubleToScalar(width),
+              SkDoubleToScalar(height));
 
     m_Canvas->drawRect(r, (stroke ? *PAINT_STROKE : *PAINT));
 
     CANVAS_FLUSH();
-
 }
 
 void SkiaContext::drawLine(double x1, double y1, double x2, double y2)
 {
     m_Canvas->drawLine(SkDoubleToScalar(x1), SkDoubleToScalar(y1),
-        SkDoubleToScalar(x2), SkDoubleToScalar(y2), *PAINT_STROKE);
+                       SkDoubleToScalar(x2), SkDoubleToScalar(y2),
+                       *PAINT_STROKE);
 }
 
-void SkiaContext::drawRect(double x, double y, double width,
-    double height, double rx, double ry, int stroke)
+void SkiaContext::drawRect(double x,
+                           double y,
+                           double width,
+                           double height,
+                           double rx,
+                           double ry,
+                           int stroke)
 {
     SkRect r;
 
-    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
-        SkDoubleToScalar(width), SkDoubleToScalar(height));
+    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y), SkDoubleToScalar(width),
+              SkDoubleToScalar(height));
 
     m_Canvas->drawRoundRect(r, SkDoubleToScalar(rx), SkDoubleToScalar(ry),
-        (stroke ? *PAINT_STROKE : *PAINT));
+                            (stroke ? *PAINT_STROKE : *PAINT));
 }
 
 void SkiaContext::drawImage(Image *image, double x, double y)
@@ -1273,13 +1298,13 @@ void SkiaContext::drawImage(Image *image, double x, double y)
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->m_IsCanvas) {
-        m_Canvas->drawBitmap(image->m_CanvasRef->getDevice()->accessBitmap(false),
-            SkDoubleToScalar(x), SkDoubleToScalar(y),
-            PAINT);
+        m_Canvas->drawBitmap(
+            image->m_CanvasRef->getDevice()->accessBitmap(false),
+            SkDoubleToScalar(x), SkDoubleToScalar(y), PAINT);
 
     } else if (image->m_Image != NULL) {
-        m_Canvas->drawBitmap(*image->m_Image, SkDoubleToScalar(x), SkDoubleToScalar(y),
-            PAINT);
+        m_Canvas->drawBitmap(*image->m_Image, SkDoubleToScalar(x),
+                             SkDoubleToScalar(y), PAINT);
     }
 
     PAINT->setColor(old);
@@ -1288,19 +1313,20 @@ void SkiaContext::drawImage(Image *image, double x, double y)
     CANVAS_FLUSH();
 }
 
-void SkiaContext::drawImage(Image *image, double x, double y,
-    double width, double height)
+void SkiaContext::drawImage(
+    Image *image, double x, double y, double width, double height)
 {
     SkRect r;
-    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
-        SkDoubleToScalar(width), SkDoubleToScalar(height));
+    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y), SkDoubleToScalar(width),
+              SkDoubleToScalar(height));
 
     SkColor old = PAINT->getColor();
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->m_IsCanvas) {
-        m_Canvas->drawBitmapRect(image->m_CanvasRef->getDevice()->accessBitmap(false),
-            NULL, r, PAINT);
+        m_Canvas->drawBitmapRect(
+            image->m_CanvasRef->getDevice()->accessBitmap(false), NULL, r,
+            PAINT);
     } else if (image->m_Image != NULL) {
         m_Canvas->drawBitmapRect(*image->m_Image, NULL, r, PAINT);
     }
@@ -1311,8 +1337,14 @@ void SkiaContext::drawImage(Image *image, double x, double y,
 }
 
 void SkiaContext::drawImage(Image *image,
-    int sx, int sy, int swidth, int sheight,
-    double dx, double dy, double dwidth, double dheight)
+                            int sx,
+                            int sy,
+                            int swidth,
+                            int sheight,
+                            double dx,
+                            double dy,
+                            double dwidth,
+                            double dheight)
 {
     SkRect dst;
     SkIRect src;
@@ -1324,7 +1356,7 @@ void SkiaContext::drawImage(Image *image,
     src.setXYWH(sx, sy, swidth, sheight);
 
     dst.setXYWH(SkDoubleToScalar(dx), SkDoubleToScalar(dy),
-        SkDoubleToScalar(dwidth), SkDoubleToScalar(dheight));
+                SkDoubleToScalar(dwidth), SkDoubleToScalar(dheight));
 
     if (image->m_IsCanvas) {
         SkBitmap bitmapImage;
@@ -1332,11 +1364,9 @@ void SkiaContext::drawImage(Image *image,
         image->m_CanvasRef->readPixels(src, &bitmapImage);
         bitmapImage.setIsVolatile(true);
 
-        m_Canvas->drawBitmapRect(bitmapImage,
-            NULL, dst, PAINT);
+        m_Canvas->drawBitmapRect(bitmapImage, NULL, dst, PAINT);
     } else if (image->m_Image != NULL) {
-        m_Canvas->drawBitmapRect(*image->m_Image,
-            &src, dst, PAINT);
+        m_Canvas->drawBitmapRect(*image->m_Image, &src, dst, PAINT);
     }
 
     PAINT->setColor(old);
@@ -1347,7 +1377,7 @@ void SkiaContext::drawImage(Image *image,
 void SkiaContext::redrawScreen()
 {
     m_Canvas->readPixels(SkIRect::MakeSize(m_Canvas->getDeviceSize()),
-        m_Screen);
+                         m_Screen);
     m_Canvas->writePixels(*m_Screen, 0, 0);
     CANVAS_FLUSH();
 }
@@ -1373,17 +1403,18 @@ void SkiaContext::drawPixelsGL(uint8_t *pixels, int width, int height,
 #endif
 
 
-void SkiaContext::drawPixels(uint8_t *pixels, int width, int height,
-    int x, int y)
+void SkiaContext::drawPixels(
+    uint8_t *pixels, int width, int height, int x, int y)
 {
     SkBitmap bt;
     SkPaint pt;
 
-    bt.setConfig(SkBitmap::kARGB_8888_Config, width, height, width*4);
+    bt.setConfig(SkBitmap::kARGB_8888_Config, width, height, width * 4);
 
     bt.setIsVolatile(true);
     bt.installPixels(SkImageInfo::Make(width, height, kRGBA_8888_SkColorType,
-        kUnpremul_SkAlphaType), pixels, width*4);
+                                       kUnpremul_SkAlphaType),
+                     pixels, width * 4);
 
     pt.setFilterLevel(PAINT->getFilterLevel());
 
@@ -1402,8 +1433,8 @@ void SkiaContext::setGlobalAlpha(double value)
 {
     if (value < 0) return;
 
-    SkScalar maxuint = SkIntToScalar(255);
-    m_GlobalAlpha = SkMinScalar(SkDoubleToScalar(value) * maxuint, maxuint);
+    SkScalar maxuint      = SkIntToScalar(255);
+    m_GlobalAlpha         = SkMinScalar(SkDoubleToScalar(value) * maxuint, maxuint);
     SkColorFilter *filter = SkColorFilter::CreateModeFilter(
         SkColorSetARGB(m_GlobalAlpha, 255, 255, 255),
         SkXfermode::kModulate_Mode);
@@ -1441,14 +1472,12 @@ void SkiaContext::setFontType(char *str, JSDocument *doc)
             return;
         }
     }
-    //JSDocument *jdoc = JSDocument::
-    SkTypeface *tf = SkTypeface::CreateFromName(str,
-        SkTypeface::kNormal);
+    // JSDocument *jdoc = JSDocument::
+    SkTypeface *tf = SkTypeface::CreateFromName(str, SkTypeface::kNormal);
     // Workarround for skia bug #1648
     // https://code.google.com/p/skia/issues/detail?id=1648
     if (tf == NULL) {
-        tf = SkTypeface::CreateFromName(NULL,
-                SkTypeface::kNormal);
+        tf = SkTypeface::CreateFromName(NULL, SkTypeface::kNormal);
         if (tf == NULL) return;
     }
 
@@ -1499,7 +1528,7 @@ void SkiaContext::setFillColor(CanvasPattern *pattern)
         SkShader *shader = NULL;
         bool repeat_x = false, repeat_y = false;
 
-        switch(pattern->m_Mode) {
+        switch (pattern->m_Mode) {
             case CanvasPattern::PATTERN_REPEAT_MIRROR:
             case CanvasPattern::PATTERN_REPEAT:
                 repeat_x = repeat_y = true;
@@ -1515,14 +1544,19 @@ void SkiaContext::setFillColor(CanvasPattern *pattern)
         }
 
         if (repeat_x && repeat_y) {
-            shader = SkShader::CreateBitmapShader(*pattern->m_JsImg->m_Image->m_Image,
-                pattern->m_Mode == CanvasPattern::PATTERN_REPEAT_MIRROR ?
-                    SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode,
-                pattern->m_Mode == CanvasPattern::PATTERN_REPEAT_MIRROR ?
-                    SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode);
+            shader = SkShader::CreateBitmapShader(
+                *pattern->m_JsImg->m_Image->m_Image,
+                pattern->m_Mode == CanvasPattern::PATTERN_REPEAT_MIRROR
+                    ? SkShader::kMirror_TileMode
+                    : SkShader::kRepeat_TileMode,
+                pattern->m_Mode == CanvasPattern::PATTERN_REPEAT_MIRROR
+                    ? SkShader::kMirror_TileMode
+                    : SkShader::kRepeat_TileMode);
         } else {
-            SkShader::TileMode tileModeX = repeat_x ? SkShader::kRepeat_TileMode : SkShader::kClamp_TileMode;
-            SkShader::TileMode tileModeY = repeat_y ? SkShader::kRepeat_TileMode : SkShader::kClamp_TileMode;
+            SkShader::TileMode tileModeX = repeat_x ? SkShader::kRepeat_TileMode
+                                                    : SkShader::kClamp_TileMode;
+            SkShader::TileMode tileModeY = repeat_y ? SkShader::kRepeat_TileMode
+                                                    : SkShader::kClamp_TileMode;
 
             int expandW = repeat_x ? 0 : 1;
             int expandH = repeat_y ? 0 : 1;
@@ -1530,7 +1564,8 @@ void SkiaContext::setFillColor(CanvasPattern *pattern)
             SkBitmap *bm = pattern->m_JsImg->m_Image->m_Image;
             SkBitmap bm2;
 
-            bm2.setConfig(bm->config(), bm->width() + expandW, bm->height() + expandH);
+            bm2.setConfig(bm->config(), bm->width() + expandW,
+                          bm->height() + expandH);
             bm2.allocPixels();
             bm2.eraseARGB(0x00, 0x00, 0x00, 0x00);
 
@@ -1538,7 +1573,6 @@ void SkiaContext::setFillColor(CanvasPattern *pattern)
             canvas.drawBitmap(*bm, 0, 0);
 
             shader = SkShader::CreateBitmapShader(bm2, tileModeX, tileModeY);
-
         }
 
         PAINT->setColor(SK_ColorBLACK);
@@ -1552,14 +1586,14 @@ void SkiaContext::setFillColor(Gradient *gradient)
 
     if ((shader = gradient->build()) == NULL) {
         /* Make paint invalid (no future draw) */
-        //paint->setShader(NULL);
+        // paint->setShader(NULL);
         NUI_LOG("Invalid gradient");
         return;
     }
     PAINT->setColor(SK_ColorBLACK);
 
     PAINT->setShader(shader);
-    //NUI_LOG("Add gradient : %p (%d)", shader, shader->getRefCnt());
+    // NUI_LOG("Add gradient : %p (%d)", shader, shader->getRefCnt());
 }
 
 void SkiaContext::setFillColor(const char *str)
@@ -1597,7 +1631,6 @@ void SkiaContext::setStrokeColor(const char *str)
     }
 
     PAINT_STROKE->setColor(color);
-
 }
 
 void SkiaContext::setStrokeColor(Gradient *gradient)
@@ -1661,14 +1694,19 @@ void SkiaContext::setSmooth(bool val, int level)
 
     if (val) {
         switch (level) {
-            case 0: flevel = SkPaint::kNone_FilterLevel;
-                    break;
-            case 1: flevel = SkPaint::kLow_FilterLevel;
-                    break;
-            case 2: flevel = SkPaint::kMedium_FilterLevel;
-                    break;
-            case 3: default: flevel = SkPaint::kHigh_FilterLevel;
-                    break;
+            case 0:
+                flevel = SkPaint::kNone_FilterLevel;
+                break;
+            case 1:
+                flevel = SkPaint::kLow_FilterLevel;
+                break;
+            case 2:
+                flevel = SkPaint::kMedium_FilterLevel;
+                break;
+            case 3:
+            default:
+                flevel = SkPaint::kHigh_FilterLevel;
+                break;
         }
     }
 
@@ -1709,7 +1747,7 @@ void SkiaContext::setLineCap(const char *capStyle)
 
 void SkiaContext::setLineJoin(const char *joinStyle)
 {
-     if (strcasecmp(joinStyle, "round") == 0) {
+    if (strcasecmp(joinStyle, "round") == 0) {
         PAINT_STROKE->setStrokeJoin(SkPaint::kRound_Join);
     } else if (strcasecmp(joinStyle, "bevel") == 0) {
         PAINT_STROKE->setStrokeJoin(SkPaint::kBevel_Join);
@@ -1734,7 +1772,7 @@ void SkiaContext::drawText(const char *text, int x, int y, bool stroke)
 
     SkScalar sx = SkIntToScalar(x), sy = SkIntToScalar(y);
 
-    switch(m_State->m_Baseline) {
+    switch (m_State->m_Baseline) {
         case BASELINE_TOP:
             sy -= metrics.fTop;
             break;
@@ -1742,15 +1780,16 @@ void SkiaContext::drawText(const char *text, int x, int y, bool stroke)
             sy -= metrics.fBottom;
             break;
         case BASELINE_MIDDLE:
-        /* TODO: remove hack */
-            sy += ((metrics.fXHeight)/2) + ((metrics.fXHeight)/2)*13./100.;
+            /* TODO: remove hack */
+            sy += ((metrics.fXHeight) / 2)
+                  + ((metrics.fXHeight) / 2) * 13. / 100.;
             break;
         default:
             break;
     }
 
-    m_Canvas->drawText(text, strlen(text),
-        sx, sy, (stroke ? *PAINT_STROKE : *PAINT));
+    m_Canvas->drawText(text, strlen(text), sx, sy,
+                       (stroke ? *PAINT_STROKE : *PAINT));
 
     CANVAS_FLUSH();
 }
@@ -1792,7 +1831,7 @@ void SkiaContext::drawTextf(int x, int y, const char text[], ...)
 {
     static const size_t BUFFER_SIZE = 4096;
 
-    char    buffer[BUFFER_SIZE];
+    char buffer[BUFFER_SIZE];
     va_list args;
     va_start(args, text);
     vsnprintf(buffer, BUFFER_SIZE, text, args);
@@ -1801,10 +1840,14 @@ void SkiaContext::drawTextf(int x, int y, const char text[], ...)
     drawText(buffer, x, y);
 }
 
-double SkiaContext::breakText(const char *str, size_t len,
-    struct _Line lines[], double maxWidth, int *length)
+double SkiaContext::breakText(const char *str,
+                              size_t len,
+                              struct _Line lines[],
+                              double maxWidth,
+                              int *length)
 {
-    struct {
+    struct
+    {
         SkScalar curWordWidth;
         SkScalar curLineWidth;
         size_t curWordLen;
@@ -1817,11 +1860,11 @@ double SkiaContext::breakText(const char *str, size_t len,
     SkScalar widths[len];
 
     PAINT->getTextWidths(str, len, widths);
-    curState.ptr = str;
+    curState.ptr          = str;
     curState.curWordWidth = SkIntToScalar(0);
     curState.curLineWidth = SkIntToScalar(0);
     curState.curWordLen   = 0;
-    curState.curLine = 0;
+    curState.curLine      = 0;
 
     lines[0].m_Line = str;
     lines[0].m_Len  = 0;
@@ -1831,9 +1874,9 @@ double SkiaContext::breakText(const char *str, size_t len,
         lines[curState.curLine].m_Len++;
 
         if (isBreakable((unsigned char)str[i])) {
-            curState.ptr = &str[i+1];
+            curState.ptr          = &str[i + 1];
             curState.curWordWidth = SkIntToScalar(0);
-            curState.curWordLen   = 0;
+            curState.curWordLen = 0;
             if (curState.ptr == NULL) {
                 break;
             }
@@ -1845,20 +1888,21 @@ double SkiaContext::breakText(const char *str, size_t len,
         curState.curLineWidth += widths[i];
 
         if (curState.curLineWidth > maxWidth) {
-            lines[curState.curLine].m_Len = curState.ptr - lines[curState.curLine].m_Line;
+            lines[curState.curLine].m_Len
+                = curState.ptr - lines[curState.curLine].m_Line;
             curState.curLine++;
 
             lines[curState.curLine].m_Line = curState.ptr;
-            lines[curState.curLine].m_Len = 0;
-            curState.curLineWidth = curState.curWordWidth;
+            lines[curState.curLine].m_Len  = 0;
+            curState.curLineWidth          = curState.curWordWidth;
         }
     }
 
     lines[curState.curLine].m_Len = &str[i] - lines[curState.curLine].m_Line;
     if (length) {
-        *length = curState.curLine+1;
+        *length = curState.curLine + 1;
     }
-    return (curState.curLine+1)*PAINT->getFontSpacing();
+    return (curState.curLine + 1) * PAINT->getFontSpacing();
 }
 
 double SkiaContext::measureText(const char *str, size_t length)
@@ -1876,7 +1920,8 @@ SkiaContext::~SkiaContext()
     }
     while (nstate) {
         struct _State *tmp = nstate->next;
-        //NUI_LOG("Delete pain %p with shader : %p", nstate->paint, nstate->paint->getShader());
+        // NUI_LOG("Delete pain %p with shader : %p", nstate->paint,
+        // nstate->paint->getShader());
         delete nstate->m_Paint;
         delete nstate->m_PaintStroke;
         delete nstate;
@@ -1890,7 +1935,5 @@ SkiaContext::~SkiaContext()
 }
 
 
-
 } // namespace Graphics
 } // namespace Nidium
-

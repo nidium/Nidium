@@ -6,7 +6,8 @@
 
 /*
     /!\ this class is not thread safe
-    TODO: windows ('shlwapi') http://msdn.microsoft.com/en-us/library/windows/desktop/bb773559%28v=vs.85%29.aspx
+    TODO: windows ('shlwapi')
+   http://msdn.microsoft.com/en-us/library/windows/desktop/bb773559%28v=vs.85%29.aspx
 */
 
 #ifndef core_path_h__
@@ -24,9 +25,9 @@
 struct JSContext;
 
 namespace Nidium {
-    namespace IO {
-        class Stream;
-    }
+namespace IO {
+class Stream;
+}
 namespace Core {
 
 #define MAX_REGISTERED_SCHEMES 1024
@@ -35,22 +36,24 @@ namespace Core {
 extern char *g_m_Root;
 extern char *g_m_Cwd;
 
-#define SCHEME_DEFINE(prefix, streamclass, keepprefix) (struct Nidium::Core::Path::schemeInfo) { \
-    .str        = prefix, \
-    .base       = streamclass::CreateStream, \
-    .GetBaseDir = streamclass::GetBaseDir, \
-    .keepPrefix = keepprefix, \
-    .AllowLocalFileStream = streamclass::AllowLocalFileStream, \
-    .AllowSyncStream = streamclass::AllowSyncStream \
-}
+#define SCHEME_DEFINE(prefix, streamclass, keepprefix)                   \
+    (struct Nidium::Core::Path::schemeInfo)                              \
+    {                                                                    \
+        .str = prefix, .base = streamclass::CreateStream,                \
+        .GetBaseDir = streamclass::GetBaseDir, .keepPrefix = keepprefix, \
+        .AllowLocalFileStream = streamclass::AllowLocalFileStream,       \
+        .AllowSyncStream      = streamclass::AllowSyncStream             \
+    }
 
-#define URLSCHEME_MATCH(url, scheme) (strcmp(Nidium::Core::Path::GetScheme(url)->str, scheme "://") == 0)
+#define URLSCHEME_MATCH(url, scheme) \
+    (strcmp(Nidium::Core::Path::GetScheme(url)->str, scheme "://") == 0)
 #define SCHEME_MATCH(obj, scheme) (strcmp(obj->str, scheme "://") == 0)
 
 class Path
 {
 public:
-    struct schemeInfo {
+    struct schemeInfo
+    {
         const char *str;
         Nidium::IO::Stream *(*base)(const char *);
         const char *(*GetBaseDir)();
@@ -62,27 +65,32 @@ public:
     /*
         allowAll defines if origin must match "cwd" stream class (if false)
     */
-    explicit Path(const char *origin, bool allowAll = false,
-        bool noFilter = false);
+    explicit Path(const char *origin,
+                  bool allowAll = false,
+                  bool noFilter = false);
 
 #if 0
     operator const char *() {
         return m_Path;
     }
 #endif
-    const char *path() const {
+    const char *path() const
+    {
         return m_Path;
     }
 
-    const char *dir() const {
+    const char *dir() const
+    {
         return m_Dir;
     }
 
-    const char *host() const {
+    const char *host() const
+    {
         return m_Host;
     }
 
-    Nidium::IO::Stream *CreateStream(bool onlySync = false) const {
+    Nidium::IO::Stream *CreateStream(bool onlySync = false) const
+    {
         if (!m_Scheme || !m_Path) {
             return NULL;
         }
@@ -94,7 +102,8 @@ public:
         return m_Scheme->base(m_Path);
     }
 
-    schemeInfo *GetScheme() const {
+    schemeInfo *GetScheme() const
+    {
         return m_Scheme;
     }
 
@@ -102,7 +111,8 @@ public:
 
     bool static IsRelative(const char *path);
 
-    ~Path() {
+    ~Path()
+    {
         if (m_Path) {
             free(m_Path);
         }
@@ -112,20 +122,22 @@ public:
     };
 
     static void RegisterScheme(const schemeInfo &scheme,
-        bool isDefault = false);
+                               bool isDefault = false);
     static void UnRegisterSchemes();
     static schemeInfo *GetScheme(const char *url, const char **pURL = NULL);
 
     static char *Sanitize(const char *path, bool *outsideRoot = nullptr);
 
-    static void Chroot(const char *root) {
+    static void Chroot(const char *root)
+    {
         if (g_m_Root != NULL && root != g_m_Root) {
             free(g_m_Root);
         }
         g_m_Root = (root != NULL ? strdup(root) : NULL);
     }
 
-    static void CD(const char *dir) {
+    static void CD(const char *dir)
+    {
         if (g_m_Cwd != NULL && dir != g_m_Cwd) {
             free(g_m_Cwd);
         }
@@ -134,15 +146,18 @@ public:
 
     static char *GetDir(const char *fullpath);
 
-    static const char *GetRoot() {
+    static const char *GetRoot()
+    {
         return g_m_Root;
     }
 
-    static const char *GetCwd() {
+    static const char *GetCwd()
+    {
         return g_m_Cwd;
     }
 
-    static schemeInfo *GetCwdScheme() {
+    static schemeInfo *GetCwdScheme()
+    {
         if (!g_m_Cwd) {
             return NULL;
         }
@@ -152,8 +167,9 @@ public:
     static int g_m_SchemesCount;
     static struct schemeInfo g_m_Schemes[MAX_REGISTERED_SCHEMES];
     static struct schemeInfo *g_m_DefaultScheme;
-    static void Makedirs(const char * dirWithSlashes);
+    static void Makedirs(const char *dirWithSlashes);
     static bool InDir(const char *dir, const char *root);
+
 private:
     void parse(const char *path);
     void invalidatePath();
@@ -167,4 +183,3 @@ private:
 } // namespace Nidium
 
 #endif
-

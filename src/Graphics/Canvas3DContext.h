@@ -14,7 +14,7 @@
 
 namespace Nidium {
 namespace Interface {
-    class UIInterface;
+class UIInterface;
 }
 namespace Graphics {
 
@@ -23,22 +23,26 @@ class CanvasHandler;
 class Canvas3DContext : public CanvasContext
 {
 public:
-
-    enum FLags {
-        kUNPACK_FLIP_Y_WEBGL_Flag             = 1 << 0,
-        kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag  = 1 << 1
+    enum FLags
+    {
+        kUNPACK_FLIP_Y_WEBGL_Flag            = 1 << 0,
+        kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag = 1 << 1
     };
 
     /*
         width and height is in logical pixel
     */
     Canvas3DContext(CanvasHandler *handler,
-        struct JSContext *cx, int width, int height, Interface::UIInterface *ui);
+                    struct JSContext *cx,
+                    int width,
+                    int height,
+                    Interface::UIInterface *ui);
     virtual ~Canvas3DContext();
 
     virtual void translate(double x, double y) override;
     virtual void setSize(int width, int height, bool redraw = true) override;
-    virtual void setScale(double x, double y, double px=1, double py=1) override;
+    virtual void
+    setScale(double x, double y, double px = 1, double py = 1) override;
     virtual void clear(uint32_t color = 0x00000000) override;
     virtual void flush() override;
     virtual uint32_t getTextureID() const override;
@@ -52,38 +56,45 @@ public:
     */
     virtual uint8_t *getPixels() override;
 
-    uint32_t getFrameBufferID() const {
+    uint32_t getFrameBufferID() const
+    {
         return m_GLObjects.fbo;
     }
 
-    void setFlag(uint32_t flag) {
+    void setFlag(uint32_t flag)
+    {
         m_Flags = flag;
     }
 
-    uint32_t getFlag() const {
+    uint32_t getFlag() const
+    {
         return m_Flags;
     }
 
-    void removeFlag(uint32_t flag) {
+    void removeFlag(uint32_t flag)
+    {
         m_Flags &= ~flag;
     }
 
-    void addFlag(uint32_t flag) {
+    void addFlag(uint32_t flag)
+    {
         m_Flags |= flag;
     }
 
-    bool hasFlag(uint32_t flag) {
+    bool hasFlag(uint32_t flag)
+    {
         return m_Flags & flag;
     }
-private:
 
+private:
     /*
         width and height are in device pixel
     */
     bool createFBO(int width, int height);
     void cleanUp();
 
-    struct {
+    struct
+    {
         uint32_t fbo;
         uint32_t texture;
         uint32_t vao;
@@ -93,7 +104,8 @@ private:
         uint32_t fbo_sampled;
     } m_GLObjects;
 
-    struct {
+    struct
+    {
         /*
             int device pixel
         */
@@ -103,7 +115,8 @@ private:
 
     uint32_t m_Flags;
 
-    struct {
+    struct
+    {
         int width;
         int height;
 
@@ -115,4 +128,3 @@ private:
 } // namespace Nidium
 
 #endif
-

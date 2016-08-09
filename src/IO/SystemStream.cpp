@@ -6,10 +6,10 @@
 #include <Frontend/Context.h>
 
 namespace Nidium {
-    namespace Interface {
-        class UIInterface;
-        extern UIInterface *__NidiumUI;
-    }
+namespace Interface {
+class UIInterface;
+extern UIInterface *__NidiumUI;
+}
 
 namespace IO {
 // {{{ PrivateStream Implementation
@@ -18,12 +18,14 @@ const char *PrivateStream::m_BaseDir = nullptr;
 const char *PrivateStream::GetBaseDir()
 {
     if (m_BaseDir == nullptr) {
-        m_BaseDir = Interface::SystemInterface::GetInstance()->getCacheDirectory();
+        m_BaseDir
+            = Interface::SystemInterface::GetInstance()->getCacheDirectory();
 
-        Frontend::NML *nml = Nidium::Interface::__NidiumUI->getNidiumContext()->getNML();
+        Frontend::NML *nml
+            = Nidium::Interface::__NidiumUI->getNidiumContext()->getNML();
         if (nml) {
             const char *appDir = nml->getIdentifier();
-            char *destDir = nullptr;
+            char *destDir      = nullptr;
 
             if (asprintf(&destDir, "%s%s/", m_BaseDir, appDir) == -1) {
                 return nullptr;
@@ -47,10 +49,10 @@ const char *PrivateStream::GetBaseDir()
 // }}}
 
 // {{{ UserStream Implementation
-const char *UserStream::GetBaseDir() {
+const char *UserStream::GetBaseDir()
+{
     return Interface::SystemInterface::GetInstance()->getUserDirectory();
 }
 // }}}
 } // namespace IO
 } // namespace Nidium
-

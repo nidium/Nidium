@@ -12,7 +12,8 @@ namespace AV {
 AudioNodeGain::AudioNodeGain(int inCount, int outCount, Audio *audio)
     : AudioNodeProcessor(inCount, outCount, audio)
 {
-    m_Args[0] = new ExportsArgs("gain", DOUBLE, GAIN, AudioNodeGain::argCallback);
+    m_Args[0]
+        = new ExportsArgs("gain", DOUBLE, GAIN, AudioNodeGain::argCallback);
     m_GainProcessor = new AudioProcessorGain();
 
     this->setProcessor(0, m_GainProcessor);
@@ -21,14 +22,13 @@ AudioNodeGain::AudioNodeGain(int inCount, int outCount, Audio *audio)
 
 void AudioNodeGain::argCallback(AudioNode *node, int id, void *tmp, int size)
 {
-    AudioNodeGain *thiz = static_cast<AudioNodeGain*>(node);
+    AudioNodeGain *thiz = static_cast<AudioNodeGain *>(node);
     switch (id) {
         case GAIN:
-            thiz->m_GainProcessor->setGain(*static_cast<double*>(tmp));
-        break;
+            thiz->m_GainProcessor->setGain(*static_cast<double *>(tmp));
+            break;
     }
 }
 
 } // namespace AV
 } // namespace Nidium
-

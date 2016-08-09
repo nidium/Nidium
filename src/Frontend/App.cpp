@@ -30,23 +30,25 @@ struct Extractor_s
     char *m_FileDir;
     void (*m_Done)(void *, const char *m_Path);
     void *m_Closure;
-    struct {
+    struct
+    {
         size_t len;
         size_t offset;
         FILE *fp;
     } m_Data;
 };
 
-static bool Extractor(const char * buf,
-    int len, size_t offset, size_t total, void *user)
+static bool
+Extractor(const char *buf, int len, size_t offset, size_t total, void *user)
 {
     struct Extractor_s *arg = (struct Extractor_s *)user;
 
     /* First call (open the file) */
     if (arg->m_Data.offset == 0) {
 
-        char *fpath = static_cast<char *>(malloc(sizeof(char) *
-                        (strlen(arg->m_FileDir) + strlen(arg->m_FileName) + 1)));
+        char *fpath = static_cast<char *>(
+            malloc(sizeof(char)
+                   * (strlen(arg->m_FileDir) + strlen(arg->m_FileName) + 1)));
 
         sprintf(fpath, "%s%s", arg->m_FileDir, arg->m_FileName);
 
@@ -69,23 +71,23 @@ static bool Extractor(const char * buf,
             fclose(arg->m_Data.fp);
         }
 
-        if (arg->m_CurIndex < (arg->m_App->m_NumFiles-1)) {
+        if (arg->m_CurIndex < (arg->m_App->m_NumFiles - 1)) {
             arg->m_Data.offset = 0;
-            arg->m_Data.fp = NULL;
+            arg->m_Data.fp     = NULL;
 
             /* skip directories */
             while (++arg->m_CurIndex) {
-                arg->m_FileName = zip_get_name(arg->m_App->m_fZip,
-                    arg->m_CurIndex, ZIP_FL_UNCHANGED);
+                arg->m_FileName = zip_get_name(
+                    arg->m_App->m_fZip, arg->m_CurIndex, ZIP_FL_UNCHANGED);
 
-                if (arg->m_FileName[strlen(arg->m_FileName)-1] != '/') {
+                if (arg->m_FileName[strlen(arg->m_FileName) - 1] != '/') {
                     break;
                 }
             }
 
             /* Extract next file */
-            arg->m_Data.len = arg->m_App->extractFile(arg->m_FileName,
-                                Extractor, arg);
+            arg->m_Data.len
+                = arg->m_App->extractFile(arg->m_FileName, Extractor, arg);
 
             return true;
         }
@@ -105,8 +107,9 @@ static bool Extractor(const char * buf,
 // }}}
 
 // {{{ App
-App::App(const char *path) :
-    m_Messages(NULL), m_fZip(NULL), m_NumFiles(0), m_WorkerIsRunning(false), m_Timer(NULL), m_Net(NULL)
+App::App(const char *path)
+    : m_Messages(NULL), m_fZip(NULL), m_NumFiles(0), m_WorkerIsRunning(false),
+      m_Timer(NULL), m_Net(NULL)
 {
     m_Path = strdup(path);
 }
@@ -129,25 +132,26 @@ static void *nidium_appworker_thread(void *arg)
         }
 
         switch (app->m_Action.type) {
-            case App::APP_ACTION_EXTRACT:
-            {
-#define APP_READ_SIZE (1024L*1024L*2)
+            case App::APP_ACTION_EXTRACT: {
+#define APP_READ_SIZE (1024L * 1024L * 2)
                 struct zip_file *zfile;
 
                 zfile = zip_fopen_index(app->m_fZip, app->m_Action.u32,
-                    ZIP_FL_UNCHANGED);
+                                        ZIP_FL_UNCHANGED);
 
                 if (zfile == NULL) {
                     break;
                 }
 
-                char *content = static_cast<char *>(malloc(sizeof(char) * APP_READ_SIZE));
+                char *content
+                    = static_cast<char *>(malloc(sizeof(char) * APP_READ_SIZE));
                 size_t total = 0;
-                int r = 0;
+                int r        = 0;
 
                 while ((r = zip_fread(zfile, content, APP_READ_SIZE)) >= 0) {
                     total += r;
-                    app->actionExtractRead(content, r, total, app->m_Action.u64);
+                    app->actionExtractRead(content, r, total,
+                                           app->m_Action.u64);
                     if (r != APP_READ_SIZE) {
                         break;
                     }
@@ -175,18 +179,20 @@ static int Nidium_handle_app_messages(void *arg)
     struct App::app_msg *ptr;
     int nread = 0;
 
-   SharedMessages::Message *msg;
+    SharedMessages::Message *msg;
 
     while (++nread < MAX_MSG_IN_ROW && (msg = app->m_Messages->readMessage())) {
         switch (msg->event()) {
             case App::APP_MESSAGE_READ:
                 ptr = static_cast<struct App::app_msg *>(msg->dataPtr());
-                ptr->cb(ptr->data, ptr->len, ptr->offset, ptr->total, ptr->user);
+                ptr->cb(ptr->data, ptr->len, ptr->offset, ptr->total,
+                        ptr->user);
                 free(ptr->data);
                 delete ptr;
                 delete msg;
                 break;
-            default:break;
+            default:
+                break;
         }
     }
 
@@ -194,16 +200,18 @@ static int Nidium_handle_app_messages(void *arg)
 #undef MAX_MSG_IN_ROW
 }
 
-void App::actionExtractRead(const char *buf, int len,
-    size_t offset, size_t total)
+void App::actionExtractRead(const char *buf,
+                            int len,
+                            size_t offset,
+                            size_t total)
 {
     struct app_msg *msg = new struct app_msg;
-    msg->data = static_cast<char *>(malloc(len));
-    msg->len  = len;
-    msg->total = total;
-    msg->offset = offset;
-    msg->cb = reinterpret_cast<AppExtractCallback>(m_Action.cb);
-    msg->user = m_Action.user;
+    msg->data           = static_cast<char *>(malloc(len));
+    msg->len            = len;
+    msg->total          = total;
+    msg->offset         = offset;
+    msg->cb             = reinterpret_cast<AppExtractCallback>(m_Action.cb);
+    msg->user           = m_Action.user;
 
     memcpy(msg->data, buf, len);
 
@@ -217,10 +225,9 @@ void App::runWorker(ape_global *net)
     m_Net = net;
 
     m_Action.active = false;
-    m_Action.stop = false;
+    m_Action.stop   = false;
 
-    m_Timer = APE_timer_create(net, 1,
-        Nidium_handle_app_messages, this);
+    m_Timer = APE_timer_create(net, 1, Nidium_handle_app_messages, this);
 
     pthread_mutex_init(&m_ThreadMutex, NULL);
     pthread_cond_init(&m_ThreadCond, NULL);
@@ -230,14 +237,14 @@ void App::runWorker(ape_global *net)
     pthread_create(&m_ThreadHandle, NULL, nidium_appworker_thread, this);
 
     pthread_mutex_lock(&m_ThreadMutex);
-        pthread_cond_signal(&m_ThreadCond);
+    pthread_cond_signal(&m_ThreadCond);
     pthread_mutex_unlock(&m_ThreadMutex);
 }
 
 int App::open()
 {
     int err = 0;
-    m_fZip = zip_open(m_Path, ZIP_CHECKCONS, &err);
+    m_fZip  = zip_open(m_Path, ZIP_CHECKCONS, &err);
 
     if (err != ZIP_ER_OK || m_fZip == NULL) {
         char buf_erreur[1024];
@@ -246,8 +253,8 @@ int App::open()
         return 0;
     }
 
-    if ((m_NumFiles = zip_get_num_entries(m_fZip, ZIP_FL_UNCHANGED)) == -1 ||
-        m_NumFiles == 0) {
+    if ((m_NumFiles = zip_get_num_entries(m_fZip, ZIP_FL_UNCHANGED)) == -1
+        || m_NumFiles == 0) {
 
         zip_close(m_fZip);
         m_fZip = NULL;
@@ -259,11 +266,12 @@ int App::open()
 }
 
 int App::extractApp(const char *path,
-        void (*done)(void *, const char *), void *closure)
+                    void (*done)(void *, const char *),
+                    void *closure)
 {
     char *fullpath = strdup(path);
 
-    if (path[strlen(path)-1] != '/') {
+    if (path[strlen(path) - 1] != '/') {
         printf("extractApp : invalid path (non / terminated)\n");
         return 0;
     }
@@ -303,9 +311,9 @@ int App::extractApp(const char *path,
     for (i = 0; i < m_NumFiles; i++) {
         const char *fname = zip_get_name(m_fZip, i, ZIP_FL_UNCHANGED);
 
-        if (fname[strlen(fname)-1] == '/') {
-            char *create = (char *)malloc(sizeof(char) *
-                (strlen(fullpath) + strlen(fname) + 8));
+        if (fname[strlen(fname) - 1] == '/') {
+            char *create = (char *)malloc(
+                sizeof(char) * (strlen(fullpath) + strlen(fname) + 8));
             sprintf(create, "%s%s", fullpath, fname);
 
             mkdir(create, 0777);
@@ -321,15 +329,15 @@ int App::extractApp(const char *path,
         return 0;
     }
     struct Extractor_s *arg = new Extractor_s;
-    arg->m_App = this;
-    arg->m_CurIndex = first;
-    arg->m_FileName = zip_get_name(m_fZip, first, ZIP_FL_UNCHANGED);
-    arg->m_Data.offset = 0;
-    arg->m_Data.fp = NULL;
-    arg->m_FileDir = fullpath;
-    arg->m_Done = done;
-    arg->m_Closure = closure;
-    arg->m_Data.len = this->extractFile(arg->m_FileName, Extractor, arg);
+    arg->m_App              = this;
+    arg->m_CurIndex         = first;
+    arg->m_FileName         = zip_get_name(m_fZip, first, ZIP_FL_UNCHANGED);
+    arg->m_Data.offset      = 0;
+    arg->m_Data.fp          = NULL;
+    arg->m_FileDir          = fullpath;
+    arg->m_Done             = done;
+    arg->m_Closure          = closure;
+    arg->m_Data.len         = this->extractFile(arg->m_FileName, Extractor, arg);
 
     return (arg->m_Data.len != 0);
 }
@@ -337,7 +345,8 @@ int App::extractApp(const char *path,
 uint64_t App::extractFile(const char *file, AppExtractCallback cb, void *user)
 {
     if (m_fZip == NULL || !m_WorkerIsRunning) {
-        printf("extractFile : you need to call open() and runWorker() before\n");
+        printf(
+            "extractFile : you need to call open() and runWorker() before\n");
         return 0;
     }
 
@@ -345,9 +354,9 @@ uint64_t App::extractFile(const char *file, AppExtractCallback cb, void *user)
     struct zip_file *zfile;
     struct zip_stat stat;
 
-    if ((index = zip_name_locate(m_fZip, file, 0)) == -1 ||
-        strcmp(zip_get_name(m_fZip, index, ZIP_FL_UNCHANGED), file) != 0 ||
-        (zfile = zip_fopen_index(m_fZip, index, ZIP_FL_UNCHANGED)) == NULL) {
+    if ((index = zip_name_locate(m_fZip, file, 0)) == -1
+        || strcmp(zip_get_name(m_fZip, index, ZIP_FL_UNCHANGED), file) != 0
+        || (zfile = zip_fopen_index(m_fZip, index, ZIP_FL_UNCHANGED)) == NULL) {
 
         printf("extractFile: Failed to open %s\n", file);
         return 0;
@@ -355,8 +364,8 @@ uint64_t App::extractFile(const char *file, AppExtractCallback cb, void *user)
 
     zip_stat_init(&stat);
 
-    if (zip_stat_index(m_fZip, index, ZIP_FL_UNCHANGED, &stat) == -1 ||
-       !(stat.valid & (ZIP_STAT_SIZE|ZIP_STAT_COMP_SIZE))) {
+    if (zip_stat_index(m_fZip, index, ZIP_FL_UNCHANGED, &stat) == -1
+        || !(stat.valid & (ZIP_STAT_SIZE | ZIP_STAT_COMP_SIZE))) {
         zip_fclose(zfile);
         return 0;
     }
@@ -370,11 +379,11 @@ uint64_t App::extractFile(const char *file, AppExtractCallback cb, void *user)
     }
 
     m_Action.active = true;
-    m_Action.type = APP_ACTION_EXTRACT;
-    m_Action.ptr  = strdup(file);
-    m_Action.u32  = index;
-    m_Action.u64  = stat.size;
-    m_Action.cb = reinterpret_cast<void *>(cb);
+    m_Action.type   = APP_ACTION_EXTRACT;
+    m_Action.ptr    = strdup(file);
+    m_Action.u32    = index;
+    m_Action.u64    = stat.size;
+    m_Action.cb     = reinterpret_cast<void *>(cb);
     m_Action.user = user;
     pthread_cond_signal(&m_ThreadCond);
     pthread_mutex_unlock(&m_ThreadMutex);
@@ -385,12 +394,13 @@ uint64_t App::extractFile(const char *file, AppExtractCallback cb, void *user)
 
 int App::loadManifest()
 {
-#define MPROP(root, str, type, out) \
-Json::Value out; \
-if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
-    printf("Manifest error : " str " property not found or wrong type (required : " #type ")\n"); \
-    return 0; \
-}
+#define MPROP(root, str, type, out)                                           \
+    Json::Value out;                                                          \
+    if (!root.isMember(str) || !(out = root[str]) || !out.is##type()) {       \
+        printf("Manifest error : " str                                        \
+               " property not found or wrong type (required : " #type ")\n"); \
+        return 0;                                                             \
+    }
     if (m_fZip == NULL) return 0;
 
     int index;
@@ -398,9 +408,12 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
     struct zip_file *manifest;
     struct zip_stat stat;
 
-    if ((index = zip_name_locate(m_fZip, NIDIUM_MANIFEST, ZIP_FL_NODIR)) == -1 ||
-        strcmp(zip_get_name(m_fZip, index, ZIP_FL_UNCHANGED), NIDIUM_MANIFEST) != 0 ||
-        (manifest = zip_fopen_index(m_fZip, index, ZIP_FL_UNCHANGED)) == NULL) {
+    if ((index = zip_name_locate(m_fZip, NIDIUM_MANIFEST, ZIP_FL_NODIR)) == -1
+        || strcmp(zip_get_name(m_fZip, index, ZIP_FL_UNCHANGED),
+                  NIDIUM_MANIFEST)
+               != 0
+        || (manifest = zip_fopen_index(m_fZip, index, ZIP_FL_UNCHANGED))
+               == NULL) {
 
         printf(NIDIUM_MANIFEST " not found\n");
         return 0;
@@ -408,8 +421,8 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
 
     zip_stat_init(&stat);
 
-    if (zip_stat_index(m_fZip, index, ZIP_FL_UNCHANGED, &stat) == -1 ||
-       !(stat.valid & (ZIP_STAT_SIZE|ZIP_STAT_COMP_SIZE))) {
+    if (zip_stat_index(m_fZip, index, ZIP_FL_UNCHANGED, &stat) == -1
+        || !(stat.valid & (ZIP_STAT_SIZE | ZIP_STAT_COMP_SIZE))) {
         zip_fclose(manifest);
         return 0;
     }
@@ -431,7 +444,7 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
 
     Json::Value root;
 
-    if (!m_Reader.parse(content, content+stat.size, root)) {
+    if (!m_Reader.parse(content, content + stat.size, root)) {
         printf("Cant parse JSON\n");
 
         return 0;
@@ -442,9 +455,9 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
     MPROP(info, "width", Int, width);
     MPROP(info, "height", Int, height);
 
-    m_AppInfos.title = title;
-    m_AppInfos.udid = uid;
-    m_AppInfos.width = width.asInt();
+    m_AppInfos.title  = title;
+    m_AppInfos.udid   = uid;
+    m_AppInfos.width  = width.asInt();
     m_AppInfos.height = height.asInt();
 
     return 1;
@@ -472,4 +485,3 @@ App::~App()
 
 } // namespace Frontend
 } // namespace Nidium
-

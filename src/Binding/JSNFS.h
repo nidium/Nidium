@@ -13,16 +13,24 @@
 namespace Nidium {
 namespace Binding {
 
-class JSNFS: public Nidium::IO::NFS
+class JSNFS : public Nidium::IO::NFS
 {
 public:
     JSNFS(JSContext *cx);
-    bool writeFile(const char *name_utf8, size_t name_len, char *content,
-        size_t len, int flags = 0);
+    bool writeFile(const char *name_utf8,
+                   size_t name_len,
+                   char *content,
+                   size_t len,
+                   int flags = 0);
+
 private:
-    void *buildJS(const char *data, size_t len, const char *filename, uint32_t *outlen);
+    void *buildJS(const char *data,
+                  size_t len,
+                  const char *filename,
+                  uint32_t *outlen);
     void initRoot();
-    struct {
+    struct
+    {
         JSRuntime *rt;
         JSContext *cx;
     } m_JS;
@@ -32,4 +40,3 @@ private:
 
 } // namespace Binding
 } // namespace Nidium
-

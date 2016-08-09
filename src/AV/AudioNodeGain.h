@@ -14,24 +14,25 @@ namespace AV {
 
 class AudioProcessorGain;
 
-class AudioNodeGain: public AudioNodeProcessor
+class AudioNodeGain : public AudioNodeProcessor
 {
-    public :
-        AudioNodeGain(int inCount, int outCount, Audio *audio);
+public:
+    AudioNodeGain(int inCount, int outCount, Audio *audio);
 
-        enum Args {
-            GAIN
-        };
+    enum Args
+    {
+        GAIN
+    };
 
-        static void argCallback(AudioNode *node, int id, void *val, int size);
+    static void argCallback(AudioNode *node, int id, void *val, int size);
 
-        ~AudioNodeGain() {};
-    private :
-        AudioProcessorGain *m_GainProcessor;
+    ~AudioNodeGain(){};
+
+private:
+    AudioProcessorGain *m_GainProcessor;
 };
 
 } // namespace AV
 } // namespace Nidium
 
 #endif
-

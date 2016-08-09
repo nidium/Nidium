@@ -17,8 +17,8 @@
 namespace Nidium {
 namespace Core {
 
-DB::DB(const char *name) :
-    m_Database(NULL), m_Status(false), m_Name(strdup(name))
+DB::DB(const char *name)
+    : m_Database(NULL), m_Status(false), m_Name(strdup(name))
 {
 
     if (name == NULL) {
@@ -28,7 +28,7 @@ DB::DB(const char *name) :
 
     leveldb::Options options;
     options.create_if_missing = true;
-    options.filter_policy = leveldb::NewBloomFilterPolicy(8);
+    options.filter_policy     = leveldb::NewBloomFilterPolicy(8);
 
     leveldb::Status status = leveldb::DB::Open(options, name, &m_Database);
 
@@ -42,7 +42,8 @@ bool DB::set(const char *key, const uint8_t *data, size_t data_len)
     }
 
     leveldb::Slice input(reinterpret_cast<const char *>(data), data_len);
-    leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, input);
+    leveldb::Status status
+        = m_Database->Put(leveldb::WriteOptions(), key, input);
 
     return status.ok();
 }
@@ -54,7 +55,8 @@ bool DB::set(const char *key, const char *string)
     }
 
     leveldb::Slice input(string);
-    leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, input);
+    leveldb::Status status
+        = m_Database->Put(leveldb::WriteOptions(), key, input);
 
     return status.ok();
 }
@@ -65,7 +67,8 @@ bool DB::set(const char *key, const std::string &string)
         return false;
     }
 
-    leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, string);
+    leveldb::Status status
+        = m_Database->Put(leveldb::WriteOptions(), key, string);
 
     return status.ok();
 }
@@ -117,4 +120,3 @@ DB::~DB()
 
 } // namespace Core
 } // namespace Nidium
-

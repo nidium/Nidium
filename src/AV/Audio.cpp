@@ -32,7 +32,8 @@ namespace AV {
 
 // {{{ Functions
 // Next power of 2
-// Taken from http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+// Taken from
+// http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
 static uint32_t upperPow2(uint32_t num)
 {
     uint32_t n = num > 0 ? num - 1 : 0;
@@ -49,11 +50,15 @@ static uint32_t upperPow2(uint32_t num)
 // }}}
 
 // {{{ Audio
-Audio::Audio(ape_global *n, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate)
-    : m_Net(n), m_SourcesCount(0), m_PlaybackStartTime(0), m_PlaybackConsumedFrame(0),
-      m_Output(NULL), m_InputStream(NULL), m_OutputStream(NULL),
-      m_rBufferOutData(NULL), m_volume(1), m_SourceNeedWork(false), m_QueueFreeLock(false),
-      m_SharedMsgFlush(false), m_ThreadShutdown(false), m_Sources(NULL), m_MainCtx(NULL)
+Audio::Audio(ape_global *n,
+             unsigned int bufferSize,
+             unsigned int channels,
+             unsigned int sampleRate)
+    : m_Net(n), m_SourcesCount(0), m_PlaybackStartTime(0),
+      m_PlaybackConsumedFrame(0), m_Output(NULL), m_InputStream(NULL),
+      m_OutputStream(NULL), m_rBufferOutData(NULL), m_volume(1),
+      m_SourceNeedWork(false), m_QueueFreeLock(false), m_SharedMsgFlush(false),
+      m_ThreadShutdown(false), m_Sources(NULL), m_MainCtx(NULL)
 {
     NIDIUM_PTHREAD_VAR_INIT(&m_QueueHaveData);
     NIDIUM_PTHREAD_VAR_INIT(&m_QueueHaveSpace);
@@ -78,7 +83,9 @@ Audio::Audio(ape_global *n, unsigned int bufferSize, unsigned int channels, unsi
         AudioParameters tmp(0, 0, channels, Audio::FLOAT32, sampleRate);
         actualBufferSize = Audio::GetOutputBufferSize(&tmp);
         if (actualBufferSize == 0) {
-            fprintf(stderr, "[Audio] Failed to request optimal buffer size. Defaulting to 4096\n");
+            fprintf(stderr,
+                    "[Audio] Failed to request optimal buffer size. Defaulting "
+                    "to 4096\n");
             actualBufferSize = 4096;
         } else {
             /*
@@ -89,19 +96,21 @@ Audio::Audio(ape_global *n, unsigned int bufferSize, unsigned int channels, unsi
         }
     }
 
-    m_OutputParameters = new AudioParameters(bufferSize, actualBufferSize, channels, Audio::FLOAT32, sampleRate);
+    m_OutputParameters = new AudioParameters(
+        bufferSize, actualBufferSize, channels, Audio::FLOAT32, sampleRate);
 
     /*
      * Portaudio ring buffer require a power of two
      * for the number of elements in the ring buffer
      */
-    uint32_t count = upperPow2(actualBufferSize * NIDIUM_AUDIO_BUFFER_MULTIPLIER * channels);
+    uint32_t count = upperPow2(actualBufferSize * NIDIUM_AUDIO_BUFFER_MULTIPLIER
+                               * channels);
 
-    m_rBufferOut = new PaUtilRingBuffer();
+    m_rBufferOut     = new PaUtilRingBuffer();
     m_rBufferOutData = static_cast<float *>(calloc(count, Audio::FLOAT32));
 
     PaUtil_InitializeRingBuffer(m_rBufferOut, Audio::FLOAT32,
-            count/Audio::FLOAT32, m_rBufferOutData);
+                                count / Audio::FLOAT32, m_rBufferOutData);
 
     pthread_create(&m_ThreadDecode, NULL, Audio::decodeThread, this);
     pthread_create(&m_ThreadQueue, NULL, Audio::queueThread, this);
@@ -124,7 +133,8 @@ void *Audio::queueThread(void *args)
         }
 
         // Using a trylock because we don't want to wait for another thread to
-        // finish working with the recurseLock for being able to read shared messages.
+        // finish working with the recurseLock for being able to read shared
+        // messages.
         //
         // Example : For shutdown, we need to suspend the queue thread (using
         // Audio::lockQueue()) but we also need the ability to read
@@ -132,7 +142,7 @@ void *Audio::queueThread(void *args)
         int lockErr = pthread_mutex_trylock(&audio->m_RecurseLock);
 
         if (lockErr == 0 && audio->m_Output != NULL && msgFlush != true) {
-            wrote = false;
+            wrote     = false;
             needSpace = false;
 
             if (audio->m_ThreadShutdown) {
@@ -155,15 +165,20 @@ void *Audio::queueThread(void *args)
                     break;
                 }
 
-                wrote = true;
+                wrote                        = true;
                 audio->m_Output->m_Processed = false;
 
                 // Copy output node frame data to output ring buffer
-                // XXX : Find a more efficient way to copy data to output right buffer
-                for (int i = 0; i < audio->m_OutputParameters->m_FramesPerBuffer; i++) {
-                    for (int j = 0; j < audio->m_OutputParameters->m_Channels; j++) {
+                // XXX : Find a more efficient way to copy data to output right
+                // buffer
+                for (int i = 0;
+                     i < audio->m_OutputParameters->m_FramesPerBuffer; i++) {
+                    for (int j = 0; j < audio->m_OutputParameters->m_Channels;
+                         j++) {
                         audio->m_Output->m_Frames[j][i] *= audio->m_volume;
-                        PaUtil_WriteRingBuffer(audio->m_rBufferOut, &audio->m_Output->m_Frames[j][i], 1);
+                        PaUtil_WriteRingBuffer(audio->m_rBufferOut,
+                                               &audio->m_Output->m_Frames[j][i],
+                                               1);
                     }
                 }
             }
@@ -190,7 +205,8 @@ void *Audio::queueThread(void *args)
 
         if (audio->m_ThreadShutdown) break;
 
-        SPAM(("Queue thead is now working shutdown=%d\n", audio->m_ThreadShutdown));
+        SPAM(("Queue thead is now working shutdown=%d\n",
+              audio->m_ThreadShutdown));
     }
 
     audio->readMessages(true);
@@ -212,30 +228,34 @@ void Audio::readMessages(bool flush)
 #define MAX_MSG_IN_ROW 1024
     SharedMessages::Message *msg;
     int nread = 0;
-    while (((!flush && ++nread < MAX_MSG_IN_ROW) || flush) && (msg = m_SharedMsg->readMessage())) {
+    while (((!flush && ++nread < MAX_MSG_IN_ROW) || flush)
+           && (msg = m_SharedMsg->readMessage())) {
         switch (msg->event()) {
-            case NIDIUM_AUDIO_NODE_CALLBACK : {
-                AudioNode::CallbackMessage *cbkMsg = static_cast<AudioNode::CallbackMessage*>(msg->dataPtr());
+            case NIDIUM_AUDIO_NODE_CALLBACK: {
+                AudioNode::CallbackMessage *cbkMsg
+                    = static_cast<AudioNode::CallbackMessage *>(msg->dataPtr());
                 cbkMsg->m_Cbk(cbkMsg->m_Node, cbkMsg->m_Custom);
                 delete cbkMsg;
-            }
-            break;
-            case NIDIUM_AUDIO_NODE_SET : {
-                AudioNode::Message *nodeMsg =  static_cast<AudioNode::Message *>(msg->dataPtr());
+            } break;
+            case NIDIUM_AUDIO_NODE_SET: {
+                AudioNode::Message *nodeMsg
+                    = static_cast<AudioNode::Message *>(msg->dataPtr());
                 if (nodeMsg->m_Arg->m_Ptr == NULL) {
-                    nodeMsg->m_Arg->m_Cbk(nodeMsg->m_Node, nodeMsg->m_Arg->m_Id, nodeMsg->m_Val, nodeMsg->m_Size);
+                    nodeMsg->m_Arg->m_Cbk(nodeMsg->m_Node, nodeMsg->m_Arg->m_Id,
+                                          nodeMsg->m_Val, nodeMsg->m_Size);
                 } else {
-                    memcpy(nodeMsg->m_Arg->m_Ptr, nodeMsg->m_Val, nodeMsg->m_Size);
+                    memcpy(nodeMsg->m_Arg->m_Ptr, nodeMsg->m_Val,
+                           nodeMsg->m_Size);
                 }
 
                 delete nodeMsg;
-            }
-            break;
-            case NIDIUM_AUDIO_CALLBACK :
-                Audio::CallbackMessage *cbkMsg = static_cast<Audio::CallbackMessage*>(msg->dataPtr());
+            } break;
+            case NIDIUM_AUDIO_CALLBACK:
+                Audio::CallbackMessage *cbkMsg
+                    = static_cast<Audio::CallbackMessage *>(msg->dataPtr());
                 cbkMsg->m_Cbk(cbkMsg->m_Custom);
                 delete cbkMsg;
-            break;
+                break;
         }
         delete msg;
     }
@@ -248,9 +268,9 @@ void Audio::processQueue()
     SPAM(("process queue\n"));
     AudioSources *sources = m_Sources;
 
-    while (sources!= NULL)
-    {
-        SPAM(("curr=%p connected=%d\n", m_Sources->curr, m_Sources->curr->m_IsConnected));
+    while (sources != NULL) {
+        SPAM(("curr=%p connected=%d\n", m_Sources->curr,
+              m_Sources->curr->m_IsConnected));
         if (sources->curr != NULL && sources->curr->m_IsConnected) {
             sources->curr->processQueue();
         }
@@ -266,28 +286,30 @@ void *Audio::decodeThread(void *args)
     AudioSources *sources;
     AudioSource *source;
 
-    for(; ;) {
+    for (;;) {
         int haveEnough, sourcesCount;
         // Go through all the sources that need data to be decoded
         pthread_mutex_lock(&audio->m_SourcesLock);
 
-        sources = audio->m_Sources;
-        haveEnough = 0;
+        sources      = audio->m_Sources;
+        haveEnough   = 0;
         sourcesCount = audio->m_SourcesCount;
 
-        while (sources != NULL)
-        {
+        while (sources != NULL) {
             haveEnough = 0;
 
             if (sources->curr != NULL && !sources->externallyManaged) {
-                source = static_cast<AudioSource*>(sources->curr);
+                source = static_cast<AudioSource *>(sources->curr);
 
                 // Loop as long as there is data to read and write
-                while (source->work()) {}
+                while (source->work()) {
+                }
 
-                if (source->avail() >= audio->m_OutputParameters->m_FramesPerBuffer * audio->m_OutputParameters->m_Channels) {
+                if (source->avail()
+                    >= audio->m_OutputParameters->m_FramesPerBuffer
+                           * audio->m_OutputParameters->m_Channels) {
                     haveEnough++;
-                    //audio->notEmpty = false;
+                    // audio->notEmpty = false;
                 }
 
                 if (!source->m_Opened || !source->m_Playing) {
@@ -297,17 +319,20 @@ void *Audio::decodeThread(void *args)
             sources = sources->next;
         }
         pthread_mutex_unlock(&audio->m_SourcesLock);
-        SPAM(("haveEnough %d / sourcesCount %d\n", haveEnough, audio->m_SourcesCount));
+        SPAM(("haveEnough %d / sourcesCount %d\n", haveEnough,
+              audio->m_SourcesCount));
 
         // FIXME : find out why when playing multiple song,
         // the commented expression bellow fail to work
         if (audio->m_SourcesCount > 0 /*&& haveEnough == sourcesCount*/) {
             if (audio->canWriteFrame()) {
-                SPAM(("Have data %lu\n", PaUtil_GetRingBufferWriteAvailable(audio->m_rBufferOut)));
+                SPAM(("Have data %lu\n",
+                      PaUtil_GetRingBufferWriteAvailable(audio->m_rBufferOut)));
                 NIDIUM_PTHREAD_SIGNAL(&audio->m_QueueHaveData);
-                //audio->haveData = true;
-            }  else {
-                SPAM(("dont Have data %lu\n", PaUtil_GetRingBufferWriteAvailable(audio->m_rBufferOut)));
+                // audio->haveData = true;
+            } else {
+                SPAM(("dont Have data %lu\n",
+                      PaUtil_GetRingBufferWriteAvailable(audio->m_rBufferOut)));
             }
         }
 
@@ -315,7 +340,8 @@ void *Audio::decodeThread(void *args)
 
         // Wait for work to do unless some source need to wakeup
         if (!audio->m_SourceNeedWork) {
-            SPAM(("Waitting for queueNeedData m_SourceNeedWork=%d\n", audio->m_SourceNeedWork));
+            SPAM(("Waitting for queueNeedData m_SourceNeedWork=%d\n",
+                  audio->m_SourceNeedWork));
             NIDIUM_PTHREAD_WAIT(&audio->m_QueueNeedData);
             SPAM(("QueueNeedData received\n"));
         } else {
@@ -331,8 +357,11 @@ void *Audio::decodeThread(void *args)
     return NULL;
 }
 
-int Audio::InitPortAudioOutput(AudioParameters *params, \
-        PaStream **outputStream, PaStreamCallback *callback, void *userData) {
+int Audio::InitPortAudioOutput(AudioParameters *params,
+                               PaStream **outputStream,
+                               PaStreamCallback *callback,
+                               void *userData)
+{
     const PaDeviceInfo *infos;
     PaDeviceIndex device;
     PaError error;
@@ -347,21 +376,16 @@ int Audio::InitPortAudioOutput(AudioParameters *params, \
     infos = Pa_GetDeviceInfo(device);
 
     // Set output parameters for PortAudio
-    paOutputParameters.device = device;
-    paOutputParameters.channelCount = params->m_Channels;
-    paOutputParameters.suggestedLatency = infos->defaultLowInputLatency;
+    paOutputParameters.device                    = device;
+    paOutputParameters.channelCount              = params->m_Channels;
+    paOutputParameters.suggestedLatency          = infos->defaultLowInputLatency;
     paOutputParameters.hostApiSpecificStreamInfo = 0; /* no api specific data */
-    paOutputParameters.sampleFormat = paFloat32;
+    paOutputParameters.sampleFormat              = paFloat32;
 
     // Try to open the output
-    error = Pa_OpenStream(outputStream,
-            0,
-            &paOutputParameters,
-            params->m_SampleRate,
-            0,
-            paPrimeOutputBuffersUsingStreamCallback,
-            callback,
-            userData);
+    error = Pa_OpenStream(
+        outputStream, 0, &paOutputParameters, params->m_SampleRate, 0,
+        paPrimeOutputBuffersUsingStreamCallback, callback, userData);
 
     if (error) {
         fprintf(stderr, "[Audio] Error opening output. Code = %i\n", error);
@@ -371,7 +395,8 @@ int Audio::InitPortAudioOutput(AudioParameters *params, \
 
     error = Pa_StartStream(*outputStream);
     if (error) {
-        fprintf(stderr, "[Audio] Failed to start PortAudio stream. Code=%i\n", error);
+        fprintf(stderr, "[Audio] Failed to start PortAudio stream. Code=%i\n",
+                error);
         return 2;
     }
 
@@ -379,11 +404,14 @@ int Audio::InitPortAudioOutput(AudioParameters *params, \
 }
 
 /*
- * Return the number of *samples* per buffer. This method should only be used when no portaudio
- * stream is running. It's intended  to get an estimation of the audio bufer size selected by
+ * Return the number of *samples* per buffer. This method should only be used
+ * when no portaudio
+ * stream is running. It's intended  to get an estimation of the audio bufer
+ * size selected by
  * portaudio before allocating the buffers for Audio
  */
-int Audio::GetOutputBufferSize(AudioParameters *params) {
+int Audio::GetOutputBufferSize(AudioParameters *params)
+{
     PaStream *outputStream = NULL;
 
     Audio::InitPortAudioOutput(params, &outputStream, nullptr, nullptr);
@@ -405,23 +433,27 @@ int Audio::GetOutputBufferSize(AudioParameters *params) {
     }
 }
 
-int Audio::openOutput() {
-    return Audio::InitPortAudioOutput(m_OutputParameters, &m_OutputStream, &Audio::paOutputCallback, (void *)this);
+int Audio::openOutput()
+{
+    return Audio::InitPortAudioOutput(m_OutputParameters, &m_OutputStream,
+                                      &Audio::paOutputCallback, (void *)this);
 }
 
-int Audio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuffer,
-    unsigned long framesPerBuffer,
-    const PaStreamCallbackTimeInfo* timeInfo,
-    PaStreamCallbackFlags statusFlags)
+int Audio::paOutputCallbackMethod(const void *inputBuffer,
+                                  void *outputBuffer,
+                                  unsigned long framesPerBuffer,
+                                  const PaStreamCallbackTimeInfo *timeInfo,
+                                  PaStreamCallbackFlags statusFlags)
 {
-    (void) timeInfo;
-    (void) statusFlags;
-    (void) inputBuffer;
+    (void)timeInfo;
+    (void)statusFlags;
+    (void)inputBuffer;
 
-    float *out = static_cast<float*>(outputBuffer);
+    float *out   = static_cast<float *>(outputBuffer);
     int channels = m_OutputParameters->m_Channels;
-    ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(m_rBufferOut) / channels;
-    avail = framesPerBuffer > avail ? avail : framesPerBuffer;
+    ring_buffer_size_t avail
+        = PaUtil_GetRingBufferReadAvailable(m_rBufferOut) / channels;
+    avail    = framesPerBuffer > avail ? avail : framesPerBuffer;
     int left = framesPerBuffer - avail;
 
     if (m_PlaybackStartTime == 0 || (statusFlags & paOutputUnderflow)) {
@@ -429,7 +461,7 @@ int Audio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuffer,
          * Reset in case of underflow, since it will
          * break the calculation  of the buffer size
          */
-        m_PlaybackStartTime = av_gettime();
+        m_PlaybackStartTime     = av_gettime();
         m_PlaybackConsumedFrame = 0;
     }
 
@@ -447,8 +479,7 @@ int Audio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuffer,
     }
 #endif
 
-    for (unsigned int i = 0; i < left * channels; i++)
-    {
+    for (unsigned int i = 0; i < left * channels; i++) {
         *out++ = 0.0f;
     }
 
@@ -457,26 +488,27 @@ int Audio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuffer,
     return paContinue;
 }
 
-int Audio::paOutputCallback(const void *inputBuffer, void *outputBuffer,
-    unsigned long framesPerBuffer,
-    const PaStreamCallbackTimeInfo* timeInfo,
-    PaStreamCallbackFlags statusFlags,
-    void *userData)
+int Audio::paOutputCallback(const void *inputBuffer,
+                            void *outputBuffer,
+                            unsigned long framesPerBuffer,
+                            const PaStreamCallbackTimeInfo *timeInfo,
+                            PaStreamCallbackFlags statusFlags,
+                            void *userData)
 {
-    return (static_cast<Audio*>(userData))->paOutputCallbackMethod(inputBuffer, outputBuffer,
-        framesPerBuffer,
-        timeInfo,
-        statusFlags);
+    return (static_cast<Audio *>(userData))
+        ->paOutputCallbackMethod(inputBuffer, outputBuffer, framesPerBuffer,
+                                 timeInfo, statusFlags);
 }
 
 bool Audio::haveSourceActive(bool excludeExternal)
 {
     pthread_mutex_lock(&m_SourcesLock);
     AudioSources *sources = m_Sources;
-    while (sources != NULL)
-    {
+    while (sources != NULL) {
         AudioNode *node = sources->curr;
-        if (node != NULL && (!excludeExternal || (excludeExternal && !sources->externallyManaged))) {
+        if (node != NULL
+            && (!excludeExternal
+                || (excludeExternal && !sources->externallyManaged))) {
             if (node->isActive()) {
                 pthread_mutex_unlock(&m_SourcesLock);
                 return true;
@@ -488,20 +520,27 @@ bool Audio::haveSourceActive(bool excludeExternal)
     return false;
 }
 
-double Audio::getLatency() {
-    ring_buffer_size_t queuedAudio = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
-    double nidiumAudioLatency = (((queuedAudio) * (1.0/m_OutputParameters->m_SampleRate)) / m_OutputParameters->m_Channels);
+double Audio::getLatency()
+{
+    ring_buffer_size_t queuedAudio
+        = PaUtil_GetRingBufferReadAvailable(m_rBufferOut);
+    double nidiumAudioLatency
+        = (((queuedAudio) * (1.0 / m_OutputParameters->m_SampleRate))
+           / m_OutputParameters->m_Channels);
     double paLatency = 0;
 
     if (m_PlaybackStartTime != 0) {
         int64_t now = av_gettime();
-        double playbackDuration = ((1.0/m_OutputParameters->m_SampleRate)
-                    * static_cast<double>(m_PlaybackConsumedFrame));
+        double playbackDuration
+            = ((1.0 / m_OutputParameters->m_SampleRate)
+               * static_cast<double>(m_PlaybackConsumedFrame));
 
-        paLatency = playbackDuration - static_cast<double>(now - m_PlaybackStartTime)/1000000;
+        paLatency = playbackDuration
+                    - static_cast<double>(now - m_PlaybackStartTime) / 1000000;
     }
 
-    SPAM(("latency=%f nidium=%f pa=%f\n", paLatency + nidiumAudioLatency, nidiumAudioLatency, paLatency));
+    SPAM(("latency=%f nidium=%f pa=%f\n", paLatency + nidiumAudioLatency,
+          nidiumAudioLatency, paLatency));
 
     return paLatency + nidiumAudioLatency;
 }
@@ -513,10 +552,10 @@ AudioNode *Audio::addSource(AudioNode *source, bool externallyManaged)
     this->lockSources();
     this->lockQueue();
 
-    sources->curr = source;
+    sources->curr              = source;
     sources->externallyManaged = externallyManaged;
-    sources->prev = NULL;
-    sources->next = m_Sources;
+    sources->prev              = NULL;
+    sources->next              = m_Sources;
 
     if (m_Sources != NULL) {
         m_Sources->prev = sources;
@@ -538,8 +577,7 @@ void Audio::removeSource(AudioSource *source)
 
     AudioSources *sources = m_Sources;
 
-    while (sources != NULL)
-    {
+    while (sources != NULL) {
         if (sources->curr != NULL && sources->curr == source) {
 
             if (sources->prev != NULL) {
@@ -569,41 +607,37 @@ AudioNode *Audio::createNode(Audio::Node node, int input, int output)
 {
     try {
         switch (node) {
-            case SOURCE:
-                {
-                    AudioNode *source = new AudioSource(output, this, false);
-                    return this->addSource(source, false);
-                }
-                break;
-            case CUSTOM_SOURCE:
-                {
-                    AudioNode *source = new AudioSourceCustom(output, this);
-                    return this->addSource(source, true);
-                }
-                break;
+            case SOURCE: {
+                AudioNode *source = new AudioSource(output, this, false);
+                return this->addSource(source, false);
+            } break;
+            case CUSTOM_SOURCE: {
+                AudioNode *source = new AudioSourceCustom(output, this);
+                return this->addSource(source, true);
+            } break;
             case GAIN:
-                    return new AudioNodeGain(input, output, this);
+                return new AudioNodeGain(input, output, this);
                 break;
             case CUSTOM:
-                    return new AudioNodeCustom(input, output, this);
+                return new AudioNodeCustom(input, output, this);
                 break;
             case REVERB:
-                    return new AudioNodeReverb(input, output, this);
+                return new AudioNodeReverb(input, output, this);
                 break;
             case DELAY:
-                    return new AudioNodeDelay(input, output, this);
+                return new AudioNodeDelay(input, output, this);
                 break;
             case STEREO_ENHANCER:
-                    return new AudioNodeStereoEnhancer(input, output, this);
+                return new AudioNodeStereoEnhancer(input, output, this);
                 break;
             case TARGET:
-                    if (m_Output == NULL) {
-                        m_Output = new AudioNodeTarget(input, output, this);
-                        return m_Output;
-                    }
-                    return NULL;
+                if (m_Output == NULL) {
+                    m_Output = new AudioNodeTarget(input, output, this);
+                    return m_Output;
+                }
+                return NULL;
                 break;
-            default :
+            default:
                 break;
         }
     } catch (AudioNodeException *e) {
@@ -636,7 +670,7 @@ float Audio::getVolume()
 void Audio::wakeup()
 {
     m_SharedMsgFlush = true;
-    m_QueueFreeLock = true;
+    m_QueueFreeLock  = true;
 
     NIDIUM_PTHREAD_SIGNAL(&m_QueueHaveData);
     NIDIUM_PTHREAD_SIGNAL(&m_QueueHaveSpace);
@@ -672,7 +706,7 @@ void Audio::unlockQueue()
 
 void Audio::sourceNeedWork(void *ptr)
 {
-    Audio *thiz = static_cast<Audio*>(ptr);
+    Audio *thiz            = static_cast<Audio *>(ptr);
     thiz->m_SourceNeedWork = true;
     NIDIUM_PTHREAD_SIGNAL(&thiz->m_QueueNeedData);
 }
@@ -689,8 +723,9 @@ void Audio::unlockSources()
 
 void Audio::postMessage(AudioMessageCallback cbk, void *custom, bool block)
 {
-    m_SharedMsg->postMessage(static_cast<void *>(new CallbackMessage(cbk, custom)),
-            NIDIUM_AUDIO_CALLBACK);
+    m_SharedMsg->postMessage(
+        static_cast<void *>(new CallbackMessage(cbk, custom)),
+        NIDIUM_AUDIO_CALLBACK);
 
     if (block) {
         this->wakeup();
@@ -703,11 +738,13 @@ void Audio::postMessage(AudioMessageCallback cbk, void *custom)
 
 bool Audio::canWriteFrame()
 {
-    return PaUtil_GetRingBufferWriteAvailable(m_rBufferOut) >=
-        m_OutputParameters->m_FramesPerBuffer * m_OutputParameters->m_Channels;
+    return PaUtil_GetRingBufferWriteAvailable(m_rBufferOut)
+           >= m_OutputParameters->m_FramesPerBuffer
+                  * m_OutputParameters->m_Channels;
 }
 
-Audio::~Audio() {
+Audio::~Audio()
+{
     if (m_ThreadShutdown == false) {
         this->shutdown();
     }
@@ -735,4 +772,3 @@ Audio::~Audio() {
 
 } // namespace AV
 } // namespace Nidium
-

@@ -22,59 +22,62 @@ class UICocoaConsole;
 
 class UICocoaInterface : public UIInterface
 {
-    public:
-        UICocoaInterface();
+public:
+    UICocoaInterface();
 
-        void quitApplication();
-        void runLoop();
-        void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
-        void setGLContextAttribute();
-        void setWindowControlsOffset(double x, double y);
-        void initControls();
-        void stopApplication();
-        void setWindowFrame(int x, int y, int w, int h);
-        void openFileDialog(const char *files[],
-            void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags = 0);
-        UICocoaConsole *getConsole(bool create=false, bool *created = NULL);
-        void enableSysTray(const void *imgData = NULL, size_t imageDataSize = 0);
-        void disableSysTray();
+    void quitApplication();
+    void runLoop();
+    void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+    void setGLContextAttribute();
+    void setWindowControlsOffset(double x, double y);
+    void initControls();
+    void stopApplication();
+    void setWindowFrame(int x, int y, int w, int h);
+    void openFileDialog(const char *files[],
+                        void (*cb)(void *nof, const char *lst[], uint32_t len),
+                        void *arg,
+                        int flags = 0);
+    UICocoaConsole *getConsole(bool create = false, bool *created = NULL);
+    void enableSysTray(const void *imgData = NULL, size_t imageDataSize = 0);
+    void disableSysTray();
 
-        void hideWindow();
-        void showWindow();
-        void quit();
+    void hideWindow();
+    void showWindow();
+    void quit();
 
-        struct {
-            CGRect closeFrame;
-            CGRect zoomFrame;
-            CGRect minFrame;
-        } controls;
+    struct
+    {
+        CGRect closeFrame;
+        CGRect zoomFrame;
+        CGRect minFrame;
+    } controls;
 
 #if 0
         virtual bool makeMainGLCurrent();
         virtual bool makeGLCurrent(SDL_GLContext ctx);
         virtual SDL_GLContext getCurrentGLContext();
 #endif
-    protected:
-        void setSystemCursor(CURSOR_TYPE cursor);
-        void onWindowCreated();
-    private:
-        void renderSystemTray();
+protected:
+    void setSystemCursor(CURSOR_TYPE cursor);
+    void onWindowCreated();
 
-        /*
-            We need to patch SDLView in order to add NSView(drawRect:) method.
-            This is done, so that we can avoid flickering during resize by
-            redrawing the OpenGL scene when it's dirty.
-        */
-        void patchSDLView(NSView *sdlview);
+private:
+    void renderSystemTray();
 
-        UICocoaConsole *m_Console = nullptr;
-        DragNSView *m_DragNSView;
-        NSStatusItem *m_StatusItem;
-        UICocoaInterfaceWrapper *m_Wrapper;
+    /*
+        We need to patch SDLView in order to add NSView(drawRect:) method.
+        This is done, so that we can avoid flickering during resize by
+        redrawing the OpenGL scene when it's dirty.
+    */
+    void patchSDLView(NSView *sdlview);
+
+    UICocoaConsole *m_Console = nullptr;
+    DragNSView *m_DragNSView;
+    NSStatusItem *m_StatusItem;
+    UICocoaInterfaceWrapper *m_Wrapper;
 };
 
 } // namespace Interface
 } // namespace Nidium
 
 #endif
-
