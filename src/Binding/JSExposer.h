@@ -28,12 +28,11 @@
 
 #define NIDIUM_JS_PROLOGUE_NO_RET()                       \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);     \
-    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
-    (void)(args);                                         \
-    if (!thisobj) {                                       \
+    if (!args.thisv().isObject()) {                       \
         JS_ReportError(cx, "Illegal invocation");         \
         return false;                                     \
-    }
+    }                                                     \
+    JS::RootedObject thisobj(cx, &args.thisv().toObject());
 
 #define NIDIUM_JS_PROLOGUE_CLASS_NO_RET(ofclass, fclass)   \
     NIDIUM_JS_PROLOGUE_NO_RET()                            \
@@ -774,15 +773,29 @@ private:
 };
 // }}}
 
-/*  TODO: add a way to define whether object life define JSObject life
-    (addroot/unroot or if jsobject life define obj life (finalizer))
-*/
-
+#define CLASSMAPPER_FN(cclass, name, argc) JS_FN(#name, (JSCall<&cclass::JS_##name, argc>), argc, NIDIUM_JS_FNPROPS)
 
 template <typename T>
 class ClassMapper
 {
 public:
+    typedef bool (T::*JSCallback)(JSContext *, JS::CallArgs &);
+
+    template <JSCallback U, int minarg>
+    static bool JSCall(JSContext *cx, unsigned argc, JS::Value *vp)
+    {
+        NIDIUM_JS_PROLOGUE_CLASS(T, ClassMapper<T>::GetJSClass());
+
+        /* TODO: Get the right method name */
+        NIDIUM_JS_CHECK_ARGS("method", minarg);
+
+        return (CppObj->*U)(cx, args);
+    }
+
+    static JSFunctionSpec *ListMethods()
+    {
+        return nullptr;
+    }
 
     static bool JSConstructor(JSContext *cx, unsigned argc, JS::Value *vp)
     {
@@ -850,8 +863,8 @@ public:
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
         JS_InitClass(cx, global, JS::NullPtr(), jsclass,
-                    ClassMapper<T>::JSConstructor, 0, NULL, NULL, NULL, NULL);
-
+                    ClassMapper<T>::JSConstructor, 0, NULL,
+                    T::ListMethods(), NULL, NULL);
     }
 
     void root()
