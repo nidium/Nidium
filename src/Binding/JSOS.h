@@ -3,23 +3,22 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef binding_jssystem_h__
-#define binding_jssystem_h__
+#ifndef binding_jsos_h__
+#define binding_jsos_h__
 
-#include <Binding/JSExposer.h>
-
-using Nidium::Binding::JSExposer;
+#include "Binding/JSExposer.h"
 
 namespace Nidium {
 namespace Binding {
 
-class JSSystem : public JSExposer<JSSystem>
+class JSOS : public JSExposer<JSOS>
 {
 public:
+    JSOS(JSContext *cx, JS::HandleObject obj, const char *name);
     static void RegisterObject(JSContext *cx);
 };
 
 } // namespace Binding
-} // namespce Nidium
+} // namespace Nidium
 
 #endif
