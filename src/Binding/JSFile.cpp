@@ -424,6 +424,7 @@ static bool nidium_File_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 
     file = new File(jsfile->getPath());
     file->setListener(jsfile);
+    file->setAutoClose(false);
 
     NIDIUM_JS_INIT_OPT();
 
@@ -896,7 +897,7 @@ static bool nidium_file_seekSync(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    seekPos = args[0].toNumber();
+    seekPos = static_cast<size_t>(args[0].toNumber());
     ret     = file->seekSync(seekPos, &err);
 
     if (ret != 0) {
