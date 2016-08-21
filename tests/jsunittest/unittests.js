@@ -44,6 +44,7 @@ if (args["file"]) {
         'Process/process.js',
         'HTTP/HTTPServer.js',
         'HTTP/HTTPClient.js',
+        //'Modules/Module_libHello.js',
 
         //'Thread/Thread_simple.js',
         //'Thread/Thread_complex.js',
