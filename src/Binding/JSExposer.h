@@ -201,171 +201,6 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 namespace Nidium {
 namespace Binding {
 
-// {{{ JSEvent
-struct JSEvent
-{
-    JSEvent(JSContext *cx, JS::HandleValue func) : m_Function(func)
-    {
-        m_Once = false;
-        next = prev = NULL;
-
-        m_Cx = cx;
-
-        NidiumJS::GetObject(m_Cx)
-            ->rootObjectUntilShutdown(func.toObjectOrNull());
-    }
-
-    ~JSEvent()
-    {
-        NidiumJS::GetObject(m_Cx)->unrootObject(m_Function.toObjectOrNull());
-    }
-
-    JSContext *m_Cx;
-    JS::Heap<JS::Value> m_Function;
-
-    bool m_Once;
-
-    JSEvent *next;
-    JSEvent *prev;
-};
-// }}}
-
-// {{{ JSEvents
-class JSEvents
-{
-public:
-    static JSObject *CreateEventObject(JSContext *cx);
-    static JSObject *
-    CreateErrorEventObject(JSContext *cx, int code, const char *error);
-
-    JSEvents(char *name)
-        : m_Head(NULL), m_Queue(NULL), m_Name(strdup(name)), m_TmpEv(NULL),
-          m_IsFiring(false), m_DeleteAfterFire(false)
-    {
-    }
-
-    ~JSEvents()
-    {
-        JSEvent *ev, *tmpEv;
-        for (ev = m_Head; ev != NULL;) {
-            tmpEv = ev->next;
-            delete ev;
-
-            ev = tmpEv;
-        }
-        free(m_Name);
-    }
-
-    void add(JSEvent *ev)
-    {
-        ev->prev = m_Queue;
-        ev->next = NULL;
-
-        if (m_Head == NULL) {
-            m_Head = ev;
-        }
-
-        if (m_Queue) {
-            m_Queue->next = ev;
-        }
-
-        m_Queue = ev;
-    }
-
-    bool fire(JSContext *cx, JS::HandleValue evobj, JS::HandleObject obj)
-    {
-        JSEvent *ev;
-        m_IsFiring = true;
-
-        JS::RootedObject thisobj(cx, obj);
-        JS::AutoValueArray<1> params(cx);
-        params[0].set(evobj);
-
-        for (ev = m_Head; ev != NULL;) {
-            JS::RootedValue rval(cx);
-            JS::RootedValue fun(cx, ev->m_Function);
-
-            /*
-                Keep a reference to the next event in case the event is self
-                deleted during the trigger. In case the next event(s) are also
-                deleted, m_TmpEv will be updated by JSEvents::remove()
-                to the next valid event.
-            */
-            m_TmpEv = ev->next;
-
-            JS_CallFunctionValue(cx, thisobj, fun, params, &rval);
-
-            if (JS_IsExceptionPending(cx)) {
-                if (!JS_ReportPendingException(cx)) {
-                    JS_ClearPendingException(cx);
-                }
-            }
-
-            if (m_DeleteAfterFire) {
-                delete this;
-                return false;
-            }
-
-            ev = m_TmpEv;
-        }
-
-        m_IsFiring = false;
-        m_TmpEv    = nullptr;
-
-        return false;
-    }
-
-    void remove()
-    {
-        if (m_IsFiring) {
-            m_DeleteAfterFire = true;
-        } else {
-            delete this;
-        }
-    }
-
-    void remove(JS::HandleValue func)
-    {
-        JSEvent *ev;
-        for (ev = m_Head; ev != nullptr;) {
-            if (ev->m_Function == func) {
-                if (ev->prev) {
-                    ev->prev->next = ev->next;
-                } else {
-                    m_Head = nullptr;
-                }
-
-                if (ev->next) {
-                    ev->next->prev = ev->prev;
-                } else {
-                    m_Queue = ev->prev;
-                }
-
-                /*
-                    The event currently deleted, is the next to be
-                    fired, update the pointer to the next event.
-                */
-                if (ev == m_TmpEv) {
-                    m_TmpEv = ev->next;
-                }
-
-                delete ev;
-
-                return;
-            }
-        }
-    }
-
-    JSEvent *m_Head;
-    JSEvent *m_Queue;
-    char *m_Name;
-
-private:
-    JSEvent *m_TmpEv;
-    bool m_IsFiring;
-    bool m_DeleteAfterFire;
-};
-// }}}
 
 // {{{ JSExposer
 template <typename T>
@@ -398,65 +233,21 @@ public:
     }
 
     JSExposer(JS::HandleObject jsobj, JSContext *cx, bool impEvents = true)
-        : m_JSObject(jsobj), m_Cx(cx), m_Events(NULL)
+        : m_JSObject(jsobj), m_Cx(cx)
     {
-        static JSFunctionSpec JSEvent_funcs[] = {
-            JS_FN("addEventListener",
-                  JSExposer<T>::Nidium_jsevent_addEventListener, 2,
-                  JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
-            JS_FN("removeEventListener",
-                  JSExposer<T>::Nidium_jsevent_removeEventListener, 1,
-                  JSPROP_ENUMERATE | JSPROP_PERMANENT),
-            JS_FN("fireEvent", JSExposer<T>::Nidium_jsevent_fireEvent, 2,
-                  JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
-
-            // Expose shorthand alias too
-            JS_FN("on", JSExposer<T>::Nidium_jsevent_addEventListener, 2,
-                  JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
-            JS_FN("emit", JSExposer<T>::Nidium_jsevent_fireEvent, 2,
-                  JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
-            JS_FS_END
-        };
-
         if (impEvents) {
-            JS_DefineFunctions(cx, jsobj, JSEvent_funcs);
+            printf("Warning events has moved\n");
         }
     }
 
     static void InstallEventsOnPrototype(JSContext *cx, JS::HandleObject proto)
     {
-        static JSFunctionSpec JSEvent_funcs[] = {
-            JS_FN("addEventListener",
-                  JSExposer<T>::Nidium_jsevent_addEventListener, 2,
-                  JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
-            JS_FN("removeEventListener",
-                  JSExposer<T>::Nidium_jsevent_removeEventListener, 1,
-                  JSPROP_ENUMERATE | JSPROP_PERMANENT),
-            JS_FN("fireEvent", JSExposer<T>::Nidium_jsevent_fireEvent, 2,
-                  JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
-
-            // Expose shorthand alias too
-            JS_FN("on", JSExposer<T>::Nidium_jsevent_addEventListener, 2,
-                  JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
-            JS_FN("emit", JSExposer<T>::Nidium_jsevent_fireEvent, 2,
-                  JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
-            JS_FS_END
-        };
-
-        JS_DefineFunctions(cx, proto, JSEvent_funcs);
+        printf("Warning events has moved\n");
     }
 
     virtual ~JSExposer()
     {
-        if (m_Events) {
-            /*
-                It's safe to enable again the auto delete feature from
-                Nidium::Core::Hash since we are sure at this point that no event
-                is currently fired.
-            */
-            m_Events->setAutoDelete(true);
-            delete m_Events;
-        }
+
     }
 
     static const char *GetJSObjectName()
@@ -506,208 +297,16 @@ public:
         return T::GetObject(NidiumJS::GetObject(cx));
     }
 
-    bool fireJSEvent(const char *name, JS::MutableHandleValue evobj)
-    {
-        JS::RootedObject thisobj(m_Cx, m_JSObject);
-        JS::AutoValueArray<1> params(m_Cx);
-        JS::RootedValue callback(m_Cx);
-        char onEv[128] = "on";
-
-        params[0].set(evobj);
-
-        strncat(onEv, name, 128 - 3);
-
-        JS_GetProperty(m_Cx, thisobj, onEv, &callback);
-
-        if (callback.isObject()
-            && JS_ObjectIsCallable(m_Cx, callback.toObjectOrNull())) {
-            JS::RootedValue rval(m_Cx);
-
-            JS_CallFunctionValue(m_Cx, thisobj, callback, params, &rval);
-
-            if (JS_IsExceptionPending(m_Cx)) {
-                if (!JS_ReportPendingException(m_Cx)) {
-                    JS_ClearPendingException(m_Cx);
-                }
-            }
-        }
-
-        if (!m_Events) {
-            return false;
-        }
-
-        /*
-        if (0 && !JS_InstanceOf(m_Cx, evobj.toObjectOrNull(),
-            &JSEvent_class, NULL)) {
-            evobj.setUndefined();
-        }*/
-
-        JSEvents *events = m_Events->get(name);
-        if (!events) {
-            return false;
-        }
-
-        events->fire(m_Cx, evobj, thisobj);
-
-        return true;
-    }
-
-    void removeJSEvent(char *name)
-    {
-        if (!m_Events) {
-            return;
-        }
-
-        JSEvents *events = m_Events->get(name);
-        if (!events) {
-            return;
-        }
-
-        m_Events->erase(name);
-        events->remove();
-    }
-
-    void removeJSEvent(char *name, JS::HandleValue func)
-    {
-        if (!m_Events) {
-            return;
-        }
-
-        JSEvents *events = m_Events->get(name);
-        if (!events) {
-            return;
-        }
-
-        events->remove(func);
-    }
 
 protected:
-    void initEvents()
-    {
-        if (m_Events) {
-            return;
-        }
-
-        m_Events = new Nidium::Core::Hash<JSEvents *>(32);
-        /*
-            Set Nidium::Core::Hash auto delete to false, since it's possible for
-            an event to be deleted while it's fired. So we don't want to
-            free the underlying object when removing it from the
-           Nidium::Core::Hash
-            (otherwise JSEvents::fire will attempt to use a freed object)
-        */
-        m_Events->setAutoDelete(false);
-    }
-
-    void addJSEvent(char *name, JS::HandleValue func)
-    {
-        initEvents();
-
-        JSEvents *events = m_Events->get(name);
-        if (!events) {
-            events = new JSEvents(name);
-            m_Events->set(name, events);
-        }
-
-        JSEvent *ev = new JSEvent(m_Cx, func);
-        events->add(ev);
-    }
 
     JS::Heap<JSObject *> m_JSObject;
 
     JSContext *m_Cx;
-    Nidium::Core::Hash<JSEvents *> *m_Events;
 
     static JSClass *jsclass;
 
 private:
-    static bool
-    Nidium_jsevent_fireEvent(JSContext *cx, unsigned argc, JS::Value *vp)
-    {
-        NIDIUM_JS_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
-
-        NIDIUM_JS_CHECK_ARGS("fireEvent", 2);
-
-        if (!CppObj->m_Events) {
-            return true;
-        }
-
-        JS::RootedString name(cx);
-        JS::RootedObject evobj(cx);
-
-        if (!JS_ConvertArguments(cx, args, "So", name.address(),
-                                 evobj.address())) {
-            return false;
-        }
-
-        if (!evobj) {
-            JS_ReportError(cx, "Invalid event object");
-            return false;
-        }
-
-        JSAutoByteString cname(cx, name);
-        JS::RootedValue evjsobj(cx, JS::ObjectValue(*evobj));
-
-        CppObj->fireJSEvent(cname.ptr(), &evjsobj);
-
-        return true;
-    }
-    static bool
-    Nidium_jsevent_addEventListener(JSContext *cx, unsigned argc, JS::Value *vp)
-    {
-        NIDIUM_JS_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
-
-        NIDIUM_JS_CHECK_ARGS("addEventListener", 2);
-
-        JS::RootedString name(cx);
-        JS::RootedValue cb(cx);
-
-        if (!JS_ConvertArguments(cx, args, "S", name.address())) {
-            return false;
-        }
-
-        if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &cb)) {
-            JS_ReportError(cx, "Bad callback given");
-            return false;
-        }
-
-        JSAutoByteString cname(cx, name);
-
-        CppObj->addJSEvent(cname.ptr(), cb);
-
-        return true;
-    }
-
-    static bool Nidium_jsevent_removeEventListener(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp)
-    {
-        NIDIUM_JS_PROLOGUE_CLASS(JSExposer<T>, JSExposer<T>::jsclass);
-
-        NIDIUM_JS_CHECK_ARGS("removeEventListener", 1);
-
-        JS::RootedString name(cx);
-        JS::RootedValue cb(cx);
-
-        if (!JS_ConvertArguments(cx, args, "S", name.address())) {
-            return false;
-        }
-
-        JSAutoByteString cname(cx, name);
-
-        if (argc == 1) {
-            CppObj->removeJSEvent(cname.ptr());
-        } else {
-            if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &cb)) {
-                JS_ReportError(cx, "Bad callback given");
-                return false;
-            }
-
-            CppObj->removeJSEvent(cname.ptr(), cb);
-        }
-
-        return true;
-    }
 };
 // }}}
 
