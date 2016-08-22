@@ -46,6 +46,7 @@ if (args["file"]) {
         'Global/Global_require.js',
         'File/File.js',
         'Process/process.js',
+        'Canvas.js',
         'HTTP/HTTPServer.js',
         'HTTP/HTTPClient.js',
         //'Modules/Module_libHello.js',
