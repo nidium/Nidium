@@ -161,7 +161,7 @@ def angle():
         cxxFlags = " -msse -msse2 -msse3"
 
     if Platform.system == "Darwin":
-        cxxflags += " -stdlib=libc++"
+        cxxFlags += " -stdlib=libc++"
 
     return {
         "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785"),
