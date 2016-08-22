@@ -8,16 +8,113 @@
 
 #include <jsapi.h>
 #include "Binding/JSExposer.h"
+#include "Binding/JSEvents.h"
 
 namespace Nidium {
 namespace Binding {
 
-#define CLASSMAPPER_FN(cclass, name, argc) JS_FN(#name, (cclass::JSCall<&cclass::JS_##name, argc>), argc, NIDIUM_JS_FNPROPS)
+#define CLASSMAPPER_FN(cclass, name, argc) \
+    JS_FN(#name, (cclass::JSCall<&cclass::JS_##name, argc>), \
+        argc, NIDIUM_JS_FNPROPS)
 
 template <typename T>
 class ClassMapper
 {
 public:
+
+    /**
+     *  Expose an instantiable JS class |name| to the global namespace
+     */
+    static JSObject *ExposeClass(JSContext *cx, const char *name)
+    {
+
+        JSClass *jsclass = ClassMapper<T>::GetJSClass();
+
+        jsclass->name = name;
+        jsclass->finalize = ClassMapper<T>::JSFinalizer;
+
+        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+
+        return JS_InitClass(cx, global, JS::NullPtr(), jsclass,
+                    ClassMapper<T>::JSConstructor, 0, NULL,
+                    T::ListMethods(), NULL, NULL);
+    }
+
+    /**
+     *  Create an instance of an object (that is, not from the JS)
+     */
+    static JSObject *CreateObject(JSContext *cx, T *obj)
+    {
+        JS::RootedObject ret(
+            cx, JS_NewObject(cx, ClassMapper<T>::GetJSClass(),
+                JS::NullPtr(), JS::NullPtr()));
+
+        obj->m_Instance = ret;
+        obj->m_Cx = cx;
+        obj->m_Rooted = false;
+
+        JS_SetPrivate(ret, obj);
+    }
+
+    /**
+     *  Get a ClassMapper<T> object given its JSObject.
+     *  Return NULL if wrong source object
+     *  This is the opposite of this->m_Instance
+     */
+    static T *GetInstance(JS::HandleObject obj)
+    {
+        if (JS_GetClass(obj) != ClassMapper<T>::GetJSClass()) {
+            return nullptr;
+        }
+
+        return (T *)JS_GetPrivate(obj);
+    }
+
+    /**
+     *  Protect the object against the Garbage collector.
+     *  By default, |this| is tied to its JSObject life, meaning it's delete'd
+     *  when m_Instance becomes unreachable to the JS engine.
+     *  
+     *  When root()'d, it's up to the C++ code to delete the object or unroot()
+     *  when needed.
+     */    
+    void root()
+    {
+        if (m_Rooted) {
+            return;
+        }
+
+        NidiumJSObj(m_Cx)->rootObjectUntilShutdown(m_Instance);
+        m_Rooted = true;
+    }
+
+    /**
+     *  unroot a root()'d object.
+     *  Give back control to the GC.
+     */    
+    void unroot()
+    {
+        if (!m_Rooted) {
+            return;
+        }
+
+        NidiumJSObj(m_Cx)->unrootObject(m_Instance);
+        m_Rooted = false;
+    }
+
+    /**
+     *  It's automatically called by default by the JS engine during GC.
+     *  If called manually, remaning reachable JS instance would trigger an
+     *  Illegal instance upon method call.
+     */      
+    virtual ~ClassMapper()
+    {
+        JS_SetPrivate(m_Instance, nullptr);
+        
+        this->unroot();
+    }
+
+protected:
     typedef bool (T::*JSCallback)(JSContext *, JS::CallArgs &);
 
     template <JSCallback U, int minarg>
@@ -91,52 +188,8 @@ public:
         return &jsclass;
     }
 
-    static JSObject *ExposeClass(JSContext *cx, const char *name)
-    {
-
-        JSClass *jsclass = ClassMapper<T>::GetJSClass();
-
-        jsclass->name = name;
-        jsclass->finalize = ClassMapper<T>::JSFinalizer;
-
-        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-
-        return JS_InitClass(cx, global, JS::NullPtr(), jsclass,
-                    ClassMapper<T>::JSConstructor, 0, NULL,
-                    T::ListMethods(), NULL, NULL);
-    }
-
-    void root()
-    {
-        if (m_Rooted) {
-            return;
-        }
-
-        NidiumJSObj(m_Cx)->rootObjectUntilShutdown(m_Instance);
-        m_Rooted = true;
-    }
-
-    void unroot()
-    {
-        if (!m_Rooted) {
-            return;
-        }
-
-        NidiumJSObj(m_Cx)->unrootObject(m_Instance);
-        m_Rooted = false;
-    }
-
-    virtual ~ClassMapper()
-    {
-        JS_SetPrivate(m_Instance, nullptr);
-        
-        this->unroot();
-    }
-
-protected:
 
     JS::Heap<JSObject *> m_Instance;
-    JS::Heap<JSObject *> m_Prototype;
     JSContext *m_Cx;
     bool m_Rooted;
 };
@@ -145,6 +198,13 @@ template <typename T>
 class ClassMapperWithEvents : public ClassMapper<T>
 {
 public:
+    /*
+        m_Cx and m_Instance are not visible at compilation time
+        since we're extending a template.
+    */
+    using ClassMapper<T>::m_Cx;
+    using ClassMapper<T>::m_Instance;
+
     typedef bool (ClassMapperWithEvents<T>::*JSCallback)(JSContext *, JS::CallArgs &);
 
     template <JSCallback U, int minarg>
@@ -158,20 +218,94 @@ public:
         return (CppObj->*U)(cx, args);
     }
 
+    ClassMapperWithEvents() :
+        m_Events(NULL)
+    {
+
+    }
+
+    virtual ~ClassMapperWithEvents()
+    {
+        if (m_Events) {
+            /*
+                It's safe to enable again the auto delete feature from
+                Nidium::Core::Hash since we are sure at this point that no event
+                is currently fired.
+            */
+            m_Events->setAutoDelete(true);
+            delete m_Events;
+        }
+    }
 
     bool JS_addEventListener(JSContext *cx, JS::CallArgs &args)
     {
-        printf("Add Event listener\n");
+        JS::RootedString name(cx);
+        JS::RootedValue cb(cx);
+
+        if (!JS_ConvertArguments(cx, args, "S", name.address())) {
+            return false;
+        }
+
+        if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &cb)) {
+            JS_ReportError(cx, "Bad callback given");
+            return false;
+        }
+
+        JSAutoByteString cname(cx, name);
+
+        this->addJSEvent(cname.ptr(), cb);
+
         return true;
     }
     bool JS_removeEventListener(JSContext *cx, JS::CallArgs &args)
     {
-        printf("Add Event listener\n");
+        JS::RootedString name(cx);
+        JS::RootedValue cb(cx);
+
+        if (!JS_ConvertArguments(cx, args, "S", name.address())) {
+            return false;
+        }
+
+        JSAutoByteString cname(cx, name);
+
+        if (args.length() == 1) {
+            this->removeJSEvent(cname.ptr());
+        } else {
+            if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &cb)) {
+                JS_ReportError(cx, "Bad callback given");
+                return false;
+            }
+
+            this->removeJSEvent(cname.ptr(), cb);
+        }
+
         return true;
     }
+
     bool JS_fireEvent(JSContext *cx, JS::CallArgs &args)
     {
-        printf("Add Event listener\n");
+        if (!m_Events) {
+            return true;
+        }
+
+        JS::RootedString name(cx);
+        JS::RootedObject evobj(cx);
+
+        if (!JS_ConvertArguments(cx, args, "So", name.address(),
+                                 evobj.address())) {
+            return false;
+        }
+
+        if (!evobj) {
+            JS_ReportError(cx, "Invalid event object");
+            return false;
+        }
+
+        JSAutoByteString cname(cx, name);
+        JS::RootedValue evjsobj(cx, JS::ObjectValue(*evobj));
+
+        this->fireJSEvent(cname.ptr(), &evjsobj);
+
         return true;
     }
 
@@ -205,6 +339,115 @@ public:
         return proto;
     }
 
+    bool fireJSEvent(const char *name, JS::MutableHandleValue evobj)
+    {
+        JS::RootedObject thisobj(m_Cx, m_Instance);
+        JS::AutoValueArray<1> params(m_Cx);
+        JS::RootedValue callback(m_Cx);
+        char onEv[128] = "on";
+
+        params[0].set(evobj);
+
+        strncat(onEv, name, 128 - 3);
+
+        JS_GetProperty(m_Cx, thisobj, onEv, &callback);
+
+        if (callback.isObject()
+            && JS_ObjectIsCallable(m_Cx, callback.toObjectOrNull())) {
+            JS::RootedValue rval(m_Cx);
+
+            JS_CallFunctionValue(m_Cx, thisobj, callback, params, &rval);
+
+            if (JS_IsExceptionPending(m_Cx)) {
+                if (!JS_ReportPendingException(m_Cx)) {
+                    JS_ClearPendingException(m_Cx);
+                }
+            }
+        }
+
+        if (!m_Events) {
+            return false;
+        }
+
+        /*
+        if (0 && !JS_InstanceOf(m_Cx, evobj.toObjectOrNull(),
+            &JSEvent_class, NULL)) {
+            evobj.setUndefined();
+        }*/
+
+        JSEvents *events = m_Events->get(name);
+        if (!events) {
+            return false;
+        }
+
+        events->fire(m_Cx, evobj, thisobj);
+
+        return true;
+    }
+
+    void removeJSEvent(char *name)
+    {
+        if (!m_Events) {
+            return;
+        }
+
+        JSEvents *events = m_Events->get(name);
+        if (!events) {
+            return;
+        }
+
+        m_Events->erase(name);
+        events->remove();
+    }
+
+    void removeJSEvent(char *name, JS::HandleValue func)
+    {
+        if (!m_Events) {
+            return;
+        }
+
+        JSEvents *events = m_Events->get(name);
+        if (!events) {
+            return;
+        }
+
+        events->remove(func);
+    }
+
+protected:
+
+    void initEvents()
+    {
+        if (m_Events) {
+            return;
+        }
+
+        m_Events = new Nidium::Core::Hash<JSEvents *>(32);
+        /*
+            Set Nidium::Core::Hash auto delete to false, since it's possible for
+            an event to be deleted while it's fired. So we don't want to
+            free the underlying object when removing it from the
+           Nidium::Core::Hash
+            (otherwise JSEvents::fire will attempt to use a freed object)
+        */
+        m_Events->setAutoDelete(false);
+    }
+
+    void addJSEvent(char *name, JS::HandleValue func)
+    {
+        initEvents();
+
+        JSEvents *events = m_Events->get(name);
+        if (!events) {
+            events = new JSEvents(name);
+            m_Events->set(name, events);
+        }
+
+        JSEvent *ev = new JSEvent(m_Cx, func);
+        events->add(ev);
+    }
+
+    Nidium::Core::Hash<JSEvents *> *m_Events;
 };
 
 } // namespace Binding
