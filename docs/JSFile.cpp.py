@@ -297,10 +297,7 @@ f.seekSync(10);
 console.log(f.readSync(100));""") ],
     IS_Dynamic, IS_Public, IS_Fast,
     [
-        ParamDoc( "offset", "Move to the `offset` from the beginning of the file. The `offset` is expressed in bytes.", 'integer', 0, IS_Obligated ),
-        CallbackDoc( "callback", "Read callback function", [
-            ParamDoc( "err", "Error description", "string", NO_Default, IS_Obligated ),
-        ])
+        ParamDoc( "offset", "Move to the `offset` from the beginning of the file. The `offset` is expressed in bytes.", 'integer', 0, IS_Obligated )
     ],
     NO_Returns
 )
