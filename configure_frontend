@@ -150,7 +150,7 @@ def lss():
 
 def fixAngleThinArchive():
     if Platform.system == "Linux" or Platform.system == "Darwin":
-        Utils.run("sed -i \"s/$ar rcsT/$ar rcs/\" out/Release/build.ninja")
+        Utils.run("sed -i.bak \"s/$ar rcsT/$ar rcs/\" out/Release/build.ninja")
 
 @Deps.register("angle")
 def angle():
