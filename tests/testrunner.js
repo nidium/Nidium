@@ -6,6 +6,7 @@
 
 // Make Assert object global for ease of use during the tests
 Assert = require("./assert");
+var OS = require("OS");
 
 var log = {
     error: function(...args) {
@@ -34,6 +35,19 @@ var log = {
     }
 }
 
+function sanitize(str) {
+    return str.replace(/[^a-zA-Z0-9-]/, "_");
+}
+
+function shot(path) {
+    var canvas = document.toDataArray();
+    var f = new File(path);
+
+    f.openSync("w+");
+    f.writeSync(canvas.data.buffer);
+    f.closeSync();
+}
+
 TestsRunner = function() {
     this.tests = [];
     this.lastFile = null;
@@ -44,6 +58,9 @@ TestsRunner = function() {
         "suites": 0
     };
     this.failedTests = [];
+    this.visualTests = {};
+
+    this.visualTestsReport = "";
 
     this.lastException = {
         "trace": [],
@@ -126,7 +143,7 @@ TestsRunner.prototype = {
         }, this);
     },
 
-    register: function(name, fn, watchdogDelay=0, async=false) {
+    register: function(name, fn, watchdogDelay=0, async=false, visual=false) {
         if (this.testRegex && !this.testRegex.test(name)) {
             return;
         }
@@ -136,13 +153,19 @@ TestsRunner.prototype = {
             "function": fn, 
             "file": this.currentFile,
             "watchdogDelay": watchdogDelay, 
-            "async": async
+            "async": async,
+            "visual": visual
         });
+
         this.counters.total++;
     },
 
     registerAsync: function(name, fn, watchdogDelay) {
-        this.register(name, fn, watchdogDelay, true);
+        this.register(name, fn, watchdogDelay, async=true);
+    },
+
+    registerVisual: function(name, fn, watchdogDelay) {
+        this.register(name, fn, watchdogDelay, async=true, visual=true);
     },
 
     setTestRegex: function(regex) {
@@ -150,6 +173,10 @@ TestsRunner.prototype = {
             regex = new RegExp(regex);
         }
         this.testRegex = regex;
+    },
+
+    setSaveVisualDiff: function(enabled) {
+        this.saveVisualDiff = enabled;
     },
 
     load: function(suites, regex) {
@@ -178,13 +205,15 @@ TestsRunner.prototype = {
         return true;
     },
 
-    _reportTest: function(success) {
+    _reportTest: function(success, visual=false) {
         clearTimeout(this.testWatchdogTimer);
 
         if (success) {
             log.success("\r[ SUCCESS ]");
             console.write("\n");
-            this.counters.success++;
+            if (!visual) {
+                this.counters.success++;
+            }
         } else {
             log.error("\r[  ERROR  ]");
             console.write("\n");
@@ -199,11 +228,146 @@ TestsRunner.prototype = {
         setImmediate(this._nextTest.bind(this));
     },
 
+    _finalizeVisualTest: function(test) {
+        setTimeout(function() {
+            var sanitizedName = sanitize(test.name);
+
+            shot("gr/comparison/" + sanitizedName + ".png");
+
+            if (this.saveVisualDiff) {
+                shot("gr/base/" + OS.platform + "/" + sanitizedName + ".png");
+            }
+
+            // Cleanup any added canvas
+            var childrens = document.canvas.getChildren();
+            for (children of childrens) {
+                children.removeFromParent();
+            }
+
+            // TODO : Clear root canvas ?
+
+            if (this.visualTests[sanitizedName]) {
+                throw new Error("Duplicate unit-tests name " + test.name + "(sanitized name is " + sanitizedName + ")");
+            }
+            this.visualTests[sanitizedName] = test;
+
+            this._reportTest(true, visual=true);
+        }.bind(this), 16 * 4);
+    },
+
+    _runSkDiff: function() {
+        var baseDir = __dirname + "jsunittest/";
+        var cmd = baseDir + "gr/skdiff " +
+                    "--listfilenames ";
+        if (this.testRegex) {
+            cmd += "--match " + this.testRegex + " ";
+        }
+        cmd += baseDir + "gr/base/" + OS.platform + "/ " + 
+               baseDir + "gr/comparison/ " + 
+               baseDir + "gr/results/";
+
+        var out = window.exec(cmd);
+        var lines = out.split("\n");
+        var k = 0;
+        var results = {};
+        var processReport = false;
+
+        for (line of lines) {
+            if (/^\[/.test(line)) {
+                this.visualTestsReport += "    " + line + "\n";
+
+                var tmp = line.substr(line.indexOf(":") + 2).split(" ");
+                for (file of tmp) {
+                    if (!file) continue;
+                    var name = file.replace(".png", "")
+
+                    results[name] = k;
+
+                    if (k > 0) processReport = true;
+                }
+
+                k++;
+            }
+        }
+
+        if (processReport) {
+            var f = new File(baseDir + "/gr/results/index.html", {encoding: "utf8"});
+            f.openSync("r+");
+            var data = f.readSync();
+            data = data.replace(/="([^"]+)tests\/jsunittest\/gr\/([^"]+)"/gm, "=\"../$2\"");
+            f.seekSync(0);
+            f.writeSync(data);
+            f.closeSync();
+        }
+
+        this._processSkDiff(results);
+    },
+
+    _processSkDiff: function(results) {
+        // {{{ Utils (fail & success)
+        var self = this;
+        function fail(msg) {
+            log.error(msg + "\n");
+            log.error("\r[  ERROR  ]");
+            console.write("\n");
+            self.counters.fails++;
+            self.failedTests.push(test);
+        }
+
+        function success() {
+            log.success("\r[ SUCCESS ]");
+            console.write("\n");
+            self.counters.success++;
+        }
+        // }}}
+
+        for (name in this.visualTests) {
+            var test = this.visualTests[name];
+            var state = results[name];
+
+            console.write("[ RUNNING ] " + test.name + "\n");
+
+            switch (state) {
+                // Bits match
+                case 0:
+                    success();
+                break;
+                // Pixels match
+                case 1:
+                    fail("Pixels match, but bits doesn't");
+                break;
+                // Different pixels
+                case 2:
+                    fail("Pixels doesn't match");
+                break;
+                // Different dimensions
+                case 3:
+                    fail("Dimension doesn't match");
+                break;
+                // Comparison failed
+                case 4:
+                    fail("Comparison failed");
+                break;
+                // Not compared
+                case 5:
+                case "undefined":
+                    fail("Not compared");
+                break;
+                default:
+                    fail("Unknown status returned " + state);
+                break;
+            }
+        }
+    },
+
     _nextTest: function() {
         var test = this.tests.shift();
         this.currentTest = test;
 
         if (!test) {
+            // All tests are finished, run skdiff report for visual unit-tests
+            this._runSkDiff();
+
             if (this.completionCallback) this.completionCallback();
             return;
         }
@@ -215,21 +379,23 @@ TestsRunner.prototype = {
             this.lastFile = test.file;
         }
 
-        console.write("[ RUNNING ] " + test["name"]);
+        console.write("[ " + (test.visual ? "PREPARING" : "RUNNING") + " ] " + test.name);
         console.write("\n");
 
         /*
          * Tests are ran in a setImmediate() call, so _nextTest() will be the
-         * last visible frame to the debugger. As the only way for the debugger
-         * to know that an exception hasn't been catched is to check if the 
-         * frame is the last frame on the stack, we run the test inside a closure.
+         * last visible frame to the debugger. This is needed for the debugger,
+         * because, to know that an exception hasn't been catched is to check 
+         * if the frame is the last frame on the stack. 
          */
         var success = false;
         (function() {
             try {
-                test["function"](function() {
-                    this._reportTest(true);
-                }.bind(this));
+                if (test.visual) {
+                    test["function"](this._finalizeVisualTest.bind(this, test));
+                } else {
+                    test["function"](this._reportTest.bind(this, true));
+                }
                 success = true;
             } catch (err) {
                 sucess = false;
@@ -240,7 +406,7 @@ TestsRunner.prototype = {
             this._reportTest(success);
         } else if (test.watchdogDelay) {
             this.testWatchdogTimer = setTimeout(function() {
-                Assert(false, "Timeout reached");
+                Assert(false, true, "Timeout reached");
             }, test.watchdogDelay);
         }
     },
@@ -275,14 +441,19 @@ TestsRunner.prototype = {
         reportLog("\r\033[35C |\n");
         reportLog("+-----------------------------------+\n");
 
-        if (this.failedTests.length > 0) {
-            reportLog("Failed tests : ");
+        if (!success) {
+            log.info("Failed tests :\n");
             for (var i = 0; i < this.failedTests.length; i++) {
                 try {
-                    console.write(" - " + this.failedTests[i].name + "\n");
+                    console.write("    - " + this.failedTests[i].name + "\n");
                 } catch (e) {
                     log.info(e);
                 }
+            }
+
+            if (this.visualTestsReport) {
+                log.info("Visual tests report : \n");
+                console.write(this.visualTestsReport);
             }
         }
 

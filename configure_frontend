@@ -14,7 +14,7 @@ from konstructor import Builder
 from konstructor import Platform
 from konstructor import Konstruct
 from konstructor import Utils
-from konstructor import Variables 
+from konstructor import Variables
 from konstructor import Tests
 from konstructor import ROOT
 
@@ -69,6 +69,9 @@ def zitaresampler():
 
 @Deps.register("giflib")
 def giflib():
+    # skdiff is used during unit-tests and it needs libgif.so.4
+    Platform.setEnviron("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:" + ("%s/lib/.libs/" + os.getcwd()))
+
     return {
         "location": "http://downloads.sourceforge.net/project/giflib/giflib-4.x/giflib-4.2.3.tar.gz",
         "build": ["./configure", "make coverity"],
@@ -82,26 +85,31 @@ def skia():
     else:
         exports = "GYP_DEFINES='skia_arch_width=32 skia_osx_deployment_target=10.7'"
 
-    exports += " CPPFLAGS=\"-I%s -I%s\"" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/"))
+    exports += (" CPPFLAGS=\"-Wno-sign-compare -Wno-undefined-bool-conversion" + # needed for make tools with clang3.7
+                            " -I%s -I%s\"" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/")))
     exports += " LDFLAGS=\"-L%s -L%s\"" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/.libs"))
 
-    makeFlags = ""
+    makeFlags = "BUILDTYPE=Release -j " + str(Platform.cpuCount)
     if Variables.get("verbose"):
-        makeFlags = "V=1"
+        makeFlags += " V=1"
 
     Gyp.set("skia_resource_cache_mb_limit", 256)
 
     # Add depot_tools to path needed for skia
     Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
 
-    # depot_tools and skia needs python2.7 but use "python" as the default 
+    # depot_tools and skia needs python2.7 but use "python" as the default
     # interpreter which could be python3.x on some system. Workaround that
     # by using a custom python wrapper that will redirect to the correct python version
     Platform.setEnviron("PATH=" + os.path.join(ROOT, "tools") + ":" + os.environ.get("PATH", ""))
 
     return {
         "location": Deps.Gclient("https://skia.googlesource.com/skia.git", revision="ed4dc2afaa4285a6d10a16fca77d1b9cbe3083d3"),
-        "build": [exports + " ./gyp_skia", exports + " make tests BUILDTYPE=Release " + makeFlags + " -j " + str(Platform.cpuCount)],
+        "build": [
+            exports + " ./gyp_skia",
+            exports + " make tests " + makeFlags,
+            exports + " make tools " + makeFlags,
+        ],
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "skia_defines.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_python27.patch"),
@@ -117,7 +125,11 @@ def skia():
             "out/Release/libskia_sfnt.a",
             "out/Release/libskia_images.a",
             "out/Release/libskia_opts_ssse3.a",
-            "out/Release/libskia_opts.a"
+            "out/Release/libskia_opts.a",
+            {
+                "src": "out/Release/skdiff",
+                "dst": os.path.join(ROOT, "tests", "jsunittest", "gr", "skdiff")
+            }
         ]
     }
 
@@ -139,14 +151,20 @@ def lss():
 def fixAngleThinArchive():
     if Platform.system == "Linux" or Platform.system == "Darwin":
         Utils.run("sed -i \"s/$ar rcsT/$ar rcs/\" out/Release/build.ninja")
-    
+
 @Deps.register("angle")
 def angle():
+    # Disable some errors for clang 3.5 & 3.7
+    cxxFlags = "-Wno-c++11-narrowing -Wno-sign-compare -Wno-error"
+
+    if Platform.wordSize == 32:
+        cxxFlags = "-msse -msse2 -msse3"
+
     return {
         "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785"),
         "build": [
-            "GYP_GENERATORS=ninja python scripts/bootstrap.py", 
-            "GYP_GENERATORS=ninja gclient sync",
+            "python scripts/bootstrap.py",
+            "GYP_GENERATORS=ninja CXXFLAGS=\"%s\" gclient sync" % (cxxFlags),
             fixAngleThinArchive,
             "ninja -C out/Release/"
         ],
@@ -167,7 +185,7 @@ def breakpad():
 @Deps.register("SDL2")
 def SDL2():
     # SDL2 Build as framework
-    #build: ["xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'"], 
+    #build: ["xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'"],
     #outputs["SDL2/Xcode/SDL/out/SDL2.framework"])
     return {
         "location": "https://www.libsdl.org/release/SDL2-2.0.3.tar.gz",
@@ -224,10 +242,10 @@ def ffmpeg():
             --disable-vaapi --disable-avdevice --disable-postproc --disable-avfilter --disable-ffserver --disable-lzma --disable-bzlib \
             --enable-decoder=ac3,aac,mp3,vorbis,pcm_s16be_planar,pcm_s16le,pcm_s16le_planar,pcm_s24be,pcm_s24daud,pcm_s24le,pcm_s24le_planar,pcm_s32be,pcm_s32le,pcm_s32le_planar,pcm_s8,pcm_s8_planar,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpeg4,mpeg2video,wmv1,wmv2,wmv3,wmv3_crystalhd,wmv3_vdpau,wmv3image,wmalossless,wmapro,wmav1,wmav2,wmavoice,vc1,vc1_crystalhd,vc1_vdpau,vc1image\
             --enable-parser=vorbis,mpegaudio,mpegvideo,mpeg4video,h264,vp8,aac,vc1\
-            --enable-demuxer=matroska,mp3,ogg,vorbis,pcm_alaw,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,pcm_mulaw,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpegvideo,aac,mov,avi,wav,asf", 
+            --enable-demuxer=matroska,mp3,ogg,vorbis,pcm_alaw,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,pcm_mulaw,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpegvideo,aac,mov,avi,wav,asf",
             "make"
         ],
-        "outputs": 
+        "outputs":
         [
             "libavcodec/libavcodec(.a|.lib)",
             "libswresample/libswresample(.a|.lib)",
