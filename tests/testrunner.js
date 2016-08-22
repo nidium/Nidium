@@ -35,6 +35,17 @@ var log = {
     }
 }
 
+function clear() {
+    // Remove any added canvas
+    var childrens = document.canvas.getChildren();
+    for (children of childrens) {
+        children.removeFromParent();
+    }
+
+    // Clear the root canvas
+    document.canvas.ctx.clearRect(0, 0, document.canvas.width, document.canvas.height);
+}
+
 function sanitize(str) {
     return str.replace(/[^a-zA-Z0-9-]/, "_");
 }
@@ -239,13 +250,7 @@ TestsRunner.prototype = {
                 shot("gr/base/" + OS.platform + "/" + sanitizedName + ".png");
             }
 
-            // Cleanup any added canvas
-            var childrens = document.canvas.getChildren();
-            for (children of childrens) {
-                children.removeFromParent();
-            }
-
-            // TODO : Clear root canvas ?
+            clear();
 
             if (this.visualTests[sanitizedName]) {
                 throw new Error("Duplicate unit-tests name " + test.name + "(sanitized name is " + sanitizedName + ")");
@@ -398,6 +403,7 @@ TestsRunner.prototype = {
         (function() {
             try {
                 if (test.visual) {
+                    clear(); // Clear canvas before if previous tests drawed something
                     test["function"](this._finalizeVisualTest.bind(this, test));
                 } else {
                     test["function"](this._reportTest.bind(this, true));
