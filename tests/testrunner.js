@@ -59,6 +59,7 @@ TestsRunner = function() {
     };
     this.failedTests = [];
     this.visualTests = {};
+    this.hasVisualTests = false;
 
     this.visualTestsReport = "";
 
@@ -249,7 +250,9 @@ TestsRunner.prototype = {
             if (this.visualTests[sanitizedName]) {
                 throw new Error("Duplicate unit-tests name " + test.name + "(sanitized name is " + sanitizedName + ")");
             }
+
             this.visualTests[sanitizedName] = test;
+            this.hasVisualTests = true;
 
             this._reportTest(true, visual=true);
         }.bind(this), 16 * 4);
@@ -365,8 +368,11 @@ TestsRunner.prototype = {
         this.currentTest = test;
 
         if (!test) {
-            // All tests are finished, run skdiff report for visual unit-tests
-            this._runSkDiff();
+            // All tests are finished
+            if (this.hasVisualTests) {
+                // Run skdiff to create a report for visual unit-tests
+                this._runSkDiff();
+            }
 
             if (this.completionCallback) this.completionCallback();
             return;
