@@ -46,7 +46,6 @@ if (args["file"]) {
         'Global/Global_require.js',
         'File/File.js',
         'Process/process.js',
-        'Canvas.js',
         'HTTP/HTTPServer.js',
         'HTTP/HTTPClient.js',
         //'Modules/Module_libHello.js',
@@ -70,6 +69,7 @@ if (args["file"]) {
             'AV/Video.js',
             'OS.js',
             'Image.js',
+            'Canvas.js',
             'DB.js', // Only for frontend, because server does not support "cache://"
         ]);
     }
