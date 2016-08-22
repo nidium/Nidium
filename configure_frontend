@@ -70,7 +70,7 @@ def zitaresampler():
 @Deps.register("giflib")
 def giflib():
     # skdiff is used during unit-tests and it needs libgif.so.4
-    Platform.setEnviron("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:" + ("%s/lib/.libs/" + os.getcwd()))
+    Platform.setEnviron("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:%s/giflib/lib/.libs/" % os.getcwd())
 
     return {
         "location": "http://downloads.sourceforge.net/project/giflib/giflib-4.x/giflib-4.2.3.tar.gz",
