@@ -158,7 +158,10 @@ def angle():
     cxxFlags = "-Wno-c++11-narrowing -Wno-sign-compare -Wno-error"
 
     if Platform.wordSize == 32:
-        cxxFlags = "-msse -msse2 -msse3"
+        cxxFlags = " -msse -msse2 -msse3"
+
+    if Platform.system == "Darwin":
+        cxxflags += " -stdlib=libc++"
 
     return {
         "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785"),
