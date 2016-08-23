@@ -28,42 +28,92 @@ public:
     JSCanvas(Graphics::CanvasHandler *handler);
     ~JSCanvas();
 
-    static JSCanvas *Constructor(JSContext *cx, JS::CallArgs &args,
-        JS::HandleObject obj);
-    static JSFunctionSpec *ListMethods();
-
     Graphics::CanvasHandler *getHandler() const
     {
         return m_CanvasHandler;
     }
 
+
+    static JSCanvas *Constructor(JSContext *cx, JS::CallArgs &args,
+        JS::HandleObject obj);
+
+    static JSFunctionSpec *ListMethods();
+    static JSPropertySpec *ListProperties();
+
+    NIDIUM_DECL_JSTRACER();
 protected:
 
-    void JSTracer(class JSTracer *trc);
+    NIDIUM_DECL_JSCALL(getContext);
+    NIDIUM_DECL_JSCALL(setContext);
+    NIDIUM_DECL_JSCALL(addSubCanvas);
+    NIDIUM_DECL_JSCALL(insertBefore);
+    NIDIUM_DECL_JSCALL(insertAfter);
+    NIDIUM_DECL_JSCALL(removeFromParent);
+    NIDIUM_DECL_JSCALL(bringToFront);
+    NIDIUM_DECL_JSCALL(sendToBack);
+    NIDIUM_DECL_JSCALL(getParent);
+    NIDIUM_DECL_JSCALL(getFirstChild);
+    NIDIUM_DECL_JSCALL(getLastChild);
+    NIDIUM_DECL_JSCALL(getNextSibling);
+    NIDIUM_DECL_JSCALL(getPrevSibling);
+    NIDIUM_DECL_JSCALL(getChildren);
+    NIDIUM_DECL_JSCALL(getVisibleRect);
+    NIDIUM_DECL_JSCALL(setCoordinates);
+    NIDIUM_DECL_JSCALL(translate);
+    NIDIUM_DECL_JSCALL(show);
+    NIDIUM_DECL_JSCALL(hide);
+    NIDIUM_DECL_JSCALL(setSize);
+    NIDIUM_DECL_JSCALL(clear);
+    NIDIUM_DECL_JSCALL(setZoom);
+    NIDIUM_DECL_JSCALL(setScale);
 
-    bool JS_getContext(JSContext *cx, JS::CallArgs &args);
-    bool JS_setContext(JSContext *cx, JS::CallArgs &args);
-    bool JS_addSubCanvas(JSContext *cx, JS::CallArgs &args);
-    bool JS_insertBefore(JSContext *cx, JS::CallArgs &args);
-    bool JS_insertAfter(JSContext *cx, JS::CallArgs &args);
-    bool JS_removeFromParent(JSContext *cx, JS::CallArgs &args);
-    bool JS_bringToFront(JSContext *cx, JS::CallArgs &args);
-    bool JS_sendToBack(JSContext *cx, JS::CallArgs &args);
-    bool JS_getParent(JSContext *cx, JS::CallArgs &args);
-    bool JS_getFirstChild(JSContext *cx, JS::CallArgs &args);
-    bool JS_getLastChild(JSContext *cx, JS::CallArgs &args);
-    bool JS_getNextSibling(JSContext *cx, JS::CallArgs &args);
-    bool JS_getPrevSibling(JSContext *cx, JS::CallArgs &args);
-    bool JS_getChildren(JSContext *cx, JS::CallArgs &args);
-    bool JS_getVisibleRect(JSContext *cx, JS::CallArgs &args);
-    bool JS_setCoordinates(JSContext *cx, JS::CallArgs &args);
-    bool JS_translate(JSContext *cx, JS::CallArgs &args);
-    bool JS_show(JSContext *cx, JS::CallArgs &args);
-    bool JS_hide(JSContext *cx, JS::CallArgs &args);
-    bool JS_setSize(JSContext *cx, JS::CallArgs &args);
-    bool JS_clear(JSContext *cx, JS::CallArgs &args);
-    bool JS_setZoom(JSContext *cx, JS::CallArgs &args);
-    bool JS_setScale(JSContext *cx, JS::CallArgs &args);
+    NIDIUM_DECL_JSGETTERSETTER(opacity);
+    NIDIUM_DECL_JSGETTERSETTER(overflow);
+    NIDIUM_DECL_JSGETTERSETTER(scrollLeft);
+    NIDIUM_DECL_JSGETTERSETTER(scrollTop);
+    NIDIUM_DECL_JSGETTERSETTER(allowNegativeScroll);
+    NIDIUM_DECL_JSGETTERSETTER(width);
+    NIDIUM_DECL_JSGETTERSETTER(height);
+    NIDIUM_DECL_JSGETTERSETTER(maxWidth);
+    NIDIUM_DECL_JSGETTERSETTER(maxHeight);
+    NIDIUM_DECL_JSGETTERSETTER(minWidth);
+    NIDIUM_DECL_JSGETTERSETTER(minHeight);
+    NIDIUM_DECL_JSGETTERSETTER(position);
+    NIDIUM_DECL_JSGETTERSETTER(top);
+    NIDIUM_DECL_JSGETTERSETTER(left);
+    NIDIUM_DECL_JSGETTERSETTER(right);
+    NIDIUM_DECL_JSGETTERSETTER(bottom);
+    NIDIUM_DECL_JSGETTERSETTER(visible);
+    NIDIUM_DECL_JSGETTERSETTER(staticLeft);
+    NIDIUM_DECL_JSGETTERSETTER(staticRight);
+    NIDIUM_DECL_JSGETTERSETTER(staticTop);
+    NIDIUM_DECL_JSGETTERSETTER(staticBottom);
+    NIDIUM_DECL_JSGETTERSETTER(fluidHeight);
+    NIDIUM_DECL_JSGETTERSETTER(fluidWidth);
+    NIDIUM_DECL_JSGETTERSETTER(id);
+    NIDIUM_DECL_JSGETTERSETTER(marginLeft);
+    NIDIUM_DECL_JSGETTERSETTER(marginRight);
+    NIDIUM_DECL_JSGETTERSETTER(marginTop);
+    NIDIUM_DECL_JSGETTERSETTER(marginBottom);
+    NIDIUM_DECL_JSGETTERSETTER(coating);
+    NIDIUM_DECL_JSGETTERSETTER(cursor);
+
+    NIDIUM_DECL_JSGETTER(clientWidth);
+    NIDIUM_DECL_JSGETTER(clientHeight);
+    NIDIUM_DECL_JSGETTER(clientTop);
+    NIDIUM_DECL_JSGETTER(clientLeft);
+    NIDIUM_DECL_JSGETTER(contentWidth);
+    NIDIUM_DECL_JSGETTER(contentHeight);
+    NIDIUM_DECL_JSGETTER(innerWidth);
+    NIDIUM_DECL_JSGETTER(innerHeight);
+    NIDIUM_DECL_JSGETTER(__visible);
+    NIDIUM_DECL_JSGETTER(__top);
+    NIDIUM_DECL_JSGETTER(__left);
+    NIDIUM_DECL_JSGETTER(__fixed);
+    NIDIUM_DECL_JSGETTER(__outofbound);
+    NIDIUM_DECL_JSGETTER(ctx);
+
+
 private:
     Graphics::CanvasHandler *m_CanvasHandler;
 };

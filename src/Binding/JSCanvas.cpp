@@ -48,228 +48,11 @@ static struct nidium_cursors
     { NULL, UIInterface::NOCHANGE },
 };
 
-enum
-{
-    CANVAS_PROP_WIDTH = 1,
-    CANVAS_PROP_HEIGHT,
-    CANVAS_PROP_POSITION,
-    /* relative positions */
-    CANVAS_PROP_TOP,
-    CANVAS_PROP_LEFT,
-    CANVAS_PROP_RIGHT,
-    CANVAS_PROP_BOTTOM,
-    /* .show()/.hide() */
-    CANVAS_PROP_VISIBLE,
-    /* Element is going to be drawn */
-    CANVAS_PROP___VISIBLE,
-    /* Absolute positions */
-    CANVAS_PROP___TOP,
-    CANVAS_PROP___LEFT,
-    /* conveniance getter for getContext("2D") */
-    CANVAS_PROP_CTX,
-
-    CANVAS_PROP_COATING,
-    CANVAS_PROP_CLIENTLEFT,
-    CANVAS_PROP_CLIENTTOP,
-    CANVAS_PROP_CLIENTWIDTH,
-    CANVAS_PROP_CLIENTHEIGHT,
-    CANVAS_PROP_OPACITY,
-    CANVAS_PROP_OVERFLOW,
-    CANVAS_PROP_CONTENTWIDTH,
-    CANVAS_PROP_INNERWIDTH,
-    CANVAS_PROP_CONTENTHEIGHT,
-    CANVAS_PROP_INNERHEIGHT,
-    CANVAS_PROP_SCROLLTOP,
-    CANVAS_PROP_SCROLLLEFT,
-    CANVAS_PROP___FIXED,
-    CANVAS_PROP___OUTOFBOUND,
-    CANVAS_PROP_ALLOWNEGATIVESCROLL,
-    CANVAS_PROP_STATICLEFT,
-    CANVAS_PROP_STATICRIGHT,
-    CANVAS_PROP_STATICTOP,
-    CANVAS_PROP_STATICBOTTOM,
-    CANVAS_PROP_MINWIDTH,
-    CANVAS_PROP_MINHEIGHT,
-    CANVAS_PROP_MAXWIDTH,
-    CANVAS_PROP_MAXHEIGHT,
-    CANVAS_PROP_FLUIDHEIGHT,
-    CANVAS_PROP_FLUIDWIDTH,
-    CANVAS_PROP_ID,
-    CANVAS_PROP_MARGINLEFT,
-    CANVAS_PROP_MARGINRIGHT,
-    CANVAS_PROP_MARGINTOP,
-    CANVAS_PROP_MARGINBOTTOM,
-    CANVAS_PROP_CURSOR
-};
-
-
-static bool nidium_canvas_prop_set(JSContext *cx,
-                                   JS::HandleObject obj,
-                                   uint8_t id,
-                                   bool strict,
-                                   JS::MutableHandleValue vp);
-static bool nidium_canvas_prop_get(JSContext *cx,
-                                   JS::HandleObject obj,
-                                   uint8_t id,
-                                   JS::MutableHandleValue vp);
-
-
-static JSPropertySpec canvas_props[] = {
-    NIDIUM_JS_PSGS("opacity",
-                   CANVAS_PROP_OPACITY,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("overflow",
-                   CANVAS_PROP_OVERFLOW,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("scrollLeft",
-                   CANVAS_PROP_SCROLLLEFT,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("scrollTop",
-                   CANVAS_PROP_SCROLLTOP,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("allowNegativeScroll",
-                   CANVAS_PROP_ALLOWNEGATIVESCROLL,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("width",
-                   CANVAS_PROP_WIDTH,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("coating",
-                   CANVAS_PROP_COATING,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("height",
-                   CANVAS_PROP_HEIGHT,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("maxwidth",
-                   CANVAS_PROP_MAXWIDTH,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("maxHeight",
-                   CANVAS_PROP_MAXHEIGHT,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("minWidth",
-                   CANVAS_PROP_MINWIDTH,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("minHeight",
-                   CANVAS_PROP_MINHEIGHT,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("position",
-                   CANVAS_PROP_POSITION,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS(
-        "top", CANVAS_PROP_TOP, nidium_canvas_prop_get, nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("left",
-                   CANVAS_PROP_LEFT,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("right",
-                   CANVAS_PROP_RIGHT,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("bottom",
-                   CANVAS_PROP_BOTTOM,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("visible",
-                   CANVAS_PROP_VISIBLE,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("staticLeft",
-                   CANVAS_PROP_STATICLEFT,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("staticRight",
-                   CANVAS_PROP_STATICRIGHT,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("staticTop",
-                   CANVAS_PROP_STATICTOP,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("staticBottom",
-                   CANVAS_PROP_STATICBOTTOM,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("fluidHeight",
-                   CANVAS_PROP_FLUIDHEIGHT,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("fluidWidth",
-                   CANVAS_PROP_FLUIDWIDTH,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS(
-        "id", CANVAS_PROP_ID, nidium_canvas_prop_get, nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("marginLeft",
-                   CANVAS_PROP_MARGINLEFT,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("marginRight",
-                   CANVAS_PROP_MARGINRIGHT,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("marginTop",
-                   CANVAS_PROP_MARGINTOP,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("marginBottom",
-                   CANVAS_PROP_MARGINBOTTOM,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSGS("cursor",
-                   CANVAS_PROP_CURSOR,
-                   nidium_canvas_prop_get,
-                   nidium_canvas_prop_set),
-    NIDIUM_JS_PSG(
-        "clientWidth", CANVAS_PROP_CLIENTWIDTH, nidium_canvas_prop_get),
-    NIDIUM_JS_PSG(
-        "clientHeight", CANVAS_PROP_CLIENTHEIGHT, nidium_canvas_prop_get),
-    NIDIUM_JS_PSG("clientTop", CANVAS_PROP_CLIENTTOP, nidium_canvas_prop_get),
-    NIDIUM_JS_PSG("clientLeft", CANVAS_PROP_CLIENTLEFT, nidium_canvas_prop_get),
-    NIDIUM_JS_PSG(
-        "contentWidth", CANVAS_PROP_CONTENTWIDTH, nidium_canvas_prop_get),
-    NIDIUM_JS_PSG(
-        "contentHeight", CANVAS_PROP_CONTENTHEIGHT, nidium_canvas_prop_get),
-    NIDIUM_JS_PSG("innerWidth", CANVAS_PROP_INNERWIDTH, nidium_canvas_prop_get),
-    NIDIUM_JS_PSG(
-        "innerHeight", CANVAS_PROP_INNERHEIGHT, nidium_canvas_prop_get),
-    NIDIUM_JS_PSG("__visible", CANVAS_PROP___VISIBLE, nidium_canvas_prop_get),
-    NIDIUM_JS_PSG("__top", CANVAS_PROP___TOP, nidium_canvas_prop_get),
-    NIDIUM_JS_PSG("__left", CANVAS_PROP___LEFT, nidium_canvas_prop_get),
-    NIDIUM_JS_PSG("__fixed", CANVAS_PROP___FIXED, nidium_canvas_prop_get),
-    NIDIUM_JS_PSG(
-        "__outofbound", CANVAS_PROP___OUTOFBOUND, nidium_canvas_prop_get),
-    NIDIUM_JS_PSG("ctx", CANVAS_PROP_CTX, nidium_canvas_prop_get), JS_PS_END
-};
 
 // }}}
 
 // {{{ Implementation
 
-
-static CanvasHandler *HANDLER_GETTER_SAFE(JSContext *cx, JS::HandleObject obj)
-{
-    JSCanvas *jscanvas = (class JSCanvas *)JS_GetPrivate(obj);
-
-    const JSClass *cl = JS_GetClass(obj);
-    if (!jscanvas || cl != &Canvas_class) {
-        printf("Missmatch class %s\n", cl->name); // TODO error reporting
-        return NULL;
-    }
-
-    return jscanvas->getHandler();
-}
 
 bool JSCanvas::JS_show(JSContext *cx, JS::CallArgs &args)
 {
@@ -491,20 +274,19 @@ bool JSCanvas::JS_translate(JSContext *cx, JS::CallArgs &args)
 bool JSCanvas::JS_addSubCanvas(JSContext *cx, JS::CallArgs &args)
 {
     CanvasHandler *handler = NULL;
+    JSCanvas *csub;
 
     JS::RootedObject sub(cx);
     if (!JS_ConvertArguments(cx, args, "o", sub.address())) {
         return false;
     }
 
-    if (sub && JS_GetClass(sub) != &Canvas_class) {
+    if (sub && (csub = JSCanvas::GetInstance(sub)) != nullptr) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
 
-    handler = (static_cast<JSCanvas *>(JS_GetPrivate(sub)))->getHandler();
-
-    if (handler == NULL) {
+    if ((handler = csub->getHandler()) == NULL) {
         return true;
     }
 
@@ -524,24 +306,24 @@ bool JSCanvas::JS_insertBefore(JSContext *cx, JS::CallArgs &args)
 
     JS::RootedObject ref(cx);
     JS::RootedObject insert(cx);
+
     if (!JS_ConvertArguments(cx, args, "oo", insert.address(), ref.address())) {
         return false;
     }
 
-    if (!insert || JS_GetClass(insert) != &Canvas_class) {
+    if (!insert || !JSCanvas::IsOfClass(insert)) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
 
-    handler_insert
-        = (static_cast<JSCanvas *>(JS_GetPrivate(insert)))->getHandler();
-    if (handler_insert == NULL) {
+    if ((handler_insert = JSCanvas::GetInstanceUnsafe(insert)->getHandler())
+        == NULL) {
+
         return true;
     }
 
-    if (ref && JS_GetClass(ref) == &Canvas_class) {
-        handler_ref
-            = (static_cast<JSCanvas *>(JS_GetPrivate(ref)))->getHandler();
+    if (ref && JSCanvas::IsOfClass(ref)) {
+        handler_ref = JSCanvas::GetInstanceUnsafe(ref)->getHandler();
     }
 
     if (m_CanvasHandler == handler_insert) {
@@ -565,20 +347,19 @@ bool JSCanvas::JS_insertAfter(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    if (!insert || JS_GetClass(insert) != &Canvas_class) {
+    if (!insert || !JSCanvas::IsOfClass(insert)) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
 
-    handler_insert
-        = (static_cast<JSCanvas *>(JS_GetPrivate(insert)))->getHandler();
-    if (handler_insert == NULL) {
+    if ((handler_insert = JSCanvas::GetInstanceUnsafe(insert)->getHandler())
+        == NULL) {
+
         return true;
     }
 
-    if (ref && JS_GetClass(ref) == &Canvas_class) {
-        handler_ref
-            = (static_cast<JSCanvas *>(JS_GetPrivate(ref)))->getHandler();
+    if (ref && JSCanvas::IsOfClass(ref)) {
+        handler_ref = JSCanvas::GetInstanceUnsafe(ref)->getHandler();
     }
 
     if (m_CanvasHandler == handler_insert) {
@@ -702,622 +483,857 @@ bool JSCanvas::JS_setContext(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
-
-/* TODO: do not change the value when a wrong type is set */
-static bool nidium_canvas_prop_set(JSContext *cx,
-                                   JS::HandleObject obj,
-                                   uint8_t id,
-                                   bool strict,
-                                   JS::MutableHandleValue vp)
+bool JSCanvas::JSSetter_scrollLeft(JSContext *cx, JS::MutableHandleValue vp)
 {
-    CanvasHandler *handler = HANDLER_GETTER_SAFE(cx, obj);
-    if (!handler) {
+    int32_t dval;
+
+    if (!JS::ToInt32(cx, vp, &dval)) {
         return true;
     }
 
-    switch (id) {
-        case CANVAS_PROP_POSITION: {
-            if (!vp.isString()) {
-                vp.setNull();
+    m_CanvasHandler->setScrollLeft(dval);
 
-                return true;
-            }
-            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
-            JSAutoByteString mode(cx, vpStr);
-            if (strcasecmp(mode.ptr(), "absolute") == 0) {
-                handler->setPositioning(CanvasHandler::COORD_ABSOLUTE);
-            } else if (strcasecmp(mode.ptr(), "fixed") == 0) {
-                handler->setPositioning(CanvasHandler::COORD_FIXED);
-            } else if (strcasecmp(mode.ptr(), "inline") == 0) {
-                handler->setPositioning(CanvasHandler::COORD_INLINE);
-            } else if (strcasecmp(mode.ptr(), "inline-break") == 0) {
-                handler->setPositioning(CanvasHandler::COORD_INLINEBREAK);
-            } else {
-                handler->setPositioning(CanvasHandler::COORD_RELATIVE);
-            }
-        } break;
-        case CANVAS_PROP_WIDTH: {
-            uint32_t dval;
-            if (!vp.isNumber()) {
+    return true;
+}
 
-                return true;
-            }
+bool JSCanvas::JSSetter_scrollTop(JSContext *cx, JS::MutableHandleValue vp)
+{
+    int32_t dval;
 
-            JS::ToUint32(cx, vp, &dval);
+    if (!JS::ToInt32(cx, vp, &dval)) {
+        return true;
+    }
 
-            if (!handler->setWidth(dval)) {
-                // JS_ReportError(cx, "Can't set canvas width (this canvas has a
-                // dynamic width)");
+    m_CanvasHandler->setScrollTop(dval);
 
-                return true;
-            }
-        } break;
-        case CANVAS_PROP_MINWIDTH: {
-            uint32_t dval;
-            if (!vp.isNumber()) {
+    return true;
+}
 
-                return true;
-            }
+bool JSCanvas::JSSetter_allowNegativeScroll(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
 
-            JS::ToUint32(cx, vp, &dval);
+        return true;
+    }
 
-            if (!handler->setMinWidth(dval)) {
-                return true;
-            }
-        } break;
-        case CANVAS_PROP_MAXWIDTH: {
-            uint32_t dval;
-            if (!vp.isNumber()) {
-                return true;
-            }
+    m_CanvasHandler->setAllowNegativeScroll(vp.toBoolean());
 
-            JS::ToUint32(cx, vp, &dval);
+    return true;
+}
 
-            if (!handler->setMaxWidth(dval)) {
-                return true;
-            }
-        } break;
-        case CANVAS_PROP_HEIGHT: {
-            uint32_t dval;
-            if (!vp.isNumber()) {
-                return true;
-            }
+bool JSCanvas::JSSetter_width(JSContext *cx, JS::MutableHandleValue vp)
+{
+    uint32_t dval;
 
-            JS::ToUint32(cx, vp, &dval);
+    if (!JS::ToUint32(cx, vp, &dval)) {
+        return true;
+    }
 
-            if (!handler->setHeight(dval)) {
-                // JS_ReportError(cx, "Can't set canvas height (this canvas has
-                // a dynamic height)");
-                return true;
-            }
-        } break;
-        case CANVAS_PROP_MINHEIGHT: {
-            uint32_t dval;
-            if (!vp.isNumber()) {
-                return true;
-            }
+    if (!m_CanvasHandler->setWidth(dval)) {
+        // JS_ReportError(cx, "Can't set canvas width (this canvas has a
+        // dynamic width)");
 
-            JS::ToUint32(cx, vp, &dval);
-
-            if (!handler->setMinHeight(dval)) {
-                return true;
-            }
-        } break;
-        case CANVAS_PROP_MAXHEIGHT: {
-            uint32_t dval;
-            if (!vp.isNumber()) {
-                return true;
-            }
-
-            JS::ToUint32(cx, vp, &dval);
-
-            if (!handler->setMaxHeight(dval)) {
-                return true;
-            }
-        } break;
-        case CANVAS_PROP_LEFT: {
-            double dval;
-
-            if (!handler->hasStaticLeft()) {
-                // JS_ReportError(cx, "Can't set .left property if .staticLeft
-                // == false");
-                return true;
-            }
-
-            if (vp.isNullOrUndefined()) {
-                handler->unsetLeft();
-
-                return true;
-            }
-            if (!vp.isNumber()) {
-
-                return true;
-            }
-
-            dval = vp.toNumber();
-
-            handler->setLeft(dval);
-        } break;
-        case CANVAS_PROP_RIGHT: {
-            double dval;
-
-            if (!handler->hasStaticRight()) {
-                // JS_ReportError(cx, "Can't set .right property if .staticRight
-                // == false");
-                return true;
-            }
-
-            if (vp.isNullOrUndefined()) {
-                handler->unsetRight();
-
-                return true;
-            }
-            if (!vp.isNumber()) {
-
-                return true;
-            }
-
-            dval = vp.toNumber();
-            handler->setRight(dval);
-        } break;
-        case CANVAS_PROP_TOP: {
-            double dval;
-            if (!handler->hasStaticTop()) {
-                return true;
-            }
-            if (vp.isNullOrUndefined()) {
-                handler->unsetTop();
-
-                return true;
-            }
-            if (!vp.isNumber()) {
-
-                return true;
-            }
-
-            dval = vp.toNumber();
-            handler->setTop(dval);
-        } break;
-        case CANVAS_PROP_BOTTOM: {
-            double dval;
-            if (!handler->hasStaticBottom()) {
-
-                return true;
-            }
-            if (vp.isNullOrUndefined()) {
-                handler->unsetBottom();
-
-                return true;
-            }
-            if (!vp.isNumber()) {
-
-                return true;
-            }
-
-            dval = vp.toNumber();
-            handler->setBottom(dval);
-        } break;
-        case CANVAS_PROP_SCROLLLEFT: {
-            int32_t dval;
-            if (!vp.isNumber()) {
-
-                return true;
-            }
-
-            JS::ToInt32(cx, vp, &dval);
-
-            handler->setScrollLeft(dval);
-        } break;
-        case CANVAS_PROP_SCROLLTOP: {
-            int32_t dval;
-            if (!vp.isNumber()) {
-
-                return true;
-            }
-
-            JS::ToInt32(cx, vp, &dval);
-
-            handler->setScrollTop(dval);
-        } break;
-        case CANVAS_PROP_ALLOWNEGATIVESCROLL: {
-            if (!vp.isBoolean()) {
-
-                return true;
-            }
-
-            handler->setAllowNegativeScroll(vp.toBoolean());
-        } break;
-        case CANVAS_PROP_VISIBLE: {
-            if (!vp.isBoolean()) {
-
-                return true;
-            }
-
-            handler->setHidden(!vp.toBoolean());
-        } break;
-        case CANVAS_PROP_OVERFLOW: {
-            if (!vp.isBoolean()) {
-
-                return true;
-            }
-
-            handler->m_Overflow = vp.toBoolean();
-        } break;
-        case CANVAS_PROP_COATING: {
-            int32_t dval;
-            if (!vp.isNumber()) {
-
-                return true;
-            }
-
-            JS::ToInt32(cx, vp, &dval);
-
-            handler->setPadding(dval);
-        } break;
-        case CANVAS_PROP_OPACITY: {
-            double dval;
-            if (!vp.isNumber()) {
-
-                return true;
-            }
-
-            dval = vp.toNumber();
-
-            handler->setOpacity(dval);
-        } break;
-        case CANVAS_PROP_STATICLEFT: {
-            if (!vp.isBoolean()) {
-
-                return true;
-            }
-
-            if (vp.toBoolean()) {
-                handler->setLeft(handler->m_Left);
-            } else {
-                handler->unsetLeft();
-            }
-        } break;
-        case CANVAS_PROP_STATICRIGHT: {
-            if (!vp.isBoolean()) {
-
-                return true;
-            }
-
-            if (vp.toBoolean()) {
-                handler->setRight(handler->m_Right);
-            } else {
-                handler->unsetRight();
-            }
-        } break;
-        case CANVAS_PROP_STATICTOP: {
-            if (!vp.isBoolean()) {
-
-                return true;
-            }
-
-            if (vp.toBoolean()) {
-                handler->setTop(handler->m_Top);
-            } else {
-                handler->unsetTop();
-            }
-        } break;
-        case CANVAS_PROP_STATICBOTTOM: {
-            if (!vp.isBoolean()) {
-
-                return true;
-            }
-            if (vp.toBoolean()) {
-                handler->setBottom(handler->m_Bottom);
-            } else {
-                handler->unsetBottom();
-            }
-        } break;
-        case CANVAS_PROP_FLUIDHEIGHT: {
-            if (!vp.isBoolean()) {
-
-                return true;
-            }
-            handler->setFluidHeight(vp.toBoolean());
-        } break;
-        case CANVAS_PROP_FLUIDWIDTH: {
-            if (!vp.isBoolean()) {
-
-                return true;
-            }
-            handler->setFluidWidth(vp.toBoolean());
-        } break;
-        case CANVAS_PROP_ID: {
-            JS::RootedString sid(cx, JS::ToString(cx, vp));
-            if (!sid.get()) {
-
-                return true;
-            }
-            JSAutoByteString cid(cx, sid);
-            handler->setId(cid.ptr());
-        } break;
-        case CANVAS_PROP_MARGINLEFT: {
-            double dval;
-            if (!vp.isNumber()) {
-
-                return true;
-            }
-
-            dval = vp.toNumber();
-
-            handler->setMargin(handler->m_Margin.top, handler->m_Margin.right,
-                               handler->m_Margin.bottom, dval);
-        } break;
-        case CANVAS_PROP_MARGINRIGHT: {
-            double dval;
-            if (!vp.isNumber()) {
-
-                return true;
-            }
-
-            dval = vp.toNumber();
-            handler->setMargin(handler->m_Margin.top, dval,
-                               handler->m_Margin.bottom,
-                               handler->m_Margin.left);
-        } break;
-        case CANVAS_PROP_MARGINTOP: {
-            double dval;
-            if (!vp.isNumber()) {
-
-                return true;
-            }
-
-            dval = vp.toNumber();
-            handler->setMargin(dval, handler->m_Margin.right,
-                               handler->m_Margin.bottom,
-                               handler->m_Margin.left);
-        } break;
-        case CANVAS_PROP_MARGINBOTTOM: {
-            double dval;
-            if (!vp.isNumber()) {
-
-                return true;
-            }
-
-            dval = vp.toNumber();
-            handler->setMargin(handler->m_Margin.top, handler->m_Margin.right,
-                               dval, handler->m_Margin.left);
-        } break;
-        case CANVAS_PROP_CURSOR: {
-            if (!vp.isString()) {
-
-                return true;
-            }
-
-            JS::RootedString vpStr(cx, vp.toString());
-            JSAutoByteString type(cx, vpStr);
-            for (int i = 0; nidium_cursors_list[i].str != NULL; i++) {
-                if (strncasecmp(nidium_cursors_list[i].str, type.ptr(),
-                                strlen(nidium_cursors_list[i].str))
-                    == 0) {
-                    handler->setCursor(nidium_cursors_list[i].type);
-                    break;
-                }
-            }
-        } break;
-        default:
-            break;
+        return true;
     }
 
     return true;
 }
 
-static bool nidium_canvas_prop_get(JSContext *cx,
-                                   JS::HandleObject obj,
-                                   uint8_t id,
-                                   JS::MutableHandleValue vp)
+bool JSCanvas::JSSetter_height(JSContext *cx, JS::MutableHandleValue vp)
 {
-    CanvasHandler *handler = HANDLER_GETTER_SAFE(cx, obj);
-    if (!handler) {
+    uint32_t dval;
+
+    if (!JS::ToUint32(cx, vp, &dval)) {
         return true;
     }
 
-    switch (id) {
-        case CANVAS_PROP_OPACITY:
-            vp.setDouble(handler->getOpacity());
-            break;
-        case CANVAS_PROP_WIDTH:
-            vp.setInt32(handler->getWidth());
-            break;
-        case CANVAS_PROP_MINWIDTH:
-            vp.setInt32(handler->getMinWidth());
-            break;
-        case CANVAS_PROP_MAXWIDTH:
-            vp.setInt32(handler->getMaxWidth());
-            break;
-        case CANVAS_PROP_CLIENTWIDTH:
-            vp.setInt32(handler->getWidth() + (handler->m_Padding.global * 2));
-            break;
-        case CANVAS_PROP_HEIGHT:
-            vp.setInt32(handler->getHeight());
-            break;
-        case CANVAS_PROP_MINHEIGHT:
-            vp.setInt32(handler->getMinHeight());
-            break;
-        case CANVAS_PROP_MAXHEIGHT:
-            vp.setInt32(handler->getMaxHeight());
-            break;
-        case CANVAS_PROP_CLIENTHEIGHT:
-            vp.setInt32(handler->getHeight() + (handler->m_Padding.global * 2));
-            break;
-        case CANVAS_PROP_COATING:
-            vp.setInt32(handler->m_Padding.global);
-            break;
-        case CANVAS_PROP_LEFT:
-            vp.setDouble(handler->getLeft());
-            break;
-        case CANVAS_PROP_RIGHT:
-            vp.setDouble(handler->getRight());
-            break;
-        case CANVAS_PROP_BOTTOM:
-            vp.setDouble(handler->getBottom());
-            break;
-        case CANVAS_PROP_CLIENTLEFT:
-            vp.setInt32(handler->getLeft() - handler->m_Padding.global);
-            break;
-        case CANVAS_PROP_TOP:
-            vp.setDouble(handler->getTop());
-            break;
-        case CANVAS_PROP_CLIENTTOP:
-            vp.setInt32(handler->getTop() - handler->m_Padding.global);
-            break;
-        case CANVAS_PROP_STATICLEFT:
-            vp.setBoolean(handler->hasStaticLeft());
-            break;
-        case CANVAS_PROP_STATICRIGHT:
-            vp.setBoolean(handler->hasStaticRight());
-            break;
-        case CANVAS_PROP_STATICTOP:
-            vp.setBoolean(handler->hasStaticTop());
-            break;
-        case CANVAS_PROP_STATICBOTTOM:
-            vp.setBoolean(handler->hasStaticBottom());
-            break;
-        case CANVAS_PROP_FLUIDHEIGHT:
-            vp.setBoolean(handler->isHeightFluid());
-            break;
-        case CANVAS_PROP_FLUIDWIDTH:
-            vp.setBoolean(handler->isWidthFluid());
-            break;
-        case CANVAS_PROP_VISIBLE:
-            vp.setBoolean(!handler->isHidden());
-            break;
-        case CANVAS_PROP_OVERFLOW:
-            vp.setBoolean(handler->m_Overflow);
-            break;
-        case CANVAS_PROP___VISIBLE:
-            vp.setBoolean(handler->isDisplayed());
-            break;
-        case CANVAS_PROP_CONTENTWIDTH:
-            vp.setInt32(handler->getContentWidth());
-            break;
-        case CANVAS_PROP_CONTENTHEIGHT:
-            vp.setInt32(handler->getContentHeight());
-            break;
-        case CANVAS_PROP_INNERWIDTH:
-            vp.setInt32(handler->getContentWidth(true));
-            break;
-        case CANVAS_PROP_INNERHEIGHT:
-            vp.setInt32(handler->getContentHeight(true));
-            break;
-        case CANVAS_PROP_SCROLLLEFT:
-            vp.setInt32(handler->m_Content.scrollLeft);
-            break;
-        case CANVAS_PROP_SCROLLTOP:
-            vp.setInt32(handler->m_Content.scrollTop);
-            break;
-        case CANVAS_PROP_ALLOWNEGATIVESCROLL:
-            vp.setBoolean(handler->getAllowNegativeScroll());
-            break;
-        case CANVAS_PROP___FIXED:
-            vp.setBoolean(handler->hasAFixedAncestor());
-            break;
-        case CANVAS_PROP___TOP: {
-            handler->computeAbsolutePosition();
-            vp.setDouble(handler->getTop(true));
+    if (!m_CanvasHandler->setHeight(dval)) {
+        return true;
+    }
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_left(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+
+    if (!m_CanvasHandler->hasStaticLeft()) {
+        return true;
+    }
+
+    if (vp.isNullOrUndefined()) {
+        m_CanvasHandler->unsetLeft();
+
+        return true;
+    }
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    m_CanvasHandler->setLeft(dval);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_right(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+
+    if (!m_CanvasHandler->hasStaticRight()) {
+        return true;
+    }
+
+    if (vp.isNullOrUndefined()) {
+        m_CanvasHandler->unsetRight();
+
+        return true;
+    }
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    m_CanvasHandler->setRight(dval);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_top(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+
+    if (!m_CanvasHandler->hasStaticTop()) {
+        return true;
+    }
+
+    if (vp.isNullOrUndefined()) {
+        m_CanvasHandler->unsetTop();
+
+        return true;
+    }
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    m_CanvasHandler->setTop(dval);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+
+    if (!m_CanvasHandler->hasStaticBottom()) {
+        return true;
+    }
+
+    if (vp.isNullOrUndefined()) {
+        m_CanvasHandler->unsetBottom();
+
+        return true;
+    }
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    m_CanvasHandler->setBottom(dval);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_minWidth(JSContext *cx, JS::MutableHandleValue vp)
+{
+    uint32_t dval;
+
+    if (!JS::ToUint32(cx, vp, &dval)) {
+        return true;
+    }
+
+    if (!m_CanvasHandler->setMinWidth(dval)) {
+        return true;
+    }
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_minHeight(JSContext *cx, JS::MutableHandleValue vp)
+{
+    uint32_t dval;
+
+    if (!JS::ToUint32(cx, vp, &dval)) {
+        return true;
+    }
+
+    if (!m_CanvasHandler->setMinHeight(dval)) {
+        return true;
+    }
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_maxWidth(JSContext *cx, JS::MutableHandleValue vp)
+{
+    uint32_t dval;
+
+    if (!JS::ToUint32(cx, vp, &dval)) {
+        return true;
+    }
+
+    if (!m_CanvasHandler->setMaxWidth(dval)) {
+        return true;
+    }
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_maxHeight(JSContext *cx, JS::MutableHandleValue vp)
+{
+    uint32_t dval;
+
+    if (!JS::ToUint32(cx, vp, &dval)) {
+        return true;
+    }
+
+    if (!m_CanvasHandler->setMaxHeight(dval)) {
+        return true;
+    }
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_visible(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+
+        return true;
+    }
+
+    m_CanvasHandler->setHidden(!vp.toBoolean());
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_coating(JSContext *cx, JS::MutableHandleValue vp)
+{
+    int32_t dval;
+
+    if (!JS::ToInt32(cx, vp, &dval)) {
+        return true;
+    }
+
+    m_CanvasHandler->setPadding(dval);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_staticLeft(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+
+        return true;
+    }
+
+    if (vp.toBoolean()) {
+        m_CanvasHandler->setLeft(m_CanvasHandler->m_Left);
+    } else {
+        m_CanvasHandler->unsetLeft();
+    }
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_staticTop(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+
+        return true;
+    }
+
+    if (vp.toBoolean()) {
+        m_CanvasHandler->setTop(m_CanvasHandler->m_Top);
+    } else {
+        m_CanvasHandler->unsetTop();
+    }
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_staticRight(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+
+        return true;
+    }
+
+    if (vp.toBoolean()) {
+        m_CanvasHandler->setRight(m_CanvasHandler->m_Right);
+    } else {
+        m_CanvasHandler->unsetRight();
+    }
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_staticBottom(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+
+        return true;
+    }
+    if (vp.toBoolean()) {
+        m_CanvasHandler->setBottom(m_CanvasHandler->m_Bottom);
+    } else {
+        m_CanvasHandler->unsetBottom();
+    }
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_marginLeft(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    m_CanvasHandler->setMargin(
+                m_CanvasHandler->m_Margin.top,
+                m_CanvasHandler->m_Margin.right,
+                m_CanvasHandler->m_Margin.bottom,
+                dval);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_marginTop(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    m_CanvasHandler->setMargin(
+                dval,
+                m_CanvasHandler->m_Margin.right,
+                m_CanvasHandler->m_Margin.bottom,
+                m_CanvasHandler->m_Margin.left);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_marginRight(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    m_CanvasHandler->setMargin(
+                m_CanvasHandler->m_Margin.top,
+                dval,
+                m_CanvasHandler->m_Margin.bottom,
+                m_CanvasHandler->m_Margin.left);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_marginBottom(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    m_CanvasHandler->setMargin(
+                m_CanvasHandler->m_Margin.top,
+                m_CanvasHandler->m_Margin.right,
+                dval,
+                m_CanvasHandler->m_Margin.left);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_position(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isString()) {
+        vp.setNull();
+        return true;
+    }
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString mode(cx, vpStr);
+
+    if (strcasecmp(mode.ptr(), "absolute") == 0) {
+        m_CanvasHandler->setPositioning(CanvasHandler::COORD_ABSOLUTE);
+    } else if (strcasecmp(mode.ptr(), "fixed") == 0) {
+        m_CanvasHandler->setPositioning(CanvasHandler::COORD_FIXED);
+    } else if (strcasecmp(mode.ptr(), "inline") == 0) {
+        m_CanvasHandler->setPositioning(CanvasHandler::COORD_INLINE);
+    } else if (strcasecmp(mode.ptr(), "inline-break") == 0) {
+        m_CanvasHandler->setPositioning(CanvasHandler::COORD_INLINEBREAK);
+    } else {
+        m_CanvasHandler->setPositioning(CanvasHandler::COORD_RELATIVE);
+    }
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_id(JSContext *cx, JS::MutableHandleValue vp)
+{
+    JS::RootedString sid(cx, JS::ToString(cx, vp));
+
+    if (!sid.get()) {
+        return true;
+    }
+
+    JSAutoByteString cid(cx, sid);
+
+    m_CanvasHandler->setId(cid.ptr());
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_fluidWidth(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+        return true;
+    }
+
+    m_CanvasHandler->setFluidWidth(vp.toBoolean());
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_fluidHeight(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+        return true;
+    }
+
+    m_CanvasHandler->setFluidHeight(vp.toBoolean());
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_cursor(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isString()) {
+
+        return true;
+    }
+
+    JS::RootedString vpStr(cx, vp.toString());
+    JSAutoByteString type(cx, vpStr);
+    for (int i = 0; nidium_cursors_list[i].str != NULL; i++) {
+        if (strncasecmp(nidium_cursors_list[i].str, type.ptr(),
+                        strlen(nidium_cursors_list[i].str)) == 0) {
+
+            m_CanvasHandler->setCursor(nidium_cursors_list[i].type);
             break;
         }
-        case CANVAS_PROP___LEFT: {
-            handler->computeAbsolutePosition();
-            vp.setDouble(handler->getLeft(true));
+    }
+
+    return true;
+}
+
+
+bool JSCanvas::JSGetter_cursor(JSContext *cx, JS::MutableHandleValue vp)
+{
+    int cursor = m_CanvasHandler->getCursor();
+
+    for (int i = 0; nidium_cursors_list[i].str != NULL; i++) {
+        if (nidium_cursors_list[i].type == cursor) {
+            vp.setString(
+                JS_NewStringCopyZ(cx, nidium_cursors_list[i].str));
+
             break;
         }
-        case CANVAS_PROP_CTX: {
-            if (handler->m_Context == NULL) {
-                vp.setNull();
-                break;
+    }
+    return true;
+}
+
+bool JSCanvas::JSGetter_clientWidth(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->getWidth() +
+        (m_CanvasHandler->m_Padding.global * 2));
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_clientHeight(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->getHeight() +
+        (m_CanvasHandler->m_Padding.global * 2));
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_clientTop(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->getTop() - m_CanvasHandler->m_Padding.global);
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_clientLeft(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->getLeft() - m_CanvasHandler->m_Padding.global);
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_contentWidth(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->getContentWidth());
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_contentHeight(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->getContentHeight());
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_innerWidth(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->getContentWidth(true));
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_innerHeight(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->getContentHeight(true));
+
+    return true;
+}
+
+bool JSCanvas::JSGetter___visible(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->isDisplayed());
+
+    return true;
+}
+
+bool JSCanvas::JSGetter___top(JSContext *cx, JS::MutableHandleValue vp)
+{
+    m_CanvasHandler->computeAbsolutePosition();
+    vp.setDouble(m_CanvasHandler->getTop(true));
+
+    return true;
+}
+
+bool JSCanvas::JSGetter___left(JSContext *cx, JS::MutableHandleValue vp)
+{
+    m_CanvasHandler->computeAbsolutePosition();
+    vp.setDouble(m_CanvasHandler->getLeft(true));
+
+    return true;
+}
+
+bool JSCanvas::JSGetter___fixed(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->hasAFixedAncestor());
+
+    return true;
+}
+
+bool JSCanvas::JSGetter___outofbound(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->isOutOfBound());
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_ctx(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (m_CanvasHandler->m_Context == NULL) {
+        vp.setNull();
+
+        return true;
+    }
+    JS::RootedObject retObj(cx, m_CanvasHandler->m_Context->m_JsObj);
+    vp.setObjectOrNull(retObj);
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_opacity(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_CanvasHandler->getOpacity());
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_opacity(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+    if (!vp.isNumber()) {
+
+        return true;
+    }
+
+    dval = vp.toNumber();
+
+    m_CanvasHandler->setOpacity(dval);
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_overflow(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->m_Overflow);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_overflow(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+
+        return true;
+    }
+
+    m_CanvasHandler->m_Overflow = vp.toBoolean();
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_scrollLeft(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->m_Content.scrollLeft);
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_scrollTop(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->m_Content.scrollTop);
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_allowNegativeScroll(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->getAllowNegativeScroll());
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_width(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->getWidth());
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_height(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->getHeight());
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_maxWidth(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->getMaxWidth());
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_maxHeight(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->getMaxHeight());
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_minWidth(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->getMinWidth());
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_minHeight(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->getMinHeight());
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_position(JSContext *cx, JS::MutableHandleValue vp)
+{
+    JS::RootedString jstr(cx);
+
+    switch (m_CanvasHandler->getPositioning()) {
+        case CanvasHandler::COORD_RELATIVE:
+            if (m_CanvasHandler->getFlowMode()
+                & CanvasHandler::kFlowBreakPreviousSibling) {
+                jstr = JS_NewStringCopyZ(cx, "inline-break");
+                vp.setString(jstr);
+            } else if (m_CanvasHandler->getFlowMode()
+                       & CanvasHandler::kFlowInlinePreviousSibling) {
+                jstr = JS_NewStringCopyZ(cx, "inline");
+                vp.setString(jstr);
+            } else {
+                jstr = JS_NewStringCopyZ(cx, "relative");
+                vp.setString(jstr);
             }
-            JS::RootedObject retObj(cx, handler->m_Context->m_JsObj);
-            vp.setObjectOrNull(retObj);
             break;
-        }
-        case CANVAS_PROP___OUTOFBOUND: {
-            vp.setBoolean(handler->isOutOfBound());
-            break;
-        }
-        case CANVAS_PROP_POSITION: {
-            JS::RootedString jstr(cx);
-            switch (handler->getPositioning()) {
-                case CanvasHandler::COORD_RELATIVE:
-                    if (handler->getFlowMode()
-                        & CanvasHandler::kFlowBreakPreviousSibling) {
-                        jstr = JS_NewStringCopyZ(cx, "inline-break");
-                        vp.setString(jstr);
-                    } else if (handler->getFlowMode()
-                               & CanvasHandler::kFlowInlinePreviousSibling) {
-                        jstr = JS_NewStringCopyZ(cx, "inline");
-                        vp.setString(jstr);
-                    } else {
-                        jstr = JS_NewStringCopyZ(cx, "relative");
-                        vp.setString(jstr);
-                    }
-                    break;
-                case CanvasHandler::COORD_ABSOLUTE:
-                    jstr = JS_NewStringCopyZ(cx, "absolute");
-                    vp.setString(jstr);
-                    break;
-                case CanvasHandler::COORD_FIXED:
-                    jstr = JS_NewStringCopyZ(cx, "fixed");
-                    vp.setString(jstr);
-                    break;
-                case CanvasHandler::COORD_INLINE:
-                    jstr = JS_NewStringCopyZ(cx, "inline");
-                    vp.setString(jstr);
-                    break;
-                case CanvasHandler::COORD_INLINEBREAK:
-                    jstr = JS_NewStringCopyZ(cx, "inline-break");
-                    vp.setString(jstr);
-                    break;
-            }
-            break;
-        }
-        case CANVAS_PROP_ID: {
-            char *cid;
-            handler->getIdentifier(&cid);
-            JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, cid));
+        case CanvasHandler::COORD_ABSOLUTE:
+            jstr = JS_NewStringCopyZ(cx, "absolute");
             vp.setString(jstr);
-
             break;
-        }
-        case CANVAS_PROP_MARGINLEFT: {
-            vp.setDouble(handler->m_Margin.left);
+        case CanvasHandler::COORD_FIXED:
+            jstr = JS_NewStringCopyZ(cx, "fixed");
+            vp.setString(jstr);
             break;
-        }
-        case CANVAS_PROP_MARGINRIGHT: {
-            vp.setDouble(handler->m_Margin.right);
+        case CanvasHandler::COORD_INLINE:
+            jstr = JS_NewStringCopyZ(cx, "inline");
+            vp.setString(jstr);
             break;
-        }
-        case CANVAS_PROP_MARGINTOP: {
-            vp.setDouble(handler->m_Margin.top);
-            break;
-        }
-        case CANVAS_PROP_MARGINBOTTOM: {
-            vp.setDouble(handler->m_Margin.bottom);
-            break;
-        }
-        case CANVAS_PROP_CURSOR: {
-
-            int cursor = handler->getCursor();
-
-            for (int i = 0; nidium_cursors_list[i].str != NULL; i++) {
-                if (nidium_cursors_list[i].type == cursor) {
-                    vp.setString(
-                        JS_NewStringCopyZ(cx, nidium_cursors_list[i].str));
-
-                    break;
-                }
-            }
-        } break;
-        default:
+        case CanvasHandler::COORD_INLINEBREAK:
+            jstr = JS_NewStringCopyZ(cx, "inline-break");
+            vp.setString(jstr);
             break;
     }
-
+    
     return true;
 }
+
+bool JSCanvas::JSGetter_top(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_CanvasHandler->getTop());
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_left(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_CanvasHandler->getLeft());
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_right(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_CanvasHandler->getRight());
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_CanvasHandler->getBottom());
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_visible(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(!m_CanvasHandler->isHidden());
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_staticLeft(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->hasStaticLeft());
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_staticTop(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->hasStaticTop());
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_staticRight(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->hasStaticRight());
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_staticBottom(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->hasStaticBottom());
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_fluidWidth(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->isWidthFluid());
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_fluidHeight(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->isHeightFluid());
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_marginLeft(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_CanvasHandler->m_Margin.left);
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_marginRight(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_CanvasHandler->m_Margin.right);
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_marginTop(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_CanvasHandler->m_Margin.top);
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_marginBottom(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_CanvasHandler->m_Margin.bottom);
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_coating(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_CanvasHandler->m_Padding.global);
+    
+    return true;
+}
+
+bool JSCanvas::JSGetter_id(JSContext *cx, JS::MutableHandleValue vp)
+{
+    char *cid;
+    m_CanvasHandler->getIdentifier(&cid);
+    JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, cid));
+    vp.setString(jstr);
+    
+    return true;
+}
+
 
 JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
     JS::HandleObject obj)
@@ -1382,6 +1398,58 @@ JSFunctionSpec *JSCanvas::ListMethods()
     return funcs;
 }
 
+JSPropertySpec *JSCanvas::ListProperties()
+{
+    static JSPropertySpec props[] = {
+        CLASSMAPPER_PROP_GS(JSCanvas, scrollLeft),
+        CLASSMAPPER_PROP_GS(JSCanvas, scrollTop),
+        CLASSMAPPER_PROP_GS(JSCanvas, allowNegativeScroll),
+        CLASSMAPPER_PROP_GS(JSCanvas, width),
+        CLASSMAPPER_PROP_GS(JSCanvas, coating),
+        CLASSMAPPER_PROP_GS(JSCanvas, height),
+        CLASSMAPPER_PROP_GS(JSCanvas, maxWidth),
+        CLASSMAPPER_PROP_GS(JSCanvas, maxHeight),
+        CLASSMAPPER_PROP_GS(JSCanvas, minWidth),
+        CLASSMAPPER_PROP_GS(JSCanvas, minHeight),
+        CLASSMAPPER_PROP_GS(JSCanvas, position),
+        CLASSMAPPER_PROP_GS(JSCanvas, top),
+        CLASSMAPPER_PROP_GS(JSCanvas, left),
+        CLASSMAPPER_PROP_GS(JSCanvas, right),
+        CLASSMAPPER_PROP_GS(JSCanvas, bottom),
+        CLASSMAPPER_PROP_GS(JSCanvas, visible),
+        CLASSMAPPER_PROP_GS(JSCanvas, staticLeft),
+        CLASSMAPPER_PROP_GS(JSCanvas, staticRight),
+        CLASSMAPPER_PROP_GS(JSCanvas, staticTop),
+        CLASSMAPPER_PROP_GS(JSCanvas, staticBottom),
+        CLASSMAPPER_PROP_GS(JSCanvas, fluidHeight),
+        CLASSMAPPER_PROP_GS(JSCanvas, fluidWidth),
+        CLASSMAPPER_PROP_GS(JSCanvas, id),
+        CLASSMAPPER_PROP_GS(JSCanvas, marginLeft),
+        CLASSMAPPER_PROP_GS(JSCanvas, marginRight),
+        CLASSMAPPER_PROP_GS(JSCanvas, marginTop),
+        CLASSMAPPER_PROP_GS(JSCanvas, marginBottom),
+        CLASSMAPPER_PROP_GS(JSCanvas, cursor),
+
+        CLASSMAPPER_PROP_G(JSCanvas, clientWidth),
+        CLASSMAPPER_PROP_G(JSCanvas, clientHeight),
+        CLASSMAPPER_PROP_G(JSCanvas, clientTop),
+        CLASSMAPPER_PROP_G(JSCanvas, clientLeft),
+        CLASSMAPPER_PROP_G(JSCanvas, contentWidth),
+        CLASSMAPPER_PROP_G(JSCanvas, contentHeight),
+        CLASSMAPPER_PROP_G(JSCanvas, innerWidth),
+        CLASSMAPPER_PROP_G(JSCanvas, innerHeight),
+        CLASSMAPPER_PROP_G(JSCanvas, __visible),
+        CLASSMAPPER_PROP_G(JSCanvas, __top),
+        CLASSMAPPER_PROP_G(JSCanvas, __left),
+        CLASSMAPPER_PROP_G(JSCanvas, __fixed),
+        CLASSMAPPER_PROP_G(JSCanvas, __outofbound),
+        CLASSMAPPER_PROP_G(JSCanvas, ctx),
+
+        JS_PS_END
+    };
+
+    return props;
+}
 
 void JSCanvas::JSTracer(class JSTracer *trc)
 {
@@ -1408,23 +1476,21 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx,
     Context *nctx   = Context::GetObject<Frontend::Context>(cx);
     UIInterface *ui = nctx->getUI();
 
-    JS::RootedObject ret(
-        cx, JS_NewObject(cx, &Canvas_class, JS::NullPtr(), JS::NullPtr()));
-
     handler = new CanvasHandler(width, height, nctx);
     handler->setContext(new Canvas2DContext(handler, cx, width, height, ui));
     handler->getContext()->setGLState(nctx->getGLState());
 
     /* window.canvas.overflow default to false */
     handler->m_Overflow = false;
-    handler->m_JsObj    = ret;
+
+    JSCanvas *jscanvas = new JSCanvas(handler);
+
+    JS::RootedObject ret(cx, JSCanvas::CreateObject(cx, jscanvas));
+
     handler->m_JsCx = cx;
+    handler->m_JsObj    = ret;
     JS::RootedValue val(cx, OBJECT_TO_JSVAL(handler->m_Context->m_JsObj));
     JS_SetReservedSlot(ret, 0, val);
-
-    JSCanvas *jscanvas = new JSCanvas(ret, cx, handler);
-
-    JS_SetPrivate(ret, jscanvas);
 
     *out = handler;
 
