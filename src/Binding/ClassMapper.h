@@ -22,22 +22,33 @@ class ClassMapper
 {
 public:
 
+    enum ExposeFlags {
+        kEmpty_ExposeFlag           = 0,
+        kJSTracer_ExposeFlag        = 1 << 0
+    };
+
     /**
      *  Expose an instantiable JS class |name| to the global namespace
      */
-    static JSObject *ExposeClass(JSContext *cx, const char *name)
+    static JSObject *ExposeClass(JSContext *cx, const char *name,
+        int jsflags = 0, ExposeFlags flags = kEmpty_ExposeFlag)
     {
 
         JSClass *jsclass = ClassMapper<T>::GetJSClass();
 
-        jsclass->name = name;
+        jsclass->name     = name;
         jsclass->finalize = ClassMapper<T>::JSFinalizer;
+        jsclass->flags    = jsflags | JSCLASS_HAS_PRIVATE;
+
+        if (flags & kJSTracer_ExposeFlag) {
+            jsclass->trace = ClassMapper<T>::JSTrace;
+        }
 
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
         return JS_InitClass(cx, global, JS::NullPtr(), jsclass,
                     ClassMapper<T>::JSConstructor, 0, NULL,
-                    T::ListMethods(), NULL, NULL);
+                    T::ListMethods(), T::ListProperties(), NULL);
     }
 
     /**
@@ -68,6 +79,14 @@ public:
         }
 
         return (T *)JS_GetPrivate(obj);
+    }
+
+    /**
+     *  Get the underlying mapped JSObject
+     */    
+    JSObject *getJSObject()
+    {
+        return m_Instance;
     }
 
     /**
@@ -128,10 +147,24 @@ protected:
         return (CppObj->*U)(cx, args);
     }
 
+    static void JSTrace(JSTracer *trc, JSObject *obj)
+    {
+        T *CppObj = (T *)JS_GetPrivate(obj);
+
+        if (CppObj) {
+            CppObj->JSTracer(trc);
+        }
+    }
+
     static JSFunctionSpec *ListMethods()
     {
         return nullptr;
     }
+
+    static JSPropertySpec *ListProperties()
+    {
+        return nullptr;
+    }    
 
     static bool JSConstructor(JSContext *cx, unsigned argc, JS::Value *vp)
     {
@@ -148,7 +181,7 @@ protected:
         JS::RootedObject ret(
             cx, JS_NewObjectForConstructor(cx, jsclass, args));
 
-        if ((obj = T::Constructor(cx, args)) == nullptr) {
+        if ((obj = T::Constructor(cx, args, ret)) == nullptr) {
             return false;
         }
 
@@ -188,6 +221,7 @@ protected:
         return &jsclass;
     }
 
+    virtual void JSTracer(JSTracer *trc) {}
 
     JS::Heap<JSObject *> m_Instance;
     JSContext *m_Cx;
@@ -310,9 +344,13 @@ public:
     }
 
 
-    static JSObject *ExposeClass(JSContext *cx, const char *name)
+    static JSObject *ExposeClass(JSContext *cx, const char *name,
+                int jsflags = 0,
+                typename ClassMapper<T>::ExposeFlags flags =
+                ClassMapper<T>::kEmpty_ExposeFlag)
     {
-        JS::RootedObject proto(cx, ClassMapper<T>::ExposeClass(cx, name));
+        JS::RootedObject proto(cx, ClassMapper<T>::ExposeClass(cx, name,
+            jsflags, flags));
 
 
         static JSFunctionSpec funcs[] = {
