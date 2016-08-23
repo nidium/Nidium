@@ -17,6 +17,42 @@ namespace Binding {
     JS_FN(#name, (cclass::JSCall<&cclass::JS_##name, argc>), \
         argc, NIDIUM_JS_FNPROPS)
 
+#define CLASSMAPPER_PROP_G(cclass, name) \
+    {                                                                       \
+        #name,                                                              \
+        JSPROP_PERMANENT | /*JSPROP_READONLY |*/ JSPROP_ENUMERATE |         \
+            JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,                        \
+        {{JS_CAST_NATIVE_TO((cclass::JSGetter<&cclass::JSGetter_##name>),   \
+            JSPropertyOp), nullptr}},                                       \
+        JSOP_NULLWRAPPER                                                    \
+    }
+
+#define CLASSMAPPER_PROP_GS(cclass, name) \
+    {                                                                       \
+        #name,                                                              \
+        JSPROP_PERMANENT | /*JSPROP_READONLY |*/ JSPROP_ENUMERATE |         \
+            JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,                        \
+        {{JS_CAST_NATIVE_TO((cclass::JSGetter<&cclass::JSGetter_##name>),   \
+            JSPropertyOp), nullptr}},                                       \
+        {{JS_CAST_NATIVE_TO((cclass::JSSetter<&cclass::JSSetter_##name>),   \
+            JSStrictPropertyOp), nullptr}}                                  \
+    }
+
+#define NIDIUM_DECL_JSCALL(name) \
+    bool JS_##name(JSContext *cx, JS::CallArgs &args)
+
+#define NIDIUM_DECL_JSGETTER(name) \
+    bool JSGetter_##name(JSContext *, JS::MutableHandleValue)
+
+#define NIDIUM_DECL_JSSETTER(name) \
+    bool JSSetter_##name(JSContext *, JS::MutableHandleValue)
+
+#define NIDIUM_DECL_JSGETTERSETTER(name) \
+    NIDIUM_DECL_JSGETTER(name); \
+    NIDIUM_DECL_JSSETTER(name)
+
+#define NIDIUM_DECL_JSTRACER() void JSTracer(class JSTracer *trc)
+
 template <typename T>
 class ClassMapper
 {
@@ -65,6 +101,8 @@ public:
         obj->m_Rooted = false;
 
         JS_SetPrivate(ret, obj);
+
+        return ret;
     }
 
     /**
@@ -79,6 +117,16 @@ public:
         }
 
         return (T *)JS_GetPrivate(obj);
+    }
+
+    static T *GetInstanceUnsafe(JS::HandleObject obj)
+    {
+        return (T *)JS_GetPrivate(obj);
+    }
+
+    static bool IsOfClass(JS::HandleObject obj)
+    {
+        return (JS_GetClass(obj) == ClassMapper<T>::GetJSClass());
     }
 
     /**
@@ -133,8 +181,12 @@ public:
         this->unroot();
     }
 
+    virtual void JSTracer(class JSTracer *trc) {}
+
 protected:
     typedef bool (T::*JSCallback)(JSContext *, JS::CallArgs &);
+    typedef bool (T::*JSGetterCallback)(JSContext *, JS::MutableHandleValue);
+    typedef bool (T::*JSSetterCallback)(JSContext *, JS::MutableHandleValue);
 
     template <JSCallback U, int minarg>
     static bool JSCall(JSContext *cx, unsigned argc, JS::Value *vp)
@@ -147,7 +199,29 @@ protected:
         return (CppObj->*U)(cx, args);
     }
 
-    static void JSTrace(JSTracer *trc, JSObject *obj)
+    template <JSGetterCallback U>
+    static bool JSGetter(JSContext *cx, unsigned argc, JS::Value *vp)
+    {
+        NIDIUM_JS_PROLOGUE_CLASS(T, ClassMapper<T>::GetJSClass());
+
+        return (CppObj->*U)(cx, args.rval());
+    }
+
+    template <JSSetterCallback U>
+    static bool JSSetter(JSContext *cx, unsigned argc, JS::Value *vp)
+    {
+        NIDIUM_JS_PROLOGUE_CLASS(T, ClassMapper<T>::GetJSClass());
+
+        JS::RootedValue val(cx, args.get(0));
+
+        bool ret = (CppObj->*U)(cx, &val);
+
+        args.rval().set(val);
+
+        return ret;
+    }
+
+    static void JSTrace(class JSTracer *trc, JSObject *obj)
     {
         T *CppObj = (T *)JS_GetPrivate(obj);
 
@@ -220,8 +294,6 @@ protected:
 
         return &jsclass;
     }
-
-    virtual void JSTracer(JSTracer *trc) {}
 
     JS::Heap<JSObject *> m_Instance;
     JSContext *m_Cx;
