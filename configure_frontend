@@ -157,7 +157,7 @@ def fixAngleThinArchive():
 
 @Deps.register("angle")
 def angle():
-    cxxFlags = os.environ.get("CXXFLAGS")
+    cxxFlags = os.environ.get("CXXFLAGS", "")
 
     # Disable some errors for clang 3.5 & 3.7
     cxxFlags += "-Wno-c++11-narrowing -Wno-sign-compare -Wno-error"

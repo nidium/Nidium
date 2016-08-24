@@ -38,7 +38,7 @@ Gyp = Builder.Gyp
 
 @Deps.register("leveldb")
 def leveldb():
-    cxxflags = os.environ.get("CXXFLAGS")
+    cxxflags = os.environ.get("CXXFLAGS", "")
 
     if Konstruct.config("asan"):
         # Fix ASAN container overflow false positive :
