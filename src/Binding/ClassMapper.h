@@ -66,6 +66,7 @@ public:
     /**
      *  Expose an instantiable JS class |name| to the global namespace
      */
+    template<int ctor_minarg = 0>
     static JSObject *ExposeClass(JSContext *cx, const char *name,
         int jsflags = 0, ExposeFlags flags = kEmpty_ExposeFlag,
         JS::HandleObject parent = JS::NullPtr())
@@ -86,7 +87,7 @@ public:
         sparent = !parent.get() ? JS::CurrentGlobalOrNull(cx) : parent;
 
         return JS_InitClass(cx, sparent, JS::NullPtr(), jsclass,
-                    ClassMapper<T>::JSConstructor, 0, NULL,
+                    ClassMapper<T>::JSConstructor<ctor_minarg>, 0, NULL,
                     T::ListMethods(), T::ListProperties(), NULL);
     }
 
@@ -243,6 +244,7 @@ protected:
         return nullptr;
     }    
 
+    template<int ctor_minarg = 0>
     static bool JSConstructor(JSContext *cx, unsigned argc, JS::Value *vp)
     {
         T *obj;
@@ -254,6 +256,8 @@ protected:
             JS_ReportError(cx, "Bad constructor");
             return false;
         }
+
+        NIDIUM_JS_CHECK_ARGS("constructor", ctor_minarg);
 
         JS::RootedObject ret(
             cx, JS_NewObjectForConstructor(cx, jsclass, args));
@@ -418,15 +422,15 @@ public:
         return true;
     }
 
-
+    template <int ctor_minarg = 0>
     static JSObject *ExposeClass(JSContext *cx, const char *name,
                 int jsflags = 0,
                 typename ClassMapper<T>::ExposeFlags flags =
                 ClassMapper<T>::kEmpty_ExposeFlag)
     {
-        JS::RootedObject proto(cx, ClassMapper<T>::ExposeClass(cx, name,
+        JS::RootedObject proto(cx,
+            ClassMapper<T>::template ExposeClass<ctor_minarg>(cx, name,
             jsflags, flags));
-
 
         static JSFunctionSpec funcs[] = {
             JS_FN("addEventListener",
