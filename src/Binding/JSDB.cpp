@@ -20,8 +20,6 @@ JSDB *JSDB::Constructor(JSContext *cx, JS::CallArgs &args,
     JS::HandleObject obj)
 {
 
-    NIDIUM_JS_CTOR_CHECK_ARGS("constructor", 1);
-
     if (!args[0].isString()) {
         JS_ReportError(cx, "First argument must be a string");
         return nullptr;
@@ -213,7 +211,7 @@ static JSObject *registerCallback(JSContext *cx)
     JS::RootedObject obj(cx,
                          JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
-    JSDB::ExposeClass(cx, "DB", 0, JSDB::kEmpty_ExposeFlag, obj);
+    JSDB::ExposeClass<1>(cx, "DB", 0, JSDB::kEmpty_ExposeFlag, obj);
 
     JS::RootedValue val(cx);
     if (!JS_GetProperty(cx, obj, "DB", &val)) {
