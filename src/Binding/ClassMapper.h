@@ -67,7 +67,8 @@ public:
      *  Expose an instantiable JS class |name| to the global namespace
      */
     static JSObject *ExposeClass(JSContext *cx, const char *name,
-        int jsflags = 0, ExposeFlags flags = kEmpty_ExposeFlag)
+        int jsflags = 0, ExposeFlags flags = kEmpty_ExposeFlag,
+        JS::HandleObject parent = JS::NullPtr())
     {
 
         JSClass *jsclass = ClassMapper<T>::GetJSClass();
@@ -80,9 +81,11 @@ public:
             jsclass->trace = ClassMapper<T>::JSTrace;
         }
 
-        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+        JS::RootedObject sparent(cx);
 
-        return JS_InitClass(cx, global, JS::NullPtr(), jsclass,
+        sparent = !parent.get() ? JS::CurrentGlobalOrNull(cx) : parent;
+
+        return JS_InitClass(cx, sparent, JS::NullPtr(), jsclass,
                     ClassMapper<T>::JSConstructor, 0, NULL,
                     T::ListMethods(), T::ListProperties(), NULL);
     }
