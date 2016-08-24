@@ -13,52 +13,18 @@
 namespace Nidium {
 namespace Binding {
 
-// {{{ Preamble
-static bool jsdb_get(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool jsdb_set(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool jsdb_delete(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool jsdb_close(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool jsdb_drop(JSContext *cx, unsigned argc, JS::Value *vp);
-static void JSDB_Finalizer(JSFreeOp *fop, JSObject *obj);
 
-static JSClass JSDB_class = { "DB",
-                              JSCLASS_HAS_PRIVATE,
-                              JS_PropertyStub,
-                              JS_DeletePropertyStub,
-                              JS_PropertyStub,
-                              JS_StrictPropertyStub,
-                              JS_EnumerateStub,
-                              JS_ResolveStub,
-                              JS_ConvertStub,
-                              JSDB_Finalizer,
-                              nullptr,
-                              nullptr,
-                              nullptr,
-                              nullptr,
-                              JSCLASS_NO_INTERNAL_MEMBERS };
-
-template <>
-JSClass *JSExposer<JSDB>::jsclass = &JSDB_class;
-
-static JSFunctionSpec JSDB_funcs[]
-    = { JS_FN("get", jsdb_get, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("set", jsdb_set, 2, NIDIUM_JS_FNPROPS),
-        JS_FN("delete", jsdb_delete, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("close", jsdb_close, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("drop", jsdb_drop, 0, NIDIUM_JS_FNPROPS),
-        JS_FS_END };
-// }}}
 
 // {{{ JSDB Bindings
-static bool jsdb_constructor(JSContext *cx, unsigned argc, jsval *vp)
+JSDB *JSDB::Constructor(JSContext *cx, JS::CallArgs &args,
+    JS::HandleObject obj)
 {
-    NIDIUM_JS_CONSTRUCTOR_PROLOGUE();
 
-    NIDIUM_JS_CHECK_ARGS("constructor", 1);
+    NIDIUM_JS_CTOR_CHECK_ARGS("constructor", 1);
 
     if (!args[0].isString()) {
         JS_ReportError(cx, "First argument must be a string");
-        return false;
+        return nullptr;
     }
 
     JS::RootedString jsPath(cx, args[0].toString());
@@ -66,40 +32,30 @@ static bool jsdb_constructor(JSContext *cx, unsigned argc, jsval *vp)
     Core::Path path(dbPath.ptr());
     if (!path.path()) {
         JS_ReportError(cx, "Invalid DB path");
-        return false;
+        return nullptr;
     }
 
-    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &JSDB_class, args));
-
-    JSDB *jsdb = new JSDB(cx, ret, path.path());
+    JSDB *jsdb = new JSDB(path.path());
     if (!jsdb->ok()) {
         JS_ReportError(cx, "Failed to create DB");
 
         delete jsdb;
 
-        return false;
+        return nullptr;
     }
 
-    JS_SetPrivate(ret, jsdb);
-
-    args.rval().setObject(*ret);
-
-    return true;
+    return jsdb;
 }
 
-static bool jsdb_set(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSDB::JS_set(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(JSDB, &JSDB_class);
-
-    NIDIUM_JS_CHECK_ARGS("set", 2);
-
     if (!args[0].isString()) {
         JS_ReportError(cx, "set() : key must be a string");
         return false;
     }
 
     JSAutoByteString key(cx, args[0].toString());
-    if (!CppObj->set(cx, key.ptr(), args[1])) {
+    if (!this->set(cx, key.ptr(), args[1])) {
         JS_ReportError(cx, "Failed to set data");
         return false;
     }
@@ -107,12 +63,8 @@ static bool jsdb_set(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool jsdb_get(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSDB::JS_get(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSDB, &JSDB_class);
-
-    NIDIUM_JS_CHECK_ARGS("get", 1);
-
     if (!args[0].isString()) {
         JS_ReportError(cx, "get() : key must be a string");
         return false;
@@ -121,7 +73,7 @@ static bool jsdb_get(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString key(cx, args[0].toString());
     JS::RootedValue rval(cx);
 
-    if (!CppObj->get(cx, key.ptr(), &rval)) {
+    if (!this->get(cx, key.ptr(), &rval)) {
         JS_ReportError(cx, "Failed to retreive data");
         return false;
     }
@@ -131,12 +83,8 @@ static bool jsdb_get(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool jsdb_delete(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSDB::JS_delete(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(JSDB, &JSDB_class);
-
-    NIDIUM_JS_CHECK_ARGS("delete", 1);
-
     if (!args[0].isString()) {
         JS_ReportError(cx, "delete() : key must be a string");
         return false;
@@ -145,7 +93,7 @@ static bool jsdb_delete(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString key(cx, args[0].toString());
     JS::RootedValue rval(cx);
 
-    if (!CppObj->del(key.ptr())) {
+    if (!this->del(key.ptr())) {
         JS_ReportError(cx, "Failed to delete data");
         return false;
     }
@@ -153,11 +101,9 @@ static bool jsdb_delete(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool jsdb_drop(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSDB::JS_drop(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(JSDB, &JSDB_class);
-
-    if (!CppObj->drop()) {
+    if (!this->drop()) {
         JS_ReportError(cx, "Failed to drop DB");
         return false;
     }
@@ -165,11 +111,9 @@ static bool jsdb_drop(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool jsdb_close(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSDB::JS_close(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(JSDB, &JSDB_class);
-
-    if (!CppObj->close()) {
+    if (!this->close()) {
         JS_ReportError(cx, "Failed to drop DB");
         return false;
     }
@@ -177,19 +121,12 @@ static bool jsdb_close(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static void JSDB_Finalizer(JSFreeOp *fop, JSObject *obj)
-{
-    JSDB *db = static_cast<JSDB *>(JS_GetPrivate(obj));
 
-    if (db != nullptr) {
-        delete db;
-    }
-}
 // }}}
 
 // {{{ JSDB Implementation
-JSDB::JSDB(JSContext *cx, JS::HandleObject obj, const char *path)
-    : JSExposer<JSDB>(obj, cx), DB(path)
+JSDB::JSDB(const char *path)
+    : DB(path)
 {
 }
 
@@ -256,16 +193,30 @@ bool JSDB::get(JSContext *cx, const char *key, JS::MutableHandleValue rval)
 }
 // }}}
 
-// {{{ Registration
+JSFunctionSpec *JSDB::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSDB, get, 1),
+        CLASSMAPPER_FN(JSDB, set, 2),
+        CLASSMAPPER_FN(JSDB, delete, 1),
+        CLASSMAPPER_FN(JSDB, close, 0),
+        CLASSMAPPER_FN(JSDB, drop, 0),
+        JS_FS_END
+    };
+
+    return funcs;
+}
+
+
 static JSObject *registerCallback(JSContext *cx)
 {
     JS::RootedObject obj(cx,
                          JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
-    JS_InitClass(cx, obj, JS::NullPtr(), &JSDB_class, jsdb_constructor, 1, NULL,
-                 JSDB_funcs, NULL, NULL);
+
+    JSDB::ExposeClass(cx, "DB", 0, JSDB::kEmpty_ExposeFlag, obj);
 
     JS::RootedValue val(cx);
-    if (!JS_GetProperty(cx, obj, JSDB_class.name, &val)) {
+    if (!JS_GetProperty(cx, obj, "DB", &val)) {
         return nullptr;
     }
 
@@ -276,9 +227,9 @@ static JSObject *registerCallback(JSContext *cx)
 
 void JSDB::RegisterObject(JSContext *cx)
 {
-    JSModules::RegisterEmbedded(JSDB_class.name, registerCallback);
+    JSModules::RegisterEmbedded("DB", registerCallback);
 }
-// }}}
+
 
 } // namespace Binding
 } // namespace Nidium
