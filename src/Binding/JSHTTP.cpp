@@ -560,7 +560,7 @@ JSHTTP::~JSHTTP()
 JSFunctionSpec *JSHTTP::ListMethods()
 {
     static JSFunctionSpec funcs[] = {
-        CLASSMAPPER_FN(JSHTTP, request, 2),
+        CLASSMAPPER_FN(JSHTTP, request, 0),
         CLASSMAPPER_FN(JSHTTP, stop, 0),
         JS_FS_END
     };
