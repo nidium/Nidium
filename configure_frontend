@@ -89,7 +89,6 @@ def skia():
                     "-Wno-sign-compare -Wno-undefined-bool-conversion" + # needed for "make tools" with clang3.7
                     " -I%s -I%s\"" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/")))
     exports += " LDFLAGS=\"%s -L%s -L%s\"" % (os.environ.get("LDFLAGS", ""), os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/.libs"))
-    exports += " CXXFLAGS=\"%s\"" % (os.environ.get("CXXFLAGS", ""))
 
     makeFlags = "BUILDTYPE=Release -j " + str(Platform.cpuCount)
 
