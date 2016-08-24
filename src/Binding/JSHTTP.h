@@ -10,17 +10,25 @@
 #include <ape_array.h>
 
 #include "Binding/JSExposer.h"
+#include "Binding/ClassMapper.h"
 #include "Net/HTTP.h"
 
 namespace Nidium {
 namespace Binding {
 
-class JSHTTP : public JSExposer<JSHTTP>, public Nidium::Net::HTTPDelegate
+class JSHTTP : public ClassMapperWithEvents<JSHTTP>,
+               public Nidium::Net::HTTPDelegate
 {
 public:
     static void RegisterObject(JSContext *cx);
-    JSHTTP(JS::HandleObject obj, JSContext *cx, char *url);
+
+    JSHTTP(char *url);
     virtual ~JSHTTP();
+
+    static JSHTTP *Constructor(JSContext *cx, JS::CallArgs &args,
+        JS::HandleObject obj);
+
+    static JSFunctionSpec *ListMethods();
 
     bool request(JSContext *cx,
                  JS::HandleObject options,
@@ -39,17 +47,21 @@ public:
     void parseOptions(JSContext *cx, JS::HandleObject options);
     Net::HTTPRequest *getRequest(JSContext *cx);
 
-    Net::HTTP *m_HTTP = nullptr;
-
     JS::Heap<JS::Value> m_JSCallback;
-    JS::Heap<JSObject *> m_JSObj;
+
+protected:
+
+    NIDIUM_DECL_JSCALL(request);
+    NIDIUM_DECL_JSCALL(stop);
+
+private:
+    void headersToJSObject(JS::MutableHandleObject obj);
+
+    Net::HTTP *m_HTTP = nullptr;
 
     bool m_Eval                     = true;
     char *m_URL                     = nullptr;
     Net::HTTPRequest *m_HTTPRequest = nullptr;
-
-private:
-    void headersToJSObject(JS::MutableHandleObject obj);
 };
 
 } // namespace Binding
