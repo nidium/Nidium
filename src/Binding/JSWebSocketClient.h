@@ -10,17 +10,15 @@
 
 #include "Core/Messages.h"
 #include "Net/WebSocketClient.h"
-#include "Binding/JSExposer.h"
+#include "Binding/ClassMapper.h"
 
 namespace Nidium {
 namespace Binding {
 
-class JSWebSocket : public JSExposer<JSWebSocket>, public Nidium::Core::Messages
+class JSWebSocket : public ClassMapper<JSWebSocket>, public Nidium::Core::Messages
 {
 public:
-    JSWebSocket(JS::HandleObject obj,
-                JSContext *cx,
-                const char *host,
+    JSWebSocket(const char *host,
                 unsigned short port,
                 const char *path,
                 bool ssl = false);
@@ -33,7 +31,14 @@ public:
     {
         return m_WebSocketClient;
     }
+    static JSWebSocket *Constructor(JSContext *cx, JS::CallArgs &args,
+        JS::HandleObject obj);
 
+    static JSFunctionSpec *ListMethods();
+protected:
+    NIDIUM_DECL_JSCALL(send);
+    NIDIUM_DECL_JSCALL(close);
+    NIDIUM_DECL_JSCALL(ping);
 private:
     Nidium::Net::WebSocketClient *m_WebSocketClient;
 };
