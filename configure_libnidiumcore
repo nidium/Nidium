@@ -27,17 +27,18 @@ Deps.set(
     Deps.Konstruct("network", "src/libapenetwork/configure")
 )
 
+if Platform.system == "Darwin":
+    Platform.setEnviron("CXXFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7 -std=c++11")
+    Platform.setEnviron("CPPFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
+    Platform.setEnviron("LDFLAGS+=-stdlib=libc++ -std=c++11")
+
 DEPEDENCY_REPO = Variables.get("depsRepo")
 CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
 Gyp = Builder.Gyp
 
 @Deps.register("leveldb")
 def leveldb():
-    cxxflags = ""
-    extraCmd = ""
-
-    if Platform.system == "Darwin":
-        cxxflags = "-stdlib=libc++ -mmacosx-version-min=10.7"
+    cxxflags = os.environ.get("CXXFLAGS")
 
     if Konstruct.config("asan"):
         # Fix ASAN container overflow false positive :

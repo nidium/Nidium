@@ -85,13 +85,13 @@ def skia():
     else:
         exports = "GYP_DEFINES='skia_arch_width=32 skia_osx_deployment_target=10.7'"
 
-    exports += (" CPPFLAGS=\"-Wno-sign-compare -Wno-undefined-bool-conversion" + # needed for make tools with clang3.7
-                            " -I%s -I%s\"" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/")))
-    exports += " LDFLAGS=\"-L%s -L%s\"" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/.libs"))
+    exports += (" CPPFLAGS=\"%s " % (os.environ.get("CPPFLAGS", "")) +
+                    "-Wno-sign-compare -Wno-undefined-bool-conversion" + # needed for "make tools" with clang3.7
+                    " -I%s -I%s\"" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/")))
+    exports += " LDFLAGS=\"%s -L%s -L%s\"" % (os.environ.get("LDFLAGS", ""), os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/.libs"))
+    exports += " CXXFLAGS=\"%s\"" % (os.environ.get("CXXFLAGS", ""))
 
     makeFlags = "BUILDTYPE=Release -j " + str(Platform.cpuCount)
-    if Variables.get("verbose"):
-        makeFlags += " V=1"
 
     Gyp.set("skia_resource_cache_mb_limit", 256)
 
@@ -114,6 +114,7 @@ def skia():
                    os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_python27.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_clang.patch"),
+                   os.path.join(CONFIGURE_PATH, "patch", "skia_jsoncpp.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_zlib_osx.patch")],
         "outputs": [
             "out/Release/libskia_pdf.a",
@@ -149,19 +150,26 @@ def lss():
     }
 
 def fixAngleThinArchive():
+    # By default ANGLE libs are thin archive, and thus, not relocatable
+    # which breaks Konstructor way of dealing with archives. We need to
+    # update ninja build file, to create "normal" archive
     if Platform.system == "Linux" or Platform.system == "Darwin":
         Utils.run("sed -i.bak \"s/$ar rcsT/$ar rcs/\" out/Release/build.ninja")
 
 @Deps.register("angle")
 def angle():
+    cxxFlags = os.environ.get("CXXFLAGS")
+
     # Disable some errors for clang 3.5 & 3.7
-    cxxFlags = "-Wno-c++11-narrowing -Wno-sign-compare -Wno-error"
+    cxxFlags += "-Wno-c++11-narrowing -Wno-sign-compare -Wno-error"
 
     if Platform.wordSize == 32:
-        cxxFlags = " -msse -msse2 -msse3"
+        cxxFlags += " -msse -msse2 -msse3"
 
     if Platform.system == "Darwin":
-        cxxFlags += " -stdlib=libc++"
+        outPath = "out/Release/"
+    elif platform.system == "Linux":
+        outPath = "out/Release/obj/src/"
 
     return {
         "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785"),
@@ -172,10 +180,10 @@ def angle():
             "ninja -C out/Release/"
         ],
         "outputs": [
-            "out/Release/obj/src/libpreprocessor.a",
-            "out/Release/obj/src/libtranslator.a",
-            "out/Release/obj/src/libtranslator_lib.a",
-            "out/Release/obj/src/libangle_common.a"
+            os.path.join(outPath, "libpreprocessor.a"),
+            os.path.join(outPath, "libtranslator.a"),
+            os.path.join(outPath, "libtranslator_lib.a"),
+            os.path.join(outPath, "libangle_common.a")
         ]
     }
 
