@@ -66,16 +66,6 @@
         return false;                                                \
     }
 
-#define NIDIUM_JS_CTOR_CHECK_ARGS(fnname, minarg)                    \
-    if (args.length() < minarg) {                                    \
-                                                                     \
-        char numBuf[12];                                             \
-        snprintf(numBuf, sizeof numBuf, "%u", args.length());        \
-        JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL,           \
-                             JSMSG_MORE_ARGS_NEEDED, fnname, numBuf, \
-                             (args.length() > 1 ? "s" : ""));        \
-        return nullptr;                                              \
-    }
 // }}}
 // {{{ Object macro's
 typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
