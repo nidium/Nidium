@@ -91,7 +91,7 @@ void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
 
             JSOBJ_CALLFUNCNAME(obj, "onclose", JS::HandleValueArray::empty());
 
-            NidiumJSObj(cx)->unrootObject(obj);
+            this->unroot();
 
             break;
         }
@@ -166,11 +166,6 @@ JSWebSocket *JSWebSocket::Constructor(JSContext *cx, JS::CallArgs &args,
     JS::RootedString url(cx);
     JS::RootedString protocol(cx);
 
-    if (!args.isConstructing()) {
-        JS_ReportError(cx, "Bad constructor");
-        return nullptr;
-    }
-
     if (!JS_ConvertArguments(cx, args, "S/S", url.address(),
                              protocol.address())) {
         return nullptr;
@@ -209,6 +204,7 @@ JSWebSocket *JSWebSocket::Constructor(JSContext *cx, JS::CallArgs &args,
     }
 
     JSWebSocket *wss = new JSWebSocket(host, port, path, isSSL);
+    wss->root();
 
     free(path);
     free(host);
@@ -232,7 +228,7 @@ JSFunctionSpec * JSWebSocket::ListMethods()
 
 void JSWebSocket::RegisterObject(JSContext *cx)
 {
-    JSWebSocket::ExposeClass(cx, "WebSocket");
+    JSWebSocket::ExposeClass<1>(cx, "WebSocket");
 }
 
 } // namespace Binding
