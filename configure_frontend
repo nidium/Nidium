@@ -167,7 +167,7 @@ def angle():
 
     if Platform.system == "Darwin":
         outPath = "out/Release/"
-    elif platform.system == "Linux":
+    elif Platform.system == "Linux":
         outPath = "out/Release/obj/src/"
 
     return {
