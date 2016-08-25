@@ -26,8 +26,6 @@ namespace Binding {
 extern void
 reportError(JSContext *cx, const char *message, JSErrorReport *report);
 static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp);
-static void Thread_Finalize(JSFreeOp *fop, JSObject *obj);
-static bool nidium_thread_start(JSContext *cx, unsigned argc, JS::Value *vp);
 
 #define NJS (NidiumJS::GetObject(cx))
 
@@ -47,26 +45,6 @@ static JSClass global_Thread_class = { "_GLOBALThread",
                                        JS_GlobalObjectTraceHook,
                                        JSCLASS_NO_INTERNAL_MEMBERS };
 
-static JSClass Thread_class
-    = { "Thread",
-        JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
-        JS_PropertyStub,
-        JS_DeletePropertyStub,
-        JS_PropertyStub,
-        JS_StrictPropertyStub,
-        JS_EnumerateStub,
-        JS_ResolveStub,
-        JS_ConvertStub,
-        Thread_Finalize,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        JSCLASS_NO_INTERNAL_MEMBERS };
-
-template <>
-JSClass *JSExposer<JSThread>::jsclass = &Thread_class;
-
 static JSClass messageEvent_class = { "ThreadMessageEvent",
                                       0,
                                       JS_PropertyStub,
@@ -85,9 +63,6 @@ static JSClass messageEvent_class = { "ThreadMessageEvent",
 
 static JSFunctionSpec glob_funcs_threaded[]
     = { JS_FN("send", nidium_post_message, 1, NIDIUM_JS_FNPROPS), JS_FS_END };
-
-static JSFunctionSpec Thread_funcs[]
-    = { JS_FN("start", nidium_thread_start, 0, NIDIUM_JS_FNPROPS), JS_FS_END };
 
 static bool JSThreadCallback(JSContext *cx)
 {
@@ -235,14 +210,14 @@ static void *nidium_thread(void *arg)
 // }}}
 
 // {{{ JSThread
-JSThread::JSThread(JS::HandleObject obj, JSContext *cx)
-    : JSExposer<JSThread>(obj, cx), m_JsRuntime(NULL), m_JsCx(NULL),
+JSThread::JSThread()
+    : m_JsRuntime(NULL), m_JsCx(NULL),
       m_JsObject(NULL), m_Njs(NULL), m_Params({ 0, NULL, 0 }),
       m_MarkedStop(false), m_CallerFileName(NULL), m_CallerLineNo(0)
 {
     /* cx hold the main context (caller) */
     /* jsCx hold the newly created context (along with jsRuntime) */
-    cx = NULL;
+    m_Cx = NULL;
 }
 
 void JSThread::onMessage(const Core::SharedMessages::Message &msg)
@@ -311,7 +286,7 @@ void JSThread::onComplete(JS::HandleValue vp)
 
     this->postMessage(msg, JSThread::kThread_Complete);
 
-    m_Njs->unrootObject(m_JsObject);
+    this->unroot();
 }
 
 
@@ -333,43 +308,32 @@ JSThread::~JSThread()
 
 // {{{ Implementation
 
-static bool nidium_thread_start(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSThread::JS_start(JSContext *cx, JS::CallArgs &args)
 {
-    JSThread *nthread;
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    int argc = args.length();
 
-    if (JS_InstanceOf(cx, caller, &Thread_class, &args) == false) {
-        return true;
-    }
-
-    if ((nthread = static_cast<JSThread *>(JS_GetPrivate(caller))) == NULL) {
-        return true;
-    }
-
-    nthread->m_Params.argv
-        = (argc ? (uint64_t **)malloc(sizeof(*nthread->m_Params.argv) * argc)
+    this->m_Params.argv
+        = (argc ? (uint64_t **)malloc(sizeof(*this->m_Params.argv) * argc)
                 : NULL);
-    nthread->m_Params.nbytes
-        = (argc ? (size_t *)malloc(sizeof(*nthread->m_Params.nbytes) * argc)
+    this->m_Params.nbytes
+        = (argc ? (size_t *)malloc(sizeof(*this->m_Params.nbytes) * argc)
                 : NULL);
 
     for (int i = 0; i < static_cast<int>(argc); i++) {
-
-        if (!JS_WriteStructuredClone(cx, args[i], &nthread->m_Params.argv[i],
-                                     &nthread->m_Params.nbytes[i], NULL, NULL,
+        if (!JS_WriteStructuredClone(cx, args[i], &this->m_Params.argv[i],
+                                     &this->m_Params.nbytes[i], NULL, NULL,
                                      JS::NullHandleValue)) {
 
             return false;
         }
     }
 
-    nthread->m_Params.argc = argc;
+    this->m_Params.argc = argc;
 
     /* TODO: check if already running */
-    pthread_create(&nthread->m_ThreadHandle, NULL, nidium_thread, nthread);
+    pthread_create(&this->m_ThreadHandle, NULL, nidium_thread, this);
 
-    nthread->m_Njs->rootObjectUntilShutdown(caller);
+    this->root();
 
     return true;
 }
@@ -413,25 +377,21 @@ static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp)
 }
 
 
-static bool
-nidium_Thread_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
+JSThread * JSThread::Constructor(JSContext *cx, JS::CallArgs &args,
+    JS::HandleObject obj)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject ret(cx,
-                         JS_NewObjectForConstructor(cx, &Thread_class, args));
-
     JS::RootedScript parent(cx);
 
-    JSThread *nthread = new JSThread(ret, cx);
+    JSThread *nthread = new JSThread();
     JS::RootedFunction nfn(cx);
 
     if ((nfn = JS_ValueToFunction(cx, args[0])) == NULL
         || (nthread->m_JsFunction = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
         printf("Failed to read Threaded function\n");
-        return true;
+        return nullptr;
     }
 
-    nthread->m_JsObject = ret;
+    nthread->m_JsObject = obj;
     nthread->m_Njs      = NJS;
 
     JS::AutoFilename af;
@@ -439,30 +399,23 @@ nidium_Thread_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 
     nthread->m_CallerFileName = strdup(af.get());
 
-    JS_SetPrivate(ret, nthread);
-
-    args.rval().setObject(*ret);
-
-    JS_DefineFunctions(cx, ret, Thread_funcs);
-
-    return true;
+    return nthread;
 }
 
-static void Thread_Finalize(JSFreeOp *fop, JSObject *obj)
+JSFunctionSpec *JSThread::ListMethods()
 {
-    JSThread *nthread = static_cast<JSThread *>(JS_GetPrivate(obj));
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSThread, start, 1),
+        JS_FS_END
+    };
 
-    if (nthread != NULL) {
-        delete nthread;
-    }
+    return funcs;
 }
 
-// }}}
-
-// {{{ Registration
-
-NIDIUM_JS_OBJECT_EXPOSE(Thread)
-
+void JSThread::RegisterObject(JSContext *cx)
+{
+    JSThread::ExposeClass<1>(cx, "Thread", JSCLASS_HAS_RESERVED_SLOTS(1));
+}
 // }}}
 
 } // namespace Binding
