@@ -53,6 +53,18 @@ namespace Binding {
 
 #define NIDIUM_DECL_JSTRACER() void JSTracer(class JSTracer *trc)
 
+#define NIDIUM_CLASSMAPPER_FIX_MULTIPLE_BASE(class) \
+    using ClassMapper<class>::JSCall;                    \
+    using ClassMapper<class>::ExposeClass;               \
+    using ClassMapper<class>::ListProperties;            \
+    using ClassMapper<class>::JSTracer;                  \
+    using ClassMapper<class>::m_Instance;                \
+    using ClassMapper<class>::m_Cx;                      \
+    using ClassMapper<class>::m_Rooted;                  \
+    using ClassMapper<class>::CreateObject;              \
+    using ClassMapper<class>::root;                      \
+    using ClassMapper<class>::unroot;                    \
+
 template <typename T>
 class ClassMapper
 {
@@ -87,7 +99,8 @@ public:
         sparent = !parent.get() ? JS::CurrentGlobalOrNull(cx) : parent;
 
         return JS_InitClass(cx, sparent, JS::NullPtr(), jsclass,
-                    ClassMapper<T>::JSConstructor<ctor_minarg>, 0, NULL,
+                    ClassMapper<T>::JSConstructor<ctor_minarg>,
+                    ctor_minarg, NULL,
                     T::ListMethods(), T::ListProperties(), NULL);
     }
 
@@ -136,9 +149,14 @@ public:
     /**
      *  Get the underlying mapped JSObject
      */    
-    JSObject *getJSObject()
+    JSObject *getJSObject() const
     {
         return m_Instance;
+    }
+
+    JSContext *getJSContext() const
+    {
+        return m_Cx;
     }
 
     /**
