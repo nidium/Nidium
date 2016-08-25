@@ -7,6 +7,7 @@
 #define binding_classmapper_h__
 
 #include <jsapi.h>
+#include <assert.h>
 #include "Binding/JSExposer.h"
 #include "Binding/JSEvents.h"
 
@@ -15,6 +16,10 @@ namespace Binding {
 
 #define CLASSMAPPER_FN(cclass, name, argc) \
     JS_FN(#name, (cclass::JSCall<&cclass::JS_##name, argc>), \
+        argc, NIDIUM_JS_FNPROPS)
+
+#define CLASSMAPPER_FN_ALIAS(cclass, name, argc, alias) \
+    JS_FN(#name, (cclass::JSCall<&cclass::JS_##alias, argc>), \
         argc, NIDIUM_JS_FNPROPS)
 
 #define CLASSMAPPER_PROP_G(cclass, name) \
@@ -83,8 +88,11 @@ public:
         int jsflags = 0, ExposeFlags flags = kEmpty_ExposeFlag,
         JS::HandleObject parent = JS::NullPtr())
     {
-
         JSClass *jsclass = ClassMapper<T>::GetJSClass();
+
+#ifdef DEBUG
+        assert(jsclass->name == NULL);
+#endif
 
         jsclass->name     = name;
         jsclass->finalize = ClassMapper<T>::JSFinalizer;
@@ -109,6 +117,10 @@ public:
      */
     static JSObject *CreateObject(JSContext *cx, T *obj)
     {
+#ifdef DEBUG
+        JSClass *jsclass = ClassMapper<T>::GetJSClass();
+        assert(jsclass->name != NULL);
+#endif
         JS::RootedObject ret(
             cx, JS_NewObject(cx, ClassMapper<T>::GetJSClass(),
                 JS::NullPtr(), JS::NullPtr()));
@@ -122,15 +134,44 @@ public:
         return ret;
     }
 
-    static JSObject *CreateUniqueInstance(JSContext *cx, T *obj)
+    /**
+     *  Create a singleton and expose the instance to the global object
+     */
+    static JSObject *CreateUniqueInstance(JSContext *cx, T *obj,
+        const char *name = nullptr)
     {
         JS::RootedObject ret(cx, CreateObject(cx, obj));
         NidiumJS *njs = NidiumJS::GetObject(cx);
 
+#ifdef DEBUG
+        JSClass *jsclass = ClassMapper<T>::GetJSClass();
+        assert(jsclass->name != NULL);
+#endif
+
         njs->m_JSUniqueInstance.set((uintptr_t)ClassMapper<T>::GetJSClass(),
             ret);
 
+        JS::RootedValue val(cx);
+        val.setObject(*ret);
+
+        if (name == nullptr) {
+            name = GetClassName();
+        }
+
+        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+
+        JS_SetProperty(cx, global, name, val);
+
         return ret;
+    }
+
+    static const char *GetClassName()
+    {
+        JSClass *ret = ClassMapper<T>::GetJSClass();
+
+        assert(ret->name != NULL);
+
+        return ret->name;
     }
 
     /**
@@ -149,7 +190,7 @@ public:
 
     /**
      *  Get a singleton ClassMapper<T> object.
-     *  It's used for objected created with CreateUniqueInstance()
+     *  It's used for object created with CreateUniqueInstance()
      */    
     static T *GetInstance(JSContext *cx = nullptr)
     {
@@ -163,7 +204,6 @@ public:
         }
 
         return GetInstanceUnsafe(ret);
-
     }
 
     static T *GetInstanceUnsafe(JS::HandleObject obj)
@@ -247,6 +287,8 @@ protected:
 
         /* TODO: Get the right method name */
         NIDIUM_JS_CHECK_ARGS("method", minarg);
+
+        args.rval().setUndefined();
 
         return (CppObj->*U)(cx, args);
     }
@@ -375,6 +417,8 @@ public:
 
         /* TODO: Get the right method name */
         NIDIUM_JS_CHECK_ARGS("method", minarg);
+
+        args.rval().setUndefined();
 
         return (CppObj->*U)(cx, args);
     }
