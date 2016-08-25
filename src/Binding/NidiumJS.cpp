@@ -883,6 +883,7 @@ void NidiumJS::loadGlobalObjects()
 {
     JSFile::RegisterObject(m_Cx);
     JSSocket::RegisterObject(m_Cx);
+    JSSocketClientConnection::RegisterObject(m_Cx);
     JSThread::RegisterObject(m_Cx);
     JSHTTP::RegisterObject(m_Cx);
     JSStream::RegisterObject(m_Cx);
