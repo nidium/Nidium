@@ -81,15 +81,6 @@ bool JSDebug::JS_unserialize(JSContext *cx, JS::CallArgs &args)
 
 // }}}
 
-JSDebug *JSDebug::Constructor(JSContext *cx,
-        JS::CallArgs &args,
-        JS::HandleObject obj)
-{
-    JS_ReportError(cx, "Illegal constructor");
-
-    return nullptr;
-}
-
 JSFunctionSpec *JSDebug::ListMethods()
 {
     static JSFunctionSpec funcs[] = {

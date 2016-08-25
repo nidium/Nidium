@@ -15,9 +15,6 @@ class JSDebug : public ClassMapper<JSDebug>
 {
 public:
     virtual ~JSDebug(){};
-    
-    static JSDebug *Constructor(JSContext *cx, JS::CallArgs &args,
-        JS::HandleObject obj);
 
     static JSFunctionSpec *ListMethods();
     static void RegisterObject(JSContext *cx);

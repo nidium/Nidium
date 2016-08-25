@@ -90,6 +90,13 @@ public:
                               : this->getJSObject();
     }
 
+
+    /*
+        These needs to be public because we don't forward APE_socket callbacks
+        to the class directly.
+
+        We will needs to implement a C++ APE_Socket wrapper in order to fix this
+    */
     char *m_Host;
     unsigned short m_Port;
     ape_socket *m_Socket;
@@ -138,10 +145,6 @@ public:
 
     static void RegisterObject(JSContext *cx);
     virtual ~JSSocketClientConnection();
-
-    static JSSocketClientConnection *Constructor(JSContext *cx,
-        JS::CallArgs &args,
-        JS::HandleObject obj);
 
     static JSFunctionSpec *ListMethods();
 protected:

@@ -968,7 +968,7 @@ JSPropertySpec *JSSocket::ListProperties()
 
 void JSSocket::RegisterObject(JSContext *cx)
 {
-    JSSocket::ExposeClass(cx, "Socket");
+    JSSocket::ExposeClass<2>(cx, "Socket");
 }
 
 JSSocketClientConnection::~JSSocketClientConnection()
@@ -994,18 +994,6 @@ JSFunctionSpec *JSSocketClientConnection::ListMethods()
 void JSSocketClientConnection::RegisterObject(JSContext *cx)
 {
     JSSocketClientConnection::ExposeClass(cx, "SocketClientConnection");
-}
-
-JSSocketClientConnection *JSSocketClientConnection::Constructor(JSContext *cx,
-        JS::CallArgs &args,
-        JS::HandleObject obj)
-{
-    /*
-        This is not instantiable by the JavaScript
-    */
-    JS_ReportError(cx, "Illegal constructor");
-
-    return nullptr;
 }
 
 

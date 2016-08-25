@@ -135,34 +135,11 @@ JSFunctionSpec *JSConsole::ListMethods()
     return funcs;
 }
 
-JSConsole *JSConsole::Constructor(JSContext *cx,
-        JS::CallArgs &args,
-        JS::HandleObject obj)
-{
-    JS_ReportError(cx, "Illegal constructor");
-
-    return nullptr;
-}
-
-
 void JSConsole::RegisterObject(JSContext *cx)
 {
     JSConsole::ExposeClass(cx, "Console");
     JSConsole::CreateUniqueInstance(cx, new JSConsole(), "console");
 }
-
-/*
-static JSFunctionSpec console_funcs[]
-    = { JS_FN("log", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("write", nidium_console_write, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("info", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("error", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("warn", nidium_console_log, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("hide", nidium_console_hide, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("show", nidium_console_show, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("clear", nidium_console_clear, 0, NIDIUM_JS_FNPROPS),
-        JS_FS_END };
-*/
 
 } // namespace Binding
 } // namespace Nidium

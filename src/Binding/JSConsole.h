@@ -14,9 +14,6 @@ namespace Binding {
 class JSConsole : public ClassMapper<JSConsole>
 {
 public:
-    static JSConsole *Constructor(JSContext *cx, JS::CallArgs &args,
-        JS::HandleObject obj);
-
     static JSFunctionSpec *ListMethods();
 
     static void RegisterObject(JSContext *cx);
