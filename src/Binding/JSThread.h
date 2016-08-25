@@ -11,6 +11,7 @@
 #include "Core/SharedMessages.h"
 #include "Core/Messages.h"
 #include "Binding/JSExposer.h"
+#include "Binding/ClassMapper.h"
 
 
 namespace Nidium {
@@ -18,11 +19,11 @@ namespace Binding {
 
 class NidiumJS;
 
-class JSThread : public JSExposer<JSThread>, public Nidium::Core::Messages
+class JSThread : public ClassMapper<JSThread>, public Nidium::Core::Messages
 {
 
 public:
-    JSThread(JS::HandleObject obj, JSContext *cx);
+    JSThread();
     enum Thread
     {
         kThread_Message  = 0,
@@ -32,9 +33,11 @@ public:
     static void RegisterObject(JSContext *cx);
     void onComplete(JS::HandleValue vp);
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
+    static JSThread *Constructor(JSContext *cx, JS::CallArgs &args,
+        JS::HandleObject obj);
+    static JSFunctionSpec *ListMethods();
 
     JS::Heap<JSString *> m_JsFunction;
-
     JSRuntime *m_JsRuntime;
     JSContext *m_JsCx;
     JSObject *m_JsObject;
@@ -51,6 +54,8 @@ public:
 
     char *m_CallerFileName;
     uint32_t m_CallerLineNo;
+protected:
+    NIDIUM_DECL_JSCALL(start);
 };
 #endif
 
