@@ -414,7 +414,7 @@ JSFunctionSpec *JSThread::ListMethods()
 
 void JSThread::RegisterObject(JSContext *cx)
 {
-    JSThread::ExposeClass<1>(cx, "Thread");
+    JSThread::ExposeClass<1>(cx, "Thread", JSCLASS_HAS_RESERVED_SLOTS(1));
 }
 // }}}
 
