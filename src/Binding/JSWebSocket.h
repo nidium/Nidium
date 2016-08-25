@@ -26,7 +26,6 @@ public:
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
     static JSWebSocketServer *Constructor(JSContext *cx, JS::CallArgs &args,
         JS::HandleObject obj);
-    static JSFunctionSpec *ListMethods();
 protected:
 private:
     Nidium::Net::WebSocketServer *m_WebSocketServer;

@@ -240,8 +240,8 @@ static void WebSocket_Finalize_client(JSFreeOp *fop, JSObject *obj)
 // }}}
 
 // {{{ WebSocketServer implementation
-JSWebSocketServer *Constructor(JSContext *cx, JS::CallArgs &args,
-	JS::HandleObject obj)
+JSWebSocketServer *JSWebSocketServer::Constructor(JSContext *cx, JS::CallArgs &args,
+    JS::HandleObject obj)
 {
     JS::RootedString url(cx);
     JS::RootedString protocol(cx);
@@ -301,16 +301,6 @@ JSWebSocketServer *Constructor(JSContext *cx, JS::CallArgs &args,
     wss->root();
 
     return wss;
-}
-
-
-JSFunctionSpec *JSWebSocketServer::ListMethods()
-{
-    static JSFunctionSpec funcs[] = {
-        JS_FS_END
-    };
-
-    return funcs;
 }
 
 void JSWebSocketServer::RegisterObject(JSContext *cx)
