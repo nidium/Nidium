@@ -13,62 +13,10 @@ using Nidium::IO::Stream;
 namespace Nidium {
 namespace Binding {
 
-// {{{ Preamble
-enum StreamProp
-{
-    kStreamProp_Filesize
-};
-
-static bool nidium_stream_prop_get(JSContext *cx,
-                                   JS::HandleObject obj,
-                                   uint8_t id,
-                                   JS::MutableHandleValue vp);
-
-static void Stream_Finalize(JSFreeOp *fop, JSObject *obj);
-static bool nidium_stream_seek(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_stream_start(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_stream_stop(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value *vp);
-
-static JSClass Stream_class = { "Stream",
-                                JSCLASS_HAS_PRIVATE,
-                                JS_PropertyStub,
-                                JS_DeletePropertyStub,
-                                JS_PropertyStub,
-                                JS_StrictPropertyStub,
-                                JS_EnumerateStub,
-                                JS_ResolveStub,
-                                JS_ConvertStub,
-                                Stream_Finalize,
-                                nullptr,
-                                nullptr,
-                                nullptr,
-                                nullptr,
-                                JSCLASS_NO_INTERNAL_MEMBERS };
-
-template <>
-JSClass *JSExposer<JSStream>::jsclass = &Stream_class;
-
-static JSFunctionSpec Stream_funcs[] = {
-    JS_FN("seek", nidium_stream_seek, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("start", nidium_stream_start, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("stop", nidium_stream_stop, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("getNextPacket", nidium_stream_getNextPacket, 0, NIDIUM_JS_FNPROPS),
-    JS_FS_END
-};
-
-static JSPropertySpec Stream_props[]
-    = { NIDIUM_JS_PSG("filesize", kStreamProp_Filesize, nidium_stream_prop_get),
-        JS_PS_END };
-// }}}
 
 // {{{ JSStream
-JSStream::JSStream(JS::HandleObject obj,
-                   JSContext *cx,
-                   ape_global *net,
+JSStream::JSStream(ape_global *net,
                    const char *url)
-    : JSExposer<JSStream>(obj, cx)
 {
     std::string str = url;
     // str += NidiumJS::getNidiumClass(cx)->getPath();
@@ -112,7 +60,7 @@ void JSStream::onMessage(const Core::SharedMessages::Message &msg)
     JS::RootedValue onerror_callback(m_Cx);
     JS::RootedValue rval(m_Cx);
 
-    JS::RootedObject obj(m_Cx, m_JSObject);
+    JS::RootedObject obj(m_Cx, this->getJSObject());
 
     switch (msg.event()) {
         case Stream::kEvents_AvailableData:
@@ -155,67 +103,36 @@ void JSStream::onMessage(const Core::SharedMessages::Message &msg)
 // }}}
 
 // {{{ Implementation
-
-static bool nidium_stream_prop_get(JSContext *cx,
-                                   JS::HandleObject obj,
-                                   uint8_t id,
-                                   JS::MutableHandleValue vp)
+bool JSStream::JSGetter_filesize(JSContext *cx, JS::MutableHandleValue vp)
 {
-
-    JSStream *stream = static_cast<JSStream *>(JS_GetPrivate(obj));
-
-    switch (id) {
-        case kStreamProp_Filesize:
-            vp.setInt32(stream->getStream()->getFileSize());
-            break;
-        default:
-            break;
-    }
-    return true;
-}
-
-static bool nidium_stream_stop(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-
-    if (!JS_InstanceOf(cx, caller, &Stream_class, &args)) {
-        return true;
-    }
-
-    static_cast<JSStream *>(JS_GetPrivate(caller))->getStream()->stop();
+    vp.setInt32(this->getStream()->getFileSize());
 
     return true;
 }
 
-static bool nidium_stream_seek(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSStream::JS_stop(JSContext *cx, JS::CallArgs &args)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    this->getStream()->stop();
+
+    return true;
+}
+
+bool JSStream::JS_seek(JSContext *cx, JS::CallArgs &args)
+{
     uint32_t pos;
-
-    if (!JS_InstanceOf(cx, caller, &Stream_class, &args)) {
-        return true;
-    }
-
     if (!JS_ConvertArguments(cx, args, "u", &pos)) {
         return false;
     }
 
-    static_cast<JSStream *>(JS_GetPrivate(caller))->getStream()->seek(pos);
+    this->getStream()->seek(pos);
 
     return true;
 }
 
-static bool nidium_stream_start(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSStream::JS_start(JSContext *cx, JS::CallArgs &args)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     size_t packetlen = 4096;
 
-    if (!JS_InstanceOf(cx, caller, &Stream_class, &args)) {
-        return true;
-    }
     if (args.length() > 0 && args[0].isInt32()) {
         packetlen = args[0].toInt32();
         if (packetlen < 1) {
@@ -225,32 +142,19 @@ static bool nidium_stream_start(JSContext *cx, unsigned argc, JS::Value *vp)
         }
     }
 
-    static_cast<JSStream *>(JS_GetPrivate(caller))
-        ->getStream()
-        ->start(packetlen);
-
-    NidiumJSObj(cx)->rootObjectUntilShutdown(caller);
+    this->getStream()->start(packetlen);
+    this->root();
 
     return true;
 }
 
-static bool
-nidium_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSStream::JS_getNextPacket(JSContext *cx, JS::CallArgs &args)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-
-    if (!JS_InstanceOf(cx, caller, &Stream_class, &args)) {
-        return true;
-    }
-
     size_t len;
     int err;
     const unsigned char *ret;
 
-    ret = static_cast<JSStream *>(JS_GetPrivate(caller))
-              ->getStream()
-              ->getNextPacket(&len, &err);
+    ret = this->getStream()->getNextPacket(&len, &err);
 
     if (ret == NULL) {
         switch (err) {
@@ -280,57 +184,53 @@ nidium_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool
-nidium_Stream_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
+JSStream * JSStream::Constructor(JSContext *cx,  JS::CallArgs &args,
+    JS::HandleObject obj)
 {
     JS::RootedString url(cx);
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
-    if (!args.isConstructing()) {
-        JS_ReportError(cx, "Bad constructor");
-        return false;
-    }
-
     if (!JS_ConvertArguments(cx, args, "S", url.address())) {
-        return false;
+        return nullptr;
     }
-
-    JS::RootedObject ret(cx,
-                         JS_NewObjectForConstructor(cx, &Stream_class, args));
 
     JSAutoByteString curl(cx, url);
 
     JSStream *jstream = new JSStream(
-        ret, cx, static_cast<ape_global *>(JS_GetContextPrivate(cx)),
-        curl.ptr());
+        static_cast<ape_global *>(JS_GetContextPrivate(cx)), curl.ptr());
 
     if (jstream->getStream() == NULL) {
         JS_ReportError(cx, "Failed to create stream");
-        return false;
+        return nullptr;
     }
 
-    JS_SetPrivate(ret, jstream);
-
-    JS_DefineFunctions(cx, ret, Stream_funcs);
-    JS_DefineProperties(cx, ret, Stream_props);
-
-    args.rval().setObject(*ret);
-
-    return true;
+    return jstream;
 }
-
-static void Stream_Finalize(JSFreeOp *fop, JSObject *obj)
+JSPropertySpec *JSStream::ListProperties()
 {
-    JSStream *nstream = static_cast<JSStream *>(JS_GetPrivate(obj));
+    static JSPropertySpec props[] = {
+        CLASSMAPPER_PROP_G(JSStream, filesize),
 
-    if (nstream != NULL) {
-        delete nstream;
-    }
+        JS_PS_END
+    };
+
+    return props;
 }
-// }}}
+JSFunctionSpec *JSStream::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSStream, seek, 1),
+        CLASSMAPPER_FN(JSStream, start, 0),
+        CLASSMAPPER_FN(JSStream, stop, 0),
+        CLASSMAPPER_FN(JSStream, getNextPacket, 0),
+        JS_FS_END
+    };
 
-// {{{ Registration
-NIDIUM_JS_OBJECT_EXPOSE(Stream)
+    return funcs;
+}
+void JSStream::RegisterObject(JSContext *cx)
+{
+    JSStream::ExposeClass<1>(cx, "Stream");
+}
+
 // }}}
 
 } // namespace Binding
