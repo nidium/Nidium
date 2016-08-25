@@ -122,6 +122,17 @@ public:
         return ret;
     }
 
+    static JSObject *CreateUniqueInstance(JSContext *cx, T *obj)
+    {
+        JS::RootedObject ret(cx, CreateObject(cx, obj));
+        NidiumJS *njs = NidiumJS::GetObject(cx);
+
+        njs->m_JSUniqueInstance.set((uintptr_t)ClassMapper<T>::GetJSClass(),
+            ret);
+
+        return ret;
+    }
+
     /**
      *  Get a ClassMapper<T> object given its JSObject.
      *  Return NULL if wrong source object
@@ -134,6 +145,25 @@ public:
         }
 
         return (T *)JS_GetPrivate(obj);
+    }
+
+    /**
+     *  Get a singleton ClassMapper<T> object.
+     *  It's used for objected created with CreateUniqueInstance()
+     */    
+    static T *GetInstance(JSContext *cx = nullptr)
+    {
+        NidiumJS *njs = NidiumJS::GetObject(cx);
+
+        JSObject *ret = njs->m_JSUniqueInstance.get(
+            (uintptr_t)ClassMapper<T>::GetJSClass());
+
+        if (ret == NULL) {
+            return nullptr;
+        }
+
+        return GetInstanceUnsafe(ret);
+
     }
 
     static T *GetInstanceUnsafe(JS::HandleObject obj)
