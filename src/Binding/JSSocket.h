@@ -9,21 +9,27 @@
 #include <ape_netlib.h>
 
 #include "Binding/JSExposer.h"
+#include "Binding/ClassMapper.h"
 
 namespace Nidium {
 namespace Binding {
 
 #define SOCKET_LINEBUFFER_MAX 8192
 
-class JSSocket : public JSExposer<JSSocket>
+
+
+class JSSocket : public ClassMapper<JSSocket>
 {
 public:
     static void RegisterObject(JSContext *cx);
-    JSSocket(JS::HandleObject obj,
-             JSContext *cx,
-             const char *host,
+    JSSocket(const char *host,
              unsigned short port);
-    ~JSSocket();
+    virtual ~JSSocket();
+
+    static JSSocket *Constructor(JSContext *cx, JS::CallArgs &args,
+        JS::HandleObject obj);
+    static JSFunctionSpec *ListMethods();
+    static JSPropertySpec *ListProperties();
 
     enum SocketType
     {
@@ -103,8 +109,45 @@ public:
 
     int m_TCPTimeout;
 
+protected:
+    NIDIUM_DECL_JSCALL(listen);
+    NIDIUM_DECL_JSCALL(connect);
+    NIDIUM_DECL_JSCALL(write);
+    NIDIUM_DECL_JSCALL(disconnect);
+    NIDIUM_DECL_JSCALL(sendTo);
+
+    NIDIUM_DECL_JSGETTERSETTER(binary);
+    NIDIUM_DECL_JSGETTERSETTER(readline);
+    NIDIUM_DECL_JSGETTERSETTER(encoding);
+    NIDIUM_DECL_JSGETTERSETTER(timeout);
 private:
     void readFrame(const char *buf, size_t len);
+};
+
+class JSSocketClientConnection : public JSSocket,
+                                 public ClassMapper<JSSocketClientConnection>
+{
+public:
+    NIDIUM_CLASSMAPPER_FIX_MULTIPLE_BASE(JSSocketClientConnection);
+
+    JSSocketClientConnection(const char *host, unsigned short port) :
+        JSSocket(host, port)
+    {
+
+    }
+
+    static void RegisterObject(JSContext *cx);
+    virtual ~JSSocketClientConnection();
+
+    static JSSocketClientConnection *Constructor(JSContext *cx,
+        JS::CallArgs &args,
+        JS::HandleObject obj);
+
+    static JSFunctionSpec *ListMethods();
+protected:
+    NIDIUM_DECL_JSCALL(write);
+    NIDIUM_DECL_JSCALL(disconnect);
+    NIDIUM_DECL_JSCALL(sendFile);
 };
 
 } // namespace Binding

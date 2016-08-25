@@ -21,127 +21,9 @@
 namespace Nidium {
 namespace Binding {
 
-// {{{ Preamble
-#define SOCKET_RESERVED_SLOT 0
-
-enum SocketProp
-{
-    kSocketProp_Binary = SOCKET_RESERVED_SLOT,
-    kSocketProp_Readline,
-    kSocketProp_Encoding,
-    kSocketProp_Timeout,
-    kSocketProp_END
-};
-
-/* only use on connected clients */
-#define SOCKET_JSOBJECT(socket) (static_cast<JSSocket *>(socket)->getJSObject())
-
-static void Socket_Finalize(JSFreeOp *fop, JSObject *obj);
-static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj);
-static bool nidium_socket_prop_get(JSContext *cx,
-                                   JS::HandleObject obj,
-                                   uint8_t id,
-                                   JS::MutableHandleValue vp);
-static bool nidium_socket_prop_set(JSContext *cx,
-                                   JS::HandleObject obj,
-                                   uint8_t id,
-                                   bool strict,
-                                   JS::MutableHandleValue vp);
-static bool nidium_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_socket_write(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_socket_close(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp);
-
-static bool
-nidium_socket_client_write(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_socket_client_sendFile(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_socket_client_close(JSContext *cx, unsigned argc, JS::Value *vp);
-
-static JSClass Socket_class
-    = { "Socket",
-        JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(kSocketProp_END + 1),
-        JS_PropertyStub,
-        JS_DeletePropertyStub,
-        JS_PropertyStub,
-        JS_StrictPropertyStub,
-        JS_EnumerateStub,
-        JS_ResolveStub,
-        JS_ConvertStub,
-        Socket_Finalize,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        JSCLASS_NO_INTERNAL_MEMBERS };
-
-template <>
-JSClass *JSExposer<JSSocket>::jsclass = &Socket_class;
-
-static JSClass socket_client_class = { "SocketClient",
-                                       JSCLASS_HAS_PRIVATE,
-                                       JS_PropertyStub,
-                                       JS_DeletePropertyStub,
-                                       JS_PropertyStub,
-                                       JS_StrictPropertyStub,
-                                       JS_EnumerateStub,
-                                       JS_ResolveStub,
-                                       JS_ConvertStub,
-                                       Socket_Finalize_client,
-                                       nullptr,
-                                       nullptr,
-                                       nullptr,
-                                       nullptr,
-                                       JSCLASS_NO_INTERNAL_MEMBERS };
-
-static JSFunctionSpec socket_client_funcs[]
-    = { JS_FN("sendFile", nidium_socket_client_sendFile, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("write", nidium_socket_client_write, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("disconnect",
-              nidium_socket_client_close,
-              0,
-              NIDIUM_JS_FNPROPS), /* TODO: add force arg */
-        JS_FS_END };
-
-static JSFunctionSpec socket_funcs[]
-    = { JS_FN("listen", nidium_socket_listen, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("connect", nidium_socket_connect, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("write", nidium_socket_write, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("disconnect",
-              nidium_socket_close,
-              0,
-              NIDIUM_JS_FNPROPS), /* TODO: add force arg */
-        JS_FN("sendTo", nidium_socket_sendto, 3, NIDIUM_JS_FNPROPS),
-        JS_FS_END };
-
-static JSPropertySpec Socket_props[] = { NIDIUM_JS_PSGS("binary",
-                                                        kSocketProp_Binary,
-                                                        nidium_socket_prop_get,
-                                                        nidium_socket_prop_set),
-                                         NIDIUM_JS_PSGS("readline",
-                                                        kSocketProp_Readline,
-                                                        nidium_socket_prop_get,
-                                                        nidium_socket_prop_set),
-                                         NIDIUM_JS_PSGS("encoding",
-                                                        kSocketProp_Encoding,
-                                                        nidium_socket_prop_get,
-                                                        nidium_socket_prop_set),
-                                         NIDIUM_JS_PSGS("timeout",
-                                                        kSocketProp_Timeout,
-                                                        nidium_socket_prop_get,
-                                                        nidium_socket_prop_set),
-                                         JS_PS_END };
-
-// }}}
-
-// {{{ JSSocket
-JSSocket::JSSocket(JS::HandleObject obj,
-                   JSContext *cx,
-                   const char *host,
+JSSocket::JSSocket(const char *host,
                    unsigned short port)
-    : JSExposer<JSSocket>(obj, cx), m_Socket(NULL), m_Flags(0),
+    : m_Socket(NULL), m_Flags(0),
       m_FrameDelimiter('\n'), m_ParentServer(NULL), m_TCPTimeout(0)
 {
     m_Host = strdup(host);
@@ -319,155 +201,8 @@ JSSocket::~JSSocket()
         free(m_Encoding);
     }
 }
-// }}}
-
-// {{{ Socket server/client common implementation
-static bool nidium_socket_prop_get(JSContext *cx,
-                                   JS::HandleObject obj,
-                                   uint8_t id,
-                                   JS::MutableHandleValue vp)
-{
-    JSSocket *nsocket = static_cast<JSSocket *>(JS_GetPrivate(obj));
-
-    if (nsocket == NULL) {
-        JS_ReportError(cx, "Invalid socket object");
-        return false;
-    }
-
-    switch (id) {
-        case kSocketProp_Binary:
-            vp.setBoolean(nsocket->m_Flags & JSSocket::kSocketType_Binary);
-            break;
-        case kSocketProp_Readline:
-            vp.setBoolean(nsocket->m_Flags & JSSocket::kSocketType_Readline);
-            break;
-        case kSocketProp_Encoding:
-            vp.setString(JS_NewStringCopyZ(
-                cx, nsocket->m_Encoding ? nsocket->m_Encoding : "ascii"));
-            break;
-        case kSocketProp_Timeout:
-            vp.setInt32(nsocket->m_TCPTimeout);
-            break;
-        default:
-            break;
-    }
-    return true;
-}
-
-static bool nidium_socket_prop_set(JSContext *cx,
-                                   JS::HandleObject obj,
-                                   uint8_t id,
-                                   bool strict,
-                                   JS::MutableHandleValue vp)
-{
-    JSSocket *nsocket = static_cast<JSSocket *>(JS_GetPrivate(obj));
-
-    if (nsocket == NULL) {
-        JS_ReportError(cx, "Invalid socket object");
-        return false;
-    }
-
-    switch (id) {
-        case kSocketProp_Binary: {
-            if (vp.isBoolean()) {
-                nsocket->m_Flags
-                    = (vp.toBoolean() == true
-                           ? nsocket->m_Flags | JSSocket::kSocketType_Binary
-                           : nsocket->m_Flags & ~JSSocket::kSocketType_Binary);
-
-            } else {
-                vp.set(JSVAL_FALSE);
-                return true;
-            }
-        } break;
-        case kSocketProp_Readline: {
-            bool isactive
-                = ((vp.isBoolean() && vp.toBoolean() == true) || vp.isInt32());
-
-            if (isactive) {
-
-                nsocket->m_Flags |= JSSocket::kSocketType_Readline;
-
-                if (nsocket->m_LineBuffer.data == NULL) {
-
-                    nsocket->m_LineBuffer.data = static_cast<char *>(
-                        malloc(sizeof(char) * SOCKET_LINEBUFFER_MAX));
-                    nsocket->m_LineBuffer.pos = 0;
-                }
-
-                /*
-                    Default delimiter is line feed.
-                */
-                nsocket->m_FrameDelimiter
-                    = vp.isBoolean() ? '\n' : vp.toInt32() & 0xFF;
-
-            } else {
-                nsocket->m_Flags &= ~JSSocket::kSocketType_Readline;
-
-                vp.set(JSVAL_FALSE);
-                return true;
-            }
-        } break;
-        case kSocketProp_Encoding: {
-            if (vp.isString()) {
-                JSAutoByteString enc(cx, vp.toString());
-                nsocket->m_Encoding = strdup(enc.ptr());
-            }
-        } break;
-        case kSocketProp_Timeout: {
-            if (vp.isNumber()) {
-                nsocket->m_TCPTimeout = APE_ABS(vp.toInt32());
-
-                if (nsocket->m_Socket
-                    && !APE_socket_setTimeout(nsocket->m_Socket,
-                                              nsocket->m_TCPTimeout)) {
-
-                    JS_ReportWarning(cx, "Couldn't set TCP timeout on socket");
-                }
-            }
-        } break;
-        default:
-            break;
-    }
-    return true;
-}
-
-static bool
-nidium_Socket_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    JS::RootedString host(cx);
-
-    unsigned int port;
-    JSSocket *nsocket;
-
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
-    if (!args.isConstructing()) {
-        JS_ReportError(cx, "Bad constructor");
-        return false;
-    }
-
-    JS::RootedObject ret(cx,
-                         JS_NewObjectForConstructor(cx, &Socket_class, args));
-
-    if (!JS_ConvertArguments(cx, args, "Su", host.address(), &port)) {
-        return false;
-    }
-
-    JSAutoByteString chost(cx, host);
-
-    nsocket = new JSSocket(ret, cx, chost.ptr(), port);
-
-    JS_SetPrivate(ret, nsocket);
-
-    args.rval().setObjectOrNull(ret);
-
-    JS_DefineFunctions(cx, ret, socket_funcs);
-    JS_DefineProperties(cx, ret, Socket_props);
 
 
-    return true;
-}
 // }}}
 
 // {{{ Socket server/client common callbacks
@@ -552,13 +287,16 @@ static void nidium_socket_wrapper_onaccept(ape_socket *socket_server,
     JS::RootedValue onaccept(m_Cx);
     JS::RootedValue rval(m_Cx);
     JS::AutoValueArray<1> params(m_Cx);
-    JS::RootedObject jclient(m_Cx, JS_NewObject(m_Cx, &socket_client_class,
-                                                JS::NullPtr(), JS::NullPtr()));
 
-    NidiumJSObj(m_Cx)->rootObjectUntilShutdown(jclient);
+    JSSocketClientConnection *sobj =
+        new JSSocketClientConnection(APE_socket_ipv4(socket_client), 0);
 
-    JSSocket *sobj = new JSSocket(jclient, nsocket->getJSContext(),
-                                  APE_socket_ipv4(socket_client), 0);
+    socket_client->ctx = sobj;
+
+    JS::RootedObject jclient(m_Cx,
+        JSSocketClientConnection::CreateObject(m_Cx, sobj));
+
+    sobj->root();
 
     sobj->m_ParentServer = nsocket;
     sobj->m_Socket       = socket_client;
@@ -569,11 +307,6 @@ static void nidium_socket_wrapper_onaccept(ape_socket *socket_server,
         sobj->m_LineBuffer.pos = 0;
     }
 
-    socket_client->ctx = sobj;
-
-    JS_SetPrivate(jclient, sobj);
-
-    JS_DefineFunctions(m_Cx, jclient, socket_client_funcs);
 
     NIDIUM_JSOBJ_SET_PROP_CSTR(jclient, "ip", APE_socket_ipv4(socket_client));
 
@@ -645,12 +378,134 @@ static void nidium_socket_wrapper_client_disconnect(ape_socket *socket_client,
         JS_CallFunctionValue(cx, obj, ondisconnect, jparams, &rval);
     }
 
-    NidiumJSObj(cx)->unrootObject(csocket->getJSObject());
+    csocket->unroot();
 }
 // }}}
 
-// {{{ Socket server implementation
-static bool nidium_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
+
+
+bool JSSocket::JSSetter_binary(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (vp.isBoolean()) {
+        m_Flags = (vp.toBoolean() == true
+                   ? m_Flags | kSocketType_Binary
+                   : m_Flags & ~kSocketType_Binary);
+
+    }
+
+    return true;
+}
+
+bool JSSocket::JSGetter_binary(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_Flags & kSocketType_Binary);
+
+    return true;
+}
+
+bool JSSocket::JSSetter_readline(JSContext *cx, JS::MutableHandleValue vp)
+{
+    bool isactive
+        = ((vp.isBoolean() && vp.toBoolean() == true) || vp.isInt32());
+
+    if (isactive) {
+
+        m_Flags |= kSocketType_Readline;
+
+        if (m_LineBuffer.data == NULL) {
+
+            m_LineBuffer.data = static_cast<char *>(
+                malloc(sizeof(char) * SOCKET_LINEBUFFER_MAX));
+            m_LineBuffer.pos = 0;
+        }
+
+        /*
+            Default delimiter is line feed.
+        */
+        m_FrameDelimiter
+            = vp.isBoolean() ? '\n' : vp.toInt32() & 0xFF;
+
+    } else {
+        m_Flags &= ~kSocketType_Readline;
+    }
+
+    return true;
+}
+
+bool JSSocket::JSGetter_readline(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_Flags & kSocketType_Readline);
+
+    return true;
+}
+
+bool JSSocket::JSSetter_encoding(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (vp.isString()) {
+        JSAutoByteString enc(cx, vp.toString());
+        m_Encoding = strdup(enc.ptr());
+    }
+
+    return true;
+}
+
+bool JSSocket::JSGetter_encoding(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setString(JS_NewStringCopyZ(
+                cx, m_Encoding ? m_Encoding : "ascii"));
+
+    return true;
+}
+
+bool JSSocket::JSSetter_timeout(JSContext *cx, JS::MutableHandleValue vp)
+{
+
+    uint32_t timeout;
+
+    if (!JS::ToUint32(cx, vp, &timeout)) {
+        return true;
+    }
+
+    m_TCPTimeout = APE_ABS(timeout);
+
+    if (m_Socket
+        && !APE_socket_setTimeout(m_Socket,
+                                  m_TCPTimeout)) {
+
+        JS_ReportWarning(cx, "Couldn't set TCP timeout on socket");
+    }
+
+    return true;
+}
+
+bool JSSocket::JSGetter_timeout(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_TCPTimeout);
+
+    return true;
+}
+
+
+JSSocket *JSSocket::Constructor(JSContext *cx, JS::CallArgs &args,
+        JS::HandleObject obj)
+{
+    JS::RootedString host(cx);
+
+    unsigned int port;
+    JSSocket *nsocket;
+
+    if (!JS_ConvertArguments(cx, args, "Su", host.address(), &port)) {
+        return nullptr;
+    }
+
+    JSAutoByteString chost(cx, host);
+
+    nsocket = new JSSocket(chost.ptr(), port);
+
+    return nsocket;
+}
+
+bool JSSocket::JS_listen(JSContext *cx, JS::CallArgs &args)
 {
     ape_socket *socket;
     ape_socket_proto protocol = APE_SOCKET_PT_TCP;
@@ -658,9 +513,7 @@ static bool nidium_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
 
     ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(cx));
 
-    NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &Socket_class);
-
-    if (CppObj->isAttached()) {
+    if (this->isAttached()) {
         return true;
     }
 
@@ -688,19 +541,19 @@ static bool nidium_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
     /* TODO: need a drain for client socket */
     // socket->callbacks.on_drain      = nidium_socket_wrapper_client_ondrain;
     socket->callbacks.on_drain = NULL;
-    socket->ctx                = CppObj;
+    socket->ctx                = this;
 
-    CppObj->m_Socket = socket;
+    m_Socket = socket;
 
-    if (CppObj->m_TCPTimeout) {
-        if (!APE_socket_setTimeout(socket, CppObj->m_TCPTimeout)) {
+    if (m_TCPTimeout) {
+        if (!APE_socket_setTimeout(socket, m_TCPTimeout)) {
             JS_ReportWarning(cx, "Couldn't set TCP timeout on socket\n");
         }
     }
 
-    if (APE_socket_listen(socket, CppObj->m_Port, CppObj->m_Host, 0, 0) == -1) {
-        JS_ReportError(cx, "Can't listen on socket (%s:%d)", CppObj->m_Host,
-                       CppObj->m_Port);
+    if (APE_socket_listen(socket, m_Port, m_Host, 0, 0) == -1) {
+        JS_ReportError(cx, "Can't listen on socket (%s:%d)", m_Host,
+                       m_Port);
         /* TODO: close() leak */
         return false;
     }
@@ -710,31 +563,18 @@ static bool nidium_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
                               APE_LZ4_COMPRESS_TX | APE_LZ4_COMPRESS_RX);
     }
 
-    NidiumJSObj(cx)->rootObjectUntilShutdown(thisobj);
+    this->root();
 
-    args.rval().setObjectOrNull(thisobj);
+    args.rval().setObjectOrNull(m_Instance);
 
-    CppObj->m_Flags |= JSSocket::kSocketType_Server;
+    m_Flags |= JSSocket::kSocketType_Server;
 
     return true;
 }
 
-static void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
+bool JSSocket::JS_write(JSContext *cx, JS::CallArgs &args)
 {
-    JSSocket *nsocket = static_cast<JSSocket *>(JS_GetPrivate(obj));
-
-    if (nsocket != NULL) {
-        delete nsocket;
-    }
-}
-
-static bool nidium_socket_write(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    NIDIUM_JS_CHECK_ARGS("write", 1);
-
-    NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &Socket_class);
-
-    if (!CppObj->isAttached()) {
+    if (!this->isAttached()) {
 
         JS_ReportWarning(cx, "socket.write() Invalid socket (not connected)");
         args.rval().setInt32(-1);
@@ -746,7 +586,7 @@ static bool nidium_socket_write(JSContext *cx, unsigned argc, JS::Value *vp)
         JS::RootedString str(cx, args[0].toString());
         cdata.encodeUtf8(cx, str);
 
-        int ret = CppObj->write(reinterpret_cast<unsigned char *>(cdata.ptr()),
+        int ret = this->write(reinterpret_cast<unsigned char *>(cdata.ptr()),
                                 strlen(cdata.ptr()), APE_DATA_COPY);
 
         args.rval().setInt32(ret);
@@ -763,7 +603,7 @@ static bool nidium_socket_write(JSContext *cx, unsigned argc, JS::Value *vp)
         uint32_t len  = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
 
-        int ret = CppObj->write(data, len, APE_DATA_COPY);
+        int ret = this->write(data, len, APE_DATA_COPY);
 
         args.rval().setInt32(ret);
 
@@ -777,39 +617,26 @@ static bool nidium_socket_write(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool nidium_socket_close(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSSocket::JS_disconnect(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &Socket_class);
-
-    if (!CppObj->isAttached()) {
+    if (!this->isAttached()) {
         JS_ReportWarning(cx, "socket.close() Invalid socket (not connected)");
         args.rval().setInt32(-1);
         return true;
     }
 
-    CppObj->shutdown();
+    this->shutdown();
 
     return true;
 }
 
-static bool nidium_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSSocket::JS_sendTo(JSContext *cx, JS::CallArgs &args)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-
-    NIDIUM_JS_CHECK_ARGS("sendto", 3);
-
-    if (JS_InstanceOf(cx, caller, &Socket_class, &args) == false) {
-        return false;
-    }
-
-    JSSocket *nsocket = static_cast<JSSocket *>(JS_GetPrivate(caller));
-
-    if (nsocket == NULL || !nsocket->isAttached()) {
+    if (!this->isAttached()) {
         return true;
     }
 
-    if (!(nsocket->m_Flags & JSSocket::kSocketType_Server)) {
+    if (!(m_Flags & JSSocket::kSocketType_Server)) {
         JS_ReportError(cx, "sendto() is only available on listening socket");
         return false;
     }
@@ -827,7 +654,7 @@ static bool nidium_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
     if (args[2].isString()) {
         JSAutoByteString cdata(cx, args[2].toString());
 
-        ape_socket_write_udp(nsocket->m_Socket, cdata.ptr(), cdata.length(),
+        ape_socket_write_udp(this->m_Socket, cdata.ptr(), cdata.length(),
                              cip.ptr(), static_cast<uint16_t>(port));
     } else if (args[2].isObject()) {
         JSObject *objdata = args[2].toObjectOrNull();
@@ -841,7 +668,7 @@ static bool nidium_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
         uint32_t len  = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
 
-        ape_socket_write_udp(nsocket->m_Socket, reinterpret_cast<char *>(data),
+        ape_socket_write_udp(this->m_Socket, reinterpret_cast<char *>(data),
                              len, cip.ptr(), static_cast<uint16_t>(port));
 
     } else {
@@ -924,7 +751,7 @@ static void nidium_socket_wrapper_disconnect(ape_socket *s,
                              JS::HandleValueArray::empty(), &rval);
     }
 
-    NidiumJSObj(cx)->unrootObject(nsocket->getJSObject());
+    nsocket->unroot();
 }
 
 static void nidium_socket_wrapper_client_ondrain(ape_socket *socket_server,
@@ -953,7 +780,7 @@ static void nidium_socket_wrapper_client_ondrain(ape_socket *socket_server,
 // }}}
 
 // {{{ Socket client implementation
-static bool nidium_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSSocket::JS_connect(JSContext *cx, JS::CallArgs &args)
 {
     ape_socket *socket;
     ape_socket_proto protocol = APE_SOCKET_PT_TCP;
@@ -962,9 +789,7 @@ static bool nidium_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
 
     ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(cx));
 
-    NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &Socket_class);
-
-    if (CppObj->isAttached()) {
+    if (this->isAttached()) {
         return false;
     }
 
@@ -999,12 +824,12 @@ static bool nidium_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
     socket->callbacks.on_message    = nidium_socket_wrapper_client_onmessage;
     socket->callbacks.on_drain      = nidium_socket_wrapper_client_ondrain;
 
-    socket->ctx = CppObj;
+    socket->ctx = this;
 
-    CppObj->m_Socket = socket;
+    m_Socket = socket;
 
-    if (CppObj->m_TCPTimeout) {
-        if (!APE_socket_setTimeout(socket, CppObj->m_TCPTimeout)) {
+    if (m_TCPTimeout) {
+        if (!APE_socket_setTimeout(socket, m_TCPTimeout)) {
             JS_ReportWarning(cx, "Couldn't set TCP timeout on socket\n");
         }
     }
@@ -1014,44 +839,25 @@ static bool nidium_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
                               APE_LZ4_COMPRESS_TX | APE_LZ4_COMPRESS_RX);
     }
 
-    if (APE_socket_connect(socket, CppObj->m_Port, CppObj->m_Host, localport)
+    if (APE_socket_connect(socket, m_Port, m_Host, localport)
         == -1) {
-        JS_ReportError(cx, "Can't connect on socket (%s:%d)", CppObj->m_Host,
-                       CppObj->m_Port);
+        JS_ReportError(cx, "Can't connect on socket (%s:%d)", m_Host,
+                       m_Port);
         return false;
     }
 
-    NidiumJSObj(cx)->rootObjectUntilShutdown(thisobj);
+    this->root();
 
-    args.rval().setObjectOrNull(thisobj);
+    args.rval().setObjectOrNull(m_Instance);
 
     return true;
 }
-static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj)
-{
-    JSSocket *nsocket = static_cast<JSSocket *>(JS_GetPrivate(obj));
 
-    if (nsocket != NULL) {
-
-        if (nsocket->m_Socket) {
-            nsocket->m_Socket->ctx = NULL;
-            APE_socket_shutdown_now(nsocket->m_Socket);
-        }
-
-        delete nsocket;
-    }
-}
-
-static bool
-nidium_socket_client_sendFile(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSSocketClientConnection::JS_sendFile(JSContext *cx, JS::CallArgs &args)
 {
     JS::RootedString file(cx);
 
-    NIDIUM_JS_CHECK_ARGS("sendFile", 1);
-
-    NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &socket_client_class);
-
-    if (!CppObj->isAttached()) {
+    if (!this->isAttached()) {
         JS_ReportWarning(cx,
                          "socket.sendFile() Invalid socket (not connected)");
         args.rval().setInt32(-1);
@@ -1063,20 +869,15 @@ nidium_socket_client_sendFile(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JSAutoByteString cfile(cx, file);
 
-    APE_sendfile(CppObj->m_Socket, cfile.ptr());
+    APE_sendfile(this->m_Socket, cfile.ptr());
 
     return true;
 }
 
-static bool
-nidium_socket_client_write(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSSocketClientConnection::JS_write(JSContext *cx, JS::CallArgs &args)
 {
 
-    NIDIUM_JS_CHECK_ARGS("write", 1);
-
-    NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &socket_client_class);
-
-    if (!CppObj->isAttached()) {
+    if (!this->isAttached()) {
 
         JS_ReportWarning(cx, "socket.write() Invalid socket (not connected)");
         args.rval().setInt32(-1);
@@ -1089,7 +890,7 @@ nidium_socket_client_write(JSContext *cx, unsigned argc, JS::Value *vp)
         JS::RootedString str(cx, args[0].toString());
         cdata.encodeUtf8(cx, str);
 
-        int ret = CppObj->write(reinterpret_cast<unsigned char *>(cdata.ptr()),
+        int ret = this->write(reinterpret_cast<unsigned char *>(cdata.ptr()),
                                 strlen(cdata.ptr()), APE_DATA_COPY);
 
         args.rval().setInt32(ret);
@@ -1106,7 +907,7 @@ nidium_socket_client_write(JSContext *cx, unsigned argc, JS::Value *vp)
         uint32_t len  = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
 
-        int ret = CppObj->write(data, len, APE_DATA_COPY);
+        int ret = this->write(data, len, APE_DATA_COPY);
 
         args.rval().setInt32(ret);
 
@@ -1120,26 +921,93 @@ nidium_socket_client_write(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool
-nidium_socket_client_close(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSSocketClientConnection::JS_disconnect(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(JSSocket, &socket_client_class);
-
-    if (!CppObj->isAttached()) {
+    if (!this->isAttached()) {
         JS_ReportWarning(cx, "socket.close() Invalid socket (not connected)");
         args.rval().setInt32(-1);
         return true;
     }
 
-    CppObj->shutdown();
+    this->shutdown();
 
     return true;
 }
 // }}}
 
-// {{{ Registration
-NIDIUM_JS_OBJECT_EXPOSE(Socket)
-// }}}
+
+
+JSFunctionSpec *JSSocket::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSSocket, listen, 0),
+        CLASSMAPPER_FN(JSSocket, connect, 0),
+        CLASSMAPPER_FN(JSSocket, write, 1),
+        CLASSMAPPER_FN(JSSocket, disconnect, 0),
+        CLASSMAPPER_FN(JSSocket, sendTo, 3),
+
+        JS_FS_END
+    };
+
+    return funcs;
+}
+
+JSPropertySpec *JSSocket::ListProperties()
+{
+    static JSPropertySpec props[] = {
+        CLASSMAPPER_PROP_GS(JSSocket, binary),
+        CLASSMAPPER_PROP_GS(JSSocket, readline),
+        CLASSMAPPER_PROP_GS(JSSocket, encoding),
+        CLASSMAPPER_PROP_GS(JSSocket, timeout),
+
+        JS_PS_END
+    };
+
+    return props;
+}
+
+void JSSocket::RegisterObject(JSContext *cx)
+{
+    JSSocket::ExposeClass(cx, "Socket");
+}
+
+JSSocketClientConnection::~JSSocketClientConnection()
+{
+    if (m_Socket) {
+        m_Socket->ctx = NULL;
+        APE_socket_shutdown_now(m_Socket);
+    }
+}
+
+JSFunctionSpec *JSSocketClientConnection::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSSocketClientConnection, sendFile, 1),
+        CLASSMAPPER_FN(JSSocketClientConnection, write, 1),
+        CLASSMAPPER_FN(JSSocketClientConnection, disconnect, 0),
+        JS_FS_END
+    };
+
+    return funcs;
+}
+
+void JSSocketClientConnection::RegisterObject(JSContext *cx)
+{
+    JSSocketClientConnection::ExposeClass(cx, "SocketClientConnection");
+}
+
+JSSocketClientConnection *JSSocketClientConnection::Constructor(JSContext *cx,
+        JS::CallArgs &args,
+        JS::HandleObject obj)
+{
+    /*
+        This is not instantiable by the JavaScript
+    */
+    JS_ReportError(cx, "Illegal constructor");
+
+    return nullptr;
+}
+
 
 } // namespace Binding
 } // namespace Nidium
