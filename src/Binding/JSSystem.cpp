@@ -25,47 +25,20 @@
 namespace Nidium {
 namespace Binding {
 
-// {{{ Preamble
-static bool
-nidium_system_getOpenFileStats(JSContext *cx, unsigned argc, JS::Value *vp);
-
-static JSClass system_class = { "System",
-                                0,
-                                JS_PropertyStub,
-                                JS_DeletePropertyStub,
-                                JS_PropertyStub,
-                                JS_StrictPropertyStub,
-                                JS_EnumerateStub,
-                                JS_ResolveStub,
-                                JS_ConvertStub,
-                                nullptr,
-                                nullptr,
-                                nullptr,
-                                nullptr,
-                                nullptr,
-                                JSCLASS_NO_INTERNAL_MEMBERS };
-
-static JSFunctionSpec system_funcs[] = { JS_FN("getOpenFileStats",
-                                               nidium_system_getOpenFileStats,
-                                               0,
-                                               NIDIUM_JS_FNPROPS),
-#if 0
-#ifdef NIDIUM_PRODUCT_UI
-    JS_FN("language", nidium_nidium_language, 0, NIDIUM_JS_FNPROPS),
-#endif
-#endif
-                                         JS_FS_END };
-// }}}
-
 // {{{ Implementation
-static bool
-nidium_system_getOpenFileStats(JSContext *cx, unsigned argc, JS::Value *vp)
+JSSystem *JSSystem::Constructor(JSContext *cx, JS::CallArgs &args,
+        JS::HandleObject obj)
+{
+    JS_ReportError(cx, "Illegal constructor");
+
+    return nullptr;
+}
+
+bool JSSystem::JS_getOpenFileStats(JSContext *cx, JS::CallArgs &args)
 {
     struct rlimit rl;
     struct stat stats;
     JSContext *m_Cx = cx;
-
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (getrlimit(RLIMIT_NOFILE, &rl) == -1) {
         JS_ReportWarning(cx, "Couldnt get limits values");
@@ -105,7 +78,7 @@ nidium_system_getOpenFileStats(JSContext *cx, unsigned argc, JS::Value *vp)
 
 #if 0
 #ifdef NIDIUM_PRODUCT_UI
-static bool nidium_nidium_language(JSContext *cx, unsigned argc, jsval *vp)
+bool JSProcess::JSSetter_languagey(JSContext *cx, JS::MutableHandleValue vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -118,15 +91,35 @@ static bool nidium_nidium_language(JSContext *cx, unsigned argc, jsval *vp)
 }
 #endif
 #endif
-// }}}
 
-// {{{ Registration
+#if 0
+JSPropertySpec *JSSystem::ListProperties()
+{
+    static JSPropertySpec props[] = {
+#ifdef NIDIUM_PRODUCT_UI
+        CLASSMAPPER_PROP_G(JSSystem, language),
+#endif
+
+        JS_PS_END
+    };
+    return props;
+}
+#endif
+
+JSFunctionSpec *JSSystem::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSSystem, getOpenFileStats, 0),
+        JS_FS_END
+    };
+
+    return funcs;
+}
+
 void JSSystem::RegisterObject(JSContext *cx)
 {
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS::RootedObject systemObj(
-        cx, JS_DefineObject(cx, global, "System", &system_class, nullptr, 0));
-    JS_DefineFunctions(cx, systemObj, system_funcs);
+    JSSystem::ExposeClass<0>(cx, "System");
+    JSSystem::CreateUniqueInstance(cx, new JSSystem(), "System");
 }
 // }}}
 
