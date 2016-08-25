@@ -59,6 +59,7 @@ namespace Binding {
 #define NIDIUM_DECL_JSTRACER() void JSTracer(class JSTracer *trc)
 
 #define NIDIUM_CLASSMAPPER_FIX_MULTIPLE_BASE(class) \
+    using ClassMapper<class>::Constructor;               \
     using ClassMapper<class>::JSCall;                    \
     using ClassMapper<class>::ExposeClass;               \
     using ClassMapper<class>::ListProperties;            \
@@ -141,6 +142,12 @@ public:
         const char *name = nullptr)
     {
         JS::RootedObject ret(cx, CreateObject(cx, obj));
+
+        /* Always root singleton since they might be replaced
+           by the user on the global namespace
+        */
+        obj->root();
+
         NidiumJS *njs = NidiumJS::GetObject(cx);
 
 #ifdef DEBUG
@@ -332,7 +339,15 @@ protected:
     static JSPropertySpec *ListProperties()
     {
         return nullptr;
-    }    
+    }
+
+    static T *Constructor(JSContext *cx, JS::CallArgs &args,
+        JS::HandleObject obj)
+    {
+        JS_ReportError(cx, "Illegal constructor");
+
+        return nullptr;
+    }
 
     template<int ctor_minarg = 0>
     static bool JSConstructor(JSContext *cx, unsigned argc, JS::Value *vp)
