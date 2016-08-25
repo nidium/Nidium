@@ -17,8 +17,6 @@ class JSSystem : public ClassMapper<JSSystem>
 {
 public:
     static void RegisterObject(JSContext *cx);
-    static JSSystem *Constructor(JSContext *cx, JS::CallArgs &args,
-        JS::HandleObject obj);
     static JSFunctionSpec *ListMethods();
 #if 0
     static JSPropertySpec *ListProperties();

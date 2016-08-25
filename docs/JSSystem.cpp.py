@@ -3,6 +3,11 @@
 # that can be found in the LICENSE file.
 
 from dokumentor import *
+FieldDoc("global.NidiumSystem", "System instance",
+    SeesDocs("System|global"),
+    NO_Examples,
+    products=["Frontend", "Server"]
+)
 
 NamespaceDoc( "System", "System statistics.",
     NO_Sees,

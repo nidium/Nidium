@@ -26,14 +26,6 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Implementation
-JSSystem *JSSystem::Constructor(JSContext *cx, JS::CallArgs &args,
-        JS::HandleObject obj)
-{
-    JS_ReportError(cx, "Illegal constructor");
-
-    return nullptr;
-}
-
 bool JSSystem::JS_getOpenFileStats(JSContext *cx, JS::CallArgs &args)
 {
     struct rlimit rl;
@@ -119,7 +111,7 @@ JSFunctionSpec *JSSystem::ListMethods()
 void JSSystem::RegisterObject(JSContext *cx)
 {
     JSSystem::ExposeClass<0>(cx, "System");
-    JSSystem::CreateUniqueInstance(cx, new JSSystem(), "System");
+    JSSystem::CreateUniqueInstance(cx, new JSSystem(), "NidiumSystem");
 }
 // }}}
 
