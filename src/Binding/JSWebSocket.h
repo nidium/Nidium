@@ -14,23 +14,42 @@
 namespace Nidium {
 namespace Binding {
 
+class JSWebSocketClientConnection;
+
 class JSWebSocketServer : public ClassMapper<JSWebSocketServer>,
                           public Nidium::Core::Messages
 {
 public:
     JSWebSocketServer(const char *host,
                       unsigned short port);
-    ~JSWebSocketServer();
+    virtual ~JSWebSocketServer();
     bool start();
     static void RegisterObject(JSContext *cx);
-    void onMessage(const Nidium::Core::SharedMessages::Message &msg);
+    void onMessage(const Core::SharedMessages::Message &msg);
     static JSWebSocketServer *Constructor(JSContext *cx, JS::CallArgs &args,
         JS::HandleObject obj);
 protected:
 private:
-    Nidium::Net::WebSocketServer *m_WebSocketServer;
+    Net::WebSocketServer *m_WebSocketServer;
 
-    JSObject *createClient(Nidium::Net::WebSocketClientConnection *client);
+    JSWebSocketClientConnection *
+        createClient(Net::WebSocketClientConnection *client);
+};
+
+class JSWebSocketClientConnection:
+    public ClassMapper<JSWebSocketClientConnection>
+{
+public:
+    JSWebSocketClientConnection(Net::WebSocketClientConnection *client) :
+         m_WebSocketClientConnection(client) {}
+
+    virtual ~JSWebSocketClientConnection(){};
+    static JSFunctionSpec *ListMethods();
+protected:
+    NIDIUM_DECL_JSCALL(send);
+    NIDIUM_DECL_JSCALL(close);
+private:
+    Net::WebSocketClientConnection *m_WebSocketClientConnection;
 };
 
 } // namespace Binding
