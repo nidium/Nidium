@@ -77,6 +77,7 @@ namespace Binding {
 #define NIDIUM_DECL_JSTRACER() void JSTracer(class JSTracer *trc)
 
 #define NIDIUM_CLASSMAPPER_FIX_MULTIPLE_BASE(class) \
+    using ClassMapper<class>::GetJSClass;                \
     using ClassMapper<class>::Constructor;               \
     using ClassMapper<class>::JSCall;                    \
     using ClassMapper<class>::ExposeClass;               \
@@ -108,7 +109,10 @@ public:
         int jsflags = 0, ExposeFlags flags = kEmpty_ExposeFlag,
         JS::HandleObject parent = JS::NullPtr())
     {
-        JSClass *jsclass = ClassMapper<T>::GetJSClass();
+        JSClass *jsclass = T::GetJSClass();
+        if (jsclass != T::GetJSClass()) {
+            printf("Class isnrt the same\n");
+        }
 
 #ifdef DEBUG
         assert(jsclass->name == NULL);
@@ -139,11 +143,11 @@ public:
     static JSObject *CreateObject(JSContext *cx, T *obj)
     {
 #ifdef DEBUG
-        JSClass *jsclass = ClassMapper<T>::GetJSClass();
+        JSClass *jsclass = T::GetJSClass();
         assert(jsclass->name != NULL);
 #endif
         JS::RootedObject ret(
-            cx, JS_NewObject(cx, ClassMapper<T>::GetJSClass(),
+            cx, JS_NewObject(cx, T::GetJSClass(),
                 JS::NullPtr(), JS::NullPtr()));
 
         obj->m_Instance = ret;
@@ -171,11 +175,11 @@ public:
         NidiumJS *njs = NidiumJS::GetObject(cx);
 
 #ifdef DEBUG
-        JSClass *jsclass = ClassMapper<T>::GetJSClass();
+        JSClass *jsclass = T::GetJSClass();
         assert(jsclass->name != NULL);
 #endif
 
-        njs->m_JSUniqueInstance.set((uintptr_t)ClassMapper<T>::GetJSClass(),
+        njs->m_JSUniqueInstance.set((uintptr_t)T::GetJSClass(),
             ret);
 
         JS::RootedValue val(cx);
@@ -194,7 +198,7 @@ public:
 
     static const char *GetClassName()
     {
-        JSClass *ret = ClassMapper<T>::GetJSClass();
+        JSClass *ret = T::GetJSClass();
 
         assert(ret->name != NULL);
 
@@ -208,7 +212,7 @@ public:
      */
     static T *GetInstance(JS::HandleObject obj)
     {
-        if (JS_GetClass(obj) != ClassMapper<T>::GetJSClass()) {
+        if (JS_GetClass(obj) != T::GetJSClass()) {
             return nullptr;
         }
 
@@ -224,7 +228,7 @@ public:
         NidiumJS *njs = NidiumJS::GetObject(cx);
 
         JSObject *ret = njs->m_JSUniqueInstance.get(
-            (uintptr_t)ClassMapper<T>::GetJSClass());
+            (uintptr_t)T::GetJSClass());
 
         if (ret == NULL) {
             return nullptr;
@@ -242,7 +246,7 @@ public:
 
     static bool IsOfClass(JS::HandleObject obj)
     {
-        return (JS_GetClass(obj) == ClassMapper<T>::GetJSClass());
+        return (JS_GetClass(obj) == T::GetJSClass());
     }
 
     /**
@@ -313,7 +317,7 @@ protected:
     template <JSCallback U, int minarg>
     static bool JSCall(JSContext *cx, unsigned argc, JS::Value *vp)
     {
-        NIDIUM_JS_PROLOGUE_CLASS(T, ClassMapper<T>::GetJSClass());
+        NIDIUM_JS_PROLOGUE_CLASS(T, T::GetJSClass());
 
         /* TODO: Get the right method name */
         NIDIUM_JS_CHECK_ARGS("method", minarg);
@@ -335,7 +339,7 @@ protected:
     template <JSGetterCallback U>
     static bool JSGetter(JSContext *cx, unsigned argc, JS::Value *vp)
     {
-        NIDIUM_JS_PROLOGUE_CLASS(T, ClassMapper<T>::GetJSClass());
+        NIDIUM_JS_PROLOGUE_CLASS(T, T::GetJSClass());
 
         return (CppObj->*U)(cx, args.rval());
     }
@@ -343,7 +347,7 @@ protected:
     template <JSSetterCallback U>
     static bool JSSetter(JSContext *cx, unsigned argc, JS::Value *vp)
     {
-        NIDIUM_JS_PROLOGUE_CLASS(T, ClassMapper<T>::GetJSClass());
+        NIDIUM_JS_PROLOGUE_CLASS(T, T::GetJSClass());
 
         JS::RootedValue val(cx, args.get(0));
 
@@ -390,7 +394,7 @@ protected:
     static bool JSConstructor(JSContext *cx, unsigned argc, JS::Value *vp)
     {
         T *obj;
-        JSClass *jsclass = ClassMapper<T>::GetJSClass();
+        JSClass *jsclass = T::GetJSClass();
 
         JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -465,7 +469,7 @@ public:
     template <JSCallback U, int minarg>
     static bool JSCallInternal(JSContext *cx, unsigned argc, JS::Value *vp)
     {
-        NIDIUM_JS_PROLOGUE_CLASS(T, ClassMapper<T>::GetJSClass());
+        NIDIUM_JS_PROLOGUE_CLASS(T, T::GetJSClass());
 
         /* TODO: Get the right method name */
         NIDIUM_JS_CHECK_ARGS("method", minarg);
