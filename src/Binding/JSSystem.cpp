@@ -110,8 +110,8 @@ JSFunctionSpec *JSSystem::ListMethods()
 
 void JSSystem::RegisterObject(JSContext *cx)
 {
-    JSSystem::ExposeClass<0>(cx, "System");
-    JSSystem::CreateUniqueInstance(cx, new JSSystem(), "NidiumSystem");
+    JSSystem::ExposeClass<0>(cx, "NidiumSystem");
+    JSSystem::CreateUniqueInstance(cx, new JSSystem(), "System");
 }
 // }}}
 

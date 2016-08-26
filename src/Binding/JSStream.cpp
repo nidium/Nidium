@@ -59,8 +59,7 @@ void JSStream::onMessage(const Core::SharedMessages::Message &msg)
     JS::RootedValue onavailable_callback(m_Cx);
     JS::RootedValue onerror_callback(m_Cx);
     JS::RootedValue rval(m_Cx);
-
-    JS::RootedObject obj(m_Cx, this->getJSObject());
+    JS::RootedObject obj(m_Cx, m_Instance);
 
     switch (msg.event()) {
         case Stream::kEvents_AvailableData:

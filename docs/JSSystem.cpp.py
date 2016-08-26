@@ -3,20 +3,20 @@
 # that can be found in the LICENSE file.
 
 from dokumentor import *
-FieldDoc("global.NidiumSystem", "System instance",
-    SeesDocs("System|global"),
+FieldDoc("global.System", "System instance",
+    SeesDocs("NidiumSystem|global|global.System"),
     NO_Examples,
     products=["Frontend", "Server"]
 )
 
-NamespaceDoc( "System", "System statistics.",
-    NO_Sees,
+NamespaceDoc( "NidiumSystem", "System statistics.",
+    SeesDocs("NidiumSystem|global|global.System"),
     NO_Examples,
     products=["Frontend", "Server"]
 )
 
-FunctionDoc( "System.getOpenFileStats", "Provide information about the openfiles.",
-    NO_Sees,
+FunctionDoc( "NidiumSystem.getOpenFileStats", "Provide information about the openfiles.",
+    SeesDocs("NidiumSystem|global|global.System"),
     [ExampleDoc( "console.log( JSON.stringify( System.getOpenFileStats() ));" )],
     IS_Static, IS_Public, IS_Fast,
     NO_Params,
@@ -26,8 +26,8 @@ FunctionDoc( "System.getOpenFileStats", "Provide information about the openfiles
                                         ("sockets", "Open sockes", "integer"),
                                         ("files", "Open Files", "integer")]))
 )
-FunctionDoc( "System.language", "Get the system language.",
-    SeesDocs( "System.language" ),
+FunctionDoc( "NidiumSystem.language", "Get the system language.",
+    SeesDocs("NidiumSystem|global|global.System"),
     [ExampleDoc("console.log(System.language)")],
     IS_Static, IS_Public, IS_Fast,
     NO_Params,
