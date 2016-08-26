@@ -230,7 +230,9 @@ public:
             return nullptr;
         }
 
-        return GetInstanceUnsafe(ret);
+        JS::RootedObject obj(cx, ret);
+
+        return GetInstanceUnsafe(obj);
     }
 
     static T *GetInstanceUnsafe(JS::HandleObject obj)
