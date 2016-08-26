@@ -14,8 +14,23 @@
 namespace Nidium {
 namespace Binding {
 
+#define CLASSMAPPER_CHECK_ARGS(fnname, minarg)                       \
+    if (args.length() < minarg) {                                    \
+                                                                     \
+        char numBuf[12];                                             \
+        snprintf(numBuf, sizeof numBuf, "%u", args.length());        \
+        JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL,           \
+                             JSMSG_MORE_ARGS_NEEDED, fnname, numBuf, \
+                             (args.length() > 1 ? "s" : ""));        \
+        return false;                                                \
+    }
+
 #define CLASSMAPPER_FN(cclass, name, argc) \
     JS_FN(#name, (cclass::JSCall<&cclass::JS_##name, argc>), \
+        argc, NIDIUM_JS_FNPROPS)
+
+#define CLASSMAPPER_FN_STATIC(cclass, name, argc) \
+    JS_FN(#name, (cclass::JSCallStatic<&cclass::JSStatic_##name, argc>), \
         argc, NIDIUM_JS_FNPROPS)
 
 #define CLASSMAPPER_FN_ALIAS(cclass, name, argc, alias) \
@@ -46,6 +61,9 @@ namespace Binding {
 #define NIDIUM_DECL_JSCALL(name) \
     bool JS_##name(JSContext *cx, JS::CallArgs &args)
 
+#define NIDIUM_DECL_JSCALL_STATIC(name) \
+    static bool JSStatic_##name(JSContext *cx, JS::CallArgs &args)
+
 #define NIDIUM_DECL_JSGETTER(name) \
     bool JSGetter_##name(JSContext *, JS::MutableHandleValue)
 
@@ -63,6 +81,7 @@ namespace Binding {
     using ClassMapper<class>::JSCall;                    \
     using ClassMapper<class>::ExposeClass;               \
     using ClassMapper<class>::ListProperties;            \
+    using ClassMapper<class>::ListStaticMethods;         \
     using ClassMapper<class>::JSTracer;                  \
     using ClassMapper<class>::m_Instance;                \
     using ClassMapper<class>::m_Cx;                      \
@@ -110,7 +129,8 @@ public:
         return JS_InitClass(cx, sparent, JS::NullPtr(), jsclass,
                     ClassMapper<T>::JSConstructor<ctor_minarg>,
                     ctor_minarg, NULL,
-                    T::ListMethods(), T::ListProperties(), NULL);
+                    T::ListMethods(), T::ListProperties(),
+                    T::ListStaticMethods());
     }
 
     /**
@@ -284,6 +304,7 @@ public:
 
 protected:
     typedef bool (T::*JSCallback)(JSContext *, JS::CallArgs &);
+    typedef bool (*JSCallbackStatic)(JSContext *, JS::CallArgs &);
     typedef bool (T::*JSGetterCallback)(JSContext *, JS::MutableHandleValue);
     typedef bool (T::*JSSetterCallback)(JSContext *, JS::MutableHandleValue);
 
@@ -295,9 +316,18 @@ protected:
         /* TODO: Get the right method name */
         NIDIUM_JS_CHECK_ARGS("method", minarg);
 
+        return (CppObj->*U)(cx, args);
+    }
+
+    template <JSCallbackStatic U, int minarg>
+    static bool JSCallStatic(JSContext *cx, unsigned argc, JS::Value *vp)
+    {
+        NIDIUM_JS_PROLOGUE_NO_RET();
+        NIDIUM_JS_CHECK_ARGS("method", minarg);
+
         args.rval().setUndefined();
 
-        return (CppObj->*U)(cx, args);
+        return (*U)(cx, args);
     }
 
     template <JSGetterCallback U>
@@ -332,6 +362,11 @@ protected:
     }
 
     static JSFunctionSpec *ListMethods()
+    {
+        return nullptr;
+    }
+
+    static JSFunctionSpec *ListStaticMethods()
     {
         return nullptr;
     }
@@ -432,8 +467,6 @@ public:
 
         /* TODO: Get the right method name */
         NIDIUM_JS_CHECK_ARGS("method", minarg);
-
-        args.rval().setUndefined();
 
         return (CppObj->*U)(cx, args);
     }
