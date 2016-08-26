@@ -109,12 +109,12 @@ public:
         int jsflags = 0, ExposeFlags flags = kEmpty_ExposeFlag,
         JS::HandleObject parent = JS::NullPtr())
     {
-        JSClass *jsclass = T::GetJSClass();
-        if (jsclass != T::GetJSClass()) {
-            printf("Class isnrt the same\n");
-        }
 
 #ifdef DEBUG
+        JSClass *jsclass = T::GetJSClass();
+        if (jsclass != ClassMapper<T>::GetJSClass()) {
+            printf("[Debug] JSClass is overriden for %s\n", name);
+        }
         assert(jsclass->name == NULL);
 #endif
 
