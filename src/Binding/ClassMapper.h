@@ -109,9 +109,9 @@ public:
         int jsflags = 0, ExposeFlags flags = kEmpty_ExposeFlag,
         JS::HandleObject parent = JS::NullPtr())
     {
-
-#ifdef DEBUG
         JSClass *jsclass = T::GetJSClass();
+        
+#ifdef DEBUG
         if (jsclass != ClassMapper<T>::GetJSClass()) {
             printf("[Debug] JSClass is overriden for %s\n", name);
         }
@@ -137,6 +137,21 @@ public:
                     T::ListStaticMethods());
     }
 
+    static void AssociateObject(JSContext *cx, T *obj, JS::HandleObject jsobj,
+        bool implement = false)
+    {
+        obj->m_Instance = jsobj;
+        obj->m_Cx = cx;
+        obj->m_Rooted = false;
+
+        JS_SetPrivate(jsobj, obj);
+
+        if (implement) {
+            JS_DefineProperties(cx, jsobj, T::ListProperties());
+            JS_DefineFunctions(cx, jsobj, T::ListMethods());
+        }
+    }
+
     /**
      *  Create an instance of an object (that is, not from the JS)
      */
@@ -150,11 +165,7 @@ public:
             cx, JS_NewObject(cx, T::GetJSClass(),
                 JS::NullPtr(), JS::NullPtr()));
 
-        obj->m_Instance = ret;
-        obj->m_Cx = cx;
-        obj->m_Rooted = false;
-
-        JS_SetPrivate(ret, obj);
+        ClassMapper<T>::AssociateObject(cx, obj, ret);
 
         return ret;
     }
@@ -244,7 +255,7 @@ public:
         return (T *)JS_GetPrivate(obj);
     }
 
-    static bool IsOfClass(JS::HandleObject obj)
+    static bool InstanceOf(JS::HandleObject obj)
     {
         return (JS_GetClass(obj) == T::GetJSClass());
     }
@@ -412,11 +423,7 @@ protected:
             return false;
         }
 
-        obj->m_Instance = ret;
-        obj->m_Cx = cx;
-        obj->m_Rooted = false;
-
-        JS_SetPrivate(ret, obj);
+        ClassMapper<T>::AssociateObject(cx, obj, ret);
 
         args.rval().setObjectOrNull(ret);
  
