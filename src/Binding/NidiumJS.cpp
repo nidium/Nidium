@@ -43,7 +43,6 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-extern JSClass global_class;
 
 static pthread_key_t gAPE = 0;
 static pthread_key_t gJS  = 0;
@@ -253,12 +252,13 @@ void NidiumJS::InitNet(ape_global *net)
     pthread_setspecific(gAPE, net);
 }
 
-JSObject *NidiumJS::CreateJSGlobal(JSContext *cx)
+JSObject *NidiumJS::CreateJSGlobal(JSContext *cx, NidiumJS *njs)
 {
     JS::CompartmentOptions options;
     options.setVersion(JSVERSION_LATEST);
 
-    JS::RootedObject glob(cx, JS_NewGlobalObject(cx, &global_class, nullptr,
+    JS::RootedObject glob(cx,
+        JS_NewGlobalObject(cx, JSGlobal::GetJSClass(), nullptr,
                                                  JS::DontFireOnNewGlobalHook,
                                                  options));
 
@@ -267,8 +267,7 @@ JSObject *NidiumJS::CreateJSGlobal(JSContext *cx)
     JS_InitStandardClasses(cx, glob);
     JS_InitCTypesClass(cx, glob);
 
-    JS_DefineFunctions(cx, glob, glob_funcs);
-    JS_DefineProperties(cx, glob, glob_props);
+    JSGlobal::RegisterObject(cx, glob, njs);
 
     JS_FireOnNewGlobalObject(cx, glob);
 
@@ -464,7 +463,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
 #endif
     JS_SetErrorReporter(m_Cx, reportError);
 
-    gbl = NidiumJS::CreateJSGlobal(m_Cx);
+    gbl = NidiumJS::CreateJSGlobal(m_Cx, this);
 
     m_Compartment = JS_EnterCompartment(m_Cx, gbl);
 // JSAutoCompartment ac(m_Cx, gbl);
@@ -883,7 +882,6 @@ void NidiumJS::loadGlobalObjects()
 {
     JSFile::RegisterObject(m_Cx);
     JSSocket::RegisterObject(m_Cx);
-    JSSocketClientConnection::RegisterObject(m_Cx);
     JSThread::RegisterObject(m_Cx);
     JSHTTP::RegisterObject(m_Cx);
     JSStream::RegisterObject(m_Cx);

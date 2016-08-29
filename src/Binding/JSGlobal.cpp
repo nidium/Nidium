@@ -21,48 +21,9 @@ namespace Binding {
 
 // {{{ Preamble
 
-enum
-{
-    GLOBAL_PROP___DIRNAME,
-    GLOBAL_PROP___FILENAME,
-    GLOBAL_PROP_GLOBAL,
-    GLOBAL_PROP_WINDOW
-};
 
-static bool nidium_global_prop_get(JSContext *cx,
-                                   JS::HandleObject obj,
-                                   uint8_t,
-                                   JS::MutableHandleValue vp);
-
-static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_set_interval(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_btoa(JSContext *cx, unsigned argc, JS::Value *vp);
-// static bool nidium_readData(JSContext *cx, unsigned argc, JS::Value *vp);
-// static void nidium_timer_wrapper(struct _nidium_sm_timer *params, int *last);
 static int nidium_timerng_wrapper(void *arg);
 
-JSFunctionSpec glob_funcs[]
-    = { JS_FN("load", nidium_load, 2, NIDIUM_JS_FNPROPS),
-        JS_FN("setTimeout", nidium_set_timeout, 2, NIDIUM_JS_FNPROPS),
-        JS_FN("setImmediate", nidium_set_immediate, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("setInterval", nidium_set_interval, 2, NIDIUM_JS_FNPROPS),
-        JS_FN("clearTimeout", nidium_clear_timeout, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("clearInterval", nidium_clear_timeout, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("btoa", nidium_btoa, 1, NIDIUM_JS_FNPROPS),
-        JS_FS_END };
-
-JSPropertySpec glob_props[] = {
-    NIDIUM_JS_PSG("__filename", GLOBAL_PROP___FILENAME, nidium_global_prop_get),
-    NIDIUM_JS_PSG("__dirname", GLOBAL_PROP___DIRNAME, nidium_global_prop_get),
-    NIDIUM_JS_PSG("global", GLOBAL_PROP_GLOBAL, nidium_global_prop_get),
-#ifndef NIDIUM_DISABLE_WINDOW_GLOBAL
-    NIDIUM_JS_PSG("window", GLOBAL_PROP_WINDOW, nidium_global_prop_get),
-#endif
-    JS_PS_END
-};
 
 struct nidium_sm_timer
 {
@@ -84,60 +45,84 @@ struct nidium_sm_timer
     }
 };
 
+static int nidium_timer_deleted(void *arg)
+{
+    struct nidium_sm_timer *params = static_cast<struct nidium_sm_timer *>(arg);
 
-JSClass global_class = {
-    "global",         JSCLASS_GLOBAL_FLAGS_WITH_SLOTS(16) | JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub,  JS_DeletePropertyStub,
-    JS_PropertyStub,  JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub,
-    JS_ConvertStub,   nullptr,
-    nullptr,          nullptr,
-    nullptr,          JS_GlobalObjectTraceHook
-};
+    if (params == NULL) {
+        return 0;
+    }
+
+    JSAutoRequest ar(params->cx);
+    for (int i = 0; i < params->argc; i++) {
+        delete params->argv[i];
+    }
+    delete[] params->argv;
+    delete params;
+
+    return 1;
+}
+
+static int nidium_timerng_wrapper(void *arg)
+{
+    struct nidium_sm_timer *params = static_cast<struct nidium_sm_timer *>(arg);
+
+    JSAutoRequest ar(params->cx);
+    JS::RootedValue rval(params->cx);
+    JS::AutoValueVector arr(params->cx);
+    JS::RootedValue func(params->cx, params->func);
+    JS::RootedObject global(params->cx, params->global);
+
+    arr.resize(params->argc);
+    for (size_t i = 0; i < params->argc; i++) {
+        arr[i] = params->argv[i]->get();
+    }
+    JS_CallFunctionValue(params->cx, global, func, arr, &rval);
+
+    // timers_stats_print(&((ape_global
+    // *)JS_GetContextPrivate(params->cx))->timersng);
+
+    return params->ms;
+}
+
 // }}}
 
 // {{{ Implementation
-static bool nidium_global_prop_get(JSContext *cx,
-                                   JS::HandleObject obj,
-                                   uint8_t id,
-                                   JS::MutableHandleValue vp)
+
+bool JSGlobal::JSGetter___filename(JSContext *cx, JS::MutableHandleValue vp)
 {
-    switch (id) {
-        case GLOBAL_PROP___FILENAME: {
-            char *filename = JSUtils::CurrentJSCaller(cx);
-            vp.setString(JS_NewStringCopyZ(cx, filename));
-            free(filename);
-            break;
-        }
-        case GLOBAL_PROP___DIRNAME: {
-            Path path(JSUtils::CurrentJSCaller(cx), false, true);
-            vp.setString(JS_NewStringCopyZ(cx, path.dir()));
-            break;
-        }
-        case GLOBAL_PROP_WINDOW:
-        case GLOBAL_PROP_GLOBAL: {
-            JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-            vp.setObjectOrNull(global);
-            break;
-        }
-        default:
-            return false;
-    }
+    char *filename = JSUtils::CurrentJSCaller(cx);
+    vp.setString(JS_NewStringCopyZ(cx, filename));
+    free(filename);
+
     return true;
 }
 
-static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSGlobal::JSGetter___dirname(JSContext *cx, JS::MutableHandleValue vp)
+{
+    Path path(JSUtils::CurrentJSCaller(cx), false, true);
+    vp.setString(JS_NewStringCopyZ(cx, path.dir()));
+
+    return true;
+}
+
+bool JSGlobal::JSGetter_global(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setObjectOrNull(m_Instance);
+
+    return true;
+}
+
+bool JSGlobal::JS_load(JSContext *cx, JS::CallArgs &args)
 {
     JS::RootedString script(cx);
     char *content;
     size_t len;
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (!JS_ConvertArguments(cx, args, "S", script.address())) {
         return false;
     }
 
-    NidiumJS *njs = NidiumJS::GetObject(cx);
     JSAutoByteString scriptstr(cx, script);
     Path scriptpath(scriptstr.ptr());
 
@@ -169,7 +154,7 @@ static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    if (!njs->LoadScriptContent(content, len, scriptpath.path())) {
+    if (!m_JS->LoadScriptContent(content, len, scriptpath.path())) {
         JS_ReportError(cx, "load() failed to load script");
         return false;
     }
@@ -178,31 +163,12 @@ static bool nidium_load(JSContext *cx, unsigned argc, JS::Value *vp)
 }
 
 // {{{ Timers
-static int nidium_timer_deleted(void *arg)
-{
-    struct nidium_sm_timer *params = static_cast<struct nidium_sm_timer *>(arg);
 
-    if (params == NULL) {
-        return 0;
-    }
-
-    JSAutoRequest ar(params->cx);
-    for (int i = 0; i < params->argc; i++) {
-        delete params->argv[i];
-    }
-    delete[] params->argv;
-    delete params;
-
-    return 1;
-}
-
-static bool nidium_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSGlobal::JS_setImmediate(JSContext *cx, JS::CallArgs &args)
 {
     struct nidium_sm_timer *params;
     int i;
-
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JSObject *obj     = JS_THIS_OBJECT(cx, vp);
+    int argc = args.length();
 
     params = new nidium_sm_timer(cx);
 
@@ -212,7 +178,7 @@ static bool nidium_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     params->cx     = cx;
-    params->global = obj;
+    params->global = m_Instance;
     params->argc   = argc - 1;
     params->ms     = 0;
 
@@ -247,13 +213,11 @@ static bool nidium_set_immediate(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool nidium_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSGlobal::JS_setTimeout(JSContext *cx, JS::CallArgs &args)
 {
     struct nidium_sm_timer *params;
     int ms, i;
-
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JSObject *obj     = JS_THIS_OBJECT(cx, vp);
+    int argc = args.length();
 
     params = new nidium_sm_timer(cx);
 
@@ -263,7 +227,7 @@ static bool nidium_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     params->cx     = cx;
-    params->global = obj;
+    params->global = m_Instance;
     params->argc   = argc - 2;
     params->ms     = 0;
 
@@ -305,14 +269,11 @@ static bool nidium_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool nidium_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSGlobal::JS_setInterval(JSContext *cx, JS::CallArgs &args)
 {
     struct nidium_sm_timer *params;
     int ms, i;
-
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
-    JSObject *obj = JS_THIS_OBJECT(cx, vp);
+    int argc = args.length();
 
     params = new nidium_sm_timer(cx);
 
@@ -322,7 +283,7 @@ static bool nidium_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     params->cx     = cx;
-    params->global = obj;
+    params->global = m_Instance;
     params->argc   = argc - 2;
 
     params->argv = new JS::PersistentRootedValue *[argc - 2];
@@ -364,11 +325,9 @@ static bool nidium_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool nidium_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSGlobal::JS_clearTimeout(JSContext *cx, JS::CallArgs &args)
 {
     double identifier;
-
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (!JS_ConvertArguments(cx, args, "d", &identifier)) {
         return false;
@@ -380,36 +339,11 @@ static bool nidium_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static int nidium_timerng_wrapper(void *arg)
-{
-    struct nidium_sm_timer *params = static_cast<struct nidium_sm_timer *>(arg);
-
-    JSAutoRequest ar(params->cx);
-    JS::RootedValue rval(params->cx);
-    JS::AutoValueVector arr(params->cx);
-    JS::RootedValue func(params->cx, params->func);
-    JS::RootedObject global(params->cx, params->global);
-
-    arr.resize(params->argc);
-    for (size_t i = 0; i < params->argc; i++) {
-        arr[i] = params->argv[i]->get();
-    }
-    JS_CallFunctionValue(params->cx, global, func, arr, &rval);
-
-    // timers_stats_print(&((ape_global
-    // *)JS_GetContextPrivate(params->cx))->timersng);
-
-    return params->ms;
-}
 // }}}
 
 // {{{ Conversions
-static bool nidium_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSGlobal::JS_btoa(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_CHECK_ARGS("btoa", 1);
-
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
     if (args[0].isString()) {
 
         JSAutoByteString cdata;
@@ -434,6 +368,58 @@ static bool nidium_btoa(JSContext *cx, unsigned argc, JS::Value *vp)
 // }}}
 
 // {{{ Registration
+
+JSClass *JSGlobal::GetJSClass()
+{
+    static JSClass global_class = {
+        "global",         
+        JSCLASS_GLOBAL_FLAGS_WITH_SLOTS(16) | JSCLASS_HAS_PRIVATE,
+        JS_PropertyStub,  JS_DeletePropertyStub,
+        JS_PropertyStub,  JS_StrictPropertyStub,
+        JS_EnumerateStub, JS_ResolveStub,
+        JS_ConvertStub,   nullptr,
+        nullptr,          nullptr,
+        nullptr,          JS_GlobalObjectTraceHook
+    };
+    
+    return &global_class;
+}
+
+JSPropertySpec *JSGlobal::ListProperties()
+{
+    static JSPropertySpec props[] = {
+        CLASSMAPPER_PROP_G(JSGlobal, __filename),
+        CLASSMAPPER_PROP_G(JSGlobal, __dirname),
+        CLASSMAPPER_PROP_G(JSGlobal, global),
+
+        JS_PS_END
+    };
+
+    return props;
+}
+
+JSFunctionSpec *JSGlobal::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSGlobal, load, 1),
+        CLASSMAPPER_FN(JSGlobal, setTimeout, 2),
+        CLASSMAPPER_FN(JSGlobal, setImmediate, 1),
+        CLASSMAPPER_FN(JSGlobal, setInterval, 2),
+        CLASSMAPPER_FN(JSGlobal, clearTimeout, 1),
+        CLASSMAPPER_FN_ALIAS(JSGlobal, clearInterval, 1, clearTimeout),
+        CLASSMAPPER_FN(JSGlobal, btoa, 1),
+        JS_FS_END
+    };
+
+    return funcs;
+}
+
+void JSGlobal::RegisterObject(JSContext *cx,
+    JS::HandleObject global, NidiumJS *njs)
+{
+    JSGlobal::AssociateObject(cx, new JSGlobal(njs), global, true);
+}
+
 // }}}
 
 } // namespace Binding

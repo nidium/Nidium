@@ -168,7 +168,7 @@ public:
         return m_StructuredCloneAddition.write;
     }
 
-    static JSObject *CreateJSGlobal(JSContext *cx);
+    static JSObject *CreateJSGlobal(JSContext *cx, NidiumJS *njs = nullptr);
     static void SetJSRuntimeOptions(JSRuntime *rt);
 
 private:
