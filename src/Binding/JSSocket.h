@@ -143,7 +143,6 @@ public:
 
     }
 
-    static void RegisterObject(JSContext *cx);
     virtual ~JSSocketClientConnection();
 
     static JSFunctionSpec *ListMethods();

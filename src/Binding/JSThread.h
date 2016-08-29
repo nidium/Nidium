@@ -29,7 +29,7 @@ public:
         kThread_Message  = 0,
         kThread_Complete = 1
     };
-    ~JSThread();
+    virtual ~JSThread();
     static void RegisterObject(JSContext *cx);
     void onComplete(JS::HandleValue vp);
     void onMessage(const Nidium::Core::SharedMessages::Message &msg);
