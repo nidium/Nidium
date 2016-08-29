@@ -969,6 +969,7 @@ JSPropertySpec *JSSocket::ListProperties()
 void JSSocket::RegisterObject(JSContext *cx)
 {
     JSSocket::ExposeClass<2>(cx, "Socket");
+    JSSocketClientConnection::ExposeClass(cx, "SocketClientConnection");
 }
 
 JSSocketClientConnection::~JSSocketClientConnection()
@@ -989,11 +990,6 @@ JSFunctionSpec *JSSocketClientConnection::ListMethods()
     };
 
     return funcs;
-}
-
-void JSSocketClientConnection::RegisterObject(JSContext *cx)
-{
-    JSSocketClientConnection::ExposeClass(cx, "SocketClientConnection");
 }
 
 
