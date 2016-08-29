@@ -20,9 +20,6 @@ public:
     static JSImage *Constructor(JSContext *cx, JS::CallArgs &args,
         JS::HandleObject obj);
 
-    Graphics::Image *m_Image;
-    IO::Stream *m_Stream;
-
     static Graphics::Image *JSObjectToImage(JS::HandleObject obj);
     static void RegisterObject(JSContext *cx);
     static bool JSObjectIs(JSContext *cx, JS::HandleObject obj);
@@ -36,6 +33,10 @@ protected:
     NIDIUM_DECL_JSGETTERSETTER(src);
 private:
     bool setupWithBuffer(buffer *buf);
+
+    Graphics::Image *m_Image;
+    IO::Stream *m_Stream;
+
 };
 
 } // namespace Binding

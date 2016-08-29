@@ -25,7 +25,7 @@ namespace Binding {
 
 bool JSImage::JSObjectIs(JSContext *cx, JS::HandleObject obj)
 {
-    return JSImage::IsOfClass(obj);
+    return JSImage::InstanceOf(obj);
 }
 
 Image *JSImage::JSObjectToImage(JS::HandleObject obj)

@@ -3475,7 +3475,7 @@ if (argc == 9) {
         return false;
     }
 
-    if (JSImage::JSObjectIs(cx, image)) {
+    if (JSImage::InstanceOf(image)) {
         JSImage *nimg;
 
         nimg = static_cast<JSImage *>(JS_GetPrivate(image));
