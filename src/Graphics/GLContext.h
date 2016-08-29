@@ -9,7 +9,7 @@
 #include <gl/GrGLInterface.h>
 #include <gl/GrGLDefines.h>
 
-#include <UIInterface.h>
+#include "Interface/UIInterface.h"
 
 #include "Frontend/Context.h"
 #include "Macros.h"
