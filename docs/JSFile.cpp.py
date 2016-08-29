@@ -286,7 +286,7 @@ If the file has not been opened it will be automatically opened.""",
 var string = f.readSync();
 console.log(string);""")],
     IS_Dynamic, IS_Public, IS_Slow,
-    [ParamDoc("readSize", "Number of bytes to read", 'number', 'The size of the file', IS_Optional)],
+    [ParamDoc("readSize", "Number of bytes to read", 'integer', 'The size of the file', IS_Optional)],
     ReturnDoc("The file's content", 'string|ArrayBuffer')
 )
 
