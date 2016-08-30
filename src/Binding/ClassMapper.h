@@ -37,26 +37,32 @@ namespace Binding {
     JS_FN(#name, (cclass::JSCall<&cclass::JS_##alias, argc>), \
         argc, NIDIUM_JS_FNPROPS)
 
-#define CLASSMAPPER_PROP_G(cclass, name) \
+
+#define CLASSMAPPER_PROP_G_ALIAS(cclass, name, alias) \
     {                                                                       \
         #name,                                                              \
         JSPROP_PERMANENT | /*JSPROP_READONLY |*/ JSPROP_ENUMERATE |         \
             JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,                        \
-        {{JS_CAST_NATIVE_TO((cclass::JSGetter<&cclass::JSGetter_##name>),   \
+        {{JS_CAST_NATIVE_TO((cclass::JSGetter<&cclass::JSGetter_##alias>),   \
             JSPropertyOp), nullptr}},                                       \
         JSOP_NULLWRAPPER                                                    \
     }
 
-#define CLASSMAPPER_PROP_GS(cclass, name) \
+#define CLASSMAPPER_PROP_GS_ALIAS(cclass, name, alias) \
     {                                                                       \
         #name,                                                              \
         JSPROP_PERMANENT | /*JSPROP_READONLY |*/ JSPROP_ENUMERATE |         \
             JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,                        \
-        {{JS_CAST_NATIVE_TO((cclass::JSGetter<&cclass::JSGetter_##name>),   \
+        {{JS_CAST_NATIVE_TO((cclass::JSGetter<&cclass::JSGetter_##alias>),   \
             JSPropertyOp), nullptr}},                                       \
-        {{JS_CAST_NATIVE_TO((cclass::JSSetter<&cclass::JSSetter_##name>),   \
+        {{JS_CAST_NATIVE_TO((cclass::JSSetter<&cclass::JSSetter_##alias>),   \
             JSStrictPropertyOp), nullptr}}                                  \
     }
+
+#define CLASSMAPPER_PROP_GS(cclass, name) \
+    CLASSMAPPER_PROP_GS_ALIAS(cclass, name, name)
+#define CLASSMAPPER_PROP_G(cclass, name) \
+    CLASSMAPPER_PROP_G_ALIAS(cclass, name, name)
 
 #define NIDIUM_DECL_JSCALL(name) \
     bool JS_##name(JSContext *cx, JS::CallArgs &args)
@@ -76,20 +82,6 @@ namespace Binding {
 
 #define NIDIUM_DECL_JSTRACER() void JSTracer(class JSTracer *trc)
 
-#define NIDIUM_CLASSMAPPER_FIX_MULTIPLE_BASE(class) \
-    using ClassMapper<class>::GetJSClass;                \
-    using ClassMapper<class>::Constructor;               \
-    using ClassMapper<class>::JSCall;                    \
-    using ClassMapper<class>::ExposeClass;               \
-    using ClassMapper<class>::ListProperties;            \
-    using ClassMapper<class>::ListStaticMethods;         \
-    using ClassMapper<class>::JSTracer;                  \
-    using ClassMapper<class>::m_Instance;                \
-    using ClassMapper<class>::m_Cx;                      \
-    using ClassMapper<class>::m_Rooted;                  \
-    using ClassMapper<class>::CreateObject;              \
-    using ClassMapper<class>::root;                      \
-    using ClassMapper<class>::unroot;                    \
 
 template <typename T>
 class ClassMapper
@@ -230,6 +222,11 @@ public:
         return (T *)JS_GetPrivate(obj);
     }
 
+    static T *GetInstanceUnsafe(JS::HandleObject obj)
+    {
+        return (T *)JS_GetPrivate(obj);
+    }
+    
     /**
      *  Get a singleton ClassMapper<T> object.
      *  It's used for object created with CreateUniqueInstance()
@@ -247,11 +244,6 @@ public:
 
         JS::RootedObject obj(cx, ret);
 
-        return GetInstanceUnsafe(obj);
-    }
-
-    static T *GetInstanceUnsafe(JS::HandleObject obj)
-    {
         return (T *)JS_GetPrivate(obj);
     }
 
