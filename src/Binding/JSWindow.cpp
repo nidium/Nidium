@@ -1317,7 +1317,7 @@ nidium_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp)
     {
         JS::RootedObject jsimg(cx, __curopt.toObjectOrNull());
         Image *skimage;
-        if (JSImage::JSObjectIs(cx, jsimg)
+        if (JSImage::InstanceOf(jsimg)
             && (skimage = JSImage::JSObjectToImage(jsimg))) {
 
             const uint8_t *pixels = skimage->getPixels(NULL);

@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
+
 #include <jspubtd.h>
 #include <jsapi.h>
 #include <js/StructuredClone.h>
@@ -66,6 +67,8 @@ public:
     Nidium::Core::SharedMessages *m_Messages;
 
     Nidium::Core::Hash<JSObject *> m_JsObjects;
+
+    Nidium::Core::Hash64<JSObject *> m_JSUniqueInstance{64};
 
     struct _ape_htable *m_RootedObj;
     struct _ape_global *m_Net;
@@ -165,7 +168,7 @@ public:
         return m_StructuredCloneAddition.write;
     }
 
-    static JSObject *CreateJSGlobal(JSContext *cx);
+    static JSObject *CreateJSGlobal(JSContext *cx, NidiumJS *njs = nullptr);
     static void SetJSRuntimeOptions(JSRuntime *rt);
 
 private:

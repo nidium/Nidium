@@ -6,15 +6,23 @@
 #ifndef binding_jsconsole_h__
 #define binding_jsconsole_h__
 
-#include "Binding/JSExposer.h"
+#include "Binding/ClassMapper.h"
 
 namespace Nidium {
 namespace Binding {
 
-class JSConsole : public JSExposer<JSConsole>
+class JSConsole : public ClassMapper<JSConsole>
 {
 public:
+    static JSFunctionSpec *ListMethods();
+
     static void RegisterObject(JSContext *cx);
+protected:
+    NIDIUM_DECL_JSCALL(log);
+    NIDIUM_DECL_JSCALL(write);
+    NIDIUM_DECL_JSCALL(hide);
+    NIDIUM_DECL_JSCALL(clear);
+    NIDIUM_DECL_JSCALL(show);
 };
 
 } // namespace Binding

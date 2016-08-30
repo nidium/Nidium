@@ -15,7 +15,7 @@
 
 #include <GLSLANG/ShaderLang.h>
 
-#include <Binding/NidiumJS.h>
+#include "Binding/NidiumJS.h"
 
 #include "Graphics/GLResources.h"
 

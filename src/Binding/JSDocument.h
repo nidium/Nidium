@@ -1,7 +1,7 @@
 #ifndef binding_jsdocument_h__
 #define binding_jsdocument_h__
 
-#include <Binding/JSExposer.h>
+#include <Binding/ClassMapper.h>
 
 class SkTypeface;
 
@@ -28,12 +28,12 @@ public:
 // }}}
 
 // {{{ JSDocument
-class JSDocument : public JSExposer<JSDocument>
+class JSDocument : public ClassMapper<JSDocument>
 {
 public:
-    JSDocument(JS::HandleObject obj, JSContext *cx)
-        : JSExposer<JSDocument>(obj, cx, false), m_Fonts(256000){};
-    ~JSDocument(){};
+    virtual ~JSDocument(){};
+
+    static JSFunctionSpec *ListMethods();
 
     static bool m_ShowFPS;
     bool populateStyle(JSContext *cx,
@@ -41,16 +41,10 @@ public:
                        size_t len,
                        const char *filename);
     static JSObject *RegisterObject(JSContext *cx);
-    static const char *GetJSObjectName()
-    {
-        return "document";
-    }
-
-    static JSClass *jsclass;
 
     JS::Heap<JSObject *> m_Stylesheet;
 
-    Core::Hash<NidiumFont *> m_Fonts;
+    Core::Hash<NidiumFont *> m_Fonts{64000};
 
     bool loadFont(const char *path,
                   const char *name,
@@ -58,6 +52,17 @@ public:
                   NidiumFont::Style = NidiumFont::kFontStyle_Normal);
 
     SkTypeface *getFont(char *name);
+protected:
+
+    NIDIUM_DECL_JSCALL(run);
+    NIDIUM_DECL_JSCALL(showFPS);
+    NIDIUM_DECL_JSCALL(setPasteBuffer);
+    NIDIUM_DECL_JSCALL(getPasteBuffer);
+    NIDIUM_DECL_JSCALL(loadFont);
+    NIDIUM_DECL_JSCALL(getCanvasById);
+    NIDIUM_DECL_JSCALL(getScreenData);
+    NIDIUM_DECL_JSCALL(toDataArray);
+    NIDIUM_DECL_JSCALL(parseNML);
 };
 // }}}
 

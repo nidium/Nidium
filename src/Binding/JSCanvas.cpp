@@ -281,7 +281,7 @@ bool JSCanvas::JS_addSubCanvas(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    if (sub && (csub = JSCanvas::GetInstance(sub)) != nullptr) {
+    if ((csub = JSCanvas::GetInstance(sub)) == NULL) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
@@ -311,7 +311,7 @@ bool JSCanvas::JS_insertBefore(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    if (!insert || !JSCanvas::IsOfClass(insert)) {
+    if (!insert || !JSCanvas::InstanceOf(insert)) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
@@ -322,7 +322,7 @@ bool JSCanvas::JS_insertBefore(JSContext *cx, JS::CallArgs &args)
         return true;
     }
 
-    if (ref && JSCanvas::IsOfClass(ref)) {
+    if (ref && JSCanvas::InstanceOf(ref)) {
         handler_ref = JSCanvas::GetInstanceUnsafe(ref)->getHandler();
     }
 
@@ -347,7 +347,7 @@ bool JSCanvas::JS_insertAfter(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    if (!insert || !JSCanvas::IsOfClass(insert)) {
+    if (!insert || !JSCanvas::InstanceOf(insert)) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
@@ -358,7 +358,7 @@ bool JSCanvas::JS_insertAfter(JSContext *cx, JS::CallArgs &args)
         return true;
     }
 
-    if (ref && JSCanvas::IsOfClass(ref)) {
+    if (ref && JSCanvas::InstanceOf(ref)) {
         handler_ref = JSCanvas::GetInstanceUnsafe(ref)->getHandler();
     }
 
@@ -1637,15 +1637,12 @@ JSCanvas::~JSCanvas()
 }
 // }}}
 
-// {{{ Registration
 void JSCanvas::RegisterObject(JSContext *cx)
 {
-    /* TODO : canvas_props */
     JSCanvas::ExposeClass(cx, "Canvas",
         JSCLASS_HAS_RESERVED_SLOTS(1), kJSTracer_ExposeFlag);
 
 }
-// }}}
 
 } // namespace Binding
 } // namespace Nidium

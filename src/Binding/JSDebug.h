@@ -6,23 +6,22 @@
 #ifndef binding_jsdebug_h__
 #define binding_jsdebug_h__
 
-#include "Binding/JSExposer.h"
+#include "Binding/ClassMapper.h"
 
 namespace Nidium {
 namespace Binding {
 
-class JSDebug : public JSExposer<JSDebug>
+class JSDebug : public ClassMapper<JSDebug>
 {
 public:
-    JSDebug(JS::HandleObject obj, JSContext *cx)
-        : JSExposer<JSDebug>(obj, cx){};
     virtual ~JSDebug(){};
 
+    static JSFunctionSpec *ListMethods();
     static void RegisterObject(JSContext *cx);
-    static const char *GetJSObjectName()
-    {
-        return "Debug";
-    }
+protected:
+    NIDIUM_DECL_JSCALL(serialize);
+    NIDIUM_DECL_JSCALL(unserialize);
+
 };
 
 } // namespace Binding

@@ -26,7 +26,7 @@ public:
                                       Graphics::CanvasHandler **out);
 
     JSCanvas(Graphics::CanvasHandler *handler);
-    ~JSCanvas();
+    virtual ~JSCanvas();
 
     Graphics::CanvasHandler *getHandler() const
     {

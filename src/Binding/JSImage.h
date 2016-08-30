@@ -3,7 +3,7 @@
 
 #include <Core/Messages.h>
 #include <IO/Stream.h>
-#include <Binding/JSExposer.h>
+#include <Binding/ClassMapper.h>
 
 namespace Nidium {
 namespace Graphics {
@@ -11,14 +11,14 @@ class Image;
 }
 namespace Binding {
 
-class JSImage : public JSExposer<JSImage>, public Core::Messages
+class JSImage : public ClassMapperWithEvents<JSImage>, public Core::Messages
 {
 public:
-    JSImage(JS::HandleObject obj, JSContext *cx);
+    JSImage();
     virtual ~JSImage();
-
-    Graphics::Image *m_Image;
-    IO::Stream *m_Stream;
+    static JSPropertySpec *ListProperties();
+    static JSImage *Constructor(JSContext *cx, JS::CallArgs &args,
+        JS::HandleObject obj);
 
     static Graphics::Image *JSObjectToImage(JS::HandleObject obj);
     static void RegisterObject(JSContext *cx);
@@ -29,8 +29,14 @@ public:
 
     void onMessage(const Core::SharedMessages::Message &msg);
 
+protected:
+    NIDIUM_DECL_JSGETTERSETTER(src);
 private:
     bool setupWithBuffer(buffer *buf);
+
+    Graphics::Image *m_Image;
+    IO::Stream *m_Stream;
+
 };
 
 } // namespace Binding

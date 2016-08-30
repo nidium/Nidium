@@ -25,32 +25,7 @@ namespace Binding {
     JS_DefineProperty(cx, where, (const char *)name, val, NULL, NULL, \
                       JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
-static void WebSocket_Finalize_client(JSFreeOp *fop, JSObject *obj);
-static bool
-nidium_websocketclient_send(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_websocketclient_close(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static JSFunctionSpec wsclient_funcs[]
-    = { JS_FN("send", nidium_websocketclient_send, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("close", nidium_websocketclient_close, 0, NIDIUM_JS_FNPROPS),
-        JS_FS_END };
-
-static JSClass WebSocketServer_client_class = { "WebSocketServerClient",
-                                                JSCLASS_HAS_PRIVATE,
-                                                JS_PropertyStub,
-                                                JS_DeletePropertyStub,
-                                                JS_PropertyStub,
-                                                JS_StrictPropertyStub,
-                                                JS_EnumerateStub,
-                                                JS_ResolveStub,
-                                                JS_ConvertStub,
-                                                WebSocket_Finalize_client,
-                                                nullptr,
-                                                nullptr,
-                                                nullptr,
-                                                nullptr,
-                                                JSCLASS_NO_INTERNAL_MEMBERS };
 // }}}
 
 // {{{ JSWebSocketServer
@@ -61,21 +36,18 @@ JSWebSocketServer::JSWebSocketServer(const char *host,
     m_WebSocketServer->addListener(this);
 }
 
-JSObject *JSWebSocketServer::createClient(WebSocketClientConnection *client)
+JSWebSocketClientConnection *
+    JSWebSocketServer::createClient(WebSocketClientConnection *client)
 {
 
-    JS::RootedObject jclient(m_Cx,
-                             JS_NewObject(m_Cx, &WebSocketServer_client_class,
-                                          JS::NullPtr(), JS::NullPtr()));
+    JSWebSocketClientConnection *wscc = new JSWebSocketClientConnection(client);
+    JSWebSocketClientConnection::CreateObject(m_Cx, wscc);
 
-    JS_DefineFunctions(m_Cx, jclient, wsclient_funcs);
+    wscc->root();
 
-    JS_SetPrivate(jclient, client);
+    client->setData(wscc);
 
-    NidiumJSObj(m_Cx)->rootObjectUntilShutdown(jclient);
-    client->setData(jclient);
-
-    return jclient;
+    return wscc;
 }
 
 void JSWebSocketServer::onMessage(const Core::SharedMessages::Message &msg)
@@ -94,13 +66,14 @@ void JSWebSocketServer::onMessage(const Core::SharedMessages::Message &msg)
             int len          = msg.m_Args[3].toInt();
             bool binary      = msg.m_Args[4].toBool();
 
-            // TODO: New style cast
-            JS::RootedObject jclient(
-                cx,
-                (JSObject *)((WebSocketClientConnection *)msg.m_Args[1].toPtr())
-                    ->getData());
+            WebSocketClientConnection *client
+                = static_cast<WebSocketClientConnection *>(
+                    msg.m_Args[1].toPtr());
 
-            if (!jclient.get()) {
+            JSWebSocketClientConnection *wscc =
+                (JSWebSocketClientConnection *)client->getData();
+
+            if (!wscc) {
                 return;
             }
             JS::RootedObject obj(m_Cx, this->getJSObject());
@@ -116,7 +89,7 @@ void JSWebSocketServer::onMessage(const Core::SharedMessages::Message &msg)
                                     !binary ? "utf8" : NULL);
                 NIDIUM_JSOBJ_SET_PROP(event, "data", jdata);
 
-                arg[0].setObjectOrNull(jclient);
+                arg[0].setObjectOrNull(wscc->getJSObject());
                 arg[1].setObjectOrNull(event);
 
                 JS_CallFunctionValue(m_Cx, obj, oncallback, arg, &val);
@@ -128,11 +101,11 @@ void JSWebSocketServer::onMessage(const Core::SharedMessages::Message &msg)
                           WebSocketServer::kEvents_ServerConnect): {
             JS::AutoValueArray<1> arg(cx);
 
-            JSObject *jclient
+            JSWebSocketClientConnection *wscc
                 = this->createClient(static_cast<WebSocketClientConnection *>(
                     msg.m_Args[1].toPtr()));
 
-            arg[0].setObject(*jclient);
+            arg[0].setObjectOrNull(wscc->getJSObject());
 
             JS::RootedObject obj(cx, this->getJSObject());
 
@@ -145,16 +118,18 @@ void JSWebSocketServer::onMessage(const Core::SharedMessages::Message &msg)
             WebSocketClientConnection *client
                 = static_cast<WebSocketClientConnection *>(
                     msg.m_Args[1].toPtr());
+
+            JSWebSocketClientConnection *wscc =
+                (JSWebSocketClientConnection *)client->getData();
+
             JS::AutoValueArray<1> arg(cx);
-            JS::RootedObject jclient(
-                cx, static_cast<JSObject *>(client->getData()));
+            JS::RootedObject jclient(cx, wscc->getJSObject());
             JS::RootedObject obj(cx, this->getJSObject());
 
             arg[0].setObject(*jclient);
             JSOBJ_CALLFUNCNAME(obj, "onclose", arg);
 
-            JS_SetPrivate(jclient, NULL);
-            NidiumJSObj(m_Cx)->unrootObject(jclient);
+            wscc->unroot();
 
             break;
         }
@@ -178,21 +153,17 @@ JSWebSocketServer::~JSWebSocketServer()
 // }}}
 
 // {{{ WebSocketServerClient implementation
-static bool
-nidium_websocketclient_send(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSWebSocketClientConnection::JS_send(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(WebSocketClientConnection,
-                             &WebSocketServer_client_class);
-
-    NIDIUM_JS_CHECK_ARGS("send", 1);
 
     if (args[0].isString()) {
         JSAutoByteString cdata;
         JS::RootedString str(cx, args[0].toString());
         cdata.encodeUtf8(cx, str);
 
-        CppObj->write(reinterpret_cast<unsigned char *>(cdata.ptr()),
-                      strlen(cdata.ptr()), false, APE_DATA_COPY);
+        m_WebSocketClientConnection->write(
+                    reinterpret_cast<unsigned char *>(cdata.ptr()),
+                    strlen(cdata.ptr()), false, APE_DATA_COPY);
 
         args.rval().setInt32(0);
 
@@ -208,8 +179,9 @@ nidium_websocketclient_send(JSContext *cx, unsigned argc, JS::Value *vp)
         uint32_t len  = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
 
-        CppObj->write(static_cast<unsigned char *>(data), len, true,
-                      APE_DATA_COPY);
+        m_WebSocketClientConnection->write(static_cast<unsigned char *>(data),
+                        len, true,
+                        APE_DATA_COPY);
 
         args.rval().setInt32(0);
 
@@ -223,24 +195,19 @@ nidium_websocketclient_send(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool
-nidium_websocketclient_close(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSWebSocketClientConnection::JS_close(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(WebSocketClientConnection,
-                             &WebSocketServer_client_class);
-
-    CppObj->close();
+    m_WebSocketClientConnection->close();
 
     return true;
 }
 
-static void WebSocket_Finalize_client(JSFreeOp *fop, JSObject *obj)
-{
-}
+
 // }}}
 
 // {{{ WebSocketServer implementation
-JSWebSocketServer *JSWebSocketServer::Constructor(JSContext *cx, JS::CallArgs &args,
+JSWebSocketServer *JSWebSocketServer::Constructor(JSContext *cx,
+    JS::CallArgs &args,
     JS::HandleObject obj)
 {
     JS::RootedString url(cx);
@@ -303,9 +270,21 @@ JSWebSocketServer *JSWebSocketServer::Constructor(JSContext *cx, JS::CallArgs &a
     return wss;
 }
 
+JSFunctionSpec * JSWebSocketClientConnection::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSWebSocketClientConnection, send, 1),
+        CLASSMAPPER_FN(JSWebSocketClientConnection, close, 0),
+        JS_FS_END
+    };
+
+    return funcs;
+}
+
 void JSWebSocketServer::RegisterObject(JSContext *cx)
 {
     JSWebSocketServer::ExposeClass<1>(cx, "WebSocketServer");
+    JSWebSocketClientConnection::ExposeClass(cx, "WebSocketClientConnection");
 }
 
 // }}}

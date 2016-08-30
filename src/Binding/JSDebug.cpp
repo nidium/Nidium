@@ -10,44 +10,10 @@
 namespace Nidium {
 namespace Binding {
 
-// {{{ Preamble
-
-static void Debug_Finalize(JSFreeOp *fop, JSObject *obj);
-static bool nidium_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp);
-
-static JSClass debug_class = { "NidiumDebug",
-                               JSCLASS_HAS_PRIVATE,
-                               JS_PropertyStub,
-                               JS_DeletePropertyStub,
-                               JS_PropertyStub,
-                               JS_StrictPropertyStub,
-                               JS_EnumerateStub,
-                               JS_ResolveStub,
-                               JS_ConvertStub,
-                               Debug_Finalize,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               JSCLASS_NO_INTERNAL_MEMBERS };
-
-template <>
-JSClass *JSExposer<JSDebug>::jsclass = &debug_class;
-
-static JSFunctionSpec debug_funcs[]
-    = { JS_FN("serialize", nidium_debug_serialize, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("unserialize", nidium_debug_unserialize, 1, NIDIUM_JS_FNPROPS),
-        JS_FS_END };
-// }}}
 
 //  {{{ Implementation
-static bool nidium_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSDebug::JS_serialize(JSContext *cx, JS::CallArgs &args)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
-    NIDIUM_JS_CHECK_ARGS("serialize", 1);
     uint64_t *data;
     size_t data_len;
 
@@ -77,10 +43,8 @@ static bool nidium_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool
-nidium_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSDebug::JS_unserialize(JSContext *cx, JS::CallArgs &args)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject objdata(cx);
     uint32_t offset = 0;
 
@@ -114,34 +78,25 @@ nidium_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static void Debug_Finalize(JSFreeOp *fop, JSObject *obj)
-{
-    JSDebug *jdebug = JSDebug::GetObject(obj);
 
-    if (jdebug != NULL) {
-        delete jdebug;
-    }
-}
 // }}}
+
+JSFunctionSpec *JSDebug::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSDebug, serialize, 1),
+        CLASSMAPPER_FN(JSDebug, unserialize, 1),
+        JS_FS_END
+    };
+
+    return funcs;
+}
 
 // {{{ Registration
 void JSDebug::RegisterObject(JSContext *cx)
 {
-    NidiumJS *njs = NidiumJS::GetObject(cx);
-
-    JS::RootedObject debugObj(
-        cx,
-        JS_DefineObject(cx, JS::CurrentGlobalOrNull(cx),
-                        JSDebug::GetJSObjectName(), &debug_class, NULL,
-                        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
-
-    JSDebug *jdebug = new JSDebug(debugObj, cx);
-
-    JS_SetPrivate(debugObj, jdebug);
-
-    njs->m_JsObjects.set(JSDebug::GetJSObjectName(), debugObj);
-
-    JS_DefineFunctions(cx, debugObj, debug_funcs);
+    JSDebug::ExposeClass(cx, "NidiumDebug");
+    JSDebug::CreateUniqueInstance(cx, new JSDebug(), "Debug");
 }
 // }}}
 

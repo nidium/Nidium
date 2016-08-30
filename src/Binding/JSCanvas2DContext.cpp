@@ -1081,7 +1081,7 @@ nidium_canvas2dctx_createPattern(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    if (!JSImage::JSObjectIs(cx, jsimage)) {
+    if (!JSImage::InstanceOf(jsimage)) {
         JS_ReportError(cx, "First parameter is not an Image");
         return false;
     }
@@ -1203,7 +1203,7 @@ nidium_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value *vp)
                               ->getSurface()
                               ->getCanvas());
         need_free = 1;
-    } else if (!jsimage || !JSImage::JSObjectIs(cx, jsimage)
+    } else if (!jsimage || !JSImage::InstanceOf(jsimage)
                || (image = JSImage::JSObjectToImage(jsimage)) == NULL) {
 
         JS_ReportWarning(cx, "Invalid image given");
