@@ -7,22 +7,23 @@
 #define binding_jswindow_h__
 
 #include <Frontend/NML.h>
-#include <Binding/JSExposer.h>
+#include <Binding/ClassMapper.h>
 
 namespace Nidium {
 namespace Graphics {
-class CanvasHandler;
+  class CanvasHandler;
 }
+
 namespace Binding {
 
-class JSWindow : public JSExposer<JSWindow>
+class JSWindow : public ClassMapper<JSWindow>
 {
 public:
-    JSWindow(JS::HandleObject jsobj, JSContext *cx)
-        : JSExposer<JSWindow>(jsobj, cx), m_RequestedFrame(NULL),
+    JSWindow()
+        : m_RequestedFrame(NULL),
           m_Handler(NULL), m_Dragging(false){};
 
-    ~JSWindow();
+    virtual ~JSWindow();
 
     void onReady(JS::HandleObject layout);
     bool onClose();
@@ -56,15 +57,9 @@ public:
     static JSWindow *
     RegisterObject(JSContext *cx, int width, int height, JS::HandleObject doc);
 
-    static const char *GetJSObjectName()
-    {
-        return "Window";
-    }
 
     static JSWindow *GetObject(JSContext *cx);
     static JSWindow *GetObject(NidiumJS *njs);
-
-    static JSClass *jsclass;
 
 private:
     bool dragEvent(const char *name, int x, int y);
