@@ -85,8 +85,6 @@ private:
                        = Events::kPropagationMode_Auto)
     {
 
-        ape_htable_item_t *item;
-
         for (Messages *const &receiver : m_Listeners_s) {
             SharedMessages::Message *msg = new SharedMessages::Message(
                 NIDIUM_EVENTS_MESSAGE_BITS(event) | (T::EventID << 16));
