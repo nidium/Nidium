@@ -20,7 +20,7 @@
 
 #include "Binding/JSWindow.h"
 #include "Binding/JSDocument.h"
-
+   
 using Nidium::Core::SharedMessages;
 using Nidium::Core::Path;
 using Nidium::IO::Stream;
@@ -28,6 +28,7 @@ using Nidium::Binding::NidiumJS;
 using Nidium::Binding::JSUtils;
 using Nidium::Binding::JSWindow;
 using Nidium::Binding::JSDocument;
+using Nidium::Binding::ClassMapper;
 using Nidium::Binding::JSObjectBuilder;
 using Nidium::Interface::SystemInterface;
 
@@ -426,7 +427,7 @@ void NML::onAssetsItemReady(Assets::Item *item)
                 break;
             }
             case Assets::Item::ITEM_NSS: {
-                JSDocument *jdoc = JSDocument::GetObject(m_Njs->m_Cx);
+                JSDocument *jdoc = JSDocument::GetInstance(m_Njs->m_Cx);
                 if (jdoc == NULL) {
                     return;
                 }
