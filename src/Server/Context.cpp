@@ -45,9 +45,9 @@ Context::Context(ape_global *net, Worker *worker, bool jsstrict, bool runInREPL)
 
 void Context::log(const char *str)
 {
-    linenoisePause();
+    //linenoisePause();
     Core::Context::log(str);
-    linenoiseResume();
+    //linenoiseResume();
 }
 
 Context::~Context()
