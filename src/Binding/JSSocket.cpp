@@ -21,10 +21,10 @@
 namespace Nidium {
 namespace Binding {
 
-JSSocket::JSSocket(const char *host,
+JSSocketBase::JSSocketBase(JSContext *cx, const char *host,
                    unsigned short port)
     : m_Socket(NULL), m_Flags(0),
-      m_FrameDelimiter('\n'), m_ParentServer(NULL), m_TCPTimeout(0)
+      m_FrameDelimiter('\n'), m_ParentServer(NULL), m_TCPTimeout(0), m_Cx(cx)
 {
     m_Host = strdup(host);
     m_Port = port;
@@ -35,7 +35,7 @@ JSSocket::JSSocket(const char *host,
     m_Encoding = NULL;
 }
 
-void JSSocket::readFrame(const char *buf, size_t len)
+void JSSocketBase::readFrame(const char *buf, size_t len)
 {
     JS::RootedValue onread(m_Cx);
     JS::RootedValue rval(m_Cx);
@@ -56,7 +56,7 @@ void JSSocket::readFrame(const char *buf, size_t len)
     }
 
     if (isClientFromOwnServer()) {
-        jdata[0].setObjectOrNull(this->getJSObject());
+        jdata[0].setObjectOrNull(this->getjsobj());
         jdata[1].setString(jstr);
     } else {
         jdata[0].setString(jstr);
@@ -71,20 +71,20 @@ void JSSocket::readFrame(const char *buf, size_t len)
     }
 }
 
-bool JSSocket::isAttached()
+bool JSSocketBase::isAttached()
 {
     return (m_Socket != NULL);
 }
 
-bool JSSocket::isJSCallable()
+bool JSSocketBase::isJSCallable()
 {
-    if (m_ParentServer && !m_ParentServer->getJSObject()) {
+    if (m_ParentServer && !m_ParentServer->getjsobj()) {
         return false;
     }
-    return (this->getJSObject() != NULL);
+    return (this->getjsobj() != NULL);
 }
 
-void JSSocket::dettach()
+void JSSocketBase::dettach()
 {
     if (isAttached()) {
         m_Socket->ctx = NULL;
@@ -92,7 +92,7 @@ void JSSocket::dettach()
     }
 }
 
-int JSSocket::write(unsigned char *data,
+int JSSocketBase::write(unsigned char *data,
                     size_t len,
                     ape_socket_data_autorelease data_type)
 {
@@ -103,12 +103,12 @@ int JSSocket::write(unsigned char *data,
     return APE_socket_write(m_Socket, data, len, data_type);
 }
 
-void JSSocket::disconnect()
+void JSSocketBase::disconnect()
 {
     APE_socket_shutdown_now(m_Socket);
 }
 
-void JSSocket::onRead(const char *data, size_t len)
+void JSSocketBase::onRead(const char *data, size_t len)
 {
     JS::RootedValue onread(m_Cx);
     JS::RootedValue rval(m_Cx);
@@ -122,7 +122,7 @@ void JSSocket::onRead(const char *data, size_t len)
 
     if (isClientFromOwnServer()) {
         dataPosition = 1;
-        JS::RootedObject obj(m_Cx, this->getJSObject());
+        JS::RootedObject obj(m_Cx, this->getjsobj());
         jparams[0].setObjectOrNull(obj);
     } else {
         dataPosition = 0;
@@ -178,7 +178,7 @@ void JSSocket::onRead(const char *data, size_t len)
     }
 }
 
-void JSSocket::shutdown()
+void JSSocketBase::shutdown()
 {
     if (!m_Socket || !m_Socket->ctx) {
         return;
@@ -186,7 +186,7 @@ void JSSocket::shutdown()
     APE_socket_shutdown(m_Socket);
 }
 
-JSSocket::~JSSocket()
+JSSocketBase::~JSSocketBase()
 {
     if (isAttached()) {
         m_Socket->ctx = NULL;
@@ -215,7 +215,6 @@ static void nidium_socket_wrapper_client_onmessage(ape_socket *socket_server,
 {
     JSContext *cx;
     JSSocket *nsocket = static_cast<JSSocket *>(socket_server->ctx);
-
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -289,7 +288,7 @@ static void nidium_socket_wrapper_onaccept(ape_socket *socket_server,
     JS::AutoValueArray<1> params(m_Cx);
 
     JSSocketClientConnection *sobj =
-        new JSSocketClientConnection(APE_socket_ipv4(socket_client), 0);
+        new JSSocketClientConnection(m_Cx, APE_socket_ipv4(socket_client), 0);
 
     socket_client->ctx = sobj;
 
@@ -350,12 +349,15 @@ static void nidium_socket_wrapper_client_disconnect(ape_socket *socket_client,
 {
     JSContext *cx;
 
-    JSSocket *csocket = static_cast<JSSocket *>(socket_client->ctx);
+    JSSocketClientConnection *csocket =
+        static_cast<JSSocketClientConnection *>(socket_client->ctx);
+
     if (!csocket || !csocket->isClientFromOwnServer()) {
         return;
     }
 
-    JSSocket *ssocket = csocket->getParentServer();
+    JSSocket *ssocket =
+        reinterpret_cast<JSSocket *>(csocket->getParentServer());
 
     if (ssocket == NULL || !ssocket->isJSCallable()) {
         return;
@@ -367,6 +369,7 @@ static void nidium_socket_wrapper_client_disconnect(ape_socket *socket_client,
     JS::RootedValue rval(cx);
 
     JS::AutoValueArray<1> jparams(cx);
+
     jparams[0].setObject(*csocket->getJSObject());
 
     csocket->dettach();
@@ -381,7 +384,6 @@ static void nidium_socket_wrapper_client_disconnect(ape_socket *socket_client,
     csocket->unroot();
 }
 // }}}
-
 
 
 bool JSSocket::JSSetter_binary(JSContext *cx, JS::MutableHandleValue vp)
@@ -500,7 +502,7 @@ JSSocket *JSSocket::Constructor(JSContext *cx, JS::CallArgs &args,
 
     JSAutoByteString chost(cx, host);
 
-    nsocket = new JSSocket(chost.ptr(), port);
+    nsocket = new JSSocket(cx, chost.ptr(), port);
 
     return nsocket;
 }
@@ -972,13 +974,6 @@ void JSSocket::RegisterObject(JSContext *cx)
     JSSocketClientConnection::ExposeClass(cx, "SocketClientConnection");
 }
 
-JSSocketClientConnection::~JSSocketClientConnection()
-{
-    if (m_Socket) {
-        m_Socket->ctx = NULL;
-        APE_socket_shutdown_now(m_Socket);
-    }
-}
 
 JSFunctionSpec *JSSocketClientConnection::ListMethods()
 {

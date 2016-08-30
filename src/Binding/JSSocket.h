@@ -16,21 +16,14 @@ namespace Binding {
 
 #define SOCKET_LINEBUFFER_MAX 8192
 
-
-
-class JSSocket : public ClassMapper<JSSocket>
+class JSSocketBase
 {
-public:
-    static void RegisterObject(JSContext *cx);
-    JSSocket(const char *host,
+protected:
+    JSSocketBase(JSContext *cx, const char *host,
              unsigned short port);
-    virtual ~JSSocket();
+    virtual ~JSSocketBase();
 
-    static JSSocket *Constructor(JSContext *cx, JS::CallArgs &args,
-        JS::HandleObject obj);
-    static JSFunctionSpec *ListMethods();
-    static JSPropertySpec *ListProperties();
-
+public:
     enum SocketType
     {
         kSocketType_Binary          = 1 << 0,
@@ -52,15 +45,15 @@ public:
 
     void onRead(const char *data, size_t len);
 
-    JSSocket *getParentServer() const
+    JSSocketBase *getParentServer() const
     {
         return m_ParentServer;
     }
 
-    void setParentServer(JSSocket *parent)
+    void setParentServer(JSSocketBase *parent)
     {
         m_ParentServer = parent;
-        m_Flags |= JSSocket::kSocketType_ConnectedClient;
+        m_Flags |= JSSocketBase::kSocketType_ConnectedClient;
     }
 
     int getFlags() const
@@ -86,10 +79,12 @@ public:
 
     JSObject *getReceiverJSObject() const
     {
-        return m_ParentServer ? m_ParentServer->getJSObject()
-                              : this->getJSObject();
+        return m_ParentServer ? m_ParentServer->getjsobj()
+                              : this->getjsobj();
     }
 
+    virtual JSObject *getjsobj() const=0;
+    void readFrame(const char *buf, size_t len);
 
     /*
         These needs to be public because we don't forward APE_socket callbacks
@@ -112,9 +107,40 @@ public:
 
     uint8_t m_FrameDelimiter;
 
-    JSSocket *m_ParentServer;
+    JSSocketBase *m_ParentServer;
 
     int m_TCPTimeout;
+
+    JSContext *m_Cx;
+};
+
+class JSSocket : public JSSocketBase,
+                 public ClassMapper<JSSocket>
+{
+public:
+    using ClassMapper<JSSocket>::m_Cx;
+
+    JSSocket(JSContext *cx, const char *host, unsigned short port) :
+        JSSocketBase(cx, host, port)
+    {
+
+    }
+
+    JSObject *getjsobj() const
+    {
+        return m_Instance;
+    }
+
+    virtual ~JSSocket(){};
+
+    static void RegisterObject(JSContext *cx);
+    static JSSocket *Constructor(JSContext *cx, JS::CallArgs &args,
+        JS::HandleObject obj);
+    static JSFunctionSpec *ListMethods();
+    static JSPropertySpec *ListProperties();
+
+
+
 
 protected:
     NIDIUM_DECL_JSCALL(listen);
@@ -127,26 +153,31 @@ protected:
     NIDIUM_DECL_JSGETTERSETTER(readline);
     NIDIUM_DECL_JSGETTERSETTER(encoding);
     NIDIUM_DECL_JSGETTERSETTER(timeout);
-private:
-    void readFrame(const char *buf, size_t len);
+
 };
 
-class JSSocketClientConnection : public JSSocket,
+class JSSocketClientConnection : public JSSocketBase,
                                  public ClassMapper<JSSocketClientConnection>
 {
 public:
-    NIDIUM_CLASSMAPPER_FIX_MULTIPLE_BASE(JSSocketClientConnection);
+    using ClassMapper<JSSocketClientConnection>::m_Cx;
 
-    JSSocketClientConnection(const char *host, unsigned short port) :
-        JSSocket(host, port)
+    JSSocketClientConnection(JSContext *cx,
+        const char *host, unsigned short port) :
+        JSSocketBase(cx, host, port)
     {
-
     }
 
-    virtual ~JSSocketClientConnection();
+    JSObject *getjsobj() const
+    {
+        return m_Instance;
+    }
+
+    virtual ~JSSocketClientConnection(){};
 
     static JSFunctionSpec *ListMethods();
 protected:
+
     NIDIUM_DECL_JSCALL(write);
     NIDIUM_DECL_JSCALL(disconnect);
     NIDIUM_DECL_JSCALL(sendFile);
