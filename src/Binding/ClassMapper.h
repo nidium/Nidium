@@ -145,8 +145,8 @@ public:
 
         return JS_InitClass(cx, sparent, JS::NullPtr(), jsclass,
                     ClassMapper<T>::JSConstructor<ctor_minarg>,
-                    ctor_minarg, NULL,
-                    T::ListMethods(), T::ListProperties(),
+                    ctor_minarg, T::ListProperties(),
+                    T::ListMethods(), NULL,
                     T::ListStaticMethods());
     }
 
