@@ -25,6 +25,8 @@ namespace Binding {
         return false;                                                \
     }
 
+
+
 #define CLASSMAPPER_FN(cclass, name, argc) \
     JS_FN(#name, (cclass::JSCall<&cclass::JS_##name, argc>), \
         argc, NIDIUM_JS_FNPROPS)
@@ -82,6 +84,26 @@ namespace Binding {
 
 #define NIDIUM_DECL_JSTRACER() void JSTracer(class JSTracer *trc)
 
+#define CLASSMAPPER_PROLOGUE_NO_RET()                     \
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);     \
+    if (!args.thisv().isObject()) {                       \
+        JS_ReportError(cx, "Illegal invocation");         \
+        return false;                                     \
+    }                                                     \
+    JS::RootedObject thisobj(cx, &args.thisv().toObject());
+
+#define CLASSMAPPER_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
+    CLASSMAPPER_PROLOGUE_NO_RET()                          \
+    ofclass *CppObj = T::GetInstance(thisobj);             \
+    if (!CppObj) {                                         \
+        JS_ReportError(cx, "Illegal invocation");          \
+        return false;                                      \
+    }
+
+#define CLASSMAPPER_PROLOGUE_CLASS(ofclass, fclass)    \
+    CLASSMAPPER_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
+    args.rval().setUndefined();
+
 
 template <typename T>
 class ClassMapper
@@ -136,7 +158,9 @@ public:
         obj->m_Cx = cx;
         obj->m_Rooted = false;
 
-        JS_SetPrivate(jsobj, obj);
+        if (JS_GetPrivate(jsobj) == NULL) {
+            JS_SetPrivate(jsobj, obj);
+        }
 
         if (implement) {
             JS_DefineProperties(cx, jsobj, T::ListProperties());
@@ -162,6 +186,19 @@ public:
         return ret;
     }
 
+    void setUniqueInstance()
+    {
+        /* Always root singleton since they might be replaced
+           by the user on the global namespace
+        */
+        this->root();
+
+        NidiumJS *njs = NidiumJS::GetObject(m_Cx);
+
+        njs->m_JSUniqueInstance.set((uintptr_t)T::GetJSClass(),
+            (uintptr_t)this);
+    }
+
     /**
      *  Create a singleton and expose the instance to the global object
      */
@@ -170,20 +207,12 @@ public:
     {
         JS::RootedObject ret(cx, CreateObject(cx, obj));
 
-        /* Always root singleton since they might be replaced
-           by the user on the global namespace
-        */
-        obj->root();
-
-        NidiumJS *njs = NidiumJS::GetObject(cx);
-
 #ifdef DEBUG
         JSClass *jsclass = T::GetJSClass();
         assert(jsclass->name != NULL);
 #endif
 
-        njs->m_JSUniqueInstance.set((uintptr_t)T::GetJSClass(),
-            ret);
+        obj->setUniqueInstance();
 
         JS::RootedValue val(cx);
         val.setObject(*ret);
@@ -235,16 +264,8 @@ public:
     {
         NidiumJS *njs = NidiumJS::GetObject(cx);
 
-        JSObject *ret = njs->m_JSUniqueInstance.get(
-            (uintptr_t)T::GetJSClass());
-
-        if (ret == NULL) {
-            return nullptr;
-        }
-
-        JS::RootedObject obj(cx, ret);
-
-        return (T *)JS_GetPrivate(obj);
+        return reinterpret_cast<T *>(njs->m_JSUniqueInstance.get(
+            (uintptr_t)T::GetJSClass()));
     }
 
     static bool InstanceOf(JS::HandleObject obj)
@@ -320,7 +341,7 @@ protected:
     template <JSCallback U, int minarg>
     static bool JSCall(JSContext *cx, unsigned argc, JS::Value *vp)
     {
-        NIDIUM_JS_PROLOGUE_CLASS(T, T::GetJSClass());
+        CLASSMAPPER_PROLOGUE_CLASS(T, T::GetJSClass());
 
         /* TODO: Get the right method name */
         NIDIUM_JS_CHECK_ARGS("method", minarg);
@@ -342,7 +363,7 @@ protected:
     template <JSGetterCallback U>
     static bool JSGetter(JSContext *cx, unsigned argc, JS::Value *vp)
     {
-        NIDIUM_JS_PROLOGUE_CLASS(T, T::GetJSClass());
+        CLASSMAPPER_PROLOGUE_CLASS(T, T::GetJSClass());
 
         return (CppObj->*U)(cx, args.rval());
     }
@@ -350,7 +371,7 @@ protected:
     template <JSSetterCallback U>
     static bool JSSetter(JSContext *cx, unsigned argc, JS::Value *vp)
     {
-        NIDIUM_JS_PROLOGUE_CLASS(T, T::GetJSClass());
+        CLASSMAPPER_PROLOGUE_CLASS(T, T::GetJSClass());
 
         JS::RootedValue val(cx, args.get(0));
 
@@ -468,7 +489,7 @@ public:
     template <JSCallback U, int minarg>
     static bool JSCallInternal(JSContext *cx, unsigned argc, JS::Value *vp)
     {
-        NIDIUM_JS_PROLOGUE_CLASS(T, T::GetJSClass());
+        CLASSMAPPER_PROLOGUE_CLASS(T, T::GetJSClass());
 
         /* TODO: Get the right method name */
         NIDIUM_JS_CHECK_ARGS("method", minarg);
