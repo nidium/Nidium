@@ -43,6 +43,16 @@ public:
         return (CppObj->*U)(cx, args);
     }
 
+    static JSGlobal *GetInstance(JS::HandleObject obj, JSContext *cx)
+    {
+        if (cx == nullptr) {
+            return nullptr;
+        }
+        
+        return (JSGlobal *)JS_GetPrivate(
+            JS::CurrentGlobalOrNull(cx));
+    }
+
     /*
         Override ClassMapper<T>::GetJSClass,
         since the global class has some special flags

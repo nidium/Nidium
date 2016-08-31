@@ -26,7 +26,6 @@ namespace Binding {
     }
 
 
-
 #define CLASSMAPPER_FN(cclass, name, argc) \
     JS_FN(#name, (cclass::JSCall<&cclass::JS_##name, argc>), \
         argc, NIDIUM_JS_FNPROPS)
@@ -94,7 +93,7 @@ namespace Binding {
 
 #define CLASSMAPPER_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
     CLASSMAPPER_PROLOGUE_NO_RET()                          \
-    ofclass *CppObj = T::GetInstance(thisobj);             \
+    ofclass *CppObj = T::GetInstance(thisobj, cx);         \
     if (!CppObj) {                                         \
         JS_ReportError(cx, "Illegal invocation");          \
         return false;                                      \
@@ -242,7 +241,7 @@ public:
      *  Return NULL if wrong source object
      *  This is the opposite of this->m_Instance
      */
-    static T *GetInstance(JS::HandleObject obj)
+    static T *GetInstance(JS::HandleObject obj, JSContext *cx = nullptr)
     {
         if (JS_GetClass(obj) != T::GetJSClass()) {
             return nullptr;
@@ -251,7 +250,7 @@ public:
         return (T *)JS_GetPrivate(obj);
     }
 
-    static T *GetInstanceUnsafe(JS::HandleObject obj)
+    static T *GetInstanceUnsafe(JS::HandleObject obj, JSContext *cx = nullptr)
     {
         return (T *)JS_GetPrivate(obj);
     }
@@ -260,7 +259,7 @@ public:
      *  Get a singleton ClassMapper<T> object.
      *  It's used for object created with CreateUniqueInstance()
      */    
-    static T *GetInstance(JSContext *cx = nullptr)
+    static T *GetInstanceSingleton(JSContext *cx = nullptr)
     {
         NidiumJS *njs = NidiumJS::GetObject(cx);
 

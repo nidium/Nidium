@@ -1816,7 +1816,7 @@ static bool nidium_canvas2dctx_prop_set(JSContext *cx,
 
             JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString font(cx, vpStr);
-            curSkia->setFontType(font.ptr(), JSDocument::GetInstance(cx));
+            curSkia->setFontType(font.ptr(), JSDocument::GetInstanceSingleton(cx));
         } break;
         case CTX_PROP(fontFile): {
             if (!vp.isString()) {

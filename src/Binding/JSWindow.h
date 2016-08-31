@@ -32,11 +32,14 @@ public:
 
     static JSClass *GetJSClass();
 
-    static JSWindow *GetInstance(JS::HandleObject obj)
+    static JSWindow *GetInstance(JS::HandleObject obj, JSContext *cx)
     {
-        return ClassMapper<JSWindow>::GetInstance();
+        return ClassMapper<JSWindow>::GetInstanceSingleton(cx);
     }
-
+    static JSWindow *GetInstanceUnsafe(JS::HandleObject obj, JSContext *cx)
+    {
+        return ClassMapper<JSWindow>::GetInstanceSingleton(cx);
+    }
 
     void onReady(JS::HandleObject layout);
     bool onClose();
