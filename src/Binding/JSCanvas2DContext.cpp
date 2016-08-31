@@ -21,6 +21,7 @@
 #include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSDocument.h"
+#include "Binding/JSImage.h"
 #include "Macros.h"
 
 using namespace Nidium::Graphics;
@@ -87,8 +88,6 @@ static void CanvasPattern_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Canvas2DContext_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static void Canvas2DContext_Trace(JSTracer *trc, JSObject *obj);
-
-extern JSClass Canvas_class;
 
 JSClass Canvas2DContext_class = { "CanvasRenderingContext2D",
                                   JSCLASS_HAS_PRIVATE,
@@ -1190,7 +1189,7 @@ nidium_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value *vp)
     /*
         TODO: work with WebGL canvas
     */
-    if (jsimage && JS_GetClass(jsimage) == &Canvas_class) {
+    if (jsimage && JSCanvas::InstanceOf(jsimage)) {
         CanvasContext *drawctx = HANDLER_GETTER(jsimage)->getContext();
 
         if (drawctx == NULL
@@ -1817,7 +1816,7 @@ static bool nidium_canvas2dctx_prop_set(JSContext *cx,
 
             JS::RootedString vpStr(cx, JS::ToString(cx, vp));
             JSAutoByteString font(cx, vpStr);
-            curSkia->setFontType(font.ptr(), JSDocument::GetObject(cx));
+            curSkia->setFontType(font.ptr(), JSDocument::GetInstance(cx));
         } break;
         case CTX_PROP(fontFile): {
             if (!vp.isString()) {

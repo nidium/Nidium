@@ -17,12 +17,12 @@ class JSGlobal : public ClassMapper<JSGlobal>
 {
 public:
     JSGlobal(NidiumJS *njs) : m_JS(njs) {}
+    virtual ~JSGlobal(){}
 
     static JSFunctionSpec *ListMethods();
     static JSPropertySpec *ListProperties();
     static void RegisterObject(JSContext *cx, JS::HandleObject global,
         NidiumJS *njs);
-
 
     /*
         JSCall needs to be overriden because it

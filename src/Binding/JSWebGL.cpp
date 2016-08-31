@@ -254,7 +254,7 @@ public:
 };
 
 // {{{ Preamble
-extern JSClass Canvas_class;
+
 static void Buffer_Finalize(JSFreeOp *fop, JSObject *obj);
 static void WebGLRenderingContext_Finalize(JSFreeOp *fop, JSObject *obj);
 
@@ -3479,23 +3479,23 @@ if (argc == 9) {
         JSImage *nimg;
 
         nimg = static_cast<JSImage *>(JS_GetPrivate(image));
-        if (!nimg || !nimg->m_Image) {
+        if (!nimg || !nimg->getImage()) {
             JS_ReportError(cx, !nimg ? "Invalid Image object"
                                      : "No Image data (is the image loaded?)");
             return false;
         }
 
-        width  = nimg->m_Image->getWidth();
-        height = nimg->m_Image->getHeight();
+        width  = nimg->getImage()->getWidth();
+        height = nimg->getImage()->getHeight();
 
         // Image are always decoded to RGBA
         format         = NGL_RGBA;
         internalFormat = NGL_RGBA;
 
-        pixels = (unsigned char *)malloc(nimg->m_Image->m_Image->getSize());
+        pixels = (unsigned char *)malloc(nimg->getImage()->m_Image->getSize());
 
         if (!Image::ConvertToRGBA(
-                nimg->m_Image, pixels,
+                nimg->getImage(), pixels,
                 CppObj->hasFlag(Canvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag),
                 CppObj->hasFlag(
                     Canvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag))) {
@@ -3503,7 +3503,7 @@ if (argc == 9) {
             JS_ReportError(cx, "Failed to read image data");
             return false;
         }
-    } else if (image && JS_GetClass(image) == &Canvas_class) {
+    } else if (image && JSCanvas::InstanceOf(image)) {
         CanvasHandler *handler = static_cast<CanvasHandler *>(
             static_cast<JSCanvas *>(JS_GetPrivate(image))->getHandler());
         Canvas2DContext *ctx
