@@ -18,6 +18,7 @@
 #include "Core/Messages.h"
 #include "Core/SharedMessages.h"
 
+
 struct _ape_htable;
 
 namespace Nidium {
@@ -27,6 +28,7 @@ class Context;
 namespace Binding {
 
 class JSModules;
+template<typename T>class ClassMapper;
 
 #define NIDIUM_JS_FNPROPS JSPROP_ENUMERATE | JSPROP_PERMANENT
 
@@ -68,7 +70,7 @@ public:
 
     Nidium::Core::Hash<JSObject *> m_JsObjects;
 
-    Nidium::Core::Hash64<JSObject *> m_JSUniqueInstance{64};
+    Nidium::Core::Hash64<uintptr_t> m_JSUniqueInstance{64};
 
     struct _ape_htable *m_RootedObj;
     struct _ape_global *m_Net;
