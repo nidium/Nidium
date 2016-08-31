@@ -41,12 +41,12 @@ public:
 
     void set(uint64_t key, T val)
     {
-        hashtbl_append64(this->m_table, key, val);
+        hashtbl_append64(this->m_table, key, (void *)val);
     }
 
     T get(uint64_t key) const
     {
-        return static_cast<T>(hashtbl_seek64(this->m_table, key));
+        return (T)hashtbl_seek64(this->m_table, key);
     }
 
     void erase(uint64_t key)
