@@ -34,7 +34,7 @@
 #include "Binding/JSSystem.h"
 #include "Binding/JSDB.h"
 
-#ifdef NIDIUM_JSWINDOW_GLOBAL
+#ifndef NIDIUM_DISABLE_WINDOW_GLOBAL
   #include "Binding/JSWindow.h"
 #endif
 
@@ -262,7 +262,7 @@ JSObject *NidiumJS::CreateJSGlobal(JSContext *cx, NidiumJS *njs)
     options.setVersion(JSVERSION_LATEST);
     JSClass *jsglobal;
 
-#ifdef NIDIUM_JSWINDOW_GLOBAL
+#ifndef NIDIUM_DISABLE_WINDOW_GLOBAL
     jsglobal = JSWindow::GetJSClass();
 #else
     jsglobal = JSGlobal::GetJSClass();

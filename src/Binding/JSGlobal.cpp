@@ -391,7 +391,9 @@ JSPropertySpec *JSGlobal::ListProperties()
         CLASSMAPPER_PROP_G(JSGlobal, __filename),
         CLASSMAPPER_PROP_G(JSGlobal, __dirname),
         CLASSMAPPER_PROP_G(JSGlobal, global),
-
+#ifndef NIDIUM_DISABLE_WINDOW_GLOBAL
+        CLASSMAPPER_PROP_G_ALIAS(JSGlobal, window, global),
+#endif
         JS_PS_END
     };
 

@@ -10,7 +10,6 @@
             '<(nidium_network_path)/gyp/network.gyp:network-includes',
             'libnidiumcore.gyp:libnidiumcore-includes',
         ],
-        'defines': ['NIDIUM_JSWINDOW_GLOBAL'],
         'include_dirs': [
             '<(nidium_src_path)',
             '<(nidium_interface_path)/',
