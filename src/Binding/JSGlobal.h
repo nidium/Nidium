@@ -29,7 +29,7 @@ public:
         seems that |this| is not available when calling a global method
     */
     template <JSCallback U, int minarg>
-    static bool JSCall(JSContext *cx, unsigned argc, JS::Value *vp)
+    static inline bool JSCall(JSContext *cx, unsigned argc, JS::Value *vp)
     {
         JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
         args.rval().setUndefined();
@@ -43,7 +43,7 @@ public:
         return (CppObj->*U)(cx, args);
     }
 
-    static JSGlobal *GetInstance(JS::HandleObject obj, JSContext *cx)
+    static inline JSGlobal *GetInstance(JS::HandleObject obj, JSContext *cx)
     {
         if (cx == nullptr) {
             return nullptr;
@@ -57,7 +57,7 @@ public:
         Override ClassMapper<T>::GetJSClass,
         since the global class has some special flags
     */
-    static JSClass *GetJSClass();
+    static inline JSClass *GetJSClass();
 protected:
     NIDIUM_DECL_JSCALL(load);
     NIDIUM_DECL_JSCALL(setTimeout);

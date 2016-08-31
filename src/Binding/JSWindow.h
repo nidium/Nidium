@@ -32,11 +32,11 @@ public:
 
     static JSClass *GetJSClass();
 
-    static JSWindow *GetInstance(JS::HandleObject obj, JSContext *cx)
+    static inline JSWindow *GetInstance(JS::HandleObject obj, JSContext *cx)
     {
         return ClassMapper<JSWindow>::GetInstanceSingleton(cx);
     }
-    static JSWindow *GetInstanceUnsafe(JS::HandleObject obj, JSContext *cx)
+    static inline JSWindow *GetInstanceUnsafe(JS::HandleObject obj, JSContext *cx)
     {
         return ClassMapper<JSWindow>::GetInstanceSingleton(cx);
     }

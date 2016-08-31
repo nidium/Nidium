@@ -81,7 +81,7 @@ namespace Binding {
     NIDIUM_DECL_JSGETTER(name); \
     NIDIUM_DECL_JSSETTER(name)
 
-#define NIDIUM_DECL_JSTRACER() void JSTracer(class JSTracer *trc)
+#define NIDIUM_DECL_JSTRACER() inline void JSTracer(class JSTracer *trc)
 
 #define CLASSMAPPER_PROLOGUE_NO_RET()                     \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);     \
@@ -170,7 +170,7 @@ public:
     /**
      *  Create an instance of an object (that is, not from the JS)
      */
-    static JSObject *CreateObject(JSContext *cx, T *obj)
+    static inline JSObject *CreateObject(JSContext *cx, T *obj)
     {
 #ifdef DEBUG
         JSClass *jsclass = T::GetJSClass();
@@ -227,7 +227,7 @@ public:
         return ret;
     }
 
-    static const char *GetClassName()
+    static inline const char *GetClassName()
     {
         JSClass *ret = T::GetJSClass();
 
@@ -241,7 +241,7 @@ public:
      *  Return NULL if wrong source object
      *  This is the opposite of this->m_Instance
      */
-    static T *GetInstance(JS::HandleObject obj, JSContext *cx = nullptr)
+    static inline T *GetInstance(JS::HandleObject obj, JSContext *cx = nullptr)
     {
         if (JS_GetClass(obj) != T::GetJSClass()) {
             return nullptr;
@@ -250,7 +250,7 @@ public:
         return (T *)JS_GetPrivate(obj);
     }
 
-    static T *GetInstanceUnsafe(JS::HandleObject obj, JSContext *cx = nullptr)
+    static inline T *GetInstanceUnsafe(JS::HandleObject obj, JSContext *cx = nullptr)
     {
         return (T *)JS_GetPrivate(obj);
     }
@@ -259,7 +259,7 @@ public:
      *  Get a singleton ClassMapper<T> object.
      *  It's used for object created with CreateUniqueInstance()
      */    
-    static T *GetInstanceSingleton(JSContext *cx = nullptr)
+    static inline T *GetInstanceSingleton(JSContext *cx = nullptr)
     {
         NidiumJS *njs = NidiumJS::GetObject(cx);
 
@@ -267,7 +267,7 @@ public:
             (uintptr_t)T::GetJSClass()));
     }
 
-    static bool InstanceOf(JS::HandleObject obj)
+    static inline bool InstanceOf(JS::HandleObject obj)
     {
         return (JS_GetClass(obj) == T::GetJSClass());
     }
@@ -275,12 +275,12 @@ public:
     /**
      *  Get the underlying mapped JSObject
      */    
-    JSObject *getJSObject() const
+    JSObject inline *getJSObject() const
     {
         return m_Instance;
     }
 
-    JSContext *getJSContext() const
+    JSContext inline *getJSContext() const
     {
         return m_Cx;
     }
@@ -329,7 +329,7 @@ public:
         this->unroot();
     }
 
-    virtual void JSTracer(class JSTracer *trc) {}
+    virtual inline void JSTracer(class JSTracer *trc) {}
 
 protected:
     typedef bool (T::*JSCallback)(JSContext *, JS::CallArgs &);
@@ -338,7 +338,7 @@ protected:
     typedef bool (T::*JSSetterCallback)(JSContext *, JS::MutableHandleValue);
 
     template <JSCallback U, int minarg>
-    static bool JSCall(JSContext *cx, unsigned argc, JS::Value *vp)
+    static inline bool JSCall(JSContext *cx, unsigned argc, JS::Value *vp)
     {
         CLASSMAPPER_PROLOGUE_CLASS(T, T::GetJSClass());
 
@@ -349,7 +349,7 @@ protected:
     }
 
     template <JSCallbackStatic U, int minarg>
-    static bool JSCallStatic(JSContext *cx, unsigned argc, JS::Value *vp)
+    static inline bool JSCallStatic(JSContext *cx, unsigned argc, JS::Value *vp)
     {
         NIDIUM_JS_PROLOGUE_NO_RET();
         NIDIUM_JS_CHECK_ARGS("method", minarg);
@@ -360,7 +360,7 @@ protected:
     }
 
     template <JSGetterCallback U>
-    static bool JSGetter(JSContext *cx, unsigned argc, JS::Value *vp)
+    static inline bool JSGetter(JSContext *cx, unsigned argc, JS::Value *vp)
     {
         CLASSMAPPER_PROLOGUE_CLASS(T, T::GetJSClass());
 
@@ -368,7 +368,7 @@ protected:
     }
 
     template <JSSetterCallback U>
-    static bool JSSetter(JSContext *cx, unsigned argc, JS::Value *vp)
+    static inline bool JSSetter(JSContext *cx, unsigned argc, JS::Value *vp)
     {
         CLASSMAPPER_PROLOGUE_CLASS(T, T::GetJSClass());
 
@@ -381,7 +381,7 @@ protected:
         return ret;
     }
 
-    static void JSTrace(class JSTracer *trc, JSObject *obj)
+    static inline void JSTrace(class JSTracer *trc, JSObject *obj)
     {
         T *CppObj = (T *)JS_GetPrivate(obj);
 
@@ -405,7 +405,7 @@ protected:
         return nullptr;
     }
 
-    static T *Constructor(JSContext *cx, JS::CallArgs &args,
+    static inline T *Constructor(JSContext *cx, JS::CallArgs &args,
         JS::HandleObject obj)
     {
         JS_ReportError(cx, "Illegal constructor");
@@ -414,7 +414,7 @@ protected:
     }
 
     template<int ctor_minarg = 0>
-    static bool JSConstructor(JSContext *cx, unsigned argc, JS::Value *vp)
+    static  bool JSConstructor(JSContext *cx, unsigned argc, JS::Value *vp)
     {
         T *obj;
         JSClass *jsclass = T::GetJSClass();
@@ -442,7 +442,7 @@ protected:
         return true;
     }
 
-    static void JSFinalizer(JSFreeOp *fop, JSObject *obj)
+    static inline void JSFinalizer(JSFreeOp *fop, JSObject *obj)
     {
         T *cppobj = (T *)JS_GetPrivate(obj);
 
@@ -451,7 +451,7 @@ protected:
         }
     }
 
-    static JSClass *GetJSClass()
+    static inline JSClass *GetJSClass()
     {
         static JSClass jsclass = { NULL,
                                    JSCLASS_HAS_PRIVATE,
@@ -486,7 +486,7 @@ public:
     typedef bool (ClassMapperWithEvents<T>::*JSCallback)(JSContext *, JS::CallArgs &);
 
     template <JSCallback U, int minarg>
-    static bool JSCallInternal(JSContext *cx, unsigned argc, JS::Value *vp)
+    static inline bool JSCallInternal(JSContext *cx, unsigned argc, JS::Value *vp)
     {
         CLASSMAPPER_PROLOGUE_CLASS(T, T::GetJSClass());
 
@@ -626,13 +626,11 @@ public:
         JS::RootedObject thisobj(m_Cx, m_Instance);
         JS::AutoValueArray<1> params(m_Cx);
         JS::RootedValue callback(m_Cx);
-        char onEv[128] = "on";
+        std::string onEv = "on" + std::string(name);
 
         params[0].set(evobj);
 
-        strncat(onEv, name, 128 - 3);
-
-        JS_GetProperty(m_Cx, thisobj, onEv, &callback);
+        JS_GetProperty(m_Cx, thisobj, onEv.c_str(), &callback);
 
         if (callback.isObject()
             && JS_ObjectIsCallable(m_Cx, callback.toObjectOrNull())) {
