@@ -7,7 +7,7 @@
 #define binding_jshttpserver_h__
 
 #include "Net/HTTPServer.h"
-#include "Binding/JSExposer.h"
+#include "Binding/ClassMapper.h"
 
 namespace Nidium {
 namespace Binding {
@@ -16,57 +16,60 @@ class JSHTTPClientConnection;
 
 // {{{ JSHTTPResponse
 class JSHTTPResponse : public Nidium::Net::HTTPResponse,
-                       public JSObjectMapper<JSHTTPResponse>
+                       public ClassMapper<JSHTTPResponse>
 {
 public:
     friend JSHTTPClientConnection;
 
+    static JSFunctionSpec *ListMethods();
+    virtual ~JSHTTPResponse(){}
+
 protected:
-    explicit JSHTTPResponse(JSContext *cx, uint16_t code = 200);
+    explicit JSHTTPResponse(uint16_t code = 200);
+
+    NIDIUM_DECL_JSCALL(write);
+    NIDIUM_DECL_JSCALL(writeHead);
+    NIDIUM_DECL_JSCALL(end);
 };
 // }}}
 
 // {{{ JSHTTPClientConnection
 class JSHTTPClientConnection : public Nidium::Net::HTTPClientConnection,
-                               public JSObjectMapper<JSHTTPClientConnection>
+                               public ClassMapper<JSHTTPClientConnection>
 {
 public:
-    JSHTTPClientConnection(JSContext *cx,
-                           Nidium::Net::HTTPServer *httpserver,
+    JSHTTPClientConnection(Nidium::Net::HTTPServer *httpserver,
                            ape_socket *socket)
-        : Nidium::Net::HTTPClientConnection(httpserver, socket),
-          JSObjectMapper(cx, "HTTPClientConnection")
+        : Nidium::Net::HTTPClientConnection(httpserver, socket)
     {
     }
     virtual Nidium::Net::HTTPResponse *onCreateResponse()
     {
-        return new JSHTTPResponse(m_JSCx);
+        JSHTTPResponse *resp = new JSHTTPResponse();
+        JSHTTPResponse::CreateObject(m_Cx, resp);
+
+        /*
+            HTTPResponse is delete by ~HTTPClientConnection()
+        */
+        resp->root();
+
+        return resp;
     }
 };
 // }}}
 
 // {{{ JSHTTPServer
-class JSHTTPServer : public JSExposer<JSHTTPServer>,
+class JSHTTPServer : public ClassMapper<JSHTTPServer>,
                      public Nidium::Net::HTTPServer
 {
 public:
-    JSHTTPServer(JS::HandleObject obj,
-                 JSContext *cx,
-                 uint16_t port,
+    static JSHTTPServer *Constructor(JSContext *cx, JS::CallArgs &args,
+        JS::HandleObject obj);
+
+    JSHTTPServer(uint16_t port,
                  const char *ip = "0.0.0.0");
     virtual ~JSHTTPServer();
-    virtual void onClientConnect(ape_socket *client, ape_global *ape)
-    {
-        JSHTTPClientConnection *conn;
-        client->ctx = conn = new JSHTTPClientConnection(m_Cx, this, client);
-
-        JS::RootedObject obj(m_Cx, conn->getJSObject());
-
-        NIDIUM_JSOBJ_SET_PROP_CSTR(obj, "ip", APE_socket_ipv4(client));
-
-        HTTPServer::onClientConnect(
-            static_cast<Nidium::Net::HTTPClientConnection *>(client->ctx));
-    }
+    virtual void onClientConnect(ape_socket *client, ape_global *ape);
     virtual void onClientDisconnect(Nidium::Net::HTTPClientConnection *client);
     virtual void onData(Nidium::Net::HTTPClientConnection *client,
                         const char *buf,
