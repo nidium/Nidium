@@ -57,7 +57,7 @@ public:
         Override ClassMapper<T>::GetJSClass,
         since the global class has some special flags
     */
-    static inline JSClass *GetJSClass();
+    static JSClass *GetJSClass();
 protected:
     NIDIUM_DECL_JSCALL(load);
     NIDIUM_DECL_JSCALL(setTimeout);
