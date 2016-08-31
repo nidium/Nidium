@@ -91,7 +91,7 @@ namespace Binding {
     }                                                     \
     JS::RootedObject thisobj(cx, &args.thisv().toObject());
 
-#define CLASSMAPPER_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
+#define CLASSMAPPER_PROLOGUE_CLASS_NO_RET(ofclass) \
     CLASSMAPPER_PROLOGUE_NO_RET()                          \
     ofclass *CppObj = T::GetInstance(thisobj, cx);         \
     if (!CppObj) {                                         \
@@ -99,8 +99,8 @@ namespace Binding {
         return false;                                      \
     }
 
-#define CLASSMAPPER_PROLOGUE_CLASS(ofclass, fclass)    \
-    CLASSMAPPER_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
+#define CLASSMAPPER_PROLOGUE_CLASS(ofclass)    \
+    CLASSMAPPER_PROLOGUE_CLASS_NO_RET(ofclass) \
     args.rval().setUndefined();
 
 
@@ -340,7 +340,7 @@ protected:
     template <JSCallback U, int minarg>
     static inline bool JSCall(JSContext *cx, unsigned argc, JS::Value *vp)
     {
-        CLASSMAPPER_PROLOGUE_CLASS(T, T::GetJSClass());
+        CLASSMAPPER_PROLOGUE_CLASS(T);
 
         /* TODO: Get the right method name */
         NIDIUM_JS_CHECK_ARGS("method", minarg);
@@ -362,7 +362,7 @@ protected:
     template <JSGetterCallback U>
     static inline bool JSGetter(JSContext *cx, unsigned argc, JS::Value *vp)
     {
-        CLASSMAPPER_PROLOGUE_CLASS(T, T::GetJSClass());
+        CLASSMAPPER_PROLOGUE_CLASS(T);
 
         return (CppObj->*U)(cx, args.rval());
     }
@@ -370,7 +370,7 @@ protected:
     template <JSSetterCallback U>
     static inline bool JSSetter(JSContext *cx, unsigned argc, JS::Value *vp)
     {
-        CLASSMAPPER_PROLOGUE_CLASS(T, T::GetJSClass());
+        CLASSMAPPER_PROLOGUE_CLASS(T);
 
         JS::RootedValue val(cx, args.get(0));
 
@@ -488,7 +488,7 @@ public:
     template <JSCallback U, int minarg>
     static inline bool JSCallInternal(JSContext *cx, unsigned argc, JS::Value *vp)
     {
-        CLASSMAPPER_PROLOGUE_CLASS(T, T::GetJSClass());
+        CLASSMAPPER_PROLOGUE_CLASS(T);
 
         /* TODO: Get the right method name */
         NIDIUM_JS_CHECK_ARGS("method", minarg);
