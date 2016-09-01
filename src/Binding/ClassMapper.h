@@ -81,7 +81,8 @@ namespace Binding {
     NIDIUM_DECL_JSGETTER(name); \
     NIDIUM_DECL_JSSETTER(name)
 
-#define NIDIUM_DECL_JSTRACER() inline void JSTracer(class JSTracer *trc)
+#define NIDIUM_DECL_JSTRACER() \
+    inline void JSTracer(class JSTracer *trc) override
 
 #define CLASSMAPPER_PROLOGUE_NO_RET()                     \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);     \
@@ -133,7 +134,7 @@ public:
 
         jsclass->name     = name;
         jsclass->finalize = ClassMapper<T>::JSFinalizer;
-        jsclass->flags    = jsflags | JSCLASS_HAS_PRIVATE;
+        jsclass->flags   |= jsflags | JSCLASS_HAS_PRIVATE;
 
         if (flags & kJSTracer_ExposeFlag) {
             jsclass->trace = ClassMapper<T>::JSTrace;
@@ -241,7 +242,8 @@ public:
      *  Return NULL if wrong source object
      *  This is the opposite of this->m_Instance
      */
-    static inline T *GetInstance(JS::HandleObject obj, JSContext *cx = nullptr)
+    static inline T *GetInstance(JS::HandleObject obj,
+        JSContext *cx = nullptr)
     {
         if (JS_GetClass(obj) != T::GetJSClass()) {
             return nullptr;
@@ -250,7 +252,8 @@ public:
         return (T *)JS_GetPrivate(obj);
     }
 
-    static inline T *GetInstanceUnsafe(JS::HandleObject obj, JSContext *cx = nullptr)
+    static inline T *GetInstanceUnsafe(JS::HandleObject obj,
+        JSContext *cx = nullptr)
     {
         return (T *)JS_GetPrivate(obj);
     }
@@ -324,6 +327,9 @@ public:
      */      
     virtual ~ClassMapper()
     {
+        if (!m_Instance.get()) {
+            return;
+        }
         JS_SetPrivate(m_Instance, nullptr);
         
         this->unroot();
@@ -468,8 +474,8 @@ protected:
     }
 
     JS::Heap<JSObject *> m_Instance;
-    JSContext *m_Cx;
-    bool m_Rooted;
+    JSContext *m_Cx = nullptr;
+    bool m_Rooted = false;
 };
 
 template <typename T>
