@@ -374,58 +374,6 @@ private:
 // }}}
 
 
-// {{{ JSObjectMapper
-template <typename T>
-class JSObjectMapper
-{
-public:
-    JSObjectMapper(JSContext *cx, const char *name) : m_JSObj(cx), m_JSCx(cx)
-    {
-        static JSClass jsclass = { NULL,
-                                   JSCLASS_HAS_PRIVATE,
-                                   JS_PropertyStub,
-                                   JS_DeletePropertyStub,
-                                   JS_PropertyStub,
-                                   JS_StrictPropertyStub,
-                                   JS_EnumerateStub,
-                                   JS_ResolveStub,
-                                   JS_ConvertStub,
-                                   JSCLASS_NO_OPTIONAL_MEMBERS };
-
-        if (jsclass.name == NULL) {
-            jsclass.name = name;
-        }
-
-        m_JSClass = &jsclass;
-
-        m_JSObj = JS_NewObject(m_JSCx, m_JSClass, JS::NullPtr(), JS::NullPtr());
-        JS_SetPrivate(m_JSObj, static_cast<T *>(this));
-    }
-    virtual ~JSObjectMapper()
-    {
-        JS_SetPrivate(m_JSObj, NULL);
-    }
-
-    JSObject *getJSObject() const
-    {
-        return m_JSObj;
-    }
-    /*
-        TODO : need to check against instance
-    */
-    static T *GetObject(JSObject *jsobj)
-    {
-        return static_cast<T *>(JS_GetPrivate(jsobj));
-    }
-
-protected:
-    JSClass *m_JSClass;
-
-    JS::PersistentRootedObject m_JSObj;
-    JSContext *m_JSCx;
-};
-// }}}
-
 // {{{ JSObjectBuilder
 class JSObjectBuilder
 {

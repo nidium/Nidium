@@ -34,6 +34,10 @@
 #include "Binding/JSSystem.h"
 #include "Binding/JSDB.h"
 
+#ifndef NIDIUM_DISABLE_WINDOW_GLOBAL
+  #include "Binding/JSWindow.h"
+#endif
+
 #include "Core/Context.h"
 
 using namespace Nidium::Core;
@@ -256,9 +260,16 @@ JSObject *NidiumJS::CreateJSGlobal(JSContext *cx, NidiumJS *njs)
 {
     JS::CompartmentOptions options;
     options.setVersion(JSVERSION_LATEST);
+    JSClass *jsglobal;
+
+#ifndef NIDIUM_DISABLE_WINDOW_GLOBAL
+    jsglobal = JSWindow::GetJSClass();
+#else
+    jsglobal = JSGlobal::GetJSClass();
+#endif
 
     JS::RootedObject glob(cx,
-        JS_NewGlobalObject(cx, JSGlobal::GetJSClass(), nullptr,
+        JS_NewGlobalObject(cx, jsglobal, nullptr,
                                                  JS::DontFireOnNewGlobalHook,
                                                  options));
 

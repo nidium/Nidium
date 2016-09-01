@@ -6,8 +6,9 @@
 #ifndef binding_jswindow_h__
 #define binding_jswindow_h__
 
-#include <Frontend/NML.h>
-#include <Binding/ClassMapper.h>
+#include "Frontend/NML.h"
+#include "Binding/ClassMapper.h"
+#include "Binding/JSGlobal.h"
 
 namespace Nidium {
 namespace Graphics {
@@ -19,11 +20,29 @@ namespace Binding {
 class JSWindow : public ClassMapper<JSWindow>
 {
 public:
-    JSWindow()
+
+    JSWindow(NidiumJS *njs)
         : m_RequestedFrame(NULL),
           m_Handler(NULL), m_Dragging(false){};
 
     virtual ~JSWindow();
+
+    static JSFunctionSpec *ListMethods();
+    static JSPropertySpec *ListProperties();
+
+    static JSClass *GetJSClass();
+
+    static inline JSWindow *GetInstance(JS::HandleObject obj,
+        JSContext *cx = nullptr)
+    {
+        return ClassMapper<JSWindow>::GetInstanceSingleton(cx);
+    }
+
+    static inline JSWindow *GetInstanceUnsafe(JS::HandleObject obj,
+        JSContext *cx = nullptr)
+    {
+        return JSWindow::GetInstance(obj, cx);
+    }
 
     void onReady(JS::HandleObject layout);
     bool onClose();
@@ -57,9 +76,34 @@ public:
     static JSWindow *
     RegisterObject(JSContext *cx, int width, int height, JS::HandleObject doc);
 
-
     static JSWindow *GetObject(JSContext *cx);
     static JSWindow *GetObject(NidiumJS *njs);
+
+protected:
+
+    NIDIUM_DECL_JSCALL(requestAnimationFrame);
+    NIDIUM_DECL_JSCALL(openFileDialog);
+    NIDIUM_DECL_JSCALL(openDirDialog);
+    NIDIUM_DECL_JSCALL(setSize);
+    NIDIUM_DECL_JSCALL(center);
+    NIDIUM_DECL_JSCALL(setPosition);
+    NIDIUM_DECL_JSCALL(setFrame);
+    NIDIUM_DECL_JSCALL(notify);
+    NIDIUM_DECL_JSCALL(quit);
+    NIDIUM_DECL_JSCALL(close);
+    NIDIUM_DECL_JSCALL(open);
+    NIDIUM_DECL_JSCALL(setSystemTray);
+    NIDIUM_DECL_JSCALL(openURL);
+    NIDIUM_DECL_JSCALL(exec);
+
+    NIDIUM_DECL_JSGETTER(devicePixelRatio);
+
+    NIDIUM_DECL_JSGETTERSETTER(left);
+    NIDIUM_DECL_JSGETTERSETTER(top);
+    NIDIUM_DECL_JSGETTERSETTER(innerWidth);
+    NIDIUM_DECL_JSGETTERSETTER(innerHeight);
+    NIDIUM_DECL_JSGETTERSETTER(title);
+    NIDIUM_DECL_JSGETTERSETTER(cursor);
 
 private:
     bool dragEvent(const char *name, int x, int y);

@@ -1524,7 +1524,7 @@ bool SkiaContext::setFontFile(const char *str)
 
 void SkiaContext::setFillColor(CanvasPattern *pattern)
 {
-    if (pattern->m_JsImg->m_Image->m_Image != NULL) {
+    if (pattern->m_JsImg->getImage()->m_Image != NULL) {
         SkShader *shader = NULL;
         bool repeat_x = false, repeat_y = false;
 
@@ -1545,7 +1545,7 @@ void SkiaContext::setFillColor(CanvasPattern *pattern)
 
         if (repeat_x && repeat_y) {
             shader = SkShader::CreateBitmapShader(
-                *pattern->m_JsImg->m_Image->m_Image,
+                *pattern->m_JsImg->getImage()->m_Image,
                 pattern->m_Mode == CanvasPattern::PATTERN_REPEAT_MIRROR
                     ? SkShader::kMirror_TileMode
                     : SkShader::kRepeat_TileMode,
@@ -1561,7 +1561,7 @@ void SkiaContext::setFillColor(CanvasPattern *pattern)
             int expandW = repeat_x ? 0 : 1;
             int expandH = repeat_y ? 0 : 1;
 
-            SkBitmap *bm = pattern->m_JsImg->m_Image->m_Image;
+            SkBitmap *bm = pattern->m_JsImg->getImage()->m_Image;
             SkBitmap bm2;
 
             bm2.setConfig(bm->config(), bm->width() + expandW,

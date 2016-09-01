@@ -16,72 +16,19 @@ using Nidium::Net::HTTPClientConnection;
 namespace Nidium {
 namespace Binding {
 
-// {{{ Preamble
-static void HTTPServer_Finalize(JSFreeOp *fop, JSObject *obj);
-
-static bool
-nidium_httpresponse_write(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_httpresponse_end(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Value *vp);
-
-static JSClass HTTPServer_class = { "HTTPServer",
-                                    JSCLASS_HAS_PRIVATE,
-                                    JS_PropertyStub,
-                                    JS_DeletePropertyStub,
-                                    JS_PropertyStub,
-                                    JS_StrictPropertyStub,
-                                    JS_EnumerateStub,
-                                    JS_ResolveStub,
-                                    JS_ConvertStub,
-                                    HTTPServer_Finalize,
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
-                                    JSCLASS_NO_INTERNAL_MEMBERS };
-
-template <>
-JSClass *JSExposer<JSHTTPServer>::jsclass = &HTTPServer_class;
-
-static JSClass HTTPRequest_class
-    = { "HTTPRequest",    JSCLASS_HAS_PRIVATE,
-        JS_PropertyStub,  JS_DeletePropertyStub,
-        JS_PropertyStub,  JS_StrictPropertyStub,
-        JS_EnumerateStub, JS_ResolveStub,
-        JS_ConvertStub,   JSCLASS_NO_OPTIONAL_MEMBERS };
-
-/*
-    TODO: write is for response
-*/
-static JSFunctionSpec HTTPResponse_funcs[]
-    = { JS_FN("write", nidium_httpresponse_write, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("end", nidium_httpresponse_end, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("writeHead", nidium_httpresponse_writeHead, 1, NIDIUM_JS_FNPROPS),
-        JS_FS_END };
-
-#if 0
-static JSPropertySpec HTTPRequest_props[] = {
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
-};
-#endif
-// }}}
 
 // {{{ JSHTTPResponse
-JSHTTPResponse::JSHTTPResponse(JSContext *cx, uint16_t code)
-    : HTTPResponse(code), JSObjectMapper(cx, "HTTPResponse")
+JSHTTPResponse::JSHTTPResponse(uint16_t code)
+    : HTTPResponse(code)
 {
-    JS_DefineFunctions(cx, m_JSObj, HTTPResponse_funcs);
+
 }
 // }}}
 
 // {{{ JSHTTPServer
-JSHTTPServer::JSHTTPServer(JS::HandleObject obj,
-                           JSContext *cx,
-                           uint16_t port,
+JSHTTPServer::JSHTTPServer(uint16_t port,
                            const char *ip)
-    : JSExposer<JSHTTPServer>(obj, cx), HTTPServer(port, ip)
+    : HTTPServer(port, ip)
 {
 }
 
@@ -89,8 +36,28 @@ JSHTTPServer::~JSHTTPServer()
 {
 }
 
+void JSHTTPServer::onClientConnect(ape_socket *client, ape_global *ape)
+{
+    JSHTTPClientConnection *conn;
+    client->ctx = conn = new JSHTTPClientConnection(this, client);
+
+    JS::RootedObject obj(m_Cx,
+        JSHTTPClientConnection::CreateObject(m_Cx, conn));
+
+    /*
+        The object will be deleted during onClientDisconnect
+    */
+    conn->root();
+
+    NIDIUM_JSOBJ_SET_PROP_CSTR(obj, "ip", APE_socket_ipv4(client));
+
+    HTTPServer::onClientConnect(
+        reinterpret_cast<Nidium::Net::HTTPClientConnection *>(client->ctx));
+}
+
 void JSHTTPServer::onClientDisconnect(HTTPClientConnection *client)
 {
+
 }
 
 void JSHTTPServer::onData(HTTPClientConnection *client,
@@ -108,13 +75,13 @@ bool JSHTTPServer::onEnd(HTTPClientConnection *client)
     JS::RootedValue oncallback(m_Cx);
 
     JSHTTPClientConnection *subclient
-        = static_cast<JSHTTPClientConnection *>(client);
+        = reinterpret_cast<JSHTTPClientConnection *>(client);
 
     JS::RootedObject objrequest(
         m_Cx,
-        JS_NewObject(m_Cx, &HTTPRequest_class, JS::NullPtr(), JS::NullPtr()));
+        JS_NewObject(m_Cx, nullptr, JS::NullPtr(), JS::NullPtr()));
     JS::RootedObject headers(
-        m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
+        m_Cx, JS_NewObject(m_Cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
     if (client->getHTTPState()->headers.list) {
         APE_A_FOREACH(client->getHTTPState()->headers.list, k, v)
@@ -167,7 +134,7 @@ bool JSHTTPServer::onEnd(HTTPClientConnection *client)
     NIDIUM_JSOBJ_SET_PROP(objrequest, "method", method);
     NIDIUM_JSOBJ_SET_PROP(objrequest, "headers", headers);
     NIDIUM_JSOBJ_SET_PROP(objrequest, "client", cli);
-    JS::RootedObject obj(m_Cx, m_JSObject);
+    JS::RootedObject obj(m_Cx, m_Instance);
     if (JS_GetProperty(m_Cx, obj, "onrequest", &oncallback)
         && JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
 
@@ -184,29 +151,20 @@ bool JSHTTPServer::onEnd(HTTPClientConnection *client)
 // }}}
 
 // {{{ Implementation
-static bool
-nidium_HTTPServer_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
+JSHTTPServer *JSHTTPServer::Constructor(JSContext *cx, JS::CallArgs &args,
+        JS::HandleObject obj)
 {
     uint16_t port;
     JS::RootedString ip_bind(cx);
     bool reuseport = false;
     JSHTTPServer *listener;
     JS::RootedObject options(cx);
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     NIDIUM_JS_INIT_OPT();
 
-    if (!args.isConstructing()) {
-        JS_ReportError(cx, "Bad constructor");
-        return false;
-    }
-
-    JS::RootedObject ret(
-        cx, JS_NewObjectForConstructor(cx, &HTTPServer_class, args));
-
     if (!JS_ConvertArguments(cx, args, "c/So", &port, ip_bind.address(),
                              options.address())) {
-        return false;
+        return nullptr;
     }
 
     NIDIUM_JS_GET_OPT_TYPE(options, "reusePort", Boolean)
@@ -216,53 +174,32 @@ nidium_HTTPServer_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 
     if (ip_bind) {
         JSAutoByteString cip(cx, ip_bind);
-        listener = new JSHTTPServer(ret, cx, port, cip.ptr());
+        listener = new JSHTTPServer(port, cip.ptr());
     } else {
-        listener = new JSHTTPServer(ret, cx, port);
+        listener = new JSHTTPServer(port);
     }
 
     if (!listener->start((bool)reuseport)) {
         JS_ReportError(cx, "HTTPServer() couldn't listener on %d", port);
         delete listener;
-        return false;
+        
+        return nullptr;
     }
 
-    JS_SetPrivate(ret, listener);
-    args.rval().setObjectOrNull(ret);
+    listener->root();
 
-    NidiumJSObj(cx)->rootObjectUntilShutdown(ret);
-
-    return true;
+    return listener;
 }
 
-#if 0
-static bool nidium_HTTPRequest_class_constructor(JSContext *cx,
-    unsigned argc, JS::Value *vp)
+
+bool JSHTTPResponse::JS_write(JSContext *cx, JS::CallArgs &args)
 {
-    JS_ReportError(cx, "Illegal constructor");
-    return false;
-}
-#endif
-
-static bool
-nidium_httpresponse_write(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-
-    NIDIUM_JS_CHECK_ARGS("write", 1);
-
-    JSHTTPResponse *resp = JSHTTPResponse::GetObject(caller);
-    if (!resp) {
-        return true;
-    }
-
     if (args[0].isString()) {
         JSAutoByteString jsdata;
         JS::RootedString str(cx, args[0].toString());
         jsdata.encodeUtf8(cx, str);
 
-        resp->sendChunk(jsdata.ptr(), jsdata.length(), APE_DATA_COPY);
+        this->sendChunk(jsdata.ptr(), jsdata.length(), APE_DATA_COPY);
 
     } else if (args[0].isObject()) {
         JS::RootedObject objdata(cx, args[0].toObjectOrNull());
@@ -275,7 +212,7 @@ nidium_httpresponse_write(JSContext *cx, unsigned argc, JS::Value *vp)
         uint32_t len  = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
 
-        resp->sendChunk((char *)data, len, APE_DATA_COPY);
+        this->sendChunk((char *)data, len, APE_DATA_COPY);
     } else {
         JS_ReportError(cx, "write() only accepts String or ArrayBuffer");
         return false;
@@ -284,23 +221,15 @@ nidium_httpresponse_write(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool nidium_httpresponse_end(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSHTTPResponse::JS_end(JSContext *cx, JS::CallArgs &args)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-
-    JSHTTPResponse *resp = JSHTTPResponse::GetObject(caller);
-    if (!resp) {
-        return true;
-    }
-
     if (args.length() > 0) {
         if (args[0].isString()) {
             JSAutoByteString jsdata;
             JS::RootedString str(cx, args[0].toString());
             jsdata.encodeUtf8(cx, str);
 
-            resp->sendChunk(jsdata.ptr(), jsdata.length(), APE_DATA_COPY, true);
+            this->sendChunk(jsdata.ptr(), jsdata.length(), APE_DATA_COPY, true);
         } else if (args[0].isObject()) {
             JS::RootedObject objdata(cx, args[0].toObjectOrNull());
             if (!objdata || !JS_IsArrayBufferObject(objdata)) {
@@ -312,38 +241,30 @@ static bool nidium_httpresponse_end(JSContext *cx, unsigned argc, JS::Value *vp)
             uint32_t len  = JS_GetArrayBufferByteLength(objdata);
             uint8_t *data = JS_GetArrayBufferData(objdata);
 
-            resp->sendChunk((char *)data, len, APE_DATA_COPY, true);
+            this->sendChunk((char *)data, len, APE_DATA_COPY, true);
         }
     }
 
-    resp->end();
+    this->end();
 
     return true;
 }
 
-static bool
-nidium_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSHTTPResponse::JS_writeHead(JSContext *cx, JS::CallArgs &args)
 {
     uint16_t statuscode;
 
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject headers(cx);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     if (!JS_ConvertArguments(cx, args, "c/o", &statuscode, headers.address())) {
         return false;
     }
 
-    JSHTTPResponse *resp = JSHTTPResponse::GetObject(caller);
-    if (!resp) {
+    if (this->isHeadersAlreadySent()) {
         return true;
     }
 
-    if (resp->isHeadersAlreadySent()) {
-        return true;
-    }
-
-    resp->setStatusCode(statuscode);
+    this->setStatusCode(statuscode);
 
     if (args.length() >= 2 && !args[1].isPrimitive()) {
 
@@ -367,37 +288,37 @@ nidium_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Value *vp)
             JSAutoByteString ckey(cx, key);
             JSAutoByteString cval(cx, val.toString());
 
-            resp->setHeader(ckey.ptr(), cval.ptr());
+            this->setHeader(ckey.ptr(), cval.ptr());
         }
     }
 
-    resp->sendHeaders(true);
+    this->sendHeaders(true);
 
     return true;
 }
 
-static void HTTPServer_Finalize(JSFreeOp *fop, JSObject *obj)
-{
-    JSHTTPServer *server = (JSHTTPServer *)JS_GetPrivate(obj);
 
-    if (server != NULL) {
-        delete server;
-    }
-}
 // }}}
 
 // {{{ Registration
+
+JSFunctionSpec *JSHTTPResponse::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSHTTPResponse, write, 1),
+        CLASSMAPPER_FN(JSHTTPResponse, writeHead, 1),
+        CLASSMAPPER_FN(JSHTTPResponse, end, 0),
+        JS_FS_END
+    };
+
+    return funcs;
+}
+
 void JSHTTPServer::RegisterObject(JSContext *cx)
 {
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS_InitClass(cx, global, JS::NullPtr(), &HTTPServer_class,
-                 nidium_HTTPServer_constructor, 0, NULL, NULL, NULL, NULL);
-#if 0
-    //TODO: how to init a class from a NidiumJSObjectMapper derived class
-    JS_InitClass(cx, global, NULL, &HTTPRequest_class,
-                nidium_HTTPRequest_class_constructor,
-                0, HTTPRequest_props, HTTPRequest_funcs, NULL, NULL);
-#endif
+    JSHTTPServer::ExposeClass<1>(cx, "HTTPServer");
+    JSHTTPClientConnection::ExposeClass(cx, "HTTPServerClientConnection");
+    JSHTTPResponse::ExposeClass(cx, "HTTPServerResponse");
 }
 // }}}
 

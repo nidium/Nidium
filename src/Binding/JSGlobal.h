@@ -17,19 +17,19 @@ class JSGlobal : public ClassMapper<JSGlobal>
 {
 public:
     JSGlobal(NidiumJS *njs) : m_JS(njs) {}
+    virtual ~JSGlobal(){}
 
     static JSFunctionSpec *ListMethods();
     static JSPropertySpec *ListProperties();
     static void RegisterObject(JSContext *cx, JS::HandleObject global,
         NidiumJS *njs);
 
-
     /*
         JSCall needs to be overriden because it
         seems that |this| is not available when calling a global method
     */
     template <JSCallback U, int minarg>
-    static bool JSCall(JSContext *cx, unsigned argc, JS::Value *vp)
+    static inline bool JSCall(JSContext *cx, unsigned argc, JS::Value *vp)
     {
         JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
         args.rval().setUndefined();
@@ -41,6 +41,16 @@ public:
         NIDIUM_JS_CHECK_ARGS("method", minarg);
 
         return (CppObj->*U)(cx, args);
+    }
+
+    static inline JSGlobal *GetInstance(JS::HandleObject obj, JSContext *cx)
+    {
+        if (cx == nullptr) {
+            return nullptr;
+        }
+        
+        return (JSGlobal *)JS_GetPrivate(
+            JS::CurrentGlobalOrNull(cx));
     }
 
     /*

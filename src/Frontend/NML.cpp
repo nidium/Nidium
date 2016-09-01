@@ -427,7 +427,7 @@ void NML::onAssetsItemReady(Assets::Item *item)
                 break;
             }
             case Assets::Item::ITEM_NSS: {
-                JSDocument *jdoc = JSDocument::GetInstance(m_Njs->m_Cx);
+                JSDocument *jdoc = JSDocument::GetInstanceSingleton(m_Njs->m_Cx);
                 if (jdoc == NULL) {
                     return;
                 }

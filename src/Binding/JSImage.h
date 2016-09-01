@@ -29,6 +29,10 @@ public:
 
     void onMessage(const Core::SharedMessages::Message &msg);
 
+    Graphics::Image *getImage() const {
+        return m_Image;
+    }
+
 protected:
     NIDIUM_DECL_JSGETTERSETTER(src);
 private:

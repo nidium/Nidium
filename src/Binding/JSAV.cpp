@@ -36,7 +36,6 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-extern JSClass Canvas_class;
 
 JSAudio *JSAudio::m_Instance = NULL;
 
@@ -1105,7 +1104,7 @@ void JSAudioNode::onMessage(const SharedMessages::Message &msg)
 
     JS::RootedValue ev(m_Cx, consumeSourceMessage(m_Cx, msg));
     if (!ev.isNull()) {
-        this->fireJSEvent(evName, &ev);
+        //this->fireJSEvent(evName, &ev);
     }
 }
 
@@ -2411,7 +2410,7 @@ void JSVideo::onMessage(const SharedMessages::Message &msg)
 
         JS::RootedValue ev(m_Cx, consumeSourceMessage(m_Cx, msg));
         if (!ev.isNull()) {
-            this->fireJSEvent(evName, &ev);
+            //this->fireJSEvent(evName, &ev);
         }
     }
 }
@@ -2443,7 +2442,7 @@ void JSVideo::FrameCallback(uint8_t *data, void *custom)
     ev.set("video", v->getJSObject());
     JS::RootedValue evjsval(cx, ev.jsval());
 
-    v->fireJSEvent("frame", &evjsval);
+    //v->fireJSEvent("frame", &evjsval);
 }
 
 void JSVideo::setSize(int width, int height)
@@ -2689,10 +2688,13 @@ nidium_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
         return true;
     }
 
-    CanvasHandler *handler
-        = static_cast<class JSCanvas *>(
-              JS_GetInstancePrivate(cx, canvas, &Canvas_class, &args))
-              ->getHandler();
+    JSCanvas *jscanvas = JSCanvas::GetInstance(canvas);
+    if (!jscanvas) {
+        JS_ReportError(cx, "Video constructor argument must be Canvas");
+        return false;
+    }
+
+    CanvasHandler *handler = jscanvas->getHandler();
 
     if (!handler) {
         JS_ReportError(cx, "Video constructor argument must be Canvas");

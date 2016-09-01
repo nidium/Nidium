@@ -1372,6 +1372,7 @@ JSFunctionSpec *JSCanvas::ListMethods()
         CLASSMAPPER_FN(JSCanvas, getContext, 1),
         CLASSMAPPER_FN(JSCanvas, setContext, 1),
         CLASSMAPPER_FN(JSCanvas, addSubCanvas, 1),
+        CLASSMAPPER_FN_ALIAS(JSCanvas, add, 1, addSubCanvas),
         CLASSMAPPER_FN(JSCanvas, insertBefore, 2),
         CLASSMAPPER_FN(JSCanvas, insertAfter, 2),
         CLASSMAPPER_FN(JSCanvas, removeFromParent, 0),

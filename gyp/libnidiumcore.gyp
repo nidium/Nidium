@@ -14,6 +14,7 @@
                 '<(third_party_path)/http-parser/',
                 '<(third_party_path)/leveldb/include/',
                 '<(third_party_path)/jsoncpp/dist',
+                '<(third_party_path)/rapidxml',
                 '../src/',
             ],
             'defines': [
