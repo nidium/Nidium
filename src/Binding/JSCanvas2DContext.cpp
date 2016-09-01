@@ -30,14 +30,7 @@ using Nidium::Interface::UIInterface;
 namespace Nidium {
 namespace Binding {
 
-// {{{ Preamble
-#define CANVASCTX_GETTER(obj) \
-    (static_cast<Canvas2DContext *>(JS_GetPrivate(obj)))
-#define SKIACTX (CppObj->getSurface())
-#define HANDLER_GETTER(obj) \
-    ((CanvasHandler *)((class JSCanvas *)JS_GetPrivate(obj))->getHandler())
-
-static JSClass ImageData_class = { "ImageData",
+JSClass ImageData_class = { "ImageData",
                                    JSCLASS_HAS_PRIVATE,
                                    JS_PropertyStub,
                                    JS_DeletePropertyStub,
@@ -53,17 +46,6 @@ static JSClass ImageData_class = { "ImageData",
                                    nullptr,
                                    JSCLASS_NO_INTERNAL_MEMBERS };
 
-JSClass *Canvas2DContext::jsclass = &ImageData_class;
-
-enum
-{
-#define CANVAS_2D_CTX_PROP(prop) CTX_PROP_##prop,
-#define CANVAS_2D_CTX_PROP_GET(prop) CTX_PROP_##prop,
-#include "Graphics/Canvas2DContextProperties.h"
-    CTX_PROP__NPROP
-#undef CANVAS_2D_CTX_PROP
-#undef CANVAS_2D_CTX_PROP_GET
-};
 
 #if 0 && DEBUG
 #define NIDIUM_LOG_2D_CALL()                                              \
@@ -85,25 +67,7 @@ enum
 
 static void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
 static void CanvasPattern_Finalize(JSFreeOp *fop, JSObject *obj);
-static void Canvas2DContext_Finalize(JSFreeOp *fop, JSObject *obj);
 
-static void Canvas2DContext_Trace(JSTracer *trc, JSObject *obj);
-
-JSClass Canvas2DContext_class = { "CanvasRenderingContext2D",
-                                  JSCLASS_HAS_PRIVATE,
-                                  JS_PropertyStub,
-                                  JS_DeletePropertyStub,
-                                  JS_PropertyStub,
-                                  JS_StrictPropertyStub,
-                                  JS_EnumerateStub,
-                                  JS_ResolveStub,
-                                  JS_ConvertStub,
-                                  Canvas2DContext_Finalize,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  Canvas2DContext_Trace,
-                                  JSCLASS_NO_INTERNAL_MEMBERS };
 
 static JSClass CanvasGradient_class = { "CanvasGradient",
                                         JSCLASS_HAS_PRIVATE,
@@ -154,108 +118,12 @@ static JSClass CanvasPattern_class
         nullptr,
         JSCLASS_NO_INTERNAL_MEMBERS };
 
-static bool nidium_canvas2dctx_prop_set(JSContext *cx,
-                                        JS::HandleObject obj,
-                                        uint8_t id,
-                                        bool strict,
-                                        JS::MutableHandleValue vp);
-static bool nidium_canvas2dctx_prop_get(JSContext *cx,
-                                        JS::HandleObject obj,
-                                        uint8_t id,
-                                        JS::MutableHandleValue vp);
 
-static bool
-nidium_canvas2dctx_breakText(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_shadow(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_fillRect(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_clearRect(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_fillText(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_strokeText(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_beginPath(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_moveTo(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_lineTo(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_fill(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_stroke(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_closePath(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_canvas2dctx_arc(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_arcTo(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_rect(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_canvas2dctx_quadraticCurveTo(JSContext *cx,
-                                                unsigned argc,
-                                                JS::Value *vp);
-static bool
-nidium_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_rotate(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_scale(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_save(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_restore(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_translate(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_transform(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_iTransform(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_setTransform(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_clip(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_createImageData(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_createPattern(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_putImageData(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_getImageData(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_canvas2dctx_createLinearGradient(JSContext *cx,
-                                                    unsigned argc,
-                                                    JS::Value *vp);
-static bool nidium_canvas2dctx_createRadialGradient(JSContext *cx,
-                                                    unsigned argc,
-                                                    JS::Value *vp);
 static bool nidium_canvas2dctxGradient_addColorStop(JSContext *cx,
                                                     unsigned argc,
                                                     JS::Value *vp);
 
-static bool
-nidium_canvas2dctx_stub(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_measureText(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_canvas2dctx_light(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_canvas2dctx_attachGLSLFragment(JSContext *cx,
-                                                  unsigned argc,
-                                                  JS::Value *vp);
-static bool nidium_canvas2dctx_detachGLSLFragment(JSContext *cx,
-                                                  unsigned argc,
-                                                  JS::Value *vp);
-static bool
-nidium_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc, JS::Value *vp);
+
 
 /* GLSL related */
 static bool nidium_canvas2dctxGLProgram_getUniformLocation(JSContext *cx,
@@ -298,101 +166,6 @@ static bool nidium_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx,
                                                           unsigned argc,
                                                           JS::Value *vp);
 
-static JSPropertySpec canvas2dctx_props[] = {
-#define CANVAS_2D_CTX_PROP(prop)                                        \
-    NIDIUM_JS_PSGS(#prop, CTX_PROP_##prop, nidium_canvas2dctx_prop_get, \
-                   nidium_canvas2dctx_prop_set)                         \
-    ,
-#define CANVAS_2D_CTX_PROP_GET(prop)                                   \
-    NIDIUM_JS_PSG(#prop, CTX_PROP_##prop, nidium_canvas2dctx_prop_get) \
-    ,
-#include "Graphics/Canvas2DContextProperties.h"
-    JS_PS_END
-#undef CANVAS_2D_CTX_PROP
-#undef CANVAS_2D_CTX_PROP_GET
-};
-
-static JSFunctionSpec canvas2dctx_funcs[] = {
-    JS_FN("breakText", nidium_canvas2dctx_breakText, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("shadow", nidium_canvas2dctx_shadow, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("onerror", nidium_canvas2dctx_stub, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("fillRect", nidium_canvas2dctx_fillRect, 4, NIDIUM_JS_FNPROPS),
-    JS_FN("fillText", nidium_canvas2dctx_fillText, 3, NIDIUM_JS_FNPROPS),
-    JS_FN("strokeText", nidium_canvas2dctx_strokeText, 3, NIDIUM_JS_FNPROPS),
-    JS_FN("strokeRect", nidium_canvas2dctx_strokeRect, 4, NIDIUM_JS_FNPROPS),
-    JS_FN("clearRect", nidium_canvas2dctx_clearRect, 4, NIDIUM_JS_FNPROPS),
-    JS_FN("beginPath", nidium_canvas2dctx_beginPath, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("moveTo", nidium_canvas2dctx_moveTo, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("lineTo", nidium_canvas2dctx_lineTo, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("fill", nidium_canvas2dctx_fill, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("stroke", nidium_canvas2dctx_stroke, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("closePath", nidium_canvas2dctx_closePath, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("clip", nidium_canvas2dctx_clip, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("arc", nidium_canvas2dctx_arc, 5, NIDIUM_JS_FNPROPS),
-    JS_FN("arcTo", nidium_canvas2dctx_arcTo, 5, NIDIUM_JS_FNPROPS),
-    JS_FN("rect", nidium_canvas2dctx_rect, 4, NIDIUM_JS_FNPROPS),
-    JS_FN("quadraticCurveTo",
-          nidium_canvas2dctx_quadraticCurveTo,
-          4,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("bezierCurveTo",
-          nidium_canvas2dctx_bezierCurveTo,
-          4,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("rotate", nidium_canvas2dctx_rotate, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("scale", nidium_canvas2dctx_scale, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("save", nidium_canvas2dctx_save, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("restore", nidium_canvas2dctx_restore, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("translate", nidium_canvas2dctx_translate, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("transform", nidium_canvas2dctx_transform, 6, NIDIUM_JS_FNPROPS),
-    JS_FN("iTransform", nidium_canvas2dctx_iTransform, 0, NIDIUM_JS_FNPROPS),
-    JS_FN(
-        "setTransform", nidium_canvas2dctx_setTransform, 6, NIDIUM_JS_FNPROPS),
-    JS_FN("createLinearGradient",
-          nidium_canvas2dctx_createLinearGradient,
-          4,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("createRadialGradient",
-          nidium_canvas2dctx_createRadialGradient,
-          6,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("createImageData",
-          nidium_canvas2dctx_createImageData,
-          2,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("createPattern",
-          nidium_canvas2dctx_createPattern,
-          2,
-          NIDIUM_JS_FNPROPS),
-    JS_FN(
-        "putImageData", nidium_canvas2dctx_putImageData, 3, NIDIUM_JS_FNPROPS),
-    JS_FN(
-        "getImageData", nidium_canvas2dctx_getImageData, 4, NIDIUM_JS_FNPROPS),
-    JS_FN("drawImage", nidium_canvas2dctx_drawImage, 3, NIDIUM_JS_FNPROPS),
-    JS_FN("measureText", nidium_canvas2dctx_measureText, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("isPointInPath",
-          nidium_canvas2dctx_isPointInPath,
-          2,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("getPathBounds",
-          nidium_canvas2dctx_getPathBounds,
-          0,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("light", nidium_canvas2dctx_light, 3, NIDIUM_JS_FNPROPS),
-    JS_FN("attachFragmentShader",
-          nidium_canvas2dctx_attachGLSLFragment,
-          1,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("detachFragmentShader",
-          nidium_canvas2dctx_detachGLSLFragment,
-          0,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("setVertexOffset",
-          nidium_canvas2dctx_setVertexOffset,
-          3,
-          NIDIUM_JS_FNPROPS),
-    JS_FS_END
-};
 
 static JSFunctionSpec gradient_funcs[] = {
 
@@ -460,18 +233,15 @@ static JSFunctionSpec glprogram_funcs[] = {
 // }}}
 
 // {{{ Implementation
-static bool nidium_canvas2dctx_stub(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_onerror(JSContext *cx, JS::CallArgs &args)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     NIDIUM_LOG_2D_CALL();
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_fillRect(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_fillRect(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     NIDIUM_LOG_2D_CALL();
 
     double x, y, width, height, rx = 0, ry = 0;
@@ -481,19 +251,17 @@ nidium_canvas2dctx_fillRect(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    if (argc > 4) {
-        SKIACTX->drawRect(x, y, width, height, rx, (argc == 5 ? rx : ry), 0);
+    if (args.length() > 4) {
+        m_Skia->drawRect(x, y, width, height, rx, (args.length() == 5 ? rx : ry), 0);
     } else {
-        SKIACTX->drawRect(x, y, width, height, 0);
+        m_Skia->drawRect(x, y, width, height, 0);
     }
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_strokeRect(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y, width, height, rx = 0, ry = 0;
 
     NIDIUM_LOG_2D_CALL();
@@ -502,36 +270,31 @@ nidium_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    if (argc > 4) {
-        SKIACTX->drawRect(x, y, width, height, rx, (argc == 5 ? rx : ry), 1);
+    if (args.length() > 4) {
+        m_Skia->drawRect(x, y, width, height, rx, (args.length() == 5 ? rx : ry), 1);
     } else {
-        SKIACTX->drawRect(x, y, width, height, 1);
+        m_Skia->drawRect(x, y, width, height, 1);
     }
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_clearRect(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_clearRect(JSContext *cx, JS::CallArgs &args)
 {
     double x, y, width, height;
-
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
 
     NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dddd", &x, &y, &width, &height)) {
         return false;
     }
 
-    CppObj->getSurface()->clearRect(x, y, width, height);
+    m_Skia->clearRect(x, y, width, height);
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_breakText(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_breakText(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
 
     NIDIUM_LOG_2D_CALL();
 
@@ -550,7 +313,7 @@ nidium_canvas2dctx_breakText(JSContext *cx, unsigned argc, JS::Value *vp)
     size_t len = text.length();
 
     if (len == 0) {
-        vp->setNull();
+        args.rval().setNull();
         return true;
     }
 
@@ -563,7 +326,7 @@ nidium_canvas2dctx_breakText(JSContext *cx, unsigned argc, JS::Value *vp)
 
     memset(lines, 0, len * sizeof(struct _Line));
 
-    SkScalar ret = CppObj->getSurface()->breakText(text.ptr(), len, lines,
+    SkScalar ret = m_Skia->breakText(text.ptr(), len, lines,
                                                    maxWidth, &length);
     JS::RootedObject alines(cx, JS_NewArrayObject(cx, length));
     for (int i = 0; i < len && i < length; i++) {
@@ -587,10 +350,8 @@ nidium_canvas2dctx_breakText(JSContext *cx, unsigned argc, JS::Value *vp)
 #undef SET_PROP
 }
 
-static bool
-nidium_canvas2dctx_fillText(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_fillText(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     int x, y, maxwidth;
 
     NIDIUM_LOG_2D_CALL();
@@ -603,15 +364,13 @@ nidium_canvas2dctx_fillText(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString text;
     text.encodeUtf8(cx, str);
 
-    SKIACTX->drawText(text.ptr(), x, y);
+    m_Skia->drawText(text.ptr(), x, y);
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_strokeText(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_strokeText(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     int x, y, maxwidth;
 
     NIDIUM_LOG_2D_CALL();
@@ -624,33 +383,28 @@ nidium_canvas2dctx_strokeText(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString text;
     text.encodeUtf8(cx, str);
 
-    SKIACTX->drawText(text.ptr(), x, y, true);
+    m_Skia->drawText(text.ptr(), x, y, true);
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_shadow(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_shadow(JSContext *cx, JS::CallArgs &args)
 {
-    // SKIACTX->setShadow();
+    // m_Skia->setShadow();
     return true;
 }
 
-static bool
-nidium_canvas2dctx_beginPath(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_beginPath(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     NIDIUM_LOG_2D_CALL();
 
-    SKIACTX->beginPath();
+    m_Skia->beginPath();
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_moveTo(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_moveTo(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y;
 
     NIDIUM_LOG_2D_CALL();
@@ -658,15 +412,13 @@ nidium_canvas2dctx_moveTo(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    SKIACTX->moveTo(x, y);
+    m_Skia->moveTo(x, y);
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_lineTo(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_lineTo(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y;
 
     NIDIUM_LOG_2D_CALL();
@@ -674,51 +426,44 @@ nidium_canvas2dctx_lineTo(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    SKIACTX->lineTo(x, y);
+    m_Skia->lineTo(x, y);
 
     return true;
 }
 
-static bool nidium_canvas2dctx_fill(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_fill(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     NIDIUM_LOG_2D_CALL();
-    SKIACTX->fill();
+    m_Skia->fill();
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_stroke(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_stroke(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     NIDIUM_LOG_2D_CALL();
-    SKIACTX->stroke();
+    m_Skia->stroke();
 
     return true;
 }
-static bool
-nidium_canvas2dctx_closePath(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_closePath(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     NIDIUM_LOG_2D_CALL();
-    SKIACTX->closePath();
+    m_Skia->closePath();
 
     return true;
 }
 
-static bool nidium_canvas2dctx_clip(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_clip(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     NIDIUM_LOG_2D_CALL();
-    SKIACTX->clip();
+    m_Skia->clip();
 
     return true;
 }
 
-static bool nidium_canvas2dctx_rect(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_rect(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y, width, height;
 
     NIDIUM_LOG_2D_CALL();
@@ -726,14 +471,13 @@ static bool nidium_canvas2dctx_rect(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    SKIACTX->rect(x, y, width, height);
+    m_Skia->rect(x, y, width, height);
 
     return true;
 }
 
-static bool nidium_canvas2dctx_arc(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_arc(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     int x, y, radius;
     double startAngle, endAngle;
     bool CCW = false;
@@ -744,15 +488,13 @@ static bool nidium_canvas2dctx_arc(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    SKIACTX->arc(x, y, radius, startAngle, endAngle, CCW);
+    m_Skia->arc(x, y, radius, startAngle, endAngle, CCW);
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_arcTo(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_arcTo(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     int x1, y1, x2, y2, radius;
 
     NIDIUM_LOG_2D_CALL();
@@ -760,29 +502,25 @@ nidium_canvas2dctx_arcTo(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    SKIACTX->arcTo(x1, y1, x2, y2, radius);
+    m_Skia->arcTo(x1, y1, x2, y2, radius);
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_quadraticCurveTo(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y, cpx, cpy;
     if (!JS_ConvertArguments(cx, args, "dddd", &cpx, &cpy, &x, &y)) {
         return false;
     }
 
-    SKIACTX->quadraticCurveTo(cpx, cpy, x, y);
+    m_Skia->quadraticCurveTo(cpx, cpy, x, y);
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_bezierCurveTo(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y, cpx, cpy, cpx2, cpy2;
 
     NIDIUM_LOG_2D_CALL();
@@ -791,15 +529,13 @@ nidium_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    SKIACTX->bezierCurveTo(cpx, cpy, cpx2, cpy2, x, y);
+    m_Skia->bezierCurveTo(cpx, cpy, cpx2, cpy2, x, y);
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_rotate(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_rotate(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double angle;
 
     NIDIUM_LOG_2D_CALL();
@@ -807,15 +543,13 @@ nidium_canvas2dctx_rotate(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    SKIACTX->rotate(angle);
+    m_Skia->rotate(angle);
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_scale(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_scale(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y;
 
     NIDIUM_LOG_2D_CALL();
@@ -823,15 +557,13 @@ nidium_canvas2dctx_scale(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    SKIACTX->scale(x, y);
+    m_Skia->scale(x, y);
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_translate(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_translate(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y;
 
     NIDIUM_LOG_2D_CALL();
@@ -839,15 +571,13 @@ nidium_canvas2dctx_translate(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    SKIACTX->translate(x, y);
+    m_Skia->translate(x, y);
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_transform(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_transform(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double scalex, skewx, skewy, scaley, translatex, translatey, rotate;
 
     NIDIUM_LOG_2D_CALL();
@@ -856,19 +586,17 @@ nidium_canvas2dctx_transform(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    SKIACTX->transform(scalex, skewx, skewy, scaley, translatex, translatey, 0);
+    m_Skia->transform(scalex, skewx, skewy, scaley, translatex, translatey, 0);
 
-    if (argc == 7) {
-        SKIACTX->rotate(rotate);
+    if (args.length() == 7) {
+        m_Skia->rotate(rotate);
     }
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_iTransform(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_iTransform(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double scalex, skewx, skewy, scaley, translatex, translatey;
 
     NIDIUM_LOG_2D_CALL();
@@ -877,18 +605,14 @@ nidium_canvas2dctx_iTransform(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    SKIACTX->itransform(scalex, skewx, skewy, scaley, translatex, translatey);
+    m_Skia->itransform(scalex, skewx, skewy, scaley, translatex, translatey);
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_setTransform(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_setTransform(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double scalex, skewx, skewy, scaley, translatex, translatey;
-
-    CanvasHandler *handler = CppObj->getHandler();
 
     if (!JS_ConvertArguments(cx, args, "dddddd", &scalex, &skewx, &skewy,
                              &scaley, &translatex, &translatey)) {
@@ -896,44 +620,38 @@ nidium_canvas2dctx_setTransform(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    SKIACTX->transform(scalex, skewx, skewy, scaley,
-                       translatex + handler->m_Padding.global,
-                       translatey + handler->m_Padding.global, 1);
+    m_Skia->transform(scalex, skewx, skewy, scaley,
+                       translatex + m_Handler->m_Padding.global,
+                       translatey + m_Handler->m_Padding.global, 1);
 
     return true;
 }
 
-static bool nidium_canvas2dctx_save(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_save(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     NIDIUM_LOG_2D_CALL();
 
     /*
         TODO: limit? (avoid while(1) ctx.save())
     */
-    CppObj->pushNewState();
-    CppObj->getSurface()->save();
+    this->pushNewState();
+    m_Skia->save();
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_restore(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_restore(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     NIDIUM_LOG_2D_CALL();
 
-    CppObj->popState();
-    SKIACTX->restore();
+    this->popState();
+    m_Skia->restore();
 
     return true;
 }
 
-static bool nidium_canvas2dctx_createLinearGradient(JSContext *cx,
-                                                    unsigned argc,
-                                                    JS::Value *vp)
+bool Canvas2DContext::JS_createLinearGradient(JSContext *cx, JS::CallArgs &args)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     NIDIUM_LOG_2D_CALL();
     double x1, y1, x2, y2;
 
@@ -952,10 +670,8 @@ static bool nidium_canvas2dctx_createLinearGradient(JSContext *cx,
     return true;
 }
 
-static bool
-nidium_canvas2dctx_getImageData(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_getImageData(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     int left, top, width, height;
     uint8_t *data;
 
@@ -968,7 +684,7 @@ nidium_canvas2dctx_getImageData(JSContext *cx, unsigned argc, JS::Value *vp)
                                JS_NewUint8ClampedArray(cx, width * height * 4));
     data = JS_GetUint8ClampedArrayData(arrBuffer);
 
-    SKIACTX->readPixels(top, left, width, height, data);
+    m_Skia->readPixels(top, left, width, height, data);
     JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
     JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
     JS::RootedValue arVal(cx, OBJECT_TO_JSVAL(arrBuffer));
@@ -987,10 +703,8 @@ nidium_canvas2dctx_getImageData(JSContext *cx, unsigned argc, JS::Value *vp)
 }
 
 /* TODO: Huge memory leak? */
-static bool
-nidium_canvas2dctx_putImageData(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_putImageData(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     int x, y;
     uint8_t *pixels;
     int32_t w, h;
@@ -1019,16 +733,14 @@ nidium_canvas2dctx_putImageData(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::ToInt32(cx, jwidth, &w);
     JS::ToInt32(cx, jheight, &h);
 
-    SKIACTX->drawPixels(pixels, w, h, x, y);
+    m_Skia->drawPixels(pixels, w, h, x, y);
 
     return true;
 }
 
 /* TODO: clamp max size */
-static bool
-nidium_canvas2dctx_createImageData(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_createImageData(JSContext *cx, JS::CallArgs &args)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     unsigned long x, y;
 
     NIDIUM_LOG_2D_CALL();
@@ -1067,12 +779,10 @@ nidium_canvas2dctx_createImageData(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool
-nidium_canvas2dctx_createPattern(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_createPattern(JSContext *cx, JS::CallArgs &args)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
     NIDIUM_LOG_2D_CALL();
+
     JS::RootedObject jsimage(cx);
     JS::RootedString mode(cx);
     if (!JS_ConvertArguments(cx, args, "oS", jsimage.address(),
@@ -1114,11 +824,8 @@ nidium_canvas2dctx_createPattern(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool nidium_canvas2dctx_createRadialGradient(JSContext *cx,
-                                                    unsigned argc,
-                                                    JS::Value *vp)
+bool Canvas2DContext::JS_createRadialGradient(JSContext *cx, JS::CallArgs &args)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     double x1, y1, x2, y2, r1, r2;
 
     NIDIUM_LOG_2D_CALL();
@@ -1162,10 +869,8 @@ static bool nidium_canvas2dctxGradient_addColorStop(JSContext *cx,
 }
 
 
-static bool
-nidium_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_drawImage(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     Image *image;
     double x, y, width, height;
     int sx, sy, swidth, sheight;
@@ -1173,7 +878,7 @@ nidium_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NIDIUM_LOG_2D_CALL();
     JS::RootedObject jsimage(cx);
-    if (argc == 9) {
+    if (args.length() == 9) {
         if (!JS_ConvertArguments(cx, args, "oiiiidddd", jsimage.address(), &sx,
                                  &sy, &swidth, &sheight, &x, &y, &width,
                                  &height)) {
@@ -1190,7 +895,7 @@ nidium_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value *vp)
         TODO: work with WebGL canvas
     */
     if (jsimage && JSCanvas::InstanceOf(jsimage)) {
-        CanvasContext *drawctx = HANDLER_GETTER(jsimage)->getContext();
+        CanvasContext *drawctx = JSCanvas::GetInstanceUnsafe(jsimage)->getHandler()->getContext();
 
         if (drawctx == NULL
             || drawctx->getContextType() != CanvasContext::CONTEXT_2D) {
@@ -1209,15 +914,15 @@ nidium_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value *vp)
         return true;
     }
 
-    switch (argc) {
+    switch (args.length()) {
         case 3:
-            SKIACTX->drawImage(image, x, y);
+            m_Skia->drawImage(image, x, y);
             break;
         case 5:
-            SKIACTX->drawImage(image, x, y, width, height);
+            m_Skia->drawImage(image, x, y, width, height);
             break;
         case 9:
-            SKIACTX->drawImage(image, sx, sy, swidth, sheight, x, y, width,
+            m_Skia->drawImage(image, sx, sy, swidth, sheight, x, y, width,
                                height);
             break;
         default:
@@ -1232,10 +937,8 @@ nidium_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool
-nidium_canvas2dctx_measureText(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_measureText(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     JS::RootedString text(cx);
 #define OBJ_PROP(name, val)               \
     JS_DefineProperty(cx, obj, name, val, \
@@ -1252,9 +955,8 @@ nidium_canvas2dctx_measureText(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString ctext;
     ctext.encodeUtf8(cx, text);
 
-    SkiaContext *n = SKIACTX;
     JS::RootedValue widthVal(
-        cx, DOUBLE_TO_JSVAL(n->measureText(ctext.ptr(), strlen(ctext.ptr()))));
+        cx, DOUBLE_TO_JSVAL(m_Skia->measureText(ctext.ptr(), strlen(ctext.ptr()))));
     OBJ_PROP("width", widthVal);
 
     args.rval().setObjectOrNull(obj);
@@ -1262,39 +964,33 @@ nidium_canvas2dctx_measureText(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool
-nidium_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_isPointInPath(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y;
 
     NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dd", &x, &y)) {
-        vp->setBoolean(false);
+        args.rval().setBoolean(false);
         return false;
     }
 
-    SkiaContext *n = SKIACTX;
-
-    vp->setBoolean(n->SkPathContainsPoint(x, y));
+    args.rval().setBoolean(m_Skia->SkPathContainsPoint(x, y));
 
     return true;
 }
 
 /* TODO: return undefined if the path is invalid */
-static bool
-nidium_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_getPathBounds(JSContext *cx, JS::CallArgs &args)
 {
 #define OBJ_PROP(name, val)               \
     JS_DefineProperty(cx, obj, name, val, \
                       JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double left = 0, right = 0, top = 0, bottom = 0;
     JS::RootedObject obj(
         cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
     NIDIUM_LOG_2D_CALL();
-    SKIACTX->getPathBounds(&left, &right, &top, &bottom);
+    m_Skia->getPathBounds(&left, &right, &top, &bottom);
     JS::RootedValue leftVal(cx, DOUBLE_TO_JSVAL(left));
     JS::RootedValue rightVal(cx, DOUBLE_TO_JSVAL(right));
     JS::RootedValue topVal(cx, DOUBLE_TO_JSVAL(top));
@@ -1304,28 +1000,22 @@ nidium_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc, JS::Value *vp)
     OBJ_PROP("top", topVal);
     OBJ_PROP("bottom", bottomVal);
 
-    vp->setObject(*obj);
+    args.rval().setObject(*obj);
 
     return true;
 }
 
-static bool nidium_canvas2dctx_detachGLSLFragment(JSContext *cx,
-                                                  unsigned argc,
-                                                  JS::Value *vp)
+bool Canvas2DContext::JS_detachFragmentShader(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     NIDIUM_LOG_2D_CALL();
 
-    CppObj->detachShader();
+    this->detachShader();
 
     return true;
 }
 
-static bool
-nidium_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_setVertexOffset(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
-
     uint32_t vertex;
     double x, y;
 
@@ -1334,16 +1024,13 @@ nidium_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    CppObj->setVertexDeformation(vertex, x, y);
+    this->setVertexDeformation(vertex, x, y);
 
     return true;
 }
 
-static bool nidium_canvas2dctx_attachGLSLFragment(JSContext *cx,
-                                                  unsigned argc,
-                                                  JS::Value *vp)
+bool Canvas2DContext::JS_attachFragmentShader(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     size_t program;
 
     NIDIUM_LOG_2D_CALL();
@@ -1353,7 +1040,7 @@ static bool nidium_canvas2dctx_attachGLSLFragment(JSContext *cx,
     }
 
     JSAutoByteString cglsl(cx, glsl);
-    if ((program = CppObj->attachShader(cglsl.ptr())) == 0) {
+    if ((program = this->attachShader(cglsl.ptr())) == 0) {
         JS_ReportError(cx, "Failed to compile GLSL shader");
         return false;
     }
@@ -1664,10 +1351,8 @@ static bool nidium_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx,
 #undef SET_PROP
 }
 
-static bool
-nidium_canvas2dctx_light(JSContext *cx, unsigned argc, JS::Value *vp)
+bool Canvas2DContext::JS_light(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(Canvas2DContext, &Canvas2DContext_class);
     double x, y, z;
 
     NIDIUM_LOG_2D_CALL();
@@ -1675,392 +1360,489 @@ nidium_canvas2dctx_light(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    SKIACTX->light(x, y, z);
+    m_Skia->light(x, y, z);
 
     return true;
 }
 
-static bool nidium_canvas2dctx_prop_set(JSContext *cx,
-                                        JS::HandleObject obj,
-                                        uint8_t id,
-                                        bool strict,
-                                        JS::MutableHandleValue vp)
+bool Canvas2DContext::JSSetter_imageSmoothingEnabled(JSContext *cx,
+    JS::MutableHandleValue vp)
 {
-#define CTX_PROP(prop) CTX_PROP_##prop
+    if (vp.isBoolean()) {
+        m_Skia->setSmooth(vp.toBoolean());
+    }
 
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET_FOR_OBJ(Canvas2DContext,
-                                            &Canvas2DContext_class, obj);
+    return true;
+}
 
-    if (CppObj->m_SetterDisabled) {
+bool Canvas2DContext::JSSetter_shadowOffsetX(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    if (vp.isNumber()) {
+        m_Skia->setShadowOffsetX(vp.toNumber());
+    }
+
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_shadowOffsetY(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    if (vp.isNumber()) {
+        m_Skia->setShadowOffsetY(vp.toNumber());
+    }
+
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_shadowBlur(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    if (vp.isNumber()) {
+        m_Skia->setShadowBlur(vp.toNumber());
+    }
+
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_shadowColor(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString color(cx, vpStr);
+    m_Skia->setShadowColor(color.ptr());
+
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_fontSize(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    if (vp.isNumber()) {
+        m_Skia->setFontSize(vp.toNumber());
+    }
+
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_fontStyle(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString style(cx, vpStr);
+    m_Skia->setFontStyle(style.ptr());
+
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_fontSkew(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    if (vp.isNumber()) {
+        m_Skia->setFontSkew(vp.toNumber());
+    }
+
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_textBaseline(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString font(cx, vpStr);
+    m_Skia->textAlign(font.ptr());
+
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_textAlign(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString baseline(cx, vpStr);
+    m_Skia->textBaseline(baseline.ptr());
+
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_fontFamily(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString font(cx, vpStr);
+    m_Skia->setFontType(font.ptr(), JSDocument::GetInstanceSingleton(cx));;
+
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_fontFile(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString font(cx, vpStr);
+
+    if (!m_Skia->setFontFile(font.ptr())) {
+        JS_ReportError(cx, "Cannot set font (invalid file)");
+
+        return false;
+    }
+
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_fillStyle(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    Canvas2DContextState *state = getCurrentState();
+
+    if (vp.isString()) {
+        JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+        JSAutoByteString colorName(cx, vpStr);
+        m_Skia->setFillColor(colorName.ptr());
+
+        state->m_CurrentShader.setUndefined();
+    } else if (vp.isObject()
+               && JS_GetClass(&vp.toObject())
+                      == &CanvasGradient_class) {
+
+        JS::RootedObject vpObj(cx, &vp.toObject());
+        Gradient *gradient
+            = static_cast<Gradient *>(JS_GetPrivate(vpObj));
+
+        m_Skia->setFillColor(gradient);
+
+        /* Since out obj doesn't store the actual value (JSPROP_SHARED),
+           we implicitly store and root our pattern obj */
+        state->m_CurrentShader.set(vp);
+
+    } else if (vp.isObject()
+               && JS_GetClass(&vp.toObject()) == &CanvasPattern_class) {
+
+        JS::RootedObject vpObj(cx, &vp.toObject());
+        CanvasPattern *pattern
+            = static_cast<CanvasPattern *>(JS_GetPrivate(vpObj));
+
+        m_Skia->setFillColor(pattern);
+
+        state->m_CurrentShader.set(vp);
+    } else {
+        vp.setNull();
+
+        state->m_CurrentShader.setUndefined();
+        return true;
+    }
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_strokeStyle(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    Canvas2DContextState *state = getCurrentState();
+
+    if (vp.isString()) {
+        JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+        JSAutoByteString colorName(cx, vpStr);
+        m_Skia->setStrokeColor(colorName.ptr());
+
+        state->m_CurrentStrokeShader.setUndefined();
+
+    } else if (vp.isObject()
+               && JS_GetClass(&vp.toObject())
+                      == &CanvasGradient_class) {
+        JS::RootedObject vpObj(cx, &vp.toObject());
+        Gradient *gradient
+            = static_cast<Gradient *>(JS_GetPrivate(vpObj));
+
+        m_Skia->setStrokeColor(gradient);
+
+        /* Since out obj doesn't store the actual value (JSPROP_SHARED),
+           we implicitly store and root our pattern obj */
+        state->m_CurrentStrokeShader.set(vp);
+    } else {
+        vp.setNull();
+        state->m_CurrentStrokeShader.setUndefined();
+
         return true;
     }
 
-    SkiaContext *curSkia = CppObj->getSurface();
-
-    switch (id) {
-        case CTX_PROP(imageSmoothingEnabled): {
-            if (!vp.isBoolean()) {
-                vp.setBoolean(false);
-
-                return true;
-            }
-
-            curSkia->setSmooth(vp.toBoolean());
-            break;
-        }
-        case CTX_PROP(shadowOffsetX): {
-            double ret;
-            if (!vp.isNumber()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            ret = vp.toNumber();
-            curSkia->setShadowOffsetX(ret);
-        } break;
-        case CTX_PROP(shadowOffsetY): {
-            double ret;
-            if (!vp.isNumber()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            ret = vp.toNumber();
-            curSkia->setShadowOffsetY(ret);
-        } break;
-        case CTX_PROP(shadowBlur): {
-            double ret;
-            if (!vp.isNumber()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            ret = vp.toNumber();
-            curSkia->setShadowBlur(ret);
-        } break;
-        case CTX_PROP(shadowColor): {
-            if (!vp.isString()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
-            JSAutoByteString color(cx, vpStr);
-            curSkia->setShadowColor(color.ptr());
-        } break;
-        case CTX_PROP(fontSize): {
-            double ret;
-            if (!vp.isNumber()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            ret = vp.toNumber();
-            curSkia->setFontSize(ret);
-
-        } break;
-        case CTX_PROP(fontStyle): {
-            if (!vp.isString()) {
-                vp.setNull();
-
-                return true;
-            }
-            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
-            JSAutoByteString style(cx, vpStr);
-            curSkia->setFontStyle(style.ptr());
-        } break;
-        case CTX_PROP(fontSkew): {
-            double ret;
-            if (!vp.isNumber()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            ret = vp.toNumber();
-            curSkia->setFontSkew(ret);
-        } break;
-        case CTX_PROP(textBaseline): {
-            if (!vp.isString()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
-            JSAutoByteString baseline(cx, vpStr);
-            curSkia->textBaseline(baseline.ptr());
-        } break;
-        case CTX_PROP(textAlign): {
-            if (!vp.isString()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
-            JSAutoByteString font(cx, vpStr);
-            curSkia->textAlign(font.ptr());
-        } break;
-        case CTX_PROP(fontFamily): {
-            if (!vp.isString()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
-            JSAutoByteString font(cx, vpStr);
-            curSkia->setFontType(font.ptr(), JSDocument::GetInstanceSingleton(cx));
-        } break;
-        case CTX_PROP(fontFile): {
-            if (!vp.isString()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
-            JSAutoByteString font(cx, vpStr);
-            if (!curSkia->setFontFile(font.ptr())) {
-                JS_ReportError(cx, "Cannot set font (invalid file)");
-
-                return false;
-            }
-        } break;
-        case CTX_PROP(fillStyle): {
-            Canvas2DContextState *state = CppObj->getCurrentState();
-
-            if (vp.isString()) {
-                JS::RootedString vpStr(cx, JS::ToString(cx, vp));
-                JSAutoByteString colorName(cx, vpStr);
-                curSkia->setFillColor(colorName.ptr());
-
-                state->m_CurrentShader.setUndefined();
-
-            } else if (vp.isObject()
-                       && JS_GetClass(&vp.toObject())
-                              == &CanvasGradient_class) {
-
-                JS::RootedObject vpObj(cx, &vp.toObject());
-                Gradient *gradient
-                    = static_cast<Gradient *>(JS_GetPrivate(vpObj));
-
-                curSkia->setFillColor(gradient);
-
-                /* Since out obj doesn't store the actual value (JSPROP_SHARED),
-                   we implicitly store and root our pattern obj */
-                state->m_CurrentShader.set(vp);
-
-            } else if (vp.isObject()
-                       && JS_GetClass(&vp.toObject()) == &CanvasPattern_class) {
-
-                JS::RootedObject vpObj(cx, &vp.toObject());
-                CanvasPattern *pattern
-                    = static_cast<CanvasPattern *>(JS_GetPrivate(vpObj));
-
-                curSkia->setFillColor(pattern);
-
-                state->m_CurrentShader.set(vp);
-            } else {
-                vp.setNull();
-
-                state->m_CurrentShader.setUndefined();
-                return true;
-            }
-        } break;
-        case CTX_PROP(strokeStyle): {
-            Canvas2DContextState *state = CppObj->getCurrentState();
-
-            if (vp.isString()) {
-                JS::RootedString vpStr(cx, JS::ToString(cx, vp));
-                JSAutoByteString colorName(cx, vpStr);
-                curSkia->setStrokeColor(colorName.ptr());
-
-                state->m_CurrentStrokeShader.setUndefined();
-
-            } else if (vp.isObject()
-                       && JS_GetClass(&vp.toObject())
-                              == &CanvasGradient_class) {
-                JS::RootedObject vpObj(cx, &vp.toObject());
-                Gradient *gradient
-                    = static_cast<Gradient *>(JS_GetPrivate(vpObj));
-
-                curSkia->setStrokeColor(gradient);
-
-                /* Since out obj doesn't store the actual value (JSPROP_SHARED),
-                   we implicitly store and root our pattern obj */
-                state->m_CurrentStrokeShader.set(vp);
-            } else {
-                vp.setNull();
-                state->m_CurrentStrokeShader.setUndefined();
-
-                return true;
-            }
-        } break;
-        case CTX_PROP(lineWidth): {
-            double ret;
-            if (!vp.isNumber()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            ret = vp.toNumber();
-            curSkia->setLineWidth(ret);
-        } break;
-        case CTX_PROP(miterLimit): {
-            double ret;
-            if (!vp.isNumber()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            ret = vp.toNumber();
-            curSkia->setMiterLimit(ret);
-        } break;
-        case CTX_PROP(globalAlpha): {
-            double ret;
-            if (!vp.isNumber()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            ret = vp.toNumber();
-            curSkia->setGlobalAlpha(ret);
-        } break;
-        case CTX_PROP(globalCompositeOperation): {
-            if (!vp.isString()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
-            JSAutoByteString composite(cx, vpStr);
-            curSkia->setGlobalComposite(composite.ptr());
-        } break;
-        case CTX_PROP(lineCap): {
-            if (!vp.isString()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
-            JSAutoByteString lineCap(cx, vpStr);
-            curSkia->setLineCap(lineCap.ptr());
-        } break;
-        case CTX_PROP(lineJoin): {
-            if (!vp.isString()) {
-                vp.setNull();
-
-                return true;
-            }
-
-            JS::RootedString vpStr(cx, JS::ToString(cx, vp));
-            JSAutoByteString lineJoin(cx, vpStr);
-            curSkia->setLineJoin(lineJoin.ptr());
-        } break;
-        default:
-            break;
-    }
-
     return true;
-#undef CTX_PROP
 }
 
-static bool nidium_canvas2dctx_prop_get(JSContext *cx,
-                                        JS::HandleObject obj,
-                                        uint8_t id,
-                                        JS::MutableHandleValue vp)
+bool Canvas2DContext::JSSetter_lineWidth(JSContext *cx,
+    JS::MutableHandleValue vp)
 {
-#define CTX_PROP(prop) CTX_PROP_##prop
-
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET_FOR_OBJ(Canvas2DContext,
-                                            &Canvas2DContext_class, obj);
-
-    SkiaContext *curSkia = CppObj->getSurface();
-    Canvas2DContext *ctx = CppObj;
-
-    switch (id) {
-        case CTX_PROP(width): {
-            vp.setInt32(curSkia->getWidth());
-        } break;
-        case CTX_PROP(height): {
-            vp.setInt32(curSkia->getHeight());
-        } break;
-        case CTX_PROP(fillStyle):
-        case CTX_PROP(strokeStyle): {
-            JS::RootedValue ret(cx);
-            uint32_t curColor;
-
-            if (id == CTX_PROP(fillStyle)) {
-                ret      = ctx->getCurrentState()->m_CurrentShader;
-                curColor = curSkia->getFillColor();
-            } else {
-                ret      = ctx->getCurrentState()->m_CurrentStrokeShader;
-                curColor = curSkia->getStrokeColor();
-            }
-
-            if (ret.isUndefined()) {
-                char rgba_str[64];
-
-                SkiaContext::GetStringColor(curColor, rgba_str);
-
-                vp.setString(JS_NewStringCopyZ(cx, rgba_str));
-            } else {
-                vp.set(ret);
-            }
-        } break;
-        case CTX_PROP(lineWidth): {
-            vp.setDouble(curSkia->getLineWidth());
-        } break;
-        case CTX_PROP(miterLimit): {
-            vp.setDouble(curSkia->getMiterLimit());
-        } break;
-        case CTX_PROP(globalAlpha): {
-            vp.setDouble(curSkia->getGlobalAlpha());
-        } break;
-        case CTX_PROP(imageSmoothingEnabled): {
-            vp.setBoolean(!!curSkia->getSmooth());
-        } break;
-        case CTX_PROP(shadowOffsetX): {
-            vp.setDouble(curSkia->getShadowOffsetX());
-        } break;
-        case CTX_PROP(shadowOffsetY): {
-            vp.setDouble(curSkia->getShadowOffsetY());
-        } break;
-        case CTX_PROP(shadowBlur): {
-            vp.setDouble(curSkia->getShadowBlur());
-        } break;
-        case CTX_PROP(lineCap): {
-            vp.setString(JS_NewStringCopyZ(cx, curSkia->getLineCap()));
-        } break;
-        case CTX_PROP(lineJoin): {
-            vp.setString(JS_NewStringCopyZ(cx, curSkia->getLineJoin()));
-        } break;
-        case CTX_PROP(shadowColor): {
-            char rgba_str[64];
-
-            SkiaContext::GetStringColor(curSkia->getShadowColor(), rgba_str);
-
-            vp.setString(JS_NewStringCopyZ(cx, rgba_str));
-        } break;
-        default:
-            vp.setUndefined();
-            break;
+    if (vp.isNumber()) {
+        m_Skia->setLineWidth(vp.toNumber());
     }
 
     return true;
-#undef CTX_PROP
+}
+
+bool Canvas2DContext::JSSetter_miterLimit(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    if (vp.isNumber()) {
+        m_Skia->setMiterLimit(vp.toNumber());
+    }
+
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_globalAlpha(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    if (vp.isNumber()) {
+        m_Skia->setGlobalAlpha(vp.toNumber());
+    }
+
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_globalCompositeOperation(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString composite(cx, vpStr);
+    m_Skia->setGlobalComposite(composite.ptr());
+
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_lineCap(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString lineCap(cx, vpStr);
+    m_Skia->setLineCap(lineCap.ptr());
+
+    return true;
+}
+
+bool Canvas2DContext::JSSetter_lineJoin(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
+    JSAutoByteString lineJoin(cx, vpStr);
+    m_Skia->setLineJoin(lineJoin.ptr());
+
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_width(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_Skia->getWidth());
+
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_height(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    vp.setInt32(m_Skia->getHeight());
+
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_fillStyle(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS::RootedValue ret(cx);
+    uint32_t curColor;
+
+    ret      = getCurrentState()->m_CurrentShader;
+    curColor = m_Skia->getFillColor();
+
+    if (ret.isUndefined()) {
+        char rgba_str[64];
+
+        SkiaContext::GetStringColor(curColor, rgba_str);
+
+        vp.setString(JS_NewStringCopyZ(cx, rgba_str));
+    } else {
+        vp.set(ret);
+    }
+
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_strokeStyle(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS::RootedValue ret(cx);
+    uint32_t curColor;
+
+    ret      = getCurrentState()->m_CurrentStrokeShader;
+    curColor = m_Skia->getStrokeColor();
+
+    if (ret.isUndefined()) {
+        char rgba_str[64];
+
+        SkiaContext::GetStringColor(curColor, rgba_str);
+
+        vp.setString(JS_NewStringCopyZ(cx, rgba_str));
+    } else {
+        vp.set(ret);
+    }
+
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_lineWidth(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_Skia->getLineWidth());
+
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_miterLimit(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_Skia->getMiterLimit());
+    
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_globalAlpha(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_Skia->getGlobalAlpha());
+    
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_imageSmoothingEnabled(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    vp.setBoolean(!!m_Skia->getSmooth());
+    
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_shadowOffsetX(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_Skia->getShadowOffsetX());
+    
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_shadowOffsetY(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_Skia->getShadowOffsetY());
+    
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_shadowBlur(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_Skia->getShadowBlur());
+    
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_lineCap(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    vp.setString(JS_NewStringCopyZ(cx, m_Skia->getLineCap()));
+    
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_lineJoin(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    vp.setString(JS_NewStringCopyZ(cx, m_Skia->getLineJoin()));
+    
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_shadowColor(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    char rgba_str[64];
+
+    SkiaContext::GetStringColor(m_Skia->getShadowColor(), rgba_str);
+
+    vp.setString(JS_NewStringCopyZ(cx, rgba_str));
+    
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_globalCompositeOperation(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS_ReportWarning(cx, "Not implemented");
+    vp.setUndefined();
+
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_fontSize(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS_ReportWarning(cx, "Not implemented");
+    vp.setUndefined();
+
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_textAlign(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS_ReportWarning(cx, "Not implemented");
+    vp.setUndefined();
+
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_textBaseline(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS_ReportWarning(cx, "Not implemented");
+    vp.setUndefined();
+
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_fontFamily(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS_ReportWarning(cx, "Not implemented");
+    vp.setUndefined();
+
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_fontStyle(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS_ReportWarning(cx, "Not implemented");
+    vp.setUndefined();
+
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_fontSkew(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS_ReportWarning(cx, "Not implemented");
+    vp.setUndefined();
+
+    return true;
+}
+
+bool Canvas2DContext::JSGetter_fontFile(JSContext *cx,
+    JS::MutableHandleValue vp)
+{
+    JS_ReportWarning(cx, "Not implemented");
+    vp.setUndefined();
+
+    return true;
 }
 
 void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
@@ -2079,23 +1861,9 @@ void CanvasPattern_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-void Canvas2DContext_Finalize(JSFreeOp *fop, JSObject *obj)
+void Canvas2DContext::JSTracer(class JSTracer *trc)
 {
-    Canvas2DContext *canvasctx = CANVASCTX_GETTER(obj);
-    if (canvasctx != NULL) {
-        delete canvasctx;
-    }
-}
-
-void Canvas2DContext_Trace(JSTracer *trc, JSObject *obj)
-{
-    Canvas2DContext *canvasctx = CANVASCTX_GETTER(obj);
-
-    if (!canvasctx) {
-        return;
-    }
-
-    for (Canvas2DContextState *state = canvasctx->getCurrentState();
+    for (Canvas2DContextState *state = this->getCurrentState();
          state != NULL; state = state->m_Next) {
 
         /* Does this matter if we trace an UndefinedValue? */
@@ -2649,24 +2417,12 @@ Canvas2DContext::Canvas2DContext(CanvasHandler *handler,
 
     this->pushNewState();
 
-    JS::RootedObject jsobj(cx, JS_NewObject(cx, &Canvas2DContext_class,
-                                            JS::NullPtr(), JS::NullPtr()));
-    m_JsObj = jsobj;
-    m_JsCx  = cx;
-
-    /*
-        TODO: BUG: xxx setter doesn't work if we remove this the
-       definesProperties
-    */
-    JS_DefineProperties(cx, jsobj, canvas2dctx_props);
-
     m_Skia = new SkiaContext();
     if (!m_Skia->bindOnScreen(width, height)) {
         delete m_Skia;
         m_Skia = NULL;
         return;
     }
-    JS_SetPrivate(jsobj, this);
 
     /* Vertex buffers were unbound by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);
@@ -2718,25 +2474,106 @@ uint8_t *Canvas2DContext::getPixels()
 
 Canvas2DContext::~Canvas2DContext()
 {
-    // NUI_LOG("Delete skia %p", skia);
-    if (m_Skia) delete m_Skia;
+    if (m_Skia) {
+        delete m_Skia;
+    }
 }
 
-static bool
-nidium_Canvas2DContext_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    JS_ReportError(cx, "Illegal constructor");
-    return false;
-}
 // }}}
 
 // {{{ Registration
+
+JSPropertySpec *Canvas2DContext::ListProperties()
+{
+    static JSPropertySpec props[] = {
+        CLASSMAPPER_PROP_GS(Canvas2DContext, fillStyle),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, strokeStyle),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, lineWidth),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, miterLimit),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, globalAlpha),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, globalCompositeOperation),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, fontSize),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, textAlign),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, textBaseline),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, fontFamily),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, fontStyle),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, fontSkew),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, fontFile),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, lineCap),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, lineJoin),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, shadowOffsetX),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, shadowOffsetY),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, shadowBlur),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, shadowColor),
+        CLASSMAPPER_PROP_GS(Canvas2DContext, imageSmoothingEnabled),
+        CLASSMAPPER_PROP_G(Canvas2DContext, width),
+        CLASSMAPPER_PROP_G(Canvas2DContext, height),
+        JS_PS_END
+    };
+
+    return props;
+}
+
+JSFunctionSpec *Canvas2DContext::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(Canvas2DContext, breakText, 1),
+        CLASSMAPPER_FN(Canvas2DContext, shadow, 1),
+        CLASSMAPPER_FN(Canvas2DContext, onerror, 1),
+        CLASSMAPPER_FN(Canvas2DContext, fillRect, 1),
+        CLASSMAPPER_FN(Canvas2DContext, fillText, 1),
+        CLASSMAPPER_FN(Canvas2DContext, strokeText, 1),
+        CLASSMAPPER_FN(Canvas2DContext, strokeRect, 1),
+        CLASSMAPPER_FN(Canvas2DContext, clearRect, 1),
+        CLASSMAPPER_FN(Canvas2DContext, beginPath, 1),
+        CLASSMAPPER_FN(Canvas2DContext, moveTo, 1),
+        CLASSMAPPER_FN(Canvas2DContext, lineTo, 1),
+        CLASSMAPPER_FN(Canvas2DContext, fill, 1),
+        CLASSMAPPER_FN(Canvas2DContext, stroke, 1),
+        CLASSMAPPER_FN(Canvas2DContext, closePath, 1),
+        CLASSMAPPER_FN(Canvas2DContext, clip, 1),
+        CLASSMAPPER_FN(Canvas2DContext, arc, 1),
+        CLASSMAPPER_FN(Canvas2DContext, arcTo, 1),
+        CLASSMAPPER_FN(Canvas2DContext, rect, 1),
+        CLASSMAPPER_FN(Canvas2DContext, quadraticCurveTo, 1),
+        CLASSMAPPER_FN(Canvas2DContext, bezierCurveTo, 1),
+        CLASSMAPPER_FN(Canvas2DContext, rotate, 1),
+        CLASSMAPPER_FN(Canvas2DContext, scale, 1),
+        CLASSMAPPER_FN(Canvas2DContext, save, 1),
+        CLASSMAPPER_FN(Canvas2DContext, restore, 1),
+        CLASSMAPPER_FN(Canvas2DContext, translate, 1),
+        CLASSMAPPER_FN(Canvas2DContext, transform, 1),
+        CLASSMAPPER_FN(Canvas2DContext, iTransform, 1),
+        CLASSMAPPER_FN(Canvas2DContext, setTransform, 1),
+        CLASSMAPPER_FN(Canvas2DContext, createLinearGradient, 1),
+        CLASSMAPPER_FN(Canvas2DContext, createRadialGradient, 1),
+        CLASSMAPPER_FN(Canvas2DContext, createImageData, 1),
+        CLASSMAPPER_FN(Canvas2DContext, createPattern, 1),
+        CLASSMAPPER_FN(Canvas2DContext, putImageData, 1),
+        CLASSMAPPER_FN(Canvas2DContext, getImageData, 1),
+        CLASSMAPPER_FN(Canvas2DContext, drawImage, 1),
+        CLASSMAPPER_FN(Canvas2DContext, measureText, 1),
+        CLASSMAPPER_FN(Canvas2DContext, isPointInPath, 1),
+        CLASSMAPPER_FN(Canvas2DContext, getPathBounds, 1),
+        CLASSMAPPER_FN(Canvas2DContext, light, 1),
+        CLASSMAPPER_FN(Canvas2DContext, attachFragmentShader, 1),
+        CLASSMAPPER_FN(Canvas2DContext, detachFragmentShader, 1),
+        CLASSMAPPER_FN(Canvas2DContext, setVertexOffset, 1),
+        JS_FS_END
+    };
+
+    return funcs;
+}
+
 void Canvas2DContext::RegisterObject(JSContext *cx)
 {
+    Canvas2DContext::ExposeClass(cx, "CanvasRenderingContext2D",
+        0, kJSTracer_ExposeFlag);
+    /*
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_InitClass(cx, global, JS::NullPtr(), &Canvas2DContext_class,
                  nidium_Canvas2DContext_constructor, 0, canvas2dctx_props,
-                 canvas2dctx_funcs, nullptr, nullptr);
+                 canvas2dctx_funcs, nullptr, nullptr);*/
 }
 // }}}
 

@@ -27,9 +27,6 @@ using Nidium::Frontend::InputEvent;
 namespace Nidium {
 namespace Binding {
 
-// {{{ Preamble
-extern JSClass Canvas2DContext_class;
-
 static struct nidium_cursors
 {
     const char *str;
@@ -391,6 +388,7 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
     }
 
     CanvasContext *canvasctx = m_CanvasHandler->getContext();
+    JS::RootedObject JSCanvasCtx(cx);
 
     /* The context is lazy-created */
     if (canvasctx == NULL) {
@@ -414,6 +412,8 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
 
                 /* Inherit from the Context glstate */
                 ctx2d->setGLState(nctx->getGLState());
+
+                JSCanvasCtx = Canvas2DContext::CreateObject(cx, ctx2d);
 
                 break;
             }
@@ -439,18 +439,16 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
         /*  Protect against GC
             Canvas.slot[0] = context
         */
-        JS::RootedValue slot(
-            cx, OBJECT_TO_JSVAL(m_CanvasHandler->getContext()->m_JsObj));
-        JS_SetReservedSlot(m_CanvasHandler->m_JsObj, 0, slot);
+        JS_SetReservedSlot(m_Instance, 0, OBJECT_TO_JSVAL(JSCanvasCtx));
+
     } else if (canvasctx->m_Mode != ctxmode) {
         JS_ReportWarning(cx, "Bad context requested");
         /* A mode is requested but another one was already created */
         args.rval().setNull();
         return true;
     }
-    JS::RootedObject ret(cx, canvasctx->m_JsObj);
 
-    args.rval().setObjectOrNull(ret);
+    args.rval().setObjectOrNull(JSCanvasCtx);
 
     return true;
 }
@@ -462,10 +460,9 @@ bool JSCanvas::JS_setContext(JSContext *cx, JS::CallArgs &args)
         return true;
     }
 
-    CanvasContext *context;
+    CanvasContext *context = Canvas2DContext::GetInstance(obj);
 
-    if (!(context = static_cast<CanvasContext *>(
-              JS_GetInstancePrivate(cx, obj, &Canvas2DContext_class, &args)))) {
+    if (!context) {
         JS_ReportError(
             cx, "setContext() argument must a CanvasRenderingContext2D object");
         return false;
@@ -1367,7 +1364,6 @@ JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
 
 JSFunctionSpec *JSCanvas::ListMethods()
 {
-
     static JSFunctionSpec funcs[] = {
         CLASSMAPPER_FN(JSCanvas, getContext, 1),
         CLASSMAPPER_FN(JSCanvas, setContext, 1),
@@ -1476,9 +1472,14 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx,
     CanvasHandler *handler;
     Context *nctx   = Context::GetObject<Frontend::Context>(cx);
     UIInterface *ui = nctx->getUI();
-
     handler = new CanvasHandler(width, height, nctx);
-    handler->setContext(new Canvas2DContext(handler, cx, width, height, ui));
+    
+    Canvas2DContext *ctx2d = new Canvas2DContext(handler, cx, width, height, ui);
+
+    JS::RootedObject ctxjsobj(cx, Canvas2DContext::CreateObject(cx, ctx2d));
+
+    
+    handler->setContext(ctx2d);
     handler->getContext()->setGLState(nctx->getGLState());
 
     /* window.canvas.overflow default to false */
@@ -1488,10 +1489,10 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx,
 
     JS::RootedObject ret(cx, JSCanvas::CreateObject(cx, jscanvas));
 
-    handler->m_JsCx = cx;
-    handler->m_JsObj    = ret;
-    JS::RootedValue val(cx, OBJECT_TO_JSVAL(handler->m_Context->m_JsObj));
-    JS_SetReservedSlot(ret, 0, val);
+    handler->m_JsCx  = cx;
+    handler->m_JsObj = ret;
+
+    JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(ctxjsobj));
 
     *out = handler;
 

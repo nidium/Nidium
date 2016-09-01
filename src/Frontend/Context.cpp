@@ -58,6 +58,12 @@ using namespace Nidium::Binding;
 using namespace Nidium::IO;
 
 namespace Nidium {
+namespace Binding {
+    extern JSClass ImageData_class;
+}
+}
+
+namespace Nidium {
 namespace Frontend {
 
 enum
@@ -798,7 +804,7 @@ bool Context::WriteStructuredCloneOp(JSContext *cx,
         return false;
     }
 
-    if (JS_GetClass(obj) == Canvas2DContext::jsclass) {
+    if (JS_GetClass(obj) == &ImageData_class) {
         uint32_t dwidth, dheight;
 
         JS::RootedValue iwidth(cx);
@@ -853,7 +859,7 @@ JSObject *Context::ReadStructuredCloneOp(JSContext *cx,
             JS_ReadTypedArray(r, &arr);
 
             JS::RootedObject dataObject(
-                cx, JS_NewObject(cx, Canvas2DContext::jsclass, JS::NullPtr(),
+                cx, JS_NewObject(cx, &ImageData_class, JS::NullPtr(),
                                  JS::NullPtr()));
             JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
             JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
