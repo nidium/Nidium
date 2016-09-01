@@ -4,69 +4,71 @@
 
 from dokumentor import *
 
-ClassDoc( "process", "Object providing various information and interfaces to interact with system process.",
-    SeesDocs( "global.process|process" ),
+ClassDoc( "NidiumProcess", """Object providing various information and interfaces to interact with system process.
+
+It is not possible to create an instance of this class. 'global.process' is allready available.""",
+    SeesDocs( "global.process|NidiumProcess" ),
     [ExampleDoc("""console.log(JSON.stringify(process));""")],
     NO_Inherrits,
     NO_Extends,
     products=["Frontend", "Server"]
 )
 
-FieldDoc( "global.process", "Instance of the the `process` class.",
-    SeesDocs( "global.process|process" ),
+FieldDoc( "global.process", "Instance of the the `NidiumProcess` class.",
+    SeesDocs( "global.process|NidiumProcess" ),
     [ExampleDoc("""console.log(JSON.stringify(process));""")],
     IS_Dynamic, IS_Public, IS_Readonly,
     ObjectDoc([]),
     NO_Default
 )
 
-FieldDoc( "process.argv", "The arguments that were set upon construction.",
-    SeesDocs( "process" ),
+FieldDoc( "NidiumProcess.argv", "The arguments that were set upon construction.",
+    SeesDocs( "global.process|NidiumProcess" ),
     [ExampleDoc("""console.log(JSON.stringify(process));""")],
     IS_Dynamic, IS_Public, IS_Readonly,
     ObjectDoc([]),
     NO_Default
 )
 
-FieldDoc( "process.workerId", "The identifier for the current worker.",
-    SeesDocs( "process|Threads" ),
+FieldDoc( "NidiumProcess.workerId", "The identifier for the current worker.",
+    SeesDocs( "NidiumProcess|global.process|Threads" ),
     [ExampleDoc("""console.log(JSON.stringify(process));""")],
     IS_Dynamic, IS_Public, IS_Readonly,
     "integer",
     NO_Default
 )
 
-FunctionDoc("process.setOwner", """Set a user and optionaly a group to a process.
+FunctionDoc("NidiumProcess.setOwner", """Set a user and optionaly a group to a process.
 
 The `setOwner` function is permitted if the effective user/group name is that of the super user, or if the specified user/group name is the same as the effective user/group name.
 
 On failure this function throws an exception.""",
-    SeesDocs("process.getOwner"),
-    [ExampleDoc("""process.setOwner('daemon', 'www-data');""")],
+    SeesDocs("global.process|NidiumProcess|NidiumProcess.getOwner"),
+    [ExampleDoc("""NidiumProcess.setOwner('daemon', 'www-data');""")],
     IS_Dynamic, IS_Public, IS_Fast,
     [
-            ParamDoc("user", "User whom should run this process", 'string|int', NO_Params, IS_Obligated),
-        ParamDoc("group", "Group whom should run this process", 'string|int', NO_Params, IS_Optional)
+            ParamDoc("user", "User whom should run this process", 'string|integer', NO_Params, IS_Obligated),
+        ParamDoc("group", "Group whom should run this process", 'string|integer', NO_Params, IS_Optional)
         ],
     NO_Returns
 )
 
-FunctionDoc("process.getOwner", """Return an object with information about the owner of the process.""",
-    SeesDocs("process.setOwner"),
-    [ExampleDoc("""process.setOwner('daemon', 'www-data');""")],
+FunctionDoc("NidiumProcess.getOwner", """Return an object with information about the owner of the process.""",
+    SeesDocs("global.process|NidiumProcess|NidiumProcess.setOwner"),
+    [ExampleDoc("""NidiumProcess.setOwner('daemon', 'www-data');""")],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
     ObjectDoc([
-        ("uid", "User ID", "integer"), 
-        ("gid", "Group ID", "integer"), 
-        ("user", "User name", "string"), 
-        ("group", "Group name", "string"), 
+        ("uid", "User ID", "integer"),
+        ("gid", "Group ID", "integer"),
+        ("user", "User name", "string"),
+        ("group", "Group name", "string"),
     ])
 )
 
-FunctionDoc("process.setSignalHandler", "Attach a javascript callback to a signal.",
-    SeesDocs("process|Threads|process.setSignalHandler|process.exit"),
-    [ExampleDoc("""process.setSignalHandler(function(){
+FunctionDoc("NidiumProcess.setSignalHandler", "Attach a javascript callback to a signal.",
+    SeesDocs("global.process|NidiumProcess|Threads|NidiumProcess.setSignalHandler|NidiumProcess.exit"),
+    [ExampleDoc("""NidiumProcess.setSignalHandler(function(){
 console.log("got Kill");
 })
 """)],
@@ -75,19 +77,19 @@ console.log("got Kill");
     NO_Returns
 )
 
-FunctionDoc("process.exit", "Attach a javascript callback to a signal.",
-    SeesDocs("process|Threads|process.setSignalHandler|process.exit"),
+FunctionDoc("NidiumProcess.exit", "Attach a javascript callback to a signal.",
+    SeesDocs("global.process|NidiumProcess|Threads|NidiumProcess.setSignalHandler|NidiumProcess.exit"),
     [ExampleDoc("""var realy = false;
 if (realy) {
-    process.exit();
+    NidiumProcess.exit();
 }""")],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
     NO_Returns
 )
 
-FunctionDoc( "process.cwd", "Get the current working directory.",
-    [ SeeDoc( "global.__filename" ), SeeDoc( "global.__dirname" ), SeeDoc( "File.isDir" ), SeeDoc( "File.rmrf" ), SeeDoc( "File.listFiles" ), SeeDoc( "fs" ), SeeDoc( "process.cwd" ) ],
+FunctionDoc( "NidiumProcess.cwd", "Get the current working directory.",
+    SeesDocs( "NidiumProcess|global.process|global.__filename|global.__dirname|File.isDir|File.rmrf|File.listFiles|fs|NidiumProcess.cwd" ),
     [ExampleDoc( """console.log(process.cwd());""" )],
     IS_Static, IS_Public, IS_Fast,
     NO_Params,

@@ -31,7 +31,7 @@ source.play();""") ],
 )
 
 NamespaceDoc( "AudioContext", """The AudioContext represents a set of `AudioNode` linked together along with audio parameters (buffer size, number of channel, sample rate).
-        
+
 An audio context controls both the creation of the nodes it contains and the execution of the audio processing, or decoding. You need to create an AudioContext before you do anything else, as everything happens inside a context.""",
     SeesDocs( "Thread|Audio|Audio|AudioContext|_GLOBALAudioThread|AudioNodeLink|AudioNode" ),
     [ ExampleDoc("""var dsp = Audio.getContext();
@@ -72,7 +72,7 @@ NamespaceDoc( "AudioNode", """AudioNode class.
 
 An `AudioNode` can be either a source a processor or a target.
 
-* A source delivers a stream, which can be decoded and played (mp3, wav, ogg, wma, aac). 
+* A source delivers a stream, which can be decoded and played (mp3, wav, ogg, wma, aac).
 * A processor can alterate the stream of data (gain, reverb, delay, ...).
 * A target is the audio system output (speakers)""",
     SeesDocs( "Thread|Audio|AudioContext|_GLOBALAudioThread|AudioNodeLink|AudioNode" ),
@@ -147,10 +147,10 @@ node.addEventListener("error", function(ev) {
     console.log("Error : " + ev.error + ". Code=" + ev.code);
 });
 """)],
-            [ParamDoc( "event", "Event object", 
+            [ParamDoc( "event", "Event object",
                 ObjectDoc([
                     ( "code", "The error code", "integer" ),
-                    ( "error", "Description of the errorcode", "string" ) 
+                    ( "error", "Description of the errorcode", "string" )
                 ]), NO_Default, IS_Obligated)
             ]
     )
@@ -164,11 +164,11 @@ node.addEventListener("buffering", function(ev) {
     console.log("Buffering : " + ev.bufferedByes + "/" + ev.filesize + " starting at " + ev.startByte);
 });
     """)],
-            [ ParamDoc( "event", "Event object", 
+            [ ParamDoc( "event", "Event object",
                 ObjectDoc([
                     ( "filesize", "The size of the file in bytes", "integer" ),
                     ( "startByte", "The start position of the buffered data.", "integer" ),
-                    ( "bufferedBytes", "The number of bytes buffered.", "integer" ) 
+                    ( "bufferedBytes", "The number of bytes buffered.", "integer" )
                 ]), NO_Default, IS_Obligated),
             ]
     )
@@ -305,7 +305,7 @@ EventDoc( "AudioNode.message", """Event fired when a custom node or custom-sourc
 As the `AudioContext` has it's own thread, communitation between threads must be done via messages.""",
     SeesDocs( "AudioNode.set|AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter" ),
     NO_Examples,
-    [ParamDoc( "event", "The event object", 
+    [ParamDoc( "event", "The event object",
         ObjectDoc([
             ( "data", "Data of the message", "mixed" ),
         ]), NO_Default, IS_Obligated ),
@@ -318,7 +318,7 @@ FunctionDoc( "AudioNode.assignSeek", """Assign to the node a function to be call
     IS_Dynamic, IS_Public, IS_Fast,
     [CallbackDoc( "callback", "Function to execute when the node position is changed", [
         ParamDoc( "postition", "The new position in seconds.", "float", NO_Default, IS_Obligated ),
-        ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated ) 
+        ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated )
     ])]
 )
 
@@ -384,7 +384,7 @@ source.play();
                 ( "size", "The size of each audio frame in samples per buffer", "integer" ),
                 ( "data", "An array of `Float32Array` with the audio data. Each entry of the array represent a channel of the node", "[Float32Array]" )
             ]), NO_Default, IS_Obligated),
-        ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated ) 
+        ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated )
     ]
 )
 
@@ -393,7 +393,7 @@ FunctionDoc( "AudioNode.assignInit", "Assign a function to a `custom-source` or 
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [CallbackDoc( "callback", "Function to execute when the node is initialized", [
-            ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated ) 
+            ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated )
     ])]
 )
 
@@ -421,7 +421,7 @@ foo = 0;
     [CallbackDoc( "callback", "Function to execute when a variable is set on the `AudioNode`", [
     ParamDoc( "key", "The key name", "string", NO_Default, IS_Obligated ),
     ParamDoc( "value", "The value that has been set", "mixed", NO_Default, IS_Obligated ),
-        ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated ) 
+        ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated )
     ])]
 )
 

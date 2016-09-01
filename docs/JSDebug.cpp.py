@@ -4,7 +4,9 @@
 
 from dokumentor import *
 
-NamespaceDoc( "NidiumDebug", "Debugging helper functions.",
+NamespaceDoc( "NidiumDebug", """Debugging helper functions.
+
+It is not possible to create an instance of this class. 'global.Debug' is allready available.""",
     NO_Sees,
     [ExampleDoc( """var d = {a:1, b: "a"};
 var s = Debug.serialize(d);
@@ -26,7 +28,7 @@ console.log(JSON.stringify(u));
 )
 
 FunctionDoc( "NidiumDebug.serialize", "Dump the content of an object.",
-    [ SeeDoc( "NidiumDebug.unserialize" ) ],
+    SeesDocs( "global.Debug|NidiumDebug.unserialize" ),
     [ExampleDoc( """var d = {a:1, b: "a"};
 var s = Debug.serialize(d);
 var u = Debug.unserialize(s)
@@ -38,7 +40,7 @@ console.log(JSON.stringify(u));
 )
 
 FunctionDoc( "NidiumDebug.unserialize", "Dump the content of an object.",
-    [ SeeDoc( "NidiumDebug.serialize" ) ],
+    SeesDocs( "global.Debug|NidiumDebug.serialize" ),
     [ExampleDoc( """var d = {a:1, b: "a"};
 var s = Debug.serialize(d);
 var u = Debug.unserialize(s)

@@ -4,30 +4,32 @@
 
 from dokumentor import *
 
-NamespaceDoc( "document", "Document class.",
-    SeesDocs( "Window|Canvas" ),
+NamespaceDoc( "NidiumDocument", """Document class.
+
+It is not possible to create an instance of this class. 'global.document' is allready available.""",
+    SeesDocs( "Window|Canvas|NidiumDocument|global.document|global.window" ),
     NO_Examples,
     products=["Server"]
 )
 
-FunctionDoc( "document.parseNML", "Parses a NML string and sets this as a document.",
-    SeesDocs( "document.parseNML|document.stylesheet|document.loadFont" ),
+FunctionDoc( "NidiumDocument.parseNML", "Parses a NML string and sets this as a document.",
+    SeesDocs( "global.document|NidiumDocument.parseNML|NidiumDocument.stylesheet|NidiumDocument.loadFont" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     [ ParamDoc( "ast", "A NML string", "string", NO_Default, IS_Obligated ) ],
-    ReturnDoc( "A document instance", "document" )
+    ReturnDoc( "A document instance", "NidiumDocument" )
 )
 
-FunctionDoc( "document.getCanvasById", "Select an canvas element for further manipulation.",
-    SeesDocs("document.getScreenData|document.getCanvasById" ),
+FunctionDoc( "NidiumDocument.getCanvasById", "Select an canvas element for further manipulation.",
+    SeesDocs("global.document|NidiumDocument.getScreenData|NidiumDocument.getCanvasById" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     [ ParamDoc( "id", "Canvas identifier", "string", NO_Default, IS_Obligated ) ],
     ReturnDoc( "The selected element or null", "Canvas" )
 )
 
-FunctionDoc( "document.getScreenData", "Provides information about an canvas object.",
-    SeesDocs("document.getScreenData|document.getCanvasById" ),
+FunctionDoc( "NidiumDocument.getScreenData", "Provides information about an canvas object.",
+    SeesDocs("global.document|NidiumDocument.getScreenData|NidiumDocument.getCanvasById" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     [ ParamDoc( "element", "Canvas instance", "Canvas", NO_Default, IS_Obligated ) ],
@@ -36,24 +38,24 @@ FunctionDoc( "document.getScreenData", "Provides information about an canvas obj
                                         ("data", "The content", "ArrayBuffer")]))
 )
 
-FunctionDoc( "document.getPasteBuffer", "Get the content of the paste buffer.",
-    SeesDocs( "document.getPasteBuffer|document.setPasteBuffer" ),
+FunctionDoc( "NidiumDocument.getPasteBuffer", "Get the content of the paste buffer.",
+    SeesDocs( "global.document|NidiumDocument.getPasteBuffer|NidiumDocument.setPasteBuffer" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     [ ParamDoc( "content", "PasteBuffer text", "string", NO_Default, IS_Obligated ) ],
     NO_Returns
 )
 
-FunctionDoc( "document.setPasteBuffer", "Set the content of the paste buffer.",
-    SeesDocs( "document.getPasteBuffer|document.setPasteBuffer" ),
+FunctionDoc( "NidiumDocument.setPasteBuffer", "Set the content of the paste buffer.",
+    SeesDocs( "global.document|NidiumDocument.getPasteBuffer|NidiumDocument.setPasteBuffer" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     NO_Params,
     ReturnDoc( "Paste buffer contents", "string")
 )
 
-FunctionDoc( "document.showFPS", "Display the number of frames per second.",
-    SeesDocs( "document.showFPS|document.run" ),
+FunctionDoc( "NidiumDocument.showFPS", "Display the number of frames per second.",
+    SeesDocs( "global.document|NidiumDocument.showFPS|NidiumDocument.run" ),
     [ExampleDoc("""var canvas = new Canvas(200, 100);
 var ctx = canvas.getContext("2d");
 document.showFPS(true);
@@ -63,24 +65,24 @@ document.showFPS(true);
     NO_Returns
 )
 
-FunctionDoc( "document.run", "Run the application.",
-    SeesDocs( "document.showFPS|document.run" ),
+FunctionDoc( "NidiumDocument.run", "Run the application.",
+    SeesDocs( "global.document|NidiumDocument.showFPS|NidiumDocument.run" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     [ ParamDoc( "location", "Location", "string", NO_Default, IS_Obligated ) ],
     NO_Returns
 )
 
-FieldDoc( "document.stylesheet", "The Native Style sheet (NSS) that belongs to this document.",
-    SeesDocs( "document.parseNML|document.stylesheet|document.loadFont" ),
+FieldDoc( "NidiumDocument.stylesheet", "The Native Style sheet (NSS) that belongs to this document.",
+    SeesDocs( "global.document|NidiumDocument.parseNML|NidiumDocument.stylesheet|NidiumDocument.loadFont" ),
     NO_Examples,
     IS_Static, IS_Public, IS_ReadWrite,
     ObjectDoc([]),
     NO_Default
 )
 
-FunctionDoc( "document.loadFont", "Load a certain font.",
-    SeesDocs( "document.parseNML|document.stylesheet|document.loadFont" ),
+FunctionDoc( "NidiumDocument.loadFont", "Load a certain font.",
+    SeesDocs( "global.document|NidiumDocument.parseNML|NidiumDocument.stylesheet|NidiumDocument.loadFont" ),
     [ExampleDoc("""document.loadFont({
     file: "private://assets/fonts/onesize.ttf",
     name: "OneSize"

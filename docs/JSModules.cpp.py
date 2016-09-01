@@ -4,16 +4,16 @@
 
 from dokumentor import *
 
-NamespaceDoc( "module", "Module that is exported.",
+NamespaceDoc( "Module", "Module that is exported.",
     SeesDocs( "global.modules" ),
     examples=[
-        ExampleDoc("module.exports = {\"lorem\":\"ipsum\"}"), 
+        ExampleDoc("module.exports = {\"lorem\":\"ipsum\"}"),
         ExampleDoc("var foobar = require(\"foobar.js\");\n console.log(foobar.lorem); // Print \"ipsum\"")
     ],
     products=["Frontend", "Server"]
 )
 
-FieldDoc( "module.exports", "Exported Module.",
+FieldDoc( "Module.exports", "Exported Module.",
     SeesDocs( "Module|global.modules" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Readonly,
@@ -21,7 +21,7 @@ FieldDoc( "module.exports", "Exported Module.",
     NO_Default
 )
 
-FieldDoc( "module.id", "The module name.",
+FieldDoc( "Module.id", "The module name.",
     SeesDocs( "Module" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Readonly,

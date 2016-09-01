@@ -313,7 +313,7 @@ Nidium is currently supporting the following context types:
 * 2D Context is based on the [2DContext API](http://www.w3.org/html/wg/drafts/2dcontext/html5_canvas/).
 * A WebGL Context is based on the [WebGL API](https://www.khronos.org/registry/webgl/specs/1.0/).
 
->* This operation is slow the first time the method is called. 
+>* This operation is slow the first time the method is called.
 >* The context can't be changed once it's created.
 """,
     SeesDocs( "document.canvas|Canvas|Canvas.getContext|Canvas.setContext|Canvas.clear" ),
@@ -822,7 +822,7 @@ var myCanvas = new Canvas(200, 100);
 document.canvas.add(myCanvas);
 // At this stage, myCanvas is "rooted" and document.canvas becomes its parent.
 """)],
-    [ 
+    [
         ParamDoc( "width", "Width size", "integer", NO_Default, IS_Obligated ),
         ParamDoc( "height", "Height size", "integer", NO_Default, IS_Obligated ),
         ParamDoc( "options", "Options object", ObjectDoc([("lazy", "lazy evaluation", "boolean")]), NO_Default, IS_Optional )
@@ -830,12 +830,12 @@ document.canvas.add(myCanvas);
     ReturnDoc( "Canvas instance", "Canvas" )
 )
 
-EventDoc("Canvas.load", 
+EventDoc("Canvas.load",
     "Event fired when the canvas will be draw for the first time.",
     params=[ParamDoc("event", "Event object", ObjectDoc([]))]
 )
 
-EventDoc("Canvas.resize", 
+EventDoc("Canvas.resize",
     "Event fired after a canvas has been resized",
     params=[ParamDoc("event", "Event object", ObjectDoc([]))]
 )
@@ -852,26 +852,26 @@ EventDoc("Canvas.change", "Callback for change events.\n\nChange event are fired
 )
 
 baseMouseEventObject = [
-    ("x",       "Horizontal cursor position", "int"),
-    ("y",       "Vertical cursor position", "int"),
-    ("clientX", "??", "int"),
-    ("clientY", "??", "int"),
-    ("layerX",  "Horizontal cursor position relative to the canvas", "int"),
-    ("layerY",  "Vertical cursor position relative to the canvas", "int"),
+    ("x",       "Horizontal cursor position", "integer"),
+    ("y",       "Vertical cursor position", "integer"),
+    ("clientX", "??", "integer"),
+    ("clientY", "??", "integer"),
+    ("layerX",  "Horizontal cursor position relative to the canvas", "integer"),
+    ("layerY",  "Vertical cursor position relative to the canvas", "integer"),
     ("target",  "`Canvas` where the event is taking place", "Canvas")
 ]
 
 mouseEventPosition = list(baseMouseEventObject)
 mouseEventPosition.extend([
-    ("xrel", "Relative value of `x` compared to the previous event", "int"),
-    ("yrel", "Relative value of `y` compared to the previous event", "int")
+    ("xrel", "Relative value of `x` compared to the previous event", "integer"),
+    ("yrel", "Relative value of `y` compared to the previous event", "integer")
 ])
 mouseEventPosition = [ParamDoc("event", "Event object", ObjectDoc(mouseEventPosition))]
 
 
 mouseEventClick = list(baseMouseEventObject)
 mouseEventClick.extend([
-    ("which", "ID of the button pressed", "int")
+    ("which", "ID of the button pressed", "integer")
 ])
 mouseEventClick = [ParamDoc("event", "Event object", ObjectDoc(mouseEventClick))]
 
@@ -891,27 +891,27 @@ mouseEventDragTarget.extend([
 mouseEventDragTarget = [ParamDoc("event", "Event object", ObjectDoc(mouseEventDragTarget))]
 
 
-EventDoc("Canvas.mousemove", 
+EventDoc("Canvas.mousemove",
     "Event fired when the mouse pointer is moving over the canvas",
     params=mouseEventPosition
 )
 
-EventDoc("Canvas.mousedown", 
+EventDoc("Canvas.mousedown",
     "Event fired when the mouse pointer is over the element, and the mouse button is pressed.",
     params=[ParamDoc("event", "Event object", ObjectDoc(baseMouseEventObject))]
 )
 
-EventDoc("Canvas.mouseup", 
+EventDoc("Canvas.mouseup",
     "Event fired when the mouse pointer is over the element, and the mouse button has been pressed and then released.",
     params=[ParamDoc("event", "Event object", ObjectDoc(baseMouseEventObject))]
 )
 
-EventDoc("Canvas.dblclick", 
+EventDoc("Canvas.dblclick",
     "Event fired when the mouse pointer is over the element, and the mouse button has been pressed twice.",
     params=mouseEventClick
 )
 
-EventDoc("Canvas.dragstart", 
+EventDoc("Canvas.dragstart",
     "Event fired when the user starts to drag a canvas",
     params=mouseEventDrag
 )
@@ -920,7 +920,7 @@ EventDoc("Canvas.dragend", "Event fired when the user has finished dragging a ca
     params=mouseEventDrag
 )
 
-EventDoc("Canvas.dragover", 
+EventDoc("Canvas.dragover",
     "Event fired when a canvas is being dragged over a target canvas.\n This event is fired on the targeted canvas.",
     params=mouseEventDragTarget
 )
@@ -930,7 +930,7 @@ EventDoc("Canvas.drop",
     params=mouseEventDragTarget
 )
 
-EventDoc("Canvas.mousewheel", 
+EventDoc("Canvas.mousewheel",
     "Event fired when the mouse wheel is actived onto a canvas.",
     params=[ParamDoc("event", "Event object", ObjectDoc(baseMouseEventObject))]
 )

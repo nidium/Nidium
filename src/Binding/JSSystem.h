@@ -6,17 +6,28 @@
 #ifndef binding_jssystem_h__
 #define binding_jssystem_h__
 
-#include <Binding/JSExposer.h>
+#include <Binding/ClassMapper.h>
 
-using Nidium::Binding::JSExposer;
+using Nidium::Binding::ClassMapper;
 
 namespace Nidium {
 namespace Binding {
 
-class JSSystem : public JSExposer<JSSystem>
+class JSSystem : public ClassMapper<JSSystem>
 {
 public:
     static void RegisterObject(JSContext *cx);
+    static JSFunctionSpec *ListMethods();
+#if 0
+    static JSPropertySpec *ListProperties();
+#endif
+protected:
+    NIDIUM_DECL_JSCALL(getOpenFileStats);
+#if 0
+#ifdef NIDIUM_PRODUCT_UI
+    NIDIUM_DECL_JSGETTER(language);
+#endif
+#endif
 };
 
 } // namespace Binding

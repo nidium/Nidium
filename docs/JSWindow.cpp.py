@@ -4,57 +4,59 @@
 
 from dokumentor import *
 
-NamespaceDoc( "Window", "Window class.",
-    [ SeeDoc( "global" ) ],
+NamespaceDoc( "Window", """Window class.
+
+It is not possible to create an instance of this class. 'global.window' is allready available.""",
+    SeesDocs( "global|global.window|Window" ),
     NO_Examples,
     products=["Frontend"]
 )
 
 NamespaceDoc( "MouseEvent", "Class that describes mouse events.",
-    SeesDocs( "NMLEvent|Window|WindowEvent|keyEvent|TextInputEvent|MouseEvent|DragEvent" ),
+    SeesDocs( "global.window|NMLEvent|Window|WindowEvent|keyEvent|TextInputEvent|MouseEvent|DragEvent" ),
     NO_Examples
 )
 
 NamespaceDoc( "MouseDrag", "Class that describes drag events.",
-    SeesDocs( "NMLEvent|Window|WindowEvent|keyEvent|TextInputEvent|MouseEvent|DragEvent" ),
+    SeesDocs( "global.window|NMLEvent|Window|WindowEvent|keyEvent|TextInputEvent|MouseEvent|DragEvent" ),
     NO_Examples
 )
 
 NamespaceDoc( "WindowEvent", "Class that describes window events.",
-    SeesDocs( "NMLEvent|Window|WindowEvent|keyEvent|TextInputEvent|MouseEvent|DragEvent" ),
+    SeesDocs( "global.window|NMLEvent|Window|WindowEvent|keyEvent|TextInputEvent|MouseEvent|DragEvent" ),
     NO_Examples,
     section="Window"
 )
 
 NamespaceDoc( "TextInputEvent", "Class that describes textinput events.",
-    SeesDocs( "NMLEvent|Window|WindowEvent|keyEvent|TextInputEvent|MouseEvent|DragEvent" ),
+    SeesDocs( "global.window|NMLEvent|Window|WindowEvent|keyEvent|TextInputEvent|MouseEvent|DragEvent" ),
     NO_Examples
 )
 
 NamespaceDoc( "keyEvent", "Class that describes key events.",
-    SeesDocs( "NMLEvent|Window|WindowEvent|keyEvent|TextInputEvent|MouseEvent|DragEvent" ),
+    SeesDocs( "global.window|NMLEvent|Window|WindowEvent|keyEvent|TextInputEvent|MouseEvent|DragEvent" ),
     NO_Examples
 )
 
 NamespaceDoc( "NMLEvent", "Class that describes events.",
-    SeesDocs( "NMLEvent|Window|WindowEvent|keyEvent|TextInputEvent|MouseEvent|DragEvent" ),
+    SeesDocs( "global.window|NMLEvent|Window|WindowEvent|keyEvent|TextInputEvent|MouseEvent|DragEvent" ),
     NO_Examples
 )
 
 EventDoc( "Window._onready", "Function that is called when the window is ready.",
-    SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
+    SeesDocs( "global.window|Window|Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
     NO_Examples,
     [ ParamDoc( "event", "EventMessage", "WindowEvent", NO_Default, IS_Obligated ) ]
 )
 
 EventDoc( "Window._onclose", "Function that is called when the window will be closed.",
-    SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
+    SeesDocs( "global.window|Window|Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
     NO_Examples,
     [ ParamDoc( "event", "EventMessage", "WindowEvent", NO_Default, IS_Obligated ) ]
 )
 
 EventDoc( "Window._onassetready", """Function that is called when the window has loaded all the assets.""",
-    SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
+    SeesDocs( "global.window|Window|Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
     NO_Examples,
     [ ParamDoc( "event", "EventMessage", ObjectDoc([("data", "string in utf8 encoding", "string"),
                                                     ("tag", "tag name", "string"),
@@ -62,19 +64,19 @@ EventDoc( "Window._onassetready", """Function that is called when the window has
 )
 
 EventDoc( "Window._onfocus", "Function that is called when the window receives the focus.",
-    SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
+    SeesDocs( "global.window|Window|Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
     NO_Examples,
     NO_Params
 )
 
 EventDoc( "Window._onblur", "Function that is called when the window looses the focus.",
-    SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
+    SeesDocs( "global.window|Window|Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
     NO_Examples,
     NO_Params
 )
 
 EventDoc( "Window._onmousewheel", """Function that is called when the window gets an mouse wheel event.""",
-    SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
+    SeesDocs( "global.window|Window|Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
     NO_Examples,
     [ ParamDoc( "event", "EventMessage", ObjectDoc([("xrel", "x relative position", "integer"),
                                                     ("yres", "x relative position", "integer"),
@@ -85,7 +87,7 @@ EventDoc( "Window._onmousewheel", """Function that is called when the window get
 
 for i in ["_onkeydown", "_onkeyup" ]:
     EventDoc( "Window." + i, """Function that is called when the window gets an  " + i + " event.""",
-        SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
+        SeesDocs( "global.window|Window|Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
         NO_Examples,
         [ ParamDoc( "event", "EventMessage", ObjectDoc([ ("keyCode", "keycode used", "integer"),
                                                          ("location", "location used", "integer"),
@@ -98,7 +100,7 @@ for i in ["_onkeydown", "_onkeyup" ]:
     )
 
 EventDoc( "Window._ontextinput", """function that is called when the window gets an  " + i + " event.""",
-    SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
+    SeesDocs( "global.window|Window|Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
     NO_Examples,
     [ ParamDoc( "event", "EventMessage", ObjectDoc([("val", "value (utf8)", "string")]), NO_Default, IS_Obligated ) ]
 )
@@ -111,7 +113,7 @@ EventDoc( "Window._onsystemtrayclic", """Function that is called when the window
 
 for i in ["_onmousedown", "_onmouseup" ]:
     EventDoc( "Window." + i, """Function that is called when the window gets an  " + i + " event.""",
-        SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
+        SeesDocs( "global.window|Window|Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
         NO_Examples,
         [ ParamDoc( "event", "EventMessage", ObjectDoc([ ("x_pos", "x position", "integer"),
                                                         ("y_pos", "y position", "integer"),
@@ -122,7 +124,7 @@ for i in ["_onmousedown", "_onmouseup" ]:
 
 for i in ["_onFileDragEnter", "_onFileDragLeave", "_onFileDrag", "_onFileDragDrop" ]:
     EventDoc( "Window." + i, """function that is called when the window gets an  " + i + " event.  """,
-        SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
+        SeesDocs( "global.window|Window|Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
         NO_Examples,
         [ ParamDoc( "event", "EventMessage", ObjectDoc([ ("x_pos", "x position", "integer"),
                                                         ("y_pos", "y position", "integer"),
@@ -132,7 +134,7 @@ for i in ["_onFileDragEnter", "_onFileDragLeave", "_onFileDrag", "_onFileDragDro
     )
 
 EventDoc( "Window._onmousemove", """function that is called when the window gets an  mousemovement event.""",
-    SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
+    SeesDocs( "global.window|Window|Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
     NO_Examples,
     [ ParamDoc( "event", "EventMessage", ObjectDoc([ ("x_pos", "x position", "integer"),
                                                         ("y_pos", "y position", "integer"),
@@ -176,7 +178,7 @@ FunctionDoc( "Window.setSize", "Set the size of the window.",
 )
 
 FunctionDoc( "Window.openURL", "Open an url in a new browser session.",
-    SeesDocs( "Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
+    SeesDocs( "global.window|Window|Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Slow,
     [ParamDoc( "url", "The url to open", "string", NO_Default, IS_Obligated ) ],
@@ -184,7 +186,7 @@ FunctionDoc( "Window.openURL", "Open an url in a new browser session.",
 )
 
 FunctionDoc( "Window.exec", "Executes a command in the background.",
-    SeesDocs( "Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
+    SeesDocs( "global.window|Window|Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Slow,
     [ParamDoc( "cmd", "The cmd with its arguments", "string", NO_Default, IS_Obligated ) ],
@@ -192,7 +194,7 @@ FunctionDoc( "Window.exec", "Executes a command in the background.",
 )
 
 FunctionDoc( "Window.openDirDialog", "Opens a directory selection dialog.",
-    SeesDocs( "Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
+    SeesDocs( "global.window|Window|Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Slow,
     [CallbackDoc( "fn", "The callback function", [ParamDoc( "list", "List of the selected items", "[string]", NO_Default, IS_Obligated ) ] ) ],
@@ -200,7 +202,7 @@ FunctionDoc( "Window.openDirDialog", "Opens a directory selection dialog.",
 )
 
 FunctionDoc( "Window.openFileDialog", "Opens a file selection dialog.",
-    SeesDocs( "Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
+    SeesDocs( "global.window|Window|Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Slow,
     [ParamDoc( "types", "list of allowed extendsions or null", "[string]", NO_Default, IS_Obligated ),
@@ -209,7 +211,7 @@ FunctionDoc( "Window.openFileDialog", "Opens a file selection dialog.",
 )
 
 FunctionDoc( "Window.requestAnimationFrame", "Execute a callback for the next frame.",
-    SeesDocs( "Window.requestAnimationFrame|Window.setFrame" ),
+    SeesDocs( "global.window|Window|Window.requestAnimationFrame|Window.setFrame" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     [ CallbackDoc( "fn", "The callback function", [ParamDoc( "list", "List of the selected items", "[string]", NO_Default, IS_Obligated ) ] ) ],
@@ -217,7 +219,7 @@ FunctionDoc( "Window.requestAnimationFrame", "Execute a callback for the next fr
 )
 
 FunctionDoc( "Window.center", "Positions the window in the center.",
-    SeesDocs( "Window.center|Window.setPosition|Window.setSize" ),
+    SeesDocs( "global.window|Window|Window.center|Window.setPosition|Window.setSize" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     NO_Params,
@@ -225,7 +227,7 @@ FunctionDoc( "Window.center", "Positions the window in the center.",
 )
 
 FunctionDoc( "Window.center", "Positions the window in the center.",
-    SeesDocs( "Window.center|Window.setPosition|Window.setSize" ),
+    SeesDocs( "global.window|Window|Window.center|Window.setPosition|Window.setSize" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     [ParamDoc( "x_pos", "X position", "integer", 0, IS_Obligated ),
@@ -234,7 +236,7 @@ FunctionDoc( "Window.center", "Positions the window in the center.",
 )
 
 FunctionDoc( "Window.notify", "Send a notification to the systemtray.",
-    SeesDocs( "Window.notify|Window.setSystemTray" ),
+    SeesDocs( "global.window|Window|Window.notify|Window.setSystemTray" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     [ParamDoc( "title", "Title text", "string", NO_Default, IS_Obligated ),
@@ -244,7 +246,7 @@ FunctionDoc( "Window.notify", "Send a notification to the systemtray.",
 )
 
 FunctionDoc( "Window.quit", "Quits this window instance.",
-    SeesDocs( "Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
+    SeesDocs( "global.window|Window|Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Slow,
     NO_Params,
@@ -252,7 +254,7 @@ FunctionDoc( "Window.quit", "Quits this window instance.",
 )
 
 FunctionDoc( "Window.clone", "Closes this window instance.",
-    SeesDocs( "Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
+    SeesDocs( "global.window|Window|Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Slow,
     NO_Params,
@@ -260,7 +262,7 @@ FunctionDoc( "Window.clone", "Closes this window instance.",
 )
 
 FunctionDoc( "Window.notify", "Send a notification to the systemtray.",
-    SeesDocs( "Window.notify|Window.setSystemTray" ),
+    SeesDocs( "global.window|Window|Window.notify|Window.setSystemTray" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     [ParamDoc( "config", "Systemtray", ObjectDoc([("icon", "Icon name", 'string'),
@@ -271,7 +273,7 @@ FunctionDoc( "Window.notify", "Send a notification to the systemtray.",
 )
 
 FunctionDoc( "Window.setFrame", "Execute a callback for the next frame.",
-    SeesDocs( "Window.requestAnimationFrame|Window.setFrame" ),
+    SeesDocs( "global.window|Window|Window.requestAnimationFrame|Window.setFrame" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     [ ParamDoc( "x_pos", "x position", "integer|string", '0|center', IS_Obligated ),
@@ -282,7 +284,7 @@ FunctionDoc( "Window.setFrame", "Execute a callback for the next frame.",
 )
 
 FieldDoc( "Window.canvas", "The main canvas instance.",
-    [ SeeDoc( "Canvas" ) ],
+    SeesDocs( "global.window|Window|Canvas" ),
     NO_Examples,
     IS_Static, IS_Public, IS_ReadWrite,
     'Canvas',
@@ -290,7 +292,7 @@ FieldDoc( "Window.canvas", "The main canvas instance.",
 )
 
 NamespaceDoc( "Navigator", "Navigator/browser description.",
-    SeesDocs("Navigator|Window.navigator|Window.__nidium__"),
+    SeesDocs("global.window|Window|Navigator|Window.navigator|Window.__nidium__"),
     [ExampleDoc("console.log(JSON.stringify(window.navigator));")]
 )
 
@@ -303,7 +305,7 @@ navigator = {"language": ('string', "The systems language. Currently fixed on 'u
         }
 for i, details in navigator.items():
     FieldDoc("Navigator." + i, "Details for this browser concerning: " + i + "\n" + details[1],
-        SeesDocs("Navigator|Window.navigator"),
+        SeesDocs("global.window|Window|Navigator|Window.navigator"),
         [ExampleDoc("console.log('" + i + " is now: ' +  window.navigator." + i + ");")],
         IS_Static, IS_Public, IS_Readonly,
         details[0],
@@ -311,7 +313,7 @@ for i, details in navigator.items():
     )
 
 FieldDoc("Window.navigator", "Details for this browser.",
-    SeesDocs("Navigator|Window.navigator|global.window"),
+    SeesDocs("global.window|Window|Navigator|Window.navigator|global.window"),
     [ExampleDoc("console.log(JSON.stringify(window.navigator));")],
     IS_Static, IS_Public, IS_Readonly,
     "Navigator",
@@ -324,7 +326,7 @@ nidium = {"version": ('string', "The browser's version."),
         }
 for i, details in nidium.items():
     FieldDoc("Window.__nidium__." + i, "Details for this browser concerning: " + i + "\n" + details[1],
-        SeesDocs("Navigator|Window.navigator|Window.__nidium__|global.window"),
+        SeesDocs("global.window|Window|Navigator|Window.navigator|Window.__nidium__|global.window"),
         [ExampleDoc("console.log('" + i + " is now: '  + window.__nidium__." + i + ");")],
         IS_Static, IS_Public, IS_Readonly,
         details[0],
@@ -333,7 +335,7 @@ for i, details in nidium.items():
 
 
 FieldDoc("Window.__nidium__", "Details for this browser's framework.",
-    SeesDocs("Navigator|Window.navigator|Window.__nidium__|global.window"),
+    SeesDocs("global.window|Window|Navigator|Window.navigator|Window.__nidium__|global.window"),
     [ExampleDoc("console.log(JSON.stringify(window.navigator));")],
     IS_Static, IS_Public, IS_Readonly,
     ObjectDoc([("version", "The version of nidium", "string"), ("build", "build identifier", "string"), ("revision", "revision identifier", "string")]),
