@@ -52,25 +52,8 @@ namespace Binding {
 #define NIDIUM_LOG_2D_CALL()
 #endif
 
-static void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
 static void CanvasPattern_Finalize(JSFreeOp *fop, JSObject *obj);
 
-
-static JSClass CanvasGradient_class = { "CanvasGradient",
-                                        JSCLASS_HAS_PRIVATE,
-                                        JS_PropertyStub,
-                                        JS_DeletePropertyStub,
-                                        JS_PropertyStub,
-                                        JS_StrictPropertyStub,
-                                        JS_EnumerateStub,
-                                        JS_ResolveStub,
-                                        JS_ConvertStub,
-                                        CanvasGradient_Finalize,
-                                        nullptr,
-                                        nullptr,
-                                        nullptr,
-                                        nullptr,
-                                        JSCLASS_NO_INTERNAL_MEMBERS };
 
 static JSClass CanvasGLProgram_class = { "CanvasGLProgram",
                                          JSCLASS_HAS_PRIVATE,
@@ -104,12 +87,6 @@ static JSClass CanvasPattern_class
         nullptr,
         nullptr,
         JSCLASS_NO_INTERNAL_MEMBERS };
-
-
-static bool nidium_canvas2dctxGradient_addColorStop(JSContext *cx,
-                                                    unsigned argc,
-                                                    JS::Value *vp);
-
 
 
 /* GLSL related */
@@ -153,16 +130,6 @@ static bool nidium_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx,
                                                           unsigned argc,
                                                           JS::Value *vp);
 
-
-static JSFunctionSpec gradient_funcs[] = {
-
-    JS_FN("addColorStop",
-          nidium_canvas2dctxGradient_addColorStop,
-          2,
-          NIDIUM_JS_FNPROPS),
-
-    JS_FS_END
-};
 
 static JSFunctionSpec glprogram_funcs[] = {
 
@@ -646,11 +613,9 @@ bool Canvas2DContext::JS_createLinearGradient(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    JS::RootedObject linearObject(
-        cx,
-        JS_NewObject(cx, &CanvasGradient_class, JS::NullPtr(), JS::NullPtr()));
-    JS_SetPrivate(linearObject, new Gradient(x1, y1, x2, y2));
-    JS_DefineFunctions(cx, linearObject, gradient_funcs);
+    Gradient *gradient = new Gradient(x1, y1, x2, y2);
+    JS::RootedObject linearObject(cx,
+        JSGradient::CreateObject(cx, new JSGradient(gradient)));
 
     args.rval().setObjectOrNull(linearObject);
 
@@ -824,40 +789,14 @@ bool Canvas2DContext::JS_createRadialGradient(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    JS::RootedObject linearObject(
-        cx,
-        JS_NewObject(cx, &CanvasGradient_class, JS::NullPtr(), JS::NullPtr()));
-    JS_SetPrivate(linearObject, new Gradient(x1, y1, r1, x2, y2, r2));
-    JS_DefineFunctions(cx, linearObject, gradient_funcs);
-    args.rval().setObjectOrNull(linearObject);
+    Gradient *gradient = new Gradient(x1, y1, r1, x2, y2, r2);
+    JS::RootedObject radialObject(cx,
+        JSGradient::CreateObject(cx, new JSGradient(gradient)));
+
+    args.rval().setObjectOrNull(radialObject);
 
     return true;
 }
-
-static bool nidium_canvas2dctxGradient_addColorStop(JSContext *cx,
-                                                    unsigned argc,
-                                                    JS::Value *vp)
-{
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-    JS::RootedString color(cx);
-    double position;
-    Gradient *gradient;
-
-    NIDIUM_LOG_2D_CALL();
-    if (!JS_ConvertArguments(cx, args, "dS", &position, color.address())) {
-        return false;
-    }
-
-    if ((gradient = static_cast<Gradient *>(JS_GetPrivate(caller))) != NULL) {
-        JSAutoByteString colorstr(cx, color);
-
-        gradient->addColorStop(position, colorstr.ptr());
-    }
-
-    return true;
-}
-
 
 bool Canvas2DContext::JS_drawImage(JSContext *cx, JS::CallArgs &args)
 {
@@ -1492,15 +1431,10 @@ bool Canvas2DContext::JSSetter_fillStyle(JSContext *cx,
         m_Skia->setFillColor(colorName.ptr());
 
         state->m_CurrentShader.setUndefined();
-    } else if (vp.isObject()
-               && JS_GetClass(&vp.toObject())
-                      == &CanvasGradient_class) {
+    } else if (vp.isObject() && JSGradient::InstanceOf(vp)) {
 
-        JS::RootedObject vpObj(cx, &vp.toObject());
-        Gradient *gradient
-            = static_cast<Gradient *>(JS_GetPrivate(vpObj));
-
-        m_Skia->setFillColor(gradient);
+        m_Skia->setFillColor(JSGradient::GetInstanceUnsafe(
+                vp.toObjectOrNull())->getGradient());
 
         /* Since out obj doesn't store the actual value (JSPROP_SHARED),
            we implicitly store and root our pattern obj */
@@ -1537,14 +1471,10 @@ bool Canvas2DContext::JSSetter_strokeStyle(JSContext *cx,
 
         state->m_CurrentStrokeShader.setUndefined();
 
-    } else if (vp.isObject()
-               && JS_GetClass(&vp.toObject())
-                      == &CanvasGradient_class) {
-        JS::RootedObject vpObj(cx, &vp.toObject());
-        Gradient *gradient
-            = static_cast<Gradient *>(JS_GetPrivate(vpObj));
+    } else if (vp.isObject() && JSGradient::InstanceOf(vp)) {
 
-        m_Skia->setStrokeColor(gradient);
+        m_Skia->setStrokeColor(JSGradient::GetInstanceUnsafe(
+                vp.toObjectOrNull())->getGradient());
 
         /* Since out obj doesn't store the actual value (JSPROP_SHARED),
            we implicitly store and root our pattern obj */
@@ -1835,13 +1765,6 @@ bool Canvas2DContext::JSGetter_fontFile(JSContext *cx,
     return true;
 }
 
-void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
-{
-    Gradient *gradient = static_cast<Gradient *>(JS_GetPrivate(obj));
-    if (gradient != NULL) {
-        delete gradient;
-    }
-}
 
 void CanvasPattern_Finalize(JSFreeOp *fop, JSObject *obj)
 {
@@ -2467,6 +2390,25 @@ Canvas2DContext::~Canvas2DContext()
     if (m_Skia) {
         delete m_Skia;
     }
+}
+
+
+bool JSGradient::JS_addColorStop(JSContext *cx, JS::CallArgs &args)
+{
+    JS::RootedString color(cx);
+    double position;
+    Gradient *gradient;
+
+    NIDIUM_LOG_2D_CALL();
+    if (!JS_ConvertArguments(cx, args, "dS", &position, color.address())) {
+        return false;
+    }
+
+    JSAutoByteString colorstr(cx, color);
+
+    m_Gradient->addColorStop(position, colorstr.ptr());
+
+    return true;
 }
 
 // }}}

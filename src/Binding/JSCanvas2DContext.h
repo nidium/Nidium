@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 #include "Graphics/CanvasContext.h"
+#include "Graphics/Gradient.h"
 
 #include "Binding/JSImage.h"
 #include "Binding/ClassMapper.h"
@@ -249,6 +250,33 @@ private:
 };
 // }}}
 
+class JSGradient : public ClassMapper<JSGradient>
+{
+public:
+    JSGradient(Graphics::Gradient *gradient) :
+        m_Gradient(gradient){}
+    virtual ~JSGradient() {
+        delete m_Gradient;
+    }
+
+    static JSFunctionSpec *ListMethods() {
+        static JSFunctionSpec funcs[] = {
+            CLASSMAPPER_FN(JSGradient, addColorStop, 2),
+            JS_FS_END
+        };
+
+        return funcs;
+    }
+
+    inline Graphics::Gradient *getGradient() const {
+        return m_Gradient;
+    }
+protected:
+    NIDIUM_DECL_JSCALL(addColorStop);
+private:
+    Graphics::Gradient *m_Gradient;
+};
+
 // {{{ CanvasPattern
 class CanvasPattern
 {
@@ -266,6 +294,7 @@ public:
 
     CanvasPattern(JSImage *img, PATTERN_MODE repeat)
         : m_JsImg(img), m_Mode(repeat){};
+    
 };
 // }}}
 
