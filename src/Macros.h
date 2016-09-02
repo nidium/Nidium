@@ -3,7 +3,7 @@
 
 #include <string.h>
 
-#include <UIInterface.h>
+#include "Interface/UIInterface.h"
 #include "Macros.h"
 
 namespace Nidium {

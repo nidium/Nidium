@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "Binding/JSCanvas2DContext.h"
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,8 +12,11 @@
 #include <strings.h>
 
 #include <SkDevice.h>
+   
+#include "Binding/JSCanvas2DContext.h"
 
-#include <SystemInterface.h>
+
+#include "Interface/SystemInterface.h"
 
 #include "Graphics/Image.h"
 #include "Graphics/Gradient.h"
