@@ -19,6 +19,7 @@
 #include "Binding/JSCanvas.h"
 #include "Binding/JSWindow.h"
 #include "Binding/JSProcess.h"
+#include "Binding/JSImageData.h"
 
 #include "Graphics/CanvasHandler.h"
 #include "Graphics/SkiaContext.h"
@@ -56,12 +57,6 @@ using Nidium::Graphics::GLState;
 using namespace Nidium::Graphics;
 using namespace Nidium::Binding;
 using namespace Nidium::IO;
-
-namespace Nidium {
-namespace Binding {
-    extern JSClass ImageData_class;
-}
-}
 
 namespace Nidium {
 namespace Frontend {
@@ -804,7 +799,7 @@ bool Context::WriteStructuredCloneOp(JSContext *cx,
         return false;
     }
 
-    if (JS_GetClass(obj) == &ImageData_class) {
+    if (JSImageData::InstanceOf(obj)) {
         uint32_t dwidth, dheight;
 
         JS::RootedValue iwidth(cx);
@@ -858,9 +853,9 @@ JSObject *Context::ReadStructuredCloneOp(JSContext *cx,
             JS::RootedValue arr(cx);
             JS_ReadTypedArray(r, &arr);
 
-            JS::RootedObject dataObject(
-                cx, JS_NewObject(cx, &ImageData_class, JS::NullPtr(),
-                                 JS::NullPtr()));
+            JS::RootedObject dataObject(cx,
+              JSImageData::CreateObject(cx, new JSImageData()));
+            
             JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
             JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
             JS_DefineProperty(cx, dataObject, "width", widthVal,

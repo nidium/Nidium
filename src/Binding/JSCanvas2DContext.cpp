@@ -14,7 +14,7 @@
 #include <SkDevice.h>
    
 #include "Binding/JSCanvas2DContext.h"
-
+#include "Binding/JSImageData.h"
 
 #include "Interface/SystemInterface.h"
 
@@ -32,22 +32,6 @@ using Nidium::Interface::UIInterface;
 
 namespace Nidium {
 namespace Binding {
-
-JSClass ImageData_class = { "ImageData",
-                                   JSCLASS_HAS_PRIVATE,
-                                   JS_PropertyStub,
-                                   JS_DeletePropertyStub,
-                                   JS_PropertyStub,
-                                   JS_StrictPropertyStub,
-                                   JS_EnumerateStub,
-                                   JS_ResolveStub,
-                                   JS_ConvertStub,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   JSCLASS_NO_INTERNAL_MEMBERS };
 
 
 #if 0 && DEBUG
@@ -691,8 +675,10 @@ bool Canvas2DContext::JS_getImageData(JSContext *cx, JS::CallArgs &args)
     JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
     JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
     JS::RootedValue arVal(cx, OBJECT_TO_JSVAL(arrBuffer));
-    JS::RootedObject dataObject(
-        cx, JS_NewObject(cx, &ImageData_class, JS::NullPtr(), JS::NullPtr()));
+
+    JS::RootedObject dataObject(cx,
+      JSImageData::CreateObject(cx, new JSImageData()));
+
     JS_DefineProperty(cx, dataObject, "width", widthVal,
                       JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "height", heightVal,
@@ -718,7 +704,7 @@ bool Canvas2DContext::JS_putImageData(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    if (!dataObject || JS_GetClass(dataObject) != &ImageData_class) {
+    if (!dataObject || !JSImageData::InstanceOf(dataObject)) {
         JS_ReportError(cx, "First argument must be a imageData object");
         return false;
     }
@@ -767,8 +753,10 @@ bool Canvas2DContext::JS_createImageData(JSContext *cx, JS::CallArgs &args)
     JS::RootedValue array(cx, OBJECT_TO_JSVAL(arrBuffer));
     JS::RootedValue width(cx, UINT_TO_JSVAL(x));
     JS::RootedValue height(cx, UINT_TO_JSVAL(y));
-    JS::RootedObject dataObject(
-        cx, JS_NewObject(cx, &ImageData_class, JS::NullPtr(), JS::NullPtr()));
+
+    JS::RootedObject dataObject(cx,
+      JSImageData::CreateObject(cx, new JSImageData()));
+
     JS_DefineProperty(cx, dataObject, "width", width,
                       JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "height", height,
@@ -777,7 +765,6 @@ bool Canvas2DContext::JS_createImageData(JSContext *cx, JS::CallArgs &args)
                       JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     args.rval().setObjectOrNull(dataObject);
-
 
     return true;
 }
