@@ -255,6 +255,7 @@ class JSGradient : public ClassMapper<JSGradient>
 public:
     JSGradient(Graphics::Gradient *gradient) :
         m_Gradient(gradient){}
+
     virtual ~JSGradient() {
         delete m_Gradient;
     }
@@ -278,7 +279,7 @@ private:
 };
 
 // {{{ CanvasPattern
-class CanvasPattern
+class JSCanvasPattern : public ClassMapper<JSCanvasPattern>
 {
 public:
     JSImage *m_JsImg;
@@ -292,8 +293,10 @@ public:
         PATTERN_REPEAT_MIRROR
     } m_Mode;
 
-    CanvasPattern(JSImage *img, PATTERN_MODE repeat)
+    JSCanvasPattern(JSImage *img, PATTERN_MODE repeat)
         : m_JsImg(img), m_Mode(repeat){};
+
+    virtual ~JSCanvasPattern(){};
     
 };
 // }}}

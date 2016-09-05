@@ -40,7 +40,7 @@ using Nidium::Core::Path;
 using Nidium::Interface::SystemInterface;
 using Nidium::IO::Stream;
 using Nidium::Binding::JSDocument;
-using Nidium::Binding::CanvasPattern;
+using Nidium::Binding::JSCanvasPattern;
 using Nidium::Frontend::Context;
 
 namespace Nidium {
@@ -1522,21 +1522,21 @@ bool SkiaContext::setFontFile(const char *str)
     return true;
 }
 
-void SkiaContext::setFillColor(CanvasPattern *pattern)
+void SkiaContext::setFillColor(JSCanvasPattern *pattern)
 {
     if (pattern->m_JsImg->getImage()->m_Image != NULL) {
         SkShader *shader = NULL;
         bool repeat_x = false, repeat_y = false;
 
         switch (pattern->m_Mode) {
-            case CanvasPattern::PATTERN_REPEAT_MIRROR:
-            case CanvasPattern::PATTERN_REPEAT:
+            case JSCanvasPattern::PATTERN_REPEAT_MIRROR:
+            case JSCanvasPattern::PATTERN_REPEAT:
                 repeat_x = repeat_y = true;
                 break;
-            case CanvasPattern::PATTERN_REPEAT_X:
+            case JSCanvasPattern::PATTERN_REPEAT_X:
                 repeat_x = true;
                 break;
-            case CanvasPattern::PATTERN_REPEAT_Y:
+            case JSCanvasPattern::PATTERN_REPEAT_Y:
                 repeat_y = true;
                 break;
             default:
@@ -1546,10 +1546,10 @@ void SkiaContext::setFillColor(CanvasPattern *pattern)
         if (repeat_x && repeat_y) {
             shader = SkShader::CreateBitmapShader(
                 *pattern->m_JsImg->getImage()->m_Image,
-                pattern->m_Mode == CanvasPattern::PATTERN_REPEAT_MIRROR
+                pattern->m_Mode == JSCanvasPattern::PATTERN_REPEAT_MIRROR
                     ? SkShader::kMirror_TileMode
                     : SkShader::kRepeat_TileMode,
-                pattern->m_Mode == CanvasPattern::PATTERN_REPEAT_MIRROR
+                pattern->m_Mode == JSCanvasPattern::PATTERN_REPEAT_MIRROR
                     ? SkShader::kMirror_TileMode
                     : SkShader::kRepeat_TileMode);
         } else {

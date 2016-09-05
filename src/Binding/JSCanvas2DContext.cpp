@@ -52,9 +52,6 @@ namespace Binding {
 #define NIDIUM_LOG_2D_CALL()
 #endif
 
-static void CanvasPattern_Finalize(JSFreeOp *fop, JSObject *obj);
-
-
 static JSClass CanvasGLProgram_class = { "CanvasGLProgram",
                                          JSCLASS_HAS_PRIVATE,
                                          JS_PropertyStub,
@@ -71,22 +68,6 @@ static JSClass CanvasGLProgram_class = { "CanvasGLProgram",
                                          nullptr,
                                          JSCLASS_NO_INTERNAL_MEMBERS };
 
-static JSClass CanvasPattern_class
-    = { "CanvasPattern",
-        JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
-        JS_PropertyStub,
-        JS_DeletePropertyStub,
-        JS_PropertyStub,
-        JS_StrictPropertyStub,
-        JS_EnumerateStub,
-        JS_ResolveStub,
-        JS_ConvertStub,
-        CanvasPattern_Finalize,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        JSCLASS_NO_INTERNAL_MEMBERS };
 
 
 /* GLSL related */
@@ -750,31 +731,32 @@ bool Canvas2DContext::JS_createPattern(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    JS::RootedObject patternObject(
-        cx,
-        JS_NewObject(cx, &CanvasPattern_class, JS::NullPtr(), JS::NullPtr()));
-    JSImage *img = static_cast<JSImage *>(JS_GetPrivate(jsimage));
-    JS_SetReservedSlot(patternObject, 0, OBJECT_TO_JSVAL(img->getJSObject()));
-    CanvasPattern::PATTERN_MODE pmode = CanvasPattern::PATTERN_REPEAT;
+    JSImage *img = JSImage::GetInstanceUnsafe(jsimage);
 
-    args.rval().setObjectOrNull(patternObject);
+    JSCanvasPattern::PATTERN_MODE pmode = JSCanvasPattern::PATTERN_REPEAT;
 
     JSAutoByteString cmode(cx, mode);
     if (strcasecmp(cmode.ptr(), "repeat") == 0) {
-        pmode = CanvasPattern::PATTERN_REPEAT;
+        pmode = JSCanvasPattern::PATTERN_REPEAT;
     } else if (strcasecmp(cmode.ptr(), "no-repeat") == 0) {
-        pmode = CanvasPattern::PATTERN_NOREPEAT;
+        pmode = JSCanvasPattern::PATTERN_NOREPEAT;
     } else if (strcasecmp(cmode.ptr(), "repeat-x") == 0) {
-        pmode = CanvasPattern::PATTERN_REPEAT_X;
+        pmode = JSCanvasPattern::PATTERN_REPEAT_X;
     } else if (strcasecmp(cmode.ptr(), "repeat-y") == 0) {
-        pmode = CanvasPattern::PATTERN_REPEAT_Y;
+        pmode = JSCanvasPattern::PATTERN_REPEAT_Y;
     } else if (strcasecmp(cmode.ptr(), "repeat-mirror") == 0) {
-        pmode = CanvasPattern::PATTERN_REPEAT_MIRROR;
+        pmode = JSCanvasPattern::PATTERN_REPEAT_MIRROR;
     }
 
-    JS_SetPrivate(patternObject,
-                  new CanvasPattern(
-                      static_cast<JSImage *>(JS_GetPrivate(jsimage)), pmode));
+    JS::RootedObject patternObject(cx,
+      JSCanvasPattern::CreateObject(cx, new JSCanvasPattern(img, pmode)));
+
+    /*
+        The pattern object retains a reference to the JSImage object
+    */
+    JS_SetReservedSlot(patternObject, 0, OBJECT_TO_JSVAL(img->getJSObject()));
+
+    args.rval().setObjectOrNull(patternObject);
 
     return true;
 }
@@ -1440,14 +1422,9 @@ bool Canvas2DContext::JSSetter_fillStyle(JSContext *cx,
            we implicitly store and root our pattern obj */
         state->m_CurrentShader.set(vp);
 
-    } else if (vp.isObject()
-               && JS_GetClass(&vp.toObject()) == &CanvasPattern_class) {
+    } else if (vp.isObject() && JSCanvasPattern::InstanceOf(vp)) {
 
-        JS::RootedObject vpObj(cx, &vp.toObject());
-        CanvasPattern *pattern
-            = static_cast<CanvasPattern *>(JS_GetPrivate(vpObj));
-
-        m_Skia->setFillColor(pattern);
+        m_Skia->setFillColor(JSCanvasPattern::GetInstanceUnsafe(vp.toObjectOrNull()));
 
         state->m_CurrentShader.set(vp);
     } else {
@@ -1765,16 +1742,7 @@ bool Canvas2DContext::JSGetter_fontFile(JSContext *cx,
     return true;
 }
 
-
-void CanvasPattern_Finalize(JSFreeOp *fop, JSObject *obj)
-{
-    CanvasPattern *pattern = static_cast<CanvasPattern *>(JS_GetPrivate(obj));
-    if (pattern != NULL) {
-        delete pattern;
-    }
-}
-
-void Canvas2DContext::JSTracer(class JSTracer *trc)
+void Canvas2DContext::jsTrace(class JSTracer *trc)
 {
     for (Canvas2DContextState *state = this->getCurrentState();
          state != NULL; state = state->m_Next) {
@@ -2501,11 +2469,11 @@ void Canvas2DContext::RegisterObject(JSContext *cx)
 {
     Canvas2DContext::ExposeClass(cx, "CanvasRenderingContext2D",
         0, kJSTracer_ExposeFlag);
-    /*
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS_InitClass(cx, global, JS::NullPtr(), &Canvas2DContext_class,
-                 nidium_Canvas2DContext_constructor, 0, canvas2dctx_props,
-                 canvas2dctx_funcs, nullptr, nullptr);*/
+
+    JSGradient::ExposeClass(cx, "CanvasGradient");
+
+    JSCanvasPattern::ExposeClass(cx, "CanvasPattern",
+      JSCLASS_HAS_RESERVED_SLOTS(1));
 }
 // }}}
 
