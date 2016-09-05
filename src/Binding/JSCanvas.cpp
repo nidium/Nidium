@@ -1448,7 +1448,7 @@ JSPropertySpec *JSCanvas::ListProperties()
     return props;
 }
 
-void JSCanvas::JSTracer(class JSTracer *trc)
+void JSCanvas::jsTrace(class JSTracer *trc)
 {
     CanvasHandler *handler = this->getHandler();
 

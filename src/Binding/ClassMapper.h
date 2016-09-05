@@ -82,7 +82,7 @@ namespace Binding {
     NIDIUM_DECL_JSSETTER(name)
 
 #define NIDIUM_DECL_JSTRACER() \
-    inline void JSTracer(class JSTracer *trc) override
+    inline void jsTrace(class JSTracer *trc) override
 
 #define CLASSMAPPER_PROLOGUE_NO_RET()                     \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);     \
@@ -340,7 +340,7 @@ public:
         this->unroot();
     }
 
-    virtual inline void JSTracer(class JSTracer *trc) {}
+    virtual inline void jsTrace(class JSTracer *trc) {}
 
 protected:
     typedef bool (T::*JSCallback)(JSContext *, JS::CallArgs &);
@@ -397,7 +397,7 @@ protected:
         T *CppObj = (T *)JS_GetPrivate(obj);
 
         if (CppObj) {
-            CppObj->JSTracer(trc);
+            CppObj->jsTrace(trc);
         }
     }
 
