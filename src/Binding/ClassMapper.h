@@ -242,7 +242,7 @@ public:
      *  Return NULL if wrong source object
      *  This is the opposite of this->m_Instance
      */
-    static inline T *GetInstance(JS::HandleObject obj,
+    static inline T *GetInstance(JSObject *obj,
         JSContext *cx = nullptr)
     {
         if (JS_GetClass(obj) != T::GetJSClass()) {
@@ -252,7 +252,7 @@ public:
         return (T *)JS_GetPrivate(obj);
     }
 
-    static inline T *GetInstanceUnsafe(JS::HandleObject obj,
+    static inline T *GetInstanceUnsafe(JSObject *obj,
         JSContext *cx = nullptr)
     {
         return (T *)JS_GetPrivate(obj);
@@ -270,9 +270,14 @@ public:
             (uintptr_t)T::GetJSClass()));
     }
 
-    static inline bool InstanceOf(JS::HandleObject obj)
+    static inline bool InstanceOf(JSObject *obj)
     {
         return (JS_GetClass(obj) == T::GetJSClass());
+    }
+
+    static inline bool InstanceOf(JS::Value val)
+    {
+        return (JS_GetClass(val.toObjectOrNull()) == T::GetJSClass());
     }
 
     /**
