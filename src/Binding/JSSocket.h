@@ -87,10 +87,10 @@ public:
     void readFrame(const char *buf, size_t len);
 
     /*
-        These needs to be public because we don't forward APE_socket callbacks
+        These need to be public because we don't forward APE_socket callbacks
         to the class directly.
 
-        We will needs to implement a C++ APE_Socket wrapper in order to fix this
+        We will need to implement a C++ APE_Socket wrapper in order to fix this
     */
     char *m_Host;
     unsigned short m_Port;

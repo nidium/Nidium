@@ -34,7 +34,7 @@ TEST_F(JSSocket, Init)
     const uint16_t port = 1212;
 
     JS::RootedObject globObj(njs->m_Cx, JS::CurrentGlobalOrNull(njs->m_Cx));
-    Nidium::Binding::JSSocket ns(globObj, njs->m_Cx, host, port);
+    Nidium::Binding::JSSocket ns(njs->m_Cx, host, port);
 
     EXPECT_TRUE(ns.getJSObject() == globObj);
     EXPECT_TRUE(ns.getJSContext() == njs->m_Cx);
