@@ -12,7 +12,7 @@
 #include <strings.h>
 
 #include <SkDevice.h>
-   
+
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSImageData.h"
 
@@ -1598,7 +1598,7 @@ bool Canvas2DContext::JSGetter_miterLimit(JSContext *cx,
     JS::MutableHandleValue vp)
 {
     vp.setDouble(m_Skia->getMiterLimit());
-    
+
     return true;
 }
 
@@ -1606,7 +1606,7 @@ bool Canvas2DContext::JSGetter_globalAlpha(JSContext *cx,
     JS::MutableHandleValue vp)
 {
     vp.setDouble(m_Skia->getGlobalAlpha());
-    
+
     return true;
 }
 
@@ -1614,7 +1614,7 @@ bool Canvas2DContext::JSGetter_imageSmoothingEnabled(JSContext *cx,
     JS::MutableHandleValue vp)
 {
     vp.setBoolean(!!m_Skia->getSmooth());
-    
+
     return true;
 }
 
@@ -1622,7 +1622,7 @@ bool Canvas2DContext::JSGetter_shadowOffsetX(JSContext *cx,
     JS::MutableHandleValue vp)
 {
     vp.setDouble(m_Skia->getShadowOffsetX());
-    
+
     return true;
 }
 
@@ -1630,7 +1630,7 @@ bool Canvas2DContext::JSGetter_shadowOffsetY(JSContext *cx,
     JS::MutableHandleValue vp)
 {
     vp.setDouble(m_Skia->getShadowOffsetY());
-    
+
     return true;
 }
 
@@ -1638,7 +1638,7 @@ bool Canvas2DContext::JSGetter_shadowBlur(JSContext *cx,
     JS::MutableHandleValue vp)
 {
     vp.setDouble(m_Skia->getShadowBlur());
-    
+
     return true;
 }
 
@@ -1646,7 +1646,7 @@ bool Canvas2DContext::JSGetter_lineCap(JSContext *cx,
     JS::MutableHandleValue vp)
 {
     vp.setString(JS_NewStringCopyZ(cx, m_Skia->getLineCap()));
-    
+
     return true;
 }
 
@@ -1654,7 +1654,7 @@ bool Canvas2DContext::JSGetter_lineJoin(JSContext *cx,
     JS::MutableHandleValue vp)
 {
     vp.setString(JS_NewStringCopyZ(cx, m_Skia->getLineJoin()));
-    
+
     return true;
 }
 
@@ -1666,7 +1666,7 @@ bool Canvas2DContext::JSGetter_shadowColor(JSContext *cx,
     SkiaContext::GetStringColor(m_Skia->getShadowColor(), rgba_str);
 
     vp.setString(JS_NewStringCopyZ(cx, rgba_str));
-    
+
     return true;
 }
 
@@ -2365,7 +2365,6 @@ bool JSGradient::JS_addColorStop(JSContext *cx, JS::CallArgs &args)
 {
     JS::RootedString color(cx);
     double position;
-    Gradient *gradient;
 
     NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "dS", &position, color.address())) {
