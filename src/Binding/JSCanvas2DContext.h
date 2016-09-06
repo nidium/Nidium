@@ -8,10 +8,11 @@
 
 #include <stdint.h>
 
-#include <Binding/JSExposer.h>
-
 #include "Graphics/CanvasContext.h"
+#include "Graphics/Gradient.h"
+
 #include "Binding/JSImage.h"
+#include "Binding/ClassMapper.h"
 
 class SkCanvas;
 
@@ -67,12 +68,16 @@ struct Canvas2DContextState
 // }}}
 
 // {{{ Canvas2DContext
-class Canvas2DContext : public Graphics::CanvasContext
+class Canvas2DContext : public ClassMapper<Canvas2DContext>,
+                        public Graphics::CanvasContext
+                        
 {
 public:
-    static JSClass *jsclass;
-
     friend class JSCanvas;
+
+    static JSFunctionSpec *ListMethods();
+    static JSPropertySpec *ListProperties();
+    NIDIUM_DECL_JSTRACER();
 
     bool m_SetterDisabled;
 
@@ -157,6 +162,72 @@ public:
                     Interface::UIInterface *ui);
 
     virtual ~Canvas2DContext();
+protected:
+    NIDIUM_DECL_JSCALL(breakText);
+    NIDIUM_DECL_JSCALL(shadow);
+    NIDIUM_DECL_JSCALL(onerror);
+    NIDIUM_DECL_JSCALL(fillRect);
+    NIDIUM_DECL_JSCALL(fillText);
+    NIDIUM_DECL_JSCALL(strokeText);
+    NIDIUM_DECL_JSCALL(strokeRect);
+    NIDIUM_DECL_JSCALL(clearRect);
+    NIDIUM_DECL_JSCALL(beginPath);
+    NIDIUM_DECL_JSCALL(moveTo);
+    NIDIUM_DECL_JSCALL(lineTo);
+    NIDIUM_DECL_JSCALL(fill);
+    NIDIUM_DECL_JSCALL(stroke);
+    NIDIUM_DECL_JSCALL(closePath);
+    NIDIUM_DECL_JSCALL(clip);
+    NIDIUM_DECL_JSCALL(arc);
+    NIDIUM_DECL_JSCALL(arcTo);
+    NIDIUM_DECL_JSCALL(rect);
+    NIDIUM_DECL_JSCALL(quadraticCurveTo);
+    NIDIUM_DECL_JSCALL(bezierCurveTo);
+    NIDIUM_DECL_JSCALL(rotate);
+    NIDIUM_DECL_JSCALL(scale);
+    NIDIUM_DECL_JSCALL(save);
+    NIDIUM_DECL_JSCALL(restore);
+    NIDIUM_DECL_JSCALL(translate);
+    NIDIUM_DECL_JSCALL(transform);
+    NIDIUM_DECL_JSCALL(iTransform);
+    NIDIUM_DECL_JSCALL(setTransform);
+    NIDIUM_DECL_JSCALL(createLinearGradient);
+    NIDIUM_DECL_JSCALL(createRadialGradient);
+    NIDIUM_DECL_JSCALL(createImageData);
+    NIDIUM_DECL_JSCALL(createPattern);
+    NIDIUM_DECL_JSCALL(putImageData);
+    NIDIUM_DECL_JSCALL(getImageData);
+    NIDIUM_DECL_JSCALL(drawImage);
+    NIDIUM_DECL_JSCALL(measureText);
+    NIDIUM_DECL_JSCALL(isPointInPath);
+    NIDIUM_DECL_JSCALL(getPathBounds);
+    NIDIUM_DECL_JSCALL(light);
+    NIDIUM_DECL_JSCALL(attachFragmentShader);
+    NIDIUM_DECL_JSCALL(detachFragmentShader);
+    NIDIUM_DECL_JSCALL(setVertexOffset);
+
+    NIDIUM_DECL_JSGETTERSETTER(fillStyle);
+    NIDIUM_DECL_JSGETTERSETTER(strokeStyle);
+    NIDIUM_DECL_JSGETTERSETTER(lineWidth);
+    NIDIUM_DECL_JSGETTERSETTER(miterLimit);
+    NIDIUM_DECL_JSGETTERSETTER(globalAlpha);
+    NIDIUM_DECL_JSGETTERSETTER(globalCompositeOperation);
+    NIDIUM_DECL_JSGETTERSETTER(fontSize);
+    NIDIUM_DECL_JSGETTERSETTER(textAlign);
+    NIDIUM_DECL_JSGETTERSETTER(textBaseline);
+    NIDIUM_DECL_JSGETTERSETTER(fontFamily);
+    NIDIUM_DECL_JSGETTERSETTER(fontStyle);
+    NIDIUM_DECL_JSGETTERSETTER(fontSkew);
+    NIDIUM_DECL_JSGETTERSETTER(fontFile);
+    NIDIUM_DECL_JSGETTERSETTER(lineCap);
+    NIDIUM_DECL_JSGETTERSETTER(lineJoin);
+    NIDIUM_DECL_JSGETTERSETTER(shadowOffsetX);
+    NIDIUM_DECL_JSGETTERSETTER(shadowOffsetY);
+    NIDIUM_DECL_JSGETTERSETTER(shadowBlur);
+    NIDIUM_DECL_JSGETTERSETTER(shadowColor);
+    NIDIUM_DECL_JSGETTERSETTER(imageSmoothingEnabled);
+    NIDIUM_DECL_JSGETTER(width);
+    NIDIUM_DECL_JSGETTER(height);
 
 private:
     Graphics::SkiaContext *m_Skia;
@@ -179,8 +250,36 @@ private:
 };
 // }}}
 
+class JSGradient : public ClassMapper<JSGradient>
+{
+public:
+    JSGradient(Graphics::Gradient *gradient) :
+        m_Gradient(gradient){}
+
+    virtual ~JSGradient() {
+        delete m_Gradient;
+    }
+
+    static JSFunctionSpec *ListMethods() {
+        static JSFunctionSpec funcs[] = {
+            CLASSMAPPER_FN(JSGradient, addColorStop, 2),
+            JS_FS_END
+        };
+
+        return funcs;
+    }
+
+    inline Graphics::Gradient *getGradient() const {
+        return m_Gradient;
+    }
+protected:
+    NIDIUM_DECL_JSCALL(addColorStop);
+private:
+    Graphics::Gradient *m_Gradient;
+};
+
 // {{{ CanvasPattern
-class CanvasPattern
+class JSCanvasPattern : public ClassMapper<JSCanvasPattern>
 {
 public:
     JSImage *m_JsImg;
@@ -194,8 +293,11 @@ public:
         PATTERN_REPEAT_MIRROR
     } m_Mode;
 
-    CanvasPattern(JSImage *img, PATTERN_MODE repeat)
+    JSCanvasPattern(JSImage *img, PATTERN_MODE repeat)
         : m_JsImg(img), m_Mode(repeat){};
+
+    virtual ~JSCanvasPattern(){};
+    
 };
 // }}}
 

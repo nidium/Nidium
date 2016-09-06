@@ -21,7 +21,7 @@ class SkGpuDevice;
 namespace Nidium {
 namespace Binding {
 class JSDocument;
-class CanvasPattern;
+class JSCanvasPattern;
 }
 namespace Graphics {
 
@@ -208,7 +208,7 @@ public:
     }
     void setFillColor(const char *str);
     void setFillColor(Gradient *gradient);
-    void setFillColor(Binding::CanvasPattern *pattern);
+    void setFillColor(Binding::JSCanvasPattern *pattern);
     void setFillColor(uint32_t color);
     void setStrokeColor(const char *str);
     void setStrokeColor(Gradient *gradient);

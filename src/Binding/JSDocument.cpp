@@ -20,6 +20,7 @@
 #include "Graphics/CanvasHandler.h"
 #include "Graphics/Image.h"
 #include "Binding/JSCanvas2DContext.h"
+#include "Binding/JSImageData.h"
 
 using Nidium::Core::Path;
 using Nidium::Core::Hash;
@@ -31,8 +32,10 @@ using Nidium::Frontend::Context;
 using Nidium::Frontend::NML;
 using Nidium::Interface::UIInterface;
 
+
 namespace Nidium {
 namespace Binding {
+
 
 bool JSDocument::m_ShowFPS = false;
 
@@ -147,8 +150,10 @@ bool JSDocument::JS_getScreenData(JSContext *cx, JS::CallArgs &args)
     JS::RootedValue widthVal(cx, JS::Int32Value(width));
     JS::RootedValue heightVal(cx, JS::Int32Value(height));
     JS::RootedValue arVal(cx, JS::ObjectOrNullValue(arrBuffer));
-    JS::RootedObject dataObject(cx, JS_NewObject(cx, Canvas2DContext::jsclass,
-                                                 JS::NullPtr(), JS::NullPtr()));
+
+    JS::RootedObject dataObject(cx,
+      JSImageData::CreateObject(cx, new JSImageData()));
+
     JS_DefineProperty(cx, dataObject, "width", widthVal,
                       JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "height", heightVal,
@@ -197,8 +202,10 @@ bool JSDocument::JS_toDataArray(JSContext *cx, JS::CallArgs &args)
     JS::RootedValue widthVal(cx, JS::Int32Value(width));
     JS::RootedValue heightVal(cx, JS::Int32Value(height));
     JS::RootedValue arVal(cx, JS::ObjectOrNullValue(arrBuffer));
-    JS::RootedObject dataObject(cx, JS_NewObject(cx, Canvas2DContext::jsclass,
-                                                 JS::NullPtr(), JS::NullPtr()));
+
+    JS::RootedObject dataObject(cx,
+      JSImageData::CreateObject(cx, new JSImageData()));
+
     JS_DefineProperty(cx, dataObject, "width", widthVal,
                       JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "height", heightVal,
