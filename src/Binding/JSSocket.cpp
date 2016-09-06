@@ -445,6 +445,9 @@ bool JSSocket::JSSetter_encoding(JSContext *cx, JS::MutableHandleValue vp)
 {
     if (vp.isString()) {
         JSAutoByteString enc(cx, vp.toString());
+        if (m_Encoding) {
+            free(m_Encoding);
+        }
         m_Encoding = strdup(enc.ptr());
     }
 

@@ -32,11 +32,11 @@ TEST_F(JSDebug, Simple)
 TEST_F(JSDebug, Init)
 {
     JS::RootedObject globObj(njs->m_Cx, JS::CurrentGlobalOrNull(njs->m_Cx));
-    Nidium::Binding::JSDebug nd(globObj, njs->m_Cx);
+    Nidium::Binding::JSDebug nd;
 
     EXPECT_TRUE(nd.getJSObject() == globObj);
     EXPECT_TRUE(nd.getJSContext() == njs->m_Cx);
 
-    EXPECT_TRUE(strcmp(nd.GetJSObjectName(), "Debug") == 0);
+    EXPECT_TRUE(strcmp(nd.GetClassName(), "NidiumDebug") == 0);
 }
 

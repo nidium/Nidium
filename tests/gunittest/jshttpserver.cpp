@@ -47,7 +47,7 @@ TEST_F(JSServer, Connection)
 TEST_F(JSHTTPServer, Server)
 {
     JS::RootedObject globObj(njs->m_Cx, JS::CurrentGlobalOrNull(njs->m_Cx));
-    Nidium::Binding::JSHTTPServer lis(globObj, njs->m_Cx, 8080, "127.0.0.1");
+    Nidium::Binding::JSHTTPServer lis(8080, "127.0.0.1");
 
     EXPECT_TRUE(lis.getJSObject() == globObj);
     EXPECT_TRUE(lis.getJSContext() == njs->m_Cx);
