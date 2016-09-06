@@ -21,46 +21,6 @@ namespace Binding {
 
 // {{{ Preamble
 
-static void Process_Finalize(JSFreeOp *fop, JSObject *obj);
-static bool
-nidium_process_getowner(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_process_setowner(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_process_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_process_exit(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_process_cwd(JSContext *cx, unsigned argc, JS::Value *vp);
-
-static JSClass Process_class = { "NidiumProcess",
-                                 JSCLASS_HAS_PRIVATE,
-                                 JS_PropertyStub,
-                                 JS_DeletePropertyStub,
-                                 JS_PropertyStub,
-                                 JS_StrictPropertyStub,
-                                 JS_EnumerateStub,
-                                 JS_ResolveStub,
-                                 JS_ConvertStub,
-                                 Process_Finalize,
-                                 nullptr,
-                                 nullptr,
-                                 nullptr,
-                                 nullptr,
-                                 JSCLASS_NO_INTERNAL_MEMBERS };
-
-JSClass *JSProcess::jsclass = &Process_class;
-
-template <>
-JSClass *JSExposer<JSProcess>::jsclass = &Process_class;
-
-static JSFunctionSpec Process_funcs[]
-    = { JS_FN("getOwner", nidium_process_getowner, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("setOwner", nidium_process_setowner, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("setSignalHandler",
-              nidium_process_setSignalHandler,
-              1,
-              NIDIUM_JS_FNPROPS),
-        JS_FN("exit", nidium_process_exit, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("cwd", nidium_process_cwd, 0, NIDIUM_JS_FNPROPS), JS_FS_END };
 
 static int ape_kill_handler(int code, ape_global *ape)
 {
@@ -68,9 +28,9 @@ static int ape_kill_handler(int code, ape_global *ape)
     JSContext *cx = njs->m_Cx;
     JS::RootedValue rval(cx);
 
-    JSProcess *jProcess = JSProcess::GetObject(njs);
+    JSProcess *jProcess = JSProcess::GetInstanceSingleton();
 
-    JS::RootedValue func(cx, jProcess->m_SignalFunction);
+    JS::RootedValue func(cx, JS_GetReservedSlot(jProcess->getJSObject(), 0));
 
     if (func.isObject() && JS_ObjectIsCallable(cx, func.toObjectOrNull())) {
         JS_CallFunctionValue(cx, JS::NullPtr(), func,
@@ -85,14 +45,12 @@ static int ape_kill_handler(int code, ape_global *ape)
 // }}}
 
 // {{{ Implementation
-static bool nidium_process_getowner(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSProcess::JS_getOwner(JSContext *cx, JS::CallArgs &args)
 {
     int uid                 = getuid();
     int gid                 = getgid();
     struct passwd *userInfo = getpwuid(uid);
     struct group *groupInfo = getgrgid(gid);
-
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSProcess, &Process_class);
 
     if (!userInfo || !groupInfo) {
         JS_ReportError(cx, "Failed to retrieve process owner");
@@ -122,13 +80,11 @@ static bool nidium_process_getowner(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool nidium_process_setowner(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSProcess::JS_setOwner(JSContext *cx, JS::CallArgs &args)
 {
     struct passwd *userInfo = nullptr;
     struct group *groupInfo = nullptr;
-
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSProcess, &Process_class);
-    NIDIUM_JS_CHECK_ARGS("setOwner", 1);
+    int argc = args.length();
 
     if (args[0].isNumber()) {
         int uid = args[0].toInt32();
@@ -236,12 +192,8 @@ static bool nidium_process_setowner(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool
-nidium_process_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSProcess::JS_setSignalHandler(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(JSProcess, &Process_class);
-    NIDIUM_JS_CHECK_ARGS("setSignalHandler", 1);
-
     JS::RootedValue func(cx);
 
     if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
@@ -249,18 +201,16 @@ nidium_process_setSignalHandler(JSContext *cx, unsigned argc, JS::Value *vp)
         return true;
     }
 
-    CppObj->m_SignalFunction = func;
+    JS_SetReservedSlot(m_Instance, 0, func);
 
     return true;
 }
 
-static bool nidium_process_exit(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSProcess::JS_exit(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(JSProcess, &Process_class);
-
     int code = 0;
 
-    if (argc > 0 && args[0].isInt32()) {
+    if (args.length() > 0 && args[0].isInt32()) {
         code = args[0].toInt32();
     }
 
@@ -273,10 +223,9 @@ static bool nidium_process_exit(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool nidium_process_cwd(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSProcess::JS_cwd(JSContext *cx, JS::CallArgs &args)
 {
     Path cur(Path::GetCwd());
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (cur.dir() == NULL) {
         args.rval().setUndefined();
@@ -290,39 +239,32 @@ static bool nidium_process_cwd(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-
-static void Process_Finalize(JSFreeOp *fop, JSObject *obj)
-{
-    JSProcess *jProcess = JSProcess::GetObject(obj);
-
-    if (jProcess != NULL) {
-        delete jProcess;
-    }
-}
-
 // }}}
 
 // {{{ Registration
+
+JSFunctionSpec *JSProcess::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSProcess, getOwner, 0),
+        CLASSMAPPER_FN(JSProcess, setOwner, 1),
+        CLASSMAPPER_FN(JSProcess, setSignalHandler, 1),
+        CLASSMAPPER_FN(JSProcess, exit, 0),
+        CLASSMAPPER_FN(JSProcess, cwd, 0),
+        JS_FS_END
+    };
+
+    return funcs;
+}
 
 void JSProcess::RegisterObject(JSContext *cx,
                                char **argv,
                                int argc,
                                int workerId)
 {
-    NidiumJS *njs = NidiumJS::GetObject(cx);
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS::RootedObject ProcessObj(
-        cx, JS_DefineObject(
-                cx, global, JSProcess::GetJSObjectName(), &Process_class, NULL,
-                JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
-
-    JSProcess *jProcess = new JSProcess(ProcessObj, cx);
-
-    JS_SetPrivate(ProcessObj, jProcess);
-
-    njs->m_JsObjects.set(JSProcess::GetJSObjectName(), ProcessObj);
-
-    JS_DefineFunctions(cx, ProcessObj, Process_funcs);
+    JSProcess::ExposeClass(cx, "NidiumProcess", JSCLASS_HAS_RESERVED_SLOTS(1));
+    JS::RootedObject ProcessObj(cx,
+        JSProcess::CreateUniqueInstance(cx, new JSProcess(), "process"));
 
     JS::RootedObject jsargv(cx, JS_NewArrayObject(cx, argc));
 
@@ -338,7 +280,7 @@ void JSProcess::RegisterObject(JSContext *cx,
     JS_SetProperty(cx, ProcessObj, "workerId", workerid_v);
 
     NidiumJS::GetNet()->kill_handler = ape_kill_handler;
-    jProcess->m_SignalFunction.set(JS::NullHandleValue);
+    //jProcess->m_SignalFunction.set(JS::NullHandleValue);
 }
 
 // }}}
