@@ -38,7 +38,7 @@ Deps.set(
 @Deps.register("linenoise")
 def linenoise():
     return {
-        "location": Deps.GitRepo("https://github.com/antirez/linenoise.git", revision="c894b9e59f02203dbe4e2be657572cf88c4230c3"),
+        "location": Deps.GitRepo("https://github.com/nidium/linenoise.git", revision="master"),
     }
 
 @CommandLine.option("--jemalloc", default=False)
