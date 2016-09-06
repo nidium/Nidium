@@ -95,8 +95,6 @@ public:
         return this->m_Cx;
     }
 
-    void setPath(const char *path);
-
     bool isShuttingDown() const
     {
         return m_Shutdown;
