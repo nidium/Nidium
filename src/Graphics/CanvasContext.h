@@ -47,9 +47,6 @@ public:
         SH_ATTR_MODIFIER = 2
     };
 
-    JS::Heap<JSObject *> m_JsObj;
-    JSContext *m_JsCx;
-
     enum mode
     {
         CONTEXT_2D,
@@ -168,6 +165,8 @@ public:
                       double opacity,
                       double zoom,
                       const Rect *rclip);
+
+    virtual JSObject *getJSInstance()=0;
 
 protected:
     /* Hold the current matrix (model) sent to the Vertex shader */

@@ -13,6 +13,7 @@
 #include "Graphics/Canvas3DContext.h"
 #include "Graphics/CanvasHandler.h"
 #include "Binding/JSCanvas2DContext.h"
+#include "Binding/JSWebGL.h"
 #include "Binding/JSEvents.h"
 
 using Nidium::Core::SharedMessages;
@@ -418,11 +419,7 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
                 break;
             }
             case CanvasContext::CONTEXT_WEBGL:
-                /*
-                    TODO :
-                    m_CanvasHandler->setContext(new CanvasWebGLContext(...))
-                */
-                Canvas3DContext *ctx3d = new Canvas3DContext(
+                JSWebGLRenderingContext *ctxWebGL = new JSWebGLRenderingContext(
                     m_CanvasHandler, cx,
                     m_CanvasHandler->getWidth()
                         + (m_CanvasHandler->m_Padding.global * 2),
@@ -430,7 +427,10 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
                         + (m_CanvasHandler->m_Padding.global * 2),
                     ui);
 
-                m_CanvasHandler->setContext(ctx3d);
+                m_CanvasHandler->setContext(static_cast<Canvas3DContext *>(ctxWebGL));
+
+                JSCanvasCtx = JSWebGLRenderingContext::CreateObject(cx, ctxWebGL);
+
                 break;
         }
 
@@ -474,7 +474,7 @@ bool JSCanvas::JS_setContext(JSContext *cx, JS::CallArgs &args)
         If a context was already attached, it's going to be GC'd
         since it's not longer reachable from slot 0.
     */
-    JS::RootedValue slot(cx, OBJECT_TO_JSVAL(context->m_JsObj));
+    JS::RootedValue slot(cx, OBJECT_TO_JSVAL(obj));
     JS_SetReservedSlot(m_CanvasHandler->m_JsObj, 0, slot);
 
     return true;
@@ -1059,7 +1059,7 @@ bool JSCanvas::JSGetter_ctx(JSContext *cx, JS::MutableHandleValue vp)
 
         return true;
     }
-    JS::RootedObject retObj(cx, m_CanvasHandler->m_Context->m_JsObj);
+    JS::RootedObject retObj(cx, m_CanvasHandler->m_Context->getJSInstance());
     vp.setObjectOrNull(retObj);
 
     return true;

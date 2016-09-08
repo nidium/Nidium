@@ -8,8 +8,6 @@
 
 #include <stdint.h>
 
-#include <Binding/JSExposer.h>
-
 #include "Graphics/CanvasContext.h"
 
 namespace Nidium {
@@ -85,7 +83,6 @@ public:
     {
         return m_Flags & flag;
     }
-
 private:
     /*
         width and height are in device pixel
