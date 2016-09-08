@@ -797,7 +797,7 @@ JSFunctionSpec *JSFile::ListMethods()
     return funcs;
 }
 
-JSFunctionSpec *JSFile::ListMethodsStatic()
+JSFunctionSpec *JSFile::ListStaticMethods()
 {
     static JSFunctionSpec funcs[] = {
         CLASSMAPPER_FN_STATIC(JSFile, read, 2),

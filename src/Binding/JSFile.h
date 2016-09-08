@@ -27,7 +27,7 @@ public:
     static JSFile *Constructor(JSContext *cx, JS::CallArgs &args,
         JS::HandleObject obj);
     static JSFunctionSpec *ListMethods();
-    static JSFunctionSpec *ListMethodsStatic();
+    static JSFunctionSpec *ListStaticMethods();
     static JSPropertySpec *ListProperties();
 
     static void RegisterObject(JSContext *cx);
