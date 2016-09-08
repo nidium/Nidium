@@ -12,7 +12,7 @@
 #include <IO/FileStream.h>
 #include <IO/NFSStream.h>
 
-#include <SystemInterface.h>
+#include "Interface/SystemInterface.h"
 
 namespace Nidium {
 namespace IO {
