@@ -62,6 +62,7 @@ namespace Binding {
             cppObj->unbind();                                                 \
             return true;                                                      \
         } else {                                                              \
+            JS_ReportError(cx, "Invalid argument");                           \
             return false;                                                     \
         }                                                                     \
     }
@@ -692,6 +693,7 @@ bool JSWebGLRenderingContext::JS_attachShader(JSContext *cx, JS::CallArgs &args)
     webglProgram = JSWebGLProgram::GetInstance(program);
     webglShader = JSWebGLShader::GetInstance(shader);
     if (!shader || !program) {
+        JS_ReportError(cx, "Invalid argument(s)");
         return false;
     }
 
@@ -716,6 +718,7 @@ bool JSWebGLRenderingContext::JS_bindAttribLocation(JSContext *cx,
 
     webglProgram = JSWebGLProgram::GetInstance(program);
     if (!webglProgram) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -749,6 +752,7 @@ bool JSWebGLRenderingContext::JS_bindBuffer(JSContext *cx, JS::CallArgs &args)
 
     webglBuffer = JSWebGLBuffer::GetInstance(buffer);
     if (!webglBuffer) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -787,6 +791,7 @@ bool JSWebGLRenderingContext::JS_bindFramebuffer(JSContext *cx,
 
     webglBuffer = JSWebGLFramebuffer::GetInstance(buffer);
     if (!webglBuffer) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -819,6 +824,7 @@ bool JSWebGLRenderingContext::JS_bindRenderbuffer(JSContext *cx,
 
     webglBuffer = JSWebGLRenderbuffer::GetInstance(buffer);
     if (!webglBuffer) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -850,6 +856,7 @@ bool JSWebGLRenderingContext::JS_bindTexture(JSContext *cx, JS::CallArgs &args)
 
     webglTexture = JSWebGLTexture::GetInstance(texture);
     if (!webglTexture) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -983,7 +990,7 @@ bool JSWebGLRenderingContext::JS_bufferData(JSContext *cx, JS::CallArgs &args)
     }
 
     if (array == NULL || !JS_IsTypedArrayObject(array)) {
-        JS_ReportError(cx, "Invalid value");
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -1008,7 +1015,7 @@ bool JSWebGLRenderingContext::JS_bufferSubData(JSContext *cx,
     if (array == NULL || !JS_IsTypedArrayObject(array)
         || !JS_IsArrayBufferViewObject(array)) {
 
-        JS_ReportError(cx, "Invalid value");
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -1115,11 +1122,13 @@ bool JSWebGLRenderingContext::JS_compileShader(JSContext *cx,
 
     webglShader = JSWebGLShader::GetInstance(shader);
     if (!webglShader) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
     if (!(shaderStr = CanvasContext::ProcessShader(
               webglShader->getShaderSource(), webglShader->getShaderType()))) {
+        JS_ReportError(cx, "Failed to process the shader");
         return false;
     }
 
@@ -1441,6 +1450,7 @@ bool JSWebGLRenderingContext::JS_getUniformLocation(JSContext *cx,
 
     webglProgram = JSWebGLProgram::GetInstance(program);
     if (!webglProgram) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -1535,6 +1545,7 @@ bool JSWebGLRenderingContext::JS_framebufferRenderbuffer(JSContext *cx,
 
     webglRenderbuffer = JSWebGLRenderbuffer::GetInstance(renderbuffer, cx);
     if (!webglRenderbuffer) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -1560,6 +1571,7 @@ bool JSWebGLRenderingContext::JS_framebufferTexture2D(JSContext *cx,
 
     webglTexture = JSWebGLTexture::GetInstance(texture);
     if (!webglTexture) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -1626,6 +1638,7 @@ bool JSWebGLRenderingContext::JS_getActiveAttrib(JSContext *cx,
 
     webglProgram = JSWebGLProgram::GetInstance(program);
     if (!webglProgram) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -1714,6 +1727,7 @@ bool JSWebGLRenderingContext::JS_getAttribLocation(JSContext *cx,
 
     webglProgram = JSWebGLProgram::GetInstance(program);
     if (!program) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -2055,6 +2069,7 @@ bool JSWebGLRenderingContext::JS_getProgramParameter(JSContext *cx,
 
     webglProgram = JSWebGLProgram::GetInstance(program);
     if (!program) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -2089,6 +2104,7 @@ bool JSWebGLRenderingContext::JS_getProgramInfoLog(JSContext *cx,
 
     webglProgram = JSWebGLProgram::GetInstance(program);
     if (!webglProgram) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -2118,6 +2134,7 @@ bool JSWebGLRenderingContext::JS_getShaderParameter(JSContext *cx,
 
     webglShader = JSWebGLShader::GetInstance(shader);
     if (!webglShader) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -2143,6 +2160,7 @@ bool JSWebGLRenderingContext::JS_getShaderInfoLog(JSContext *cx,
 
     webglShader = JSWebGLShader::GetInstance(shader);
     if (!webglShader) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -2181,7 +2199,8 @@ bool JSWebGLRenderingContext::JS_linkProgram(JSContext *cx, JS::CallArgs &args)
     }
 
     webglProgram = JSWebGLProgram::GetInstance(program);
-    if (!program) {
+    if (!webglProgram) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -2273,6 +2292,7 @@ bool JSWebGLRenderingContext::JS_shaderSource(JSContext *cx, JS::CallArgs &args)
 
     webglShader = JSWebGLShader::GetInstance(shader);
     if (!webglShader) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -2414,18 +2434,20 @@ bool NGL_uniformxf(Canvas3DContext *glctx,
     JS::RootedObject location(cx);
 
     if (args.length() == 0 || !args[0].isObject()) {
-        JS_ReportError(cx, "Bad argument");
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
     location = args[0].toObjectOrNull();
     if (!location) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
     webglLocation
         = JSWebGLUniformLocation::GetInstance(args[0].toObjectOrNull());
     if (!webglLocation) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -2473,6 +2495,7 @@ bool NGL_uniformxfv(Canvas3DContext *glctx,
 
     webglLocation = JSWebGLUniformLocation::GetInstance(location);
     if (!webglLocation) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -2522,17 +2545,19 @@ bool NGL_uniformxi(Canvas3DContext *glctx,
     JS::RootedObject location(cx);
 
     if (args.length() == 0 || !args[0].isObject() || nb < 1) {
-        JS_ReportError(cx, "Bad argument");
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
     location = args[0].toObjectOrNull();
     if (!location) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
     webglLocation = JSWebGLUniformLocation::GetInstance(location);
     if (!webglLocation) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -2590,6 +2615,7 @@ bool NGL_uniformxiv(Canvas3DContext *glctx,
 
     webglLocation = JSWebGLUniformLocation::GetInstance(location);
     if (!webglLocation) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -2625,6 +2651,7 @@ bool NGL_uniformMatrixxfv(Canvas3DContext *glctx,
 
     webglLocation = JSWebGLUniformLocation::GetInstance(location);
     if (!webglLocation) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -2704,12 +2731,12 @@ bool NGL_vertexAttribxfv(Canvas3DContext *glctx,
     GLfloat *carray;
 
     if (!args[1].isObject()) {
-        JS_ReportError(cx, "Bad argument");
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
     if (!args[0].isNumber()) {
-        JS_ReportError(cx, "Bad argument");
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
@@ -2937,6 +2964,7 @@ bool JSWebGLRenderingContext::JS_useProgram(JSContext *cx, JS::CallArgs &args)
 
     webglProgram = JSWebGLProgram::GetInstance(program);
     if (!webglProgram) {
+        JS_ReportError(cx, "Invalid argument");
         return false;
     }
 
