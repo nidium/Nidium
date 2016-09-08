@@ -7,4 +7,5 @@ tools/pprof
 third-party/
 !third-party/setproctitle/
 !third-party/rapidxml/
+!third-party/linenoise/
 **.pyc

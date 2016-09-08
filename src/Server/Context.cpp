@@ -20,12 +20,6 @@ using Nidium::Core::TaskManager;
 using Nidium::Core::Messages;
 using Nidium::Binding::NidiumJS;
 
-
-extern "C" {
-    void disableRawMode(int fd);
-    int enableRawMode(int fd);
-}
-
 namespace Nidium {
 namespace Server {
 
@@ -51,9 +45,9 @@ Context::Context(ape_global *net, Worker *worker, bool jsstrict, bool runInREPL)
 
 void Context::log(const char *str)
 {
-    disableRawMode(STDIN_FILENO);
+    linenoisePause();
     Core::Context::log(str);
-    enableRawMode(STDIN_FILENO);
+    linenoiseResume();
 }
 
 Context::~Context()
