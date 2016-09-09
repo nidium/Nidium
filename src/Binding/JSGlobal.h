@@ -24,33 +24,13 @@ public:
     static void RegisterObject(JSContext *cx, JS::HandleObject global,
         NidiumJS *njs);
 
-    /*
-        JSCall needs to be overriden because it
-        seems that |this| is not available when calling a global method
-    */
-    template <JSCallback U, int minarg>
-    static inline bool JSCall(JSContext *cx, unsigned argc, JS::Value *vp)
-    {
-        JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-        args.rval().setUndefined();
-
-        JSGlobal *CppObj = (JSGlobal *)JS_GetPrivate(
-            JS::CurrentGlobalOrNull(cx));
-
-        /* TODO: Get the right method name */
-        NIDIUM_JS_CHECK_ARGS("method", minarg);
-
-        return (CppObj->*U)(cx, args);
-    }
-
-    static inline JSGlobal *GetInstance(JS::HandleObject obj, JSContext *cx)
+    static inline JSGlobal *GetInstance(JSObject *obj, JSContext *cx)
     {
         if (cx == nullptr) {
             return nullptr;
         }
         
-        return (JSGlobal *)JS_GetPrivate(
-            JS::CurrentGlobalOrNull(cx));
+        return (JSGlobal *)JS_GetPrivate(JS::CurrentGlobalOrNull(cx));
     }
 
     /*
