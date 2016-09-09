@@ -17,7 +17,7 @@ namespace Graphics {
 
 namespace Binding {
 
-class JSWindow : public ClassMapper<JSWindow>
+class JSWindow : public ClassMapperWithEvents<JSWindow>
 {
 public:
 
