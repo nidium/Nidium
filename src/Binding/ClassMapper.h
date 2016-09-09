@@ -84,13 +84,16 @@ namespace Binding {
 #define NIDIUM_DECL_JSTRACER() \
     inline void jsTrace(class JSTracer *trc) override
 
-#define CLASSMAPPER_PROLOGUE_NO_RET()                     \
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);     \
-    if (!args.thisv().isObject()) {                       \
-        JS_ReportError(cx, "Illegal invocation");         \
-        return false;                                     \
-    }                                                     \
-    JS::RootedObject thisobj(cx, &args.thisv().toObject());
+#define CLASSMAPPER_PROLOGUE_NO_RET()                          \
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);          \
+    JS::RootedObject thisobj(cx);                              \
+    if (T::GetInstance == ClassMapper<T>::GetInstance) {       \
+        if (!args.thisv().isObject()) {                        \
+            JS_ReportError(cx, "Illegal invocation");          \
+            return false;                                      \
+        }                                                      \
+        thisobj = &args.thisv().toObject();                    \
+    }
 
 #define CLASSMAPPER_PROLOGUE_CLASS_NO_RET(ofclass) \
     CLASSMAPPER_PROLOGUE_NO_RET()                          \
