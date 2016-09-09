@@ -608,28 +608,18 @@ public:
             ClassMapper<T>::template ExposeClass<ctor_minarg>(cx, name,
             jsflags, flags));
 
-        static JSFunctionSpec funcs[] = {
-            JS_FN("addEventListener",
-                (T::template JSCallInternal<&T::JS_addEventListener, 2>),
-                2, NIDIUM_JS_FNPROPS),
-            JS_FN("removeEventListener",
-                (T::template JSCallInternal<&T::JS_removeEventListener, 1>),
-                1, NIDIUM_JS_FNPROPS),
-            JS_FN("fireEvent",
-                (T::template JSCallInternal<&T::JS_fireEvent, 2>),
-                2, NIDIUM_JS_FNPROPS),
-            JS_FN("on",
-                (T::template JSCallInternal<&T::JS_addEventListener, 2>),
-                2, NIDIUM_JS_FNPROPS),
-            JS_FN("emit",
-                (T::template JSCallInternal<&T::JS_fireEvent, 2>),
-                2, NIDIUM_JS_FNPROPS),
-            JS_FS_END
-        };
 
-        JS_DefineFunctions(cx, proto, funcs);
+        JS_DefineFunctions(cx, proto, GetJSEventsFunctions());
 
         return proto;
+    }
+
+    static void AssociateObject(JSContext *cx, T *obj, JS::HandleObject jsobj,
+        bool implement = false)
+    {
+        ClassMapper<T>::AssociateObject(cx, obj, jsobj, implement);
+
+        JS_DefineFunctions(cx, jsobj, GetJSEventsFunctions());
     }
 
     bool fireJSEvent(const char *name, JS::MutableHandleValue evobj)
@@ -706,6 +696,30 @@ public:
     }
 
 protected:
+
+    static JSFunctionSpec *GetJSEventsFunctions()
+    {
+        static JSFunctionSpec funcs[] = {
+            JS_FN("addEventListener",
+                (T::template JSCallInternal<&T::JS_addEventListener, 2>),
+                2, NIDIUM_JS_FNPROPS),
+            JS_FN("removeEventListener",
+                (T::template JSCallInternal<&T::JS_removeEventListener, 1>),
+                1, NIDIUM_JS_FNPROPS),
+            JS_FN("fireEvent",
+                (T::template JSCallInternal<&T::JS_fireEvent, 2>),
+                2, NIDIUM_JS_FNPROPS),
+            JS_FN("on",
+                (T::template JSCallInternal<&T::JS_addEventListener, 2>),
+                2, NIDIUM_JS_FNPROPS),
+            JS_FN("emit",
+                (T::template JSCallInternal<&T::JS_fireEvent, 2>),
+                2, NIDIUM_JS_FNPROPS),
+            JS_FS_END
+        };
+
+        return funcs;
+    }
 
     void initEvents()
     {
