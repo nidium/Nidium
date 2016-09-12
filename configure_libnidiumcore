@@ -14,7 +14,7 @@ from konstructor import Platform
 from konstructor import Variables
 from konstructor import Konstruct
 from konstructor import Tests
-from konstructor import Utils 
+from konstructor import Utils
 from konstructor import Log
 from konstructor import ROOT, OUTPUT
 
@@ -28,9 +28,11 @@ Deps.set(
 )
 
 if Platform.system == "Darwin":
-    Platform.setEnviron("CXXFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7 -std=c++11")
     Platform.setEnviron("CPPFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
-    Platform.setEnviron("LDFLAGS+=-stdlib=libc++ -std=c++11")
+    # Special env for Nidium, used by some librarires (skia, angle)
+    # that produce binaries. LDFLAGS is not directly used since it breaks
+    # others C librairies (c-ares).
+    Platform.setEnviron("CPPLDFLAGS+=-stdlib=libc++ -std=c++11")
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
 CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -38,17 +40,21 @@ Gyp = Builder.Gyp
 
 @Deps.register("leveldb")
 def leveldb():
-    cxxflags = os.environ.get("CXXFLAGS", "")
+    cxxFlags = os.environ.get("CXXFLAGS", "")
+
+    if Platform.system == "Darwin":
+        # LevelDB needs some specifics flags for OSX (?)
+        cxxFlags += " -stdlib=libc++ -mmacosx-version-min=10.7 -std=c++11"
 
     if Konstruct.config("asan"):
         # Fix ASAN container overflow false positive :
         # https://github.com/google/sanitizers/wiki/AddressSanitizerContainerOverflow#false-positives
-        cxxflags += " -fsanitize=address"
-        
+        cxxFlags += " -fsanitize=address"
+
     return {
         "location": Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.18"),
         # leveldb make doest not detect CXXFLAGS changes, so we force "make clean"
-        "build": ["make clean", "CXXFLAGS='%s' make" % (cxxflags)], 
+        "build": ["make clean", "CXXFLAGS='%s' make" % (cxxFlags)],
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "leveldb.patch")],
         "outputs": ["libleveldb(.a|.lib)"]
     }
