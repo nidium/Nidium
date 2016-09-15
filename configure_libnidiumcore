@@ -14,7 +14,7 @@ from konstructor import Platform
 from konstructor import Variables
 from konstructor import Konstruct
 from konstructor import Tests
-from konstructor import Utils 
+from konstructor import Utils
 from konstructor import Log
 from konstructor import ROOT, OUTPUT
 
@@ -43,11 +43,11 @@ def leveldb():
         # Fix ASAN container overflow false positive :
         # https://github.com/google/sanitizers/wiki/AddressSanitizerContainerOverflow#false-positives
         cxxflags += " -fsanitize=address"
-        
+
     return {
         "location": Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.18"),
         # leveldb make doest not detect CXXFLAGS changes, so we force "make clean"
-        "build": ["make clean", "CXXFLAGS='%s' make" % (cxxflags)], 
+        "build": ["make clean", "CXXFLAGS='%s' make" % (cxxflags)],
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "leveldb.patch")],
         "outputs": ["libleveldb(.a|.lib)"]
     }

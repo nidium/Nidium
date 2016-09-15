@@ -2,9 +2,12 @@ konstruct*.log
 configure*c
 bin
 build
+modules
 tests/jsautotest/autotests.js
 tools/pprof
 third-party/
 !third-party/setproctitle/
 !third-party/rapidxml/
 **.pyc
+.ctags
+scripts
