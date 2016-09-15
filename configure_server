@@ -22,23 +22,17 @@ Gyp.set("nidium_js_disable_window_global", 1)
 
 Variables.set('product', 'nidiumserver')
 
+Deps.set(
+    Deps.Konstruct("libnidiumcore", "configure_libnidiumcore"),
+)
+
+
 @Deps.register("jemalloc")
 def jemalloc():
     return {
         "location": Deps.GitRepo("https://github.com/jemalloc/jemalloc.git", tag="4.1.0"),
         "build": ["./autogen.sh", "./configure --enable-prof", "make"],
         "outputs": ["lib/libjemalloc.a"]
-    }
-
-Deps.set(
-    "linenoise",
-    Deps.Konstruct("libnidiumcore", "configure_libnidiumcore"),
-)
-
-@Deps.register("linenoise")
-def linenoise():
-    return {
-        "location": Deps.GitRepo("https://github.com/nidium/linenoise.git", revision="master"),
     }
 
 @CommandLine.option("--jemalloc", default=False)

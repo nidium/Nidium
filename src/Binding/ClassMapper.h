@@ -84,13 +84,16 @@ namespace Binding {
 #define NIDIUM_DECL_JSTRACER() \
     inline void jsTrace(class JSTracer *trc) override
 
-#define CLASSMAPPER_PROLOGUE_NO_RET()                     \
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);     \
-    if (!args.thisv().isObject()) {                       \
-        JS_ReportError(cx, "Illegal invocation");         \
-        return false;                                     \
-    }                                                     \
-    JS::RootedObject thisobj(cx, &args.thisv().toObject());
+#define CLASSMAPPER_PROLOGUE_NO_RET()                          \
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);          \
+    JS::RootedObject thisobj(cx);                              \
+    if (T::GetInstance == ClassMapper<T>::GetInstance) {       \
+        if (!args.thisv().isObject()) {                        \
+            JS_ReportError(cx, "Illegal invocation");          \
+            return false;                                      \
+        }                                                      \
+        thisobj = &args.thisv().toObject();                    \
+    }
 
 #define CLASSMAPPER_PROLOGUE_CLASS_NO_RET(ofclass) \
     CLASSMAPPER_PROLOGUE_NO_RET()                          \
@@ -608,28 +611,18 @@ public:
             ClassMapper<T>::template ExposeClass<ctor_minarg>(cx, name,
             jsflags, flags));
 
-        static JSFunctionSpec funcs[] = {
-            JS_FN("addEventListener",
-                (T::template JSCallInternal<&T::JS_addEventListener, 2>),
-                2, NIDIUM_JS_FNPROPS),
-            JS_FN("removeEventListener",
-                (T::template JSCallInternal<&T::JS_removeEventListener, 1>),
-                1, NIDIUM_JS_FNPROPS),
-            JS_FN("fireEvent",
-                (T::template JSCallInternal<&T::JS_fireEvent, 2>),
-                2, NIDIUM_JS_FNPROPS),
-            JS_FN("on",
-                (T::template JSCallInternal<&T::JS_addEventListener, 2>),
-                2, NIDIUM_JS_FNPROPS),
-            JS_FN("emit",
-                (T::template JSCallInternal<&T::JS_fireEvent, 2>),
-                2, NIDIUM_JS_FNPROPS),
-            JS_FS_END
-        };
 
-        JS_DefineFunctions(cx, proto, funcs);
+        JS_DefineFunctions(cx, proto, GetJSEventsFunctions());
 
         return proto;
+    }
+
+    static void AssociateObject(JSContext *cx, T *obj, JS::HandleObject jsobj,
+        bool implement = false)
+    {
+        ClassMapper<T>::AssociateObject(cx, obj, jsobj, implement);
+
+        JS_DefineFunctions(cx, jsobj, GetJSEventsFunctions());
     }
 
     bool fireJSEvent(const char *name, JS::MutableHandleValue evobj)
@@ -706,6 +699,30 @@ public:
     }
 
 protected:
+
+    static JSFunctionSpec *GetJSEventsFunctions()
+    {
+        static JSFunctionSpec funcs[] = {
+            JS_FN("addEventListener",
+                (T::template JSCallInternal<&T::JS_addEventListener, 2>),
+                2, NIDIUM_JS_FNPROPS),
+            JS_FN("removeEventListener",
+                (T::template JSCallInternal<&T::JS_removeEventListener, 1>),
+                1, NIDIUM_JS_FNPROPS),
+            JS_FN("fireEvent",
+                (T::template JSCallInternal<&T::JS_fireEvent, 2>),
+                2, NIDIUM_JS_FNPROPS),
+            JS_FN("on",
+                (T::template JSCallInternal<&T::JS_addEventListener, 2>),
+                2, NIDIUM_JS_FNPROPS),
+            JS_FN("emit",
+                (T::template JSCallInternal<&T::JS_fireEvent, 2>),
+                2, NIDIUM_JS_FNPROPS),
+            JS_FS_END
+        };
+
+        return funcs;
+    }
 
     void initEvents()
     {

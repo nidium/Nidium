@@ -252,9 +252,8 @@ uint32_t CanvasContext::CreatePassThroughProgram(GLResources &resource)
 }
 
 CanvasContext::CanvasContext(CanvasHandler *handler)
-    : m_JsCx(handler->m_JsCx), m_Mode(CONTEXT_2D),
-      m_Transform(SkMatrix44::kIdentity_Constructor), m_Handler(handler),
-      m_GLState(NULL)
+    : m_Mode(CONTEXT_2D), m_Transform(SkMatrix44::kIdentity_Constructor),
+      m_Handler(handler), m_GLState(NULL)
 {
 }
 

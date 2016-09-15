@@ -147,6 +147,10 @@ public:
         m_CurrentState = tmp;
     }
 
+    JSObject *getJSInstance() override {
+        return this->getJSObject();
+    }
+
     static void RegisterObject(JSContext *cx);
 
     Canvas2DContext(Graphics::CanvasHandler *handler,
@@ -250,6 +254,7 @@ private:
 };
 // }}}
 
+// {{{ JSGradient
 class JSGradient : public ClassMapper<JSGradient>
 {
 public:
@@ -277,6 +282,7 @@ protected:
 private:
     Graphics::Gradient *m_Gradient;
 };
+// }}}
 
 // {{{ CanvasPattern
 class JSCanvasPattern : public ClassMapper<JSCanvasPattern>

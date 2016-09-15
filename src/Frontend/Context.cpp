@@ -177,16 +177,7 @@ void Context::loadNativeObjects(int width, int height)
     JSVideo::RegisterObject(cx);
 #endif
 #ifdef NIDIUM_WEBGL_ENABLED
-    JSWebGLRenderingContext::RegisterObject(cx);
-    JSWebGLBuffer::RegisterObject(cx);
-    JSWebGLFramebuffer::RegisterObject(cx);
-    JSWebGLProgram::RegisterObject(cx);
-    JSWebGLRenderbuffer::RegisterObject(cx);
-    JSWebGLShader::RegisterObject(cx);
-    JSWebGLTexture::RegisterObject(cx);
-    JSWebGLUniformLocation::RegisterObject(cx);
-    JSWebGLShaderPrecisionFormat::RegisterObject(cx);
-    JSWebGLActiveInfo::RegisterObject(cx);
+    JSWebGLRenderingContext::RegisterAllObjects(cx);
 #endif
     JS::RootedObject docObj(cx, JSDocument::RegisterObject(cx));
     m_JSWindow = JSWindow::RegisterObject(cx, width, height, docObj);
@@ -195,7 +186,6 @@ void Context::loadNativeObjects(int width, int height)
 
 #if DEBUG
     createDebug2Canvas();
-    JSDebug::RegisterObject(cx);
 #endif
 }
 

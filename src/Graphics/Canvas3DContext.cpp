@@ -13,17 +13,8 @@
 
 #include "Graphics/GLHeader.h"
 
-namespace Nidium {
-namespace Binding {
-extern JSClass WebGLRenderingContext_class;
-extern JSConstDoubleSpec WebGLRenderingContext_const;
-}
-}
-
 using Nidium::Interface::UIInterface;
 using Nidium::Interface::SystemInterface;
-using Nidium::Binding::WebGLRenderingContext_class;
-using Nidium::Binding::WebGLRenderingContext_const;
 
 namespace Nidium {
 namespace Graphics {
@@ -48,15 +39,6 @@ Canvas3DContext::Canvas3DContext(CanvasHandler *handler,
 
     memset(&m_CachedPixels, 0, sizeof(m_CachedPixels));
     memset(&m_GLObjects, 0, sizeof(m_GLObjects));
-
-    m_JsObj = JS_NewObject(cx, &WebGLRenderingContext_class, JS::NullPtr(),
-                           JS::NullPtr());
-    JS::RootedObject obj(cx, m_JsObj);
-    JS_DefineConstDoubles(cx, obj, &WebGLRenderingContext_const);
-
-    m_JsCx = cx;
-
-    JS_SetPrivate(m_JsObj, this);
 
     float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 

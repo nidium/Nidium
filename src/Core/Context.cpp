@@ -52,7 +52,6 @@ int Context::Ping(void *arg)
 void Context::log(const char *str)
 {
     fwrite(str, sizeof(char), strlen(str), stdout);
-    fflush(stdout);
 }
 
 void Context::vlog(const char *format, ...)
