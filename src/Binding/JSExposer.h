@@ -12,6 +12,7 @@
 #include "Core/TaskManager.h"
 
 #include "Binding/NidiumJS.h"
+#include "Binding/JSMacros.h"
 
 // {{{ Macros
 // {{{ JSClass macro's
@@ -97,15 +98,6 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
         return constructor(cx, exports);                            \
     }
 
-#define NIDIUM_JSOBJ_SET_PROP_FLAGS(where, name, val, flags)                  \
-    JS_DefineProperty(m_Cx, where, reinterpret_cast<const char *>(name), val, \
-                      flags)
-
-#define NIDIUM_JSOBJ_SET_PROP(where, name, val)                         \
-    NIDIUM_JSOBJ_SET_PROP_FLAGS(where, name, val, JSPROP_PERMANENT      \
-                                                      | JSPROP_READONLY \
-                                                      | JSPROP_ENUMERATE)
-
 #define JSOBJ_CALLFUNCNAME(where, name, argv)                           \
     {                                                                   \
         JS::RootedValue _oncallback(cx);                                \
@@ -116,26 +108,17 @@ typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
             JS_CallFunctionValue(cx, where, _oncallback, argv, &_rval); \
         }                                                               \
     }
-#define NIDIUM_JSOBJ_SET_PROP_CSTR(where, name, val)                           \
-    {                                                                          \
-        JS::RootedString __n_rootedstring(m_Cx, JS_NewStringCopyZ(m_Cx, val)); \
-        NIDIUM_JSOBJ_SET_PROP(where, name, __n_rootedstring);                  \
-    }
-
-#define NIDIUM_JSOBJ_SET_PROP_STR(where, name, val) \
-    NIDIUM_JSOBJ_SET_PROP(where, name, val)
-#define NIDIUM_JSOBJ_SET_PROP_INT(where, name, val) \
-    NIDIUM_JSOBJ_SET_PROP(where, name, val)
-
 #define NIDIUM_JS_INIT_OPT() JS::RootedValue __curopt(cx);
 
 #define NIDIUM_JS_GET_OPT(obj, name)                    \
     if (obj && JS_GetProperty(cx, obj, name, &__curopt) \
         && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL)
+
 #define NIDIUM_JS_GET_OPT_TYPE(obj, name, type)             \
     if (obj && JS_GetProperty(cx, obj, name, &__curopt)     \
         && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL \
         && __curopt.is##type())
+
 // }}}
 // {{{ Getter / Setter macro's
 /*

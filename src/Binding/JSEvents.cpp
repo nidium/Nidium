@@ -5,7 +5,7 @@
 */
 
 #include "Binding/JSEvents.h"
-#include "Binding/JSExposer.h"
+#include "Binding/JSMacros.h"
 
 namespace Nidium {
 namespace Binding {
