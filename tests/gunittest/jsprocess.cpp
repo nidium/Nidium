@@ -54,15 +54,3 @@ TEST_F(JSProcess, Simple)
     free(cstr);
 }
 
-TEST_F(JSProcess, Init)
-{
-    JS::RootedObject globObj(njs->m_Cx, JS::CurrentGlobalOrNull(njs->m_Cx));
-    Nidium::Binding::JSProcess np(globObj, njs->m_Cx);
-
-    EXPECT_TRUE(np.getJSObject() == globObj);
-    EXPECT_TRUE(np.getJSContext() == njs->m_Cx);
-
-    EXPECT_TRUE(strcmp(np.GetJSObjectName(), "process") == 0);
-    EXPECT_TRUE(np.jsclass != NULL);
-}
-
