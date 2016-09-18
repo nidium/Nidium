@@ -13,11 +13,16 @@ NamespaceDoc( "fs", "Filesystem access.",
 
 FunctionDoc( "fs.readDir", "Read the content of a directory.",
     [ SeeDoc( "process.cwd" ), SeeDoc( "File.isDir" ),
-     SeeDoc( "global.listDir" ), SeeDoc( "File.rmrf" ) ],
+     SeeDoc( "fs.readDir" ), SeeDoc( "File.rmrf" ) ],
     [ ExampleDoc( """fs.readDir( function( err, entries ) {
         console.log( JSON.stringify( entries ) ) ; } );""") ] ,
     IS_Static, IS_Public, IS_Fast,
-    NO_Params,
+    [ParamDoc("dir", "Directory relative to the 'start' point (for frontend: the nml file, for server this is the js file on the commandline", 'string', NO_Default, IS_Obligated),
+    CallbackDoc( 'fn', 'The function to be called', NO_Default ),
+        ParamDoc( 'err', 'error', 'integer', NO_Default, IS_Optional ),
+        ParamDoc( 'entry', 'Object describing the file listing', ObjectDoc([("name", "The filename", "string")]),NO_Default, IS_Obligated),
+        )
+    ],
     NO_Returns
 )
 
