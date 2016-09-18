@@ -8,7 +8,6 @@
 
 #include "Core/DB.h"
 
-#include "Binding/JSExposer.h"
 #include "Binding/ClassMapper.h"
 
 #include <jsapi.h>
