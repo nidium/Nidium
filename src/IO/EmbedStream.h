@@ -9,8 +9,8 @@
 
 #include <string>
 
-#include <IO/FileStream.h>
-#include <IO/NFSStream.h>
+#include "IO/FileStream.h"
+#include "IO/NFSStream.h"
 
 #include "Interface/SystemInterface.h"
 

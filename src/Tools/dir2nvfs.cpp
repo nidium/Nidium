@@ -16,10 +16,10 @@
 #include <jsapi.h>
 #include <ape_netlib.h>
 
-#include <Core/Utils.h>
-#include <Core/Context.h>
-#include <IO/FileStream.h>
-#include <Binding/JSNFS.h>
+#include "Core/Utils.h"
+#include "Core/Context.h"
+#include "IO/FileStream.h"
+#include "Binding/JSNFS.h"
 
 #ifndef DIR2NFS_OUTPUT
 #define DIR2NFS_OUTPUT stdout

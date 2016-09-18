@@ -22,7 +22,7 @@
 #include <sys/wait.h>
 #endif
 
-#include <Binding/JSProcess.h>
+#include "Binding/JSProcess.h"
 
 #include "Server/Server.h"
 #include "Server/Context.h"

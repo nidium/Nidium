@@ -1,7 +1,7 @@
 #ifndef binding_jsdocument_h__
 #define binding_jsdocument_h__
 
-#include <Binding/ClassMapper.h>
+#include "Binding/ClassMapper.h"
 
 class SkTypeface;
 

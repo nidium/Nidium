@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <SystemInterface.h>
+#include "SystemInterface.h"
 
 #include "Graphics/GLHeader.h"
 

@@ -1,14 +1,15 @@
 #ifndef binding_jsimage_h__
 #define binding_jsimage_h__
 
-#include <Core/Messages.h>
-#include <IO/Stream.h>
-#include <Binding/ClassMapper.h>
+#include "Core/Messages.h"
+#include "IO/Stream.h"
+#include "Binding/ClassMapper.h"
 
 namespace Nidium {
 namespace Graphics {
-class Image;
+    class Image;
 }
+
 namespace Binding {
 
 class JSImage : public ClassMapperWithEvents<JSImage>, public Core::Messages

@@ -6,7 +6,7 @@
 #ifndef binding_jssystem_h__
 #define binding_jssystem_h__
 
-#include <Binding/ClassMapper.h>
+#include "Binding/ClassMapper.h"
 
 using Nidium::Binding::ClassMapper;
 

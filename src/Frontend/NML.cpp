@@ -12,15 +12,15 @@
 #include <strings.h>
 #include <unistd.h>
 
-#include <Binding/JSUtils.h>
-#include <Binding/JSExposer.h>
+#include "Binding/JSUtils.h"
+#include "Binding/JSExposer.h"
 
-#include <SystemInterface.h>
-#include <Macros.h>
+#include "SystemInterface.h"
+#include "Macros.h"
 
 #include "Binding/JSWindow.h"
 #include "Binding/JSDocument.h"
-   
+
 using Nidium::Core::SharedMessages;
 using Nidium::Core::Path;
 using Nidium::IO::Stream;

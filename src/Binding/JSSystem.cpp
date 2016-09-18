@@ -7,7 +7,7 @@
 
 #if 0
 #ifdef NIDIUM_PRODUCT_UI
-#include <SystemInterface.h>
+#include "SystemInterface.h"
 #endif
 #endif
 

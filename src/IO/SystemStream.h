@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include <IO/FileStream.h>
+#include "IO/FileStream.h"
 
 namespace Nidium {
 namespace IO {

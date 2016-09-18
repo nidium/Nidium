@@ -16,10 +16,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <Binding/JSConsole.h>
-
+#include "Binding/JSConsole.h"
 #include "Binding/JSCanvas.h"
-
 #include "Binding/JSCanvas2DContext.h"
 
 using Nidium::Core::SharedMessages;

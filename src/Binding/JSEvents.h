@@ -7,8 +7,8 @@
 #define binding_jsevents_h__
 
 #include <jsapi.h>
-#include "Binding/NidiumJS.h"
 
+#include "Binding/NidiumJS.h"
 
 namespace Nidium {
 namespace Binding {

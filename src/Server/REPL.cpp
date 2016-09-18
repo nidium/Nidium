@@ -16,9 +16,10 @@
 #include <semaphore.h>
 #include <sys/types.h>
 
-#include <Binding/NidiumJS.h>
+#include <linenoise.h>
 
-#include "linenoise.h"
+#include "Binding/NidiumJS.h"
+
 
 using Nidium::Core::SharedMessages;
 
@@ -42,7 +43,7 @@ static void *nidium_repl_thread(void *arg)
     }
 
     sprintf(historyPath, "%s/%s", homedir, ".nidium-repl-history");
-    
+
     linenoiseInit();
     linenoiseHistoryLoad(historyPath);
 

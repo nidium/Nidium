@@ -11,13 +11,12 @@
 #include <ape_buffer.h>
 #include <ape_netlib.h>
 
-#include <Core/Messages.h>
+#include "Core/Messages.h"
 
 namespace Nidium {
 namespace Binding {
-class NidiumJS;
+    class NidiumJS;
 }
-
 
 namespace Server {
 

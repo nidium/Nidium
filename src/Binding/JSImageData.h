@@ -14,10 +14,10 @@ namespace Binding {
 
 class JSImageData : public ClassMapper<JSImageData>
 {
-    
+
 };
 
-}
-}
+} // Binding
+} // Nidium
 
 #endif

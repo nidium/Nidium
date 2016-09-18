@@ -10,9 +10,10 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <IO/Stream.h>
-#include <Core/Messages.h>
 #include <ape_netlib.h>
+
+#include "IO/Stream.h"
+#include "Core/Messages.h"
 
 extern "C" {
 #include <libavutil/time.h>

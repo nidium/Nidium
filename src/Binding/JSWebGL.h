@@ -6,7 +6,7 @@
 #ifndef binding_jswebgl_h__
 #define binding_jswebgl_h__
 
-#include <Binding/ClassMapper.h>
+#include "Binding/ClassMapper.h"
 
 typedef unsigned int GLenum;
 typedef unsigned int GLuint;
@@ -573,7 +573,7 @@ protected:
 };
 // }}}
 // {{{ WebGLResource
-class WebGLResource 
+class WebGLResource
 {
 public:
     enum ResourceType
@@ -707,7 +707,7 @@ public:
 class JSWebGLUniformLocation : public ClassMapper<JSWebGLUniformLocation>
 {
 public:
-    JSWebGLUniformLocation(GLint location) : 
+    JSWebGLUniformLocation(GLint location) :
         m_Location(location) {};
 
     GLint get() {

@@ -6,7 +6,7 @@
 #ifndef server_context_h__
 #define server_context_h__
 
-#include <Binding/NidiumJS.h>
+#include "Binding/NidiumJS.h"
 #include "Core/Context.h"
 
 namespace Nidium {

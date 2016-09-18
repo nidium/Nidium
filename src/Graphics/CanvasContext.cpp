@@ -12,7 +12,7 @@
 
 #include <SkCanvas.h>
 
-#include <SystemInterface.h>
+#include "SystemInterface.h"
 
 #include "Graphics/GLHeader.h"
 #include "Graphics/SkiaContext.h"

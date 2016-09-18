@@ -10,10 +10,10 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <IO/FileStream.h>
-#include <Net/HTTPStream.h>
+#include <linenoise.h>
 
-#include "linenoise.h"
+#include "IO/FileStream.h"
+#include "Net/HTTPStream.h"
 
 using Nidium::Core::Path;
 using Nidium::Core::TaskManager;
