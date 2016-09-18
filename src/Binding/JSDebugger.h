@@ -6,12 +6,12 @@
 #ifndef binding_jsdebugger_h__
 #define binding_jsdebugger_h__
 
-#include "Binding/JSExposer.h"
+#include "Binding/ClassMapper.h"
 
 namespace Nidium {
 namespace Binding {
 
-class JSDebugger : public JSExposer<JSDebugger>
+class JSDebugger : public ClassMapper<JSDebugger>
 {
 public:
     static void RegisterObject(JSContext *cx);
