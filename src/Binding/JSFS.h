@@ -8,15 +8,18 @@
 
 #include "Core/Messages.h"
 #include "Core/TaskManager.h"
-#include "Binding/JSExposer.h"
+#include "Binding/ClassMapper.h"
 
 namespace Nidium {
 namespace Binding {
 
-class JSFS : public JSExposer<JSFS>, public Nidium::Core::Managed
+class JSFS : public ClassMapper<JSFS>, public Nidium::Core::Managed
 {
 public:
     static void RegisterObject(JSContext *cx);
+    static JSFunctionSpec *ListMethods();
+protected:
+    NIDIUM_DECL_JSCALL(readDir);
 };
 
 } // namespace Binding

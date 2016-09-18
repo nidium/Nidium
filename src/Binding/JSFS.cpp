@@ -18,30 +18,6 @@ using Nidium::Core::Task;
 namespace Nidium {
 namespace Binding {
 
-// {{{ Preamble
-
-static bool nidium_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp);
-
-static JSClass fs_class = { "fs",
-                            0,
-                            JS_PropertyStub,
-                            JS_DeletePropertyStub,
-                            JS_PropertyStub,
-                            JS_StrictPropertyStub,
-                            JS_EnumerateStub,
-                            JS_ResolveStub,
-                            JS_ConvertStub,
-                            NULL,
-                            nullptr,
-                            nullptr,
-                            nullptr,
-                            nullptr,
-                            JSCLASS_NO_INTERNAL_MEMBERS };
-
-static JSFunctionSpec FS_static_funcs[]
-    = { JS_FN("readDir", nidium_fs_readDir, 2, NIDIUM_JS_FNPROPS), JS_FS_END };
-// }}}
-
 // {{{ JSFSAsyncHandler
 class JSFSAsyncHandler : public JSAsyncHandler
 {
@@ -129,16 +105,11 @@ public:
 // }}}
 
 // {{{ Implementation
-static bool nidium_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSFS::JS_readDir(JSContext *cx, JS::CallArgs &args)
 {
-    return true; //@FIXME why is this returning immed?
 
     JS::RootedValue callback(cx);
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     JS::RootedString path(cx);
-
-    NIDIUM_JS_CHECK_ARGS("readDir", 2);
 
     if (!JS_ConvertArguments(cx, args, "S", path.address())) {
         return false;
@@ -162,20 +133,28 @@ static bool nidium_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
 
     return true;
 }
-// }}}
 
-// {{{ registration
+JSFunctionSpec *JSFS::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSFS, readDir, 2),
+
+        JS_FS_END
+    };
+
+    return funcs;
+}
+
 void JSFS::RegisterObject(JSContext *cx)
 {
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS::RootedObject fsObj(
-        cx,
-        JS_DefineObject(cx, global, "fs", &fs_class, NULL,
-                        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
+    JSFS::ExposeClass(cx, "NidiumFS");
+    JS::RootedObject FSObject(cx,
+    JSFS::CreateUniqueInstance(cx, new JSFS(), "fs"));
 
-    JS_DefineFunctions(cx, fsObj, FS_static_funcs);
+
 }
 // }}}
 
 } // namespace Binding
 } // namespace Nidium
+
