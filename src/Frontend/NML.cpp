@@ -13,7 +13,6 @@
 #include <unistd.h>
 
 #include "Binding/JSUtils.h"
-#include "Binding/JSExposer.h"
 
 #include "SystemInterface.h"
 #include "Macros.h"
