@@ -17,9 +17,10 @@
 #include <algorithm>
 
 #include <json/json.h>
+#include <jsfriendapi.h>
 
+#include "Binding/NidiumJS.h"
 #include "IO/Stream.h"
-#include "Binding/JSExposer.h"
 
 #define NIDIUM_MODULES_PATHS_COUNT 2
 
@@ -29,6 +30,7 @@ using Nidium::Core::Path;
 namespace Nidium {
 namespace Binding {
 
+typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 // {{{ Preamble
 #if 0
 #define DPRINT(...) printf(__VA_ARGS__)

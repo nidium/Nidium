@@ -8,7 +8,7 @@
 
 #include <jsapi.h>
 #include <assert.h>
-#include "Binding/JSExposer.h"
+#include "Binding/JSMacros.h"
 #include "Binding/JSEvents.h"
 
 namespace Nidium {
@@ -127,7 +127,7 @@ public:
         JS::HandleObject parent = JS::NullPtr())
     {
         JSClass *jsclass = T::GetJSClass();
-        
+
 #ifdef DEBUG
         if (jsclass != ClassMapper<T>::GetJSClass()) {
             printf("[Debug] JSClass is overriden for %s\n", name);
@@ -260,11 +260,11 @@ public:
     {
         return (T *)JS_GetPrivate(obj);
     }
-    
+
     /**
      *  Get a singleton ClassMapper<T> object.
      *  It's used for object created with CreateUniqueInstance()
-     */    
+     */
     static inline T *GetInstanceSingleton(JSContext *cx = nullptr)
     {
         NidiumJS *njs = NidiumJS::GetObject(cx);
@@ -285,7 +285,7 @@ public:
 
     /**
      *  Get the underlying mapped JSObject
-     */    
+     */
     JSObject inline *getJSObject() const
     {
         return m_Instance;
@@ -300,10 +300,10 @@ public:
      *  Protect the object against the Garbage collector.
      *  By default, |this| is tied to its JSObject life, meaning it's delete'd
      *  when m_Instance becomes unreachable to the JS engine.
-     *  
+     *
      *  When root()'d, it's up to the C++ code to delete the object or unroot()
      *  when needed.
-     */    
+     */
     void root()
     {
         if (m_Rooted) {
@@ -317,7 +317,7 @@ public:
     /**
      *  unroot a root()'d object.
      *  Give back control to the GC.
-     */    
+     */
     void unroot()
     {
         if (!m_Rooted) {
@@ -332,14 +332,14 @@ public:
      *  It's automatically called by default by the JS engine during GC.
      *  If called manually, remaning reachable JS instance would trigger an
      *  Illegal instance upon method call.
-     */      
+     */
     virtual ~ClassMapper()
     {
         if (!m_Instance.get()) {
             return;
         }
         JS_SetPrivate(m_Instance, nullptr);
-        
+
         this->unroot();
     }
 
@@ -452,7 +452,7 @@ protected:
         ClassMapper<T>::AssociateObject(cx, obj, ret);
 
         args.rval().setObjectOrNull(ret);
- 
+
         return true;
     }
 
@@ -757,6 +757,106 @@ protected:
 
     Nidium::Core::Hash<JSEvents *> *m_Events;
 };
+
+// {{{ JSObjectBuilder
+class JSObjectBuilder
+{
+public:
+    JSObjectBuilder(JSContext *cx, JSClass *clasp = NULL) : m_Obj(cx)
+    {
+        m_Cx  = cx;
+        m_Obj = JS_NewObject(m_Cx, clasp, JS::NullPtr(), JS::NullPtr());
+    };
+
+    JSObjectBuilder(JSContext *cx, JS::HandleObject wrapped) : m_Obj(cx)
+    {
+        m_Obj = wrapped;
+        m_Cx  = cx;
+    };
+
+    void set(const char *name, JS::HandleValue jval)
+    {
+        JS::RootedObject obj(m_Cx, m_Obj);
+        NIDIUM_JSOBJ_SET_PROP(obj, name, jval);
+    }
+
+    void set(const char *name, JS::HandleObject jobj)
+    {
+        JS::RootedObject obj(m_Cx, m_Obj);
+        JS::RootedValue jval(m_Cx);
+        jval.setObjectOrNull(jobj);
+        NIDIUM_JSOBJ_SET_PROP(obj, name, jval);
+    }
+
+    void set(const char *name, JS::HandleString value)
+    {
+        JS::RootedObject obj(m_Cx, m_Obj);
+        NIDIUM_JSOBJ_SET_PROP_STR(obj, name, value);
+    }
+
+    void set(const char *name, JSString *str)
+    {
+        printf("JSObjectBuilder using a JSString is deprecated\n");
+        exit(1);
+    }
+
+    void set(const char *name, const char *value)
+    {
+        JS::RootedObject obj(m_Cx, m_Obj);
+        NIDIUM_JSOBJ_SET_PROP_CSTR(obj, name, value);
+    }
+
+    void set(const char *name, uint32_t value)
+    {
+        JS::RootedObject obj(m_Cx, m_Obj);
+        NIDIUM_JSOBJ_SET_PROP_INT(obj, name, value);
+    }
+
+    void set(const char *name, int32_t value)
+    {
+        JS::RootedObject obj(m_Cx, m_Obj);
+        NIDIUM_JSOBJ_SET_PROP_INT(obj, name, value);
+    }
+
+    void set(const char *name, double value)
+    {
+        JS::RootedObject obj(m_Cx, m_Obj);
+        NIDIUM_JSOBJ_SET_PROP(obj, name, value);
+    }
+
+    void set(const char *name, bool value)
+    {
+        JS::RootedObject obj(m_Cx, m_Obj);
+        NIDIUM_JSOBJ_SET_PROP(obj, name, value);
+    }
+
+    JSObject *obj() const
+    {
+        return m_Obj;
+    }
+
+    JS::Value jsval() const
+    {
+        return OBJECT_TO_JSVAL(m_Obj);
+    }
+
+    operator JSObject *()
+    {
+        return m_Obj;
+    }
+
+    operator JS::Value()
+    {
+        return OBJECT_TO_JSVAL(m_Obj);
+    }
+
+    ~JSObjectBuilder(){};
+
+private:
+    JS::PersistentRootedObject m_Obj;
+    JSContext *m_Cx;
+};
+// }}}
 
 } // namespace Binding
 } // namespace Nidium
