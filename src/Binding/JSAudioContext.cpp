@@ -19,6 +19,17 @@ namespace Binding {
 template <>
 JSClass *JSExposer<JSAudio>::jsclass = &AudioContext_class;
 
+bool nidium_audio_prop_setter(JSContext *cx,
+                                     JS::HandleObject obj,
+                                     uint8_t id,
+                                     bool strict,
+                                     JS::MutableHandleValue vp);
+bool nidium_audio_prop_getter(JSContext *cx,
+                                     JS::HandleObject obj,
+                                     uint8_t id,
+                                     JS::MutableHandleValue vp);
+
+
 static bool nidium_audio_run(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -299,6 +310,56 @@ static bool nidium_audio_pFFT(JSContext *cx, unsigned argc, JS::Value *vp)
 
     return true;
 }
+
+bool nidium_audio_prop_setter(JSContext *cx,
+                                     JS::HandleObject obj,
+                                     uint8_t id,
+                                     bool strict,
+                                     JS::MutableHandleValue vp)
+{
+    JSAudio *jaudio = JSAudio::GetContext();
+
+    CHECK_INVALID_CTX(jaudio);
+
+    if (vp.isNumber()) {
+        jaudio->m_Audio->setVolume((float)vp.toNumber());
+    }
+
+    return true;
+}
+
+bool nidium_audio_prop_getter(JSContext *cx,
+                                     JS::HandleObject obj,
+                                     uint8_t id,
+                                     JS::MutableHandleValue vp)
+{
+    JSAudio *jaudio = JSAudio::GetContext();
+
+    CHECK_INVALID_CTX(jaudio);
+
+    AudioParameters *params = jaudio->m_Audio->m_OutputParameters;
+
+    switch (id) {
+        case AUDIO_PROP_BUFFERSIZE:
+            vp.setInt32(params->m_BufferSize / 8);
+            break;
+        case AUDIO_PROP_CHANNELS:
+            vp.setInt32(params->m_Channels);
+            break;
+        case AUDIO_PROP_SAMPLERATE:
+            vp.setInt32(params->m_SampleRate);
+            break;
+        case AUDIO_PROP_VOLUME:
+            vp.setNumber(jaudio->m_Audio->getVolume());
+            break;
+        default:
+            return false;
+            break;
+    }
+
+    return true;
+}
+
 void AudioContext_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     JSAudio *audio = (JSAudio *)JS_GetPrivate(obj);
@@ -308,6 +369,13 @@ void AudioContext_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
+void JSAudio::RegisterObject(JSContext *cx)
+{
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS_InitClass(cx, global, JS::NullPtr(), &AudioContext_class,
+                 nidium_Audio_constructor, 0, AudioContext_props,
+                 AudioContext_funcs, nullptr, nullptr);
+}
 
 
 } // namespace Binding

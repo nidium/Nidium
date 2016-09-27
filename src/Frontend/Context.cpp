@@ -35,6 +35,7 @@
 
 #ifdef NIDIUM_AUDIO_ENABLED
 #include "Binding/JSAudio.h"
+#include "Binding/JSAudioContext.h"
 #include "Binding/JSAudioNode.h"
 #include "Binding/JSVideo.h"
 #endif
@@ -176,6 +177,7 @@ void Context::loadNativeObjects(int width, int height)
 #ifdef NIDIUM_AUDIO_ENABLED
     JSAudio::RegisterObject(cx);
     JSAudioNode::RegisterObject(cx);
+    JSAudioContext::RegisterObject(cx);
     JSVideo::RegisterObject(cx);
 #endif
 #ifdef NIDIUM_WEBGL_ENABLED

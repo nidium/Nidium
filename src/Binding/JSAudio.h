@@ -18,25 +18,13 @@ namespace Nidium {
 namespace Binding {
 
 class JSAudioNode;
-
-bool nidium_audio_prop_setter(JSContext *cx,
-                                     JS::HandleObject obj,
-                                     uint8_t id,
-                                     bool strict,
-                                     JS::MutableHandleValue vp);
-bool nidium_audio_prop_getter(JSContext *cx,
-                                     JS::HandleObject obj,
-                                     uint8_t id,
-                                     JS::MutableHandleValue vp);
-
-class JSAudio : public JSExposer<JSAudio>
+/*
+*/
+class JSAudio : public ClassMapper<JSAudio>
 {
 public:
-    static JSAudio *GetContext(JSContext *cx,
-                               JS::HandleObject obj,
-                               unsigned int bufferSize,
-                               unsigned int channels,
-                               unsigned int sampleRate);
+    static JSAudio *GetContext(JSContext * cx, unsigned int bufferSize,
+                               unsigned int channels, unsigned int sampleRate);
     static JSAudio *GetContext();
 
     struct Nodes
@@ -77,11 +65,13 @@ public:
     void unroot();
 
     static void RegisterObject(JSContext *cx);
+    static JSFunctionSpec *ListMethods();
 
     ~JSAudio();
+protected:
 
 private:
-    JSAudio(AV::Audio *audio, JSContext *cx, JS::HandleObject obj);
+    JSAudio(AV::Audio *audio);
     static JSAudio *m_Instance;
 };
 

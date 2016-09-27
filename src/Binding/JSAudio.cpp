@@ -18,28 +18,6 @@ reportError(JSContext *cx, const char *message, JSErrorReport *report);
 
 // {{{ Preamble
 
-JSAudio *JSAudio::m_Instance = NULL;
-
-static bool
-nidium_Audio_constructor(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp);
-static JSClass Audio_class = { "Audio",
-                               JSCLASS_HAS_PRIVATE,
-                               JS_PropertyStub,
-                               JS_DeletePropertyStub,
-                               JS_PropertyStub,
-                               JS_StrictPropertyStub,
-                               JS_EnumerateStub,
-                               JS_ResolveStub,
-                               JS_ConvertStub,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               JSCLASS_NO_INTERNAL_MEMBERS };
-
 static JSClass Global_AudioThread_class
     = { "_GLOBALAudioThread",
         JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
@@ -57,15 +35,10 @@ static JSClass Global_AudioThread_class
         JS_GlobalObjectTraceHook,
         JSCLASS_NO_INTERNAL_MEMBERS };
 
-static JSFunctionSpec Audio_static_funcs[]
-    = { JS_FN("getContext", nidium_audio_getcontext, 3, NIDIUM_JS_FNPROPS),
-        JS_FS_END };
-
 // }}}
 
 // {{{ Implementation
 JSAudio *JSAudio::GetContext(JSContext *cx,
-                             JS::HandleObject obj,
                              unsigned int bufferSize,
                              unsigned int channels,
                              unsigned int sampleRate)
@@ -81,7 +54,7 @@ JSAudio *JSAudio::GetContext(JSContext *cx,
 
     audio->setMainCtx(cx);
 
-    return new JSAudio(audio, cx, obj);
+    return new JSAudio(audio);
 }
 
 void JSAudio::initNode(JSAudioNode *node,
@@ -142,18 +115,13 @@ JSAudio *JSAudio::GetContext()
     return JSAudio::m_Instance;
 }
 
-JSAudio::JSAudio(Audio *audio, JSContext *cx, JS::HandleObject obj)
-    : JSExposer<JSAudio>(obj, cx), m_Audio(audio), m_Nodes(NULL),
+JSAudio::JSAudio(Audio *audio)
+    : m_Audio(audio), m_Nodes(NULL),
       m_JsGlobalObj(NULL), m_JsRt(NULL), m_JsTcx(NULL), m_Target(NULL)
 {
     JSAudio::m_Instance = this;
 
-    JS_SetPrivate(obj, this);
-
-    NJS->rootObjectUntilShutdown(obj);
-    JS::RootedObject ob(cx, obj);
-    JS_DefineFunctions(cx, ob, AudioContext_funcs);
-    JS_DefineProperties(cx, ob, AudioContext_props);
+    this->root();
 
     NIDIUM_PTHREAD_VAR_INIT(&m_ShutdownWait)
 
@@ -241,14 +209,6 @@ bool JSAudio::run(char *str)
     return true;
 }
 
-void JSAudio::unroot()
-{
-    if (m_JSObject != NULL) {
-        NJS->unrootObject(m_JSObject);
-        m_JSObject = nullptr;
-    }
-}
-
 void JSAudio::ShutdownCallback(void *custom)
 {
     JSAudio *audio        = static_cast<JSAudio *>(custom);
@@ -329,36 +289,27 @@ void JSAudio::CtxCallback(void *custom)
 }
 
 
-static bool
-nidium_Audio_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSAudio::JS_getContext(JSContext *cx, JS::CallArgs &args)
 {
-    JS_ReportError(cx, "Illegal constructor");
-    return false;
-}
-
-static bool nidium_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     unsigned int bufferSize, channels, sampleRate;
+    unsigned int argc = args.length();
 
-    if (argc > 0) {
-        JS::ToUint32(cx, args[0], &bufferSize);
-    } else {
-        bufferSize = 0;
+    bufferSize = 0;
+    channels = 2;
+    sampleRate = 44100;
+    switch (argc) {
+        case 3:
+            JS::ToUint32(cx, args[2], &sampleRate);
+            //ft
+        case 2:
+            JS::ToUint32(cx, args[1], &channels);
+            //ft
+        case 1:
+            JS::ToUint32(cx, args[0], &bufferSize);
+            break;
+        default:
+            break;
     }
-
-    if (argc > 1) {
-        JS::ToUint32(cx, args[1], &channels);
-    } else {
-        channels = 2;
-    }
-
-    if (argc > 2) {
-        JS::ToUint32(cx, args[2], &sampleRate);
-    } else {
-        sampleRate = 44100;
-    }
-
     switch (bufferSize) {
         case 0:
         case 128:
@@ -401,7 +352,7 @@ static bool nidium_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     bool paramsChanged = false;
-    JSAudio *jaudio    = JSAudio::GetContext();
+    JSAudio *jaudio    = JSAudio::GetContext(cx);
 
     if (jaudio) {
         AudioParameters *params = jaudio->m_Audio->m_OutputParameters;
@@ -429,7 +380,7 @@ static bool nidium_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
         cx, JS_NewObjectForConstructor(cx, &AudioContext_class, args));
 
     JSAudio *naudio
-        = JSAudio::GetContext(cx, ret, bufferSize, channels, sampleRate);
+        = JSAudio::GetContext(cx, bufferSize, channels, sampleRate);
 
     if (naudio == NULL) {
         JS_ReportError(cx, "Failed to initialize audio context\n");
@@ -442,69 +393,22 @@ static bool nidium_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
 }
 
 
-bool nidium_audio_prop_setter(JSContext *cx,
-                                     JS::HandleObject obj,
-                                     uint8_t id,
-                                     bool strict,
-                                     JS::MutableHandleValue vp)
+JSFunctionSpec *JSAudio::ListMethods()
 {
-    JSAudio *jaudio = JSAudio::GetContext();
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSAudio, getContext, 3),
+        JS_FS_END
+    };
 
-    CHECK_INVALID_CTX(jaudio);
-
-    if (vp.isNumber()) {
-        jaudio->m_Audio->setVolume((float)vp.toNumber());
-    }
-
-    return true;
+    return funcs;
 }
-
-bool nidium_audio_prop_getter(JSContext *cx,
-                                     JS::HandleObject obj,
-                                     uint8_t id,
-                                     JS::MutableHandleValue vp)
-{
-    JSAudio *jaudio = JSAudio::GetContext();
-
-    CHECK_INVALID_CTX(jaudio);
-
-    AudioParameters *params = jaudio->m_Audio->m_OutputParameters;
-
-    switch (id) {
-        case AUDIO_PROP_BUFFERSIZE:
-            vp.setInt32(params->m_BufferSize / 8);
-            break;
-        case AUDIO_PROP_CHANNELS:
-            vp.setInt32(params->m_Channels);
-            break;
-        case AUDIO_PROP_SAMPLERATE:
-            vp.setInt32(params->m_SampleRate);
-            break;
-        case AUDIO_PROP_VOLUME:
-            vp.setNumber(jaudio->m_Audio->getVolume());
-            break;
-        default:
-            return false;
-            break;
-    }
-
-    return true;
-}
-
 
 // }}}
 
 // {{{ Registration
 void JSAudio::RegisterObject(JSContext *cx)
 {
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS_InitClass(cx, global, JS::NullPtr(), &Audio_class,
-                 nidium_Audio_constructor, 0, nullptr, nullptr, nullptr,
-                 Audio_static_funcs);
-
-    JS_InitClass(cx, global, JS::NullPtr(), &AudioContext_class,
-                 nidium_Audio_constructor, 0, AudioContext_props,
-                 AudioContext_funcs, nullptr, nullptr);
+    JSAudio::ExposeClass<0>(cx, "Audio");
 }
 // }}}
 
