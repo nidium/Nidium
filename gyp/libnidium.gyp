@@ -98,6 +98,10 @@
             ['nidium_audio==1', {
                 'sources': [
                     '<(nidium_src_path)/Binding/JSAV.cpp',
+                    '<(nidium_src_path)/Binding/JSAudio.cpp',
+                    '<(nidium_src_path)/Binding/JSAudioContext.cpp',
+                    '<(nidium_src_path)/Binding/JSAudioNode.cpp',
+                    '<(nidium_src_path)/Binding/JSVideo.cpp',
                  ],
                  'defines': [ 'NIDIUM_AUDIO_ENABLED' ],
                      'includes': [

@@ -113,6 +113,7 @@ public:
     }
 
     static void HTTPTime(char *buf);
+    static int FFT(int dir, int nn, double *x, double *y);
 };
 // }}}
 
@@ -182,6 +183,8 @@ private:
     void (*m_Free)(void *);
 };
 // }}}
+
+
 
 // {{{ Macros
 #define nidium_min(val1, val2) ((val1 > val2) ? (val2) : (val1))

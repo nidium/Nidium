@@ -34,7 +34,9 @@
 #endif
 
 #ifdef NIDIUM_AUDIO_ENABLED
-#include "Binding/JSAV.h"
+#include "Binding/JSAudio.h"
+#include "Binding/JSAudioNode.h"
+#include "Binding/JSVideo.h"
 #endif
 
 #ifdef NIDIUM_WEBGL_ENABLED
