@@ -6,11 +6,12 @@
 #include "Binding/JSAudioContext.h"
 #include "Binding/JSAudioNode.h"
 
-#include "Core/Utilso.h"
+#include "Core/Utils.h"
 #include "AV/Audio.h"
 #include "Frontend/Context.h"
 
 using namespace Nidium::AV;
+using namespace Nidium::Core;
 
 namespace Nidium {
 namespace Binding {

@@ -17,130 +17,12 @@ using Nidium::Graphics::CanvasHandler;
 namespace Nidium {
 namespace Binding {
 
-static bool
-nidium_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_video_play(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_video_pause(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_video_stop(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_video_close(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_video_open(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_video_get_audionode(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_video_nextframe(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_video_prevframe(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_video_frameat(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_video_setsize(JSContext *cx, unsigned argc, JS::Value *vp);
-
-static bool nidium_video_prop_getter(JSContext *cx,
-                                     JS::HandleObject obj,
-                                     uint8_t id,
-                                     JS::MutableHandleValue vp);
-static bool nidium_video_prop_setter(JSContext *cx,
-                                     JS::HandleObject obj,
-                                     uint8_t id,
-                                     bool strict,
-                                     JS::MutableHandleValue vp);
-
-static void Video_Finalize(JSFreeOp *fop, JSObject *obj);
-
-static JSFunctionSpec Video_funcs[]
-    = { JS_FN("play", nidium_video_play, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("pause", nidium_video_pause, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("stop", nidium_video_stop, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("close", nidium_video_close, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("open", nidium_video_open, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("getAudioNode", nidium_video_get_audionode, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("nextFrame", nidium_video_nextframe, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("prevFrame", nidium_video_prevframe, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("frameAt", nidium_video_frameat, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("setSize", nidium_video_setsize, 2, NIDIUM_JS_FNPROPS),
-        JS_FS_END };
-
-static JSClass Video_class
-    = { "Video",
-        JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
-        JS_PropertyStub,
-        JS_DeletePropertyStub,
-        JS_PropertyStub,
-        JS_StrictPropertyStub,
-        JS_EnumerateStub,
-        JS_ResolveStub,
-        JS_ConvertStub,
-        Video_Finalize,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        JSCLASS_NO_INTERNAL_MEMBERS };
-
-template <>
-JSClass *JSExposer<JSVideo>::jsclass = &Video_class;
-
-static JSPropertySpec Video_props[] = {
-
-    NIDIUM_JS_PSG("width", VIDEO_PROP_WIDTH, nidium_video_prop_getter),
-    NIDIUM_JS_PSG("height", VIDEO_PROP_HEIGHT, nidium_video_prop_getter),
-
-    NIDIUM_JS_PSG("duration", SOURCE_PROP_DURATION, nidium_video_prop_getter),
-    NIDIUM_JS_PSG("metadata", SOURCE_PROP_METADATA, nidium_video_prop_getter),
-    NIDIUM_JS_PSG("bitrate", SOURCE_PROP_BITRATE, nidium_video_prop_getter),
-
-    NIDIUM_JS_PSGS("position",
-                   SOURCE_PROP_POSITION,
-                   nidium_video_prop_getter,
-                   nidium_video_prop_setter),
-
-
-    JS_PS_END
-};
-
-static bool nidium_video_prop_getter(JSContext *cx,
-                                     JS::HandleObject obj,
-                                     uint8_t id,
-                                     JS::MutableHandleValue vp)
-{
-    JSVideo *v = (JSVideo *)JS_GetPrivate(obj);
-    if (v == NULL) {
-        return false;
-    }
-
-    switch (id) {
-        case VIDEO_PROP_WIDTH:
-            vp.setInt32(v->m_Video->m_CodecCtx->width);
-            break;
-        case VIDEO_PROP_HEIGHT:
-            vp.setInt32(v->m_Video->m_CodecCtx->height);
-            break;
-        default:
-            return JSAVSource::PropGetter(v->m_Video, cx, id, vp);
-            break;
-    }
-
-    return true;
-}
-
-static bool nidium_video_prop_setter(JSContext *cx,
-                                     JS::HandleObject obj,
-                                     uint8_t id,
-                                     bool strict,
-                                     JS::MutableHandleValue vp)
-{
-    JSVideo *v = (JSVideo *)JS_GetPrivate(obj);
-    if (v == NULL) {
-        return false;
-    }
-
-    return JSAVSource::PropSetter(v->m_Video, id, vp);
-}
-
-JSVideo::JSVideo(JS::HandleObject obj,
-                 Canvas2DContext *canvasCtx,
-                 JSContext *cx)
-    : JSExposer<JSVideo>(obj, cx), m_Video(NULL), m_AudioNode(NULL),
+JSVideo::JSVideo(Canvas2DContext *canvasCtx, JSContext *cx)
+    : m_Video(NULL), m_AudioNode(NULL),
       m_ArrayContent(NULL), m_Width(-1), m_Height(-1), m_Left(0), m_Top(0),
-      m_IsDestructing(false), m_CanvasCtx(canvasCtx), m_Cx(cx)
+      m_IsDestructing(false), m_CanvasCtx(canvasCtx)
 {
-    m_Video = new Video((ape_global *)JS_GetContextPrivate(cx));
+    m_Video = new Video((ape_global *)JS_GetContextPrivate(m_Cx));
     m_Video->frameCallback(JSVideo::FrameCallback, this);
     m_Video->eventCallback(JSVideo::onEvent, this);
     m_CanvasCtx->getHandler()->addListener(this);
@@ -255,54 +137,42 @@ void JSVideo::setSize(int width, int height)
     m_Video->setSize(width, height);
 }
 
-static bool nidium_video_play(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSVideo::JS_play(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(JSVideo, &Video_class);
-
-    CppObj->m_Video->play();
+    this->m_Video->play();
 
     return true;
 }
 
-static bool nidium_video_pause(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSVideo::JS_pause(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(JSVideo, &Video_class);
-
-    CppObj->m_Video->pause();
+    this->m_Video->pause();
 
     return true;
 }
 
-static bool nidium_video_stop(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSVideo::JS_stop(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(JSVideo, &Video_class);
-
-    CppObj->m_Video->stop();
+    this->m_Video->stop();
 
     return true;
 }
 
-static bool nidium_video_close(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSVideo::JS_close(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(JSVideo, &Video_class);
-
-    CppObj->close();
+    this->close();
 
     return true;
 }
 
-static bool nidium_video_open(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSVideo::JS_open(JSContext *cx, JS::CallArgs &args)
 {
-    JSVideo *v;
-    NIDIUM_JS_PROLOGUE_CLASS(JSVideo, &Video_class);
-    v = CppObj;
-
     JS::RootedValue src(cx, args[0]);
     int ret = -1;
 
     if (src.isString()) {
         JSAutoByteString csrc(cx, src.toString());
-        ret = v->m_Video->open(csrc.ptr());
+        ret = this->m_Video->open(csrc.ptr());
     } else if (src.isObject()) {
         JS::RootedObject arrayBuff(cx, src.toObjectOrNull());
 
@@ -312,8 +182,8 @@ static bool nidium_video_open(JSContext *cx, unsigned argc, JS::Value *vp)
         }
 
         int length        = JS_GetArrayBufferByteLength(arrayBuff);
-        v->m_ArrayContent = JS_StealArrayBufferContents(cx, arrayBuff);
-        if (v->m_Video->open(v->m_ArrayContent, length) < 0) {
+        this->m_ArrayContent = JS_StealArrayBufferContents(cx, arrayBuff);
+        if (this->m_Video->open(this->m_ArrayContent, length) < 0) {
             args.rval().setBoolean(false);
             return true;
         }
@@ -324,15 +194,9 @@ static bool nidium_video_open(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool
-nidium_video_get_audionode(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSVideo::JS_getAudioNode(JSContext *cx, JS::CallArgs &args)
 {
     JSAudio *jaudio = JSAudio::GetContext();
-    JSVideo *v;
-
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(JSVideo, &Video_class);
-
-    v = CppObj;
 
     if (!jaudio) {
         JS_ReportError(cx, "No Audio context");
@@ -340,30 +204,30 @@ nidium_video_get_audionode(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    if (v->m_AudioNode.get()) {
-        JS::RootedObject retObj(cx, v->m_AudioNode);
+    if (this->m_AudioNode.get()) {
+        JS::RootedObject retObj(cx, this->m_AudioNode);
         args.rval().setObjectOrNull(retObj);
         return true;
     }
 
-    AudioSource *source = v->m_Video->getAudioNode(jaudio->m_Audio);
+    AudioSource *source = this->m_Video->getAudioNode(jaudio->m_Audio);
 
     if (source != NULL) {
         JS::RootedObject audioNode(
             cx, JS_NewObjectForConstructor(cx, &AudioNode_class, args));
-        v->m_AudioNode = audioNode;
+        this->m_AudioNode = audioNode;
 
         JSAudioNode *node
             = new JSAudioNode(audioNode, cx, Audio::SOURCE,
                               static_cast<class AudioNode *>(source), jaudio);
 
         JS::RootedString name(cx, JS_NewStringCopyN(cx, "video-source", 12));
-        JS::RootedObject an(cx, v->m_AudioNode);
+        JS::RootedObject an(cx, this->m_AudioNode);
         jaudio->initNode(node, an, name);
 
         JS_SetReservedSlot(node->getJSObject(), 0,
-                           OBJECT_TO_JSVAL(v->getJSObject()));
-        JS::RootedObject retObj(cx, v->m_AudioNode);
+                           OBJECT_TO_JSVAL(this->getJSObject()));
+        JS::RootedObject retObj(cx, this->m_AudioNode);
 
         args.rval().setObjectOrNull(retObj);
     } else {
@@ -373,46 +237,37 @@ nidium_video_get_audionode(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static bool nidium_video_nextframe(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSVideo::JS_nextFrame(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(JSVideo, &Video_class);
-
-    CppObj->m_Video->nextFrame();
+    this->m_Video->nextFrame();
 
     return true;
 }
 
-static bool nidium_video_prevframe(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSVideo::JS_prevFrame(JSContext *cx, JS::CallArgs &args)
 {
-    NIDIUM_JS_PROLOGUE_CLASS(JSVideo, &Video_class);
-
-    CppObj->m_Video->prevFrame();
+    this->m_Video->prevFrame();
 
     return true;
 }
 
-static bool nidium_video_frameat(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSVideo::JS_frameAt(JSContext *cx, JS::CallArgs &args)
 {
     double time;
     bool keyframe = false;
-
-    NIDIUM_JS_PROLOGUE_CLASS(JSVideo, &Video_class);
 
     if (!JS_ConvertArguments(cx, args, "db", &time, keyframe)) {
         return true;
     }
 
-    CppObj->m_Video->frameAt(time, keyframe);
+    this->m_Video->frameAt(time, keyframe);
 
     return true;
 }
 
-static bool nidium_video_setsize(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSVideo::JS_setSize(JSContext *cx, JS::CallArgs &args)
 {
     uint32_t width, height;
-    NIDIUM_JS_PROLOGUE_CLASS(JSVideo, &Video_class);
-
-    NIDIUM_JS_CHECK_ARGS("setSize", 2)
 
     JS::RootedValue jwidth(cx, args[0]);
     JS::RootedValue jheight(cx, args[1]);
@@ -435,56 +290,102 @@ static bool nidium_video_setsize(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    CppObj->setSize(width, height);
+    this->setSize(width, height);
 
     return true;
 }
 
-static bool
-nidium_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
+bool JSVideo::JSGetter_canvas(JSContext *cx, JS::MutableHandleValue vp)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject canvasObj(cx, this->m_CanvasCtx->getJSObject());
+    vp.setObjectOrNull(canvasObj);
 
+    return true;
+}
+
+bool JSVideo::JSGetter_width(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(this->m_Video->m_CodecCtx->width);
+
+    return true;
+}
+
+bool JSVideo::JSGetter_height(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(this->m_Video->m_CodecCtx->height);
+
+    return true;
+}
+
+bool JSVideo::JSGetter_duration(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(this->m_Video->getDuration());
+
+    return true;
+}
+
+bool JSVideo::JSGetter_bitrate(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(this->m_Video->getBitrate());
+
+    return true;
+}
+
+
+bool JSVideo::JSGetter_metadata(JSContext *cx, JS::MutableHandleValue vp)
+{
+    JSAVSource::GetMetadata(cx, this->m_Video, vp );
+
+    return true;
+}
+
+bool JSVideo::JSGetter_position(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(this->m_Video->getClock());
+
+    return true;
+}
+
+bool JSVideo::JSSetter_position(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (vp.isNumber()) {
+        this->m_Video->seek(vp.toNumber());
+    }
+
+    return true;
+}
+
+JSVideo *Constructor(JSContext *cx, JS::CallArgs &args,
+    JS::HandleObject obj)
+{
     JS::RootedObject canvas(cx);
     if (!JS_ConvertArguments(cx, args, "o", canvas.address())) {
-        return true;
+        return nullptr;
     }
 
     JSCanvas *jscanvas = JSCanvas::GetInstance(canvas);
     if (!jscanvas) {
         JS_ReportError(cx, "Video constructor argument must be Canvas");
-        return false;
+        return nullptr;
     }
 
     CanvasHandler *handler = jscanvas->getHandler();
 
     if (!handler) {
         JS_ReportError(cx, "Video constructor argument must be Canvas");
-        return false;
+        return nullptr;
     }
 
     CanvasContext *ncc = handler->getContext();
     if (ncc == NULL || ncc->m_Mode != CanvasContext::CONTEXT_2D) {
-        JS_ReportError(
-            cx,
+        JS_ReportError( cx,
             "Invalid canvas context. Did you called canvas.getContext('2d') ?");
-        return false;
+        return nullptr;
     }
-    JSContext *m_Cx = cx;
-    JS::RootedObject ret(cx,
-                         JS_NewObjectForConstructor(cx, &Video_class, args));
-    NJS->rootObjectUntilShutdown(ret);
-    JS_DefineFunctions(cx, ret, Video_funcs);
-    JS_DefineProperties(cx, ret, Video_props);
-    JSVideo *v = new JSVideo(ret, (Canvas2DContext *)ncc, cx);
-    JS_SetPrivate(ret, v);
+    JSVideo *vid = new JSVideo(static_cast<Canvas2DContext *>(ncc), cx);
+    vid->root();
 
-    JS_DefineProperty(cx, ret, "canvas", args[0],
-                      JSPROP_PERMANENT | JSPROP_READONLY);
-
-    args.rval().setObjectOrNull(ret);
-
-    return true;
+    return vid;
 }
 
 
@@ -512,6 +413,42 @@ void JSVideo::close()
 
     m_Video->close();
 }
+JSPropertySpec *JSVideo::ListProperties()
+{
+    static JSPropertySpec props[] = {
+        CLASSMAPPER_PROP_G(JSVideo, canvas),
+        CLASSMAPPER_PROP_G(JSVideo, width),
+        CLASSMAPPER_PROP_G(JSVideo, height),
+        CLASSMAPPER_PROP_G(JSVideo, duration),
+        CLASSMAPPER_PROP_G(JSVideo, bitrate),
+        CLASSMAPPER_PROP_G(JSVideo, metadata),
+
+        CLASSMAPPER_PROP_GS(JSVideo, position),
+
+        JS_PS_END
+    };
+
+    return props;
+}
+
+JSFunctionSpec *JSVideo::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSVideo, play, 0),
+        CLASSMAPPER_FN(JSVideo, pause, 0),
+        CLASSMAPPER_FN(JSVideo, stop, 0),
+        CLASSMAPPER_FN(JSVideo, close, 0),
+        CLASSMAPPER_FN(JSVideo, open, 1),
+        CLASSMAPPER_FN(JSVideo, getAudioNode, 0),
+        CLASSMAPPER_FN(JSVideo, nextFrame, 0),
+        CLASSMAPPER_FN(JSVideo, prevFrame, 0),
+        CLASSMAPPER_FN(JSVideo, frameAt, 1),
+        CLASSMAPPER_FN(JSVideo, setSize, 2),
+        JS_FS_END
+    };
+
+    return funcs;
+}
 
 JSVideo::~JSVideo()
 {
@@ -530,18 +467,11 @@ JSVideo::~JSVideo()
     delete m_Video;
 }
 
-static void Video_Finalize(JSFreeOp *fop, JSObject *obj)
+void JSVideo::RegisterObject(JSContext *cx)
 {
-    JSVideo *v = (JSVideo *)JS_GetPrivate(obj);
+    JSVideo::ExposeClass<1>(cx, "Video");
 
-    if (v != NULL) {
-        JS_SetPrivate(obj, nullptr);
-        delete v;
-    }
 }
-
-
-NIDIUM_JS_OBJECT_EXPOSE(Video);
 
 } // namespace Binding
 } // namespace Nidium

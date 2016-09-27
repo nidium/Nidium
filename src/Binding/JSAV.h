@@ -103,6 +103,7 @@ class JSAVSource
 public:
     static inline bool
     PropSetter(AV::AVSource *source, uint8_t id, JS::MutableHandleValue vp);
+    static inline void GetMetadata(JSContext *cx, AV::AVSource *source, JS::MutableHandleValue vp);
     static inline bool PropGetter(AV::AVSource *source,
                                   JSContext *ctx,
                                   uint8_t id,

@@ -14,10 +14,10 @@
 namespace Nidium {
 namespace Binding {
 
-class JSVideo : public JSExposer<JSVideo>, public Core::Messages
+class JSVideo : public ClassMapperWithEvents<JSVideo>, public Core::Messages
 {
 public:
-    JSVideo(JS::HandleObject obj, Canvas2DContext *canvasCtx, JSContext *cx);
+    JSVideo(Canvas2DContext *canvasCtx, JSContext *cx);
 
     AV::Video *m_Video;
 
@@ -37,9 +37,30 @@ public:
     static void FrameCallback(uint8_t *data, void *custom);
     void onMessage(const Core::SharedMessages::Message &msg);
     static void onEvent(const struct AV::AVSourceEvent *cev);
-
+    static JSVideo *Constructor(JSContext *cx, JS::CallArgs &args,
+        JS::HandleObject obj);
+    static JSPropertySpec *ListProperties();
+    static JSFunctionSpec *ListMethods();
     ~JSVideo();
+protected:
+    NIDIUM_DECL_JSCALL(play);
+    NIDIUM_DECL_JSCALL(pause);
+    NIDIUM_DECL_JSCALL(stop);
+    NIDIUM_DECL_JSCALL(close);
+    NIDIUM_DECL_JSCALL(open);
+    NIDIUM_DECL_JSCALL(getAudioNode);
+    NIDIUM_DECL_JSCALL(nextFrame);
+    NIDIUM_DECL_JSCALL(prevFrame);
+    NIDIUM_DECL_JSCALL(frameAt);
+    NIDIUM_DECL_JSCALL(setSize);
 
+    NIDIUM_DECL_JSGETTER(canvas);
+    NIDIUM_DECL_JSGETTER(width);
+    NIDIUM_DECL_JSGETTER(height);
+    NIDIUM_DECL_JSGETTER(duration);
+    NIDIUM_DECL_JSGETTER(bitrate);
+    NIDIUM_DECL_JSGETTER(metadata);
+    NIDIUM_DECL_JSGETTERSETTER(position);
 private:
     void releaseAudioNode();
     bool m_IsDestructing;

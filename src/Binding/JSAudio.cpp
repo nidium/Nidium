@@ -3,14 +3,18 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "Binding/JSAudio.h"
 #include "Frontend/Context.h"
+#include "Binding/JSAudio.h"
+#include "Binding/JSConsole.h"
 #include "Macros.h"
 
 using namespace Nidium::AV;
 
 namespace Nidium {
 namespace Binding {
+
+extern void
+reportError(JSContext *cx, const char *message, JSErrorReport *report);
 
 // {{{ Preamble
 
@@ -438,7 +442,7 @@ static bool nidium_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
 }
 
 
-static bool nidium_audio_prop_setter(JSContext *cx,
+bool nidium_audio_prop_setter(JSContext *cx,
                                      JS::HandleObject obj,
                                      uint8_t id,
                                      bool strict,
@@ -455,7 +459,7 @@ static bool nidium_audio_prop_setter(JSContext *cx,
     return true;
 }
 
-static bool nidium_audio_prop_getter(JSContext *cx,
+bool nidium_audio_prop_getter(JSContext *cx,
                                      JS::HandleObject obj,
                                      uint8_t id,
                                      JS::MutableHandleValue vp)
