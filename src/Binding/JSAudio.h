@@ -7,7 +7,6 @@
 #ifndef binding_jsaudio_h__
 #define binding_jsaudio_h__
 
-#include "Binding/JSExposer.h"
 #include "AV/Audio.h"
 #include "Binding/JSAudioContext.h"
 

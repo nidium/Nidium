@@ -2,12 +2,8 @@
 #define binding_jsav_h__
 
 #include "Core/Messages.h"
-#include "Binding/JSExposer.h"
-
-
-#include "Audio.h"
-
 #include "Graphics/SkiaContext.h"
+#include "Audio.h"
 
 #define CUSTOM_SOURCE_SEND 100
 

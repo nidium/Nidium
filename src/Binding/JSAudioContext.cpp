@@ -614,7 +614,6 @@ JSAudioContext::~JSAudioContext()
     JSAudioContext::m_Instance = NULL;
 }
 
-
 void JSAudioContext::CtxCallback(void *custom)
 {
     JSAudioContext *audio = static_cast<JSAudioContext *>(custom);
