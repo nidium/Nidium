@@ -27,15 +27,6 @@
         return false;                                         \
     }
 
-#define NIDIUM_JS_PROLOGUE_CLASS_NO_RET(ofclass, fclass)   \
-    NIDIUM_JS_PROLOGUE_NO_RET()                            \
-    ofclass *CppObj = static_cast<ofclass *>(              \
-        JS_GetInstancePrivate(cx, thisobj, fclass, NULL)); \
-    if (!CppObj) {                                         \
-        JS_ReportError(cx, "Illegal invocation");          \
-        return false;                                      \
-    }
-
 #define NIDIUM_JS_PROLOGUE_CLASS_NO_RET_FOR_OBJ(ofclass, fclass, obj) \
     ofclass *CppObj = static_cast<ofclass *>(                         \
         JS_GetInstancePrivate(cx, obj, fclass, NULL));                \
@@ -43,10 +34,6 @@
         JS_ReportError(cx, "Illegal invocation");                     \
         return false;                                                 \
     }
-
-#define NIDIUM_JS_PROLOGUE_CLASS(ofclass, fclass)    \
-    NIDIUM_JS_PROLOGUE_CLASS_NO_RET(ofclass, fclass) \
-    args.rval().setUndefined();
 
 // }}}
 // {{{ Object macro's

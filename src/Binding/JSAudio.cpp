@@ -137,7 +137,7 @@ bool nidium_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     JSClass * audioContextClass = JSAudioContext::GetJSClass();
-    JS::RootedObject ret( cx, JS_NewObjectForConstructor(cx, audioContextClass));
+    JS::RootedObject ret( cx, JS_NewObjectForConstructor(cx, audioContextClass, args));
 
     JSAudioContext *naudio
         = JSAudioContext::GetContext(cx, bufferSize, channels, sampleRate);

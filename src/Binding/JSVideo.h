@@ -65,7 +65,7 @@ private:
     void releaseAudioNode();
     bool m_IsDestructing;
     Canvas2DContext *m_CanvasCtx;
-    JSContext *m_Cx;
+    //JSContext *m_Cx;
 };
 
 } // namespace Binding

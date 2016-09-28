@@ -4,6 +4,7 @@
    that can be found in the LICENSE file.
 */
 #include "Binding/JSAudioContext.h"
+#include "Binding/JSAudioNode.h"
 #include "Binding/JSVideo.h"
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSCanvas.h"
@@ -213,13 +214,13 @@ bool JSVideo::JS_getAudioNode(JSContext *cx, JS::CallArgs &args)
     AudioSource *source = this->m_Video->getAudioNode(jaudio->m_Audio);
 
     if (source != NULL) {
-        JSClass * audioNode_class = AudioNode::GetJSClass();
+        JSClass * audioNode_class = JSAudioNode::GetJSClass();
         JS::RootedObject audioNode(
             cx, JS_NewObjectForConstructor(cx, audioNode_class, args));
         this->m_AudioNode = audioNode;
 
         JSAudioNode *node
-            = new JSAudioNode(audioNode, cx, Audio::SOURCE,
+            = new JSAudioNode(Audio::SOURCE,
                               static_cast<class AudioNode *>(source), jaudio);
 
         JS::RootedString name(cx, JS_NewStringCopyN(cx, "video-source", 12));
@@ -393,7 +394,8 @@ JSVideo *Constructor(JSContext *cx, JS::CallArgs &args,
 void JSVideo::releaseAudioNode()
 {
     if (m_AudioNode) {
-        JSAudioNode *node = JSAudioNode::GetObject(m_AudioNode, m_Cx);
+        JSContext * cx = this->getJSContext();
+        JSAudioNode *node = m_AudioNode->getJSObject();
 
         NJS->unrootObject(m_AudioNode);
 

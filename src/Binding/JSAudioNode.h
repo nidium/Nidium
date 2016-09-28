@@ -21,24 +21,29 @@ namespace Binding {
 
 class JSAudio;
 
-void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj);
+static bool nidium_audionode_custom_assign_seek(JSContext *cx,
+                                                unsigned argc,
+                                                JS::Value *vp);
+static bool nidium_audionode_custom_source_play(JSContext *cx,
+                                                unsigned argc,
+                                                JS::Value *vp);
+static bool nidium_audionode_custom_source_pause(JSContext *cx,
+                                                 unsigned argc,
+                                                 JS::Value *vp);
+static bool nidium_audionode_custom_source_stop(JSContext *cx,
+                                                unsigned argc,
+                                                JS::Value *vp);
+static JSFunctionSpec AudioNodeCustomSource_funcs[] = {
+    JS_FN("play", nidium_audionode_custom_source_play, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("pause", nidium_audionode_custom_source_pause, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("stop", nidium_audionode_custom_source_stop, 0, NIDIUM_JS_FNPROPS),
+    JS_FN("assignSeek",
+          nidium_audionode_custom_assign_seek,
+          1,
+          NIDIUM_JS_FNPROPS),
+    JS_FS_END
+};
 
-static JSClass AudioNode_class
-    = { "AudioNode",
-        JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
-        JS_PropertyStub,
-        JS_DeletePropertyStub,
-        JS_PropertyStub,
-        JS_StrictPropertyStub,
-        JS_EnumerateStub,
-        JS_ResolveStub,
-        JS_ConvertStub,
-        AudioNode_Finalize,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        JSCLASS_NO_INTERNAL_MEMBERS };
 
 static JSClass AudioNodeLink_class = { "AudioNodeLink",
                                        JSCLASS_HAS_PRIVATE,
@@ -56,73 +61,19 @@ static JSClass AudioNodeLink_class = { "AudioNodeLink",
                                        nullptr,
                                        JSCLASS_NO_INTERNAL_MEMBERS };
 
-bool nidium_audionode_set(JSContext *cx, unsigned argc, JS::Value *vp);
-bool nidium_audionode_get(JSContext *cx, unsigned argc, JS::Value *vp);
-bool nidium_audionode_custom_set(JSContext *cx, unsigned argc, JS::Value *vp);
-bool nidium_audionode_custom_assign_processor(JSContext *cx,
+static bool nidium_audionode_custom_set(JSContext *cx, unsigned argc,
+                                                    JS::Value *vp);
+static bool nidium_audionode_custom_assign_processor(JSContext *cx,
                                                      unsigned argc,
                                                      JS::Value *vp);
-bool nidium_audionode_custom_assign_init(JSContext *cx,
+static bool nidium_audionode_custom_assign_init(JSContext *cx,
                                                 unsigned argc,
                                                 JS::Value *vp);
-bool nidium_audionode_custom_assign_setter(JSContext *cx,
+static bool nidium_audionode_custom_assign_setter(JSContext *cx,
                                                   unsigned argc,
                                                   JS::Value *vp);
-bool nidium_audionode_custom_assign_seek(JSContext *cx,
-                                                unsigned argc,
-                                                JS::Value *vp);
-// bool nidium_audionode_custom_get(JSContext *cx, unsigned argc,
+// static bool nidium_audionode_custom_get(JSContext *cx, unsigned argc,
 // JS::Value *vp);
-bool nidium_audionode_custom_threaded_set(JSContext *cx,
-                                                 unsigned argc,
-                                                 JS::Value *vp);
-bool nidium_audionode_custom_threaded_get(JSContext *cx,
-                                                 unsigned argc,
-                                                 JS::Value *vp);
-bool nidium_audionode_custom_threaded_send(JSContext *cx,
-                                                  unsigned argc,
-                                                  JS::Value *vp);
-
-bool nidium_audionode_source_open(JSContext *cx, unsigned argc, JS::Value *vp);
-bool nidium_audionode_source_play(JSContext *cx, unsigned argc, JS::Value *vp);
-bool nidium_audionode_source_pause(JSContext *cx, unsigned argc, JS::Value *vp);
-bool nidium_audionode_source_stop(JSContext *cx, unsigned argc, JS::Value *vp);
-bool nidium_audionode_source_close(JSContext *cx, unsigned argc, JS::Value *vp);
-
-bool nidium_audionode_custom_source_play(JSContext *cx,
-                                                unsigned argc,
-                                                JS::Value *vp);
-bool nidium_audionode_custom_source_pause(JSContext *cx,
-                                                 unsigned argc,
-                                                 JS::Value *vp);
-bool nidium_audionode_custom_source_stop(JSContext *cx,
-                                                unsigned argc,
-                                                JS::Value *vp);
-bool nidium_audionode_custom_source_position_setter(JSContext *cx,
-                                                           unsigned argc,
-                                                           JS::Value *vp);
-bool nidium_audionode_custom_source_position_getter(JSContext *cx,
-                                                           unsigned argc,
-                                                           JS::Value *vp);
-
-bool nidium_audionode_source_prop_setter(JSContext *cx,
-                                                JS::HandleObject obj,
-                                                uint8_t id,
-                                                bool strict,
-                                                JS::MutableHandleValue vp);
-bool nidium_audionode_source_prop_getter(JSContext *cx,
-                                                JS::HandleObject obj,
-                                                uint8_t id,
-                                                JS::MutableHandleValue vp);
-
-JSPropertySpec AudioNode_props[] = {
-    /* type, input, ouput readonly props are created in createnode function */
-    JS_PS_END
-};
-
-JSFunctionSpec AudioNode_funcs[]
-    = { JS_FN("set", nidium_audionode_set, 2, NIDIUM_JS_FNPROPS),
-        JS_FN("get", nidium_audionode_get, 1, NIDIUM_JS_FNPROPS), JS_FS_END };
 
 JSFunctionSpec AudioNodeCustom_funcs[]
     = { JS_FN("set", nidium_audionode_custom_set, 2, NIDIUM_JS_FNPROPS),
@@ -139,36 +90,27 @@ JSFunctionSpec AudioNodeCustom_funcs[]
               1,
               NIDIUM_JS_FNPROPS),
         // JS_FN("get", nidium_audionode_custom_get, 1, NIDIUM_JS_FNPROPS),
-        JS_FS_END };
+        JS_FS_END
+    };
 
-JSFunctionSpec AudioNodeCustom_threaded_funcs[] = {
-    JS_FN("set", nidium_audionode_custom_threaded_set, 2, NIDIUM_JS_FNPROPS),
-    JS_FN("get", nidium_audionode_custom_threaded_get, 1, NIDIUM_JS_FNPROPS),
-    JS_FN("send", nidium_audionode_custom_threaded_send, 2, NIDIUM_JS_FNPROPS),
-    JS_FS_END
-};
+bool nidium_audionode_source_prop_setter(JSContext *cx,
+                                                JS::HandleObject obj,
+                                                uint8_t id,
+                                                bool strict,
+                                                JS::MutableHandleValue vp);
+bool nidium_audionode_source_prop_getter(JSContext *cx,
+                                                JS::HandleObject obj,
+                                                uint8_t id,
+                                                JS::MutableHandleValue vp);
+bool nidium_audionode_custom_source_position_setter(JSContext *cx,
+                                                           unsigned argc,
+                                                           JS::Value *vp);
+bool nidium_audionode_custom_source_position_getter(JSContext *cx,
+                                                           unsigned argc,
+                                                           JS::Value *vp);
 
-JSFunctionSpec AudioNodeSource_funcs[]
-    = { JS_FN("open", nidium_audionode_source_open, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("play", nidium_audionode_source_play, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("pause", nidium_audionode_source_pause, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("stop", nidium_audionode_source_stop, 0, NIDIUM_JS_FNPROPS),
-        JS_FN("close", nidium_audionode_source_close, 0, NIDIUM_JS_FNPROPS),
-        JS_FS_END };
 
-JSFunctionSpec AudioNodeCustomSource_funcs[] = {
-    JS_FN("play", nidium_audionode_custom_source_play, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("pause", nidium_audionode_custom_source_pause, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("stop", nidium_audionode_custom_source_stop, 0, NIDIUM_JS_FNPROPS),
-    JS_FN("assignSeek",
-          nidium_audionode_custom_assign_seek,
-          1,
-          NIDIUM_JS_FNPROPS),
-    JS_FS_END
-};
-
-JSPropertySpec AudioNodeSource_props[] = {
-
+static JSPropertySpec AudioNodeSource_props[] = {
     NIDIUM_JS_PSGS("position",
                    SOURCE_PROP_POSITION,
                    nidium_audionode_source_prop_getter,
@@ -183,13 +125,28 @@ JSPropertySpec AudioNodeSource_props[] = {
     JS_PS_END
 };
 
-class JSAudioNode : public JSExposer<JSAudioNode>, public Core::Messages
+
+bool nidium_audionode_source_open(JSContext *cx, unsigned argc, JS::Value *vp);
+bool nidium_audionode_source_play(JSContext *cx, unsigned argc, JS::Value *vp);
+bool nidium_audionode_source_pause(JSContext *cx, unsigned argc, JS::Value *vp);
+bool nidium_audionode_source_stop(JSContext *cx, unsigned argc, JS::Value *vp);
+bool nidium_audionode_source_close(JSContext *cx, unsigned argc, JS::Value *vp);
+
+
+JSFunctionSpec AudioNodeSource_funcs[]
+    = { JS_FN("open", nidium_audionode_source_open, 1, NIDIUM_JS_FNPROPS),
+        JS_FN("play", nidium_audionode_source_play, 0, NIDIUM_JS_FNPROPS),
+        JS_FN("pause", nidium_audionode_source_pause, 0, NIDIUM_JS_FNPROPS),
+        JS_FN("stop", nidium_audionode_source_stop, 0, NIDIUM_JS_FNPROPS),
+        JS_FN("close", nidium_audionode_source_close, 0, NIDIUM_JS_FNPROPS),
+        JS_FS_END
+ };
+
+class JSAudioNode : public ClassMapperWithEvents<JSAudioNode>, public Core::Messages
 {
 public:
-    JSAudioNode(JS::HandleObject obj, JSContext *cx, Audio::Node type,
-                int in, int out, JSAudioContext *audio);
-    JSAudioNode(JS::HandleObject obj, JSContext *cx, Audio::Node type,
-                AudioNode *node, JSAudioContext *audio);
+    JSAudioNode(Audio::Node type, int in, int out, JSAudioContext *audio);
+    JSAudioNode(Audio::Node type, AudioNode *node, JSAudioContext *audio);
     ~JSAudioNode();
 
     struct Message
@@ -246,7 +203,11 @@ public:
                            JS::MutableHandleValue vp);
 
     static void RegisterObject(JSContext *cx);
+    static JSPropertySpec *ListProperties();
+    static JSFunctionSpec *ListMethods();
 
+     NIDIUM_DECL_JSCALL(set);
+     NIDIUM_DECL_JSCALL(get);
 private:
     void add();
     bool m_IsDestructing;

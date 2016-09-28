@@ -144,8 +144,9 @@ bool JSAudioContext::JS_createNode(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
+    JSClass *audioNode_class = JSAudioNode::GetJSClass();
     JS::RootedObject ret(
-        cx, JS_NewObjectForConstructor(cx, &AudioNode_class, args));
+        cx, JS_NewObjectForConstructor(cx, audioNode_class, args));
     if (!ret) {
         JS_ReportOutOfMemory(cx);
         return false;
@@ -156,7 +157,7 @@ bool JSAudioContext::JS_createNode(JSContext *cx, JS::CallArgs &args)
     JSAutoByteString cname(cx, name);
     try {
         if (strcmp("source", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, Audio::SOURCE, in, out, this);
+            node = new JSAudioNode(Audio::SOURCE, in, out, this);
 
             AudioSource *source = static_cast<AudioSource *>(node->m_Node);
             source->eventCallback(JSAudioNode::onEvent, node);
@@ -164,7 +165,7 @@ bool JSAudioContext::JS_createNode(JSContext *cx, JS::CallArgs &args)
             JS_DefineFunctions(cx, ret, AudioNodeSource_funcs);
             JS_DefineProperties(cx, ret, AudioNodeSource_props);
         } else if (strcmp("custom-source", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, Audio::CUSTOM_SOURCE, in, out,
+            node = new JSAudioNode(Audio::CUSTOM_SOURCE, in, out,
                                    this);
 
             AudioSourceCustom *source
@@ -186,25 +187,25 @@ bool JSAudioContext::JS_createNode(JSContext *cx, JS::CallArgs &args)
             JS_DefineFunctions(cx, ret, AudioNodeCustom_funcs);
             JS_DefineFunctions(cx, ret, AudioNodeCustomSource_funcs);
         } else if (strcmp("custom", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, Audio::CUSTOM, in, out, this);
+            node = new JSAudioNode(Audio::CUSTOM, in, out, this);
             JS_DefineFunctions(cx, ret, AudioNodeCustom_funcs);
         } else if (strcmp("reverb", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, Audio::REVERB, in, out, this);
+            node = new JSAudioNode(Audio::REVERB, in, out, this);
         } else if (strcmp("delay", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, Audio::DELAY, in, out, this);
+            node = new JSAudioNode(Audio::DELAY, in, out, this);
         } else if (strcmp("gain", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, Audio::GAIN, in, out, this);
+            node = new JSAudioNode(Audio::GAIN, in, out, this);
         } else if (strcmp("target", cname.ptr()) == 0) {
             if (this->m_Target != NULL) {
                 JS::RootedObject retObj(cx, this->m_Target->getJSObject());
                 args.rval().setObjectOrNull(retObj);
                 return true;
             } else {
-                node            = new JSAudioNode(ret, cx, Audio::TARGET, in, out, this);
+                node = new JSAudioNode(Audio::TARGET, in, out, this);
                 this->m_Target = node;
             }
         } else if (strcmp("stereo-enhancer", cname.ptr()) == 0) {
-            node = new JSAudioNode(ret, cx, Audio::STEREO_ENHANCER, in, out,
+            node = new JSAudioNode(Audio::STEREO_ENHANCER, in, out,
                                    this);
         } else {
             JS_ReportError(cx, "Unknown node name : %s\n", cname.ptr());
