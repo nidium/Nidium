@@ -175,7 +175,7 @@ void Context::loadNativeObjects(int width, int height)
     JSCanvas::RegisterObject(cx);
     JSImage::RegisterObject(cx);
 #ifdef NIDIUM_AUDIO_ENABLED
-    JSAudio::RegisterObject(cx);
+    audio_RegisterObject(cx);
     JSAudioNode::RegisterObject(cx);
     JSAudioContext::RegisterObject(cx);
     JSVideo::RegisterObject(cx);

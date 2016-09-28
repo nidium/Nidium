@@ -7,72 +7,78 @@
 #define binding_jsaudiocontext_h__
 
 
+#include "Frontend/Context.h"
 #include "AV/Audio.h"
 #include "Binding/ClassMapper.h"
 #include "Binding/JSAV.h"
+#include "Macros.h"
 
 namespace Nidium {
 namespace Binding {
 
-static void AudioContext_Finalize(JSFreeOp *fop, JSObject *obj);
-extern bool nidium_audio_prop_setter(JSContext *cx,
-                                     JS::HandleObject obj,
-                                     uint8_t id,
-                                     bool strict,
-                                     JS::MutableHandleValue vp);
-extern bool nidium_audio_prop_getter(JSContext *cx,
-                                     JS::HandleObject obj,
-                                     uint8_t id,
-                                     JS::MutableHandleValue vp);
+class JSAudioNode;
 
-static bool nidium_audio_run(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_audio_load(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_audio_createnode(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_audio_connect(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_audio_disconnect(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool nidium_audio_pFFT(JSContext *cx, unsigned argc, JS::Value *vp);
+class JSAudioContext : public ClassMapper<JSAudioContext>
+{
+public:
+    static JSAudioContext *GetContext();
+    static JSAudioContext *GetContext(JSContext * cx, unsigned int bufferSize,
+                               unsigned int channels, unsigned int sampleRate);
 
+    struct Nodes
+    {
+        JSAudioNode *curr;
 
+        Nodes *prev;
+        Nodes *next;
 
-static JSPropertySpec AudioContext_props[] = {
-    NIDIUM_JS_PSGS("volume",
-                   AUDIO_PROP_VOLUME,
-                   nidium_audio_prop_getter,
-                   nidium_audio_prop_setter),
-    NIDIUM_JS_PSG(
-        "bufferSize", AUDIO_PROP_BUFFERSIZE, nidium_audio_prop_getter),
-    NIDIUM_JS_PSG("channels", AUDIO_PROP_CHANNELS, nidium_audio_prop_getter),
-    NIDIUM_JS_PSG(
-        "sampleRate", AUDIO_PROP_SAMPLERATE, nidium_audio_prop_getter),
-    JS_PS_END
+        Nodes(JSAudioNode *curr, Nodes *prev, Nodes *next)
+            : curr(curr), prev(prev), next(next) { }
+        Nodes() : curr(NULL), prev(NULL), next(NULL) { }
+    };
+
+    AV::Audio *m_Audio;
+    Nodes *m_Nodes;
+    pthread_t m_ThreadIO;
+
+    NIDIUM_PTHREAD_VAR_DECL(m_ShutdownWait)
+
+    JS::Heap<JSObject *> m_JsGlobalObj;
+
+    JSRuntime *m_JsRt;
+    JSContext *m_JsTcx;
+    JSAudioNode *m_Target;
+
+    bool createContext();
+    void
+    initNode(JSAudioNode *node, JS::HandleObject jnode, JS::HandleString name);
+    bool run(char *str);
+    static void RunCallback(void *custom);
+    static void CtxCallback(void *custom);
+    static void ShutdownCallback(void *custom);
+    void unroot();
+
+    static void RegisterObject(JSContext *cx);
+    static JSPropertySpec *ListProperties();
+    static JSFunctionSpec *ListMethods();
+
+    ~JSAudioContext();
+protected:
+     NIDIUM_DECL_JSCALL(run);
+     NIDIUM_DECL_JSCALL(load);
+     NIDIUM_DECL_JSCALL(createNode);
+     NIDIUM_DECL_JSCALL(connect);
+     NIDIUM_DECL_JSCALL(disconnect);
+     NIDIUM_DECL_JSCALL(pFFT);
+
+    NIDIUM_DECL_JSGETTERSETTER(volume);
+    NIDIUM_DECL_JSGETTER(buffersize);
+    NIDIUM_DECL_JSGETTER(channels);
+    NIDIUM_DECL_JSGETTER(sampleRate);
+private:
+    JSAudioContext(AV::Audio *audio);
+    static JSAudioContext *m_Instance;
 };
-
-static JSFunctionSpec AudioContext_funcs[]
-    = { JS_FN("run", nidium_audio_run, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("load", nidium_audio_load, 1, NIDIUM_JS_FNPROPS),
-        JS_FN("createNode", nidium_audio_createnode, 3, NIDIUM_JS_FNPROPS),
-        JS_FN("connect", nidium_audio_connect, 2, NIDIUM_JS_FNPROPS),
-        JS_FN("disconnect", nidium_audio_disconnect, 2, NIDIUM_JS_FNPROPS),
-        JS_FN("pFFT", nidium_audio_pFFT, 2, NIDIUM_JS_FNPROPS),
-        JS_FS_END };
-
-static JSClass AudioContext_class = { "AudioContext",
-                                      JSCLASS_HAS_PRIVATE,
-                                      JS_PropertyStub,
-                                      JS_DeletePropertyStub,
-                                      JS_PropertyStub,
-                                      JS_StrictPropertyStub,
-                                      JS_EnumerateStub,
-                                      JS_ResolveStub,
-                                      JS_ConvertStub,
-                                      AudioContext_Finalize,
-                                      nullptr,
-                                      nullptr,
-                                      nullptr,
-                                      nullptr,
-                                      JSCLASS_NO_INTERNAL_MEMBERS };
 
 
 

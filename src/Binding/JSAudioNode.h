@@ -10,7 +10,7 @@
 #include "AV/Audio.h"
 #include "AV/AudioNode.h"
 #include "Binding/JSAV.h"
-#include "Binding/JSAudio.h"
+#include "Binding/JSAudioContext.h"
 #include "Binding/ClassMapper.h"
 
 using namespace Nidium::AV;
@@ -187,9 +187,9 @@ class JSAudioNode : public JSExposer<JSAudioNode>, public Core::Messages
 {
 public:
     JSAudioNode(JS::HandleObject obj, JSContext *cx, Audio::Node type,
-                int in, int out, JSAudio *audio);
+                int in, int out, JSAudioContext *audio);
     JSAudioNode(JS::HandleObject obj, JSContext *cx, Audio::Node type,
-                AudioNode *node, JSAudio *audio);
+                AudioNode *node, JSAudioContext *audio);
     ~JSAudioNode();
 
     struct Message
@@ -214,7 +214,7 @@ public:
 
     // Common
     NidiumJS *m_nJs;
-    JSAudio *m_Audio;
+    JSAudioContext *m_AudioContext;
     AudioNode *m_Node;
     Audio::Node m_NodeType;
 

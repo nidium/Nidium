@@ -3,7 +3,7 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#include "Binding/JSAudio.h"
+#include "Binding/JSAudioContext.h"
 #include "Binding/JSVideo.h"
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSCanvas.h"
@@ -196,7 +196,7 @@ bool JSVideo::JS_open(JSContext *cx, JS::CallArgs &args)
 
 bool JSVideo::JS_getAudioNode(JSContext *cx, JS::CallArgs &args)
 {
-    JSAudio *jaudio = JSAudio::GetContext();
+    JSAudioContext *jaudio = JSAudioContext::GetContext();
 
     if (!jaudio) {
         JS_ReportError(cx, "No Audio context");
@@ -213,8 +213,9 @@ bool JSVideo::JS_getAudioNode(JSContext *cx, JS::CallArgs &args)
     AudioSource *source = this->m_Video->getAudioNode(jaudio->m_Audio);
 
     if (source != NULL) {
+        JSClass * audioNode_class = AudioNode::GetJSClass();
         JS::RootedObject audioNode(
-            cx, JS_NewObjectForConstructor(cx, &AudioNode_class, args));
+            cx, JS_NewObjectForConstructor(cx, audioNode_class, args));
         this->m_AudioNode = audioNode;
 
         JSAudioNode *node
