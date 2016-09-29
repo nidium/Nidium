@@ -28,11 +28,11 @@ Deps.set(
 )
 
 if Platform.system == "Darwin":
+    Platform.setEnviron("CXXFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
     Platform.setEnviron("CPPFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
-    # Special env for Nidium, used by some librarires (skia, angle)
-    # that produce binaries. LDFLAGS is not directly used since it breaks
-    # others C librairies (c-ares).
-    Platform.setEnviron("CPPLDFLAGS+=-stdlib=libc++ -std=c++11")
+    # Some third-party librairires (skia, angle, mozilla-central)
+    # produce binaries. So we need to set LDFLAGS too.
+    Platform.setEnviron("LDFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
 CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -41,10 +41,6 @@ Gyp = Builder.Gyp
 @Deps.register("leveldb")
 def leveldb():
     cxxFlags = os.environ.get("CXXFLAGS", "")
-
-    if Platform.system == "Darwin":
-        # LevelDB needs some specifics flags for OSX (?)
-        cxxFlags += " -stdlib=libc++ -mmacosx-version-min=10.7 -std=c++11"
 
     if Konstruct.config("asan"):
         # Fix ASAN container overflow false positive :
@@ -74,9 +70,17 @@ def libnspr():
 @Deps.register("mozilla-central")
 def mozilla():
     nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/"))
-    nsprFlags = "--with-nspr-cflags=\"-I" + nsprDir + "/dist/include/nspr/\" --with-nspr-libs=\"" + nsprDir + "/dist/lib/libnspr4.a " + nsprDir + "/dist/lib/libplds4.a " + nsprDir + "/dist/lib/libplc4.a\""
+    nsprFlags = "--with-nspr-cflags=\"-I%s/dist/include/nspr/\" \
+                 --with-nspr-libs=\"%s/dist/lib/libnspr4.a \
+                                    %s/dist/lib/libplds4.a \
+                                    %s/dist/lib/libplc4.a\"" % (
+                                        nsprDir, nsprDir, nsprDir, nsprDir)
 
-    configureEnvVars = "CXXFLAGS=\"-Wno-null-conversion\" MOZ_ZLIB_CFLAGS=-I%s MOZ_ZLIB_LIBS=\"-L%s -lz\"" % (os.path.abspath("zlib"), os.path.abspath("zlib"))
+    configureEnvVars = "CXXFLAGS=\"%s -Wno-null-conversion\" \
+                        MOZ_ZLIB_CFLAGS=-I%s MOZ_ZLIB_LIBS=\"-L%s -lz\"" % (
+                            os.environ.get("CXXFLAGS", ""),
+                            os.path.abspath("zlib"), os.path.abspath("zlib"))
+
     configure = "%s ./js/src/configure\
             --disable-shared-js\
             --enable-threadsafe\
