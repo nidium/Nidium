@@ -123,9 +123,8 @@ Context::Context(ape_global *net)
 #if DEBUG
       m_Debug2Handler(NULL),
 #endif
-      m_UI(NULL), m_NML(NULL), m_GLState(NULL), m_JSWindow(NULL),
-      m_SizeDirty(false), m_CurrentClickedHandler(NULL), m_WSClient(NULL),
-      m_WS(NULL)
+      m_UI(NULL), m_NML(NULL), m_GLState(NULL), m_WS(NULL), m_WSClient(NULL),
+      m_JSWindow(NULL), m_SizeDirty(false), m_CurrentClickedHandler(NULL)
 {
     Path::RegisterScheme(SCHEME_DEFINE("embed://", EmbedStream, false));
     Path::RegisterScheme(SCHEME_DEFINE("system://", SystemStream, false));
@@ -845,7 +844,7 @@ JSObject *Context::ReadStructuredCloneOp(JSContext *cx,
 
             JS::RootedObject dataObject(cx,
               JSImageData::CreateObject(cx, new JSImageData()));
-            
+
             JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
             JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
             JS_DefineProperty(cx, dataObject, "width", widthVal,
