@@ -52,7 +52,7 @@ CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
 def portaudio():
     return {
         "location": DEPEDENCY_REPO + "/portaudio.tgz",
-        "build": ["./configure --without-jack --without-asihpi --without-winapi --enable-cxx", "make -j1", "make  src/common/pa_ringbuffer.o"],
+        "build": ["./configure --without-jack --without-asihpi --without-winapi", "make -j1", "make  src/common/pa_ringbuffer.o"],
         "outputs": ["lib/.libs/libportaudio.a"],
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "portaudio.patch")]
     }
@@ -89,8 +89,7 @@ def skia():
                     "-Wno-sign-compare -Wno-undefined-bool-conversion" + # needed for "make tools" with clang3.7
                     " -I%s -I%s\"" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/")))
 
-    exports += (" LDFLAGS=\"%s %s -L%s -L%s\"" % (
-                            os.environ.get("CPPLDFLAGS", ""),
+    exports += (" LDFLAGS=\"%s -L%s -L%s\"" % (
                             os.environ.get("LDFLAGS", ""),
                             os.path.join(Deps.getDir(), "zlib"),
                             os.path.join(Deps.getDir(), "giflib/lib/.libs")))
@@ -165,7 +164,7 @@ def angle():
     cxxFlags = os.environ.get("CXXFLAGS", "")
 
     # Disable some errors for clang 3.5 & 3.7
-    cxxFlags += "-Wno-c++11-narrowing -Wno-sign-compare -Wno-error"
+    cxxFlags += " -Wno-c++11-narrowing -Wno-sign-compare -Wno-error"
 
     if Platform.wordSize == 32:
         cxxFlags += " -msse -msse2 -msse3"
@@ -179,7 +178,7 @@ def angle():
         "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785"),
         "build": [
             "python scripts/bootstrap.py",
-            "GYP_GENERATORS=ninja LDFLAGS=\"%s\" CXXFLAGS=\"%s\" gclient sync" % (os.environ.get("CPPLDFLAGS", ""), cxxFlags),
+            "GYP_GENERATORS=ninja LDFLAGS=\"%s\" CXXFLAGS=\"%s\" gclient sync" % (os.environ.get("LDFLAGS", ""), cxxFlags),
             fixAngleThinArchive,
             "ninja -C out/Release/"
         ],
