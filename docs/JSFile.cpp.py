@@ -80,7 +80,7 @@ f.open("w+", function(err) {
         ParamDoc( "buffer", "The content to write to the file", 'string|ArrayBuffer', NO_Default, IS_Obligated ),
         CallbackDoc( "callback", "Read callback function", [
             ParamDoc( "err", "Error description", "string", NO_Default, IS_Obligated ),
-        ])
+        ], NO_Default, IS_Obligated)
     ],
     NO_Returns
 )
