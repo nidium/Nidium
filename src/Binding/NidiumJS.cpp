@@ -746,7 +746,7 @@ int NidiumJS::LoadScriptContent(const char *data,
     /*
         Detect JSBytecode using XDR magic number ad defined in xdr.h
     */
-    // TODO: static cast...
+    // TODO: new style cast...
     if ((*(uint32_t *)data & 0xFFFFFF00) == 0xb973c000) {
         return this->LoadBytecode((void *)(data), len, filename);
     }
