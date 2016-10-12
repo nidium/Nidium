@@ -94,6 +94,12 @@ JSHTTP *JSHTTP::Constructor(JSContext *cx, JS::CallArgs &args,
         jshttp->parseOptions(cx, options);
 
         if (!callback.isNull()) {
+            /*
+                We need to associate the object early because 
+                jshttp->request require m_instance and root()
+            */
+            AssociateObject(cx, jshttp, obj);
+
             // Have a callback, directly execute the request
             if (!jshttp->request(cx, options, callback)) {
                 return nullptr;
