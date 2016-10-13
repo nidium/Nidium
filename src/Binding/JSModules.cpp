@@ -157,7 +157,7 @@ bool JSModule::initNative()
 {
     JS::RootedObject exports(
         m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
-    NidiumJS *njs = NidiumJS::GetObject(m_Cx);
+
     if (!exports) {
         return false;
     }
@@ -176,14 +176,13 @@ bool JSModule::initNative()
     }
 
     m_Exports = exports;
-    njs->rootObjectUntilShutdown(m_Exports);
+    NidiumJS::RootObjectUntilShutdown(m_Exports);
 
     return true;
 }
 
 bool JSModule::initNativeEmbedded()
 {
-    NidiumJS *njs = NidiumJS::GetObject(m_Cx);
     JSModules::EmbeddedCallback registerCallback
         = JSModules::FindEmbedded(m_Name);
 
@@ -193,7 +192,7 @@ bool JSModule::initNativeEmbedded()
     if (!obj) return false;
 
     m_Exports = obj;
-    njs->rootObjectUntilShutdown(m_Exports);
+    NidiumJS::RootObjectUntilShutdown(m_Exports);
 
     return true;
 }
@@ -209,8 +208,6 @@ bool JSModule::initJS()
     if (!gbl) {
         return false;
     }
-
-    NidiumJS *njs = NidiumJS::GetObject(m_Cx);
 
     JS_SetPrivate(gbl, this);
 
@@ -261,7 +258,7 @@ bool JSModule::initJS()
     js::SetFunctionNativeReserved(funObj, 1, exportsVal);
 
     m_Exports = gbl;
-    njs->rootObjectUntilShutdown(m_Exports);
+    NidiumJS::RootObjectUntilShutdown(m_Exports);
 
     return true;
 #undef TRY_OR_DIE
@@ -271,7 +268,6 @@ JS::Value JSModule::require(char *name)
 {
     JS::RootedValue ret(m_Cx);
     JSModule *cmodule;
-    NidiumJS *njs = NidiumJS::GetObject(m_Cx);
 
     ret.setUndefined();
 
@@ -423,7 +419,7 @@ JS::Value JSModule::require(char *name)
                 JS_free(m_Cx, jchars);
 
                 cmodule->m_Exports.set(jsonData.toObjectOrNull());
-                njs->rootObjectUntilShutdown(cmodule->m_Exports);
+                NidiumJS::RootObjectUntilShutdown(cmodule->m_Exports);
             }
         }
     }

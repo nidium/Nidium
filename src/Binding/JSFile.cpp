@@ -98,7 +98,7 @@ public:
             JS_CallFunctionValue(cx, JS::NullPtr(), cb, params, &rval);
         }
 
-        NidiumJS::GetObject(cx)->unrootObject(callback);
+        NidiumJS::UnrootObject(callback);
 
         stream->setListener(NULL);
 
@@ -219,7 +219,7 @@ void JSFile::onMessage(const SharedMessages::Message &msg)
         JS_CallFunctionValue(cx, jsthis, cb, params, &rval);
     }
 
-    NidiumJS::GetObject(cx)->unrootObject(callback);
+    NidiumJS::UnrootObject(callback);
 
 }
 
@@ -303,7 +303,7 @@ bool JSFile::JS_listFiles(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
+    NidiumJS::RootObjectUntilShutdown(callback.toObjectOrNull());
 
     /*
         If the directory is not open, open it anyway
@@ -332,7 +332,7 @@ bool JSFile::JS_seek(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
+    NidiumJS::RootObjectUntilShutdown(callback.toObjectOrNull());
 
     this->getFile()->seek(seek_pos, callback.toObjectOrNull());
 
@@ -361,8 +361,7 @@ bool JSFile::JS_write(JSContext *cx, JS::CallArgs &args)
             cstr.encodeLatin1(cx, str);
         }
 
-        NidiumJS::GetObject(cx)
-            ->rootObjectUntilShutdown(callback.toObjectOrNull());
+        NidiumJS::RootObjectUntilShutdown(callback.toObjectOrNull());
 
         file->write(cstr.ptr(), cstr.length(), callback.toObjectOrNull());
     } else if (args[0].isObject()) {
@@ -376,8 +375,7 @@ bool JSFile::JS_write(JSContext *cx, JS::CallArgs &args)
         uint32_t len  = JS_GetArrayBufferByteLength(jsobj);
         uint8_t *data = JS_GetArrayBufferData(jsobj);
 
-        NidiumJS::GetObject(cx)
-            ->rootObjectUntilShutdown(callback.toObjectOrNull());
+        NidiumJS::RootObjectUntilShutdown(callback.toObjectOrNull());
 
         file->write(reinterpret_cast<char *>(data), len,
                     callback.toObjectOrNull());
@@ -405,7 +403,7 @@ bool JSFile::JS_read(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
+    NidiumJS::RootObjectUntilShutdown(callback.toObjectOrNull());
 
     this->getFile()->read(static_cast<uint64_t>(read_size), callback.toObjectOrNull());
 
@@ -439,7 +437,7 @@ bool JSFile::JS_open(JSContext *cx, JS::CallArgs &args)
 
     JSAutoByteString cmodes(cx, modes);
 
-    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
+    NidiumJS::RootObjectUntilShutdown(callback.toObjectOrNull());
 
     this->getFile()->open(cmodes.ptr(), callback.toObjectOrNull());
 
@@ -480,7 +478,7 @@ bool JSFile::JSStatic_read(JSContext *cx, JS::CallArgs &args)
     }
 
     JSAutoByteString cfilename(cx, filename);
-    NidiumJS::GetObject(cx)->rootObjectUntilShutdown(&callback.toObject());
+    NidiumJS::RootObjectUntilShutdown(&callback.toObject());
 
     Stream *stream = Stream::Create(Path(cfilename.ptr()));
 

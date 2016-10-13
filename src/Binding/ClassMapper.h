@@ -311,7 +311,7 @@ public:
             return;
         }
 
-        NidiumJSObj(m_Cx)->rootObjectUntilShutdown(m_Instance);
+        NidiumJS::RootObjectUntilShutdown(m_Instance);
         m_Rooted = true;
     }
 
@@ -325,7 +325,7 @@ public:
             return;
         }
 
-        NidiumJSObj(m_Cx)->unrootObject(m_Instance);
+        NidiumJS::UnrootObject(m_Instance);
         m_Rooted = false;
     }
 
