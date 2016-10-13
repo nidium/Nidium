@@ -91,14 +91,15 @@ JSHTTP *JSHTTP::Constructor(JSContext *cx, JS::CallArgs &args,
 
         getOptionsAndCallback(cx, &args, 1, &options, &callback);
 
+        /*
+            We need to associate the object early because 
+            jshttp->request and parseOptions require m_instance and root()
+        */
+        AssociateObject(cx, jshttp, obj);
+
         jshttp->parseOptions(cx, options);
 
         if (!callback.isNull()) {
-            /*
-                We need to associate the object early because 
-                jshttp->request require m_instance and root()
-            */
-            AssociateObject(cx, jshttp, obj);
 
             // Have a callback, directly execute the request
             if (!jshttp->request(cx, options, callback)) {
@@ -337,7 +338,7 @@ void JSHTTP::onError(int code, const char *error)
         m_Cx, JSEvents::CreateErrorEventObject(m_Cx, code, error));
     JS::RootedValue eventValue(m_Cx, OBJECT_TO_JSVAL(eventObject));
 
-    this->fireJSEvent("error", &eventValue);
+    ClassMapperWithEvents<JSHTTP>::fireJSEvent("error", &eventValue);
 
     JS_SetReservedSlot(m_Instance, 0, JS::NullValue());
     JS_SetReservedSlot(m_Instance, 1, JS::NullValue());
@@ -376,7 +377,7 @@ void JSHTTP::onProgress(size_t offset,
         }
     }
 
-    this->fireJSEvent("progress", &eventValue);
+    ClassMapperWithEvents<JSHTTP>::fireJSEvent("progress", &eventValue);
 }
 
 void JSHTTP::headersToJSObject(JS::MutableHandleObject obj)
@@ -416,7 +417,7 @@ void JSHTTP::onHeader()
     eventBuilder.set("headers", headersVal);
     eventBuilder.set("statusCode", m_HTTP->m_HTTP.parser.status_code);
 
-    this->fireJSEvent("headers", &eventValue);
+    ClassMapperWithEvents<JSHTTP>::fireJSEvent("headers", &eventValue);
 }
 
 void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
