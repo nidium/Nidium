@@ -569,6 +569,8 @@ bool JSCanvas::JSSetter_left(JSContext *cx, JS::MutableHandleValue vp)
         return true;
     }
 
+    printf("set left %f\n", dval);
+
     m_CanvasHandler->setLeft(dval);
 
     return true;

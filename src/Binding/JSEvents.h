@@ -22,13 +22,12 @@ struct JSEvent
 
         m_Cx = cx;
 
-        NidiumJS::GetObject(m_Cx)
-            ->rootObjectUntilShutdown(func.toObjectOrNull());
+        NidiumJS::RootObjectUntilShutdown(func.toObjectOrNull());
     }
 
     ~JSEvent()
     {
-        NidiumJS::GetObject(m_Cx)->unrootObject(m_Function.toObjectOrNull());
+        NidiumJS::UnrootObject(m_Function.toObjectOrNull());
     }
 
     JSContext *m_Cx;

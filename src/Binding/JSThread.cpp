@@ -123,6 +123,8 @@ static void *nidium_thread(void *arg)
         JS_SetStructuredCloneCallbacks(rt, NidiumJS::m_JsScc);
         JS_SetInterruptCallback(rt, JSThreadCallback);
 
+        NidiumJS::InitThreadContext(rt, tcx);
+
         nthread->m_JsRuntime = rt;
         nthread->m_JsCx      = tcx;
 
