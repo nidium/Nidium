@@ -133,7 +133,7 @@ public:
         if (jsclass != ClassMapper<T>::GetJSClass()) {
             printf("[Debug] JSClass is overriden for %s\n", name);
         }
-        assert(jsclass->name == NULL);
+        assert(jsclass->name == NULL || strcmp(jsclass->name, name) == 0);
 #endif
 
         jsclass->name     = name;
