@@ -12,6 +12,7 @@ Tests.registerAsync("Socket listen", function(next) {
     var server = new Socket("127.0.0.1", 9027).listen();
 
     var client = new Socket("127.0.0.1", 9027).connect();
+    var done = false;
 
     server.onaccept = function(new_client) {
         new_client.foo = "bar";
@@ -30,9 +31,11 @@ Tests.registerAsync("Socket listen", function(next) {
         Assert.equal(new_client.foo, "bar");
 
         new_client.disconnect();
+        done = true;
     }
 
     client.ondisconnect = function() {
+        Assert.equal(done, true);
         next();
     }
 
