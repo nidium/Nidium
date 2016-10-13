@@ -23,7 +23,7 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ JSBinding
-JSWebSocket::JSWebSocket(
+JSWebSocket::JSWebSocket(JSContext *cx,
                          const char *host,
                          unsigned short port,
                          const char *path,
@@ -31,10 +31,10 @@ JSWebSocket::JSWebSocket(
 {
     m_WebSocketClient = new WebSocketClient(port, path, host);
     bool ret = m_WebSocketClient->connect(
-        ssl, static_cast<ape_global *>(JS_GetContextPrivate(m_Cx)));
+        ssl, static_cast<ape_global *>(JS_GetContextPrivate(cx)));
 
     if (!ret) {
-        JS_ReportWarning(m_Cx, "Failed to connect to WS endpoint\n");
+        JS_ReportWarning(cx, "Failed to connect to WS endpoint\n");
         return;
     }
 
@@ -203,7 +203,7 @@ JSWebSocket *JSWebSocket::Constructor(JSContext *cx, JS::CallArgs &args,
         return nullptr;
     }
 
-    JSWebSocket *wss = new JSWebSocket(host, port, path, isSSL);
+    JSWebSocket *wss = new JSWebSocket(cx, host, port, path, isSSL);
     wss->root();
 
     free(path);
