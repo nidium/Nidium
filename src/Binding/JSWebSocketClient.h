@@ -18,7 +18,7 @@ namespace Binding {
 class JSWebSocket : public ClassMapper<JSWebSocket>, public Nidium::Core::Messages
 {
 public:
-    JSWebSocket(const char *host,
+    JSWebSocket(JSContext *cx, const char *host,
                 unsigned short port,
                 const char *path,
                 bool ssl = false);
