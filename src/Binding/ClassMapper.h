@@ -196,9 +196,9 @@ public:
         */
         this->root();
 
-        NidiumJS *njs = NidiumJS::GetObject(m_Cx);
+        NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
 
-        njs->m_JSUniqueInstance.set((uintptr_t)T::GetJSClass(),
+        nlc->m_JSUniqueInstance.set((uintptr_t)T::GetJSClass(),
             (uintptr_t)this);
     }
 
@@ -213,6 +213,8 @@ public:
 #ifdef DEBUG
         JSClass *jsclass = T::GetJSClass();
         assert(jsclass->name != NULL);
+        /* CX doesn't match local thread CX */
+        assert(NidiumJS::GetLocalContext()->cx == cx);
 #endif
 
         obj->setUniqueInstance();
@@ -265,11 +267,11 @@ public:
      *  Get a singleton ClassMapper<T> object.
      *  It's used for object created with CreateUniqueInstance()
      */    
-    static inline T *GetInstanceSingleton(JSContext *cx = nullptr)
+    static inline T *GetInstanceSingleton()
     {
-        NidiumJS *njs = NidiumJS::GetObject(cx);
+        NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
 
-        return reinterpret_cast<T *>(njs->m_JSUniqueInstance.get(
+        return reinterpret_cast<T *>(nlc->m_JSUniqueInstance.get(
             (uintptr_t)T::GetJSClass()));
     }
 
