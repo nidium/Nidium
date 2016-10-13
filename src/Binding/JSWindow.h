@@ -35,7 +35,7 @@ public:
     static inline JSWindow *GetInstance(JSObject *obj,
         JSContext *cx = nullptr)
     {
-        return ClassMapper<JSWindow>::GetInstanceSingleton(cx);
+        return ClassMapper<JSWindow>::GetInstanceSingleton();
     }
 
     static inline JSWindow *GetInstanceUnsafe(JS::HandleObject obj,

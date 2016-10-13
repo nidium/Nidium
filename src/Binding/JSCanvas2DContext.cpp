@@ -1381,7 +1381,7 @@ bool Canvas2DContext::JSSetter_fontFamily(JSContext *cx,
 {
     JS::RootedString vpStr(cx, JS::ToString(cx, vp));
     JSAutoByteString font(cx, vpStr);
-    m_Skia->setFontType(font.ptr(), JSDocument::GetInstanceSingleton(cx));;
+    m_Skia->setFontType(font.ptr(), JSDocument::GetInstanceSingleton());;
 
     return true;
 }

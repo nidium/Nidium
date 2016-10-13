@@ -65,6 +65,7 @@ struct NidiumLocalContext {
     JSContext *cx;
     struct _ape_htable *m_RootedObj;
     bool m_IsShuttingDown = false;
+    Nidium::Core::Hash64<uintptr_t> m_JSUniqueInstance{64};
 
 };
 
@@ -87,8 +88,6 @@ public:
     Nidium::Core::SharedMessages *m_Messages;
 
     Nidium::Core::Hash<JSObject *> m_JsObjects;
-
-    Nidium::Core::Hash64<uintptr_t> m_JSUniqueInstance{64};
 
     struct _ape_htable *m_RootedObj;
     struct _ape_global *m_Net;
