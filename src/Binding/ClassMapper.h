@@ -73,10 +73,10 @@ namespace Binding {
     static bool JSStatic_##name(JSContext *cx, JS::CallArgs &args)
 
 #define NIDIUM_DECL_JSGETTER(name) \
-    bool JSGetter_##name(JSContext *, JS::MutableHandleValue)
+    bool JSGetter_##name(JSContext *cx, JS::MutableHandleValue vp)
 
 #define NIDIUM_DECL_JSSETTER(name) \
-    bool JSSetter_##name(JSContext *, JS::MutableHandleValue)
+    bool JSSetter_##name(JSContext *cx, JS::MutableHandleValue vp)
 
 #define NIDIUM_DECL_JSGETTERSETTER(name) \
     NIDIUM_DECL_JSGETTER(name); \
