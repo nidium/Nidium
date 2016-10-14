@@ -324,7 +324,7 @@ FunctionDoc( "AudioNode.assignSeek", """Assign to the node a function to be call
 
 FunctionDoc( "AudioNode.assignProcessor", """Assign to the node a function to be called when the node needs to process audio data.
 
-This can be used to fill the audiobuffers of the node. This callback runs is another thread than the main nidium UI. If you need to pass Variables you must expicitly set them with `AudioNode.set`.""",
+This can be used to fill the audio buffers of the node to generate sound. This callback runs is another thread than the main nidium UI. If you need to pass Variables you must expicitly set them with `AudioNode.set`.""",
     SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter|AVNode.message" ),
     [ExampleDoc("""var dsp = Audio.getContext();
 var source = dsp.createNode("custom-source", 0, 2);
@@ -378,14 +378,14 @@ setTimeout(function() {
 source.play();
 """)],
     IS_Dynamic, IS_Public, IS_Fast,
-    [
+    [CallbackDoc("processor", "Callback function for generating sound", [
         ParamDoc( "frame", "An object with audio buffers",
             ObjectDoc([
                 ( "size", "The size of each audio frame in samples per buffer", "integer" ),
                 ( "data", "An array of `Float32Array` with the audio data. Each entry of the array represent a channel of the node", "[Float32Array]" )
             ]), NO_Default, IS_Obligated),
         ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated )
-    ]
+    ])]
 )
 
 FunctionDoc( "AudioNode.assignInit", "Assign a function to a `custom-source` or `custom` node called when the node is initialized.\n\n> * Nodes are initialized when they are starting to process data.",
