@@ -15,12 +15,19 @@ using namespace Nidium::AV;
 namespace Nidium {
 namespace Binding {
 
-void audio_RegisterObject(JSContext *cx);
+class JSAudio : public ClassMapper<JSAudio>
+{
+public:
+    static JSFunctionSpec *ListMethods();
+    static void RegisterObject(JSContext *cx);
+    static void RegisterAllObjects(JSContext *cx);
+
+protected:
+    NIDIUM_DECL_JSCALL(getContext);
+};
 
 } // namespace Binding
 } // namespace Nidium
 
 
-
 #endif
-

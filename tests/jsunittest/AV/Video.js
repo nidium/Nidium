@@ -55,7 +55,7 @@ Tests.register("Video.metadata", function() {
 
 Tests.register("Video.getAudioNode", function() {
     var node = video.getAudioNode();
-    Assert(node instanceof AudioNode, "Video should have an audio node");
+    Assert(node instanceof AudioNodeSourceVideo, "Video should have an audio node");
 }, 5000);
 
 Tests.registerAsync("Video.play", function(next) {

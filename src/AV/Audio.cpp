@@ -58,7 +58,7 @@ Audio::Audio(ape_global *n,
       m_PlaybackConsumedFrame(0), m_Output(NULL), m_InputStream(NULL),
       m_OutputStream(NULL), m_rBufferOutData(NULL), m_volume(1),
       m_SourceNeedWork(false), m_QueueFreeLock(false), m_SharedMsgFlush(false),
-      m_ThreadShutdown(false), m_Sources(NULL), m_MainCtx(NULL)
+      m_ThreadShutdown(false), m_Sources(NULL)
 {
     NIDIUM_PTHREAD_VAR_INIT(&m_QueueHaveData);
     NIDIUM_PTHREAD_VAR_INIT(&m_QueueHaveSpace);
@@ -608,12 +608,14 @@ AudioNode *Audio::createNode(Audio::Node node, int input, int output)
     try {
         switch (node) {
             case SOURCE: {
-                AudioNode *source = new AudioSource(output, this, false);
-                return this->addSource(source, false);
+                AudioSource *source = new AudioSource(output, this, false);
+                this->addSource(source, false);
+                return source;
             } break;
             case CUSTOM_SOURCE: {
-                AudioNode *source = new AudioSourceCustom(output, this);
-                return this->addSource(source, true);
+                AudioSourceCustom *source = new AudioSourceCustom(output, this);
+                this->addSource(source, true);
+                return source;
             } break;
             case GAIN:
                 return new AudioNodeGain(input, output, this);
@@ -667,15 +669,20 @@ float Audio::getVolume()
     return m_volume;
 }
 
-void Audio::wakeup()
+void Audio::wakeup(bool block)
 {
-    m_SharedMsgFlush = true;
+    if (block) {
+        m_SharedMsgFlush = true;
+    }
+
     m_QueueFreeLock  = true;
 
     NIDIUM_PTHREAD_SIGNAL(&m_QueueHaveData);
     NIDIUM_PTHREAD_SIGNAL(&m_QueueHaveSpace);
 
-    NIDIUM_PTHREAD_WAIT(&m_QueueMessagesFlushed);
+    if (block) {
+        NIDIUM_PTHREAD_WAIT(&m_QueueMessagesFlushed);
+    }
 
     m_QueueFreeLock = false;
 }

@@ -8,7 +8,7 @@ var dsp, node;
 Tests.register("CustomNode.create", function() {
     dsp = Audio.getContext();
     node = dsp.createNode("custom", 2, 2);
-    Assert(node instanceof AudioNode);
+    Assert(node instanceof AudioNodeCustom);
 });
 
 Tests.registerAsync("CustomNode.set(key, value)", function(next) {

@@ -18,6 +18,7 @@
 
 #include "Frontend/Context.h"
 #include "Binding/JSConsole.h"
+#include "Binding/JSAudioContext.h"
 #include "Macros.h"
 
 using namespace Nidium::AV;
@@ -32,14 +33,10 @@ namespace Binding {
 
 // TODO : Need to handle nodes GC, similar to
 //        https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#lifetime-AudioNode
-// TODO : Need to handle video GC
 // TODO : When stop/pause/kill fade out sound
 
-
-
-
-// {{{ Implementation
-bool JSTransferableFunction::prepare(JSContext *cx, JS::HandleValue val)
+// {{{ JSTransferable
+bool JSTransferable::set(JSContext *cx, JS::HandleValue val)
 {
     if (!JS_WriteStructuredClone(cx, val, &m_Data, &m_Bytes, nullptr, nullptr,
                                  JS::NullHandleValue)) {
@@ -49,84 +46,147 @@ bool JSTransferableFunction::prepare(JSContext *cx, JS::HandleValue val)
     return true;
 }
 
-bool JSTransferableFunction::call(JS::HandleObject obj,
-                                  JS::HandleValueArray params,
-                                  JS::MutableHandleValue rval)
+bool JSTransferable::transfert()
 {
-    if (m_Data != NULL) {
-        if (!this->transfert()) {
-            return false;
-        }
-    }
-
-    JS::RootedValue fun(m_DestCx, m_Fn.get());
-
-    return JS_CallFunctionValue(m_DestCx, obj, fun, params, rval);
-}
-
-bool JSTransferableFunction::transfert()
-{
-    JS::RootedValue fun(m_DestCx);
-
     bool ok = JS_ReadStructuredClone(m_DestCx, m_Data, m_Bytes,
-                                     JS_STRUCTURED_CLONE_VERSION, &fun, nullptr,
-                                     NULL);
+                                     JS_STRUCTURED_CLONE_VERSION, &m_Val,
+                                     nullptr, nullptr);
 
-    JS_ClearStructuredClone(m_Data, m_Bytes, nullptr, NULL);
+    JS_ClearStructuredClone(m_Data, m_Bytes, nullptr, nullptr);
 
     m_Data  = NULL;
     m_Bytes = 0;
-    m_Fn.set(fun);
 
     return ok;
 }
 
-JSTransferableFunction::~JSTransferableFunction()
+JSTransferable::~JSTransferable()
 {
     JSAutoRequest ar(m_DestCx);
+    JSAutoCompartment ac(m_DestCx, JS::CurrentGlobalOrNull(m_DestCx));
 
     if (m_Data != NULL) {
         JS_ClearStructuredClone(m_Data, m_Bytes, nullptr, NULL);
     }
 
-    JS::RootedValue fun(m_DestCx, m_Fn);
-    if (!fun.isUndefined()) {
-        fun.setUndefined();
-    }
+    m_Val.set(JS::UndefinedHandleValue);
 }
 
-const char *JSAVEventRead(int ev)
+JS::Value JSTransferable::get()
 {
-    switch (ev) {
-        case CUSTOM_SOURCE_SEND:
-            return "message";
+    if (m_Data) {
+        if (!this->transfert()) {
+            return JS::NullValue();
+        }
+    }
+
+    return m_Val.get();
+}
+
+bool JSTransferableFunction::set(JSContext *cx, JS::HandleValue val)
+{
+    if (!val.isNull() && (!val.isObject()
+                          || !JS_ObjectIsCallable(cx, val.toObjectOrNull()))) {
+        return false;
+    }
+
+    return JSTransferable::set(cx, val);
+}
+
+bool JSTransferableFunction::call(JS::HandleObject obj,
+                                  JS::HandleValueArray params,
+                                  JS::MutableHandleValue rval)
+{
+    JS_AUDIO_THREAD_PROLOGUE()
+
+    this->get();
+
+    if (m_Val.get().isNullOrUndefined()) {
+        return false;
+    }
+
+    return JS_CallFunctionValue(m_DestCx, obj, m_Val, params, rval);
+}
+// }}}
+
+// {{{ JSAVSourceEventInterface
+void JSAVSourceEventInterface::listenSourceEvents(
+    AV::AVSourceEventInterface *eventInterface)
+{
+    eventInterface->eventCallback(JSAVSourceEventInterface::onEvent, this);
+}
+
+void JSAVSourceEventInterface::onEvent(const struct AVSourceEvent *cev)
+{
+    JSAVSourceEventInterface *source
+        = static_cast<JSAVSourceEventInterface *>(cev->m_Custom);
+    source->postMessage((void *)cev, cev->m_Ev);
+}
+
+void JSAVSourceEventInterface::onMessage(const SharedMessages::Message &msg)
+{
+    if (this->isReleased()) return;
+
+    const char *evName;
+    JSContext *cx = this->getJSContext();
+
+    this->onSourceMessage(msg);
+
+    switch (msg.event()) {
         case SOURCE_EVENT_PAUSE:
-            return "pause";
+            evName = "pause";
             break;
         case SOURCE_EVENT_PLAY:
-            return "play";
+            evName = "play";
             break;
         case SOURCE_EVENT_STOP:
-            return "stop";
+            evName = "stop";
             break;
         case SOURCE_EVENT_EOF:
-            return "end";
+            evName = "end";
             break;
         case SOURCE_EVENT_ERROR:
-            return "error";
+            evName = "error";
             break;
         case SOURCE_EVENT_BUFFERING:
-            return "buffering";
+            evName = "buffering";
             break;
         case SOURCE_EVENT_READY:
-            return "ready";
+            evName = "ready";
             break;
         default:
-            return NULL;
-            break;
+            return;
+    }
+
+    JS::RootedValue ev(cx);
+    AVSourceEvent *cmsg = static_cast<struct AVSourceEvent *>(msg.dataPtr());
+
+    if (cmsg->m_Ev == SOURCE_EVENT_ERROR) {
+        int errorCode        = cmsg->m_Args[0].toInt();
+        const char *errorStr = AV::AVErrorsStr[errorCode];
+        JS::RootedObject evObj(
+            cx, JSEvents::CreateErrorEventObject(cx, errorCode, errorStr));
+        ev = OBJECT_TO_JSVAL(evObj);
+    } else if (cmsg->m_Ev == SOURCE_EVENT_BUFFERING) {
+        JS::RootedObject evObj(cx, JSEvents::CreateEventObject(cx));
+        JSObjectBuilder evBuilder(cx, evObj);
+
+        evBuilder.set("filesize", cmsg->m_Args[0].toInt());
+        evBuilder.set("startByte", cmsg->m_Args[1].toInt());
+        evBuilder.set("bufferedBytes", cmsg->m_Args[2].toInt());
+
+        ev = evBuilder.jsval();
+    }
+
+    delete cmsg;
+
+    if (!ev.isNull()) {
+        this->fireJSEvent(evName, &ev);
     }
 }
+// }}}
 
+// {{{ JSAVSourceBase
 void CopyMetaDataToJS(AVDictionary *dict, JSContext *cx, JS::HandleObject obj)
 {
     AVDictionaryEntry *tag = NULL;
@@ -142,54 +202,123 @@ void CopyMetaDataToJS(AVDictionary *dict, JSContext *cx, JS::HandleObject obj)
                                                         | JSPROP_PERMANENT);
     }
 }
-// {{{ JSAVSource
-bool JSAVSource::PropSetter(AVSource *source,
-                            uint8_t id,
-                            JS::MutableHandleValue vp)
+
+bool JSAVSourceBase::JS__open(JSContext *cx, JS::CallArgs &args)
 {
-    switch (id) {
-        case SOURCE_PROP_POSITION:
-            if (vp.isNumber()) {
-                source->seek(vp.toNumber());
-            }
-            break;
-        default:
-            break;
+    AVSource *source = this->getSource();
+
+    JS::RootedValue src(cx, args[0]);
+
+    int ret = -1;
+
+    if (src.isString()) {
+        JSAutoByteString csrc(cx, src.toString());
+        ret = source->open(csrc.ptr());
+    } else if (src.isObject()) {
+        JS::RootedObject arrayBuff(cx, src.toObjectOrNull());
+        if (!JS_IsArrayBufferObject(arrayBuff)) {
+            JS_ReportError(cx, "Data is not an ArrayBuffer\n");
+            return false;
+        }
+        int length           = JS_GetArrayBufferByteLength(arrayBuff);
+        this->m_ArrayContent = JS_StealArrayBufferContents(cx, arrayBuff);
+        ret                  = source->open(m_ArrayContent, length);
+    } else {
+        JS_ReportError(cx, "Invalid argument", ret);
+        return false;
+    }
+
+    if (ret < 0) {
+        JS_ReportError(cx, "Failed to open stream %d\n", ret);
+        return false;
     }
 
     return true;
 }
 
-void JSAVSource::GetMetadata(JSContext *cx, AVSource *source, JS::MutableHandleValue vp)
+bool JSAVSourceBase::JS__play(JSContext *cx, JS::CallArgs &args)
 {
-    AVFormatContext *avctx = source->getAVFormatContext();
+    this->getSource()->play();
+
+    // play() may call the JS "onready" callback in a synchronous way
+    // thus, if an exception happen in the callback, we should return false
+    return !JS_IsExceptionPending(cx);
+}
+
+bool JSAVSourceBase::JS__pause(JSContext *cx, JS::CallArgs &args)
+{
+    this->getSource()->pause();
+
+    return !JS_IsExceptionPending(cx);
+}
+
+bool JSAVSourceBase::JS__stop(JSContext *cx, JS::CallArgs &args)
+{
+    this->getSource()->stop();
+
+    return !JS_IsExceptionPending(cx);
+}
+
+bool JSAVSourceBase::JS__close(JSContext *cx, JS::CallArgs &args)
+{
+    this->getSource()->close();
+
+    return !JS_IsExceptionPending(cx);
+}
+
+bool JSAVSourceBase::JSGetter__position(JSContext *cx,
+                                        JS::MutableHandleValue vp)
+{
+    vp.setDouble(this->getSource()->getClock());
+
+    return true;
+}
+
+bool JSAVSourceBase::JSSetter__position(JSContext *cx,
+                                        JS::MutableHandleValue vp)
+{
+    if (vp.isNumber()) {
+        this->getSource()->seek(vp.toNumber());
+    }
+
+    return true;
+}
+
+bool JSAVSourceBase::JSGetter__duration(JSContext *cx,
+                                        JS::MutableHandleValue vp)
+{
+    vp.setDouble(this->getSource()->getDuration());
+    return true;
+}
+
+bool JSAVSourceBase::JSGetter__metadata(JSContext *cx,
+                                        JS::MutableHandleValue vp)
+{
+    AVFormatContext *avctx = this->getSource()->getAVFormatContext();
+    printf("got a context @ %p\n", avctx);
 
     if (avctx != NULL) {
-        JS::RootedObject metadata(
-            cx,
-            JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
         AVDictionary *cmetadata = avctx->metadata;
+        JS::RootedObject metadata(
+            cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
         if (cmetadata) {
             CopyMetaDataToJS(cmetadata, cx, metadata);
         }
 
         JS::RootedObject arr(cx, JS_NewArrayObject(cx, 0));
-        JS_DefineProperty(cx, metadata, "streams", arr,
-                          JSPROP_ENUMERATE | JSPROP_READONLY
-                              | JSPROP_PERMANENT);
+        JS_DefineProperty(cx, metadata, "streams", arr, JSPROP_ENUMERATE
+                                                            | JSPROP_READONLY
+                                                            | JSPROP_PERMANENT);
 
         for (int i = 0; i < avctx->nb_streams; i++) {
             JS::RootedObject streamMetaData(
-                cx, JS_NewObject(cx, nullptr, JS::NullPtr(),
-                                 JS::NullPtr()));
+                cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
-            CopyMetaDataToJS(avctx->streams[i]->metadata, cx,
-                             streamMetaData);
+            CopyMetaDataToJS(avctx->streams[i]->metadata, cx, streamMetaData);
 
-            JS_DefineElement(cx, arr, i,
-                             OBJECT_TO_JSVAL(streamMetaData), nullptr,
-                             nullptr, 0);
+            JS_DefineElement(cx, arr, i, OBJECT_TO_JSVAL(streamMetaData),
+                             nullptr, nullptr, 0);
         }
 
         /*
@@ -220,38 +349,20 @@ void JSAVSource::GetMetadata(JSContext *cx, AVSource *source, JS::MutableHandleV
         }
         */
 
-        vp.setObject(*metadata);
+        vp.setObjectOrNull(metadata);
     } else {
         vp.setUndefined();
-    }
-}
-bool JSAVSource::PropGetter(AVSource *source,
-                            JSContext *cx,
-                            uint8_t id,
-                            JS::MutableHandleValue vp)
-{
-    switch (id) {
-        case SOURCE_PROP_POSITION:
-            vp.setDouble(source->getClock());
-            break;
-        case SOURCE_PROP_DURATION:
-            vp.setDouble(source->getDuration());
-            break;
-        case SOURCE_PROP_BITRATE:
-            vp.setInt32(source->getBitrate());
-            break;
-        case SOURCE_PROP_METADATA:
-            JSAVSource::GetMetadata(cx, source, vp );
-            break;
-        default:
-            vp.setUndefined();
-            break;
     }
 
     return true;
 }
-// }}}
 
+bool JSAVSourceBase::JSGetter__bitrate(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setInt32(this->getSource()->getBitrate());
+
+    return true;
+}
 // }}}
 
 } // namespace Binding

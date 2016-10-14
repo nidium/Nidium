@@ -5,6 +5,7 @@
 */
 #include "Frontend/Context.h"
 #include "Binding/JSAudio.h"
+#include "Binding/JSAudioNode.h"
 #include "Macros.h"
 
 using namespace Nidium::AV;
@@ -14,62 +15,58 @@ namespace Binding {
 
 
 // {{{JSAudio
-static bool
-nidium_Audio_constructor(JSContext *cx, unsigned argc, JS::Value *vp);
-static bool
-nidium_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp);
-
-static JSClass Audio_class = { "Audio",
-                               JSCLASS_HAS_PRIVATE,
-                               JS_PropertyStub,
-                               JS_DeletePropertyStub,
-                               JS_PropertyStub,
-                               JS_StrictPropertyStub,
-                               JS_EnumerateStub,
-                               JS_ResolveStub,
-                               JS_ConvertStub,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               nullptr,
-                               JSCLASS_NO_INTERNAL_MEMBERS };
-
-static JSFunctionSpec Audio_static_funcs[]
-    = { JS_FN("getContext", nidium_audio_getcontext, 3, NIDIUM_JS_FNPROPS),
-        JS_FS_END };
-
-static bool
-nidium_Audio_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
-
+JSFunctionSpec *JSAudio::ListMethods()
 {
-    JS_ReportError(cx, "Illegal constructor");
-    return false;
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSAudio, getContext, 0),
+        JS_FS_END
+    };
+
+    return funcs;
 }
-// }}}
 
-
-bool nidium_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
+void JSAudio::RegisterObject(JSContext *cx)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JSAudio::ExposeClass(cx, "NidiumAudio", JSCLASS_HAS_RESERVED_SLOTS(1));
+    JSAudio::CreateUniqueInstance(cx, new JSAudio(), "Audio");
+}
+
+void JSAudio::RegisterAllObjects(JSContext *cx)
+{
+    JSAudio::RegisterObject(cx);
+    JSAudioContext::RegisterObject(cx);
+    JSAudioNodeGain::RegisterObject(cx);
+    JSAudioNodeBuffers::RegisterObject(cx);
+    JSAudioNodeStereoEnhancer::RegisterObject(cx);
+    JSAudioNodeLink::RegisterObject(cx);
+    JSAudioNodeDelay::RegisterObject(cx);
+    JSAudioNodeReverb::RegisterObject(cx);
+    JSAudioNodeCustom::RegisterObject(cx);
+    JSAudioNodeCustomSource::RegisterObject(cx);
+    JSAudioNodeSource::RegisterObject(cx);
+    JSAudioNodeTarget::RegisterObject(cx);
+}
+
+bool JSAudio::JS_getContext(JSContext *cx, JS::CallArgs &args)
+{
     unsigned int bufferSize, channels, sampleRate;
 
     bufferSize = 0;
-    channels = 2;
+    channels   = 2;
     sampleRate = 44100;
-    switch (argc) {
+
+    switch (args.length()) {
         case 3:
             JS::ToUint32(cx, args[2], &sampleRate);
-            //ft
         case 2:
             JS::ToUint32(cx, args[1], &channels);
-            //ft
         case 1:
             JS::ToUint32(cx, args[0], &bufferSize);
             break;
         default:
             break;
     }
+
     switch (bufferSize) {
         case 0:
         case 128:
@@ -83,7 +80,8 @@ bool nidium_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
             // Supported buffer size
             // Multiply by 8 to get the bufferSize in bytes
             // rather than in samples per buffer
-            bufferSize *= 8;
+            printf("float32=%d\n", AV::Audio::FLOAT32);
+            bufferSize *= AV::Audio::FLOAT32;
             break;
         default:
             JS_ReportError(cx,
@@ -111,8 +109,8 @@ bool nidium_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    bool paramsChanged = false;
-    JSAudioContext *jaudio    = JSAudioContext::GetContext();
+    bool paramsChanged     = false;
+    JSAudioContext *jaudio = JSAudioContext::GetContext();
 
     if (jaudio) {
         AudioParameters *params = jaudio->m_Audio->m_OutputParameters;
@@ -130,40 +128,24 @@ bool nidium_audio_getcontext(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     if (paramsChanged) {
-        JSContext *m_Cx = cx;
-        JS_SetPrivate(jaudio->getJSObject(), NULL);
-        NJS->unrootObject(jaudio->getJSObject());
         delete jaudio;
     }
 
-    JSClass * audioContextClass = JSAudioContext::GetJSClass();
-    JS::RootedObject ret( cx, JS_NewObjectForConstructor(cx, audioContextClass, args));
-
-    JSAudioContext *naudio
+    JSAudioContext *audioCtx
         = JSAudioContext::GetContext(cx, bufferSize, channels, sampleRate);
 
-    if (naudio == NULL) {
+    if (audioCtx == NULL) {
         JS_ReportError(cx, "Failed to initialize audio context\n");
         return false;
     }
 
-    args.rval().setObjectOrNull(ret);
+    JS::RootedObject jsAudioContext(cx, audioCtx->getJSObject());
+
+    args.rval().setObjectOrNull(jsAudioContext);
 
     return true;
-}
-
-// {{{ Registration
-
-void audio_RegisterObject(JSContext *cx)
-{
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS_InitClass(cx, global, JS::NullPtr(), &Audio_class,
-                 nidium_Audio_constructor, 0, nullptr, nullptr, nullptr,
-                 Audio_static_funcs);
 }
 // }}}
 
 } // namespace Binding
 } // namespace Nidium
-
-

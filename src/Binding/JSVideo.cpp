@@ -3,9 +3,10 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
+#include "Binding/JSVideo.h"
+
 #include "Binding/JSAudioContext.h"
 #include "Binding/JSAudioNode.h"
-#include "Binding/JSVideo.h"
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSCanvas.h"
 
@@ -19,27 +20,17 @@ namespace Nidium {
 namespace Binding {
 
 JSVideo::JSVideo(Canvas2DContext *canvasCtx, JSContext *cx)
-    : m_Video(NULL), m_AudioNode(NULL),
-      m_ArrayContent(NULL), m_Width(-1), m_Height(-1), m_Left(0), m_Top(0),
-      m_IsDestructing(false), m_CanvasCtx(canvasCtx)
+    : m_CanvasCtx(canvasCtx)
 {
-    m_Video = new Video((ape_global *)JS_GetContextPrivate(m_Cx));
+    m_Video = new Video((ape_global *)JS_GetContextPrivate(cx));
     m_Video->frameCallback(JSVideo::FrameCallback, this);
-    m_Video->eventCallback(JSVideo::onEvent, this);
     m_CanvasCtx->getHandler()->addListener(this);
+
+    this->listenSourceEvents(m_Video);
 }
 
-void JSVideo::stopAudio()
+void JSVideo::onSourceMessage(const SharedMessages::Message &msg)
 {
-    m_Video->stopAudio();
-
-    this->releaseAudioNode();
-}
-
-void JSVideo::onMessage(const SharedMessages::Message &msg)
-{
-    if (m_IsDestructing) return;
-
     if (msg.event() == NIDIUM_EVENT(CanvasHandler, RESIZE_EVENT)
         && (m_Width == -1 || m_Height == -1)) {
         this->setSize(m_Width, m_Height);
@@ -47,23 +38,7 @@ void JSVideo::onMessage(const SharedMessages::Message &msg)
         if (msg.event() == SOURCE_EVENT_PLAY) {
             this->setSize(m_Width, m_Height);
         }
-
-        const char *evName = JSAVEventRead(msg.event());
-        if (!evName) {
-            return;
-        }
-
-        JS::RootedValue ev(m_Cx, consumeSourceMessage(m_Cx, msg));
-        if (!ev.isNull()) {
-            //this->fireJSEvent(evName, &ev);
-        }
     }
-}
-
-void JSVideo::onEvent(const struct AVSourceEvent *cev)
-{
-    JSVideo *thiz = static_cast<JSVideo *>(cev->m_Custom);
-    thiz->postMessage((void *)cev, cev->m_Ev);
 }
 
 void JSVideo::FrameCallback(uint8_t *data, void *custom)
@@ -87,7 +62,7 @@ void JSVideo::FrameCallback(uint8_t *data, void *custom)
     ev.set("video", v->getJSObject());
     JS::RootedValue evjsval(cx, ev.jsval());
 
-    //v->fireJSEvent("frame", &evjsval);
+    v->fireJSEvent("frame", &evjsval);
 }
 
 void JSVideo::setSize(int width, int height)
@@ -138,100 +113,21 @@ void JSVideo::setSize(int width, int height)
     m_Video->setSize(width, height);
 }
 
-bool JSVideo::JS_play(JSContext *cx, JS::CallArgs &args)
-{
-    this->m_Video->play();
-
-    return true;
-}
-
-bool JSVideo::JS_pause(JSContext *cx, JS::CallArgs &args)
-{
-    this->m_Video->pause();
-
-    return true;
-}
-
-bool JSVideo::JS_stop(JSContext *cx, JS::CallArgs &args)
-{
-    this->m_Video->stop();
-
-    return true;
-}
-
-bool JSVideo::JS_close(JSContext *cx, JS::CallArgs &args)
-{
-    this->close();
-
-    return true;
-}
-
-bool JSVideo::JS_open(JSContext *cx, JS::CallArgs &args)
-{
-    JS::RootedValue src(cx, args[0]);
-    int ret = -1;
-
-    if (src.isString()) {
-        JSAutoByteString csrc(cx, src.toString());
-        ret = this->m_Video->open(csrc.ptr());
-    } else if (src.isObject()) {
-        JS::RootedObject arrayBuff(cx, src.toObjectOrNull());
-
-        if (!JS_IsArrayBufferObject(arrayBuff)) {
-            JS_ReportError(cx, "Data is not an ArrayBuffer\n");
-            return false;
-        }
-
-        int length        = JS_GetArrayBufferByteLength(arrayBuff);
-        this->m_ArrayContent = JS_StealArrayBufferContents(cx, arrayBuff);
-        if (this->m_Video->open(this->m_ArrayContent, length) < 0) {
-            args.rval().setBoolean(false);
-            return true;
-        }
-    }
-
-    args.rval().setBoolean(false);
-
-    return true;
-}
-
 bool JSVideo::JS_getAudioNode(JSContext *cx, JS::CallArgs &args)
 {
-    JSAudioContext *jaudio = JSAudioContext::GetContext();
+    GET_AUDIO_CONTEXT(cx);
 
-    if (!jaudio) {
-        JS_ReportError(cx, "No Audio context");
-        args.rval().setNull();
-        return false;
-    }
-
-    if (this->m_AudioNode.get()) {
-        JS::RootedObject retObj(cx, this->m_AudioNode);
+    if (this->m_AudioNode != nullptr) {
+        JS::RootedObject retObj(cx, this->m_AudioNode->getJSObject());
         args.rval().setObjectOrNull(retObj);
         return true;
     }
 
-    AudioSource *source = this->m_Video->getAudioNode(jaudio->m_Audio);
+    VideoAudioSource *source = m_Video->getAudioNode(jaudio->m_Audio);
 
-    if (source != NULL) {
-        JSClass * audioNode_class = JSAudioNode::GetJSClass();
-        JS::RootedObject audioNode(
-            cx, JS_NewObjectForConstructor(cx, audioNode_class, args));
-        this->m_AudioNode = audioNode;
-
-        JSAudioNode *node
-            = new JSAudioNode(Audio::SOURCE,
-                              static_cast<class AudioNode *>(source), jaudio);
-
-        JS::RootedString name(cx, JS_NewStringCopyN(cx, "video-source", 12));
-        JS::RootedObject an(cx, this->m_AudioNode);
-        jaudio->initNode(node, an, name);
-
-        JS_SetReservedSlot(node->getJSObject(), 0,
-                           OBJECT_TO_JSVAL(this->getJSObject()));
-        JS::RootedObject retObj(cx, this->m_AudioNode);
-
-        args.rval().setObjectOrNull(retObj);
+    if (source != nullptr) {
+        this->m_AudioNode = new JSAudioNodeSourceVideo(cx, this, source);
+        args.rval().setObjectOrNull(this->m_AudioNode->getJSObject());
     } else {
         args.rval().setNull();
     }
@@ -319,46 +215,8 @@ bool JSVideo::JSGetter_height(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
-bool JSVideo::JSGetter_duration(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(this->m_Video->getDuration());
-
-    return true;
-}
-
-bool JSVideo::JSGetter_bitrate(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(this->m_Video->getBitrate());
-
-    return true;
-}
-
-
-bool JSVideo::JSGetter_metadata(JSContext *cx, JS::MutableHandleValue vp)
-{
-    JSAVSource::GetMetadata(cx, this->m_Video, vp );
-
-    return true;
-}
-
-bool JSVideo::JSGetter_position(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setDouble(this->m_Video->getClock());
-
-    return true;
-}
-
-bool JSVideo::JSSetter_position(JSContext *cx, JS::MutableHandleValue vp)
-{
-    if (vp.isNumber()) {
-        this->m_Video->seek(vp.toNumber());
-    }
-
-    return true;
-}
-
-JSVideo *Constructor(JSContext *cx, JS::CallArgs &args,
-    JS::HandleObject obj)
+JSVideo *JSVideo::Constructor(JSContext *cx, JS::CallArgs &args,
+                              JS::HandleObject obj)
 {
     JS::RootedObject canvas(cx);
     if (!JS_ConvertArguments(cx, args, "o", canvas.address())) {
@@ -380,75 +238,57 @@ JSVideo *Constructor(JSContext *cx, JS::CallArgs &args,
 
     CanvasContext *ncc = handler->getContext();
     if (ncc == NULL || ncc->m_Mode != CanvasContext::CONTEXT_2D) {
-        JS_ReportError( cx,
+        JS_ReportError(
+            cx,
             "Invalid canvas context. Did you called canvas.getContext('2d') ?");
         return nullptr;
     }
-    JSVideo *vid = new JSVideo(static_cast<Canvas2DContext *>(ncc), cx);
+
+    JSVideo *vid    = new JSVideo(static_cast<Canvas2DContext *>(ncc), cx);
+    vid->m_Instance = obj;
     vid->root();
 
     return vid;
 }
 
-
-void JSVideo::releaseAudioNode()
+bool JSVideo::JS_close(JSContext *cx, JS::CallArgs &args)
 {
-    if (m_AudioNode) {
-        JSContext * cx = this->getJSContext();
-        JSAudioNode *node = m_AudioNode->getJSObject();
+    // The audio node needs to be released too
+    delete m_AudioNode;
+    m_AudioNode = nullptr;
 
-        NJS->unrootObject(m_AudioNode);
-
-        if (node) {
-            JS_SetReservedSlot(node->getJSObject(), 0, JSVAL_NULL);
-            // will remove the source from JSAudio and Audio
-            delete node;
-        }
-
-        m_AudioNode = nullptr;
-    }
+    return JSAVSourceBase::JS__close(cx, args);
 }
-void JSVideo::close()
-{
-    // Stop the audio first.
-    // This will also release the JS audio node
-    this->stopAudio();
 
-    m_Video->close();
-}
 JSPropertySpec *JSVideo::ListProperties()
 {
-    static JSPropertySpec props[] = {
-        CLASSMAPPER_PROP_G(JSVideo, canvas),
-        CLASSMAPPER_PROP_G(JSVideo, width),
-        CLASSMAPPER_PROP_G(JSVideo, height),
-        CLASSMAPPER_PROP_G(JSVideo, duration),
-        CLASSMAPPER_PROP_G(JSVideo, bitrate),
-        CLASSMAPPER_PROP_G(JSVideo, metadata),
+    static JSPropertySpec props[] = { CLASSMAPPER_PROP_G(JSVideo, canvas),
+                                      CLASSMAPPER_PROP_G(JSVideo, width),
+                                      CLASSMAPPER_PROP_G(JSVideo, height),
 
-        CLASSMAPPER_PROP_GS(JSVideo, position),
-
-        JS_PS_END
-    };
+                                      CLASSMAPPER_PROP_GS(JSVideo, position),
+                                      CLASSMAPPER_PROP_G(JSVideo, duration),
+                                      CLASSMAPPER_PROP_G(JSVideo, metadata),
+                                      CLASSMAPPER_PROP_G(JSVideo, bitrate),
+                                      JS_PS_END };
 
     return props;
 }
 
 JSFunctionSpec *JSVideo::ListMethods()
 {
-    static JSFunctionSpec funcs[] = {
-        CLASSMAPPER_FN(JSVideo, play, 0),
-        CLASSMAPPER_FN(JSVideo, pause, 0),
-        CLASSMAPPER_FN(JSVideo, stop, 0),
-        CLASSMAPPER_FN(JSVideo, close, 0),
-        CLASSMAPPER_FN(JSVideo, open, 1),
-        CLASSMAPPER_FN(JSVideo, getAudioNode, 0),
-        CLASSMAPPER_FN(JSVideo, nextFrame, 0),
-        CLASSMAPPER_FN(JSVideo, prevFrame, 0),
-        CLASSMAPPER_FN(JSVideo, frameAt, 1),
-        CLASSMAPPER_FN(JSVideo, setSize, 2),
-        JS_FS_END
-    };
+    static JSFunctionSpec funcs[] = { CLASSMAPPER_FN(JSVideo, open, 1),
+                                      CLASSMAPPER_FN(JSVideo, play, 0),
+                                      CLASSMAPPER_FN(JSVideo, pause, 0),
+                                      CLASSMAPPER_FN(JSVideo, stop, 0),
+
+                                      CLASSMAPPER_FN(JSVideo, close, 0),
+                                      CLASSMAPPER_FN(JSVideo, getAudioNode, 0),
+                                      CLASSMAPPER_FN(JSVideo, nextFrame, 0),
+                                      CLASSMAPPER_FN(JSVideo, prevFrame, 0),
+                                      CLASSMAPPER_FN(JSVideo, frameAt, 1),
+                                      CLASSMAPPER_FN(JSVideo, setSize, 2),
+                                      JS_FS_END };
 
     return funcs;
 }
@@ -456,16 +296,9 @@ JSFunctionSpec *JSVideo::ListMethods()
 JSVideo::~JSVideo()
 {
     JSAutoRequest ar(m_Cx);
-    m_IsDestructing = true;
+    m_IsReleased = true;
 
-    // Release JS AudioNode
-    this->stopAudio();
-
-    NJS->unrootObject(this->getJSObject());
-
-    if (m_ArrayContent != NULL) {
-        free(m_ArrayContent);
-    }
+    delete m_AudioNode;
 
     delete m_Video;
 }
@@ -473,10 +306,13 @@ JSVideo::~JSVideo()
 void JSVideo::RegisterObject(JSContext *cx)
 {
     JSVideo::ExposeClass<1>(cx, "Video");
+}
 
+void JSVideo::RegisterAllObjects(JSContext *cx)
+{
+    JSVideo::RegisterObject(cx);
+    JSAudioNodeSourceVideo::RegisterObject(cx);
 }
 
 } // namespace Binding
 } // namespace Nidium
-
-

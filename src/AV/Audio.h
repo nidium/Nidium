@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <pthread.h>
 
-#include <jspubtd.h>
 #include <ape_netlib.h>
 #include "Core/SharedMessages.h"
 
@@ -46,7 +45,7 @@ namespace AV {
 class AudioSource;
 class AudioNode;
 class AudioNodeTarget;
-struct NodeLink;
+class NodeLink;
 typedef void (*AudioMessageCallback)(void *custom);
 
 class Audio
@@ -122,7 +121,7 @@ public:
     float getVolume();
     static int getOutputBufferSize();
     double getLatency();
-    void wakeup();
+    void wakeup(bool block = true);
     void shutdown();
     static void sourceNeedWork(void *ptr);
     void lockSources();
@@ -131,16 +130,6 @@ public:
     void unlockQueue();
     void postMessage(AudioMessageCallback cbk, void *custom);
     void postMessage(AudioMessageCallback cbk, void *custom, bool block);
-
-    JSContext *getMainCtx() const
-    {
-        return m_MainCtx;
-    }
-
-    void setMainCtx(JSContext *ctx)
-    {
-        m_MainCtx = ctx;
-    }
 
     ~Audio();
 
@@ -178,8 +167,6 @@ private:
     void readMessages(bool flush);
     void processQueue();
     bool canWriteFrame();
-
-    JSContext *m_MainCtx;
 
     inline bool haveSourceActive(bool excludeExternal);
     static int paOutputCallback(const void *inputBuffer,

@@ -39,6 +39,7 @@ namespace AV {
 typedef void (*VideoCallback)(uint8_t *data, void *custom);
 
 // {{{ Video
+class VideoAudioSource;
 class Video : public AVSource
 {
     friend class VideoAudioSource;
@@ -88,7 +89,7 @@ public:
     int m_TimersDelay;
 
     ape_global *m_Net;
-    AudioSource *m_AudioSource;
+    VideoAudioSource *m_AudioSource;
 
     VideoCallback m_FrameCbk;
     void *m_FrameCbkArg;
@@ -147,12 +148,12 @@ public:
 
     void frameCallback(VideoCallback cbk, void *arg);
 
-    AudioSource *getAudioNode(Audio *audio);
+    VideoAudioSource *getAudioNode(Audio *audio);
     static void *decode(void *args);
     static int display(void *custom);
     void setSize(int width, int height);
     int setSizeInternal();
-    void stopAudio();
+    void releaseAudioNode(bool del = true);
 
     static void sourceNeedWork(void *ptr);
 

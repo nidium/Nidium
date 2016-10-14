@@ -10,7 +10,7 @@ var node;
 Tests.register("SourceNode create", function() {
     dsp = Audio.getContext();
     node = dsp.createNode("source", 0, 2);
-    Assert(node instanceof AudioNode);
+    Assert(node instanceof AudioNodeSource);
 });
 
 Tests.register("SourceNode with invalid input", function() {
@@ -20,8 +20,6 @@ Tests.register("SourceNode with invalid input", function() {
 });
 
 Tests.registerAsync("SourceNode open inexistent file", function(next) {
-    node.open("invalidfile")
-
     node.addEventListener("error", function(ev) {
         // Remove ready event otherwise it will be fired by the next test
         node.removeEventListener("error");
@@ -40,11 +38,11 @@ Tests.registerAsync("SourceNode open inexistent file", function(next) {
 
         next();
     });
+
+    node.open("invalidfile")
 }, 5000);
 
 Tests.registerAsync("SourceNode open invalid file", function(next) {
-    node.open("/tmp/foo.mp3")
-
     node.addEventListener("error", function(ev) {
         node.removeEventListener("error");
         node.removeEventListener("ready");
@@ -62,6 +60,8 @@ Tests.registerAsync("SourceNode open invalid file", function(next) {
 
         next();
     });
+
+    node.open("/tmp/foo.mp3")
 }, 5000);
 
 Tests.registerAsync("SourceNode open file", function(next) {
@@ -78,8 +78,9 @@ Tests.registerAsync("SourceNode open file", function(next) {
 }, 5000);
 
 Tests.register("SourceNode MetaData", function() {
-    Assert(JSON.stringify(node.metadata) == '{"title":"The Sound of Epicness (ID: 358232)","artist":"larrylarrybb","album":"Newgrounds Audio Portal - http://www.newgrounds.com/audio","track":"01/01","streams":[{}]}',
-        "File MetaData does not match");
+    Assert.equal(JSON.stringify(node.metadata), 
+                '{"title":"The Sound of Epicness (ID: 358232)","artist":"larrylarrybb","album":"Newgrounds Audio Portal - http://www.newgrounds.com/audio","track":"01/01","streams":[{}]}',
+                "File MetaData does not match");
 });
 
 Tests.registerAsync("SourceNode play event", function(next) {

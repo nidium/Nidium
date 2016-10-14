@@ -106,9 +106,8 @@ void AudioNode::callback(NodeMessageCallback cbk, void *custom, bool block)
     m_Audio->m_SharedMsg->postMessage(
         static_cast<void *>(new CallbackMessage(cbk, this, custom)),
         NIDIUM_AUDIO_NODE_CALLBACK);
-    if (block) {
-        m_Audio->wakeup();
-    }
+
+    m_Audio->wakeup(block);
 }
 
 bool AudioNode::set(const char *name,
@@ -160,8 +159,6 @@ bool AudioNode::set(const char *name,
     return false;
 }
 
-// XXX : This need to be checked again.
-// Since many breaking changes have been introduced
 void AudioNode::updateFeedback(AudioNode *nOut)
 {
     // SPAM(("updateFeedback called\n"));
@@ -775,7 +772,7 @@ AudioNodeCustom::AudioNodeCustom(int inCount, int outCount, Audio *audio)
 {
 }
 
-void AudioNodeCustom::setCallback(NodeCallback cbk, void *custom)
+void AudioNodeCustom::setProcessor(NodeCallback cbk, void *custom)
 {
     m_Cbk    = cbk;
     m_Custom = custom;

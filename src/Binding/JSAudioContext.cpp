@@ -17,49 +17,54 @@ using namespace Nidium::Core;
 namespace Nidium {
 namespace Binding {
 
+JSAudioContext *JSAudioContext::m_Ctx = nullptr;
+
 extern void
 reportError(JSContext *cx, const char *message, JSErrorReport *report);
 
-static JSClass Global_AudioThread_class
-    = { "_GLOBALAudioThread",
-        JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
-        JS_PropertyStub,
-        JS_DeletePropertyStub,
-        JS_PropertyStub,
-        JS_StrictPropertyStub,
-        JS_EnumerateStub,
-        JS_ResolveStub,
-        JS_ConvertStub,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        JS_GlobalObjectTraceHook,
-        JSCLASS_NO_INTERNAL_MEMBERS };
+static JSClass Global_AudioThread_class = {
+    "_GLOBALAudioThread",
+    JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL | JSCLASS_HAS_RESERVED_SLOTS(1),
+    JS_PropertyStub,
+    JS_DeletePropertyStub,
+    JS_PropertyStub,
+    JS_StrictPropertyStub,
+    JS_EnumerateStub,
+    JS_ResolveStub,
+    JS_ConvertStub,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    JS_GlobalObjectTraceHook,
+    JSCLASS_NO_INTERNAL_MEMBERS
+};
 
 
-JSAudioContext::JSAudioContext(Audio *audio)
-    : m_Audio(audio), m_Nodes(NULL),
-      m_JsGlobalObj(NULL), m_JsRt(NULL), m_JsTcx(NULL), m_Target(NULL)
+JSAudioContext::JSAudioContext(JSContext *cx, Audio *audio)
+    : m_Audio(audio), m_JsGlobalObj(nullptr)
 {
-    JSAudioContext::m_Instance = this;
+    JSAudioContext::m_Ctx = this;
+
+    JSAudioContext::CreateObject(cx, this);
 
     this->root();
 
     NIDIUM_PTHREAD_VAR_INIT(&m_ShutdownWait)
 
-    m_Audio->postMessage(JSAudioContext::CtxCallback, static_cast<void *>(this), true);
+    m_Audio->postMessage(JSAudioContext::CtxCallback, static_cast<void *>(this),
+                         true);
 }
 
 JSAudioContext *JSAudioContext::GetContext()
 {
-    return JSAudioContext::m_Instance;
+    return JSAudioContext::m_Ctx;
 }
 
 JSAudioContext *JSAudioContext::GetContext(JSContext *cx,
-                             unsigned int bufferSize,
-                             unsigned int channels,
-                             unsigned int sampleRate)
+                                           unsigned int bufferSize,
+                                           unsigned int channels,
+                                           unsigned int sampleRate)
 {
     ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(cx));
     Audio *audio;
@@ -70,16 +75,13 @@ JSAudioContext *JSAudioContext::GetContext(JSContext *cx,
         return NULL;
     }
 
-    audio->setMainCtx(cx);
-
-    return new JSAudioContext(audio);
+    return new JSAudioContext(cx, audio);
 }
 
 void JSAudioContext::RunCallback(void *custom)
 {
     JSAudioContext *audio = JSAudioContext::GetContext();
-
-    if (!audio) return; // This should not happend
+    if (!audio) return;
 
     char *str = static_cast<char *>(custom);
     audio->run(str);
@@ -88,10 +90,6 @@ void JSAudioContext::RunCallback(void *custom)
 
 bool JSAudioContext::JS_run(JSContext *cx, JS::CallArgs &args)
 {
-    JSAudioContext *audio    = JSAudioContext::GetContext();
-
-    CHECK_INVALID_CTX(audio);
-
     JS::RootedString fn(cx);
     JS::RootedFunction nfn(cx);
     if ((nfn = JS_ValueToFunction(cx, args[0])) == NULL
@@ -107,8 +105,8 @@ bool JSAudioContext::JS_run(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    audio->m_Audio->postMessage(JSAudioContext::RunCallback,
-                                static_cast<void *>(funStr));
+    m_Audio->postMessage(JSAudioContext::RunCallback,
+                         static_cast<void *>(funStr));
 
     return true;
 }
@@ -122,11 +120,10 @@ bool JSAudioContext::JS_load(JSContext *cx, JS::CallArgs &args)
 bool JSAudioContext::JS_createNode(JSContext *cx, JS::CallArgs &args)
 {
     int in, out;
-    JSAudioNode *node;
-
-    node  = NULL;
-
     JS::RootedString name(cx);
+    JSAudioNode *node = nullptr;
+    JS::RootedObject nodeObj(cx);
+
     if (!JS_ConvertArguments(cx, args, "Suu", name.address(), &in, &out)) {
         return false;
     }
@@ -144,71 +141,50 @@ bool JSAudioContext::JS_createNode(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    JSClass *audioNode_class = JSAudioNode::GetJSClass();
-    JS::RootedObject ret(
-        cx, JS_NewObjectForConstructor(cx, audioNode_class, args));
-    if (!ret) {
-        JS_ReportOutOfMemory(cx);
-        return false;
-    }
-
-    JS_SetReservedSlot(ret, 0, JSVAL_NULL);
-
     JSAutoByteString cname(cx, name);
+
     try {
         if (strcmp("source", cname.ptr()) == 0) {
-            node = new JSAudioNode(Audio::SOURCE, in, out, this);
-
-            AudioSource *source = static_cast<AudioSource *>(node->m_Node);
-            source->eventCallback(JSAudioNode::onEvent, node);
-
-            JS_DefineFunctions(cx, ret, AudioNodeSource_funcs);
-            JS_DefineProperties(cx, ret, AudioNodeSource_props);
+            JSAudioNodeSource *tmp = new JSAudioNodeSource(cx, out);
+            node                   = tmp;
+            nodeObj = tmp->getJSObject();
         } else if (strcmp("custom-source", cname.ptr()) == 0) {
-            node = new JSAudioNode(Audio::CUSTOM_SOURCE, in, out,
-                                   this);
-
-            AudioSourceCustom *source
-                = static_cast<AudioSourceCustom *>(node->m_Node);
-            source->eventCallback(JSAudioNode::onEvent, node);
-
-            JS::RootedValue tmp(cx, JS::NumberValue(0));
-            JS_DefineProperty(
-                cx, ret, "position", tmp,
-                JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED
-                    | JSPROP_NATIVE_ACCESSORS,
-                JS_CAST_NATIVE_TO(
-                    nidium_audionode_custom_source_position_getter,
-                    JSPropertyOp),
-                JS_CAST_NATIVE_TO(
-                    nidium_audionode_custom_source_position_setter,
-                    JSStrictPropertyOp));
-
-            JS_DefineFunctions(cx, ret, AudioNodeCustom_funcs);
-            JS_DefineFunctions(cx, ret, AudioNodeCustomSource_funcs);
+            JSAudioNodeCustomSource *tmp = new JSAudioNodeCustomSource(cx, out);
+            node                         = tmp;
+            nodeObj = tmp->getJSObject();
         } else if (strcmp("custom", cname.ptr()) == 0) {
-            node = new JSAudioNode(Audio::CUSTOM, in, out, this);
-            JS_DefineFunctions(cx, ret, AudioNodeCustom_funcs);
+            JSAudioNodeCustom *tmp = new JSAudioNodeCustom(cx, in, out);
+            node                   = tmp;
+            nodeObj = tmp->getJSObject();
         } else if (strcmp("reverb", cname.ptr()) == 0) {
-            node = new JSAudioNode(Audio::REVERB, in, out, this);
+            JSAudioNodeReverb *tmp = new JSAudioNodeReverb(cx, in, out);
+            node                   = tmp;
+            nodeObj = tmp->getJSObject();
         } else if (strcmp("delay", cname.ptr()) == 0) {
-            node = new JSAudioNode(Audio::DELAY, in, out, this);
+            JSAudioNodeDelay *tmp = new JSAudioNodeDelay(cx, in, out);
+            node                  = tmp;
+            nodeObj = tmp->getJSObject();
         } else if (strcmp("gain", cname.ptr()) == 0) {
-            node = new JSAudioNode(Audio::GAIN, in, out, this);
+            JSAudioNodeGain *tmp = new JSAudioNodeGain(cx, in, out);
+            node                 = tmp;
+            nodeObj = tmp->getJSObject();
         } else if (strcmp("target", cname.ptr()) == 0) {
-            if (this->m_Target != NULL) {
-                JS::RootedObject retObj(cx, this->m_Target->getJSObject());
-                args.rval().setObjectOrNull(retObj);
-                return true;
+            if (m_Target != nullptr) {
+                node    = m_Target;
+                nodeObj = m_Target->getJSObject();
             } else {
-                node = new JSAudioNode(Audio::TARGET, in, out, this);
-                this->m_Target = node;
+                JSAudioNodeTarget *tmp = new JSAudioNodeTarget(cx, in);
+                node                   = tmp;
+                nodeObj                = tmp->getJSObject();
+                m_Target               = tmp;
             }
         } else if (strcmp("stereo-enhancer", cname.ptr()) == 0) {
-            node = new JSAudioNode(Audio::STEREO_ENHANCER, in, out,
-                                   this);
+            JSAudioNodeStereoEnhancer *tmp
+                = new JSAudioNodeStereoEnhancer(cx, in, out);
+            node    = tmp;
+            nodeObj = tmp->getJSObject();
         } else {
-            JS_ReportError(cx, "Unknown node name : %s\n", cname.ptr());
+            JS_ReportError(cx, "Unknown node : %s\n", cname.ptr());
             return false;
         }
     } catch (AudioNodeException *e) {
@@ -217,50 +193,51 @@ bool JSAudioContext::JS_createNode(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    if (node == NULL || node->m_Node == NULL) {
-        delete node;
-        JS_ReportError(cx, "Error while creating node : %s\n", cname.ptr());
-        return false;
-    }
-
-    this->initNode(node, ret, name);
-
-    args.rval().setObjectOrNull(ret);
+    args.rval().setObjectOrNull(nodeObj);
 
     return true;
 }
 
 bool JSAudioContext::JS_connect(JSContext *cx, JS::CallArgs &args)
 {
-    NodeLink *nlink1;
-    NodeLink *nlink2;
+    JSAudioNodeLink *jlink1 = nullptr;
+    JSAudioNodeLink *jlink2 = nullptr;
+
+    NodeLink *link1 = nullptr;
+    NodeLink *link2 = nullptr;
 
     Audio *audio = this->m_Audio;
 
-    JS::RootedObject link1(cx);
-    JS::RootedObject link2(cx);
-    if (!JS_ConvertArguments(cx, args, "oo", link1.address(),
-                             link2.address())) {
+    JS::RootedObject arg0(cx, args[0].isObject() ? args[0].toObjectOrNull()
+                                                 : nullptr);
+    JS::RootedObject arg1(cx, args[1].isObject() ? args[1].toObjectOrNull()
+                                                 : nullptr);
+
+    if (!arg0 || !(jlink1 = JSAudioNodeLink::GetInstance(arg0))) {
+        JS_ReportError(cx, "First argument must be an AudioNodeLink");
         return false;
     }
 
-    nlink1 = (NodeLink *)JS_GetInstancePrivate(cx, link1, &AudioNodeLink_class,
-                                               &args);
-    nlink2 = (NodeLink *)JS_GetInstancePrivate(cx, link2, &AudioNodeLink_class,
-                                               &args);
-
-    if (nlink1 == NULL || nlink2 == NULL) {
-        JS_ReportError(cx, "Bad AudioNodeLink\n");
+    if (!arg1 || !(jlink2 = JSAudioNodeLink::GetInstance(arg1))) {
+        JS_ReportError(cx, "Second argument must be an AudioNodeLink");
         return false;
     }
 
-    if (nlink1->m_Type == AV::INPUT && nlink2->m_Type == AV::OUTPUT) {
-        if (!audio->connect(nlink2, nlink1)) {
+    link1 = jlink1->get();
+    link2 = jlink2->get();
+
+    if (!link1 || !link2) {
+        JS_ReportError(cx, "Invalid AudioNodeLink");
+        return false;
+    }
+
+    if (link1->isInput() && link2->isOutput()) {
+        if (!audio->connect(link2, link1)) {
             JS_ReportError(cx, "connect() failed (max connection reached)\n");
             return false;
         }
-    } else if (nlink1->m_Type == AV::OUTPUT && nlink2->m_Type == AV::INPUT) {
-        if (!audio->connect(nlink1, nlink2)) {
+    } else if (link1->isOutput() && link2->isInput()) {
+        if (!audio->connect(link1, link2)) {
             JS_ReportError(cx, "connect() failed (max connection reached)\n");
             return false;
         }
@@ -269,39 +246,46 @@ bool JSAudioContext::JS_connect(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    args.rval().setUndefined();
-
     return true;
 }
 
 bool JSAudioContext::JS_disconnect(JSContext *cx, JS::CallArgs &args)
 {
-    NodeLink *nlink1;
-    NodeLink *nlink2;
+    JSAudioNodeLink *jlink1;
+    JSAudioNodeLink *jlink2;
+
+    NodeLink *link1;
+    NodeLink *link2;
 
     Audio *audio = this->m_Audio;
 
-    JS::RootedObject link1(cx);
-    JS::RootedObject link2(cx);
-    if (!JS_ConvertArguments(cx, args, "oo", link1.address(),
-                             link2.address())) {
-        return true;
-    }
+    JS::RootedObject arg0(cx, args[0].isObject() ? args[0].toObjectOrNull()
+                                                 : nullptr);
+    JS::RootedObject arg1(cx, args[1].isObject() ? args[1].toObjectOrNull()
+                                                 : nullptr);
 
-    nlink1 = (NodeLink *)JS_GetInstancePrivate(cx, link1, &AudioNodeLink_class,
-                                               &args);
-    nlink2 = (NodeLink *)JS_GetInstancePrivate(cx, link2, &AudioNodeLink_class,
-                                               &args);
-
-    if (nlink1 == NULL || nlink2 == NULL) {
-        JS_ReportError(cx, "Bad AudioNodeLink\n");
+    if (!(arg0 || (jlink1 = JSAudioNodeLink::GetInstance(arg0)))) {
+        JS_ReportError(cx, "First argument must be an AudioNodeLink");
         return false;
     }
 
-    if (nlink1->m_Type == AV::INPUT && nlink2->m_Type == AV::OUTPUT) {
-        audio->disconnect(nlink2, nlink1);
-    } else if (nlink1->m_Type == AV::OUTPUT && nlink2->m_Type == AV::INPUT) {
-        audio->disconnect(nlink1, nlink2);
+    if (!(arg1 || (jlink2 = JSAudioNodeLink::GetInstance(arg1)))) {
+        JS_ReportError(cx, "Second argument must be an AudioNodeLink");
+        return false;
+    }
+
+    link1 = jlink1->get();
+    link2 = jlink2->get();
+
+    if (!link1 || !link2) {
+        JS_ReportError(cx, "Invalid AudioNodeLink");
+        return false;
+    }
+
+    if (link1->m_Type == AV::INPUT && link2->m_Type == AV::OUTPUT) {
+        audio->disconnect(link2, link1);
+    } else if (link1->m_Type == AV::OUTPUT && link2->m_Type == AV::INPUT) {
+        audio->disconnect(link1, link2);
     } else {
         JS_ReportError(cx, "disconnect() take one input and one output\n");
         return false;
@@ -357,34 +341,25 @@ bool JSAudioContext::JS_pFFT(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
-bool JSAudioContext::JSGetter_buffersize(JSContext *cx, JS::MutableHandleValue vp)
+bool JSAudioContext::JSGetter_bufferSize(JSContext *cx,
+                                         JS::MutableHandleValue vp)
 {
-    JSAudioContext *jaudio = JSAudioContext::GetContext();
-
-    CHECK_INVALID_CTX(jaudio);
-    AudioParameters *params = jaudio->m_Audio->m_OutputParameters;
-    vp.setInt32(params->m_BufferSize / 8);
-
+    vp.setInt32(m_Audio->m_OutputParameters->m_FramesPerBuffer);
     return true;
 }
 
 bool JSAudioContext::JSGetter_channels(JSContext *cx, JS::MutableHandleValue vp)
 {
-    JSAudioContext *jaudio = JSAudioContext::GetContext();
-
-    CHECK_INVALID_CTX(jaudio);
-    AudioParameters *params = jaudio->m_Audio->m_OutputParameters;
+    AudioParameters *params = m_Audio->m_OutputParameters;
     vp.setInt32(params->m_Channels);
 
     return true;
 }
 
-bool JSAudioContext::JSGetter_sampleRate(JSContext *cx, JS::MutableHandleValue vp)
+bool JSAudioContext::JSGetter_sampleRate(JSContext *cx,
+                                         JS::MutableHandleValue vp)
 {
-    JSAudioContext *jaudio = JSAudioContext::GetContext();
-
-    CHECK_INVALID_CTX(jaudio);
-    AudioParameters *params = jaudio->m_Audio->m_OutputParameters;
+    AudioParameters *params = m_Audio->m_OutputParameters;
     vp.setInt32(params->m_SampleRate);
 
     return true;
@@ -392,79 +367,18 @@ bool JSAudioContext::JSGetter_sampleRate(JSContext *cx, JS::MutableHandleValue v
 
 bool JSAudioContext::JSGetter_volume(JSContext *cx, JS::MutableHandleValue vp)
 {
-    JSAudioContext *jaudio = JSAudioContext::GetContext();
-
-    CHECK_INVALID_CTX(jaudio);
-    AudioParameters *params = jaudio->m_Audio->m_OutputParameters;
-    vp.setNumber(jaudio->m_Audio->getVolume());
+    vp.setNumber(m_Audio->getVolume());
 
     return true;
 }
 
 bool JSAudioContext::JSSetter_volume(JSContext *cx, JS::MutableHandleValue vp)
 {
-    JSAudioContext *jaudio = JSAudioContext::GetContext();
-
-    CHECK_INVALID_CTX(jaudio);
-
     if (vp.isNumber()) {
-        jaudio->m_Audio->setVolume((float)vp.toNumber());
+        m_Audio->setVolume((float)vp.toNumber());
     }
 
     return true;
-}
-
-void JSAudioContext::initNode(JSAudioNode *node,
-                       JS::HandleObject jnode,
-                       JS::HandleString name)
-{
-    int in  = node->m_Node->m_InCount;
-    int out = node->m_Node->m_OutCount;
-
-    JS::RootedValue nameVal(m_Cx, STRING_TO_JSVAL(name));
-    JS_DefineProperty(m_Cx, jnode, "type", nameVal,
-                      JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
-    JS::RootedObject arrayIn(m_Cx, JS_NewArrayObject(m_Cx, in));
-    JS::RootedObject arrayOut(m_Cx, JS_NewArrayObject(m_Cx, out));
-    JS::RootedValue inputLinks(m_Cx, OBJECT_TO_JSVAL(arrayIn));
-    JS::RootedValue outputLinks(m_Cx, OBJECT_TO_JSVAL(arrayOut));
-
-    for (int i = 0; i < in; i++) {
-        JS::RootedObject link(m_Cx, JS_NewObject(m_Cx, &AudioNodeLink_class,
-                                                 JS::NullPtr(), JS::NullPtr()));
-        JS_SetPrivate(link, node->m_Node->m_Input[i]);
-        JS_DefineElement(m_Cx, inputLinks.toObjectOrNull(), i,
-                         OBJECT_TO_JSVAL(link), nullptr, nullptr, 0);
-    }
-
-    for (int i = 0; i < out; i++) {
-        JS::RootedObject link(m_Cx, JS_NewObject(m_Cx, &AudioNodeLink_class,
-                                                 JS::NullPtr(), JS::NullPtr()));
-        JS_SetPrivate(link, node->m_Node->m_Output[i]);
-
-        JS_DefineElement(m_Cx, outputLinks.toObjectOrNull(), i,
-                         OBJECT_TO_JSVAL(link), nullptr, nullptr, 0);
-    }
-
-    if (in > 0) {
-        JS_DefineProperty(m_Cx, jnode, "input", inputLinks,
-                          JSPROP_ENUMERATE | JSPROP_READONLY
-                              | JSPROP_PERMANENT);
-    }
-
-    if (out > 0) {
-        JS_DefineProperty(m_Cx, jnode, "output", outputLinks,
-                          JSPROP_ENUMERATE | JSPROP_READONLY
-                              | JSPROP_PERMANENT);
-    }
-
-    node->m_nJs = NJS;
-
-    node->setJSObject(jnode);
-    node->setJSContext(m_Cx);
-
-    NJS->rootObjectUntilShutdown(node->getJSObject());
-    JS_SetPrivate(jnode, node);
 }
 
 bool JSAudioContext::createContext()
@@ -488,6 +402,7 @@ bool JSAudioContext::createContext()
     }
 
     JS_SetStructuredCloneCallbacks(m_JsRt, NidiumJS::m_JsScc);
+    NidiumJS::InitThreadContext(m_JsRt, m_JsTcx);
 
     JSAutoRequest ar(m_JsTcx);
 
@@ -512,10 +427,7 @@ bool JSAudioContext::createContext()
     JS_SetErrorReporter(m_JsTcx, reportError);
     JS_FireOnNewGlobalObject(m_JsTcx, global);
     JSConsole::RegisterObject(m_JsTcx);
-
-    JS_SetRuntimePrivate(m_JsRt, NidiumJS::GetObject(m_Audio->getMainCtx()));
-
-    // JS_SetContextPrivate(this->tcx, static_cast<void *>(this));
+    JSAudioNodeThreaded::RegisterObject(m_JsTcx);
 
     return true;
 }
@@ -526,6 +438,7 @@ bool JSAudioContext::run(char *str)
         NUI_LOG("No JS context for audio thread\n");
         return false;
     }
+
     JSAutoRequest ar(m_JsTcx);
     JSAutoCompartment ac(m_JsTcx, m_JsGlobalObj);
 
@@ -548,19 +461,59 @@ bool JSAudioContext::run(char *str)
     return true;
 }
 
+void JSAudioContext::addNode(JSAudioNode *node)
+{
+    JSAudioContext::NodeListItem *item
+        = new JSAudioContext::NodeListItem(node, nullptr, m_Nodes);
+
+    if (m_Nodes != nullptr) {
+        m_Nodes->prev = item;
+    }
+
+    m_Nodes = item;
+}
+
+void JSAudioContext::removeNode(JSAudioNode *node)
+{
+    JSAudioContext::NodeListItem *item = m_Nodes;
+    while (item != NULL) {
+        if (item->curr == node) {
+            if (item->prev != NULL) {
+                item->prev->next = item->next;
+            } else {
+                m_Nodes = item->next;
+            }
+
+            if (item->next != NULL) {
+                item->next->prev = item->prev;
+            }
+
+            delete item;
+
+            break;
+        }
+        item = item->next;
+    }
+}
+
 void JSAudioContext::ShutdownCallback(void *custom)
 {
-    JSAudioContext *audio        = static_cast<JSAudioContext *>(custom);
-    JSAudioContext::Nodes *nodes = audio->m_Nodes;
+    JSAudioContext *audio              = static_cast<JSAudioContext *>(custom);
+    JSAudioContext::NodeListItem *node = audio->m_Nodes;
 
     // Let's shutdown all custom nodes
-    while (nodes != NULL) {
-        if (nodes->curr->m_NodeType == Audio::CUSTOM
-            || nodes->curr->m_NodeType == Audio::CUSTOM_SOURCE) {
-            nodes->curr->ShutdownCallback(nodes->curr->m_Node, nodes->curr);
+    while (node != NULL) {
+        printf("I SHOULD NOT BE HERE\n");
+        assert(false);
+// XXX TODO : Remove this
+#if 0
+        if (node->curr->m_NodeType == Audio::CUSTOM
+            || node->curr->m_NodeType == Audio::CUSTOM_SOURCE) {
+            node->curr->ShutdownCallback(node->curr->m_Node, node->curr);
         }
+#endif
 
-        nodes = nodes->next;
+        node = node->next;
     }
 
     if (audio->m_JsTcx != NULL) {
@@ -580,18 +533,15 @@ JSAudioContext::~JSAudioContext()
     m_Audio->lockSources();
     m_Audio->lockQueue();
 
-    // Unroot all js audio nodes
-    this->unroot();
-
     // Delete all nodes
-    JSAudioContext::Nodes *nodes = m_Nodes;
-    JSAudioContext::Nodes *next = NULL;
-    while (nodes != NULL) {
-        next = nodes->next;
+    JSAudioContext::NodeListItem *node = m_Nodes;
+    JSAudioContext::NodeListItem *next = nullptr;
+    while (node != nullptr) {
+        next = node->next;
         // Node destructor will remove the node
         // from the nodes linked list
-        delete nodes->curr;
-        nodes = next;
+        delete node->curr;
+        node = next;
     }
 
     // Unroot custom nodes objects and clear threaded js context
@@ -599,7 +549,7 @@ JSAudioContext::~JSAudioContext()
 
     NIDIUM_PTHREAD_WAIT(&m_ShutdownWait)
 
-    // Unlock the sources, so the decode thread can exit
+    // Unlock the sources thread, so the decode thread can exit
     // when we call Audio::shutdown()
     m_Audio->unlockSources();
 
@@ -611,7 +561,7 @@ JSAudioContext::~JSAudioContext()
     // And delete the audio
     delete m_Audio;
 
-    JSAudioContext::m_Instance = NULL;
+    JSAudioContext::m_Ctx = NULL;
 }
 
 void JSAudioContext::CtxCallback(void *custom)
@@ -629,30 +579,28 @@ void JSAudioContext::CtxCallback(void *custom)
 
 JSFunctionSpec *JSAudioContext::ListMethods()
 {
-    static JSFunctionSpec funcs[] = {
-        CLASSMAPPER_FN(JSAudioContext, run, 1),
-        CLASSMAPPER_FN(JSAudioContext, load, 1),
-        CLASSMAPPER_FN(JSAudioContext, createNode, 3),
-        CLASSMAPPER_FN(JSAudioContext, connect, 2),
-        CLASSMAPPER_FN(JSAudioContext, disconnect, 2),
-        CLASSMAPPER_FN(JSAudioContext, pFFT, 2),
+    static JSFunctionSpec funcs[]
+        = { CLASSMAPPER_FN(JSAudioContext, run, 1),
+            CLASSMAPPER_FN(JSAudioContext, load, 1),
+            CLASSMAPPER_FN(JSAudioContext, createNode, 3),
+            CLASSMAPPER_FN(JSAudioContext, connect, 2),
+            CLASSMAPPER_FN(JSAudioContext, disconnect, 2),
+            CLASSMAPPER_FN(JSAudioContext, pFFT, 2),
 
-        JS_FS_END
-    };
+            JS_FS_END };
 
     return funcs;
 }
 JSPropertySpec *JSAudioContext::ListProperties()
 {
-    static JSPropertySpec props[] = {
-        CLASSMAPPER_PROP_GS(JSAudioContext, volume),
+    static JSPropertySpec props[]
+        = { CLASSMAPPER_PROP_GS(JSAudioContext, volume),
 
-        CLASSMAPPER_PROP_G(JSAudioContext, buffersize),
-        CLASSMAPPER_PROP_G(JSAudioContext, channels),
-        CLASSMAPPER_PROP_G(JSAudioContext, sampleRate),
+            CLASSMAPPER_PROP_G(JSAudioContext, bufferSize),
+            CLASSMAPPER_PROP_G(JSAudioContext, channels),
+            CLASSMAPPER_PROP_G(JSAudioContext, sampleRate),
 
-        JS_PS_END
-    };
+            JS_PS_END };
 
     return props;
 }
@@ -664,4 +612,3 @@ void JSAudioContext::RegisterObject(JSContext *cx)
 
 } // namespace Binding
 } // namespace Nidium
-

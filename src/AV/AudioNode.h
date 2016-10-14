@@ -73,8 +73,9 @@ struct NodeEvent
 // }}}
 
 // {{{ NodeLink
-struct NodeLink
+class NodeLink
 {
+public:
     int m_Count;
     int m_Channel;
     bool m_HaveFeedback;
@@ -90,6 +91,16 @@ struct NodeLink
             wire[i] = NULL;
         }
     };
+
+    bool isInput()
+    {
+        return m_Type == INPUT;
+    }
+
+    bool isOutput()
+    {
+        return m_Type == OUTPUT;
+    }
 };
 // }}}
 
@@ -228,13 +239,12 @@ class AudioNodeCustom : public AudioNode
 public:
     AudioNodeCustom(int inCount, int outCount, Audio *audio);
 
-    void setCallback(NodeCallback cbk, void *custom);
+    void setProcessor(NodeCallback cbk, void *custom);
 
-    virtual bool process();
-
+    virtual bool process() override;
 private:
-    NodeCallback m_Cbk;
-    void *m_Custom;
+    NodeCallback m_Cbk = nullptr;
+    void *m_Custom = nullptr;
 };
 // }}}
 
@@ -328,17 +338,17 @@ public:
     bool m_Loop;
     int m_NbChannel;
 
-    void play();
-    void pause();
-    void stop();
-    void close();
-    int open(const char *src);
-    int open(void *buffer, int size);
-    int openInit();
+    void play() override;
+    void pause() override;
+    void stop() override;
+    void close() override;
+    int open(const char *src) override;
+    int open(void *buffer, int size) override;
+    int openInit() override;
     static void openInitCoro(void *arg);
     int initStream();
     int initInternal();
-    void seek(double time);
+    void seek(double time) override;
 
     int avail();
     virtual bool buffer();
@@ -346,17 +356,16 @@ public:
     static void bufferCoro(void *arg);
     bool bufferInternal();
 
-    virtual bool process();
-    bool isActive();
+    virtual bool process() override;
+    bool isActive() override;
     bool work();
     bool decode();
     int resample(int destSamples);
-    double getClock();
+    double getClock() override;
     double drop(double ms);
     void closeInternal(bool reset);
 
     virtual ~AudioSource();
-
 private:
     AVCodecContext *m_CodecCtx;
 
@@ -391,7 +400,8 @@ private:
 // }}}
 
 // {{{ AudioSourceCustom
-class AudioSourceCustom : public AudioNodeCustom, public AVSourceEventInterface
+class AudioSourceCustom : public AudioNodeCustom, 
+                          public AVSourceEventInterface
 {
 public:
     AudioSourceCustom(int out, Audio *audio)
@@ -417,8 +427,8 @@ public:
     void seek(double pos);
     static void seekMethod(AudioNode *node, void *custom);
 
-    bool process();
-    bool isActive();
+    bool process() override;
+    bool isActive() override;
 };
 // }}}
 

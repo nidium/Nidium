@@ -13,7 +13,8 @@ Tests.register("CustomSourceNode.create", function() {
     customProcessor = dsp.createNode("custom", 2, 2);
     var target = dsp.createNode("target", 2, 0);
 
-    Assert(source instanceof AudioNode);
+    Assert(source instanceof AudioNodeCustomSource);
+    Assert(target instanceof AudioNodeTarget);
     
     dsp.connect(source.output[0], customProcessor.input[0]);
     dsp.connect(source.output[1], customProcessor.input[1]);
@@ -135,19 +136,20 @@ Tests.registerAsync("CustomSourceNode.assignProcessor", function(next) {
         next();
     });
 
-    customProcessor.assignProcessor(function(frames, scope) {
+    customProcessor.assignProcessor(function(buffers, scope) {
         var ok = false;
-        for (var i = 0; i < frames.data.length; i++) {
-            if (frames.data[i][frames.size - 1] == 42) {
+        for (var i = 0; i < buffers.data.length; i++) {
+            if (buffers.data[i][buffers.size - 1] == 42) {
                 ok = true;
             }
         } 
         this.send(ok);
     });
 
-    source.assignProcessor(function(frames, scope) {
-        for (var i = 0; i < frames.data.length; i++) {
-            frames.data[i][frames.size - 1] = 42;
+    source.assignProcessor(function(buffers, scope) {
+        for (var i = 0; i < buffers.data.length; i++) {
+            buffers.data[i][buffers.size - 1] = 42;
+            buffers.data[i][0] = 42;
         } 
     });
 

@@ -442,7 +442,11 @@ double AVSource::getDuration()
         return 0;
     }
 
-    return m_Container->duration / AV_TIME_BASE;
+    if (m_Container) {
+        return m_Container->duration / AV_TIME_BASE;
+    }
+
+    return 0;
 }
 
 int AVSource::readError(int err)
@@ -469,10 +473,6 @@ void AVSource::onMessage(const SharedMessages::Message &msg)
             this->close();
             break;
     }
-}
-
-AVSource::~AVSource()
-{
 }
 // }}}
 

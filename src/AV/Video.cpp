@@ -683,7 +683,7 @@ void Video::frameAt(double time, bool keyframe)
 }
 // }}}
 
-AudioSource *Video::getAudioNode(Audio *audio)
+VideoAudioSource *Video::getAudioNode(Audio *audio)
 {
 
     if (m_AudioSource) {
@@ -1147,15 +1147,19 @@ void *Video::decode(void *args)
     return NULL;
 }
 
-void Video::stopAudio()
+void Video::releaseAudioNode(bool del)
 {
+    if (!m_AudioSource) return;
+
     PthreadAutoLock lock(&m_AudioLock);
 
     this->clearAudioQueue();
 
+    if (del) {
+        delete m_AudioSource;
+    }
+
     m_Audio = NULL;
-    // Video::stopAudio() is called when the audio node
-    // is being destructed, so we just set the audioSource to null
     m_AudioSource = NULL;
 }
 

@@ -165,7 +165,7 @@ struct AudioParameters
         : m_AskedBufferSize(askedBufferSize), m_BufferSize(bufferSize),
           m_Channels(channels), m_SampleFmt(sampleFmt),
           m_SampleRate(sampleRate),
-          m_FramesPerBuffer(bufferSize / (sampleFmt * channels))
+          m_FramesPerBuffer(bufferSize / sampleFmt)
     {
     }
 };
@@ -242,7 +242,8 @@ struct AVSourceEvent
 class AVSourceEventInterface
 {
 public:
-    AVSourceEventInterface() : m_EventCbk(NULL), m_EventCbkCustom(NULL){};
+    AVSourceEventInterface() {};
+
     void eventCallback(AVSourceEventCallback cbk, void *custom)
     {
         m_EventCbk       = cbk;
@@ -263,14 +264,14 @@ public:
 
     void sendEvent(AVSourceEvent *ev)
     {
-        if (m_EventCbk != NULL) {
+        if (m_EventCbk != nullptr) {
             m_EventCbk(ev);
         }
     };
 
 private:
-    AVSourceEventCallback m_EventCbk;
-    void *m_EventCbkCustom;
+    AVSourceEventCallback m_EventCbk = nullptr;
+    void *m_EventCbkCustom = nullptr;
 };
 // }}}
 
@@ -282,7 +283,7 @@ public:
 
     friend class AVStreamReader;
 
-    bool m_Opened;
+    bool m_Opened = false;
     bool m_Eof;
     static pthread_mutex_t m_FfmpegLock;
 
@@ -306,8 +307,7 @@ public:
         MSG_CLOSE
     };
 
-    virtual ~AVSource() = 0;
-
+    virtual ~AVSource() {};
 protected:
     AVFormatContext *m_Container;
 
