@@ -222,13 +222,11 @@ void WebSocketClient::onConnected()
 
 void WebSocketClient::onDataHandshake(const uint8_t *data, size_t len)
 {
-    // TODO: new style cast
     this->HTTPParse((char *)(data), len);
 }
 
 void WebSocketClient::onDataWS(const uint8_t *data, size_t len)
 {
-    // TODO: new style cast
     ape_ws_process_frame(&m_WSState, (char *)(data), len);
 }
 
@@ -236,11 +234,11 @@ void WebSocketClient::onFrame(const char *data, size_t len, bool binary)
 {
     Args args;
     args[0].set(this);
-    args[1].set((void *)(data)); // TODO: new style cast
+    args[1].set((void *)(data));
     args[2].set(len);
     args[3].set(binary);
 
-    this->fireEvent<WebSocketClient>(WebSocketClient::kEvents_ClientFrame,
+    this->fireEventSync<WebSocketClient>(WebSocketClient::kEvents_ClientFrame,
                                      args);
 }
 
