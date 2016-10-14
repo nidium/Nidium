@@ -102,7 +102,7 @@ void Messages::postMessage(SharedMessages::Message *msg, bool forceAsync)
         - Must not have forced async message in queue
     */
     if (!forceAsync && pthread_equal(m_GenesisThread, pthread_self())
-        && g_MessagesList->hasAsyncMessages() && !g_PostingSyncMsg) {
+        && !g_MessagesList->hasAsyncMessages() && !g_PostingSyncMsg) {
 
         g_PostingSyncMsg = msg;
 
