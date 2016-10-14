@@ -239,6 +239,11 @@ TestsRunner.prototype = {
         if (!test.async || success === false) {
             this._reportTest(success);
         } else if (test.watchdogDelay) {
+            if (this.currentTest == null) {
+                // Test already finished in a sync way,
+                // no need to setup a timer
+                return;
+            }
             this.testWatchdogTimer = setTimeout(function() {
                 Assert(false, "Timeout reached");
             }, test.watchdogDelay);
