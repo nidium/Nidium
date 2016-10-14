@@ -308,6 +308,14 @@ public:
      */    
     void root()
     {
+#ifdef DEBUG
+        /*
+            Assert if root() was called in ::Constructor() or
+            before CreateObject().
+            (That is, before an AssociateObject internal call)
+        */
+        assert(m_Instance != nullptr);
+#endif
         if (m_Rooted) {
             return;
         }
