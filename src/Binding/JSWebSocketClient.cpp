@@ -68,6 +68,7 @@ void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
 
                 JSUtils::StrToJsval(m_Cx, data, len, &jdata,
                                     !binary ? "utf8" : NULL);
+
                 NIDIUM_JSOBJ_SET_PROP(event, "data", jdata);
 
                 arg[0].setObjectOrNull(event);
@@ -204,6 +205,10 @@ JSWebSocket *JSWebSocket::Constructor(JSContext *cx, JS::CallArgs &args,
     }
 
     JSWebSocket *wss = new JSWebSocket(cx, host, port, path, isSSL);
+    
+    /* Workaround so we can call root() within ::Constructor */
+    wss->m_Instance = obj;
+    
     wss->root();
 
     free(path);
