@@ -40,3 +40,53 @@ Tests.registerAsync("Socket listen", function(next) {
     }
 
 }, 500);
+
+
+Tests.registerAsync("Socket framing", function(next) {
+    var server = new Socket("127.0.0.1", 9028).listen();
+    var client = new Socket("127.0.0.1", 9028).connect();
+
+    server.readline = true;
+    client.readline = true;
+
+    var done = 0;
+
+    const datainc = "lastframe\n";
+
+    server.onaccept = function(new_client) {
+        new_client.write("data");
+        setTimeout(function() {
+            new_client.write("data2\nframe2\n");
+
+            for (let i = 0; i < datainc.length; i++) {
+                setTimeout(function(pos) {
+                    new_client.write(datainc[pos]);
+                }, 50 * i, i);
+            }
+        }, 100);
+    }
+
+    client.onread = function(data) {
+        if (done == 0) {
+            Assert.equal(data, "datadata2");
+
+        } else if (done == 1) {
+            Assert.equal(data, "frame2");
+        } else if (done == 2) {
+            Assert.equal(data, "lastframe");
+            this.disconnect();
+            next();
+        }
+
+        done++;
+    }
+
+    server.onread = function(new_client, data) {
+
+    }
+
+    client.ondisconnect = function() {
+
+    }
+
+}, 2000);
