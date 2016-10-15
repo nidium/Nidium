@@ -52,7 +52,8 @@ if (args["file"]) {
         'JS/JS_btoa.js',
         'JS/JS_timers.js',
         'Socket/basic.js',
-        'Socket/websocket-client.js'
+        'Socket/websocket-client.js',
+        'Socket/websocket-server.js'
     ];
 
     if (args["frontend"]) {
