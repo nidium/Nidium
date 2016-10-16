@@ -89,7 +89,7 @@ Tests.registerAsync("Socket framing", function(next) {
 
     }
 
-}, 500);
+}, 3000);
 
 
 Tests.registerAsync("Socket lz4", function(next) {
