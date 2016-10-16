@@ -7,10 +7,10 @@ compiler: clang
 
 
 script:
-  PYTHONPATH=./NidiumTools/src ./configure_server --debug --no-fork
-  cd tests/jsunittest
-  python2.7 simplehttpserver.py &
-  ../../bin/nidium-server unittests.js
+  - PYTHONPATH=./NidiumTools/src ./configure_server --debug --no-fork
+  - cd tests/jsunittest
+  - python2.7 simplehttpserver.py &
+  - ../../bin/nidium-server unittests.js
 
 cache:
   directories:
