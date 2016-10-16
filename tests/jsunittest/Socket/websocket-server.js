@@ -1,4 +1,4 @@
-Tests.registerAsync("Echo local server (plain)", function(next) {
+Tests.registerAsync("Websocket - Echo local server (plain)", function(next) {
     var server = new WebSocketServer("ws://127.0.0.1:9099/");
     var done = false;
 
@@ -35,7 +35,7 @@ Tests.registerAsync("Echo local server (plain)", function(next) {
 }, 3000);
 
 
-Tests.registerAsync("Many clients (plain)", function(next) {
+Tests.registerAsync("Websocket - Many clients (plain)", function(next) {
     var server = new WebSocketServer("ws://127.0.0.1:9101/");
     var count = 0;
     var close = 0;
@@ -83,7 +83,8 @@ Tests.registerAsync("Many clients (plain)", function(next) {
 }, 1000);
 
 
-Tests.registerAsync("Echo local server (Secure)", function(next) {
+/*
+Tests.registerAsync("Websocket - Echo local server (Secure)", function(next) {
     var server = new WebSocketServer("wss://127.0.0.1:9102/");
     var done = false;
 
@@ -118,3 +119,4 @@ Tests.registerAsync("Echo local server (Secure)", function(next) {
     }
 
 }, 3000);
+*/
