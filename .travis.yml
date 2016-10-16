@@ -6,7 +6,7 @@ before_install:
 compiler: clang
 
 
-script: PYTHONPATH=./NativeTools/src ./configure_server --debug --no-fork
+script: PYTHONPATH=./NidiumTools/src ./configure_server --debug --no-fork
 
 cache:
   directories:
