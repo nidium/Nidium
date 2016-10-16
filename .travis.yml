@@ -5,8 +5,10 @@ before_install:
 compiler: clang
 
 
-script: configure_server --debug --no-fork
+script: ./configure_server --debug --no-fork
 
 cache:
   directories:
   - third-party
+
+language: cpp
