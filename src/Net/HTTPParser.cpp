@@ -6,7 +6,6 @@
 #include "Net/HTTPParser.h"
 
 #include <string.h>
-#include <stdio.h>
 
 namespace Nidium {
 namespace Net {

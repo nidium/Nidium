@@ -81,3 +81,40 @@ Tests.registerAsync("Many clients (plain)", function(next) {
 
 
 }, 1000);
+
+
+Tests.registerAsync("Echo local server (Secure)", function(next) {
+    var server = new WebSocketServer("wss://127.0.0.1:9102/");
+    var done = false;
+
+    server.onopen = function(client) {
+        client.send("hello !");
+    }
+
+    server.onmessage = function(client, ev) {
+        Assert.equal(ev.data, "hello !");
+
+        done = true;
+        client.close();
+    }
+
+    server.onclose = function(client) {
+        Assert.equal(done, true);
+        next();
+    }
+
+    var wsclient = new WebSocket("wss://127.0.0.1:9102/");
+
+    wsclient.onopen = function() {
+        
+    }
+
+    wsclient.onmessage = function(ev) {
+        Assert.equal(ev.data, "hello !");
+        wsclient.send(ev.data);
+    }
+
+    wsclient.onclose = function() {
+    }
+
+}, 3000);
