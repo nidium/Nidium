@@ -1,11 +1,12 @@
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y python2.7 patch pkg-config libbz2-1.0
+  - git clone https://github.com/nidium/NidiumTools.git
 
 compiler: clang
 
 
-script: ./configure_server --debug --no-fork
+script: PYTHONPATH=./NativeTools/src ./configure_server --debug --no-fork
 
 cache:
   directories:
