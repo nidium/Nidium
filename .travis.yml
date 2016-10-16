@@ -1,0 +1,12 @@
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y python2.7 patch pkg-config libbz2-1.0
+
+compiler: clang
+
+
+script: configure_server --debug --no-fork
+
+cache:
+  directories:
+  - third-party
