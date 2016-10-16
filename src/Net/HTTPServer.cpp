@@ -316,10 +316,11 @@ static void nidium_socket_client_disconnect(ape_socket *socket_client,
 // }}}
 
 // {{{ HTTPServer Implementation
-HTTPServer::HTTPServer(uint16_t port, const char *ip)
+HTTPServer::HTTPServer(uint16_t port, const char *ip, bool secure)
 {
     ape_global *ape = Binding::NidiumJS::GetNet();
-    m_Socket        = APE_socket_new(APE_SOCKET_PT_TCP, 0, ape);
+    m_Socket        = APE_socket_new(secure ?
+                      APE_SOCKET_PT_SSL : APE_SOCKET_PT_TCP, 0, ape);
 
     m_IP   = strdup(ip);
     m_Port = port;

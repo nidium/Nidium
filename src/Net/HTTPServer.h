@@ -36,7 +36,7 @@ public:
         kEvents_None = 1
     };
 
-    HTTPServer(uint16_t port, const char *ip = "0.0.0.0");
+    HTTPServer(uint16_t port, const char *ip = "0.0.0.0", bool secure = false);
     virtual ~HTTPServer();
 
     /*
