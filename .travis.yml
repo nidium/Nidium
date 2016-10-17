@@ -1,16 +1,15 @@
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y python2.7 patch pkg-config libbz2-1.0
+  - sudo apt-get install -y python2.7 patch pkg-config libbz2-1.0 libpci-dev libgtk2.0-dev libgtk-3-dev mesa-common-dev libglu1-mesa-dev yasm libasound2 libasound2-dev
   - git clone https://github.com/nidium/NidiumTools.git
 
 compiler: clang
 
 
 script:
-  - PYTHONPATH=./NidiumTools/src ./configure_server --debug --no-fork
-  - cd tests/jsunittest
-  - python2.7 simplehttpserver.py &
-  - ../../bin/nidium-server unittests.js
+  - PYTHONPATH=./NidiumTools/src ./configure_frontend --debug 
+  - python2.7 ./tests/jsunittest/simplehttpserver.py &
+  - ../bin/nidium tests/jsunittest/unittests.nml
 
 cache:
   directories:
