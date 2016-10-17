@@ -94,11 +94,11 @@ public:
     virtual ~JSTransferable();
 
 protected:
+    JS::PersistentRootedValue m_Val;
     JSContext *m_DestCx = nullptr;
     uint64_t *m_Data    = nullptr;
     size_t m_Bytes      = 0;
 
-    JS::PersistentRootedValue m_Val;
 private:
     void *m_Private = nullptr;
 
