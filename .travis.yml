@@ -9,7 +9,7 @@ compiler: clang
 script:
   - PYTHONPATH=./NidiumTools/src ./configure_frontend --debug 
   - python2.7 ./tests/jsunittest/simplehttpserver.py &
-  - ../bin/nidium tests/jsunittest/unittests.nml
+  - ./bin/nidium tests/jsunittest/unittests.nml
 
 cache:
   directories:
