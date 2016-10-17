@@ -13,8 +13,8 @@
 #include <ape_hash.h>
 #include <ape_netlib.h>
 
-#include <IO/Stream.h>
-#include <Core/Messages.h>
+#include "IO/Stream.h"
+#include "Core/Messages.h"
 
 namespace Nidium {
 namespace Frontend {

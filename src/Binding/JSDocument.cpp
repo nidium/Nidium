@@ -14,7 +14,7 @@
 #include <SkStream.h>
 #include <SkData.h>
 
-#include <Binding/JSUtils.h>
+#include "Binding/JSUtils.h"
 
 #include "Frontend/NML.h"
 #include "Graphics/CanvasHandler.h"
@@ -429,7 +429,7 @@ JSObject *JSDocument::RegisterObject(JSContext *cx)
 {
     JSDocument::ExposeClass(cx, "NidiumDocument",
         JSCLASS_HAS_RESERVED_SLOTS(1));
-    
+
     JSDocument *jdoc = new JSDocument();
     JS::RootedObject documentObj(cx,
         JSDocument::CreateUniqueInstance(cx, jdoc, "document"));

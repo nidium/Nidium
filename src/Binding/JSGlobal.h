@@ -12,7 +12,6 @@
 namespace Nidium {
 namespace Binding {
 
-
 class JSGlobal : public ClassMapper<JSGlobal>
 {
 public:
@@ -29,7 +28,7 @@ public:
         if (cx == nullptr) {
             return nullptr;
         }
-        
+
         return (JSGlobal *)JS_GetPrivate(JS::CurrentGlobalOrNull(cx));
     }
 

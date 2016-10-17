@@ -16,52 +16,78 @@
 namespace Nidium {
 namespace Binding {
 
-// {{{ Preamble
-static JSClass DebuggerContext_class = { "DebuggerContext",
-                                         JSCLASS_HAS_RESERVED_SLOTS(2),
-                                         JS_PropertyStub,
-                                         JS_DeletePropertyStub,
-                                         JS_PropertyStub,
-                                         JS_StrictPropertyStub,
-                                         JS_EnumerateStub,
-                                         JS_ResolveStub,
-                                         JS_ConvertStub,
-                                         nullptr,
-                                         nullptr,
-                                         nullptr,
-                                         nullptr,
-                                         nullptr,
-                                         JSCLASS_NO_INTERNAL_MEMBERS };
-// }}}
-
-// {{{ Implementation
-static bool nidium_debugger_run(JSContext *cx, unsigned argc, JS::Value *vp)
+JSFunctionSpec *JSDebuggerCompartment::ListMethods()
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    static JSFunctionSpec funcs[]
+        = { CLASSMAPPER_FN(JSDebuggerCompartment, run, 1), JS_FS_END };
 
-    NIDIUM_JS_CHECK_ARGS("run", 2);
+    return funcs;
+}
 
-    if (!args[0].isObject()) {
-        JS_ReportError(cx, "Invalid DebuggerContext");
-        return false;
+JSDebuggerCompartment *JSDebuggerCompartment::Constructor(JSContext *cx,
+                                                          JS::CallArgs &args,
+                                                          JS::HandleObject obj)
+{
+    JSDebuggerCompartment *debuggerCpt = new JSDebuggerCompartment(cx);
+
+    if (JS_IsExceptionPending(cx)) {
+        JS_ReportPendingException(cx);
     }
 
-    JS::RootedObject debuggerContext(
-        cx, js::CheckedUnwrap(args[0].toObjectOrNull()));
+    return debuggerCpt;
+}
 
-    if (!debuggerContext) {
-        JS_ReportError(cx, "Invalid DebuggerContext");
-        return false;
+JSDebuggerCompartment::JSDebuggerCompartment(JSContext *cx)
+{
+    JS::RootedObject mainGbl(cx, JS::CurrentGlobalOrNull(cx));
+    if (!mainGbl) {
+        JS_ReportError(cx, "Cannot get current global");
+        return;
     }
 
-    if (!JS_InstanceOf(cx, debuggerContext, &DebuggerContext_class, nullptr)) {
-        return false;
+    // New global object & compartment for the Debugger
+    JS::RootedObject gbl(cx, NidiumJS::CreateJSGlobal(cx));
+    if (!gbl) {
+        JS_ReportError(cx, "Cannot create global for Debugger compartment");
+        return;
     }
 
-    if (!args[1].isObject()
-        || !JS_ObjectIsCallable(cx, args[1].toObjectOrNull())) {
+    m_Global      = gbl;
+    m_Compartment = JS_EnterCompartment(cx, gbl);
+
+    // Expose the Debugger object & console inside the compartment
+    JS_DefineDebuggerObject(cx, gbl);
+    JSConsole::RegisterObject(cx);
+
+    // The global object is going to be shared with the Debugger compartment
+    // we need to wrap it.
+    JS_WrapObject(cx, &mainGbl);
+
+    JS_LeaveCompartment(cx, m_Compartment);
+
+    JS::RootedValue rval(cx);
+    JS::AutoValueArray<1> params(cx);
+    params[0].setObjectOrNull(mainGbl);
+
+    this->run(cx, "return (new Debugger(arguments[0]));", params, &rval);
+
+    if (!rval.isObject()) {
         JS_ReportError(
-            cx, "Invalid arguments. Second argument must be a function.");
+            cx,
+            "Failed to initialize the Debugger : Debugger is not an object");
+        return;
+    }
+
+    m_Debugger = rval.toObjectOrNull();
+}
+
+bool JSDebuggerCompartment::JS_run(JSContext *cx, JS::CallArgs &args)
+{
+    unsigned int argc = args.length();
+
+    if (!args[0].isObject()
+        || !JS_ObjectIsCallable(cx, args[0].toObjectOrNull())) {
+        JS_ReportError(cx, "First argument must be a function.");
         return false;
     }
 
@@ -70,7 +96,7 @@ static bool nidium_debugger_run(JSContext *cx, unsigned argc, JS::Value *vp)
         JS::RootedFunction fun(cx);
         JS::RootedString funStr(cx);
 
-        if ((fun = JS_ValueToFunction(cx, args[1])) == nullptr
+        if ((fun = JS_ValueToFunction(cx, args[0])) == nullptr
             || (funStr = JS_DecompileFunction(cx, fun, 0)) == nullptr) {
             JS_ReportError(cx, "Invalid function");
             return false;
@@ -83,15 +109,41 @@ static bool nidium_debugger_run(JSContext *cx, unsigned argc, JS::Value *vp)
                 ").apply(this, Array.prototype.slice.apply(arguments));");
     }
 
-    JSCompartment *cpt = JS_EnterCompartment(cx, debuggerContext);
+    JS::RootedValue rval(cx);
 
-    JS::RootedValue gblVal(cx, JS_GetReservedSlot(debuggerContext, 0));
-    JS::RootedObject gbl(cx, gblVal.toObjectOrNull());
+    JS_EnterCompartment(cx, m_Global);
 
-    JS::RootedValue dbgVal(cx, JS_GetReservedSlot(debuggerContext, 1));
-    JS::RootedObject dbg(cx, dbgVal.toObjectOrNull());
+    JS::AutoValueVector params(cx);
+    params.resize(argc);
 
-    JS::RootedValue ret(cx);
+    params[0].setObjectOrNull(m_Debugger);
+
+    for (int i = 1; i < argc; i++) {
+        JS::RootedValue tmp(cx, args[i]);
+        JS_WrapValue(cx, &tmp);
+        params[i] = tmp;
+    }
+
+    JS_LeaveCompartment(cx, m_Compartment);
+
+    bool ok = this->run(cx, scoped, params, &rval);
+
+    args.rval().set(rval);
+
+    return ok;
+}
+
+bool JSDebuggerCompartment::run(JSContext *cx,
+                                const char *funStr,
+                                const JS::HandleValueArray &args,
+                                JS::MutableHandleValue rval)
+{
+    JS_EnterCompartment(cx, m_Global);
+
+    // Automatically wrap rval for ease of use
+    JS_WrapValue(cx, rval);
+
+    JS::RootedObject gbl(cx, m_Global);
     JS::AutoSaveContextOptions asco(cx);
     JS::CompileOptions options(cx);
     JS::ContextOptionsRef(cx).setVarObjFix(true);
@@ -100,129 +152,24 @@ static bool nidium_debugger_run(JSContext *cx, unsigned argc, JS::Value *vp)
         .setFileAndLine("Debugger.run", 1)
         .setCompileAndGo(true);
 
-    JS::AutoValueVector params(cx);
-    params.resize(argc - 1);
-    params[0].setObjectOrNull(dbg);
-    for (int i = 2; i < argc; i++) {
-        JS::RootedValue tmp(cx, args[i]);
-        JS_WrapValue(cx, &tmp);
-        params[i - 1] = tmp;
-    }
-
     JS::RootedFunction fn(cx,
                           JS::CompileFunction(cx, gbl, options, nullptr, 0,
-                                              nullptr, scoped, strlen(scoped)));
-
-    if (fn == NULL) {
-        JS_LeaveCompartment(cx, cpt);
+                                              nullptr, funStr, strlen(funStr)));
+    if (fn == nullptr) {
+        JS_LeaveCompartment(cx, m_Compartment);
         JS_ReportError(cx, "Can't compile function");
         return false;
     }
 
-    if (JS_CallFunction(cx, gbl, fn, params, &ret) == false) {
-        JS_LeaveCompartment(cx, cpt);
-        return false;
-    }
 
-    JS_LeaveCompartment(cx, cpt);
+    JS::AutoValueArray<1> foo(cx);
 
-    JS_WrapValue(cx, &ret);
-    args.rval().set(ret);
+    bool ok = JS_CallFunction(cx, gbl, fn, args, rval);
 
-    return true;
+    JS_LeaveCompartment(cx, m_Compartment);
+
+    return ok;
 }
-
-static bool nidium_debugger_create(JSContext *cx, unsigned argc, JS::Value *vp)
-{
-    JS::RootedObject mainGbl(cx, JS::CurrentGlobalOrNull(cx));
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-
-    JS::RootedObject gbl(cx, NidiumJS::CreateJSGlobal(cx));
-    if (!gbl) {
-        fprintf(stderr, "Failed to create global object\n");
-        return false;
-    }
-
-    JSCompartment *cpt = JS_EnterCompartment(cx, gbl);
-
-    JSDebugger::RegisterObject(cx);
-    /* Expose console object for easy "debugging" */
-    JSConsole::RegisterObject(cx);
-
-    JS::RootedScript script(cx);
-    JS::AutoSaveContextOptions asco(cx);
-    JS::CompileOptions options(cx);
-    JS::RootedFunction cf(cx);
-    JS::RootedValue ret(cx);
-
-    JS::RootedObject debuggerContext(
-        cx,
-        JS_NewObject(cx, &DebuggerContext_class, JS::NullPtr(), JS::NullPtr()));
-
-    JS::ContextOptionsRef(cx).setVarObjFix(true);
-    options.setUTF8(true).setFileAndLine("Debugger", 1).setCompileAndGo(true);
-
-    JS_WrapObject(cx, &mainGbl);
-
-    const char *debuggerInit = "return (new Debugger(arguments[0]));";
-    const char *fargs[1];
-    fargs[0] = "global";
-
-    cf = JS::CompileFunction(cx, gbl, options, "DebuggerCreate", 1, fargs,
-                             debuggerInit, strlen(debuggerInit));
-
-    if (cf == NULL) {
-        JS_LeaveCompartment(cx, cpt);
-        JS_ReportError(cx, "Can't init Debugger");
-        printf("failed to init\n");
-        return false;
-    }
-
-    JS::AutoValueArray<1> params(cx);
-    params[0].setObjectOrNull(mainGbl);
-
-    if (JS_CallFunction(cx, gbl, cf, params, &ret) == false) {
-        JS_LeaveCompartment(cx, cpt);
-        JS_ReportPendingException(cx);
-        JS_ReportError(cx, "Failed to init Debugger");
-        return false;
-    }
-
-    JS::RootedValue gblVal(cx, OBJECT_TO_JSVAL(gbl));
-    JS_SetReservedSlot(debuggerContext, 0, gblVal);
-    JS_SetReservedSlot(debuggerContext, 1, ret);
-
-    JS_LeaveCompartment(cx, cpt);
-
-    JS_WrapObject(cx, &debuggerContext);
-    args.rval().setObjectOrNull(debuggerContext);
-
-    return true;
-}
-// }}}
-
-// {{{ Registration
-void JSDebugger::RegisterObject(JSContext *cx)
-{
-    JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
-
-    JS_DefineDebuggerObject(cx, gbl);
-
-    /*
-     * Debugger object must live in another compartment
-     * so we extend the Debugger object with two static methods
-     * - create : Initialize the Debugger in a new compartment
-     * - run : Execute code inside the Debugger compartment
-     */
-
-    JS::RootedValue dbgVal(cx);
-    JS_GetProperty(cx, gbl, "Debugger", &dbgVal);
-    JS::RootedObject dbg(cx, dbgVal.toObjectOrNull());
-
-    JS_DefineFunction(cx, dbg, "create", nidium_debugger_create, 0, 1);
-    JS_DefineFunction(cx, dbg, "run", nidium_debugger_run, 0, 1);
-}
-// }}}
 
 } // namespace Binding
 } // namespace Nidium

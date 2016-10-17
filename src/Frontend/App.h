@@ -13,7 +13,7 @@
 
 #include <ape_timers_next.h>
 
-#include <Binding/NidiumJS.h>
+#include "Binding/NidiumJS.h"
 
 namespace Nidium {
 namespace Frontend {

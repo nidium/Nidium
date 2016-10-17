@@ -10,7 +10,6 @@
 
 #include "Core/SharedMessages.h"
 #include "Core/Messages.h"
-#include "Binding/JSExposer.h"
 #include "Binding/ClassMapper.h"
 
 

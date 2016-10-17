@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <math.h>
 
-#include <Net/WebSocket.h>
+#include "Net/WebSocket.h"
 
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSDocument.h"
@@ -30,7 +30,7 @@
 #endif
 
 #ifdef DEBUG
-#include <Binding/JSDebug.h>
+#include "Binding/JSDebug.h"
 #endif
 
 #ifdef NIDIUM_AUDIO_ENABLED

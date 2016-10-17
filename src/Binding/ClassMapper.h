@@ -8,7 +8,8 @@
 
 #include <jsapi.h>
 #include <assert.h>
-#include "Binding/JSExposer.h"
+
+#include "Binding/JSMacros.h"
 #include "Binding/JSEvents.h"
 
 namespace Nidium {
@@ -127,7 +128,7 @@ public:
         JS::HandleObject parent = JS::NullPtr())
     {
         JSClass *jsclass = T::GetJSClass();
-        
+
 #ifdef DEBUG
         if (jsclass != ClassMapper<T>::GetJSClass()) {
             printf("[Debug] JSClass is overriden for %s\n", name);
@@ -262,11 +263,11 @@ public:
     {
         return (T *)JS_GetPrivate(obj);
     }
-    
+
     /**
      *  Get a singleton ClassMapper<T> object.
      *  It's used for object created with CreateUniqueInstance()
-     */    
+     */
     static inline T *GetInstanceSingleton()
     {
         NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
@@ -287,7 +288,7 @@ public:
 
     /**
      *  Get the underlying mapped JSObject
-     */    
+     */
     JSObject inline *getJSObject() const
     {
         return m_Instance;
@@ -302,10 +303,10 @@ public:
      *  Protect the object against the Garbage collector.
      *  By default, |this| is tied to its JSObject life, meaning it's delete'd
      *  when m_Instance becomes unreachable to the JS engine.
-     *  
+     *
      *  When root()'d, it's up to the C++ code to delete the object or unroot()
      *  when needed.
-     */    
+     */
     void root()
     {
 #ifdef DEBUG
@@ -327,7 +328,7 @@ public:
     /**
      *  unroot a root()'d object.
      *  Give back control to the GC.
-     */    
+     */
     void unroot()
     {
         if (!m_Rooted) {
@@ -342,14 +343,14 @@ public:
      *  It's automatically called by default by the JS engine during GC.
      *  If called manually, remaning reachable JS instance would trigger an
      *  Illegal instance upon method call.
-     */      
+     */
     virtual ~ClassMapper()
     {
         if (!m_Instance.get()) {
             return;
         }
         JS_SetPrivate(m_Instance, nullptr);
-        
+
         this->unroot();
     }
 
@@ -462,7 +463,7 @@ protected:
         ClassMapper<T>::AssociateObject(cx, obj, ret);
 
         args.rval().setObjectOrNull(ret);
- 
+
         return true;
     }
 

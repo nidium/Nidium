@@ -11,7 +11,7 @@
 
 #include <jspubtd.h>
 #include <ape_netlib.h>
-#include <Core/SharedMessages.h>
+#include "Core/SharedMessages.h"
 
 #include "AV.h"
 

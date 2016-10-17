@@ -13,7 +13,6 @@
 
 #include "Core/Hash.h"
 
-
 namespace Nidium {
 namespace Binding {
 

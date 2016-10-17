@@ -9,7 +9,8 @@
 
 #include <ape_netlib.h>
 
-#include <Binding/JSFile.h>
+#include "Binding/JSFile.h"
+#include "Binding/JSUtils.h"
 
 #include "Graphics/Image.h"
 

@@ -12,8 +12,7 @@
 #include <SkColorPriv.h>
 #include <SkUnPreMultiply.h>
 
-#include <Core/Utils.h>
-
+#include "Core/Utils.h"
 
 namespace Nidium {
 namespace Graphics {

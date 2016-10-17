@@ -15,6 +15,7 @@
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSWebGL.h"
 #include "Binding/JSEvents.h"
+#include "Binding/JSUtils.h"
 
 using Nidium::Core::SharedMessages;
 using Nidium::Interface::UIInterface;

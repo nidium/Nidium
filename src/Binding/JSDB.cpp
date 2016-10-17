@@ -8,12 +8,11 @@
 
 #include <leveldb/db.h>
 #include <js/StructuredClone.h>
-#include <Core/Path.h>
+
+#include "Core/Path.h"
 
 namespace Nidium {
 namespace Binding {
-
-
 
 // {{{ JSDB Bindings
 JSDB *JSDB::Constructor(JSContext *cx, JS::CallArgs &args,

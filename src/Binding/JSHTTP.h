@@ -9,7 +9,6 @@
 #include <ape_netlib.h>
 #include <ape_array.h>
 
-#include "Binding/JSExposer.h"
 #include "Binding/ClassMapper.h"
 #include "Net/HTTP.h"
 

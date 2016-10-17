@@ -74,9 +74,9 @@ TestsRunner.prototype = {
     initDebugger: function() {
         // Debugger is catching async exception/assert
         // synchronous exception/assert are handled in a regular try/catch
-        this.dbgCtx = Debugger.create();
+        this.dbgCtx = new DebuggerCompartment();
 
-        Debugger.run(this.dbgCtx, function(dbg, testRunner) {
+        this.dbgCtx.run(function(dbg, testRunner) {
             /*
             dbg.onEnterFrame = function(frame) {
                 console.log("enter frame : " + frame.script.url + ":" + frame.script.getOffsetLine(frame.offset));

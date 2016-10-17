@@ -10,7 +10,7 @@
 #include <string.h>
 #include <math.h>
 
-#include <SystemInterface.h>
+#include "SystemInterface.h"
 
 #include "Graphics/Image.h"
 #include "Graphics/SkiaContext.h"
@@ -497,7 +497,7 @@ JSConstDoubleSpec *JSWebGLRenderingContext::ListConstDoubles()
 
     return constDoubles;
 }
-// clang-format on 
+// clang-format on
 // }}}
 
 // {{{ WebGLResource Implementation

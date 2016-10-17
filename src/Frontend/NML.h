@@ -8,11 +8,10 @@
 
 #include <ape_netlib.h>
 
-#include <Binding/JSStream.h>
-
-#include "rapidxml.hpp"
+#include <rapidxml.hpp>
 
 #include "Frontend/Assets.h"
+#include "Binding/JSStream.h"
 
 #define XML_VP_MAX_WIDTH 8000
 #define XML_VP_MAX_HEIGHT 8000

@@ -10,8 +10,8 @@
 
 #include <SDL.h>
 
-#include <Net/HTTPStream.h>
-
+#include "Core/TaskManager.h"
+#include "Net/HTTPStream.h"
 #include "Frontend/Context.h"
 #include "Graphics/GLHeader.h"
 #include "Binding/JSWindow.h"

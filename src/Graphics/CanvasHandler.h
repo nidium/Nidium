@@ -12,7 +12,7 @@
 
 #include <jsapi.h>
 
-#include <Core/Events.h>
+#include "Core/Events.h"
 
 /*
     - Handle a canvas layer.
