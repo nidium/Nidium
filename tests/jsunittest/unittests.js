@@ -50,7 +50,10 @@ if (args["file"]) {
         //'Thread/Thread_complex.js',
 
         'JS/JS_btoa.js',
-        'JS/JS_timers.js'
+        'JS/JS_timers.js',
+        'Socket/basic.js',
+        'Socket/websocket-client.js',
+        'Socket/websocket-server.js'
     ];
 
     if (args["frontend"]) {

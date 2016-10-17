@@ -16,8 +16,8 @@ namespace Binding {
 class JSCanvas : public ClassMapperWithEvents<JSCanvas>, public Core::Messages
 {
 public:
-    virtual void onMessage(const Core::SharedMessages::Message &msg);
-    virtual void onMessageLost(const Core::SharedMessages::Message &msg);
+    virtual void onMessage(const Core::SharedMessages::Message &msg) override;
+    virtual void onMessageLost(const Core::SharedMessages::Message &msg) override;
     static void RegisterObject(JSContext *cx);
     static JSObject *GenerateJSObject(JSContext *cx,
                                       int width,

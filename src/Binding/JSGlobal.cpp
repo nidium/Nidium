@@ -33,7 +33,7 @@ struct nidium_sm_timer
     JS::PersistentRootedValue **argv;
     JS::PersistentRootedValue func;
 
-    unsigned argc;
+    int argc;
     int ms;
 
     nidium_sm_timer(JSContext *cx)
@@ -74,7 +74,8 @@ static int nidium_timerng_wrapper(void *arg)
     JS::RootedObject global(params->cx, params->global);
 
     arr.resize(params->argc);
-    for (size_t i = 0; i < params->argc; i++) {
+
+    for (int i = 0; i < params->argc; i++) {
         arr[i] = params->argv[i]->get();
     }
     JS_CallFunctionValue(params->cx, global, func, arr, &rval);
@@ -216,22 +217,22 @@ bool JSGlobal::JS_setImmediate(JSContext *cx, JS::CallArgs &args)
 bool JSGlobal::JS_setTimeout(JSContext *cx, JS::CallArgs &args)
 {
     struct nidium_sm_timer *params;
-    int ms, i;
+    int ms = 0, i;
     int argc = args.length();
 
     params = new nidium_sm_timer(cx);
 
-    if (params == NULL || argc < 2) {
+    if (params == NULL) {
         if (params) delete params;
         return true;
     }
 
     params->cx     = cx;
     params->global = m_Instance;
-    params->argc   = argc - 2;
+    params->argc   = nidium_max(0, argc - 2);
     params->ms     = 0;
 
-    params->argv = new JS::PersistentRootedValue *[argc - 2];
+    params->argv = new JS::PersistentRootedValue *[params->argc];
 
     for (i = 0; i < argc - 2; i++) {
         params->argv[i] = new JS::PersistentRootedValue(cx);
@@ -245,10 +246,8 @@ bool JSGlobal::JS_setTimeout(JSContext *cx, JS::CallArgs &args)
         return true;
     }
 
-    if (!JS::ToInt32(cx, args[1], &ms)) {
-        free(params->argv);
-        delete params;
-        return false;
+    if (argc > 1 && !JS::ToInt32(cx, args[1], &ms)) {
+        ms = 0;
     }
 
     params->func.set(func);
@@ -272,21 +271,21 @@ bool JSGlobal::JS_setTimeout(JSContext *cx, JS::CallArgs &args)
 bool JSGlobal::JS_setInterval(JSContext *cx, JS::CallArgs &args)
 {
     struct nidium_sm_timer *params;
-    int ms, i;
+    int ms = 0, i;
     int argc = args.length();
 
     params = new nidium_sm_timer(cx);
 
-    if (params == NULL || argc < 2) {
+    if (params == NULL) {
         if (params) delete params;
         return true;
     }
 
     params->cx     = cx;
     params->global = m_Instance;
-    params->argc   = argc - 2;
+    params->argc   = nidium_max(0, argc - 2);
 
-    params->argv = new JS::PersistentRootedValue *[argc - 2];
+    params->argv = new JS::PersistentRootedValue *[params->argc];
 
     for (i = 0; i < argc - 2; i++) {
         params->argv[i] = new JS::PersistentRootedValue(cx);
@@ -301,10 +300,8 @@ bool JSGlobal::JS_setInterval(JSContext *cx, JS::CallArgs &args)
 
     params->func.set(func);
 
-    if (!JS::ToInt32(cx, args[1], &ms)) {
-        delete[] params->argv;
-        delete params;
-        return false;
+    if (argc > 1 && !JS::ToInt32(cx, args[1], &ms)) {
+        ms = 0;
     }
 
     params->ms = nidium_max(8, ms);
@@ -404,9 +401,9 @@ JSFunctionSpec *JSGlobal::ListMethods()
 {
     static JSFunctionSpec funcs[] = {
         CLASSMAPPER_FN(JSGlobal, load, 1),
-        CLASSMAPPER_FN(JSGlobal, setTimeout, 2),
+        CLASSMAPPER_FN(JSGlobal, setTimeout, 1),
         CLASSMAPPER_FN(JSGlobal, setImmediate, 1),
-        CLASSMAPPER_FN(JSGlobal, setInterval, 2),
+        CLASSMAPPER_FN(JSGlobal, setInterval, 1),
         CLASSMAPPER_FN(JSGlobal, clearTimeout, 1),
         CLASSMAPPER_FN_ALIAS(JSGlobal, clearInterval, 1, clearTimeout),
         CLASSMAPPER_FN(JSGlobal, btoa, 1),

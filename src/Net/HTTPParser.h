@@ -21,9 +21,10 @@ public:
     void HTTPClearState();
     const char *HTTPGetHeader(const char *key);
 
+    virtual void HTTPOnUpgrade(){};
     virtual void HTTPHeaderEnded() = 0;
     virtual void HTTPRequestEnded() = 0;
-    virtual void HTTPOnData(size_t offset, size_t len) = 0;
+    virtual void HTTPOnData(const char *data, size_t len) = 0;
 
     enum PrevState
     {

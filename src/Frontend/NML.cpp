@@ -336,7 +336,7 @@ void NML::onGetContent(const char *data, size_t len)
 
         if (m_Layout) {
             m_JSObjectLayout = this->buildLayoutTree(*m_Layout);
-            m_Njs->rootObjectUntilShutdown(m_JSObjectLayout);
+            NidiumJS::RootObjectUntilShutdown(m_JSObjectLayout);
         }
     } else {
         /*
@@ -360,7 +360,7 @@ void NML::onGetContent(const char *data, size_t len)
 NML::~NML()
 {
     if (m_JSObjectLayout.get()) {
-        m_Njs->unrootObject(m_JSObjectLayout);
+        NidiumJS::UnrootObject(m_JSObjectLayout);
         m_JSObjectLayout = nullptr;
     }
 
@@ -426,7 +426,7 @@ void NML::onAssetsItemReady(Assets::Item *item)
                 break;
             }
             case Assets::Item::ITEM_NSS: {
-                JSDocument *jdoc = JSDocument::GetInstanceSingleton(m_Njs->m_Cx);
+                JSDocument *jdoc = JSDocument::GetInstanceSingleton();
                 if (jdoc == NULL) {
                     return;
                 }

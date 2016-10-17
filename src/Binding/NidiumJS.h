@@ -50,6 +50,25 @@ typedef struct _NidiumBytecodeScript
     const unsigned char *data;
 } NidiumBytecodeScript;
 
+
+struct NidiumLocalContext {
+
+    NidiumLocalContext(JSRuntime *rt, JSContext *cx) : rt(rt), cx(cx) {
+        m_RootedObj = hashtbl_init(APE_HASH_INT);
+    }
+
+    bool isShuttingDown() const {
+        return m_IsShuttingDown;
+    }
+
+    JSRuntime *rt;
+    JSContext *cx;
+    struct _ape_htable *m_RootedObj;
+    bool m_IsShuttingDown = false;
+    Nidium::Core::Hash64<uintptr_t> m_JSUniqueInstance{64};
+
+};
+
 class NidiumJSDelegate;
 
 class NidiumJS
@@ -69,8 +88,6 @@ public:
     Nidium::Core::SharedMessages *m_Messages;
 
     Nidium::Core::Hash<JSObject *> m_JsObjects;
-
-    Nidium::Core::Hash64<uintptr_t> m_JSUniqueInstance{64};
 
     struct _ape_htable *m_RootedObj;
     struct _ape_global *m_Net;
@@ -168,8 +185,13 @@ public:
         return m_StructuredCloneAddition.write;
     }
 
+    static void UnrootObject(JSObject *obj);
+    static void RootObjectUntilShutdown(JSObject *obj);
     static JSObject *CreateJSGlobal(JSContext *cx, NidiumJS *njs = nullptr);
     static void SetJSRuntimeOptions(JSRuntime *rt);
+    static void InitThreadContext(JSRuntime *rt, JSContext *cx);
+    static void DestroyThreadContext(void *data);
+    static NidiumLocalContext *GetLocalContext();
 
 private:
     JSModules *m_Modules;

@@ -23,7 +23,7 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ JSBinding
-JSWebSocket::JSWebSocket(
+JSWebSocket::JSWebSocket(JSContext *cx,
                          const char *host,
                          unsigned short port,
                          const char *path,
@@ -31,10 +31,10 @@ JSWebSocket::JSWebSocket(
 {
     m_WebSocketClient = new WebSocketClient(port, path, host);
     bool ret = m_WebSocketClient->connect(
-        ssl, static_cast<ape_global *>(JS_GetContextPrivate(m_Cx)));
+        ssl, static_cast<ape_global *>(JS_GetContextPrivate(cx)));
 
     if (!ret) {
-        JS_ReportWarning(m_Cx, "Failed to connect to WS endpoint\n");
+        JS_ReportWarning(cx, "Failed to connect to WS endpoint\n");
         return;
     }
 
@@ -68,6 +68,7 @@ void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
 
                 JSUtils::StrToJsval(m_Cx, data, len, &jdata,
                                     !binary ? "utf8" : NULL);
+
                 NIDIUM_JSOBJ_SET_PROP(event, "data", jdata);
 
                 arg[0].setObjectOrNull(event);
@@ -203,7 +204,11 @@ JSWebSocket *JSWebSocket::Constructor(JSContext *cx, JS::CallArgs &args,
         return nullptr;
     }
 
-    JSWebSocket *wss = new JSWebSocket(host, port, path, isSSL);
+    JSWebSocket *wss = new JSWebSocket(cx, host, port, path, isSSL);
+    
+    /* Workaround so we can call root() within ::Constructor */
+    wss->m_Instance = obj;
+    
     wss->root();
 
     free(path);

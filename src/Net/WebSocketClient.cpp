@@ -45,6 +45,7 @@ static void nidium_on_ws_client_frame(websocket_state *state,
                                       int binary)
 {
     ape_socket *sock = state->socket;
+
     if (sock == NULL) {
         return;
     }
@@ -108,18 +109,24 @@ void WebSocketClient::HTTPHeaderEnded()
     const char *swa = this->HTTPGetHeader("Sec-WebSocket-Accept");
 
     /* Check handshake key integrity */
-    if (swa == NULL || strcmp(swa, m_ComputedKey) != 0) {
+    if (swa == NULL || strcmp(swa, m_ComputedKey) != 0 || !m_Parser.upgrade) {
         APE_socket_shutdown_now(m_Socket);
         return;
     }
+
+    m_HandShakeDone = true;
 }
 
 void WebSocketClient::HTTPRequestEnded()
 {
-    m_Socket->callbacks.on_read = nidium_ws_read_ws;
-
     Args args;
     args[0].set(this);
+
+    if (!m_HandShakeDone) {
+        return;
+    }
+
+    m_Socket->callbacks.on_read = nidium_ws_read_ws;
 
     this->fireEvent<WebSocketClient>(WebSocketClient::kEvents_ClientConnect,
                                      args);
@@ -146,8 +153,13 @@ void WebSocketClient::ping()
     ape_ws_ping(&m_WSState);
 }
 
-void WebSocketClient::HTTPOnData(size_t offset, size_t len)
+void WebSocketClient::HTTPOnData(const char *data, size_t len)
 {
+    if (!m_HandShakeDone) {
+        return;
+    }
+
+    this->onDataWS((const uint8_t *)data, len);
 }
 
 
@@ -213,7 +225,7 @@ void WebSocketClient::onConnected()
     */
     APE_socket_write(m_Socket, m_HandShakeKey, strlen(m_HandShakeKey),
                      APE_DATA_STATIC);
-    // TODO: new style cast
+
     APE_socket_write(m_Socket, (unsigned char *)CONST_STR_LEN("\r\n\r\n"),
                      APE_DATA_STATIC);
 
@@ -222,13 +234,11 @@ void WebSocketClient::onConnected()
 
 void WebSocketClient::onDataHandshake(const uint8_t *data, size_t len)
 {
-    // TODO: new style cast
     this->HTTPParse((char *)(data), len);
 }
 
 void WebSocketClient::onDataWS(const uint8_t *data, size_t len)
 {
-    // TODO: new style cast
     ape_ws_process_frame(&m_WSState, (char *)(data), len);
 }
 
@@ -236,11 +246,11 @@ void WebSocketClient::onFrame(const char *data, size_t len, bool binary)
 {
     Args args;
     args[0].set(this);
-    args[1].set((void *)(data)); // TODO: new style cast
+    args[1].set((void *)(data));
     args[2].set(len);
     args[3].set(binary);
 
-    this->fireEvent<WebSocketClient>(WebSocketClient::kEvents_ClientFrame,
+    this->fireEventSync<WebSocketClient>(WebSocketClient::kEvents_ClientFrame,
                                      args);
 }
 

@@ -186,6 +186,9 @@ JSHTTPServer *JSHTTPServer::Constructor(JSContext *cx, JS::CallArgs &args,
         return nullptr;
     }
 
+    /* Workaround so we can call root() within ::Constructor */
+    listener->m_Instance = obj;
+
     listener->root();
 
     return listener;

@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/nidium/Nidium.svg?branch=classmapper)](https://travis-ci.org/nidium/Nidium)
+
 # ɳidium
 
 ɳidium helps you create graphical softwares with JavaScript. It's not NodeJS, QT, Chromium, or a WebKit derivate. It has been designed from scratch and has a small codebase written in C++. ɳidium leverages the combination of Skia Graphics from Google, and Mozilla's JavaScript Engine (SpiderMonkey). 

@@ -133,7 +133,7 @@ public:
         if (jsclass != ClassMapper<T>::GetJSClass()) {
             printf("[Debug] JSClass is overriden for %s\n", name);
         }
-        assert(jsclass->name == NULL);
+        assert(jsclass->name == NULL || strcmp(jsclass->name, name) == 0);
 #endif
 
         jsclass->name     = name;
@@ -197,9 +197,9 @@ public:
         */
         this->root();
 
-        NidiumJS *njs = NidiumJS::GetObject(m_Cx);
+        NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
 
-        njs->m_JSUniqueInstance.set((uintptr_t)T::GetJSClass(),
+        nlc->m_JSUniqueInstance.set((uintptr_t)T::GetJSClass(),
             (uintptr_t)this);
     }
 
@@ -214,6 +214,8 @@ public:
 #ifdef DEBUG
         JSClass *jsclass = T::GetJSClass();
         assert(jsclass->name != NULL);
+        /* CX doesn't match local thread CX */
+        assert(NidiumJS::GetLocalContext()->cx == cx);
 #endif
 
         obj->setUniqueInstance();
@@ -266,11 +268,11 @@ public:
      *  Get a singleton ClassMapper<T> object.
      *  It's used for object created with CreateUniqueInstance()
      */
-    static inline T *GetInstanceSingleton(JSContext *cx = nullptr)
+    static inline T *GetInstanceSingleton()
     {
-        NidiumJS *njs = NidiumJS::GetObject(cx);
+        NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
 
-        return reinterpret_cast<T *>(njs->m_JSUniqueInstance.get(
+        return reinterpret_cast<T *>(nlc->m_JSUniqueInstance.get(
             (uintptr_t)T::GetJSClass()));
     }
 
@@ -307,11 +309,19 @@ public:
      */
     void root()
     {
+#ifdef DEBUG
+        /*
+            Assert if root() was called in ::Constructor() or
+            before CreateObject().
+            (That is, before an AssociateObject internal call)
+        */
+        assert(m_Instance != nullptr);
+#endif
         if (m_Rooted) {
             return;
         }
 
-        NidiumJSObj(m_Cx)->rootObjectUntilShutdown(m_Instance);
+        NidiumJS::RootObjectUntilShutdown(m_Instance);
         m_Rooted = true;
     }
 
@@ -325,7 +335,7 @@ public:
             return;
         }
 
-        NidiumJSObj(m_Cx)->unrootObject(m_Instance);
+        NidiumJS::UnrootObject(m_Instance);
         m_Rooted = false;
     }
 

@@ -50,6 +50,7 @@ namespace Binding {
 
 static pthread_key_t gAPE = 0;
 static pthread_key_t gJS  = 0;
+static pthread_key_t g_NidiumThreadContextKey  = 0;
 
 /* Assume that we can not use more than 5e5 bytes of C stack by default. */
 #if (defined(DEBUG) && defined(__SUNPRO_CC)) || defined(JS_CPU_SPARC)
@@ -78,15 +79,15 @@ static void gccb(JSRuntime *rt, JSGCStatus status)
 
 static void NidiumTraceBlack(JSTracer *trc, void *data)
 {
-    class NidiumJS *self = static_cast<NidiumJS *>(data);
+    NidiumLocalContext *nlc = static_cast<NidiumLocalContext *>(data);
 
-    if (self->isShuttingDown()) {
+    if (nlc->isShuttingDown()) {
         return;
     }
 
     ape_htable_item_t *item;
 
-    for (item = self->m_RootedObj->first; item != NULL; item = item->lnext) {
+    for (item = nlc->m_RootedObj->first; item != NULL; item = item->lnext) {
         uintptr_t oldaddr = reinterpret_cast<uintptr_t>(item->content.addrs);
         uintptr_t newaddr = oldaddr;
 
@@ -109,15 +110,28 @@ void NidiumJS::gc()
 /* Use obj address as key */
 void NidiumJS::rootObjectUntilShutdown(JSObject *obj)
 {
+
     // m_RootedSet->put(obj);
     // JS::AutoHashSetRooter<JSObject *> rooterhash(cx, 0);
     hashtbl_append64(this->m_RootedObj, reinterpret_cast<uint64_t>(obj), obj);
 }
 
+void NidiumJS::RootObjectUntilShutdown(JSObject *obj)
+{
+    NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
+
+    hashtbl_append64(nlc->m_RootedObj, reinterpret_cast<uint64_t>(obj), obj);
+}
+
 void NidiumJS::unrootObject(JSObject *obj)
 {
-    // m_RootedSet->remove(obj);
     hashtbl_erase64(this->m_RootedObj, reinterpret_cast<uint64_t>(obj));
+}
+
+void NidiumJS::UnrootObject(JSObject *obj)
+{
+    NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
+    hashtbl_erase64(nlc->m_RootedObj, reinterpret_cast<uint64_t>(obj));
 }
 
 JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx,
@@ -405,6 +419,26 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
     JS_free(cx, prefix);
 }
 
+void NidiumJS::InitThreadContext(JSRuntime *rt, JSContext *cx)
+{
+    NidiumLocalContext *nlc = new NidiumLocalContext(rt, cx);
+    pthread_setspecific(g_NidiumThreadContextKey, nlc);
+
+    JS_AddExtraGCRootsTracer(rt, NidiumTraceBlack, nlc);
+}
+
+NidiumLocalContext *NidiumJS::GetLocalContext()
+{
+    return (NidiumLocalContext *)pthread_getspecific(g_NidiumThreadContextKey);
+}
+
+void NidiumJS::DestroyThreadContext(void *data)
+{
+    NidiumLocalContext *nlc = (NidiumLocalContext *)data;
+
+    delete nlc;
+}
+
 NidiumJS::NidiumJS(ape_global *net, Context *context)
     : m_JSStrictMode(false), m_Context(context)
 {
@@ -423,8 +457,6 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     }
     // printf("New JS runtime\n");
 
-    m_Shutdown = false;
-
     m_Net = NULL;
 
     m_RootedObj = hashtbl_init(APE_HASH_INT);
@@ -433,7 +465,9 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
 
     if (gJS == 0) {
         pthread_key_create(&gJS, NULL);
+        pthread_key_create(&g_NidiumThreadContextKey, NidiumJS::DestroyThreadContext);
     }
+
     pthread_setspecific(gJS, this);
 
     NidiumJS::Init();
@@ -446,13 +480,14 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     }
 
     NidiumJS::SetJSRuntimeOptions(rt);
-    JS_SetGCParameterForThread(m_Cx, JSGC_MAX_CODE_CACHE_BYTES,
-                               16 * 1024 * 1024);
 
     if ((m_Cx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
         return;
     }
+
+    JS_SetGCParameterForThread(m_Cx, JSGC_MAX_CODE_CACHE_BYTES,
+                               16 * 1024 * 1024);
 #if 0
     JS_SetGCZeal(m_Cx, 2, 4);
 #endif
@@ -478,9 +513,11 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
 
     m_Compartment = JS_EnterCompartment(m_Cx, gbl);
 // JSAutoCompartment ac(m_Cx, gbl);
-#if 1
+
     JS_AddExtraGCRootsTracer(rt, NidiumTraceBlack, this);
-#endif
+
+    InitThreadContext(rt, m_Cx);
+
     if (NidiumJS::m_JsScc == NULL) {
         NidiumJS::m_JsScc              = new JSStructuredCloneCallbacks();
         NidiumJS::m_JsScc->read        = NidiumJS::readStructuredCloneOp;
@@ -502,44 +539,6 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     m_RegisteredMessagesIdx = 7; // The 8 first slots (0 to 7) are reserved for
                                  // Nidium internals messages
     m_RegisteredMessagesSize = 16;
-
-#if 0
-    Stream *stream = Stream::create("nvfs:///libs/zip.lib.js");
-    char *ret;
-    size_t retlen;
-
-    if (stream->getContentSync(&ret, &retlen)) {
-        printf("Got the file\n");
-        printf("ret : %s\n", ret);
-    }
-
-    Stream *mov = Stream::create("/tmp/test");
-
-    char *content;
-    size_t len;
-    if (!mov->getContentSync(&content, &len, true)) {
-        printf("Failed to open file\n");
-    }
-
-    NFS *nfs = new NFS((unsigned char *)content, len);
-
-
-    const char *mp4file = nfs->readFile("/foo/toto", &len);
-
-    printf("Got a file of len %ld\n", len);
-    /*printf("Create header 1 %d\n", nfs->mkdir("/hello", strlen("/hello")));
-    printf("Create header 1 %d\n", nfs->mkdir("/foo", strlen("/foo")));
-    printf("Create header 2 %d\n", nfs->mkdir("/hello/th", strlen("/hello/th")));
-    printf("Create header 2 %d\n", nfs->mkdir("/foo/bar", strlen("/foo/bar")));
-
-    printf("Create header 2 %d\n", nfs->writeFile("/foo/toto", strlen("/foo/foo.mp4"), content, len));
-
-    free(content);
-
-    nfs->save("/tmp/test");
-
-    */
-#endif
 }
 
 
@@ -580,7 +579,9 @@ NidiumJS::~NidiumJS()
 {
     JSRuntime *rt;
     rt         = JS_GetRuntime(m_Cx);
-    m_Shutdown = true;
+    
+    NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
+    nlc->m_IsShuttingDown = true;
 
     ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(m_Cx));
 

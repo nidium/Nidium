@@ -73,7 +73,7 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
                            reinterpret_cast<const unsigned char *>(buf), len);
     }
 
-    nhttp->HTTPOnData(nhttp->m_Data->used - len, len);
+    nhttp->HTTPOnData(buf, len);
 
     return 0;
 }
@@ -170,6 +170,14 @@ bool HTTPParser::HTTPParse(const char *data, size_t len)
 
     nparsed = http_parser_execute(&m_Parser, &settings,
                                   static_cast<const char *>(data), len);
+
+    if (m_Parser.upgrade) {
+        this->HTTPOnUpgrade();
+
+        if (nparsed < len) {
+            this->HTTPOnData(data + nparsed, len - nparsed);
+        }
+    }
 
     return nparsed != 0;
 }
