@@ -19,6 +19,7 @@
 #include "Binding/JSConsole.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSCanvas2DContext.h"
+#include "Binding/JSUtils.h"
 
 using Nidium::Core::SharedMessages;
 using Nidium::Graphics::SkiaContext;
