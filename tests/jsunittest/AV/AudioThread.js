@@ -11,7 +11,7 @@ Tests.registerAsync("Audio.run", function(next) {
     var dsp = Audio.getContext();
 
     dsp.run(function() { 
-        console.log("hello world");
+        //console.log("hello world");
     });
 
     setTimeout(function() {
