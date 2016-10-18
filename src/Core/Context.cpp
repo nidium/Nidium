@@ -17,12 +17,14 @@ using namespace Nidium::IO;
 using namespace Nidium::Net;
 
 
+class NidiumJS *g_nidiumjs = nullptr;
+
 namespace Nidium {
 namespace Core {
 
 Context::Context(ape_global *ape) : m_APECtx(ape)
 {
-    m_JS = new NidiumJS(ape, this);
+    m_JS = g_nidiumjs = new NidiumJS(ape, this);
 
     Path::RegisterScheme(SCHEME_DEFINE("file://", FileStream, false), true);
     Path::RegisterScheme(SCHEME_DEFINE("http://", HTTPStream, true));
