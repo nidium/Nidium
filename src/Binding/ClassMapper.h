@@ -356,23 +356,6 @@ public:
 
     virtual inline void jsTrace(class JSTracer *trc) {}
 
-    static inline JSClass *GetJSClass()
-    {
-        static JSClass jsclass = { NULL,
-                                   JSCLASS_HAS_PRIVATE,
-                                   JS_PropertyStub,
-                                   JS_DeletePropertyStub,
-                                   JS_PropertyStub,
-                                   JS_StrictPropertyStub,
-                                   JS_EnumerateStub,
-                                   JS_ResolveStub,
-                                   JS_ConvertStub,
-                                   JSCLASS_NO_OPTIONAL_MEMBERS };
-
-        return &jsclass;
-    }
-
-
 protected:
     typedef bool (T::*JSCallback)(JSContext *, JS::CallArgs &);
     typedef bool (*JSCallbackStatic)(JSContext *, JS::CallArgs &);
@@ -491,6 +474,22 @@ protected:
         if (cppobj) {
             delete cppobj;
         }
+    }
+
+    static inline JSClass *GetJSClass()
+    {
+        static JSClass jsclass = { NULL,
+                                   JSCLASS_HAS_PRIVATE,
+                                   JS_PropertyStub,
+                                   JS_DeletePropertyStub,
+                                   JS_PropertyStub,
+                                   JS_StrictPropertyStub,
+                                   JS_EnumerateStub,
+                                   JS_ResolveStub,
+                                   JS_ConvertStub,
+                                   JSCLASS_NO_OPTIONAL_MEMBERS };
+
+        return &jsclass;
     }
 
     JS::Heap<JSObject *> m_Instance;
