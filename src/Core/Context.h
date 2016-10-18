@@ -17,10 +17,10 @@ namespace Binding {
 class NidiumJS;
 }
 
-namespace Core {
+namespace Core  {
 
 
-class Context
+class Context : public Nidium::Core::Messages
 {
 public:
     Context(ape_global *ape);
@@ -43,6 +43,9 @@ public:
         return m_JS;
     }
 
+    virtual void onMessage(const SharedMessages::Message &msg) override;
+    virtual void onMessageLost(const SharedMessages::Message &msg) override;
+
     virtual void log(const char *str);
     virtual void vlog(const char *format, ...);
     virtual void vlog(const char *format, va_list args);
@@ -51,6 +54,12 @@ public:
     virtual void logHide(){};
 
 protected:
+
+    enum ContextMessage
+    {
+        kContextMessage_log
+    };
+
     static int Ping(void *arg);
 
     void destroyJS()

@@ -20,7 +20,6 @@ using namespace Nidium::Net;
 namespace Nidium {
 namespace Core {
 
-
 Context::Context(ape_global *ape) : m_APECtx(ape)
 {
     m_JS = new NidiumJS(ape, this);
@@ -51,7 +50,7 @@ int Context::Ping(void *arg)
 
 void Context::log(const char *str)
 {
-    fwrite(str, sizeof(char), strlen(str), stdout);
+    this->postMessage(strdup(str), kContextMessage_log);
 }
 
 void Context::vlog(const char *format, ...)
@@ -80,6 +79,33 @@ Context::~Context()
     destroyJS();
 
     Messages::DestroyReader();
+}
+
+void Context::onMessage(const SharedMessages::Message &msg)
+{
+    switch (msg.event()) {
+        case kContextMessage_log:
+        {
+            const char *str = (char *)msg.dataPtr();
+            fwrite(str, 1, strlen(str), stdout);
+
+            free(msg.dataPtr());
+        }
+        default:
+        break;
+    }
+}
+
+void Context::onMessageLost(const SharedMessages::Message &msg)
+{
+    switch (msg.event()) {
+        case kContextMessage_log:
+        {
+            free(msg.dataPtr());
+        }
+        default:
+        break;
+    }
 }
 
 

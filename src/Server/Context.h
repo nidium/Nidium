@@ -34,7 +34,7 @@ public:
         return m_RunInREPL;
     }
 
-    void log(const char *str) override;
+    void onMessage(const Core::SharedMessages::Message &msg) override;
 
 private:
     Worker *m_Worker;
