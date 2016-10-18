@@ -767,6 +767,8 @@ void Context::execPendingCanvasChanges()
 
 void Context::onMessage(const SharedMessages::Message &msg)
 {
+    Core::Context::onMessage(msg);
+    
     switch (msg.event()) {
         case NIDIUM_EVENT(WebSocketServer,
                           WebSocketServer::kEvents_ServerConnect):
