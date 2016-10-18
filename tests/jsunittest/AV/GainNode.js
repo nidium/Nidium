@@ -18,8 +18,8 @@ Tests.register("Gain node setup", function() {
 
     Assert(target instanceof AudioNodeTarget);
     Assert(gain instanceof AudioNodeGain);
-    Assert(source instanceof AudioNodeSource);
     Assert(source instanceof AudioNodeCustomSource);
+    Assert(customProcessor instanceof AudioNodeCustom);
   
     dsp.connect(source.output[0], gain.input[0]);
     dsp.connect(source.output[1], gain.input[1]);
