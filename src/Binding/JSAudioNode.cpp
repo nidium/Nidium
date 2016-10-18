@@ -8,6 +8,7 @@
 
 #include "Binding/JSEvents.h"
 #include "Binding/JSVideo.h"
+#include "Binding/JSUtils.h"
 
 using namespace Nidium::AV;
 

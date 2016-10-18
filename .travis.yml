@@ -1,0 +1,19 @@
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y python2.7 patch pkg-config libbz2-1.0
+  - git clone https://github.com/nidium/NidiumTools.git
+
+compiler: clang
+
+
+script:
+  - PYTHONPATH=./NidiumTools/src ./configure_server --debug --no-fork
+  - cd tests/jsunittest
+  - python2.7 simplehttpserver.py &
+  - ../../bin/nidium-server unittests.js
+
+cache:
+  directories:
+  - third-party
+
+language: cpp

@@ -903,7 +903,7 @@ void NidiumJS::loadGlobalObjects()
     JSConsole::RegisterObject(m_Cx);
     JSFS::RegisterObject(m_Cx);
     JSDebug::RegisterObject(m_Cx);
-    JSDebugger::RegisterObject(m_Cx);
+    JSDebuggerCompartment::RegisterObject(m_Cx);
     JSSystem::RegisterObject(m_Cx);
     JSDB::RegisterObject(m_Cx);
 

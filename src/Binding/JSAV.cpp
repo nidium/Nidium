@@ -18,8 +18,9 @@
 
 #include "Frontend/Context.h"
 #include "Binding/JSConsole.h"
+#include "Binding/JSUtils.h"
 #include "Binding/JSAudioContext.h"
-#include "Macros.h"
+#include "Binding/ClassMapper.h"
 
 using namespace Nidium::AV;
 

@@ -47,7 +47,7 @@ public:
 
     virtual void HTTPHeaderEnded();
     virtual void HTTPRequestEnded();
-    virtual void HTTPOnData(size_t offset, size_t len);
+    virtual void HTTPOnData(const char *data, size_t len);
 
 private:
     char m_HandShakeKey[32];
@@ -57,6 +57,7 @@ private:
     char *m_URL;
     uint16_t m_Port;
     bool m_SSL;
+    bool m_HandShakeDone = false;
 
     websocket_state m_WSState;
 };

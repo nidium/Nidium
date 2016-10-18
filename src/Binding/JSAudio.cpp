@@ -13,8 +13,6 @@ using namespace Nidium::AV;
 namespace Nidium {
 namespace Binding {
 
-
-// {{{JSAudio
 JSFunctionSpec *JSAudio::ListMethods()
 {
     static JSFunctionSpec funcs[] = {
@@ -80,7 +78,6 @@ bool JSAudio::JS_getContext(JSContext *cx, JS::CallArgs &args)
             // Supported buffer size
             // Multiply by 8 to get the bufferSize in bytes
             // rather than in samples per buffer
-            printf("float32=%d\n", AV::Audio::FLOAT32);
             bufferSize *= AV::Audio::FLOAT32;
             break;
         default:
@@ -145,7 +142,6 @@ bool JSAudio::JS_getContext(JSContext *cx, JS::CallArgs &args)
 
     return true;
 }
-// }}}
 
 } // namespace Binding
 } // namespace Nidium

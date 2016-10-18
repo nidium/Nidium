@@ -9,6 +9,9 @@
 #include "Binding/JSAudioNode.h"
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSCanvas.h"
+#include "Binding/JSUtils.h"
+#include "Graphics/SkiaContext.h"
+#include "Graphics/CanvasHandler.h"
 
 using namespace Nidium::AV;
 using Nidium::Graphics::CanvasHandler;

@@ -262,6 +262,8 @@ JSWebSocketServer *JSWebSocketServer::Constructor(JSContext *cx,
         return nullptr;
     }
 
+    /* Workaround so we can call root() within ::Constructor */
+    wss->m_Instance = obj;
     /*
         Server is listening at this point. Don't collect.
     */
