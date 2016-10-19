@@ -14,7 +14,11 @@ namespace Binding {
 
 class JSImageData : public ClassMapper<JSImageData>
 {
-
+public:
+    static void RegisterObject(JSContext *cx)
+    {
+        JSImageData::ExposeClass(cx, "ImageData");
+    }
 };
 
 } // Binding

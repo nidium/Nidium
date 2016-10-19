@@ -173,6 +173,7 @@ void Context::loadNativeObjects(int width, int height)
     Canvas2DContext::RegisterObject(cx);
     JSCanvas::RegisterObject(cx);
     JSImage::RegisterObject(cx);
+    JSImageData::RegisterObject(cx);
 #ifdef NIDIUM_AUDIO_ENABLED
     JSAudio::RegisterAllObjects(cx);
     JSVideo::RegisterAllObjects(cx);
