@@ -12,6 +12,7 @@
 
 #include "Core/TaskManager.h"
 #include "Net/HTTPStream.h"
+#include "SystemInterface.h"
 #include "Frontend/Context.h"
 #include "Graphics/GLHeader.h"
 #include "Binding/JSWindow.h"
@@ -53,8 +54,8 @@ void UIInterface::setGLContextAttribute()
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 }
 
 bool UIInterface::createWindow(int width, int height)
@@ -439,7 +440,8 @@ void UIInterface::initPBOs()
         return;
     }
 
-    uint32_t screenPixelSize = m_Width * 2 * m_Height * 2 * 4;
+    float pixelRatio = SystemInterface::GetInstance()->backingStorePixelRatio();
+    uint32_t screenPixelSize = m_Width * pixelRatio * m_Height * pixelRatio * 4;
 
     glGenBuffers(NUM_PBOS, m_PBOs.pbo);
     for (int i = 0; i < NUM_PBOS; i++) {
@@ -461,13 +463,15 @@ uint8_t *UIInterface::readScreenPixel()
         this->toggleOfflineBuffer(true);
     }
 
-    // uint32_t screenPixelSize = m_Width * 2 * m_Height * 2 * 4;
+    float pixelRatio = SystemInterface::GetInstance()->backingStorePixelRatio();
+    int width = m_Width * pixelRatio;
+    int height = m_Height * pixelRatio;
 
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[m_PBOs.gpu2vram]);
 
-    glReadPixels(0, 0, m_Width * 2, m_Height * 2, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[m_PBOs.vram2sys]);
     uint8_t *ret = (uint8_t *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
@@ -478,12 +482,11 @@ uint8_t *UIInterface::readScreenPixel()
     }
 
     /* Flip Y pixels (row by row) */
-    for (uint32_t i = 0; i < m_Height * 2; i++) {
-        memcpy(m_FrameBuffer + i * m_Width * 2 * 4,
-               &ret[(m_Height * 2 - i - 1) * m_Width * 2 * 4], m_Width * 2 * 4);
+    for (uint32_t i = 0; i < height; i++) {
+        memcpy(m_FrameBuffer + i * width * 4,
+                &ret[(height - i - 1) * width * 4], 
+                width * 4);
     }
-
-    // memcpy(m_FrameBuffer, ret, screenPixelSize);
 
     glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);

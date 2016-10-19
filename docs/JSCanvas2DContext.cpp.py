@@ -132,6 +132,39 @@ FunctionDoc( "CanvasRenderingContext2D.shadow", "Put a shadow around a canvas.",
 )
 """
 
+FunctionDoc( "CanvasRenderingContext2D.clearRect", "Clear a rectangle.",
+    SeesDocs( "CanvasRenderingContext2D|Canvas|CanvasRenderingContext.rect|CanvasRenderingContext2D.clearRect|CanvasRenderingContext2.strokeRect" ),
+    [ExampleDoc("""var canvas = new Canvas(100, 100);
+    document.canvas.add(canvas);
+    var ctx = canvas.getContext('2d');
+    ctx.rect(10, 10, 80, 80);
+    ctx.clearRect( 40, 40, 20, 20 );"""],
+    IS_Dynamic, IS_Public, IS_Fast,
+    [ParamDoc( "x", "X position", "float", NO_Default, IS_Obligated ),
+    ParamDoc( "y", "Y position", "float", NO_Default, IS_Obligated ),
+    ParamDoc( "width", "Width", "float", NO_Default, IS_Obligated ),
+    ParamDoc( "height", "Height", "float", NO_Default, IS_Obligated ) ],
+    NO_Returns
+)
+
+FunctionDoc( "CanvasRenderingContext2D.strokRect", "draw a rectangle.",
+    SeesDocs( "CanvasRenderingContext2D|Canvas|CanvasRenderingContext.rect|CanvasRenderingContext2D.clearRect|CanvasRenderingContext2.strokeRect" ),
+    [ExampleDoc("""var canvas = new Canvas(100, 100);
+    document.canvas.add(canvas);
+    var ctx = canvas.getContext('2d');
+    ctx.strokeRect(10, 10, 80, 80, 5, 5);
+    ctx.clearRect( 40, 40, 20, 20 );"""],
+    IS_Dynamic, IS_Public, IS_Fast,
+    [ParamDoc( "x", "X position", "float", NO_Default, IS_Obligated ),
+    ParamDoc( "y", "Y position", "float", NO_Default, IS_Obligated ),
+    ParamDoc( "width", "Width", "float", NO_Default, IS_Obligated ),
+    ParamDoc( "height", "Height", "float", NO_Default, IS_Obligated ),
+    ParamDoc( "rx", "Radius x", "float", NO_Default, IS_Obligated ),
+    ParamDoc( "ry", "Radius y", "float", NO_Default, IS_Obligated ), ],
+    NO_Returns
+)
+
+
 FunctionDoc( "CanvasRenderingContext2D.beginPath", "Begin a path.",
     SeesDocs( "CanvasRenderingContext2D.beginPath|CanvasRenderingContext2D.moveTo|CanvasRenderingContext2D.lineTo|CanvasRenderingContext2D.closePath|CanvasRenderingContext2D.quadraticCurveTo|CanvasRenderingContext2D.bezierCurveTo" ),
     NO_Examples,

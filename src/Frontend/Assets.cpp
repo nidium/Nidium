@@ -46,7 +46,6 @@ void Assets::Item::onMessage(const SharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case Stream::kEvents_ReadBuffer: {
-            // TODO: new style cast
             buffer *buf = static_cast<buffer *>(msg.m_Args[0].toPtr());
             this->setContent((const char *)(buf->data), buf->used);
             break;

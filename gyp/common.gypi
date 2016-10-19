@@ -8,6 +8,8 @@
         'defines': [
             'NIDIUM_VERSION_STR="<(nidium_version)"',
             'NIDIUM_BUILD="<!@(git rev-parse HEAD)"',
+            'NIDIUM_PLATFORM="<(OS)"',
+            '<(nidium_product_define)'
             #'UINT32_MAX=4294967295u',
             #'_FILE_OFFSET_BITS=64',
             #'_HAVE_SSL_SUPPORT'
@@ -101,7 +103,10 @@
 
         'conditions': [
             ['target_os=="android"', {
-                'defines': ['__ANDROID__', 'ANDROID'],
+                'defines': [
+                    '__ANDROID__',
+                    'ANDROID',
+                ],
             }],
             ['nidium_enable_breakpad==1', {
                 'defines': [ 'NIDIUM_ENABLE_CRASHREPORTER' ],

@@ -31,8 +31,8 @@
 #include "Binding/JSFS.h"
 #include "Binding/JSDebugger.h"
 #include "Binding/JSGlobal.h"
-#include "Binding/JSSystem.h"
 #include "Binding/JSDB.h"
+#include "Binding/JSOS.h"
 
 #ifndef NIDIUM_DISABLE_WINDOW_GLOBAL
   #include "Binding/JSWindow.h"
@@ -757,7 +757,7 @@ int NidiumJS::LoadScriptContent(const char *data,
     /*
         Detect JSBytecode using XDR magic number ad defined in xdr.h
     */
-    // TODO: static cast...
+    // TODO: new style cast...
     if ((*(uint32_t *)data & 0xFFFFFF00) == 0xb973c000) {
         return this->LoadBytecode((void *)(data), len, filename);
     }
@@ -904,8 +904,8 @@ void NidiumJS::loadGlobalObjects()
     JSFS::RegisterObject(m_Cx);
     JSDebug::RegisterObject(m_Cx);
     JSDebuggerCompartment::RegisterObject(m_Cx);
-    JSSystem::RegisterObject(m_Cx);
     JSDB::RegisterObject(m_Cx);
+    JSOS::RegisterObject(m_Cx);
 
     m_Modules = new JSModules(m_Cx);
     if (!m_Modules) {

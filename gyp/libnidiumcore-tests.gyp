@@ -50,7 +50,6 @@
             '<(nidium_tests_path)jsprocess.cpp',        #dummy
             '<(nidium_tests_path)jssocket.cpp',         #dummy
             '<(nidium_tests_path)jsstream.cpp',         #dummy
-            '<(nidium_tests_path)jssystem.cpp',         #dummy
             #'<(nidium_tests_path)jsthread.cpp',        #segfault
             '<(nidium_tests_path)jsutils.cpp',
             #'<(nidium_tests_path)jswebsocket.cpp',     #segfault

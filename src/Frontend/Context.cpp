@@ -506,6 +506,7 @@ static int GetGLSLVersion()
     const char *versionString;
     int err;
 
+    NIDIUM_GL_CALL_RET_MAIN(GetError(), err);
     NIDIUM_GL_CALL_RET_MAIN(GetString(GL_SHADING_LANGUAGE_VERSION), tmp);
 
     NIDIUM_GL_CALL_RET_MAIN(GetError(), err);

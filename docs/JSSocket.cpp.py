@@ -212,7 +212,7 @@ server.listen();""" ) ],
 FunctionDoc( "Socket.listen", """Starts a server.
 
 The server will listen to the host and port that were specified in the constructor.""",
-    SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.disconnect|HTTPServer" ),
+    SeesDocs( "Socket.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.disconnect|HTTPServer" ),
     [ExampleDoc("""var socket = new Socket("0.0.0.0", 8006).listen();
 
 socket.onaccept = function(clientSocket) {
@@ -220,14 +220,14 @@ socket.onaccept = function(clientSocket) {
     clientSocket.disconnect();
 }""")],
     IS_Dynamic, IS_Public, IS_Fast,
-    [ParamDoc( "mode", "Conncection mode. Allowed values are: 'tcp'|'udp'", "string", 'tcp', IS_Optional ) ],
+    [ParamDoc( "mode", "Conncection mode. Allowed values are: 'tcp'|'udp'|'ssl'|'unix'|'tcp-lz4'", "string", 'tcp', IS_Optional ) ],
     ReturnDoc( "The socket, for chaining", "Socket" )
 )
 
 FunctionDoc( "Socket.connect", """Starts a client.
 
 Connect the socket to the tuple host and port that were specified in the constructor.""",
-    SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.disconnect|HTTPServer" ),
+    SeesDocs( "Socket.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.disconnect|HTTPServer" ),
      [ExampleDoc("""var client = new Socket("nidium.com", 80).connect();"""),
     ExampleDoc("""var client = new Socket("google.com", 80).connect("ssl");""") ] ,
     IS_Dynamic, IS_Public, IS_Fast,
@@ -240,7 +240,7 @@ FunctionDoc( "SocketClient.write", """Write data to a connected server/client so
 If 'Socket.write' returns 0, the data is internally saved and sent as soon as possible.
 In order to avoid high memory usage, one should stop calling 'Socket.write' when a previous call to 'Socket.write' returned '0' and wait for the 'Socket.ondrain' event to be sent.
 """,
-    SeesDocs( "SocketClient.listen|SocketClient.sendFile|SocketClient.write|SocketClient.disconnect|HTTPServer" ).append( "Socket.write " ),
+    SeesDocs( "Socket.listen|SocketClient.sendFile|SocketClient.write|SocketClient.disconnect|HTTPServer" ).append( "Socket.write " ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ParamDoc( 'data', "data to send", "string|ArrayBuffer", NO_Default, IS_Obligated ) ],
@@ -248,7 +248,7 @@ In order to avoid high memory usage, one should stop calling 'Socket.write' when
 )
 
 FunctionDoc( "Socket.write", "Write data.",
-    SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.write|SocketClient.disconnect|HTTPServer" ),
+    SeesDocs( "Socket.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.write|SocketClient.disconnect|HTTPServer" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ParamDoc( 'data', "data to send", "string|ArrayBuffer", NO_Default, IS_Obligated ) ],
@@ -277,7 +277,7 @@ socket.onconnect = function(clientSocket) {
 )
 
 FunctionDoc( "Socket.close", "Close a socket connection.",
-    SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.write|SocketClient.disconnect|HTTPServer" ),
+    SeesDocs( "Socket.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.write|SocketClient.disconnect|HTTPServer" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
@@ -285,7 +285,7 @@ FunctionDoc( "Socket.close", "Close a socket connection.",
 )
 
 FunctionDoc( "Socket.sendTo", "Send data from a socket server to a client via udp.",
-    SeesDocs( "SocketClient.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.write|SocketClient.disconnect|HTTPServer" ),
+    SeesDocs( "Socket.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.write|SocketClient.disconnect|HTTPServer" ),
     [ExampleDoc("""var s = new Socket("0.0.0.0", 8008).listen("udp");
 
 s.onaccept = function(clientSocket) {

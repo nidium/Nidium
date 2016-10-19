@@ -13,21 +13,12 @@ using Nidium::Binding::ClassMapper;
 namespace Nidium {
 namespace Binding {
 
-class JSSystem : public ClassMapper<JSSystem>
+class JSOS : public ClassMapper<JSOS>
 {
 public:
+    JSOS();
     static void RegisterObject(JSContext *cx);
-    static JSFunctionSpec *ListMethods();
-#if 0
-    static JSPropertySpec *ListProperties();
-#endif
-protected:
-    NIDIUM_DECL_JSCALL(getOpenFileStats);
-#if 0
-#ifdef NIDIUM_PRODUCT_UI
-    NIDIUM_DECL_JSGETTER(language);
-#endif
-#endif
+    static JSObject *RegisterModule(JSContext *cx);
 };
 
 } // namespace Binding
