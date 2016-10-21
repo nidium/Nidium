@@ -45,6 +45,7 @@ Platform.setEnviron("MACOSX_DEPLOYMENT_TARGET=10.7")
 
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_FRONTEND")
+Gyp.set("nidium_js_disable_window_global", 0)
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
 CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -315,7 +316,9 @@ def testStudio(unitTests):
     tests = []
     nidium = getNidiumPath()
 
+    # Log unit-tests to stdout
     Gyp.set("nidium_ui_console", "0")
+
     tests.append((nidium[1] + " ../tests/jsunittest/unittests.nml --frontend", nidium[0]))
 
     Tests.register(tests)

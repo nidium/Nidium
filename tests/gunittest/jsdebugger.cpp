@@ -21,9 +21,9 @@ TEST_F(JSDebugger, Simple)
     JS::RootedObject globObj(njs->m_Cx, JS::CurrentGlobalOrNull(njs->m_Cx));
     JS::RootedValue rval(njs->m_Cx, JSVAL_VOID);
 
-    Nidium::Binding::JSDebugger::RegisterObject(njs->m_Cx);
+    Nidium::Binding::JSDebuggerCompartment::RegisterObject(njs->m_Cx);
 
-    success = JS_GetProperty(njs->m_Cx, globObj, "Debugger", &rval);
+    success = JS_GetProperty(njs->m_Cx, globObj, "DebuggerCompartement", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 }

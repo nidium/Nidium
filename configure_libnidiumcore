@@ -122,7 +122,11 @@ def testCore(unitTests):
 
     Tests.register([
         "build/tests/libnidiumcore-unittests"
-    ], builders=[Gyp("gyp/libnidiumcore-tests.gyp")])
+        ], builders=[
+            Gyp("gyp/libnidiumcore-tests.gyp",
+                defines={"nidium_js_disable_window_global": 1,
+                         "nidium_product_define": "NIDIUM_UNIT_TESTS"})
+        ])
 
 @CommandLine.option("--asan", default=False)
 def asan(asan):
