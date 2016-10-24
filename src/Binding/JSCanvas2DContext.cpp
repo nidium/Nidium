@@ -51,123 +51,282 @@ namespace Binding {
 #else
 #define NIDIUM_LOG_2D_CALL()
 #endif
+// {{{ AutoGLProgram
+AutoGLProgram::AutoGLProgram(int32_t program)
+    : m_Program(program)
+{
+    glGetIntegerv(GL_CURRENT_PROGRAM, &m_PreviousProgram);
+    glUseProgram(m_Program);
+}
 
-static JSClass CanvasGLProgram_class = { "CanvasGLProgram",
-                                         JSCLASS_HAS_PRIVATE,
-                                         JS_PropertyStub,
-                                         JS_DeletePropertyStub,
-                                         JS_PropertyStub,
-                                         JS_StrictPropertyStub,
-                                         JS_EnumerateStub,
-                                         JS_ResolveStub,
-                                         JS_ConvertStub,
-                                         nullptr,
-                                         nullptr,
-                                         nullptr,
-                                         nullptr,
-                                         nullptr,
-                                         JSCLASS_NO_INTERNAL_MEMBERS };
-
-
-
-/* GLSL related */
-static bool nidium_canvas2dctxGLProgram_getUniformLocation(JSContext *cx,
-                                                           unsigned argc,
-                                                           JS::Value *vp);
-
-static bool nidium_canvas2dctxGLProgram_uniform1i(JSContext *cx,
-                                                  unsigned argc,
-                                                  JS::Value *vp);
-static bool nidium_canvas2dctxGLProgram_uniform1f(JSContext *cx,
-                                                  unsigned argc,
-                                                  JS::Value *vp);
-
-static bool nidium_canvas2dctxGLProgram_uniform1iv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp);
-static bool nidium_canvas2dctxGLProgram_uniform2iv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp);
-static bool nidium_canvas2dctxGLProgram_uniform3iv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp);
-static bool nidium_canvas2dctxGLProgram_uniform4iv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp);
-
-static bool nidium_canvas2dctxGLProgram_uniform1fv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp);
-static bool nidium_canvas2dctxGLProgram_uniform2fv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp);
-static bool nidium_canvas2dctxGLProgram_uniform3fv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp);
-static bool nidium_canvas2dctxGLProgram_uniform4fv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp);
-static bool nidium_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx,
-                                                          unsigned argc,
-                                                          JS::Value *vp);
-
-
-static JSFunctionSpec glprogram_funcs[] = {
-
-    JS_FN("getUniformLocation",
-          nidium_canvas2dctxGLProgram_getUniformLocation,
-          1,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("getActiveUniforms",
-          nidium_canvas2dctxGLProgram_getActiveUniforms,
-          0,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("uniform1i",
-          nidium_canvas2dctxGLProgram_uniform1i,
-          2,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("uniform1f",
-          nidium_canvas2dctxGLProgram_uniform1f,
-          2,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("uniform1iv",
-          nidium_canvas2dctxGLProgram_uniform1iv,
-          2,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("uniform2iv",
-          nidium_canvas2dctxGLProgram_uniform2iv,
-          2,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("uniform3iv",
-          nidium_canvas2dctxGLProgram_uniform3iv,
-          2,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("uniform4iv",
-          nidium_canvas2dctxGLProgram_uniform4iv,
-          2,
-          NIDIUM_JS_FNPROPS),
-
-    JS_FN("uniform1fv",
-          nidium_canvas2dctxGLProgram_uniform1fv,
-          2,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("uniform2fv",
-          nidium_canvas2dctxGLProgram_uniform2fv,
-          2,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("uniform3fv",
-          nidium_canvas2dctxGLProgram_uniform3fv,
-          2,
-          NIDIUM_JS_FNPROPS),
-    JS_FN("uniform4fv",
-          nidium_canvas2dctxGLProgram_uniform4fv,
-          2,
-          NIDIUM_JS_FNPROPS),
-    JS_FS_END
-};
+AutoGLProgram::~AutoGLProgram()
+{
+    glUseProgram(m_PreviousProgram);
+}
 // }}}
 
-// {{{ JSCanvas2DContext
+// {{{ JSCanvasGLProgram
+JSFunctionSpec *JSCanvasGLProgram::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSCanvasGLProgram, getUniformLocation, 1),
+        CLASSMAPPER_FN(JSCanvasGLProgram, getActiveUniforms, 0),
+        CLASSMAPPER_FN(JSCanvasGLProgram, uniform1i, 2),
+        CLASSMAPPER_FN(JSCanvasGLProgram, uniform1f, 2),
+        CLASSMAPPER_FN(JSCanvasGLProgram, uniform1iv, 2),
+        CLASSMAPPER_FN(JSCanvasGLProgram, uniform2iv, 2),
+        CLASSMAPPER_FN(JSCanvasGLProgram, uniform3iv, 2),
+        CLASSMAPPER_FN(JSCanvasGLProgram, uniform4iv, 2),
+        CLASSMAPPER_FN(JSCanvasGLProgram, uniform1fv, 2),
+        CLASSMAPPER_FN(JSCanvasGLProgram, uniform2fv, 2),
+        CLASSMAPPER_FN(JSCanvasGLProgram, uniform3fv, 2),
+        CLASSMAPPER_FN(JSCanvasGLProgram, uniform4fv, 2),
+        JS_FS_END
+    };
+
+    return funcs;
+}
+
+JSCanvasGLProgram::JSCanvasGLProgram(JSContext *cx, int32_t program) :
+    m_Program(program)
+{
+    JSCanvasGLProgram::CreateObject(cx, this);
+}
+
+bool JSCanvasGLProgram::JS_getUniformLocation(JSContext *cx, JS::CallArgs &args)
+{
+    JS::RootedString location(cx);
+    int ret;
+
+    NIDIUM_LOG_2D_CALL();
+    if (!JS_ConvertArguments(cx, args, "S", location.address())) {
+        return false;
+    }
+
+    JSAutoByteString clocation(cx, location);
+    ret = glGetUniformLocation(m_Program, clocation.ptr());
+
+    args.rval().setInt32(ret);
+
+    return true;
+}
+
+bool JSCanvasGLProgram::JS_getActiveUniforms(JSContext *cx, JS::CallArgs &args)
+{
+#define SET_PROP(where, name, val)                        \
+    JS_DefineProperty(cx, where, (const char *)name, val, \
+                      JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+    NIDIUM_LOG_2D_CALL();
+    int nactives = 0;
+
+    NIDIUM_GL_CALL_MAIN(GetProgramiv(m_Program, GL_ACTIVE_UNIFORMS, &nactives));
+
+    JS::RootedObject arr(cx, JS_NewArrayObject(cx, nactives));
+    args.rval().setObjectOrNull(arr);
+
+    char name[512];
+    for (int i = 0; i < nactives; i++) {
+        int length = 0, size = 0;
+        GLenum type = GL_ZERO;
+        JS::RootedObject in(
+            cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+
+        glGetActiveUniform(m_Program, i, sizeof(name) - 1, &length, &size, &type,
+                           name);
+        name[length] = '\0';
+        JS::RootedString nameStr(cx, JS_NewStringCopyN(cx, name, length));
+        JS::RootedValue locationVal(
+            cx, INT_TO_JSVAL(glGetUniformLocation(m_Program, name)));
+        JS::RootedValue inval(cx, OBJECT_TO_JSVAL(in));
+        SET_PROP(in, "name", nameStr);
+        SET_PROP(in, "location", locationVal);
+        JS_SetElement(cx, arr, i, inval);
+    }
+
+    return true;
+#undef SET_PROP
+}
+
+bool JSCanvasGLProgram::JS_uniform1i(JSContext *cx, JS::CallArgs &args)
+{
+    int location, val;
+
+    NIDIUM_LOG_2D_CALL();
+    if (!JS_ConvertArguments(cx, args, "ii", &location, &val)) {
+        return false;
+    }
+
+    if (location == -1) {
+        return true;
+    }
+
+    AutoGLProgram autoProg(m_Program);
+
+    NIDIUM_GL_CALL_MAIN(Uniform1i(location, val));
+
+    return true;
+}
+
+bool JSCanvasGLProgram::JS_uniform1f(JSContext *cx, JS::CallArgs &args)
+{
+    int location;
+    double val;
+
+    NIDIUM_LOG_2D_CALL();
+    if (!JS_ConvertArguments(cx, args, "id", &location, &val)) {
+        return false;
+    }
+
+    if (location == -1) {
+        return true;
+    }
+
+    AutoGLProgram autoProg(m_Program);
+
+    NIDIUM_GL_CALL_MAIN(Uniform1f(location, (float)val));
+
+    return true;
+}
+
+bool JSCanvasGLProgram::uniformXiv(JSContext *cx, JS::CallArgs &args, int nb)
+{
+    GLsizei length;
+    GLint *carray;
+    int location;
+
+    NIDIUM_LOG_2D_CALL();
+    JS::RootedObject array(cx);
+    if (!JS_ConvertArguments(cx, args, "io", &location, array.address())) {
+        return false;
+    }
+
+    if (location == -1) {
+        return true;
+    }
+    if (JS_IsInt32Array(array)) {
+        carray = (GLint *)JS_GetInt32ArrayData(array);
+        length = (GLsizei)JS_GetTypedArrayLength(array);
+    } else if (JS_IsArrayObject(cx, array)) {
+        JS::RootedObject tmp(cx, JS_NewInt32ArrayFromArray(cx, array));
+        carray = (GLint *)JS_GetInt32ArrayData(tmp);
+        length = (GLsizei)JS_GetTypedArrayLength(tmp);
+    } else {
+        JS_ReportError(cx, "Array is not a Int32 array");
+        return false;
+    }
+
+    AutoGLProgram autoProg(m_Program);
+
+    switch (nb) {
+        case 1:
+            NIDIUM_GL_CALL_MAIN(Uniform1iv(location, length, carray));
+            break;
+        case 2:
+            NIDIUM_GL_CALL_MAIN(Uniform2iv(location, length / 2, carray));
+            break;
+        case 3:
+            NIDIUM_GL_CALL_MAIN(Uniform3iv(location, length / 3, carray));
+            break;
+        case 4:
+            NIDIUM_GL_CALL_MAIN(Uniform4iv(location, length / 4, carray));
+            break;
+        default:
+            break;
+    }
+
+    return true;
+}
+
+bool JSCanvasGLProgram::uniformXfv(JSContext *cx, JS::CallArgs &args, int nb)
+{
+    GLsizei length;
+    GLfloat *carray;
+    int location;
+
+    NIDIUM_LOG_2D_CALL();
+    JS::RootedObject array(cx);
+    if (!JS_ConvertArguments(cx, args, "io", &location, array.address())) {
+        return false;
+    }
+
+    if (location == -1) {
+        return true;
+    }
+
+    if (JS_IsFloat32Array(array)) {
+        carray = (GLfloat *)JS_GetFloat32ArrayData(array);
+        length = (GLsizei)JS_GetTypedArrayLength(array);
+    } else if (JS_IsArrayObject(cx, array)) {
+        JS::RootedObject tmp(cx, JS_NewFloat32ArrayFromArray(cx, array));
+        carray = (GLfloat *)JS_GetFloat32ArrayData(tmp);
+        length = (GLsizei)JS_GetTypedArrayLength(tmp);
+    } else {
+        JS_ReportError(cx, "Array is not a Float32 array");
+        return false;
+    }
+
+    AutoGLProgram autoProg(m_Program);
+
+    switch (nb) {
+        case 1:
+            NIDIUM_GL_CALL_MAIN(Uniform1fv(location, length, carray));
+            break;
+        case 2:
+            NIDIUM_GL_CALL_MAIN(Uniform2fv(location, length / 2, carray));
+            break;
+        case 3:
+            NIDIUM_GL_CALL_MAIN(Uniform3fv(location, length / 3, carray));
+            break;
+        case 4:
+            NIDIUM_GL_CALL_MAIN(Uniform4fv(location, length / 4, carray));
+            break;
+    }
+
+    return true;
+}
+
+bool JSCanvasGLProgram::JS_uniform1iv(JSContext *cx, JS::CallArgs &args)
+{
+    return this->uniformXiv(cx, args, 1);
+}
+
+bool JSCanvasGLProgram::JS_uniform2iv(JSContext *cx, JS::CallArgs &args)
+{
+    return this->uniformXiv(cx, args, 2);
+}
+
+bool JSCanvasGLProgram::JS_uniform3iv(JSContext *cx, JS::CallArgs &args)
+{
+    return this->uniformXiv(cx, args, 3);
+}
+
+bool JSCanvasGLProgram::JS_uniform4iv(JSContext *cx, JS::CallArgs &args)
+{
+    return this->uniformXiv(cx, args, 4);
+}
+
+bool JSCanvasGLProgram::JS_uniform1fv(JSContext *cx, JS::CallArgs &args)
+{
+    return this->uniformXfv(cx, args, 1);
+}
+
+bool JSCanvasGLProgram::JS_uniform2fv(JSContext *cx, JS::CallArgs &args)
+{
+    return this->uniformXfv(cx, args, 1);
+}
+
+bool JSCanvasGLProgram::JS_uniform3fv(JSContext *cx, JS::CallArgs &args)
+{
+    return this->uniformXfv(cx, args, 1);
+}
+
+bool JSCanvasGLProgram::JS_uniform4fv(JSContext *cx, JS::CallArgs &args)
+{
+    return this->uniformXfv(cx, args, 1);
+}
+// }}}
+
+// {{{ Canvas2DContext
 bool Canvas2DContext::JS_onerror(JSContext *cx, JS::CallArgs &args)
 {
     NIDIUM_LOG_2D_CALL();
@@ -955,11 +1114,9 @@ bool Canvas2DContext::JS_attachFragmentShader(JSContext *cx, JS::CallArgs &args)
         JS_ReportError(cx, "Failed to compile GLSL shader");
         return false;
     }
-    JS::RootedObject canvasProgram(
-        cx,
-        JS_NewObject(cx, &CanvasGLProgram_class, JS::NullPtr(), JS::NullPtr()));
-    JS_DefineFunctions(cx, canvasProgram, glprogram_funcs);
-    JS_SetPrivate(canvasProgram, (void *)program);
+
+    JSCanvasGLProgram *glProgram = new JSCanvasGLProgram(cx, program);
+    JS::RootedObject canvasProgram(cx, glProgram->getJSObject());
 
     args.rval().setObjectOrNull(canvasProgram);
 
@@ -2084,304 +2241,6 @@ bool JSGradient::JS_addColorStop(JSContext *cx, JS::CallArgs &args)
 }
 // }}}
 
-// {{{ JSCanvasGLProgram
-static bool nidium_canvas2dctxGLProgram_getUniformLocation(JSContext *cx,
-                                                           unsigned argc,
-                                                           JS::Value *vp)
-{
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-    uint32_t program;
-    int ret;
-
-    NIDIUM_LOG_2D_CALL();
-    JS::RootedString location(cx);
-    if (!JS_ConvertArguments(cx, args, "S", location.address())) {
-        return false;
-    }
-
-    JSAutoByteString clocation(cx, location);
-    program = (size_t)JS_GetPrivate(caller);
-    ret     = glGetUniformLocation(program, clocation.ptr());
-
-    args.rval().setInt32(ret);
-
-    return true;
-}
-
-static bool nidium_canvas2dctxGLProgram_uniform1i(JSContext *cx,
-                                                  unsigned argc,
-                                                  JS::Value *vp)
-{
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-    int location, val;
-    uint32_t program;
-
-    NIDIUM_LOG_2D_CALL();
-    if (!JS_ConvertArguments(cx, args, "ii", &location, &val)) {
-        return false;
-    }
-
-    if (location == -1) {
-        return true;
-    }
-    program = (size_t)JS_GetPrivate(caller);
-    int32_t tmpProgram;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &tmpProgram);
-    glUseProgram(program);
-    glUniform1i(location, val);
-    glUseProgram(tmpProgram);
-
-    return true;
-}
-
-static bool nidium_canvas2dctxGLProgram_uniform1f(JSContext *cx,
-                                                  unsigned argc,
-                                                  JS::Value *vp)
-{
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-    int location;
-    double val;
-    uint32_t program;
-
-    NIDIUM_LOG_2D_CALL();
-    if (!JS_ConvertArguments(cx, args, "id", &location, &val)) {
-        return false;
-    }
-
-    if (location == -1) {
-        return true;
-    }
-
-    program = (size_t)JS_GetPrivate(caller);
-    int32_t tmpProgram;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &tmpProgram);
-    glUseProgram(program);
-    glUniform1f(location, (float)val);
-    glUseProgram(tmpProgram);
-
-    return true;
-}
-
-static bool nidium_canvas2dctxGLProgram_uniformXiv(JSContext *cx,
-                                                   unsigned int argc,
-                                                   JS::Value *vp,
-                                                   int nb)
-{
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-    GLsizei length;
-    GLint *carray;
-    int location;
-    uint32_t program;
-    program = (size_t)JS_GetPrivate(caller);
-
-    NIDIUM_LOG_2D_CALL();
-    JS::RootedObject array(cx);
-    if (!JS_ConvertArguments(cx, args, "io", &location, array.address())) {
-        return false;
-    }
-
-    if (location == -1) {
-        return true;
-    }
-    if (JS_IsInt32Array(array)) {
-        carray = (GLint *)JS_GetInt32ArrayData(array);
-        length = (GLsizei)JS_GetTypedArrayLength(array);
-    } else if (JS_IsArrayObject(cx, array)) {
-        JS::RootedObject tmp(cx, JS_NewInt32ArrayFromArray(cx, array));
-        carray = (GLint *)JS_GetInt32ArrayData(tmp);
-        length = (GLsizei)JS_GetTypedArrayLength(tmp);
-    } else {
-        JS_ReportError(cx, "Array is not a Int32 array");
-        return false;
-    }
-    int32_t tmpProgram;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &tmpProgram);
-
-    glUseProgram(program);
-
-    switch (nb) {
-        case 1:
-            glUniform1iv(location, length, carray);
-            break;
-        case 2:
-            glUniform2iv(location, length / 2, carray);
-            break;
-        case 3:
-            glUniform3iv(location, length / 3, carray);
-            break;
-        case 4:
-            glUniform4iv(location, length / 4, carray);
-            break;
-        default:
-            break;
-    }
-
-    glUseProgram(tmpProgram);
-
-    return true;
-}
-
-static bool nidium_canvas2dctxGLProgram_uniformXfv(JSContext *cx,
-                                                   unsigned int argc,
-                                                   JS::Value *vp,
-                                                   int nb)
-{
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-    GLsizei length;
-    GLfloat *carray;
-    int location;
-    uint32_t program;
-    program = (size_t)JS_GetPrivate(caller);
-
-    NIDIUM_LOG_2D_CALL();
-    JS::RootedObject array(cx);
-    if (!JS_ConvertArguments(cx, args, "io", &location, array.address())) {
-        return false;
-    }
-
-    if (location == -1) {
-        return true;
-    }
-
-    if (JS_IsFloat32Array(array)) {
-        carray = (GLfloat *)JS_GetFloat32ArrayData(array);
-        length = (GLsizei)JS_GetTypedArrayLength(array);
-    } else if (JS_IsArrayObject(cx, array)) {
-        JS::RootedObject tmp(cx, JS_NewFloat32ArrayFromArray(cx, array));
-        carray = (GLfloat *)JS_GetFloat32ArrayData(tmp);
-        length = (GLsizei)JS_GetTypedArrayLength(tmp);
-    } else {
-        JS_ReportError(cx, "Array is not a Float32 array");
-        return false;
-    }
-    int32_t tmpProgram;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &tmpProgram);
-
-    glUseProgram(program);
-
-    switch (nb) {
-        case 1:
-            glUniform1fv(location, length, carray);
-            break;
-        case 2:
-            glUniform2fv(location, length / 2, carray);
-            break;
-        case 3:
-            glUniform3fv(location, length / 3, carray);
-            break;
-        case 4:
-            glUniform4fv(location, length / 4, carray);
-            break;
-    }
-
-    glUseProgram(tmpProgram);
-
-    return true;
-}
-
-static bool nidium_canvas2dctxGLProgram_uniform1iv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp)
-{
-    return nidium_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 1);
-}
-
-static bool nidium_canvas2dctxGLProgram_uniform2iv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp)
-{
-    return nidium_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 2);
-}
-
-static bool nidium_canvas2dctxGLProgram_uniform3iv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp)
-{
-    return nidium_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 3);
-}
-
-static bool nidium_canvas2dctxGLProgram_uniform4iv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp)
-{
-    return nidium_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 4);
-}
-
-static bool nidium_canvas2dctxGLProgram_uniform1fv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp)
-{
-    return nidium_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 1);
-}
-
-static bool nidium_canvas2dctxGLProgram_uniform2fv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp)
-{
-    return nidium_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 2);
-}
-
-static bool nidium_canvas2dctxGLProgram_uniform3fv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp)
-{
-    return nidium_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 3);
-}
-
-static bool nidium_canvas2dctxGLProgram_uniform4fv(JSContext *cx,
-                                                   unsigned argc,
-                                                   JS::Value *vp)
-{
-    return nidium_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 4);
-}
-
-static bool nidium_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx,
-                                                          unsigned argc,
-                                                          JS::Value *vp)
-{
-#define SET_PROP(where, name, val)                        \
-    JS_DefineProperty(cx, where, (const char *)name, val, \
-                      JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-    NIDIUM_LOG_2D_CALL();
-    uint32_t program = (size_t)JS_GetPrivate(caller);
-    int nactives     = 0;
-
-    glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &nactives);
-
-    JS::RootedObject arr(cx, JS_NewArrayObject(cx, nactives));
-    args.rval().setObjectOrNull(arr);
-
-    char name[512];
-    for (int i = 0; i < nactives; i++) {
-        int length = 0, size = 0;
-        GLenum type = GL_ZERO;
-        JS::RootedObject in(
-            cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
-
-        glGetActiveUniform(program, i, sizeof(name) - 1, &length, &size, &type,
-                           name);
-        name[length] = '\0';
-        JS::RootedString nameStr(cx, JS_NewStringCopyN(cx, name, length));
-        JS::RootedValue locationVal(
-            cx, INT_TO_JSVAL(glGetUniformLocation(program, name)));
-        JS::RootedValue inval(cx, OBJECT_TO_JSVAL(in));
-        SET_PROP(in, "name", nameStr);
-        SET_PROP(in, "location", locationVal);
-        JS_SetElement(cx, arr, i, inval);
-    }
-
-    return true;
-#undef SET_PROP
-}
-// }}}
-
 // {{{ Registration
 JSPropertySpec *Canvas2DContext::ListProperties()
 {
@@ -2471,6 +2330,8 @@ void Canvas2DContext::RegisterObject(JSContext *cx)
         0, kJSTracer_ExposeFlag);
 
     JSGradient::ExposeClass(cx, "CanvasGradient");
+
+    JSCanvasGLProgram::ExposeClass(cx, "CanvasGLProgram");
 
     JSCanvasPattern::ExposeClass(cx, "CanvasPattern",
       JSCLASS_HAS_RESERVED_SLOTS(1));
