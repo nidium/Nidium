@@ -23,7 +23,7 @@ TEST_F(JSDebugger, Simple)
 
     Nidium::Binding::JSDebuggerCompartment::RegisterObject(njs->m_Cx);
 
-    success = JS_GetProperty(njs->m_Cx, globObj, "DebuggerCompartement", &rval);
+    success = JS_GetProperty(njs->m_Cx, globObj, "DebuggerCompartment", &rval);
     EXPECT_TRUE(success == true);
     EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
 }
