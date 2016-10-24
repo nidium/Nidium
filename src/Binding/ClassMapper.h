@@ -376,7 +376,8 @@ protected:
     template <JSCallbackStatic U, int minarg>
     static inline bool JSCallStatic(JSContext *cx, unsigned argc, JS::Value *vp)
     {
-        NIDIUM_JS_PROLOGUE_NO_RET();
+        CLASSMAPPER_PROLOGUE_NO_RET()
+
         NIDIUM_JS_CHECK_ARGS("method", minarg);
 
         args.rval().setUndefined();
