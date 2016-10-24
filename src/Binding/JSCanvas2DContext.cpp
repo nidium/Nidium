@@ -55,13 +55,13 @@ namespace Binding {
 AutoGLProgram::AutoGLProgram(int32_t program)
     : m_Program(program)
 {
-    glGetIntegerv(GL_CURRENT_PROGRAM, &m_PreviousProgram);
-    glUseProgram(m_Program);
+    NIDIUM_GL_CALL_MAIN(GetIntegerv(GL_CURRENT_PROGRAM, &m_PreviousProgram));
+    NIDIUM_GL_CALL_MAIN(UseProgram(m_Program));
 }
 
 AutoGLProgram::~AutoGLProgram()
 {
-    glUseProgram(m_PreviousProgram);
+    NIDIUM_GL_CALL_MAIN(UseProgram(m_PreviousProgram));
 }
 // }}}
 
