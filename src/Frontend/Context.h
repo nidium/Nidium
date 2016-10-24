@@ -144,7 +144,7 @@ private:
 struct GrGLInterface;
 
 // {{{ Context
-class Context : public Core::Context, public Core::Messages
+class Context : public Core::Context
 {
 public:
     friend class Nidium::Graphics::CanvasHandler;
@@ -230,7 +230,7 @@ public:
 
     Core::Hash<Binding::NidiumBytecodeScript *> m_Preload;
 
-    void onMessage(const Core::SharedMessages::Message &msg);
+    void onMessage(const Core::SharedMessages::Message &msg) override;
     void addJob(void (*job)(void *arg), void *arg);
 
     Graphics::CanvasHandler *getCanvasById(const char *str)
@@ -272,10 +272,10 @@ public:
         return m_CurrentClickedHandler;
     }
 
-    void log(const char *str);
-    void logClear();
-    void logShow();
-    void logHide();
+    void log(const char *str) override;
+    void logClear() override;
+    void logShow() override;
+    void logHide() override;
 
 private:
     Graphics::GLResources m_Resources;

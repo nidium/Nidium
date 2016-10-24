@@ -48,7 +48,7 @@ bool JSConsole::JS_log(JSContext *cx, JS::CallArgs &args)
     JS::AutoFilename filename;
     JS::DescribeScriptedCaller(cx, &filename, &lineno);
 
-    NidiumJS *js        = NidiumJS::GetObject(cx);
+    NidiumJS *js        = NidiumJS::GetObject();
     Core::Context *nctx = js->getContext();
     filename_parent = filename.get();
     if (filename_parent == NULL) {

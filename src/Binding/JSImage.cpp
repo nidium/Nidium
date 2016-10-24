@@ -23,7 +23,6 @@ using Nidium::IO::File;
 namespace Nidium {
 namespace Binding {
 
-
 bool JSImage::JSObjectIs(JSContext *cx, JS::HandleObject obj)
 {
     return JSImage::InstanceOf(obj);
@@ -239,9 +238,6 @@ void JSImage::RegisterObject(JSContext *cx)
 {
     JSImage::ExposeClass(cx, "Image");
 }
-
-// NIDIUM_JS_OBJECT_EXPOSE(Image)
-// }}}
 
 } // namespace Binding
 } // namespace Nidium

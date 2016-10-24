@@ -10,15 +10,6 @@
 
 #define NidiumJSObj(cx) (Nidium::Binding::NidiumJS::GetObject(cx))
 
-#define NIDIUM_JS_PROLOGUE_NO_RET()                       \
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);     \
-    if (!args.thisv().isObject()) {                       \
-        JS_ReportError(cx, "Illegal invocation");         \
-        return false;                                     \
-    }                                                     \
-    JS::RootedObject thisobj(cx, &args.thisv().toObject());
-
-
 #define NIDIUM_JS_INIT_OPT() JS::RootedValue __curopt(cx);
 
 #define NIDIUM_JS_GET_OPT(obj, name)                    \

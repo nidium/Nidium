@@ -43,11 +43,22 @@ Context::Context(ape_global *net, Worker *worker, bool jsstrict, bool runInREPL)
     m_JS->setStrictMode(jsstrict);
 }
 
-void Context::log(const char *str)
+void Context::onMessage(const Core::SharedMessages::Message &msg)
 {
-    linenoisePause();
-    Core::Context::log(str);
-    linenoiseResume();
+    switch (msg.event()) {
+        case kContextMessage_log:
+        {
+            const char *str = (char *)msg.dataPtr();
+
+            linenoisePause();
+            fwrite(str, 1, strlen(str), stdout);
+            linenoiseResume();
+
+            free(msg.dataPtr());
+        }
+        default:
+        break;
+    }
 }
 
 Context::~Context()

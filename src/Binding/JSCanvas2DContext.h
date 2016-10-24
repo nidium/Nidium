@@ -67,10 +67,47 @@ struct Canvas2DContextState
 };
 // }}}
 
+// {{{ JSCanvasGLProgram
+class AutoGLProgram
+{
+public:
+    AutoGLProgram(int32_t program);
+    ~AutoGLProgram();
+
+private:
+    int32_t m_Program;
+    int32_t m_PreviousProgram;
+};
+
+class JSCanvasGLProgram : public ClassMapper<JSCanvasGLProgram>
+{
+public:
+    JSCanvasGLProgram(JSContext *cx, int32_t program);
+    static JSFunctionSpec *ListMethods();
+
+protected:
+    NIDIUM_DECL_JSCALL(getUniformLocation);
+    NIDIUM_DECL_JSCALL(getActiveUniforms);
+    NIDIUM_DECL_JSCALL(uniform1i);
+    NIDIUM_DECL_JSCALL(uniform1f);
+    NIDIUM_DECL_JSCALL(uniform1iv);
+    NIDIUM_DECL_JSCALL(uniform2iv);
+    NIDIUM_DECL_JSCALL(uniform3iv);
+    NIDIUM_DECL_JSCALL(uniform4iv);
+    NIDIUM_DECL_JSCALL(uniform1fv);
+    NIDIUM_DECL_JSCALL(uniform2fv);
+    NIDIUM_DECL_JSCALL(uniform3fv);
+    NIDIUM_DECL_JSCALL(uniform4fv);
+private:
+    bool uniformXiv(JSContext *cx, JS::CallArgs &args, int nb);
+    bool uniformXfv(JSContext *cx, JS::CallArgs &args, int nb);
+    size_t m_Program;
+};
+// }}}
+
 // {{{ Canvas2DContext
 class Canvas2DContext : public ClassMapper<Canvas2DContext>,
                         public Graphics::CanvasContext
-                        
 {
 public:
     friend class JSCanvas;
@@ -303,7 +340,7 @@ public:
         : m_JsImg(img), m_Mode(repeat){};
 
     virtual ~JSCanvasPattern(){};
-    
+
 };
 // }}}
 

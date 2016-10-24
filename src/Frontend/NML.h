@@ -48,7 +48,8 @@ public:
         NIDIUM_XML_OK,
         NIDIUM_XML_ERR_VIEWPORT_SIZE,
         NIDIUM_XML_ERR_IDENTIFIER_TOOLONG,
-        NIDIUM_XML_ERR_META_MISSING
+        NIDIUM_XML_ERR_META_MISSING,
+        NIDIUM_XML_ERR_META_MULTIPLE
     } nidium_xml_ret_t;
 
     typedef nidium_xml_ret_t (NML::*tag_callback)(rapidxml::xml_node<> &node);

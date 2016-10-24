@@ -43,6 +43,8 @@
 using namespace Nidium::Core;
 using namespace Nidium::IO;
 
+extern class Nidium::Binding::NidiumJS *g_nidiumjs;
+
 namespace Nidium {
 namespace Binding {
 
@@ -247,8 +249,9 @@ bool NidiumJS::writeStructuredCloneOp(JSContext *cx,
 NidiumJS *NidiumJS::GetObject(JSContext *cx)
 {
     if (cx == NULL) {
-        return static_cast<NidiumJS *>(pthread_getspecific(gJS));
+        return g_nidiumjs;
     }
+
     return static_cast<class NidiumJS *>(
         JS_GetRuntimePrivate(JS_GetRuntime(cx)));
 }
