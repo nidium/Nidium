@@ -113,9 +113,6 @@ bool JSCanvasGLProgram::JS_getUniformLocation(JSContext *cx, JS::CallArgs &args)
 
 bool JSCanvasGLProgram::JS_getActiveUniforms(JSContext *cx, JS::CallArgs &args)
 {
-#define SET_PROP(where, name, val)                        \
-    JS_DefineProperty(cx, where, (const char *)name, val, \
-                      JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     NIDIUM_LOG_2D_CALL();
     int nactives = 0;
 
@@ -138,13 +135,12 @@ bool JSCanvasGLProgram::JS_getActiveUniforms(JSContext *cx, JS::CallArgs &args)
         JS::RootedValue locationVal(
             cx, INT_TO_JSVAL(glGetUniformLocation(m_Program, name)));
         JS::RootedValue inval(cx, OBJECT_TO_JSVAL(in));
-        SET_PROP(in, "name", nameStr);
-        SET_PROP(in, "location", locationVal);
+        NIDIUM_JSOBJ_SET_PROP(in, "name", nameStr);
+        NIDIUM_JSOBJ_SET_PROP(in, "location", locationVal);
         JS_SetElement(cx, arr, i, inval);
     }
 
     return true;
-#undef SET_PROP
 }
 
 bool JSCanvasGLProgram::JS_uniform1i(JSContext *cx, JS::CallArgs &args)
