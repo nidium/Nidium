@@ -14,7 +14,7 @@
 
 #include "Binding/JSUtils.h"
 
-#include "SystemInterface.h"
+#include "Interface/SystemInterface.h"
 #include "Macros.h"
 
 #include "Binding/JSWindow.h"
@@ -332,7 +332,6 @@ void NML::onGetContent(const char *data, size_t len)
     }
 
     if (this->loadData(data_nullterminated, len, doc)) {
-        m_Loaded(m_LoadedArg);
 
         if (m_Layout) {
             m_JSObjectLayout = this->buildLayoutTree(*m_Layout);
@@ -543,6 +542,8 @@ NML::nidium_xml_ret_t NML::loadMeta(rapidxml::xml_node<> &node)
     }
 
     m_Meta.loaded = true;
+
+    m_Loaded(m_LoadedArg);
 
     return NIDIUM_XML_OK;
 }
