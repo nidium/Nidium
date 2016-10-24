@@ -272,10 +272,10 @@ public:
         return m_CurrentClickedHandler;
     }
 
-    void log(const char *str);
-    void logClear();
-    void logShow();
-    void logHide();
+    void log(const char *str) override;
+    void logClear() override;
+    void logShow() override;
+    void logHide() override;
 
 private:
     Graphics::GLResources m_Resources;
