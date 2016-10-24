@@ -487,6 +487,10 @@ NML::nidium_xml_ret_t NML::loadMeta(rapidxml::xml_node<> &node)
 {
     using namespace rapidxml;
 
+    if (m_Meta.loaded) {
+        return NIDIUM_XML_ERR_META_MULTIPLE;
+    }
+
     for (xml_node<> *child = node.first_node(); child != NULL;
          child = child->next_sibling()) {
         if (strncasecmp(child->name(), "title", 5) == 0) {
