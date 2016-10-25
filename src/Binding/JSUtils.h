@@ -38,6 +38,77 @@ public:
     static char *CurrentJSCaller(JSContext *cx = NULL);
 };
 
+// {{{ JSTransferable
+class JSTransferable
+{
+public:
+    JSTransferable(JSContext *destCx, JSObject* destGlobal)
+        : m_Val(destCx), m_DestGlobal(destGlobal), m_DestCx(destCx)
+    {
+        m_Val.get().setUndefined();
+    }
+
+    JSTransferable(JSContext *cx, JSContext *destCx,
+                   JSObject *destGlobal, JS::HandleValue val)
+        : JSTransferable(destCx, destGlobal)
+    {
+        this->set(cx, val);
+    }
+
+    bool isSet()
+    {
+        return m_Data != nullptr || !m_Val.get().isNullOrUndefined();
+    }
+
+    virtual bool set(JSContext *cx, JS::HandleValue val);
+
+    JS::Value get();
+
+    JSContext *getJSContext()
+    {
+        return m_DestCx;
+    }
+
+    void setPrivate(void *priv)
+    {
+        m_Private = priv;
+    }
+    template <typename T>
+    T *getPrivate()
+    {
+        return reinterpret_cast<T *>(m_Private);
+    }
+
+    virtual ~JSTransferable();
+
+protected:
+    JS::PersistentRootedValue m_Val;
+    JS::Heap<JSObject *> m_DestGlobal;
+    JSContext *m_DestCx = nullptr;
+    uint64_t *m_Data    = nullptr;
+    size_t m_Bytes      = 0;
+
+private:
+    void *m_Private = nullptr;
+
+    bool transfert();
+};
+
+class JSTransferableFunction : public JSTransferable
+{
+public:
+    JSTransferableFunction(JSContext *destCx, JSObject *destGlobal)
+        : JSTransferable(destCx, destGlobal) {}
+
+    bool set(JSContext *cx, JS::HandleValue val) override;
+    bool call(JS::HandleObject obj,
+              JS::HandleValueArray params,
+              JS::MutableHandleValue rval);
+
+    virtual ~JSTransferableFunction(){}
+};
+// }}}
+
 // {{{ JSObjectBuilder
 class JSObjectBuilder
 {

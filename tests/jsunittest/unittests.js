@@ -50,7 +50,7 @@ if (args["file"]) {
         'HTTP/HTTPClient.js',
         //'Modules/Module_libHello.js',
 
-        'Thread/thread.js',
+        'Thread.js',
 
         'JS/JS_btoa.js',
         'JS/JS_timers.js',
@@ -61,7 +61,6 @@ if (args["file"]) {
 
     if (args["frontend"]) {
         Suites = Suites.concat([
-            'Navigator/Navigator_language.js',
             'AV/AudioContext.js',
             'AV/SourceNode.js',
             'AV/CustomeNode.js',

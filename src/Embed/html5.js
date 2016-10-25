@@ -2,6 +2,61 @@ function reportUnsupported(message) {
     console.info("[HTML5Compat] " + message);
 }
 
+// {{{ Navigator
+var Navigator = (function() {
+    function PublicNavigator() {
+        throw new Error("Illegal constructor");
+    }
+
+    Object.defineProperties(PublicNavigator.prototype, {
+        "appCodeName": {
+            value: "Nidium",
+            writable: false
+        },
+        "appName": {
+            value: "Nidium",
+            writable: false
+        },
+        "appVersion": {
+            get: function() {
+                return __nidium__.version
+            },
+        },
+        "language": {
+            get: function() {
+                return (require("OS").language);
+            },
+        },
+        "platform": {
+            get: function() {
+                return (require("OS").platform);
+            },
+        },
+        "product": {
+            value: "Nidium",
+            writable: false
+        },
+        "userAgent": {
+            get: function() {
+                return this.appName + " / " + __nidium__.version +
+                   " (" + this.language + "; rv:" + __nidium__.build + ")";
+            }
+        },
+    });
+
+    PublicNavigator.prototype.vibrate = function() {
+        return true;
+    };
+
+    var PrivateNavigator = function() {}
+    PrivateNavigator.prototype = PublicNavigator.prototype;
+
+    window.navigator = new PrivateNavigator();
+
+    return PublicNavigator;
+})();
+// }}}
+
 // {{{ HTMLElement (Extending Canvas prototype)
 Canvas.prototype.appendChild = function(child) {
     if (child instanceof Canvas) {
