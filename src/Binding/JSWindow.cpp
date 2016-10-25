@@ -37,40 +37,6 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-
-static bool nidium_navigator_prop_get(JSContext *cx,
-                                      JS::HandleObject obj,
-                                      uint8_t id,
-                                      JS::MutableHandleValue vp);
-
-
-enum
-{
-    NAVIGATOR_PROP_LANGUAGE,
-    NAVIGATOR_PROP_VIBRATE,
-    NAVIGATOR_PROP_APPNAME,
-    NAVIGATOR_PROP_APPVERSION,
-    NAVIGATOR_PROP_PLATFORM,
-    NAVIGATOR_PROP_USERAGENT
-};
-
-static JSClass Navigator_class = { "Navigator",
-                                   0,
-                                   JS_PropertyStub,
-                                   JS_DeletePropertyStub,
-                                   JS_PropertyStub,
-                                   JS_StrictPropertyStub,
-                                   JS_EnumerateStub,
-                                   JS_ResolveStub,
-                                   JS_ConvertStub,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   JSCLASS_NO_INTERNAL_MEMBERS };
-
-
 static JSClass MouseEvent_class = { "MouseEvent",
                                     0,
                                     JS_PropertyStub,
@@ -177,24 +143,6 @@ static struct nidium_cursors
     { "col-resize", UIInterface::RESIZELEFTRIGHT },
     { NULL, UIInterface::NOCHANGE },
 };
-
-
-
-static JSPropertySpec navigator_props[] = {
-
-    NIDIUM_JS_PSG(
-        "language", NAVIGATOR_PROP_LANGUAGE, nidium_navigator_prop_get),
-    NIDIUM_JS_PSG("vibrate", NAVIGATOR_PROP_VIBRATE, nidium_navigator_prop_get),
-    NIDIUM_JS_PSG("appName", NAVIGATOR_PROP_APPNAME, nidium_navigator_prop_get),
-    NIDIUM_JS_PSG(
-        "appVersion", NAVIGATOR_PROP_APPVERSION, nidium_navigator_prop_get),
-    NIDIUM_JS_PSG(
-        "platform", NAVIGATOR_PROP_PLATFORM, nidium_navigator_prop_get),
-    NIDIUM_JS_PSG(
-        "userAgent", NAVIGATOR_PROP_USERAGENT, nidium_navigator_prop_get),
-    JS_PS_END
-};
-
 // }}}
 
 // {{{ Implementation
@@ -848,70 +796,6 @@ bool JSWindow::JSSetter_cursor(JSContext *cx,
     return true;
 }
 
-
-static bool nidium_navigator_prop_get(JSContext *m_Cx,
-                                      JS::HandleObject obj,
-                                      uint8_t id,
-                                      JS::MutableHandleValue vp)
-{
-#define APP_NAME "nidium"
-#define APP_LANGUAGE "en"
-#define APP_LOCALE APP_LANGUAGE "-US"
-    switch (id) {
-        case NAVIGATOR_PROP_LANGUAGE: {
-            JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_LANGUAGE));
-            vp.setString(jStr);
-        } break;
-        case NAVIGATOR_PROP_VIBRATE: {
-            vp.setBoolean(false);
-        } break;
-        case NAVIGATOR_PROP_APPVERSION: {
-            JS::RootedString jStr(m_Cx,
-                                  JS_NewStringCopyZ(m_Cx, NIDIUM_VERSION_STR));
-            vp.setString(jStr);
-        } break;
-        case NAVIGATOR_PROP_APPNAME: {
-            JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, APP_NAME));
-            vp.setString(jStr);
-        } break;
-        case NAVIGATOR_PROP_USERAGENT: {
-            JS::RootedString jStr(
-                m_Cx, JS_NewStringCopyZ(m_Cx, APP_NAME
-                                        "/" NIDIUM_VERSION_STR "(" APP_LOCALE
-                                        "; rv:" NIDIUM_BUILD ") "));
-            vp.setString(jStr);
-        } break;
-        case NAVIGATOR_PROP_PLATFORM: {
-            const char *platform;
-// http://stackoverflow.com/questions/19877924/what-is-the-list-of-possible-values-for-navigator-platform-as-of-today
-#if defined(_WIN32) || defined(_WIN64)
-            platform = "Win32";
-#elif defined(__APPLE) || defined(_WIN64)
-            platform = "MacOSX";
-#elif defined(__FreeBSD)
-            platform = "FreeBSD";
-#elif defined(__DragonFly)
-            platform = "DragonFly";
-#elif __linux
-            platform = "Linux";
-#elif __unix
-            platform = "Unix";
-#elif __posix
-            platform = "Posix";
-#else
-            platform = "Unknown";
-#endif
-            JS::RootedString jStr(m_Cx, JS_NewStringCopyZ(m_Cx, platform));
-            vp.setString(jStr);
-        } break;
-    }
-#undef APP_NAME
-#undef APP_LANGUAGE
-#undef APP_LOCALE
-    return true;
-}
-
-
 struct _nidiumopenfile
 {
     JSContext *m_Cx;
@@ -1435,14 +1319,6 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx,
 
     val = OBJECT_TO_JSVAL(nidiumObj);
     JS_SetProperty(cx, windowObj, "__nidium__", val);
-
-    //  Set the navigator properties
-    JS::RootedObject navigatorObj(
-        cx, JS_NewObject(cx, &Navigator_class, JS::NullPtr(), JS::NullPtr()));
-    JS_DefineProperties(cx, navigatorObj, navigator_props);
-
-    val = OBJECT_TO_JSVAL(navigatorObj);
-    JS_SetProperty(cx, windowObj, "navigator", val);
 
 #if 0
     //@TODO: intented to be used in a future
