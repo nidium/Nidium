@@ -55,13 +55,15 @@ class Canvas2DContext;
 class JSTransferable
 {
 public:
-    JSTransferable(JSContext *destCx) : m_Val(destCx), m_DestCx(destCx)
+    JSTransferable(JSContext *destCx, JSObject* destGlobal)
+        : m_Val(destCx), m_DestGlobal(destGlobal), m_DestCx(destCx)
     {
         m_Val.get().setUndefined();
     }
 
-    JSTransferable(JSContext *cx, JSContext *destCx, JS::HandleValue val)
-        : m_Val(destCx), m_DestCx(destCx)
+    JSTransferable(JSContext *cx, JSContext *destCx,
+                   JSObject *destGlobal, JS::HandleValue val)
+        : JSTransferable(destCx, destGlobal)
     {
         this->set(cx, val);
     }
@@ -94,6 +96,7 @@ public:
 
 protected:
     JS::PersistentRootedValue m_Val;
+    JS::Heap<JSObject *> m_DestGlobal;
     JSContext *m_DestCx = nullptr;
     uint64_t *m_Data    = nullptr;
     size_t m_Bytes      = 0;
@@ -107,7 +110,8 @@ private:
 class JSTransferableFunction : public JSTransferable
 {
 public:
-    JSTransferableFunction(JSContext *destCx) : JSTransferable(destCx){};
+    JSTransferableFunction(JSContext *destCx, JSObject *destGlobal)
+        : JSTransferable(destCx, destGlobal) {}
 
     bool set(JSContext *cx, JS::HandleValue val) override;
     bool call(JS::HandleObject obj,

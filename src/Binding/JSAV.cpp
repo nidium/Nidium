@@ -64,7 +64,7 @@ bool JSTransferable::transfert()
 JSTransferable::~JSTransferable()
 {
     JSAutoRequest ar(m_DestCx);
-    JSAutoCompartment ac(m_DestCx, JS::CurrentGlobalOrNull(m_DestCx));
+    JSAutoCompartment ac(m_DestCx, m_DestGlobal);
 
     if (m_Data != NULL) {
         JS_ClearStructuredClone(m_Data, m_Bytes, nullptr, NULL);
@@ -98,7 +98,8 @@ bool JSTransferableFunction::call(JS::HandleObject obj,
                                   JS::HandleValueArray params,
                                   JS::MutableHandleValue rval)
 {
-    JS_AUDIO_THREAD_PROLOGUE()
+    JSAutoRequest ar(m_DestCx);
+    JSAutoCompartment ac(m_DestCx, m_DestGlobal);
 
     this->get();
 

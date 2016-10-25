@@ -189,7 +189,8 @@ bool JSAudioNodeCustomBase::JS__set(JSContext *cx, JS::CallArgs &args)
     }
 
     JSTransferable *transferable
-        = new JSTransferable(cx, this->getAudioContext()->m_JsTcx, val);
+        = new JSTransferable(cx, this->getAudioContext()->m_JsTcx,
+                             this->getAudioContext()->m_JsGlobalObj, val);
 
     transferable->setPrivate(this);
 
@@ -657,8 +658,11 @@ bool JSAudioNodeThreaded::JS_set(JSContext *cx, JS::CallArgs &args)
 
 bool JSAudioNodeThreaded::JS_send(JSContext *cx, JS::CallArgs &args)
 {
-    JSContext *mainCx = JSAudioContext::GetContext()->getJSContext();
-    JSTransferable *t = new JSTransferable(cx, mainCx, args[0]);
+    JSAudioContext *audioContext = JSAudioContext::GetContext();
+
+    JSTransferable *t
+        = new JSTransferable(cx, audioContext->getJSContext(),
+                             audioContext->m_JsGlobalObj, args[0]);
 
     m_Node->postMessage(t, JSAudioNodeThreaded::THREADED_MESSAGE);
 

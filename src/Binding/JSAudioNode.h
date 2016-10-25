@@ -227,10 +227,12 @@ public:
     JSAudioNodeCustomBase()
     {
         NIDIUM_PTHREAD_VAR_INIT(&m_ShutdownWait);
-        JSContext *threadCx = JSAudioContext::GetContext()->m_JsTcx;
+        JSAudioContext *audioContext = JSAudioContext::GetContext();
 
         for (int i = 0; i < END_FN; i++) {
-            m_TransferableFuncs[i] = new JSTransferableFunction(threadCx);
+            m_TransferableFuncs[i]
+                = new JSTransferableFunction(audioContext->m_JsTcx,
+                                             audioContext->m_JsGlobalObj);
             m_TransferableFuncs[i]->setPrivate(this);
         }
     }
