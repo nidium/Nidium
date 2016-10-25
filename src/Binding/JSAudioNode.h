@@ -23,6 +23,8 @@ namespace Binding {
 
 class JSAudio;
 class JSVideo;
+class JSTransferable;
+class JSTransferableFunction;
 
 // {{{ JSAudioNode
 class JSAudioNode
@@ -224,19 +226,7 @@ public:
         END_FN
     };
 
-    JSAudioNodeCustomBase()
-    {
-        NIDIUM_PTHREAD_VAR_INIT(&m_ShutdownWait);
-        JSAudioContext *audioContext = JSAudioContext::GetContext();
-
-        for (int i = 0; i < END_FN; i++) {
-            m_TransferableFuncs[i]
-                = new JSTransferableFunction(audioContext->m_JsTcx,
-                                             audioContext->m_JsGlobalObj);
-            m_TransferableFuncs[i]->setPrivate(this);
-        }
-    }
-
+    JSAudioNodeCustomBase();
     virtual ~JSAudioNodeCustomBase()
     {
         m_Node->callback(JSAudioNodeCustomBase::ShutdownCallback, this, true);
@@ -256,11 +246,7 @@ public:
         return m_TransferableFuncs[funID];
     }
 
-    void releaseFunction(TransferableFunction funID)
-    {
-        delete m_TransferableFuncs[funID];
-        m_TransferableFuncs[funID] = nullptr;
-    }
+    void releaseFunction(TransferableFunction funID);
 
     virtual JSObject *getJSObject() = 0;
     virtual bool fireJSEvent(const char *name, JS::MutableHandleValue val) = 0;

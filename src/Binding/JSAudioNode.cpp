@@ -158,6 +158,19 @@ JSFunctionSpec *JSAudioNodeSource::ListMethods()
 // }}}
 
 // {{{ JSAudioNodeCustomBase
+JSAudioNodeCustomBase::JSAudioNodeCustomBase()
+{
+    NIDIUM_PTHREAD_VAR_INIT(&m_ShutdownWait);
+    JSAudioContext *audioContext = JSAudioContext::GetContext();
+
+    for (int i = 0; i < END_FN; i++) {
+        m_TransferableFuncs[i]
+            = new JSTransferableFunction(audioContext->m_JsTcx,
+                                         audioContext->m_JsGlobalObj);
+        m_TransferableFuncs[i]->setPrivate(this);
+    }
+}
+
 void JSAudioNodeCustomBase::onMessage(const Core::SharedMessages::Message &msg)
 {
     if (this->isReleased()) return;
@@ -310,6 +323,12 @@ void JSAudioNodeCustomBase::OnSet(AudioNode *n, void *custom)
     node->m_ThreadedNode->set(val);
 
     delete t;
+}
+
+void JSAudioNodeCustomBase::releaseFunction(TransferableFunction funID)
+{
+    delete m_TransferableFuncs[funID];
+    m_TransferableFuncs[funID] = nullptr;
 }
 
 void JSAudioNodeCustomBase::ShutdownCallback(AudioNode *nnode, void *custom)

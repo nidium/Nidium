@@ -16,7 +16,7 @@
 namespace Nidium {
 namespace Binding {
 
-// {{{ String conversions
+// {{{ JSUtils
 bool JSUtils::StrToJsval(JSContext *cx,
                          const char *buf,
                          size_t len,
@@ -92,9 +92,7 @@ JSString *JSUtils::NewStringWithEncoding(JSContext *cx,
 
     return JS_NewStringCopyN(cx, buf, len);
 }
-// }}}
 
-// {{{ JS
 char *JSUtils::CurrentJSCaller(JSContext *cx)
 {
     if (cx == NULL) {
@@ -111,6 +109,81 @@ char *JSUtils::CurrentJSCaller(JSContext *cx)
     JS::DescribeScriptedCaller(cx, &af, &lineno);
 
     return strdup(af.get());
+}
+// }}}
+
+// {{{ JSTransferable
+bool JSTransferable::set(JSContext *cx, JS::HandleValue val)
+{
+    if (!JS_WriteStructuredClone(cx, val, &m_Data, &m_Bytes, nullptr, nullptr,
+                                 JS::NullHandleValue)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool JSTransferable::transfert()
+{
+    bool ok = JS_ReadStructuredClone(m_DestCx, m_Data, m_Bytes,
+                                     JS_STRUCTURED_CLONE_VERSION, &m_Val,
+                                     nullptr, nullptr);
+
+    JS_ClearStructuredClone(m_Data, m_Bytes, nullptr, nullptr);
+
+    m_Data  = NULL;
+    m_Bytes = 0;
+
+    return ok;
+}
+
+JSTransferable::~JSTransferable()
+{
+    JSAutoRequest ar(m_DestCx);
+    JSAutoCompartment ac(m_DestCx, m_DestGlobal);
+
+    if (m_Data != NULL) {
+        JS_ClearStructuredClone(m_Data, m_Bytes, nullptr, NULL);
+    }
+
+    m_Val.set(JS::UndefinedHandleValue);
+}
+
+JS::Value JSTransferable::get()
+{
+    if (m_Data) {
+        if (!this->transfert()) {
+            return JS::NullValue();
+        }
+    }
+
+    return m_Val.get();
+}
+
+bool JSTransferableFunction::set(JSContext *cx, JS::HandleValue val)
+{
+    if (!val.isNull() && (!val.isObject()
+                          || !JS_ObjectIsCallable(cx, val.toObjectOrNull()))) {
+        return false;
+    }
+
+    return JSTransferable::set(cx, val);
+}
+
+bool JSTransferableFunction::call(JS::HandleObject obj,
+                                  JS::HandleValueArray params,
+                                  JS::MutableHandleValue rval)
+{
+    JSAutoRequest ar(m_DestCx);
+    JSAutoCompartment ac(m_DestCx, m_DestGlobal);
+
+    this->get();
+
+    if (m_Val.get().isNullOrUndefined()) {
+        return false;
+    }
+
+    return JS_CallFunctionValue(m_DestCx, obj, m_Val, params, rval);
 }
 // }}}
 
