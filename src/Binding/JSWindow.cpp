@@ -128,7 +128,7 @@ static JSClass TextEvent_class = { "TextInputEvent",
                                    nullptr,
                                    JSCLASS_NO_INTERNAL_MEMBERS };
 
-static JSClass KeyEvent_class = { "keyEvent",
+static JSClass KeyEvent_class = { "KeyEvent",
                                   0,
                                   JS_PropertyStub,
                                   JS_DeletePropertyStub,
