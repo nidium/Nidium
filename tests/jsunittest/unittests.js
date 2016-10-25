@@ -57,7 +57,6 @@ if (args["file"]) {
 
     if (args["frontend"]) {
         Suites = Suites.concat([
-            'Navigator/Navigator_language.js',
             'AV/AudioContext.js',
             'AV/SourceNode.js',
             'AV/CustomeNode.js',
