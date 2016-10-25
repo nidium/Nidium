@@ -223,12 +223,6 @@ void UICocoaInterface::onWindowCreated()
     if (NIDIUM_TITLEBAR_HEIGHT != 0) {
         [window setStyleMask:NSTexturedBackgroundWindowMask|NSTitledWindowMask];
     }
-
-#if NIDIUM_ENABLE_HIDPI
-    NSView *openglview = [window contentView];
-    [openglview setWantsBestResolutionOpenGLSurface:YES];
-#endif
-
 }
 
 void UICocoaInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
