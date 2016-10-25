@@ -44,6 +44,8 @@ public:
     void showWindow();
     void quit();
 
+    void setGLContextAttribute() override;
+
     struct
     {
         CGRect closeFrame;

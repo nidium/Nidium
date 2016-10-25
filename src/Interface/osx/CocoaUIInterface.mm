@@ -551,6 +551,19 @@ void UICocoaInterface::renderSystemTray()
     [m_StatusItem setMenu:stackMenu];
 }
 
+void UICocoaInterface::setGLContextAttribute()
+{
+    UIInterface::setGLContextAttribute();
+
+    NSWindow *window = NidiumCocoaWindow(m_Win);
+
+#if NIDIUM_ENABLE_HIDPI
+    NSView *openglview = [window contentView];
+    [openglview setWantsBestResolutionOpenGLSurface:YES];
+#endif
+
+}
+
 void UICocoaInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
 {
     switch(cursorvalue) {
