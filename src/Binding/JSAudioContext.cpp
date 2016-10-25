@@ -426,7 +426,7 @@ bool JSAudioContext::createContext()
     }
     JS_SetErrorReporter(m_JsTcx, reportError);
     JS_FireOnNewGlobalObject(m_JsTcx, global);
-    //JSConsole::RegisterObject(m_JsTcx);
+    JSConsole::RegisterObject(m_JsTcx);
     JSAudioNodeThreaded::RegisterObject(m_JsTcx);
 
     return true;
