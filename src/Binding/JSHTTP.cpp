@@ -18,13 +18,10 @@ using Nidium::Net::HTTPRequest;
 namespace Nidium {
 namespace Binding {
 
-// {{{ Preamble
 #define SET_PROP(where, name, val)                                    \
     JS_DefineProperty(cx, where, (const char *)name, val, NULL, NULL, \
                       JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
-
-// {{{ Implementation
 static void getOptionsAndCallback(JSContext *cx,
                                   JS::CallArgs *args,
                                   int argsOffset,
@@ -141,9 +138,6 @@ bool JSHTTP::JS_stop(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
-// }}}
-
-// {{{ JSHTTP
 void JSHTTP::fireJSEvent(const char *name, JS::MutableHandleValue ev)
 {
     ClassMapperWithEvents<JSHTTP>::fireJSEvent(name, ev);

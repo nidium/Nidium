@@ -44,7 +44,7 @@ FunctionDoc( "Stream.getNextPacket", "Continue reading on a stream.",
     ReturnDoc( "Returns null if there is nothing more to read; Returns an the read bytes upon success.", "null|Stream" )
 )
 
-ConstructorDoc( "Stream", "Creates a new stream instance. A Stream is an IO interface that can perform operation like 'Stream.read' and 'Stream.write'.",
+ConstructorDoc( "Stream", "Creates a new stream instance. A Stream is an IO interface that can perform operation like 'Stream.read' and 'Stream.getNextPacket'.",
     NO_Sees,
     [ ExampleDoc("""var s = new Stream( "http://www.nidium.com" );
 s.onavailabledata = function( ) {

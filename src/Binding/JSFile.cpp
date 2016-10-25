@@ -231,6 +231,7 @@ JSObject *JSFile::GenerateJSObject(JSContext *cx, const char *path)
     jsfile = new JSFile(path);
     file = new File(path);
     file->setListener(jsfile);
+    file->setAutoClose(false);
 
     jsfile->setFile(file);
 
@@ -580,7 +581,7 @@ bool JSFile::JS_openSync(JSContext *cx, JS::CallArgs &args)
 
     File *file = this->getFile();
 
-    if (!file->openSync(mode.ptr(), &err)) {
+    if (!file->openSync(mode.ptr(), &err) || err != 0) {
         JS_ReportError(cx, "Failed to open file : %s (errno %d)\n",
                        strerror(err), err);
         return false;
@@ -644,7 +645,7 @@ bool JSFile::JS_seekSync(JSContext *cx, JS::CallArgs &args)
 {
     File *file = this->getFile();
 
-    double seekPos;
+    size_t seekPos;
     int err;
     int ret;
 
@@ -653,20 +654,21 @@ bool JSFile::JS_seekSync(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    seekPos = args[0].toNumber();
+    seekPos = static_cast<size_t>(args[0].toNumber());
     ret     = file->seekSync(seekPos, &err);
 
     if (ret != 0) {
+        char errStr[2048];
         if (err == 0) {
-            JS_ReportError(
-                cx, "Unable to seek to %dl : %s", seekPos,
-                (!file->isOpen() ? "not opened" : "is it a directory?"));
-            return false;
+            snprintf(errStr, 2047, "Unable to seek to %zd : %s", seekPos,
+                     "Not opened or file is a directory");
         } else {
-            JS_ReportError(cx, "Failed to seek to %ld : %s (errno %d)", seekPos,
-                           strerror(err), err);
-            return false;
+            snprintf(errStr, 2047, "Failed to seek to %zd : %s (errno %d)",
+                     seekPos, strerror(err), err);
         }
+
+        JS_ReportError(cx, errStr);
+        return false;
     }
 
     return true;
@@ -675,7 +677,7 @@ bool JSFile::JS_seekSync(JSContext *cx, JS::CallArgs &args)
 bool JSFile::JS_writeSync(JSContext *cx, JS::CallArgs &args)
 {
     File *file = this->getFile();
-    int err;
+    int err, ret;
 
     if (args[0].isString()) {
         JS::RootedString str(cx, args[0].toString());
@@ -687,7 +689,7 @@ bool JSFile::JS_writeSync(JSContext *cx, JS::CallArgs &args)
             cstr.encodeLatin1(cx, str);
         }
 
-        file->writeSync(cstr.ptr(), cstr.length(), &err);
+        ret =file->writeSync(cstr.ptr(), cstr.length(), &err);
     } else if (args[0].isObject()) {
         JS::RootedObject jsobj(cx, args[0].toObjectOrNull());
 
@@ -700,9 +702,15 @@ bool JSFile::JS_writeSync(JSContext *cx, JS::CallArgs &args)
         uint32_t len  = JS_GetArrayBufferByteLength(jsobj);
         uint8_t *data = JS_GetArrayBufferData(jsobj);
 
-        file->writeSync(reinterpret_cast<char *>(data), len, &err);
+        ret = file->writeSync(reinterpret_cast<char *>(data), len, &err);
     } else {
         JS_ReportError(cx, "INVALID_VALUE : only accept string or ArrayBuffer");
+        return false;
+    }
+
+    if (err != 0 || ret < 0) {
+        JS_ReportError(cx, "Failed to write : %s",
+                       (ret < 0 ? "Not opened or file is a directory" : strerror(err)));
         return false;
     }
 
@@ -745,6 +753,7 @@ JSFile *JSFile::Constructor(JSContext *cx,
 
     file = new File(jsfile->getPath());
     file->setListener(jsfile);
+    file->setAutoClose(false);
 
     NIDIUM_JS_INIT_OPT();
 

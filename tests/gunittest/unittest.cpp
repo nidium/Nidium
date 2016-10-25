@@ -8,4 +8,3 @@
 #include <jsapi.h>
 
 unsigned long _ape_seed = 31415961;
-

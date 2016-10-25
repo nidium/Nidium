@@ -48,7 +48,7 @@
         'mac_deployment_target': '10.7',
         'mac_sdk_version%': '10.11',
 
-        'nidium_js_disable_window_global%': 0,
+        'nidium_js_disable_window_global%': 1,
 
         # Crash reporter settings
         'nidium_enable_breakpad%': 0,

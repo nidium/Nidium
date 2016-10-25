@@ -35,6 +35,10 @@ if (args["regex"]) {
     tr.setTestRegex(args["regex"]);
 }
 
+if (args["save"]) {
+    tr.setSaveVisualDiff(true);
+}
+
 if (args["file"]) {
     Suites.push(args["file"]);
 } else {
@@ -64,7 +68,9 @@ if (args["file"]) {
             'AV/AudioThread.js',
             'AV/GainNode.js',
             'AV/Video.js',
+            'OS.js',
             'Image.js',
+            'Canvas.js',
             'DB.js', // Only for frontend, because server does not support "cache://"
         ]);
     }

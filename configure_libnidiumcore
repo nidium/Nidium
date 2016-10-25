@@ -27,27 +27,30 @@ Deps.set(
     Deps.Konstruct("network", "src/libapenetwork/configure")
 )
 
+if Platform.system == "Darwin":
+    Platform.setEnviron("CXXFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
+    Platform.setEnviron("CPPFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
+    # Some third-party librairires (skia, angle, mozilla-central)
+    # produce binaries. So we need to set LDFLAGS too.
+    Platform.setEnviron("LDFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
+
 DEPEDENCY_REPO = Variables.get("depsRepo")
 CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
 Gyp = Builder.Gyp
 
 @Deps.register("leveldb")
 def leveldb():
-    cxxflags = ""
-    extraCmd = ""
-
-    if Platform.system == "Darwin":
-        cxxflags = "-stdlib=libc++ -mmacosx-version-min=10.7"
+    cxxFlags = os.environ.get("CXXFLAGS", "")
 
     if Konstruct.config("asan"):
         # Fix ASAN container overflow false positive :
         # https://github.com/google/sanitizers/wiki/AddressSanitizerContainerOverflow#false-positives
-        cxxflags += " -fsanitize=address"
+        cxxFlags += " -fsanitize=address"
 
     return {
         "location": Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.18"),
         # leveldb make doest not detect CXXFLAGS changes, so we force "make clean"
-        "build": ["make clean", "CXXFLAGS='%s' make" % (cxxflags)],
+        "build": ["make clean", "CXXFLAGS='%s' make" % (cxxFlags)],
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "leveldb.patch")],
         "outputs": ["libleveldb(.a|.lib)"]
     }
@@ -67,9 +70,17 @@ def libnspr():
 @Deps.register("mozilla-central")
 def mozilla():
     nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/"))
-    nsprFlags = "--with-nspr-cflags=\"-I" + nsprDir + "/dist/include/nspr/\" --with-nspr-libs=\"" + nsprDir + "/dist/lib/libnspr4.a " + nsprDir + "/dist/lib/libplds4.a " + nsprDir + "/dist/lib/libplc4.a\""
+    nsprFlags = "--with-nspr-cflags=\"-I%s/dist/include/nspr/\" \
+                 --with-nspr-libs=\"%s/dist/lib/libnspr4.a \
+                                    %s/dist/lib/libplds4.a \
+                                    %s/dist/lib/libplc4.a\"" % (
+                                        nsprDir, nsprDir, nsprDir, nsprDir)
 
-    configureEnvVars = "CXXFLAGS=\"-Wno-null-conversion\" MOZ_ZLIB_CFLAGS=-I%s MOZ_ZLIB_LIBS=\"-L%s -lz\"" % (os.path.abspath("zlib"), os.path.abspath("zlib"))
+    configureEnvVars = "CXXFLAGS=\"%s -Wno-null-conversion\" \
+                        MOZ_ZLIB_CFLAGS=-I%s MOZ_ZLIB_LIBS=\"-L%s -lz\"" % (
+                            os.environ.get("CXXFLAGS", ""),
+                            os.path.abspath("zlib"), os.path.abspath("zlib"))
+
     configure = "%s ./js/src/configure\
             --disable-shared-js\
             --enable-threadsafe\
@@ -111,7 +122,11 @@ def testCore(unitTests):
 
     Tests.register([
         "build/tests/libnidiumcore-unittests"
-    ], builders=[Gyp("gyp/libnidiumcore-tests.gyp")])
+        ], builders=[
+            Gyp("gyp/libnidiumcore-tests.gyp",
+                defines={"nidium_js_disable_window_global": 1,
+                         "nidium_product_define": "NIDIUM_UNIT_TESTS"})
+        ])
 
 @CommandLine.option("--asan", default=False)
 def asan(asan):
@@ -141,6 +156,7 @@ if __name__ == '__main__':
         Gyp.set('nidium_version', 'library')
 
     Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi --include=src/libapenetwork/gyp/config.gypi")
+    Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_SERVER")
     Build.add(Gyp("gyp/libnidiumcore.gyp"))
 
     Konstruct.start()

@@ -173,6 +173,7 @@ void Context::loadNativeObjects(int width, int height)
     Canvas2DContext::RegisterObject(cx);
     JSCanvas::RegisterObject(cx);
     JSImage::RegisterObject(cx);
+    JSImageData::RegisterObject(cx);
 #ifdef NIDIUM_AUDIO_ENABLED
     JSAudio::RegisterAllObjects(cx);
     JSVideo::RegisterAllObjects(cx);
@@ -506,6 +507,7 @@ static int GetGLSLVersion()
     const char *versionString;
     int err;
 
+    NIDIUM_GL_CALL_RET_MAIN(GetError(), err);
     NIDIUM_GL_CALL_RET_MAIN(GetString(GL_SHADING_LANGUAGE_VERSION), tmp);
 
     NIDIUM_GL_CALL_RET_MAIN(GetError(), err);

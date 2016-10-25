@@ -42,16 +42,10 @@ Image::Image(void *data, size_t len) : m_CanvasRef(NULL)
 
 Image::Image(void *data, int width, int height)
 {
-    uint8_t *px = (uint8_t *)data;
     m_Image     = new SkBitmap();
     m_IsCanvas  = 0;
 
     m_Image->setConfig(SkBitmap::kARGB_8888_Config, width, height);
-
-    printf("First pixel value %.2x\n", px[0]);
-    printf("First pixel value %.2x\n", px[1]);
-    printf("First pixel value %.2x\n", px[2]);
-    printf("First pixel value %.2x\n", px[3]);
 
     m_Image->setPixels(data);
 }
@@ -106,7 +100,34 @@ SkData *Image::getPNG()
         return NULL;
     }
 
-    return SkImageEncoder::EncodeData(*m_Image, SkImageEncoder::kPNG_Type, 100);
+    // It seems that SkImageEncoder expect the pixels to be BGRA 
+    // but they are RGBA. Switch blue and red to workaround this.
+    // FIXME : There must be a better way to handle this.
+    uint8_t* data = static_cast<uint8_t *>(m_Image->getPixels());
+    uint8_t* p = data;
+    uint8_t* stop = p + m_Image->getSize();
+
+    while (p < stop) {
+        unsigned r = p[0];
+        unsigned b = p[2];
+        p[0] = b;
+        p[2] = r;
+        p += 4;
+    }
+
+    SkData *dataPNG = SkImageEncoder::EncodeData(*m_Image, SkImageEncoder::kPNG_Type, 100);
+
+    // Switch back blue and red, so the image stays unchanged.
+    p = data;
+    while (p < stop) {
+        unsigned b = p[0];
+        unsigned r = p[2];
+        p[0] = r;
+        p[2] = b;
+        p += 4;
+    }
+
+    return dataPNG;
 }
 
 int Image::getWidth()
@@ -207,7 +228,6 @@ bool Image::ConvertToRGBA(Image *nimg,
                           bool flipY,
                           bool premultiply)
 {
-#if 1
     int length;
     int k;
     const unsigned char *pixels;
@@ -249,7 +269,6 @@ bool Image::ConvertToRGBA(Image *nimg,
             k += 4;
         }
     }
-#endif
     return true;
 }
 // }}}

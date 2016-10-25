@@ -105,7 +105,7 @@ EventDoc( "Window._ontextinput", """function that is called when the window gets
     [ ParamDoc( "event", "EventMessage", ObjectDoc([("val", "value (utf8)", "string")]), NO_Default, IS_Obligated ) ]
 )
 
-EventDoc( "Window._onsystemtrayclic", """Function that is called when the window gets an  " + i + " event.""",
+EventDoc( "Window._onsystemtrayclick", """Function that is called when the window gets an  " + i + " event.""",
     SeesDocs( "Window._onassetready|Window._onready|Window._onbeforeclose|Window._onfocus|Window._onblur|Window._onmousewheel|Window._onkeydown|Window._onkeyup|Window._ontextinput|Window._onsystemtrayclick|Window._onmousedown|Window._onmouseup|Window._onFileDragEnter|Window.onFileDragLeave|Window._onFileDrag|Window._onFileDrop|Window._onmousemove"),
     NO_Examples,
     [ ParamDoc( "event", "EventMessage", ObjectDoc([("id", "event id", "integer")]), NO_Default, IS_Obligated ) ]
@@ -253,8 +253,8 @@ FunctionDoc( "Window.quit", "Quits this window instance.",
     NO_Returns
 )
 
-FunctionDoc( "Window.clone", "Closes this window instance.",
-    SeesDocs( "global.window|Window|Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
+FunctionDoc( "Window.close", "Closes this window instance.",
+    SeesDocs( "Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Slow,
     NO_Params,

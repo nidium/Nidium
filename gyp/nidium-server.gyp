@@ -25,7 +25,6 @@
             '<(third_party_path)/linenoise/linenoise.c',
         ],
         'defines':[
-            'NIDIUM_DISABLE_WINDOW_GLOBAL',
             'LINENOISE_INTERRUPTIBLE',
         ],
         'conditions': [

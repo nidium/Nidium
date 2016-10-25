@@ -162,12 +162,14 @@ void UIX11Interface::openFileDialog(const char *files[],
 
 static int ProcessSystemLoop(void *arg)
 {
-    // SDL_PumpEvents();
+    /*
+    SDL_PumpEvents();
     UIX11Interface *ui = static_cast<UIX11Interface *>(arg);
 
-    /*if (ui->getNidiumContext()) {
+    if (ui->getNidiumContext()) {
         ui->makeMainGLCurrent();
-    }*/
+    }
+    */
 
     gtk_main_iteration_do(FALSE);
     return 4;

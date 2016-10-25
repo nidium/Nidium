@@ -23,7 +23,7 @@ Tests.registerAsync("Image.src (onload property)", function(next) {
         next();
     };
 
-    img.onerror = function() {
+    img.onerror = function(ev) {
         throw new Error("Error happened during image loading : " + ev.error);
     };
 

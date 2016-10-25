@@ -8,6 +8,7 @@
 
 #include <jsapi.h>
 #include <assert.h>
+#include <string>
 
 #include "Binding/JSMacros.h"
 #include "Binding/JSEvents.h"
