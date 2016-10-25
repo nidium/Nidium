@@ -366,7 +366,7 @@ JSThread * JSThread::Constructor(JSContext *cx, JS::CallArgs &args,
 JSFunctionSpec *JSThread::ListMethods()
 {
     static JSFunctionSpec funcs[] = {
-        CLASSMAPPER_FN(JSThread, start, 1),
+        CLASSMAPPER_FN(JSThread, start, 0),
         JS_FS_END
     };
 
