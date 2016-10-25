@@ -46,7 +46,7 @@ if (args["file"]) {
         'HTTP/HTTPClient.js',
         //'Modules/Module_libHello.js',
 
-        'Thread/thread.js',
+        'Thread.js',
 
         'JS/JS_btoa.js',
         'JS/JS_timers.js',
