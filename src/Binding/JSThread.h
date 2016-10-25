@@ -18,7 +18,8 @@ namespace Binding {
 
 class NidiumJS;
 
-class JSThread : public ClassMapper<JSThread>, public Nidium::Core::Messages
+class JSThread : public ClassMapperWithEvents<JSThread>,
+                 public Nidium::Core::Messages
 {
 
 public:
