@@ -139,22 +139,12 @@ File::~File()
         munmap(m_Mmap.addr, m_Mmap.size);
     }
 
-    /*
-        The File needs to be closed synchronously because the task manager
-        will be destructed right after.
-
-        Since a task might be currently running we need to lock the tasks
-        worker to avoid concurrent access
-    */
-    this->lockTasks();
-
     if (this->isOpen()) {
-        this->closeTask();
+        this->closeFd();
     }
 
     free(m_Path);
 
-    this->unlockTasks();
 }
 
 // }}}
