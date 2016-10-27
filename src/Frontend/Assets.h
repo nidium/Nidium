@@ -121,6 +121,8 @@ private:
         struct item_list *head;
         struct item_list *foot;
     } m_Pending_list;
+
+    bool m_LoadingBarrier = false;
 };
 
 } // namespace Frontend

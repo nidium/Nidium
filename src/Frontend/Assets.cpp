@@ -176,8 +176,16 @@ void Assets::pendingListUpdate()
 {
     bool worked          = false;
     struct item_list *il = m_Pending_list.head, *ilnext;
+
+    if (m_LoadingBarrier) {
+        return;
+    }
+
+    m_LoadingBarrier = true;
+
     while (il != NULL && il->item->m_State == Assets::Item::ITEM_LOADED) {
         m_Nitems--;
+
         m_ItemReady(il->item, m_ReadyArg);
 
         m_Pending_list.head = il->next;
@@ -188,6 +196,7 @@ void Assets::pendingListUpdate()
 
         ilnext          = il->next;
         ape_global *ape = il->item->m_Net;
+
         timer_dispatch_async_unprotected(Assets_deleteItem, il->item);
         free(il);
 
@@ -199,6 +208,8 @@ void Assets::pendingListUpdate()
     if (m_Nitems == 0 && worked) {
         m_AssetsReady(this, m_ReadyArg);
     }
+
+    m_LoadingBarrier = false;
 }
 
 } // namespace Frontend
