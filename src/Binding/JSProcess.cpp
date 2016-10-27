@@ -214,12 +214,8 @@ bool JSProcess::JS_exit(JSContext *cx, JS::CallArgs &args)
         code = args[0].toInt32();
     }
 
-#ifdef __linux__
-    quick_exit(code);
-#else
-    _exit(code);
-#endif
-
+    exit(code);
+    
     return true;
 }
 
