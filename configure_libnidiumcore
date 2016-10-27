@@ -166,32 +166,53 @@ def nidiumCoreTests(unitTests):
     if not unitTests:
         return
 
-    def query(path="/"):
-        import urllib2
+    def query(port, path="/", useSSL=False):
+        import socket
+        import ssl
 
-        try:
-            urllib2.urlopen("http://127.0.0.1:8000%s" % path).read()
-        except Exception as e:
-            import traceback
-            Log.error("Failed to query HTTP Server for tests")
-            traceback.print_exc()
-            return False
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if useSSL:
+            sock = ssl.wrap_socket(sock, ciphers="AES256")
 
-        return True
+        sock.settimeout(1)
+        sock.connect(("127.0.0.1", port))
+        sock.send("GET %s\r\n\r\n" % path)
+        reply = sock.recv(2048)
+        sock.close()
+
+        return reply.find("200 OK") != -1
+
+    def queryWS(path="/"):
+        return query(9000, path)
+
+    def queryWSS(path="/"):
+        return query(9443, path, useSSL=True)
+
+    def queryHTTP(path="/"):
+        return query(8000, path)
+
+    def stopServers():
+        queryWS("/kill")
+        queryWSS("/kill")
+        queryHTTP("/kill")
 
     @Konstruct.hook("preTests")
     def preNidiumCoreTests():
         import time
-	Utils.run("tests/jsunittest/simplehttpserver.py --fork")
+
+        Utils.run("tests/jsunittest/http-server.py --fork")
+        Utils.run("tests/jsunittest/websocket-server.py --fork")
+        Utils.run("tests/jsunittest/websocket-server.py --ssl --port 9443 --fork")
+
         time.sleep(1)
-        if not query():
-            Utils.exit("Failed to start HTTP Server for tests. Aborting")
+
+        if not (queryWS() or queryWSS() or queryHTTP()):
+            stopServers()
+            Utils.exit("Failed to start one or more test servers. Aborting.")
 
     @Konstruct.hook("postTests")
     def postNidiumCoreTests(success):
-        if not query("/kill"):
-            Log.warn("Failed to kill HTTP Server for tests")
-
+        stopServers()
 
 @CommandLine.option("--auto-tests", default=False)
 def autoTestStudio(autoTests):
