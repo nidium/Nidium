@@ -18,8 +18,9 @@
 
 #include <ape_buffer.h>
 
+#include "Core/Utils.h"
+
 using Nidium::Core::Task;
-using Nidium::Core::TasksAutoLock;
 using Nidium::Core::SharedMessages;
 
 namespace Nidium {
@@ -135,7 +136,7 @@ void File::rmrf()
 
 File::~File()
 {
-    TasksAutoLock tasksLock(this);
+    Core::PthreadAutoLock tasksLock(&getManagedLock());
 
     if (m_Mmap.addr) {
         munmap(m_Mmap.addr, m_Mmap.size);
@@ -469,7 +470,7 @@ void File::listFiles(void *arg)
 // {{{ Sync operations
 int File::openSync(const char *modes, int *err)
 {
-    TasksAutoLock tasksLock(this);
+    Core::PthreadAutoLock tasksLock(&getManagedLock());
 
     *err = 0;
 
@@ -523,7 +524,7 @@ int File::openSync(const char *modes, int *err)
 
 ssize_t File::writeSync(char *data, uint64_t len, int *err)
 {
-    TasksAutoLock tasksLock(this);
+    Core::PthreadAutoLock tasksLock(&getManagedLock());
 
     *err = 0;
 
@@ -545,7 +546,7 @@ ssize_t File::writeSync(char *data, uint64_t len, int *err)
 
 ssize_t File::mmapSync(char **buffer, int *err)
 {
-    TasksAutoLock tasksLock(this);
+    Core::PthreadAutoLock tasksLock(&getManagedLock());
 
     *err = 0;
 
@@ -570,7 +571,7 @@ ssize_t File::mmapSync(char **buffer, int *err)
 
 ssize_t File::readSync(uint64_t len, char **buffer, int *err)
 {
-    TasksAutoLock tasksLock(this);
+    Core::PthreadAutoLock tasksLock(&getManagedLock());
 
     *err = 0;
 
@@ -613,7 +614,7 @@ ssize_t File::readSync(uint64_t len, char **buffer, int *err)
 
 void File::closeSync()
 {
-    TasksAutoLock tasksLock(this);
+    Core::PthreadAutoLock tasksLock(&getManagedLock());
 
     if (!this->isOpen()) {
         return;
@@ -624,7 +625,7 @@ void File::closeSync()
 
 int File::seekSync(size_t pos, int *err)
 {
-    TasksAutoLock tasksLock(this);
+    Core::PthreadAutoLock tasksLock(&getManagedLock());
 
     *err = 0;
     if (!this->isOpen() || this->isDir()) {

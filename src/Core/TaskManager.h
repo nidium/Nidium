@@ -133,6 +133,10 @@ public:
         }
     };
 
+    inline pthread_mutex_t &getManagedLock() {
+        return m_Lock;
+    }
+
     void addTask(Task *task);
     void lockTasks();
     void unlockTasks();
@@ -145,24 +149,6 @@ private:
 };
 // }}}
 
-// {{{ TasksAutoLock
-class TasksAutoLock
-{
-public:
-    TasksAutoLock(Managed *managed) : m_Managed(managed)
-    {
-        m_Managed->lockTasks();
-    }
-
-    ~TasksAutoLock()
-    {
-        m_Managed->unlockTasks();
-    }
-
-private:
-    Managed *m_Managed;
-};
-// }}}
 
 } // namespace Core
 } // namespace Nidium
