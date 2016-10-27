@@ -135,6 +135,8 @@ void File::rmrf()
 
 File::~File()
 {
+    TasksAutoLock tasksLock(this);
+
     if (m_Mmap.addr) {
         munmap(m_Mmap.addr, m_Mmap.size);
     }
