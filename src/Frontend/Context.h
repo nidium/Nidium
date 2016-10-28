@@ -230,7 +230,6 @@ public:
 
     Core::Hash<Binding::NidiumBytecodeScript *> m_Preload;
 
-    void onMessage(const Core::SharedMessages::Message &msg) override;
     void addJob(void (*job)(void *arg), void *arg);
 
     Graphics::CanvasHandler *getCanvasById(const char *str)

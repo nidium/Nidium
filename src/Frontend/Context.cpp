@@ -12,7 +12,6 @@
 #include <unistd.h>
 #include <math.h>
 
-#include "Net/WebSocket.h"
 
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSDocument.h"
@@ -53,10 +52,10 @@
 using Nidium::Core::SharedMessages;
 using Nidium::Core::Path;
 using Nidium::Core::Utils;
-using Nidium::Net::WebSocketServer;
-using Nidium::Net::WebSocketClientConnection;
+
 using Nidium::Interface::UIInterface;
 using Nidium::Graphics::GLState;
+
 using namespace Nidium::Graphics;
 using namespace Nidium::Binding;
 using namespace Nidium::IO;
@@ -767,19 +766,6 @@ void Context::execPendingCanvasChanges()
     }
 }
 
-void Context::onMessage(const SharedMessages::Message &msg)
-{
-    Core::Context::onMessage(msg);
-    
-    switch (msg.event()) {
-        case NIDIUM_EVENT(WebSocketServer,
-                          WebSocketServer::kEvents_ServerConnect):
-            m_WSClient = static_cast<WebSocketClientConnection *>(
-                msg.m_Args[0].toPtr());
-            printf("New WS client for render :)\n");
-            break;
-    }
-}
 
 bool Context::WriteStructuredCloneOp(JSContext *cx,
                                      JSStructuredCloneWriter *w,
