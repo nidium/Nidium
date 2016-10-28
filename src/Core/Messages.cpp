@@ -8,6 +8,8 @@
 #include <stdbool.h>
 #include <pthread.h>
 
+#include <assert.h>
+
 #include <ape_netlib.h>
 
 #include "Core/Events.h"
@@ -102,10 +104,9 @@ void Messages::postMessageSync(SharedMessages::Message *msg)
 
 void Messages::postMessage(SharedMessages::Message *msg, bool forceAsync)
 {
-    if (g_MessagesList == nullptr) {
-        return;
-    }
-    
+    /* Don't postMessage after DestroyReader() */
+    assert(g_MessagesList != nullptr);
+
     msg->setDest(this);
 
     /*
