@@ -125,7 +125,7 @@ Context::Context(ape_global *net)
 #if DEBUG
       m_Debug2Handler(NULL),
 #endif
-      m_UI(NULL), m_NML(NULL), m_GLState(NULL), m_WS(NULL), m_WSClient(NULL),
+      m_UI(NULL), m_NML(NULL), m_GLState(NULL),
       m_JSWindow(NULL), m_SizeDirty(false), m_CurrentClickedHandler(NULL)
 {
     Path::RegisterScheme(SCHEME_DEFINE("embed://", EmbedStream, false));
@@ -379,10 +379,12 @@ void Context::callFrame()
 
 void Context::rendered(uint8_t *pdata, int width, int height)
 {
+#if 0
     if (m_WSClient) {
         m_WSClient->write(static_cast<unsigned char *>(pdata),
                           width * height * 4, true);
     }
+#endif
 }
 
 void Context::frame(bool draw)
@@ -906,7 +908,6 @@ Context::~Context()
     destroyJS();
 
     delete m_GLState;
-    delete m_WS;
 
     SkiaContext::m_GlContext = NULL;
 

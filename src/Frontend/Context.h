@@ -25,10 +25,7 @@ namespace Nidium {
 namespace Interface {
 class UIInterface;
 }
-namespace Net {
-class WebSocketServer;
-class WebSocketClientConnection;
-}
+
 namespace Graphics {
 class SkiaContext;
 class CanvasHandler;
@@ -286,8 +283,6 @@ private:
     Interface::UIInterface *m_UI;
     NML *m_NML;
     Graphics::GLState *m_GLState;
-    Net::WebSocketServer *m_WS;
-    Net::WebSocketClientConnection *m_WSClient;
     ShBuiltInResources m_ShResources;
     ShShaderOutput m_ShShaderOutput;
     Binding::JSWindow *m_JSWindow;
