@@ -51,6 +51,9 @@ public:
 
     SharedMessages *getSharedMessages();
 
+protected:
+    void cleanupMessages();
+
 private:
     void listenFor(Events *obj, bool enable);
     pthread_t m_GenesisThread;

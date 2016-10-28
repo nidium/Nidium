@@ -62,11 +62,20 @@ Messages::Messages()
 
 Messages::~Messages()
 {
-    g_MessagesList->delMessagesForDest(this);
+    cleanupMessages();
 
     for (Events *const &sender : m_Listening_s) {
         sender->removeListener(this, false);
     }
+}
+
+void Messages::cleanupMessages()
+{
+    if (g_MessagesList == nullptr) {
+        return;
+    }
+
+    g_MessagesList->delMessagesForDest(this);
 }
 
 void Messages::postMessage(void *dataptr, int event, bool forceAsync)
@@ -93,6 +102,10 @@ void Messages::postMessageSync(SharedMessages::Message *msg)
 
 void Messages::postMessage(SharedMessages::Message *msg, bool forceAsync)
 {
+    if (g_MessagesList == nullptr) {
+        return;
+    }
+    
     msg->setDest(this);
 
     /*
@@ -149,6 +162,8 @@ void Messages::delMessages(int event)
 void Messages::DestroyReader()
 {
     delete g_MessagesList;
+
+    g_MessagesList = nullptr;
 }
 
 SharedMessages *Messages::getSharedMessages()

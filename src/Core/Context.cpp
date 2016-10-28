@@ -80,6 +80,13 @@ Context::~Context()
     APE_timer_destroy(m_APECtx, m_PingTimer);
     destroyJS();
 
+    /*
+        We need to cleanup the message queue beforehand
+        because the Messages base classe would try to call "delMessageForDest"
+        while the object was already cleaned up by ~DestroyReader()
+    */
+    Messages::cleanupMessages();
+
     Messages::DestroyReader();
 }
 
