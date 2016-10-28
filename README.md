@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/nidium/Nidium.svg?branch=classmapper)](https://travis-ci.org/nidium/Nidium)
+[![Build Status](https://travis-ci.org/nidium/Nidium.svg?branch=master)](https://travis-ci.org/nidium/Nidium)
 
 # ɳidium
 
