@@ -307,7 +307,7 @@ Tests.registerAsync("HTTP.request (too small content length)", function(next) {
         testResponse(ev);
         next();
     });
-});
+}, 1000);
 
 // FIXME : This test fail because of an "http_server_disconnected" error
 /*
@@ -348,7 +348,7 @@ Tests.registerAsync("HTTP.request (ArrayBuffer data)", function(next) {
 
         next();
     });
-});
+}, 1000);
 
 Tests.registerAsync("HTTP.request (ArrayBuffer response)", function(next) {
     var h = new HTTP(TEST_URL + "/no-content-type", function(ev) {
@@ -364,7 +364,7 @@ Tests.registerAsync("HTTP.request (ArrayBuffer response)", function(next) {
 
         next();
     });
-});
+}, 1000);
 
 Tests.registerAsync("HTTP.stop", function(next) {
     var h = new HTTP(TEST_URL + "/progress");
@@ -413,4 +413,4 @@ Tests.registerAsync("HTTP.request (multiple request)", function(next) {
     });
 
     h.request();
-});
+}, 4000);
