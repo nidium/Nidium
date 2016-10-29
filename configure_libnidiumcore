@@ -151,16 +151,6 @@ def profiler(profiler):
             Log.info("LD_LIBRARY_PATH=" + ROOT + "/build/third-party/${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH:-}")
             Log.info("-------------------------------------")
 
-if __name__ == '__main__':
-    if not Builder.Gyp._defines.has_key('nidium_version'):
-        Gyp.set('nidium_version', 'library')
-
-    Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi --include=src/libapenetwork/gyp/config.gypi")
-    Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_SERVER")
-    Build.add(Gyp("gyp/libnidiumcore.gyp"))
-
-    Konstruct.start()
-
 @CommandLine.option("--unit-tests")
 def nidiumCoreTests(unitTests):
     if not unitTests:
@@ -222,3 +212,13 @@ def autoTestStudio(autoTests):
     @Konstruct.hook("postBuild")
     def runNidiumAutoTests(success):
         Tests.runTest(success)
+
+if __name__ == '__main__':
+    if not Builder.Gyp._defines.has_key('nidium_version'):
+        Gyp.set('nidium_version', 'library')
+
+    Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi --include=src/libapenetwork/gyp/config.gypi")
+    Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_SERVER")
+    Build.add(Gyp("gyp/libnidiumcore.gyp"))
+
+    Konstruct.start()
