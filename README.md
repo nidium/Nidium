@@ -8,7 +8,7 @@ nidium helps you create graphical softwares with JavaScript. It's **not** NodeJS
 
 It leverages the combination of **Skia** Graphics from Google, and Mozilla's JavaScript Engine (**SpiderMonkey**) and many more awesome librairies. 
 
-nidium also sheeps with its own layout engine.
+nidium also ships with its own layout engine.
 
 It supports various common well known API such as :
 
