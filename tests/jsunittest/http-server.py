@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
@@ -117,7 +117,7 @@ def serve(port):
         httpd = StoppableHttpServer(server_address, myHandlerClass)
 
         sa = httpd.socket.getsockname()
-        print "Serving HTTP on", sa[0], "port", sa[1], "..."
+        print("Serving HTTP on", sa[0], "port", sa[1], "...")
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("^C received, shutting down webserver")
@@ -142,15 +142,15 @@ if __name__ == '__main__':
                 serve(port)
             except Exception as e:
                 if "already in use" in str(e):
-                    print "Looks like server is already running or port is used by another process"
+                    print("Looks like server is already running or port is used by another process")
                     sys.exit(1)
                 else:
                     import traceback
-                    print "Failed to run server " + str(e)
+                    print("Failed to run server " + str(e))
                     traceback.print_exc()
                     sys.exit(2)
         else:
-            print "%s" % pid
+            print("%s" % pid)
     else:
         serve(port)
 
