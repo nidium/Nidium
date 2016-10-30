@@ -13,14 +13,11 @@ As the Debugger is not residing in the same <a href="https://developer.mozilla.o
 )
 
 ConstructorDoc("DebuggerCompartment", "Create a new instance of a<a href=\"https://developer.mozilla.org/en-US/docs/Tools/Debugger-API/Debugger\">Debugger</a> insde a new compartment",
-    [ SeeDoc( "DebuggerCompartment.run" ) ],
-    NO_Examples,
-    IS_Static, IS_Public, IS_Fast,
-    NO_Params,
-    ReturnDoc( "Return a DebuggerCompartment", "DebuggerCompartment" )
+    sees=[ SeeDoc( "DebuggerCompartment.run" ) ],
+    returns=ReturnDoc( "Return a DebuggerCompartment", "DebuggerCompartment" )
 )
 
-FunctionDoc("Debugger.run", """Run a function inside the Debugger compartement.
+FunctionDoc("DebuggerCompartment.run", """Run a function inside the Debugger compartement.
 
 Important note : You cannot share variables between compartements as you usually do in JS. Each compartement is like a sandbox. If you want to have access to variables from the main compartement, you can pass them as an arguments to the run() method. Nidium will wrap your variables to make them accesible inside the Debugger compartement. 
 The compartement of the debugger only expose the console API. None of Nidium APIs will be available.""",

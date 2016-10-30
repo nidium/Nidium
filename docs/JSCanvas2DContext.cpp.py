@@ -138,7 +138,7 @@ FunctionDoc( "CanvasRenderingContext2D.clearRect", "Clear a rectangle.",
     document.canvas.add(canvas);
     var ctx = canvas.getContext('2d');
     ctx.rect(10, 10, 80, 80);
-    ctx.clearRect( 40, 40, 20, 20 );"""],
+    ctx.clearRect( 40, 40, 20, 20 );""")],
     IS_Dynamic, IS_Public, IS_Fast,
     [ParamDoc( "x", "X position", "float", NO_Default, IS_Obligated ),
     ParamDoc( "y", "Y position", "float", NO_Default, IS_Obligated ),
@@ -153,7 +153,7 @@ FunctionDoc( "CanvasRenderingContext2D.strokRect", "draw a rectangle.",
     document.canvas.add(canvas);
     var ctx = canvas.getContext('2d');
     ctx.strokeRect(10, 10, 80, 80, 5, 5);
-    ctx.clearRect( 40, 40, 20, 20 );"""],
+    ctx.clearRect( 40, 40, 20, 20 );""")],
     IS_Dynamic, IS_Public, IS_Fast,
     [ParamDoc( "x", "X position", "float", NO_Default, IS_Obligated ),
     ParamDoc( "y", "Y position", "float", NO_Default, IS_Obligated ),
