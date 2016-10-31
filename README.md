@@ -8,8 +8,6 @@ nidium helps you create graphical softwares with JavaScript. It's **not** NodeJS
 
 It leverages the combination of **Skia** Graphics from Google, and Mozilla's JavaScript Engine (**SpiderMonkey**) and many more awesome librairies. 
 
-nidium also ships with its own layout engine.
-
 It supports various common well known API such as :
 
 * **WebGL**
@@ -28,6 +26,18 @@ And some other non standard :
 * **Local storage**
 
 It can seemlessly runs various library like Three.JS, PixiJS, Phaser and probably a lot more without much modification.
+
+## Layout engine
+
+nidium also sheeps with its own layout engine.
+That is, every element has its own memory buffer (retained mode), pretty similar to HTML elements.
+
+The layout engine allows several "layout" operations to be made on each element (relative position, opacity, drag'n'drop, margin, scrolling, overflow, and so on).
+
+## Network and event loop
+
+nidium use its own library ([libapenetwork](https://github.com/nidium/libapenetwork)) which handle all the networking operations.
+
 
 ## Building nidium
 
