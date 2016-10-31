@@ -29,8 +29,7 @@ It can seemlessly runs various library like Three.JS, PixiJS, Phaser and probabl
 
 ## Layout engine
 
-nidium also sheeps with its own layout engine.
-That is, every element has its own memory buffer (retained mode), pretty similar to HTML elements.
+nidium also ships with its own layout engine. That is, every element has its own memory buffer (retained mode), pretty similar to HTML elements.
 
 The layout engine allows several "layout" operations to be made on each element (relative position, opacity, drag'n'drop, margin, scrolling, overflow, and so on).
 
