@@ -86,7 +86,7 @@ bool JSDebuggerCompartment::JS_run(JSContext *cx, JS::CallArgs &args)
     unsigned int argc = args.length();
 
     if (!args[0].isObject()
-        || !JS_ObjectIsCallable(cx, args[0].toObjectOrNull())) {
+        || !JS::IsCallable(args[0].toObjectOrNull())) {
         JS_ReportError(cx, "First argument must be a function.");
         return false;
     }

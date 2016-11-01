@@ -91,7 +91,7 @@ public:
                 return;
         }
 
-        if (JS_ObjectIsCallable(cx, callback)) {
+        if (JS::IsCallable(callback)) {
 
             JSAutoRequest ar(cx); // TODO: Why do we need a request here?
             JS::RootedValue cb(cx, JS::ObjectValue(*callback));
@@ -208,7 +208,7 @@ void JSFile::onMessage(const SharedMessages::Message &msg)
         return;
     }
 
-    if (JS_ObjectIsCallable(cx, callback)) {
+    if (JS::IsCallable(callback)) {
 
         JSAutoRequest ar(cx); // TODO: Why do we need a request here?
         JS::RootedValue cb(cx, JS::ObjectValue(*callback));

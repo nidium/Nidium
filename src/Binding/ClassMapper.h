@@ -641,7 +641,7 @@ public:
         JS_GetProperty(m_Cx, thisobj, onEv.c_str(), &callback);
 
         if (callback.isObject()
-            && JS_ObjectIsCallable(m_Cx, callback.toObjectOrNull())) {
+            && JS::IsCallable(callback.toObjectOrNull())) {
             JS::RootedValue rval(m_Cx);
 
             JS_CallFunctionValue(m_Cx, thisobj, callback, params, &rval);

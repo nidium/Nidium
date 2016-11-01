@@ -84,7 +84,7 @@ void JSWindow::onReady(JS::HandleObject layout)
     JS::RootedObject obj(m_Cx, m_Instance);
     JS::RootedValue onready(m_Cx);
     if (JS_GetProperty(m_Cx, obj, "_onready", &onready) && onready.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onready.toObject())) {
+        && JS::IsCallable(&onready.toObject())) {
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, obj, onready, arg, &rval);
     }
@@ -96,7 +96,7 @@ bool JSWindow::onClose()
     JS::RootedObject obj(m_Cx, m_Instance);
     if (JS_GetProperty(m_Cx, obj, "_onbeforeclose", &onclose)
         && onclose.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onclose.toObject())) {
+        && JS::IsCallable(&onclose.toObject())) {
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, obj, onclose, JS::HandleValueArray::empty(),
                              &rval);
@@ -131,7 +131,7 @@ void JSWindow::assetReady(const NMLTag &tag)
     JS::RootedObject obj(cx, m_Instance);
     if (JS_GetProperty(cx, obj, "_onassetready", &onassetready)
         && onassetready.isObject()
-        && JS_ObjectIsCallable(cx, &onassetready.toObject())) {
+        && JS::IsCallable(&onassetready.toObject())) {
 
         JS::RootedValue rval(cx);
         JS_CallFunctionValue(cx, event, onassetready, jevent, &rval);
@@ -144,7 +144,7 @@ void JSWindow::windowFocus()
     JS::RootedValue onfocus(m_Cx);
     JS::RootedObject obj(m_Cx, m_Instance);
     if (JS_GetProperty(m_Cx, obj, "_onfocus", &onfocus) && onfocus.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onfocus.toObject())) {
+        && JS::IsCallable(&onfocus.toObject())) {
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, nullptr, onfocus,
                              JS::HandleValueArray::empty(), &rval);
@@ -156,7 +156,7 @@ void JSWindow::windowBlur()
     JS::RootedValue onblur(m_Cx);
     JS::RootedObject obj(m_Cx, m_Instance);
     if (JS_GetProperty(m_Cx, obj, "_onblur", &onblur) && onblur.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onblur.toObject())) {
+        && JS::IsCallable(&onblur.toObject())) {
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, nullptr, onblur,
                              JS::HandleValueArray::empty(), &rval);
@@ -196,7 +196,7 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
     JS::RootedValue onwheel(m_Cx);
     if (JS_GetProperty(m_Cx, obj, "_onmousewheel", &onwheel)
         && onwheel.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onwheel.toObject())) {
+        && JS::IsCallable(&onwheel.toObject())) {
 
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, event, onwheel, jevent, &rval);
@@ -249,7 +249,7 @@ void JSWindow::keyupdown(
     if (JS_GetProperty(m_Cx, obj, (state ? "_onkeydown" : "_onkeyup"),
                        &onkeyupdown)
         && onkeyupdown.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onkeyupdown.toObject())) {
+        && JS::IsCallable(&onkeyupdown.toObject())) {
 
         JS::RootedValue rval(m_Cx);
 
@@ -278,7 +278,7 @@ void JSWindow::textInput(const char *data)
     JS::RootedObject obj(m_Cx, m_Instance);
     if (JS_GetProperty(m_Cx, obj, "_ontextinput", &ontextinput)
         && ontextinput.isObject()
-        && JS_ObjectIsCallable(m_Cx, &ontextinput.toObject())) {
+        && JS::IsCallable(&ontextinput.toObject())) {
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, event, ontextinput, jevent, &rval);
     }
@@ -344,7 +344,7 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
     if (JS_GetProperty(m_Cx, obj, (state ? "_onmousedown" : "_onmouseup"),
                        &onclick)
         && onclick.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onclick.toObject())) {
+        && JS::IsCallable(&onclick.toObject())) {
 
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, event, onclick, jevent, &rval);
@@ -378,7 +378,7 @@ bool JSWindow::dragEvent(const char *name, int x, int y)
     JS::RootedValue ondragevent(m_Cx);
     JS::RootedObject obj(m_Cx, m_Instance);
     if (JS_GetProperty(m_Cx, obj, name, &ondragevent) && ondragevent.isObject()
-        && JS_ObjectIsCallable(m_Cx, &ondragevent.toObject())) {
+        && JS::IsCallable(&ondragevent.toObject())) {
         JS::RootedValue rval(m_Cx);
 
         if (!JS_CallFunctionValue(m_Cx, event, ondragevent, jevent, &rval)) {
@@ -505,7 +505,7 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
     JS::RootedValue onmove(m_Cx);
     JS::RootedObject obj(m_Cx, m_Instance);
     if (JS_GetProperty(m_Cx, obj, "_onmousemove", &onmove) && onmove.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onmove.toObject())) {
+        && JS::IsCallable(&onmove.toObject())) {
 
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, event, onmove, jevent, &rval);

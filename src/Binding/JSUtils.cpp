@@ -163,7 +163,7 @@ JS::Value JSTransferable::get()
 bool JSTransferableFunction::set(JSContext *cx, JS::HandleValue val)
 {
     if (!val.isNull() && (!val.isObject()
-                          || !JS_ObjectIsCallable(cx, val.toObjectOrNull()))) {
+                          || !JS::IsCallable(val.toObjectOrNull()))) {
         return false;
     }
 

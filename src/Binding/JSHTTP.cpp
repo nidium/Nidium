@@ -32,9 +32,9 @@ static void getOptionsAndCallback(JSContext *cx,
     JS::RootedValue arg2(cx, args->get(argsOffset + 1));
 
     bool arg1Callable
-        = arg1.isObject() && JS_ObjectIsCallable(cx, arg1.toObjectOrNull());
+        = arg1.isObject() && JS::IsCallable(arg1.toObjectOrNull());
     bool arg2Callable
-        = arg2.isObject() && JS_ObjectIsCallable(cx, arg2.toObjectOrNull());
+        = arg2.isObject() && JS::IsCallable(arg2.toObjectOrNull());
 
     callback.set(JS::NullHandleValue);
 
