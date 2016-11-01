@@ -261,8 +261,8 @@ bool JSAVSourceBase::JSGetter__metadata(JSContext *cx,
 
             for (int i = 0; i < avctx->nb_programs; i++) {
                 JS::RootedObject progMetaData(cx, JS_NewObject(cx,
-        nullptr, JS::NullPtr(),
-        JS::NullPtr()));
+        nullptr, nullptr,
+        nullptr));
 
                 CopyMetaDataToJS(avctx->programs[i]->metadata, cx,
         progMetaData);

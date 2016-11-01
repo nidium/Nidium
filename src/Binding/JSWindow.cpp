@@ -146,7 +146,7 @@ void JSWindow::windowFocus()
     if (JS_GetProperty(m_Cx, obj, "_onfocus", &onfocus) && onfocus.isObject()
         && JS_ObjectIsCallable(m_Cx, &onfocus.toObject())) {
         JS::RootedValue rval(m_Cx);
-        JS_CallFunctionValue(m_Cx, JS::NullPtr(), onfocus,
+        JS_CallFunctionValue(m_Cx, nullptr, onfocus,
                              JS::HandleValueArray::empty(), &rval);
     }
 }
@@ -158,7 +158,7 @@ void JSWindow::windowBlur()
     if (JS_GetProperty(m_Cx, obj, "_onblur", &onblur) && onblur.isObject()
         && JS_ObjectIsCallable(m_Cx, &onblur.toObject())) {
         JS::RootedValue rval(m_Cx);
-        JS_CallFunctionValue(m_Cx, JS::NullPtr(), onblur,
+        JS_CallFunctionValue(m_Cx, nullptr, onblur,
                              JS::HandleValueArray::empty(), &rval);
     }
 }

@@ -53,7 +53,7 @@ public:
 
                 JS::RootedValue cb(cx, JS::ObjectValue(*callback));
 
-                JS_CallFunctionValue(cx, JS::NullPtr(), cb, params, &rval);
+                JS_CallFunctionValue(cx, nullptr, cb, params, &rval);
 
                 free(cur);
                 break;

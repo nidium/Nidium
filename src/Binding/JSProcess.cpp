@@ -33,7 +33,7 @@ static int ape_kill_handler(int code, ape_global *ape)
     JS::RootedValue func(cx, JS_GetReservedSlot(jProcess->getJSObject(), 0));
 
     if (func.isObject() && JS_ObjectIsCallable(cx, func.toObjectOrNull())) {
-        JS_CallFunctionValue(cx, JS::NullPtr(), func,
+        JS_CallFunctionValue(cx, nullptr, func,
                              JS::HandleValueArray::empty(), &rval);
 
         return rval.isBoolean() ? !rval.toBoolean() : false;

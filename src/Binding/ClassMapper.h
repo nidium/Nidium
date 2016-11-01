@@ -149,7 +149,7 @@ public:
 
         sparent = !parent.get() ? JS::CurrentGlobalOrNull(cx) : parent;
 
-        return JS_InitClass(cx, sparent, JS::NullPtr(), jsclass,
+        return JS_InitClass(cx, sparent, nullptr, jsclass,
                     ClassMapper<T>::JSConstructor<ctor_minarg>,
                     ctor_minarg, T::ListProperties(),
                     T::ListMethods(), NULL,

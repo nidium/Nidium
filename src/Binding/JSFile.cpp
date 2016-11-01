@@ -95,7 +95,7 @@ public:
 
             JSAutoRequest ar(cx); // TODO: Why do we need a request here?
             JS::RootedValue cb(cx, JS::ObjectValue(*callback));
-            JS_CallFunctionValue(cx, JS::NullPtr(), cb, params, &rval);
+            JS_CallFunctionValue(cx, nullptr, cb, params, &rval);
         }
 
         NidiumJS::UnrootObject(callback);
