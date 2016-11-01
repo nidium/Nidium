@@ -375,15 +375,15 @@ JS::Value JSModule::require(char *name)
                 }
             } else {
                 size_t len;
-                uint16_t *jchars;
+                char16_t *jchars;
                 JS::RootedValue jsonData(m_Cx);
 
                 if (!JS_DecodeBytes(m_Cx, data, filesize, NULL, &len)) {
                     return ret;
                 }
 
-                jchars = static_cast<uint16_t *>(
-                    JS_malloc(m_Cx, len * sizeof(uint16_t)));
+                jchars = static_cast<char16_t *>(
+                    JS_malloc(m_Cx, len * sizeof(char16_t)));
                 if (!jchars) {
                     return ret;
                 }

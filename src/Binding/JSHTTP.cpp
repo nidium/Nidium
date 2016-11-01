@@ -461,7 +461,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
                                 h->m_Data->used, &jsdata, "utf8");
             break;
         case HTTP::DATA_JSON: {
-            const uint16_t *chars;
+            const char16_t *chars;
             size_t clen;
 
             eventBuilder.set("type", "json");
