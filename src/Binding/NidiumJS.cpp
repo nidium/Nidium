@@ -797,7 +797,6 @@ int NidiumJS::LoadScriptContent(const char *data,
     JS::CompileOptions options(m_Cx);
     options.setUTF8(true)
         .setFileAndLine(filename, 1)
-        .setCompileAndGo(true)
         .setNoScriptRval(true);
 
     script = JS::Compile(m_Cx, gbl, options, data, len);
@@ -838,7 +837,6 @@ char *NidiumJS::LoadScriptContentAndGetResult(const char *data,
     JS::CompileOptions options(m_Cx);
     options.setUTF8(true)
         .setFileAndLine(filename, 1)
-        .setCompileAndGo(true)
         .setNoScriptRval(false);
 
     script = JS::Compile(m_Cx, gbl, options, data, len);

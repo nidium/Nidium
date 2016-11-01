@@ -149,8 +149,7 @@ bool JSDebuggerCompartment::run(JSContext *cx,
     JS::ContextOptionsRef(cx).setVarObjFix(true);
 
     options.setUTF8(true)
-        .setFileAndLine("Debugger.run", 1)
-        .setCompileAndGo(true);
+        .setFileAndLine("Debugger.run", 1);
 
     JS::AutoObjectVector scopeChain(cx);
 
