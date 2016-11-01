@@ -11,6 +11,9 @@
 
 #include "Binding/ClassMapper.h"
 
+bool JS_ConvertArguments(JSContext *cx, const JS::CallArgs &args, const char *format, ...);
+
+
 namespace Nidium {
 namespace Binding {
 

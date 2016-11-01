@@ -13,6 +13,126 @@
 
 #include "Binding/NidiumJS.h"
 
+#include <js/RootingAPI.h>
+#include <jsprf.h>
+#include <jsfuninlines.h>
+
+#include <vm/Interpreter-inl.h>
+#include <jsstr.h>
+
+bool JS_ConvertArgumentsVA(JSContext *cx,
+    const JS::CallArgs &args, const char *format, va_list ap);
+
+bool JS_ConvertArguments(JSContext *cx, const JS::CallArgs &args, const char *format, ...)
+{
+    va_list ap;
+    bool ok;
+
+    va_start(ap, format);
+    ok = JS_ConvertArgumentsVA(cx, args, format, ap);
+    va_end(ap);
+    return ok;
+}
+
+bool
+JS_ConvertArgumentsVA(JSContext *cx, const JS::CallArgs &args, const char *format, va_list ap)
+{
+    unsigned index = 0;
+    bool required;
+    char c;
+    double d;
+    JSString *str;
+    JS::RootedObject obj(cx);
+    JS::RootedValue val(cx);
+
+    required = true;
+    while ((c = *format++) != '\0') {
+        if (isspace(c))
+            continue;
+        if (c == '/') {
+            required = false;
+            continue;
+        }
+        if (index == args.length()) {
+            if (required) {
+                if (JSFunction *fun = js::ReportIfNotFunction(cx, args.calleev())) {
+                    char numBuf[12];
+                    JS_snprintf(numBuf, sizeof numBuf, "%u", args.length());
+                    JSAutoByteString funNameBytes;
+                    if (const char *name = GetFunctionNameBytes(cx, fun, &funNameBytes)) {
+                        JS_ReportErrorNumber(cx, js::GetErrorMessage, nullptr,
+                                             JSMSG_MORE_ARGS_NEEDED,
+                                             name, numBuf, (args.length() == 1) ? "" : "s");
+                    }
+                }
+                return false;
+            }
+            break;
+        }
+        JS::MutableHandleValue arg = args[index++];
+        switch (c) {
+          case 'b':
+            *va_arg(ap, bool *) = ToBoolean(arg);
+            break;
+          case 'c':
+            if (!JS::ToUint16(cx, arg, va_arg(ap, uint16_t *)))
+                return false;
+            break;
+          case 'i':
+          case 'j': // "j" was broken, you should not use it.
+            if (!JS::ToInt32(cx, arg, va_arg(ap, int32_t *)))
+                return false;
+            break;
+          case 'u':
+            if (!JS::ToUint32(cx, arg, va_arg(ap, uint32_t *)))
+                return false;
+            break;
+          case 'd':
+            if (!JS::ToNumber(cx, arg, va_arg(ap, double *)))
+                return false;
+            break;
+          case 'I':
+            if (!JS::ToNumber(cx, arg, &d))
+                return false;
+            *va_arg(ap, double *) = JS::ToInteger(d);
+            break;
+          case 'S':
+          case 'W':
+            str = js::ToString<js::CanGC>(cx, arg);
+            if (!str)
+                return false;
+            arg.setString(str);
+            if (c == 'W') {
+
+            } else {
+                *va_arg(ap, JSString **) = str;
+            }
+            break;
+          case 'o':
+            if (arg.isNullOrUndefined()) {
+                obj = nullptr;
+            } else {
+                obj = ToObject(cx, arg);
+                if (!obj)
+                    return false;
+            }
+            arg.setObjectOrNull(obj);
+            *va_arg(ap, JSObject **) = obj;
+            break;
+          case 'v':
+            *va_arg(ap, JS::Value *) = arg;
+            break;
+          case '*':
+            break;
+          default:
+            JS_ReportErrorNumber(cx, js::GetErrorMessage, nullptr, JSMSG_BAD_CHAR, format);
+            return false;
+        }
+    }
+    return true;
+}
+
+
 namespace Nidium {
 namespace Binding {
 

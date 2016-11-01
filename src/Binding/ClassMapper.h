@@ -13,6 +13,8 @@
 #include "Binding/JSMacros.h"
 #include "Binding/JSEvents.h"
 
+#include "Binding/JSUtils.h"
+
 namespace Nidium {
 namespace Binding {
 
