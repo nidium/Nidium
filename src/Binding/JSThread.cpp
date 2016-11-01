@@ -154,7 +154,7 @@ static void *nidium_thread(void *arg)
             bool cret = JS::CompileFunction(tcx, scopeChain, options,
                             NULL, 0, NULL, scoped,
                             strlen(scoped), &cf);
-            
+
             delete[] scoped;
 
             if (cf == NULL) {
@@ -171,7 +171,7 @@ static void *nidium_thread(void *arg)
                     tcx, nthread->m_Params.argv[i], nthread->m_Params.nbytes[i],
                     JS_STRUCTURED_CLONE_VERSION, &args, NULL, NULL);
 
-                arglst[i] = args;
+                arglst[i].set(args);
                 JS_ClearStructuredClone(nthread->m_Params.argv[i],
                                         nthread->m_Params.nbytes[i], NULL,
                                         NULL);
