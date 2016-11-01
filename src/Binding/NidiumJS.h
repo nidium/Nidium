@@ -13,6 +13,7 @@
 #include <jspubtd.h>
 #include <jsapi.h>
 #include <js/StructuredClone.h>
+#include <js/Conversions.h>
 
 #include "Core/Hash.h"
 #include "Core/Messages.h"
