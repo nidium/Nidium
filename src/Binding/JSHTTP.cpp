@@ -383,7 +383,7 @@ void JSHTTP::headersToJSObject(JS::MutableHandleObject obj)
         return;
     }
 
-    obj.set(JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    obj.set(JS_NewObject(m_Cx, nullptr));
 
     APE_A_FOREACH(headers, k, v)
     {

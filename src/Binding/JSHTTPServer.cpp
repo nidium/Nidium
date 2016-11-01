@@ -79,9 +79,9 @@ bool JSHTTPServer::onEnd(HTTPClientConnection *client)
 
     JS::RootedObject objrequest(
         m_Cx,
-        JS_NewObject(m_Cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+        JS_NewObject(m_Cx, nullptr));
     JS::RootedObject headers(
-        m_Cx, JS_NewObject(m_Cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+        m_Cx, JS_NewObject(m_Cx, nullptr));
 
     if (client->getHTTPState()->headers.list) {
         APE_A_FOREACH(client->getHTTPState()->headers.list, k, v)

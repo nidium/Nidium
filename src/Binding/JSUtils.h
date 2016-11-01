@@ -116,7 +116,7 @@ public:
     JSObjectBuilder(JSContext *cx, JSClass *clasp = NULL) : m_Obj(cx)
     {
         m_Cx  = cx;
-        m_Obj = JS_NewObject(m_Cx, clasp, JS::NullPtr(), JS::NullPtr());
+        m_Obj = JS_NewObject(m_Cx, clasp);
     };
 
     JSObjectBuilder(JSContext *cx, JS::HandleObject wrapped) : m_Obj(cx)

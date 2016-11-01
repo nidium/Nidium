@@ -57,8 +57,7 @@ bool JSProcess::JS_getOwner(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    JS::RootedObject obj(
-        cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject obj(cx, JS_NewObject(cx, nullptr));
 
     JS::RootedString userStr(cx, JS_NewStringCopyZ(cx, userInfo->pw_name));
     JS::RootedString groupStr(cx, JS_NewStringCopyZ(cx, groupInfo->gr_name));

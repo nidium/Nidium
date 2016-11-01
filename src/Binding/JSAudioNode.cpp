@@ -579,8 +579,7 @@ JSAudioNodeThreaded::JSAudioNodeThreaded(JSAudioNodeCustomBase *node)
 
     JSAudioNodeThreaded::CreateObject(m_Cx, this);
 
-    JS::RootedObject hashObj(
-        m_Cx, JS_NewObject(m_Cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject hashObj(m_Cx, JS_NewObject(m_Cx, nullptr));
 
     m_HashObj = hashObj;
 

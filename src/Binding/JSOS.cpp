@@ -22,8 +22,7 @@ void JSOS::RegisterObject(JSContext *cx)
 
 JSObject *JSOS::RegisterModule(JSContext *cx)
 {
-    JS::RootedObject exports(cx,
-                         JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject exports(cx, JS_NewObject(cx, nullptr));
 
     JSOS::ExposeClass<1>(cx, "OS", 0, JSOS::kEmpty_ExposeFlag, exports);
 

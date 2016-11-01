@@ -62,9 +62,7 @@ void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
                 && JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
 
                 JS::RootedValue jdata(cx);
-                JS::RootedObject event(
-                    m_Cx,
-                    JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
+                JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, nullptr));
 
                 JSUtils::StrToJsval(m_Cx, data, len, &jdata,
                                     !binary ? "utf8" : NULL);

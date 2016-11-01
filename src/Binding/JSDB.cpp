@@ -207,8 +207,7 @@ JSFunctionSpec *JSDB::ListMethods()
 
 static JSObject *registerCallback(JSContext *cx)
 {
-    JS::RootedObject obj(cx,
-                         JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject obj(cx, JS_NewObject(cx, nullptr));
 
     JSDB::ExposeClass<1>(cx, "DB", 0, JSDB::kEmpty_ExposeFlag, obj);
 

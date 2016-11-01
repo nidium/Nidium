@@ -226,8 +226,7 @@ bool JSAVSourceBase::JSGetter__metadata(JSContext *cx,
 
     if (avctx != NULL) {
         AVDictionary *cmetadata = avctx->metadata;
-        JS::RootedObject metadata(
-            cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+        JS::RootedObject metadata(cx, JS_NewObject(cx, nullptr));
 
         if (cmetadata) {
             CopyMetaDataToJS(cmetadata, cx, metadata);
@@ -239,8 +238,7 @@ bool JSAVSourceBase::JSGetter__metadata(JSContext *cx,
                                                             | JSPROP_PERMANENT);
 
         for (int i = 0; i < avctx->nb_streams; i++) {
-            JS::RootedObject streamMetaData(
-                cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+            JS::RootedObject streamMetaData(cx, JS_NewObject(cx, nullptr));
 
             CopyMetaDataToJS(avctx->streams[i]->metadata, cx, streamMetaData);
 

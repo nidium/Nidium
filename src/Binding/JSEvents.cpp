@@ -86,7 +86,7 @@ static JSFunctionSpec JSEvents_funcs[]
 JSObject *JSEvents::CreateEventObject(JSContext *cx)
 {
     JS::RootedObject ret(
-        cx, JS_NewObject(cx, &JSEvent_class, JS::NullPtr(), JS::NullPtr()));
+        cx, JS_NewObject(cx, &JSEvent_class));
     JS_DefineFunctions(cx, ret, JSEvents_funcs);
 
     return ret;
@@ -95,8 +95,7 @@ JSObject *JSEvents::CreateEventObject(JSContext *cx)
 JSObject *
 JSEvents::CreateErrorEventObject(JSContext *cx, int code, const char *err)
 {
-    JS::RootedObject ret(cx, JS_NewObject(cx, &JSErrorEvent_class,
-                                          JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject ret(cx, JS_NewObject(cx, &JSErrorEvent_class));
     JS_DefineFunctions(cx, ret, JSEvents_funcs);
 
     JSContext *m_Cx = cx;

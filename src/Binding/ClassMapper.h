@@ -183,8 +183,7 @@ public:
         assert(jsclass->name != NULL);
 #endif
         JS::RootedObject ret(
-            cx, JS_NewObject(cx, T::GetJSClass(),
-                JS::NullPtr(), JS::NullPtr()));
+            cx, JS_NewObject(cx, T::GetJSClass()));
 
         ClassMapper<T>::AssociateObject(cx, obj, ret);
 

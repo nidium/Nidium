@@ -199,8 +199,7 @@ void JSWindow::assetReady(const NMLTag &tag)
     JSContext *cx = m_Cx;
     JS::AutoValueArray<1> jevent(cx);
 
-    JS::RootedObject event(
-        cx, JS_NewObject(cx, &NMLEvent_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(cx, JS_NewObject(cx, &NMLEvent_class));
     jevent[0].set(OBJECT_TO_JSVAL(event));
     JS::RootedString tagStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.tag));
     JS::RootedString idStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.id));
@@ -263,8 +262,7 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
 
     nctx->addInputEvent(ev);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class,
-                                              JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class));
     JS::RootedValue xrelv(m_Cx, INT_TO_JSVAL(xrel));
     JS::RootedValue yrelv(m_Cx, INT_TO_JSVAL(yrel));
     JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
@@ -304,8 +302,7 @@ void JSWindow::keyupdown(
 
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &KeyEvent_class,
-                                              JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &KeyEvent_class));
     JS::RootedValue keyV(m_Cx, INT_TO_JSVAL(keycode));
     JS::RootedValue locationV(m_Cx, INT_TO_JSVAL(location));
     JS::RootedValue alt(
@@ -352,8 +349,7 @@ void JSWindow::textInput(const char *data)
 
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &TextEvent_class,
-                                              JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &TextEvent_class));
     JS::RootedString str(
         m_Cx, JSUtils::NewStringWithEncoding(m_Cx, data, strlen(data), "utf8"));
     EVENT_PROP("val", str);
@@ -375,8 +371,7 @@ void JSWindow::textInput(const char *data)
 void JSWindow::systemMenuClicked(const char *id)
 {
     JSContext *cx = m_Cx;
-    JS::RootedObject event(
-        cx, JS_NewObject(m_Cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(cx, JS_NewObject(m_Cx, nullptr));
 
     NIDIUM_JSOBJ_SET_PROP_CSTR(event, "id", id);
     JS::AutoValueArray<1> ev(cx);
@@ -393,8 +388,7 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
 
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class,
-                                              JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class));
 
     Context *nctx  = Context::GetObject<Frontend::Context>(m_Cx);
     InputEvent *ev = new InputEvent(state ? InputEvent::kMouseClick_Type
@@ -448,8 +442,7 @@ bool JSWindow::dragEvent(const char *name, int x, int y)
                       JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &DragEvent_class,
-                                              JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &DragEvent_class));
     JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
     JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
     EVENT_PROP("x", xv);
@@ -577,8 +570,7 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
 
     nctx->addInputEvent(ev);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class,
-                                              JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class));
     JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
     JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
     JS::RootedValue xrelv(m_Cx, INT_TO_JSVAL(xrel));
@@ -1300,8 +1292,7 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx,
     jwin->createMainCanvas(width, height, docObj);
 
     // Set the __nidium__ properties
-    JS::RootedObject nidiumObj(
-        cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject nidiumObj(cx, JS_NewObject(cx, nullptr));
 
     JS::RootedValue val(cx);
 

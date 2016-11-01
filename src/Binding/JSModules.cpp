@@ -155,8 +155,7 @@ bool JSModule::init()
 
 bool JSModule::initNative()
 {
-    JS::RootedObject exports(
-        m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject exports(m_Cx, JS_NewObject(m_Cx, nullptr));
 
     if (!exports) {
         return false;
@@ -203,8 +202,10 @@ bool JSModule::initJS()
     if (call == false) { \
         return false;    \
     }
-    JS::RootedObject gbl(m_Cx, JS_NewObject(m_Cx, &nidium_modules_exports_class,
-                                            JS::NullPtr(), JS::NullPtr()));
+
+    JS::RootedObject gbl(m_Cx,
+        JS_NewObject(m_Cx, &nidium_modules_exports_class));
+
     if (!gbl) {
         return false;
     }
@@ -224,9 +225,8 @@ bool JSModule::initJS()
                                   PRIVATE_TO_JSVAL(static_cast<void *>(this)));
 
     JS::RootedObject exports(
-        m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
-    JS::RootedObject module(m_Cx, JS_NewObject(m_Cx, &nidium_modules_class,
-                                               JS::NullPtr(), JS::NullPtr()));
+        m_Cx, JS_NewObject(m_Cx, nullptr));
+    JS::RootedObject module(m_Cx, JS_NewObject(m_Cx, &nidium_modules_class));
 
     if (!exports || !module) {
         return false;
