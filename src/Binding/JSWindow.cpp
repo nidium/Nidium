@@ -806,7 +806,7 @@ bool JSWindow::JS_openFileDialog(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    if (!JSVAL_IS_NULL(JS::ObjectValue(*types))
+    if (!JS::ObjectValue(*types).isNull()
         && !JS_IsArrayObject(cx, types)) {
         JS_ReportError(cx, "First parameter must be an array or null");
         return false;
@@ -815,7 +815,7 @@ bool JSWindow::JS_openFileDialog(JSContext *cx, JS::CallArgs &args)
 
     char **ctypes = NULL;
 
-    if (!JSVAL_IS_NULL(JS::ObjectValue(*types))) {
+    if (!JS::ObjectValue(*types).isNull()) {
         JS_GetArrayLength(cx, types, &len);
 
         ctypes = (char **)malloc(sizeof(char *) * (len + 1));

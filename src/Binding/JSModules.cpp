@@ -779,7 +779,10 @@ static bool nidium_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    JSModule *module = static_cast<JSModule *>(JSVAL_TO_PRIVATE(reserved));
+    /*
+        XXX Why do we have to unwrap the value from its RootedValue?
+    */
+    JSModule *module = static_cast<JSModule *>(reserved.address()->toPrivate());
 
     JS::RootedValue ret(cx, module->require(namestr.ptr()));
 

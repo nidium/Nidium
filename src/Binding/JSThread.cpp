@@ -118,7 +118,7 @@ static void *nidium_thread(void *arg)
         JS::RootedObject gbl(tcx, _CreateJSGlobal(tcx));
         if (gbl.get()) {
             JSAutoCompartment ac(tcx, gbl);
-            JS::RootedValue rval(tcx, JSVAL_VOID);
+            JS::RootedValue rval(tcx, JS::NullValue());
 
             js::SetDefaultObjectForContext(tcx, gbl);
 
@@ -215,7 +215,7 @@ void JSThread::onMessage(const Core::SharedMessages::Message &msg)
     ptr = static_cast<struct nidium_thread_msg *>(msg.dataPtr());
     memset(prop, 0, sizeof(prop));
 
-    JS::RootedValue inval(m_Cx, JSVAL_NULL);
+    JS::RootedValue inval(m_Cx, JS::NullValue());
     if (!JS_ReadStructuredClone(m_Cx, ptr->data, ptr->nbytes,
                                 JS_STRUCTURED_CLONE_VERSION, &inval, NULL,
                                 NULL)) {
