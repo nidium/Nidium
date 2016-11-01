@@ -14,11 +14,11 @@
 
 #define NIDIUM_JS_GET_OPT(obj, name)                    \
     if (obj && JS_GetProperty(cx, obj, name, &__curopt) \
-        && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL)
+        && !__curopt.isNullOrUndefined())
 
 #define NIDIUM_JS_GET_OPT_TYPE(obj, name, type)             \
     if (obj && JS_GetProperty(cx, obj, name, &__curopt)     \
-        && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL \
+        && !__curopt.isNullOrUndefined() \
         && __curopt.is##type())
 
 #define NIDIUM_JS_CHECK_ARGS(fnname, minarg)                         \
