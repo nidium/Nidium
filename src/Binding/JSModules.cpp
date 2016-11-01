@@ -362,10 +362,11 @@ JS::Value JSModule::require(char *name)
                 JS::CompileOptions options(m_Cx);
                 options.setFileAndLine(cmodule->m_FilePath, 1).setUTF8(true);
 
-                fn = JS::CompileFunction(m_Cx, expObj, options, NULL, 0, NULL,
-                                         data, strlen(data));
+                JS::AutoObjectVector scopeChain(m_Cx);
+                scopeChain.append(expObj);
 
-                if (!fn) {
+                if (!JS::CompileFunction(m_Cx, scopeChain, options, NULL, 0, NULL,
+                                         data, strlen(data), &fn)) {
                     return ret;
                 }
 

@@ -152,10 +152,13 @@ bool JSDebuggerCompartment::run(JSContext *cx,
         .setFileAndLine("Debugger.run", 1)
         .setCompileAndGo(true);
 
-    JS::RootedFunction fn(cx,
-                          JS::CompileFunction(cx, gbl, options, nullptr, 0,
-                                              nullptr, funStr, strlen(funStr)));
-    if (fn == nullptr) {
+    JS::AutoObjectVector scopeChain(cx);
+
+    JS::RootedFunction fn(cx);
+
+    if (!JS::CompileFunction(cx, scopeChain, options, nullptr, 0,
+                        nullptr, funStr, strlen(funStr), &fn)) {
+
         JS_LeaveCompartment(cx, m_Compartment);
         JS_ReportError(cx, "Can't compile function");
         return false;

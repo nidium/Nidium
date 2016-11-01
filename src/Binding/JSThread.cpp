@@ -148,8 +148,13 @@ static void *nidium_thread(void *arg)
                 .setUTF8(true);
 
             JS::RootedFunction cf(tcx);
-            cf = JS::CompileFunction(tcx, gbl, options, NULL, 0, NULL, scoped,
-                                     strlen(scoped));
+
+            JS::AutoObjectVector scopeChain(tcx);
+
+            bool cret = JS::CompileFunction(tcx, scopeChain, options,
+                            NULL, 0, NULL, scoped,
+                            strlen(scoped), &cf);
+            
             delete[] scoped;
 
             if (cf == NULL) {

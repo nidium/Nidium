@@ -168,12 +168,15 @@ JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx,
 
             JS::RootedFunction cf(cx);
 
-            cf = JS::CompileFunction(cx, global, options, NULL, 0, NULL, pdata,
-                                     strlen(pdata));
+            JS::AutoObjectVector scopeChain(cx);
+
+            bool cret = JS::CompileFunction(cx, scopeChain, options, 
+                            NULL, 0, NULL, pdata,
+                            strlen(pdata), &cf);
 
             free(pdata);
 
-            if (cf == NULL) {
+            if (!cret) {
                 /*
                     We don't want "JS_CompileFunction" to repport error
                 */
@@ -708,11 +711,20 @@ int NidiumJS::LoadScriptReturn(JSContext *cx,
     JS::CompileOptions options(cx);
     options.setFileAndLine(filename, 1).setUTF8(true);
 
-    cf = JS::CompileFunction(cx, gbl, options, NULL, 0, NULL, func,
-                             strlen(func));
+    JS::AutoObjectVector scopeChain(cx);
+
+    /*
+        The scope chain is empty, we only need global
+
+        scopeChain.append(gbl) <= not needed
+    */
+    bool cret = JS::CompileFunction(cx, scopeChain, options,
+        NULL, 0, NULL, func,
+        strlen(func), &cf);
 
     free(func);
-    if (cf == NULL) {
+
+    if (!cret) {
         printf("Cant load script %s\n", filename);
         return 0;
     }
