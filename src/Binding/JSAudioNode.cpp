@@ -395,13 +395,13 @@ JSAudioNodeBuffers::JSAudioNodeBuffers(JSAudioContext *audioCtx,
         JS::RootedObject arr(cx,
                              JS_NewFloat32ArrayWithBuffer(cx, arrBuff, 0, -1));
 
-        JS_DefineElement(cx, frames, i, OBJECT_TO_JSVAL(arr), nullptr, nullptr,
+        JS_DefineElement(cx, frames, i, JS::ObjectValue(*arr), nullptr, nullptr,
                          JSPROP_ENUMERATE | JSPROP_PERMANENT);
     }
 
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS::RootedValue vFrames(cx, OBJECT_TO_JSVAL(frames));
-    JS::RootedValue vSize(cx, DOUBLE_TO_JSVAL(params->m_FramesPerBuffer));
+    JS::RootedValue vFrames(cx, JS::ObjectValue(*frames));
+    JS::RootedValue vSize(cx, JS::DoubleValue(params->m_FramesPerBuffer));
 
     JS_DefineProperty(cx, obj, "data", vFrames,
                       JSPROP_PERMANENT | JSPROP_ENUMERATE);
@@ -584,9 +584,9 @@ JSAudioNodeThreaded::JSAudioNodeThreaded(JSAudioNodeCustomBase *node)
     m_HashObj = hashObj;
 
     // Root |m_HashObj| on this object
-    JS_SetReservedSlot(this->getJSObject(), 0, OBJECT_TO_JSVAL(hashObj));
+    JS_SetReservedSlot(this->getJSObject(), 0, JS::ObjectValue(*hashObj));
     // Root this object on the global object of the context
-    JS_SetReservedSlot(global, 0, OBJECT_TO_JSVAL(this->getJSObject()));
+    JS_SetReservedSlot(global, 0, JS::ObjectValue(*this->getJSObject()));
 
     JSTransferableFunction *initFn
         = m_Node->getFunction(JSAudioNodeCustomBase::INIT_FN);

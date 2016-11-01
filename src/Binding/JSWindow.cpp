@@ -117,7 +117,7 @@ void JSWindow::assetReady(const NMLTag &tag)
     JS::AutoValueArray<1> jevent(cx);
 
     JS::RootedObject event(cx, JS_NewObject(cx, &NMLEvent_class));
-    jevent[0].set(OBJECT_TO_JSVAL(event));
+    jevent[0].set(JS::ObjectValue(*event));
     JS::RootedString tagStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.tag));
     JS::RootedString idStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.id));
     JS::RootedString dataStr(
@@ -180,10 +180,10 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
     nctx->addInputEvent(ev);
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class));
-    JS::RootedValue xrelv(m_Cx, INT_TO_JSVAL(xrel));
-    JS::RootedValue yrelv(m_Cx, INT_TO_JSVAL(yrel));
-    JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
-    JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
+    JS::RootedValue xrelv(m_Cx, JS::Int32Value(xrel));
+    JS::RootedValue yrelv(m_Cx, JS::Int32Value(yrel));
+    JS::RootedValue xv(m_Cx, JS::Int32Value(x));
+    JS::RootedValue yv(m_Cx, JS::Int32Value(y));
     EVENT_PROP("xrel", xrelv);
     EVENT_PROP("yrel", yrelv);
     EVENT_PROP("x", xv);
@@ -204,7 +204,7 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
 
 /*
     JS::RootedObject obje(cx, JSEvents::CreateEventObject(m_Cx));
-    this->fireJSEvent("wheel", OBJECT_TO_JSVAL(obje));
+    this->fireJSEvent("wheel", JS::ObjectValue(*obje));
     */
 
 #undef EVENT_PROP
@@ -220,18 +220,18 @@ void JSWindow::keyupdown(
     JSAutoRequest ar(m_Cx);
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &KeyEvent_class));
-    JS::RootedValue keyV(m_Cx, INT_TO_JSVAL(keycode));
-    JS::RootedValue locationV(m_Cx, INT_TO_JSVAL(location));
+    JS::RootedValue keyV(m_Cx, JS::Int32Value(keycode));
+    JS::RootedValue locationV(m_Cx, JS::Int32Value(location));
     JS::RootedValue alt(
-        m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Alt)));
+        m_Cx, JS::BooleanValue(!!(mod & UIInterface::kKeyModifier_Alt)));
     JS::RootedValue ctl(
-        m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Control)));
+        m_Cx, JS::BooleanValue(!!(mod & UIInterface::kKeyModifier_Control)));
     JS::RootedValue shift(
-        m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Shift)));
+        m_Cx, JS::BooleanValue(!!(mod & UIInterface::kKeyModifier_Shift)));
     JS::RootedValue meta(
-        m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Meta)));
-    JS::RootedValue space(m_Cx, BOOLEAN_TO_JSVAL(keycode == 32));
-    JS::RootedValue rep(m_Cx, BOOLEAN_TO_JSVAL(!!(repeat)));
+        m_Cx, JS::BooleanValue(!!(mod & UIInterface::kKeyModifier_Meta)));
+    JS::RootedValue space(m_Cx, JS::BooleanValue(keycode == 32));
+    JS::RootedValue rep(m_Cx, JS::BooleanValue(!!(repeat)));
     EVENT_PROP("keyCode", keyV);
     EVENT_PROP("location", locationV);
     EVENT_PROP("altKey", alt);
@@ -328,9 +328,9 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
         dcEv->setData(0, button);
         nctx->addInputEvent(dcEv);
     }
-    JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
-    JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
-    JS::RootedValue bv(m_Cx, INT_TO_JSVAL(button));
+    JS::RootedValue xv(m_Cx, JS::Int32Value(x));
+    JS::RootedValue yv(m_Cx, JS::Int32Value(y));
+    JS::RootedValue bv(m_Cx, JS::Int32Value(button));
     EVENT_PROP("x", xv);
     EVENT_PROP("y", yv);
     EVENT_PROP("clientX", xv);
@@ -360,8 +360,8 @@ bool JSWindow::dragEvent(const char *name, int x, int y)
     JSAutoRequest ar(m_Cx);
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &DragEvent_class));
-    JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
-    JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
+    JS::RootedValue xv(m_Cx, JS::Int32Value(x));
+    JS::RootedValue yv(m_Cx, JS::Int32Value(y));
     EVENT_PROP("x", xv);
     EVENT_PROP("y", yv);
     EVENT_PROP("clientX", xv);
@@ -411,7 +411,7 @@ bool JSWindow::dragBegin(int x, int y, const char *const *files, size_t nfiles)
 
     for (int i = 0; i < nfiles; i++) {
         JS::RootedValue val(
-            m_Cx, OBJECT_TO_JSVAL(JSFile::GenerateJSObject(m_Cx, files[i])));
+            m_Cx, JS::ObjectValue(*JSFile::GenerateJSObject(m_Cx, files[i])));
         JS_SetElement(m_Cx, dragged, i, val);
     }
 
@@ -488,10 +488,10 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
     nctx->addInputEvent(ev);
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class));
-    JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
-    JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
-    JS::RootedValue xrelv(m_Cx, INT_TO_JSVAL(xrel));
-    JS::RootedValue yrelv(m_Cx, INT_TO_JSVAL(yrel));
+    JS::RootedValue xv(m_Cx, JS::Int32Value(x));
+    JS::RootedValue yv(m_Cx, JS::Int32Value(y));
+    JS::RootedValue xrelv(m_Cx, JS::Int32Value(xrel));
+    JS::RootedValue yrelv(m_Cx, JS::Int32Value(yrel));
     EVENT_PROP("x", xv);
     EVENT_PROP("y", yv);
     EVENT_PROP("xrel", xrelv);
@@ -717,7 +717,7 @@ nidium_window_openfilecb(void *_nof, const char *lst[], uint32_t len)
     struct _nidiumopenfile *nof = (struct _nidiumopenfile *)_nof;
     JS::RootedObject arr(nof->m_Cx, JS_NewArrayObject(nof->m_Cx, len));
     for (int i = 0; i < len; i++) {
-        JS::RootedValue val(nof->m_Cx, OBJECT_TO_JSVAL(JSFile::GenerateJSObject(
+        JS::RootedValue val(nof->m_Cx, JS::ObjectValue(*JSFile::GenerateJSObject(
                                            nof->m_Cx, lst[i])));
         JS_SetElement(nof->m_Cx, arr, i, val);
     }
@@ -806,7 +806,7 @@ bool JSWindow::JS_openFileDialog(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    if (!JSVAL_IS_NULL(OBJECT_TO_JSVAL(types))
+    if (!JSVAL_IS_NULL(JS::ObjectValue(*types))
         && !JS_IsArrayObject(cx, types)) {
         JS_ReportError(cx, "First parameter must be an array or null");
         return false;
@@ -815,7 +815,7 @@ bool JSWindow::JS_openFileDialog(JSContext *cx, JS::CallArgs &args)
 
     char **ctypes = NULL;
 
-    if (!JSVAL_IS_NULL(OBJECT_TO_JSVAL(types))) {
+    if (!JSVAL_IS_NULL(JS::ObjectValue(*types))) {
         JS_GetArrayLength(cx, types, &len);
 
         ctypes = (char **)malloc(sizeof(char *) * (len + 1));
@@ -1116,7 +1116,7 @@ void JSWindow::createMainCanvas(int width, int height, JS::HandleObject docObj)
         m_Cx, JSCanvas::GenerateJSObject(m_Cx, width, height, &m_Handler));
     Context::GetObject<Frontend::Context>(m_Cx)->getRootHandler()->addChild(
         m_Handler);
-    JS::RootedValue canval(m_Cx, OBJECT_TO_JSVAL(canvas));
+    JS::RootedValue canval(m_Cx, JS::ObjectValue(*canvas));
     JS_DefineProperty(m_Cx, docObj, "canvas", canval,
                       JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
@@ -1225,7 +1225,7 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx,
     JS_DefineProperty(cx, nidiumObj, "revision", jRevision,
                       JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    val = OBJECT_TO_JSVAL(nidiumObj);
+    val = JS::ObjectValue(*nidiumObj);
     JS_SetProperty(cx, windowObj, "__nidium__", val);
 
 #if 0
@@ -1236,7 +1236,7 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx,
     /* Set the newly generated CanvasHandler as first child of rootHandler */
     NJS->rootHandler->addChild((CanvasHandler *)JS_GetPrivate(titleBar));
 
-    JS::RootedValue titleVal(cx, OBJECT_TO_JSVAL(titleBar));
+    JS::RootedValue titleVal(cx, JS::ObjectValue(*titleBar));
     JS_DefineProperty(cx, NidiumObj, "titleBar", titleVal, JSPROP_READONLY | JSPROP_PERMANENT | JSPROP_PERMANENT | JSPROP_ENUMERATE);
 #endif
 

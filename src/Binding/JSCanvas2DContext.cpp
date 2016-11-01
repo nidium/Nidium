@@ -41,7 +41,7 @@ namespace Binding {
         unsigned lineno;                                                  \
         JS::AutoFilename filename;                                        \
         JS::DescribeScriptedCaller(cx, &filename, &lineno);               \
-        JS::RootedValue calVal(cx, OBJECT_TO_JSVAL(calObj));              \
+        JS::RootedValue calVal(cx, JS::ObjectValue(*calObj));              \
         JS::RootedString _fun_name(                                       \
             cx, JS_GetFunctionDisplayId(JS_ValueToFunction(cx, calVal))); \
         JSAutoByteString _fun_namec(cx, _fun_name);                       \
@@ -132,8 +132,8 @@ bool JSCanvasGLProgram::JS_getActiveUniforms(JSContext *cx, JS::CallArgs &args)
         name[length] = '\0';
         JS::RootedString nameStr(cx, JS_NewStringCopyN(cx, name, length));
         JS::RootedValue locationVal(
-            cx, INT_TO_JSVAL(glGetUniformLocation(m_Program, name)));
-        JS::RootedValue inval(cx, OBJECT_TO_JSVAL(in));
+            cx, JS::Int32Value(glGetUniformLocation(m_Program, name)));
+        JS::RootedValue inval(cx, JS::ObjectValue(*in));
         NIDIUM_JSOBJ_SET_PROP(in, "name", nameStr);
         NIDIUM_JSOBJ_SET_PROP(in, "location", locationVal);
         JS_SetElement(cx, arr, i, inval);
@@ -421,12 +421,12 @@ bool Canvas2DContext::JS_breakText(JSContext *cx, JS::CallArgs &args)
     for (int i = 0; i < len && i < length; i++) {
         JS::RootedString str(
             cx, JS_NewStringCopyN(cx, lines[i].m_Line, lines[i].m_Len));
-        JS::RootedValue val(cx, STRING_TO_JSVAL(str));
+        JS::RootedValue val(cx, JS::StringValue(str));
         JS_SetElement(cx, alines, i, val);
     }
     JS::RootedObject res(cx, JS_NewObject(cx, nullptr));
-    JS::RootedValue heightVal(cx, DOUBLE_TO_JSVAL(SkScalarToDouble(ret)));
-    JS::RootedValue linesVal(cx, OBJECT_TO_JSVAL(alines));
+    JS::RootedValue heightVal(cx, JS::DoubleValue(SkScalarToDouble(ret)));
+    JS::RootedValue linesVal(cx, JS::ObjectValue(*alines));
     SET_PROP(res, "height", heightVal);
     SET_PROP(res, "lines", linesVal);
 
@@ -771,9 +771,9 @@ bool Canvas2DContext::JS_getImageData(JSContext *cx, JS::CallArgs &args)
     data = JS_GetUint8ClampedArrayData(arrBuffer);
 
     m_Skia->readPixels(top, left, width, height, data);
-    JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
-    JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
-    JS::RootedValue arVal(cx, OBJECT_TO_JSVAL(arrBuffer));
+    JS::RootedValue widthVal(cx, JS::NumberValue(width));
+    JS::RootedValue heightVal(cx, JS::NumberValue(height));
+    JS::RootedValue arVal(cx, JS::ObjectValue(*arrBuffer));
 
     JS::RootedObject dataObject(cx,
       JSImageData::CreateObject(cx, new JSImageData()));
@@ -849,9 +849,9 @@ bool Canvas2DContext::JS_createImageData(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    JS::RootedValue array(cx, OBJECT_TO_JSVAL(arrBuffer));
-    JS::RootedValue width(cx, UINT_TO_JSVAL(x));
-    JS::RootedValue height(cx, UINT_TO_JSVAL(y));
+    JS::RootedValue array(cx, JS::ObjectValue(*arrBuffer));
+    JS::RootedValue width(cx, JS::NumverValue(x));
+    JS::RootedValue height(cx, JS::NumverValue(y));
 
     JS::RootedObject dataObject(cx,
       JSImageData::CreateObject(cx, new JSImageData()));
@@ -907,7 +907,7 @@ bool Canvas2DContext::JS_createPattern(JSContext *cx, JS::CallArgs &args)
     /*
         The pattern object retains a reference to the JSImage object
     */
-    JS_SetReservedSlot(patternObject, 0, OBJECT_TO_JSVAL(img->getJSObject()));
+    JS_SetReservedSlot(patternObject, 0, JS::ObjectValue(*img->getJSObject()));
 
     args.rval().setObjectOrNull(patternObject);
 
@@ -1019,7 +1019,7 @@ bool Canvas2DContext::JS_measureText(JSContext *cx, JS::CallArgs &args)
     ctext.encodeUtf8(cx, text);
 
     JS::RootedValue widthVal(
-        cx, DOUBLE_TO_JSVAL(m_Skia->measureText(ctext.ptr(), strlen(ctext.ptr()))));
+        cx, JS::DoubleValue(m_Skia->measureText(ctext.ptr(), strlen(ctext.ptr()))));
     OBJ_PROP("width", widthVal);
 
     args.rval().setObjectOrNull(obj);
@@ -1053,10 +1053,10 @@ bool Canvas2DContext::JS_getPathBounds(JSContext *cx, JS::CallArgs &args)
 
     NIDIUM_LOG_2D_CALL();
     m_Skia->getPathBounds(&left, &right, &top, &bottom);
-    JS::RootedValue leftVal(cx, DOUBLE_TO_JSVAL(left));
-    JS::RootedValue rightVal(cx, DOUBLE_TO_JSVAL(right));
-    JS::RootedValue topVal(cx, DOUBLE_TO_JSVAL(top));
-    JS::RootedValue bottomVal(cx, DOUBLE_TO_JSVAL(bottom));
+    JS::RootedValue leftVal(cx, JS::DoubleValue(left));
+    JS::RootedValue rightVal(cx, JS::DoubleValue(right));
+    JS::RootedValue topVal(cx, JS::DoubleValue(top));
+    JS::RootedValue bottomVal(cx, JS::DoubleValue(bottom));
     OBJ_PROP("left", leftVal);
     OBJ_PROP("right", rightVal);
     OBJ_PROP("top", topVal);

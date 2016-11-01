@@ -93,7 +93,7 @@ void JSAVSourceEventInterface::onMessage(const SharedMessages::Message &msg)
         const char *errorStr = AV::AVErrorsStr[errorCode];
         JS::RootedObject evObj(
             cx, JSEvents::CreateErrorEventObject(cx, errorCode, errorStr));
-        ev = OBJECT_TO_JSVAL(evObj);
+        ev.setObject(*evObj);
     } else if (cmsg->m_Ev == SOURCE_EVENT_BUFFERING) {
         JS::RootedObject evObj(cx, JSEvents::CreateEventObject(cx));
         JSObjectBuilder evBuilder(cx, evObj);
@@ -123,7 +123,7 @@ void CopyMetaDataToJS(AVDictionary *dict, JSContext *cx, JS::HandleObject obj)
     while ((tag = av_dict_get(dict, "", tag, AV_DICT_IGNORE_SUFFIX))) {
         JS::RootedString val(
             cx, JS_NewStringCopyN(cx, tag->value, strlen(tag->value)));
-        JS::RootedValue value(cx, STRING_TO_JSVAL(val));
+        JS::RootedValue value(cx, JS::StringValue(val));
         JS_DefineProperty(cx, obj, tag->key, value, JSPROP_ENUMERATE
                                                         | JSPROP_READONLY
                                                         | JSPROP_PERMANENT);
@@ -242,7 +242,7 @@ bool JSAVSourceBase::JSGetter__metadata(JSContext *cx,
 
             CopyMetaDataToJS(avctx->streams[i]->metadata, cx, streamMetaData);
 
-            JS_DefineElement(cx, arr, i, OBJECT_TO_JSVAL(streamMetaData),
+            JS_DefineElement(cx, arr, i, JS::ObjectValue(*streamMetaData),
                              nullptr, nullptr, 0);
         }
 
@@ -268,7 +268,7 @@ bool JSAVSourceBase::JSGetter__metadata(JSContext *cx,
         progMetaData);
 
                 JS_DefineElement(cx, arr, i,
-        OBJECT_TO_JSVAL(progMetaData), nullptr,
+        JS::ObjectValue(*progMetaData), nullptr,
         nullptr, 0);
             }
         }

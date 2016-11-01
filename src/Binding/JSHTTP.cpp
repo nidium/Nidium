@@ -330,7 +330,7 @@ void JSHTTP::onError(int code, const char *error)
 {
     JS::RootedObject eventObject(
         m_Cx, JSEvents::CreateErrorEventObject(m_Cx, code, error));
-    JS::RootedValue eventValue(m_Cx, OBJECT_TO_JSVAL(eventObject));
+    JS::RootedValue eventValue(m_Cx, JS::ObjectValue(*eventObject));
 
     ClassMapperWithEvents<JSHTTP>::fireJSEvent("error", &eventValue);
 
@@ -497,11 +497,11 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
         case HTTP::DATA_IMAGE:
         {
             Image *nimg;
-            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+            SET_PROP(event, "type", JS::StringValue(JS_NewStringCopyN(cx,
                 CONST_STR_LEN("image"))));
 
             nimg = new Image(h->m_Data->data, h->m_Data->used);
-            jdata = OBJECT_TO_JSVAL(NidiumJSImage::BuildImageObject(cx, nimg));
+            jdata = JS::ObjectValue(*NidiumJSImage::BuildImageObject(cx, nimg));
 
             break;
         }
@@ -512,10 +512,10 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 
             memcpy(data, h->m_Data->data, h->m_Data->used);
 
-            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+            SET_PROP(event, "type", JS::StringValue(JS_NewStringCopyN(cx,
                 CONST_STR_LEN("audio"))));
 
-            jdata = OBJECT_TO_JSVAL(arr);
+            jdata = JS::ObjectValue(*arr);
 
             break;
         }

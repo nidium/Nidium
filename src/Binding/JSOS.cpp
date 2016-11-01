@@ -29,7 +29,7 @@ JSObject *JSOS::RegisterModule(JSContext *cx)
     // Platform
     JS::RootedString platformStr(cx, JSUtils::NewStringWithEncoding(cx,
                                       NIDIUM_PLATFORM, strlen(NIDIUM_PLATFORM), "utf8"));
-    JS::RootedValue platform(cx, STRING_TO_JSVAL(platformStr));
+    JS::RootedValue platform(cx, JS::StringValue(platformStr));
 
     JS_DefineProperty(cx, exports, "platform", platform,
                       JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE);
@@ -40,7 +40,7 @@ JSObject *JSOS::RegisterModule(JSContext *cx)
     const char *clang = interface->getLanguage();
     JS::RootedString langStr(cx, JSUtils::NewStringWithEncoding(cx,
                                       clang, strlen(clang), "utf8"));
-    JS::RootedValue lang(cx, STRING_TO_JSVAL(langStr));
+    JS::RootedValue lang(cx, JS::StringValue(langStr));
 
     JS_DefineProperty(cx, exports, "language", lang,
                       JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE);

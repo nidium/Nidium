@@ -212,10 +212,10 @@ bool JSCanvas::JS_getChildren(JSContext *cx, JS::CallArgs &args)
     m_CanvasHandler->getChildren(list);
     JS::RootedObject jlist(cx, JS_NewArrayObject(cx, count));
     for (i = 0; i < count; i++) {
-        JS::RootedValue objVal(cx, OBJECT_TO_JSVAL(list[i]->m_JsObj));
+        JS::RootedValue objVal(cx, JS::ObjectValue(*list[i]->m_JsObj));
         JS_SetElement(cx, jlist, i, objVal);
     }
-    JS::RootedValue val(cx, OBJECT_TO_JSVAL(jlist));
+    JS::RootedValue val(cx, JS::ObjectValue(*jlist));
 
     args.rval().set(val);
 
@@ -439,7 +439,7 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
         /*  Protect against GC
             Canvas.slot[0] = context
         */
-        JS_SetReservedSlot(m_Instance, 0, OBJECT_TO_JSVAL(JSCanvasCtx));
+        JS_SetReservedSlot(m_Instance, 0, JS::ObjectValue(*JSCanvasCtx));
 
     } else if (canvasctx->m_Mode != ctxmode) {
         JS_ReportWarning(cx, "Bad context requested");
@@ -474,7 +474,7 @@ bool JSCanvas::JS_setContext(JSContext *cx, JS::CallArgs &args)
         If a context was already attached, it's going to be GC'd
         since it's not longer reachable from slot 0.
     */
-    JS::RootedValue slot(cx, OBJECT_TO_JSVAL(obj));
+    JS::RootedValue slot(cx, JS::ObjectValue(*obj));
     JS_SetReservedSlot(m_CanvasHandler->m_JsObj, 0, slot);
 
     return true;
@@ -1494,7 +1494,7 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx,
     handler->m_JsCx  = cx;
     handler->m_JsObj = ret;
 
-    JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(ctxjsobj));
+    JS_SetReservedSlot(ret, 0, JS::ObjectValue(*ctxjsobj));
 
     *out = handler;
 

@@ -94,7 +94,7 @@ public:
         if (JS_ObjectIsCallable(cx, callback)) {
 
             JSAutoRequest ar(cx); // TODO: Why do we need a request here?
-            JS::RootedValue cb(cx, OBJECT_TO_JSVAL(callback));
+            JS::RootedValue cb(cx, JS::ObjectValue(*callback));
             JS_CallFunctionValue(cx, JS::NullPtr(), cb, params, &rval);
         }
 
@@ -183,7 +183,7 @@ void JSFile::onMessage(const SharedMessages::Message &msg)
                 for (int i = 0; i < entries->size; i++) {
                     JS::RootedObject entry(cx, JS_NewObject(cx, nullptr));
 
-                    JS::RootedValue val(cx, OBJECT_TO_JSVAL(entry));
+                    JS::RootedValue val(cx, JS::ObjectValue(*entry));
                     JS_SetElement(cx, arr, i, val);
 
                     JS::RootedString name(
@@ -211,7 +211,7 @@ void JSFile::onMessage(const SharedMessages::Message &msg)
     if (JS_ObjectIsCallable(cx, callback)) {
 
         JSAutoRequest ar(cx); // TODO: Why do we need a request here?
-        JS::RootedValue cb(cx, OBJECT_TO_JSVAL(callback));
+        JS::RootedValue cb(cx, JS::ObjectValue(*callback));
         JS::RootedObject jsthis(cx, getJSObject());
 
         JS_CallFunctionValue(cx, jsthis, cb, params, &rval);
@@ -259,7 +259,7 @@ bool JSFile::JSGetter_filename(JSContext *cx, JS::MutableHandleValue vp)
 {
     File *file = this->getFile();
 
-    vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, file->getFullPath())));
+    vp.setString(JS_NewStringCopyZ(cx, file->getFullPath()));
     
     return true;
 }

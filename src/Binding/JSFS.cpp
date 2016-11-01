@@ -51,7 +51,7 @@ public:
 
                 params[0].setObject(*param);
 
-                JS::RootedValue cb(cx, OBJECT_TO_JSVAL(callback));
+                JS::RootedValue cb(cx, JS::ObjectValue(*callback));
 
                 JS_CallFunctionValue(cx, JS::NullPtr(), cb, params, &rval);
 

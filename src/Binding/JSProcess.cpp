@@ -268,7 +268,7 @@ void JSProcess::RegisterObject(JSContext *cx,
         JS_SetElement(cx, jsargv, i, jelem);
     }
 
-    JS::RootedValue jsargv_v(cx, OBJECT_TO_JSVAL(jsargv));
+    JS::RootedValue jsargv_v(cx, JS::ObjectValue(*jsargv));
     JS_SetProperty(cx, ProcessObj, "argv", jsargv_v);
 
     JS::RootedValue workerid_v(cx, JS::Int32Value(workerId));

@@ -188,7 +188,7 @@ public:
 
     JS::Value jsval() const
     {
-        return OBJECT_TO_JSVAL(m_Obj);
+        return JS::ObjectValue(*m_Obj);
     }
 
     operator JSObject *()
@@ -198,7 +198,7 @@ public:
 
     operator JS::Value()
     {
-        return OBJECT_TO_JSVAL(m_Obj);
+        return JS::ObjectValue(*m_Obj);
     }
 
     ~JSObjectBuilder(){};

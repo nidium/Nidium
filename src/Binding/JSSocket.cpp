@@ -252,10 +252,10 @@ static void nidium_socket_wrapper_client_onmessage(ape_socket *socket_server,
         */
         char *cip = inet_ntoa(addr->sin_addr);
         JS::RootedString jip(cx, JS_NewStringCopyZ(cx, cip));
-        JS::RootedValue vip(cx, STRING_TO_JSVAL(jip));
+        JS::RootedValue vip(cx, JS::StringValue(jip));
 
         JS_SetProperty(cx, remote, "ip", vip);
-        JS::RootedValue jport(cx, INT_TO_JSVAL(ntohs(addr->sin_port)));
+        JS::RootedValue jport(cx, JS::Int32Value(ntohs(addr->sin_port)));
 
         JS_SetProperty(cx, remote, "port", jport);
 

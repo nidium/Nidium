@@ -114,8 +114,7 @@ bool JSHTTPServer::onEnd(HTTPClientConnection *client)
     }
 
     JS::RootedValue method(m_Cx);
-    JS::RootedValue head(m_Cx, OBJECT_TO_JSVAL(headers));
-    JS::RootedValue cli(m_Cx, OBJECT_TO_JSVAL(subclient->getJSObject()));
+    JS::RootedValue cli(m_Cx, subclient->getJSObject());
     switch (client->getHTTPState()->parser.method) {
         case HTTP_POST:
             method.setString(JS_NewStringCopyN(m_Cx, CONST_STR_LEN("POST")));

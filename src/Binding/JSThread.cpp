@@ -222,7 +222,7 @@ void JSThread::onMessage(const Core::SharedMessages::Message &msg)
     }
 
     JS::RootedObject event(m_Cx, JSEvents::CreateEventObject(m_Cx));
-    JS::RootedValue eventVal(m_Cx, OBJECT_TO_JSVAL(event));
+    JS::RootedValue eventVal(m_Cx, JS::ObjectValue(*event));
 
     NIDIUM_JSOBJ_SET_PROP(event, "data", inval);
 

@@ -93,7 +93,7 @@ bool JSModule::initMain()
     JS::RootedObject funObj(m_Cx, JS_GetFunctionObject(fun));
 
     js::SetFunctionNativeReserved(funObj, 0,
-                                  PRIVATE_TO_JSVAL(static_cast<void *>(this)));
+                                  JS::PrivateValue(static_cast<void *>(this)));
 
     m_Exports = NULL; // Main module is not a real module, thus no exports
 
@@ -204,7 +204,7 @@ bool JSModule::initJS()
     funObj = JS_GetFunctionObject(fun);
 
     js::SetFunctionNativeReserved(funObj, 0,
-                                  PRIVATE_TO_JSVAL(static_cast<void *>(this)));
+                                  JS::PrivateValue(static_cast<void *>(this)));
 
     JS::RootedObject exports(
         m_Cx, JS_NewObject(m_Cx, nullptr));
@@ -223,8 +223,8 @@ bool JSModule::initJS()
 
     id.setString(idstr);
 
-    JS::RootedValue exportsVal(m_Cx, OBJECT_TO_JSVAL(exports));
-    JS::RootedValue moduleVal(m_Cx, OBJECT_TO_JSVAL(module));
+    JS::RootedValue exportsVal(m_Cx, JS::ObjectValue(*exports));
+    JS::RootedValue moduleVal(m_Cx, JS::ObjectValue(*module));
 #if 0
     TRY_OR_DIE(JS_DefineProperties(m_Cx, gbl, nidium_modules_exports_props));
 #endif
@@ -417,7 +417,7 @@ JS::Value JSModule::require(char *name)
         case JSModule::kModuleType_JSON:
         case JSModule::kModuleType_Native:
         case JSModule::kModuleType_NativeEmbedded: {
-            ret = OBJECT_TO_JSVAL(cmodule->m_Exports);
+            ret = JS::ObjectValue(*cmodule->m_Exports);
         } break;
     }
 

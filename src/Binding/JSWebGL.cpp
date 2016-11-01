@@ -533,7 +533,7 @@ WebGLResource::~WebGLResource()
 void WebGLResource::bind()
 {
     JS_SetReservedSlot(m_WebGLCtx->getJSObject(), m_Type,
-                       OBJECT_TO_JSVAL(this->getJSObject()));
+                       JS::ObjectValue(*this->getJSObject()));
 
     m_IsBound = true;
 }
@@ -550,10 +550,10 @@ void WebGLResource::bindTo(GLenum target)
     if (!bindObject) {
         bindObject
             = JS_NewObject(m_JSCx, nullptr);
-        JS_SetReservedSlot(webglObj, m_Type, OBJECT_TO_JSVAL(bindObject));
+        JS_SetReservedSlot(webglObj, m_Type, JS::ObjectValue(*bindObject));
     }
 
-    JS::RootedValue val(m_JSCx, OBJECT_TO_JSVAL(this->getJSObject()));
+    JS::RootedValue val(m_JSCx, JS::ObjectValue(*this->getJSObject()));
 
     char targetStr[16];
     snprintf(targetStr, 15, "%d", target);
@@ -1517,9 +1517,9 @@ bool JSWebGLRenderingContext::JS_getShaderPrecisionFormat(JSContext *cx,
             return false;
     }
 
-    JS::RootedValue rangeMin(cx, INT_TO_JSVAL(crange[0]));
-    JS::RootedValue rangeMax(cx, INT_TO_JSVAL(crange[1]));
-    JS::RootedValue precision(cx, INT_TO_JSVAL(cprecision));
+    JS::RootedValue rangeMin(cx, JS::Int32Value(crange[0]));
+    JS::RootedValue rangeMax(cx, JS::Int32Value(crange[1]));
+    JS::RootedValue precision(cx, JS::Int32Value(cprecision));
 
     SET_PROP("rangeMin", rangeMin);
     SET_PROP("rangeMax", rangeMax);
@@ -2027,7 +2027,7 @@ bool JSWebGLRenderingContext::JS_getParameter(JSContext *cx, JS::CallArgs &args)
             size_t i;
             for (i = 0; i < 4; i++) {
                 JS::RootedId id(cx, INT_TO_JSID(i));
-                JS::RootedValue bVal(cx, BOOLEAN_TO_JSVAL((bool)gl_bv[i]));
+                JS::RootedValue bVal(cx, JS::BooleanValue((bool)gl_bv[i]));
                 JS_SetPropertyById(cx, obj, id, bVal);
             }
             value.setObjectOrNull(obj);
