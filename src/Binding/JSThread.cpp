@@ -15,7 +15,6 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#include <js/OldDebugAPI.h>
 
 #include "Binding/JSConsole.h"
 

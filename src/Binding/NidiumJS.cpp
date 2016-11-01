@@ -14,8 +14,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <js/OldDebugAPI.h>
+
 #include <jsprf.h>
+
+#include <js/TracingAPI.h>
 
 #include "Binding/JSSocket.h"
 #include "Binding/JSThread.h"
