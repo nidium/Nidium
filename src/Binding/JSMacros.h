@@ -26,7 +26,7 @@
                                                                      \
         char numBuf[12];                                             \
         snprintf(numBuf, sizeof numBuf, "%u", argc);                 \
-        JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL,           \
+        JS_ReportErrorNumber(cx, js::GetErrorMessage, NULL,           \
                              JSMSG_MORE_ARGS_NEEDED, fnname, numBuf, \
                              (argc > 1 ? "s" : ""));                 \
         return false;                                                \
