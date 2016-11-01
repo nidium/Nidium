@@ -401,7 +401,7 @@ JS::Value JSModule::require(char *name)
 
                 JS_free(m_Cx, jchars);
 
-                cmodule->m_Exports.set(jsonData.toObjectOrNull());
+                cmodule->m_Exports = jsonData.toObjectOrNull();
                 NidiumJS::RootObjectUntilShutdown(cmodule->m_Exports);
             }
         }

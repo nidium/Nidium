@@ -197,10 +197,10 @@ bool JSGlobal::JS_setImmediate(JSContext *cx, JS::CallArgs &args)
         return true;
     }
 
-    params->func.set(func);
+    params->func = func;
 
     for (i = 0; i < static_cast<int>(argc) - 1; i++) {
-        params->argv[i]->set(args[i + 1]);
+        params->argv[i] = args[i + 1];
     }
 
     ape_timer_async_t *async
@@ -250,10 +250,10 @@ bool JSGlobal::JS_setTimeout(JSContext *cx, JS::CallArgs &args)
         ms = 0;
     }
 
-    params->func.set(func);
+    params->func = func;
 
     for (i = 0; i < static_cast<int>(argc) - 2; i++) {
-        params->argv[i]->set(args[i + 2]);
+        params->argv[i] = args[i + 2];
     }
 
     ape_timer_t *timer = APE_timer_create(
@@ -298,7 +298,7 @@ bool JSGlobal::JS_setInterval(JSContext *cx, JS::CallArgs &args)
         return true;
     }
 
-    params->func.set(func);
+    params->func = func;
 
     if (argc > 1 && !JS::ToInt32(cx, args[1], &ms)) {
         ms = 0;
@@ -307,7 +307,7 @@ bool JSGlobal::JS_setInterval(JSContext *cx, JS::CallArgs &args)
     params->ms = nidium_max(8, ms);
 
     for (i = 0; i < static_cast<int>(argc) - 2; i++) {
-        params->argv[i]->set(args.array()[i + 2]);
+        params->argv[i] = args.array()[i + 2];
     }
 
     ape_timer_t *timer = APE_timer_create(

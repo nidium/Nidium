@@ -1273,13 +1273,13 @@ bool Canvas2DContext::JSSetter_fillStyle(JSContext *cx,
 
         /* Since out obj doesn't store the actual value (JSPROP_SHARED),
            we implicitly store and root our pattern obj */
-        state->m_CurrentShader.set(vp);
+        state->m_CurrentShader = vp;
 
     } else if (vp.isObject() && JSCanvasPattern::InstanceOf(vp)) {
 
         m_Skia->setFillColor(JSCanvasPattern::GetInstanceUnsafe(vp.toObjectOrNull()));
 
-        state->m_CurrentShader.set(vp);
+        state->m_CurrentShader = vp;
     } else {
         vp.setNull();
 
@@ -1308,7 +1308,7 @@ bool Canvas2DContext::JSSetter_strokeStyle(JSContext *cx,
 
         /* Since out obj doesn't store the actual value (JSPROP_SHARED),
            we implicitly store and root our pattern obj */
-        state->m_CurrentStrokeShader.set(vp);
+        state->m_CurrentStrokeShader = vp;
     } else {
         vp.setNull();
         state->m_CurrentStrokeShader.setUndefined();
