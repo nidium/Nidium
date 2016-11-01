@@ -76,7 +76,7 @@ static int nidium_timerng_wrapper(void *arg)
     arr.resize(params->argc);
 
     for (int i = 0; i < params->argc; i++) {
-        arr[i] = params->argv[i]->get();
+        arr[i].set(params->argv[i]->get());
     }
     JS_CallFunctionValue(params->cx, global, func, arr, &rval);
 
