@@ -8,7 +8,7 @@
         'type': 'none',
         'direct_dependent_settings': {
             'include_dirs': [
-                '<(third_party_path)/mozilla-central/dist/include/',
+                '<(third_party_path)/mozilla-central/js/src/obj/dist/include/',
                 '<(third_party_path)/mozilla-central/js/src/',
                 '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
                 '<(third_party_path)/http-parser/',
