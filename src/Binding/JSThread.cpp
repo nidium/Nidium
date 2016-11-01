@@ -29,19 +29,18 @@ static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass global_Thread_class = { "_GLOBALThread",
                                        JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
-                                       JS_PropertyStub,
-                                       JS_DeletePropertyStub,
-                                       JS_PropertyStub,
-                                       JS_StrictPropertyStub,
-                                       JS_EnumerateStub,
-                                       JS_ResolveStub,
-                                       JS_ConvertStub,
                                        nullptr,
                                        nullptr,
                                        nullptr,
                                        nullptr,
-                                       JS_GlobalObjectTraceHook,
-                                       JSCLASS_NO_INTERNAL_MEMBERS };
+                                       nullptr,
+                                       nullptr,
+                                       nullptr,
+                                       nullptr,
+                                       nullptr,
+                                       nullptr,
+                                       nullptr,
+                                       JS_GlobalObjectTraceHook};
 
 static JSFunctionSpec glob_funcs_threaded[]
     = { JS_FN("send", nidium_post_message, 1, NIDIUM_JS_FNPROPS), JS_FS_END };

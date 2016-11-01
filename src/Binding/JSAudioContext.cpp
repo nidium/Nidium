@@ -25,19 +25,18 @@ reportError(JSContext *cx, const char *message, JSErrorReport *report);
 static JSClass Global_AudioThread_class = {
     "_GLOBALAudioThread",
     JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL | JSCLASS_HAS_RESERVED_SLOTS(1),
-    JS_PropertyStub,
-    JS_DeletePropertyStub,
-    JS_PropertyStub,
-    JS_StrictPropertyStub,
-    JS_EnumerateStub,
-    JS_ResolveStub,
-    JS_ConvertStub,
     nullptr,
     nullptr,
     nullptr,
     nullptr,
-    JS_GlobalObjectTraceHook,
-    JSCLASS_NO_INTERNAL_MEMBERS
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    JS_GlobalObjectTraceHook
 };
 
 

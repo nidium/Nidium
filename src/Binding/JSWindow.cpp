@@ -37,94 +37,11 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-static JSClass MouseEvent_class = { "MouseEvent",
-                                    0,
-                                    JS_PropertyStub,
-                                    JS_DeletePropertyStub,
-                                    JS_PropertyStub,
-                                    JS_StrictPropertyStub,
-                                    JS_EnumerateStub,
-                                    JS_ResolveStub,
-                                    JS_ConvertStub,
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
-                                    JSCLASS_NO_INTERNAL_MEMBERS };
-
-static JSClass DragEvent_class = { "DragEvent",
-                                   0,
-                                   JS_PropertyStub,
-                                   JS_DeletePropertyStub,
-                                   JS_PropertyStub,
-                                   JS_StrictPropertyStub,
-                                   JS_EnumerateStub,
-                                   JS_ResolveStub,
-                                   JS_ConvertStub,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   JSCLASS_NO_INTERNAL_MEMBERS };
-
-#if 0
-static JSClass WindowEvent_class = {
-    "WindowEvent", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
-#endif
-
-static JSClass TextEvent_class = { "TextInputEvent",
-                                   0,
-                                   JS_PropertyStub,
-                                   JS_DeletePropertyStub,
-                                   JS_PropertyStub,
-                                   JS_StrictPropertyStub,
-                                   JS_EnumerateStub,
-                                   JS_ResolveStub,
-                                   JS_ConvertStub,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   JSCLASS_NO_INTERNAL_MEMBERS };
-
-static JSClass KeyEvent_class = { "KeyEvent",
-                                  0,
-                                  JS_PropertyStub,
-                                  JS_DeletePropertyStub,
-                                  JS_PropertyStub,
-                                  JS_StrictPropertyStub,
-                                  JS_EnumerateStub,
-                                  JS_ResolveStub,
-                                  JS_ConvertStub,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  JSCLASS_NO_INTERNAL_MEMBERS };
-
-static JSClass NMLEvent_class = { "NMLEvent",
-                                  0,
-                                  JS_PropertyStub,
-                                  JS_DeletePropertyStub,
-                                  JS_PropertyStub,
-                                  JS_StrictPropertyStub,
-                                  JS_EnumerateStub,
-                                  JS_ResolveStub,
-                                  JS_ConvertStub,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  JSCLASS_NO_INTERNAL_MEMBERS };
+static JSClass MouseEvent_class = { "MouseEvent", 0};
+static JSClass DragEvent_class = { "DragEvent", 0};
+static JSClass TextEvent_class = { "TextInputEvent", 0};
+static JSClass KeyEvent_class = { "KeyEvent", 0};
+static JSClass NMLEvent_class = { "NMLEvent", 0};
 
 static struct nidium_cursors
 {
@@ -1222,12 +1139,12 @@ JSClass *JSWindow::GetJSClass()
     static JSClass global_class = {
         "Window",         
         JSCLASS_GLOBAL_FLAGS_WITH_SLOTS(16) | JSCLASS_HAS_PRIVATE,
-        JS_PropertyStub,  JS_DeletePropertyStub,
-        JS_PropertyStub,  JS_StrictPropertyStub,
-        JS_EnumerateStub, JS_ResolveStub,
-        JS_ConvertStub,   nullptr,
-        nullptr,          nullptr,
-        nullptr,          JS_GlobalObjectTraceHook
+        nullptr,  nullptr,
+        nullptr,  nullptr,
+        nullptr,  nullptr,
+        nullptr,  nullptr,
+        nullptr,  nullptr,
+        nullptr,  JS_GlobalObjectTraceHook
     };
     
     return &global_class;

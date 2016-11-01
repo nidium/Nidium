@@ -126,7 +126,7 @@ public:
     template<int ctor_minarg = 0>
     static JSObject *ExposeClass(JSContext *cx, const char *name,
         int jsflags = 0, ExposeFlags flags = kEmpty_ExposeFlag,
-        JS::HandleObject parent = JS::NullPtr())
+        JS::HandleObject parent = nullptr)
     {
         JSClass *jsclass = T::GetJSClass();
 
@@ -480,15 +480,7 @@ protected:
     static inline JSClass *GetJSClass()
     {
         static JSClass jsclass = { NULL,
-                                   JSCLASS_HAS_PRIVATE,
-                                   JS_PropertyStub,
-                                   JS_DeletePropertyStub,
-                                   JS_PropertyStub,
-                                   JS_StrictPropertyStub,
-                                   JS_EnumerateStub,
-                                   JS_ResolveStub,
-                                   JS_ConvertStub,
-                                   JSCLASS_NO_OPTIONAL_MEMBERS };
+                                   JSCLASS_HAS_PRIVATE};
 
         return &jsclass;
     }

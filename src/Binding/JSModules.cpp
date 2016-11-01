@@ -43,35 +43,17 @@ Core::Hash<void *> JSModules::m_EmbeddedModules;
 
 static JSClass nidium_modules_exports_class = { "Exports",
                                                 JSCLASS_HAS_PRIVATE,
-                                                JS_PropertyStub,
-                                                JS_DeletePropertyStub,
-                                                JS_PropertyStub,
-                                                JS_StrictPropertyStub,
-                                                JS_EnumerateStub,
-                                                JS_ResolveStub,
-                                                JS_ConvertStub,
-                                                Exports_Finalize,
                                                 nullptr,
                                                 nullptr,
                                                 nullptr,
                                                 nullptr,
-                                                JSCLASS_NO_INTERNAL_MEMBERS };
+                                                nullptr,
+                                                nullptr,
+                                                nullptr,
+                                                Exports_Finalize};
 
 static JSClass nidium_modules_class = { "Module",
-                                        0,
-                                        JS_PropertyStub,
-                                        JS_DeletePropertyStub,
-                                        JS_PropertyStub,
-                                        JS_StrictPropertyStub,
-                                        JS_EnumerateStub,
-                                        JS_ResolveStub,
-                                        JS_ConvertStub,
-                                        NULL,
-                                        nullptr,
-                                        nullptr,
-                                        nullptr,
-                                        nullptr,
-                                        JSCLASS_NO_INTERNAL_MEMBERS };
+                                        0 };
 
 #if 0
 static JSPropertySpec nidium_modules_exports_props[] = {
