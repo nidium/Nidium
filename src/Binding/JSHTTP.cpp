@@ -461,11 +461,11 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
                                 h->m_Data->used, &jsdata, "utf8");
             break;
         case HTTP::DATA_JSON: {
-            const char16_t *chars;
-            size_t clen;
 
             eventBuilder.set("type", "json");
-
+            /*
+                XXX: This isnt UTF8 aware
+            */
             JS::RootedString str(
                 m_Cx, JS_NewStringCopyN(
                           m_Cx, reinterpret_cast<const char *>(h->m_Data->data),
@@ -476,9 +476,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
                 return;
             }
 
-            chars = JS_GetStringCharsZAndLength(m_Cx, str, &clen);
-
-            if (!JS_ParseJSON(m_Cx, chars, clen, &jsdata)) {
+            if (!JS_ParseJSON(m_Cx, str, &jsdata)) {
                 char *err;
                 asprintf(&err, "Cant parse JSON of size %ld :\n = %.*s\n = \n",
                          static_cast<unsigned long>(h->m_Data->used),
