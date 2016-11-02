@@ -17,6 +17,8 @@
 #include "Binding/JSEvents.h"
 #include "Binding/JSUtils.h"
 
+#include <js/TracingAPI.h>
+
 using Nidium::Core::SharedMessages;
 using Nidium::Interface::UIInterface;
 using Nidium::Graphics::CanvasContext;
@@ -1460,7 +1462,7 @@ void JSCanvas::jsTrace(class JSTracer *trc)
         for (cur = handler->getFirstChild(); cur != NULL; cur = cur->m_Next) {
             if (cur->m_JsObj) {
 
-                JS_CallHeapObjectTracer(trc, &cur->m_JsObj, "nidiumcanvasroot");
+                JS_CallObjectTracer(trc, &cur->m_JsObj, "nidiumcanvasroot");
             }
         }
     }

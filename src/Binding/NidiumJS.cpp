@@ -96,7 +96,11 @@ static void NidiumTraceBlack(JSTracer *trc, void *data)
         uintptr_t oldaddr = reinterpret_cast<uintptr_t>(item->content.addrs);
         uintptr_t newaddr = oldaddr;
 
-        JS_CallObjectTracer(trc, reinterpret_cast<JSObject **>(&newaddr),
+        /*
+            TODO: Change to barriered traced and check that we only root
+            JS::Heap<> objects.
+        */
+        JS_CallUnbarrieredObjectTracer(trc, reinterpret_cast<JSObject **>(&newaddr),
                             "NidiumRoot");
 
         if (oldaddr != newaddr) {
