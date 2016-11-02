@@ -136,7 +136,7 @@ public:
     {
         JSEvent *ev;
         for (ev = m_Head; ev != nullptr;) {
-            if (ev->m_Function == func) {
+            if (ev->m_Function.address() == func.address()) {
                 if (ev->prev) {
                     ev->prev->next = ev->next;
                 } else {
