@@ -84,7 +84,8 @@ static void *nidium_thread(void *arg)
     JSRuntime *rt;
     JSContext *tcx;
 
-    if ((rt = JS_NewRuntime(JS::DefaultHeapMaxBytes, JS::DefaultNurseryBytes))
+    if ((rt = JS_NewRuntime(JS::DefaultHeapMaxBytes,
+        JS::DefaultNurseryBytes, nthread->m_ParentRuntime))
         == NULL) {
         printf("Failed to init JS runtime\n");
         return NULL;
@@ -355,6 +356,7 @@ JSThread * JSThread::Constructor(JSContext *cx, JS::CallArgs &args,
         return nullptr;
     }
 
+    nthread->m_ParentRuntime = JS_GetRuntime(cx);
     nthread->m_JsObject = obj;
     nthread->m_Njs      = NJS;
 
