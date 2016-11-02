@@ -463,7 +463,8 @@ bool JSFile::JSStatic_read(JSContext *cx, JS::CallArgs &args)
     }
 
     if (JS_TypeOfValue(cx, args[1]) != JSTYPE_FUNCTION) {
-        CLASSMAPPER_CHECK_ARGS("read", 3);
+
+        args.requireAtLeast(cx, "read", 3);
 
         opt         = args[1].toObjectOrNull();
         argcallback = args[2];

@@ -21,17 +21,6 @@
         && !__curopt.isNullOrUndefined() \
         && __curopt.is##type())
 
-#define NIDIUM_JS_CHECK_ARGS(fnname, minarg)                         \
-    if (argc < minarg) {                                             \
-                                                                     \
-        char numBuf[12];                                             \
-        snprintf(numBuf, sizeof numBuf, "%u", argc);                 \
-        JS_ReportErrorNumber(cx, js::GetErrorMessage, NULL,           \
-                             JSMSG_MORE_ARGS_NEEDED, fnname, numBuf, \
-                             (argc > 1 ? "s" : ""));                 \
-        return false;                                                \
-    }
-
 #define JSOBJ_CALLFUNCNAME(where, name, argv)                           \
     {                                                                   \
         JS::RootedValue _oncallback(cx);                                \

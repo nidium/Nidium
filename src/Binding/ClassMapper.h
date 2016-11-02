@@ -18,17 +18,6 @@
 namespace Nidium {
 namespace Binding {
 
-#define CLASSMAPPER_CHECK_ARGS(fnname, minarg)                       \
-    if (args.length() < minarg) {                                    \
-                                                                     \
-        char numBuf[12];                                             \
-        snprintf(numBuf, sizeof numBuf, "%u", args.length());        \
-        JS_ReportErrorNumber(cx, js::GetErrorMessage, NULL,           \
-                             JSMSG_MORE_ARGS_NEEDED, fnname, numBuf, \
-                             (args.length() > 1 ? "s" : ""));        \
-        return false;                                                \
-    }
-
 
 #define CLASSMAPPER_FN(cclass, name, argc) \
     JS_FN(#name, (cclass::JSCall<&cclass::JS_##name, argc>), \
@@ -367,7 +356,7 @@ protected:
         CLASSMAPPER_PROLOGUE_CLASS(T);
 
         /* TODO: Get the right method name */
-        NIDIUM_JS_CHECK_ARGS("method", minarg);
+        args.requireAtLeast(cx, "method", minarg);
 
         return (CppObj->*U)(cx, args);
     }
@@ -377,7 +366,7 @@ protected:
     {
         CLASSMAPPER_PROLOGUE_NO_RET()
 
-        NIDIUM_JS_CHECK_ARGS("method", minarg);
+        args.requireAtLeast(cx, "method", minarg);
 
         args.rval().setUndefined();
 
@@ -451,7 +440,7 @@ protected:
             return false;
         }
 
-        NIDIUM_JS_CHECK_ARGS("constructor", ctor_minarg);
+        args.requireAtLeast(cx, "constructor", ctor_minarg);
 
         JS::RootedObject ret(
             cx, JS_NewObjectForConstructor(cx, jsclass, args));
@@ -508,7 +497,7 @@ public:
         CLASSMAPPER_PROLOGUE_CLASS(T);
 
         /* TODO: Get the right method name */
-        NIDIUM_JS_CHECK_ARGS("method", minarg);
+        args.requireAtLeast(cx, "method", minarg);
 
         return (CppObj->*U)(cx, args);
     }

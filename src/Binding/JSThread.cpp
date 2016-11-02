@@ -311,7 +311,7 @@ static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    NIDIUM_JS_CHECK_ARGS("postMessage", 1);
+    args.requireAtLeast(cx, "postMessage", 1);
 
     if (nthread == NULL || nthread->m_MarkedStop) {
         JS_ReportError(
