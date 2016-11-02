@@ -365,6 +365,11 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
         return;
     }
 
+    /*
+        Enable log buffering
+    */
+    AutoContextLogBuffering aclb(nctx);
+
     char *prefix = NULL;
     if (report->filename) {
         prefix = JS_smprintf("%s:", report->filename);

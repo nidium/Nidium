@@ -7,6 +7,7 @@
 #define core_context_h__
 
 #include "Binding/NidiumJS.h"
+#include <string>
 
 typedef struct _ape_timer_t ape_timer_t;
 typedef struct _ape_global ape_global;
@@ -43,6 +44,12 @@ public:
         return m_JS;
     }
 
+    void logStartBuffering() {
+        m_LogBuffering = true;
+    }
+
+    void logFlush();
+
     virtual void onMessage(const SharedMessages::Message &msg) override;
     virtual void onMessageLost(const SharedMessages::Message &msg) override;
 
@@ -72,6 +79,30 @@ protected:
     Binding::NidiumJS *m_JS;
     ape_global *m_APECtx;
     ape_timer_t *m_PingTimer;
+
+    bool m_LogBuffering = false;
+private:
+
+    std::string m_Logbuffer;
+};
+
+/*
+    RAII Helper to enable/flush log buffering
+*/
+class AutoContextLogBuffering
+{
+public:
+    AutoContextLogBuffering(Context *ctx) : m_Context(ctx)
+    {
+        m_Context->logStartBuffering();
+    }
+
+    ~AutoContextLogBuffering()
+    {
+        m_Context->logFlush();
+    }
+private:
+    Context *m_Context;
 };
 
 } // namespace Core
