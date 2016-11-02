@@ -15,9 +15,7 @@
 
 #include <js/RootingAPI.h>
 #include <jsprf.h>
-#include <jsfuninlines.h>
 
-#include <vm/Interpreter-inl.h>
 #include <jsstr.h>
 
 bool JS_ConvertArgumentsVA(JSContext *cx,
@@ -55,7 +53,7 @@ JS_ConvertArgumentsVA(JSContext *cx, const JS::CallArgs &args, const char *forma
         }
         if (index == args.length()) {
             if (required) {
-                if (JSFunction *fun = js::ReportIfNotFunction(cx, args.calleev())) {
+                if (JSFunction *fun = Nidium::Binding::JSUtils::ReportIfNotFunction(cx, args.calleev())) {
                     char numBuf[12];
                     JS_snprintf(numBuf, sizeof numBuf, "%u", args.length());
                     JSAutoByteString funNameBytes;
@@ -135,6 +133,22 @@ JS_ConvertArgumentsVA(JSContext *cx, const JS::CallArgs &args, const char *forma
 
 namespace Nidium {
 namespace Binding {
+
+JSFunction *JSUtils::ReportIfNotFunction(JSContext *cx, JS::HandleValue val)
+{
+    JS::RootedFunction ret(cx);
+
+    if (val.isObject() && (ret = JS_GetObjectFunction(&val.toObject()))) {
+        return ret;
+    }
+
+    JSAutoByteString fn(cx, JS::ToString(cx, val));
+
+    JS_ReportErrorNumber(cx, js::GetErrorMessage, nullptr,
+        JSMSG_NOT_FUNCTION, fn.ptr());
+
+    return nullptr;
+}
 
 // {{{ JSUtils
 bool JSUtils::StrToJsval(JSContext *cx,
@@ -266,7 +280,7 @@ JSTransferable::~JSTransferable()
         JS_ClearStructuredClone(m_Data, m_Bytes, nullptr, NULL);
     }
 
-    m_Val.set(JS::UndefinedHandleValue);
+    m_Val = JS::UndefinedHandleValue;
 }
 
 JS::Value JSTransferable::get()
