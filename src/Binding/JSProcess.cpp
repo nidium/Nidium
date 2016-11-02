@@ -193,14 +193,12 @@ bool JSProcess::JS_setOwner(JSContext *cx, JS::CallArgs &args)
 
 bool JSProcess::JS_setSignalHandler(JSContext *cx, JS::CallArgs &args)
 {
-    JS::RootedValue func(cx);
 
-    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
-        JS_ReportWarning(cx, "setSignalHandler: bad callback");
-        return true;
+    if (!JSUtils::ReportIfNotFunction(cx, args[0])) {
+        return false;
     }
 
-    JS_SetReservedSlot(m_Instance, 0, func);
+    JS_SetReservedSlot(m_Instance, 0, args[0]);
 
     return true;
 }

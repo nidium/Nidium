@@ -189,15 +189,13 @@ bool JSGlobal::JS_setImmediate(JSContext *cx, JS::CallArgs &args)
         params->argv[i] = new JS::PersistentRootedValue(cx);
     }
 
-    JS::RootedValue func(cx);
-
-    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
+    if (!JSUtils::ReportIfNotFunction(cx, args[0])) {
         delete[] params->argv;
         delete params;
-        return true;
+        return false;
     }
 
-    params->func = func;
+    params->func = args[0];
 
     for (i = 0; i < static_cast<int>(argc) - 1; i++) {
         *params->argv[i] = args[i + 1];
@@ -238,19 +236,17 @@ bool JSGlobal::JS_setTimeout(JSContext *cx, JS::CallArgs &args)
         params->argv[i] = new JS::PersistentRootedValue(cx);
     }
 
-    JS::RootedValue func(cx);
-
-    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
+    if (!JSUtils::ReportIfNotFunction(cx, args[0])) {
         delete[] params->argv;
         delete params;
-        return true;
+        return false;
     }
 
     if (argc > 1 && !JS::ToInt32(cx, args[1], &ms)) {
         ms = 0;
     }
 
-    params->func = func;
+    params->func = args[0];
 
     for (i = 0; i < static_cast<int>(argc) - 2; i++) {
         *params->argv[i] = args[i + 2];
@@ -291,14 +287,13 @@ bool JSGlobal::JS_setInterval(JSContext *cx, JS::CallArgs &args)
         params->argv[i] = new JS::PersistentRootedValue(cx);
     }
 
-    JS::RootedValue func(cx);
-    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
+    if (!JSUtils::ReportIfNotFunction(cx, args[0])) {
         delete[] params->argv;
         delete params;
-        return true;
+        return false;
     }
 
-    params->func = func;
+    params->func = args[0];
 
     if (argc > 1 && !JS::ToInt32(cx, args[1], &ms)) {
         ms = 0;

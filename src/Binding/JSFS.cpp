@@ -106,16 +106,13 @@ public:
 // {{{ Implementation
 bool JSFS::JS_readDir(JSContext *cx, JS::CallArgs &args)
 {
-
-    JS::RootedValue callback(cx);
     JS::RootedString path(cx);
 
     if (!JS_ConvertArguments(cx, args, "S", path.address())) {
         return false;
     }
 
-    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
-        JS_ReportError(cx, "open() invalid callback");
+    if (!JSUtils::ReportIfNotFunction(cx, args[1])) {
         return false;
     }
 
@@ -127,7 +124,7 @@ bool JSFS::JS_readDir(JSContext *cx, JS::CallArgs &args)
     task->setFunction(JSFSAsyncHandler::readDirTask);
     task->m_Args[0].set(strdup(cpath.ptr()));
 
-    handler->setCallback(0, callback.toObjectOrNull());
+    handler->setCallback(0, args[1].toObjectOrNull());
     handler->addTask(task);
 
     return true;

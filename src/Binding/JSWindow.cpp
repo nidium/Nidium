@@ -855,12 +855,12 @@ bool JSWindow::JS_openFileDialog(JSContext *cx, JS::CallArgs &args)
 
 bool JSWindow::JS_requestAnimationFrame(JSContext *cx, JS::CallArgs &args)
 {
-    JS::RootedValue cb(cx);
-    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &cb)) {
-        return true;
+    if (!JSUtils::ReportIfNotFunction(cx, args[0])) {
+
+        return false;
     }
 
-    this->addFrameCallback(&cb);
+    this->addFrameCallback(args[0]);
 
     return true;
 }

@@ -524,20 +524,18 @@ public:
     bool JS_addEventListener(JSContext *cx, JS::CallArgs &args)
     {
         JS::RootedString name(cx);
-        JS::RootedValue cb(cx);
 
         if (!JS_ConvertArguments(cx, args, "S", name.address())) {
             return false;
         }
 
-        if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &cb)) {
-            JS_ReportError(cx, "Bad callback given");
+        if (!JSUtils::ReportIfNotFunction(cx, args[1])) {
             return false;
         }
 
         JSAutoByteString cname(cx, name);
 
-        this->addJSEvent(cname.ptr(), cb);
+        this->addJSEvent(cname.ptr(), args[1]);
 
         return true;
     }
@@ -555,12 +553,11 @@ public:
         if (args.length() == 1) {
             this->removeJSEvent(cname.ptr());
         } else {
-            if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &cb)) {
-                JS_ReportError(cx, "Bad callback given");
+            if (!JSUtils::ReportIfNotFunction(cx, args[1])) {
                 return false;
             }
 
-            this->removeJSEvent(cname.ptr(), cb);
+            this->removeJSEvent(cname.ptr(), args[1]);
         }
 
         return true;

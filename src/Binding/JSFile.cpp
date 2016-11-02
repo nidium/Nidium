@@ -294,15 +294,13 @@ bool JSFile::JS_rmrf(JSContext *cx, JS::CallArgs &args)
 
 bool JSFile::JS_listFiles(JSContext *cx, JS::CallArgs &args)
 {
-    JS::RootedValue callback(cx);
     File *file = this->getFile();
 
-    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &callback)) {
-        JS_ReportError(cx, "listFiles() bad callback");
+    if (!JSUtils::ReportIfNotFunction(cx, args[0])) {
         return false;
     }
 
-    NidiumJS::RootObjectUntilShutdown(callback.toObjectOrNull());
+    NidiumJS::RootObjectUntilShutdown(args[0].toObjectOrNull());
 
     /*
         If the directory is not open, open it anyway
@@ -310,7 +308,7 @@ bool JSFile::JS_listFiles(JSContext *cx, JS::CallArgs &args)
     if (!file->isOpen()) {
         file->open("r");
     }
-    file->listFiles(callback.toObjectOrNull());
+    file->listFiles(args[0].toObjectOrNull());
 
     this->root();
 
@@ -319,21 +317,19 @@ bool JSFile::JS_listFiles(JSContext *cx, JS::CallArgs &args)
 
 bool JSFile::JS_seek(JSContext *cx, JS::CallArgs &args)
 {
-    JS::RootedValue callback(cx);
     double seek_pos;
 
     if (!JS_ConvertArguments(cx, args, "d", &seek_pos)) {
         return false;
     }
 
-    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
-        JS_ReportError(cx, "seek() bad callback");
+    if (!JSUtils::ReportIfNotFunction(cx, args[1])) {
         return false;
     }
 
-    NidiumJS::RootObjectUntilShutdown(callback.toObjectOrNull());
+    NidiumJS::RootObjectUntilShutdown(args[1].toObjectOrNull());
 
-    this->getFile()->seek(seek_pos, callback.toObjectOrNull());
+    this->getFile()->seek(seek_pos, args[1].toObjectOrNull());
 
     this->root();
 
@@ -342,11 +338,9 @@ bool JSFile::JS_seek(JSContext *cx, JS::CallArgs &args)
 
 bool JSFile::JS_write(JSContext *cx, JS::CallArgs &args)
 {
-    JS::RootedValue callback(cx);
     File *file = this->getFile();
 
-    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
-        JS_ReportError(cx, "write() bad callback");
+    if (!JSUtils::ReportIfNotFunction(cx, args[1])) {
         return false;
     }
 
@@ -360,9 +354,9 @@ bool JSFile::JS_write(JSContext *cx, JS::CallArgs &args)
             cstr.encodeLatin1(cx, str);
         }
 
-        NidiumJS::RootObjectUntilShutdown(callback.toObjectOrNull());
+        NidiumJS::RootObjectUntilShutdown(args[1].toObjectOrNull());
 
-        file->write(cstr.ptr(), cstr.length(), callback.toObjectOrNull());
+        file->write(cstr.ptr(), cstr.length(), args[1].toObjectOrNull());
     } else if (args[0].isObject()) {
         JS::RootedObject jsobj(cx, args[0].toObjectOrNull());
 
@@ -374,10 +368,10 @@ bool JSFile::JS_write(JSContext *cx, JS::CallArgs &args)
         uint32_t len  = JS_GetArrayBufferByteLength(jsobj);
         uint8_t *data = JS_GetArrayBufferData(jsobj);
 
-        NidiumJS::RootObjectUntilShutdown(callback.toObjectOrNull());
+        NidiumJS::RootObjectUntilShutdown(args[1].toObjectOrNull());
 
         file->write(reinterpret_cast<char *>(data), len,
-                    callback.toObjectOrNull());
+                    args[1].toObjectOrNull());
     } else {
         JS_ReportError(cx, "INVALID_VALUE : only accept string or ArrayBuffer");
         return false;
@@ -390,21 +384,19 @@ bool JSFile::JS_write(JSContext *cx, JS::CallArgs &args)
 
 bool JSFile::JS_read(JSContext *cx, JS::CallArgs &args)
 {
-    JS::RootedValue callback(cx);
     double read_size;
 
     if (!JS_ConvertArguments(cx, args, "d", &read_size)) {
         return false;
     }
 
-    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
-        JS_ReportError(cx, "read() Bad callback");
+    if (!JSUtils::ReportIfNotFunction(cx, args[1])) {
         return false;
     }
 
-    NidiumJS::RootObjectUntilShutdown(callback.toObjectOrNull());
+    NidiumJS::RootObjectUntilShutdown(args[1].toObjectOrNull());
 
-    this->getFile()->read(static_cast<uint64_t>(read_size), callback.toObjectOrNull());
+    this->getFile()->read(static_cast<uint64_t>(read_size), args[1].toObjectOrNull());
 
     this->root();
 
@@ -422,23 +414,21 @@ bool JSFile::JS_close(JSContext *cx, JS::CallArgs &args)
 
 bool JSFile::JS_open(JSContext *cx, JS::CallArgs &args)
 {
-    JS::RootedValue callback(cx);
     JS::RootedString modes(cx);
 
     if (!JS_ConvertArguments(cx, args, "S", modes.address())) {
         return false;
     }
 
-    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
-        JS_ReportError(cx, "open() invalid callback");
+    if (!JSUtils::ReportIfNotFunction(cx, args[1])) {
         return false;
     }
 
     JSAutoByteString cmodes(cx, modes);
 
-    NidiumJS::RootObjectUntilShutdown(callback.toObjectOrNull());
+    NidiumJS::RootObjectUntilShutdown(args[1].toObjectOrNull());
 
-    this->getFile()->open(cmodes.ptr(), callback.toObjectOrNull());
+    this->getFile()->open(cmodes.ptr(), args[1].toObjectOrNull());
 
     this->root();
 
@@ -454,7 +444,7 @@ bool JSFile::JSStatic_read(JSContext *cx, JS::CallArgs &args)
     NIDIUM_JS_INIT_OPT();
 
     JS::RootedValue argcallback(cx);
-    JS::RootedValue callback(cx);
+
     char *cencoding   = NULL;
 
     if (!JS_ConvertArguments(cx, args, "So", filename.address(),
@@ -472,13 +462,12 @@ bool JSFile::JSStatic_read(JSContext *cx, JS::CallArgs &args)
         argcallback = args[1];
     }
 
-    if (!JS_ConvertValue(cx, argcallback, JSTYPE_FUNCTION, &callback)) {
-        JS_ReportError(cx, "read() invalid callback");
+    if (!JSUtils::ReportIfNotFunction(cx, argcallback)) {
         return false;
     }
 
     JSAutoByteString cfilename(cx, filename);
-    NidiumJS::RootObjectUntilShutdown(&callback.toObject());
+    NidiumJS::RootObjectUntilShutdown(&argcallback.toObject());
 
     Stream *stream = Stream::Create(Path(cfilename.ptr()));
 
@@ -499,7 +488,7 @@ bool JSFile::JSStatic_read(JSContext *cx, JS::CallArgs &args)
     async->m_Args[2].set(stream);
 
     /* XXX RootedObject */
-    async->m_Args[7].set(callback.toObjectOrNull());
+    async->m_Args[7].set(argcallback.toObjectOrNull());
 
     stream->setListener(async);
     stream->getContent();
