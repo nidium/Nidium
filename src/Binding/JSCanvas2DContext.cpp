@@ -1622,9 +1622,9 @@ void Canvas2DContext::jsTrace(class JSTracer *trc)
          state != NULL; state = state->m_Next) {
 
         /* Does this matter if we trace an UndefinedValue? */
-        JS_CallHeapValueTracer(trc, &state->m_CurrentShader,
+        JS_CallValueTracer(trc, &state->m_CurrentShader,
                                "Canvas2DContextShader");
-        JS_CallHeapValueTracer(trc, &state->m_CurrentStrokeShader,
+        JS_CallValueTracer(trc, &state->m_CurrentStrokeShader,
                                "Canvas2DContextShader");
     }
 }
