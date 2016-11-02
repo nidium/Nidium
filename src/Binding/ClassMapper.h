@@ -47,21 +47,18 @@ namespace Binding {
     {                                                                       \
         #name,                                                              \
         JSPROP_PERMANENT | /*JSPROP_READONLY |*/ JSPROP_ENUMERATE |         \
-            JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,                        \
-        {{JS_CAST_NATIVE_TO((cclass::JSGetter<&cclass::JSGetter_##alias>),   \
-            JSPropertyOp), nullptr}},                                       \
-        JSOP_NULLWRAPPER                                                    \
+            JSPROP_SHARED,                                                  \
+        {{  cclass::JSGetter<&cclass::JSGetter_##alias>, nullptr}},         \
+        {{ nullptr, nullptr }}                                              \
     }
 
 #define CLASSMAPPER_PROP_GS_ALIAS(cclass, name, alias) \
     {                                                                       \
         #name,                                                              \
         JSPROP_PERMANENT | /*JSPROP_READONLY |*/ JSPROP_ENUMERATE |         \
-            JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,                        \
-        {{JS_CAST_NATIVE_TO((cclass::JSGetter<&cclass::JSGetter_##alias>),   \
-            JSPropertyOp), nullptr}},                                       \
-        {{JS_CAST_NATIVE_TO((cclass::JSSetter<&cclass::JSSetter_##alias>),   \
-            JSStrictPropertyOp), nullptr}}                                  \
+            JSPROP_SHARED,                        \
+        {{cclass::JSGetter<&cclass::JSGetter_##alias>, nullptr}},           \
+        {{cclass::JSSetter<&cclass::JSSetter_##alias>, nullptr}}           \
     }
 
 #define CLASSMAPPER_PROP_GS(cclass, name) \
