@@ -384,7 +384,7 @@ bool JSAudioContext::createContext()
 {
     if (m_JsRt != NULL) return false;
 
-    if ((m_JsRt = JS_NewRuntime(128L * 1024L * 1024L, JS_USE_HELPER_THREADS))
+    if ((m_JsRt = JS_NewRuntime(JS::DefaultHeapMaxBytes, JS::DefaultNurseryBytes))
         == NULL) {
         NUI_LOG("Failed to init JS runtime\n");
         return false;

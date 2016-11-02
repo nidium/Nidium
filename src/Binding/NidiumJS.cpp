@@ -485,7 +485,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
 
     NidiumJS::Init();
 
-    if ((rt = JS_NewRuntime(128L * 1024L * 1024L, JS_NO_HELPER_THREADS))
+    if ((rt = JS_NewRuntime(JS::DefaultHeapMaxBytes, JS::DefaultNurseryBytes))
         == NULL) {
 
         printf("Failed to init JS runtime\n");
