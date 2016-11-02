@@ -199,11 +199,17 @@ bool JSCanvasGLProgram::uniformXiv(JSContext *cx, JS::CallArgs &args, int nb)
         return true;
     }
     if (JS_IsInt32Array(array)) {
-        carray = (GLint *)JS_GetInt32ArrayData(array);
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
+
+        carray = (GLint *)JS_GetInt32ArrayData(array, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(array);
     } else if (JS_IsArrayObject(cx, array)) {
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
+
         JS::RootedObject tmp(cx, JS_NewInt32ArrayFromArray(cx, array));
-        carray = (GLint *)JS_GetInt32ArrayData(tmp);
+        carray = (GLint *)JS_GetInt32ArrayData(tmp, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Int32 array");
@@ -249,11 +255,17 @@ bool JSCanvasGLProgram::uniformXfv(JSContext *cx, JS::CallArgs &args, int nb)
     }
 
     if (JS_IsFloat32Array(array)) {
-        carray = (GLfloat *)JS_GetFloat32ArrayData(array);
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
+
+        carray = (GLfloat *)JS_GetFloat32ArrayData(array, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(array);
     } else if (JS_IsArrayObject(cx, array)) {
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
+
         JS::RootedObject tmp(cx, JS_NewFloat32ArrayFromArray(cx, array));
-        carray = (GLfloat *)JS_GetFloat32ArrayData(tmp);
+        carray = (GLfloat *)JS_GetFloat32ArrayData(tmp, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Float32 array");
@@ -768,9 +780,13 @@ bool Canvas2DContext::JS_getImageData(JSContext *cx, JS::CallArgs &args)
 
     JS::RootedObject arrBuffer(cx,
                                JS_NewUint8ClampedArray(cx, width * height * 4));
-    data = JS_GetUint8ClampedArrayData(arrBuffer);
+    {
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
 
-    m_Skia->readPixels(top, left, width, height, data);
+        data = JS_GetUint8ClampedArrayData(arrBuffer, &shared, nogc);
+        m_Skia->readPixels(top, left, width, height, data);
+    }
     JS::RootedValue widthVal(cx, JS::NumberValue(width));
     JS::RootedValue heightVal(cx, JS::NumberValue(height));
     JS::RootedValue arVal(cx, JS::ObjectValue(*arrBuffer));
@@ -817,9 +833,14 @@ bool Canvas2DContext::JS_putImageData(JSContext *cx, JS::CallArgs &args)
 
     JS::RootedObject jObj(cx);
     JS_ValueToObject(cx, jdata, &jObj);
-    pixels = JS_GetUint8ClampedArrayData(jObj);
+    
     JS::ToInt32(cx, jwidth, &w);
     JS::ToInt32(cx, jheight, &h);
+
+    bool shared;
+    JS::AutoCheckCannotGC nogc;
+
+    pixels = JS_GetUint8ClampedArrayData(jObj, &shared, nogc);
 
     m_Skia->drawPixels(pixels, w, h, x, y);
 
