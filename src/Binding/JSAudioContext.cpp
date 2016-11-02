@@ -446,17 +446,20 @@ bool JSAudioContext::run(char *str)
     JS::RootedObject globalObj(m_JsTcx, JS::CurrentGlobalOrNull(m_JsTcx));
     options.setIntroductionType("audio Thread").setUTF8(true);
 
-    JS::RootedFunction fun(
-        m_JsTcx, JS_CompileFunction(m_JsTcx, globalObj, "Audio_run", 0, nullptr,
-                                    str, strlen(str), options));
-    if (!fun.get()) {
+    JS::RootedFunction fun(m_JsTcx);
+    JS::AutoObjectVector scopeChain(m_JsTcx);
+
+    bool state = JS::CompileFunction(m_JsTcx, scopeChain, options,
+                                    "Audio_run", 0, nullptr,
+                                    str, strlen(str), &fun);
+
+    if (!state) {
         JS_ReportError(m_JsTcx, "Failed to compile script on audio thread\n");
         return false;
     }
 
     JS::RootedValue rval(m_JsTcx);
-    JS_CallFunction(m_JsTcx, globalObj, fun, JS::HandleValueArray::empty(),
-                    &rval);
+    JS_CallFunction(m_JsTcx, globalObj, fun, JS::HandleValueArray::empty(), &rval);
 
     return true;
 }

@@ -816,9 +816,9 @@ int NidiumJS::LoadScriptContent(const char *data,
         .setFileAndLine(filename, 1)
         .setNoScriptRval(true);
 
-    script = JS::Compile(m_Cx, gbl, options, data, len);
+    bool state = JS::Compile(m_Cx, options, data, len, &script);
 
-    if (!script || !JS_ExecuteScript(m_Cx, gbl, script)) {
+    if (!state || !JS_ExecuteScript(m_Cx, script)) {
         if (JS_IsExceptionPending(m_Cx)) {
             if (!JS_ReportPendingException(m_Cx)) {
                 JS_ClearPendingException(m_Cx);
@@ -856,11 +856,11 @@ char *NidiumJS::LoadScriptContentAndGetResult(const char *data,
         .setFileAndLine(filename, 1)
         .setNoScriptRval(false);
 
-    script = JS::Compile(m_Cx, gbl, options, data, len);
+    bool state = JS::Compile(m_Cx, options, data, len, &script);
 
     JS::RootedValue rval(m_Cx);
 
-    if (!script || !JS_ExecuteScript(m_Cx, gbl, script, &rval)) {
+    if (!state || !JS_ExecuteScript(m_Cx, script, &rval)) {
         if (JS_IsExceptionPending(m_Cx)) {
             if (!JS_ReportPendingException(m_Cx)) {
                 JS_ClearPendingException(m_Cx);
@@ -910,9 +910,9 @@ int NidiumJS::LoadBytecode(NidiumBytecodeScript *script)
 int NidiumJS::LoadBytecode(void *data, int size, const char *filename)
 {
     JS::RootedObject gbl(m_Cx, JS::CurrentGlobalOrNull(m_Cx));
-    JS::RootedScript script(m_Cx, JS_DecodeScript(m_Cx, data, size, NULL));
+    JS::RootedScript script(m_Cx, JS_DecodeScript(m_Cx, data, size));
 
-    if (script == NULL || !JS_ExecuteScript(m_Cx, gbl, script)) {
+    if (script == NULL || !JS_ExecuteScript(m_Cx, script)) {
         if (JS_IsExceptionPending(m_Cx)) {
             if (!JS_ReportPendingException(m_Cx)) {
                 JS_ClearPendingException(m_Cx);
