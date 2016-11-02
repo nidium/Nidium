@@ -8,6 +8,7 @@
 
 #include "Binding/NidiumJS.h"
 #include <string>
+#include <assert.h>
 
 typedef struct _ape_timer_t ape_timer_t;
 typedef struct _ape_global ape_global;
@@ -45,6 +46,8 @@ public:
     }
 
     void logStartBuffering() {
+        assert(m_LogBuffering == false);
+        
         m_LogBuffering = true;
     }
 
