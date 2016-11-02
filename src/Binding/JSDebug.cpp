@@ -67,7 +67,7 @@ bool JSDebug::JS_unserialize(JSContext *cx, JS::CallArgs &args)
     {
         /*
             New scope here to comply with AutoCheckCannotGC.
-            We're not using the data avec JS_ReadStructuredClone()
+            We're not using the data after JS_ReadStructuredClone()
         */
         JS::AutoCheckCannotGC nogc;
         bool shared;
