@@ -114,7 +114,7 @@ static void *nidium_thread(void *arg)
             repportError read the runtime private to use the logger
         */
         JS_SetRuntimePrivate(rt, nthread->m_Njs);
-        JS_SetErrorReporter(tcx, reportError);
+        JS_SetErrorReporter(rt, reportError);
 
         JS::RootedObject gbl(tcx, _CreateJSGlobal(tcx));
         if (gbl.get()) {

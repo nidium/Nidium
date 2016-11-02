@@ -425,7 +425,7 @@ bool JSAudioContext::createContext()
         NUI_LOG("Failed to init std class\n");
         return false;
     }
-    JS_SetErrorReporter(m_JsTcx, reportError);
+    JS_SetErrorReporter(m_JsRt, reportError);
     JS_FireOnNewGlobalObject(m_JsTcx, global);
     JSConsole::RegisterObject(m_JsTcx);
     JSAudioNodeThreaded::RegisterObject(m_JsTcx);

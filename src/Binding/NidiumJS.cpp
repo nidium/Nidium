@@ -408,25 +408,36 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
     }
     nctx->vlog("%s", message);
 
-    if (report->linebuf) {
-        /* report->linebuf usually ends with a newline. */
-        int n = strlen(report->linebuf);
-        nctx->vlog(":\n%s%s%s%s", prefix, report->linebuf,
-                   (n > 0 && report->linebuf[n - 1] == '\n') ? "" : "\n",
-                   prefix);
-        n = report->tokenptr - report->linebuf;
-        for (int i = 0, j = 0; i < n; i++) {
-            if (report->linebuf[i] == '\t') {
-                for (int k = (j + 8) & ~7; j < k; j++) {
-                    nctx->vlog("%c", '.');
-                }
+    if (const char16_t* linebuf = report->linebuf()) {
+        size_t n = report->linebufLength();
+
+        nctx->log(":\n");
+        if (prefix)
+            nctx->log(prefix);
+
+        for (size_t i = 0; i < n; i++)
+            nctx->vlog("%c", static_cast<char>(linebuf[i]));
+
+        // linebuf usually ends with a newline. If not, add one here.
+        if (n == 0 || linebuf[n-1] != '\n')
+            nctx->log("\n");
+
+        if (prefix)
+            nctx->log(prefix);
+
+        n = report->tokenOffset();
+        for (size_t i = 0, j = 0; i < n; i++) {
+            if (linebuf[i] == '\t') {
+                for (size_t k = (j + 8) & ~7; j < k; j++)
+                    nctx->log(".");
                 continue;
             }
-            nctx->vlog("%c", '.');
+            nctx->log(".");
             j++;
         }
-        nctx->vlog("%c", '^');
+        nctx->log("^");
     }
+
     nctx->vlog("%c", '\n');
     fflush(stdout);
     JS_free(cx, prefix);
@@ -520,7 +531,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION | JSOPTION_ASMJS | JSOPTION_BASELINE);
 #endif
 #endif
-    JS_SetErrorReporter(m_Cx, reportError);
+    JS_SetErrorReporter(rt, reportError);
 
     gbl = NidiumJS::CreateJSGlobal(m_Cx, this);
 
@@ -537,8 +548,6 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
         NidiumJS::m_JsScc->write       = NidiumJS::writeStructuredCloneOp;
         NidiumJS::m_JsScc->reportError = NULL;
     }
-
-    JS_SetStructuredCloneCallbacks(rt, NidiumJS::m_JsScc);
 
     js::SetDefaultObjectForContext(m_Cx, gbl);
 
