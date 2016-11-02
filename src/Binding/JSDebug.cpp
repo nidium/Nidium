@@ -24,13 +24,10 @@ bool JSDebug::JS_serialize(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    void *content;
-
-    if (!(content = JS_AllocateArrayBufferContents(cx, data_len))) {
-        JS_ReportOutOfMemory(cx);
-        return false;
-    }
-
+    /*
+        JSAPI will takes ownership of this and free it
+    */
+    char *content = (char *)malloc(data_len);
     memcpy(content, data, data_len);
 
     JS_ClearStructuredClone(data, data_len, nullptr, nullptr);
@@ -57,13 +54,24 @@ bool JSDebug::JS_unserialize(JSContext *cx, JS::CallArgs &args)
         return false;
     }
     uint32_t len  = JS_GetArrayBufferByteLength(objdata);
-    uint8_t *data = JS_GetArrayBufferData(objdata);
+    
 
     JS::RootedValue inval(cx);
 
     if (offset >= len) {
         JS_ReportError(cx, "unserialize() offset overflow");
         return false;
+    }
+
+    uint8_t *data;
+    {
+        /*
+            New scope here to comply with AutoCheckCannotGC.
+            We're not using the data avec JS_ReadStructuredClone()
+        */
+        JS::AutoCheckCannotGC nogc;
+        bool shared;
+        data = JS_GetArrayBufferData(objdata, &shared, nogc);
     }
 
     if (!JS_ReadStructuredClone(cx, (uint64_t *)(data + offset), len - offset,

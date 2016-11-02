@@ -150,6 +150,26 @@ JSFunction *JSUtils::ReportIfNotFunction(JSContext *cx, JS::HandleValue val)
     return nullptr;
 }
 
+JSObject *JSUtils::NewArrayBufferWithCopiedContents(JSContext *cx,
+        size_t len, const void *data)
+{
+    JS::RootedObject arr(cx, JS_NewArrayBuffer(cx, len));
+
+    if (!arr) {
+        JS_ReportOutOfMemory(cx);
+        return nullptr;
+    }
+
+    JS::AutoCheckCannotGC nogc;
+    bool shared;
+
+    uint8_t *adata = JS_GetArrayBufferData(arr, &shared, nogc);
+
+    memcpy(adata, data, len);
+
+    return arr;
+}
+
 // {{{ JSUtils
 bool JSUtils::StrToJsval(JSContext *cx,
                          const char *buf,
@@ -171,17 +191,14 @@ bool JSUtils::StrToJsval(JSContext *cx,
         ret.setString(str);
 
     } else {
-        JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
+        JS::RootedObject arrayBuffer(cx,
+            NewArrayBufferWithCopiedContents(cx, len, buf));
 
-        if (arrayBuffer == NULL) {
-            JS_ReportOutOfMemory(cx);
+        if (arrayBuffer == nullptr) {
             return false;
-        } else {
-            uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
-            memcpy(adata, buf, len);
-
-            ret.setObject(*arrayBuffer);
         }
+
+        ret.setObject(*arrayBuffer);
     }
 
     return true;

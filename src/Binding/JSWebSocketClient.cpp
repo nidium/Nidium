@@ -129,7 +129,11 @@ bool JSWebSocket::JS_send(JSContext *cx, JS::CallArgs &args)
             return false;
         }
         uint32_t len  = JS_GetArrayBufferByteLength(objdata);
-        uint8_t *data = JS_GetArrayBufferData(objdata);
+
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
+
+        uint8_t *data = JS_GetArrayBufferData(objdata, &shared, nogc);
 
         this->ws()->write(static_cast<unsigned char *>(data), len, true);
 

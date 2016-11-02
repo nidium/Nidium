@@ -175,7 +175,11 @@ bool JSWebSocketClientConnection::JS_send(JSContext *cx, JS::CallArgs &args)
             return false;
         }
         uint32_t len  = JS_GetArrayBufferByteLength(objdata);
-        uint8_t *data = JS_GetArrayBufferData(objdata);
+
+        JS::AutoCheckCannotGC nogc;
+        bool shared;
+
+        uint8_t *data = JS_GetArrayBufferData(objdata, &shared, nogc);
 
         m_WebSocketClientConnection->write(static_cast<unsigned char *>(data),
                         len, true,

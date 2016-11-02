@@ -994,8 +994,12 @@ bool JSWebGLRenderingContext::JS_bufferData(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    GL_CALL(this, BufferData(target, JS_GetArrayBufferViewByteLength(array),
-                             JS_GetArrayBufferViewData(array), usage));
+    JS::AutoCheckCannotGC nogc;
+    bool shared;
+
+    GL_CALL(this, BufferData(target,
+                        JS_GetArrayBufferViewByteLength(array),
+                        JS_GetArrayBufferViewData(array, &shared, nogc), usage));
 
     return true;
 }
@@ -1019,9 +1023,12 @@ bool JSWebGLRenderingContext::JS_bufferSubData(JSContext *cx,
         return false;
     }
 
+    JS::AutoCheckCannotGC nogc;
+    bool shared;
+
     GL_CALL(this, BufferSubData(target, offset,
-                                JS_GetArrayBufferViewByteLength(array),
-                                JS_GetArrayBufferViewData(array)));
+                            JS_GetArrayBufferViewByteLength(array),
+                            JS_GetArrayBufferViewData(array, &shared, nogc)));
 
     return true;
 }
@@ -2321,8 +2328,13 @@ bool JSWebGLRenderingContext::JS_texImage2D(JSContext *cx, JS::CallArgs &args)
             return false;
         }
 
+
         if (array != NULL && JS_IsTypedArrayObject(array)) {
-            pixels = JS_GetArrayBufferViewData(array);
+    
+            JS::AutoCheckCannotGC nogc;
+            bool shared;
+
+            pixels = JS_GetArrayBufferViewData(array, &shared, nogc);
         } else {
             JS_ReportError(cx, "Invalid array (not a typed array)");
             return false;

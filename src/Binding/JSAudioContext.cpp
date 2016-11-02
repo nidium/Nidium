@@ -311,11 +311,13 @@ bool JSAudioContext::JS_pFFT(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    if (JS_GetObjectAsFloat64Array(x, &dlenx, &dx) == NULL) {
+    bool shared;
+
+    if (JS_GetObjectAsFloat64Array(x, &dlenx, &shared, &dx) == NULL) {
         JS_ReportError(cx, "Can't convert typed array (expected Float64Array)");
         return false;
     }
-    if (JS_GetObjectAsFloat64Array(y, &dleny, &dy) == NULL) {
+    if (JS_GetObjectAsFloat64Array(y, &dleny, &shared, &dy) == NULL) {
         JS_ReportError(cx, "Can't convert typed array (expected Float64Array)");
         return false;
     }

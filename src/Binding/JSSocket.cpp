@@ -129,9 +129,8 @@ void JSSocketBase::onRead(const char *data, size_t len)
     }
 
     if (this->getFlags() & JSSocket::kSocketType_Binary) {
-        JS::RootedObject arrayBuffer(m_Cx, JS_NewArrayBuffer(m_Cx, len));
-        uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
-        memcpy(adata, data, len);
+        JS::RootedObject arrayBuffer(m_Cx,
+            JSUtils::NewArrayBufferWithCopiedContents(m_Cx, len, data));
 
         jparams[dataPosition].setObject(*arrayBuffer);
 
@@ -226,9 +225,8 @@ static void nidium_socket_wrapper_client_onmessage(ape_socket *socket_server,
     JS::RootedValue rval(cx);
 
     if (nsocket->m_Flags & JSSocket::kSocketType_Binary) {
-        JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
-        uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
-        memcpy(data, packet, len);
+        JS::RootedObject arrayBuffer(cx,
+            JSUtils::NewArrayBufferWithCopiedContents(cx, len, packet));
 
         jparams[0].setObject(*arrayBuffer);
 
@@ -605,7 +603,11 @@ bool JSSocket::JS_write(JSContext *cx, JS::CallArgs &args)
             return false;
         }
         uint32_t len  = JS_GetArrayBufferByteLength(objdata);
-        uint8_t *data = JS_GetArrayBufferData(objdata);
+
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
+
+        uint8_t *data = JS_GetArrayBufferData(objdata, &shared, nogc);
 
         int ret = this->write(data, len, APE_DATA_COPY);
 
@@ -670,7 +672,10 @@ bool JSSocket::JS_sendTo(JSContext *cx, JS::CallArgs &args)
             return false;
         }
         uint32_t len  = JS_GetArrayBufferByteLength(objdata);
-        uint8_t *data = JS_GetArrayBufferData(objdata);
+
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
+        uint8_t *data = JS_GetArrayBufferData(objdata, &shared, nogc);
 
         ape_socket_write_udp(this->m_Socket, reinterpret_cast<char *>(data),
                              len, cip.ptr(), static_cast<uint16_t>(port));
@@ -909,7 +914,10 @@ bool JSSocketClientConnection::JS_write(JSContext *cx, JS::CallArgs &args)
             return false;
         }
         uint32_t len  = JS_GetArrayBufferByteLength(objdata);
-        uint8_t *data = JS_GetArrayBufferData(objdata);
+
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
+        uint8_t *data = JS_GetArrayBufferData(objdata, &shared, nogc);
 
         int ret = this->write(data, len, APE_DATA_COPY);
 

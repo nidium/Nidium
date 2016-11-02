@@ -366,7 +366,10 @@ bool JSFile::JS_write(JSContext *cx, JS::CallArgs &args)
             return false;
         }
         uint32_t len  = JS_GetArrayBufferByteLength(jsobj);
-        uint8_t *data = JS_GetArrayBufferData(jsobj);
+
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
+        uint8_t *data = JS_GetArrayBufferData(jsobj, &shared, nogc);
 
         NidiumJS::RootObjectUntilShutdown(args[1].toObjectOrNull());
 
@@ -688,7 +691,10 @@ bool JSFile::JS_writeSync(JSContext *cx, JS::CallArgs &args)
         }
 
         uint32_t len  = JS_GetArrayBufferByteLength(jsobj);
-        uint8_t *data = JS_GetArrayBufferData(jsobj);
+
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
+        uint8_t *data = JS_GetArrayBufferData(jsobj, &shared, nogc);
 
         ret = file->writeSync(reinterpret_cast<char *>(data), len, &err);
     } else {

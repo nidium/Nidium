@@ -174,9 +174,8 @@ bool JSStream::JS_getNextPacket(JSContext *cx, JS::CallArgs &args)
         return true;
     }
 
-    JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
-    uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
-    memcpy(data, ret, len);
+    JS::RootedObject arrayBuffer(cx,
+        JSUtils::NewArrayBufferWithCopiedContents(cx, len, ret));
 
     args.rval().setObject(*arrayBuffer);
 

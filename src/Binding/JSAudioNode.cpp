@@ -388,9 +388,8 @@ JSAudioNodeBuffers::JSAudioNodeBuffers(JSAudioContext *audioCtx,
         uint8_t *data;
 
         // TODO : Avoid memcpy (custom allocator for AudioNode?)
-        JS::RootedObject arrBuff(cx, JS_NewArrayBuffer(cx, m_Size));
-        data = JS_GetArrayBufferData(arrBuff);
-        memcpy(data, framesData[i], m_Size);
+        JS::RootedObject arrBuff(cx,
+            JSUtils::NewArrayBufferWithCopiedContents(cx, m_Size, framesData[i]));
 
         JS::RootedObject arr(cx,
                              JS_NewFloat32ArrayWithBuffer(cx, arrBuff, 0, -1));
@@ -409,6 +408,11 @@ JSAudioNodeBuffers::JSAudioNodeBuffers(JSAudioContext *audioCtx,
                       JSPROP_PERMANENT | JSPROP_ENUMERATE);
 }
 
+/*
+    Returned value could be modified by the GC.
+    Make sure we're not calling any GC'able JSAPI function before using the
+    returned value
+*/
 float *JSAudioNodeBuffers::getBuffer(unsigned int idx)
 {
     JSContext *cx = this->getJSContext();
@@ -425,7 +429,10 @@ float *JSAudioNodeBuffers::getBuffer(unsigned int idx)
         return nullptr;
     }
 
-    return JS_GetFloat32ArrayData(arr);
+    bool shared;
+    JS::AutoCheckCannotGC nogc;
+
+    return JS_GetFloat32ArrayData(arr, &shared, nogc);
 }
 // }}}
 

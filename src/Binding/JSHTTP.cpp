@@ -256,16 +256,22 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
         size_t dataLen;
 
         if (__curopt.isObject() && JS_IsArrayBufferObject(obj)) {
-            data    = reinterpret_cast<char *>(JS_GetArrayBufferData(obj));
+            /*
+                TODO: Add a zeroCopy option that use
+                JS_StealArrayBufferContents instead
+            */
+
+            JS::AutoCheckCannotGC nogc;
+            bool isShared;
+            char *dataArray    = reinterpret_cast<char *>(JS_GetArrayBufferData(obj,
+                &isShared, nogc));
             dataLen = JS_GetArrayBufferByteLength(obj);
 
-            // Since the data may not be used right away
-            // we need to root them until the request is done
-            JS_SetReservedSlot(m_Instance, 1, __curopt);
+            data = (char *)malloc(dataLen);
+            memcpy(data, dataArray, dataLen);
 
-            // Disable auto release of the
-            // data, as it's owned by the JS.
-            m_HTTPRequest->setDataReleaser(nullptr);
+
+            m_HTTPRequest->setDataReleaser(free);
         } else {
             JS::RootedString str(cx, JS::ToString(cx, __curopt));
 
@@ -359,14 +365,14 @@ void JSHTTP::onProgress(size_t offset,
             break;
         default: {
             JS::RootedValue arrVal(m_Cx);
-            JS::RootedObject arr(m_Cx, JS_NewArrayBuffer(m_Cx, len));
-            uint8_t *data = JS_GetArrayBufferData(arr);
 
-            arrVal.setObjectOrNull(arr);
-            memcpy(data, &h->m_Data->data[offset], len);
+            arrVal.setObjectOrNull(
+                JSUtils::NewArrayBufferWithCopiedContents(m_Cx,
+                    len, &h->m_Data->data[offset]));
 
             eventBuilder.set("type", "binary");
             eventBuilder.set("data", arrVal);
+
             break;
         }
     }
@@ -520,10 +526,8 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 #endif
         default: {
             JS::RootedObject arr(m_Cx,
-                                 JS_NewArrayBuffer(m_Cx, h->m_Data->used));
-            uint8_t *data = JS_GetArrayBufferData(arr);
-
-            memcpy(data, h->m_Data->data, h->m_Data->used);
+                JSUtils::NewArrayBufferWithCopiedContents(m_Cx,
+                    h->m_Data->used, h->m_Data->data));
 
             eventBuilder.set("type", "binary");
             jsdata.setObjectOrNull(arr);

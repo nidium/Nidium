@@ -41,6 +41,13 @@ public:
     static char *CurrentJSCaller(JSContext *cx = NULL);
 
     static JSFunction *ReportIfNotFunction(JSContext *cx, JS::HandleValue val);
+
+    /*
+        JSAPI only provides JS_NewArrayBufferWithContents() which takes ownership.
+        We've some situation where we can't rely on zerocopy.
+    */
+    static JSObject *NewArrayBufferWithCopiedContents(JSContext *cx,
+        size_t len, const void *data);
 };
 
 // {{{ JSTransferable
