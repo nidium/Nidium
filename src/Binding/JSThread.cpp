@@ -17,6 +17,7 @@
 
 
 #include "Binding/JSConsole.h"
+#include <js/StructuredClone.h>
 
 namespace Nidium {
 namespace Binding {
@@ -102,7 +103,6 @@ static void *nidium_thread(void *arg)
         JS_SetGCParameterForThread(tcx, JSGC_MAX_CODE_CACHE_BYTES,
                                    16 * 1024 * 1024);
 
-        JS_SetStructuredCloneCallbacks(rt, NidiumJS::m_JsScc);
         JS_SetInterruptCallback(rt, JSThreadCallback);
 
         NidiumJS::InitThreadContext(rt, tcx);
@@ -170,11 +170,11 @@ static void *nidium_thread(void *arg)
                 JS::RootedValue args(tcx);
                 JS_ReadStructuredClone(
                     tcx, nthread->m_Params.argv[i], nthread->m_Params.nbytes[i],
-                    JS_STRUCTURED_CLONE_VERSION, &args, NULL, NULL);
+                    JS_STRUCTURED_CLONE_VERSION, &args, NidiumJS::m_JsScc, NULL);
 
                 arglst[i].set(args);
                 JS_ClearStructuredClone(nthread->m_Params.argv[i],
-                                        nthread->m_Params.nbytes[i], NULL,
+                                        nthread->m_Params.nbytes[i], NidiumJS::m_JsScc,
                                         NULL);
             }
 
@@ -218,7 +218,7 @@ void JSThread::onMessage(const Core::SharedMessages::Message &msg)
 
     JS::RootedValue inval(m_Cx, JS::NullValue());
     if (!JS_ReadStructuredClone(m_Cx, ptr->data, ptr->nbytes,
-                                JS_STRUCTURED_CLONE_VERSION, &inval, NULL,
+                                JS_STRUCTURED_CLONE_VERSION, &inval, NidiumJS::m_JsScc,
                                 NULL)) {
 
         printf("Failed to read input data (readMessage)\n");
@@ -234,7 +234,7 @@ void JSThread::onMessage(const Core::SharedMessages::Message &msg)
 
     this->fireJSEvent(eventName[ev], &eventVal);
 
-    JS_ClearStructuredClone(ptr->data, ptr->nbytes, NULL, NULL);
+    JS_ClearStructuredClone(ptr->data, ptr->nbytes, NidiumJS::m_JsScc, NULL);
 
     delete ptr;
 }
@@ -244,7 +244,8 @@ void JSThread::onComplete(JS::HandleValue vp)
 {
     struct nidium_thread_msg *msg = new struct nidium_thread_msg;
 
-    if (!JS_WriteStructuredClone(m_JsCx, vp, &msg->data, &msg->nbytes, NULL,
+    if (!JS_WriteStructuredClone(m_JsCx, vp, &msg->data, &msg->nbytes,
+                                 NidiumJS::m_JsScc,
                                  NULL, JS::NullHandleValue)) {
 
         msg->data   = NULL;
@@ -286,7 +287,7 @@ bool JSThread::JS_start(JSContext *cx, JS::CallArgs &args)
 
     for (int i = 0; i < static_cast<int>(argc); i++) {
         if (!JS_WriteStructuredClone(cx, args[i], &this->m_Params.argv[i],
-                                     &this->m_Params.nbytes[i], NULL, NULL,
+                                     &this->m_Params.nbytes[i], NidiumJS::m_JsScc, NULL,
                                      JS::NullHandleValue)) {
 
             return false;
@@ -323,7 +324,7 @@ static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp)
 
     struct nidium_thread_msg *msg;
 
-    if (!JS_WriteStructuredClone(cx, args[0], &datap, &nbytes, NULL, NULL,
+    if (!JS_WriteStructuredClone(cx, args[0], &datap, &nbytes, NidiumJS::m_JsScc, NULL,
                                  JS::NullHandleValue)) {
         JS_ReportError(cx, "Failed to write strclone");
         /* TODO: exception */

@@ -266,7 +266,7 @@ char *JSUtils::CurrentJSCaller(JSContext *cx)
 // {{{ JSTransferable
 bool JSTransferable::set(JSContext *cx, JS::HandleValue val)
 {
-    if (!JS_WriteStructuredClone(cx, val, &m_Data, &m_Bytes, nullptr, nullptr,
+    if (!JS_WriteStructuredClone(cx, val, &m_Data, &m_Bytes, NidiumJS::m_JsScc, nullptr,
                                  JS::NullHandleValue)) {
         return false;
     }
@@ -278,9 +278,9 @@ bool JSTransferable::transfert()
 {
     bool ok = JS_ReadStructuredClone(m_DestCx, m_Data, m_Bytes,
                                      JS_STRUCTURED_CLONE_VERSION, &m_Val,
-                                     nullptr, nullptr);
+                                     NidiumJS::m_JsScc, nullptr);
 
-    JS_ClearStructuredClone(m_Data, m_Bytes, nullptr, nullptr);
+    JS_ClearStructuredClone(m_Data, m_Bytes, NidiumJS::m_JsScc, nullptr);
 
     m_Data  = NULL;
     m_Bytes = 0;
@@ -294,7 +294,7 @@ JSTransferable::~JSTransferable()
     JSAutoCompartment ac(m_DestCx, m_DestGlobal);
 
     if (m_Data != NULL) {
-        JS_ClearStructuredClone(m_Data, m_Bytes, nullptr, NULL);
+        JS_ClearStructuredClone(m_Data, m_Bytes, NidiumJS::m_JsScc, NULL);
     }
 
     m_Val = JS::UndefinedHandleValue;

@@ -9,7 +9,7 @@
 #include <jspubtd.h>
 #include <jsapi.h>
 
-#include "Binding/ClassMapper.h"
+#include "Binding/JSMacros.h"
 
 bool JS_ConvertArguments(JSContext *cx, const JS::CallArgs &args, const char *format, ...);
 

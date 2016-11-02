@@ -17,7 +17,7 @@ bool JSDebug::JS_serialize(JSContext *cx, JS::CallArgs &args)
     uint64_t *data;
     size_t data_len;
 
-    if (!JS_WriteStructuredClone(cx, args[0], &data, &data_len, NULL,
+    if (!JS_WriteStructuredClone(cx, args[0], &data, &data_len, NidiumJS::m_JsScc,
                                  NidiumJS::GetObject(cx),
                                  JS::NullHandleValue)) {
         JS_ReportError(cx, "serialize() failed");
@@ -30,7 +30,7 @@ bool JSDebug::JS_serialize(JSContext *cx, JS::CallArgs &args)
     char *content = (char *)malloc(data_len);
     memcpy(content, data, data_len);
 
-    JS_ClearStructuredClone(data, data_len, nullptr, nullptr);
+    JS_ClearStructuredClone(data, data_len, NidiumJS::m_JsScc, nullptr);
 
     JS::RootedObject arraybuffer(
         cx, JS_NewArrayBufferWithContents(cx, data_len, content));
@@ -75,7 +75,8 @@ bool JSDebug::JS_unserialize(JSContext *cx, JS::CallArgs &args)
     }
 
     if (!JS_ReadStructuredClone(cx, (uint64_t *)(data + offset), len - offset,
-                                JS_STRUCTURED_CLONE_VERSION, &inval, NULL,
+                                JS_STRUCTURED_CLONE_VERSION, &inval,
+                                NidiumJS::m_JsScc,
                                 NidiumJS::GetObject(cx))) {
         JS_ReportError(cx, "unserialize() invalid data");
         return false;

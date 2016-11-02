@@ -133,14 +133,14 @@ bool JSDB::set(JSContext *cx, const char *key, JS::HandleValue val)
     size_t data_len;
     bool success;
 
-    if (!JS_WriteStructuredClone(cx, val, &data, &data_len, NULL, NULL,
+    if (!JS_WriteStructuredClone(cx, val, &data, &data_len, NidiumJS::m_JsScc, NULL,
                                  JS::NullHandleValue)) {
         return false;
     }
 
     success = DB::set(key, reinterpret_cast<uint8_t *>(data), data_len);
 
-    JS_ClearStructuredClone(data, data_len, nullptr, nullptr);
+    JS_ClearStructuredClone(data, data_len, NidiumJS::m_JsScc, nullptr);
 
     return success;
 }
@@ -175,7 +175,7 @@ bool JSDB::get(JSContext *cx, const char *key, JS::MutableHandleValue rval)
     }
 
     if (!JS_ReadStructuredClone(cx, aligned_data, data.length(),
-                                JS_STRUCTURED_CLONE_VERSION, rval, nullptr,
+                                JS_STRUCTURED_CLONE_VERSION, rval, NidiumJS::m_JsScc,
                                 NULL)) {
 
         JS_ReportError(cx, "Unable to read internal data");
