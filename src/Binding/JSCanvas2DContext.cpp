@@ -850,8 +850,8 @@ bool Canvas2DContext::JS_createImageData(JSContext *cx, JS::CallArgs &args)
     }
 
     JS::RootedValue array(cx, JS::ObjectValue(*arrBuffer));
-    JS::RootedValue width(cx, JS::NumverValue(x));
-    JS::RootedValue height(cx, JS::NumverValue(y));
+    JS::RootedValue width(cx, JS::NumberValue(x));
+    JS::RootedValue height(cx, JS::NumberValue(y));
 
     JS::RootedObject dataObject(cx,
       JSImageData::CreateObject(cx, new JSImageData()));
