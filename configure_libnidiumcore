@@ -90,7 +90,7 @@ def mozilla():
 
     return {
         "chdir": "js/src/obj",
-        "location": "https://people.mozilla.org/~sfink/mozjs-45.0.2.tar.bz2",
+        "location": DEPEDENCY_REPO + "/mozjs-45.5.0.tar.bz2",
         "build": [configure, "make -j8"],
         "outputs": ["js/src/libjs_static.a$", "js/src/js-config.h$"]
     }
