@@ -121,8 +121,6 @@ static void *nidium_thread(void *arg)
             JSAutoCompartment ac(tcx, gbl);
             JS::RootedValue rval(tcx, JS::NullValue());
 
-            js::SetDefaultObjectForContext(tcx, gbl);
-
             JSConsole::RegisterObject(tcx);
 
             JSAutoByteString str(tcx, nthread->m_JsFunction);

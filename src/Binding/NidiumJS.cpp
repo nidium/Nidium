@@ -443,8 +443,7 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
         nctx->log("^");
     }
 
-    nctx->vlog("%c", '\n');
-    fflush(stdout);
+    nctx->log("\n");
     JS_free(cx, prefix);
 }
 
@@ -553,8 +552,6 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
         NidiumJS::m_JsScc->write       = NidiumJS::writeStructuredCloneOp;
         NidiumJS::m_JsScc->reportError = NULL;
     }
-
-    js::SetDefaultObjectForContext(m_Cx, gbl);
 
     this->bindNetObject(net);
 

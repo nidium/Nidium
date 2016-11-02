@@ -402,7 +402,6 @@ bool JSAudioContext::createContext()
         return false;
     }
 
-    JS_SetStructuredCloneCallbacks(m_JsRt, NidiumJS::m_JsScc);
     NidiumJS::InitThreadContext(m_JsRt, m_JsTcx);
 
     JSAutoRequest ar(m_JsTcx);
@@ -420,7 +419,7 @@ bool JSAudioContext::createContext()
 
     m_JsGlobalObj = global;
 
-    js::SetDefaultObjectForContext(m_JsTcx, global);
+
     if (!JS_InitStandardClasses(m_JsTcx, global)) {
         NUI_LOG("Failed to init std class\n");
         return false;
