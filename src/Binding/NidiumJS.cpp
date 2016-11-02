@@ -661,7 +661,9 @@ void NidiumJS::CopyProperties(JSContext *cx,
                               JS::MutableHandleObject into)
 {
 
-    JS::AutoIdArray ida(cx, JS_Enumerate(cx, source));
+    JS::Rooted<JS::IdVector> ida(cx, JS::IdVector(cx));
+
+    JS_Enumerate(cx, source, &ida);
 
     for (size_t i = 0; i < ida.length(); i++) {
         JS::RootedId id(cx, ida[i]);

@@ -220,7 +220,9 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
     {
         if (!__curopt.isPrimitive()) {
             JS::RootedObject headers(cx, __curopt.toObjectOrNull());
-            JS::AutoIdArray ida(cx, JS_Enumerate(cx, headers));
+            JS::Rooted<JS::IdVector> ida(cx, JS::IdVector(cx));
+
+            JS_Enumerate(cx, headers, &ida);
 
             for (size_t i = 0; i < ida.length(); i++) {
                 JS::RootedId id(cx, ida[i]);

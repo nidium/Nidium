@@ -93,7 +93,10 @@ bool JSAudioNode::JS__set(JSContext *cx, JS::CallArgs &args)
     unsigned long size;
 
     JS::RootedObject props(cx, val.toObjectOrNull());
-    JS::AutoIdArray ida(cx, JS_Enumerate(cx, props));
+
+    JS::Rooted<JS::IdVector> ida(cx, JS::IdVector(cx));
+
+    JS_Enumerate(cx, props, &ida);
 
     for (size_t i = 0; i < ida.length(); i++) {
         // Retrieve the current key & value
@@ -619,7 +622,10 @@ void JSAudioNodeThreaded::set(JS::HandleValue val)
     JS::RootedObject global(m_Cx, JSAudioContext::GetContext()->m_JsGlobalObj);
     JS::RootedObject thisObj(m_Cx, this->getJSObject());
     JS::RootedObject props(m_Cx, val.toObjectOrNull());
-    JS::AutoIdArray ida(m_Cx, JS_Enumerate(m_Cx, props));
+
+    JS::Rooted<JS::IdVector> ida(m_Cx, JS::IdVector(m_Cx));
+
+    JS_Enumerate(m_Cx, props, &ida);
 
     for (size_t i = 0; i < ida.length(); i++) {
         // Retrieve the current key & value
