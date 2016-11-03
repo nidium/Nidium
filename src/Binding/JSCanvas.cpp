@@ -227,7 +227,7 @@ bool JSCanvas::JS_getChildren(JSContext *cx, JS::CallArgs &args)
 bool JSCanvas::JS_getVisibleRect(JSContext *cx, JS::CallArgs &args)
 {
     Rect rect = m_CanvasHandler->getVisibleRect();
-    JS::RootedObject ret(cx, JS_NewObject(cx, nullptr));
+    JS::RootedObject ret(cx, JS_NewPlainObject(cx));
 
 #define SET_PROP(where, name, val)                        \
     JS_DefineProperty(cx, where, (const char *)name, val, \

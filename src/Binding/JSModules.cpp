@@ -137,7 +137,7 @@ bool JSModule::init()
 
 bool JSModule::initNative()
 {
-    JS::RootedObject exports(m_Cx, JS_NewObject(m_Cx, nullptr));
+    JS::RootedObject exports(m_Cx, JS_NewPlainObject(m_Cx));
 
     if (!exports) {
         return false;
@@ -207,7 +207,7 @@ bool JSModule::initJS()
                                   JS::PrivateValue(static_cast<void *>(this)));
 
     JS::RootedObject exports(
-        m_Cx, JS_NewObject(m_Cx, nullptr));
+        m_Cx, JS_NewPlainObject(m_Cx));
     JS::RootedObject module(m_Cx, JS_NewObject(m_Cx, &nidium_modules_class));
 
     if (!exports || !module) {

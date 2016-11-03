@@ -435,7 +435,7 @@ JSObject *JSDocument::RegisterObject(JSContext *cx)
         JSDocument::CreateUniqueInstance(cx, jdoc, "document"));
 
     JS::RootedObject styleObj(
-        cx, JS_NewObject(cx, nullptr));
+        cx, JS_NewPlainObject(cx));
 
     jdoc->m_Stylesheet = styleObj;
 

@@ -243,7 +243,7 @@ static void nidium_socket_wrapper_client_onmessage(ape_socket *socket_server,
     if (JS_GetProperty(cx, obj, "onmessage", &onmessage)
         && JS_TypeOfValue(cx, onmessage) == JSTYPE_FUNCTION) {
 
-        JS::RootedObject remote(cx, JS_NewObject(cx, nullptr));
+        JS::RootedObject remote(cx, JS_NewPlainObject(cx));
 
         /*
             TODO: inet_ntoa is not reentrant

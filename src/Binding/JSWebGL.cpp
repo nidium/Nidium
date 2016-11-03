@@ -549,7 +549,7 @@ void WebGLResource::bindTo(GLenum target)
 
     if (!bindObject) {
         bindObject
-            = JS_NewObject(m_JSCx, nullptr);
+            = JS_NewPlainObject(m_JSCx);
         JS_SetReservedSlot(webglObj, m_Type, JS::ObjectValue(*bindObject));
     }
 

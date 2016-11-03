@@ -42,7 +42,7 @@ public:
                 JS::RootedValue rval(cx);
                 JS::AutoValueArray<1> params(cx);
 
-                JS::RootedObject param(cx, JS_NewObject(cx, nullptr));
+                JS::RootedObject param(cx, JS_NewPlainObject(cx));
                 JS::RootedString str(cx, JS_NewStringCopyZ(cx, cur->d_name));
 
                 NIDIUM_JSOBJ_SET_PROP_STR(param, "name", str);

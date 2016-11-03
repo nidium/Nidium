@@ -288,7 +288,7 @@ void JSWindow::textInput(const char *data)
 void JSWindow::systemMenuClicked(const char *id)
 {
     JSContext *cx = m_Cx;
-    JS::RootedObject event(cx, JS_NewObject(m_Cx, nullptr));
+    JS::RootedObject event(cx, JS_NewPlainObject(m_Cx));
 
     NIDIUM_JSOBJ_SET_PROP_CSTR(event, "id", id);
     JS::AutoValueArray<1> ev(cx);
@@ -1212,7 +1212,7 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx,
     jwin->createMainCanvas(width, height, docObj);
 
     // Set the __nidium__ properties
-    JS::RootedObject nidiumObj(cx, JS_NewObject(cx, nullptr));
+    JS::RootedObject nidiumObj(cx, JS_NewPlainObject(cx));
 
     JS::RootedValue val(cx);
 

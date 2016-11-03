@@ -187,7 +187,7 @@ JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx,
                 if (JS_IsExceptionPending(cx)) {
                     JS_ClearPendingException(cx);
                 }
-                return JS_NewObject(cx, nullptr);
+                return JS_NewPlainObject(cx);
             }
 
             return JS_GetFunctionObject(cf);
@@ -197,7 +197,7 @@ JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx,
             if (!JS_ReadBytes(r, &nullbyte, data)) {
                 return NULL;
             }
-            return JS_NewObject(cx, nullptr);
+            return JS_NewPlainObject(cx);
         }
         default: {
             ReadStructuredCloneOp op;
@@ -207,7 +207,7 @@ JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx,
         }
     }
 
-    return JS_NewObject(cx, nullptr);
+    return JS_NewPlainObject(cx);
 }
 
 bool NidiumJS::writeStructuredCloneOp(JSContext *cx,

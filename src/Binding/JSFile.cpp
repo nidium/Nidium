@@ -181,7 +181,7 @@ void JSFile::onMessage(const SharedMessages::Message &msg)
                 JS::RootedObject arr(cx, JS_NewArrayObject(cx, entries->size));
 
                 for (int i = 0; i < entries->size; i++) {
-                    JS::RootedObject entry(cx, JS_NewObject(cx, nullptr));
+                    JS::RootedObject entry(cx, JS_NewPlainObject(cx));
 
                     JS::RootedValue val(cx, JS::ObjectValue(*entry));
                     JS_SetElement(cx, arr, i, val);

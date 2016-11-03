@@ -391,7 +391,7 @@ void JSHTTP::headersToJSObject(JS::MutableHandleObject obj)
         return;
     }
 
-    obj.set(JS_NewObject(m_Cx, nullptr));
+    obj.set(JS_NewPlainObject(m_Cx));
 
     APE_A_FOREACH(headers, k, v)
     {

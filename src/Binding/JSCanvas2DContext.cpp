@@ -125,7 +125,7 @@ bool JSCanvasGLProgram::JS_getActiveUniforms(JSContext *cx, JS::CallArgs &args)
     for (int i = 0; i < nactives; i++) {
         int length = 0, size = 0;
         GLenum type = GL_ZERO;
-        JS::RootedObject in(cx, JS_NewObject(cx, nullptr));
+        JS::RootedObject in(cx, JS_NewPlainObject(cx));
 
         glGetActiveUniform(m_Program, i, sizeof(name) - 1, &length, &size, &type,
                            name);
@@ -438,7 +438,7 @@ bool Canvas2DContext::JS_breakText(JSContext *cx, JS::CallArgs &args)
         JS::RootedValue val(cx, JS::StringValue(str));
         JS_SetElement(cx, alines, i, val);
     }
-    JS::RootedObject res(cx, JS_NewObject(cx, nullptr));
+    JS::RootedObject res(cx, JS_NewPlainObject(cx));
     JS::RootedValue heightVal(cx, JS::DoubleValue(SkScalarToDouble(ret)));
     JS::RootedValue linesVal(cx, JS::ObjectValue(*alines));
     SET_PROP(res, "height", heightVal);
@@ -1036,7 +1036,7 @@ bool Canvas2DContext::JS_measureText(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    JS::RootedObject obj(cx, JS_NewObject(cx, nullptr));
+    JS::RootedObject obj(cx, JS_NewPlainObject(cx));
 
     JSAutoByteString ctext;
     ctext.encodeUtf8(cx, text);
@@ -1072,7 +1072,7 @@ bool Canvas2DContext::JS_getPathBounds(JSContext *cx, JS::CallArgs &args)
     JS_DefineProperty(cx, obj, name, val, \
                       JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
     double left = 0, right = 0, top = 0, bottom = 0;
-    JS::RootedObject obj(cx, JS_NewObject(cx, nullptr));
+    JS::RootedObject obj(cx, JS_NewPlainObject(cx));
 
     NIDIUM_LOG_2D_CALL();
     m_Skia->getPathBounds(&left, &right, &top, &bottom);
