@@ -43,6 +43,12 @@
 
 #include "Core/Context.h"
 
+#if defined(MOZ_ASAN) || (defined(DEBUG) && !defined(XP_WIN))
+static const size_t gMaxStackSize = 2 * 128 * sizeof(size_t) * 1024;
+#else
+static const size_t gMaxStackSize = 128 * sizeof(size_t) * 1024;
+#endif
+
 using namespace Nidium::Core;
 using namespace Nidium::IO;
 
@@ -57,16 +63,7 @@ static pthread_key_t gAPE = 0;
 static pthread_key_t gJS  = 0;
 static pthread_key_t g_NidiumThreadContextKey  = 0;
 
-/* Assume that we can not use more than 5e5 bytes of C stack by default. */
-#if (defined(DEBUG) && defined(__SUNPRO_CC)) || defined(JS_CPU_SPARC)
-/* Sun compiler uses larger stack space for js_Interpret() with debug
-   Use a bigger gMaxStackSize to make "make check" happy. */
-#define DEFAULT_MAX_STACK_SIZE 5000000
-#else
-#define DEFAULT_MAX_STACK_SIZE 500000
-#endif
 
-size_t gMaxStackSize                          = DEFAULT_MAX_STACK_SIZE;
 JSStructuredCloneCallbacks *NidiumJS::m_JsScc = NULL;
 
 // }}}
@@ -508,6 +505,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     }
 
     NidiumJS::SetJSRuntimeOptions(rt, m_JSStrictMode);
+    JS_SetErrorReporter(rt, reportError);
 
     if ((m_Cx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
@@ -535,7 +533,6 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION | JSOPTION_ASMJS | JSOPTION_BASELINE);
 #endif
 #endif
-    JS_SetErrorReporter(rt, reportError);
 
     gbl = NidiumJS::CreateJSGlobal(m_Cx, this);
 
