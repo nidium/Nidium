@@ -76,6 +76,7 @@
                     "link_settings": {
                         'libraries': [
                             '-ljs_static',
+                            '-lmozglue',
                             '-lnspr4',
                             '-lpthread',
                             '-lrt',

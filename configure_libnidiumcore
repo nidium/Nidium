@@ -92,7 +92,7 @@ def mozilla():
         "chdir": "js/src/obj",
         "location": DEPEDENCY_REPO + "/mozjs-45.5.0.tar.bz2",
         "build": [configure, "make -j8"],
-        "outputs": ["js/src/libjs_static.a$", "js/src/js-config.h$"]
+        "outputs": ["mozglue/build/libmozglue.a", "js/src/libjs_static.a$", "js/src/js-config.h$"]
     }
 
 @Deps.register("http-parser")
