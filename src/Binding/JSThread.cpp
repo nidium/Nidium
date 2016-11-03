@@ -156,7 +156,7 @@ static void *nidium_thread(void *arg)
 
             delete[] scoped;
 
-            if (cf == NULL) {
+            if (!cret) {
                 printf("Cant compile function\n");
                 return NULL;
             }
