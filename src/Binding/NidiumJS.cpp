@@ -316,9 +316,9 @@ JSObject *NidiumJS::CreateJSGlobal(JSContext *cx, NidiumJS *njs)
     // context option vs compile option?
 }
 
-void NidiumJS::SetJSRuntimeOptions(JSRuntime *rt)
+void NidiumJS::SetJSRuntimeOptions(JSRuntime *rt, bool strictmode)
 {
-    JS::RuntimeOptionsRef(rt).setBaseline(true).setIon(true).setAsmJS(true);
+    JS::RuntimeOptionsRef(rt).setBaseline(true).setIon(true).setAsmJS(true).setStrictMode(strictmode);
 
     JS_SetGCParameter(rt, JSGC_MAX_BYTES, 0xffffffff);
     JS_SetGCParameter(rt, JSGC_SLICE_TIME_BUDGET, 15);
@@ -507,7 +507,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
         return;
     }
 
-    NidiumJS::SetJSRuntimeOptions(rt);
+    NidiumJS::SetJSRuntimeOptions(rt, m_JSStrictMode);
 
     if ((m_Cx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
