@@ -59,9 +59,9 @@ namespace Binding {
 
 // {{{ Preamble
 
-static pthread_key_t gAPE = 0;
-static pthread_key_t gJS  = 0;
-static pthread_key_t g_NidiumThreadContextKey  = 0;
+static pthread_key_t gAPE;
+static pthread_key_t gJS;
+static pthread_key_t g_NidiumThreadContextKey;
 
 
 JSStructuredCloneCallbacks *NidiumJS::m_JsScc = NULL;
@@ -265,16 +265,15 @@ NidiumJS *NidiumJS::GetObject(JSContext *cx)
 
 ape_global *NidiumJS::GetNet()
 {
-    if (gAPE == 0) {
-        return NULL;
-    }
     return static_cast<ape_global *>(pthread_getspecific(gAPE));
 }
 
 void NidiumJS::InitNet(ape_global *net)
 {
-    if (gAPE == 0) {
-        pthread_key_create(&gAPE, NULL);
+    if (pthread_key_create(&gAPE, NULL) != 0) {
+        printf("pthread_key_create() error\n");
+        exit(1);
+        return;
     }
 
     pthread_setspecific(gAPE, net);
@@ -488,10 +487,8 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
 
     NidiumJS::InitNet(net);
 
-    if (gJS == 0) {
-        pthread_key_create(&gJS, NULL);
-        pthread_key_create(&g_NidiumThreadContextKey, NidiumJS::DestroyThreadContext);
-    }
+    pthread_key_create(&gJS, NULL);
+    pthread_key_create(&g_NidiumThreadContextKey, NidiumJS::DestroyThreadContext);
 
     pthread_setspecific(gJS, this);
 
