@@ -90,7 +90,7 @@ def mozilla():
 
     return {
         "chdir": "js/src/obj",
-        "location": DEPEDENCY_REPO + "/mozjs-45.5.0.tar.bz2",
+        "location": DEPEDENCY_REPO + "/mozjs-45.5.1.tar.bz2",
         "build": [configure, "make"],
         "outputs": ["mozglue/build/libmozglue.a$", "js/src/libjs_static.a$", "js/src/js-config.h$"]
     }
