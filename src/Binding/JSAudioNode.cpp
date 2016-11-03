@@ -397,8 +397,7 @@ JSAudioNodeBuffers::JSAudioNodeBuffers(JSAudioContext *audioCtx,
         JS::RootedObject arr(cx,
                              JS_NewFloat32ArrayWithBuffer(cx, arrBuff, 0, -1));
 
-        JS_DefineElement(cx, frames, i, JS::ObjectValue(*arr), nullptr, nullptr,
-                         JSPROP_ENUMERATE | JSPROP_PERMANENT);
+        JS_DefineElement(cx, frames, i, arr, JSPROP_ENUMERATE | JSPROP_PERMANENT);
     }
 
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));

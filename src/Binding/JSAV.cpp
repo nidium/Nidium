@@ -242,8 +242,7 @@ bool JSAVSourceBase::JSGetter__metadata(JSContext *cx,
 
             CopyMetaDataToJS(avctx->streams[i]->metadata, cx, streamMetaData);
 
-            JS_DefineElement(cx, arr, i, JS::ObjectValue(*streamMetaData),
-                             nullptr, nullptr, 0);
+            JS_DefineElement(cx, arr, i, streamMetaData, 0);
         }
 
         /*
