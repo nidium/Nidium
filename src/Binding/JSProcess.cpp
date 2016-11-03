@@ -216,6 +216,13 @@ bool JSProcess::JS_exit(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
+bool JSProcess::JS_shutdown(JSContext *cx, JS::CallArgs &args)
+{
+    APE_loop_stop();
+    
+    return true;
+}
+
 bool JSProcess::JS_cwd(JSContext *cx, JS::CallArgs &args)
 {
     Path cur(Path::GetCwd());
@@ -243,6 +250,7 @@ JSFunctionSpec *JSProcess::ListMethods()
         CLASSMAPPER_FN(JSProcess, setOwner, 1),
         CLASSMAPPER_FN(JSProcess, setSignalHandler, 1),
         CLASSMAPPER_FN(JSProcess, exit, 0),
+        CLASSMAPPER_FN(JSProcess, shutdown, 0),
         CLASSMAPPER_FN(JSProcess, cwd, 0),
         JS_FS_END
     };
