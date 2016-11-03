@@ -1,5 +1,5 @@
 Tests.register("HTTPServer constructor", function() {
-    new HTTPServer(4241, "127.0.0.1");
+    new HTTPServer("127.0.0.1", 4241);
 });
 
 /*Tests.register("HTTPServer reusePort option", function() {

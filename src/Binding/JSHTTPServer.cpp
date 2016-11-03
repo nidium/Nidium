@@ -162,7 +162,7 @@ JSHTTPServer *JSHTTPServer::Constructor(JSContext *cx, JS::CallArgs &args,
 
     NIDIUM_JS_INIT_OPT();
 
-    if (!JS_ConvertArguments(cx, args, "c/So", &port, ip_bind.address(),
+    if (!JS_ConvertArguments(cx, args, "Sc/o", ip_bind.address(), &port,
                              options.address())) {
         return nullptr;
     }

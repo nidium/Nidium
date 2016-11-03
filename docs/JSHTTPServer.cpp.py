@@ -9,34 +9,20 @@ NamespaceDoc("HTTP Client & Server", """Native implemntation of HTTP Client & Se
 * HTTPServer : Create an HTTP server where clients cant connect to.
 """)
 
+# {{{ HTTPServer
 ClassDoc( "HTTPServer", "Http server.",
-    [ SeeDoc( "HTTPRequest" ), SeeDoc( "Socket" ), SeeDoc( "Http" ) ],
-    [ ExampleDoc( """var http = new HTTPServer(8080, "127.0.0.1");
-http.onrequest = function(request, client) {
+    [ SeeDoc( "HTTPRequest" ), SeeDoc( "HTTP" ), SeeDoc( "HTTPServerResponse" ) ],
+    [ ExampleDoc( """var http = new HTTPServer("127.0.0.1", 8080);
+http.onrequest = function(request, response) {
     console.log(request.method + " " + request.url);
     console.log(JSON.stringify(request.headers));
-    console.log(JSON.stringify(client ));
-    client.write("Hello! ");
-    client.end("This is Nidium");
+    response.write("Hello! ");
+    response.end("This is Nidium");
 };""") ],
     NO_Inherrits,
     NO_Extends,
     section="HTTP Client & Server",
     products=["Frontend", "Server"]
-)
-
-ClassDoc( "HTTPRequest", "Http request object spawned by HTTPServer.",
-    [ SeeDoc( "HTTPServer" ), SeeDoc( "Socket" ), SeeDoc( "Http" ) ],
-    NO_Examples,
-    NO_Inherrits,
-    NO_Extends,
-    section="HTTP Client & Server",
-)
-
-NamespaceDoc( "HTTPResponse", "HTTPResponse class.",
-    SeesDocs( "HTTPServer|HTTPRequest|Http" ),
-    NO_Examples,
-    section="HTTP Client & Server",
 )
 
 EventDoc( "HTTPServer.onDisconnect", "Event that fires on disconnect.",
@@ -49,6 +35,37 @@ EventDoc( "HTTPServer.ondata", "Event that fires on data.",
     [ SeeDoc( "HTTPServer.ondisconnect" ), SeeDoc( "HTTPServer.ondata" ), SeeDoc( "HTTPServer.onrequest" ) ],
     NO_Examples,
     NO_Params
+)
+
+EventDoc( "HTTPServer.onrequest", "Event that fires when the server has read the complete http request.",
+    [ SeeDoc( "HTTPServer.ondisconnect" ), SeeDoc( "HTTPServer.ondata" ), SeeDoc( "HTTPServer.onrequest" ) ],
+    NO_Examples,
+    [   ParamDoc( "request", "Client request", "HTTPRequest", NO_Default, IS_Obligated ),
+        ParamDoc( "response", "Response object", "HTTPServerResponse", NO_Default, IS_Obligated ) ]
+)
+
+ConstructorDoc( "HTTPServer", "Constructor for HTTPServer object.",
+    NO_Sees,
+    NO_Examples,
+    [ 
+        ParamDoc( "ip", "The ip address to bind to", "string", NO_Default, IS_Obligated), 
+        ParamDoc( "port", "The port to listen to", "integer", NO_Default, IS_Obligated ),
+        ParamDoc("options", "HTTPListner options",
+            ObjectDoc([
+                ("reusePort", "Allows multiple HTTPServer to bind to the same port,", "boolean", 'false'),
+        ]), NO_Default, IS_Optional)
+    ],
+    ReturnDoc( "Webserver object", "HTTPServer" )
+)
+# }}}
+
+# {{{ HTTPRequest
+ClassDoc( "HTTPRequest", "HTTP request object spawned by HTTPServer.",
+    [ SeeDoc( "HTTPServer" ), SeeDoc( "Socket" ), SeeDoc( "Http" ) ],
+    NO_Examples,
+    NO_Inherrits,
+    NO_Extends,
+    section="HTTP Client & Server",
 )
 
 FieldDoc( "HTTPRequest.method", "Http request Method that was recieved. Can be 'POST'|'GET'|'PUT'|'DELETE'|'UNKNOWN'.",
@@ -90,52 +107,39 @@ FieldDoc( "HTTPRequest.client", "An object that describes the connected client."
     ObjectDoc([]),
     NO_Default
 )
+# }}}
 
-EventDoc( "HTTPServer.onrequest", "Event that fires when the server has read the complete http request.",
-    [ SeeDoc( "HTTPServer.ondisconnect" ), SeeDoc( "HTTPServer.ondata" ), SeeDoc( "HTTPServer.onrequest" ) ],
+# {{{ HTTPServerResponse
+NamespaceDoc( "HTTPServerResponse", "Object for handling HTTP response",
+    SeesDocs( "HTTPServer|HTTPRequest|HTTP" ),
     NO_Examples,
-    [   ParamDoc( "request", "client request", "HTTPRequest", NO_Default, IS_Obligated ),
-        ParamDoc( "response", "Client response", "HTTPResponse", NO_Default, IS_Obligated ) ]
+    section="HTTP Client & Server",
 )
 
-ConstructorDoc( "HTTPServer", "Constructor for HTTPServer object.",
-    NO_Sees,
-    NO_Examples,
-    [ 
-        ParamDoc( "port", "The port to listen to", "integer", NO_Default, IS_Obligated ),
-        ParamDoc( "ip", "The ip address to bind to", "string", "0.0.0.0", IS_Optional ), 
-        ParamDoc("options", "HTTPListner options",
-            ObjectDoc([
-                ("reusePort", "Allows multiple HTTPServer to bind to the same port,", "boolean", 'false'),
-        ]), NO_Default, IS_Optional)
-    ],
-    ReturnDoc( "Webserver object", "HTTPServer" )
-)
-
-FunctionDoc( "HTTPRequest.write", "Respond to a client that made a request to the webserver.",
-    [ SeeDoc( "HTTPServer" ), SeeDoc( "HTTPRequest.write"), SeeDoc( "HTTPRequest.end" ), SeeDoc( "HTTPRequest.writeHead" ) ],
+FunctionDoc( "HTTPServerResponse.write", "Respond to a client that made a request to the webserver.",
+    [ SeeDoc( "HTTPServer" ), SeeDoc( "HTTPServerResponse.write"), SeeDoc( "HTTPServerResponse.end" ), SeeDoc( "HTTPServerResponse.writeHead" ) ],
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "data", "The data to send out", "string|ArrayBuffer", IS_Obligated ) ],
     NO_Returns
 )
 
-FunctionDoc( "HTTPRequest.end", """End a responce to a client that made a request to the webserver
+FunctionDoc( "HTTPServerResponse.end", """End a responce to a client that made a request to the webserver
 
 If the headers were not send yet, a HTTP code 200 will be send.""",
-    [ SeeDoc( "HTTPServer" ), SeeDoc( "HTTPRequest.write"), SeeDoc( "HTTPRequest.end" ), SeeDoc( "HTTPRequest.writeHead" ) ],
+    [ SeeDoc( "HTTPServer" ), SeeDoc( "HTTPServerResponse.write"), SeeDoc( "HTTPServerResponse.end" ), SeeDoc( "HTTPServerResponse.writeHead" ) ],
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "data", "The data to send out", "string|ArrayBuffer", IS_Optional ) ],
     NO_Returns
 )
 
-FunctionDoc( "HTTPRequest.writeHead", "Set the headers on a response to a client that made a request to the webserver. Of course this can only happen if the headers were not send before.",
-    [ SeeDoc( "HTTPServer" ), SeeDoc( "HTTPRequest.write"), SeeDoc( "HTTPRequest.end" ), SeeDoc( "HTTPRequest.writeHead" ) ],
+FunctionDoc( "HTTPServerResponse.writeHead", "Set the headers on a response to a client that made a request to the webserver. Of course this can only happen if the headers were not send before.",
+    [ SeeDoc( "HTTPServer" ), SeeDoc( "HTTPServerResponse.write"), SeeDoc( "HTTPServerResponse.end" ), SeeDoc( "HTTPServerResponse.writeHead" ) ],
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "statuscode", "The HTTP code to set (e.g. 200)", "integer", IS_Obligated ),
       ParamDoc( "kvpairs", "Header data object", ObjectDoc([]), IS_Optional ) ],
     NO_Returns
 )
-
+# }}}
