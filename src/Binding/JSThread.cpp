@@ -184,6 +184,9 @@ static void *nidium_thread(void *arg)
             nthread->onComplete(rval);
         }
     }
+    NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
+    nlc->m_IsShuttingDown = true;
+
     JS_DestroyContext(tcx);
     JS_DestroyRuntime(rt);
     nthread->m_JsRuntime = NULL;
