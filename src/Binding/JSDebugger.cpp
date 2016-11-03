@@ -8,7 +8,6 @@
 #include <string.h>
 
 #include <jswrapper.h>
-#include <vm/Debugger.h>
 
 #include "Binding/JSDebugger.h"
 #include "Binding/JSConsole.h"
