@@ -16,7 +16,6 @@
 #include <js/RootingAPI.h>
 #include <jsprf.h>
 
-#include <jsstr.h>
 
 bool JS_ConvertArgumentsVA(JSContext *cx,
     const JS::CallArgs &args, const char *format, va_list ap);
@@ -35,6 +34,8 @@ bool JS_ConvertArguments(JSContext *cx, const JS::CallArgs &args, const char *fo
 bool
 JS_ConvertArgumentsVA(JSContext *cx, const JS::CallArgs &args, const char *format, va_list ap)
 {
+    using namespace Nidium::Binding;
+
     unsigned index = 0;
     bool required;
     char c;
@@ -53,11 +54,11 @@ JS_ConvertArgumentsVA(JSContext *cx, const JS::CallArgs &args, const char *forma
         }
         if (index == args.length()) {
             if (required) {
-                if (JSFunction *fun = Nidium::Binding::JSUtils::ReportIfNotFunction(cx, args.calleev())) {
+                if (JSFunction *fun = JSUtils::ReportIfNotFunction(cx, args.calleev())) {
                     char numBuf[12];
                     JS_snprintf(numBuf, sizeof numBuf, "%u", args.length());
                     JSAutoByteString funNameBytes;
-                    if (const char *name = GetFunctionNameBytes(cx, fun, &funNameBytes)) {
+                    if (const char *name = JSUtils::GetFunctionNameBytes(cx, fun, &funNameBytes)) {
                         JS_ReportErrorNumber(cx, js::GetErrorMessage, nullptr,
                                              JSMSG_MORE_ARGS_NEEDED,
                                              name, numBuf, (args.length() == 1) ? "" : "s");
@@ -96,7 +97,7 @@ JS_ConvertArgumentsVA(JSContext *cx, const JS::CallArgs &args, const char *forma
             break;
           case 'S':
           case 'W':
-            str = js::ToString<js::CanGC>(cx, arg);
+            str = JS::ToString(cx, arg);
             if (!str)
                 return false;
             arg.setString(str);
@@ -133,6 +134,17 @@ JS_ConvertArgumentsVA(JSContext *cx, const JS::CallArgs &args, const char *forma
 
 namespace Nidium {
 namespace Binding {
+
+const char* JSUtils::GetFunctionNameBytes(JSContext* cx,
+        JSFunction* fun, JSAutoByteString* bytes)
+{
+    JSString *val = JS_GetFunctionId(fun);
+    if (!val) {
+        return "(anonymous)";
+    }
+
+    return bytes->encodeLatin1(cx, val);
+}
 
 JSFunction *JSUtils::ReportIfNotFunction(JSContext *cx, JS::HandleValue val)
 {

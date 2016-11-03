@@ -48,6 +48,9 @@ public:
     */
     static JSObject *NewArrayBufferWithCopiedContents(JSContext *cx,
         size_t len, const void *data);
+
+    static const char* GetFunctionNameBytes(JSContext* cx,
+        JSFunction* fun, JSAutoByteString* bytes);
 };
 
 // {{{ JSTransferable
