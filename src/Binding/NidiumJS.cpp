@@ -805,12 +805,13 @@ int NidiumJS::LoadScriptContent(const char *data,
     }
 
     JS::RootedScript script(m_Cx);
+#if 0
     /* RAII helper that resets to origin options state */
     JS::AutoSaveContextOptions asco(m_Cx);
 
-    JS::ContextOptionsRef(m_Cx).setVarObjFix(true).setStrictMode(
+    JS::ContextOptionsRef(m_Cx).setStrictMode(
         m_JSStrictMode);
-
+#endif
     JS::CompileOptions options(m_Cx);
     options.setUTF8(true)
         .setFileAndLine(filename, 1)
@@ -845,11 +846,15 @@ char *NidiumJS::LoadScriptContentAndGetResult(const char *data,
     }
 
     JS::RootedScript script(m_Cx);
+
+#if 0
     /* RAII helper that resets to origin options state */
     JS::AutoSaveContextOptions asco(m_Cx);
 
     JS::ContextOptionsRef(m_Cx).setVarObjFix(true).setStrictMode(
         m_JSStrictMode);
+
+#endif
 
     JS::CompileOptions options(m_Cx);
     options.setUTF8(true)

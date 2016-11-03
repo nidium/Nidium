@@ -189,7 +189,7 @@ public:
     static void UnrootObject(JSObject *obj);
     static void RootObjectUntilShutdown(JSObject *obj);
     static JSObject *CreateJSGlobal(JSContext *cx, NidiumJS *njs = nullptr);
-    static void SetJSRuntimeOptions(JSRuntime *rt);
+    static void SetJSRuntimeOptions(JSRuntime *rt, bool strictmode = false);
     static void InitThreadContext(JSRuntime *rt, JSContext *cx);
     static void DestroyThreadContext(void *data);
     static NidiumLocalContext *GetLocalContext();
