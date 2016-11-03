@@ -277,19 +277,21 @@ bool JSHTTPResponse::JS_writeHead(JSContext *cx, JS::CallArgs &args)
 
     if (args.length() >= 2 && !args[1].isPrimitive()) {
 
-        JS::RootedId idp(cx);
+        JS::Rooted<JS::IdVector> ida(cx, JS::IdVector(cx));
+        JS_Enumerate(cx, headers, &ida);
+        JS::RootedId id(cx);
 
-        JS::RootedObject iterator(cx, JS_NewPropertyIterator(cx, headers));
+        for (size_t i = 0; i < ida.length(); i++) {
 
-        while (JS_NextProperty(cx, iterator, idp.address())
-               && !JSID_IS_VOID(idp)) {
-            if (!JSID_IS_STRING(idp)) {
+            id = ida[i];
+
+            if (!JSID_IS_STRING(id)) {
                 continue;
             }
-            JS::RootedString key(cx, JSID_TO_STRING(idp));
+            JS::RootedString key(cx, JSID_TO_STRING(id));
             JS::RootedValue val(cx);
 
-            if (!JS_GetPropertyById(cx, headers, idp, &val)
+            if (!JS_GetPropertyById(cx, headers, id, &val)
                 || !val.isString()) {
                 continue;
             }
