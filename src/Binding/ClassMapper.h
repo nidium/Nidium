@@ -365,7 +365,9 @@ protected:
         CLASSMAPPER_PROLOGUE_CLASS(T);
 
         /* TODO: Get the right method name */
-        args.requireAtLeast(cx, "method", minarg);
+        if (!args.requireAtLeast(cx, "method", minarg)) {
+            return false;
+        }
 
         return (CppObj->*U)(cx, args);
     }
@@ -375,7 +377,9 @@ protected:
     {
         CLASSMAPPER_PROLOGUE_NO_RET()
 
-        args.requireAtLeast(cx, "method", minarg);
+        if (!args.requireAtLeast(cx, "method", minarg)) {
+            return false;
+        }
 
         args.rval().setUndefined();
 
@@ -449,7 +453,9 @@ protected:
             return false;
         }
 
-        args.requireAtLeast(cx, "constructor", ctor_minarg);
+        if (!args.requireAtLeast(cx, "constructor", ctor_minarg)) {
+            return false;
+        }
 
         JS::RootedObject ret(
             cx, JS_NewObjectForConstructor(cx, jsclass, args));
@@ -509,7 +515,9 @@ public:
         CLASSMAPPER_PROLOGUE_CLASS(T);
 
         /* TODO: Get the right method name */
-        args.requireAtLeast(cx, "method", minarg);
+        if (!args.requireAtLeast(cx, "method", minarg)) {
+            return false;
+        }
 
         return (CppObj->*U)(cx, args);
     }

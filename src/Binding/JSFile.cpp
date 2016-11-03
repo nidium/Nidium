@@ -423,6 +423,8 @@ bool JSFile::JS_open(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
+    printf("Argc is %d\n", args.length());
+
     if (!JSUtils::ReportIfNotFunction(cx, args[1])) {
         return false;
     }
@@ -457,7 +459,9 @@ bool JSFile::JSStatic_read(JSContext *cx, JS::CallArgs &args)
 
     if (JS_TypeOfValue(cx, args[1]) != JSTYPE_FUNCTION) {
 
-        args.requireAtLeast(cx, "read", 3);
+        if (!args.requireAtLeast(cx, "read", 3)) {
+            return false;
+        }
 
         opt         = args[1].toObjectOrNull();
         argcallback = args[2];
