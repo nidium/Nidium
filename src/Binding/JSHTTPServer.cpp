@@ -4,11 +4,12 @@
    that can be found in the LICENSE file.
 */
 #include "Binding/JSHTTPServer.h"
+#include "Binding/JSUtils.h"
+
 
 #include <stdbool.h>
 #include <unistd.h>
 
-#include "Binding/JSUtils.h"
 
 using Nidium::Net::HTTPServer;
 using Nidium::Net::HTTPClientConnection;
@@ -114,7 +115,8 @@ bool JSHTTPServer::onEnd(HTTPClientConnection *client)
     }
 
     JS::RootedValue method(m_Cx);
-    JS::RootedValue cli(m_Cx, subclient->getJSObject());
+    JS::RootedObject cli(m_Cx, subclient->getJSObject());
+
     switch (client->getHTTPState()->parser.method) {
         case HTTP_POST:
             method.setString(JS_NewStringCopyN(m_Cx, CONST_STR_LEN("POST")));

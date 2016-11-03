@@ -20,6 +20,7 @@
 #include <jsfriendapi.h>
 
 #include "Binding/NidiumJS.h"
+#include "Binding/JSUtils.h"
 #include "IO/Stream.h"
 
 #define NIDIUM_MODULES_PATHS_COUNT 2
@@ -762,7 +763,7 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
 // {{{ Implementation
 static bool nidium_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JS::RootedString name(cx, NULL);
+    JS::RootedString name(cx);
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     if (!JS_ConvertArguments(cx, args, "S", name.address())) {
