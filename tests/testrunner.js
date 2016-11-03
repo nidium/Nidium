@@ -166,7 +166,8 @@ TestsRunner.prototype = {
             "file": this.currentFile,
             "watchdogDelay": watchdogDelay, 
             "async": async,
-            "visual": visual
+            "visual": visual,
+            "finished": false
         });
 
         this.counters.total++;
@@ -217,8 +218,17 @@ TestsRunner.prototype = {
         return true;
     },
 
-    _reportTest: function(success, visual=false) {
+    _reportTest: function(success, test) {
         clearTimeout(this.testWatchdogTimer);
+
+        if (!test) test = this.currentTest;
+        if (test.finished) {
+            log.error("Test \"" + test.name + "\" already reported his status. Tests are overlapping, fix it !");
+            process.exit(2);
+            return;
+        }
+
+        test.finished = true;
 
         if (success) {
             log.success("\r[ SUCCESS ]");
@@ -259,7 +269,7 @@ TestsRunner.prototype = {
             this.visualTests[sanitizedName] = test;
             this.hasVisualTests = true;
 
-            this._reportTest(true, visual=true);
+            this._reportTest(true, test);
         }.bind(this), 16 * 4);
     },
 
@@ -406,7 +416,7 @@ TestsRunner.prototype = {
                     clear(); // Clear canvas before if previous tests drawed something
                     test["function"](this._finalizeVisualTest.bind(this, test));
                 } else {
-                    test["function"](this._reportTest.bind(this, true));
+                    test["function"](this._reportTest.bind(this, true, test));
                 }
                 success = true;
             } catch (err) {
@@ -415,7 +425,7 @@ TestsRunner.prototype = {
         }.bind(this))();
 
         if (!test.async || success === false) {
-            this._reportTest(success);
+            this._reportTest(success, test);
         } else if (test.watchdogDelay) {
             if (this.currentTest == null) {
                 // Test already finished in a sync way,
@@ -423,7 +433,7 @@ TestsRunner.prototype = {
                 return;
             }
             this.testWatchdogTimer = setTimeout(function() {
-                Assert(false, true, "Timeout reached");
+                throw new Error("Timeout reached");
             }, test.watchdogDelay);
         }
     },
