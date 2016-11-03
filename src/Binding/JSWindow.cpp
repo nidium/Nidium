@@ -806,8 +806,10 @@ bool JSWindow::JS_openFileDialog(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
+    bool isarray = false;
+
     if (!JS::ObjectValue(*types).isNull()
-        && !JS_IsArrayObject(cx, types)) {
+        && (!JS_IsArrayObject(cx, types, &isarray) || !isarray)) {
         JS_ReportError(cx, "First parameter must be an array or null");
         return false;
     }
@@ -967,7 +969,8 @@ bool JSWindow::JS_setSystemTray(JSContext *cx, JS::CallArgs &args)
     NIDIUM_JS_GET_OPT_TYPE(jobj, "menu", Object)
     {
         JS::RootedObject arr(cx, __curopt.toObjectOrNull());
-        if (JS_IsArrayObject(cx, arr)) {
+        bool isarray;
+        if (JS_IsArrayObject(cx, arr, &isarray) && isarray) {
             uint32_t len;
             JS_GetArrayLength(cx, arr, &len);
 

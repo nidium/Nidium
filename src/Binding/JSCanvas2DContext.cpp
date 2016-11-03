@@ -188,6 +188,7 @@ bool JSCanvasGLProgram::uniformXiv(JSContext *cx, JS::CallArgs &args, int nb)
     GLsizei length;
     GLint *carray;
     int location;
+    bool isarray;
 
     NIDIUM_LOG_2D_CALL();
     JS::RootedObject array(cx);
@@ -204,7 +205,7 @@ bool JSCanvasGLProgram::uniformXiv(JSContext *cx, JS::CallArgs &args, int nb)
 
         carray = (GLint *)JS_GetInt32ArrayData(array, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(array);
-    } else if (JS_IsArrayObject(cx, array)) {
+    } else if (JS_IsArrayObject(cx, array, &isarray) && isarray) {
         bool shared;
         JS::AutoCheckCannotGC nogc;
 
@@ -243,6 +244,7 @@ bool JSCanvasGLProgram::uniformXfv(JSContext *cx, JS::CallArgs &args, int nb)
     GLsizei length;
     GLfloat *carray;
     int location;
+    bool isarray;
 
     NIDIUM_LOG_2D_CALL();
     JS::RootedObject array(cx);
@@ -260,7 +262,7 @@ bool JSCanvasGLProgram::uniformXfv(JSContext *cx, JS::CallArgs &args, int nb)
 
         carray = (GLfloat *)JS_GetFloat32ArrayData(array, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(array);
-    } else if (JS_IsArrayObject(cx, array)) {
+    } else if (JS_IsArrayObject(cx, array, &isarray) && isarray) {
         bool shared;
         JS::AutoCheckCannotGC nogc;
 

@@ -2525,14 +2525,14 @@ bool NGL_uniformxfv(Canvas3DContext *glctx,
         return false;
     }
 
-    bool shared;
+    bool shared, isarray;
 
     if (JS_IsFloat32Array(array)) {
         JS::AutoCheckCannotGC nogc;
 
         carray = (GLfloat *)JS_GetFloat32ArrayData(array, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(array);
-    } else if (JS_IsArrayObject(cx, array)) {
+    } else if (JS_IsArrayObject(cx, array, &isarray) && isarray) {
         JS::AutoCheckCannotGC nogc;
 
         JS::RootedObject tmp(cx, JS_NewFloat32ArrayFromArray(cx, array));
@@ -2632,13 +2632,13 @@ bool NGL_uniformxiv(Canvas3DContext *glctx,
         return false;
     }
 
-    bool shared;
+    bool shared, isarray;
 
     if (JS_IsInt32Array(array)) {
         JS::AutoCheckCannotGC nogc;
         carray = (GLint *)JS_GetInt32ArrayData(array, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(array);
-    } else if (JS_IsArrayObject(cx, array)) {
+    } else if (JS_IsArrayObject(cx, array, &isarray) && isarray) {
         JS::AutoCheckCannotGC nogc;
         JS::RootedObject tmp(cx, JS_NewInt32ArrayFromArray(cx, array));
         carray = (GLint *)JS_GetInt32ArrayData(tmp, &shared, nogc);
@@ -2690,13 +2690,13 @@ bool NGL_uniformMatrixxfv(Canvas3DContext *glctx,
         return false;
     }
 
-    bool shared;
+    bool shared, isarray;
 
     if (JS_IsFloat32Array(array)) {
         JS::AutoCheckCannotGC nogc;
         carray = (GLfloat *)JS_GetFloat32ArrayData(array, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(array);
-    } else if (JS_IsArrayObject(cx, array)) {
+    } else if (JS_IsArrayObject(cx, array, &isarray) && isarray) {
         JS::AutoCheckCannotGC nogc;
         JS::RootedObject tmp(cx, JS_NewFloat32ArrayFromArray(cx, array));
         carray = (GLfloat *)JS_GetFloat32ArrayData(tmp, &shared, nogc);
@@ -2782,13 +2782,13 @@ bool NGL_vertexAttribxfv(Canvas3DContext *glctx,
     JS::ToUint32(cx, args[0], &index);
     JS::RootedObject array(cx, args[1].toObjectOrNull());
 
-    bool shared;
+    bool shared, isarray;
 
     if (JS_IsFloat32Array(array)) {
         JS::AutoCheckCannotGC nogc;
 
         carray = (GLfloat *)JS_GetFloat32ArrayData(array, &shared, nogc);
-    } else if (JS_IsArrayObject(cx, array)) {
+    } else if (JS_IsArrayObject(cx, array, &isarray) && isarray) {
         JS::AutoCheckCannotGC nogc;
 
         JS::RootedObject tmp(cx, JS_NewFloat32ArrayFromArray(cx, array));
