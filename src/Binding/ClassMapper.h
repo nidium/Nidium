@@ -352,7 +352,7 @@ public:
     virtual inline void jsTrace(class JSTracer *trc) {}
 
 private:
-    static JS::Heap<JSObject *> m_Proto;
+    static JSObject *m_Proto;
 protected:
     typedef bool (T::*JSCallback)(JSContext *, JS::CallArgs &);
     typedef bool (*JSCallbackStatic)(JSContext *, JS::CallArgs &);
@@ -494,7 +494,7 @@ protected:
 };
 
 template <typename T>
-JS::Heap<JSObject *> ClassMapper<T>::m_Proto;
+JSObject *ClassMapper<T>::m_Proto;
 
 template <typename T>
 class ClassMapperWithEvents : public ClassMapper<T>
