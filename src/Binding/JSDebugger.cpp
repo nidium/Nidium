@@ -13,16 +13,10 @@
 #include "Binding/JSDebugger.h"
 #include "Binding/JSConsole.h"
 
+
 namespace Nidium {
 namespace Binding {
 
-JSFunctionSpec *JSDebuggerCompartment::ListMethods()
-{
-    static JSFunctionSpec funcs[]
-        = { CLASSMAPPER_FN(JSDebuggerCompartment, run, 1), JS_FS_END };
-
-    return funcs;
-}
 
 JSDebuggerCompartment *JSDebuggerCompartment::Constructor(JSContext *cx,
                                                           JS::CallArgs &args,
@@ -121,7 +115,7 @@ bool JSDebuggerCompartment::JS_run(JSContext *cx, JS::CallArgs &args)
     for (int i = 1; i < argc; i++) {
         JS::RootedValue tmp(cx, args[i]);
         JS_WrapValue(cx, &tmp);
-        params[i] = tmp;
+        params[i].set(tmp);
     }
 
     JS_LeaveCompartment(cx, m_Compartment);
@@ -146,7 +140,6 @@ bool JSDebuggerCompartment::run(JSContext *cx,
     JS::RootedObject gbl(cx, m_Global);
     JS::AutoSaveContextOptions asco(cx);
     JS::CompileOptions options(cx);
-    JS::ContextOptionsRef(cx).setVarObjFix(true);
 
     options.setUTF8(true)
         .setFileAndLine("Debugger.run", 1);
@@ -172,6 +165,17 @@ bool JSDebuggerCompartment::run(JSContext *cx,
 
     return ok;
 }
+
+JSFunctionSpec *JSDebuggerCompartment::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSDebuggerCompartment, run, 1),
+        JS_FS_END 
+    };
+
+    return funcs;
+}
+
 
 } // namespace Binding
 } // namespace Nidium
