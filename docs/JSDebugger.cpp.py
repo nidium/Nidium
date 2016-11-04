@@ -12,7 +12,7 @@ As the Debugger is not residing in the same <a href="https://developer.mozilla.o
     products=["Frontend", "Server"]
 )
 
-ConstructorDoc("DebuggerCompartment", "Create a new instance of a<a href=\"https://developer.mozilla.org/en-US/docs/Tools/Debugger-API/Debugger\">Debugger</a> insde a new compartment",
+ConstructorDoc("DebuggerCompartment", "Create a new instance of a <a href=\"https://developer.mozilla.org/en-US/docs/Tools/Debugger-API/Debugger\">Debugger</a> insde a new compartment",
     sees=[ SeeDoc( "DebuggerCompartment.run" ) ],
     returns=ReturnDoc( "Return a DebuggerCompartment", "DebuggerCompartment" )
 )
