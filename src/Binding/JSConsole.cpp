@@ -50,6 +50,9 @@ bool JSConsole::JS_log(JSContext *cx, JS::CallArgs &args)
 
     NidiumJS *js        = NidiumJS::GetObject();
     Core::Context *nctx = js->getContext();
+
+    Core::AutoContextLogBuffering aclb(nctx);
+
     filename_parent = filename.get();
     if (filename_parent == NULL) {
         filename_parent = "(null)";
