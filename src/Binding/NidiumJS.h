@@ -8,7 +8,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-
+#include <unordered_map>
 
 #include <jspubtd.h>
 #include <jsapi.h>
@@ -51,6 +51,12 @@ typedef struct _NidiumBytecodeScript
     const unsigned char *data;
 } NidiumBytecodeScript;
 
+struct nidiumProtoCacheElement
+{
+    JSClass *jsclass = nullptr;
+    JS::Heap<JSObject *> m_Proto;
+};
+
 
 struct NidiumLocalContext {
 
@@ -62,11 +68,33 @@ struct NidiumLocalContext {
         return m_IsShuttingDown;
     }
 
+    void shutdown() {
+        m_IsShuttingDown = true;
+        m_Protocache.clear();
+    }
+
+    void addProtoCache(JSClass *jsclass, JS::HandleObject proto)
+    {
+        nidiumProtoCacheElement &el = m_Protocache[jsclass];
+
+        el.jsclass = jsclass;
+        el.m_Proto = proto;
+    }
+
+    JSObject *getPrototypeFromJSClass(JSClass *jsclass) 
+    {
+        const nidiumProtoCacheElement &el = m_Protocache[jsclass];
+
+        return el.jsclass == nullptr ? nullptr : el.m_Proto;
+    }
+
     JSRuntime *rt;
     JSContext *cx;
     struct _ape_htable *m_RootedObj;
     bool m_IsShuttingDown = false;
     Nidium::Core::Hash64<uintptr_t> m_JSUniqueInstance{64};
+
+    std::unordered_map<JSClass *, nidiumProtoCacheElement>m_Protocache;
 
 };
 

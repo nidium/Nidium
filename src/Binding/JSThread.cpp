@@ -185,7 +185,7 @@ static void *nidium_thread(void *arg)
         }
     }
     NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
-    nlc->m_IsShuttingDown = true;
+    nlc->shutdown();
 
     JS_DestroyContext(tcx);
     JS_DestroyRuntime(rt);

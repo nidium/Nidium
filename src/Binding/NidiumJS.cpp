@@ -599,7 +599,7 @@ NidiumJS::~NidiumJS()
     rt         = JS_GetRuntime(m_Cx);
     
     NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
-    nlc->m_IsShuttingDown = true;
+    nlc->shutdown();
 
     ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(m_Cx));
 

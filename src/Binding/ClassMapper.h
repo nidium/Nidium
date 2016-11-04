@@ -140,13 +140,17 @@ public:
         /*
             TODO: Should we root the proto?
         */
-        ClassMapper<T>::m_Proto = JS_InitClass(cx, sparent, nullptr, jsclass,
+        JS::RootedObject proto(cx, JS_InitClass(cx, sparent, nullptr, jsclass,
                     ClassMapper<T>::JSConstructor<ctor_minarg>,
                     ctor_minarg, T::ListProperties(),
                     T::ListMethods(), NULL,
-                    T::ListStaticMethods());
+                    T::ListStaticMethods()));
 
-        return ClassMapper<T>::m_Proto;
+        NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
+
+        nlc->addProtoCache(jsclass, proto);
+
+        return proto;
     }
 
     static void AssociateObject(JSContext *cx, T *obj, JS::HandleObject jsobj,
@@ -175,7 +179,11 @@ public:
         JSClass *jsclass = T::GetJSClass();
         assert(jsclass->name != NULL);
 #endif
-        JS::RootedObject proto(cx, ClassMapper<T>::m_Proto);
+        NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
+
+        JS::RootedObject proto(cx,
+            nlc->getPrototypeFromJSClass(T::GetJSClass()));
+
         JS::RootedObject ret(cx,
                 JS_NewObjectWithGivenProto(cx,
                 T::GetJSClass(), proto));
@@ -351,8 +359,6 @@ public:
 
     virtual inline void jsTrace(class JSTracer *trc) {}
 
-private:
-    static JSObject *m_Proto;
 protected:
     typedef bool (T::*JSCallback)(JSContext *, JS::CallArgs &);
     typedef bool (*JSCallbackStatic)(JSContext *, JS::CallArgs &);
@@ -492,9 +498,6 @@ protected:
     JSContext *m_Cx = nullptr;
     bool m_Rooted = false;
 };
-
-template <typename T>
-JSObject *ClassMapper<T>::m_Proto;
 
 template <typename T>
 class ClassMapperWithEvents : public ClassMapper<T>
