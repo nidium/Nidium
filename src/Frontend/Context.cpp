@@ -141,7 +141,7 @@ Context::Context(ape_global *net)
                                      Context::ReadStructuredCloneOp);
 
     JS::RootedObject globalObj(m_JS->m_Cx, JS::CurrentGlobalOrNull(m_JS->m_Cx));
-    JS_InitReflect(m_JS->m_Cx, globalObj);
+    //JS_InitReflect(m_JS->m_Cx, globalObj);
 
     m_Jobs.head  = NULL;
     m_Jobs.queue = NULL;
@@ -775,7 +775,7 @@ bool Context::WriteStructuredCloneOp(JSContext *cx,
                                      void *closure)
 {
 
-    JS::RootedValue vobj(cx, OBJECT_TO_JSVAL(obj));
+    JS::RootedValue vobj(cx, JS::ObjectValue(*obj));
     JSType type = JS_TypeOfValue(cx, vobj);
 
     if (type != JSTYPE_OBJECT) {
@@ -825,7 +825,7 @@ JSObject *Context::ReadStructuredCloneOp(JSContext *cx,
             if (data < sizeof(uint32_t) * 2 + 1) {
                 JS::RootedObject obj(
                     cx,
-                    JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+                    JS_NewPlainObject(cx));
                 return obj;
             }
             uint32_t width, height;
@@ -839,12 +839,10 @@ JSObject *Context::ReadStructuredCloneOp(JSContext *cx,
             JS::RootedObject dataObject(cx,
               JSImageData::CreateObject(cx, new JSImageData()));
 
-            JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
-            JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
-            JS_DefineProperty(cx, dataObject, "width", widthVal,
+            JS_DefineProperty(cx, dataObject, "width", width,
                               JSPROP_PERMANENT | JSPROP_ENUMERATE
                                   | JSPROP_READONLY);
-            JS_DefineProperty(cx, dataObject, "height", heightVal,
+            JS_DefineProperty(cx, dataObject, "height", height,
                               JSPROP_PERMANENT | JSPROP_ENUMERATE
                                   | JSPROP_READONLY);
             JS_DefineProperty(cx, dataObject, "data", arr,
@@ -856,7 +854,7 @@ JSObject *Context::ReadStructuredCloneOp(JSContext *cx,
         default:
             break;
     }
-    return JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr());
+    return JS_NewPlainObject(cx);
 }
 
 void Context::addInputEvent(InputEvent *ev)

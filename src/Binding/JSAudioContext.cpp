@@ -92,7 +92,7 @@ bool JSAudioContext::JS_run(JSContext *cx, JS::CallArgs &args)
     JS::RootedString fn(cx);
     JS::RootedFunction nfn(cx);
     if ((nfn = JS_ValueToFunction(cx, args[0])) == NULL
-        || (fn = JS_DecompileFunctionBody(cx, nfn, 0)) == NULL) {
+        || (fn = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
         JS_ReportError(cx, "Failed to read callback function\n");
         return false;
     }
