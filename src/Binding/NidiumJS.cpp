@@ -420,7 +420,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
         return;
     }
 
-    JS_SetGCZeal(m_Cx, 2, 40);
+    JS_SetGCZeal(m_Cx, 2, 5);
 
     JS_SetGCParameterForThread(m_Cx, JSGC_MAX_CODE_CACHE_BYTES,
                                16 * 1024 * 1024);
@@ -462,13 +462,6 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
 
     JS_SetRuntimePrivate(rt, this);
 
-    m_Messages           = new SharedMessages();
-    m_RegisteredMessages = static_cast<nidium_thread_message_t *>(
-        calloc(16, sizeof(nidium_thread_message_t)));
-    m_RegisteredMessagesIdx = 7; // The 8 first slots (0 to 7) are reserved for
-                                 // Nidium internals messages
-    m_RegisteredMessagesSize = 16;
-
     printf("Generational enabled %d\n", JS::IsGenerationalGCEnabled(rt));
 }
 
@@ -494,7 +487,6 @@ NidiumJS::~NidiumJS()
 
     JS_DestroyRuntime(rt);
 
-    delete m_Messages;
     if (m_Modules) {
         delete m_Modules;
     }
@@ -502,40 +494,13 @@ NidiumJS::~NidiumJS()
     pthread_setspecific(gJS, NULL);
 
     hashtbl_free(m_RootedObj);
-    free(m_RegisteredMessages);
 }
 
-static int Nidium_handle_messages(void *arg)
-{
-#define MAX_MSG_IN_ROW 20
-    NidiumJS *njs = static_cast<NidiumJS *>(arg);
-    JSContext *cx = njs->m_Cx;
-    int nread     = 0;
-
-    SharedMessages::Message *msg;
-    JSAutoRequest ar(cx);
-
-    while (++nread < MAX_MSG_IN_ROW && (msg = njs->m_Messages->readMessage())) {
-        int ev = msg->event();
-        if (ev < 0 || ev > njs->m_RegisteredMessagesSize) {
-            continue;
-        }
-        njs->m_RegisteredMessages[ev](cx, msg);
-        delete msg;
-    }
-
-    return 8;
-#undef MAX_MSG_IN_ROW
-}
 
 void NidiumJS::bindNetObject(ape_global *net)
 {
     JS_SetContextPrivate(m_Cx, net);
     m_Net = net;
-
-    ape_timer_t *timer = APE_timer_create(net, 1, Nidium_handle_messages, this);
-
-    APE_timer_unprotect(timer);
 
     // NidiumFileIO *io = new NidiumFileIO("/tmp/foobar", this, net);
     // io->open();
@@ -832,49 +797,7 @@ void NidiumJS::loadGlobalObjects()
     }
 }
 
-int NidiumJS::registerMessage(nidium_thread_message_t cbk)
-{
-    if (m_RegisteredMessagesIdx >= m_RegisteredMessagesSize - 1) {
-        void *ptr = realloc(m_RegisteredMessages,
-                            (m_RegisteredMessagesSize + 16)
-                                * sizeof(nidium_thread_message_t));
-        if (ptr == NULL) {
-            return -1;
-        }
 
-        m_RegisteredMessages = static_cast<nidium_thread_message_t *>(ptr);
-        m_RegisteredMessagesSize += 16;
-    }
-
-    m_RegisteredMessagesIdx++;
-
-    m_RegisteredMessages[m_RegisteredMessagesIdx] = cbk;
-
-    return m_RegisteredMessagesIdx;
-}
-
-void NidiumJS::registerMessage(nidium_thread_message_t cbk, int id)
-{
-    if (id < 0 || id > 7) {
-        printf("ERROR : Message id must be between 0 and 7.\n");
-        return;
-    }
-
-    if (m_RegisteredMessages[id] != NULL) {
-        printf(
-            "ERROR : Trying to register a shared message at idx %d but slot is "
-            "already reserved\n",
-            id);
-        return;
-    }
-
-    m_RegisteredMessages[id] = cbk;
-}
-
-void NidiumJS::postMessage(void *dataPtr, int ev)
-{
-    m_Messages->postMessage(dataPtr, ev);
-}
 // }}}
 } // namespace Binding
 } // namespace Nidium

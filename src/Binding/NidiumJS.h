@@ -41,8 +41,6 @@ struct nidium_thread_msg
 };
 
 typedef struct _ape_global ape_global;
-typedef void (*nidium_thread_message_t)(
-    JSContext *cx, Nidium::Core::SharedMessages::Message *msg);
 
 typedef struct _NidiumBytecodeScript
 {
@@ -68,16 +66,11 @@ public:
     };
 
     JSContext *m_Cx;
-    Nidium::Core::SharedMessages *m_Messages;
 
     Nidium::Core::Hash<JSObject *> m_JsObjects;
 
     struct _ape_htable *m_RootedObj;
     struct _ape_global *m_Net;
-
-    nidium_thread_message_t *m_RegisteredMessages;
-    int m_RegisteredMessagesIdx;
-    int m_RegisteredMessagesSize;
 
     static NidiumJS *GetObject(JSContext *cx = NULL);
     static ape_global *GetNet();
@@ -124,10 +117,6 @@ public:
 
     void gc();
     void bindNetObject(ape_global *net);
-
-    int registerMessage(nidium_thread_message_t cbk);
-    void registerMessage(nidium_thread_message_t cbk, int id);
-    void postMessage(void *dataPtr, int ev);
 
     static JSStructuredCloneCallbacks *m_JsScc;
     static JSObject *readStructuredCloneOp(JSContext *cx,
