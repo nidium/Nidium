@@ -123,6 +123,7 @@
             '../src/Net/WebSocket.cpp',
             '../src/Net/WebSocketClient.cpp',
 
+            '../src/Binding/ThreadLocalContext.cpp',
             '../src/Binding/NidiumJS.cpp',
             '../src/Binding/JSGlobal.cpp',
             '../src/Binding/JSEvents.cpp',

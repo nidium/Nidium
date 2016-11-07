@@ -36,6 +36,7 @@
 #include "Binding/JSGlobal.h"
 #include "Binding/JSDB.h"
 #include "Binding/JSOS.h"
+#include "Binding/ThreadLocalContext.h"
 
 #ifndef NIDIUM_DISABLE_WINDOW_GLOBAL
   #include "Binding/JSWindow.h"
@@ -66,78 +67,26 @@ static pthread_key_t g_NidiumThreadContextKey;
 
 JSStructuredCloneCallbacks *NidiumJS::m_JsScc = NULL;
 
-// }}}
 
-// {{{ NidiumJS
-
-#if 0
-static void gccb(JSRuntime *rt, JSGCStatus status)
-{
-    //printf("Gc TH1 callback?\n");
-}
-#endif
-
-#if 1
-
-static void NidiumTraceBlack(JSTracer *trc, void *data)
-{
-    NidiumLocalContext *nlc = static_cast<NidiumLocalContext *>(data);
-
-    if (nlc->isShuttingDown()) {
-        return;
-    }
-
-    ape_htable_item_t *item;
-
-    for (item = nlc->m_RootedObj->first; item != NULL; item = item->lnext) {
-        uintptr_t oldaddr = reinterpret_cast<uintptr_t>(item->content.addrs);
-        uintptr_t newaddr = oldaddr;
-
-        /*
-            TODO: Change to barriered traced and check that we only root
-            JS::Heap<> objects.
-        */
-        JS_CallUnbarrieredObjectTracer(trc, reinterpret_cast<JSObject **>(&newaddr),
-                            "NidiumRoot");
-
-        if (oldaddr != newaddr) {
-            printf("Address changed\n");
-        }
-        // printf("Tracing object at %p\n", item->addrs);
-    }
-}
-#endif
 
 void NidiumJS::gc()
 {
     JS_GC(JS_GetRuntime(m_Cx));
 }
 
-/* Use obj address as key */
-void NidiumJS::rootObjectUntilShutdown(JSObject *obj)
-{
 
-    // m_RootedSet->put(obj);
-    // JS::AutoHashSetRooter<JSObject *> rooterhash(cx, 0);
-    hashtbl_append64(this->m_RootedObj, reinterpret_cast<uint64_t>(obj), obj);
-}
-
-void NidiumJS::RootObjectUntilShutdown(JSObject *obj)
+void NidiumJS::RootObjectUntilShutdown(JS::Heap<JSObject *> &obj)
 {
     NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
 
-    hashtbl_append64(nlc->m_RootedObj, reinterpret_cast<uint64_t>(obj), obj);
+    hashtbl_append64(nlc->m_RootedObj, reinterpret_cast<uint64_t>(&obj), &obj);
 }
 
-void NidiumJS::unrootObject(JSObject *obj)
-{
-    hashtbl_erase64(this->m_RootedObj, reinterpret_cast<uint64_t>(obj));
-}
 
-void NidiumJS::UnrootObject(JSObject *obj)
+void NidiumJS::UnrootObject(JS::Heap<JSObject *> &obj)
 {
     NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
-    hashtbl_erase64(nlc->m_RootedObj, reinterpret_cast<uint64_t>(obj));
+    hashtbl_erase64(nlc->m_RootedObj, reinterpret_cast<uint64_t>(&obj));
 }
 
 JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx,
@@ -443,26 +392,6 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
     JS_free(cx, prefix);
 }
 
-void NidiumJS::InitThreadContext(JSRuntime *rt, JSContext *cx)
-{
-    NidiumLocalContext *nlc = new NidiumLocalContext(rt, cx);
-    pthread_setspecific(g_NidiumThreadContextKey, nlc);
-
-    JS_AddExtraGCRootsTracer(rt, NidiumTraceBlack, nlc);
-}
-
-NidiumLocalContext *NidiumJS::GetLocalContext()
-{
-    return (NidiumLocalContext *)pthread_getspecific(g_NidiumThreadContextKey);
-}
-
-void NidiumJS::DestroyThreadContext(void *data)
-{
-    NidiumLocalContext *nlc = (NidiumLocalContext *)data;
-
-    delete nlc;
-}
-
 NidiumJS::NidiumJS(ape_global *net, Context *context)
     : m_JSStrictMode(false), m_Context(context)
 {
@@ -488,11 +417,10 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     NidiumJS::InitNet(net);
 
     pthread_key_create(&gJS, NULL);
-    pthread_key_create(&g_NidiumThreadContextKey, NidiumJS::DestroyThreadContext);
-
     pthread_setspecific(gJS, this);
 
     NidiumJS::Init();
+    NidiumLocalContext::Init();
 
     if ((rt = JS_NewRuntime(JS::DefaultHeapMaxBytes, JS::DefaultNurseryBytes))
         == NULL) {
@@ -508,6 +436,8 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
         printf("Failed to init JS context\n");
         return;
     }
+
+    JS_SetGCZeal(m_Cx, 2, 40);
 
     JS_SetGCParameterForThread(m_Cx, JSGC_MAX_CODE_CACHE_BYTES,
                                16 * 1024 * 1024);
@@ -536,9 +466,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     m_Compartment = JS_EnterCompartment(m_Cx, gbl);
 // JSAutoCompartment ac(m_Cx, gbl);
 
-    JS_AddExtraGCRootsTracer(rt, NidiumTraceBlack, this);
-
-    InitThreadContext(rt, m_Cx);
+    NidiumLocalContext::InitJSThread(rt, m_Cx);
 
     if (NidiumJS::m_JsScc == NULL) {
         NidiumJS::m_JsScc              = new JSStructuredCloneCallbacks();
@@ -557,48 +485,17 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     m_RegisteredMessagesIdx = 7; // The 8 first slots (0 to 7) are reserved for
                                  // Nidium internals messages
     m_RegisteredMessagesSize = 16;
+
+    printf("Generational enabled %d\n", JS::IsGenerationalGCEnabled(rt));
 }
 
-
-#if 0
-static bool test_extracting(const char *buf, int len,
-    size_t offset, size_t total, void *user)
-{
-    //NidiumJS *njs = static_cast<NidiumJS *>(user);
-
-    printf("Got a packet of size %ld out of %ld\n", offset, total);
-    return true;
-}
-
-
-int NidiumJS::LoadApplication(const char *path)
-{
-    if (m_Net == NULL) {
-        printf("LoadApplication: bind a net object first\n");
-        return 0;
-    }
-    App *app = new App("./demo.zip");
-    if (app->open()) {
-        this->UI->setWindowTitle(app->getTitle());
-        app->runWorker(m_Net);
-        size_t size = app->extractFile("main.js", test_extracting, this);
-        if (size == 0) {
-            printf("Cant exctract file\n");
-        } else {
-            printf("size : %ld\n", size);
-        }
-    }
-
-    return 0;
-}
-#endif
 
 NidiumJS::~NidiumJS()
 {
     JSRuntime *rt;
     rt         = JS_GetRuntime(m_Cx);
     
-    NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
+    NidiumLocalContext *nlc = NidiumLocalContext::Get();
     nlc->shutdown();
 
     ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(m_Cx));

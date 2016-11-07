@@ -51,52 +51,6 @@ typedef struct _NidiumBytecodeScript
     const unsigned char *data;
 } NidiumBytecodeScript;
 
-struct nidiumProtoCacheElement
-{
-    JSClass *jsclass = nullptr;
-    JS::Heap<JSObject *> m_Proto;
-};
-
-
-struct NidiumLocalContext {
-
-    NidiumLocalContext(JSRuntime *rt, JSContext *cx) : rt(rt), cx(cx) {
-        m_RootedObj = hashtbl_init(APE_HASH_INT);
-    }
-
-    bool isShuttingDown() const {
-        return m_IsShuttingDown;
-    }
-
-    void shutdown() {
-        m_IsShuttingDown = true;
-        m_Protocache.clear();
-    }
-
-    void addProtoCache(JSClass *jsclass, JS::HandleObject proto)
-    {
-        nidiumProtoCacheElement &el = m_Protocache[jsclass];
-
-        el.jsclass = jsclass;
-        el.m_Proto = proto;
-    }
-
-    JSObject *getPrototypeFromJSClass(JSClass *jsclass) 
-    {
-        const nidiumProtoCacheElement &el = m_Protocache[jsclass];
-
-        return el.jsclass == nullptr ? nullptr : el.m_Proto;
-    }
-
-    JSRuntime *rt;
-    JSContext *cx;
-    struct _ape_htable *m_RootedObj;
-    bool m_IsShuttingDown = false;
-    Nidium::Core::Hash64<uintptr_t> m_JSUniqueInstance{64};
-
-    std::unordered_map<JSClass *, nidiumProtoCacheElement>m_Protocache;
-
-};
 
 class NidiumJSDelegate;
 
@@ -139,11 +93,6 @@ public:
     JSContext *getJSContext() const
     {
         return this->m_Cx;
-    }
-
-    bool isShuttingDown() const
-    {
-        return m_Shutdown;
     }
 
     void setStrictMode(bool val)
@@ -214,17 +163,13 @@ public:
         return m_StructuredCloneAddition.write;
     }
 
-    static void UnrootObject(JSObject *obj);
-    static void RootObjectUntilShutdown(JSObject *obj);
+    static void UnrootObject(JS::Heap<JSObject *> &obj);
+    static void RootObjectUntilShutdown(JS::Heap<JSObject *> &obj);
     static JSObject *CreateJSGlobal(JSContext *cx, NidiumJS *njs = nullptr);
     static void SetJSRuntimeOptions(JSRuntime *rt, bool strictmode = false);
-    static void InitThreadContext(JSRuntime *rt, JSContext *cx);
-    static void DestroyThreadContext(void *data);
-    static NidiumLocalContext *GetLocalContext();
 
 private:
     JSModules *m_Modules;
-    bool m_Shutdown;
     JSCompartment *m_Compartment;
     bool m_JSStrictMode;
     Core::Context *m_Context;
