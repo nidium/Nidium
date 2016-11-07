@@ -30,6 +30,11 @@ JSDebuggerCompartment *JSDebuggerCompartment::Constructor(JSContext *cx,
     return debuggerCpt;
 }
 
+JSDebuggerCompartment::~JSDebuggerCompartment()
+{
+    NidiumLocalContext::UnrootObject(m_Debugger);
+}
+
 JSDebuggerCompartment::JSDebuggerCompartment(JSContext *cx)
 {
     JS::RootedObject mainGbl(cx, JS::CurrentGlobalOrNull(cx));
@@ -72,6 +77,8 @@ JSDebuggerCompartment::JSDebuggerCompartment(JSContext *cx)
     }
 
     m_Debugger = rval.toObjectOrNull();
+
+    NidiumLocalContext::RootObjectUntilShutdown(m_Debugger);
 }
 
 bool JSDebuggerCompartment::JS_run(JSContext *cx, JS::CallArgs &args)
