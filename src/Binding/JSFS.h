@@ -47,7 +47,7 @@ public:
         }
 
         if (callback) {
-           NidiumLocalContext::RootObjectUntilShutdown(callback);
+           //NidiumLocalContext::RootObjectUntilShutdown(callback);
         }
         m_CallBack[idx] = callback;
     }

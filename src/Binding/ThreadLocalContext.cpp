@@ -39,13 +39,21 @@ void NidiumLocalContext::_destroy(void *data)
 
 void NidiumLocalContext::_jstrace(JSTracer *trc, void *data)
 {
-    NidiumLocalContext *nlc = static_cast<NidiumLocalContext *>(data);
+    NidiumLocalContext *nlc = (NidiumLocalContext *)data;
 
     if (nlc->isShuttingDown()) {
         return;
     }
 
-    for (auto &it : nlc->m_RootedThings) {
+    _jstraceMember(trc, nlc->m_RootedThings);
+    _jstraceMember(trc, nlc->m_RootedThingsRef);
+}
+
+template <typename T>
+void NidiumLocalContext::_jstraceMember(JSTracer *trc, T map)
+{
+
+    for (auto &it : map) {
         nidiumRootedThing &thing = it.second;
 
         switch(thing.m_Type) {
@@ -64,9 +72,18 @@ void NidiumLocalContext::_jstrace(JSTracer *trc, void *data)
     }
 }
 
-void NidiumLocalContext::RootObjectUntilShutdown(JSObject *obj)
+nidiumRootedThingRef *NidiumLocalContext::RootNonHeapObjectUntilShutdown(JSObject *obj)
 {
-    printf("Rooting non-heap object is unimplemented\n");
+    NidiumLocalContext *nlc = Get();
+    uint64_t uid = nlc->getUniqueId();
+
+    nidiumRootedThingRef &thing = nlc->m_RootedThingsRef[uid];
+    thing.m_Ref = obj;
+    thing.m_Id  = uid;
+    thing.m_Type = nidiumRootedThing::Type::kHeapObj;
+    thing.heapobj = &thing.m_Ref;
+
+    return &thing;
 }
 
 void NidiumLocalContext::RootObjectUntilShutdown(JS::Heap<JSObject *> &obj)

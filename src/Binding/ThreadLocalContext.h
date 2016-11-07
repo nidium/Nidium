@@ -20,8 +20,9 @@ struct nidiumProtoCacheElement
     JS::Heap<JSObject *> m_Proto;
 };
 
-struct nidiumRootedThing
+class nidiumRootedThing
 {
+public:
     nidiumRootedThing() {};
 
     enum class Type {
@@ -33,17 +34,25 @@ struct nidiumRootedThing
     union {
         JS::Heap<JSObject *> *heapobj = nullptr;
         JS::Heap<JS::Value> *heapvalue;
-
         JS::TenuredHeap<JSObject *> *tenuredobj;
     };
-
 };
 
+class nidiumRootedThingRef : public nidiumRootedThing
+{
+public:
+    JSObject *get() {
+        return m_Ref;
+    }
+
+    JS::Heap<JSObject *> m_Ref;
+    uint64_t m_Id = 0;
+};
 
 struct NidiumLocalContext {
 
     NidiumLocalContext(JSRuntime *rt, JSContext *cx) : rt(rt), cx(cx) {
-        m_RootedObj = hashtbl_init(APE_HASH_INT);
+        
     }
 
     bool isShuttingDown() const {
@@ -70,6 +79,10 @@ struct NidiumLocalContext {
         return el.jsclass == nullptr ? nullptr : el.m_Proto;
     }
 
+    uint64_t getUniqueId()
+    {
+        return ++m_UniqueId;
+    }
 
     static NidiumLocalContext *Get();
     static void Init();
@@ -83,13 +96,28 @@ struct NidiumLocalContext {
 
     static void _jstrace(JSTracer *trc, void *data);
 
+    template<typename T>
+    static void _jstraceMember(JSTracer *trc, T data);
+
     /*
         Rooting API
     */
     static void RootObjectUntilShutdown(JS::Heap<JSObject *> &obj);
     static void RootObjectUntilShutdown(JS::Heap<JS::Value> &obj);
     static void RootObjectUntilShutdown(JS::TenuredHeap<JSObject *> &obj);
-    static void RootObjectUntilShutdown(JSObject *obj);
+    static nidiumRootedThingRef *RootNonHeapObjectUntilShutdown(JSObject *obj);
+
+
+    static void UnrootObject(nidiumRootedThingRef *ref)
+    {
+        if (!ref || ref->m_Id == 0) {
+            return;
+        }
+
+        NidiumLocalContext *nlc = Get();
+
+        nlc->m_RootedThingsRef.erase(ref->m_Id);
+    }
 
     template<typename T>
     static void UnrootObject(T &obj)
@@ -106,13 +134,14 @@ struct NidiumLocalContext {
 
     JSRuntime *rt;
     JSContext *cx;
-    struct _ape_htable *m_RootedObj;
     bool m_IsShuttingDown = false;
     Nidium::Core::Hash64<uintptr_t> m_JSUniqueInstance{64};
 
     std::unordered_map<JSClass *, nidiumProtoCacheElement>m_Protocache;
     std::unordered_map<uintptr_t, nidiumRootedThing>m_RootedThings;
+    std::unordered_map<uint64_t, nidiumRootedThingRef>m_RootedThingsRef;
 
+    uint64_t m_UniqueId = 0;
 };
 
 }

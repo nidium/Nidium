@@ -62,18 +62,14 @@ namespace Binding {
 
 static pthread_key_t gAPE;
 static pthread_key_t gJS;
-static pthread_key_t g_NidiumThreadContextKey;
-
 
 JSStructuredCloneCallbacks *NidiumJS::m_JsScc = NULL;
-
 
 
 void NidiumJS::gc()
 {
     JS_GC(JS_GetRuntime(m_Cx));
 }
-
 
 
 JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx,
