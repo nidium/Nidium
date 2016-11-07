@@ -405,7 +405,7 @@ bool JSWindow::dragBegin(int x, int y, const char *const *files, size_t nfiles)
     m_Dragging = true; // Duh..
 
     m_DraggedFiles = JS_NewArrayObject(m_Cx, (int)nfiles);
-    NidiumJS::RootObjectUntilShutdown(m_DraggedFiles);
+    NidiumLocalContext::RootObjectUntilShutdown(m_DraggedFiles);
 
     JS::RootedObject dragged(m_Cx, m_DraggedFiles);
 
@@ -453,7 +453,7 @@ void JSWindow::dragEnd()
         return;
     }
 
-    NidiumJS::UnrootObject(m_DraggedFiles);
+    NidiumLocalContext::UnrootObject(m_DraggedFiles);
 
     m_DraggedFiles = NULL;
     m_Dragging     = false;

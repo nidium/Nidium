@@ -31,7 +31,7 @@ public:
 
         for (int i = 0; i < NIDIUM_ASYNC_MAXCALLBACK; i++) {
             if (m_CallBack[i] != NULL) {
-                NidiumJS::GetObject(m_Ctx)->unrootObject(m_CallBack[i]);
+                NidiumLocalContext::UnrootObject(m_CallBack[i]);
             }
         }
     }
@@ -43,11 +43,11 @@ public:
         }
 
         if (m_CallBack[idx] != NULL) {
-            NidiumJS::GetObject(m_Ctx)->unrootObject(m_CallBack[idx]);
+            NidiumLocalContext::UnrootObject(m_CallBack[idx]);
         }
 
         if (callback) {
-            NidiumJS::GetObject(m_Ctx)->rootObjectUntilShutdown(callback);
+           NidiumLocalContext::RootObjectUntilShutdown(callback);
         }
         m_CallBack[idx] = callback;
     }

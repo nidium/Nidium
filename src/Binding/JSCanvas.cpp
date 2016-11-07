@@ -571,8 +571,6 @@ bool JSCanvas::JSSetter_left(JSContext *cx, JS::MutableHandleValue vp)
         return true;
     }
 
-    printf("set left %f\n", dval);
-
     m_CanvasHandler->setLeft(dval);
 
     return true;
@@ -1461,8 +1459,8 @@ void JSCanvas::jsTrace(class JSTracer *trc)
 
         for (cur = handler->getFirstChild(); cur != NULL; cur = cur->m_Next) {
             if (cur->m_JsObj) {
-
-                JS_CallObjectTracer(trc, &cur->m_JsObj, "nidiumcanvasroot");
+                    printf("JSTrace canvas\n");
+                JS_CallTenuredObjectTracer(trc, &cur->m_JsObj, "nidiumcanvasroot");
             }
         }
     }

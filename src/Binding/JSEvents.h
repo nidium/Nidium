@@ -9,6 +9,7 @@
 #include <jsapi.h>
 
 #include "Binding/NidiumJS.h"
+#include "Binding/ThreadLocalContext.h"
 
 namespace Nidium {
 namespace Binding {
@@ -22,12 +23,12 @@ struct JSEvent
 
         m_Cx = cx;
 
-        NidiumJS::RootObjectUntilShutdown(func.toObjectOrNull());
+        NidiumLocalContext::RootObjectUntilShutdown(m_Function);
     }
 
     ~JSEvent()
     {
-        NidiumJS::UnrootObject(m_Function.toObjectOrNull());
+        NidiumLocalContext::UnrootObject(m_Function);
     }
 
     JSContext *m_Cx;

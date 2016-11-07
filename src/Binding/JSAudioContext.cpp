@@ -402,7 +402,7 @@ bool JSAudioContext::createContext()
         return false;
     }
 
-    NidiumJS::InitThreadContext(m_JsRt, m_JsTcx);
+    NidiumLocalContext::InitJSThread(m_JsRt, m_JsTcx);
 
     JSAutoRequest ar(m_JsTcx);
 

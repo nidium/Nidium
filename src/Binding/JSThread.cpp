@@ -105,7 +105,7 @@ static void *nidium_thread(void *arg)
 
         JS_SetInterruptCallback(rt, JSThreadCallback);
 
-        NidiumJS::InitThreadContext(rt, tcx);
+        NidiumLocalContext::InitJSThread(rt, tcx);
 
         nthread->m_JsRuntime = rt;
         nthread->m_JsCx      = tcx;
@@ -184,7 +184,7 @@ static void *nidium_thread(void *arg)
             nthread->onComplete(rval);
         }
     }
-    NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
+    NidiumLocalContext *nlc = NidiumLocalContext::Get();
     nlc->shutdown();
 
     JS_DestroyContext(tcx);

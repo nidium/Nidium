@@ -122,8 +122,6 @@ public:
     int LoadBytecode(NidiumBytecodeScript *script);
     int LoadBytecode(void *data, int size, const char *filename);
 
-    void rootObjectUntilShutdown(JSObject *obj);
-    void unrootObject(JSObject *obj);
     void gc();
     void bindNetObject(ape_global *net);
 
@@ -158,13 +156,12 @@ public:
     {
         return m_StructuredCloneAddition.read;
     }
+    
     WriteStructuredCloneOp getWriteStructuredCloneAddition() const
     {
         return m_StructuredCloneAddition.write;
     }
 
-    static void UnrootObject(JS::Heap<JSObject *> &obj);
-    static void RootObjectUntilShutdown(JS::Heap<JSObject *> &obj);
     static JSObject *CreateJSGlobal(JSContext *cx, NidiumJS *njs = nullptr);
     static void SetJSRuntimeOptions(JSRuntime *rt, bool strictmode = false);
 

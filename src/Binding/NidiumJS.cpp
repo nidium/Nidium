@@ -75,19 +75,6 @@ void NidiumJS::gc()
 }
 
 
-void NidiumJS::RootObjectUntilShutdown(JS::Heap<JSObject *> &obj)
-{
-    NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
-
-    hashtbl_append64(nlc->m_RootedObj, reinterpret_cast<uint64_t>(&obj), &obj);
-}
-
-
-void NidiumJS::UnrootObject(JS::Heap<JSObject *> &obj)
-{
-    NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
-    hashtbl_erase64(nlc->m_RootedObj, reinterpret_cast<uint64_t>(&obj));
-}
 
 JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx,
                                           JSStructuredCloneReader *r,

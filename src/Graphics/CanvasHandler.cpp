@@ -408,9 +408,10 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
         m_NidiumContext->setCurrentClickedHandler(NULL);
     }
 
-#if 0
+#if 1
     if (m_JsObj && JS::IsIncrementalBarrierNeeded(JS_GetRuntime(m_JsCx))) {
-        JS::IncrementalReferenceBarrier(m_JsObj);
+        printf("Barrier needed\n");
+        //JS::IncrementalReferenceBarrier(m_JsObj);
     }
 #endif
     if (m_Parent->m_Children == this) {
@@ -1309,6 +1310,7 @@ CanvasHandler::~CanvasHandler()
 {
     CanvasHandler *cur = m_Children, *cnext;
 
+    printf("Remove from parent\n");
     removeFromParent();
 
     /* all children got orphaned :(*/

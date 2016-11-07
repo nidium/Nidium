@@ -21,6 +21,7 @@
 
 #include "Binding/NidiumJS.h"
 #include "Binding/JSUtils.h"
+#include "Binding/ThreadLocalContext.h"
 #include "IO/Stream.h"
 
 #define NIDIUM_MODULES_PATHS_COUNT 2
@@ -158,7 +159,7 @@ bool JSModule::initNative()
     }
 
     m_Exports = exports;
-    NidiumJS::RootObjectUntilShutdown(m_Exports);
+    NidiumLocalContext::RootObjectUntilShutdown(m_Exports);
 
     return true;
 }
@@ -174,7 +175,7 @@ bool JSModule::initNativeEmbedded()
     if (!obj) return false;
 
     m_Exports = obj;
-    NidiumJS::RootObjectUntilShutdown(m_Exports);
+    NidiumLocalContext::RootObjectUntilShutdown(m_Exports);
 
     return true;
 }
@@ -241,7 +242,7 @@ bool JSModule::initJS()
     js::SetFunctionNativeReserved(funObj, 1, exportsVal);
 
     m_Exports = gbl;
-    NidiumJS::RootObjectUntilShutdown(m_Exports);
+    NidiumLocalContext::RootObjectUntilShutdown(m_Exports);
 
     return true;
 #undef TRY_OR_DIE
@@ -403,7 +404,7 @@ JS::Value JSModule::require(char *name)
                 JS_free(m_Cx, jchars);
 
                 cmodule->m_Exports = jsonData.toObjectOrNull();
-                NidiumJS::RootObjectUntilShutdown(cmodule->m_Exports);
+                NidiumLocalContext::RootObjectUntilShutdown(cmodule->m_Exports);
             }
         }
     }

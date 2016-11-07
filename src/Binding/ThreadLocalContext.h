@@ -31,7 +31,7 @@ struct nidiumRootedThing
     } m_Type;
 
     union {
-        JS::Heap<JSObject *> *heapobj;
+        JS::Heap<JSObject *> *heapobj = nullptr;
         JS::Heap<JS::Value> *heapvalue;
 
         JS::TenuredHeap<JSObject *> *tenuredobj;
@@ -89,6 +89,18 @@ struct NidiumLocalContext {
     static void RootObjectUntilShutdown(JS::Heap<JSObject *> &obj);
     static void RootObjectUntilShutdown(JS::Heap<JS::Value> &obj);
     static void RootObjectUntilShutdown(JS::TenuredHeap<JSObject *> &obj);
+    static void RootObjectUntilShutdown(JSObject *obj);
+
+    template<typename T>
+    static void UnrootObject(T &obj)
+    {
+        NidiumLocalContext *nlc = Get();
+
+        uintptr_t addr = (uintptr_t)&obj;
+        
+        nlc->m_RootedThings.erase(addr);
+        
+    }
 
     /////
 

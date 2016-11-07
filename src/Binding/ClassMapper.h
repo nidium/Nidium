@@ -14,6 +14,7 @@
 #include "Binding/JSEvents.h"
 
 #include "Binding/JSUtils.h"
+#include "Binding/ThreadLocalContext.h"
 
 namespace Nidium {
 namespace Binding {
@@ -146,7 +147,7 @@ public:
                     T::ListMethods(), NULL,
                     T::ListStaticMethods()));
 
-        NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
+        NidiumLocalContext *nlc = NidiumLocalContext::Get();
 
         nlc->addProtoCache(jsclass, proto);
 
@@ -179,7 +180,7 @@ public:
         JSClass *jsclass = T::GetJSClass();
         assert(jsclass->name != NULL);
 #endif
-        NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
+        NidiumLocalContext *nlc = NidiumLocalContext::Get();
 
         JS::RootedObject proto(cx,
             nlc->getPrototypeFromJSClass(T::GetJSClass()));
@@ -200,7 +201,7 @@ public:
         */
         this->root();
 
-        NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
+        NidiumLocalContext *nlc = NidiumLocalContext::Get();
 
         nlc->m_JSUniqueInstance.set((uintptr_t)T::GetJSClass(),
             (uintptr_t)this);
@@ -218,7 +219,7 @@ public:
         JSClass *jsclass = T::GetJSClass();
         assert(jsclass->name != NULL);
         /* CX doesn't match local thread CX */
-        assert(NidiumJS::GetLocalContext()->cx == cx);
+        assert(NidiumLocalContext::Get()->cx == cx);
 #endif
 
         obj->setUniqueInstance();
@@ -273,7 +274,7 @@ public:
      */
     static inline T *GetInstanceSingleton()
     {
-        NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
+        NidiumLocalContext *nlc = NidiumLocalContext::Get();
 
         return reinterpret_cast<T *>(nlc->m_JSUniqueInstance.get(
             (uintptr_t)T::GetJSClass()));
@@ -324,7 +325,7 @@ public:
             return;
         }
 
-        NidiumJS::RootObjectUntilShutdown(m_Instance);
+        NidiumLocalContext::RootObjectUntilShutdown(m_Instance);
         m_Rooted = true;
     }
 
@@ -338,7 +339,7 @@ public:
             return;
         }
 
-        NidiumJS::UnrootObject(m_Instance);
+        NidiumLocalContext::UnrootObject(m_Instance);
         m_Rooted = false;
     }
 
@@ -349,7 +350,7 @@ public:
      */
     virtual ~ClassMapper()
     {
-        if (!m_Instance.get()) {
+        if (!m_Instance) {
             return;
         }
         JS_SetPrivate(m_Instance, nullptr);

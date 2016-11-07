@@ -19,6 +19,7 @@
 
 #include "Binding/JSWindow.h"
 #include "Binding/JSDocument.h"
+#include "Binding/ThreadLocalContext.h"
 
 using Nidium::Core::SharedMessages;
 using Nidium::Core::Path;
@@ -332,7 +333,7 @@ void NML::onGetContent(const char *data, size_t len)
 
         if (m_Layout) {
             m_JSObjectLayout = this->buildLayoutTree(*m_Layout);
-            NidiumJS::RootObjectUntilShutdown(m_JSObjectLayout);
+            Binding::NidiumLocalContext::RootObjectUntilShutdown(m_JSObjectLayout);
         }
     } else {
         /*
@@ -356,7 +357,7 @@ void NML::onGetContent(const char *data, size_t len)
 NML::~NML()
 {
     if (m_JSObjectLayout.get()) {
-        NidiumJS::UnrootObject(m_JSObjectLayout);
+        Binding::NidiumLocalContext::UnrootObject(m_JSObjectLayout);
         m_JSObjectLayout = nullptr;
     }
 

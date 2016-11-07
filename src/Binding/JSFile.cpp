@@ -19,6 +19,7 @@
 
 #include "IO/Stream.h"
 #include "Binding/JSUtils.h"
+#include "Binding/ThreadLocalContext.h"
 
 using Nidium::Core::Path;
 using Nidium::Core::SharedMessages;
@@ -98,7 +99,7 @@ public:
             JS_CallFunctionValue(cx, nullptr, cb, params, &rval);
         }
 
-        NidiumJS::UnrootObject(callback);
+        NidiumLocalContext::UnrootObject(callback);
 
         stream->setListener(NULL);
 
@@ -217,7 +218,7 @@ void JSFile::onMessage(const SharedMessages::Message &msg)
         JS_CallFunctionValue(cx, jsthis, cb, params, &rval);
     }
 
-    NidiumJS::UnrootObject(callback);
+    NidiumLocalContext::UnrootObject(callback);
 
 }
 
@@ -300,7 +301,11 @@ bool JSFile::JS_listFiles(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    NidiumJS::RootObjectUntilShutdown(args[0].toObjectOrNull());
+    JS::RootedObject cb(cx, args[0].toObjectOrNull());
+
+    printf("Rooting callback at %p\n", args[0].toObjectOrNull());
+
+    NidiumLocalContext::RootObjectUntilShutdown(cb);
 
     /*
         If the directory is not open, open it anyway
@@ -308,7 +313,7 @@ bool JSFile::JS_listFiles(JSContext *cx, JS::CallArgs &args)
     if (!file->isOpen()) {
         file->open("r");
     }
-    file->listFiles(args[0].toObjectOrNull());
+    file->listFiles(cb);
 
     this->root();
 
@@ -327,7 +332,7 @@ bool JSFile::JS_seek(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    NidiumJS::RootObjectUntilShutdown(args[1].toObjectOrNull());
+    NidiumLocalContext::RootObjectUntilShutdown(args[1].toObjectOrNull());
 
     this->getFile()->seek(seek_pos, args[1].toObjectOrNull());
 
@@ -354,7 +359,7 @@ bool JSFile::JS_write(JSContext *cx, JS::CallArgs &args)
             cstr.encodeLatin1(cx, str);
         }
 
-        NidiumJS::RootObjectUntilShutdown(args[1].toObjectOrNull());
+        NidiumLocalContext::RootObjectUntilShutdown(args[1].toObjectOrNull());
 
         file->write(cstr.ptr(), cstr.length(), args[1].toObjectOrNull());
     } else if (args[0].isObject()) {
@@ -371,7 +376,7 @@ bool JSFile::JS_write(JSContext *cx, JS::CallArgs &args)
         JS::AutoCheckCannotGC nogc;
         uint8_t *data = JS_GetArrayBufferData(jsobj, &shared, nogc);
 
-        NidiumJS::RootObjectUntilShutdown(args[1].toObjectOrNull());
+        NidiumLocalContext::RootObjectUntilShutdown(args[1].toObjectOrNull());
 
         file->write(reinterpret_cast<char *>(data), len,
                     args[1].toObjectOrNull());
@@ -397,7 +402,7 @@ bool JSFile::JS_read(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    NidiumJS::RootObjectUntilShutdown(args[1].toObjectOrNull());
+    NidiumLocalContext::RootObjectUntilShutdown(args[1].toObjectOrNull());
 
     this->getFile()->read(static_cast<uint64_t>(read_size), args[1].toObjectOrNull());
 
@@ -431,7 +436,7 @@ bool JSFile::JS_open(JSContext *cx, JS::CallArgs &args)
 
     JSAutoByteString cmodes(cx, modes);
 
-    NidiumJS::RootObjectUntilShutdown(args[1].toObjectOrNull());
+    NidiumLocalContext::RootObjectUntilShutdown(args[1].toObjectOrNull());
 
     this->getFile()->open(cmodes.ptr(), args[1].toObjectOrNull());
 
@@ -474,7 +479,7 @@ bool JSFile::JSStatic_read(JSContext *cx, JS::CallArgs &args)
     }
 
     JSAutoByteString cfilename(cx, filename);
-    NidiumJS::RootObjectUntilShutdown(&argcallback.toObject());
+    NidiumLocalContext::RootObjectUntilShutdown(&argcallback.toObject());
 
     Stream *stream = Stream::Create(Path(cfilename.ptr()));
 

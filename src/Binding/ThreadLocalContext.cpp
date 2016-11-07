@@ -37,7 +37,6 @@ void NidiumLocalContext::_destroy(void *data)
     delete nlc;
 }
 
-
 void NidiumLocalContext::_jstrace(JSTracer *trc, void *data)
 {
     NidiumLocalContext *nlc = static_cast<NidiumLocalContext *>(data);
@@ -63,6 +62,11 @@ void NidiumLocalContext::_jstrace(JSTracer *trc, void *data)
             break;
         }
     }
+}
+
+void NidiumLocalContext::RootObjectUntilShutdown(JSObject *obj)
+{
+    printf("Rooting non-heap object is unimplemented\n");
 }
 
 void NidiumLocalContext::RootObjectUntilShutdown(JS::Heap<JSObject *> &obj)
