@@ -207,10 +207,6 @@ void JSFile::onMessage(const SharedMessages::Message &msg)
 
     nidiumRootedThingRef *ref = (nidiumRootedThingRef *)msg.m_Args[7].toPtr();
 
-    if (!this->getFile()->m_TaskQueued) {
-        this->unroot();
-    }
-
     if (!ref) {
         return;
     }
@@ -224,6 +220,10 @@ void JSFile::onMessage(const SharedMessages::Message &msg)
         JS::RootedObject jsthis(cx, getJSObject());
 
         JS_CallFunctionValue(cx, jsthis, cb, params, &rval);
+    }
+
+    if (!this->getFile()->hasTaskOrMessagePending()) {
+        this->unroot();
     }
 
     NidiumLocalContext::UnrootObject(ref);
