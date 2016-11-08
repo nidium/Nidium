@@ -456,8 +456,6 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     this->bindNetObject(net);
 
     JS_SetRuntimePrivate(rt, this);
-
-    printf("Generational enabled %d\n", JS::IsGenerationalGCEnabled(rt));
 }
 
 
