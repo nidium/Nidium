@@ -108,17 +108,17 @@ void *JSNFS::buildJS(const char *data,
     JS::RootedObject gbl(m_JS.cx, JS::CurrentGlobalOrNull(m_JS.cx));
     JS::CompileOptions options(m_JS.cx);
 
-    options.setUTF8(true).setFileAndLine(filename, 1);
+    options.setUTF8(true).setFileAndLine(filename, 1).setNoScriptRval(true);
 
     JS::RootedObject rgbl(m_JS.cx, gbl);
-    JS::AutoSaveContextOptions asco(m_JS.cx);
 
-    JS::ContextOptionsRef(m_JS.cx).setNoScriptRval(true).setVarObjFix(true);
+    bool state;
 
-    JS::RootedScript script(m_JS.cx,
-                            JS::Compile(m_JS.cx, rgbl, options, data, len));
+    JS::RootedScript script(m_JS.cx);
 
-    if (!script) {
+    state = JS::Compile(m_JS.cx, options, data, len, &script);
+
+    if (!state) {
         if (JS_IsExceptionPending(m_JS.cx)) {
             if (!JS_ReportPendingException(m_JS.cx)) {
                 JS_ClearPendingException(m_JS.cx);

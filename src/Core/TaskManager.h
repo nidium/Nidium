@@ -137,6 +137,10 @@ public:
         return m_Lock;
     }
 
+    bool hasTaskOrMessagePending() const {
+        return m_TaskQueued || _m_CountMessagePending;
+    }
+
     void addTask(Task *task);
     void lockTasks();
     void unlockTasks();

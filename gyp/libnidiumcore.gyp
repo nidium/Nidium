@@ -8,7 +8,7 @@
         'type': 'none',
         'direct_dependent_settings': {
             'include_dirs': [
-                '<(third_party_path)/mozilla-central/dist/include/',
+                '<(third_party_path)/mozilla-central/js/src/obj/dist/include/',
                 '<(third_party_path)/mozilla-central/js/src/',
                 '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
                 '<(third_party_path)/http-parser/',
@@ -76,6 +76,7 @@
                     "link_settings": {
                         'libraries': [
                             '-ljs_static',
+                            '-lmozglue',
                             '-lnspr4',
                             '-lpthread',
                             '-lrt',
@@ -122,6 +123,7 @@
             '../src/Net/WebSocket.cpp',
             '../src/Net/WebSocketClient.cpp',
 
+            '../src/Binding/ThreadLocalContext.cpp',
             '../src/Binding/NidiumJS.cpp',
             '../src/Binding/JSGlobal.cpp',
             '../src/Binding/JSEvents.cpp',

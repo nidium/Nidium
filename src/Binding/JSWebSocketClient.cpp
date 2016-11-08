@@ -62,9 +62,7 @@ void JSWebSocket::onMessage(const Core::SharedMessages::Message &msg)
                 && JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
 
                 JS::RootedValue jdata(cx);
-                JS::RootedObject event(
-                    m_Cx,
-                    JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
+                JS::RootedObject event(m_Cx, JS_NewPlainObject(m_Cx));
 
                 JSUtils::StrToJsval(m_Cx, data, len, &jdata,
                                     !binary ? "utf8" : NULL);
@@ -131,7 +129,11 @@ bool JSWebSocket::JS_send(JSContext *cx, JS::CallArgs &args)
             return false;
         }
         uint32_t len  = JS_GetArrayBufferByteLength(objdata);
-        uint8_t *data = JS_GetArrayBufferData(objdata);
+
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
+
+        uint8_t *data = JS_GetArrayBufferData(objdata, &shared, nogc);
 
         this->ws()->write(static_cast<unsigned char *>(data), len, true);
 

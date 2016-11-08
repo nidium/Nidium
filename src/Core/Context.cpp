@@ -50,8 +50,24 @@ int Context::Ping(void *arg)
     return 8;
 }
 
+void Context::logFlush()
+{
+    m_LogBuffering = false;
+
+    if (m_Logbuffer.length()) {
+        this->postMessage(strdup(m_Logbuffer.c_str()), kContextMessage_log);
+        m_Logbuffer.clear();
+        m_Logbuffer.shrink_to_fit();
+    }
+}
+
 void Context::log(const char *str)
 {
+    if (m_LogBuffering) {
+        m_Logbuffer += str;
+
+        return;
+    }
     this->postMessage(strdup(str), kContextMessage_log);
 }
 

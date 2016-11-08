@@ -110,8 +110,8 @@ bool JSImage::setupWithBuffer(buffer *buf)
 
     m_Image = ImageObject;
     JS::RootedObject obj(m_Cx, m_Instance);
-    JS::RootedValue widthVal(m_Cx, INT_TO_JSVAL(ImageObject->getWidth()));
-    JS::RootedValue heightVal(m_Cx, INT_TO_JSVAL(ImageObject->getHeight()));
+    JS::RootedValue widthVal(m_Cx, JS::Int32Value(ImageObject->getWidth()));
+    JS::RootedValue heightVal(m_Cx, JS::Int32Value(ImageObject->getHeight()));
     JS_DefineProperty(m_Cx, obj, "width", widthVal,
                       JSPROP_PERMANENT | JSPROP_READONLY);
     JS_DefineProperty(m_Cx, obj, "height", heightVal,
@@ -132,10 +132,10 @@ JSImage::BuildImageObject(JSContext *cx, Image *image, const char name[])
 
     JS::RootedObject ret(cx, JSImage::CreateObject(cx, nimg));
 
-    JS::RootedValue widthVal(cx, INT_TO_JSVAL(image->getWidth()));
-    JS::RootedValue heightVal(cx, INT_TO_JSVAL(image->getHeight()));
+    JS::RootedValue widthVal(cx, JS::Int32Value(image->getWidth()));
+    JS::RootedValue heightVal(cx, JS::Int32Value(image->getHeight()));
     JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, (name ? name : "unknown")));
-    JS::RootedValue nameVal(cx, STRING_TO_JSVAL(jstr));
+    JS::RootedValue nameVal(cx, JS::StringValue(jstr));
 
     JS_DefineProperty(cx, ret, "width", widthVal,
                       JSPROP_PERMANENT | JSPROP_READONLY);

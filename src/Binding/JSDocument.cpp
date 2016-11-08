@@ -130,15 +130,14 @@ bool JSDocument::JS_getScreenData(JSContext *cx, JS::CallArgs &args)
     int width, height;
     context->getSize(&width, &height);
 
-    JS::RootedObject arrBuffer(cx,
-                               JS_NewUint8ClampedArray(cx, width * height * 4));
-    uint8_t *pixels = JS_GetUint8ClampedArrayData(arrBuffer);
 
     Context *nctx = Context::GetObject<Frontend::Context>(cx);
 
     uint8_t *fb = nctx->getUI()->readScreenPixel();
 
-    memcpy(pixels, fb, width * height * 4);
+
+    JS::RootedObject arrBuffer(cx,
+                               JS_NewUint8ClampedArray(cx, width * height * 4));
 
     // Skia *skia = context->getSurface();
     // skia->readPixels(0, 0, width, height, pixels);
@@ -149,6 +148,13 @@ bool JSDocument::JS_getScreenData(JSContext *cx, JS::CallArgs &args)
 
     JS::RootedValue widthVal(cx, JS::Int32Value(width));
     JS::RootedValue heightVal(cx, JS::Int32Value(height));
+
+    bool shared;
+    JS::AutoCheckCannotGC nogc;
+
+    uint8_t *pixels = JS_GetUint8ClampedArrayData(arrBuffer, &shared, nogc);
+    memcpy(pixels, fb, width * height * 4);
+
     JS::RootedValue arVal(cx, JS::ObjectOrNullValue(arrBuffer));
 
     JS::RootedObject dataObject(cx,
@@ -193,14 +199,19 @@ bool JSDocument::JS_toDataArray(JSContext *cx, JS::CallArgs &args)
     }
 
     JS::RootedObject arrBuffer(cx, JS_NewUint8ClampedArray(cx, data->size()));
-    uint8_t *pixels = JS_GetUint8ClampedArrayData(arrBuffer);
-
-    memcpy(pixels, data->data(), data->size());
-
+    
+    
     SkSafeUnref(data);
 
     JS::RootedValue widthVal(cx, JS::Int32Value(width));
     JS::RootedValue heightVal(cx, JS::Int32Value(height));
+
+    bool shared;
+    JS::AutoCheckCannotGC nogc;
+
+    uint8_t *pixels = JS_GetUint8ClampedArrayData(arrBuffer, &shared, nogc);
+    memcpy(pixels, data->data(), data->size());
+
     JS::RootedValue arVal(cx, JS::ObjectOrNullValue(arrBuffer));
 
     JS::RootedObject dataObject(cx,
@@ -435,7 +446,7 @@ JSObject *JSDocument::RegisterObject(JSContext *cx)
         JSDocument::CreateUniqueInstance(cx, jdoc, "document"));
 
     JS::RootedObject styleObj(
-        cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+        cx, JS_NewPlainObject(cx));
 
     jdoc->m_Stylesheet = styleObj;
 

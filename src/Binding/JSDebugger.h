@@ -25,7 +25,7 @@ public:
     static JSFunctionSpec *ListMethods();
 
     JSDebuggerCompartment(JSContext *cx);
-    virtual ~JSDebuggerCompartment(){};
+    virtual ~JSDebuggerCompartment();
 
 protected:
     NIDIUM_DECL_JSCALL(run);

@@ -76,14 +76,10 @@ def mozilla():
                                     %s/dist/lib/libplc4.a\"" % (
                                         nsprDir, nsprDir, nsprDir, nsprDir)
 
-    configureEnvVars = "CXXFLAGS=\"%s -Wno-null-conversion\" \
-                        MOZ_ZLIB_CFLAGS=-I%s MOZ_ZLIB_LIBS=\"-L%s -lz\"" % (
-                            os.environ.get("CXXFLAGS", ""),
-                            os.path.abspath("zlib"), os.path.abspath("zlib"))
+    configureEnvVars = "CXXFLAGS=\"%s -Wno-null-conversion\"" % (os.environ.get("CXXFLAGS", ""))
 
-    configure = "%s ./js/src/configure\
+    configure = "%s ../configure\
             --disable-shared-js\
-            --enable-threadsafe\
             --enable-ctypes %s" % (configureEnvVars, nsprFlags)
 
     if Konstruct.config("debug", "valgring"):
@@ -93,9 +89,10 @@ def mozilla():
         configure += " --enable-valgrind "
 
     return {
-        "location": DEPEDENCY_REPO + "/mozjs-31.2.0.rc0.tar.bz2",
-        "build": [configure, "make -j1"],
-        "outputs": ["js/src/libjs_static.a$", "js/src/js-config.h$"]
+        "chdir": "js/src/obj",
+        "location": DEPEDENCY_REPO + "/mozjs-45.5.1.tar.bz2",
+        "build": [configure, "make"],
+        "outputs": ["mozglue/build/libmozglue.a$", "js/src/libjs_static.a$", "js/src/js-config.h$"]
     }
 
 @Deps.register("http-parser")

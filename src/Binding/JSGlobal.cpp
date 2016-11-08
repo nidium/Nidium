@@ -76,7 +76,7 @@ static int nidium_timerng_wrapper(void *arg)
     arr.resize(params->argc);
 
     for (int i = 0; i < params->argc; i++) {
-        arr[i] = params->argv[i]->get();
+        arr[i].set(params->argv[i]->get());
     }
     JS_CallFunctionValue(params->cx, global, func, arr, &rval);
 
@@ -189,18 +189,16 @@ bool JSGlobal::JS_setImmediate(JSContext *cx, JS::CallArgs &args)
         params->argv[i] = new JS::PersistentRootedValue(cx);
     }
 
-    JS::RootedValue func(cx);
-
-    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
+    if (!JSUtils::ReportIfNotFunction(cx, args[0])) {
         delete[] params->argv;
         delete params;
-        return true;
+        return false;
     }
 
-    params->func.set(func);
+    params->func = args[0];
 
     for (i = 0; i < static_cast<int>(argc) - 1; i++) {
-        params->argv[i]->set(args[i + 1]);
+        *params->argv[i] = args[i + 1];
     }
 
     ape_timer_async_t *async
@@ -238,22 +236,20 @@ bool JSGlobal::JS_setTimeout(JSContext *cx, JS::CallArgs &args)
         params->argv[i] = new JS::PersistentRootedValue(cx);
     }
 
-    JS::RootedValue func(cx);
-
-    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
+    if (!JSUtils::ReportIfNotFunction(cx, args[0])) {
         delete[] params->argv;
         delete params;
-        return true;
+        return false;
     }
 
     if (argc > 1 && !JS::ToInt32(cx, args[1], &ms)) {
         ms = 0;
     }
 
-    params->func.set(func);
+    params->func = args[0];
 
     for (i = 0; i < static_cast<int>(argc) - 2; i++) {
-        params->argv[i]->set(args[i + 2]);
+        *params->argv[i] = args[i + 2];
     }
 
     ape_timer_t *timer = APE_timer_create(
@@ -291,14 +287,13 @@ bool JSGlobal::JS_setInterval(JSContext *cx, JS::CallArgs &args)
         params->argv[i] = new JS::PersistentRootedValue(cx);
     }
 
-    JS::RootedValue func(cx);
-    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
+    if (!JSUtils::ReportIfNotFunction(cx, args[0])) {
         delete[] params->argv;
         delete params;
-        return true;
+        return false;
     }
 
-    params->func.set(func);
+    params->func = args[0];
 
     if (argc > 1 && !JS::ToInt32(cx, args[1], &ms)) {
         ms = 0;
@@ -307,7 +302,7 @@ bool JSGlobal::JS_setInterval(JSContext *cx, JS::CallArgs &args)
     params->ms = nidium_max(8, ms);
 
     for (i = 0; i < static_cast<int>(argc) - 2; i++) {
-        params->argv[i]->set(args.array()[i + 2]);
+        *params->argv[i] = args.array()[i + 2];
     }
 
     ape_timer_t *timer = APE_timer_create(
@@ -371,12 +366,12 @@ JSClass *JSGlobal::GetJSClass()
     static JSClass global_class = {
         "global",         
         JSCLASS_GLOBAL_FLAGS_WITH_SLOTS(16) | JSCLASS_HAS_PRIVATE,
-        JS_PropertyStub,  JS_DeletePropertyStub,
-        JS_PropertyStub,  JS_StrictPropertyStub,
-        JS_EnumerateStub, JS_ResolveStub,
-        JS_ConvertStub,   nullptr,
-        nullptr,          nullptr,
-        nullptr,          JS_GlobalObjectTraceHook
+        nullptr,  nullptr,
+        nullptr,  nullptr,
+        nullptr,  nullptr,
+        nullptr,  nullptr,
+        nullptr,  nullptr,
+        nullptr,  JS_GlobalObjectTraceHook
     };
     
     return &global_class;

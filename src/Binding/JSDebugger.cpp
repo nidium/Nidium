@@ -8,21 +8,14 @@
 #include <string.h>
 
 #include <jswrapper.h>
-#include <vm/Debugger.h>
 
 #include "Binding/JSDebugger.h"
 #include "Binding/JSConsole.h"
 
+
 namespace Nidium {
 namespace Binding {
 
-JSFunctionSpec *JSDebuggerCompartment::ListMethods()
-{
-    static JSFunctionSpec funcs[]
-        = { CLASSMAPPER_FN(JSDebuggerCompartment, run, 1), JS_FS_END };
-
-    return funcs;
-}
 
 JSDebuggerCompartment *JSDebuggerCompartment::Constructor(JSContext *cx,
                                                           JS::CallArgs &args,
@@ -35,6 +28,11 @@ JSDebuggerCompartment *JSDebuggerCompartment::Constructor(JSContext *cx,
     }
 
     return debuggerCpt;
+}
+
+JSDebuggerCompartment::~JSDebuggerCompartment()
+{
+    NidiumLocalContext::UnrootObject(m_Debugger);
 }
 
 JSDebuggerCompartment::JSDebuggerCompartment(JSContext *cx)
@@ -79,6 +77,8 @@ JSDebuggerCompartment::JSDebuggerCompartment(JSContext *cx)
     }
 
     m_Debugger = rval.toObjectOrNull();
+
+    NidiumLocalContext::RootObjectUntilShutdown(m_Debugger);
 }
 
 bool JSDebuggerCompartment::JS_run(JSContext *cx, JS::CallArgs &args)
@@ -86,7 +86,7 @@ bool JSDebuggerCompartment::JS_run(JSContext *cx, JS::CallArgs &args)
     unsigned int argc = args.length();
 
     if (!args[0].isObject()
-        || !JS_ObjectIsCallable(cx, args[0].toObjectOrNull())) {
+        || !JS::IsCallable(args[0].toObjectOrNull())) {
         JS_ReportError(cx, "First argument must be a function.");
         return false;
     }
@@ -121,7 +121,7 @@ bool JSDebuggerCompartment::JS_run(JSContext *cx, JS::CallArgs &args)
     for (int i = 1; i < argc; i++) {
         JS::RootedValue tmp(cx, args[i]);
         JS_WrapValue(cx, &tmp);
-        params[i] = tmp;
+        params[i].set(tmp);
     }
 
     JS_LeaveCompartment(cx, m_Compartment);
@@ -146,16 +146,17 @@ bool JSDebuggerCompartment::run(JSContext *cx,
     JS::RootedObject gbl(cx, m_Global);
     JS::AutoSaveContextOptions asco(cx);
     JS::CompileOptions options(cx);
-    JS::ContextOptionsRef(cx).setVarObjFix(true);
 
     options.setUTF8(true)
-        .setFileAndLine("Debugger.run", 1)
-        .setCompileAndGo(true);
+        .setFileAndLine("Debugger.run", 1);
 
-    JS::RootedFunction fn(cx,
-                          JS::CompileFunction(cx, gbl, options, nullptr, 0,
-                                              nullptr, funStr, strlen(funStr)));
-    if (fn == nullptr) {
+    JS::AutoObjectVector scopeChain(cx);
+
+    JS::RootedFunction fn(cx);
+
+    if (!JS::CompileFunction(cx, scopeChain, options, nullptr, 0,
+                        nullptr, funStr, strlen(funStr), &fn)) {
+
         JS_LeaveCompartment(cx, m_Compartment);
         JS_ReportError(cx, "Can't compile function");
         return false;
@@ -170,6 +171,17 @@ bool JSDebuggerCompartment::run(JSContext *cx,
 
     return ok;
 }
+
+JSFunctionSpec *JSDebuggerCompartment::ListMethods()
+{
+    static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSDebuggerCompartment, run, 1),
+        JS_FS_END 
+    };
+
+    return funcs;
+}
+
 
 } // namespace Binding
 } // namespace Nidium

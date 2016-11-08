@@ -93,7 +93,7 @@ void JSAVSourceEventInterface::onMessage(const SharedMessages::Message &msg)
         const char *errorStr = AV::AVErrorsStr[errorCode];
         JS::RootedObject evObj(
             cx, JSEvents::CreateErrorEventObject(cx, errorCode, errorStr));
-        ev = OBJECT_TO_JSVAL(evObj);
+        ev.setObject(*evObj);
     } else if (cmsg->m_Ev == SOURCE_EVENT_BUFFERING) {
         JS::RootedObject evObj(cx, JSEvents::CreateEventObject(cx));
         JSObjectBuilder evBuilder(cx, evObj);
@@ -123,7 +123,7 @@ void CopyMetaDataToJS(AVDictionary *dict, JSContext *cx, JS::HandleObject obj)
     while ((tag = av_dict_get(dict, "", tag, AV_DICT_IGNORE_SUFFIX))) {
         JS::RootedString val(
             cx, JS_NewStringCopyN(cx, tag->value, strlen(tag->value)));
-        JS::RootedValue value(cx, STRING_TO_JSVAL(val));
+        JS::RootedValue value(cx, JS::StringValue(val));
         JS_DefineProperty(cx, obj, tag->key, value, JSPROP_ENUMERATE
                                                         | JSPROP_READONLY
                                                         | JSPROP_PERMANENT);
@@ -226,8 +226,7 @@ bool JSAVSourceBase::JSGetter__metadata(JSContext *cx,
 
     if (avctx != NULL) {
         AVDictionary *cmetadata = avctx->metadata;
-        JS::RootedObject metadata(
-            cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+        JS::RootedObject metadata(cx, JS_NewPlainObject(cx));
 
         if (cmetadata) {
             CopyMetaDataToJS(cmetadata, cx, metadata);
@@ -239,13 +238,11 @@ bool JSAVSourceBase::JSGetter__metadata(JSContext *cx,
                                                             | JSPROP_PERMANENT);
 
         for (int i = 0; i < avctx->nb_streams; i++) {
-            JS::RootedObject streamMetaData(
-                cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+            JS::RootedObject streamMetaData(cx, JS_NewPlainObject(cx));
 
             CopyMetaDataToJS(avctx->streams[i]->metadata, cx, streamMetaData);
 
-            JS_DefineElement(cx, arr, i, OBJECT_TO_JSVAL(streamMetaData),
-                             nullptr, nullptr, 0);
+            JS_DefineElement(cx, arr, i, streamMetaData, 0);
         }
 
         /*
@@ -263,14 +260,14 @@ bool JSAVSourceBase::JSGetter__metadata(JSContext *cx,
 
             for (int i = 0; i < avctx->nb_programs; i++) {
                 JS::RootedObject progMetaData(cx, JS_NewObject(cx,
-        nullptr, JS::NullPtr(),
-        JS::NullPtr()));
+        nullptr, nullptr,
+        nullptr));
 
                 CopyMetaDataToJS(avctx->programs[i]->metadata, cx,
         progMetaData);
 
                 JS_DefineElement(cx, arr, i,
-        OBJECT_TO_JSVAL(progMetaData), nullptr,
+        JS::ObjectValue(*progMetaData), nullptr,
         nullptr, 0);
             }
         }

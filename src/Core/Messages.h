@@ -46,11 +46,17 @@ public:
     void postMessageSync(SharedMessages::Message *msg);
     void delMessages(int event = -1);
 
+    bool hasPendingMessages() const {
+        return _m_CountMessagePending;
+    }
+
     static void InitReader(ape_global *ape);
     static void DestroyReader();
 
     SharedMessages *getSharedMessages();
 
+
+    int32_t _m_CountMessagePending = 0;
 protected:
     void cleanupMessages();
 
@@ -60,6 +66,7 @@ private:
 
     /* Keep track on which objects we are listening events */
     std::set<Events *> m_Listening_s;
+
 };
 
 } // namespace Core

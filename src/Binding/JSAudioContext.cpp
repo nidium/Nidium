@@ -25,19 +25,18 @@ reportError(JSContext *cx, const char *message, JSErrorReport *report);
 static JSClass Global_AudioThread_class = {
     "_GLOBALAudioThread",
     JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL | JSCLASS_HAS_RESERVED_SLOTS(1),
-    JS_PropertyStub,
-    JS_DeletePropertyStub,
-    JS_PropertyStub,
-    JS_StrictPropertyStub,
-    JS_EnumerateStub,
-    JS_ResolveStub,
-    JS_ConvertStub,
     nullptr,
     nullptr,
     nullptr,
     nullptr,
-    JS_GlobalObjectTraceHook,
-    JSCLASS_NO_INTERNAL_MEMBERS
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    JS_GlobalObjectTraceHook
 };
 
 
@@ -93,7 +92,7 @@ bool JSAudioContext::JS_run(JSContext *cx, JS::CallArgs &args)
     JS::RootedString fn(cx);
     JS::RootedFunction nfn(cx);
     if ((nfn = JS_ValueToFunction(cx, args[0])) == NULL
-        || (fn = JS_DecompileFunctionBody(cx, nfn, 0)) == NULL) {
+        || (fn = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
         JS_ReportError(cx, "Failed to read callback function\n");
         return false;
     }
@@ -312,11 +311,13 @@ bool JSAudioContext::JS_pFFT(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    if (JS_GetObjectAsFloat64Array(x, &dlenx, &dx) == NULL) {
+    bool shared;
+
+    if (JS_GetObjectAsFloat64Array(x, &dlenx, &shared, &dx) == NULL) {
         JS_ReportError(cx, "Can't convert typed array (expected Float64Array)");
         return false;
     }
-    if (JS_GetObjectAsFloat64Array(y, &dleny, &dy) == NULL) {
+    if (JS_GetObjectAsFloat64Array(y, &dleny, &shared, &dy) == NULL) {
         JS_ReportError(cx, "Can't convert typed array (expected Float64Array)");
         return false;
     }
@@ -385,7 +386,7 @@ bool JSAudioContext::createContext()
 {
     if (m_JsRt != NULL) return false;
 
-    if ((m_JsRt = JS_NewRuntime(128L * 1024L * 1024L, JS_USE_HELPER_THREADS))
+    if ((m_JsRt = JS_NewRuntime(JS::DefaultHeapMaxBytes, JS::DefaultNurseryBytes))
         == NULL) {
         NUI_LOG("Failed to init JS runtime\n");
         return false;
@@ -401,8 +402,7 @@ bool JSAudioContext::createContext()
         return false;
     }
 
-    JS_SetStructuredCloneCallbacks(m_JsRt, NidiumJS::m_JsScc);
-    NidiumJS::InitThreadContext(m_JsRt, m_JsTcx);
+    NidiumLocalContext::InitJSThread(m_JsRt, m_JsTcx);
 
     JSAutoRequest ar(m_JsTcx);
 
@@ -419,12 +419,12 @@ bool JSAudioContext::createContext()
 
     m_JsGlobalObj = global;
 
-    js::SetDefaultObjectForContext(m_JsTcx, global);
+
     if (!JS_InitStandardClasses(m_JsTcx, global)) {
         NUI_LOG("Failed to init std class\n");
         return false;
     }
-    JS_SetErrorReporter(m_JsTcx, reportError);
+    JS_SetErrorReporter(m_JsRt, reportError);
     JS_FireOnNewGlobalObject(m_JsTcx, global);
     JSConsole::RegisterObject(m_JsTcx);
     JSAudioNodeThreaded::RegisterObject(m_JsTcx);
@@ -446,17 +446,20 @@ bool JSAudioContext::run(char *str)
     JS::RootedObject globalObj(m_JsTcx, JS::CurrentGlobalOrNull(m_JsTcx));
     options.setIntroductionType("audio Thread").setUTF8(true);
 
-    JS::RootedFunction fun(
-        m_JsTcx, JS_CompileFunction(m_JsTcx, globalObj, "Audio_run", 0, nullptr,
-                                    str, strlen(str), options));
-    if (!fun.get()) {
+    JS::RootedFunction fun(m_JsTcx);
+    JS::AutoObjectVector scopeChain(m_JsTcx);
+
+    bool state = JS::CompileFunction(m_JsTcx, scopeChain, options,
+                                    "Audio_run", 0, nullptr,
+                                    str, strlen(str), &fun);
+
+    if (!state) {
         JS_ReportError(m_JsTcx, "Failed to compile script on audio thread\n");
         return false;
     }
 
     JS::RootedValue rval(m_JsTcx);
-    JS_CallFunction(m_JsTcx, globalObj, fun, JS::HandleValueArray::empty(),
-                    &rval);
+    JS_CallFunction(m_JsTcx, globalObj, fun, JS::HandleValueArray::empty(), &rval);
 
     return true;
 }

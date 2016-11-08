@@ -19,6 +19,7 @@
 
 #include "Binding/JSWindow.h"
 #include "Binding/JSDocument.h"
+#include "Binding/ThreadLocalContext.h"
 
 using Nidium::Core::SharedMessages;
 using Nidium::Core::Path;
@@ -206,8 +207,8 @@ JSObject *NML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
     JS_DefineProperty(cx, where, name, val, \
                       JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 #define NODE_STR(data, len)                         \
-    STRING_TO_JSVAL(JSUtils::NewStringWithEncoding( \
-        cx, static_cast<const char *>(data), len, "utf8"))
+    JSUtils::NewStringWithEncoding( \
+        cx, static_cast<const char *>(data), len, "utf8")
 
     using namespace rapidxml;
 
@@ -216,30 +217,28 @@ JSObject *NML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
     uint32_t idx = 0;
     for (xml_node<> *child = node.first_node(); child != NULL;
          child = child->next_sibling()) {
-        JS::RootedObject obj(
-            cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+        JS::RootedObject obj(cx, JS_NewPlainObject(cx));
         bool skip = false;
 
         switch (child->type()) {
             case node_data:
             case node_cdata: {
-                JS::RootedValue typeStr(cx, NODE_STR("textNode", 8));
-                JS::RootedValue childStr(
+                JS::RootedString typeStr(cx, NODE_STR("textNode", 8));
+                JS::RootedString childStr(
                     cx, NODE_STR(child->value(), child->value_size()));
                 NODE_PROP(obj, "type", typeStr);
                 NODE_PROP(obj, "text", childStr);
             } break;
             case node_element: {
-                JS::RootedValue typeStr(
+                JS::RootedString typeStr(
                     cx, NODE_STR(child->name(), child->name_size()));
                 NODE_PROP(obj, "type", typeStr);
                 JS::RootedObject obj_attr(
-                    cx,
-                    JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+                    cx, JS_NewPlainObject(cx));
                 NODE_PROP(obj, "attributes", obj_attr);
                 for (xml_attribute<> *attr = child->first_attribute();
                      attr != NULL; attr = attr->next_attribute()) {
-                    JS::RootedValue str(
+                    JS::RootedString str(
                         cx, NODE_STR(attr->value(), attr->value_size()));
                     NODE_PROP(obj_attr, attr->name(), str);
                 }
@@ -255,8 +254,7 @@ JSObject *NML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
             continue;
         }
         /* push to input array */
-        JS::RootedValue jobjV(cx, OBJECT_TO_JSVAL(obj));
-        JS_SetElement(cx, input, idx++, jobjV);
+        JS_SetElement(cx, input, idx++, obj);
     }
     return input;
 #undef NODE_PROP
@@ -335,7 +333,7 @@ void NML::onGetContent(const char *data, size_t len)
 
         if (m_Layout) {
             m_JSObjectLayout = this->buildLayoutTree(*m_Layout);
-            NidiumJS::RootObjectUntilShutdown(m_JSObjectLayout);
+            Binding::NidiumLocalContext::RootObjectUntilShutdown(m_JSObjectLayout);
         }
     } else {
         /*
@@ -359,7 +357,7 @@ void NML::onGetContent(const char *data, size_t len)
 NML::~NML()
 {
     if (m_JSObjectLayout.get()) {
-        NidiumJS::UnrootObject(m_JSObjectLayout);
+        Binding::NidiumLocalContext::UnrootObject(m_JSObjectLayout);
         m_JSObjectLayout = nullptr;
     }
 

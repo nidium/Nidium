@@ -37,94 +37,11 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-static JSClass MouseEvent_class = { "MouseEvent",
-                                    0,
-                                    JS_PropertyStub,
-                                    JS_DeletePropertyStub,
-                                    JS_PropertyStub,
-                                    JS_StrictPropertyStub,
-                                    JS_EnumerateStub,
-                                    JS_ResolveStub,
-                                    JS_ConvertStub,
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
-                                    JSCLASS_NO_INTERNAL_MEMBERS };
-
-static JSClass DragEvent_class = { "DragEvent",
-                                   0,
-                                   JS_PropertyStub,
-                                   JS_DeletePropertyStub,
-                                   JS_PropertyStub,
-                                   JS_StrictPropertyStub,
-                                   JS_EnumerateStub,
-                                   JS_ResolveStub,
-                                   JS_ConvertStub,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   JSCLASS_NO_INTERNAL_MEMBERS };
-
-#if 0
-static JSClass WindowEvent_class = {
-    "WindowEvent", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
-};
-#endif
-
-static JSClass TextEvent_class = { "TextInputEvent",
-                                   0,
-                                   JS_PropertyStub,
-                                   JS_DeletePropertyStub,
-                                   JS_PropertyStub,
-                                   JS_StrictPropertyStub,
-                                   JS_EnumerateStub,
-                                   JS_ResolveStub,
-                                   JS_ConvertStub,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   JSCLASS_NO_INTERNAL_MEMBERS };
-
-static JSClass KeyEvent_class = { "KeyEvent",
-                                  0,
-                                  JS_PropertyStub,
-                                  JS_DeletePropertyStub,
-                                  JS_PropertyStub,
-                                  JS_StrictPropertyStub,
-                                  JS_EnumerateStub,
-                                  JS_ResolveStub,
-                                  JS_ConvertStub,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  JSCLASS_NO_INTERNAL_MEMBERS };
-
-static JSClass NMLEvent_class = { "NMLEvent",
-                                  0,
-                                  JS_PropertyStub,
-                                  JS_DeletePropertyStub,
-                                  JS_PropertyStub,
-                                  JS_StrictPropertyStub,
-                                  JS_EnumerateStub,
-                                  JS_ResolveStub,
-                                  JS_ConvertStub,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  JSCLASS_NO_INTERNAL_MEMBERS };
+static JSClass MouseEvent_class = { "MouseEvent", 0};
+static JSClass DragEvent_class = { "DragEvent", 0};
+static JSClass TextEvent_class = { "TextInputEvent", 0};
+static JSClass KeyEvent_class = { "KeyEvent", 0};
+static JSClass NMLEvent_class = { "NMLEvent", 0};
 
 static struct nidium_cursors
 {
@@ -167,7 +84,7 @@ void JSWindow::onReady(JS::HandleObject layout)
     JS::RootedObject obj(m_Cx, m_Instance);
     JS::RootedValue onready(m_Cx);
     if (JS_GetProperty(m_Cx, obj, "_onready", &onready) && onready.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onready.toObject())) {
+        && JS::IsCallable(&onready.toObject())) {
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, obj, onready, arg, &rval);
     }
@@ -179,7 +96,7 @@ bool JSWindow::onClose()
     JS::RootedObject obj(m_Cx, m_Instance);
     if (JS_GetProperty(m_Cx, obj, "_onbeforeclose", &onclose)
         && onclose.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onclose.toObject())) {
+        && JS::IsCallable(&onclose.toObject())) {
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, obj, onclose, JS::HandleValueArray::empty(),
                              &rval);
@@ -199,9 +116,8 @@ void JSWindow::assetReady(const NMLTag &tag)
     JSContext *cx = m_Cx;
     JS::AutoValueArray<1> jevent(cx);
 
-    JS::RootedObject event(
-        cx, JS_NewObject(cx, &NMLEvent_class, JS::NullPtr(), JS::NullPtr()));
-    jevent[0].set(OBJECT_TO_JSVAL(event));
+    JS::RootedObject event(cx, JS_NewObject(cx, &NMLEvent_class));
+    jevent[0].set(JS::ObjectValue(*event));
     JS::RootedString tagStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.tag));
     JS::RootedString idStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.id));
     JS::RootedString dataStr(
@@ -215,7 +131,7 @@ void JSWindow::assetReady(const NMLTag &tag)
     JS::RootedObject obj(cx, m_Instance);
     if (JS_GetProperty(cx, obj, "_onassetready", &onassetready)
         && onassetready.isObject()
-        && JS_ObjectIsCallable(cx, &onassetready.toObject())) {
+        && JS::IsCallable(&onassetready.toObject())) {
 
         JS::RootedValue rval(cx);
         JS_CallFunctionValue(cx, event, onassetready, jevent, &rval);
@@ -228,9 +144,9 @@ void JSWindow::windowFocus()
     JS::RootedValue onfocus(m_Cx);
     JS::RootedObject obj(m_Cx, m_Instance);
     if (JS_GetProperty(m_Cx, obj, "_onfocus", &onfocus) && onfocus.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onfocus.toObject())) {
+        && JS::IsCallable(&onfocus.toObject())) {
         JS::RootedValue rval(m_Cx);
-        JS_CallFunctionValue(m_Cx, JS::NullPtr(), onfocus,
+        JS_CallFunctionValue(m_Cx, nullptr, onfocus,
                              JS::HandleValueArray::empty(), &rval);
     }
 }
@@ -240,9 +156,9 @@ void JSWindow::windowBlur()
     JS::RootedValue onblur(m_Cx);
     JS::RootedObject obj(m_Cx, m_Instance);
     if (JS_GetProperty(m_Cx, obj, "_onblur", &onblur) && onblur.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onblur.toObject())) {
+        && JS::IsCallable(&onblur.toObject())) {
         JS::RootedValue rval(m_Cx);
-        JS_CallFunctionValue(m_Cx, JS::NullPtr(), onblur,
+        JS_CallFunctionValue(m_Cx, nullptr, onblur,
                              JS::HandleValueArray::empty(), &rval);
     }
 }
@@ -263,12 +179,11 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
 
     nctx->addInputEvent(ev);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class,
-                                              JS::NullPtr(), JS::NullPtr()));
-    JS::RootedValue xrelv(m_Cx, INT_TO_JSVAL(xrel));
-    JS::RootedValue yrelv(m_Cx, INT_TO_JSVAL(yrel));
-    JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
-    JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class));
+    JS::RootedValue xrelv(m_Cx, JS::Int32Value(xrel));
+    JS::RootedValue yrelv(m_Cx, JS::Int32Value(yrel));
+    JS::RootedValue xv(m_Cx, JS::Int32Value(x));
+    JS::RootedValue yv(m_Cx, JS::Int32Value(y));
     EVENT_PROP("xrel", xrelv);
     EVENT_PROP("yrel", yrelv);
     EVENT_PROP("x", xv);
@@ -281,7 +196,7 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
     JS::RootedValue onwheel(m_Cx);
     if (JS_GetProperty(m_Cx, obj, "_onmousewheel", &onwheel)
         && onwheel.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onwheel.toObject())) {
+        && JS::IsCallable(&onwheel.toObject())) {
 
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, event, onwheel, jevent, &rval);
@@ -289,7 +204,7 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
 
 /*
     JS::RootedObject obje(cx, JSEvents::CreateEventObject(m_Cx));
-    this->fireJSEvent("wheel", OBJECT_TO_JSVAL(obje));
+    this->fireJSEvent("wheel", JS::ObjectValue(*obje));
     */
 
 #undef EVENT_PROP
@@ -304,20 +219,19 @@ void JSWindow::keyupdown(
 
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &KeyEvent_class,
-                                              JS::NullPtr(), JS::NullPtr()));
-    JS::RootedValue keyV(m_Cx, INT_TO_JSVAL(keycode));
-    JS::RootedValue locationV(m_Cx, INT_TO_JSVAL(location));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &KeyEvent_class));
+    JS::RootedValue keyV(m_Cx, JS::Int32Value(keycode));
+    JS::RootedValue locationV(m_Cx, JS::Int32Value(location));
     JS::RootedValue alt(
-        m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Alt)));
+        m_Cx, JS::BooleanValue(!!(mod & UIInterface::kKeyModifier_Alt)));
     JS::RootedValue ctl(
-        m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Control)));
+        m_Cx, JS::BooleanValue(!!(mod & UIInterface::kKeyModifier_Control)));
     JS::RootedValue shift(
-        m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Shift)));
+        m_Cx, JS::BooleanValue(!!(mod & UIInterface::kKeyModifier_Shift)));
     JS::RootedValue meta(
-        m_Cx, BOOLEAN_TO_JSVAL(!!(mod & UIInterface::kKeyModifier_Meta)));
-    JS::RootedValue space(m_Cx, BOOLEAN_TO_JSVAL(keycode == 32));
-    JS::RootedValue rep(m_Cx, BOOLEAN_TO_JSVAL(!!(repeat)));
+        m_Cx, JS::BooleanValue(!!(mod & UIInterface::kKeyModifier_Meta)));
+    JS::RootedValue space(m_Cx, JS::BooleanValue(keycode == 32));
+    JS::RootedValue rep(m_Cx, JS::BooleanValue(!!(repeat)));
     EVENT_PROP("keyCode", keyV);
     EVENT_PROP("location", locationV);
     EVENT_PROP("altKey", alt);
@@ -335,7 +249,7 @@ void JSWindow::keyupdown(
     if (JS_GetProperty(m_Cx, obj, (state ? "_onkeydown" : "_onkeyup"),
                        &onkeyupdown)
         && onkeyupdown.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onkeyupdown.toObject())) {
+        && JS::IsCallable(&onkeyupdown.toObject())) {
 
         JS::RootedValue rval(m_Cx);
 
@@ -352,8 +266,7 @@ void JSWindow::textInput(const char *data)
 
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &TextEvent_class,
-                                              JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &TextEvent_class));
     JS::RootedString str(
         m_Cx, JSUtils::NewStringWithEncoding(m_Cx, data, strlen(data), "utf8"));
     EVENT_PROP("val", str);
@@ -365,7 +278,7 @@ void JSWindow::textInput(const char *data)
     JS::RootedObject obj(m_Cx, m_Instance);
     if (JS_GetProperty(m_Cx, obj, "_ontextinput", &ontextinput)
         && ontextinput.isObject()
-        && JS_ObjectIsCallable(m_Cx, &ontextinput.toObject())) {
+        && JS::IsCallable(&ontextinput.toObject())) {
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, event, ontextinput, jevent, &rval);
     }
@@ -375,8 +288,7 @@ void JSWindow::textInput(const char *data)
 void JSWindow::systemMenuClicked(const char *id)
 {
     JSContext *cx = m_Cx;
-    JS::RootedObject event(
-        cx, JS_NewObject(m_Cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(cx, JS_NewPlainObject(m_Cx));
 
     NIDIUM_JSOBJ_SET_PROP_CSTR(event, "id", id);
     JS::AutoValueArray<1> ev(cx);
@@ -393,8 +305,7 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
 
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class,
-                                              JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class));
 
     Context *nctx  = Context::GetObject<Frontend::Context>(m_Cx);
     InputEvent *ev = new InputEvent(state ? InputEvent::kMouseClick_Type
@@ -417,9 +328,9 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
         dcEv->setData(0, button);
         nctx->addInputEvent(dcEv);
     }
-    JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
-    JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
-    JS::RootedValue bv(m_Cx, INT_TO_JSVAL(button));
+    JS::RootedValue xv(m_Cx, JS::Int32Value(x));
+    JS::RootedValue yv(m_Cx, JS::Int32Value(y));
+    JS::RootedValue bv(m_Cx, JS::Int32Value(button));
     EVENT_PROP("x", xv);
     EVENT_PROP("y", yv);
     EVENT_PROP("clientX", xv);
@@ -433,7 +344,7 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
     if (JS_GetProperty(m_Cx, obj, (state ? "_onmousedown" : "_onmouseup"),
                        &onclick)
         && onclick.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onclick.toObject())) {
+        && JS::IsCallable(&onclick.toObject())) {
 
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, event, onclick, jevent, &rval);
@@ -448,10 +359,9 @@ bool JSWindow::dragEvent(const char *name, int x, int y)
                       JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &DragEvent_class,
-                                              JS::NullPtr(), JS::NullPtr()));
-    JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
-    JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &DragEvent_class));
+    JS::RootedValue xv(m_Cx, JS::Int32Value(x));
+    JS::RootedValue yv(m_Cx, JS::Int32Value(y));
     EVENT_PROP("x", xv);
     EVENT_PROP("y", yv);
     EVENT_PROP("clientX", xv);
@@ -468,7 +378,7 @@ bool JSWindow::dragEvent(const char *name, int x, int y)
     JS::RootedValue ondragevent(m_Cx);
     JS::RootedObject obj(m_Cx, m_Instance);
     if (JS_GetProperty(m_Cx, obj, name, &ondragevent) && ondragevent.isObject()
-        && JS_ObjectIsCallable(m_Cx, &ondragevent.toObject())) {
+        && JS::IsCallable(&ondragevent.toObject())) {
         JS::RootedValue rval(m_Cx);
 
         if (!JS_CallFunctionValue(m_Cx, event, ondragevent, jevent, &rval)) {
@@ -495,13 +405,13 @@ bool JSWindow::dragBegin(int x, int y, const char *const *files, size_t nfiles)
     m_Dragging = true; // Duh..
 
     m_DraggedFiles = JS_NewArrayObject(m_Cx, (int)nfiles);
-    NidiumJS::RootObjectUntilShutdown(m_DraggedFiles);
+    NidiumLocalContext::RootObjectUntilShutdown(m_DraggedFiles);
 
     JS::RootedObject dragged(m_Cx, m_DraggedFiles);
 
     for (int i = 0; i < nfiles; i++) {
         JS::RootedValue val(
-            m_Cx, OBJECT_TO_JSVAL(JSFile::GenerateJSObject(m_Cx, files[i])));
+            m_Cx, JS::ObjectValue(*JSFile::GenerateJSObject(m_Cx, files[i])));
         JS_SetElement(m_Cx, dragged, i, val);
     }
 
@@ -543,7 +453,7 @@ void JSWindow::dragEnd()
         return;
     }
 
-    NidiumJS::UnrootObject(m_DraggedFiles);
+    NidiumLocalContext::UnrootObject(m_DraggedFiles);
 
     m_DraggedFiles = NULL;
     m_Dragging     = false;
@@ -577,12 +487,11 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
 
     nctx->addInputEvent(ev);
 
-    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class,
-                                              JS::NullPtr(), JS::NullPtr()));
-    JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
-    JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
-    JS::RootedValue xrelv(m_Cx, INT_TO_JSVAL(xrel));
-    JS::RootedValue yrelv(m_Cx, INT_TO_JSVAL(yrel));
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class));
+    JS::RootedValue xv(m_Cx, JS::Int32Value(x));
+    JS::RootedValue yv(m_Cx, JS::Int32Value(y));
+    JS::RootedValue xrelv(m_Cx, JS::Int32Value(xrel));
+    JS::RootedValue yrelv(m_Cx, JS::Int32Value(yrel));
     EVENT_PROP("x", xv);
     EVENT_PROP("y", yv);
     EVENT_PROP("xrel", xrelv);
@@ -596,7 +505,7 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
     JS::RootedValue onmove(m_Cx);
     JS::RootedObject obj(m_Cx, m_Instance);
     if (JS_GetProperty(m_Cx, obj, "_onmousemove", &onmove) && onmove.isObject()
-        && JS_ObjectIsCallable(m_Cx, &onmove.toObject())) {
+        && JS::IsCallable(&onmove.toObject())) {
 
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, event, onmove, jevent, &rval);
@@ -808,7 +717,7 @@ nidium_window_openfilecb(void *_nof, const char *lst[], uint32_t len)
     struct _nidiumopenfile *nof = (struct _nidiumopenfile *)_nof;
     JS::RootedObject arr(nof->m_Cx, JS_NewArrayObject(nof->m_Cx, len));
     for (int i = 0; i < len; i++) {
-        JS::RootedValue val(nof->m_Cx, OBJECT_TO_JSVAL(JSFile::GenerateJSObject(
+        JS::RootedValue val(nof->m_Cx, JS::ObjectValue(*JSFile::GenerateJSObject(
                                            nof->m_Cx, lst[i])));
         JS_SetElement(nof->m_Cx, arr, i, val);
     }
@@ -897,8 +806,10 @@ bool JSWindow::JS_openFileDialog(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    if (!JSVAL_IS_NULL(OBJECT_TO_JSVAL(types))
-        && !JS_IsArrayObject(cx, types)) {
+    bool isarray = false;
+
+    if (!JS::ObjectValue(*types).isNull()
+        && (!JS_IsArrayObject(cx, types, &isarray) || !isarray)) {
         JS_ReportError(cx, "First parameter must be an array or null");
         return false;
     }
@@ -906,7 +817,7 @@ bool JSWindow::JS_openFileDialog(JSContext *cx, JS::CallArgs &args)
 
     char **ctypes = NULL;
 
-    if (!JSVAL_IS_NULL(OBJECT_TO_JSVAL(types))) {
+    if (!JS::ObjectValue(*types).isNull()) {
         JS_GetArrayLength(cx, types, &len);
 
         ctypes = (char **)malloc(sizeof(char *) * (len + 1));
@@ -946,12 +857,12 @@ bool JSWindow::JS_openFileDialog(JSContext *cx, JS::CallArgs &args)
 
 bool JSWindow::JS_requestAnimationFrame(JSContext *cx, JS::CallArgs &args)
 {
-    JS::RootedValue cb(cx);
-    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &cb)) {
-        return true;
+    if (!JSUtils::ReportIfNotFunction(cx, args[0])) {
+
+        return false;
     }
 
-    this->addFrameCallback(&cb);
+    this->addFrameCallback(args[0]);
 
     return true;
 }
@@ -1058,7 +969,8 @@ bool JSWindow::JS_setSystemTray(JSContext *cx, JS::CallArgs &args)
     NIDIUM_JS_GET_OPT_TYPE(jobj, "menu", Object)
     {
         JS::RootedObject arr(cx, __curopt.toObjectOrNull());
-        if (JS_IsArrayObject(cx, arr)) {
+        bool isarray;
+        if (JS_IsArrayObject(cx, arr, &isarray) && isarray) {
             uint32_t len;
             JS_GetArrayLength(cx, arr, &len);
 
@@ -1207,7 +1119,7 @@ void JSWindow::createMainCanvas(int width, int height, JS::HandleObject docObj)
         m_Cx, JSCanvas::GenerateJSObject(m_Cx, width, height, &m_Handler));
     Context::GetObject<Frontend::Context>(m_Cx)->getRootHandler()->addChild(
         m_Handler);
-    JS::RootedValue canval(m_Cx, OBJECT_TO_JSVAL(canvas));
+    JS::RootedValue canval(m_Cx, JS::ObjectValue(*canvas));
     JS_DefineProperty(m_Cx, docObj, "canvas", canval,
                       JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
@@ -1230,12 +1142,12 @@ JSClass *JSWindow::GetJSClass()
     static JSClass global_class = {
         "Window",         
         JSCLASS_GLOBAL_FLAGS_WITH_SLOTS(16) | JSCLASS_HAS_PRIVATE,
-        JS_PropertyStub,  JS_DeletePropertyStub,
-        JS_PropertyStub,  JS_StrictPropertyStub,
-        JS_EnumerateStub, JS_ResolveStub,
-        JS_ConvertStub,   nullptr,
-        nullptr,          nullptr,
-        nullptr,          JS_GlobalObjectTraceHook
+        nullptr,  nullptr,
+        nullptr,  nullptr,
+        nullptr,  nullptr,
+        nullptr,  nullptr,
+        nullptr,  nullptr,
+        nullptr,  JS_GlobalObjectTraceHook
     };
     
     return &global_class;
@@ -1300,8 +1212,7 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx,
     jwin->createMainCanvas(width, height, docObj);
 
     // Set the __nidium__ properties
-    JS::RootedObject nidiumObj(
-        cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject nidiumObj(cx, JS_NewPlainObject(cx));
 
     JS::RootedValue val(cx);
 
@@ -1317,7 +1228,7 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx,
     JS_DefineProperty(cx, nidiumObj, "revision", jRevision,
                       JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    val = OBJECT_TO_JSVAL(nidiumObj);
+    val = JS::ObjectValue(*nidiumObj);
     JS_SetProperty(cx, windowObj, "__nidium__", val);
 
 #if 0
@@ -1328,7 +1239,7 @@ JSWindow *JSWindow::RegisterObject(JSContext *cx,
     /* Set the newly generated CanvasHandler as first child of rootHandler */
     NJS->rootHandler->addChild((CanvasHandler *)JS_GetPrivate(titleBar));
 
-    JS::RootedValue titleVal(cx, OBJECT_TO_JSVAL(titleBar));
+    JS::RootedValue titleVal(cx, JS::ObjectValue(*titleBar));
     JS_DefineProperty(cx, NidiumObj, "titleBar", titleVal, JSPROP_READONLY | JSPROP_PERMANENT | JSPROP_PERMANENT | JSPROP_ENUMERATE);
 #endif
 

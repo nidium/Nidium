@@ -9,7 +9,10 @@
 #include <jspubtd.h>
 #include <jsapi.h>
 
-#include "Binding/ClassMapper.h"
+#include "Binding/JSMacros.h"
+
+bool JS_ConvertArguments(JSContext *cx, const JS::CallArgs &args, const char *format, ...);
+
 
 namespace Nidium {
 namespace Binding {
@@ -36,6 +39,18 @@ public:
     static char16_t *
     Utf8ToUtf16(JSContext *cx, const char *str, size_t len, size_t *outputlen);
     static char *CurrentJSCaller(JSContext *cx = NULL);
+
+    static JSFunction *ReportIfNotFunction(JSContext *cx, JS::HandleValue val);
+
+    /*
+        JSAPI only provides JS_NewArrayBufferWithContents() which takes ownership.
+        We've some situation where we can't rely on zerocopy.
+    */
+    static JSObject *NewArrayBufferWithCopiedContents(JSContext *cx,
+        size_t len, const void *data);
+
+    static const char* GetFunctionNameBytes(JSContext* cx,
+        JSFunction* fun, JSAutoByteString* bytes);
 };
 
 // {{{ JSTransferable
@@ -116,7 +131,7 @@ public:
     JSObjectBuilder(JSContext *cx, JSClass *clasp = NULL) : m_Obj(cx)
     {
         m_Cx  = cx;
-        m_Obj = JS_NewObject(m_Cx, clasp, JS::NullPtr(), JS::NullPtr());
+        m_Obj = JS_NewObject(m_Cx, clasp);
     };
 
     JSObjectBuilder(JSContext *cx, JS::HandleObject wrapped) : m_Obj(cx)
@@ -188,7 +203,7 @@ public:
 
     JS::Value jsval() const
     {
-        return OBJECT_TO_JSVAL(m_Obj);
+        return JS::ObjectValue(*m_Obj);
     }
 
     operator JSObject *()
@@ -198,7 +213,7 @@ public:
 
     operator JS::Value()
     {
-        return OBJECT_TO_JSVAL(m_Obj);
+        return JS::ObjectValue(*m_Obj);
     }
 
     ~JSObjectBuilder(){};

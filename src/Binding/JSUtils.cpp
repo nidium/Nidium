@@ -13,8 +13,174 @@
 
 #include "Binding/NidiumJS.h"
 
+#include <js/RootingAPI.h>
+#include <jsprf.h>
+
+
+bool JS_ConvertArgumentsVA(JSContext *cx,
+    const JS::CallArgs &args, const char *format, va_list ap);
+
+bool JS_ConvertArguments(JSContext *cx, const JS::CallArgs &args, const char *format, ...)
+{
+    va_list ap;
+    bool ok;
+
+    va_start(ap, format);
+    ok = JS_ConvertArgumentsVA(cx, args, format, ap);
+    va_end(ap);
+    return ok;
+}
+
+bool
+JS_ConvertArgumentsVA(JSContext *cx, const JS::CallArgs &args, const char *format, va_list ap)
+{
+    using namespace Nidium::Binding;
+
+    unsigned index = 0;
+    bool required;
+    char c;
+    double d;
+    JSString *str;
+    JS::RootedObject obj(cx);
+    JS::RootedValue val(cx);
+
+    required = true;
+    while ((c = *format++) != '\0') {
+        if (isspace(c))
+            continue;
+        if (c == '/') {
+            required = false;
+            continue;
+        }
+        if (index == args.length()) {
+            if (required) {
+                if (JSFunction *fun = JSUtils::ReportIfNotFunction(cx, args.calleev())) {
+                    char numBuf[12];
+                    JS_snprintf(numBuf, sizeof numBuf, "%u", args.length());
+                    JSAutoByteString funNameBytes;
+                    if (const char *name = JSUtils::GetFunctionNameBytes(cx, fun, &funNameBytes)) {
+                        JS_ReportErrorNumber(cx, js::GetErrorMessage, nullptr,
+                                             JSMSG_MORE_ARGS_NEEDED,
+                                             name, numBuf, (args.length() == 1) ? "" : "s");
+                    }
+                }
+                return false;
+            }
+            break;
+        }
+        JS::MutableHandleValue arg = args[index++];
+        switch (c) {
+          case 'b':
+            *va_arg(ap, bool *) = ToBoolean(arg);
+            break;
+          case 'c':
+            if (!JS::ToUint16(cx, arg, va_arg(ap, uint16_t *)))
+                return false;
+            break;
+          case 'i':
+          case 'j': // "j" was broken, you should not use it.
+            if (!JS::ToInt32(cx, arg, va_arg(ap, int32_t *)))
+                return false;
+            break;
+          case 'u':
+            if (!JS::ToUint32(cx, arg, va_arg(ap, uint32_t *)))
+                return false;
+            break;
+          case 'd':
+            if (!JS::ToNumber(cx, arg, va_arg(ap, double *)))
+                return false;
+            break;
+          case 'I':
+            if (!JS::ToNumber(cx, arg, &d))
+                return false;
+            *va_arg(ap, double *) = JS::ToInteger(d);
+            break;
+          case 'S':
+          case 'W':
+            str = JS::ToString(cx, arg);
+            if (!str)
+                return false;
+            arg.setString(str);
+            if (c == 'W') {
+
+            } else {
+                *va_arg(ap, JSString **) = str;
+            }
+            break;
+          case 'o':
+            if (arg.isNullOrUndefined()) {
+                obj = nullptr;
+            } else {
+                obj = ToObject(cx, arg);
+                if (!obj)
+                    return false;
+            }
+            arg.setObjectOrNull(obj);
+            *va_arg(ap, JSObject **) = obj;
+            break;
+          case 'v':
+            *va_arg(ap, JS::Value *) = arg;
+            break;
+          case '*':
+            break;
+          default:
+            JS_ReportErrorNumber(cx, js::GetErrorMessage, nullptr, JSMSG_BAD_CHAR, format);
+            return false;
+        }
+    }
+    return true;
+}
+
+
 namespace Nidium {
 namespace Binding {
+
+const char* JSUtils::GetFunctionNameBytes(JSContext* cx,
+        JSFunction* fun, JSAutoByteString* bytes)
+{
+    JSString *val = JS_GetFunctionId(fun);
+    if (!val) {
+        return "(anonymous)";
+    }
+
+    return bytes->encodeLatin1(cx, val);
+}
+
+JSFunction *JSUtils::ReportIfNotFunction(JSContext *cx, JS::HandleValue val)
+{
+    JS::RootedFunction ret(cx);
+
+    if (val.isObject() && (ret = JS_GetObjectFunction(&val.toObject()))) {
+        return ret;
+    }
+
+    JSAutoByteString fn(cx, JS::ToString(cx, val));
+
+    JS_ReportErrorNumber(cx, js::GetErrorMessage, nullptr,
+        JSMSG_NOT_FUNCTION, fn.ptr());
+
+    return nullptr;
+}
+
+JSObject *JSUtils::NewArrayBufferWithCopiedContents(JSContext *cx,
+        size_t len, const void *data)
+{
+    JS::RootedObject arr(cx, JS_NewArrayBuffer(cx, len));
+
+    if (!arr) {
+        JS_ReportOutOfMemory(cx);
+        return nullptr;
+    }
+
+    JS::AutoCheckCannotGC nogc;
+    bool shared;
+
+    uint8_t *adata = JS_GetArrayBufferData(arr, &shared, nogc);
+
+    memcpy(adata, data, len);
+
+    return arr;
+}
 
 // {{{ JSUtils
 bool JSUtils::StrToJsval(JSContext *cx,
@@ -37,17 +203,14 @@ bool JSUtils::StrToJsval(JSContext *cx,
         ret.setString(str);
 
     } else {
-        JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
+        JS::RootedObject arrayBuffer(cx,
+            NewArrayBufferWithCopiedContents(cx, len, buf));
 
-        if (arrayBuffer == NULL) {
-            JS_ReportOutOfMemory(cx);
+        if (arrayBuffer == nullptr) {
             return false;
-        } else {
-            uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
-            memcpy(adata, buf, len);
-
-            ret.setObject(*arrayBuffer);
         }
+
+        ret.setObject(*arrayBuffer);
     }
 
     return true;
@@ -115,7 +278,7 @@ char *JSUtils::CurrentJSCaller(JSContext *cx)
 // {{{ JSTransferable
 bool JSTransferable::set(JSContext *cx, JS::HandleValue val)
 {
-    if (!JS_WriteStructuredClone(cx, val, &m_Data, &m_Bytes, nullptr, nullptr,
+    if (!JS_WriteStructuredClone(cx, val, &m_Data, &m_Bytes, NidiumJS::m_JsScc, nullptr,
                                  JS::NullHandleValue)) {
         return false;
     }
@@ -127,9 +290,9 @@ bool JSTransferable::transfert()
 {
     bool ok = JS_ReadStructuredClone(m_DestCx, m_Data, m_Bytes,
                                      JS_STRUCTURED_CLONE_VERSION, &m_Val,
-                                     nullptr, nullptr);
+                                     NidiumJS::m_JsScc, nullptr);
 
-    JS_ClearStructuredClone(m_Data, m_Bytes, nullptr, nullptr);
+    JS_ClearStructuredClone(m_Data, m_Bytes, NidiumJS::m_JsScc, nullptr);
 
     m_Data  = NULL;
     m_Bytes = 0;
@@ -143,10 +306,10 @@ JSTransferable::~JSTransferable()
     JSAutoCompartment ac(m_DestCx, m_DestGlobal);
 
     if (m_Data != NULL) {
-        JS_ClearStructuredClone(m_Data, m_Bytes, nullptr, NULL);
+        JS_ClearStructuredClone(m_Data, m_Bytes, NidiumJS::m_JsScc, NULL);
     }
 
-    m_Val.set(JS::UndefinedHandleValue);
+    m_Val = JS::UndefinedHandleValue;
 }
 
 JS::Value JSTransferable::get()
@@ -163,7 +326,7 @@ JS::Value JSTransferable::get()
 bool JSTransferableFunction::set(JSContext *cx, JS::HandleValue val)
 {
     if (!val.isNull() && (!val.isObject()
-                          || !JS_ObjectIsCallable(cx, val.toObjectOrNull()))) {
+                          || !JS::IsCallable(val.toObjectOrNull()))) {
         return false;
     }
 

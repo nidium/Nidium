@@ -41,7 +41,7 @@ namespace Binding {
         unsigned lineno;                                                  \
         JS::AutoFilename filename;                                        \
         JS::DescribeScriptedCaller(cx, &filename, &lineno);               \
-        JS::RootedValue calVal(cx, OBJECT_TO_JSVAL(calObj));              \
+        JS::RootedValue calVal(cx, JS::ObjectValue(*calObj));              \
         JS::RootedString _fun_name(                                       \
             cx, JS_GetFunctionDisplayId(JS_ValueToFunction(cx, calVal))); \
         JSAutoByteString _fun_namec(cx, _fun_name);                       \
@@ -125,16 +125,15 @@ bool JSCanvasGLProgram::JS_getActiveUniforms(JSContext *cx, JS::CallArgs &args)
     for (int i = 0; i < nactives; i++) {
         int length = 0, size = 0;
         GLenum type = GL_ZERO;
-        JS::RootedObject in(
-            cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+        JS::RootedObject in(cx, JS_NewPlainObject(cx));
 
         glGetActiveUniform(m_Program, i, sizeof(name) - 1, &length, &size, &type,
                            name);
         name[length] = '\0';
         JS::RootedString nameStr(cx, JS_NewStringCopyN(cx, name, length));
         JS::RootedValue locationVal(
-            cx, INT_TO_JSVAL(glGetUniformLocation(m_Program, name)));
-        JS::RootedValue inval(cx, OBJECT_TO_JSVAL(in));
+            cx, JS::Int32Value(glGetUniformLocation(m_Program, name)));
+        JS::RootedValue inval(cx, JS::ObjectValue(*in));
         NIDIUM_JSOBJ_SET_PROP(in, "name", nameStr);
         NIDIUM_JSOBJ_SET_PROP(in, "location", locationVal);
         JS_SetElement(cx, arr, i, inval);
@@ -189,6 +188,7 @@ bool JSCanvasGLProgram::uniformXiv(JSContext *cx, JS::CallArgs &args, int nb)
     GLsizei length;
     GLint *carray;
     int location;
+    bool isarray;
 
     NIDIUM_LOG_2D_CALL();
     JS::RootedObject array(cx);
@@ -200,11 +200,17 @@ bool JSCanvasGLProgram::uniformXiv(JSContext *cx, JS::CallArgs &args, int nb)
         return true;
     }
     if (JS_IsInt32Array(array)) {
-        carray = (GLint *)JS_GetInt32ArrayData(array);
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
+
+        carray = (GLint *)JS_GetInt32ArrayData(array, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(array);
-    } else if (JS_IsArrayObject(cx, array)) {
+    } else if (JS_IsArrayObject(cx, array, &isarray) && isarray) {
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
+
         JS::RootedObject tmp(cx, JS_NewInt32ArrayFromArray(cx, array));
-        carray = (GLint *)JS_GetInt32ArrayData(tmp);
+        carray = (GLint *)JS_GetInt32ArrayData(tmp, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Int32 array");
@@ -238,6 +244,7 @@ bool JSCanvasGLProgram::uniformXfv(JSContext *cx, JS::CallArgs &args, int nb)
     GLsizei length;
     GLfloat *carray;
     int location;
+    bool isarray;
 
     NIDIUM_LOG_2D_CALL();
     JS::RootedObject array(cx);
@@ -250,11 +257,17 @@ bool JSCanvasGLProgram::uniformXfv(JSContext *cx, JS::CallArgs &args, int nb)
     }
 
     if (JS_IsFloat32Array(array)) {
-        carray = (GLfloat *)JS_GetFloat32ArrayData(array);
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
+
+        carray = (GLfloat *)JS_GetFloat32ArrayData(array, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(array);
-    } else if (JS_IsArrayObject(cx, array)) {
+    } else if (JS_IsArrayObject(cx, array, &isarray) && isarray) {
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
+
         JS::RootedObject tmp(cx, JS_NewFloat32ArrayFromArray(cx, array));
-        carray = (GLfloat *)JS_GetFloat32ArrayData(tmp);
+        carray = (GLfloat *)JS_GetFloat32ArrayData(tmp, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Float32 array");
@@ -422,13 +435,12 @@ bool Canvas2DContext::JS_breakText(JSContext *cx, JS::CallArgs &args)
     for (int i = 0; i < len && i < length; i++) {
         JS::RootedString str(
             cx, JS_NewStringCopyN(cx, lines[i].m_Line, lines[i].m_Len));
-        JS::RootedValue val(cx, STRING_TO_JSVAL(str));
+        JS::RootedValue val(cx, JS::StringValue(str));
         JS_SetElement(cx, alines, i, val);
     }
-    JS::RootedObject res(
-        cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
-    JS::RootedValue heightVal(cx, DOUBLE_TO_JSVAL(SkScalarToDouble(ret)));
-    JS::RootedValue linesVal(cx, OBJECT_TO_JSVAL(alines));
+    JS::RootedObject res(cx, JS_NewPlainObject(cx));
+    JS::RootedValue heightVal(cx, JS::DoubleValue(SkScalarToDouble(ret)));
+    JS::RootedValue linesVal(cx, JS::ObjectValue(*alines));
     SET_PROP(res, "height", heightVal);
     SET_PROP(res, "lines", linesVal);
 
@@ -770,12 +782,16 @@ bool Canvas2DContext::JS_getImageData(JSContext *cx, JS::CallArgs &args)
 
     JS::RootedObject arrBuffer(cx,
                                JS_NewUint8ClampedArray(cx, width * height * 4));
-    data = JS_GetUint8ClampedArrayData(arrBuffer);
+    {
+        bool shared;
+        JS::AutoCheckCannotGC nogc;
 
-    m_Skia->readPixels(top, left, width, height, data);
-    JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
-    JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
-    JS::RootedValue arVal(cx, OBJECT_TO_JSVAL(arrBuffer));
+        data = JS_GetUint8ClampedArrayData(arrBuffer, &shared, nogc);
+        m_Skia->readPixels(top, left, width, height, data);
+    }
+    JS::RootedValue widthVal(cx, JS::NumberValue(width));
+    JS::RootedValue heightVal(cx, JS::NumberValue(height));
+    JS::RootedValue arVal(cx, JS::ObjectValue(*arrBuffer));
 
     JS::RootedObject dataObject(cx,
       JSImageData::CreateObject(cx, new JSImageData()));
@@ -819,9 +835,14 @@ bool Canvas2DContext::JS_putImageData(JSContext *cx, JS::CallArgs &args)
 
     JS::RootedObject jObj(cx);
     JS_ValueToObject(cx, jdata, &jObj);
-    pixels = JS_GetUint8ClampedArrayData(jObj);
+    
     JS::ToInt32(cx, jwidth, &w);
     JS::ToInt32(cx, jheight, &h);
+
+    bool shared;
+    JS::AutoCheckCannotGC nogc;
+
+    pixels = JS_GetUint8ClampedArrayData(jObj, &shared, nogc);
 
     m_Skia->drawPixels(pixels, w, h, x, y);
 
@@ -851,9 +872,9 @@ bool Canvas2DContext::JS_createImageData(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    JS::RootedValue array(cx, OBJECT_TO_JSVAL(arrBuffer));
-    JS::RootedValue width(cx, UINT_TO_JSVAL(x));
-    JS::RootedValue height(cx, UINT_TO_JSVAL(y));
+    JS::RootedValue array(cx, JS::ObjectValue(*arrBuffer));
+    JS::RootedValue width(cx, JS::NumberValue(x));
+    JS::RootedValue height(cx, JS::NumberValue(y));
 
     JS::RootedObject dataObject(cx,
       JSImageData::CreateObject(cx, new JSImageData()));
@@ -909,7 +930,7 @@ bool Canvas2DContext::JS_createPattern(JSContext *cx, JS::CallArgs &args)
     /*
         The pattern object retains a reference to the JSImage object
     */
-    JS_SetReservedSlot(patternObject, 0, OBJECT_TO_JSVAL(img->getJSObject()));
+    JS_SetReservedSlot(patternObject, 0, JS::ObjectValue(*img->getJSObject()));
 
     args.rval().setObjectOrNull(patternObject);
 
@@ -1015,14 +1036,13 @@ bool Canvas2DContext::JS_measureText(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    JS::RootedObject obj(
-        cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject obj(cx, JS_NewPlainObject(cx));
 
     JSAutoByteString ctext;
     ctext.encodeUtf8(cx, text);
 
     JS::RootedValue widthVal(
-        cx, DOUBLE_TO_JSVAL(m_Skia->measureText(ctext.ptr(), strlen(ctext.ptr()))));
+        cx, JS::DoubleValue(m_Skia->measureText(ctext.ptr(), strlen(ctext.ptr()))));
     OBJ_PROP("width", widthVal);
 
     args.rval().setObjectOrNull(obj);
@@ -1052,15 +1072,14 @@ bool Canvas2DContext::JS_getPathBounds(JSContext *cx, JS::CallArgs &args)
     JS_DefineProperty(cx, obj, name, val, \
                       JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
     double left = 0, right = 0, top = 0, bottom = 0;
-    JS::RootedObject obj(
-        cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject obj(cx, JS_NewPlainObject(cx));
 
     NIDIUM_LOG_2D_CALL();
     m_Skia->getPathBounds(&left, &right, &top, &bottom);
-    JS::RootedValue leftVal(cx, DOUBLE_TO_JSVAL(left));
-    JS::RootedValue rightVal(cx, DOUBLE_TO_JSVAL(right));
-    JS::RootedValue topVal(cx, DOUBLE_TO_JSVAL(top));
-    JS::RootedValue bottomVal(cx, DOUBLE_TO_JSVAL(bottom));
+    JS::RootedValue leftVal(cx, JS::DoubleValue(left));
+    JS::RootedValue rightVal(cx, JS::DoubleValue(right));
+    JS::RootedValue topVal(cx, JS::DoubleValue(top));
+    JS::RootedValue bottomVal(cx, JS::DoubleValue(bottom));
     OBJ_PROP("left", leftVal);
     OBJ_PROP("right", rightVal);
     OBJ_PROP("top", topVal);
@@ -1277,13 +1296,13 @@ bool Canvas2DContext::JSSetter_fillStyle(JSContext *cx,
 
         /* Since out obj doesn't store the actual value (JSPROP_SHARED),
            we implicitly store and root our pattern obj */
-        state->m_CurrentShader.set(vp);
+        state->m_CurrentShader = vp;
 
     } else if (vp.isObject() && JSCanvasPattern::InstanceOf(vp)) {
 
         m_Skia->setFillColor(JSCanvasPattern::GetInstanceUnsafe(vp.toObjectOrNull()));
 
-        state->m_CurrentShader.set(vp);
+        state->m_CurrentShader = vp;
     } else {
         vp.setNull();
 
@@ -1312,7 +1331,7 @@ bool Canvas2DContext::JSSetter_strokeStyle(JSContext *cx,
 
         /* Since out obj doesn't store the actual value (JSPROP_SHARED),
            we implicitly store and root our pattern obj */
-        state->m_CurrentStrokeShader.set(vp);
+        state->m_CurrentStrokeShader = vp;
     } else {
         vp.setNull();
         state->m_CurrentStrokeShader.setUndefined();
@@ -1605,9 +1624,9 @@ void Canvas2DContext::jsTrace(class JSTracer *trc)
          state != NULL; state = state->m_Next) {
 
         /* Does this matter if we trace an UndefinedValue? */
-        JS_CallHeapValueTracer(trc, &state->m_CurrentShader,
+        JS_CallValueTracer(trc, &state->m_CurrentShader,
                                "Canvas2DContextShader");
-        JS_CallHeapValueTracer(trc, &state->m_CurrentStrokeShader,
+        JS_CallValueTracer(trc, &state->m_CurrentStrokeShader,
                                "Canvas2DContextShader");
     }
 }

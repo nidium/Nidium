@@ -20,6 +20,8 @@
 #include <jsfriendapi.h>
 
 #include "Binding/NidiumJS.h"
+#include "Binding/JSUtils.h"
+#include "Binding/ThreadLocalContext.h"
 #include "IO/Stream.h"
 
 #define NIDIUM_MODULES_PATHS_COUNT 2
@@ -43,35 +45,17 @@ Core::Hash<void *> JSModules::m_EmbeddedModules;
 
 static JSClass nidium_modules_exports_class = { "Exports",
                                                 JSCLASS_HAS_PRIVATE,
-                                                JS_PropertyStub,
-                                                JS_DeletePropertyStub,
-                                                JS_PropertyStub,
-                                                JS_StrictPropertyStub,
-                                                JS_EnumerateStub,
-                                                JS_ResolveStub,
-                                                JS_ConvertStub,
-                                                Exports_Finalize,
                                                 nullptr,
                                                 nullptr,
                                                 nullptr,
                                                 nullptr,
-                                                JSCLASS_NO_INTERNAL_MEMBERS };
+                                                nullptr,
+                                                nullptr,
+                                                nullptr,
+                                                Exports_Finalize};
 
 static JSClass nidium_modules_class = { "Module",
-                                        0,
-                                        JS_PropertyStub,
-                                        JS_DeletePropertyStub,
-                                        JS_PropertyStub,
-                                        JS_StrictPropertyStub,
-                                        JS_EnumerateStub,
-                                        JS_ResolveStub,
-                                        JS_ConvertStub,
-                                        NULL,
-                                        nullptr,
-                                        nullptr,
-                                        nullptr,
-                                        nullptr,
-                                        JSCLASS_NO_INTERNAL_MEMBERS };
+                                        0 };
 
 #if 0
 static JSPropertySpec nidium_modules_exports_props[] = {
@@ -111,7 +95,7 @@ bool JSModule::initMain()
     JS::RootedObject funObj(m_Cx, JS_GetFunctionObject(fun));
 
     js::SetFunctionNativeReserved(funObj, 0,
-                                  PRIVATE_TO_JSVAL(static_cast<void *>(this)));
+                                  JS::PrivateValue(static_cast<void *>(this)));
 
     m_Exports = NULL; // Main module is not a real module, thus no exports
 
@@ -155,8 +139,7 @@ bool JSModule::init()
 
 bool JSModule::initNative()
 {
-    JS::RootedObject exports(
-        m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject exports(m_Cx, JS_NewPlainObject(m_Cx));
 
     if (!exports) {
         return false;
@@ -176,7 +159,7 @@ bool JSModule::initNative()
     }
 
     m_Exports = exports;
-    NidiumJS::RootObjectUntilShutdown(m_Exports);
+    NidiumLocalContext::RootObjectUntilShutdown(m_Exports);
 
     return true;
 }
@@ -192,7 +175,7 @@ bool JSModule::initNativeEmbedded()
     if (!obj) return false;
 
     m_Exports = obj;
-    NidiumJS::RootObjectUntilShutdown(m_Exports);
+    NidiumLocalContext::RootObjectUntilShutdown(m_Exports);
 
     return true;
 }
@@ -203,8 +186,10 @@ bool JSModule::initJS()
     if (call == false) { \
         return false;    \
     }
-    JS::RootedObject gbl(m_Cx, JS_NewObject(m_Cx, &nidium_modules_exports_class,
-                                            JS::NullPtr(), JS::NullPtr()));
+
+    JS::RootedObject gbl(m_Cx,
+        JS_NewObject(m_Cx, &nidium_modules_exports_class));
+
     if (!gbl) {
         return false;
     }
@@ -221,12 +206,11 @@ bool JSModule::initJS()
     funObj = JS_GetFunctionObject(fun);
 
     js::SetFunctionNativeReserved(funObj, 0,
-                                  PRIVATE_TO_JSVAL(static_cast<void *>(this)));
+                                  JS::PrivateValue(static_cast<void *>(this)));
 
     JS::RootedObject exports(
-        m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
-    JS::RootedObject module(m_Cx, JS_NewObject(m_Cx, &nidium_modules_class,
-                                               JS::NullPtr(), JS::NullPtr()));
+        m_Cx, JS_NewPlainObject(m_Cx));
+    JS::RootedObject module(m_Cx, JS_NewObject(m_Cx, &nidium_modules_class));
 
     if (!exports || !module) {
         return false;
@@ -241,8 +225,8 @@ bool JSModule::initJS()
 
     id.setString(idstr);
 
-    JS::RootedValue exportsVal(m_Cx, OBJECT_TO_JSVAL(exports));
-    JS::RootedValue moduleVal(m_Cx, OBJECT_TO_JSVAL(module));
+    JS::RootedValue exportsVal(m_Cx, JS::ObjectValue(*exports));
+    JS::RootedValue moduleVal(m_Cx, JS::ObjectValue(*module));
 #if 0
     TRY_OR_DIE(JS_DefineProperties(m_Cx, gbl, nidium_modules_exports_props));
 #endif
@@ -258,7 +242,7 @@ bool JSModule::initJS()
     js::SetFunctionNativeReserved(funObj, 1, exportsVal);
 
     m_Exports = gbl;
-    NidiumJS::RootObjectUntilShutdown(m_Exports);
+    NidiumLocalContext::RootObjectUntilShutdown(m_Exports);
 
     return true;
 #undef TRY_OR_DIE
@@ -380,10 +364,11 @@ JS::Value JSModule::require(char *name)
                 JS::CompileOptions options(m_Cx);
                 options.setFileAndLine(cmodule->m_FilePath, 1).setUTF8(true);
 
-                fn = JS::CompileFunction(m_Cx, expObj, options, NULL, 0, NULL,
-                                         data, strlen(data));
+                JS::AutoObjectVector scopeChain(m_Cx);
+                scopeChain.append(expObj);
 
-                if (!fn) {
+                if (!JS::CompileFunction(m_Cx, scopeChain, options, NULL, 0, NULL,
+                                         data, strlen(data), &fn)) {
                     return ret;
                 }
 
@@ -393,15 +378,15 @@ JS::Value JSModule::require(char *name)
                 }
             } else {
                 size_t len;
-                jschar *jchars;
+                char16_t *jchars;
                 JS::RootedValue jsonData(m_Cx);
 
                 if (!JS_DecodeBytes(m_Cx, data, filesize, NULL, &len)) {
                     return ret;
                 }
 
-                jchars = static_cast<jschar *>(
-                    JS_malloc(m_Cx, len * sizeof(jschar)));
+                jchars = static_cast<char16_t *>(
+                    JS_malloc(m_Cx, len * sizeof(char16_t)));
                 if (!jchars) {
                     return ret;
                 }
@@ -418,8 +403,8 @@ JS::Value JSModule::require(char *name)
 
                 JS_free(m_Cx, jchars);
 
-                cmodule->m_Exports.set(jsonData.toObjectOrNull());
-                NidiumJS::RootObjectUntilShutdown(cmodule->m_Exports);
+                cmodule->m_Exports = jsonData.toObjectOrNull();
+                NidiumLocalContext::RootObjectUntilShutdown(cmodule->m_Exports);
             }
         }
     }
@@ -435,7 +420,7 @@ JS::Value JSModule::require(char *name)
         case JSModule::kModuleType_JSON:
         case JSModule::kModuleType_Native:
         case JSModule::kModuleType_NativeEmbedded: {
-            ret = OBJECT_TO_JSVAL(cmodule->m_Exports);
+            ret = JS::ObjectValue(*cmodule->m_Exports);
         } break;
     }
 
@@ -779,7 +764,7 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
 // {{{ Implementation
 static bool nidium_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
 {
-    JS::RootedString name(cx, NULL);
+    JS::RootedString name(cx);
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     if (!JS_ConvertArguments(cx, args, "S", name.address())) {
@@ -796,7 +781,10 @@ static bool nidium_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    JSModule *module = static_cast<JSModule *>(JSVAL_TO_PRIVATE(reserved));
+    /*
+        XXX Why do we have to unwrap the value from its RootedValue?
+    */
+    JSModule *module = static_cast<JSModule *>(reserved.address()->toPrivate());
 
     JS::RootedValue ret(cx, module->require(namestr.ptr()));
 

@@ -32,8 +32,8 @@ static int ape_kill_handler(int code, ape_global *ape)
 
     JS::RootedValue func(cx, JS_GetReservedSlot(jProcess->getJSObject(), 0));
 
-    if (func.isObject() && JS_ObjectIsCallable(cx, func.toObjectOrNull())) {
-        JS_CallFunctionValue(cx, JS::NullPtr(), func,
+    if (func.isObject() && JS::IsCallable(func.toObjectOrNull())) {
+        JS_CallFunctionValue(cx, nullptr, func,
                              JS::HandleValueArray::empty(), &rval);
 
         return rval.isBoolean() ? !rval.toBoolean() : false;
@@ -57,8 +57,7 @@ bool JSProcess::JS_getOwner(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    JS::RootedObject obj(
-        cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject obj(cx, JS_NewPlainObject(cx));
 
     JS::RootedString userStr(cx, JS_NewStringCopyZ(cx, userInfo->pw_name));
     JS::RootedString groupStr(cx, JS_NewStringCopyZ(cx, groupInfo->gr_name));
@@ -194,14 +193,12 @@ bool JSProcess::JS_setOwner(JSContext *cx, JS::CallArgs &args)
 
 bool JSProcess::JS_setSignalHandler(JSContext *cx, JS::CallArgs &args)
 {
-    JS::RootedValue func(cx);
 
-    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &func)) {
-        JS_ReportWarning(cx, "setSignalHandler: bad callback");
-        return true;
+    if (!JSUtils::ReportIfNotFunction(cx, args[0])) {
+        return false;
     }
 
-    JS_SetReservedSlot(m_Instance, 0, func);
+    JS_SetReservedSlot(m_Instance, 0, args[0]);
 
     return true;
 }
@@ -215,6 +212,13 @@ bool JSProcess::JS_exit(JSContext *cx, JS::CallArgs &args)
     }
 
     exit(code);
+    
+    return true;
+}
+
+bool JSProcess::JS_shutdown(JSContext *cx, JS::CallArgs &args)
+{
+    APE_loop_stop();
     
     return true;
 }
@@ -246,6 +250,7 @@ JSFunctionSpec *JSProcess::ListMethods()
         CLASSMAPPER_FN(JSProcess, setOwner, 1),
         CLASSMAPPER_FN(JSProcess, setSignalHandler, 1),
         CLASSMAPPER_FN(JSProcess, exit, 0),
+        CLASSMAPPER_FN(JSProcess, shutdown, 0),
         CLASSMAPPER_FN(JSProcess, cwd, 0),
         JS_FS_END
     };
@@ -269,7 +274,7 @@ void JSProcess::RegisterObject(JSContext *cx,
         JS_SetElement(cx, jsargv, i, jelem);
     }
 
-    JS::RootedValue jsargv_v(cx, OBJECT_TO_JSVAL(jsargv));
+    JS::RootedValue jsargv_v(cx, JS::ObjectValue(*jsargv));
     JS_SetProperty(cx, ProcessObj, "argv", jsargv_v);
 
     JS::RootedValue workerid_v(cx, JS::Int32Value(workerId));

@@ -13,19 +13,11 @@
 #include "Binding/JSMacros.h"
 #include "Binding/JSEvents.h"
 
+#include "Binding/JSUtils.h"
+#include "Binding/ThreadLocalContext.h"
+
 namespace Nidium {
 namespace Binding {
-
-#define CLASSMAPPER_CHECK_ARGS(fnname, minarg)                       \
-    if (args.length() < minarg) {                                    \
-                                                                     \
-        char numBuf[12];                                             \
-        snprintf(numBuf, sizeof numBuf, "%u", args.length());        \
-        JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL,           \
-                             JSMSG_MORE_ARGS_NEEDED, fnname, numBuf, \
-                             (args.length() > 1 ? "s" : ""));        \
-        return false;                                                \
-    }
 
 
 #define CLASSMAPPER_FN(cclass, name, argc) \
@@ -45,21 +37,18 @@ namespace Binding {
     {                                                                       \
         #name,                                                              \
         JSPROP_PERMANENT | /*JSPROP_READONLY |*/ JSPROP_ENUMERATE |         \
-            JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,                        \
-        {{JS_CAST_NATIVE_TO((cclass::JSGetter<&cclass::JSGetter_##alias>),   \
-            JSPropertyOp), nullptr}},                                       \
-        JSOP_NULLWRAPPER                                                    \
+            JSPROP_SHARED,                                                  \
+        {{  cclass::JSGetter<&cclass::JSGetter_##alias>, nullptr}},         \
+        {{ nullptr, nullptr }}                                              \
     }
 
 #define CLASSMAPPER_PROP_GS_ALIAS(cclass, name, alias) \
     {                                                                       \
         #name,                                                              \
         JSPROP_PERMANENT | /*JSPROP_READONLY |*/ JSPROP_ENUMERATE |         \
-            JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS,                        \
-        {{JS_CAST_NATIVE_TO((cclass::JSGetter<&cclass::JSGetter_##alias>),   \
-            JSPropertyOp), nullptr}},                                       \
-        {{JS_CAST_NATIVE_TO((cclass::JSSetter<&cclass::JSSetter_##alias>),   \
-            JSStrictPropertyOp), nullptr}}                                  \
+            JSPROP_SHARED,                        \
+        {{cclass::JSGetter<&cclass::JSGetter_##alias>, nullptr}},           \
+        {{cclass::JSSetter<&cclass::JSSetter_##alias>, nullptr}}           \
     }
 
 #define CLASSMAPPER_PROP_GS(cclass, name) \
@@ -126,7 +115,7 @@ public:
     template<int ctor_minarg = 0>
     static JSObject *ExposeClass(JSContext *cx, const char *name,
         int jsflags = 0, ExposeFlags flags = kEmpty_ExposeFlag,
-        JS::HandleObject parent = JS::NullPtr())
+        JS::HandleObject parent = nullptr)
     {
         JSClass *jsclass = T::GetJSClass();
 
@@ -149,11 +138,20 @@ public:
 
         sparent = !parent.get() ? JS::CurrentGlobalOrNull(cx) : parent;
 
-        return JS_InitClass(cx, sparent, JS::NullPtr(), jsclass,
+        /*
+            TODO: Should we root the proto?
+        */
+        JS::RootedObject proto(cx, JS_InitClass(cx, sparent, nullptr, jsclass,
                     ClassMapper<T>::JSConstructor<ctor_minarg>,
                     ctor_minarg, T::ListProperties(),
                     T::ListMethods(), NULL,
-                    T::ListStaticMethods());
+                    T::ListStaticMethods()));
+
+        NidiumLocalContext *nlc = NidiumLocalContext::Get();
+
+        nlc->addProtoCache(jsclass, proto);
+
+        return proto;
     }
 
     static void AssociateObject(JSContext *cx, T *obj, JS::HandleObject jsobj,
@@ -182,9 +180,14 @@ public:
         JSClass *jsclass = T::GetJSClass();
         assert(jsclass->name != NULL);
 #endif
-        JS::RootedObject ret(
-            cx, JS_NewObject(cx, T::GetJSClass(),
-                JS::NullPtr(), JS::NullPtr()));
+        NidiumLocalContext *nlc = NidiumLocalContext::Get();
+
+        JS::RootedObject proto(cx,
+            nlc->getPrototypeFromJSClass(T::GetJSClass()));
+
+        JS::RootedObject ret(cx,
+                JS_NewObjectWithGivenProto(cx,
+                T::GetJSClass(), proto));
 
         ClassMapper<T>::AssociateObject(cx, obj, ret);
 
@@ -198,7 +201,7 @@ public:
         */
         this->root();
 
-        NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
+        NidiumLocalContext *nlc = NidiumLocalContext::Get();
 
         nlc->m_JSUniqueInstance.set((uintptr_t)T::GetJSClass(),
             (uintptr_t)this);
@@ -216,7 +219,7 @@ public:
         JSClass *jsclass = T::GetJSClass();
         assert(jsclass->name != NULL);
         /* CX doesn't match local thread CX */
-        assert(NidiumJS::GetLocalContext()->cx == cx);
+        assert(NidiumLocalContext::Get()->cx == cx);
 #endif
 
         obj->setUniqueInstance();
@@ -271,7 +274,7 @@ public:
      */
     static inline T *GetInstanceSingleton()
     {
-        NidiumLocalContext *nlc = NidiumJS::GetLocalContext();
+        NidiumLocalContext *nlc = NidiumLocalContext::Get();
 
         return reinterpret_cast<T *>(nlc->m_JSUniqueInstance.get(
             (uintptr_t)T::GetJSClass()));
@@ -322,7 +325,7 @@ public:
             return;
         }
 
-        NidiumJS::RootObjectUntilShutdown(m_Instance);
+        NidiumLocalContext::RootObjectUntilShutdown(m_Instance);
         m_Rooted = true;
     }
 
@@ -336,7 +339,7 @@ public:
             return;
         }
 
-        NidiumJS::UnrootObject(m_Instance);
+        NidiumLocalContext::UnrootObject(m_Instance);
         m_Rooted = false;
     }
 
@@ -347,7 +350,7 @@ public:
      */
     virtual ~ClassMapper()
     {
-        if (!m_Instance.get()) {
+        if (!m_Instance) {
             return;
         }
         JS_SetPrivate(m_Instance, nullptr);
@@ -369,7 +372,9 @@ protected:
         CLASSMAPPER_PROLOGUE_CLASS(T);
 
         /* TODO: Get the right method name */
-        NIDIUM_JS_CHECK_ARGS("method", minarg);
+        if (!args.requireAtLeast(cx, "method", minarg)) {
+            return false;
+        }
 
         return (CppObj->*U)(cx, args);
     }
@@ -379,7 +384,9 @@ protected:
     {
         CLASSMAPPER_PROLOGUE_NO_RET()
 
-        NIDIUM_JS_CHECK_ARGS("method", minarg);
+        if (!args.requireAtLeast(cx, "method", minarg)) {
+            return false;
+        }
 
         args.rval().setUndefined();
 
@@ -453,7 +460,9 @@ protected:
             return false;
         }
 
-        NIDIUM_JS_CHECK_ARGS("constructor", ctor_minarg);
+        if (!args.requireAtLeast(cx, "constructor", ctor_minarg)) {
+            return false;
+        }
 
         JS::RootedObject ret(
             cx, JS_NewObjectForConstructor(cx, jsclass, args));
@@ -481,15 +490,7 @@ protected:
     static inline JSClass *GetJSClass()
     {
         static JSClass jsclass = { NULL,
-                                   JSCLASS_HAS_PRIVATE,
-                                   JS_PropertyStub,
-                                   JS_DeletePropertyStub,
-                                   JS_PropertyStub,
-                                   JS_StrictPropertyStub,
-                                   JS_EnumerateStub,
-                                   JS_ResolveStub,
-                                   JS_ConvertStub,
-                                   JSCLASS_NO_OPTIONAL_MEMBERS };
+                                   JSCLASS_HAS_PRIVATE};
 
         return &jsclass;
     }
@@ -518,7 +519,9 @@ public:
         CLASSMAPPER_PROLOGUE_CLASS(T);
 
         /* TODO: Get the right method name */
-        NIDIUM_JS_CHECK_ARGS("method", minarg);
+        if (!args.requireAtLeast(cx, "method", minarg)) {
+            return false;
+        }
 
         return (CppObj->*U)(cx, args);
     }
@@ -545,20 +548,18 @@ public:
     bool JS_addEventListener(JSContext *cx, JS::CallArgs &args)
     {
         JS::RootedString name(cx);
-        JS::RootedValue cb(cx);
 
         if (!JS_ConvertArguments(cx, args, "S", name.address())) {
             return false;
         }
 
-        if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &cb)) {
-            JS_ReportError(cx, "Bad callback given");
+        if (!JSUtils::ReportIfNotFunction(cx, args[1])) {
             return false;
         }
 
         JSAutoByteString cname(cx, name);
 
-        this->addJSEvent(cname.ptr(), cb);
+        this->addJSEvent(cname.ptr(), args[1]);
 
         return true;
     }
@@ -576,12 +577,11 @@ public:
         if (args.length() == 1) {
             this->removeJSEvent(cname.ptr());
         } else {
-            if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &cb)) {
-                JS_ReportError(cx, "Bad callback given");
+            if (!JSUtils::ReportIfNotFunction(cx, args[1])) {
                 return false;
             }
 
-            this->removeJSEvent(cname.ptr(), cb);
+            this->removeJSEvent(cname.ptr(), args[1]);
         }
 
         return true;
@@ -650,7 +650,7 @@ public:
         JS_GetProperty(m_Cx, thisobj, onEv.c_str(), &callback);
 
         if (callback.isObject()
-            && JS_ObjectIsCallable(m_Cx, callback.toObjectOrNull())) {
+            && JS::IsCallable(callback.toObjectOrNull())) {
             JS::RootedValue rval(m_Cx);
 
             JS_CallFunctionValue(m_Cx, thisobj, callback, params, &rval);

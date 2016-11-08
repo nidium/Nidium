@@ -32,9 +32,9 @@ static void getOptionsAndCallback(JSContext *cx,
     JS::RootedValue arg2(cx, args->get(argsOffset + 1));
 
     bool arg1Callable
-        = arg1.isObject() && JS_ObjectIsCallable(cx, arg1.toObjectOrNull());
+        = arg1.isObject() && JS::IsCallable(arg1.toObjectOrNull());
     bool arg2Callable
-        = arg2.isObject() && JS_ObjectIsCallable(cx, arg2.toObjectOrNull());
+        = arg2.isObject() && JS::IsCallable(arg2.toObjectOrNull());
 
     callback.set(JS::NullHandleValue);
 
@@ -220,7 +220,9 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
     {
         if (!__curopt.isPrimitive()) {
             JS::RootedObject headers(cx, __curopt.toObjectOrNull());
-            JS::AutoIdArray ida(cx, JS_Enumerate(cx, headers));
+            JS::Rooted<JS::IdVector> ida(cx, JS::IdVector(cx));
+
+            JS_Enumerate(cx, headers, &ida);
 
             for (size_t i = 0; i < ida.length(); i++) {
                 JS::RootedId id(cx, ida[i]);
@@ -256,16 +258,22 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
         size_t dataLen;
 
         if (__curopt.isObject() && JS_IsArrayBufferObject(obj)) {
-            data    = reinterpret_cast<char *>(JS_GetArrayBufferData(obj));
+            /*
+                TODO: Add a zeroCopy option that use
+                JS_StealArrayBufferContents instead
+            */
+
+            JS::AutoCheckCannotGC nogc;
+            bool isShared;
+            char *dataArray    = reinterpret_cast<char *>(JS_GetArrayBufferData(obj,
+                &isShared, nogc));
             dataLen = JS_GetArrayBufferByteLength(obj);
 
-            // Since the data may not be used right away
-            // we need to root them until the request is done
-            JS_SetReservedSlot(m_Instance, 1, __curopt);
+            data = (char *)malloc(dataLen);
+            memcpy(data, dataArray, dataLen);
 
-            // Disable auto release of the
-            // data, as it's owned by the JS.
-            m_HTTPRequest->setDataReleaser(nullptr);
+
+            m_HTTPRequest->setDataReleaser(free);
         } else {
             JS::RootedString str(cx, JS::ToString(cx, __curopt));
 
@@ -330,7 +338,7 @@ void JSHTTP::onError(int code, const char *error)
 {
     JS::RootedObject eventObject(
         m_Cx, JSEvents::CreateErrorEventObject(m_Cx, code, error));
-    JS::RootedValue eventValue(m_Cx, OBJECT_TO_JSVAL(eventObject));
+    JS::RootedValue eventValue(m_Cx, JS::ObjectValue(*eventObject));
 
     ClassMapperWithEvents<JSHTTP>::fireJSEvent("error", &eventValue);
 
@@ -359,14 +367,14 @@ void JSHTTP::onProgress(size_t offset,
             break;
         default: {
             JS::RootedValue arrVal(m_Cx);
-            JS::RootedObject arr(m_Cx, JS_NewArrayBuffer(m_Cx, len));
-            uint8_t *data = JS_GetArrayBufferData(arr);
 
-            arrVal.setObjectOrNull(arr);
-            memcpy(data, &h->m_Data->data[offset], len);
+            arrVal.setObjectOrNull(
+                JSUtils::NewArrayBufferWithCopiedContents(m_Cx,
+                    len, &h->m_Data->data[offset]));
 
             eventBuilder.set("type", "binary");
             eventBuilder.set("data", arrVal);
+
             break;
         }
     }
@@ -383,7 +391,7 @@ void JSHTTP::headersToJSObject(JS::MutableHandleObject obj)
         return;
     }
 
-    obj.set(JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    obj.set(JS_NewPlainObject(m_Cx));
 
     APE_A_FOREACH(headers, k, v)
     {
@@ -461,11 +469,11 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
                                 h->m_Data->used, &jsdata, "utf8");
             break;
         case HTTP::DATA_JSON: {
-            const jschar *chars;
-            size_t clen;
 
             eventBuilder.set("type", "json");
-
+            /*
+                XXX: This isnt UTF8 aware
+            */
             JS::RootedString str(
                 m_Cx, JS_NewStringCopyN(
                           m_Cx, reinterpret_cast<const char *>(h->m_Data->data),
@@ -476,9 +484,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
                 return;
             }
 
-            chars = JS_GetStringCharsZAndLength(m_Cx, str, &clen);
-
-            if (!JS_ParseJSON(m_Cx, chars, clen, &jsdata)) {
+            if (!JS_ParseJSON(m_Cx, str, &jsdata)) {
                 char *err;
                 asprintf(&err, "Cant parse JSON of size %ld :\n = %.*s\n = \n",
                          static_cast<unsigned long>(h->m_Data->used),
@@ -497,11 +503,11 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
         case HTTP::DATA_IMAGE:
         {
             Image *nimg;
-            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+            SET_PROP(event, "type", JS::StringValue(JS_NewStringCopyN(cx,
                 CONST_STR_LEN("image"))));
 
             nimg = new Image(h->m_Data->data, h->m_Data->used);
-            jdata = OBJECT_TO_JSVAL(NidiumJSImage::BuildImageObject(cx, nimg));
+            jdata = JS::ObjectValue(*NidiumJSImage::BuildImageObject(cx, nimg));
 
             break;
         }
@@ -512,20 +518,18 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 
             memcpy(data, h->m_Data->data, h->m_Data->used);
 
-            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+            SET_PROP(event, "type", JS::StringValue(JS_NewStringCopyN(cx,
                 CONST_STR_LEN("audio"))));
 
-            jdata = OBJECT_TO_JSVAL(arr);
+            jdata = JS::ObjectValue(*arr);
 
             break;
         }
 #endif
         default: {
             JS::RootedObject arr(m_Cx,
-                                 JS_NewArrayBuffer(m_Cx, h->m_Data->used));
-            uint8_t *data = JS_GetArrayBufferData(arr);
-
-            memcpy(data, h->m_Data->data, h->m_Data->used);
+                JSUtils::NewArrayBufferWithCopiedContents(m_Cx,
+                    h->m_Data->used, h->m_Data->data));
 
             eventBuilder.set("type", "binary");
             jsdata.setObjectOrNull(arr);

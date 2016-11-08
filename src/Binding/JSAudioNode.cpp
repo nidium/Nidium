@@ -93,7 +93,10 @@ bool JSAudioNode::JS__set(JSContext *cx, JS::CallArgs &args)
     unsigned long size;
 
     JS::RootedObject props(cx, val.toObjectOrNull());
-    JS::AutoIdArray ida(cx, JS_Enumerate(cx, props));
+
+    JS::Rooted<JS::IdVector> ida(cx, JS::IdVector(cx));
+
+    JS_Enumerate(cx, props, &ida);
 
     for (size_t i = 0; i < ida.length(); i++) {
         // Retrieve the current key & value
@@ -388,20 +391,18 @@ JSAudioNodeBuffers::JSAudioNodeBuffers(JSAudioContext *audioCtx,
         uint8_t *data;
 
         // TODO : Avoid memcpy (custom allocator for AudioNode?)
-        JS::RootedObject arrBuff(cx, JS_NewArrayBuffer(cx, m_Size));
-        data = JS_GetArrayBufferData(arrBuff);
-        memcpy(data, framesData[i], m_Size);
+        JS::RootedObject arrBuff(cx,
+            JSUtils::NewArrayBufferWithCopiedContents(cx, m_Size, framesData[i]));
 
         JS::RootedObject arr(cx,
                              JS_NewFloat32ArrayWithBuffer(cx, arrBuff, 0, -1));
 
-        JS_DefineElement(cx, frames, i, OBJECT_TO_JSVAL(arr), nullptr, nullptr,
-                         JSPROP_ENUMERATE | JSPROP_PERMANENT);
+        JS_DefineElement(cx, frames, i, arr, JSPROP_ENUMERATE | JSPROP_PERMANENT);
     }
 
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS::RootedValue vFrames(cx, OBJECT_TO_JSVAL(frames));
-    JS::RootedValue vSize(cx, DOUBLE_TO_JSVAL(params->m_FramesPerBuffer));
+    JS::RootedValue vFrames(cx, JS::ObjectValue(*frames));
+    JS::RootedValue vSize(cx, JS::DoubleValue(params->m_FramesPerBuffer));
 
     JS_DefineProperty(cx, obj, "data", vFrames,
                       JSPROP_PERMANENT | JSPROP_ENUMERATE);
@@ -409,6 +410,11 @@ JSAudioNodeBuffers::JSAudioNodeBuffers(JSAudioContext *audioCtx,
                       JSPROP_PERMANENT | JSPROP_ENUMERATE);
 }
 
+/*
+    Returned value could be modified by the GC.
+    Make sure we're not calling any GC'able JSAPI function before using the
+    returned value
+*/
 float *JSAudioNodeBuffers::getBuffer(unsigned int idx)
 {
     JSContext *cx = this->getJSContext();
@@ -425,7 +431,10 @@ float *JSAudioNodeBuffers::getBuffer(unsigned int idx)
         return nullptr;
     }
 
-    return JS_GetFloat32ArrayData(arr);
+    bool shared;
+    JS::AutoCheckCannotGC nogc;
+
+    return JS_GetFloat32ArrayData(arr, &shared, nogc);
 }
 // }}}
 
@@ -579,15 +588,14 @@ JSAudioNodeThreaded::JSAudioNodeThreaded(JSAudioNodeCustomBase *node)
 
     JSAudioNodeThreaded::CreateObject(m_Cx, this);
 
-    JS::RootedObject hashObj(
-        m_Cx, JS_NewObject(m_Cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject hashObj(m_Cx, JS_NewPlainObject(m_Cx));
 
     m_HashObj = hashObj;
 
     // Root |m_HashObj| on this object
-    JS_SetReservedSlot(this->getJSObject(), 0, OBJECT_TO_JSVAL(hashObj));
+    JS_SetReservedSlot(this->getJSObject(), 0, JS::ObjectValue(*hashObj));
     // Root this object on the global object of the context
-    JS_SetReservedSlot(global, 0, OBJECT_TO_JSVAL(this->getJSObject()));
+    JS_SetReservedSlot(global, 0, JS::ObjectValue(*this->getJSObject()));
 
     JSTransferableFunction *initFn
         = m_Node->getFunction(JSAudioNodeCustomBase::INIT_FN);
@@ -613,7 +621,10 @@ void JSAudioNodeThreaded::set(JS::HandleValue val)
     JS::RootedObject global(m_Cx, JSAudioContext::GetContext()->m_JsGlobalObj);
     JS::RootedObject thisObj(m_Cx, this->getJSObject());
     JS::RootedObject props(m_Cx, val.toObjectOrNull());
-    JS::AutoIdArray ida(m_Cx, JS_Enumerate(m_Cx, props));
+
+    JS::Rooted<JS::IdVector> ida(m_Cx, JS::IdVector(m_Cx));
+
+    JS_Enumerate(m_Cx, props, &ida);
 
     for (size_t i = 0; i < ida.length(); i++) {
         // Retrieve the current key & value

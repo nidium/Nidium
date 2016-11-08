@@ -42,8 +42,7 @@ public:
                 JS::RootedValue rval(cx);
                 JS::AutoValueArray<1> params(cx);
 
-                JS::RootedObject param(
-                    cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
+                JS::RootedObject param(cx, JS_NewPlainObject(cx));
                 JS::RootedString str(cx, JS_NewStringCopyZ(cx, cur->d_name));
 
                 NIDIUM_JSOBJ_SET_PROP_STR(param, "name", str);
@@ -52,9 +51,9 @@ public:
 
                 params[0].setObject(*param);
 
-                JS::RootedValue cb(cx, OBJECT_TO_JSVAL(callback));
+                JS::RootedValue cb(cx, JS::ObjectValue(*callback));
 
-                JS_CallFunctionValue(cx, JS::NullPtr(), cb, params, &rval);
+                JS_CallFunctionValue(cx, nullptr, cb, params, &rval);
 
                 free(cur);
                 break;
@@ -107,16 +106,13 @@ public:
 // {{{ Implementation
 bool JSFS::JS_readDir(JSContext *cx, JS::CallArgs &args)
 {
-
-    JS::RootedValue callback(cx);
     JS::RootedString path(cx);
 
     if (!JS_ConvertArguments(cx, args, "S", path.address())) {
         return false;
     }
 
-    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
-        JS_ReportError(cx, "open() invalid callback");
+    if (!JSUtils::ReportIfNotFunction(cx, args[1])) {
         return false;
     }
 
@@ -128,7 +124,7 @@ bool JSFS::JS_readDir(JSContext *cx, JS::CallArgs &args)
     task->setFunction(JSFSAsyncHandler::readDirTask);
     task->m_Args[0].set(strdup(cpath.ptr()));
 
-    handler->setCallback(0, callback.toObjectOrNull());
+    handler->setCallback(0, args[1].toObjectOrNull());
     handler->addTask(task);
 
     return true;

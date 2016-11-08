@@ -12,6 +12,7 @@
 
 #include <ape_netlib.h>
 
+#include "Core/Atomic.h"
 #include "Core/Events.h"
 
 namespace Nidium {
@@ -34,6 +35,9 @@ static int Messages_handle(void *arg)
            && (msg = g_MessagesList->readMessage(stopOnAsync))) {
 
         Messages *obj = static_cast<Messages *>(msg->dest());
+
+        Atomic::Dec(&obj->_m_CountMessagePending);
+
         obj->onMessage(*msg);
 
         delete msg;
@@ -108,6 +112,8 @@ void Messages::postMessage(SharedMessages::Message *msg, bool forceAsync)
     assert(g_MessagesList != nullptr);
 
     msg->setDest(this);
+
+    Atomic::Inc(&_m_CountMessagePending);
 
     /*
        Check if the message can be posted synchronously :

@@ -14,23 +14,12 @@
 
 #define NIDIUM_JS_GET_OPT(obj, name)                    \
     if (obj && JS_GetProperty(cx, obj, name, &__curopt) \
-        && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL)
+        && !__curopt.isNullOrUndefined())
 
 #define NIDIUM_JS_GET_OPT_TYPE(obj, name, type)             \
     if (obj && JS_GetProperty(cx, obj, name, &__curopt)     \
-        && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL \
+        && !__curopt.isNullOrUndefined() \
         && __curopt.is##type())
-
-#define NIDIUM_JS_CHECK_ARGS(fnname, minarg)                         \
-    if (argc < minarg) {                                             \
-                                                                     \
-        char numBuf[12];                                             \
-        snprintf(numBuf, sizeof numBuf, "%u", argc);                 \
-        JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL,           \
-                             JSMSG_MORE_ARGS_NEEDED, fnname, numBuf, \
-                             (argc > 1 ? "s" : ""));                 \
-        return false;                                                \
-    }
 
 #define JSOBJ_CALLFUNCNAME(where, name, argv)                           \
     {                                                                   \

@@ -124,7 +124,7 @@ TestsRunner.prototype = {
                 return {
                     "callee": frameName,
                     "script": frame.script.url,
-                    "line": frame.script.getOffsetLine(frame.offset)
+                    "line": frame.script.getOffsetLocation(frame.offset).lineNumber
                 }
             }
 

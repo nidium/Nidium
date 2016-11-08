@@ -119,16 +119,14 @@ protected:
             JSAudioNodeLink *link = new JSAudioNodeLink(m_Node->m_Input[i]);
             JS::RootedObject jlink(cx, JSAudioNodeLink::CreateObject(cx, link));
 
-            JS_DefineElement(cx, inputLinks, i, OBJECT_TO_JSVAL(jlink), nullptr,
-                             nullptr, 0);
+            JS_DefineElement(cx, inputLinks, i, jlink, 0);
         }
 
         for (int i = 0; i < out; i++) {
             JSAudioNodeLink *link = new JSAudioNodeLink(m_Node->m_Output[i]);
             JS::RootedObject jlink(cx, JSAudioNodeLink::CreateObject(cx, link));
 
-            JS_DefineElement(cx, outputLinks, i, OBJECT_TO_JSVAL(jlink),
-                             nullptr, nullptr, 0);
+            JS_DefineElement(cx, outputLinks, i, jlink, 0);
         }
 
         if (in > 0) {

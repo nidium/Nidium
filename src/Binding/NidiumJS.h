@@ -8,11 +8,12 @@
 
 #include <stdint.h>
 #include <stddef.h>
-
+#include <unordered_map>
 
 #include <jspubtd.h>
 #include <jsapi.h>
 #include <js/StructuredClone.h>
+#include <js/Conversions.h>
 
 #include "Core/Hash.h"
 #include "Core/Messages.h"
@@ -32,16 +33,8 @@ template<typename T>class ClassMapper;
 
 #define NIDIUM_JS_FNPROPS JSPROP_ENUMERATE | JSPROP_PERMANENT
 
-struct nidium_thread_msg
-{
-    uint64_t *data;
-    size_t nbytes;
-    class JSObject *callee;
-};
 
 typedef struct _ape_global ape_global;
-typedef void (*nidium_thread_message_t)(
-    JSContext *cx, Nidium::Core::SharedMessages::Message *msg);
 
 typedef struct _NidiumBytecodeScript
 {
@@ -50,24 +43,6 @@ typedef struct _NidiumBytecodeScript
     const unsigned char *data;
 } NidiumBytecodeScript;
 
-
-struct NidiumLocalContext {
-
-    NidiumLocalContext(JSRuntime *rt, JSContext *cx) : rt(rt), cx(cx) {
-        m_RootedObj = hashtbl_init(APE_HASH_INT);
-    }
-
-    bool isShuttingDown() const {
-        return m_IsShuttingDown;
-    }
-
-    JSRuntime *rt;
-    JSContext *cx;
-    struct _ape_htable *m_RootedObj;
-    bool m_IsShuttingDown = false;
-    Nidium::Core::Hash64<uintptr_t> m_JSUniqueInstance{64};
-
-};
 
 class NidiumJSDelegate;
 
@@ -85,16 +60,11 @@ public:
     };
 
     JSContext *m_Cx;
-    Nidium::Core::SharedMessages *m_Messages;
 
     Nidium::Core::Hash<JSObject *> m_JsObjects;
 
     struct _ape_htable *m_RootedObj;
     struct _ape_global *m_Net;
-
-    nidium_thread_message_t *m_RegisteredMessages;
-    int m_RegisteredMessagesIdx;
-    int m_RegisteredMessagesSize;
 
     static NidiumJS *GetObject(JSContext *cx = NULL);
     static ape_global *GetNet();
@@ -110,11 +80,6 @@ public:
     JSContext *getJSContext() const
     {
         return this->m_Cx;
-    }
-
-    bool isShuttingDown() const
-    {
-        return m_Shutdown;
     }
 
     void setStrictMode(bool val)
@@ -144,14 +109,8 @@ public:
     int LoadBytecode(NidiumBytecodeScript *script);
     int LoadBytecode(void *data, int size, const char *filename);
 
-    void rootObjectUntilShutdown(JSObject *obj);
-    void unrootObject(JSObject *obj);
     void gc();
     void bindNetObject(ape_global *net);
-
-    int registerMessage(nidium_thread_message_t cbk);
-    void registerMessage(nidium_thread_message_t cbk, int id);
-    void postMessage(void *dataPtr, int ev);
 
     static JSStructuredCloneCallbacks *m_JsScc;
     static JSObject *readStructuredCloneOp(JSContext *cx,
@@ -180,22 +139,17 @@ public:
     {
         return m_StructuredCloneAddition.read;
     }
+    
     WriteStructuredCloneOp getWriteStructuredCloneAddition() const
     {
         return m_StructuredCloneAddition.write;
     }
 
-    static void UnrootObject(JSObject *obj);
-    static void RootObjectUntilShutdown(JSObject *obj);
     static JSObject *CreateJSGlobal(JSContext *cx, NidiumJS *njs = nullptr);
-    static void SetJSRuntimeOptions(JSRuntime *rt);
-    static void InitThreadContext(JSRuntime *rt, JSContext *cx);
-    static void DestroyThreadContext(void *data);
-    static NidiumLocalContext *GetLocalContext();
+    static void SetJSRuntimeOptions(JSRuntime *rt, bool strictmode = false);
 
 private:
     JSModules *m_Modules;
-    bool m_Shutdown;
     JSCompartment *m_Compartment;
     bool m_JSStrictMode;
     Core::Context *m_Context;

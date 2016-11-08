@@ -25,6 +25,7 @@ protected:
     NIDIUM_DECL_JSCALL(setOwner);
     NIDIUM_DECL_JSCALL(setSignalHandler);
     NIDIUM_DECL_JSCALL(exit);
+    NIDIUM_DECL_JSCALL(shutdown);
     NIDIUM_DECL_JSCALL(cwd);
 };
 

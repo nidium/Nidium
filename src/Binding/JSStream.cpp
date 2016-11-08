@@ -46,8 +46,8 @@ void JSStream::onProgress(size_t buffered, size_t total)
 
         JS::RootedValue rval(this->cx);
         JS::AutoValueArray<2>args(this->cx);
-        args[0] = INT_TO_JSVAL(buffered);
-        args[1] = INT_TO_JSVAL(total);
+        args[0] = JS::Int32Value(buffered);
+        args[1] = JS::Int32Value(total);
 
         JS_CallFunctionValue(this->cx, obj, onprogress_callback, args, &rval);
     }
@@ -174,9 +174,8 @@ bool JSStream::JS_getNextPacket(JSContext *cx, JS::CallArgs &args)
         return true;
     }
 
-    JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
-    uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
-    memcpy(data, ret, len);
+    JS::RootedObject arrayBuffer(cx,
+        JSUtils::NewArrayBufferWithCopiedContents(cx, len, ret));
 
     args.rval().setObject(*arrayBuffer);
 

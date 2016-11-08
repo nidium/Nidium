@@ -11,37 +11,9 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Preamble
-static const JSClass JSEvent_class = { "NidiumEvent",
-                                       0,
-                                       JS_PropertyStub,
-                                       JS_DeletePropertyStub,
-                                       JS_PropertyStub,
-                                       JS_StrictPropertyStub,
-                                       JS_EnumerateStub,
-                                       JS_ResolveStub,
-                                       JS_ConvertStub,
-                                       NULL,
-                                       nullptr,
-                                       nullptr,
-                                       nullptr,
-                                       nullptr,
-                                       JSCLASS_NO_INTERNAL_MEMBERS };
+static const JSClass JSEvent_class = { "NidiumEvent", 0 };
 
-static const JSClass JSErrorEvent_class = { "NidiumErrorEvent",
-                                            0,
-                                            JS_PropertyStub,
-                                            JS_DeletePropertyStub,
-                                            JS_PropertyStub,
-                                            JS_StrictPropertyStub,
-                                            JS_EnumerateStub,
-                                            JS_ResolveStub,
-                                            JS_ConvertStub,
-                                            NULL,
-                                            nullptr,
-                                            nullptr,
-                                            nullptr,
-                                            nullptr,
-                                            JSCLASS_NO_INTERNAL_MEMBERS };
+static const JSClass JSErrorEvent_class = { "NidiumErrorEvent", 0 };
 
 static bool
 Nidium_jsevents_stopPropagation(JSContext *cx, unsigned argc, JS::Value *vp)
@@ -86,7 +58,7 @@ static JSFunctionSpec JSEvents_funcs[]
 JSObject *JSEvents::CreateEventObject(JSContext *cx)
 {
     JS::RootedObject ret(
-        cx, JS_NewObject(cx, &JSEvent_class, JS::NullPtr(), JS::NullPtr()));
+        cx, JS_NewObject(cx, &JSEvent_class));
     JS_DefineFunctions(cx, ret, JSEvents_funcs);
 
     return ret;
@@ -95,8 +67,7 @@ JSObject *JSEvents::CreateEventObject(JSContext *cx)
 JSObject *
 JSEvents::CreateErrorEventObject(JSContext *cx, int code, const char *err)
 {
-    JS::RootedObject ret(cx, JS_NewObject(cx, &JSErrorEvent_class,
-                                          JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject ret(cx, JS_NewObject(cx, &JSErrorEvent_class));
     JS_DefineFunctions(cx, ret, JSEvents_funcs);
 
     JSContext *m_Cx = cx;

@@ -4,11 +4,12 @@
    that can be found in the LICENSE file.
 */
 #include "Binding/JSHTTPServer.h"
+#include "Binding/JSUtils.h"
+
 
 #include <stdbool.h>
 #include <unistd.h>
 
-#include "Binding/JSUtils.h"
 
 using Nidium::Net::HTTPServer;
 using Nidium::Net::HTTPClientConnection;
@@ -79,9 +80,9 @@ bool JSHTTPServer::onEnd(HTTPClientConnection *client)
 
     JS::RootedObject objrequest(
         m_Cx,
-        JS_NewObject(m_Cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+        JS_NewPlainObject(m_Cx));
     JS::RootedObject headers(
-        m_Cx, JS_NewObject(m_Cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+        m_Cx, JS_NewPlainObject(m_Cx));
 
     if (client->getHTTPState()->headers.list) {
         APE_A_FOREACH(client->getHTTPState()->headers.list, k, v)
@@ -114,8 +115,8 @@ bool JSHTTPServer::onEnd(HTTPClientConnection *client)
     }
 
     JS::RootedValue method(m_Cx);
-    JS::RootedValue head(m_Cx, OBJECT_TO_JSVAL(headers));
-    JS::RootedValue cli(m_Cx, OBJECT_TO_JSVAL(subclient->getJSObject()));
+    JS::RootedObject cli(m_Cx, subclient->getJSObject());
+
     switch (client->getHTTPState()->parser.method) {
         case HTTP_POST:
             method.setString(JS_NewStringCopyN(m_Cx, CONST_STR_LEN("POST")));
@@ -213,7 +214,11 @@ bool JSHTTPResponse::JS_write(JSContext *cx, JS::CallArgs &args)
             return false;
         }
         uint32_t len  = JS_GetArrayBufferByteLength(objdata);
-        uint8_t *data = JS_GetArrayBufferData(objdata);
+
+        JS::AutoCheckCannotGC nogc;
+        bool shared;
+
+        uint8_t *data = JS_GetArrayBufferData(objdata, &shared, nogc);
 
         this->sendChunk((char *)data, len, APE_DATA_COPY);
     } else {
@@ -242,7 +247,10 @@ bool JSHTTPResponse::JS_end(JSContext *cx, JS::CallArgs &args)
                 return false;
             }
             uint32_t len  = JS_GetArrayBufferByteLength(objdata);
-            uint8_t *data = JS_GetArrayBufferData(objdata);
+            JS::AutoCheckCannotGC nogc;
+            bool shared;
+
+            uint8_t *data = JS_GetArrayBufferData(objdata, &shared, nogc);
 
             this->sendChunk((char *)data, len, APE_DATA_COPY, true);
         }
@@ -271,19 +279,21 @@ bool JSHTTPResponse::JS_writeHead(JSContext *cx, JS::CallArgs &args)
 
     if (args.length() >= 2 && !args[1].isPrimitive()) {
 
-        JS::RootedId idp(cx);
+        JS::Rooted<JS::IdVector> ida(cx, JS::IdVector(cx));
+        JS_Enumerate(cx, headers, &ida);
+        JS::RootedId id(cx);
 
-        JS::RootedObject iterator(cx, JS_NewPropertyIterator(cx, headers));
+        for (size_t i = 0; i < ida.length(); i++) {
 
-        while (JS_NextProperty(cx, iterator, idp.address())
-               && !JSID_IS_VOID(idp)) {
-            if (!JSID_IS_STRING(idp)) {
+            id = ida[i];
+
+            if (!JSID_IS_STRING(id)) {
                 continue;
             }
-            JS::RootedString key(cx, JSID_TO_STRING(idp));
+            JS::RootedString key(cx, JSID_TO_STRING(id));
             JS::RootedValue val(cx);
 
-            if (!JS_GetPropertyById(cx, headers, idp, &val)
+            if (!JS_GetPropertyById(cx, headers, id, &val)
                 || !val.isString()) {
                 continue;
             }
