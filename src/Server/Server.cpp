@@ -187,11 +187,12 @@ void Server::Usage(struct option *long_options, const char **text_blocks)
     opt = long_options;
     i = 0;
     Server::displayVersion();
-    fprintf(stdout, "Usage: %s [options] JS_FILE\n\toptions: \n",
+    fprintf(stdout, "Usage: %s [options] [[script.js] [arguments]]\n\nOptions: \n",
             "nidium-server");
+
     while (opt->name != NULL) {
         text = text_blocks[i];
-        fprintf(stdout, "\t-%c --%-10s %s\n", opt->val, opt->name, text);
+        fprintf(stdout, "  -%c, --%-12s %s\n", opt->val, opt->name, text);
         opt++;
         i++;
     }
@@ -202,12 +203,14 @@ int Server::init()
     bool daemon = false;
     int workers = 1;
 
-    static char const *text_blocks[5]
-        = { "Enable Strict mode", "Run as daemon", "Start multiple workers",
+    static char const *text_blocks[]
+        = { "Enable Strict mode", "Run the interactive console (REPL)",
+            "Run as daemon", "Start multiple workers",
             "Set process name", "This text" };
 
     static struct option long_options[]
         = { { "strict", no_argument, 0, 's' },
+            { "interactive", no_argument, 0, 'i' },
             { "daemon", no_argument, 0, 'd' },
             { "workers", required_argument, 0, 'w' },
             { "name", required_argument, 0, 'n' },
@@ -227,7 +230,7 @@ int Server::init()
     */
     setenv("POSIXLY_CORRECT", "1", 1);
 
-    while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dsw:n:h?", long_options,
+    while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dsiw:n:h?", long_options,
                              NULL))
            != -1) {
         switch (ch) {
@@ -236,6 +239,9 @@ int Server::init()
                 break;
             case 's':
                 m_JSStrictMode = true;
+                break;
+            case 'i':
+                m_HasREPL = true;
                 break;
             case ':':
             case 'h':
@@ -276,6 +282,8 @@ int Server::init()
         fprintf(stderr, "Can't demonize if no JS file is provided\n");
         Server::Usage(&long_options[0], text_blocks);
         exit(1);
+    } else if (m_Args.argc == 0) {
+        m_HasREPL = true;
     }
 
     if (workers) {
@@ -297,7 +305,7 @@ int Server::init()
 }
 
 Server::Server(int argc, char **argv)
-    : m_WorkerIdx(0), m_InstanceName(NULL), m_HasREPL(true),
+    : m_WorkerIdx(0), m_InstanceName(NULL), m_HasREPL(false),
       m_JSStrictMode(false), m_NWorkers(0)
 {
     m_Args.argc = argc;
