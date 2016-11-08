@@ -26,12 +26,14 @@ public:
     enum class Type {
         kHeapObj,
         kHeapValue,
+        kHeapStr,
         kTenuredObj,
     } m_Type;
 
     union {
         JS::Heap<JSObject *> *heapobj = nullptr;
         JS::Heap<JS::Value> *heapvalue;
+        JS::Heap<JSString *> *heapstr;
         JS::TenuredHeap<JSObject *> *tenuredobj;
     };
 };
@@ -102,6 +104,7 @@ struct NidiumLocalContext {
     /*
         Rooting API
     */
+    static void RootObjectUntilShutdown(JS::Heap<JSString *> &obj);
     static void RootObjectUntilShutdown(JS::Heap<JSObject *> &obj);
     static void RootObjectUntilShutdown(JS::Heap<JS::Value> &obj);
     static void RootObjectUntilShutdown(JS::TenuredHeap<JSObject *> &obj);

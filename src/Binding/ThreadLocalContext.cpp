@@ -63,6 +63,9 @@ void NidiumLocalContext::_jstraceMember(JSTracer *trc, T map)
             case nidiumRootedThing::Type::kHeapValue:
                 JS_CallValueTracer(trc, thing.heapvalue, "nidiumrootHeapValue");
                 break;
+            case nidiumRootedThing::Type::kHeapStr:
+                JS_CallStringTracer(trc, thing.heapstr, "nidiumrootHeapString");
+                break;
             case nidiumRootedThing::Type::kTenuredObj:
                 JS_CallTenuredObjectTracer(trc, thing.tenuredobj, "nidiumrootTeanuredHeapObj");
                 break;
@@ -95,7 +98,17 @@ void NidiumLocalContext::RootObjectUntilShutdown(JS::Heap<JSObject *> &obj)
 
     thing.m_Type = nidiumRootedThing::Type::kHeapObj;
     thing.heapobj = &obj;
+}
 
+void NidiumLocalContext::RootObjectUntilShutdown(JS::Heap<JSString *> &obj)
+{
+    uintptr_t addr = (uintptr_t)&obj;
+    NidiumLocalContext *nlc = Get();
+
+    nidiumRootedThing &thing = nlc->m_RootedThings[addr];
+
+    thing.m_Type = nidiumRootedThing::Type::kHeapStr;
+    thing.heapstr = &obj;
 }
 
 void NidiumLocalContext::RootObjectUntilShutdown(JS::Heap<JS::Value> &obj)
@@ -107,7 +120,6 @@ void NidiumLocalContext::RootObjectUntilShutdown(JS::Heap<JS::Value> &obj)
 
     thing.m_Type = nidiumRootedThing::Type::kHeapValue;
     thing.heapvalue = &obj;
-
 }
 
 void NidiumLocalContext::RootObjectUntilShutdown(JS::TenuredHeap<JSObject *> &obj)
