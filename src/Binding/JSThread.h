@@ -41,7 +41,6 @@ public:
     JSRuntime *m_JsRuntime;
     JSRuntime *m_ParentRuntime;
     JSContext *m_JsCx;
-    JSObject *m_JsObject;
     NidiumJS *m_Njs;
     struct
     {

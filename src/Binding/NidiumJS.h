@@ -33,12 +33,6 @@ template<typename T>class ClassMapper;
 
 #define NIDIUM_JS_FNPROPS JSPROP_ENUMERATE | JSPROP_PERMANENT
 
-struct nidium_thread_msg
-{
-    uint64_t *data;
-    size_t nbytes;
-    class JSObject *callee;
-};
 
 typedef struct _ape_global ape_global;
 

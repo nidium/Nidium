@@ -22,6 +22,12 @@
 namespace Nidium {
 namespace Binding {
 
+struct nidium_thread_msg
+{
+    uint64_t *data;
+    size_t nbytes;
+};
+
 // {{{ Thread management
 #define NJS (NidiumJS::GetObject(cx))
 extern void
@@ -154,6 +160,8 @@ static void *nidium_thread(void *arg)
                             NULL, 0, NULL, scoped,
                             strlen(scoped), &cf);
 
+            NidiumLocalContext::UnrootObject(nthread->m_JsFunction);
+
             delete[] scoped;
 
             if (!cret) {
@@ -199,7 +207,7 @@ static void *nidium_thread(void *arg)
 // {{{ JSThread
 JSThread::JSThread()
     : m_JsRuntime(NULL), m_JsCx(NULL),
-      m_JsObject(NULL), m_Njs(NULL), m_Params({ 0, NULL, 0 }),
+      m_Njs(NULL), m_Params({ 0, NULL, 0 }),
       m_MarkedStop(false), m_CallerFileName(NULL), m_CallerLineNo(0)
 {
     /* cx hold the main context (caller) */
@@ -253,8 +261,6 @@ void JSThread::onComplete(JS::HandleValue vp)
         msg->nbytes = 0;
     }
 
-    msg->callee = m_JsObject;
-
     this->postMessage(msg, JSThread::kThread_Complete);
 
     this->unroot();
@@ -263,7 +269,6 @@ void JSThread::onComplete(JS::HandleValue vp)
 
 JSThread::~JSThread()
 {
-
     this->m_MarkedStop = true;
     if (m_JsRuntime) {
         JS_RequestInterruptCallback(m_JsRuntime);
@@ -338,7 +343,6 @@ static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp)
 
     msg->data   = datap;
     msg->nbytes = nbytes;
-    msg->callee = nthread->m_JsObject;
 
     nthread->postMessage(msg, JSThread::kThread_Message);
 
@@ -360,8 +364,9 @@ JSThread * JSThread::Constructor(JSContext *cx, JS::CallArgs &args,
         return nullptr;
     }
 
+    NidiumLocalContext::RootObjectUntilShutdown(nthread->m_JsFunction);
+
     nthread->m_ParentRuntime = JS_GetRuntime(cx);
-    nthread->m_JsObject = obj;
     nthread->m_Njs      = NJS;
 
     JS::AutoFilename af;
