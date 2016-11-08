@@ -420,17 +420,12 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
         return;
     }
 
+#if 0
     JS_SetGCZeal(m_Cx, 2, 5);
+#endif
 
     JS_SetGCParameterForThread(m_Cx, JSGC_MAX_CODE_CACHE_BYTES,
                                16 * 1024 * 1024);
-#if 0
-    JS_SetGCZeal(m_Cx, 2, 4);
-#endif
-// JS_ScheduleGC(m_Cx, 1);
-#if 0
-    JS_SetGCCallback(rt, _gc_callback, NULL);
-#endif
 
     JS_BeginRequest(m_Cx);
     JS::RootedObject gbl(m_Cx);
