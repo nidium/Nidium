@@ -23,8 +23,6 @@ struct nidiumProtoCacheElement
 class nidiumRootedThing
 {
 public:
-    nidiumRootedThing() {};
-
     enum class Type {
         kHeapObj,
         kHeapValue,
@@ -62,6 +60,8 @@ struct NidiumLocalContext {
     void shutdown() {
         m_IsShuttingDown = true;
         m_Protocache.clear();
+        m_RootedThings.clear();
+        m_RootedThingsRef.clear();
     }
 
     void addProtoCache(JSClass *jsclass, JS::HandleObject proto)
