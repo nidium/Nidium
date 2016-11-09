@@ -1,228 +1,234 @@
-var RemoteDebug = function() {
-    this.methods = new Map();
-    this.client = undefined;
+class RemoteDebug {
 
-    this.reset();
+    constructor() {
+        this.methods = new Map();
+        this.client = undefined;
 
-    var dbgctx = new DebuggerCompartment();
-
-    dbgctx.run(function(dbg, remote) {
-
-        function parseFrame(frame) {
-            var frameName = frame.callee && frame.callee.displayName ? frame.callee.displayName : "anonymous";
-            return {
-                "callee": frameName,
-                "script": frame.script.url,
-                "line": frame.script.getOffsetLine(frame.offset)
-            }
-        }
-
-        dbg.onExceptionUnwind = function(frame, value) {
-            if (frame.older == null) {
-                var info = parseFrame(frame);
-                remote.reportError({text: value.unsafeDereference(), frame: info});
-            }
-        }
-    }, this);
-}
-
-RemoteDebug.prototype.monkeyPatch = function() {
-    console.log = this.log.bind(this);
-}
-
-RemoteDebug.prototype.reset = function() {
-    this.objectList = new WeakMap();
-    this.objectById = new Map();
-
-    this.currentObjectId = 1;
-}
-
-RemoteDebug.prototype.run = function(port) {
-    this.wsServer = new WebSocketServer("ws://127.0.0.1:" + port);
-
-    this.wsServer.onopen = (client) => {
         this.reset();
-        this.client = client;
-        this.onClient();
+
+        var dbgctx = new DebuggerCompartment();
+
+        dbgctx.run(function(dbg, remote) {
+
+            function parseFrame(frame) {
+                var frameName = frame.callee && frame.callee.displayName ? frame.callee.displayName : "anonymous";
+                return {
+                    "callee": frameName,
+                    "script": frame.script.url,
+                    "line": frame.script.getOffsetLocation(frame.offset).lineNumber
+                }
+            }
+
+            dbg.onExceptionUnwind = function(frame, value) {
+                if (frame.older == null) {
+                    var info = parseFrame(frame);
+                    remote.reportError({text: value.unsafeDereference(), frame: info});
+                }
+            }
+        }, this);
     }
 
-    this.wsServer.onmessage = (client, message) => {
-        var obj = JSON.parse(message.data);
-        var call = this.methods.get(obj.method);
+    monkeyPatch() {
+        console.log = this.log.bind(this);
+    }
 
-        obj.params = obj.params || {};
+    reset() {
+        this.objectList = new WeakMap();
+        this.objectById = new Map();
 
-        if (call === undefined) {
-            //console.log("No handler for", obj.method);
-            this.reply(client, obj.id);
+        this.currentObjectId = 1;        
+    }
+
+    run(port) {
+        this.wsServer = new WebSocketServer("ws://127.0.0.1:" + port);
+
+        this.wsServer.onopen = (client) => {
+            this.reset();
+            this.client = client;
+            this.onClient();
+        }
+
+        this.wsServer.onmessage = (client, message) => {
+            var obj = JSON.parse(message.data);
+            var call = this.methods.get(obj.method);
+
+            obj.params = obj.params || {};
+
+            if (call === undefined) {
+                //console.log("No handler for", obj.method);
+                this.reply(client, obj.id);
+                return;
+            }
+
+            call((result) => {
+                this.reply(client, obj.id, result);
+            }, obj.params);
+        }
+    }
+
+    getObjectId(obj) {
+        var data = this.objectList.get(obj);
+        if (!data) {
+            this.objectList.set(obj, {id: this.currentObjectId});
+            this.objectById.set(this.currentObjectId, obj);
+
+            return this.currentObjectId++;
+        } else {
+            return data.id;
+        }
+    }
+
+    getObjectById(id) {
+        return this.objectById.get(id);
+    }
+
+    handle(method, callback) {
+        this.methods.set(method, callback);
+    }
+
+    onClient() {}
+
+    reply(client, id, result = {}) {
+        client.send(JSON.stringify({id: id, result: result}));
+    }
+
+    call(method, params) {
+        if (this.client === undefined) {
             return;
         }
 
-        call((result) => {
-            this.reply(client, obj.id, result);
-        }, obj.params);
-    }
-}
-
-RemoteDebug.prototype.getObjectId = function(obj) {
-    var data = this.objectList.get(obj);
-    if (!data) {
-        this.objectList.set(obj, {id: this.currentObjectId});
-        this.objectById.set(this.currentObjectId, obj);
-
-        return this.currentObjectId++;
-    } else {
-        return data.id;
-    }
-}
-
-RemoteDebug.prototype.getObjectById = function(id) {
-    return this.objectById.get(id);
-}
-
-RemoteDebug.prototype.handle = function(method, callback) {
-    this.methods.set(method, callback);
-}
-
-RemoteDebug.prototype.onClient = function() {}
-
-RemoteDebug.prototype.reply = function(client, id, result = {}) {
-    client.send(JSON.stringify({id: id, result: result}));
-}
-
-RemoteDebug.prototype.call = function(method, params) {
-    if (this.client === undefined) {
-        return;
+        this.client.send(JSON.stringify({method: method, params: params}));
     }
 
-    this.client.send(JSON.stringify({method: method, params: params}));
-}
+    getObjectInfoString(obj) {
+        return JSON.stringify({injectedScriptId: 1, id: this.getObjectId(obj)});
+    }
 
-RemoteDebug.prototype.getObjectInfoString = function(obj) {
-    return JSON.stringify({injectedScriptId: 1, id: this.getObjectId(obj)});
-}
+    getObjectDescription(obj, accessorOnly = false) {
 
-RemoteDebug.prototype.getObjectDescription = function(obj, accessorOnly = false) {
+        var ret = [];
+        var own = Object.getOwnPropertyNames(obj);
 
-    var ret = [];
-    var own = Object.getOwnPropertyNames(obj);
+        for (let prop of own) {
+            let desc = Object.getOwnPropertyDescriptor(obj, prop);
 
-    for (let prop of own) {
-        let desc = Object.getOwnPropertyDescriptor(obj, prop);
+            if (accessorOnly && (!desc.get && !desc.set)) {
+                continue;
+            }
 
-        if (accessorOnly && (!desc.get && !desc.set)) {
-            continue;
+            let descRet = {
+                writable: desc.writable,
+                enumerable: desc.enumerable,
+                configurable: desc.configurable,
+                name: prop,
+                isOwn: true
+            };
+
+            let hasValue = !desc.get;
+
+            if (hasValue) {
+                descRet.value = this.getValueDescription(obj[prop]);
+            } else {
+                descRet.get = this.getValueDescription(desc.get);
+            }
+
+            if (desc.set) {
+                descRet.set = this.getValueDescription(desc.set);
+            }
+
+            ret.push(descRet);
         }
 
-        let descRet = {
-            writable: desc.writable,
-            enumerable: desc.enumerable,
-            configurable: desc.configurable,
-            name: prop,
-            isOwn: true
-        };
+        return ret;
+    }
 
-        let hasValue = !desc.get;
+    getStringValueDescription(value) {
+        let description;
 
-        if (hasValue) {
-            descRet.value = this.getValueDescription(obj[prop]);
+        if (value === undefined) {
+            description = "undefined";
+        } else if (value === null) {
+            description = "null";
         } else {
-            descRet.get = this.getValueDescription(desc.get);
+            description = value.toString();
         }
 
-        if (desc.set) {
-            descRet.set = this.getValueDescription(desc.set);
+        return description;
+    }
+
+    getValueDescription(value) {
+        if (typeof value == "object" && value !== null) {
+            return {
+                type: "object",
+                className: "Object",
+                description: "Object",
+                objectId: this.getObjectInfoString(value)
+            };
+        } else if (typeof value == "function") {
+            return {
+                type: "function",
+                className: "Function",
+                description: value.toString(),
+                objectId: this.getObjectInfoString(value)
+            };        
         }
 
-        ret.push(descRet);
-    }
-
-    return ret;
-}
-
-RemoteDebug.prototype.getStringValueDescription = function(value) {
-    let description;
-
-    if (value === undefined) {
-        description = "undefined";
-    } else if (value === null) {
-        description = "null";
-    } else {
-        description = value.toString();
-    }
-
-    return description;
-}
-
-RemoteDebug.prototype.getValueDescription = function(value) {
-    if (typeof value == "object" && value !== null) {
         return {
-            type: "object",
-            className: "Object",
-            description: "Object",
-            objectId: this.getObjectInfoString(value)
+            type: typeof value,
+            value: value,
+            description: this.getStringValueDescription(value)
         };
-    } else if (typeof value == "function") {
-        return {
-            type: "function",
-            className: "Function",
-            description: value.toString(),
-            objectId: this.getObjectInfoString(value)
-        };        
+        
     }
 
-    return {
-        type: typeof value,
-        value: value,
-        description: this.getStringValueDescription(value)
-    };
-    
+    onReady(){};
+
+    log(...args) {
+        let text = args.join(' ');
+
+        let params = args.map(arg => this.getValueDescription(arg))
+
+        this.call("Console.messageAdded", {
+            message: {
+                source: "console-api",
+                level: "log",
+                text: text,
+                timestamp: +new Date(),
+                type: "log",
+                line: 1,
+                column: 1,
+                url: "file://",
+                executionContextId: 1,
+                parameters: params
+            }
+        });
+    }
+
+    reportError(error) {
+
+
+        this.call("Console.messageAdded", {
+            message: {
+                source: "javascript",
+                level: "error",
+                text: error.text.toString(),
+                timestamp: +new Date(),
+                type: "log",
+                line: error.frame.line,
+                column: 1,
+                url: error.frame.script,
+                executionContextId: 1,
+            }
+        });
+    }
+
 }
 
-RemoteDebug.prototype.onReady = function(){};
 
-RemoteDebug.prototype.log = function(...args) {
-    let text = args.join(' ');
-
-    let params = args.map(arg => this.getValueDescription(arg))
-
-    this.call("Console.messageAdded", {
-        message: {
-            source: "console-api",
-            level: "log",
-            text: text,
-            timestamp: +new Date(),
-            type: "log",
-            line: 1,
-            column: 1,
-            url: "file://",
-            executionContextId: 1,
-            parameters: params
-        }
-    });
-}
-
-RemoteDebug.prototype.reportError = function(error) {
-
-
-    this.call("Console.messageAdded", {
-        message: {
-            source: "javascript",
-            level: "error",
-            text: error.text.toString(),
-            timestamp: +new Date(),
-            type: "log",
-            line: error.frame.line,
-            column: 1,
-            url: error.frame.script,
-            executionContextId: 1,
-        }
-    });
-}
 
 
 var remote = new RemoteDebug();
-//remote.run(9223);
+remote.run(9223);
 
 
 remote.handle('Runtime.enable', function(reply, params) {
