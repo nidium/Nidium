@@ -8,10 +8,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <array>
 
 #include <ape_base64.h>
 
 using Nidium::Core::Args;
+
+#define NIDIUM_WEBSOCKET_KEY_BYTES 16
 
 namespace Nidium {
 namespace Net {
@@ -69,9 +72,11 @@ WebSocketClient::WebSocketClient(uint16_t port,
     m_Host = strdup(host);
     m_URL  = strdup(url);
 
-    uint64_t r64 = Core::Utils::RandInt<uint64_t>();
-    base64_encode_b_safe(reinterpret_cast<unsigned char *>(&r64),
-                         m_HandShakeKey, sizeof(uint64_t), 0);
+
+    auto rdata = Core::Utils::RandBytes<NIDIUM_WEBSOCKET_KEY_BYTES>();
+
+    base64_encode_b_safe(&rdata[0],
+                         m_HandShakeKey, NIDIUM_WEBSOCKET_KEY_BYTES, 0);
 
     m_ComputedKey = ape_ws_compute_key(m_HandShakeKey, strlen(m_HandShakeKey));
 }
