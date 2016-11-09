@@ -15,6 +15,7 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include <array>
 
 namespace Nidium {
 namespace Core {
@@ -110,6 +111,26 @@ public:
         close(random);
 
         return ret;
+    }
+
+    template <int size>
+    static std::array<unsigned char, size> RandBytes()
+    {
+        int random;
+        std::array<unsigned char, size> data;
+
+        /* TODO: keep open from ape->urandom_fd */
+        random = open("/dev/urandom", O_RDONLY);
+
+        if (!random) {
+            fprintf(stderr, "Cannot open /dev/urandom\n");
+            return data;
+        }
+
+        read(random, &data[0], size);
+        close(random);
+
+        return data;
     }
 
     static void HTTPTime(char *buf);
