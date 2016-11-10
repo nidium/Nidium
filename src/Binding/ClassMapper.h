@@ -465,7 +465,7 @@ protected:
         }
 
         JS::RootedObject ret(
-            cx, JS_NewObjectForConstructor(cx, jsclass, args));
+            cx, JSUtils::NewObjectForConstructor(cx, jsclass, args));
 
         if ((obj = T::Constructor(cx, args, ret)) == nullptr) {
             return false;

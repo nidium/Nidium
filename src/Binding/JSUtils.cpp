@@ -135,6 +135,31 @@ JS_ConvertArgumentsVA(JSContext *cx, const JS::CallArgs &args, const char *forma
 namespace Nidium {
 namespace Binding {
 
+JSObject *JSUtils::NewObjectForConstructor(JSContext *cx,
+    JSClass *jsclass, JS::CallArgs &args)
+{
+    JS::RootedObject newTarget(cx, args.newTarget().toObjectOrNull());
+
+    JS::RootedValue protoVal(cx);
+    
+    if (!JS_GetProperty(cx, newTarget, "prototype", &protoVal)) {
+        return nullptr;
+    }
+
+    JS::RootedObject protoObj(cx); 
+    
+    if (protoVal.isObject()) {
+        protoObj = &protoVal.toObject();
+    } else {
+        protoObj = JS_GetObjectPrototype(cx, newTarget); 
+    }
+
+    JS::RootedObject ret(
+        cx, JS_NewObjectWithGivenProto(cx, jsclass, protoObj));
+
+    return ret;
+}
+
 const char* JSUtils::GetFunctionNameBytes(JSContext* cx,
         JSFunction* fun, JSAutoByteString* bytes)
 {

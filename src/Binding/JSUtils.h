@@ -8,6 +8,7 @@
 
 #include <jspubtd.h>
 #include <jsapi.h>
+#include <js/CallArgs.h>
 
 #include "Binding/JSMacros.h"
 
@@ -51,6 +52,9 @@ public:
 
     static const char* GetFunctionNameBytes(JSContext* cx,
         JSFunction* fun, JSAutoByteString* bytes);
+
+    static JSObject *NewObjectForConstructor(JSContext *cx,
+        JSClass *jsclass, JS::CallArgs &args);
 };
 
 // {{{ JSTransferable
