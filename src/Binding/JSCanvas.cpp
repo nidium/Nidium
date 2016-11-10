@@ -1459,7 +1459,6 @@ void JSCanvas::jsTrace(class JSTracer *trc)
 
         for (cur = handler->getFirstChild(); cur != NULL; cur = cur->m_Next) {
             if (cur->m_JsObj) {
-                    printf("JSTrace canvas\n");
                 JS_CallTenuredObjectTracer(trc, &cur->m_JsObj, "nidiumcanvasroot");
             }
         }
