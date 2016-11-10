@@ -438,6 +438,8 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
 
         canvasctx = m_CanvasHandler->getContext();
 
+        assert(JSCanvasCtx != nullptr);
+
         /*  Protect against GC
             Canvas.slot[0] = context
         */
@@ -448,6 +450,8 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
         /* A mode is requested but another one was already created */
         args.rval().setNull();
         return true;
+    } else {
+        JSCanvasCtx = canvasctx->getJSInstance();
     }
 
     args.rval().setObjectOrNull(JSCanvasCtx);
