@@ -1081,6 +1081,7 @@ bool JSCanvas::JSGetter_opacity(JSContext *cx, JS::MutableHandleValue vp)
 bool JSCanvas::JSSetter_opacity(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
+
     if (!vp.isNumber()) {
 
         return true;
@@ -1404,6 +1405,8 @@ JSFunctionSpec *JSCanvas::ListMethods()
 JSPropertySpec *JSCanvas::ListProperties()
 {
     static JSPropertySpec props[] = {
+        CLASSMAPPER_PROP_GS(JSCanvas, opacity),
+        CLASSMAPPER_PROP_GS(JSCanvas, overflow),
         CLASSMAPPER_PROP_GS(JSCanvas, scrollLeft),
         CLASSMAPPER_PROP_GS(JSCanvas, scrollTop),
         CLASSMAPPER_PROP_GS(JSCanvas, allowNegativeScroll),
