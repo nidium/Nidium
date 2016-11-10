@@ -41,3 +41,69 @@ Object.defineProperty(Canvas.prototype, "inherit", {
         return this.__inheritProxy;
     }
 });
+
+class DebugCanvas extends Canvas {
+    constructor(width, height, parent = document.canvas) {
+        super(width, height);
+
+        if (parent) {
+            parent.add(this);
+        }
+
+        this.onload = this.randomPaint;
+        this.m_highlight = false;
+        this._pickColor();
+        this.cursor = "pointer";
+
+        this.on("mousedown", function(ev) {
+            this.highlight();
+        }.bind(this));
+        this.on("mouseup", function(ev) {
+            this.highlight(false);
+        }.bind(this));
+
+    }
+
+    _pickColor() {
+        var mr = (min=100, max=200) => min + Math.floor(Math.random()*(max-min));
+        this.color = `rgba(${mr(50, 100)}, ${mr()}, ${mr(200, 250)}, 0.7)`;
+    }
+
+    randomPaint() {
+        var ctx = this.getContext("2d");
+
+        ctx.save()
+
+        this.clear();   
+
+        ctx.fillStyle = this.color;
+        
+        ctx.fillRect(0, 0, this.width, this.height, 7, 25);
+
+        ctx.fillStyle = "#fff";
+        ctx.fillText(`${this.id}`, 10, 15);
+
+        if (this.m_highlight) {
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = `rgba(210, 210, 210, 1)`;
+            ctx.strokeRect(0, 0, this.width, this.height, 10, 20);
+        }
+
+        ctx.restore();
+    }
+
+    place() {
+        var parent = this.getParent();
+        if (!parent) {
+            return;
+        }
+        this.left = Math.random() * (parent.width - this.width);
+        this.top = Math.random() * (parent.height - this.height);
+
+    }
+
+    highlight(enable = true) {
+        this.m_highlight = enable;
+        this.randomPaint();
+    }
+}

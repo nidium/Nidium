@@ -289,9 +289,9 @@ void Context::postDraw()
         // TODO: new style cast
         s->setFontType((char *)("monospace"));
         s->drawTextf(5, 12, "Nidium build %s %s", __DATE__, __TIME__);
-        s->drawTextf(5, 25, "Frame: %lld (%lldms)\n", m_Stats.nframe,
+        s->drawTextf(5, 25, "Frame: %lld (%lldms)", m_Stats.nframe,
                      m_Stats.lastdifftime / 1000000LL);
-        s->drawTextf(5, 38, "Time : %lldns\n",
+        s->drawTextf(5, 38, "Time : %lldns",
                      m_Stats.lastmeasuredtime - m_Stats.starttime);
         s->drawTextf(5, 51, "FPS  : %.2f (%.2f)", m_Stats.fps,
                      m_Stats.sampleminfps);

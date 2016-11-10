@@ -1,35 +1,36 @@
-<application version="0.1">
+<application>
     <meta>
         <title>nidium</title>
-        <viewport>300x300</viewport>
-        <version>1.0</version>
-        <date>2012-03-15</date>
-        <robots>index, follow</robots>
+        <viewport>600x500</viewport>
         <identifier>com.nidium.app</identifier>
-        <author>Nidium Inc.</author>
     </meta>
     <assets>
     <script>
-        var c = new Canvas(window.innerWidth, window.innerHeight);
+
+        document.showFPS(true);
+
+        var c = new DebugCanvas(window.innerWidth, window.innerHeight);
         var ctx = c.getContext("2d");
         var size = 128;
+
 		var img = new Image();
 		var x = c.width / 2 - size / 2;
 		var y = c.height / 2 - (size / 2) - 20;
 
-        document.canvas.add(c);
 
 		img.src = "embed://logo.png";
 
 		img.addEventListener("load", function() {
 			ctx.drawImage(img, x, y);
 
+            ctx.fontFamily = "verdana";
 			// Nidium website
-			ctx.fontSize = 15;
-			ctx.fillStyle = "#2e3440";
-			var tmp = ctx.measureText("http://www.nidium.com");
-			ctx.fillText("http://www.nidium.com", c.width / 2 - tmp.width / 2, y + size + 30);
+			ctx.fontSize = 20;
+			//ctx.fillStyle = "#2e3440";
+
+			ctx.fillText("nidium", 116, y + size + 30);
 		});
+        
     </script>
     </assets>
 </application>
