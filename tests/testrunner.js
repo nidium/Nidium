@@ -233,7 +233,7 @@ TestsRunner.prototype = {
         if (success) {
             log.success("\r[ SUCCESS ]");
             console.write("\n");
-            if (!visual) {
+            if (!test.visual) {
                 this.counters.success++;
             }
         } else {
