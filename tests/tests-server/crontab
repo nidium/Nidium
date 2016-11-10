@@ -1,0 +1,2 @@
+0 2 * * * /home/nidium/nginx/certbot/certbot-auto renew --quiet --no-self-upgrade && nginx -s reload
+0 23 * * * /home/nidium/nginx/certbot/certbot-auto renew --quiet --no-self-upgrade && nginx -s reload

@@ -1,5 +1,5 @@
 Tests.registerAsync("Socket connect", function(next) {
-    var client = new Socket("127.0.0.1", 8000).connect();
+    var client = new Socket(TESTS_SERVER_HOST, TESTS_SERVER_PORT).connect();
 
     client.onconnect = function() {
         Assert.equal(client, this);

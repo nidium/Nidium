@@ -3,8 +3,8 @@ Tests.registerAsync("Image.src", function(next) {
 
     img.addEventListener("load", function() {
         // XXX : Should be tested in another test ?
-        Assert(this.width == 128);
-        Assert(this.height == 128);
+        Assert(this.width == 32);
+        Assert(this.height == 32);
 
         next();
     });
@@ -13,7 +13,7 @@ Tests.registerAsync("Image.src", function(next) {
         throw new Error("Error happened during image loading : " + ev.error);
     });
 
-    img.src = "http://tests.nidium.com/img/nidium.png";
+    img.src = HTTP_TEST_URL + "/image";
 }, 2000);
 
 Tests.registerAsync("Image.src (onload property)", function(next) {
@@ -27,7 +27,7 @@ Tests.registerAsync("Image.src (onload property)", function(next) {
         throw new Error("Error happened during image loading : " + ev.error);
     };
 
-    img.src = "http://tests.nidium.com/img/nidium.png";
+    img.src = HTTP_TEST_URL + "/image";
 }, 2000);
 
 Tests.registerAsync("Image.src (non existent file)", function(next) {
@@ -55,5 +55,5 @@ Tests.registerAsync("Image.src (invalid file)", function(next) {
         next();
     });
 
-    img.src = "http://nidium.com/";
+    img.src = HTTP_TEST_URL + "/hello";
 }, 2000);

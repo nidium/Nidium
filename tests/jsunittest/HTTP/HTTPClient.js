@@ -4,8 +4,7 @@
    that can be found in the LICENSE file.
 */
 
-const TEST_URL = "http://127.0.0.1:8000";
-const TEST_DATA = "foobar";
+const HTTP_TEST_DATA = "foobar";
 
 function testResponse(ev) {
     Assert.equal(typeof ev.error, "undefined", "Error should be undefined");
@@ -34,7 +33,7 @@ Tests.registerAsync("HTTP.request (errors)", function(next) {
 }, 1000);
 
 Tests.registerAsync("HTTP.request (404 error)", function(next) {
-    var h = new HTTP(TEST_URL + "/404");
+    var h = new HTTP(HTTP_TEST_URL + "/404");
 
     h.addEventListener("error", function(ev) {
         throw new Error("Was not expecting an error event " + JSON.stringify(ev));
@@ -49,7 +48,7 @@ Tests.registerAsync("HTTP.request (404 error)", function(next) {
 }, 1000);
 
 Tests.registerAsync("HTTP.request (header event)", function(next) {
-    var h = new HTTP(TEST_URL + "/echo");
+    var h = new HTTP(HTTP_TEST_URL + "/echo");
 
     h.addEventListener("error", function(ev) {
         throw new Error("Was not expecting an error event " + JSON.stringify(ev));
@@ -68,7 +67,7 @@ Tests.registerAsync("HTTP.request (header event)", function(next) {
 }, 1000);
 
 Tests.registerAsync("HTTP.request (progress with event content-length)", function(next) {
-    var h = new HTTP(TEST_URL + "/progress");
+    var h = new HTTP(HTTP_TEST_URL + "/progress");
     var counter = 0;
 
     h.addEventListener("progress", function(ev) {
@@ -94,7 +93,7 @@ Tests.registerAsync("HTTP.request (progress with event content-length)", functio
 }, 5000);
 
 Tests.registerAsync("HTTP.request (progress event without content-length)", function(next) {
-    var h = new HTTP(TEST_URL + "/progress-no-content-length");
+    var h = new HTTP(HTTP_TEST_URL + "/progress-no-content-length");
     var counter = 0;
 
     h.addEventListener("progress", function(ev) {
@@ -120,7 +119,15 @@ Tests.registerAsync("HTTP.request (progress event without content-length)", func
 }, 5000);
 
 Tests.registerAsync("HTTP (short hand)", function(next) {
-    var h = new HTTP(TEST_URL, function(ev) {
+    var h = new HTTP(HTTP_TEST_URL + "/hello", function(ev) {
+        testResponse(ev);
+        Assert.equal(ev.data, "Hello World !", "Unexpected data");
+        next();
+    });
+}, 1000);
+
+Tests.registerAsync("HTTP.request (short hand HTTPS)", function(next) {
+    new HTTP(HTTP_TEST_SECURE_URL + "/hello", function(ev) {
         testResponse(ev);
         Assert.equal(ev.data, "Hello World !", "Unexpected data");
         next();
@@ -128,24 +135,24 @@ Tests.registerAsync("HTTP (short hand)", function(next) {
 }, 1000);
 
 Tests.registerAsync("HTTP (short hand mode with options)", function(next) {
-    new HTTP(TEST_URL,{
+    new HTTP(HTTP_TEST_URL,{
         "headers": {
             "foo": "bar"
         },
-        "path": "/echo?data=" + TEST_DATA,
+        "path": "/http/echo?data=" + HTTP_TEST_DATA,
     }, function(ev) {
         testResponse(ev);
 
         Assert.equal(typeof ev.headers, "object", "Invalid header");
         Assert.equal(ev.headers.foo, "bar", "Invalid header value");
-        Assert.equal(ev.data, "/echo?data=" + TEST_DATA, "Invalid content");
+        Assert.equal(ev.data, "/http/echo?data=" + HTTP_TEST_DATA, "Invalid content");
 
         next();
     });
 }, 1000);
 
 Tests.registerAsync("HTTP.request (event response)", function(next) {
-    var h = new HTTP(TEST_URL);
+    var h = new HTTP(HTTP_TEST_URL + "/hello");
 
     h.addEventListener("response", function(ev) {
         testResponse(ev);
@@ -161,11 +168,11 @@ Tests.registerAsync("HTTP.request (event response)", function(next) {
 }, 1000);
 
 Tests.registerAsync("HTTP.request (constructor options)", function(next) {
-    var h = new HTTP(TEST_URL, {
+    var h = new HTTP(HTTP_TEST_URL, {
         "headers": {
             "foo": "bar"
         },
-        "path": "/echo?data=" + TEST_DATA,
+        "path": "/http/echo?data=" + HTTP_TEST_DATA,
     });
 
     h.addEventListener("response", function(ev) {
@@ -173,7 +180,7 @@ Tests.registerAsync("HTTP.request (constructor options)", function(next) {
 
         Assert.equal(typeof ev.headers, "object", "Invalid header");
         Assert.equal(ev.headers.foo, "bar", "Invalid header value");
-        Assert.equal(ev.data, "/echo?data=" + TEST_DATA, "Invalid content");
+        Assert.equal(ev.data, "/http/echo?data=" + HTTP_TEST_DATA, "Invalid content");
 
         next();
     });
@@ -186,14 +193,14 @@ Tests.registerAsync("HTTP.request (constructor options)", function(next) {
 }, 1000);
 
 Tests.registerAsync("HTTP.request (GET with options)", function(next) {
-    var h = new HTTP(TEST_URL);
+    var h = new HTTP(HTTP_TEST_URL);
 
     h.addEventListener("response", function(ev) {
         testResponse(ev);
 
         Assert.equal(typeof ev.headers, "object", "Invalid header");
         Assert.equal(ev.headers.foo, "bar", "Invalid header value");
-        Assert.equal(ev.data, "/echo?data=" + TEST_DATA, "Invalid content");
+        Assert.equal(ev.data, "/http/echo?data=" + HTTP_TEST_DATA, "Invalid content");
 
         next();
     });
@@ -206,12 +213,12 @@ Tests.registerAsync("HTTP.request (GET with options)", function(next) {
         "headers": {
             "foo": "bar"
         },
-        "path": "/echo?data=" + TEST_DATA,
+        "path": "/http/echo?data=" + HTTP_TEST_DATA,
     });
 }, 1000);
 
 Tests.registerAsync("HTTP.request (POST with \"integer\" data)", function(next) {
-    var h = new HTTP(TEST_URL);
+    var h = new HTTP(HTTP_TEST_URL);
 
     h.addEventListener("response", function(ev) {
         testResponse(ev);
@@ -233,19 +240,19 @@ Tests.registerAsync("HTTP.request (POST with \"integer\" data)", function(next) 
         },
         "method": "POST",
         "data": 1234,
-        "path": "/echo"
+        "path": "/http/echo"
     });
 });
 
 Tests.registerAsync("HTTP.request (POST with options)", function(next) {
-    var h = new HTTP(TEST_URL);
+    var h = new HTTP(HTTP_TEST_URL);
 
     h.addEventListener("response", function(ev) {
         testResponse(ev);
 
         Assert.equal(typeof ev.headers, "object", "Invalid header");
         Assert.equal(ev.headers.foo, "bar", "Invalid header value");
-        Assert.equal(ev.data, TEST_DATA, "Invalid content");
+        Assert.equal(ev.data, HTTP_TEST_DATA, "Invalid content");
 
         next();
     });
@@ -259,13 +266,13 @@ Tests.registerAsync("HTTP.request (POST with options)", function(next) {
             "foo": "bar"
         },
         "method": "POST",
-        "data": TEST_DATA,
-        "path": "/echo"
+        "data": HTTP_TEST_DATA,
+        "path": "/http/echo"
     });
 }, 1000);
 
 Tests.registerAsync("HTTP.request (utf8)", function(next) {
-    var h = new HTTP(TEST_URL + "/utf8", function(ev) {
+    var h = new HTTP(HTTP_TEST_URL + "/utf8", function(ev) {
         testResponse(ev);
         Assert.equal(ev.data, "♥ nidium ♥", "Unexpected data");
         next();
@@ -276,7 +283,7 @@ Tests.registerAsync("HTTP.request (utf8)", function(next) {
 // parse the charset in the content-type header
 /*
 Tests.registerAsync("HTTP.request (ASCII)", function(next) {
-    var h = new HTTP(TEST_URL + "/iso", function(err, ev) {
+    var h = new HTTP(HTTP_TEST_URL + "/iso", function(err, ev) {
         testResponse(err, ev);
         Assert.equal(ev.data, "\xE9", "Unexpected data");
         next();
@@ -285,7 +292,7 @@ Tests.registerAsync("HTTP.request (ASCII)", function(next) {
 */
 
 Tests.registerAsync("HTTP.request (json eval)", function(next) {
-    var h = new HTTP(TEST_URL + "/json");
+    var h = new HTTP(HTTP_TEST_URL + "/json");
 
     h.addEventListener("response", function(ev) {
         testResponse(ev);
@@ -303,7 +310,7 @@ Tests.registerAsync("HTTP.request (json eval)", function(next) {
 }, 1000);
 
 Tests.registerAsync("HTTP.request (too small content length)", function(next) {
-    var h = new HTTP(TEST_URL + "/toosmall-content-length", function(ev) {
+    var h = new HTTP(HTTP_TEST_URL + "/toosmall-content-length", function(ev) {
         testResponse(ev);
         next();
     });
@@ -312,7 +319,7 @@ Tests.registerAsync("HTTP.request (too small content length)", function(next) {
 // FIXME : This test fail because of an "http_server_disconnected" error
 /*
 Tests.registerAsync("HTTP.request (too large content length)", function(next) {
-    var h = new HTTP(TEST_URL + "/toolarge-content-length", function(err, ev) {
+    var h = new HTTP(HTTP_TEST_URL + "/toolarge-content-length", function(err, ev) {
         testResponse(err, ev);
         console.log(JSON.stringify(arguments));
         next();
@@ -323,13 +330,13 @@ Tests.registerAsync("HTTP.request (too large content length)", function(next) {
 Tests.registerAsync("HTTP.request (ArrayBuffer data)", function(next) {
     var data = new ArrayBuffer(8);
     var view = new Uint8Array(data);
-    var start = 65;
+    var start = 42;
 
     for (var i = 0; i < view.length; i++) {
         view[i] = start + i;
     }
 
-    var h = new HTTP(TEST_URL + "/echo", {
+    var h = new HTTP(HTTP_TEST_URL + "/echo", {
         method:"POST",
         data: data,
         eval: true,
@@ -351,13 +358,13 @@ Tests.registerAsync("HTTP.request (ArrayBuffer data)", function(next) {
 }, 1000);
 
 Tests.registerAsync("HTTP.request (ArrayBuffer response)", function(next) {
-    var h = new HTTP(TEST_URL + "/no-content-type", function(ev) {
+    var h = new HTTP(HTTP_TEST_URL + "/empty-content-type", function(ev) {
         testResponse(ev);
 
         Assert.equal(ev.data instanceof ArrayBuffer, true, "Response is not an ArrayBuffer");
 
         var bufView = new DataView(ev.data);
-        var str = "Hello";
+        var str = "This request has an empty content-type";
         for (var i = 0; i < str.length; i++) {
             Assert.equal(bufView.getUint8(i), str.charCodeAt(i), "Unexpected character at position " + i)
         }
@@ -367,7 +374,7 @@ Tests.registerAsync("HTTP.request (ArrayBuffer response)", function(next) {
 }, 1000);
 
 Tests.registerAsync("HTTP.stop", function(next) {
-    var h = new HTTP(TEST_URL + "/progress");
+    var h = new HTTP(HTTP_TEST_URL + "/progress");
 
     h.addEventListener("response", function(ev) {
         testResponse(ev);
@@ -387,11 +394,11 @@ Tests.registerAsync("HTTP.stop", function(next) {
 // FIXME : Need to use a setTimeout otherwise a "disconnected" error is fired.
 // It's because HTTP.cpp fire the "response" event and close the connection right after.
 Tests.registerAsync("HTTP.request (multiple request)", function(next) {
-    var h = new HTTP(TEST_URL);
+    var h = new HTTP(HTTP_TEST_URL + "/hello");
     var counter = 0;
 
     h.addEventListener("error", function(err) {
-        throw new Error("Was not expecting an error event " + JSON.stringify(ev));
+        throw new Error("Was not expecting an error event " + JSON.stringify(err));
     });
 
     h.addEventListener("response", function(ev) {
@@ -401,7 +408,7 @@ Tests.registerAsync("HTTP.request (multiple request)", function(next) {
             Assert.equal(ev.data, "Hello World !", "Unexpected data");
 
             setTimeout(function() {
-                h.request({path: "/echo", method: "POST", data: "hello"});
+                h.request({path: "/http/echo", method: "POST", data: "hello"});
             }, 1);
         } else {
             Assert.equal(ev.data, "hello", "Unexpected data");

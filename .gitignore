@@ -10,5 +10,6 @@ third-party/
 !third-party/rapidxml/
 !third-party/linenoise/
 **.pyc
+**.venv
 .ctags
 scripts

@@ -1,6 +1,6 @@
-Tests.registerAsync("Echo websocket.org (plain)", function(next) {
+Tests.registerAsync("WebSocket echo (plain)", function(next) {
     var done = false;
-    var client = new WebSocket("ws://localhost:9000/");
+    var client = new WebSocket(WS_TEST_URL);
 
     client.onopen = function() {
         client.send("echo me");
@@ -19,9 +19,9 @@ Tests.registerAsync("Echo websocket.org (plain)", function(next) {
 }, 3000);
 
 
-Tests.registerAsync("Echo websocket.org (Secure)", function(next) {
+Tests.registerAsync("WebSocket echo (Secure)", function(next) {
     var done = false;
-    var client = new WebSocket("wss://localhost:9443/");
+    var client = new WebSocket(WS_TEST_SECURE_URL);
 
     client.onopen = function() {
         client.send("echo me");
@@ -39,9 +39,9 @@ Tests.registerAsync("Echo websocket.org (Secure)", function(next) {
     }
 }, 3000);
 
-Tests.registerAsync("Echo websocket.org (plain / binary)", function(next) {
+Tests.registerAsync("WebSocket echo (binary)", function(next) {
     var done = false;
-    var client = new WebSocket("ws://localhost:9000/");
+    var client = new WebSocket(WS_TEST_URL);
 
     client.onopen = function() {
         client.send(new Uint8Array([42, 90]).buffer);

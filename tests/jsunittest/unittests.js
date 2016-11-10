@@ -5,6 +5,9 @@
 */
 
 var TestsRunner = require('../testrunner.js');
+var testsServerHost = "tests.nidium.com";
+var testsServerPort = 8888
+var testsServerSecurePort = 8443
 
 var args = {};
 var gotKey = null;
@@ -38,6 +41,32 @@ if (args["regex"]) {
 if (args["save"]) {
     tr.setSaveVisualDiff(true);
 }
+
+if (args["tests-server"]) {
+    testsServerHost = args["tests-server"];
+}
+
+if (args["tests-server-port"]) {
+    testsServerPort = args["tests-server-port"];
+}
+
+if (args["tests-server-secure-port"]) {
+    testsServerSecurePort = args["tests-server-secure-port"];
+}
+
+if (args["local-tests-server"]) {
+    testsServerHost = "127.0.0.1";
+}
+
+const TESTS_SERVER_HOST = testsServerHost;
+const TESTS_SERVER_PORT = testsServerPort;
+const TESTS_SERVER_SECURE_PORT = testsServerSecurePort;
+
+const WS_TEST_URL = `ws://${TESTS_SERVER_HOST}:${TESTS_SERVER_PORT}/ws`;
+const WS_TEST_SECURE_URL = `wss://${TESTS_SERVER_HOST}:${TESTS_SERVER_SECURE_PORT}/ws`;
+
+const HTTP_TEST_URL = `http://${TESTS_SERVER_HOST}:${TESTS_SERVER_PORT}/http`
+const HTTP_TEST_SECURE_URL = `https://${TESTS_SERVER_HOST}:${TESTS_SERVER_SECURE_PORT}/http`
 
 if (args["file"]) {
     Suites.push(args["file"]);
