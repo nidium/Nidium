@@ -65,6 +65,7 @@
                             'libhttp_parser.a',
                             'libnspr4.a',
                             'libjs_static.a',
+                            'libmozglue.a',
                             'libleveldb.a',
                         ]
                     }

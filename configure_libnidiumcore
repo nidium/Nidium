@@ -71,16 +71,12 @@ def libnspr():
 def mozilla():
     nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/"))
     nsprFlags = "--with-nspr-cflags=\"-I%s/dist/include/nspr/\" \
-                 --with-nspr-libs=\"%s/dist/lib/libnspr4.a \
-                                    %s/dist/lib/libplds4.a \
-                                    %s/dist/lib/libplc4.a\"" % (
-                                        nsprDir, nsprDir, nsprDir, nsprDir)
+                 --with-nspr-libs=\"-L%s/dist/lib/ -lnspr4 -lplds4 -lplc4\"" % (nsprDir, nsprDir)
 
-    configureEnvVars = "CXXFLAGS=\"%s -Wno-null-conversion\"" % (os.environ.get("CXXFLAGS", ""))
-
-    configure = "%s ../configure\
+    configure = "../configure\
             --disable-shared-js\
-            --enable-ctypes %s" % (configureEnvVars, nsprFlags)
+            --disable-jemalloc\
+            --enable-ctypes %s" % (nsprFlags)
 
     if Konstruct.config("debug", "valgring"):
         configure += " --enable-debug --disable-optimize"
@@ -90,7 +86,7 @@ def mozilla():
 
     return {
         "chdir": "js/src/obj",
-        "location": DEPEDENCY_REPO + "/mozjs-45.5.1.tar.bz2",
+        "location": DEPEDENCY_REPO + "/mozjs-45.5.2.tar.bz2",
         "build": [configure, "make"],
         "outputs": ["mozglue/build/libmozglue.a$", "js/src/libjs_static.a$", "js/src/js-config.h$"]
     }
