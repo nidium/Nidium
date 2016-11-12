@@ -25,7 +25,7 @@ ADD dhparams.pem /home/nidium/nginx/
 # {{{ Letsencrypt / certbot setup 
 RUN git clone https://github.com/certbot/certbot.git
 RUN cd certbot && ./certbot-auto --noninteractive --os-packages-only
-ADD certbot.sh certbot/cerbot.sh
+ADD certbot.sh certbot/certbot.sh
 RUN mkdir /home/nidium/certbot/www/
 RUN chown -R www-data:www-data /home/nidium/certbot/www/
 
