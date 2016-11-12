@@ -31,26 +31,10 @@
             '<(nidium_tests_path)streaminterface.cpp',  #dummy
             #'<(nidium_tests_path)taskmanager.cpp',     #segfault
             '<(nidium_tests_path)utils.cpp',
-            '<(nidium_tests_path)websocket.cpp',        #dummy
-            '<(nidium_tests_path)websocketclient.cpp',  #dummy
 
             '<(nidium_tests_path)nidiumjs.cpp',         #dummy
-            '<(nidium_tests_path)jsglobal.cpp',         #dummy
-            '<(nidium_tests_path)jsdb.cpp',             #dummy
-            '<(nidium_tests_path)jsconsole.cpp',        #dummy
-            '<(nidium_tests_path)jsdebug.cpp',          #dummy
-            '<(nidium_tests_path)jsdebugger.cpp',       #dummy
-            #'<(nidium_tests_path)jsexposer.cpp',       #segfault
-            #'<(nidium_tests_path)jsfileio.cpp',        #segfault
-            #'<(nidium_tests_path)jsfs.cpp',            #segfault
-            '<(nidium_tests_path)jshttp.cpp',           #dummy
             '<(nidium_tests_path)jshttpserver.cpp',     #dummy
-            '<(nidium_tests_path)jsnfs.cpp',            #dummy
-            #'<(nidium_tests_path)jsmodules.cpp',       #fails, probably due to incorrect testdefinition, sandbox
-            '<(nidium_tests_path)jsprocess.cpp',        #dummy
             '<(nidium_tests_path)jssocket.cpp',         #dummy
-            '<(nidium_tests_path)jsstream.cpp',         #dummy
-            #'<(nidium_tests_path)jsthread.cpp',        #segfault
             '<(nidium_tests_path)jsutils.cpp',
             #'<(nidium_tests_path)jswebsocket.cpp',     #segfault
             #'<(nidium_tests_path)jswebsocketclient.cpp', #fails, probaly due to no listening port

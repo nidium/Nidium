@@ -24,7 +24,7 @@ TEST_F(JSUtils, String)
 
     memset(&target[0], '\0', sizeof(target));
 
-    JS::RootedValue rval(njs->m_Cx, JSVAL_VOID);
+    JS::RootedValue rval(njs->m_Cx, JS::UndefinedValue());
     success = Nidium::Binding::JSUtils::StrToJsval(njs->m_Cx, text, strlen(text), &rval, "utf8");
     EXPECT_TRUE(success == true);
     JS::RootedString jstr(njs->m_Cx,  rval.toString());
