@@ -149,22 +149,11 @@ def nidiumCoreTests(unitTests):
     if not unitTests:
         return
 
-    def query(port, path="/", useSSL=False):
-        import socket
-        import ssl
-
+    def query(port, useSSL=False):
+        import urllib2
         try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            if useSSL:
-                sock = ssl.wrap_socket(sock, ciphers="ALL")
-
-            sock.settimeout(1)
-            sock.connect(("tests.nidium.com", port))
-            sock.send("GET %s HTTP/1.1\r\n\r\n" % path)
-            reply = sock.recv(2048)
-            sock.close()
-
-            return reply.find("200 OK") != -1
+            urllib2.urlopen("http%s://tests.nidium.com:%d/http/hello" % ("s" if useSSL else "", port)).read()
+            return True
         except Exception as e:
             Log.info("Failed to contact tests server %s" % (e))
             return False
