@@ -1236,8 +1236,8 @@ bool Canvas2DContext::JSSetter_textBaseline(JSContext *cx,
     JS::MutableHandleValue vp)
 {
     JS::RootedString vpStr(cx, JS::ToString(cx, vp));
-    JSAutoByteString font(cx, vpStr);
-    m_Skia->textAlign(font.ptr());
+    JSAutoByteString baseline(cx, vpStr);
+    m_Skia->textBaseline(baseline.ptr());
 
     return true;
 }
@@ -1246,8 +1246,8 @@ bool Canvas2DContext::JSSetter_textAlign(JSContext *cx,
     JS::MutableHandleValue vp)
 {
     JS::RootedString vpStr(cx, JS::ToString(cx, vp));
-    JSAutoByteString baseline(cx, vpStr);
-    m_Skia->textBaseline(baseline.ptr());
+    JSAutoByteString align(cx, vpStr);
+    m_Skia->textAlign(align.ptr());
 
     return true;
 }
