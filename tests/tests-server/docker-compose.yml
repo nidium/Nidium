@@ -20,3 +20,4 @@ services:
             - "8888:8888"
         volumes:
             - .:/home/nidium/tests/
+            - letsencrypt:/etc/letsencrypt/

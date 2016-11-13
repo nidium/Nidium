@@ -98,13 +98,15 @@ class HTTPTests(Resource):
 
     def test_progress(self, req, sendLength=True):
         def done(req):
-            req.write("World")
+            req.write("b"*2048)
             req.finish()
 
         req.setResponseCode(200)
+
         if sendLength:
-            req.setHeader("content-length", 10)
-        req.write("Hello")
+            req.setHeader("content-length", 4096)
+
+        req.write("a"*2048)
         reactor.callLater(0.500, done, req)
         return server.NOT_DONE_YET
 

@@ -19,13 +19,13 @@ TEST_F(JSSocket, Simple)
     bool success;
 
     JS::RootedObject globObj(njs->m_Cx, JS::CurrentGlobalOrNull(njs->m_Cx));
-    JS::RootedValue rval(njs->m_Cx, JSVAL_VOID);
+    JS::RootedValue rval(njs->m_Cx, JS::UndefinedValue());
 
     Nidium::Binding::JSSocket::RegisterObject(njs->m_Cx);
 
     success = JS_GetProperty(njs->m_Cx, globObj, "Socket", &rval);
     EXPECT_TRUE(success == true);
-    EXPECT_TRUE(JSVAL_IS_VOID(rval) == false);
+    EXPECT_TRUE(rval.isUndefined() == false);
 }
 
 TEST_F(JSSocket, Init)
