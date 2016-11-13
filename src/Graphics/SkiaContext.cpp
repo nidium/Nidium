@@ -1813,7 +1813,7 @@ void SkiaContext::textBaseline(const char *mode)
 
 void SkiaContext::textAlign(const char *mode)
 {
-    if (strcasecmp("left", mode) == 0) {
+    if (strcasecmp("left", mode) == 0 || strcasecmp("start", mode) == 0) {
         PAINT->setTextAlign(SkPaint::kLeft_Align);
         PAINT_STROKE->setTextAlign(SkPaint::kLeft_Align);
 
@@ -1821,7 +1821,7 @@ void SkiaContext::textAlign(const char *mode)
         PAINT->setTextAlign(SkPaint::kCenter_Align);
         PAINT_STROKE->setTextAlign(SkPaint::kLeft_Align);
 
-    } else if (strcasecmp("right", mode) == 0) {
+    } else if (strcasecmp("right", mode) == 0 || strcasecmp("end", mode) == 0) {
         PAINT->setTextAlign(SkPaint::kRight_Align);
         PAINT_STROKE->setTextAlign(SkPaint::kRight_Align);
     }
