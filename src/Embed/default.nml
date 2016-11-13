@@ -7,9 +7,9 @@
     <assets>
     <script>
 
-        document.showFPS(true);
+        //document.showFPS(true);
 
-        var c = new DebugCanvas(window.innerWidth, window.innerHeight);
+        var c = document.canvas;
         var ctx = c.getContext("2d");
         var size = 128;
 
@@ -17,19 +17,28 @@
 		var x = c.width / 2 - size / 2;
 		var y = c.height / 2 - (size / 2) - 20;
 
+        ctx.fillStyle = "#292929";
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.fillStyle = "#eee";
 
 		img.src = "embed://logo.png";
 
 		img.addEventListener("load", function() {
 			ctx.drawImage(img, x, y);
 
-            ctx.fontFamily = "verdana";
-			// Nidium website
-			ctx.fontSize = 20;
-			//ctx.fillStyle = "#2e3440";
-
-			ctx.fillText("nidium", 116, y + size + 30);
 		});
+
+
+        ctx.fontFamily = "verdana";
+        // Nidium website
+        ctx.fontSize = 20;
+        ctx.textAlign = "center";
+
+        ctx.fillText("nidium", c.width / 2, y + size + 30);
+
+        ctx.fontStyle = "italic";
+
+        ctx.fillText("No NML file loaded", c.width / 2, 70);
         
     </script>
     </assets>
