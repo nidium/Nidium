@@ -172,10 +172,13 @@ bool JSDocument::JS_getScreenData(JSContext *cx, JS::CallArgs &args)
     JS::RootedValue heightVal(cx, JS::Int32Value(height));
 
     bool shared;
-    JS::AutoCheckCannotGC nogc;
-
-    uint8_t *pixels = JS_GetUint8ClampedArrayData(arrBuffer, &shared, nogc);
-    memcpy(pixels, fb, width * height * 4);
+    
+    uint8_t *pixels;
+    {
+        JS::AutoCheckCannotGC nogc;
+        pixels = JS_GetUint8ClampedArrayData(arrBuffer, &shared, nogc);
+        memcpy(pixels, fb, width * height * 4);        
+    }
 
     JS::RootedValue arVal(cx, JS::ObjectOrNullValue(arrBuffer));
 
@@ -222,17 +225,20 @@ bool JSDocument::JS_toDataArray(JSContext *cx, JS::CallArgs &args)
 
     JS::RootedObject arrBuffer(cx, JS_NewUint8ClampedArray(cx, data->size()));
     
-    
-    SkSafeUnref(data);
 
     JS::RootedValue widthVal(cx, JS::Int32Value(width));
     JS::RootedValue heightVal(cx, JS::Int32Value(height));
 
     bool shared;
-    JS::AutoCheckCannotGC nogc;
+    uint8_t *pixels;
+    {
+        JS::AutoCheckCannotGC nogc;
 
-    uint8_t *pixels = JS_GetUint8ClampedArrayData(arrBuffer, &shared, nogc);
-    memcpy(pixels, data->data(), data->size());
+        pixels = JS_GetUint8ClampedArrayData(arrBuffer, &shared, nogc);
+        memcpy(pixels, data->data(), data->size());
+    }
+
+    SkSafeUnref(data);
 
     JS::RootedValue arVal(cx, JS::ObjectOrNullValue(arrBuffer));
 
