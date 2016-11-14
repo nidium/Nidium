@@ -113,7 +113,7 @@ void Server::wait()
         } else {
 
             if (WIFEXITED(state)) {
-                continue;
+                exit(WEXITSTATUS(state));
             }
 
             if (WIFSIGNALED(state)) {
