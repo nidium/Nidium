@@ -419,6 +419,10 @@ bool JSAudioContext::createContext()
 
     m_JsGlobalObj = global;
 
+    // We don't actually needs to root a global object, but we
+    // need to store a reference to the global object in a 
+    // JS::Heap and this reference needs to be traced.
+    NidiumLocalContext::RootObjectUntilShutdown(m_JsGlobalObj);
 
     if (!JS_InitStandardClasses(m_JsTcx, global)) {
         NUI_LOG("Failed to init std class\n");
@@ -504,20 +508,18 @@ void JSAudioContext::ShutdownCallback(void *custom)
     JSAudioContext *audio              = static_cast<JSAudioContext *>(custom);
     JSAudioContext::NodeListItem *node = audio->m_Nodes;
 
-    // Let's shutdown all custom nodes
+#ifdef DEBUG
     while (node != NULL) {
-        printf("I SHOULD NOT BE HERE\n");
+        printf("All nodes should have been destroyed\n");
         assert(false);
-// XXX TODO : Remove this
-#if 0
-        if (node->curr->m_NodeType == Audio::CUSTOM
-            || node->curr->m_NodeType == Audio::CUSTOM_SOURCE) {
-            node->curr->ShutdownCallback(node->curr->m_Node, node->curr);
-        }
+    }
 #endif
 
-        node = node->next;
-    }
+    NidiumLocalContext::UnrootObject(audio->m_JsGlobalObj);
+    audio->m_JsGlobalObj = nullptr;
+
+    NidiumLocalContext *nlc = NidiumLocalContext::Get();
+    nlc->shutdown();
 
     if (audio->m_JsTcx != NULL) {
         JSRuntime *rt = JS_GetRuntime(audio->m_JsTcx);
@@ -547,7 +549,7 @@ JSAudioContext::~JSAudioContext()
         node = next;
     }
 
-    // Unroot custom nodes objects and clear threaded js context
+    // Clear threaded js context
     m_Audio->postMessage(JSAudioContext::ShutdownCallback, this, true);
 
     NIDIUM_PTHREAD_WAIT(&m_ShutdownWait)

@@ -24,11 +24,10 @@ Tests.register("CustomSourceNode.create", function() {
 });
 
 Tests.registerAsync("CustomSourceNode.play", function(next) {
-    var fn = function() {
-        source.removeEventListener("play", fn);
+    source.addEventListener("play", function() {
+        source.removeEventListener("play");
         next();
-    }
-    source.addEventListener("play", fn);
+    });
 
     source.play();
 }, 5000);
