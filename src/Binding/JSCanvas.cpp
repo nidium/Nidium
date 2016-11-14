@@ -1338,6 +1338,14 @@ bool JSCanvas::JSGetter_id(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
+bool JSCanvas::JSGetter_idx(JSContext *cx, JS::MutableHandleValue vp)
+{
+    uint64_t idx = m_CanvasHandler->getIdentifier();
+
+    vp.setNumber((double)idx);
+    
+    return true;
+}
 
 JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
     JS::HandleObject obj)
@@ -1436,6 +1444,7 @@ JSPropertySpec *JSCanvas::ListProperties()
         CLASSMAPPER_PROP_GS(JSCanvas, marginBottom),
         CLASSMAPPER_PROP_GS(JSCanvas, cursor),
 
+        CLASSMAPPER_PROP_G(JSCanvas, idx),
         CLASSMAPPER_PROP_G(JSCanvas, clientWidth),
         CLASSMAPPER_PROP_G(JSCanvas, clientHeight),
         CLASSMAPPER_PROP_G(JSCanvas, clientTop),

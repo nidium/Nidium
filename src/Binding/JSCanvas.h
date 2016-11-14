@@ -97,6 +97,7 @@ protected:
     NIDIUM_DECL_JSGETTERSETTER(coating);
     NIDIUM_DECL_JSGETTERSETTER(cursor);
 
+    NIDIUM_DECL_JSGETTER(idx);
     NIDIUM_DECL_JSGETTER(clientWidth);
     NIDIUM_DECL_JSGETTER(clientHeight);
     NIDIUM_DECL_JSGETTER(clientTop);
