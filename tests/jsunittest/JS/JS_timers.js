@@ -1,8 +1,18 @@
+// Nidium frontend can have at most 16ms of delay for the timers because of vsync
+// Under some condition it can even be up to 50ms
+// See : https://github.com/nidium/Nidium/issues/22
+const TIMEOUT_THRESHOLD = 16*4;
+
 Tests.registerAsync("Global.setTimeout", function(next) {
+    var start = Date.now();
     setTimeout(function() {
+        var duration = Date.now() - start;
+        console.log(`diff=${duration - 500}ms`);
+        Assert(duration > 499 && duration < (500 + TIMEOUT_THRESHOLD), 
+                `setTimeout did not run at the expected time (${duration}ms instead of 500ms)`);
         next();
-    }, 100);
-}, 110);
+    }, 500);
+}, 1000);
 
 
 Tests.registerAsync("Global.setInterval", function(next) {
@@ -15,7 +25,9 @@ Tests.registerAsync("Global.setInterval", function(next) {
 
         var diff = Math.abs((+new Date() - t) - speed);
 
-        Assert.equal(diff < 19, true);
+        console.log(`diff=${diff}ms`);
+        Assert.equal(diff < TIMEOUT_THRESHOLD, true, 
+                `Set interval has more than ${TIMEOUT_THRESHOLD} of delay (diff=${diff}ms)`);
 
         if (count == 10) {
             clearInterval(i);
@@ -28,7 +40,7 @@ Tests.registerAsync("Global.setInterval", function(next) {
 
 Tests.registerAsync("Global.setTimeout (clear)", function(next) {
     var t = setTimeout(function() {
-        Assert.equal(true, false);
+        throw new Error("Timeout should have been cleared");
     }, 100);
 
     setTimeout(function() {
@@ -37,6 +49,12 @@ Tests.registerAsync("Global.setTimeout (clear)", function(next) {
 
     setTimeout(function() {
         next();
-    }, 150);
+    }, 100 + TIMEOUT_THRESHOLD);
 
 }, 200);
+
+Tests.registerAsync("setImmediate", function(next) {
+    setImmediate(function() {
+        next();
+    });
+}, 1000);  
