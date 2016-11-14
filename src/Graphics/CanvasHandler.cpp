@@ -47,10 +47,7 @@ CanvasHandler::CanvasHandler(int width,
 
     m_Identifier.idx = ++g_LastIdx;
     m_NidiumContext->m_CanvasListIdx.insert({m_Identifier.idx, this});
-
-    asprintf(&m_Identifier.str, "%zd", m_Identifier.idx);
-
-    m_NidiumContext->m_CanvasList.set(m_Identifier.str, this);
+    m_Identifier.str = nullptr;
 
     m_Width     = nidium_max(width, 1);
     m_Height    = nidium_max(height, 1);
@@ -103,10 +100,16 @@ void CanvasHandler::setId(const char *str)
         return;
     }
 
-    m_NidiumContext->m_CanvasList.erase(m_Identifier.str);
+    if (m_Identifier.str) {
+        m_NidiumContext->m_CanvasList.erase(m_Identifier.str);
+    }
+
     m_NidiumContext->m_CanvasList.set(str, this);
 
-    free(m_Identifier.str);
+    if (m_Identifier.str) {
+        free(m_Identifier.str);
+    }
+
     m_Identifier.str = strdup(str);
 }
 
@@ -1322,10 +1325,12 @@ CanvasHandler::~CanvasHandler()
         cur = cnext;
     }
 
-    m_NidiumContext->m_CanvasList.erase(m_Identifier.str);
     m_NidiumContext->m_CanvasListIdx.erase(m_Identifier.idx);
 
-    free(m_Identifier.str);
+    if (m_Identifier.str) {
+        m_NidiumContext->m_CanvasList.erase(m_Identifier.str);
+        free(m_Identifier.str);
+    }
 
     m_NidiumContext->m_CanvasPendingJobs.erase((uint64_t) this);
 }

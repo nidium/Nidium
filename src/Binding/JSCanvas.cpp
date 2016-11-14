@@ -1332,6 +1332,13 @@ bool JSCanvas::JSGetter_id(JSContext *cx, JS::MutableHandleValue vp)
 {
     char *cid;
     m_CanvasHandler->getIdentifier(&cid);
+
+    if (cid == nullptr) {
+        vp.setNull();
+
+        return true;
+    }
+
     JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, cid));
     vp.setString(jstr);
     
