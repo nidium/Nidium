@@ -330,6 +330,8 @@ void Context::postDraw()
 
         rootctx->setFillColor("black");
         rootctx->drawText("DEBUG build", 10, 30);
+        rootctx->setFillColor("white");
+        rootctx->drawText("DEBUG build", 10, 45);
         rootctx->restore();
         rootctx->flush();
     }
