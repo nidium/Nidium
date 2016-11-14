@@ -710,8 +710,6 @@ void Context::initHandlers(int width, int height)
 {
     assert(m_UI != NULL);
 
-    CanvasHandler::m_LastIdx = 0;
-
     m_RootHandler = new CanvasHandler(width, height, this);
 
     m_RootHandler->setContext(

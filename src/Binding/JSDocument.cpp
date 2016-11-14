@@ -120,6 +120,28 @@ bool JSDocument::JS_getCanvasById(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
+bool JSDocument::JS_getCanvasByIdx(JSContext *cx, JS::CallArgs &args)
+{
+    uint64_t idx;
+    if (!JS::ToUint64(cx, args.get(0), &idx)) {
+        args.rval().setNull();
+
+        return true;
+    }
+
+    CanvasHandler *elem =
+        Context::GetObject<Frontend::Context>(cx)->getCanvasByIdx(idx);
+
+    if (elem) {
+        args.rval().setObjectOrNull(elem->m_JsObj);
+    } else {
+        args.rval().setNull();
+    }
+
+
+    return true;
+}
+
 bool JSDocument::JS_getScreenData(JSContext *cx, JS::CallArgs &args)
 {
     CanvasHandler *rootHandler
@@ -425,6 +447,7 @@ JSFunctionSpec *JSDocument::ListMethods()
         CLASSMAPPER_FN(JSDocument, getPasteBuffer, 0),
         CLASSMAPPER_FN(JSDocument, loadFont, 1),
         CLASSMAPPER_FN(JSDocument, getCanvasById, 1),
+        CLASSMAPPER_FN(JSDocument, getCanvasByIdx, 1),
         CLASSMAPPER_FN(JSDocument, getScreenData, 0),
         CLASSMAPPER_FN(JSDocument, toDataArray, 0),
         CLASSMAPPER_FN(JSDocument, parseNML, 1),

@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <vector>
+#include <unordered_map>
 
 #include <ape_pool.h>
 #include <ape_netlib.h>
@@ -234,6 +235,15 @@ public:
         return m_CanvasList.get(str);
     }
 
+    Graphics::CanvasHandler *getCanvasByIdx(uint64_t idx)
+    {
+        if (m_CanvasListIdx.count(idx)) {
+            return m_CanvasListIdx.at(idx);
+        }
+
+        return nullptr;
+    }
+
     void addInputEvent(InputEvent *ev);
     void resetInputEvents()
     {
@@ -320,7 +330,9 @@ private:
         struct JobQueue *queue;
     } m_Jobs;
 
-    /* Hash of all canvases (key: identifier string) */
+    /* Hash of all canvases (key: numeric identifier) */
+    std::unordered_map<uint64_t, Graphics::CanvasHandler *> m_CanvasListIdx;
+    /* Hash of all canvases (key: string identifier) */
     Core::Hash<Graphics::CanvasHandler *> m_CanvasList;
     /* Hash of all canvases with pending jobs (key: addr) */
     Core::Hash64<Graphics::CanvasHandler *> m_CanvasPendingJobs;

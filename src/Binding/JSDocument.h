@@ -60,6 +60,7 @@ protected:
     NIDIUM_DECL_JSCALL(getPasteBuffer);
     NIDIUM_DECL_JSCALL(loadFont);
     NIDIUM_DECL_JSCALL(getCanvasById);
+    NIDIUM_DECL_JSCALL(getCanvasByIdx);
     NIDIUM_DECL_JSCALL(getScreenData);
     NIDIUM_DECL_JSCALL(toDataArray);
     NIDIUM_DECL_JSCALL(parseNML);

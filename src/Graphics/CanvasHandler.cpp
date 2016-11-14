@@ -25,7 +25,6 @@ using Nidium::Interface::UIInterface;
 namespace Nidium {
 namespace Graphics {
 
-int CanvasHandler::m_LastIdx = 0;
 
 CanvasHandler::CanvasHandler(int width,
                              int height,
@@ -44,7 +43,10 @@ CanvasHandler::CanvasHandler(int width,
     /*
         TODO: thread safe
     */
-    m_Identifier.idx = ++CanvasHandler::m_LastIdx;
+    static uint64_t g_LastIdx = 8;
+
+    m_Identifier.idx = ++g_LastIdx;
+    m_NidiumContext->m_CanvasListIdx.insert({m_Identifier.idx, this});
 
     asprintf(&m_Identifier.str, "%zd", m_Identifier.idx);
 
@@ -1321,6 +1323,7 @@ CanvasHandler::~CanvasHandler()
     }
 
     m_NidiumContext->m_CanvasList.erase(m_Identifier.str);
+    m_NidiumContext->m_CanvasListIdx.erase(m_Identifier.idx);
 
     free(m_Identifier.str);
 

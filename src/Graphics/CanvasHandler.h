@@ -130,7 +130,6 @@ public:
     friend class Binding::JSCanvas;
 
     static const uint8_t EventID = 1;
-    static int m_LastIdx;
 
     enum COORD_MODE
     {
