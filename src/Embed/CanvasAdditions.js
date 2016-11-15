@@ -20,27 +20,69 @@
 /* DEALINGS IN THE SOFTWARE.                                                  */
 /* -------------------------------------------------------------------------- */
 
+{
 
-Object.defineProperty(Canvas.prototype, "inherit", {
-    get: function() {
-        if (!this.__inheritProxy) {
-            this.__inheritProxy = new Proxy({}, {
-                get: (target, prop, rcv) => {
-                    if (prop in target) {
-                        return target[prop];
-                    }
+    Object.defineProperty(Canvas.prototype, "inherit", {
+        get: function() {
+            if (!this.__inheritProxy) {
+                this.__inheritProxy = new Proxy({}, {
+                    get: (target, prop, rcv) => {
+                        if (prop in target) {
+                            return target[prop];
+                        }
 
-                    let parent = this.getParent();
-                    if (parent) {
-                        return parent.inh[prop];
+                        let parent = this.getParent();
+                        if (parent) {
+                            return parent.inh[prop];
+                        }
                     }
-                }
+                });
+            }
+
+            return this.__inheritProxy;
+        }
+    });
+
+    Canvas.currentHightLight = null;
+
+    Canvas.prototype.highlight = function(enable = true) {
+        var canvas = null;
+
+        if (!this.getParent() || !this.__visible) {
+            return false;
+        }
+
+        var draw = (canvas) => {
+            canvas.clear();
+            let ctx = canvas.getContext("2d");
+            ctx.fillStyle = "rgba(111, 108, 220, 0.6)";
+            ctx.fillRect(0, 0, this.width, this.height);
+        }
+
+        if (Canvas.currentHightLight) {
+            canvas = Canvas.currentHightLight;
+            canvas.setSize(this.width, this.height);
+
+            canvas.on("resize", () => {
+                draw(canvas);
+            });
+
+        } else {
+            canvas = new Canvas(this.width, this.height);
+            Canvas.currentHightLight = canvas;
+
+            canvas.on("load", () => {
+                draw(canvas);
             });
         }
 
-        return this.__inheritProxy;
+        document.canvas.add(canvas);
+        canvas.position = "absolute";
+        canvas.left = this.__left;
+        canvas.top = this.__top;
     }
-});
+
+}
 
 class DebugCanvas extends Canvas {
     constructor(width, height, parent = document.canvas) {
@@ -66,7 +108,7 @@ class DebugCanvas extends Canvas {
 
     _pickColor() {
         var mr = (min=100, max=200) => min + Math.floor(Math.random()*(max-min));
-        this.color = `rgba(${mr(50, 100)}, ${mr()}, ${mr(200, 250)}, 0.7)`;
+        this.color = `rgba(${mr(200, 250)}, ${mr()}, ${mr(50, 150)}, 0.7)`;
     }
 
     randomPaint() {
@@ -97,13 +139,13 @@ class DebugCanvas extends Canvas {
         if (!parent) {
             return;
         }
-        this.left = Math.random() * (parent.width - this.width);
-        this.top = Math.random() * (parent.height - this.height);
+        this.left = Math.floor(Math.random() * (parent.width - this.width));
+        this.top = Math.floor(Math.random() * (parent.height - this.height));
 
     }
 
-    highlight(enable = true) {
+    /*highlight(enable = true) {
         this.m_highlight = enable;
         this.randomPaint();
-    }
+    }*/
 }
