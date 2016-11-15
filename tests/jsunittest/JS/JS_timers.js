@@ -1,7 +1,7 @@
 // Nidium frontend can have at most 16ms of delay for the timers because of vsync
 // Under some condition it can even be up to 50ms
 // See : https://github.com/nidium/Nidium/issues/22
-const TIMEOUT_THRESHOLD = 16*4;
+const TIMEOUT_THRESHOLD = 16*8;
 
 Tests.registerAsync("Global.setTimeout", function(next) {
     var start = Date.now();
@@ -51,7 +51,7 @@ Tests.registerAsync("Global.setTimeout (clear)", function(next) {
         next();
     }, 100 + TIMEOUT_THRESHOLD);
 
-}, 200);
+}, 1000);
 
 Tests.registerAsync("setImmediate", function(next) {
     setImmediate(function() {
