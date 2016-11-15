@@ -1,3 +1,5 @@
+var cssParse = require("css-parse");
+
 class RemoteDebug {
 
     constructor() {
@@ -29,7 +31,7 @@ class RemoteDebug {
     }
 
     monkeyPatch() {
-        console.log = this.log.bind(this);
+        //console.log = this.log.bind(this);
     }
 
     reset() {
@@ -39,7 +41,7 @@ class RemoteDebug {
         this.currentObjectId = 1;        
     }
 
-    run(port) {
+    run(port = 9223) {
         this.wsServer = new WebSocketServer("ws://127.0.0.1:" + port);
 
         this.wsServer.onopen = (client) => {
@@ -83,7 +85,13 @@ class RemoteDebug {
     }
 
     handle(method, callback) {
-        this.methods.set(method, callback);
+        if (!Array.isArray(method)) {
+            method = [method];
+        }
+
+        for (let m of method) {
+            this.methods.set(m, callback);
+        }
     }
 
     onClient() {}
@@ -221,17 +229,12 @@ class RemoteDebug {
             }
         });
     }
-
 }
 
 
+var _remotedebug = new RemoteDebug();
 
-
-var remote = new RemoteDebug();
-remote.run(9223);
-
-
-remote.handle('Runtime.enable', function(reply, params) {
+_remotedebug.handle('Runtime.enable', function(reply, params) {
     this.call("Runtime.executionContextCreated", {
         context: {
             id: 1,
@@ -248,25 +251,25 @@ remote.handle('Runtime.enable', function(reply, params) {
     console.log("       _     _ _                 \n _ __ (_) __| (_)_   _ _ __ ___  \n| '_ \\| |/ _` | | | | | '_ ` _ \\ \n| | | | | (_| | | |_| | | | | | |\n|_| |_|_|\\__,_|_|\\__,_|_| |_| |_|\n\n   Remote debugging activated\n\n");
 
     this.onReady();
-}.bind(remote));
+}.bind(_remotedebug));
 
-remote.handle('Page.canScreencast', function(reply, params) {
+_remotedebug.handle('Page.canScreencast', function(reply, params) {
     reply({"result":false});
 });
 
-remote.handle('Network.canEmulateNetworkConditions', function(reply, params) {
+_remotedebug.handle('Network.canEmulateNetworkConditions', function(reply, params) {
     reply({"result":false});
 });
 
-remote.handle('Emulation.canEmulate', function(reply, params) {
+_remotedebug.handle('Emulation.canEmulate', function(reply, params) {
     reply({"result":false});
 });
 
-remote.handle('Page.getResourceTree', function(reply, params) {
+_remotedebug.handle('Page.getResourceTree', function(reply, params) {
     reply({"frameTree":{"frame":{"id":"22514.2","loaderId":"22514.5","url":"file://","mimeType":"text/html","securityOrigin":"file://"},"resources":[]}});
 });
 
-remote.handle('Runtime.getProperties', function(reply, params) {
+_remotedebug.handle('Runtime.getProperties', function(reply, params) {
     if (params.ownProperties || params.accessorPropertiesOnly) {
         let getObjInfo = JSON.parse(params.objectId);
 
@@ -277,9 +280,14 @@ remote.handle('Runtime.getProperties', function(reply, params) {
     } else {
         reply({});
     }
-}.bind(remote));
+}.bind(_remotedebug));
 
-remote.handle('Runtime.callFunctionOn', function(reply, params) {
+
+/*
+    The debugger asks to run some Javascript function with some specific parameters
+    This is used for the autocompletion
+*/
+_remotedebug.handle('Runtime.callFunctionOn', function(reply, params) {
     let getObjInfo = JSON.parse(params.objectId);
     let target = this.getObjectById(getObjInfo.id);
 
@@ -315,9 +323,14 @@ remote.handle('Runtime.callFunctionOn', function(reply, params) {
         }
     });
 
-}.bind(remote));
+}.bind(_remotedebug));
 
-remote.handle('Runtime.evaluate', function(reply, params) {
+
+/*
+    The debugger asks to run some Javascript
+    This is used for the REPL
+*/
+_remotedebug.handle('Runtime.evaluate', function(reply, params) {
     let code = params.expression;
     var error = false;
     try {
@@ -326,22 +339,110 @@ remote.handle('Runtime.evaluate', function(reply, params) {
         error = true;
     }
 
-    reply({result: remote.getValueDescription(ret), wasThrown: error});
+    reply({result: _remotedebug.getValueDescription(ret), wasThrown: error});
 
 }.bind(global));
 
 
-remote.handle('DOM.getDocument', function(reply, params) {
+/*
+    Handle highlighting.
+    This is called when the user hover on an element in the DOM view.
+*/
+_remotedebug.handle('DOM.highlightNode', function(reply, params) {
+    var canvas = document.getCanvasByIdx(params.nodeId);
+    if (!canvas) {
+        console.log("Node not found");
+        return reply({});
+    }
+
+    canvas.highlight();
+
+    return reply({});
+});
+
+/*
+    Send "styles" for a specific elements
+    (usually called when a user click an element).
+
+    We're currently only sending "inline css"
+*/
+_remotedebug.handle('CSS.getMatchedStylesForNode', function(reply, params) {
+
+    let stylesProps = [
+        "width","height","top","left",
+        ].sort();
+
+    var canvas = document.getCanvasByIdx(params.nodeId);
+    if (!canvas) {
+        console.log("Node not found");
+        return reply({});
+    }
+
+    let returnedProps = [];
+    let curcol = 0;
+    let cumulText = '';
+
+    for (let style of stylesProps) {
+        let val = canvas[style];
+        let text = `${style}: ${val};`;
+        cumulText += text + ' ';
+
+        returnedProps.push({
+            name: style,
+            value: val + '',
+            text: text,
+            disabled: false,
+            implicit: false,
+            range: {
+                startLine: 0,
+                startColumn: curcol,
+                endLine: 0,
+                endColumn: curcol + text.length
+            }
+        });
+
+        curcol += text.length + 1;
+    }
+
+    cumulText = cumulText.trim();
+
+    reply({
+        inlineStyle: {
+            /*
+                set the styleSheetId to the canvas idx.
+                When editing the css, the debugger
+                is sending us the styleSheedId rather than the nodeID
+            */
+            styleSheetId: params.nodeId + "",
+            cssProperties: returnedProps,
+            shorthandEntries: [],
+            cssText: cumulText,
+            range: {
+                startLine: 0,
+                startColumn: 0,
+                endLine: 0,
+                endColumn: cumulText.length
+            }            
+        }
+    });
+
+});
+
+/*
+    The debugger asks for the DOM tree.
+    This is used to construct the "Elements" tab
+*/
+_remotedebug.handle('DOM.getDocument', function(reply, params) {
 
     if (!document || !document.canvas) {
-        reply({});
-        return;
+        return reply({});
     }
 
     function getTree(root, genesis = false) {
         let children = root.getChildren();
+
         let tree = {
-            nodeId: parseInt(root.id),
+            nodeId: parseInt(root.idx),
             nodeType: 1,
             nodeValue: "",
             nodeName: "CANVAS",
@@ -353,13 +454,21 @@ remote.handle('DOM.getDocument', function(reply, params) {
 
         if (genesis) {
             tree.nodeType = 9;
-            tree.nodeName = "#document";
-            tree.localName = "";
+            tree.nodeName = "document";
+            tree.localName = "document";
             tree.documentURL = "file://";
             tree.baseURL = "file://";
             tree.xmlVersion = "";
-
+        } else {
+            tree.attributes.push("width", root.width + '', "height", root.height + '');
         }
+
+        if (root.id) {
+            tree.attributes.push("id", root.id);
+        }
+        
+
+        console.log(tree.attributes);
 
         for (let child of children) {
             tree.children.push(getTree(child));
@@ -369,18 +478,55 @@ remote.handle('DOM.getDocument', function(reply, params) {
     }
 
     reply({
-        root: getTree(document.canvas, true)
+        root: {"nodeId":1,"nodeType":9,"nodeName":"#document","localName":"","nodeValue":"","childNodeCount":2,"children":[
+                {"nodeId":2,"nodeType":10,"nodeName":"nml","localName":"","nodeValue":"","publicId":"","systemId":""},
+                {"nodeId":3,"nodeType":1,"nodeName":"APPLICATION","localName":"application","nodeValue":"","childNodeCount":1,"children":[getTree(document.canvas, true)],"attributes":[]}
+            ],"documentURL":"","baseURL":"","xmlVersion":""}
     });
 
-}.bind(remote));
+});
 
-remote.onClient = function() {
+_remotedebug.handle('CSS.setStyleTexts', function(reply, params) {
+
+    if (params.edits.length > 1) {
+        console.log("[CSS.setStyleTexts] (warning) received multi edit")
+    }
+
+    /*
+        We're making styleSheetId (see CSS.getMatchedStylesForNode) 
+        matches the canvas idx.
+    */
+    var canvas = document.getCanvasByIdx(parseInt(params.edits[0].styleSheetId));
+    if (!canvas) {
+        console.log("Node not found");
+        return reply({});
+    }
+
+
+    var css = params.edits[0].text;
+
+    try {
+        var ret = cssParse(`element.style { ${css} }`);
+    } catch(e) {
+        console.log("[CSS.setStyleTexts] (error) Failed to parse CSS");
+        return reply({});
+    }
+
+    for (let declaration of ret.stylesheet.rules[0].declarations) {
+        canvas[declaration.property] = parseInt(declaration.value);
+        console.log(declaration.property, canvas[declaration.property], declaration.value);
+    }
+
+    return reply({});
+});
+
+_remotedebug.onClient = function() {
 
 
 }
 
-remote.onReady = function()
+_remotedebug.onReady = function()
 {
-    console.foo();
+    //console.foo();
 }
-console.log("Debug loaded");
+
