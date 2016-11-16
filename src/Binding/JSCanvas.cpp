@@ -1381,6 +1381,7 @@ JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
     handler->m_JsCx    = cx;
     handler->m_JsObj   = obj;
 
+
     return new JSCanvas(handler);
 }
 
