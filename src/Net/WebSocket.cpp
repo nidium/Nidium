@@ -29,9 +29,10 @@ WebSocketServer::WebSocketServer(uint16_t port, const char *ip)
 {
 }
 
-void WebSocketServer::onClientConnect(ape_socket *client, ape_global *ape)
+HTTPClientConnection *WebSocketServer::onClientConnect(ape_socket *client,
+    ape_global *ape)
 {
-    client->ctx = new WebSocketClientConnection(this, client);
+    return new WebSocketClientConnection(this, client);
 }
 // }}}
 

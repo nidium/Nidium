@@ -15,7 +15,7 @@ namespace Binding {
 class JSHTTPClientConnection;
 
 // {{{ JSHTTPResponse
-class JSHTTPResponse : public Nidium::Net::HTTPResponse,
+class JSHTTPResponse : public Net::HTTPResponse,
                        public ClassMapper<JSHTTPResponse>
 {
 public:
@@ -34,16 +34,16 @@ protected:
 // }}}
 
 // {{{ JSHTTPClientConnection
-class JSHTTPClientConnection : public Nidium::Net::HTTPClientConnection,
+class JSHTTPClientConnection : public Net::HTTPClientConnection,
                                public ClassMapper<JSHTTPClientConnection>
 {
 public:
-    JSHTTPClientConnection(Nidium::Net::HTTPServer *httpserver,
+    JSHTTPClientConnection(Net::HTTPServer *httpserver,
                            ape_socket *socket)
-        : Nidium::Net::HTTPClientConnection(httpserver, socket)
+        : Net::HTTPClientConnection(httpserver, socket)
     {
     }
-    virtual Nidium::Net::HTTPResponse *onCreateResponse()
+    virtual Net::HTTPResponse *onCreateResponse()
     {
         JSHTTPResponse *resp = new JSHTTPResponse();
         JSHTTPResponse::CreateObject(m_Cx, resp);
@@ -55,12 +55,14 @@ public:
 
         return resp;
     }
+
+    virtual ~JSHTTPClientConnection(){};
 };
 // }}}
 
 // {{{ JSHTTPServer
 class JSHTTPServer : public ClassMapper<JSHTTPServer>,
-                     public Nidium::Net::HTTPServer
+                     public Net::HTTPServer
 {
 public:
     static JSHTTPServer *Constructor(JSContext *cx, JS::CallArgs &args,
@@ -69,12 +71,15 @@ public:
     JSHTTPServer(uint16_t port,
                  const char *ip = "0.0.0.0");
     virtual ~JSHTTPServer();
-    virtual void onClientConnect(ape_socket *client, ape_global *ape);
-    virtual void onClientDisconnect(Nidium::Net::HTTPClientConnection *client);
-    virtual void onData(Nidium::Net::HTTPClientConnection *client,
+
+    virtual Net::HTTPClientConnection *onClientConnect(ape_socket *client,
+        ape_global *ape) override;
+
+    virtual void onClientDisconnect(Net::HTTPClientConnection *client) override;
+    virtual void onData(Net::HTTPClientConnection *client,
                         const char *buf,
-                        size_t len);
-    virtual bool onEnd(Nidium::Net::HTTPClientConnection *client);
+                        size_t len) override;
+    virtual bool onEnd(Net::HTTPClientConnection *client) override;
 
     static void RegisterObject(JSContext *cx);
 };

@@ -12,6 +12,7 @@
 
 #include <ape_netlib.h>
 #include <ape_array.h>
+#include <unordered_map>
 
 #include "Core/Messages.h"
 #include "Core/Events.h"
@@ -60,7 +61,8 @@ public:
         deleted when the socket disconnect.
 
     */
-    virtual void onClientConnect(ape_socket *client, ape_global *ape);
+    virtual HTTPClientConnection *onClientConnect(ape_socket *client,
+        ape_global *ape);
 
     /*
         Callbacks for subclasses
@@ -86,10 +88,16 @@ public:
         return m_IP;
     }
 
+    void shutdownClients();
+
+
+    std::unordered_map<HTTPClientConnection *, HTTPClientConnection *> m_ClientConnections;
 private:
+
     ape_socket *m_Socket;
     char *m_IP;
     uint16_t m_Port;
+
 };
 // }}}
 
@@ -285,6 +293,8 @@ public:
     {
         m_MaxRequestsCount = n;
     }
+
+    void dettach();
 
     virtual HTTPResponse *onCreateResponse();
 
