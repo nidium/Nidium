@@ -56,7 +56,6 @@ public:
         Subclasses can override this in order to set
         their own HTTPClientConnection subclass.
 
-        This method must set a HTTPClientConnection on client->ctx.
         HTTPClientConnection is then automatically
         deleted when the socket disconnect.
 
