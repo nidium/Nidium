@@ -163,10 +163,14 @@ public:
         inline T get() const {
             if (m_State == kInherit_State) {
                 if (m_Canvas->m_Parent) {
-                    CanvasProperty<T> *ref = m_Canvas->m_Parent->m_PropertyList.at(position);
+                    CanvasProperty<T> *ref =
+                        reinterpret_cast<CanvasProperty<T> *>
+                            (m_Canvas->m_Parent->m_PropertyList.at(position));
 
                     return ref->get();
                 }
+
+                return m_Default;
             }
             return m_Value;
         }
@@ -192,6 +196,10 @@ public:
             m_Value = default_val;
 
             m_State = kDefault_State;
+        }
+
+        void setInherit() {
+            m_State = kInherit_State;
         }
 
         void reset() {
@@ -277,6 +285,8 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(minHeight, int, 1, kDefault_State);
     CANVAS_DEF_CLASS_PROPERTY(maxWidth, int, 0, kDefault_State);
     CANVAS_DEF_CLASS_PROPERTY(maxHeight, int, 0, kDefault_State);
+    CANVAS_DEF_CLASS_PROPERTY(fluidWidth, bool, false, kDefault_State);
+    CANVAS_DEF_CLASS_PROPERTY(fluidHeight, bool, false, kDefault_State);
 
     CanvasContext *m_Context;
     JS::TenuredHeap<JSObject *> m_JsObj;
