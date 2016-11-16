@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <vector>
 
 #include <jsapi.h>
 
@@ -121,15 +122,93 @@ struct LayerizeContext
 };
 // }}}
 
+#define CANVAS_DEF_CLASS_PROPERTY(name, type, default_value, state) \
+    CanvasProperty<type> p_##name = {#name, default_value, CanvasProperty<type>::state, this};
+
+
 // {{{ CanvasHandler
 class CanvasHandler : public Core::Events
 {
+private:
+    /*
+        This need to be initialized before properties
+    */    
+    std::vector<void *> m_PropertyList;
+
 public:
     friend class SkiaContext;
     friend class Nidium::Frontend::Context;
     friend class Binding::JSCanvas;
 
     static const uint8_t EventID = 1;
+
+    template <typename T>
+    class CanvasProperty
+    {
+    public:
+        enum State {
+            kDefault_State,
+            kSet_State,
+            kInherit_State,
+            kUndefined_State
+        };
+
+        CanvasProperty(const char *name, T val, State state, CanvasHandler *h) :
+            m_Name(name), m_Canvas(h), m_Value(val), m_Default(val) {
+
+                position = m_Canvas->m_PropertyList.size();
+                m_Canvas->m_PropertyList.push_back((void *)this);
+            };
+
+        inline T get() const {
+            if (m_State == kInherit_State) {
+                if (m_Canvas->m_Parent) {
+                    CanvasProperty<T> *ref = m_Canvas->m_Parent->m_PropertyList.at(position);
+
+                    return ref->get();
+                }
+            }
+            return m_Value;
+        }
+
+        inline operator T() const {
+            return get();
+        }
+
+        void set(T val) {
+            m_Value = val;
+            m_State = kSet_State;
+        }
+
+        inline CanvasProperty<T> operator=(const T& val) {
+
+            set(val);
+
+            return *this;
+        }
+
+        void setDefault(T default_val) {
+            m_Default = default_val;
+            m_Value = default_val;
+
+            m_State = kDefault_State;
+        }
+
+        void reset() {
+            m_Value = m_Default;
+
+            m_State = kDefault_State;
+        }
+
+    private:
+        const char *m_Name;
+        CanvasHandler *m_Canvas;
+        T m_Value;
+        T m_Default;
+        bool m_WasSet = false;
+        State m_State = State::kDefault_State;
+        int position;
+    };
 
     enum COORD_MODE
     {
@@ -188,6 +267,16 @@ public:
         CANVAS_VISIBILITY_VISIBLE,
         CANVAS_VISIBILITY_HIDDEN
     };
+
+
+    CANVAS_DEF_CLASS_PROPERTY(top, double, 0, kDefault_State);
+    CANVAS_DEF_CLASS_PROPERTY(left, double, 0, kDefault_State);
+    CANVAS_DEF_CLASS_PROPERTY(width, int, 1, kDefault_State);
+    CANVAS_DEF_CLASS_PROPERTY(height, int, 1, kDefault_State);
+    CANVAS_DEF_CLASS_PROPERTY(minWidth, int, 1, kDefault_State);
+    CANVAS_DEF_CLASS_PROPERTY(minHeight, int, 1, kDefault_State);
+    CANVAS_DEF_CLASS_PROPERTY(maxWidth, int, 0, kDefault_State);
+    CANVAS_DEF_CLASS_PROPERTY(maxHeight, int, 0, kDefault_State);
 
     CanvasContext *m_Context;
     JS::TenuredHeap<JSObject *> m_JsObj;
