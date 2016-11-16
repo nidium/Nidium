@@ -164,7 +164,7 @@ public:
             if (m_State == kInherit_State) {
                 if (m_Canvas->m_Parent) {
                     CanvasProperty<T> *ref =
-                        reinterpret_cast<CanvasProperty<T> *>
+                        static_cast<CanvasProperty<T> *>
                             (m_Canvas->m_Parent->m_PropertyList.at(position));
 
                     return ref->get();
