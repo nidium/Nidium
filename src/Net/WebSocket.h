@@ -28,7 +28,9 @@ public:
     };
 
     WebSocketServer(uint16_t port, const char *ip = "0.0.0.0");
-    virtual void onClientConnect(ape_socket *client, ape_global *ape) override;
+
+    virtual HTTPClientConnection *onClientConnect(ape_socket *client,
+        ape_global *ape) override;
 
     virtual bool onEnd(HTTPClientConnection *client) override
     {
@@ -65,7 +67,7 @@ public:
     {
         return m_Data;
     }
-    virtual void close();
+    virtual void close() override;
     void ping();
 
     static int PingTimer(void *arg);

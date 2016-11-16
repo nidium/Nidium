@@ -37,10 +37,11 @@ JSHTTPServer::~JSHTTPServer()
 {
 }
 
-void JSHTTPServer::onClientConnect(ape_socket *client, ape_global *ape)
+HTTPClientConnection *JSHTTPServer::onClientConnect(ape_socket *client,
+    ape_global *ape)
 {
     JSHTTPClientConnection *conn;
-    client->ctx = conn = new JSHTTPClientConnection(this, client);
+    conn = new JSHTTPClientConnection(this, client);
 
     JS::RootedObject obj(m_Cx,
         JSHTTPClientConnection::CreateObject(m_Cx, conn));
@@ -52,8 +53,9 @@ void JSHTTPServer::onClientConnect(ape_socket *client, ape_global *ape)
 
     NIDIUM_JSOBJ_SET_PROP_CSTR(obj, "ip", APE_socket_ipv4(client));
 
-    HTTPServer::onClientConnect(
-        reinterpret_cast<Nidium::Net::HTTPClientConnection *>(client->ctx));
+    HTTPServer::onClientConnect(conn);
+
+    return conn;
 }
 
 void JSHTTPServer::onClientDisconnect(HTTPClientConnection *client)

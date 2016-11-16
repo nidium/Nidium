@@ -264,7 +264,12 @@ static void nidium_socket_onaccept(ape_socket *socket_server,
 {
     HTTPServer *http = GET_HTTP_OR_FAIL(socket_server);
 
-    http->onClientConnect(socket_client, ape);
+    HTTPClientConnection *con = http->onClientConnect(socket_client, ape);
+    socket_client->ctx = con;
+
+    if (con) {
+        http->m_ClientConnections.insert({con, con});
+    }
 }
 
 static void nidium_socket_client_read(ape_socket *socket_client,
@@ -351,10 +356,23 @@ bool HTTPServer::start(bool reuseport, int timeout)
 
 void HTTPServer::stop()
 {
+    shutdownClients();
+
     if (m_Socket && m_Socket->ctx == this) {
         m_Socket->ctx = NULL;
         APE_socket_shutdown_now(m_Socket);
     }
+}
+
+void HTTPServer::shutdownClients()
+{
+    for (auto &pair : m_ClientConnections) {
+        HTTPClientConnection *con = pair.second;
+
+        con->dettach();
+    }
+
+    m_ClientConnections.clear();
 }
 
 HTTPServer::~HTTPServer()
@@ -363,11 +381,13 @@ HTTPServer::~HTTPServer()
     free(m_IP);
 }
 
-void HTTPServer::onClientConnect(ape_socket *client, ape_global *ape)
+HTTPClientConnection *HTTPServer::onClientConnect(ape_socket *client, ape_global *ape)
 {
-    client->ctx = new HTTPClientConnection(this, client);
+    HTTPClientConnection *con = new HTTPClientConnection(this, client);
 
-    this->onClientConnect(static_cast<HTTPClientConnection *>(client->ctx));
+    this->onClientConnect(con);
+
+    return con;
 }
 
 int HTTPClientConnection_checktimeout(void *arg)
@@ -470,6 +490,17 @@ HTTPResponse *HTTPClientConnection::onCreateResponse()
     return new HTTPResponse();
 }
 
+void HTTPClientConnection::dettach()
+{
+    m_HTTPServer = nullptr;
+    
+    if (m_SocketClient) {
+        m_SocketClient->ctx = NULL;
+
+        this->close();
+    }
+}
+
 HTTPClientConnection::~HTTPClientConnection()
 {
     if (m_TimeoutTimer) {
@@ -494,6 +525,15 @@ HTTPClientConnection::~HTTPClientConnection()
 
     if (m_Response) {
         delete m_Response;
+    }
+
+    if (m_HTTPServer) {
+        m_HTTPServer->m_ClientConnections.erase(this);
+    }
+
+    if (m_SocketClient) {
+        m_SocketClient->ctx = NULL;
+        this->close();
     }
 };
 
