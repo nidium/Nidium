@@ -141,7 +141,11 @@ public:
     friend class Binding::JSCanvas;
 
     static const uint8_t EventID = 1;
-
+    
+    /*
+     * This class holds two different value for the property
+     * - The 'computed' value : the actual value used for the layout
+     * - the 'user' value : the value set by the user */
     template <typename T>
     class CanvasProperty
     {
@@ -154,7 +158,8 @@ public:
         };
 
         CanvasProperty(const char *name, T val, State state, CanvasHandler *h) :
-            m_Name(name), m_Canvas(h), m_Value(val), m_Default(val) {
+            m_Name(name), m_Canvas(h), m_Value(val) {
+                
 
                 position = m_Canvas->m_PropertyList.size();
                 m_Canvas->m_PropertyList.push_back((void *)this);
@@ -169,8 +174,6 @@ public:
 
                     return ref->get();
                 }
-
-                return m_Default;
             }
             return m_Value;
         }
@@ -178,9 +181,15 @@ public:
         inline operator T() const {
             return get();
         }
-
-        void set(T val) {
+        
+        /* Change the computed value */
+        inline void set(T val) {
             m_Value = val;
+        }
+        
+        /* Change the user value */
+        inline void userSet(T val) {
+            m_UserValue = val;
             m_State = kSet_State;
         }
 
@@ -191,30 +200,30 @@ public:
             return *this;
         }
 
-        void setDefault(T default_val) {
-            m_Default = default_val;
-            m_Value = default_val;
-
-            m_State = kDefault_State;
-        }
-
         void setInherit() {
             m_State = kInherit_State;
         }
 
         void reset() {
-            m_Value = m_Default;
-
             m_State = kDefault_State;
         }
 
     private:
+        /* Used for debug purpose
+         * TODO: ifdef DEBUG */
         const char *m_Name;
+
         CanvasHandler *m_Canvas;
+
+        /* Actual value used for computation */
         T m_Value;
-        T m_Default;
-        bool m_WasSet = false;
+        /* Value set by the user */
+        T m_UserValue;
+        
         State m_State = State::kDefault_State;
+
+        /* Position of the property in the Canvas properyList
+         * This is used in order to lookup for parent same property */
         int position;
     };
 
