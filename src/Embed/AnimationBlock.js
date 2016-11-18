@@ -3,7 +3,6 @@ var Easing = require("easing");
 var AnimationsList = new Set();
 
 {
-
     let draw = function() {
         let curDate = +new Date();
 
@@ -15,11 +14,9 @@ var AnimationsList = new Set();
                 AnimationsList.delete(elem);
 
             } else {
-                let t = (curDate - start) / (end - start);
-                let e = ease(t);
+                let e = ease((curDate - start) / (end - start));
 
                 target[property] = startValue + ((value - startValue) * e);
-                // TODO : startValue???
             }
         }
 
@@ -27,7 +24,6 @@ var AnimationsList = new Set();
     }
 
     draw();
-
 }
 
 var AnimationBlock = function(duration, ease, callback, ...objs)
@@ -44,12 +40,12 @@ var AnimationBlock = function(duration, ease, callback, ...objs)
 
                 AnimationsList.add({
                     end: start + duration,
-                    start: start,
-                    target: target,
-                    property: property,
-                    value: value,
                     startValue: target[property],
-                    ease: ease
+                    start,
+                    target,
+                    property,
+                    value,
+                    ease
                 });
                 
                 return true;
