@@ -25,4 +25,5 @@ function __nidiumPreload(options) {
         load("embed://html5.js");
     }
     load("embed://CanvasAdditions.js");
+    load("embed://AnimationBlock.js");
 }
