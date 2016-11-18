@@ -1030,9 +1030,7 @@ void CanvasHandler::setHidden(bool val)
 
 void CanvasHandler::setOpacity(double val)
 {
-    if (val < 0.0 || val > 1.) {
-        val = 1;
-    }
+    val = nidium_min(1, nidium_max(0, val));
 
     m_Opacity = val;
 }
