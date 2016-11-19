@@ -60,7 +60,6 @@ var AnimationsList = new Set();
             let e = ease((curDate - start) / (end - start));
             let finish = (curDate > end);
 
-
             for (let elem of list) {
                 let { target, property, value, startValue } = elem;
                 target[property] = finish ? value : startValue + ((value - startValue) * e);                
@@ -84,7 +83,7 @@ var AnimationsList = new Set();
 
 var AnimationBlock = function(duration, ease, callback, ...objs)
 {
-    var proxies = [];
+    let proxies = [];
 
     var anim = {
         duration,
@@ -95,36 +94,36 @@ var AnimationBlock = function(duration, ease, callback, ...objs)
 
     AnimationsList.add(anim);
 
+    for (let obj of objs) {
+        let proxy = new Proxy(obj, {
+            set: (target, property, value, rcv) => {
+                if (!(property in target)) {
+                    // TODO: Check numeric
+                    return true;
+                }
+
+                anim.list.push({
+                    startValue: target[property],
+                    target,
+                    property,
+                    value,                 
+                })
+                
+                return true;
+            },
+
+            get: (target, prop, rcv) => {
+                return target[prop];
+            }
+        });
+
+        proxies.push(proxy);
+    }
+
     (anim.redo = function(callback) {
         let start = +new Date();
-
+        
         Object.assign(anim, {start, end: start+duration, list: [], next: null});
-
-        for (let obj of objs) {
-            let proxy = new Proxy(obj, {
-                set: (target, property, value, rcv) => {
-                    if (!(property in target)) {
-                        // TODO: Check numeric
-                        return true;
-                    }
-
-                    anim.list.push({
-                        startValue: target[property],
-                        target,
-                        property,
-                        value,                 
-                    })
-                    
-                    return true;
-                },
-
-                get: (target, prop, rcv) => {
-                    return target[prop];
-                }
-            });
-
-            proxies.push(proxy);
-        }
 
         let next = callback(...proxies);
         if (typeof next == 'function') {
