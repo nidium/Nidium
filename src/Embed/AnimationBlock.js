@@ -21,6 +21,32 @@
 /* -------------------------------------------------------------------------- */
 
 
+/*
+    AnimationBlock provides a way to easily create animation is a declarative way
+
+    Example on animating properties for my_obj and my_obj2 :
+
+        AnimationBlock(2000, Easing.Bounce.Out, (my_obj, my_obj2) => {
+            my_obj.left = 200;
+            my_obj.top = 50;
+            my_obj2.opacity = 0.2;
+            my_obj2.left = my_obj.left;
+        }, my_obj, my_obj2)(() => {
+            console.log("Animation ended");
+        });
+
+    Example on animating properties on a list of objects (array(lst))
+
+        AnimationBlock(2000, Easing.Bounce.Out, (...lst) => {
+            for (let o of lst) {
+                o.left = Math.random()*600;
+                o.top = Math.random()*500;
+            }
+        }, ...lst)(() => {
+            console.log("Animation ended");
+        });
+*/
+
 var Easing = require("easing");
 
 var AnimationsList = new Set();
@@ -30,7 +56,7 @@ var AnimationsList = new Set();
         let curDate = +new Date();
 
         for (let anim of AnimationsList) {
-            let { end, start, ease, list } = anim;
+            let { end, start, ease, list, duration } = anim;
             let e = ease((curDate - start) / (end - start));
             let finish = (curDate > end);
 
@@ -41,7 +67,12 @@ var AnimationsList = new Set();
             }
 
             if (finish) {
-                AnimationsList.delete(anim);
+                if (anim.next) {
+                    anim.redo(anim.next);
+                } else {
+                    anim.finish();
+                    AnimationsList.delete(anim);
+                }
             }
         }
 
@@ -54,45 +85,55 @@ var AnimationsList = new Set();
 var AnimationBlock = function(duration, ease, callback, ...objs)
 {
     var proxies = [];
-    let start = +new Date();
 
     var anim = {
-        end: start+duration,
+        duration,
         ease,
-        start,
-        list: []
-    }
+        objs,
+        finish: function(){},
+    };
 
     AnimationsList.add(anim);
 
-    for (let obj of objs) {
-        let proxy = new Proxy(obj, {
-            set: (target, property, value, rcv) => {
-                if (!(property in target)) {
+    (anim.redo = function(callback) {
+        let start = +new Date();
+
+        Object.assign(anim, {start, end: start+duration, list: [], next: null});
+
+        for (let obj of objs) {
+            let proxy = new Proxy(obj, {
+                set: (target, property, value, rcv) => {
+                    if (!(property in target)) {
+                        // TODO: Check numeric
+                        return true;
+                    }
+
+                    anim.list.push({
+                        startValue: target[property],
+                        target,
+                        property,
+                        value,                 
+                    })
+                    
                     return true;
+                },
+
+                get: (target, prop, rcv) => {
+                    return target[prop];
                 }
+            });
 
-                anim.list.push({
-                    startValue: target[property],
-                    target,
-                    property,
-                    value,                 
-                })
-                
-                return true;
-            },
+            proxies.push(proxy);
+        }
 
-            get: (target, prop, rcv) => {
-                return target[prop];
-            }
-        });
+        let next = callback(...proxies);
+        if (typeof next == 'function') {
+            anim.next = next;
+        }
 
-        proxies.push(proxy);
+    })(callback);
+
+    return function(animationFinished) {
+        anim.finish = animationFinished;
     }
-
-    let next = callback(...proxies);
-    if (typeof next == 'function') {
-        //AnimationBlock(duration, ease, next, )
-    }
-
 }
