@@ -56,12 +56,17 @@
             canvas.clear();
             let ctx = canvas.getContext("2d");
             ctx.fillStyle = "rgba(111, 108, 220, 0.6)";
-            ctx.fillRect(0, 0, this.width, this.height);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
         if (Canvas.currentHightLight) {
             canvas = Canvas.currentHightLight;
-            canvas.setSize(this.width, this.height);
+            //canvas.setSize(this.width, this.height);
+
+            AnimationBlock(200, Easing.Back.Out, (canvas) => {
+                canvas.width = this.width;
+                canvas.height = this.height;
+            },  canvas);
 
             canvas.on("resize", () => {
                 draw(canvas);
@@ -78,8 +83,11 @@
 
         document.canvas.add(canvas);
         canvas.position = "absolute";
-        canvas.left = this.__left;
-        canvas.top = this.__top;
+
+        AnimationBlock(200, Easing.Back.Out, (canvas) => {
+            canvas.left = this.__left;
+            canvas.top = this.__top;
+        },  canvas);
     }
 
 }
@@ -93,6 +101,7 @@ class DebugCanvas extends Canvas {
         }
 
         this.onload = this.randomPaint;
+        this.onresize = this.randomPaint;
         this.m_highlight = false;
         this._pickColor();
         this.cursor = "pointer";
