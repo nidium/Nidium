@@ -20,12 +20,48 @@
 /* DEALINGS IN THE SOFTWARE.                                                  */
 /* -------------------------------------------------------------------------- */
 
-function __nidiumPreload(options) {
-    if (options.html5) {
-        load("embed://html5.js");
+
+NML.CreateTree = function(nml)
+{
+    if (typeof(nml) == "string") {
+        var tree = NML.parse(nml);
+        if (!tree) {
+            return [];
+        }
+    } else {
+        var tree = nml;
     }
-    load("embed://CanvasAdditions.js");
-    load("embed://NMLAdditions.js");
-    load("embed://AnimationBlock.js");
-    load("embed://Elements.js");
+
+    function walk(elems, parent) {
+        var ret = [];
+
+        for (let elem of elems) {
+            if (!(elem.type in Elements)) {
+                continue;
+            }
+
+            /* ES6 destructuring object default value doesnt work
+               https://bugzilla.mozilla.org/show_bug.cgi?id=932080
+            */
+            let {id, width, height} = elem.attributes;
+            width = width || 50;
+            height = height || 50;
+
+            var ui = new Elements[elem.type](width, height, elem.attributes);
+            ui.id = id;
+
+            if (parent) {
+                parent.add(ui);
+            } else {
+                ret.push(ui);
+            }
+
+            walk(elem.children, ui);
+        }
+
+        return ret;
+    }
+
+    return walk(tree);
+
 }

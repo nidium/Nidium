@@ -19,6 +19,7 @@
 #include "Binding/JSWindow.h"
 #include "Binding/JSProcess.h"
 #include "Binding/JSImageData.h"
+#include "Binding/JSNML.h"
 
 #include "Graphics/CanvasHandler.h"
 #include "Graphics/SkiaContext.h"
@@ -173,6 +174,7 @@ void Context::loadNativeObjects(int width, int height)
     JSCanvas::RegisterObject(cx);
     JSImage::RegisterObject(cx);
     JSImageData::RegisterObject(cx);
+    JSNML::RegisterObject(cx);
 #ifdef NIDIUM_AUDIO_ENABLED
     JSAudio::RegisterAllObjects(cx);
     JSVideo::RegisterAllObjects(cx);
@@ -184,6 +186,7 @@ void Context::loadNativeObjects(int width, int height)
     m_JSWindow = JSWindow::RegisterObject(cx, width, height, docObj);
 
     JSProcess::RegisterObject(cx, m_UI->m_Argv, m_UI->m_Argc, 0);
+
 
 #if DEBUG
     createDebug2Canvas();
