@@ -22,6 +22,44 @@
 
 {
 
+    Canvas.prototype.addMultiple = function(...canvases) {
+        for (let canvas of canvases) {
+            try {
+                this.add(canvas);
+            } catch(e) {}
+        }
+    }
+
+    /*
+        Inject a 'Layout syntax tree' (LST) into the element.
+    */
+    Canvas.prototype.inject = function(nml) {
+        this.addMultiple(...NML.CreateTree(nml));
+    }
+
+    /*
+        Remove all child nodes 
+    */
+    Canvas.prototype.empty = function() {
+        var children = this.getChildren();
+
+        for (let child of children) {
+            child.removeFromParent();
+        }
+
+        return children;
+    }
+
+    /*
+        Replace the content of the element with the specified 'LST'
+    */
+    Canvas.prototype.replaceWith = function(nml) {
+        var ret = this.empty();
+        this.inject(nml);
+
+        return ret;
+    }
+    
     Object.defineProperty(Canvas.prototype, "inherit", {
         get: function() {
             if (!this.__inheritProxy) {
@@ -89,7 +127,6 @@
             canvas.top = this.__top;
         },  canvas);
     }
-
 }
 
 class DebugCanvas extends Canvas {
