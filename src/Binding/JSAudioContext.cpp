@@ -420,7 +420,7 @@ bool JSAudioContext::createContext()
     m_JsGlobalObj = global;
 
     // We don't actually needs to root a global object, but we
-    // need to store a reference to the global object in a 
+    // need to store a reference to the global object in a
     // JS::Heap and this reference needs to be traced.
     NidiumLocalContext::RootObjectUntilShutdown(m_JsGlobalObj);
 
@@ -506,9 +506,9 @@ void JSAudioContext::removeNode(JSAudioNode *node)
 void JSAudioContext::ShutdownCallback(void *custom)
 {
     JSAudioContext *audio              = static_cast<JSAudioContext *>(custom);
-    JSAudioContext::NodeListItem *node = audio->m_Nodes;
 
 #ifdef DEBUG
+    JSAudioContext::NodeListItem *node = audio->m_Nodes;
     while (node != NULL) {
         printf("All nodes should have been destroyed\n");
         assert(false);

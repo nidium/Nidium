@@ -54,10 +54,10 @@ public:
                bool binary                      = false,
                ape_socket_data_autorelease type = APE_DATA_COPY);
 
-    virtual void onHeaderEnded();
-    virtual void onDisconnect(ape_global *ape);
-    virtual void onUpgrade(const char *to);
-    virtual void onContent(const char *data, size_t len);
+    virtual void onHeaderEnded() override;
+    virtual void onDisconnect(ape_global *ape) override;
+    virtual void onUpgrade(const char *to) override;
+    virtual void onContent(const char *data, size_t len) override;
 
     virtual void setData(void *data)
     {

@@ -388,8 +388,6 @@ JSAudioNodeBuffers::JSAudioNodeBuffers(JSAudioContext *audioCtx,
     m_DataArray = frames;
 
     for (unsigned int i = 0; i < m_Count; i++) {
-        uint8_t *data;
-
         // TODO : Avoid memcpy (custom allocator for AudioNode?)
         JS::RootedObject arrBuff(cx,
             JSUtils::NewArrayBufferWithCopiedContents(cx, m_Size, framesData[i]));
