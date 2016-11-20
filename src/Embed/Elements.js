@@ -85,31 +85,5 @@ Elements.UIButton = class extends NidiumNode {
 }
 
 window._onready = function(lst) {
-    console.log(JSON.stringify(lst));
-
-    function walk(elems, parent) {
-
-        for (let elem of elems) {
-            if (!(elem.type in Elements)) {
-                continue;
-            }
-
-            /* ES6 destructuring object default value doesnt work
-               https://bugzilla.mozilla.org/show_bug.cgi?id=932080
-            */
-            let {id, width, height} = elem.attributes;
-            width = width || 50;
-            height = height || 50;
-
-            var ui = new Elements[elem.type](width, height, elem.attributes);
-            ui.id = id;
-
-            parent.add(ui);
-
-            walk(elem.children, ui);
-        }
-    }
-
-    walk(lst, document.canvas);
-
+    document.canvas.inject(lst);
 }
