@@ -441,12 +441,17 @@ _remotedebug.handle('DOM.getDocument', function(reply, params) {
     function getTree(root, genesis = false) {
         let children = root.getChildren();
 
+        let nodeName = "canvas";
+        if ("name" in root) {
+            nodeName = root.name();
+        }
+
         let tree = {
             nodeId: parseInt(root.idx),
             nodeType: 1,
             nodeValue: "",
-            nodeName: "CANVAS",
-            localName: "canvas",
+            nodeName: nodeName.toUpperCase(),
+            localName: nodeName,
             attributes: [],
             childNodeCount: children.length,
             children: []
