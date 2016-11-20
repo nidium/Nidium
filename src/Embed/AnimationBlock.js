@@ -31,6 +31,12 @@
             my_obj.top = 50;
             my_obj2.opacity = 0.2;
             my_obj2.left = my_obj.left;
+
+            return () => {
+                // chained animation
+                
+                my_obj.left = 0;
+            }
         }, my_obj, my_obj2)(() => {
             console.log("Animation ended");
         });
@@ -123,8 +129,10 @@ var AnimationBlock = function(duration, ease, callback, ...objs)
     (anim.redo = function(callback) {
         let start = +new Date();
         
+        /* Reset some state since we're using the same object when chaining */
         Object.assign(anim, {start, end: start+duration, list: [], next: null});
 
+        /* Check whether we have a chained animation */
         let next = callback(...proxies);
         if (typeof next == 'function') {
             anim.next = next;
