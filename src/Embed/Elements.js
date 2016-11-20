@@ -35,7 +35,7 @@ class NidiumNode extends Canvas {
             this.clear();
             ctx.save();
             this.paint(ctx);
-            ctx.restore;
+            ctx.restore();
         }
 
         this.onresize = this.onload;        
