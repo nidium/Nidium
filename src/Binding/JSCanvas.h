@@ -42,6 +42,7 @@ public:
     NIDIUM_DECL_JSTRACER();
 protected:
 
+    NIDIUM_DECL_JSCALL(invalidate);
     NIDIUM_DECL_JSCALL(getContext);
     NIDIUM_DECL_JSCALL(setContext);
     NIDIUM_DECL_JSCALL(addSubCanvas);

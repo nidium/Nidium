@@ -156,7 +156,8 @@ public:
         LOADED_EVENT,
         CHANGE_EVENT,
         MOUSE_EVENT,
-        DRAG_EVENT
+        DRAG_EVENT,
+        PAINT_EVENT
     };
 
     enum Position
@@ -590,6 +591,11 @@ public:
     void setCursor(int cursor);
     int getCursor();
 
+    void invalidate()
+    {
+        m_NeedPaint = true;
+    }
+
     CanvasHandler *getParent() const
     {
         return m_Parent;
@@ -639,6 +645,7 @@ protected:
         return NULL;
     }
 
+    void paint();
     void propertyChanged(EventsChangedProperty property);
 
 private:
@@ -682,6 +689,7 @@ private:
     int m_Pending;
     bool m_Loaded;
     int m_Cursor;
+    bool m_NeedPaint = true;
 };
 // }}}
 

@@ -372,6 +372,15 @@ bool JSCanvas::JS_insertAfter(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
+bool JSCanvas::JS_invalidate(JSContext *cx, JS::CallArgs &args)
+{
+    m_CanvasHandler->invalidate();
+
+    args.rval().setBoolean(true);
+
+    return true;
+}
+
 bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
 {
 
@@ -1387,6 +1396,7 @@ JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
 JSFunctionSpec *JSCanvas::ListMethods()
 {
     static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSCanvas, invalidate, 0),
         CLASSMAPPER_FN(JSCanvas, getContext, 1),
         CLASSMAPPER_FN(JSCanvas, setContext, 1),
         CLASSMAPPER_FN(JSCanvas, addSubCanvas, 1),
@@ -1537,6 +1547,14 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             this->fireJSEvent("resize", &eventValue);
             break;
         }
+        case NIDIUM_EVENT(CanvasHandler, PAINT_EVENT): {
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            JS::RootedValue eventValue(m_Cx);
+
+            eventValue.setObjectOrNull(eventObj);
+            this->fireJSEvent("paint", &eventValue);
+            break;
+        }        
         case NIDIUM_EVENT(CanvasHandler, LOADED_EVENT): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);

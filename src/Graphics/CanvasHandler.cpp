@@ -597,6 +597,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
                       m_aTop + m_Padding.global + this->getHeight())));
 
         if (draw && m_Context && willDraw) {
+
             m_Context->preComposeOn(
                 static_cast<Canvas2DContext *>(layerContext.m_Layer->m_Context),
                 m_aLeft - m_Padding.global, m_aTop - m_Padding.global, popacity,
@@ -734,6 +735,13 @@ void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
         if (m_Width != newWidth) {
             this->setWidth(newWidth, true);
         }
+    }
+
+    if (m_NeedPaint && willDraw) {
+        m_NeedPaint = false;
+        /* XXX: This could mutate the current state
+           of the canvas since it enter the JS */
+        this->paint();
     }
 
     if (!m_Loaded && willDraw) {
@@ -1161,6 +1169,12 @@ bool CanvasHandler::checkLoaded()
         return true;
     }
     return false;
+}
+
+void CanvasHandler::paint()
+{
+    Args arg;
+    this->fireEventSync<CanvasHandler>(PAINT_EVENT, arg);
 }
 
 void CanvasHandler::propertyChanged(EventsChangedProperty property)

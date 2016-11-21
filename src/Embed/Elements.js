@@ -29,16 +29,22 @@ class NidiumNode extends Canvas {
         this.left = attributes.left || 0;
         this.top = attributes.top || 0;
 
-        this.onload = () => {
-            let ctx = this.getContext("2d");
+        var ctx = this.getContext("2d");
 
-            this.clear();
+        this.onload = function() {
+            console.log("on load");
+
             ctx.save();
             this.paint(ctx);
             ctx.restore();
         }
 
-        this.onresize = this.onload;        
+        this.onpaint = function() {
+            console.log("on paint");
+        }
+
+        //this.onload = this.onpaint;
+        this.onresize = this.onpaint;
     }
 
     name() {
@@ -56,6 +62,8 @@ Elements.UIButton = class extends NidiumNode {
         this.position = "inline";
         this.cursor = "pointer";
 
+        this._label = attributes.label || "Button";
+
         this.on("mouseup", function(ev) {
             AnimationBlock(300, Easing.Sinusoidal.Out, function(btn) {
                 btn.width += 20;
@@ -64,6 +72,15 @@ Elements.UIButton = class extends NidiumNode {
                 ev.stopPropagation();
             }, this);
         });
+    }
+
+    set label(value) {
+        this._label = value;
+        this.invalidate();
+    }
+
+    get label() {
+        return this._label;
     }
 
     name() {
@@ -80,7 +97,7 @@ Elements.UIButton = class extends NidiumNode {
         ctx.fillStyle = "#000";
         ctx.textAlign = "center";
 
-        ctx.fillText("Button", this.width/2, this.height/2+4);
+        ctx.fillText(this._label, this.width/2, this.height/2+4);
     }
 }
 
