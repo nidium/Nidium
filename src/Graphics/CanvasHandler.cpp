@@ -594,8 +594,12 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                       m_aLeft + m_Padding.global + this->getWidth(),
                       m_aTop + m_Padding.global + this->getHeight())));
 
-        if (draw && m_Context && willDraw) {
+        if (willDraw && !m_Loaded) {
+            m_Loaded = true;
+            this->checkLoaded();
+        }
 
+        if (draw && m_Context && willDraw) {
 
             ComposeContext compctx = {
                 .handler  = this,
@@ -607,32 +611,25 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                 .clip     = layerContext.m_Clip ? *layerContext.m_Clip : Rect()
             };
 
-            compList.push_back(std::move(compctx));
-
             this->dispatchMouseEvents(layerContext);
 
-            if (willDraw) {
-                /* XXX: This could mutate the current state
-                   of the canvas since it enter the JS */
+            /* XXX: This could mutate the current state
+               of the canvas since it enter the JS */
 
-                if (!m_Loaded) {
-                    m_Loaded = true;
-                    this->checkLoaded();
-                }
-
-                if (m_NeedPaint) {
-                    m_NeedPaint = false;
-                    this->paint();
-                }
-
-                /*
-                    The JS callback could have removed
-                    the canvas from its parent
-                */
-                if (!m_Parent) {
-                    return;
-                }
+            if (m_NeedPaint) {
+                m_NeedPaint = false;
+                this->paint();
             }
+
+            /*
+                The JS callback could have removed
+                the canvas from its parent
+            */
+            if (!m_Parent) {
+                return;
+            }
+            
+            compList.push_back(std::move(compctx));
         }
     }
 
