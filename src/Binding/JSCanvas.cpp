@@ -372,7 +372,7 @@ bool JSCanvas::JS_insertAfter(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
-bool JSCanvas::JS_invalidate(JSContext *cx, JS::CallArgs &args)
+bool JSCanvas::JS_requestPaint(JSContext *cx, JS::CallArgs &args)
 {
     m_CanvasHandler->invalidate();
 
@@ -1396,7 +1396,7 @@ JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
 JSFunctionSpec *JSCanvas::ListMethods()
 {
     static JSFunctionSpec funcs[] = {
-        CLASSMAPPER_FN(JSCanvas, invalidate, 0),
+        CLASSMAPPER_FN(JSCanvas, requestPaint, 0),
         CLASSMAPPER_FN(JSCanvas, getContext, 1),
         CLASSMAPPER_FN(JSCanvas, setContext, 1),
         CLASSMAPPER_FN(JSCanvas, addSubCanvas, 1),
