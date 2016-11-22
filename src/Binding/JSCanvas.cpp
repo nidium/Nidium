@@ -1091,13 +1091,11 @@ bool JSCanvas::JSSetter_opacity(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
-    if (!vp.isNumber()) {
+    if (!JS::ToNumber(cx, vp, &dval)) {
 
         return true;
     }
-
-    dval = vp.toNumber();
-
+    
     m_CanvasHandler->setOpacity(dval);
 
     return true;
