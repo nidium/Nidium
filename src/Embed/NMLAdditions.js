@@ -43,12 +43,13 @@ NML.CreateTree = function(nml)
             /* ES6 destructuring object default value doesnt work
                https://bugzilla.mozilla.org/show_bug.cgi?id=932080
             */
-            let {id, width, height} = elem.attributes;
-            width = width || 50;
-            height = height || 50;
+            let {id} = elem.attributes;
 
-            var ui = new Elements[elem.type](width, height, elem.attributes);
-            ui.id = id;
+            var ui = new Elements[elem.type](elem.attributes);
+
+            if (id) {
+                ui.id = id;
+            }
 
             if (parent) {
                 parent.add(ui);

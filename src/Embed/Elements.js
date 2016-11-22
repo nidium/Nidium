@@ -20,14 +20,36 @@
 /* DEALINGS IN THE SOFTWARE.                                                  */
 /* -------------------------------------------------------------------------- */
 
+var cssParse = require("css-parse");
+
+
 var Elements = {};
 
 class NidiumNode extends Canvas {
-    constructor(width, height, attributes = {}) {
-        super(width, height);
+    constructor(attributes = {}) {
+        super(attributes.width || 10, attributes.height || 10);
 
         this.left = attributes.left || 0;
         this.top = attributes.top || 0;
+
+        if (attributes.styles) {
+            var tr = cssParse(`element.style { ${attributes.styles} }`);
+
+            for (let {property, value} of tr.stylesheet.rules[0].declarations) {
+                this[property] = value;
+            }
+            
+        }
+
+        if (attributes.transition) {
+            var tr = cssParse(`element.style { ${attributes.transition} }`);
+
+            AnimationBlock(1000, Easing.Back.Out, function(elem) {
+                for (let {property, value} of tr.stylesheet.rules[0].declarations) {
+                    elem[property] = value;
+                }
+            }, this);
+        }
 
         this.onload = function() {
             this._ctx = this.getContext("2d");
@@ -47,15 +69,18 @@ class NidiumNode extends Canvas {
         return "DefaultNode"
     }
 
+    ctx2d() {
+        return this.getContext("2d");
+    }
+
     paint(ctx) {}
 }
 
 
 Elements.UIButton = class extends NidiumNode {
-    constructor(width, height, attributes) {
-        super(width, height, attributes);
+    constructor(attributes) {
+        super(attributes);
 
-        this.position = "inline";
         this.cursor = "pointer";
 
         this._label = attributes.label || "Button";
@@ -95,6 +120,37 @@ Elements.UIButton = class extends NidiumNode {
 
         ctx.fillText(this._label, this.width/2, this.height/2+4);
     }
+}
+
+Elements.img = class extends NidiumNode {
+    constructor(attributes) {
+        super(attributes);
+        this.src = attributes.src;
+        this._loaded = false;
+    }
+
+    set src(value) {
+        this._src = value;
+        this._img = new Image();
+        this._img.src = value;
+
+        this._img.onload = () => {
+            this._loaded = true;
+            this.setSize(this._img.width, this._img.height);
+            this.requestPaint();
+        }
+    }
+
+    get src() {
+        return this._src;
+    }
+
+    paint(ctx) {
+        if (this._loaded) {
+            ctx.drawImage(this._img, 0, 0);
+        }
+    }
+
 }
 
 window._onready = function(lst) {
