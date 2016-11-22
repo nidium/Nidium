@@ -29,18 +29,14 @@ class NidiumNode extends Canvas {
         this.left = attributes.left || 0;
         this.top = attributes.top || 0;
 
-        var ctx = this.getContext("2d");
-
         this.onload = function() {
-            console.log("on load");
-
-            ctx.save();
-            this.paint(ctx);
-            ctx.restore();
+            this._ctx = this.getContext("2d");
         }
 
         this.onpaint = function() {
-            console.log("on paint");
+            this._ctx.save();
+            this.paint(this._ctx);
+            this._ctx.restore();
         }
 
         //this.onload = this.onpaint;
@@ -76,7 +72,7 @@ Elements.UIButton = class extends NidiumNode {
 
     set label(value) {
         this._label = value;
-        this.invalidate();
+        this.requestPaint();
     }
 
     get label() {
