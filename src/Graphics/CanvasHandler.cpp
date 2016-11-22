@@ -25,7 +25,6 @@ using Nidium::Interface::UIInterface;
 namespace Nidium {
 namespace Graphics {
 
-
 CanvasHandler::CanvasHandler(int width,
                              int height,
                              Context *nctx,
@@ -488,7 +487,8 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
     }
 }
 
-void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
+void CanvasHandler::layerize(LayerizeContext &layerContext,
+    std::vector<ComposeContext> &compList, bool draw)
 {
     CanvasHandler *cur;
     Rect nclip;
@@ -570,8 +570,6 @@ void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
     */
     if (layerContext.m_Layer == NULL && m_Context) {
         layerContext.m_Layer = this;
-        m_Context->clear(0xFFFFFFFF);
-        m_Context->flush();
     } else {
         double cleft = 0.0, ctop = 0.0;
 
@@ -598,17 +596,43 @@ void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
 
         if (draw && m_Context && willDraw) {
 
-            m_Context->preComposeOn(
-                static_cast<Canvas2DContext *>(layerContext.m_Layer->m_Context),
-                m_aLeft - m_Padding.global, m_aTop - m_Padding.global, popacity,
-                m_Zoom,
-                (m_CoordPosition == COORD_ABSOLUTE) ? NULL
-                                                    : layerContext.m_Clip);
 
-            /*
-                Dispatch current mouse position.
-            */
+            ComposeContext compctx = {
+                .handler  = this,
+                .left     = m_aLeft - m_Padding.global,
+                .top      = m_aTop - m_Padding.global,
+                .opacity  = popacity,
+                .zoom     = m_Zoom,
+                .needClip = (m_CoordPosition != COORD_ABSOLUTE && layerContext.m_Clip),
+                .clip     = layerContext.m_Clip ? *layerContext.m_Clip : Rect()
+            };
+
+            compList.push_back(std::move(compctx));
+
             this->dispatchMouseEvents(layerContext);
+
+            if (willDraw) {
+                /* XXX: This could mutate the current state
+                   of the canvas since it enter the JS */
+
+                if (!m_Loaded) {
+                    m_Loaded = true;
+                    this->checkLoaded();
+                }
+
+                if (m_NeedPaint) {
+                    m_NeedPaint = false;
+                    this->paint();
+                }
+
+                /*
+                    The JS callback could have removed
+                    the canvas from its parent
+                */
+                if (!m_Parent) {
+                    return;
+                }
+            }
         }
     }
 
@@ -669,7 +693,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
                    .m_Clip       = layerContext.m_Clip,
                    .m_SiblingCtx = &siblingctx };
 
-            cur->layerize(ctx, draw);
+            cur->layerize(ctx, compList, draw);
 
             /*
                 Incrementaly check the bottom/right most children
@@ -735,18 +759,6 @@ void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
         if (m_Width != newWidth) {
             this->setWidth(newWidth, true);
         }
-    }
-
-    if (m_NeedPaint && willDraw) {
-        m_NeedPaint = false;
-        /* XXX: This could mutate the current state
-           of the canvas since it enter the JS */
-        this->paint();
-    }
-
-    if (!m_Loaded && willDraw) {
-        m_Loaded = true;
-        this->checkLoaded();
     }
 
     if (layerContext.m_Layer == this) {
@@ -1161,13 +1173,21 @@ void CanvasHandler::execPending()
     this->setPendingFlags(0, false);
 }
 
-bool CanvasHandler::checkLoaded()
+bool CanvasHandler::checkLoaded(bool async)
 {
     if (m_Loaded) {
         Args arg;
-        this->fireEvent<CanvasHandler>(LOADED_EVENT, arg, true);
+
+        if (async) {
+            this->fireEvent<CanvasHandler>(LOADED_EVENT, arg, true);
+
+            return true;
+        }
+
+        this->fireEventSync<CanvasHandler>(LOADED_EVENT, arg);
         return true;
     }
+
     return false;
 }
 

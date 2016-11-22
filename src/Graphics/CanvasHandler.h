@@ -11,6 +11,7 @@
 #include <stdio.h>
 
 #include <jsapi.h>
+#include <vector>
 
 #include "Core/Events.h"
 
@@ -37,7 +38,7 @@ class CanvasHandler;
 class SkiaContext;
 class CanvasContext;
 
-// {{{ Rect
+
 struct Rect
 {
     double m_fLeft, m_fTop, m_fBottom, m_fRight;
@@ -81,9 +82,8 @@ struct Rect
                && y < m_fBottom;
     }
 };
-// }}}
 
-// {{{ LayerSiblingContext
+
 struct LayerSiblingContext
 {
     double m_MaxLineHeight;
@@ -94,9 +94,19 @@ struct LayerSiblingContext
     {
     }
 };
-// }}}
 
-// {{{ LayerizeContext
+
+struct ComposeContext
+{
+    CanvasHandler *handler;
+    double left;
+    double top;
+    double opacity;
+    double zoom;
+    bool   needClip;
+    Rect   clip;
+};
+
 struct LayerizeContext
 {
     CanvasHandler *m_Layer;
@@ -119,9 +129,7 @@ struct LayerizeContext
         m_SiblingCtx = NULL;
     }
 };
-// }}}
 
-// {{{ CanvasHandler
 class CanvasHandler : public Core::Events
 {
 public:
@@ -586,7 +594,7 @@ public:
     void removeFromParent(bool willBeAdopted = false);
     void getChildren(CanvasHandler **out) const;
 
-    bool checkLoaded();
+    bool checkLoaded(bool async = false);
 
     void setCursor(int cursor);
     int getCursor();
@@ -618,7 +626,8 @@ public:
     }
     int32_t countChildren() const;
     bool containsPoint(double x, double y) const;
-    void layerize(LayerizeContext &layerContext, bool draw);
+    void layerize(LayerizeContext &layerContext,
+        std::vector<ComposeContext> &compList, bool draw);
 
     CanvasHandler *m_Parent;
     CanvasHandler *m_Children;
@@ -691,7 +700,7 @@ private:
     int m_Cursor;
     bool m_NeedPaint = true;
 };
-// }}}
+
 
 } // namespace Graphics
 } // namespace Nidium

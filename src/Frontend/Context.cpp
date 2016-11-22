@@ -394,6 +394,16 @@ void Context::rendered(uint8_t *pdata, int width, int height)
 
 void Context::frame(bool draw)
 {
+    LayerizeContext ctx;
+    LayerSiblingContext sctx;
+    Canvas2DContext *rootctx;
+    std::vector<ComposeContext> compList;
+
+    ctx.reset();
+    ctx.m_SiblingCtx = &sctx;
+
+    rootctx = (Canvas2DContext *)m_RootHandler->m_Context;
+
     assert(m_UI != NULL);
     // this->execJobs();
     /*
@@ -413,26 +423,27 @@ void Context::frame(bool draw)
         Exec the pending events a second time in case
         there are resize in the requestAnimationFrame
     */
-    this->execPendingCanvasChanges();
+    this->execPendingCanvasChanges();    
+    m_CanvasOrderedEvents.clear();
+
+    /* Build the composition list */
+    m_RootHandler->layerize(ctx, compList, draw);
 
     m_UI->makeMainGLCurrent();
-
-    m_RootHandler->getContext()->flush();
-    m_RootHandler->getContext()->resetGLContext();
-
-    /* We draw on the UI fbo */
-    glBindFramebuffer(GL_FRAMEBUFFER, m_UI->getFBO());
-    LayerizeContext ctx;
-    ctx.reset();
-    LayerSiblingContext sctx;
-    ctx.m_SiblingCtx = &sctx;
-
-    m_CanvasOrderedEvents.clear();
+    rootctx->clear(0xFFFFFFFF);
+    rootctx->flush();
 
     /*
         Compose canvas eachother on the main framebuffer
     */
-    m_RootHandler->layerize(ctx, draw);
+    m_RootHandler->getContext()->flush();
+    m_RootHandler->getContext()->resetGLContext();
+    /* We draw on the UI fbo */
+    glBindFramebuffer(GL_FRAMEBUFFER, m_UI->getFBO());
+    for (auto &com : compList) {
+        com.handler->m_Context->preComposeOn(rootctx, com.left,
+            com.top, com.opacity, com.zoom, com.needClip ? &com.clip : nullptr);
+    }
 
     this->triggerEvents();
     this->clearInputEvents();

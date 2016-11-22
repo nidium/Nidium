@@ -1672,7 +1672,7 @@ JSCanvas::JSCanvas(CanvasHandler *handler)
     /*
         Trigger "loaded" event if not lazy loaded
     */
-    m_CanvasHandler->checkLoaded();
+    m_CanvasHandler->checkLoaded(true);
 }
 
 JSCanvas::~JSCanvas()
