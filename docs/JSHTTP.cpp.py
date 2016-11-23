@@ -91,7 +91,7 @@ h.request({
 
 FunctionDoc("HTTP.stop", "Stop a pending request.\n\n If a request is pending the `error` event will be fired.",
     SeesDocs("HTTP.request"),
-    [ExampleDoc("""var h = new Http("http://www.nidium.com");
+    [ExampleDoc("""var h = new HTTP("http://www.nidium.com");
 
 h.addEventListener("error", function(ev) {
     console.log("Got an error", ev.error);

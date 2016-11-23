@@ -4,31 +4,31 @@
 
 from dokumentor import *
 
-ClassDoc("DB", """Key/Value store backed by LevelDB""", 
+ClassDoc("DB", """Key/Value store backed by LevelDB""",
     NO_Sees,
     [ExampleDoc("""var DB = require("DB");
-var db = new DB("mydb");
+var db = new DB("mydb_base");
 db.set("foo", "bar");
 console.log(db.get("foo"));""")],
     products=["Frontend", "Server"])
 
 ConstructorDoc("DB", """Open a database
-        
+
 > You cannot open more than once the same DB""",
     NO_Sees,
     [ExampleDoc("""var DB = require("DB");
-var db = new DB("mydb");
+var db = new DB("mydb_open");
 db.set("foo", "bar");
 console.log(db.get("foo"));""")])
 
-FunctionDoc("DB.set", "Set the value for a key", 
+FunctionDoc("DB.set", "Set the value for a key",
     NO_Sees,
     [ExampleDoc("""var DB = require("DB");
-var db = new DB("mydb");
+var db = new DB("mydb_set");
 db.set("foo", "bar");
 
 // You can store complex JS object too
-db.set("foo", {"foo": "bar"}); 
+db.set("foo", {"foo": "bar"});
 console.log(JSON.stringify(db.get("foo")));
 
 db.set("foo", function() { console.log("hello world") });
@@ -40,10 +40,10 @@ fn(); // Will print "hello world" """)],
         ParamDoc("value", "the value to set", "mixed", IS_Obligated),
     ])
 
-FunctionDoc("DB.get", "Get the value for a key", 
+FunctionDoc("DB.get", "Get the value for a key",
     NO_Sees,
     [ExampleDoc("""var DB = require("DB");
-var db = new DB("mydb");
+var db = new DB("mydb_get");
 db.set("foo", "bar");
 console.log(db.get("foo"));""")],
     IS_Dynamic, IS_Public, IS_Fast,
@@ -54,10 +54,10 @@ console.log(db.get("foo"));""")],
 
 FunctionDoc("DB.close", """Force the database to be closed
 
-> The `DB` instance will automatically be closed when the DB instance is GCed""", 
+> The `DB` instance will automatically be closed when the DB instance is GCed""",
     NO_Sees,
     [ExampleDoc("""var DB = require("DB");
-var db = new DB("mydb");
+var db = new DB("mydb_close");
 db.set("foo", "bar");
 db.close();
 
@@ -71,10 +71,10 @@ try {
 // It's okay to re-use the same DB once it has been closed
 var otherInstance = new DB("mydb");""")])
 
-FunctionDoc("DB.delete", "Delete a key from the DB", 
+FunctionDoc("DB.delete", "Delete a key from the DB",
     NO_Sees,
     [ExampleDoc("""var DB = require("DB");
-var db = new DB("mydb");
+var db = new DB("mydb_delete");
 
 db.set("foo", "bar");
 console.log(db.get("foo"));
@@ -83,10 +83,10 @@ db.delete("foo");
 console.log(db.get("foo"));
 """)])
 
-FunctionDoc("DB.drop", "Drop the database (delete it)", 
+FunctionDoc("DB.drop", "Drop the database (delete it)",
     NO_Sees,
     [ExampleDoc("""var DB = require("DB");
-var db = new DB("mydb");
+var db = new DB("mydb_drop");
 db.drop();
 
 try {

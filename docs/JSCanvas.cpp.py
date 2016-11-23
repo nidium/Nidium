@@ -45,9 +45,20 @@ NamespaceDoc( "CanvasInherrit", "Parent/Prototype object for `Canvas`.",
 
 FunctionDoc( "Canvas.show", """Show a previously hidden canvas.""",
     SeesDocs( "Canvas.show|Canvas.hide" ),
-    [ExampleDoc( """canvas.hide();
-//..
-canvas.show();""" ) ],
+    [ExampleDoc( """var canvas = new Canvas(200, 100);
+document.canvas.add(canvas);
+var ctx= canvas.getContext("2d");
+ctx.fillStyle = "blue";
+ctx.fillRect(0, 0, 100, 100);
+bool showIt = true;
+setInterval(function() {
+    if (showIt) {
+        canvas.show();
+    } else {
+        canvas.hide();
+    }
+    showIt = ! showIt;
+}, 250);""" ) ],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
     NO_Returns

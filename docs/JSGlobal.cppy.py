@@ -13,7 +13,7 @@ try {
 } catch(e) {
     console.log("Could not open '" + filename + "': " + e.message)
 }"""),
-        ExampleDoc( """console.log( cwd( )  + '\\n' + __dirname + '\\n' + __filename + '\\n' );"""),
+        ExampleDoc( """console.log( process.cwd( )  + '\\n' + __dirname + '\\n' + __filename + '\\n' );"""),
         ExampleDoc( """var t = setTimeout( function() {
     console.log( "Nidium" );}, 1000 );
 clearTimeout( t );"""),
@@ -54,10 +54,10 @@ This function is only available if the nidium application is running a NML file 
 The 'path' is relative to the NML file that run the current application.""",
     [ SeeDoc( "global.require" )],
     [ExampleDoc( """try {
-    load( '/nidium.js' ); 
+    load( '/nidium.js' );
 } catch(e) {
     console.log("warning: "+ e.message);
-    
+
     }""" )],
     IS_Static, IS_Public, IS_Fast,
     [ParamDoc( "path", "The javascript sourcefile that needs to be imported", "string", NO_Default, IS_Obligated ) ],
@@ -72,7 +72,7 @@ clearTimeout( t );""" ) ],
     [
         CallbackDoc( 'fn', 'The function to be called', NO_Default ),
         ParamDoc( 'timeout','timeout in miliseconds', 'integer', 8, IS_Obligated ),
-        ParamDoc( 'args', "argument for the callback", 'mixed', '[]', IS_Obligated ) 
+        ParamDoc( 'args', "argument for the callback", 'mixed', '[]', IS_Obligated )
     ],
     ReturnDoc( "An identifier representing the timer that can be used to stop the timer with 'global.clearTimeout'", 'integer' )
 )
