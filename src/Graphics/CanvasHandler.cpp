@@ -505,7 +505,6 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 
     int tmpLeft;
     int tmpTop;
-    bool willDraw = true;
 
     if (m_CoordPosition == COORD_RELATIVE
         && (m_FlowMode & kFlowBreakAndInlinePreviousSibling)) {
@@ -571,6 +570,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
     if (layerContext.m_Layer == NULL && m_Context) {
         layerContext.m_Layer = this;
     } else {
+        bool willDraw = true;
         double cleft = 0.0, ctop = 0.0;
 
         if (m_CoordPosition != COORD_ABSOLUTE) {
@@ -628,7 +628,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
             if (!m_Parent) {
                 return;
             }
-            
+
             compList.push_back(std::move(compctx));
         }
     }

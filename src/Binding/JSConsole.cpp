@@ -41,7 +41,6 @@ bool JSConsole::JS_clear(JSContext *cx, JS::CallArgs &args)
 bool JSConsole::JS_log(JSContext *cx, JS::CallArgs &args)
 {
     unsigned i;
-    char *bytes;
     const char *filename_parent;
     unsigned lineno;
 
@@ -69,7 +68,7 @@ bool JSConsole::JS_log(JSContext *cx, JS::CallArgs &args)
             return false;
         }
 
-        bytes = JS_EncodeStringToUTF8(cx, str);
+        char * bytes = JS_EncodeStringToUTF8(cx, str);
         if (!bytes) {
             return false;
         }

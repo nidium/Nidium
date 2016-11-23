@@ -98,6 +98,12 @@ namespace Binding {
     CLASSMAPPER_PROLOGUE_CLASS_NO_RET(ofclass) \
     args.rval().setUndefined();
 
+#define NIDIUM_JS_REGISTER_MODULE(constructor)                      \
+    extern "C" __attribute__((__visibility__("default"))) bool      \
+    __NidiumRegisterModule(JSContext *cx, JS::HandleObject exports) \
+    {                                                               \
+        return constructor(cx, exports);                            \
+    }
 
 template <typename T>
 class ClassMapper

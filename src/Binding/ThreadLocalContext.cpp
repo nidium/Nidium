@@ -14,7 +14,7 @@ static pthread_key_t g_NidiumThreadContextKey;
 
 NidiumLocalContext *NidiumLocalContext::Get()
 {
-    return (NidiumLocalContext *)pthread_getspecific(g_NidiumThreadContextKey);
+    return static_cast<NidiumLocalContext *>(pthread_getspecific(g_NidiumThreadContextKey));
 }
 
 void NidiumLocalContext::Init()
@@ -32,14 +32,14 @@ void NidiumLocalContext::InitJSThread(JSRuntime *rt, JSContext *cx)
 
 void NidiumLocalContext::_destroy(void *data)
 {
-    NidiumLocalContext *nlc = (NidiumLocalContext *)data;
+    NidiumLocalContext *nlc = static_cast<NidiumLocalContext *>(data);
 
     delete nlc;
 }
 
 void NidiumLocalContext::_jstrace(JSTracer *trc, void *data)
 {
-    NidiumLocalContext *nlc = (NidiumLocalContext *)data;
+    NidiumLocalContext *nlc = static_cast<NidiumLocalContext *>(data);
 
     if (nlc->isShuttingDown()) {
         return;

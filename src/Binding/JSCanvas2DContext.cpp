@@ -835,7 +835,7 @@ bool Canvas2DContext::JS_putImageData(JSContext *cx, JS::CallArgs &args)
 
     JS::RootedObject jObj(cx);
     JS_ValueToObject(cx, jdata, &jObj);
-    
+
     JS::ToInt32(cx, jwidth, &w);
     JS::ToInt32(cx, jheight, &h);
 
@@ -2101,7 +2101,6 @@ void Canvas2DContext::getSize(int *width, int *height) const
 
 void Canvas2DContext::setSize(int width, int height, bool redraw)
 {
-    SkBaseDevice *ndev = NULL;
     SkCanvas *ncanvas;
 
     float ratio
@@ -2119,6 +2118,7 @@ void Canvas2DContext::setSize(int width, int height, bool redraw)
         SkiaContext::m_GlContext = ncanvas;
 
     } else {
+        SkBaseDevice *ndev = NULL;
 #if 1
         const SkImageInfo &info
             = SkImageInfo::MakeN32Premul(width * ratio, height * ratio);

@@ -29,7 +29,7 @@ public:
             return nullptr;
         }
 
-        return (JSGlobal *)JS_GetPrivate(JS::CurrentGlobalOrNull(cx));
+        return static_cast<JSGlobal *>(JS_GetPrivate(JS::CurrentGlobalOrNull(cx)));
     }
 
     /*
