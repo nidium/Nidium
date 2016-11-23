@@ -17,7 +17,7 @@ class JSImageData : public ClassMapper<JSImageData>
 public:
     static void RegisterObject(JSContext *cx)
     {
-        JSImageData::ExposeClass(cx, "ImageData");
+        ExposeClass(cx, "ImageData");
     }
 };
 
