@@ -432,7 +432,6 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height, Context *nctx)
         return NULL;
     }
 
-    const GrGLInterface *interface = NULL;
     GrContext *context             = NULL;
 
     if (SkiaContext::m_GlContext) {
@@ -441,6 +440,7 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height, Context *nctx)
                    ->context());
         context->ref();
     } else {
+        const GrGLInterface *interface = NULL;
 
         if ((interface = nctx->getGLState()->getNidiumGLContext()->iface())
             == NULL) {
