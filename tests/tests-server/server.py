@@ -1,6 +1,10 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
+#   Copyright 2016 Nidium Inc. All rights reserved.
+#   Use of this source code is governed by a MIT license
+#   that can be found in the LICENSE file.
+
 import sys
 
 from twisted.internet import reactor
@@ -36,7 +40,7 @@ class HTTPTests(Resource):
     def testNotFound(self, req):
         req.setResponseCode(404)
         return "No tests named \"%s\"" % (self.test)
-        
+
     def _process(self, req):
         return getattr(self, "test_%s" % (self.test.replace("-", "_")), self.testNotFound)(req)
 

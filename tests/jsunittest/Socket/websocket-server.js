@@ -1,3 +1,9 @@
+/*
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
+
 Tests.registerAsync("Websocket - Echo local server (plain)", function(next) {
     var server = new WebSocketServer("ws://127.0.0.1:9099/");
     var done = false;

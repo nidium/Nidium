@@ -1,6 +1,12 @@
 #ifndef binding_jsimage_h__
 #define binding_jsimage_h__
 
+/*
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
+
 #include "Core/Messages.h"
 #include "IO/Stream.h"
 #include "Binding/ClassMapper.h"
