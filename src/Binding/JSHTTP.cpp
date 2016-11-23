@@ -89,7 +89,7 @@ JSHTTP *JSHTTP::Constructor(JSContext *cx, JS::CallArgs &args,
         getOptionsAndCallback(cx, &args, 1, &options, &callback);
 
         /*
-            We need to associate the object early because 
+            We need to associate the object early because
             jshttp->request and parseOptions require m_instance and root()
         */
         AssociateObject(cx, jshttp, obj);
@@ -301,8 +301,7 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
 
     NIDIUM_JS_GET_OPT_TYPE(options, "maxRedirects", Number)
     {
-        uint32_t max = 8;
-        max          = __curopt.toInt32();
+        uint32_t max = __curopt.toInt32();
 
         m_HTTP->setMaxRedirect(max);
     }
