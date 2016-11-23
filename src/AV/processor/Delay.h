@@ -1,11 +1,10 @@
-#ifndef av_processor_delay_h__
-#define av_processor_delay_h__
-
 /*
    Copyright 2016 Nidium Inc. All rights reserved.
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
+#ifndef av_processor_delay_h__
+#define av_processor_delay_h__
 
 #include <math.h>
 

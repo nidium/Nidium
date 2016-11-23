@@ -11,7 +11,6 @@
 namespace Nidium {
 namespace Binding {
 
-
 class JSImageData : public ClassMapper<JSImageData>
 {
 public:

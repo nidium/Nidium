@@ -4,7 +4,6 @@
    that can be found in the LICENSE file.
 */
 
-
 /*
     AnimationBlock provides a way to easily create animation is a declarative way
 

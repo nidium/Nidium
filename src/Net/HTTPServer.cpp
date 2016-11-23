@@ -3,8 +3,6 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -493,7 +491,7 @@ HTTPResponse *HTTPClientConnection::onCreateResponse()
 void HTTPClientConnection::dettach()
 {
     m_HTTPServer = nullptr;
-    
+
     if (m_SocketClient) {
         m_SocketClient->ctx = NULL;
 

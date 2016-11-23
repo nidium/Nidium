@@ -3,7 +3,6 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-
 #ifndef io_embedstream_h__
 #define io_embedstream_h__
 

@@ -3,8 +3,6 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>

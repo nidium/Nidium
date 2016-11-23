@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-
 #define _HAVE_SSL_SUPPORT 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
