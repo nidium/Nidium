@@ -153,7 +153,6 @@ void Context::setUIObject(Interface::UIInterface *ui)
 {
     m_UI  = ui;
     m_NML = m_UI->m_Nml;
-    m_NML->setNJS(m_JS);
 
     GLState::CreateForContext(this);
 

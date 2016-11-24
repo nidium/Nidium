@@ -570,6 +570,8 @@ bool UIInterface::runApplication(const char *path)
 
     m_NidiumCtx = new Context(this->m_Gnet);
     m_Nml = new NML(this->m_Gnet);
+    m_Nml->setNJS(m_NidiumCtx->getNJS());
+
     m_Nml->loadFile(path, UIInterface::OnNMLLoaded, this);
 
     return true;
