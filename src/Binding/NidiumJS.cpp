@@ -36,6 +36,8 @@
 #include "Binding/JSGlobal.h"
 #include "Binding/JSDB.h"
 #include "Binding/JSOS.h"
+#include "Binding/JSVM.h"
+
 #include "Binding/ThreadLocalContext.h"
 
 #ifndef NIDIUM_DISABLE_WINDOW_GLOBAL
@@ -615,7 +617,8 @@ int NidiumJS::LoadScriptReturn(JSContext *cx,
 
 int NidiumJS::LoadScriptContent(const char *data,
                                 size_t len,
-                                const char *filename)
+                                const char *filename,
+                                JS::HandleObject scope)
 {
     if (!len) {
         /* silently success */
@@ -651,7 +654,12 @@ int NidiumJS::LoadScriptContent(const char *data,
 
     bool state = JS::Compile(m_Cx, options, data, len, &script);
 
-    if (!state || !JS_ExecuteScript(m_Cx, script)) {
+    JS::AutoObjectVector scopeChain(m_Cx);
+    if (scope != nullptr) {
+        scopeChain.append(scope);
+    }
+
+    if (!state || !JS_ExecuteScript(m_Cx, scopeChain, script)) {
         if (JS_IsExceptionPending(m_Cx)) {
             if (!JS_ReportPendingException(m_Cx)) {
                 JS_ClearPendingException(m_Cx);
@@ -776,6 +784,7 @@ void NidiumJS::loadGlobalObjects()
     JSDebuggerCompartment::RegisterObject(m_Cx);
     JSDB::RegisterObject(m_Cx);
     JSOS::RegisterObject(m_Cx);
+    JSVM::RegisterObject(m_Cx);
 
     m_Modules = new JSModules(m_Cx);
     if (!m_Modules) {

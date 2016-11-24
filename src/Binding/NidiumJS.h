@@ -100,7 +100,8 @@ public:
     static int LoadScriptReturn(JSContext *cx,
                                 const char *filename,
                                 JS::MutableHandleValue ret);
-    int LoadScriptContent(const char *data, size_t len, const char *filename);
+    int LoadScriptContent(const char *data, size_t len, const char *filename,
+        JS::HandleObject scope = nullptr);
 
     char *LoadScriptContentAndGetResult(const char *data,
                                         size_t len,
