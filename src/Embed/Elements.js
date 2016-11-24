@@ -13,27 +13,12 @@ class NidiumNode extends Canvas {
     constructor(attributes = {}) {
         super(attributes.width || 10, attributes.height || 10);
 
+        this.attributes = attributes;
+        this.computedAttributes = {};
+
         this.left = attributes.left || 0;
         this.top = attributes.top || 0;
-
-        if (attributes.styles) {
-            var tr = cssParse(`element.style { ${attributes.styles} }`);
-
-            for (let {property, value} of tr.stylesheet.rules[0].declarations) {
-                this[property] = value;
-            }
-            
-        }
-
-        if (attributes.transition) {
-            var tr = cssParse(`element.style { ${attributes.transition} }`);
-
-            AnimationBlock(1000, Easing.Back.Out, function(elem) {
-                for (let {property, value} of tr.stylesheet.rules[0].declarations) {
-                    elem[property] = value;
-                }
-            }, this);
-        }
+        this.opacity = attributes.opacity || 1;
 
         this.onload = function() {
             this._ctx = this.getContext("2d");
@@ -41,12 +26,26 @@ class NidiumNode extends Canvas {
 
         this.onpaint = function() {
             this._ctx.save();
+            this.clear();
             this.paint(this._ctx);
             this._ctx.restore();
         }
 
         //this.onload = this.onpaint;
         this.onresize = this.onpaint;
+
+    }
+
+    setAttribute(attr, value) {
+        switch(attr) {
+            case 'height':
+            console.log("Height set");
+            this.height = parseInt(value);
+            break;
+        }
+
+        this.computedAttributes[attr] = value;
+        this.requestPaint();
     }
 
     name() {
@@ -67,14 +66,14 @@ Elements.UIButton = class extends NidiumNode {
 
         this.cursor = "pointer";
 
-        this._label = attributes.label || "Button";
-
         this.on("mouseup", function(ev) {
-            AnimationBlock(300, Easing.Sinusoidal.Out, function(btn) {
+            AnimationBlock(500, Easing.Back.Out, function(btn) {
                 btn.width += 20;
                 btn.height += 20;
                 /* TODO: stopPropagation doesn't work? */
                 ev.stopPropagation();
+
+
             }, this);
         });
     }
@@ -96,13 +95,40 @@ Elements.UIButton = class extends NidiumNode {
         ctx.fillStyle = "#aaa";
         ctx.stokeStyke = "#111";
 
-        ctx.fillRect(0, 0, this.width, this.height, 5, 5);
-        ctx.strokeRect(0, 0, this.width-0.5, this.height-0.5, 5, 5);
+        ctx.fillRect(0, 0, this.width, this.height, 15, 15);
+        ctx.strokeRect(0, 0, this.width-0.5, this.height-0.5, 15, 15);
 
         ctx.fillStyle = "#000";
         ctx.textAlign = "center";
 
         ctx.fillText(this._label, this.width/2, this.height/2+4);
+    }
+}
+
+Elements.section = class extends NidiumNode {
+    constructor(attributes) {
+        super(attributes);
+
+        var mr = (min=100, max=200) => min + Math.floor(Math.random()*(max-min));
+        this._color = `rgba(${mr(70, 100)}, ${mr(120, 200)}, ${mr(140, 210)}, 0.8)`;
+    }
+
+    name() {
+        return "section";
+    }
+
+    paint(ctx) {
+        ctx.fillStyle = this._color;
+        ctx.fillRect(0, 0, this.width, this.height);
+        ctx.strokeStyle = "rgb(0, 255, 255)";
+        ctx.strokeRect(0.5, 0.5, this.width-1, this.height-1);
+
+        if (this.computedAttributes.label) {
+            ctx.fillStyle = "#000";
+            ctx.textAlign = "center";
+            ctx.fontSize = 20;
+            ctx.fillText(this.computedAttributes.label, this.width / 2, this.height - 20);
+        }
     }
 }
 
