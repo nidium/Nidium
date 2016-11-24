@@ -14,7 +14,7 @@
                 logo.left = 280;
                 logo.opacity = 0;
 
-                AnimationBlock(1000, Easing.Back.Out, function(logo) {
+                AnimationBlock(1500, Easing.Back.Out, function(logo) {
                     logo.top = 200;
                     logo.opacity = 1;
                 }, logo);
@@ -23,7 +23,7 @@
         </script>
     </assets>
     <layout>
-        <img id="logo" src="embed://resources/logo-white.png" />
+        <img id="logo" left="280" src="embed://resources/logo-white.png" />
     </layout>
 </application>
 
