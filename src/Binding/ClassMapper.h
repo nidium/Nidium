@@ -160,6 +160,30 @@ public:
         return proto;
     }
 
+    /*
+        Create a simple object (without any instance).
+        Only static methods are implemented
+    */
+    static JSObject *ExposeObject(JSContext *cx, const char *name,
+        JS::HandleObject parent = nullptr)
+    {
+        JSClass *jsclass = T::GetJSClass();
+        jsclass->name    = name;
+
+        JS::RootedObject ret(cx, JS_NewObject(cx, jsclass));
+
+        if (T::ListStaticMethods()) {
+            JS_DefineFunctions(cx, ret, T::ListStaticMethods());
+        }
+
+        if (parent) {
+            JS::RootedValue rval(cx, JS::ObjectValue(*ret));
+            JS_SetProperty(cx, parent, name, rval);
+        }
+
+        return ret;
+    }
+
     static void AssociateObject(JSContext *cx, T *obj, JS::HandleObject jsobj,
         bool implement = false)
     {
