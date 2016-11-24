@@ -20,7 +20,7 @@ public:
     static void RegisterObject(JSContext *cx);
     static JSObject *RegisterModule(JSContext *cx);
 
-    //static JSFunctionSpec *ListStaticMethods();
+    static JSFunctionSpec *ListStaticMethods();
 protected:
 
     NIDIUM_DECL_JSCALL_STATIC(runInScope);

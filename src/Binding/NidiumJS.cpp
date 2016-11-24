@@ -632,13 +632,6 @@ int NidiumJS::LoadScriptContent(const char *data,
         return this->LoadBytecode((void *)(data), len, filename);
     }
 
-    JS::RootedObject gbl(m_Cx, JS::CurrentGlobalOrNull(m_Cx));
-
-    if (!gbl) {
-        fprintf(stderr, "Failed to load global object\n");
-        return 0;
-    }
-
     JS::RootedScript script(m_Cx);
 #if 0
     /* RAII helper that resets to origin options state */
