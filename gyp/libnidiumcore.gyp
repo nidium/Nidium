@@ -146,6 +146,7 @@
             '../src/Binding/JSWebSocketClient.cpp',
             '../src/Binding/JSDB.cpp',
             '../src/Binding/JSOS.cpp',
+            '../src/Binding/JSVM.cpp',
 
             '../src/Core/SharedMessages.cpp',
             '../src/Core/Utils.cpp',
