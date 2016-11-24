@@ -55,7 +55,7 @@
 
                         let parent = this.getParent();
                         if (parent) {
-                            return parent.inh[prop];
+                            return parent.inherit[prop];
                         }
                     }
                 });
