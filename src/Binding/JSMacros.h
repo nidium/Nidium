@@ -25,10 +25,19 @@
     {                                                                   \
         JS::RootedValue _oncallback(cx);                                \
         JS::RootedValue _rval(cx);                                      \
-        JS::RootedValue rval(cx);                                       \
         if (JS_GetProperty(cx, where, name, &_oncallback)               \
             && JS_TypeOfValue(cx, _oncallback) == JSTYPE_FUNCTION) {    \
             JS_CallFunctionValue(cx, where, _oncallback, argv, &_rval); \
+        }                                                               \
+    }
+
+#define JSOBJ_CALLFUNCNAME_RVAL(where, name, argv, rval)                \
+    {                                                                   \
+        JS::RootedValue _oncallback(cx);                                \
+        JS::RootedValue rval(cx);                                       \
+        if (JS_GetProperty(cx, where, name, &_oncallback)               \
+            && JS_TypeOfValue(cx, _oncallback) == JSTYPE_FUNCTION) {    \
+            JS_CallFunctionValue(cx, where, _oncallback, argv, &rval);  \
         }                                                               \
     }
 
