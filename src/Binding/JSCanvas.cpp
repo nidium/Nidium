@@ -1533,6 +1533,13 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx,
 
 void JSCanvas::onMessage(const SharedMessages::Message &msg)
 {
+    /*
+        Don't process any Javascript when shutting down
+    */
+    if (NidiumLocalContext::Get()->isShuttingDown()) {
+        return;
+    }
+
     JSContext *cx = m_Cx;
     JS::RootedObject ro(cx, m_Instance);
 
@@ -1559,6 +1566,22 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
 
             eventValue.setObjectOrNull(eventObj);
             this->fireJSEvent("load", &eventValue);
+            break;
+        }
+        case NIDIUM_EVENT(CanvasHandler, MOUNT_EVENT): {
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            JS::RootedValue eventValue(m_Cx);
+
+            eventValue.setObjectOrNull(eventObj);
+            this->fireJSEvent("mount", &eventValue);
+            break;
+        }
+        case NIDIUM_EVENT(CanvasHandler, UNMOUNT_EVENT): {
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            JS::RootedValue eventValue(m_Cx);
+
+            eventValue.setObjectOrNull(eventObj);
+            this->fireJSEvent("unmount", &eventValue);
             break;
         }
         case NIDIUM_EVENT(CanvasHandler, CHANGE_EVENT): {

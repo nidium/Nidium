@@ -165,7 +165,9 @@ public:
         CHANGE_EVENT,
         MOUSE_EVENT,
         DRAG_EVENT,
-        PAINT_EVENT
+        PAINT_EVENT,
+        MOUNT_EVENT,
+        UNMOUNT_EVENT
     };
 
     enum Position
