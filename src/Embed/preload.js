@@ -4,7 +4,7 @@
    that can be found in the LICENSE file.
 */
 
-function __nidiumPreload(options) {O
+function __nidiumPreload(options) {
     if (options.html5) {
         load("embed://html5.js");
     }
@@ -12,4 +12,5 @@ function __nidiumPreload(options) {O
     load("embed://NMLAdditions.js");
     load("embed://AnimationBlock.js");
     load("embed://Elements.js");
+    load("embed://MVVM.js");
 }
