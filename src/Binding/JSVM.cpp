@@ -5,6 +5,9 @@
 */
 #include "JSVM.h"
 #include "JSModules.h"
+
+#include "NidiumJS.h"
+
 #include <js/CharacterEncoding.h>
 
 namespace Nidium {
@@ -22,8 +25,18 @@ bool JSVM::JSStatic_runInScope(JSContext *cx, JS::CallArgs &args)
         return false;        
     }
 
+    JS::RootedObject gbl(cx, NidiumJS::CreateJSGlobal(cx));
+    JSAutoCompartment ac(cx, gbl);
+
+    JS_WrapValue(cx, args[1]);
+    JS_WrapValue(cx, args[0]);
+
     JS::AutoObjectVector scopeChain(cx);
 
+    /*
+        TODO: Crash if the global object is given.
+        How to check if args[1] is the global object ?
+    */
     scopeChain.append(&args[1].toObject());
 
     JSAutoByteString code;
