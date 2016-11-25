@@ -4,6 +4,8 @@
    that can be found in the LICENSE file.
 */
 
+const Elements = require("./lib/Elements.js");
+
 function reportUnsupported(message) {
     console.info("[HTML5Compat] " + message);
 }
@@ -68,7 +70,7 @@ Canvas.prototype.appendChild = function(child) {
     if (child instanceof Canvas) {
         this.add(child);
     } else {
-        reportUnsupported("appendChild only supports canvas");
+        reportUnsupported("appendChild only supports canvas " + typeof child);
     }
 };
 
@@ -127,8 +129,13 @@ document.createElement = function(what) {
             return new Image();
 
         default:
+            return new Elements[what]();
             throw new Error("createElement(\"" + what + "\") is not supported");
     }
+}
+
+document.querySelector = function(sel) {
+    return document.getCanvasById(sel);
 }
 
 document.createElementNS = function(ns, what) {

@@ -4,10 +4,11 @@
    that can be found in the LICENSE file.
 */
 
-var cssParse = require("css-parse");
-
+const cssParse = require("css-parse");
 
 var Elements = {};
+
+module.exports = Elements;
 
 class NidiumNode extends Canvas {
     constructor(attributes = {}) {
@@ -131,6 +132,8 @@ Elements.section = class extends NidiumNode {
         }
     }
 }
+
+Elements.div = Elements.section;
 
 Elements.img = class extends NidiumNode {
     constructor(attributes) {

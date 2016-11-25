@@ -11,6 +11,30 @@ function __nidiumPreload(options) {
     load("embed://CanvasAdditions.js");
     load("embed://NMLAdditions.js");
     load("embed://AnimationBlock.js");
-    load("embed://Elements.js");
     load("embed://MVVM.js");
+}
+
+if (0) {
+var CreateCatchAllProxy = function(base = {}) {
+    return new Proxy(Object.assign(base, {[Symbol.toPrimitive]: () => 'hey'}), {
+        get: (target, property, value, rcv) => {
+
+            if (!(property in target)) {
+                target[property] = CreateCatchAllProxy({__accessor: target.__accessor ? `${target.__accessor}.${property}` : property});
+            }
+
+            return target[property];
+        },
+
+        set: (target, property, rcv) => {
+            throw Error("Assignation is forbiden");
+        }
+    })
+}
+
+var dynamic = CreateCatchAllProxy();
+
+with(dynamic.foo) {
+    console.log("value", dynamic.foo.bar.yo.asd.asd.__accessor);
+}
 }
