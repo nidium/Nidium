@@ -454,13 +454,14 @@ _remotedebug.handle('DOM.getDocument', function(reply, params) {
 
         let tree = {
             nodeId: parseInt(root.idx),
-            nodeType: 1,
+            nodeType: root.nodeType || 1,
             nodeValue: "",
             nodeName: nodeName.toUpperCase(),
             localName: nodeName,
             attributes: [],
             childNodeCount: children.length,
-            children: []
+            children: [],
+            nodeValue: root.nodeValue
         }
 
         if (genesis) {
@@ -477,7 +478,6 @@ _remotedebug.handle('DOM.getDocument', function(reply, params) {
         if (root.id) {
             tree.attributes.push("id", root.id);
         }
-        
 
         console.log(tree.attributes);
 

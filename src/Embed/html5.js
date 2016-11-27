@@ -129,9 +129,12 @@ document.createElement = function(what) {
             return new Image();
 
         default:
-            return new Elements[what]();
-            throw new Error("createElement(\"" + what + "\") is not supported");
+            return Elements.Create(what);
     }
+}
+
+document.createTextNode = function(text) {
+    return Elements.Create("textNode", text);
 }
 
 document.querySelector = function(sel) {

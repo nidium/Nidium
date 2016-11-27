@@ -441,9 +441,10 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
     m_Parent = NULL;
     m_Next   = NULL;
     m_Prev   = NULL;
-
+#if 0
     Args arg;
     this->fireEventSync<CanvasHandler>(UNMOUNT_EVENT, arg);
+#endif
 }
 
 void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)

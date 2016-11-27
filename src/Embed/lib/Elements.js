@@ -4,11 +4,41 @@
    that can be found in the LICENSE file.
 */
 
-const cssParse = require("css-parse");
+const Elements = {
 
-var Elements = {};
+    Create(tag, attributes) {
+        if (!(tag in Elements)) {
+            throw Error(`${tag} tag type is not implemented`);
+            return;
+        }
 
-module.exports = Elements;
+        return new Elements[tag](attributes);
+
+        /*return new Proxy(new Elements[tag](attributes), {
+            get: (target, prop, rcv) => {
+                console.log("get",prop, target[prop]);
+                if (typeof target[prop] == "function") {
+                    return target[prop].bind(target);
+                }
+
+                return Reflect.get(target, prop, rcv);
+            },
+
+            set: (target, property, value, rcv) => {
+                console.log("Setting", property, ":", value);
+                target[property] = value;
+
+                return true;
+            }
+        });*/
+
+    },
+
+    Exists(tag) {
+        return (tag in Elements);
+    }
+
+};
 
 class NidiumNode extends Canvas {
     constructor(attributes = {}) {
@@ -21,28 +51,121 @@ class NidiumNode extends Canvas {
         this.top = attributes.top || 0;
         this.opacity = attributes.opacity || 1;
 
-        this.onload = function() {
-            this._ctx = this.getContext("2d");
-        }
-
-        this.onpaint = function() {
-            this._ctx.save();
-            this.clear();
-            this.paint(this._ctx);
-            this._ctx.restore();
-        }
-
         //this.onload = this.onpaint;
         this.onresize = this.onpaint;
+        this._textValue = "";
+    }
 
+    onload() {
+        this._ctx = this.getContext("2d");
+    }
+
+    onpaint() {
+        if (!this._ctx) return;
+
+        this._ctx.save();
+        this.clear();
+        this.paint(this._ctx);
+        this._ctx.restore();
+    }
+
+    removeChild(child) {
+        if (!child) {
+            return;
+        }
+
+        var parent = child.getParent();
+        if (!parent) {
+            return;
+        }
+
+        if (parent.idx != this.idx) {
+            return;
+        }
+
+        child.removeFromParent();
+    }
+
+    hasAttribute(attr) {
+        return (attr in this.attributes);
+    }
+
+    set innerHTML(value) {
+        console.log("Setting innver html", this.idx, value);
+        this._innerhtml = value;
+        this.replaceWith(value);
+    }
+
+    set textContent(value) {
+        this.empty();
+        this.add(new Elements.textNode(value));
+        console.log("Setting text content", value);
+    }
+
+    get textContent() {
+        return this._textValue;
+    }
+
+    get text() {
+        throw Error("text property doesnt exist");
+    }
+
+    get innerHTML() {
+        return this._innerhtml;
+    }
+
+    get firstChild() {
+        console.log("Firstchild...");
+    }
+
+    get tagName() {
+        return this.name();
+    }
+
+    get nodeType() {
+        return 1;
+    }
+
+    get parentNode() {
+        return this.getParent();
+    }
+
+    get nextSibling() {
+        return this.getNextSibling();
+    }
+
+    get childNodes() {
+        return this.getChildren();
+    }
+
+    get textContent() {
+        return this._textValue || "";
+    }
+
+    cloneNode(deep = true) {
+        var clone = new this.constructor(this.attributes);
+
+        if (!deep) {
+            return clone;
+        }
+
+        for (let child of this.getChildren()) {
+            clone.add(child.clone(true));
+        }
+
+        return clone;
     }
 
     setAttribute(attr, value) {
+        console.log("Set attr", attr, this.idx, value);
+
         switch(attr) {
             case 'height':
-            console.log("Height set");
-            this.height = parseInt(value);
-            break;
+                this.height = parseInt(value);
+                break;
+            default:
+                this[attr] = value;
+                break;
         }
 
         this.computedAttributes[attr] = value;
@@ -60,6 +183,63 @@ class NidiumNode extends Canvas {
     paint(ctx) {}
 }
 
+Elements.textNode = class extends NidiumNode {
+
+    constructor(textValue) {
+        super(1, 1);
+        this._textValue = textValue;
+    }
+
+    /* We don't want a textNode to create a gfx context */
+    onload() {}
+    onpaint() {}
+    ctx2d() { return null; }
+    getContext() { return null; }
+
+    setParentText() {
+        var parent = this.getParent();
+        if (!parent) {
+            return;
+        }
+
+        parent._textValue = this._textValue;
+    }
+
+    add() {
+        throw Error("textNode doesn't support this operation");
+    }
+    addSubCanvas() {
+        throw Error("textNode doesn't support this operation");
+    }
+    appendChild() {
+        throw Error("textNode doesn't support this operation");
+    }
+
+    onmount() {
+        this.setParentText();
+    }
+
+    get nodeValue() {
+        return this._textValue;
+    }
+
+    set nodeValue(textValue) {
+        this._textValue = textValue;
+        this.setParentText();
+    }
+
+    name() {
+        return "textNode";
+    }
+
+    get nodeType() {
+        return 3;
+    }
+}
+
+Elements.Canvas = class extends NidiumNode {
+
+}
 
 Elements.UIButton = class extends NidiumNode {
     constructor(attributes) {
@@ -79,15 +259,6 @@ Elements.UIButton = class extends NidiumNode {
         });
     }
 
-    set label(value) {
-        this._label = value;
-        this.requestPaint();
-    }
-
-    get label() {
-        return this._label;
-    }
-
     name() {
         return "UiButton";
     }
@@ -102,7 +273,7 @@ Elements.UIButton = class extends NidiumNode {
         ctx.fillStyle = "#000";
         ctx.textAlign = "center";
 
-        ctx.fillText(this._label, this.width/2, this.height/2+4);
+        ctx.fillText(this._textValue, this.width/2, this.height/2+4);
     }
 }
 
@@ -133,7 +304,22 @@ Elements.section = class extends NidiumNode {
     }
 }
 
-Elements.div = Elements.section;
+Elements.div = class extends Elements.section {
+    constructor(attributes) {
+        super(attributes);
+        this.position = "inline";
+        this.staticRight = true;
+        this.right = 0;
+    }
+
+    name() {
+        return "div";
+    }
+
+    onmount() {
+        this.width = this.getParent().width;
+    }
+}
 
 Elements.img = class extends NidiumNode {
     constructor(attributes) {
@@ -169,3 +355,5 @@ Elements.img = class extends NidiumNode {
 window._onready = function(lst) {
     document.canvas.inject(lst);
 }
+
+module.exports = Elements;

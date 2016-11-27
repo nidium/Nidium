@@ -6,7 +6,7 @@
 
 {
     let Elements = require("./lib/Elements.js");
-    
+
     NML.CreateTree = function(nml)
     {
         if (typeof(nml) == "string") {
@@ -19,19 +19,20 @@
         }
 
         function walk(elems, parent) {
+            if (!elems) {
+                return [];
+            }
+
             var ret = [];
 
             for (let elem of elems) {
-                if (!(elem.type in Elements)) {
-                    continue;
-                }
 
                 /* ES6 destructuring object default value doesnt work
                    https://bugzilla.mozilla.org/show_bug.cgi?id=932080
                 */
-                let {id} = elem.attributes;
+                let {id} = elem.attributes || {id: null};
 
-                var ui = new Elements[elem.type](elem.attributes);
+                var ui = Elements.Create(elem.type, elem.attributes || elem.text);
 
                 if (id) {
                     ui.id = id;
