@@ -362,6 +362,19 @@ _remotedebug.handle('DOM.highlightNode', function(reply, params) {
     }
 
     canvas.highlight();
+    
+    return reply({});
+});
+
+
+_remotedebug.handle('DOM.setNodeValue', function(reply, params) {
+    var canvas = document.getCanvasByIdx(params.nodeId);
+    if (!canvas) {
+        console.log("Node not found");
+        return reply({});
+    }
+
+    canvas.nodeValue = params.value;
 
     return reply({});
 });
@@ -462,6 +475,19 @@ _remotedebug.handle('DOM.getDocument', function(reply, params) {
             childNodeCount: children.length,
             children: [],
             nodeValue: root.nodeValue
+        }
+
+        switch(tree.nodeType) {
+            case 3: /* text node */
+                root.on("nodeValueChanged", (value) => {
+                    _remotedebug.call("DOM.characterDataModified", {
+                        nodeId: tree.nodeId,
+                        characterData: value
+                    });
+                });
+                break;
+            case 1:
+                break;
         }
 
         if (genesis) {

@@ -13,25 +13,6 @@ const Elements = {
         }
 
         return new Elements[tag](attributes);
-
-        /*return new Proxy(new Elements[tag](attributes), {
-            get: (target, prop, rcv) => {
-                console.log("get",prop, target[prop]);
-                if (typeof target[prop] == "function") {
-                    return target[prop].bind(target);
-                }
-
-                return Reflect.get(target, prop, rcv);
-            },
-
-            set: (target, property, value, rcv) => {
-                console.log("Setting", property, ":", value);
-                target[property] = value;
-
-                return true;
-            }
-        });*/
-
     },
 
     Exists(tag) {
@@ -97,9 +78,15 @@ class NidiumNode extends Canvas {
     }
 
     set textContent(value) {
+        /* Don't create a node if there is already a textNode as an only child */
+        var c = this.getChildren();
+        if (c.length == 1 && c[0].nodeType == 3) {
+            c[0].nodeValue = value;
+            return;
+        }
+
         this.empty();
         this.add(new Elements.textNode(value));
-        console.log("Setting text content", value);
     }
 
     get textContent() {
@@ -203,6 +190,8 @@ Elements.textNode = class extends NidiumNode {
         }
 
         parent._textValue = this._textValue;
+        parent.fireEvent("textchanged", this._textValue);
+        parent.requestPaint();
     }
 
     add() {
@@ -226,6 +215,7 @@ Elements.textNode = class extends NidiumNode {
     set nodeValue(textValue) {
         this._textValue = textValue;
         this.setParentText();
+        this.fireEvent("nodeValueChanged", textValue);
     }
 
     name() {
@@ -246,6 +236,7 @@ Elements.UIButton = class extends NidiumNode {
         super(attributes);
 
         this.cursor = "pointer";
+        this.position = "inline";
 
         this.on("mouseup", function(ev) {
             AnimationBlock(500, Easing.Back.Out, function(btn) {
@@ -261,6 +252,14 @@ Elements.UIButton = class extends NidiumNode {
 
     name() {
         return "UiButton";
+    }
+
+    ontextchanged(newtext) {
+        var ctx = this.ctx2d();
+
+        var data = ctx.measureText(newtext);
+
+        this.width = data.width + 30;
     }
 
     paint(ctx) {
