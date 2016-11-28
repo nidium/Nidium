@@ -7,6 +7,8 @@
 const Elements = {
 
     Create(tag, attributes) {
+        tag = tag.toLowerCase();
+
         if (!(tag in Elements)) {
             throw Error(`${tag} tag type is not implemented`);
             return;
@@ -35,6 +37,31 @@ class NidiumNode extends Canvas {
         //this.onload = this.onpaint;
         this.onresize = this.onpaint;
         this._textValue = "";
+    }
+
+    getNMLContent(self = true) {
+        var childContent = ''
+
+        for (let child of this.getChildren()) {
+            childContent += child.getNMLContent(true);
+        }
+
+        if (!self) {
+            return childContent;
+        }
+
+        let tag = this.name();
+        var attributestr = '';
+
+        for (let prop of Object.getOwnPropertyNames(this.attributes)) {
+            attributestr += ` ${prop}="${this.attributes[prop]}"`;
+        }
+
+        return `<${tag}${attributestr}>${childContent}</${tag}>`
+    }
+
+    allowsChild() {
+        return true;
     }
 
     onload() {
@@ -72,9 +99,11 @@ class NidiumNode extends Canvas {
     }
 
     set innerHTML(value) {
-        console.log("Setting innver html", this.idx, value);
-        this._innerhtml = value;
         this.replaceWith(value);
+    }
+
+    get innerHTML() {
+        return this.getNMLContent(false);
     }
 
     set textContent(value) {
@@ -86,7 +115,7 @@ class NidiumNode extends Canvas {
         }
 
         this.empty();
-        this.add(new Elements.textNode(value));
+        this.add(Elements.Create("textnode", value));
     }
 
     get textContent() {
@@ -95,10 +124,6 @@ class NidiumNode extends Canvas {
 
     get text() {
         throw Error("text property doesnt exist");
-    }
-
-    get innerHTML() {
-        return this._innerhtml;
     }
 
     get firstChild() {
@@ -137,15 +162,13 @@ class NidiumNode extends Canvas {
         }
 
         for (let child of this.getChildren()) {
-            clone.add(child.clone(true));
+            clone.add(child.cloneNode(true));
         }
 
         return clone;
     }
 
     setAttribute(attr, value) {
-        console.log("Set attr", attr, this.idx, value);
-
         switch(attr) {
             case 'height':
                 this.height = parseInt(value);
@@ -170,11 +193,15 @@ class NidiumNode extends Canvas {
     paint(ctx) {}
 }
 
-Elements.textNode = class extends NidiumNode {
+Elements.textnode = class extends NidiumNode {
 
     constructor(textValue) {
         super(1, 1);
         this._textValue = textValue;
+    }
+
+    cloneNode(deep = true) {
+        return new this.constructor(this._textValue);
     }
 
     /* We don't want a textNode to create a gfx context */
@@ -194,6 +221,13 @@ Elements.textNode = class extends NidiumNode {
         parent.requestPaint();
     }
 
+    getNMLContent() {
+        return this._textValue;
+    }
+
+    set textContent(value) {
+        this.nodeValue = value;
+    }
     add() {
         throw Error("textNode doesn't support this operation");
     }
@@ -227,11 +261,11 @@ Elements.textNode = class extends NidiumNode {
     }
 }
 
-Elements.Canvas = class extends NidiumNode {
+Elements.canvas = class extends NidiumNode {
 
 }
 
-Elements.UIButton = class extends NidiumNode {
+Elements.uibutton = class extends NidiumNode {
     constructor(attributes) {
         super(attributes);
 
@@ -240,8 +274,7 @@ Elements.UIButton = class extends NidiumNode {
 
         this.on("mouseup", function(ev) {
             AnimationBlock(500, Easing.Back.Out, function(btn) {
-                btn.width += 20;
-                btn.height += 20;
+
                 /* TODO: stopPropagation doesn't work? */
                 ev.stopPropagation();
 
@@ -251,7 +284,7 @@ Elements.UIButton = class extends NidiumNode {
     }
 
     name() {
-        return "UiButton";
+        return "UIButton";
     }
 
     ontextchanged(newtext) {

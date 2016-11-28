@@ -12,7 +12,8 @@
         if (typeof(nml) == "string") {
             var tree = NML.parse(nml);
             if (!tree) {
-                return [];
+                /* If the NML couldnt be parsed, issue a textnode */
+                return [Elements.Create("textnode", nml)];
             }
         } else {
             var tree = nml;
