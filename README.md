@@ -2,7 +2,7 @@
 
 ## Introduction
 
-nidium is an ongoing effort for a general purpose rendering engine to create apps, games that run on both desktop and on mobile. Of coarse is it also possible to create serverside applications.
+nidium is an ongoing effort for a general purpose rendering engine to create apps, games that run on both desktop and on mobile. Of course is it also possible to create serverside applications.
 
 nidium helps you create graphical software with Javascript. It's **not** a NodeJS, QT, Chromium, or WebKit derivate. It has been designed from scratch and has a small codebase written in C++.
 
@@ -40,6 +40,10 @@ It also implements a simple HTML DOM compatility layer and is mature enough to r
 
 nidium uses its own high-performance library ([libapenetwork](https://github.com/nidium/libapenetwork)) which handles all the networking operations in a non-blocking, async way.
 
+## Download nidium
+
+You can download nidium binaries for Linux and OSX from the [download page](http://www.nidium.com/downloads/).
+
 ## Building nidium
 
 To build nidium you need at least 5GB of disk space. A build from scratch could take 30 to 90 minutes, depending of the speed of your computer.
@@ -55,10 +59,6 @@ $ cd Nidium
 $ ./configure_frontend
 $ ./bin/nidium
 ```
-
-## Prebuild binaries nidium
-
-If building from source seems to be a hassle, feel free to use one of the [prebuild binaries](http://www.nidium.com/downloads/) for Linux and OSX.
 
 ## Documentation
 
