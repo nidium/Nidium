@@ -62,7 +62,7 @@ $ ./bin/nidium
 
 ## Documentation
 
-We strive to have an exellent documentation, both for our [getting started guid](http://www.nidium.com/docs/guide/get-started/hello-world.html) and for the [API Reference](http://www.nidium.com/docs/api/).
+We strive to have an exellent documentation, both for our [getting started guide](http://www.nidium.com/docs/guide/get-started/hello-world.html) and for the [API Reference](http://www.nidium.com/docs/api/).
 
 ## Bug reports and Collaboration
 
