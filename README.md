@@ -28,6 +28,14 @@ And some other non standard :
 
 It can seamlessly run various Javascript libraries like Three.JS, PixiJS, Phaser (and probably a lot more without much modification).
 
+## Work in progress
+
+nidium is still **work in progress** and misses several key features :
+
+* App distribution (create actual app out of nidium)
+* Microsoft Windows support
+* A good documentation
+
 ## Layout engine
 
 nidium ships with its own layout engine. That is, every element has its own memory buffer (retained mode), pretty similar to HTML elements.
