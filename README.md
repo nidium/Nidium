@@ -28,6 +28,16 @@ And some other non standard :
 
 It can seamlessly run various Javascript libraries like Three.JS, PixiJS, Phaser (and probably a lot more without much modification).
 
+## What problem(s) is nidium trying to solve
+
+To put it simply, nidium aims to expose something close to the web technology on an easily hackable environment.
+
+We're not trying to copy the Web. We want a sandbox where you can experiment new things and not being dependent to blink/webkit (e.g. like Electron does). This allow us to add various optimization and non standard things. Moreover, nidium is small (nidium statically linked with all of its dependencies is about 20 MB).
+
+Also, nidium aim to target a large spectre of device and our short term goal is to run it on low power devices (mobile, rpi, ...)
+
+BTW, it uses SpiderMonkey as its JavaScript engine, and we believe that Mozilla needs some love too!
+
 ## Work in progress
 
 nidium is still **work in progress** and misses several key features :
