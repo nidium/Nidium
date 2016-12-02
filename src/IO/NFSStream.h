@@ -44,6 +44,9 @@ public:
     virtual void getContent();
     void _getContent();
 
+    virtual bool exists();
+    virtual bool isDir();
+
     virtual bool getContentSync(char **data, size_t *len, bool mmap = false);
     virtual size_t getFileSize() const;
     virtual void seek(size_t pos);

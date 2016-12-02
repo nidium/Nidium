@@ -80,6 +80,16 @@ void NFSStream::_getContent()
     this->notifySync(message);
 }
 
+bool NFSStream::exists()
+{
+    return (m_NFS->exists(m_Location) == 1);
+}
+
+bool NFSStream::isDir()
+{
+    return (m_NFS->exists(m_Location) == 2);
+}
+
 bool NFSStream::getContentSync(char **data, size_t *len, bool mmap)
 {
     *data = NULL;

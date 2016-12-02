@@ -58,6 +58,15 @@ public:
     void rmrf();
     int rm();
 
+    /*
+        Check whether a path points to an existing filename.
+        Returns :
+
+        0 : not found
+        1 : file
+        2 : directory
+    */
+    int exists();
     int openSync(const char *modes, int *err);
     ssize_t readSync(uint64_t len, char **buffer, int *err);
     ssize_t mmapSync(char **buffer, int *err);

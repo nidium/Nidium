@@ -191,6 +191,17 @@ bool NFS::writeFile(const char *name_utf8,
     return true;
 }
 
+int NFS::exists(const char *filename)
+{
+    NFSTree *file = m_Hash.get(filename);
+
+    if (file == NULL) {
+        return 0;
+    }
+
+    return (file->header.flags & kNFSFileType_Dir) ? 2 : 1;
+}
+
 const char *NFS::readFile(const char *filename, size_t *len, int *flags) const
 {
     NFSTree *file = m_Hash.get(filename);
