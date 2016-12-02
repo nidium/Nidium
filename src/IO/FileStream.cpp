@@ -44,7 +44,7 @@ void FileStream::getContent()
 
 bool FileStream::exists()
 {
-    return (m_File.exists() == 1);
+    return (m_File.exists() != 0);
 }
 
 bool FileStream::isDir()

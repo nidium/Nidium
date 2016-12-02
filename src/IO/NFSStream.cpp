@@ -82,7 +82,7 @@ void NFSStream::_getContent()
 
 bool NFSStream::exists()
 {
-    return (m_NFS->exists(m_Location) == 1);
+    return (m_NFS->exists(m_Location) != 0);
 }
 
 bool NFSStream::isDir()
