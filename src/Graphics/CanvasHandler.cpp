@@ -401,8 +401,8 @@ void CanvasHandler::addChild(CanvasHandler *insert,
     insert->m_Parent = this;
     m_nChildren++;
 
-    Args arg;
-    insert->fireEventSync<CanvasHandler>(MOUNT_EVENT, arg);
+    //Args arg;
+    //insert->fireEventSync<CanvasHandler>(MOUNT_EVENT, arg);
 
 }
 
