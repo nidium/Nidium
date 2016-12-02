@@ -11,7 +11,6 @@ function __nidiumPreload(options) {
     load("embed://CanvasAdditions.js");
     load("embed://NMLAdditions.js");
     load("embed://AnimationBlock.js");
-    load("embed://MVVM.js");
 }
 
 if (0) {
