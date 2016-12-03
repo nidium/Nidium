@@ -403,7 +403,7 @@ void NML::onAssetsItemReady(Assets::Item *item)
                 if (strcmp(item->getTagName(), "__NidiumPreload__") == 0) {
                     JSContext *cx = m_Njs->getJSContext();
                     JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
-                    JS::AutoValueArray<1> args(cx);
+                    JS::AutoValueArray<2> args(cx);
                     JSObjectBuilder obj(cx);
                     JS::RootedValue rval(cx);
 
@@ -411,6 +411,8 @@ void NML::onAssetsItemReady(Assets::Item *item)
 
                     obj.set("framework", m_LoadFramework);
                     obj.set("html5", m_LoadHTML5);
+
+                    args[1].setObjectOrNull(m_JSObjectLayout);
 
                     JS_CallFunctionName(cx, gbl, "__nidiumPreload", args,
                                         &rval);

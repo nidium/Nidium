@@ -4,13 +4,15 @@
    that can be found in the LICENSE file.
 */
 
-function __nidiumPreload(options) {
+function __nidiumPreload(options, lst) {
     if (options.html5) {
         load("embed://html5.js");
     }
     load("embed://CanvasAdditions.js");
     load("embed://NMLAdditions.js");
     load("embed://AnimationBlock.js");
+
+    document.canvas.inject(lst);
 }
 
 if (0) {

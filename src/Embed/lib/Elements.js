@@ -262,7 +262,14 @@ Elements.textnode = class extends NidiumNode {
 }
 
 Elements.canvas = class extends NidiumNode {
-
+    name() {
+        return "canvas";
+    }
+    /*
+        regular <canvas> are "low level"
+        Don't clear the buffer
+    */
+    onpaint() {}
 }
 
 Elements.uibutton = class extends NidiumNode {
@@ -336,6 +343,8 @@ Elements.section = class extends NidiumNode {
     }
 }
 
+Elements.none = NidiumNode;
+
 Elements.div = class extends Elements.section {
     constructor(attributes) {
         super(attributes);
@@ -385,7 +394,7 @@ Elements.img = class extends NidiumNode {
 }
 
 window._onready = function(lst) {
-    document.canvas.inject(lst);
+    
 }
 
 module.exports = Elements;
