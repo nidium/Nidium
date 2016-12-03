@@ -28,6 +28,7 @@ class RemoteDebug {
             }
 
             dbg.onExceptionUnwind = function(frame, value) {
+                console.log("Error", value.unsafeDereference(),JSON.stringify( parseFrame(frame)));
                 if (frame.older == null) {
                     var info = parseFrame(frame);
                     remote.reportError({text: value.unsafeDereference(), frame: info});
