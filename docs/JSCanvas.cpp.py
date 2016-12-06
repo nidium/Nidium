@@ -64,9 +64,23 @@ setInterval(function(canv) {
     NO_Returns
 )
 
-FunctionDoc( "Canvas.show", "Hides a canvas and all it's children.",
+FunctionDoc( "Canvas.hide", "Hides a canvas and all it's children.",
     SeesDocs( "Canvas.show|Canvas.hide" ),
-    [ExampleDoc( """canvas.show();""" ) ],
+[ExampleDoc( """var canvas = new Canvas(200, 100);
+document.canvas.add(canvas);
+var ctx = canvas.getContext("2d");
+ctx.fillStyle = "blue";
+ctx.fillRect(0, 0, 100, 100);
+bool showIt = true;
+setInterval(function(canv) {
+    if (showIt) {
+        canv.show();
+    } else {
+        canv.hide();
+    }
+    showIt = ! showIt;
+}, 250, canvas);""" ) ],
+
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
     NO_Returns
