@@ -6,7 +6,7 @@ from dokumentor import *
 
 NamespaceDoc( "fs", "Filesystem access.",
     [ SeeDoc( "process.cwd" ), SeeDoc( "File"  ) ],
-    [ ExampleDoc( """fs.readDir( function( err, entries ) {
+    [ ExampleDoc( """fs.readDir( ".", function( err, entries ) {
         console.log( JSON.stringify( entries ) ); } );""") ],
     products=["Frontend", "Server"]
 )
@@ -14,7 +14,7 @@ NamespaceDoc( "fs", "Filesystem access.",
 FunctionDoc( "fs.readDir", "Read the content of a directory.",
     [ SeeDoc( "process.cwd" ), SeeDoc( "File.isDir" ),
      SeeDoc( "fs.readDir" ), SeeDoc( "File.rmrf" ) ],
-    [ ExampleDoc( """fs.readDir( function( err, entries ) {
+    [ ExampleDoc( """fs.readDir( ".", function( err, entries ) {
         console.log( JSON.stringify( entries ) ) ; } );""") ] ,
     IS_Static, IS_Public, IS_Fast,
     [

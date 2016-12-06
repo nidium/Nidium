@@ -23,10 +23,10 @@ dsp.connect(src.output[0], out.input[0]);
 dsp.connect(src.output[1], out.input[1]);
 
 // * Open a mp3 file
-source.open("path/to/file.mp3");
+src.open("path/to/file.mp3");
 
 // * And play it
-source.play();""") ],
+src.play();""") ],
     products=["Frontend"]
 )
 
@@ -679,13 +679,22 @@ This method will return `null` if it's called before the `ready` event of the vi
 for i in ["Video", "AudioNode" ]:
     if i == "AudioNode":
         more = "\n>This property is only available on `source` node"
+        preExample = """var src = new Video(c);
+src.open("test.ogg");
+        """
+
     else:
         more = "";
+        preExample = """
+var dsp = Audio.getContext();
+var src = dsp.createNode("source", 0, 2);
+src.open("path/to/file.mp3");
+        """
 
     FieldDoc( i +".position", "The current position in the " + i + " in seconds.\n Can also be used to set the position to a certain time." + more,
             SeesDocs( i + ".duration|" + i + ".metadata|" + i + ".bitrate" ),
-            [ ExampleDoc("""console.log(source.position); // display the current position in the source
-source.position += 5; // seek 5 seconds forwards""")],
+            [ ExampleDoc(preExample + """console.log(src.position); // display the current position in the source
+src.position += 5; // seek 5 seconds forwards""")],
             IS_Dynamic, IS_Public, IS_ReadWrite,
             "integer",
             NO_Default
@@ -709,8 +718,8 @@ source.position += 5; // seek 5 seconds forwards""")],
 
     FieldDoc( i + ".metadata", "An object with metadata that belong to this " + i + " stream." + more,
             SeesDocs(i + "|" + i + ".position|" + i + ".duration|" + i + ".metadata|" + i + ".bitrate" ),
-            [ExampleDoc( """for (var k in source.metadata) {
-    console.log("Metadata : " + k + "=" + source.metadata[k]);
+            [ExampleDoc( preExample + """for (var k in src.metadata) {
+    console.log("Metadata : " + k + "=" + src.metadata[k]);
 }"""
             )],
         IS_Dynamic, IS_Public, IS_Readonly,

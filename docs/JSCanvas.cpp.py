@@ -47,18 +47,18 @@ FunctionDoc( "Canvas.show", """Show a previously hidden canvas.""",
     SeesDocs( "Canvas.show|Canvas.hide" ),
     [ExampleDoc( """var canvas = new Canvas(200, 100);
 document.canvas.add(canvas);
-var ctx= canvas.getContext("2d");
+var ctx = canvas.getContext("2d");
 ctx.fillStyle = "blue";
 ctx.fillRect(0, 0, 100, 100);
 bool showIt = true;
-setInterval(function() {
+setInterval(function(canv) {
     if (showIt) {
-        canvas.show();
+        canv.show();
     } else {
-        canvas.hide();
+        canv.hide();
     }
     showIt = ! showIt;
-}, 250);""" ) ],
+}, 250, canvas);""" ) ],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
     NO_Returns
