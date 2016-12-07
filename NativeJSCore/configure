@@ -1,0 +1,116 @@
+#!/usr/bin/env python2.7
+
+# Copyright 2016 Nidium Inc. All rights reserved.
+# Use of this source code is governed by a MIT license
+# that can be found in the LICENSE file.
+
+import os
+
+from konstructor import Deps
+from konstructor import CommandLine
+from konstructor import Build
+from konstructor import Builder
+from konstructor import Platform
+from konstructor import Variables
+from konstructor import Konstruct
+from konstructor import Tests
+from konstructor import ROOT, OUTPUT
+
+Deps.set(
+    "libnspr4",
+    "mozilla-central",
+    "leveldb",
+    "http-parser",
+    "jsoncpp",
+    Deps.Konstruct("network", "network/configure")
+)
+
+DEPEDENCY_REPO = Variables.get("depsRepo")
+CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
+Gyp = Builder.Gyp
+
+@Deps.register("leveldb")
+def leveldb():
+    flags = ""
+
+    if Platform.system == "Darwin":
+        flags = "CXXFLAGS='-stdlib=libc++ -mmacosx-version-min=10.7' CFLAGS='-mmacosx-version-min=10.7'"
+
+    return {
+        "location": Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.18"),
+        "build": [flags + " make"], 
+        "patchs": [os.path.join(CONFIGURE_PATH, "var", "patch", "leveldb.patch")],
+        "outputs": ["libleveldb(.a|.lib)"]
+    }
+
+@Deps.register("libnspr4")
+def libnspr():
+    configure = "./configure"
+    if Platform.wordSize == 64:
+        configure += " --enable-64bit"
+
+    return {
+        "chdir": "mozilla-central/nsprpub/",
+        "build": [configure, "make"],
+        "outputs": ["dist/lib/libnspr4(.a|.lib)"]
+    }
+
+@Deps.register("mozilla-central")
+def mozilla():
+    nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/"))
+    nsprFlags = "--with-nspr-cflags=\"-I" + nsprDir + "/dist/include/nspr/\" --with-nspr-libs=\"" + nsprDir + "/dist/lib/libnspr4.a " + nsprDir + "/dist/lib/libplds4.a " + nsprDir + "/dist/lib/libplc4.a\""
+
+    configureEnvVars = "CXXFLAGS=\"-Wno-null-conversion\" MOZ_ZLIB_CFLAGS=-I%s MOZ_ZLIB_LIBS=\"-L%s -lz\"" % (os.path.abspath("zlib"), os.path.abspath("zlib"))
+    configure = "%s ./js/src/configure\
+            --disable-shared-js\
+            --enable-threadsafe\
+            --enable-ctypes %s" % (configureEnvVars, nsprFlags)
+
+    if Konstruct.config("debug", "valgring"):
+        configure += " --enable-debug --disable-optimize"
+
+    if Konstruct.config("valgrind"):
+        configure += " --enable-valgrind "
+
+    return {
+        "location": DEPEDENCY_REPO + "/mozjs-31.2.0.rc0.tar.bz2",
+        "build": [configure, "make -j1"],
+        "outputs": ["js/src/libjs_static.a$", "js/src/js-config.h$"]
+    }
+
+@Deps.register("http-parser")
+def httpParser():
+    return {
+        "location": Deps.GitRepo("https://github.com/nodejs/http-parser.git", tag="v2.6.2"),
+        "build": ["make package"],
+        "outputs": ["libhttp_parser.a"]
+    }
+
+@Deps.register("jsoncpp")
+def jsoncpp():
+    return {
+        "location": Deps.GitRepo("https://github.com/open-source-parsers/jsoncpp.git", tag="1.7.2"),
+        "build": ["python amalgamate.py"]
+    }
+
+@CommandLine.option("--unit-tests")
+def testCore(unitTests):
+    if not unitTests:
+        return
+
+    cwd = os.path.dirname(os.path.realpath(__file__))
+
+    Tests.register([
+        "build/tests/nidiumcore-unittests"
+    ], builders=[Gyp("%s/var/nidiumcore/tests/unittests/tests.gyp" % cwd)])
+
+
+
+if __name__ == '__main__':
+    if not Builder.Gyp._defines.has_key('nidium_version'):
+        Gyp.set('nidium_version', 'library')
+
+    Gyp.setArgs("--depth ./ --include=network/gyp/config.gypi --include=gyp/common.gypi")
+    Build.add(Gyp("gyp/nidiumcore.gyp"))
+
+    Konstruct.start()
