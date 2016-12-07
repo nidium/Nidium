@@ -26,7 +26,7 @@ public:
     }
     static const char *GetBaseDir()
     {
-        return "/";
+        return nullptr;
     }
 
     static bool AllowLocalFileStream()

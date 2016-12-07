@@ -129,7 +129,14 @@ Context::Context(ape_global *net)
       m_UI(NULL), m_NML(NULL), m_GLState(NULL),
       m_JSWindow(NULL), m_SizeDirty(false), m_CurrentClickedHandler(NULL)
 {
-    Path::RegisterScheme(SCHEME_DEFINE("embed://", EmbedStream, false));
+#ifdef NIDIUM_PACKAGE_EMBED
+    // When nidium is packaged with the embedded resources, the embed://
+    // prefix should be kept for correctly resolving the path of the files.
+    Path::RegisterScheme(SCHEME_DEFINE("embed://", EmbedStream, true));
+#else
+    Path::RegisterScheme(SCHEME_DEFINE("embed://", EmbedStream, true));
+#endif
+
     Path::RegisterScheme(SCHEME_DEFINE("system://", SystemStream, false));
     Path::RegisterScheme(SCHEME_DEFINE("user://", UserStream, false));
     Path::RegisterScheme(SCHEME_DEFINE("private://", PrivateStream, false));
@@ -422,7 +429,7 @@ void Context::frame(bool draw)
         Exec the pending events a second time in case
         there are resize in the requestAnimationFrame
     */
-    this->execPendingCanvasChanges();    
+    this->execPendingCanvasChanges();
     m_CanvasOrderedEvents.clear();
 
     /* Build the composition list */

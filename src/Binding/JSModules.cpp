@@ -11,7 +11,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <dlfcn.h>
-#include <sys/stat.h>
 #include <sys/types.h>
 
 #include <algorithm>
@@ -28,6 +27,7 @@
 
 using Nidium::IO::Stream;
 using Nidium::Core::Path;
+using Nidium::Core::PtrAutoDelete;
 
 namespace Nidium {
 namespace Binding {
@@ -73,9 +73,9 @@ JSModule::JSModule(JSContext *cx,
                    JSModules *modules,
                    JSModule *parent,
                    const char *name)
-    : m_AbsoluteDir(NULL), m_FilePath(NULL), m_Name(strdup(name)),
+    : m_AbsoluteDir(nullptr), m_FilePath(nullptr), m_Name(strdup(name)),
       m_ModuleType(JSModule::kModuleType_None), m_Cached(false),
-      m_Exports(NULL), m_Parent(parent), m_Modules(modules), m_Cx(cx)
+      m_Exports(nullptr), m_Parent(parent), m_Modules(modules), m_Cx(cx)
 {
 }
 
@@ -104,32 +104,15 @@ bool JSModule::initMain()
 
 bool JSModule::init()
 {
-    if (!m_Name || strlen(m_Name) == 0) return false;
-    DPRINT("= JSModule INIT\n");
-    DPRINT("name = %s\n", m_Name);
+    if (!m_Name || !m_Parent || strlen(m_Name) == 0) return false;
+    DPRINT("JSModule init name = %s\n", m_Name);
 
-    if (m_Parent) {
-        m_FilePath = JSModules::FindModulePath(m_Parent, this);
-    } else {
-        m_FilePath = realpath(m_Name, NULL);
-    }
-
-    if (!m_FilePath) {
+    if (!this->findModulePath()) {
         // Module not found
         return false;
     }
 
-    if (m_ModuleType != kModuleType_NativeEmbedded) {
-        Path p(m_FilePath, false, true);
-
-        if (!p.dir()) {
-            return false;
-        }
-
-        m_AbsoluteDir = strdup(p.dir());
-    }
-
-    DPRINT("filepath = %s\n", m_FilePath);
+    DPRINT("filepath = %s\n", m_FilePath->path());
     DPRINT("name = %s\n", m_Name);
 
     DPRINT("absolute dir for %s\n", m_AbsoluteDir);
@@ -145,16 +128,16 @@ bool JSModule::initNative()
         return false;
     }
 
-    void *module = dlopen(m_FilePath, RTLD_LAZY);
+    void *module = dlopen(m_FilePath->path(), RTLD_LAZY);
     if (!module) {
-        printf("Failed to open module : %s\n", dlerror());
+        NLOG("Failed to open module : %s\n", dlerror());
         return false;
     }
 
     register_module_t registerModule = reinterpret_cast<register_module_t>(
         dlsym(module, "__NidiumRegisterModule"));
     if (registerModule && !registerModule(m_Cx, exports)) {
-        printf("Failed to register module\n");
+        NLOG("Failed to register module\n");
         return false;
     }
 
@@ -257,34 +240,22 @@ JS::Value JSModule::require(char *name)
 
     // require() have been called from the main module
     if (this == m_Modules->m_Main) {
-        /*
-         * This little hack is needed to conform CommonJS :
-         *  - Cyclic deps
-         *  - Finding module
-         *
-         * Since all files included with NidiumJS::LoadScript();
-         * share the same module we need to be aware of the real caller.
-         * So here we set the filename and path of the caller
-         *
-         * XXX : Another way to handle this case would be to make
-         * load() aware of his context by using the same trick
-         * require do.
-         */
+        // The main module is attached to all the script loaded without
+        // require(), so here we need to find out the real path & name of
+        // the caller to know where to look for the module
         unsigned lineno;
         JS::AutoFilename filename;
         JS::DescribeScriptedCaller(m_Cx, &filename, &lineno);
 
-        free(m_FilePath);
+        delete m_FilePath;
+        m_FilePath = nullptr;
         free(m_AbsoluteDir);
-        // filePath is needed for cyclic deps check
-        m_FilePath = realpath(filename.get(), NULL);
 
-        if (m_FilePath == NULL) {
-            m_AbsoluteDir = strdup(Path::GetCwd());
+        if (filename.get()) {
+            m_FilePath = new Path(filename.get(), true);
+            m_AbsoluteDir = strdup(m_FilePath->dir());
         } else {
-            // absoluteDir is needed for FindModulePath
-            Path p(m_FilePath, false, true);
-            m_AbsoluteDir = strdup(p.dir());
+            m_AbsoluteDir = strdup(Path::GetCwd());
             DPRINT("Global scope loading\n");
         }
     } else {
@@ -306,7 +277,7 @@ JS::Value JSModule::require(char *name)
         DPRINT("Module is not cached\n");
         cmodule = tmp;
     } else {
-        DPRINT("Module is cached %s\n", cached->m_FilePath);
+        DPRINT("Module is cached %s\n", cached->m_FilePath->path());
         cmodule = cached;
         delete tmp;
     }
@@ -316,7 +287,7 @@ JS::Value JSModule::require(char *name)
         if (!m || !m->m_Exports) break;
 
         // Found a cyclic dependency
-        if (strcmp(cmodule->m_FilePath, m->m_FilePath) == 0) {
+        if (strcmp(cmodule->m_FilePath->path(), m->m_FilePath->path()) == 0) {
             JS::RootedObject gbl(m_Cx, m->m_Exports);
             JS::RootedValue module(m_Cx);
             JS_GetProperty(m_Cx, gbl, "module", &module);
@@ -362,7 +333,7 @@ JS::Value JSModule::require(char *name)
             if (cmodule->m_ModuleType == JSModule::kModuleType_JS) {
                 JS::RootedObject expObj(m_Cx, cmodule->m_Exports);
                 JS::CompileOptions options(m_Cx);
-                options.setFileAndLine(cmodule->m_FilePath, 1).setUTF8(true);
+                options.setFileAndLine(cmodule->m_FilePath->path(), 1).setUTF8(true);
 
                 JS::AutoObjectVector scopeChain(m_Cx);
                 scopeChain.append(expObj);
@@ -435,7 +406,7 @@ JSModule::~JSModule()
 
     free(m_Name);
     free(m_AbsoluteDir);
-    free(m_FilePath);
+    delete m_FilePath;
 }
 // }}}
 
@@ -451,11 +422,8 @@ bool JSModules::init()
         int i               = 0;
 
         while ((token = strsep(&tmp, ":")) != NULL && i < 63) {
-            if (i > 63) {
-            } else {
-                m_EnvPaths[i] = strdup(token);
-                i++;
-            }
+            m_EnvPaths[i] = strdup(token);
+            i++;
         }
 
         if (token != NULL && i == 63) {
@@ -532,22 +500,32 @@ void JSModules::DirName(std::string &source)
                  source.end());
 }
 
-char *JSModules::FindModulePath(JSModule *parent, JSModule *module)
+bool JSModule::findModulePath()
 {
     std::string modulePath;
-    JSModules *modules = module->m_Modules;
+    JSModules *modules = m_Modules;
     const char *topDir = Path::GetCwd();
 
-    if (module->m_Name[0] == '.') {
+    if (m_Name[0] == '.') {
         // Relative module, only look in current script directory
-        modulePath = JSModules::FindModuleInPath(module, parent->m_AbsoluteDir);
-    } else if (module->m_Name[0] == '/') {
-        modulePath = JSModules::FindModuleInPath(module, topDir);
+        modulePath = JSModules::FindModuleInPath(this, m_Parent->m_AbsoluteDir);
+    } else if (m_Name[0] == '/') {
+        modulePath = JSModules::FindModuleInPath(this, topDir);
     } else {
-        std::string path = parent->m_AbsoluteDir;
+        std::string path = m_Parent->m_AbsoluteDir;
 
         DPRINT("[FindModulePath] absolute topDir=%s dir=%s path=%s\n", topDir,
-               parent->m_AbsoluteDir, path.c_str());
+               m_Parent->m_AbsoluteDir, path.c_str());
+
+        // Check if the module is not a JS embedded module
+        modulePath = JSModules::FindModuleInPath(this, "embed://lib/");
+
+        // Check if module is not a native embedded module
+        if (modulePath.empty() &&
+                m_Modules->m_EmbeddedModules.get(m_Name) != nullptr) {
+            m_ModuleType = JSModule::kModuleType_NativeEmbedded;
+            modulePath = m_Name;
+        }
 
         // Look for the module in all parent directory until it's found
         // or if the top level working directory is reached
@@ -559,10 +537,10 @@ char *JSModules::FindModulePath(JSModule *parent, JSModule *module)
                 std::string currentPath = path;
                 currentPath += modules->m_Paths[i];
 
-                DPRINT("Looking for module %s in %s\n", module->m_Name,
+                DPRINT("Looking for module %s in %s\n", m_Name,
                        currentPath.c_str());
                 modulePath
-                    = JSModules::FindModuleInPath(module, currentPath.c_str());
+                    = JSModules::FindModuleInPath(this, currentPath.c_str());
                 DPRINT("module path is %s\n", modulePath.c_str());
             }
 
@@ -580,36 +558,66 @@ char *JSModules::FindModulePath(JSModule *parent, JSModule *module)
             for (int i = 0;
                  modules->m_EnvPaths[i] != NULL && modulePath.empty(); i++) {
                 char *tmp = modules->m_EnvPaths[i];
-                DPRINT("Looking for module %s in %s\n", module->m_Name, tmp);
-                modulePath = JSModules::FindModuleInPath(module, tmp);
+                DPRINT("Looking for module %s in %s\n", m_Name, tmp);
+                modulePath = JSModules::FindModuleInPath(this, tmp);
                 DPRINT("module path is %s\n", modulePath.c_str());
-            }
-        }
-
-        // Check if module is not an embedded module
-        if (m_EmbeddedModules.get(module->m_Name) != nullptr) {
-            char *ret = nullptr;
-            if (asprintf(&ret, "embedded_module://%s", module->m_Name) != -1) {
-                module->m_ModuleType = JSModule::kModuleType_NativeEmbedded;
-                return ret;
-            } else {
-                return nullptr;
             }
         }
     }
 
     if (modulePath.empty()) {
-        return NULL;
+        return false;
     }
 
-    return realpath(modulePath.c_str(), NULL);
+    Path *p = new Path(modulePath.c_str(), true);
+    Path::schemeInfo *scheme = p->GetScheme();
+
+    if (!scheme->AllowSyncStream || !scheme->AllowLocalFileStream) {
+        return false;
+    } else if (scheme->GetBaseDir() != nullptr &&
+            m_ModuleType != JSModule::kModuleType_NativeEmbedded) {
+        // File is a real file on disk (not virtualized by NFS for instance)
+        // Run realpath on the file to get the resolved path
+        // (this is needed for handling cyclic deps checking and caching)
+        char *tmp = realpath(modulePath.c_str(), NULL);
+        if (tmp) {
+            m_FilePath = new Path(tmp, true);
+        }
+
+        free(tmp);
+        delete p;
+
+        if (m_FilePath == nullptr) {
+            return false;
+        }
+    } else {
+        m_FilePath = p;
+    }
+
+    m_AbsoluteDir = strdup(m_FilePath->dir());
+
+    return true;
 }
 
-bool JSModules::GetFileContent(const char *file, char **content, size_t *size)
+void JSModules::add(JSModule *module)
 {
-    Path path(file, false, true);
-    Stream *stream = path.CreateStream(true);
+    m_Cache.set(module->m_FilePath->path(), module);
+    module->m_Cached = true;
+}
 
+void JSModules::remove(JSModule *module)
+{
+    m_Cache.erase(module->m_FilePath->path());
+}
+
+JSModule *JSModules::find(JSModule *module)
+{
+    return m_Cache.get(module->m_FilePath->path());
+}
+
+bool JSModules::GetFileContent(Path *p, char **content, size_t *size)
+{
+    Stream *stream = p->CreateStream(true);
     if (!stream) {
         return false;
     }
@@ -640,16 +648,16 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
 
         DPRINT("    [JSModule] Looking for %s\n", tmp.c_str());
 
-        if (access(tmp.c_str(), F_OK) != 0) {
+        PtrAutoDelete<Stream *> stream(Stream::Create(tmp.c_str()));
+
+        if (!stream.ptr()->exists()) {
             continue;
         }
 
-        // XXX : Refactor this code. It's a bit messy.
         switch (i) {
             case 0: // directory or exact filename
                 module->m_ModuleType = JSModule::kModuleType_JS;
-                struct stat sb;
-                if (stat(tmp.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode)) {
+                if (stream.ptr()->isDir()) {
                     if (JSModules::LoadDirectoryModule(tmp)) {
                         return tmp;
                     }
@@ -713,7 +721,9 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
         dir.erase(len);
         dir += files[i];
 
-        if (access(dir.c_str(), F_OK) != 0) continue;
+        PtrAutoDelete<Stream *> stream(Stream::Create(dir.c_str()));
+
+        if (!stream.ptr()->exists()) continue;
 
         switch (i) {
             case 0: // index.js
@@ -722,8 +732,9 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
             case 1: // package.json
                 char *data = NULL;
                 size_t size;
+                Path p(dir.c_str());
 
-                if (!JSModules::GetFileContent(dir.c_str(), &data, &size)
+                if (!JSModules::GetFileContent(&p, &data, &size)
                     || data == NULL) {
                     fprintf(stderr, "Failed to open %s\n", dir.c_str());
                     return false;
@@ -742,11 +753,14 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
                 }
 
                 std::string main = root.get("main", "").asString();
-                dir.erase(len);
-                dir += std::string("/") + main;
+                std::string entrypoint = dir.substr(0, len) + std::string("/") + main;
+                PtrAutoDelete<Stream *> streamEntrypoint(Stream::Create(entrypoint.c_str()));
 
-                if (access(dir.c_str(), F_OK) != 0) {
-                    fprintf(stderr, "Failed to access file %s\n", dir.c_str());
+                if (streamEntrypoint.ptr()->exists()) {
+                    dir = entrypoint;
+                    return true;
+                } else {
+                    fprintf(stderr, "Failed to access file %s\n", entrypoint.c_str());
                     return false;
                 }
 

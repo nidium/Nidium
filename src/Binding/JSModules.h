@@ -14,6 +14,9 @@
 #include "Core/Hash.h"
 
 namespace Nidium {
+    namespace Core {
+        class Path;
+    }
 namespace Binding {
 
 class JSModules;
@@ -37,7 +40,7 @@ public:
     };
 
     char *m_AbsoluteDir;
-    char *m_FilePath;
+    Core::Path *m_FilePath;
     char *m_Name;
     int m_ModuleType;
     bool m_Cached;
@@ -55,6 +58,8 @@ public:
 
     JS::Value require(char *name);
 
+    bool findModulePath();
+
     ~JSModule();
 
 private:
@@ -68,6 +73,8 @@ private:
 class JSModules
 {
 public:
+    friend class JSModule;
+
     JSModules(JSContext *cx) : m_Main(NULL), m_Cx(cx)
     {
         m_Paths[0] = static_cast<const char *>("modules");
@@ -86,21 +93,9 @@ public:
         delete m_Main;
     }
 
-    void add(JSModule *module)
-    {
-        m_Cache.set(module->m_FilePath, module);
-        module->m_Cached = true;
-    }
-
-    void remove(JSModule *module)
-    {
-        m_Cache.erase(module->m_FilePath);
-    }
-
-    JSModule *find(JSModule *module)
-    {
-        return m_Cache.get(module->m_FilePath);
-    }
+    void add(JSModule *module);
+    void remove(JSModule *module);
+    JSModule *find(JSModule *module);
 
     bool init();
     bool init(JSModule *module);
@@ -108,8 +103,7 @@ public:
     static void RegisterEmbedded(const char *name,
                                  EmbeddedCallback registerCallback);
     static EmbeddedCallback FindEmbedded(const char *name);
-    static char *FindModulePath(JSModule *parent, JSModule *module);
-    static bool GetFileContent(const char *file, char **content, size_t *size);
+    static bool GetFileContent(Core::Path *p, char **content, size_t *size);
 
 private:
     Core::Hash<JSModule *> m_Cache;
