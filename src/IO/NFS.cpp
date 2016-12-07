@@ -83,7 +83,7 @@ bool NFS::validateArchive()
 bool NFS::mkdir(const char *name_utf8, size_t name_len)
 {
     bool outsideRoot = false;
-    PtrAutoDelete<char *> path(Path::Sanitize(name_utf8, &outsideRoot));
+    PtrAutoDelete<char *> path(Path::Sanitize(name_utf8, &outsideRoot), free);
     if (!path.ptr()) {
         return false;
     }
@@ -98,7 +98,7 @@ bool NFS::mkdir(const char *name_utf8, size_t name_len)
         return false;
     }
 
-    PtrAutoDelete<char *> dir(Path::GetDir(name_utf8));
+    PtrAutoDelete<char *> dir(Path::GetDir(name_utf8), free);
     NFSTree *parent;
 
     if (strlen(dir.ptr())) {
@@ -144,7 +144,7 @@ bool NFS::writeFile(const char *name_utf8,
                     int flags)
 {
 
-    PtrAutoDelete<char *> path(Path::Sanitize(name_utf8));
+    PtrAutoDelete<char *> path(Path::Sanitize(name_utf8), free);
     int path_len = strlen(path.ptr());
 
     if (m_Hash.get(path.ptr())) {
@@ -152,7 +152,7 @@ bool NFS::writeFile(const char *name_utf8,
         return false;
     }
 
-    PtrAutoDelete<char *> dir(Path::GetDir(name_utf8));
+    PtrAutoDelete<char *> dir(Path::GetDir(name_utf8), free);
 
     if (strlen(dir.ptr())) {
         dir.ptr()[strlen(dir.ptr()) - 1] = '\0';
@@ -193,7 +193,8 @@ bool NFS::writeFile(const char *name_utf8,
 
 int NFS::exists(const char *filename)
 {
-    NFSTree *file = m_Hash.get(filename);
+    PtrAutoDelete<char *> path(Path::Sanitize(filename), free);
+    NFSTree *file = m_Hash.get(path.ptr());
 
     if (file == NULL) {
         return 0;
@@ -204,7 +205,8 @@ int NFS::exists(const char *filename)
 
 const char *NFS::readFile(const char *filename, size_t *len, int *flags) const
 {
-    NFSTree *file = m_Hash.get(filename);
+    PtrAutoDelete<char *> path(Path::Sanitize(filename), free);
+    NFSTree *file = m_Hash.get(path.ptr());
     if (file == NULL || (file->header.flags & kNFSFileType_Dir)) {
         return NULL;
     }
