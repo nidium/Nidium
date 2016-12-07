@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
-    <mime-type type="application/nidium">  
-        <comment>Nidium Application</comment>
-        <glob pattern="*.nml"/>
-        <glob pattern="*.npa"/>
-        <icon name="x-application-nidium"/>
-    </mime-type>
-</mime-info>
