@@ -1,0 +1,184 @@
+#!/usr/bin/env python2.7
+
+# Copyright 2016 Nidium Inc. All rights reserved.
+# Use of this source code is governed by a MIT license
+# that can be found in the LICENSE file.
+
+import os
+
+from konstructor import Deps
+from konstructor import CommandLine
+from konstructor import Build
+from konstructor import Builder
+from konstructor import Platform
+from konstructor import Variables
+from konstructor import Konstruct
+from konstructor import Tests
+from konstructor import Utils
+from konstructor import Log
+from konstructor import ROOT, OUTPUT
+
+Deps.set(
+    "libnspr4",
+    "mozilla-central",
+    "leveldb",
+    "http-parser",
+    "jsoncpp",
+    Deps.Konstruct("network", "src/libapenetwork/configure")
+)
+
+if Platform.system == "Darwin":
+    Platform.setEnviron("CXXFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
+    Platform.setEnviron("CPPFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
+    # Some third-party librairires (skia, angle, mozilla-central)
+    # produce binaries. So we need to set LDFLAGS too.
+    Platform.setEnviron("LDFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
+
+DEPEDENCY_REPO = Variables.get("depsRepo")
+CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
+Gyp = Builder.Gyp
+
+@Deps.register("leveldb")
+def leveldb():
+    cxxFlags = os.environ.get("CXXFLAGS", "")
+
+    if Konstruct.config("asan"):
+        # Fix ASAN container overflow false positive :
+        # https://github.com/google/sanitizers/wiki/AddressSanitizerContainerOverflow#false-positives
+        cxxFlags += " -fsanitize=address"
+
+    return {
+        "location": Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.18"),
+        # leveldb make doest not detect CXXFLAGS changes, so we force "make clean"
+        "build": ["make clean", "CXXFLAGS='%s' make" % (cxxFlags)],
+        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "leveldb.patch")],
+        "outputs": ["libleveldb(.a|.lib)"]
+    }
+
+@Deps.register("libnspr4")
+def libnspr():
+    configure = "./configure"
+    if Platform.wordSize == 64:
+        configure += " --enable-64bit"
+
+    return {
+        "chdir": "mozilla-central/nsprpub/",
+        "build": [configure, "make"],
+        "outputs": ["dist/lib/libnspr4(.a|.lib)"]
+    }
+
+@Deps.register("mozilla-central")
+def mozilla():
+    nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/"))
+    nsprFlags = "--with-nspr-cflags=\"-I%s/dist/include/nspr/\" \
+                 --with-nspr-libs=\"-L%s/dist/lib/ -lnspr4 -lplds4 -lplc4\"" % (nsprDir, nsprDir)
+
+    configure = "../configure\
+            --disable-shared-js\
+            --disable-jemalloc\
+            --enable-ctypes %s" % (nsprFlags)
+
+    if Konstruct.config("debug", "valgring"):
+        configure += " --enable-debug --disable-optimize"
+
+    if Konstruct.config("valgrind"):
+        configure += " --enable-valgrind "
+
+    return {
+        "chdir": "js/src/obj",
+        "location": DEPEDENCY_REPO + "/mozjs-45.5.2.tar.bz2",
+        "build": [configure, "make"],
+        "outputs": ["mozglue/build/libmozglue.a$", "js/src/libjs_static.a$", "js/src/js-config.h$"]
+    }
+
+@Deps.register("http-parser")
+def httpParser():
+    return {
+        "location": Deps.GitRepo("https://github.com/nodejs/http-parser.git", tag="v2.6.2"),
+        "build": ["make package"],
+        "outputs": ["libhttp_parser.a"]
+    }
+
+@Deps.register("jsoncpp")
+def jsoncpp():
+    return {
+        "location": Deps.GitRepo("https://github.com/open-source-parsers/jsoncpp.git", tag="1.7.2"),
+        "build": ["python amalgamate.py"]
+    }
+
+@CommandLine.option("--unit-tests")
+def testCore(unitTests):
+    if not unitTests:
+        return
+
+    cwd = os.path.dirname(os.path.realpath(__file__))
+
+    Tests.register([
+        "build/tests/libnidiumcore-unittests"
+        ], builders=[
+            Gyp("gyp/libnidiumcore-tests.gyp",
+                defines={"nidium_js_disable_window_global": 1,
+                         "nidium_product_define": "NIDIUM_UNIT_TESTS"})
+        ])
+
+@CommandLine.option("--asan", default=False)
+def asan(asan):
+    if asan:
+        Konstruct.setConfigs(["asan"])
+        Gyp.set("asan", 1)
+
+@CommandLine.option("--cpu-profiling", default=False)
+def profiler(profiler):
+    if profiler:
+        Gyp.set("profiler", 1)
+        Deps.set("gperftools")
+        Deps.set("pprof")
+
+        @Konstruct.hook("postBuild")
+        def profilerPostBuild(success):
+            if not success:
+                return
+
+            Log.info("-------------------------------------")
+            Log.info("You have enabled CPU profiling, you must set the following environement variables to enable CPU profiling when running your application : ")
+            Log.info("CPUPROFILE=/tmp/profile.nidium")
+            Log.info("LD_LIBRARY_PATH=" + ROOT + "/build/third-party/${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH:-}")
+            Log.info("-------------------------------------")
+
+@CommandLine.option("--unit-tests")
+def nidiumCoreTests(unitTests):
+    if not unitTests:
+        return
+
+    def query(port, useSSL=False):
+        import urllib2
+        try:
+            urllib2.urlopen("http%s://tests.nidium.com:%d/http/hello" % ("s" if useSSL else "", port)).read()
+            return True
+        except Exception as e:
+            Log.info("Failed to contact tests server %s" % (e))
+            return False
+
+    @Konstruct.hook("preTests")
+    def preNidiumCoreTests():
+        if not query(8888) or not query(8443, useSSL=True):
+            Utils.exit("Tests server is down. Cannot run tests.")
+
+@CommandLine.option("--auto-tests", default=False)
+def autoTestStudio(autoTests):
+    if not autoTests:
+        return
+
+    @Konstruct.hook("postBuild")
+    def runNidiumAutoTests(success):
+        Tests.runTest(success)
+
+if __name__ == '__main__':
+    if not Builder.Gyp._defines.has_key('nidium_version'):
+        Gyp.set('nidium_version', 'library')
+
+    Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi --include=src/libapenetwork/gyp/config.gypi")
+    Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_SERVER")
+    Build.add(Gyp("gyp/libnidiumcore.gyp"))
+
+    Konstruct.start()

@@ -1,0 +1,14 @@
+konstruct*.log
+configure*c
+bin
+build
+tests/jsautotest/autotests.js
+tools/pprof
+third-party/
+!third-party/setproctitle/
+!third-party/rapidxml/
+!third-party/linenoise/
+**.pyc
+**.venv
+.ctags
+scripts

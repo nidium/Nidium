@@ -1,0 +1,23 @@
+version: '2'
+volumes:
+    letsencrypt:
+        driver: local
+
+services:
+    local_tests:
+        environment:
+            - LOCAL_TESTS=1
+        build: .
+        ports:
+            - "8443:8443"
+            - "8888:8888"
+        volumes:
+            - .:/home/nidium/tests/
+    tests:
+        build: .
+        ports:
+            - "8443:8443"
+            - "8888:8888"
+        volumes:
+            - .:/home/nidium/tests/
+            - letsencrypt:/etc/letsencrypt/

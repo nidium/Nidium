@@ -1,0 +1,7 @@
+This Software is MIT licensed but builds upon third-party libraries.
+
+The software is structured in a way, so that you can use what you need. To match this structure we also grouped the licenses in a convienient way.
+
+* If you use/modify/distribute nidiumcore as a library you need: LICENSE_libnidiumcore
+* If you use/modify/distribute Nidium Server you need: LICENSE_server + LICENSE_libnidiumcore
+* If you use/modify/distribute Nidium you need: LICENSE_frontend + LICENSE_libnidiumcore

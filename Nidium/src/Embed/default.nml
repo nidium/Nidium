@@ -1,0 +1,29 @@
+<application>
+    <meta>
+        <title>nidium</title>
+        <viewport>600x500</viewport>
+        <identifier>com.nidium.app</identifier>
+    </meta>
+    <assets>
+        <script>
+            document.canvas.ctx.fillStyle = "#292929";
+            document.canvas.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+            setImmediate(function() {
+                var logo = document.getCanvasById("logo");
+                logo.left = 280;
+                logo.opacity = 0;
+
+                AnimationBlock(1500, Easing.Back.Out, function(logo) {
+                    logo.top = 200;
+                    logo.opacity = 1;
+                }, logo);
+            });
+
+        </script>
+    </assets>
+    <layout>
+        <img id="logo" left="280" src="embed://resources/logo-white.png" />
+    </layout>
+</application>
+

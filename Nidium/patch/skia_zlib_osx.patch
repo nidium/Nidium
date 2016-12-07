@@ -1,0 +1,13 @@
+diff --git a/gyp/zlib.gyp b/gyp/zlib.gyp
+index 78adc34b..acd2ff6 100644
+--- a/gyp/zlib.gyp
++++ b/gyp/zlib.gyp
+@@ -60,7 +60,7 @@
+                 'conditions': [
+                   [ 'skia_os == "mac" or skia_os == "ios"', {
+                     'libraries': [
+-                      '$(SDKROOT)/usr/lib/libz.dylib',
++                      'libz.a',
+                     ]
+                   }, {  # skia_os != "mac" and skia_os != "ios"
+                     'libraries': [
