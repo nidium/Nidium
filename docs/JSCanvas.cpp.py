@@ -50,7 +50,7 @@ document.canvas.add(canvas);
 var ctx = canvas.getContext("2d");
 ctx.fillStyle = "blue";
 ctx.fillRect(0, 0, 100, 100);
-bool showIt = true;
+let showIt = true;
 setInterval(function(canv) {
     if (showIt) {
         canv.show();
@@ -71,7 +71,7 @@ document.canvas.add(canvas);
 var ctx = canvas.getContext("2d");
 ctx.fillStyle = "blue";
 ctx.fillRect(0, 0, 100, 100);
-bool showIt = true;
+let showIt = true;
 setInterval(function(canv) {
     if (showIt) {
         canv.show();
