@@ -291,6 +291,26 @@ def getNidiumPath():
     else:
         raise Exception("TODO : Unsupported platform, cannot find nidum executable")
 
+def addEmbed():
+    # Build dir2nvfs
+    if not os.path.exists("tools/dir2nvfs"):
+        Gyp("gyp/tools.gyp", defines={"nidium_js_disable_window_global": 1,
+                                      "nidium_product_define": "DIR2NVFS"}).run("dir2nvfs")
+
+    # Generate the embed file with dir2nvfs
+    Gyp("gyp/actions.gyp").run("generate-embed", parallel=False)
+
+    # Now that the embed are packaged
+    # we can add add nidium_package_embed flag
+    Gyp.set("nidium_package_embed", 1)
+
+@CommandLine.option("--embed", default=False)
+def embed(embed):
+    if embed:
+        @Konstruct.hook("preBuild")
+        def preBuildAddEmbed():
+            addEmbed()
+
 @CommandLine.option("--auto-tests", default=False)
 def autoTestStudio(autoTests):
     if not autoTests:
@@ -337,4 +357,3 @@ if __name__ == '__main__':
             Utils.exit("configure script aborted, couldn't install \"yasm\" dependency. Please install it manually and make sure \"yasm\" executable is in your path.")
 
     Konstruct.start()
-

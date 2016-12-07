@@ -26,7 +26,7 @@ Gyp.set("native_enable_breakpad", 0)
 
 OUTPUT_BINARY = None
 SIGN_IDENTITY = None
-FLAVOUR = "frontend"
+FLAVOUR = None
 
 LICENSE = """Nidium is released under MIT License. This software is provided as is without warranty of any kind.
 
@@ -204,28 +204,23 @@ def package():
         packageServer()
 
 if __name__ == '__main__':
-    # First, parse command line arguments, so we can 
-    # so we can print the help message (if needed) 
-    # and exit before doing anything else
+    # First, parse command line arguments, so we 
+    # can print the help message (if needed) and 
+    # exit before doing anything else
     CommandLine.parse()
 
+    if FLAVOUR is None:
+        Utils.exit("Please specify a flavour to package with --frontend or --server");
+
     if FLAVOUR == "frontend":
-        imp.load_source("configure", "configure_frontend");
+        configure = imp.load_source("configure", "configure_frontend");
 
         # Make sure we are using the correct deps for the 
         # current configuration before building dir2nvfs
         Deps._process()
 
-        if not os.path.exists("tools/dir2nvfs"):
-            # In Release mode, we need to package the embed
-            # Dir2NFS is needed in order to generate a package of the embeded files
-            Gyp("gyp/tools.gyp").run("dir2nvfs")
-
-        Gyp("gyp/actions.gyp").run("generate-embed", parallel=False)
-
-        # Now that the embed are packaged
-        # we can add add nidium_package_embed flag
-        Gyp.set("nidium_package_embed", 1)
+        # Build dir2nvfs and the embed file
+        configure.addEmbed()
     else:
         imp.load_source("configure", "configure_server");
 
