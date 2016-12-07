@@ -1,0 +1,10 @@
+konstruct.log
+configurec
+*.pyc
+tags
+build
+testrun
+third-party
+dist/nidium-server
+.ycm_extra_conf.py
+

@@ -1,0 +1,6 @@
+[submodule "NativeJSCore"]
+	path = NativeJSCore
+	url = git@github.com:nidium/NativeJSCore.git
+[submodule "nativejscore"]
+	path = nativejscore
+	url = git@github.com:nidium/NativeJSCore.git
