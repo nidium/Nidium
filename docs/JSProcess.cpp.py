@@ -79,10 +79,7 @@ console.log("got Kill");
 
 FunctionDoc("NidiumProcess.exit", "Attach a javascript callback to a signal.",
     SeesDocs("global.process|NidiumProcess|Threads|NidiumProcess.setSignalHandler|NidiumProcess.exit"),
-    [ExampleDoc("""var really = false;
-if (really) {
-    NidiumProcess.exit();
-}""")],
+    [ExampleDoc("""NidiumProcess.exit();""", run_code=False)],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
     NO_Returns

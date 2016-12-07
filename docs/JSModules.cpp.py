@@ -8,11 +8,7 @@ NamespaceDoc( "Module", "Module that is exported.",
     SeesDocs( "global.modules" ),
     examples=[
         ExampleDoc("Module.exports = {\"lorem\":\"ipsum\"}"),
-        ExampleDoc("var really = false;
-if (really) {
-    var foobar = require(\"foobar.js\");\n console.log(foobar.lorem); // Print \"ipsum\"
-}
-")
+        ExampleDoc("""var foobar = require(\"foobar.js\");\n console.log(foobar.lorem); // Print \"ipsum\" """, run_code=False)
     ],
     products=["Frontend", "Server"]
 )

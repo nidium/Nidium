@@ -128,7 +128,7 @@ FunctionDoc( "File.rmrf", "Deletes the directory and it's content.",
     [ExampleDoc( """var f = new File("foobar/", {encoding: "utf8"});
 if  (f.isDir()) {
     f.rmrf();
-}""" ) ],
+}""", run_code=False ) ],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
     NO_Returns
