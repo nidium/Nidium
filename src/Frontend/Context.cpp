@@ -134,7 +134,7 @@ Context::Context(ape_global *net)
     // prefix should be kept for correctly resolving the path of the files.
     Path::RegisterScheme(SCHEME_DEFINE("embed://", EmbedStream, true));
 #else
-    Path::RegisterScheme(SCHEME_DEFINE("embed://", EmbedStream, true));
+    Path::RegisterScheme(SCHEME_DEFINE("embed://", EmbedStream, false));
 #endif
 
     Path::RegisterScheme(SCHEME_DEFINE("system://", SystemStream, false));
