@@ -1,0 +1,14 @@
+--- skia/gyp/common_conditions.gypi	2016-04-13 07:15:49.015002049 +0200
++++ skia/gyp/common_conditions.gypi.mod	2016-04-13 07:16:26.422373355 +0200
+@@ -19,6 +19,11 @@
+       'cflags': [
+         '-msse2',
+         '-mfpmath=sse',
++        '-Wno-tautological-undefined-compare',
++        '-Wno-inconsistent-missing-override',
++        '-Wno-deprecated-declarations',
++        '-Wno-shift-negative-value',
++        '-Wno-unknown-warning-option',
+       ],
+     }],
+ 
