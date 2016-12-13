@@ -88,7 +88,7 @@ flags = [
     '-Ithird-party/leveldb/include',
     '-Ithird-party/libcoroutine/source',
     '-Ithird-party/libzip/lib',
-    '-Ithird-party/mozilla-central/dist/include',
+    '-Ithird-party/mozilla-central/js/src/obj/dist/include',
     '-Ithird-party/mozilla-central/js/src',
     '-Ithird-party/mozilla-central/nsprpub/dist/include/nspr',
     '-Ithird-party/openssl/include',
