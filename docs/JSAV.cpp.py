@@ -132,9 +132,50 @@ custom.assignProcessor(function(frame, scope) {
 
 ClassDoc( "Video", "Video playing.",
     [ SeeDoc( "Audio" ) ],
-    NO_Examples,
+    [ExampleDoc("""// Video are rendered inside a Canvas,
+// so first, you need to create a Canvas
+var c = new Canvas(640, 360);
+
+// The Canvas must be initialized with a 2d context
+c.getContext("2d");
+
+// And added to the root canvas, so we can see it
+document.canvas.add(c);
+
+// Then create the video with a reference to the Canvas
+var video = new Video(c);
+
+// Open the video file
+video.open("big_buck_bunny_480p_h264.mov");
+
+// And play it !
+video.play();
+""", title="Video playback"), ExampleDoc("""var c = new Canvas(640, 360);
+c.getContext("2d");
+document.canvas.add(c);
+
+var video = new Video(c);
+video.open("big_buck_bunny_480p_h264.mov");
+
+video.on("ready", function() {
+    var dsp = Audio.getContext();
+
+    var source = video.getAudioNode();
+    if (!source) {
+        console.log("Video does not have an audio channel");
+        return;
+    }
+
+    var target = dsp.createNode("target", 2, 0);
+
+    dsp.connect(source.output[0], target.input[0]);
+    dsp.connect(source.output[1], target.input[1]);
+});
+
+video.play();""", title="Video playback with sound") ],
     NO_Inherrits,
     NO_Extends
+    products=["Frontend"]
 )
 
 for klass in ["AudioNode", "Video"]:
