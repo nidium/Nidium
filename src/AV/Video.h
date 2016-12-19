@@ -105,6 +105,7 @@ public:
     double m_LastDelay;
 
     bool m_Playing;
+    bool m_PlayWhenReady = false;
     bool m_Stopped;
 
     int m_Width;
