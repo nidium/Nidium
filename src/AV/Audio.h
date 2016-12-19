@@ -52,9 +52,9 @@ class Audio
 {
 public:
     Audio(ape_global *net,
-          unsigned int bufferSize,
-          unsigned int channels,
-          unsigned int sampleRate);
+          unsigned int bufferSize = 0,
+          unsigned int channels = 2,
+          unsigned int sampleRate = 44100);
 
     friend class Video;
     friend class AudioSource;
