@@ -82,146 +82,158 @@ int64_t AVBufferReader::seek(void *opaque, int64_t offset, int whence)
 // }}}
 
 // {{{ AVStreamReader
-#define STREAM_BUFFER_SIZE NIDIUM_AVIO_BUFFER_SIZE * 6
 AVStreamReader::AVStreamReader(const char *src,
                                AVStreamReadCallback readCallback,
                                void *callbackPrivate,
                                AVSource *source,
                                ape_global *net)
-    : m_Source(source), m_TotalRead(0), m_ReadCallback(readCallback),
-      m_CallbackPrivate(callbackPrivate), m_Opened(false),
-      m_StreamRead(STREAM_BUFFER_SIZE), m_StreamPacketSize(0), m_StreamErr(-1),
-      m_StreamSeekPos(0), m_StreamSize(0), m_StreamBuffer(NULL), m_Error(0),
-      m_HaveDataAvailable(false), m_GenesisThread(pthread_self())
+    : m_Source(source), m_ReadCallback(readCallback),
+      m_CallbackPrivate(callbackPrivate),  m_GenesisThread(pthread_self())
 {
-    NIDIUM_PTHREAD_VAR_INIT(&m_ThreadCond);
     m_Async  = true;
     m_Stream = Stream::Create(Path(src));
     if (!m_Stream) {
         m_Source->sendEvent(SOURCE_EVENT_ERROR, ERR_FAILED_OPEN, false);
         return;
     }
-    // m_Stream->setAutoClose(false);
-    m_Stream->start(STREAM_BUFFER_SIZE);
+    m_Stream->start(NIDIUM_AVIO_BUFFER_SIZE * 4);
     m_Stream->setListener(this);
 }
 
 int AVStreamReader::read(void *opaque, uint8_t *buffer, int size)
 {
-    AVStreamReader *thiz = static_cast<AVStreamReader *>(opaque);
-    if (thiz->m_StreamErr == AVERROR_EXIT) {
+    AVStreamReader *reader = static_cast<AVStreamReader *>(opaque);
+    return reader->_read(buffer, size);
+}
+
+bool AVStreamReader::fillBuffer(uint8_t *buffer, int size, int *outCopied)
+{
+    int avail  = m_StreamPacketSize - m_StreamRead;
+    if (avail <= 0 || !m_StreamBuffer) {
+        return false;
+    }
+
+    int copied = *outCopied;
+    int left   = size - copied;
+    int copy   = avail > left ? left : avail;
+
+    SPAM(("Filling ffmpeg buffer : \n"
+         " - Stream (%p) : totalRead=%lld, currentRead=%d, currentSize=%d\n"
+         " - Buffer : size=%d copy=%d, copied=%d (avail=%d, left=%d)\n",
+         m_StreamBuffer, m_TotalRead, m_StreamRead, m_StreamPacketSize,
+         size, copy, copied, avail, left));
+
+    memcpy(buffer + copied, m_StreamBuffer + m_StreamRead, copy);
+
+    m_TotalRead  += copy;
+    m_StreamRead += copy;
+    copied       += copy;
+
+    *outCopied   = copied;
+
+    if (copied >= size
+        || (m_StreamSize != 0
+            && m_TotalRead >= m_StreamSize)) {
+        return true;
+    }
+
+    return false;
+}
+
+void AVStreamReader::streamMessage(AVStreamReader::StreamMessage ev)
+{
+    std::unique_lock<std::mutex> lock(m_PostMessageMutex);
+
+    this->postMessage(this, ev);
+
+    while (m_MessagePosted == false) {
+        m_PostMessageCond.wait(lock);
+    }
+    m_MessagePosted = false;
+}
+
+int AVStreamReader::_read(uint8_t *buffer, int size)
+{
+    SPAM(("%p / Read called\n", this));
+    if (m_StreamErr == AVERROR_EXIT) {
         SPAM(("AVStreamReader, streamErr is EXIT\n"));
-        thiz->m_Pending   = false;
-        thiz->m_NeedWakup = false;
+        m_Pending   = false;
+        m_NeedWakup = false;
         return AVERROR_EXIT;
     }
 
     int copied = 0;
-    int avail  = (thiz->m_StreamPacketSize - thiz->m_StreamRead);
 
-    // Have data inside buffer
-    if (avail > 0) {
-        int left = size - copied;
-        int copy = avail > left ? left : avail;
-
-        SPAM(
-            ("get streamBuffer = %p, totalRead = %lld, streamRead = %d, "
-             "streamSize = %d, copy = %d, size = %d, avail = %d, left = %d\n",
-             thiz->m_StreamBuffer, thiz->m_TotalRead, thiz->m_StreamRead,
-             thiz->m_StreamPacketSize, copy, size, avail, left));
-
-        memcpy(buffer + copied, thiz->m_StreamBuffer + thiz->m_StreamRead,
-               copy);
-
-        thiz->m_TotalRead += copy;
-        thiz->m_StreamRead += copy;
-        copied += copy;
-
-        if (copied >= size) {
-            SPAM(("Returning %d\n", copied));
-            return copied;
-        }
+    // First, try to fill the buffer with what is already in memory
+    SPAM(("%p / fillBuffer\n", this));
+    if (this->fillBuffer(buffer, size, &copied)) {
+        SPAM(("Buffer filled with data already in memory\n"));
+        return copied;
     }
+    SPAM(("%p / fillBuffer is over\n", this));
 
-    SPAM(("streamSize = %lld\n", thiz->m_StreamSize));
-    // No more data inside buffer, need to get more
+    // If we reach this point, there is no more data inside
+    // the stream buffer. Let's get more.
     for (;;) {
-        thiz->postMessage(opaque, AVStreamReader::MSG_READ);
-        NIDIUM_PTHREAD_WAIT(&thiz->m_ThreadCond);
-        SPAM(("store streamBuffer=%p / size=%d / err=%d\n",
-              thiz->m_StreamBuffer, thiz->m_StreamPacketSize,
-              thiz->m_StreamErr));
-        if (!thiz->m_StreamBuffer) {
-            switch (thiz->m_StreamErr) {
+        SPAM(("%p / Asking for more data\n", this));
+        this->streamMessage(kStream_Read);
+
+        SPAM(("%p / store streamBuffer=%p / size=%d / err=%d\n", this,
+              m_StreamBuffer, m_StreamPacketSize,
+              m_StreamErr));
+
+        if (m_StreamErr ==  Stream::kDataStatus_Again) {
+            std::unique_lock<std::mutex> lock(m_DataAvailMutex);
+
+            if (!m_HaveDataAvailable) {
+                m_Pending = true;
+                lock.unlock();
+
+                SPAM(("Got EAGAIN, no data available, switching back to main coro\n"));
+
+                Coro_switchTo_(m_Source->m_Coro,
+                               m_Source->m_MainCoro);
+
+                SPAM(("After EAGAIN\n"));
+
+                lock.lock();
+                m_Pending   = false;
+                m_NeedWakup = false;
+                lock.unlock();
+            } else {
+                // Another packet is already available
+                // (Packet has been received while waiting for the
+                // MSG_READ reply)
+                lock.unlock();
+                continue;
+            }
+        } else if (!m_StreamBuffer) {
+            std::lock_guard<std::mutex> lock(m_DataAvailMutex);
+
+            switch (m_StreamErr) {
                 case AVERROR_EXIT:
-                    SPAM(("Got EXIT\n"));
-                    thiz->m_Pending   = false;
-                    thiz->m_NeedWakup = false;
+                    m_Pending   = false;
+                    m_NeedWakup = false;
                     return AVERROR_EXIT;
                 case Stream::kDataStatus_End:
                 case Stream::kDataStatus_Error:
-                    thiz->m_Error = AVERROR_EOF;
                     SPAM(("Got EOF\n"));
-                    thiz->m_Pending   = false;
-                    thiz->m_NeedWakup = false;
-                    return copied > 0 ? copied : thiz->m_Error;
-                    break;
-                case Stream::kDataStatus_Again:
-                    SPAM(("Got eagain\n"));
-                    if (!thiz->m_HaveDataAvailable) {
-                        // Got EAGAIN, switch back to main coro
-                        // and wait for onDataAvailable callback
-                        thiz->m_Pending = true;
-                        Coro_switchTo_(thiz->m_Source->m_Coro,
-                                       thiz->m_Source->m_MainCoro);
-                    } else {
-                        // Another packet is already available
-                        // (Packet has been received while waiting for the
-                        // MSG_READ reply)
-                    }
-                    break;
+                    m_Pending   = false;
+                    m_NeedWakup = false;
+                    return copied > 0 ? copied : AVERROR_EOF;
                 default:
                     fprintf(stderr,
                             "received unknown error (%d) and streamBuffer is "
                             "null. Returning EOF, "
                             "copied = %u\n",
-                            thiz->m_StreamErr, copied);
-                    thiz->m_Error = AVERROR_EOF;
-                    return copied > 0 ? copied : thiz->m_Error;
+                            m_StreamErr, copied);
+                    return copied > 0 ? copied : AVERROR_EOF;
             }
         } else {
-            size_t copy = size - copied;
-            if (thiz->m_StreamPacketSize < copy) {
-                copy = thiz->m_StreamPacketSize;
-            }
-
-            SPAM(("Writting to buffer. copied=%d, copy=%d, size=%d\n", copied,
-                  copy, size));
-            memcpy(buffer + copied, thiz->m_StreamBuffer, copy);
-
-            thiz->m_StreamRead = copy;
-            thiz->m_TotalRead += copy;
-            copied += copy;
-            SPAM(("totalRead=%lld, streamSize=%lld\n", thiz->m_TotalRead,
-                  thiz->m_StreamSize));
-
-            // Got enought data, return
-            if (copied == size
-                || (thiz->m_StreamSize != 0
-                    && thiz->m_TotalRead >= thiz->m_StreamSize)) {
-                SPAM(("wrote enough, return %u \n", copied));
-                thiz->m_Error     = 0;
-                thiz->m_Pending   = false;
-                thiz->m_NeedWakup = false;
-
+            if (this->fillBuffer(buffer, size, &copied)) {
                 return copied;
             }
         }
-    }
-
-    if (thiz->m_StreamSize != 0 && thiz->m_TotalRead > thiz->m_StreamSize) {
-        SPAM(("Oh shit, read after EOF\n"));
-        exit(1);
     }
 
     return 0;
@@ -255,14 +267,13 @@ int64_t AVStreamReader::seek(void *opaque, int64_t offset, int whence)
     }
 
     if (pos < 0 || pos > size) {
-        thiz->m_Error = AVERROR_EOF;
         return AVERROR_EOF;
     }
 
     SPAM(("SEEK pos=%lld, size=%lld\n", pos, size));
 
     thiz->m_StreamBuffer  = NULL;
-    thiz->m_StreamRead    = STREAM_BUFFER_SIZE;
+    thiz->m_StreamRead    = 0;
     thiz->m_TotalRead     = pos;
     thiz->m_StreamSeekPos = pos;
 
@@ -273,8 +284,7 @@ int64_t AVStreamReader::seek(void *opaque, int64_t offset, int whence)
     if (thiz->isGenesisThread()) {
         thiz->m_Stream->seek(pos);
     } else {
-        thiz->postMessage(opaque, AVStreamReader::MSG_SEEK);
-        NIDIUM_PTHREAD_WAIT(&thiz->m_ThreadCond);
+        thiz->streamMessage(kStream_Seek);
     }
 
     return pos;
@@ -282,8 +292,6 @@ int64_t AVStreamReader::seek(void *opaque, int64_t offset, int whence)
 
 void AVStreamReader::onMessage(const SharedMessages::Message &msg)
 {
-    // AVStreamReader *thiz = static_cast<AVStreamReader *>(msg.dataPtr());
-
     switch (msg.event()) {
         case Stream::kEvents_AvailableData:
             this->onAvailableData(0);
@@ -315,22 +323,28 @@ void AVStreamReader::onMessage(const SharedMessages::Message &msg)
         }
         case Stream::kEvents_ReadBuffer:
             return;
-        case MSG_SEEK:
+        case kStream_Seek:
             m_Stream->seek(m_StreamSeekPos);
             break;
-        case MSG_READ:
-            m_StreamBuffer
-                = m_Stream->getNextPacket(&m_StreamPacketSize, &m_StreamErr);
-            m_HaveDataAvailable = false;
+        case kStream_Read:
+            {
+                std::lock_guard<std::mutex> lock(m_DataAvailMutex);
+                m_StreamBuffer
+                    = m_Stream->getNextPacket(&m_StreamPacketSize, &m_StreamErr);
+                m_HaveDataAvailable = false;
+                m_StreamRead        = 0;
+            }
             break;
-        case MSG_STOP:
+        case kStream_Stop:
             delete m_Stream;
             break;
         default:
             return;
     }
 
-    NIDIUM_PTHREAD_SIGNAL(&m_ThreadCond);
+    std::lock_guard<std::mutex> lock(m_PostMessageMutex);
+    m_MessagePosted = true;
+    m_PostMessageCond.notify_one();
 }
 
 bool AVStreamReader::isGenesisThread()
@@ -365,15 +379,21 @@ void AVStreamReader::onError(Stream::StreamError err)
 
 void AVStreamReader::onAvailableData(size_t len)
 {
-    m_Error             = 0;
-    m_HaveDataAvailable = true;
-    SPAM(("onAvailableData=%d/%d\n", len, m_Opened));
+    SPAM(("%p / onAvailableData len=%d opened=%d pending=%d\n", this, len, m_Opened, m_Pending));
+    {
+        std::lock_guard<std::mutex> lock(m_DataAvailMutex);
+        SPAM(("%p / Got lock\n", this));
 
-    if (m_Pending) {
-        m_NeedWakup = true;
-        m_ReadCallback(m_CallbackPrivate);
-        return;
+        m_HaveDataAvailable = true;
+
+        if (m_Pending) {
+            m_NeedWakup = true;
+            m_ReadCallback(m_CallbackPrivate);
+            SPAM(("%p / Lock is releaased\n", this));
+            return;
+        }
     }
+    SPAM(("%p / Lock is releaased\n", this));
 
     if (!m_Opened) {
         m_StreamSize = m_Stream->getFileSize();
@@ -392,7 +412,10 @@ void AVStreamReader::finish()
     // data/seek)
     this->delMessages();
 
-    NIDIUM_PTHREAD_SIGNAL(&m_ThreadCond);
+    // Wakup any thread waiting for an operation
+    std::lock_guard<std::mutex> lock(m_PostMessageMutex);
+    m_MessagePosted = true;
+    m_PostMessageCond.notify_one();
 }
 
 AVStreamReader::~AVStreamReader()
@@ -400,8 +423,7 @@ AVStreamReader::~AVStreamReader()
     if (this->isGenesisThread()) {
         delete m_Stream;
     } else {
-        this->postMessage(this, AVStreamReader::MSG_STOP);
-        NIDIUM_PTHREAD_WAIT(&m_ThreadCond);
+        this->streamMessage(kStream_Stop);
     }
 }
 // }}}

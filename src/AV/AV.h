@@ -10,6 +10,9 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <mutex>
+#include <condition_variable>
+
 #include <ape_netlib.h>
 
 #include "IO/Stream.h"
@@ -28,7 +31,7 @@ namespace Nidium {
 namespace AV {
 
 #define NIDIUM_AVIO_BUFFER_SIZE 32768
-#define CORO_STACK_SIZE 4096 * 4
+#define CORO_STACK_SIZE 4096
 /* Audio processing buffer multiplier (must be power of 2) */
 #define NIDIUM_AUDIO_BUFFER_MULTIPLIER 4
 /* Max size for the resampling buffer */
@@ -113,7 +116,7 @@ public:
                    ape_global *net);
 
     AVSource *m_Source;
-    int64_t m_TotalRead;
+    int64_t m_TotalRead = 0;
 
     static int read(void *opaque, uint8_t *buffer, int size);
     static int64_t seek(void *opaque, int64_t offset, int whence);
@@ -123,32 +126,39 @@ public:
     ~AVStreamReader();
 
 private:
-    enum
+    enum StreamMessage
     {
-        MSG_SEEK,
-        MSG_READ,
-        MSG_STOP
+        kStream_Seek,
+        kStream_Read,
+        kStream_Stop
     };
-    void onMessage(const Core::SharedMessages::Message &msg);
-    bool isGenesisThread();
 
-    NIDIUM_PTHREAD_VAR_DECL(m_ThreadCond);
+    bool fillBuffer(uint8_t *buffer, int size, int *copied);
+    int _read(uint8_t *buffer, int size);
+    void onMessage(const Core::SharedMessages::Message &msg);
+    void streamMessage(AVStreamReader::StreamMessage ev);
+    bool isGenesisThread();
 
     IO::Stream *m_Stream;
     AVStreamReadCallback m_ReadCallback;
     void *m_CallbackPrivate;
-
-    bool m_Opened;
-
-    size_t m_StreamRead;
-    size_t m_StreamPacketSize;
-    int m_StreamErr;
-    size_t m_StreamSeekPos;
-    off_t m_StreamSize;
-    unsigned const char *m_StreamBuffer;
-    int m_Error;
-    bool m_HaveDataAvailable;
     pthread_t m_GenesisThread;
+
+    bool m_Opened               = false;
+
+    size_t m_StreamRead         = 0;
+    size_t m_StreamPacketSize   = 0;
+    int m_StreamErr             = -1;
+    size_t m_StreamSeekPos      = 0;
+    off_t m_StreamSize          = 0;
+    unsigned const char *m_StreamBuffer = nullptr;
+
+    std::mutex m_DataAvailMutex;
+    bool m_HaveDataAvailable = false;
+
+    std::mutex m_PostMessageMutex;
+    std::condition_variable m_PostMessageCond;
+    bool m_MessagePosted = false;
 };
 // }}}
 
