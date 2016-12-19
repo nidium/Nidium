@@ -241,7 +241,7 @@ bool JSAudioContext::JS_connect(JSContext *cx, JS::CallArgs &args)
             return false;
         }
     } else {
-        JS_ReportError(cx, "connect() take one input and one output\n");
+        JS_ReportError(cx, "connect() expect one input and one output.\n");
         return false;
     }
 
@@ -281,12 +281,12 @@ bool JSAudioContext::JS_disconnect(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    if (link1->m_Type == AV::INPUT && link2->m_Type == AV::OUTPUT) {
+    if (link1->isInput() && link2->isOutput()) {
         audio->disconnect(link2, link1);
-    } else if (link1->m_Type == AV::OUTPUT && link2->m_Type == AV::INPUT) {
+    } else if (link1->isOutput() && link2->isInput()) {
         audio->disconnect(link1, link2);
     } else {
-        JS_ReportError(cx, "disconnect() take one input and one output\n");
+        JS_ReportError(cx, "disconnect() expect one input and one output\n");
         return false;
     }
 
