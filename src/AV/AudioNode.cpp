@@ -1669,6 +1669,10 @@ void AudioSource::closeInternal(bool reset)
 
 void AudioSource::play()
 {
+    if (m_Playing) {
+        return;
+    }
+
     if (!m_Opened) {
         m_PlayWhenReady = true;
         return;
