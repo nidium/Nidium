@@ -67,6 +67,11 @@ void JSAudioNode::releaseNode()
     // later for this node.
     audio->wakeup();
 
+    // Delete (invalidate) all JSAudioNodeLink
+    for (auto const& link: m_Links) {
+        delete link;
+    }
+
     // Remove JS node from nodes linked list
     jaudio->removeNode(this);
 
