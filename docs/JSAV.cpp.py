@@ -174,7 +174,7 @@ video.on("ready", function() {
 
 video.play();""", title="Video playback with sound") ],
     NO_Inherrits,
-    NO_Extends
+    NO_Extends,
     products=["Frontend"]
 )
 
@@ -348,7 +348,7 @@ As the `AudioContext` has it's own thread, communitation between threads must be
     NO_Examples,
     [ParamDoc( "event", "The event object",
         ObjectDoc([
-            ( "data", "Data of the message", "mixed" ),
+            ( "data", "Data of the message", "any" ),
         ]), NO_Default, IS_Obligated ),
     ]
 )
@@ -461,7 +461,7 @@ foo = 0;
     IS_Dynamic, IS_Public, IS_Fast,
     [CallbackDoc( "callback", "Function to execute when a variable is set on the `AudioNode`", [
     ParamDoc( "key", "The key name", "string", NO_Default, IS_Obligated ),
-    ParamDoc( "value", "The value that has been set", "mixed", NO_Default, IS_Obligated ),
+    ParamDoc( "value", "The value that has been set", "any", NO_Default, IS_Obligated ),
         ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated )
     ])]
 )
@@ -581,7 +581,7 @@ custom.assignProcessor(function(frame, scope) {
 });""") ],
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "key", "Key", "string", NO_Default, IS_Obligated ) ,
-     ParamDoc( "value", "Value belonging to Key", "mixed", NO_Default, IS_Obligated ) ],
+     ParamDoc( "value", "Value belonging to Key", "any", NO_Default, IS_Obligated ) ],
     NO_Returns
 )
 
@@ -590,7 +590,7 @@ FunctionDoc( "AudioNode.get", "Get a value from a custom AudioNode object.\n> Va
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "key", "Key to find the value for", "string", NO_Default, IS_Obligated) ],
-    ReturnDoc( "The value belonging to 'key'", "mixed" )
+    ReturnDoc( "The value belonging to 'key'", "any" )
 )
 
 FunctionDoc( "AudioNode.send", """Send a message from a `custom-source` node or a `custom` node, to the main thread.
@@ -714,7 +714,7 @@ This method will return `null` if it's called before the `ready` event of the vi
         NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
         NO_Params,
-        ReturnDoc("The audio node instance associated to the video or null if the video does not have any audio stream", "AudioNode")
+        ReturnDoc("The audio node instance associated to the video or null if the video does not have any audio stream", "AudioNode", nullable=True)
 )
 
 for i in ["Video", "AudioNode" ]:

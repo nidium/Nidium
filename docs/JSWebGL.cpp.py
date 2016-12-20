@@ -251,7 +251,7 @@ FunctionDoc( "WebGLRenderingContext.blendFunc", "Blend a function.",
     IS_Dynamic, IS_Public, IS_Fast,
     [
         ParamDoc( "sfactor", "S-factor", "integer", NO_Default, IS_Obligated ),
-        ParamDoc( "dfactor", "D-factor", "integer", NO_Default, IS_Obligated ) 
+        ParamDoc( "dfactor", "D-factor", "integer", NO_Default, IS_Obligated )
     ],
     NO_Returns
 )
@@ -472,7 +472,7 @@ FunctionDoc( "WebGLRenderingContext.drawArrays", "Draw Arrays.",
     [
         ParamDoc( "mode", "Mode", "integer", NO_Default, IS_Obligated ),
         ParamDoc( "first", "First", "integer", NO_Default, IS_Obligated ),
-        ParamDoc( "count", "Count", "integer", NO_Default, IS_Obligated ) 
+        ParamDoc( "count", "Count", "integer", NO_Default, IS_Obligated )
     ],
     NO_Returns
 )
@@ -640,7 +640,7 @@ FunctionDoc( "WebGLRenderingContext.getParameter", "Get parameter of a context."
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "attr", "Attribute", "integer", NO_Default, IS_Obligated ) ],
-    ReturnDoc( "value", "mixed" )
+    ReturnDoc( "value", "any" )
 )
 
 FunctionDoc( "WebGLRenderingContext.getParameter", "Get parameter of a program.",
@@ -651,7 +651,7 @@ FunctionDoc( "WebGLRenderingContext.getParameter", "Get parameter of a program."
         ParamDoc( "program", "Program", "WebGLProgram", NO_Default, IS_Obligated ),
         ParamDoc( "attr", "Attribute", "integer", NO_Default, IS_Obligated )
     ],
-    ReturnDoc( "value", "mixed" )
+    ReturnDoc( "value", "any" )
 )
 
 FunctionDoc( "WebGLRenderingContext.getProgramInfoLog", "Get information about a program.",
@@ -668,7 +668,7 @@ FunctionDoc( "WebGLRenderingContext.getShaderParameter", "Get parameter from a s
     IS_Dynamic, IS_Public, IS_Fast,
     [
         ParamDoc( "shader", "Shader", "WebGLShader", NO_Default, IS_Obligated ),
-        ParamDoc( "param", "Parameter name", "integer", NO_Default, IS_Obligated ) 
+        ParamDoc( "param", "Parameter name", "integer", NO_Default, IS_Obligated )
     ],
     ReturnDoc( "value", "integer" )
 )

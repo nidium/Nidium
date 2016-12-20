@@ -58,12 +58,12 @@ FunctionDoc("NidiumProcess.getOwner", """Return an object with information about
     [ExampleDoc("""NidiumProcess.setOwner('daemon', 'www-data');""")],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
-    ObjectDoc([
+    ReturnDoc("Object with details about the owner", ObjectDoc([
         ("uid", "User ID", "integer"),
         ("gid", "Group ID", "integer"),
         ("user", "User name", "string"),
         ("group", "Group name", "string"),
-    ])
+    ]))
 )
 
 FunctionDoc("NidiumProcess.setSignalHandler", "Attach a javascript callback to a signal.",

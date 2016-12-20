@@ -36,7 +36,7 @@ console.log(JSON.stringify(u));
 """)],
     IS_Static, IS_Public, IS_Fast,
     [ParamDoc( 'obj', 'object to dump', ObjectDoc([('data', 'content', 'string')]), NO_Default, IS_Obligated ) ],
-    ReturnDoc( "list with dumped data", "[mixed]" )
+    ReturnDoc( "list with dumped data", "[any]" )
 )
 
 FunctionDoc( "NidiumDebug.unserialize", "Dump the content of an object.",
@@ -51,6 +51,6 @@ console.log(JSON.stringify(u));
         ParamDoc( 'arraybuf', 'Object to dump into an arraybuffer', 'ArrayBuffer', NO_Default, IS_Obligated ),
         ParamDoc( 'offset', 'offset to start on', 'integer', 0, IS_Optional )
     ],
-    ReturnDoc( "exerpt of dumped data", "mixed" )
+    ReturnDoc( "exerpt of dumped data", "any" )
 )
 

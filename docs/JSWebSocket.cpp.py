@@ -48,7 +48,7 @@ FunctionDoc("WebSocketServerClient.send", "Send an message over a websocket conn
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ParamDoc("message", "Message to be send", "string|ArrayBuffer", NO_Default, IS_Obligated)],
-    ReturnDoc("0 on success, or null if failed.", "integer|null")
+    ReturnDoc("0 on success, or null if failed.", "integer", nullable=True)
 )
 
 FunctionDoc("WebSocketServerClient.close", "Closes an existing websocket connection.",

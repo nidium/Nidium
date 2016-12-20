@@ -25,7 +25,7 @@ FunctionDoc( "NidiumDocument.getCanvasById", "Select an canvas element for furth
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     [ ParamDoc( "id", "Canvas identifier", "string", NO_Default, IS_Obligated ) ],
-    ReturnDoc( "The selected element or null", "Canvas" )
+    ReturnDoc( "The selected element or null", "Canvas", nullable=True )
 )
 
 FunctionDoc( "NidiumDocument.getScreenData", "Provides information about an canvas object.",

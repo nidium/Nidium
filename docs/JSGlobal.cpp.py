@@ -72,7 +72,7 @@ clearTimeout( t );""" ) ],
     [
         CallbackDoc( 'fn', 'The function to be called', NO_Default ),
         ParamDoc( 'timeout','timeout in miliseconds', 'integer', 8, IS_Obligated ),
-        ParamDoc( 'args', "argument for the callback", 'mixed', '[]', IS_Obligated )
+        ParamDoc( 'args', "argument for the callback", 'any', '[]', IS_Obligated )
     ],
     ReturnDoc( "An identifier representing the timer that can be used to stop the timer with 'global.clearTimeout'", 'integer' )
 )
@@ -87,7 +87,7 @@ clearInterval( t );""") ],
     [
         CallbackDoc( 'fn', 'The function to be called', NO_Default ),
         ParamDoc( 'timeout','timeout in miliseconds', 'integer', 8, IS_Obligated ),
-        ParamDoc( 'args', 'mixed', 'Array', IS_Optional )
+        ParamDoc( 'args', 'mixed', '[any]', IS_Optional )
     ],
     ReturnDoc( "An identifier representing the timer that can be used to stop the timer with 'global.clearInterval'", 'integer' )
 )
@@ -123,8 +123,8 @@ Every 'setImmediate` callback is executed after the I/O completion but before al
 }); """) ],
     IS_Static, IS_Public, IS_Fast,
     [   CallbackDoc( 'fn', 'The function to be called', NO_Default ),
-        ParamDoc( 'args', 'mixed', 'Array', IS_Optional ) ],
-    ReturnDoc( "This always returns null; thus it means that it cannot be canceled with a 'global.clearTimeout'.", 'null' )
+        ParamDoc( 'args', 'mixed', '[any]', IS_Optional ) ],
+    ReturnDoc( "This always returns 'null'; thus it means that it cannot be canceled with a 'global.clearTimeout'.", 'null' )
 )
 
 FunctionDoc( "global.btoa", "Encode binary string to an base64 encodedstring.",
