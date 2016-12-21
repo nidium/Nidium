@@ -48,8 +48,8 @@ f.open("w", function(err) {
     [
         ParamDoc( "path", "File path relative to the NML (Frontend) or the current working directory (Server)", "string", NO_Default, IS_Obligated ),
         ParamDoc( "options", "Options object (encoding)", ObjectDoc([("encoding", "encoding string (e.g. 'utf8')", "string")]), NO_Default, IS_Optional ),
-        CallbackDoc( "callback", "Read callback function", [
-            ParamDoc( "err", "Error description or `null`", "string|null", NO_Default, IS_Obligated ),
+        CallbackDoc( "cb", "Read callback function", [
+            ParamDoc( "err", "Error description or `null`", "string|void", NO_Default, IS_Obligated),
             ParamDoc( "buffer", "The filecontent", "string|ArrayBuffer", NO_Default, IS_Obligated)
         ])
     ],
@@ -78,7 +78,7 @@ f.open("w+", function(err) {
     IS_Dynamic, IS_Public, IS_Fast,
     [
         ParamDoc( "buffer", "The content to write to the file", 'string|ArrayBuffer', NO_Default, IS_Obligated ),
-        CallbackDoc( "callback", "Read callback function", [
+        CallbackDoc( "cb", "Read callback function", [
             ParamDoc( "err", "Error description", "string", NO_Default, IS_Obligated ),
         ], NO_Default, IS_Obligated)
     ],
@@ -177,7 +177,7 @@ f.open("r", function(err) {
     IS_Dynamic, IS_Public, IS_Fast,
     [
         ParamDoc( "bytes", "Number of bytes to read", 'integer', 0, IS_Obligated ),
-        CallbackDoc( "callback", "Read callback function", [
+        CallbackDoc( "cb", "Read callback function", [
             ParamDoc( "err", "Error description", "string", NO_Default, IS_Obligated ),
             ParamDoc( "buffer", "The filecontent", "string", NO_Default, IS_Obligated)
         ])
@@ -208,7 +208,7 @@ f.open("r", function(err) {
 || `w+` || Open for reading and writing. The file is created if it does not exist, otherwise it is truncated.  The stream is positioned at the beginning of the file. ||
 || `a` 	|| Open for writing. The file is created if it does not exist. The stream is positioned at the end of the file. Subsequent writes to the file will always end up at the then current end of file, irrespective of any intervening fseek(3) or similar. ||
 || `a+` || Open for reading and writing.  The file is created if it does not exist. The stream is positioned at the end of the file. Subsequent writes to the file will always end up at the then current end of file, irrespective of any intervening fseek(3) or similar. ||""", "string", NO_Default, IS_Obligated ),
-        CallbackDoc( "callback", "The callback function", [
+        CallbackDoc( "cb", "The callback function", [
             ParamDoc( "Error", "Error description", "string", NO_Default, IS_Obligated )
         ])
     ],
@@ -230,7 +230,7 @@ f.open("r", function(err) {
     IS_Dynamic, IS_Public, IS_Fast,
     [
         ParamDoc( "offset", "Move to the `offset` from the beginning of the file. The `offset` is expressed in bytes.", 'integer', 0, IS_Obligated ),
-        CallbackDoc( "callback", "Read callback function", [
+        CallbackDoc( "cb", "Read callback function", [
             ParamDoc( "err", "Error description", "string", NO_Default, IS_Obligated ),
         ])
     ],
@@ -329,7 +329,7 @@ This method also accept `http` file or any protocol supported by Nidium""",
     [
         ParamDoc( "path", "File path relative to the NML (Frontend) or the current working directory (Server)", 'string', NO_Default, IS_Obligated ),
         ParamDoc( "options", "Options object (encoding)", ObjectDoc([("encoding", "encoding string (e.g. 'utf8')", "string")]), NO_Default, IS_Optional ),
-        CallbackDoc( "callback", "Read callback function", [
+        CallbackDoc( "cb", "Read callback function", [
             ParamDoc( "err", "Error description", "string", NO_Default, IS_Obligated ),
             ParamDoc( "buffer", "The filecontent", "string", NO_Default, IS_Obligated)
         ])

@@ -223,25 +223,25 @@ node.addEventListener("ready", function() {
     console.log("Source is ready to be played");
 });
     """)],
-            [ ParamDoc("event", "Event object", NO_Params, NO_Default, IS_Obligated) ]
+            [ParamDoc("dummy", "Empty parameter, set to 'undefined'", 'any', 'null', IS_Obligated)]
     )
 
     EventDoc( klass + ".pause", "Event fired when the source is put on pause.",
             SeesDocs(klass + ".play|"+ klass + ".stop|" + klass + ".error|" + klass + ".buffering|" + klass + ".ready|" + klass + ".end" ),
             NO_Examples,
-            [ ParamDoc("event", "Event object", NO_Params, NO_Default, IS_Obligated) ]
+            [ParamDoc("dummy", "Empty parameter, set to 'undefined'", 'any', 'null', IS_Obligated)]
     )
 
     EventDoc( klass + ".play", "Event fired when the source is put on play.",
             SeesDocs(  klass + ".pause|"+ klass + ".stop|" + klass + ".error|" + klass + ".buffering|" + klass + ".ready|" + klass + ".end" ),
             NO_Examples,
-            [ ParamDoc("event", "Event object", NO_Params, NO_Default, IS_Obligated) ]
+            [ParamDoc("dummy", "Empty parameter, set to 'undefined'", 'any', 'null', IS_Obligated)]
     )
 
     EventDoc( klass + ".end", "Event fired when the source reached the end of the file.",
             SeesDocs(  klass + ".pause|" + klass + ".play|"+ klass + ".stop|" + klass + ".error|" + klass + ".buffering|" + klass + ".ready" ),
             NO_Examples,
-            [ ParamDoc("event", "Event object", NO_Params, NO_Default, IS_Obligated) ]
+            [ParamDoc("dummy", "Empty parameter, set to 'undefined'", 'any', 'null', IS_Obligated)]
     )
 
 FieldDoc( "AudioNode.type", "Node name.",
@@ -301,7 +301,7 @@ dsp.run(function() {
     this.foo = "bar";
 });""" ) ],
     IS_Dynamic, IS_Public, IS_Fast,
-    [CallbackDoc( "callback", "Function to execute on the Audio thread.", NO_Params ) ],
+    [CallbackDoc( "cb", "Function to execute on the Audio thread.", NO_Params ) ],
     NO_Returns
 )
 
@@ -357,7 +357,7 @@ FunctionDoc( "AudioNode.assignSeek", """Assign to the node a function to be call
     SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter|AudioNode.position" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
-    [CallbackDoc( "callback", "Function to execute when the node position is changed", [
+    [CallbackDoc( "cb", "Function to execute when the node position is changed", [
         ParamDoc( "postition", "The new position in seconds.", "float", NO_Default, IS_Obligated ),
         ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated )
     ])]
@@ -433,7 +433,7 @@ FunctionDoc( "AudioNode.assignInit", "Assign a function to a `custom-source` or 
     SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
-    [CallbackDoc( "callback", "Function to execute when the node is initialized", [
+    [CallbackDoc( "cb", "Function to execute when the node is initialized", [
             ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated )
     ])]
 )
@@ -459,7 +459,7 @@ custom.set("foo", foo);
 foo = 0;
 """)],
     IS_Dynamic, IS_Public, IS_Fast,
-    [CallbackDoc( "callback", "Function to execute when a variable is set on the `AudioNode`", [
+    [CallbackDoc( "cb", "Function to execute when a variable is set on the `AudioNode`", [
     ParamDoc( "key", "The key name", "string", NO_Default, IS_Obligated ),
     ParamDoc( "value", "The value that has been set", "any", NO_Default, IS_Obligated ),
         ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated )

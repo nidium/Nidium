@@ -124,7 +124,7 @@ Every 'setImmediate` callback is executed after the I/O completion but before al
     IS_Static, IS_Public, IS_Fast,
     [   CallbackDoc( 'fn', 'The function to be called', NO_Default ),
         ParamDoc( 'args', 'mixed', '[any]', IS_Optional ) ],
-    ReturnDoc( "This always returns 'null'; thus it means that it cannot be canceled with a 'global.clearTimeout'.", 'null' )
+    ReturnDoc( "This always returns 'null'; thus it means that it cannot be canceled with a 'global.clearTimeout'.", 'void' )
 )
 
 FunctionDoc( "global.btoa", "Encode binary string to an base64 encodedstring.",

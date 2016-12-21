@@ -17,7 +17,7 @@ FunctionDoc( "NidiumEvent.preventDefault", "Prevents further listener to receive
     SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" )
 )
 
-FunctionDoc( "NidiumEvent.forcePropagation", "Forces further listener to receive this event..",
+FunctionDoc( "NidiumEvent.forcePropagation", "Forces further listener to receive this event.",
     SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" )
 )
 
