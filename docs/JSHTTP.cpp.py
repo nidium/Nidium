@@ -57,7 +57,7 @@ If `params` and  `callback` arguments are providen the HTTP request will be exec
     params=[
         ParamDoc("url", "The url to fetch", "string", NO_Default, IS_Obligated ),
         optionParam,
-        CallbackDoc("cb", "Function called on error or when the request is finished", [
+        CallbackDoc("callback", "Function called on error or when the request is finished", [
             ParamDoc("event", "Event Object or Error Event Object. See `error` and `response` event. ", ObjectDoc([]))
         ], NO_Default, IS_Optional)
     ],

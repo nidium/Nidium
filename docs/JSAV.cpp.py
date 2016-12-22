@@ -301,7 +301,7 @@ dsp.run(function() {
     this.foo = "bar";
 });""" ) ],
     IS_Dynamic, IS_Public, IS_Fast,
-    [CallbackDoc( "cb", "Function to execute on the Audio thread.", NO_Params ) ],
+    [CallbackDoc( "callback", "Function to execute on the Audio thread.", NO_Params ) ],
     NO_Returns
 )
 
@@ -357,7 +357,7 @@ FunctionDoc( "AudioNode.assignSeek", """Assign to the node a function to be call
     SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter|AudioNode.position" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
-    [CallbackDoc( "cb", "Function to execute when the node position is changed", [
+    [CallbackDoc( "callback", "Function to execute when the node position is changed", [
         ParamDoc( "postition", "The new position in seconds.", "float", NO_Default, IS_Obligated ),
         ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated )
     ])]
@@ -433,7 +433,7 @@ FunctionDoc( "AudioNode.assignInit", "Assign a function to a `custom-source` or 
     SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
-    [CallbackDoc( "cb", "Function to execute when the node is initialized", [
+    [CallbackDoc( "callback", "Function to execute when the node is initialized", [
             ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated )
     ])]
 )
@@ -459,7 +459,7 @@ custom.set("foo", foo);
 foo = 0;
 """)],
     IS_Dynamic, IS_Public, IS_Fast,
-    [CallbackDoc( "cb", "Function to execute when a variable is set on the `AudioNode`", [
+    [CallbackDoc( "callback", "Function to execute when a variable is set on the `AudioNode`", [
     ParamDoc( "key", "The key name", "string", NO_Default, IS_Obligated ),
     ParamDoc( "value", "The value that has been set", "any", NO_Default, IS_Obligated ),
         ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated )

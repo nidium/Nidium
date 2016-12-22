@@ -50,7 +50,7 @@ dbg.run(function(dbg, wrappedFoo, wrappedObj) {
 }, foo, obj);""" )],
     IS_Static, IS_Public, IS_Fast,
     [   ParamDoc("context", "Debugger compartment context", "DebuggerCompartment", NO_Default, IS_Obligated ),
-        CallbackDoc( 'cb', 'function to be executed in the Debugger compartement',
+        CallbackDoc( 'callback', 'function to be executed in the Debugger compartement',
             [ParamDoc("debugger", "Debugger instance", "DebuggerCompartment", NO_Default, IS_Obligated),
             ParamDoc("params", "arguments", "[any]", NO_Default, IS_Optional)]),
         ParamDoc( 'argn', 'Optional variable to wrap into the Debugger compartement. The wrapped variable is passed as an argument of the callback', 'any', 0, IS_Optional )
