@@ -219,10 +219,15 @@ bool JSImage::JSGetter_height(JSContext *cx, JS::MutableHandleValue vp)
 bool JSImage::JSGetter_src(JSContext *cx, JS::MutableHandleValue vp)
 {
 
-    const char * name = m_Path->path();
-
-    JS::RootedString jStr(cx, JS_NewStringCopyZ(cx, (name ? name : "unknown")));
-    vp.setString(jStr);
+    if (! m_Image) {
+        JS::RootedString jStr(cx, JS_GetEmptyString(JS_GetRuntime(cx)));
+        vp.setString(jStr);
+    } else if (m_Path) {
+        JS::RootedString jStr(cx, JS_NewStringCopyZ(cx, m_Path->path()));
+        vp.setString(jStr);
+    } else {
+        vp.setUndefined();
+    }
 
     return true;
 }
