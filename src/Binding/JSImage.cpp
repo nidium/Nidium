@@ -108,20 +108,13 @@ bool JSImage::setupWithBuffer(buffer *buf)
     }
 
     m_Image = ImageObject;
-    JS::RootedObject obj(m_Cx, m_Instance);
-    JS::RootedValue widthVal(m_Cx, JS::Int32Value(ImageObject->getWidth()));
-    JS::RootedValue heightVal(m_Cx, JS::Int32Value(ImageObject->getHeight()));
-    JS_DefineProperty(m_Cx, obj, "width", widthVal,
-                      JSPROP_PERMANENT | JSPROP_READONLY);
-    JS_DefineProperty(m_Cx, obj, "height", heightVal,
-                      JSPROP_PERMANENT | JSPROP_READONLY);
 
     this->unroot();
 
     return true;
 }
 
-
+#if 0
 JSObject *
 JSImage::BuildImageObject(JSContext *cx, Image *image, const char name[])
 {
@@ -145,6 +138,7 @@ JSImage::BuildImageObject(JSContext *cx, Image *image, const char name[])
 
     return ret;
 }
+#endif
 
 bool JSImage::JSSetter_src(JSContext *cx, JS::MutableHandleValue vp)
 {
@@ -197,6 +191,31 @@ bool JSImage::JSSetter_src(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
+bool JSImage::JSGetter_width(JSContext *cx, JS::MutableHandleValue vp)
+{
+    uint32_t dim = 0;
+    if (m_Image) {
+        dim = m_Image->getWidth();
+    }
+    JS::RootedValue dimVal(m_Cx, JS::Int32Value(dim));
+    vp.set(dimVal);
+
+    return true;
+}
+
+bool JSImage::JSGetter_height(JSContext *cx, JS::MutableHandleValue vp)
+{
+    uint32_t dim = 0;
+
+    if (m_Image) {
+        dim = m_Image->getHeight();
+    }
+    JS::RootedValue dimVal(m_Cx, JS::Int32Value(dim));
+    vp.set(dimVal);
+
+    return true;
+}
+
 bool JSImage::JSGetter_src(JSContext *cx, JS::MutableHandleValue vp)
 {
 
@@ -232,6 +251,8 @@ JSPropertySpec *JSImage::ListProperties()
 {
     static JSPropertySpec props[] = {
         CLASSMAPPER_PROP_GS(JSImage, src),
+        CLASSMAPPER_PROP_G(JSImage, width),
+        CLASSMAPPER_PROP_G(JSImage, height),
         JS_PS_END
     };
 

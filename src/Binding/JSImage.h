@@ -30,9 +30,11 @@ public:
     static Graphics::Image *JSObjectToImage(JS::HandleObject obj);
     static void RegisterObject(JSContext *cx);
     static bool JSObjectIs(JSContext *cx, JS::HandleObject obj);
+#if 0
     static JSObject *BuildImageObject(JSContext *cx,
                                       Graphics::Image *image,
                                       const char name[] = NULL);
+#endif
 
     void onMessage(const Core::SharedMessages::Message &msg);
 
@@ -42,6 +44,8 @@ public:
 
 protected:
     NIDIUM_DECL_JSGETTERSETTER(src);
+    NIDIUM_DECL_JSGETTER(width);
+    NIDIUM_DECL_JSGETTER(height);
 private:
     bool setupWithBuffer(buffer *buf);
 
