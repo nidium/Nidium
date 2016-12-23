@@ -15,7 +15,6 @@
 #include "Graphics/Image.h"
 
 using Nidium::Core::SharedMessages;
-using Nidium::Core::Path;
 using Nidium::Graphics::Image;
 using Nidium::IO::Stream;
 using Nidium::IO::File;
@@ -149,16 +148,21 @@ JSImage::BuildImageObject(JSContext *cx, Image *image, const char name[])
 
 bool JSImage::JSSetter_src(JSContext *cx, JS::MutableHandleValue vp)
 {
+    if (m_Path) {
+        delete(m_Path);
+    }
     if (vp.isString()) {
         JS::RootedString vpStr(cx, JS::ToString(cx, vp));
         JSAutoByteString imgPath(cx, vpStr);
 
         this->root();
+        m_Path = new Path(imgPath.ptr());
 
-        Stream *stream = Stream::Create(Path(imgPath.ptr()));
+        Stream *stream = Stream::Create(*m_Path);
 
         if (stream == NULL) {
             JS_ReportError(cx, "Invalid path");
+            delete(m_Path);
             return false;
         }
 
@@ -196,17 +200,24 @@ bool JSImage::JSSetter_src(JSContext *cx, JS::MutableHandleValue vp)
 bool JSImage::JSGetter_src(JSContext *cx, JS::MutableHandleValue vp)
 {
 
+    const char * name = m_Path->path();
+
+    JS::RootedString jStr(cx, JS_NewStringCopyZ(cx, (name ? name : "unknown")));
+    vp.setString(jStr);
 
     return true;
 }
 
 JSImage::JSImage()
-    : m_Image(NULL), m_Stream(NULL)
+    : m_Image(NULL), m_Stream(NULL), m_Path(NULL)
 {
 }
 
 JSImage::~JSImage()
 {
+    if (m_Path) {
+        delete(m_Path);
+    }
     if (m_Image != NULL) {
         delete m_Image;
     }
