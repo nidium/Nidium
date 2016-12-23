@@ -18,7 +18,7 @@ optionParam = ParamDoc("params", "object with details", ObjectDoc([
 responseEventObject = [
     ("headers", "An object representing the response headers", ObjectDoc([])),
     ("statusCode", "HTTP status code", "integer", "integer"),
-    ("data", "Response data", "null|object|string|ArrayBuffer"),
+    ("data", "Response data", "void|object|string|ArrayBuffer|Image"),
     ("type", "The type of the data returned : `String`, `json`, `binary`", "string")
 ]
 
@@ -121,7 +121,15 @@ EventDoc("HTTP.error", "Event called if an error occurs.",
     ]
 )
 
-EventDoc("HTTP.response", "Event called when all the data has been read.",
+EventDoc("HTTP.response", """Event called when all the data has been read.
+
+The recieved headers are analysed and the value of 'event.data' and 'event.type' can be changed:
+* mimetype='application/octet-stream': event.type='binary' and event.data is set to an ArrayBuffer object.
+* mimetype='application/json': and valid data: event.type='json' and event.data is the parsed javascript vaule.
+* mimetype='application/json': and in valid data: event.type='string' and event.data is the original string.
+* mimetype='image/jpg' or 'image/png': event.type='image' and event.data is set to an Image object. (Frontend only)
+""",
+	#todo audio
     SeesDocs("HTTP.error|HTTP.progress|HTTP.response"),
     NO_Examples,
     [ParamDoc("event", "Event object with keys", ObjectDoc(responseEventObject),  NO_Default, IS_Obligated )]

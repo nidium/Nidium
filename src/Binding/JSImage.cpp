@@ -114,9 +114,7 @@ bool JSImage::setupWithBuffer(buffer *buf)
     return true;
 }
 
-#if 0
-JSObject *
-JSImage::BuildImageObject(JSContext *cx, Image *image, const char name[])
+JSObject * JSImage::BuildImageObject(JSContext *cx, Image *image, const char name[])
 {
     JSImage *nimg = new JSImage();
 
@@ -124,21 +122,8 @@ JSImage::BuildImageObject(JSContext *cx, Image *image, const char name[])
 
     JS::RootedObject ret(cx, JSImage::CreateObject(cx, nimg));
 
-    JS::RootedValue widthVal(cx, JS::Int32Value(image->getWidth()));
-    JS::RootedValue heightVal(cx, JS::Int32Value(image->getHeight()));
-    JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, (name ? name : "unknown")));
-    JS::RootedValue nameVal(cx, JS::StringValue(jstr));
-
-    JS_DefineProperty(cx, ret, "width", widthVal,
-                      JSPROP_PERMANENT | JSPROP_READONLY);
-    JS_DefineProperty(cx, ret, "height", heightVal,
-                      JSPROP_PERMANENT | JSPROP_READONLY);
-    JS_DefineProperty(cx, ret, "src", nameVal,
-                      JSPROP_PERMANENT | JSPROP_READONLY);
-
     return ret;
 }
-#endif
 
 bool JSImage::JSSetter_src(JSContext *cx, JS::MutableHandleValue vp)
 {
