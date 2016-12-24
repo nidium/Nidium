@@ -102,6 +102,7 @@ if (args["file"]) {
             'Image.js',
             'Canvas.js',
             'DB.js', // Only for frontend, because server does not support "cache://"
+            'Window/__nidium__.js',
         ]);
     }
 };
