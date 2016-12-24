@@ -6,11 +6,15 @@
 
 Tests.registerAsync("Image.src", function(next) {
     var img = new Image();
+    Assert(img.width == 0);
+    Assert(img.height == 0);
+    Assert(img.src == "");
 
     img.addEventListener("load", function() {
         // XXX : Should be tested in another test ?
         Assert(this.width == 32);
         Assert(this.height == 32);
+        //Assert(this.src != "");
 
         next();
     });
