@@ -20,7 +20,7 @@ img.addEventListener("error", function(ev) {
     console.log(ev.error);
 });
 
-img.src = "http://tests.nidium.com/img/nidium.png";""")],
+img.src = "http://tests.nidium.com/http/image";""")],
     NO_Extends,
     NO_Inherrits,
     products=["Frontend"]
@@ -63,7 +63,7 @@ EventDoc( "Image.load", "Event triggered when the image is loaded.",
 img.addEventListener("load", function() {
     console.log("Image loaded ! ");
 });
-img.src = "http://tests.nidium.com/nidium.png";""")],
+img.src = "http://tests.nidium.com/http/image";""")],
     [ParamDoc( "event", "Event object", ObjectDoc([]), NO_Default, IS_Obligated ) ]
 )
 
