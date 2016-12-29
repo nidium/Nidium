@@ -348,6 +348,8 @@ void CanvasHandler::insertBefore(CanvasHandler *insert, CanvasHandler *ref)
         m_Children = insert;
     }
 
+    YGNodeInsertChild(m_YogaRef, insert->m_YogaRef, m_nChildren);
+
     insert->m_Parent = this;
     m_nChildren++;
 }
@@ -398,6 +400,8 @@ void CanvasHandler::addChild(CanvasHandler *insert,
             break;
     }
 
+    YGNodeInsertChild(m_YogaRef, insert->m_YogaRef, m_nChildren);
+
     insert->m_Parent = this;
     m_nChildren++;
 
@@ -441,6 +445,8 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
     m_Parent = NULL;
     m_Next   = NULL;
     m_Prev   = NULL;
+
+    YGNodeRemoveChild(m_Parent->m_YogaRef, m_YogaRef);
 #if 0
     Args arg;
     this->fireEventSync<CanvasHandler>(UNMOUNT_EVENT, arg);
@@ -1370,6 +1376,8 @@ CanvasHandler::~CanvasHandler()
     }
 
     m_NidiumContext->m_CanvasPendingJobs.erase((uint64_t) this);
+
+    YGNodeFree(m_YogaRef);
 }
 
 } // namespace Graphics

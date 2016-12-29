@@ -15,6 +15,8 @@
 
 #include "Core/Events.h"
 
+#include <Yoga.h>
+
 /*
     - Handle a canvas layer.
     - Agnostic to any renderer.
@@ -182,7 +184,8 @@ public:
         COORD_ABSOLUTE,
         COORD_FIXED,
         COORD_INLINE,
-        COORD_INLINEBREAK
+        COORD_INLINEBREAK,
+        COORD_FLEX
     };
 
     enum FLOW_MODE
@@ -701,6 +704,9 @@ private:
     bool m_Loaded;
     int m_Cursor;
     bool m_NeedPaint = true;
+
+    /* Reference to the Yoga node */
+    YGNodeRef m_YogaRef = YGNodeNew();
 };
 
 

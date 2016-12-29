@@ -1218,6 +1218,10 @@ bool JSCanvas::JSGetter_position(JSContext *cx, JS::MutableHandleValue vp)
             jstr = JS_NewStringCopyZ(cx, "inline-break");
             vp.setString(jstr);
             break;
+        case CanvasHandler::COORD_FLEX:
+            jstr = JS_NewStringCopyZ(cx, "flex");
+            vp.setString(jstr);
+            break;
     }
     
     return true;
