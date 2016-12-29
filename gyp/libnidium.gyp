@@ -135,7 +135,9 @@
             '<(nidium_src_path)/Binding/JSCanvas.cpp',
             '<(nidium_src_path)/Binding/JSCanvas2DContext.cpp',
             '<(nidium_src_path)/Binding/JSNML.cpp',
-            '<(nidium_src_path)/IO/SystemStream.cpp'
+            '<(nidium_src_path)/IO/SystemStream.cpp',
+            '<(third_party_path)/yoga/Yoga.c',
+            '<(third_party_path)/yoga/YGNodeList.c',
         ],
     }],
 }
