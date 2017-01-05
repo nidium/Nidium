@@ -432,6 +432,7 @@ void Context::frame(bool draw)
     this->execPendingCanvasChanges();
     m_CanvasOrderedEvents.clear();
 
+    m_RootHandler->computeLayoutPositions();
     /* Build the composition list */
     m_RootHandler->layerize(ctx, compList, draw);
 

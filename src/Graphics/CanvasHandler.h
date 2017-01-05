@@ -188,6 +188,13 @@ public:
         COORD_FLEX
     };
 
+    enum DISPLAY_MODE
+    {
+        DISPLAY_RELATIVE,
+        DISPLAY_ABSOLUTE,
+        DISPLAY_FLEX
+    };
+
     enum FLOW_MODE
     {
         kFlowDoesntInteract        = 0,
@@ -645,6 +652,8 @@ public:
     bool _handleEvent(Frontend::InputEvent *ev);
 
     uint32_t m_Flags;
+
+    void computeLayoutPositions();
 
 protected:
     CanvasHandler *getPrevInlineSibling() const
