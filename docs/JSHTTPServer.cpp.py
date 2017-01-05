@@ -4,10 +4,11 @@
 
 from dokumentor import *
 
-NamespaceDoc("HTTP Client & Server", """Native implemntation of HTTP Client & Server
-* HTTP : Connect to a HTTP server.
-* HTTPServer : Create an HTTP server where clients cant connect to.
-""")
+
+#NamespaceDoc("HTTP Client & Server", """Native implemntation of HTTP Client & Server
+#* HTTP : Connect to a HTTP server.
+#* HTTPServer : Create an HTTP server where clients cant connect to.
+#""")
 
 # {{{ HTTPServer
 ClassDoc( "HTTPServer", "Http server.",
@@ -47,8 +48,8 @@ EventDoc( "HTTPServer.onrequest", "Event that fires when the server has read the
 ConstructorDoc( "HTTPServer", "Constructor for HTTPServer object.",
     NO_Sees,
     NO_Examples,
-    [ 
-        ParamDoc( "ip", "The ip address to bind to", "string", NO_Default, IS_Obligated), 
+    [
+        ParamDoc( "ip", "The ip address to bind to", "string", NO_Default, IS_Obligated),
         ParamDoc( "port", "The port to listen to", "integer", NO_Default, IS_Obligated ),
         ParamDoc("options", "HTTPListner options",
             ObjectDoc([

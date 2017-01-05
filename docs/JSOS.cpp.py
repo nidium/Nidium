@@ -11,21 +11,27 @@ NamespaceDoc( "OS", "Operating system-related utility method",
 )
 
 FieldDoc("OS.language", "The language of the OS.",
-    examples=[ExampleDoc("var OS = require(\"OS\");\nconsole.log(OS.language)")],
-    is_static=True,
-    products=["Frontend"] 
+    NO_Sees,
+    [ExampleDoc("var OS = require(\"OS\");\nconsole.log(OS.language)")],
+    IS_Static, IS_Public, IS_Readonly,
+    'string',
+    NO_Default,
+    products=["Frontend"]
 )
 
 FieldDoc("OS.platform", """The platform running Nidium
 
-Possible values are : 
+Possible values are :
 * linux
 * win
 * mac
 * android
 * ios
 * bsd""",
-    examples=[ExampleDoc("var OS = require(\"OS\");\nconsole.log(OS.platform)")],
-    is_static=True,
+    NO_Sees,
+    [ExampleDoc("var OS = require(\"OS\");\nconsole.log(OS.platform)")],
+    IS_Static, IS_Public, IS_Readonly,
+    'string',
+    NO_Default
 )
 

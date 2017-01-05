@@ -18,7 +18,7 @@ It supports various common well known API such as :
 And some other non standard :
 
 * **UDP/TCP Socket** (client & server)
-* **HTTP** (Client & server)
+* **HTTP** (client & server)
 * **File access**
 * **Threading**
 * **Threaded Audio**
@@ -64,7 +64,7 @@ You can download nidium binaries for Linux and OSX from the [download page](http
 
 ## Building nidium
 
-To build nidium you need at least 5GB of disk space. A build from scratch could take 30 to 90 minutes, depending of the speed of your computer.
+To build nidium you need at least 5.7GB of disk space. A build from scratch could take 30 to 90 minutes, depending of the speed of your computer.
 
 On a debian based system, a few commands will get you started.
 

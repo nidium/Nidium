@@ -10,11 +10,12 @@
 #include "IO/Stream.h"
 #include "Binding/ClassMapper.h"
 
+using Nidium::Core::Path;
+
 namespace Nidium {
 namespace Graphics {
     class Image;
 }
-
 namespace Binding {
 
 class JSImage : public ClassMapperWithEvents<JSImage>, public Core::Messages
@@ -41,12 +42,14 @@ public:
 
 protected:
     NIDIUM_DECL_JSGETTERSETTER(src);
+    NIDIUM_DECL_JSGETTER(width);
+    NIDIUM_DECL_JSGETTER(height);
 private:
     bool setupWithBuffer(buffer *buf);
 
     Graphics::Image *m_Image;
     IO::Stream *m_Stream;
-
+    Path *m_Path;
 };
 
 } // namespace Binding

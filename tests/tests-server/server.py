@@ -6,6 +6,7 @@
 #   that can be found in the LICENSE file.
 
 import sys
+import os
 
 from twisted.internet import reactor
 from twisted.python import log
@@ -102,15 +103,15 @@ class HTTPTests(Resource):
 
     def test_progress(self, req, sendLength=True):
         def done(req):
-            req.write("b"*2048)
+            req.write("b"*4096)
             req.finish()
 
         req.setResponseCode(200)
 
         if sendLength:
-            req.setHeader("content-length", 4096)
+            req.setHeader("content-length", 8192)
 
-        req.write("a"*2048)
+        req.write("a"*4096)
         reactor.callLater(0.500, done, req)
         return server.NOT_DONE_YET
 

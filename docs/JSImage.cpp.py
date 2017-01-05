@@ -14,49 +14,16 @@ document.canvas.add(c);
 
 img.addEventListener("load", function() {
     ctx.drawImage(img, 0, 0);
-});                    
+});
 
 img.addEventListener("error", function(ev) {
     console.log(ev.error);
 });
-                       
-img.src = "http://tests.nidium.com/img/nidium.png";""")],
+
+img.src = "http://tests.nidium.com/http/image";""")],
     NO_Extends,
     NO_Inherrits,
     products=["Frontend"]
-)
-
-FunctionDoc( "Image.print", "Does nothing.",
-    SeesDocs( "Image.shiftHue|Image.markColorInAlpha|Image.desaturate|Image.print" ),
-    NO_Examples,
-    IS_Dynamic, IS_Public, IS_Fast,
-    NO_Params,
-    NO_Returns
-)
-
-FunctionDoc( "Image.shiftHue", "Change the hue of an image.",
-    SeesDocs( "Image.shiftHue|Image.markColorInAlpha|Image.desaturate|Image.print" ),
-    NO_Examples,
-    IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "value", "huevalue", "integer", NO_Default, IS_Obligated ),
-      ParamDoc( "color", "color", "integer", NO_Default, IS_Obligated ) ],
-    NO_Returns
-)
-
-FunctionDoc( "Image.markColorInAlpha", "Mark the color in an image.",
-    SeesDocs( "Image.shiftHue|Image.markColorInAlpha|Image.desaturate|Image.print" ),
-    NO_Examples,
-    IS_Dynamic, IS_Public, IS_Fast,
-    NO_Params,
-    NO_Returns
-)
-
-FunctionDoc( "Image.desaturater", "Desaturate an image.",
-    SeesDocs( "Image.shiftHue|Image.markColorInAlpha|Image.desaturate|Image.print" ),
-    NO_Examples,
-    IS_Dynamic, IS_Public, IS_Fast,
-    NO_Params,
-    NO_Returns
 )
 
 FieldDoc( "Image.height", "Height of the image in pixels.",
@@ -96,7 +63,7 @@ EventDoc( "Image.load", "Event triggered when the image is loaded.",
 img.addEventListener("load", function() {
     console.log("Image loaded ! ");
 });
-img.src = "http://tests.nidium.com/nidium.png";""")],
+img.src = "http://tests.nidium.com/http/image";""")],
     [ParamDoc( "event", "Event object", ObjectDoc([]), NO_Default, IS_Obligated ) ]
 )
 
@@ -109,7 +76,7 @@ img.addEventListener("error", function() {
 img.src = "http://www.nidium.com/file_that_does_not_exist.png";""")],
     [ParamDoc( "event", "Event object", ObjectDoc([
             ("error", "Description of the error", "string")
-        ]), NO_Default, IS_Obligated) 
+        ]), NO_Default, IS_Obligated)
     ]
 )
 

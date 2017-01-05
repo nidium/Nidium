@@ -58,6 +58,7 @@ echo "=> Starting cron"
 cron
 
 echo "=> Starting tests servers"
+cd /home/nidium/tests/
 /home/nidium/tests/server.py --port 8000 &
 
 echo "=> Starting nginx"

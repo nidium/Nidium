@@ -37,7 +37,7 @@ fn(); // Will print "hello world" """)],
     IS_Dynamic, IS_Public, IS_Fast,
     [
         ParamDoc("key", "the key to set", "string", IS_Obligated),
-        ParamDoc("value", "the value to set", "mixed", IS_Obligated),
+        ParamDoc("value", "the value to set", "any", IS_Obligated),
     ])
 
 FunctionDoc("DB.get", "Get the value for a key",
@@ -50,7 +50,7 @@ console.log(db.get("foo"));""")],
     [
         ParamDoc("key", "the key to get", "string", IS_Obligated)
     ],
-    ReturnDoc("value", "mixed"))
+    ReturnDoc("value", "any"))
 
 FunctionDoc("DB.close", """Force the database to be closed
 

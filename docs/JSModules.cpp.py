@@ -17,7 +17,7 @@ FieldDoc( "Module.exports", "Exported Module.",
     SeesDocs( "Module|global.modules" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Readonly,
-    "mixed",
+    "any",
     NO_Default
 )
 

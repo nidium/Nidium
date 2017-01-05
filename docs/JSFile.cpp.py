@@ -49,7 +49,7 @@ f.open("w", function(err) {
         ParamDoc( "path", "File path relative to the NML (Frontend) or the current working directory (Server)", "string", NO_Default, IS_Obligated ),
         ParamDoc( "options", "Options object (encoding)", ObjectDoc([("encoding", "encoding string (e.g. 'utf8')", "string")]), NO_Default, IS_Optional ),
         CallbackDoc( "callback", "Read callback function", [
-            ParamDoc( "err", "Error description or `null`", "string|null", NO_Default, IS_Obligated ),
+            ParamDoc( "err", "Error description or `null`", "string", 'null', IS_Obligated),
             ParamDoc( "buffer", "The filecontent", "string|ArrayBuffer", NO_Default, IS_Obligated)
         ])
     ],

@@ -56,7 +56,7 @@ t.oncomplete = function(event){
 t.start(5, 6, 6, 9);
 """) ],
     IS_Dynamic, IS_Public, IS_Fast,
-    [ ParamDoc( "args", "function arguments", "mixed", IS_Optional ) ],
+    [ ParamDoc( "args", "function arguments", "any", IS_Optional ) ],
     NO_Returns
 )
 
