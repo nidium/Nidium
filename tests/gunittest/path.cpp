@@ -71,9 +71,9 @@ class UserStream : public Nidium::IO::FileStream
 TEST(Path, RegisterScheme)
 {
     Path::RegisterScheme(SCHEME_DEFINE("file://",    Nidium::IO::FileStream,    false), true); // default
-    Path::RegisterScheme(SCHEME_DEFINE("http://",    Nidium::Net::HTTPStream,    true));
-    Path::RegisterScheme(SCHEME_DEFINE("https://",   Nidium::Net::HTTPStream,    true));
-    Path::RegisterScheme(SCHEME_DEFINE("nvfs://",    Nidium::IO::NFSStream,     false));
+    Path::RegisterScheme(SCHEME_DEFINE("http://",    Nidium::Net::HTTPStream,   true));
+    Path::RegisterScheme(SCHEME_DEFINE("https://",   Nidium::Net::HTTPStream,   true));
+    Path::RegisterScheme(SCHEME_DEFINE("nvfs://",    Nidium::IO::NFSStream,     true));
     Path::RegisterScheme(SCHEME_DEFINE("user://",    UserStream,    false));
 }
 
@@ -436,16 +436,16 @@ TEST(Path, SanitizePrefixFile)
 {
     Path path("nvfs://" TEST_FILE);
 
-    ASSERT_STREQ("/" TEST_FILE, path.path());
-    ASSERT_STREQ("/", path.dir());
+    ASSERT_STREQ("nvfs://" TEST_FILE, path.path());
+    ASSERT_STREQ("nvfs://", path.dir());
 }
 
 TEST(Path, SanitizePrefixDir)
 {
     Path path("nvfs://" TEST_DIR);
 
-    ASSERT_STREQ(TEST_DIR, path.path());
-    ASSERT_STREQ(TEST_DIR, path.dir());
+    ASSERT_STREQ("nvfs:/" TEST_DIR, path.path());
+    ASSERT_STREQ("nvfs:/" TEST_DIR, path.dir());
 }
 
 TEST(Path, SanitizePrefixUser)

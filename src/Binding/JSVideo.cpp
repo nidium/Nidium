@@ -118,7 +118,10 @@ void JSVideo::setSize(int width, int height)
 
 bool JSVideo::JS_getAudioNode(JSContext *cx, JS::CallArgs &args)
 {
-    GET_AUDIO_CONTEXT(cx);
+    JSAudioContext *jaudio = JSAudioContext::GetContext();
+    if (!jaudio) {
+        jaudio = JSAudioContext::GetContext(cx, 0, 0, 0);
+    }
 
     if (this->m_AudioNode != nullptr) {
         JS::RootedObject retObj(cx, this->m_AudioNode->getJSObject());

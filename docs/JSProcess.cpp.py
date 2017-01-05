@@ -58,12 +58,12 @@ FunctionDoc("NidiumProcess.getOwner", """Return an object with information about
     [ExampleDoc("""NidiumProcess.setOwner('daemon', 'www-data');""")],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
-    ObjectDoc([
+    ReturnDoc("Object with details about the owner", ObjectDoc([
         ("uid", "User ID", "integer"),
         ("gid", "Group ID", "integer"),
         ("user", "User name", "string"),
         ("group", "Group name", "string"),
-    ])
+    ]))
 )
 
 FunctionDoc("NidiumProcess.setSignalHandler", "Attach a javascript callback to a signal.",
@@ -79,10 +79,7 @@ console.log("got Kill");
 
 FunctionDoc("NidiumProcess.exit", "Attach a javascript callback to a signal.",
     SeesDocs("global.process|NidiumProcess|Threads|NidiumProcess.setSignalHandler|NidiumProcess.exit"),
-    [ExampleDoc("""var realy = false;
-if (realy) {
-    NidiumProcess.exit();
-}""")],
+    [ExampleDoc("""NidiumProcess.exit();""", run_code=False)],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
     NO_Returns

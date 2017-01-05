@@ -20,8 +20,6 @@ using Nidium::IO::NFSTree;
 namespace Nidium {
 namespace Binding {
 
-// {{{ JSNFS
-
 JSNFS::JSNFS(JSContext *cx) : IO::NFS()
 {
     m_JS.cx = cx;
@@ -34,16 +32,21 @@ bool JSNFS::writeFile(const char *name_utf8,
                       size_t len,
                       int flags)
 {
+    PtrAutoDelete<char *> path(Path::Sanitize(name_utf8, NULL), free);
+    int path_len;
 
-    PtrAutoDelete<char *> path(Path::Sanitize(name_utf8, NULL));
-    int path_len = strlen(path.ptr());
+    if (!path.ptr()) {
+        return false;
+    }
+
+    path_len = strlen(path.ptr());
 
     if (m_Hash.get(path.ptr())) {
         /* File already exists */
         return false;
     }
 
-    PtrAutoDelete<char *> dir(Path::GetDir(name_utf8));
+    PtrAutoDelete<char *> dir(Path::GetDir(name_utf8), free);
 
     if (strlen(dir.ptr())) {
         dir.ptr()[strlen(dir.ptr()) - 1] = '\0';
@@ -70,6 +73,7 @@ bool JSNFS::writeFile(const char *name_utf8,
     newfile->filename_utf8[path_len] = '\0';
     newfile->header.flags            = flags;
 
+    /*
     if (strncasecmp(&newfile->filename_utf8[path_len - 3], CONST_STR_LEN(".js"))
         == 0) {
         uint32_t bytecode_len;
@@ -87,6 +91,7 @@ bool JSNFS::writeFile(const char *name_utf8,
 
         newfile->header.flags = flags | kNFSFileType_JSBytecode;
     }
+    */
 
     newfile->next                   = parent->meta.children;
     newfile->header.filename_length = path_len;

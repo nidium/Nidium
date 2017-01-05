@@ -14,6 +14,12 @@
 
 using Nidium::Net::HTTP;
 using Nidium::Net::HTTPRequest;
+#ifdef NIDIUM_PRODUCT_FRONTEND
+#include "Graphics/Image.h"
+#include "Binding/JSImage.h"
+using Nidium::Graphics::Image;
+using Nidium::Binding::JSImage;
+#endif
 
 namespace Nidium {
 namespace Binding {
@@ -89,7 +95,7 @@ JSHTTP *JSHTTP::Constructor(JSContext *cx, JS::CallArgs &args,
         getOptionsAndCallback(cx, &args, 1, &options, &callback);
 
         /*
-            We need to associate the object early because 
+            We need to associate the object early because
             jshttp->request and parseOptions require m_instance and root()
         */
         AssociateObject(cx, jshttp, obj);
@@ -301,8 +307,7 @@ void JSHTTP::parseOptions(JSContext *cx, JS::HandleObject options)
 
     NIDIUM_JS_GET_OPT_TYPE(options, "maxRedirects", Number)
     {
-        uint32_t max = 8;
-        max          = __curopt.toInt32();
+        uint32_t max = __curopt.toInt32();
 
         m_HTTP->setMaxRedirect(max);
     }
@@ -499,29 +504,29 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 
             break;
         }
-#if 0
+#ifdef NIDIUM_PRODUCT_FRONTEND
         case HTTP::DATA_IMAGE:
         {
             Image *nimg;
-            SET_PROP(event, "type", JS::StringValue(JS_NewStringCopyN(cx,
-                CONST_STR_LEN("image"))));
+            eventBuilder.set("type", "image");
 
             nimg = new Image(h->m_Data->data, h->m_Data->used);
-            jdata = JS::ObjectValue(*NidiumJSImage::BuildImageObject(cx, nimg));
+            JS::RootedObject imgObj(m_Cx, JSImage::BuildImageObject(m_Cx, nimg));
+            jsdata.setObjectOrNull(imgObj);
 
             break;
         }
+#endif
+#if 0
         case HTTP::DATA_AUDIO:
         {
-            JSObject *arr = JS_NewArrayBuffer(cx, h->m_Data->used);
-            uint8_t *data = JS_GetArrayBufferData(arr);
+            JS::RootedObject arr(m_Cx,
+                JSUtils::NewArrayBufferWithCopiedContents(m_Cx,
+                    h->m_Data->used, h->m_Data->data));
 
-            memcpy(data, h->m_Data->data, h->m_Data->used);
+            eventBuilder.set("type", "audio");
 
-            SET_PROP(event, "type", JS::StringValue(JS_NewStringCopyN(cx,
-                CONST_STR_LEN("audio"))));
-
-            jdata = JS::ObjectValue(*arr);
+            jsdata.setObjectOrNull(arr);
 
             break;
         }

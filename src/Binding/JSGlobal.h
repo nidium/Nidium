@@ -3,7 +3,6 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-
 #ifndef binding_jsglobal_h__
 #define binding_jsglobal_h__
 
@@ -29,7 +28,7 @@ public:
             return nullptr;
         }
 
-        return (JSGlobal *)JS_GetPrivate(JS::CurrentGlobalOrNull(cx));
+        return static_cast<JSGlobal *>(JS_GetPrivate(JS::CurrentGlobalOrNull(cx)));
     }
 
     /*

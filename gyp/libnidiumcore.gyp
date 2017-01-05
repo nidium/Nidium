@@ -52,8 +52,16 @@
                     '$inherited',
                 ],
             },
-        },
-    }, {
+            'conditions': [
+                ['nidium_product_define=="NIDIUM_PRODUCT_FRONTEND"', {
+                    'include_dirs': [
+                    '<(third_party_path)/skia/',
+                    '<(third_party_path)/skia/include/core/',
+                    '<(third_party_path)/skia/include/config/',
+                ]}],
+            ],
+            }
+        }, {
         'target_name': 'libnidiumcore-link',
         'type': 'none',
         'direct_dependent_settings': {
@@ -146,6 +154,7 @@
             '../src/Binding/JSWebSocketClient.cpp',
             '../src/Binding/JSDB.cpp',
             '../src/Binding/JSOS.cpp',
+            '../src/Binding/JSVM.cpp',
 
             '../src/Core/SharedMessages.cpp',
             '../src/Core/Utils.cpp',

@@ -41,7 +41,7 @@ FunctionDoc( "Stream.getNextPacket", "Continue reading on a stream.",
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
-    ReturnDoc( "Returns null if there is nothing more to read; Returns an the read bytes upon success.", "null|Stream" )
+    ReturnDoc( "Returns 'null' if there is nothing more to read; Returns an the read bytes upon success.", "Stream", nullable=True )
 )
 
 ConstructorDoc( "Stream", "Creates a new stream instance. A Stream is an IO interface that can perform operation like 'Stream.read' and 'Stream.getNextPacket'.",

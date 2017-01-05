@@ -1,3 +1,9 @@
+/*
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
+
 Tests.registerAsync("WebSocket echo (plain)", function(next) {
     var done = false;
     var client = new WebSocket(WS_TEST_URL);

@@ -50,8 +50,8 @@ bool JSAudio::JS_getContext(JSContext *cx, JS::CallArgs &args)
     unsigned int bufferSize, channels, sampleRate;
 
     bufferSize = 0;
-    channels   = 2;
-    sampleRate = 44100;
+    channels   = 0;
+    sampleRate = 0;
 
     switch (args.length()) {
         case 3:
@@ -90,7 +90,7 @@ bool JSAudio::JS_getContext(JSContext *cx, JS::CallArgs &args)
             break;
     }
 
-    if (channels < 1 || channels > 32) {
+    if (channels != 0 && (channels < 1 || channels > 32)) {
         JS_ReportError(cx,
                        "Unsuported channels number %d. Channels must be "
                        "between 1 and 32\n",
@@ -98,7 +98,7 @@ bool JSAudio::JS_getContext(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    if (sampleRate < 22050 || sampleRate > 96000) {
+    if (sampleRate != 0 && (sampleRate < 22050 || sampleRate > 96000)) {
         JS_ReportError(cx,
                        "Unsuported sample rate %dKHz. Sample rate must be "
                        "between 22050 and 96000\n",
@@ -112,8 +112,8 @@ bool JSAudio::JS_getContext(JSContext *cx, JS::CallArgs &args)
     if (jaudio) {
         AudioParameters *params = jaudio->m_Audio->m_OutputParameters;
         if (params->m_AskedBufferSize != bufferSize
-            || params->m_Channels != channels
-            || params->m_SampleRate != sampleRate) {
+            || (channels != 0 && params->m_Channels != channels)
+            || (sampleRate != 0 && params->m_SampleRate != sampleRate)) {
             paramsChanged = true;
         }
     }

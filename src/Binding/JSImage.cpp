@@ -15,7 +15,6 @@
 #include "Graphics/Image.h"
 
 using Nidium::Core::SharedMessages;
-using Nidium::Core::Path;
 using Nidium::Graphics::Image;
 using Nidium::IO::Stream;
 using Nidium::IO::File;
@@ -109,22 +108,13 @@ bool JSImage::setupWithBuffer(buffer *buf)
     }
 
     m_Image = ImageObject;
-    JS::RootedObject obj(m_Cx, m_Instance);
-    JS::RootedValue widthVal(m_Cx, JS::Int32Value(ImageObject->getWidth()));
-    JS::RootedValue heightVal(m_Cx, JS::Int32Value(ImageObject->getHeight()));
-    JS_DefineProperty(m_Cx, obj, "width", widthVal,
-                      JSPROP_PERMANENT | JSPROP_READONLY);
-    JS_DefineProperty(m_Cx, obj, "height", heightVal,
-                      JSPROP_PERMANENT | JSPROP_READONLY);
 
     this->unroot();
 
     return true;
 }
 
-
-JSObject *
-JSImage::BuildImageObject(JSContext *cx, Image *image, const char name[])
+JSObject * JSImage::BuildImageObject(JSContext *cx, Image *image, const char name[])
 {
     JSImage *nimg = new JSImage();
 
@@ -132,33 +122,26 @@ JSImage::BuildImageObject(JSContext *cx, Image *image, const char name[])
 
     JS::RootedObject ret(cx, JSImage::CreateObject(cx, nimg));
 
-    JS::RootedValue widthVal(cx, JS::Int32Value(image->getWidth()));
-    JS::RootedValue heightVal(cx, JS::Int32Value(image->getHeight()));
-    JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, (name ? name : "unknown")));
-    JS::RootedValue nameVal(cx, JS::StringValue(jstr));
-
-    JS_DefineProperty(cx, ret, "width", widthVal,
-                      JSPROP_PERMANENT | JSPROP_READONLY);
-    JS_DefineProperty(cx, ret, "height", heightVal,
-                      JSPROP_PERMANENT | JSPROP_READONLY);
-    JS_DefineProperty(cx, ret, "src", nameVal,
-                      JSPROP_PERMANENT | JSPROP_READONLY);
-
     return ret;
 }
 
 bool JSImage::JSSetter_src(JSContext *cx, JS::MutableHandleValue vp)
 {
+    if (m_Path) {
+        delete(m_Path);
+    }
     if (vp.isString()) {
         JS::RootedString vpStr(cx, JS::ToString(cx, vp));
         JSAutoByteString imgPath(cx, vpStr);
 
         this->root();
+        m_Path = new Path(imgPath.ptr());
 
-        Stream *stream = Stream::Create(Path(imgPath.ptr()));
+        Stream *stream = Stream::Create(*m_Path);
 
         if (stream == NULL) {
             JS_ReportError(cx, "Invalid path");
+            delete(m_Path);
             return false;
         }
 
@@ -193,20 +176,57 @@ bool JSImage::JSSetter_src(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
+bool JSImage::JSGetter_width(JSContext *cx, JS::MutableHandleValue vp)
+{
+    uint32_t dim = 0;
+    if (m_Image) {
+        dim = m_Image->getWidth();
+    }
+    JS::RootedValue dimVal(m_Cx, JS::Int32Value(dim));
+    vp.set(dimVal);
+
+    return true;
+}
+
+bool JSImage::JSGetter_height(JSContext *cx, JS::MutableHandleValue vp)
+{
+    uint32_t dim = 0;
+
+    if (m_Image) {
+        dim = m_Image->getHeight();
+    }
+    JS::RootedValue dimVal(m_Cx, JS::Int32Value(dim));
+    vp.set(dimVal);
+
+    return true;
+}
+
 bool JSImage::JSGetter_src(JSContext *cx, JS::MutableHandleValue vp)
 {
 
+    if (! m_Image) {
+        JS::RootedString jStr(cx, JS_GetEmptyString(JS_GetRuntime(cx)));
+        vp.setString(jStr);
+    } else if (m_Path) {
+        JS::RootedString jStr(cx, JS_NewStringCopyZ(cx, m_Path->path()));
+        vp.setString(jStr);
+    } else {
+        vp.setUndefined();
+    }
 
     return true;
 }
 
 JSImage::JSImage()
-    : m_Image(NULL), m_Stream(NULL)
+    : m_Image(NULL), m_Stream(NULL), m_Path(NULL)
 {
 }
 
 JSImage::~JSImage()
 {
+    if (m_Path) {
+        delete(m_Path);
+    }
     if (m_Image != NULL) {
         delete m_Image;
     }
@@ -221,6 +241,8 @@ JSPropertySpec *JSImage::ListProperties()
 {
     static JSPropertySpec props[] = {
         CLASSMAPPER_PROP_GS(JSImage, src),
+        CLASSMAPPER_PROP_G(JSImage, width),
+        CLASSMAPPER_PROP_G(JSImage, height),
         JS_PS_END
     };
 

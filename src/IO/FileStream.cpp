@@ -42,6 +42,16 @@ void FileStream::getContent()
     m_File.close();
 }
 
+bool FileStream::exists()
+{
+    return (m_File.exists() != 0);
+}
+
+bool FileStream::isDir()
+{
+    return (m_File.exists() == 2);
+}
+
 bool FileStream::getContentSync(char **data, size_t *len, bool mmap)
 {
     int err;

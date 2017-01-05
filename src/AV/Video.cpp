@@ -26,10 +26,10 @@ namespace Nidium {
 namespace AV {
 
 #undef DPRINT
-#if DEBUG && 0
+#if 0
 #define DEBUG_PRINT
 #define DPRINT(...)                                   \
-    fprintf(stdout, ">%lld / ", av_gettime() / 1000); \
+    fprintf(stdout, ">[%d]%lld / ", (unsigned int)pthread_self(), av_gettime() / 1000); \
     fprintf(stdout, __VA_ARGS__)
 #else
 #define DPRINT(...) (void)0
@@ -256,6 +256,10 @@ int Video::openInitInternal()
 
     m_Opened = true;
 
+    if (m_PlayWhenReady) {
+        this->play();
+    }
+
     this->sendEvent(SOURCE_EVENT_READY, 0, false);
 
     return 0;
@@ -271,12 +275,18 @@ void Video::frameCallback(VideoCallback cbk, void *arg)
 
 void Video::play()
 {
-    if (!m_Opened || m_Playing) {
+    if (m_Playing) {
         return;
     }
 
-    m_Playing    = true;
-    m_FrameTimer = 0;
+    if (!m_Opened) {
+        m_PlayWhenReady = true;
+        return;
+    }
+
+    m_Playing       = true;
+    m_PlayWhenReady = false;
+    m_FrameTimer    = 0;
 
     bool haveTimer = false;
     for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
@@ -1054,6 +1064,7 @@ void Video::bufferInternal()
         }
 
         if ((needVideo <= 0 && needAudio <= 0) || m_Error != 0) {
+            DPRINT("=> Bufffering loop finished\n");
             break;
         }
     }
@@ -1126,10 +1137,11 @@ void *Video::decode(void *args)
         if (v->m_Shutdown) break;
 
         if (v->m_SourceNeedWork) {
-            DPRINT("readFlag, swithcing back to coro\n");
+            DPRINT("readFlag, switching back to coro\n");
             v->lockDecodeThread();
             v->m_SourceNeedWork = false;
             Coro_switchTo_(v->m_MainCoro, v->m_Coro);
+            DPRINT("Back to main coro after source work\n");
             // Make sure another read call havn't been made
             if (!v->m_Reader->m_Pending) {
                 v->m_Buffering = false;
@@ -1165,6 +1177,7 @@ void Video::releaseAudioNode(bool del)
 
 void Video::sourceNeedWork(void *ptr)
 {
+    DPRINT("m_SourceNeedWork=true\n");
     Video *thiz            = static_cast<Video *>(ptr);
     thiz->m_SourceNeedWork = true;
     NIDIUM_PTHREAD_SIGNAL(&thiz->m_BufferCond);
@@ -1240,6 +1253,7 @@ bool Video::processVideo()
 
 bool Video::processFrame(AVFrame *avFrame)
 {
+    DPRINT("Processing video frame\n");
     Frame frame;
     frame.data = m_Frames[m_FramesIdx];
     frame.pts  = this->getPts(avFrame);
@@ -1573,8 +1587,10 @@ void Video::closeInternal(bool reset)
         m_AudioSource = NULL;
     }
 
-    m_Opened       = false;
-    m_SourceDoOpen = false;
+    m_Opened        = false;
+    m_Playing       = false;
+    m_SourceDoOpen  = false;
+    m_PlayWhenReady = false;
 }
 
 Video::~Video()

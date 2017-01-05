@@ -132,6 +132,7 @@ def profiler(profiler):
     if profiler:
         Gyp.set("profiler", 1)
         Deps.set("gperftools")
+        Deps.set("pprof")
 
         @Konstruct.hook("postBuild")
         def profilerPostBuild(success):

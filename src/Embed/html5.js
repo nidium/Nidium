@@ -1,3 +1,11 @@
+/*
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
+
+const Elements = require("./lib/Elements.js");
+
 function reportUnsupported(message) {
     console.info("[HTML5Compat] " + message);
 }
@@ -62,7 +70,7 @@ Canvas.prototype.appendChild = function(child) {
     if (child instanceof Canvas) {
         this.add(child);
     } else {
-        reportUnsupported("appendChild only supports canvas");
+        reportUnsupported("appendChild only supports canvas " + typeof child);
     }
 };
 
@@ -121,8 +129,16 @@ document.createElement = function(what) {
             return new Image();
 
         default:
-            throw new Error("createElement(\"" + what + "\") is not supported");
+            return Elements.Create(what);
     }
+}
+
+document.createTextNode = function(text) {
+    return Elements.Create("textNode", text);
+}
+
+document.querySelector = function(sel) {
+    return document.getCanvasById(sel);
 }
 
 document.createElementNS = function(ns, what) {

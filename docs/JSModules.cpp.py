@@ -7,8 +7,8 @@ from dokumentor import *
 NamespaceDoc( "Module", "Module that is exported.",
     SeesDocs( "global.modules" ),
     examples=[
-        ExampleDoc("module.exports = {\"lorem\":\"ipsum\"}"),
-        ExampleDoc("var foobar = require(\"foobar.js\");\n console.log(foobar.lorem); // Print \"ipsum\"")
+        ExampleDoc("Module.exports = {\"lorem\":\"ipsum\"}"),
+        ExampleDoc("""var foobar = require(\"foobar.js\");\n console.log(foobar.lorem); // Print \"ipsum\" """, run_code=False)
     ],
     products=["Frontend", "Server"]
 )
@@ -17,7 +17,7 @@ FieldDoc( "Module.exports", "Exported Module.",
     SeesDocs( "Module|global.modules" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Readonly,
-    "mixed",
+    "any",
     NO_Default
 )
 

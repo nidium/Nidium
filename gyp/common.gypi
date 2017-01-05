@@ -135,6 +135,9 @@
                 }
             }],
             ['profiler==1', {
+                'defines': [
+                    'NIDIUM_PROFILER',
+                ],
                 'ldflags': [
                     '-lprofiler'
                 ],

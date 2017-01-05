@@ -42,6 +42,9 @@ public:
     virtual void stop();
     virtual void getContent();
 
+    virtual bool exists();
+    virtual bool isDir();
+
     /*
         In case mmap is false, caller is responsible for freeing the data.
         In case of a mmap, the file is unmmaped in dtor.

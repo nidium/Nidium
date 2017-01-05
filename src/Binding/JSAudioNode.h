@@ -3,7 +3,6 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-
 #ifndef binding_jsaudionode_h__
 #define binding_jsaudionode_h__
 
@@ -12,6 +11,8 @@
 #include "AV/Video.h"
 #include "Binding/JSAV.h"
 #include "Binding/JSAudioContext.h"
+
+#include <vector>
 
 using Nidium::AV::Audio;
 using Nidium::AV::AudioNode;
@@ -120,6 +121,8 @@ protected:
             JS::RootedObject jlink(cx, JSAudioNodeLink::CreateObject(cx, link));
 
             JS_DefineElement(cx, inputLinks, i, jlink, 0);
+
+            m_Links.push_back(link);
         }
 
         for (int i = 0; i < out; i++) {
@@ -127,6 +130,8 @@ protected:
             JS::RootedObject jlink(cx, JSAudioNodeLink::CreateObject(cx, link));
 
             JS_DefineElement(cx, outputLinks, i, jlink, 0);
+
+            m_Links.push_back(link);
         }
 
         if (in > 0) {
@@ -146,6 +151,7 @@ protected:
 
 private:
     bool m_IsReleased = false;
+    std::vector<JSAudioNodeLink *> m_Links;
 };
 // }}}
 

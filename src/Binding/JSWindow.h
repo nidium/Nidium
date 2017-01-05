@@ -41,7 +41,7 @@ public:
     static inline JSWindow *GetInstanceUnsafe(JS::HandleObject obj,
         JSContext *cx = nullptr)
     {
-        return JSWindow::GetInstance(obj, cx);
+        return GetInstance(obj, cx);
     }
 
     void onReady(JS::HandleObject layout);

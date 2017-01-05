@@ -468,6 +468,22 @@ void File::listFiles(void *arg)
 // }}}
 
 // {{{ Sync operations
+
+int File::exists()
+{
+    Core::PthreadAutoLock tasksLock(&getManagedLock());
+    struct stat s;
+    int ret;
+
+    ret = stat(m_Path, &s);
+
+    if (ret == -1) {
+        return 0;
+    }
+
+    return (S_ISDIR(s.st_mode)) ? 2 : 1;
+}
+
 int File::openSync(const char *modes, int *err)
 {
     Core::PthreadAutoLock tasksLock(&getManagedLock());

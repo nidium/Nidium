@@ -177,8 +177,8 @@ void Path::parse(const char *origin)
         return;
     }
 
-    // Path have a host, prepend it to the final path
     if (m_Host) {
+        // Path have a host, prepend it along with the scheme to the final path
         char *tmp = static_cast<char *>(
             malloc((strlen(m_Path) + strlen(m_Host) + strlen(m_Scheme->str) + 1)
                    * sizeof(char)));
@@ -189,11 +189,20 @@ void Path::parse(const char *origin)
         free(m_Path);
 
         m_Path = tmp;
+    } else if(m_Scheme->keepPrefix) {
+        // Path is on a scheme with a prefix, prepend it
+        char *tmp = static_cast<char *>(
+            malloc((strlen(m_Path) + strlen(m_Scheme->str) + 1)
+                   * sizeof(char)));
+        strcpy(tmp, m_Scheme->str);
+        strcat(tmp, m_Path);
+
+        free(m_Path);
+
+        m_Path = tmp;
     }
 
     m_Dir = Path::GetDir(m_Path);
-
-    return;
 }
 
 bool Path::IsRelative(const char *path)

@@ -155,6 +155,7 @@ public:
 
     inline static void GLCallback(const GrGLInterface *interface)
     {
+        //@TODO static_cast
         GLContext *_this = (GLContext *)interface->fCallbackData;
         _this->makeCurrent();
     }

@@ -45,17 +45,42 @@ NamespaceDoc( "CanvasInherrit", "Parent/Prototype object for `Canvas`.",
 
 FunctionDoc( "Canvas.show", """Show a previously hidden canvas.""",
     SeesDocs( "Canvas.show|Canvas.hide" ),
-    [ExampleDoc( """canvas.hide();
-//..
-canvas.show();""" ) ],
+    [ExampleDoc( """var canvas = new Canvas(200, 100);
+document.canvas.add(canvas);
+var ctx = canvas.getContext("2d");
+ctx.fillStyle = "blue";
+ctx.fillRect(0, 0, 100, 100);
+let showIt = true;
+setInterval(function(canv) {
+    if (showIt) {
+        canv.show();
+    } else {
+        canv.hide();
+    }
+    showIt = ! showIt;
+}, 250, canvas);""" ) ],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
     NO_Returns
 )
 
-FunctionDoc( "Canvas.show", "Hides a canvas and all it's children.",
+FunctionDoc( "Canvas.hide", "Hides a canvas and all it's children.",
     SeesDocs( "Canvas.show|Canvas.hide" ),
-    [ExampleDoc( """canvas.show();""" ) ],
+[ExampleDoc( """var canvas = new Canvas(200, 100);
+document.canvas.add(canvas);
+var ctx = canvas.getContext("2d");
+ctx.fillStyle = "blue";
+ctx.fillRect(0, 0, 100, 100);
+let showIt = true;
+setInterval(function(canv) {
+    if (showIt) {
+        canv.show();
+    } else {
+        canv.hide();
+    }
+    showIt = ! showIt;
+}, 250, canvas);""" ) ],
+
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
     NO_Returns
@@ -161,7 +186,7 @@ If the canvas has no parent, null is returned.""",
     var parent = canvas.getParent();""")],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
-    ReturnDoc( "The parent object of this instance or 'null'", "Canvas" )
+    ReturnDoc( "The parent object of this instance or 'null'", "Canvas", nullable=True )
 )
 
 FunctionDoc( "Canvas.getFirstChild", """Find the first child of a canvas object.
@@ -172,7 +197,7 @@ The first child is the direct child with the lowest z-index.""",
 var child = canvas.getFirstChild();""")],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
-    ReturnDoc( "The firsth child of this instance or 'null' if there are no children.", "Canvas" )
+    ReturnDoc( "The firsth child of this instance or 'null' if there are no children.", "Canvas", nullable=True )
 )
 
 FunctionDoc( "Canvas.getLastChild", """Find the last child of a canvas object.",
@@ -182,7 +207,7 @@ The last child is the direct child with the highest z-index.""",
 var child = canvas.getLastChild();""")],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
-    ReturnDoc( "The last child of this instance or 'null'", "Canvas" )
+    ReturnDoc( "The last child of this instance or 'null'", "Canvas", nullable=True)
 )
 
 FunctionDoc( "Canvas.getNextSibling", """Find the next sibling of a canvas object.""",
@@ -197,7 +222,7 @@ var next = canvas2.getNextSibling(); // returns canvas3
 var nothing = canvas3.getNextSibling(); // returns null""")],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
-    ReturnDoc( "The next sibling of this instance or 'null'", "Canvas" )
+    ReturnDoc( "The next sibling of this instance or 'null'", "Canvas", nullable=True )
 )
 
 FunctionDoc( "Canvas.getPrevSibling", """Find the previous sibling of a canvas object.""",
@@ -212,7 +237,7 @@ var prev = canvas2.getPrevSibling(); // returns canvas1
 var nothing = canvas1.getPrevSibling(); // returns null""")],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
-    ReturnDoc( "The previous sibling of this instance or 'null'", "Canvas" )
+    ReturnDoc( "The previous sibling of this instance or 'null'", "Canvas", nullable=True )
 )
 
 FunctionDoc( "Canvas.getChildren", """Find all the children of a canvas object.
@@ -323,7 +348,7 @@ context.fillStyle = "red";
 context.fillRect(0, 0, 200, 100);""")],
     IS_Dynamic, IS_Public, IS_Slow,
     [ ParamDoc( "mode", "Context mode: '2d'|'webgl'", "string", NO_Default, IS_Obligated) ],
-    ReturnDoc( "The context or null", "CanvasRenderingContext2D|WebGLRenderingContext" )
+    ReturnDoc( "The context or null", "CanvasRenderingContext2D|WebGLRenderingContext", nullable=True )
 )
 
 FunctionDoc( "Canvas.setContext", "Sets the canvas context.",

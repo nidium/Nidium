@@ -98,6 +98,12 @@ namespace Binding {
     CLASSMAPPER_PROLOGUE_CLASS_NO_RET(ofclass) \
     args.rval().setUndefined();
 
+#define NIDIUM_JS_REGISTER_MODULE(constructor)                      \
+    extern "C" __attribute__((__visibility__("default"))) bool      \
+    __NidiumRegisterModule(JSContext *cx, JS::HandleObject exports) \
+    {                                                               \
+        return constructor(cx, exports);                            \
+    }
 
 template <typename T>
 class ClassMapper
@@ -152,6 +158,30 @@ public:
         nlc->addProtoCache(jsclass, proto);
 
         return proto;
+    }
+
+    /*
+        Create a simple object (without any instance).
+        Only static methods are implemented
+    */
+    static JSObject *ExposeObject(JSContext *cx, const char *name,
+        JS::HandleObject parent = nullptr)
+    {
+        JSClass *jsclass = T::GetJSClass();
+        jsclass->name    = name;
+
+        JS::RootedObject ret(cx, JS_NewObject(cx, jsclass));
+
+        if (T::ListStaticMethods()) {
+            JS_DefineFunctions(cx, ret, T::ListStaticMethods());
+        }
+
+        if (parent) {
+            JS::RootedValue rval(cx, JS::ObjectValue(*ret));
+            JS_SetProperty(cx, parent, name, rval);
+        }
+
+        return ret;
     }
 
     static void AssociateObject(JSContext *cx, T *obj, JS::HandleObject jsobj,

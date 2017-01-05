@@ -78,6 +78,7 @@ public:
                    size_t len,
                    int flags = 0);
 
+    int exists(const char *filename);
     const char *
     readFile(const char *filename, size_t *len, int *flags = NULL) const;
 

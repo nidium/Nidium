@@ -3,7 +3,6 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-
 #ifndef io_embedstream_h__
 #define io_embedstream_h__
 
@@ -52,7 +51,8 @@ public:
 class EmbedStream : public IO::NFSStream
 {
 public:
-    explicit EmbedStream(const char *location) : NFSStream(location)
+    explicit EmbedStream(const char *location)
+        : NFSStream(EmbedStream::RemoveLocationPrefix(location))
     {
     }
 
@@ -73,7 +73,18 @@ public:
 
     static const char *GetBaseDir()
     {
-        return "/";
+        return nullptr;
+    }
+private:
+    static const char *RemoveLocationPrefix(const char *location)
+    {
+        Core::Path::schemeInfo *scheme = Core::Path::GetScheme(location);
+        if (scheme->str) {
+            // Remove the prefix keeping the last slash
+            return &location[strlen(scheme->str) - 1];
+        }
+
+        return location;
     }
 };
 

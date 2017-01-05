@@ -1327,11 +1327,10 @@ bool JSWebGLRenderingContext::JS_detachShader(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    webglProgram = JSWebGLProgram::GetInstance(program);
-    webglShader  = JSWebGLShader::GetInstance(shader);
-
     // FIXME : Should we free the c++ object ?
     // FIXME : glDetachShader not implemented in skia
+    // webglProgram = JSWebGLProgram::GetInstance(program);
+    // webglShader  = JSWebGLShader::GetInstance(shader);
     // GL_CALL(this, DetachShader(webglProgram->id(), webglShader->id()));
 
     return true;
@@ -2344,7 +2343,7 @@ bool JSWebGLRenderingContext::JS_texImage2D(JSContext *cx, JS::CallArgs &args)
 
 
         if (array != NULL && JS_IsTypedArrayObject(array)) {
-    
+
             JS::AutoCheckCannotGC nogc;
             bool shared;
 

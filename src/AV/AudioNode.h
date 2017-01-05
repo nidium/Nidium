@@ -41,11 +41,6 @@ typedef void PaUtilConverter(void *,
 
 class AudioNode;
 
-enum TypeIO
-{
-    INPUT,
-    OUTPUT
-};
 enum ArgType
 {
     INT,
@@ -76,14 +71,19 @@ struct NodeEvent
 class NodeLink
 {
 public:
+    enum Type
+    {
+        kNodeLink_Input,
+        kNodeLink_Output
+    };
+
     int m_Count;
     int m_Channel;
     bool m_HaveFeedback;
     AudioNode *m_Node;
     NodeIO *wire[NIDIUM_AUDIO_NODE_WIRE_SIZE];
-    TypeIO m_Type;
 
-    NodeLink(TypeIO type, int channel, AudioNode *node)
+    NodeLink(Type type, int channel, AudioNode *node)
         : m_Count(0), m_Channel(channel), m_HaveFeedback(false), m_Node(node),
           m_Type(type)
     {
@@ -94,13 +94,16 @@ public:
 
     bool isInput()
     {
-        return m_Type == INPUT;
+        return m_Type == kNodeLink_Input;
     }
 
     bool isOutput()
     {
-        return m_Type == OUTPUT;
+        return m_Type == kNodeLink_Output;
     }
+
+private:
+    Type m_Type;
 };
 // }}}
 

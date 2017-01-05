@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-
 #include "JSOS.h"
+
 #include "JSUtils.h"
 #include "JSModules.h"
 #ifdef NIDIUM_PRODUCT_FRONTEND
@@ -22,9 +22,7 @@ void JSOS::RegisterObject(JSContext *cx)
 
 JSObject *JSOS::RegisterModule(JSContext *cx)
 {
-    JS::RootedObject exports(cx, JS_NewPlainObject(cx));
-
-    JSOS::ExposeClass<1>(cx, "OS", 0, JSOS::kEmpty_ExposeFlag, exports);
+    JS::RootedObject exports(cx, JSOS::ExposeObject(cx, "OS"));
 
     // Platform
     JS::RootedString platformStr(cx, JSUtils::NewStringWithEncoding(cx,

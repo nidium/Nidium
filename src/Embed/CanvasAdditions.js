@@ -1,27 +1,49 @@
-/* -------------------------------------------------------------------------- */
-/* MIT license                                          (c) 2016 Nidium, Inc. */
-/* -------------------------------------------------------------------------- */
-/* Permission is hereby granted, free of charge, to any person obtaining a    */
-/* copy of this software and associated documentation files (the "Software"), */
-/* to deal in the Software without restriction, including without limitation  */
-/* the rights to use, copy, modify, merge, publish, distribute, sublicense,   */
-/* and/or sell copies of the Software, and to permit persons to whom the      */
-/* Software is furnished to do so, subject to the following conditions:       */
-/*                                                                            */
-/* The above copyright notice and this permission notice shall be included in */
-/* all copies or substantial portions of the Software.                        */
-/*                                                                            */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR */
-/* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   */
-/* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    */
-/* THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER */
-/* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    */
-/* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        */
-/* DEALINGS IN THE SOFTWARE.                                                  */
-/* -------------------------------------------------------------------------- */
+/*
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
 
 {
 
+    Canvas.prototype.addMultiple = function(...canvases) {
+        for (let canvas of canvases) {
+            try {
+                this.add(canvas);
+            } catch(e) {}
+        }
+    }
+
+    /*
+        Inject a 'Layout syntax tree' (LST) into the element.
+    */
+    Canvas.prototype.inject = function(nml) {
+        this.addMultiple(...NML.CreateTree(nml));
+    }
+
+    /*
+        Remove all child nodes 
+    */
+    Canvas.prototype.empty = function() {
+        var children = this.getChildren();
+
+        for (let child of children) {
+            child.removeFromParent();
+        }
+
+        return children;
+    }
+
+    /*
+        Replace the content of the element with the specified 'LST'
+    */
+    Canvas.prototype.replaceWith = function(nml) {
+        var ret = this.empty();
+        this.inject(nml);
+
+        return ret;
+    }
+    
     Object.defineProperty(Canvas.prototype, "inherit", {
         get: function() {
             if (!this.__inheritProxy) {
@@ -33,7 +55,7 @@
 
                         let parent = this.getParent();
                         if (parent) {
-                            return parent.inh[prop];
+                            return parent.inherit[prop];
                         }
                     }
                 });
@@ -56,12 +78,17 @@
             canvas.clear();
             let ctx = canvas.getContext("2d");
             ctx.fillStyle = "rgba(111, 108, 220, 0.6)";
-            ctx.fillRect(0, 0, this.width, this.height);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
         if (Canvas.currentHightLight) {
             canvas = Canvas.currentHightLight;
-            canvas.setSize(this.width, this.height);
+            //canvas.setSize(this.width, this.height);
+
+            AnimationBlock(200, Easing.Back.Out, (canvas) => {
+                canvas.width = this.width;
+                canvas.height = this.height;
+            },  canvas);
 
             canvas.on("resize", () => {
                 draw(canvas);
@@ -78,10 +105,12 @@
 
         document.canvas.add(canvas);
         canvas.position = "absolute";
-        canvas.left = this.__left;
-        canvas.top = this.__top;
-    }
 
+        AnimationBlock(200, Easing.Back.Out, (canvas) => {
+            canvas.left = this.__left;
+            canvas.top = this.__top;
+        },  canvas);
+    }
 }
 
 class DebugCanvas extends Canvas {
@@ -94,7 +123,7 @@ class DebugCanvas extends Canvas {
 
         this.onload = this.randomPaint;
         this.onresize = this.randomPaint;
-        
+
         this.m_highlight = false;
         this._pickColor();
         this.cursor = "pointer";

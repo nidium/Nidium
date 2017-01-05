@@ -78,6 +78,9 @@ Audio::Audio(ape_global *n,
 
     m_SharedMsg = new SharedMessages();
 
+    if (channels == 0) channels = 2;
+    if (sampleRate == 0) sampleRate = 44100;
+
     int actualBufferSize = bufferSize;
     if (bufferSize == 0) {
         AudioParameters tmp(0, 0, channels, Audio::FLOAT32, sampleRate);

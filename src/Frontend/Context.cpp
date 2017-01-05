@@ -19,6 +19,7 @@
 #include "Binding/JSWindow.h"
 #include "Binding/JSProcess.h"
 #include "Binding/JSImageData.h"
+#include "Binding/JSNML.h"
 
 #include "Graphics/CanvasHandler.h"
 #include "Graphics/SkiaContext.h"
@@ -128,7 +129,14 @@ Context::Context(ape_global *net)
       m_UI(NULL), m_NML(NULL), m_GLState(NULL),
       m_JSWindow(NULL), m_SizeDirty(false), m_CurrentClickedHandler(NULL)
 {
+#ifdef NIDIUM_PACKAGE_EMBED
+    // When nidium is packaged with the embedded resources, the embed://
+    // prefix should be kept for correctly resolving the path of the files.
+    Path::RegisterScheme(SCHEME_DEFINE("embed://", EmbedStream, true));
+#else
     Path::RegisterScheme(SCHEME_DEFINE("embed://", EmbedStream, false));
+#endif
+
     Path::RegisterScheme(SCHEME_DEFINE("system://", SystemStream, false));
     Path::RegisterScheme(SCHEME_DEFINE("user://", UserStream, false));
     Path::RegisterScheme(SCHEME_DEFINE("private://", PrivateStream, false));
@@ -152,7 +160,6 @@ void Context::setUIObject(Interface::UIInterface *ui)
 {
     m_UI  = ui;
     m_NML = m_UI->m_Nml;
-    m_NML->setNJS(m_JS);
 
     GLState::CreateForContext(this);
 
@@ -173,6 +180,7 @@ void Context::loadNativeObjects(int width, int height)
     JSCanvas::RegisterObject(cx);
     JSImage::RegisterObject(cx);
     JSImageData::RegisterObject(cx);
+    JSNML::RegisterObject(cx);
 #ifdef NIDIUM_AUDIO_ENABLED
     JSAudio::RegisterAllObjects(cx);
     JSVideo::RegisterAllObjects(cx);
@@ -184,6 +192,7 @@ void Context::loadNativeObjects(int width, int height)
     m_JSWindow = JSWindow::RegisterObject(cx, width, height, docObj);
 
     JSProcess::RegisterObject(cx, m_UI->m_Argv, m_UI->m_Argc, 0);
+
 
 #if DEBUG
     createDebug2Canvas();
@@ -391,6 +400,16 @@ void Context::rendered(uint8_t *pdata, int width, int height)
 
 void Context::frame(bool draw)
 {
+    LayerizeContext ctx;
+    LayerSiblingContext sctx;
+    Canvas2DContext *rootctx;
+    std::vector<ComposeContext> compList;
+
+    ctx.reset();
+    ctx.m_SiblingCtx = &sctx;
+
+    rootctx = (Canvas2DContext *)m_RootHandler->m_Context;
+
     assert(m_UI != NULL);
     // this->execJobs();
     /*
@@ -411,25 +430,26 @@ void Context::frame(bool draw)
         there are resize in the requestAnimationFrame
     */
     this->execPendingCanvasChanges();
+    m_CanvasOrderedEvents.clear();
+
+    /* Build the composition list */
+    m_RootHandler->layerize(ctx, compList, draw);
 
     m_UI->makeMainGLCurrent();
-
-    m_RootHandler->getContext()->flush();
-    m_RootHandler->getContext()->resetGLContext();
-
-    /* We draw on the UI fbo */
-    glBindFramebuffer(GL_FRAMEBUFFER, m_UI->getFBO());
-    LayerizeContext ctx;
-    ctx.reset();
-    LayerSiblingContext sctx;
-    ctx.m_SiblingCtx = &sctx;
-
-    m_CanvasOrderedEvents.clear();
+    rootctx->clear(0xFFFFFFFF);
+    rootctx->flush();
 
     /*
         Compose canvas eachother on the main framebuffer
     */
-    m_RootHandler->layerize(ctx, draw);
+    m_RootHandler->getContext()->flush();
+    m_RootHandler->getContext()->resetGLContext();
+    /* We draw on the UI fbo */
+    glBindFramebuffer(GL_FRAMEBUFFER, m_UI->getFBO());
+    for (auto &com : compList) {
+        com.handler->m_Context->preComposeOn(rootctx, com.left,
+            com.top, com.opacity, com.zoom, com.needClip ? &com.clip : nullptr);
+    }
 
     this->triggerEvents();
     this->clearInputEvents();

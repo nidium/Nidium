@@ -14,7 +14,7 @@ TEST(NFSStream, Simple)
 {
     Nidium::IO::NFSStream nfs("nfs://127.0.0.1:/tmp/tst.txt");
 
-    ASSERT_STREQ(nfs.GetBaseDir(), "/");
+    ASSERT_STREQ(Nidium::IO::NFSStream::GetBaseDir(), nullptr);
     EXPECT_TRUE(nfs.AllowSyncStream() == true);
     EXPECT_TRUE(nfs.AllowLocalFileStream() == true);
 }

@@ -3,8 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-
 #define _HAVE_SSL_SUPPORT 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -181,7 +181,6 @@ int Server::Start(int argc, char *argv[])
 void Server::Usage(struct option *long_options, const char **text_blocks)
 {
     struct option *opt;
-    char const *text;
     size_t i;
 
     opt = long_options;
@@ -191,7 +190,7 @@ void Server::Usage(struct option *long_options, const char **text_blocks)
             "nidium-server");
 
     while (opt->name != NULL) {
-        text = text_blocks[i];
+        char const * text = text_blocks[i];
         fprintf(stdout, "  -%c, --%-12s %s\n", opt->val, opt->name, text);
         opt++;
         i++;

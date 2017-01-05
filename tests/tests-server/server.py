@@ -1,7 +1,12 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
+#   Copyright 2016 Nidium Inc. All rights reserved.
+#   Use of this source code is governed by a MIT license
+#   that can be found in the LICENSE file.
+
 import sys
+import os
 
 from twisted.internet import reactor
 from twisted.python import log
@@ -36,7 +41,7 @@ class HTTPTests(Resource):
     def testNotFound(self, req):
         req.setResponseCode(404)
         return "No tests named \"%s\"" % (self.test)
-        
+
     def _process(self, req):
         return getattr(self, "test_%s" % (self.test.replace("-", "_")), self.testNotFound)(req)
 
@@ -98,15 +103,15 @@ class HTTPTests(Resource):
 
     def test_progress(self, req, sendLength=True):
         def done(req):
-            req.write("b"*2048)
+            req.write("b"*4096)
             req.finish()
 
         req.setResponseCode(200)
 
         if sendLength:
-            req.setHeader("content-length", 4096)
+            req.setHeader("content-length", 8192)
 
-        req.write("a"*2048)
+        req.write("a"*4096)
         reactor.callLater(0.500, done, req)
         return server.NOT_DONE_YET
 

@@ -39,8 +39,10 @@ extern char *g_m_Cwd;
 #define SCHEME_DEFINE(prefix, streamclass, keepprefix)                   \
     (struct Nidium::Core::Path::schemeInfo)                              \
     {                                                                    \
-        .str = prefix, .base = streamclass::CreateStream,                \
-        .GetBaseDir = streamclass::GetBaseDir, .keepPrefix = keepprefix, \
+        .str                  = prefix,                                  \
+        .base                 = streamclass::CreateStream,               \
+        .GetBaseDir           = streamclass::GetBaseDir,                 \
+        .keepPrefix           = keepprefix,                              \
         .AllowLocalFileStream = streamclass::AllowLocalFileStream,       \
         .AllowSyncStream      = streamclass::AllowSyncStream             \
     }

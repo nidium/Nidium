@@ -26,7 +26,7 @@ public:
     }
     static const char *GetBaseDir()
     {
-        return "/";
+        return nullptr;
     }
 
     static bool AllowLocalFileStream()
@@ -43,6 +43,9 @@ public:
     virtual void stop();
     virtual void getContent();
     void _getContent();
+
+    virtual bool exists();
+    virtual bool isDir();
 
     virtual bool getContentSync(char **data, size_t *len, bool mmap = false);
     virtual size_t getFileSize() const;

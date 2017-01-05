@@ -5,7 +5,6 @@
 */
 #import "UIConsole.h"
 
-
 @implementation NidiumConsole
 
 @synthesize m_Window, textview, m_IsHidden;

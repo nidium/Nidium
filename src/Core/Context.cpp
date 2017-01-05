@@ -3,7 +3,6 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-
 #include "Core/Context.h"
 #include "Core/Path.h"
 #include "Core/TaskManager.h"
@@ -15,7 +14,6 @@ using namespace Nidium::Binding;
 using namespace Nidium::Core;
 using namespace Nidium::IO;
 using namespace Nidium::Net;
-
 
 class NidiumJS *g_nidiumjs = nullptr;
 

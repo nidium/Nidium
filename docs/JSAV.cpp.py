@@ -23,10 +23,10 @@ dsp.connect(src.output[0], out.input[0]);
 dsp.connect(src.output[1], out.input[1]);
 
 // * Open a mp3 file
-source.open("path/to/file.mp3");
+src.open("path/to/file.mp3");
 
 // * And play it
-source.play();""") ],
+src.play();""") ],
     products=["Frontend"]
 )
 
@@ -132,9 +132,50 @@ custom.assignProcessor(function(frame, scope) {
 
 ClassDoc( "Video", "Video playing.",
     [ SeeDoc( "Audio" ) ],
-    NO_Examples,
+    [ExampleDoc("""// Video are rendered inside a Canvas,
+// so first, you need to create a Canvas
+var c = new Canvas(640, 360);
+
+// The Canvas must be initialized with a 2d context
+c.getContext("2d");
+
+// And added to the root canvas, so we can see it
+document.canvas.add(c);
+
+// Then create the video with a reference to the Canvas
+var video = new Video(c);
+
+// Open the video file
+video.open("big_buck_bunny_480p_h264.mov");
+
+// And play it !
+video.play();
+""", title="Video playback"), ExampleDoc("""var c = new Canvas(640, 360);
+c.getContext("2d");
+document.canvas.add(c);
+
+var video = new Video(c);
+video.open("big_buck_bunny_480p_h264.mov");
+
+video.on("ready", function() {
+    var dsp = Audio.getContext();
+
+    var source = video.getAudioNode();
+    if (!source) {
+        console.log("Video does not have an audio channel");
+        return;
+    }
+
+    var target = dsp.createNode("target", 2, 0);
+
+    dsp.connect(source.output[0], target.input[0]);
+    dsp.connect(source.output[1], target.input[1]);
+});
+
+video.play();""", title="Video playback with sound") ],
     NO_Inherrits,
-    NO_Extends
+    NO_Extends,
+    products=["Frontend"]
 )
 
 for klass in ["AudioNode", "Video"]:
@@ -182,25 +223,25 @@ node.addEventListener("ready", function() {
     console.log("Source is ready to be played");
 });
     """)],
-            [ ParamDoc("event", "Event object", NO_Params, NO_Default, IS_Obligated) ]
+            [ParamDoc("dummy", "Empty parameter, set to 'undefined'", 'any', 'null', IS_Obligated)]
     )
 
     EventDoc( klass + ".pause", "Event fired when the source is put on pause.",
             SeesDocs(klass + ".play|"+ klass + ".stop|" + klass + ".error|" + klass + ".buffering|" + klass + ".ready|" + klass + ".end" ),
             NO_Examples,
-            [ ParamDoc("event", "Event object", NO_Params, NO_Default, IS_Obligated) ]
+            [ParamDoc("dummy", "Empty parameter, set to 'undefined'", 'any', 'null', IS_Obligated)]
     )
 
     EventDoc( klass + ".play", "Event fired when the source is put on play.",
             SeesDocs(  klass + ".pause|"+ klass + ".stop|" + klass + ".error|" + klass + ".buffering|" + klass + ".ready|" + klass + ".end" ),
             NO_Examples,
-            [ ParamDoc("event", "Event object", NO_Params, NO_Default, IS_Obligated) ]
+            [ParamDoc("dummy", "Empty parameter, set to 'undefined'", 'any', 'null', IS_Obligated)]
     )
 
     EventDoc( klass + ".end", "Event fired when the source reached the end of the file.",
             SeesDocs(  klass + ".pause|" + klass + ".play|"+ klass + ".stop|" + klass + ".error|" + klass + ".buffering|" + klass + ".ready" ),
             NO_Examples,
-            [ ParamDoc("event", "Event object", NO_Params, NO_Default, IS_Obligated) ]
+            [ParamDoc("dummy", "Empty parameter, set to 'undefined'", 'any', 'null', IS_Obligated)]
     )
 
 FieldDoc( "AudioNode.type", "Node name.",
@@ -307,7 +348,7 @@ As the `AudioContext` has it's own thread, communitation between threads must be
     NO_Examples,
     [ParamDoc( "event", "The event object",
         ObjectDoc([
-            ( "data", "Data of the message", "mixed" ),
+            ( "data", "Data of the message", "any" ),
         ]), NO_Default, IS_Obligated ),
     ]
 )
@@ -420,7 +461,7 @@ foo = 0;
     IS_Dynamic, IS_Public, IS_Fast,
     [CallbackDoc( "callback", "Function to execute when a variable is set on the `AudioNode`", [
     ParamDoc( "key", "The key name", "string", NO_Default, IS_Obligated ),
-    ParamDoc( "value", "The value that has been set", "mixed", NO_Default, IS_Obligated ),
+    ParamDoc( "value", "The value that has been set", "any", NO_Default, IS_Obligated ),
         ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated )
     ])]
 )
@@ -540,7 +581,7 @@ custom.assignProcessor(function(frame, scope) {
 });""") ],
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "key", "Key", "string", NO_Default, IS_Obligated ) ,
-     ParamDoc( "value", "Value belonging to Key", "mixed", NO_Default, IS_Obligated ) ],
+     ParamDoc( "value", "Value belonging to Key", "any", NO_Default, IS_Obligated ) ],
     NO_Returns
 )
 
@@ -549,7 +590,7 @@ FunctionDoc( "AudioNode.get", "Get a value from a custom AudioNode object.\n> Va
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "key", "Key to find the value for", "string", NO_Default, IS_Obligated) ],
-    ReturnDoc( "The value belonging to 'key'", "mixed" )
+    ReturnDoc( "The value belonging to 'key'", "any" )
 )
 
 FunctionDoc( "AudioNode.send", """Send a message from a `custom-source` node or a `custom` node, to the main thread.
@@ -673,19 +714,28 @@ This method will return `null` if it's called before the `ready` event of the vi
         NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
         NO_Params,
-        ReturnDoc("The audio node instance associated to the video or null if the video does not have any audio stream", "AudioNode")
+        ReturnDoc("The audio node instance associated to the video or null if the video does not have any audio stream", "AudioNode", nullable=True)
 )
 
 for i in ["Video", "AudioNode" ]:
     if i == "AudioNode":
         more = "\n>This property is only available on `source` node"
+        preExample = """var src = new Video(c);
+src.open("test.ogg");
+        """
+
     else:
         more = "";
+        preExample = """
+var dsp = Audio.getContext();
+var src = dsp.createNode("source", 0, 2);
+src.open("path/to/file.mp3");
+        """
 
     FieldDoc( i +".position", "The current position in the " + i + " in seconds.\n Can also be used to set the position to a certain time." + more,
             SeesDocs( i + ".duration|" + i + ".metadata|" + i + ".bitrate" ),
-            [ ExampleDoc("""console.log(source.position); // display the current position in the source
-source.position += 5; // seek 5 seconds forwards""")],
+            [ ExampleDoc(preExample + """console.log(src.position); // display the current position in the source
+src.position += 5; // seek 5 seconds forwards""")],
             IS_Dynamic, IS_Public, IS_ReadWrite,
             "integer",
             NO_Default
@@ -709,8 +759,8 @@ source.position += 5; // seek 5 seconds forwards""")],
 
     FieldDoc( i + ".metadata", "An object with metadata that belong to this " + i + " stream." + more,
             SeesDocs(i + "|" + i + ".position|" + i + ".duration|" + i + ".metadata|" + i + ".bitrate" ),
-            [ExampleDoc( """for (var k in source.metadata) {
-    console.log("Metadata : " + k + "=" + source.metadata[k]);
+            [ExampleDoc( preExample + """for (var k in src.metadata) {
+    console.log("Metadata : " + k + "=" + src.metadata[k]);
 }"""
             )],
         IS_Dynamic, IS_Public, IS_Readonly,

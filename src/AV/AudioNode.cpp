@@ -55,11 +55,11 @@ AudioNode::AudioNode(int inCount, int outCount, Audio *audio)
 
     // Init node IO queue
     for (int i = 0; i < inCount; i++) {
-        m_Input[i] = new NodeLink(INPUT, i, this);
+        m_Input[i] = new NodeLink(NodeLink::kNodeLink_Input, i, this);
     }
 
     for (int i = 0; i < outCount; i++) {
-        m_Output[i] = new NodeLink(OUTPUT, i, this);
+        m_Output[i] = new NodeLink(NodeLink::kNodeLink_Output, i, this);
     }
 
     // Malloc node I/O frames
@@ -1669,6 +1669,10 @@ void AudioSource::closeInternal(bool reset)
 
 void AudioSource::play()
 {
+    if (m_Playing) {
+        return;
+    }
+
     if (!m_Opened) {
         m_PlayWhenReady = true;
         return;

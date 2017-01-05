@@ -320,25 +320,13 @@ FieldDoc("Window.navigator", "Details for this browser.",
     NO_Default
 )
 
-nidium = {"version": ('string', "The browser's version."),
-            "build": ('string', "The browser's build version"),
-            "revision": ('string', "The browser's revision."),
-        }
-for i, details in nidium.items():
-    FieldDoc("Window.__nidium__." + i, "Details for this browser concerning: " + i + "\n" + details[1],
-        SeesDocs("global.window|Window|Navigator|Window.navigator|Window.__nidium__|global.window"),
-        [ExampleDoc("console.log('" + i + " is now: '  + window.__nidium__." + i + ");")],
-        IS_Static, IS_Public, IS_Readonly,
-        details[0],
-        NO_Default
-)
-
-
 FieldDoc("Window.__nidium__", "Details for this browser's framework.",
     SeesDocs("global.window|Window|Navigator|Window.navigator|Window.__nidium__|global.window"),
     [ExampleDoc("console.log(JSON.stringify(window.navigator));")],
     IS_Static, IS_Public, IS_Readonly,
-    ObjectDoc([("version", "The version of nidium", "string"), ("build", "build identifier", "string"), ("revision", "revision identifier", "string")]),
+    ObjectDoc([("version", "The version of nidium", "string"),
+                ("build", "The build identifier", "string"),
+                ("revision", "The revision identifier", "string")]),
     NO_Default
 )
 

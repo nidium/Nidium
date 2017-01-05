@@ -89,6 +89,14 @@ public:
         return false;
     }
 
+    virtual bool exists() {
+        return false;
+    }
+
+    virtual bool isDir() {
+        return false;
+    }
+
     /*
         Return the base path for the stream
     */

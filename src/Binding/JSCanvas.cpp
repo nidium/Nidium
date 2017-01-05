@@ -372,6 +372,15 @@ bool JSCanvas::JS_insertAfter(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
+bool JSCanvas::JS_requestPaint(JSContext *cx, JS::CallArgs &args)
+{
+    m_CanvasHandler->invalidate();
+
+    args.rval().setBoolean(true);
+
+    return true;
+}
+
 bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
 {
 
@@ -1082,13 +1091,11 @@ bool JSCanvas::JSSetter_opacity(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
-    if (!vp.isNumber()) {
+    if (!JS::ToNumber(cx, vp, &dval)) {
 
         return true;
     }
-
-    dval = vp.toNumber();
-
+    
     m_CanvasHandler->setOpacity(dval);
 
     return true;
@@ -1388,6 +1395,7 @@ JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
 JSFunctionSpec *JSCanvas::ListMethods()
 {
     static JSFunctionSpec funcs[] = {
+        CLASSMAPPER_FN(JSCanvas, requestPaint, 0),
         CLASSMAPPER_FN(JSCanvas, getContext, 1),
         CLASSMAPPER_FN(JSCanvas, setContext, 1),
         CLASSMAPPER_FN(JSCanvas, addSubCanvas, 1),
@@ -1526,6 +1534,13 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx,
 
 void JSCanvas::onMessage(const SharedMessages::Message &msg)
 {
+    /*
+        Don't process any Javascript when shutting down
+    */
+    if (NidiumLocalContext::Get()->isShuttingDown()) {
+        return;
+    }
+
     JSContext *cx = m_Cx;
     JS::RootedObject ro(cx, m_Instance);
 
@@ -1538,12 +1553,36 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             this->fireJSEvent("resize", &eventValue);
             break;
         }
+        case NIDIUM_EVENT(CanvasHandler, PAINT_EVENT): {
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            JS::RootedValue eventValue(m_Cx);
+
+            eventValue.setObjectOrNull(eventObj);
+            this->fireJSEvent("paint", &eventValue);
+            break;
+        }        
         case NIDIUM_EVENT(CanvasHandler, LOADED_EVENT): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);
 
             eventValue.setObjectOrNull(eventObj);
             this->fireJSEvent("load", &eventValue);
+            break;
+        }
+        case NIDIUM_EVENT(CanvasHandler, MOUNT_EVENT): {
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            JS::RootedValue eventValue(m_Cx);
+
+            eventValue.setObjectOrNull(eventObj);
+            this->fireJSEvent("mount", &eventValue);
+            break;
+        }
+        case NIDIUM_EVENT(CanvasHandler, UNMOUNT_EVENT): {
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            JS::RootedValue eventValue(m_Cx);
+
+            eventValue.setObjectOrNull(eventObj);
+            this->fireJSEvent("unmount", &eventValue);
             break;
         }
         case NIDIUM_EVENT(CanvasHandler, CHANGE_EVENT): {
@@ -1655,7 +1694,7 @@ JSCanvas::JSCanvas(CanvasHandler *handler)
     /*
         Trigger "loaded" event if not lazy loaded
     */
-    m_CanvasHandler->checkLoaded();
+    m_CanvasHandler->checkLoaded(true);
 }
 
 JSCanvas::~JSCanvas()

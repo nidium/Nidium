@@ -1,3 +1,9 @@
+/*
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
+
 // Nidium frontend can have at most 16ms of delay for the timers because of vsync
 // Under some condition it can even be up to 50ms
 // See : https://github.com/nidium/Nidium/issues/22

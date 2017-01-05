@@ -134,9 +134,9 @@ bool JSGlobal::JS_load(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    /* only private are allowed in an http context */
+    /* only embed are allowed in an http context */
     if (SCHEME_MATCH(schemeCwd, "http")
-        && !URLSCHEME_MATCH(scriptstr.ptr(), "private")) {
+        && !URLSCHEME_MATCH(scriptstr.ptr(), "embed")) {
         JS_ReportError(cx, "script access error : cannot load in this context");
         return false;
     }
@@ -220,9 +220,9 @@ bool JSGlobal::JS_setTimeout(JSContext *cx, JS::CallArgs &args)
 
     params = new nidium_sm_timer(cx);
 
-    if (params == NULL) {
-        if (params) delete params;
-        return true;
+    if (!params) {
+        JS_ReportOutOfMemory(cx);
+        return false;
     }
 
     params->cx     = cx;
@@ -272,9 +272,9 @@ bool JSGlobal::JS_setInterval(JSContext *cx, JS::CallArgs &args)
 
     params = new nidium_sm_timer(cx);
 
-    if (params == NULL) {
-        if (params) delete params;
-        return true;
+    if (!params) {
+        JS_ReportOutOfMemory(cx);
+        return false;
     }
 
     params->cx     = cx;
@@ -364,7 +364,7 @@ bool JSGlobal::JS_btoa(JSContext *cx, JS::CallArgs &args)
 JSClass *JSGlobal::GetJSClass()
 {
     static JSClass global_class = {
-        "global",         
+        "global",
         JSCLASS_GLOBAL_FLAGS_WITH_SLOTS(16) | JSCLASS_HAS_PRIVATE,
         nullptr,  nullptr,
         nullptr,  nullptr,
@@ -373,7 +373,7 @@ JSClass *JSGlobal::GetJSClass()
         nullptr,  nullptr,
         nullptr,  JS_GlobalObjectTraceHook
     };
-    
+
     return &global_class;
 }
 

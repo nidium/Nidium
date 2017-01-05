@@ -25,7 +25,6 @@ using Nidium::Interface::UIInterface;
 namespace Nidium {
 namespace Graphics {
 
-
 CanvasHandler::CanvasHandler(int width,
                              int height,
                              Context *nctx,
@@ -401,6 +400,10 @@ void CanvasHandler::addChild(CanvasHandler *insert,
 
     insert->m_Parent = this;
     m_nChildren++;
+
+    //Args arg;
+    //insert->fireEventSync<CanvasHandler>(MOUNT_EVENT, arg);
+
 }
 
 void CanvasHandler::removeFromParent(bool willBeAdopted)
@@ -438,6 +441,10 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
     m_Parent = NULL;
     m_Next   = NULL;
     m_Prev   = NULL;
+#if 0
+    Args arg;
+    this->fireEventSync<CanvasHandler>(UNMOUNT_EVENT, arg);
+#endif
 }
 
 void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
@@ -488,7 +495,8 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
     }
 }
 
-void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
+void CanvasHandler::layerize(LayerizeContext &layerContext,
+    std::vector<ComposeContext> &compList, bool draw)
 {
     CanvasHandler *cur;
     Rect nclip;
@@ -505,7 +513,6 @@ void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
 
     int tmpLeft;
     int tmpTop;
-    bool willDraw = true;
 
     if (m_CoordPosition == COORD_RELATIVE
         && (m_FlowMode & kFlowBreakAndInlinePreviousSibling)) {
@@ -570,9 +577,8 @@ void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
     */
     if (layerContext.m_Layer == NULL && m_Context) {
         layerContext.m_Layer = this;
-        m_Context->clear(0xFFFFFFFF);
-        m_Context->flush();
     } else {
+        bool willDraw = true;
         double cleft = 0.0, ctop = 0.0;
 
         if (m_CoordPosition != COORD_ABSOLUTE) {
@@ -596,18 +602,42 @@ void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
                       m_aLeft + m_Padding.global + this->getWidth(),
                       m_aTop + m_Padding.global + this->getHeight())));
 
+        if (willDraw && !m_Loaded) {
+            m_Loaded = true;
+            this->checkLoaded();
+        }
+
         if (draw && m_Context && willDraw) {
-            m_Context->preComposeOn(
-                static_cast<Canvas2DContext *>(layerContext.m_Layer->m_Context),
-                m_aLeft - m_Padding.global, m_aTop - m_Padding.global, popacity,
-                m_Zoom,
-                (m_CoordPosition == COORD_ABSOLUTE) ? NULL
-                                                    : layerContext.m_Clip);
+
+            ComposeContext compctx = {
+                .handler  = this,
+                .left     = m_aLeft - m_Padding.global,
+                .top      = m_aTop - m_Padding.global,
+                .opacity  = popacity,
+                .zoom     = m_Zoom,
+                .needClip = (m_CoordPosition != COORD_ABSOLUTE && layerContext.m_Clip),
+                .clip     = layerContext.m_Clip ? *layerContext.m_Clip : Rect()
+            };
+
+            this->dispatchMouseEvents(layerContext);
+
+            /* XXX: This could mutate the current state
+               of the canvas since it enter the JS */
+
+            if (m_NeedPaint) {
+                m_NeedPaint = false;
+                this->paint();
+            }
 
             /*
-                Dispatch current mouse position.
+                The JS callback could have removed
+                the canvas from its parent
             */
-            this->dispatchMouseEvents(layerContext);
+            if (!m_Parent) {
+                return;
+            }
+
+            compList.push_back(std::move(compctx));
         }
     }
 
@@ -668,7 +698,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
                    .m_Clip       = layerContext.m_Clip,
                    .m_SiblingCtx = &siblingctx };
 
-            cur->layerize(ctx, draw);
+            cur->layerize(ctx, compList, draw);
 
             /*
                 Incrementaly check the bottom/right most children
@@ -734,11 +764,6 @@ void CanvasHandler::layerize(LayerizeContext &layerContext, bool draw)
         if (m_Width != newWidth) {
             this->setWidth(newWidth, true);
         }
-    }
-
-    if (!m_Loaded && willDraw) {
-        m_Loaded = true;
-        this->checkLoaded();
     }
 
     if (layerContext.m_Layer == this) {
@@ -1030,9 +1055,7 @@ void CanvasHandler::setHidden(bool val)
 
 void CanvasHandler::setOpacity(double val)
 {
-    if (val < 0.0 || val > 1.) {
-        val = 1;
-    }
+    val = nidium_min(1, nidium_max(0, val));
 
     m_Opacity = val;
 }
@@ -1155,14 +1178,28 @@ void CanvasHandler::execPending()
     this->setPendingFlags(0, false);
 }
 
-bool CanvasHandler::checkLoaded()
+bool CanvasHandler::checkLoaded(bool async)
 {
     if (m_Loaded) {
         Args arg;
-        this->fireEvent<CanvasHandler>(LOADED_EVENT, arg, true);
+
+        if (async) {
+            this->fireEvent<CanvasHandler>(LOADED_EVENT, arg, true);
+
+            return true;
+        }
+
+        this->fireEventSync<CanvasHandler>(LOADED_EVENT, arg);
         return true;
     }
+
     return false;
+}
+
+void CanvasHandler::paint()
+{
+    Args arg;
+    this->fireEventSync<CanvasHandler>(PAINT_EVENT, arg);
 }
 
 void CanvasHandler::propertyChanged(EventsChangedProperty property)

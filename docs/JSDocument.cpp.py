@@ -12,8 +12,8 @@ It is not possible to create an instance of this class. 'global.document' is all
     products=["Server"]
 )
 
-FunctionDoc( "NidiumDocument.parseNML", "Parses a NML string and sets this as a document.",
-    SeesDocs( "global.document|NidiumDocument.parseNML|NidiumDocument.stylesheet|NidiumDocument.loadFont" ),
+FunctionDoc( "NidiumDocument.parse", "Parses a NML string and sets this as a document.",
+    SeesDocs( "global.document|NidiumDocument.parse|NidiumDocument.stylesheet|NidiumDocument.loadFont" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     [ ParamDoc( "ast", "A NML string", "string", NO_Default, IS_Obligated ) ],
@@ -25,7 +25,7 @@ FunctionDoc( "NidiumDocument.getCanvasById", "Select an canvas element for furth
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     [ ParamDoc( "id", "Canvas identifier", "string", NO_Default, IS_Obligated ) ],
-    ReturnDoc( "The selected element or null", "Canvas" )
+    ReturnDoc( "The selected element or null", "Canvas", nullable=True )
 )
 
 FunctionDoc( "NidiumDocument.getScreenData", "Provides information about an canvas object.",
@@ -74,7 +74,7 @@ FunctionDoc( "NidiumDocument.run", "Run the application.",
 )
 
 FieldDoc( "NidiumDocument.stylesheet", "The Native Style sheet (NSS) that belongs to this document.",
-    SeesDocs( "global.document|NidiumDocument.parseNML|NidiumDocument.stylesheet|NidiumDocument.loadFont" ),
+    SeesDocs( "global.document|NidiumDocument.parse|NidiumDocument.stylesheet|NidiumDocument.loadFont" ),
     NO_Examples,
     IS_Static, IS_Public, IS_ReadWrite,
     ObjectDoc([]),
@@ -82,7 +82,7 @@ FieldDoc( "NidiumDocument.stylesheet", "The Native Style sheet (NSS) that belong
 )
 
 FunctionDoc( "NidiumDocument.loadFont", "Load a certain font.",
-    SeesDocs( "global.document|NidiumDocument.parseNML|NidiumDocument.stylesheet|NidiumDocument.loadFont" ),
+    SeesDocs( "global.document|NidiumDocument.parse|NidiumDocument.stylesheet|NidiumDocument.loadFont" ),
     [ExampleDoc("""document.loadFont({
     file: "private://assets/fonts/onesize.ttf",
     name: "OneSize"

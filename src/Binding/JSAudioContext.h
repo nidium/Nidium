@@ -6,7 +6,6 @@
 #ifndef binding_jsaudiocontext_h__
 #define binding_jsaudiocontext_h__
 
-
 #include "Frontend/Context.h"
 #include "AV/Audio.h"
 #include "Binding/ClassMapper.h"

@@ -3,7 +3,6 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-
 #include "Binding/JSAudioNode.h"
 
 #include "Binding/JSEvents.h"
@@ -67,6 +66,11 @@ void JSAudioNode::releaseNode()
     // That way, we are sure nothing will need to be processed
     // later for this node.
     audio->wakeup();
+
+    // Delete (invalidate) all JSAudioNodeLink
+    for (auto const& link: m_Links) {
+        delete link;
+    }
 
     // Remove JS node from nodes linked list
     jaudio->removeNode(this);
@@ -388,8 +392,6 @@ JSAudioNodeBuffers::JSAudioNodeBuffers(JSAudioContext *audioCtx,
     m_DataArray = frames;
 
     for (unsigned int i = 0; i < m_Count; i++) {
-        uint8_t *data;
-
         // TODO : Avoid memcpy (custom allocator for AudioNode?)
         JS::RootedObject arrBuff(cx,
             JSUtils::NewArrayBufferWithCopiedContents(cx, m_Size, framesData[i]));

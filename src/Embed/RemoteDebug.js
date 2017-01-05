@@ -1,3 +1,9 @@
+/*
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
+
 var cssParse = require("css-parse");
 
 class RemoteDebug {
@@ -22,6 +28,7 @@ class RemoteDebug {
             }
 
             dbg.onExceptionUnwind = function(frame, value) {
+                console.log("Error", value.unsafeDereference(),JSON.stringify( parseFrame(frame)));
                 if (frame.older == null) {
                     var info = parseFrame(frame);
                     remote.reportError({text: value.unsafeDereference(), frame: info});
@@ -356,6 +363,19 @@ _remotedebug.handle('DOM.highlightNode', function(reply, params) {
     }
 
     canvas.highlight();
+    
+    return reply({});
+});
+
+
+_remotedebug.handle('DOM.setNodeValue', function(reply, params) {
+    var canvas = document.getCanvasByIdx(params.nodeId);
+    if (!canvas) {
+        console.log("Node not found");
+        return reply({});
+    }
+
+    canvas.nodeValue = params.value;
 
     return reply({});
 });
@@ -441,15 +461,34 @@ _remotedebug.handle('DOM.getDocument', function(reply, params) {
     function getTree(root, genesis = false) {
         let children = root.getChildren();
 
+        let nodeName = "canvas";
+        if ("name" in root) {
+            nodeName = root.name();
+        }
+
         let tree = {
             nodeId: parseInt(root.idx),
-            nodeType: 1,
+            nodeType: root.nodeType || 1,
             nodeValue: "",
-            nodeName: "CANVAS",
-            localName: "canvas",
+            nodeName: nodeName.toUpperCase(),
+            localName: nodeName,
             attributes: [],
             childNodeCount: children.length,
-            children: []
+            children: [],
+            nodeValue: root.nodeValue
+        }
+
+        switch(tree.nodeType) {
+            case 3: /* text node */
+                root.on("nodeValueChanged", (value) => {
+                    _remotedebug.call("DOM.characterDataModified", {
+                        nodeId: tree.nodeId,
+                        characterData: value
+                    });
+                });
+                break;
+            case 1:
+                break;
         }
 
         if (genesis) {
@@ -466,7 +505,6 @@ _remotedebug.handle('DOM.getDocument', function(reply, params) {
         if (root.id) {
             tree.attributes.push("id", root.id);
         }
-        
 
         console.log(tree.attributes);
 

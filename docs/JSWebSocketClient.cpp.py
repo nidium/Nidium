@@ -26,7 +26,7 @@ FunctionDoc("WebSocket.send", "Send an message over a websocket connection.",
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ParamDoc("message", "Message to be send", "string|ArrayBuffer", NO_Default, IS_Obligated)],
-    ReturnDoc("0 on success, or null if failed.", "integer|null")
+    ReturnDoc("0 on success, or null if failed.", "integer", nullable=True)
 )
 
 FunctionDoc("WebSocket.ping", "Pings to an existing websocket connection.",
@@ -35,7 +35,7 @@ FunctionDoc("WebSocket.ping", "Pings to an existing websocket connection.",
     IS_Dynamic, IS_Public, IS_Fast,
     [ParamDoc("url", "Url  (may start with 'wss://', 'ws://' or ''", "string", NO_Default, IS_Obligated),
      ParamDoc( "protocol", "No-use yet", "string", NO_Default, IS_Optional ) ],
-    ReturnDoc("Websocket connection or null on failure", "WebSocket|null")
+    ReturnDoc("Websocket connection or null on failure", "WebSocket", nullable=True)
 )
 
 EventDoc( "WebSocketServer.onmessage", "Event triggered when a message arrives.",
