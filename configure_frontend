@@ -22,32 +22,13 @@ from konstructor import ROOT
 
 Gyp = Builder.Gyp
 
-Deps.set(
-    "portaudio",
-    "zita-resampler",
-    "depot_tools",
-    "angle",
-    "giflib",
-    "skia",
-    "libzip",
-    "lss",
-    "breakpad",
-    "basekit",
-    "libcoroutine",
-    "SDL2",
-    "rapidxml",
-    "ffmpeg",
-    Deps.Konstruct("libnidiumcore", "configure_libnidiumcore")
-)
-
-if Platform.system == "Linux":
-    Deps.set("libnotify")
-
-Platform.setEnviron("MACOSX_DEPLOYMENT_TARGET=10.7")
-
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_FRONTEND")
 Gyp.set("nidium_js_disable_window_global", 0)
+Gyp.set("nidium_audio", 1)
+Gyp.set("nidium_webgl", 1)
+
+Deps.append(Deps.Konstruct("libnidiumcore", "configure_libnidiumcore"))
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
 CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -76,78 +57,162 @@ def giflib():
     # skdiff is used during unit-tests and it needs libgif.so.4
     Platform.setEnviron("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:%s/giflib/lib/.libs/" % os.getcwd())
 
+    env = Utils.Env()
+    configure = "./configure"
+
+    if Konstruct.config("android"):
+        env.update(Variables.get("androidEnvClang"))
+        # giflib use some old deprecated flags, Workaround that
+        # see https://code.google.com/p/android/issues/detail?id=19710
+        env.append("CFLAGS", "-include %s/giflib/lib/android.h" % (os.getcwd()))
+        configure = "./configure --host=%s" % (Variables.get("targetTriplet"))
+
     return {
         "location": "http://downloads.sourceforge.net/project/giflib/giflib-4.x/giflib-4.2.3.tar.gz",
-        "build": ["./configure", "make coverity"],
-        "outputs": ["lib/.libs/libgif.a"]
+        "build": [configure, "make coverity"],
+        "outputs": ["lib/.libs/libgif.a"],
+        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "giflib_android.patch")],
+        "env": env
     }
+
+
+def skiaAndroidGclientHook(gclientFile):
+    droidTarget = 'target_os = ["android"]'
+    with open(gclientFile, "a+") as gclientConfig:
+        data = gclientConfig.read()
+        if droidTarget in data:
+            pass
+        else:
+            Log.debug("Adding %s to skia config" % droidTarget)
+            gclientConfig.write(droidTarget)
+
+def skiaUpdateDemoAPPSDKVersion():
+    import re
+    with open(Deps.getDir() + "/skia/platform_tools/android/app/project.properties", "r+") as f:
+        data = f.read()
+        f.seek(0)
+        data = re.sub('android-[0-9]{1,2}', "android-%d" % (Variables.get("androidSDKAPIVersion")), data)
+        f.write(data)
+        f.truncate()
 
 @Deps.register("skia")
 def skia():
-    if Platform.wordSize == 64:
-        exports = "GYP_DEFINES='skia_arch_width=64 skia_osx_deployment_target=10.7'"
-    else:
-        exports = "GYP_DEFINES='skia_arch_width=32 skia_osx_deployment_target=10.7'"
+    env = Utils.Env()
+    build = []
+    gclientHook = None
+    outputPath = None
+    outputs = []
+    buildType = "Release"
 
-    exports += (" CPPFLAGS=\"%s " % (os.environ.get("CPPFLAGS", "")) +
-                    "-Wno-sign-compare -Wno-undefined-bool-conversion" + # needed for "make tools" with clang3.7
-                    " -I%s -I%s\"" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/")))
-
-    exports += (" LDFLAGS=\"%s -L%s -L%s\"" % (
-                            os.environ.get("LDFLAGS", ""),
-                            os.path.join(Deps.getDir(), "zlib"),
-                            os.path.join(Deps.getDir(), "giflib/lib/.libs")))
-
-    makeFlags = "BUILDTYPE=Release -j " + str(Platform.cpuCount)
-
-    Gyp.set("skia_resource_cache_mb_limit", 256)
-
-    # Add depot_tools to path needed for skia
-    Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
+    env.set("BUILDTYPE", buildType)
 
     # depot_tools and skia needs python2.7 but use "python" as the default
     # interpreter which could be python3.x on some system. Workaround that
     # by using a custom python wrapper that will redirect to the correct python version
     Platform.setEnviron("PATH=" + os.path.join(ROOT, "tools") + ":" + os.environ.get("PATH", ""))
 
+    # Fix warnings with clang3.7+
+    env.append("CPPFLAGS", "-Wno-sign-compare -Wno-undefined-bool-conversion")
+
+    # Use our local copy of zlib and giflib
+    env.append("CXXFLAGS", " -I%s -I%s" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/")))
+    env.append("LDFLAGS", "%s -L%s -L%s" % (
+                            os.environ.get("LDFLAGS", ""),
+                            os.path.join(Deps.getDir(), "zlib"),
+                            os.path.join(Deps.getDir(), "giflib/lib/.libs")))
+
+    if Konstruct.config("android"):
+        Gyp.set("skia_resource_cache_mb_limit", 64)
+        env.set("ANDROID_TOOLCHAIN", "%s/bin/" % (Variables.get("toolchainPath")))
+        env.set("GYPE_DEFINES", "'skia_arch_width=64'")
+
+        env.append("CPPFLAGS", "-Wno-tautological-compare -Wno-inconsistent-missing-override -Wno-unused-const-variable -Wno-deprecated-declarations -Wno-mismatched-tags -Wno-shift-negative-value")
+
+        gclientHook = skiaAndroidGclientHook
+
+        # Skia expect arm_v7 or arm which does not match the
+        # default naming for targetCpu. Fix that.
+        targetCpu = Variables.get("targetCpu")
+        if "arm" in targetCpu:
+            targetCpu = "arm_v7_thumb" if targetCpu == "armv7" else "arm_thumb"
+
+        build = [skiaUpdateDemoAPPSDKVersion, "./platform_tools/android/bin/android_ninja -v -d %s" % (targetCpu)]
+
+        outputPath = "out/config/android-%s/%s/" % (targetCpu, buildType)
+        outputs.append("%s/libskia_opts_neon.a" % (outputPath))
+        outputs.append("%s/libetc1.a" % (outputPath))
+        outputs.append("%s/libwebp_dec.a" % (outputPath))
+        outputs.append("%s/libwebp_enc.a" % (outputPath))
+        outputs.append("%s/libwebp_utils.a" % (outputPath))
+        outputs.append("%s/libwebp_dsp.a" % (outputPath))
+        outputs.append("%s/libwebp_dsp_neon.a" % (outputPath))
+        outputs.append("%s/libcpu_features.a" % (outputPath))
+        outputs.append("%s/libexpat.a" % (outputPath))
+        outputs.append("%s/libjpeg.a" % (outputPath))
+        outputs.append("%s/libpng.a" % (outputPath))
+        outputs.append("%s/libfreetype_static.a" % (outputPath))
+    else:
+        if Platform.wordSize == 64:
+            env.set("GYP_DEFINES", "'skia_arch_width=64 skia_osx_deployment_target=10.7'")
+        else:
+            env.set("GYP_DEFINES", "'skia_arch_width=32 skia_osx_deployment_target=10.7'")
+
+        Gyp.set("skia_resource_cache_mb_limit", 256)
+
+        build = ["./gyp_skia", "make tests", "make tools"]
+
+        outputPath = os.path.join("out", buildType)
+
+        outputs.append("%s/libskia_opts_ssse3.a" % (outputPath))
+        outputs.append({
+            "src": "%s/skdiff" % (outputPath),
+            "dst": os.path.join(ROOT, "tests", "jsunittest", "gr", "skdiff")
+        })
+
+    outputs.append("%s/libskia_pdf.a" % (outputPath))
+    outputs.append("%s/libskia_ports.a" % (outputPath))
+    outputs.append("%s/libskia_skgpu.a" % (outputPath))
+    outputs.append("%s/libskia_utils.a" % (outputPath))
+    outputs.append("%s/libskia_effects.a" % (outputPath))
+    outputs.append("%s/libskia_core.a" % (outputPath))
+    outputs.append("%s/libskia_sfnt.a" % (outputPath))
+    outputs.append("%s/libskia_images.a" % (outputPath))
+    outputs.append("%s/libskia_opts.a" % (outputPath))
+
     return {
-        "location": Deps.Gclient("https://skia.googlesource.com/skia.git", revision="ed4dc2afaa4285a6d10a16fca77d1b9cbe3083d3"),
-        "build": [
-            exports + " ./gyp_skia",
-            exports + " make tests " + makeFlags,
-            exports + " make tools " + makeFlags,
+        "location": Deps.Gclient("https://skia.googlesource.com/skia.git",
+            revision="ed4dc2afaa4285a6d10a16fca77d1b9cbe3083d3",
+            gclientFile=".gclient_skia",
+            hook=gclientHook),
+        "build": build,
+        "patchs": [
+            os.path.join(CONFIGURE_PATH, "patch", "skia_defines.patch"),
+            os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
+            os.path.join(CONFIGURE_PATH, "patch", "skia_python27.patch"),
+            os.path.join(CONFIGURE_PATH, "patch", "skia_clang.patch"),
+            os.path.join(CONFIGURE_PATH, "patch", "skia_jsoncpp.patch"),
+            os.path.join(CONFIGURE_PATH, "patch", "skia_zlib_osx.patch"),
+            os.path.join(CONFIGURE_PATH, "patch", "skia_clang_android.patch"),
+            os.path.join(CONFIGURE_PATH, "patch", "skia_disable_thin_archive.patch")
         ],
-        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "skia_defines.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_python27.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_clang.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_jsoncpp.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_zlib_osx.patch")],
-        "outputs": [
-            "out/Release/libskia_pdf.a",
-            "out/Release/libskia_ports.a",
-            "out/Release/libskia_skgpu.a",
-            "out/Release/libskia_utils.a",
-            "out/Release/libskia_effects.a",
-            "out/Release/libskia_core.a",
-            "out/Release/libskia_sfnt.a",
-            "out/Release/libskia_images.a",
-            "out/Release/libskia_opts_ssse3.a",
-            "out/Release/libskia_opts.a",
-            {
-                "src": "out/Release/skdiff",
-                "dst": os.path.join(ROOT, "tests", "jsunittest", "gr", "skdiff")
-            }
-        ]
+        "outputs": outputs,
+        "env": env
     }
 
 @Deps.register("libzip")
 def libzip():
+    configureArgs = "--disable-shared --with-zlib=%s/zlib/" % (Deps.getDir())
+    env = Utils.Env()
+
+    if Konstruct.config("android"):
+        configureArgs = " --host=%s" % (Variables.get("targetTriplet"))
+        env.update(Variables.get("androidEnvClang"))
+
     return {
-        #"location": DEPEDENCY_REPO + "/libzip-0.10.1.tar.bz2",
         "location": "http://www.nih.at/libzip/libzip-1.1.2.tar.gz",
-        "build": ["./configure --disable-shared --with-zlib=%s/zlib/" % (Deps.getDir()), "make"],
-        "outputs": ["lib/.libs/libzip.a"]
+        "build": ["./configure %s" % (configureArgs), "make"],
+        "outputs": ["lib/.libs/libzip.a"],
+        "env": env
     }
 
 @Deps.register("lss")
@@ -165,33 +230,43 @@ def fixAngleThinArchive():
 
 @Deps.register("angle")
 def angle():
-    cxxFlags = os.environ.get("CXXFLAGS", "")
+    env = Utils.Env()
+    buildSteps = [
+        "python scripts/bootstrap.py",
+        "gclient sync",
+        fixAngleThinArchive,
+        "ninja -C out/Release/ preprocessor translator translator_lib angle_common"
+    ]
 
     # Disable some errors for clang 3.5 & 3.7
-    cxxFlags += " -Wno-c++11-narrowing -Wno-sign-compare -Wno-error"
+    env.append("CXXFLAGS", " -Wno-c++11-narrowing -Wno-sign-compare -Wno-error")
+
+    # Angle only build with ninja
+    env.set("GYP_GENERATORS", "ninja")
 
     if Platform.wordSize == 32:
-        cxxFlags += " -msse -msse2 -msse3"
+        env.append("CXXFLAGS", " -msse -msse2 -msse3")
 
     if Platform.system == "Darwin":
         outPath = "out/Release/"
     elif Platform.system == "Linux":
         outPath = "out/Release/obj/src/"
 
+    if Konstruct.config("android"):
+        env.update(Variables.get("androidEnvClang"))
+        # Regenerate gyp files for android
+        buildSteps.insert(2, "python build/gyp_angle -Dis_android=1")
+
     return {
         "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785"),
-        "build": [
-            "python scripts/bootstrap.py",
-            "GYP_GENERATORS=ninja LDFLAGS=\"%s\" CXXFLAGS=\"%s\" gclient sync" % (os.environ.get("LDFLAGS", ""), cxxFlags),
-            fixAngleThinArchive,
-            "ninja -C out/Release/"
-        ],
+        "build": buildSteps,
         "outputs": [
             os.path.join(outPath, "libpreprocessor.a"),
             os.path.join(outPath, "libtranslator.a"),
             os.path.join(outPath, "libtranslator_lib.a"),
             os.path.join(outPath, "libangle_common.a")
-        ]
+        ],
+        "env": env
     }
 
 @Deps.register("breakpad")
@@ -202,15 +277,22 @@ def breakpad():
 
 @Deps.register("SDL2")
 def SDL2():
-    # SDL2 Build as framework
-    #build: ["xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'"],
-    #outputs["SDL2/Xcode/SDL/out/SDL2.framework"])
-    return {
-        "location": "https://www.libsdl.org/release/SDL2-2.0.3.tar.gz",
-        "chdir": "build",
-        "build": ["../configure", "make"],
-        "outputs": ["build/.libs/libSDL2.a"]
-    }
+    location = "https://www.libsdl.org/release/SDL2-2.0.3.tar.gz"
+    if Konstruct.config("android"):
+        # On Android SDL2 is built trough gyp (gyp/third-party/SDL2-android.gyp)
+        # because SDL2 build script only works with android NDK and the scripts
+        # does not match our toolchain
+        return {
+            "location": location,
+            "patchs": [os.path.join(CONFIGURE_PATH, "patch", "SDL2_android.patch")],
+        }
+    else:
+        return {
+            "location": location,
+            "chdir": "build",
+            "build": ["../configure", "make"],
+            "outputs": ["build/.libs/libSDL2.a"]
+        }
 
 @Deps.register("depot_tools")
 def depotTools():
@@ -345,7 +427,40 @@ def testStudio(unitTests):
 
     Tests.register(tests)
 
+@CommandLine.option("--android")
+def frontendAndroid(android):
+    if not android:
+        return
+
+    Gyp.set("nidium_opengles2", 1)
+    Gyp.set("nidium_audio", 0)
+
 Build.add(Gyp("gyp/all.gyp"));
+
+@Konstruct.hook("start")
+def setDependencies():
+    Deps.append(
+        "depot_tools",
+        "angle",
+        "giflib",
+        "skia",
+        "libzip",
+        "lss",
+        "SDL2",
+        "rapidxml"
+    )
+
+    if Gyp.get("nidium_audio") == 1:
+        Deps.append(
+            "portaudio",
+            "zita-resampler",
+            "breakpad",
+            "basekit",
+            "libcoroutine",
+            "ffmpeg")
+
+    if not Konstruct.config("android") and Platform.system == "Linux":
+        Deps.append("libnotify")
 
 if __name__ == '__main__':
     Log.info("Checking for required software...")

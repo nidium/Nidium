@@ -1,0 +1,14 @@
+# Disable OpenGLES 1
+--- SDL2/include/SDL_config_android.h   2017-01-04 17:50:21.856191167 +0100
++++ SDL2/include/SDL_config_android.h   2017-01-04 17:51:50.426193084 +0100
+@@ -129,10 +129,8 @@
+ #define SDL_VIDEO_DRIVER_ANDROID 1
+ 
+ /* Enable OpenGL ES */
+-#define SDL_VIDEO_OPENGL_ES 1
+ #define SDL_VIDEO_OPENGL_ES2 1
+ #define SDL_VIDEO_OPENGL_EGL 1
+-#define SDL_VIDEO_RENDER_OGL_ES 1
+ #define SDL_VIDEO_RENDER_OGL_ES2    1
+ 
+ /* Enable system power support */

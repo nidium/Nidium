@@ -1911,10 +1911,13 @@ void Canvas2DContext::drawTexture(uint32_t textureID,
 {
     NIDIUM_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, textureID));
 
+#ifndef NIDIUM_OPENGLES2
+    // FIXME : OpenGLES2 does not define GL_CLAMP_TO_BORDER
     NIDIUM_GL_CALL_MAIN(
         TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
     NIDIUM_GL_CALL_MAIN(
         TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
+#endif
 
     /* Anti Aliasing */
     NIDIUM_GL_CALL_MAIN(

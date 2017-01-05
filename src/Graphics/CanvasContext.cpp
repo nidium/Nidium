@@ -442,9 +442,12 @@ bool CanvasContext::validateCurrentFBO()
                        CheckFramebufferStatus(GR_GL_FRAMEBUFFER), status);
 
     switch (status) {
+#ifndef NIDIUM_OPENGLES2
+        // FIXME : GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE is not defined for OpenGLES2
         case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
             printf("fbo %x (incomplete multisample)\n", status);
             break;
+#endif
         case GR_GL_FRAMEBUFFER_COMPLETE:
             break;
         case GR_GL_FRAMEBUFFER_UNSUPPORTED:

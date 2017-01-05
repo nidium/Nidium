@@ -48,7 +48,9 @@ GLResources::Resource::~Resource()
             glDeleteBuffers(1, &m_Glid);
             break;
         case GLResources::RVERTEX_ARRAY:
-#ifdef __APPLE__
+#if NIDIUM_OPENGLES2
+            glDeleteVertexArraysOES(1, &m_Glid);
+#elif __APPLE__
             glDeleteVertexArraysAPPLE(1, &m_Glid);
 #else
             glDeleteVertexArrays(1, &m_Glid);

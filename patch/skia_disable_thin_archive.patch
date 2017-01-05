@@ -1,0 +1,16 @@
+# Since nidium is moving skia libraries we don't want thin archive
+--- skia/gyp/common.gypi
++++ skia/gyp/common.gypi
+@@ -115,5 +115,11 @@
+         },
+       }],
+     ],
++    # Disable thin archive
++    'target_conditions': [
++        ['_type=="static_library"', {
++            'standalone_static_library': 1,
++        }],
++    ],
+   }, # end 'target_defaults'
+ }
+

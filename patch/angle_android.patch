@@ -1,0 +1,65 @@
+# Various changes in gyp files to support building android version
+--- angle/build/standalone.gypi
++++ angle/build/standalone.gypi
+@@ -23,7 +23,7 @@
+             },
+             'conditions':
+             [
+-                ['OS=="linux" and use_ozone==0',
++                ['OS=="linux" and use_ozone==0 and is_android==0',
+                 {
+                     'use_x11': 1,
+                 },
+
+--- angle/src/libGLESv2.gypi
++++ angle/src/libGLESv2.gypi
+@@ -867,6 +867,23 @@
+                                 ],
+                             },
+                         }],
++                        ['is_android==1',
++                        {
++                            'sources':
++                            [
++                                '<@(libangle_gl_egl_sources)',
++                                '<@(libangle_gl_egl_dl_sources)',
++                                '<@(libangle_gl_egl_android_sources)',
++                            ],
++                            #'link_settings': {
++                            #    'ldflags': [
++                            #        '<!@(<(pkg-config) --libs-only-L --libs-only-other libdrm gbm)',
++                            #    ],
++                            #    'libraries': [
++                            #        '<!@(<(pkg-config) --libs-only-l libdrm gbm) -ldl',
++                            #    ],
++                            #},
++                        }],
+                         ['use_ozone==1',
+                         {
+                             'defines':
+
+--- angle/util/util.gyp
++++ angle/util/util.gyp
+@@ -164,6 +164,21 @@
+                         ],
+                     },
+                 }],
++                ['is_android==1',
++                {
++                    'sources':
++                    [
++                        '<@(util_android_sources)',
++                    ],
++                    'link_settings':
++                    {
++                        'libraries':
++                        [
++                            '-landroid',
++                            '-llog',
++                        ],
++                    },
++                }],
+                 ['use_x11==1',
+                 {
+                     'sources':
+

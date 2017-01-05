@@ -11,6 +11,14 @@
 
 #include "Graphics/CanvasHandler.h"
 
+#ifdef __ANDROID__
+// For compatibility reason with chromium on Android skia does
+// not define these two functions (see SK_SCALAR_TO_FLOAT_EXCLUDED)
+// since on Android SkScalar are float we can create a passthrough macro
+#define SkScalarToFloat(n)      (n)
+#define SkFloatToScalar(n)      (n)
+#endif
+
 class SkCanvas;
 class SkPaint;
 class SkPath;

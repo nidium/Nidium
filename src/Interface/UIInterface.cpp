@@ -93,7 +93,7 @@ bool UIInterface::createWindow(int width, int height)
             Enable vertical sync
         */
         if (SDL_GL_SetSwapInterval(NIDIUM_VSYNC) == -1) {
-            fprintf(stdout, "Cant vsync\n");
+            fprintf(stderr, "Cant vsync\n");
         }
 
         // glViewport(0, 0, width*2, height*2);
@@ -256,7 +256,7 @@ int UIInterface::HandleEvents(void *arg)
     }
 
     if (NUII->getFBO() != 0 && NUII->m_NidiumCtx) {
-
+#ifndef NIDIUM_OPENGLES2
         glReadBuffer(GL_COLOR_ATTACHMENT0);
 
         glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA,
@@ -264,6 +264,7 @@ int UIInterface::HandleEvents(void *arg)
         uint8_t *pdata = NUII->getFrameBufferData();
 
         NUII->m_NidiumCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
+#endif
     } else {
         NUII->makeMainGLCurrent();
         SDL_GL_SwapWindow(NUII->m_Win);
@@ -425,6 +426,7 @@ void UIInterface::setWindowFrame(int x, int y, int w, int h)
 
 void UIInterface::toggleOfflineBuffer(bool val)
 {
+#ifndef NIDIUM_OPENGLES
     if (val && !m_ReadPixelInBuffer) {
         this->initPBOs();
     } else if (!val && m_ReadPixelInBuffer) {
@@ -433,10 +435,12 @@ void UIInterface::toggleOfflineBuffer(bool val)
         free(m_FrameBuffer);
     }
     m_ReadPixelInBuffer = val;
+#endif
 }
 
 void UIInterface::initPBOs()
 {
+#ifndef NIDIUM_OPENGLES2
     if (m_ReadPixelInBuffer) {
         return;
     }
@@ -456,10 +460,12 @@ void UIInterface::initPBOs()
     m_PBOs.gpu2vram = NUM_PBOS - 1;
 
     m_FrameBuffer = static_cast<uint8_t *>(malloc(screenPixelSize));
+#endif
 }
 
 uint8_t *UIInterface::readScreenPixel()
 {
+#ifndef NIDIUM_OPENGLES2
     if (!m_ReadPixelInBuffer) {
         this->toggleOfflineBuffer(true);
     }
@@ -498,10 +504,14 @@ uint8_t *UIInterface::readScreenPixel()
     m_PBOs.pbo[NUM_PBOS - 1] = temp;
 
     return m_FrameBuffer;
+#else
+    return nullptr;
+#endif
 }
 
 int UIInterface::useOffScreenRendering(bool val)
 {
+#ifndef NIDIUM_OPENGLES2
     if (!val && m_IsOffscreen) {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         m_IsOffscreen = false;
@@ -534,6 +544,9 @@ int UIInterface::useOffScreenRendering(bool val)
     }
 
     return 0;
+#else
+    return 1;
+#endif
 }
 
 void UIInterface::refreshApplication(bool clearConsole)

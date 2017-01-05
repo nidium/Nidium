@@ -40,14 +40,15 @@
             '<(third_party_path)/angle/include/'
         ],
 
+        'defines': [
+            'GR_GL_CUSTOM_SETUP_HEADER=<../patch/skia_gl_config.h>',
+            'SK_RELEASE',
+            'GL_GLEXT_PROTOTYPES'
+        ],
+
         'conditions': [
             ['OS=="mac"', {
                 'defines': [
-                    'ENABLE_TYPEDARRAY_MOVE',
-                    'ENABLE_YARR_JIT=1',
-                    'NO_NSPR_10_SUPPORT',
-                    'IMPL_MFBT EXPORT_JS_API',
-                    'MOZILLA_CLIENT',
                     'SK_GAMMA_SRGB',
                     'SK_GAMMA_APPLY_TO_A8',
                     'SK_ALLOW_STATIC_GLOBAL_INITIALIZERS=1',
@@ -61,20 +62,10 @@
                     'SK_SUPPORT_PDF',
                     'SK_RELEASE',
                     'GR_RELEASE=1',
-                    'TRACING',
-                    'JS_THREADSAFE',
-                    'GR_GL_CUSTOM_SETUP_HEADER=<../patch/skia_gl_config.h>'
                 ],
             }],
-            ['OS=="linux"', {
+            ['target_os=="linux"', {
                 'defines': [
-                    'EXPORT_JS_API',
-                    'IMPL_MFBT',
-                    'USE_SYSTEM_MALLOC=1',
-                    'ENABLE_ASSEMBLER=1',
-                    'ENABLE_JIT=1',
-                    'EXPORT_JS_API',
-                    'IMPL_MFBT',
                     'SK_GAMMA_SRGB',
                     'SK_GAMMA_APPLY_TO_A8',
                     'SK_ALLOW_STATIC_GLOBAL_INITIALIZERS=1',
@@ -86,13 +77,34 @@
                     'SK_USE_POSIX_THREADS',
                     'SK_SUPPORT_PDF',
                     'GR_LINUX_BUILD=1',
-                    'SK_RELEASE',
                     'UINT32_MAX=4294967295u',
                     'GR_RELEASE=1',
                     '__STDC_CONSTANT_MACROS',
-                    'TRACING',
-                    'JS_THREADSAFE',
-                    'GR_GL_CUSTOM_SETUP_HEADER=<../patch/skia_gl_config.h>'
+                ],
+            }],
+
+            ['target_os=="android"', {
+                'defines': [
+                    'SK_INTERNAL',
+                    'SK_GAMMA_APPLY_TO_A8',
+                    'SK_SCALAR_TO_FLOAT_EXCLUDED',
+                    'SK_ALLOW_STATIC_GLOBAL_INITIALIZERS=0',
+                    'SK_SUPPORT_GPU=1',
+                    'SK_SUPPORT_OPENCL=0',
+                    'SK_FORCE_DISTANCEFIELD_FONTS=0',
+                    'SK_SCALAR_IS_FLOAT',
+                    'SK_CAN_USE_FLOAT',
+                    '__ARM_HAVE_OPTIONAL_NEON_SUPPORT',
+                    'SK_BUILD_FOR_ANDROID',
+                    'SK_FONTHOST_DOES_NOT_USE_FONTMGR',
+                    'SK_GAMMA_EXPONENT=1.4',
+                    'SK_GAMMA_CONTRAST=0.0',
+                    'SKIA_DLL',
+                    'SKIA_IMPLEMENTATION=1',
+                    'SK_USE_POSIX_THREADS',
+                    'SK_BUILD_JSON_WRITER',
+                    'SK_RELEASE',
+                    #'SK_DEBUG', 'SK_DEVELOPER=1',
                 ],
             }],
             ['nidium_audio==1', {
@@ -102,17 +114,23 @@
                     '<(nidium_src_path)/Binding/JSAudioContext.cpp',
                     '<(nidium_src_path)/Binding/JSAudioNode.cpp',
                     '<(nidium_src_path)/Binding/JSVideo.cpp',
-                 ],
-                 'defines': [ 'NIDIUM_AUDIO_ENABLED' ],
-                     'includes': [
-                        'av.gypi'
-                     ]
+                ],
+                'defines': [ 'NIDIUM_AUDIO_ENABLED' ],
+                'includes': [
+                    'av.gypi'
+                ]
             }],
             ['nidium_webgl==1', {
                 'sources': [
                     '<(nidium_src_path)/Binding/JSWebGL.cpp',
-                 ],
-                 'defines': [ 'NIDIUM_WEBGL_ENABLED' ],
+                ],
+                'defines': [ 'NIDIUM_WEBGL_ENABLED' ],
+            }],
+            ['nidium_opengles2==1', {
+                'direct_dependent_settings': {
+                    'defines': [ 'NIDIUM_OPENGLES2']
+                },
+                'defines': [ 'NIDIUM_OPENGLES2']
             }],
         ],
         'sources': [
