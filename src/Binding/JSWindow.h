@@ -103,7 +103,6 @@ protected:
     NIDIUM_DECL_JSGETTERSETTER(innerWidth);
     NIDIUM_DECL_JSGETTERSETTER(innerHeight);
     NIDIUM_DECL_JSGETTERSETTER(title);
-    NIDIUM_DECL_JSGETTERSETTER(cursor);
 
 private:
     bool dragEvent(const char *name, int x, int y);

@@ -46,7 +46,7 @@ static struct nidium_cursors
     { "hidden", UIInterface::HIDDEN },
     { "none", UIInterface::HIDDEN },
     { "col-resize", UIInterface::RESIZELEFTRIGHT },
-    { NULL, UIInterface::NOCHANGE },
+    { NULL, UIInterface::ARROW },
 };
 
 

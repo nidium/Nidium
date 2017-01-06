@@ -14,6 +14,8 @@
 
 #include <X11/cursorfont.h>
 #include <../build/include/SDL_config.h>
+
+#include <SDL.h>
 #include <SDL_syswm.h>
 
 #include "System.h"
@@ -190,14 +192,20 @@ void UIX11Interface::processGtkPendingEvents()
     }
 }
 
+#if 1
 void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)
 {
     int cursor;
     SDL_SysWMinfo info;
 
+    if (cursorvalue != UIInterface::HIDDEN) {
+        this->hideCursor(false);
+    }
+
     switch (cursorvalue) {
         case UIX11Interface::ARROW:
             cursor = XC_left_ptr;
+            printf("Normal cursor\n");
             break;
         case UIX11Interface::BEAM:
             cursor = XC_xterm;
@@ -211,6 +219,10 @@ void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)
         case UIX11Interface::CLOSEDHAND:
             cursor = XC_hand1;
             break;
+        case UIX11Interface::HIDDEN:
+            printf("hide cursor\n");
+            this->hideCursor(true);
+            return;
         default:
             cursor = XC_left_ptr;
             break;
@@ -227,6 +239,8 @@ void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)
         XFreeCursor(d, c);
     }
 }
+#endif
+
 void tray_icon_on_click(GtkStatusIcon *status_icon, gpointer user_data)
 {
     printf("Clicked on tray icon\n");
