@@ -121,6 +121,7 @@ def skia():
                    os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_python27.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_clang.patch"),
+                   os.path.join(CONFIGURE_PATH, "patch", "skia_clang_39.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_jsoncpp.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_zlib_osx.patch")],
         "outputs": [
