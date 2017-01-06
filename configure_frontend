@@ -90,7 +90,13 @@ def skia():
         exports = "GYP_DEFINES='skia_arch_width=32 skia_osx_deployment_target=10.7'"
 
     exports += (" CPPFLAGS=\"%s " % (os.environ.get("CPPFLAGS", "")) +
-                    "-Wno-sign-compare -Wno-undefined-bool-conversion" + # needed for "make tools" with clang3.7
+                    " -Wno-sign-compare -Wno-undefined-bool-conversion" +
+                    " -Wno-tautological-undefined-compare" +
+                    " -Wno-inconsistent-missing-override" +
+                    " -Wno-deprecated-declarations" +
+                    " -Wno-shift-negative-value" +
+                    " -Wno-unknown-warning-option" +
+                    " -Wno-expansion-to-defined" +
                     " -I%s -I%s\"" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/")))
 
     exports += (" LDFLAGS=\"%s -L%s -L%s\"" % (
@@ -120,8 +126,6 @@ def skia():
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "skia_defines.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_python27.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_clang.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_clang_39.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_jsoncpp.patch"),
                    os.path.join(CONFIGURE_PATH, "patch", "skia_zlib_osx.patch")],
         "outputs": [

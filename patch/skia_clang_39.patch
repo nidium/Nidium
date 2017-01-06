@@ -1,9 +1,0 @@
---- skia/gyp/common_conditions.gypi
-+++ skia/gyp/common_conditions.gypi
-@@ -24,6 +24,7 @@
-         '-Wno-deprecated-declarations',
-         '-Wno-shift-negative-value',
-         '-Wno-unknown-warning-option',
-+        '-Wno-expansion-to-defined'
-       ],
-     }],
