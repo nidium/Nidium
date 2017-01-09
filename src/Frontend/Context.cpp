@@ -141,8 +141,6 @@ Context::Context(ape_global *net)
     Path::RegisterScheme(SCHEME_DEFINE("user://", UserStream, false));
     Path::RegisterScheme(SCHEME_DEFINE("private://", PrivateStream, false));
 
-    this->resetInputEvents();
-
     ape_init_pool_list(&m_CanvasEventsCanvas, 0, 8);
 
     m_JS->setStructuredCloneAddition(Context::WriteStructuredCloneOp,
@@ -452,7 +450,7 @@ void Context::frame(bool draw)
     }
 
     this->triggerEvents();
-    this->clearInputEvents();
+    m_InputHandler.clear();
 
     m_UI->makeMainGLCurrent();
     /* Skia context is dirty after a call to layerize */
@@ -877,19 +875,6 @@ JSObject *Context::ReadStructuredCloneOp(JSContext *cx,
     return JS_NewPlainObject(cx);
 }
 
-void Context::addInputEvent(InputEvent *ev)
-{
-    if (m_InputEvents.head == NULL) {
-        m_InputEvents.head = ev;
-    }
-
-    if (m_InputEvents.queue) {
-        m_InputEvents.queue->m_Next = ev;
-    }
-
-    m_InputEvents.queue = ev;
-}
-
 void Context::forceLinking()
 {
 #ifdef __linux__
@@ -930,7 +915,7 @@ Context::~Context()
     SkiaContext::m_GlContext = NULL;
 
     ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
-    this->clearInputEvents();
+    m_InputHandler.clear();
 
     ShFinalize();
 }

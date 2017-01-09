@@ -21,6 +21,7 @@
 #include "Graphics/GLResources.h"
 
 #include "Core/Context.h"
+#include "Frontend/InputHandler.h"
 
 namespace Nidium {
 namespace Interface {
@@ -47,97 +48,6 @@ struct JobQueue
     struct JobQueue *next;
     void *arg;
 };
-
-// {{{ InputEvent
-static const char *InputEvent_Names[]
-    = { "mousemove", "mousedown", "mouseup", "dblclick", "dragstart",
-        "dragend",   "dragover",  "drop",    "drag",     "mousewheel" };
-
-class InputEvent
-{
-public:
-    enum Type
-    {
-        kMouseMove_Type = 0,
-        kMouseClick_Type,
-        kMouseClickRelease_Type,
-        kMouseDoubleClick_Type,
-        kMouseDragStart_Type,
-        kMouseDragEnd_Type,
-        kMouseDragOver_Type,
-        kMouseDrop_Type,
-        kMouseDrag_Type,
-        kMouseWheel_Type
-    };
-
-    InputEvent(Type type,
-               int ix,
-               int iy,
-               uint32_t *idata   = NULL,
-               uint8_t idata_len = 0)
-        : m_x(ix), m_y(iy), m_Next(NULL), m_PassThroughEvent(NULL),
-          m_Handler(NULL), m_Origin(NULL), m_depthAffectedCanvas(0),
-          m_Type(type)
-    {
-
-        if (idata && idata_len <= 8) {
-            memcpy(m_data, idata, sizeof(uint32_t) * idata_len);
-        }
-    }
-
-    InputEvent *dupWithHandler(Graphics::CanvasHandler *handler)
-    {
-        InputEvent *dup = new InputEvent(*this);
-        dup->m_Handler  = handler;
-        dup->m_Origin   = this;
-
-        m_PassThroughEvent = dup;
-
-        return dup;
-    }
-
-    Type getType() const
-    {
-        return m_Type;
-    }
-
-    void inc()
-    {
-        m_depthAffectedCanvas++;
-    }
-
-    unsigned getDepth() const
-    {
-        return m_depthAffectedCanvas;
-    }
-
-    static const char *GetName(int type)
-    {
-        return InputEvent_Names[type];
-    }
-
-    InputEvent *getEventForNextCanvas() const
-    {
-        return m_PassThroughEvent;
-    }
-
-    void setData(int index, uint32_t data)
-    {
-        m_data[index] = data;
-    }
-
-    int m_x, m_y;
-    uint32_t m_data[8];
-    InputEvent *m_Next;
-    InputEvent *m_PassThroughEvent;
-    Graphics::CanvasHandler *m_Handler;
-    InputEvent *m_Origin;
-    unsigned m_depthAffectedCanvas;
-
-private:
-    Type m_Type;
-};
-// }}}
 
 struct GrGLInterface;
 
@@ -244,29 +154,6 @@ public:
         return nullptr;
     }
 
-    void addInputEvent(InputEvent *ev);
-    void resetInputEvents()
-    {
-        m_InputEvents.head  = NULL;
-        m_InputEvents.queue = NULL;
-    }
-
-    void clearInputEvents()
-    {
-        InputEvent *tmp;
-        for (InputEvent *ev = m_InputEvents.head; ev != NULL; ev = tmp) {
-            tmp = ev->m_Next;
-
-            delete (ev);
-        }
-        m_InputEvents.head  = NULL;
-        m_InputEvents.queue = NULL;
-    }
-
-    InputEvent *getInputEvents() const
-    {
-        return m_InputEvents.head;
-    }
 
     void setCurrentClickedHandler(Graphics::CanvasHandler *handler)
     {
@@ -276,6 +163,11 @@ public:
     Graphics::CanvasHandler *getCurrentClickedHandler() const
     {
         return m_CurrentClickedHandler;
+    }
+
+    InputHandler *getInputHandler()
+    {
+        return &m_InputHandler;
     }
 
     void log(const char *str) override;
@@ -292,6 +184,8 @@ private:
 #endif
     Interface::UIInterface *m_UI;
     NML *m_NML;
+    InputHandler m_InputHandler;
+
     Graphics::GLState *m_GLState;
     ShBuiltInResources m_ShResources;
     ShShaderOutput m_ShShaderOutput;
@@ -312,11 +206,6 @@ private:
         float sampleminfps;
     } m_Stats;
 
-    struct
-    {
-        InputEvent *head;
-        InputEvent *queue;
-    } m_InputEvents;
 
     void forceLinking();
     void loadNativeObjects(int width, int height);

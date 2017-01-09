@@ -18,6 +18,7 @@
 #include "Interface/UIInterface.h"
 
 #include "Frontend/Context.h"
+#include "Frontend/InputHandler.h"
 #include "Graphics/Image.h"
 #include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas.h"
@@ -156,11 +157,10 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
 
     Context *nctx  = Context::GetObject<Frontend::Context>(m_Cx);
     InputEvent *ev = new InputEvent(InputEvent::kMouseWheel_Type, x, y);
-
     ev->setData(0, xrel);
     ev->setData(1, yrel);
 
-    nctx->addInputEvent(ev);
+    nctx->getInputHandler()->pushEvent(ev);
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class));
     JS::RootedValue xrelv(m_Cx, JS::Int32Value(xrel));
@@ -297,7 +297,7 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
 
     ev->setData(0, button);
 
-    nctx->addInputEvent(ev);
+    nctx->getInputHandler()->pushEvent(ev);
 
     /*
         Handle double click.
@@ -309,7 +309,7 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
             = new InputEvent(InputEvent::kMouseDoubleClick_Type, x, y);
 
         dcEv->setData(0, button);
-        nctx->addInputEvent(dcEv);
+        nctx->getInputHandler()->pushEvent(dcEv);
     }
     JS::RootedValue xv(m_Cx, JS::Int32Value(x));
     JS::RootedValue yv(m_Cx, JS::Int32Value(y));
@@ -468,7 +468,7 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
     ev->setData(0, xrel);
     ev->setData(1, yrel);
 
-    nctx->addInputEvent(ev);
+    nctx->getInputHandler()->pushEvent(ev);
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class));
     JS::RootedValue xv(m_Cx, JS::Int32Value(x));

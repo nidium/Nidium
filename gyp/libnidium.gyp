@@ -120,6 +120,7 @@
             '<(nidium_src_path)/Frontend/NML.cpp',
             '<(nidium_src_path)/Frontend/Assets.cpp',
             '<(nidium_src_path)/Frontend/Context.cpp',
+            '<(nidium_src_path)/Frontend/InputHandler.cpp',
             '<(nidium_src_path)/Graphics/Gradient.cpp',
             '<(nidium_src_path)/Graphics/Image.cpp',
             '<(nidium_src_path)/Graphics/ShadowLooper.cpp',
