@@ -256,6 +256,7 @@ void Context::createDebugCanvas()
 
     m_DebugHandler->setRight(0);
     m_DebugHandler->setOpacity(0.6);
+    ctx2d->getSurface()->setFontType("monospace");
 }
 
 #if DEBUG
@@ -292,9 +293,7 @@ void Context::postDraw()
         s->drawRect(0, 0, m_DebugHandler->getWidth(),
                     m_DebugHandler->getHeight(), 0);
         s->setFillColor(0xFFEEEEEEu);
-
-        // TODO: new style cast
-        s->setFontType((char *)("monospace"));
+        
         s->drawTextf(5, 12, "Nidium build %s %s", __DATE__, __TIME__);
         s->drawTextf(5, 25, "Frame: %lld (%lldms)", m_Stats.nframe,
                      m_Stats.lastdifftime / 1000000LL);

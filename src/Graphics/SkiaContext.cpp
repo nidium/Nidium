@@ -1461,7 +1461,7 @@ void SkiaContext::setFontStyle(const char *style)
     PAINT->setTextSkewX(strcasestr(style, "italic") ? m_FontSkew : 0);
 }
 
-void SkiaContext::setFontType(char *str, JSDocument *doc)
+void SkiaContext::setFontType(const char *str, JSDocument *doc)
 {
     if (doc) {
         SkTypeface *tf = doc->getFont(str);

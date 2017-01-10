@@ -219,7 +219,7 @@ public:
     void setGlobalComposite(const char *str);
     void setLineCap(const char *capStyle);
     void setLineJoin(const char *joinStyle);
-    void setFontType(char *str, Binding::JSDocument *doc = NULL);
+    void setFontType(const char *str, Binding::JSDocument *doc = NULL);
     bool setFontFile(const char *str);
 
     void clearRect(double, double, double, double);

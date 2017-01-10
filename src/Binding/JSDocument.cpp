@@ -424,16 +424,18 @@ bool JSDocument::JS_loadFont(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
-SkTypeface *JSDocument::getFont(char *name)
+SkTypeface *JSDocument::getFont(const char *name)
 {
-    char *pTmp = name;
+    char *pTmp = strdup(name);
 
-    while (*pTmp != '\0') {
-        *pTmp = tolower(*pTmp);
-        pTmp++;
+    for (int i = 0; name[i] != '\0'; i++) {
+        pTmp[i] = tolower(name[i]);
     }
 
-    NidiumFont *font = m_Fonts.get(name);
+    NidiumFont *font = m_Fonts.get(pTmp);
+
+    free(pTmp);
+
     if (font) {
         return font->m_Typeface;
     }

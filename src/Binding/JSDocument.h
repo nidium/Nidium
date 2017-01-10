@@ -56,7 +56,7 @@ public:
                   int weight        = 400,
                   NidiumFont::Style = NidiumFont::kFontStyle_Normal);
 
-    SkTypeface *getFont(char *name);
+    SkTypeface *getFont(const char *name);
 protected:
 
     NIDIUM_DECL_JSCALL(run);
