@@ -47,8 +47,18 @@ UIInterface::UIInterface()
 
 void UIInterface::setGLContextAttribute()
 {
-    int major;
-    int minor;
+    struct gl_version {
+        int major;
+        int minor;
+    };
+    struct gl_version approved_versions[] = {
+        {4, 5 }, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0},
+        {3, 2}, {3, 1}, /*{3, 0},*/
+        {2, 1}, {2, 0},
+        {1, 5}, {1, 4}, {1, 3}, {1, 2}, {1, 1},
+        {-1, -1}
+    };
+    struct gl_version * ver;
 
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
@@ -57,14 +67,15 @@ void UIInterface::setGLContextAttribute()
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    if (SDL_GL_GetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, &major) == 0 &&
-        SDL_GL_GetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, &minor) == 0 ) {
-    } else {
-        major = 3;
-        minor = 1;
+
+    ver = &approved_versions[0];
+    while (ver->major != -1 ) {
+        if ( SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, ver->major) == 0 &&
+             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, ver->minor) == 0) {
+            break;
+        }
     }
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
+    //printf("Set GL to %d.%d\n", ver->major, ver->minor);
 }
 
 bool UIInterface::createWindow(int width, int height)
