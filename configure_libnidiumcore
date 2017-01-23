@@ -72,7 +72,7 @@ def mozilla():
 
 
     if Konstruct.config("android"):
-        configure += " ".join([
+        configure += " " + " ".join([
             "--with-android-cxx-stl=libc++",
             "--with-android-gnu-compiler-version=4.9",
             "--with-android-ndk=%s" % (Platform.getEnviron("ANDROID_NDK_ROOT")),
