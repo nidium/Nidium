@@ -84,29 +84,7 @@ def giflib():
 
 @Deps.register("skia")
 def skia():
-    if Platform.wordSize == 64:
-        exports = "GYP_DEFINES='skia_arch_width=64 skia_osx_deployment_target=10.7'"
-    else:
-        exports = "GYP_DEFINES='skia_arch_width=32 skia_osx_deployment_target=10.7'"
-
-    exports += (" CPPFLAGS=\"%s " % (os.environ.get("CPPFLAGS", "")) +
-                    " -Wno-sign-compare -Wno-undefined-bool-conversion" +
-                    " -Wno-tautological-undefined-compare" +
-                    " -Wno-inconsistent-missing-override" +
-                    " -Wno-deprecated-declarations" +
-                    " -Wno-shift-negative-value" +
-                    " -Wno-unknown-warning-option" +
-                    " -Wno-expansion-to-defined" +
-                    " -I%s -I%s\"" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/")))
-
-    exports += (" LDFLAGS=\"%s -L%s -L%s\"" % (
-                            os.environ.get("LDFLAGS", ""),
-                            os.path.join(Deps.getDir(), "zlib"),
-                            os.path.join(Deps.getDir(), "giflib/lib/.libs")))
-
-    makeFlags = "BUILDTYPE=Release -j " + str(Platform.cpuCount)
-
-    Gyp.set("skia_resource_cache_mb_limit", 256)
+    args = "extra_cflags_cc=[\"-Wno-unused-function\", \"-Wno-array-bounds\", \"-Wno-return-local-addr\"]"
 
     # Add depot_tools to path needed for skia
     Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
@@ -117,30 +95,16 @@ def skia():
     Platform.setEnviron("PATH=" + os.path.join(ROOT, "tools") + ":" + os.environ.get("PATH", ""))
 
     return {
-        "location": Deps.Gclient("https://skia.googlesource.com/skia.git", revision="ed4dc2afaa4285a6d10a16fca77d1b9cbe3083d3"),
+        "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", revision="98829b9"),
         "build": [
-            exports + " ./gyp_skia",
-            exports + " make tests " + makeFlags,
-            exports + " make tools " + makeFlags,
+            "python tools/git-sync-deps",
+            "bin/gn gen out/Static --args='is_official_build=true %s'" % (args),
+            "ninja -C out/Static",
         ],
-        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "skia_defines.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_python27.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_jsoncpp.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_zlib_osx.patch")],
         "outputs": [
-            "out/Release/libskia_pdf.a",
-            "out/Release/libskia_ports.a",
-            "out/Release/libskia_skgpu.a",
-            "out/Release/libskia_utils.a",
-            "out/Release/libskia_effects.a",
-            "out/Release/libskia_core.a",
-            "out/Release/libskia_sfnt.a",
-            "out/Release/libskia_images.a",
-            "out/Release/libskia_opts_ssse3.a",
-            "out/Release/libskia_opts.a",
+            "out/Static/libskia.a",
             {
-                "src": "out/Release/skdiff",
+                "src": "out/Static/skdiff",
                 "dst": os.path.join(ROOT, "tests", "jsunittest", "gr", "skdiff")
             }
         ]
