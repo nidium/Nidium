@@ -61,8 +61,8 @@ public:
     virtual ~ShadowLooper();
 
     virtual ShadowLooper::Context *
-    createContext(SkCanvas *, void *storage) const SK_OVERRIDE;
-    virtual size_t contextSize() const SK_OVERRIDE
+    createContext(SkCanvas *, void *storage) const override;
+    virtual size_t contextSize() const override
     {
         return sizeof(ShadowLooperContext);
     }
@@ -83,8 +83,8 @@ protected:
                  uint32_t flags = kNone_BlurFlag);
     ShadowLooper(SkReadBuffer &);
 
-    virtual void flatten(SkWriteBuffer &) const SK_OVERRIDE;
-    virtual bool asABlurShadow(BlurShadowRec *) const SK_OVERRIDE;
+    virtual void flatten(SkWriteBuffer &) const override;
+    virtual bool asABlurShadow(BlurShadowRec *) const override;
 
 private:
     SkMaskFilter *m_fBlur;
@@ -104,7 +104,7 @@ private:
     public:
         explicit ShadowLooperContext(const ShadowLooper *looper);
 
-        virtual bool next(SkCanvas *canvas, SkPaint *paint) SK_OVERRIDE;
+        virtual bool next(SkCanvas *canvas, SkPaint *paint) override;
 
     private:
         const ShadowLooper *m_fLooper;
