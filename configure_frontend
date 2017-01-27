@@ -317,6 +317,8 @@ def testStudio(unitTests):
 
     Tests.register(tests)
 
+Konstruct.setConfigs(["skia-update"])
+
 Build.add(Gyp("gyp/all.gyp"));
 
 if __name__ == '__main__':
