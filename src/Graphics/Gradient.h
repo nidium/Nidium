@@ -10,6 +10,7 @@
 
 #include <GrGLTexture.h>
 #include <SkCanvas.h>
+#include <SkRefCnt.h>
 
 class SkShader;
 
@@ -49,7 +50,8 @@ private:
 
     int m_IsRadial;
     int m_NeedUpdate;
-    SkShader *m_CurrentShader;
+
+    sk_sp<SkShader> m_CurrentShader;
 
 public:
     ~Gradient();
