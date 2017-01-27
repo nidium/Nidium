@@ -8,6 +8,7 @@
 
 #include <SkBitmap.h>
 #include <SkImage.h>
+#include <SkRefCnt.h>
 
 class SkCanvas;
 class SkBitmap;
@@ -20,7 +21,7 @@ class Image
 {
 public:
     int m_IsCanvas;
-    SkCanvas *m_CanvasRef;
+    sk_sp<SkCanvas> m_CanvasRef;
     SkBitmap *m_Image;
 #if 0
     SkImage *fixedImg;

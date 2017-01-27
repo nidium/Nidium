@@ -8,7 +8,6 @@
 #include <stdio.h>
 
 #include <SkCanvas.h>
-#include <SkImageRef_GlobalPool.h>
 #include <SkColorPriv.h>
 #include <SkUnPreMultiply.h>
 
@@ -23,8 +22,7 @@ Image::Image(SkCanvas *canvas)
     // canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
 
     m_IsCanvas  = 1;
-    m_CanvasRef = canvas;
-    canvas->ref();
+    m_CanvasRef = sk_sp<SkCanvas>(canvas);
     m_Image = NULL;
 }
 
@@ -275,7 +273,6 @@ bool Image::ConvertToRGBA(Image *nimg,
 
 Image::~Image()
 {
-    if (m_CanvasRef) m_CanvasRef->unref();
     if (m_Image) {
         delete m_Image;
     }
