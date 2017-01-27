@@ -454,6 +454,8 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height, Context *nctx)
         if (context == NULL) {
             return NULL;
         }
+
+        context->setResourceCacheLimits(4096, 256 * 1024 * 1024);
     }
     float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
