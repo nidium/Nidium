@@ -325,7 +325,7 @@ void SkiaContext::initPaints()
     PAINT->setLCDRenderText(false);
 
     PAINT->setStyle(SkPaint::kFill_Style);
-    PAINT->setFilterLevel(SkPaint::kNone_FilterLevel);
+    PAINT->setFilterQuality(kNone_SkFilterQuality);
 
     PAINT->setSubpixelText(true);
     PAINT->setAutohinted(true);
@@ -350,7 +350,7 @@ void SkiaContext::initPaints()
     PAINT_STROKE->setAutohinted(true);
     PAINT_STROKE->setHinting(SkPaint::kFull_Hinting);
     PAINT_STROKE->setDither(true);
-    PAINT_STROKE->setFilterLevel(SkPaint::kNone_FilterLevel);
+    PAINT_STROKE->setFilterQuality(kNone_SkFilterQuality);
 
     this->setLineWidth(1);
     this->setMiterLimit(10);
