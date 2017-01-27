@@ -661,7 +661,7 @@ void SkiaContext::fill()
         PAINT->setShader(tmpShader)->unref();
     }
     /* The matrix was already applied point by point */
-    m_Canvas->save(SkCanvas::kMatrix_SaveFlag);
+    m_Canvas->save();
     m_Canvas->resetMatrix();
     m_Canvas->drawPath(*m_CurrentPath, *PAINT);
     m_Canvas->restore();
@@ -690,7 +690,7 @@ void SkiaContext::stroke()
     }
 
     /* The matrix was already applied point by point */
-    m_Canvas->save(SkCanvas::kMatrix_SaveFlag);
+    m_Canvas->save();
     m_Canvas->resetMatrix();
 
     SkScalar lineWidth = PAINT_STROKE->getStrokeWidth();
