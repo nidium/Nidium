@@ -947,11 +947,10 @@ void SkiaContext::bezierCurveTo(
 
 void SkiaContext::light(double x, double y, double z)
 {
-    SkPoint3 pt(SkDoubleToScalar(x), SkDoubleToScalar(y), SkDoubleToScalar(z));
-
     SkColor white(0xAAFFFFFF);
     PAINT->setImageFilter(SkLightingImageFilter::CreatePointLitDiffuse(
-        pt, white, SkIntToScalar(1), SkIntToScalar(2)));
+        SkPoint3::Make(SkDoubleToScalar(x), SkDoubleToScalar(y), SkDoubleToScalar(z)),
+        white, SkIntToScalar(1), SkIntToScalar(2)));
 
     printf("Light created\n");
 }
