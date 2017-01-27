@@ -548,7 +548,7 @@ void SkiaContext::clearRect(double x, double y, double width, double height)
 
     clearPaint.setStyle(SkPaint::kFill_Style);
     clearPaint.setARGB(0, 0, 0, 0);
-    clearPaint.setXfermodeMode(SkXfermode::kClear_Mode);
+    clearPaint.setBlendMode(SkBlendMode::kClear);
 
     m_Canvas->drawRect(r, clearPaint);
 
@@ -577,24 +577,24 @@ ShadowLooper *SkiaContext::buildShadow()
                                     | SkBlurDrawLooper::kHighQuality_BlurFlag);
 }
 
-static struct _nidium_xfer_mode
+static struct _nidium_blend_mode
 {
     const char *str;
-    SkXfermode::Mode mode;
-} nidium_xfer_mode[] = { { "source-over", SkXfermode::kSrcOver_Mode },
-                         { "source-in", SkXfermode::kSrcIn_Mode },
-                         { "source-out", SkXfermode::kSrcOut_Mode },
-                         { "source-atop", SkXfermode::kSrcATop_Mode },
-                         { "destination-over", SkXfermode::kDstOver_Mode },
-                         { "destination-in", SkXfermode::kDstIn_Mode },
-                         { "destination-out", SkXfermode::kDstOut_Mode },
-                         { "destination-atop", SkXfermode::kDstATop_Mode },
-                         { "lighter", SkXfermode::kPlus_Mode },
-                         { "darker", SkXfermode::kDarken_Mode },
-                         { "copy", SkXfermode::kSrc_Mode },
-                         { "xor", SkXfermode::kXor_Mode },
-                         { "lighten", SkXfermode::kColorDodge_Mode },
-                         { NULL, SkXfermode::kSrcOver_Mode } };
+    SkBlendMode mode;
+} nidium_blend_mode[] = { { "source-over", SkBlendMode::kSrcOver},
+                          { "source-in", SkBlendMode::kSrcIn},
+                          { "source-out", SkBlendMode::kSrcOut},
+                          { "source-atop", SkBlendMode::kSrcATop},
+                          { "destination-over", SkBlendMode::kDstOver},
+                          { "destination-in", SkBlendMode::kDstIn},
+                          { "destination-out", SkBlendMode::kDstOut},
+                          { "destination-atop", SkBlendMode::kDstATop},
+                          { "lighter", SkBlendMode::kPlus},
+                          { "darker", SkBlendMode::kDarken},
+                          { "copy", SkBlendMode::kSrc},
+                          { "xor", SkBlendMode::kXor},
+                          { "lighten", SkBlendMode::kColorDodge},
+                          { NULL, SkBlendMode::kSrcOver} };
 
 void SkiaContext::beginPath()
 {
@@ -1420,7 +1420,7 @@ void SkiaContext::drawPixels(
 
     pt.setFilterLevel(PAINT->getFilterLevel());
 
-    pt.setXfermodeMode(SkXfermode::kSrc_Mode);
+    pt.setBlendMode(SkBlendMode::kClear);
     m_Canvas->drawBitmap(bt, x, y, &pt);
 }
 
@@ -1435,11 +1435,12 @@ void SkiaContext::setGlobalAlpha(double value)
 {
     if (value < 0) return;
 
-    SkScalar maxuint      = SkIntToScalar(255);
-    m_GlobalAlpha         = SkMinScalar(SkDoubleToScalar(value) * maxuint, maxuint);
-    SkColorFilter *filter = SkColorFilter::CreateModeFilter(
-        SkColorSetARGB(m_GlobalAlpha, 255, 255, 255),
-        SkXfermode::kModulate_Mode);
+    SkScalar maxuint            = SkIntToScalar(255);
+    m_GlobalAlpha               = SkMinScalar(SkDoubleToScalar(value) * maxuint, maxuint);
+    sk_sp<SkColorFilter> filter = SkColorFilter::MakeModeFilter
+    SkColorFilter *filter       = SkColorFilter::CreateModeFilter(
+        SkColorSetARGB(m_GlobalAlpha, 255, 255, 255)
+        SkBlendMode::kModulate);
 
     PAINT->setColorFilter(filter);
     PAINT_STROKE->setColorFilter(filter);
@@ -1718,11 +1719,11 @@ void SkiaContext::setSmooth(bool val, int level)
 
 void SkiaContext::setGlobalComposite(const char *str)
 {
-    for (int i = 0; nidium_xfer_mode[i].str != NULL; i++) {
-        if (strcasecmp(nidium_xfer_mode[i].str, str) == 0) {
-            SkXfermode *mode = SkXfermode::Create(nidium_xfer_mode[i].mode);
-            PAINT->setXfermode(mode);
-            PAINT_STROKE->setXfermode(mode);
+    for (int i = 0; nidium_blend_mode[i].str != NULL; i++) {
+        if (strcasecmp(nidium_blend_mode[i].str, str) == 0) {
+            SkBlendMode mode = nidiumblend_mode[i].mode;
+            PAINT->setBlendMode(mode);
+            PAINT_STROKE->setBlendMode(mode);
             SkSafeUnref(mode);
             break;
         }
