@@ -21,15 +21,14 @@ class Image
 {
 public:
     int m_IsCanvas;
-    sk_sp<SkCanvas> m_CanvasRef;
-    SkBitmap *m_Image;
+    //sk_sp<SkCanvas> m_CanvasRef;
+    sk_sp<SkImage> m_Image;
 #if 0
     SkImage *fixedImg;
 #endif
     Image(SkCanvas *canvas);
     Image(void *data, size_t len);
     Image(void *data, int width, int height);
-
 
     SkData *getPNG();
 
@@ -44,9 +43,6 @@ public:
 
     int getWidth();
     int getHeight();
-    void shiftHue(int val, U8CPU alpha);
-    void markColorsInAlpha();
-    void desaturate();
 };
 
 } // namespace Graphics
