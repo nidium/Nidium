@@ -650,15 +650,11 @@ void SkiaContext::fill()
         return;
     }
 
-    SkShader *shader = PAINT->getShader();
+    sk_sp<SkShader> shader = PAINT->refShader();
 
-    if (shader != NULL) {
-        SkShader *tmpShader;
-
-        tmpShader = SkShader::CreateLocalMatrixShader(
-            shader, m_Canvas->getTotalMatrix());
-        shader->ref();
-        PAINT->setShader(tmpShader)->unref();
+    if (shader.get() != nullptr) {
+        sk_sp<SkShader> tmpShader = shader->makeWithLocalMatrix(m_Canvas->getTotalMatrix());
+        PAINT->setShader(tmpShader);
     }
     /* The matrix was already applied point by point */
     m_Canvas->save();
@@ -666,8 +662,8 @@ void SkiaContext::fill()
     m_Canvas->drawPath(*m_CurrentPath, *PAINT);
     m_Canvas->restore();
 
-    if (shader != NULL) {
-        PAINT->setShader(shader)->unref();
+    if (shader.get() != nullptr) {
+        PAINT->setShader(shader);
     }
 
     CANVAS_FLUSH();
@@ -678,15 +674,12 @@ void SkiaContext::stroke()
     if (!m_CurrentPath) {
         return;
     }
-    SkShader *shader = PAINT_STROKE->getShader();
 
-    if (shader != NULL) {
-        SkShader *tmpShader;
+    sk_sp<SkShader> shader = PAINT_STROKE->refShader();
 
-        tmpShader = SkShader::CreateLocalMatrixShader(
-            shader, m_Canvas->getTotalMatrix());
-        shader->ref();
-        PAINT->setShader(tmpShader)->unref();
+    if (shader.get() != nullptr) {
+        sk_sp<SkShader> tmpShader = shader->makeWithLocalMatrix(m_Canvas->getTotalMatrix());
+        PAINT->setShader(tmpShader);
     }
 
     /* The matrix was already applied point by point */
@@ -708,8 +701,8 @@ void SkiaContext::stroke()
 
     m_Canvas->restore();
 
-    if (shader != NULL) {
-        PAINT->setShader(shader)->unref();
+    if (shader.get() != nullptr) {
+        PAINT->setShader(shader);
     }
 
     CANVAS_FLUSH();
