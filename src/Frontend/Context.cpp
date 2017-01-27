@@ -25,9 +25,6 @@
 #include "Graphics/SkiaContext.h"
 #include "Graphics/GLHeader.h"
 
-#ifdef __linux__
-#include <SkImageDecoder.h>
-#endif
 
 #ifdef DEBUG
 #include "Binding/JSDebug.h"
@@ -872,18 +869,6 @@ JSObject *Context::ReadStructuredCloneOp(JSContext *cx,
             break;
     }
     return JS_NewPlainObject(cx);
-}
-
-void Context::forceLinking()
-{
-#ifdef __linux__
-    CreateJPEGImageDecoder();
-    CreatePNGImageDecoder();
-    // CreateGIFImageDecoder();
-    CreateBMPImageDecoder();
-    CreateICOImageDecoder();
-    CreateWBMPImageDecoder();
-#endif
 }
 
 Context::~Context()
