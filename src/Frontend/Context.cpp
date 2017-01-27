@@ -476,7 +476,7 @@ void Context::triggerEvents()
 {
     void *val;
 
-    APE_P_FOREACH_REVERSE((&m_CanvasEventsCanvas), val)
+    APE_P_FOREACH((&m_CanvasEventsCanvas), val)
     {
         /* process through the cleaner callback avoiding a complete iteration */
         ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
