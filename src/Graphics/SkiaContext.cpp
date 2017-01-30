@@ -1259,12 +1259,15 @@ void SkiaContext::drawImage(Image *image, double x, double y)
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->m_IsCanvas) {
+        printf("[Warning] Not implemented\n");
+        #if 0
         getCanvas()->drawBitmap(
             image->m_CanvasRef->getDevice()->accessBitmap(false),
             SkDoubleToScalar(x), SkDoubleToScalar(y), PAINT);
+        #endif
 
     } else if (image->m_Image != NULL) {
-        getCanvas()->drawBitmap(*image->m_Image, SkDoubleToScalar(x),
+        getCanvas()->drawImage(image->m_Image, SkDoubleToScalar(x),
                              SkDoubleToScalar(y), PAINT);
     }
 
@@ -1285,11 +1288,14 @@ void SkiaContext::drawImage(
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->m_IsCanvas) {
+        printf("[Warning] Not implemented\n");
+        #if 0
         getCanvas()->drawBitmapRect(
             image->m_CanvasRef->getDevice()->accessBitmap(false), NULL, r,
             PAINT);
+        #endif
     } else if (image->m_Image != NULL) {
-        getCanvas()->drawBitmapRect(*image->m_Image, NULL, r, PAINT);
+        getCanvas()->drawImageRect(image->m_Image, r, PAINT);
     }
 
     PAINT->setColor(old);
@@ -1320,14 +1326,17 @@ void SkiaContext::drawImage(Image *image,
                 SkDoubleToScalar(dwidth), SkDoubleToScalar(dheight));
 
     if (image->m_IsCanvas) {
+        printf("[Warning] Not implemented\n");
+#if 0
         SkBitmap bitmapImage;
 
         image->m_CanvasRef->readPixels(src, &bitmapImage);
         bitmapImage.setIsVolatile(true);
 
         getCanvas()->drawBitmapRect(bitmapImage, NULL, dst, PAINT);
+#endif
     } else if (image->m_Image != NULL) {
-        getCanvas()->drawBitmapRect(*image->m_Image, &src, dst, PAINT);
+        getCanvas()->drawImageRect(image->m_Image, src, dst, PAINT);
     }
 
     PAINT->setColor(old);
