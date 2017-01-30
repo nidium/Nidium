@@ -1177,7 +1177,7 @@ uint32_t SkiaContext::getStrokeColor() const
 
 int SkiaContext::getSmooth() const
 {
-    return (int)PAINT->getFilterLevel();
+    return (int)PAINT->getFilterQuality();
 }
 
 double SkiaContext::getGlobalAlpha() const
@@ -1410,7 +1410,7 @@ void SkiaContext::drawPixels(
                                        kUnpremul_SkAlphaType),
                      pixels, width * 4);
 
-    pt.setFilterLevel(PAINT->getFilterLevel());
+    pt.setFilterQuality(PAINT->getFilterQuality());
 
     pt.setBlendMode(SkBlendMode::kClear);
     m_Canvas->drawBitmap(bt, x, y, &pt);
@@ -1683,30 +1683,30 @@ void SkiaContext::setShadowColor(const char *str)
     SkSafeUnref(PAINT->setLooper(buildShadow()));
 }
 
-void SkiaContext::setSmooth(bool val, int level)
+void SkiaContext::setSmooth(bool val, int quality)
 {
-    SkPaint::FilterLevel flevel = SkPaint::kNone_FilterLevel;
+    SkFilterQuality fquality = SkPaint::kNone_SkFilterQuality;
 
     if (val) {
-        switch (level) {
+        switch (quality) {
             case 0:
-                flevel = SkPaint::kNone_FilterLevel;
+                fquality = SkPaint::kNone_SkFilterQuality;
                 break;
             case 1:
-                flevel = SkPaint::kLow_FilterLevel;
+                fquality = SkPaint::kLow_SkFilterQuality;
                 break;
             case 2:
-                flevel = SkPaint::kMedium_FilterLevel;
+                fquality = SkPaint::kMedium_SkFilterQuality;
                 break;
             case 3:
             default:
-                flevel = SkPaint::kHigh_FilterLevel;
+                fquality = SkPaint::kHigh_SkFilterQuality;
                 break;
         }
     }
 
-    PAINT->setFilterLevel(flevel);
-    PAINT_STROKE->setFilterLevel(flevel);
+    PAINT->setFilterQuality(fquality);
+    PAINT_STROKE->setFilterQuality(fquality);
 }
 
 void SkiaContext::setGlobalComposite(const char *str)
