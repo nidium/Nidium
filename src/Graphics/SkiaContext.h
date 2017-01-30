@@ -10,6 +10,7 @@
 #include <stdlib.h>
 
 #include "Graphics/CanvasHandler.h"
+#include "Graphics/ShadowLooper.h"
 
 #include <SkSurface.h>
 
@@ -78,21 +79,21 @@ struct _State
 class SkiaContext
 {
 private:
-    struct _State *m_State;
+    void initPaints();
+    void addPath(const SkPath &path, SkPath *to);
+    sk_sp<ShadowLooper> buildShadow();
 
+    struct _State *m_State;
     SkPaint *m_PaintSystem;
     SkPath *m_CurrentPath;
     uint8_t m_GlobalAlpha;
     uint8_t m_AsComposite;
     SkBitmap *m_Screen;
     Shadow_t m_CurrentShadow;
-    ShadowLooper *buildShadow();
     sk_sp<SkSurface> m_Surface;
-
-    void initPaints();
-    void addPath(const SkPath &path, SkPath *to);
     bool m_Debug;
     double m_FontSkew;
+
 
 public:
     ~SkiaContext();

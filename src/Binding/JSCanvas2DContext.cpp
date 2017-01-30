@@ -1771,7 +1771,6 @@ void Canvas2DContext::drawTexture(uint32_t textureID,
 /* Ask skia to restore its GL state */
 void Canvas2DContext::resetSkiaContext(uint32_t flag)
 {
-
     GrContext *context = m_Skia->getCanvas()->getGrContext();
 
     if (flag == 0) {

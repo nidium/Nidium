@@ -536,13 +536,13 @@ void SkiaContext::system(const char *text, int x, int y)
     CANVAS_FLUSH();
 }
 
-ShadowLooper *SkiaContext::buildShadow()
+sk_sp<ShadowLooper> SkiaContext::buildShadow()
 {
     if (m_CurrentShadow.m_Blur == 0) {
-        return NULL;
+        return nullptr;
     }
 
-    return ShadowLooper::Create(SkDoubleToScalar(m_CurrentShadow.m_Blur),
+    return ShadowLooper::Make(SkDoubleToScalar(m_CurrentShadow.m_Blur),
                                 SkDoubleToScalar(m_CurrentShadow.m_X),
                                 SkDoubleToScalar(m_CurrentShadow.m_Y),
                                 m_CurrentShadow.m_Color,
@@ -1627,14 +1627,14 @@ void SkiaContext::setShadowOffsetX(double x)
 {
     if (m_CurrentShadow.m_X == x) return;
     m_CurrentShadow.m_X = x;
-    SkSafeUnref(PAINT->setLooper(buildShadow()));
+    PAINT->setLooper(buildShadow());
 }
 
 void SkiaContext::setShadowOffsetY(double y)
 {
     if (m_CurrentShadow.m_Y == y) return;
     m_CurrentShadow.m_Y = y;
-    SkSafeUnref(PAINT->setLooper(buildShadow()));
+    PAINT->setLooper(buildShadow());
 }
 
 void SkiaContext::setShadowBlur(double blur)
@@ -1642,7 +1642,7 @@ void SkiaContext::setShadowBlur(double blur)
     if (m_CurrentShadow.m_Blur == blur) return;
     m_CurrentShadow.m_Blur = blur;
 
-    SkSafeUnref(PAINT->setLooper(buildShadow()));
+    PAINT->setLooper(buildShadow());
 }
 
 void SkiaContext::setShadowColor(const char *str)
@@ -1652,7 +1652,7 @@ void SkiaContext::setShadowColor(const char *str)
     if (m_CurrentShadow.m_Color == color) return;
     m_CurrentShadow.m_Color = color;
 
-    SkSafeUnref(PAINT->setLooper(buildShadow()));
+    PAINT->setLooper(buildShadow());
 }
 
 void SkiaContext::setSmooth(bool val, int quality)
