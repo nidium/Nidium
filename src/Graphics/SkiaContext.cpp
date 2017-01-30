@@ -1566,8 +1566,6 @@ void SkiaContext::setFillColor(const char *str)
 
 void SkiaContext::setFillColor(uint32_t color)
 {
-    SkShader *shader = PAINT->getShader();
-
     PAINT->setShader(nullptr);
     PAINT->setColor(color);
 }
