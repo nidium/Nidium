@@ -237,7 +237,6 @@ public:
     void beginPath();
     void moveTo(double x, double y);
     void lineTo(double x, double y);
-    void light(double x, double y, double z);
     void fill();
     void stroke();
     void closePath();

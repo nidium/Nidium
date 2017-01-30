@@ -1136,20 +1136,6 @@ bool Canvas2DContext::JS_attachFragmentShader(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
-bool Canvas2DContext::JS_light(JSContext *cx, JS::CallArgs &args)
-{
-    double x, y, z;
-
-    NIDIUM_LOG_2D_CALL();
-    if (!JS_ConvertArguments(cx, args, "ddd", &x, &y, &z)) {
-        return false;
-    }
-
-    m_Skia->light(x, y, z);
-
-    return true;
-}
-
 bool Canvas2DContext::JSSetter_imageSmoothingEnabled(JSContext *cx,
     JS::MutableHandleValue vp)
 {
@@ -2088,7 +2074,6 @@ JSFunctionSpec *Canvas2DContext::ListMethods()
         CLASSMAPPER_FN(Canvas2DContext, measureText, 1),
         CLASSMAPPER_FN(Canvas2DContext, isPointInPath, 2),
         CLASSMAPPER_FN(Canvas2DContext, getPathBounds, 0),
-        CLASSMAPPER_FN(Canvas2DContext, light, 3),
         CLASSMAPPER_FN(Canvas2DContext, attachFragmentShader, 1),
         CLASSMAPPER_FN(Canvas2DContext, detachFragmentShader, 0),
         CLASSMAPPER_FN(Canvas2DContext, setVertexOffset, 3),

@@ -915,16 +915,6 @@ void SkiaContext::bezierCurveTo(
     m_CurrentPath->cubicTo(p1, p2, p3);
 }
 
-void SkiaContext::light(double x, double y, double z)
-{
-    SkColor white(0xAAFFFFFF);
-    PAINT->setImageFilter(SkLightingImageFilter::CreatePointLitDiffuse(
-        SkPoint3::Make(SkDoubleToScalar(x), SkDoubleToScalar(y), SkDoubleToScalar(z)),
-        white, SkIntToScalar(1), SkIntToScalar(2)));
-
-    printf("Light created\n");
-}
-
 void SkiaContext::rotate(double angle)
 {
     getCanvas()->rotate(SkDoubleToScalar(180 * angle / SK_ScalarPI));

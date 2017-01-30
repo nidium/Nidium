@@ -238,7 +238,6 @@ protected:
     NIDIUM_DECL_JSCALL(measureText);
     NIDIUM_DECL_JSCALL(isPointInPath);
     NIDIUM_DECL_JSCALL(getPathBounds);
-    NIDIUM_DECL_JSCALL(light);
     NIDIUM_DECL_JSCALL(attachFragmentShader);
     NIDIUM_DECL_JSCALL(detachFragmentShader);
     NIDIUM_DECL_JSCALL(setVertexOffset);
