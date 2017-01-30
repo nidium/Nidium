@@ -26,7 +26,7 @@
 #include <SkLightingImageFilter.h>
 #include <SkStream.h>
 
-#include <SystemInterface.h>
+#include "Interface/SystemInterface.h"
 
 #include "Graphics/Image.h"
 #include "Graphics/Gradient.h"
@@ -375,9 +375,7 @@ int SkiaContext::bindOnScreen(int width, int height)
 
     float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
-
-    GrContext *gr
-        = SkiaContext::m_Surface->getCanvas()->getGrContext();
+    GrContext *gr = SkiaContext::m_Surface->getCanvas()->getGrContext();
 
     m_Surface = createNewGPUSurface(gr, width * ratio, height * ratio);
 
@@ -419,10 +417,9 @@ sk_sp<SkSurface> SkiaContext::CreateGLSurface(int width, int height, Context *nc
 
     GrContext *context             = NULL;
 
-    if (SkiaContext::m_GlContext) {
-        context
-            = (static_cast<SkGpuDevice *>(SkiaContext::m_GlContext->getDevice())
-                   ->context());
+    if (SkiaContext::m_GlSurface) {
+        context = SkiaContext::m_GlSurface->getCanvas()->getGrContext();
+        
         context->ref();
     } else {
         const GrGLInterface *interface = NULL;
@@ -626,17 +623,19 @@ void SkiaContext::fill()
         return;
     }
 
+    SkCanvas *canvas = getCanvas();
+
     sk_sp<SkShader> shader = PAINT->refShader();
 
     if (shader.get() != nullptr) {
-        sk_sp<SkShader> tmpShader = shader->makeWithLocalMatrix(getCanvas()->getTotalMatrix());
+        sk_sp<SkShader> tmpShader = shader->makeWithLocalMatrix(canvas->getTotalMatrix());
         PAINT->setShader(tmpShader);
     }
     /* The matrix was already applied point by point */
-    getCanvas()->save();
-    getCanvas()->resetMatrix();
-    getCanvas()->drawPath(*m_CurrentPath, *PAINT);
-    getCanvas()->restore();
+    canvas->save();
+    canvas->resetMatrix();
+    canvas->drawPath(*m_CurrentPath, *PAINT);
+    canvas->restore();
 
     if (shader.get() != nullptr) {
         PAINT->setShader(shader);
@@ -651,16 +650,18 @@ void SkiaContext::stroke()
         return;
     }
 
+    SkCanvas *canvas = getCanvas();
+
     sk_sp<SkShader> shader = PAINT_STROKE->refShader();
 
     if (shader.get() != nullptr) {
-        sk_sp<SkShader> tmpShader = shader->makeWithLocalMatrix(getCanvas()->getTotalMatrix());
+        sk_sp<SkShader> tmpShader = shader->makeWithLocalMatrix(canvas->getTotalMatrix());
         PAINT_STROKE->setShader(tmpShader);
     }
 
     /* The matrix was already applied point by point */
-    getCanvas()->save();
-    getCanvas()->resetMatrix();
+    canvas->save();
+    canvas->resetMatrix();
 
     SkScalar lineWidth = PAINT_STROKE->getStrokeWidth();
     float ratio        = SystemInterface::GetInstance()->backingStorePixelRatio();
@@ -672,10 +673,10 @@ void SkiaContext::stroke()
     mat.setIdentity();
     PAINT_STROKE->setPathEffect(new SkLine2DPathEffect(SK_Scalar1, mat))->unref();
 #endif
-    getCanvas()->drawPath(*m_CurrentPath, *PAINT_STROKE);
+    canvas->drawPath(*m_CurrentPath, *PAINT_STROKE);
     PAINT_STROKE->setStrokeWidth(lineWidth);
 
-    getCanvas()->restore();
+    canvas->restore();
 
     if (shader.get() != nullptr) {
         PAINT_STROKE->setShader(shader);
@@ -1346,9 +1347,11 @@ void SkiaContext::drawImage(Image *image,
 
 void SkiaContext::redrawScreen()
 {
-    getCanvas()->readPixels(SkIRect::MakeSize(getCanvas()->getDeviceSize()),
+    SkCanvas *canvas = getCanvas();
+
+    canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()),
                          m_Screen);
-    getCanvas()->writePixels(*m_Screen, 0, 0);
+    canvas->writePixels(*m_Screen, 0, 0);
     CANVAS_FLUSH();
 }
 

@@ -896,7 +896,7 @@ Context::~Context()
 
     delete m_GLState;
 
-    SkiaContext::m_GlContext = NULL;
+    SkiaContext::m_GlSurface = nullptr;
 
     ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
     m_InputHandler.clear();
