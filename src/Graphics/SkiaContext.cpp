@@ -1007,7 +1007,7 @@ bool SkiaContext::SkPathContainsPoint(double x, double y)
     biggestCoord = nidium_max(nidium_max(biggestCoord, fX + 1), fY + 1);
 
     const SkScalar kMaxCoordinate = SkIntToScalar(1 << 15);
-    SkScalar scale                = SkScalarDiv(kMaxCoordinate, biggestCoord);
+    SkScalar scale                = kMaxCoordinate / biggestCoord;
 
     SkRegion rgn;
     SkRegion clip;
