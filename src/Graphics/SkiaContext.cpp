@@ -363,7 +363,7 @@ SkiaContext::createNewGPUDevice(GrContext *gr, int width, int height)
 {
     GrTextureDesc desc;
     desc.fConfig    = kSkia8888_GrPixelConfig;
-    desc.fFlags     = kRenderTarget_GrTextureFlagBit;
+    desc.fFlags     = kRenderTarget_GrSurfaceFlag;
     desc.fWidth     = width;
     desc.fHeight    = height;
     desc.fSampleCnt = 0;
