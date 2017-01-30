@@ -1434,11 +1434,11 @@ void SkiaContext::setFontType(const char *str, JSDocument *doc)
         }
     }
     // JSDocument *jdoc = JSDocument::
-    sk_sp<SkTypeface> tf = SkTypeface::MakeFromName(str, SkTypeface::kNormal);
+    sk_sp<SkTypeface> tf = SkTypeface::MakeFromName(str, SkFontStyle());
     // Workarround for skia bug #1648
     // https://code.google.com/p/skia/issues/detail?id=1648
     if (tf == NULL) {
-        tf = SkTypeface::CreateFromName(NULL, SkTypeface::kNormal);
+        tf = SkTypeface::MakeFromName(NULL, SkFontStyle());
         if (tf == NULL) return;
     }
 
