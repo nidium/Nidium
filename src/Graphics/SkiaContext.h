@@ -11,6 +11,8 @@
 
 #include "Graphics/CanvasHandler.h"
 
+#include <SkSurface.h>
+
 class SkCanvas;
 class SkPaint;
 class SkPath;
@@ -85,7 +87,8 @@ private:
     SkBitmap *m_Screen;
     Shadow_t m_CurrentShadow;
     ShadowLooper *buildShadow();
-    SkCanvas *m_Canvas;
+    sk_sp<SkSurface> m_Surface;
+
     void initPaints();
     void addPath(const SkPath &path, SkPath *to);
     bool m_Debug;
@@ -106,11 +109,15 @@ public:
     friend class CanvasHandler;
     friend class JSCanvas;
 
-    static SkCanvas *m_GlContext;
+    static SkSurface *m_GlSurface;
 
     SkCanvas *getCanvas() const
     {
-        return m_Canvas;
+        return m_Surface->getCanvas();
+    }
+
+    sk_sp<SkSurface> getSurface() {
+        return m_Surface;
     }
 
     static void GetStringColor(uint32_t color, char *out);
@@ -120,6 +127,7 @@ public:
     */
     void setCanvas(SkCanvas *canvas);
     SkGpuDevice *createNewGPUDevice(GrContext *gr, int width, int height);
+    sk_sp<SkSurface> createNewGPUSurface(GrContext *gr, int width, int height);
 
     double breakText(const char *str,
                      size_t len,
@@ -127,8 +135,8 @@ public:
                      double maxWidth,
                      int *length = NULL);
     int bindOnScreen(int width, int height);
-    static SkCanvas *
-    CreateGLCanvas(int width, int height, Frontend::Context *nctx);
+    static sk_sp<SkSurface>
+        CreateGLSurface(int width, int height, Frontend::Context *nctx);
     int bindGL(int width, int height, Frontend::Context *nctx);
     void flush();
     void unlink();

@@ -46,7 +46,7 @@ using Nidium::Frontend::Context;
 namespace Nidium {
 namespace Graphics {
 
-SkCanvas *SkiaContext::m_GlContext = NULL;
+SkSurface *SkiaContext::m_GlSurface = nullptr;
 
 // {{{ Static funcs and macros
 //#define CANVAS_FLUSH() canvas->flush()
@@ -197,7 +197,7 @@ SkFILEStream("/skimages/sesame_street_ensemble-hp.jpg");
 SkiaContext::SkiaContext()
     : m_State(NULL), m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0),
       m_AsComposite(0), m_Screen(NULL), m_CurrentShadow({ 0, 0, 0, 0 }),
-      m_Canvas(NULL), m_Debug(false), m_FontSkew(-0.25),
+      m_Debug(false), m_FontSkew(-0.25),
       m_CanvasBindMode(SkiaContext::BIND_NO)
 {
 }
@@ -358,48 +358,30 @@ void SkiaContext::initPaints()
     m_AsComposite = 0;
 }
 
-SkGpuDevice *
-SkiaContext::createNewGPUDevice(GrContext *gr, int width, int height)
+sk_sp<SkSurface> SkiaContext::createNewGPUSurface(GrContext *gr,
+    int width, int height)
 {
-    GrTextureDesc desc;
-    desc.fConfig    = kSkia8888_GrPixelConfig;
-    desc.fFlags     = kRenderTarget_GrSurfaceFlag;
-    desc.fWidth     = width;
-    desc.fHeight    = height;
-    desc.fSampleCnt = 0;
-    GrTexture *tex  = gr->createUncachedTexture(desc, NULL, 0);
+    return SkSurface::MakeRenderTarget(gr, SkBudgeted::kNo,
+        SkImageInfo::MakeN32Premul(width, height));
+}   
 
-    return SkGpuDevice::Create(tex);
-}
 
 int SkiaContext::bindOnScreen(int width, int height)
 {
-    if (SkiaContext::m_GlContext == NULL) {
+    if (SkiaContext::m_GlSurface == nullptr) {
         printf("Cant find GL context\n");
         return 0;
     }
 
     float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
-#if 0
-    SkBaseDevice *dev = SkiaContext::m_GlContext
-                        ->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
-                            width*ratio, height*ratio, false);
-#else
+
     GrContext *gr
-        = (static_cast<SkGpuDevice *>(SkiaContext::m_GlContext->getDevice())
-               ->context());
-    SkBaseDevice *dev
-        = this->createNewGPUDevice(gr, width * ratio, height * ratio);
-#endif
-    if (dev == NULL) {
-        return 0;
-    }
+        = SkiaContext::m_Surface->getCanvas()->getGrContext();
 
-    m_Canvas = new SkCanvas(dev);
+    m_Surface = createNewGPUSurface(gr, width * ratio, height * ratio);
+
     this->scale(ratio, ratio);
-
-    dev->unref();
 
     m_GlobalAlpha = 255;
     m_CurrentPath = NULL;
@@ -411,7 +393,7 @@ int SkiaContext::bindOnScreen(int width, int height)
 
     this->setSmooth(true);
 
-    m_Canvas->clear(0x00000000);
+    getCanvas()->clear(0x00000000);
 
     m_CanvasBindMode = SkiaContext::BIND_ONSCREEN;
 
@@ -424,9 +406,12 @@ void glcb(const GrGLInterface *)
     printf("Got a gl call\n");
 }
 
-SkCanvas *SkiaContext::CreateGLCanvas(int width, int height, Context *nctx)
-{
 
+/*
+    Create base GL surface (backed by the screen buffer [fbo 0])
+*/
+sk_sp<SkSurface> SkiaContext::CreateGLSurface(int width, int height, Context *nctx)
+{
     if (!nctx) {
         NUI_LOG("CreateGLCanvas() : invalid nidium context");
         return NULL;
@@ -468,43 +453,34 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height, Context *nctx)
     desc.fOrigin      = kBottomLeft_GrSurfaceOrigin;
     desc.fStencilBits = 0;
     desc.fSampleCnt   = 0;
-// GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
-#if 0
-    GrGLint buffer = 0;
-    GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
-#endif
+
     desc.fRenderTargetHandle = 0;
-    GrRenderTarget *target   = context->wrapBackendRenderTarget(desc);
 
-    if (target == NULL) {
-        NUI_LOG("Failed to init Skia render target");
+    sk_sp<SkSurface> surface = SkSurface::MakeFromBackendRenderTarget(context, desc, nullptr);
+
+    if (surface == nullptr) {
+        NUI_LOG("Failed to init Skia base surface");
         return NULL;
     }
-    SkGpuDevice *dev = new SkGpuDevice(context, target);
 
-    if (dev == NULL) {
-        NUI_LOG("Failed to init Skia GPU device");
-        return NULL;
-    }
-    SkCanvas *ret;
-    ret = new SkCanvas(dev);
+    SkCanvas *ret = surface->getCanvas();
+
     ret->clear(0x00000000);
-    dev->unref();
     context->unref();
 
-    return ret;
+    return surface;
 }
 
 int SkiaContext::bindGL(int width, int height, Context *nctx)
 {
     m_CanvasBindMode = SkiaContext::BIND_GL;
 
-    if ((m_Canvas = SkiaContext::CreateGLCanvas(width, height, nctx)) == NULL) {
+    if ((m_Surface = SkiaContext::CreateGLSurface(width, height, nctx)) == NULL) {
         return 0;
     }
 
-    if (SkiaContext::m_GlContext == NULL) {
-        SkiaContext::m_GlContext = m_Canvas;
+    if (SkiaContext::m_GlSurface == nullptr) {
+        SkiaContext::m_GlSurface = m_Surface.get();
     }
 
     m_GlobalAlpha = 255;
@@ -521,7 +497,7 @@ int SkiaContext::bindGL(int width, int height, Context *nctx)
     */
     this->drawRect(0, 0, 1, 1, 0);
 
-    m_Canvas->clear(0xFFFFFFFF);
+    getCanvas()->clear(0xFFFFFFFF);
 
     m_Debug = true;
 
@@ -550,14 +526,14 @@ void SkiaContext::clearRect(double x, double y, double width, double height)
     clearPaint.setARGB(0, 0, 0, 0);
     clearPaint.setBlendMode(SkBlendMode::kClear);
 
-    m_Canvas->drawRect(r, clearPaint);
+    getCanvas()->drawRect(r, clearPaint);
 
     CANVAS_FLUSH();
 }
 
 void SkiaContext::system(const char *text, int x, int y)
 {
-    m_Canvas->drawText(text, strlen(text), SkIntToScalar(x), SkIntToScalar(y),
+    getCanvas()->drawText(text, strlen(text), SkIntToScalar(x), SkIntToScalar(y),
                        *m_PaintSystem);
 
     CANVAS_FLUSH();
@@ -613,7 +589,7 @@ void SkiaContext::moveTo(double x, double y)
     if (!m_CurrentPath) {
         beginPath();
     }
-    const SkMatrix &m = m_Canvas->getTotalMatrix();
+    const SkMatrix &m = getCanvas()->getTotalMatrix();
     SkPoint pt        = SkPoint::Make(SkDoubleToScalar(x), SkDoubleToScalar(y));
 
     SkMatrix::MapPtsProc proc = m.getMapPtsProc();
@@ -630,7 +606,7 @@ void SkiaContext::lineTo(double x, double y)
         beginPath();
     }
 
-    const SkMatrix &m = m_Canvas->getTotalMatrix();
+    const SkMatrix &m = getCanvas()->getTotalMatrix();
     SkPoint pt        = SkPoint::Make(SkDoubleToScalar(x), SkDoubleToScalar(y));
 
     SkMatrix::MapPtsProc proc = m.getMapPtsProc();
@@ -653,14 +629,14 @@ void SkiaContext::fill()
     sk_sp<SkShader> shader = PAINT->refShader();
 
     if (shader.get() != nullptr) {
-        sk_sp<SkShader> tmpShader = shader->makeWithLocalMatrix(m_Canvas->getTotalMatrix());
+        sk_sp<SkShader> tmpShader = shader->makeWithLocalMatrix(getCanvas()->getTotalMatrix());
         PAINT->setShader(tmpShader);
     }
     /* The matrix was already applied point by point */
-    m_Canvas->save();
-    m_Canvas->resetMatrix();
-    m_Canvas->drawPath(*m_CurrentPath, *PAINT);
-    m_Canvas->restore();
+    getCanvas()->save();
+    getCanvas()->resetMatrix();
+    getCanvas()->drawPath(*m_CurrentPath, *PAINT);
+    getCanvas()->restore();
 
     if (shader.get() != nullptr) {
         PAINT->setShader(shader);
@@ -678,13 +654,13 @@ void SkiaContext::stroke()
     sk_sp<SkShader> shader = PAINT_STROKE->refShader();
 
     if (shader.get() != nullptr) {
-        sk_sp<SkShader> tmpShader = shader->makeWithLocalMatrix(m_Canvas->getTotalMatrix());
+        sk_sp<SkShader> tmpShader = shader->makeWithLocalMatrix(getCanvas()->getTotalMatrix());
         PAINT_STROKE->setShader(tmpShader);
     }
 
     /* The matrix was already applied point by point */
-    m_Canvas->save();
-    m_Canvas->resetMatrix();
+    getCanvas()->save();
+    getCanvas()->resetMatrix();
 
     SkScalar lineWidth = PAINT_STROKE->getStrokeWidth();
     float ratio        = SystemInterface::GetInstance()->backingStorePixelRatio();
@@ -696,10 +672,10 @@ void SkiaContext::stroke()
     mat.setIdentity();
     PAINT_STROKE->setPathEffect(new SkLine2DPathEffect(SK_Scalar1, mat))->unref();
 #endif
-    m_Canvas->drawPath(*m_CurrentPath, *PAINT_STROKE);
+    getCanvas()->drawPath(*m_CurrentPath, *PAINT_STROKE);
     PAINT_STROKE->setStrokeWidth(lineWidth);
 
-    m_Canvas->restore();
+    getCanvas()->restore();
 
     if (shader.get() != nullptr) {
         PAINT_STROKE->setShader(shader);
@@ -723,7 +699,7 @@ void SkiaContext::clip()
         return;
     }
 
-    m_Canvas->clipPath(*m_CurrentPath);
+    getCanvas()->clipPath(*m_CurrentPath);
     CANVAS_FLUSH();
 }
 
@@ -773,7 +749,7 @@ void SkiaContext::rect(double x, double y, double width, double height)
     if (!m_CurrentPath) {
         beginPath();
     }
-    SkMatrix m = m_Canvas->getTotalMatrix();
+    SkMatrix m = getCanvas()->getTotalMatrix();
 
     SkRect r
         = SkRect::MakeXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
@@ -830,7 +806,7 @@ void SkiaContext::arc(
     }
 
     double sweep = endAngle - startAngle;
-    SkMatrix m   = m_Canvas->getTotalMatrix();
+    SkMatrix m   = getCanvas()->getTotalMatrix();
 
     SkScalar cx     = SkIntToScalar(x);
     SkScalar cy     = SkIntToScalar(y);
@@ -902,7 +878,7 @@ void SkiaContext::quadraticCurveTo(double cpx, double cpy, double x, double y)
         return;
     }
 
-    SkMatrix m = m_Canvas->getTotalMatrix();
+    SkMatrix m = getCanvas()->getTotalMatrix();
 
     if (!m_CurrentPath->countPoints()) {
         m_CurrentPath->moveTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy));
@@ -928,7 +904,7 @@ void SkiaContext::bezierCurveTo(
     }
 
 
-    SkMatrix m = m_Canvas->getTotalMatrix();
+    SkMatrix m = getCanvas()->getTotalMatrix();
     SkPoint p1, p2, p3;
 
     m.mapXY(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy), &p1);
@@ -950,17 +926,17 @@ void SkiaContext::light(double x, double y, double z)
 
 void SkiaContext::rotate(double angle)
 {
-    m_Canvas->rotate(SkDoubleToScalar(180 * angle / SK_ScalarPI));
+    getCanvas()->rotate(SkDoubleToScalar(180 * angle / SK_ScalarPI));
 }
 
 void SkiaContext::scale(double x, double y)
 {
-    m_Canvas->scale(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    getCanvas()->scale(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
 void SkiaContext::translate(double x, double y)
 {
-    m_Canvas->translate(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    getCanvas()->translate(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
 void SkiaContext::save()
@@ -974,7 +950,7 @@ void SkiaContext::save()
 
     m_State = nstate;
 
-    m_Canvas->save();
+    getCanvas()->save();
 }
 
 void SkiaContext::restore()
@@ -990,12 +966,12 @@ void SkiaContext::restore()
         NUI_LOG("restore() without matching save()\n");
     }
 
-    m_Canvas->restore();
+    getCanvas()->restore();
 }
 
 void SkiaContext::skew(double x, double y)
 {
-    m_Canvas->skew(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    getCanvas()->skew(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
 /*
@@ -1079,7 +1055,7 @@ void SkiaContext::itransform(double scalex,
     SkMatrix im;
     if (m.invert(&im)) {
         printf("transformed\n");
-        m_Canvas->concat(im);
+        getCanvas()->concat(im);
     } else {
         printf("Cant revert Matrix\n");
     }
@@ -1114,9 +1090,9 @@ void SkiaContext::transform(double scalex,
     m.set(SkMatrix::kMPersp2, SK_Scalar1);
 
     if (set) {
-        m_Canvas->setMatrix(m);
+        getCanvas()->setMatrix(m);
     } else {
-        m_Canvas->concat(m);
+        getCanvas()->concat(m);
     }
 }
 
@@ -1126,7 +1102,7 @@ int SkiaContext::readPixels(
     const SkImageInfo &info = SkImageInfo::Make(
         width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
 
-    if (!m_Canvas->readPixels(info, pixels, width * 4, left, top)) {
+    if (!getCanvas()->readPixels(info, pixels, width * 4, left, top)) {
         printf("Failed to read pixels\n");
         return 0;
     }
@@ -1157,12 +1133,12 @@ void SkiaContext::GetStringColor(uint32_t color, char *out)
 
 int SkiaContext::getWidth()
 {
-    return m_Canvas->getDeviceSize().fWidth;
+    return getCanvas()->getDeviceSize().fWidth;
 }
 
 int SkiaContext::getHeight()
 {
-    return m_Canvas->getDeviceSize().fHeight;
+    return getCanvas()->getDeviceSize().fHeight;
 }
 
 uint32_t SkiaContext::getFillColor() const
@@ -1257,14 +1233,14 @@ void SkiaContext::drawRect(
     r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y), SkDoubleToScalar(width),
               SkDoubleToScalar(height));
 
-    m_Canvas->drawRect(r, (stroke ? *PAINT_STROKE : *PAINT));
+    getCanvas()->drawRect(r, (stroke ? *PAINT_STROKE : *PAINT));
 
     CANVAS_FLUSH();
 }
 
 void SkiaContext::drawLine(double x1, double y1, double x2, double y2)
 {
-    m_Canvas->drawLine(SkDoubleToScalar(x1), SkDoubleToScalar(y1),
+    getCanvas()->drawLine(SkDoubleToScalar(x1), SkDoubleToScalar(y1),
                        SkDoubleToScalar(x2), SkDoubleToScalar(y2),
                        *PAINT_STROKE);
 }
@@ -1282,7 +1258,7 @@ void SkiaContext::drawRect(double x,
     r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y), SkDoubleToScalar(width),
               SkDoubleToScalar(height));
 
-    m_Canvas->drawRoundRect(r, SkDoubleToScalar(rx), SkDoubleToScalar(ry),
+    getCanvas()->drawRoundRect(r, SkDoubleToScalar(rx), SkDoubleToScalar(ry),
                             (stroke ? *PAINT_STROKE : *PAINT));
 }
 
@@ -1292,12 +1268,12 @@ void SkiaContext::drawImage(Image *image, double x, double y)
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->m_IsCanvas) {
-        m_Canvas->drawBitmap(
+        getCanvas()->drawBitmap(
             image->m_CanvasRef->getDevice()->accessBitmap(false),
             SkDoubleToScalar(x), SkDoubleToScalar(y), PAINT);
 
     } else if (image->m_Image != NULL) {
-        m_Canvas->drawBitmap(*image->m_Image, SkDoubleToScalar(x),
+        getCanvas()->drawBitmap(*image->m_Image, SkDoubleToScalar(x),
                              SkDoubleToScalar(y), PAINT);
     }
 
@@ -1318,11 +1294,11 @@ void SkiaContext::drawImage(
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->m_IsCanvas) {
-        m_Canvas->drawBitmapRect(
+        getCanvas()->drawBitmapRect(
             image->m_CanvasRef->getDevice()->accessBitmap(false), NULL, r,
             PAINT);
     } else if (image->m_Image != NULL) {
-        m_Canvas->drawBitmapRect(*image->m_Image, NULL, r, PAINT);
+        getCanvas()->drawBitmapRect(*image->m_Image, NULL, r, PAINT);
     }
 
     PAINT->setColor(old);
@@ -1358,9 +1334,9 @@ void SkiaContext::drawImage(Image *image,
         image->m_CanvasRef->readPixels(src, &bitmapImage);
         bitmapImage.setIsVolatile(true);
 
-        m_Canvas->drawBitmapRect(bitmapImage, NULL, dst, PAINT);
+        getCanvas()->drawBitmapRect(bitmapImage, NULL, dst, PAINT);
     } else if (image->m_Image != NULL) {
-        m_Canvas->drawBitmapRect(*image->m_Image, &src, dst, PAINT);
+        getCanvas()->drawBitmapRect(*image->m_Image, &src, dst, PAINT);
     }
 
     PAINT->setColor(old);
@@ -1370,9 +1346,9 @@ void SkiaContext::drawImage(Image *image,
 
 void SkiaContext::redrawScreen()
 {
-    m_Canvas->readPixels(SkIRect::MakeSize(m_Canvas->getDeviceSize()),
+    getCanvas()->readPixels(SkIRect::MakeSize(getCanvas()->getDeviceSize()),
                          m_Screen);
-    m_Canvas->writePixels(*m_Screen, 0, 0);
+    getCanvas()->writePixels(*m_Screen, 0, 0);
     CANVAS_FLUSH();
 }
 
@@ -1380,7 +1356,7 @@ void SkiaContext::redrawScreen()
 void SkiaContext::drawPixelsGL(uint8_t *pixels, int width, int height,
     int x, int y)
 {
-    m_Canvas->flush();
+    getCanvas()->flush();
     glDisable(GL_ALPHA_TEST);
 
     glWindowPos2i(x, y);
@@ -1413,12 +1389,12 @@ void SkiaContext::drawPixels(
     pt.setFilterQuality(PAINT->getFilterQuality());
 
     pt.setBlendMode(SkBlendMode::kClear);
-    m_Canvas->drawBitmap(bt, x, y, &pt);
+    getCanvas()->drawBitmap(bt, x, y, &pt);
 }
 
 void SkiaContext::flush()
 {
-    m_Canvas->flush();
+    getCanvas()->flush();
 }
 // }}}
 
@@ -1746,6 +1722,10 @@ void SkiaContext::setLineJoin(const char *joinStyle)
 
 void SkiaContext::setCanvas(SkCanvas *canvas)
 {
+    /*
+        Define wether it's still needed.
+        It's currently used for resizing
+    */
     SkRefCnt_SafeAssign(m_Canvas, canvas);
 }
 
@@ -1776,7 +1756,7 @@ void SkiaContext::drawText(const char *text, int x, int y, bool stroke)
             break;
     }
 
-    m_Canvas->drawText(text, strlen(text), sx, sy,
+    getCanvas()->drawText(text, strlen(text), sx, sy,
                        (stroke ? *PAINT_STROKE : *PAINT));
 
     CANVAS_FLUSH();
@@ -1903,8 +1883,8 @@ SkiaContext::~SkiaContext()
 {
     struct _State *nstate = m_State;
 
-    if (m_Canvas != NULL) {
-        m_Canvas->flush();
+    if (m_Surface != nullptr) {
+        getCanvas()->flush();
     }
     while (nstate) {
         struct _State *tmp = nstate->next;
@@ -1918,8 +1898,6 @@ SkiaContext::~SkiaContext()
 
     if (m_PaintSystem) delete m_PaintSystem;
     if (m_CurrentPath) delete m_CurrentPath;
-
-    SkSafeUnref(m_Canvas);
 }
 
 
