@@ -1662,7 +1662,6 @@ void SkiaContext::setGlobalComposite(const char *str)
             SkBlendMode mode = nidium_blend_mode[i].mode;
             PAINT->setBlendMode(mode);
             PAINT_STROKE->setBlendMode(mode);
-            SkSafeUnref(mode);
             break;
         }
     }
