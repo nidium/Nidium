@@ -120,10 +120,6 @@ public:
 
     void clear(uint32_t color = 0x00000000) override;
 
-    /*
-        draw layer on top of "this"
-    */
-
     void resetSkiaContext(uint32_t flags = 0);
 
     uint8_t *getPixels() override;
@@ -278,16 +274,6 @@ private:
     void initCopyTex();
     uint32_t compileCoopFragmentShader();
     char *genModifiedFragmentShader(const char *data);
-    void drawTexToFBO(uint32_t textureID);
-    void drawTexIDToFBO(uint32_t textureID,
-                        uint32_t width,
-                        uint32_t height,
-                        uint32_t left,
-                        uint32_t top,
-                        uint32_t fbo);
-
-    uint32_t getSkiaTextureID(int *width = NULL, int *height = NULL);
-    uint32_t getMainFBO();
 };
 // }}}
 

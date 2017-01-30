@@ -1738,170 +1738,6 @@ uint32_t Canvas2DContext::compileCoopFragmentShader()
     return this->CompileShader(coop, GL_FRAGMENT_SHADER);
 }
 
-#if 0
-void Canvas2DContext::initCopyTex()
-{
-    glEnable(GL_TEXTURE_2D);
-    GrRenderTarget* backingTarget = (GrRenderTarget*)m_Skia->canvas->
-                                        getDevice()->accessRenderTa;
-
-    int width = backingTarget->asTexture()->width();
-    int height =  backingTarget->asTexture()->height();
-
-    glGenTextures(1, &gl.texture);
-    glBindTexture(GL_TEXTURE_2D, gl.texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    /* Allocate memory for the new texture */
-    glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_RGBA,
-            width, height,
-            0,
-            GL_RGBA,
-            GL_UNSIGNED_BYTE,
-            NULL);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    /* Generate the FBO */
-    glGenFramebuffers(1, &gl.fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, gl.fbo);
-
-    /* Set the FBO backing store using the new texture */
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-        GL_TEXTURE_2D, gl.texture, 0);
-
-    GLenum status;
-    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-
-    switch(status) {
-        case GL_FRAMEBUFFER_COMPLETE:
-            break;
-        case GL_FRAMEBUFFER_UNSUPPORTED:
-            printf("fbo unsupported\n");
-            return;
-        default:
-            printf("fbo fatal error\n");
-            return;
-    }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    gl.textureWidth = width;
-    gl.textureHeight = height;
-    glDisable(GL_TEXTURE_2D);
-}
-#endif
-#if 0
-void Canvas2DContext::initCopyTex(uint32_t textureID)
-{
-    GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
-                                        getDevice()->accessRenderTa;
-
-    int width = backingTarget->asTexture()->width();
-    int height =  backingTarget->asTexture()->height();
-
-    SkDevice *dev = skia->canvas->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
-        width, height, false);
-
-    gl.copy = new SkCanvas(dev);
-    gl.texture = ((GrRenderTarget*)dev->accessRenderTa)
-                    ->asTexture()->getTextureHandle();
-
-    gl.fbo = static_cast<GLuint>(((GrRenderTarget*)dev->accessRenderTa)->
-                    asTexture()->asRenderTa->getRenderTargetHandle());
-
-    gl.textureWidth = width;
-    gl.textureHeight = height;
-
-    dev->unref();
-}
-#endif
-
-uint32_t Canvas2DContext::getMainFBO()
-{
-    GrRenderTarget *backingTarget = (GrRenderTarget *)m_Skia->getCanvas()
-                                        ->getDevice()
-                                        ->accessRenderTarget();
-
-    return (uint32_t)backingTarget->getRenderTargetHandle();
-}
-
-#if 0
-void Canvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
-    uint32_t height, uint32_t left, uint32_t top, uint32_t fbo)
-{
-    SkISize size = m_Skia->canvas->getDeviceSize();
-
-    GLenum err;
-    if ((err = glGetError()) != GL_NO_ERROR) {
-        printf("got a gl error %d\n", err);
-    }
-
-    /* save the old viewport size */
-    glPushAttrib(GL_VIEWPORT_BIT);
-
-    /* set the viewport with the texture size */
-    glViewport(left, (float)size.fHeight-(height+top), width, height);
-
-    glEnable(GL_TEXTURE_2D);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-    /* Anti Aliasing */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glEnable(GL_ALPHA_TEST);
-    glAlphaFunc(GL_NOTEQUAL, 0.0f);
-#if 1
-    glBegin(GL_QUADS);
-        /*
-            (-1, 1)...........(1, 1)
-                .               .
-                .               .
-                .               .
-            (-1, -1)...........(1, -1)
-        */
-        glTexCoord3i(0, 0, 1);
-          glVertex3f(-1., -1., 1.0f);
-
-        glTexCoord3i(0, 1, 1);
-          glVertex3f(-1, 1, 1.0f);
-
-        glTexCoord3i(1, 1, 1);
-          glVertex3f(1, 1, 1.0f);
-
-        glTexCoord3i(1, 0, 1);
-          glVertex3f(1, -1, 1.0f);
-    glEnd();
-#endif
-    glDisable(GL_ALPHA_TEST);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //glDisable(GL_SCISSOR_TEST);
-    glDisable(GL_TEXTURE_2D);
-    glPopAttrib();
-
-}
-#endif
-
-#if 0
-void Canvas2DContext::setupCommonDraw()
-{
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-}
-#endif
 
 void Canvas2DContext::drawTexture(uint32_t textureID,
                                   uint32_t width,
@@ -1932,81 +1768,11 @@ void Canvas2DContext::drawTexture(uint32_t textureID,
     NIDIUM_GL_CALL_MAIN(BindVertexArray(0));
 }
 
-#if 0
-void Canvas2DContext::drawTexToFBO(uint32_t textureID)
-{
-    glEnable(GL_TEXTURE_2D);
-    glClearColor(0, 0, 0, 0);
-
-    if (!gl.fbo) {
-        this->initCopyTex();
-    }
-
-    /* Use the current FBO */
-    glBindFramebuffer(GL_FRAMEBUFFER, gl.fbo);
-
-    /* save the old viewport size */
-    glPushAttrib(GL_VIEWPORT_BIT);
-
-    /* set the viewport with the texture size */
-    glViewport(0, 0, gl.textureWidth, gl.textureHeight);
-
-    /* clear the FBO */
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
-    /* draw a textured quad on the new texture using textureID */
-    glBegin(GL_QUADS);
-        /*
-            (-1, 1)...........(1, 1)
-                .               .
-                .               .
-                .               .
-            (-1, -1)...........(1, -1)
-        */
-        glTexCoord3i(0, 0, 1);
-          glVertex3f(-1.0f, -1.0f, 1.0f);
-
-        glTexCoord3i(0, 1, 1);
-          glVertex3f(-1.0f, 1.0f, 1.0f);
-
-        glTexCoord3i(1, 1, 1);
-          glVertex3f(1.0f, 1.0f, 1.0f);
-
-        glTexCoord3i(1, 0, 1);
-          glVertex3f(1.0f, -1.0f, 1.0f);
-    glEnd();
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDisable(GL_TEXTURE_2D);
-    glPopAttrib();
-}
-#endif
-
-uint32_t Canvas2DContext::getSkiaTextureID(int *width, int *height)
-{
-    GrRenderTarget *backingTarget = (GrRenderTarget *)m_Skia->getCanvas()
-                                        ->getDevice()
-                                        ->accessRenderTarget();
-
-    if (width != NULL && height != NULL) {
-        SkISize size = m_Skia->getCanvas()->getDeviceSize();
-
-        *width  = size.fWidth;
-        *height = size.fHeight;
-    }
-
-    return backingTarget->asTexture()->getTextureHandle();
-}
-
 /* Ask skia to restore its GL state */
 void Canvas2DContext::resetSkiaContext(uint32_t flag)
 {
-    GrRenderTarget *backingTarget = (GrRenderTarget *)m_Skia->getCanvas()
-                                        ->getDevice()
-                                        ->accessRenderTarget();
+
+    GrContext *context = m_Skia->getCanvas()->getGrContext();
 
     if (flag == 0) {
         flag = kProgram_GrGLBackendState | kTextureBinding_GrGLBackendState
@@ -2014,7 +1780,7 @@ void Canvas2DContext::resetSkiaContext(uint32_t flag)
                | kBlend_GrGLBackendState;
     }
 
-    backingTarget->getContext()->resetContext(flag);
+    context->resetContext(flag);
 }
 
 uint32_t Canvas2DContext::attachShader(const char *string)
@@ -2077,11 +1843,7 @@ void Canvas2DContext::setVertexDeformation(uint32_t vertex, float x, float y)
 
 uint32_t Canvas2DContext::getTextureID() const
 {
-    GrRenderTarget *backingTarget = (GrRenderTarget *)m_Skia->getCanvas()
-                                        ->getDevice()
-                                        ->accessRenderTarget();
-
-    return backingTarget->asTexture()->getTextureHandle();
+    return m_Skia->getSurface()->getTextureHandle(kFlushRead_BackendHandleAccess);
 }
 
 void Canvas2DContext::flush()
