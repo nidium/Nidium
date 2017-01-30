@@ -1399,7 +1399,7 @@ void SkiaContext::setGlobalAlpha(double value)
     SkScalar maxuint            = SkIntToScalar(255);
     m_GlobalAlpha               = SkMinScalar(SkDoubleToScalar(value) * maxuint, maxuint);
     sk_sp<SkColorFilter> filter = SkColorFilter::MakeModeFilter(
-        SkColorSetARGB(m_GlobalAlpha, 255, 255, 255)
+        SkColorSetARGB(m_GlobalAlpha, 255, 255, 255),
         SkBlendMode::kModulate);
 
     PAINT->setColorFilter(filter);
@@ -1482,7 +1482,8 @@ bool SkiaContext::setFontFile(const char *str)
 void SkiaContext::setFillColor(JSCanvasPattern *pattern)
 {
     if (pattern->m_JsImg->getImage()->m_Image != NULL) {
-        SkShader *shader = NULL;
+        sk_sp<SkShader> shader;
+
         bool repeat_x = false, repeat_y = false;
 
         switch (pattern->m_Mode) {
@@ -1501,8 +1502,8 @@ void SkiaContext::setFillColor(JSCanvasPattern *pattern)
         }
 
         if (repeat_x && repeat_y) {
-            shader = SkShader::CreateBitmapShader(
-                *pattern->m_JsImg->getImage()->m_Image,
+            shader = SkShader::MakeBitmapShader(
+                *pattern->m_JsImg->getImage()->getBitmap(),
                 pattern->m_Mode == JSCanvasPattern::PATTERN_REPEAT_MIRROR
                     ? SkShader::kMirror_TileMode
                     : SkShader::kRepeat_TileMode,
@@ -1518,18 +1519,21 @@ void SkiaContext::setFillColor(JSCanvasPattern *pattern)
             int expandW = repeat_x ? 0 : 1;
             int expandH = repeat_y ? 0 : 1;
 
-            SkBitmap *bm = pattern->m_JsImg->getImage()->m_Image;
-            SkBitmap bm2;
+            sk_sp<SkImage> bm = pattern->m_JsImg->getImage()->m_Image;
 
-            bm2.setConfig(bm->config(), bm->width() + expandW,
-                          bm->height() + expandH);
-            bm2.allocPixels();
-            bm2.eraseARGB(0x00, 0x00, 0x00, 0x00);
+            sk_sp<SkSurface> surface = SkSurface::MakeRasterN32Premul
+                (bm->width() + expandW, bm->height() + expandH);
 
-            SkCanvas canvas(bm2);
-            canvas.drawBitmap(*bm, 0, 0);
+            surface->getCanvas()->clear(SK_ColorTRANSPARENT);
 
-            shader = SkShader::CreateBitmapShader(bm2, tileModeX, tileModeY);
+            SkPaint paint;
+            paint.setBlendMode(SkBlendMode::kSrc);
+
+            surface->getCanvas()->drawImage(bm.get(), 0, 0, &paint);
+
+            sk_sp<SkImage> expandedImage = surface->makeImageSnapshot();
+
+            shader = expandedImage->makeShader(tileModeX, tileModeY);
         }
 
         PAINT->setColor(SK_ColorBLACK);

@@ -177,7 +177,9 @@ bool Image::ConvertToRGBA(Image *nimg,
 
 Image::~Image()
 {
-
+    if (m_ImageBitmap) {
+        delete m_ImageBitmap;
+    }
 }
 
 } // namespace Graphics

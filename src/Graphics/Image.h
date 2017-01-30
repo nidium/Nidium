@@ -22,6 +22,7 @@ class Image
 public:
     int m_IsCanvas;
     //sk_sp<SkCanvas> m_CanvasRef;
+    SkBitmap *m_ImageBitmap = nullptr;
     sk_sp<SkImage> m_Image;
 #if 0
     SkImage *fixedImg;
@@ -31,6 +32,21 @@ public:
     Image(void *data, int width, int height);
 
     SkData *getPNG();
+
+    SkBitmap *getBitmap() {
+        if (m_ImageBitmap) {
+          return m_ImageBitmap;
+        }
+        m_ImageBitmap = new SkBitmap();
+        
+        if (!m_Image->asLegacyBitmap(m_ImageBitmap, SkImage::kRO_LegacyBitmapMode)) {
+          delete m_ImageBitmap;
+
+          return nullptr;
+        }
+
+        return m_ImageBitmap;
+    }
 
     static bool ConvertToRGBA(Image *nimg,
                               unsigned char *rgba,
