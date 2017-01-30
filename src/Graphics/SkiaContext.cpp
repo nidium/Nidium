@@ -1429,15 +1429,12 @@ void SkiaContext::setGlobalAlpha(double value)
 
     SkScalar maxuint            = SkIntToScalar(255);
     m_GlobalAlpha               = SkMinScalar(SkDoubleToScalar(value) * maxuint, maxuint);
-    sk_sp<SkColorFilter> filter = SkColorFilter::MakeModeFilter
-    SkColorFilter *filter       = SkColorFilter::CreateModeFilter(
+    sk_sp<SkColorFilter> filter = SkColorFilter::MakeModeFilter(
         SkColorSetARGB(m_GlobalAlpha, 255, 255, 255)
         SkBlendMode::kModulate);
 
     PAINT->setColorFilter(filter);
     PAINT_STROKE->setColorFilter(filter);
-
-    filter->unref();
 }
 
 void SkiaContext::setFontSize(double size)
