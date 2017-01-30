@@ -1651,22 +1651,22 @@ void SkiaContext::setShadowColor(const char *str)
 
 void SkiaContext::setSmooth(bool val, int quality)
 {
-    SkFilterQuality fquality = SkPaint::kNone_SkFilterQuality;
+    SkFilterQuality fquality = kNone_SkFilterQuality;
 
     if (val) {
         switch (quality) {
             case 0:
-                fquality = SkPaint::kNone_SkFilterQuality;
+                fquality = kNone_SkFilterQuality;
                 break;
             case 1:
-                fquality = SkPaint::kLow_SkFilterQuality;
+                fquality = kLow_SkFilterQuality;
                 break;
             case 2:
-                fquality = SkPaint::kMedium_SkFilterQuality;
+                fquality = kMedium_SkFilterQuality;
                 break;
             case 3:
             default:
-                fquality = SkPaint::kHigh_SkFilterQuality;
+                fquality = kHigh_SkFilterQuality;
                 break;
         }
     }
@@ -1679,7 +1679,7 @@ void SkiaContext::setGlobalComposite(const char *str)
 {
     for (int i = 0; nidium_blend_mode[i].str != NULL; i++) {
         if (strcasecmp(nidium_blend_mode[i].str, str) == 0) {
-            SkBlendMode mode = nidiumblend_mode[i].mode;
+            SkBlendMode mode = nidium_blend_mode[i].mode;
             PAINT->setBlendMode(mode);
             PAINT_STROKE->setBlendMode(mode);
             SkSafeUnref(mode);
