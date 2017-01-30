@@ -78,14 +78,14 @@ void Gradient::addColorStop(double position, char *color)
     m_NeedUpdate = 1;
 }
 
-SkShader *Gradient::build()
+sk_sp<SkShader> Gradient::build()
 {
     if (!m_NeedUpdate) {
-        return m_CurrentShader.get();
+        return m_CurrentShader;
     }
 
     if (m_ColorsStop.count < 2) {
-        m_CurrentShader = NULL;
+        m_CurrentShader = nullptr;
         m_NeedUpdate = 0;
         printf("Building gradient with invalid number of (addColorStop) : %d\n",
                m_ColorsStop.count);
@@ -118,7 +118,7 @@ SkShader *Gradient::build()
             pts, colors, pos, m_ColorsStop.count, SkShader::kClamp_TileMode);
     }
 
-    return m_CurrentShader.get();
+    return m_CurrentShader;
 }
 
 Gradient::~Gradient()

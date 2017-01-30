@@ -1543,7 +1543,7 @@ void SkiaContext::setFillColor(JSCanvasPattern *pattern)
 
 void SkiaContext::setFillColor(Gradient *gradient)
 {
-    SkShader *shader;
+    sk_sp<SkShader> shader;
 
     if ((shader = gradient->build()) == NULL) {
         /* Make paint invalid (no future draw) */
@@ -1552,7 +1552,6 @@ void SkiaContext::setFillColor(Gradient *gradient)
         return;
     }
     PAINT->setColor(SK_ColorBLACK);
-
     PAINT->setShader(shader);
     // NUI_LOG("Add gradient : %p (%d)", shader, shader->getRefCnt());
 }
@@ -1561,12 +1560,7 @@ void SkiaContext::setFillColor(const char *str)
 {
     SkColor color = ParseColor(str);
 
-    SkShader *shader = PAINT->getShader();
-
-    if (shader) {
-        PAINT->setShader(NULL);
-    }
-
+    PAINT->setShader(nullptr);
     PAINT->setColor(color);
 }
 
@@ -1574,10 +1568,7 @@ void SkiaContext::setFillColor(uint32_t color)
 {
     SkShader *shader = PAINT->getShader();
 
-    if (shader) {
-        PAINT->setShader(NULL);
-    }
-
+    PAINT->setShader(nullptr);
     PAINT->setColor(color);
 }
 
@@ -1585,18 +1576,13 @@ void SkiaContext::setStrokeColor(const char *str)
 {
     SkColor color = ParseColor(str);
 
-    SkShader *shader = PAINT_STROKE->getShader();
-
-    if (shader) {
-        PAINT_STROKE->setShader(NULL);
-    }
-
+    PAINT_STROKE->setShader(nullptr);
     PAINT_STROKE->setColor(color);
 }
 
 void SkiaContext::setStrokeColor(Gradient *gradient)
 {
-    SkShader *shader;
+    sk_sp<SkShader> shader;
 
     if ((shader = gradient->build()) == NULL) {
         return;
@@ -1608,12 +1594,8 @@ void SkiaContext::setStrokeColor(Gradient *gradient)
 
 void SkiaContext::setStrokeColor(uint32_t color)
 {
-    SkShader *shader = PAINT_STROKE->getShader();
 
-    if (shader) {
-        PAINT_STROKE->setShader(NULL);
-    }
-
+    PAINT_STROKE->setShader(nullptr);
     PAINT_STROKE->setColor(color);
 }
 
