@@ -356,7 +356,7 @@ bool JSDocument::loadFont(const char *path,
     SkMemoryStream *skmemory = new SkMemoryStream(data, len, true);
     free(data);
 
-    SkTypeface *tf = SkTypeface::CreateFromStream(skmemory);
+    sk_sp<SkTypeface> tf = SkTypeface::MakeFromStream(skmemory);
     if (tf == NULL) {
         delete skmemory;
         return false;
@@ -424,7 +424,7 @@ bool JSDocument::JS_loadFont(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
-SkTypeface *JSDocument::getFont(const char *name)
+sk_sp<SkTypeface> JSDocument::getFont(const char *name)
 {
     char *pTmp = strdup(name);
 
@@ -440,7 +440,7 @@ SkTypeface *JSDocument::getFont(const char *name)
         return font->m_Typeface;
     }
 
-    return NULL;
+    return sk_sp<SkTypeface>(nullptr);
 }
 // }}}
 

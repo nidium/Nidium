@@ -1459,7 +1459,7 @@ void SkiaContext::setFontStyle(const char *style)
 void SkiaContext::setFontType(const char *str, JSDocument *doc)
 {
     if (doc) {
-        SkTypeface *tf = doc->getFont(str);
+        sk_sp<SkTypeface> tf = doc->getFont(str);
         if (tf) {
             PAINT->setTypeface(tf);
             PAINT_STROKE->setTypeface(tf);
@@ -1468,7 +1468,7 @@ void SkiaContext::setFontType(const char *str, JSDocument *doc)
         }
     }
     // JSDocument *jdoc = JSDocument::
-    SkTypeface *tf = SkTypeface::CreateFromName(str, SkTypeface::kNormal);
+    sk_sp<SkTypeface> tf = SkTypeface::MakeFromName(str, SkTypeface::kNormal);
     // Workarround for skia bug #1648
     // https://code.google.com/p/skia/issues/detail?id=1648
     if (tf == NULL) {
@@ -1478,8 +1478,6 @@ void SkiaContext::setFontType(const char *str, JSDocument *doc)
 
     PAINT->setTypeface(tf);
     PAINT_STROKE->setTypeface(tf);
-
-    tf->unref();
 }
 
 bool SkiaContext::setFontFile(const char *str)
@@ -1503,7 +1501,7 @@ bool SkiaContext::setFontFile(const char *str)
     SkMemoryStream *skmemory = new SkMemoryStream(data, len, true);
     free(data);
 
-    SkTypeface *tf = SkTypeface::CreateFromStream(skmemory);
+    sk_sp<SkTypeface> tf = SkTypeface::MakeFromStream(skmemory);
     if (tf == NULL) {
         delete skmemory;
         return false;
@@ -1511,8 +1509,6 @@ bool SkiaContext::setFontFile(const char *str)
 
     PAINT->setTypeface(tf);
     PAINT_STROKE->setTypeface(tf);
-
-    tf->unref();
 
     return true;
 }
