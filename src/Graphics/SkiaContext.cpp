@@ -679,7 +679,7 @@ void SkiaContext::stroke()
 
     if (shader.get() != nullptr) {
         sk_sp<SkShader> tmpShader = shader->makeWithLocalMatrix(m_Canvas->getTotalMatrix());
-        PAINT->setShader(tmpShader);
+        PAINT_STROKE->setShader(tmpShader);
     }
 
     /* The matrix was already applied point by point */
@@ -702,7 +702,7 @@ void SkiaContext::stroke()
     m_Canvas->restore();
 
     if (shader.get() != nullptr) {
-        PAINT->setShader(shader);
+        PAINT_STROKE->setShader(shader);
     }
 
     CANVAS_FLUSH();
