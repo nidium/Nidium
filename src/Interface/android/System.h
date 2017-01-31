@@ -3,10 +3,11 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef interface_linux_system_h__
-#define interface_linux_system_h__
+#ifndef interface_android_system_h__
+#define interface_android_system_h__
 
 #include "SystemInterface.h"
+#include <jnipp.h>
 
 namespace Nidium {
 namespace Interface {
@@ -14,7 +15,7 @@ namespace Interface {
 class System : public SystemInterface
 {
 public:
-    System();
+    System(JNIEnv *env, jobject cx);
     ~System();
     float backingStorePixelRatio();
     const char *getCacheDirectory();
@@ -26,9 +27,20 @@ public:
     void sendNotification(const char *title, const char *content, bool sound);
     const char *execute(const char *cmd);
 
+    int getSurfaceWidth();
+    int getSurfaceHeight();
+
 private:
-    bool m_SystemUIReady;
-    char *m_EmbedPath;
+    jnipp::GlobalRef<jnipp::Object> m_Nidroid;
+    jnipp::GlobalRef<jnipp::Class> m_NidroidClass;
+
+    jnipp::Env::Scope *m_JNIScope = nullptr;
+
+    float m_PixelRatio      = 1;
+    char *m_Language        = nullptr;
+    char *m_UserDirectory   = nullptr;
+    char *m_CacheDirectory  = nullptr;
+    char *m_EmbedDirectory  = nullptr;
 };
 
 } // namespace Interface

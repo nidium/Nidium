@@ -12,12 +12,19 @@
             '<(nidium_network_path)/gyp/network.gyp:*',
             'third-party/SDL2-android.gyp:*',
         ],
+        'include_dirs': [
+            '<(third_party_path)/jnipp/'
+        ],
         'includes': [
             'interface.gypi',
         ],
         'ldflags': [
             '-L../../<(nidium_output_third_party_path)',
 			'-static-libstdc++'
+        ],
+        'defines':[
+            'JNIPP_USE_TYPE_TRAITS',
+            'JNIPP_THREAD_LOCAL_PTHREAD',
         ],
         'link_settings': {
             'libraries!': [

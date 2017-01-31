@@ -12,42 +12,46 @@
 
 #include "AndroidUIInterface.h"
 #include "System.h"
-#include <SDL_main.h>
-
-#define LOG_TAG "Nidroid"
-#define LOGI(...)  __android_log_print(ANDROID_LOG_INFO, LOG_TAG,__VA_ARGS__)
-#define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG,__VA_ARGS__)
-#define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#include <SDL.h>
 
 unsigned long _ape_seed;
 
 namespace Nidium {
 namespace Interface {
-    SystemInterface *SystemInterface::_interface = new System();
+    SystemInterface *SystemInterface::_interface = nullptr;
     UIInterface *__NidiumUI;
 }
 }
 
+using namespace Nidium::Interface;
+
+// Called before SDL_main, used to setup System class for Nidium
+extern "C" void Java_com_nidium_android_Nidroid_nidiumInit(JNIEnv *env, jobject thiz, jobject nidroid)
+{
+    SystemInterface::_interface = new System(env, nidroid);
+}
+
+
 // Entry point called by SDL
 int main(int argc, char **argv)
 {
-    LOGI("Hello android");
-    Nidium::Interface::AndroidUIInterface UI;
-    Nidium::Interface::__NidiumUI = &UI;
+    AndroidUIInterface UI;
+    __NidiumUI = &UI;
 
     _ape_seed = time(NULL) ^ (getpid() << 16);
 
-    const char *nml = "http://p.nf/android.nml";
+    
+    const char *userDir = SystemInterface::GetInstance()->getUserDirectory();
+    char nml[2048];
+    snprintf(nml, 2048, "%s/%s", userDir, "nidium/foo.nml");
 
     UI.setArguments(argc, argv);
 
-    LOGI("RUN");
     if (!UI.runApplication(nml)) {
-    LOGI("Run failed");
+        LOGE("Failed to run nidium application");
         return 0;
     }
 
-    LOGI("starting loop");
     UI.runLoop();
 
     return 0;

@@ -19,92 +19,82 @@
 #include <libgen.h>
 #include <string>
 
+#include <SDL.h>
+
 namespace Nidium {
 namespace Interface {
 
 // {{{ System
-System::System() : m_SystemUIReady(false)
+System::System(JNIEnv *env, jobject nidroid) 
 {
-    char procPath[PATH_MAX];
-    char nidiumPath[PATH_MAX];
-    pid_t pid = getpid();
+    m_JNIScope = new jnipp::Env::Scope(env);
+    jnipp::Ref<jnipp::Object> nidroidRef(nidroid);
+    
+    m_Nidroid.set(nidroidRef);
+    m_NidroidClass.set(nidroidRef->getClass());
 
-    sprintf(procPath, "/proc/%d/exe", pid);
+    jnipp::StaticMethod<jdouble> getPixelRatio(m_NidroidClass, "getPixelRatio", "()D");
+    jnipp::StaticMethod<jnipp::String> getUserDirectory(m_NidroidClass, "getUserDirectory", "()Ljava/lang/String;");
+    jnipp::StaticMethod<jnipp::String> getLanguage(m_NidroidClass, "getLanguage", "()Ljava/lang/String;");
+    jnipp::Method<jnipp::String> getCacheDirectory(m_NidroidClass, "getCacheDirectory", "()Ljava/lang/String;");
 
-    if (readlink(procPath, nidiumPath, PATH_MAX) == -1)
-        m_EmbedPath = nullptr;
-    else {
-        const char *embed = "src/Embed/";
-        char *dir         = dirname(dirname(nidiumPath));
-        size_t len        = strlen(dir) + strlen(embed) + 2;
+    m_PixelRatio = getPixelRatio();
+    m_UserDirectory = getUserDirectory()->str();
+    m_CacheDirectory = getCacheDirectory(m_Nidroid)->str();
+    m_Language = getLanguage()->str();
 
-        m_EmbedPath = static_cast<char *>(malloc(sizeof(char) * len));
-
-        snprintf(m_EmbedPath, len, "%s/%s", dir, embed);
-    }
+    static const char embedDir[] = "/nidium/Embed/";
+    size_t size = (strlen(m_UserDirectory) + strlen(embedDir) + 1);
+    m_EmbedDirectory = (char *)malloc(sizeof(char) * size);
+    snprintf(m_EmbedDirectory, size, "%s%s", m_UserDirectory, embedDir);
 }
 
 System::~System()
 {
+    delete m_JNIScope;
+    free(m_CacheDirectory);
+    free(m_UserDirectory);
 }
 
 float System::backingStorePixelRatio()
 {
-    return 1;
+    return m_PixelRatio;
 }
 
 const char *System::getEmbedDirectory()
 {
-    return m_EmbedPath;
-}
-
-const char *System::getCacheDirectory()
-{
-    const char *homedir = getUserDirectory();
-    char nHome[4096];
-
-    snprintf(nHome, 4096, "%s.config/nidium/", homedir);
-
-    if (mkdir(nHome, 0755) == -1 && errno != EEXIST) {
-        fprintf(stderr, "Cant create cache directory %s\n", nHome);
-        return NULL;
-    }
-
-    return strdup(nHome);
+    return m_EmbedDirectory;
 }
 
 const char *System::getUserDirectory()
 {
-    static char retHome[4096];
+    return m_UserDirectory;
+}
 
-    char *homedir = getenv("HOME");
-    if (!homedir) {
-        homedir = getpwuid(getuid())->pw_dir;
-        LOGD("homdir set to %s", homedir);
-    }
-
-    snprintf(retHome, 4096, "%s/", homedir);
-
-    return retHome;
+const char *System::getCacheDirectory()
+{
+    return m_CacheDirectory;
 }
 
 void System::alert(const char *message, AlertType type)
 {
-    LOGI("%s", message);
-#if 0
-    switch (type) {
-        case ALERT_WARNING:
-            break;
-        case ALERT_CRITIC:
-            break;
-        case ALERT_INFO:
-            break;
-        default:
-            break;
-    }
-#endif
+    jnipp::LocalRef<jnipp::String> jMessage(jnipp::String::create(message));
+    static jnipp::Method<void, jnipp::String, jint> alert(m_NidroidClass, "alert", "(Ljava/lang/String;I)V");
+
+    alert(m_Nidroid, jMessage, type);
 }
 
+int System::getSurfaceWidth()
+{
+    static jnipp::Method<jint> getSurfaceWidth(m_NidroidClass, "getSurfaceWidth", "()I");
+    return getSurfaceWidth(m_Nidroid);
+}
+
+int System::getSurfaceHeight()
+{
+    static jnipp::Method<jint> getSurfaceHeight(m_NidroidClass, "getSurfaceHeight", "()I");
+    return getSurfaceHeight(m_Nidroid);
+}
 
 const char *System::cwd()
 {
@@ -116,13 +106,18 @@ const char *System::cwd()
 }
 const char *System::getLanguage()
 {
-    return nullptr;
+    return m_Language;
 }
 
 void System::sendNotification(const char *title,
                               const char *content,
                               bool sound)
 {
+    jnipp::LocalRef<jnipp::String> jTitle(jnipp::String::create(title));
+    jnipp::LocalRef<jnipp::String> jContent(jnipp::String::create(content));
+    static jnipp::Method<void, jnipp::String, jnipp::String> notify(m_NidroidClass, "notify", "(Ljava/lang/String;Ljava/lang/String;)V");
+
+    notify(m_Nidroid, jTitle, jContent);
 }
 
 const char *System::execute(const char *cmd)

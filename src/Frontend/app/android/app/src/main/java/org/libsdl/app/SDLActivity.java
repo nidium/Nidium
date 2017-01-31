@@ -20,6 +20,8 @@ import android.graphics.*;
 import android.media.*;
 import android.hardware.*;
 
+import com.nidium.android.Nidroid;
+
 
 /**
     SDL Activity
@@ -37,6 +39,7 @@ public class SDLActivity extends Activity {
     protected static View mTextEdit;
     protected static ViewGroup mLayout;
     protected static SDLJoystickHandler mJoystickHandler;
+    public static Nidroid mNidroid;
 
     // This is what SDL runs in. It invokes SDL_main(), eventually
     protected static Thread mSDLThread;
@@ -69,6 +72,7 @@ public class SDLActivity extends Activity {
         mIsPaused = false;
         mIsSurfaceReady = false;
         mHasFocus = true;
+        mNidroid = null;
     }
 
     // Setup
@@ -504,12 +508,18 @@ public class SDLActivity extends Activity {
     Simple nativeInit() runnable
 */
 class SDLMain implements Runnable {
+    SDLSurface mView;
+    public SDLMain(SDLSurface view) {
+        mView = view;
+    }
     @Override
     public void run() {
+        Nidroid n = new Nidroid(mView);
+        Nidroid.nidiumInit(n);
+
         // Runs SDL_main()
         SDLActivity.nativeInit();
-
-        //Log.v("SDL", "SDL thread terminated");
+        Log.v("SDL", "SDL thread terminated");
     }
 }
 
@@ -639,7 +649,7 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
             // This is the entry point to the C app.
             // Start up the C app thread and enable sensor input for the first time
 
-            SDLActivity.mSDLThread = new Thread(new SDLMain(), "SDLThread");
+            SDLActivity.mSDLThread = new Thread(new SDLMain(this), "SDLThread");
             enableSensor(Sensor.TYPE_ACCELEROMETER, true);
             SDLActivity.mSDLThread.start();
             

@@ -19,24 +19,9 @@
 
 namespace Nidium {
 namespace Interface {
-
-
-// {{{ Functions
-#if 0
-static Window *AndroidUIInterface(SDL_Window *m_Win)
-{
-    SDL_SysWMinfo info;
-    SDL_VERSION(&info.version);
-    SDL_GetWindowWMInfo(m_Win, &info);
-
-    return static_cast<Window*>(info.info.x11.window);
-}
-#endif
-// }}}
-
 // {{{ AndroidUIInterface
 AndroidUIInterface::AndroidUIInterface()
-    : UIInterface(), m_Mainjs({ 0, 0, 0 }), m_Console(NULL)
+    : UIInterface(), m_Console(NULL)
 {
 }
 
@@ -55,6 +40,15 @@ void AndroidUIInterface::setGLContextAttribute()
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 
+}
+
+bool AndroidUIInterface::createWindow(int width, int height)
+{
+    // Android has a fixed window size, so we ignore the width/height given
+    // (that comes from the NML) and set the size to the size of the view
+    System *sys = static_cast<System *>(SystemInterface::GetInstance());
+    double pr = sys->backingStorePixelRatio();
+    return UIInterface::createWindow((sys->getSurfaceWidth()/pr) + 1, (sys->getSurfaceHeight()/pr) + 1);
 }
 
 void AndroidUIInterface::quitApplication()

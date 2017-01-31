@@ -7,6 +7,7 @@
 #define interface_linux_x11uiinterface_h__
 
 #include "UIInterface.h"
+#include <jnipp.h>
 
 namespace Nidium {
 namespace Interface {
@@ -45,26 +46,12 @@ public:
                         void *arg,
                         int flags = 0) override;
     void setGLContextAttribute() override;
+    bool createWindow(int width, int height) override;
 
     DummyConsole *getConsole(bool create = false, bool *created = NULL) override
     {
         return m_Console;
     }
-
-    /*
-    struct {
-        CGRect closeFrame;
-        CGRect zoomFrame;
-        CGRect minFrame;
-    } m_Controls;
-    */
-
-    struct
-    {
-        char *buf;
-        size_t len;
-        size_t offset;
-    } m_Mainjs;
 
 protected:
     void renderSystemTray() {};
