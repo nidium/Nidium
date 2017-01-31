@@ -375,7 +375,7 @@ int SkiaContext::bindOnScreen(int width, int height)
 
     float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
-    GrContext *gr = SkiaContext::m_Surface->getCanvas()->getGrContext();
+    GrContext *gr = SkiaContext::m_GlSurface->getCanvas()->getGrContext();
 
     m_Surface = createNewGPUSurface(gr, width * ratio, height * ratio);
 
