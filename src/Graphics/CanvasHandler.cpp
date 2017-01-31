@@ -1310,7 +1310,7 @@ void CanvasHandler::onMouseEvent(InputEvent *ev)
         default:
             break;
     }
-    printf("Mouse move to %ld\n", this->getIdentifier());
+
     Nidium::Interface::__NidiumUI->setCursor(
         (UIInterface::CURSOR_TYPE) this->getCursor());
 }
