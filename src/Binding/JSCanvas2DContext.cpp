@@ -1760,6 +1760,12 @@ void Canvas2DContext::resetSkiaContext(uint32_t flag)
 {
     GrContext *context = m_Skia->getCanvas()->getGrContext();
 
+#ifdef DEBUG
+    context->resetContext(kAll_GrBackendState);
+
+    return;
+#endif
+
     if (flag == 0) {
         flag = kProgram_GrGLBackendState | kTextureBinding_GrGLBackendState
                | kVertex_GrGLBackendState | kView_GrGLBackendState
@@ -1829,7 +1835,9 @@ void Canvas2DContext::setVertexDeformation(uint32_t vertex, float x, float y)
 
 uint32_t Canvas2DContext::getTextureID() const
 {
-    return m_Skia->getSurface()->getTextureHandle(SkSurface::kFlushRead_BackendHandleAccess);
+    GrGLTextureInfo *glinfo = (GrGLTextureInfo *)m_Skia->getSurface()->getTextureHandle(SkSurface::kFlushRead_BackendHandleAccess);
+
+    return glinfo->fID;
 }
 
 void Canvas2DContext::flush()
@@ -1847,6 +1855,7 @@ void Canvas2DContext::getSize(int *width, int *height) const
 
 void Canvas2DContext::setSize(int width, int height, bool redraw)
 {
+    printf("Set size not implemeted\n");
 #if 0
     SkCanvas *ncanvas;
 

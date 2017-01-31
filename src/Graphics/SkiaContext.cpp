@@ -379,6 +379,11 @@ int SkiaContext::bindOnScreen(int width, int height)
 
     m_Surface = createNewGPUSurface(gr, width * ratio, height * ratio);
 
+    if (m_Surface == nullptr) {
+        printf("Cant create new surface\n");
+        return 0;
+    }
+
     this->scale(ratio, ratio);
 
     m_GlobalAlpha = 255;
