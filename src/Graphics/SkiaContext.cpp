@@ -1381,7 +1381,15 @@ void SkiaContext::drawPixels(
     SkBitmap bt;
     SkPaint pt;
 
-    bt.setConfig(SkBitmap::kARGB_8888_Config, width, height, width * 4);
+    // XXX Not sure about the alphatype
+    SkImageInfo info = SkImageInfo::Make(width, height,
+        kN32_SkColorType, kUnknown_SkAlphaType);
+
+    // XXX Is the rowByte parameter needed?
+    if (!bt.setInfo(info, width * 4)) {
+        printf("Error, setInfo() failed\n");
+        return;
+    }
 
     bt.setIsVolatile(true);
     bt.installPixels(SkImageInfo::Make(width, height, kRGBA_8888_SkColorType,

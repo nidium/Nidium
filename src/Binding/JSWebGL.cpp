@@ -2386,7 +2386,7 @@ bool JSWebGLRenderingContext::JS_texImage2D(JSContext *cx, JS::CallArgs &args)
             internalFormat = NGL_RGBA;
 
             pixels
-                = (unsigned char *)malloc(nimg->getImage()->m_Image->getSize());
+                = (unsigned char *)malloc(nimg->getImage()->getSize());
 
             if (!Image::ConvertToRGBA(
                     nimg->getImage(), pixels,

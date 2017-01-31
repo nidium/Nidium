@@ -1970,13 +1970,16 @@ void Canvas2DContext::setScale(double x, double y, double px, double py)
 uint8_t *Canvas2DContext::getPixels()
 {
     this->flush();
+    printf("Get Pixel unimplemented\n");
 
-    
+    return nullptr;
+#if 0
 
     return (uint8_t *)m_Skia->getCanvas()
         ->getDevice()
         ->accessBitmap(false)
         .getPixels();
+#endif
 }
 
 Canvas2DContext::~Canvas2DContext()
