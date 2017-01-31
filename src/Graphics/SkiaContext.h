@@ -31,6 +31,7 @@ namespace Graphics {
 class Image;
 class Gradient;
 class ShadowLooper;
+class GLContext;
 
 typedef uint32_t SkPMColor;
 typedef uint32_t SkColor;
@@ -81,6 +82,8 @@ class SkiaContext
 private:
     void initPaints();
     void addPath(const SkPath &path, SkPath *to);
+    static GrContext *CreateGrContext(GLContext *glcontext);
+
     sk_sp<ShadowLooper> buildShadow();
 
     struct _State *m_State;

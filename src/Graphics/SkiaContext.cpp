@@ -14,6 +14,9 @@
 #include <unistd.h>
 #include <math.h>
 
+#define NIDIUM_SKIA_CACHE_MAX_RESOURCES 4096
+#define NIDIUM_SKIA_CACHE_MAX_BYTES (256 * 1024 * 1024)
+
 #if defined(__linux__) && !defined(UINT32_MAX)
 #define UINT32_MAX 4294967295u
 #endif
@@ -47,6 +50,26 @@ namespace Nidium {
 namespace Graphics {
 
 SkSurface *SkiaContext::m_GlSurface = nullptr;
+
+
+static struct _nidium_blend_mode
+{
+    const char *str;
+    SkBlendMode mode;
+} nidium_blend_mode[] = { { "source-over", SkBlendMode::kSrcOver},
+                          { "source-in", SkBlendMode::kSrcIn},
+                          { "source-out", SkBlendMode::kSrcOut},
+                          { "source-atop", SkBlendMode::kSrcATop},
+                          { "destination-over", SkBlendMode::kDstOver},
+                          { "destination-in", SkBlendMode::kDstIn},
+                          { "destination-out", SkBlendMode::kDstOut},
+                          { "destination-atop", SkBlendMode::kDstATop},
+                          { "lighter", SkBlendMode::kPlus},
+                          { "darker", SkBlendMode::kDarken},
+                          { "copy", SkBlendMode::kSrc},
+                          { "xor", SkBlendMode::kXor},
+                          { "lighten", SkBlendMode::kColorDodge},
+                          { NULL, SkBlendMode::kSrcOver} };
 
 // {{{ Static funcs and macros
 //#define CANVAS_FLUSH() canvas->flush()
@@ -409,6 +432,28 @@ void glcb(const GrGLInterface *)
     printf("Got a gl call\n");
 }
 
+GrContext *SkiaContext::CreateGrContext(GLContext *glcontext)
+{
+    const GrGLInterface *interface = nullptr;
+    GrContext *context             = nullptr;
+
+    if ((interface = glcontext->iface()) == nullptr) {
+        NUI_LOG("Cant get OpenGL interface");
+        return nullptr;
+    }
+
+    context = GrContext::Create(kOpenGL_GrBackend, (GrBackendContext)interface);
+
+    if (context == nullptr) {
+        return nullptr;
+    }
+
+    context->setResourceCacheLimits(NIDIUM_SKIA_CACHE_MAX_RESOURCES, 
+        NIDIUM_SKIA_CACHE_MAX_BYTES);
+
+    return context;
+}
+
 
 /*
     Create base GL surface (backed by the screen buffer [fbo 0])
@@ -417,7 +462,7 @@ sk_sp<SkSurface> SkiaContext::CreateGLSurface(int width, int height, Context *nc
 {
     if (!nctx) {
         NUI_LOG("CreateGLCanvas() : invalid nidium context");
-        return NULL;
+        return nullptr;
     }
 
     GrContext *context             = NULL;
@@ -427,22 +472,11 @@ sk_sp<SkSurface> SkiaContext::CreateGLSurface(int width, int height, Context *nc
         
         context->ref();
     } else {
-        const GrGLInterface *interface = NULL;
-
-        if ((interface = nctx->getGLState()->getNidiumGLContext()->iface())
-            == NULL) {
-            NUI_LOG("Cant get OpenGL interface");
-            return NULL;
+        context = SkiaContext::CreateGrContext(nctx->getGLState()->getNidiumGLContext());
+        if (!context) {
+            NUI_LOG("Cant create GrContext");
+            return nullptr;
         }
-
-        context
-            = GrContext::Create(kOpenGL_GrBackend, (GrBackendContext)interface);
-
-        if (context == NULL) {
-            return NULL;
-        }
-
-        context->setResourceCacheLimits(4096, 256 * 1024 * 1024);
     }
     float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
@@ -554,25 +588,6 @@ sk_sp<ShadowLooper> SkiaContext::buildShadow()
                                 SkBlurDrawLooper::kIgnoreTransform_BlurFlag
                                     | SkBlurDrawLooper::kHighQuality_BlurFlag);
 }
-
-static struct _nidium_blend_mode
-{
-    const char *str;
-    SkBlendMode mode;
-} nidium_blend_mode[] = { { "source-over", SkBlendMode::kSrcOver},
-                          { "source-in", SkBlendMode::kSrcIn},
-                          { "source-out", SkBlendMode::kSrcOut},
-                          { "source-atop", SkBlendMode::kSrcATop},
-                          { "destination-over", SkBlendMode::kDstOver},
-                          { "destination-in", SkBlendMode::kDstIn},
-                          { "destination-out", SkBlendMode::kDstOut},
-                          { "destination-atop", SkBlendMode::kDstATop},
-                          { "lighter", SkBlendMode::kPlus},
-                          { "darker", SkBlendMode::kDarken},
-                          { "copy", SkBlendMode::kSrc},
-                          { "xor", SkBlendMode::kXor},
-                          { "lighten", SkBlendMode::kColorDodge},
-                          { NULL, SkBlendMode::kSrcOver} };
 
 void SkiaContext::beginPath()
 {
