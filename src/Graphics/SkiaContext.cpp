@@ -1711,7 +1711,7 @@ void SkiaContext::setCanvas(SkCanvas *canvas)
         Define wether it's still needed.
         It's currently used for resizing
     */
-    SkRefCnt_SafeAssign(m_Canvas, canvas);
+    //SkRefCnt_SafeAssign(m_Canvas, canvas);
 }
 
 // }}}

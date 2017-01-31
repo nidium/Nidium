@@ -74,6 +74,11 @@ const uint8_t *Image::getPixels(size_t *len)
     return 0;
 }
 
+uint32_t Image::getSize() const
+{
+    return m_Image->width() * m_Image->width() * 4;
+}
+
 SkData *Image::getPNG()
 {
 #if 0

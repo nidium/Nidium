@@ -10,6 +10,7 @@
 #include <strings.h>
 
 #include <SkDevice.h>
+#include <GrContext.h>
 
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSImageData.h"
@@ -1828,7 +1829,7 @@ void Canvas2DContext::setVertexDeformation(uint32_t vertex, float x, float y)
 
 uint32_t Canvas2DContext::getTextureID() const
 {
-    return m_Skia->getSurface()->getTextureHandle(kFlushRead_BackendHandleAccess);
+    return m_Skia->getSurface()->getTextureHandle(SkSurface::kFlushRead_BackendHandleAccess);
 }
 
 void Canvas2DContext::flush()
@@ -1846,6 +1847,7 @@ void Canvas2DContext::getSize(int *width, int *height) const
 
 void Canvas2DContext::setSize(int width, int height, bool redraw)
 {
+#if 0
     SkCanvas *ncanvas;
 
     float ratio
@@ -1901,6 +1903,7 @@ void Canvas2DContext::setSize(int width, int height, bool redraw)
     if (m_Skia->m_CanvasBindMode == SkiaContext::BIND_GL) {
         m_Skia->drawRect(0, 0, 1, 1, 0);
     }
+#endif
 }
 
 void Canvas2DContext::translate(double x, double y)
@@ -1967,6 +1970,8 @@ void Canvas2DContext::setScale(double x, double y, double px, double py)
 uint8_t *Canvas2DContext::getPixels()
 {
     this->flush();
+
+    
 
     return (uint8_t *)m_Skia->getCanvas()
         ->getDevice()

@@ -22,7 +22,6 @@ class Image
 public:
     int m_IsCanvas;
     //sk_sp<SkCanvas> m_CanvasRef;
-    SkBitmap *m_ImageBitmap = nullptr;
     sk_sp<SkImage> m_Image;
 #if 0
     SkImage *fixedImg;
@@ -32,6 +31,8 @@ public:
     Image(void *data, int width, int height);
 
     SkData *getPNG();
+
+    uint32_t getSize() const;
 
     SkBitmap *getBitmap() {
         if (m_ImageBitmap) {
@@ -59,6 +60,8 @@ public:
 
     int getWidth();
     int getHeight();
+private:
+    SkBitmap *m_ImageBitmap = nullptr;
 };
 
 } // namespace Graphics
