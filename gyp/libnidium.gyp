@@ -120,6 +120,9 @@
                  ],
                  'defines': [ 'NIDIUM_WEBGL_ENABLED' ],
             }],
+            ['nidium_gl_debug==1', {
+                 'defines': [ 'NIDIUM_ENABLE_GL_ERROR' ],
+            }],
         ],
         'sources': [
             '<(nidium_src_path)/Frontend/App.cpp',

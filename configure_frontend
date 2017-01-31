@@ -317,6 +317,20 @@ def testStudio(unitTests):
 
     Tests.register(tests)
 
+@CommandLine.option("--debug-opengl", default=False)
+def glDebug(debug):
+    if not debug:
+        return
+
+    Gyp.set("nidium_gl_debug", 1);
+
+@CommandLine.option("--debug")
+def debug(debug):
+    if not debug:
+        return
+
+    glDebug(True)
+
 Konstruct.setConfigs(["skia-update"])
 
 Build.add(Gyp("gyp/all.gyp"));
