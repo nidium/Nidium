@@ -1,0 +1,45 @@
+# Nidium use an ndk toolchain but skia expect ndk-bundle, also nidium use llvm-libc++ but skia is using gnu-libstdc++
+# This patch remove the unnecesary include flags and set the correct flag for linking with llvm-libc++
+diff --git a/gn/BUILD.gn b/gn/BUILD.gn
+index ec3a1f1ee3..65201b6218 100644
+--- skia/gn/BUILD.gn
++++ skia/gn/BUILD.gn
+@@ -152,37 +152,11 @@ config("default") {
+   if (is_android) {
+     asmflags += [
+       "--target=$ndk_target",
+-      "-B$ndk/toolchains/$ndk_gccdir-4.9/prebuilt/$ndk_host/$ndk_target/bin",
+-    ]
+-    cflags += [
+-      "--sysroot=$ndk/platforms/$ndk_platform",
+-      "--target=$ndk_target",
+-      "-B$ndk/toolchains/$ndk_gccdir-4.9/prebuilt/$ndk_host/$ndk_target/bin",
+-    ]
+-    cflags_cc += [
+-      "-isystem$ndk/sources/android/support/include",
+-      "-isystem$ndk/sources/cxx-stl/gnu-libstdc++/4.9/include",
+-      "-isystem$ndk/sources/cxx-stl/gnu-libstdc++/4.9/libs/$ndk_stdlib/include",
+     ]
+     ldflags += [
+-      "--sysroot=$ndk/platforms/$ndk_platform",
+       "--target=$ndk_target",
+-      "-B$ndk/toolchains/$ndk_gccdir-4.9/prebuilt/$ndk_host/$ndk_target/bin",
++      "-static-libstdc++",
+     ]
+-    lib_dirs = [
+-      "$ndk/sources/cxx-stl/gnu-libstdc++/4.9/libs/$ndk_stdlib",
+-      "$ndk/toolchains/$ndk_gccdir-4.9/prebuilt/$ndk_host/lib/gcc/$ndk_target/4.9.x",
+-    ]
+-
+-    if (current_cpu == "mips64el") {
+-      # The r13 NDK omits /usr/lib from the MIPS64 sysroots, but Clang searches
+-      # for /usr/lib64 as $PATH_TO_USR_LIB/../lib64.  If there's no /usr/lib,
+-      # it can't find /usr/lib64.  We must point Clang at /usr/lib64 manually.
+-      lib_dirs += [ "$ndk/platforms/$ndk_platform/usr/lib64" ]
+-      ldflags += [ "-B$ndk/platforms/$ndk_platform/usr/lib64" ]
+-    }
+-
+-    libs += [ "gnustl_static" ]
+   }
+ 
+   if (is_ios) {
