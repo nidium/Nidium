@@ -47,6 +47,7 @@ public:
                         int flags = 0) override;
     void setGLContextAttribute() override;
     bool createWindow(int width, int height) override;
+    void handleEvent(const SDL_Event *ev) override;
 
     DummyConsole *getConsole(bool create = false, bool *created = NULL) override
     {
@@ -61,6 +62,7 @@ protected:
 
 private:
     DummyConsole *m_Console;
+    int toLogicalSize(int physicalSize);
 };
 // }}}
 
