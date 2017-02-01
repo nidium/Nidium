@@ -10,14 +10,9 @@
 #include <stdlib.h>
 
 #include "Graphics/CanvasHandler.h"
+#include "Graphics/ShadowLooper.h"
 
-#ifdef __ANDROID__
-// For compatibility reason with chromium on Android skia does
-// not define these two functions (see SK_SCALAR_TO_FLOAT_EXCLUDED)
-// since on Android SkScalar are float we can create a passthrough macro
-#define SkScalarToFloat(n)      (n)
-#define SkFloatToScalar(n)      (n)
-#endif
+#include <SkSurface.h>
 
 class SkCanvas;
 class SkPaint;
@@ -36,6 +31,7 @@ namespace Graphics {
 class Image;
 class Gradient;
 class ShadowLooper;
+class GLContext;
 
 typedef uint32_t SkPMColor;
 typedef uint32_t SkColor;
@@ -84,20 +80,23 @@ struct _State
 class SkiaContext
 {
 private:
-    struct _State *m_State;
+    void initPaints();
+    void addPath(const SkPath &path, SkPath *to);
+    static GrContext *CreateGrContext(GLContext *glcontext);
 
+    sk_sp<ShadowLooper> buildShadow();
+
+    struct _State *m_State;
     SkPaint *m_PaintSystem;
     SkPath *m_CurrentPath;
     uint8_t m_GlobalAlpha;
     uint8_t m_AsComposite;
     SkBitmap *m_Screen;
     Shadow_t m_CurrentShadow;
-    ShadowLooper *buildShadow();
-    SkCanvas *m_Canvas;
-    void initPaints();
-    void addPath(const SkPath &path, SkPath *to);
+    sk_sp<SkSurface> m_Surface;
     bool m_Debug;
     double m_FontSkew;
+
 
 public:
     ~SkiaContext();
@@ -114,11 +113,15 @@ public:
     friend class CanvasHandler;
     friend class JSCanvas;
 
-    static SkCanvas *m_GlContext;
+    static SkSurface *m_GlSurface;
 
     SkCanvas *getCanvas() const
     {
-        return m_Canvas;
+        return m_Surface->getCanvas();
+    }
+
+    sk_sp<SkSurface> getSurface() {
+        return m_Surface;
     }
 
     static void GetStringColor(uint32_t color, char *out);
@@ -128,6 +131,7 @@ public:
     */
     void setCanvas(SkCanvas *canvas);
     SkGpuDevice *createNewGPUDevice(GrContext *gr, int width, int height);
+    sk_sp<SkSurface> createNewGPUSurface(GrContext *gr, int width, int height);
 
     double breakText(const char *str,
                      size_t len,
@@ -135,8 +139,8 @@ public:
                      double maxWidth,
                      int *length = NULL);
     int bindOnScreen(int width, int height);
-    static SkCanvas *
-    CreateGLCanvas(int width, int height, Frontend::Context *nctx);
+    static sk_sp<SkSurface>
+        CreateGLSurface(int width, int height, Frontend::Context *nctx);
     int bindGL(int width, int height, Frontend::Context *nctx);
     void flush();
     void unlink();
@@ -207,7 +211,7 @@ public:
     void setShadowOffsetY(double y);
     void setShadowBlur(double blur);
     void setShadowColor(const char *str);
-    void setSmooth(bool val, const int level = 1);
+    void setSmooth(bool val, const int quality = 1);
     void setFontSize(double size);
     void setFontStyle(const char *style);
     void setFontSkew(double val)
@@ -227,7 +231,7 @@ public:
     void setGlobalComposite(const char *str);
     void setLineCap(const char *capStyle);
     void setLineJoin(const char *joinStyle);
-    void setFontType(char *str, Binding::JSDocument *doc = NULL);
+    void setFontType(const char *str, Binding::JSDocument *doc = NULL);
     bool setFontFile(const char *str);
 
     void clearRect(double, double, double, double);
@@ -236,7 +240,6 @@ public:
     void beginPath();
     void moveTo(double x, double y);
     void lineTo(double x, double y);
-    void light(double x, double y, double z);
     void fill();
     void stroke();
     void closePath();

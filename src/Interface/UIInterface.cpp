@@ -246,9 +246,9 @@ int UIInterface::HandleEvents(void *arg)
         NUII->m_NidiumCtx->getNJS()->gc();
     }
 
-    if (NUII->m_CurrentCursor != UIInterface::NOCHANGE) {
+    if (NUII->m_CursorNeedsUpdate) {
         NUII->setSystemCursor(NUII->m_CurrentCursor);
-        NUII->m_CurrentCursor = UIInterface::NOCHANGE;
+        NUII->m_CursorNeedsUpdate = false;
     }
 
     if (NUII->isContextReady()) {
@@ -350,7 +350,11 @@ char *UIInterface::getClipboardText()
 
 void UIInterface::setCursor(CURSOR_TYPE type)
 {
-    this->m_CurrentCursor = type;
+    if (m_CurrentCursor != type) {
+        m_CursorNeedsUpdate = true;
+        m_CurrentCursor = type;
+        printf("set new cursor %d\n", type);
+    }
 }
 
 
@@ -640,6 +644,12 @@ void UIInterface::showWindow()
         APE_timer_setlowresolution(this->m_Gnet, 0);
     }
 }
+
+void UIInterface::hideCursor(bool state)
+{
+    SDL_ShowCursor(!state);
+}
+
 // }}}
 
 // {{{ SystemMenu

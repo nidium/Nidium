@@ -156,8 +156,9 @@ public:
     inline static void GLCallback(const GrGLInterface *interface)
     {
         //@TODO static_cast
-        GLContext *_this = (GLContext *)interface->fCallbackData;
-        _this->makeCurrent();
+        // XXX : GLCallback has been removed from skia. No alternative found yet
+        //GLContext *_this = (GLContext *)interface->fCallbackData;
+        //_this->makeCurrent();
     }
 
     const GrGLInterface *m_Interface;
@@ -176,8 +177,9 @@ private:
             exit(1);
         }
         // TODO: new style cast
-        ((GrGLInterface *)m_Interface)->fCallback = GLContext::GLCallback;
-        ((GrGLInterface *)m_Interface)->fCallbackData = (uintptr_t)(this);
+        // XXX : GLCallback has been removed from skia. No alternative found yet
+        //((GrGLInterface *)m_Interface)->fCallback = GLContext::GLCallback;
+        //((GrGLInterface *)m_Interface)->fCallbackData = (uintptr_t)(this);
     }
 
     SDL_GLContext m_SDLGLCtx;

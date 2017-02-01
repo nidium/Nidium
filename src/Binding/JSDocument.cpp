@@ -356,7 +356,7 @@ bool JSDocument::loadFont(const char *path,
     SkMemoryStream *skmemory = new SkMemoryStream(data, len, true);
     free(data);
 
-    SkTypeface *tf = SkTypeface::CreateFromStream(skmemory);
+    sk_sp<SkTypeface> tf = SkTypeface::MakeFromStream(skmemory);
     if (tf == NULL) {
         delete skmemory;
         return false;
@@ -424,21 +424,23 @@ bool JSDocument::JS_loadFont(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
-SkTypeface *JSDocument::getFont(char *name)
+sk_sp<SkTypeface> JSDocument::getFont(const char *name)
 {
-    char *pTmp = name;
+    char *pTmp = strdup(name);
 
-    while (*pTmp != '\0') {
-        *pTmp = tolower(*pTmp);
-        pTmp++;
+    for (int i = 0; name[i] != '\0'; i++) {
+        pTmp[i] = tolower(name[i]);
     }
 
-    NidiumFont *font = m_Fonts.get(name);
+    NidiumFont *font = m_Fonts.get(pTmp);
+
+    free(pTmp);
+
     if (font) {
         return font->m_Typeface;
     }
 
-    return NULL;
+    return sk_sp<SkTypeface>(nullptr);
 }
 // }}}
 

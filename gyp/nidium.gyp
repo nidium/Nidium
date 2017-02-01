@@ -44,18 +44,7 @@
                 ],
                 'link_settings': {
                     'libraries': [
-                        '-Wl,--start-group',
-                        '-lskia_images',
-                        '-lskia_sfnt',
-                        '-lskia_skgpu',
-                        '-lskia_utils',
-                        '-lskia_ports',
-                        '-lskia_core',
-                        '-lskia_effects',
-                        '-lskia_opts',
-                        '-lskia_opts_ssse3',
-                        '-Wl,--end-group',
-
+                        '-lskia',
                         '-ltranslator',
                         '-ltranslator_lib',
                         '-lpreprocessor',

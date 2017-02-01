@@ -563,6 +563,10 @@ void UICocoaInterface::setGLContextAttribute()
 
 void UICocoaInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
 {
+    if (cursorvalue != UIInterface::HIDDEN) {
+        this->hideCursor(false);
+    }
+
     switch(cursorvalue) {
         case UICocoaInterface::ARROW:
             [[NSCursor arrowCursor] set];
@@ -583,7 +587,7 @@ void UICocoaInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
             [[NSCursor resizeLeftRightCursor] set];
             break;
         case UICocoaInterface::HIDDEN:
-            SDL_ShowCursor(0);
+            this->hideCursor();
             break;
         default:
             break;

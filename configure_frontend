@@ -6,6 +6,7 @@
 
 import sys
 import os
+import json
 
 from konstructor import Deps
 from konstructor import CommandLine
@@ -55,7 +56,7 @@ def zitaresampler():
 @Deps.register("giflib")
 def giflib():
     # skdiff is used during unit-tests and it needs libgif.so.4
-    Platform.setEnviron("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:%s/giflib/lib/.libs/" % os.getcwd())
+    Platform.setEnviron("LD_LIBRARY_PATH=%s:%s/giflib/lib/.libs/" % (Platform.getEnviron("LD_LIBRARY_PATH", ""), os.getcwd()))
 
     env = Utils.Env()
     configure = "./configure"
@@ -76,16 +77,6 @@ def giflib():
     }
 
 
-def skiaAndroidGclientHook(gclientFile):
-    droidTarget = 'target_os = ["android"]'
-    with open(gclientFile, "a+") as gclientConfig:
-        data = gclientConfig.read()
-        if droidTarget in data:
-            pass
-        else:
-            Log.debug("Adding %s to skia config" % droidTarget)
-            gclientConfig.write(droidTarget)
-
 def skiaUpdateDemoAPPSDKVersion():
     import re
     with open(Deps.getDir() + "/skia/platform_tools/android/app/project.properties", "r+") as f:
@@ -99,103 +90,56 @@ def skiaUpdateDemoAPPSDKVersion():
 def skia():
     env = Utils.Env()
     build = []
-    gclientHook = None
     outputPath = None
     outputs = []
-    buildType = "Release"
-
-    env.set("BUILDTYPE", buildType)
+    args = {
+        "extra_cflags_cc": [
+            "-Wno-unused-function", 
+            "-Wno-array-bounds", 
+            "-Wno-return-local-addr", 
+            "-DGR_GL_CUSTOM_SETUP_HEADER=<../../../../../patch/skia_gl_config.h>"
+        ],
+        "is_official_build": True,
+        "cc": Platform.getEnviron("CC"),
+        "cxx": Platform.getEnviron("CXX")
+    }
 
     # depot_tools and skia needs python2.7 but use "python" as the default
     # interpreter which could be python3.x on some system. Workaround that
     # by using a custom python wrapper that will redirect to the correct python version
-    Platform.setEnviron("PATH=" + os.path.join(ROOT, "tools") + ":" + os.environ.get("PATH", ""))
-
-    # Fix warnings with clang3.7+
-    env.append("CPPFLAGS", "-Wno-sign-compare -Wno-undefined-bool-conversion")
-
-    # Use our local copy of zlib and giflib
-    env.append("CXXFLAGS", " -I%s -I%s" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/")))
-    env.append("LDFLAGS", "%s -L%s -L%s" % (
-                            os.environ.get("LDFLAGS", ""),
-                            os.path.join(Deps.getDir(), "zlib"),
-                            os.path.join(Deps.getDir(), "giflib/lib/.libs")))
+    env.set("PATH", os.path.join(ROOT, "tools") + ":" + Platform.getEnviron("PATH", ""))
 
     if Konstruct.config("android"):
-        Gyp.set("skia_resource_cache_mb_limit", 64)
-        env.set("ANDROID_TOOLCHAIN", "%s/bin/" % (Variables.get("toolchainPath")))
-        env.set("GYPE_DEFINES", "'skia_arch_width=64'")
+        androidEnv = Variables.get("androidEnvClang")
 
-        env.append("CPPFLAGS", "-Wno-tautological-compare -Wno-inconsistent-missing-override -Wno-unused-const-variable -Wno-deprecated-declarations -Wno-mismatched-tags -Wno-shift-negative-value")
+        args["cc"] = androidEnv.get("CC")
+        args["cxx"] = androidEnv.get("CXX")
+        #args["ar"] = androidEnv.get("AR")
+        #args["ranlib"] = androidEnv.get("RANLIB")
+        #args["ld"] = androidEnv.get("LD")
 
-        gclientHook = skiaAndroidGclientHook
+        args["ndk"] = Variables.get("androidNdkPath")
+        args["target_cpu"] = Variables.get("targetArch")
 
-        # Skia expect arm_v7 or arm which does not match the
-        # default naming for targetCpu. Fix that.
-        targetCpu = Variables.get("targetCpu")
-        if "arm" in targetCpu:
-            targetCpu = "arm_v7_thumb" if targetCpu == "armv7" else "arm_thumb"
-
-        build = [skiaUpdateDemoAPPSDKVersion, "./platform_tools/android/bin/android_ninja -v -d %s" % (targetCpu)]
-
-        outputPath = "out/config/android-%s/%s/" % (targetCpu, buildType)
-        outputs.append("%s/libskia_opts_neon.a" % (outputPath))
-        outputs.append("%s/libetc1.a" % (outputPath))
-        outputs.append("%s/libwebp_dec.a" % (outputPath))
-        outputs.append("%s/libwebp_enc.a" % (outputPath))
-        outputs.append("%s/libwebp_utils.a" % (outputPath))
-        outputs.append("%s/libwebp_dsp.a" % (outputPath))
-        outputs.append("%s/libwebp_dsp_neon.a" % (outputPath))
-        outputs.append("%s/libcpu_features.a" % (outputPath))
-        outputs.append("%s/libexpat.a" % (outputPath))
-        outputs.append("%s/libjpeg.a" % (outputPath))
-        outputs.append("%s/libpng.a" % (outputPath))
-        outputs.append("%s/libfreetype_static.a" % (outputPath))
-    else:
-        if Platform.wordSize == 64:
-            env.set("GYP_DEFINES", "'skia_arch_width=64 skia_osx_deployment_target=10.7'")
-        else:
-            env.set("GYP_DEFINES", "'skia_arch_width=32 skia_osx_deployment_target=10.7'")
-
-        Gyp.set("skia_resource_cache_mb_limit", 256)
-
-        build = ["./gyp_skia", "make tests", "make tools"]
-
-        outputPath = os.path.join("out", buildType)
-
-        outputs.append("%s/libskia_opts_ssse3.a" % (outputPath))
-        outputs.append({
-            "src": "%s/skdiff" % (outputPath),
-            "dst": os.path.join(ROOT, "tests", "jsunittest", "gr", "skdiff")
-        })
-
-    outputs.append("%s/libskia_pdf.a" % (outputPath))
-    outputs.append("%s/libskia_ports.a" % (outputPath))
-    outputs.append("%s/libskia_skgpu.a" % (outputPath))
-    outputs.append("%s/libskia_utils.a" % (outputPath))
-    outputs.append("%s/libskia_effects.a" % (outputPath))
-    outputs.append("%s/libskia_core.a" % (outputPath))
-    outputs.append("%s/libskia_sfnt.a" % (outputPath))
-    outputs.append("%s/libskia_images.a" % (outputPath))
-    outputs.append("%s/libskia_opts.a" % (outputPath))
+    skiaArgs = ""
+    for k, v in args.items():
+        skiaArgs += " %s=%s" % (k, json.dumps(v))
 
     return {
-        "location": Deps.Gclient("https://skia.googlesource.com/skia.git",
-            revision="ed4dc2afaa4285a6d10a16fca77d1b9cbe3083d3",
-            gclientFile=".gclient_skia",
-            hook=gclientHook),
-        "build": build,
-        "patchs": [
-            os.path.join(CONFIGURE_PATH, "patch", "skia_defines.patch"),
-            os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
-            os.path.join(CONFIGURE_PATH, "patch", "skia_python27.patch"),
-            os.path.join(CONFIGURE_PATH, "patch", "skia_clang.patch"),
-            os.path.join(CONFIGURE_PATH, "patch", "skia_jsoncpp.patch"),
-            os.path.join(CONFIGURE_PATH, "patch", "skia_zlib_osx.patch"),
-            os.path.join(CONFIGURE_PATH, "patch", "skia_clang_android.patch"),
-            os.path.join(CONFIGURE_PATH, "patch", "skia_disable_thin_archive.patch")
+        "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", revision="98829b9"),
+        "build": [
+            "python tools/git-sync-deps",
+            "bin/gn gen out/Static --args='%s'" % (skiaArgs),
+            "ninja %s -C out/Static" % ("-v" if Variables.get("verbose") else ""),
         ],
-        "outputs": outputs,
+        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch")],
+        "outputs": [
+            "out/Static/libskia.a",
+            {
+                "src": "out/Static/skdiff",
+                "dst": os.path.join(ROOT, "tests", "jsunittest", "gr", "skdiff")
+            }
+        ],
         "env": env
     }
 
@@ -434,6 +378,20 @@ def frontendAndroid(android):
 
     Gyp.set("nidium_opengles2", 1)
     Gyp.set("nidium_audio", 0)
+
+@CommandLine.option("--debug-opengl", default=False)
+def glDebug(debug):
+    if not debug:
+        return
+
+    Gyp.set("nidium_gl_debug", 1);
+
+@CommandLine.option("--debug")
+def debug(debug):
+    if not debug:
+        return
+
+    glDebug(True)
 
 Build.add(Gyp("gyp/all.gyp"));
 

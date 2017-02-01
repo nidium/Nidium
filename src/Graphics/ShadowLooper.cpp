@@ -9,7 +9,8 @@
 
 #include <SkBlurMaskFilter.h>
 #include <SkCanvas.h>
-#include <SkFlattenableBuffers.h>
+#include <SkReadBuffer.h>
+#include <SkWriteBuffer.h>
 #include <SkColorPriv.h>
 #include <SkStringUtils.h>
 
@@ -30,17 +31,6 @@ ShadowLooper::ShadowLooper(
     this->init(sigma, dx, dy, color, flags);
 }
 
-ShadowLooper::ShadowLooper(SkReadBuffer &buffer) : INHERITED(buffer)
-{
-
-    m_fSigma     = buffer.readScalar();
-    m_fDx        = buffer.readScalar();
-    m_fDy        = buffer.readScalar();
-    m_fBlurColor = buffer.readColor();
-    m_fBlurFlags = buffer.readUInt() & kAll_BlurFlag;
-
-    this->initEffects();
-}
 
 void ShadowLooper::init(
     SkScalar sigma, SkScalar dx, SkScalar dy, SkColor color, uint32_t flags)
@@ -67,23 +57,31 @@ void ShadowLooper::initEffects()
                      : SkBlurMaskFilter::kNone_BlurFlag;
 
         m_fBlur
-            = SkBlurMaskFilter::Create(kNormal_SkBlurStyle, m_fSigma, flags);
+            = SkBlurMaskFilter::Make(kNormal_SkBlurStyle, m_fSigma, flags);
     } else {
         m_fBlur = NULL;
     }
 
     m_fColorFilter = NULL;
 }
-// }}}
 
-// {{{ Methods
+sk_sp<SkFlattenable> ShadowLooper::CreateProc(SkReadBuffer& buffer) {
+    const SkColor color = buffer.readColor();
+    const SkScalar sigma = buffer.readScalar();
+    const SkScalar dx = buffer.readScalar();
+    const SkScalar dy = buffer.readScalar();
+    const uint32_t flags = buffer.read32();
+
+    return Make(color, sigma, dx, dy, flags);
+}
+
+
 void ShadowLooper::flatten(SkWriteBuffer &buffer) const
 {
-    this->INHERITED::flatten(buffer);
+    buffer.writeColor(m_fBlurColor);
     buffer.writeScalar(m_fSigma);
     buffer.writeScalar(m_fDx);
     buffer.writeScalar(m_fDy);
-    buffer.writeColor(m_fBlurColor);
     buffer.write32(m_fBlurFlags);
 }
 
@@ -145,7 +143,7 @@ void ShadowLooper::toString(SkString *str) const
 ShadowLooper::Context *ShadowLooper::createContext(SkCanvas *,
                                                    void *storage) const
 {
-    return SkNEW_PLACEMENT_ARGS(storage, ShadowLooperContext, (this));
+    return new (storage) ShadowLooperContext(this);
 }
 
 
@@ -172,7 +170,7 @@ bool ShadowLooper::ShadowLooperContext::next(SkCanvas *canvas, SkPaint *paint)
             paint->setShader(NULL);
             paint->setMaskFilter(m_fLooper->m_fBlur);
 
-            canvas->save(SkCanvas::kMatrix_SaveFlag);
+            canvas->save();
 
             if (m_fLooper->m_fBlurFlags & kIgnoreTransform_BlurFlag) {
                 SkMatrix transform(canvas->getTotalMatrix());
@@ -192,15 +190,7 @@ bool ShadowLooper::ShadowLooperContext::next(SkCanvas *canvas, SkPaint *paint)
             return false;
     }
 }
-// }}}
 
-// {{{ Destruct
-ShadowLooper::~ShadowLooper()
-{
-    SkSafeUnref(m_fBlur);
-    SkSafeUnref(m_fColorFilter);
-}
-// }}}
 
 } // namespace Graphics
 } // namespace Nidium

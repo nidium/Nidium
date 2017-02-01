@@ -17,6 +17,7 @@
             '<(nidium_av_path)',
             '<(third_party_path)/skia/',
             '<(third_party_path)/skia/include/core',
+            '<(third_party_path)/skia/include/private',
             '<(third_party_path)/skia/include/pipe',
             '<(third_party_path)/skia/include/gpu',
             '<(third_party_path)/skia/include/utils',
@@ -29,6 +30,7 @@
             '<(third_party_path)/skia/src/gpu',
             '<(third_party_path)/skia/src/effects',
             '<(third_party_path)/skia/src/core',
+            '<(third_party_path)/skia/src/utils',
             '<(third_party_path)/skia/include/effects',
             '<(third_party_path)/skia/include/utils/mac',
             '<(third_party_path)/skia/include/lazy',
@@ -42,9 +44,12 @@
 
         'defines': [
             'GR_GL_CUSTOM_SETUP_HEADER=<../patch/skia_gl_config.h>',
-            'SK_RELEASE',
             'GL_GLEXT_PROTOTYPES'
         ],
+
+        'direct_dependent_settings': {
+            'defines': [ 'GL_GLEXT_PROTOTYPES']
+        },
 
         'conditions': [
             ['OS=="mac"', {
@@ -66,45 +71,45 @@
             }],
             ['target_os=="linux"', {
                 'defines': [
-                    'SK_GAMMA_SRGB',
-                    'SK_GAMMA_APPLY_TO_A8',
-                    'SK_ALLOW_STATIC_GLOBAL_INITIALIZERS=1',
-                    'SK_SCALAR_IS_FLOAT',
-                    'SK_CAN_USE_FLOAT',
-                    'SK_SUPPORT_GPU=1',
+                    'NDEBUG',
                     'SK_SAMPLES_FOR_X',
-                    'SK_BUILD_FOR_UNIX',
-                    'SK_USE_POSIX_THREADS',
+                    'SK_GAMMA_APPLY_TO_A8',
+                    'SK_INTERNAL',
+                    'SK_ALLOW_STATIC_GLOBAL_INITIALIZERS=0',
+                    'SK_ENABLE_DISCRETE_GPU',
+                    'SKIA_IMPLEMENTATION=1',
+                    'SK_HAS_JPEG_LIBRARY',
                     'SK_SUPPORT_PDF',
-                    'GR_LINUX_BUILD=1',
+                    'SK_PDF_USE_SFNTLY',
+                    'SK_HAS_PNG_LIBRARY',
+                    'SK_CODEC_DECODES_RAW',
+                    'SK_RASTER_PIPELINE_HAS_JIT',
+                    'SK_HAS_WEBP_LIBRARY',
+                    'SK_XML',
                     'UINT32_MAX=4294967295u',
-                    'GR_RELEASE=1',
                     '__STDC_CONSTANT_MACROS',
                 ],
             }],
 
             ['target_os=="android"', {
                 'defines': [
-                    'SK_INTERNAL',
+                    'NDEBUG',
                     'SK_GAMMA_APPLY_TO_A8',
-                    'SK_SCALAR_TO_FLOAT_EXCLUDED',
-                    'SK_ALLOW_STATIC_GLOBAL_INITIALIZERS=0',
-                    'SK_SUPPORT_GPU=1',
-                    'SK_SUPPORT_OPENCL=0',
-                    'SK_FORCE_DISTANCEFIELD_FONTS=0',
-                    'SK_SCALAR_IS_FLOAT',
-                    'SK_CAN_USE_FLOAT',
-                    '__ARM_HAVE_OPTIONAL_NEON_SUPPORT',
-                    'SK_BUILD_FOR_ANDROID',
-                    'SK_FONTHOST_DOES_NOT_USE_FONTMGR',
+                    'SK_INTERNAL',
                     'SK_GAMMA_EXPONENT=1.4',
                     'SK_GAMMA_CONTRAST=0.0',
-                    'SKIA_DLL',
+                    'SK_ALLOW_STATIC_GLOBAL_INITIALIZERS=0',
+                    'SK_ENABLE_DISCRETE_GPU',
                     'SKIA_IMPLEMENTATION=1',
-                    'SK_USE_POSIX_THREADS',
-                    'SK_BUILD_JSON_WRITER',
-                    'SK_RELEASE',
-                    #'SK_DEBUG', 'SK_DEVELOPER=1',
+                    'SK_HAS_JPEG_LIBRARY',
+                    'SK_SUPPORT_PDF',
+                    'SK_PDF_USE_SFNTLY',
+                    'SK_HAS_PNG_LIBRARY',
+                    'SK_CODEC_DECODES_RAW',
+                    'SK_RASTER_PIPELINE_HAS_JIT',
+                    'SK_HAS_WEBP_LIBRARY',
+                    'SK_XML',
+                    'XML_STATIC',
                 ],
             }],
             ['nidium_audio==1', {
@@ -132,12 +137,16 @@
                 },
                 'defines': [ 'NIDIUM_OPENGLES2']
             }],
+            ['nidium_gl_debug==1', {
+                 'defines': [ 'NIDIUM_ENABLE_GL_ERROR' ],
+            }],
         ],
         'sources': [
             '<(nidium_src_path)/Frontend/App.cpp',
             '<(nidium_src_path)/Frontend/NML.cpp',
             '<(nidium_src_path)/Frontend/Assets.cpp',
             '<(nidium_src_path)/Frontend/Context.cpp',
+            '<(nidium_src_path)/Frontend/InputHandler.cpp',
             '<(nidium_src_path)/Graphics/Gradient.cpp',
             '<(nidium_src_path)/Graphics/Image.cpp',
             '<(nidium_src_path)/Graphics/ShadowLooper.cpp',
