@@ -107,7 +107,7 @@ def skia():
     # depot_tools and skia needs python2.7 but use "python" as the default
     # interpreter which could be python3.x on some system. Workaround that
     # by using a custom python wrapper that will redirect to the correct python version
-    Platform.setEnviron("PATH", os.path.join(ROOT, "tools") + ":" + Platform.getEnviron("PATH", ""))
+    Platform.setEnviron("PATH="+ os.path.join(ROOT, "tools") + ":" + Platform.getEnviron("PATH", ""))
 
     if Konstruct.config("android"):
         androidEnv = Variables.get("androidEnvClang")
@@ -129,7 +129,7 @@ def skia():
             "ninja %s -C out/Static" % ("-v" if Variables.get("verbose") else ""),
         ],
         "patchs": [
-            os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch")
+            os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
             os.path.join(CONFIGURE_PATH, "patch", "skia_android.patch")
         ],
         "outputs": [
