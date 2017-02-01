@@ -16,12 +16,17 @@
 
 struct SDL_Window;
 typedef struct _ape_global ape_global;
+typedef union SDL_Event SDL_Event;
 
 namespace Nidium {
 namespace Frontend {
 class Context;
 class NML;
 }
+namespace Binding{
+class JSWindow;
+}
+
 namespace Interface {
 
 class UIInterface;
@@ -293,6 +298,8 @@ public:
     virtual void enableSysTray(){};
     virtual void disableSysTray(){};
 
+    virtual void handleEvent(const SDL_Event *ev);
+
     virtual void quit();
 
     uint8_t *readScreenPixel();
@@ -383,6 +390,7 @@ protected:
     bool m_Hidden;
     int m_FBO;
     uint8_t *m_FrameBuffer;
+    bool m_PendingRefresh = false;
 
 #define NUM_PBOS 1
 

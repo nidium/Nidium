@@ -115,126 +115,131 @@ bool UIInterface::createWindow(int width, int height)
     return true;
 }
 
+void UIInterface::handleEvent(const SDL_Event *event)
+{
+    JSWindow *window = NULL;
+    if (this->isContextReady()) {
+        this->makeMainGLCurrent();
+        window = JSWindow::GetObject(this->m_NidiumCtx->getNJS());
+    }
+
+    switch (event->type) {
+        case SDL_WINDOWEVENT:
+            if (window) {
+                switch (event->window.event) {
+                    case SDL_WINDOWEVENT_FOCUS_GAINED:
+                        window->windowFocus();
+                        break;
+                    case SDL_WINDOWEVENT_FOCUS_LOST:
+                        window->windowBlur();
+                        break;
+                    default:
+                        break;
+                }
+            }
+            break;
+        case SDL_TEXTINPUT:
+            if (window && &event->text.text[0]
+                && strlen(event->text.text) > 0) {
+                window->textInput(event->text.text);
+            }
+            break;
+        case SDL_USEREVENT:
+            break;
+        case SDL_QUIT:
+            if (window && !window->onClose()) {
+                break;
+            }
+            this->stopApplication();
+            SDL_Quit();
+            this->quitApplication();
+
+            break;
+        case SDL_MOUSEMOTION:
+            if (window) {
+                window->mouseMove(event->motion.x,
+                                  event->motion.y - NIDIUM_TITLEBAR_HEIGHT,
+                                  event->motion.xrel, event->motion.yrel);
+            }
+            break;
+        case SDL_MOUSEWHEEL: {
+            int cx, cy;
+            SDL_GetMouseState(&cx, &cy);
+            if (window) {
+                window->mouseWheel(event->wheel.x, event->wheel.y, cx,
+                                   cy - NIDIUM_TITLEBAR_HEIGHT);
+            }
+            break;
+        }
+        case SDL_MOUSEBUTTONUP:
+        case SDL_MOUSEBUTTONDOWN:
+            if (window) {
+                window->mouseClick(event->button.x,
+                                   event->button.y - NIDIUM_TITLEBAR_HEIGHT,
+                                   event->button.state, event->button.button,
+                                   event->button.clicks);
+            }
+            break;
+        case SDL_KEYDOWN:
+        case SDL_KEYUP: {
+            int keyCode = 0;
+            int mod     = 0;
+
+            if ((&event->key)->keysym.sym == SDLK_r
+                && (event->key.keysym.mod & KMOD_CTRL)
+                && event->type == SDL_KEYDOWN) {
+
+                if (m_PendingRefresh) {
+                    break;
+                }
+
+                m_PendingRefresh = true;
+
+                this->hitRefresh();
+
+                break;
+            }
+            if (event->key.keysym.sym >= 97 && event->key.keysym.sym <= 122) {
+                keyCode = event->key.keysym.sym - 32;
+            } else {
+                keyCode = SDL_KEYCODE_TO_DOMCODE(event->key.keysym.sym);
+            }
+
+            if (event->key.keysym.mod & KMOD_SHIFT
+                || SDL_KEYCODE_GET_CODE(keyCode) == 16) {
+                mod |= kKeyModifier_Shift;
+            }
+            if (event->key.keysym.mod & KMOD_ALT
+                || SDL_KEYCODE_GET_CODE(keyCode) == 18) {
+                mod |= kKeyModifier_Alt;
+            }
+            if (event->key.keysym.mod & KMOD_CTRL
+                || SDL_KEYCODE_GET_CODE(keyCode) == 17) {
+                mod |= kKeyModifier_Control;
+            }
+            if (event->key.keysym.mod & KMOD_GUI
+                || SDL_KEYCODE_GET_CODE(keyCode) == 91) {
+                mod |= kKeyModifier_Meta;
+            }
+            if (window) {
+                window->keyupdown(SDL_KEYCODE_GET_CODE(keyCode), mod,
+                                  event->key.state, event->key.repeat,
+                                  SDL_KEYCODE_GET_LOCATION(keyCode));
+            }
+
+            break;
+        }
+    }
+}
+
 int UIInterface::HandleEvents(void *arg)
 {
     UIInterface *NUII = static_cast<UIInterface *>(arg);
 
     SDL_Event event;
-    int nrefresh = 0;
-    int nevents  = 0;
 
     while (SDL_PollEvent(&event)) {
-        JSWindow *window = NULL;
-        if (NUII->isContextReady()) {
-            NUII->makeMainGLCurrent();
-            window = JSWindow::GetObject(NUII->m_NidiumCtx->getNJS());
-        }
-        nevents++;
-        switch (event.type) {
-            case SDL_WINDOWEVENT:
-                if (window) {
-                    switch (event.window.event) {
-                        case SDL_WINDOWEVENT_FOCUS_GAINED:
-                            window->windowFocus();
-                            break;
-                        case SDL_WINDOWEVENT_FOCUS_LOST:
-                            window->windowBlur();
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                break;
-            case SDL_TEXTINPUT:
-                if (window && &event.text.text[0]
-                    && strlen(event.text.text) > 0) {
-                    window->textInput(event.text.text);
-                }
-                break;
-            case SDL_USEREVENT:
-                break;
-            case SDL_QUIT:
-                if (window && !window->onClose()) {
-                    break;
-                }
-                NUII->stopApplication();
-                SDL_Quit();
-                NUII->quitApplication();
-
-                break;
-            case SDL_MOUSEMOTION:
-                if (window) {
-                    window->mouseMove(event.motion.x,
-                                      event.motion.y - NIDIUM_TITLEBAR_HEIGHT,
-                                      event.motion.xrel, event.motion.yrel);
-                }
-                break;
-            case SDL_MOUSEWHEEL: {
-                int cx, cy;
-                SDL_GetMouseState(&cx, &cy);
-                if (window) {
-                    window->mouseWheel(event.wheel.x, event.wheel.y, cx,
-                                       cy - NIDIUM_TITLEBAR_HEIGHT);
-                }
-                break;
-            }
-            case SDL_MOUSEBUTTONUP:
-            case SDL_MOUSEBUTTONDOWN:
-                if (window) {
-                    window->mouseClick(event.button.x,
-                                       event.button.y - NIDIUM_TITLEBAR_HEIGHT,
-                                       event.button.state, event.button.button,
-                                       event.button.clicks);
-                }
-                break;
-            case SDL_KEYDOWN:
-            case SDL_KEYUP: {
-                int keyCode = 0;
-                int mod     = 0;
-
-                if ((&event.key)->keysym.sym == SDLK_r
-                    && (event.key.keysym.mod & KMOD_CTRL)
-                    && event.type == SDL_KEYDOWN) {
-
-                    if (++nrefresh > 1) {
-                        break;
-                    }
-
-                    NUII->hitRefresh();
-
-                    break;
-                }
-                if (event.key.keysym.sym >= 97 && event.key.keysym.sym <= 122) {
-                    keyCode = event.key.keysym.sym - 32;
-                } else {
-                    keyCode = SDL_KEYCODE_TO_DOMCODE(event.key.keysym.sym);
-                }
-
-                if (event.key.keysym.mod & KMOD_SHIFT
-                    || SDL_KEYCODE_GET_CODE(keyCode) == 16) {
-                    mod |= kKeyModifier_Shift;
-                }
-                if (event.key.keysym.mod & KMOD_ALT
-                    || SDL_KEYCODE_GET_CODE(keyCode) == 18) {
-                    mod |= kKeyModifier_Alt;
-                }
-                if (event.key.keysym.mod & KMOD_CTRL
-                    || SDL_KEYCODE_GET_CODE(keyCode) == 17) {
-                    mod |= kKeyModifier_Control;
-                }
-                if (event.key.keysym.mod & KMOD_GUI
-                    || SDL_KEYCODE_GET_CODE(keyCode) == 91) {
-                    mod |= kKeyModifier_Meta;
-                }
-                if (window) {
-                    window->keyupdown(SDL_KEYCODE_GET_CODE(keyCode), mod,
-                                      event.key.state, event.key.repeat,
-                                      SDL_KEYCODE_GET_LOCATION(keyCode));
-                }
-
-                break;
-            }
-        }
+		NUII->handleEvent(&event);
     }
 
     if (ttfps % 300 == 0 && NUII->isContextReady()) {
@@ -600,6 +605,8 @@ void UIInterface::stopApplication()
         delete this->m_NidiumCtx;
         this->m_NidiumCtx = NULL;
     }
+
+    m_PendingRefresh = false;
 
     glClearColor(1, 1, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
