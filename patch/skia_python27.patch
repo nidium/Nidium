@@ -1,8 +1,0 @@
---- skia/gyp_skia      2016-01-04 20:46:47.893491178 +0100
-+++ skia/gyp_skia   2016-01-04 20:46:40.156824651 +0100
-@@ -1,4 +1,4 @@
--#!/usr/bin/python
-+#!/usr/bin/env python2.7
- 
- # Copyright 2011 The Android Open Source Project
- #
