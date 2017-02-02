@@ -1,4 +1,4 @@
-# Disable OpenGLES 1
+# Disable OpenGLES 1 and disable SDL blocking on application pause
 --- SDL2/include/SDL_config_android.h   2017-01-04 17:50:21.856191167 +0100
 +++ SDL2/include/SDL_config_android.h   2017-01-04 17:51:50.426193084 +0100
 @@ -129,10 +129,8 @@
@@ -12,3 +12,15 @@
  #define SDL_VIDEO_RENDER_OGL_ES2    1
  
  /* Enable system power support */
+
+--- SDL2/src/video/android/SDL_androidevents.c  2017-02-02 09:54:11.592606462 +0100
++++ SDL2/src/video/android/SDL_androidevents.c  2017-02-02 09:54:35.769272474 +0100
+@@ -23,7 +23,7 @@
+ #if SDL_VIDEO_DRIVER_ANDROID
+ 
+ /* We're going to do this by default */
+-#define SDL_ANDROID_BLOCK_ON_PAUSE  1
++#define SDL_ANDROID_BLOCK_ON_PAUSE  0
+ 
+ #include "SDL_androidevents.h"
+ #include "SDL_events.h"
