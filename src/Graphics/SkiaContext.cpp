@@ -225,36 +225,7 @@ SkiaContext::SkiaContext()
 {
 }
 
-#if 0
-static U8CPU InvScaleByte(U8CPU component, uint32_t scale)
-{
-    SkASSERT(component == (uint8_t)component);
-    return (component * scale + 0x8000) >> 16;
-}
 
-
-static SkColor SkPMColorToColor(SkPMColor pm)
-{
-    if (!pm)
-        return 0;
-    unsigned a = SkGetPackedA32(pm);
-    if (!a) {
-        // A zero alpha value when there are non-zero R, G, or B channels is an
-        // invalid premultiplied color (since all channels should have been
-        // multiplied by 0 if a=0).
-        SkASSERT(false);
-        // In production, return 0 to protect against division by zero.
-        return 0;
-    }
-
-    uint32_t scale = (255 << 16) / a;
-
-    return SkColorSetARGB(a,
-                          InvScaleByte(SkGetPackedR32(pm), scale),
-                          InvScaleByte(SkGetPackedG32(pm), scale),
-                          InvScaleByte(SkGetPackedB32(pm), scale));
-}
-#endif
 
 SkColor
 makeRGBAFromHSLA(double hue, double saturation, double lightness, double alpha)
@@ -381,33 +352,64 @@ void SkiaContext::initPaints()
     m_AsComposite = 0;
 }
 
-sk_sp<SkSurface> SkiaContext::createNewGPUSurface(GrContext *gr,
-    int width, int height)
+SkiaContext *SkiaContext::CreateWithTextureBackend(Frontend::Context *fctx,
+                                                    int width, int height)
 {
-    return SkSurface::MakeRenderTarget(gr, SkBudgeted::kNo,
-        SkImageInfo::MakeN32Premul(width, height));
-}   
-
-
-int SkiaContext::bindOnScreen(int width, int height)
-{
-    if (SkiaContext::m_GlSurface == nullptr) {
-        printf("Cant find GL context\n");
-        return 0;
-    }
-
     float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
-    GrContext *gr = SkiaContext::m_GlSurface->getCanvas()->getGrContext();
+    GrContext *gr = GetGrContext(fctx);
+    
+    sk_sp<SkSurface> surface = SkSurface::MakeRenderTarget(gr, SkBudgeted::kNo,
+        SkImageInfo::MakeN32Premul(width * ratio, height * ratio));
 
-    m_Surface = createNewGPUSurface(gr, width * ratio, height * ratio);
-
-    if (m_Surface == nullptr) {
-        printf("Cant create new surface\n");
-        return 0;
+    if (!surface) {
+        return nullptr;
     }
 
-    this->scale(ratio, ratio);
+    SkiaContext *skcontext = new SkiaContext();
+
+    skcontext->initWithSurface(surface);
+
+    skcontext->m_CanvasBindMode = SkiaContext::BIND_ONSCREEN;
+
+    return skcontext;
+}
+
+SkiaContext *SkiaContext::CreateWithFBOBackend(Frontend::Context *fctx,
+                                               int width, int height, uint32_t fbo)
+{
+    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
+    GrContext *gr = GetGrContext(fctx);
+
+    GrBackendRenderTargetDesc desc;
+
+    desc.fWidth       = SkScalarRoundToInt(width * ratio);
+    desc.fHeight      = SkScalarRoundToInt(height * ratio);
+    desc.fConfig      = kSkia8888_GrPixelConfig;
+    desc.fOrigin      = kBottomLeft_GrSurfaceOrigin;
+    desc.fStencilBits = 0;
+    desc.fSampleCnt   = 0;
+
+    desc.fRenderTargetHandle = fbo;
+
+    sk_sp<SkSurface> surface = SkSurface::MakeFromBackendRenderTarget(gr, desc, nullptr);
+
+    SkiaContext *skcontext = new SkiaContext();
+
+    skcontext->initWithSurface(surface);
+
+    skcontext->m_CanvasBindMode = SkiaContext::BIND_GL;
+
+    return skcontext;
+}
+
+bool SkiaContext::initWithSurface(sk_sp<SkSurface> surface)
+{
+    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
+
+    m_Surface = surface;
+
+    scale(ratio, ratio);
 
     m_GlobalAlpha = 255;
     m_CurrentPath = NULL;
@@ -421,15 +423,8 @@ int SkiaContext::bindOnScreen(int width, int height)
 
     getCanvas()->clear(0x00000000);
 
-    m_CanvasBindMode = SkiaContext::BIND_ONSCREEN;
 
-    return 1;
-}
-
-
-void glcb(const GrGLInterface *)
-{
-    printf("Got a gl call\n");
+    return true;
 }
 
 GrContext *SkiaContext::CreateGrContext(GLContext *glcontext)
@@ -455,90 +450,60 @@ GrContext *SkiaContext::CreateGrContext(GLContext *glcontext)
 }
 
 
-/*
-    Create base GL surface (backed by the screen buffer [fbo 0])
-*/
-sk_sp<SkSurface> SkiaContext::CreateGLSurface(int width, int height, Context *nctx)
+uint32_t SkiaContext::getOpenGLTextureId()
 {
-    if (!nctx) {
-        NUI_LOG("CreateGLCanvas() : invalid nidium context");
-        return nullptr;
-    }
+    GrGLTextureInfo *glinfo = (GrGLTextureInfo *)m_Surface->getTextureHandle(SkSurface::kFlushRead_BackendHandleAccess);
 
-    GrContext *context             = NULL;
-
-    if (SkiaContext::m_GlSurface) {
-        context = SkiaContext::m_GlSurface->getCanvas()->getGrContext();
-        
-        context->ref();
-    } else {
-        context = SkiaContext::CreateGrContext(nctx->getGLState()->getNidiumGLContext());
-        if (!context) {
-            NUI_LOG("Cant create GrContext");
-            return nullptr;
-        }
-    }
-    float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
-
-    GrBackendRenderTargetDesc desc;
-    // GrGLRenderTarget *t = new GrGLRenderTarget();
-
-    desc.fWidth       = SkScalarRoundToInt(width * ratio);
-    desc.fHeight      = SkScalarRoundToInt(height * ratio);
-    desc.fConfig      = kSkia8888_GrPixelConfig;
-    desc.fOrigin      = kBottomLeft_GrSurfaceOrigin;
-    desc.fStencilBits = 0;
-    desc.fSampleCnt   = 0;
-
-    desc.fRenderTargetHandle = 0;
-
-    sk_sp<SkSurface> surface = SkSurface::MakeFromBackendRenderTarget(context, desc, nullptr);
-
-    if (surface == nullptr) {
-        NUI_LOG("Failed to init Skia base surface");
-        return NULL;
-    }
-
-    SkCanvas *ret = surface->getCanvas();
-
-    ret->clear(0x00000000);
-    context->unref();
-
-    return surface;
-}
-
-int SkiaContext::bindGL(int width, int height, Context *nctx)
-{
-    m_CanvasBindMode = SkiaContext::BIND_GL;
-
-    if ((m_Surface = SkiaContext::CreateGLSurface(width, height, nctx)) == NULL) {
+    if (!glinfo) {
         return 0;
     }
 
-    if (SkiaContext::m_GlSurface == nullptr) {
-        SkiaContext::m_GlSurface = m_Surface.get();
+    return glinfo->fID;
+}
+
+GrContext *SkiaContext::GetGrContext(Frontend::Context *fctx)
+{
+    Frontend::LocalContext *lc = Frontend::LocalContext::Get();
+    GrContext *gr = lc->getGrContext();
+
+    if (!gr) {
+        gr = CreateGrContext(fctx->getGLState()->getNidiumGLContext());
+        lc->setGrContext(gr);
     }
 
-    m_GlobalAlpha = 255;
-    m_CurrentPath = NULL;
-
-    m_State       = new struct _State;
-    m_State->next = NULL;
-
-    initPaints();
-
-    /*
-        TODO. (dirty hack)
-        Skia bug? If we don't draw something first, clear does nothing.
-    */
-    this->drawRect(0, 0, 1, 1, 0);
-
-    getCanvas()->clear(0xFFFFFFFF);
-
-    m_Debug = true;
-
-    return 1;
+    return gr;
 }
+
+GrContext *SkiaContext::getGrContext()
+{
+    return getCanvas()->getGrContext();
+}
+
+void SkiaContext::resetGrBackendContext(uint32_t flag)
+{
+    GrContext *context = getCanvas()->getGrContext();
+
+#ifdef DEBUG
+    context->resetContext(kAll_GrBackendState);
+
+    return;
+#endif
+
+    if (flag == 0) {
+        flag = kProgram_GrGLBackendState | kTextureBinding_GrGLBackendState
+               | kVertex_GrGLBackendState | kView_GrGLBackendState
+               | kBlend_GrGLBackendState;
+    }
+
+    context->resetContext(flag);
+}
+
+
+void glcb(const GrGLInterface *)
+{
+    printf("Got a gl call\n");
+}
+
 
 /* TODO: check if there is a best way to do this;
     context->clear() ?
@@ -688,11 +653,6 @@ void SkiaContext::stroke()
 
     PAINT_STROKE->setStrokeWidth(SkFloatToScalar(ratio) * lineWidth);
 
-#if 0
-    SkMatrix mat;
-    mat.setIdentity();
-    PAINT_STROKE->setPathEffect(new SkLine2DPathEffect(SK_Scalar1, mat))->unref();
-#endif
     canvas->drawPath(*m_CurrentPath, *PAINT_STROKE);
     PAINT_STROKE->setStrokeWidth(lineWidth);
 

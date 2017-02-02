@@ -414,7 +414,7 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
                         + (m_CanvasHandler->m_Padding.global * 2),
                     ui);
 
-                if (ctx2d->getSurface() == NULL) {
+                if (ctx2d->getSkiaContext() == NULL) {
                     delete ctx2d;
                     JS_ReportError(
                         cx, "Could not create 2D context for this canvas");

@@ -17,11 +17,15 @@
 #include <GLSLANG/ShaderLang.h>
 
 #include "Binding/NidiumJS.h"
+#include "Binding/ThreadLocalContext.h"
+
 
 #include "Graphics/GLResources.h"
 
 #include "Core/Context.h"
 #include "Frontend/InputHandler.h"
+
+class GrContext;
 
 namespace Nidium {
 namespace Interface {
@@ -47,6 +51,30 @@ struct JobQueue
     void (*job)(void *arg);
     struct JobQueue *next;
     void *arg;
+};
+
+class LocalContext {
+public:
+
+    GrContext *getGrContext() {
+        return m_GrContext;
+    }
+
+    void setGrContext(GrContext *grcontext) {
+        m_GrContext = grcontext;
+    }
+
+    static LocalContext *Get() {
+        Binding::NidiumLocalContext *nlc = Binding::NidiumLocalContext::Get();
+
+        if (!nlc) {
+            return nullptr;
+        }
+
+        return (LocalContext *)nlc->ptr;
+    }
+private:
+    GrContext *m_GrContext = nullptr;
 };
 
 struct GrGLInterface;

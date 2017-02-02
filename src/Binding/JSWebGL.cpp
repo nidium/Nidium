@@ -2413,7 +2413,7 @@ bool JSWebGLRenderingContext::JS_texImage2D(JSContext *cx, JS::CallArgs &args)
 
             pixels = (unsigned char *)malloc(width * height * 4);
 
-            ctx->getSurface()->readPixels(0, 0, width, height, pixels);
+            ctx->getSkiaContext()->readPixels(0, 0, width, height, pixels);
         } else {
             JS_ReportError(cx, "Unsupported or invalid image data");
             return false;

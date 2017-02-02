@@ -384,7 +384,7 @@ void CanvasContext::preComposeOn(Canvas2DContext *layer,
     bool revertScissor = false;
     float ratio        = SystemInterface::GetInstance()->backingStorePixelRatio();
 
-    SkiaContext *skia = layer->getSurface();
+    SkiaContext *skia = layer->getSkiaContext();
     SkISize layerSize = skia->getCanvas()->getDeviceSize();
 
     /*

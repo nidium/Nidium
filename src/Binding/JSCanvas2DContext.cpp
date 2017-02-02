@@ -990,7 +990,7 @@ bool Canvas2DContext::JS_drawImage(JSContext *cx, JS::CallArgs &args)
             return false;
         }
         image = new Image((static_cast<Canvas2DContext *>(drawctx))
-                              ->getSurface()
+                              ->getSkiaContext()
                               ->getCanvas());
         need_free = 1;
     } else if (!jsimage || !JSImage::InstanceOf(jsimage)
@@ -1755,26 +1755,6 @@ void Canvas2DContext::drawTexture(uint32_t textureID,
     NIDIUM_GL_CALL_MAIN(BindVertexArray(0));
 }
 
-/* Ask skia to restore its GL state */
-void Canvas2DContext::resetSkiaContext(uint32_t flag)
-{
-    GrContext *context = m_Skia->getCanvas()->getGrContext();
-
-#ifdef DEBUG
-    context->resetContext(kAll_GrBackendState);
-
-    return;
-#endif
-
-    if (flag == 0) {
-        flag = kProgram_GrGLBackendState | kTextureBinding_GrGLBackendState
-               | kVertex_GrGLBackendState | kView_GrGLBackendState
-               | kBlend_GrGLBackendState;
-    }
-
-    context->resetContext(flag);
-}
-
 uint32_t Canvas2DContext::attachShader(const char *string)
 {
     uint32_t program = this->createProgram(string);
@@ -1835,9 +1815,7 @@ void Canvas2DContext::setVertexDeformation(uint32_t vertex, float x, float y)
 
 uint32_t Canvas2DContext::getTextureID() const
 {
-    GrGLTextureInfo *glinfo = (GrGLTextureInfo *)m_Skia->getSurface()->getTextureHandle(SkSurface::kFlushRead_BackendHandleAccess);
-
-    return glinfo->fID;
+    return m_Skia->getOpenGLTextureId();
 }
 
 void Canvas2DContext::flush()
@@ -1931,15 +1909,10 @@ Canvas2DContext::Canvas2DContext(CanvasHandler *handler,
 
     this->pushNewState();
 
-    m_Skia = new SkiaContext();
-    if (!m_Skia->bindOnScreen(width, height)) {
-        delete m_Skia;
-        m_Skia = NULL;
-        return;
-    }
+    m_Skia = SkiaContext::CreateWithTextureBackend(ui->getNidiumContext(), width, height);
 
     /* Vertex buffers were unbound by parent constructor */
-    this->resetSkiaContext(kVertex_GrGLBackendState);
+    m_Skia->resetGrBackendContext(kVertex_GrGLBackendState);
 }
 
 Canvas2DContext::Canvas2DContext(
@@ -1948,25 +1921,17 @@ Canvas2DContext::Canvas2DContext(
 {
     m_Mode = CONTEXT_2D;
 
-    m_Skia = new SkiaContext();
-    int state;
-
     if (isGL) {
-
-        state = m_Skia->bindGL(width, height, ui->getNidiumContext());
+        m_Skia = SkiaContext::CreateWithFBOBackend(ui->getNidiumContext(), width, height);
     } else {
-        state = m_Skia->bindOnScreen(width, height);
-    }
-
-    if (!state) {
-        NUI_LOG("Failed to create canvas");
-        delete m_Skia;
-        m_Skia = NULL;
-        return;
+        if (!ui) {
+            ui = Interface::__NidiumUI;
+        }
+        m_Skia = SkiaContext::CreateWithTextureBackend(ui->getNidiumContext(), width, height);
     }
 
     /* Vertex buffers were unbound by parent constructor */
-    this->resetSkiaContext(kVertex_GrGLBackendState);
+    m_Skia->resetGrBackendContext(kVertex_GrGLBackendState);
 }
 
 void Canvas2DContext::setScale(double x, double y, double px, double py)

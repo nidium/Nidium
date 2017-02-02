@@ -120,8 +120,6 @@ public:
 
     void clear(uint32_t color = 0x00000000) override;
 
-    void resetSkiaContext(uint32_t flags = 0);
-
     uint8_t *getPixels() override;
     uint32_t getTextureID() const override;
     void flush() override;
@@ -135,7 +133,7 @@ public:
 
     void setVertexDeformation(uint32_t vertex, float x, float y);
 
-    Graphics::SkiaContext *getSurface() const
+    Graphics::SkiaContext *getSkiaContext() const
     {
         return m_Skia;
     }
