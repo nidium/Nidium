@@ -360,7 +360,7 @@ SkiaContext *SkiaContext::CreateWithTextureBackend(Frontend::Context *fctx,
     GrContext *gr = GetGrContext(fctx);
     
     sk_sp<SkSurface> surface = SkSurface::MakeRenderTarget(gr, SkBudgeted::kNo,
-        SkImageInfo::MakeN32Premul(width * ratio, height * ratio));
+        SkImageInfo::MakeN32Premul(ceilf(width * ratio), ceilf(height * ratio)));
 
     if (!surface) {
         return nullptr;
@@ -383,8 +383,8 @@ SkiaContext *SkiaContext::CreateWithFBOBackend(Frontend::Context *fctx,
 
     GrBackendRenderTargetDesc desc;
 
-    desc.fWidth       = SkScalarRoundToInt(width * ratio);
-    desc.fHeight      = SkScalarRoundToInt(height * ratio);
+    desc.fWidth       = ceilf(width * ratio);
+    desc.fHeight      = ceilf(height * ratio);
     desc.fConfig      = kSkia8888_GrPixelConfig;
     desc.fOrigin      = kBottomLeft_GrSurfaceOrigin;
     desc.fStencilBits = 0;
