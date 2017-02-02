@@ -51,7 +51,8 @@ public:
 
 struct NidiumLocalContext {
 
-    NidiumLocalContext(JSRuntime *rt, JSContext *cx) : rt(rt), cx(cx) {
+    NidiumLocalContext(JSRuntime *rt, JSContext *cx) : rt(rt),
+                    cx(cx), ptr(nullptr) {
         
     }
 
@@ -137,6 +138,9 @@ struct NidiumLocalContext {
 
     JSRuntime *rt;
     JSContext *cx;
+
+    void *ptr;
+
     bool m_IsShuttingDown = false;
     Nidium::Core::Hash64<uintptr_t> m_JSUniqueInstance{64};
 
