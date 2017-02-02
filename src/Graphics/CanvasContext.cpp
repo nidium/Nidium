@@ -360,8 +360,6 @@ void CanvasContext::setupShader(float opacity,
         }
         float padding = this->getHandler()->m_Padding.global * ratio;
 
-        printf("setting top to %f\n", ratio * top);
-
         if (m_GLState->m_GLObjects.uniforms.u_resolution != -1)
             NIDIUM_GL_CALL_MAIN(
                 Uniform2f(m_GLState->m_GLObjects.uniforms.u_resolution,

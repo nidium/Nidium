@@ -38,7 +38,6 @@ class ShadowLooper;
 class GLContext;
 
 
-// {{{ _Shadow
 typedef struct _Shadow
 {
     double m_X;
@@ -46,9 +45,7 @@ typedef struct _Shadow
     double m_Blur;
     SkColor m_Color;
 } Shadow_t;
-// }}}
 
-// {{{ _Line and Baseline
 struct _Line
 {
     const char *m_Line;
@@ -64,9 +61,7 @@ enum _Baseline
     BASELINE_IDEOGRAPHIC,
     BASELINE_BOTTOM
 };
-// }}}
 
-// {{{ _State
 struct _State
 {
     SkPaint *m_Paint;
@@ -75,9 +70,7 @@ struct _State
 
     struct _State *next;
 };
-// }}}
 
-// {{{ SkiaContext
 class SkiaContext
 {
 
@@ -282,11 +275,7 @@ public:
 
 private:
     SkiaContext();
-    /*
-        Assign canvas (hold a ref and unref existing value)
-    */
-    void setCanvas(SkCanvas *canvas);
-    
+
     sk_sp<SkSurface> createNewGPUSurface(GrContext *gr, int width, int height);
     static GrContext *CreateGrContext(GLContext *glcontext);
 

@@ -199,24 +199,6 @@ static inline bool isBreakable(const unsigned char c)
     return (c == ' ' || c == '.' || c == ',' || c == '-' /*|| c == 0xAD*/);
 }
 
-/*
-static SkBitmap load_bitmap() {
-    SkStream* stream = new
-SkFILEStream("/skimages/sesame_street_ensemble-hp.jpg");
-    SkAutoUnref aur(stream);
-
-    SkBitmap bm;
-    if (SkImageDecoder::DecodeStream(stream, &bm, SkBitmap::kNo_Config,
-                                     SkImageDecoder::kDecodeBounds_Mode)) {
-        SkPixelRef* pr = new SkImageRef_GlobalPool(stream, bm.config(), 1);
-        bm.setPixelRef(pr)->unref();
-    }
-    return bm;
-}
-*/
-// }}}
-
-// {{{ SkiaContext
 SkiaContext::SkiaContext()
     : m_State(NULL), m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0),
       m_AsComposite(0), m_Screen(NULL), m_CurrentShadow({ 0, 0, 0, 0 }),
@@ -502,7 +484,8 @@ bool SkiaContext::setSize(int width, int height, bool redraw)
 {
     float ratio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
-    const SkImageInfo &info = SkImageInfo::MakeN32Premul(width * ratio, height * ratio);
+    const SkImageInfo &info = SkImageInfo::MakeN32Premul(ceilf(width * ratio),
+                                    ceilf(height * ratio));
 
     // XXX TODO: Resize for fbo
 
@@ -1362,27 +1345,6 @@ void SkiaContext::redrawScreen()
     CANVAS_FLUSH();
 }
 
-#if 0
-void SkiaContext::drawPixelsGL(uint8_t *pixels, int width, int height,
-    int x, int y)
-{
-    getCanvas()->flush();
-    glDisable(GL_ALPHA_TEST);
-
-    glWindowPos2i(x, y);
-
-    if (glGetError() != GL_NO_ERROR) {
-        printf("got an error\n");
-    }
-    glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, pixels);
-    if (glGetError() != GL_NO_ERROR) {
-        printf("got an error\n");
-    }
-    context->resetContext();
-}
-#endif
-
-
 void SkiaContext::drawPixels(
     uint8_t *pixels, int width, int height, int x, int y)
 {
@@ -1719,15 +1681,6 @@ void SkiaContext::setLineJoin(const char *joinStyle)
     } else {
         PAINT_STROKE->setStrokeJoin(SkPaint::kMiter_Join);
     }
-}
-
-void SkiaContext::setCanvas(SkCanvas *canvas)
-{
-    /*
-        Define wether it's still needed.
-        It's currently used for resizing
-    */
-    //SkRefCnt_SafeAssign(m_Canvas, canvas);
 }
 
 // }}}
