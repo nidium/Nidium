@@ -502,7 +502,8 @@ bool SkiaContext::setSize(int width, int height, bool redraw)
 {
     float ratio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
-    const SkImageInfo &info = SkImageInfo::MakeN32Premul(width * ratio, height * ratio);
+    const SkImageInfo &info = SkImageInfo::MakeN32Premul(ceilf(width * ratio),
+                                    ceilf(height * ratio));
 
     // XXX TODO: Resize for fbo
 
