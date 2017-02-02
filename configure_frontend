@@ -378,6 +378,28 @@ def frontendAndroid(android):
     Gyp.set("nidium_opengles2", 1)
     Gyp.set("nidium_audio", 0)
 
+    @Konstruct.hook("postBuild")
+    def postBuildAndroid(success):
+        import shutil
+        if not success:
+            return
+
+        cpu = Variables.get("targetCpu")
+        libDir = "armeabi"
+        if "v7" in cpu:
+            libDir = "armeabi-v7a"
+
+        Log.info("Copying libnidium_android.so")
+        shutil.copy("build/out/%s/lib/libnidium_android.so" % Gyp.getConfiguration(),
+                    "src/Frontend/app/android/app/src/main/jniLibs/%s" % libDir)
+
+        with Utils.Chdir("src/Frontend/app/android/"):
+            Log.info("Building android app")
+            Utils.run("./gradlew assemble%s" % Gyp.getConfiguration())
+
+            Log.info("Installing android app")
+            Utils.run("./gradlew install%s" % Gyp.getConfiguration())
+
 @CommandLine.option("--debug-opengl", default=False)
 def glDebug(debug):
     if not debug:
