@@ -360,6 +360,8 @@ void CanvasContext::setupShader(float opacity,
         }
         float padding = this->getHandler()->m_Padding.global * ratio;
 
+        printf("setting top to %f\n", ratio * top);
+
         if (m_GLState->m_GLObjects.uniforms.u_resolution != -1)
             NIDIUM_GL_CALL_MAIN(
                 Uniform2f(m_GLState->m_GLObjects.uniforms.u_resolution,
@@ -426,8 +428,7 @@ void CanvasContext::preComposeOn(Canvas2DContext *layer,
     this->updateMatrix(left * ratio, top * ratio, layerSize.width(),
                        layerSize.height(), layer->m_GLState);
 
-    layer->drawTexture(this->getTextureID(), width, height, left * ratio,
-                       top * ratio);
+    layer->drawTexture(this->getTextureID());
 
     if (revertScissor) {
         NIDIUM_GL_CALL(layer->m_GLState->getNidiumGLContext(),

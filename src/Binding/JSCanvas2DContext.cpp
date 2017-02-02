@@ -1726,11 +1726,7 @@ uint32_t Canvas2DContext::compileCoopFragmentShader()
 }
 
 
-void Canvas2DContext::drawTexture(uint32_t textureID,
-                                  uint32_t width,
-                                  uint32_t height,
-                                  uint32_t left,
-                                  uint32_t top)
+void Canvas2DContext::drawTexture(uint32_t textureID)
 {
     NIDIUM_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, textureID));
 

@@ -143,11 +143,7 @@ public:
 
     uint32_t createProgram(const char *data);
 
-    void drawTexture(uint32_t textureID,
-                     uint32_t width,
-                     uint32_t height,
-                     uint32_t left,
-                     uint32_t top);
+    void drawTexture(uint32_t textureID);
 
 
     Canvas2DContextState *getCurrentState() const
