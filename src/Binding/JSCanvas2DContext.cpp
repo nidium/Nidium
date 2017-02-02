@@ -1833,64 +1833,7 @@ void Canvas2DContext::getSize(int *width, int *height) const
 
 void Canvas2DContext::setSize(int width, int height, bool redraw)
 {
-    printf("Set size not implemeted\n");
-#if 0
-    SkCanvas *ncanvas;
-
-    float ratio
-        = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
-
-    if (m_Skia->m_CanvasBindMode == SkiaContext::BIND_GL) {
-        if ((ncanvas = SkiaContext::CreateGLCanvas(
-                 width, height, Interface::__NidiumUI->getNidiumContext()))
-            == NULL) {
-            NUI_LOG("[Error] Couldnt resize the canvas to %dx%d", width,
-                    height);
-            return;
-        }
-
-        SkiaContext::m_GlContext = ncanvas;
-
-    } else {
-        SkBaseDevice *ndev = NULL;
-#if 1
-        const SkImageInfo &info
-            = SkImageInfo::MakeN32Premul(width * ratio, height * ratio);
-        ndev = SkiaContext::m_GlContext->getDevice()->createCompatibleDevice(
-            info);
-#else
-        GrContext *gr
-            = ((SkGpuDevice *)SkiaContext::m_GlContext->getDevice())->context();
-        ndev = m_Skia->createNewGPUDevice(gr, width * ratio, height * ratio);
-#endif
-        if (ndev == NULL) {
-            printf("Cant create canvas of size %dx%d (backstore ratio : %f)\n",
-                   width, height, ratio);
-            return;
-        }
-
-        ncanvas = new SkCanvas(ndev);
-        ncanvas->clear(0x00000000);
-
-        if (redraw) {
-            const SkBitmap &bt
-                = m_Skia->getCanvas()->getDevice()->accessBitmap(false);
-            ncanvas->drawBitmap(bt, 0, 0);
-        }
-        SkSafeUnref(ndev);
-    }
-
-    // ncanvas->clipRegion(skia->getCanvas()->getTotalClip());
-    ncanvas->setMatrix(m_Skia->getCanvas()->getTotalMatrix());
-
-    /* Automatically unref the old one and ref the new one */
-    m_Skia->setCanvas(ncanvas);
-    ncanvas->unref();
-
-    if (m_Skia->m_CanvasBindMode == SkiaContext::BIND_GL) {
-        m_Skia->drawRect(0, 0, 1, 1, 0);
-    }
-#endif
+    m_Skia->setSize(width, height, redraw);
 }
 
 void Canvas2DContext::translate(double x, double y)

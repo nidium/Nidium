@@ -82,24 +82,48 @@ class SkiaContext
 {
 
 public:
-    ~SkiaContext();
+    /*
+        Create a new SkiaContext backed by an OpenGL texture.
 
-    friend class CanvasHandler;
-    friend class JSCanvas;
-
-    static SkSurface *m_GlSurface;
-
-
+        A new texture is also created
+    */
     static SkiaContext *CreateWithTextureBackend(Frontend::Context *fctx,
                                                         int width, int height);
+
+    /*
+        Create a new SkiaContext backed by a Frame Buffer Object.
+
+        The framebuffer must be provided.
+        0 being the window framebuffer.
+    */
     static SkiaContext *CreateWithFBOBackend(Frontend::Context *fctx,
                                                int width, int height,
                                                uint32_t fbo = 0);
 
+    /*
+        Returns the underlying OpenGL texture id
+    */
+    uint32_t getOpenGLTextureId();
+
+    /*
+        Change the underlying canvas size.
+        This internally recreate a new SkSurface.
+
+        Reference to old SkSurface should be updated
+
+        Size are logical pixels units
+    */
+    bool setSize(int width, int height, bool redraw = true);
+
+    /*
+        Ask Skia to reset its internal GL state in case we have altered it
+    */
+    void resetGrBackendContext(uint32_t flag = 0);
+
+
     static uint32_t ParseColor(const char *str);
     static void GetStringColor(uint32_t color, char *out);
 
-    uint32_t getOpenGLTextureId();
 
     SkCanvas *getCanvas() const
     {
@@ -110,8 +134,6 @@ public:
     {
         return m_Surface;
     }
-
-    void resetGrBackendContext(uint32_t flag = 0);
 
     double breakText(const char *str, size_t len, struct _Line lines[],
                      double maxWidth,
@@ -242,7 +264,6 @@ public:
     void textAlign(const char *mode);
     void textBaseline(const char *mode);
 
-
     enum BindMode
     {
         BIND_NO,
@@ -250,6 +271,14 @@ public:
         BIND_OFFSCREEN,
         BIND_ONSCREEN
     } m_CanvasBindMode;
+
+    ~SkiaContext();
+
+    friend class CanvasHandler;
+    friend class JSCanvas;
+
+    static SkSurface *m_GlSurface;
+
 
 private:
     SkiaContext();

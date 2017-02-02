@@ -498,6 +498,34 @@ void SkiaContext::resetGrBackendContext(uint32_t flag)
     context->resetContext(flag);
 }
 
+bool SkiaContext::setSize(int width, int height, bool redraw)
+{
+    float ratio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
+
+    const SkImageInfo &info = SkImageInfo::MakeN32Premul(width * ratio, height * ratio);
+
+    // XXX TODO: Resize for fbo
+
+    sk_sp<SkSurface> newSurface = m_Surface->makeSurface(info);
+
+    if (!newSurface) {
+        printf("Can't create new surface\n");
+        return false;
+    }
+
+    newSurface->getCanvas()->clear(0x00000000);
+
+    // Blit the old surface into the new one
+    m_Surface->draw(newSurface->getCanvas(), 0, 0, nullptr);
+
+    // Keep the old matrix in place
+    newSurface->getCanvas()->setMatrix(m_Surface->getCanvas()->getTotalMatrix());
+
+    m_Surface = newSurface;
+
+    return true;
+}
+
 
 void glcb(const GrGLInterface *)
 {
