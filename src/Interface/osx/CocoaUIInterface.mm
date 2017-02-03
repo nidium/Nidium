@@ -587,7 +587,7 @@ void UICocoaInterface::setSystemCursor(CURSOR_TYPE cursorvalue)
             [[NSCursor resizeLeftRightCursor] set];
             break;
         case UICocoaInterface::HIDDEN:
-            this->hideCursor();
+            this->hideCursor(true);
             break;
         default:
             break;
