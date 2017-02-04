@@ -16,6 +16,8 @@
 using Nidium::Frontend::Context;
 using Nidium::Interface::UIInterface;
 
+#define SURFACE_VERTICE_RESOLUTION 4
+
 namespace Nidium {
 namespace Graphics {
 
@@ -84,7 +86,7 @@ bool GLState::initGLBase(bool withProgram)
     m_Resources.add(m_GLObjects.vbo[1], GLResources::RBUFFER);
     m_Resources.add(m_GLObjects.vao, GLResources::RVERTEX_ARRAY);
 
-    Vertices *vtx = m_GLObjects.vtx = CanvasContext::BuildVerticesStripe(4);
+    Vertices *vtx = m_GLObjects.vtx = CanvasContext::BuildVerticesStripe(SURFACE_VERTICE_RESOLUTION);
 
     NIDIUM_GL_CALL_MAIN(BindVertexArray(m_GLObjects.vao));
 
