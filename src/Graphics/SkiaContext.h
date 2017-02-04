@@ -140,7 +140,6 @@ public:
     void unlink();
 
     int readPixels(int top, int left, int width, int height, uint8_t *pixels);
-    void drawPixelsGL(uint8_t *pixels, int width, int height, int x, int y);
     void drawPixels(uint8_t *pixels, int width, int height, int x, int y);
     void drawText(const char *text, int x, int y, bool stroke = false);
     void drawTextf(int x, int y, const char *text, ...);
