@@ -285,7 +285,7 @@ public:
     static inline T *GetInstance(JSObject *obj,
         JSContext *cx = nullptr)
     {
-        if (JS_GetClass(obj) != T::GetJSClass()) {
+        if (obj == nullptr || JS_GetClass(obj) != T::GetJSClass()) {
             return nullptr;
         }
 
@@ -295,6 +295,10 @@ public:
     static inline T *GetInstanceUnsafe(JSObject *obj,
         JSContext *cx = nullptr)
     {
+        if (obj == nullptr) {
+            return nullptr;
+        }
+
         return (T *)JS_GetPrivate(obj);
     }
 
@@ -312,12 +316,20 @@ public:
 
     static inline bool InstanceOf(JSObject *obj)
     {
+        if (obj == nullptr) {
+            return false;
+        }
+
         return (JS_GetClass(obj) == T::GetJSClass());
     }
 
     static inline bool InstanceOf(JS::Value val)
     {
-        return (JS_GetClass(val.toObjectOrNull()) == T::GetJSClass());
+        if (val.isNullOrUndefined() || !val.isObject()) {
+            return false;
+        }
+
+        return (JS_GetClass(&val.toObject()) == T::GetJSClass());
     }
 
     /**
