@@ -6,6 +6,7 @@
 
 import sys
 import os
+import json
 
 from konstructor import Deps
 from konstructor import CommandLine
@@ -84,9 +85,21 @@ def giflib():
 
 @Deps.register("skia")
 def skia():
-    args = "extra_cflags_cc=[\"-Wno-unused-function\", \"-Wno-array-bounds\", \"-Wno-return-local-addr\", \"-DGR_GL_CUSTOM_SETUP_HEADER=<../../../../../patch/skia_gl_config.h>\"]"
-    args += " cc=\"%s\"" % (os.environ.get("CC"))
-    args += " cxx=\"%s\"" % (os.environ.get("CXX"))
+    args = {
+        "extra_cflags_cc": [
+            "-Wno-unused-function",
+            "-Wno-array-bounds",
+            "-Wno-return-local-addr",
+            "-DGR_GL_CUSTOM_SETUP_HEADER=<../../../../../patch/skia_gl_config.h>"
+            ],
+        "is_official_build": True,
+        "cc": Platform.getEnviron("CC"),
+        "cxx": Platform.getEnviron("CXX")
+    }
+
+    if Platform.system == "Darwin":
+        args["extra_cflags_cc"].append("-stdlib=libc++")
+        args["extra_ldflags"] = ["-stdlib=libc++"]
 
     # Add depot_tools to path needed for skia
     Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
@@ -96,12 +109,16 @@ def skia():
     # by using a custom python wrapper that will redirect to the correct python version
     Platform.setEnviron("PATH=" + os.path.join(ROOT, "tools") + ":" + os.environ.get("PATH", ""))
 
+    skiaArgs = ""
+    for k, v in args.items():
+        skiaArgs += " %s=%s" % (k, json.dumps(v))
+
     return {
         "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", revision="98829b9"),
         "build": [
             "python tools/git-sync-deps",
-            "bin/gn gen out/Static --args='is_official_build=true %s'" % (args),
-            "ninja -C out/Static",
+            "bin/gn gen out/Static --args='%s'" % (skiaArgs),
+            "ninja %s -C out/Static" % ("-v" if Variables.get("verbose") else ""),
         ],
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch")],
         "outputs": [
