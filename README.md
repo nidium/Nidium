@@ -84,7 +84,7 @@ We strive to have an exellent documentation, both for our [getting started guide
 
 ## Videos - nidium in action
 
-- [http://p.nf/nidium-vids/block-animation2.mp4](http://p.nf/nidium-vids/)
+- [http://p.nf/nidium-vids/](http://p.nf/nidium-vids/)
 
 ## Bug reports and Collaboration
 
