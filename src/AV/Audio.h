@@ -30,15 +30,15 @@ namespace AV {
 
 #if 0
 #define SPAM(a)                                      \
-    fprintf(stdout, ">%ld / ", av_gettime() / 1000); \
-    printf a
+    APE_DEBUG("AV", "[Audio] >%ld / ", av_gettime() / 1000, a); \
+    APE_DEBUG("AV", a);
 #else
 #define SPAM(a) (void)0
 #endif
 
 #define NIDIUM_AUDIO_CHECK_EXIT_THREAD \
     if (audio->m_ThreadShutdown) {     \
-        SPAM(("Exiting\n"));           \
+        SPAM(("[Audio] Exiting\n"));   \
         return NULL;                   \
     }
 

@@ -17,6 +17,8 @@
 #include <sys/syscall.h>
 #include <array>
 
+#include <ape_log.h>
+
 namespace Nidium {
 namespace Core {
 
@@ -103,7 +105,7 @@ public:
         random = open("/dev/urandom", O_RDONLY);
 
         if (!random) {
-            fprintf(stderr, "Cannot open /dev/urandom\n");
+            APE_ERROR("Utils", "[Utils] Cannot open /dev/urandom\n");
             return 0;
         }
 
@@ -123,7 +125,7 @@ public:
         random = open("/dev/urandom", O_RDONLY);
 
         if (!random) {
-            fprintf(stderr, "Cannot open /dev/urandom\n");
+            APE_ERROR("Nidium", "[Utils] Cannot open /dev/urandom\n");
             return data;
         }
 

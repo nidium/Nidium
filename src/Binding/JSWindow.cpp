@@ -365,7 +365,7 @@ bool JSWindow::dragEvent(const char *name, int x, int y)
         JS::RootedValue rval(m_Cx);
 
         if (!JS_CallFunctionValue(m_Cx, event, ondragevent, jevent, &rval)) {
-            fprintf(stderr, "Failed to exec func\n");
+            APE_ERROR("Binding", "[Window] Failed to exec func\n");
             return false;
         }
 
@@ -1080,7 +1080,7 @@ JSWindow *JSWindow::GetObject(NidiumJS *njs)
 JSClass *JSWindow::GetJSClass()
 {
     static JSClass global_class = {
-        "Window",         
+        "Window",
         JSCLASS_GLOBAL_FLAGS_WITH_SLOTS(16) | JSCLASS_HAS_PRIVATE,
         nullptr,  nullptr,
         nullptr,  nullptr,
@@ -1089,7 +1089,7 @@ JSClass *JSWindow::GetJSClass()
         nullptr,  nullptr,
         nullptr,  JS_GlobalObjectTraceHook
     };
-    
+
     return &global_class;
 }
 

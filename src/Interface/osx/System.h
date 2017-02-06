@@ -9,6 +9,8 @@
 #include "../SystemInterface.h"
 #include <sys/param.h> /* for MAXPATHLEN */
 
+#include <ape_log.h>
+
 namespace Nidium {
 namespace Interface {
 

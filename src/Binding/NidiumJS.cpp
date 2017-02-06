@@ -105,7 +105,7 @@ JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx,
 
             JS::AutoObjectVector scopeChain(cx);
 
-            bool cret = JS::CompileFunction(cx, scopeChain, options, 
+            bool cret = JS::CompileFunction(cx, scopeChain, options,
                             NULL, 0, NULL, pdata,
                             strlen(pdata), &cf);
 
@@ -269,7 +269,7 @@ void NidiumJS::Init()
     static bool _alreadyInit = false;
     if (!_alreadyInit) {
         if (!JS_Init()) {
-            fprintf(stderr, "Failed to init JSAPI (JS_Init())\n");
+            APE_ERROR("Binding", "[Nidium] Failed to init JSAPI (JS_Init())\n");
             return;
         }
         _alreadyInit = true;
@@ -465,7 +465,7 @@ NidiumJS::~NidiumJS()
 {
     JSRuntime *rt;
     rt         = JS_GetRuntime(m_Cx);
-    
+
     NidiumLocalContext *nlc = NidiumLocalContext::Get();
     nlc->shutdown();
 
@@ -673,7 +673,7 @@ char *NidiumJS::LoadScriptContentAndGetResult(const char *data,
     JS::RootedObject gbl(m_Cx, JS::CurrentGlobalOrNull(m_Cx));
 
     if (!gbl) {
-        fprintf(stderr, "Failed to load global object\n");
+        APE_ERROR("Binding", "[Nidium] Failed to load global object\n");
         return NULL;
     }
 

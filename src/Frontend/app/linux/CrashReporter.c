@@ -35,7 +35,7 @@ char *read_dump(const char *path, int *data_len)
 
     fd = fopen(path, "rb");
     if (!fd) {
-        fprintf(stderr, "Failed to open dump : %s\n", path);
+        APE_ERROR("Nidium", "[Crash] Failed to open dump : %s\n", path);
         return NULL;
     }
 
@@ -66,17 +66,17 @@ int main(int argc, char **argv)
     int sock;
 
     if (argc < 2) {
-        fprintf(stderr, "No dump specified\n");
+        APE_ERROR("Nidium", "[Crash] No dump specified\n");
         return -1;
     }
 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        fprintf(stderr, "Failed to create socket, err=%d\n", errno);
+        APE_ERROR("Nidium", "[Crash] Failed to create socket, err=%d\n", errno);
         return -2;
     }
 
     if ((hostaddr = gethostbyname(NIDIUM_CRASH_COLLECTOR_HOST)) == NULL) {
-        fprintf(stderr, "Unable to get host\n");
+        APE_ERROR("Nidium", "[Crash] Unable to get host\n");
         return -2;
     }
 
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
     dest.sin_port = htons(NIDIUM_CRASH_COLLECTOR_PORT);
 
     if (connect(sock, static_cast<const struct sockaddr *>(&dest), sizeof(struct sockaddr)) != 0) {
-        fprintf(stderr, "Failed to connect\n");
+        APE_ERROR("Nidium", "[Crash] Failed to connect\n");
         return -2;
     }
 
@@ -120,7 +120,7 @@ int main(int argc, char **argv)
     SEND("Host: "NIDIUM_CRASH_COLLECTOR_HOST"\r\n");
     SEND(cl_header);
     SEND("Content-Type: multipart/form-data; boundary="HTTP_BOUNDARY"\r\n\r\n");
-    //fprintf(stdout, "%s\n", data);
+    //APE_DEBUG("Nidium", "[Crash] %s\n", data);
     SEND(data);
     send(sock, minidump, minidum_size, 0);
     SEND(HTTP_BOUNDARY_END)
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
     len = recv(sock, reply_buffer, MAX_RCV_LEN, 0);
     reply_buffer[len] = '\0';
 
-    fprintf(stdout, "reply=%d\n%s\n", len, reply_buffer);
+    APE_DEBUG("Nidium", "[Crash] reply=%d\n%s\n", len, reply_buffer);
 
     close(sock);
     free(minidump);

@@ -291,8 +291,8 @@ static void nidium_http_read(ape_socket *s,
     nhttp->parsing(false);
 
     if (nparsed != len && !nhttp->m_HTTP.m_Ended) {
-        fprintf(
-            stderr, "[HTTP] (socket %p) Parser returned %ld with error %s\n", s,
+        APE_ERROR("Net", \
+            "[HTTP] (socket %p) Parser returned %ld with error %s\n", s,
             static_cast<unsigned long>(nparsed),
             http_errno_description(HTTP_PARSER_ERRNO(&nhttp->m_HTTP.parser)));
 

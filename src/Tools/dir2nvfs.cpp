@@ -42,7 +42,7 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
     dirent *cur;
 
     if (dir == NULL) {
-        fprintf(stderr, "null dir given\n");
+        APE_ERROR("Main", "[dir2nvfs] null dir given\n");
         return;
     }
 
@@ -57,7 +57,7 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
             }
 
             if (!nfs->mkdir(vpath, strlen(vpath))) {
-                fprintf(stderr, "Failed to create dir %s\n", vpath);
+                APE_ERROR("Main", "[dir2nvfs] Failed to create dir %s\n", vpath);
                 continue;
             }
 
@@ -68,7 +68,7 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
             Stream *stream = Stream::Create(newpath.c_str());
 
             if (stream == NULL) {
-                fprintf(stderr, "Could not create stream for file %s\n",
+                APE_ERROR("Main", "[dir2nvfs] Could not create stream for file %s\n",
                         newpath.c_str());
                 continue;
             }
@@ -76,17 +76,17 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
             size_t len;
 
             if (!stream->getContentSync(&content, &len, true)) {
-                fprintf(stderr, "Could not read stream for file %s\n",
+                APE_ERROR("Main", "[dir2nvfs] Could not read stream for file %s\n",
                         newpath.c_str());
                 continue;
             }
 
             if (!nfs->writeFile(vpath, strlen(vpath), content, len)) {
-                fprintf(stderr, "Failed to write file %s\n", vpath);
+                APE_ERROR("Main", "[dir2nvfs] Failed to write file %s\n", vpath);
                 continue;
             }
 
-            fprintf(stderr, "Saved file : %s\n", vpath);
+            APE_ERROR("Main", "[dir2nvfs] Saved file : %s\n", vpath);
         }
     }
 
@@ -112,7 +112,7 @@ static int Embed(int argc, char **argv)
 
     DIR *dir = opendir(argv[1]);
     if (!dir) {
-        fprintf(stderr, "Cant open dir %s\n", argv[1]);
+        APE_ERROR("Main", "[dir2nvfs] Cant open dir %s\n", argv[1]);
     }
 
     JS_BeginRequest(cx);
@@ -123,7 +123,7 @@ static int Embed(int argc, char **argv)
         std::string prefix = "/";
         prefix += argv[2];
 
-        fprintf(stderr, "Create prefix %s...\n", prefix.c_str());
+        APE_DEBUG("Main", "[dir2nvfs] Create prefix %s...\n", prefix.c_str());
 
         nfs->mkdir(prefix.c_str(), strlen(prefix.c_str()));
 

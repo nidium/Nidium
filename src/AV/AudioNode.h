@@ -283,13 +283,13 @@ class AudioNodeMixer : public AudioNode
         AudioNodeMixer(int m_InCount, int m_OutCount, AudioParameters *params) :
           AudioNode(m_InCount, m_OutCount, params)
         {
-            fprintf(stdout, "Mixer init\n");
-            fprintf(stdout, "count %d/%d\n", m_InCount, m_OutCount);
+            APE_DEBUG("AV", "[AudioNode] Mixer init\n");
+            APE_DEBUG("AV", "[AudioNode] count %d/%d\n", m_InCount, m_OutCount);
         }
 
         virtual bool process()
         {
-            SPAM(("|process called on mixer\n"));
+            SPAM(("[AudioNode] process called on mixer\n"));
 
             if (m_OutCount == 2) {
                 for (int i = 0; i < 256; i++) {
@@ -403,7 +403,7 @@ private:
 // }}}
 
 // {{{ AudioSourceCustom
-class AudioSourceCustom : public AudioNodeCustom, 
+class AudioSourceCustom : public AudioNodeCustom,
                           public AVSourceEventInterface
 {
 public:

@@ -300,8 +300,7 @@ void UIX11Console::log(const char *str)
 
         m_Interface->processGtkPendingEvents();
     } else {
-        fprintf(stdout, "%s", str);
-        fflush(stdout);
+        APE_ERROR("Interface", "[X11UI] %s", str);
     }
 }
 

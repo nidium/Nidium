@@ -29,8 +29,8 @@ namespace AV {
 #if 0
 #define DEBUG_PRINT
 #define DPRINT(...)                                   \
-    fprintf(stdout, ">[%d]%lld / ", (unsigned int)pthread_self(), av_gettime() / 1000); \
-    fprintf(stdout, __VA_ARGS__)
+    APE_DEBUG("AV", [Video] >[%d]%lld / ", (unsigned int)pthread_self(), av_gettime() / 1000); \
+    APE_DEBUG("AV", [Video] %s", _VA_ARGS__)
 #else
 #define DPRINT(...) (void)0
 #endif
@@ -189,13 +189,13 @@ int Video::openInitInternal()
     if (ret != 0) {
         char error[1024];
         av_strerror(ret, error, 1024);
-        fprintf(stderr, "Couldn't open file : %s\n", error);
+        APE_ERROR("AV", "[Video] Couldn't open file : %s\n", error);
         return ERR_INTERNAL;
     }
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
-        fprintf(stderr, "Couldn't find stream information");
+        APE_ERROR("AV", "[Video] Couldn't find stream information");
         return ERR_NO_INFORMATION;
     }
 
@@ -226,7 +226,7 @@ int Video::openInitInternal()
     }
 
     if (avcodec_open2(m_CodecCtx, codec, NULL) < 0) {
-        fprintf(stderr, "Could not find or open the needed codec\n");
+        APE_ERROR("AV", "[Video] Could not find or open the needed codec\n");
         return ERR_NO_CODEC;
     }
 
@@ -239,13 +239,13 @@ int Video::openInitInternal()
         = (uint8_t *)malloc(sizeof(Video::Frame) * NIDIUM_VIDEO_BUFFER_SAMPLES);
 
     if (m_Buff == NULL) {
-        fprintf(stderr, "Failed to alloc buffer\n");
+        APE_ERROR("AV", "[Video] Failed to alloc buffer\n");
         return ERR_OOM;
     }
 
     if (0 > PaUtil_InitializeRingBuffer(m_rBuff, sizeof(Video::Frame),
                                         NIDIUM_VIDEO_BUFFER_SAMPLES, m_Buff)) {
-        fprintf(stderr, "Failed to init ringbuffer\n");
+        APE_ERROR("AV", "[Video] Failed to init ringbuffer\n");
         return ERR_OOM;
     }
 
@@ -893,7 +893,7 @@ int Video::setSizeInternal()
         m_ConvertedFrame = av_frame_alloc();
 
         if (m_DecodedFrame == NULL || m_ConvertedFrame == NULL) {
-            fprintf(stderr, "Failed to alloc frame\n");
+            APE_ERROR("AV", "[Video] Failed to alloc frame\n");
             m_NoDisplay = false;
             return ERR_OOM;
         }

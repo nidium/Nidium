@@ -18,6 +18,8 @@
 #include <gtk/gtk.h>
 #include <libnotify/notify.h>
 
+#include <ape_log.h>
+
 #include "System.h"
 #include <libgen.h>
 #include <string>
@@ -42,7 +44,7 @@ static void get_dpi(int *x, int *y)
         *x = -1;
         *y = -1;
 
-        fprintf(stderr, "Failed to open X display\n");
+        APE_ERROR("Interface", "[System] Failed to open X display\n");
         return;
     }
 
@@ -122,7 +124,7 @@ const char *System::getCacheDirectory()
     snprintf(nHome, 4096, "%s.config/nidium/", homedir);
 
     if (mkdir(nHome, 0755) == -1 && errno != EEXIST) {
-        fprintf(stderr, "Cant create cache directory %s\n", nHome);
+        APE_ERROR("Interface", "[System] Cannot create cache directory %s\n", nHome);
         return NULL;
     }
 

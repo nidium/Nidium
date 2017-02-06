@@ -54,7 +54,7 @@ void UIInterface::setGLContextAttribute()
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE); 
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 }
@@ -93,7 +93,7 @@ bool UIInterface::createWindow(int width, int height)
             Enable vertical sync
         */
         if (SDL_GL_SetSwapInterval(NIDIUM_VSYNC) == -1) {
-            fprintf(stdout, "Cant vsync\n");
+            APE_ERROR("Interface", "[UI] Cant vsync\n");
         }
 
         // glViewport(0, 0, width*2, height*2);
@@ -482,14 +482,14 @@ uint8_t *UIInterface::readScreenPixel()
     uint8_t *ret = (uint8_t *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
     if (!ret) {
         uint32_t err = glGetError();
-        fprintf(stderr, "Failed to map buffer: Error %d\n", err);
+        APE_ERROR("Interface", "[UI] Failed to map buffer: Error %d\n", err);
         return NULL;
     }
 
     /* Flip Y pixels (row by row) */
     for (uint32_t i = 0; i < height; i++) {
         memcpy(m_FrameBuffer + i * width * 4,
-                &ret[(height - i - 1) * width * 4], 
+                &ret[(height - i - 1) * width * 4],
                 width * 4);
     }
 
