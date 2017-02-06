@@ -293,7 +293,7 @@ void Context::postDraw()
         s->drawRect(0, 0, m_DebugHandler->getWidth(),
                     m_DebugHandler->getHeight(), 0);
         s->setFillColor(0xFFEEEEEEu);
-        
+
         s->drawTextf(5, 12, "Nidium build %s %s", __DATE__, __TIME__);
         s->drawTextf(5, 25, "Frame: %lld (%lldms)", m_Stats.nframe,
                      m_Stats.lastdifftime / 1000000LL);
@@ -361,9 +361,9 @@ void Context::callFrame()
 
     m_Stats.minfps = nidium_min(m_Stats.minfps,
                                 1000.f / (m_Stats.lastdifftime / 1000000.f));
-    // printf("FPS : %f\n", 1000.f/(m_Stats.lastdifftime/1000000.f));
+    // APE_DEBUG("Frontend", "[Context] FPS : %f\n", 1000.f/(m_Stats.lastdifftime/1000000.f));
 
-    // printf("Last diff : %f\n",
+    // APE_DEBUG("Frontend", "[Context] Last diff : %f\n",
     // static_cast<float>(m_Stats.lastdifftime/1000000.f));
 
     /* Sample every 1000ms */
@@ -675,7 +675,7 @@ bool Context::initShaderLang()
     // before we start, we check that no error already occurred, to prevent hiding it in our subsequent error handling
     error = glGetError();
     if (error != GL_NO_ERROR) {
-        printf("GL error 0x%x occurred during initShaderLang context initialization!\n", error);
+        APE_ERROR("Frontend", "[Context] GL error 0x%x occurred during initShaderLang context initialization!\n", error);
         return false;
     }
 
@@ -695,7 +695,7 @@ bool Context::initShaderLang()
             maxVaryingVectors = 16; // = 64/4, 64 is the min value for maxVertexOutputComponents in OpenGL 3.2 spec
             break;
         default:
-            printf("GL error 0x%x occurred during WebGL context initialization!\n", error);
+            APE_ERROR("Frontend", "[Context] GL error 0x%x occurred during WebGL context initialization!\n", error);
             return false;
     }
 #endif

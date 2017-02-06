@@ -6,6 +6,8 @@
 #ifndef binding_jsutils_h__
 #define binding_jsutils_h__
 
+#include <ape_log.h>
+
 #include <jspubtd.h>
 #include <jsapi.h>
 #include <js/CallArgs.h>
@@ -166,7 +168,7 @@ public:
 
     void set(const char *name, JSString *str)
     {
-        printf("JSObjectBuilder using a JSString is deprecated\n");
+        APE_ERROR("Binding", "[JSUtils] JSObjectBuilder using a JSString is deprecated\n");
         exit(1);
     }
 

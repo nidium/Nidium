@@ -35,7 +35,7 @@ namespace Binding {
 typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 // {{{ Preamble
 #if 0
-#define DPRINT(...) printf(__VA_ARGS__)
+#define DPRINT(...) JSDEBUG("Binding", "[JSModules] ", __VA_ARGS__)
 #else
 #define DPRINT(...) (void)0
 #endif

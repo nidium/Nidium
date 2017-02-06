@@ -32,7 +32,7 @@ namespace Binding {
 
 // {{{ Helper Macros
 #define GL_CALL(IFACE, FN)                                         \
-    /*printf(#FN "\n");*/                                          \
+    /*APE_DEBUG("Binding", "[JSWebGl] " #FN "\n");*/               \
     NIDIUM_GL_CALL((IFACE)->getGLContext(), FN);                   \
     {                                                              \
         GLint err = glGetError();                                  \
@@ -40,7 +40,7 @@ namespace Binding {
     }
 
 #define GL_CALL_RET(IFACE, FN, RET)                                \
-    /*printf(#FN "\n");*/                                          \
+    /*APE_DEBUG("Binding", "[JSWebGL] " #FN "\n");*/               \
     NIDIUM_GL_CALL_RET((IFACE)->getGLContext(), FN, RET);          \
     {                                                              \
         GLint err = glGetError();                                  \

@@ -510,7 +510,7 @@ void JSAudioContext::ShutdownCallback(void *custom)
 #ifdef DEBUG
     JSAudioContext::NodeListItem *node = audio->m_Nodes;
     while (node != NULL) {
-        printf("All nodes should have been destroyed\n");
+        APE_DEBUG("Binding", "[JSAudioContext] All nodes should have been destroyed\n");
         assert(false);
     }
 #endif

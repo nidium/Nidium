@@ -291,7 +291,7 @@ uint32_t SkiaContext::ParseColor(const char *str)
             = SkParse::FindScalars(&str[(str[3] == 'a' ? 5 : 4)], array, count);
 
         if (end == NULL)
-            printf("Not found\n");
+            APE_WARN("Graphics", "[SkiaContext] Not found\n");
         else {
             /* TODO: limits? */
             return makeRGBAFromHSLA(SkScalarToDouble(array[0]) / 360.,
@@ -375,7 +375,7 @@ SkiaContext::createNewGPUDevice(GrContext *gr, int width, int height)
 int SkiaContext::bindOnScreen(int width, int height)
 {
     if (SkiaContext::m_GlContext == NULL) {
-        printf("Cant find GL context\n");
+        APE_ERROR("Graphics", "[SkiaContext] Cant find GL context\n");
         return 0;
     }
 
@@ -421,7 +421,7 @@ int SkiaContext::bindOnScreen(int width, int height)
 
 void glcb(const GrGLInterface *)
 {
-    printf("Got a gl call\n");
+    APE_DEBUG("Graphics", "[SkiaContext] Got a gl call\n");
 }
 
 SkCanvas *SkiaContext::CreateGLCanvas(int width, int height, Context *nctx)
@@ -951,7 +951,7 @@ void SkiaContext::light(double x, double y, double z)
     PAINT->setImageFilter(SkLightingImageFilter::CreatePointLitDiffuse(
         pt, white, SkIntToScalar(1), SkIntToScalar(2)));
 
-    printf("Light created\n");
+    APE_DEBUG("Graphics", "[SkiaContext] Light created\n");
 }
 
 void SkiaContext::rotate(double angle)
@@ -1084,10 +1084,10 @@ void SkiaContext::itransform(double scalex,
 
     SkMatrix im;
     if (m.invert(&im)) {
-        printf("transformed\n");
+        APE_DEBUG("Graphics", "[SkiaContext] transformed\n");
         m_Canvas->concat(im);
     } else {
-        printf("Cant revert Matrix\n");
+        APE_ERROR("Graphics", "[SkiaContext] Cant revert Matrix\n");
     }
 }
 
@@ -1133,7 +1133,7 @@ int SkiaContext::readPixels(
         width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
 
     if (!m_Canvas->readPixels(info, pixels, width * 4, left, top)) {
-        printf("Failed to read pixels\n");
+        APE_ERROR("Graphics", "[SkiaContext] Failed to read pixels\n");
         return 0;
     }
 
@@ -1392,11 +1392,11 @@ void SkiaContext::drawPixelsGL(uint8_t *pixels, int width, int height,
     glWindowPos2i(x, y);
 
     if (glGetError() != GL_NO_ERROR) {
-        printf("got an error\n");
+        APE_ERROR("Graphics", "[SkiaContext]" got an error\n");
     }
     glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, pixels);
     if (glGetError() != GL_NO_ERROR) {
-        printf("got an error\n");
+        APE_ERROR("Graphics", "[SkiaContext]" got an error\n");
     }
     context->resetContext();
 }

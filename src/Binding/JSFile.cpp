@@ -79,7 +79,7 @@ public:
             case Stream::kEvents_Error: {
                 Stream::Errors err
                     = static_cast<Stream::Errors>(msg.m_Args[0].toInt());
-                printf("Got an error : %d\n", err);
+                APE_ERROR("Binding", "[JSFile] Got an error : %d\n", err);
                 params[0].setString(JS_NewStringCopyZ(cx, "Stream error"));
             } break;
             case Stream::kEvents_ReadBuffer: {
@@ -269,7 +269,7 @@ bool JSFile::JSGetter_filename(JSContext *cx, JS::MutableHandleValue vp)
     File *file = this->getFile();
 
     vp.setString(JS_NewStringCopyZ(cx, file->getFullPath()));
-    
+
     return true;
 }
 
@@ -321,7 +321,7 @@ bool JSFile::JS_listFiles(JSContext *cx, JS::CallArgs &args)
         file->open("r");
     }
 
-    printf("List file to %p\n", ref);
+    APE_DEBUG("Binding", "[JSFile] List file to %p\n", ref);
     file->listFiles(ref);
 
     this->root();
@@ -440,7 +440,7 @@ bool JSFile::JS_open(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    printf("Argc is %d\n", args.length());
+    APE_DEBUG("Binding", "[JSFile] Argc is %d\n", args.length());
 
     if (!JSUtils::ReportIfNotFunction(cx, args[1])) {
         return false;
@@ -551,7 +551,7 @@ bool JSFile::JSStatic_readSync(JSContext *cx, JS::CallArgs &args)
 
     if (!stream.ptr() || !stream.ptr()->getContentSync(&buf, &len)) {
         args.rval().setNull();
-        printf("couldnt read the file\n");
+        APE_ERROR("Binding", "[JSFile] couldnt read the file\n");
         return true;
     }
 

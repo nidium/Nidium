@@ -1782,10 +1782,10 @@ void Canvas2DContext::initCopyTex()
         case GL_FRAMEBUFFER_COMPLETE:
             break;
         case GL_FRAMEBUFFER_UNSUPPORTED:
-            printf("fbo unsupported\n");
+            APE_ERROR("Binding", "[JSCanvas2DContext] fbo unsupported\n");
             return;
         default:
-            printf("fbo fatal error\n");
+            APE_ERROR("Binding", "[JSCanvas2DContext] fbo fatal error\n");
             return;
     }
 
@@ -1839,7 +1839,7 @@ void Canvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
 
     GLenum err;
     if ((err = glGetError()) != GL_NO_ERROR) {
-        printf("got a gl error %d\n", err);
+        APE_ERROR("Binding", "[JSCanvas2DContext] got a gl error %d\n", err);
     }
 
     /* save the old viewport size */
@@ -2128,7 +2128,7 @@ void Canvas2DContext::setSize(int width, int height, bool redraw)
         ndev = m_Skia->createNewGPUDevice(gr, width * ratio, height * ratio);
 #endif
         if (ndev == NULL) {
-            printf("Cant create canvas of size %dx%d (backstore ratio : %f)\n",
+            APE_ERROR("Binding", "[JSCanvas2DContext] Cant create canvas of size %dx%d (backstore ratio : %f)\n",
                    width, height, ratio);
             return;
         }

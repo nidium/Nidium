@@ -79,7 +79,7 @@ void NML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
     Path path(file);
 
 #ifdef DEBUG
-    printf("NML path : %s\n", path.path());
+    APE_DEBUG("Frontend", "[NML] NML path : %s\n", path.path());
 #endif
 
     m_Stream = Stream::Create(path);
@@ -168,7 +168,7 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
                 nidium_xml_ret_t ret;
 
                 if ((ret = (this->*m_NmlTags[i].cb)(*child)) != NIDIUM_XML_OK) {
-                    printf("XML : Nidium error (%d)\n", ret);
+                    APE_ERROR("Frontend", "[NML] XML : Nidium error (%d)\n", ret);
                     SystemInterface::GetInstance()->alert(
                         "NML ERROR", SystemInterface::ALERT_CRITIC);
                     return false;
@@ -593,7 +593,7 @@ NML::nidium_xml_ret_t NML::loadAssets(rapidxml::xml_node<> &node)
         } else if (!strncasecmp(child->name(), CONST_STR_LEN("style"))) {
             item->m_FileType = Assets::Item::ITEM_NSS;
         }
-        // printf("Node : %s\n", child->name());
+        // APE_DEBUG("Frontend", "[NML] Node : %s\n", child->name());
     }
 
     assets->endListUpdate(m_Net);

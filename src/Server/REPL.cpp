@@ -65,7 +65,7 @@ repl:
     repl->setExitCount(exitcount + 1);
 
     if (exitcount == 0) {
-        printf("(To exit, press ^C again)\n");
+        APE_INFO("Server", "[REPL] To exit, press ^C again)\n");
         goto repl;
     }
 
@@ -102,7 +102,7 @@ void REPL::onMessage(const SharedMessages::Message &msg)
             "commandline");
 
         if (ret) {
-            printf("%s\n", ret);
+            APE_DEBUG("Server", "[REPL] %s\n", ret);
             free(ret);
         }
 

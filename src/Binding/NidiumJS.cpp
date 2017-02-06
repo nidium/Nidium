@@ -205,7 +205,7 @@ ape_global *NidiumJS::GetNet()
 void NidiumJS::InitNet(ape_global *net)
 {
     if (pthread_key_create(&gAPE, NULL) != 0) {
-        printf("pthread_key_create() error\n");
+        APE_ERROR("Binding", "[NidiumJS] pthread_key_create() error\n");
         exit(1);
         return;
     }
@@ -260,7 +260,7 @@ void NidiumJS::SetJSRuntimeOptions(JSRuntime *rt, bool strictmode)
 #if 0
 static void _gc_callback(JSRuntime *rt, JSGCStatus status, void *data)
 {
-    printf("Got gcd\n");
+    APE_DEBUG("Binding", "[NidiumJS] Got gcd\n");
 }
 #endif
 
@@ -283,7 +283,7 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
     if (js == nullptr) {
-        printf("Error reporter failed (wrong JSContext?) (%s:%d > %s)\n",
+        APE_ERROR("Binding", "[NidiumJS] Error reporter failed (wrong JSContext?) (%s:%d > %s)\n",
                report->filename, report->lineno, message);
         return;
     }
@@ -393,7 +393,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
         // JS_SetCStringsAreUTF8();
         isUTF8 = 1;
     }
-    // printf("New JS runtime\n");
+    // APE_DEBUG("Binding", "[NidiumJS] New JS runtime\n");
 
     m_Net = NULL;
 
@@ -410,7 +410,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     if ((rt = JS_NewRuntime(JS::DefaultHeapMaxBytes, JS::DefaultNurseryBytes))
         == NULL) {
 
-        printf("Failed to init JS runtime\n");
+        APE_ERROR("Binding", "[NidiumJS] Failed to init JS runtime\n");
         return;
     }
 
@@ -418,7 +418,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     JS_SetErrorReporter(rt, reportError);
 
     if ((m_Cx = JS_NewContext(rt, 8192)) == NULL) {
-        printf("Failed to init JS context\n");
+        APE_ERROR("Binding", "[NidiumJS] Failed to init JS context\n");
         return;
     }
 
@@ -576,13 +576,13 @@ int NidiumJS::LoadScriptReturn(JSContext *cx,
     free(func);
 
     if (!cret) {
-        printf("Cant load script %s\n", filename);
+        APE_ERROR("Binding", "[NidiumJS] Cant load script %s\n", filename);
         return 0;
     }
 
     if (JS_CallFunction(cx, gbl, cf, JS::HandleValueArray::empty(), ret)
         == false) {
-        printf("Got an error?\n"); /* or thread has ended */
+        APE_ERROR("Binding", "[NidiumJS] Got an error?\n"); /* or thread has ended */
 
         return 0;
     }

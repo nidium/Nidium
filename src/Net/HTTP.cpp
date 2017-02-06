@@ -543,7 +543,7 @@ bool HTTP::createConnection()
                                  0, m_Net))
         == NULL) {
 
-        printf("[Socket] Cant load socket (new)\n");
+        APE_ERROR("Net", "[HTTP] Cant load socket (new)\n");
         if (m_Delegate) {
             this->setPendingError(ERROR_SOCKET);
         }
@@ -553,7 +553,7 @@ bool HTTP::createConnection()
     if (APE_socket_connect(socket, m_Request->getPort(), m_Request->getHost(),
                            0)
         == -1) {
-        printf("[Socket] Cant connect (0)\n");
+        APE_ERROR("Net", "[HTTP] Cant connect (0)\n");
         if (m_Delegate) {
             this->setPendingError(ERROR_SOCKET);
         }

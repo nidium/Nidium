@@ -87,7 +87,7 @@ SkShader *Gradient::build()
     if (m_ColorsStop.count < 2) {
         m_CurrentShader = NULL;
         m_NeedUpdate = 0;
-        printf("Building gradient with invalid number of (addColorStop) : %d\n",
+        APE_WARN("Graphics", "[Gradient] Building gradient with invalid number of (addColorStop) : %d\n",
                m_ColorsStop.count);
         return NULL;
     }

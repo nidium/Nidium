@@ -347,7 +347,7 @@ void UIInterface::setCursor(CURSOR_TYPE type)
     if (m_CurrentCursor != type) {
         m_CursorNeedsUpdate = true;
         m_CurrentCursor = type;
-        printf("set new cursor %d\n", type);
+        APE_DEBUG("Interface", "[UI] set new cursor %d\n", type);
     }
 }
 

@@ -173,7 +173,7 @@ void HTTPStream::onStart(size_t packets, size_t seek)
     char tmpfname[] = "/tmp/nidiumtmp.XXXXXXXX";
     m_Mapped.fd = mkstemp(tmpfname);
     if (m_Mapped.fd == -1) {
-        printf("[HTTPStream] Failed to create temporary file\n");
+        APE_ERROR("Net", "[HTTPStream] Failed to create temporary file\n");
         return;
     }
     unlink(tmpfname);

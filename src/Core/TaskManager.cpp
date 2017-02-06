@@ -226,7 +226,7 @@ void Managed::unlockTasks()
 void Managed::addTask(Task *task)
 {
     if (m_Manager == NULL) {
-        printf("addTask() : Unknown manager\n");
+        APE_WARN("Core", "[TaskManager] addTask() : Unknown manager\n");
         return;
     }
     if (m_Worker == NULL) {

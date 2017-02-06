@@ -42,7 +42,7 @@ public:
 
     void printInfo()
     {
-        printf("(Socket : %d)\n", m_Socket->s.fd);
+        APE_DEBUG("Net", "[WebSocketClient] Socket : %d\n", m_Socket->s.fd);
     }
 
     virtual void HTTPHeaderEnded();

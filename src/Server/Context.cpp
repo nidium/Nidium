@@ -37,7 +37,7 @@ Context::Context(ape_global *net, Worker *worker, bool jsstrict, bool runInREPL)
         Path::CD(cwd);
         Path::Chroot("/");
     } else {
-        APE_WARN("Main", "[Context] Failed to get current working directory\n");
+        APE_WARN("Server", "[Context] Failed to get current working directory\n");
     }
 
     m_JS->setStrictMode(jsstrict);

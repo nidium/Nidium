@@ -170,8 +170,8 @@ private:
         m_Interface = GrGLCreateNativeInterface();
 
         if (!m_Interface) {
-            printf(
-                "[Fatal OpenGL Error] Failed to create GrGL "
+            APE_ERROR("Graphics", "[GLContext] "
+                "Fatal OpenGL Error: Failed to create GrGL "
                 "Interface...exiting\n");
             exit(1);
         }

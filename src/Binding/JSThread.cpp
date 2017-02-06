@@ -94,14 +94,14 @@ static void *nidium_thread(void *arg)
     if ((rt = JS_NewRuntime(JS::DefaultHeapMaxBytes,
         JS::DefaultNurseryBytes, nthread->m_ParentRuntime))
         == NULL) {
-        printf("Failed to init JS runtime\n");
+        APE_ERROR("Binding", "[JSThread] Failed to init JS runtime\n");
         return NULL;
     }
 
     NidiumJS::SetJSRuntimeOptions(rt);
 
     if ((tcx = JS_NewContext(rt, 8192)) == NULL) {
-        printf("Failed to init JS context\n");
+        APE_ERROR("Binding", "[JSThread] Failed to init JS context\n");
         JS_DestroyRuntime(rt);
         return NULL;
     } else {
@@ -165,7 +165,7 @@ static void *nidium_thread(void *arg)
             delete[] scoped;
 
             if (!cret) {
-                printf("Cant compile function\n");
+                APE_ERROR("Binding", "[JSThread] Cant compile function\n");
                 return NULL;
             }
 
@@ -230,7 +230,7 @@ void JSThread::onMessage(const Core::SharedMessages::Message &msg)
                                 JS_STRUCTURED_CLONE_VERSION, &inval, NidiumJS::m_JsScc,
                                 NULL)) {
 
-        printf("Failed to read input data (readMessage)\n");
+        APE_ERROR("Binding", "[JSThread] Failed to read input data (readMessage)\n");
 
         delete ptr;
         return;
@@ -360,7 +360,7 @@ JSThread * JSThread::Constructor(JSContext *cx, JS::CallArgs &args,
 
     if ((nfn = JS_ValueToFunction(cx, args[0])) == NULL
         || (nthread->m_JsFunction = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
-        printf("Failed to read Threaded function\n");
+        APE_ERROR("Binding", "[JSThread] Failed to read Threaded function\n");
         return nullptr;
     }
 

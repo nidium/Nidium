@@ -34,7 +34,7 @@ Image::Image(void *data, size_t len) : m_CanvasRef(NULL)
     m_IsCanvas = 0;
 
     if (!SkImageDecoder::DecodeMemory(data, len, m_Image)) {
-        printf("failed to decode Image\n");
+        APE_ERROR("Graphics", "[Image] failed to decode Image\n");
         delete m_Image;
         m_Image = NULL;
     }
@@ -88,7 +88,7 @@ const uint8_t *Image::getPixels(size_t *len)
     }
     void *data = m_Image->getPixels();
 
-    printf("Pixels : %x %d\n", (static_cast<uint8_t *>(data)[500]),
+    APE_DEBUG("Graphics", "[Image] Pixels : %x %d\n", (static_cast<uint8_t *>(data)[500]),
            m_Image->height());
 
     return static_cast<const uint8_t *>(m_Image->getPixels());
@@ -100,7 +100,7 @@ SkData *Image::getPNG()
         return NULL;
     }
 
-    // It seems that SkImageEncoder expect the pixels to be BGRA 
+    // It seems that SkImageEncoder expect the pixels to be BGRA
     // but they are RGBA. Switch blue and red to workaround this.
     // FIXME : There must be a better way to handle this.
     uint8_t* data = static_cast<uint8_t *>(m_Image->getPixels());

@@ -205,7 +205,7 @@ void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)
     switch (cursorvalue) {
         case UIX11Interface::ARROW:
             cursor = XC_left_ptr;
-            printf("Normal cursor\n");
+            APE_DEBUG("Interface", "[X11UI] Normal cursor\n");
             break;
         case UIX11Interface::BEAM:
             cursor = XC_xterm;
@@ -220,7 +220,7 @@ void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)
             cursor = XC_hand1;
             break;
         case UIX11Interface::HIDDEN:
-            printf("hide cursor\n");
+            APE_DEBUG("Interface", "[X11UI] hide cursor\n");
             this->hideCursor(true);
             return;
         default:
@@ -243,7 +243,7 @@ void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)
 
 void tray_icon_on_click(GtkStatusIcon *status_icon, gpointer user_data)
 {
-    printf("Clicked on tray icon\n");
+    APE_DEBUG("Interface", "[X11UI] Clicked on tray icon\n");
 }
 void UIX11Interface::enableSysTray()
 {
@@ -353,7 +353,7 @@ void UIX11Console::hide()
 {
     if (!m_Window || !m_IsOpen) return;
 
-    printf("hide\n");
+    APE_DEBUG("Interface", "[X11UI] hide\n");
 
     gtk_widget_hide(m_Window);
 }
