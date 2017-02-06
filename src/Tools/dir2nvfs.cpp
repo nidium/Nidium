@@ -112,7 +112,7 @@ static int Embed(int argc, char **argv)
 
     DIR *dir = opendir(argv[1]);
     if (!dir) {
-        APE_ERROR("Tools", "[dir2nvfs] Cant open dir %s\n", argv[1]);
+        APE_ERROR("Tools", "[dir2nvfs] Can not open dir %s\n", argv[1]);
     }
 
     JS_BeginRequest(cx);

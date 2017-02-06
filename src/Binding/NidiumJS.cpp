@@ -576,7 +576,7 @@ int NidiumJS::LoadScriptReturn(JSContext *cx,
     free(func);
 
     if (!cret) {
-        APE_ERROR("Binding", "[NidiumJS] Cant load script %s\n", filename);
+        APE_ERROR("Binding", "[NidiumJS] Can not load script %s\n", filename);
         return 0;
     }
 

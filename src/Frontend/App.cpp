@@ -283,7 +283,7 @@ int App::extractApp(const char *path,
 #if 0
 #define NIDIUM_CACHE_DIR "./cache/"
     if (mkdir(NIDIUM_CACHE_DIR, 0777) == -1 && errno != EEXIST) {
-        APE_ERROR("FRONTEND", "[App] Cant create cache directory\n");
+        APE_ERROR("FRONTEND", "[App] Can not create cache directory\n");
         return 0;
     }
     fullpath = static_cast<char *>(malloc(sizeof(char) *
@@ -295,7 +295,7 @@ int App::extractApp(const char *path,
 #endif
     int ret = 0;
     if ((ret = mkdir(fullpath, 0777)) == -1 && errno != EEXIST) {
-        APE_ERROR("FRONTEND", "[App] Cant create Application directory\n");
+        APE_ERROR("FRONTEND", "[App] Can not create Application directory\n");
         free(fullpath);
         return 0;
     } else if (ret == -1 && errno == EEXIST) {
@@ -445,7 +445,7 @@ int App::loadManifest()
     Json::Value root;
 
     if (!m_Reader.parse(content, content + stat.size, root)) {
-        APE_ERROR("Frontend", "[App] Cant parse JSON\n");
+        APE_ERROR("Frontend", "[App] Can not parse JSON\n");
 
         return 0;
     }

@@ -375,7 +375,7 @@ SkiaContext::createNewGPUDevice(GrContext *gr, int width, int height)
 int SkiaContext::bindOnScreen(int width, int height)
 {
     if (SkiaContext::m_GlContext == NULL) {
-        APE_ERROR("Graphics", "[SkiaContext] Cant find GL context\n");
+        APE_ERROR("Graphics", "[SkiaContext] Can not find GL context\n");
         return 0;
     }
 
@@ -444,7 +444,7 @@ SkCanvas *SkiaContext::CreateGLCanvas(int width, int height, Context *nctx)
 
         if ((interface = nctx->getGLState()->getNidiumGLContext()->iface())
             == NULL) {
-            NUI_LOG("Cant get OpenGL interface");
+            NUI_LOG("Can not get OpenGL interface");
             return NULL;
         }
 
@@ -1087,7 +1087,7 @@ void SkiaContext::itransform(double scalex,
         APE_DEBUG("Graphics", "[SkiaContext] transformed\n");
         m_Canvas->concat(im);
     } else {
-        APE_ERROR("Graphics", "[SkiaContext] Cant revert Matrix\n");
+        APE_ERROR("Graphics", "[SkiaContext] Can not revert Matrix\n");
     }
 }
 

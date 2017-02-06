@@ -334,7 +334,7 @@ void *Audio::decodeThread(void *args)
                 NIDIUM_PTHREAD_SIGNAL(&audio->m_QueueHaveData);
                 // audio->haveData = true;
             } else {
-                SPAM(("[Audio] dont Have data %lu\n",
+                SPAM(("[Audio] Does not have data %lu\n",
                       PaUtil_GetRingBufferWriteAvailable(audio->m_rBufferOut)));
             }
         }

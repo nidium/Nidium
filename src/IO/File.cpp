@@ -226,7 +226,7 @@ void File::openTask(const char *mode, void *arg)
 
     if (S_ISDIR(s.st_mode)) {
         if (!readOnly) {
-            APE_ERROR("IO", "[File] Cannot open directory %s for writing\n", m_Path);
+            APE_ERROR("IO", "[File] Can not open directory %s for writing\n", m_Path);
             NIDIUM_FILE_NOTIFY(EISDIR, File::kEvents_OpenError, arg);
             return;
         }
@@ -509,7 +509,7 @@ int File::openSync(const char *modes, int *err)
     if (S_ISDIR(s.st_mode)) {
         if (!readOnly) {
             *err = EISDIR;
-            APE_ERROR("IO", "[File] Cannot open directory %s for writing\n", m_Path);
+            APE_ERROR("IO", "[File] Can not open directory %s for writing\n", m_Path);
             return 0;
         }
 

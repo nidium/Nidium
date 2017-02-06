@@ -165,7 +165,7 @@ static void *nidium_thread(void *arg)
             delete[] scoped;
 
             if (!cret) {
-                APE_ERROR("Binding", "[JSThread] Cant compile function\n");
+                APE_ERROR("Binding", "[JSThread] Can not compile function\n");
                 return NULL;
             }
 

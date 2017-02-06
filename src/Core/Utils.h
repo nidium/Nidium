@@ -105,7 +105,7 @@ public:
         random = open("/dev/urandom", O_RDONLY);
 
         if (!random) {
-            APE_ERROR("Utils", "[Utils] Cannot open /dev/urandom\n");
+            APE_ERROR("Utils", "[Utils] Can not open /dev/urandom\n");
             return 0;
         }
 
@@ -125,7 +125,7 @@ public:
         random = open("/dev/urandom", O_RDONLY);
 
         if (!random) {
-            APE_ERROR("Nidium", "[Utils] Cannot open /dev/urandom\n");
+            APE_ERROR("Nidium", "[Utils] Can not open /dev/urandom\n");
             return data;
         }
 

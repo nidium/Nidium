@@ -1213,7 +1213,7 @@ bool Video::processAudio()
 bool Video::processVideo()
 {
     if (PaUtil_GetRingBufferWriteAvailable(m_rBuff) < 1) {
-        DPRINT("processVideo not enought space to write data\n");
+        DPRINT("processVideo not enough space to write data\n");
         return false;
     }
 

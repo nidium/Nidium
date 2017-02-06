@@ -499,7 +499,7 @@ bool JSFile::JSStatic_read(JSContext *cx, JS::CallArgs &args)
     Stream *stream = Stream::Create(Path(cfilename.ptr()));
 
     if (!stream) {
-        JS_ReportError(cx, "couldn't open stream");
+        JS_ReportError(cx, "Could not open stream");
         return false;
     }
 
@@ -551,7 +551,7 @@ bool JSFile::JSStatic_readSync(JSContext *cx, JS::CallArgs &args)
 
     if (!stream.ptr() || !stream.ptr()->getContentSync(&buf, &len)) {
         args.rval().setNull();
-        APE_ERROR("Binding", "[JSFile] couldnt read the file\n");
+        APE_ERROR("Binding", "[JSFile] Could not read the file\n");
         return true;
     }
 

@@ -124,7 +124,7 @@ const char *System::getCacheDirectory()
     snprintf(nHome, 4096, "%s.config/nidium/", homedir);
 
     if (mkdir(nHome, 0755) == -1 && errno != EEXIST) {
-        APE_ERROR("Interface", "[System] Cannot create cache directory %s\n", nHome);
+        APE_ERROR("Interface", "[System] Can not create cache directory %s\n", nHome);
         return NULL;
     }
 

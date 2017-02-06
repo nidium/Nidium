@@ -137,7 +137,7 @@ bool JSGlobal::JS_load(JSContext *cx, JS::CallArgs &args)
     /* only embed are allowed in an http context */
     if (SCHEME_MATCH(schemeCwd, "http")
         && !URLSCHEME_MATCH(scriptstr.ptr(), "embed")) {
-        JS_ReportError(cx, "script access error : cannot load in this context");
+        JS_ReportError(cx, "script access error : Can not load in this context");
         return false;
     }
 

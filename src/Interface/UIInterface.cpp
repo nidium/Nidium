@@ -72,7 +72,7 @@ bool UIInterface::createWindow(int width, int height)
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /* | SDL_WINDOW_FULLSCREEN*/);
 
         if (m_Win == NULL) {
-            NUI_LOG("Cant create window (SDL)\n");
+            NUI_LOG("Can not create window (SDL)\n");
             return false;
         }
 
@@ -93,7 +93,7 @@ bool UIInterface::createWindow(int width, int height)
             Enable vertical sync
         */
         if (SDL_GL_SetSwapInterval(NIDIUM_VSYNC) == -1) {
-            APE_ERROR("Interface", "[UI] Cant vsync\n");
+            APE_ERROR("Interface", "[UI] Can not vsync\n");
         }
 
         // glViewport(0, 0, width*2, height*2);

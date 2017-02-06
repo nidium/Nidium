@@ -1268,7 +1268,7 @@ bool Canvas2DContext::JSSetter_fontFile(JSContext *cx,
     JSAutoByteString font(cx, vpStr);
 
     if (!m_Skia->setFontFile(font.ptr())) {
-        JS_ReportError(cx, "Cannot set font (invalid file)");
+        JS_ReportError(cx, "Can not set font (invalid file)");
 
         return false;
     }
@@ -2108,7 +2108,7 @@ void Canvas2DContext::setSize(int width, int height, bool redraw)
         if ((ncanvas = SkiaContext::CreateGLCanvas(
                  width, height, Interface::__NidiumUI->getNidiumContext()))
             == NULL) {
-            NUI_LOG("[Error] Couldnt resize the canvas to %dx%d", width,
+            NUI_LOG("[Error] Could not resize the canvas to %dx%d", width,
                     height);
             return;
         }
@@ -2128,7 +2128,7 @@ void Canvas2DContext::setSize(int width, int height, bool redraw)
         ndev = m_Skia->createNewGPUDevice(gr, width * ratio, height * ratio);
 #endif
         if (ndev == NULL) {
-            APE_ERROR("Binding", "[JSCanvas2DContext] Cant create canvas of size %dx%d (backstore ratio : %f)\n",
+            APE_ERROR("Binding", "[JSCanvas2DContext] Can not create canvas of size %dx%d (backstore ratio : %f)\n",
                    width, height, ratio);
             return;
         }

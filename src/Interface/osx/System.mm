@@ -100,7 +100,7 @@ const char *System::getCacheDirectory()
         NSString *path = [NSString stringWithFormat:@"%@/nidium/",cacheDir];
         const char *cpath = [path cStringUsingEncoding:NSASCIIStringEncoding];
         if (mkdir(cpath, 0777) == -1 && errno != EEXIST) {
-            APE_ERROR("Interface", "[System] Cannot create cache directory %s\n", cpath);
+            APE_ERROR("Interface", "[System] Can not create cache directory %s\n", cpath);
             return NULL;
         }
         return cpath;
