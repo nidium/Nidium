@@ -82,6 +82,10 @@ $ ./bin/nidium
 
 We strive to have an exellent documentation, both for our [getting started guide](http://www.nidium.com/docs/guide/get-started/hello-world.html) and for the [API Reference](http://www.nidium.com/docs/api/).
 
+## Videos - nidium in action
+
+- [http://p.nf/nidium-vids/block-animation2.mp4](http://p.nf/nidium-vids/)
+
 ## Bug reports and Collaboration
 
 Feel free to report any bug or issue [to us](https://github.com/nidium/Nidium/issues).
