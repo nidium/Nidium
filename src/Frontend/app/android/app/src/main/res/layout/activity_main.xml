@@ -29,20 +29,12 @@
         android:layout_alignParentEnd="true"
         android:id="@+id/load_remote_nml" />
 
-    <ListView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/textView"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="20dp"
-        android:id="@+id/nml_list" />
-
     <TextView
         android:text="Available NML :"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="19dp"
-        android:id="@+id/textView"
+        android:id="@+id/nml_list_title"
         android:textSize="15sp"
         android:textColor="@android:color/black"
         android:background="@drawable/border_bottom"
@@ -51,4 +43,11 @@
         android:layout_alignParentStart="true"
         android:textAlignment="viewStart"
         android:layout_alignParentEnd="true" />
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/nml_list"
+        android:layout_below="@+id/nml_list_title"
+        android:layout_alignParentStart="true" />
 </RelativeLayout>

@@ -24,6 +24,7 @@ import java.util.List;
 
 public class MainActivity extends Activity {
     private ListView mNMLListView;
+    private TextView mNMLListTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +43,7 @@ public class MainActivity extends Activity {
         });
 
         mNMLListView = (ListView) findViewById(R.id.nml_list);
+        mNMLListTitle = (TextView) findViewById(R.id.nml_list_title);
         mNMLListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -55,10 +57,18 @@ public class MainActivity extends Activity {
 
     private void updateNMLs()
     {
+        ArrayList<String> nmls = this.getNMLS();
+        if (nmls == null) {
+            nmls = new ArrayList<String>();
+            mNMLListTitle.setText("No \"nidium\" directory on your phone");
+        } else {
+            mNMLListTitle.setText("Found " + nmls.size() + " NML file ou your phone : ");
+        }
+
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
                 this,
                 android.R.layout.simple_list_item_1,
-                this.getNMLS());
+                nmls);
         mNMLListView.setAdapter(arrayAdapter);
     }
 
