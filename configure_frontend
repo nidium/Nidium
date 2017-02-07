@@ -348,8 +348,6 @@ def debug(debug):
 
     glDebug(True)
 
-Konstruct.setConfigs(["skia-update"])
-
 Build.add(Gyp("gyp/all.gyp"));
 
 if __name__ == '__main__':
