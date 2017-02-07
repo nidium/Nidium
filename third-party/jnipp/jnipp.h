@@ -1137,7 +1137,6 @@ public:
         return LocalRef<R>::use( Env::get()->CallStaticObjectMethod(getClass(), getMethodID(), _ConvertArg(args)...) );
     }
     LocalRef<R> operator()(typename _AsRef<A>::R... args) const {
-        LOGD("staticmethod call 2");
         return call(args...);
     }
 };
