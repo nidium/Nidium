@@ -67,7 +67,7 @@ img.src = "http://tests.nidium.com/http/image";""")],
     [ParamDoc( "event", "Event object", ObjectDoc([]), NO_Default, IS_Obligated ) ]
 )
 
-EventDoc( "Image.error", "Event triggered when an error happen durring the loading of the image.",
+EventDoc( "Image.error", "Event triggered when an error happen during the loading of the image.",
     NO_Sees,
     [ExampleDoc(""" var img = new Image();
 img.addEventListener("error", function() {

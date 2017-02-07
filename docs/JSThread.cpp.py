@@ -12,7 +12,7 @@ NamespaceDoc( "_GLOBALThread", "Global threadnamespace.",
 
 ClassDoc( "Thread", """Run a CPU intensive task in the background, with out locking the main UI interface.
 
-This will run in a seperate JS Runtime, wich requires some cpu and memory overhead.""",
+This will run in a separate JS Runtime, which requires some cpu and memory overhead.""",
     [ SeeDoc( "_GLOBALThread" ), SeeDoc( "ThreadMessageEvent" ) ],
     [ExampleDoc( """var t = new Thread(function(foo){
    // something loud and heavy

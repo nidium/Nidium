@@ -48,7 +48,7 @@ ClassDoc( "SocketClient", "A connected client.",
         section="Socket"
 )
 
-FieldDoc( "Socket.binary", """Get or set the binary mode for send/recieve data.
+FieldDoc( "Socket.binary", """Get or set the binary mode for send/receive data.
 
 When the 'Socket.binary' property is set to 'true', the 'Socket.ondata' event will be called with an 'ArrayBuffer' instead of a 'string'.""",
     SeesDocs( "Socket.encoding|Socket.timeout|Socket.readline|Socket.binary|Socket" ),
@@ -220,7 +220,7 @@ socket.onaccept = function(clientSocket) {
     clientSocket.disconnect();
 }""")],
     IS_Dynamic, IS_Public, IS_Fast,
-    [ParamDoc( "mode", "Conncection mode. Allowed values are: 'tcp'|'udp'|'ssl'|'unix'|'tcp-lz4'", "string", 'tcp', IS_Optional ) ],
+    [ParamDoc( "mode", "Connection mode. Allowed values are: 'tcp'|'udp'|'ssl'|'unix'|'tcp-lz4'", "string", 'tcp', IS_Optional ) ],
     ReturnDoc( "The socket, for chaining", "Socket" )
 )
 
@@ -255,7 +255,7 @@ FunctionDoc( "Socket.write", "Write data.",
     ReturnDoc( "bytes written", "integer" )
 )
 
-FunctionDoc( "SocketClient.disconnect", """Close the socket on an extisting connection.
+FunctionDoc( "SocketClient.disconnect", """Close the socket on an existing connection.
 
 This can be done by both the server (after the 'Socket.onaccept') and the client (after the 'Socket.connect').""",
     SeesDocs( "SocketClient.sendFile|SocketClient.write|SocketClient.disconnect|HTTPServer|Socket.connect|Socket.listen" ),
@@ -293,10 +293,10 @@ s.onaccept = function(clientSocket) {
     clientSocket.disconnect();
 }""") ],
     IS_Dynamic, IS_Public, IS_Fast,
-    [   
+    [
         ParamDoc( "ip", "The Ip to send to", 'string', NO_Default, IS_Obligated ),
         ParamDoc( "port", "Portnumber", 'integer', NO_Default, IS_Obligated ),
-        ParamDoc( "data", "The data to send", "string|ArrayBuffer", NO_Default, IS_Obligated ) 
+        ParamDoc( "data", "The data to send", "string|ArrayBuffer", NO_Default, IS_Obligated )
     ],
     NO_Returns
 )
