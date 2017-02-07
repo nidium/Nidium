@@ -263,7 +263,6 @@ public class SDLActivity extends Activity {
         // Send a quit message to the application
         SDLActivity.mExitCalledFromJava = true;
         SDLActivity.nativeQuit();
-
         // Now wait for the SDL thread to quit
         if (SDLActivity.mSDLThread != null) {
             try {
@@ -539,6 +538,10 @@ public class SDLActivity extends Activity {
      * This method is called by SDL using JNI.
      */
     public static boolean showTextInput(int x, int y, int w, int h) {
+        if (mSingleton.mIgnoreShowTextInput) {
+            mSingleton.mIgnoreShowTextInput = false;
+            return true;
+        }
         // Transfer the task to the main thread as a Runnable
         return mSingleton.commandHandler.post(new ShowTextInputTask(x, y, w, h));
     }
@@ -1250,6 +1253,10 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
     // Key events
     @Override
     public boolean onKey(View  v, int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            return true;
+        }
+
         // Dispatch the different events depending on where they come from
         // Some SOURCE_JOYSTICK, SOURCE_DPAD or SOURCE_GAMEPAD are also SOURCE_KEYBOARD
         // So, we try to process them as JOYSTICK/DPAD/GAMEPAD events first, if that fails we try them as KEYBOARD

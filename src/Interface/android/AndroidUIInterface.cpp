@@ -78,15 +78,11 @@ void AndroidUIInterface::handleEvent(const SDL_Event *ev)
 
 void AndroidUIInterface::quitApplication()
 {
-    //this->processGtkPendingEvents();
-
     exit(1);
 }
 
 void AndroidUIInterface::hitRefresh()
 {
-    //this->processGtkPendingEvents();
-
     this->restartApplication();
 }
 

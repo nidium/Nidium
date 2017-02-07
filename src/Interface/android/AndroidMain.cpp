@@ -41,10 +41,13 @@ int main(int argc, char **argv)
     _ape_seed = time(NULL) ^ (getpid() << 16);
 
     
-    const char *userDir = SystemInterface::GetInstance()->getUserDirectory();
-    char nml[2048];
-    snprintf(nml, 2048, "%s/%s", userDir, "nidium/foo.nml");
-
+    const char *nml = NULL;
+    LOGD("argc=%d\n", argc);
+    for (int i = 0; i < argc; i++) {
+        LOGD("%s", argv[i]);
+    }
+    nml = argc > 1 ? argv[1] : "embed://default.nml";
+    LOGD("Loading argument %s\n", nml);
     UI.setArguments(argc, argv);
 
     if (!UI.runApplication(nml)) {
