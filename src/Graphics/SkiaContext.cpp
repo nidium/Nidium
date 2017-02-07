@@ -1082,7 +1082,7 @@ int SkiaContext::readPixels(
     int top, int left, int width, int height, uint8_t *pixels)
 {
     const SkImageInfo &info = SkImageInfo::Make(
-        width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+        width, height, kRGBA_8888_SkColorType, kUnpremul_SkAlphaType);
 
     if (!getCanvas()->readPixels(info, pixels, width * 4, left, top)) {
         printf("Failed to read pixels\n");
@@ -1348,28 +1348,9 @@ void SkiaContext::redrawScreen()
 void SkiaContext::drawPixels(
     uint8_t *pixels, int width, int height, int x, int y)
 {
-    SkBitmap bt;
-    SkPaint pt;
 
-    // XXX Not sure about the alphatype
-    SkImageInfo info = SkImageInfo::Make(width, height,
-        kN32_SkColorType, kUnknown_SkAlphaType);
-
-    // XXX Is the rowByte parameter needed?
-    if (!bt.setInfo(info, width * 4)) {
-        printf("Error, setInfo() failed\n");
-        return;
-    }
-
-    bt.setIsVolatile(true);
-    bt.installPixels(SkImageInfo::Make(width, height, kRGBA_8888_SkColorType,
-                                       kUnpremul_SkAlphaType),
-                     pixels, width * 4);
-
-    pt.setFilterQuality(PAINT->getFilterQuality());
-
-    pt.setBlendMode(SkBlendMode::kClear);
-    getCanvas()->drawBitmap(bt, x, y, &pt);
+    getCanvas()->writePixels(SkImageInfo::Make(width, height, kRGBA_8888_SkColorType,
+                                       kUnpremul_SkAlphaType), pixels, width * 4, x, y);
 }
 
 void SkiaContext::flush()
