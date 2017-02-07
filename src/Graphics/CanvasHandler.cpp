@@ -1310,6 +1310,7 @@ void CanvasHandler::onMouseEvent(InputEvent *ev)
         default:
             break;
     }
+
     Nidium::Interface::__NidiumUI->setCursor(
         (UIInterface::CURSOR_TYPE) this->getCursor());
 }

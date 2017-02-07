@@ -10,6 +10,7 @@
         'nidium_audio%': 1,
         'nidium_ui_console%': 1,
         'nidium_package_embed%': 0,
+        'nidium_gl_debug%': 0,
         'nidium_embed_dir': '../src/Embed/',
         'nidium_embed_bin_header': '../src/nidium_embed_bin.h',
         'nidium_embed_bin': '../resources/embed.bin',

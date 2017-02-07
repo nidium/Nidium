@@ -8,6 +8,7 @@
 
 #include <SkBitmap.h>
 #include <SkImage.h>
+#include <SkRefCnt.h>
 
 class SkCanvas;
 class SkBitmap;
@@ -20,8 +21,8 @@ class Image
 {
 public:
     int m_IsCanvas;
-    SkCanvas *m_CanvasRef;
-    SkBitmap *m_Image;
+    //sk_sp<SkCanvas> m_CanvasRef;
+    sk_sp<SkImage> m_Image;
 #if 0
     SkImage *fixedImg;
 #endif
@@ -29,8 +30,24 @@ public:
     Image(void *data, size_t len);
     Image(void *data, int width, int height);
 
-
     SkData *getPNG();
+
+    uint32_t getSize() const;
+
+    SkBitmap *getBitmap() {
+        if (m_ImageBitmap) {
+          return m_ImageBitmap;
+        }
+        m_ImageBitmap = new SkBitmap();
+        
+        if (!m_Image->asLegacyBitmap(m_ImageBitmap, SkImage::kRO_LegacyBitmapMode)) {
+          delete m_ImageBitmap;
+
+          return nullptr;
+        }
+
+        return m_ImageBitmap;
+    }
 
     static bool ConvertToRGBA(Image *nimg,
                               unsigned char *rgba,
@@ -43,9 +60,8 @@ public:
 
     int getWidth();
     int getHeight();
-    void shiftHue(int val, U8CPU alpha);
-    void markColorsInAlpha();
-    void desaturate();
+private:
+    SkBitmap *m_ImageBitmap = nullptr;
 };
 
 } // namespace Graphics

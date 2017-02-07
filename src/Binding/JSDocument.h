@@ -8,6 +8,8 @@
 
 #include "Binding/ClassMapper.h"
 
+#include <SkRefCnt.h>
+
 class SkTypeface;
 
 namespace Nidium {
@@ -17,7 +19,7 @@ namespace Binding {
 class NidiumFont
 {
 public:
-    SkTypeface *m_Typeface;
+    sk_sp<SkTypeface> m_Typeface;
 
     enum Style
     {
@@ -56,7 +58,7 @@ public:
                   int weight        = 400,
                   NidiumFont::Style = NidiumFont::kFontStyle_Normal);
 
-    SkTypeface *getFont(const char *name);
+    sk_sp<SkTypeface> getFont(const char *name);
 protected:
 
     NIDIUM_DECL_JSCALL(run);
