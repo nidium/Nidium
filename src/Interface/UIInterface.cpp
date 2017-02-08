@@ -260,8 +260,8 @@ int UIInterface::HandleEvents(void *arg)
         uii->getConsole()->flush();
     }
 
-#ifndef NIDIUM_OPENGLES2
     if (uii->getFBO() != 0 && uii->m_NidiumCtx) {
+#ifndef NIDIUM_OPENGLES2
         glReadBuffer(GL_COLOR_ATTACHMENT0);
 
         glReadPixels(0, 0, uii->getWidth(), uii->getHeight(), GL_RGBA,
