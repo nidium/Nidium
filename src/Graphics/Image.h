@@ -71,9 +71,6 @@ public:
     sk_sp<SkImage> m_Image;
 private:
     Image() = default;
-    Image(SkCanvas *canvas);
-    Image(void *data, size_t len);
-    Image(void *data, int width, int height);
 
     SkBitmap *m_ImageBitmap = nullptr;
 };
