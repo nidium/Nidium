@@ -188,6 +188,9 @@ def angle():
     # Angle only build with ninja
     env.set("GYP_GENERATORS", "ninja")
 
+    # Angle build script needs python 2.7
+    env.set("PATH", os.path.join(ROOT, "tools") + ":" + env.get("PATH"))
+
     if Platform.wordSize == 32:
         env.append("CXXFLAGS", " -msse -msse2 -msse3")
 
