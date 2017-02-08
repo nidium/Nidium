@@ -92,14 +92,24 @@ public class MainActivity extends Activity {
         if (!f.isDirectory()) {
             return null;
         } else {
-            File files[] = f.listFiles();
             ArrayList<String> ret = new ArrayList<String>();
-            for (int i = 0; i < files.length; i++) {
-                ret.add(files[i].toString());
-            }
+            recurseFindNMLS(f, ret);
             return ret;
         }
     }
+
+    private void recurseFindNMLS(File f, ArrayList<String> nmls) {
+        File files[] = f.listFiles();
+        for (int i = 0; i < files.length; i++) {
+            String file = files[i].toString();
+            if (files[i].isDirectory()) {
+                recurseFindNMLS(files[i], nmls);
+            } else if (file.endsWith(".nml")) {
+                nmls.add(files[i].toString());
+            }
+        }
+    }
+
 
     private void start(String nml) {
         Log.d("NidiumLauncher", "Loading file " + nml);
