@@ -122,40 +122,6 @@ uint32_t Image::getSize() const
 SkData *Image::getPNG()
 {
     return m_Image->encode(SkEncodedImageFormat::kPNG, 100);
-#if 0
-    if (!m_Image) {
-        return NULL;
-    }
-
-    // It seems that SkImageEncoder expect the pixels to be BGRA 
-    // but they are RGBA. Switch blue and red to workaround this.
-    // FIXME : There must be a better way to handle this.
-    uint8_t* data = static_cast<uint8_t *>(m_Image->getPixels());
-    uint8_t* p = data;
-    uint8_t* stop = p + m_Image->getSize();
-
-    while (p < stop) {
-        unsigned r = p[0];
-        unsigned b = p[2];
-        p[0] = b;
-        p[2] = r;
-        p += 4;
-    }
-
-    SkData *dataPNG = SkImageEncoder::EncodeData(*m_Image, SkImageEncoder::kPNG_Type, 100);
-
-    // Switch back blue and red, so the image stays unchanged.
-    p = data;
-    while (p < stop) {
-        unsigned b = p[0];
-        unsigned r = p[2];
-        p[0] = r;
-        p[2] = b;
-        p += 4;
-    }
-
-    return dataPNG;
-#endif
 }
 
 int Image::getWidth()
