@@ -51,12 +51,10 @@
                         '-langle_common',
                         '-lSDL2',
                         '-lGL',
-                        '-lpng',
                         '-lfreetype',
                         '-lrt',
                         '-ldl',
                         '-lzip',
-                        '-ljpeg',
                     ],
                 },
                 'include_dirs': [
@@ -166,4 +164,3 @@
         ],
     }]
 }
-
