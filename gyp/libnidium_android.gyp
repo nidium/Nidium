@@ -34,14 +34,11 @@
 			],
             'libraries': [
 				"-lskia",
-
 				"-lzip",
 				"-ltranslator",
 				"-ltranslator_lib",
 				"-lpreprocessor",
 				"-langle_common",
-				"-ljpeg",
-				"-lpng",
 				"-lm",
 				"-lEGL",
 				"-lGLESv2",
