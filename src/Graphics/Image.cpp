@@ -21,7 +21,7 @@ Image::Image(SkCanvas *canvas)
 {
     // canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
 #if 0
-    m_IsCanvas  = 1;
+    m_IsCanvas  = 1; 
     m_CanvasRef = sk_sp<SkCanvas>(canvas);
     m_Image = NULL;
 #endif
@@ -31,7 +31,7 @@ Image::Image(void *data, size_t len)
 {
     m_IsCanvas = 0;
 
-    sk_sp<SkData> skdata = SkData::MakeWithoutCopy(data, len);
+    sk_sp<SkData> skdata = SkData::MakeWithCopy(data, len);
     m_Image = SkImage::MakeFromEncoded(skdata);
 
     if (!m_Image) {

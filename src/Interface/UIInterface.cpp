@@ -234,45 +234,45 @@ void UIInterface::handleEvent(const SDL_Event *event)
 
 int UIInterface::HandleEvents(void *arg)
 {
-    UIInterface *NUII = static_cast<UIInterface *>(arg);
+    UIInterface *uii = static_cast<UIInterface *>(arg);
 
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
-		NUII->handleEvent(&event);
+		uii->handleEvent(&event);
     }
 
-    if (ttfps % 300 == 0 && NUII->isContextReady()) {
-        NUII->m_NidiumCtx->getNJS()->gc();
+    if (ttfps % 300 == 0 && uii->isContextReady()) {
+        uii->m_NidiumCtx->getNJS()->gc();
     }
 
-    if (NUII->m_CursorNeedsUpdate) {
-        NUII->setSystemCursor(NUII->m_CurrentCursor);
-        NUII->m_CursorNeedsUpdate = false;
+    if (uii->m_CursorNeedsUpdate) {
+        uii->setSystemCursor(uii->m_CurrentCursor);
+        uii->m_CursorNeedsUpdate = false;
     }
 
-    if (NUII->isContextReady()) {
-        NUII->makeMainGLCurrent();
-        NUII->m_NidiumCtx->frame(true);
+    if (uii->isContextReady()) {
+        uii->makeMainGLCurrent();
+        uii->m_NidiumCtx->frame(true);
     }
 
-    if (NUII->getConsole()) {
-        NUII->getConsole()->flush();
+    if (uii->getConsole()) {
+        uii->getConsole()->flush();
     }
 
-    if (NUII->getFBO() != 0 && NUII->m_NidiumCtx) {
 #ifndef NIDIUM_OPENGLES2
+    if (uii->getFBO() != 0 && uii->m_NidiumCtx) {
         glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-        glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA,
-                     GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
-        uint8_t *pdata = NUII->getFrameBufferData();
+        glReadPixels(0, 0, uii->getWidth(), uii->getHeight(), GL_RGBA,
+                     GL_UNSIGNED_BYTE, uii->getFrameBufferData());
+        uint8_t *pdata = uii->getFrameBufferData();
 
-        NUII->m_NidiumCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
+        uii->m_NidiumCtx->rendered(pdata, uii->getWidth(), uii->getHeight());
 #endif
     } else {
-        NUII->makeMainGLCurrent();
-        SDL_GL_SwapWindow(NUII->m_Win);
+        uii->makeMainGLCurrent();
+        SDL_GL_SwapWindow(uii->m_Win);
     }
 
     ttfps++;

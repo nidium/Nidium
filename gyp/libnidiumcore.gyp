@@ -68,10 +68,9 @@
                 ['target_os=="mac"', {
                     "link_settings": {
                         'libraries': [
-                            'libcares.a',
                             'libhttp_parser.a',
-                            'libnspr4.a',
                             'libjs_static.a',
+                            'libnspr4.a',
                             'libmozglue.a',
                             'libleveldb.a',
                         ]
@@ -89,7 +88,6 @@
                             '-lpthread',
                             '-lrt',
                             '-ldl',
-                            '-lcares',
                             '-lhttp_parser',
                             '-lleveldb',
                         ]

@@ -76,16 +76,6 @@ def giflib():
         "env": env
     }
 
-
-def skiaUpdateDemoAPPSDKVersion():
-    import re
-    with open(Deps.getDir() + "/skia/platform_tools/android/app/project.properties", "r+") as f:
-        data = f.read()
-        f.seek(0)
-        data = re.sub('android-[0-9]{1,2}', "android-%d" % (Variables.get("androidSDKAPIVersion")), data)
-        f.write(data)
-        f.truncate()
-
 @Deps.register("skia")
 def skia():
     env = Utils.Env()
@@ -104,6 +94,13 @@ def skia():
         "cxx": Platform.getEnviron("CXX")
     }
 
+    if Platform.system == "Darwin":
+        args["extra_cflags_cc"].append("-stdlib=libc++")
+        args["extra_ldflags"] = ["-stdlib=libc++"]
+
+    # Add depot_tools to path needed for skia
+    Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
+
     # depot_tools and skia needs python2.7 but use "python" as the default
     # interpreter which could be python3.x on some system. Workaround that
     # by using a custom python wrapper that will redirect to the correct python version
@@ -121,12 +118,16 @@ def skia():
     for k, v in args.items():
         skiaArgs += " %s=%s" % (k, json.dumps(v))
 
+    skiaArgs = ""
+    for k, v in args.items():
+        skiaArgs += " %s=%s" % (k, json.dumps(v))
+
     return {
         "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", revision="98829b9"),
         "build": [
             "python tools/git-sync-deps",
             "bin/gn gen out/Static --args='%s'" % (skiaArgs),
-            "ninja %s -C out/Static" % ("-v" if Variables.get("verbose") else ""),
+            "ninja -C out/Static",
         ],
         "patchs": [
             os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),

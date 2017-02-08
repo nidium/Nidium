@@ -237,7 +237,7 @@ FunctionDoc( "WebGLRenderingContext.blendEquation", "Blend an equation.",
     NO_Returns
 )
 
-FunctionDoc( "WebGLRenderingContext.blendEquationSeparate", "Blend aseperate equation.",
+FunctionDoc( "WebGLRenderingContext.blendEquationSeparate", "Blend a separate equation.",
     SeesDocs( "WebGLRenderingContext.blendEquation|WebGLRenderingContext.blendEquationSeperate|WebGLRenderingContext.blendFunc|WebGLRenderingContext.blendFuncSeperate" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
@@ -259,7 +259,7 @@ FunctionDoc( "WebGLRenderingContext.blendFunc", "Blend a function.",
     NO_Returns
 )
 
-FunctionDoc( "WebGLRenderingContext.blendFuncSeparate", "Blend a seperate function.",
+FunctionDoc( "WebGLRenderingContext.blendFuncSeparate", "Blend a separate function.",
     SeesDocs( "WebGLRenderingContext.blendEquation|WebGLRenderingContext.blendEquationSeperate|WebGLRenderingContext.blendFunc|WebGLRenderingContext.blendFuncSeperate" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
@@ -444,7 +444,7 @@ FunctionDoc( "WebGLRenderingContext.depthRange", "Start a range on a depth.",
 )
 
 FunctionDoc( "WebGLRenderingContext.detachShader", "Remove a shader.",
-    SeesDocs( "WebGLRenderingContext.detachShader|WebGLRenderingContext.attachShoder" ),
+    SeesDocs( "WebGLRenderingContext.detachShader|WebGLRenderingContext.attachShader" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "program", "Program", "WebGLProgram", NO_Default, IS_Obligated ),
@@ -526,7 +526,7 @@ FunctionDoc( "WebGLRenderingContext.flush", "Flush a Context.",
 )
 
 FunctionDoc( "WebGLRenderingContext.getUniformLocation", "Get a location in a Context.",
-    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
+    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getShaderPrecisionFormat" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [
@@ -537,7 +537,7 @@ FunctionDoc( "WebGLRenderingContext.getUniformLocation", "Get a location in a Co
 )
 
 FunctionDoc( "WebGLRenderingContext.getShaderPrecisionFormat", "Get the precision of a shader.",
-    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
+    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getShaderPrecisionFormat" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [
@@ -562,7 +562,7 @@ FunctionDoc( "WebGLRenderingContext.framebufferRenderbuffer", "Foo's the bar's?"
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ) ,
-        ParamDoc( "attach", "Attachemnt", "integer", NO_Default, IS_Obligated ) ,
+        ParamDoc( "attach", "Attachment", "integer", NO_Default, IS_Obligated ) ,
         ParamDoc( "renderbuffer_target", "Renderbuffer target", "integer", NO_Default, IS_Obligated ) ,
         ParamDoc( "renderbuffer", "Renderbuffer target", "WebGLRenderbuffer", NO_Default, IS_Obligated ) ],
     NO_Returns
@@ -574,7 +574,7 @@ FunctionDoc( "WebGLRenderingContext.framebufferTexture2D", "Bar's the Foo's?",
     IS_Dynamic, IS_Public, IS_Fast,
     [
         ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ) ,
-        ParamDoc( "attach", "Attachemnt", "integer", NO_Default, IS_Obligated ) ,
+        ParamDoc( "attach", "Attachment", "integer", NO_Default, IS_Obligated ) ,
         ParamDoc( "texture_target", "Texture target", "integer", NO_Default, IS_Obligated ) ,
         ParamDoc( "texture", "Texture target", "WebGLTexture", NO_Default, IS_Obligated ),
         ParamDoc( "level", "level", "integer", NO_Default, IS_Obligated )
@@ -609,7 +609,7 @@ for i, typed in items.items():
     )
 
 FunctionDoc( "WebGLRenderingContext.getActiveAttrib", "Get the active attributes of this context.",
-    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
+    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getShaderPrecisionFormat" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [
@@ -620,7 +620,7 @@ FunctionDoc( "WebGLRenderingContext.getActiveAttrib", "Get the active attributes
 )
 
 FunctionDoc( "WebGLRenderingContext.getActiveUniform", "Get the active uniform location of this context.",
-    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
+    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getShaderPrecisionFormat" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "target", "Target", "integer", NO_Default, IS_Obligated ) ],
@@ -628,7 +628,7 @@ FunctionDoc( "WebGLRenderingContext.getActiveUniform", "Get the active uniform l
 )
 
 FunctionDoc( "WebGLRenderingContext.getAttribLocation", "Get the location of a attribute.",
-    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
+    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getShaderPrecisionFormat" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [
@@ -639,7 +639,7 @@ FunctionDoc( "WebGLRenderingContext.getAttribLocation", "Get the location of a a
 )
 
 FunctionDoc( "WebGLRenderingContext.getParameter", "Get parameter of a context.",
-    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
+    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getShaderPrecisionFormat" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "attr", "Attribute", "integer", NO_Default, IS_Obligated ) ],
@@ -647,7 +647,7 @@ FunctionDoc( "WebGLRenderingContext.getParameter", "Get parameter of a context."
 )
 
 FunctionDoc( "WebGLRenderingContext.getParameter", "Get parameter of a program.",
-    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
+    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getShaderPrecisionFormat" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [
@@ -658,7 +658,7 @@ FunctionDoc( "WebGLRenderingContext.getParameter", "Get parameter of a program."
 )
 
 FunctionDoc( "WebGLRenderingContext.getProgramInfoLog", "Get information about a program.",
-    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
+    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getShaderPrecisionFormat" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "program", "Program", "WebGLProgram", NO_Default, IS_Obligated ) ],
@@ -666,7 +666,7 @@ FunctionDoc( "WebGLRenderingContext.getProgramInfoLog", "Get information about a
 )
 
 FunctionDoc( "WebGLRenderingContext.getShaderParameter", "Get parameter from a shader.",
-    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
+    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getShaderPrecisionFormat" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [
@@ -677,7 +677,7 @@ FunctionDoc( "WebGLRenderingContext.getShaderParameter", "Get parameter from a s
 )
 
 FunctionDoc( "WebGLRenderingContext.getShaderInfoLog", "Get information about a shader.",
-    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLoction|WebGLRenderingContext.getShaderPrecisionFormat" ),
+    SeesDocs( "WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getActiveAttrib|WebGLRenderingContext.getActiveUniform|WebGLRenderingContext.getAttribLocation|WebGLRenderingContext.getParameter|WebGLRenderingContext.getProgramParameter|WebGLRenderingContext.getProgramInfoLog|WebGLRenderingContext.getShaderParameter|WebGLRenderingContext.getShaderInfoLog|WebGLRenderingContext.getUniformLocation|WebGLRenderingContext.getShaderPrecisionFormat" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "shader", "Shader", "WebGLShader", NO_Default, IS_Obligated ) ],
@@ -731,7 +731,7 @@ FunctionDoc( "WebGLRenderingContext.shaderSource", "Set the source on a shader."
     NO_Returns
 )
 
-# TODO: investigate how to describe the 2nd paramater list
+# TODO: investigate how to describe the 2nd parameter list
 FunctionDoc( "WebGLRenderingContext.texImage2D", "Texture of an image.",
     SeesDocs( "WebGLRenderingContext.texImage2D" ),
     NO_Examples,

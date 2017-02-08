@@ -851,7 +851,7 @@ bool Canvas2DContext::JS_putImageData(JSContext *cx, JS::CallArgs &args)
 /* TODO: clamp max size */
 bool Canvas2DContext::JS_createImageData(JSContext *cx, JS::CallArgs &args)
 {
-    unsigned long x, y;
+    uint32_t x, y;
 
     NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "uu", &x, &y)) {
@@ -1743,7 +1743,7 @@ void Canvas2DContext::drawTexture(uint32_t textureID)
         TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     NIDIUM_GL_CALL_MAIN(
         TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-
+    
     NIDIUM_GL_CALL_MAIN(DrawElements(GR_GL_TRIANGLE_STRIP,
                                      m_GLState->m_GLObjects.vtx->nindices,
                                      GL_UNSIGNED_INT, 0));

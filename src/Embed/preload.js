@@ -11,6 +11,7 @@ function __nidiumPreload(options, lst) {
     load("embed://CanvasAdditions.js");
     load("embed://NMLAdditions.js");
     load("embed://AnimationBlock.js");
+    load("embed://HTTPAdditions.js");
 
     document.canvas.inject(lst);
 }

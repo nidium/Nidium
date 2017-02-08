@@ -192,6 +192,7 @@ if __name__ == '__main__':
 
     Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi --include=src/libapenetwork/gyp/config.gypi")
     Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_LIBRARY")
+    Build.add(Gyp("src/libapenetwork/gyp/network.gyp"));
     Build.add(Gyp("gyp/libnidiumcore.gyp"))
 
     Konstruct.start()
