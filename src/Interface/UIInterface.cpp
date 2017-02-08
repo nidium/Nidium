@@ -67,6 +67,8 @@ bool UIInterface::createWindow(int width, int height)
             return false;
         }
 
+        this->setGLContextAttribute();
+
         m_Win = SDL_CreateWindow(
             "nidium", 100, 100, width, height,
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /* | SDL_WINDOW_FULLSCREEN*/);
@@ -78,8 +80,6 @@ bool UIInterface::createWindow(int width, int height)
 
         m_Width  = width;
         m_Height = height;
-
-        this->setGLContextAttribute();
 
         if ((m_MainGLCtx = SDL_GL_CreateContext(m_Win)) == NULL) {
             NUI_LOG("Failed to create OpenGL context : %s", SDL_GetError());

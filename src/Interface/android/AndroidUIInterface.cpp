@@ -25,7 +25,6 @@ using Nidium::Binding::JSWindow;
 
 namespace Nidium {
 namespace Interface {
-// {{{ AndroidUIInterface
 AndroidUIInterface::AndroidUIInterface()
     : UIInterface(), m_Console(NULL)
 {
@@ -33,13 +32,13 @@ AndroidUIInterface::AndroidUIInterface()
 
 void AndroidUIInterface::setGLContextAttribute()
 {
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5 );
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5 );
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5 );
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16 );
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0 );
-    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
-    //SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
+    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 
@@ -106,9 +105,7 @@ void AndroidUIInterface::runLoop()
 {
     APE_timer_create(m_Gnet, 1, UIInterface::HandleEvents,
                      static_cast<void *>(this));
-    //APE_timer_create(m_Gnet, 1, ProcessSystemLoop, static_cast<void *>(this));
     APE_loop_run(m_Gnet);
 }
-// }}}
 } // namespace Interface
 } // namespace Nidium

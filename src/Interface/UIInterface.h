@@ -370,6 +370,7 @@ protected:
     UIInterface();
     bool isContextReady();
     virtual void initControls(){};
+    virtual void setupWindow(){};
     virtual void onWindowCreated(){};
     virtual void onNMLLoaded();
     virtual void setSystemCursor(CURSOR_TYPE cursor)=0;
