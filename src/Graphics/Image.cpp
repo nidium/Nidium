@@ -16,40 +16,80 @@
 namespace Nidium {
 namespace Graphics {
 
-// {{{ Constructors
-Image::Image(SkCanvas *canvas)
+Image *Image::CreateFromEncoded(void *data, size_t len)
 {
-    // canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
-#if 0
-    m_IsCanvas  = 1; 
-    m_CanvasRef = sk_sp<SkCanvas>(canvas);
-    m_Image = NULL;
-#endif
-}
-
-Image::Image(void *data, size_t len)
-{
-    m_IsCanvas = 0;
+    Image *img = new Image();
+    img->m_IsCanvas = 0;
 
     sk_sp<SkData> skdata = SkData::MakeWithCopy(data, len);
-    m_Image = SkImage::MakeFromEncoded(skdata);
+    img->m_Image = SkImage::MakeFromEncoded(skdata);
 
-    if (!m_Image) {
-        printf("failed to decode Image\n");
+    if (!img->m_Image) {
+        delete img;
+        return nullptr;
     }
+
+    return img;
 }
 
-Image::Image(void *data, int width, int height)
+Image *Image::CreateFromRGBA(void *data, int width, int height)
 {
-#if 0
-    m_Image     = new SkBitmap();
-    m_IsCanvas  = 0;
+    Image *img = new Image();
+    img->m_IsCanvas = 0;
 
-    m_Image->setConfig(SkBitmap::kARGB_8888_Config, width, height);
+    SkBitmap bt;
+    bt.setIsVolatile(true);
 
-    m_Image->setPixels(data);
-#endif
+    bt.setInfo(SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kUnpremul_SkAlphaType));
+    bt.setPixels(data);
+    bt.setImmutable();
+
+    img->m_Image = SkImage::MakeFromBitmap(bt);
+
+    if (!img->m_Image) {
+        delete img;
+        return nullptr;
+    }
+
+    return img;
 }
+
+Image *Image::CreateFromSurface(sk_sp<SkSurface> surface)
+{
+    printf("Image::CreateFromSurface. Not implemented\n");
+    return nullptr;
+}
+
+Image *Image::CreateFromSkImage(sk_sp<SkImage> skimage)
+{
+    if (!skimage.get()) {
+        return nullptr;
+    } 
+
+    Image *img = new Image();
+    img->m_IsCanvas = 0;
+
+    img->m_Image = skimage;
+
+    return img;
+}
+
+SkBitmap *Image::getBitmap()
+{
+    if (m_ImageBitmap) {
+      return m_ImageBitmap;
+    }
+    m_ImageBitmap = new SkBitmap();
+    
+    if (!m_Image->asLegacyBitmap(m_ImageBitmap, SkImage::kRO_LegacyBitmapMode)) {
+      delete m_ImageBitmap;
+
+      return nullptr;
+    }
+
+    return m_ImageBitmap;
+}
+
 
 const uint8_t *Image::getPixels(size_t *len)
 {
@@ -81,40 +121,7 @@ uint32_t Image::getSize() const
 
 SkData *Image::getPNG()
 {
-#if 0
-    if (!m_Image) {
-        return NULL;
-    }
-
-    // It seems that SkImageEncoder expect the pixels to be BGRA 
-    // but they are RGBA. Switch blue and red to workaround this.
-    // FIXME : There must be a better way to handle this.
-    uint8_t* data = static_cast<uint8_t *>(m_Image->getPixels());
-    uint8_t* p = data;
-    uint8_t* stop = p + m_Image->getSize();
-
-    while (p < stop) {
-        unsigned r = p[0];
-        unsigned b = p[2];
-        p[0] = b;
-        p[2] = r;
-        p += 4;
-    }
-
-    SkData *dataPNG = SkImageEncoder::EncodeData(*m_Image, SkImageEncoder::kPNG_Type, 100);
-
-    // Switch back blue and red, so the image stays unchanged.
-    p = data;
-    while (p < stop) {
-        unsigned b = p[0];
-        unsigned r = p[2];
-        p[0] = r;
-        p[2] = b;
-        p += 4;
-    }
-
-    return dataPNG;
-#endif
+    return m_Image->encode(SkEncodedImageFormat::kPNG, 100);
 }
 
 int Image::getWidth()

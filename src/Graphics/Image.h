@@ -14,53 +14,64 @@ class SkCanvas;
 class SkBitmap;
 class SkData;
 
+/**
+  *  Image hold a reference to an image into the GPU.
+  *  It's meant to be later drawn into a surface.
+  *
+*/
 namespace Nidium {
 namespace Graphics {
 
 class Image
 {
 public:
-    int m_IsCanvas;
-    //sk_sp<SkCanvas> m_CanvasRef;
-    sk_sp<SkImage> m_Image;
-#if 0
-    SkImage *fixedImg;
-#endif
-    Image(SkCanvas *canvas);
-    Image(void *data, size_t len);
-    Image(void *data, int width, int height);
+    /*
+        Create from encoded data source (png, jpeg, ...)
+    */
+    static Image *CreateFromEncoded(void *data, size_t len);
+    /*
+        Create from pixel bitmap
+    */
+    static Image *CreateFromRGBA(void *data, int width, int height);
 
-    SkData *getPNG();
+    /*  
+        Create from a surface
+    */
+    static Image *CreateFromSurface(sk_sp<SkSurface> surface);
 
-    uint32_t getSize() const;
+    /*
+        Create from an existing SkImage. Will hold a reference
+    */
+    static Image *CreateFromSkImage(sk_sp<SkImage> skimage);
 
-    SkBitmap *getBitmap() {
-        if (m_ImageBitmap) {
-          return m_ImageBitmap;
-        }
-        m_ImageBitmap = new SkBitmap();
-        
-        if (!m_Image->asLegacyBitmap(m_ImageBitmap, SkImage::kRO_LegacyBitmapMode)) {
-          delete m_ImageBitmap;
-
-          return nullptr;
-        }
-
-        return m_ImageBitmap;
-    }
-
-    static bool ConvertToRGBA(Image *nimg,
-                              unsigned char *rgba,
+    static bool ConvertToRGBA(Image *nimg, unsigned char *rgba,
                               bool flipY,
                               bool premultiply);
 
-    ~Image();
-
+    /*
+        Try to encode the pixels as a PNG image
+        This can fail and return nullptr.
+    */
+    SkData   *getPNG();
+    SkBitmap *getBitmap();
+    
+    /*
+        Try to readback the pixels.
+        This can fail and return nullptr.
+    */
     const uint8_t *getPixels(size_t *len);
 
-    int getWidth();
-    int getHeight();
+    uint32_t getSize() const;
+    int      getWidth();
+    int      getHeight();
+
+    ~Image();
+
+    int m_IsCanvas;
+    sk_sp<SkImage> m_Image;
 private:
+    Image() = default;
+
     SkBitmap *m_ImageBitmap = nullptr;
 };
 

@@ -989,9 +989,9 @@ bool Canvas2DContext::JS_drawImage(JSContext *cx, JS::CallArgs &args)
                 cx, "Invalid image canvas (must be backed by a 2D context)");
             return false;
         }
-        image = new Image((static_cast<Canvas2DContext *>(drawctx))
+        image = Image::CreateFromSurface((static_cast<Canvas2DContext *>(drawctx))
                               ->getSkiaContext()
-                              ->getCanvas());
+                              ->getSurface());
         need_free = 1;
     } else if (!jsimage || !JSImage::InstanceOf(jsimage)
                || (image = JSImage::JSObjectToImage(jsimage)) == NULL) {
