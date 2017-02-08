@@ -78,6 +78,8 @@ bool UIInterface::createWindow(int width, int height)
             return false;
         }
 
+        this->setupWindow();
+
         m_Width  = width;
         m_Height = height;
 
