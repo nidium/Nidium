@@ -206,7 +206,7 @@ bool JSDocument::JS_toDataArray(JSContext *cx, JS::CallArgs &args)
     CanvasHandler *rootHandler = Context::GetObject<Frontend::Context>(cx)->getRootHandler();
     Canvas2DContext *context = static_cast<Canvas2DContext *>(rootHandler->getContext());
 
-    Image   *simg = Image::CreateFromSkImage(context->getSkiaContext()->getSurface()->makeImageSnapshot());
+    Image *simg = Image::CreateFromSkImage(context->getSkiaContext()->getSurface()->makeImageSnapshot());
     if (!simg) {
         JS_ReportWarning(cx, "Couldnt readback snapshot surface");
         args.rval().setNull();
@@ -235,8 +235,6 @@ bool JSDocument::JS_toDataArray(JSContext *cx, JS::CallArgs &args)
         memcpy(pixels, data->data(), data->size());
     }
 
-    SkSafeUnref(data);
-
     JS::RootedValue arVal(cx, JS::ObjectOrNullValue(arrBuffer));
 
     JS::RootedObject dataObject(cx,
@@ -250,6 +248,9 @@ bool JSDocument::JS_toDataArray(JSContext *cx, JS::CallArgs &args)
                       JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     args.rval().setObjectOrNull(dataObject);
+
+    SkSafeUnref(data);
+    delete simg;
 
     return true;
 }
