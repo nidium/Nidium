@@ -1,5 +1,6 @@
 package com.nidium.android;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -19,12 +20,14 @@ import java.util.Locale;
 
 public class Nidroid {
     Context mCx = null;
+    Activity mActivity = null;
     SurfaceView mSurface = null;
     Handler mMainHandler;
     static final String TAG = "Nidroid";
 
-    public Nidroid(SurfaceView v) {
-        mCx = v.getContext();
+    public Nidroid(Activity a, SurfaceView v) {
+        mCx = a.getApplicationContext();
+        mActivity = a;
         mSurface = v;
         mMainHandler = new Handler(mCx.getMainLooper());
     }
@@ -56,13 +59,13 @@ public class Nidroid {
         return mSurface.getHeight();
     }
 
-    void alert(String message, int level) {
+    void alert(final String message, int level) {
         Log.d(TAG, "Nidium alert(" + level + ") : " + message);
         mMainHandler.post(new Runnable() {
             @Override
             public void run() {
-                new AlertDialog.Builder(mCx)
-                        .setMessage("Are you sure you want to delete this entry?")
+                new AlertDialog.Builder(mActivity)
+                        .setMessage(message)
                         .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 dialog.cancel();

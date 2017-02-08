@@ -1032,12 +1032,14 @@ public class SDLActivity extends Activity {
 */
 class SDLMain implements Runnable {
     SDLSurface mView;
-    public SDLMain(SDLSurface view) {
+    Activity mActivity;
+    public SDLMain(Activity a, SDLSurface view) {
         mView = view;
+        mActivity = a;
     }
     @Override
     public void run() {
-        Nidroid n = new Nidroid(mView);
+        Nidroid n = new Nidroid(mActivity, mView);
         Nidroid.nidiumInit(n);
 
         // Runs SDL_main()
@@ -1222,7 +1224,7 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
             // This is the entry point to the C app.
             // Start up the C app thread and enable sensor input for the first time
 
-            final Thread sdlThread = new Thread(new SDLMain(this), "SDLThread");
+            final Thread sdlThread = new Thread(new SDLMain(SDLActivity.mSingleton, this), "SDLThread");
             enableSensor(Sensor.TYPE_ACCELEROMETER, true);
             sdlThread.start();
 
