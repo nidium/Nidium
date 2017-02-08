@@ -14,6 +14,11 @@
 #include "System.h"
 #include <SDL.h>
 
+#define LOG_TAG    __FILE__ ":"
+#define LOGI(...)  __android_log_print(ANDROID_LOG_INFO, LOG_TAG,__VA_ARGS__)
+#define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG,__VA_ARGS__)
+#define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+
 unsigned long _ape_seed;
 
 namespace Nidium {
@@ -30,7 +35,6 @@ extern "C" void Java_com_nidium_android_Nidroid_nidiumInit(JNIEnv *env, jobject 
 {
     SystemInterface::_interface = new System(env, nidroid);
 }
-
 
 // Entry point called by SDL
 int main(int argc, char **argv)
