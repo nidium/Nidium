@@ -401,11 +401,14 @@ def frontendAndroid(android):
         shutil.copy("build/out/%s/lib/libnidium_android.so" % Gyp.getConfiguration(), outDir)
 
         with Utils.Chdir("src/Frontend/app/android/"):
+            env = Utils.Env();
+            env.set("ANDROID_HOME", os.path.join(ROOT, "third-party", "android-sdk"))
+
             Log.info("Building android app")
-            Utils.run("./gradlew assemble%s" % Gyp.getConfiguration())
+            Utils.run("./gradlew assemble%s" % Gyp.getConfiguration(), env=env)
 
             Log.info("Installing android app")
-            Utils.run("./gradlew install%s" % Gyp.getConfiguration())
+            Utils.run("./gradlew install%s" % Gyp.getConfiguration(), env=env)
 
 @CommandLine.option("--debug-opengl", default=False)
 def glDebug(debug):
