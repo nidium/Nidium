@@ -405,10 +405,12 @@ def frontendAndroid(android):
             env.set("ANDROID_HOME", os.path.join(ROOT, "third-party", "android-sdk"))
 
             Log.info("Building android app")
-            Utils.run("./gradlew assemble%s" % Gyp.getConfiguration(), env=env)
+            #Utils.run("./gradlew assemble%s" % Gyp.getConfiguration(), env=env)
+            Utils.run("./gradlew assembleDebug", env=env)
 
             Log.info("Installing android app")
-            Utils.run("./gradlew install%s" % Gyp.getConfiguration(), env=env)
+            #Utils.run("./gradlew install%s" % Gyp.getConfiguration(), env=env)
+            Utils.run("./gradlew installDebug", env=env)
 
 @CommandLine.option("--debug-opengl", default=False)
 def glDebug(debug):
