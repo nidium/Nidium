@@ -134,13 +134,28 @@ int Image::getHeight()
     return m_Image->height();
 }
 
+bool Image::readPixels(unsigned char *buf, bool flipY, bool premultiply)
+{
+    if (!m_Image) {
+        return false;
+    }
 
+    return m_Image->readPixels(
+                    SkImageInfo::Make(m_Image->width(),m_Image->height(),
+                        kRGBA_8888_SkColorType,
+                        premultiply
+                          ? kPremul_SkAlphaType
+                          : kUnpremul_SkAlphaType),
+                    buf, m_Image->width() * 4, 0, 0);
+}
+
+#if 0
 bool Image::ConvertToRGBA(Image *nimg,
                           unsigned char *rgba,
                           bool flipY,
                           bool premultiply)
 {
-#if 0
+
     int length;
     int k;
     const unsigned char *pixels;
@@ -182,9 +197,10 @@ bool Image::ConvertToRGBA(Image *nimg,
             k += 4;
         }
     }
-#endif
+
     return true;
 }
+#endif
 // }}}
 
 Image::~Image()

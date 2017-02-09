@@ -9,3 +9,6 @@
 #ifdef SK_BUILD_FOR_ANDROID
     #define GR_GL_USE_NEW_SHADER_SOURCE_SIGNATURE 1
 #endif
+
+/* nidium use per GL-call callback to reset the context */
+#define GR_GL_PER_GL_FUNC_CALLBACK 1
