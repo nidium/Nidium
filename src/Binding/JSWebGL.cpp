@@ -2388,15 +2388,14 @@ bool JSWebGLRenderingContext::JS_texImage2D(JSContext *cx, JS::CallArgs &args)
             pixels
                 = (unsigned char *)malloc(nimg->getImage()->getSize());
 
-            if (!Image::ConvertToRGBA(
-                    nimg->getImage(), pixels,
-                    this->hasFlag(Canvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag),
-                    this->hasFlag(Canvas3DContext::
-                                      kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag))) {
+            if (!nimg->getImage()->readPixels(pixels,
+                this->hasFlag(Canvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag),
+                this->hasFlag(Canvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag))) {
 
                 JS_ReportError(cx, "Failed to read image data");
                 return false;
             }
+
         } else if (image && JSCanvas::InstanceOf(image)) {
             JSCanvas *jsCanvas = JSCanvas::GetInstance(image);
             CanvasHandler *handler

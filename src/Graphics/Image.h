@@ -44,16 +44,14 @@ public:
     */
     static Image *CreateFromSkImage(sk_sp<SkImage> skimage);
 
-    static bool ConvertToRGBA(Image *nimg, unsigned char *rgba,
-                              bool flipY,
-                              bool premultiply);
-
     /*
         Try to encode the pixels as a PNG image
         This can fail and return nullptr.
     */
     SkData   *getPNG();
     SkBitmap *getBitmap();
+
+    bool readPixels(unsigned char *buf, bool flipY, bool premultiply);
     
     /*
         Try to readback the pixels.
