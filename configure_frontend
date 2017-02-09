@@ -120,7 +120,10 @@ def skia():
             "bin/gn gen out/Static --args='%s'" % (skiaArgs),
             "ninja %s -C out/Static" % ("-v" if Variables.get("verbose") else ""),
         ],
-        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch")],
+        "patchs": [
+            os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
+            os.path.join(CONFIGURE_PATH, "patch", "skia_gr_gl_callback.patch")
+        ],
         "outputs": [
             "out/Static/libskia.a",
             {
