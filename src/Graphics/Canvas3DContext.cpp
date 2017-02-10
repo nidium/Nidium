@@ -281,9 +281,6 @@ bool Canvas3DContext::createFBO(int width, int height)
     GL_CALL(DepthRange(0.f, 1.f));
 #endif
 
-    GL_CALL(Enable(GR_GL_DEPTH_TEST));
-    GL_CALL(ClearDepth(1.0));
-
     GL_CALL(Clear(GR_GL_COLOR_BUFFER_BIT | GR_GL_DEPTH_BUFFER_BIT));
 
     return true;
