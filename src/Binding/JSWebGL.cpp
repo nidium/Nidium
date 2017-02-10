@@ -693,7 +693,6 @@ bool JSWebGLRenderingContext::JS_bindAttribLocation(JSContext *cx,
                                                     JS::CallArgs &args)
 {
     GLuint vertex;
-    const char *cname;
     JSWebGLProgram *webglProgram;
 
     JS::RootedObject program(cx);
@@ -709,11 +708,9 @@ bool JSWebGLRenderingContext::JS_bindAttribLocation(JSContext *cx,
         return false;
     }
 
-    cname = JS_EncodeString(cx, name);
+    JSAutoByteString cname(cx, name);
 
-    GL_CALL(this, BindAttribLocation(webglProgram->id(), vertex, cname));
-
-    JS_free(cx, (void *)cname);
+    GL_CALL(this, BindAttribLocation(webglProgram->id(), vertex, static_cast<GLchar *>(cname.ptr())));
 
     return true;
 }
@@ -1430,7 +1427,6 @@ bool JSWebGLRenderingContext::JS_getUniformLocation(JSContext *cx,
 {
     GLint location;
     JS::RootedValue proto(cx);
-    const char *cname;
     JSWebGLProgram *webglProgram;
 
     JS::RootedString name(cx);
@@ -1447,9 +1443,9 @@ bool JSWebGLRenderingContext::JS_getUniformLocation(JSContext *cx,
         return false;
     }
 
-    cname = JS_EncodeString(cx, name);
+    JSAutoByteString cname(cx, name);
 
-    GL_CALL_RET(this, GetUniformLocation(webglProgram->id(), cname), location);
+    GL_CALL_RET(this, GetUniformLocation(webglProgram->id(), static_cast<GLchar *>(cname.ptr())), location);
 
     if (location < 0) {
         args.rval().setNull();
@@ -1459,8 +1455,6 @@ bool JSWebGLRenderingContext::JS_getUniformLocation(JSContext *cx,
 
         args.rval().setObjectOrNull(ret);
     }
-
-    JS_free(cx, (void *)cname);
 
     return true;
 }
@@ -1709,7 +1703,6 @@ bool JSWebGLRenderingContext::JS_getAttribLocation(JSContext *cx,
 {
     GLint location;
     JSWebGLProgram *webglProgram;
-    const char *cattr;
 
     JS::RootedString attr(cx);
     JS::RootedObject program(cx);
@@ -1724,11 +1717,9 @@ bool JSWebGLRenderingContext::JS_getAttribLocation(JSContext *cx,
         return false;
     }
 
-    cattr = JS_EncodeString(cx, attr);
+    JSAutoByteString cattr(cx, attr);
 
-    GL_CALL_RET(this, GetAttribLocation(webglProgram->id(), cattr), location);
-
-    JS_free(cx, (void *)cattr);
+    GL_CALL_RET(this, GetAttribLocation(webglProgram->id(), static_cast<GLchar *>(cattr.ptr())), location);
 
     args.rval().setInt32(location);
 
@@ -2102,7 +2093,7 @@ bool JSWebGLRenderingContext::JS_getProgramInfoLog(JSContext *cx,
     GLsizei max;
     GLsizei length;
     JSWebGLProgram *webglProgram;
-    char *clog;
+    GLchar *clog;
 
     JS::RootedObject program(cx);
     if (!JS_ConvertArguments(cx, args, "o", program.address())) {
@@ -2117,7 +2108,7 @@ bool JSWebGLRenderingContext::JS_getProgramInfoLog(JSContext *cx,
 
     GL_CALL(this, GetProgramiv(webglProgram->id(), GL_INFO_LOG_LENGTH, &max));
 
-    clog = (char *)malloc(max);
+    clog = (GLchar *)malloc(max);
     GL_CALL(this, GetProgramInfoLog(webglProgram->id(), max, &length, clog));
     JS::RootedString log(cx, JS_NewStringCopyN(cx, clog, length));
     free(clog);
@@ -2158,7 +2149,7 @@ bool JSWebGLRenderingContext::JS_getShaderInfoLog(JSContext *cx,
     GLsizei length;
     GLsizei max;
     JSWebGLShader *webglShader;
-    char *clog;
+    GLchar *clog;
 
     JS::RootedObject shader(cx);
     if (!JS_ConvertArguments(cx, args, "o", shader.address())) {
@@ -2173,7 +2164,7 @@ bool JSWebGLRenderingContext::JS_getShaderInfoLog(JSContext *cx,
 
     GL_CALL(this, GetShaderiv(webglShader->id(), GL_INFO_LOG_LENGTH, &max));
 
-    clog = (char *)malloc(max);
+    clog = (GLchar *)malloc(max);
     GL_CALL(this, GetShaderInfoLog(webglShader->id(), max, &length, clog));
     JS::RootedString log(cx, JS_NewStringCopyN(cx, clog, length));
     free(clog);
