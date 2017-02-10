@@ -260,11 +260,13 @@ bool Canvas3DContext::createFBO(int width, int height)
 
     GL_CALL(Viewport(0, 0, width, height));
 
+#ifndef NIDIUM_OPENGLES2
     GL_CALL(Enable(GR_GL_VERTEX_PROGRAM_POINT_SIZE));
 
     /* Vertex Array Buffer are required in GL3.0+ */
     GL_CALL(GenVertexArrays(1, &m_GLObjects.vao));
     GL_CALL(BindVertexArray(m_GLObjects.vao));
+#endif
 
     // Cull face is disable by default on WebGL
     GL_CALL(FrontFace(GR_GL_CCW));
