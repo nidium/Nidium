@@ -31,21 +31,8 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Helper Macros
-#define GL_CALL(IFACE, FN)                                         \
-    /*printf(#FN "\n");*/                                          \
-    NIDIUM_GL_CALL((IFACE)->getGLContext(), FN);                   \
-    {                                                              \
-        GLint err = glGetError();                                  \
-        if (err != 0) NUI_LOG("err = %d / call = %s\n", err, #FN); \
-    }
-
-#define GL_CALL_RET(IFACE, FN, RET)                                \
-    /*printf(#FN "\n");*/                                          \
-    NIDIUM_GL_CALL_RET((IFACE)->getGLContext(), FN, RET);          \
-    {                                                              \
-        GLint err = glGetError();                                  \
-        if (err != 0) NUI_LOG("err = %d / call = %s\n", err, #FN); \
-    }
+#define GL_CALL(IFACE, FN) NIDIUM_GL_CALL((IFACE)->getGLContext(), FN);
+#define GL_CALL_RET(IFACE, FN, RET) NIDIUM_GL_CALL_RET((IFACE)->getGLContext(), FN, RET);
 
 #define NGL_JS_FN_DELETE_X(FUNC_NAME, RESOURCE_CLASS)                         \
     bool JSWebGLRenderingContext::JS_##FUNC_NAME(JSContext *cx,               \
