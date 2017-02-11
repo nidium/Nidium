@@ -1261,13 +1261,13 @@ NGL_JS_FN_DELETE_X(deleteShader, Shader)
 
 bool JSWebGLRenderingContext::JS_depthFunc(JSContext *cx, JS::CallArgs &args)
 {
-    GLuint func;
+    GLenum func;
 
     if (!JS_ConvertArguments(cx, args, "u", &func)) {
         return false;
     }
 
-    GL_CALL(this, DepthFunc(func));
+    GL_CALL(this, DepthFunc((GLenum)func));
 
     return true;
 }
@@ -1293,6 +1293,9 @@ bool JSWebGLRenderingContext::JS_depthRange(JSContext *cx, JS::CallArgs &args)
     if (!JS_ConvertArguments(cx, args, "dd", &zNear, &zFar)) {
         return false;
     }
+
+    JS_ReportError(cx, "not implemented");
+    return false;
 
     // GL_CALL(this, DepthRange(zNear, zFar));
 
