@@ -25,6 +25,7 @@ import java.util.List;
 public class MainActivity extends Activity {
     private ListView mNMLListView;
     private TextView mNMLListTitle;
+    private static final String nidiumDirName = "nidium";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,12 +58,21 @@ public class MainActivity extends Activity {
 
     private void updateNMLs()
     {
-        ArrayList<String> nmls = this.getNMLS();
+        final String dirName = Nidroid.getUserDirectory() + '/' + MainActivity.nidiumDirName + '/';
+        /*
+          If the permissions are not set, we get nothing.
+          TODO: guide the user to set them https://developer.android.com/training/permissions/requesting.html
+         */
+        ArrayList<String> nmls = this.getNMLS(dirName);
         if (nmls == null) {
             nmls = new ArrayList<String>();
-            mNMLListTitle.setText("No \"nidium\" directory on your phone");
+            mNMLListTitle.setText("No '" + dirName + "' directory on your phone");
         } else {
-            mNMLListTitle.setText("Found " + nmls.size() + " NML file ou your phone : ");
+            if (nmls.size() > 0 ) {
+                mNMLListTitle.setText("Found " + nmls.size() + " .nml files in directory '" + dirName + "'. ");
+            } else {
+                mNMLListTitle.setText("No .nml files in directory '" + dirName + "'." );
+            }
         }
 
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
@@ -87,8 +97,8 @@ public class MainActivity extends Activity {
         }
     }
 
-    private ArrayList<String> getNMLS() {
-        File f = new File(Nidroid.getUserDirectory() + "/nidium/");
+    private ArrayList<String> getNMLS(String dirName) {
+        final File f = new File(dirName);
         if (!f.isDirectory()) {
             return null;
         } else {
@@ -100,12 +110,14 @@ public class MainActivity extends Activity {
 
     private void recurseFindNMLS(File f, ArrayList<String> nmls) {
         File files[] = f.listFiles();
-        for (int i = 0; i < files.length; i++) {
-            String file = files[i].toString();
-            if (files[i].isDirectory()) {
-                recurseFindNMLS(files[i], nmls);
-            } else if (file.endsWith(".nml")) {
-                nmls.add(files[i].toString());
+        if (files != null ) {
+            for (int i = 0; i < files.length; i++) {
+                String file = files[i].toString();
+                if (files[i].isDirectory()) {
+                    recurseFindNMLS(files[i], nmls);
+                } else if (file.endsWith(".nml")) {
+                    nmls.add(files[i].toString());
+                }
             }
         }
     }
