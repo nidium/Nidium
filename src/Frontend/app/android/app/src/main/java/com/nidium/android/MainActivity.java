@@ -1,26 +1,18 @@
 package com.nidium.android;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.libsdl.app.SDLActivity;
-
 import java.io.File;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends Activity {
     private ListView mNMLListView;
@@ -75,9 +67,10 @@ public class MainActivity extends Activity {
             }
         }
 
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+        ListView listView = (ListView) findViewById(R.id.nml_list);
+        NMLFileAdapter arrayAdapter = new NMLFileAdapter(
                 this,
-                android.R.layout.simple_list_item_1,
+                R.layout.nml_list_item_row,
                 nmls);
         mNMLListView.setAdapter(arrayAdapter);
     }
