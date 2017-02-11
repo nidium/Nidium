@@ -268,22 +268,10 @@ bool Canvas3DContext::createFBO(int width, int height)
     GL_CALL(BindVertexArray(m_GLObjects.vao));
 #endif
 
-    // Cull face is disable by default on WebGL
     GL_CALL(FrontFace(GR_GL_CCW));
+
+    // Cull face is disable by default on WebGL
     GL_CALL(Disable(GR_GL_CULL_FACE));
-
-#if 0
-    GL_CALL(ShadeModel(GL_SMOOTH));
-    GL_CALL(DepthFunc(GL_LEQUAL));
-    GL_CALL(Hint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST));
-    GL_CALL(Hint(GL_POLYGON_SMOOTH_HINT, GL_NICEST));
-    GL_CALL(CppObj, Enable(GL_FRAGMENT_PRECISION_HIGH));
-    GL_CALL(DepthMask(GL_TRUE));
-    GL_CALL(DepthFunc(GL_LEQUAL));
-    GL_CALL(DepthRange(0.f, 1.f));
-#endif
-
-    GL_CALL(Clear(GR_GL_COLOR_BUFFER_BIT | GR_GL_DEPTH_BUFFER_BIT));
 
     return true;
 }
