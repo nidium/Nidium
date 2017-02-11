@@ -132,7 +132,8 @@ def skia():
         "patchs": [
             os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
             os.path.join(CONFIGURE_PATH, "patch", "skia_gr_gl_callback.patch"),
-            os.path.join(CONFIGURE_PATH, "patch", "skia_android.patch")
+            os.path.join(CONFIGURE_PATH, "patch", "skia_android.patch"),
+            os.path.join(CONFIGURE_PATH, "patch", "skia_gl_es.patch"),
         ],
         "outputs": [
             "out/Static/libskia.a",
