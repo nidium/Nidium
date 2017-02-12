@@ -92,7 +92,7 @@ then
         update-desktop-database ~/.local/share/applications/
     else
         cp resources/nidium.desktop /usr/share/applications/
-	chmod 644 /usr/share/applications/nidium.desktop
+        chmod 644 /usr/share/applications/nidium.desktop
         update-desktop-database
     fi
     xdg-icon-resource install --mode system --novendor --context mimetypes --size 48 resources/nidium.png x-application-nidium
