@@ -10,6 +10,8 @@
 #include "Net/HTTPStream.h"
 #include "IO/FileStream.h"
 
+#include <android/log.h>
+
 using namespace Nidium::Binding;
 using namespace Nidium::Core;
 using namespace Nidium::IO;
@@ -110,7 +112,8 @@ void Context::onMessage(const SharedMessages::Message &msg)
         case kContextMessage_log:
         {
             const char *str = (char *)msg.dataPtr();
-            fwrite(str, 1, strlen(str), stdout);
+
+            __android_log_print(ANDROID_LOG_DEBUG, "Nidium", "%s", str);
 
             free(msg.dataPtr());
         }
