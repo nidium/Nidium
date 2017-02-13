@@ -468,7 +468,7 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
 
 void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
 {
-    InputEvent *ev = m_NidiumContext->getInputEvents();
+    InputEvent *ev = m_NidiumContext->getInputHandler()->getEvents();
     if (ev == NULL) {
         return;
     }
@@ -493,7 +493,7 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
     ape_pool_list_t *evlist = NULL;
 
     for (; ev != NULL; ev = ev->m_Next) {
-        if (actualRect.contains(ev->m_x, ev->m_y)) {
+        if (ev->isInRect(actualRect)) {
             /*
                 Increment depth (Nth canvas affected by this event)
             */
@@ -1329,6 +1329,7 @@ void CanvasHandler::onMouseEvent(InputEvent *ev)
         default:
             break;
     }
+
     Nidium::Interface::__NidiumUI->setCursor(
         (UIInterface::CURSOR_TYPE) this->getCursor());
 }

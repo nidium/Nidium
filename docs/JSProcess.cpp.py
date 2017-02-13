@@ -6,7 +6,7 @@ from dokumentor import *
 
 ClassDoc( "NidiumProcess", """Object providing various information and interfaces to interact with system process.
 
-It is not possible to create an instance of this class. 'global.process' is allready available.""",
+It is not possible to create an instance of this class. 'global.process' is already available.""",
     SeesDocs( "global.process|NidiumProcess" ),
     [ExampleDoc("""console.log(JSON.stringify(process));""")],
     NO_Inherrits,
@@ -38,7 +38,7 @@ FieldDoc( "NidiumProcess.workerId", "The identifier for the current worker.",
     NO_Default
 )
 
-FunctionDoc("NidiumProcess.setOwner", """Set a user and optionaly a group to a process.
+FunctionDoc("NidiumProcess.setOwner", """Set a user (and optional a group) to a process.
 
 The `setOwner` function is permitted if the effective user/group name is that of the super user, or if the specified user/group name is the same as the effective user/group name.
 

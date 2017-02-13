@@ -117,7 +117,7 @@ bool UIInterface::createWindow(int width, int height)
 
 int UIInterface::HandleEvents(void *arg)
 {
-    UIInterface *NUII = static_cast<UIInterface *>(arg);
+    UIInterface *uii = static_cast<UIInterface *>(arg);
 
     SDL_Event event;
     int nrefresh = 0;
@@ -125,9 +125,9 @@ int UIInterface::HandleEvents(void *arg)
 
     while (SDL_PollEvent(&event)) {
         JSWindow *window = NULL;
-        if (NUII->isContextReady()) {
-            NUII->makeMainGLCurrent();
-            window = JSWindow::GetObject(NUII->m_NidiumCtx->getNJS());
+        if (uii->isContextReady()) {
+            uii->makeMainGLCurrent();
+            window = JSWindow::GetObject(uii->m_NidiumCtx->getNJS());
         }
         nevents++;
         switch (event.type) {
@@ -157,9 +157,9 @@ int UIInterface::HandleEvents(void *arg)
                 if (window && !window->onClose()) {
                     break;
                 }
-                NUII->stopApplication();
+                uii->stopApplication();
                 SDL_Quit();
-                NUII->quitApplication();
+                uii->quitApplication();
 
                 break;
             case SDL_MOUSEMOTION:
@@ -200,7 +200,7 @@ int UIInterface::HandleEvents(void *arg)
                         break;
                     }
 
-                    NUII->hitRefresh();
+                    uii->hitRefresh();
 
                     break;
                 }
@@ -237,36 +237,36 @@ int UIInterface::HandleEvents(void *arg)
         }
     }
 
-    if (ttfps % 300 == 0 && NUII->isContextReady()) {
-        NUII->m_NidiumCtx->getNJS()->gc();
+    if (ttfps % 300 == 0 && uii->isContextReady()) {
+        uii->m_NidiumCtx->getNJS()->gc();
     }
 
-    if (NUII->m_CurrentCursor != UIInterface::NOCHANGE) {
-        NUII->setSystemCursor(NUII->m_CurrentCursor);
-        NUII->m_CurrentCursor = UIInterface::NOCHANGE;
+    if (uii->m_CursorNeedsUpdate) {
+        uii->setSystemCursor(uii->m_CurrentCursor);
+        uii->m_CursorNeedsUpdate = false;
     }
 
-    if (NUII->isContextReady()) {
-        NUII->makeMainGLCurrent();
-        NUII->m_NidiumCtx->frame(true);
+    if (uii->isContextReady()) {
+        uii->makeMainGLCurrent();
+        uii->m_NidiumCtx->frame(true);
     }
 
-    if (NUII->getConsole()) {
-        NUII->getConsole()->flush();
+    if (uii->getConsole()) {
+        uii->getConsole()->flush();
     }
 
-    if (NUII->getFBO() != 0 && NUII->m_NidiumCtx) {
+    if (uii->getFBO() != 0 && uii->m_NidiumCtx) {
 
         glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-        glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA,
-                     GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
-        uint8_t *pdata = NUII->getFrameBufferData();
+        glReadPixels(0, 0, uii->getWidth(), uii->getHeight(), GL_RGBA,
+                     GL_UNSIGNED_BYTE, uii->getFrameBufferData());
+        uint8_t *pdata = uii->getFrameBufferData();
 
-        NUII->m_NidiumCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
+        uii->m_NidiumCtx->rendered(pdata, uii->getWidth(), uii->getHeight());
     } else {
-        NUII->makeMainGLCurrent();
-        SDL_GL_SwapWindow(NUII->m_Win);
+        uii->makeMainGLCurrent();
+        SDL_GL_SwapWindow(uii->m_Win);
     }
 
     ttfps++;
@@ -344,7 +344,11 @@ char *UIInterface::getClipboardText()
 
 void UIInterface::setCursor(CURSOR_TYPE type)
 {
-    this->m_CurrentCursor = type;
+    if (m_CurrentCursor != type) {
+        m_CursorNeedsUpdate = true;
+        m_CurrentCursor = type;
+        printf("set new cursor %d\n", type);
+    }
 }
 
 
@@ -620,6 +624,12 @@ void UIInterface::showWindow()
         APE_timer_setlowresolution(this->m_Gnet, 0);
     }
 }
+
+void UIInterface::hideCursor(bool state)
+{
+    SDL_ShowCursor(!state);
+}
+
 // }}}
 
 // {{{ SystemMenu

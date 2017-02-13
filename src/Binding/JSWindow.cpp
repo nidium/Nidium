@@ -18,6 +18,7 @@
 #include "Interface/UIInterface.h"
 
 #include "Frontend/Context.h"
+#include "Frontend/InputHandler.h"
 #include "Graphics/Image.h"
 #include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas.h"
@@ -43,23 +44,6 @@ static JSClass TextEvent_class = { "TextInputEvent", 0};
 static JSClass KeyEvent_class = { "KeyEvent", 0};
 static JSClass NMLEvent_class = { "NMLEvent", 0};
 
-static struct nidium_cursors
-{
-    const char *m_Str;
-    UIInterface::CURSOR_TYPE m_Type;
-} nidium_cursors_list[] = {
-    { "default", UIInterface::ARROW },
-    { "arrow", UIInterface::ARROW },
-    { "beam", UIInterface::BEAM },
-    { "text", UIInterface::BEAM },
-    { "pointer", UIInterface::POINTING },
-    { "grabbing", UIInterface::CLOSEDHAND },
-    { "drag", UIInterface::CLOSEDHAND },
-    { "hidden", UIInterface::HIDDEN },
-    { "none", UIInterface::HIDDEN },
-    { "col-resize", UIInterface::RESIZELEFTRIGHT },
-    { NULL, UIInterface::NOCHANGE },
-};
 // }}}
 
 // {{{ Implementation
@@ -173,11 +157,10 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
 
     Context *nctx  = Context::GetObject<Frontend::Context>(m_Cx);
     InputEvent *ev = new InputEvent(InputEvent::kMouseWheel_Type, x, y);
-
     ev->setData(0, xrel);
     ev->setData(1, yrel);
 
-    nctx->addInputEvent(ev);
+    nctx->getInputHandler()->pushEvent(ev);
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class));
     JS::RootedValue xrelv(m_Cx, JS::Int32Value(xrel));
@@ -314,7 +297,7 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
 
     ev->setData(0, button);
 
-    nctx->addInputEvent(ev);
+    nctx->getInputHandler()->pushEvent(ev);
 
     /*
         Handle double click.
@@ -326,7 +309,7 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
             = new InputEvent(InputEvent::kMouseDoubleClick_Type, x, y);
 
         dcEv->setData(0, button);
-        nctx->addInputEvent(dcEv);
+        nctx->getInputHandler()->pushEvent(dcEv);
     }
     JS::RootedValue xv(m_Cx, JS::Int32Value(x));
     JS::RootedValue yv(m_Cx, JS::Int32Value(y));
@@ -485,7 +468,7 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
     ev->setData(0, xrel);
     ev->setData(1, yrel);
 
-    nctx->addInputEvent(ev);
+    nctx->getInputHandler()->pushEvent(ev);
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class));
     JS::RootedValue xv(m_Cx, JS::Int32Value(x));
@@ -658,49 +641,6 @@ bool JSWindow::JSSetter_title(JSContext *cx,
 
     JSAutoByteString title(cx, vpStr);
     NUI->setWindowTitle(title.ptr());
-
-    return true;
-}
-
-bool JSWindow::JSGetter_cursor(JSContext *cx,
-    JS::MutableHandleValue vp)
-{
-    UIInterface *NUI = Context::GetObject<Frontend::Context>(m_Cx)->getUI();
-    const char *cCursor;
-
-    cCursor = nidium_cursors_list[1].m_Str;
-    for (size_t i = 0; nidium_cursors_list[i].m_Str != NULL; i++) {
-        if (nidium_cursors_list[i].m_Type == NUI->m_CurrentCursor) {
-            cCursor = nidium_cursors_list[i].m_Str;
-            break;
-        }
-    }
-
-    vp.setString(JS_NewStringCopyZ(m_Cx, cCursor));
-
-    return true;
-}
-
-bool JSWindow::JSSetter_cursor(JSContext *cx,
-    JS::MutableHandleValue vp)
-{
-    UIInterface *NUI = Context::GetObject<Frontend::Context>(m_Cx)->getUI();
-
-    if (!vp.isString()) {
-
-        return true;
-    }
-
-    JS::RootedString vpStr(cx, JS::ToString(cx, vp));
-    JSAutoByteString type(cx, vpStr);
-    for (size_t i = 0; nidium_cursors_list[i].m_Str != NULL; i++) {
-        if (strncasecmp(nidium_cursors_list[i].m_Str, type.ptr(),
-                        strlen(nidium_cursors_list[i].m_Str))
-            == 0) {
-            NUI->setCursor(nidium_cursors_list[i].m_Type);
-            break;
-        }
-    }
 
     return true;
 }
@@ -1165,8 +1105,6 @@ JSPropertySpec *JSWindow::ListProperties()
         CLASSMAPPER_PROP_GS(JSWindow, innerHeight),
         CLASSMAPPER_PROP_GS_ALIAS(JSWindow, outerHeight, innerHeight),
         CLASSMAPPER_PROP_GS(JSWindow, title),
-        CLASSMAPPER_PROP_GS(JSWindow, cursor),
-
         JS_PS_END
     };
 

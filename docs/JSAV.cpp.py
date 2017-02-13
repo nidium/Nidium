@@ -73,7 +73,7 @@ NamespaceDoc( "AudioNode", """AudioNode class.
 An `AudioNode` can be either a source a processor or a target.
 
 * A source delivers a stream, which can be decoded and played (mp3, wav, ogg, wma, aac).
-* A processor can alterate the stream of data (gain, reverb, delay, ...).
+* A processor can change the stream of data (gain, reverb, delay, ...).
 * A target is the audio system output (speakers)""",
     SeesDocs( "Thread|Audio|AudioContext|_GLOBALAudioThread|AudioNodeLink|AudioNode" ),
     [ExampleDoc("""var dsp = Audio.getContext();
@@ -125,7 +125,7 @@ custom.assignProcessor(function(frame, scope) {
 )
 
 # Dont think we need to document this
-#NamespaceDoc( "AudioNodeThreaded", "AuioNode object exposed in the Audio thread",
+#NamespaceDoc( "AudioNodeThreaded", "AudioNode object exposed in the Audio thread",
 #    SeesDocs( "Thread|Audio|Audio|AudioContext|_GLOBALAudioThread|AudioNodeLink|AudioNode" ),
 #    NO_Examples
 #)
@@ -343,7 +343,7 @@ try {
 
 EventDoc( "AudioNode.message", """Event fired when a custom node or custom-source node is sending a message from the audio thread to the main thread.
 
-As the `AudioContext` has it's own thread, communitation between threads must be done via messages.""",
+As the `AudioContext` has it's own thread, communication between threads must be done via messages.""",
     SeesDocs( "AudioNode.set|AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter" ),
     NO_Examples,
     [ParamDoc( "event", "The event object",
@@ -358,14 +358,14 @@ FunctionDoc( "AudioNode.assignSeek", """Assign to the node a function to be call
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [CallbackDoc( "callback", "Function to execute when the node position is changed", [
-        ParamDoc( "postition", "The new position in seconds.", "float", NO_Default, IS_Obligated ),
+        ParamDoc( "position", "The new position in seconds.", "float", NO_Default, IS_Obligated ),
         ParamDoc( "scope", "Global Object of the Audio thread", "_GLOBALAudioThread", NO_Default, IS_Obligated )
     ])]
 )
 
 FunctionDoc( "AudioNode.assignProcessor", """Assign to the node a function to be called when the node needs to process audio data.
 
-This can be used to fill the audio buffers of the node to generate sound. This callback runs is another thread than the main nidium UI. If you need to pass Variables you must expicitly set them with `AudioNode.set`.""",
+This can be used to fill the audio buffers of the node to generate sound. This callback runs is another thread than the main nidium UI. If you need to pass Variables you must explicitly set them with `AudioNode.set`.""",
     SeesDocs( "AudioNode.assignProcessor|AudioNode.assignInit|AudioNode.assignSetter|AVNode.message" ),
     [ExampleDoc("""var dsp = Audio.getContext();
 var source = dsp.createNode("custom-source", 0, 2);
@@ -475,7 +475,7 @@ FunctionDoc( "AudioContext.connect", "Connect an output channel to an input chan
     NO_Returns
 )
 
-FunctionDoc( "AudioContext.disconnect", """Disconnects two cannels.
+FunctionDoc( "AudioContext.disconnect", """Disconnects two channels.
 
 One channel needs to be an input channel, the other channel needs to be an output channel. The order of the parameters is not important.""",
     SeesDocs( "Audio|AudioContext|AudioContext.run|AudioContext.load|AudioContext.createNode|AudioContext.connect|AudioContext.disconnect|AudioContext.pFFT" ),
@@ -535,7 +535,7 @@ FunctionDoc( "AudioNode.set", """Set a value on an `AudioNode` from the main thr
 For native processor node an error will be thrown if the name of the property is unknown.
 If the value has been set correctly, the function that was defined with `assigneSetter` will be called.
 Variables passed to custom nodes are *copied* to the audio context. Audio context runs in a different thread.
-Variables can then be accesed on the node from inside the audio thread using `this[key]|.""",
+Variables can then be accessed on the node from inside the audio thread using `this[key]|.""",
     SeesDocs( "Audio|AudioNode.send|AudioNode.get|AudioNode.set|AudioNode.assignSetter|AudioNode.assignInit|AudioNode.assignProcessor" ),
     [ ExampleDoc("""var dsp = Audio.getContext();
 var delay = dsp.createNode("delay", 2, 2);

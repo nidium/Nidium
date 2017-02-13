@@ -4,30 +4,30 @@
 
 from dokumentor import *
 
-#NamespaceDoc("WebSocket Client & Server", """Native implemntation of WebSocket Client & Server
+#NamespaceDoc("WebSocket Client & Server", """Native implementation of WebSocket Client & Server
 #
 #* Client : Connect to a WebSocket server.
-#* Server : Create a WebSocker server where clients cant connect to.
+#* Server : Create a WebSocket server where clients cant connect to.
 #""",
 #    products=["Frontend", "Server"]
 #)
 
-ClassDoc( "WebSocketServer", "Websocket Server handling.",
+ClassDoc( "WebSocketServer", "WebSocket Server handling.",
     SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
     section="WebSocket Client & Server"
 )
 
-ClassDoc( "WebSocketServerClient", "Class that the Websocket server creates for it's connections.",
+ClassDoc( "WebSocketServerClient", "Class that the WebSocket server creates for it's connections.",
     SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
     section="WebSocket Client & Server"
 )
 
-ConstructorDoc( "WebSocketServer", "Constructor for a Websocket listener.",
+ConstructorDoc( "WebSocketServer", "Constructor for a WebSocket listener.",
     SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
     NO_Examples,
     [ ParamDoc( "host", "hostname or ws:// url", "string", NO_Default, IS_Obligated ),
      ParamDoc( "protocol", "No-use yet", "string", NO_Default, IS_Optional ) ],
-    ReturnDoc( "Websocket instance", "WebSocketServer" )
+    ReturnDoc( "WebSocket instance", "WebSocketServer" )
 )
 
 EventDoc( "WebSocketServer.onmessage", "Event triggered when a message arrives.",
@@ -43,7 +43,7 @@ EventDoc( "WebSocketServer.onopen", "Event triggered when a client connects.",
     [ParamDoc( "client", "The connected client", "WebSocketServerClient", NO_Default, IS_Obligated ) ]
 )
 
-FunctionDoc("WebSocketServerClient.send", "Send an message over a websocket connection.",
+FunctionDoc("WebSocketServerClient.send", "Send an message over a WebSocket connection.",
     SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
@@ -51,7 +51,7 @@ FunctionDoc("WebSocketServerClient.send", "Send an message over a websocket conn
     ReturnDoc("0 on success, or null if failed.", "integer", nullable=True)
 )
 
-FunctionDoc("WebSocketServerClient.close", "Closes an existing websocket connection.",
+FunctionDoc("WebSocketServerClient.close", "Closes an existing WebSocket connection.",
     SeesDocs( "WebSocketServerClient|WebSocketServer|WebSocket"),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,

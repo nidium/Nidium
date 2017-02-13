@@ -80,7 +80,9 @@ public:
 
 protected:
     void renderSystemTray();
+#if 1
     void setSystemCursor(CURSOR_TYPE cursor);
+#endif
     void hitRefresh();
     void onWindowCreated();
 

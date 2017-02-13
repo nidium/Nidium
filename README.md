@@ -69,7 +69,7 @@ To build nidium you need at least 5.7GB of disk space. A build from scratch coul
 On a debian based system, a few commands will get you started.
 
 ```
-$ apt-get install libpci-dev python2.7 git make patch clang pkg-config libgtk2.0-dev libgtk-3-dev mesa-common-dev libglu1-mesa-dev yasm libasound2 libasound2-dev libbz2-1.0
+$ apt-get install libpci-dev python2.7 git make patch clang pkg-config libgtk2.0-dev libgtk-3-dev mesa-common-dev libglu1-mesa-dev libosmesa6-dev yasm libasound2 libasound2-dev libbz2-1.0
 $ git clone https://github.com/nidium/NidiumTools.git
 $ git clone --recursive https://github.com/nidium/Nidium.git
 $ export PYTHONPATH=$(pwd)/NidiumTools/src
@@ -81,6 +81,10 @@ $ ./bin/nidium
 ## Documentation
 
 We strive to have an exellent documentation, both for our [getting started guide](http://www.nidium.com/docs/guide/get-started/hello-world.html) and for the [API Reference](http://www.nidium.com/docs/api/).
+
+## Videos - nidium in action
+
+- [http://p.nf/nidium-vids/](http://p.nf/nidium-vids/)
 
 ## Bug reports and Collaboration
 

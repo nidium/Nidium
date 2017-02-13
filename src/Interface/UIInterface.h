@@ -149,8 +149,7 @@ public:
         RESIZEUP,
         RESIZEDOWN,
         RESIZEUPDOWN,
-        HIDDEN,
-        NOCHANGE
+        HIDDEN
     } m_CurrentCursor;
 
     enum KeyModifier
@@ -235,6 +234,8 @@ public:
         Schedule a cursor change
     */
     virtual void setCursor(CURSOR_TYPE);
+
+    virtual void hideCursor(bool state);
 
     /*
         Change the window width and height
@@ -364,7 +365,7 @@ protected:
     virtual void initControls(){};
     virtual void onWindowCreated(){};
     virtual void onNMLLoaded();
-    virtual void setSystemCursor(CURSOR_TYPE cursor) = 0;
+    virtual void setSystemCursor(CURSOR_TYPE cursor)=0;
 
     /*
         Ctrl+R action
@@ -397,6 +398,8 @@ protected:
     UIConsole *m_Console;
     SDL_GLContext m_MainGLCtx;
     SystemMenu m_SystemMenu;
+
+    bool m_CursorNeedsUpdate = false;
 };
 // }}}
 
