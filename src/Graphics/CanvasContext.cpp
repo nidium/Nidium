@@ -172,14 +172,14 @@ uint32_t CanvasContext::CreatePassThroughVertex()
 {
     /* PassThrough Vertex shader */
     const char *vertex_s
-        = "attribute vec4 Position;\n"
+        = NIDIUM_GL_SHADER_PREAMBLE
+          "attribute vec4 Position;\n"
           "attribute vec2 TexCoordIn;\n"
           "attribute vec2 Modifier;\n"
           "varying vec2 TexCoordOut;\n"
           "uniform mat4 u_projectionMatrix;\n"
           "void main(void) {\n"
-          "    gl_Position = u_projectionMatrix * Position + vec4(Modifier, "
-          "0., 0.);\n"
+          "    gl_Position = u_projectionMatrix * Position + vec4(Modifier,0., 0.);\n"
           "    TexCoordOut = TexCoordIn;\n"
           "}";
 
@@ -192,7 +192,7 @@ uint32_t CanvasContext::CreatePassThroughVertex()
 uint32_t CanvasContext::CreatePassThroughFragment()
 {
     const char *fragment_s
-        = "\n"
+        = NIDIUM_GL_SHADER_PREAMBLE
           "uniform sampler2D Texture;\n"
           "uniform float u_opacity;\n"
           "varying vec2 TexCoordOut;\n"

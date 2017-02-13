@@ -1697,8 +1697,7 @@ uint32_t Canvas2DContext::createProgram(const char *data)
 uint32_t Canvas2DContext::compileCoopFragmentShader()
 {
     const char *coop =
-        //"#version 100\nprecision mediump float;\n"
-        //"precision mediump float;\n"
+        NIDIUM_GL_SHADER_PREAMBLE
         "void _nm_main(void);\n"
         "uniform sampler2D Texture;\n"
         "uniform vec2 n_Position;\n"
