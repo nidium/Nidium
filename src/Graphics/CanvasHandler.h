@@ -14,6 +14,8 @@
 #include <jsapi.h>
 
 #include "Core/Events.h"
+#include "Graphics/Geometry.h"
+
 
 /*
     - Handle a canvas layer.
@@ -37,51 +39,6 @@ namespace Graphics {
 class CanvasHandler;
 class SkiaContext;
 class CanvasContext;
-
-
-struct Rect
-{
-    double m_fLeft, m_fTop, m_fBottom, m_fRight;
-    bool isEmpty() const
-    {
-        return m_fLeft >= m_fRight || m_fTop >= m_fBottom;
-    }
-    bool intersect(double left, double top, double right, double bottom)
-    {
-        if (left < right && top < bottom && !this->isEmpty() && m_fLeft < right
-            && left < m_fRight && m_fTop < bottom && top < m_fBottom) {
-            if (m_fLeft < left) m_fLeft = left;
-            if (m_fTop < top) m_fTop = top;
-            if (m_fRight > right) m_fRight = right;
-            if (m_fBottom > bottom) m_fBottom = bottom;
-            return true;
-        }
-        return false;
-    }
-
-    bool
-    checkIntersect(double left, double top, double right, double bottom) const
-    {
-        if (left < right && top < bottom && !this->isEmpty() && m_fLeft < right
-            && left < m_fRight && m_fTop < bottom && top < m_fBottom) {
-            return true;
-        }
-        return false;
-    }
-
-    Rect scaled(float scale) const
-    {
-        Rect r = { m_fLeft * scale, m_fTop * scale, m_fBottom * scale,
-                   m_fRight * scale };
-
-        return r;
-    }
-    bool contains(double x, double y) const
-    {
-        return !this->isEmpty() && m_fLeft <= x && x < m_fRight && m_fTop <= y
-               && y < m_fBottom;
-    }
-};
 
 
 struct LayerSiblingContext

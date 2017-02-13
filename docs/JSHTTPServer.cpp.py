@@ -5,7 +5,7 @@
 from dokumentor import *
 
 
-#NamespaceDoc("HTTP Client & Server", """Native implemntation of HTTP Client & Server
+#NamespaceDoc("HTTP Client & Server", """Native implementation of HTTP Client & Server
 #* HTTP : Connect to a HTTP server.
 #* HTTPServer : Create an HTTP server where clients cant connect to.
 #""")
@@ -51,12 +51,12 @@ ConstructorDoc( "HTTPServer", "Constructor for HTTPServer object.",
     [
         ParamDoc( "ip", "The ip address to bind to", "string", NO_Default, IS_Obligated),
         ParamDoc( "port", "The port to listen to", "integer", NO_Default, IS_Obligated ),
-        ParamDoc("options", "HTTPListner options",
+        ParamDoc("options", "HTTPServer options",
             ObjectDoc([
                 ("reusePort", "Allows multiple HTTPServer to bind to the same port,", "boolean", 'false'),
         ]), NO_Default, IS_Optional)
     ],
-    ReturnDoc( "Webserver object", "HTTPServer" )
+    ReturnDoc( "HTTPServer instance", "HTTPServer" )
 )
 # }}}
 
@@ -69,7 +69,7 @@ ClassDoc( "HTTPRequest", "HTTP request object spawned by HTTPServer.",
     section="HTTP Client & Server",
 )
 
-FieldDoc( "HTTPRequest.method", "Http request Method that was recieved. Can be 'POST'|'GET'|'PUT'|'DELETE'|'UNKNOWN'.",
+FieldDoc( "HTTPRequest.method", "Http request Method that was received. Can be 'POST'|'GET'|'PUT'|'DELETE'|'UNKNOWN'.",
     [ SeeDoc( "HTTPRequest.data" ), SeeDoc( "HTTPRequest.method" ), SeeDoc( "HTTPRequest.headers" ), SeeDoc( "HTTPRequest.client" ), SeeDoc( "HTTPRequest.url" ) ],
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Readonly,
@@ -117,7 +117,7 @@ NamespaceDoc( "HTTPServerResponse", "Object for handling HTTP response",
     section="HTTP Client & Server",
 )
 
-FunctionDoc( "HTTPServerResponse.write", "Respond to a client that made a request to the webserver.",
+FunctionDoc( "HTTPServerResponse.write", "Respond to a client that made a request to the httpserver.",
     [ SeeDoc( "HTTPServer" ), SeeDoc( "HTTPServerResponse.write"), SeeDoc( "HTTPServerResponse.end" ), SeeDoc( "HTTPServerResponse.writeHead" ) ],
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
@@ -125,7 +125,7 @@ FunctionDoc( "HTTPServerResponse.write", "Respond to a client that made a reques
     NO_Returns
 )
 
-FunctionDoc( "HTTPServerResponse.end", """End a responce to a client that made a request to the webserver
+FunctionDoc( "HTTPServerResponse.end", """End a response to a client that made a request to the httpserver
 
 If the headers were not send yet, a HTTP code 200 will be send.""",
     [ SeeDoc( "HTTPServer" ), SeeDoc( "HTTPServerResponse.write"), SeeDoc( "HTTPServerResponse.end" ), SeeDoc( "HTTPServerResponse.writeHead" ) ],
@@ -135,7 +135,7 @@ If the headers were not send yet, a HTTP code 200 will be send.""",
     NO_Returns
 )
 
-FunctionDoc( "HTTPServerResponse.writeHead", "Set the headers on a response to a client that made a request to the webserver. Of course this can only happen if the headers were not send before.",
+FunctionDoc( "HTTPServerResponse.writeHead", "Set the headers on a response to a client that made a request to the httpserver. Of course this can only happen if the headers were not send before.",
     [ SeeDoc( "HTTPServer" ), SeeDoc( "HTTPServerResponse.write"), SeeDoc( "HTTPServerResponse.end" ), SeeDoc( "HTTPServerResponse.writeHead" ) ],
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,

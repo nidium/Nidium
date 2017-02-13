@@ -25,9 +25,6 @@
 #include "Graphics/SkiaContext.h"
 #include "Graphics/GLHeader.h"
 
-#ifdef __linux__
-#include <SkImageDecoder.h>
-#endif
 
 #ifdef DEBUG
 #include "Binding/JSDebug.h"
@@ -129,6 +126,10 @@ Context::Context(ape_global *net)
       m_UI(NULL), m_NML(NULL), m_GLState(NULL),
       m_JSWindow(NULL), m_SizeDirty(false), m_CurrentClickedHandler(NULL)
 {
+
+    Binding::NidiumLocalContext *nlc = Binding::NidiumLocalContext::Get();
+    nlc->ptr = (void *)new LocalContext();
+
 #ifdef NIDIUM_PACKAGE_EMBED
     // When nidium is packaged with the embedded resources, the embed://
     // prefix should be kept for correctly resolving the path of the files.
@@ -140,8 +141,6 @@ Context::Context(ape_global *net)
     Path::RegisterScheme(SCHEME_DEFINE("system://", SystemStream, false));
     Path::RegisterScheme(SCHEME_DEFINE("user://", UserStream, false));
     Path::RegisterScheme(SCHEME_DEFINE("private://", PrivateStream, false));
-
-    this->resetInputEvents();
 
     ape_init_pool_list(&m_CanvasEventsCanvas, 0, 8);
 
@@ -246,10 +245,10 @@ void Context::createDebugCanvas()
     Canvas2DContext *context
         = static_cast<Canvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
-    m_DebugHandler = new CanvasHandler(context->getSurface()->getWidth(),
+    m_DebugHandler = new CanvasHandler(context->getSkiaContext()->getWidth(),
                                        DEBUG_HEIGHT, this);
     Canvas2DContext *ctx2d
-        = new Canvas2DContext(m_DebugHandler, context->getSurface()->getWidth(),
+        = new Canvas2DContext(m_DebugHandler, context->getSkiaContext()->getWidth(),
                               DEBUG_HEIGHT, NULL, false);
     m_DebugHandler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
@@ -258,6 +257,7 @@ void Context::createDebugCanvas()
 
     m_DebugHandler->setRight(0);
     m_DebugHandler->setOpacity(0.6);
+    ctx2d->getSkiaContext()->setFontType("monospace");
 }
 
 #if DEBUG
@@ -266,10 +266,10 @@ void Context::createDebug2Canvas()
     Canvas2DContext *context
         = static_cast<Canvas2DContext *>(m_RootHandler->getContext());
     static const int DEBUG_HEIGHT = 60;
-    m_Debug2Handler = new CanvasHandler(context->getSurface()->getWidth(),
+    m_Debug2Handler = new CanvasHandler(context->getSkiaContext()->getWidth(),
                                         DEBUG_HEIGHT, this);
     Canvas2DContext *ctx2d = new Canvas2DContext(
-        m_Debug2Handler, context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL,
+        m_Debug2Handler, context->getSkiaContext()->getWidth(), DEBUG_HEIGHT, NULL,
         false);
     m_Debug2Handler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
@@ -287,16 +287,14 @@ void Context::postDraw()
 
         SkiaContext *s
             = (static_cast<Canvas2DContext *>(m_DebugHandler->getContext())
-                   ->getSurface());
+                   ->getSkiaContext());
         m_DebugHandler->bringToFront();
 
         s->setFillColor(0xFF000000u);
         s->drawRect(0, 0, m_DebugHandler->getWidth(),
                     m_DebugHandler->getHeight(), 0);
         s->setFillColor(0xFFEEEEEEu);
-
-        // TODO: new style cast
-        s->setFontType((char *)("monospace"));
+        
         s->drawTextf(5, 12, "Nidium build %s %s", __DATE__, __TIME__);
         s->drawTextf(5, 25, "Frame: %lld (%lldms)", m_Stats.nframe,
                      m_Stats.lastdifftime / 1000000LL);
@@ -334,7 +332,7 @@ void Context::postDraw()
         m_Debug2Handler->getContext()->clear();
         SkiaContext *rootctx
             = (static_cast<Canvas2DContext *>(m_Debug2Handler->getContext())
-                   ->getSurface());
+                   ->getSkiaContext());
         rootctx->save();
 
         rootctx->setFillColor("black");
@@ -452,12 +450,11 @@ void Context::frame(bool draw)
     }
 
     this->triggerEvents();
-    this->clearInputEvents();
+    m_InputHandler.clear();
 
     m_UI->makeMainGLCurrent();
     /* Skia context is dirty after a call to layerize */
-    (static_cast<Canvas2DContext *>(m_RootHandler->getContext()))
-        ->resetSkiaContext();
+    (static_cast<Canvas2DContext *>(m_RootHandler->getContext()))->getSkiaContext()->resetGrBackendContext();
 }
 
 void NidiumContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
@@ -479,7 +476,7 @@ void Context::triggerEvents()
 {
     void *val;
 
-    APE_P_FOREACH_REVERSE((&m_CanvasEventsCanvas), val)
+    APE_P_FOREACH((&m_CanvasEventsCanvas), val)
     {
         /* process through the cleaner callback avoiding a complete iteration */
         ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
@@ -877,31 +874,6 @@ JSObject *Context::ReadStructuredCloneOp(JSContext *cx,
     return JS_NewPlainObject(cx);
 }
 
-void Context::addInputEvent(InputEvent *ev)
-{
-    if (m_InputEvents.head == NULL) {
-        m_InputEvents.head = ev;
-    }
-
-    if (m_InputEvents.queue) {
-        m_InputEvents.queue->m_Next = ev;
-    }
-
-    m_InputEvents.queue = ev;
-}
-
-void Context::forceLinking()
-{
-#ifdef __linux__
-    CreateJPEGImageDecoder();
-    CreatePNGImageDecoder();
-    // CreateGIFImageDecoder();
-    CreateBMPImageDecoder();
-    CreateICOImageDecoder();
-    CreateWBMPImageDecoder();
-#endif
-}
-
 Context::~Context()
 {
     if (m_DebugHandler != NULL) {
@@ -927,10 +899,10 @@ Context::~Context()
 
     delete m_GLState;
 
-    SkiaContext::m_GlContext = NULL;
+    SkiaContext::m_GlSurface = nullptr;
 
     ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
-    this->clearInputEvents();
+    m_InputHandler.clear();
 
     ShFinalize();
 }

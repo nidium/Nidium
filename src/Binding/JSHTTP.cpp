@@ -510,7 +510,7 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
             Image *nimg;
             eventBuilder.set("type", "image");
 
-            nimg = new Image(h->m_Data->data, h->m_Data->used);
+            nimg = Image::CreateFromEncoded(h->m_Data->data, h->m_Data->used);
             JS::RootedObject imgObj(m_Cx, JSImage::BuildImageObject(m_Cx, nimg));
             jsdata.setObjectOrNull(imgObj);
 

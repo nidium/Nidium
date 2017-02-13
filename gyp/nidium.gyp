@@ -44,30 +44,17 @@
                 ],
                 'link_settings': {
                     'libraries': [
-                        '-Wl,--start-group',
-                        '-lskia_images',
-                        '-lskia_sfnt',
-                        '-lskia_skgpu',
-                        '-lskia_utils',
-                        '-lskia_ports',
-                        '-lskia_core',
-                        '-lskia_effects',
-                        '-lskia_opts',
-                        '-lskia_opts_ssse3',
-                        '-Wl,--end-group',
-
+                        '-lskia',
                         '-ltranslator',
                         '-ltranslator_lib',
                         '-lpreprocessor',
                         '-langle_common',
                         '-lSDL2',
                         '-lGL',
-                        '-lpng',
                         '-lfreetype',
                         '-lrt',
                         '-ldl',
                         '-lzip',
-                        '-ljpeg',
                     ],
                 },
                 'include_dirs': [
@@ -113,20 +100,16 @@
                         '$(SDKROOT)/System/Library/Frameworks/IOKit.framework',
                         '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
                         '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
+                        # On OSX if libjs_static.a is linked after libskia.a there is
+                        # an issue with duplicate symbols (seems like gyp does not respect
+                        # the link order)
+                        'libjs_static.a',
+                        'libskia.a',
                         'libtranslator.a',
                         'libtranslator_lib.a',
                         'libpreprocessor.a',
                         'libangle_common.a',
                         'libSDL2.a',
-                        'libskia_sfnt.a',
-                        'libskia_opts_ssse3.a',
-                        'libskia_opts.a',
-                        'libskia_utils.a',
-                        'libskia_ports.a',
-                        'libskia_core.a',
-                        'libskia_effects.a',
-                        'libskia_images.a',
-                        'libskia_skgpu.a',
                         'libzip.a',
                         '/usr/lib/libbz2.dylib',
                         '/usr/lib/libz.dylib',
@@ -181,4 +164,3 @@
         ],
     }]
 }
-
