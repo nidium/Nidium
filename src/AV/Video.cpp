@@ -17,6 +17,7 @@
 
 extern "C" {
 #include <libavformat/avformat.h>
+#include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
 }
 
@@ -911,9 +912,9 @@ int Video::setSizeInternal()
     }
 
     // Update the size of the frames in the frame pool
-    int frameSize
-        = avpicture_fill(reinterpret_cast<AVPicture *>(m_ConvertedFrame), NULL,
-                         AV_PIX_FMT_RGBA, width, height);
+    AVPicture *picture = reinterpret_cast<AVPicture *>(m_ConvertedFrame);
+    int frameSize = av_image_fill_arrays(picture->data, picture->linesize,
+                    NULL, AV_PIX_FMT_RGBA, width, height, 1);
     for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
         free(m_Frames[i]);
         m_Frames[i] = static_cast<uint8_t *>(malloc(frameSize));
