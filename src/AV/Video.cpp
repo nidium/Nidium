@@ -902,7 +902,7 @@ int Video::setSizeInternal()
     }
 
     m_SwsCtx = sws_getContext(m_CodecCtx->width, m_CodecCtx->height,
-                              m_CodecCtx->pix_fmt, width, height, PIX_FMT_RGBA,
+                              m_CodecCtx->pix_fmt, width, height, AV_PIX_FMT_RGBA,
                               SWS_BICUBIC, NULL, NULL, NULL);
 
     if (!m_SwsCtx) {
@@ -913,7 +913,7 @@ int Video::setSizeInternal()
     // Update the size of the frames in the frame pool
     int frameSize
         = avpicture_fill(reinterpret_cast<AVPicture *>(m_ConvertedFrame), NULL,
-                         PIX_FMT_RGBA, width, height);
+                         AV_PIX_FMT_RGBA, width, height);
     for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
         free(m_Frames[i]);
         m_Frames[i] = static_cast<uint8_t *>(malloc(frameSize));
