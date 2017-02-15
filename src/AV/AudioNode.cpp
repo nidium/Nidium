@@ -1095,7 +1095,7 @@ bool AudioSource::bufferInternal()
         int ret = av_read_frame(m_Container, m_TmpPacket);
         if (m_TmpPacket->stream_index == m_AudioStream) {
             if (ret < 0) {
-                av_free_packet(m_TmpPacket);
+                av_packet_unref(m_TmpPacket);
                 if (this->readError(ret) < 0) {
                     return false;
                 }
@@ -1105,7 +1105,7 @@ bool AudioSource::bufferInternal()
 
             return ret >= 0;
         } else {
-            av_free_packet(m_TmpPacket);
+            av_packet_unref(m_TmpPacket);
         }
     }
 
@@ -1252,7 +1252,7 @@ bool AudioSource::decode()
             m_TmpPacket->size -= len;
         } else {
             m_PacketConsumed = true;
-            av_free_packet(m_TmpPacket);
+            av_packet_unref(m_TmpPacket);
         }
 
         m_FailedDecoding = 0;
@@ -1501,7 +1501,7 @@ void AudioSource::seekInternal(double time)
     }
 
     if (!m_PacketConsumed) {
-        av_free_packet(m_TmpPacket);
+        av_packet_unref(m_TmpPacket);
     }
 
     if (m_ExternallyManaged) {
@@ -1631,7 +1631,7 @@ void AudioSource::closeInternal(bool reset)
     }
 
     if (!m_PacketConsumed) {
-        av_free_packet(m_TmpPacket);
+        av_packet_unref(m_TmpPacket);
     }
     if (!reset && !m_ExternallyManaged) {
         delete m_TmpPacket;

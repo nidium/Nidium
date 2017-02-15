@@ -507,7 +507,7 @@ void Video::seekInternal(double time)
                       * p->curr.pts;
                 DPRINT("[SEEK] Dropping audio packet @ %f\n", tmp);
 
-                av_free_packet(&p->curr);
+                av_packet_unref(&p->curr);
                 delete p;
 
                 if (tmp >= time) {
@@ -551,7 +551,7 @@ void Video::seekInternal(double time)
             while (count < SEEK_BUFFER_PACKET) {
                 int err = av_read_frame(m_Container, &packet);
                 if (err < 0) {
-                    av_free_packet(&packet);
+                    av_packet_unref(&packet);
                     err = this->readError(err);
                     if (err == AVERROR_EOF && m_VideoQueue->count > 0) {
                         break;
@@ -572,7 +572,7 @@ void Video::seekInternal(double time)
                         break;
                     }
                 } else {
-                    av_free_packet(&packet);
+                    av_packet_unref(&packet);
                 }
             }
             p = this->getPacket(m_VideoQueue);
@@ -640,7 +640,7 @@ void Video::seekInternal(double time)
             }
         }
 
-        av_free_packet(&packet);
+        av_packet_unref(&packet);
         if (p != NULL) {
             delete p;
             p = NULL;
@@ -1038,13 +1038,13 @@ void Video::bufferInternal()
 
         // If a seek is asked while buffering. Return.
         if (m_DoSemek) {
-            av_free_packet(&packet);
+            av_packet_unref(&packet);
             break;
         }
 
         // Got a read error. Return.
         if (ret < 0) {
-            av_free_packet(&packet);
+            av_packet_unref(&packet);
             if (this->readError(ret) != 0) {
                 return;
             }
@@ -1060,7 +1060,7 @@ void Video::bufferInternal()
             this->addPacket(m_AudioQueue, &packet);
             needAudio--;
         } else {
-            av_free_packet(&packet);
+            av_packet_unref(&packet);
         }
 
         if ((needVideo <= 0 && needAudio <= 0) || m_Error != 0) {
@@ -1246,7 +1246,7 @@ bool Video::processVideo()
     }
 
     delete p;
-    av_free_packet(&packet);
+    av_packet_unref(&packet);
 
     return true;
 }
@@ -1428,7 +1428,7 @@ void Video::clearAudioQueue()
         if (this->audioSource != NULL) {
             this->audioSource->packetConsumed = true;
         }
-        av_free_packet(&this->freePacket->curr);
+        av_packet_unref(&this->freePacket->curr);
         delete this->freePacket;
         this->freePacket = NULL;
     }
@@ -1438,7 +1438,7 @@ void Video::clearAudioQueue()
     Packet *next;
     while (pkt != NULL) {
         next = pkt->next;
-        av_free_packet(&pkt->curr);
+        av_packet_unref(&pkt->curr);
         delete pkt;
         pkt = next;
     }
@@ -1453,7 +1453,7 @@ void Video::clearVideoQueue()
     Packet *next;
     while (pkt != NULL) {
         next = pkt->next;
-        av_free_packet(&pkt->curr);
+        av_packet_unref(&pkt->curr);
         delete pkt;
         pkt = next;
     }
@@ -1604,7 +1604,7 @@ bool VideoAudioSource::buffer()
         if (m_FreePacket != NULL) {
             delete m_FreePacket;
             m_FreePacket = NULL;
-            // Note : av_free_packet is called by the audioSource
+            // Note : av_packet_unref is called by the audioSource
         }
 
         Video::Packet *p = m_Video->getPacket(m_Video->m_AudioQueue);
