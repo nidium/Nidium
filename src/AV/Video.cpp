@@ -1368,10 +1368,10 @@ int Video::addTimer(int delay)
 
 bool Video::addPacket(PacketQueue *queue, AVPacket *packet)
 {
-    av_dup_packet(packet);
+    AVPacket *dup = av_packet_clone(packet);
 
     Packet *pkt = new Packet();
-    pkt->curr   = *packet;
+    pkt->curr   = *dup;
 
     if (!queue->tail) {
         queue->head = pkt;
