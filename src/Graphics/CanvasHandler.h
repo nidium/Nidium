@@ -17,6 +17,11 @@
 #include "Graphics/Geometry.h"
 
 
+#ifndef NAN                                                                     
+static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};                 
+#define NAN (*(const float *) __nan)                                            
+#endif                                                                          
+
 /*
     - Handle a canvas layer.
     - Agnostic to any renderer.
@@ -115,12 +120,14 @@ public:
     class CanvasProperty
     {
     public:
-        enum State {
-            kDefault_State,
-            kSet_State,
-            kInherit_State,
-            kUndefined_State
+        enum class State {
+            kDefault,
+            kSet,
+            kInherit,
+            kUndefined
         };
+
+        static constexpr float kUndefined_Value  = NAN;
 
         CanvasProperty(const char *name, T val, State state, CanvasHandler *h) :
             m_Name(name), m_Canvas(h), m_Value(val) {
@@ -131,7 +138,7 @@ public:
             };
 
         inline T get() const {
-            if (m_State == kInherit_State) {
+            if (m_State == State::kInherit) {
                 if (m_Canvas->m_Parent) {
                     CanvasProperty<T> *ref =
                         static_cast<CanvasProperty<T> *>
@@ -155,7 +162,7 @@ public:
         /* Change the user value */
         inline void userSet(T val) {
             m_UserValue = val;
-            m_State = kSet_State;
+            m_State = State::kSet;
         }
 
         inline CanvasProperty<T> operator=(const T& val) {
@@ -166,11 +173,11 @@ public:
         }
 
         void setInherit() {
-            m_State = kInherit_State;
+            m_State = State::kInherit;
         }
 
         void reset() {
-            m_State = kDefault_State;
+            m_State = State::kDefault;
         }
 
     private:
@@ -185,7 +192,7 @@ public:
         /* Value set by the user */
         T m_UserValue;
         
-        State m_State = State::kDefault_State;
+        State m_State = State::kDefault;
 
         /* Position of the property in the Canvas properyList
          * This is used in order to lookup for parent same property */
@@ -254,16 +261,16 @@ public:
     };
 
 
-    CANVAS_DEF_CLASS_PROPERTY(top, double, 0, kDefault_State);
-    CANVAS_DEF_CLASS_PROPERTY(left, double, 0, kDefault_State);
-    CANVAS_DEF_CLASS_PROPERTY(width, int, 1, kDefault_State);
-    CANVAS_DEF_CLASS_PROPERTY(height, int, 1, kDefault_State);
-    CANVAS_DEF_CLASS_PROPERTY(minWidth, int, 1, kDefault_State);
-    CANVAS_DEF_CLASS_PROPERTY(minHeight, int, 1, kDefault_State);
-    CANVAS_DEF_CLASS_PROPERTY(maxWidth, int, 0, kDefault_State);
-    CANVAS_DEF_CLASS_PROPERTY(maxHeight, int, 0, kDefault_State);
-    CANVAS_DEF_CLASS_PROPERTY(fluidWidth, bool, false, kDefault_State);
-    CANVAS_DEF_CLASS_PROPERTY(fluidHeight, bool, false, kDefault_State);
+    CANVAS_DEF_CLASS_PROPERTY(top, double, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(left, double, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(width, int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(height, int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(minWidth, int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(minHeight, int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(maxWidth, int, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(maxHeight, int, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(fluidWidth, bool, false, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(fluidHeight, bool, false, State::kDefault);
 
     CanvasContext *m_Context;
     JS::TenuredHeap<JSObject *> m_JsObj;
