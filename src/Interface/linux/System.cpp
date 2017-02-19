@@ -183,7 +183,6 @@ void System::initSystemUI()
     }
 }
 
-
 const char *System::cwd()
 {
     static char dir[MAXPATHLEN];
@@ -192,14 +191,10 @@ const char *System::cwd()
 
     return dir;
 }
+
 const char *System::getLanguage()
 {
-
-    const char *lang;
-
-    lang = setlocale(LC_IDENTIFICATION, NULL);
-
-    return lang;
+    return setlocale(LC_IDENTIFICATION, NULL);
 }
 
 void System::sendNotification(const char *title,
@@ -216,6 +211,7 @@ void System::sendNotification(const char *title,
 
 const char *System::execute(const char *cmd)
 {
+    // caller must free the allocated string when done.
     std::string *result = new std::string();
     result.reserve(128);
 
