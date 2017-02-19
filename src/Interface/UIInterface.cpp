@@ -47,16 +47,24 @@ UIInterface::UIInterface()
 
 void UIInterface::setGLContextAttribute()
 {
+    int major;
+    int minor;
+
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE); 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    if (SDL_GL_GetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, &major) == 0 &&
+        SDL_GL_GetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, &minor) == 0 ) {
+    } else {
+        major = 3;
+        minor = 1;
+    }
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
 }
 
 bool UIInterface::createWindow(int width, int height)
@@ -489,7 +497,7 @@ uint8_t *UIInterface::readScreenPixel()
     /* Flip Y pixels (row by row) */
     for (uint32_t i = 0; i < height; i++) {
         memcpy(m_FrameBuffer + i * width * 4,
-                &ret[(height - i - 1) * width * 4], 
+                &ret[(height - i - 1) * width * 4],
                 width * 4);
     }
 
