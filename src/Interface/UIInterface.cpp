@@ -47,16 +47,35 @@ UIInterface::UIInterface()
 
 void UIInterface::setGLContextAttribute()
 {
+    struct gl_version {
+        int major;
+        int minor;
+    };
+    struct gl_version approved_versions[] = {
+        {4, 5 }, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0},
+        {3, 2}, {3, 1}, /*{3, 0},*/
+        {2, 1}, {2, 0},
+        {1, 5}, {1, 4}, {1, 3}, {1, 2}, {1, 1},
+        {-1, -1}
+    };
+    struct gl_version * ver;
+
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE); 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    ver = &approved_versions[0];
+    while (ver->major != -1 ) {
+        if ( SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, ver->major) == 0 &&
+             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, ver->minor) == 0) {
+            break;
+        }
+    }
+    //printf("Set GL to %d.%d\n", ver->major, ver->minor);
 }
 
 bool UIInterface::createWindow(int width, int height)
@@ -489,7 +508,7 @@ uint8_t *UIInterface::readScreenPixel()
     /* Flip Y pixels (row by row) */
     for (uint32_t i = 0; i < height; i++) {
         memcpy(m_FrameBuffer + i * width * 4,
-                &ret[(height - i - 1) * width * 4], 
+                &ret[(height - i - 1) * width * 4],
                 width * 4);
     }
 
