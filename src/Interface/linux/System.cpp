@@ -216,25 +216,26 @@ void System::sendNotification(const char *title,
 
 const char *System::execute(const char *cmd)
 {
-    std::string* result = new std::string();
-    output.reserve(OUT_BUF_SIZE);
+    std::string *result = new std::string();
+    result.reserve(128);
 
     struct pipeDeleter {
-        void operator()(FILE* ptr) const noexcept{
+        void operator()(FILE *ptr) const noexcept {
             pclose(ptr);
         }
     };
 
     std::unique_ptr<FILE, pipeDeleter> pipe(popen(cmd, "r"));
 
-    if(pipe) {
+    if (pipe) {
         while (!feof(pipe.get())) {
-            if(fgets(const_cast<char*>(output.data()), output.capacity(), pipe.get()) != nullptr)
-                output += output.data();
+            if (fgets(const_cast<char*>(result.data()), result.capacity(), pipe.get()) != nullptr) {
+                result += result.data();
+            }
         }
     }
 
-    return output.c_str();
+    return result.c_str();
 }
 // }}}
 
