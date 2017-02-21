@@ -9,6 +9,8 @@
 
 
 #include "SystemInterface.h"
+#include <Windows.h>
+#include <Shlobj.h>
 
 namespace Nidium{
 namespace Interface{
