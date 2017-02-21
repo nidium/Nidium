@@ -98,7 +98,7 @@ class ComponentLoader {
             "layout": this.layout,
         }
 
-        this.callback(null);
+        if (this.callback) this.callback(null);
     }
 }
 
