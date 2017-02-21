@@ -4,9 +4,10 @@
    that can be found in the LICENSE file.
 */
 
+{
 const Elements = require("./lib/Elements.js");
 
-function reportUnsupported(message) {
+let reportUnsupported = function(message) {
     console.info("[HTML5Compat] " + message);
 }
 
@@ -154,7 +155,7 @@ document.body = document.canvas;
 // }}}
 
 // {{{ XMLHTTPRequest
-let XMLHttpRequest = function() {
+var XMLHttpRequest = function() {
     this.mimeType = "text/plain";
     this.ev = {};
     this.status = -1;
@@ -215,7 +216,7 @@ XMLHttpRequest.prototype = {
 // }}}
 
 // {{{ Blob
-let URL = {
+var URL = {
     _map: new Map(),
     createObjectURL: function(blob) {
         URL._map.set(blob, true);
@@ -226,3 +227,4 @@ let URL = {
     }
 }
 // }}}
+}
