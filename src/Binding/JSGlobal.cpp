@@ -401,6 +401,7 @@ JSFunctionSpec *JSGlobal::ListMethods()
         CLASSMAPPER_FN(JSGlobal, setInterval, 1),
         CLASSMAPPER_FN(JSGlobal, clearTimeout, 1),
         CLASSMAPPER_FN_ALIAS(JSGlobal, clearInterval, 1, clearTimeout),
+        CLASSMAPPER_FN_ALIAS(JSGlobal, clearImmediate, 1, clearTimeout),
         CLASSMAPPER_FN(JSGlobal, btoa, 1),
         JS_FS_END
     };
