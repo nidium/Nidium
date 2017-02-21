@@ -50,18 +50,16 @@ class ElementStyles {
         });
 
         el.addEventListener("load", () => {
-            if (!(el instanceof Component)) {
-                var classes = el.attributes.class
-                if (classes) {
-                    var nss = this.el.component.nss;
-                    var tmp = [];
-                    for (let c of classes.split(" ")) {
-                        tmp.push(nss[c]);
-                    }
-                    tmp.unshift(this);
-                    tmp.push(this);
-                    Object.assign.apply(null, tmp);
+            var classes = el.attributes.class
+            if (classes) {
+                var nss = this.el.component.nss;
+                var tmp = [];
+                for (let c of classes.split(" ")) {
+                    tmp.push(nss[c]);
                 }
+                tmp.unshift(this);
+                tmp.push(this);
+                Object.assign.apply(null, tmp);
             }
 
             refreshStyles(el, this);
@@ -79,6 +77,7 @@ class ElementStyles {
     }
 
     paint(ctx) {
+        console.log(this.background, this.el.width, this.el.height);
         if (this.background) {
             ctx.fillStyle = this.background;
             ctx.fillRect(0, 0, this.el.width, this.el.height);
