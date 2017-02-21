@@ -314,6 +314,8 @@ Elements.textnode = class extends Elements.Element {
     }
 }
 
+Elements.element = class extends Elements.Element { }
+
 Elements.canvas = class extends Elements.Element {
     name() {
         return "canvas";
