@@ -187,16 +187,33 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
     return true;
 }
 
+static int findLine(const char *str, const char *originalStr, const char *chr)
+{
+    int line = 1;
+    int i = 0;
+    int pos = chr - str;
+    while(originalStr[i] && i < pos) {
+        if (originalStr[i] == '\n') line++;
+        i++;
+    }
+
+    return line;
+}
 
 JSObject *NML::BuildLST(JSContext *cx, char *str)
 {
     using namespace rapidxml;
+    char *originalStr = strdup(str);
+
+    Core::PtrAutoDelete<char *> _str(originalStr, free);
 
     rapidxml::xml_document<> doc;
 
     try {
         doc.parse<0>(str);
     } catch (rapidxml::parse_error &err) {
+        int line = findLine(str, originalStr, err.where<char>());
+        printf("NML parse error at line %d %s\n", line, err.what());
         return NULL;
     }
 
@@ -235,6 +252,7 @@ JSObject *NML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
                 JS::RootedString typeStr(
                     cx, NODE_STR(child->name(), child->name_size()));
                 NODE_PROP(obj, "type", typeStr);
+
                 JS::RootedObject obj_attr(
                     cx, JS_NewPlainObject(cx));
                 NODE_PROP(obj, "attributes", obj_attr);
@@ -244,8 +262,17 @@ JSObject *NML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
                         cx, NODE_STR(attr->value(), attr->value_size()));
                     NODE_PROP(obj_attr, attr->name(), str);
                 }
-                JS::RootedObject obj_children(cx, BuildLSTFromNode(cx, *child));
-                NODE_PROP(obj, "children", obj_children);
+
+                if (!strncasecmp(child->name(), CONST_STR_LEN("script"))
+                        || !strncasecmp(child->name(), CONST_STR_LEN("template"))
+                        || !strncasecmp(child->name(), CONST_STR_LEN("nss"))) {
+                    JS::RootedString scriptData(
+                        cx, NODE_STR(child->value(), child->value_size()));
+                    NODE_PROP(obj, "text", scriptData);
+                } else {
+                    JS::RootedObject obj_children(cx, BuildLSTFromNode(cx, *child));
+                    NODE_PROP(obj, "children", obj_children);
+                }
             } break;
             default:
                 skip = true;
