@@ -9,6 +9,8 @@ const ResourceType = {
     NSS: 2
 };
 
+class DefaultComponent extends Component {}
+
 class ComponentLoader {
     constructor(nml, callback) {
         this.nml = nml;
@@ -84,6 +86,7 @@ class ComponentLoader {
         if (typeof(componentClass) == "undefined") {
             console.info(`Component "${name}" not found. Using default component.`);
             componentClass = DefaultComponent;
+            Component[name] = componentClass;
         }
 
         Elements[name.toLowerCase()] = componentClass;

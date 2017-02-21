@@ -92,6 +92,4 @@ class Component extends Elements.Element {
     }
 }
 
-class DefaultComponent extends Component {}
-
 module.exports = Component;
