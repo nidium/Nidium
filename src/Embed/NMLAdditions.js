@@ -15,6 +15,7 @@
 
         for (let elem of elems) {
             let name = elem.type;
+            let ui;
             if (Elements.Exists(name)) {
                 if (Elements.Element.prototype.isPrototypeOf(Elements[name.toLowerCase()].prototype)) {
                     /* ES6 destructuring object default value doesnt work
@@ -35,9 +36,12 @@
                     }
                 } else {
                     let tmp = new Elements[name](elem, parent);
-                    if (tmp.autonomous()) {
-                        return;
+                    if (tmp.isAutonomous()) {
+                        // Element handle the creation of it's children
+                        continue;
                     }
+
+                    ui = tmp;
                 }
             } else {
                 throw new Error(`Unknown element <${name}>`);
