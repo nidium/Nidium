@@ -18,8 +18,8 @@ namespace Interface{
 class System: public SystemInterface
 {
 public:
-    System();
-    ~System();
+    System() = default;
+    ~System() = default;
     const char* getCacheDirectory();
     const char* getEmbedDirectory();
     const char* getUserDirectory();

@@ -1,10 +1,9 @@
 #include "System.h"
 
-System::System(){
-
-}
+System::System(){}
 
 const char* System::getUserDirectory() {
+	// caller must free memory after receiving result
 	TCHAR *path = new TCHAR[128];
 	SHGetSpecialFolderPath(NULL, 
 				           path,
