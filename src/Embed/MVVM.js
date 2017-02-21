@@ -64,9 +64,9 @@ class MVVM {
 }
 
 /*
-    Process the attributes list when a node is mounted (inserted in the tree)
+    Process the attributes list when a node is attached (inserted in the tree)
 */
-Canvas.prototype.onmount = function()
+Canvas.prototype.onattach = function()
 {
     this._initAttributes();
 }

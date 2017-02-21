@@ -4,6 +4,8 @@
    that can be found in the LICENSE file.
 */
 
+const ElementStyles = require("./ElementStyles.js");
+
 const Elements = {
 
     Create(tag, attributes) {
@@ -18,12 +20,53 @@ const Elements = {
     },
 
     Exists(tag) {
-        return (tag in Elements);
+        return (tag.toLowerCase() in Elements);
     }
 
 };
 
-class NidiumNode extends Canvas {
+/*
+    Generic resource loader : return the content
+    of the src attribute or the text content of the node
+*/
+Elements.Loader = function(node) {
+    let data;
+    let name = node.type;
+    if (node.attributes && node.attributes.src) {
+        let src = node.attributes.src;
+        try {
+            data = File.readSync(src);
+        } catch (e) {
+            console.error(`Failed to load ${src} for <${type}> tag : ${e}`);
+            return "";
+        }
+
+        if (!data) {
+            console.warn(`No data for ${src}`);
+            return "";
+        }
+    } else {
+        data = node.text;
+    }
+
+    return data;
+}
+
+Elements.Node = class Node extends Canvas{
+    constructor(node) {
+        super(1, 1);
+    }
+
+    /*
+        Return true if the node is taking
+        care of constructing it's children
+     */
+    isAutonomous() {
+        return false;
+    }
+}
+
+Elements.Element = class extends Canvas {
     constructor(attributes = {}) {
         super(attributes.width || 10, attributes.height || 10);
 
@@ -37,9 +80,14 @@ class NidiumNode extends Canvas {
             this.opacity = attributes.opacity;
         }
 
+        this.style = new ElementStyles(this);
+
         //this.onload = this.onpaint;
         this.onresize = this.onpaint;
         this._textValue = "";
+        this.addEventListener("load", () => {
+            this.fireEvent("attach", {});
+        });
     }
 
     getNMLContent(self = true) {
@@ -193,10 +241,12 @@ class NidiumNode extends Canvas {
         return this.getContext("2d");
     }
 
-    paint(ctx) {}
+    paint(ctx) {
+        this.style.paint(ctx);
+    }
 }
 
-Elements.textnode = class extends NidiumNode {
+Elements.textnode = class extends Elements.Element {
 
     constructor(textValue) {
         super(1, 1);
@@ -241,7 +291,7 @@ Elements.textnode = class extends NidiumNode {
         throw Error("textNode doesn't support this operation");
     }
 
-    onmount() {
+    onattach() {
         this.setParentText();
     }
 
@@ -264,7 +314,7 @@ Elements.textnode = class extends NidiumNode {
     }
 }
 
-Elements.canvas = class extends NidiumNode {
+Elements.canvas = class extends Elements.Element {
     name() {
         return "canvas";
     }
@@ -275,7 +325,7 @@ Elements.canvas = class extends NidiumNode {
     onpaint() {}
 }
 
-Elements.uibutton = class extends NidiumNode {
+Elements.uibutton = class extends Elements.Element {
     constructor(attributes) {
         super(attributes);
 
@@ -319,7 +369,7 @@ Elements.uibutton = class extends NidiumNode {
     }
 }
 
-Elements.section = class extends NidiumNode {
+Elements.section = class extends Elements.Element {
     constructor(attributes) {
         super(attributes);
 
@@ -346,9 +396,9 @@ Elements.section = class extends NidiumNode {
     }
 }
 
-Elements.none = NidiumNode;
+Elements.none = Elements.Element;
 
-Elements.div = class extends Elements.section {
+Elements.div = class extends Elements.Element {
     constructor(attributes) {
         super(attributes);
         this.position = "inline";
@@ -356,16 +406,30 @@ Elements.div = class extends Elements.section {
         this.right = 0;
     }
 
+    ontextchanged(newtext) {
+        var ctx = this.ctx2d();
+
+        var data = ctx.measureText(newtext);
+
+        this.width = data.width;
+    }
+
+    paint(ctx) {
+        super.paint(ctx)
+        ctx.fillStyle = "#000";
+        ctx.fillText(this._textValue, 0, this.height/2+4);
+    }
+
     name() {
         return "div";
     }
 
-    onmount() {
+    onattach() {
         this.width = this.getParent().width;
     }
 }
 
-Elements.img = class extends NidiumNode {
+Elements.img = class extends Elements.Element {
     constructor(attributes) {
         super(attributes);
         this.src = attributes.src;
@@ -401,8 +465,6 @@ Elements.img = class extends NidiumNode {
 
 }
 
-window._onready = function(lst) {
-    
-}
+window._onready = function(lst) {}
 
 module.exports = Elements;
