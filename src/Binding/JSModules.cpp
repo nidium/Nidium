@@ -648,10 +648,10 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
 
         DPRINT("    [JSModule] Looking for %s\n", tmp.c_str());
 
-        Path p(tmp.c_str());
+        Path p(tmp.c_str(), true /* allowAll */);
         PtrAutoDelete<Stream *> stream(Stream::Create(p.path()));
 
-        if (!stream.ptr()->exists()) {
+        if (!stream.ptr() || !stream.ptr()->exists()) {
             continue;
         }
 
