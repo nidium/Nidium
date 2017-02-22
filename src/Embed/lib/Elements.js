@@ -26,12 +26,13 @@ const Elements = {
 };
 
 /*
-    Generic resource loader : return the content
-    of the src attribute or the text content of the node
+    Generic resource loader : return the text content
+    of the file pointed by src attribute, or the text content of the node
 */
 Elements.Loader = function(node) {
     let data;
     let name = node.type;
+
     if (node.attributes && node.attributes.src) {
         let src = node.attributes.src;
         try {
@@ -52,7 +53,7 @@ Elements.Loader = function(node) {
     return data;
 }
 
-Elements.Node = class Node extends Canvas{
+Elements.Node = class Node extends Canvas {
     constructor(node) {
         super(1, 1);
     }
@@ -85,6 +86,7 @@ Elements.Element = class extends Canvas {
         //this.onload = this.onpaint;
         this.onresize = this.onpaint;
         this._textValue = "";
+        
         this.addEventListener("load", () => {
             this.fireEvent("attach", {});
         });
@@ -108,7 +110,7 @@ Elements.Element = class extends Canvas {
             attributestr += ` ${prop}="${this.attributes[prop]}"`;
         }
 
-        return `<${tag}${attributestr}>${childContent}</${tag}>`
+        return `<${tag}${attributestr}>${childContent}</${tag}>`;
     }
 
     allowsChild() {
@@ -224,6 +226,7 @@ Elements.Element = class extends Canvas {
             case 'height':
                 this.height = parseInt(value);
                 break;
+            
             default:
                 this[attr] = value;
                 break;

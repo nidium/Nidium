@@ -10,6 +10,7 @@ function __nidiumPreload(options, lst) {
     }
     load("embed://CanvasAdditions.js");
     load("embed://NMLAdditions.js");
+    load("embed://NMLComponents.js");
     load("embed://AnimationBlock.js");
     load("embed://HTTPAdditions.js");
 
@@ -17,26 +18,26 @@ function __nidiumPreload(options, lst) {
 }
 
 if (0) {
-var CreateCatchAllProxy = function(base = {}) {
-    return new Proxy(Object.assign(base, {[Symbol.toPrimitive]: () => 'hey'}), {
-        get: (target, property, value, rcv) => {
+    var CreateCatchAllProxy = function(base = {}) {
+        return new Proxy(Object.assign(base, {[Symbol.toPrimitive]: () => 'hey'}), {
+            get: (target, property, value, rcv) => {
 
-            if (!(property in target)) {
-                target[property] = CreateCatchAllProxy({__accessor: target.__accessor ? `${target.__accessor}.${property}` : property});
+                if (!(property in target)) {
+                    target[property] = CreateCatchAllProxy({__accessor: target.__accessor ? `${target.__accessor}.${property}` : property});
+                }
+
+                return target[property];
+            },
+
+            set: (target, property, rcv) => {
+                throw Error("Assignation is forbiden");
             }
+        })
+    }
 
-            return target[property];
-        },
+    var dynamic = CreateCatchAllProxy();
 
-        set: (target, property, rcv) => {
-            throw Error("Assignation is forbiden");
-        }
-    })
-}
-
-var dynamic = CreateCatchAllProxy();
-
-with(dynamic.foo) {
-    console.log("value", dynamic.foo.bar.yo.asd.asd.__accessor);
-}
+    with (dynamic.foo) {
+        console.log("value", dynamic.foo.bar.yo.asd.asd.__accessor);
+    }
 }
