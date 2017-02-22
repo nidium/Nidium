@@ -57,9 +57,15 @@ def leveldb():
 
 @Deps.register("libnspr4")
 def libnspr():
-    configure = "./configure"
+    if Platform.system == "Windows":
+        configure = r"bash configure --enable-win32-target=WIN95 --enable-static-rtl --datarootdir=c:\temp"
+        if Platform.wordSize == 64:
+            configure += " --target=x86_64-pc-mingw"
+    else:
+        configure = "./configure"
     if Platform.wordSize == 64:
         configure += " --enable-64bit"
+    configure += " --disable-debug --enable-optimize --enable-strip"
 
     return {
         "chdir": "mozilla-central/nsprpub/",
@@ -93,9 +99,12 @@ def mozilla():
 
 @Deps.register("http-parser")
 def httpParser():
+    build = ["make package"]
+    if Platform.system == "Windows":
+        build = ["..\gyp\gyp.bat --depth ."] + build
     return {
         "location": Deps.GitRepo("https://github.com/nodejs/http-parser.git", tag="v2.6.2"),
-        "build": ["make package"],
+        "build": build,
         "outputs": ["libhttp_parser.a"]
     }
 

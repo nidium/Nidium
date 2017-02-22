@@ -43,21 +43,33 @@ Deps.set(
 
 if Platform.system == "Linux":
     Deps.set("libnotify")
-
 Platform.setEnviron("MACOSX_DEPLOYMENT_TARGET=10.7")
 
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_FRONTEND")
 Gyp.set("nidium_js_disable_window_global", 0)
 
+
 DEPEDENCY_REPO = Variables.get("depsRepo")
 CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 @Deps.register("portaudio")
 def portaudio():
+    no_backend = ['jack', 'asihpi', 'winapi=wasapi']
+    do_backend = []
+    if Platform.system == "Windows":
+        configure = "bash configure"
+        do_backend.append('winapi')
+        no_backend.remove('winapi')
+    else:
+        configure = "./configure"
+    for backend in no_backend:
+        configure += " --without-%s" % (backend)
+    for backend in do_backend:
+        configure += " --with-%s" % (backend)
     return {
         "location": DEPEDENCY_REPO + "/portaudio.tgz",
-        "build": ["./configure --without-jack --without-asihpi --without-winapi", "make -j1", "make  src/common/pa_ringbuffer.o"],
+        "build":  [configure, "make -j1", "make  src/common/pa_ringbuffer.o"],
         "outputs": ["lib/.libs/libportaudio.a"],
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "portaudio.patch")]
     }
@@ -76,10 +88,13 @@ def zitaresampler():
 def giflib():
     # skdiff is used during unit-tests and it needs libgif.so.4
     Platform.setEnviron("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:%s/giflib/lib/.libs/" % os.getcwd())
-
+    if Platform.system == "Windows":
+        configure = "bash configure"
+    else:
+        configure = "./configure"
     return {
         "location": "http://downloads.sourceforge.net/project/giflib/giflib-4.x/giflib-4.2.3.tar.gz",
-        "build": ["./configure", "make coverity"],
+        "build": [configure, "make coverity"],
         "outputs": ["lib/.libs/libgif.a"]
     }
 
@@ -135,10 +150,14 @@ def skia():
 
 @Deps.register("libzip")
 def libzip():
+    if Platform.system == "Windows":
+        configure = "bash configure"
+    else:
+        configure = "./configure"
     return {
         #"location": DEPEDENCY_REPO + "/libzip-0.10.1.tar.bz2",
         "location": "http://www.nih.at/libzip/libzip-1.1.2.tar.gz",
-        "build": ["./configure --disable-shared --with-zlib=%s/zlib/" % (Deps.getDir()), "make"],
+        "build": [configure + " --disable-shared --with-zlib=%s/zlib/" % (Deps.getDir()), "make"],
         "outputs": ["lib/.libs/libzip.a"]
     }
 
@@ -166,6 +185,8 @@ def angle():
         cxxFlags += " -msse -msse2 -msse3"
 
     if Platform.system == "Darwin":
+        outPath = "out/Release/"
+    elif Platform.system == "Windows":
         outPath = "out/Release/"
     elif Platform.system == "Linux":
         outPath = "out/Release/obj/src/"
@@ -197,10 +218,14 @@ def SDL2():
     # SDL2 Build as framework
     #build: ["xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'"],
     #outputs["SDL2/Xcode/SDL/out/SDL2.framework"])
+    if Platform.system == "Windows":
+        configure = r"bash ..\configure"
+    else:
+        configure = "./configure"
     return {
         "location": "https://www.libsdl.org/release/SDL2-2.0.3.tar.gz",
         "chdir": "build",
-        "build": ["../configure", "make"],
+        "build": [configure, "make"],
         "outputs": ["build/.libs/libSDL2.a"]
     }
 
@@ -243,12 +268,16 @@ def rapidxml():
 
 @Deps.register("ffmpeg")
 def ffmpeg():
+    if Platform.system == "Windows":
+        configure = "bash configure"
+    else:
+        configure = "./configure"
     return {
         "location": Deps.GitRepo("git://git.ffmpeg.org/ffmpeg.git", tag="n2.5.11"),
         "patch": [],
         "build":
         [
-            "./configure \
+            configure + " \
             --disable-vaapi --disable-avdevice --disable-postproc --disable-avfilter --disable-ffserver --disable-lzma --disable-bzlib \
             --enable-decoder=ac3,aac,mp3,vorbis,pcm_s16be_planar,pcm_s16le,pcm_s16le_planar,pcm_s24be,pcm_s24daud,pcm_s24le,pcm_s24le_planar,pcm_s32be,pcm_s32le,pcm_s32le_planar,pcm_s8,pcm_s8_planar,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpeg4,mpeg2video,wmv1,wmv2,wmv3,wmv3_crystalhd,wmv3_vdpau,wmv3image,wmalossless,wmapro,wmav1,wmav2,wmavoice,vc1,vc1_crystalhd,vc1_vdpau,vc1image\
             --enable-parser=vorbis,mpegaudio,mpegvideo,mpeg4video,h264,vp8,aac,vc1\
@@ -355,11 +384,12 @@ Build.add(Gyp("gyp/all.gyp"));
 
 if __name__ == '__main__':
     Log.info("Checking for required software...")
-    if not Utils.findExec("yasm"):
-        if not PackageManger.detect():
-            Utils.exit("Couldn't find a package manager to install \"yasm\" software. Please install it manually and make sure \"yasm\" executable is in your path before building nidium.")
+    if Platform.system != "Windows":
+        if not Utils.findExec("yasm"):
+            if not PackageManger.detect():
+                Utils.exit("Couldn't find a package manager to install \"yasm\" software. Please install it manually and make sure \"yasm\" executable is in your path before building nidium.")
 
-        if not PackageManger.install("yasm", prompt=True):
-            Utils.exit("configure script aborted, couldn't install \"yasm\" dependency. Please install it manually and make sure \"yasm\" executable is in your path.")
+            if not PackageManger.install("yasm", prompt=True):
+                Utils.exit("configure script aborted, couldn't install \"yasm\" dependency. Please install it manually and make sure \"yasm\" executable is in your path.")
 
     Konstruct.start()
