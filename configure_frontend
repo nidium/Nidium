@@ -24,8 +24,6 @@ from konstructor import ROOT
 Gyp = Builder.Gyp
 
 Deps.set(
-    "portaudio",
-    "zita-resampler",
     "depot_tools",
     "angle",
     "giflib",
@@ -37,7 +35,6 @@ Deps.set(
     "libcoroutine",
     "SDL2",
     "rapidxml",
-    "ffmpeg",
     Deps.Konstruct("libnidiumcore", "configure_libnidiumcore")
 )
 
@@ -49,7 +46,14 @@ elif Platform.system == "Darwin":
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_FRONTEND")
 Gyp.set("nidium_js_disable_window_global", 0)
+Gyp.set("nidium_audio", 0)
 
+if Builder.Gyp.get("nidium_audio", True):
+    Deps.set(
+        "portaudio",
+        "zita-resampler",
+        "ffmpeg",
+    )
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
 CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
