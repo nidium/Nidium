@@ -66,7 +66,9 @@ You can download nidium binaries for Linux and OSX from the [download page](http
 
 To build nidium you need at least 5.7GB of disk space. A build from scratch could take 30 to 90 minutes, depending of the speed of your computer.
 
-On a debian based system, a few commands will get you started.
+### Linux and OsX
+
+On a debian based system, a few commands will get you started:
 
 ```
 $ apt-get install libpci-dev python2.7 git make patch clang pkg-config libgtk2.0-dev libgtk-3-dev mesa-common-dev libglu1-mesa-dev libosmesa6-dev yasm libasound2 libasound2-dev libbz2-1.0
@@ -75,6 +77,21 @@ $ git clone --recursive https://github.com/nidium/Nidium.git
 $ export PYTHONPATH=$(pwd)/NidiumTools/src
 $ cd Nidium
 $ ./configure_frontend
+$ ./bin/nidium
+```
+
+### Windows
+
+To get nidium compiled on a windows system, there are many dependencies and tricks needed.
+As we are still in the process of porting nidium to windows our documentation is incomplete at the moment.
+But the rough outline is:
+
+```
+$ git clone https://github.com/nidium/NidiumTools.git
+$ git clone --recursive https://github.com/nidium/Nidium.git
+$ export PYTHONPATH=%cd%/NidiumTools/src
+$ cd Nidium
+$ python configure_frontend
 $ ./bin/nidium
 ```
 
