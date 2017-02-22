@@ -88,7 +88,7 @@ Elements.Element = class extends Canvas {
         this._textValue = "";
         
         this.addEventListener("load", () => {
-            this.fireEvent("attach", {});
+            this.fireEvent("mount", {});
         });
     }
 
@@ -294,7 +294,7 @@ Elements.textnode = class extends Elements.Element {
         throw Error("textNode doesn't support this operation");
     }
 
-    onattach() {
+    onmount() {
         this.setParentText();
     }
 
@@ -429,7 +429,7 @@ Elements.div = class extends Elements.Element {
         return "div";
     }
 
-    onattach() {
+    onmount() {
         this.width = this.getParent().width;
     }
 }
