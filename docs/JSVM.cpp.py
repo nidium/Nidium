@@ -3,45 +3,14 @@
 # that can be found in the LICENSE file.
 
 from dokumentor import *
-#As the Debugger is not residing in the same <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Compartmentshttps://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Compartments">compartment</a> you need to use a DebuggerCompartment to initialize and execute code inside the Debugger""",
 
-NamespaceDoc("VM", """The VM object provides you an interface for running code in sandboxed environement""",
+NamespaceDoc("VM", """The VM object provides you an interface for running code inside SpiderMonkey sandbox""",
     [ SeeDoc( "VM.Compartment" ) ],
     NO_Examples,
     products=["Frontend", "Server"]
 )
 
-NamespaceDoc("VM.Compartement", """A compartement represent a sandboxed environement for running your javascript. No standard JS object are initialized in it. It does not have access to the parent scope.""",
-    NO_Sees,
-    NO_Examples,
-    products=["Frontend", "Server"]
-)
-
-ConstructorDoc("VM.Compartement", "Create a new compartement. The returned object can be used to share variable with the compartement",
-    NO_Sees,
-    [ExampleDoc( """var VM = require("VM");
-
-    var myCompartment = new VM.Compartment();
-    myCompartment.x = "Hello world";
-
-    // Expose console object inside the compartment
-    myCompartement.console = console;
-
-    vm.run("console.log(x); var y = 'Hello from compartment';", {"compartement": myCompartment});
-
-    console.log(myCompartment.y); // Hello from compartment""" )],
-    returns=ReturnDoc( "Return a compartement", "VM.Compartment" ))
-
-VMCommonOptions = [
-    ("scope", "A JavaScript object that will be added to the scope", "Object"),
-    ("filename", "Specifies the filename used in stack traces produced by this script", "string"),
-    ("lineOffset", "Specifies the line number offset that is displayed in stack traces produced by this script", "integer"),
-    ("compartement", "A compartement object representing a sandbox", "VM.Compartement")
-]
-
-FunctionDoc("VM.run", """Compile and run a string of JavaScript.
-
-Important notes : Variables from the current scope <strong>are not</strong> shared""",
+FunctionDoc("VM.run", """Compile and run JavaScript code.""",
     NO_Sees,
     [ExampleDoc( """var VM = require("VM");
 
@@ -70,37 +39,25 @@ VM.run("console.log(`Hello ${name}`)", {"scope": myScope});
 VM.run("var x = 15", {"scope": myScope});
 console.log(myScope.x);""",
 ), ExampleDoc( """var VM = require("VM");
-// You can completely sandbox your code with the compartement option.
-// A compartement in an empty JavaScript environement, it does not
-// have access to the parent scope nor the current global object
+// The sandbox option enable you to provide a custom javascript
+// environement. By default the sandbox is completely empty and
+// you do not have access to any object from the current environement
+var mySandbox = {"console": console, "x": 1};
+VM.run("console.log(x)", {"sandbox": mySandbox});
 
-// Create a compartement, and expose the console object inside it
-var myCompartment = new VM.Compartement({"console": console});
-VM.run("console.log('Hello from compartment')", {"compartment": myCompartment});
-
-// Just like the scope the compartement can be used to capture global variables
-VM.run("var str = 'From compartment'", {"compartment": myCompartment});
-console.log(myCompartement.str);""",
+// Just like the scope the sandbox can be used to variables (including global variables)
+VM.run("hello = 'world'", {"sandbox": mySandbox});
+console.log(mySandbox.hello); // print world""",
 )],
     IS_Static, IS_Public, IS_Fast,
-    [   ParamDoc("script", "The code to execute", "string", NO_Default, IS_Obligated ),
-        ParamDoc("options", "Options", ObjectDoc(VMCommonOptions), NO_Default, IS_Optional)
+    [   ParamDoc("script", "The code to execute", "string|Stream|ArrayBuffer", NO_Default, IS_Obligated ),
+        ParamDoc("options", "Options", ObjectDoc([
+            ("scope", "A JavaScript object that will be added to the scope", "Object"),
+            ("filename", "Specifies the filename used in stack traces produced by this script", "string"),
+            ("lineOffset", "Specifies the line number offset that is displayed in stack traces produced by this script", "integer"),
+            ("sandbox", "An object representing a sandbox.", "Object"),
+            ("debugger", "`true` if you want to initialize a Debugger object inside the sandbox. Default to `false`", "boolean")
+            ]), NO_Default, IS_Optional)
     ],
-    NO_Returns
-)
-
-VMCommonOptions.append(("bind", "Bind the function to the given object", "any"))
-VMCommonOptions.append(("name", "Specifies the function name to used in stack traces produced by this script", "any"))
-VMCommonOptions.append(("args", "An object with key/values pairs representing the arguments to forward to the function", "any"))
-FunctionDoc("VM.runInFunction", """Compile and run a string of JavaScript inside a function.""",
-    NO_Sees,
-    [ExampleDoc( """var VM = require("VM");
-
-VM.runInFunction("console.log(myArg);", {"args": {"myArg": "Hello World"}}));""",
-)],
-    IS_Static, IS_Public, IS_Fast,
-    [   ParamDoc("script", "The code to execute inside a function", "string", NO_Default, IS_Obligated ),
-        ParamDoc("options", "Options", ObjectDoc(VMCommonOptions), NO_Default, IS_Optional)
-    ],
-    NO_Returns
+    ReturnDoc("The completion value of evaluating the given code. If the completion value is empty, undefined is returned.", "any" )
 )

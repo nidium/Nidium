@@ -11,7 +11,7 @@
 namespace Nidium {
 namespace Binding {
 
-class JSVMCompartment;
+class JSVMSandbox;
 
 class JSVM : public ClassMapper<JSVM>
 {
@@ -25,31 +25,35 @@ public:
 
 protected:
     NIDIUM_DECL_JSCALL_STATIC(run);
-    NIDIUM_DECL_JSCALL_STATIC(runInFunction);
 
 private:
-    static bool ParseCommonOptions(JSContext *cx,
-                                   JS::HandleValue optionsValue,
-                                   JSVMCompartment **compartment,
-                                   JS::MutableHandleObject scope,
-                                   JS::MutableHandleString filename,
-                                   int32_t *lineOffset);
+    static bool ParseOptions(JSContext *cx,
+                             JS::HandleValue optionsValue,
+                             JSVMSandbox **compartment,
+                             JS::MutableHandleObject scope,
+                             JS::MutableHandleString filename,
+                             int32_t *lineOffset,
+                             bool *debugger);
 
-    static bool ParseRunData(JSContext *cx,
-                             JS::HandleValue arg,
-                             char16_t **data,
-                             size_t *len);
+    static bool GetRunData(JSContext *cx,
+                           JS::HandleValue arg,
+                           char16_t **data,
+                           size_t *len);
 };
 
-class JSVMCompartment : public ClassMapper<JSVMCompartment>
+class JSVMSandbox : public ClassMapper<JSVMSandbox>
 {
 public:
-    static void RegisterObject(JSContext *cx, JS::HandleObject vm);
+    friend JSVM;
 
-    static JSVMCompartment *
-    Constructor(JSContext *cx, JS::CallArgs &args, JS::HandleObject obj);
+    enum
+    {
+        kSandbox_HasDebugger = 0x01,
+        kSandbox_HasStdClass = 0x02
+    } Flags;
 
     static JSClass *GetJSClass();
+    static JSObject *CreateObject(JSContext *cx, JSVMSandbox *instance);
 
     static bool Getter(JSContext *cx,
                        JS::HandleObject obj,
@@ -63,16 +67,34 @@ public:
 
     JSObject *getGlobal()
     {
-        return m_Global;
+        return m_SandboxGlobal;
     }
 
-    JSVMCompartment(JSContext *cx, JS::HandleObject obj, bool defineDebugger);
-    virtual ~JSVMCompartment();
+    JSObject *getUserObject()
+    {
+        return m_Obj;
+    }
+
+    bool hasDebugger()
+    {
+        return m_FLags & kSandbox_HasDebugger;
+    }
+
+    bool hasStdClass()
+    {
+        return m_FLags & kSandbox_HasStdClass;
+    }
+
+    JSVMSandbox(JSContext *cx, JS::HandleObject obj, int flags);
+    virtual ~JSVMSandbox();
 
 private:
     JS::Heap<JSObject *> m_Obj;
-    JS::Heap<JSObject *> m_Global;
+    JS::Heap<JSObject *> m_SandboxGlobal;
+    JS::Heap<JSObject *> m_MainGlobal;
+    int m_FLags;
 
+    bool copy(JSContext *cx, JS::HandleObject from, JS::HandleObject to);
     bool get(JSContext *cx, JS::HandleId id, JS::MutableHandleValue vp);
     bool set(JSContext *cx,
              JS::HandleId id,
