@@ -1,3 +1,7 @@
 *.sln
 *.vcxproj
 *.vcxproj.filters
+*.VC.VC.opendb
+*.VC.db
+Debug
+Release
