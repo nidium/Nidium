@@ -1,7 +1,7 @@
 const Elements       = require("Elements");
 const TemplateEngine = require("TemplateEngine");
 const VM             = require("VM");
-const s_Priv         = require("../ComponentsPrivate.js");
+const s_Priv         = Symbol("ComponentPrivate")
 
 const ResourceType = {
     NML: 0,
@@ -15,34 +15,36 @@ function componentInit() {
     /*
         Load & Merge NSS
     */
-    let processedNSS = [];
-    for (let i = 0; i < privates.nss.length; i++) {
-        let style = privates.nss[i]
-        let scope = privates.scope;
+    if (privates && privates.nml) {
+        let processedNSS = [];
+        for (let i = 0; i < privates.nss.length; i++) {
+            let style = privates.nss[i]
+            let scope = privates.scope;
 
-        scope.__parseNSS = function processNSS(NSS, data) {
-            NSS.push(data);
-        }.bind(this, processedNSS);
+            scope.__parseNSS = function processNSS(NSS, data) {
+                NSS.push(data);
+            }.bind(this, processedNSS);
 
-        VM.run(`__parseNSS({${style.data}})`, {
-            "scope": privates.scope,
-            "filename": style.filename,
-        });
+            VM.run(`__parseNSS({${style.data}})`, {
+                "scope": privates.scope,
+                "filename": style.filename,
+            });
 
-        delete scope.__parseNSS;
+            delete scope.__parseNSS;
+        }
+
+        // Merge all styles into |this.nss|
+        processedNSS.unshift(this.nss);
+        Object.assign.apply(null, processedNSS);
+
+        // And make them read-only
+        Object.freeze(this.nss);
     }
-
-    // Merge all styles into |this.nss|
-    processedNSS.unshift(this.nss);
-    Object.assign.apply(null, processedNSS);
-
-    // And make them read-only
-    Object.freeze(this.nss);
 
     /*
         Load & Process template
     */
-    if (privates.template) {
+    if (privates && privates.template) {
         let tpl = new Elements.template(privates.template);
         privates.scope["this"] = this;
 
@@ -59,6 +61,10 @@ function componentInit() {
     /*
         Render layout
     */
+    if (privates && privates.layout) {
+        this.layout = privates.layout;
+    }
+
     if (this.layout) {
         let setComponent = (el) => {
             let childs = el.getChildren();
@@ -94,6 +100,13 @@ class Component extends Elements.Element {
 
     name() {
         return this._name;
+    }
+
+    static register(name, cls, privates) {
+        Component[name] = cls;
+        Elements[name.toLowerCase()] = cls;
+
+        cls[s_Priv] = privates;
     }
 }
 

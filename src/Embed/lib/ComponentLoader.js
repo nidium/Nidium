@@ -1,7 +1,6 @@
 const VM            = require("VM");
 const Elements      = require("Elements");
 const Component     = require("Component");
-const s_Priv        = require("../ComponentsPrivate.js");
 
 const ResourceType = {
     NML: 0,
@@ -92,16 +91,13 @@ class ComponentLoader {
             throw new Error(`Failed to load component "${this.name}" only class extending Component can be exported`);
         }
 
-        Component[this.name] = Component;
-        Elements[this.name.toLowerCase()] = componentClass;
-
-        componentClass[s_Priv] = {
+        Component.register(this.name, componentClass, {
             "scope": scope,
             "nss": this.nss,
             "nml": nml,
             "template": this.template,
             "layout": this.layout,
-        }
+        });
 
         this.component = componentClass;
     }
