@@ -2,20 +2,20 @@
 
 ## Introduction
 
-nidium is an ongoing effort for a general purpose rendering engine to create apps, games that run on both desktop and on mobile. It also offers a way to create server-side application through **nidium-server** which shares all the non gfx related code base.
+nidium is an ongoing effort for a general purpose rendering engine to create apps, games that run on both desktop and on mobile. It also offers a way to create server-side applications through **nidium-server** which shares all the non gfx related code base.
 
-nidium helps you create graphical software with Javascript. It's **not** a NodeJS, QT, Chromium, or WebKit derivate. It has been designed from scratch and has a small codebase written in C++.
+nidium helps you create graphical softwares with Javascript. It's **not** a NodeJS, QT, Chromium, or WebKit derivate. It has been designed from scratch and has a small codebase written in C++.
 
-It leverages the combination of **Skia** Graphics from Google, and Mozilla's JavaScript Engine (**SpiderMonkey**) together with many more awesome librairies.
+It leverages the combination of **Skia** Graphics from Google, and Mozilla's JavaScript Engine (**SpiderMonkey**) together with many more awesome libraries.
 
-It supports various common well known API such as :
+It supports various common well known API such as:
 
 * **WebGL**
 * **Canvas 2D Context**
 * **WebSocket** (client & server)
 * **Module loading** (require())
 
-And some other non standard :
+And some other non standard:
 
 * **UDP/TCP Socket** (client & server)
 * **HTTP** (client & server)
@@ -26,21 +26,21 @@ And some other non standard :
 * **Fragment shader on 2D canvas**
 * **Local Key/Value database**
 
-It can seamlessly run various Javascript libraries like Three.JS, PixiJS, Phaser (and probably a lot more without much modification).
+It can seamlessly run various JavaScript libraries like Three.JS, PixiJS, Phaser (and probably a lot more without much modification).
 
 ## What problem(s) is nidium trying to solve
 
 To put it simply, nidium aims to expose something close to the web technology on an easily hackable environment.
 
-We're not trying to copy the Web. We want a sandbox where you can experiment new things and not being dependent to blink/webkit (e.g. like Electron does). This allow us to add various optimization and non standard things. Moreover, nidium is small (nidium statically linked with all of its dependencies is about 20 MB).
+We're not trying to copy the Web. Think of it as a sandbox where you can quickly experiment new things, without any dependency to blink/webkit (e.g. like Electron does). This allow us to add various optimization and non standard things. Moreover, nidium is small (nidium statically linked with all of its dependencies is about 20 MB).
 
-Also, nidium aim to target a large spectre of device and our short term goal is to run it on low power devices (mobile, rpi, ...)
+Also, nidium aims to target a large spectrum of devices and our short term goal is to run it on low-power devices (mobile, rpi, ...)
 
-BTW, it uses SpiderMonkey as its JavaScript engine, and we believe that Mozilla needs some love too!
+By the way, it uses SpiderMonkey as its JavaScript engine, and we believe that Mozilla needs some love too!
 
 ## Work in progress
 
-nidium is still **work in progress** and misses several key features :
+nidium is still **work in progress** and several key features are still missing:
 
 * App distribution (create actual app out of nidium)
 * Microsoft Windows support
@@ -48,7 +48,7 @@ nidium is still **work in progress** and misses several key features :
 
 ## Layout engine
 
-nidium ships with its own layout engine. That is, every element has its own memory buffer (retained mode), pretty similar to HTML elements.
+nidium ships with its own layout engine. That's it, every element has its own memory buffer (retained mode), pretty similar to HTML elements.
 
 The layout engine allows several "layout" operations to be made on each element (relative position, opacity, drag'n'drop, margin, scrolling, overflow, and so on).
 
@@ -64,7 +64,7 @@ You can download nidium binaries for Linux and OSX from the [download page](http
 
 ## Building nidium
 
-To build nidium you need at least 5.7GB of disk space. A build from scratch could take 30 to 90 minutes, depending of the speed of your computer.
+To build nidium you need at least 5.7GB of disk space. A build from scratch may take 30 to 90 minutes, depending of the speed of your computer.
 
 On a debian based system, a few commands will get you started.
 
@@ -80,7 +80,7 @@ $ ./bin/nidium
 
 ## Documentation
 
-We strive to have an exellent documentation, both for our [getting started guide](http://www.nidium.com/docs/guide/get-started/hello-world.html) and for the [API Reference](http://www.nidium.com/docs/api/).
+We strive to have an excellent documentation, both for our [getting started guide](http://www.nidium.com/docs/guide/get-started/hello-world.html) and for the [API Reference](http://www.nidium.com/docs/api/).
 
 ## Videos - nidium in action
 
@@ -90,9 +90,9 @@ We strive to have an exellent documentation, both for our [getting started guide
 
 Feel free to report any bug or issue [to us](https://github.com/nidium/Nidium/issues).
 
-If you feel that something is not clear, that could be a issue worth reporting and solving.
+If you feel that something is not clear, that could be an issue worth reporting and solving.
 
 ## License
 
-Copyright 2016 Nidium Inc. All rights reserved.
+Copyright 2017 Nidium Inc. All rights reserved.
 Use of this source code is governed by a MIT license that can be found in the LICENSE file.
