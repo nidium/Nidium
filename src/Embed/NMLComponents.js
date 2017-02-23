@@ -24,10 +24,12 @@
 
     Elements.component = class extends Elements.Node {
         constructor(node) {
-            let name = el.attributes && el.attributes.src ? el.attributes.src : "inline";
+            super(node);
+
+            let name = node.attributes && node.attributes.src ? node.attributes.src : "inline";
             let data = Elements.Loader(node);
 
-            new ComponentLoader("inline", el);
+            new ComponentLoader(node, node);
         }
 
         isAutonomous() {

@@ -62,7 +62,7 @@ function componentInit() {
         Render layout
     */
     if (privates && privates.layout) {
-        this.layout = privates.layout;
+        this.layout = NML.CreateTree(privates.layout.children);
     }
 
     if (this.layout) {
