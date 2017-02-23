@@ -16,15 +16,20 @@ function componentInit() {
         Load & Merge NSS
     */
     let processedNSS = [];
-    for (let style of privates.nss) {
-        VM.runInFunction(`NSS.push({${style.data}});`, {
+    for (let i = 0; i < privates.nss.length; i++) {
+        let style = privates.nss[i]
+        let scope = privates.scope;
+
+        scope.__parseNSS = function processNSS(NSS, data) {
+            NSS.push(data);
+        }.bind(this, processedNSS);
+
+        VM.run(`__parseNSS({${style.data}})`, {
             "scope": privates.scope,
             "filename": style.filename,
-            "function": "NSS.load",
-            "bind": this,
-            "args": {
-                "NSS": processedNSS
-            }});
+        });
+
+        delete scope.__parseNSS;
     }
 
     // Merge all styles into |this.nss|
