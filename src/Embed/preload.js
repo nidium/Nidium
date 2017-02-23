@@ -14,7 +14,14 @@ function __nidiumPreload(options, lst) {
     load("embed://AnimationBlock.js");
     load("embed://HTTPAdditions.js");
 
-    document.canvas.inject(lst);
+    // Defer creation of the layout once all assets are ready
+    Object.defineProperty(window, "_onassetready", {
+        "configurable": false,
+        "writable": false,
+        "value": function() {
+            document.canvas.inject(lst);
+        }
+    });
 }
 
 if (0) {
