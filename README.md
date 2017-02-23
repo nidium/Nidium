@@ -48,7 +48,7 @@ nidium is still **work in progress** and several key features are still missing:
 
 ## Layout engine
 
-nidium ships with its own layout engine. That's it, every element has its own memory buffer (retained mode), pretty similar to HTML elements.
+nidium ships with its own layout engine. That is, every element has its own memory buffer (retained mode), pretty similar to HTML elements.
 
 The layout engine allows several "layout" operations to be made on each element (relative position, opacity, drag'n'drop, margin, scrolling, overflow, and so on).
 
