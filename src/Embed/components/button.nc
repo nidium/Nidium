@@ -14,7 +14,7 @@
     <script>
         var color = "yellow";
 
-        class button extends Component {
+        module.exports = class extends Component {
             constructor(attributes) {
                 super(attributes);
                 this.label = "Submit";

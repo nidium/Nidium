@@ -11,17 +11,17 @@ const ResourceType = {
 
 class DefaultComponent extends Component {}
 
+class ComponentExports {}
+
 class ComponentLoader {
-    constructor(nml, callback) {
-        this.nml = nml;
-        this.callback = callback;
+    constructor(filename, nml) {
+        this.filename = filename;
         this.nss = [];
         this.scripts = [];
         this.template = null;
         this.layout = null;
 
-        let data = File.readSync(nml, {encoding: "utf-8"});
-        this.parse(data);
+        this.parse(nml);
     }
 
     add(data, filename, type) {
@@ -35,11 +35,7 @@ class ComponentLoader {
         });
     }
 
-    parse(data) {
-        let ret = NML.parse(data);
-        if (!ret) throw new Error("Failed to parse NML");
-
-        let c = ret[0];
+    parse(c) {
         if (c.type != "component") {
             throw new Error("Top level tag should be <component>");
         }
@@ -48,13 +44,15 @@ class ComponentLoader {
             throw new Error("No name attribute for the component");
         }
 
+        this.name = c.attributes.name;
+
         for (let child of c.children) {
             switch (child.type) {
                 case "nss":
-                    this.add(child.text, `${this.nml} (inline <nss> #${this.nss.length})`, ResourceType.NSS);
+                    this.add(child.text, `${this.filename} (inline <nss> #${this.nss.length})`, ResourceType.NSS);
                     break;
                 case "script":
-                    this.add(child.text, `${this.nml} (inline <script> #${this.scripts.length})`, ResourceType.JS);
+                    this.add(child.text, `${this.filename} (inline <script> #${this.scripts.length})`, ResourceType.JS);
                     break;
                 case "template":
                     if (this.template) throw new Error("Only one <template> tag is allowed");
@@ -75,21 +73,28 @@ class ComponentLoader {
     }
 
     registerComponent(nml) {
-        let scope = {Component: Component};
-        let name = nml.attributes.name;
-
+        let scope = {Component: Component, "module": {"exports": new ComponentExports()}};
         for (let script of this.scripts) {
-            VM.run(`${script.data}\nComponent.${name} = ${name};`, {"scope": scope});
+            VM.run(script.data, {"scope": scope});
         }
 
-        let componentClass = Component[name]
-        if (typeof(componentClass) == "undefined") {
-            console.info(`Component "${name}" not found. Using default component.`);
+        let componentClass = scope.module.exports;
+        if (componentClass instanceof ComponentExports) {
+            if (Object.keys(componentClass).length > 0) {
+                throw new Error("You cannot export more than one Component");
+            } else {
+                console.info(`JavaScript implementation for component "${this.name}" not found. Using default component.`);
+            }
             componentClass = DefaultComponent;
-            Component[name] = componentClass;
         }
 
-        Elements[name.toLowerCase()] = componentClass;
+        if (!Component.isPrototypeOf(componentClass)) {
+            throw new Error(`Failed to load component "${this.name}" only class extending Component can be exported`);
+        }
+
+        Component[this.name] = Component;
+        Elements[this.name.toLowerCase()] = componentClass;
+
         componentClass[s_Priv] = {
             "scope": scope,
             "nss": this.nss,
@@ -98,7 +103,15 @@ class ComponentLoader {
             "layout": this.layout,
         }
 
-        if (this.callback) this.callback(null);
+        this.component = componentClass;
+    }
+
+    getComponent() {
+        return this.component;
+    }
+
+    getName() {
+        return this.name;
     }
 }
 

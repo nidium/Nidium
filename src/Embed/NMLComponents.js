@@ -1,8 +1,40 @@
-const ComponentLoader = require("ComponentLoader");
+{
+    const ComponentLoader = require("ComponentLoader");
+    const Elements = require("Elements");
 
-var registerComponent = function(name){
-	new ComponentLoader(`embed://components/${name}.nml`);
-};
+    Object.defineProperty(window.require, "ComponentLoader", {
+        "configurable": false,
+        "writable": false,
+        "value": function(name, lst) {
+            let ret = {};
+            let counter = 0;
+            for (let el of lst) {
+                if (el.type != "component") {
+                    throw new Error("Only <component> can be loaded with require()");
+                }
+                let loader = new ComponentLoader(name, el);
+                ret[loader.getName()] = loader.getComponent();
+                counter++;
+            }
 
-registerComponent("button");
-registerComponent("square");
+            // Export one or more component
+            return counter == 1 ? ret[Object.keys(ret)[0]] : ret;
+        }
+    });
+
+    Elements.component = class extends Elements.Node {
+        constructor(node) {
+            let name = el.attributes && el.attributes.src ? el.attributes.src : "inline";
+            let data = Elements.Loader(node);
+
+            new ComponentLoader("inline", el);
+        }
+
+        isAutonomous() {
+            return true;
+        }
+    }
+}
+
+require("./components/button.nc");
+require("./components/square.nc");
