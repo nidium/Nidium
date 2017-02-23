@@ -15,7 +15,7 @@ function __nidiumPreload(options, lst) {
     load("embed://HTTPAdditions.js");
 
     // Defer creation of the layout once all assets are ready
-    Object.defineProperty(window, "_onassetready", {
+    Object.defineProperty(window, "_onready", {
         "configurable": false,
         "writable": false,
         "value": function() {
