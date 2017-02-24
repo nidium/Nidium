@@ -60,7 +60,7 @@ public:
     void loadDefaultItems(Assets *assets);
     nidium_xml_ret_t loadAssets(rapidxml::xml_node<> &node);
     nidium_xml_ret_t loadMeta(rapidxml::xml_node<> &node);
-    nidium_xml_ret_t loadLayout(rapidxml::xml_node<> &node);
+    nidium_xml_ret_t parseNode(rapidxml::xml_node<> &node);
 
     void onAssetsItemReady(Assets::Item *item);
     void onAssetsBlockReady(Assets *asset);
@@ -83,17 +83,17 @@ public:
         return m_Meta.size.height;
     }
 
-    rapidxml::xml_node<> *getLayout() const
+    rapidxml::xml_node<> *getLST() const
     {
-        return m_Layout;
+        return m_LST;
     }
 
-    JSObject *getJSObjectLayout() const
+    JSObject *getJSObjectLST() const
     {
-        return m_JSObjectLayout;
+        return m_JSObjectLST;
     }
 
-    JSObject *buildLayoutTree(rapidxml::xml_node<> &node);
+    JSObject *buildLST(rapidxml::xml_node<> &node);
 
     void setNJS(Binding::NidiumJS *js);
 
@@ -118,10 +118,9 @@ private:
         const char *str;
         tag_callback cb; // Call : (this->*cb)()
         bool unique;
-    } m_NmlTags[4] = { { "assets", &NML::loadAssets, false },
+    } m_NmlTags[3] = { { "assets", &NML::loadAssets, false },
                        { "meta", &NML::loadMeta, true },
-                       { "layout", &NML::loadLayout, true },
-                       { NULL, NULL, false } };
+                       { NULL, &NML::parseNode, false} };
 
     uint32_t m_nAssets;
 
@@ -148,8 +147,8 @@ private:
     NMLLoadedCallback m_Loaded;
     void *m_LoadedArg;
 
-    rapidxml::xml_node<> *m_Layout;
-    JS::Heap<JSObject *> m_JSObjectLayout;
+    rapidxml::xml_node<> *m_LST;
+    JS::Heap<JSObject *> m_JSObjectLST;
 
     bool m_DefaultItemsLoaded;
     bool m_LoadFramework;
