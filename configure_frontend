@@ -60,11 +60,11 @@ CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 @Deps.register("portaudio")
 def portaudio():
-    no_backend = ['jack', 'asihpi', 'winapi=wasapi']
+    no_backend = ['jack', 'asihpi', 'winapi']
     do_backend = []
     if Platform.system == "Windows":
         configure = "bash configure"
-        do_backend.append('winapi')
+        do_backend.append('winapi=wasapi')
         no_backend.remove('winapi')
     else:
         configure = "./configure"
