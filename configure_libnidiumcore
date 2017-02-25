@@ -35,10 +35,23 @@ if Platform.system == "Darwin":
     Platform.setEnviron("LDFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
 elif Platform.system == "Windows":
    Platform.setCompiler("cl", "cl")
+   Deps.set('pthreads4w')
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
 CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
 Gyp = Builder.Gyp
+
+@Deps.register("pthreads4w")
+def pthreads4w():
+    if Platform.system != "Windows":
+        Log.error("The '%s' platform has native pthreads" % (Platform.system))
+    Platform.setEnviron("TARGET_CPU=%s" % (["x86","x64"][Platform.wordSize == 64]))
+    model, version = ['VCE', '2']    
+    return {
+        "location": Deps.GitRepo("https://git.code.sf.net/p/pthreads4w/code", revision="062c8e"),
+        "build": ["nmake realclean %s-static" % (model)],
+        "outputs": ["pthread%s%s.lib" %(model, version)]
+    }
 
 @Deps.register("leveldb")
 def leveldb():

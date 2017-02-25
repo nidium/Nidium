@@ -1288,3 +1288,20 @@ Murmurhash2 - non-cryptographic hash function suitable for general hash-based lo
 All code is released to the public domain. For business purposes, Murmurhash is
 under the MIT license.
 
+###############################################################################
+pthreads-win32 - a POSIX threads library for Microsoft Windows
+###############################################################################
+Pthreads-win32 is open software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public License
+as published by the Free Software Foundation version 2.1 of the
+License.
+
+Pthreads-win32 is several binary link libraries, several modules,
+associated interface definition files and scripts used to control
+its compilation and installation.
+
+Pthreads-win32 is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
