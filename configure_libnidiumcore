@@ -124,13 +124,20 @@ def mozilla():
 
 @Deps.register("http-parser")
 def httpParser():
-    build = ["make package"]
     if Platform.system == "Windows":
-        build = ["..\gyp\gyp.bat --depth ."] + build
+        #TODO: use konstruktor's gyp builder
+        gyp = "..\gyp\gyp.bat --depth . -DOS=win -f msvs"
+        if Platform.wordSize == 32:
+            gyp += " -G Platform=Win32"
+        build = [gyp, "MSBuild.exe http_parser.vcxproj  /p:Configuration=Release"]
+        output = "Release/lib/http_parser.lib"
+    else:
+        build = ["make package"]
+        output = "libhttp_parser.a"
     return {
         "location": Deps.GitRepo("https://github.com/nodejs/http-parser.git", tag="v2.6.2"),
         "build": build,
-        "outputs": ["libhttp_parser.a"]
+        "outputs": [output]
     }
 
 @Deps.register("jsoncpp")
