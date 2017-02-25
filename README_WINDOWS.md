@@ -2,33 +2,37 @@ Compliation of Nidium on windows
 ================================
 
 There are rather a lot dependencies and tweaks needed.
-Here are some steps, documentating things as we move along.
+Here are some steps, we are documentating things as we move along.
 
-# Do you have a windows machine? Probably not, but you can test one for 90 days.
+# Windows Host 
+
+Do you have a windows machine? Probably not, but you can test one for 90 days.
 
 * download and install virtualbox
 * download and install one of the images from https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/
 * unpack the download, you might want to copy and rename it
 * start the virtual box
-* import the appliance, and configure it as you which (e.g. 4 processors, 4G,
-  20G extra disk)
-* start it
-* do your thing: windows updates, users&passwords, networkconfig, ..
+* import the appliance, and configure it as you like.
+  (e.g. 4 processors, 4G, 20G extra disk)
+* start it up
+* do your thing: windows updates, users&passwords, networkconfig, keyboard settings, ..
 * log in as your user
 
-# konstruktor.py and rights
+# Rights
 
-The konstruktor.py build tools does a lot of symlink juggling. By default, (ntfs?) needs more rights.
+The 'konstruktor.py' build tools does a lot of symlink juggling. By default, (ntfs?) needs more rights.
 
-* start 'secpol.msc' in a cmd prompt as an administrator
+* start 'secpol.msc' as administrator
 * 'Local Policies' > 'User Rights Assignement' > 'Create symbolic links'
    add your user to the groups...
-* 'gpupdate /force'
+* start 'gpupdate /force'
 
-# Microsoft visual studio community edition 2015
+# Microsoft Visual Studio Community edition 2015
 
 We will be compiling ONLY with MSVC on the windows platform, so let's get that
 first. We won't use clang, cygwin or mingw on this platform.
+We have put a lot of efford to make an environment that is independent of visualstudio.
+You can use the gui, but you'll get the same error messages and warnings when you compile it in a terminal.
 
 * download from http://www.microsoft.com/en-us/download/details.aspx?id=48146
 * run
@@ -57,32 +61,69 @@ The konstruktor.py script is written in python.
   you can pick any version as long as it is higher the 2.7.11 and lower then 2.8 
 * install this in 'c:\mozilla-build\python'
 * it is wise to update pip
-  c:\mozilla-build\python\python -m pip install --upgrade-pip
-* install the stuff that was in the mozilla-build/python-2.7.11
+
+```
+c:\mozilla-build\python\python -m pip install --upgrade-pip
+```
+
+* install the stuff that was originally in the mozilla-build/python-2.7.11
 
 ```
 c:\mozilla-build\python\python.exe -m pip install virtualenv hgwatchman mercurial
 ```
-'hgwatchman' gives an error, that we will ignore now; we don'tr realy need
-hgwatchman and mercurial any way.
-We might non need virtualbox, as mozilla-central will provide an older version as well. 
+
+We will ignore the error now; we don't need hgwatchman any way.
+
+```
+c:\mozilla-build\python\python.exe -m pip install mercurial
+```
+
+We probably don't need mercurial.
+
+```
+c:\mozilla-build\python\python.exe -m pip install virtualenv
+```
+We might not need virtualbox, as mozilla-central provides an older version as well. 
 
 # pywin32
 
-The konstruktor.py script does a lot of filesystem operations, pywin32 makes that possible.
+The 'konstruktor.py' script does a lot of filesystem operations, pywin32 makes that possible.
  
 * Download from https://sourceforge.net/projects/pywin32/files/pywin32/, sorry about that...
 * Install and choose c:\mozilla-build\python 
 
 # git
 
-Obviously
+Obviously,
 
 * download from https://git-scm.com/download/win
   Please do not get annoyed about the stuff msys2 stuff that will be installed
 although that was already in c:\mozilla-build\msys
+* you might want to set your information
+
+```
+$ git config --global user.name "John Doe"
+$ git config --global user.email johndoe@example.com
+```
+
+```
+
+And to keep our commit history a little cleaner, we would appreciaate something like this.
+
+```
+git config --global pull.rebase true
+```
 
 # Optional, but productivity is king
+
+## watchman
+
+Facebook's watchman is not as intuitive as 'entrproject.org', but it is allready included in mozilla-build. So we can reuse it with something like:
+
+```
+/c/mozilla-build/watchman/watchman.exe watch src gyp patch
+/c/mozilla-build/watchman/watchman.exe -- trigger compile_nidium src gyp patch -- ./configure_libnidiumcore
+```
 
 ## console
 
@@ -115,9 +156,28 @@ ymmv obviously, but there are emacs and vim' s in c:\mozilla-build\
 
 * download from http://www.vim.org/download.php/#pc
 
+## meld
+
+ymmv obviously, tortoise-merge is also very good
+
+* download from https://download.gnome.org/binaries/win32/meld/3.16/
+* install it 
+* register it for git
+
+```
+git config --global merge.tool meld
+git config --global mergetool.meld.path "c:/Program Files/meld/bin/"
+
+## clover
+
+Tab browsing in file explorer
+
+* download from http://ejie.me/download/
+* install, guessing the buttons is a bit scary
+
 # Checkout of nidium
 
-## cloning nidium from github
+## Cloning nidium from github
 
 ### Basic checkout
 
@@ -130,8 +190,9 @@ git clone --recursive https://github.com/nidium/Nidium.git
 
 ```
 
-## set up the path for the mozilla and the msvc stuff.
+## Set up the paths
 
+Mozilla has a nice script to prepared the environment.
 ```
 c:\mozilla-build\start-shell-msvc2015.bat
 #or 
@@ -146,13 +207,12 @@ export PYTHONPATH=`pwd`/NidiumTools/src
 export VIRTUALENV_PYTHON=/c/mozilla-build/python/python.exe
 export PATH=$PATH:/c/Program\ Files/Git/bin
 ln -s /c/mozilla-build/python/python.exe /usr/bin/python2.7
-export PATH=$PATH:/c/Program\ files/Git/bin
 ```
+## Porting/Compiling of nidium
 
 ### For 'now'
 
-While we are still working on the windows port, things are a bit
-different...
+While we are still working on the windows port, things are a bit different...
 
 ```
 cd NidiumTools
@@ -167,10 +227,13 @@ git fetch origin windows-x86
 git checkout windows-x86
 cd ..\..
 python configure_libnidiumcore --ignore-build=all
+# At this point there will be 142? complilation errors,
 
 ## For 'in the near future'
 #python configure_server --ignore-build=all
+# At this point there will be 5? complilation errors,
 #python configure_frontend --ignore-build=all
+# At this point there will be 37? complilation errors,
 
 ## For 'in the far future'
 #python configure_libnidiumcore --unit-tests --auto-tests --asume-yes

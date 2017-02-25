@@ -83,17 +83,8 @@ $ ./bin/nidium
 ### Windows
 
 To get nidium compiled on a windows system, there are many dependencies and tricks needed.
-As we are still in the process of porting nidium to windows our documentation is incomplete at the moment.
-But the rough outline is:
-
-```
-$ git clone https://github.com/nidium/NidiumTools.git
-$ git clone --recursive https://github.com/nidium/Nidium.git
-$ export PYTHONPATH=%cd%/NidiumTools/src
-$ cd Nidium
-$ python configure_frontend
-$ ./bin/nidium
-```
+This is a work in progress and it is not our top priority.
+Some of the steps are documented in the file README_WINDOWS.md
 
 ## Documentation
 
