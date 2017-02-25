@@ -24,8 +24,8 @@ from konstructor import ROOT
 Gyp = Builder.Gyp
 
 Deps.set(
-    "depot_tools",
-    "angle",
+    #"depot_tools",
+    #"angle",
     "giflib",
     "skia",
     "libzip",
@@ -42,6 +42,10 @@ if Platform.system == "Linux":
     Deps.set("libnotify")
 elif Platform.system == "Darwin":
     Platform.setEnviron("MACOSX_DEPLOYMENT_TARGET=10.7")
+elif Platform.system == "Windows":
+    Platform.setCompiler("cl", 'cl')
+    Platform.setEnviron("LD=Link")
+    #TODO, find a way to use msvc's 'Lib.exe' instead of 'ar'
 
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_FRONTEND")
@@ -94,13 +98,18 @@ def giflib():
     # skdiff is used during unit-tests and it needs libgif.so.4
     Platform.setEnviron("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:%s/giflib/lib/.libs/" % os.getcwd())
     if Platform.system == "Windows":
-        configure = "bash configure"
+        configure = "bash configure --disable-shared"
+        output = "lib/.libs/gif.lib"
+        patchs = [os.path.join(CONFIGURE_PATH, "patch", "giflib_windows.patch")]
     else:
         configure = "./configure"
+        output = "lib/.libs/libgif.a"
+        patchs = []
     return {
         "location": "http://downloads.sourceforge.net/project/giflib/giflib-4.x/giflib-4.2.3.tar.gz",
         "build": [configure, "make coverity"],
-        "outputs": ["lib/.libs/libgif.a"]
+        "patchs": patchs,
+        "outputs": [output]
     }
 
 @Deps.register("skia")

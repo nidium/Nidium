@@ -1,0 +1,84 @@
+--- giflib.org/util/raw2gif.c	2017-02-25 07:51:39 -0800
++++ giflib/util/raw2gif.c	2017-02-25 07:56:26 -0800
+@@ -17,7 +17,9 @@
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <string.h>
++#ifdef HAVE_UNISTD_H
+ #include <unistd.h>
++#endif
+ #include <fcntl.h>
+ #include <stdbool.h>
+ 
+--- giflib.org/util/gifinto.c	2017-02-25 07:51:39 -0800
++++ giflib/util/gifinto.c	2017-02-25 07:56:17 -0800
+@@ -16,7 +16,9 @@
+ * 22 Dec 89 - Fix problem with tmpnam (Version 1.1).
+ *****************************************************************************/
+ 
++#ifdef HAVE_UNISTD_H
+ #include <unistd.h>
++#endif
+ #include <fcntl.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+--- giflib.org/util/gifasm.c	2017-02-25 07:51:39 -0800
++++ giflib/util/gifasm.c	2017-02-25 07:56:10 -0800
+@@ -18,7 +18,9 @@
+ 
+ #include <stdio.h>
+ #include <stdlib.h>
++#ifdef HAVE_UNISTD_H
+ #include <unistd.h>
++#endif
+ #include <ctype.h>
+ #include <string.h>
+ #include <stdbool.h>
+--- giflib.org/lib/gif_hash.h	2017-02-25 07:51:39 -0800
++++ giflib/lib/gif_hash.h	2017-02-25 07:55:59 -0800
+@@ -10,7 +10,9 @@
+ #ifndef _GIF_HASH_H_
+ #define _GIF_HASH_H_
+ 
++#ifdef HAVE_UNISTD_H
+ #include <unistd.h>
++#endif
+ #include <stdint.h>
+ 
+ #define HT_SIZE			8192	   /* 12bits = 4096 or twice as big! */
+--- giflib.org/lib/gif_hash.c	2017-02-25 07:51:39 -0800
++++ giflib/lib/gif_hash.c	2017-02-25 07:55:50 -0800
+@@ -16,7 +16,9 @@
+ * 14 Jun 89 - Version 1.0 by Gershon Elber.
+ *****************************************************************************/
+ 
++#ifdef HAVE_UNISTD_H
+ #include <unistd.h>
++#endif
+ #include <stdint.h>
+ #include <fcntl.h>
+ #include <stdio.h>
+--- giflib.org/lib/egif_lib.c	2017-02-25 07:51:39 -0800
++++ giflib/lib/egif_lib.c	2017-02-25 07:55:42 -0800
+@@ -11,7 +11,9 @@
+  * 26 Jun 96 - Version 3.0 by Eric S. Raymond (Full GIF89 support)
+  *****************************************************************************/
+ 
++#ifdef HAVE_UNISTD_H
+ #include <unistd.h>
++#endif
+ #include <stdint.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+--- giflib.org/lib/dgif_lib.c	2017-02-25 07:51:39 -0800
++++ giflib/lib/dgif_lib.c	2017-02-25 07:55:29 -0800
+@@ -14,7 +14,9 @@
+ #include <limits.h>
+ #include <stdint.h>
+ #include <fcntl.h>
++#ifdef HAVE_UNISTD_H
+ #include <unistd.h>
++#endif
+ #include <stdio.h>
+ #include <string.h>
+ 

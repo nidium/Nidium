@@ -27,6 +27,25 @@ The 'konstruktor.py' build tools does a lot of symlink juggling. By default, (nt
    add your user to the groups...
 * start 'gpupdate /force'
 
+# git
+
+Obviously,
+
+* download from https://git-scm.com/download/win
+* install, add git to your path, but not the binutils.
+* you might want to set your information
+
+```
+$ git config --global user.name "John Doe"
+$ git config --global user.email johndoe@example.com
+```
+
+And to keep our commit history a little cleaner, we would appreciaate something like this.
+
+```
+git config --global pull.rebase true
+```
+
 # Microsoft Visual Studio Community edition 2015
 
 We will be compiling ONLY with MSVC on the windows platform, so let's get that
@@ -50,8 +69,28 @@ To build spidermonkey we well reuse parts of the mozilla buildprocess, this has 
 
 * download from https://wiki.mozilla.org/MozillaBuild
 * run and install it in 'c:\mozilla-build'. I don't like to place stuff in the root, but it appears to be an essential place.
+  Please do not get annoyed about the stuff msys2 stuff that will be installed in c:\mozilla-build\msys although git did provide that as well.
 * Standard this comes with python 2.7.11 Which has a problem with urllib and https. And konstructor.py needs that.
 * move the directory c:\mozilla-build\python to c:\mozilla-build\python-2.7.11 (or remove it)
+
+# ar
+
+The configure script of giflib need 'ar' and sets arguments to 'cru', We should tell autoconf to use mvsc's lib.exe instead.
+untill then we'll install 'binutils' because they are nat in the 'git' or 'mozilla-build' package.
+
+* download from https://sourceforge.net/projects/mingw/files/MinGW/Base/binutils/binutils-2.25.1/
+  Sorry, ..
+* install and put them in your path
+* copy libwinpthread-1.dll, libiconv-2.dll, libgcc_s_dw2-1.dll from C:\Program Files\Git\mingw32\libexec\git-core and put them into 
+
+```
+mkdir c:\Data\ProgramFiles\binutils
+cd c:\Data\ProgramFiles\binutils
+c:\mozilla-build\7zip\7z.exe x c:\Data\Downloads\binutils-xxx--bin.tar.xz
+c:\mozilla-build\7zip\7z.exe x binutils-2.25.1-1-mingw32-bin.tar
+SET path=%PATH;c:\Data\ProgramFiles\binutils\bin$
+```
+
 
 # python
 
@@ -92,27 +131,6 @@ The 'konstruktor.py' script does a lot of filesystem operations, pywin32 makes t
 * Download from https://sourceforge.net/projects/pywin32/files/pywin32/, sorry about that...
 * Install and choose c:\mozilla-build\python 
 
-# git
-
-Obviously,
-
-* download from https://git-scm.com/download/win
-  Please do not get annoyed about the stuff msys2 stuff that will be installed
-although that was already in c:\mozilla-build\msys
-* you might want to set your information
-
-```
-$ git config --global user.name "John Doe"
-$ git config --global user.email johndoe@example.com
-```
-
-```
-
-And to keep our commit history a little cleaner, we would appreciaate something like this.
-
-```
-git config --global pull.rebase true
-```
 
 # Optional, but productivity is king
 
@@ -156,9 +174,10 @@ ymmv obviously, but there are emacs and vim' s in c:\mozilla-build\
 
 * download from http://www.vim.org/download.php/#pc
 
-## meld
+## mergetool meld
 
-ymmv obviously, tortoise-merge is also very good
+There is kdiff3 in the mozilla-build directory
+ymmv obviously, meld is very nice, tortoise-merge is also very good
 
 * download from https://download.gnome.org/binaries/win32/meld/3.16/
 * install it 
