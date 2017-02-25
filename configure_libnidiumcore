@@ -33,6 +33,8 @@ if Platform.system == "Darwin":
     # Some third-party librairires (skia, angle, mozilla-central)
     # produce binaries. So we need to set LDFLAGS too.
     Platform.setEnviron("LDFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
+elif Platform.system == "Windows":
+   Platform.setCompiler("cl", "cl")
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
 CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -40,18 +42,27 @@ Gyp = Builder.Gyp
 
 @Deps.register("leveldb")
 def leveldb():
-    cxxFlags = os.environ.get("CXXFLAGS", "")
-
-    if Konstruct.config("asan"):
-        # Fix ASAN container overflow false positive :
-        # https://github.com/google/sanitizers/wiki/AddressSanitizerContainerOverflow#false-positives
-        cxxFlags += " -fsanitize=address"
-
+    cxxFlags = Platform.getEnviron("CXXFLAGS", "")
+    if Platform.system == "Windows":
+        cxxFlags += " -EHsc"
+        Platform.setEnviron('TARGET_OS=NATIVE_WINDOWS')
+        location = Deps.GitRepo("https://github.com/bitcoin-core/leveldb.git", revision="d40bc3f")
+        patch = [os.path.join(CONFIGURE_PATH, "patch", "leveldb_windows.patch"), 
+                 os.path.join(CONFIGURE_PATH, "patch", "leveldb_windows_detect.patch"),
+                 os.path.join(CONFIGURE_PATH, "patch", "leveldb_windows_port.patch")]
+    else:
+        location = Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.19")
+        patch = [os.path.join(CONFIGURE_PATH, "patch", "leveldb.patch")]
+        if Konstruct.config("asan"):
+            # Fix ASAN container overflow false positive :
+            # https://github.com/google/sanitizers/wiki/AddressSanitizerContainerOverflow#false-positives
+            cxxFlags += " -fsanitize=address"
+    Platform.setEnviron("CXXFLAGS=%s" % (cxxFlags))
     return {
-        "location": Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.19"),
+        "location": location,
         # leveldb make doest not detect CXXFLAGS changes, so we force "make clean"
-        "build": ["make clean", "CXXFLAGS='%s' make" % (cxxFlags)],
-        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "leveldb.patch")],
+        "build": ["make clean", "make"],
+        "patchs": patch,
         "outputs": ["libleveldb(.a|.lib)"]
     }
 
@@ -59,7 +70,6 @@ def leveldb():
 def libnspr():
     if Platform.system == "Windows":
         make = "mozmake"
-        Platform.setCompiler("cl", "cl")
         configure = r"bash configure --enable-static-rtl "#--datarootdir=c:\temp" #--enable-win32-target=WIN95 
         if Platform.wordSize == 64:
             configure += " --target=x86_64-pc-mingw"
@@ -84,7 +94,6 @@ def mozilla():
     nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/")).replace('\\', '/')
     nsprFlags = '--with-nspr-cflags="-I%s/dist/include/nspr/"' % (nsprDir) 
     if Platform.system == "Windows":
-        Platform.setCompiler("cl", "cl")
         make = "mozmake"
         configure = "bash ../configure"
         nsprFlags += ''' --with-nspr-libs="'%s/dist/lib/libnspr4' '%s/dist/lib/libplds4' '%s/dist/lib/libplc4'"''' % (nsprDir, nsprDir, nsprDir)
