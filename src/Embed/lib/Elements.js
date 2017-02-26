@@ -12,7 +12,7 @@ const Elements = {
         tag = tag.toLowerCase();
 
         if (!(tag in Elements)) {
-            throw Error(`${tag} tag type is not implemented`);
+            throw Error(`Tag <${tag}> is not implemented`);
             return;
         }
 
@@ -22,7 +22,6 @@ const Elements = {
     Exists(tag) {
         return (tag.toLowerCase() in Elements);
     }
-
 };
 
 /*
@@ -53,21 +52,10 @@ Elements.Loader = function(node) {
     return data;
 }
 
-Elements.Node = class Node extends Canvas {
-    constructor(node) {
-        super(1, 1);
-    }
-
-    /*
-        Return true if the node is taking
-        care of constructing it's children
-     */
-    isAutonomous() {
-        return false;
-    }
-}
-
-Elements.Element = class extends Canvas {
+/*
+    Node are container only canvas (no GFX context)
+*/
+Elements.Node = class extends Canvas {
     constructor(attributes = {}) {
         super(attributes.width || 10, attributes.height || 10);
 
@@ -76,20 +64,6 @@ Elements.Element = class extends Canvas {
 
         this.left = attributes.left || 0;
         this.top = attributes.top || 0;
-
-        if (attributes.opacity !== undefined) {
-            this.opacity = attributes.opacity;
-        }
-
-        this.style = new ElementStyles(this);
-
-        //this.onload = this.onpaint;
-        this.onresize = this.onpaint;
-        this._textValue = "";
-        
-        this.addEventListener("load", () => {
-            this.fireEvent("mount", {});
-        });
     }
 
     getNMLContent(self = true) {
@@ -115,19 +89,6 @@ Elements.Element = class extends Canvas {
 
     allowsChild() {
         return true;
-    }
-
-    onload() {
-        this._ctx = this.getContext("2d");
-    }
-
-    onpaint() {
-        if (!this._ctx) return;
-
-        this._ctx.save();
-        this.clear();
-        this.paint(this._ctx);
-        this._ctx.restore();
     }
 
     removeChild(child) {
@@ -240,6 +201,42 @@ Elements.Element = class extends Canvas {
         return "DefaultNode"
     }
 
+    onload() {}
+    onpaint() {}
+    ctx2d() { return null; }
+    getContext() { return null; }
+}
+
+Elements.Element = class extends Elements.Node {
+    constructor(attributes) {
+        if (attributes.opacity !== undefined) {
+            this.opacity = attributes.opacity;
+        }
+
+        this.style = new ElementStyles(this);
+
+        //this.onload = this.onpaint;
+        this.onresize = this.onpaint;
+        this._textValue = "";
+
+        this.addEventListener("load", () => {
+            this.fireEvent("mount", {});
+        });
+    }
+
+    onload() {
+        this._ctx = this.getContext("2d");
+    }
+
+    onpaint() {
+        if (!this._ctx) return;
+
+        this._ctx.save();
+        this.clear();
+        this.paint(this._ctx);
+        this._ctx.restore();
+    }
+
     ctx2d() {
         return this.getContext("2d");
     }
@@ -249,7 +246,7 @@ Elements.Element = class extends Canvas {
     }
 }
 
-Elements.textnode = class extends Elements.Element {
+Elements.textnode = class extends Elements.Node {
 
     constructor(textValue) {
         super(1, 1);
@@ -259,12 +256,6 @@ Elements.textnode = class extends Elements.Element {
     cloneNode(deep = true) {
         return new this.constructor(this._textValue);
     }
-
-    /* We don't want a textNode to create a gfx context */
-    onload() {}
-    onpaint() {}
-    ctx2d() { return null; }
-    getContext() { return null; }
 
     setParentText() {
         var parent = this.getParent();
