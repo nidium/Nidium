@@ -24,8 +24,8 @@ from konstructor import ROOT
 Gyp = Builder.Gyp
 
 Deps.set(
-    #"depot_tools",
-    #"angle",
+    "depot_tools",
+    "angle",
     "giflib",
     "skia",
     "libzip",
@@ -252,9 +252,14 @@ def depotTools():
 
 @Deps.register("basekit")
 def basekit():
+    make_opts = ''
+    if Platform.system == "Windows":
+        #parallel build seems to lock make
+        make_opt = " -j1"
+        Platform.setEnviron('SYS=Windows')
     return {
         "location": Deps.GitRepo("https://github.com/stevedekorte/basekit.git", revision="a3e54ba83b85f530dc9442a33d2779240ed96189"),
-        "build": ["make"],
+        "build": ["make" + make_opt],
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "basekit.patch")],
         "outputs": ["_build/lib/libbasekit(.a|.lib)"]
     }
