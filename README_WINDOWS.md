@@ -92,6 +92,19 @@ c:\mozilla-build\7zip\7z.exe x binutils-2.25.1-1-mingw32-bin.tar
 SET path=%PATH;c:\Data\ProgramFiles\binutils\bin$
 ```
 
+# svn
+
+angle will start depot_tools to download  svn.
+For some reason that fails, let's install it manually.
+
+* download from https://storage.googleapis.com/chrome-infra/svn_bin.zip.
+* install and put it in your path
+
+```
+cd c:\Data\ProgramFiles\
+c:\mozilla-build\7zip\7z.exe x c:\Data\Downloads\svn_bin.zip
+SET path=%PATH;C:\Data\ProgramFiles\svn_bin
+```
 
 # python
 
