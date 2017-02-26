@@ -234,13 +234,18 @@ def SDL2():
     #outputs["SDL2/Xcode/SDL/out/SDL2.framework"])
     if Platform.system == "Windows":
         build = ["MSBuild.exe ../VisualC/SDL_VS2013.sln /p:Configuration=Release /p:PlatformToolset=v140"]
+        patchs = [os.path.join(CONFIGURE_PATH, "patch", "SDL2.windows.patch")]
+        outputs = ["../VisualC/SDL/Win32/Release/SDL2.lib"]
     else:
         build = ["./configure", "make"],
+        patchs = []
+        outputs = ["build/.libs/libSDL2.a"]
     return {
         "location": "https://www.libsdl.org/release/SDL2-2.0.3.tar.gz",
         "chdir": "build",
+        "patchs": patchs,
         "build": build,
-        "outputs": ["build/.libs/libSDL2.a"]
+        "outputs": outputs
     }
 
 @Deps.register("depot_tools")

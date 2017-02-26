@@ -58,8 +58,8 @@ You can use the gui, but you'll get the same error messages and warnings when yo
   - choose custom;
   - select 'Visual Studio 2015 Update 3'
   - select 'Programming Languages|Visual C++|Common Tools for Visual C++ 2015
-  - select 'Windows and Web Development|Universal Windows App Development Tools|Windows 10 SDK (10.0.10586)"
   - select 'Visual C++
+  - unselect select 'Windows and Web Development|Universal Windows App Development Tools|Windows 10 SDK (10.0.10586)"
   - unselect 'Microsoft Web Developer Tools'
   next, .... and time for a coffee break
 * start that stuff for the first time...., may take a second coffee break.
