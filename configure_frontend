@@ -131,7 +131,7 @@ def skia():
         args["extra_ldflags"] = ["-stdlib=libc++"]
 
     # Add depot_tools to path needed for skia
-    Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
+    Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir().replace('\\', '/'), "depot_tools"))
 
     # depot_tools and skia needs python2.7 but use "python" as the default
     # interpreter which could be python3.x on some system. Workaround that
@@ -171,7 +171,7 @@ def libzip():
     return {
         #"location": DEPEDENCY_REPO + "/libzip-0.10.1.tar.bz2",
         "location": "http://www.nih.at/libzip/libzip-1.1.2.tar.gz",
-        "build": [configure + " --disable-shared --with-zlib=%s/zlib/" % (Deps.getDir()), "make"],
+        "build": [configure + " --disable-shared --with-zlib=%s/zlib/" % (Deps.getDir().replace('\\', '/')), "make"],
         "outputs": ["lib/.libs/libzip.a"]
     }
 
