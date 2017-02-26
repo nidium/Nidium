@@ -56,7 +56,12 @@ def pthreads4w():
 @Deps.register("leveldb")
 def leveldb():
     cxxFlags = Platform.getEnviron("CXXFLAGS", "")
+    make_opt = ''
     if Platform.system == "Windows":
+        #parallel build seems to lock make
+        make_opt += " -j1"
+        #tell make to ignore the shared librray, just create the static one
+        make_opt += " libleveldb.a"
         cxxFlags += " -EHsc"
         Platform.setEnviron('TARGET_OS=NATIVE_WINDOWS')
         location = Deps.GitRepo("https://github.com/bitcoin-core/leveldb.git", revision="d40bc3f")
@@ -74,7 +79,7 @@ def leveldb():
     return {
         "location": location,
         # leveldb make doest not detect CXXFLAGS changes, so we force "make clean"
-        "build": ["make clean", "make"],
+        "build": ["make clean", "make" + make_opt],
         "patchs": patch,
         "outputs": ["libleveldb(.a|.lib)"]
     }
