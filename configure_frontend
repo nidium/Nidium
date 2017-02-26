@@ -266,15 +266,20 @@ def basekit():
 
 @Deps.register("libcoroutine")
 def libcoro():
-    patchs = [os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.patch")]
-
-    if Konstruct.config("valgrind"):
-        patchs.append(os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.debug.patch"))
+    make_opt = ''
+    if Platform.system == "Windows":
+        Platform.setEnviron('SYS=Windows')
+        patchs = [os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.windows.patch")]
+        make_opt += " _build\lib\liblibcoroutine.a"
+    else:
+        patchs = [os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.patch")]
+        if Konstruct.config("valgrind"):
+            patchs.append(os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.debug.patch"))
 
     return {
         "location": Deps.GitRepo("https://github.com/stevedekorte/coroutine.git", revision="b0bf11d8a0ec70bc0f1f5043513d334e1eff15fc"),
         "patchs": patchs,
-        "build": ["make"],
+        "build": ["make" + make_opt],
         "outputs": [["_build/lib/liblibcoroutine(.a|.lib)", "libcoroutine\\1"]]
     }
 
