@@ -30,7 +30,7 @@ Deps.set(
 if Platform.system == "Darwin":
     Platform.setEnviron("CXXFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
     Platform.setEnviron("CPPFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
-    # Some third-party librairires (skia, angle, mozilla-central)
+    # Some third-party libraries (skia, angle, mozilla-central)
     # produce binaries. So we need to set LDFLAGS too.
     Platform.setEnviron("LDFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
 elif Platform.system == "Windows":
@@ -108,12 +108,11 @@ def libnspr():
 
 @Deps.register("mozilla-central")
 def mozilla():
-
     nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/")).replace('\\', '/')
     nsprFlags = '--with-nspr-cflags="-I%s/dist/include/nspr/"' % (nsprDir) 
     if Platform.system == "Windows":
         make = "mozmake"
-        configure = "bash ../configure"
+        configure = "bash ../configure --enable-build-backend=VisualStudio"
         nsprFlags += ''' --with-nspr-libs="'%s/dist/lib/libnspr4' '%s/dist/lib/libplds4' '%s/dist/lib/libplc4'"''' % (nsprDir, nsprDir, nsprDir)
         outputs = ["mozglue/build/mozglue.lib$", "js/src/js_static.lib$"]
     else:
@@ -124,11 +123,10 @@ def mozilla():
     configure += " --disable-shared-js \
                    --disable-jemalloc \
                    --enable-ctypes %s" % (nsprFlags)
-
     if Konstruct.config("debug", "valgrind"):
         configure += " --enable-debug --disable-optimize"
     else:
-        configure += " --enable-strip "
+        configure += " --enable-strip --enable-release"
 
     if Konstruct.config("valgrind"):
         configure += " --enable-valgrind "
