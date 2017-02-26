@@ -233,13 +233,13 @@ def SDL2():
     #build: ["xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'"],
     #outputs["SDL2/Xcode/SDL/out/SDL2.framework"])
     if Platform.system == "Windows":
-        configure = r"bash ..\configure"
+        build = ["MSBuild.exe ../VisualC/SDL_VS2013.sln /p:Configuration=Release /p:PlatformToolset=v140"]
     else:
-        configure = "./configure"
+        build = ["./configure", "make"],
     return {
         "location": "https://www.libsdl.org/release/SDL2-2.0.3.tar.gz",
         "chdir": "build",
-        "build": [configure, "make"],
+        "build": build,
         "outputs": ["build/.libs/libSDL2.a"]
     }
 
