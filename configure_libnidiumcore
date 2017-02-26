@@ -65,9 +65,7 @@ def leveldb():
         cxxFlags += " -EHsc"
         Platform.setEnviron('TARGET_OS=NATIVE_WINDOWS')
         location = Deps.GitRepo("https://github.com/bitcoin-core/leveldb.git", revision="d40bc3f")
-        patch = [os.path.join(CONFIGURE_PATH, "patch", "leveldb_windows.patch"), 
-                 os.path.join(CONFIGURE_PATH, "patch", "leveldb_windows_detect.patch"),
-                 os.path.join(CONFIGURE_PATH, "patch", "leveldb_windows_port.patch")]
+        patch = [os.path.join(CONFIGURE_PATH, "patch", "leveldb.windows.patch")] 
     else:
         location = Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.19")
         patch = [os.path.join(CONFIGURE_PATH, "patch", "leveldb.patch")]
