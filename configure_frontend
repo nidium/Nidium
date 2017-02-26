@@ -100,7 +100,7 @@ def giflib():
     if Platform.system == "Windows":
         configure = "bash configure --disable-shared"
         output = "lib/.libs/gif.lib"
-        patchs = [os.path.join(CONFIGURE_PATH, "patch", "giflib_windows.patch")]
+        patchs = [os.path.join(CONFIGURE_PATH, "patch", "giflib.windows.patch")]
     else:
         configure = "./configure"
         output = "lib/.libs/libgif.a"
