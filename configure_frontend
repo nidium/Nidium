@@ -50,7 +50,7 @@ elif Platform.system == "Windows":
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_FRONTEND")
 Gyp.set("nidium_js_disable_window_global", 0)
-Gyp.set("nidium_audio", 0)
+Gyp.set("nidium_audio", 1)
 
 if Builder.Gyp.get("nidium_audio", True):
     Deps.set(
@@ -67,18 +67,28 @@ def portaudio():
     no_backend = ['jack', 'asihpi', 'winapi']
     do_backend = []
     if Platform.system == "Windows":
-        configure = "bash configure"
+        chdir = "build/msvc"
+        configure = "bash ../../configure"
         do_backend.append('winapi=wasapi')
         no_backend.remove('winapi')
+        project = "./portaudio"
+        build = [
+                #"devenv /UpdateConfiguration /Upgrade %s.sln /ResetSettings %s.vssettings" % (project, project),
+                "devenv /Upgrade %s.sln /ResetSettings %s.vssettings" % (project, project),
+                 "MSBuild.exe %s.vcxproj /p:Configuration=Release /p:PlatformToolset=v140" % (project)]
     else:
+        chdir = ""
         configure = "./configure"
+        build = ["make -j1", "make  src/common/pa_ringbuffer.o"]
     for backend in no_backend:
         configure += " --without-%s" % (backend)
     for backend in do_backend:
         configure += " --with-%s" % (backend)
+    configure += " --disable-debug-output --enable-static --disable-shared"
     return {
         "location": DEPEDENCY_REPO + "/portaudio.tgz",
-        "build":  [configure, "make -j1", "make  src/common/pa_ringbuffer.o"],
+        "build":  [configure] + build,
+        "chdir": chdir,
         "outputs": ["lib/.libs/libportaudio.a"],
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "portaudio.patch")]
     }
