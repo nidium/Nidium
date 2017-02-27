@@ -339,10 +339,6 @@ Elements.textnode = class extends Elements.Node {
         this._textValue = textValue;
     }
 
-    cloneNode(deep = true) {
-        return new this.constructor(this._textValue);
-    }
-
     setParentText() {
         var parent = this.getParent();
         if (!parent) {
