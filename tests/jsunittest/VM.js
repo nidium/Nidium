@@ -3,10 +3,16 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
+VM_TEST_GLOBAL_VAR = true;
 
-var VM = require("VM");
+const VM = require("VM");
+
 Tests.register("VM.run", function() {
     VM.run("1 + 1");
+});
+
+Tests.register("VM.run (capture args from current env)", function() {
+    VM.run("Assert(VM_TEST_GLOBAL_VAR, 'VM_TEST_GLOBAL_VAR should be defined')");
 });
 
 Tests.register("VM.run (with scope)", function() {
@@ -15,21 +21,18 @@ Tests.register("VM.run (with scope)", function() {
     Assert.equal(scope.x, 2);
 });
 
-Tests.register("VM.run (with compartement)", function() {
-    var obj = {x: 1, console:console};
-    var c = new VM.Compartment(obj);
+Tests.register("VM.run (with sandbox)", function() {
+    var sandbox = {x: 1};
 
-    VM.run("x++", {compartment: c});
+    VM.run("x++", {sandbox: sandbox});
 
-    Assert.equal(c.x, 2);
+    Assert.equal(sandbox.x, 2);
 });
 
-Tests.register("VM.runInFunction (with arguments & bind)", function() {
-    var bind = {x: 1};
-    var args = {y: 1};
+Tests.register("VM.run (sandbox capture unqualifed args)", function() {
+    var sandbox = {};
 
-    var ret = VM.runInFunction("this.x++; Assert.equal(y, 1); return 'Hello';", {bind: bind, args: args});
+    VM.run("x = 15", {sandbox: sandbox});
 
-    Assert.equal(bind.x, 2, "Bound value x should be 2");
-    Assert.equal(ret, "Hello", "Function should have returned 'Hello'");
+    Assert.equal(sandbox.x, 15);
 });
