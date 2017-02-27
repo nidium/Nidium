@@ -27,7 +27,9 @@ The 'konstruktor.py' build tools does a lot of symlink juggling. By default, (nt
    add your user to the groups...
 * start 'gpupdate /force'
 
-# git
+# Software
+
+## git
 
 Obviously,
 
@@ -40,13 +42,14 @@ $ git config --global user.name "John Doe"
 $ git config --global user.email johndoe@example.com
 ```
 
-And to keep our commit history a little cleaner, we would appreciaate something like this.
+And to keep our commit history a little cleaner, we would appreciate something like this:
 
 ```
 git config --global pull.rebase true
+git config --global core.autocrlf false
 ```
 
-# Microsoft Visual Studio Community edition 2015
+## Microsoft Visual Studio Community edition 2015
 
 We will be compiling ONLY with MSVC on the windows platform, so let's get that
 first. We won't use clang, cygwin or mingw on this platform.
@@ -64,7 +67,7 @@ You can use the gui, but you'll get the same error messages and warnings when yo
   next, .... and time for a coffee break
 * start that stuff for the first time...., may take a second coffee break.
 
-# Mozilla build
+## Mozilla build
 
 To build spidermonkey we well reuse parts of the mozilla buildprocess, this has a lot of unixy tools, including bash, sed, awk, sort, grep, find, vim, which etc
 
@@ -74,7 +77,7 @@ To build spidermonkey we well reuse parts of the mozilla buildprocess, this has 
 * Standard this comes with python 2.7.11 Which has a problem with urllib and https. And konstructor.py needs that.
 * move the directory c:\mozilla-build\python to c:\mozilla-build\python-2.7.11 (or remove it)
 
-# ar
+## ar
 
 The configure script of giflib need 'ar' and sets arguments to 'cru', We should tell autoconf to use mvsc's lib.exe instead.
 untill then we'll install 'binutils' because they are nat in the 'git' or 'mozilla-build' package.
@@ -82,7 +85,7 @@ untill then we'll install 'binutils' because they are nat in the 'git' or 'mozil
 * download from https://sourceforge.net/projects/mingw/files/MinGW/Base/binutils/binutils-2.25.1/
   Sorry, ..
 * install and put them in your path
-* copy libwinpthread-1.dll, libiconv-2.dll, libgcc_s_dw2-1.dll from C:\Program Files\Git\mingw32\libexec\git-core and put them into 
+* copy libwinpthread-1.dll, libiconv-2.dll, libgcc_s_dw2-1.dll  from C:\Program Files\Git\mingw32\libexec\git-core and put them into c:\Data\ProgramFiles\binutils\bin
 
 ```
 mkdir c:\Data\ProgramFiles\binutils
@@ -92,7 +95,22 @@ c:\mozilla-build\7zip\7z.exe x binutils-2.25.1-1-mingw32-bin.tar
 SET path=%PATH;c:\Data\ProgramFiles\binutils\bin$
 ```
 
-# svn
+## pr
+
+during the configuration of ffmpeg we need coreutils's 'pr'. It is in git\msys.
+but we dont want to clutter our path with, so we copy the file.
+
+* copy msys-intl-8.dll, msys-gcc_s-1.dll, msys-iconv-2.dll, msys-2.0.dll from C:\Program Files\Git\usr\bin and put them into c:\Data\ProgramFiles\binutils\bin
+
+```
+xcopy "c:\Program Files\Git\usr\bin\pr.exe" c:\Data\ProgramFiles\binutils\bin
+```
+
+TODO: http://sourceforge.net/projects/mingw/files/MSYS/Base/msys-core/_obsolete/coreutils-5.97-MSYS-1.0.11-2/coreutils-5.97-MSYS-1.0.11-snapshot.tar.bz2/download
+
+
+cd c:\Data\ProgramFiles\binutils
+## svn
 
 angle will start depot_tools to download  svn.
 For some reason that fails, let's install it manually.
@@ -146,9 +164,9 @@ The 'konstruktor.py' script does a lot of filesystem operations, pywin32 makes t
 * Install and choose c:\mozilla-build\python 
 
 
-# Optional, but productivity is king
+## Optional, but productivity is king
 
-## watchman
+### watchman
 
 Facebook's watchman is not as intuitive as 'entrproject.org', but it is allready included in mozilla-build. So we can reuse it with something like:
 
@@ -157,7 +175,7 @@ Facebook's watchman is not as intuitive as 'entrproject.org', but it is allready
 /c/mozilla-build/watchman/watchman.exe -- trigger compile_nidium src gyp patch -- ./configure_libnidiumcore
 ```
 
-## console
+### console
 
 In most cases cmd.exe will suffice, copy and paste that works, there is mintty.exe in both "c:\mozilla-builds\msys\mintty.exe" and c:\Program Files\Git\mingw32\bin
 If you want multiple tabs etc checkout https://www.fosshub.com/ConEmu.html or https://sourceforge.net/projects/console/
@@ -168,7 +186,7 @@ cd c:\Data\ProgramFiles\ConEmuPack
 c:\mozilla-build\7zip\7z.exe x c:\Data\Downloads\ConEmuPack.161206.7z
 ```
 
-## Tiling window managers
+### Tiling window managers
 
 ymmv on this, but since we have a git and visual studio, there are only a few
 steps needed:
@@ -182,13 +200,13 @@ MSBuild.exe HashTWM\vsproj\HashTWM.sln /p:PlatformToolset=v140
 
 start it with `c:\Data\HashTWM\bin\hashtwm.exe`
 
-## gvim
+### gvim
 
 ymmv obviously, but there are emacs and vim' s in c:\mozilla-build\
 
 * download from http://www.vim.org/download.php/#pc
 
-## mergetool meld
+### mergetool meld
 
 There is kdiff3 in the mozilla-build directory
 ymmv obviously, meld is very nice, tortoise-merge is also very good
@@ -200,8 +218,9 @@ ymmv obviously, meld is very nice, tortoise-merge is also very good
 ```
 git config --global merge.tool meld
 git config --global mergetool.meld.path "c:/Program Files/meld/bin/"
+```
 
-## clover
+### clover
 
 Tab browsing in file explorer
 

@@ -1,0 +1,21 @@
+--- ffmpeg.org/common.mak	2017-02-27 01:31:01 -0800
++++ ffmpeg/common.mak	2017-02-27 01:18:21 -0800
+@@ -163,6 +163,6 @@
+ 	$(RM) $(TOOLS)
+ endef
+ 
+-$(eval $(RULES))
++$(  eval $(RULES))
+ 
+ -include $(wildcard $(OBJS:.o=.d) $(HOSTOBJS:.o=.d) $(TESTOBJS:.o=.d) $(HOBJS:.o=.d) $(SLIBOBJS:.o=.d)) $(OBJS:.o=$(DEFAULT_YASMD).d)
+--- ffmpeg.org/library.mak	2017-02-27 01:31:01 -0800
++++ ffmpeg/library.mak	2017-02-27 01:23:43 -0800
+@@ -108,7 +108,7 @@
+ 	-rmdir "$(INCINSTDIR)"
+ endef
+ 
+-$(eval $(RULES))
++$(  eval $(RULES))
+ 
+ $(TOOLS):     $(DEP_LIBS) $(SUBDIR)$($(CONFIG_SHARED:yes=S)LIBNAME)
+ $(TESTPROGS): $(DEP_LIBS) $(SUBDIR)$(LIBNAME)

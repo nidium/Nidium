@@ -312,30 +312,36 @@ def rapidxml():
 
 @Deps.register("ffmpeg")
 def ffmpeg():
+    outputs = [
+        "libavcodec/libavcodec(.a|.lib)",
+        "libswresample/libswresample(.a|.lib)",
+        "libavutil/libavutil(.a|.lib)",
+        "libavformat/libavformat(.a|.lib)",
+    ]
+    make_opt = ''
+    #ffmpeg 3.0.7 has a problem on windows where an pathname gets in the $(OBJ) list, lib.exe is more sensitive than ar
     if Platform.system == "Windows":
-        configure = "bash configure"
+        configure = "bash configure --toolchain=msvc --disable-swscale"
+        patchs = [  os.path.join(CONFIGURE_PATH, "patch", "ffmpeg.windows.patch")]
+        make_opt += " -j1"
     else:
+        outputs.append("libswscale/libswscale(.a|.lib)")
         configure = "./configure"
+        patchs = []
     return {
         "location": Deps.GitRepo("git://git.ffmpeg.org/ffmpeg.git", tag="n3.0.7"),
-        "patch": [],
+        "patchs": patchs,
         "build":
         [
             configure + " \
             --disable-vaapi --disable-avdevice --disable-postproc --disable-avfilter --disable-ffserver --disable-lzma --disable-bzlib \
             --enable-decoder=ac3,aac,mp3,vorbis,pcm_s16be_planar,pcm_s16le,pcm_s16le_planar,pcm_s24be,pcm_s24daud,pcm_s24le,pcm_s24le_planar,pcm_s32be,pcm_s32le,pcm_s32le_planar,pcm_s8,pcm_s8_planar,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpeg4,mpeg2video,wmv1,wmv2,wmv3,wmv3_crystalhd,wmv3_vdpau,wmv3image,wmalossless,wmapro,wmav1,wmav2,wmavoice,vc1,vc1_crystalhd,vc1_vdpau,vc1image\
             --enable-parser=vorbis,mpegaudio,mpegvideo,mpeg4video,h264,vp8,aac,vc1\
-            --enable-demuxer=matroska,mp3,ogg,vorbis,pcm_alaw,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,pcm_mulaw,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpegvideo,aac,mov,avi,wav,asf",
-            "make"
+            --enable-demuxer=matroska,mp3,ogg,vorbis,pcm_alaw,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,pcm_mulaw,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpegvideo,aac,mov,avi,wav,asf\
+            --enable-stripping --enable-static --disable-shared",
+            "make" + make_opt
         ],
-        "outputs":
-        [
-            "libavcodec/libavcodec(.a|.lib)",
-            "libswresample/libswresample(.a|.lib)",
-            "libavutil/libavutil(.a|.lib)",
-            "libavformat/libavformat(.a|.lib)",
-            "libswscale/libswscale(.a|.lib)"
-        ]
+        "outputs": outputs
     }
 
 @Deps.register("libnotify")
