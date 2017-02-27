@@ -201,6 +201,12 @@ Elements.Node = class extends Canvas {
         return "DefaultNode"
     }
 
+    createTree(children) {
+        let ret = NML.CreateTree(nml)
+        this.addMultiple(ret);
+        return ret;
+    }
+
     onload() {}
     onpaint() {}
     ctx2d() { return null; }
@@ -209,6 +215,8 @@ Elements.Node = class extends Canvas {
 
 Elements.Element = class extends Elements.Node {
     constructor(attributes) {
+        super(attributes);
+
         if (attributes.opacity !== undefined) {
             this.opacity = attributes.opacity;
         }

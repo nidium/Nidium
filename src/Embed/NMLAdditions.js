@@ -6,7 +6,7 @@
 {
     const Elements = require("Elements");
 
-    function walk(elems, parent) {
+    function walk(elems) {
         if (!elems) {
             return [];
         }
@@ -15,39 +15,21 @@
 
         for (let elem of elems) {
             let name = elem.type;
-            let ui;
-            if (Elements.Exists(name)) {
-                if (Elements.Element.prototype.isPrototypeOf(Elements[name.toLowerCase()].prototype)) {
-                    /* ES6 destructuring object default value doesnt work
-                       https://bugzilla.mozilla.org/show_bug.cgi?id=932080
-                    */
-                    let {id} = elem.attributes || {id: null};
 
-                    ui = Elements.Create(elem.type, elem.attributes || elem.text);
+            /*
+               ES6 destructuring object default value doesnt work
+               https://bugzilla.mozilla.org/show_bug.cgi?id=932080
+            */
+            let {id} = elem.attributes || {id: null};
+            let ui = Elements.Create(elem.type, elem.attributes || elem.text);
 
-                    if (id) {
-                        ui.id = id;
-                    }
-
-                    if (parent) {
-                        parent.add(ui);
-                    } else {
-                        ret.push(ui);
-                    }
-                } else {
-                    let tmp = new Elements[name](elem, parent);
-                    if (tmp.isAutonomous()) {
-                        // Element handle the creation of it's children
-                        continue;
-                    }
-
-                    ui = tmp;
-                }
-            } else {
-                throw new Error(`Unknown element <${name}>`);
+            if (id) {
+                ui.id = id;
             }
 
-            walk(elem.children, ui);
+            ret.push(ui);
+
+            ui.createTree(elem.children));
         }
 
         return ret;
@@ -61,10 +43,12 @@
                 /* If the NML couldnt be parsed, issue a textnode */
                 return [Elements.Create("textnode", nml)];
             }
+        } else if (!Array.isArray(nml)) {
+            throw new Error("NML.CreateTree expect an array");
         } else {
             tree = nml;
         }
-
         return walk(tree);
     }
+
 }
