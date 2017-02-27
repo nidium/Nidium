@@ -5,18 +5,34 @@
 */
 
 const ElementStyles = require("./ElementStyles.js");
+const ShadowRoot    = require("../ShadowRoot.js");
+const s_ShadowRoot  = require("../Symbols.js").ElementShadowRoot;
+const s_NodeID      = Symbol("NodeID");
+
+const g_MainShadow  = new ShadowRoot(document.canvas);
+let g_CurrentShadow = null;
 
 const Elements = {
 
-    Create(tag, attributes) {
+    Create(tag, attributes, shadowRoot=g_MainShadow) {
         tag = tag.toLowerCase();
+        let ret;
 
-        if (!(tag in Elements)) {
-            throw Error(`Tag <${tag}> is not implemented`);
-            return;
+        let previousShadow = g_CurrentShadow;
+        g_CurrentShadow = shadowRoot;
+
+        try {
+            if (!(tag in Elements)) {
+                throw Error(`Tag <${tag}> is not implemented`);
+                return;
+            }
+
+            ret = new Elements[tag](attributes);
+        } finally {
+            g_CurrentShadow = previousShadow;
         }
 
-        return new Elements[tag](attributes);
+        return ret;
     },
 
     Exists(tag) {
@@ -64,6 +80,8 @@ Elements.Node = class extends Canvas {
 
         this.left = attributes.left || 0;
         this.top = attributes.top || 0;
+
+        this[s_ShadowRoot] = g_CurrentShadow;
     }
 
     getNMLContent(self = true) {
@@ -91,6 +109,15 @@ Elements.Node = class extends Canvas {
         return true;
     }
 
+    getParent() {
+        let p = super.getParent();
+        if (p[s_ShadowRoot] != this[s_ShadowRoot]) {
+            return null;
+        } else {
+            return p;
+        }
+    }
+
     removeChild(child) {
         if (!child) {
             return;
@@ -106,6 +133,18 @@ Elements.Node = class extends Canvas {
         }
 
         child.removeFromParent();
+    }
+
+    removeFromParent() {
+        super.removeFromParent();
+        this[s_ShadowRoot].rm(this);
+    }
+
+    add(child) {
+        if (child[s_ShadowRoot] != this[s_ShadowRoot]) {
+            this[s_ShadowRoot].add(child);
+        }
+        super.add(child);
     }
 
     hasAttribute(attr) {
@@ -169,7 +208,7 @@ Elements.Node = class extends Canvas {
     }
 
     cloneNode(deep = true) {
-        var clone = new this.constructor(this.attributes);
+        var clone = Elements.Create(this.constructor.name, this.attributes, this[s_ShadowRoot]);
 
         if (!deep) {
             return clone;
@@ -201,10 +240,45 @@ Elements.Node = class extends Canvas {
         return "DefaultNode"
     }
 
-    createTree(children) {
-        let ret = NML.CreateTree(nml)
-        this.addMultiple(ret);
+    attachShadow(options) {
+        options = options || {};
+        let ret = new ShadowRoot(this, options);
+        this[s_ShadowRoot] = ret;
+        // TODO : Move children outside of shadowroot (spec)
         return ret;
+    }
+
+    get shadowRoot() {
+        let shadow = this[s_ShadowRoot];
+        return shadow.host == this ? shadow : null;
+    }
+
+    getRootNode(options) {
+        let p = this.getParent();
+        while (p) {
+            if (!options.composed && p.shadowRoot) {
+                return p;
+            }
+            p = p.getParent();
+        }
+        return p;
+    }
+
+    get id() {
+        return this[s_NodeID];
+    }
+
+    set id(val) {
+        this[s_NodeID] = val;
+        let shadow = this[s_ShadowRoot]
+
+        shadow.addID(val, this);
+    }
+
+    createTree(children) {
+        if (this.allowsChild()) {
+            this.addMultiple(...NML.CreateTree(children, this[s_ShadowRoot]));
+        }
     }
 
     onload() {}
