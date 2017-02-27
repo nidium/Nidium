@@ -45,18 +45,17 @@ const Elements = {
 
 /*
     Generic resource loader : return the text content
-    of the file pointed by src attribute, or the text content of the node
+    of the file pointed by src attribute
 */
-Elements.Loader = function(node) {
+Elements.Loader = function(attributes) {
     let data;
-    let name = node.type;
 
-    if (node.attributes && node.attributes.src) {
-        let src = node.attributes.src;
+    if (attributes && attributes.src) {
+        let src = attributes.src;
         try {
-            data = File.readSync(src);
+            data = File.readSync(src, {"encoding": "utf-8"});
         } catch (e) {
-            console.error(`Failed to load ${src} for <${type}> tag : ${e}`);
+            console.error(`Failed to load ${src} : ${e}`);
             return "";
         }
 
@@ -64,8 +63,6 @@ Elements.Loader = function(node) {
             console.warn(`No data for ${src}`);
             return "";
         }
-    } else {
-        data = node.text;
     }
 
     return data;
