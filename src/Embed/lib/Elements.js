@@ -7,6 +7,7 @@
 const ElementStyles = require("./ElementStyles.js");
 const ShadowRoot    = require("../ShadowRoot.js");
 const s_ShadowRoot  = require("../Symbols.js").ElementShadowRoot;
+const s_NodeName    = Symbol("NodeName");
 const s_NodeID      = Symbol("NodeID");
 
 const g_MainShadow  = new ShadowRoot(document.canvas);
@@ -26,6 +27,8 @@ const Elements = {
                 throw Error(`Tag <${tag}> is not implemented`);
                 return;
             }
+
+            if (!Elements[tag][s_NodeName]) Elements[tag][s_NodeName] = tag;
 
             ret = new Elements[tag](attributes);
         } finally {
@@ -82,6 +85,7 @@ Elements.Node = class extends Canvas {
         this.top = attributes.top || 0;
 
         this[s_ShadowRoot] = g_CurrentShadow;
+        this[s_ShadowRoot].addTag(this.constructor[s_NodeName], this);
     }
 
     getNMLContent(self = true) {
@@ -208,7 +212,7 @@ Elements.Node = class extends Canvas {
     }
 
     cloneNode(deep = true) {
-        var clone = Elements.Create(this.constructor.name, this.attributes, this[s_ShadowRoot]);
+        var clone = Elements.Create(this.name(), this.attributes, this[s_ShadowRoot]);
 
         if (!deep) {
             return clone;
@@ -237,7 +241,7 @@ Elements.Node = class extends Canvas {
     }
 
     name() {
-        return "DefaultNode"
+        return this.constructor[s_NodeName];
     }
 
     attachShadow(options) {
@@ -357,6 +361,7 @@ Elements.textnode = class extends Elements.Node {
     set textContent(value) {
         this.nodeValue = value;
     }
+
     add() {
         throw Error("textNode doesn't support this operation");
     }
@@ -381,10 +386,6 @@ Elements.textnode = class extends Elements.Node {
         this.fireEvent("nodeValueChanged", textValue);
     }
 
-    name() {
-        return "textNode";
-    }
-
     get nodeType() {
         return 3;
     }
@@ -393,9 +394,6 @@ Elements.textnode = class extends Elements.Node {
 Elements.element = class extends Elements.Element { }
 
 Elements.canvas = class extends Elements.Element {
-    name() {
-        return "canvas";
-    }
     /*
         regular <canvas> are "low level"
         Don't clear the buffer
@@ -419,10 +417,6 @@ Elements.uibutton = class extends Elements.Element {
 
             }, this);
         });
-    }
-
-    name() {
-        return "UIButton";
     }
 
     ontextchanged(newtext) {
@@ -453,10 +447,6 @@ Elements.section = class extends Elements.Element {
 
         var mr = (min=100, max=200) => min + Math.floor(Math.random()*(max-min));
         this._color = `rgba(${mr(70, 100)}, ${mr(120, 200)}, ${mr(140, 210)}, 0.8)`;
-    }
-
-    name() {
-        return "section";
     }
 
     paint(ctx) {
@@ -496,10 +486,6 @@ Elements.div = class extends Elements.Element {
         super.paint(ctx)
         ctx.fillStyle = "#000";
         ctx.fillText(this._textValue, 0, this.height/2+4);
-    }
-
-    name() {
-        return "div";
     }
 
     onmount() {
