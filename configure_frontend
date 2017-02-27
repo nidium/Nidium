@@ -72,10 +72,11 @@ def portaudio():
         do_backend.append('winapi=wasapi')
         no_backend.remove('winapi')
         project = "./portaudio"
-        build = [
-                #"devenv /UpdateConfiguration /Upgrade %s.sln /ResetSettings %s.vssettings" % (project, project),
-                "devenv /Upgrade %s.sln /ResetSettings %s.vssettings" % (project, project),
-                 "MSBuild.exe %s.vcxproj /p:Configuration=Release /p:PlatformToolset=v140" % (project)]
+        #build = [
+        #        #"devenv /UpdateConfiguration /Upgrade %s.sln /ResetSettings %s.vssettings" % (project, project),
+        #        "devenv /Upgrade %s.sln /ResetSettings %s.vssettings" % (project, project),
+        #         "MSBuild.exe %s.vcxproj /p:Configuration=Release /p:PlatformToolset=v140" % (project)]
+        build = ["make -j1", "make src/common/pa_ringbuffer.o"]
     else:
         chdir = ""
         configure = "./configure"
@@ -86,6 +87,7 @@ def portaudio():
         configure += " --with-%s" % (backend)
     configure += " --disable-debug-output --enable-static --disable-shared"
     return {
+        #"location": Deps.GitRepo("https://git.assembla.com/portaudio.git", revision="a1f61a9a2c"),
         "location": DEPEDENCY_REPO + "/portaudio.tgz",
         "build":  [configure] + build,
         "chdir": chdir,
@@ -96,10 +98,10 @@ def portaudio():
 @Deps.register("zita-resampler")
 def zitaresampler():
     if Platform.system == "Windows":
-        Platform.setEnviron("CXXFLAGS=-I ../../pthreads4w -D_POSIX_C_SOURCE=200112L")
+        Platform.setEnviron("CXXFLAGS=-I ../../pthreads4w -D_POSIX_C_SOURCE=200112L -D_USE_MATH_DEFINES -nologo -wd4710 -wd4514 -wd4711")
     return {
         "location": DEPEDENCY_REPO + "/zita-resampler-1.3.0.tar.bz2",
-        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "zita.patch")],
+        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "zita-resampler.patch")],
         "chdir": "libs/",
         "build": ["make"],
         "outputs": ["libzita-resampler(.a|.lib)"]
@@ -143,7 +145,7 @@ def skia():
         args["extra_ldflags"] = ["-stdlib=libc++"]
 
     # Add depot_tools to path needed for skia
-    Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir().replace('\\', '/'), "depot_tools"))
+    Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
 
     # depot_tools and skia needs python2.7 but use "python" as the default
     # interpreter which could be python3.x on some system. Workaround that

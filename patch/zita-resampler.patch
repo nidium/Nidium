@@ -1,0 +1,67 @@
+--- zita-resampler.org/libs/Makefile	2012-10-26 13:58:55 -0700
++++ zita-resampler/libs/Makefile	2017-02-27 10:50:22 -0800
+@@ -31,26 +31,37 @@
+ 
+ 
+ CPPFLAGS += -I. -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS
+-CXXFLAGS += -Wall -fPIC -O2 -ffast-math
+-CXXFLAGS += -march=native
++CXXFLAGS += -Wall 
+ LDFLAGS += 
+ LDLIBS +=
+ 
++CC ?= g++
++AR ?= ar
+ 
++ifneq ($(CC),cl)
++	CXXFLAGS += -march=native -fPIC -O2 -ffast-math
++	EXT = .o
++else
++	EXT = .obj
++endif
++
++ZITA-RESAMPLER_A = libzita-resampler.a
+ ZITA-RESAMPLER_SO = libzita-resampler.so
+ ZITA-RESAMPLER_MAJ = $(ZITA-RESAMPLER_SO).$(MAJVERS)
+ ZITA-RESAMPLER_MIN = $(ZITA-RESAMPLER_MAJ).$(MINVERS)
+ ZITA-RESAMPLER_DEP =
+-ZITA-RESAMPLER_O = resampler.o vresampler.o resampler-table.o
++ZITA-RESAMPLER_O = resampler$(EXT) vresampler$(EXT) resampler-table$(EXT)
+ ZITA-RESAMPLER_H = zita-resampler/resampler.h zita-resampler/resampler-table.h zita-resampler/vresampler.h
+ 
++#Force the static build first
++$(ZITA-RESAMPLER_A): $(ZITA-RESAMPLER_O)
++	$(AR) rcs $@ $(ZITA-RESAMPLER_O)
+ 
+ $(ZITA-RESAMPLER_MIN): $(ZITA-RESAMPLER_O)
+-	g++ -shared $(LDFLAGS) -Wl,-soname,$(ZITA-RESAMPLER_MAJ) -o $(ZITA-RESAMPLER_MIN) $(ZITA-RESAMPLER_O) $(ZITA-RESAMPLER_DEP)
++	$(CC) -shared $(LDFLAGS) -Wl,-soname,$(ZITA-RESAMPLER_MAJ) -o $(ZITA-RESAMPLER_MIN) $(ZITA-RESAMPLER_O) $(ZITA-RESAMPLER_DEP)
+ 
+ $(ZITA-RESAMPLER_O):	$(ZITA-RESAMPLER_H)
+ 
+-
+ install:	$(ZITA-RESAMPLER_MIN)
+ 	install -d $(DESTDIR)$(PREFIX)/include/zita-resampler
+ 	install -d $(DESTDIR)$(PREFIX)/$(LIBDIR)
+@@ -64,5 +75,5 @@
+ 	/bin/rm -rf $(DESTDIR)$(PREFIX)/$(LIBDIR)/libzita-resampler*
+ 
+ clean:
+-	/bin/rm -rf *~ *.o *.a *.d *.so.* zita-resampler/*~
++	/bin/rm -rf *~ *$(EXT) *.a *.d *.so.* zita-resampler/*~
+ 
+--- zita-resampler.org/libs/resampler-table.cc	2012-10-26 13:58:55 -0700
++++ zita-resampler/libs/resampler-table.cc	2017-02-27 10:40:07 -0800
+@@ -22,9 +22,11 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <math.h>
++#ifdef _MSC_VER
++#include <cmath>
++#endif
+ #include <zita-resampler/resampler-table.h>
+ 
+-
+ int zita_resampler_major_version (void)
+ {
+     return ZITA_RESAMPLER_MAJOR_VERSION;
