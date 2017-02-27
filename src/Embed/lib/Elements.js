@@ -4,6 +4,8 @@
    that can be found in the LICENSE file.
 */
 
+const Elements = module.exports = {};
+
 const ElementStyles = require("./ElementStyles.js");
 const ShadowRoot    = require("../ShadowRoot.js");
 const s_ShadowRoot  = require("../Symbols.js").ElementShadowRoot;
@@ -13,35 +15,33 @@ const s_NodeID      = Symbol("NodeID");
 const g_MainShadow  = new ShadowRoot(document.canvas, {"name": "main"});
 let g_CurrentShadow = null;
 
-const Elements = {
 
-    Create(tag, attributes, shadowRoot=g_MainShadow) {
-        tag = tag.toLowerCase();
-        let ret;
+Elements.Create = function(tag, attributes, shadowRoot=g_MainShadow) {
+    tag = tag.toLowerCase();
+    let ret;
 
-        let previousShadow = g_CurrentShadow;
-        g_CurrentShadow = shadowRoot;
+    let previousShadow = g_CurrentShadow;
+    g_CurrentShadow = shadowRoot;
 
-        try {
-            if (!(tag in Elements)) {
-                throw Error(`Tag <${tag}> is not implemented`);
-                return;
-            }
-
-            if (!Elements[tag][s_NodeName]) Elements[tag][s_NodeName] = tag;
-
-            ret = new Elements[tag](attributes);
-        } finally {
-            g_CurrentShadow = previousShadow;
+    try {
+        if (!(tag in Elements)) {
+            throw Error(`Tag <${tag}> is not implemented`);
+            return;
         }
 
-        return ret;
-    },
+        if (!Elements[tag][s_NodeName]) Elements[tag][s_NodeName] = tag;
 
-    Exists(tag) {
-        return (tag.toLowerCase() in Elements);
+        ret = new Elements[tag](attributes);
+    } finally {
+        g_CurrentShadow = previousShadow;
     }
-};
+
+    return ret;
+}
+
+Elements.Exists = function(tag) {
+    return (tag.toLowerCase() in Elements);
+}
 
 /*
     Generic resource loader : return the text content
