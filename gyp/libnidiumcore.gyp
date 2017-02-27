@@ -60,6 +60,7 @@
                     '<(third_party_path)/skia/include/config/',
                 ]}],
                 ['OS=="win"', {
+                    'defines': ['WIN32'],
                     'include_dirs': [
                     '<(third_party_path)/pthreads4w/',
                 ]}]
