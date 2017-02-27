@@ -9,6 +9,7 @@ class ShadowRoot {
         this.idAssociation = {};
         this.tagAssociation = {};
         this.unique = {};
+        this.name = options.name || undefined;
 
         this.jsScope = options.scope || null;
         this.nssList = [];
@@ -20,7 +21,6 @@ class ShadowRoot {
     }
 
     addTag(name, instance) {
-        console.log("adding tag", name, new Error().stack);
         if (!this.tagAssociation[name]) {
             this.tagAssociation[name] = [];
         }
@@ -60,7 +60,7 @@ class ShadowRoot {
     rm(child) {
         let prevShadow = child[s_ShadowRoot];
         prevShadow.rmID(child.id);
-        prevShadow.rmTag(child.constructor.name);
+        prevShadow.rmTag(child.name());
 
         if (child instanceof Elements.nss) {
             prevShadow.rmNSS(child.nss);

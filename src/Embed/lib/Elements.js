@@ -10,7 +10,7 @@ const s_ShadowRoot  = require("../Symbols.js").ElementShadowRoot;
 const s_NodeName    = Symbol("NodeName");
 const s_NodeID      = Symbol("NodeID");
 
-const g_MainShadow  = new ShadowRoot(document.canvas);
+const g_MainShadow  = new ShadowRoot(document.canvas, {"name": "main"});
 let g_CurrentShadow = null;
 
 const Elements = {
