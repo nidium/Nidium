@@ -372,6 +372,10 @@ Elements.textnode = class extends Elements.Node {
         throw Error("textNode doesn't support this operation");
     }
 
+    allowsChild() {
+        return false;
+    }
+
     onmount() {
         this.setParentText();
     }
