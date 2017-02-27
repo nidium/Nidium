@@ -283,12 +283,21 @@ JSObject *NML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
                 if (!strncasecmp(child->name(), CONST_STR_LEN("script"))
                         || !strncasecmp(child->name(), CONST_STR_LEN("template"))
                         || !strncasecmp(child->name(), CONST_STR_LEN("nss"))) {
-                    JS::RootedString scriptData(
+                    JS::RootedObject objChildren(cx, JS_NewPlainObject(cx));
+                    JS::RootedObject childrenArray(cx, JS_NewArrayObject(cx, 1));
+                    JS::RootedString typeStr(cx, NODE_STR("textNode", 8));
+                    JS::RootedString childStr(
                         cx, NODE_STR(child->value(), child->value_size()));
-                    NODE_PROP(obj, "text", scriptData);
+
+                    NODE_PROP(objChildren, "type", typeStr);
+                    NODE_PROP(objChildren, "text", childStr);
+
+                    JS_SetElement(cx, childrenArray, 0, objChildren);
+
+                    NODE_PROP(obj, "children", childrenArray);
                 } else {
-                    JS::RootedObject obj_children(cx, BuildLSTFromNode(cx, *child));
-                    NODE_PROP(obj, "children", obj_children);
+                    JS::RootedObject objChildren(cx, BuildLSTFromNode(cx, *child));
+                    NODE_PROP(obj, "children", objChildren);
                 }
             } break;
             default:
