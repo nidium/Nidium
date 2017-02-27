@@ -112,7 +112,7 @@ Elements.Node = class extends Canvas {
 
     getParent() {
         let p = super.getParent();
-        if (p[s_ShadowRoot] != this[s_ShadowRoot]) {
+        if (!p || p[s_ShadowRoot] != this[s_ShadowRoot]) {
             return null;
         } else {
             return p;
@@ -322,6 +322,10 @@ Elements.Element = class extends Elements.Node {
 
     ctx2d() {
         return this.getContext("2d");
+    }
+
+    getContext(type="2d") {
+        return Canvas.prototype.getContext.call(this, type);
     }
 
     paint(ctx) {
