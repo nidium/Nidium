@@ -139,11 +139,18 @@ Elements.Node = class extends Canvas {
     removeFromParent() {
         super.removeFromParent();
         this[s_ShadowRoot].rm(this);
+        for (let child of this.getChildren()) {
+            this[s_ShadowRoot].rm(child);
+        }
     }
 
     add(child) {
         if (child[s_ShadowRoot] != this[s_ShadowRoot]) {
             this[s_ShadowRoot].add(child);
+            var children = child.getChildren();
+            for (let el of children) {
+                this[s_ShadowRoot].add(el);
+            }
         }
         super.add(child);
     }
