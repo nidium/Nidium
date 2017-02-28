@@ -531,6 +531,7 @@ Elements.img = class extends Elements.Element {
 load("embed://lib/Elements/layout.js");
 load("embed://lib/Elements/nss.js");
 load("embed://lib/Elements/script.js");
+load("embed://lib/Elements/component.js");
 
 window._onready = function(lst) {}
 
