@@ -6,7 +6,7 @@
 {
     const Elements = require("Elements");
 
-    function walk(elems) {
+    function walk(elems, shadowRoot) {
         if (!elems) {
             return [];
         }
@@ -21,7 +21,7 @@
                https://bugzilla.mozilla.org/show_bug.cgi?id=932080
             */
             let {id} = elem.attributes || {id: null};
-            let ui = Elements.Create(elem.type, elem.attributes || elem.text);
+            let ui = Elements.Create(elem.type, elem.attributes || elem.text, shadowRoot);
 
             if (id) {
                 ui.id = id;
@@ -29,26 +29,25 @@
 
             ret.push(ui);
 
-            ui.createTree(elem.children));
+            ui.createTree(elem.children);
         }
 
         return ret;
     }
 
-    NML.CreateTree = function(nml) {
+    NML.CreateTree = function(nml, shadowRoot) {
         let tree;
         if (typeof(nml) == "string") {
             tree = NML.parse(nml);
             if (!tree) {
                 /* If the NML couldnt be parsed, issue a textnode */
-                return [Elements.Create("textnode", nml)];
+                return [Elements.Create("textnode", nml, shadowRoot)];
             }
         } else if (!Array.isArray(nml)) {
             throw new Error("NML.CreateTree expect an array");
         } else {
             tree = nml;
         }
-        return walk(tree);
+        return walk(tree, shadowRoot);
     }
-
 }
