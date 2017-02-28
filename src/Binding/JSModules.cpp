@@ -9,9 +9,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <sys/types.h>
+
+#ifndef _MSC_VER
 #include <unistd.h>
 #include <dlfcn.h>
-#include <sys/types.h>
+#endif
 
 #include <algorithm>
 

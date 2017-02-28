@@ -8,11 +8,14 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <strings.h>
-#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#ifndef _MSC_VER
+#include <strings.h>
+#include <unistd.h>
 #include <sys/socket.h>
+#endif
 
 #include "Net/HTTP.h"
 #include "Binding/JSUtils.h"

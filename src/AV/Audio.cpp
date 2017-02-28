@@ -9,11 +9,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <unistd.h>
 #include <pthread.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#ifndef _MSC_VER
+#include <unistd.h>
 #include <sys/socket.h>
+#endif
 
 #include <portaudio.h>
 #include "pa_ringbuffer.h"

@@ -7,10 +7,13 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#ifndef _MSC_VER
+#include <unistd.h>
 #include <sys/socket.h>
+#endif
 
 #include "Net/HTTPServer.h"
 #include "Binding/NidiumJS.h"

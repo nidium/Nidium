@@ -9,8 +9,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+
+#ifndef _MSC_VER
 #include <unistd.h>
 #include <sys/mman.h>
+#endif
 
 #include "Binding/NidiumJS.h"
 

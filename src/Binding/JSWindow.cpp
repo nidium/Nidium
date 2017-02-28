@@ -9,7 +9,10 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+
+#ifndef _MSC_VER
 #include <strings.h>
+#endif
 
 #include "Binding/JSFile.h"
 #include "Binding/JSUtils.h"

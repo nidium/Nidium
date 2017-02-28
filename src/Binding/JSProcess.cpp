@@ -7,8 +7,10 @@
 
 #include <ape_netlib.h>
 
+#ifndef _MSC_VER
 #include <pwd.h>
 #include <grp.h>
+#endif
 
 #include "Core/Path.h"
 #include "Binding/JSUtils.h"

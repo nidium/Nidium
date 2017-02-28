@@ -7,7 +7,10 @@
 #define interface_osx_system_h__
 
 #include "../SystemInterface.h"
+
+#ifndef _MSC_VER
 #include <sys/param.h> /* for MAXPATHLEN */
+#endif
 
 namespace Nidium {
 namespace Interface {

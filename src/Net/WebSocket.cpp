@@ -7,9 +7,12 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include <unistd.h>
 #include <string.h>
+
+#ifndef _MSC_VER
 #include <strings.h>
+#include <unistd.h>
+#endif
 
 #include "Binding/NidiumJS.h"
 

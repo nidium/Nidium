@@ -9,12 +9,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <unistd.h>
 #include <fts.h>
-#include <dirent.h>
-#include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#ifndef _MSC_VER
+#include <unistd.h>
+#include <dirent.h>
+#include <sys/mman.h>
+#endif
 
 #include <ape_buffer.h>
 

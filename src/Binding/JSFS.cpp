@@ -7,10 +7,13 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <dirent.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#ifndef _MSC_VER
+#include <dirent.h>
+#endif
 
 using Nidium::Core::SharedMessages;
 using Nidium::Core::Task;

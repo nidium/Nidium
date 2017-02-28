@@ -9,12 +9,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <math.h>
-#include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#ifndef _MSC_VER
+#include <unistd.h>
+#include <sys/socket.h>
+#endif
 
 #include "Frontend/Context.h"
 #include "Binding/JSConsole.h"

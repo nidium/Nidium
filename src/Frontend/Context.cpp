@@ -9,9 +9,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <unistd.h>
 #include <math.h>
 
+#ifndef _MSC_VER
+#include <unistd.h>
+#endif
 
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSDocument.h"

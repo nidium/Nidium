@@ -6,10 +6,11 @@
 #include "Binding/JSHTTPServer.h"
 #include "Binding/JSUtils.h"
 
-
 #include <stdbool.h>
-#include <unistd.h>
 
+#ifndef _MSC_VER
+#include <unistd.h>
+#endif
 
 using Nidium::Net::HTTPServer;
 using Nidium::Net::HTTPClientConnection;

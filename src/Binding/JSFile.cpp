@@ -11,11 +11,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <ape_netlib.h>
+
+#ifndef _MSC_VER
+#include <unistd.h>
+#endif
 
 #include "IO/Stream.h"
 #include "Binding/JSUtils.h"

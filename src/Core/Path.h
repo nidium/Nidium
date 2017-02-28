@@ -16,9 +16,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 #include <stdint.h>
+
+#ifndef _MSC_VER
 #include <sys/param.h>
+#include <unistd.h>
+#endif
 
 #include <ape_array.h>
 

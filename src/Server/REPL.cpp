@@ -8,13 +8,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <pwd.h>
 #include <errno.h>
 #include <signal.h>
-#include <unistd.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <sys/types.h>
+
+#ifndef _MSC_VER
+#include <unistd.h>
+#include <pwd.h>
+#endif
 
 #include <linenoise.h>
 

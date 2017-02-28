@@ -11,10 +11,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <pthread.h>
 #include <sys/types.h>
+
+#ifndef _MSC_VER
+#include <unistd.h>
 #include <sys/syscall.h>
+#endif
+
 #include <array>
 
 namespace Nidium {

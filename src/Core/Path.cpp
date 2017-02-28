@@ -8,10 +8,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include <stdbool.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#ifndef _MSC_VER
+#include <strings.h>
+#endif
 
 #include <string>
 #include <vector>

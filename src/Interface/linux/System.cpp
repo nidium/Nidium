@@ -8,11 +8,14 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
-#include <pwd.h>
 #include <locale.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#ifndef _MSC_VER
 #include <sys/param.h>
+#include <pwd.h>
+#endif
 
 #include <X11/Xlib.h>
 #include <gtk/gtk.h>

@@ -8,7 +8,10 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+
+#ifndef _MSC_VER
 #include <strings.h>
+#endif
 
 #include "Graphics/Canvas3DContext.h"
 #include "Graphics/CanvasHandler.h"

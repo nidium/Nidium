@@ -10,9 +10,12 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
-#include <strings.h>
-#include <unistd.h>
 #include <math.h>
+
+#ifndef _MSC_VER
+#include <unistd.h>
+#include <strings.h>
+#endif
 
 #define NIDIUM_SKIA_CACHE_MAX_RESOURCES 4096
 #define NIDIUM_SKIA_CACHE_MAX_BYTES (256 * 1024 * 1024)

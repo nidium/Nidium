@@ -9,11 +9,13 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#ifndef _MSC_VER
+#include <unistd.h>
+#endif
 
 #include <jsprf.h>
 

@@ -10,10 +10,14 @@
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 #include <getopt.h>
 #include <signal.h>
 #include <list>
+
+#ifndef _MSC_VER
+#include <unistd.h>
+#endif
+
 #ifdef __linux__
 #include <sys/time.h>
 #include <sys/types.h>

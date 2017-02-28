@@ -7,10 +7,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdbool.h>
 #include <math.h>
 #include <pthread.h>
+
+#ifndef _MSC_VER
+#include <unistd.h>
+#endif
 
 #include <pa_ringbuffer.h>
 #include <Coro.h>

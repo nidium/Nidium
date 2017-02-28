@@ -6,7 +6,10 @@
 #include "Binding/JSUtils.h"
 
 #include <string.h>
+
+#ifndef _MSC_VER
 #include <strings.h>
+#endif
 
 #include <jsfriendapi.h>
 #include <js/CharacterEncoding.h>

@@ -6,10 +6,13 @@
 #include "IO/FileStream.h"
 
 #include <stdbool.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#ifndef _MSC_VER
+#include <unistd.h>
+#endif
 
 namespace Nidium {
 namespace IO {

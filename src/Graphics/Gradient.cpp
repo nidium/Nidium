@@ -7,7 +7,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif
 
 #include <SkGradientShader.h>
 

@@ -10,11 +10,13 @@
 #include <stdbool.h>
 #include <string.h>
 #include <pthread.h>
-#include <glob.h>
 #include <sys/stat.h>
-#include <sys/socket.h>
 #include <sys/types.h>
 
+#ifndef _MSC_VER
+#include <glob.h>
+#include <sys/socket.h>
+#endif
 
 #include "Binding/JSConsole.h"
 #include <js/StructuredClone.h>

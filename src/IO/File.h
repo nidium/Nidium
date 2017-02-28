@@ -8,8 +8,11 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <dirent.h>
 #include <sys/types.h>
+
+#ifndef _MSC_VER
+#include <dirent.h>
+#endif
 
 #include "Core/Messages.h"
 #include "Core/TaskManager.h"
