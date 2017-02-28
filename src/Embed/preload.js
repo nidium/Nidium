@@ -3,6 +3,14 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
+// Defer creation of the layout once all assets are ready
+Object.defineProperty(window, "_onready", {
+    "configurable": false,
+    "writable": false,
+    "value": function(lst) {
+        document.canvas.inject(lst);
+    }
+});
 
 function __nidiumPreload(options, lst) {
     if (options.html5) {
@@ -13,15 +21,6 @@ function __nidiumPreload(options, lst) {
     load("embed://NMLComponents.js");
     load("embed://AnimationBlock.js");
     load("embed://HTTPAdditions.js");
-
-    // Defer creation of the layout once all assets are ready
-    Object.defineProperty(window, "_onready", {
-        "configurable": false,
-        "writable": false,
-        "value": function() {
-            document.canvas.inject(lst);
-        }
-    });
 }
 
 if (0) {
