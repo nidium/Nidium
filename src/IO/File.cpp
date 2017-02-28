@@ -9,11 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <fts.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
 #ifndef _MSC_VER
+#include <fts.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/mman.h>

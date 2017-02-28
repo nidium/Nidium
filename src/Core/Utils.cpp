@@ -9,8 +9,11 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
+
+#ifndef _MSC_VER
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#endif
 
 #include <ape_sha1.h>
 #include <ape_base64.h>

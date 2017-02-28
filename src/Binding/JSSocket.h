@@ -7,6 +7,7 @@
 #define binding_jssocket_h__
 
 #include <ape_netlib.h>
+#include <ape_socket.h>
 
 #include "Binding/ClassMapper.h"
 

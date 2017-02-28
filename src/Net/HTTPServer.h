@@ -12,6 +12,7 @@
 
 #include <ape_netlib.h>
 #include <ape_array.h>
+#include <ape_socket.h>
 #include <unordered_map>
 
 #include "Core/Messages.h"
