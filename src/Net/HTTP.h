@@ -304,12 +304,12 @@ public:
 
     void clearPendingError()
     {
-        m_PendingError = ERROR_NOERR;
+        m_PendingError = kHTTPError_NoError;
     }
 
     bool hasPendingError() const
     {
-        return (m_PendingError != ERROR_NOERR);
+        return (m_PendingError != kHTTPError_NoError);
     }
 
     void setMaxRedirect(int max)
