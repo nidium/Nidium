@@ -82,7 +82,7 @@ Elements.Node = class extends Canvas {
         this.top = attributes.top || 0;
 
         this[s_ShadowRoot] = g_CurrentShadow;
-        this[s_ShadowRoot].addTag(this.constructor[s_NodeName], this);
+        this[s_ShadowRoot].addTag(this.name(), this);
     }
 
     getNMLContent(self = true) {
@@ -137,21 +137,12 @@ Elements.Node = class extends Canvas {
     }
 
     removeFromParent() {
-        super.removeFromParent();
         this[s_ShadowRoot].rm(this);
-        for (let child of this.getChildren()) {
-            this[s_ShadowRoot].rm(child);
-        }
+        super.removeFromParent();
     }
 
     add(child) {
-        if (child[s_ShadowRoot] != this[s_ShadowRoot]) {
-            this[s_ShadowRoot].add(child);
-            var children = child.getChildren();
-            for (let el of children) {
-                this[s_ShadowRoot].add(el);
-            }
-        }
+        this[s_ShadowRoot].add(child);
         super.add(child);
     }
 
@@ -258,7 +249,7 @@ Elements.Node = class extends Canvas {
 
     get shadowRoot() {
         let shadow = this[s_ShadowRoot];
-        return shadow.host == this ? shadow : null;
+        return shadow && shadow.host == this ? shadow : null;
     }
 
     getRootNode(options) {

@@ -37,6 +37,9 @@ class ShadowRoot {
     }
 
     addID(id, instance) {
+        if (this.idAssociation[id] && this.idAssociation[id] != instance) {
+            console.warn(`[WARNING] shadowRoot already have an element with id ${id}. Adding new element will override current element with same id`);
+        }
         this.idAssociation[id] = instance;
     }
 
@@ -57,28 +60,53 @@ class ShadowRoot {
         this.computeNSS();
     }
 
-    rm(child) {
-        let prevShadow = child[s_ShadowRoot];
-        prevShadow.rmID(child.id);
-        prevShadow.rmTag(child.name());
-
-        if (child instanceof Elements.nss) {
-            prevShadow.rmNSS(child.nss);
+    rm(el) {
+        for (let child of el.getChildren()) {
+            this.rm(child);
         }
+
+        if (el.id) {
+            this.rmID(el.id);
+        }
+
+        this.rmTag(el.name());
+
+        if (el instanceof Elements.nss) {
+            this.rmNSS(el.nss);
+        }
+
+        // XXX : Is this really what we want ?
+        el[s_ShadowRoot] = null;
     }
 
-    add(child) {
-        if (child[s_ShadowRoot]) {
-            child[s_ShadowRoot].rm(child);
+    add(el) {
+        if (el[s_ShadowRoot] == this) {
+            // Same ShadowRoot, nothing to do
+            return;
         }
 
-        child[s_ShadowRoot] = this;
+        if (!el.shadowRoot) {
+            // Element is a child of another ShadowRoot, move
+            // the element and it's children to this ShadowRoot.
+            if (el[s_ShadowRoot]) {
+                el[s_ShadowRoot].rm(el);
 
-        this.addID(child.id);
-        this.addTag(child.constructor.name);
+                for (let child of el.getChildren()) {
+                    this.add(child);
+                }
+            }
+        }
 
-        if (child instanceof Elements.nss) {
-            this.addNSS(child.nss);
+        el[s_ShadowRoot] = this;
+
+        if (el.id) {
+            this.addID(el.id, el);
+        }
+
+        this.addTag(el.name(), el);
+
+        if (el instanceof Elements.nss) {
+            this.addNSS(el.nss);
         }
     }
 
@@ -88,6 +116,14 @@ class ShadowRoot {
 
     findNodesByTag(id) {
         return this.tagAssociation[id];
+    }
+
+    getElementById(id) {
+        return this.findNodeById(id);
+    }
+
+    getElementsByTagName(id) {
+        return this.findNodesByTag(id);
     }
 
     computeNSS() {
