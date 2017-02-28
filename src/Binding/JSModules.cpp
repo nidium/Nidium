@@ -780,9 +780,10 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
         dir.erase(len);
         dir += files[i];
 
-        PtrAutoDelete<Stream *> stream(Stream::Create(dir.c_str()));
+        Path p(dir.c_str());
+        PtrAutoDelete<Stream *> stream(Stream::Create(p.path()));
 
-        if (!stream.ptr()->exists()) continue;
+        if (!stream.ptr() || !stream.ptr()->exists()) continue;
 
         switch (i) {
             case 0: // index.js
