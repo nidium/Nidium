@@ -26,7 +26,7 @@ namespace Binding {
 
 static int ape_kill_handler(int code, ape_global *ape)
 {
-    NidiumJS *njs = NidiumJS::GetObject();
+    NidiumJS *njs = NidiumJS::GetObject(NULL);
     JSContext *cx = njs->m_Cx;
     JS::RootedValue rval(cx);
 
