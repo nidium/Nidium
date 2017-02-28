@@ -5,6 +5,7 @@
 */
 
 {
+    const s_ShadowRoot = require("./Symbols.js").ElementShadowRoot;
 
     Canvas.prototype.addMultiple = function(...canvases) {
         for (let canvas of canvases) {
@@ -18,7 +19,7 @@
         Inject a 'Layout syntax tree' (LST) into the element.
     */
     Canvas.prototype.inject = function(nml) {
-        this.addMultiple(...NML.CreateTree(nml));
+        this.addMultiple(...NML.CreateTree(nml, this[s_ShadowRoot]));
     }
 
     /*
