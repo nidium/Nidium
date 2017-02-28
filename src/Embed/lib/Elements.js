@@ -206,15 +206,15 @@ Elements.Node = class extends Canvas {
         return this._textValue || "";
     }
 
-    cloneNode(deep = true) {
-        var clone = Elements.Create(this.name(), this.attributes, this[s_ShadowRoot]);
+    cloneNode(deep = true, shadowRoot=this[s_ShadowRoot]) {
+        var clone = Elements.Create(this.name(), this.attributes, shadowRoot);
 
         if (!deep) {
             return clone;
         }
 
         for (let child of this.getChildren()) {
-            clone.add(child.cloneNode(true));
+            clone.add(child.cloneNode(true, shadowRoot));
         }
 
         return clone;
