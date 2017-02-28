@@ -688,15 +688,15 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
             }
 
             struct LayerizeContext ctx
-                = {.m_Layer = layerContext.m_Layer,
-                   .m_pLeft = tmpLeft + m_Translate_s.x + layerContext.m_pLeft
-                              + offsetLeft,
-                   .m_pTop
-                   = tmpTop + m_Translate_s.y + layerContext.m_pTop + offsetTop,
-                   .m_aOpacity   = popacity,
-                   .m_aZoom      = m_Zoom,
-                   .m_Clip       = layerContext.m_Clip,
-                   .m_SiblingCtx = &siblingctx };
+                = {/* .m_Layer = */ layerContext.m_Layer,
+                   /* .m_pLeft = */ tmpLeft + m_Translate_s.x 
+i                             + layerContext.m_pLeft + offsetLeft,
+                   /* .m_pTop = */ tmpTop + m_Translate_s.y 
+                                + layerContext.m_pTop + offsetTop,
+                   /* .m_aOpacity   = */ popacity,
+                   /* .m_aZoom      = */ m_Zoom,
+                   /* .m_Clip       = */ layerContext.m_Clip,
+                   /* .m_SiblingCtx = */ &siblingctx };
 
             cur->layerize(ctx, compList, draw);
 
