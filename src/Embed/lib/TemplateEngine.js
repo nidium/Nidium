@@ -1,37 +1,28 @@
-const Elements = require("Elements");
-
-const g_Engines = {}
+const g_Engines     = {}
+const Elements      = require("Elements");
+const s_Node        = Symbol("TemplateNode");
 let g_DefaultEngine = null;
 
-Elements.template = class extends Elements.Node {
-    constructor(node) {
-        super(node);
-
-        let engine = g_DefaultEngine;
-
-        if (node.attributes && node.attributes.type &&
-                !(engine = TemplateEngine.get(node.attributes.type))) {
-            console.warn(`Template compiler ${node.attributes.type} not found. Using no-op compiler.`);
-            engine = g_DefaultEngine;
+class TemplateEngine {
+    constructor(node, attributes) {
+        if (!node || !(node instanceof Elements.template)) {
+            throw new Error("TemplateEngine constructor called without an element or with an element that is not a <template>");
         }
 
-        return new engine(Elements.Loader(node), node.attributes);
+        this[s_Node] = node;
     }
 
-    // Override
-    isAutonomous() {
-        return true;
-    }
-}
-
-class TemplateEngine {
-    constructor(data, attributes) {}
+    compile(data) { }
 
     render(data) {
-        return NML.CreateTree(NML.parse(data));
+        return NML.CreateTree(data, this.getNode().getRootNode().shadowRoot);
     }
 
-    static register(name, impl) {
+    getNode() {
+        return this[s_Node];
+    }
+
+    static Register(name, impl) {
         if (g_Engines[name]) {
             throw new Error(`Template engine ${name} is already registred`);
         }
@@ -43,8 +34,12 @@ class TemplateEngine {
         g_Engines[name] = impl;
     }
 
-    static get(engineName) {
+    static Get(engineName) {
         return g_Engines[engineName];
+    }
+
+    static GetDefaultEngine() {
+        return g_DefaultEngine;
     }
 }
 
@@ -53,17 +48,14 @@ class TemplateEngine {
 */
 const Nunjucks = require("nunjucks");
 
-class NunjucksTemplate extends TemplateEngine {
-    constructor(data, attributes) {
-        super(data, attributes);
+TemplateEngine.Register("nunjucks", class extends TemplateEngine {
+    compile(data) {
         this.tpl = Nunjucks.compile(data);
     }
 
     render(scope) {
         return super.render(this.tpl.render(scope));
     }
-}
-
-TemplateEngine.register("nunjucks", NunjucksTemplate);
+});
 
 module.exports = TemplateEngine

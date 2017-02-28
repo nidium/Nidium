@@ -25,13 +25,13 @@ class Component extends Elements.Element {
             }
         } else if (templates && templates.length == 1) {
             // When rendering templates, |this| should be the instance of the component
-            let scope = this[s_ComponentShadow].getJSScope();
+            let scope = this.constructor[s_ComponentShadow].getJSScope();
             let previousThis = scope["this"];
 
             scope["this"] = this;
 
             try {
-                this.addMultiple(...templates[0].render());
+                this.addMultiple(...templates[0].render(scope));
             } finally {
                 scope["this"] = previousThis;
             }
