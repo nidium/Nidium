@@ -11,7 +11,7 @@
 #include <http_parser.h>
 
 #include <ape_netlib.h>
-#include <ape_sockety.h>
+#include <ape_socket.h>
 #include <ape_array.h>
 
 #define HTTP_MAX_CL (1024ULL * 1024ULL * 1024ULL * 2ULL)
