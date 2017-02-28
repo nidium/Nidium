@@ -336,7 +336,7 @@ void JSHTTP::onError(HTTP::HTTPError err)
 
 void JSHTTP::onError(const char *error)
 {
-    this->onError(HTTP::_ERROR_END_ + 1, error);
+    this->onError(HTTP::_kHTTPError_End_ + 1, error);
 }
 
 void JSHTTP::onError(int code, const char *error)

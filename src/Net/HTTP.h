@@ -173,14 +173,14 @@ public:
 
     enum HTTPError
     {
-        ERROR_NOERR,
-        ERROR_TIMEOUT,
-        ERROR_RESPONSE,
-        ERROR_DISCONNECTED,
-        ERROR_SOCKET,
-        ERROR_HTTPCODE,
-        ERROR_REDIRECTMAX,
-        _ERROR_END_
+        kHTTPError_NoError,
+        kHTTPError_Timeout,
+        KHTTPError_Response,
+        kHTTPError_Disconnected,
+        KHTTPError_Socket,
+        kHTTPError_HTTPCode,
+        kHTTPError_RedirectMax,
+        _kHTTPError_End_
     };
 
     const static char *HTTPErrorDescription[];

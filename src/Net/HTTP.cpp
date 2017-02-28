@@ -35,7 +35,7 @@ namespace Net {
 #define SOCKET_WRITE_OWN(data) \
     APE_socket_write(s, (unsigned char *)data, strlen(data), APE_DATA_OWN)
 
-const char *HTTP::HTTPErrorDescription[_ERROR_END_]
+const char *HTTP::HTTPErrorDescription[_kHTTPError_End_]
     = { "Unknown error",        "Timeout",      "Invalid response",
         "Disconnected",         "Socket error", "Failed to parse response",
         "Max redirect exceeded" };
@@ -265,7 +265,7 @@ nidium_http_disconnect(ape_socket *s, ape_global *ape, void *socket_arg)
     nhttp->m_CurrentSock = NULL;
 
     if (!nhttp->m_HTTP.m_Ended) {
-        nhttp->setPendingError(HTTP::ERROR_DISCONNECTED);
+        nhttp->setPendingError(HTTP::kHTTPError_Disconnected);
     }
 
     nhttp->clearState();
@@ -299,7 +299,7 @@ static void nidium_http_read(ape_socket *s,
             static_cast<unsigned long>(nparsed),
             http_errno_description(HTTP_PARSER_ERRNO(&nhttp->m_HTTP.parser)));
 
-        nhttp->setPendingError(HTTP::ERROR_RESPONSE);
+        nhttp->setPendingError(HTTP::KHTTPError_Response);
 
         APE_socket_shutdown_now(s);
     }
@@ -311,7 +311,7 @@ HTTP::HTTP(ape_global *n)
     : m_Ptr(NULL), m_Net(n), m_CurrentSock(NULL), m_Err(0),
       m_Timeout(HTTP_DEFAULT_TIMEOUT), m_TimeoutTimer(0), m_Delegate(NULL),
       m_FileSize(0), m_isParsing(false), m_Request(NULL), m_CanDoRequest(true),
-      m_PendingError(ERROR_NOERR), m_MaxRedirect(8), m_FollowLocation(true)
+      m_PendingError(kHTTPError_NoError), m_MaxRedirect(8), m_FollowLocation(true)
 {
     memset(&m_HTTP, 0, sizeof(m_HTTP));
     memset(&m_Redirect, 0, sizeof(m_Redirect));
@@ -322,11 +322,11 @@ HTTP::HTTP(ape_global *n)
 
 void HTTP::reportPendingError()
 {
-    if (m_Delegate && m_PendingError != ERROR_NOERR) {
+    if (m_Delegate && m_PendingError != kHTTPError_NoError) {
         m_Delegate->onError(m_PendingError);
     }
 
-    m_PendingError = ERROR_NOERR;
+    m_PendingError = kHTTPError_NoError;
 }
 
 void HTTP::setPrivate(void *ptr)
@@ -392,7 +392,7 @@ void HTTP::headerEnded()
             m_Redirect.count++;
 
             if (m_Redirect.count > m_MaxRedirect) {
-                setPendingError(ERROR_REDIRECTMAX);
+                setPendingError(kHTTPError_RedirectMax);
             }
 
             return;
@@ -410,7 +410,7 @@ void HTTP::headerEnded()
         case 4:
         case 5:
         default:
-            m_Delegate->onError(ERROR_HTTPCODE);
+            m_Delegate->onError(kHTTPError_HTTPCode);
             break;
     }
 */
@@ -437,7 +437,7 @@ void HTTP::stopRequest(bool timeout)
         this->close(true);
 
         if (timeout) {
-            this->setPendingError(ERROR_TIMEOUT);
+            this->setPendingError(kHTTPError_Timeout);
         }
 
         this->clearState();
@@ -548,7 +548,7 @@ bool HTTP::createConnection()
 
         printf("[Socket] Cant load socket (new)\n");
         if (m_Delegate) {
-            this->setPendingError(ERROR_SOCKET);
+            this->setPendingError(KHTTPError_Socket);
         }
         return false;
     }
@@ -558,7 +558,7 @@ bool HTTP::createConnection()
         == -1) {
         printf("[Socket] Cant connect (0)\n");
         if (m_Delegate) {
-            this->setPendingError(ERROR_SOCKET);
+            this->setPendingError(KHTTPError_Socket);
         }
         return false;
     }
@@ -709,7 +709,7 @@ HTTP::~HTTP()
     }
 
     m_Delegate     = NULL;
-    m_PendingError = ERROR_NOERR;
+    m_PendingError = kHTTPError_NoError;
 
     this->clearState();
 }

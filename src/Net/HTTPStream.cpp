@@ -283,12 +283,12 @@ void HTTPStream::onError(HTTP::HTTPError err)
         return;
     }
     switch (err) {
-        case HTTP::ERROR_HTTPCODE:
+        case HTTP::kHTTPError_HTTPCode:
             this->errorSync(Stream::kErrors_Open, m_Http->getStatusCode());
             break;
-        case HTTP::ERROR_RESPONSE:
-        case HTTP::ERROR_SOCKET:
-        case HTTP::ERROR_TIMEOUT:
+        case HTTP::KHTTPError_Response:
+        case HTTP::KHTTPError_Socket:
+        case HTTP::kHTTPError_Timeout:
             this->errorSync(Stream::kErrors_Open, -1);
             break;
         default:
