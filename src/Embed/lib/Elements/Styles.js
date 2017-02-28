@@ -1,4 +1,4 @@
-const s_ShadowRoot = require("../Symbols").ElementShadowRoot;
+const s_ShadowRoot = require("../../Symbols").ElementShadowRoot;
 
 function proxyStyleSet(el, styles, name, value) {
     let p = Canvas.prototype.getParent.call(el);

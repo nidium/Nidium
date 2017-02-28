@@ -1,5 +1,5 @@
 const s_ShadowRoot  = require("./Symbols.js").ElementShadowRoot;
-const Elements      = require("./lib/Elements.js");
+const Elements      = require("Elements");
 
 class ShadowRoot {
     constructor(host, options={}) {
