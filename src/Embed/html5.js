@@ -5,7 +5,7 @@
 */
 
 {
-const Elements = require("./lib/Elements.js");
+const Elements = require("Elements");
 
 let reportUnsupported = function(message) {
     console.info("[HTML5Compat] " + message);
