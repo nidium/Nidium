@@ -14,7 +14,9 @@
 #include <pthread.h>
 #include <sys/types.h>
 
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+#include <io.h>
+#else
 #include <unistd.h>
 #include <sys/syscall.h>
 #endif
