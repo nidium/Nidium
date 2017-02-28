@@ -254,7 +254,7 @@ def SDL2():
         patchs = [os.path.join(CONFIGURE_PATH, "patch", "SDL2.windows.patch")]
         outputs = ["../VisualC/SDL/Win32/Release/SDL2.lib"]
     else:
-        build = ["./configure", "make"],
+        build = ["../configure", "make"]
         patchs = []
         outputs = ["build/.libs/libSDL2.a"]
     return {
@@ -274,7 +274,7 @@ def depotTools():
 
 @Deps.register("basekit")
 def basekit():
-    make_opts = ''
+    make_opt = ''
     if Platform.system == "Windows":
         #parallel build seems to lock make
         make_opt = " -j1"

@@ -46,7 +46,7 @@ def pthreads4w():
     if Platform.system != "Windows":
         Log.error("The '%s' platform has native pthreads" % (Platform.system))
     Platform.setEnviron("TARGET_CPU=%s" % (["x86","x64"][Platform.wordSize == 64]))
-    model, version = ['VCE', '2']    
+    model, version = ['VCE', '2']
     return {
         "location": Deps.GitRepo("https://git.code.sf.net/p/pthreads4w/code", revision="062c8e"),
         "build": ["nmake realclean %s-static" % (model)],
@@ -55,38 +55,43 @@ def pthreads4w():
 
 @Deps.register("leveldb")
 def leveldb():
-    cxxFlags = Platform.getEnviron("CXXFLAGS", "")
     make_opt = ''
+    ext = '.a'
+    if Platform.system == "Darwin":
+        ext = '.lib'
+    cxxFlags = Platform.getEnviron("CXXFLAGS", "")
     if Platform.system == "Windows":
         #parallel build seems to lock make
         make_opt += " -j1"
-        #tell make to ignore the shared librray, just create the static one
-        make_opt += " libleveldb.a"
+        #tell make to ignore the shared libray, just create the static one
+        make_opt += " libleveldb%s" % (ext)
         cxxFlags += " -EHsc"
         Platform.setEnviron('TARGET_OS=NATIVE_WINDOWS')
+        Platform.setEnviron("CXXFLAGS=%s" % (cxxFlags))
         location = Deps.GitRepo("https://github.com/bitcoin-core/leveldb.git", revision="d40bc3f")
-        patch = [os.path.join(CONFIGURE_PATH, "patch", "leveldb.windows.patch")] 
+        patch = [os.path.join(CONFIGURE_PATH, "patch", "leveldb.windows.patch")]
+        build = ["make clean", "make" + make_opt]
     else:
-        location = Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.19")
+        location = Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.18")
         patch = [os.path.join(CONFIGURE_PATH, "patch", "leveldb.patch")]
+        build = ["make clean", "CXXFLAGS=%s make %s" % (cxxFlags, make_opt)]
         if Konstruct.config("asan"):
             # Fix ASAN container overflow false positive :
             # https://github.com/google/sanitizers/wiki/AddressSanitizerContainerOverflow#false-positives
             cxxFlags += " -fsanitize=address"
-    Platform.setEnviron("CXXFLAGS=%s" % (cxxFlags))
     return {
         "location": location,
         # leveldb make doest not detect CXXFLAGS changes, so we force "make clean"
-        "build": ["make clean", "make" + make_opt],
+        "build": build,
         "patchs": patch,
-        "outputs": ["libleveldb(.a|.lib)"]
+        "outputs": ["libleveldb%s" % (ext)]
     }
 
 @Deps.register("libnspr4")
 def libnspr():
     if Platform.system == "Windows":
         make = "mozmake"
-        configure = r"bash configure --enable-static-rtl "#--datarootdir=c:\temp" #--enable-win32-target=WIN95 
+        configure = r"bash configure --enable-static-rtl "#--datarootdir=c:\temp" #--enable-win32-target=WIN95
         if Platform.wordSize == 64:
             configure += " --target=x86_64-pc-mingw"
     else:
@@ -107,7 +112,7 @@ def libnspr():
 @Deps.register("mozilla-central")
 def mozilla():
     nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/")).replace('\\', '/')
-    nsprFlags = '--with-nspr-cflags="-I%s/dist/include/nspr/"' % (nsprDir) 
+    nsprFlags = '--with-nspr-cflags="-I%s/dist/include/nspr/"' % (nsprDir)
     if Platform.system == "Windows":
         make = "mozmake"
         configure = "bash ../configure --enable-build-backend=VisualStudio"
