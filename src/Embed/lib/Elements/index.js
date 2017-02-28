@@ -252,13 +252,13 @@ Elements.Node = class extends Canvas {
         return shadow && shadow.host == this ? shadow : null;
     }
 
-    getRootNode(options) {
-        let p = this.getParent();
+    getRootNode(options={}) {
+        let p = Canvas.prototype.getParent.call(this);
         while (p) {
             if (!options.composed && p.shadowRoot) {
                 return p;
             }
-            p = p.getParent();
+            p = Canvas.prototype.getParent.call(p);
         }
         return p;
     }
