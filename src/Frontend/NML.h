@@ -57,7 +57,7 @@ public:
     void onMessage(const Core::SharedMessages::Message &msg);
     void loadFile(const char *filename, NMLLoadedCallback cb, void *arg);
 
-    void loadDefaultItems(Assets *assets);
+    void loadDefaultItems();
     nidium_xml_ret_t loadAssets(rapidxml::xml_node<> &node);
     nidium_xml_ret_t loadMeta(rapidxml::xml_node<> &node);
     nidium_xml_ret_t parseNode(rapidxml::xml_node<> &node);
@@ -108,9 +108,9 @@ private:
                                       rapidxml::xml_node<> &node);
 
     bool loadData(char *data, size_t len, rapidxml::xml_document<> &doc);
-    void addAsset(Assets *);
     ape_global *m_Net;
     IO::Stream *m_Stream;
+    Assets *m_Assets = nullptr;
 
     /* Define callbacks for tags in <application> */
     struct _nml_tags
@@ -121,8 +121,6 @@ private:
     } m_NmlTags[3] = { { "assets", &NML::loadAssets, false },
                        { "meta", &NML::loadMeta, true },
                        { NULL, &NML::parseNode, false} };
-
-    uint32_t m_nAssets;
 
     Binding::NidiumJS *m_Njs;
 
@@ -138,12 +136,6 @@ private:
         } size;
     } m_Meta;
 
-    struct
-    {
-        Assets **list;
-        uint32_t allocated;
-        uint32_t size;
-    } m_AssetsList;
     NMLLoadedCallback m_Loaded;
     void *m_LoadedArg;
 

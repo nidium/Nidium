@@ -36,19 +36,15 @@ namespace Nidium {
 namespace Frontend {
 
 // {{{ NML
+static void NML_onAssetsItemRead(Assets::Item *item, void *arg);
+static void NML_onAssetsReady(Assets *assets, void *arg);
 /*@FIXME:: refractor the constructor, so that m_JSObjectLST get's
  * njs'javascript context*/
 NML::NML(ape_global *net)
-    : m_Net(net), m_Stream(NULL), m_nAssets(0), m_Njs(NULL), m_Loaded(NULL),
+    : m_Net(net), m_Stream(NULL), m_Njs(NULL), m_Loaded(NULL),
       m_LoadedArg(NULL), m_LST(NULL), m_JSObjectLST(NULL),
       m_DefaultItemsLoaded(false), m_LoadFramework(true), m_LoadHTML5(false)
 {
-    m_AssetsList.size      = 0;
-    m_AssetsList.allocated = 4;
-
-    m_AssetsList.list = static_cast<Assets **>(
-        malloc(sizeof(Assets *) * m_AssetsList.allocated));
-
     m_Meta.title       = NULL;
     m_Meta.size.width  = 0;
     m_Meta.size.height = 0;
@@ -98,7 +94,7 @@ void NML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
     m_Stream->getContent();
 }
 
-void NML::loadDefaultItems(Assets *assets)
+void NML::loadDefaultItems()
 {
     if (m_DefaultItemsLoaded) {
         return;
@@ -110,7 +106,7 @@ void NML::loadDefaultItems(Assets *assets)
                                              Assets::Item::ITEM_SCRIPT, m_Net);
     preload->setTagName("__NidiumPreload__");
 
-    assets->addToPendingList(preload);
+    m_Assets->addToPendingList(preload);
 }
 
 bool callNMLCallback(NML *instance, NML::tag_callback cbk, rapidxml::xml_node<> *node)
@@ -200,6 +196,8 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
             SystemInterface::ALERT_CRITIC);
         return false;
     }
+
+    m_Assets->endListUpdate(m_Net);
 
     return true;
 }
@@ -384,7 +382,15 @@ void NML::onGetContent(const char *data, size_t len)
         data_nullterminated = (char *)(data);
     }
 
-    if (this->loadData(data_nullterminated, len, doc)) {
+    m_Assets = new Assets(NML_onAssetsItemRead, NML_onAssetsReady, this);
+
+    bool ret = this->loadData(data_nullterminated, len, doc);
+
+    this->loadDefaultItems();
+
+    m_Assets->endListUpdate(m_Net);
+
+    if (ret) {
         if (m_LST) {
             m_JSObjectLST = this->buildLST(*m_LST);
             Binding::NidiumLocalContext::RootObjectUntilShutdown(m_JSObjectLST);
@@ -418,10 +424,11 @@ NML::~NML()
     if (m_Stream) {
         delete m_Stream;
     }
-    for (int i = 0; i < m_AssetsList.size; i++) {
-        delete m_AssetsList.list[i];
+
+    if (m_Assets) {
+        delete m_Assets;
     }
-    free(m_AssetsList.list);
+
     if (m_Meta.title) {
         free(m_Meta.title);
     }
@@ -506,12 +513,8 @@ static void NML_onAssetsItemRead(Assets::Item *item, void *arg)
 
 void NML::onAssetsBlockReady(Assets *asset)
 {
-    m_nAssets--;
-
-    if (m_nAssets == 0) {
-        JS::RootedObject lstObj(m_Njs->m_Cx, m_JSObjectLST);
-        JSWindow::GetObject(m_Njs)->onReady(lstObj);
-    }
+    JS::RootedObject lstObj(m_Njs->m_Cx, m_JSObjectLST);
+    JSWindow::GetObject(m_Njs)->onReady(lstObj);
 }
 
 static void NML_onAssetsReady(Assets *assets, void *arg)
@@ -519,20 +522,6 @@ static void NML_onAssetsReady(Assets *assets, void *arg)
     class NML *nml = static_cast<class NML *>(arg);
 
     nml->onAssetsBlockReady(assets);
-}
-
-void NML::addAsset(Assets *asset)
-{
-    m_nAssets++;
-    if (m_AssetsList.size == m_AssetsList.allocated) {
-        m_AssetsList.allocated *= 2;
-        m_AssetsList.list = static_cast<Assets **>(realloc(
-            m_AssetsList.list, sizeof(Assets *) * m_AssetsList.allocated));
-    }
-
-    m_AssetsList.list[m_AssetsList.size] = asset;
-
-    m_AssetsList.size++;
 }
 // }}}
 
@@ -613,10 +602,7 @@ NML::nidium_xml_ret_t NML::loadAssets(rapidxml::xml_node<> &node)
 
     using namespace rapidxml;
 
-    Assets *assets = new Assets(NML_onAssetsItemRead, NML_onAssetsReady, this);
-
-    this->addAsset(assets);
-    this->loadDefaultItems(assets);
+    this->loadDefaultItems();
 
     for (xml_node<> *child = node.first_node(); child != NULL;
          child               = child->next_sibling()) {
@@ -630,11 +616,11 @@ NML::nidium_xml_ret_t NML::loadAssets(rapidxml::xml_node<> &node)
             /* Name could be automatically changed afterward */
             item->setName(src->value());
 
-            assets->addToPendingList(item);
+            m_Assets->addToPendingList(item);
         } else {
             item = new Assets::Item(NULL, Assets::Item::ITEM_UNKNOWN, m_Net);
             item->setName("inline"); /* TODO: NML name */
-            assets->addToPendingList(item);
+            m_Assets->addToPendingList(item);
             item->setContent(child->value(), child->value_size(), true);
         }
 
@@ -647,8 +633,6 @@ NML::nidium_xml_ret_t NML::loadAssets(rapidxml::xml_node<> &node)
         }
         // printf("Node : %s\n", child->name());
     }
-
-    assets->endListUpdate(m_Net);
 
     return NIDIUM_XML_OK;
 }
