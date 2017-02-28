@@ -1,5 +1,7 @@
+const s_ShadowRoot = require("../Symbols").ElementShadowRoot;
+
 function proxyStyleSet(el, styles, name, value) {
-    let p = el.getParent();
+    let p = Canvas.prototype.getParent.call(el);
     switch (name) {
         case "width":
         case "height":
@@ -43,7 +45,6 @@ function refreshStyles(el, styles) {
 class ElementStyles {
     constructor(el) {
         this.el = el;
-        var styles = el.nss;
 
         el.addEventListener("resize", () => {
             refreshStyles(el, this);
@@ -52,7 +53,7 @@ class ElementStyles {
         el.addEventListener("load", () => {
             var classes = el.attributes.class
             if (classes) {
-                var nss = this.el.component.nss;
+                var nss = this.el[s_ShadowRoot].getNSS()
                 var tmp = [];
                 for (let c of classes.split(" ")) {
                     tmp.push(nss[c]);
@@ -63,7 +64,9 @@ class ElementStyles {
             }
 
             refreshStyles(el, this);
-            el.getParent().addEventListener("resize", () => {
+            // Needed to bypass the shadowroot
+            let p = Canvas.prototype.getParent.apply(el);
+            p.addEventListener("resize", () => {
                 refreshStyles(el, this);
             });
         });
@@ -77,7 +80,6 @@ class ElementStyles {
     }
 
     paint(ctx) {
-        console.log(this.background, this.el.width, this.el.height);
         if (this.background) {
             ctx.fillStyle = this.background;
             ctx.fillRect(0, 0, this.el.width, this.el.height);
