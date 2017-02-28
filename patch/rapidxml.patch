@@ -88,7 +88,7 @@
 +
 +            case Ch('n'):
 +                if (text[1] == Ch('s') && text[2] == Ch('s') &&
-+                    text[3] == '>')
++                    (text[3] == '>' || text[3] == ' '))
 +                {
 +                    return parse_custom<Flags>(text, "</nss>");
 +                } 
@@ -99,7 +99,7 @@
 +                if (text[1] == Ch('e') && text[2] == Ch('m') &&
 +                    text[3] == Ch('p') && text[4] == Ch('l') &&
 +                    text[5] == Ch('a') && text[6] == Ch('t') &&
-+                    text[7] == Ch('e') && text[8] == '>')
++                    text[7] == Ch('e') && (text[8] == '>' || text[8] == ' '))
 +                {
 +                    return parse_custom<Flags>(text, "</template>");
 +                } 
