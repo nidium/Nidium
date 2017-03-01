@@ -157,6 +157,9 @@ def autoTestStudio(autoTests):
     def runNidiumAutoTests(success):
         Tests.runTest(success)
 
+# XXX :Temporary during jsapi52 integration
+Konstruct.setConfigs(["jsapi52"])
+
 if __name__ == '__main__':
     if not Builder.Gyp._defines.has_key('nidium_version'):
         Gyp.set('nidium_version', 'library')
