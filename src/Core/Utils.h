@@ -17,6 +17,10 @@
 #include <sys/syscall.h>
 #include <array>
 
+#if defined(DEBUG) && defined(NDEBUG)
+   #error "NDEBUG and DEBUG"
+#endif
+
 namespace Nidium {
 namespace Core {
 
