@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <ape_netlib.h>
 
+
 #ifndef _MSC_VER
 #include <unistd.h>
 #endif
@@ -23,6 +24,8 @@
 #include "IO/Stream.h"
 #include "Binding/JSUtils.h"
 #include "Binding/ThreadLocalContext.h"
+
+#include <prio.h>
 
 using Nidium::Core::Path;
 using Nidium::Core::SharedMessages;

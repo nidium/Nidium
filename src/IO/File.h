@@ -10,9 +10,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#ifndef _MSC_VER
-#include <dirent.h>
-#endif
+#include <prio.h>
 
 #include "Core/Messages.h"
 #include "Core/TaskManager.h"
@@ -46,7 +44,7 @@ public:
     {
         int size;
         int allocated;
-        dirent *lst;
+        PRDir *lst;
     };
 
     explicit File(const char *path);
@@ -145,7 +143,7 @@ private:
             return;
         }
         if (m_isDir && m_Dir) {
-            closedir(m_Dir);
+            PR_CloseDir(m_Dir);
         } else if (m_Fd) {
             fclose(m_Fd);
         }

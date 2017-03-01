@@ -15,9 +15,10 @@
 #ifndef _MSC_VER
 #include <fts.h>
 #include <unistd.h>
-#include <dirent.h>
 #include <sys/mman.h>
 #endif
+
+#include <prio.h>
 
 #include <ape_buffer.h>
 
@@ -363,32 +364,32 @@ void File::listFilesTask(void *arg)
         return;
     }
 
-    dirent *cur;
+    PRDir *cur;
     DirEntries *entries = static_cast<DirEntries *>(malloc(sizeof(*entries)));
     entries->allocated  = 64;
     entries->lst
-        = static_cast<dirent *>(malloc(sizeof(dirent) * entries->allocated));
+        = static_cast<PRDir *>(malloc(sizeof(PRDir) * entries->allocated));
 
     entries->size = 0;
 
-    while ((cur = readdir(m_Dir)) != NULL) {
+    while ((cur = PR_ReadDir(m_Dir)) != NULL) {
         if (strcmp(cur->d_name, ".") == 0 || strcmp(cur->d_name, "..") == 0) {
             continue;
         }
 
-        memcpy(&entries->lst[entries->size], cur, sizeof(dirent));
+        memcpy(&entries->lst[entries->size], cur, sizeof(PRDir));
         entries->size++;
 
         if (entries->size == entries->allocated) {
             entries->allocated *= 2;
-            entries->lst = static_cast<dirent *>(
-                realloc(entries->lst, sizeof(dirent) * entries->allocated));
+            entries->lst = static_cast<PRDir *>(
+                realloc(entries->lst, sizeof(PRDir) * entries->allocated));
         }
     }
 
     NIDIUM_FILE_NOTIFY(entries, File::kEvents_ListFiles, arg);
 
-    rewinddir(m_Dir);
+    //FIXME windows-x86 branch: need crossplatform code for rewinddir(m_Dir);
 }
 
 // }}}
@@ -516,7 +517,7 @@ int File::openSync(const char *modes, int *err)
             return 0;
         }
 
-        m_Dir = opendir(m_Path);
+        m_Dir = PR_OpenDir(m_Path);
         if (!m_Dir) {
             printf("Failed to open : %s errno=%d\n", m_Path, errno);
 
