@@ -532,7 +532,7 @@ bool JSSocket::JS_listen(JSContext *cx, JS::CallArgs &args)
     }
 
     if ((socket = APE_socket_new(protocol, 0, net)) == NULL) {
-        JS_ReportError(cx, "Failed to create socket");
+        JS_ReportErrorUTF8(cx, "Failed to create socket");
         return false;
     }
 
@@ -554,7 +554,7 @@ bool JSSocket::JS_listen(JSContext *cx, JS::CallArgs &args)
     }
 
     if (APE_socket_listen(socket, m_Port, m_Host, 0, 0) == -1) {
-        JS_ReportError(cx, "Can't listen on socket (%s:%d)", m_Host,
+        JS_ReportErrorUTF8(cx, "Can't listen on socket (%s:%d)", m_Host,
                        m_Port);
         /* TODO: close() leak */
         return false;
@@ -597,7 +597,7 @@ bool JSSocket::JS_write(JSContext *cx, JS::CallArgs &args)
         JSObject *objdata = args[0].toObjectOrNull();
 
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
-            JS_ReportError(cx,
+            JS_ReportErrorUTF8(cx,
                            "write() invalid data (must be either a string or "
                            "an ArrayBuffer)");
             return false;
@@ -614,7 +614,7 @@ bool JSSocket::JS_write(JSContext *cx, JS::CallArgs &args)
         args.rval().setInt32(ret);
 
     } else {
-        JS_ReportError(
+        JS_ReportErrorUTF8(
             cx,
             "write() invalid data (must be either a string or an ArrayBuffer)");
         return false;
@@ -643,12 +643,12 @@ bool JSSocket::JS_sendTo(JSContext *cx, JS::CallArgs &args)
     }
 
     if (!(m_Flags & JSSocket::kSocketType_Server)) {
-        JS_ReportError(cx, "sendto() is only available on listening socket");
+        JS_ReportErrorUTF8(cx, "sendto() is only available on listening socket");
         return false;
     }
 
     if (!args[0].isString()) {
-        JS_ReportError(cx, "sendto() IP must be a string");
+        JS_ReportErrorUTF8(cx, "sendto() IP must be a string");
         return false;
     }
 
@@ -666,7 +666,7 @@ bool JSSocket::JS_sendTo(JSContext *cx, JS::CallArgs &args)
         JSObject *objdata = args[2].toObjectOrNull();
 
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
-            JS_ReportError(cx,
+            JS_ReportErrorUTF8(cx,
                            "sendTo() invalid data (must be either a string or "
                            "an ArrayBuffer)");
             return false;
@@ -681,7 +681,7 @@ bool JSSocket::JS_sendTo(JSContext *cx, JS::CallArgs &args)
                              len, cip.ptr(), static_cast<uint16_t>(port));
 
     } else {
-        JS_ReportError(cx,
+        JS_ReportErrorUTF8(cx,
                        "sendTo() invalid data (must be either a string or an "
                        "ArrayBuffer)");
         return false;
@@ -823,7 +823,7 @@ bool JSSocket::JS_connect(JSContext *cx, JS::CallArgs &args)
     }
 
     if ((socket = APE_socket_new(protocol, 0, net)) == NULL) {
-        JS_ReportError(cx, "Failed to create socket");
+        JS_ReportErrorUTF8(cx, "Failed to create socket");
         return false;
     }
 
@@ -850,7 +850,7 @@ bool JSSocket::JS_connect(JSContext *cx, JS::CallArgs &args)
 
     if (APE_socket_connect(socket, m_Port, m_Host, localport)
         == -1) {
-        JS_ReportError(cx, "Can't connect on socket (%s:%d)", m_Host,
+        JS_ReportErrorUTF8(cx, "Can't connect on socket (%s:%d)", m_Host,
                        m_Port);
         return false;
     }
@@ -908,7 +908,7 @@ bool JSSocketClientConnection::JS_write(JSContext *cx, JS::CallArgs &args)
         JSObject *objdata = args[0].toObjectOrNull();
 
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
-            JS_ReportError(cx,
+            JS_ReportErrorUTF8(cx,
                            "write() invalid data (must be either a string or "
                            "an ArrayBuffer)");
             return false;
@@ -924,7 +924,7 @@ bool JSSocketClientConnection::JS_write(JSContext *cx, JS::CallArgs &args)
         args.rval().setInt32(ret);
 
     } else {
-        JS_ReportError(
+        JS_ReportErrorUTF8(
             cx,
             "write() invalid data (must be either a string or an ArrayBuffer)");
         return false;

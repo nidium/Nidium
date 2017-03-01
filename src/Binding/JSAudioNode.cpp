@@ -15,7 +15,7 @@ namespace Nidium {
 namespace Binding {
 
 #define JS_PROPAGATE_ERROR(cx, ...)       \
-    JS_ReportError(cx, __VA_ARGS__);      \
+    JS_ReportErrorUTF8(cx, __VA_ARGS__);  \
     if (!JS_ReportPendingException(cx)) { \
         JS_ClearPendingException(cx);     \
     }
@@ -28,13 +28,13 @@ JS::Value setArgsToObject(JSContext *cx, JS::CallArgs &args)
         if (args[0].isObject()) {
             return args[0];
         } else {
-            JS_ReportError(cx, "Invalid argument");
+            JS_ReportErrorUTF8(cx, "Invalid argument");
             return JS::NullValue();
         }
     } else {
         // Key & value as argument
         if (!args[0].isString()) {
-            JS_ReportError(cx, "First argument must be a string");
+            JS_ReportErrorUTF8(cx, "First argument must be a string");
             return JS::NullValue();
         }
 
@@ -123,13 +123,13 @@ bool JSAudioNode::JS__set(JSContext *cx, JS::CallArgs &args)
             doubleVal = val.toNumber();
             value     = &doubleVal;
         } else {
-            JS_ReportError(cx, "Unsuported value for property %s\n", key.ptr());
+            JS_ReportErrorUTF8(cx, "Unsuported value for property %s\n", key.ptr());
             return false;
         }
 
         // And set the value on the node
         if (!m_Node->set(key.ptr(), type, value, size)) {
-            JS_ReportError(cx, "Unknown argument name %s\n", key.ptr());
+            JS_ReportErrorUTF8(cx, "Unknown argument name %s\n", key.ptr());
             return false;
         }
     }
@@ -226,7 +226,7 @@ bool JSAudioNodeCustomBase::JS__assignProcessor(JSContext *cx,
         = this->getFunction(JSAudioNodeCustomBase::PROCESS_FN);
 
     if (!fun->set(cx, args[0])) {
-        JS_ReportError(cx, "First argument must be a function or null");
+        JS_ReportErrorUTF8(cx, "First argument must be a function or null");
         return false;
     }
 
@@ -248,7 +248,7 @@ bool JSAudioNodeCustomBase::JS__assignInit(JSContext *cx, JS::CallArgs &args)
         = this->getFunction(JSAudioNodeCustomBase::INIT_FN);
 
     if (!fun->set(cx, args[0])) {
-        JS_ReportError(cx, "First argument must be a function or null");
+        JS_ReportErrorUTF8(cx, "First argument must be a function or null");
         return false;
     }
 
@@ -263,7 +263,7 @@ bool JSAudioNodeCustomBase::JS__assignSetter(JSContext *cx, JS::CallArgs &args)
         = this->getFunction(JSAudioNodeCustomBase::SETTER_FN);
 
     if (!fun->set(cx, args[0])) {
-        JS_ReportError(cx, "First argument must be a function or null");
+        JS_ReportErrorUTF8(cx, "First argument must be a function or null");
         return false;
     }
 
@@ -516,7 +516,7 @@ bool JSAudioNodeCustomSource::JS_assignSeek(JSContext *cx, JS::CallArgs &args)
         = this->getFunction(JSAudioNodeCustomBase::SEEK_FN);
 
     if (!fun->set(cx, args[0])) {
-        JS_ReportError(cx, "First argument must be a function or null");
+        JS_ReportErrorUTF8(cx, "First argument must be a function or null");
         return false;
     }
 
@@ -661,7 +661,7 @@ void JSAudioNodeThreaded::set(JS::HandleValue val)
 bool JSAudioNodeThreaded::JS_get(JSContext *cx, JS::CallArgs &args)
 {
     if (!args[0].isString()) {
-        JS_ReportError(cx, "First argument must be a string");
+        JS_ReportErrorUTF8(cx, "First argument must be a string");
         return false;
     }
 

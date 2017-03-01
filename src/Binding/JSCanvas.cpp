@@ -282,7 +282,7 @@ bool JSCanvas::JS_addSubCanvas(JSContext *cx, JS::CallArgs &args)
     }
 
     if ((csub = JSCanvas::GetInstance(sub)) == NULL) {
-        JS_ReportError(cx, "add() First parameter is not a Canvas Object");
+        JS_ReportErrorUTF8(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
 
@@ -291,7 +291,7 @@ bool JSCanvas::JS_addSubCanvas(JSContext *cx, JS::CallArgs &args)
     }
 
     if (m_CanvasHandler == handler) {
-        JS_ReportError(cx, "Canvas: can't add to itself");
+        JS_ReportErrorUTF8(cx, "Canvas: can't add to itself");
         return false;
     }
 
@@ -312,7 +312,7 @@ bool JSCanvas::JS_insertBefore(JSContext *cx, JS::CallArgs &args)
     }
 
     if (!insert || !JSCanvas::InstanceOf(insert)) {
-        JS_ReportError(cx, "add() First parameter is not a Canvas Object");
+        JS_ReportErrorUTF8(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
 
@@ -327,7 +327,7 @@ bool JSCanvas::JS_insertBefore(JSContext *cx, JS::CallArgs &args)
     }
 
     if (m_CanvasHandler == handler_insert) {
-        JS_ReportError(cx, "Canvas: can't add to itself");
+        JS_ReportErrorUTF8(cx, "Canvas: can't add to itself");
         return false;
     }
 
@@ -348,7 +348,7 @@ bool JSCanvas::JS_insertAfter(JSContext *cx, JS::CallArgs &args)
     }
 
     if (!insert || !JSCanvas::InstanceOf(insert)) {
-        JS_ReportError(cx, "add() First parameter is not a Canvas Object");
+        JS_ReportErrorUTF8(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
 
@@ -363,7 +363,7 @@ bool JSCanvas::JS_insertAfter(JSContext *cx, JS::CallArgs &args)
     }
 
     if (m_CanvasHandler == handler_insert) {
-        JS_ReportError(cx, "Canvas: can't add to itself");
+        JS_ReportErrorUTF8(cx, "Canvas: can't add to itself");
         return false;
     }
 
@@ -416,7 +416,7 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
 
                 if (ctx2d->getSkiaContext() == NULL) {
                     delete ctx2d;
-                    JS_ReportError(
+                    JS_ReportErrorUTF8(
                         cx, "Could not create 2D context for this canvas");
                     return false;
                 }
@@ -478,7 +478,7 @@ bool JSCanvas::JS_setContext(JSContext *cx, JS::CallArgs &args)
     CanvasContext *context = Canvas2DContext::GetInstance(obj);
 
     if (!context) {
-        JS_ReportError(
+        JS_ReportErrorUTF8(
             cx, "setContext() argument must a CanvasRenderingContext2D object");
         return false;
     }
@@ -542,7 +542,7 @@ bool JSCanvas::JSSetter_width(JSContext *cx, JS::MutableHandleValue vp)
     }
 
     if (!m_CanvasHandler->setWidth(dval)) {
-        // JS_ReportError(cx, "Can't set canvas width (this canvas has a
+        // JS_ReportErrorUTF8(cx, "Can't set canvas width (this canvas has a
         // dynamic width)");
 
         return true;

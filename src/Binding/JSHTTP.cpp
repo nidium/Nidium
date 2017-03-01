@@ -79,7 +79,7 @@ JSHTTP *JSHTTP::Constructor(JSContext *cx, JS::CallArgs &args,
     jshttp->m_HTTPRequest = req;
 
     if (!req->isValid()) {
-        JS_ReportError(cx, "Invalid URL");
+        JS_ReportErrorUTF8(cx, "Invalid URL");
 
         jshttp->m_HTTPRequest = nullptr;
         delete req;
@@ -174,7 +174,7 @@ bool JSHTTP::request(JSContext *cx,
     HTTPRequest *req = m_HTTPRequest;
 
     if (!m_HTTP->canDoRequest()) {
-        JS_ReportError(cx, "A request is already pending.");
+        JS_ReportErrorUTF8(cx, "A request is already pending.");
         return false;
     }
 
@@ -194,7 +194,7 @@ bool JSHTTP::request(JSContext *cx,
     this->root();
 
     if (!m_HTTP->request(req, this)) {
-        JS_ReportError(cx, "Failed to exec request");
+        JS_ReportErrorUTF8(cx, "Failed to exec request");
         return false;
     }
 

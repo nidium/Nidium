@@ -395,7 +395,7 @@ bool JSDocument::JS_loadFont(JSContext *cx, JS::CallArgs &args)
     }
     else
     {
-        JS_ReportError(cx, "Missing 'file' (string) value");
+        JS_ReportErrorUTF8(cx, "Missing 'file' (string) value");
         return false;
     }
 
@@ -406,7 +406,7 @@ bool JSDocument::JS_loadFont(JSContext *cx, JS::CallArgs &args)
     }
     else
     {
-        JS_ReportError(cx, "Missing 'name' (string) value");
+        JS_ReportErrorUTF8(cx, "Missing 'name' (string) value");
         return false;
     }
 

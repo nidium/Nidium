@@ -80,7 +80,7 @@ namespace Binding {
     JS::RootedObject thisobj(cx);                              \
     if (T::GetInstance == ClassMapper<T>::GetInstance) {       \
         if (!args.thisv().isObject()) {                        \
-            JS_ReportError(cx, "Illegal invocation");          \
+            JS_ReportErrorUTF8(cx, "Illegal invocation");      \
             return false;                                      \
         }                                                      \
         thisobj = &args.thisv().toObject();                    \
@@ -90,7 +90,7 @@ namespace Binding {
     CLASSMAPPER_PROLOGUE_NO_RET()                          \
     ofclass *CppObj = T::GetInstance(thisobj, cx);         \
     if (!CppObj) {                                         \
-        JS_ReportError(cx, "Illegal invocation");          \
+        JS_ReportErrorUTF8(cx, "Illegal invocation");      \
         return false;                                      \
     }
 
@@ -484,7 +484,7 @@ protected:
     static inline T *Constructor(JSContext *cx, JS::CallArgs &args,
         JS::HandleObject obj)
     {
-        JS_ReportError(cx, "Illegal constructor");
+        JS_ReportErrorUTF8(cx, "Illegal constructor");
 
         return nullptr;
     }
@@ -498,7 +498,7 @@ protected:
         JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
         if (!args.isConstructing()) {
-            JS_ReportError(cx, "Bad constructor");
+            JS_ReportErrorUTF8(cx, "Bad constructor");
             return false;
         }
 
@@ -644,7 +644,7 @@ public:
         }
 
         if (!evobj) {
-            JS_ReportError(cx, "Invalid event object");
+            JS_ReportErrorUTF8(cx, "Invalid event object");
             return false;
         }
 

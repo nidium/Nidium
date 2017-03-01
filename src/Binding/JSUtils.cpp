@@ -264,7 +264,7 @@ JSString *JSUtils::NewStringWithEncoding(JSContext *cx,
             JSUtils::Utf8ToUtf16(cx, buf, len, &jlen), free);
 
         if (content.ptr() == NULL) {
-            JS_ReportError(cx, "Could not decode string to utf8");
+            JS_ReportErrorUTF8(cx, "Could not decode string to utf8");
             return NULL;
         }
 

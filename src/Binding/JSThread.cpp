@@ -324,7 +324,7 @@ static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     if (nthread == NULL || nthread->m_MarkedStop) {
-        JS_ReportError(
+        JS_ReportErrorUTF8(
             cx,
             "thread.send() Could not retrieve thread (or marked for stopping)");
         return false;
@@ -334,7 +334,7 @@ static bool nidium_post_message(JSContext *cx, unsigned argc, JS::Value *vp)
 
     if (!JS_WriteStructuredClone(cx, args[0], &datap, &nbytes, NidiumJS::m_JsScc, NULL,
                                  JS::NullHandleValue)) {
-        JS_ReportError(cx, "Failed to write strclone");
+        JS_ReportErrorUTF8(cx, "Failed to write strclone");
         /* TODO: exception */
         return false;
     }

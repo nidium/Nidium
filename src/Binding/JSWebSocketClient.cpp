@@ -123,7 +123,7 @@ bool JSWebSocket::JS_send(JSContext *cx, JS::CallArgs &args)
         JSObject *objdata = args[0].toObjectOrNull();
 
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
-            JS_ReportError(cx,
+            JS_ReportErrorUTF8(cx,
                            "write() invalid data (must be either a string or "
                            "an ArrayBuffer)");
             return false;
@@ -140,7 +140,7 @@ bool JSWebSocket::JS_send(JSContext *cx, JS::CallArgs &args)
         args.rval().setInt32(0);
 
     } else {
-        JS_ReportError(
+        JS_ReportErrorUTF8(
             cx,
             "write() invalid data (must be either a string or an ArrayBuffer)");
         return false;
@@ -199,7 +199,7 @@ JSWebSocket *JSWebSocket::Constructor(JSContext *cx, JS::CallArgs &args,
     if (Net::HTTP::ParseURI(durl, curl.length(), host, &port, path, prefix,
                             default_port)
         == -1) {
-        JS_ReportError(cx, "Invalid WebSocketServer URI : %s", durl);
+        JS_ReportErrorUTF8(cx, "Invalid WebSocketServer URI : %s", durl);
         free(path);
         free(host);
         free(durl);

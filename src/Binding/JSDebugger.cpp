@@ -39,14 +39,14 @@ JSDebuggerCompartment::JSDebuggerCompartment(JSContext *cx)
 {
     JS::RootedObject mainGbl(cx, JS::CurrentGlobalOrNull(cx));
     if (!mainGbl) {
-        JS_ReportError(cx, "Cannot get current global");
+        JS_ReportErrorUTF8(cx, "Cannot get current global");
         return;
     }
 
     // New global object & compartment for the Debugger
     JS::RootedObject gbl(cx, NidiumJS::CreateJSGlobal(cx));
     if (!gbl) {
-        JS_ReportError(cx, "Cannot create global for Debugger compartment");
+        JS_ReportErrorUTF8(cx, "Cannot create global for Debugger compartment");
         return;
     }
 
@@ -70,7 +70,7 @@ JSDebuggerCompartment::JSDebuggerCompartment(JSContext *cx)
     this->run(cx, "return (new Debugger(arguments[0]));", params, &rval);
 
     if (!rval.isObject()) {
-        JS_ReportError(
+        JS_ReportErrorUTF8(
             cx,
             "Failed to initialize the Debugger : Debugger is not an object");
         return;
@@ -87,7 +87,7 @@ bool JSDebuggerCompartment::JS_run(JSContext *cx, JS::CallArgs &args)
 
     if (!args[0].isObject()
         || !JS::IsCallable(args[0].toObjectOrNull())) {
-        JS_ReportError(cx, "First argument must be a function.");
+        JS_ReportErrorUTF8(cx, "First argument must be a function.");
         return false;
     }
 
@@ -98,7 +98,7 @@ bool JSDebuggerCompartment::JS_run(JSContext *cx, JS::CallArgs &args)
 
         if ((fun = JS_ValueToFunction(cx, args[0])) == nullptr
             || (funStr = JS_DecompileFunction(cx, fun, 0)) == nullptr) {
-            JS_ReportError(cx, "Invalid function");
+            JS_ReportErrorUTF8(cx, "Invalid function");
             return false;
         }
 
@@ -158,7 +158,7 @@ bool JSDebuggerCompartment::run(JSContext *cx,
                         nullptr, funStr, strlen(funStr), &fn)) {
 
         JS_LeaveCompartment(cx, m_Compartment);
-        JS_ReportError(cx, "Can't compile function");
+        JS_ReportErrorUTF8(cx, "Can't compile function");
         return false;
     }
 

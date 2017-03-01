@@ -54,7 +54,7 @@ bool JSVM::JSStatic_run(JSContext *cx, JS::CallArgs &args)
         JS::AutoObjectVector scopeChain(cx);
         if (scope) {
             if (JS_IsGlobalObject(scope)) {
-                JS_ReportError(cx, "scope options cannot be a global object");
+                JS_ReportErrorUTF8(cx, "scope options cannot be a global object");
                 return false;
             }
             scopeChain.append(scope);
@@ -91,7 +91,7 @@ bool JSVM::ParseOptions(JSContext *cx,
                         bool *debugger)
 {
     if (!optionsValue.isObject()) {
-        JS_ReportError(cx, "run() second argument must be an object");
+        JS_ReportErrorUTF8(cx, "run() second argument must be an object");
         return false;
     }
 
@@ -139,7 +139,7 @@ bool JSVM::ParseOptions(JSContext *cx,
     }
 
     if (*(debugger) && !(*sandbox)) {
-        JS_ReportError(cx, "debugger can only be enabled within a sandbox");
+        JS_ReportErrorUTF8(cx, "debugger can only be enabled within a sandbox");
         return false;
     }
 
@@ -161,16 +161,16 @@ bool JSVM::GetRunData(JSContext *cx,
         if (JSStream::InstanceOf(obj)) {
             JSStream *tmp = JSStream::GetInstance(obj);
             if (!tmp || !(stream = tmp->getStream())) {
-                JS_ReportError(cx, "run() invalid Stream object");
+                JS_ReportErrorUTF8(cx, "run() invalid Stream object");
                 return false;
             }
         } else {
-            JS_ReportError(
+            JS_ReportErrorUTF8(
                 cx, "First argument is not a Stream instance");
             return false;
         }
     } else {
-        JS_ReportError(cx, "First argument must be a String or Stream instance");
+        JS_ReportErrorUTF8(cx, "First argument must be a String or Stream instance");
         return false;
     }
 
@@ -180,7 +180,7 @@ bool JSVM::GetRunData(JSContext *cx,
 
     if (stream) {
         if (!stream->getContentSync(&chars, &length)) {
-            JS_ReportError(cx, "Failed to get Stream content");
+            JS_ReportErrorUTF8(cx, "Failed to get Stream content");
             return false;
         }
     } else {
@@ -253,7 +253,7 @@ JSVMSandbox::JSVMSandbox(JSContext *cx, JS::HandleObject obj, int flags)
 {
     JS::RootedObject gbl(cx, JSVMSandbox::CreateObject(cx, this));
     if (!gbl) {
-        JS_ReportError(cx, "Cannot create global for Sandbox");
+        JS_ReportErrorUTF8(cx, "Cannot create global for Sandbox");
         return;
     }
 
@@ -288,7 +288,7 @@ bool JSVMSandbox::Getter(JSContext *cx,
 {
     JSVMSandbox *sandbox = JSVMSandbox::GetInstance(obj);
     if (!sandbox) {
-        JS_ReportError(cx, "Illegal invocation");
+        JS_ReportErrorUTF8(cx, "Illegal invocation");
         return false;
     }
 
@@ -303,7 +303,7 @@ bool JSVMSandbox::Setter(JSContext *cx,
 {
     JSVMSandbox *sandbox = JSVMSandbox::GetInstance(obj);
     if (!sandbox) {
-        JS_ReportError(cx, "Illegal invocation");
+        JS_ReportErrorUTF8(cx, "Illegal invocation");
         return false;
     }
 
@@ -321,7 +321,7 @@ bool JSVMSandbox::get(JSContext *cx, JS::HandleId id, JS::MutableHandleValue vp)
         JSAutoCompartment ac(cx, m_MainGlobal);
 
         if (!(JS_GetPropertyById(cx, obj, id, &val))) {
-            JS_ReportError(cx, "Failed to get property");
+            JS_ReportErrorUTF8(cx, "Failed to get property");
             return false;
         }
 
@@ -346,7 +346,7 @@ bool JSVMSandbox::set(JSContext *cx,
         JSAutoCompartment ac(cx, m_MainGlobal);
 
         if (!JS_SetPropertyById(cx, obj, id, vp)) {
-            JS_ReportError(cx, "Failed to set property");
+            JS_ReportErrorUTF8(cx, "Failed to set property");
             return false;
         }
     }

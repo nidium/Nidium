@@ -81,7 +81,7 @@ bool JSAudio::JS_getContext(JSContext *cx, JS::CallArgs &args)
             bufferSize *= AV::Audio::FLOAT32;
             break;
         default:
-            JS_ReportError(cx,
+            JS_ReportErrorUTF8(cx,
                            "Unsuported buffer size %d. "
                            "Supported values are : 0, 128, 256, 512, 1024, "
                            "2048, 4096, 8192, 16384\n",
@@ -91,7 +91,7 @@ bool JSAudio::JS_getContext(JSContext *cx, JS::CallArgs &args)
     }
 
     if (channels != 0 && (channels < 1 || channels > 32)) {
-        JS_ReportError(cx,
+        JS_ReportErrorUTF8(cx,
                        "Unsuported channels number %d. Channels must be "
                        "between 1 and 32\n",
                        channels);
@@ -99,7 +99,7 @@ bool JSAudio::JS_getContext(JSContext *cx, JS::CallArgs &args)
     }
 
     if (sampleRate != 0 && (sampleRate < 22050 || sampleRate > 96000)) {
-        JS_ReportError(cx,
+        JS_ReportErrorUTF8(cx,
                        "Unsuported sample rate %dKHz. Sample rate must be "
                        "between 22050 and 96000\n",
                        sampleRate);
@@ -132,7 +132,7 @@ bool JSAudio::JS_getContext(JSContext *cx, JS::CallArgs &args)
         = JSAudioContext::GetContext(cx, bufferSize, channels, sampleRate);
 
     if (audioCtx == NULL) {
-        JS_ReportError(cx, "Failed to initialize audio context\n");
+        JS_ReportErrorUTF8(cx, "Failed to initialize audio context\n");
         return false;
     }
 

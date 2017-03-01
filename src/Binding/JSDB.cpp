@@ -20,7 +20,7 @@ JSDB *JSDB::Constructor(JSContext *cx, JS::CallArgs &args,
 {
 
     if (!args[0].isString()) {
-        JS_ReportError(cx, "First argument must be a string");
+        JS_ReportErrorUTF8(cx, "First argument must be a string");
         return nullptr;
     }
 
@@ -28,13 +28,13 @@ JSDB *JSDB::Constructor(JSContext *cx, JS::CallArgs &args,
     JSAutoByteString dbPath(cx, jsPath);
     Core::Path path(dbPath.ptr());
     if (!path.path()) {
-        JS_ReportError(cx, "Invalid DB path");
+        JS_ReportErrorUTF8(cx, "Invalid DB path");
         return nullptr;
     }
 
     JSDB *jsdb = new JSDB(path.path());
     if (!jsdb->ok()) {
-        JS_ReportError(cx, "Failed to create DB");
+        JS_ReportErrorUTF8(cx, "Failed to create DB");
 
         delete jsdb;
 
@@ -47,13 +47,13 @@ JSDB *JSDB::Constructor(JSContext *cx, JS::CallArgs &args,
 bool JSDB::JS_set(JSContext *cx, JS::CallArgs &args)
 {
     if (!args[0].isString()) {
-        JS_ReportError(cx, "set() : key must be a string");
+        JS_ReportErrorUTF8(cx, "set() : key must be a string");
         return false;
     }
 
     JSAutoByteString key(cx, args[0].toString());
     if (!this->set(cx, key.ptr(), args[1])) {
-        JS_ReportError(cx, "Failed to set data");
+        JS_ReportErrorUTF8(cx, "Failed to set data");
         return false;
     }
 
@@ -63,7 +63,7 @@ bool JSDB::JS_set(JSContext *cx, JS::CallArgs &args)
 bool JSDB::JS_get(JSContext *cx, JS::CallArgs &args)
 {
     if (!args[0].isString()) {
-        JS_ReportError(cx, "get() : key must be a string");
+        JS_ReportErrorUTF8(cx, "get() : key must be a string");
         return false;
     }
 
@@ -71,7 +71,7 @@ bool JSDB::JS_get(JSContext *cx, JS::CallArgs &args)
     JS::RootedValue rval(cx);
 
     if (!this->get(cx, key.ptr(), &rval)) {
-        JS_ReportError(cx, "Failed to retreive data");
+        JS_ReportErrorUTF8(cx, "Failed to retreive data");
         return false;
     }
 
@@ -83,7 +83,7 @@ bool JSDB::JS_get(JSContext *cx, JS::CallArgs &args)
 bool JSDB::JS_delete(JSContext *cx, JS::CallArgs &args)
 {
     if (!args[0].isString()) {
-        JS_ReportError(cx, "delete() : key must be a string");
+        JS_ReportErrorUTF8(cx, "delete() : key must be a string");
         return false;
     }
 
@@ -91,7 +91,7 @@ bool JSDB::JS_delete(JSContext *cx, JS::CallArgs &args)
     JS::RootedValue rval(cx);
 
     if (!this->del(key.ptr())) {
-        JS_ReportError(cx, "Failed to delete data");
+        JS_ReportErrorUTF8(cx, "Failed to delete data");
         return false;
     }
 
@@ -101,7 +101,7 @@ bool JSDB::JS_delete(JSContext *cx, JS::CallArgs &args)
 bool JSDB::JS_drop(JSContext *cx, JS::CallArgs &args)
 {
     if (!this->drop()) {
-        JS_ReportError(cx, "Failed to drop DB");
+        JS_ReportErrorUTF8(cx, "Failed to drop DB");
         return false;
     }
 
@@ -111,7 +111,7 @@ bool JSDB::JS_drop(JSContext *cx, JS::CallArgs &args)
 bool JSDB::JS_close(JSContext *cx, JS::CallArgs &args)
 {
     if (!this->close()) {
-        JS_ReportError(cx, "Failed to drop DB");
+        JS_ReportErrorUTF8(cx, "Failed to drop DB");
         return false;
     }
 
@@ -178,7 +178,7 @@ bool JSDB::get(JSContext *cx, const char *key, JS::MutableHandleValue rval)
                                 JS_STRUCTURED_CLONE_VERSION, rval, NidiumJS::m_JsScc,
                                 NULL)) {
 
-        JS_ReportError(cx, "Unable to read internal data");
+        JS_ReportErrorUTF8(cx, "Unable to read internal data");
         return false;
     }
 

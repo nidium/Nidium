@@ -267,7 +267,7 @@ JS::Value JSModule::require(char *name)
 
     JSModule *tmp = new JSModule(m_Cx, m_Modules, this, name);
     if (!tmp->init()) {
-        JS_ReportError(m_Cx, "Module %s not found\n", name);
+        JS_ReportErrorUTF8(m_Cx, "Module %s not found\n", name);
         delete tmp;
         return ret;
     }
@@ -303,7 +303,7 @@ JS::Value JSModule::require(char *name)
 
     if (!cached) {
         if (!m_Modules->init(cmodule)) {
-            JS_ReportError(m_Cx, "Failed to initialize module %s\n",
+            JS_ReportErrorUTF8(m_Cx, "Failed to initialize module %s\n",
                            cmodule->m_Name);
             return ret;
         }
@@ -320,7 +320,7 @@ JS::Value JSModule::require(char *name)
             if (!JSModules::GetFileContent(cmodule->m_FilePath, &data,
                                            &filesize)
                 || data == NULL) {
-                JS_ReportError(m_Cx, "Failed to open module %s\n",
+                JS_ReportErrorUTF8(m_Cx, "Failed to open module %s\n",
                                cmodule->m_Name);
                 return ret;
             }
@@ -343,7 +343,7 @@ JS::Value JSModule::require(char *name)
                 JS_GetProperty(m_Cx, gbl, "require", &requireVal);
 
                 if (!requireVal.isObject()) {
-                    JS_ReportError(m_Cx, "Invalid environement, require() not available");
+                    JS_ReportErrorUTF8(m_Cx, "Invalid environement, require() not available");
                     return ret;
                 }
 
@@ -362,7 +362,7 @@ JS::Value JSModule::require(char *name)
 
                     lst.set(Frontend::NML::BuildLST(m_Cx, data));
                     if (!lst) {
-                        JS_ReportError(m_Cx, "Failed to parse NML");
+                        JS_ReportErrorUTF8(m_Cx, "Failed to parse NML");
                         return ret;
                     }
 
@@ -377,7 +377,7 @@ JS::Value JSModule::require(char *name)
 
                     return ret;
                 } else {
-                    JS_ReportError(m_Cx, "No ComponentLoader defined");
+                    JS_ReportErrorUTF8(m_Cx, "No ComponentLoader defined");
                     return ret;
                 }
             } else if (cmodule->m_ModuleType == JSModule::kModuleType_JS) {
@@ -851,7 +851,7 @@ static bool nidium_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedValue reserved(cx, js::GetFunctionNativeReserved(callee, 0));
 
     if (!reserved.isDouble()) {
-        JS_ReportError(cx, "InternalError");
+        JS_ReportErrorUTF8(cx, "InternalError");
         return false;
     }
 

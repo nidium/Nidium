@@ -20,11 +20,11 @@ Nidium_jsevents_stopPropagation(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp));
     if (!thisobj) {
-        JS_ReportError(cx, "Illegal invocation");
+        JS_ReportErrorUTF8(cx, "Illegal invocation");
         return false;
     }
     if (!JS_InstanceOf(cx, thisobj, &JSEvent_class, NULL)) {
-        JS_ReportError(cx, "Illegal invocation");
+        JS_ReportErrorUTF8(cx, "Illegal invocation");
         return false;
     }
     JS::RootedValue cancelBubble(cx, JS::BooleanValue(true));

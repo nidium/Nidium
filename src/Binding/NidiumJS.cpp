@@ -784,7 +784,7 @@ void NidiumJS::loadGlobalObjects()
         return;
     }
     if (!m_Modules->init()) {
-        JS_ReportError(m_Cx, "Failed to init require()");
+        JS_ReportErrorUTF8(m_Cx, "Failed to init require()");
         if (!JS_ReportPendingException(m_Cx)) {
             JS_ClearPendingException(m_Cx);
         }

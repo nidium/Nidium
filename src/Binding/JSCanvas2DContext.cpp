@@ -212,7 +212,7 @@ bool JSCanvasGLProgram::uniformXiv(JSContext *cx, JS::CallArgs &args, int nb)
         carray = (GLint *)JS_GetInt32ArrayData(tmp, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
-        JS_ReportError(cx, "Array is not a Int32 array");
+        JS_ReportErrorUTF8(cx, "Array is not a Int32 array");
         return false;
     }
 
@@ -269,7 +269,7 @@ bool JSCanvasGLProgram::uniformXfv(JSContext *cx, JS::CallArgs &args, int nb)
         carray = (GLfloat *)JS_GetFloat32ArrayData(tmp, &shared, nogc);
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
-        JS_ReportError(cx, "Array is not a Float32 array");
+        JS_ReportErrorUTF8(cx, "Array is not a Float32 array");
         return false;
     }
 
@@ -821,7 +821,7 @@ bool Canvas2DContext::JS_putImageData(JSContext *cx, JS::CallArgs &args)
     }
 
     if (!dataObject || !JSImageData::InstanceOf(dataObject)) {
-        JS_ReportError(cx, "First argument must be a imageData object");
+        JS_ReportErrorUTF8(cx, "First argument must be a imageData object");
         return false;
     }
 
@@ -902,7 +902,7 @@ bool Canvas2DContext::JS_createPattern(JSContext *cx, JS::CallArgs &args)
     }
 
     if (!JSImage::InstanceOf(jsimage)) {
-        JS_ReportError(cx, "First parameter is not an Image");
+        JS_ReportErrorUTF8(cx, "First parameter is not an Image");
         return false;
     }
 
@@ -985,7 +985,7 @@ bool Canvas2DContext::JS_drawImage(JSContext *cx, JS::CallArgs &args)
 
         if (drawctx == NULL
             || drawctx->getContextType() != CanvasContext::CONTEXT_2D) {
-            JS_ReportError(
+            JS_ReportErrorUTF8(
                 cx, "Invalid image canvas (must be backed by a 2D context)");
             return false;
         }
@@ -1125,7 +1125,7 @@ bool Canvas2DContext::JS_attachFragmentShader(JSContext *cx, JS::CallArgs &args)
 
     JSAutoByteString cglsl(cx, glsl);
     if ((program = this->attachShader(cglsl.ptr())) == 0) {
-        JS_ReportError(cx, "Failed to compile GLSL shader");
+        JS_ReportErrorUTF8(cx, "Failed to compile GLSL shader");
         return false;
     }
 
@@ -1255,7 +1255,7 @@ bool Canvas2DContext::JSSetter_fontFile(JSContext *cx,
     JSAutoByteString font(cx, vpStr);
 
     if (!m_Skia->setFontFile(font.ptr())) {
-        JS_ReportError(cx, "Cannot set font (invalid file)");
+        JS_ReportErrorUTF8(cx, "Cannot set font (invalid file)");
 
         return false;
     }

@@ -181,7 +181,7 @@ bool JSVideo::JS_setSize(JSContext *cx, JS::CallArgs &args)
     } else if (jwidth.isNumber()) {
         JS::ToUint32(cx, jwidth, &width);
     } else {
-        JS_ReportError(cx, "Wrong argument type for width");
+        JS_ReportErrorUTF8(cx, "Wrong argument type for width");
         return false;
     }
 
@@ -190,7 +190,7 @@ bool JSVideo::JS_setSize(JSContext *cx, JS::CallArgs &args)
     } else if (jheight.isNumber()) {
         JS::ToUint32(cx, jheight, &height);
     } else {
-        JS_ReportError(cx, "Wrong argument type for height");
+        JS_ReportErrorUTF8(cx, "Wrong argument type for height");
         return false;
     }
 
@@ -231,20 +231,20 @@ JSVideo *JSVideo::Constructor(JSContext *cx, JS::CallArgs &args,
 
     JSCanvas *jscanvas = JSCanvas::GetInstance(canvas);
     if (!jscanvas) {
-        JS_ReportError(cx, "Video constructor argument must be Canvas");
+        JS_ReportErrorUTF8(cx, "Video constructor argument must be Canvas");
         return nullptr;
     }
 
     CanvasHandler *handler = jscanvas->getHandler();
 
     if (!handler) {
-        JS_ReportError(cx, "Video constructor argument must be Canvas");
+        JS_ReportErrorUTF8(cx, "Video constructor argument must be Canvas");
         return nullptr;
     }
 
     CanvasContext *ncc = handler->getContext();
     if (ncc == NULL || ncc->m_Mode != CanvasContext::CONTEXT_2D) {
-        JS_ReportError(
+        JS_ReportErrorUTF8(
             cx,
             "Invalid canvas context. Did you called canvas.getContext('2d') ?");
         return nullptr;

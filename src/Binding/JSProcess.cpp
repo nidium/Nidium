@@ -53,7 +53,7 @@ bool JSProcess::JS_getOwner(JSContext *cx, JS::CallArgs &args)
     struct group *groupInfo = getgrgid(gid);
 
     if (!userInfo || !groupInfo) {
-        JS_ReportError(cx, "Failed to retrieve process owner");
+        JS_ReportErrorUTF8(cx, "Failed to retrieve process owner");
         return false;
     }
 
@@ -92,9 +92,9 @@ bool JSProcess::JS_setOwner(JSContext *cx, JS::CallArgs &args)
 
         if (userInfo == nullptr) {
             if (errno == 0) {
-                JS_ReportError(cx, "User ID \"%d\" not found", uid);
+                JS_ReportErrorUTF8(cx, "User ID \"%d\" not found", uid);
             } else {
-                JS_ReportError(cx, "Error retrieving user ID \"%d\" error : %s",
+                JS_ReportErrorUTF8(cx, "Error retrieving user ID \"%d\" error : %s",
                                uid, strerror(errno));
             }
             return false;
@@ -108,16 +108,16 @@ bool JSProcess::JS_setOwner(JSContext *cx, JS::CallArgs &args)
 
         if (userInfo == nullptr) {
             if (errno == 0) {
-                JS_ReportError(cx, "User name \"%s\" not found", cuser.ptr());
+                JS_ReportErrorUTF8(cx, "User name \"%s\" not found", cuser.ptr());
             } else {
-                JS_ReportError(cx,
+                JS_ReportErrorUTF8(cx,
                                "Error retrieving user name \"%s\" error : %s",
                                cuser.ptr(), strerror(errno));
             }
             return false;
         }
     } else {
-        JS_ReportError(cx,
+        JS_ReportErrorUTF8(cx,
                        "Invalid first argument (Number or String expected)");
         return false;
     }
@@ -129,9 +129,9 @@ bool JSProcess::JS_setOwner(JSContext *cx, JS::CallArgs &args)
 
         if (groupInfo == nullptr) {
             if (errno == 0) {
-                JS_ReportError(cx, "Group ID \"%d\" not found", gid);
+                JS_ReportErrorUTF8(cx, "Group ID \"%d\" not found", gid);
             } else {
-                JS_ReportError(cx,
+                JS_ReportErrorUTF8(cx,
                                "Error retrieving group ID \"%d\" error : %s",
                                gid, strerror(errno));
             }
@@ -146,9 +146,9 @@ bool JSProcess::JS_setOwner(JSContext *cx, JS::CallArgs &args)
 
         if (groupInfo == nullptr) {
             if (errno == 0) {
-                JS_ReportError(cx, "Group name \"%s\" not found", cgroup.ptr());
+                JS_ReportErrorUTF8(cx, "Group name \"%s\" not found", cgroup.ptr());
             } else {
-                JS_ReportError(cx,
+                JS_ReportErrorUTF8(cx,
                                "Error retrieving group name \"%s\" error : %s",
                                cgroup.ptr(), strerror(errno));
             }
@@ -167,20 +167,20 @@ bool JSProcess::JS_setOwner(JSContext *cx, JS::CallArgs &args)
     setgroups(0, NULL);
 
     if (groupInfo != nullptr && setgid(groupInfo->gr_gid) != 0) {
-        JS_ReportError(cx, "Failed to set group ID to \"%d\" error : %s",
+        JS_ReportErrorUTF8(cx, "Failed to set group ID to \"%d\" error : %s",
                        groupInfo->gr_gid, strerror(errno));
         return false;
     }
 
     if (setuid(userInfo->pw_uid) != 0) {
-        JS_ReportError(cx, "Failed to set user ID to \"%d\", error : %s",
+        JS_ReportErrorUTF8(cx, "Failed to set user ID to \"%d\", error : %s",
                        userInfo->pw_uid, strerror(errno));
         return false;
     }
 
     if (groupInfo != nullptr) {
         if (initgroups(userInfo->pw_name, groupInfo->gr_gid) == 0) {
-            JS_ReportError(cx,
+            JS_ReportErrorUTF8(cx,
                            "Failed to initialize supplementary group access "
                            "list. Error : %s",
                            strerror(errno));

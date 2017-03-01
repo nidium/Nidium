@@ -750,7 +750,7 @@ bool JSWindow::JS_openFileDialog(JSContext *cx, JS::CallArgs &args)
 
     if (!JS::ObjectValue(*types).isNull()
         && (!JS_IsArrayObject(cx, types, &isarray) || !isarray)) {
-        JS_ReportError(cx, "First parameter must be an array or null");
+        JS_ReportErrorUTF8(cx, "First parameter must be an array or null");
         return false;
     }
     uint32_t len = 0;
@@ -976,7 +976,7 @@ bool JSWindow::JS_setFrame(JSContext *cx, JS::CallArgs &args)
     } else if (args[0].isNumber()) {
         JS::ToInt32(cx, args[0], &x);
     } else {
-        JS_ReportError(cx, "setFrame() invalid position");
+        JS_ReportErrorUTF8(cx, "setFrame() invalid position");
 
         return false;
     }
@@ -993,14 +993,14 @@ bool JSWindow::JS_setFrame(JSContext *cx, JS::CallArgs &args)
     } else if (args[1].isNumber()) {
         JS::ToInt32(cx, args[1], &y);
     } else {
-        JS_ReportError(cx, "setFrame() invalid position");
+        JS_ReportErrorUTF8(cx, "setFrame() invalid position");
 
         return false;
     }
     if (JS::ToInt32(cx, args[2], &w)) {
         w = ape_max(w, 1);
     } else {
-        JS_ReportError(cx, "setFrame() invalid width");
+        JS_ReportErrorUTF8(cx, "setFrame() invalid width");
 
         return false;
     }
@@ -1009,7 +1009,7 @@ bool JSWindow::JS_setFrame(JSContext *cx, JS::CallArgs &args)
         h = ape_max(h, 1);
 
     } else {
-        JS_ReportError(cx, "setFrame() invalid height");
+        JS_ReportErrorUTF8(cx, "setFrame() invalid height");
 
         return false;
     }

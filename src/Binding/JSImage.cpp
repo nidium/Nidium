@@ -144,7 +144,7 @@ bool JSImage::JSSetter_src(JSContext *cx, JS::MutableHandleValue vp)
         Stream *stream = Stream::Create(*m_Path);
 
         if (stream == NULL) {
-            JS_ReportError(cx, "Invalid path");
+            JS_ReportErrorUTF8(cx, "Invalid path");
             delete(m_Path);
             return false;
         }

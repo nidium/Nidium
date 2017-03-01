@@ -93,13 +93,13 @@ bool JSAudioContext::JS_run(JSContext *cx, JS::CallArgs &args)
     JS::RootedFunction nfn(cx);
     if ((nfn = JS_ValueToFunction(cx, args[0])) == NULL
         || (fn = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
-        JS_ReportError(cx, "Failed to read callback function\n");
+        JS_ReportErrorUTF8(cx, "Failed to read callback function\n");
         return false;
     }
 
     char *funStr = JS_EncodeString(cx, fn);
     if (!funStr) {
-        JS_ReportError(cx,
+        JS_ReportErrorUTF8(cx,
                        "Failed to convert callback function to source string");
         return false;
     }
@@ -112,7 +112,7 @@ bool JSAudioContext::JS_run(JSContext *cx, JS::CallArgs &args)
 
 bool JSAudioContext::JS_load(JSContext *cx, JS::CallArgs &args)
 {
-    JS_ReportError(cx, "Not implemented");
+    JS_ReportErrorUTF8(cx, "Not implemented");
     return false;
 }
 
@@ -128,14 +128,14 @@ bool JSAudioContext::JS_createNode(JSContext *cx, JS::CallArgs &args)
     }
 
     if (in == 0 && out == 0) {
-        JS_ReportError(cx, "Node must have at least one input or output");
+        JS_ReportErrorUTF8(cx, "Node must have at least one input or output");
         return false;
     } else if (in < 0 || out < 0) {
-        JS_ReportError(cx,
+        JS_ReportErrorUTF8(cx,
                        "Wrong channel count (Must be greater or equal to 0)");
         return false;
     } else if (in > 32 || out > 32) {
-        JS_ReportError(cx,
+        JS_ReportErrorUTF8(cx,
                        "Wrong channel count (Must be lower or equal to 32)");
         return false;
     }
@@ -183,12 +183,12 @@ bool JSAudioContext::JS_createNode(JSContext *cx, JS::CallArgs &args)
             node    = tmp;
             nodeObj = tmp->getJSObject();
         } else {
-            JS_ReportError(cx, "Unknown node : %s\n", cname.ptr());
+            JS_ReportErrorUTF8(cx, "Unknown node : %s\n", cname.ptr());
             return false;
         }
     } catch (AudioNodeException *e) {
         delete node;
-        JS_ReportError(cx, "Error while creating node : %s\n", e->what());
+        JS_ReportErrorUTF8(cx, "Error while creating node : %s\n", e->what());
         return false;
     }
 
@@ -213,12 +213,12 @@ bool JSAudioContext::JS_connect(JSContext *cx, JS::CallArgs &args)
                                                  : nullptr);
 
     if (!arg0 || !(jlink1 = JSAudioNodeLink::GetInstance(arg0))) {
-        JS_ReportError(cx, "First argument must be an AudioNodeLink");
+        JS_ReportErrorUTF8(cx, "First argument must be an AudioNodeLink");
         return false;
     }
 
     if (!arg1 || !(jlink2 = JSAudioNodeLink::GetInstance(arg1))) {
-        JS_ReportError(cx, "Second argument must be an AudioNodeLink");
+        JS_ReportErrorUTF8(cx, "Second argument must be an AudioNodeLink");
         return false;
     }
 
@@ -226,22 +226,22 @@ bool JSAudioContext::JS_connect(JSContext *cx, JS::CallArgs &args)
     link2 = jlink2->get();
 
     if (!link1 || !link2) {
-        JS_ReportError(cx, "Invalid AudioNodeLink");
+        JS_ReportErrorUTF8(cx, "Invalid AudioNodeLink");
         return false;
     }
 
     if (link1->isInput() && link2->isOutput()) {
         if (!audio->connect(link2, link1)) {
-            JS_ReportError(cx, "connect() failed (max connection reached)\n");
+            JS_ReportErrorUTF8(cx, "connect() failed (max connection reached)\n");
             return false;
         }
     } else if (link1->isOutput() && link2->isInput()) {
         if (!audio->connect(link1, link2)) {
-            JS_ReportError(cx, "connect() failed (max connection reached)\n");
+            JS_ReportErrorUTF8(cx, "connect() failed (max connection reached)\n");
             return false;
         }
     } else {
-        JS_ReportError(cx, "connect() expect one input and one output.\n");
+        JS_ReportErrorUTF8(cx, "connect() expect one input and one output.\n");
         return false;
     }
 
@@ -264,12 +264,12 @@ bool JSAudioContext::JS_disconnect(JSContext *cx, JS::CallArgs &args)
                                                  : nullptr);
 
     if (!(arg0 || (jlink1 = JSAudioNodeLink::GetInstance(arg0)))) {
-        JS_ReportError(cx, "First argument must be an AudioNodeLink");
+        JS_ReportErrorUTF8(cx, "First argument must be an AudioNodeLink");
         return false;
     }
 
     if (!(arg1 || (jlink2 = JSAudioNodeLink::GetInstance(arg1)))) {
-        JS_ReportError(cx, "Second argument must be an AudioNodeLink");
+        JS_ReportErrorUTF8(cx, "Second argument must be an AudioNodeLink");
         return false;
     }
 
@@ -277,7 +277,7 @@ bool JSAudioContext::JS_disconnect(JSContext *cx, JS::CallArgs &args)
     link2 = jlink2->get();
 
     if (!link1 || !link2) {
-        JS_ReportError(cx, "Invalid AudioNodeLink");
+        JS_ReportErrorUTF8(cx, "Invalid AudioNodeLink");
         return false;
     }
 
@@ -286,7 +286,7 @@ bool JSAudioContext::JS_disconnect(JSContext *cx, JS::CallArgs &args)
     } else if (link1->isOutput() && link2->isInput()) {
         audio->disconnect(link1, link2);
     } else {
-        JS_ReportError(cx, "disconnect() expect one input and one output\n");
+        JS_ReportErrorUTF8(cx, "disconnect() expect one input and one output\n");
         return false;
     }
 
@@ -307,33 +307,33 @@ bool JSAudioContext::JS_pFFT(JSContext *cx, JS::CallArgs &args)
     }
 
     if (!JS_IsTypedArrayObject(x) || !JS_IsTypedArrayObject(y)) {
-        JS_ReportError(cx, "Bad argument");
+        JS_ReportErrorUTF8(cx, "Bad argument");
         return false;
     }
 
     bool shared;
 
     if (JS_GetObjectAsFloat64Array(x, &dlenx, &shared, &dx) == NULL) {
-        JS_ReportError(cx, "Can't convert typed array (expected Float64Array)");
+        JS_ReportErrorUTF8(cx, "Can't convert typed array (expected Float64Array)");
         return false;
     }
     if (JS_GetObjectAsFloat64Array(y, &dleny, &shared, &dy) == NULL) {
-        JS_ReportError(cx, "Can't convert typed array (expected Float64Array)");
+        JS_ReportErrorUTF8(cx, "Can't convert typed array (expected Float64Array)");
         return false;
     }
 
     if (dlenx != dleny) {
-        JS_ReportError(cx, "Buffers size must match");
+        JS_ReportErrorUTF8(cx, "Buffers size must match");
         return false;
     }
 
     if ((n & (n - 1)) != 0 || n < 32 || n > 4096) {
-        JS_ReportError(cx, "Invalid frame size");
+        JS_ReportErrorUTF8(cx, "Invalid frame size");
         return false;
     }
 
     if (n > dlenx) {
-        JS_ReportError(cx, "Buffer is too small");
+        JS_ReportErrorUTF8(cx, "Buffer is too small");
         return false;
     }
 
@@ -458,7 +458,7 @@ bool JSAudioContext::run(char *str)
                                     str, strlen(str), &fun);
 
     if (!state) {
-        JS_ReportError(m_JsTcx, "Failed to compile script on audio thread\n");
+        JS_ReportErrorUTF8(m_JsTcx, "Failed to compile script on audio thread\n");
         return false;
     }
 
@@ -575,7 +575,7 @@ void JSAudioContext::CtxCallback(void *custom)
 
     if (!audio->createContext()) {
         NUI_LOG("Failed to create audio thread context\n");
-        // JS_ReportError(jsNode->audio->cx, "Failed to create audio thread
+        // JS_ReportErrorUTF8(jsNode->audio->cx, "Failed to create audio thread
         // context\n");
         // XXX : Can't report error from another thread?
     }

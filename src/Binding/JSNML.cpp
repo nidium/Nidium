@@ -13,7 +13,7 @@ namespace Binding {
 bool JSNML::JSStatic_parse(JSContext *cx, JS::CallArgs &args)
 {
     if (!args[0].isString()) {
-        JS_ReportError(cx, "parse() first argument must be a string");
+        JS_ReportErrorUTF8(cx, "parse() first argument must be a string");
         return false;
     }
 

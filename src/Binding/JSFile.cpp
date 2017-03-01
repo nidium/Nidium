@@ -278,7 +278,7 @@ bool JSFile::JS_isDir(JSContext *cx, JS::CallArgs &args)
     File *file = this->getFile();
 
     if (!file->isOpen()) {
-        JS_ReportError(cx, "File has not been opened");
+        JS_ReportErrorUTF8(cx, "File has not been opened");
         return false;
     }
 
@@ -377,7 +377,7 @@ bool JSFile::JS_write(JSContext *cx, JS::CallArgs &args)
         JS::RootedObject jsobj(cx, args[0].toObjectOrNull());
 
         if (jsobj == NULL || !JS_IsArrayBufferObject(jsobj)) {
-            JS_ReportError(cx,
+            JS_ReportErrorUTF8(cx,
                            "INVALID_VALUE : only accept string or ArrayBuffer");
             return false;
         }
@@ -392,7 +392,7 @@ bool JSFile::JS_write(JSContext *cx, JS::CallArgs &args)
 
         file->write(reinterpret_cast<char *>(data), len, ref);
     } else {
-        JS_ReportError(cx, "INVALID_VALUE : only accept string or ArrayBuffer");
+        JS_ReportErrorUTF8(cx, "INVALID_VALUE : only accept string or ArrayBuffer");
         return false;
     }
 
@@ -499,7 +499,7 @@ bool JSFile::JSStatic_read(JSContext *cx, JS::CallArgs &args)
     Stream *stream = Stream::Create(Path(cfilename.ptr()));
 
     if (!stream) {
-        JS_ReportError(cx, "couldn't open stream");
+        JS_ReportErrorUTF8(cx, "couldn't open stream");
         return false;
     }
 
@@ -543,7 +543,7 @@ bool JSFile::JSStatic_readSync(JSContext *cx, JS::CallArgs &args)
     Path path(cfilename.ptr());
 
     if (!path.GetScheme()->AllowSyncStream()) {
-        JS_ReportError(cx, "can't open this file for sync read");
+        JS_ReportErrorUTF8(cx, "can't open this file for sync read");
         return false;
     }
 
@@ -582,12 +582,12 @@ bool JSFile::JSStatic_readSync(JSContext *cx, JS::CallArgs &args)
 bool JSFile::JS_openSync(JSContext *cx, JS::CallArgs &args)
 {
     if (!args[0].isString()) {
-        JS_ReportError(cx, "First argument must be a string");
+        JS_ReportErrorUTF8(cx, "First argument must be a string");
         return false;
     }
 
     if (!this->allowSyncStream()) {
-        JS_ReportError(cx, "Can't open this file for sync read");
+        JS_ReportErrorUTF8(cx, "Can't open this file for sync read");
         return false;
     }
 
@@ -597,7 +597,7 @@ bool JSFile::JS_openSync(JSContext *cx, JS::CallArgs &args)
     File *file = this->getFile();
 
     if (!file->openSync(mode.ptr(), &err) || err != 0) {
-        JS_ReportError(cx, "Failed to open file : %s (errno %d)\n",
+        JS_ReportErrorUTF8(cx, "Failed to open file : %s (errno %d)\n",
                        strerror(err), err);
         return false;
     }
@@ -614,14 +614,14 @@ bool JSFile::JS_readSync(JSContext *cx, JS::CallArgs &args)
     File *file = this->getFile();
 
     if (!this->allowSyncStream()) {
-        JS_ReportError(cx, "Can't read this file synchronously");
+        JS_ReportErrorUTF8(cx, "Can't read this file synchronously");
         return false;
     }
 
     if (!file->isOpen()) {
         int openError = 0;
         if (!file->openSync("r", &openError)) {
-            JS_ReportError(cx, "Failed to open file : %s (errno %d)",
+            JS_ReportErrorUTF8(cx, "Failed to open file : %s (errno %d)",
                            strerror(openError), openError);
             return false;
         }
@@ -637,11 +637,11 @@ bool JSFile::JS_readSync(JSContext *cx, JS::CallArgs &args)
 
     if (readSize < 0) {
         if (err == 0) {
-            JS_ReportError(cx, "Unable to read file : %s",
+            JS_ReportErrorUTF8(cx, "Unable to read file : %s",
                            !file->isOpen() ? "not opened"
                                            : "is it a directory?");
         } else {
-            JS_ReportError(cx, "Failed to read file : %s (errno %d)",
+            JS_ReportErrorUTF8(cx, "Failed to read file : %s (errno %d)",
                            strerror(err), err);
         }
         return false;
@@ -665,7 +665,7 @@ bool JSFile::JS_seekSync(JSContext *cx, JS::CallArgs &args)
     int ret;
 
     if (!args[0].isNumber()) {
-        JS_ReportError(cx, "First argument must be a number");
+        JS_ReportErrorUTF8(cx, "First argument must be a number");
         return false;
     }
 
@@ -682,7 +682,7 @@ bool JSFile::JS_seekSync(JSContext *cx, JS::CallArgs &args)
                      seekPos, strerror(err), err);
         }
 
-        JS_ReportError(cx, errStr);
+        JS_ReportErrorUTF8(cx, errStr);
         return false;
     }
 
@@ -709,7 +709,7 @@ bool JSFile::JS_writeSync(JSContext *cx, JS::CallArgs &args)
         JS::RootedObject jsobj(cx, args[0].toObjectOrNull());
 
         if (jsobj == NULL || !JS_IsArrayBufferObject(jsobj)) {
-            JS_ReportError(cx,
+            JS_ReportErrorUTF8(cx,
                            "INVALID_VALUE : only accept string or ArrayBuffer");
             return false;
         }
@@ -722,12 +722,12 @@ bool JSFile::JS_writeSync(JSContext *cx, JS::CallArgs &args)
 
         ret = file->writeSync(reinterpret_cast<char *>(data), len, &err);
     } else {
-        JS_ReportError(cx, "INVALID_VALUE : only accept string or ArrayBuffer");
+        JS_ReportErrorUTF8(cx, "INVALID_VALUE : only accept string or ArrayBuffer");
         return false;
     }
 
     if (err != 0 || ret < 0) {
-        JS_ReportError(cx, "Failed to write : %s",
+        JS_ReportErrorUTF8(cx, "Failed to write : %s",
                        (ret < 0 ? "Not opened or file is a directory" : strerror(err)));
         return false;
     }
@@ -738,7 +738,7 @@ bool JSFile::JS_writeSync(JSContext *cx, JS::CallArgs &args)
 bool JSFile::JS_closeSync(JSContext *cx, JS::CallArgs &args)
 {
     if (!this->allowSyncStream()) {
-        JS_ReportError(cx, "Can't close this file synchronously");
+        JS_ReportErrorUTF8(cx, "Can't close this file synchronously");
         return false;
     }
 
@@ -765,7 +765,7 @@ JSFile *JSFile::Constructor(JSContext *cx,
     jsfile = new JSFile(curl.ptr());
 
     if (!jsfile->getPath() || !jsfile->allowSyncStream()) {
-        JS_ReportError(cx, "FileIO : Invalid file path");
+        JS_ReportErrorUTF8(cx, "FileIO : Invalid file path");
         return nullptr;
     }
 

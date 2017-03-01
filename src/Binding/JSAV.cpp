@@ -144,19 +144,19 @@ bool JSAVSourceBase::JS__open(JSContext *cx, JS::CallArgs &args)
     } else if (src.isObject()) {
         JS::RootedObject arrayBuff(cx, src.toObjectOrNull());
         if (!JS_IsArrayBufferObject(arrayBuff)) {
-            JS_ReportError(cx, "Data is not an ArrayBuffer\n");
+            JS_ReportErrorUTF8(cx, "Data is not an ArrayBuffer\n");
             return false;
         }
         int length           = JS_GetArrayBufferByteLength(arrayBuff);
         this->m_ArrayContent = JS_StealArrayBufferContents(cx, arrayBuff);
         ret                  = source->open(m_ArrayContent, length);
     } else {
-        JS_ReportError(cx, "Invalid argument", ret);
+        JS_ReportErrorUTF8(cx, "Invalid argument", ret);
         return false;
     }
 
     if (ret < 0) {
-        JS_ReportError(cx, "Failed to open stream %d\n", ret);
+        JS_ReportErrorUTF8(cx, "Failed to open stream %d\n", ret);
         return false;
     }
 

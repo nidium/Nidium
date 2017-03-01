@@ -135,7 +135,7 @@ bool JSStream::JS_start(JSContext *cx, JS::CallArgs &args)
     if (args.length() > 0 && args[0].isInt32()) {
         packetlen = args[0].toInt32();
         if (packetlen < 1) {
-            JS_ReportError(cx,
+            JS_ReportErrorUTF8(cx,
                            "Invalid packet size (must be greater than zero)");
             return false;
         }
@@ -158,10 +158,10 @@ bool JSStream::JS_getNextPacket(JSContext *cx, JS::CallArgs &args)
     if (ret == NULL) {
         switch (err) {
             case Stream::Stream::kDataStatus_End:
-                JS_ReportError(cx, "Stream has ended");
+                JS_ReportErrorUTF8(cx, "Stream has ended");
                 return false;
             case Stream::Stream::kDataStatus_Error:
-                JS_ReportError(cx, "Stream error (unknown)");
+                JS_ReportErrorUTF8(cx, "Stream error (unknown)");
                 return false;
             case Stream::Stream::kDataStatus_Again:
                 args.rval().setNull();
@@ -196,7 +196,7 @@ JSStream * JSStream::Constructor(JSContext *cx,  JS::CallArgs &args,
         static_cast<ape_global *>(JS_GetContextPrivate(cx)), curl.ptr());
 
     if (jstream->getStream() == NULL) {
-        JS_ReportError(cx, "Failed to create stream");
+        JS_ReportErrorUTF8(cx, "Failed to create stream");
         return nullptr;
     }
 

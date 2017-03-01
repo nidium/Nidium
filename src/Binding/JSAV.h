@@ -40,7 +40,7 @@ namespace Binding {
 #define GET_AUDIO_CONTEXT(cx)                              \
     JSAudioContext *jaudio = JSAudioContext::GetContext(); \
     if (!jaudio) {                                         \
-        JS_ReportError(cx, "No Audio context");            \
+        JS_ReportErrorUTF8(cx, "No Audio context");        \
         return false;                                      \
     }
 

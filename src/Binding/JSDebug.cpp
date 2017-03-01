@@ -20,7 +20,7 @@ bool JSDebug::JS_serialize(JSContext *cx, JS::CallArgs &args)
     if (!JS_WriteStructuredClone(cx, args[0], &data, &data_len, NidiumJS::m_JsScc,
                                  NidiumJS::GetObject(cx),
                                  JS::NullHandleValue)) {
-        JS_ReportError(cx, "serialize() failed");
+        JS_ReportErrorUTF8(cx, "serialize() failed");
         return false;
     }
 
@@ -50,7 +50,7 @@ bool JSDebug::JS_unserialize(JSContext *cx, JS::CallArgs &args)
     }
 
     if (!objdata || !JS_IsArrayBufferObject(objdata)) {
-        JS_ReportError(cx, "unserialize() invalid data (not an ArrayBuffer)");
+        JS_ReportErrorUTF8(cx, "unserialize() invalid data (not an ArrayBuffer)");
         return false;
     }
     uint32_t len  = JS_GetArrayBufferByteLength(objdata);
@@ -59,7 +59,7 @@ bool JSDebug::JS_unserialize(JSContext *cx, JS::CallArgs &args)
     JS::RootedValue inval(cx);
 
     if (offset >= len) {
-        JS_ReportError(cx, "unserialize() offset overflow");
+        JS_ReportErrorUTF8(cx, "unserialize() offset overflow");
         return false;
     }
 
@@ -78,7 +78,7 @@ bool JSDebug::JS_unserialize(JSContext *cx, JS::CallArgs &args)
                                 JS_STRUCTURED_CLONE_VERSION, &inval,
                                 NidiumJS::m_JsScc,
                                 NidiumJS::GetObject(cx))) {
-        JS_ReportError(cx, "unserialize() invalid data");
+        JS_ReportErrorUTF8(cx, "unserialize() invalid data");
         return false;
     }
 

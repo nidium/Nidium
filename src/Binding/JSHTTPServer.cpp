@@ -183,7 +183,7 @@ JSHTTPServer *JSHTTPServer::Constructor(JSContext *cx, JS::CallArgs &args,
     }
 
     if (!listener->start((bool)reuseport)) {
-        JS_ReportError(cx, "HTTPServer() couldn't listener on %d", port);
+        JS_ReportErrorUTF8(cx, "HTTPServer() couldn't listener on %d", port);
         delete listener;
         
         return nullptr;
@@ -210,7 +210,7 @@ bool JSHTTPResponse::JS_write(JSContext *cx, JS::CallArgs &args)
     } else if (args[0].isObject()) {
         JS::RootedObject objdata(cx, args[0].toObjectOrNull());
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
-            JS_ReportError(cx,
+            JS_ReportErrorUTF8(cx,
                            "write() invalid data (must be either a string or "
                            "an ArrayBuffer)");
             return false;
@@ -224,7 +224,7 @@ bool JSHTTPResponse::JS_write(JSContext *cx, JS::CallArgs &args)
 
         this->sendChunk((char *)data, len, APE_DATA_COPY);
     } else {
-        JS_ReportError(cx, "write() only accepts String or ArrayBuffer");
+        JS_ReportErrorUTF8(cx, "write() only accepts String or ArrayBuffer");
         return false;
     }
 
@@ -243,7 +243,7 @@ bool JSHTTPResponse::JS_end(JSContext *cx, JS::CallArgs &args)
         } else if (args[0].isObject()) {
             JS::RootedObject objdata(cx, args[0].toObjectOrNull());
             if (!objdata || !JS_IsArrayBufferObject(objdata)) {
-                JS_ReportError(cx,
+                JS_ReportErrorUTF8(cx,
                                "end() invalid data (must be either a string or "
                                "an ArrayBuffer)");
                 return false;

@@ -105,7 +105,7 @@ bool JSConsole::JS_write(JSContext *cx, JS::CallArgs &args)
 
     JS::RootedString str(cx, args[0].toString());
     if (!str) {
-        JS_ReportError(cx, "Bad argument");
+        JS_ReportErrorUTF8(cx, "Bad argument");
         return false;
     }
 

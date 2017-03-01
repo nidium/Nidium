@@ -52,7 +52,7 @@ Canvas3DContext::Canvas3DContext(CanvasHandler *handler,
 static bool nidium_Canvas3DContext_constructor(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
-    JS_ReportError(cx, "Illegal constructor");
+    JS_ReportErrorUTF8(cx, "Illegal constructor");
     return false;
 }
 #endif
