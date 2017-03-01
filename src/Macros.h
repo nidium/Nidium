@@ -7,21 +7,8 @@
 #define macros_h__
 
 #include <string.h>
-
 #include "Interface/UIInterface.h"
 #include <ape_log.h>
-
-namespace Nidium {
-namespace Interface {
-extern UIInterface *__NidiumUI;
-}
-}
-
-#define NUI_LOG(format, ...)                                 \
-    Nidium::Interface::__NidiumUI->getNidiumContext()->vlog( \
-        "[%s:%d] " format "\n", __FILENAME__, __LINE__, ##__VA_ARGS__)
-#endif
-
 
 #define NDM_LOG_ERROR    APE_LOG_ERROR
 #define NDM_LOG_WARN     APE_LOG_WARN
@@ -42,3 +29,6 @@ extern UIInterface *__NidiumUI;
 
 #define nlogf ndm_printf
 #define nlog ndm_print
+#define NUI_LOG ndm_printf
+
+#endif
