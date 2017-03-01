@@ -44,8 +44,6 @@ Deps.set(
 if Platform.system == "Linux":
     Deps.set("libnotify")
 
-Platform.setEnviron("MACOSX_DEPLOYMENT_TARGET=10.7")
-
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_FRONTEND")
 Gyp.set("nidium_js_disable_window_global", 0)
