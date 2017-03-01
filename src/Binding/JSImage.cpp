@@ -209,7 +209,7 @@ bool JSImage::JSGetter_src(JSContext *cx, JS::MutableHandleValue vp)
 {
 
     if (!m_Image) {
-        JS::RootedString jStr(cx, JS_GetEmptyString(JS_GetRuntime(cx)));
+        JS::RootedString jStr(cx, JS_GetEmptyString(cx));
         vp.setString(jStr);
     } else if (m_Path) {
         JS::RootedString jStr(cx, JS_NewStringCopyZ(cx, m_Path->path()));
