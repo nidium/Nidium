@@ -9,7 +9,7 @@
 #include <string.h>
 
 #include "Interface/UIInterface.h"
-#include "Macros.h"
+#include <ape_log.h>
 
 namespace Nidium {
 namespace Interface {
@@ -21,3 +21,24 @@ extern UIInterface *__NidiumUI;
     Nidium::Interface::__NidiumUI->getNidiumContext()->vlog( \
         "[%s:%d] " format "\n", __FILENAME__, __LINE__, ##__VA_ARGS__)
 #endif
+
+
+#define NDM_LOG_ERROR    APE_LOG_ERROR
+#define NDM_LOG_WARN     APE_LOG_WARN
+#define NDM_LOG_INFO     APE_LOG_INFO
+#define NDM_LOG_DEBUG    APE_LOG_DEBUG
+
+#define ndm_logf(level, tag, format, ...) \
+    APE_logf(level, tag, "(%s:%d) " format, __FILENAME__, __LINE__, ##__VA_ARGS__)
+
+#define ndm_log(level, tag, data) \
+    APE_logf(level, tag, "(%s:%d) %s", __FILENAME__, __LINE__, data)
+
+#define ndm_printf(format, ...) \
+    APE_logf(APE_LOG_INFO, nullptr, "(%s:%d) " format, __FILENAME__, __LINE__, ##__VA_ARGS__)
+
+#define ndm_print(data) \
+    APE_logf(APE_LOG_INFO, nullptr, "(%s:%d) %s", __FILENAME__, __LINE__, data)
+
+#define nlogf ndm_printf
+#define nlog ndm_print
