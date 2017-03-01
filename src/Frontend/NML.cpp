@@ -74,9 +74,7 @@ void NML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
 
     Path path(file);
 
-#ifdef DEBUG
-    printf("NML path : %s\n", path.path());
-#endif
+    nlogf("NML path : %s", path.path());
 
     m_Stream = Stream::Create(path);
     if (m_Stream == NULL) {
