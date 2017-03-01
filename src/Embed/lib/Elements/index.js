@@ -15,7 +15,6 @@ const s_NodeID      = Symbol("NodeID");
 const g_MainShadow  = new ShadowRoot(document.canvas, {"name": "main"});
 let g_CurrentShadow = null;
 
-
 Elements.Create = function(tag, attributes, shadowRoot=g_MainShadow) {
     tag = tag.toLowerCase();
     let ret;
@@ -71,7 +70,7 @@ Elements.Loader = function(attributes) {
 /*
     Node are container only canvas (no GFX context)
 */
-Elements.Node = class extends Canvas {
+const Node = Elements.Node = class extends Canvas {
     constructor(attributes = {}) {
         super(attributes.width || 10, attributes.height || 10);
 
@@ -172,7 +171,7 @@ Elements.Node = class extends Canvas {
     set textContent(value) {
         /* Don't create a node if there is already a textNode as an only child */
         var c = this.getChildren();
-        if (c.length == 1 && c[0].nodeType == 3) {
+        if (c.length == 1 && c[0].nodeType == Node.TEXT_NODE) {
             c[0].nodeValue = value;
             return;
         }
@@ -198,7 +197,7 @@ Elements.Node = class extends Canvas {
     }
 
     get nodeType() {
-        return 1;
+        return Node.ELEMENT_NODE;
     }
 
     get parentNode() {
@@ -297,6 +296,14 @@ Elements.Node = class extends Canvas {
     getContext() { return null; }
 }
 
+Node.ELEMENT_NODE = 1;
+Node.TEXT_NODE = 3;
+Node.PROCESSING_INSTRUCTION_NODE = 7;
+Node.COMMENT_NODE = 8;
+Node.DOCUMENT_NODE = 9;
+Node.DOCUMENT_TYPE_NODE = 10;
+Node.DOCUMENT_FRAGMENT_NODE = 11;
+
 Elements.Element = class extends Elements.Node {
     constructor(attributes) {
         super(attributes);
@@ -387,7 +394,7 @@ Elements.textnode = class extends Elements.Node {
     }
 
     get nodeType() {
-        return 3;
+        return Node.TEXT_NODE;
     }
 }
 
