@@ -256,7 +256,6 @@ const Node = Elements.Node = class extends Canvas {
     attachShadow(options) {
         options = options || {};
         let ret = new ShadowRoot(this, options);
-        this[s_ShadowRoot] = ret;
         // TODO : Move children outside of shadowroot (spec)
         return ret;
     }

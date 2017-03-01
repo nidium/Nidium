@@ -15,6 +15,8 @@ class ShadowRoot {
         this.nssList = [];
         this.nss = null;
 
+        host[s_ShadowRoot] = this;
+
         if (this.jsScope) {
             // TODO : Override document with a proxy ?
         }
