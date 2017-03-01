@@ -15,7 +15,7 @@ Do you have a windows machine? Probably not, but you can test one for 90 days.
 * import the appliance, and configure it as you like.
   (e.g. 4 processors, 4G, 20G extra disk)
 * start it up
-* do your thing: windows updates, users&passwords, networkconfig, keyboard settings, ..
+* do your thing: disable defragmentation for ssd, windows updates, users&passwords, networkconfig, keyboard settings, ..
 * log in as your user
 
 # Rights
