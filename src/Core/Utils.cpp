@@ -14,7 +14,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #endif
-
+#include <ape_common.h>
 #include <ape_sha1.h>
 #include <ape_base64.h>
 #include <ape_blowfish.h>
