@@ -82,6 +82,10 @@ const Node = Elements.Node = class extends Canvas {
 
         this[s_ShadowRoot] = g_CurrentShadow;
         this[s_ShadowRoot].addTag(this.name(), this);
+
+        this.addEventListener("load", () => {
+            this.fireEvent("mount", {});
+        });
     }
 
     getNMLContent(self = true) {
@@ -317,10 +321,6 @@ Elements.Element = class extends Elements.Node {
         //this.onload = this.onpaint;
         this.onresize = this.onpaint;
         this._textValue = "";
-
-        this.addEventListener("load", () => {
-            this.fireEvent("mount", {});
-        });
     }
 
     onload() {
