@@ -6,6 +6,8 @@
 #ifndef macros_h__
 #define macros_h__
 
+#ifdef __cplusplus
+
 #include <string.h>
 #include "Interface/UIInterface.h"
 #include <ape_log.h>
@@ -30,5 +32,7 @@
 #define nlogf ndm_printf
 #define nlog ndm_print
 #define NUI_LOG ndm_printf
+
+#endif
 
 #endif

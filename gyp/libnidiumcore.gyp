@@ -36,9 +36,13 @@
 
                 # Include our own js-config.h so it is automatically
                 # versioned for our build flavour
-                '-include <(nidium_output_third_party_path)/js-config.h',
+                '-include <(nidium_output_third_party_path)/js-config.h'
+            ],
+
+            'cflags_cc': [
                 '-include ../src/Macros.h'
             ],
+
             'xcode_settings': {
                 'OTHER_CFLAGS': [
                     '-fno-rtti',
