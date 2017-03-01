@@ -12,7 +12,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+#include <port/windows.h>
+#else
 #include <fts.h>
 #include <unistd.h>
 #include <sys/mman.h>

@@ -9,7 +9,9 @@
 #include <stdbool.h>
 #include <string.h>
 
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+#include <port/windows.h>
+#else
 #include <strings.h>
 #include <unistd.h>
 #endif

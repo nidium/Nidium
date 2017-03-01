@@ -10,6 +10,10 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#ifdef _MSC_VER
+#include <port/windows.h>
+#endif
+
 #include <prio.h>
 
 #include "Core/Messages.h"

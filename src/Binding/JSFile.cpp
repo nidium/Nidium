@@ -16,8 +16,9 @@
 #include <sys/stat.h>
 #include <ape_netlib.h>
 
-
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+#include <port/windows.h>
+#else
 #include <unistd.h>
 #endif
 

@@ -8,6 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _MSC_VER
+#include <port/windows.h>
+#endif
+
 #include <ape_netlib.h>
 
 #include "IO/NFS.h"

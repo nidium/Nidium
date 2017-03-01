@@ -10,7 +10,9 @@
 #include <string.h>
 #include <array>
 
+#ifdef _MSC_VER
 #include <ape_base64.h>
+#endif
 
 using Nidium::Core::Args;
 
