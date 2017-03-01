@@ -1,0 +1,12 @@
+--- libzip.org/lib/mkstemp.c	2017-03-01 05:01:34 -0800
++++ libzip/lib/mkstemp.c	2017-03-01 05:02:30 -0800
+@@ -43,7 +43,9 @@
+ #endif
+ #include <stdio.h>
+ #include <stdlib.h>
++#ifndef _MSC_VER
+ #include <unistd.h>
++#endif
+ 
+ #ifndef O_BINARY
+ #define O_BINARY 0

@@ -178,18 +178,21 @@ def skia():
 
 @Deps.register("libzip")
 def libzip():
-    make_opt = ''
     if Platform.system == "Windows":
-        configure = "bash configure"
-        make_opt = ' -j1'
-        Platform.setEnviron('LIBS=-lz')
+        #todo figure out how to make this flexible, maybe as a Var
+        toolchain = "Visual Studio 14 2015"
+        output = "./lib/Release/zip.lib"
+        build = ['cmake . -G "%s" -DZLIB_LIBRARY=%s/zlib/zlib.lib -DZLIB_INCLUDE_DIR=%s/zlib' % (toolchain, Deps.getDir(), Deps.getDir()), 
+                "MSBuild.exe libzip.sln /p:Configuration=Release /p:PlatformToolset=v140"]
     else:
-        configure = "./configure"
+        output = "lib/.libs/libzip.a"
+        build = ["configure  --disable-shared --with-zlib=%s/zlib/" % (Deps.getDir()), "make"]
     return {
-        #"location": DEPEDENCY_REPO + "/libzip-0.10.1.tar.bz2",
-        "location": "http://www.nih.at/libzip/libzip-1.1.2.tar.gz",
-        "build": [configure + " --disable-shared --with-zlib=%s/zlib/" % (Deps.getDir().replace('\\', '/')), "make" + make_opt],
-        "outputs": ["lib/.libs/libzip.a"]
+        #todo figure out how to get commit of 'today'
+        "location": "http://hg.nih.at/libzip/archive/tip.zip", 
+        "build": build,
+        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "libzip.patch")],
+        "outputs": [output]
     }
 
 @Deps.register("lss")
