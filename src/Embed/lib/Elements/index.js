@@ -142,8 +142,19 @@ Elements.Node = class extends Canvas {
     }
 
     add(child) {
+        if (!this.allowsChild()) {
+            throw Error(`<${this.name()}> does not support children`);
+        }
         this[s_ShadowRoot].add(child);
-        super.add(child);
+        return super.add(child);
+    }
+
+    addSubCanvas(child) {
+        return this.add(child);
+    }
+
+    appendChild(child) {
+        return this.add(child);
     }
 
     hasAttribute(attr) {
@@ -355,16 +366,6 @@ Elements.textnode = class extends Elements.Node {
 
     set textContent(value) {
         this.nodeValue = value;
-    }
-
-    add() {
-        throw Error("textNode doesn't support this operation");
-    }
-    addSubCanvas() {
-        throw Error("textNode doesn't support this operation");
-    }
-    appendChild() {
-        throw Error("textNode doesn't support this operation");
     }
 
     allowsChild() {
