@@ -996,7 +996,7 @@ bool Canvas2DContext::JS_drawImage(JSContext *cx, JS::CallArgs &args)
     } else if (!jsimage || !JSImage::InstanceOf(jsimage)
                || (image = JSImage::JSObjectToImage(jsimage)) == NULL) {
 
-        JS_ReportWarning(cx, "Invalid image given");
+        JS_ReportWarningUTF8(cx, "Invalid image given");
         return true;
     }
 
@@ -1534,7 +1534,7 @@ bool Canvas2DContext::JSGetter_shadowColor(JSContext *cx,
 bool Canvas2DContext::JSGetter_globalCompositeOperation(JSContext *cx,
     JS::MutableHandleValue vp)
 {
-    JS_ReportWarning(cx, "Not implemented");
+    JS_ReportWarningUTF8(cx, "Not implemented");
     vp.setUndefined();
 
     return true;
@@ -1543,7 +1543,7 @@ bool Canvas2DContext::JSGetter_globalCompositeOperation(JSContext *cx,
 bool Canvas2DContext::JSGetter_fontSize(JSContext *cx,
     JS::MutableHandleValue vp)
 {
-    JS_ReportWarning(cx, "Not implemented");
+    JS_ReportWarningUTF8(cx, "Not implemented");
     vp.setUndefined();
 
     return true;
@@ -1552,7 +1552,7 @@ bool Canvas2DContext::JSGetter_fontSize(JSContext *cx,
 bool Canvas2DContext::JSGetter_textAlign(JSContext *cx,
     JS::MutableHandleValue vp)
 {
-    JS_ReportWarning(cx, "Not implemented");
+    JS_ReportWarningUTF8(cx, "Not implemented");
     vp.setUndefined();
 
     return true;
@@ -1561,7 +1561,7 @@ bool Canvas2DContext::JSGetter_textAlign(JSContext *cx,
 bool Canvas2DContext::JSGetter_textBaseline(JSContext *cx,
     JS::MutableHandleValue vp)
 {
-    JS_ReportWarning(cx, "Not implemented");
+    JS_ReportWarningUTF8(cx, "Not implemented");
     vp.setUndefined();
 
     return true;
@@ -1570,7 +1570,7 @@ bool Canvas2DContext::JSGetter_textBaseline(JSContext *cx,
 bool Canvas2DContext::JSGetter_fontFamily(JSContext *cx,
     JS::MutableHandleValue vp)
 {
-    JS_ReportWarning(cx, "Not implemented");
+    JS_ReportWarningUTF8(cx, "Not implemented");
     vp.setUndefined();
 
     return true;
@@ -1579,7 +1579,7 @@ bool Canvas2DContext::JSGetter_fontFamily(JSContext *cx,
 bool Canvas2DContext::JSGetter_fontStyle(JSContext *cx,
     JS::MutableHandleValue vp)
 {
-    JS_ReportWarning(cx, "Not implemented");
+    JS_ReportWarningUTF8(cx, "Not implemented");
     vp.setUndefined();
 
     return true;
@@ -1588,7 +1588,7 @@ bool Canvas2DContext::JSGetter_fontStyle(JSContext *cx,
 bool Canvas2DContext::JSGetter_fontSkew(JSContext *cx,
     JS::MutableHandleValue vp)
 {
-    JS_ReportWarning(cx, "Not implemented");
+    JS_ReportWarningUTF8(cx, "Not implemented");
     vp.setUndefined();
 
     return true;
@@ -1597,7 +1597,7 @@ bool Canvas2DContext::JSGetter_fontSkew(JSContext *cx,
 bool Canvas2DContext::JSGetter_fontFile(JSContext *cx,
     JS::MutableHandleValue vp)
 {
-    JS_ReportWarning(cx, "Not implemented");
+    JS_ReportWarningUTF8(cx, "Not implemented");
     vp.setUndefined();
 
     return true;

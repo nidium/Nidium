@@ -455,7 +455,7 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
         JS_SetReservedSlot(m_Instance, 0, JS::ObjectValue(*JSCanvasCtx));
 
     } else if (canvasctx->m_Mode != ctxmode) {
-        JS_ReportWarning(cx, "Bad context requested");
+        JS_ReportWarningUTF8(cx, "Bad context requested");
         /* A mode is requested but another one was already created */
         args.rval().setNull();
         return true;

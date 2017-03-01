@@ -351,7 +351,7 @@ bool JSGlobal::JS_btoa(JSContext *cx, JS::CallArgs &args)
 
     } else {
         args.rval().setNull();
-        JS_ReportWarning(cx, "btoa() non-string given");
+        JS_ReportWarningUTF8(cx, "btoa() non-string given");
     }
 
     return true;

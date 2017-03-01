@@ -208,7 +208,7 @@ bool JSDocument::JS_toDataArray(JSContext *cx, JS::CallArgs &args)
 
     Image *simg = Image::CreateFromSkImage(context->getSkiaContext()->getSurface()->makeImageSnapshot());
     if (!simg) {
-        JS_ReportWarning(cx, "Couldnt readback snapshot surface");
+        JS_ReportWarningUTF8(cx, "Couldnt readback snapshot surface");
         args.rval().setNull();
         return true;            
     }
@@ -216,7 +216,7 @@ bool JSDocument::JS_toDataArray(JSContext *cx, JS::CallArgs &args)
     data = simg->getPNG();
 
     if (!data) {
-        JS_ReportWarning(cx, "Couldnt read PNG data from surface");
+        JS_ReportWarningUTF8(cx, "Couldnt read PNG data from surface");
         args.rval().setNull();
         return true;
     }

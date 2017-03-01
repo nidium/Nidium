@@ -34,7 +34,7 @@ JSWebSocket::JSWebSocket(JSContext *cx,
         ssl, static_cast<ape_global *>(JS_GetContextPrivate(cx)));
 
     if (!ret) {
-        JS_ReportWarning(cx, "Failed to connect to WS endpoint\n");
+        JS_ReportWarningUTF8(cx, "Failed to connect to WS endpoint\n");
         return;
     }
 

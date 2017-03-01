@@ -474,7 +474,7 @@ bool JSSocket::JSSetter_timeout(JSContext *cx, JS::MutableHandleValue vp)
         && !APE_socket_setTimeout(m_Socket,
                                   m_TCPTimeout)) {
 
-        JS_ReportWarning(cx, "Couldn't set TCP timeout on socket");
+        JS_ReportWarningUTF8(cx, "Couldn't set TCP timeout on socket");
     }
 
     return true;
@@ -549,7 +549,7 @@ bool JSSocket::JS_listen(JSContext *cx, JS::CallArgs &args)
 
     if (m_TCPTimeout) {
         if (!APE_socket_setTimeout(socket, m_TCPTimeout)) {
-            JS_ReportWarning(cx, "Couldn't set TCP timeout on socket\n");
+            JS_ReportWarningUTF8(cx, "Couldn't set TCP timeout on socket\n");
         }
     }
 
@@ -578,7 +578,7 @@ bool JSSocket::JS_write(JSContext *cx, JS::CallArgs &args)
 {
     if (!this->isAttached()) {
 
-        JS_ReportWarning(cx, "socket.write() Invalid socket (not connected)");
+        JS_ReportWarningUTF8(cx, "socket.write() Invalid socket (not connected)");
         args.rval().setInt32(-1);
         return true;
     }
@@ -626,7 +626,7 @@ bool JSSocket::JS_write(JSContext *cx, JS::CallArgs &args)
 bool JSSocket::JS_disconnect(JSContext *cx, JS::CallArgs &args)
 {
     if (!this->isAttached()) {
-        JS_ReportWarning(cx, "socket.close() Invalid socket (not connected)");
+        JS_ReportWarningUTF8(cx, "socket.close() Invalid socket (not connected)");
         args.rval().setInt32(-1);
         return true;
     }
@@ -839,7 +839,7 @@ bool JSSocket::JS_connect(JSContext *cx, JS::CallArgs &args)
 
     if (m_TCPTimeout) {
         if (!APE_socket_setTimeout(socket, m_TCPTimeout)) {
-            JS_ReportWarning(cx, "Couldn't set TCP timeout on socket\n");
+            JS_ReportWarningUTF8(cx, "Couldn't set TCP timeout on socket\n");
         }
     }
 
@@ -867,7 +867,7 @@ bool JSSocketClientConnection::JS_sendFile(JSContext *cx, JS::CallArgs &args)
     JS::RootedString file(cx);
 
     if (!this->isAttached()) {
-        JS_ReportWarning(cx,
+        JS_ReportWarningUTF8(cx,
                          "socket.sendFile() Invalid socket (not connected)");
         args.rval().setInt32(-1);
         return true;
@@ -888,7 +888,7 @@ bool JSSocketClientConnection::JS_write(JSContext *cx, JS::CallArgs &args)
 
     if (!this->isAttached()) {
 
-        JS_ReportWarning(cx, "socket.write() Invalid socket (not connected)");
+        JS_ReportWarningUTF8(cx, "socket.write() Invalid socket (not connected)");
         args.rval().setInt32(-1);
         return true;
     }
@@ -936,7 +936,7 @@ bool JSSocketClientConnection::JS_write(JSContext *cx, JS::CallArgs &args)
 bool JSSocketClientConnection::JS_disconnect(JSContext *cx, JS::CallArgs &args)
 {
     if (!this->isAttached()) {
-        JS_ReportWarning(cx, "socket.close() Invalid socket (not connected)");
+        JS_ReportWarningUTF8(cx, "socket.close() Invalid socket (not connected)");
         args.rval().setInt32(-1);
         return true;
     }
