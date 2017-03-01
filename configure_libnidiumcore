@@ -19,7 +19,6 @@ from konstructor import Log
 from konstructor import ROOT, OUTPUT
 
 Deps.set(
-    "libnspr4",
     "mozilla-central",
     "leveldb",
     "http-parser",
@@ -55,28 +54,13 @@ def leveldb():
         "outputs": ["libleveldb(.a|.lib)"]
     }
 
-@Deps.register("libnspr4")
-def libnspr():
-    configure = "./configure"
-    if Platform.wordSize == 64:
-        configure += " --enable-64bit"
-
-    return {
-        "chdir": "mozilla-central/nsprpub/",
-        "build": [configure, "make"],
-        "outputs": ["dist/lib/libnspr4(.a|.lib)"]
-    }
-
 @Deps.register("mozilla-central")
 def mozilla():
-    nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/"))
-    nsprFlags = "--with-nspr-cflags=\"-I%s/dist/include/nspr/\" \
-                 --with-nspr-libs=\"-L%s/dist/lib/ -lnspr4 -lplds4 -lplc4\"" % (nsprDir, nsprDir)
-
     configure = "../configure\
             --disable-shared-js\
             --disable-jemalloc\
-            --enable-ctypes %s" % (nsprFlags)
+            --enable-nspr-build\
+            --enable-ctypes"
 
     if Konstruct.config("debug", "valgring"):
         configure += " --enable-debug --disable-optimize"
@@ -86,7 +70,7 @@ def mozilla():
 
     return {
         "chdir": "js/src/obj",
-        "location": DEPEDENCY_REPO + "/mozjs-45.5.3.tar.bz2",
+        "location": DEPEDENCY_REPO + "/mozjs-52.0.0.tar.bz2",
         "build": [configure, "make"],
         "outputs": ["mozglue/build/libmozglue.a$", "js/src/libjs_static.a$", "js/src/js-config.h$"]
     }
