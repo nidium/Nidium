@@ -237,7 +237,7 @@ void File::openTask(const char *mode, void *arg)
             return;
         }
 
-        m_Dir = opendir(m_Path);
+        m_Dir = PR_OpenDir(m_Path);
         if (!m_Dir) {
             printf("Failed to open dir %s : %s\n", m_Path, strerror(errno));
             NIDIUM_FILE_NOTIFY(errno, File::kEvents_OpenError, arg);
@@ -366,26 +366,26 @@ void File::listFilesTask(void *arg)
         return;
     }
 
-    PRDir *cur;
+	PRDirEntry *cur;
     DirEntries *entries = static_cast<DirEntries *>(malloc(sizeof(*entries)));
     entries->allocated  = 64;
     entries->lst
-        = static_cast<PRDir *>(malloc(sizeof(PRDir) * entries->allocated));
+        = static_cast<PRDir *>(malloc(sizeof(PRDirEntry) * entries->allocated));
 
     entries->size = 0;
 
     while ((cur = PR_ReadDir(m_Dir)) != NULL) {
-        if (strcmp(cur->d_name, ".") == 0 || strcmp(cur->d_name, "..") == 0) {
+        if (strcmp(cur->name, ".") == 0 || strcmp(cur->name, "..") == 0) {
             continue;
         }
 
-        memcpy(&entries->lst[entries->size], cur, sizeof(PRDir));
+        memcpy(&entries->lst[entries->size], cur, sizeof(PRDirEntry));
         entries->size++;
 
         if (entries->size == entries->allocated) {
             entries->allocated *= 2;
-            entries->lst = static_cast<PRDir *>(
-                realloc(entries->lst, sizeof(PRDir) * entries->allocated));
+            entries->lst = static_cast<PRDirEntry *>(
+                realloc(entries->lst, sizeof(PRDirEntry) * entries->allocated));
         }
     }
 

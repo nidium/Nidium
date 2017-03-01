@@ -151,7 +151,7 @@ bool JSFile::HandleError(JSContext *cx,
     return true;
 }
 
-static const char *JSFile_dirtype_to_str(const dirent *entry)
+static const char *JSFile_dirtype_to_str(const PRDirEntry *entry)
 {
     switch (entry->d_type) {
         case DT_DIR:
@@ -200,7 +200,7 @@ void JSFile::onMessage(const SharedMessages::Message &msg)
                     JS_SetElement(cx, arr, i, val);
 
                     JS::RootedString name(
-                        cx, JS_NewStringCopyZ(cx, entries->lst[i].d_name));
+                        cx, JS_NewStringCopyZ(cx, entries->lst[i].name));
                     NIDIUM_JSOBJ_SET_PROP_STR(entry, "name", name);
 
                     NIDIUM_JSOBJ_SET_PROP_CSTR(

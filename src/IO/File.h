@@ -48,7 +48,7 @@ public:
     {
         int size;
         int allocated;
-        PRDir *lst;
+		PRDirEntry *lst;
     };
 
     explicit File(const char *path);
@@ -125,7 +125,7 @@ public:
         return m_Fd;
     }
 
-    DIR *GetDir() const
+    PRDir *GetDir() const
     {
         return m_Dir;
     }
@@ -157,7 +157,7 @@ private:
         m_isDir = false;
     }
 
-    DIR *m_Dir;
+    PRDir *m_Dir;
     FILE *m_Fd;
 
     Nidium::Core::Messages *m_Delegate;

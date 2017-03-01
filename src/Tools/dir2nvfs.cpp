@@ -13,9 +13,9 @@
 
 #ifndef _MSC_VER
 #include <unistd.h>
-#include <dirent.h>
 #endif
 
+#include <prio.h>
 #include <jsapi.h>
 #include <ape_netlib.h>
 
@@ -40,22 +40,22 @@ unsigned long _ape_seed;
 namespace Nidium {
 namespace Tools {
 
-void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
+void listdir(JSNFS *nfs, PRDir *dir, std::string fullpath, int strip)
 {
-    dirent *cur;
+    PRDirEntry *cur;
 
     if (dir == NULL) {
         fprintf(stderr, "null dir given\n");
         return;
     }
 
-    while ((cur = readdir(dir)) != NULL) {
-        std::string newpath = fullpath + "/" + cur->d_name;
+    while ((cur = PR_ReadDir(dir)) != NULL) {
+        std::string newpath = fullpath + "/" + cur->name;
         const char *vpath   = &newpath.c_str()[strip];
 
         if (cur->d_type & DT_DIR) {
-            if (strcmp(cur->d_name, ".") == 0
-                || strcmp(cur->d_name, "..") == 0) {
+            if (strcmp(cur->name, ".") == 0
+                || strcmp(cur->name, "..") == 0) {
                 continue;
             }
 
@@ -64,7 +64,7 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
                 continue;
             }
 
-            listdir(nfs, opendir(newpath.c_str()), newpath, strip);
+            listdir(nfs, PR_OpenDir(newpath.c_str()), newpath, strip);
         } else if (cur->d_type & DT_REG) {
 
             // PtrAutoDelete<Stream *> stream(Stream::Create(newpath.c_str()));
@@ -93,7 +93,7 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
         }
     }
 
-    closedir(dir);
+    PR_CloseDir(dir);
 }
 
 static Core::Context *initNidiumJS()
@@ -113,7 +113,7 @@ static int Embed(int argc, char **argv)
         return 1;
     }
 
-    DIR *dir = opendir(argv[1]);
+    PRDir *dir = PR_OpenDir(argv[1]);
     if (!dir) {
         fprintf(stderr, "Cant open dir %s\n", argv[1]);
     }

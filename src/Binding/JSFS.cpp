@@ -11,9 +11,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#ifndef _MSC_VER
-#include <dirent.h>
-#endif
+#include <prio.h>
 
 using Nidium::Core::SharedMessages;
 using Nidium::Core::Task;
@@ -37,7 +35,7 @@ public:
     {
         switch (msg.event()) {
             case kMessage_ReadDir: {
-                dirent *cur          = static_cast<dirent *>(msg.dataPtr());
+                PRDirEntry *cur          = static_cast<PRDirEntry *>(msg.dataPtr());
                 JSObject *callback   = this->getCallback(0);
                 JSContext *cx, *m_Cx = this->getJSContext();
 
@@ -46,7 +44,7 @@ public:
                 JS::AutoValueArray<1> params(cx);
 
                 JS::RootedObject param(cx, JS_NewPlainObject(cx));
-                JS::RootedString str(cx, JS_NewStringCopyZ(cx, cur->d_name));
+                JS::RootedString str(cx, JS_NewStringCopyZ(cx, cur->name));
 
                 NIDIUM_JSOBJ_SET_PROP_STR(param, "name", str);
                 // NIDIUM_JSOBJ_SET_PROP_CSTR(param, "type",
@@ -71,26 +69,26 @@ public:
         JSFSAsyncHandler *handler
             = static_cast<JSFSAsyncHandler *>(task->getObject());
 
-        DIR *dir;
+        PRDir *dir;
 
         if (!(dir
-              = opendir(static_cast<const char *>(task->m_Args[0].toPtr())))) {
+              = PR_OpenDir(static_cast<const char *>(task->m_Args[0].toPtr())))) {
             return;
         }
 
-        dirent *cur;
+        PRDirEntry *cur;
 
         while ((cur = readdir(dir)) != NULL) {
-            if (strcmp(cur->d_name, ".") == 0
-                || strcmp(cur->d_name, "..") == 0) {
+            if (strcmp(cur->name, ".") == 0
+                || strcmp(cur->name, "..") == 0) {
                 continue;
             }
-            dirent *curcpy = static_cast<dirent *>(malloc(sizeof(dirent)));
-            memcpy(curcpy, cur, sizeof(dirent));
+            PRDirEntry *curcpy = static_cast<PRDirEntry *>(malloc(sizeof(PRDirEntry)));
+            memcpy(curcpy, cur, sizeof(PRDirEntry));
             handler->postMessage(curcpy, kMessage_ReadDir);
         }
 
-        closedir(dir);
+        PR_CloseDir(dir);
     }
 
     void onMessageLost(const SharedMessages::Message &msg)
