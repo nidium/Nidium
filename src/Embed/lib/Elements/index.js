@@ -349,26 +349,16 @@ Elements.Element = class extends Elements.Node {
     }
 }
 
-Elements.textnode = class extends Elements.Node {
+const s_NodeText = Symbol("NodeText");
+Elements.textnode = class extends Elements.Element {
 
     constructor(textValue) {
         super(1, 1);
-        this._textValue = textValue;
-    }
-
-    setParentText() {
-        var parent = this.getParent();
-        if (!parent) {
-            return;
-        }
-
-        parent._textValue = this._textValue;
-        parent.fireEvent("textchanged", this._textValue);
-        parent.requestPaint();
+        this.nodeValue = textValue;
     }
 
     getNMLContent() {
-        return this._textValue;
+        return this.nodeValue;
     }
 
     set textContent(value) {
@@ -379,22 +369,44 @@ Elements.textnode = class extends Elements.Node {
         return false;
     }
 
-    onmount() {
-        this.setParentText();
-    }
-
     get nodeValue() {
-        return this._textValue;
+        return this[s_NodeText];
     }
 
     set nodeValue(textValue) {
-        this._textValue = textValue;
-        this.setParentText();
+        this[s_NodeText] = textValue.trim();
+        this.requestPaint();
         this.fireEvent("nodeValueChanged", textValue);
     }
 
     get nodeType() {
         return Node.TEXT_NODE;
+    }
+
+    paint(ctx) {
+        let maxWidth    = this.getParent().width;
+        let data        = ctx.breakText(this.nodeValue, maxWidth);
+        let actualWidth = 1;
+
+        // FIXME : Get these values from inherited styles
+        let fontSize    = 15;
+        let lineHeight  = 20;
+        let color       = "black";
+        let offset      = Math.ceil(lineHeight/2);
+
+        ctx.fontSize        = fontSize;
+        ctx.fillStyle       = color;
+        ctx.textBaseline    = "middle";
+
+        for (var i = 0; i < data.lines.length; i++) {
+            let tmp = ctx.measureText(data.lines[i])
+            if (tmp.width > actualWidth) actualWidth = tmp.width;
+
+            ctx.fillText(data.lines[i], 0, i * lineHeight + offset);
+        }
+
+        this.width  = actualWidth;
+        this.height = lineHeight * data.lines.length;
     }
 }
 
@@ -426,25 +438,12 @@ Elements.uibutton = class extends Elements.Element {
         });
     }
 
-    ontextchanged(newtext) {
-        var ctx = this.ctx2d();
-
-        var data = ctx.measureText(newtext);
-
-        this.width = data.width + 30;
-    }
-
     paint(ctx) {
         ctx.fillStyle = "#aaa";
         ctx.stokeStyke = "#111";
 
         ctx.fillRect(0, 0, this.width, this.height, 15, 15);
         ctx.strokeRect(0, 0, this.width-0.5, this.height-0.5, 15, 15);
-
-        ctx.fillStyle = "#000";
-        ctx.textAlign = "center";
-
-        ctx.fillText(this._textValue, this.width/2, this.height/2+4);
     }
 }
 
@@ -479,14 +478,6 @@ Elements.div = class extends Elements.Element {
         this.position = "inline";
         this.staticRight = true;
         this.right = 0;
-    }
-
-    ontextchanged(newtext) {
-        var ctx = this.ctx2d();
-
-        var data = ctx.measureText(newtext);
-
-        this.width = data.width;
     }
 
     paint(ctx) {
