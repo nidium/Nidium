@@ -32,7 +32,9 @@ namespace Core {
 #include <mach/mach_time.h>
 #else
 #include <time.h>
+#ifndef _MSC_VER
 #include <arpa/inet.h>
+#endif
 
 #ifdef __WIN32
 LARGE_INTEGER
