@@ -14,12 +14,6 @@ using namespace Nidium::AV;
 namespace Nidium {
 namespace Binding {
 
-#define JS_PROPAGATE_ERROR(cx, ...)       \
-    JS_ReportErrorUTF8(cx, __VA_ARGS__);  \
-    if (!JS_ReportPendingException(cx)) { \
-        JS_ClearPendingException(cx);     \
-    }
-
 // {{{ Utilities
 JS::Value setArgsToObject(JSContext *cx, JS::CallArgs &args)
 {

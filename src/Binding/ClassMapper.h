@@ -696,12 +696,6 @@ public:
             JS::RootedValue rval(m_Cx);
 
             JS_CallFunctionValue(m_Cx, thisobj, callback, params, &rval);
-
-            if (JS_IsExceptionPending(m_Cx)) {
-                if (!JS_ReportPendingException(m_Cx)) {
-                    JS_ClearPendingException(m_Cx);
-                }
-            }
         }
 
         if (!m_Events) {

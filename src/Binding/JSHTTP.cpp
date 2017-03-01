@@ -159,12 +159,6 @@ void JSHTTP::fireJSEvent(const char *name, JS::MutableHandleValue ev)
     args[0].set(ev);
 
     JS_CallFunctionValue(m_Cx, thisobj, requestCallback, args, &rval);
-
-    if (JS_IsExceptionPending(m_Cx)) {
-        if (!JS_ReportPendingException(m_Cx)) {
-            JS_ClearPendingException(m_Cx);
-        }
-    }
 }
 
 bool JSHTTP::request(JSContext *cx,

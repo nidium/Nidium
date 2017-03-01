@@ -652,11 +652,6 @@ int NidiumJS::LoadScriptContent(const char *data,
     }
 
     if (!state || !JS_ExecuteScript(m_Cx, scopeChain, script)) {
-        if (JS_IsExceptionPending(m_Cx)) {
-            if (!JS_ReportPendingException(m_Cx)) {
-                JS_ClearPendingException(m_Cx);
-            }
-        }
         return 0;
     }
     return 1;
@@ -698,11 +693,6 @@ char *NidiumJS::LoadScriptContentAndGetResult(const char *data,
     JS::RootedValue rval(m_Cx);
 
     if (!state || !JS_ExecuteScript(m_Cx, script, &rval)) {
-        if (JS_IsExceptionPending(m_Cx)) {
-            if (!JS_ReportPendingException(m_Cx)) {
-                JS_ClearPendingException(m_Cx);
-            }
-        }
         return NULL;
     }
 
@@ -750,11 +740,6 @@ int NidiumJS::LoadBytecode(void *data, int size, const char *filename)
     JS::RootedScript script(m_Cx, JS_DecodeScript(m_Cx, data, size));
 
     if (script == NULL || !JS_ExecuteScript(m_Cx, script)) {
-        if (JS_IsExceptionPending(m_Cx)) {
-            if (!JS_ReportPendingException(m_Cx)) {
-                JS_ClearPendingException(m_Cx);
-            }
-        }
         return 0;
     }
     return 1;
@@ -785,9 +770,6 @@ void NidiumJS::loadGlobalObjects()
     }
     if (!m_Modules->init()) {
         JS_ReportErrorUTF8(m_Cx, "Failed to init require()");
-        if (!JS_ReportPendingException(m_Cx)) {
-            JS_ClearPendingException(m_Cx);
-        }
     }
 }
 

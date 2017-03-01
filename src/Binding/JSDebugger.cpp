@@ -24,7 +24,8 @@ JSDebuggerCompartment *JSDebuggerCompartment::Constructor(JSContext *cx,
     JSDebuggerCompartment *debuggerCpt = new JSDebuggerCompartment(cx);
 
     if (JS_IsExceptionPending(cx)) {
-        JS_ReportPendingException(cx);
+        delete debuggerCpt;
+        return nullptr;
     }
 
     return debuggerCpt;

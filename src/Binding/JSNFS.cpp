@@ -117,19 +117,11 @@ void *JSNFS::buildJS(const char *data,
 
     JS::RootedObject rgbl(m_JS.cx, gbl);
 
-    bool state;
 
     JS::RootedScript script(m_JS.cx);
 
-    state = JS::Compile(m_JS.cx, options, data, len, &script);
-
-    if (!state) {
-        if (JS_IsExceptionPending(m_JS.cx)) {
-            if (!JS_ReportPendingException(m_JS.cx)) {
-                JS_ClearPendingException(m_JS.cx);
-            }
-        }
-        return NULL;
+    if (!JS::Compile(m_JS.cx, options, data, len, &script)) {
+        return nullptr;
     }
 
     return JS_EncodeScript(m_JS.cx, script, outlen);

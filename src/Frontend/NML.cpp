@@ -475,12 +475,6 @@ void NML::onAssetsItemReady(Assets::Item *item)
 
                     JS_CallFunctionName(cx, gbl, "__nidiumPreload", args,
                                         &rval);
-
-                    if (JS_IsExceptionPending(cx)) {
-                        if (!JS_ReportPendingException(cx)) {
-                            JS_ClearPendingException(cx);
-                        }
-                    }
                 }
 
                 break;

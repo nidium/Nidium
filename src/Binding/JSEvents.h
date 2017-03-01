@@ -104,12 +104,6 @@ public:
 
             JS_CallFunctionValue(cx, thisobj, fun, params, &rval);
 
-            if (JS_IsExceptionPending(cx)) {
-                if (!JS_ReportPendingException(cx)) {
-                    JS_ClearPendingException(cx);
-                }
-            }
-
             if (m_DeleteAfterFire) {
                 delete this;
                 return false;
