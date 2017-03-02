@@ -13,6 +13,11 @@ const s_NodeName    = Symbol("NodeName");
 const s_NodeID      = Symbol("NodeID");
 
 const g_MainShadow  = new ShadowRoot(document.canvas, {"name": "main"});
+Object.defineProperty(document.canvas, "shadowRoot", {
+    "writable": false,
+    "configurable": false,
+    "value": g_MainShadow
+});
 let g_CurrentShadow = null;
 
 Elements.Create = function(tag, attributes, shadowRoot=g_MainShadow) {
@@ -346,9 +351,6 @@ const Node = Elements.Node = class extends Canvas {
     getRootNode(options={}) {
         let p = Canvas.prototype.getParent.call(this);
         while (p) {
-            if (p == document.canvas) {
-                return p;
-            }
             if (!options.composed && p.shadowRoot) {
                 return p;
             }
