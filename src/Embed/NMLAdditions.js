@@ -23,10 +23,6 @@
             let {id} = elem.attributes || {id: null};
             let el = Elements.Create(elem.type, elem.attributes || elem.text, shadowRoot);
 
-            if (id) {
-                el.id = id;
-            }
-
             if (parent) {
                 parent.add(el);
             } else {
