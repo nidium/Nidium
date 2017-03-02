@@ -14,7 +14,7 @@
 
 #ifdef _MSC_VER
 #include <port/windows.h>
-#endif
+#else
 #include <strings.h>
 #include <unistd.h>
 #include <sys/socket.h>
