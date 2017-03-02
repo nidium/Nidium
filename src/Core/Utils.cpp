@@ -14,6 +14,9 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #endif
+
+#include <prnetdb.h>
+
 #include <ape_common.h>
 #include <ape_sha1.h>
 #include <ape_base64.h>
@@ -310,8 +313,8 @@ void Utils::BlowfishDecrypt(uint8_t *data, const uint8_t *key, int key_len)
 
     APE_blowfish_crypt_ecb(&ctx, &xl, &xr, 1);
 
-    xl = ntohl(xl);
-    xr = ntohl(xr);
+    xl = static_cast<uint32_t>(PR_ntohl(xl));
+    xr = static_cast<uint32_t>(PR_ntohl(xr));
 
     memcpy(data, &xl, sizeof(uint32_t));
     memcpy(data + sizeof(uint32_t), &xr, sizeof(uint32_t));

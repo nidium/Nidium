@@ -10,14 +10,16 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
 #ifndef _MSC_VER
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <strings.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #endif
+
+#include <prnetdb.h>
 
 #include "Binding/JSUtils.h"
 
@@ -256,7 +258,8 @@ static void nidium_socket_wrapper_client_onmessage(ape_socket *socket_server,
         JS::RootedValue vip(cx, JS::StringValue(jip));
 
         JS_SetProperty(cx, remote, "ip", vip);
-        JS::RootedValue jport(cx, JS::Int32Value(ntohs(addr->sin_port)));
+        JS::RootedValue jport(cx, JS::Int32Value(
+            static_cast<int32_t>(PR_ntohs(addr->sin_port))));
 
         JS_SetProperty(cx, remote, "port", jport);
 
