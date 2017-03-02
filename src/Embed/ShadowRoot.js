@@ -97,9 +97,9 @@ class ShadowRoot {
                     this.add(child);
                 }
             }
-        }
 
-        el[s_ShadowRoot] = this;
+            el[s_ShadowRoot] = this;
+        }
 
         if (el.id) {
             this.addID(el.id, el);
