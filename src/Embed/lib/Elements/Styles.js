@@ -53,8 +53,16 @@ class ElementStyles {
         el.addEventListener("load", () => {
             var classes = el.attributes.class
             if (classes) {
-                var nss = this.el[s_ShadowRoot].getNSS()
-                var tmp = [];
+                let nss;
+                if (el.shadowRoot) {
+                    // If element is a ShadowRoot, we need to get the styling
+                    // information from the parent ShadowRoot
+                    nss = Canvas.prototype.getParent.apply(el)[s_ShadowRoot].getNSS();
+                } else {
+                    nss = this.el[s_ShadowRoot].getNSS();
+                }
+
+                let tmp = [];
                 for (let c of classes.split(" ")) {
                     tmp.push(nss[c]);
                 }
