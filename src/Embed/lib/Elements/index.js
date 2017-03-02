@@ -396,7 +396,6 @@ Elements.textnode = class extends Elements.Element {
 
     paint(ctx) {
         let maxWidth    = this.getParent().width;
-        let data        = ctx.breakText(this.nodeValue, maxWidth);
         let actualWidth = 1;
 
         // FIXME : Get these values from inherited styles
@@ -408,6 +407,8 @@ Elements.textnode = class extends Elements.Element {
         ctx.fontSize        = fontSize;
         ctx.fillStyle       = color;
         ctx.textBaseline    = "middle";
+
+        let data = ctx.breakText(this.nodeValue, maxWidth);
 
         for (var i = 0; i < data.lines.length; i++) {
             let tmp = ctx.measureText(data.lines[i])
