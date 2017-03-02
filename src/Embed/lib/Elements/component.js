@@ -71,7 +71,7 @@
                             /*
                             default:
                                 throw new Error(`Components does not have access to window.${key}`);
-                                */
+                            */
                         }
 
                         return object[key];
