@@ -117,7 +117,10 @@ class ShadowRoot {
     }
 
     findNodesByTag(id) {
-        return this.tagAssociation[id];
+        let ret = this.tagAssociation[id];
+        if (!ret) return [];
+
+        return ret;
     }
 
     getElementById(id) {
