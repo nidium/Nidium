@@ -49,16 +49,11 @@ void listdir(JSNFS *nfs, PRDir *dir, std::string fullpath, int strip)
         return;
     }
 
-    while ((cur = PR_ReadDir(dir)) != NULL) {
+    while ((cur = PR_ReadDir(dir, PR_SKIP_BOTH)) != NULL) {
         std::string newpath = fullpath + "/" + cur->name;
         const char *vpath   = &newpath.c_str()[strip];
 
         if (cur->d_type & DT_DIR) {
-            if (strcmp(cur->name, ".") == 0
-                || strcmp(cur->name, "..") == 0) {
-                continue;
-            }
-
             if (!nfs->mkdir(vpath, strlen(vpath))) {
                 fprintf(stderr, "Failed to create dir %s\n", vpath);
                 continue;

@@ -128,7 +128,7 @@ void File::rmrf()
                 unlink(f->fts_path);
                 break;
             case FTS_DP:
-                rmdir(f->fts_path);
+                PR_RmDir(f->fts_path);
                 break;
             default:
                 break;
@@ -370,15 +370,11 @@ void File::listFilesTask(void *arg)
     DirEntries *entries = static_cast<DirEntries *>(malloc(sizeof(*entries)));
     entries->allocated  = 64;
     entries->lst
-        = static_cast<PRDir *>(malloc(sizeof(PRDirEntry) * entries->allocated));
+        = static_cast<PRDirEntry *>(malloc(sizeof(PRDirEntry) * entries->allocated));
 
     entries->size = 0;
 
-    while ((cur = PR_ReadDir(m_Dir)) != NULL) {
-        if (strcmp(cur->name, ".") == 0 || strcmp(cur->name, "..") == 0) {
-            continue;
-        }
-
+    while ((cur = PR_ReadDir(m_Dir, PR_SKIP_BOTH)) != NULL) {
         memcpy(&entries->lst[entries->size], cur, sizeof(PRDirEntry));
         entries->size++;
 

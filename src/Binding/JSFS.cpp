@@ -78,11 +78,7 @@ public:
 
         PRDirEntry *cur;
 
-        while ((cur = readdir(dir)) != NULL) {
-            if (strcmp(cur->name, ".") == 0
-                || strcmp(cur->name, "..") == 0) {
-                continue;
-            }
+        while ((cur = PR_ReadDir(dir, PR_SKIP_BOTH)) != NULL) {
             PRDirEntry *curcpy = static_cast<PRDirEntry *>(malloc(sizeof(PRDirEntry)));
             memcpy(curcpy, cur, sizeof(PRDirEntry));
             handler->postMessage(curcpy, kMessage_ReadDir);
