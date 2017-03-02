@@ -2,6 +2,8 @@
     const Elements          = require("Elements");
     const Component         = require("Component");
     const s_ComponentShadow = require("../../Symbols.js").ComponentShadowRoot;
+    const s_ComponentName   = Symbol("ComponentName");
+    const s_ComponentClass  = Symbol("ComponentClass");
 
     Object.defineProperty(window.require, "ComponentLoader", {
         "configurable": false,
@@ -13,8 +15,11 @@
                 if (el.type != "component") {
                     throw new Error("Only <component> can be loaded with require()");
                 }
-                var c = NML.CreateNode("component", el);
-                ret[c.getName()] = c.getComponentClass();
+
+                let tmp = NML.CreateTree(lst);
+                let c = tmp[0];
+
+                ret[c.name()] = c.getComponentClass();
                 counter++;
             }
 
@@ -34,9 +39,9 @@
                 throw new Error("<component> must have a name attribute");
             }
 
-            this.hide();
+            this[s_ComponentName] = attributes.name;
 
-            this.name = attributes.name;
+            this.hide();
 
             let scope = {
                 Component: Component,
@@ -92,8 +97,12 @@
             this.attachShadow({"scope": scope, "name": "Component-" + this.name});
         }
 
+        name() {
+            return this[s_ComponentName];
+        }
+
         getComponentClass() {
-            return this.componentClass;
+            return this[s_ComponentClass];
         }
 
         createTree(children) {
@@ -114,14 +123,14 @@
                 throw new Error(`Failed to load component "${this.name}" only class extending Component can be exported`);
             }
 
-            this.componentClass = componentClass;
+            this[s_ComponentClass] = componentClass;
 
             // Store a reference to the original shadowRoot of the component
             // so the instance of the component can retrieve the layout/templates
             // it needs to build the component.
             componentClass[s_ComponentShadow] = this.shadowRoot;
 
-            Elements[this.name] = componentClass;
+            Elements[this.name()] = componentClass;
         }
     }
 }
