@@ -125,7 +125,7 @@ void File::rmrf()
             case FTS_NS:
             case FTS_SL:
             case FTS_SLNONE:
-                unlink(f->fts_path);
+                PR_Delete(f->fts_path);
                 break;
             case FTS_DP:
                 PR_RmDir(f->fts_path);
