@@ -109,6 +109,11 @@
             'libnidiumcore.gyp:libnidiumcore-includes',
         ],
         'conditions': [
+            ['OS=="win"', {
+                'defines': [
+                    'DSO_EXTENSION=".lib"'
+                ],
+            }],
             ['OS=="mac"', {
                 'defines': [
                     'DSO_EXTENSION=".dylib"'
