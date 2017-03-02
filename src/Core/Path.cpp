@@ -19,6 +19,8 @@
 #include <string>
 #include <vector>
 
+#include <prio.h>
+
 #include "Core/Utils.h"
 
 namespace Nidium {
@@ -323,11 +325,11 @@ void Path::Makedirs(const char *dirWithSlashes)
     for (p = tmp + 1; *p; p++) {
         if (*p == '/') {
             *p = 0;
-            mkdir(tmp, S_IRWXU);
+            PR_MkDir(tmp, 00700);
             *p = '/';
         }
     }
-    mkdir(tmp, S_IRWXU);
+    PR_MkDir(tmp, 00700);
 }
 
 #define HANDLE_DOUBLE_DOT()                     \

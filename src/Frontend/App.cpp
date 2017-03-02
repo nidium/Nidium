@@ -14,6 +14,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <prio.h>
+#include <prerror.h>
+
 using Nidium::Core::SharedMessages;
 
 namespace Nidium {
@@ -282,7 +285,7 @@ int App::extractApp(const char *path,
     }
 #if 0
 #define NIDIUM_CACHE_DIR "./cache/"
-    if (mkdir(NIDIUM_CACHE_DIR, 0777) == -1 && errno != EEXIST) {
+    if (PR_MkDir(NIDIUM_CACHE_DIR, 0777) == PR_FAILURE && PR_GetError() != PR_FILE_EXISTS_ERROR) {
         printf("Cant create cache directory\n");
         return 0;
     }
@@ -294,7 +297,7 @@ int App::extractApp(const char *path,
 #undef NIDIUM_CACHE_DIR
 #endif
     int ret = 0;
-    if ((ret = mkdir(fullpath, 0777)) == -1 && errno != EEXIST) {
+    if ((ret = PR_MkDir(fullpath, 0777)) == PR_FAILURE && PR_GetError() != PR_FILE_EXISTS_ERROR) {
         printf("Cant create Application directory\n");
         free(fullpath);
         return 0;
@@ -316,7 +319,7 @@ int App::extractApp(const char *path,
                 sizeof(char) * (strlen(fullpath) + strlen(fname) + 8));
             sprintf(create, "%s%s", fullpath, fname);
 
-            mkdir(create, 0777);
+            PR_MkDir(create, 0777);
             free(create);
             continue;
         }
