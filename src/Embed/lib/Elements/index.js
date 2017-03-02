@@ -474,7 +474,7 @@ Elements.textnode = class extends Elements.Element {
 
     paint(ctx) {
         super.paint(ctx);
-        let maxWidth    = this.getParent().width;
+        let maxWidth    = Canvas.prototype.getParent.call(this).width;
         let actualWidth = 1;
 
         // FIXME : Get these values from inherited styles
