@@ -31,11 +31,11 @@ class Component extends Elements.Element {
         let templates   = this.constructor[s_ComponentShadow].findNodesByTag("template");
 
         // Generate default layout
-        if (layout) {
+        if (layout.length > 0) {
             for (let child of layout[0].getChildren()) {
                 this.add(child.cloneNode(true, this.shadowRoot));
             }
-        } else if (templates && templates.length == 1) {
+        } else if (templates.length == 1) {
             // When rendering templates, |this| should be the instance of the component
             let scope = this.constructor[s_ComponentShadow].getJSScope();
             let previousThis = scope["this"];
