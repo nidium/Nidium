@@ -360,6 +360,10 @@ Elements.textnode = class extends Elements.Element {
         this.nodeValue = textValue;
     }
 
+    cloneNode(deep = true, shadowRoot=this[s_ShadowRoot]) {
+        return Elements.Create(this.name(), this.nodeValue, shadowRoot);
+    }
+
     getNMLContent() {
         return this.nodeValue;
     }
