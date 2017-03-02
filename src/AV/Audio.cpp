@@ -161,7 +161,11 @@ void *Audio::queueThread(void *args)
                     needSpace = true;
                     break;
                 } else if (audio->m_QueueFreeLock) {
+#ifdef _MSC_VER
+					Sleep(500);
+#else
                     usleep(500);
+#endif
                     break;
                 }
 
