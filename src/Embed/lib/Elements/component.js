@@ -35,13 +35,19 @@
         constructor(attributes) {
             super(attributes);
 
+            this.hide();
+
+            if (attributes.src) {
+                this.isLoader = true;
+                NML.CreateTree(Elements.Loader(attributes));
+                return;
+            }
+
             if (!attributes.name) {
                 throw new Error("<component> must have a name attribute");
             }
 
             this[s_ComponentName] = attributes.name;
-
-            this.hide();
 
             let scope = {
                 Component: Component,
@@ -94,7 +100,7 @@
             // XXX : Components can still access variables/methods from
             // the global object, maybe using a sandbox is more suited ?
 
-            this.attachShadow({"scope": scope, "name": "Component-" + this.name});
+            this.attachShadow({"scope": scope, "name": "Component-" + this.name()});
         }
 
         name() {
@@ -106,6 +112,11 @@
         }
 
         createTree(children) {
+            if (this.isLoader) {
+                // Component(s) loaded from src="" nothing to do
+                return;
+            }
+
             let ret     = super.createTree(children);
             let scope   = this.shadowRoot.getJSScope()
 
@@ -114,7 +125,7 @@
                 if (Object.keys(componentClass).length > 0) {
                     throw new Error("You cannot export more than one Component");
                 } else {
-                    console.info(`JavaScript implementation for component "${this.name}" not found. Using default component.`);
+                    console.info(`JavaScript implementation for component "${this.name()}" not found. Using default component.`);
                 }
                 componentClass = DefaultComponent;
             }
