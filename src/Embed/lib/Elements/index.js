@@ -74,11 +74,22 @@ const Node = Elements.Node = class extends Canvas {
     constructor(attributes = {}) {
         super(attributes.width || 10, attributes.height || 10);
 
-        this.attributes = attributes;
+        this.attributes         = attributes;
         this.computedAttributes = {};
 
         this.left = attributes.left || 0;
-        this.top = attributes.top || 0;
+        this.top  = attributes.top || 0;
+
+        // By default, node take the full width
+        if (!attributes.width) {
+            this.staticRight = true;
+            this.right       = 0;
+        }
+
+        // And adjust their height to the content
+        if (!attributes.height) {
+            this.fluidHeight = true;
+        }
 
         this[s_ShadowRoot] = g_CurrentShadow;
         this[s_ShadowRoot].addTag(this.name(), this);
@@ -91,6 +102,68 @@ const Node = Elements.Node = class extends Canvas {
             this.fireEvent("mount", {});
         });
     }
+
+    // Setting width or height, must disable fluidWidth and
+    // staticRight to allow the sizing of the element.
+    // XXX : Should this be the default for canvas ?
+    // {{{ width & height getter/setter
+    set width(val) {
+        this.fluidWidth     = false;
+        this.staticRight    = false;
+        super.width         = val;
+    }
+
+    get width() {
+        return super.width;
+    }
+
+    set height(val) {
+        this.fluidHeight = false;
+        super.height     = val;
+    }
+
+    get height() {
+        return super.height;
+    }
+
+    set minWidth(val) {
+        this.fluidWidth     = false;
+        this.staticRight    = false;
+        super.minWidth      = val;
+    }
+
+    get minWidth() {
+        return super.minWidth;
+    }
+
+    set minHeight(val) {
+        this.fluidHeight = false;
+        super.minHeight  = val;
+    }
+
+    get minHeight() {
+        return super.minHeight;
+    }
+
+    set maxWidth(val) {
+        this.fluidWidth     = false;
+        this.staticRight    = false;
+        super.maxWidth      = val;
+    }
+
+    get maxWidth() {
+        return super.maxWidth;
+    }
+
+    set maxHeight(val) {
+        this.fluidHeight = false;
+        super.maxHeight  = val;
+    }
+
+    get maxHeight() {
+        return super.maxHeight;
+    }
+    // }}}
 
     getNMLContent(self = true) {
         var childContent = ''
@@ -361,7 +434,9 @@ Elements.textnode = class extends Elements.Element {
 
     constructor(textValue) {
         super(1, 1);
-        this.nodeValue = textValue;
+        this.nodeValue   = textValue;
+        this.fluidHeight = false;
+        this.fluidWidth  = false;
     }
 
     cloneNode(deep = true, shadowRoot=this[s_ShadowRoot]) {
@@ -396,7 +471,6 @@ Elements.textnode = class extends Elements.Element {
 
     paint(ctx) {
         super.paint(ctx);
-
         let maxWidth    = this.getParent().width;
         let actualWidth = 1;
 
