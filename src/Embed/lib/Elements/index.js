@@ -621,6 +621,7 @@ load("embed://lib/Elements/nss.js");
 load("embed://lib/Elements/script.js");
 load("embed://lib/Elements/template.js");
 load("embed://lib/Elements/component.js");
+load("embed://lib/Elements/slot.js");
 
 window._onready = function(lst) {}
 
