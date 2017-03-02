@@ -10,6 +10,10 @@
 
 #include <http_parser.h>
 
+#ifdef _MSC_VER
+#include <port/windows.h>
+#endif
+
 #include <ape_netlib.h>
 #include <ape_array.h>
 #include <ape_socket.h>

@@ -13,6 +13,7 @@
 #include <sys/types.h>
 
 #ifdef _MSC_VER
+#include <port/windows.h>
 #define MAXPATHLEN _MAX_PATH 
 #else
 #include <strings.h>

@@ -12,7 +12,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+#include <port/windows.h>
+#endif
 #include <strings.h>
 #include <unistd.h>
 #include <sys/socket.h>

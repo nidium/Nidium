@@ -10,6 +10,10 @@
 #include <stdbool.h>
 #include <string.h>
 
+#ifdef _MSC_VER
+#include <port/windows.h>
+#endif
+
 #include "Binding/JSUtils.h"
 
 using Nidium::Net::HTTP;
