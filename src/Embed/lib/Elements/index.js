@@ -395,6 +395,8 @@ Elements.textnode = class extends Elements.Element {
     }
 
     paint(ctx) {
+        super.paint(ctx);
+
         let maxWidth    = this.getParent().width;
         let actualWidth = 1;
 
