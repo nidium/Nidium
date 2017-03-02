@@ -15,7 +15,7 @@ class TemplateEngine {
     compile(data) { }
 
     render(data) {
-        return NML.CreateTree(data, this.getNode().getRootNode().shadowRoot);
+        return NML.CreateTree(data, null, this.getNode().getRootNode().shadowRoot);
     }
 
     getNode() {

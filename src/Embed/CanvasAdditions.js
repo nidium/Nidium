@@ -19,7 +19,7 @@
         Inject a 'Layout syntax tree' (LST) into the element.
     */
     Canvas.prototype.inject = function(nml) {
-        this.addMultiple(...NML.CreateTree(nml, this[s_ShadowRoot]));
+        NML.CreateTree(nml, this, this[s_ShadowRoot]);
     }
 
     /*

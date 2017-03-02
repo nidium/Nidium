@@ -268,9 +268,13 @@ const Node = Elements.Node = class extends Canvas {
     getRootNode(options={}) {
         let p = Canvas.prototype.getParent.call(this);
         while (p) {
+            if (p == document.canvas) {
+                return p;
+            }
             if (!options.composed && p.shadowRoot) {
                 return p;
             }
+
             p = Canvas.prototype.getParent.call(p);
         }
         return p;
@@ -289,7 +293,7 @@ const Node = Elements.Node = class extends Canvas {
 
     createTree(children) {
         if (this.allowsChild()) {
-            this.addMultiple(...NML.CreateTree(children, this[s_ShadowRoot]));
+            NML.CreateTree(children, this, this[s_ShadowRoot]);
         }
     }
 
