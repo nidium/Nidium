@@ -83,6 +83,10 @@ const Node = Elements.Node = class extends Canvas {
         this[s_ShadowRoot] = g_CurrentShadow;
         this[s_ShadowRoot].addTag(this.name(), this);
 
+        if (attributes.id) {
+            this.id = attributes.id;
+        }
+
         this.addEventListener("load", () => {
             this.fireEvent("mount", {});
         });
