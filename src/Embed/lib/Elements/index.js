@@ -77,8 +77,9 @@ const Node = Elements.Node = class extends Canvas {
         this.attributes         = attributes;
         this.computedAttributes = {};
 
-        this.left = attributes.left || 0;
-        this.top  = attributes.top || 0;
+        this.position = "inline";
+        this.left     = attributes.left || 0;
+        this.top      = attributes.top || 0;
 
         // By default, node take the full width
         if (!attributes.width) {
