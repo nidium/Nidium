@@ -610,13 +610,13 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         if (draw && m_Context && willDraw) {
 
             ComposeContext compctx = {
-                .handler  = this,
-                .left     = m_aLeft - m_Padding.global,
-                .top      = m_aTop - m_Padding.global,
-                .opacity  = popacity,
-                .zoom     = m_Zoom,
-                .needClip = (m_CoordPosition != COORD_ABSOLUTE && layerContext.m_Clip),
-                .clip     = layerContext.m_Clip ? *layerContext.m_Clip : Rect()
+                /* .handler  = */ this,
+                /* .left     = */ m_aLeft - m_Padding.global,
+                /* .top      = */ m_aTop - m_Padding.global,
+                /* .opacity  = */ popacity,
+                /* .zoom     = */ m_Zoom,
+                /* .needClip = */ (m_CoordPosition != COORD_ABSOLUTE && layerContext.m_Clip),
+                /* .clip     = */ layerContext.m_Clip ? *layerContext.m_Clip : Rect()
             };
 
             this->dispatchMouseEvents(layerContext);
@@ -970,12 +970,12 @@ Rect CanvasHandler::getVisibleRect()
     this->computeAbsolutePosition();
 
     return {
-        .m_fLeft
-        = nidium_min(nidium_max(this->getLeft(true), vp.m_fLeft), vp.m_fRight),
-        .m_fTop
-        = nidium_min(nidium_max(this->getTop(true), vp.m_fTop), vp.m_fBottom),
-        .m_fBottom = nidium_min(this->getTop(true) + getHeight(), vp.m_fBottom),
-        .m_fRight  = nidium_min(this->getLeft(true) + getWidth(), vp.m_fRight)
+        /* .m_fLeft
+        = */ nidium_min(nidium_max(this->getLeft(true), vp.m_fLeft), vp.m_fRight),
+        /* .m_fTop
+        = */ nidium_min(nidium_max(this->getTop(true), vp.m_fTop), vp.m_fBottom),
+        /* .m_fBottom = */ nidium_min(this->getTop(true) + getHeight(), vp.m_fBottom),
+        /* .m_fRight  = */ nidium_min(this->getLeft(true) + getWidth(), vp.m_fRight)
     };
 }
 
