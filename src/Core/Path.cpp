@@ -12,7 +12,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+#define MAXPATHLEN _MAX_PATH 
+#else
 #include <strings.h>
 #endif
 
