@@ -13,13 +13,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/param.h>
-
-#include "System.h"
-#include "Macros.h"
 #include <libgen.h>
 #include <string>
 
+#include <android/log.h>
 #include <SDL.h>
+
+#include "System.h"
+#include "Macros.h"
+
 
 namespace Nidium {
 namespace Interface {
@@ -123,6 +125,11 @@ void System::sendNotification(const char *title,
 const char *System::execute(const char *cmd)
 {
     return nullptr;
+}
+
+void System::print(const char *buf)
+{
+    __android_log_print(ANDROID_LOG_INFO, "Nidium", "%s", buf);
 }
 // }}}
 
