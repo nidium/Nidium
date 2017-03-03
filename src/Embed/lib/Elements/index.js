@@ -75,6 +75,8 @@ Elements.Loader = function(attributes) {
 /*
     Node are container only canvas (no GFX context)
 */
+const s_FnFixStaticRight = Symbol("NodeFunctionFixStaticRight");
+
 const Node = Elements.Node = class extends Canvas {
     constructor(attributes = {}) {
         super(attributes.width || 10, attributes.height || 10);
@@ -88,8 +90,19 @@ const Node = Elements.Node = class extends Canvas {
 
         // By default, node take the full width
         if (!attributes.width) {
+            // XXX : Using staticRight + fluidHeight cause the canvas to only
+            // be displayed on 1px : https://github.com/nidium/Nidium/issues/57
+            /*
             this.staticRight = true;
             this.right       = 0;
+            */
+            this._fixStaticRight = true;
+
+            this.addEventListener("load", () => {
+                this[s_FnFixStaticRight]();
+                var p = Canvas.prototype.getParent.call(this);
+                p.addEventListener("resize", this[s_FnFixStaticRight].bind(this));
+            });
         }
 
         // And adjust their height to the content
@@ -109,13 +122,20 @@ const Node = Elements.Node = class extends Canvas {
         });
     }
 
+    [s_FnFixStaticRight]() {
+        var p = Canvas.prototype.getParent.call(this);
+        if (!this._fixStaticRight) return;
+
+        super.width = p.width;
+    }
+
     // Setting width or height, must disable fluidWidth and
     // staticRight to allow the sizing of the element.
     // XXX : Should this be the default for canvas ?
     // {{{ width & height getter/setter
     set width(val) {
-        this.fluidWidth     = false;
-        this.staticRight    = false;
+        //this.staticRight    = false;
+        this._fixStaticRight = false;
         super.width         = val;
     }
 
@@ -133,8 +153,8 @@ const Node = Elements.Node = class extends Canvas {
     }
 
     set minWidth(val) {
-        this.fluidWidth     = false;
-        this.staticRight    = false;
+        //this.staticRight = false;
+        this._fixStaticRight = false;
         super.minWidth      = val;
     }
 
@@ -152,8 +172,7 @@ const Node = Elements.Node = class extends Canvas {
     }
 
     set maxWidth(val) {
-        this.fluidWidth     = false;
-        this.staticRight    = false;
+        this._fixStaticRight = false;
         super.maxWidth      = val;
     }
 
