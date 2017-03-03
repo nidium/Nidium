@@ -9,6 +9,7 @@
 #include "Core/Messages.h"
 #include "Net/HTTPStream.h"
 #include "IO/FileStream.h"
+#include "Interface/SystemInterface.h"
 #include "Macros.h"
 
 #include <ape_log.h>
@@ -141,7 +142,8 @@ void Context::onMessage(const SharedMessages::Message &msg)
         case kContextMessage_log:
         {
             const char *str = (char *)msg.dataPtr();
-            fwrite(str, 1, strlen(str), stdout);
+
+            Interface::SystemInterface::GetInstance()->print(str);
 
             free(msg.dataPtr());
         }
