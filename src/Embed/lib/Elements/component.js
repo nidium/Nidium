@@ -28,7 +28,6 @@
         }
     });
 
-    class DefaultComponent extends Component {}
     class ComponentExports {}
 
     Elements.component = class extends Elements.Node {
@@ -127,7 +126,8 @@
                 } else {
                     console.info(`JavaScript implementation for component "${this.name()}" not found. Using default component.`);
                 }
-                componentClass = DefaultComponent;
+
+                componentClass = eval("(function() { return class extends Component {} })()");
             }
 
             if (!Component.isPrototypeOf(componentClass)) {
