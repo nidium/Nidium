@@ -72,10 +72,11 @@ def portaudio():
         do_backend.append('winapi=wasapi')
         no_backend.remove('winapi')
         project = "./portaudio"
+        # toolset = Platoform.MSVC.toolset(Variables.get('msvs_version', 2015))
         #build = [
         #        #"devenv /UpdateConfiguration /Upgrade %s.sln /ResetSettings %s.vssettings" % (project, project),
         #        "devenv /Upgrade %s.sln /ResetSettings %s.vssettings" % (project, project),
-        #         "MSBuild.exe %s.vcxproj /p:Configuration=Release /p:PlatformToolset=v140" % (project)]
+        #         "MSBuild.exe %s.vcxproj /p:Configuration=Release /p:PlatformToolset=%s" % (project, toolset)]
         build = ["make -j1", "make src/common/pa_ringbuffer.o"]
     else:
         chdir = ""
@@ -182,8 +183,9 @@ def libzip():
         #todo figure out how to make this flexible, maybe as a Var
         toolchain = "Visual Studio 14 2015"
         output = "./lib/Release/zip.lib"
+        toolset = Platform.MSVC.toolset(Variables.get('msvs_version', 2015))
         build = ['cmake . -G "%s" -DZLIB_LIBRARY=%s/zlib/zlib.lib -DZLIB_INCLUDE_DIR=%s/zlib' % (toolchain, Deps.getDir(), Deps.getDir()), 
-                "MSBuild.exe libzip.sln /p:Configuration=Release /p:PlatformToolset=v140"]
+                "MSBuild.exe libzip.sln /p:Configuration=Release /p:PlatformToolset=%s" % (toolset)]
     else:
         output = "lib/.libs/libzip.a"
         build = ["configure  --disable-shared --with-zlib=%s/zlib/" % (Deps.getDir()), "make"]
@@ -253,7 +255,8 @@ def SDL2():
     #build: ["xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'"],
     #outputs["SDL2/Xcode/SDL/out/SDL2.framework"])
     if Platform.system == "Windows":
-        build = ["MSBuild.exe ../VisualC/SDL_VS2013.sln /p:Configuration=Release /p:PlatformToolset=v140"]
+        toolset = Platform.MSVC.toolset(Variables.get('msvs_version', 2015))
+        build = ["MSBuild.exe ../VisualC/SDL_VS2013.sln /p:Configuration=Release /p:PlatformToolset=%s" % (toolset)]
         patchs = [os.path.join(CONFIGURE_PATH, "patch", "SDL2.windows.patch")]
         outputs = ["../VisualC/SDL/Win32/Release/SDL2.lib"]
     else:
