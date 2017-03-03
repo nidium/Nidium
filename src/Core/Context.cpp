@@ -9,6 +9,9 @@
 #include "Core/Messages.h"
 #include "Net/HTTPStream.h"
 #include "IO/FileStream.h"
+#ifdef NIDIUM_PRODUCT_FRONTEND
+#include "Interface/SystemInterface.h"
+#endif
 #include "Macros.h"
 
 #include <ape_log.h>
@@ -141,7 +144,12 @@ void Context::onMessage(const SharedMessages::Message &msg)
         case kContextMessage_log:
         {
             const char *str = (char *)msg.dataPtr();
+
+#ifdef NIDUM_PRODUCT_FRONTEND
+            Interface::SystemInterface::GetInstance()->print(str);
+#else
             fwrite(str, 1, strlen(str), stdout);
+#endif
 
             free(msg.dataPtr());
         }
