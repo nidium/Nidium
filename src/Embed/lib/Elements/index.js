@@ -452,6 +452,7 @@ Elements.Element = class extends Elements.Node {
 }
 
 const s_NodeText = Symbol("NodeText");
+const s_FnParentWidth = Symbol("FunctionTextNodeParentWidth");
 Elements.textnode = class extends Elements.Element {
 
     constructor(textValue) {
@@ -491,9 +492,24 @@ Elements.textnode = class extends Elements.Element {
         return Node.TEXT_NODE;
     }
 
+    [s_FnParentWidth](el=this) {
+        let p = Canvas.prototype.getParent.call(el);
+        if (!p) {
+            return window.innerWidth;
+        }
+
+        // If the parent has an adaptive width,
+        // keep searching for the maximum size
+        if (p.fluidWidth || p._fixStaticRight /* p.staticRight */) {
+            return this[s_FnParentWidth](p);
+        }
+
+        return p.width;
+    }
+
     paint(ctx) {
         super.paint(ctx);
-        let maxWidth    = Canvas.prototype.getParent.call(this).width;
+        let maxWidth    = this[s_FnParentWidth]();
         let actualWidth = 1;
 
         // FIXME : Get these values from inherited styles
