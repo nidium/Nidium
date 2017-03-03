@@ -75,7 +75,8 @@ JSModule::JSModule(JSContext *cx,
                    const char *name)
     : m_AbsoluteDir(nullptr), m_FilePath(nullptr), m_Name(strdup(name)),
       m_ModuleType(JSModule::kModuleType_None), m_Cached(false),
-      m_Exports(nullptr), m_Parent(parent), m_Modules(modules), m_Cx(cx)
+      m_Exports(nullptr), m_Parent(parent), m_Modules(modules), m_Cx(cx),
+      m_dlmodule(NULL)
 {
 }
 
@@ -128,14 +129,14 @@ bool JSModule::initNative()
         return false;
     }
 
-    void *module = dlopen(m_FilePath->path(), RTLD_LAZY);
-    if (!module) {
+    m_dlmodule = dlopen(m_FilePath->path(), RTLD_LAZY);
+    if (!m_dlmodule) {
         NLOG("Failed to open module : %s\n", dlerror());
         return false;
     }
 
     register_module_t registerModule = reinterpret_cast<register_module_t>(
-        dlsym(module, "__NidiumRegisterModule"));
+        dlsym(m_dlmodule, "__NidiumRegisterModule"));
     if (registerModule && !registerModule(m_Cx, exports)) {
         NLOG("Failed to register module\n");
         return false;
@@ -403,7 +404,9 @@ JSModule::~JSModule()
     if (m_FilePath && m_Cached) {
         m_Modules->remove(this);
     }
-
+    if (m_dlmodule && m_ModuleType == kModuleType_Native) {
+        dlclose(m_dlmodule);
+    }
     free(m_Name);
     free(m_AbsoluteDir);
     delete m_FilePath;
