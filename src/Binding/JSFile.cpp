@@ -276,7 +276,7 @@ bool JSFile::JSGetter_filename(JSContext *cx, JS::MutableHandleValue vp)
     File *file = this->getFile();
 
     vp.setString(JS_NewStringCopyZ(cx, file->getFullPath()));
-    
+
     return true;
 }
 
