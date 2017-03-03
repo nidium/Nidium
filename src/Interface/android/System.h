@@ -26,6 +26,7 @@ public:
     const char *getLanguage();
     void sendNotification(const char *title, const char *content, bool sound);
     const char *execute(const char *cmd);
+    void print(const char *buf) override;
 
     int getSurfaceWidth();
     int getSurfaceHeight();
