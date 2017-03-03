@@ -340,11 +340,7 @@ void HTTPStream::onHeader()
                          ? MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH
                          : m_Http->m_HTTP.m_ContentLength);
 
-#if _MSC_VER
-    if (_chsize(m_Mapped.fd, m_Mapped.size) == -1) {
-#else
     if (ftruncate(m_Mapped.fd, m_Mapped.size) == -1) {
-#endif
         m_Mapped.size = 0;
         this->stop();
 

@@ -13,7 +13,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+#include "Port/MSWindows.h"
+#else
 #include <unistd.h>
 #include <sys/socket.h>
 #endif
@@ -161,11 +163,7 @@ void *Audio::queueThread(void *args)
                     needSpace = true;
                     break;
                 } else if (audio->m_QueueFreeLock) {
-#ifdef _MSC_VER
-                    Sleep(500);
-#else
                     usleep(500);
-#endif
                     break;
                 }
 

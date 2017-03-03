@@ -18,9 +18,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#ifdef _MSC_VER
-#define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
-#else
+#ifndef _MSC_VER
 #include <sys/param.h>
 #include <unistd.h>
 #endif

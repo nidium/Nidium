@@ -8,6 +8,12 @@
 
 #include <port/windows.h>
 
+#define ftruncate _chsize
+#define usleep Sleep
+
+#define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
+#define MAXPATHLEN _MAX_PATH 
+
 #ifndef S_ISDIR
 #define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
 #endif
