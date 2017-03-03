@@ -75,8 +75,7 @@ JSModule::JSModule(JSContext *cx,
                    const char *name)
     : m_AbsoluteDir(nullptr), m_FilePath(nullptr), m_Name(strdup(name)),
       m_ModuleType(JSModule::kModuleType_None), m_Cached(false),
-      m_Exports(nullptr), m_Parent(parent), m_Modules(modules), m_Cx(cx),
-      m_DLModule(nullptr)
+      m_Exports(nullptr), m_Parent(parent), m_Modules(modules), m_Cx(cx)
 {
 }
 
