@@ -13,8 +13,6 @@
 
 #include <ape_log.h>
 
-#include <android/log.h>
-
 using namespace Nidium::Binding;
 using namespace Nidium::Core;
 using namespace Nidium::IO;
@@ -143,8 +141,7 @@ void Context::onMessage(const SharedMessages::Message &msg)
         case kContextMessage_log:
         {
             const char *str = (char *)msg.dataPtr();
-
-            __android_log_print(ANDROID_LOG_DEBUG, "Nidium", "%s", str);
+            fwrite(str, 1, strlen(str), stdout);
 
             free(msg.dataPtr());
         }
