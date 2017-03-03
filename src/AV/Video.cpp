@@ -30,8 +30,8 @@ namespace AV {
 #if 0
 #define DEBUG_PRINT
 #define DPRINT(...)                                   \
-    APE_DEBUG("AV", [Video] >[%d]%lld / ", (unsigned int)pthread_self(), av_gettime() / 1000); \
-    APE_DEBUG("AV", [Video] %s", _VA_ARGS__)
+    ndm_logf(NDM_LOG_DEBUG, "Video", ">[%d]%lld / ", (unsigned int)pthread_self(), av_gettime() / 1000); \
+    ndm_logf(NDM_LOG_DEBUG, "Video", "%s", _VA_ARGS__)
 #else
 #define DPRINT(...) (void)0
 #endif
@@ -170,7 +170,7 @@ void Video::openInitCoro(void *arg)
     if (ret != 0) {
         thiz->sendEvent(SOURCE_EVENT_ERROR, ret, false);
         // Send a message to close the source from the main thread
-        // (As we can't close a source from a coroutine/thread)
+        // (As we cannot close a source from a coroutine/thread)
         thiz->postMessage(thiz, AVSource::MSG_CLOSE);
     }
     Coro_switchTo_(thiz->m_Coro, thiz->m_MainCoro);
@@ -190,13 +190,13 @@ int Video::openInitInternal()
     if (ret != 0) {
         char error[1024];
         av_strerror(ret, error, 1024);
-        APE_ERROR("AV", "[Video] Couldn't open file : %s\n", error);
+        ndm_logf(NDM_LOG_ERROR, "Video", "Couldn't open file : %s\n", error);
         return ERR_INTERNAL;
     }
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
-        APE_ERROR("AV", "[Video] Couldn't find stream information");
+        ndm_log(NDM_LOG_ERROR, "Video", "Couldn't find stream information");
         return ERR_NO_INFORMATION;
     }
 
@@ -227,7 +227,7 @@ int Video::openInitInternal()
     }
 
     if (avcodec_open2(m_CodecCtx, codec, NULL) < 0) {
-        APE_ERROR("AV", "[Video] Could not find or open the needed codec\n");
+        ndm_log(NDM_LOG_ERROR, "Video", "Could not find or open the needed codec\n");
         return ERR_NO_CODEC;
     }
 
@@ -240,13 +240,13 @@ int Video::openInitInternal()
         = (uint8_t *)malloc(sizeof(Video::Frame) * NIDIUM_VIDEO_BUFFER_SAMPLES);
 
     if (m_Buff == NULL) {
-        APE_ERROR("AV", "[Video] Failed to alloc buffer\n");
+        ndm_log(NDM_LOG_ERROR, "Video", "Failed to alloc buffer\n");
         return ERR_OOM;
     }
 
     if (0 > PaUtil_InitializeRingBuffer(m_rBuff, sizeof(Video::Frame),
                                         NIDIUM_VIDEO_BUFFER_SAMPLES, m_Buff)) {
-        APE_ERROR("AV", "[Video] Failed to init ringbuffer\n");
+        ndm_log(NDM_LOG_ERROR, "Video", "Failed to init ringbuffer\n");
         return ERR_OOM;
     }
 
@@ -894,7 +894,7 @@ int Video::setSizeInternal()
         m_ConvertedFrame = av_frame_alloc();
 
         if (m_DecodedFrame == NULL || m_ConvertedFrame == NULL) {
-            APE_ERROR("AV", "[Video] Failed to alloc frame\n");
+            ndm_log(NDM_LOG_ERROR, "Video", "Failed to alloc frame\n");
             m_NoDisplay = false;
             return ERR_OOM;
         }

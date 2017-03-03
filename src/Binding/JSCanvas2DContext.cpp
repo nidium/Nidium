@@ -1255,7 +1255,7 @@ bool Canvas2DContext::JSSetter_fontFile(JSContext *cx,
     JSAutoByteString font(cx, vpStr);
 
     if (!m_Skia->setFontFile(font.ptr())) {
-        JS_ReportError(cx, "Can not set font (invalid file)");
+        JS_ReportError(cx, "Cannot set font (invalid file)");
 
         return false;
     }
@@ -1739,7 +1739,7 @@ void Canvas2DContext::drawTexture(uint32_t textureID)
         TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     NIDIUM_GL_CALL_MAIN(
         TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    
+
     NIDIUM_GL_CALL_MAIN(DrawElements(GR_GL_TRIANGLE_STRIP,
                                      m_GLState->m_GLObjects.vtx->nindices,
                                      GL_UNSIGNED_INT, 0));
@@ -1882,7 +1882,7 @@ void Canvas2DContext::setScale(double x, double y, double px, double py)
 uint8_t *Canvas2DContext::getPixels()
 {
     this->flush();
-    printf("Get Pixel unimplemented\n");
+    ndm_log(NDM_LOG_INFO, "JSCanvas", "Get Pixel unimplemented");
 
     return nullptr;
 #if 0

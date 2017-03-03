@@ -56,7 +56,7 @@ Image *Image::CreateFromRGBA(void *data, int width, int height)
 
 Image *Image::CreateFromSurface(sk_sp<SkSurface> surface)
 {
-    printf("Image::CreateFromSurface. Not implemented\n");
+    ndm_log(NDM_LOG_INFO, "Image", "Image::CreateFromSurface. Not implemented");
     return nullptr;
 }
 
@@ -64,7 +64,7 @@ Image *Image::CreateFromSkImage(sk_sp<SkImage> skimage)
 {
     if (!skimage.get()) {
         return nullptr;
-    } 
+    }
 
     Image *img = new Image();
     img->m_IsCanvas = 0;
@@ -80,7 +80,7 @@ SkBitmap *Image::getBitmap()
       return m_ImageBitmap;
     }
     m_ImageBitmap = new SkBitmap();
-    
+
     if (!m_Image->asLegacyBitmap(m_ImageBitmap, SkImage::kRO_LegacyBitmapMode)) {
       delete m_ImageBitmap;
 
@@ -106,7 +106,7 @@ const uint8_t *Image::getPixels(size_t *len)
     }
     void *data = m_Image->getPixels();
 
-    APE_DEBUG("Graphics", "[Image] Pixels : %x %d\n", (static_cast<uint8_t *>(data)[500]),
+    ndm_logf(NDM_LOG_DEBUG, "Graphics", "[Image] Pixels : %x %d", (static_cast<uint8_t *>(data)[500]),
            m_Image->height());
 
     return static_cast<const uint8_t *>(m_Image->getPixels());

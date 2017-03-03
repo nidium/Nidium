@@ -166,7 +166,7 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
                 nidium_xml_ret_t ret;
 
                 if ((ret = (this->*m_NmlTags[i].cb)(*child)) != NIDIUM_XML_OK) {
-                    APE_ERROR("Frontend", "[NML] XML : Nidium error (%d)\n", ret);
+                    ndm_logf(NDM_LOG_ERROR, "NML", "XML : Nidium error (%d)", ret);
                     SystemInterface::GetInstance()->alert(
                         "NML ERROR", SystemInterface::ALERT_CRITIC);
                     return false;
@@ -591,7 +591,7 @@ NML::nidium_xml_ret_t NML::loadAssets(rapidxml::xml_node<> &node)
         } else if (!strncasecmp(child->name(), CONST_STR_LEN("style"))) {
             item->m_FileType = Assets::Item::ITEM_NSS;
         }
-        // APE_DEBUG("Frontend", "[NML] Node : %s\n", child->name());
+        // ndm_logf(NDM_LOG_DEBUG, "NML", "Node : %s", child->name());
     }
 
     assets->endListUpdate(m_Net);

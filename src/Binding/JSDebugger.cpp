@@ -39,14 +39,14 @@ JSDebuggerCompartment::JSDebuggerCompartment(JSContext *cx)
 {
     JS::RootedObject mainGbl(cx, JS::CurrentGlobalOrNull(cx));
     if (!mainGbl) {
-        JS_ReportError(cx, "Can not get current global");
+        JS_ReportError(cx, "Cannot get current global");
         return;
     }
 
     // New global object & compartment for the Debugger
     JS::RootedObject gbl(cx, NidiumJS::CreateJSGlobal(cx));
     if (!gbl) {
-        JS_ReportError(cx, "Can not create global for Debugger compartment");
+        JS_ReportError(cx, "Cannot create global for Debugger compartment");
         return;
     }
 
@@ -158,7 +158,7 @@ bool JSDebuggerCompartment::run(JSContext *cx,
                         nullptr, funStr, strlen(funStr), &fn)) {
 
         JS_LeaveCompartment(cx, m_Compartment);
-        JS_ReportError(cx, "Can't compile function");
+        JS_ReportError(cx, "Cannot compile function");
         return false;
     }
 

@@ -427,10 +427,10 @@ bool JSModules::init()
         }
 
         if (token != NULL && i == 63) {
-            APE_WARN("Binding", "[Modules] "
+            ndm_logf(NDM_LOG_WARN, "Modules",
                     "Warning : require path ignored %s."
                     " A maximum of 63 search path is allowed. All subsequent "
-                    "paths will be ignored.\n",
+                    "paths will be ignored.",
                     token);
         }
 
@@ -737,7 +737,7 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
 
                 if (!JSModules::GetFileContent(&p, &data, &size)
                     || data == NULL) {
-                    APE_ERROR("Binding", "[Modules] Failed to open %s\n", dir.c_str());
+                    ndm_logf(NDM_LOG_ERROR, "Modules", "Failed to open %s", dir.c_str());
                     return false;
                 }
 
@@ -748,7 +748,7 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
                 bool parsingSuccessful = reader.parse(data, data + size, root);
 
                 if (!parsingSuccessful) {
-                    APE_ERROR("Binding", "[Modules] Failed to parse %s\n  %s\n", dir.c_str(),
+                    ndm_logf(NDM_LOG_ERROR, "Modules", "Failed to parse %s\n  %s", dir.c_str(),
                             reader.getFormatedErrorMessages().c_str());
                     return false;
                 }
@@ -761,7 +761,7 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
                     dir = entrypoint;
                     return true;
                 } else {
-                    APE_ERROR("Binding", "[Modules] Failed to access file %s\n", entrypoint.c_str());
+                    ndm_logf(NDM_LOG_ERROR, "Modules", "Failed to access file %s", entrypoint.c_str());
                     return false;
                 }
 

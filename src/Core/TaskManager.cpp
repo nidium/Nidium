@@ -226,7 +226,7 @@ void Managed::unlockTasks()
 void Managed::addTask(Task *task)
 {
     if (m_Manager == NULL) {
-        APE_WARN("Core", "[TaskManager] addTask() : Unknown manager\n");
+        ndm_log(NDM_LOG_WARN, "TaskManager", "addTask() : Unknown manager");
         return;
     }
     if (m_Worker == NULL) {

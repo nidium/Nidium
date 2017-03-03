@@ -110,7 +110,7 @@ void File::rmrf()
     tree = fts_open(path, FTS_COMFOLLOW | FTS_NOCHDIR, File_compare);
 
     if (!tree) {
-        APE_ERROR("IO", "[File] Failed to fts_open()\n");
+        ndm_log(NDM_LOG_ERROR, "File", "Failed to fts_open()");
         return;
     }
     while ((f = fts_read(tree))) {
@@ -226,14 +226,14 @@ void File::openTask(const char *mode, void *arg)
 
     if (S_ISDIR(s.st_mode)) {
         if (!readOnly) {
-            APE_ERROR("IO", "[File] Can not open directory %s for writing\n", m_Path);
+            ndm_logf(NDM_LOG_ERROR, "File", "Cannot open directory %s for writing", m_Path);
             NIDIUM_FILE_NOTIFY(EISDIR, File::kEvents_OpenError, arg);
             return;
         }
 
         m_Dir = opendir(m_Path);
         if (!m_Dir) {
-            APE_ERROR("IO", "[File] Failed to open dir %s : %s\n", m_Path, strerror(errno));
+            ndm_logf(NDM_LOG_ERROR, "File", "Failed to open dir %s : %s", m_Path, strerror(errno));
             NIDIUM_FILE_NOTIFY(errno, File::kEvents_OpenError, arg);
             return;
         }
@@ -501,7 +501,7 @@ int File::openSync(const char *modes, int *err)
     ret = stat(m_Path, &s);
     if (ret != 0 && readOnly) {
         // Opened in read-only, but file does not exists
-        APE_ERROR("IO", "[File] Failed to open : %s errno=%d\n", m_Path, errno);
+        ndm_logf(NDM_LOG_ERROR, "File", "Failed to open : %s errno=%d", m_Path, errno);
         *err = errno;
         return 0;
     }
@@ -509,13 +509,13 @@ int File::openSync(const char *modes, int *err)
     if (S_ISDIR(s.st_mode)) {
         if (!readOnly) {
             *err = EISDIR;
-            APE_ERROR("IO", "[File] Can not open directory %s for writing\n", m_Path);
+            ndm_logf(NDM_LOG_ERROR, "File", "Cannot open directory %s for writing", m_Path);
             return 0;
         }
 
         m_Dir = opendir(m_Path);
         if (!m_Dir) {
-            APE_ERROR("IO", "[File] Failed to open : %s errno=%d\n", m_Path, errno);
+            ndm_logf(NDM_LOG_ERROR, "File", "Failed to open : %s errno=%d", m_Path, errno);
 
             *err = errno;
             return 0;
@@ -525,7 +525,7 @@ int File::openSync(const char *modes, int *err)
         m_Filesize = 0;
     } else {
         if ((m_Fd = fopen(m_Path, modes)) == NULL) {
-            APE_ERROR("IO", "[File] Failed to open : %s errno=%d\n", m_Path, errno);
+            ndm_logf(NDM_LOG_ERROR, "File", "Failed to open : %s errno=%d", m_Path, errno);
             *err = errno;
             return 0;
         }

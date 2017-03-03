@@ -291,8 +291,8 @@ static void nidium_http_read(ape_socket *s,
     nhttp->parsing(false);
 
     if (nparsed != len && !nhttp->m_HTTP.m_Ended) {
-        APE_ERROR("Net", \
-            "[HTTP] (socket %p) Parser returned %ld with error %s\n", s,
+        ndm_logf(NDM_LOG_ERROR, "HTTP", \
+            "(socket %p) Parser returned %ld with error %s", s,
             static_cast<unsigned long>(nparsed),
             http_errno_description(HTTP_PARSER_ERRNO(&nhttp->m_HTTP.parser)));
 
@@ -543,7 +543,7 @@ bool HTTP::createConnection()
                                  0, m_Net))
         == NULL) {
 
-        APE_ERROR("Net", "[HTTP] Can not load socket (new)\n");
+        ndm_log(NDM_LOG_ERROR, "HTTP", "Cannot load socket (new)");
         if (m_Delegate) {
             this->setPendingError(ERROR_SOCKET);
         }
@@ -553,7 +553,7 @@ bool HTTP::createConnection()
     if (APE_socket_connect(socket, m_Request->getPort(), m_Request->getHost(),
                            0)
         == -1) {
-        APE_ERROR("Net", "[HTTP] Can not connect (0)\n");
+        ndm_log(NDM_LOG_ERROR, "HTTP", "Cannot connect (0)");
         if (m_Delegate) {
             this->setPendingError(ERROR_SOCKET);
         }

@@ -10,8 +10,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <ape_log.h>
-
 namespace Nidium {
 namespace Core {
 
@@ -91,7 +89,7 @@ public:
         }
 
         if (idx >= m_NumArgs) {
-            APE_ERROR("Core", "[Args] Args overflow\n");
+            ndm_log(NDM_LOG_ERROR, "Args", "Args overflow");
             *(volatile int *)0 = 42;
         }
 
@@ -104,9 +102,9 @@ public:
     const ArgsValue &operator[](int idx) const
     {
         if (idx >= m_NumArgs) {
-            APE_ERROR("Core", "[Args] "
-                "/!\\ Overflow in accessing Args value. Beggining of the array "
-                "returned\n");
+            ndm_log(NDM_LOG_ERROR, "Args",
+                "/!\\ Overflow in accessing Args value. Begining of the array "
+                "returned");
             return m_Args[0];
         }
         return m_Args[idx];

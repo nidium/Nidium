@@ -42,7 +42,7 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
     dirent *cur;
 
     if (dir == NULL) {
-        APE_ERROR("Tools", "[dir2nvfs] null dir given\n");
+        ndm_log(NDM_LOG_ERROR, "Tools", "null dir given");
         return;
     }
 
@@ -57,7 +57,7 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
             }
 
             if (!nfs->mkdir(vpath, strlen(vpath))) {
-                APE_ERROR("Tools", "[dir2nvfs] Failed to create dir %s\n", vpath);
+                ndm_logf(NDM_LOG_ERROR, "Tools", "Failed to create dir %s", vpath);
                 continue;
             }
 
@@ -68,7 +68,7 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
             Stream *stream = Stream::Create(newpath.c_str());
 
             if (stream == NULL) {
-                APE_ERROR("Tools", "[dir2nvfs] Could not create stream for file %s\n",
+                ndm_logf(NDM_LOG_ERROR, "Tools", "Could not create stream for file %s",
                         newpath.c_str());
                 continue;
             }
@@ -76,17 +76,17 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
             size_t len;
 
             if (!stream->getContentSync(&content, &len, true)) {
-                APE_ERROR("Tools", "[dir2nvfs] Could not read stream for file %s\n",
+                ndm_logf(NDM_LOG_ERROR, "Tools", "Could not read stream for file %s",
                         newpath.c_str());
                 continue;
             }
 
             if (!nfs->writeFile(vpath, strlen(vpath), content, len)) {
-                APE_ERROR("Tools", "[dir2nvfs] Failed to write file %s\n", vpath);
+                ndm_logf(NDM_LOG_ERROR, "Tools", "Failed to write file %s", vpath);
                 continue;
             }
 
-            APE_ERROR("Tools", "[dir2nvfs] Saved file : %s\n", vpath);
+            ndm_logf(NDM_LOG_ERROR, "Tools", "Saved file : %s", vpath);
         }
     }
 
@@ -106,13 +106,13 @@ static int Embed(int argc, char **argv)
     JSContext *cx      = ncx->getNJS()->getJSContext();
 
     if (argc <= 1) {
-        APE_ERROR("Tools", "[dir2nvfs] %s <path> [prefix] [> out]\n", argv[0]);
+        ndm_logf(NDM_LOG_ERROR, "Tools", "%s <path> [prefix] [> out]", argv[0]);
         return 1;
     }
 
     DIR *dir = opendir(argv[1]);
     if (!dir) {
-        APE_ERROR("Tools", "[dir2nvfs] Can not open dir %s\n", argv[1]);
+        ndm_logf(NDM_LOG_ERROR, "Tools", "Cannot open dir %s", argv[1]);
     }
 
     JS_BeginRequest(cx);
@@ -123,7 +123,7 @@ static int Embed(int argc, char **argv)
         std::string prefix = "/";
         prefix += argv[2];
 
-        APE_DEBUG("Tools", "[dir2nvfs] Create prefix %s...\n", prefix.c_str());
+        ndm_logf(NDM_LOG_DEBUG, "Tools", "Create prefix %s...", prefix.c_str());
 
         nfs->mkdir(prefix.c_str(), strlen(prefix.c_str()));
 

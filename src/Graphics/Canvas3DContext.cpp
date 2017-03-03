@@ -220,7 +220,7 @@ bool Canvas3DContext::createFBO(int width, int height)
                                  GR_GL_TEXTURE_2D, m_GLObjects.texture, 0));
 
     if (!validateCurrentFBO()) {
-        APE_ERROR("Graphics", "[Canvas3DContext] Failed on FBO step 1\n");
+        ndm_log(NDM_LOG_ERROR, "Canvas3DContext", "Failed on FBO step 1");
         exit(1);
         return false;
     }
@@ -250,7 +250,7 @@ bool Canvas3DContext::createFBO(int width, int height)
                                     m_GLObjects.renderbuffer));
 
     if (!validateCurrentFBO()) {
-        APE_ERROR("Graphics", "[Canvas3DContext] Failed on FBO step 2\n");
+        ndm_log(NDM_LOG_ERROR, "Canvas3DContext", "Failed on FBO step 2");
         exit(1);
         return false;
     }

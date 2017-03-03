@@ -20,6 +20,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
 }
+
 using Nidium::Core::PthreadAutoLock;
 
 namespace Nidium {
@@ -937,14 +938,14 @@ int AudioSource::initStream()
     if (ret != 0) {
         char error[1024];
         av_strerror(ret, error, 1024);
-        APE_ERROR("AV", "[AudioNode] Couldn't open file : %s\n", error);
+        ndm_logf(NDM_LOG_ERROR, "AudioNode", "Couldn't open file : %s", error);
         return ERR_INTERNAL;
     }
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     // Retrieve stream information
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
-        APE_ERROR("AV", "[AudioNode] Couldn't find stream information\n");
+        ndm_log(NDM_LOG_ERROR, "AudioNode", "Couldn't find stream information");
         return ERR_NO_INFORMATION;
     }
 
@@ -984,7 +985,7 @@ int AudioSource::initInternal()
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     if (avcodec_open2(m_CodecCtx, codec, NULL) < 0) {
-        APE_ERROR("AV", "[AudioNode] Could not find or open the needed codec\n");
+        ndm_log(NDM_LOG_ERROR, "AudioNode", "Could not find or open the needed codec");
         return ERR_NO_CODEC;
     }
 
@@ -998,7 +999,7 @@ int AudioSource::initInternal()
         if (!(m_fBufferOutData
               = static_cast<float *>(malloc(NIDIUM_RESAMPLER_BUFFER_SAMPLES
                                             * m_OutCount * Audio::FLOAT32)))) {
-            APE_ERROR("AV", "[AudioNode] Failed to init frequency resampler buffers");
+            ndm_log(NDM_LOG_ERROR, "AudioNode", "Failed to init frequency resampler buffers");
             return ERR_OOM;
         }
 
@@ -1022,7 +1023,7 @@ int AudioSource::initInternal()
                 (Audio::FLOAT32 * m_OutCount),
                 bufferSize * NIDIUM_AUDIO_BUFFER_MULTIPLIER,
                 m_rBufferOutData)) {
-        APE_ERROR("AV", "[AudioNode] Failed to init output ringbuffer\n");
+        ndm_log(NDM_LOG_ERROR, "AudioNode", "Failed to init output ringbuffer\n");
         return ERR_OOM;
     }
 
@@ -1042,7 +1043,7 @@ int AudioSource::initInternal()
             m_CodecCtx->sample_rate, channelLayout, m_CodecCtx->sample_fmt,
             m_CodecCtx->sample_rate, 0, NULL);
         if (!m_SwrCtx || swr_init(m_SwrCtx) < 0) {
-            APE_ERROR("AV", "[AudioNode] Failed to init sample resampling converter\n");
+            ndm_log(NDM_LOG_ERROR, "AudioNode", "Failed to init sample resampling converter\n");
             return ERR_NO_RESAMPLING_CONVERTER;
         }
     }
@@ -1328,7 +1329,7 @@ int AudioSource::resample(int destSamples)
                 // Resample as much data as possible
                 while (m_fCvt->out_count > 0 && m_fCvt->inp_count > 0) {
                     if (0 != m_fCvt->process()) {
-                        APE_ERROR("AV", "[AudioNode] Failed to resample audio data\n");
+                        ndm_log(NDM_LOG_ERROR, "AudioNode", "Failed to resample audio data\n");
                         return -1;
                     }
                 }

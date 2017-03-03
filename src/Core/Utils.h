@@ -21,6 +21,8 @@
    #error "NDEBUG and DEBUG"
 #endif
 
+#include "Macros.h"
+
 namespace Nidium {
 namespace Core {
 
@@ -107,7 +109,7 @@ public:
         random = open("/dev/urandom", O_RDONLY);
 
         if (!random) {
-            APE_ERROR("Utils", "[Utils] Can not open /dev/urandom\n");
+            ndm_log(NDM_LOG_ERROR, "Utils", "Cannot open /dev/urandom");
             return 0;
         }
 
@@ -127,7 +129,7 @@ public:
         random = open("/dev/urandom", O_RDONLY);
 
         if (!random) {
-            APE_ERROR("Nidium", "[Utils] Can not open /dev/urandom\n");
+            ndm_log(NDM_LOG_ERROR, "Utils", "Can not open /dev/urandom");
             return data;
         }
 
@@ -219,9 +221,6 @@ private:
 #define CONST_STR_LEN(x) x, x ? sizeof(x) - 1 : 0
 
 #define APE_CTX(CX) ((ape_global *)JS_GetContextPrivate(CX))
-
-#define __FILENAME__ \
-    (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
 #define NLOG(format, ...) \
     printf("[%s:%d] " format "\n", __FILENAME__, __LINE__, ##__VA_ARGS__)

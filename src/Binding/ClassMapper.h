@@ -127,7 +127,7 @@ public:
 
 #ifdef DEBUG
         if (jsclass != ClassMapper<T>::GetJSClass()) {
-            APE_DEBUG("Binding", "[Classmapper] JSClass is overriden for %s\n", name);
+            ndm_logf(NDM_LOG_DEBUG, "Classmapper", "JSClass is overriden for %s", name);
         }
         assert(jsclass->name == NULL || strcmp(jsclass->name, name) == 0);
 #endif

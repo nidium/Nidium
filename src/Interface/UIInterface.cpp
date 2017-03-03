@@ -63,7 +63,7 @@ bool UIInterface::createWindow(int width, int height)
 {
     if (!m_Initialized) {
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1) {
-            NUI_LOG("Can't init SDL:  %s\n", SDL_GetError());
+            NUI_LOG("Cannot init SDL:  %s\n", SDL_GetError());
             return false;
         }
 
@@ -72,7 +72,7 @@ bool UIInterface::createWindow(int width, int height)
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /* | SDL_WINDOW_FULLSCREEN*/);
 
         if (m_Win == NULL) {
-            NUI_LOG("Can not create window (SDL)\n");
+            NUI_LOG("Cannot create window (SDL)\n");
             return false;
         }
 
@@ -93,7 +93,7 @@ bool UIInterface::createWindow(int width, int height)
             Enable vertical sync
         */
         if (SDL_GL_SetSwapInterval(NIDIUM_VSYNC) == -1) {
-            APE_ERROR("Interface", "[UI] Can not vsync\n");
+            ndm_log(NDM_LOG_ERROR, "UI", "Cannot vsync");
         }
 
         // glViewport(0, 0, width*2, height*2);
@@ -347,7 +347,7 @@ void UIInterface::setCursor(CURSOR_TYPE type)
     if (m_CurrentCursor != type) {
         m_CursorNeedsUpdate = true;
         m_CurrentCursor = type;
-        APE_DEBUG("Interface", "[UI] set new cursor %d\n", type);
+        ndm_logf(NDM_LOG_DEBUG, "UI", "Set new cursor %d", type);
     }
 }
 
@@ -482,7 +482,7 @@ uint8_t *UIInterface::readScreenPixel()
     uint8_t *ret = (uint8_t *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
     if (!ret) {
         uint32_t err = glGetError();
-        APE_ERROR("Interface", "[UI] Failed to map buffer: Error %d\n", err);
+        ndm_logf(NDM_LOG_ERROR, "UI", "Failed to map buffer: Error %d", err);
         return NULL;
     }
 

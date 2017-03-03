@@ -283,8 +283,8 @@ class AudioNodeMixer : public AudioNode
         AudioNodeMixer(int m_InCount, int m_OutCount, AudioParameters *params) :
           AudioNode(m_InCount, m_OutCount, params)
         {
-            APE_DEBUG("AV", "[AudioNode] Mixer init\n");
-            APE_DEBUG("AV", "[AudioNode] count %d/%d\n", m_InCount, m_OutCount);
+            ndm_log(NDM_LOG_DEBUG, "AudioNode", "Mixer init");
+            ndm_logf(NDM_LOG_DEBUG, "AudioNode", "count %d/%d", m_InCount, m_OutCount);
         }
 
         virtual bool process()

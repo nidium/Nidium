@@ -205,7 +205,7 @@ ape_global *NidiumJS::GetNet()
 void NidiumJS::InitNet(ape_global *net)
 {
     if (pthread_key_create(&gAPE, NULL) != 0) {
-        APE_ERROR("Binding", "[NidiumJS] pthread_key_create() error\n");
+        ndm_log(NDM_LOG_ERROR, "Nidium", "pthread_key_create() error");
         exit(1);
         return;
     }
@@ -260,7 +260,7 @@ void NidiumJS::SetJSRuntimeOptions(JSRuntime *rt, bool strictmode)
 #if 0
 static void _gc_callback(JSRuntime *rt, JSGCStatus status, void *data)
 {
-    APE_DEBUG("Binding", "[NidiumJS] Got gcd\n");
+    ndm_log(NDM_LOG_DEBUG, "Nidium", "Got gcd");
 }
 #endif
 
@@ -269,7 +269,7 @@ void NidiumJS::Init()
     static bool _alreadyInit = false;
     if (!_alreadyInit) {
         if (!JS_Init()) {
-            APE_ERROR("Binding", "[Nidium] Failed to init JSAPI (JS_Init())\n");
+            ndm_log(NDM_LOG_ERROR, "Nidium", "Failed to init JSAPI (JS_Init())");
             return;
         }
         _alreadyInit = true;
@@ -283,7 +283,7 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
     if (js == nullptr) {
-        APE_ERROR("Binding", "[NidiumJS] Error reporter failed (wrong JSContext?) (%s:%d > %s)\n",
+        ndm_logf(NDM_LOG_ERROR, "Nidium", "Error reporter failed (wrong JSContext?) (%s:%d > %s)",
                report->filename, report->lineno, message);
         return;
     }
@@ -393,7 +393,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
         // JS_SetCStringsAreUTF8();
         isUTF8 = 1;
     }
-    // APE_DEBUG("Binding", "[NidiumJS] New JS runtime\n");
+    // ndm_log(NDM_LOG_DEBUG, "Nidium", "New JS runtime");
 
     m_Net = NULL;
 
@@ -410,7 +410,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     if ((rt = JS_NewRuntime(JS::DefaultHeapMaxBytes, JS::DefaultNurseryBytes))
         == NULL) {
 
-        APE_ERROR("Binding", "[NidiumJS] Failed to init JS runtime\n");
+        ndm_log(NDM_LOG_ERROR, "Nidium", "Failed to init JS runtime");
         return;
     }
 
@@ -418,7 +418,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     JS_SetErrorReporter(rt, reportError);
 
     if ((m_Cx = JS_NewContext(rt, 8192)) == NULL) {
-        APE_ERROR("Binding", "[NidiumJS] Failed to init JS context\n");
+        ndm_log(NDM_LOG_ERROR, "Nidium", "Failed to init JS context");
         return;
     }
 
@@ -576,13 +576,13 @@ int NidiumJS::LoadScriptReturn(JSContext *cx,
     free(func);
 
     if (!cret) {
-        APE_ERROR("Binding", "[NidiumJS] Can not load script %s\n", filename);
+        ndm_logf(NDM_LOG_ERROR, "Nidium", "Cannot load script %s", filename);
         return 0;
     }
 
     if (JS_CallFunction(cx, gbl, cf, JS::HandleValueArray::empty(), ret)
         == false) {
-        APE_ERROR("Binding", "[NidiumJS] Got an error?\n"); /* or thread has ended */
+        ndm_log(NDM_LOG_ERROR, "Nidium", "Got an error?"); /* or thread has ended */
 
         return 0;
     }
@@ -673,7 +673,7 @@ char *NidiumJS::LoadScriptContentAndGetResult(const char *data,
     JS::RootedObject gbl(m_Cx, JS::CurrentGlobalOrNull(m_Cx));
 
     if (!gbl) {
-        APE_ERROR("Binding", "[Nidium] Failed to load global object\n");
+        ndm_log(NDM_LOG_ERROR, "Nidium", "Failed to load global object");
         return NULL;
     }
 

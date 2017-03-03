@@ -17,6 +17,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
+#include "Macros.h"
 #include "AudioNode.h"
 
 using Nidium::Core::Utils;
@@ -222,10 +223,10 @@ int AVStreamReader::_read(uint8_t *buffer, int size)
                     m_NeedWakup = false;
                     return copied > 0 ? copied : AVERROR_EOF;
                 default:
-                    APE_ERROR("AV",
-                            "[AVStream] received unknown error (%d) and streamBuffer is "
+                    ndm_logf(NDM_LOG_ERROR, "AVStream",
+                            "Received unknown error (%d) and streamBuffer is "
                             "null. Returning EOF, "
-                            "copied = %u\n",
+                            "copied = %u",
                             m_StreamErr, copied);
                     return copied > 0 ? copied : AVERROR_EOF;
             }

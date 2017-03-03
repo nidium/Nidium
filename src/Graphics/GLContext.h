@@ -101,19 +101,19 @@ public:
 
         /* The new context share with the "main" GL context */
         if (!m_UI->makeMainGLCurrent()) {
-            NUI_LOG("Can not make main current");
+            NUI_LOG("Cannot make main current");
         }
 
         m_SDLGLCtx = m_UI->createSharedContext(webgl);
         if (m_SDLGLCtx == NULL) {
-            NUI_LOG("Can not create context");
+            NUI_LOG("Cannot create context");
         }
 
         this->createInterface();
 
         /* Restore to the old GL Context */
         if (!m_UI->makeGLCurrent(oldctx)) {
-            NUI_LOG("Can not restore old ctx");
+            NUI_LOG("Cannot restore old ctx");
         }
     }
 
@@ -170,9 +170,9 @@ private:
         m_Interface = GrGLCreateNativeInterface();
 
         if (!m_Interface) {
-            APE_ERROR("Graphics", "[GLContext] "
+            ndm_log(NDM_LOG_ERROR, "GLContext",
                 "Fatal OpenGL Error: Failed to create GrGL "
-                "Interface...exiting\n");
+                "Interface...exiting");
             exit(1);
         }
         // TODO: new style cast

@@ -365,7 +365,7 @@ bool JSWindow::dragEvent(const char *name, int x, int y)
         JS::RootedValue rval(m_Cx);
 
         if (!JS_CallFunctionValue(m_Cx, event, ondragevent, jevent, &rval)) {
-            APE_ERROR("Binding", "[Window] Failed to exec func\n");
+            ndm_log(NDM_LOG_ERROR, "Window", "Failed to exec func");
             return false;
         }
 

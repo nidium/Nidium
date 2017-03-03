@@ -86,9 +86,9 @@ Audio::Audio(ape_global *n,
         AudioParameters tmp(0, 0, channels, Audio::FLOAT32, sampleRate);
         actualBufferSize = Audio::GetOutputBufferSize(&tmp);
         if (actualBufferSize == 0) {
-            APE_ERROR("AV",
-                    "[Audio] Failed to request optimal buffer size. Defaulting "
-                    "to 4096\n");
+            ndm_log(NDM_LOG_ERROR, "Audio",
+                    "Failed to request optimal buffer size. Defaulting "
+                    "to 4096");
             actualBufferSize = 4096;
         } else {
             /*
@@ -391,14 +391,14 @@ int Audio::InitPortAudioOutput(AudioParameters *params,
         paPrimeOutputBuffersUsingStreamCallback, callback, userData);
 
     if (error) {
-        APE_ERROR("AV", "[Audio] Error opening output. Code = %i\n", error);
+        ndm_logf(NDM_LOG_ERROR, "Audio", "Error opening output. Code = %i", error);
         Pa_Terminate();
         return error;
     }
 
     error = Pa_StartStream(*outputStream);
     if (error) {
-        APE_ERROR("AV", "[Audio] Failed to start PortAudio stream. Code=%i\n",
+        ndm_logf(NDM_LOG_ERROR, "Audio", "Failed to start PortAudio stream. Code=%i",
                 error);
         return 2;
     }

@@ -30,8 +30,8 @@ namespace AV {
 
 #if 0
 #define SPAM(a)                                      \
-    APE_DEBUG("AV", "[Audio] >%ld / ", av_gettime() / 1000, a); \
-    APE_DEBUG("AV", a);
+    ndm_logf(NDM_LOG_DEBUG, "AV", ">%ld / ", av_gettime() / 1000, a); \
+    ndm_log(NDM_LOG_DEBUG, "AV", a);
 #else
 #define SPAM(a) (void)0
 #endif

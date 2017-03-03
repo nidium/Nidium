@@ -314,11 +314,11 @@ bool JSAudioContext::JS_pFFT(JSContext *cx, JS::CallArgs &args)
     bool shared;
 
     if (JS_GetObjectAsFloat64Array(x, &dlenx, &shared, &dx) == NULL) {
-        JS_ReportError(cx, "Can't convert typed array (expected Float64Array)");
+        JS_ReportError(cx, "Cannot convert typed array (expected Float64Array)");
         return false;
     }
     if (JS_GetObjectAsFloat64Array(y, &dleny, &shared, &dy) == NULL) {
-        JS_ReportError(cx, "Can't convert typed array (expected Float64Array)");
+        JS_ReportError(cx, "Cannot convert typed array (expected Float64Array)");
         return false;
     }
 
@@ -510,7 +510,7 @@ void JSAudioContext::ShutdownCallback(void *custom)
 #ifdef DEBUG
     JSAudioContext::NodeListItem *node = audio->m_Nodes;
     while (node != NULL) {
-        APE_DEBUG("Binding", "[JSAudioContext] All nodes should have been destroyed\n");
+        ndm_log(NDM_LOG_DEBUG, "JSAudioContext", "All nodes should have been destroyed");
         assert(false);
     }
 #endif
@@ -577,7 +577,7 @@ void JSAudioContext::CtxCallback(void *custom)
         NUI_LOG("Failed to create audio thread context\n");
         // JS_ReportError(jsNode->audio->cx, "Failed to create audio thread
         // context\n");
-        // XXX : Can't report error from another thread?
+        // XXX : Cannot report error from another thread?
     }
 }
 

@@ -291,7 +291,7 @@ bool JSCanvas::JS_addSubCanvas(JSContext *cx, JS::CallArgs &args)
     }
 
     if (m_CanvasHandler == handler) {
-        JS_ReportError(cx, "Canvas: can't add to itself");
+        JS_ReportError(cx, "Canvas: Cannot add to itself");
         return false;
     }
 
@@ -327,7 +327,7 @@ bool JSCanvas::JS_insertBefore(JSContext *cx, JS::CallArgs &args)
     }
 
     if (m_CanvasHandler == handler_insert) {
-        JS_ReportError(cx, "Canvas: can't add to itself");
+        JS_ReportError(cx, "Canvas: Cannot add to itself");
         return false;
     }
 
@@ -363,7 +363,7 @@ bool JSCanvas::JS_insertAfter(JSContext *cx, JS::CallArgs &args)
     }
 
     if (m_CanvasHandler == handler_insert) {
-        JS_ReportError(cx, "Canvas: can't add to itself");
+        JS_ReportError(cx, "Canvas: Cannot add to itself");
         return false;
     }
 
@@ -542,7 +542,7 @@ bool JSCanvas::JSSetter_width(JSContext *cx, JS::MutableHandleValue vp)
     }
 
     if (!m_CanvasHandler->setWidth(dval)) {
-        // JS_ReportError(cx, "Can't set canvas width (this canvas has a
+        // JS_ReportError(cx, "Cannot set canvas width (this canvas has a
         // dynamic width)");
 
         return true;
@@ -1610,7 +1610,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             break;
         }
         case NIDIUM_EVENT(CanvasHandler, DRAG_EVENT): {
-            APE_DEBUG("Binding", "[JSCanvas] Drag event detected\n");
+            ndm_log(NDM_LOG_DEBUG, "JSCanvas", "Drag event detected");
         }
         case NIDIUM_EVENT(CanvasHandler, MOUSE_EVENT): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));

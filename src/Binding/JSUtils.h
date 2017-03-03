@@ -6,8 +6,6 @@
 #ifndef binding_jsutils_h__
 #define binding_jsutils_h__
 
-#include <ape_log.h>
-
 #include <jspubtd.h>
 #include <jsapi.h>
 #include <js/CallArgs.h>
@@ -47,7 +45,7 @@ public:
 
     /*
         JSAPI only provides JS_NewArrayBufferWithContents() which takes ownership.
-        We've some situation where we can't rely on zerocopy.
+        We've some situation where we Cannot rely on zerocopy.
     */
     static JSObject *NewArrayBufferWithCopiedContents(JSContext *cx,
         size_t len, const void *data);
@@ -168,7 +166,7 @@ public:
 
     void set(const char *name, JSString *str)
     {
-        APE_ERROR("Binding", "[JSUtils] JSObjectBuilder using a JSString is deprecated\n");
+        ndm_log(NDM_LOG_ERROR, "JSUtils", "JSObjectBuilder using a JSString is deprecated");
         exit(1);
     }
 

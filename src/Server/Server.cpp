@@ -118,7 +118,7 @@ void Server::wait()
 
             if (WIFSIGNALED(state)) {
                 int idx_crash = m_PidIdxMapper[pid];
-                APE_ERROR("Server", "[Server] Worker %d has crashed :'( (%s)\n",
+                ndm_logf(NDM_LOG_ERROR, "Server", "Worker %d has crashed :'( (%s)",
                         idx_crash, strsignal(WTERMSIG(state)));
 
                 if (this->initWorker(&idx_crash) == 0) {
@@ -132,7 +132,7 @@ void Server::wait()
 void Server::displayVersion()
 {
 #include "ASCII.h"
-    APE_INFO("Server", "[Server]\n" nidium_ascii, NIDIUM_SERVER_VERSION, __DATE__, __TIME__,
+    ndm_log(NDM_LOG_INFO, "Server", nidium_ascii, NIDIUM_SERVER_VERSION, __DATE__, __TIME__,
             getpid(), m_NWorkers);
 }
 
@@ -266,7 +266,7 @@ int Server::init()
     m_Args.argv += optind;
 
     if (workers > NIDIUM_MAX_WORKERS) {
-        APE_ERROR("Server", "[Server] Too many worker requested : max %d\n",
+        ndm_logf(NDM_LOG_ERROR, "Server", "Too many worker requested : max %d",
                 NIDIUM_MAX_WORKERS);
         exit(1);
     }
@@ -278,7 +278,7 @@ int Server::init()
         m_HasREPL = false;
         this->daemonize();
     } else if (daemon) {
-        APE_ERROR("Server", "[Server] Can't demonize if no JS file is provided\n");
+        ndm_logf(NDM_LOG_ERROR, "Server", "Cannot daemonize if no JS file is provided");
         Server::Usage(&long_options[0], text_blocks);
         exit(1);
     } else if (m_Args.argc == 0) {
@@ -341,14 +341,14 @@ int Worker::run(int argc, char **argv, bool jsstrict)
     */
 
 #ifdef DEBUG
-    APE_WARN("Server", "[Server] Running in Debug mode\n");
+    ndm_log(NDM_LOG_WARN, "Server", "Running in Debug mode");
 #endif
     if (jsstrict) {
-        APE_INFO("Server", "[Server] JS strict mode is enabled\n");
+        ndm_log(NDM_LOG_INFO, "Server", "JS strict mode is enabled");
     }
     if (argc >= 1) {
         if (!js) {
-            APE_ERROR("Server", "[Server] Failed to get JS\n");
+            ndm_log(NDM_LOG_ERROR, "Server", "Failed to get JS");
             return 0;
         }
         ctx.getNJS()->LoadScript(argv[0]);

@@ -418,7 +418,7 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
 
 #if 0
     if (m_JsObj && JS::IsIncrementalBarrierNeeded(JS_GetRuntime(m_JsCx))) {
-        APE_DEBUG("Graphics", "[CanvasHandler] Barrier needed\n");
+        ndm_log(NDM_LOG_DEBUG, "CanvasHandler", "Barrier needed");
         //JS::IncrementalReferenceBarrier(m_JsObj);
     }
 #endif
@@ -1357,7 +1357,7 @@ CanvasHandler::~CanvasHandler()
 
     /* all children got orphaned :(*/
     while (cur != NULL) {
-        // APE_WARN("Graphics", "[CanvasHandler] Warning: a canvas got orphaned (%p)\n", cur);
+        // ndm_logf(NDM_LOG_WARN, "CanvasHandler", "A canvas got orphaned (%p)\n", cur);
         cnext = cur->m_Next;
         cur->removeFromParent();
         cur = cnext;

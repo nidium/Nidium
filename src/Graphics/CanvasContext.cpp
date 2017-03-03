@@ -49,7 +49,7 @@ char *CanvasContext::ProcessShader(const char *content, shaderType type)
                        | SH_LIMIT_CALL_STACK_DEPTH | SH_INIT_GL_POSITION)) {
 
         std::string log = ShGetInfoLog(compiler);
-        APE_ERROR("Graphics", "[CanvasContext] Shader error : %s", log.c_str());
+        ndm_logf(NDM_LOG_ERROR, "CanvasContext", "Shader error : %s", log.c_str());
 
         return NULL;
     }
@@ -270,12 +270,12 @@ static void dump_Matrix(float *matrix)
 {
     int i = 4;
 
-    APE_DEBUG("Graphics", "[CanvasContext]  = = = = = \n");
+    ndm_log(NDM_LOG_DEBUG, "CanvasContext", " = = = = = \n");
     for (i = 0; i < 4; i++) {
-        APE_DEBUG("Graphics", "[CanvasContext] %f, %f, %f, %f\n", matrix[i * 4], matrix[i * 4 + 1],
+        ndm_logf(NDM_LOG_DEBUG, "CanvasContext", "%f, %f, %f, %f\n", matrix[i * 4], matrix[i * 4 + 1],
                matrix[i * 4 + 2], matrix[i * 4 + 3]);
     }
-    APE_DEBUG("Graphics", "[CanvasContext]  = = = = = \n");
+    ndm_log(NDM_LOG_DEBUG, "CanvasContext", " = = = = = \n");
 }
 #endif
 
@@ -442,15 +442,15 @@ bool CanvasContext::validateCurrentFBO()
 
     switch (status) {
         case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-            APE_DEBUG("Graphics", "[CanvasContext] fbo %x (incomplete multisample)\n", status);
+            ndm_logf(NDM_LOG_DEBUG, "CanvasContext", "fbo %x (incomplete multisample)\n", status);
             break;
         case GR_GL_FRAMEBUFFER_COMPLETE:
             break;
         case GR_GL_FRAMEBUFFER_UNSUPPORTED:
-            APE_WARN("Graphics", "[CanvasContext] fbo unsupported\n");
+            ndm_log(NDM_LOG_WARN, "CanvasContext", "fbo unsupported\n");
             return false;
         default:
-            APE_ERROR("Graphics", "[CanvasContext] fbo fatal error %x\n", status);
+            ndm_logf(NDM_LOG_ERROR, "CanvasContext", "fbo fatal error %x\n", status);
             exit(1);
             return false;
     }

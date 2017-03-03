@@ -14,8 +14,6 @@
 #endif
 #include "Macros.h"
 
-#include <ape_log.h>
-
 using namespace Nidium::Binding;
 using namespace Nidium::Core;
 using namespace Nidium::IO;
