@@ -24,7 +24,9 @@ class Component extends Elements.Element {
 
         // Share the NSS between the ShadowRoot of the Component and this Element
         this.shadowRoot.nss = this.constructor[s_ComponentShadow].getNSS();
+    }
 
+    createTree(children) {
         let layout      = this.constructor[s_ComponentShadow].findNodesByTag("layout")
         let templates   = this.constructor[s_ComponentShadow].findNodesByTag("template");
 
@@ -46,15 +48,15 @@ class Component extends Elements.Element {
                 scope["this"] = previousThis;
             }
         }
-    }
 
-    createTree(children) {
-        if (children.length == 0) {
+        if (!this.allowsChild()) {
+            if (children.length) {
+                console.warn(`Component <${this.name()}> does not allow children. Ignoring children.`);
+            }
             return;
         }
 
-        if (!this.allowsChild()) {
-            console.warn(`Component <${this.name()}> does not allow children. Ignoring children.`);
+        if (children.length == 0) {
             return;
         }
 
