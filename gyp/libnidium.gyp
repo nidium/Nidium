@@ -71,7 +71,14 @@
             }],
             ['target_os=="linux"', {
                 'defines': [
-                    'NDEBUG',
+                    'EXPORT_JS_API',
+                    'IMPL_MFBT',
+                    'USE_SYSTEM_MALLOC=1',
+                    'ENABLE_ASSEMBLER=1',
+                    'ENABLE_JIT=1',
+                    'EXPORT_JS_API',
+                    'IMPL_MFBT',
+                    'SK_RELEASE',
                     'SK_SAMPLES_FOR_X',
                     'SK_GAMMA_APPLY_TO_A8',
                     'SK_INTERNAL',
@@ -93,7 +100,7 @@
 
             ['target_os=="android"', {
                 'defines': [
-                    'NDEBUG',
+                    'SK_RELEASE',
                     'SK_GAMMA_APPLY_TO_A8',
                     'SK_INTERNAL',
                     'SK_GAMMA_EXPONENT=1.4',

@@ -579,7 +579,7 @@ bool JSModule::findModulePath()
         // File is a real file on disk (not virtualized by NFS for instance)
         // Run realpath on the file to get the resolved path
         // (this is needed for handling cyclic deps checking and caching)
-        char *tmp = realpath(modulePath.c_str(), NULL);
+        char *tmp = realpath(p->path(), NULL);
         if (tmp) {
             m_FilePath = new Path(tmp, true);
         }
@@ -648,9 +648,10 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
 
         DPRINT("    [JSModule] Looking for %s\n", tmp.c_str());
 
-        PtrAutoDelete<Stream *> stream(Stream::Create(tmp.c_str()));
+        Path p(tmp.c_str(), true /* allowAll */);
+        PtrAutoDelete<Stream *> stream(Stream::Create(p.path()));
 
-        if (!stream.ptr()->exists()) {
+        if (!stream.ptr() || !stream.ptr()->exists()) {
             continue;
         }
 

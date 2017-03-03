@@ -5,7 +5,7 @@ BASE_INSTALL_DIR="${HOME}/nidium"
 if [ "$(id -u)" = "0" ]
 then
     IS_ROOT=1
-    BASE_INSTALL_DIR="/usr/local/bin/nidium"
+    BASE_INSTALL_DIR="/usr/local/nidium"
 else
     echo "------------"
     echo "NOTE : You are running this script as \"$(whoami)\". Nidium will only be installed for this user."
@@ -66,6 +66,11 @@ then
     exit 2
 fi
 
+if [ $IS_ROOT = 1 ]
+then
+    chmod -R o=rx $INSTALL_DIR
+fi
+
 chmod +rx $INSTALL_DIR/nidium
 if [ -f $INSTALL_DIR/nidium-crash-reporter ]; then
     chmod +rx $INSTALL_DIR/nidium-crash-reporter
@@ -79,8 +84,17 @@ if [ $IS_ROOT = 1 ]
 then
     printf "(System wide)\n"
     xdg-mime install --novendor --mode system resources/x-application-nidium.xml
-    cp resources/nidium.desktop /usr/local/share/applications/
-    update-desktop-database /usr/local/share/applications/
+    if [ ! -d "/usr/share/applications/" ]
+    then
+        printf "Directory /usr/share/applications/ not found. Installing for user only\n"
+        mkdir -p ~/.local/share/applications/
+        cp resources/nidium.desktop ~/.local/share/applications/
+        update-desktop-database ~/.local/share/applications/
+    else
+        cp resources/nidium.desktop /usr/share/applications/
+        chmod 644 /usr/share/applications/nidium.desktop
+        update-desktop-database
+    fi
     xdg-icon-resource install --mode system --novendor --context mimetypes --size 48 resources/nidium.png x-application-nidium
 else
     printf "(Current user only)\n"

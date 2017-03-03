@@ -11,5 +11,6 @@ third-party/
 !third-party/linenoise/
 **.pyc
 **.venv
+**.DS_Store
 .ctags
 scripts
