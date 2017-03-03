@@ -20,6 +20,10 @@ class Component extends Elements.Element {
     constructor(attributes) {
         super(attributes);
 
+        if (!attributes.width) {
+            this.width = "auto";
+        }
+
         this.attachShadow({"name": "ComponentInstance-" + this.name()});
 
         // Share the NSS between the ShadowRoot of the Component and this Element
