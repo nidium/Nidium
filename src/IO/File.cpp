@@ -14,6 +14,7 @@
 
 #ifdef _MSC_VER
 #include <port/windows.h>
+#include <prmem.h>
 #else
 #include <fts.h>
 #include <unistd.h>
@@ -51,12 +52,6 @@ enum FileTask
     kFileTask_Seek,
     kFileTask_Listfiles
 };
-
-static int File_compare(const FTSENT **one, const FTSENT **two)
-{
-    return (strcmp((*one)->fts_name, (*two)->fts_name));
-}
-
 // }}}
 
 // {{{ Implementation
@@ -106,8 +101,34 @@ int File::rm()
     return ret;
 }
 
+#ifndef _MSC_VER
+static int File_compare(const FTSENT **one, const FTSENT **two)
+{
+    return (strcmp((*one)->fts_name, (*two)->fts_name));
+}
+#endif
+
 void File::rmrf()
 {
+	/*
+	  windows-x86: Fixme: this is a hack to get quick results
+	               TODO: changes the fts version with a
+				         nspr version
+	*/
+#ifdef _MSC_VER
+#define RMCOMMAND "\"%s\" / S / Q"
+	ssize_t len;
+	char *cmd;
+
+	len = strlen(m_Path) + strlen(RMCOMMAND) + 1; // + 1 and the '%s' is more then enough
+	cmd = (char*)malloc(len);
+	snprintf(cmd, len, RMCOMMAND, m_Path);
+
+	system(cmd);
+
+	free(cmd);
+#undef RMCOMMAND
+#else
     FTS *tree;
     FTSENT *f;
 
@@ -138,6 +159,7 @@ void File::rmrf()
     fts_close(tree);
 
     closeFd();
+#endif
 }
 
 File::~File()
