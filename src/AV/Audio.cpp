@@ -162,7 +162,7 @@ void *Audio::queueThread(void *args)
                     break;
                 } else if (audio->m_QueueFreeLock) {
 #ifdef _MSC_VER
-					Sleep(500);
+                    Sleep(500);
 #else
                     usleep(500);
 #endif

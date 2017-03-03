@@ -75,11 +75,11 @@ static int body_cb(http_parser *p, const char *buf, size_t len);
 
 static http_parser_settings settings
     = {/* .on_message_begin    = */ message_begin_cb,
-	   /* .on_url              = */ request_url_cb,
-	   /* .on_status           = */ NULL,
+       /* .on_url              = */ request_url_cb,
+       /* .on_status           = */ NULL,
        /* .on_header_field     = */ header_field_cb,
        /* .on_header_value     = */ header_value_cb,
-	   /* .on_headers_complete = */ headers_complete_cb,
+       /* .on_headers_complete = */ headers_complete_cb,
        /* .on_body             = */ body_cb,
        /* .on_message_complete = */ message_complete_cb
 };

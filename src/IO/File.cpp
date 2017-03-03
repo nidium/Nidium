@@ -110,23 +110,23 @@ static int File_compare(const FTSENT **one, const FTSENT **two)
 
 void File::rmrf()
 {
-	/*
-	  windows-x86: Fixme: this is a hack to get quick results
-	               TODO: changes the fts version with a
-				         nspr version
-	*/
+    /*
+      windows-x86: Fixme: this is a hack to get quick results
+                   TODO: changes the fts version with a
+                         nspr version
+    */
 #ifdef _MSC_VER
 #define RMCOMMAND "\"%s\" / S / Q"
-	ssize_t len;
-	char *cmd;
+    ssize_t len;
+    char *cmd;
 
-	len = strlen(m_Path) + strlen(RMCOMMAND) + 1; // + 1 and the '%s' is more then enough
-	cmd = (char*)malloc(len);
-	snprintf(cmd, len, RMCOMMAND, m_Path);
+    len = strlen(m_Path) + strlen(RMCOMMAND) + 1; // + 1 and the '%s' is more then enough
+    cmd = (char*)malloc(len);
+    snprintf(cmd, len, RMCOMMAND, m_Path);
 
-	system(cmd);
+    system(cmd);
 
-	free(cmd);
+    free(cmd);
 #undef RMCOMMAND
 #else
     FTS *tree;
@@ -262,7 +262,7 @@ void File::openTask(const char *mode, void *arg)
         m_Dir = PR_OpenDir(m_Path);
         if (!m_Dir) {
             printf("Failed to open dir %s : %s\n", m_Path, strerror(errno));
-            NIDIUM_FILE_NOTIFY(errno, File::kEvents_OpenError, arg);
+           NIDIUM_FILE_NOTIFY(errno, File::kEvents_OpenError, arg);
             return;
         }
         m_isDir    = true;
