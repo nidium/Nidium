@@ -66,8 +66,12 @@ class ElementStyles {
                 for (let c of classes.split(" ")) {
                     tmp.push(nss[c]);
                 }
+
+                // Gives priority to variables already defined
+                tmp.push(Object.assign({}, this));
+
+                // Merge all style into |this|
                 tmp.unshift(this);
-                tmp.push(this);
                 Object.assign.apply(null, tmp);
             }
 
