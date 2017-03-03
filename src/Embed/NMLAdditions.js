@@ -30,6 +30,7 @@
             }
 
             el.createTree(elem.children);
+            el.fireEvent("ready", {});
         }
 
         return ret;
