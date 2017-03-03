@@ -6,7 +6,7 @@ from dokumentor import *
 
 NamespaceDoc( "Window", """Window class.
 
-It is not possible to create an instance of this class. 'global.window' is allready available.""",
+It is not possible to create an instance of this class. 'global.window' is already available.""",
     SeesDocs( "global|global.window|Window" ),
     NO_Examples,
     products=["Frontend"]
@@ -205,7 +205,7 @@ FunctionDoc( "Window.openFileDialog", "Opens a file selection dialog.",
     SeesDocs( "global.window|Window|Window.exec|Window.openURL|Window.open|Window.close|Window.quit" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Slow,
-    [ParamDoc( "types", "list of allowed extendsions or null", "[string]", NO_Default, IS_Obligated ),
+    [ParamDoc( "types", "list of allowed extensions or null", "[string]", NO_Default, IS_Obligated ),
       CallbackDoc( "fn", "The callback function", [ParamDoc( "list", "List of the selected items", "[string]", NO_Default, IS_Obligated ) ] ) ],
     NO_Returns
 )

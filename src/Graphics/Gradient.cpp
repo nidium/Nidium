@@ -78,14 +78,14 @@ void Gradient::addColorStop(double position, char *color)
     m_NeedUpdate = 1;
 }
 
-SkShader *Gradient::build()
+sk_sp<SkShader> Gradient::build()
 {
     if (!m_NeedUpdate) {
         return m_CurrentShader;
     }
 
     if (m_ColorsStop.count < 2) {
-        m_CurrentShader = NULL;
+        m_CurrentShader = nullptr;
         m_NeedUpdate = 0;
         APE_WARN("Graphics", "[Gradient] Building gradient with invalid number of (addColorStop) : %d\n",
                m_ColorsStop.count);
@@ -107,15 +107,14 @@ SkShader *Gradient::build()
     }
 
     m_NeedUpdate = 0;
-    SkSafeUnref(m_CurrentShader);
 
     if (m_IsRadial) {
-        m_CurrentShader = SkGradientShader::CreateTwoPointConical(
+        m_CurrentShader = SkGradientShader::MakeTwoPointConical(
             pts[0], SkDoubleToScalar(m_StartPoint.radius), pts[1],
             SkDoubleToScalar(m_EndPoint.radius), colors, pos,
             m_ColorsStop.count, SkShader::kClamp_TileMode);
     } else {
-        m_CurrentShader = SkGradientShader::CreateLinear(
+        m_CurrentShader = SkGradientShader::MakeLinear(
             pts, colors, pos, m_ColorsStop.count, SkShader::kClamp_TileMode);
     }
 
@@ -129,7 +128,6 @@ Gradient::~Gradient()
     // currentShader->getRefCnt() : 0),
     // currentShader);
     free(m_ColorsStop.items);
-    SkSafeUnref(m_CurrentShader);
 }
 
 

@@ -10,6 +10,7 @@
 
 #include <GrGLTexture.h>
 #include <SkCanvas.h>
+#include <SkRefCnt.h>
 
 class SkShader;
 
@@ -49,14 +50,15 @@ private:
 
     int m_IsRadial;
     int m_NeedUpdate;
-    SkShader *m_CurrentShader;
+
+    sk_sp<SkShader> m_CurrentShader;
 
 public:
     ~Gradient();
     Gradient(double x1, double y1, double x2, double y2);
     Gradient(double x0, double y0, double r0, double x1, double y1, double r1);
     void addColorStop(double position, char *color);
-    SkShader *build();
+    sk_sp<SkShader> build();
 };
 
 } // namespace Graphics

@@ -38,31 +38,28 @@ public:
         kAll_BlurFlag = 0x07
     };
 
-    static ShadowLooper *Create(SkColor color,
+    static sk_sp<ShadowLooper> Make(SkColor color,
                                 SkScalar sigma,
                                 SkScalar dx,
                                 SkScalar dy,
                                 uint32_t flags = kNone_BlurFlag)
     {
-        return SkNEW_ARGS(ShadowLooper, (color, sigma, dx, dy, flags));
+        return sk_sp<ShadowLooper>(new ShadowLooper(color, sigma, dx, dy, flags));
     }
 
-    static ShadowLooper *Create(SkScalar radius,
+    static sk_sp<ShadowLooper> Make(SkScalar radius,
                                 SkScalar dx,
                                 SkScalar dy,
                                 SkColor color,
                                 uint32_t flags)
     {
-        return SkNEW_ARGS(
-            ShadowLooper,
-            (color, SkBlurMask::ConvertRadiusToSigma(radius), dx, dy, flags));
+        return sk_sp<ShadowLooper>(new ShadowLooper(color,
+            SkBlurMask::ConvertRadiusToSigma(radius), dx, dy, flags));
     }
 
-    virtual ~ShadowLooper();
-
     virtual ShadowLooper::Context *
-    createContext(SkCanvas *, void *storage) const SK_OVERRIDE;
-    virtual size_t contextSize() const SK_OVERRIDE
+    createContext(SkCanvas *, void *storage) const override;
+    virtual size_t contextSize() const override
     {
         return sizeof(ShadowLooperContext);
     }
@@ -83,12 +80,12 @@ protected:
                  uint32_t flags = kNone_BlurFlag);
     ShadowLooper(SkReadBuffer &);
 
-    virtual void flatten(SkWriteBuffer &) const SK_OVERRIDE;
-    virtual bool asABlurShadow(BlurShadowRec *) const SK_OVERRIDE;
+    virtual void flatten(SkWriteBuffer &) const override;
+    virtual bool asABlurShadow(BlurShadowRec *) const override;
 
 private:
-    SkMaskFilter *m_fBlur;
-    SkColorFilter *m_fColorFilter;
+    sk_sp<SkMaskFilter>  m_fBlur;
+    sk_sp<SkColorFilter> m_fColorFilter;
     SkScalar m_fDx, m_fDy, m_fSigma;
     SkColor m_fBlurColor;
     uint32_t m_fBlurFlags;
@@ -104,7 +101,7 @@ private:
     public:
         explicit ShadowLooperContext(const ShadowLooper *looper);
 
-        virtual bool next(SkCanvas *canvas, SkPaint *paint) SK_OVERRIDE;
+        bool next(SkCanvas *canvas, SkPaint *paint) override;
 
     private:
         const ShadowLooper *m_fLooper;

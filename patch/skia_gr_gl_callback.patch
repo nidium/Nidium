@@ -1,0 +1,151 @@
+# In Skia M51 release, the GR_GL_PER_GL_FUNC_CALLBACK is gone and the new way of doing this is by creating a GrGLInterface that wraps all GL call. A sample implementation can be found in mozilla see https://bugzilla.mozilla.org/show_bug.cgi?id=1265131 and https://dxr.mozilla.org/mozilla-central/source/gfx/gl/SkiaGLGlue.cpp
+# However we are not yet ready to commit time to this task. Instead we reverted the removal of the GR_GL_PER_GL_FUNC_CALLBACK and use this as a temporary workaround
+
+diff --git skia/include/gpu/gl/GrGLConfig.h skia/include/gpu/gl/GrGLConfig.h
+index 20ee37fe30..d3a466cccf 100644
+--- skia/include/gpu/gl/GrGLConfig.h
++++ skia/include/gpu/gl/GrGLConfig.h
+@@ -60,6 +60,15 @@
+  * Chrome's cmd buffer will create a new allocation and memset the whole thing
+  * to zero (for security reasons). Defaults to 1 (enabled).
+  *
++ * GR_GL_PER_GL_FUNC_CALLBACK: When set to 1 the GrGLInterface object provides
++ * a function pointer that is called just before every gl function. The ptr must
++ * be valid (i.e. there is no NULL check). However, by default the callback will
++ * be set to a function that does nothing. The signature of the function is:
++ *    void function(const GrGLInterface*)
++ * It is not extern "C".
++ * The GrGLInterface field fCallback specifies the function ptr and there is an
++ * additional field fCallbackData of type intptr_t for client data.
++ *
+  * GR_GL_CHECK_ALLOC_WITH_GET_ERROR: If set to 1 this will then glTexImage,
+  * glBufferData, glRenderbufferStorage, etc will be checked for errors. This
+  * amounts to ensuring the error is GL_NO_ERROR, calling the allocating
+@@ -110,6 +119,10 @@
+     #define GR_GL_USE_BUFFER_DATA_NULL_HINT             1
+ #endif
+ 
++#if !defined(GR_GL_PER_GL_FUNC_CALLBACK)
++    #define GR_GL_PER_GL_FUNC_CALLBACK                  0
++#endif
++
+ #if !defined(GR_GL_CHECK_ALLOC_WITH_GET_ERROR)
+     #define GR_GL_CHECK_ALLOC_WITH_GET_ERROR            1
+ #endif
+diff --git skia/include/gpu/gl/GrGLConfig_chrome.h skia/include/gpu/gl/GrGLConfig_chrome.h
+index 838e0543e0..041a46d8c4 100644
+--- skia/include/gpu/gl/GrGLConfig_chrome.h
++++ skia/include/gpu/gl/GrGLConfig_chrome.h
+@@ -15,6 +15,9 @@
+ // with NULL.
+ #define GR_GL_USE_BUFFER_DATA_NULL_HINT             0
+ 
++// chrome uses this to set the context on each GL call.
++#define GR_GL_PER_GL_FUNC_CALLBACK                  1
++
+ // Check error is even more expensive in chrome (cmd buffer flush). The
+ // compositor also doesn't check its allocations.
+ #define GR_GL_CHECK_ALLOC_WITH_GET_ERROR            0
+diff --git skia/include/gpu/gl/GrGLInterface.h skia/include/gpu/gl/GrGLInterface.h
+index 3afa6be9fd..1556386b3d 100644
+--- skia/include/gpu/gl/GrGLInterface.h
++++ skia/include/gpu/gl/GrGLInterface.h
+@@ -55,6 +55,11 @@ typedef intptr_t GrGLInterfaceCallbackData;
+  */
+ const SK_API GrGLInterface* GrGLCreateNullInterface(bool enableNVPR = false);
+ 
++#if GR_GL_PER_GL_FUNC_CALLBACK
++typedef void (*GrGLInterfaceCallbackProc)(const GrGLInterface*);
++typedef intptr_t GrGLInterfaceCallbackData;
++#endif
++
+ /** Function that returns a new interface identical to "interface" but without support for
+     GL_NV_path_rendering. */
+ const GrGLInterface* GrGLInterfaceRemoveNVPR(const GrGLInterface*);
+@@ -477,6 +482,12 @@ public:
+         GrGLFunction<GrEGLDestroyImageProc> fEGLDestroyImage;
+     } fFunctions;
+ 
++    // Per-GL func callback
++#if GR_GL_PER_GL_FUNC_CALLBACK
++    GrGLInterfaceCallbackProc fCallback;
++    GrGLInterfaceCallbackData fCallbackData;
++#endif
++
+     // This exists for internal testing.
+     virtual void abandon() const {}
+ };
+diff --git skia/src/gpu/gl/GrGLInterface.cpp skia/src/gpu/gl/GrGLInterface.cpp
+index 45d84add8d..f4fe77f43a 100644
+--- skia/src/gpu/gl/GrGLInterface.cpp
++++ skia/src/gpu/gl/GrGLInterface.cpp
+@@ -12,6 +12,12 @@
+ 
+ #include <stdio.h>
+ 
++#if GR_GL_PER_GL_FUNC_CALLBACK
++namespace {
++void GrGLDefaultInterfaceCallback(const GrGLInterface*) {}
++}
++#endif
++
+ const GrGLInterface* GrGLInterfaceAddTestDebugMarker(const GrGLInterface* interface,
+                                                      GrGLInsertEventMarkerProc insertEventMarkerFn,
+                                                      GrGLPushGroupMarkerProc pushGroupMarkerFn,
+@@ -62,6 +68,11 @@ const GrGLInterface* GrGLInterfaceRemoveNVPR(const GrGLInterface* interface) {
+ 
+ GrGLInterface::GrGLInterface() {
+     fStandard = kNone_GrGLStandard;
++
++#if GR_GL_PER_GL_FUNC_CALLBACK
++    fCallback = GrGLDefaultInterfaceCallback;
++    fCallbackData = 0;
++#endif
+ }
+ 
+ GrGLInterface* GrGLInterface::NewClone(const GrGLInterface* interface) {
+@@ -71,6 +82,10 @@ GrGLInterface* GrGLInterface::NewClone(const GrGLInterface* interface) {
+     clone->fStandard = interface->fStandard;
+     clone->fExtensions = interface->fExtensions;
+     clone->fFunctions = interface->fFunctions;
++#if GR_GL_PER_GL_FUNC_CALLBACK
++    clone->fCallback = interface->fCallback;
++    clone->fCallbackData = interface->fCallbackData;
++#endif
+     return clone;
+ }
+ 
+diff --git skia/src/gpu/gl/GrGLUtil.h skia/src/gpu/gl/GrGLUtil.h
+index 7503371097..3807dc2c83 100644
+--- skia/src/gpu/gl/GrGLUtil.h
++++ skia/src/gpu/gl/GrGLUtil.h
+@@ -175,6 +175,13 @@ void GrGLClearErr(const GrGLInterface* gl);
+     #define GR_GL_LOG_CALLS_IMPL(X)
+ #endif
+ 
++// internal macro that does the per-GL-call callback (if necessary)
++#if GR_GL_PER_GL_FUNC_CALLBACK
++    #define GR_GL_CALLBACK_IMPL(IFACE) (IFACE)->fCallback(IFACE)
++#else
++    #define GR_GL_CALLBACK_IMPL(IFACE)
++#endif
++
+ // makes a GL call on the interface and does any error checking and logging
+ #define GR_GL_CALL(IFACE, X)                                    \
+     do {                                                        \
+@@ -186,6 +193,7 @@ void GrGLClearErr(const GrGLInterface* gl);
+ // the caller wants to do its own glGetError() call and examine the error value.
+ #define GR_GL_CALL_NOERRCHECK(IFACE, X)                         \
+     do {                                                        \
++        GR_GL_CALLBACK_IMPL(IFACE);                             \
+         (IFACE)->fFunctions.f##X;                               \
+         GR_GL_LOG_CALLS_IMPL(X);                                \
+     } while (false)
+@@ -200,6 +208,7 @@ void GrGLClearErr(const GrGLInterface* gl);
+ // same as GR_GL_CALL_RET but always skips the error check.
+ #define GR_GL_CALL_RET_NOERRCHECK(IFACE, RET, X)                \
+     do {                                                        \
++        GR_GL_CALLBACK_IMPL(IFACE);                             \
+         (RET) = (IFACE)->fFunctions.f##X;                       \
+         GR_GL_LOG_CALLS_IMPL(X);                                \
+     } while (false)

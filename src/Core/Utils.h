@@ -17,7 +17,9 @@
 #include <sys/syscall.h>
 #include <array>
 
-#include <ape_log.h>
+#if defined(DEBUG) && defined(NDEBUG)
+   #error "NDEBUG and DEBUG"
+#endif
 
 namespace Nidium {
 namespace Core {

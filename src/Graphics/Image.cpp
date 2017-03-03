@@ -8,7 +8,6 @@
 #include <stdio.h>
 
 #include <SkCanvas.h>
-#include <SkImageRef_GlobalPool.h>
 #include <SkColorPriv.h>
 #include <SkUnPreMultiply.h>
 
@@ -17,65 +16,84 @@
 namespace Nidium {
 namespace Graphics {
 
-// {{{ Constructors
-Image::Image(SkCanvas *canvas)
+Image *Image::CreateFromEncoded(void *data, size_t len)
 {
-    // canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
+    Image *img = new Image();
+    img->m_IsCanvas = 0;
 
-    m_IsCanvas  = 1;
-    m_CanvasRef = canvas;
-    canvas->ref();
-    m_Image = NULL;
-}
+    sk_sp<SkData> skdata = SkData::MakeWithCopy(data, len);
+    img->m_Image = SkImage::MakeFromEncoded(skdata);
 
-Image::Image(void *data, size_t len) : m_CanvasRef(NULL)
-{
-    m_Image    = new SkBitmap();
-    m_IsCanvas = 0;
-
-    if (!SkImageDecoder::DecodeMemory(data, len, m_Image)) {
-        APE_ERROR("Graphics", "[Image] failed to decode Image\n");
-        delete m_Image;
-        m_Image = NULL;
+    if (!img->m_Image) {
+        delete img;
+        return nullptr;
     }
+
+    return img;
 }
 
-Image::Image(void *data, int width, int height)
+Image *Image::CreateFromRGBA(void *data, int width, int height)
 {
-    m_Image     = new SkBitmap();
-    m_IsCanvas  = 0;
+    Image *img = new Image();
+    img->m_IsCanvas = 0;
 
-    m_Image->setConfig(SkBitmap::kARGB_8888_Config, width, height);
+    SkBitmap bt;
+    bt.setIsVolatile(true);
 
-    m_Image->setPixels(data);
-}
-// }}}
+    bt.setInfo(SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kUnpremul_SkAlphaType));
+    bt.setPixels(data);
+    bt.setImmutable();
 
-// {{{ Methods
-#if 0
-static bool SetImageRef(SkBitmap* bitmap, SkStream* stream,
-                        SkBitmap::Config pref, const char name[] = NULL)
-{
-    if (SkImageDecoder::DecodeStream(stream, bitmap, pref,
-                                 SkImageDecoder::kDecodeBounds_Mode, NULL)) {
-        SkASSERT(bitmap->config() != SkBitmap::kNo_Config);
+    img->m_Image = SkImage::MakeFromBitmap(bt);
 
-        SkImageRef* ref = new SkImageRef_GlobalPool(stream, bitmap->config(), 1);
-        ref->setURI(name);
-        bitmap->setPixelRef(ref)->unref();
-        return true;
-    } else {
-        return false;
+    if (!img->m_Image) {
+        delete img;
+        return nullptr;
     }
-}
-static SkData* dataToData(void *data, size_t size) {
 
-    return SkData::NewWithProc(data, size, NULL, NULL);
+    return img;
 }
-#endif
+
+Image *Image::CreateFromSurface(sk_sp<SkSurface> surface)
+{
+    printf("Image::CreateFromSurface. Not implemented\n");
+    return nullptr;
+}
+
+Image *Image::CreateFromSkImage(sk_sp<SkImage> skimage)
+{
+    if (!skimage.get()) {
+        return nullptr;
+    } 
+
+    Image *img = new Image();
+    img->m_IsCanvas = 0;
+
+    img->m_Image = skimage;
+
+    return img;
+}
+
+SkBitmap *Image::getBitmap()
+{
+    if (m_ImageBitmap) {
+      return m_ImageBitmap;
+    }
+    m_ImageBitmap = new SkBitmap();
+    
+    if (!m_Image->asLegacyBitmap(m_ImageBitmap, SkImage::kRO_LegacyBitmapMode)) {
+      delete m_ImageBitmap;
+
+      return nullptr;
+    }
+
+    return m_ImageBitmap;
+}
+
 
 const uint8_t *Image::getPixels(size_t *len)
 {
+#if 0
     if (len) {
         *len = 0;
     }
@@ -92,42 +110,18 @@ const uint8_t *Image::getPixels(size_t *len)
            m_Image->height());
 
     return static_cast<const uint8_t *>(m_Image->getPixels());
+#endif
+    return 0;
+}
+
+uint32_t Image::getSize() const
+{
+    return m_Image->width() * m_Image->width() * 4;
 }
 
 SkData *Image::getPNG()
 {
-    if (!m_Image) {
-        return NULL;
-    }
-
-    // It seems that SkImageEncoder expect the pixels to be BGRA
-    // but they are RGBA. Switch blue and red to workaround this.
-    // FIXME : There must be a better way to handle this.
-    uint8_t* data = static_cast<uint8_t *>(m_Image->getPixels());
-    uint8_t* p = data;
-    uint8_t* stop = p + m_Image->getSize();
-
-    while (p < stop) {
-        unsigned r = p[0];
-        unsigned b = p[2];
-        p[0] = b;
-        p[2] = r;
-        p += 4;
-    }
-
-    SkData *dataPNG = SkImageEncoder::EncodeData(*m_Image, SkImageEncoder::kPNG_Type, 100);
-
-    // Switch back blue and red, so the image stays unchanged.
-    p = data;
-    while (p < stop) {
-        unsigned b = p[0];
-        unsigned r = p[2];
-        p[0] = r;
-        p[2] = b;
-        p += 4;
-    }
-
-    return dataPNG;
+    return m_Image->encode(SkEncodedImageFormat::kPNG, 100);
 }
 
 int Image::getWidth()
@@ -140,94 +134,28 @@ int Image::getHeight()
     return m_Image->height();
 }
 
-void Image::shiftHue(int val, U8CPU alpha)
+bool Image::readPixels(unsigned char *buf, bool flipY, bool premultiply)
 {
-    if (!m_Image) return;
-
-    size_t size = m_Image->getSize() >> m_Image->shiftPerPixel();
-
-    SkColor *pixels = static_cast<SkColor *>(m_Image->getPixels());
-
-    for (int i = 0; i < size; i++) {
-
-        SkColor pixel = pixels[i];
-
-        /* Skip alpha pixel and not matching color */
-        if (SkColorGetA(pixel) == 0 || SkColorGetA(pixel) != alpha) {
-            continue;
-        }
-
-        SkScalar hsv[3];
-        SkColorToHSV(pixel, hsv);
-
-        hsv[0] = nidium_min(nidium_max(SkIntToScalar(val), 0), 360);
-
-        pixels[i] = SkHSVToColor(SkColorGetA(pixel), hsv);
+    if (!m_Image) {
+        return false;
     }
 
-    m_Image->notifyPixelsChanged();
+    return m_Image->readPixels(
+                    SkImageInfo::Make(m_Image->width(),m_Image->height(),
+                        kRGBA_8888_SkColorType,
+                        premultiply
+                          ? kPremul_SkAlphaType
+                          : kUnpremul_SkAlphaType),
+                    buf, m_Image->width() * 4, 0, 0);
 }
 
-void Image::markColorsInAlpha()
-{
-    if (!m_Image) return;
-
-    size_t size = m_Image->getSize() >> m_Image->shiftPerPixel();
-
-    SkColor *pixels = static_cast<SkColor *>(m_Image->getPixels());
-    for (int i = 0; i < size; i++) {
-        U8CPU alpha = 0;
-
-        SkColor pixel = pixels[i];
-
-        /* Skip alpha */
-        if (SkColorGetA(pixel) != 255) {
-            continue;
-        }
-        if ((pixel & 0xFFFF00FF) == pixel) {
-            alpha = 254;
-        } else if ((pixel & 0xFFFFFF00) == pixel) {
-            alpha = 253;
-        } else if ((pixel & 0xFF00FFFF) == pixel) {
-            alpha = 252;
-        }
-
-        pixels[i] = SkColorSetA(pixels[i], alpha);
-    }
-
-    m_Image->notifyPixelsChanged();
-}
-
-void Image::desaturate()
-{
-    if (!m_Image) return;
-
-    size_t size = m_Image->getSize() >> m_Image->shiftPerPixel();
-
-    SkColor *pixels = static_cast<SkColor *>(m_Image->getPixels());
-    for (int i = 0; i < size; i++) {
-        SkColor pixel = pixels[i];
-
-        /* Skip alpha */
-        if (SkColorGetA(pixel) == 0) {
-            continue;
-        }
-        SkScalar hsv[3];
-        SkColorToHSV(pixel, hsv);
-        hsv[1] = SkDoubleToScalar(0);
-
-        pixels[i] = SkHSVToColor(SkColorGetA(pixel), hsv);
-    }
-
-    m_Image->notifyPixelsChanged();
-}
-
-
+#if 0
 bool Image::ConvertToRGBA(Image *nimg,
                           unsigned char *rgba,
                           bool flipY,
                           bool premultiply)
 {
+
     int length;
     int k;
     const unsigned char *pixels;
@@ -269,15 +197,16 @@ bool Image::ConvertToRGBA(Image *nimg,
             k += 4;
         }
     }
+
     return true;
 }
+#endif
 // }}}
 
 Image::~Image()
 {
-    if (m_CanvasRef) m_CanvasRef->unref();
-    if (m_Image) {
-        delete m_Image;
+    if (m_ImageBitmap) {
+        delete m_ImageBitmap;
     }
 }
 

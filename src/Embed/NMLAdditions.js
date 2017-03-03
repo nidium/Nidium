@@ -3,10 +3,8 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-
+let Elements = require("./lib/Elements.js");
 {
-    let Elements = require("./lib/Elements.js");
-
     NML.CreateTree = function(nml)
     {
         if (typeof(nml) == "string") {

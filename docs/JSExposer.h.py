@@ -9,7 +9,7 @@ NamespaceDoc( "NidiumEvent", "Event coordinator.\n\n Every object exposed by Nid
     products=["Frontend", "Server"]
 )
 
-FunctionDoc( "NidiumEvent.stopProgagation", "Stops the propagation of an event.",
+FunctionDoc( "NidiumEvent.stopPropagation", "Stops the propagation of an event.",
     SeesDocs( "NidiumEvent.stopPropagation|NidiumEvent.preventDefault|NidiumEvent.forcePropagation" )
 )
 

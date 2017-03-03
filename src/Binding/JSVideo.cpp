@@ -48,7 +48,7 @@ void JSVideo::FrameCallback(uint8_t *data, void *custom)
 {
     JSVideo *v             = (JSVideo *)custom;
     CanvasHandler *handler = v->m_CanvasCtx->getHandler();
-    SkiaContext *surface   = v->m_CanvasCtx->getSurface();
+    SkiaContext *surface   = v->m_CanvasCtx->getSkiaContext();
     JSContext *cx          = v->m_Cx;
 
     surface->setFillColor(0xFF000000);

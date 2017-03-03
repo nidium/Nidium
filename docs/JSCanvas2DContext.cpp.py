@@ -81,7 +81,7 @@ for (var i = 0; i < text.lines.length; i++) {
         ParamDoc( "maxWidth", "The maximal width where the text should fit in", "float", NO_Default, IS_Obligated )
     ],
     returns=ReturnDoc( "Dimensions", ObjectDoc([
-        ("height", "The heigth of the surrounding box", "float"),
+        ("height", "The height of the surrounding box", "float"),
         ("lines", "The wrapped text lines", "string")
     ]))
 )
@@ -329,7 +329,7 @@ FunctionDoc( "CanvasRenderingContext2D.translate", "Translate the current drawin
 )
 
 FunctionDoc( "CanvasRenderingContext2D.transform", "Transform the current drawing.",
-    SeesDocs( "CanvasRenderingContext2D.rotate|CanvasRenderingContext2D.scale|CanvasRenderingContext2D.translate|CanvasRenderingContext2D.iTransform|CanvasRenderingContext2D.setTransfrom" ),
+    SeesDocs( "CanvasRenderingContext2D.rotate|CanvasRenderingContext2D.scale|CanvasRenderingContext2D.translate|CanvasRenderingContext2D.iTransform|CanvasRenderingContext2D.setTransform" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "scaleX", "Scale X", "float", NO_Default, IS_Obligated ),
@@ -343,7 +343,7 @@ FunctionDoc( "CanvasRenderingContext2D.transform", "Transform the current drawin
 )
 
 FunctionDoc( "CanvasRenderingContext2D.iTransform", "Transform a drawing.",
-    SeesDocs( "CanvasRenderingContext2D.transform|CanvasRenderingContext2D.setTransfrom" ),
+    SeesDocs( "CanvasRenderingContext2D.transform|CanvasRenderingContext2D.setTransform" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "scaleX", "Scale X", "float", NO_Default, IS_Obligated ),
@@ -356,7 +356,7 @@ FunctionDoc( "CanvasRenderingContext2D.iTransform", "Transform a drawing.",
 )
 
 FunctionDoc( "CanvasRenderingContext2D.setTransform", "Set the transform of a drawing.",
-    SeesDocs( "CanvasRenderingContext2D.transform|CanvasRenderingContext2D.iTransform|CanvasRenderingContext2D.setTransfrom" ),
+    SeesDocs( "CanvasRenderingContext2D.transform|CanvasRenderingContext2D.iTransform|CanvasRenderingContext2D.setTransform" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,
     [ ParamDoc( "scaleX", "Scale X", "float", NO_Default, IS_Obligated ),
@@ -402,7 +402,7 @@ FunctionDoc( "CanvasRenderingContext2D.getImageData", "Returns an `ImageData` ob
     [ ParamDoc( "left", "Left", "integer", NO_Default, IS_Obligated ),
       ParamDoc( "top", "Top", "integer", NO_Default, IS_Obligated ),
       ParamDoc( "width", "Width", "integer", NO_Default, IS_Obligated ),
-      ParamDoc( "heigth", "Heigth", "integer", NO_Default, IS_Obligated ) ],
+      ParamDoc( "height", "Height", "integer", NO_Default, IS_Obligated ) ],
     ReturnDoc( "ImageData instance", "ImageData" )
 )
 
@@ -413,7 +413,7 @@ FunctionDoc( "CanvasRenderingContext2D.putImageData", "Puts the image data (from
     [
         ParamDoc( "image", "Image", "ImageData", NO_Default, IS_Obligated ),
         ParamDoc( "width", "Width", "integer", NO_Default, IS_Obligated ),
-        ParamDoc( "heigth", "Heigth", "integer", NO_Default, IS_Obligated )
+        ParamDoc( "height", "Height", "integer", NO_Default, IS_Obligated )
     ],
     NO_Returns
 )
@@ -474,12 +474,12 @@ FunctionDoc( "CanvasRenderingContext2D.drawImage", "Draw an Image.",
         ParamDoc( "x", "X Position", "integer", NO_Default, IS_Obligated ),
         ParamDoc( "y", "Y Position", "integer", NO_Default, IS_Obligated ),
         ParamDoc( "width", "Width", "integer", NO_Default, IS_Optional),
-        ParamDoc( "heigth", "Heigth", "integer", NO_Default, IS_Optional)
+        ParamDoc( "height", "Height", "integer", NO_Default, IS_Optional)
     ],
     NO_Returns
 )
 
-FunctionDoc( "CanvasRenderingContext2D.measureText", "Deterimine the size of text.",
+FunctionDoc( "CanvasRenderingContext2D.measureText", "Determine the size of text.",
     SeesDocs( "CanvasRenderingContext2D.breakText|CanvasRenderingContext2D.fontSize|CanvasRenderingContext2D.fillText|CanvasRenderingContext2D.strokeText" ),
     NO_Examples,
     IS_Dynamic, IS_Public, IS_Fast,

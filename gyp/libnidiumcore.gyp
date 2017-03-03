@@ -38,6 +38,11 @@
                 # versioned for our build flavour
                 '-include <(nidium_output_third_party_path)/js-config.h'
             ],
+
+            'cflags_cc': [
+                '-include ../src/Macros.h'
+            ],
+
             'xcode_settings': {
                 'OTHER_CFLAGS': [
                     '-fno-rtti',
@@ -69,10 +74,9 @@
                 ['OS=="mac"', {
                     "link_settings": {
                         'libraries': [
-                            'libcares.a',
                             'libhttp_parser.a',
-                            'libnspr4.a',
                             'libjs_static.a',
+                            'libnspr4.a',
                             'libmozglue.a',
                             'libleveldb.a',
                         ]
@@ -90,7 +94,6 @@
                             '-lpthread',
                             '-lrt',
                             '-ldl',
-                            '-lcares',
                             '-lhttp_parser',
                             '-lleveldb',
                         ]

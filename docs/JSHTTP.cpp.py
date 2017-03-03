@@ -53,7 +53,7 @@ h.request({
 
 ConstructorDoc( "HTTP", """HTTP Object constructor.
 
-If `params` and  `callback` arguments are providen the HTTP request will be executed right away. Otherwise, you'll have to call the `request` method and listent for the `response` event.""",
+If `params` and  `callback` arguments are providen the HTTP request will be executed right away. Otherwise, you'll have to call the `request` method and listen for the `response` event.""",
     params=[
         ParamDoc("url", "The url to fetch", "string", NO_Default, IS_Obligated ),
         optionParam,
@@ -66,7 +66,7 @@ If `params` and  `callback` arguments are providen the HTTP request will be exec
 
 FunctionDoc( "HTTP.request", """Perform the HTTP request
 
-Once a request is finished (`response` or `error` event has been fired), you can call the `request` method once again to run a new HTTP request. The options from the first request are reseted.""",
+Once a request is finished (`response` or `error` event has been fired), you can call the `request` method once again to run a new HTTP request. The options from the first request wil be reset.""",
     SeesDocs("HTTP.error|HTTP.progress|HTTP.response|HTTP.stop"),
     [ExampleDoc( """var h = new HTTP("http://www.nidium.com/");
 
@@ -123,9 +123,9 @@ EventDoc("HTTP.error", "Event called if an error occurs.",
 
 EventDoc("HTTP.response", """Event called when all the data has been read.
 
-The recieved headers are analysed and the value of 'event.data' and 'event.type' can be changed:
+The received headers are analyzed and the value of 'event.data' and 'event.type' can be changed:
 * mimetype='application/octet-stream': event.type='binary' and event.data is set to an ArrayBuffer object.
-* mimetype='application/json': and valid data: event.type='json' and event.data is the parsed javascript vaule.
+* mimetype='application/json': and valid data: event.type='json' and event.data is the parsed javascript value.
 * mimetype='application/json': and in valid data: event.type='string' and event.data is the original string.
 * mimetype='image/jpg' or 'image/png': event.type='image' and event.data is set to an Image object. (Frontend only)
 """,

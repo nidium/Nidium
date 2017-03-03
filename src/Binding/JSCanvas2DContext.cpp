@@ -10,6 +10,7 @@
 #include <strings.h>
 
 #include <SkDevice.h>
+#include <GrContext.h>
 
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSImageData.h"
@@ -850,7 +851,7 @@ bool Canvas2DContext::JS_putImageData(JSContext *cx, JS::CallArgs &args)
 /* TODO: clamp max size */
 bool Canvas2DContext::JS_createImageData(JSContext *cx, JS::CallArgs &args)
 {
-    unsigned long x, y;
+    uint32_t x, y;
 
     NIDIUM_LOG_2D_CALL();
     if (!JS_ConvertArguments(cx, args, "uu", &x, &y)) {
@@ -988,9 +989,9 @@ bool Canvas2DContext::JS_drawImage(JSContext *cx, JS::CallArgs &args)
                 cx, "Invalid image canvas (must be backed by a 2D context)");
             return false;
         }
-        image = new Image((static_cast<Canvas2DContext *>(drawctx))
-                              ->getSurface()
-                              ->getCanvas());
+        image = Image::CreateFromSurface((static_cast<Canvas2DContext *>(drawctx))
+                              ->getSkiaContext()
+                              ->getSurface());
         need_free = 1;
     } else if (!jsimage || !JSImage::InstanceOf(jsimage)
                || (image = JSImage::JSObjectToImage(jsimage)) == NULL) {
@@ -1132,20 +1133,6 @@ bool Canvas2DContext::JS_attachFragmentShader(JSContext *cx, JS::CallArgs &args)
     JS::RootedObject canvasProgram(cx, glProgram->getJSObject());
 
     args.rval().setObjectOrNull(canvasProgram);
-
-    return true;
-}
-
-bool Canvas2DContext::JS_light(JSContext *cx, JS::CallArgs &args)
-{
-    double x, y, z;
-
-    NIDIUM_LOG_2D_CALL();
-    if (!JS_ConvertArguments(cx, args, "ddd", &x, &y, &z)) {
-        return false;
-    }
-
-    m_Skia->light(x, y, z);
 
     return true;
 }
@@ -1738,176 +1725,7 @@ uint32_t Canvas2DContext::compileCoopFragmentShader()
     return this->CompileShader(coop, GL_FRAGMENT_SHADER);
 }
 
-#if 0
-void Canvas2DContext::initCopyTex()
-{
-    glEnable(GL_TEXTURE_2D);
-    GrRenderTarget* backingTarget = (GrRenderTarget*)m_Skia->canvas->
-                                        getDevice()->accessRenderTa;
-
-    int width = backingTarget->asTexture()->width();
-    int height =  backingTarget->asTexture()->height();
-
-    glGenTextures(1, &gl.texture);
-    glBindTexture(GL_TEXTURE_2D, gl.texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    /* Allocate memory for the new texture */
-    glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_RGBA,
-            width, height,
-            0,
-            GL_RGBA,
-            GL_UNSIGNED_BYTE,
-            NULL);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    /* Generate the FBO */
-    glGenFramebuffers(1, &gl.fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, gl.fbo);
-
-    /* Set the FBO backing store using the new texture */
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-        GL_TEXTURE_2D, gl.texture, 0);
-
-    GLenum status;
-    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-
-    switch(status) {
-        case GL_FRAMEBUFFER_COMPLETE:
-            break;
-        case GL_FRAMEBUFFER_UNSUPPORTED:
-            APE_ERROR("Binding", "[JSCanvas2DContext] fbo unsupported\n");
-            return;
-        default:
-            APE_ERROR("Binding", "[JSCanvas2DContext] fbo fatal error\n");
-            return;
-    }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    gl.textureWidth = width;
-    gl.textureHeight = height;
-    glDisable(GL_TEXTURE_2D);
-}
-#endif
-#if 0
-void Canvas2DContext::initCopyTex(uint32_t textureID)
-{
-    GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
-                                        getDevice()->accessRenderTa;
-
-    int width = backingTarget->asTexture()->width();
-    int height =  backingTarget->asTexture()->height();
-
-    SkDevice *dev = skia->canvas->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
-        width, height, false);
-
-    gl.copy = new SkCanvas(dev);
-    gl.texture = ((GrRenderTarget*)dev->accessRenderTa)
-                    ->asTexture()->getTextureHandle();
-
-    gl.fbo = static_cast<GLuint>(((GrRenderTarget*)dev->accessRenderTa)->
-                    asTexture()->asRenderTa->getRenderTargetHandle());
-
-    gl.textureWidth = width;
-    gl.textureHeight = height;
-
-    dev->unref();
-}
-#endif
-
-uint32_t Canvas2DContext::getMainFBO()
-{
-    GrRenderTarget *backingTarget = (GrRenderTarget *)m_Skia->getCanvas()
-                                        ->getDevice()
-                                        ->accessRenderTarget();
-
-    return (uint32_t)backingTarget->getRenderTargetHandle();
-}
-
-#if 0
-void Canvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
-    uint32_t height, uint32_t left, uint32_t top, uint32_t fbo)
-{
-    SkISize size = m_Skia->canvas->getDeviceSize();
-
-    GLenum err;
-    if ((err = glGetError()) != GL_NO_ERROR) {
-        APE_ERROR("Binding", "[JSCanvas2DContext] got a gl error %d\n", err);
-    }
-
-    /* save the old viewport size */
-    glPushAttrib(GL_VIEWPORT_BIT);
-
-    /* set the viewport with the texture size */
-    glViewport(left, (float)size.fHeight-(height+top), width, height);
-
-    glEnable(GL_TEXTURE_2D);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-    /* Anti Aliasing */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glEnable(GL_ALPHA_TEST);
-    glAlphaFunc(GL_NOTEQUAL, 0.0f);
-#if 1
-    glBegin(GL_QUADS);
-        /*
-            (-1, 1)...........(1, 1)
-                .               .
-                .               .
-                .               .
-            (-1, -1)...........(1, -1)
-        */
-        glTexCoord3i(0, 0, 1);
-          glVertex3f(-1., -1., 1.0f);
-
-        glTexCoord3i(0, 1, 1);
-          glVertex3f(-1, 1, 1.0f);
-
-        glTexCoord3i(1, 1, 1);
-          glVertex3f(1, 1, 1.0f);
-
-        glTexCoord3i(1, 0, 1);
-          glVertex3f(1, -1, 1.0f);
-    glEnd();
-#endif
-    glDisable(GL_ALPHA_TEST);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //glDisable(GL_SCISSOR_TEST);
-    glDisable(GL_TEXTURE_2D);
-    glPopAttrib();
-
-}
-#endif
-
-#if 0
-void Canvas2DContext::setupCommonDraw()
-{
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-}
-#endif
-
-void Canvas2DContext::drawTexture(uint32_t textureID,
-                                  uint32_t width,
-                                  uint32_t height,
-                                  uint32_t left,
-                                  uint32_t top)
+void Canvas2DContext::drawTexture(uint32_t textureID)
 {
     NIDIUM_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, textureID));
 
@@ -1921,7 +1739,7 @@ void Canvas2DContext::drawTexture(uint32_t textureID,
         TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     NIDIUM_GL_CALL_MAIN(
         TexParameteri(GR_GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-
+    
     NIDIUM_GL_CALL_MAIN(DrawElements(GR_GL_TRIANGLE_STRIP,
                                      m_GLState->m_GLObjects.vtx->nindices,
                                      GL_UNSIGNED_INT, 0));
@@ -1930,91 +1748,6 @@ void Canvas2DContext::drawTexture(uint32_t textureID,
 
     /* Unbind vertex array bound by resetGLContext() */
     NIDIUM_GL_CALL_MAIN(BindVertexArray(0));
-}
-
-#if 0
-void Canvas2DContext::drawTexToFBO(uint32_t textureID)
-{
-    glEnable(GL_TEXTURE_2D);
-    glClearColor(0, 0, 0, 0);
-
-    if (!gl.fbo) {
-        this->initCopyTex();
-    }
-
-    /* Use the current FBO */
-    glBindFramebuffer(GL_FRAMEBUFFER, gl.fbo);
-
-    /* save the old viewport size */
-    glPushAttrib(GL_VIEWPORT_BIT);
-
-    /* set the viewport with the texture size */
-    glViewport(0, 0, gl.textureWidth, gl.textureHeight);
-
-    /* clear the FBO */
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
-    /* draw a textured quad on the new texture using textureID */
-    glBegin(GL_QUADS);
-        /*
-            (-1, 1)...........(1, 1)
-                .               .
-                .               .
-                .               .
-            (-1, -1)...........(1, -1)
-        */
-        glTexCoord3i(0, 0, 1);
-          glVertex3f(-1.0f, -1.0f, 1.0f);
-
-        glTexCoord3i(0, 1, 1);
-          glVertex3f(-1.0f, 1.0f, 1.0f);
-
-        glTexCoord3i(1, 1, 1);
-          glVertex3f(1.0f, 1.0f, 1.0f);
-
-        glTexCoord3i(1, 0, 1);
-          glVertex3f(1.0f, -1.0f, 1.0f);
-    glEnd();
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDisable(GL_TEXTURE_2D);
-    glPopAttrib();
-}
-#endif
-
-uint32_t Canvas2DContext::getSkiaTextureID(int *width, int *height)
-{
-    GrRenderTarget *backingTarget = (GrRenderTarget *)m_Skia->getCanvas()
-                                        ->getDevice()
-                                        ->accessRenderTarget();
-
-    if (width != NULL && height != NULL) {
-        SkISize size = m_Skia->getCanvas()->getDeviceSize();
-
-        *width  = size.fWidth;
-        *height = size.fHeight;
-    }
-
-    return backingTarget->asTexture()->getTextureHandle();
-}
-
-/* Ask skia to restore its GL state */
-void Canvas2DContext::resetSkiaContext(uint32_t flag)
-{
-    GrRenderTarget *backingTarget = (GrRenderTarget *)m_Skia->getCanvas()
-                                        ->getDevice()
-                                        ->accessRenderTarget();
-
-    if (flag == 0) {
-        flag = kProgram_GrGLBackendState | kTextureBinding_GrGLBackendState
-               | kVertex_GrGLBackendState | kView_GrGLBackendState
-               | kBlend_GrGLBackendState;
-    }
-
-    backingTarget->getContext()->resetContext(flag);
 }
 
 uint32_t Canvas2DContext::attachShader(const char *string)
@@ -2077,11 +1810,7 @@ void Canvas2DContext::setVertexDeformation(uint32_t vertex, float x, float y)
 
 uint32_t Canvas2DContext::getTextureID() const
 {
-    GrRenderTarget *backingTarget = (GrRenderTarget *)m_Skia->getCanvas()
-                                        ->getDevice()
-                                        ->accessRenderTarget();
-
-    return backingTarget->asTexture()->getTextureHandle();
+    return m_Skia->getOpenGLTextureId();
 }
 
 void Canvas2DContext::flush()
@@ -2099,61 +1828,7 @@ void Canvas2DContext::getSize(int *width, int *height) const
 
 void Canvas2DContext::setSize(int width, int height, bool redraw)
 {
-    SkCanvas *ncanvas;
-
-    float ratio
-        = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
-
-    if (m_Skia->m_CanvasBindMode == SkiaContext::BIND_GL) {
-        if ((ncanvas = SkiaContext::CreateGLCanvas(
-                 width, height, Interface::__NidiumUI->getNidiumContext()))
-            == NULL) {
-            NUI_LOG("[Error] Could not resize the canvas to %dx%d", width,
-                    height);
-            return;
-        }
-
-        SkiaContext::m_GlContext = ncanvas;
-
-    } else {
-        SkBaseDevice *ndev = NULL;
-#if 1
-        const SkImageInfo &info
-            = SkImageInfo::MakeN32Premul(width * ratio, height * ratio);
-        ndev = SkiaContext::m_GlContext->getDevice()->createCompatibleDevice(
-            info);
-#else
-        GrContext *gr
-            = ((SkGpuDevice *)SkiaContext::m_GlContext->getDevice())->context();
-        ndev = m_Skia->createNewGPUDevice(gr, width * ratio, height * ratio);
-#endif
-        if (ndev == NULL) {
-            APE_ERROR("Binding", "[JSCanvas2DContext] Can not create canvas of size %dx%d (backstore ratio : %f)\n",
-                   width, height, ratio);
-            return;
-        }
-
-        ncanvas = new SkCanvas(ndev);
-        ncanvas->clear(0x00000000);
-
-        if (redraw) {
-            const SkBitmap &bt
-                = m_Skia->getCanvas()->getDevice()->accessBitmap(false);
-            ncanvas->drawBitmap(bt, 0, 0);
-        }
-        SkSafeUnref(ndev);
-    }
-
-    // ncanvas->clipRegion(skia->getCanvas()->getTotalClip());
-    ncanvas->setMatrix(m_Skia->getCanvas()->getTotalMatrix());
-
-    /* Automatically unref the old one and ref the new one */
-    m_Skia->setCanvas(ncanvas);
-    ncanvas->unref();
-
-    if (m_Skia->m_CanvasBindMode == SkiaContext::BIND_GL) {
-        m_Skia->drawRect(0, 0, 1, 1, 0);
-    }
+    m_Skia->setSize(width, height, redraw);
 }
 
 void Canvas2DContext::translate(double x, double y)
@@ -2172,15 +1847,10 @@ Canvas2DContext::Canvas2DContext(CanvasHandler *handler,
 
     this->pushNewState();
 
-    m_Skia = new SkiaContext();
-    if (!m_Skia->bindOnScreen(width, height)) {
-        delete m_Skia;
-        m_Skia = NULL;
-        return;
-    }
+    m_Skia = SkiaContext::CreateWithTextureBackend(ui->getNidiumContext(), width, height);
 
     /* Vertex buffers were unbound by parent constructor */
-    this->resetSkiaContext(kVertex_GrGLBackendState);
+    m_Skia->resetGrBackendContext(kVertex_GrGLBackendState);
 }
 
 Canvas2DContext::Canvas2DContext(
@@ -2189,25 +1859,17 @@ Canvas2DContext::Canvas2DContext(
 {
     m_Mode = CONTEXT_2D;
 
-    m_Skia = new SkiaContext();
-    int state;
-
     if (isGL) {
-
-        state = m_Skia->bindGL(width, height, ui->getNidiumContext());
+        m_Skia = SkiaContext::CreateWithFBOBackend(ui->getNidiumContext(), width, height);
     } else {
-        state = m_Skia->bindOnScreen(width, height);
-    }
-
-    if (!state) {
-        NUI_LOG("Failed to create canvas");
-        delete m_Skia;
-        m_Skia = NULL;
-        return;
+        if (!ui) {
+            ui = Interface::__NidiumUI;
+        }
+        m_Skia = SkiaContext::CreateWithTextureBackend(ui->getNidiumContext(), width, height);
     }
 
     /* Vertex buffers were unbound by parent constructor */
-    this->resetSkiaContext(kVertex_GrGLBackendState);
+    m_Skia->resetGrBackendContext(kVertex_GrGLBackendState);
 }
 
 void Canvas2DContext::setScale(double x, double y, double px, double py)
@@ -2220,11 +1882,16 @@ void Canvas2DContext::setScale(double x, double y, double px, double py)
 uint8_t *Canvas2DContext::getPixels()
 {
     this->flush();
+    printf("Get Pixel unimplemented\n");
+
+    return nullptr;
+#if 0
 
     return (uint8_t *)m_Skia->getCanvas()
         ->getDevice()
         ->accessBitmap(false)
         .getPixels();
+#endif
 }
 
 Canvas2DContext::~Canvas2DContext()
@@ -2327,7 +1994,6 @@ JSFunctionSpec *Canvas2DContext::ListMethods()
         CLASSMAPPER_FN(Canvas2DContext, measureText, 1),
         CLASSMAPPER_FN(Canvas2DContext, isPointInPath, 2),
         CLASSMAPPER_FN(Canvas2DContext, getPathBounds, 0),
-        CLASSMAPPER_FN(Canvas2DContext, light, 3),
         CLASSMAPPER_FN(Canvas2DContext, attachFragmentShader, 1),
         CLASSMAPPER_FN(Canvas2DContext, detachFragmentShader, 0),
         CLASSMAPPER_FN(Canvas2DContext, setVertexOffset, 3),

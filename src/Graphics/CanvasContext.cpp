@@ -384,7 +384,7 @@ void CanvasContext::preComposeOn(Canvas2DContext *layer,
     bool revertScissor = false;
     float ratio        = SystemInterface::GetInstance()->backingStorePixelRatio();
 
-    SkiaContext *skia = layer->getSurface();
+    SkiaContext *skia = layer->getSkiaContext();
     SkISize layerSize = skia->getCanvas()->getDeviceSize();
 
     /*
@@ -426,8 +426,7 @@ void CanvasContext::preComposeOn(Canvas2DContext *layer,
     this->updateMatrix(left * ratio, top * ratio, layerSize.width(),
                        layerSize.height(), layer->m_GLState);
 
-    layer->drawTexture(this->getTextureID(), width, height, left * ratio,
-                       top * ratio);
+    layer->drawTexture(this->getTextureID());
 
     if (revertScissor) {
         NIDIUM_GL_CALL(layer->m_GLState->getNidiumGLContext(),

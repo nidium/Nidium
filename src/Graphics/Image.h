@@ -8,44 +8,69 @@
 
 #include <SkBitmap.h>
 #include <SkImage.h>
+#include <SkRefCnt.h>
 
 class SkCanvas;
 class SkBitmap;
 class SkData;
 
+/**
+  *  Image hold a reference to an image into the GPU.
+  *  It's meant to be later drawn into a surface.
+  *
+*/
 namespace Nidium {
 namespace Graphics {
 
 class Image
 {
 public:
-    int m_IsCanvas;
-    SkCanvas *m_CanvasRef;
-    SkBitmap *m_Image;
-#if 0
-    SkImage *fixedImg;
-#endif
-    Image(SkCanvas *canvas);
-    Image(void *data, size_t len);
-    Image(void *data, int width, int height);
+    /*
+        Create from encoded data source (png, jpeg, ...)
+    */
+    static Image *CreateFromEncoded(void *data, size_t len);
+    /*
+        Create from pixel bitmap
+    */
+    static Image *CreateFromRGBA(void *data, int width, int height);
 
+    /*  
+        Create from a surface
+    */
+    static Image *CreateFromSurface(sk_sp<SkSurface> surface);
 
-    SkData *getPNG();
+    /*
+        Create from an existing SkImage. Will hold a reference
+    */
+    static Image *CreateFromSkImage(sk_sp<SkImage> skimage);
 
-    static bool ConvertToRGBA(Image *nimg,
-                              unsigned char *rgba,
-                              bool flipY,
-                              bool premultiply);
+    /*
+        Try to encode the pixels as a PNG image
+        This can fail and return nullptr.
+    */
+    SkData   *getPNG();
+    SkBitmap *getBitmap();
+
+    bool readPixels(unsigned char *buf, bool flipY, bool premultiply);
+    
+    /*
+        Try to readback the pixels.
+        This can fail and return nullptr.
+    */
+    const uint8_t *getPixels(size_t *len);
+
+    uint32_t getSize() const;
+    int      getWidth();
+    int      getHeight();
 
     ~Image();
 
-    const uint8_t *getPixels(size_t *len);
+    int m_IsCanvas;
+    sk_sp<SkImage> m_Image;
+private:
+    Image() = default;
 
-    int getWidth();
-    int getHeight();
-    void shiftHue(int val, U8CPU alpha);
-    void markColorsInAlpha();
-    void desaturate();
+    SkBitmap *m_ImageBitmap = nullptr;
 };
 
 } // namespace Graphics

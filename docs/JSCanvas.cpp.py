@@ -956,6 +956,6 @@ EventDoc("Canvas.drop",
 )
 
 EventDoc("Canvas.mousewheel",
-    "Event fired when the mouse wheel is actived onto a canvas.",
+    "Event fired when the mouse wheel is activated onto a canvas.",
     params=[ParamDoc("event", "Event object", ObjectDoc(baseMouseEventObject))]
 )

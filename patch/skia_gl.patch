@@ -1,79 +1,56 @@
 diff --git include/gpu/gl/GrGLFunctions.h include/gpu/gl/GrGLFunctions.h
-index 51db053..1d1589e 100644
+index 771e1ebcec..7f044ed77a 100644
 --- skia/include/gpu/gl/GrGLFunctions.h
 +++ skia/include/gpu/gl/GrGLFunctions.h
-@@ -206,10 +206,30 @@ extern "C" {
-     typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLUnmapBufferSubDataProc)(const GrGLvoid* mem);
-     typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLUnmapTexSubImage2DProc)(const GrGLvoid* mem);
-     typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLUseProgramProc)(GrGLuint program);
-+    typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttrib1fProc)(GrGLuint indx, const GrGLfloat value);
-+    typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttrib2fvProc)(GrGLuint indx, const GrGLfloat* values);
-+    typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttrib3fvProc)(GrGLuint indx, const GrGLfloat* values);
-     typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttrib4fvProc)(GrGLuint indx, const GrGLfloat* values);
-     typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttribPointerProc)(GrGLuint indx, GrGLint size, GrGLenum type, GrGLboolean normalized, GrGLsizei stride, const GrGLvoid* ptr);
-     typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLViewportProc)(GrGLint x, GrGLint y, GrGLsizei width, GrGLsizei height);
+@@ -186,6 +186,20 @@ typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttribDivisorProc)(GrGLuint ind
+ typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttribIPointerProc)(GrGLuint indx, GrGLint size, GrGLenum type, GrGLsizei stride, const GrGLvoid* ptr);
+ typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttribPointerProc)(GrGLuint indx, GrGLint size, GrGLenum type, GrGLboolean normalized, GrGLsizei stride, const GrGLvoid* ptr);
+ typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLViewportProc)(GrGLint x, GrGLint y, GrGLsizei width, GrGLsizei height);
++typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttrib2fProc)(GrGLuint indx, GrGLfloat x, GrGLfloat y);
++typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttrib3fProc)(GrGLuint indx, GrGLfloat x, GrGLfloat y, GrGLfloat z);
++typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttrib4fProc)(GrGLuint indx, GrGLfloat x, GrGLfloat y, GrGLfloat z, GrGLfloat w);
++typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttrib1fvProc)(GrGLuint indx, const GrGLfloat *value);
++typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLBlendEquationProc)(GrGLenum mode);
++// extention?
++typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLBlendEquationSeparateProc)(GrGLenum modeRGB, GrGLenum modeAlpha);
++// extention?
++typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLBlendFuncSeparateProc)(GrGLenum sfactorRGB, GrGLenum dfactorRGB, GrGLenum sfactorAlpha, GrGLenum dfactorAlpha);
++typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLClearDepthProc)(GrGLclampd depth);
++typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLDepthFuncProc)(GrGLenum func);
++typedef GrGLint (GR_GL_FUNCTION_TYPE* GrGLGetAttribLocationProc)(GrGLuint program, const GrGLchar *name);
++typedef GrGLint (GR_GL_FUNCTION_TYPE* GrGLGetFloatvProc)(GrGLenum pname, GrGLfloat *params);
++typedef GrGLint (GR_GL_FUNCTION_TYPE* GrGLGetBooleanvProc)(GrGLenum pname, GrGLboolean *params);
  
-+    typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttrib2fProc)(GrGLuint indx, GrGLfloat x, GrGLfloat y);
-+    typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttrib3fProc)(GrGLuint indx, GrGLfloat x, GrGLfloat y, GrGLfloat z);
-+    typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttrib4fProc)(GrGLuint indx, GrGLfloat x, GrGLfloat y, GrGLfloat z, GrGLfloat w);
-+    typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLVertexAttrib1fvProc)(GrGLuint indx, const GrGLfloat *value);
-+    typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLBlendEquationProc)(GrGLenum mode);
-+    // extention?
-+    typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLBlendEquationSeparateProc)(GrGLenum modeRGB, GrGLenum modeAlpha);
-+    // extention?
-+    typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLBlendFuncSeparateProc)(GrGLenum sfactorRGB, GrGLenum dfactorRGB, GrGLenum sfactorAlpha, GrGLenum dfactorAlpha);
-+    typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLClearDepthProc)(GrGLclampd depth);
-+    typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLDepthFuncProc)(GrGLenum func);
-+    typedef GrGLint (GR_GL_FUNCTION_TYPE* GrGLGetAttribLocationProc)(GrGLuint program, const GrGLchar *name);
-+    typedef GrGLint (GR_GL_FUNCTION_TYPE* GrGLGetFloatvProc)(GrGLenum pname, GrGLfloat *params);
-+    typedef GrGLint (GR_GL_FUNCTION_TYPE* GrGLGetBooleanvProc)(GrGLenum pname, GrGLboolean *params);
-+
-+
-+
-     // Experimental: Functions for GL_NV_path_rendering. These will be
-     // alphabetized with the above functions once this is fully supported
-     // (and functions we are unlikely to use will possibly be omitted).
+ /* GL_NV_path_rendering */
+ typedef GrGLvoid (GR_GL_FUNCTION_TYPE* GrGLMatrixLoadfProc)(GrGLenum matrixMode, const GrGLfloat* m);
 diff --git include/gpu/gl/GrGLInterface.h include/gpu/gl/GrGLInterface.h
-index 2b33e8e..adc68c8 100644
+index 3afa6be9fd..d4e2fdaf68 100644
 --- skia/include/gpu/gl/GrGLInterface.h
 +++ skia/include/gpu/gl/GrGLInterface.h
-@@ -309,9 +309,24 @@ public:
-         GLPtr<GrGLUnmapBufferSubDataProc> fUnmapBufferSubData;
-         GLPtr<GrGLUnmapTexSubImage2DProc> fUnmapTexSubImage2D;
-         GLPtr<GrGLUseProgramProc> fUseProgram;
-+        GLPtr<GrGLVertexAttrib1fProc> fVertexAttrib1f;
-+        GLPtr<GrGLVertexAttrib2fvProc> fVertexAttrib2fv;
-+        GLPtr<GrGLVertexAttrib3fvProc> fVertexAttrib3fv;
-         GLPtr<GrGLVertexAttrib4fvProc> fVertexAttrib4fv;
-         GLPtr<GrGLVertexAttribPointerProc> fVertexAttribPointer;
-         GLPtr<GrGLViewportProc> fViewport;
-+        GLPtr<GrGLVertexAttrib2fProc> fVertexAttrib2f;
-+        GLPtr<GrGLVertexAttrib3fProc> fVertexAttrib3f;
-+        GLPtr<GrGLVertexAttrib4fProc> fVertexAttrib4f;
-+        GLPtr<GrGLVertexAttrib1fvProc> fVertexAttrib1fv;
-+        GLPtr<GrGLBlendEquationProc> fBlendEquation;
-+        GLPtr<GrGLBlendEquationSeparateProc> fBlendEquationSeparate;
-+        GLPtr<GrGLBlendFuncSeparateProc> fBlendFuncSeparate;
-+        GLPtr<GrGLClearDepthProc> fClearDepth;
-+        GLPtr<GrGLDepthFuncProc> fDepthFunc;
-+        GLPtr<GrGLGetAttribLocationProc> fGetAttribLocation;
-+        GLPtr<GrGLGetFloatvProc> fGetFloatv;
-+        GLPtr<GrGLGetBooleanvProc> fGetBooleanv;
+@@ -296,6 +296,17 @@ public:
+         GrGLFunction<GrGLVertexAttribIPointerProc> fVertexAttribIPointer;
+         GrGLFunction<GrGLVertexAttribPointerProc> fVertexAttribPointer;
+         GrGLFunction<GrGLViewportProc> fViewport;
++        GrGLFunction<GrGLVertexAttrib2fProc> fVertexAttrib2f;
++        GrGLFunction<GrGLVertexAttrib3fProc> fVertexAttrib3f;
++        GrGLFunction<GrGLVertexAttrib4fProc> fVertexAttrib4f;
++        GrGLFunction<GrGLVertexAttrib1fvProc> fVertexAttrib1fv;
++        GrGLFunction<GrGLBlendEquationSeparateProc> fBlendEquationSeparate;
++        GrGLFunction<GrGLBlendFuncSeparateProc> fBlendFuncSeparate;
++        GrGLFunction<GrGLClearDepthProc> fClearDepth;
++        GrGLFunction<GrGLDepthFuncProc> fDepthFunc;
++        GrGLFunction<GrGLGetAttribLocationProc> fGetAttribLocation;
++        GrGLFunction<GrGLGetFloatvProc> fGetFloatv;
++        GrGLFunction<GrGLGetBooleanvProc> fGetBooleanv;
  
-         // Experimental: Functions for GL_NV_path_rendering. These will be
-         // alphabetized with the above functions once this is fully supported
+         /* GL_NV_path_rendering */
+         GrGLFunction<GrGLMatrixLoadfProc> fMatrixLoadf;
 diff --git src/gpu/gl/GrGLAssembleInterface.cpp src/gpu/gl/GrGLAssembleInterface.cpp
-index e433725..792a279 100644
+index 1c10214382..9b8c1566ff 100644
 --- skia/src/gpu/gl/GrGLAssembleInterface.cpp
 +++ skia/src/gpu/gl/GrGLAssembleInterface.cpp
-@@ -161,9 +161,25 @@ const GrGLInterface* GrGLAssembleGLInterface(void* ctx, GrGLGetProc get) {
-     GET_PROC(UniformMatrix4fv);
-     GET_PROC(UnmapBuffer);
-     GET_PROC(UseProgram);
-+    GET_PROC(VertexAttrib1f);
-+    GET_PROC(VertexAttrib2fv);
-+    GET_PROC(VertexAttrib3fv);
-     GET_PROC(VertexAttrib4fv);
+@@ -266,6 +266,18 @@ const GrGLInterface* GrGLAssembleGLInterface(void* ctx, GrGLGetProc get) {
+ 
      GET_PROC(VertexAttribPointer);
      GET_PROC(Viewport);
 +    GET_PROC(VertexAttrib2f);
@@ -88,34 +65,6 @@ index e433725..792a279 100644
 +    GET_PROC(GetAttribLocation);
 +    GET_PROC(GetFloatv);
 +    GET_PROC(GetBooleanv);
-+
      GET_PROC(BindFragDataLocationIndexed);
  
      if (glVer >= GR_GL_VER(3,0) || extensions.has("GL_ARB_vertex_array_object")) {
-@@ -171,6 +187,10 @@ const GrGLInterface* GrGLAssembleGLInterface(void* ctx, GrGLGetProc get) {
-         GET_PROC(BindVertexArray);
-         GET_PROC(GenVertexArrays);
-         GET_PROC(DeleteVertexArrays);
-+    } else if (extensions.has("GL_APPLE_vertex_array_object")) {
-+        GET_PROC_SUFFIX(BindVertexArray, APPLE);
-+        GET_PROC_SUFFIX(GenVertexArrays, APPLE);
-+        GET_PROC_SUFFIX(DeleteVertexArrays, APPLE);        
-     }
- 
-     if (glVer >= GR_GL_VER(3,0) || extensions.has("GL_ARB_map_buffer_range")) {
-diff --git src/gpu/gl/GrGLInterface.cpp src/gpu/gl/GrGLInterface.cpp
-index ee184d0..7cb95de 100644
---- skia/src/gpu/gl/GrGLInterface.cpp
-+++ skia/src/gpu/gl/GrGLInterface.cpp
-@@ -212,6 +212,11 @@ bool GrGLInterface::validate() const {
-         NULL == fFunctions.fUniformMatrix3fv ||
-         NULL == fFunctions.fUniformMatrix4fv ||
-         NULL == fFunctions.fUseProgram ||
-+#if 0
-+        NULL == fFunctions.fVertexAttrib1f ||
-+        NULL == fFunctions.fVertexAttrib2fv ||
-+        NULL == fFunctions.fVertexAttrib3fv ||
-+#endif
-         NULL == fFunctions.fVertexAttrib4fv ||
-         NULL == fFunctions.fVertexAttribPointer ||
-         NULL == fFunctions.fViewport ||

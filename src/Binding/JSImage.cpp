@@ -99,9 +99,9 @@ bool JSImage::setupWithBuffer(buffer *buf)
         return false;
     }
 
-    Image *ImageObject = new Image(buf->data, buf->used);
-    if (ImageObject->m_Image == NULL) {
-        delete ImageObject;
+    Image *ImageObject = Image::CreateFromEncoded(buf->data, buf->used);
+
+    if (!ImageObject) {
         this->unroot();
 
         return false;
@@ -116,6 +116,10 @@ bool JSImage::setupWithBuffer(buffer *buf)
 
 JSObject * JSImage::BuildImageObject(JSContext *cx, Image *image, const char name[])
 {
+    if (!image) {
+        return nullptr;
+    }
+
     JSImage *nimg = new JSImage();
 
     nimg->m_Image = image;
@@ -204,7 +208,7 @@ bool JSImage::JSGetter_height(JSContext *cx, JS::MutableHandleValue vp)
 bool JSImage::JSGetter_src(JSContext *cx, JS::MutableHandleValue vp)
 {
 
-    if (! m_Image) {
+    if (!m_Image) {
         JS::RootedString jStr(cx, JS_GetEmptyString(JS_GetRuntime(cx)));
         vp.setString(jStr);
     } else if (m_Path) {

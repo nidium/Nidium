@@ -19,6 +19,7 @@
 #include "Frontend/NML.h"
 #include "Graphics/CanvasHandler.h"
 #include "Graphics/Image.h"
+#include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas2DContext.h"
 #include "Binding/JSImageData.h"
 
@@ -28,6 +29,7 @@ using Nidium::Core::PtrAutoDelete;
 using Nidium::IO::Stream;
 using Nidium::Graphics::Image;
 using Nidium::Graphics::CanvasHandler;
+using Nidium::Graphics::SkiaContext;
 using Nidium::Frontend::Context;
 using Nidium::Frontend::NML;
 using Nidium::Interface::UIInterface;
@@ -198,35 +200,32 @@ bool JSDocument::JS_getScreenData(JSContext *cx, JS::CallArgs &args)
 
 bool JSDocument::JS_toDataArray(JSContext *cx, JS::CallArgs &args)
 {
-
-    CanvasHandler *rootHandler
-        = Context::GetObject<Frontend::Context>(cx)->getRootHandler();
-    Canvas2DContext *context
-        = static_cast<Canvas2DContext *>(rootHandler->getContext());
-
-    int width, height;
-    context->getSize(&width, &height);
-
-    Context *nctx = Context::GetObject<Frontend::Context>(cx);
-
-    uint8_t *fb = nctx->getUI()->readScreenPixel();
-
-    Image *img = new Image(fb, width, height);
     SkData *data;
+    int width, height;
 
-    data = img->getPNG();
+    CanvasHandler *rootHandler = Context::GetObject<Frontend::Context>(cx)->getRootHandler();
+    Canvas2DContext *context = static_cast<Canvas2DContext *>(rootHandler->getContext());
+
+    Image *simg = Image::CreateFromSkImage(context->getSkiaContext()->getSurface()->makeImageSnapshot());
+    if (!simg) {
+        JS_ReportWarning(cx, "Couldnt readback snapshot surface");
+        args.rval().setNull();
+        return true;            
+    }
+
+    data = simg->getPNG();
 
     if (!data) {
+        JS_ReportWarning(cx, "Couldnt read PNG data from surface");
         args.rval().setNull();
-
         return true;
     }
 
+    context->getSize(&width, &height);
+
     JS::RootedObject arrBuffer(cx, JS_NewUint8ClampedArray(cx, data->size()));
-
-
-    JS::RootedValue widthVal(cx, JS::Int32Value(width));
-    JS::RootedValue heightVal(cx, JS::Int32Value(height));
+    JS::RootedValue  widthVal (cx, JS::Int32Value(width));
+    JS::RootedValue  heightVal(cx, JS::Int32Value(height));
 
     bool shared;
     {
@@ -235,8 +234,6 @@ bool JSDocument::JS_toDataArray(JSContext *cx, JS::CallArgs &args)
         uint8_t * pixels = JS_GetUint8ClampedArrayData(arrBuffer, &shared, nogc);
         memcpy(pixels, data->data(), data->size());
     }
-
-    SkSafeUnref(data);
 
     JS::RootedValue arVal(cx, JS::ObjectOrNullValue(arrBuffer));
 
@@ -251,6 +248,9 @@ bool JSDocument::JS_toDataArray(JSContext *cx, JS::CallArgs &args)
                       JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     args.rval().setObjectOrNull(dataObject);
+
+    SkSafeUnref(data);
+    delete simg;
 
     return true;
 }
@@ -356,7 +356,7 @@ bool JSDocument::loadFont(const char *path,
     SkMemoryStream *skmemory = new SkMemoryStream(data, len, true);
     free(data);
 
-    SkTypeface *tf = SkTypeface::CreateFromStream(skmemory);
+    sk_sp<SkTypeface> tf = SkTypeface::MakeFromStream(skmemory);
     if (tf == NULL) {
         delete skmemory;
         return false;
@@ -424,7 +424,7 @@ bool JSDocument::JS_loadFont(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
-SkTypeface *JSDocument::getFont(const char *name)
+sk_sp<SkTypeface> JSDocument::getFont(const char *name)
 {
     char *pTmp = strdup(name);
 
@@ -440,7 +440,7 @@ SkTypeface *JSDocument::getFont(const char *name)
         return font->m_Typeface;
     }
 
-    return NULL;
+    return sk_sp<SkTypeface>(nullptr);
 }
 // }}}
 

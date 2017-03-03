@@ -6,7 +6,7 @@ from dokumentor import *
 
 NamespaceDoc( "NidiumDebug", """Debugging helper functions.
 
-It is not possible to create an instance of this class. 'global.Debug' is allready available.""",
+It is not possible to create an instance of this class. 'global.Debug' is already available.""",
     NO_Sees,
     [ExampleDoc( """var d = {a:1, b: "a"};
 var s = Debug.serialize(d);
@@ -51,6 +51,6 @@ console.log(JSON.stringify(u));
         ParamDoc( 'arraybuf', 'Object to dump into an arraybuffer', 'ArrayBuffer', NO_Default, IS_Obligated ),
         ParamDoc( 'offset', 'offset to start on', 'unsigned long', 0, IS_Optional )
     ],
-    ReturnDoc( "exerpt of dumped data", "any" )
+    ReturnDoc( "Dumped data", "any" )
 )
 

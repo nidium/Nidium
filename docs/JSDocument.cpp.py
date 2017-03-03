@@ -6,7 +6,7 @@ from dokumentor import *
 
 NamespaceDoc( "NidiumDocument", """Document class.
 
-It is not possible to create an instance of this class. 'global.document' is allready available.""",
+It is not possible to create an instance of this class. 'global.document' is already available.""",
     SeesDocs( "Window|Canvas|NidiumDocument|global.document|global.window" ),
     NO_Examples,
     products=["Server"]

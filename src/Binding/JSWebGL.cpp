@@ -31,21 +31,8 @@ namespace Nidium {
 namespace Binding {
 
 // {{{ Helper Macros
-#define GL_CALL(IFACE, FN)                                         \
-    /*APE_DEBUG("Binding", "[JSWebGl] " #FN "\n");*/               \
-    NIDIUM_GL_CALL((IFACE)->getGLContext(), FN);                   \
-    {                                                              \
-        GLint err = glGetError();                                  \
-        if (err != 0) NUI_LOG("err = %d / call = %s\n", err, #FN); \
-    }
-
-#define GL_CALL_RET(IFACE, FN, RET)                                \
-    /*APE_DEBUG("Binding", "[JSWebGL] " #FN "\n");*/               \
-    NIDIUM_GL_CALL_RET((IFACE)->getGLContext(), FN, RET);          \
-    {                                                              \
-        GLint err = glGetError();                                  \
-        if (err != 0) NUI_LOG("err = %d / call = %s\n", err, #FN); \
-    }
+#define GL_CALL(IFACE, FN) NIDIUM_GL_CALL((IFACE)->getGLContext(), FN);
+#define GL_CALL_RET(IFACE, FN, RET) NIDIUM_GL_CALL_RET((IFACE)->getGLContext(), FN, RET);
 
 #define NGL_JS_FN_DELETE_X(FUNC_NAME, RESOURCE_CLASS)                         \
     bool JSWebGLRenderingContext::JS_##FUNC_NAME(JSContext *cx,               \
@@ -1861,9 +1848,10 @@ bool JSWebGLRenderingContext::JS_getParameter(JSContext *cx, JS::CallArgs &args)
             GL_CALL(this, GetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, textures));
 
             bool shared;
-            JS::AutoCheckCannotGC nogc;
-
-            data = JS_GetUint32ArrayData(obj, &shared, nogc);
+            {
+                JS::AutoCheckCannotGC nogc;
+                data = JS_GetUint32ArrayData(obj, &shared, nogc);
+            }
             memcpy(data, textures, length * sizeof(GLint));
             free(textures);
 
@@ -1959,9 +1947,10 @@ bool JSWebGLRenderingContext::JS_getParameter(JSContext *cx, JS::CallArgs &args)
             GL_CALL(this, GetFloatv(name, fv));
 
             bool shared;
-            JS::AutoCheckCannotGC nogc;
-
-            data = JS_GetFloat32ArrayData(obj, &shared, nogc);
+            {
+                JS::AutoCheckCannotGC nogc;
+                data = JS_GetFloat32ArrayData(obj, &shared, nogc);
+            }
             memcpy(data, fv, 2 * sizeof(float));
             value.setObjectOrNull(obj);
             break;
@@ -1982,9 +1971,10 @@ bool JSWebGLRenderingContext::JS_getParameter(JSContext *cx, JS::CallArgs &args)
             GL_CALL(this, GetFloatv(name, fv));
 
             bool shared;
-            JS::AutoCheckCannotGC nogc;
-
-            data = JS_GetFloat32ArrayData(obj, &shared, nogc);
+            {
+                JS::AutoCheckCannotGC nogc;
+                data = JS_GetFloat32ArrayData(obj, &shared, nogc);
+            }
             memcpy(data, fv, 4 * sizeof(GLfloat));
             value.setObjectOrNull(obj);
             break;
@@ -2004,9 +1994,10 @@ bool JSWebGLRenderingContext::JS_getParameter(JSContext *cx, JS::CallArgs &args)
             GL_CALL(this, GetIntegerv(name, iv));
 
             bool shared;
-            JS::AutoCheckCannotGC nogc;
-
-            data = JS_GetInt32ArrayData(obj, &shared, nogc);
+            {
+                JS::AutoCheckCannotGC nogc;
+                data = JS_GetInt32ArrayData(obj, &shared, nogc);
+            }
             memcpy(data, iv, 2 * sizeof(GLint));
             value.setObjectOrNull(obj);
             break;
@@ -2026,9 +2017,10 @@ bool JSWebGLRenderingContext::JS_getParameter(JSContext *cx, JS::CallArgs &args)
 
             GL_CALL(this, GetIntegerv(name, iv));
             bool shared;
-            JS::AutoCheckCannotGC nogc;
-
-            data = JS_GetInt32ArrayData(obj, &shared, nogc);
+            {
+                JS::AutoCheckCannotGC nogc;
+                data = JS_GetInt32ArrayData(obj, &shared, nogc);
+            }
             memcpy(data, iv, 4 * sizeof(GLint));
             value.setObjectOrNull(obj);
             break;
@@ -2343,7 +2335,6 @@ bool JSWebGLRenderingContext::JS_texImage2D(JSContext *cx, JS::CallArgs &args)
 
 
         if (array != NULL && JS_IsTypedArrayObject(array)) {
-
             JS::AutoCheckCannotGC nogc;
             bool shared;
 
@@ -2386,17 +2377,16 @@ bool JSWebGLRenderingContext::JS_texImage2D(JSContext *cx, JS::CallArgs &args)
             internalFormat = NGL_RGBA;
 
             pixels
-                = (unsigned char *)malloc(nimg->getImage()->m_Image->getSize());
+                = (unsigned char *)malloc(nimg->getImage()->getSize());
 
-            if (!Image::ConvertToRGBA(
-                    nimg->getImage(), pixels,
-                    this->hasFlag(Canvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag),
-                    this->hasFlag(Canvas3DContext::
-                                      kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag))) {
+            if (!nimg->getImage()->readPixels(pixels,
+                this->hasFlag(Canvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag),
+                this->hasFlag(Canvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag))) {
 
                 JS_ReportError(cx, "Failed to read image data");
                 return false;
             }
+
         } else if (image && JSCanvas::InstanceOf(image)) {
             JSCanvas *jsCanvas = JSCanvas::GetInstance(image);
             CanvasHandler *handler
@@ -2413,7 +2403,7 @@ bool JSWebGLRenderingContext::JS_texImage2D(JSContext *cx, JS::CallArgs &args)
 
             pixels = (unsigned char *)malloc(width * height * 4);
 
-            ctx->getSurface()->readPixels(0, 0, width, height, pixels);
+            ctx->getSkiaContext()->readPixels(0, 0, width, height, pixels);
         } else {
             JS_ReportError(cx, "Unsupported or invalid image data");
             return false;
@@ -2527,15 +2517,17 @@ bool NGL_uniformxfv(Canvas3DContext *glctx,
     bool shared, isarray;
 
     if (JS_IsFloat32Array(array)) {
-        JS::AutoCheckCannotGC nogc;
-
-        carray = (GLfloat *)JS_GetFloat32ArrayData(array, &shared, nogc);
+        {
+            JS::AutoCheckCannotGC nogc;
+            carray = (GLfloat *)JS_GetFloat32ArrayData(array, &shared, nogc);
+        }
         length = (GLsizei)JS_GetTypedArrayLength(array);
     } else if (JS_IsArrayObject(cx, array, &isarray) && isarray) {
-        JS::AutoCheckCannotGC nogc;
-
         JS::RootedObject tmp(cx, JS_NewFloat32ArrayFromArray(cx, array));
-        carray = (GLfloat *)JS_GetFloat32ArrayData(tmp, &shared, nogc);
+        {
+            JS::AutoCheckCannotGC nogc;
+            carray = (GLfloat *)JS_GetFloat32ArrayData(tmp, &shared, nogc);
+        }
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Float32 array");
@@ -2634,13 +2626,17 @@ bool NGL_uniformxiv(Canvas3DContext *glctx,
     bool shared, isarray;
 
     if (JS_IsInt32Array(array)) {
-        JS::AutoCheckCannotGC nogc;
-        carray = (GLint *)JS_GetInt32ArrayData(array, &shared, nogc);
+        {
+            JS::AutoCheckCannotGC nogc;
+            carray = (GLint *)JS_GetInt32ArrayData(array, &shared, nogc);
+        }
         length = (GLsizei)JS_GetTypedArrayLength(array);
     } else if (JS_IsArrayObject(cx, array, &isarray) && isarray) {
-        JS::AutoCheckCannotGC nogc;
         JS::RootedObject tmp(cx, JS_NewInt32ArrayFromArray(cx, array));
-        carray = (GLint *)JS_GetInt32ArrayData(tmp, &shared, nogc);
+        {
+            JS::AutoCheckCannotGC nogc;
+            carray = (GLint *)JS_GetInt32ArrayData(tmp, &shared, nogc);
+        }
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Int32 array");
@@ -2692,13 +2688,17 @@ bool NGL_uniformMatrixxfv(Canvas3DContext *glctx,
     bool shared, isarray;
 
     if (JS_IsFloat32Array(array)) {
-        JS::AutoCheckCannotGC nogc;
-        carray = (GLfloat *)JS_GetFloat32ArrayData(array, &shared, nogc);
+        {
+            JS::AutoCheckCannotGC nogc;
+            carray = (GLfloat *)JS_GetFloat32ArrayData(array, &shared, nogc);
+        }
         length = (GLsizei)JS_GetTypedArrayLength(array);
     } else if (JS_IsArrayObject(cx, array, &isarray) && isarray) {
-        JS::AutoCheckCannotGC nogc;
         JS::RootedObject tmp(cx, JS_NewFloat32ArrayFromArray(cx, array));
-        carray = (GLfloat *)JS_GetFloat32ArrayData(tmp, &shared, nogc);
+        {
+            JS::AutoCheckCannotGC nogc;
+            carray = (GLfloat *)JS_GetFloat32ArrayData(tmp, &shared, nogc);
+        }
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Float32 array");
@@ -2785,13 +2785,13 @@ bool NGL_vertexAttribxfv(Canvas3DContext *glctx,
 
     if (JS_IsFloat32Array(array)) {
         JS::AutoCheckCannotGC nogc;
-
         carray = (GLfloat *)JS_GetFloat32ArrayData(array, &shared, nogc);
     } else if (JS_IsArrayObject(cx, array, &isarray) && isarray) {
-        JS::AutoCheckCannotGC nogc;
-
         JS::RootedObject tmp(cx, JS_NewFloat32ArrayFromArray(cx, array));
-        carray = (GLfloat *)JS_GetFloat32ArrayData(tmp, &shared, nogc);
+        {
+            JS::AutoCheckCannotGC nogc;
+            carray = (GLfloat *)JS_GetFloat32ArrayData(tmp, &shared, nogc);
+        }
     } else {
         JS_ReportError(cx, "Array is not a Float32 array");
         return false;

@@ -9,6 +9,12 @@
 #include "Core/Messages.h"
 #include "Net/HTTPStream.h"
 #include "IO/FileStream.h"
+#ifdef NIDIUM_PRODUCT_FRONTEND
+#include "Interface/SystemInterface.h"
+#endif
+#include "Macros.h"
+
+#include <ape_log.h>
 
 using namespace Nidium::Binding;
 using namespace Nidium::Core;
@@ -19,6 +25,9 @@ class NidiumJS *g_nidiumjs = nullptr;
 
 namespace Nidium {
 namespace Core {
+
+static void context_log(void *ctx, void *cb_args, ape_log_lvl_t lvl,
+    const char *tag, const char *buff);
 
 Context::Context(ape_global *ape) : m_APECtx(ape)
 {
@@ -34,6 +43,18 @@ Context::Context(ape_global *ape) : m_APECtx(ape)
     m_JS->loadGlobalObjects();
 
     m_PingTimer = APE_timer_create(ape, 1, Ping, (void *)m_JS);
+#ifdef DEBUG
+    ape_log_lvl_t verblvl = APE_LOG_DEBUG;
+#else
+    ape_log_lvl_t verblvl = APE_LOG_ERROR;
+#endif
+
+    char *env_verbose = getenv("NIDIUM_VERBOSITY");
+    if (env_verbose) {
+        verblvl = (ape_log_lvl_t)nidium_min(nidium_max(0, atoi(env_verbose)), APE_LOG_COUNT-1);
+    }
+
+    APE_setlogger(verblvl, nullptr, context_log, nullptr, this);
 }
 
 int Context::Ping(void *arg)
@@ -89,6 +110,19 @@ void Context::vlog(const char *format, va_list args)
     free(buff);
 }
 
+static void context_log(void *ctx, void *cb_args, ape_log_lvl_t lvl,
+    const char *tag, const char *buff)
+{
+    Context *_this = (Context *)ctx;
+
+    if (tag) {
+        _this->vlog("[%s:%s] %s\n", APE_getloglabel(lvl), tag, buff);
+    } else {
+        _this->vlog("[%s] %s\n", APE_getloglabel(lvl), buff);
+    }
+}
+
+
 Context::~Context()
 {
     APE_timer_destroy(m_APECtx, m_PingTimer);
@@ -110,7 +144,12 @@ void Context::onMessage(const SharedMessages::Message &msg)
         case kContextMessage_log:
         {
             const char *str = (char *)msg.dataPtr();
+
+#ifdef NIDUM_PRODUCT_FRONTEND
+            Interface::SystemInterface::GetInstance()->print(str);
+#else
             fwrite(str, 1, strlen(str), stdout);
+#endif
 
             free(msg.dataPtr());
         }

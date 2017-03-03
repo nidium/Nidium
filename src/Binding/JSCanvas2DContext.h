@@ -120,16 +120,11 @@ public:
 
     void clear(uint32_t color = 0x00000000) override;
 
-    /*
-        draw layer on top of "this"
-    */
-
-    void resetSkiaContext(uint32_t flags = 0);
-
     uint8_t *getPixels() override;
     uint32_t getTextureID() const override;
     void flush() override;
     virtual void setSize(int width, int height, bool redraw = true) override;
+    
     void translate(double x, double y) override;
 
     void getSize(int *width, int *height) const override;
@@ -139,7 +134,7 @@ public:
 
     void setVertexDeformation(uint32_t vertex, float x, float y);
 
-    Graphics::SkiaContext *getSurface() const
+    Graphics::SkiaContext *getSkiaContext() const
     {
         return m_Skia;
     }
@@ -148,11 +143,7 @@ public:
 
     uint32_t createProgram(const char *data);
 
-    void drawTexture(uint32_t textureID,
-                     uint32_t width,
-                     uint32_t height,
-                     uint32_t left,
-                     uint32_t top);
+    void drawTexture(uint32_t textureID);
 
 
     Canvas2DContextState *getCurrentState() const
@@ -242,7 +233,6 @@ protected:
     NIDIUM_DECL_JSCALL(measureText);
     NIDIUM_DECL_JSCALL(isPointInPath);
     NIDIUM_DECL_JSCALL(getPathBounds);
-    NIDIUM_DECL_JSCALL(light);
     NIDIUM_DECL_JSCALL(attachFragmentShader);
     NIDIUM_DECL_JSCALL(detachFragmentShader);
     NIDIUM_DECL_JSCALL(setVertexOffset);
@@ -278,16 +268,6 @@ private:
     void initCopyTex();
     uint32_t compileCoopFragmentShader();
     char *genModifiedFragmentShader(const char *data);
-    void drawTexToFBO(uint32_t textureID);
-    void drawTexIDToFBO(uint32_t textureID,
-                        uint32_t width,
-                        uint32_t height,
-                        uint32_t left,
-                        uint32_t top,
-                        uint32_t fbo);
-
-    uint32_t getSkiaTextureID(int *width = NULL, int *height = NULL);
-    uint32_t getMainFBO();
 };
 // }}}
 

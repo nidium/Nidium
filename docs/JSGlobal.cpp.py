@@ -71,7 +71,7 @@ clearTimeout( t );""" ) ],
     IS_Static, IS_Public, IS_Fast,
     [
         CallbackDoc( 'fn', 'The function to be called', NO_Default ),
-        ParamDoc( 'timeout','timeout in miliseconds', 'integer', 8, IS_Obligated ),
+        ParamDoc( 'timeout','timeout in milliseconds', 'integer', 8, IS_Obligated ),
         ParamDoc( 'args', "argument for the callback", 'any', '[]', IS_Obligated )
     ],
     ReturnDoc( "An identifier representing the timer that can be used to stop the timer with 'global.clearTimeout'", 'integer' )
@@ -86,7 +86,7 @@ clearInterval( t );""") ],
     IS_Static, IS_Public, IS_Fast,
     [
         CallbackDoc( 'fn', 'The function to be called', NO_Default ),
-        ParamDoc( 'timeout','timeout in miliseconds', 'integer', 8, IS_Obligated ),
+        ParamDoc( 'timeout','timeout in milliseconds', 'integer', 8, IS_Obligated ),
         ParamDoc( 'args', 'mixed', '[any]', IS_Optional )
     ],
     ReturnDoc( "An identifier representing the timer that can be used to stop the timer with 'global.clearInterval'", 'integer' )

@@ -32,7 +32,10 @@ class NidiumNode extends Canvas {
 
         this.left = attributes.left || 0;
         this.top = attributes.top || 0;
-        this.opacity = attributes.opacity || 1;
+
+        if (attributes.opacity !== undefined) {
+            this.opacity = attributes.opacity;
+        }
 
         //this.onload = this.onpaint;
         this.onresize = this.onpaint;
@@ -376,6 +379,11 @@ Elements.img = class extends NidiumNode {
 
         this._img.onload = () => {
             this._loaded = true;
+
+            if (this.attributes.onload) {
+                this.attributes.onload.call(this, this._img);
+            }
+
             this.setSize(this._img.width, this._img.height);
             this.requestPaint();
         }

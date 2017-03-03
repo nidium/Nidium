@@ -6,6 +6,7 @@
 
 import sys
 import os
+import json
 
 from konstructor import Deps
 from konstructor import CommandLine
@@ -84,29 +85,21 @@ def giflib():
 
 @Deps.register("skia")
 def skia():
-    if Platform.wordSize == 64:
-        exports = "GYP_DEFINES='skia_arch_width=64 skia_osx_deployment_target=10.7'"
-    else:
-        exports = "GYP_DEFINES='skia_arch_width=32 skia_osx_deployment_target=10.7'"
+    args = {
+        "extra_cflags_cc": [
+            "-Wno-unused-function",
+            "-Wno-array-bounds",
+            "-Wno-return-local-addr",
+            "-DGR_GL_CUSTOM_SETUP_HEADER=<../../../../../patch/skia_gl_config.h>"
+            ],
+        "is_official_build": True,
+        "cc": Platform.getEnviron("CC"),
+        "cxx": Platform.getEnviron("CXX")
+    }
 
-    exports += (" CPPFLAGS=\"%s " % (os.environ.get("CPPFLAGS", "")) +
-                    " -Wno-sign-compare -Wno-undefined-bool-conversion" +
-                    " -Wno-tautological-undefined-compare" +
-                    " -Wno-inconsistent-missing-override" +
-                    " -Wno-deprecated-declarations" +
-                    " -Wno-shift-negative-value" +
-                    " -Wno-unknown-warning-option" +
-                    " -Wno-expansion-to-defined" +
-                    " -I%s -I%s\"" % (os.path.join(Deps.getDir(), "zlib"), os.path.join(Deps.getDir(), "giflib/lib/")))
-
-    exports += (" LDFLAGS=\"%s -L%s -L%s\"" % (
-                            os.environ.get("LDFLAGS", ""),
-                            os.path.join(Deps.getDir(), "zlib"),
-                            os.path.join(Deps.getDir(), "giflib/lib/.libs")))
-
-    makeFlags = "BUILDTYPE=Release -j " + str(Platform.cpuCount)
-
-    Gyp.set("skia_resource_cache_mb_limit", 256)
+    if Platform.system == "Darwin":
+        args["extra_cflags_cc"].append("-stdlib=libc++")
+        args["extra_ldflags"] = ["-stdlib=libc++"]
 
     # Add depot_tools to path needed for skia
     Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
@@ -116,31 +109,25 @@ def skia():
     # by using a custom python wrapper that will redirect to the correct python version
     Platform.setEnviron("PATH=" + os.path.join(ROOT, "tools") + ":" + os.environ.get("PATH", ""))
 
+    skiaArgs = ""
+    for k, v in args.items():
+        skiaArgs += " %s=%s" % (k, json.dumps(v))
+
     return {
-        "location": Deps.Gclient("https://skia.googlesource.com/skia.git", revision="ed4dc2afaa4285a6d10a16fca77d1b9cbe3083d3"),
+        "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", revision="98829b9"),
         "build": [
-            exports + " ./gyp_skia",
-            exports + " make tests " + makeFlags,
-            exports + " make tools " + makeFlags,
+            "python tools/git-sync-deps",
+            "bin/gn gen out/Static --args='%s'" % (skiaArgs),
+            "ninja %s -C out/Static" % ("-v" if Variables.get("verbose") else ""),
         ],
-        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "skia_defines.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_python27.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_jsoncpp.patch"),
-                   os.path.join(CONFIGURE_PATH, "patch", "skia_zlib_osx.patch")],
+        "patchs": [
+            os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
+            os.path.join(CONFIGURE_PATH, "patch", "skia_gr_gl_callback.patch")
+        ],
         "outputs": [
-            "out/Release/libskia_pdf.a",
-            "out/Release/libskia_ports.a",
-            "out/Release/libskia_skgpu.a",
-            "out/Release/libskia_utils.a",
-            "out/Release/libskia_effects.a",
-            "out/Release/libskia_core.a",
-            "out/Release/libskia_sfnt.a",
-            "out/Release/libskia_images.a",
-            "out/Release/libskia_opts_ssse3.a",
-            "out/Release/libskia_opts.a",
+            "out/Static/libskia.a",
             {
-                "src": "out/Release/skdiff",
+                "src": "out/Static/skdiff",
                 "dst": os.path.join(ROOT, "tests", "jsunittest", "gr", "skdiff")
             }
         ]
@@ -257,7 +244,7 @@ def rapidxml():
 @Deps.register("ffmpeg")
 def ffmpeg():
     return {
-        "location": Deps.GitRepo("git://git.ffmpeg.org/ffmpeg.git", tag="n2.5.11"),
+        "location": Deps.GitRepo("git://git.ffmpeg.org/ffmpeg.git", tag="n3.0.7"),
         "patch": [],
         "build":
         [
@@ -349,6 +336,20 @@ def testStudio(unitTests):
     tests.append((nidium[1] + " ../tests/jsunittest/unittests.nml --frontend", nidium[0]))
 
     Tests.register(tests)
+
+@CommandLine.option("--debug-opengl", default=False)
+def glDebug(debug):
+    if not debug:
+        return
+
+    Gyp.set("nidium_gl_debug", 1);
+
+@CommandLine.option("--debug")
+def debug(debug):
+    if not debug:
+        return
+
+    glDebug(True)
 
 Build.add(Gyp("gyp/all.gyp"));
 

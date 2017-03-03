@@ -266,12 +266,9 @@ bool Canvas3DContext::createFBO(int width, int height)
     GL_CALL(GenVertexArrays(1, &m_GLObjects.vao));
     GL_CALL(BindVertexArray(m_GLObjects.vao));
 
-    /*
-        Cull face is enabled by default on WebGL
-    */
+    // Cull face is disable by default on WebGL
     GL_CALL(FrontFace(GR_GL_CCW));
-    GL_CALL(Enable(GR_GL_CULL_FACE));
-    GL_CALL(Enable(GR_GL_TEXTURE_2D));
+    GL_CALL(Disable(GR_GL_CULL_FACE));
 
 #if 0
     GL_CALL(ShadeModel(GL_SMOOTH));
