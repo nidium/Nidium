@@ -38,14 +38,12 @@ namespace Graphics {
 #define NIDIUM_GL_CALL(IFACE, X)                   \
     do {                                           \
         GLContext::GLCallback(IFACE->m_Interface); \
-        NUI_LOG("%s", #X);\
         (IFACE)->m_Interface->fFunctions.f##X;     \
     } while (false)
 
 #define NIDIUM_GL_CALL_RET(IFACE, X, RET)              \
     do {                                               \
         GLContext::GLCallback(IFACE->m_Interface);     \
-        NUI_LOG("%s", #X);\
         (RET) = (IFACE)->m_Interface->fFunctions.f##X; \
     } while (false)
 
@@ -54,7 +52,6 @@ namespace Graphics {
     do {                                                                 \
         uint32_t __err;                                                  \
         GLContext::GLCallback(IFACE->m_Interface);                       \
-        NUI_LOG("%s", #X);\
         (IFACE)->m_Interface->fFunctions.f##X;                           \
         if ((__err = (IFACE)->m_Interface->fFunctions.fGetError())       \
             != GR_GL_NO_ERROR) {                                         \
@@ -66,7 +63,6 @@ namespace Graphics {
     do {                                                                 \
         uint32_t __err;                                                  \
         GLContext::GLCallback(IFACE->m_Interface);                       \
-        NUI_LOG("%s", #X);\
         (RET) = (IFACE)->m_Interface->fFunctions.f##X;                   \
         if ((__err = (IFACE)->m_Interface->fFunctions.fGetError())       \
             != GR_GL_NO_ERROR) {                                         \
