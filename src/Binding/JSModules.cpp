@@ -425,7 +425,6 @@ bool JSModules::init()
         char *originalPaths = strdup(paths);
         char *tmp           = originalPaths;
         int i               = 0;
-		//http://www.cplusplus.com/forum/beginner/43635/
         while ((token = strsep(&tmp, ":")) != NULL && i < 63) {
             m_EnvPaths[i] = strdup(token);
             i++;

@@ -23,6 +23,8 @@
 #endif
 
 
+char* strsep(char** stringp, const char* delim);
+
 namespace Nidium {
 namespace Port {
 

@@ -5,6 +5,28 @@
 */
 #include "Port/MSWindows.h"
 
+#include <cstring>
+
+char* strsep(char** stringp, const char* delim)
+{
+    char* result;
+
+    if ((stringp == NULL) || (*stringp == NULL)) {
+       return NULL;
+    }
+    result = *stringp;
+    while (**stringp && ! std::strchr(delim, **stringp)) {
+       ++*stringp;
+    }
+
+    if (**stringp) {
+       *(*stringp)++ = '\0';
+    } else {
+       *stringp = NULL;
+    }
+
+    return result;
+}
 namespace Nidium {
 namespace Port {
 
