@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 
 #ifdef _MSC_VER
-#include <port/windows.h>
+#include "Port/MSWindows.h"
 #include <prmem.h>
 #else
 #include <fts.h>

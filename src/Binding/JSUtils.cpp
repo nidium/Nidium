@@ -8,7 +8,7 @@
 #include <string.h>
 
 #ifdef _MSC_VER
-#include <port/windows.h>
+#include "Port/MSWindows.h"
 #else
 #include <strings.h>
 #endif

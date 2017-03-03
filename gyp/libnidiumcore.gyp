@@ -110,6 +110,9 @@
         ],
         'conditions': [
             ['OS=="win"', {
+                'sources': [
+                    '../src/Port/MSWindows.cpp'
+                ],
                 'defines': [
                     'DSO_EXTENSION=".lib"'
                 ],

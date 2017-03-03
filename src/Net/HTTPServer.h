@@ -11,7 +11,7 @@
 #include <http_parser.h>
 
 #ifdef _MSC_VER
-#include <port/windows.h>
+#include "Port/MSWindows.h"
 #endif
 
 #include <ape_netlib.h>
