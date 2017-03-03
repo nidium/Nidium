@@ -79,7 +79,7 @@ const s_FnFixStaticRight = Symbol("NodeFunctionFixStaticRight");
 
 const Node = Elements.Node = class extends Canvas {
     constructor(attributes = {}) {
-        super(attributes.width || 10, attributes.height || 10);
+        super(parseInt(attributes.width) || 10, parseInt(attributes.height) || 10);
 
         this.attributes         = attributes;
         this.computedAttributes = {};
@@ -106,8 +106,12 @@ const Node = Elements.Node = class extends Canvas {
         }
 
         // And adjust their height to the content
-        if (!attributes.height) {
-            this.fluidHeight = true;
+        if (!attributes.height || attributes.height == "auto") {
+            this.height = "auto";
+        }
+
+        if (attributes.width == "auto") {
+            this.width = "auto";
         }
 
         this[s_ShadowRoot] = g_CurrentShadow;
@@ -118,6 +122,7 @@ const Node = Elements.Node = class extends Canvas {
         }
 
         this.addEventListener("load", () => {
+            console.log(this.name(), this.width);
             this.fireEvent("mount", {});
         });
     }
@@ -134,6 +139,12 @@ const Node = Elements.Node = class extends Canvas {
     // XXX : Should this be the default for canvas ?
     // {{{ width & height getter/setter
     set width(val) {
+        if (val == "auto") {
+            val = 1;
+            this.fluidWidth = true;
+        } else {
+            this.fluidWidth = false;
+        }
         //this.staticRight    = false;
         this._fixStaticRight = false;
         super.width         = val;
@@ -144,7 +155,12 @@ const Node = Elements.Node = class extends Canvas {
     }
 
     set height(val) {
-        this.fluidHeight = false;
+        if (val == "auto") {
+            this.fluidHeight = true;
+            val = 1;
+        } else {
+            this.fluidHeight = false;
+        }
         super.height     = val;
     }
 
