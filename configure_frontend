@@ -182,7 +182,7 @@ def libzip():
     if Platform.system == "Windows":
         version = Variables.get('msvs_version', 2015)
         toolset = Platform.MSVC.toolset(version)
-        toolchain = "Visual Studio %d %s" % (toolset / 100, version)
+        toolchain = "Visual Studio %d %s" % (int(toolset[1:]) / 10, version)
         output = "./lib/Release/zip.lib"
         build = ['cmake . -G "%s" -DZLIB_LIBRARY=%s/zlib/zlib.lib -DZLIB_INCLUDE_DIR=%s/zlib' % (toolchain, Deps.getDir(), Deps.getDir()),
                 "MSBuild.exe libzip.sln /p:Configuration=Release /p:PlatformToolset=%s" % (toolset)]
