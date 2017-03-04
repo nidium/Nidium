@@ -16,6 +16,8 @@
 
 #ifdef _MSC_VER
 #include <io.h>
+#include <time.h>
+#include <prrng.h>
 #else
 #include <unistd.h>
 #include <sys/syscall.h>
@@ -102,8 +104,20 @@ public:
     template <typename T>
     static T RandInt()
     {
-        int random;
+
         T ret = 0;
+#if _MSC_VER
+        int seed = 0;
+
+        if (PR_GetRandomNoise(&seed, sizeof(seed)) == 0) {
+            seed = time(NULL);
+            //ndm_log(NDM_LOG_WARNING, "Utils", "Cannot find seed for random number.");
+        }
+        srand(seed);
+
+        ret = rand();
+#else
+        int random;
 
         /* TODO: keep open */
         random = open("/dev/urandom", O_RDONLY);
@@ -115,6 +129,7 @@ public:
 
         read(random, &ret, sizeof(T));
         close(random);
+#endif
 
         return ret;
     }
