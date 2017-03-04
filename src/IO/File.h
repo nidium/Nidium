@@ -107,12 +107,12 @@ public:
 
     bool isOpen() const
     {
-        return m_Fd || m_Dir;
+        return m_Fdesc || m_Dir;
     }
 
     bool eof() const
     {
-        return m_Fd == NULL || m_Eof;
+        return m_Fdesc == NULL || m_Eof;
     }
 
     const char *getFullPath() const
@@ -120,9 +120,9 @@ public:
         return m_Path;
     }
 
-    FILE *getFd() const
+    PRFileDesc *getFd() const
     {
-        return m_Fd;
+        return m_Fdesc;
     }
 
     PRDir *GetDir() const
@@ -148,17 +148,17 @@ private:
         }
         if (m_isDir && m_Dir) {
             PR_CloseDir(m_Dir);
-        } else if (m_Fd) {
-            fclose(m_Fd);
+        } else if (m_Fdesc) {
+            PR_Close(m_Fdesc);
         }
 
-        m_Fd    = NULL;
+        m_Fdesc = NULL;
         m_Dir   = NULL;
         m_isDir = false;
     }
 
     PRDir *m_Dir;
-    FILE *m_Fd;
+    PRFileDesc *m_Fdesc;
 
     Nidium::Core::Messages *m_Delegate;
     char *m_Path;
@@ -170,8 +170,9 @@ private:
 
     struct
     {
-        size_t size;
         void *addr;
+        PRFileMap *fmap;
+        size_t size;
     } m_Mmap;
 };
 
