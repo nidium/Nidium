@@ -9,7 +9,7 @@
             document.canvas.ctx.fillStyle = "#111219";
             document.canvas.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-            var logo = document.getCanvasById("logo");
+            var logo = document.canvas.shadowRoot.getElementById("logo");
             logo.left = (window.innerWidth-64)*0.5;
             logo.opacity = 0;
 

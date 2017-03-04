@@ -6,7 +6,7 @@
 
 const Elements = module.exports = {};
 
-const ElementStyles = require("./Styles.js");
+const StyleContainer = require("./../StyleContainer.js");
 const ShadowRoot    = require("../../ShadowRoot.js");
 const s_ShadowRoot  = require("../../Symbols.js").ElementShadowRoot;
 const s_NodeName    = Symbol("NodeName");
@@ -434,7 +434,7 @@ Elements.Element = class extends Elements.Node {
             this.opacity = attributes.opacity;
         }
 
-        this.style = new ElementStyles(this);
+        this.style = new StyleContainer(this);
 
         //this.onload = this.onpaint;
         this.onresize = this.onpaint;
