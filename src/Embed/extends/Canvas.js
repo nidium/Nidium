@@ -5,7 +5,7 @@
 */
 
 {
-    const s_ShadowRoot = require("./Symbols.js").ElementShadowRoot;
+    const s_ShadowRoot = require("../Symbols.js").ElementShadowRoot;
 
     Canvas.prototype.addMultiple = function(...canvases) {
         for (let canvas of canvases) {
