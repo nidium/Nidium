@@ -1,5 +1,5 @@
 /*
-   Copyright 2016 Nidium Inc. All rights reserved.
+   Copyright 2017 Nidium Inc. All rights reserved.
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
@@ -13,11 +13,13 @@ const s_NodeName    = Symbol("NodeName");
 const s_NodeID      = Symbol("NodeID");
 
 const g_MainShadow  = new ShadowRoot(document.canvas, {"name": "main"});
+
 Object.defineProperty(document.canvas, "shadowRoot", {
     "writable": false,
     "configurable": false,
     "value": g_MainShadow
 });
+
 let g_CurrentShadow = null;
 
 Elements.Create = function(tag, attributes, shadowRoot=g_MainShadow) {
@@ -29,7 +31,7 @@ Elements.Create = function(tag, attributes, shadowRoot=g_MainShadow) {
 
     try {
         if (!(tag in Elements)) {
-            throw Error(`Tag <${tag}> is not implemented`);
+            throw Error(`<${tag}> is not implemented.`);
             return;
         }
 
@@ -59,12 +61,12 @@ Elements.Loader = function(attributes) {
         try {
             data = File.readSync(src, {"encoding": "utf-8"});
         } catch (e) {
-            console.error(`Failed to load ${src} : ${e}`);
+            console.error(`Failed to load ${src}: ${e}`);
             return "";
         }
 
         if (!data) {
-            console.warn(`No data for ${src}`);
+            console.warn(`${src} is empty.`);
             return "";
         }
     }
@@ -106,13 +108,8 @@ const Node = Elements.Node = class extends Canvas {
         }
 
         // And adjust their height to the content
-        if (!attributes.height || attributes.height == "auto") {
-            this.height = "auto";
-        }
-
-        if (attributes.width == "auto") {
-            this.width = "auto";
-        }
+        this.height = attributes.height ? attributes.height : "auto";
+        this.width = attributes.width ? attributes.width : "auto";
 
         this[s_ShadowRoot] = g_CurrentShadow;
         this[s_ShadowRoot].addTag(this.name(), this);
@@ -122,16 +119,16 @@ const Node = Elements.Node = class extends Canvas {
         }
 
         this.addEventListener("load", () => {
-            console.log(this.name(), this.width);
+            console.log("mounted", this.name(), this.width);
             this.fireEvent("mount", {});
         });
     }
 
     [s_FnFixStaticRight]() {
-        var p = Canvas.prototype.getParent.call(this);
+        var parent = Canvas.prototype.getParent.call(this);
         if (!this._fixStaticRight) return;
 
-        super.width = p.width;
+        super.width = parent.width;
     }
 
     // Setting width or height, must disable fluidWidth and
@@ -145,9 +142,9 @@ const Node = Elements.Node = class extends Canvas {
         } else {
             this.fluidWidth = false;
         }
-        //this.staticRight    = false;
+        //this.staticRight = false;
         this._fixStaticRight = false;
-        super.width         = val;
+        super.width = val;
     }
 
     get width() {
@@ -161,7 +158,7 @@ const Node = Elements.Node = class extends Canvas {
         } else {
             this.fluidHeight = false;
         }
-        super.height     = val;
+        super.height = val;
     }
 
     get height() {
@@ -233,6 +230,7 @@ const Node = Elements.Node = class extends Canvas {
 
     getParent() {
         let p = super.getParent();
+        
         if (!p || p[s_ShadowRoot] != this[s_ShadowRoot]) {
             return null;
         } else {
@@ -246,11 +244,8 @@ const Node = Elements.Node = class extends Canvas {
         }
 
         var parent = child.getParent();
-        if (!parent) {
-            return;
-        }
 
-        if (parent.idx != this.idx) {
+        if (!parent || parent.idx != this.idx) {
             return;
         }
 
@@ -264,7 +259,7 @@ const Node = Elements.Node = class extends Canvas {
 
     add(child) {
         if (!this.allowsChild()) {
-            throw Error(`<${this.name()}> does not support children`);
+            throw Error(`<${this.name()}> can't have children.`);
         }
         this[s_ShadowRoot].add(child);
         return super.add(child);
@@ -293,13 +288,16 @@ const Node = Elements.Node = class extends Canvas {
     set textContent(value) {
         /* Don't create a node if there is already a textNode as an only child */
         var c = this.getChildren();
+        
         if (c.length == 1 && c[0].nodeType == Node.TEXT_NODE) {
             c[0].nodeValue = value;
             return;
         }
 
         this.empty();
-        this.add(Elements.Create("textnode", value));
+        this.add(
+            Elements.Create("textnode", value)
+        );
     }
 
     get textContent() {
@@ -311,7 +309,7 @@ const Node = Elements.Node = class extends Canvas {
     }
 
     get firstChild() {
-        console.log("Firstchild...");
+        return this.getChildren()[0] || null;
     }
 
     get tagName() {
@@ -353,7 +351,7 @@ const Node = Elements.Node = class extends Canvas {
     }
 
     setAttribute(attr, value) {
-        switch(attr) {
+        switch (attr) {
             case 'height':
                 this.height = parseInt(value);
                 break;
@@ -385,6 +383,7 @@ const Node = Elements.Node = class extends Canvas {
 
     getRootNode(options={}) {
         let p = Canvas.prototype.getParent.call(this);
+        
         while (p) {
             if (!options.composed && p.shadowRoot) {
                 return p;
@@ -392,6 +391,7 @@ const Node = Elements.Node = class extends Canvas {
 
             p = Canvas.prototype.getParent.call(p);
         }
+
         return p;
     }
 
@@ -467,208 +467,12 @@ Elements.Element = class extends Elements.Node {
     }
 }
 
-const s_NodeText = Symbol("NodeText");
-const s_FnParentWidth = Symbol("FunctionTextNodeParentWidth");
-Elements.textnode = class extends Elements.Element {
-
-    constructor(textValue) {
-        super(1, 1);
-        this.nodeValue   = textValue;
-        this.fluidHeight = false;
-        this.fluidWidth  = false;
-    }
-
-    cloneNode(deep = true, shadowRoot=this[s_ShadowRoot]) {
-        return Elements.Create(this.name(), this.nodeValue, shadowRoot);
-    }
-
-    getNMLContent() {
-        return this.nodeValue;
-    }
-
-    set textContent(value) {
-        this.nodeValue = value;
-    }
-
-    allowsChild() {
-        return false;
-    }
-
-    get nodeValue() {
-        return this[s_NodeText];
-    }
-
-    set nodeValue(textValue) {
-        this[s_NodeText] = textValue.trim();
-        this.requestPaint();
-        this.fireEvent("nodeValueChanged", textValue);
-    }
-
-    get nodeType() {
-        return Node.TEXT_NODE;
-    }
-
-    [s_FnParentWidth](el=this) {
-        let p = Canvas.prototype.getParent.call(el);
-        if (!p) {
-            return window.innerWidth;
-        }
-
-        // If the parent has an adaptive width,
-        // keep searching for the maximum size
-        if (p.fluidWidth || p._fixStaticRight /* p.staticRight */) {
-            return this[s_FnParentWidth](p);
-        }
-
-        return p.width;
-    }
-
-    paint(ctx) {
-        super.paint(ctx);
-        let maxWidth    = this[s_FnParentWidth]();
-        let actualWidth = 1;
-
-        // FIXME : Get these values from inherited styles
-        let fontSize    = 15;
-        let lineHeight  = 20;
-        let color       = "black";
-        let offset      = Math.ceil(lineHeight/2);
-
-        ctx.fontSize        = fontSize;
-        ctx.fillStyle       = color;
-        ctx.textBaseline    = "middle";
-
-        let data = ctx.breakText(this.nodeValue, maxWidth);
-
-        for (var i = 0; i < data.lines.length; i++) {
-            let tmp = ctx.measureText(data.lines[i])
-            if (tmp.width > actualWidth) actualWidth = tmp.width;
-
-            ctx.fillText(data.lines[i], 0, i * lineHeight + offset);
-        }
-
-        this.width  = actualWidth;
-        this.height = lineHeight * data.lines.length;
-    }
-}
-
 Elements.element = class extends Elements.Element { }
-
-Elements.canvas = class extends Elements.Element {
-    /*
-        regular <canvas> are "low level"
-        Don't clear the buffer
-    */
-    onpaint() {}
-}
-
-Elements.uibutton = class extends Elements.Element {
-    constructor(attributes) {
-        super(attributes);
-
-        this.cursor = "pointer";
-        this.position = "inline";
-
-        this.on("mouseup", function(ev) {
-            AnimationBlock(500, Easing.Back.Out, function(btn) {
-
-                /* TODO: stopPropagation doesn't work? */
-                ev.stopPropagation();
-
-
-            }, this);
-        });
-    }
-
-    paint(ctx) {
-        ctx.fillStyle = "#aaa";
-        ctx.stokeStyke = "#111";
-
-        ctx.fillRect(0, 0, this.width, this.height, 15, 15);
-        ctx.strokeRect(0, 0, this.width-0.5, this.height-0.5, 15, 15);
-    }
-}
-
-Elements.section = class extends Elements.Element {
-    constructor(attributes) {
-        super(attributes);
-
-        var mr = (min=100, max=200) => min + Math.floor(Math.random()*(max-min));
-        this._color = `rgba(${mr(70, 100)}, ${mr(120, 200)}, ${mr(140, 210)}, 0.8)`;
-    }
-
-    paint(ctx) {
-        ctx.fillStyle = this._color;
-        ctx.fillRect(0, 0, this.width, this.height);
-        ctx.strokeStyle = "rgb(0, 255, 255)";
-        ctx.strokeRect(0.5, 0.5, this.width-1, this.height-1);
-
-        if (this.computedAttributes.label) {
-            ctx.fillStyle = "#000";
-            ctx.textAlign = "center";
-            ctx.fontSize = 20;
-            ctx.fillText(this.computedAttributes.label, this.width / 2, this.height - 20);
-        }
-    }
-}
-
 Elements.none = Elements.Element;
 
-Elements.div = class extends Elements.Element {
-    constructor(attributes) {
-        super(attributes);
-        this.position = "inline";
-        this.staticRight = true;
-        this.right = 0;
-    }
-
-    paint(ctx) {
-        super.paint(ctx)
-        ctx.fillStyle = "#000";
-        ctx.fillText(this._textValue, 0, this.height/2+4);
-    }
-
-    onmount() {
-        this.width = this.getParent().width;
-    }
-}
-
-Elements.img = class extends Elements.Element {
-    constructor(attributes) {
-        super(attributes);
-        this.src = attributes.src;
-        this._loaded = false;
-    }
-
-    set src(value) {
-        this._src = value;
-        this._img = new Image();
-        this._img.src = value;
-
-        this._img.onload = () => {
-            this._loaded = true;
-
-            if (this.attributes.onload) {
-                this.attributes.onload.call(this, this._img);
-            }
-
-            this.setSize(this._img.width, this._img.height);
-            this.requestPaint();
-        }
-    }
-
-    get src() {
-        return this._src;
-    }
-
-    paint(ctx) {
-        if (this._loaded) {
-            ctx.drawImage(this._img, 0, 0);
-        }
-    }
-
-}
-
+/**
+ * Node extends
+ */
 load("embed://lib/Elements/layout.js");
 load("embed://lib/Elements/nss.js");
 load("embed://lib/Elements/script.js");
@@ -676,6 +480,16 @@ load("embed://lib/Elements/template.js");
 load("embed://lib/Elements/component.js");
 load("embed://lib/Elements/slot.js");
 
-window._onready = function(lst) {}
+/*
+ * Native UI Controls and NML tags
+ */
+load("embed://lib/Elements/controls/button.js");
+load("embed://lib/Elements/controls/canvas.js");
+load("embed://lib/Elements/controls/div.js");
+load("embed://lib/Elements/controls/img.js");
+load("embed://lib/Elements/controls/section.js");
+load("embed://lib/Elements/controls/textnode.js");
+
+window._onready = function(lst){};
 
 module.exports = Elements;

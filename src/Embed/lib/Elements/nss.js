@@ -36,6 +36,7 @@
 
         createTree(children) {
             let nss = this.data;
+            
             if (!nss) {
                 nss = children[0].text;
             }

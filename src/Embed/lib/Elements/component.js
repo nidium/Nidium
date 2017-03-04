@@ -124,14 +124,14 @@
                 if (Object.keys(componentClass).length > 0) {
                     throw new Error("You cannot export more than one Component");
                 } else {
-                    console.info(`JavaScript implementation for component "${this.name()}" not found. Using default component.`);
+                    console.info(`Missing JavaScript implementation for component "${this.name()}". Using default component.`);
                 }
 
                 componentClass = eval("(function() { return class extends Component {} })()");
             }
 
             if (!Component.isPrototypeOf(componentClass)) {
-                throw new Error(`Failed to load component "${this.name}" only class extending Component can be exported`);
+                throw new Error(`Failed to load component "${this.name}". Only class extending Component can be exported.`);
             }
 
             this[s_ComponentClass] = componentClass;

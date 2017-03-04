@@ -2,6 +2,7 @@ const s_ShadowRoot = require("../../Symbols").ElementShadowRoot;
 
 function proxyStyleSet(el, styles, name, value) {
     let p = Canvas.prototype.getParent.call(el);
+
     switch (name) {
         case "width":
         case "height":
@@ -12,6 +13,7 @@ function proxyStyleSet(el, styles, name, value) {
                 el[name] = value;
             }
             break;
+    
         case "left":
         case "right":
             if (value && value[value.length -1] == "%") {
@@ -21,6 +23,7 @@ function proxyStyleSet(el, styles, name, value) {
                 el[name] = value;
             }
             break;
+    
         case "top":
         case "bottom":
             if (value && value[value.length -1] == "%") {
