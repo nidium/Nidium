@@ -22,8 +22,10 @@
 #define S_ISREG(mode)  (((mode) & S_IFMT) == S_IFREG)
 #endif
 
-
+//http ://stackoverflow.com/questions/40159892/using-asprintf-on-windows
 char* strsep(char** stringp, const char* delim);
+int vasprintf(char **strp, const char *fmt, va_list ap);
+int asprintf(char **strp, const char *fmt, ...);
 
 namespace Nidium {
 namespace Port {
