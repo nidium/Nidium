@@ -21,8 +21,10 @@ public:
 
     static JSFunctionSpec *ListMethods();
 protected:
+#ifndef _MSC_VER
     NIDIUM_DECL_JSCALL(getOwner);
     NIDIUM_DECL_JSCALL(setOwner);
+#endif
     NIDIUM_DECL_JSCALL(setSignalHandler);
     NIDIUM_DECL_JSCALL(exit);
     NIDIUM_DECL_JSCALL(shutdown);

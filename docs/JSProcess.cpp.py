@@ -42,7 +42,9 @@ FunctionDoc("NidiumProcess.setOwner", """Set a user (and optional a group) to a 
 
 The `setOwner` function is permitted if the effective user/group name is that of the super user, or if the specified user/group name is the same as the effective user/group name.
 
-On failure this function throws an exception.""",
+On failure this function throws an exception.
+Note: This function is only available on POSIX platforms (i.e. not Windows)
+""",
     SeesDocs("global.process|NidiumProcess|NidiumProcess.getOwner"),
     [ExampleDoc("""NidiumProcess.setOwner('daemon', 'www-data');""")],
     IS_Dynamic, IS_Public, IS_Fast,
@@ -53,8 +55,10 @@ On failure this function throws an exception.""",
     NO_Returns
 )
 
-FunctionDoc("NidiumProcess.getOwner", """Return an object with information about the owner of the process.""",
-    SeesDocs("global.process|NidiumProcess|NidiumProcess.setOwner"),
+FunctionDoc("NidiumProcess.getOwner", """Return an object with information about the owner of the process.
+
+Note: This function is only available on POSIX platforms (i.e. not Windows)""",
+ SeesDocs("global.process|NidiumProcess|NidiumProcess.setOwner"),
     [ExampleDoc("""NidiumProcess.setOwner('daemon', 'www-data');""")],
     IS_Dynamic, IS_Public, IS_Fast,
     NO_Params,
