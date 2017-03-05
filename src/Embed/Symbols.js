@@ -6,5 +6,6 @@
 
 module.exports = {
     "ElementShadowRoot": Symbol("ElementShadowRoot"),
+    "ElementShadowHost": Symbol("ElementShadowHost"),
     "ComponentShadowRoot": Symbol("ComponentShadowRoot")
 }

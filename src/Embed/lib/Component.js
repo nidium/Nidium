@@ -5,7 +5,9 @@
  */
 
 const Elements          = require("Elements");
-const s_ComponentShadow = require("../Symbols").ComponentShadowRoot;
+const s_ComponentShadow = require("../Symbols.js").ComponentShadowRoot;
+const s_ShadowHost      = require("../Symbols.js").ElementShadowHost;
+const s_ShadowRoot      = require("../Symbols.js").ElementShadowRoot;
 
 function findUserSlots(children, ret) {
     if (!ret) ret = new Map();
@@ -71,7 +73,7 @@ class Component extends Elements.Element {
         }
 
         // Slot handling
-        let parentShadow    = Canvas.prototype.getParent.call(this).getRootNode().shadowRoot;
+        let parentShadow    = this[s_ShadowRoot];
         let shadowSlots     = this.shadowRoot.findNodesByTag("slot");
         let userSlots       = findUserSlots(children);
 

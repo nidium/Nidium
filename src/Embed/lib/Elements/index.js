@@ -9,6 +9,7 @@ const Elements = module.exports = {};
 const StyleContainer = require("./../StyleContainer.js");
 const ShadowRoot    = require("../../ShadowRoot.js");
 const s_ShadowRoot  = require("../../Symbols.js").ElementShadowRoot;
+const s_ShadowHost  = require("../../Symbols.js").ElementShadowHost;
 const s_NodeName    = Symbol("NodeName");
 const s_NodeID      = Symbol("NodeID");
 
@@ -119,7 +120,6 @@ const Node = Elements.Node = class extends Canvas {
         }
 
         this.addEventListener("load", () => {
-            console.log("mounted", this.name(), this.width);
             this.fireEvent("mount", {});
         });
     }
@@ -261,7 +261,10 @@ const Node = Elements.Node = class extends Canvas {
         if (!this.allowsChild()) {
             throw Error(`<${this.name()}> can't have children.`);
         }
-        this[s_ShadowRoot].add(child);
+
+        if (this.shadowRoot) this.shadowRoot.add(child);
+        else if (this[s_ShadowRoot]) this[s_ShadowRoot].add(child);
+
         return super.add(child);
     }
 
@@ -377,8 +380,7 @@ const Node = Elements.Node = class extends Canvas {
     }
 
     get shadowRoot() {
-        let shadow = this[s_ShadowRoot];
-        return shadow && shadow.host == this ? shadow : null;
+        return this[s_ShadowHost];
     }
 
     getRootNode(options={}) {
@@ -408,7 +410,7 @@ const Node = Elements.Node = class extends Canvas {
 
     createTree(children) {
         if (this.allowsChild()) {
-            NML.CreateTree(children, this, this[s_ShadowRoot]);
+            NML.CreateTree(children, this, this.shadowRoot ? this.shadowRoot : this[s_ShadowRoot]);
         }
     }
 

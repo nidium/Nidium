@@ -5,6 +5,7 @@
  */
 
 const s_ShadowRoot  = require("./Symbols.js").ElementShadowRoot;
+const s_ShadowHost  = require("./Symbols.js").ElementShadowHost;
 const Elements      = require("Elements");
 
 class ShadowRoot {
@@ -21,7 +22,7 @@ class ShadowRoot {
         this.nssList = [];
         this.nss = null;
 
-        host[s_ShadowRoot] = this;
+        host[s_ShadowHost] = this;
 
         if (this.jsScope) {
             // TODO : Override document with a proxy ?
