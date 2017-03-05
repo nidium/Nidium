@@ -20,6 +20,8 @@
 
 #include <algorithm>
 
+#include <prlink.h>
+#include <prerror.h>
 #include <json/json.h>
 #include <jsfriendapi.h>
 
@@ -133,14 +135,15 @@ bool JSModule::initNative()
         return false;
     }
 
-    void *module = dlopen(m_FilePath->path(), RTLD_LAZY);
+    PRLibrary *module = PR_LoadLibrary(m_FilePath->path());
+    //todo close the module with PR_UNloadLibrary. See PullRequest 59
     if (!module) {
-        NLOG("Failed to open module : %s\n", dlerror());
+        NLOG("Failed to open module : %d\n", (int) PR_GetError());
         return false;
     }
 
     register_module_t registerModule = reinterpret_cast<register_module_t>(
-        dlsym(module, "__NidiumRegisterModule"));
+        PR_FindSymbol(module, "__NidiumRegisterModule"));
     if (registerModule && !registerModule(m_Cx, exports)) {
         NLOG("Failed to register module\n");
         return false;
