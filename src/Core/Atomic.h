@@ -16,6 +16,7 @@ public:
 #if defined(_MSC_VER)
 // {{{ MSC Implementation
 #include <intrin.h>
+#include <WinBase.h>
 
 // MSDN says in order to declare an interlocked function for use as an
 // intrinsic, include intrin.h and put the function in a #pragma intrinsic
