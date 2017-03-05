@@ -4,6 +4,7 @@
    that can be found in the LICENSE file.
 */
 #include "Core/Context.h"
+
 #include "Core/Path.h"
 #include "Core/TaskManager.h"
 #include "Core/Messages.h"

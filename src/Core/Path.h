@@ -40,7 +40,6 @@ extern char *g_m_Root;
 extern char *g_m_Cwd;
 
 #define SCHEME_DEFINE(prefix, streamclass, keepprefix)                   \
-    static_cast<struct Nidium::Core::Path::schemeInfo>(                  \
     {                                                                    \
         /*.str                  = */ prefix,                             \
         /*.base                 = */ streamclass::CreateStream,          \
@@ -48,7 +47,7 @@ extern char *g_m_Cwd;
         /*.keepPrefix           = */ keepprefix,                         \
         /*.AllowLocalFileStream = */ streamclass::AllowLocalFileStream,  \
         /*.AllowSyncStream      = */ streamclass::AllowSyncStream        \
-    })
+    }
 
 #define URLSCHEME_MATCH(url, scheme) \
     (strcmp(Nidium::Core::Path::GetScheme(url)->str, scheme "://") == 0)
