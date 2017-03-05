@@ -117,6 +117,11 @@
                     'DSO_EXTENSION=".lib"'
                 ],
             }],
+            ['OS!="win"', {
+                'sources': [
+                    '../src/Port/MSWindows.cpp'
+                ],
+            }],
             ['OS=="mac"', {
                 'defines': [
                     'DSO_EXTENSION=".dylib"'

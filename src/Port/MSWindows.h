@@ -22,6 +22,10 @@
 #define S_ISREG(mode)  (((mode) & S_IFMT) == S_IFREG)
 #endif
 
+//http://stackoverflow.com/questions/33696092/whats-the-correct-replacement-for-posix-memalign-in-windows
+#define posix_memalign(p, a, s) (((*(p)) = _aligned_malloc((s), (a))), *(p) ?0 :errno)
+#define posix_memalign_free _aligned_free
+
 //http ://stackoverflow.com/questions/40159892/using-asprintf-on-windows
 char* strsep(char** stringp, const char* delim);
 int vasprintf(char **strp, const char *fmt, va_list ap);
