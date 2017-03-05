@@ -121,6 +121,7 @@ public:
         LOADED_EVENT,
         CHANGE_EVENT,
         MOUSE_EVENT,
+        TOUCH_EVENT,
         DRAG_EVENT,
         PAINT_EVENT,
         MOUNT_EVENT,

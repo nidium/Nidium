@@ -122,6 +122,8 @@ protected:
 
 private:
     Graphics::CanvasHandler *m_CanvasHandler;
+
+    bool fireInputEvent(int event, JS::HandleObject ev, const Core::SharedMessages::Message &msg);
 };
 
 } // namespace Binding

@@ -24,7 +24,8 @@ namespace Frontend {
 
 static const char *InputEvent_Names[]
     = { "mousemove", "mousedown", "mouseup", "dblclick", "dragstart",
-        "dragend",   "dragover",  "drop",    "drag",     "mousewheel" };
+        "dragend",   "dragover",  "drop",    "drag",     "mousewheel",
+        "touchstart", "touchend", "touchmove" };
 
 
 class InputEvent
@@ -41,7 +42,10 @@ public:
         kMouseDragOver_Type,
         kMouseDrop_Type,
         kMouseDrag_Type,
-        kMouseWheel_Type
+        kMouseWheel_Type,
+        kTouchStart_Type,
+        kTouchEnd_Type,
+        kTouchMove_Type
     };
 
     InputEvent(Type type,

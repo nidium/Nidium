@@ -13,6 +13,7 @@
 #include <js/GCAPI.h>
 
 #include "Binding/JSCanvas2DContext.h"
+#include "Interface/SystemInterface.h"
 #include "Macros.h"
 
 using Nidium::Core::Args;
@@ -1317,10 +1318,12 @@ void CanvasHandler::onMouseEvent(InputEvent *ev)
 
 /*
     Called by Context whenever there are pending events on this canvas
-    Currently only handle mouse events.
+    Currently only handle mouse & touch events.
 */
 bool CanvasHandler::_handleEvent(InputEvent *ev)
 {
+    Events canvasEvent = MOUSE_EVENT;
+
     for (CanvasHandler *handler = this; handler != NULL;
          handler = handler->getParent()) {
 
@@ -1329,20 +1332,41 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
         arg[0].set(ev->getType());
         arg[1].set(ev->m_x);
         arg[2].set(ev->m_y);
-        arg[3].set(ev->m_data[0]);     // xrel
-        arg[4].set(ev->m_data[1]);     // yrel
-        arg[5].set(ev->m_x - m_aLeft); // layerX
-        arg[6].set(ev->m_y - m_aTop);  // layerY
-        arg[7].set(this);              // target
+
+        switch (ev->getType()) {
+            case InputEvent::kMouseMove_Type:
+            case InputEvent::kMouseClick_Type:
+            case InputEvent::kMouseClickRelease_Type:
+            case InputEvent::kMouseDoubleClick_Type:
+            case InputEvent::kMouseDragStart_Type:
+            case InputEvent::kMouseDragEnd_Type:
+            case InputEvent::kMouseDragOver_Type:
+            case InputEvent::kMouseDrop_Type:
+            case InputEvent::kMouseDrag_Type:
+            case InputEvent::kMouseWheel_Type:
+                arg[3].set(ev->m_data[0]);     // xrel
+                arg[4].set(ev->m_data[1]);     // yrel
+                arg[5].set(ev->m_x - m_aLeft); // layerX
+                arg[6].set(ev->m_y - m_aTop);  // layerY
+                arg[7].set(this);              // target
+                break;
+            case InputEvent::kTouchStart_Type:
+            case InputEvent::kTouchEnd_Type:
+            case InputEvent::kTouchMove_Type:
+                arg[3].set(this); // target
+                canvasEvent = TOUCH_EVENT;
+                break;
+        }
 
         /* fireEvent returns false if a stopPropagation is detected */
-        if (!handler->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT,
-                                               arg)) {
+        if (!handler->fireEvent<CanvasHandler>(canvasEvent, arg)) {
             break;
         }
     }
 
-    this->onMouseEvent(ev);
+    if (canvasEvent == MOUSE_EVENT) {
+        this->onMouseEvent(ev);
+    }
 
     return true;
 }

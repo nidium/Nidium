@@ -14,6 +14,7 @@
 #include "Net/HTTPStream.h"
 #include "SystemInterface.h"
 #include "Frontend/Context.h"
+#include "Frontend/InputHandler.h"
 #include "Graphics/GLHeader.h"
 #include "Binding/JSWindow.h"
 #include "SDL_keycode_translate.h"
@@ -30,6 +31,7 @@ using Nidium::Net::HTTPStream;
 using Nidium::Binding::JSWindow;
 using Nidium::Frontend::Context;
 using Nidium::Frontend::NML;
+using Nidium::Frontend::InputEvent;
 
 namespace Nidium {
 namespace Interface {
@@ -140,6 +142,25 @@ void UIInterface::handleEvent(const SDL_Event *event)
                 }
             }
             break;
+        case SDL_FINGERMOTION:
+        case SDL_FINGERDOWN:
+        case SDL_FINGERUP: {
+            int width, height;
+            this->getScreenSize(&width, &height);
+
+            int x = event->tfinger.x * width;
+            int y = event->tfinger.y * height;
+
+            InputEvent::Type eventType = InputEvent::kTouchMove_Type;
+            if (event->type != SDL_FINGERMOTION) {
+                eventType = event->type == SDL_FINGERUP
+                                ? InputEvent::kTouchEnd_Type
+                                : InputEvent::kTouchStart_Type;
+            }
+
+            InputEvent *ev = new InputEvent(eventType, x, y);
+            m_NidiumCtx->getInputHandler()->pushEvent(ev);
+        } break;
         case SDL_TEXTINPUT:
             if (window && &event->text.text[0]
                 && strlen(event->text.text) > 0) {

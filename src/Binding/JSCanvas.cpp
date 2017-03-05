@@ -1659,21 +1659,21 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
                     break;
             }
 
-            JS::RootedValue evVal(cx, obj.jsval());
-            if (!this->fireJSEvent(InputEvent::GetName(msg.m_Args[1].toInt()),
-                                   &evVal)) {
+            if (!this->fireInputEvent(msg.m_Args[1].toInt(), eventObj, msg)) {
                 break;
             }
+        } break;
+        case NIDIUM_EVENT(CanvasHandler, TOUCH_EVENT): {
+            JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
+            CanvasHandler *target
+                = static_cast<CanvasHandler *>(msg.m_Args[4].toPtr());
+            JSObjectBuilder obj(m_Cx, eventObj);
+            obj.set("x", msg.m_Args[2].toInt());
+            obj.set("y", msg.m_Args[3].toInt());
+            obj.set("target", target->m_JsObj);
 
-            JS::RootedValue cancelBubble(cx);
-            JS::RootedObject robj(cx, obj.obj());
-            if (JS_GetProperty(cx, robj, "cancelBubble", &cancelBubble)) {
-                if (cancelBubble.isBoolean() && cancelBubble.toBoolean()) {
-                    /* TODO: sort out this dirty hack */
-                    SharedMessages::Message *nonconstmsg
-                        = (SharedMessages::Message *)&msg;
-                    nonconstmsg->m_Priv = 1;
-                }
+            if (!this->fireInputEvent(msg.m_Args[1].toInt(), eventObj, msg)) {
+                break;
             }
         } break;
         default:
@@ -1694,6 +1694,28 @@ JSCanvas::JSCanvas(CanvasHandler *handler)
         Trigger "loaded" event if not lazy loaded
     */
     m_CanvasHandler->checkLoaded(true);
+}
+
+bool JSCanvas::fireInputEvent(int ev, JS::HandleObject evObj, const Core::SharedMessages::Message &msg)
+{
+    JS::RootedValue evVal(m_Cx);
+    evVal.setObjectOrNull(evObj);
+    if (!this->fireJSEvent(InputEvent::GetName(msg.m_Args[1].toInt()),
+                           &evVal)) {
+        return false;
+    }
+
+    JS::RootedValue cancelBubble(m_Cx);
+    if (JS_GetProperty(m_Cx, evObj, "cancelBubble", &cancelBubble)) {
+        if (cancelBubble.isBoolean() && cancelBubble.toBoolean()) {
+            /* TODO: sort out this dirty hack */
+            SharedMessages::Message *nonconstmsg
+                = (SharedMessages::Message *)&msg;
+            nonconstmsg->m_Priv = 1;
+        }
+    }
+
+    return true;
 }
 
 JSCanvas::~JSCanvas()
