@@ -117,14 +117,14 @@ public:
 
     enum Events
     {
-        RESIZE_EVENT = 1,
-        LOADED_EVENT,
-        CHANGE_EVENT,
-        MOUSE_EVENT,
-        DRAG_EVENT,
-        PAINT_EVENT,
-        MOUNT_EVENT,
-        UNMOUNT_EVENT
+        kEvents_Resize = 1,
+        kEvents_Loaded,
+        kEvents_Change,
+        kEvents_Mouse,
+        kEvents_Drag,
+        kEvents_Paint,
+        kEvents_Mount,
+        kEvents_Unmount
     };
 
     enum Position

@@ -34,7 +34,7 @@ JSVideo::JSVideo(Canvas2DContext *canvasCtx, JSContext *cx)
 
 void JSVideo::onSourceMessage(const SharedMessages::Message &msg)
 {
-    if (msg.event() == NIDIUM_EVENT(CanvasHandler, RESIZE_EVENT)
+    if (msg.event() == NIDIUM_EVENT(CanvasHandler, kEvents_Resize)
         && (m_Width == -1 || m_Height == -1)) {
         this->setSize(m_Width, m_Height);
     } else {

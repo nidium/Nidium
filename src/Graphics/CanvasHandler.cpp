@@ -245,7 +245,7 @@ void CanvasHandler::deviceSetSize(int width, int height)
 
     arg[0].set(width);
     arg[1].set(height);
-    this->fireEvent<CanvasHandler>(RESIZE_EVENT, arg);
+    this->fireEvent<CanvasHandler>(kEvents_Resize, arg);
 }
 
 
@@ -402,7 +402,7 @@ void CanvasHandler::addChild(CanvasHandler *insert,
     m_nChildren++;
 
     //Args arg;
-    //insert->fireEventSync<CanvasHandler>(MOUNT_EVENT, arg);
+    //insert->fireEventSync<CanvasHandler>(kEvents_Mount, arg);
 
 }
 
@@ -443,7 +443,7 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
     m_Prev   = NULL;
 #if 0
     Args arg;
-    this->fireEventSync<CanvasHandler>(UNMOUNT_EVENT, arg);
+    this->fireEventSync<CanvasHandler>(kEvents_Unmount, arg);
 #endif
 }
 
@@ -1184,12 +1184,12 @@ bool CanvasHandler::checkLoaded(bool async)
         Args arg;
 
         if (async) {
-            this->fireEvent<CanvasHandler>(LOADED_EVENT, arg, true);
+            this->fireEvent<CanvasHandler>(kEvents_Loaded, arg, true);
 
             return true;
         }
 
-        this->fireEventSync<CanvasHandler>(LOADED_EVENT, arg);
+        this->fireEventSync<CanvasHandler>(kEvents_Loaded, arg);
         return true;
     }
 
@@ -1199,7 +1199,7 @@ bool CanvasHandler::checkLoaded(bool async)
 void CanvasHandler::paint()
 {
     Args arg;
-    this->fireEventSync<CanvasHandler>(PAINT_EVENT, arg);
+    this->fireEventSync<CanvasHandler>(kEvents_Paint, arg);
 }
 
 void CanvasHandler::propertyChanged(EventsChangedProperty property)
@@ -1218,7 +1218,7 @@ void CanvasHandler::propertyChanged(EventsChangedProperty property)
             break;
     }
 
-    this->fireEvent<CanvasHandler>(CHANGE_EVENT, arg, true);
+    this->fireEvent<CanvasHandler>(kEvents_Change, arg, true);
 }
 
 // {{{ Events
@@ -1246,13 +1246,13 @@ void CanvasHandler::onDrag(InputEvent *ev, CanvasHandler *target, bool end)
         m_Flags |= kDrag_Flag;
     }
 
-    this->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg);
+    this->fireEvent<CanvasHandler>(CanvasHandler::kEvents_Mouse, arg);
 
     if (!end) {
         arg[0].set(InputEvent::kMouseDragOver_Type);
         arg[7].set(this); // source
 
-        target->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg);
+        target->fireEvent<CanvasHandler>(CanvasHandler::kEvents_Mouse, arg);
     }
 }
 
@@ -1268,7 +1268,7 @@ void CanvasHandler::onDrop(InputEvent *ev, CanvasHandler *drop)
     arg[6].set(ev->m_y - m_aTop);  // layerY
     arg[7].set(drop);
 
-    this->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg);
+    this->fireEvent<CanvasHandler>(CanvasHandler::kEvents_Mouse, arg);
 }
 
 void CanvasHandler::onMouseEvent(InputEvent *ev)
@@ -1336,7 +1336,7 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
         arg[7].set(this);              // target
 
         /* fireEvent returns false if a stopPropagation is detected */
-        if (!handler->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT,
+        if (!handler->fireEvent<CanvasHandler>(CanvasHandler::kEvents_Mouse,
                                                arg)) {
             break;
         }
