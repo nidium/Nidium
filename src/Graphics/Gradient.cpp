@@ -101,8 +101,8 @@ sk_sp<SkShader> Gradient::build()
                SkDoubleToScalar(m_StartPoint.y));
     pts[1].set(SkDoubleToScalar(m_EndPoint.x), SkDoubleToScalar(m_EndPoint.y));
 
-    SkColor colors[m_ColorsStop.count];
-    SkScalar pos[m_ColorsStop.count];
+    SkColor *colors = new SkColor[m_ColorsStop.count];
+    SkScalar *pos = new SkScalar[m_ColorsStop.count];
 
     for (unsigned int i = 0; i < m_ColorsStop.count; i++) {
         colors[i] = m_ColorsStop.items[i].m_Color;
@@ -120,6 +120,8 @@ sk_sp<SkShader> Gradient::build()
         m_CurrentShader = SkGradientShader::MakeLinear(
             pts, colors, pos, m_ColorsStop.count, SkShader::kClamp_TileMode);
     }
+    delete[] colors;
+    delete[] pos;
 
     return m_CurrentShader;
 }
