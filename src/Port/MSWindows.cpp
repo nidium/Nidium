@@ -32,6 +32,21 @@ char* strsep(char** stringp, const char* delim)
     return result;
 }
 
+
+char *strndup(char *str, size_t maxlen)
+{
+    char *buffer;
+    int n;
+
+    buffer = (char *)malloc(maxlen + 1);
+    if (buffer) {
+        for (n = 0; ((n < maxlen) && (str[n] != 0)); n++) buffer[n] = str[n];
+        buffer[n] = 0;
+    }
+
+    return buffer;
+}
+
 int vasprintf(char **strp, const char *fmt, va_list ap) {
     // _vscprintf tells you how big the buffer needs to be
     int len = _vscprintf(fmt, ap);
