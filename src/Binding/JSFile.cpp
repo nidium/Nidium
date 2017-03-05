@@ -153,18 +153,20 @@ bool JSFile::HandleError(JSContext *cx,
 
 static const char *JSFile_dirtype_to_str(const PRDirEntry *entry)
 {
-    switch (entry->d_type) {
-        case DT_DIR:
+    PRFileInfo info;
+    if (PR_GetFileInfo(entry->name, &info) == PR_SUCCESS) {
+        switch (info.type) {
+        case PR_FILE_DIRECTORY:
             return "dir";
-        case DT_REG:
+        case PR_FILE_FILE:
             return "file";
-        case DT_LNK:
-            return "link";
-        case DT_SOCK:
-            return "socket";
+        case PR_FILE_OTHER:
+            return "other";
         default:
-            return "unknown";
+            break;
+        }
     }
+    return "unknown";
 }
 
 void JSFile::onMessage(const SharedMessages::Message &msg)

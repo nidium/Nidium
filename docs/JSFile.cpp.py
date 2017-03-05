@@ -136,6 +136,7 @@ if  (f.isDir()) {
 
 FunctionDoc( "File.listFiles", """List the files in a directory.
 
+> The type of the entry can only be: f'ile', 'dir', 'other', or 'unknown'.
 > The file needs to be opened before calling this method""",
     [SeeDoc( "File.isDir" ), SeeDoc( "File.rmrf" ), SeeDoc( "fs" ), SeeDoc( "process.cwd" ) ],
     [ExampleDoc( """var f = new File(".", {encoding: "utf8"});
@@ -152,7 +153,13 @@ f.open(function(err) {
 });
 """ ) ],
     IS_Dynamic, IS_Public, IS_Fast,
-    NO_Params,
+    [CallbackDoc( "callback", "Read callback function", [
+        ParamDoc( "err", "Error description", "string", NO_Default, IS_Obligated ),
+        ParamDoc( "entries", "Array with objecs describing the file", 
+            ObjectDoc([ ("type", "The type of the entry ('file'|'dir'|'other'|'unkown')", "string"),
+                        ("name", "The name of the entry", "string"),
+            ]), NO_Default, IS_Obligated ),
+    ])],
     NO_Returns
 )
 
