@@ -10,6 +10,11 @@
 
 #define ftruncate _chsize
 #define usleep Sleep
+#define getppid GetCurrentProcessId
+#define kill() \
+    HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid); \
+    TerminateProcess(hnd, 0); \
+    CloseHandle(hProcess);
 
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
 #define MAXPATHLEN _MAX_PATH 
