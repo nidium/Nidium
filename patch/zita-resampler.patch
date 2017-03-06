@@ -1,23 +1,23 @@
 --- zita-resampler.org/libs/Makefile	2012-10-26 13:58:55 -0700
-+++ zita-resampler/libs/Makefile	2017-02-27 10:50:22 -0800
-@@ -31,26 +31,37 @@
++++ zita-resampler/libs/Makefile	2017-03-06 12:00:30 -0800
+@@ -31,25 +31,45 @@
  
  
  CPPFLAGS += -I. -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS
 -CXXFLAGS += -Wall -fPIC -O2 -ffast-math
 -CXXFLAGS += -march=native
-+CXXFLAGS += -Wall 
  LDFLAGS += 
  LDLIBS +=
  
 +CC ?= g++
 +AR ?= ar
  
-+ifneq ($(CC),cl)
-+	CXXFLAGS += -march=native -fPIC -O2 -ffast-math
-+	EXT = .o
-+else
++ifeq ($(CC),cl)
++	CXXFLAGS += -Wall -nologo -wd4514 -wd4710
 +	EXT = .obj
++else
++	CXXFLAGS += -Wall -march=native -fPIC -O2 -ffast-math
++	EXT = .o
 +endif
 +
 +ZITA-RESAMPLER_A = libzita-resampler.a
@@ -31,19 +31,27 @@
  
 +#Force the static build first
 +$(ZITA-RESAMPLER_A): $(ZITA-RESAMPLER_O)
++ifeq ($(AR),lib)
++	$(AR) -nologo -out:$@ $(ZITA-RESAMPLER_O)
++else
 +	$(AR) rcs $@ $(ZITA-RESAMPLER_O)
++endif
  
  $(ZITA-RESAMPLER_MIN): $(ZITA-RESAMPLER_O)
 -	g++ -shared $(LDFLAGS) -Wl,-soname,$(ZITA-RESAMPLER_MAJ) -o $(ZITA-RESAMPLER_MIN) $(ZITA-RESAMPLER_O) $(ZITA-RESAMPLER_DEP)
 +	$(CC) -shared $(LDFLAGS) -Wl,-soname,$(ZITA-RESAMPLER_MAJ) -o $(ZITA-RESAMPLER_MIN) $(ZITA-RESAMPLER_O) $(ZITA-RESAMPLER_DEP)
  
++ifeq ($(CC),cl)
++%$(EXT): %.cc
++	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c "-Fo$@" $<
++else
  $(ZITA-RESAMPLER_O):	$(ZITA-RESAMPLER_H)
- 
 -
++endif
+ 
  install:	$(ZITA-RESAMPLER_MIN)
  	install -d $(DESTDIR)$(PREFIX)/include/zita-resampler
- 	install -d $(DESTDIR)$(PREFIX)/$(LIBDIR)
-@@ -64,5 +75,5 @@
+@@ -64,5 +84,5 @@
  	/bin/rm -rf $(DESTDIR)$(PREFIX)/$(LIBDIR)/libzita-resampler*
  
  clean:
@@ -51,7 +59,7 @@
 +	/bin/rm -rf *~ *$(EXT) *.a *.d *.so.* zita-resampler/*~
  
 --- zita-resampler.org/libs/resampler-table.cc	2012-10-26 13:58:55 -0700
-+++ zita-resampler/libs/resampler-table.cc	2017-02-27 10:40:07 -0800
++++ zita-resampler/libs/resampler-table.cc	2017-03-06 10:19:00 -0800
 @@ -22,9 +22,11 @@
  #include <stdio.h>
  #include <string.h>
