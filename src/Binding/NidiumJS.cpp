@@ -193,8 +193,7 @@ NidiumJS *NidiumJS::GetObject(JSContext *cx)
         return g_nidiumjs;
     }
 
-    return static_cast<class NidiumJS *>(
-        JS_GetRuntimePrivate(JS_GetRuntime(cx)));
+    return static_cast<class NidiumJS *>(JS_GetContextPrivate(cx));
 }
 
 ape_global *NidiumJS::GetNet()
@@ -415,6 +414,8 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
         return;
     }
 
+    JS_SetContextPrivate(m_Cx, this);
+
 #if 0
     JS_SetGCZeal(m_Cx, 2, 5);
 #endif
@@ -448,8 +449,6 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     }
 
     this->bindNetObject(net);
-
-    JS_SetRuntimePrivate(rt, this);
 }
 
 
