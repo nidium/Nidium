@@ -23,11 +23,11 @@ function __nidiumPreload(options, lst) {
     if (options.html5) load("embed://html5.js");
 
     /**
-     * Extends
+     * Additions
      */
-    load("embed://extends/Canvas.js");
-    load("embed://extends/NML.js");
-    load("embed://extends/HTTP.js");
+    load("embed://additions/Canvas.js");
+    load("embed://additions/NML.js");
+    load("embed://additions/HTTP.js");
 
     /**
      * Misc
