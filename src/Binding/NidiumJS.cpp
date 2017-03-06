@@ -70,7 +70,7 @@ JSStructuredCloneCallbacks *NidiumJS::m_JsScc = NULL;
 
 void NidiumJS::gc()
 {
-    JS_GC(JS_GetRuntime(m_Cx));
+    JS_GC(m_Cx);
 }
 
 
@@ -380,7 +380,6 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
 NidiumJS::NidiumJS(ape_global *net, Context *context)
     : m_JSStrictMode(false), m_Context(context)
 {
-    JSRuntime *rt;
     m_Modules = NULL;
 
     m_StructuredCloneAddition.read  = NULL;
@@ -407,17 +406,11 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     NidiumJS::Init();
     NidiumLocalContext::Init();
 
-    if ((rt = JS_NewRuntime(JS::DefaultHeapMaxBytes, JS::DefaultNurseryBytes))
-        == NULL) {
 
-        printf("Failed to init JS runtime\n");
-        return;
-    }
-
-    NidiumJS::SetJSRuntimeOptions(rt, m_JSStrictMode);
+    //NidiumJS::SetJSRuntimeOptions(rt, m_JSStrictMode);
     JS_SetErrorReporter(rt, reportError);
 
-    if ((m_Cx = JS_NewContext(rt, 8192)) == NULL) {
+    if ((m_Cx = JS_NewContext(JS::DefaultHeapMaxBytes, JS::DefaultNurseryBytes)) == NULL) {
         printf("Failed to init JS context\n");
         return;
     }
@@ -426,11 +419,10 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     JS_SetGCZeal(m_Cx, 2, 5);
 #endif
 
-    JS_SetGCParameterForThread(m_Cx, JSGC_MAX_CODE_CACHE_BYTES,
-                               16 * 1024 * 1024);
+    JS_SetGCParameter(m_Cx, JSGC_MAX_BYTES, 0xffffffff);
 
     JS_BeginRequest(m_Cx);
-    JS::RootedObject gbl(m_Cx);
+    JSObject *gbl;
 #if 0
 #ifdef NIDIUM_DEBUG
     JS_SetOptions(m_Cx, JSOPTION_VAROBJFIX);
