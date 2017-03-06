@@ -275,11 +275,11 @@ void NidiumJS::Init()
     }
 }
 
-void reportError(JSContext *cx, const char *message, JSErrorReport *report)
+void reportError(JSContext *cx, JSErrorReport *report)
 {
     NidiumJS *js  = NidiumJS::GetObject(cx);
     Context *nctx = nullptr;
-    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    const char *message = report->message().c_str();
 
     if (js == nullptr) {
         printf("Error reporter failed (wrong JSContext?) (%s:%d > %s)\n",
@@ -405,9 +405,8 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     NidiumJS::Init();
     NidiumLocalContext::Init();
 
-
     //NidiumJS::SetJSRuntimeOptions(rt, m_JSStrictMode);
-    JS_SetErrorReporter(rt, reportError);
+    JS::SetWarningReporter(m_Cx, reportError);
 
     if ((m_Cx = JS_NewContext(JS::DefaultHeapMaxBytes, JS::DefaultNurseryBytes)) == NULL) {
         printf("Failed to init JS context\n");
