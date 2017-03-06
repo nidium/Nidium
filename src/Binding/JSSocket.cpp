@@ -513,7 +513,7 @@ bool JSSocket::JS_listen(JSContext *cx, JS::CallArgs &args)
     ape_socket_proto protocol = APE_SOCKET_PT_TCP;
     bool isLZ4                = false;
 
-    ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(cx));
+    ape_global *net = APE_get();
 
     if (this->isAttached()) {
         return true;
@@ -796,7 +796,7 @@ bool JSSocket::JS_connect(JSContext *cx, JS::CallArgs &args)
     uint16_t localport        = 0;
     bool isLZ4                = false;
 
-    ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(cx));
+    ape_global *net = APE_get();
 
     if (this->isAttached()) {
         return false;

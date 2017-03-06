@@ -30,8 +30,7 @@ JSWebSocket::JSWebSocket(JSContext *cx,
                          bool ssl)
 {
     m_WebSocketClient = new WebSocketClient(port, path, host);
-    bool ret = m_WebSocketClient->connect(
-        ssl, static_cast<ape_global *>(JS_GetContextPrivate(cx)));
+    bool ret = m_WebSocketClient->connect(ssl, APE_get());
 
     if (!ret) {
         JS_ReportWarningUTF8(cx, "Failed to connect to WS endpoint\n");

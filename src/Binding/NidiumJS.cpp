@@ -461,7 +461,7 @@ NidiumJS::~NidiumJS()
     NidiumLocalContext *nlc = NidiumLocalContext::Get();
     nlc->shutdown();
 
-    ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(m_Cx));
+    ape_global *net = APE_get();
 
     /* clear all non protected timers */
     APE_timers_destroy_unprotected(net);
@@ -486,11 +486,7 @@ NidiumJS::~NidiumJS()
 
 void NidiumJS::bindNetObject(ape_global *net)
 {
-    JS_SetContextPrivate(m_Cx, net);
     m_Net = net;
-
-    // NidiumFileIO *io = new NidiumFileIO("/tmp/foobar", this, net);
-    // io->open();
 }
 
 void NidiumJS::CopyProperties(JSContext *cx,

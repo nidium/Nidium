@@ -69,7 +69,7 @@ JSHTTP *JSHTTP::Constructor(JSContext *cx, JS::CallArgs &args,
 
     JSAutoByteString curl(cx, url);
 
-    nhttp  = new HTTP((ape_global *)JS_GetContextPrivate(cx));
+    nhttp  = new HTTP(APE_get());
     jshttp = new JSHTTP(curl.ptr());
 
     nhttp->setPrivate(jshttp);

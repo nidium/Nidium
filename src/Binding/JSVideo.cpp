@@ -25,7 +25,7 @@ namespace Binding {
 JSVideo::JSVideo(Canvas2DContext *canvasCtx, JSContext *cx)
     : m_CanvasCtx(canvasCtx)
 {
-    m_Video = new Video((ape_global *)JS_GetContextPrivate(cx));
+    m_Video = new Video(APE_get());
     m_Video->frameCallback(JSVideo::FrameCallback, this);
     m_CanvasCtx->getHandler()->addListener(this);
 

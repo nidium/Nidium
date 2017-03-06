@@ -218,8 +218,6 @@ private:
 
 #define CONST_STR_LEN(x) x, x ? sizeof(x) - 1 : 0
 
-#define APE_CTX(CX) ((ape_global *)JS_GetContextPrivate(CX))
-
 #define __FILENAME__ \
     (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 

@@ -65,7 +65,7 @@ JSAudioContext *JSAudioContext::GetContext(JSContext *cx,
                                            unsigned int channels,
                                            unsigned int sampleRate)
 {
-    ape_global *net = static_cast<ape_global *>(JS_GetContextPrivate(cx));
+    ape_global *net = APE_get();
     Audio *audio;
 
     try {

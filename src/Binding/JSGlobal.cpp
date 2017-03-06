@@ -202,7 +202,7 @@ bool JSGlobal::JS_setImmediate(JSContext *cx, JS::CallArgs &args)
     }
 
     ape_timer_async_t *async
-        = APE_async(static_cast<ape_global *>(JS_GetContextPrivate(cx)),
+        = APE_async(APE_get()),
                     nidium_timerng_wrapper, static_cast<void *>(params));
 
     APE_async_setclearfunc(async, nidium_timer_deleted);
@@ -253,7 +253,7 @@ bool JSGlobal::JS_setTimeout(JSContext *cx, JS::CallArgs &args)
     }
 
     ape_timer_t *timer = APE_timer_create(
-        static_cast<ape_global *>(JS_GetContextPrivate(cx)), nidium_max(ms, 8),
+        APE_get(), nidium_max(ms, 8),
         nidium_timerng_wrapper, static_cast<void *>(params));
 
     APE_timer_unprotect(timer);
@@ -306,7 +306,7 @@ bool JSGlobal::JS_setInterval(JSContext *cx, JS::CallArgs &args)
     }
 
     ape_timer_t *timer = APE_timer_create(
-        static_cast<ape_global *>(JS_GetContextPrivate(cx)), params->ms,
+        APE_get(), params->ms,
         nidium_timerng_wrapper, static_cast<void *>(params));
 
     APE_timer_unprotect(timer);
@@ -325,8 +325,7 @@ bool JSGlobal::JS_clearTimeout(JSContext *cx, JS::CallArgs &args)
         return false;
     }
 
-    APE_timer_clearbyid(static_cast<ape_global *>(JS_GetContextPrivate(cx)),
-                        static_cast<uint64_t>(identifier), 0);
+    APE_timer_clearbyid(APE_get(), static_cast<uint64_t>(identifier), 0);
 
     return true;
 }

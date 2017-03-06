@@ -57,7 +57,7 @@ public:
     {
 
         JSContext *cx   = static_cast<JSContext *>(m_Args[0].toPtr());
-        ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
+        ape_global *ape = APE_get();
         JS::AutoValueArray<2> params(cx);
         params[0].setNull();
         params[1].setUndefined();

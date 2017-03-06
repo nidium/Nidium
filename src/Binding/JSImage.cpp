@@ -69,7 +69,7 @@ void JSImage::onMessage(const SharedMessages::Message &msg)
             break;
         }
         case Stream::kEvents_ReadBuffer: {
-            ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
+            ape_global *ape = APE_get();
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);
             JSObjectBuilder obj(m_Cx, eventObj);

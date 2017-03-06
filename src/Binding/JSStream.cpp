@@ -191,9 +191,7 @@ JSStream * JSStream::Constructor(JSContext *cx,  JS::CallArgs &args,
     }
 
     JSAutoByteString curl(cx, url);
-
-    JSStream *jstream = new JSStream(
-        static_cast<ape_global *>(JS_GetContextPrivate(cx)), curl.ptr());
+    JSStream *jstream = new JSStream(APE_get(), curl.ptr());
 
     if (jstream->getStream() == NULL) {
         JS_ReportErrorUTF8(cx, "Failed to create stream");
