@@ -51,8 +51,8 @@ public:
 
 struct NidiumLocalContext {
 
-    NidiumLocalContext(JSRuntime *rt, JSContext *cx) : rt(rt),
-                    cx(cx), ptr(nullptr) {
+    NidiumLocalContext(JSContext *cx) :
+        cx(cx), ptr(nullptr) {
         
     }
 
@@ -90,7 +90,7 @@ struct NidiumLocalContext {
     static NidiumLocalContext *Get();
     static void Init();
 
-    static void InitJSThread(JSRuntime *rt, JSContext *cx);
+    static void InitJSThread(JSContext *cx);
 
     /*
         Automatically called when key is deleted by a thread
@@ -136,7 +136,6 @@ struct NidiumLocalContext {
 
     /////
 
-    JSRuntime *rt;
     JSContext *cx;
 
     void *ptr;

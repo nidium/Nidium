@@ -438,7 +438,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     m_Compartment = JS_EnterCompartment(m_Cx, gbl);
 // JSAutoCompartment ac(m_Cx, gbl);
 
-    NidiumLocalContext::InitJSThread(rt, m_Cx);
+    NidiumLocalContext::InitJSThread(m_Cx);
 
     if (NidiumJS::m_JsScc == NULL) {
         NidiumJS::m_JsScc              = new JSStructuredCloneCallbacks();
@@ -453,9 +453,6 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
 
 NidiumJS::~NidiumJS()
 {
-    JSRuntime *rt;
-    rt         = JS_GetRuntime(m_Cx);
-    
     NidiumLocalContext *nlc = NidiumLocalContext::Get();
     nlc->shutdown();
 
@@ -469,8 +466,6 @@ NidiumJS::~NidiumJS()
     // JS_LeaveCompartment(m_Cx);
 
     JS_DestroyContext(m_Cx);
-
-    JS_DestroyRuntime(rt);
 
     if (m_Modules) {
         delete m_Modules;

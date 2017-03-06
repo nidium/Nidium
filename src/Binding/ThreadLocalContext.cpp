@@ -21,12 +21,12 @@ void NidiumLocalContext::Init()
     pthread_key_create(&g_NidiumThreadContextKey, NidiumLocalContext::_destroy);
 }
 
-void NidiumLocalContext::InitJSThread(JSRuntime *rt, JSContext *cx)
+void NidiumLocalContext::InitJSThread(JSContext *cx)
 {
-    NidiumLocalContext *nlc = new NidiumLocalContext(rt, cx);
+    NidiumLocalContext *nlc = new NidiumLocalContext(cx);
     pthread_setspecific(g_NidiumThreadContextKey, nlc);
 
-    JS_AddExtraGCRootsTracer(rt, NidiumLocalContext::_jstrace, nlc);
+    JS_AddExtraGCRootsTracer(cx, NidiumLocalContext::_jstrace, nlc);
 }
 
 void NidiumLocalContext::_destroy(void *data)
