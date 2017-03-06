@@ -77,7 +77,7 @@ def portaudio():
         #build = [
         #        #"devenv /UpdateConfiguration /Upgrade %s.sln /ResetSettings %s.vssettings" % (project, project),
         #        "devenv /Upgrade %s.sln /ResetSettings %s.vssettings" % (project, project),
-        #         "MSBuild.exe %s.vcxproj /p:Configuration=Release /p:PlatformToolset=%s" % (project, toolset)]
+        #         "MSBuild.exe /nologo %s.vcxproj /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" % (project, toolset, Platform.cpuCount)]
         build = ["make -j1", "make src/common/pa_ringbuffer.o"]
     else:
         chdir = ""
@@ -113,22 +113,25 @@ def zitaresampler():
 
 @Deps.register("giflib")
 def giflib():
+    location = "https://excellmedia.dl.sourceforge.net/project/giflib/giflib-5.1.4.tar.gz"
     # skdiff is used during unit-tests and it needs libgif.so.4
     Platform.setEnviron("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:%s/giflib/lib/.libs/" % os.getcwd())
     if Platform.system == "Windows":
-        configure = "bash configure --disable-shared"
-        output = "lib/.libs/gif.lib"
-        patchs = [os.path.join(CONFIGURE_PATH, "patch", "giflib.windows.patch")]
+        return {
+            "location": location,
+            "build": ["bash ../configure",
+                      "make -j1"],
+            "chdir": "lib",
+            "patchs": [os.path.join(CONFIGURE_PATH, "patch", "giflib.windows.patch")],
+            "outputs": ["../lib/.libs/gif.lib"]
+        }
+
     else:
-        configure = "./configure"
-        output = "lib/.libs/libgif.a"
-        patchs = []
-    return {
-        "location": "http://downloads.sourceforge.net/project/giflib/giflib-4.x/giflib-4.2.3.tar.gz",
-        "build": [configure, "make coverity"],
-        "patchs": patchs,
-        "outputs": [output]
-    }
+        return {
+            "location": location,
+            "build": ["./configure", "make"],
+            "outputs": ["lib/.libs/libgif.a"]
+        }
 
 @Deps.register("skia")
 def skia():
@@ -188,7 +191,7 @@ def libzip():
         toolchain = "Visual Studio %d %s" % (int(toolset[1:]) / 10, version)
         output = "./lib/Release/zip.lib"
         build = ['cmake . -G "%s" -DZLIB_LIBRARY=%s/zlib/zlib.lib -DZLIB_INCLUDE_DIR=%s/zlib' % (toolchain, Deps.getDir(), Deps.getDir()),
-                "MSBuild.exe libzip.sln /p:Configuration=Release /p:PlatformToolset=%s" % (toolset)]
+                "MSBuild.exe /nologo libzip.sln /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" % (toolset, Platform.cpuCount)]
     else:
         output = "lib/.libs/libzip.a"
         build = ["autoreconf -fi", #cmake . -DZLIB_LIBRARY=%s/zlib/zlib.lib -DZLIB_INCLUDE_DIR=%s/zlib" % (Deps.getDir(), Deps.getDir()),
@@ -260,7 +263,7 @@ def SDL2():
     #outputs["SDL2/Xcode/SDL/out/SDL2.framework"])
     if Platform.system == "Windows":
         toolset = Platform.MSVC.toolset(Variables.get('msvs_version', 2015))
-        build = ["MSBuild.exe ../VisualC/SDL_VS2013.sln /p:Configuration=Release /p:PlatformToolset=%s" % (toolset)]
+        build = ["MSBuild.exe /nologo ../VisualC/SDL_VS2013.sln /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" % (toolset, Platform.cpuCount)]
         patchs = [os.path.join(CONFIGURE_PATH, "patch", "SDL2.windows.patch")]
         outputs = ["../VisualC/SDL/Win32/Release/SDL2.lib"]
     else:

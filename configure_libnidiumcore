@@ -148,7 +148,7 @@ def httpParser():
         gyp = "..\gyp\gyp.bat --depth . -DOS=win -f msvs"
         if Platform.wordSize == 32:
             gyp += " -G Platform=Win32"
-        build = [gyp, "MSBuild.exe http_parser.vcxproj  /p:Configuration=Release"]
+        build = [gyp, "MSBuild.exe http_parser.vcxproj  /p:Configuration=Release /maxcpucount%i" % (Platform.cpuCount)]
         output = "Release/lib/http_parser.lib"
     else:
         build = ["make package"]
