@@ -147,9 +147,10 @@ void UIInterface::handleEvent(const SDL_Event *event)
         case SDL_FINGERUP: {
             int width, height;
             this->getScreenSize(&width, &height);
+            float pixelRatio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
-            int x = event->tfinger.x * width;
-            int y = event->tfinger.y * height;
+            int x = (event->tfinger.x * width) / pixelRatio;
+            int y = (event->tfinger.y * height) / pixelRatio;
 
             InputEvent::Type eventType = InputEvent::kTouchMove_Type;
             if (event->type != SDL_FINGERMOTION) {
