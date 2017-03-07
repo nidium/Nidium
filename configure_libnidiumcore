@@ -35,6 +35,8 @@ if Platform.system == "Darwin":
     Platform.setEnviron("LDFLAGS+=-stdlib=libc++ -mmacosx-version-min=10.7")
 elif Platform.system == "Windows":
    Platform.setCompiler("cl", "cl")
+   Platform.setEnviron("LD=Link")
+   Platform.setEnviron("AR=lib")
    Deps.set('pthreads4w')
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
@@ -91,18 +93,15 @@ def leveldb():
 def libnspr():
     if Platform.system == "Windows":
         make = "mozmake"
-        configure = r"bash configure --enable-static-rtl "#--datarootdir=c:\temp" #--enable-win32-target=WIN95
-        if Platform.wordSize == 64:
-            configure += " --target=x86_64-pc-mingw"
+        configure = "bash ./configure --enable-static-rtl "
     else:
         make = "make"
         configure = "./configure"
     if Platform.wordSize == 64:
-        configure += " --enable-64bit"
+        configure += "--enable-64bit" #--host=x86_64-pc-mingw32 --target=x86_64-pc-mingw32"
     configure += " --disable-debug \
                    --enable-optimize \
                    --enable-strip"
-
     return {
         "chdir": "mozilla-central/nsprpub/",
         "build": [configure, make],
@@ -111,11 +110,14 @@ def libnspr():
 
 @Deps.register("mozilla-central")
 def mozilla():
+    Platform.setEnviron("TARGET_CPU=%s" % (["x86","x64"][Platform.wordSize == 64]))
     nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/")).replace('\\', '/')
     nsprFlags = '--with-nspr-cflags="-I%s/dist/include/nspr/"' % (nsprDir)
     if Platform.system == "Windows":
         make = "mozmake"
         configure = "bash ../configure --enable-build-backend=VisualStudio"
+        if Platform.wordSize == 64:
+            configure += " --target=x86_64-pc-mingw32 --host=x86_64-pc-mingw32"
         nsprFlags += ''' --with-nspr-libs="'%s/dist/lib/libnspr4' '%s/dist/lib/libplds4' '%s/dist/lib/libplc4'"''' % (nsprDir, nsprDir, nsprDir)
         outputs = ["mozglue/build/mozglue.lib$", "js/src/js_static.lib$"]
     else:

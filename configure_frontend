@@ -46,7 +46,6 @@ elif Platform.system == "Windows":
     Platform.setCompiler("cl", 'cl')
     Platform.setEnviron("LD=Link")
     Platform.setEnviron("AR=lib")
-    #TODO, find a way to use msvc's 'Lib.exe' instead of 'ar'
 
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_FRONTEND")
