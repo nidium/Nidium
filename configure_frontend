@@ -303,7 +303,7 @@ def libcoro():
     if Platform.system == "Windows":
         Platform.setEnviron('SYS=Windows')
         patchs = [os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.windows.patch")]
-        make_opt += " _build\lib\liblibcoroutine.a"
+        make_opt += r" _build/lib/liblibcoroutine.a"
     else:
         patchs = [os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.patch")]
         if Konstruct.config("valgrind"):
