@@ -177,15 +177,20 @@ def skia():
 @Deps.register("libzip")
 def libzip():
     if Platform.system == "Windows":
+        Platform.setEnviron('CMAKE_AR=lib')
+        if Platform.wordSize == 32:
+            platform = 'Win32'
+        else:
+            platform = 'x64'
         version = Variables.get('msvs_version', 2015)
         toolset = Platform.MSVC.toolset(version)
-        toolchain = "Visual Studio %d %s" % (int(toolset[1:]) / 10, version)
+        toolchain = "Visual Studio %d %s %s" % (int(toolset[1:]) / 10, version, "Win64")
         output = "./lib/Release/zip.lib"
         build = ['cmake . -G "%s" -DZLIB_LIBRARY=%s/zlib/zlib.lib -DZLIB_INCLUDE_DIR=%s/zlib' % (toolchain, Deps.getDir(), Deps.getDir()),
-                "MSBuild.exe /nologo libzip.sln /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" % (toolset, Platform.cpuCount)]
+                "MSBuild.exe /nologo libzip.sln /p:Configuration=Release /p:PlatformToolset=%s /P:Platform=%s /maxcpucount:%i" % (toolset, platform, Platform.cpuCount)]
     else:
         output = "lib/.libs/libzip.a"
-        build = ["autoreconf -fi", #cmake . -DZLIB_LIBRARY=%s/zlib/zlib.lib -DZLIB_INCLUDE_DIR=%s/zlib" % (Deps.getDir(), Deps.getDir()),
+        build = ["autoreconf -fi",
                  "./configure  --disable-shared --with-zlib=%s/zlib/" % (Deps.getDir()), "make"]
     return {
         #todo figure out how to get commit of 'today'
