@@ -286,8 +286,10 @@ def basekit():
     make_opt = ''
     if Platform.system == "Windows":
         #parallel build seems to lock make
-        make_opt = " -j1"
+        make_opt = " -j1 PLATFORM=%s" % (["x86","x64"][Platform.wordSize == 64])
         Platform.setEnviron('SYS=Windows')
+        Platform.setEnviron('INSTALL_PREFIX=%s' % (os.path.join(CONFIGURE_PATH,
+        "third-party/basekit/install")))
     return {
         "location": Deps.GitRepo("https://github.com/stevedekorte/basekit.git", revision="a3e54ba83b85f530dc9442a33d2779240ed96189"),
         "build": ["make" + make_opt],
