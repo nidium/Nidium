@@ -261,7 +261,8 @@ def SDL2():
         toolset = Platform.MSVC.toolset(Variables.get('msvs_version', 2015))
         build = ["MSBuild.exe /nologo ../VisualC/SDL_VS2013.sln /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" % (toolset, Platform.cpuCount)]
         patchs = [os.path.join(CONFIGURE_PATH, "patch", "SDL2.windows.patch")]
-        outputs = ["../VisualC/SDL/Win32/Release/SDL2.lib"]
+        platform = ["Win32","x64"][Platform.wordSize == 64]
+        outputs = ["../VisualC/SDL/%s/Release/SDL2.lib" % (platform)]
     else:
         build = ["../configure", "make"]
         patchs = []
