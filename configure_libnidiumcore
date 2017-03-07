@@ -144,11 +144,11 @@ def mozilla():
 @Deps.register("http-parser")
 def httpParser():
     if Platform.system == "Windows":
-        #TODO: use konstruktor's gyp builder
         gyp = "..\gyp\gyp.bat --depth . -DOS=win -f msvs"
-        if Platform.wordSize == 32:
-            gyp += " -G Platform=Win32"
-        build = [gyp, "MSBuild.exe http_parser.vcxproj  /p:Configuration=Release /maxcpucount%i" % (Platform.cpuCount)]
+        #TODO: investigate how to force a x64 project
+        platform = "Win32"
+        gyp += " -G Platform=%s" % (platform)
+        build = [gyp, "MSBuild.exe /nologo http_parser.vcxproj /p:Configuration=Release /P:Platform=%s /maxcpucount:%i" % (platform, Platform.cpuCount)]
         output = "Release/lib/http_parser.lib"
     else:
         build = ["make package"]
