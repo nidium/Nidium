@@ -70,11 +70,9 @@ def leveldb():
         cxxFlags += " -EHsc"
         Platform.setEnviron('TARGET_OS=NATIVE_WINDOWS')
         Platform.setEnviron("CXXFLAGS=%s" % (cxxFlags))
-        location = Deps.GitRepo("https://github.com/bitcoin-core/leveldb.git", revision="d40bc3f")
         patch = [os.path.join(CONFIGURE_PATH, "patch", "leveldb.windows.patch")]
         build = ["make clean", "make" + make_opt]
     else:
-        location = Deps.GitRepo("https://github.com/google/leveldb.git", tag="v1.18")
         patch = [os.path.join(CONFIGURE_PATH, "patch", "leveldb.patch")]
         build = ["make clean", "CXXFLAGS=%s make %s" % (cxxFlags, make_opt)]
         if Konstruct.config("asan"):
@@ -82,7 +80,7 @@ def leveldb():
             # https://github.com/google/sanitizers/wiki/AddressSanitizerContainerOverflow#false-positives
             cxxFlags += " -fsanitize=address"
     return {
-        "location": location,
+        "location": Deps.GitRepo("https://github.com/bitcoin-core/leveldb.git", revision="d40bc3f"),
         # leveldb make doest not detect CXXFLAGS changes, so we force "make clean"
         "build": build,
         "patchs": patch,
