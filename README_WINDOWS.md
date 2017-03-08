@@ -9,7 +9,8 @@ We won't use clang, cygwin or mingw!
 We have put a lot of efford to create some 'configure_*' scripts that are using the command line tools of visualstudio, not the gui.
 You can use the gui for your convieniance, but you'll get the same error messages and warnings when you compile it in a terminal.
 
-We are focussing on windows 64 bit OS, but 32 bit might work with a little finetuning.
+We are focussing on windows 64 bit OS, but 32 bit should work as well.
+We are focussing on MSVC 2015, but 2013 should work as well.
 
 (BTW: That this port was started on the branch with the name 'windows-x86' does not have any significant meaning.
 
@@ -71,6 +72,8 @@ git config --global --add difftool.kdiff3.trustExitCode false
 ```
 
 ## Microsoft Visual Studio Community edition 2015
+
+The community edition is free and has all the stuff that we need.
 
 * Download from http://www.microsoft.com/en-us/download/details.aspx?id=48146
 * Run
@@ -241,11 +244,22 @@ git clone --recursive https://github.com/nidium/Nidium.git
 
 Mozilla has a nice script to prepare the environment with all the mvsc bells and wistles.
 
+Depending of your msvc (2013/2013) and platform (32/x64) you start one of the scripts.
+
 ```
-c:\mozilla-build\start-shell-msvc2015-x64.bat
+#c:\mozilla-build\start-shell-msvc2013.bat
+#c:\mozilla-build\start-shell-msvc2015.bat
+#c:\mozilla-build\start-shell-msvc2013-x64.bat
+ c:\mozilla-build\start-shell-msvc2015-x64.bat
 ```
 
 A 'bash' shell opens and you are in your 'home' directory.
+
+> Please note: if you are using msvc 2013, then you need to tweak one line in 'src/libapenetwork/configure':
+
+```
+    Variables.set("msvs_version", 2013)
+```
 
 ## Create some missing symlinks
 
