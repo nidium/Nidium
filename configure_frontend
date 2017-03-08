@@ -46,6 +46,7 @@ elif Platform.system == "Windows":
     Platform.setCompiler("cl", 'cl')
     Platform.setEnviron("LD=Link")
     Platform.setEnviron("AR=lib")
+    Deps.set("pthreads4w")
 
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_FRONTEND")
@@ -89,10 +90,8 @@ def portaudio():
 
 @Deps.register("zita-resampler")
 def zitaresampler():
-    if Platform.system == "Windows":
-        Deps.set("pthreads4w")
-        Platform.setEnviron("CXXFLAGS=-I ../../pthreads4w " +
-                            "-D_POSIX_C_SOURCE=200112L -D_USE_MATH_DEFINES ")
+    Platform.setEnviron("CXXFLAGS=-I ../../pthreads4w " +
+                         "-D_POSIX_C_SOURCE=200112L -D_USE_MATH_DEFINES ")
     return {
         "location": DEPEDENCY_REPO + "/zita-resampler-1.3.0.tar.bz2",
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "zita-resampler.patch")],
@@ -179,11 +178,13 @@ def libzip():
         Platform.setEnviron('CMAKE_AR=lib')
         if Platform.wordSize == 32:
             platform = 'Win32'
+            win_arch = ""
         else:
             platform = 'x64'
+            win_arch = " Win64"
         version = Variables.get('msvs_version', 2015)
         toolset = Platform.MSVC.toolset(version)
-        toolchain = "Visual Studio %d %s %s" % (int(toolset[1:]) / 10, version, "Win64")
+        toolchain = "Visual Studio %d %s%s" % (int(toolset[1:]) / 10, version, win_arch)
         output = "./lib/Release/zip.lib"
         build = ['cmake . -G "%s" -DZLIB_LIBRARY=%s/zlib/zlib.lib -DZLIB_INCLUDE_DIR=%s/zlib' % (toolchain, Deps.getDir(), Deps.getDir()),
                 "MSBuild.exe /nologo libzip.sln /p:Configuration=Release /p:PlatformToolset=%s /P:Platform=%s /maxcpucount:%i" % (toolset, platform, Platform.cpuCount)]
