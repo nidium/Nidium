@@ -6,7 +6,6 @@
 #ifndef core_messages_h__
 #define core_messages_h__
 
-#include <pthread.h>
 #include <set>
 
 #include "Core/SharedMessages.h"
