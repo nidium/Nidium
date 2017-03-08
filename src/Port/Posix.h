@@ -7,7 +7,7 @@
 #define port_posix_h__
 
 
-#define posix_memalign_free _aligned_free
+#define posix_memalign_free free
 
 namespace Nidium {
 namespace Port {

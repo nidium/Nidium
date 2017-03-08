@@ -101,7 +101,7 @@ def libnspr():
         make = "make"
         configure = "./configure"
     if Platform.wordSize == 64:
-        configure += "--enable-64bit" #--host=x86_64-pc-mingw32 --target=x86_64-pc-mingw32"
+        configure += " --enable-64bit"
     configure += " --disable-debug \
                    --enable-optimize \
                    --enable-strip"
