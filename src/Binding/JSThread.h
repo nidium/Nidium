@@ -6,6 +6,7 @@
 #ifndef binding_jsthread_h__
 #define binding_jsthread_h__
 
+#include <cstdint>
 #include <pthread.h>
 
 #include "Core/SharedMessages.h"

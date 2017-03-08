@@ -11,8 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
-#include <pthread.h>
 #include <sys/types.h>
+
+#include <cstdint>
 
 #ifdef _MSC_VER
 #include <io.h>
@@ -23,6 +24,8 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 #endif
+
+#include <pthread.h>
 
 #include <array>
 

@@ -7,6 +7,7 @@
 #define core_sharedmessages_h__
 
 #include <stdint.h>
+#include <cstdint>
 
 #include "Core/Args.h"
 
