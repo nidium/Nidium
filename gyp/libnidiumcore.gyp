@@ -43,7 +43,6 @@
                     '-fno-rtti',
                     #'-fno-exceptions', # rapidxml use exception :/
                     '-Wno-c++0x-extensions',
-                    '-Wno-c++0x-extensions',
                     '-Wno-invalid-offsetof',
                     '-Wno-mismatched-tags',
                     '-include <(nidium_output_third_party_path)/js-config.h',
