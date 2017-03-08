@@ -6,8 +6,6 @@
 #ifndef frontend_app_h__
 #define frontend_app_h__
 
-#include <pthread.h>
-
 #include <zip.h>
 #include <json/json.h>
 

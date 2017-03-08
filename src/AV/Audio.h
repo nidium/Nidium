@@ -7,10 +7,13 @@
 #define av_audio_h__
 
 #include <stdint.h>
-#include <pthread.h>
 
 #include <ape_netlib.h>
 #include "Core/SharedMessages.h"
+
+#ifdef _MSC_VER
+#include "Port/MSWindows.h"
+#endif
 
 #include "AV.h"
 
