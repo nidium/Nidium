@@ -6,15 +6,21 @@
 #ifndef port_mswindows_h__
 #define port_mswindows_h__
 
+
 #include <port/windows.h>
 
 #ifndef PTHREAD_HA
 typedef struct pthread_mutex_t_ * pthread_mutex_t;
 #endif
 
-#define ftruncate _chsize
+#ifndef usleep
 #define usleep Sleep
+#endif
+
+#define ftruncate _chsize
 #define getppid GetCurrentProcessId
+#define strcasestr StrStrI
+
 #define kill() \
     HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid); \
     TerminateProcess(hnd, 0); \
