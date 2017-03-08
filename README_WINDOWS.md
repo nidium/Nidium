@@ -80,10 +80,9 @@ git config --global --add difftool.kdiff3.trustExitCode false
   - select 'Visual C++
   - unselect select 'Windows and Web Development|Universal Windows App Development Tools|Windows 10 SDK (10.0.10586)"
   - unselect 'Microsoft Web Developer Tools'
-  next, .... and time for a coffee break
+  - next, the installation takes longer then a coffe break, so you could continue with the steps below.
 
-When the installation is done, you can take another coffeebreak to start Visual Studio for the first time, but it is not needed.
-When this set up is done, you can hack on nidium with just your favorite editor  and the configure_* scripts.
+When the installation is done, you can take another coffeebreak to start Visual Studio for the first time, but it is not needed: Our intention is that you can hack on nidium with just your favorite editor and the configure_* scripts.
 
 ## Mozilla build
 
@@ -97,7 +96,7 @@ To build spidermonkey we well reuse parts of the mozilla buildprocess, this has 
 
 ## svn
 
-Angle will start depot_tools to download  svn.
+Angle will start depot_tools to download svn.
 For some reason that fails, let's install it manually.
 
 * Download from https://storage.googleapis.com/chrome-infra/svn_bin.zip.
@@ -217,7 +216,10 @@ ymmv obviously, but there are emacs and vim' s in c:\mozilla-build\
 
 * download from http://www.vim.org/download.php/#pc
 
-### clover
+If you are a vim user but want to work inside Visual Studio's gui, you can install vsvim by clicking:
+Tools - Extensions and Updates - online - Visual studio Gallery -  CTRL+E - vsvim - Download - Install - Restart now.
+
+### clover 
 
 Tab browsing in file explorer
 
@@ -300,4 +302,10 @@ cd Nidium
 ```
 ./bin/nidium
 ```
+
+# Hack it
+
+* Fire up your favorite editor or msvc with ./gyp/all.sln.
+* Take the time to read our getting started for developers guide.
+* Pick one of our simple issues or let you imagination go.
 
