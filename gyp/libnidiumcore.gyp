@@ -118,7 +118,7 @@
             }],
             ['OS!="win"', {
                 'sources': [
-                    '../src/Port/MSWindows.cpp'
+                    '../src/Port/Posix.cpp'
                 ],
             }],
             ['OS=="mac"', {
