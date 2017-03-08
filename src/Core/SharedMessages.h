@@ -6,10 +6,13 @@
 #ifndef core_sharedmessages_h__
 #define core_sharedmessages_h__
 
-#include <pthread.h>
 #include <stdint.h>
 
 #include "Core/Args.h"
+
+#ifdef _MSC_VER
+#include "port/MSWindows.h"
+#endif
 
 /*
     TODO: Add "max messages in queue" to guard memory congestion in case of

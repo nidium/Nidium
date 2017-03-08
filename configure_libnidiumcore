@@ -47,11 +47,15 @@ Gyp = Builder.Gyp
 def pthreads4w():
     if Platform.system != "Windows":
         Log.error("The '%s' platform has native pthreads" % (Platform.system))
-    Platform.setEnviron("TARGET_CPU=%s" % (["x86","x64"][Platform.wordSize == 64]))
+        sys.exit(1)
     model, version = ['VCE', '2']
+    platform = ["x86","x64"][Platform.wordSize == 64]
+    Platform.setEnviron("TARGET_CPU=%s" % (platform))
+    #msvc_version = Variables.get('msvs_version', 2015)
+    #setenv = "setenv /%s /%s /Release" % (platform, msvc_version)
     return {
         "location": Deps.GitRepo("https://git.code.sf.net/p/pthreads4w/code", revision="062c8e"),
-        "build": ["nmake realclean %s-static" % (model)],
+        "build": [ "nmake realclean %s-static" % (model)],
         "outputs": ["pthread%s%s.lib" %(model, version)]
     }
 

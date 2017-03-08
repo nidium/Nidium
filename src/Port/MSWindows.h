@@ -8,6 +8,10 @@
 
 #include <port/windows.h>
 
+#ifndef PTHREAD_HA
+typedef struct pthread_mutex_t_ * pthread_mutex_t;
+#endif
+
 #define ftruncate _chsize
 #define usleep Sleep
 #define getppid GetCurrentProcessId

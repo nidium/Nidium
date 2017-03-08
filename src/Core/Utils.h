@@ -18,6 +18,7 @@
 #include <io.h>
 #include <time.h>
 #include <prrng.h>
+#include "port/MSWindows.h"
 #else
 #include <unistd.h>
 #include <sys/syscall.h>

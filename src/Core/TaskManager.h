@@ -7,7 +7,10 @@
 #define core_taskmanager_h__
 
 #include <stdio.h>
-#include <pthread.h>
+
+#ifdef _MSC_VER
+#include "port/MSWindows.h"
+#endif
 
 #include "Core/Messages.h"
 #include "Core/SharedMessages.h"
