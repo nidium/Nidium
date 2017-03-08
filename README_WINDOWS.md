@@ -153,7 +153,7 @@ The 'konstruktor.py' script does a lot of filesystem operations, pywin32 makes t
 * Download from https://cmake.org/download/
 * Install
 
-## Fineture your bash experience
+## Finetune your bash experience
 
 ~/.bashrc
 
@@ -172,8 +172,6 @@ test -f ~/.profile && . ~/.profile
 test -f ~/.bashrc && . ~/.bashrc
 ```
 
-## Create some symlinks
-
 ## Optional, but productivity is king
 
 ### watchman
@@ -188,7 +186,7 @@ Facebook's watchman is not as intuitive as 'entrproject.org', but it is allready
 ### console
 
 In most cases cmd.exe will suffice, copy and paste that works, there is mintty.exe in both "c:\mozilla-builds\msys\mintty.exe" and c:\Program Files\Git\mingw32\bin
-If you want multiple tabs etc checkout https://www.fosshub.com/ConEmu.html or https://sourceforge.net/projects/console/
+If you want multiple tabs etc checkout https://www.fosshub.com/ConEmu.html.
 
 ```
 mkdir c:\Data\ProgramFiles\ConEmuPack
@@ -241,7 +239,7 @@ git clone --recursive https://github.com/nidium/Nidium.git
 ```
 ## Set up the paths
 
-Mozilla has a nice script to prepared the environment.
+Mozilla has a nice script to prepare the environment with all the mvsc bells and wistles.
 
 ```
 c:\mozilla-build\start-shell-msvc2015-x64.bat
@@ -249,17 +247,15 @@ c:\mozilla-build\start-shell-msvc2015-x64.bat
 
 A 'bash' shell opens and you are in your 'home' directory.
 
+## Create some missing symlinks
+
 ```
-cd /c/Data/nidium
-export PYTHONPATH=`pwd`/NidiumTools/src
-export VIRTUALENV_PYTHON=/c/mozilla-build/python/python.exe
-export PATH=$PATH:/c/Program\ Files/Git/bin
 ln -s /c/mozilla-build/python/python.exe /usr/bin/python2.7
 ```
 
-## Porting/Compiling of nidium
+# Compiling of nidium
 
-### For 'now'
+## For 'now'
 
 While we are still working on the windows port, things are a bit different...
 
@@ -275,37 +271,53 @@ cd src\libapenetwork
 git fetch origin windows-x86
 git checkout windows-x86
 cd ..\..
-./configure_libnidiumcore
-# At this point there will be 163? complilation errors,
-
-## For 'in the near future'
-#./configure_server --ignore-build=all
-# At this point there will be .. complilation errors,
-#./configure_frontend --ignore-build=skia,angle
-# At this point there will be .. complilation errors,
-
-## For 'in the far future'
-#./configure_libnidiumcore --unit-tests --auto-tests --asume-yes
-#./configure_server --unit-tests --auto-tests --asume-yes
-#./configure_frontend --unit-tests --auto-tests --asume-yes
+./configure_server
 ```
 
-### For 'In the far future, in a galaxy far away'
+At this point there will be +-12 complilation errors, when they are resolved it is time for some testing.
+
+```
+./configure_server --unit-tests --auto-tests --asume-yes
+```
+
+## For 'in the near future'
+
+```
+./configure_frontend --ignore-build=basekit,libcoroutine,skia,angle
+./configure_frontend --unit-tests --auto-tests --asume-yes
+```
+
+At this point there will be .. complilation errors,
+
+# For 'in the far future'
+
+```
+./configure_frontend
+```
+
+## For 'In the far future, in a galaxy far away'
 
 ```
 cd Nidium
 ./configure_frontend
 ```
 
-# Run it
+# Running nidium
 
 ```
 ./bin/nidium
 ```
 
-# Hack it
+# Hack nidium
 
 * Fire up your favorite editor or msvc with ./gyp/all.sln.
 * Take the time to read our getting started for developers guide.
-* Pick one of our simple issues or let you imagination go.
+* Pick one of our simple issues or let your imagination go.
+* Have fun
 
+# Make nidium apps
+
+* fire up your favorite editor
+* Take the time to read the "getting started guide and browse through the api documentation
+* Create an nml file and let your imagination go.
+* Have fun
