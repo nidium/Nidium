@@ -69,6 +69,7 @@ def leveldb():
         make_opt += " libleveldb%s" % (ext)
         cxxFlags += " -EHsc"
         Platform.setEnviron('TARGET_OS=NATIVE_WINDOWS')
+        Platform.setEnviron('AR_FLAGS=-nologo -out:')
         Platform.setEnviron("CXXFLAGS=%s" % (cxxFlags))
         patch = [os.path.join(CONFIGURE_PATH, "patch", "leveldb.windows.patch")]
         build = ["make clean", "make" + make_opt]
