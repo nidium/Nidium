@@ -68,8 +68,9 @@ def portaudio():
     no_backend = ['jack', 'asihpi', 'winapi']
     do_backend = []
     if Platform.system == "Windows":
-        toolset = Platform.MSVC.toolset(Variables.get('msvs_version', 2015))
-        build = ["cmake .", "MSBuild.exe /nologo portaudio_static.vcxproj /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" %(toolset, Platform.cpuCount)]
+        Platform.setEnviron('CMAKE_AR=lib')
+        cmake, platform, toolset = Platform.CMake()
+        build = [cmake, "MSBuild.exe /nologo portaudio_static.vcxproj /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" %(toolset, Platform.cpuCount)]
         output = "./Release/portaudio_static_x86.lib"
     else:
         configure = "./configure"
@@ -174,19 +175,11 @@ def skia():
 
 @Deps.register("libzip")
 def libzip():
+    Platform.setEnviron('CMAKE_AR=lib')
     if Platform.system == "Windows":
-        Platform.setEnviron('CMAKE_AR=lib')
-        if Platform.wordSize == 32:
-            platform = 'Win32'
-            win_arch = ""
-        else:
-            platform = 'x64'
-            win_arch = " Win64"
-        version = Variables.get('msvs_version', 2015)
-        toolset = Platform.MSVC.toolset(version)
-        toolchain = "Visual Studio %d %s%s" % (int(toolset[1:]) / 10, version, win_arch)
         output = "./lib/Release/zip.lib"
-        build = ['cmake . -G "%s" -DZLIB_LIBRARY=%s/zlib/zlib.lib -DZLIB_INCLUDE_DIR=%s/zlib' % (toolchain, Deps.getDir(), Deps.getDir()),
+        cmake, platform, toolset = Platform.CMake() 
+        build = [cmake + " -DZLIB_LIBRARY=%s/zlib/zlib.lib -DZLIB_INCLUDE_DIR=%s/zlib" % (Deps.getDir(), Deps.getDir()),
                 "MSBuild.exe /nologo libzip.sln /p:Configuration=Release /p:PlatformToolset=%s /P:Platform=%s /maxcpucount:%i" % (toolset, platform, Platform.cpuCount)]
     else:
         output = "lib/.libs/libzip.a"
