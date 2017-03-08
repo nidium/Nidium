@@ -5,5 +5,7 @@
 *.vcxproj.filters
 *.VC.VC.opendb
 *.VC.db
+*.i
+ClassDiagram.cd
 Debug
 Release
