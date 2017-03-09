@@ -289,7 +289,7 @@ class AudioNodeMixer : public AudioNode
 
         virtual bool process()
         {
-            SPAM(("[AudioNode] process called on mixer"));
+            SPAM(("process called on mixer"));
 
             if (m_OutCount == 2) {
                 for (int i = 0; i < 256; i++) {

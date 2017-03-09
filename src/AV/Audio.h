@@ -38,7 +38,7 @@ namespace AV {
 
 #define NIDIUM_AUDIO_CHECK_EXIT_THREAD \
     if (audio->m_ThreadShutdown) {     \
-        SPAM(("[Audio] Exiting"));   \
+        SPAM(("Exiting"));   \
         return NULL;                   \
     }
 
