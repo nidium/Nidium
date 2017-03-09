@@ -187,7 +187,7 @@ void *Audio::queueThread(void *args)
             }
 
             if (wrote) {
-                SPAM(("[Audio] Sending queueNeedData\n"));
+                SPAM(("[Audio] Sending queueNeedData"));
                 NIDIUM_PTHREAD_SIGNAL(&audio->m_QueueNeedData);
             }
         }
@@ -199,22 +199,22 @@ void *Audio::queueThread(void *args)
         if (audio->m_ThreadShutdown) break;
 
         if (needSpace) {
-            SPAM(("[Audio] Waiting for more space\n"));
+            SPAM(("[Audio] Waiting for more space"));
             NIDIUM_PTHREAD_WAIT(&audio->m_QueueHaveSpace)
         } else {
-            SPAM(("[Audio] Waiting for more data\n"));
+            SPAM(("[Audio] Waiting for more data"));
             NIDIUM_PTHREAD_WAIT(&audio->m_QueueHaveData)
         }
 
         if (audio->m_ThreadShutdown) break;
 
-        SPAM(("[Audio] Queue thead is now working shutdown=%d\n",
+        SPAM(("[Audio] Queue thead is now working shutdown=%d",
               audio->m_ThreadShutdown));
     }
 
     audio->readMessages(true);
 
-    SPAM(("[Audio] Exiting queueThread\n"));
+    SPAM(("[Audio] Exiting queueThread"));
 
     return NULL;
 }
@@ -268,18 +268,18 @@ void Audio::readMessages(bool flush)
 
 void Audio::processQueue()
 {
-    SPAM(("[Audio] Process queue\n"));
+    SPAM(("[Audio] Process queue"));
     AudioSources *sources = m_Sources;
 
     while (sources != NULL) {
-        SPAM(("[Audio] curr=%p connected=%d\n", m_Sources->curr,
+        SPAM(("[Audio] curr=%p connected=%d", m_Sources->curr,
               m_Sources->curr->m_IsConnected));
         if (sources->curr != NULL && sources->curr->m_IsConnected) {
             sources->curr->processQueue();
         }
         sources = sources->next;
     }
-    SPAM(("[Audio]-------------------------- finished\n"));
+    SPAM(("[Audio]-------------------------- finished"));
 }
 
 void *Audio::decodeThread(void *args)
@@ -322,19 +322,19 @@ void *Audio::decodeThread(void *args)
             sources = sources->next;
         }
         pthread_mutex_unlock(&audio->m_SourcesLock);
-        SPAM(("[Audio] haveEnough %d / sourcesCount %d\n", haveEnough,
+        SPAM(("[Audio] haveEnough %d / sourcesCount %d", haveEnough,
               audio->m_SourcesCount));
 
         // FIXME : find out why when playing multiple song,
         // the commented expression bellow fail to work
         if (audio->m_SourcesCount > 0 /*&& haveEnough == sourcesCount*/) {
             if (audio->canWriteFrame()) {
-                SPAM(("[Audio] Have data %lu\n",
+                SPAM(("[Audio] Have data %lu",
                       PaUtil_GetRingBufferWriteAvailable(audio->m_rBufferOut)));
                 NIDIUM_PTHREAD_SIGNAL(&audio->m_QueueHaveData);
                 // audio->haveData = true;
             } else {
-                SPAM(("[Audio] Does not have data %lu\n",
+                SPAM(("[Audio] Does not have data %lu",
                       PaUtil_GetRingBufferWriteAvailable(audio->m_rBufferOut)));
             }
         }
@@ -343,12 +343,12 @@ void *Audio::decodeThread(void *args)
 
         // Wait for work to do unless some source need to wakeup
         if (!audio->m_SourceNeedWork) {
-            SPAM(("[Audio] Waitting for queueNeedData m_SourceNeedWork=%d\n",
+            SPAM(("[Audio] Waitting for queueNeedData m_SourceNeedWork=%d",
                   audio->m_SourceNeedWork));
             NIDIUM_PTHREAD_WAIT(&audio->m_QueueNeedData);
-            SPAM(("[Audio] QueueNeedData received\n"));
+            SPAM(("[Audio] QueueNeedData received"));
         } else {
-            SPAM(("[Audio] decodeThread not sleeping cause it need wakup\n"));
+            SPAM(("[Audio] decodeThread not sleeping cause it need wakup"));
         }
 
         audio->m_SourceNeedWork = false;
@@ -356,7 +356,7 @@ void *Audio::decodeThread(void *args)
         NIDIUM_AUDIO_CHECK_EXIT_THREAD
     }
 
-    SPAM(("[Audio] Exiting\n"));
+    SPAM(("[Audio] Exiting"));
     return NULL;
 }
 
@@ -475,10 +475,10 @@ int Audio::paOutputCallbackMethod(const void *inputBuffer,
     PaUtil_ReadRingBuffer(m_rBufferOut, out, avail * channels);
 
 #if 0
-    //SPAM(("[Audio] ===========frames per buffer = %d avail = %ld processing = %ld left = %d\n",
+    //SPAM(("[Audio] ===========frames per buffer = %d avail = %ld processing = %ld left = %d",
         //framesPerBuffer, PaUtil_GetRingBufferReadAvailable(m_rBufferOut), avail, left));
     if (left > 0) {
-        SPAM(("[Audio] WARNING DROPING %d\n", left));
+        SPAM(("[Audio] WARNING DROPING %d", left));
     }
 #endif
 
@@ -542,7 +542,7 @@ double Audio::getLatency()
                     - static_cast<double>(now - m_PlaybackStartTime) / 1000000;
     }
 
-    SPAM(("[Audio] latency=%f nidium=%f pa=%f\n", paLatency + nidiumAudioLatency,
+    SPAM(("[Audio] latency=%f nidium=%f pa=%f", paLatency + nidiumAudioLatency,
           nidiumAudioLatency, paLatency));
 
     return paLatency + nidiumAudioLatency;

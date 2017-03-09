@@ -132,7 +132,7 @@ void Server::wait()
 void Server::displayVersion()
 {
 #include "ASCII.h"
-    ndm_log(NDM_LOG_INFO, "Server", nidium_ascii, NIDIUM_SERVER_VERSION, __DATE__, __TIME__,
+    fprintf( stdout, nidium_ascii, NIDIUM_SERVER_VERSION, __DATE__, __TIME__,
             getpid(), m_NWorkers);
 }
 
@@ -266,7 +266,7 @@ int Server::init()
     m_Args.argv += optind;
 
     if (workers > NIDIUM_MAX_WORKERS) {
-        ndm_logf(NDM_LOG_ERROR, "Server", "Too many worker requested : max %d",
+        fprintf(stderr, "Too many worker requested : max %d\n",
                 NIDIUM_MAX_WORKERS);
         exit(1);
     }
@@ -278,7 +278,7 @@ int Server::init()
         m_HasREPL = false;
         this->daemonize();
     } else if (daemon) {
-        ndm_logf(NDM_LOG_ERROR, "Server", "Cannot daemonize if no JS file is provided");
+        fprintf(stderr, "Cannot daemonize if no JS file is provided");
         Server::Usage(&long_options[0], text_blocks);
         exit(1);
     } else if (m_Args.argc == 0) {

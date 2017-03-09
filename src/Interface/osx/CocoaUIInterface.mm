@@ -231,7 +231,7 @@ void UICocoaInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
     NSWindow *window = NidiumCocoaWindow(m_Win);
     NSUInteger mask = [window styleMask];
 
-    APE_ERROR("Interface", "[CocoaUI] setting titlebar color\n");
+    ndm_log(NDM_LOG_ERROR, "CocoaUI", "setting titlebar color");
 
     if ((mask & NSTexturedBackgroundWindowMask) == 0) {
         [window setStyleMask:mask|NSTexturedBackgroundWindowMask];

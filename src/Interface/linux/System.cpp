@@ -44,10 +44,9 @@ static void get_dpi(int *x, int *y)
         *x = -1;
         *y = -1;
 
-        APE_ERROR("Interface", "[System] Failed to open X display\n");
+        ndm_log(NDM_LOG_ERROR, "System", "Failed to open X display");
         return;
     }
-
 
     /*
      * There are 2.54 centimeters to an inch; so there are 25.4 millimeters.
@@ -124,7 +123,7 @@ const char *System::getCacheDirectory()
     snprintf(nHome, 4096, "%s.config/nidium/", homedir);
 
     if (mkdir(nHome, 0755) == -1 && errno != EEXIST) {
-        APE_ERROR("Interface", "[System] Can not create cache directory %s\n", nHome);
+        ndm_logf(NDM_LOG_ERROR, "System", "Can not create cache directory %s", nHome);
         return NULL;
     }
 

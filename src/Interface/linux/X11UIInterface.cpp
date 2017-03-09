@@ -205,7 +205,7 @@ void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)
     switch (cursorvalue) {
         case UIX11Interface::ARROW:
             cursor = XC_left_ptr;
-            APE_DEBUG("Interface", "[X11UI] Normal cursor\n");
+            ndm_log(NDM_LOG_DEBUG, "X11UI", "Normal cursor");
             break;
         case UIX11Interface::BEAM:
             cursor = XC_xterm;
@@ -220,7 +220,7 @@ void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)
             cursor = XC_hand1;
             break;
         case UIX11Interface::HIDDEN:
-            APE_DEBUG("Interface", "[X11UI] hide cursor\n");
+            ndm_log(NDM_LOG_DEBUG, "X11UI", "Hide cursor");
             this->hideCursor(true);
             return;
         default:
@@ -243,7 +243,7 @@ void UIX11Interface::setSystemCursor(CURSOR_TYPE cursorvalue)
 
 void tray_icon_on_click(GtkStatusIcon *status_icon, gpointer user_data)
 {
-    APE_DEBUG("Interface", "[X11UI] Clicked on tray icon\n");
+    ndm_log(NDM_LOG_DEBUG, "X11UI", "Clicked on tray icon");
 }
 void UIX11Interface::enableSysTray()
 {
@@ -300,7 +300,7 @@ void UIX11Console::log(const char *str)
 
         m_Interface->processGtkPendingEvents();
     } else {
-        APE_ERROR("Interface", "[X11UI] %s", str);
+        ndm_logf(NDM_LOG_ERROR, "X11UI", "%s", str);
     }
 }
 
@@ -353,7 +353,7 @@ void UIX11Console::hide()
 {
     if (!m_Window || !m_IsOpen) return;
 
-    APE_DEBUG("Interface", "[X11UI] hide\n");
+    ndm_log(NDM_LOG_DEBUG, "X11UI", "Hide");
 
     gtk_widget_hide(m_Window);
 }
