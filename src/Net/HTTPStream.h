@@ -10,6 +10,8 @@
 #include "IO/Stream.h"
 #include "Net/HTTP.h"
 
+#include <prio.h>
+
 namespace Nidium {
 namespace Net {
 
@@ -73,7 +75,8 @@ private:
 
     struct
     {
-        int fd;
+        PRFileMap *fmap;
+        PRFileDesc *fdesc;
         void *addr;
         size_t size;
     } m_Mapped;
