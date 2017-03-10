@@ -280,28 +280,29 @@ def depotTools():
 
 @Deps.register("basekit")
 def basekit():
-    make_opt = ''
     if Platform.system == "Windows":
-        #parallel build seems to lock make
-        make_opt = " -j1 PLATFORM=%s" % (["x86","x64"][Platform.wordSize == 64])
         Platform.setEnviron('SYS=Windows')
         Platform.setEnviron('INSTALL_PREFIX=%s' % (os.path.join(CONFIGURE_PATH,
         "third-party/basekit/install")))
+        build = ['mkdir "_build/objs" "_build/lib"||true', 
+                 "make -j1  _build/lib/libbasekit.a PLATFORM=%s" % (["x86","x64"][Platform.wordSize == 64])]
+    else:
+        build = ["make"]
     return {
         "location": Deps.GitRepo("https://github.com/stevedekorte/basekit.git", revision="a3e54ba83b85f530dc9442a33d2779240ed96189"),
-        "build": ["make" + make_opt],
+        "build": build,
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "basekit.patch")],
         "outputs": ["_build/lib/libbasekit(.a|.lib)"]
     }
 
 @Deps.register("libcoroutine")
 def libcoro():
-    make_opt = ''
     if Platform.system == "Windows":
         Platform.setEnviron('SYS=Windows')
+        build = ['mkdir "_build/objs" "_build/lib"||true', "make -j1 _build/objs _build/lib/liblibcoroutine.a"]
         patchs = [os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.windows.patch")]
-        make_opt += r" _build/lib/liblibcoroutine.a"
     else:
+        build = ["make"]
         patchs = [os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.patch")]
         if Konstruct.config("valgrind"):
             patchs.append(os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.debug.patch"))
@@ -309,7 +310,7 @@ def libcoro():
     return {
         "location": Deps.GitRepo("https://github.com/stevedekorte/coroutine.git", revision="b0bf11d8a0ec70bc0f1f5043513d334e1eff15fc"),
         "patchs": patchs,
-        "build": ["make" + make_opt],
+        "build": build,
         "outputs": [["_build/lib/liblibcoroutine(.a|.lib)", "libcoroutine\\1"]]
     }
 
