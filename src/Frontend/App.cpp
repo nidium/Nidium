@@ -9,10 +9,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <pthread.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#include <cstdint>
+#include <pthread.h>
 
 #include <prio.h>
 #include <prerror.h>

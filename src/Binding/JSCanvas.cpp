@@ -1549,7 +1549,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
     JS::RootedObject ro(cx, m_Instance);
 
     switch (msg.event()) {
-        case NIDIUM_EVENT(CanvasHandler, RESIZE_EVENT): {
+        case NIDIUM_EVENT(CanvasHandler, kEvents_Resize): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);
 
@@ -1557,7 +1557,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             this->fireJSEvent("resize", &eventValue);
             break;
         }
-        case NIDIUM_EVENT(CanvasHandler, PAINT_EVENT): {
+        case NIDIUM_EVENT(CanvasHandler, kEvents_Paint): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);
 
@@ -1565,7 +1565,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             this->fireJSEvent("paint", &eventValue);
             break;
         }        
-        case NIDIUM_EVENT(CanvasHandler, LOADED_EVENT): {
+        case NIDIUM_EVENT(CanvasHandler, kEvents_Loaded): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);
 
@@ -1573,7 +1573,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             this->fireJSEvent("load", &eventValue);
             break;
         }
-        case NIDIUM_EVENT(CanvasHandler, MOUNT_EVENT): {
+        case NIDIUM_EVENT(CanvasHandler, kEvents_Mount): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);
 
@@ -1581,7 +1581,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             this->fireJSEvent("mount", &eventValue);
             break;
         }
-        case NIDIUM_EVENT(CanvasHandler, UNMOUNT_EVENT): {
+        case NIDIUM_EVENT(CanvasHandler, kEvents_Unmount): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);
 
@@ -1589,7 +1589,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             this->fireJSEvent("unmount", &eventValue);
             break;
         }
-        case NIDIUM_EVENT(CanvasHandler, CHANGE_EVENT): {
+        case NIDIUM_EVENT(CanvasHandler, kEvents_Change): {
             const char *name = NULL;
             JS::RootedValue value(cx);
 
@@ -1614,10 +1614,10 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
 
             break;
         }
-        case NIDIUM_EVENT(CanvasHandler, DRAG_EVENT): {
+        case NIDIUM_EVENT(CanvasHandler, kEvents_Drag): {
             printf("Drag event detected\n");
         }
-        case NIDIUM_EVENT(CanvasHandler, MOUSE_EVENT): {
+        case NIDIUM_EVENT(CanvasHandler, kEvents_Mouse): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             CanvasHandler *target
                 = static_cast<CanvasHandler *>(msg.m_Args[8].toPtr());

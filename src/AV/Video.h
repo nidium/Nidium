@@ -6,7 +6,6 @@
 #ifndef av_video_h__
 #define av_video_h__
 
-#include <pthread.h>
 #include <stdint.h>
 
 #include <ape_netlib.h>

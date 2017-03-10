@@ -11,6 +11,12 @@
 
 #include "Core/Path.h"
 
+#ifdef _MSC_VER
+#include "Port/MSWindows.h"
+#else
+#include "Port/Posix.h"
+#endif
+
 namespace Nidium {
 namespace Binding {
 
@@ -183,7 +189,7 @@ bool JSDB::get(JSContext *cx, const char *key, JS::MutableHandleValue rval)
     }
 
     if ((void *)aligned_data != data.data()) {
-        free(aligned_data);
+        posix_memalign_free(aligned_data);
     }
 
     return true;

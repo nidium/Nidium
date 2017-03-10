@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <vector>
+
 #ifndef _MSC_VER
 #include <unistd.h>
 #endif
@@ -101,8 +103,8 @@ sk_sp<SkShader> Gradient::build()
                SkDoubleToScalar(m_StartPoint.y));
     pts[1].set(SkDoubleToScalar(m_EndPoint.x), SkDoubleToScalar(m_EndPoint.y));
 
-    SkColor colors[m_ColorsStop.count];
-    SkScalar pos[m_ColorsStop.count];
+    std::vector<SkColor> colors(m_ColorsStop.count);
+    std::vector<SkScalar> pos(m_ColorsStop.count);
 
     for (unsigned int i = 0; i < m_ColorsStop.count; i++) {
         colors[i] = m_ColorsStop.items[i].m_Color;
@@ -114,11 +116,11 @@ sk_sp<SkShader> Gradient::build()
     if (m_IsRadial) {
         m_CurrentShader = SkGradientShader::MakeTwoPointConical(
             pts[0], SkDoubleToScalar(m_StartPoint.radius), pts[1],
-            SkDoubleToScalar(m_EndPoint.radius), colors, pos,
+            SkDoubleToScalar(m_EndPoint.radius), &colors[0], &pos[0],
             m_ColorsStop.count, SkShader::kClamp_TileMode);
     } else {
         m_CurrentShader = SkGradientShader::MakeLinear(
-            pts, colors, pos, m_ColorsStop.count, SkShader::kClamp_TileMode);
+            pts, &colors[0], &pos[0], m_ColorsStop.count, SkShader::kClamp_TileMode);
     }
 
     return m_CurrentShader;

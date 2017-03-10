@@ -47,6 +47,7 @@ static int ape_kill_handler(int code, ape_global *ape)
 // }}}
 
 // {{{ Implementation
+#ifndef _MSC_VER
 bool JSProcess::JS_getOwner(JSContext *cx, JS::CallArgs &args)
 {
     int uid                 = getuid();
@@ -192,6 +193,7 @@ bool JSProcess::JS_setOwner(JSContext *cx, JS::CallArgs &args)
 
     return true;
 }
+#endif
 
 bool JSProcess::JS_setSignalHandler(JSContext *cx, JS::CallArgs &args)
 {
@@ -248,8 +250,10 @@ bool JSProcess::JS_cwd(JSContext *cx, JS::CallArgs &args)
 JSFunctionSpec *JSProcess::ListMethods()
 {
     static JSFunctionSpec funcs[] = {
+#ifndef _MSC_VER
         CLASSMAPPER_FN(JSProcess, getOwner, 0),
         CLASSMAPPER_FN(JSProcess, setOwner, 1),
+#endif
         CLASSMAPPER_FN(JSProcess, setSignalHandler, 1),
         CLASSMAPPER_FN(JSProcess, exit, 0),
         CLASSMAPPER_FN(JSProcess, shutdown, 0),

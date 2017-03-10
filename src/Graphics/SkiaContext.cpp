@@ -11,9 +11,11 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
+#include <vector>
 
 #ifdef _MSC_VER
 #include "Port/MSWindows.h"
+#include <Shlwapi.h>
 #else
 #include <unistd.h>
 #include <strings.h>
@@ -1765,9 +1767,9 @@ double SkiaContext::breakText(const char *str,
 
     int i;
 
-    SkScalar widths[len];
+    std::vector<SkScalar> widths(len);
 
-    PAINT->getTextWidths(str, len, widths);
+    PAINT->getTextWidths(str, len, &widths[0]);
     curState.ptr          = str;
     curState.curWordWidth = SkIntToScalar(0);
     curState.curLineWidth = SkIntToScalar(0);

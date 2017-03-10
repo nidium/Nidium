@@ -6,10 +6,25 @@
 #ifndef port_mswindows_h__
 #define port_mswindows_h__
 
+
 #include <port/windows.h>
 
-#define ftruncate _chsize
+#ifndef PTHREAD_HA
+typedef struct pthread_mutex_t_ * pthread_mutex_t;
+#endif
+
+#ifndef usleep
 #define usleep Sleep
+#endif
+
+#define ftruncate _chsize
+#define getppid GetCurrentProcessId
+#define strcasestr StrStrI
+
+#define kill() \
+    HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid); \
+    TerminateProcess(hnd, 0); \
+    CloseHandle(hProcess);
 
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
 #define MAXPATHLEN _MAX_PATH 
@@ -22,8 +37,16 @@
 #define S_ISREG(mode)  (((mode) & S_IFMT) == S_IFREG)
 #endif
 
+//http://stackoverflow.com/questions/33696092/whats-the-correct-replacement-for-posix-memalign-in-windows
+#define posix_memalign(p, a, s) (((*(p)) = _aligned_malloc((s), (a))), *(p) ?0 :errno)
+#define posix_memalign_free _aligned_free
 
+//http ://stackoverflow.com/questions/40159892/using-asprintf-on-windows
 char* strsep(char** stringp, const char* delim);
+//http://stackoverflow.com/questions/6062822/whats-wrong-with-strndup
+char *strndup(char *str, size_t chars);
+int vasprintf(char **strp, const char *fmt, va_list ap);
+int asprintf(char **strp, const char *fmt, ...);
 
 namespace Nidium {
 namespace Port {

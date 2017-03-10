@@ -48,7 +48,7 @@ public:
     {
         int size;
         int allocated;
-		PRDirEntry *lst;
+        PRDirEntry *lst;
     };
 
     explicit File(const char *path);

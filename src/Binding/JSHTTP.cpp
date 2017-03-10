@@ -495,12 +495,12 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
 
             if (!JS_ParseJSON(m_Cx, str, &jsdata)) {
                 char *err;
+
                 asprintf(&err, "Cant parse JSON of size %ld :\n = %.*s\n = \n",
                          static_cast<unsigned long>(h->m_Data->used),
                          static_cast<int>(h->m_Data->used), h->m_Data->data);
 
                 this->onError(err);
-
                 free(err);
 
                 return;

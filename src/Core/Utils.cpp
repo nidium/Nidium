@@ -10,6 +10,8 @@
 #include <time.h>
 #include <math.h>
 
+#include <pthread.h>
+
 #ifndef _MSC_VER
 #include <arpa/inet.h>
 #include <netinet/in.h>

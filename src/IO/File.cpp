@@ -323,7 +323,7 @@ void File::openTask(const char *modes, void *arg)
 
         m_Dir = PR_OpenDir(m_Path);
         if (!m_Dir) {
-            printf("Failed to open dir %s : %s\n", m_Path, strerror(errno));
+           printf("Failed to open dir %s : %s\n", m_Path, strerror(errno));
            NIDIUM_FILE_NOTIFY(errno, File::kEvents_OpenError, arg);
             return;
         }

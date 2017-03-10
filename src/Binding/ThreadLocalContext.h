@@ -79,7 +79,8 @@ struct NidiumLocalContext {
     {
         const nidiumProtoCacheElement &el = m_Protocache[jsclass];
 
-        return el.jsclass == nullptr ? nullptr : el.m_Proto;
+        if (el.jsclass == nullptr) return nullptr;
+        else return el.m_Proto;
     }
 
     uint64_t getUniqueId()

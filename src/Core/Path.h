@@ -40,7 +40,6 @@ extern char *g_m_Root;
 extern char *g_m_Cwd;
 
 #define SCHEME_DEFINE(prefix, streamclass, keepprefix)                   \
-    (struct Nidium::Core::Path::schemeInfo)                              \
     {                                                                    \
         /*.str                  = */ prefix,                             \
         /*.base                 = */ streamclass::CreateStream,          \

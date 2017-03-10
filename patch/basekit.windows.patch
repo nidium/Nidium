@@ -1,5 +1,5 @@
 --- basekit.org/Makefile.lib	2017-03-07 07:22:20 -0800
-+++ basekit/Makefile.lib	2017-03-07 07:34:57 -0800
++++ basekit/Makefile.lib	2017-03-07 07:36:37 -0800
 @@ -58,7 +58,7 @@
  SYS ?= $(shell uname -s)
  
@@ -28,7 +28,7 @@
  DLL_EXTRAS := ws2_32.lib shell32.lib
  FLAT_NAMESPACE :=
 --- basekit.org/source/Common.h	2017-03-07 07:21:58 -0800
-+++ basekit/source/Common.h	2017-03-07 07:24:08 -0800
++++ basekit/source/Common.h	2017-03-07 07:52:47 -0800
 @@ -5,7 +5,7 @@
  This is a header that all other source files should include.
  These defines are helpful for doing OS specific checks in the code.
@@ -38,7 +38,18 @@
  
  #ifndef IOCOMMON_DEFINED
  #define IOCOMMON_DEFINED 1
-@@ -41,7 +41,9 @@
+@@ -27,8 +27,10 @@
+ typedef   signed char    int8_t;
+ typedef unsigned short uint16_t;
+ typedef   signed short  int16_t;
++#ifdef _MSC_VER
+ typedef unsigned long  uint32_t;
+ typedef   signed long   int32_t;
++#endif
+ /*
+  typedef unsigned long uint64_t;
+  typedef signed long int64_t;
+@@ -41,7 +43,9 @@
  
  #if defined(WIN32) || defined(__WINS__) || defined(__MINGW32__) || defined(_MSC_VER)
  #define inline __inline
