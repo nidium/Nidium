@@ -176,14 +176,14 @@ void HTTPStream::cleanCacheFile()
 
 void HTTPStream::onStart(size_t packets, size_t seek)
 {
-	if (m_Mapped.fdesc) {
-		PR_Close(m_Mapped.fdesc);
-	}
+    if (m_Mapped.fdesc) {
+        PR_Close(m_Mapped.fdesc);
+    }
 
-	char tmpfname[] = "/tmp/nidiumtmp.XXXXXXXX";
-	char *filename;
+    char tmpfname[] = "/tmp/nidiumtmp.XXXXXXXX";
+    char *filename;
 #ifdef _MSC_VER
-	filename = _mktemp(tmpfname);
+    filename = _mktemp(tmpfname);
     if (filename == NULL) {
 #else
     int fd = mkstemp(tmpfname);
@@ -193,7 +193,7 @@ void HTTPStream::onStart(size_t packets, size_t seek)
         printf("[HTTPStream] Failed to create temporary file\n");
         return;
     }
-	m_Mapped.fdesc = PR_Open(filename, PR_RDWR | O_CREAT, 0600);
+    m_Mapped.fdesc = PR_Open(filename, PR_RDWR | O_CREAT, 0600);
     //TODO: discuss, unlink an opened file? 
     // unlink(filename);
     m_StartPosition = seek;
