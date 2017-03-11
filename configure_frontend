@@ -29,7 +29,6 @@ Deps.set(
     "giflib",
     "skia",
     "libzip",
-    "lss",
     "breakpad",
     "basekit",
     "libcoroutine",
@@ -39,14 +38,18 @@ Deps.set(
 )
 
 if Platform.system == "Linux":
-    Deps.set("libnotify")
+    Deps.set("libnotify", "lss")
 elif Platform.system == "Darwin":
+    Deps.set("libnotify")
     Platform.setEnviron("MACOSX_DEPLOYMENT_TARGET=10.7")
 elif Platform.system == "Windows":
+    Deps.set("pthreads4w")
+    if Platform.wordSize == 32:
+        Deps.set("ninja")
+    Platform.setEnviron("DEPOT_TOOLS_WIN_TOOLCHAIN=0")
     Platform.setCompiler("cl", 'cl')
     Platform.setEnviron("LD=Link")
     Platform.setEnviron("AR=lib")
-    Deps.set("pthreads4w")
 
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_FRONTEND")
@@ -139,12 +142,12 @@ def skia():
         "cc": Platform.getEnviron("CC"),
         "cxx": Platform.getEnviron("CXX")
     }
-
     if Platform.system == "Darwin":
         args["extra_cflags_cc"].append("-stdlib=libc++")
         args["extra_ldflags"] = ["-stdlib=libc++"]
-
-    # Add depot_tools to path needed for skia
+        # Add depot_tools to path needed for skia
+    elif Platform.system == "Windows":
+        args['target_cpu'] = ["Win326","x64"][Platform.wordSize == 64]
     Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
 
     # depot_tools and skia needs python2.7 but use "python" as the default
@@ -154,16 +157,34 @@ def skia():
 
     skiaArgs = ""
     for k, v in args.items():
-        skiaArgs += " %s=%s" % (k, json.dumps(v))
+        v = json.dumps(v)
+        skiaArgs += r" %s=%s" % (k, v) 
 
+    if Platform.system == "Windows":
+        chdir = "../%s/skia" % ([".default-%s" %(Builder.Gyp._config), ".default"][Builder.Gyp._config is None])
+        platform = ["Win32","x64"][Platform.wordSize == 64]
+        msvs_version = Variables.get('msvs_version', 2015)
+        toolset = Platform.MSVC.toolset(msvs_version)
+        tmp_file = "nidium_gn_quotes_hack.sh"
+        build = ["python tools/git-sync-deps",
+                '''echo "#./bin/gn.exe# #gen# #out/Static# #--args=%s# #--ide=vs%s#" > %s''' % (skiaArgs.replace('"', '\#'), msvs_version, tmp_file),
+                "chmod +x %s" % (tmp_file),
+                r"sed -i -e 's/\"//g' -e 's/#/\"/g' %s" % (tmp_file),
+                "bash ./%s" % (tmp_file),
+                #"MSBuild.exe /nologo out/Static/all.sln /p:Configuration=GN /p:PlatformToolset=%s /P:Platform=%s /maxcpucount:%i" % (toolset, platform, Platform.cpuCount),
+                "ninja %s -C out/Static" % ("-v" if Variables.get("verbose") else ""),
+            ]
+    else:
+        chdir = None
+        build = ["python tools/git-sync-deps",
+                "bin/gn gen out/Static --args='%s'" % (skiaArgs),
+                "ninja %s -C out/Static" % ("-v" if Variables.get("verbose") else ""),
+            ]
     return {
+        "chdir": chdir,
         "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", revision="98829b9"),
-        "build": [
-            "python tools/git-sync-deps",
-            "bin/gn gen out/Static --args='%s'" % (skiaArgs),
-            "ninja %s -C out/Static" % ("-v" if Variables.get("verbose") else ""),
-        ],
-        "patchs": [
+        "build": build,
+                "patchs": [
             os.path.join(CONFIGURE_PATH, "patch", "skia_gl.patch"),
             os.path.join(CONFIGURE_PATH, "patch", "skia_gr_gl_callback.patch")
         ],
@@ -198,6 +219,9 @@ def libzip():
 
 @Deps.register("lss")
 def lss():
+    if Platform.system == "Windows":
+        Log.error("The '%s' platform does not need lss" % (Platform.system))
+        sys.exit(1)
     return {
         "location": Deps.GitRepo("https://chromium.googlesource.com/linux-syscall-support", revision="348bdf8d32b37c8fb2627df7a0a977d1d640e1fc")
     }
@@ -271,12 +295,26 @@ def SDL2():
         "outputs": outputs
     }
 
+@Deps.register("ninja")
+def ninja():
+    if Platform.system != "Windows" or Platform.wordSize != 32:
+        Log.error("The '%s' platform has a ninja binary in depot tools" % (Platform.system))
+        sys.exit(1)
+    return {
+        "location": "https://github.com/ninja-build/ninja/archive/v1.7.2.tar.gz",
+        "build": ['pwd', "python configure.py --bootstrap"]
+    }
+
 @Deps.register("depot_tools")
 def depotTools():
     Deps.Gclient.setExec(os.path.join("depot_tools", "gclient"))
-    return {
-        "location": Deps.GitRepo("https://chromium.googlesource.com/chromium/tools/depot_tools.git", revision="8bf327c")
-    }
+    if Platform.system == "Windows":
+        ddict = { 'location' : "https://storage.googleapis.com/chrome-infra/depot_tools.zip"}
+        if Platform.wordSize == 32:
+            ddict['build'] = ['cp ../ninja/ninja.exe ../depot_tools/' ]
+    else:
+        ddict = {'location' : Deps.GitRepo("https://chromium.googlesource.com/chromium/tools/depot_tools.git", revision="8bf327c")}
+    return ddict
 
 @Deps.register("basekit")
 def basekit():
