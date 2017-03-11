@@ -147,7 +147,17 @@ def skia():
         args["extra_ldflags"] = ["-stdlib=libc++"]
         # Add depot_tools to path needed for skia
     elif Platform.system == "Windows":
-        args['target_cpu'] = ["Win326","x64"][Platform.wordSize == 64]
+        msvs_version = Variables.get('msvs_version', 2015)
+        toolset = Platform.MSVC.toolset(msvs_version)
+        hack = ''
+        #vs_path = '/c/Program Files (x86)/Microsoft Visual Studio %i.0' % (int(toolset[1:]) / 10)
+        vs_path = hack + r'c:/Program Files/Microsoft Visual Studio %i.0' % (int(toolset[1:]) / 10)
+        #args['target_cpu'] = ["x86", "x64"][Platform.wordSize == 64]
+        args['host_os'] = 'win'
+        #args['cc'] = vs_path + '/VC/BIN/cl.exe' + hack
+        #args['cxx'] = vs_path + '/VC/BIN/cl.exe' + hack
+        #args['ar'] = vs_path + '/VC/BIN/lib.exe' + hack
+        args['windk'] = vs_path + hack #.replace(' ', '\ ')
     Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
 
     # depot_tools and skia needs python2.7 but use "python" as the default
@@ -162,16 +172,14 @@ def skia():
 
     if Platform.system == "Windows":
         chdir = "../%s/skia" % ([".default-%s" %(Builder.Gyp._config), ".default"][Builder.Gyp._config is None])
-        platform = ["Win32","x64"][Platform.wordSize == 64]
-        msvs_version = Variables.get('msvs_version', 2015)
-        toolset = Platform.MSVC.toolset(msvs_version)
+        platform = ["Win32", "x64"][Platform.wordSize == 64]
         tmp_file = "nidium_gn_quotes_hack.sh"
-        build = ["python tools/git-sync-deps",
+        build = [#"python tools/git-sync-deps",
                 '''echo "#./bin/gn.exe# #gen# #out/Static# #--args=%s# #--ide=vs%s#" > %s''' % (skiaArgs.replace('"', '\#'), msvs_version, tmp_file),
                 "chmod +x %s" % (tmp_file),
                 r"sed -i -e 's/\"//g' -e 's/#/\"/g' %s" % (tmp_file),
                 "bash ./%s" % (tmp_file),
-                #"MSBuild.exe /nologo out/Static/all.sln /p:Configuration=GN /p:PlatformToolset=%s /P:Platform=%s /maxcpucount:%i" % (toolset, platform, Platform.cpuCount),
+                #'''sed -i -e '/s/cmd \/c/bash/g' -e 's/c:/\"c:/g' -e 's/\.cmd/\.cmd\"/g' -e 's/\.exe/\.exe\"/g' out/Static/toolchain.ninja''',
                 "ninja %s -C out/Static" % ("-v" if Variables.get("verbose") else ""),
             ]
     else:
@@ -281,7 +289,7 @@ def SDL2():
         toolset = Platform.MSVC.toolset(Variables.get('msvs_version', 2015))
         build = ["MSBuild.exe /nologo ../VisualC/SDL_VS2013.sln /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" % (toolset, Platform.cpuCount)]
         patchs = [os.path.join(CONFIGURE_PATH, "patch", "SDL2.windows.patch")]
-        platform = ["Win32","x64"][Platform.wordSize == 64]
+        platform = ["Win32", "x64"][Platform.wordSize == 64]
         outputs = ["../VisualC/SDL/%s/Release/SDL2.lib" % (platform)]
     else:
         build = ["../configure", "make"]
