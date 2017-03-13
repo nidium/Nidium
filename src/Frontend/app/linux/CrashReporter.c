@@ -35,7 +35,7 @@ char *read_dump(const char *path, int *data_len)
 
     fd = fopen(path, "rb");
     if (!fd) {
-        APE_ERROR("Nidium", "[Crash] Failed to open dump : %s\n", path);
+        ndm_printf(NDM_LOG_ERROR, "CrashReporter", "Failed to open dump : %s", path);
         return NULL;
     }
 
@@ -66,17 +66,17 @@ int main(int argc, char **argv)
     int sock;
 
     if (argc < 2) {
-        APE_ERROR("Nidium", "[Crash] No dump specified\n");
+        ndm_printf(NDM_LOG_ERROR, "CrashReporter", "No dump specified");
         return -1;
     }
 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        APE_ERROR("Nidium", "[Crash] Failed to create socket, err=%d\n", errno);
+        ndm_printf(NDM_LOG_ERROR, "[CrashReporter] Failed to create socket, err=%d", errno);
         return -2;
     }
 
     if ((hostaddr = gethostbyname(NIDIUM_CRASH_COLLECTOR_HOST)) == NULL) {
-        APE_ERROR("Nidium", "[Crash] Unable to get host\n");
+        ndm_printf(NDM_LOG_ERROR, "CrashReporter", " Unable to get ip of %s host", NIDIUM_CRASH_COLLECTOR_HOST);
         return -2;
     }
 
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
     dest.sin_port = htons(NIDIUM_CRASH_COLLECTOR_PORT);
 
     if (connect(sock, static_cast<const struct sockaddr *>(&dest), sizeof(struct sockaddr)) != 0) {
-        APE_ERROR("Nidium", "[Crash] Failed to connect\n");
+        ndm_printf(NDM_LOG_ERROR, "CrashReporter", "Failed to connect");
         return -2;
     }
 
@@ -120,7 +120,7 @@ int main(int argc, char **argv)
     SEND("Host: "NIDIUM_CRASH_COLLECTOR_HOST"\r\n");
     SEND(cl_header);
     SEND("Content-Type: multipart/form-data; boundary="HTTP_BOUNDARY"\r\n\r\n");
-    //APE_DEBUG("Nidium", "[Crash] %s\n", data);
+    //ndm_printf(NDM_LOG_DEBUG, "CrashReporter", "CrashData=%s", data);
     SEND(data);
     send(sock, minidump, minidum_size, 0);
     SEND(HTTP_BOUNDARY_END)
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
     len = recv(sock, reply_buffer, MAX_RCV_LEN, 0);
     reply_buffer[len] = '\0';
 
-    APE_DEBUG("Nidium", "[Crash] reply=%d\n%s\n", len, reply_buffer);
+    ndm_printf(NDM_LOG_ERROR, "CrashReporter", "reply (%d) %s", len, reply_buffer);
 
     close(sock);
     free(minidump);

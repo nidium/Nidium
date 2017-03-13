@@ -37,14 +37,14 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor,
                          void *context,
                          bool succeeded)
 {
-    APE_ERROR("Nidium", "[Main] ",
+    ndm_printf(NDM_LOG_INFO, "CrashReporter",
             "Nidium crash - Sending report - No personal information is "
             "transmited\n");
     char reporter[PATH_MAX];
     snprintf(reporter, PATH_MAX, "%s/nidium-crash-reporter",
              Nidium::App::_root);
     int ret = execl(reporter, "nidium-crash-reporter", descriptor.path(), NULL);
-    APE_DEBUG("Nidium", "[Main] ", "Crash reporter returned %d\n", ret);
+    ndm_printf(NDM_LOG_INFO, "CrashReporter ", "Crash reporter returned %d\n", ret);
     return succeeded;
 }
 #endif
