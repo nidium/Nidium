@@ -265,9 +265,9 @@ uint32_t SkiaContext::ParseColor(const char *str)
         const char *end
             = SkParse::FindScalars(&str[(str[3] == 'a' ? 5 : 4)], array, count);
 
-        if (end == NULL)
-            ndm_log(NDM_LOG_WARN, "Canvas", "Context not found");
-        else {
+        if (end == NULL) {
+            ndm_log(NDM_LOG_WARN, "Canvas", "Could not parse color");
+        } else {
             /* TODO: limits? */
             return makeRGBAFromHSLA(SkScalarToDouble(array[0]) / 360.,
                                     SkScalarToDouble(array[1]) / 100.,
