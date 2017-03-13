@@ -65,7 +65,7 @@ repl:
     repl->setExitCount(exitcount + 1);
 
     if (exitcount == 0) {
-        ndm_log(NDM_LOG_INFO, "REPL", "To exit, press ^C again)");
+        printf("To exit, press ^C again");
         goto repl;
     }
 
@@ -102,7 +102,7 @@ void REPL::onMessage(const SharedMessages::Message &msg)
             "commandline");
 
         if (ret) {
-            ndm_logf(NDM_LOG_DEBUG, "REPL", "%s", ret);
+            printf("%s", ret);
             free(ret);
         }
 
