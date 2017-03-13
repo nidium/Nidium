@@ -300,7 +300,8 @@ void UIX11Console::log(const char *str)
 
         m_Interface->processGtkPendingEvents();
     } else {
-        ndm_logf(NDM_LOG_ERROR, "X11UI", "%s", str);
+        fprintf(stdout, "%s", str);
+        fflush(stdout);
     }
 }
 
