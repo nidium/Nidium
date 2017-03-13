@@ -30,8 +30,8 @@ namespace AV {
 
 #if 0
 #define SPAM(a)                                      \
-    ndm_logf(NDM_LOG_DEBUG, "AV", ">%ld / ", av_gettime() / 1000, a); \
-    ndm_log(NDM_LOG_DEBUG, "AV", a);
+    fprintf(stdout, ">%ld / ", av_gettime() / 1000); \
+    printf a
 #else
 #define SPAM(a) (void)0
 #endif

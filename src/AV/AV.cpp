@@ -119,7 +119,7 @@ bool AVStreamReader::fillBuffer(uint8_t *buffer, int size, int *outCopied)
 
     SPAM(("Filling ffmpeg buffer : \n"
          " - Stream (%p) : totalRead=%lld, currentRead=%d, currentSize=%d\n"
-         " - Buffer : size=%d copy=%d, copied=%d (avail=%d, left=%d)",
+         " - Buffer : size=%d copy=%d, copied=%d (avail=%d, left=%d)\n",
          m_StreamBuffer, m_TotalRead, m_StreamRead, m_StreamPacketSize,
          size, copy, copied, avail, left));
 
@@ -154,9 +154,9 @@ void AVStreamReader::streamMessage(AVStreamReader::StreamMessage ev)
 
 int AVStreamReader::_read(uint8_t *buffer, int size)
 {
-    SPAM(("%p / Read called", this));
+    SPAM(("%p / Read called\n", this));
     if (m_StreamErr == AVERROR_EXIT) {
-        SPAM(("AVStreamReader, streamErr is EXIT"));
+        SPAM(("AVStreamReader, streamErr is EXIT\n"));
         m_Pending   = false;
         m_NeedWakup = false;
         return AVERROR_EXIT;
@@ -165,20 +165,20 @@ int AVStreamReader::_read(uint8_t *buffer, int size)
     int copied = 0;
 
     // First, try to fill the buffer with what is already in memory
-    SPAM(("%p / fillBuffer", this));
+    SPAM(("%p / fillBuffer\n", this));
     if (this->fillBuffer(buffer, size, &copied)) {
-        SPAM(("Buffer filled with data already in memory"));
+        SPAM(("Buffer filled with data already in memory\n"));
         return copied;
     }
-    SPAM(("%p / fillBuffer is over", this));
+    SPAM(("%p / fillBuffer is over\n", this));
 
     // If we reach this point, there is no more data inside
     // the stream buffer. Let's get more.
     for (;;) {
-        SPAM(("%p / Asking for more data", this));
+        SPAM(("%p / Asking for more data\n", this));
         this->streamMessage(kStream_Read);
 
-        SPAM(("%p / store streamBuffer=%p / size=%d / err=%d", this,
+        SPAM(("%p / store streamBuffer=%p / size=%d / err=%d\n", this,
               m_StreamBuffer, m_StreamPacketSize,
               m_StreamErr));
 
@@ -189,12 +189,12 @@ int AVStreamReader::_read(uint8_t *buffer, int size)
                 m_Pending = true;
                 lock.unlock();
 
-                SPAM(("Got EAGAIN, no data available, switching back to main coro"));
+                SPAM(("Got EAGAIN, no data available, switching back to main coro\n"));
 
                 Coro_switchTo_(m_Source->m_Coro,
                                m_Source->m_MainCoro);
 
-                SPAM(("After EAGAIN"));
+                SPAM(("After EAGAIN\n"));
 
                 lock.lock();
                 m_Pending   = false;
@@ -217,16 +217,15 @@ int AVStreamReader::_read(uint8_t *buffer, int size)
                     return AVERROR_EXIT;
                 case Stream::kDataStatus_End:
                 case Stream::kDataStatus_Error:
-                    SPAM(("Got EOF"));
+                    SPAM(("Got EOF\n"));
                     m_Pending   = false;
                     m_NeedWakup = false;
                     return copied > 0 ? copied : AVERROR_EOF;
                 default:
-                    ndm_logf(NDM_LOG_ERROR, "AVStream",
-                            "Received unknown error (%d) and streamBuffer is "
-                            "null. Returning EOF, "
-                            "copied = %u",
-                            m_StreamErr, copied);
+                    SPAM(("Received unknown error (%d) and streamBuffer is "
+                           "null. Returning EOF, "
+                           "copied = %u\n",
+                           m_StreamErr, copied));
                     return copied > 0 ? copied : AVERROR_EOF;
             }
         } else {
@@ -244,7 +243,7 @@ int64_t AVStreamReader::seek(void *opaque, int64_t offset, int whence)
     AVStreamReader *thiz = static_cast<AVStreamReader *>(opaque);
     int64_t pos          = 0;
     off_t size = thiz->m_Stream->getFileSize();
-    SPAM(("AVStreamReader::seek to %llu / %d", offset, whence));
+    SPAM(("AVStreamReader::seek to %llu / %d\n", offset, whence));
 
     switch (whence) {
         case AVSEEK_SIZE:
@@ -270,7 +269,7 @@ int64_t AVStreamReader::seek(void *opaque, int64_t offset, int whence)
         return AVERROR_EOF;
     }
 
-    SPAM(("SEEK pos=%lld, size=%lld", pos, size));
+    SPAM(("SEEK pos=%lld, size=%lld\n", pos, size));
 
     thiz->m_StreamBuffer  = NULL;
     thiz->m_StreamRead    = 0;
@@ -379,21 +378,21 @@ void AVStreamReader::onError(Stream::StreamError err)
 
 void AVStreamReader::onAvailableData(size_t len)
 {
-    SPAM(("%p / onAvailableData len=%d opened=%d pending=%d", this, len, m_Opened, m_Pending));
+    SPAM(("%p / onAvailableData len=%d opened=%d pending=%d\n", this, len, m_Opened, m_Pending));
     {
         std::lock_guard<std::mutex> lock(m_DataAvailMutex);
-        SPAM(("%p / Got lock", this));
+        SPAM(("%p / Got lock\n", this));
 
         m_HaveDataAvailable = true;
 
         if (m_Pending) {
             m_NeedWakup = true;
             m_ReadCallback(m_CallbackPrivate);
-            SPAM(("%p / Lock is releaased", this));
+            SPAM(("%p / Lock is released\n", this));
             return;
         }
     }
-    SPAM(("%p / Lock is releaased", this));
+    SPAM(("%p / Lock is releaased\n", this));
 
     if (!m_Opened) {
         m_StreamSize = m_Stream->getFileSize();
@@ -473,7 +472,7 @@ double AVSource::getDuration()
 
 int AVSource::readError(int err)
 {
-    SPAM(("readError Got error %d/%d", err, AVERROR_EOF));
+    SPAM(("readError Got error %d/%d\n", err, AVERROR_EOF));
     if (err == AVERROR_EOF
         || (m_Container->pb && m_Container->pb->eof_reached)) {
         m_Error = AVERROR_EOF;

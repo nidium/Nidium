@@ -30,8 +30,8 @@ namespace AV {
 #if 0
 #define DEBUG_PRINT
 #define DPRINT(...)                                   \
-    ndm_logf(NDM_LOG_DEBUG, "Video", ">[%d]%lld / ", (unsigned int)pthread_self(), av_gettime() / 1000); \
-    ndm_logf(NDM_LOG_DEBUG, "Video", "%s", _VA_ARGS__)
+    fprintf(stdout, ">[%d]%lld / ", (unsigned int)pthread_self(), av_gettime() / 1000); \
+    fprintf(stdout, __VA_ARGS__)
 #else
 #define DPRINT(...) (void)0
 #endif
