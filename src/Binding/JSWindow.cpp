@@ -23,7 +23,6 @@
 #include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSImage.h"
-#include "Macros.h"
 
 using Nidium::Frontend::NML;
 using Nidium::Frontend::NMLTag;

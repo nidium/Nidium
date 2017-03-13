@@ -17,7 +17,6 @@
 #include "Graphics/GLHeader.h"
 #include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas2DContext.h"
-#include "Macros.h"
 
 using Nidium::Interface::SystemInterface;
 using Nidium::Frontend::Context;

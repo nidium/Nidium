@@ -12,7 +12,6 @@
 #include "Interface/UIInterface.h"
 
 #include "Frontend/Context.h"
-#include "Macros.h"
 
 typedef void *SDL_GLContext;
 

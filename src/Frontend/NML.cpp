@@ -15,7 +15,6 @@
 #include "Binding/JSUtils.h"
 
 #include "Interface/SystemInterface.h"
-#include "Macros.h"
 
 #include "Binding/JSWindow.h"
 #include "Binding/JSDocument.h"

@@ -17,7 +17,6 @@
 #include "Graphics/GLHeader.h"
 #include "Binding/JSWindow.h"
 #include "SDL_keycode_translate.h"
-#include "Macros.h"
 
 #define NIDIUM_TITLEBAR_HEIGHT 0
 #define NIDIUM_VSYNC 1

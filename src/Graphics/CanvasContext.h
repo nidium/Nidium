@@ -16,7 +16,6 @@
 #include "Graphics/GLResources.h"
 #include "Graphics/GLState.h"
 #include "Graphics/GLContext.h"
-#include "Macros.h"
 
 namespace Nidium {
 namespace Binding {

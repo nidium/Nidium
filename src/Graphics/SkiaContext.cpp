@@ -36,7 +36,6 @@
 #include "Graphics/ShadowLooper.h"
 #include "Binding/JSDocument.h"
 #include "Binding/JSCanvas2DContext.h"
-#include "Macros.h"
 
 using Nidium::Core::PtrAutoDelete;
 using Nidium::Core::Path;

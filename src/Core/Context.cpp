@@ -12,7 +12,6 @@
 #ifdef NIDIUM_PRODUCT_FRONTEND
 #include "Interface/SystemInterface.h"
 #endif
-#include "Macros.h"
 
 using namespace Nidium::Binding;
 using namespace Nidium::Core;

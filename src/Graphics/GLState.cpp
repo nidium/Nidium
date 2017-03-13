@@ -11,7 +11,6 @@
 
 #include "Graphics/CanvasContext.h"
 #include "Graphics/GLHeader.h"
-#include "Macros.h"
 
 using Nidium::Frontend::Context;
 using Nidium::Interface::UIInterface;

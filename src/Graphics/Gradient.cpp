@@ -12,7 +12,6 @@
 #include <SkGradientShader.h>
 
 #include "Graphics/SkiaContext.h"
-#include "Macros.h"
 
 namespace Nidium {
 namespace Graphics {

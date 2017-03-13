@@ -17,7 +17,6 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-#include "Macros.h"
 #include "AudioNode.h"
 
 using Nidium::Core::Utils;

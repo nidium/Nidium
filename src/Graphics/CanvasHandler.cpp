@@ -13,7 +13,6 @@
 #include <js/GCAPI.h>
 
 #include "Binding/JSCanvas2DContext.h"
-#include "Macros.h"
 
 using Nidium::Core::Args;
 using Nidium::Frontend::Context;

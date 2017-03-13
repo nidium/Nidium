@@ -24,7 +24,6 @@
 #include "Binding/JSCanvas.h"
 #include "Binding/JSDocument.h"
 #include "Binding/JSImage.h"
-#include "Macros.h"
 
 using namespace Nidium::Graphics;
 using Nidium::Interface::UIInterface;

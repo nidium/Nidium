@@ -21,8 +21,6 @@
    #error "NDEBUG and DEBUG"
 #endif
 
-#include "Macros.h"
-
 namespace Nidium {
 namespace Core {
 
