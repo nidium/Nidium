@@ -1304,8 +1304,9 @@ bool JSWebGLRenderingContext::JS_depthRange(JSContext *cx, JS::CallArgs &args)
 
 bool JSWebGLRenderingContext::JS_detachShader(JSContext *cx, JS::CallArgs &args)
 {
-    JSWebGLProgram *webglProgram;
-    JSWebGLShader *webglShader;
+    //JSWebGLProgram *webglProgram;
+    //JSWebGLShader *webglShader;
+
 
     JS::RootedObject program(cx);
     JS::RootedObject shader(cx);
