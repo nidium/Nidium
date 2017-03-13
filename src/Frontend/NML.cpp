@@ -165,7 +165,7 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
                 nidium_xml_ret_t ret;
 
                 if ((ret = (this->*m_NmlTags[i].cb)(*child)) != NIDIUM_XML_OK) {
-                    ndm_logf(NDM_LOG_ERROR, "NML", "XML : Nidium error (%d)", ret);
+                    fprintf(stderr, "XML : Nidium error (%d)", ret);
                     SystemInterface::GetInstance()->alert(
                         "NML ERROR", SystemInterface::ALERT_CRITIC);
                     return false;
