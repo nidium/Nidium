@@ -44,7 +44,7 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor,
     snprintf(reporter, PATH_MAX, "%s/nidium-crash-reporter",
              Nidium::App::_root);
     int ret = execl(reporter, "nidium-crash-reporter", descriptor.path(), NULL);
-    ndm_printf(NDM_LOG_INFO, "CrashReporter ", "Crash reporter returned %d\n", ret);
+    ndm_printf(NDM_LOG_INFO, "CrashReporter ", "Crash reporter returned %d", ret);
     return succeeded;
 }
 #endif

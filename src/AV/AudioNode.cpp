@@ -1023,7 +1023,7 @@ int AudioSource::initInternal()
                 (Audio::FLOAT32 * m_OutCount),
                 bufferSize * NIDIUM_AUDIO_BUFFER_MULTIPLIER,
                 m_rBufferOutData)) {
-        ndm_log(NDM_LOG_ERROR, "AudioNode", "Failed to init output ringbuffer\n");
+        ndm_log(NDM_LOG_ERROR, "AudioNode", "Failed to init output ringbuffer");
         return ERR_OOM;
     }
 
@@ -1043,7 +1043,7 @@ int AudioSource::initInternal()
             m_CodecCtx->sample_rate, channelLayout, m_CodecCtx->sample_fmt,
             m_CodecCtx->sample_rate, 0, NULL);
         if (!m_SwrCtx || swr_init(m_SwrCtx) < 0) {
-            ndm_log(NDM_LOG_ERROR, "AudioNode", "Failed to init sample resampling converter\n");
+            ndm_log(NDM_LOG_ERROR, "AudioNode", "Failed to init sample resampling converter");
             return ERR_NO_RESAMPLING_CONVERTER;
         }
     }
@@ -1329,7 +1329,7 @@ int AudioSource::resample(int destSamples)
                 // Resample as much data as possible
                 while (m_fCvt->out_count > 0 && m_fCvt->inp_count > 0) {
                     if (0 != m_fCvt->process()) {
-                        ndm_log(NDM_LOG_ERROR, "AudioNode", "Failed to resample audio data\n");
+                        ndm_log(NDM_LOG_ERROR, "AudioNode", "Failed to resample audio data");
                         return -1;
                     }
                 }

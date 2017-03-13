@@ -269,12 +269,12 @@ static void dump_Matrix(float *matrix)
 {
     int i = 4;
 
-    ndm_log(NDM_LOG_DEBUG, "CanvasContext", " = = = = = \n");
+    ndm_log(NDM_LOG_DEBUG, "CanvasContext", " = = = = = ");
     for (i = 0; i < 4; i++) {
-        ndm_logf(NDM_LOG_DEBUG, "CanvasContext", "%f, %f, %f, %f\n", matrix[i * 4], matrix[i * 4 + 1],
+        ndm_logf(NDM_LOG_DEBUG, "CanvasContext", "%f, %f, %f, %f", matrix[i * 4], matrix[i * 4 + 1],
                matrix[i * 4 + 2], matrix[i * 4 + 3]);
     }
-    ndm_log(NDM_LOG_DEBUG, "CanvasContext", " = = = = = \n");
+    ndm_log(NDM_LOG_DEBUG, "CanvasContext", " = = = = =");
 }
 #endif
 
@@ -441,15 +441,15 @@ bool CanvasContext::validateCurrentFBO()
 
     switch (status) {
         case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-            ndm_logf(NDM_LOG_DEBUG, "CanvasContext", "fbo %x (incomplete multisample)\n", status);
+            ndm_logf(NDM_LOG_DEBUG, "CanvasContext", "fbo %x (incomplete multisample)", status);
             break;
         case GR_GL_FRAMEBUFFER_COMPLETE:
             break;
         case GR_GL_FRAMEBUFFER_UNSUPPORTED:
-            ndm_log(NDM_LOG_WARN, "CanvasContext", "fbo unsupported\n");
+            ndm_log(NDM_LOG_WARN, "CanvasContext", "fbo unsupported");
             return false;
         default:
-            ndm_logf(NDM_LOG_ERROR, "CanvasContext", "fbo fatal error %x\n", status);
+            ndm_logf(NDM_LOG_ERROR, "CanvasContext", "fbo fatal error %x", status);
             exit(1);
             return false;
     }

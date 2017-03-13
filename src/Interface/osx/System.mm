@@ -21,7 +21,7 @@ System::System()
 #else
     m_fBackingStorePixelRatio = 1.0;
 #endif
-    ndm_logf(NDM_LOG_DEBUG, "System", "Canvas Ratio (HIDPI) : %f\n", m_fBackingStorePixelRatio);
+    ndm_logf(NDM_LOG_DEBUG, "System", "Canvas Ratio (HIDPI) : %f", m_fBackingStorePixelRatio);
 
     char embedPath[MAXPATHLEN];
 

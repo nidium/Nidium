@@ -1356,7 +1356,7 @@ CanvasHandler::~CanvasHandler()
 
     /* all children got orphaned :(*/
     while (cur != NULL) {
-        // ndm_logf(NDM_LOG_WARN, "CanvasHandler", "A canvas got orphaned (%p)\n", cur);
+        // ndm_logf(NDM_LOG_WARN, "CanvasHandler", "A canvas got orphaned (%p)", cur);
         cnext = cur->m_Next;
         cur->removeFromParent();
         cur = cnext;

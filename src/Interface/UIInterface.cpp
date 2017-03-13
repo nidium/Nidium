@@ -62,7 +62,7 @@ bool UIInterface::createWindow(int width, int height)
 {
     if (!m_Initialized) {
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1) {
-            NUI_LOG("Cannot init SDL:  %s\n", SDL_GetError());
+            NUI_LOG("Cannot init SDL:  %s", SDL_GetError());
             return false;
         }
 
@@ -71,7 +71,7 @@ bool UIInterface::createWindow(int width, int height)
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /* | SDL_WINDOW_FULLSCREEN*/);
 
         if (m_Win == NULL) {
-            NUI_LOG("Cannot create window (SDL)\n");
+            NUI_LOG("Cannot create window (SDL)");
             return false;
         }
 

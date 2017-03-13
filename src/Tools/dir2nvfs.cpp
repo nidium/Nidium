@@ -42,7 +42,7 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
     dirent *cur;
 
     if (dir == NULL) {
-        ndm_log(NDM_LOG_ERROR, "Tools", "null dir given");
+        fprintf(stderr, "null dir given\n");
         return;
     }
 
@@ -57,7 +57,7 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
             }
 
             if (!nfs->mkdir(vpath, strlen(vpath))) {
-                ndm_logf(NDM_LOG_ERROR, "Tools", "Failed to create dir %s", vpath);
+                fprintf(stderr, "Failed to create dir %s\n", vpath);
                 continue;
             }
 
@@ -68,7 +68,7 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
             Stream *stream = Stream::Create(newpath.c_str());
 
             if (stream == NULL) {
-                ndm_logf(NDM_LOG_ERROR, "Tools", "Could not create stream for file %s",
+                fprintf(stderr, "Could not create stream for file %s\n",
                         newpath.c_str());
                 continue;
             }
@@ -76,17 +76,17 @@ void listdir(JSNFS *nfs, DIR *dir, std::string fullpath, int strip)
             size_t len;
 
             if (!stream->getContentSync(&content, &len, true)) {
-                ndm_logf(NDM_LOG_ERROR, "Tools", "Could not read stream for file %s",
+                fprintf(stderr, "Could not read stream for file %s\n",
                         newpath.c_str());
                 continue;
             }
 
             if (!nfs->writeFile(vpath, strlen(vpath), content, len)) {
-                ndm_logf(NDM_LOG_ERROR, "Tools", "Failed to write file %s", vpath);
+                fprintf(stderr, "Failed to write file %s\n", vpath);
                 continue;
             }
 
-            ndm_logf(NDM_LOG_ERROR, "Tools", "Saved file : %s", vpath);
+            fprintf(stderr, "Saved file : %s\n", vpath);
         }
     }
 
@@ -106,13 +106,13 @@ static int Embed(int argc, char **argv)
     JSContext *cx      = ncx->getNJS()->getJSContext();
 
     if (argc <= 1) {
-        ndm_logf(NDM_LOG_ERROR, "Tools", "%s <path> [prefix] [> out]", argv[0]);
+        fprintf(stderr, "%s <path> [prefix] [> out]\n", argv[0]);
         return 1;
     }
 
     DIR *dir = opendir(argv[1]);
     if (!dir) {
-        ndm_logf(NDM_LOG_ERROR, "Tools", "Cannot open dir %s", argv[1]);
+        fprintf(stderr, "Cannot open dir %s\n", argv[1]);
     }
 
     JS_BeginRequest(cx);
@@ -123,7 +123,7 @@ static int Embed(int argc, char **argv)
         std::string prefix = "/";
         prefix += argv[2];
 
-        ndm_logf(NDM_LOG_DEBUG, "Tools", "Create prefix %s...", prefix.c_str());
+        fprintf(stderr, "Create prefix %s...\n", prefix.c_str());
 
         nfs->mkdir(prefix.c_str(), strlen(prefix.c_str()));
 
