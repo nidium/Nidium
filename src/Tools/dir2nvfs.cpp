@@ -106,7 +106,7 @@ static int Embed(int argc, char **argv)
     JSContext *cx      = ncx->getNJS()->getJSContext();
 
     if (argc <= 1) {
-        fprintf(stderr, "%s <path> [prefix] [> out]\n", argv[0]);
+        printf("$ %s <path> [prefix] [> out]\n", argv[0]);
         return 1;
     }
 
