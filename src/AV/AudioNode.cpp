@@ -347,7 +347,7 @@ void AudioNode::processQueue()
     SPAM(("Process queue on %p\n", this));
 
     if (!m_IsConnected) {
-        SPAM(("Node is not connected %p\n", this));
+        SPAM(("    Node is not connected %p\n", this));
         return;
     }
 
@@ -512,7 +512,7 @@ AudioNode::~AudioNode()
     SPAM(("--- Disconnect inputs\n"));
     for (int i = 0; i < m_InCount; i++) {
         int count = m_Input[i]->m_Count;
-        SPAM(("node have %d input\n", count));
+        SPAM(("    node have %d input\n", count));
         // Free internal frames
         if (i > m_OutCount) {
             if (m_Frames[i] != NULL && this->isFrameOwner(m_Frames[i])) {
@@ -938,14 +938,14 @@ int AudioSource::initStream()
     if (ret != 0) {
         char error[1024];
         av_strerror(ret, error, 1024);
-        ndm_logf(NDM_LOG_ERROR, "AudioNode", "Couldn't open file : %s", error);
+        fprintf(stderr, "Couldn't open file : %s", error);
         return ERR_INTERNAL;
     }
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     // Retrieve stream information
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
-        ndm_log(NDM_LOG_ERROR, "AudioNode", "Couldn't find stream information");
+        fprintf(stderr, "Couldn't find stream information");
         return ERR_NO_INFORMATION;
     }
 
@@ -985,7 +985,7 @@ int AudioSource::initInternal()
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     if (avcodec_open2(m_CodecCtx, codec, NULL) < 0) {
-        ndm_log(NDM_LOG_ERROR, "AudioNode", "Could not find or open the needed codec");
+        fprintf(stderr, "Could not find or open the needed codec");
         return ERR_NO_CODEC;
     }
 
@@ -999,7 +999,7 @@ int AudioSource::initInternal()
         if (!(m_fBufferOutData
               = static_cast<float *>(malloc(NIDIUM_RESAMPLER_BUFFER_SAMPLES
                                             * m_OutCount * Audio::FLOAT32)))) {
-            ndm_log(NDM_LOG_ERROR, "AudioNode", "Failed to init frequency resampler buffers");
+            fprintf(stderr, "Failed to init frequency resampler buffers");
             return ERR_OOM;
         }
 
@@ -1023,7 +1023,7 @@ int AudioSource::initInternal()
                 (Audio::FLOAT32 * m_OutCount),
                 bufferSize * NIDIUM_AUDIO_BUFFER_MULTIPLIER,
                 m_rBufferOutData)) {
-        ndm_log(NDM_LOG_ERROR, "AudioNode", "Failed to init output ringbuffer");
+        fprintf(stderr, "Failed to init output ringbuffer");
         return ERR_OOM;
     }
 
@@ -1043,7 +1043,7 @@ int AudioSource::initInternal()
             m_CodecCtx->sample_rate, channelLayout, m_CodecCtx->sample_fmt,
             m_CodecCtx->sample_rate, 0, NULL);
         if (!m_SwrCtx || swr_init(m_SwrCtx) < 0) {
-            ndm_log(NDM_LOG_ERROR, "AudioNode", "Failed to init sample resampling converter");
+            fprintf(stderr, "Failed to init sample resampling converter");
             return ERR_NO_RESAMPLING_CONVERTER;
         }
     }
@@ -1329,7 +1329,7 @@ int AudioSource::resample(int destSamples)
                 // Resample as much data as possible
                 while (m_fCvt->out_count > 0 && m_fCvt->inp_count > 0) {
                     if (0 != m_fCvt->process()) {
-                        ndm_log(NDM_LOG_ERROR, "AudioNode", "Failed to resample audio data");
+                        fprintf(stderr, "Failed to resample audio data");
                         return -1;
                     }
                 }

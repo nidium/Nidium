@@ -190,13 +190,13 @@ int Video::openInitInternal()
     if (ret != 0) {
         char error[1024];
         av_strerror(ret, error, 1024);
-        ndm_logf(NDM_LOG_ERROR, "Video", "Couldn't open file : %s", error);
+        fprintf(stderr, "Couldn't open file : %s\n", error);
         return ERR_INTERNAL;
     }
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
-        ndm_log(NDM_LOG_ERROR, "Video", "Couldn't find stream information");
+        fprintf(stderr, "Couldn't find stream information\n");
         return ERR_NO_INFORMATION;
     }
 
@@ -227,7 +227,7 @@ int Video::openInitInternal()
     }
 
     if (avcodec_open2(m_CodecCtx, codec, NULL) < 0) {
-        ndm_log(NDM_LOG_ERROR, "Video", "Could not find or open the needed codec");
+        fprintf(stderr, "Could not find or open the needed codec\n");
         return ERR_NO_CODEC;
     }
 
@@ -240,13 +240,13 @@ int Video::openInitInternal()
         = (uint8_t *)malloc(sizeof(Video::Frame) * NIDIUM_VIDEO_BUFFER_SAMPLES);
 
     if (m_Buff == NULL) {
-        ndm_log(NDM_LOG_ERROR, "Video", "Failed to alloc buffer");
+        fprintf(stderr, "Failed to alloc buffer\n");
         return ERR_OOM;
     }
 
     if (0 > PaUtil_InitializeRingBuffer(m_rBuff, sizeof(Video::Frame),
                                         NIDIUM_VIDEO_BUFFER_SAMPLES, m_Buff)) {
-        ndm_log(NDM_LOG_ERROR, "Video", "Failed to init ringbuffer");
+        fprintf(stderr, "Failed to init ringbuffer\n");
         return ERR_OOM;
     }
 
@@ -894,7 +894,7 @@ int Video::setSizeInternal()
         m_ConvertedFrame = av_frame_alloc();
 
         if (m_DecodedFrame == NULL || m_ConvertedFrame == NULL) {
-            ndm_log(NDM_LOG_ERROR, "Video", "Failed to alloc frame");
+            fprintf(stderr, "Failed to alloc frame\n");
             m_NoDisplay = false;
             return ERR_OOM;
         }
