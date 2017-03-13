@@ -938,14 +938,14 @@ int AudioSource::initStream()
     if (ret != 0) {
         char error[1024];
         av_strerror(ret, error, 1024);
-        fprintf(stderr, "Couldn't open file : %s", error);
+        fprintf(stderr, "Couldn't open file : %s\n", error);
         return ERR_INTERNAL;
     }
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     // Retrieve stream information
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
-        fprintf(stderr, "Couldn't find stream information");
+        fprintf(stderr, "Couldn't find stream information\n");
         return ERR_NO_INFORMATION;
     }
 
@@ -985,7 +985,7 @@ int AudioSource::initInternal()
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     if (avcodec_open2(m_CodecCtx, codec, NULL) < 0) {
-        fprintf(stderr, "Could not find or open the needed codec");
+        fprintf(stderr, "Could not find or open the needed codec\n");
         return ERR_NO_CODEC;
     }
 
@@ -999,7 +999,7 @@ int AudioSource::initInternal()
         if (!(m_fBufferOutData
               = static_cast<float *>(malloc(NIDIUM_RESAMPLER_BUFFER_SAMPLES
                                             * m_OutCount * Audio::FLOAT32)))) {
-            fprintf(stderr, "Failed to init frequency resampler buffers");
+            fprintf(stderr, "Failed to init frequency resampler buffers\n");
             return ERR_OOM;
         }
 
@@ -1023,7 +1023,7 @@ int AudioSource::initInternal()
                 (Audio::FLOAT32 * m_OutCount),
                 bufferSize * NIDIUM_AUDIO_BUFFER_MULTIPLIER,
                 m_rBufferOutData)) {
-        fprintf(stderr, "Failed to init output ringbuffer");
+        fprintf(stderr, "Failed to init output ringbuffer\n");
         return ERR_OOM;
     }
 
@@ -1043,7 +1043,7 @@ int AudioSource::initInternal()
             m_CodecCtx->sample_rate, channelLayout, m_CodecCtx->sample_fmt,
             m_CodecCtx->sample_rate, 0, NULL);
         if (!m_SwrCtx || swr_init(m_SwrCtx) < 0) {
-            fprintf(stderr, "Failed to init sample resampling converter");
+            fprintf(stderr, "Failed to init sample resampling converter\n");
             return ERR_NO_RESAMPLING_CONVERTER;
         }
     }
@@ -1329,7 +1329,7 @@ int AudioSource::resample(int destSamples)
                 // Resample as much data as possible
                 while (m_fCvt->out_count > 0 && m_fCvt->inp_count > 0) {
                     if (0 != m_fCvt->process()) {
-                        fprintf(stderr, "Failed to resample audio data");
+                        fprintf(stderr, "Failed to resample audio data\n");
                         return -1;
                     }
                 }
@@ -1540,7 +1540,7 @@ bool AudioSource::process()
         // SPAM(("Not enough to read\n"));
         // EOF reached, send message to Audio
         if (m_Error == AVERROR_EOF && !m_Eof) {
-            SPAM(("=> EOF loop=%d\n", m_Loop));
+            SPAM(("    => EOF loop=%d\n", m_Loop));
 
             m_Eof          = true;
             m_DoNotProcess = true;
