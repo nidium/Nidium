@@ -94,14 +94,14 @@ static void *nidium_thread(void *arg)
     if ((rt = JS_NewRuntime(JS::DefaultHeapMaxBytes,
         JS::DefaultNurseryBytes, nthread->m_ParentRuntime))
         == NULL) {
-        ndm_log(NDM_LOG_ERROR, "JSThread", "Failed to init JS runtime");
+        fprintf(stderr, "Failed to init JS runtime");
         return NULL;
     }
 
     NidiumJS::SetJSRuntimeOptions(rt);
 
     if ((tcx = JS_NewContext(rt, 8192)) == NULL) {
-        ndm_log(NDM_LOG_ERROR, "JSThread", "Failed to init JS context");
+        fprintf(stderr, "Failed to init JS context");
         JS_DestroyRuntime(rt);
         return NULL;
     } else {
@@ -165,7 +165,7 @@ static void *nidium_thread(void *arg)
             delete[] scoped;
 
             if (!cret) {
-                ndm_log(NDM_LOG_ERROR, "JSThread", "Cannot compile function");
+                fprintf(stderr, "Cannot compile function");
                 return NULL;
             }
 
