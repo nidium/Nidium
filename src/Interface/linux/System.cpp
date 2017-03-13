@@ -18,8 +18,6 @@
 #include <gtk/gtk.h>
 #include <libnotify/notify.h>
 
-#include <ape_log.h>
-
 #include "System.h"
 #include <libgen.h>
 #include <string>
