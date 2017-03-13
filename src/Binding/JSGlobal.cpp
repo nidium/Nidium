@@ -137,13 +137,13 @@ bool JSGlobal::JS_load(JSContext *cx, JS::CallArgs &args)
     /* only embed are allowed in an http context */
     if (SCHEME_MATCH(schemeCwd, "http")
         && !URLSCHEME_MATCH(scriptstr.ptr(), "embed")) {
-        JS_ReportError(cx, "script access error : Cannot load in this context");
+        JS_ReportError(cx, "script access error : Can't load in this context");
         return false;
     }
 
     if (!scriptpath.GetScheme()->AllowSyncStream()) {
         JS_ReportError(cx,
-                       "script error : \"%s\" scheme Cannot load in a sync way",
+                       "script error : \"%s\" scheme Can't load in a sync way",
                        schemeCwd->str);
         return false;
     }

@@ -278,7 +278,7 @@ int Server::init()
         m_HasREPL = false;
         this->daemonize();
     } else if (daemon) {
-        fprintf(stderr, "Cannot daemonize if no JS file is provided\n");
+        fprintf(stderr, "Can't daemonize if no JS file is provided\n");
         Server::Usage(&long_options[0], text_blocks);
         exit(1);
     } else if (m_Args.argc == 0) {

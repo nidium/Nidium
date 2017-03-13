@@ -45,7 +45,7 @@ public:
 
     /*
         JSAPI only provides JS_NewArrayBufferWithContents() which takes ownership.
-        We've some situation where we Cannot rely on zerocopy.
+        We've some situation where we can't rely on zerocopy.
     */
     static JSObject *NewArrayBufferWithCopiedContents(JSContext *cx,
         size_t len, const void *data);

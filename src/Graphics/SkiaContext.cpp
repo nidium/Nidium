@@ -414,7 +414,7 @@ GrContext *SkiaContext::CreateGrContext(GLContext *glcontext)
     GrContext *context             = nullptr;
 
     if ((interface = glcontext->iface()) == nullptr) {
-        NUI_LOG("Cant get OpenGL interface");
+        NUI_LOG("Can't get OpenGL interface");
         return nullptr;
     }
 
@@ -490,7 +490,7 @@ bool SkiaContext::setSize(int width, int height, bool redraw)
     sk_sp<SkSurface> newSurface = m_Surface->makeSurface(info);
 
     if (!newSurface) {
-        ndm_log(NDM_LOG_ERROR, "Canvas", "Cannot create new surface");
+        ndm_log(NDM_LOG_ERROR, "Canvas", "Can't create new surface");
         return false;
     }
 
@@ -1037,7 +1037,7 @@ void SkiaContext::itransform(double scalex,
         ndm_log(NDM_LOG_DEBUG, "Canvas", "transformed");
         getCanvas()->concat(im);
     } else {
-        ndm_log(NDM_LOG_ERROR, "Canvas", "Cannot revert Matrix");
+        ndm_log(NDM_LOG_ERROR, "Canvas", "Can't revert Matrix");
     }
 }
 

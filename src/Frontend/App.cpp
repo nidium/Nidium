@@ -283,7 +283,7 @@ int App::extractApp(const char *path,
 #if 0
 #define NIDIUM_CACHE_DIR "./cache/"
     if (mkdir(NIDIUM_CACHE_DIR, 0777) == -1 && errno != EEXIST) {
-        ndm_log(NDM_LOG_ERROR, "App", "Cannot create cache directory");
+        ndm_log(NDM_LOG_ERROR, "App", "Can't create cache directory");
         return 0;
     }
     fullpath = static_cast<char *>(malloc(sizeof(char) *
@@ -295,7 +295,7 @@ int App::extractApp(const char *path,
 #endif
     int ret = 0;
     if ((ret = mkdir(fullpath, 0777)) == -1 && errno != EEXIST) {
-        ndm_log(NDM_LOG_ERROR, "App", "Cannot create Application directory");
+        ndm_log(NDM_LOG_ERROR, "App", "Can't create Application directory");
         free(fullpath);
         return 0;
     } else if (ret == -1 && errno == EEXIST) {
@@ -445,7 +445,7 @@ int App::loadManifest()
     Json::Value root;
 
     if (!m_Reader.parse(content, content + stat.size, root)) {
-        ndm_log(NDM_LOG_ERROR, "App", "Cannot parse JSON");
+        ndm_log(NDM_LOG_ERROR, "App", "Can't parse JSON");
 
         return 0;
     }

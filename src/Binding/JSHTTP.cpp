@@ -485,13 +485,13 @@ void JSHTTP::onRequest(HTTP::HTTPData *h, HTTP::DataType type)
                           h->m_Data->used));
 
             if (str == NULL) {
-                this->onError("Cannot encode JSON string\n");
+                this->onError("Can't encode JSON string\n");
                 return;
             }
 
             if (!JS_ParseJSON(m_Cx, str, &jsdata)) {
                 char *err;
-                asprintf(&err, "Cannot parse JSON of size %ld :\n = %.*s\n = \n",
+                asprintf(&err, "Can't parse JSON of size %ld :\n = %.*s\n = \n",
                          static_cast<unsigned long>(h->m_Data->used),
                          static_cast<int>(h->m_Data->used), h->m_Data->data);
 

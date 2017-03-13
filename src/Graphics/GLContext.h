@@ -100,19 +100,19 @@ public:
 
         /* The new context share with the "main" GL context */
         if (!m_UI->makeMainGLCurrent()) {
-            NUI_LOG("Cannot make main current");
+            NUI_LOG("Can't make main current");
         }
 
         m_SDLGLCtx = m_UI->createSharedContext(webgl);
         if (m_SDLGLCtx == NULL) {
-            NUI_LOG("Cannot create context");
+            NUI_LOG("Can't create context");
         }
 
         this->createInterface();
 
         /* Restore to the old GL Context */
         if (!m_UI->makeGLCurrent(oldctx)) {
-            NUI_LOG("Cannot restore old ctx");
+            NUI_LOG("Can't restore old ctx");
         }
     }
 

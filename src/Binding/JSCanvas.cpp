@@ -291,7 +291,7 @@ bool JSCanvas::JS_addSubCanvas(JSContext *cx, JS::CallArgs &args)
     }
 
     if (m_CanvasHandler == handler) {
-        JS_ReportError(cx, "Canvas: Cannot add to itself");
+        JS_ReportError(cx, "Canvas: Can't add to itself");
         return false;
     }
 
@@ -327,7 +327,7 @@ bool JSCanvas::JS_insertBefore(JSContext *cx, JS::CallArgs &args)
     }
 
     if (m_CanvasHandler == handler_insert) {
-        JS_ReportError(cx, "Canvas: Cannot add to itself");
+        JS_ReportError(cx, "Canvas: Can't add to itself");
         return false;
     }
 
@@ -363,7 +363,7 @@ bool JSCanvas::JS_insertAfter(JSContext *cx, JS::CallArgs &args)
     }
 
     if (m_CanvasHandler == handler_insert) {
-        JS_ReportError(cx, "Canvas: Cannot add to itself");
+        JS_ReportError(cx, "Canvas: Can't add to itself");
         return false;
     }
 
@@ -542,7 +542,7 @@ bool JSCanvas::JSSetter_width(JSContext *cx, JS::MutableHandleValue vp)
     }
 
     if (!m_CanvasHandler->setWidth(dval)) {
-        // JS_ReportError(cx, "Cannot set canvas width (this canvas has a
+        // JS_ReportError(cx, "Can't set canvas width (this canvas has a
         // dynamic width)");
 
         return true;

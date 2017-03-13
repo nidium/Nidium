@@ -62,7 +62,7 @@ bool UIInterface::createWindow(int width, int height)
 {
     if (!m_Initialized) {
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1) {
-            NUI_LOG("Cannot init SDL:  %s", SDL_GetError());
+            NUI_LOG("Can't init SDL:  %s", SDL_GetError());
             return false;
         }
 
@@ -71,7 +71,7 @@ bool UIInterface::createWindow(int width, int height)
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /* | SDL_WINDOW_FULLSCREEN*/);
 
         if (m_Win == NULL) {
-            NUI_LOG("Cannot create window (SDL)");
+            NUI_LOG("Can't create window (SDL)");
             return false;
         }
 
@@ -92,7 +92,7 @@ bool UIInterface::createWindow(int width, int height)
             Enable vertical sync
         */
         if (SDL_GL_SetSwapInterval(NIDIUM_VSYNC) == -1) {
-            ndm_log(NDM_LOG_ERROR, "UI", "Cannot vsync");
+            ndm_log(NDM_LOG_ERROR, "UI", "Can't vsync");
         }
 
         // glViewport(0, 0, width*2, height*2);

@@ -226,7 +226,7 @@ void File::openTask(const char *mode, void *arg)
 
     if (S_ISDIR(s.st_mode)) {
         if (!readOnly) {
-            ndm_logf(NDM_LOG_ERROR, "File", "Cannot open directory %s for writing", m_Path);
+            ndm_logf(NDM_LOG_ERROR, "File", "Can't open directory %s for writing", m_Path);
             NIDIUM_FILE_NOTIFY(EISDIR, File::kEvents_OpenError, arg);
             return;
         }
@@ -509,7 +509,7 @@ int File::openSync(const char *modes, int *err)
     if (S_ISDIR(s.st_mode)) {
         if (!readOnly) {
             *err = EISDIR;
-            ndm_logf(NDM_LOG_ERROR, "File", "Cannot open directory %s for writing", m_Path);
+            ndm_logf(NDM_LOG_ERROR, "File", "Can't open directory %s for writing", m_Path);
             return 0;
         }
 

@@ -107,7 +107,7 @@ public:
         random = open("/dev/urandom", O_RDONLY);
 
         if (!random) {
-            ndm_log(NDM_LOG_ERROR, "Utils", "Cannot open /dev/urandom");
+            ndm_log(NDM_LOG_ERROR, "Utils", "Can't open /dev/urandom");
             return 0;
         }
 
@@ -127,7 +127,7 @@ public:
         random = open("/dev/urandom", O_RDONLY);
 
         if (!random) {
-            ndm_log(NDM_LOG_ERROR, "Utils", "Can not open /dev/urandom");
+            ndm_log(NDM_LOG_ERROR, "Utils", "Can't open /dev/urandom");
             return data;
         }
 

@@ -554,7 +554,7 @@ bool JSSocket::JS_listen(JSContext *cx, JS::CallArgs &args)
     }
 
     if (APE_socket_listen(socket, m_Port, m_Host, 0, 0) == -1) {
-        JS_ReportError(cx, "Cannot listen on socket (%s:%d)", m_Host,
+        JS_ReportError(cx, "Can't listen on socket (%s:%d)", m_Host,
                        m_Port);
         /* TODO: close() leak */
         return false;
@@ -850,7 +850,7 @@ bool JSSocket::JS_connect(JSContext *cx, JS::CallArgs &args)
 
     if (APE_socket_connect(socket, m_Port, m_Host, localport)
         == -1) {
-        JS_ReportError(cx, "Cannot connect on socket (%s:%d)", m_Host,
+        JS_ReportError(cx, "Can't connect on socket (%s:%d)", m_Host,
                        m_Port);
         return false;
     }

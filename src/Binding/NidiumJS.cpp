@@ -576,7 +576,7 @@ int NidiumJS::LoadScriptReturn(JSContext *cx,
     free(func);
 
     if (!cret) {
-        ndm_logf(NDM_LOG_ERROR, "Nidium", "Cannot load script %s", filename);
+        ndm_logf(NDM_LOG_ERROR, "Nidium", "Can't load script %s", filename);
         return 0;
     }
 

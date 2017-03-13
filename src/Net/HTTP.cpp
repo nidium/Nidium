@@ -543,7 +543,7 @@ bool HTTP::createConnection()
                                  0, m_Net))
         == NULL) {
 
-        ndm_log(NDM_LOG_ERROR, "HTTP", "Cannot load socket (new)");
+        ndm_log(NDM_LOG_ERROR, "HTTP", "Can't load socket (new)");
         if (m_Delegate) {
             this->setPendingError(ERROR_SOCKET);
         }
@@ -553,7 +553,7 @@ bool HTTP::createConnection()
     if (APE_socket_connect(socket, m_Request->getPort(), m_Request->getHost(),
                            0)
         == -1) {
-        ndm_log(NDM_LOG_ERROR, "HTTP", "Cannot connect (0)");
+        ndm_log(NDM_LOG_ERROR, "HTTP", "Can't connect (0)");
         if (m_Delegate) {
             this->setPendingError(ERROR_SOCKET);
         }

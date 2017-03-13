@@ -112,7 +112,7 @@ static int Embed(int argc, char **argv)
 
     DIR *dir = opendir(argv[1]);
     if (!dir) {
-        fprintf(stderr, "Cannot open dir %s\n", argv[1]);
+        fprintf(stderr, "Can't open dir %s\n", argv[1]);
     }
 
     JS_BeginRequest(cx);

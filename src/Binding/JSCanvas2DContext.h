@@ -162,7 +162,7 @@ public:
     void popState()
     {
         /*
-            Cannot be stateless
+            Can't be stateless
         */
         if (!m_CurrentState->m_Next) {
             return;

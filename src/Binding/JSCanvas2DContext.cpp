@@ -1254,7 +1254,7 @@ bool Canvas2DContext::JSSetter_fontFile(JSContext *cx,
     JSAutoByteString font(cx, vpStr);
 
     if (!m_Skia->setFontFile(font.ptr())) {
-        JS_ReportError(cx, "Cannot set font (invalid file)");
+        JS_ReportError(cx, "Can't set font (invalid file)");
 
         return false;
     }

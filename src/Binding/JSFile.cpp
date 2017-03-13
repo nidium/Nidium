@@ -543,7 +543,7 @@ bool JSFile::JSStatic_readSync(JSContext *cx, JS::CallArgs &args)
     Path path(cfilename.ptr());
 
     if (!path.GetScheme()->AllowSyncStream()) {
-        JS_ReportError(cx, "Cannot open this file for sync read");
+        JS_ReportError(cx, "Can't open this file for sync read");
         return false;
     }
 
@@ -587,7 +587,7 @@ bool JSFile::JS_openSync(JSContext *cx, JS::CallArgs &args)
     }
 
     if (!this->allowSyncStream()) {
-        JS_ReportError(cx, "Cannot open this file for sync read");
+        JS_ReportError(cx, "Can't open this file for sync read");
         return false;
     }
 
@@ -614,7 +614,7 @@ bool JSFile::JS_readSync(JSContext *cx, JS::CallArgs &args)
     File *file = this->getFile();
 
     if (!this->allowSyncStream()) {
-        JS_ReportError(cx, "Cannot read this file synchronously");
+        JS_ReportError(cx, "Can't read this file synchronously");
         return false;
     }
 
@@ -738,7 +738,7 @@ bool JSFile::JS_writeSync(JSContext *cx, JS::CallArgs &args)
 bool JSFile::JS_closeSync(JSContext *cx, JS::CallArgs &args)
 {
     if (!this->allowSyncStream()) {
-        JS_ReportError(cx, "Cannot close this file synchronously");
+        JS_ReportError(cx, "Can't close this file synchronously");
         return false;
     }
 

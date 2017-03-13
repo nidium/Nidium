@@ -170,7 +170,7 @@ void Video::openInitCoro(void *arg)
     if (ret != 0) {
         thiz->sendEvent(SOURCE_EVENT_ERROR, ret, false);
         // Send a message to close the source from the main thread
-        // (As we cannot close a source from a coroutine/thread)
+        // (As we can't close a source from a coroutine/thread)
         thiz->postMessage(thiz, AVSource::MSG_CLOSE);
     }
     Coro_switchTo_(thiz->m_Coro, thiz->m_MainCoro);
