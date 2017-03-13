@@ -132,7 +132,7 @@ void Server::wait()
 void Server::displayVersion()
 {
 #include "ASCII.h"
-    fprintf( stdout, nidium_ascii, NIDIUM_SERVER_VERSION, __DATE__, __TIME__,
+    fprintf(stdout, nidium_ascii, NIDIUM_SERVER_VERSION, __DATE__, __TIME__,
             getpid(), m_NWorkers);
 }
 
@@ -278,7 +278,7 @@ int Server::init()
         m_HasREPL = false;
         this->daemonize();
     } else if (daemon) {
-        fprintf(stderr, "Cannot daemonize if no JS file is provided");
+        fprintf(stderr, "Cannot daemonize if no JS file is provided\n");
         Server::Usage(&long_options[0], text_blocks);
         exit(1);
     } else if (m_Args.argc == 0) {
