@@ -356,7 +356,7 @@ void AudioNode::processQueue()
     for (int i = 0; i < m_OutCount; i++) {
         int j = 0;
         NODE_IO_FOR(j, m_Output[i])
-        SPAM(("Marking output at %p as unprocessed (%p)",
+        SPAM(("    Marking output at %p as unprocessed (%p)",
               m_Output[i]->wire[j]->m_Node, this));
         m_Output[i]->wire[j]->m_Node->m_Processed = false;
         NODE_IO_FOR_END(j)
@@ -368,16 +368,16 @@ void AudioNode::processQueue()
         NODE_IO_FOR(j, m_Input[i])
         if (!m_Input[i]->wire[j]->m_Node->m_Processed
             && m_Input[i]->wire[j]->m_Node->m_IsConnected) {
-            SPAM(("Input %p havn't been processed, return",
+            SPAM(("    Input %p havn't been processed, return",
                   m_Input[i]->wire[j]->m_Node));
             // Needed data havn't been processed yet. Return.
             return;
         } else {
             if (!m_Input[i]->wire[j]->m_Node->m_IsConnected) {
-                SPAM(("Input %p isn't connected. No need to process",
+                SPAM(("    Input %p isn't connected. No need to process",
                       m_Input[i]->wire[j]->m_Node));
             } else {
-                SPAM(("Input at %p is already processed",
+                SPAM(("    Input at %p is already processed",
                       m_Input[i]->wire[j]->m_Node));
             }
         }
@@ -388,7 +388,7 @@ void AudioNode::processQueue()
     for (int i = 0; i < m_InCount; i++) {
         // Something is wrong (ie : node is not connected)
         if (m_Frames[i] == NULL) {
-            SPAM(("=> Found a NULL frame. Fixing it"));
+            SPAM(("    => Found a NULL frame. Fixing it"));
             m_Frames[i] = this->newFrame();
             this->updateWiresFrame(i, m_Frames[i]);
         }
@@ -407,10 +407,10 @@ void AudioNode::processQueue()
             int j = 0;
             NODE_IO_FOR(j, m_Input[i])
             if (m_Frames[i] != m_Input[i]->wire[j]->m_Frame) {
-                SPAM(("Merging input #%d from %p to %p",
+                SPAM(("    Merging input #%d from %p to %p",
                       m_Input[i]->m_Channel, m_Input[i]->wire[j]->m_Node,
                       this));
-                SPAM(("frames=%p from %p", m_Frames[i],
+                SPAM(("    frames=%p from %p", m_Frames[i],
                       m_Input[i]->wire[j]->m_Frame));
                 for (int k = 0;
                      k < m_Audio->m_OutputParameters->m_FramesPerBuffer; k++) {
@@ -524,19 +524,19 @@ AudioNode::~AudioNode()
         for (int j = 0; j < count; j++) {
             if (m_Input[i]->wire[j] != NULL) { // Got a wire to a node
                 AudioNode *outNode = m_Input[i]->wire[j]->m_Node;
-                SPAM(("found a wire to node %p", outNode));
-                SPAM(("output node have %d output", m_OutCount));
+                SPAM(("    found a wire to node %p", outNode));
+                SPAM(("    output node have %d output", m_OutCount));
                 for (int k = 0; k < outNode->m_OutCount;
                      k++) { // Go trought each output and wire
                     int wireCount = outNode->m_Output[k]->m_Count;
-                    SPAM(("#%d wire = %d", k, wireCount));
+                    SPAM(("      #%d wire = %d", k, wireCount));
                     for (int l = 0; l < wireCount; l++) {
                         if (outNode->m_Output[k]->wire[l] != NULL) {
-                            SPAM(("wire=%d node=%p", l,
+                            SPAM(("      wire=%d node=%p", l,
                                   outNode->m_Output[k]->wire[l]->m_Node));
                             // Found a wire connected to this node, delete it
                             if (outNode->m_Output[k]->wire[l]->m_Node == this) {
-                                SPAM(("DELETE"));
+                                SPAM(("      DELETE"));
                                 delete outNode->m_Output[k]->wire[l];
                                 outNode->m_Output[k]->wire[l] = NULL;
                                 outNode->m_Output[k]->m_Count--;
@@ -544,7 +544,7 @@ AudioNode::~AudioNode()
                         }
                     }
                 }
-                SPAM(("Deleting input wire"));
+                SPAM(("    Deleting input wire"));
                 // Deleting input wire
                 delete m_Input[i]->wire[j];
                 m_Input[i]->wire[j] = NULL;
@@ -557,7 +557,7 @@ AudioNode::~AudioNode()
     SPAM(("--- Disconnect ouputs"));
     for (int i = 0; i < m_OutCount; i++) {
         int count = m_Output[i]->m_Count;
-        SPAM(("node have %d output on channel %d/%d", count,
+        SPAM(("    node have %d output on channel %d/%d", count,
               m_Output[i]->m_Channel, i));
         // Free remaining frames owned by the node
         // And forward update it
@@ -570,17 +570,17 @@ AudioNode::~AudioNode()
         for (int j = 0; j < count; j++) {
             if (m_Output[i]->wire[j] != NULL) {
                 AudioNode *inNode = m_Output[i]->wire[j]->m_Node;
-                SPAM(("found a wire to node %p", inNode));
-                SPAM(("input node have %d input", m_OutCount));
+                SPAM(("    found a wire to node %p", inNode));
+                SPAM(("    input node have %d input", m_OutCount));
                 for (int k = 0; k < inNode->m_InCount; k++) {
                     int wireCount = inNode->m_Input[k]->m_Count;
-                    SPAM(("#%d wire = %d", k, wireCount));
+                    SPAM(("      #%d wire = %d", k, wireCount));
                     for (int l = 0; l < wireCount; l++) {
                         if (inNode->m_Input[k]->wire[l] != NULL) {
-                            SPAM(("wire=%d node=%p", l,
+                            SPAM(("      wire=%d node=%p", l,
                                   inNode->m_Input[k]->wire[l]->m_Node));
                             if (inNode->m_Input[k]->wire[l]->m_Node == this) {
-                                SPAM(("DELETE"));
+                                SPAM(("      DELETE"));
                                 delete inNode->m_Input[k]->wire[l];
                                 inNode->m_Input[k]->wire[l] = NULL;
                                 inNode->m_Input[k]->m_Count--;
@@ -588,7 +588,7 @@ AudioNode::~AudioNode()
                         }
                     }
                 }
-                SPAM(("Deleting input wire"));
+                SPAM(("    Deleting input wire"));
                 delete m_Output[i]->wire[j];
                 m_Output[i]->wire[j] = NULL;
                 m_Output[i]->m_Count--;
@@ -619,15 +619,15 @@ AudioNode::~AudioNode()
 
 bool AudioNode::updateIsConnectedInput()
 {
-    SPAM(("updateIsConnectedInput @ %p", this));
+    SPAM(("    updateIsConnectedInput @ %p", this));
     if (m_InCount == 0) return true;
 
     for (int i = 0; i < m_InCount; i++) {
-        SPAM(("input %d", i));
+        SPAM(("    input %d", i));
         int count = m_Input[i]->m_Count;
         for (int j = 0; j < count; j++) {
             if (m_Input[i]->wire[j] != NULL) {
-                SPAM(("Wire %d to %p", i, m_Input[i]->wire[j]->m_Node));
+                SPAM(("    Wire %d to %p", i, m_Input[i]->wire[j]->m_Node));
                 return m_Input[i]->wire[j]->m_Node->updateIsConnected(false,
                                                                       true);
             }
@@ -639,15 +639,15 @@ bool AudioNode::updateIsConnectedInput()
 
 bool AudioNode::updateIsConnectedOutput()
 {
-    SPAM(("updateIsConnectedOutput @ %p", this));
+    SPAM(("    updateIsConnectedOutput @ %p", this));
     if (m_OutCount == 0) return true;
 
     for (int i = 0; i < m_OutCount; i++) {
         int count = m_Output[i]->m_Count;
-        SPAM(("output %d count=%d", i, count));
+        SPAM(("    output %d count=%d", i, count));
         for (int j = 0; j < count; j++) {
             if (m_Output[i]->wire[j] != NULL) {
-                SPAM(("Wire %d to %p", i, m_Output[i]->wire[j]->m_Node));
+                SPAM(("    Wire %d to %p", i, m_Output[i]->wire[j]->m_Node));
                 return m_Output[i]->wire[j]->m_Node->updateIsConnected(true,
                                                                        false);
             }

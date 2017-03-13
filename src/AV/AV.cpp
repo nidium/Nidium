@@ -117,8 +117,8 @@ bool AVStreamReader::fillBuffer(uint8_t *buffer, int size, int *outCopied)
     int left   = size - copied;
     int copy   = avail > left ? left : avail;
 
-    SPAM(("Filling ffmpeg buffer : "
-         " - Stream (%p) : totalRead=%lld, currentRead=%d, currentSize=%d"
+    SPAM(("Filling ffmpeg buffer : \n"
+         " - Stream (%p) : totalRead=%lld, currentRead=%d, currentSize=%d\n"
          " - Buffer : size=%d copy=%d, copied=%d (avail=%d, left=%d)",
          m_StreamBuffer, m_TotalRead, m_StreamRead, m_StreamPacketSize,
          size, copy, copied, avail, left));
