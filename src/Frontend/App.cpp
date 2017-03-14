@@ -118,7 +118,7 @@ static void *nidium_appworker_thread(void *arg)
 {
     App *app = static_cast<App *>(arg);
 
-    ndm_log(NDM_LOG_DEBUG, "App", "Starting App worker...");
+    printf("Starting App worker...\n");
 
     while (!app->m_Action.stop) {
         pthread_mutex_lock(&app->m_ThreadMutex);
@@ -162,13 +162,13 @@ static void *nidium_appworker_thread(void *arg)
                 break;
             }
             default:
-                ndm_log(NDM_LOG_DEBUG, "App", "Unknown action");
+                printf("Unknown action\n");
                 break;
         }
         app->m_Action.active = false;
         pthread_mutex_unlock(&app->m_ThreadMutex);
     }
-    ndm_log(NDM_LOG_DEBUG, "App", "Thread ended 2");
+    printf("Thread ended 2\n");
     return NULL;
 }
 
@@ -249,7 +249,7 @@ int App::open()
     if (err != ZIP_ER_OK || m_fZip == NULL) {
         char buf_erreur[1024];
         zip_error_to_str(buf_erreur, sizeof buf_erreur, err, errno);
-        ndm_logf(NDM_LOG_ERROR, "App", "Failed to open zip file (%d) : %s", err, buf_erreur);
+        printf("Failed to open zip file (%d) : %s\n", err, buf_erreur);
         return 0;
     }
 
@@ -272,18 +272,18 @@ int App::extractApp(const char *path,
     char *fullpath = strdup(path);
 
     if (path[strlen(path) - 1] != '/') {
-        ndm_log(NDM_LOG_ERROR, "App", "extractApp : invalid path (non / terminated)");
+        printf("extractApp : invalid path (non / terminated)\n");
         return 0;
     }
 
     if (m_fZip == NULL || !m_WorkerIsRunning) {
-        ndm_log(NDM_LOG_ERROR, "App", "extractApp : you need to call open() and runWorker() before");
+        printf("extractApp : you need to call open() and runWorker() before\n");
         return 0;
     }
 #if 0
 #define NIDIUM_CACHE_DIR "./cache/"
     if (mkdir(NIDIUM_CACHE_DIR, 0777) == -1 && errno != EEXIST) {
-        ndm_log(NDM_LOG_ERROR, "App", "Can't create cache directory");
+        printf("Can't create cache directory\n");
         return 0;
     }
     fullpath = static_cast<char *>(malloc(sizeof(char) *
@@ -295,11 +295,11 @@ int App::extractApp(const char *path,
 #endif
     int ret = 0;
     if ((ret = mkdir(fullpath, 0777)) == -1 && errno != EEXIST) {
-        ndm_log(NDM_LOG_ERROR, "App", "Can't create Application directory");
+        printf("Can't create Application directory\n");
         free(fullpath);
         return 0;
     } else if (ret == -1 && errno == EEXIST) {
-        ndm_log(NDM_LOG_ERROR, "App", "Cache for this app already exists");
+        printf("Cache for this app already exists\n");
         done(closure, fullpath);
         free(fullpath);
         return 0;
@@ -345,8 +345,7 @@ int App::extractApp(const char *path,
 uint64_t App::extractFile(const char *file, AppExtractCallback cb, void *user)
 {
     if (m_fZip == NULL || !m_WorkerIsRunning) {
-        ndm_log(NDM_LOG_ERROR, "App",
-            "extractFile : you need to call open() and runWorker() before");
+        printf("extractFile : you need to call open() and runWorker() before\n");
         return 0;
     }
 
@@ -358,7 +357,7 @@ uint64_t App::extractFile(const char *file, AppExtractCallback cb, void *user)
         || strcmp(zip_get_name(m_fZip, index, ZIP_FL_UNCHANGED), file) != 0
         || (zfile = zip_fopen_index(m_fZip, index, ZIP_FL_UNCHANGED)) == NULL) {
 
-        ndm_logf(NDM_LOG_ERROR, "App", "extractFile: Failed to open %s", file);
+        printf("extractFile: Failed to open %s\n", file);
         return 0;
     }
 
@@ -373,7 +372,7 @@ uint64_t App::extractFile(const char *file, AppExtractCallback cb, void *user)
     pthread_mutex_lock(&m_ThreadMutex);
     if (m_Action.active) {
         pthread_mutex_unlock(&m_ThreadMutex);
-        ndm_log(NDM_LOG_ERROR, "App", "extractFile: Worker already working...");
+        printf("extractFile: Worker already working...\n");
         zip_fclose(zfile);
         return 0;
     }
@@ -397,8 +396,8 @@ int App::loadManifest()
 #define MPROP(root, str, type, out)                                           \
     Json::Value out;                                                          \
     if (!root.isMember(str) || !(out = root[str]) || !out.is##type()) {       \
-        ndm_log(NDM_LOG_ERROR, "App", "Manifest error : " str      \
-               " property not found or wrong type (required : " #type ")");   \
+        printf("Manifest error : " str                                        \
+               " property not found or wrong type (required : " #type ")\n"); \
         return 0;                                                             \
     }
     if (m_fZip == NULL) return 0;
@@ -415,7 +414,7 @@ int App::loadManifest()
         || (manifest = zip_fopen_index(m_fZip, index, ZIP_FL_UNCHANGED))
                == NULL) {
 
-        ndm_log(NDM_LOG_ERROR, "App", NIDIUM_MANIFEST " not found");
+        printf(NIDIUM_MANIFEST " not found\n");
         return 0;
     }
 
@@ -428,7 +427,7 @@ int App::loadManifest()
     }
 
     if (stat.size > (1024L * 1024L)) {
-        ndm_log(NDM_LOG_ERROR, "App", "Manifest file too big");
+        printf("Manifest file too big\n");
         zip_fclose(manifest);
         return 0;
     }
@@ -445,7 +444,7 @@ int App::loadManifest()
     Json::Value root;
 
     if (!m_Reader.parse(content, content + stat.size, root)) {
-        ndm_log(NDM_LOG_ERROR, "App", "Can't parse JSON");
+        printf("Can't parse JSON\n");
 
         return 0;
     }
