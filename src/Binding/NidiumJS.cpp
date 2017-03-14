@@ -205,7 +205,7 @@ ape_global *NidiumJS::GetNet()
 void NidiumJS::InitNet(ape_global *net)
 {
     if (pthread_key_create(&gAPE, NULL) != 0) {
-        ndm_log(NDM_LOG_ERROR, "Nidium", "pthread_key_create() error");
+        printf("pthread_key_create() error\n");
         exit(1);
         return;
     }
@@ -269,7 +269,7 @@ void NidiumJS::Init()
     static bool _alreadyInit = false;
     if (!_alreadyInit) {
         if (!JS_Init()) {
-            ndm_log(NDM_LOG_ERROR, "Nidium", "Failed to init JSAPI (JS_Init())");
+            fprintf(stderr, "Failed to init JSAPI (JS_Init())\n");
             return;
         }
         _alreadyInit = true;
@@ -283,7 +283,7 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
 
     if (js == nullptr) {
-        ndm_logf(NDM_LOG_ERROR, "Nidium", "Error reporter failed (wrong JSContext?) (%s:%d > %s)",
+        printf("Error reporter failed (wrong JSContext?) (%s:%d > %s)\n",
                report->filename, report->lineno, message);
         return;
     }
@@ -393,7 +393,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
         // JS_SetCStringsAreUTF8();
         isUTF8 = 1;
     }
-    // ndm_log(NDM_LOG_DEBUG, "Nidium", "New JS runtime");
+    // printf("New JS runtime\n");
 
     m_Net = NULL;
 
@@ -410,7 +410,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     if ((rt = JS_NewRuntime(JS::DefaultHeapMaxBytes, JS::DefaultNurseryBytes))
         == NULL) {
 
-        ndm_log(NDM_LOG_ERROR, "Nidium", "Failed to init JS runtime");
+        printf("Failed to init JS runtime\n");
         return;
     }
 
@@ -418,7 +418,7 @@ NidiumJS::NidiumJS(ape_global *net, Context *context)
     JS_SetErrorReporter(rt, reportError);
 
     if ((m_Cx = JS_NewContext(rt, 8192)) == NULL) {
-        ndm_log(NDM_LOG_ERROR, "Nidium", "Failed to init JS context");
+        printf("Failed to init JS context\n");
         return;
     }
 
