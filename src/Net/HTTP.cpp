@@ -291,10 +291,10 @@ static void nidium_http_read(ape_socket *s,
     nhttp->parsing(false);
 
     if (nparsed != len && !nhttp->m_HTTP.m_Ended) {
-        ndm_logf(NDM_LOG_ERROR, "HTTP", \
-            "(socket %p) Parser returned %ld with error %s", s,
-            static_cast<unsigned long>(nparsed),
-            http_errno_description(HTTP_PARSER_ERRNO(&nhttp->m_HTTP.parser)));
+        ndm_logf(NDM_LOG_ERROR, "HTTP",
+                 "(socket %p) Parser returned %ld with error %s", s,
+                 static_cast<unsigned long>(nparsed),
+                 http_errno_description(HTTP_PARSER_ERRNO(&nhttp->m_HTTP.parser)));
 
         nhttp->setPendingError(HTTP::ERROR_RESPONSE);
 

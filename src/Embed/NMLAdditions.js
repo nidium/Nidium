@@ -10,7 +10,7 @@ let Elements = require("./lib/Elements.js");
         if (typeof(nml) == "string") {
             var tree = NML.parse(nml);
             if (!tree) {
-                /* If the NML could not be parsed, issue a textnode */
+                /* If the NML couldn't be parsed, issue a textnode */
                 return [Elements.Create("textnode", nml)];
             }
         } else {

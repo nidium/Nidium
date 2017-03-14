@@ -336,7 +336,7 @@ void NML::onGetContent(const char *data, size_t len)
         }
     } else {
         /*
-            TODO: Do not close ! (load a default NML?)
+            TODO: Don't close ! (load a default NML?)
         */
         exit(1);
     }
