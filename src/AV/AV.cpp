@@ -222,10 +222,10 @@ int AVStreamReader::_read(uint8_t *buffer, int size)
                     m_NeedWakup = false;
                     return copied > 0 ? copied : AVERROR_EOF;
                 default:
-                    SPAM(("Received unknown error (%d) and streamBuffer is "
+                    fprintf(stderr, "Received unknown error (%d) and streamBuffer is "
                            "null. Returning EOF, "
                            "copied = %u\n",
-                           m_StreamErr, copied));
+                           m_StreamErr, copied);
                     return copied > 0 ? copied : AVERROR_EOF;
             }
         } else {
