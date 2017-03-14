@@ -118,7 +118,7 @@ void Server::wait()
 
             if (WIFSIGNALED(state)) {
                 int idx_crash = m_PidIdxMapper[pid];
-                fprintf(stderr, "Worker %d has crashed :'( (%s)",
+                fprintf(stderr, "[Crash] Worker %d has crashed :'( (%s)\n",
                         idx_crash, strsignal(WTERMSIG(state)));
 
                 if (this->initWorker(&idx_crash) == 0) {

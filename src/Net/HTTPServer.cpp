@@ -459,7 +459,7 @@ void HTTPClientConnection::onRead(const char *data, size_t len, ape_global *ape)
         }
     } else if (nparsed != len) {
         ndm_logf(NDM_LOG_ERROR, "HTTPServer", "Http error : %s",
-               http_errno_description(HTTP_PARSER_ERRNO(&m_HttpState.parser)));
+                 http_errno_description(HTTP_PARSER_ERRNO(&m_HttpState.parser)));
     }
 #undef REQUEST_HEADER
 }
