@@ -118,7 +118,7 @@ void Server::wait()
 
             if (WIFSIGNALED(state)) {
                 int idx_crash = m_PidIdxMapper[pid];
-                ndm_logf(NDM_LOG_ERROR, "Server", "Worker %d has crashed :'( (%s)",
+                fprintf(stderr, "Worker %d has crashed :'( (%s)",
                         idx_crash, strsignal(WTERMSIG(state)));
 
                 if (this->initWorker(&idx_crash) == 0) {
@@ -266,7 +266,7 @@ int Server::init()
     m_Args.argv += optind;
 
     if (workers > NIDIUM_MAX_WORKERS) {
-        fprintf(stderr, "Too many worker requested : max %d\n",
+        fprintf(stderr, "[Error] Too many worker requested : max %d\n",
                 NIDIUM_MAX_WORKERS);
         exit(1);
     }
