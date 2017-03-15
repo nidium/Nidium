@@ -34,7 +34,6 @@
 
 #define nlogf ndm_printf
 #define nlog ndm_print
-#define NUI_LOG ndm_printf
 
 #endif
 

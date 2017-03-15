@@ -265,7 +265,7 @@ void CanvasHandler::updateChildrenSize(bool width, bool height)
         if (!updateHeight && !updateWidth) {
             continue;
         }
-        // NUI_LOG("Update size of %p through parent", cur);
+        // ndm_printf("Update size of %p through parent", cur);
         cur->setSize(updateWidth ? cur->getWidth() : cur->m_Width,
                      updateHeight ? cur->getHeight() : cur->m_Height);
     }

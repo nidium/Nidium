@@ -43,7 +43,7 @@ namespace Binding {
         JS::RootedString _fun_name(                                       \
             cx, JS_GetFunctionDisplayId(JS_ValueToFunction(cx, calVal))); \
         JSAutoByteString _fun_namec(cx, _fun_name);                       \
-        NUI_LOG("Canvas2D.%s()] called on %s:%d", _fun_namec.ptr(),       \
+        ndm_printf("Canvas2D.%s()] called on %s:%d", _fun_namec.ptr(),       \
                 filename.get(), lineno);                                  \
     }
 #else
@@ -1686,7 +1686,7 @@ uint32_t Canvas2DContext::createProgram(const char *data)
         GLchar messages[256];
         NIDIUM_GL_CALL(iface, GetProgramInfoLog(programHandle, sizeof(messages),
                                                 0, &messages[0]));
-        NUI_LOG("createProgram error : %s", messages);
+        ndm_logf(NDM_LOG_ERROR, "JSCanvas2DContext", "createProgram error : %s", messages);
         return 0;
     }
 
@@ -1797,7 +1797,7 @@ void Canvas2DContext::setVertexDeformation(uint32_t vertex, float x, float y)
         If the GL state is shared among other Canvas, create a new one
     */
     if (state->isShared()) {
-        NUI_LOG("New GL state created !");
+        ndm_logf(NDM_LOG_INFO, "JScanvas2DContext", "New GL state created !");
         state = new GLState(m_GLState->getNidiumGLContext()->getUI());
         state->setShared(false);
 
@@ -1881,7 +1881,7 @@ void Canvas2DContext::setScale(double x, double y, double px, double py)
 uint8_t *Canvas2DContext::getPixels()
 {
     this->flush();
-    ndm_log(NDM_LOG_INFO, "JSCanvas", "Get Pixel unimplemented");
+    ndm_log(NDM_LOG_INFO, "JSCanvas2DContext", "Get Pixel unimplemented");
 
     return nullptr;
 #if 0

@@ -414,7 +414,7 @@ GrContext *SkiaContext::CreateGrContext(GLContext *glcontext)
     GrContext *context             = nullptr;
 
     if ((interface = glcontext->iface()) == nullptr) {
-        NUI_LOG("Can't get OpenGL interface");
+        ndm_logf(NDM_LOG_ERROR, "SkiaContext", "Can't get OpenGL interface");
         return nullptr;
     }
 
@@ -943,7 +943,7 @@ void SkiaContext::restore()
 
         m_State = dstate;
     } else {
-        NUI_LOG("restore() without matching save()\n");
+        ndm_logf(NDM_LOG_ERROR, "SkiaContext", "restore() without matching save()");
     }
 
     getCanvas()->restore();
@@ -1514,12 +1514,12 @@ void SkiaContext::setFillColor(Gradient *gradient)
     if ((shader = gradient->build()) == NULL) {
         /* Make paint invalid (no future draw) */
         // paint->setShader(NULL);
-        NUI_LOG("Invalid gradient");
+        ndm_logf(NDM_LOG_ERROR, "SkiaContext", "Invalid gradient");
         return;
     }
     PAINT->setColor(SK_ColorBLACK);
     PAINT->setShader(shader);
-    // NUI_LOG("Add gradient : %p (%d)", shader, shader->getRefCnt());
+    // ndm_printf("Add gradient : %p (%d)", shader, shader->getRefCnt());
 }
 
 void SkiaContext::setFillColor(const char *str)
@@ -1821,7 +1821,7 @@ SkiaContext::~SkiaContext()
     }
     while (nstate) {
         struct _State *tmp = nstate->next;
-        // NUI_LOG("Delete pain %p with shader : %p", nstate->paint,
+        // ndm_printf("Delete pain %p with shader : %p", nstate->paint,
         // nstate->paint->getShader());
         delete nstate->m_Paint;
         delete nstate->m_PaintStroke;

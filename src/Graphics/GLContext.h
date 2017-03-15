@@ -54,7 +54,8 @@ namespace Graphics {
         (IFACE)->m_Interface->fFunctions.f##X;                           \
         if ((__err = (IFACE)->m_Interface->fFunctions.fGetError())       \
             != GR_GL_NO_ERROR) {                                         \
-            NUI_LOG("[Nidium GL Error : gl%s() returned %d", #X, __err); \
+            ndm_logf(NDM_LOG_ERROR, "GLError",                           \
+                     "gl%s() returned %d", #X, __err);                   \
         }                                                                \
     } while (false)
 
@@ -65,7 +66,8 @@ namespace Graphics {
         (RET) = (IFACE)->m_Interface->fFunctions.f##X;                   \
         if ((__err = (IFACE)->m_Interface->fFunctions.fGetError())       \
             != GR_GL_NO_ERROR) {                                         \
-            NUI_LOG("[Nidium GL Error : gl%s() returned %d", #X, __err); \
+            ndm_logf(NDM_LOG_ERROR, "GLError",                           \
+                     "gl%s() returned %d", #X, __err);                   \
         }                                                                \
     } while (false)
 #endif
@@ -100,19 +102,19 @@ public:
 
         /* The new context share with the "main" GL context */
         if (!m_UI->makeMainGLCurrent()) {
-            NUI_LOG("Can't make main current");
+            ndm_log(NDM_LOG_ERROR, "GLContext", "Can't make main current");
         }
 
         m_SDLGLCtx = m_UI->createSharedContext(webgl);
         if (m_SDLGLCtx == NULL) {
-            NUI_LOG("Can't create context");
+            ndm_log(NDM_LOG_ERROR, "GLContext", "Can't create context");
         }
 
         this->createInterface();
 
         /* Restore to the old GL Context */
         if (!m_UI->makeGLCurrent(oldctx)) {
-            NUI_LOG("Can't restore old ctx");
+            ndm_log(NDM_LOG_ERROR, "GLContext", "Can't restore old ctx");
         }
     }
 

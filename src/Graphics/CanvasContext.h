@@ -107,7 +107,7 @@ public:
     inline GLContext *getGLContext() const
     {
         if (!m_GLState) {
-            NUI_LOG("getGLContext() invalid glstate on %p", this);
+            ndm_logf(NDM_LOG_ERROR, "CanvasContext", "getGLContext() invalid glstate on %p", this);
             return NULL;
         }
 

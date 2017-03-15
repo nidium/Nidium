@@ -28,7 +28,7 @@ GLState::GLState(UIInterface *ui, bool withProgram, bool webgl) : m_Shared(true)
     m_GLContext = new GLContext(ui, webgl ? NULL : ui->getGLContext(), webgl);
 
     if (!this->initGLBase(withProgram)) {
-        NUI_LOG("[OpenGL] Failed to init base GL");
+        ndm_logf(NDM_LOG_ERROR, "GLState", "Failed to init base GL");
     }
 }
 
@@ -46,7 +46,7 @@ void GLState::CreateForContext(Context *nctx)
 {
     UIInterface *ui;
     if ((ui = nctx->getUI()) == NULL || ui->m_NidiumCtx->getGLState()) {
-        NUI_LOG("Failed to init the first GLState");
+        ndm_logf(NDM_LOG_ERROR, "GLState", "Failed to init the first GLState");
         return;
     }
 

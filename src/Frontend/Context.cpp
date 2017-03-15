@@ -533,7 +533,7 @@ static int GetGLSLVersion()
     NIDIUM_GL_CALL_RET_MAIN(GetError(), err);
 
     if (err != GL_NO_ERROR) {
-        NUI_LOG("Failed to parse GL's major-minor version number separator.\n");
+        ndm_logf(NDM_LOG_ERROR, "Context", "Failed to parse GL's major-minor version number separator.");
         return -1;
     }
 
@@ -559,12 +559,12 @@ static int GetGLSLVersion()
     auto majorVersion = strtol(itr, &end, 10);
 
     if (!end) {
-        NUI_LOG("Failed to parse the GL major version number.\n");
+        ndm_logf(NDM_LOG_ERROR, "Context", "Failed to parse the GL major version number.");
         return -1;
     }
 
     if (*end != '.') {
-        NUI_LOG("Failed to parse GL's major-minor version number separator.\n");
+        ndm_logf(NDM_LOG_ERROR, "Context", "Failed to parse GL's major-minor version number separator.");
         return -1;
     }
 
@@ -574,17 +574,17 @@ static int GetGLSLVersion()
 
     auto minorVersion = strtol(itr, &end, 10);
     if (!end) {
-        NUI_LOG("Failed to parse GL's minor version number.\n");
+        ndm_logf(NDM_LOG_ERROR, "Context", "Failed to parse GL's minor version number.");
         return -1;
     }
 
     if (majorVersion <= 0 || majorVersion >= 100) {
-        NUI_LOG("Invalid major version.\n");
+        ndm_logf(NDM_LOG_ERROR, "Context", "Invalid major version.");
         return false;
     }
 
     if (minorVersion < 0 || minorVersion >= 100) {
-        NUI_LOG("Invalid minor version.\n");
+        ndm_logf(NDM_LOG_ERROR, "Context", "Invalid minor version.");
         return false;
     }
 
@@ -624,7 +624,7 @@ static ShShaderOutput GetShaderOutputVersion()
             case 450:
                 return SH_GLSL_450_CORE_OUTPUT;
             default:
-                NUI_LOG("Unexpected GLSL version.\n");
+                ndm_logf(NDM_LOG_ERROR, "Context", "Unexpected GLSL version.");
                 exit(1);
         }
     }

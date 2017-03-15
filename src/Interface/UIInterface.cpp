@@ -62,7 +62,7 @@ bool UIInterface::createWindow(int width, int height)
 {
     if (!m_Initialized) {
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1) {
-            NUI_LOG("Can't init SDL:  %s", SDL_GetError());
+            ndm_logf(NDM_LOG_ERROR, "UIInterface", "Can't init SDL:  %s", SDL_GetError());
             return false;
         }
 
@@ -71,7 +71,7 @@ bool UIInterface::createWindow(int width, int height)
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /* | SDL_WINDOW_FULLSCREEN*/);
 
         if (m_Win == NULL) {
-            NUI_LOG("Can't create window (SDL)");
+            ndm_logf(NDM_LOG_ERROR, "UIInterface", "Can't create window (SDL)");
             return false;
         }
 
@@ -81,7 +81,7 @@ bool UIInterface::createWindow(int width, int height)
         this->setGLContextAttribute();
 
         if ((m_MainGLCtx = SDL_GL_CreateContext(m_Win)) == NULL) {
-            NUI_LOG("Failed to create OpenGL context : %s", SDL_GetError());
+            ndm_logf(NDM_LOG_ERROR, "UIInterface", "Failed to create OpenGL context : %s", SDL_GetError());
             return false;
         }
 
@@ -92,11 +92,11 @@ bool UIInterface::createWindow(int width, int height)
             Enable vertical sync
         */
         if (SDL_GL_SetSwapInterval(NIDIUM_VSYNC) == -1) {
-            ndm_log(NDM_LOG_ERROR, "UI", "Can't vsync");
+            ndm_log(NDM_LOG_ERROR, "UIInterface", "Can't vsync");
         }
 
         // glViewport(0, 0, width*2, height*2);
-        NUI_LOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
+        ndm_logf(NDM_LOG_INFO, "UIInterface", "OpenGL version : %s", glGetString(GL_VERSION));
 
         this->onWindowCreated();
 
@@ -346,7 +346,7 @@ void UIInterface::setCursor(CURSOR_TYPE type)
     if (m_CurrentCursor != type) {
         m_CursorNeedsUpdate = true;
         m_CurrentCursor = type;
-        ndm_logf(NDM_LOG_DEBUG, "UI", "Set new cursor %d", type);
+        ndm_logf(NDM_LOG_DEBUG, "UIInterface", "Set new cursor %d", type);
     }
 }
 
@@ -481,7 +481,7 @@ uint8_t *UIInterface::readScreenPixel()
     uint8_t *ret = (uint8_t *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
     if (!ret) {
         uint32_t err = glGetError();
-        ndm_logf(NDM_LOG_ERROR, "UI", "Failed to map buffer: Error %d", err);
+        ndm_logf(NDM_LOG_ERROR, "UIInterface", "Failed to map buffer: Error %d", err);
         return NULL;
     }
 

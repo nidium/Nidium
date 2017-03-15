@@ -38,7 +38,7 @@ char *CanvasContext::ProcessShader(const char *content, shaderType type)
                                    frontendContext->getShaderResources());
 
     if (compiler == NULL) {
-        NUI_LOG("Shader : Compiler not supported");
+        ndm_logf(NDM_LOG_ERROR, "CanvasContext", "Shader : Compiler not supported");
         return NULL;
     }
 
@@ -79,7 +79,7 @@ uint32_t CanvasContext::CompileShader(const char *data, int type)
         if (glGetError() != GL_NO_ERROR) {
             return 0;
         }
-        NUI_LOG("Shader error %d : %s\n%s", len, messages, data);
+        ndm_logf(NDM_LOG_ERROR, "CanvasContext", "Shader error %d : %s\n%s", len, messages, data);
         return 0;
     }
 
@@ -118,7 +118,7 @@ Vertices *CanvasContext::BuildVerticesStripe(int resolution)
             vert[t].Position[1] = 1. - (static_cast<float>(i) * ystep);
             vert[t].Position[2] = 0.;
 
-            // NUI_LOG("Create vertex: %f %f", vert[t].Position[0],
+            // ndm_printf("Create vertex: %f %f", vert[t].Position[0],
             // vert[t].Position[1]);
 
             vert[t].TexCoord[0] = (static_cast<float>(j) * txstep);
@@ -243,7 +243,7 @@ uint32_t CanvasContext::CreatePassThroughProgram(GLResources &resource)
     if (linkSuccess == GL_FALSE) {
         GLchar messages[256];
         glGetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]);
-        NUI_LOG("createProgram error : %s", messages);
+        ndm_logf(NDM_LOG_ERROR, "CanvasContext", "createProgram error : %s", messages);
         return 0;
     }
 
@@ -334,7 +334,7 @@ void CanvasContext::updateMatrix(
             UniformMatrix4fv(m_GLState->m_GLObjects.uniforms.u_projectionMatrix,
                              1, GL_FALSE, mat4));
     } else {
-        NUI_LOG("No uniform found");
+        ndm_logf(NDM_LOG_ERROR, "CanvasContext", "No uniform found");
     }
 }
 
@@ -468,7 +468,7 @@ CanvasContext *CanvasContext::Create(ContextType type)
         case ContextType_kSkia2D:
             return NULL;
         default:
-            NUI_LOG("[Error] Invalid CanvasContext requested");
+            ndm_logf(NDM_LOG_ERROR, "CanvasContext", "Invalid CanvasContext requested");
             return NULL;
     }
 }

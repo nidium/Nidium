@@ -123,7 +123,7 @@ sk_sp<SkShader> Gradient::build()
 Gradient::~Gradient()
 {
     // if (currentShader)
-    // NUI_LOG("Free gradient %d for %p", (currentShader ?
+    // ndm_printf("Free gradient %d for %p", (currentShader ?
     // currentShader->getRefCnt() : 0),
     // currentShader);
     free(m_ColorsStop.items);
