@@ -219,9 +219,6 @@ private:
 #define CONST_STR_LEN(x) x, x ? sizeof(x) - 1 : 0
 
 #define APE_CTX(CX) ((ape_global *)JS_GetContextPrivate(CX))
-
-#define NLOG(format, ...) \
-    printf("[%s:%d] " format "\n", __FILENAME__, __LINE__, ##__VA_ARGS__)
 // }}}
 
 } // namespace Core

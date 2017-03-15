@@ -130,14 +130,14 @@ bool JSModule::initNative()
 
     void *module = dlopen(m_FilePath->path(), RTLD_LAZY);
     if (!module) {
-        NLOG("Failed to open module : %s\n", dlerror());
+        ndm_logf(NDM_LOG_ERROR, "JSModule", "Failed to open module : %s\n", dlerror());
         return false;
     }
 
     register_module_t registerModule = reinterpret_cast<register_module_t>(
         dlsym(module, "__NidiumRegisterModule"));
     if (registerModule && !registerModule(m_Cx, exports)) {
-        NLOG("Failed to register module\n");
+        ndm_logf(NDM_LOG_ERROR, "JSModule", "Failed to register module\n");
         return false;
     }
 
