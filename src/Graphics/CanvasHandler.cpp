@@ -19,6 +19,7 @@
 using Nidium::Core::Args;
 using Nidium::Frontend::Context;
 using Nidium::Frontend::InputEvent;
+using Nidium::Frontend::InputTouch;
 using Nidium::Graphics::CanvasHandler;
 using Nidium::Binding::Canvas2DContext;
 using Nidium::Interface::UIInterface;
@@ -1280,6 +1281,17 @@ void CanvasHandler::onMouseEvent(InputEvent *ev)
     }
 
     switch (ev->getType()) {
+        case InputEvent::kTouchMove_Type:
+            /*
+                If the touchmove event is received on an handler outside of the
+                origin handlers fire the touchmove event of the original handler.
+            */
+            if (!ev->getTouch()->hasOrigin(this)) {
+                Args arg;
+                this->onTouch(ev, arg, nullptr);
+                ev->getTouch()->getTarget()->fireEvent<CanvasHandler>(CanvasHandler::TOUCH_EVENT, arg);
+            }
+            break;
         case InputEvent::kMouseClick_Type:
             if (ev->m_data[0] == 1) // left click
                 m_NidiumContext->setCurrentClickedHandler(this);
@@ -1316,6 +1328,32 @@ void CanvasHandler::onMouseEvent(InputEvent *ev)
         (UIInterface::CURSOR_TYPE) this->getCursor());
 }
 
+void CanvasHandler::onTouch(InputEvent *ev, Args &args, CanvasHandler *handler)
+{
+    Frontend::InputHandler *inputHandler = m_NidiumContext->getInputHandler();
+    std::shared_ptr<InputTouch> touch = ev->getTouch();
+
+    if (ev->getType() == InputEvent::kTouchStart_Type) {
+        if (!inputHandler->getTouch(ev->getTouch()->getTouchID())) {
+            inputHandler->addTouch(ev->getTouch());
+        }
+        touch->addOrigin(handler);
+    } else if (ev->getType() == InputEvent::kTouchEnd_Type) {
+        inputHandler->rmTouch(touch->getIdentifier());
+    }
+
+    inputHandler->addChangedTouch(touch);
+
+    args[0].set(ev->getType());
+    args[1].set(touch.get());
+
+    /*
+        Update touch coordinates when they are processed
+    */
+    touch->x    = ev->m_x;
+    touch->y    = ev->m_y;
+}
+
 /*
     Called by Context whenever there are pending events on this canvas
     Currently only handle mouse & touch events.
@@ -1329,10 +1367,6 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
 
         Args arg;
 
-        arg[0].set(ev->getType());
-        arg[1].set(ev->m_x);
-        arg[2].set(ev->m_y);
-
         switch (ev->getType()) {
             case InputEvent::kMouseMove_Type:
             case InputEvent::kMouseClick_Type:
@@ -1344,6 +1378,9 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
             case InputEvent::kMouseDrop_Type:
             case InputEvent::kMouseDrag_Type:
             case InputEvent::kMouseWheel_Type:
+                arg[0].set(ev->getType());
+                arg[1].set(ev->m_x);
+                arg[2].set(ev->m_y);
                 arg[3].set(ev->m_data[0]);     // xrel
                 arg[4].set(ev->m_data[1]);     // yrel
                 arg[5].set(ev->m_x - m_aLeft); // layerX
@@ -1353,8 +1390,17 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
             case InputEvent::kTouchStart_Type:
             case InputEvent::kTouchEnd_Type:
             case InputEvent::kTouchMove_Type:
-                arg[3].set(this); // target
+                /*
+                    If the handler isn't one of the handlers that
+                    received the touchstart event ignore it.
+                 */
+                if (!ev->getTouch()->hasOrigin(handler)) {
+                    continue;
+                }
+
                 canvasEvent = TOUCH_EVENT;
+
+                this->onTouch(ev, arg, handler);
                 break;
         }
 
@@ -1364,9 +1410,7 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
         }
     }
 
-    if (canvasEvent == MOUSE_EVENT) {
-        this->onMouseEvent(ev);
-    }
+    this->onMouseEvent(ev);
 
     return true;
 }

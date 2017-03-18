@@ -9,9 +9,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
+#include <set>
+#include <memory>
 
 #include "Graphics/Geometry.h"
 
+typedef int64_t SDL_FingerID;
 
 namespace Nidium {
 namespace Graphics {
@@ -27,6 +31,7 @@ static const char *InputEvent_Names[]
         "dragend",   "dragover",  "drop",    "drag",     "mousewheel",
         "touchstart", "touchend", "touchmove" };
 
+class InputTouch;
 
 class InputEvent
 {
@@ -109,6 +114,14 @@ public:
         m_data[index] = data;
     }
 
+    void setTouch(std::shared_ptr<InputTouch> touch) {
+        m_Touch = touch;
+    }
+
+    std::shared_ptr<InputTouch> getTouch() {
+        return m_Touch;
+    }
+
     int m_x, m_y;
     uint32_t m_data[8];
     InputEvent *m_Next;
@@ -119,12 +132,57 @@ public:
 
 private:
     Type m_Type;
+    std::shared_ptr<InputTouch> m_Touch;
+};
+
+class InputTouch
+{
+public:
+    friend class InputHandler;
+    typedef SDL_FingerID TouchID;
+
+    InputTouch(unsigned int x, unsigned int y, TouchID id)
+        : x(x), y(y), m_TouchID(id) { }
+
+    unsigned int x = 0;
+    unsigned int y = 0;
+
+    unsigned int getIdentifier() {
+        return m_Identifier;
+    }
+
+    void addOrigin(Graphics::CanvasHandler *handler)
+    {
+        if (m_Origins.empty()) {
+            m_Target = handler;
+        }
+        m_Origins.insert(handler);
+    }
+
+    bool hasOrigin(Graphics::CanvasHandler *handler)
+    {
+        return m_Origins.find(handler) == m_Origins.end() ? false : true;
+    }
+
+    Graphics::CanvasHandler *getTarget()
+    {
+        return m_Target;
+    }
+
+    TouchID getTouchID() {
+        return m_TouchID;
+    }
+
+private:
+    std::set<Graphics::CanvasHandler *> m_Origins {};
+    Graphics::CanvasHandler *m_Target = nullptr;
+    unsigned int m_Identifier         = -1; /* UINT_MAX */
+    TouchID m_TouchID;
 };
 
 class InputHandler
 {
 public:
-
     void pushEvent(InputEvent *ev);
 
     void clear();
@@ -134,6 +192,30 @@ public:
         return m_InputEvents.head;
     }
 
+    void addTouch(std::shared_ptr<InputTouch> touch);
+    void rmTouch(unsigned int id);
+    void rmChangedTouch(unsigned int id);
+    std::shared_ptr<InputTouch> getTouch(InputTouch::TouchID id);
+    std::shared_ptr<InputTouch> getTouch(unsigned int id)
+    {
+        return m_Touches[id];
+    }
+
+    std::vector<std::shared_ptr<InputTouch>> getTouches()
+    {
+        return m_Touches;
+    }
+
+    std::set<std::shared_ptr<InputTouch>> getChangedTouches()
+    {
+        return m_ChangedTouches;
+    }
+
+    void addChangedTouch(std::shared_ptr<InputTouch> touch)
+    {
+        m_ChangedTouches.insert(touch);
+    }
+
 private:
     struct
     {
@@ -141,6 +223,8 @@ private:
         InputEvent *queue = NULL;
     } m_InputEvents;
 
+    std::vector<std::shared_ptr<InputTouch>> m_Touches {};
+    std::set<std::shared_ptr<InputTouch>> m_ChangedTouches {};
 };
 
 }

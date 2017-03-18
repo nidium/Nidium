@@ -32,6 +32,8 @@ using Nidium::Binding::JSWindow;
 using Nidium::Frontend::Context;
 using Nidium::Frontend::NML;
 using Nidium::Frontend::InputEvent;
+using Nidium::Frontend::InputHandler;
+using Nidium::Frontend::InputTouch;
 
 namespace Nidium {
 namespace Interface {
@@ -146,6 +148,10 @@ void UIInterface::handleEvent(const SDL_Event *event)
         case SDL_FINGERDOWN:
         case SDL_FINGERUP: {
             int width, height;
+            InputHandler *inputHandler        = m_NidiumCtx->getInputHandler();
+            InputTouch::TouchID touchID       = event->tfinger.fingerId;
+            std::shared_ptr<InputTouch> touch = inputHandler->getTouch(touchID);
+
             this->getScreenSize(&width, &height);
             float pixelRatio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
@@ -159,8 +165,14 @@ void UIInterface::handleEvent(const SDL_Event *event)
                                 : InputEvent::kTouchStart_Type;
             }
 
+            if (!touch) {
+                touch = std::shared_ptr<InputTouch>(new InputTouch(x, y, touchID));
+            }
+
             InputEvent *ev = new InputEvent(eventType, x, y);
-            m_NidiumCtx->getInputHandler()->pushEvent(ev);
+            ev->setTouch(touch);
+
+            inputHandler->pushEvent(ev);
         } break;
         case SDL_TEXTINPUT:
             if (window && &event->text.text[0]

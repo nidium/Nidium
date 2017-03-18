@@ -1531,6 +1531,25 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx,
     return ret;
 }
 
+static JS::Value TouchToJSVal(JSContext *cx, Frontend::InputTouch *touch)
+{
+    JSObjectBuilder obj(cx);
+
+    JS::RootedObject targetObj(cx, touch->getTarget()->m_JsObj);
+
+    obj.set("screenX", touch->x);
+    obj.set("screenY", touch->y);
+    obj.set("clientX", touch->x);
+    obj.set("clientY", touch->y);
+    obj.set("pageX", touch->x);
+    obj.set("pageY", touch->y);
+
+    obj.set("target", (JS::HandleObject)targetObj);
+    obj.set("identifier", touch->getIdentifier());
+
+    return obj;
+}
+
 void JSCanvas::onMessage(const SharedMessages::Message &msg)
 {
     /*
@@ -1664,13 +1683,50 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             }
         } break;
         case NIDIUM_EVENT(CanvasHandler, TOUCH_EVENT): {
+            Frontend::InputHandler *inputHandler
+                = Context::GetObject<Frontend::Context>(m_Cx)->getInputHandler();
+            std::vector<std::shared_ptr<Frontend::InputTouch>> touches
+                = inputHandler->getTouches();
+            std::set<std::shared_ptr<Frontend::InputTouch>> changedTouches
+                = inputHandler->getChangedTouches();
+            InputEvent::Type evType = static_cast<InputEvent::Type>(msg.m_Args[1].toInt());
+
+            JS::AutoValueVector jsTouchesVector(m_Cx);
+            JS::AutoValueVector jsTargetTouchesVector(m_Cx);
+            for(auto const& touch : touches) {
+                if (!touch) continue;
+
+                jsTouchesVector.append(TouchToJSVal(m_Cx, touch.get()));
+
+                if (touch->hasOrigin(this->getHandler())) {
+                    jsTargetTouchesVector.append(TouchToJSVal(m_Cx, touch.get()));
+                }
+            }
+
+            JS::AutoValueVector jsChangedTouchesVector(m_Cx);
+            if (evType == InputEvent::kTouchStart_Type || evType == InputEvent::kTouchEnd_Type) {
+                Frontend::InputTouch *touch
+                    = static_cast<Frontend::InputTouch *>(msg.m_Args[2].toPtr());
+                if (touch) {
+                    jsChangedTouchesVector.append(TouchToJSVal(m_Cx, touch));
+                }
+            } else {
+                for(auto const& touch : changedTouches) {
+                    if (!touch) continue;
+                    jsChangedTouchesVector.append(TouchToJSVal(m_Cx, touch.get()));
+                }
+            }
+
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
-            CanvasHandler *target
-                = static_cast<CanvasHandler *>(msg.m_Args[4].toPtr());
             JSObjectBuilder obj(m_Cx, eventObj);
-            obj.set("x", msg.m_Args[2].toInt());
-            obj.set("y", msg.m_Args[3].toInt());
-            obj.set("target", target->m_JsObj);
+
+            JS::RootedObject jsTouchesObj(m_Cx, JS_NewArrayObject(m_Cx, jsTouchesVector));
+            JS::RootedObject jsChangedTouchesObj(m_Cx, JS_NewArrayObject(m_Cx, jsChangedTouchesVector));
+            JS::RootedObject jsTargetTouchesObj(m_Cx, JS_NewArrayObject(m_Cx, jsTargetTouchesVector));
+
+            obj.set("touches", (JS::HandleObject)jsTouchesObj);
+            obj.set("changedTouches", (JS::HandleObject)jsChangedTouchesObj);
+            obj.set("targetTouches", (JS::HandleObject)jsTargetTouchesObj);
 
             if (!this->fireInputEvent(msg.m_Args[1].toInt(), eventObj, msg)) {
                 break;
