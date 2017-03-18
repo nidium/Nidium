@@ -18,6 +18,8 @@ public class NidiumActivity extends SDLActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         mNml = getIntent().getStringExtra("nml");
+        if (mNml == null) finish();
+
         super.onCreate(savedInstanceState);
     }
 
