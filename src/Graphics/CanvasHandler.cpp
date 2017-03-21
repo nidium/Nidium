@@ -20,6 +20,7 @@ using Nidium::Core::Args;
 using Nidium::Frontend::Context;
 using Nidium::Frontend::InputEvent;
 using Nidium::Frontend::InputTouch;
+using Nidium::Frontend::InputHandler;
 using Nidium::Graphics::CanvasHandler;
 using Nidium::Binding::Canvas2DContext;
 using Nidium::Interface::UIInterface;
@@ -414,8 +415,9 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
         return;
     }
 
-    if (!willBeAdopted && m_NidiumContext->getCurrentClickedHandler() == this) {
-        m_NidiumContext->setCurrentClickedHandler(NULL);
+    InputHandler *inputHandler = m_NidiumContext->getInputHandler();
+    if (!willBeAdopted && inputHandler->getCurrentClickedHandler() == this) {
+        inputHandler->setCurrentClickedHandler(nullptr);
     }
 
 #if 0
@@ -1275,7 +1277,9 @@ void CanvasHandler::onDrop(InputEvent *ev, CanvasHandler *drop)
 
 void CanvasHandler::onMouseEvent(InputEvent *ev)
 {
+    InputHandler *inputHandler = m_NidiumContext->getInputHandler();
     CanvasHandler *underneath = this;
+
     if (InputEvent *tmpEvent = ev->getEventForNextCanvas()) {
         underneath = tmpEvent->m_Handler;
     }
@@ -1294,12 +1298,12 @@ void CanvasHandler::onMouseEvent(InputEvent *ev)
             break;
         case InputEvent::kMouseClick_Type:
             if (ev->m_data[0] == 1) // left click
-                m_NidiumContext->setCurrentClickedHandler(this);
+                inputHandler->setCurrentClickedHandler(this);
             break;
         case InputEvent::kMouseClickRelease_Type:
             if (ev->m_data[0] == 1) {
                 CanvasHandler *drag;
-                if ((drag = m_NidiumContext->getCurrentClickedHandler())
+                if ((drag = inputHandler->getCurrentClickedHandler())
                     && (drag->m_Flags & kDrag_Flag)) {
 
                     CanvasHandler *target = (drag == this) ? underneath : this;
@@ -1309,12 +1313,12 @@ void CanvasHandler::onMouseEvent(InputEvent *ev)
 
                     drag->m_Flags &= ~kDrag_Flag;
                 }
-                m_NidiumContext->setCurrentClickedHandler(NULL);
+                inputHandler->setCurrentClickedHandler(NULL);
             }
             break;
         case InputEvent::kMouseMove_Type: {
             CanvasHandler *drag;
-            if ((drag = m_NidiumContext->getCurrentClickedHandler())) {
+            if ((drag = inputHandler->getCurrentClickedHandler())) {
 
                 drag->onDrag(ev, (this == drag) ? underneath : this);
             }
@@ -1330,7 +1334,7 @@ void CanvasHandler::onMouseEvent(InputEvent *ev)
 
 void CanvasHandler::onTouch(InputEvent *ev, Args &args, CanvasHandler *handler)
 {
-    Frontend::InputHandler *inputHandler = m_NidiumContext->getInputHandler();
+    InputHandler *inputHandler = m_NidiumContext->getInputHandler();
     std::shared_ptr<InputTouch> touch = ev->getTouch();
 
     if (ev->getType() == InputEvent::kTouchStart_Type) {

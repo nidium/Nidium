@@ -124,7 +124,7 @@ Context::Context(ape_global *net)
       m_Debug2Handler(NULL),
 #endif
       m_UI(NULL), m_NML(NULL), m_GLState(NULL),
-      m_JSWindow(NULL), m_SizeDirty(false), m_CurrentClickedHandler(NULL)
+      m_JSWindow(NULL), m_SizeDirty(false)
 {
 
     Binding::NidiumLocalContext *nlc = Binding::NidiumLocalContext::Get();

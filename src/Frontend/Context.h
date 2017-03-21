@@ -182,17 +182,6 @@ public:
         return nullptr;
     }
 
-
-    void setCurrentClickedHandler(Graphics::CanvasHandler *handler)
-    {
-        m_CurrentClickedHandler = handler;
-    }
-
-    Graphics::CanvasHandler *getCurrentClickedHandler() const
-    {
-        return m_CurrentClickedHandler;
-    }
-
     InputHandler *getInputHandler()
     {
         return &m_InputHandler;
@@ -256,8 +245,6 @@ private:
     std::vector<Graphics::CanvasHandler *> m_CanvasOrderedEvents;
 
     ape_pool_list_t m_CanvasEventsCanvas;
-
-    Graphics::CanvasHandler *m_CurrentClickedHandler;
 
     void execJobs();
     void execPendingCanvasChanges();
