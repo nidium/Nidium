@@ -1756,8 +1756,7 @@ bool JSCanvas::fireInputEvent(int ev, JS::HandleObject evObj, const Core::Shared
 {
     JS::RootedValue evVal(m_Cx);
     evVal.setObjectOrNull(evObj);
-    if (!this->fireJSEvent(InputEvent::GetName(msg.m_Args[1].toInt()),
-                           &evVal)) {
+    if (!this->fireJSEvent(InputEvent::GetName(ev), &evVal)) {
         return false;
     }
 
