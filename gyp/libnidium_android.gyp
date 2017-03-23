@@ -20,7 +20,8 @@
         ],
         'ldflags': [
             '-L../../<(nidium_output_third_party_path)',
-			'-static-libstdc++'
+            '-static-libstdc++',
+            '-Wl,--build-id' # Needed for debugging with LLDB (file & line)
         ],
         'defines':[
             'JNIPP_USE_TYPE_TRAITS',
