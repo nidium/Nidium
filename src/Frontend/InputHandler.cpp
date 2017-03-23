@@ -63,6 +63,27 @@ std::shared_ptr<InputTouch> InputHandler::getTouch(InputTouch::TouchID id)
     return nullptr;
 }
 
+std::shared_ptr<InputTouch> InputHandler::getKnownTouch(InputTouch::TouchID id)
+{
+    for(auto const& touch : m_KnownTouch) {
+        if (touch && touch->m_TouchID == id) {
+            return touch;
+        }
+    }
+
+    return nullptr;
+}
+
+void InputHandler::rmKnownTouch(InputTouch::TouchID id)
+{
+    for(std::vector<int>::size_type i = 0; i < m_KnownTouch.size(); i++) {
+        if (m_KnownTouch[i] == nullptr) {
+            m_Touches[i] = nullptr;
+            return;
+        }
+    }
+}
+
 void InputHandler::setCurrentTouchedHandler(unsigned int id, Graphics::CanvasHandler *handler)
 {
     if (m_CurrentTouchedHandler.capacity() <= id || true) {

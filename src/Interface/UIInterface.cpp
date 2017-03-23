@@ -150,7 +150,7 @@ void UIInterface::handleEvent(const SDL_Event *event)
             int width, height;
             InputHandler *inputHandler        = m_NidiumCtx->getInputHandler();
             InputTouch::TouchID touchID       = event->tfinger.fingerId;
-            std::shared_ptr<InputTouch> touch = inputHandler->getTouch(touchID);
+            std::shared_ptr<InputTouch> touch = inputHandler->getKnownTouch(touchID);
 
             this->getScreenSize(&width, &height);
             float pixelRatio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
@@ -165,8 +165,11 @@ void UIInterface::handleEvent(const SDL_Event *event)
                                 : InputEvent::kTouchStart_Type;
             }
 
-            if (!touch) {
+            if (eventType == InputEvent::kTouchStart_Type) {
                 touch = std::shared_ptr<InputTouch>(new InputTouch(x, y, touchID));
+                inputHandler->addKnownTouch(touch);
+            } else if (eventType == InputEvent::kTouchEnd_Type) {
+                inputHandler->rmKnownTouch(touchID);
             }
 
             InputEvent *ev = new InputEvent(eventType, x, y);

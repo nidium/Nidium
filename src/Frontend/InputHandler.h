@@ -229,6 +229,14 @@ public:
         m_ChangedTouches.insert(touch);
     }
 
+    void addKnownTouch(std::shared_ptr<InputTouch> touch)
+    {
+        m_KnownTouch.push_back(touch);
+    }
+
+    void rmKnownTouch(InputTouch::TouchID touch);
+    std::shared_ptr<InputTouch> getKnownTouch(InputTouch::TouchID touch);
+
 private:
     struct
     {
@@ -238,6 +246,7 @@ private:
 
     std::vector<std::shared_ptr<InputTouch>> m_Touches {};
     std::set<std::shared_ptr<InputTouch>> m_ChangedTouches {};
+    std::vector<std::shared_ptr<InputTouch>> m_KnownTouch {};
 
     std::vector<Graphics::CanvasHandler *> m_CurrentTouchedHandler {};
     Graphics::CanvasHandler *m_CurrentClickedHandler = nullptr;
