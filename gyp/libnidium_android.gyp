@@ -29,22 +29,22 @@
         ],
         'link_settings': {
             'libraries!': [
-				# Android has pthread & rt by default
-				'-lpthread',
-				'-lrt',
-			],
+                # Android has pthread & rt by default
+                '-lpthread',
+                '-lrt',
+            ],
             'libraries': [
-				"-lskia",
-				"-lzip",
-				"-ltranslator",
-				"-ltranslator_lib",
-				"-lpreprocessor",
-				"-langle_common",
-				"-lm",
-				"-lEGL",
-				"-lGLESv2",
-				"-llog",
-				"-landroid",
+                "-lskia",
+                "-lzip",
+                "-ltranslator",
+                "-ltranslator_lib",
+                "-lpreprocessor",
+                "-langle_common",
+                "-lm",
+                "-lEGL",
+                "-lGLESv2",
+                "-llog",
+                "-landroid",
             ],
         },
     }]
