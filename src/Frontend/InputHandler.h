@@ -202,6 +202,8 @@ public:
         return m_CurrentClickedHandler;
     }
 
+    void setCurrentTouchedHandler(unsigned int id, Graphics::CanvasHandler *handler);
+    Graphics::CanvasHandler *getCurrentTouchHandler(unsigned int id);
 
     void addTouch(std::shared_ptr<InputTouch> touch);
     void rmTouch(unsigned int id);
@@ -237,6 +239,7 @@ private:
     std::vector<std::shared_ptr<InputTouch>> m_Touches {};
     std::set<std::shared_ptr<InputTouch>> m_ChangedTouches {};
 
+    std::vector<Graphics::CanvasHandler *> m_CurrentTouchedHandler {};
     Graphics::CanvasHandler *m_CurrentClickedHandler = nullptr;
 };
 

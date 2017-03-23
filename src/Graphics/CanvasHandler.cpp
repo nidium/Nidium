@@ -1275,16 +1275,45 @@ void CanvasHandler::onDrop(InputEvent *ev, CanvasHandler *drop)
     this->fireEvent<CanvasHandler>(CanvasHandler::MOUSE_EVENT, arg);
 }
 
-void CanvasHandler::onMouseEvent(InputEvent *ev)
+void CanvasHandler::checkDrop(InputEvent *ev,
+                              Graphics::CanvasHandler *drag)
 {
-    InputHandler *inputHandler = m_NidiumContext->getInputHandler();
-    CanvasHandler *underneath = this;
+    if (!drag || !(drag->m_Flags & kDrag_Flag)) return;
 
+    CanvasHandler *underneath = this;
     if (InputEvent *tmpEvent = ev->getEventForNextCanvas()) {
         underneath = tmpEvent->m_Handler;
     }
 
+    CanvasHandler *target = (drag == this) ? underneath : this;
+
+    drag->onDrag(ev, target, true);
+    target->onDrop(ev, drag);
+
+    drag->m_Flags &= ~kDrag_Flag;
+}
+
+void CanvasHandler::checkDrag(InputEvent *ev,
+                              Graphics::CanvasHandler *drag)
+{
+    if (!drag) return;
+
+    CanvasHandler *underneath = this;
+    if (InputEvent *tmpEvent = ev->getEventForNextCanvas()) {
+        underneath = tmpEvent->m_Handler;
+    }
+
+    drag->onDrag(ev, (this == drag) ? underneath : this);
+}
+
+void CanvasHandler::onInputEvent(InputEvent *ev)
+{
+    InputHandler *inputHandler = m_NidiumContext->getInputHandler();
+
     switch (ev->getType()) {
+        case InputEvent::kTouchStart_Type:
+            inputHandler->setCurrentTouchedHandler(ev->getTouch()->getIdentifier(), this);
+            break;
         case InputEvent::kTouchMove_Type:
             /*
                 If the touchmove event is received on an handler outside of the
@@ -1295,35 +1324,30 @@ void CanvasHandler::onMouseEvent(InputEvent *ev)
                 this->onTouch(ev, arg, nullptr);
                 ev->getTouch()->getTarget()->fireEvent<CanvasHandler>(CanvasHandler::TOUCH_EVENT, arg);
             }
+
+            this->checkDrag(ev, inputHandler->getCurrentTouchHandler(ev->getTouch()->getIdentifier()));
             break;
+        case InputEvent::kTouchEnd_Type: {
+            unsigned int id = ev->getTouch()->getIdentifier();
+
+            this->checkDrop(ev, inputHandler->getCurrentTouchHandler(id));
+            inputHandler->setCurrentTouchedHandler(id, nullptr);
+        } break;
+
         case InputEvent::kMouseClick_Type:
-            if (ev->m_data[0] == 1) // left click
+            if (ev->m_data[0] == 1) { // left click
                 inputHandler->setCurrentClickedHandler(this);
+            }
             break;
         case InputEvent::kMouseClickRelease_Type:
             if (ev->m_data[0] == 1) {
-                CanvasHandler *drag;
-                if ((drag = inputHandler->getCurrentClickedHandler())
-                    && (drag->m_Flags & kDrag_Flag)) {
-
-                    CanvasHandler *target = (drag == this) ? underneath : this;
-
-                    drag->onDrag(ev, target, true);
-                    target->onDrop(ev, drag);
-
-                    drag->m_Flags &= ~kDrag_Flag;
-                }
-                inputHandler->setCurrentClickedHandler(NULL);
+                this->checkDrop(ev, inputHandler->getCurrentClickedHandler());
+                inputHandler->setCurrentClickedHandler(nullptr);
             }
             break;
-        case InputEvent::kMouseMove_Type: {
-            CanvasHandler *drag;
-            if ((drag = inputHandler->getCurrentClickedHandler())) {
-
-                drag->onDrag(ev, (this == drag) ? underneath : this);
-            }
+        case InputEvent::kMouseMove_Type:
+            this->checkDrag(ev, inputHandler->getCurrentClickedHandler());
             break;
-        }
         default:
             break;
     }
@@ -1393,28 +1417,29 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                 break;
             case InputEvent::kTouchStart_Type:
             case InputEvent::kTouchEnd_Type:
-            case InputEvent::kTouchMove_Type:
+            case InputEvent::kTouchMove_Type: {
                 /*
                     If the handler isn't one of the handlers that
                     received the touchstart event ignore it.
                  */
-                if (!ev->getTouch()->hasOrigin(handler)) {
+                std::shared_ptr<InputTouch> touch = ev->getTouch();
+                if (touch->getTarget() && !touch->hasOrigin(handler)) {
                     continue;
                 }
 
                 canvasEvent = TOUCH_EVENT;
 
                 this->onTouch(ev, arg, handler);
-                break;
+            } break;
         }
 
         /* fireEvent returns false if a stopPropagation is detected */
-        if (!handler->fireEvent<CanvasHandler>(canvasEvent, arg)) {
+        if (!handler->fireEventSync<CanvasHandler>(canvasEvent, arg)) {
             break;
         }
     }
 
-    this->onMouseEvent(ev);
+    this->onInputEvent(ev);
 
     return true;
 }

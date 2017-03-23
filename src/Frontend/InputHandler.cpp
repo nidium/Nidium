@@ -63,5 +63,22 @@ std::shared_ptr<InputTouch> InputHandler::getTouch(InputTouch::TouchID id)
     return nullptr;
 }
 
+void InputHandler::setCurrentTouchedHandler(unsigned int id, Graphics::CanvasHandler *handler)
+{
+    if (m_CurrentTouchedHandler.capacity() <= id || true) {
+        m_CurrentTouchedHandler.reserve(8);
+    }
+    m_CurrentTouchedHandler[id] = handler;
+}
+
+Graphics::CanvasHandler *InputHandler::getCurrentTouchHandler(unsigned int id)
+{
+    if (m_CurrentTouchedHandler.capacity() < id) {
+        return nullptr;
+    }
+
+    return m_CurrentTouchedHandler[id];
+}
+
 }
 }

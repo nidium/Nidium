@@ -621,9 +621,14 @@ private:
     void execPending();
     void deviceSetSize(int width, int height);
     void onTouch(Frontend::InputEvent *ev, Core::Args &args, CanvasHandler *handler);
-    void onMouseEvent(Frontend::InputEvent *ev);
+    void onInputEvent(Frontend::InputEvent *ev);
     void onDrag(Frontend::InputEvent *ev, CanvasHandler *target, bool end = false);
     void onDrop(Frontend::InputEvent *ev, CanvasHandler *droped);
+
+    void checkDrag(Frontend::InputEvent *ev,
+                   Graphics::CanvasHandler *drag);
+    void checkDrop(Frontend::InputEvent *ev,
+                   Graphics::CanvasHandler *drag);
 
     int32_t m_nChildren;
     void dispatchMouseEvents(LayerizeContext &layerContext);
