@@ -4,7 +4,10 @@
    that can be found in the LICENSE file.
 */
 
+{
 const Elements = require("./lib/Elements.js");
+const OS = require("OS");
+const IS_MOBILE = OS.platform == "ios" || OS.platform == "android";
 
 function reportUnsupported(message) {
     console.info("[HTML5Compat] " + message);
@@ -47,7 +50,8 @@ var Navigator = (function() {
         "userAgent": {
             get: function() {
                 return this.appName + " / " + __nidium__.version +
-                   " (" + this.language + "; rv:" + __nidium__.build + ")";
+                   " (" + this.language + "; rv:" + __nidium__.build + ")" +
+                   IS_MOBILE ? "mobile" : "";
             }
         },
     });
@@ -74,20 +78,44 @@ Canvas.prototype.appendChild = function(child) {
     }
 };
 
+Object.defineProperty(Canvas.prototype, "parentNode", {
+    get: function() {
+        return this.getParent();
+    }
+});
+
 (function(){
     let styles = new WeakMap();
+    const DEFAULTS = {
+        "userSelect": "auto",
+        "touchSelect": "auto",
+        "webkitTouchCallout": "auto",
+        "msContentZooming": "default",
+        "webkitUserDrag": "none",
+        "webkitTapHighlightColor": "black",
+    }
 
-    let styleHandler = {
-        get: function(target, name) {
-            switch (name) {
-                case "width":
-                case "height":
-                    return target[name];
-                default:
-                    reportUnsupported("Unsupported " + name + " css property");
+    function getter(target, name) {
+        switch (name) {
+            case "width":
+            case "height":
+                return target[name];
+            default:
+                console.log("get", name);
+                if (name in DEFAULTS) {
+                    return DEFAULTS[name];
+                }
+
+                reportUnsupported("Unsupported " + name + " css property");
                 break;
-            }
+        }
+    }
+    let styleHandler = {
+        has: function (target, name) {
+            return getter(target, name) ? true : false;
         },
+
+        get: getter,
 
         set: function(target, name, value) {
             switch (name) {
@@ -96,9 +124,11 @@ Canvas.prototype.appendChild = function(child) {
                     target[name] = parseInt(value);
                     break;
                 default:
-                    reportUnsupported("Unsupported assignation of " + name + " css property");
+                    reportUnsupported("Assignation of " + name + " css property is a no-op");
                 break;
             }
+
+            return true;
         }
     }
 
@@ -226,3 +256,15 @@ let URL = {
     }
 }
 // }}}
+
+// {{{ Window
+// Some basic event forwarding
+for (name of ["touchstart", "touchmove", "touchend"]) {
+    document.canvas.addEventListener(name, function(name, ev) {
+        window.fireEvent(name, ev);
+    }.bind(window, name));
+
+    window["on" + name] = null;
+}
+// }}}
+}
