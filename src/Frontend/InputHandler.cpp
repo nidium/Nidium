@@ -77,8 +77,8 @@ std::shared_ptr<InputTouch> InputHandler::getKnownTouch(InputTouch::TouchID id)
 void InputHandler::rmKnownTouch(InputTouch::TouchID id)
 {
     for(std::vector<int>::size_type i = 0; i < m_KnownTouch.size(); i++) {
-        if (m_KnownTouch[i] == nullptr) {
-            m_Touches[i] = nullptr;
+        if (m_KnownTouch[i] && m_KnownTouch[i]->getTouchID() == id) {
+            m_KnownTouch[i] = nullptr;
             return;
         }
     }
