@@ -259,7 +259,7 @@ let URL = {
 
 // {{{ Window
 // Some basic event forwarding
-for (name of ["touchstart", "touchmove", "touchend"]) {
+for (let name of ["touchstart", "touchmove", "touchend"]) {
     document.canvas.addEventListener(name, function(name, ev) {
         window.fireEvent(name, ev);
     }.bind(window, name));
