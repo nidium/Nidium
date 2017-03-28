@@ -86,8 +86,8 @@ void InputHandler::rmKnownTouch(InputTouch::TouchID id)
 
 void InputHandler::setCurrentTouchedHandler(unsigned int id, Graphics::CanvasHandler *handler)
 {
-    if (m_CurrentTouchedHandler.capacity() <= id || true) {
-        m_CurrentTouchedHandler.reserve(8);
+    if (m_CurrentTouchedHandler.capacity() <= id) {
+        m_CurrentTouchedHandler.reserve(id <= 8 ? 8 : id);
     }
     m_CurrentTouchedHandler[id] = handler;
 }
