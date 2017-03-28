@@ -1422,8 +1422,8 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                     If the handler isn't one of the handlers that
                     received the touchstart event ignore it.
                  */
-                std::shared_ptr<InputTouch> touch = ev->getTouch();
-                if (touch->getTarget() && !touch->hasOrigin(handler)) {
+                if (ev->getType() != InputEvent::kTouchStart_Type &&
+                        !ev->getTouch()->hasOrigin(handler)) {
                     continue;
                 }
 
