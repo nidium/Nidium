@@ -200,14 +200,12 @@ static inline bool isBreakable(const unsigned char c)
 }
 
 SkiaContext::SkiaContext()
-    : m_State(NULL), m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0),
+    : m_CanvasBindMode(SkiaContext::BIND_NO), m_State(NULL),
+      m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0),
       m_AsComposite(0), m_Screen(NULL), m_CurrentShadow({ 0, 0, 0, 0 }),
-      m_Debug(false), m_FontSkew(-0.25),
-      m_CanvasBindMode(SkiaContext::BIND_NO)
+      m_Debug(false), m_FontSkew(-0.25)
 {
 }
-
-
 
 SkColor
 makeRGBAFromHSLA(double hue, double saturation, double lightness, double alpha)
@@ -340,7 +338,7 @@ SkiaContext *SkiaContext::CreateWithTextureBackend(Frontend::Context *fctx,
     float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
     GrContext *gr = GetGrContext(fctx);
-    
+
     sk_sp<SkSurface> surface = SkSurface::MakeRenderTarget(gr, SkBudgeted::kNo,
         SkImageInfo::MakeN32Premul(ceilf(width * ratio), ceilf(height * ratio)));
 
@@ -425,7 +423,7 @@ GrContext *SkiaContext::CreateGrContext(GLContext *glcontext)
         return nullptr;
     }
 
-    context->setResourceCacheLimits(NIDIUM_SKIA_CACHE_MAX_RESOURCES, 
+    context->setResourceCacheLimits(NIDIUM_SKIA_CACHE_MAX_RESOURCES,
         NIDIUM_SKIA_CACHE_MAX_BYTES);
 
     return context;
