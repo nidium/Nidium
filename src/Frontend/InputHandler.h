@@ -207,7 +207,6 @@ public:
 
     void addTouch(std::shared_ptr<InputTouch> touch);
     void rmTouch(unsigned int id);
-    void rmChangedTouch(unsigned int id);
     std::shared_ptr<InputTouch> getTouch(InputTouch::TouchID id);
     std::shared_ptr<InputTouch> getTouch(unsigned int id)
     {
