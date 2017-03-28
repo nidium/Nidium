@@ -166,7 +166,8 @@ void UIInterface::handleEvent(const SDL_Event *event)
             }
 
             if (eventType == InputEvent::kTouchStart_Type) {
-                touch = std::shared_ptr<InputTouch>(new InputTouch(x, y, touchID));
+                assert(!touch);
+                touch.reset(new InputTouch(x, y, touchID));
                 inputHandler->addKnownTouch(touch);
             } else if (eventType == InputEvent::kTouchEnd_Type) {
                 inputHandler->rmKnownTouch(touchID);
