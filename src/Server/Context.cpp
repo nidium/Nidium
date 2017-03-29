@@ -40,7 +40,7 @@ Context::Context(ape_global *net, Worker *worker, bool jsstrict, bool runInREPL)
         Path::CD(cwd);
         Path::Chroot("/");
     } else {
-        fprintf(stderr, "[Warn] Failed to get current working directory\n");
+        ndm_log(NDM_LOG_WARN, "Context", "Failed to get current working directory");
     }
 
     m_JS->setStrictMode(jsstrict);

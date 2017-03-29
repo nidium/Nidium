@@ -252,7 +252,7 @@ static int request_url_cb(http_parser *p, const char *buf, size_t len)
                            reinterpret_cast<const unsigned char *>(buf), len);
     }
 
-    // printf("Request URL cb %.*s\n", (int)len, buf);
+    // ndm_logf(NDM_LOG_DEBUG, "HTTPServer", "Request URL cb %.*s", (int)len, buf);
     return 0;
 }
 
@@ -463,8 +463,8 @@ void HTTPClientConnection::onRead(const char *data, size_t len, ape_global *ape)
                 = nidium_socket_client_read_after_upgrade;
         }
     } else if (nparsed != len) {
-        printf("Http error : %s\n",
-               http_errno_description(HTTP_PARSER_ERRNO(&m_HttpState.parser)));
+        ndm_logf(NDM_LOG_ERROR, "HTTPServer", "Http error : %s",
+                 http_errno_description(HTTP_PARSER_ERRNO(&m_HttpState.parser)));
     }
 #undef REQUEST_HEADER
 }

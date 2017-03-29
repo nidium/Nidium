@@ -137,7 +137,7 @@ void File::rmrf()
     tree = fts_open(path, FTS_COMFOLLOW | FTS_NOCHDIR, File_compare);
 
     if (!tree) {
-        printf("Failed to fts_open()\n");
+        ndm_log(NDM_LOG_ERROR, "File", "Failed to fts_open()");
         return;
     }
     while ((f = fts_read(tree))) {
@@ -254,15 +254,15 @@ void File::openTask(const char *mode, void *arg)
 
     if (S_ISDIR(s.st_mode)) {
         if (!readOnly) {
-            printf("Cannot open directory %s for writing\n", m_Path);
+            ndm_logf(NDM_LOG_ERROR, "File", "Can't open directory %s for writing", m_Path);
             NIDIUM_FILE_NOTIFY(EISDIR, File::kEvents_OpenError, arg);
             return;
         }
 
         m_Dir = PR_OpenDir(m_Path);
         if (!m_Dir) {
-           printf("Failed to open dir %s : %s\n", m_Path, strerror(errno));
-           NIDIUM_FILE_NOTIFY(errno, File::kEvents_OpenError, arg);
+            ndm_logf(NDM_LOG_ERROR, "File", "Failed to open dir %s : %s", m_Path, strerror(errno));
+            NIDIUM_FILE_NOTIFY(errno, File::kEvents_OpenError, arg);
             return;
         }
         m_isDir    = true;
@@ -410,6 +410,7 @@ void File::listFilesTask(void *arg)
     NIDIUM_FILE_NOTIFY(entries, File::kEvents_ListFiles, arg);
 
     //FIXME windows-x86 branch: need crossplatform code for rewinddir(m_Dir);
+    //rewinddir(m_Dir);
 }
 
 // }}}
@@ -525,7 +526,7 @@ int File::openSync(const char *modes, int *err)
     ret = stat(m_Path, &s);
     if (ret != 0 && readOnly) {
         // Opened in read-only, but file does not exists
-        printf("Failed to open : %s errno=%d\n", m_Path, errno);
+        ndm_logf(NDM_LOG_ERROR, "File", "Failed to open : %s errno=%d", m_Path, errno);
         *err = errno;
         return 0;
     }
@@ -533,13 +534,13 @@ int File::openSync(const char *modes, int *err)
     if (S_ISDIR(s.st_mode)) {
         if (!readOnly) {
             *err = EISDIR;
-            printf("Cannot open directory %s for writing\n", m_Path);
+            ndm_logf(NDM_LOG_ERROR, "File", "Can't open directory %s for writing", m_Path);
             return 0;
         }
 
         m_Dir = PR_OpenDir(m_Path);
         if (!m_Dir) {
-            printf("Failed to open : %s errno=%d\n", m_Path, errno);
+            ndm_logf(NDM_LOG_ERROR, "File", "Failed to open : %s errno=%d", m_Path, errno);
 
             *err = errno;
             return 0;
@@ -549,7 +550,7 @@ int File::openSync(const char *modes, int *err)
         m_Filesize = 0;
     } else {
         if ((m_Fd = fopen(m_Path, modes)) == NULL) {
-            printf("Failed to open : %s errno=%d\n", m_Path, errno);
+            ndm_logf(NDM_LOG_ERROR, "File", "Failed to open : %s errno=%d", m_Path, errno);
             *err = errno;
             return 0;
         }

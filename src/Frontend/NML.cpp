@@ -18,7 +18,6 @@
 #include "Binding/JSUtils.h"
 
 #include "Interface/SystemInterface.h"
-#include "Macros.h"
 
 #include "Binding/JSWindow.h"
 #include "Binding/JSDocument.h"
@@ -81,9 +80,7 @@ void NML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
 
     Path path(file);
 
-#ifdef DEBUG
-    printf("NML path : %s\n", path.path());
-#endif
+    nlogf("NML path : %s", path.path());
 
     m_Stream = Stream::Create(path);
     if (m_Stream == NULL) {
@@ -171,7 +168,7 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
                 nidium_xml_ret_t ret;
 
                 if ((ret = (this->*m_NmlTags[i].cb)(*child)) != NIDIUM_XML_OK) {
-                    printf("XML : Nidium error (%d)\n", ret);
+                    fprintf(stderr, "XML : Nidium error (%d)", ret);
                     SystemInterface::GetInstance()->alert(
                         "NML ERROR", SystemInterface::ALERT_CRITIC);
                     return false;
@@ -342,7 +339,7 @@ void NML::onGetContent(const char *data, size_t len)
         }
     } else {
         /*
-            TODO: dont close ! (load a default NML?)
+            TODO: Don't close ! (load a default NML?)
         */
         exit(1);
     }
@@ -596,7 +593,7 @@ NML::nidium_xml_ret_t NML::loadAssets(rapidxml::xml_node<> &node)
         } else if (!strncasecmp(child->name(), CONST_STR_LEN("style"))) {
             item->m_FileType = Assets::Item::ITEM_NSS;
         }
-        // printf("Node : %s\n", child->name());
+        // ndm_logf(NDM_LOG_DEBUG, "NML", "Node : %s", child->name());
     }
 
     assets->endListUpdate(m_Net);

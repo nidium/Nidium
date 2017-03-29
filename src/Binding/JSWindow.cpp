@@ -26,7 +26,6 @@
 #include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSImage.h"
-#include "Macros.h"
 
 using Nidium::Frontend::NML;
 using Nidium::Frontend::NMLTag;
@@ -368,7 +367,7 @@ bool JSWindow::dragEvent(const char *name, int x, int y)
         JS::RootedValue rval(m_Cx);
 
         if (!JS_CallFunctionValue(m_Cx, event, ondragevent, jevent, &rval)) {
-            fprintf(stderr, "Failed to exec func\n");
+            ndm_log(NDM_LOG_ERROR, "Window", "Failed to exec func");
             return false;
         }
 
@@ -1083,7 +1082,7 @@ JSWindow *JSWindow::GetObject(NidiumJS *njs)
 JSClass *JSWindow::GetJSClass()
 {
     static JSClass global_class = {
-        "Window",         
+        "Window",
         JSCLASS_GLOBAL_FLAGS_WITH_SLOTS(16) | JSCLASS_HAS_PRIVATE,
         nullptr,  nullptr,
         nullptr,  nullptr,
@@ -1092,7 +1091,7 @@ JSClass *JSWindow::GetJSClass()
         nullptr,  nullptr,
         nullptr,  JS_GlobalObjectTraceHook
     };
-    
+
     return &global_class;
 }
 

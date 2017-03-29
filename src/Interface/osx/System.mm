@@ -21,7 +21,7 @@ System::System()
 #else
     m_fBackingStorePixelRatio = 1.0;
 #endif
-    fprintf(stdout, "Canvas Ratio (HIDPI) : %f\n", m_fBackingStorePixelRatio);
+    printf("Canvas Ratio (HIDPI) : %f\n", m_fBackingStorePixelRatio);
 
     char embedPath[MAXPATHLEN];
 
@@ -100,7 +100,7 @@ const char *System::getCacheDirectory()
         NSString *path = [NSString stringWithFormat:@"%@/nidium/",cacheDir];
         const char *cpath = [path cStringUsingEncoding:NSASCIIStringEncoding];
         if (mkdir(cpath, 0777) == -1 && errno != EEXIST) {
-            fprintf(stderr, "Cant create cache directory %s\n", cpath);
+            fprintf(stderr, "Can't create cache directory %s\n", cpath);
             return NULL;
         }
         return cpath;

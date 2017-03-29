@@ -282,7 +282,7 @@ int Server::init()
         m_HasREPL = false;
         this->daemonize();
     } else if (daemon) {
-        fprintf(stderr, "Can't demonize if no JS file is provided\n");
+        fprintf(stderr, "Can't daemonize if no JS file is provided\n");
         Server::Usage(&long_options[0], text_blocks);
         exit(1);
     } else if (m_Args.argc == 0) {
@@ -345,14 +345,14 @@ int Worker::run(int argc, char **argv, bool jsstrict)
     */
 
 #ifdef DEBUG
-    fprintf(stdout, "[Warn] Running in Debug mode\n");
+    ndm_log(NDM_LOG_WARN, "Server", "Running in Debug mode");
 #endif
     if (jsstrict) {
-        fprintf(stdout, "[JS] Strict mode is enabled\n");
+        ndm_log(NDM_LOG_INFO, "Server", "JS strict mode is enabled");
     }
     if (argc >= 1) {
         if (!js) {
-            fprintf(stderr, "Failed to get JS\n");
+            ndm_log(NDM_LOG_ERROR, "Server", "Failed to get JS");
             return 0;
         }
         ctx.getNJS()->LoadScript(argv[0]);

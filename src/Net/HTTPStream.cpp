@@ -195,7 +195,7 @@ void HTTPStream::onStart(size_t packets, size_t seek)
 #else
     m_Mapped.fd = mkstemp(tmpfname);
     if (m_Mapped.fd == -1) {
-        printf("[HTTPStream] Failed to create temporary file\n");
+        ndm_log(NDM_LOG_ERROR, "HTTPStream", "Failed to create temporary file");
         return;
     }
     unlink(tmpfname);

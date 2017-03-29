@@ -20,7 +20,7 @@
             'defines': [
                 #'_FILE_OFFSET_BITS=64',
                 '__STDC_LIMIT_MACROS',
-                'JSGC_USE_EXACT_ROOTING'
+                'JSGC_USE_EXACT_ROOTING',
             ],
             'cflags': [
                 '-fno-rtti',
@@ -38,6 +38,12 @@
                 # versioned for our build flavour
                 '-include <(nidium_output_third_party_path)/js-config.h'
             ],
+
+            'msvs_settings': {
+                'VCCLCompilerTool': {
+                    'ForcedIncludeFiles': ['../src/Macros.h']
+                }
+            },
             'xcode_settings': {
                 'OTHER_CFLAGS': [
                     '-fno-rtti',
@@ -58,11 +64,16 @@
                     '<(third_party_path)/skia/include/core/',
                     '<(third_party_path)/skia/include/config/',
                 ]}],
+                ['OS!="win"', {
+                    'cflags_cc': [
+                        '-include ../src/Macros.h'
+                    ],
+                }],
                 ['OS=="win"', {
-                    'defines': ['WIN32'],
-                    'include_dirs': [
-                    '<(third_party_path)/pthreads4w/',
-                ]}]
+                    'defines': [
+                        'WIN32',
+                    ],
+                }],
             ],
             }
         }, {

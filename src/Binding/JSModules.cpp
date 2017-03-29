@@ -16,6 +16,7 @@
 #else
 #include <unistd.h>
 #include <dlfcn.h>
+#include <sys/types.h>
 #endif
 
 #include <algorithm>
@@ -42,7 +43,7 @@ namespace Binding {
 typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
 // {{{ Preamble
 #if 0
-#define DPRINT(...) printf(__VA_ARGS__)
+#define DPRINT(...) ndm_logf(NDM_LOG_DEBUG, "JSModule", __VA_ARGS__)
 #else
 #define DPRINT(...) (void)0
 #endif
@@ -112,17 +113,17 @@ bool JSModule::initMain()
 bool JSModule::init()
 {
     if (!m_Name || !m_Parent || strlen(m_Name) == 0) return false;
-    DPRINT("JSModule init name = %s\n", m_Name);
+    DPRINT("JSModule init name = %s", m_Name);
 
     if (!this->findModulePath()) {
         // Module not found
         return false;
     }
 
-    DPRINT("filepath = %s\n", m_FilePath->path());
-    DPRINT("name = %s\n", m_Name);
+    DPRINT("filepath = %s", m_FilePath->path());
+    DPRINT("name = %s", m_Name);
 
-    DPRINT("absolute dir for %s\n", m_AbsoluteDir);
+    DPRINT("absolute dir for %s", m_AbsoluteDir);
 
     return true;
 }
@@ -138,14 +139,14 @@ bool JSModule::initNative()
     PRLibrary *module = PR_LoadLibrary(m_FilePath->path());
     //todo close the module with PR_UNloadLibrary. See PullRequest 59
     if (!module) {
-        NLOG("Failed to open module : %d\n", (int) PR_GetError());
+        ndm_logf(NDM_LOG_ERROR, "JSModule", "Failed to open module : %s\n", (int) PR_GetError());
         return false;
     }
 
     register_module_t registerModule = reinterpret_cast<register_module_t>(
         PR_FindSymbol(module, "__NidiumRegisterModule"));
     if (registerModule && !registerModule(m_Cx, exports)) {
-        NLOG("Failed to register module\n");
+        ndm_logf(NDM_LOG_ERROR, "JSModule", "Failed to register module\n");
         return false;
     }
 
@@ -264,13 +265,13 @@ JS::Value JSModule::require(char *name)
             m_AbsoluteDir = strdup(m_FilePath->dir());
         } else {
             m_AbsoluteDir = strdup(Path::GetCwd());
-            DPRINT("Global scope loading\n");
+            DPRINT("Global scope loading");
         }
     } else {
-        DPRINT("Module scope loading\n");
+        DPRINT("Module scope loading");
     }
 
-    DPRINT("[JSModule] Module %s require(%s)\n", m_Name, name);
+    DPRINT("[JSModule] Module %s require(%s)", m_Name, name);
 
     JSModule *tmp = new JSModule(m_Cx, m_Modules, this, name);
     if (!tmp->init()) {
@@ -282,10 +283,10 @@ JS::Value JSModule::require(char *name)
     // Let's see if the module is in the cache
     JSModule *cached = m_Modules->find(tmp);
     if (!cached) {
-        DPRINT("Module is not cached\n");
+        DPRINT("Module is not cached");
         cmodule = tmp;
     } else {
-        DPRINT("Module is cached %s\n", cached->m_FilePath->path());
+        DPRINT("Module is cached %s", cached->m_FilePath->path());
         cmodule = cached;
         delete tmp;
     }
@@ -428,16 +429,17 @@ bool JSModules::init()
         char *originalPaths = strdup(paths);
         char *tmp           = originalPaths;
         int i               = 0;
+
         while ((token = strsep(&tmp, ":")) != NULL && i < 63) {
             m_EnvPaths[i] = strdup(token);
             i++;
         }
 
         if (token != NULL && i == 63) {
-            fprintf(stderr,
+            ndm_logf(NDM_LOG_WARN, "Modules",
                     "Warning : require path ignored %s."
                     " A maximum of 63 search path is allowed. All subsequent "
-                    "paths will be ignored.\n",
+                    "paths will be ignored.",
                     token);
         }
 
@@ -521,7 +523,7 @@ bool JSModule::findModulePath()
     } else {
         std::string path = m_Parent->m_AbsoluteDir;
 
-        DPRINT("[FindModulePath] absolute topDir=%s dir=%s path=%s\n", topDir,
+        DPRINT("[FindModulePath] absolute topDir=%s dir=%s path=%s", topDir,
                m_Parent->m_AbsoluteDir, path.c_str());
 
         // Check if the module is not a JS embedded module
@@ -544,19 +546,19 @@ bool JSModule::findModulePath()
                 std::string currentPath = path;
                 currentPath += modules->m_Paths[i];
 
-                DPRINT("Looking for module %s in %s\n", m_Name,
+                DPRINT("Looking for module %s in %s", m_Name,
                        currentPath.c_str());
                 modulePath
                     = JSModules::FindModuleInPath(this, currentPath.c_str());
-                DPRINT("module path is %s\n", modulePath.c_str());
+                DPRINT("module path is %s", modulePath.c_str());
             }
 
             stop = (strcmp(topDir, path.c_str()) >= 0);
             // Try again with parent directory
             if (!stop) {
-                DPRINT("  Getting parent dir for %s\n", path.c_str());
+                DPRINT("  Getting parent dir for %s", path.c_str());
                 JSModules::DirName(path);
-                DPRINT("  Parent path is         %s\n", path.c_str());
+                DPRINT("  Parent path is         %s", path.c_str());
             }
         } while (modulePath.empty() && !stop);
 
@@ -565,9 +567,9 @@ bool JSModule::findModulePath()
             for (int i = 0;
                  modules->m_EnvPaths[i] != NULL && modulePath.empty(); i++) {
                 char *tmp = modules->m_EnvPaths[i];
-                DPRINT("Looking for module %s in %s\n", m_Name, tmp);
+                DPRINT("Looking for module %s in %s", m_Name, tmp);
                 modulePath = JSModules::FindModuleInPath(this, tmp);
-                DPRINT("module path is %s\n", modulePath.c_str());
+                DPRINT("module path is %s", modulePath.c_str());
             }
         }
     }
@@ -645,7 +647,7 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
         = std::string(path) + std::string("/") + std::string(module->m_Name);
     size_t len = tmp.length();
 
-    DPRINT("    tmp is %s\n", tmp.c_str());
+    DPRINT("    tmp is %s", tmp.c_str());
 
     for (int i = 0; i < 4; i++) {
         if (extensions[i]) {
@@ -653,7 +655,7 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
             tmp += extensions[i];
         }
 
-        DPRINT("    [JSModule] Looking for %s\n", tmp.c_str());
+        DPRINT("    [JSModule] Looking for %s", tmp.c_str());
 
         Path p(tmp.c_str(), true /* allowAll */);
         PtrAutoDelete<Stream *> stream(Stream::Create(p.path()));
@@ -669,13 +671,13 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
                     if (JSModules::LoadDirectoryModule(tmp)) {
                         return tmp;
                     }
-                    DPRINT("%s\n", tmp.c_str());
+                    DPRINT("%s", tmp.c_str());
                 } else {
                     // Exact filename, find the extension
                     size_t pos = tmp.find_last_of('.');
                     // No extension, assume it's a JS file
                     if (pos == std::string::npos) {
-                        DPRINT("      No extension found. Assuming JS file\n");
+                        DPRINT("      No extension found. Assuming JS file");
                         module->m_ModuleType = JSModule::kModuleType_JS;
                         return tmp;
                     }
@@ -713,7 +715,7 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
                 module->m_ModuleType = JSModule::kModuleType_JSON;
                 break;
         }
-        DPRINT("    [JSModule] FOUND IT\n");
+        DPRINT("    [JSModule] FOUND IT");
         return tmp;
     }
 
@@ -744,7 +746,7 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
 
                 if (!JSModules::GetFileContent(&p, &data, &size)
                     || data == NULL) {
-                    fprintf(stderr, "Failed to open %s\n", dir.c_str());
+                    ndm_logf(NDM_LOG_ERROR, "Modules", "Failed to open %s", dir.c_str());
                     return false;
                 }
 
@@ -755,7 +757,7 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
                 bool parsingSuccessful = reader.parse(data, data + size, root);
 
                 if (!parsingSuccessful) {
-                    fprintf(stderr, "Failed to parse %s\n  %s\n", dir.c_str(),
+                    ndm_logf(NDM_LOG_ERROR, "Modules", "Failed to parse %s\n  %s", dir.c_str(),
                             reader.getFormatedErrorMessages().c_str());
                     return false;
                 }
@@ -768,7 +770,7 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
                     dir = entrypoint;
                     return true;
                 } else {
-                    fprintf(stderr, "Failed to access file %s\n", entrypoint.c_str());
+                    ndm_logf(NDM_LOG_ERROR, "Modules", "Failed to access file %s", entrypoint.c_str());
                     return false;
                 }
 

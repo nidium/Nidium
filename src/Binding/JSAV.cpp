@@ -225,7 +225,6 @@ bool JSAVSourceBase::JSGetter__metadata(JSContext *cx,
                                         JS::MutableHandleValue vp)
 {
     AVFormatContext *avctx = this->getSource()->getAVFormatContext();
-    printf("got a context @ %p\n", avctx);
 
     if (avctx != NULL) {
         AVDictionary *cmetadata = avctx->metadata;

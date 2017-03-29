@@ -296,7 +296,7 @@ bool JSCanvas::JS_addSubCanvas(JSContext *cx, JS::CallArgs &args)
     }
 
     if (m_CanvasHandler == handler) {
-        JS_ReportError(cx, "Canvas: can't add to itself");
+        JS_ReportError(cx, "Canvas: Can't add to itself");
         return false;
     }
 
@@ -332,7 +332,7 @@ bool JSCanvas::JS_insertBefore(JSContext *cx, JS::CallArgs &args)
     }
 
     if (m_CanvasHandler == handler_insert) {
-        JS_ReportError(cx, "Canvas: can't add to itself");
+        JS_ReportError(cx, "Canvas: Can't add to itself");
         return false;
     }
 
@@ -368,7 +368,7 @@ bool JSCanvas::JS_insertAfter(JSContext *cx, JS::CallArgs &args)
     }
 
     if (m_CanvasHandler == handler_insert) {
-        JS_ReportError(cx, "Canvas: can't add to itself");
+        JS_ReportError(cx, "Canvas: Can't add to itself");
         return false;
     }
 
@@ -1549,7 +1549,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
     JS::RootedObject ro(cx, m_Instance);
 
     switch (msg.event()) {
-        case NIDIUM_EVENT(CanvasHandler, kEvents_Resize): {
+        case NIDIUM_EVENT(CanvasHandler, RESIZE_EVENT): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);
 
@@ -1557,7 +1557,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             this->fireJSEvent("resize", &eventValue);
             break;
         }
-        case NIDIUM_EVENT(CanvasHandler, kEvents_Paint): {
+        case NIDIUM_EVENT(CanvasHandler, PAINT_EVENT): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);
 
@@ -1565,7 +1565,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             this->fireJSEvent("paint", &eventValue);
             break;
         }        
-        case NIDIUM_EVENT(CanvasHandler, kEvents_Loaded): {
+        case NIDIUM_EVENT(CanvasHandler, LOADED_EVENT): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);
 
@@ -1573,7 +1573,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             this->fireJSEvent("load", &eventValue);
             break;
         }
-        case NIDIUM_EVENT(CanvasHandler, kEvents_Mount): {
+        case NIDIUM_EVENT(CanvasHandler, MOUNT_EVENT): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);
 
@@ -1581,7 +1581,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             this->fireJSEvent("mount", &eventValue);
             break;
         }
-        case NIDIUM_EVENT(CanvasHandler, kEvents_Unmount): {
+        case NIDIUM_EVENT(CanvasHandler, UNMOUNT_EVENT): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);
 
@@ -1589,7 +1589,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             this->fireJSEvent("unmount", &eventValue);
             break;
         }
-        case NIDIUM_EVENT(CanvasHandler, kEvents_Change): {
+        case NIDIUM_EVENT(CanvasHandler, CHANGE_EVENT): {
             const char *name = NULL;
             JS::RootedValue value(cx);
 
@@ -1615,7 +1615,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             break;
         }
         case NIDIUM_EVENT(CanvasHandler, kEvents_Drag): {
-            printf("Drag event detected\n");
+             ndm_log(NDM_LOG_DEBUG, "JSCanvas", "Drag event detected");
         }
         case NIDIUM_EVENT(CanvasHandler, kEvents_Mouse): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));

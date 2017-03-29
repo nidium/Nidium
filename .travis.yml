@@ -7,7 +7,7 @@ compiler: clang
 
 
 script:
-  - PYTHONPATH=./NidiumTools/src ./configure_server --debug --no-fork --unit-tests --assume-yes
+  -  ASAN_OPTIONS=detect_leaks=0 PYTHONPATH=./NidiumTools/src ./configure_server --debug --asan --no-fork --unit-tests --assume-yes
 
 cache:
   directories:
