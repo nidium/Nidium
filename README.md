@@ -1,4 +1,4 @@
-<p align="center"><img src="https://github.com/nidium/Nidium/raw/master/resources/icons/nidium_128x128.png" /><br />**nidium**<br />[![Build Status](https://travis-ci.org/nidium/Nidium.svg?branch=master)](https://travis-ci.org/nidium/Nidium)<p>
+<p align="center"><img src="https://github.com/nidium/Nidium/raw/master/resources/icons/nidium.iconset/nidium_128x128.png" /><br />**nidium**<br />[![Build Status](https://travis-ci.org/nidium/Nidium.svg?branch=master)](https://travis-ci.org/nidium/Nidium)<p>
 
 ## Introduction
 
