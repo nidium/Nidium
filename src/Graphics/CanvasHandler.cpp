@@ -446,9 +446,14 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
 #endif
 }
 
+/*
+    dispatch all unprocessed mouse event to |this| canvas.
+    This is called for every drawn canvas at every frame
+*/
 void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
 {
     InputEvent *ev = m_NidiumContext->getInputHandler()->getEvents();
+
     if (ev == NULL) {
         return;
     }
@@ -470,9 +475,16 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
         }
     }
 
+    /*
+        |evlist| is the list of event regarding |this| canvas.
+    */
     ape_pool_list_t *evlist = NULL;
 
+    /*
+        Loop through all new events
+    */
     for (; ev != NULL; ev = ev->m_Next) {
+        /* This event is happening in a zone inside |this| canvas  */
         if (ev->isInRect(actualRect)) {
             /*
                 Increment depth (Nth canvas affected by this event)
@@ -483,13 +495,21 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
                 evlist = ape_new_pool_list(0, 4);
             }
 
+            /* 
+               Dupplicate the event and set |this|
+               as the handler of the new event 
+            */
             InputEvent *dup = ev->dupWithHandler(this);
 
             ape_pool_push(evlist, dup);
         }
     }
 
+
     if (evlist) {
+        /*
+            m_NidiumContext->m_CanvasEventsCanvas is a set of all lists
+        */
         ape_pool_push(&m_NidiumContext->m_CanvasEventsCanvas, evlist);
     }
 }
