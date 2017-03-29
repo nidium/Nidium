@@ -1293,8 +1293,8 @@ void CanvasHandler::onDrop(InputEvent *ev, CanvasHandler *drop)
 void CanvasHandler::onMouseEvent(InputEvent *ev)
 {
     CanvasHandler *underneath = this;
-    if (InputEvent *tmpEvent = ev->getEventForNextCanvas()) {
-        underneath = tmpEvent->m_Handler;
+    if (CanvasHandler *tmp = ev->getUnderneathCanvas()) {
+        underneath = tmp;
     }
 
     switch (ev->getType()) {
