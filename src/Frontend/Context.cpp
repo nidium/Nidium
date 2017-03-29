@@ -457,44 +457,32 @@ void Context::frame(bool draw)
     (static_cast<Canvas2DContext *>(m_RootHandler->getContext()))->getSkiaContext()->resetGrBackendContext();
 }
 
-static void NidiumContext_destroy_events(ape_pool_t *pool, void *ctx)
+void NidiumContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
 {
     if (!pool->ptr.data) {
         return;
     }
-
     InputEvent *ev = static_cast<InputEvent *>(pool->ptr.data);
+
+    /* top-most element */
+    if (ev->getDepth() == ev->m_Origin->getDepth()) {
+        ev->m_Handler->_handleEvent(ev);
+    }
 
     delete ev;
 }
 
 void Context::triggerEvents()
 {
-    {
-        void *val;
-        void *tmp;
-        APE_P_FOREACH((&m_CanvasEventsCanvas), val)
-        {
-            APE_P_FOREACH(static_cast<ape_pool_list_t *>(val), tmp)
-            {
-                InputEvent *ev = static_cast<InputEvent *>(tmp);
-                /* top-most element */
-                if (ev->getDepth() == ev->m_Origin->getDepth()) {
-                    ev->m_Handler->_handleEvent(ev);
-                }
-            }
-        }
-    }
+    void *val;
 
+    APE_P_FOREACH((&m_CanvasEventsCanvas), val)
     {
-        void *val;
-        APE_P_FOREACH((&m_CanvasEventsCanvas), val)
-        {
-            ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
-                                          NidiumContext_destroy_events,
-                                          NULL);
-            __pool_item->ptr.data = NULL;
-        }
+        /* process through the cleaner callback avoiding a complete iteration */
+        ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
+                                      NidiumContext_destroy_and_handle_events,
+                                      NULL);
+        __pool_item->ptr.data = NULL;
     }
 
     /*
