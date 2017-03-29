@@ -16,7 +16,6 @@
 #include "Graphics/GLResources.h"
 #include "Graphics/GLState.h"
 #include "Graphics/GLContext.h"
-#include "Macros.h"
 
 namespace Nidium {
 namespace Binding {
@@ -108,7 +107,7 @@ public:
     inline GLContext *getGLContext() const
     {
         if (!m_GLState) {
-            NUI_LOG("getGLContext() invalid glstate on %p", this);
+            ndm_logf(NDM_LOG_ERROR, "CanvasContext", "getGLContext() invalid glstate on %p", this);
             return NULL;
         }
 

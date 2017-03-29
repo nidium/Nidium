@@ -13,7 +13,6 @@
 #include <js/GCAPI.h>
 
 #include "Binding/JSCanvas2DContext.h"
-#include "Macros.h"
 
 using Nidium::Core::Args;
 using Nidium::Frontend::Context;
@@ -266,7 +265,7 @@ void CanvasHandler::updateChildrenSize(bool width, bool height)
         if (!updateHeight && !updateWidth) {
             continue;
         }
-        // NUI_LOG("Update size of %p through parent", cur);
+        // ndm_printf("Update size of %p through parent", cur);
         cur->setSize(updateWidth ? cur->getWidth() : cur->m_Width,
                      updateHeight ? cur->getHeight() : cur->m_Height);
     }
@@ -418,7 +417,7 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
 
 #if 0
     if (m_JsObj && JS::IsIncrementalBarrierNeeded(JS_GetRuntime(m_JsCx))) {
-        printf("Barrier needed\n");
+        ndm_log(NDM_LOG_DEBUG, "CanvasHandler", "Barrier needed");
         //JS::IncrementalReferenceBarrier(m_JsObj);
     }
 #endif
@@ -1357,7 +1356,7 @@ CanvasHandler::~CanvasHandler()
 
     /* all children got orphaned :(*/
     while (cur != NULL) {
-        // printf("Warning: a canvas got orphaned (%p)\n", cur);
+        // ndm_logf(NDM_LOG_WARN, "CanvasHandler", "A canvas got orphaned (%p)", cur);
         cnext = cur->m_Next;
         cur->removeFromParent();
         cur = cnext;
