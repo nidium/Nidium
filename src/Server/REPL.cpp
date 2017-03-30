@@ -21,12 +21,10 @@
 #else
 #include <unistd.h>
 #include <pwd.h>
+#include <linenoise.h>
 #endif
 
-#include <linenoise.h>
-
 #include "Binding/NidiumJS.h"
-
 
 using Nidium::Core::SharedMessages;
 
@@ -40,26 +38,27 @@ enum ReplMessage
 
 static void *nidium_repl_thread(void *arg)
 {
-    REPL *repl = static_cast<REPL *>(arg);
-    char *line;
     const char *homedir;
     char historyPath[PATH_MAX];
 
-    if ((homedir = getenv("HOME")) == NULL) {
 #ifdef _MSC_VER
+    if ((homedir = getenv("HOME")) == NULL) {
         WCHAR wc[MAX_PATH];
         char path[MAX_PATH];
         if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_PROFILE, NULL, 0, wc))) {
            sprintf(path, "%ws", wc);
            homedir = path;
         }
-#else
-        homedir = getpwuid(getuid())->pw_dir;
-#endif
-    }
-
+     }
     sprintf(historyPath, "%s/%s", homedir, ".nidium-repl-history");
+#else
+    REPL *repl = static_cast<REPL *>(arg);
+    char *line;
 
+    if ((homedir = getenv("HOME")) == NULL) {
+        homedir = getpwuid(getuid())->pw_dir;
+    }
+    sprintf(historyPath, "%s/%s", homedir, ".nidium-repl-history");
     linenoiseInit();
     linenoiseHistoryLoad(historyPath);
 
@@ -70,14 +69,11 @@ repl:
 
         linenoiseHistoryAdd(line);
         linenoiseHistorySave(historyPath);
-
         repl->postMessage(line, kReplMessage_Readline);
-
         sem_wait(repl->getReadLineLock());
     }
 
     int exitcount = repl->getExitCount();
-
     repl->setExitCount(exitcount + 1);
 
     if (exitcount == 0) {
@@ -86,6 +82,7 @@ repl:
     }
 
     kill(getppid(), SIGINT);
+#endif
 
     return NULL;
 }

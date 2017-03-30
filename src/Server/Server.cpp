@@ -38,9 +38,7 @@ typedef int pid_t;
 #include "Binding/JSProcess.h"
 
 #include "Server/Context.h"
-#ifndef _MSC_VER
 #include "Server/REPL.h"
-#endif
 
 using Nidium::Binding::NidiumJS;
 using Nidium::Binding::JSProcess;
