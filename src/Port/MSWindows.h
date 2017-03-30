@@ -28,6 +28,7 @@ typedef struct pthread_mutex_t_ * pthread_mutex_t;
 
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
 #define MAXPATHLEN _MAX_PATH 
+#define PATH_MAX _MAX_PATH 
 
 #ifndef S_ISDIR
 #define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)

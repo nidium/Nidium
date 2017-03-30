@@ -9,7 +9,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+#include "Port/MSWindows.h"
+#else
 #include <unistd.h>
 #endif
 
