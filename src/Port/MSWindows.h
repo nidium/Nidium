@@ -22,10 +22,10 @@ typedef struct pthread_mutex_t_ * pthread_mutex_t;
 #define strcasestr StrStrI
 #define getcwd _getcwd
 
-#define kill() \
+#define kill(pid, sig) \
     HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid); \
     TerminateProcess(hnd, 0); \
-    CloseHandle(hProcess);
+    CloseHandle(hnd);
 
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
 #define MAXPATHLEN _MAX_PATH 

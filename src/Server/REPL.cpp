@@ -17,6 +17,7 @@
 #ifdef _MSC_VER
 #include "Port/MSWindows.h"
 #include <Shlobj.h>
+#include <WinBase.h>
 #else
 #include <unistd.h>
 #include <pwd.h>
