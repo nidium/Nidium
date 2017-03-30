@@ -31,6 +31,11 @@ typedef struct pthread_mutex_t_ * pthread_mutex_t;
 #define MAXPATHLEN _MAX_PATH 
 #define PATH_MAX _MAX_PATH 
 
+#define WEXITSTATUS(w)   (w)
+#define WTERMSIG(w)      (w)
+#define WIFEXITED(w)     (((w) & 0XFFFFFF00) == 0)
+#define WIFSIGNALED(w)   (!WIFEXITED(w))
+
 #ifndef S_ISDIR
 #define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
 #endif
