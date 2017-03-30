@@ -10,6 +10,10 @@
 #include <stdlib.h>
 #include <map>
 
+#ifdef _MSC_VER
+typedef int pid_t;
+#endif
+
 /* Check if we can use setproctitle().
  * BSD systems have support for it, we provide an implementation for
  * Linux and osx. */

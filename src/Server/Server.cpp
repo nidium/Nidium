@@ -5,6 +5,8 @@
 */
 #define _HAVE_SSL_SUPPORT 1
 
+#include "Server/Server.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -16,6 +18,7 @@
 
 #ifndef _MSC_VER
 #include <unistd.h>
+typedef int pid_t;
 #endif
 
 #ifdef __linux__
@@ -30,7 +33,6 @@
 
 #include "Binding/JSProcess.h"
 
-#include "Server/Server.h"
 #include "Server/Context.h"
 #include "Server/REPL.h"
 
