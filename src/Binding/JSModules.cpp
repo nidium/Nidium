@@ -128,14 +128,14 @@ bool JSModule::initNative()
         return false;
     }
 
-    void *module = dlopen(m_FilePath->path(), RTLD_LAZY);
-    if (!module) {
+    m_DLModule = dlopen(m_FilePath->path(), RTLD_LAZY);
+    if (!m_DLModule) {
         ndm_logf(NDM_LOG_ERROR, "JSModule", "Failed to open module : %s\n", dlerror());
         return false;
     }
 
     register_module_t registerModule = reinterpret_cast<register_module_t>(
-        dlsym(module, "__NidiumRegisterModule"));
+        dlsym(m_DLModule, "__NidiumRegisterModule"));
     if (registerModule && !registerModule(m_Cx, exports)) {
         ndm_logf(NDM_LOG_ERROR, "JSModule", "Failed to register module\n");
         return false;
@@ -403,7 +403,9 @@ JSModule::~JSModule()
     if (m_FilePath && m_Cached) {
         m_Modules->remove(this);
     }
-
+    if (m_DLModule) {
+        dlclose(m_DLModule);
+    }
     free(m_Name);
     free(m_AbsoluteDir);
     delete m_FilePath;
