@@ -162,7 +162,7 @@ static void *nidium_appworker_thread(void *arg)
                 break;
             }
             default:
-                printf("unknown action\n");
+                printf("Unknown action\n");
                 break;
         }
         app->m_Action.active = false;
@@ -283,7 +283,7 @@ int App::extractApp(const char *path,
 #if 0
 #define NIDIUM_CACHE_DIR "./cache/"
     if (mkdir(NIDIUM_CACHE_DIR, 0777) == -1 && errno != EEXIST) {
-        printf("Cant create cache directory\n");
+        printf("Can't create cache directory\n");
         return 0;
     }
     fullpath = static_cast<char *>(malloc(sizeof(char) *
@@ -295,11 +295,11 @@ int App::extractApp(const char *path,
 #endif
     int ret = 0;
     if ((ret = mkdir(fullpath, 0777)) == -1 && errno != EEXIST) {
-        printf("Cant create Application directory\n");
+        printf("Can't create Application directory\n");
         free(fullpath);
         return 0;
     } else if (ret == -1 && errno == EEXIST) {
-        printf("cache for this app already exists\n");
+        printf("Cache for this app already exists\n");
         done(closure, fullpath);
         free(fullpath);
         return 0;
@@ -345,8 +345,7 @@ int App::extractApp(const char *path,
 uint64_t App::extractFile(const char *file, AppExtractCallback cb, void *user)
 {
     if (m_fZip == NULL || !m_WorkerIsRunning) {
-        printf(
-            "extractFile : you need to call open() and runWorker() before\n");
+        printf("extractFile : you need to call open() and runWorker() before\n");
         return 0;
     }
 
@@ -445,7 +444,7 @@ int App::loadManifest()
     Json::Value root;
 
     if (!m_Reader.parse(content, content + stat.size, root)) {
-        printf("Cant parse JSON\n");
+        printf("Can't parse JSON\n");
 
         return 0;
     }

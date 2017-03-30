@@ -42,7 +42,7 @@ public:
 
     void printInfo()
     {
-        printf("(Socket : %d)\n", m_Socket->s.fd);
+        ndm_logf(NDM_LOG_DEBUG, "WebSocketClient", "Socket : %d", m_Socket->s.fd);
     }
 
     virtual void HTTPHeaderEnded();

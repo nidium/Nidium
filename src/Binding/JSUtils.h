@@ -166,7 +166,7 @@ public:
 
     void set(const char *name, JSString *str)
     {
-        printf("JSObjectBuilder using a JSString is deprecated\n");
+        ndm_log(NDM_LOG_ERROR, "JSUtils", "JSObjectBuilder using a JSString is deprecated");
         exit(1);
     }
 

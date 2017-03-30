@@ -294,7 +294,7 @@ void Context::postDraw()
         s->drawRect(0, 0, m_DebugHandler->getWidth(),
                     m_DebugHandler->getHeight(), 0);
         s->setFillColor(0xFFEEEEEEu);
-        
+
         s->drawTextf(5, 12, "Nidium build %s %s", __DATE__, __TIME__);
         s->drawTextf(5, 25, "Frame: %lld (%lldms)", m_Stats.nframe,
                      m_Stats.lastdifftime / 1000000LL);
@@ -362,9 +362,9 @@ void Context::callFrame()
 
     m_Stats.minfps = nidium_min(m_Stats.minfps,
                                 1000.f / (m_Stats.lastdifftime / 1000000.f));
-    // printf("FPS : %f\n", 1000.f/(m_Stats.lastdifftime/1000000.f));
+    // ndm_logf(NDM_LOG_DEBUG, "Context", "FPS : %f", 1000.f/(m_Stats.lastdifftime/1000000.f));
 
-    // printf("Last diff : %f\n",
+    // ndm_logf(NDM_LOG_DEBUG, "Context", "Last diff : %f",
     // static_cast<float>(m_Stats.lastdifftime/1000000.f));
 
     /* Sample every 1000ms */
@@ -533,7 +533,7 @@ static int GetGLSLVersion()
     NIDIUM_GL_CALL_RET_MAIN(GetError(), err);
 
     if (err != GL_NO_ERROR) {
-        NUI_LOG("Failed to parse GL's major-minor version number separator.\n");
+        ndm_logf(NDM_LOG_ERROR, "Context", "Failed to parse GL's major-minor version number separator.");
         return -1;
     }
 
@@ -559,12 +559,12 @@ static int GetGLSLVersion()
     auto majorVersion = strtol(itr, &end, 10);
 
     if (!end) {
-        NUI_LOG("Failed to parse the GL major version number.\n");
+        ndm_logf(NDM_LOG_ERROR, "Context", "Failed to parse the GL major version number.");
         return -1;
     }
 
     if (*end != '.') {
-        NUI_LOG("Failed to parse GL's major-minor version number separator.\n");
+        ndm_logf(NDM_LOG_ERROR, "Context", "Failed to parse GL's major-minor version number separator.");
         return -1;
     }
 
@@ -574,17 +574,17 @@ static int GetGLSLVersion()
 
     auto minorVersion = strtol(itr, &end, 10);
     if (!end) {
-        NUI_LOG("Failed to parse GL's minor version number.\n");
+        ndm_logf(NDM_LOG_ERROR, "Context", "Failed to parse GL's minor version number.");
         return -1;
     }
 
     if (majorVersion <= 0 || majorVersion >= 100) {
-        NUI_LOG("Invalid major version.\n");
+        ndm_logf(NDM_LOG_ERROR, "Context", "Invalid major version.");
         return false;
     }
 
     if (minorVersion < 0 || minorVersion >= 100) {
-        NUI_LOG("Invalid minor version.\n");
+        ndm_logf(NDM_LOG_ERROR, "Context", "Invalid minor version.");
         return false;
     }
 
@@ -624,7 +624,7 @@ static ShShaderOutput GetShaderOutputVersion()
             case 450:
                 return SH_GLSL_450_CORE_OUTPUT;
             default:
-                NUI_LOG("Unexpected GLSL version.\n");
+                ndm_logf(NDM_LOG_ERROR, "Context", "Unexpected GLSL version.");
                 exit(1);
         }
     }
@@ -675,7 +675,7 @@ bool Context::initShaderLang()
     // before we start, we check that no error already occurred, to prevent hiding it in our subsequent error handling
     error = glGetError();
     if (error != GL_NO_ERROR) {
-        printf("GL error 0x%x occurred during initShaderLang context initialization!\n", error);
+        ndm_logf(NDM_LOG_ERROR, "Context", "GL error 0x%x occurred during initShaderLang context initialization!", error);
         return false;
     }
 
@@ -695,7 +695,7 @@ bool Context::initShaderLang()
             maxVaryingVectors = 16; // = 64/4, 64 is the min value for maxVertexOutputComponents in OpenGL 3.2 spec
             break;
         default:
-            printf("GL error 0x%x occurred during WebGL context initialization!\n", error);
+            ndm_logf(NDM_LOG_ERROR, "Context", "GL error 0x%x occurred during WebGL context initialization!", error);
             return false;
     }
 #endif

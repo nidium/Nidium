@@ -86,9 +86,9 @@ Audio::Audio(ape_global *n,
         AudioParameters tmp(0, 0, channels, Audio::FLOAT32, sampleRate);
         actualBufferSize = Audio::GetOutputBufferSize(&tmp);
         if (actualBufferSize == 0) {
-            fprintf(stderr,
-                    "[Audio] Failed to request optimal buffer size. Defaulting "
-                    "to 4096\n");
+            ndm_log(NDM_LOG_ERROR, "Audio",
+                    "Failed to request optimal buffer size. Defaulting "
+                    "to 4096");
             actualBufferSize = 4096;
         } else {
             /*
@@ -268,7 +268,7 @@ void Audio::readMessages(bool flush)
 
 void Audio::processQueue()
 {
-    SPAM(("process queue\n"));
+    SPAM(("Process queue\n"));
     AudioSources *sources = m_Sources;
 
     while (sources != NULL) {
@@ -279,7 +279,7 @@ void Audio::processQueue()
         }
         sources = sources->next;
     }
-    SPAM(("-------------------------------- finished\n"));
+    SPAM(("-------------------------- finished\n"));
 }
 
 void *Audio::decodeThread(void *args)
@@ -334,7 +334,7 @@ void *Audio::decodeThread(void *args)
                 NIDIUM_PTHREAD_SIGNAL(&audio->m_QueueHaveData);
                 // audio->haveData = true;
             } else {
-                SPAM(("dont Have data %lu\n",
+                SPAM(("Doesn't have data %lu\n",
                       PaUtil_GetRingBufferWriteAvailable(audio->m_rBufferOut)));
             }
         }
@@ -391,14 +391,14 @@ int Audio::InitPortAudioOutput(AudioParameters *params,
         paPrimeOutputBuffersUsingStreamCallback, callback, userData);
 
     if (error) {
-        fprintf(stderr, "[Audio] Error opening output. Code = %i\n", error);
+        ndm_logf(NDM_LOG_ERROR, "Audio", "Error opening output. Code = %i", error);
         Pa_Terminate();
         return error;
     }
 
     error = Pa_StartStream(*outputStream);
     if (error) {
-        fprintf(stderr, "[Audio] Failed to start PortAudio stream. Code=%i\n",
+        ndm_logf(NDM_LOG_ERROR, "Audio", "Failed to start PortAudio stream. Code=%i",
                 error);
         return 2;
     }

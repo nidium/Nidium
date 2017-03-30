@@ -13,7 +13,6 @@
 #include <js/GCAPI.h>
 
 #include "Binding/JSCanvas2DContext.h"
-#include "Macros.h"
 
 using Nidium::Core::Args;
 using Nidium::Frontend::Context;
@@ -266,7 +265,7 @@ void CanvasHandler::updateChildrenSize(bool width, bool height)
         if (!updateHeight && !updateWidth) {
             continue;
         }
-        // NUI_LOG("Update size of %p through parent", cur);
+        // ndm_printf("Update size of %p through parent", cur);
         cur->setSize(updateWidth ? cur->getWidth() : cur->m_Width,
                      updateHeight ? cur->getHeight() : cur->m_Height);
     }
@@ -418,7 +417,7 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
 
 #if 0
     if (m_JsObj && JS::IsIncrementalBarrierNeeded(JS_GetRuntime(m_JsCx))) {
-        printf("Barrier needed\n");
+        ndm_log(NDM_LOG_DEBUG, "CanvasHandler", "Barrier needed");
         //JS::IncrementalReferenceBarrier(m_JsObj);
     }
 #endif
@@ -447,9 +446,14 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
 #endif
 }
 
+/*
+    dispatch all unprocessed mouse event to |this| canvas.
+    This is called for every drawn canvas at every frame
+*/
 void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
 {
     InputEvent *ev = m_NidiumContext->getInputHandler()->getEvents();
+
     if (ev == NULL) {
         return;
     }
@@ -471,9 +475,16 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
         }
     }
 
+    /*
+        |evlist| is the list of event regarding |this| canvas.
+    */
     ape_pool_list_t *evlist = NULL;
 
+    /*
+        Loop through all new events
+    */
     for (; ev != NULL; ev = ev->m_Next) {
+        /* This event is happening in a zone inside |this| canvas  */
         if (ev->isInRect(actualRect)) {
             /*
                 Increment depth (Nth canvas affected by this event)
@@ -484,13 +495,21 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
                 evlist = ape_new_pool_list(0, 4);
             }
 
+            /* 
+               Dupplicate the event and set |this|
+               as the handler of the new event 
+            */
             InputEvent *dup = ev->dupWithHandler(this);
 
             ape_pool_push(evlist, dup);
         }
     }
 
+
     if (evlist) {
+        /*
+            m_NidiumContext->m_CanvasEventsCanvas is a set of all lists
+        */
         ape_pool_push(&m_NidiumContext->m_CanvasEventsCanvas, evlist);
     }
 }
@@ -1274,8 +1293,8 @@ void CanvasHandler::onDrop(InputEvent *ev, CanvasHandler *drop)
 void CanvasHandler::onMouseEvent(InputEvent *ev)
 {
     CanvasHandler *underneath = this;
-    if (InputEvent *tmpEvent = ev->getEventForNextCanvas()) {
-        underneath = tmpEvent->m_Handler;
+    if (CanvasHandler *tmp = ev->getUnderneathCanvas()) {
+        underneath = tmp;
     }
 
     switch (ev->getType()) {
@@ -1357,7 +1376,7 @@ CanvasHandler::~CanvasHandler()
 
     /* all children got orphaned :(*/
     while (cur != NULL) {
-        // printf("Warning: a canvas got orphaned (%p)\n", cur);
+        // ndm_logf(NDM_LOG_WARN, "CanvasHandler", "A canvas got orphaned (%p)", cur);
         cnext = cur->m_Next;
         cur->removeFromParent();
         cur = cnext;

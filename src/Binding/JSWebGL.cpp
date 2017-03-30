@@ -17,7 +17,6 @@
 #include "Graphics/Canvas3DContext.h"
 #include "Binding/JSCanvas.h"
 #include "Binding/JSCanvas2DContext.h"
-#include "Macros.h"
 
 using Nidium::Frontend::Context;
 using Nidium::Interface::SystemInterface;
@@ -1304,8 +1303,9 @@ bool JSWebGLRenderingContext::JS_depthRange(JSContext *cx, JS::CallArgs &args)
 
 bool JSWebGLRenderingContext::JS_detachShader(JSContext *cx, JS::CallArgs &args)
 {
-    JSWebGLProgram *webglProgram;
-    JSWebGLShader *webglShader;
+    //JSWebGLProgram *webglProgram;
+    //JSWebGLShader *webglShader;
+
 
     JS::RootedObject program(cx);
     JS::RootedObject shader(cx);

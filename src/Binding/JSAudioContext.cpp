@@ -388,7 +388,7 @@ bool JSAudioContext::createContext()
 
     if ((m_JsRt = JS_NewRuntime(JS::DefaultHeapMaxBytes, JS::DefaultNurseryBytes))
         == NULL) {
-        NUI_LOG("Failed to init JS runtime\n");
+        fprintf(stderr, "Failed to init JS runtime");
         return false;
     }
 
@@ -398,7 +398,7 @@ bool JSAudioContext::createContext()
     JS_SetGCParameter(m_JsRt, JSGC_SLICE_TIME_BUDGET, 15);
 
     if ((m_JsTcx = JS_NewContext(m_JsRt, 8192)) == NULL) {
-        NUI_LOG("Failed to init JS context\n");
+        fprintf(stderr, "Failed to init JS context");
         return false;
     }
 
@@ -425,7 +425,7 @@ bool JSAudioContext::createContext()
     NidiumLocalContext::RootObjectUntilShutdown(m_JsGlobalObj);
 
     if (!JS_InitStandardClasses(m_JsTcx, global)) {
-        NUI_LOG("Failed to init std class\n");
+        fprintf(stderr, "Failed to init std class");
         return false;
     }
     JS_SetErrorReporter(m_JsRt, reportError);
@@ -439,7 +439,7 @@ bool JSAudioContext::createContext()
 bool JSAudioContext::run(char *str)
 {
     if (!m_JsTcx) {
-        NUI_LOG("No JS context for audio thread\n");
+        fprintf(stderr, "No JS context for audio thread");
         return false;
     }
 
@@ -510,7 +510,7 @@ void JSAudioContext::ShutdownCallback(void *custom)
 #ifdef DEBUG
     JSAudioContext::NodeListItem *node = audio->m_Nodes;
     while (node != NULL) {
-        printf("All nodes should have been destroyed\n");
+        ndm_log(NDM_LOG_DEBUG, "JSAudioContext", "All nodes should have been destroyed");
         assert(false);
     }
 #endif
@@ -574,7 +574,7 @@ void JSAudioContext::CtxCallback(void *custom)
     JSAudioContext *audio = static_cast<JSAudioContext *>(custom);
 
     if (!audio->createContext()) {
-        NUI_LOG("Failed to create audio thread context\n");
+        fprintf(stderr, "Failed to create audio thread context");
         // JS_ReportError(jsNode->audio->cx, "Failed to create audio thread
         // context\n");
         // XXX : Can't report error from another thread?

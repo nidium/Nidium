@@ -54,7 +54,7 @@ bool JSVM::JSStatic_run(JSContext *cx, JS::CallArgs &args)
         JS::AutoObjectVector scopeChain(cx);
         if (scope) {
             if (JS_IsGlobalObject(scope)) {
-                JS_ReportError(cx, "scope options cannot be a global object");
+                JS_ReportError(cx, "scope options can't be a global object");
                 return false;
             }
             scopeChain.append(scope);
@@ -253,7 +253,7 @@ JSVMSandbox::JSVMSandbox(JSContext *cx, JS::HandleObject obj, int flags)
 {
     JS::RootedObject gbl(cx, JSVMSandbox::CreateObject(cx, this));
     if (!gbl) {
-        JS_ReportError(cx, "Cannot create global for Sandbox");
+        JS_ReportError(cx, "Can't create global for Sandbox");
         return;
     }
 

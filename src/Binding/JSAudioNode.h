@@ -85,7 +85,7 @@ protected:
         try {
             m_Node = audio->createNode(type, in, out);
         } catch (AudioNodeException *e) {
-            NUI_LOG("Audio node creation failed : %s\n", e->what());
+            ndm_logf(NDM_LOG_ERROR, "JSAudioNode", "Audio node creation failed : %s", e->what());
             return false;
         }
 
