@@ -10,15 +10,18 @@
 #include <stdbool.h>
 #include <string.h>
 
-
 #ifdef _MSC_VER
 #include "Port/MSWindows.h"
+#include <Winsock.h>
+typedef struct _TRANSMIT_FILE_BUFFERS TRANSMIT_FILE_BUFFERS;
 #else
 #include <unistd.h>
 #include <sys/mman.h>
 #endif
 
 #include "Binding/NidiumJS.h"
+
+#include <private/primpl.h>
 
 using Nidium::IO::Stream;
 
@@ -335,8 +338,8 @@ void HTTPStream::onHeader()
     m_Mapped.size = (!m_Http->m_HTTP.m_ContentLength
                          ? MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH
                          : m_Http->m_HTTP.m_ContentLength);
-
-    if (ftruncate(m_Mapped.fdesc, m_Mapped.size) == -1) {
+    int fd = m_Mapped.fdesc->secret->md.osfd;
+    if (ftruncate(fd, m_Mapped.size) == -1) {
         m_Mapped.size = 0;
         this->stop();
 

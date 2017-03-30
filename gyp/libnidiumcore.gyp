@@ -11,6 +11,7 @@
                 '<(third_party_path)/mozilla-central/js/src/obj/dist/include/',
                 '<(third_party_path)/mozilla-central/js/src/',
                 '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
+                '<(third_party_path)/mozilla-central/nsprpub/pr/include/',
                 '<(third_party_path)/http-parser/',
                 '<(third_party_path)/leveldb/include/',
                 '<(third_party_path)/jsoncpp/dist',
