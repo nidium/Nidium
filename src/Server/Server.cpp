@@ -226,20 +226,20 @@ int Server::init()
         = { "Enable Strict mode", 
 #infdef _MSC_VER
             "Run the interactive console (REPL)",
+            "Set process name", 
 #endif
             "Run as daemon", 
             "Start multiple workers",
-            "Set process name", 
              "This text" };
 
     static struct option long_options[]
         = { { "strict", no_argument, 0, 's' },
 #infdef _MSC_VER
             { "interactive", no_argument, 0, 'i' },
+            { "name", required_argument, 0, 'n' },
 #endif
             { "daemon", no_argument, 0, 'd' },
             { "workers", required_argument, 0, 'w' },
-            { "name", required_argument, 0, 'n' },
             { "help", no_argument, 0, 'h' },
             { 0, 0, 0, 0 } };
 
@@ -270,6 +270,9 @@ int Server::init()
             case 'i':
                 m_HasREPL = true;
                 break;
+            case 'n':
+                m_InstanceName = strdup(optarg);
+                break;
 #endif
             case ':':
             case 'h':
@@ -280,9 +283,6 @@ int Server::init()
                 break;
             case 'w':
                 workers = atoi(optarg);
-                break;
-            case 'n':
-                m_InstanceName = strdup(optarg);
                 break;
             default:
                 break;
