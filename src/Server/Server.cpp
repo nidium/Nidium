@@ -26,6 +26,8 @@
 #include <sys/wait.h>
 #endif
 
+#include <prprocess.h>
+
 #include "Binding/JSProcess.h"
 
 #include "Server/Server.h"
@@ -71,7 +73,8 @@ static int NidiumCheckParentAlive_ping(void *arg)
         If the parent's pid is 0 or 1, it means that our parent is dead. Exit.
     */
     if (ppid == 0 || ppid == 1) {
-        exit(0);
+        PR_CleanUp();
+        PR_ProcessExit(0);
     }
 
     return 1000;
@@ -83,15 +86,18 @@ static int NidiumCheckParentAlive_ping(void *arg)
 void Server::daemonize(int pidfile)
 {
     if (0 != fork()) {
-        exit(0);
+        PR_CleanUp();
+        PR_ProcessExit(0);
     }
     if (-1 == setsid()) {
-        exit(0);
+        PR_CleanUp();
+        PR_ProcessExit(0);
     }
     signal(SIGHUP, SIG_IGN);
 
     if (0 != fork()) {
-        exit(0);
+        PR_CleanUp();
+        PR_ProcessExit(0);
     }
     if (pidfile > 0) {
         char pidstring[32];
@@ -117,7 +123,8 @@ void Server::wait()
         } else {
 
             if (WIFEXITED(state)) {
-                exit(WEXITSTATUS(state));
+                PR_CleanUp();
+                PR_ProcessExit(WEXITSTATUS(state));
             }
 
             if (WIFSIGNALED(state)) {
@@ -173,6 +180,7 @@ int Server::initWorker(int *idx)
 
 int Server::Start(int argc, char *argv[])
 {
+    PR_Init(PR_USER_THREAD, PR_PRIORITY_NORMAL, 0);
 #ifdef INIT_SETPROCTITLE_REPLACEMENT
     spt_init(argc, argv);
 #endif
@@ -250,7 +258,8 @@ int Server::init()
             case 'h':
             case '?':
                 Server::Usage(&long_options[0], text_blocks);
-                exit(1);
+                PR_CleanUp();
+                PR_ProcessExit(1);
                 break;
             case 'w':
                 workers = atoi(optarg);
@@ -272,7 +281,8 @@ int Server::init()
     if (workers > NIDIUM_MAX_WORKERS) {
         fprintf(stderr, "[Error] Too many worker requested : max %d\n",
                 NIDIUM_MAX_WORKERS);
-        exit(1);
+        PR_CleanUp();
+        PR_ProcessExit(1);
     }
 
     /*
@@ -284,7 +294,8 @@ int Server::init()
     } else if (daemon) {
         fprintf(stderr, "Can't daemonize if no JS file is provided\n");
         Server::Usage(&long_options[0], text_blocks);
-        exit(1);
+        PR_CleanUp();
+        PR_ProcessExit(1);
     } else if (m_Args.argc == 0) {
         m_HasREPL = true;
     }
