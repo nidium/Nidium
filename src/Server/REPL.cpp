@@ -16,6 +16,7 @@
 
 #ifdef _MSC_VER
 #include "Port/MSWindows.h"
+#include <Shlobj.h>
 #else
 #include <unistd.h>
 #include <pwd.h>
@@ -44,7 +45,16 @@ static void *nidium_repl_thread(void *arg)
     char historyPath[PATH_MAX];
 
     if ((homedir = getenv("HOME")) == NULL) {
+#ifdef _MSC_VER
+        WCHAR wc[MAX_PATH];
+        char path[MAX_PATH];
+        if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_PROFILE, NULL, 0, wc))) {
+           sprintf(path, "%ws", path);
+           homedir = path;
+        }
+#else
         homedir = getpwuid(getuid())->pw_dir;
+#endif
     }
 
     sprintf(historyPath, "%s/%s", homedir, ".nidium-repl-history");
