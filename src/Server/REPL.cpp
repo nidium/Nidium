@@ -50,7 +50,7 @@ static void *nidium_repl_thread(void *arg)
         WCHAR wc[MAX_PATH];
         char path[MAX_PATH];
         if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_PROFILE, NULL, 0, wc))) {
-           sprintf(path, "%ws", path);
+           sprintf(path, "%ws", wc);
            homedir = path;
         }
 #else
