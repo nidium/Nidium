@@ -62,6 +62,7 @@ static void signal_handler(int sign)
     }
 }
 
+#ifndef _MSC_VER
 static int inc_rlimit(int nofile)
 {
     struct rlimit rl;
@@ -71,6 +72,7 @@ static int inc_rlimit(int nofile)
 
     return setrlimit(RLIMIT_NOFILE, &rl);
 }
+#endif
 
 static int NidiumCheckParentAlive_ping(void *arg)
 {
@@ -361,7 +363,9 @@ int Worker::run(int argc, char **argv, bool jsstrict)
     REPL *repl      = NULL;
     ape_global *net = APE_init();
 
+#ifndef _MSC_VER
     inc_rlimit(64000);
+#endif
 
     signal(SIGPIPE, SIG_IGN);
 
