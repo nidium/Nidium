@@ -7,6 +7,7 @@
 from konstructor import Build
 from konstructor import Builder
 from konstructor import Konstruct
+from konstructor import Platform
 from konstructor import Variables
 from konstructor import Deps
 from konstructor import CommandLine
@@ -27,6 +28,8 @@ Deps.set(
     Deps.Konstruct("libnidiumcore", "configure_libnidiumcore"),
 )
 
+if Platform.system == "Windows":
+    Deps.set("ninja")
 
 @Deps.register("jemalloc")
 def jemalloc():
@@ -52,8 +55,6 @@ def heapProfiling(profiling):
     if profiling:
         jemalloc(True)
         Deps.set("gperftools")
-
-
 
 @CommandLine.option("--unit-tests", default=False)
 @CommandLine.option("--auto-tests", default=False)

@@ -12,7 +12,6 @@
             '<(nidium_network_path)/gyp/network.gyp:*'
         ],
         'include_dirs': [
-            '<(third_party_path)/linenoise/',
             '<(nidium_src_path)',
         ],
         'sources': [
@@ -23,6 +22,9 @@
         ],
         'conditions': [
             ['OS!="win"', {
+                'include_dirs': [
+                    '<(third_party_path)/linenoise/',
+                ],
                 'defines':[
                     'LINENOISE_INTERRUPTIBLE',
                 ],
@@ -30,6 +32,15 @@
                     '<(nidium_src_path)/Server/REPL.cpp',
                     '<(third_party_path)/linenoise/linenoise.c',
                 ]
+            }],
+            ['OS=="win"', {
+                'include_dirs': [
+                    '<(third_party_path)/ninja/src',
+                ],
+                'sources': [
+                    '<(third_party_path)/setproctitle/setproctitle.c',
+                    '<(third_party_path)/ninja/src/getopt.c',
+                ],
             }],
             ['OS=="linux"', {
                 'ldflags': [

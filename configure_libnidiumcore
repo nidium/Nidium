@@ -155,6 +155,18 @@ def jsoncpp():
         "build": ["python amalgamate.py"]
     }
 
+#We don't need it for server, but it has a drop in for args.h
+#We do need ninja for frontend on windows 32 bit
+@Deps.register("ninja")
+def ninja():
+    if Platform.system != "Windows" or Platform.wordSize != 32:
+        Log.error("The '%s' platform has a ninja binary in depot tools" % (Platform.system))
+        sys.exit(1)
+    return {
+        "location": "https://github.com/ninja-build/ninja/archive/v1.7.2.tar.gz",
+        "build": ['pwd', "python configure.py --bootstrap"]
+    }
+
 @CommandLine.option("--unit-tests")
 def testCore(unitTests):
     if not unitTests:

@@ -303,16 +303,6 @@ def SDL2():
         "outputs": outputs
     }
 
-@Deps.register("ninja")
-def ninja():
-    if Platform.system != "Windows" or Platform.wordSize != 32:
-        Log.error("The '%s' platform has a ninja binary in depot tools" % (Platform.system))
-        sys.exit(1)
-    return {
-        "location": "https://github.com/ninja-build/ninja/archive/v1.7.2.tar.gz",
-        "build": ['pwd', "python configure.py --bootstrap"]
-    }
-
 @Deps.register("depot_tools")
 def depotTools():
     Deps.Gclient.setExec(os.path.join("depot_tools", "gclient"))
