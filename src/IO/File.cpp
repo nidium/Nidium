@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <assert.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -21,7 +22,7 @@
 #include <sys/mman.h>
 #endif
 
-#include <prio.h>
+#include <prerror.h>
 
 #include <ape_buffer.h>
 
@@ -34,6 +35,63 @@ namespace Nidium {
 namespace IO {
 
 // {{{ Preamble
+void NPR_Modes(const char *modes, PRIntn *mode, PRIntn *flags) {
+    *mode = 700;
+    *flags = PR_CREATE_FILE;
+    size_t i;
+
+    if (modes) {
+        for (i = 0; i < strlen(modes); i++) {
+            switch (modes[i]) {
+#if __cplusplus >= 201103L || defined(__GNUC__ )
+            case 'x': *flags |= PR_EXCL;
+                break
+#endif
+#if defined(__GNUC__ )
+            case 'c': //
+                break
+            case 'm': //
+                break
+            case 'e': //
+                break;
+#endif
+            case 'b':
+                assert(i != 0);
+                break;
+            case 'r': *flags |= PR_RDONLY;
+                assert(i == 0);
+                break;
+            case 'w': *flags |= PR_WRONLY;
+                assert(i == 0);
+                break;
+            case 'a': *flags |= PR_CREATE_FILE;
+                assert(i == 0);
+                break;
+            case '+': *flags = *flags & ~PR_RDONLY;
+                *flags = *flags & ~PR_WRONLY;
+                *flags |= PR_RDWR;
+                break;
+            default:
+                break;
+            }
+        }
+    } else {
+        *flags = PR_CREATE_FILE | PR_RDWR;
+    }
+}
+
+static PRUint32 NPR_ftell(PRFileDesc * fdesc, PRUint32 *size, int * err)
+{
+    PRFileInfo info;
+
+    if (PR_SUCCESS != PR_GetOpenFileInfo(fdesc, &info)) {
+        *err = PR_GetError();
+        return PR_FAILURE;
+    }
+    *size = info.size;
+
+    return PR_SUCCESS;
+}
 
 #define NIDIUM_FILE_NOTIFY(param, event, arg)                                \
     do {                                                                     \
@@ -56,17 +114,18 @@ enum FileTask
 
 // {{{ Implementation
 File::File(const char *name)
-    : m_Dir(NULL), m_Fd(NULL), m_Delegate(NULL), m_Filesize(0),
+    : m_Dir(NULL), m_Fdesc(NULL), m_Delegate(NULL), m_Filesize(0),
       m_AutoClose(true), m_Eof(false), m_OpenSync(false), m_isDir(false)
 {
     m_Mmap.addr = NULL;
+    m_Mmap.fmap = NULL;
     m_Mmap.size = 0;
     m_Path      = strdup(name);
 }
 
 bool File::checkEOF()
 {
-    if (m_Fd && ((m_Eof = static_cast<bool>(feof(m_Fd))) == true
+    if (m_Fdesc && ((m_Eof = static_cast<bool>(feof(m_Fd))) == true
                  || (m_Eof = (ftell(m_Fd) == this->m_Filesize)))) {
 
         if (m_AutoClose) {
@@ -81,8 +140,8 @@ void File::checkRead(bool async, void *arg)
 {
     int err = -1;
 
-    if (ferror(m_Fd)) {
-        err = errno;
+    if (PR_Available64(m_Fdesc) == -1) {
+        err = PR_GetError();
     } else if (this->checkEOF()) {
         err = 0;
     }
@@ -167,7 +226,10 @@ File::~File()
     Core::PthreadAutoLock tasksLock(&getManagedLock());
 
     if (m_Mmap.addr) {
-        munmap(m_Mmap.addr, m_Mmap.size);
+        PR_MemUnmap(m_Mmap.addr, m_Mmap.size);
+    }
+    if (m_Mmap.fmap) {
+        PR_CloseFileMap(m_Mmap.fmap);
     }
 
     if (this->isOpen()) {
@@ -233,15 +295,15 @@ void File_dispatchTask(Task *task)
 /*
     /!\ Exec in a worker thread
 */
-void File::openTask(const char *mode, void *arg)
+void File::openTask(const char *modes, void *arg)
 {
     if (this->isOpen()) {
         // seek(0)?
-        NIDIUM_FILE_NOTIFY(m_Fd, File::kEvents_OpenSuccess, arg);
+        NIDIUM_FILE_NOTIFY(m_Fdesc, File::kEvents_OpenSuccess, arg);
         return;
     }
 
-    bool readOnly = !mode || (mode && strlen(mode) == 1 && mode[0] == 'r');
+    bool readOnly = !modes || (modes && strlen(modes) == 1 && modes[0] == 'r');
     struct stat s;
     int ret;
 
@@ -262,14 +324,18 @@ void File::openTask(const char *mode, void *arg)
         m_Dir = PR_OpenDir(m_Path);
         if (!m_Dir) {
             ndm_logf(NDM_LOG_ERROR, "File", "Failed to open dir %s : %s", m_Path, strerror(errno));
-            NIDIUM_FILE_NOTIFY(errno, File::kEvents_OpenError, arg);
+           NIDIUM_FILE_NOTIFY(errno, File::kEvents_OpenError, arg);
             return;
         }
         m_isDir    = true;
         m_Filesize = 0;
     } else {
-        m_Fd = fopen(m_Path, mode);
-        if (m_Fd == NULL) {
+        PRIntn mode;
+        PRIntn flags;
+
+        NPR_Modes(modes, &mode, &flags);
+        m_Fdesc = PR_Open(m_Path, flags, mode);
+        if (m_Fdesc == NULL) {
             NIDIUM_FILE_NOTIFY(errno, File::kEvents_OpenError, arg);
             return;
         }
@@ -278,7 +344,7 @@ void File::openTask(const char *mode, void *arg)
         m_isDir    = false;
     }
 
-    NIDIUM_FILE_NOTIFY(m_Fd, File::kEvents_OpenSuccess, arg);
+    NIDIUM_FILE_NOTIFY(m_Fdesc, File::kEvents_OpenSuccess, arg);
 }
 
 /*
@@ -320,7 +386,7 @@ void File::readTask(size_t size, void *arg)
         return;
     }
 
-    if ((buf->used = fread(buf->data, 1, clamped_len, m_Fd)) == 0) {
+    if ((buf->used = PR_Read(m_Fdesc, buf->data, clamped_len)) <= 0) {
         this->checkRead(true, arg);
         buffer_destroy(buf);
         return;
@@ -345,15 +411,16 @@ void File::writeTask(char *buf, size_t buflen, void *arg)
         return;
     }
 
-    size_t writelen = fwrite(buf, 1, buflen, m_Fd);
+    size_t writelen = PR_Write(m_Fdesc, buf, buflen);
     /*
         TODO:
-        save curosor pisition,
+        save cursor position,
         position cursor at the end,
         restore position
     */
-    m_Filesize = ftell(m_Fd);
+    int dummy;
 
+    NPR_ftell(m_Fdesc, &m_Filesize, &dummy);
     NIDIUM_FILE_NOTIFY(writelen, File::kEvents_WriteSuccess, arg);
 }
 
@@ -368,7 +435,7 @@ void File::seekTask(size_t pos, void *arg)
         return;
     }
 
-    if (fseek(m_Fd, pos, SEEK_SET) == -1) {
+    if (PR_Seek64(m_Fdesc, pos, PR_SEEK_SET) == -1) {
         NIDIUM_FILE_NOTIFY(errno, File::kEvents_SeekError, arg);
         return;
     }
@@ -549,7 +616,11 @@ int File::openSync(const char *modes, int *err)
         m_isDir    = true;
         m_Filesize = 0;
     } else {
-        if ((m_Fd = fopen(m_Path, modes)) == NULL) {
+        PRIntn mode;
+        PRIntn flags;
+
+        NPR_Modes(modes, &mode, &flags);
+        if ((m_Fdesc = PR_Open(m_Path, flags, mode)) == NULL) {
             ndm_logf(NDM_LOG_ERROR, "File", "Failed to open : %s errno=%d", m_Path, errno);
             *err = errno;
             return 0;
@@ -574,12 +645,14 @@ ssize_t File::writeSync(char *data, uint64_t len, int *err)
     }
     int ret;
 
-    ret = fwrite(data, sizeof(char), len, m_Fd);
+    ret = PR_Write(m_Fdesc, data, len);
 
     if (ret < len) {
-        *err = errno;
+        *err = PR_GetError();
     } else {
-        m_Filesize = ftell(m_Fd);
+        if (NPR_ftell(m_Fdesc, &m_Filesize, err) == PR_FAILURE) {
+            return -1;
+        }
     }
 
     return ret;
@@ -596,9 +669,15 @@ ssize_t File::mmapSync(char **buffer, int *err)
     }
     size_t size = this->getFileSize();
 
-    m_Mmap.addr = mmap(NULL, size, PROT_READ, MAP_SHARED, fileno(m_Fd), 0);
+    m_Mmap.fmap = PR_CreateFileMap(m_Fdesc, size, PR_PROT_READWRITE);
+    if (m_Mmap.fmap == NULL) {
+        *err = PR_GetError();
+        return -1;
+    }
+    m_Mmap.addr = PR_MemMap(m_Mmap.fmap, 0, size);
 
-    if (m_Mmap.addr == MAP_FAILED) {
+    if (m_Mmap.addr == NULL) {
+        PR_CloseFileMap(m_Mmap.fmap);
         *err = errno;
         return -1;
     }
@@ -635,12 +714,12 @@ ssize_t File::readSync(uint64_t len, char **buffer, int *err)
     char *data      = static_cast<char *>(malloc(clamped_len + 1));
     size_t readsize = 0;
 
-    if ((readsize = fread(data, sizeof(char), clamped_len, m_Fd)) == 0) {
+    if ((readsize = PR_Read(m_Fdesc, data, clamped_len)) <= 0) {
 
         this->checkRead(false);
 
         free(data);
-        *err = errno;
+        *err = PR_GetError();
         return -1;
     }
 
@@ -673,8 +752,8 @@ int File::seekSync(size_t pos, int *err)
         return -1;
     }
 
-    if (fseek(m_Fd, pos, SEEK_SET) == -1) {
-        *err = errno;
+    if (PR_Seek64(m_Fdesc, pos, PR_SEEK_SET) == -1) {
+        *err = PR_GetError();
 
         return -1;
     }

@@ -38,7 +38,7 @@ HTTPStream::HTTPStream(const char *location)
 {
 
     m_Mapped.addr = NULL;
-    m_Mapped.fd   = 0;
+    m_Mapped.fdesc = NULL;
     m_Mapped.size = 0;
 
     m_Http = new HTTP(Binding::NidiumJS::GetNet());
@@ -127,10 +127,13 @@ void HTTPStream::notifyAvailable()
 HTTPStream::~HTTPStream()
 {
     if (m_Mapped.addr) {
-        munmap(m_Mapped.addr, m_Mapped.size);
+        PR_MemUnmap(m_Mapped.addr, m_Mapped.size);
     }
-    if (m_Mapped.fd) {
-        close(m_Mapped.fd);
+    if (m_Mapped.fmap) {
+        PR_CloseFileMap(m_Mapped.fmap);
+    }
+    if (m_Mapped.fdesc) {
+        PR_Close(m_Mapped.fdesc);
     }
 
     delete m_Http;
@@ -160,7 +163,8 @@ bool HTTPStream::hasDataAvailable() const
 void HTTPStream::cleanCacheFile()
 {
     if (m_Mapped.addr) {
-        munmap(m_Mapped.addr, m_Mapped.size);
+        PR_MemUnmap(m_Mapped.addr, m_Mapped.size);
+
         m_Mapped.addr = NULL;
         m_Mapped.size = 0;
     }
@@ -172,37 +176,28 @@ void HTTPStream::cleanCacheFile()
 
 void HTTPStream::onStart(size_t packets, size_t seek)
 {
-	if (m_Mapped.fd) {
-		close(m_Mapped.fd);
+    if (m_Mapped.fdesc) {
+        PR_Close(m_Mapped.fdesc);
 	}
 
 	char tmpfname[] = "/tmp/nidiumtmp.XXXXXXXX";
-#ifdef _MSC_VER
 	char *filename;
-
-	filename = _mktemp(tmpfname);
-	if (filename == NULL) {
-		m_Mapped.fd = -1;
-		printf("[HTTPStream] Failed to create temporary file\n");
-		return;
-	}
-	m_Mapped.fd = open(filename, O_RDWR | O_CREAT, 0600);
-    if (m_Mapped.fd == -1) {
-        printf("[HTTPStream] Failed to create temporary file\n");
-        return;
-    }
-    unlink(filename);
+#ifdef _MSC_VER
+    filename = _mktemp(tmpfname);
+    if (filename == NULL) {
 #else
-    m_Mapped.fd = mkstemp(tmpfname);
+    int fd = mkstemp(tmpfname);
+    filename = tmpfname;
     if (m_Mapped.fd == -1) {
-        ndm_log(NDM_LOG_ERROR, "HTTPStream", "Failed to create temporary file");
+#endif
+		ndm_log(NDM_LOG_ERROR, "HTTPStream", "Failed to create temporary file");
         return;
     }
-    unlink(tmpfname);
-#endif
+    m_Mapped.fdesc = PR_Open(filename, PR_RDWR | O_CREAT, 0600);
+    //TODO: discuss, unlink an opened file? 
+    // unlink(filename);
     m_StartPosition = seek;
     m_BytesBuffered = 0;
-
 
     HTTPRequest *req = m_Http->getRequest();
     if (!req) {
@@ -263,7 +258,7 @@ void HTTPStream::onProgress(size_t offset,
                             HTTP::DataType)
 {
     /* overflow or invalid state */
-    if (!m_Mapped.fd || !m_Mapped.addr
+    if (!m_Mapped.fdesc || !m_Mapped.addr
         || m_BytesBuffered + len > m_Mapped.size) {
         m_Http->resetData();
         return;
@@ -319,7 +314,7 @@ void HTTPStream::onHeader()
 {
     m_BytesBuffered = 0;
 
-    if (!m_Mapped.fd) {
+    if (!m_Mapped.fdesc) {
         return;
     }
 
@@ -341,18 +336,27 @@ void HTTPStream::onHeader()
                          ? MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH
                          : m_Http->m_HTTP.m_ContentLength);
 
-    if (ftruncate(m_Mapped.fd, m_Mapped.size) == -1) {
+    if (ftruncate(m_Mapped.fdesc, m_Mapped.size) == -1) {
         m_Mapped.size = 0;
         this->stop();
 
         return;
     }
 
-    m_Mapped.addr = mmap(NULL, m_Mapped.size, PROT_READ | PROT_WRITE,
-                         MAP_SHARED, m_Mapped.fd, 0);
-
-    if (m_Mapped.addr == MAP_FAILED) {
+    m_Mapped.fmap = PR_CreateFileMap(m_Mapped.fdesc, m_Mapped.size, PR_PROT_READWRITE);
+    if (!m_Mapped.fmap) {
         m_Mapped.addr = NULL;
+        m_Mapped.size = 0;
+        this->stop();
+
+        return;
+    }
+    m_Mapped.addr = PR_MemMap(m_Mapped.fmap, 0, m_Mapped.size);
+    if (!m_Mapped.addr) {
+        PR_MemUnmap(m_Mapped.fmap, m_Mapped.size);
+        PR_CloseFileMap(m_Mapped.fmap);
+        m_Mapped.fmap = NULL;
+        m_Mapped.fmap = NULL;
         m_Mapped.size = 0;
         this->stop();
 
