@@ -24,6 +24,7 @@
 #include <prerror.h>
 #include <json/json.h>
 #include <jsfriendapi.h>
+#include <ape_timers_next.h>
 
 #include "Binding/NidiumJS.h"
 #include "Binding/JSUtils.h"
@@ -129,20 +130,23 @@ bool JSModule::init()
 
 bool JSModule::initNative()
 {
-    JS::RootedObject exports(m_Cx, JS_NewPlainObject(m_Cx));
+    JS::RootedObject exports(m_Cx,
+        JS_NewObject(m_Cx, &nidium_modules_exports_class));
 
     if (!exports) {
         return false;
     }
 
-    PRLibrary *module = PR_LoadLibrary(m_FilePath->path());
-    if (!module) {
+    JS_SetPrivate(exports, this);
+
+        PRLibrary *m_DLModule = PR_LoadLibrary(m_FilePath->path());
+    if (!m_DLModule) {
         ndm_logf(NDM_LOG_ERROR, "JSModule", "Failed to open module : %s\n", (int) PR_GetError());
         return false;
     }
 
     register_module_t registerModule = reinterpret_cast<register_module_t>(
-        PR_FindSymbol(module, "__NidiumRegisterModule"));
+        PR_FindSymbol(m_DLModule, "__NidiumRegisterModule"));
     if (registerModule && !registerModule(m_Cx, exports)) {
         ndm_logf(NDM_LOG_ERROR, "JSModule", "Failed to register module\n");
         return false;
@@ -405,14 +409,23 @@ JS::Value JSModule::require(char *name)
     return ret;
 }
 
+static int close_module(void *arg)
+{
+    PR_UnloadLibrary(static_cast<PRLibrary *>(arg));
+    return 0;
+}
+
 JSModule::~JSModule()
 {
     if (m_FilePath && m_Cached) {
         m_Modules->remove(this);
     }
+
     if (m_DLModule) {
-        PR_UnloadLibrary(m_DLModule);
+        ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
+        timer_dispatch_async(close_module, m_DLModule);
     }
+
     free(m_Name);
     free(m_AbsoluteDir);
     delete m_FilePath;
