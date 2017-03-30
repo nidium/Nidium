@@ -21,7 +21,6 @@
 
 #include <algorithm>
 
-#include <prlink.h>
 #include <prerror.h>
 #include <json/json.h>
 #include <jsfriendapi.h>
@@ -137,7 +136,6 @@ bool JSModule::initNative()
     }
 
     PRLibrary *module = PR_LoadLibrary(m_FilePath->path());
-    //todo close the module with PR_UNloadLibrary. See PullRequest 59
     if (!module) {
         ndm_logf(NDM_LOG_ERROR, "JSModule", "Failed to open module : %s\n", (int) PR_GetError());
         return false;
@@ -412,7 +410,9 @@ JSModule::~JSModule()
     if (m_FilePath && m_Cached) {
         m_Modules->remove(this);
     }
-
+    if (m_DLModule) {
+        PR_UnloadLibrary(m_DLModule);
+    }
     free(m_Name);
     free(m_AbsoluteDir);
     delete m_FilePath;

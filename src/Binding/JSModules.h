@@ -11,6 +11,8 @@
 #include <jsapi.h>
 #include <jspubtd.h>
 
+#include <prlink.h>
+
 #include "Core/Hash.h"
 
 namespace Nidium {
@@ -64,7 +66,7 @@ public:
 
 private:
     JSContext *m_Cx;
-
+    PRLibrary * m_DLModule = nullptr;
     JS::Value load(JS::Value &scope);
 };
 // }}}
