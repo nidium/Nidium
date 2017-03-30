@@ -122,11 +122,14 @@ bool JSModule::init()
 
 bool JSModule::initNative()
 {
-    JS::RootedObject exports(m_Cx, JS_NewPlainObject(m_Cx));
+    JS::RootedObject exports(m_Cx,
+        JS_NewObject(m_Cx, &nidium_modules_exports_class));
 
     if (!exports) {
         return false;
     }
+
+    JS_SetPrivate(exports, this);
 
     m_DLModule = dlopen(m_FilePath->path(), RTLD_LAZY);
     if (!m_DLModule) {
@@ -403,9 +406,11 @@ JSModule::~JSModule()
     if (m_FilePath && m_Cached) {
         m_Modules->remove(this);
     }
+
     if (m_DLModule) {
         dlclose(m_DLModule);
     }
+
     free(m_Name);
     free(m_AbsoluteDir);
     delete m_FilePath;
