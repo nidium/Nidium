@@ -16,9 +16,11 @@
 #include <signal.h>
 #include <list>
 
-#ifndef _MSC_VER
-#include <unistd.h>
+#ifdef _MSC_VER
 typedef int pid_t;
+#include <process.h>
+#else
+#include <unistd.h>
 #endif
 
 #ifdef __linux__
@@ -32,11 +34,9 @@ typedef int pid_t;
 #include <prinit.h>
 #include <prproces.h>
 
-//#include <ape_events_loop.h>
 #include <ape_netlib.h>
 
 #include "Binding/JSProcess.h"
-
 #include "Server/Context.h"
 #include "Server/REPL.h"
 
@@ -257,15 +257,14 @@ int Server::init()
     signal(SIGTERM, &signal_handler);
 #ifndef _MSC_VER
     signal(SIGQUIT, &signal_handler);
-#endif
     // signal(SIGCHLD, SIG_IGN);
 
-    int ch;
     /*
         Needed on macosx so that arguments doesn't fail after the .js file
     */
     setenv("POSIXLY_CORRECT", "1", 1);
-
+#endif
+    int ch;
     while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dsiw:n:h?", long_options,
                              NULL))
            != -1) {
