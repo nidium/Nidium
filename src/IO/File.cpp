@@ -125,9 +125,7 @@ File::File(const char *name)
 
 bool File::checkEOF()
 {
-    if (m_Fdesc && ((m_Eof = static_cast<bool>(feof(m_Fd))) == true
-                 || (m_Eof = (ftell(m_Fd) == this->m_Filesize)))) {
-
+    if (m_Fdesc && ((m_Eof = PR_Available( m_Fdesc )) == 0)) {
         if (m_AutoClose) {
             this->closeTask();
         }
