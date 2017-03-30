@@ -21,6 +21,7 @@ typedef struct pthread_mutex_t_ * pthread_mutex_t;
 #define getppid GetCurrentProcessId
 #define strcasestr StrStrI
 #define getcwd _getcwd
+#define getpid _getpid
 
 #define kill(pid, sig) \
     HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid); \
