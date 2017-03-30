@@ -31,7 +31,9 @@ typedef int pid_t;
 
 #include <prinit.h>
 #include <prproces.h>
-#include <ape_events_loop.h>
+
+//#include <ape_events_loop.h>
+#include <ape_netlib.h>
 
 #include "Binding/JSProcess.h"
 
@@ -97,12 +99,13 @@ void Server::daemonize(int pidfile)
         PR_Cleanup();
         PR_ProcessExit(0);
     }
+#ifndef _MSC_VER
     if (-1 == setsid()) {
         PR_Cleanup();
         PR_ProcessExit(0);
     }
     signal(SIGHUP, SIG_IGN);
-
+#endif
     if (0 != fork()) {
         PR_Cleanup();
         PR_ProcessExit(0);
@@ -137,8 +140,13 @@ void Server::wait()
 
             if (WIFSIGNALED(state)) {
                 int idx_crash = m_PidIdxMapper[pid];
+#ifdef _MSC_VER
+                fprintf(stderr, "[Crash] Worker %d has crashed :'( (%d)\n",
+                        idx_crash, WTERMSIG(state));
+#else
                 fprintf(stderr, "[Crash] Worker %d has crashed :'( (%s)\n",
                         idx_crash, strsignal(WTERMSIG(state)));
+#endif
 
                 if (this->initWorker(&idx_crash) == 0) {
                     return;
@@ -226,7 +234,7 @@ int Server::init()
 
     static char const *text_blocks[]
         = { "Enable Strict mode", 
-#infdef _MSC_VER
+#ifndef _MSC_VER
             "Run the interactive console (REPL)",
             "Set process name", 
 #endif
@@ -236,7 +244,7 @@ int Server::init()
 
     static struct option long_options[]
         = { { "strict", no_argument, 0, 's' },
-#infdef _MSC_VER
+#ifndef _MSC_VER
             { "interactive", no_argument, 0, 'i' },
             { "name", required_argument, 0, 'n' },
 #endif
@@ -249,7 +257,9 @@ int Server::init()
 
     signal(SIGINT, &signal_handler);
     signal(SIGTERM, &signal_handler);
+#ifndef _MSC_VER
     signal(SIGQUIT, &signal_handler);
+#endif
     // signal(SIGCHLD, SIG_IGN);
 
     int ch;
@@ -268,7 +278,7 @@ int Server::init()
             case 's':
                 m_JSStrictMode = true;
                 break;
-#infdef _MSC_VER
+#ifndef _MSC_VER
             case 'i':
                 m_HasREPL = true;
                 break;
@@ -319,9 +329,6 @@ int Server::init()
         m_HasREPL = true;
     }
 
-#ifdef _MSC_VER
-    m_HasREPL(false);
-#endif
     if (workers) {
         m_NWorkers = workers;
         for (int i = 0; i < workers; i++) {
@@ -365,9 +372,9 @@ int Worker::run(int argc, char **argv, bool jsstrict)
 
 #ifndef _MSC_VER
     inc_rlimit(64000);
-#endif
-
+    //todo windows investigate WSAECONNRESET instead of EPIPE errorcode
     signal(SIGPIPE, SIG_IGN);
+#endif
 
     Nidium::Server::Context ctx(net, this, jsstrict, m_RunREPL);
 
