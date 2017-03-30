@@ -11,6 +11,7 @@
 
 #ifdef _MSC_VER
 #include "Port/MSWindows.h"
+#include <direct.h>
 #else
 #include <unistd.h>
 #endif
