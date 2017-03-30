@@ -19,15 +19,18 @@
             '<(nidium_src_path)/Server/app/main.cpp',
             '<(nidium_src_path)/Server/Server.cpp',
             '<(nidium_src_path)/Server/Context.cpp',
-            '<(nidium_src_path)/Server/REPL.cpp',
-
             '<(third_party_path)/setproctitle/setproctitle.c',
-            '<(third_party_path)/linenoise/linenoise.c',
-        ],
-        'defines':[
-            'LINENOISE_INTERRUPTIBLE',
         ],
         'conditions': [
+            ['OS!="win"', {
+                'defines':[
+                    'LINENOISE_INTERRUPTIBLE',
+                ],
+                'sources': [
+                    '<(nidium_src_path)/Server/REPL.cpp',
+                    '<(third_party_path)/linenoise/linenoise.c',
+                ]
+            }],
             ['OS=="linux"', {
                 'ldflags': [
                     '-rdynamic',

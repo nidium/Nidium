@@ -16,7 +16,9 @@
 #include <unistd.h>
 #endif
 
+#ifndef _MSC_VER
 #include <linenoise.h>
+#endif
 
 #include "IO/FileStream.h"
 #include "Net/HTTPStream.h"
@@ -55,11 +57,13 @@ void Context::onMessage(const Core::SharedMessages::Message &msg)
         case kContextMessage_log:
         {
             const char *str = (char *)msg.dataPtr();
-
+#ifndef _MSC_VER
             linenoisePause();
             fwrite(str, 1, strlen(str), stdout);
             linenoiseResume();
-
+#else
+            fwrite(str, 1, strlen(str), stdout);
+#endif
             free(msg.dataPtr());
         }
         default:

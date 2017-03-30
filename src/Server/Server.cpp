@@ -34,7 +34,9 @@ typedef int pid_t;
 #include "Binding/JSProcess.h"
 
 #include "Server/Context.h"
+#ifndef _MSC_VER
 #include "Server/REPL.h"
+#endif
 
 using Nidium::Binding::NidiumJS;
 using Nidium::Binding::JSProcess;
@@ -217,13 +219,20 @@ int Server::init()
     int workers = 1;
 
     static char const *text_blocks[]
-        = { "Enable Strict mode", "Run the interactive console (REPL)",
-            "Run as daemon", "Start multiple workers",
-            "Set process name", "This text" };
+        = { "Enable Strict mode", 
+#infdef _MSC_VER
+            "Run the interactive console (REPL)",
+#endif
+            "Run as daemon", 
+            "Start multiple workers",
+            "Set process name", 
+             "This text" };
 
     static struct option long_options[]
         = { { "strict", no_argument, 0, 's' },
+#infdef _MSC_VER
             { "interactive", no_argument, 0, 'i' },
+#endif
             { "daemon", no_argument, 0, 'd' },
             { "workers", required_argument, 0, 'w' },
             { "name", required_argument, 0, 'n' },
@@ -253,9 +262,11 @@ int Server::init()
             case 's':
                 m_JSStrictMode = true;
                 break;
+#infdef _MSC_VER
             case 'i':
                 m_HasREPL = true;
                 break;
+#endif
             case ':':
             case 'h':
             case '?':
@@ -302,6 +313,9 @@ int Server::init()
         m_HasREPL = true;
     }
 
+#ifdef _MSC_VER
+    m_HasREPL(false);
+#endif
     if (workers) {
         m_NWorkers = workers;
         for (int i = 0; i < workers; i++) {
