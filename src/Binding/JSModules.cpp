@@ -17,6 +17,7 @@
 
 #include <json/json.h>
 #include <jsfriendapi.h>
+#include <ape_timers_next.h>
 
 #include "Binding/NidiumJS.h"
 #include "Binding/JSUtils.h"
@@ -401,6 +402,12 @@ JS::Value JSModule::require(char *name)
     return ret;
 }
 
+static int close_module(void *arg)
+{
+    dlclose(arg);
+    return 0;
+}
+
 JSModule::~JSModule()
 {
     if (m_FilePath && m_Cached) {
@@ -408,7 +415,8 @@ JSModule::~JSModule()
     }
 
     if (m_DLModule) {
-        dlclose(m_DLModule);
+        ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
+        timer_dispatch_async(close_module, m_DLModule);
     }
 
     free(m_Name);
