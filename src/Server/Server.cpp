@@ -17,6 +17,10 @@
 
 #ifdef _MSC_VER
 typedef int pid_t;
+#include "Port/MSWindows.h"
+#ifndef NIDIUM_NO_FORK
+#define NIDIUM_NO_FORK
+#endif
 #include <process.h>
 #else
 #include <unistd.h>
@@ -90,19 +94,56 @@ static int NidiumCheckParentAlive_ping(void *arg)
 
 
 // {{{ Server
+#ifdef _MSC_VER
+void Server::daemonize(int pidfile)
+{
+    printf("Daemon not implemented on windows.\n");
+    //third-party/mozilla-central/nsprpub/pr/tests/parent.c
+}
+
+void Server::wait()
+{
+    int pid;
+    int state;
+
+    if (m_HasREPL) {
+        this->displayVersion();
+    }
+    printf("TODO break this endless loop.\n");
+    while ((pid == 1 /*todo waitpid(-1, &state, 0)*/ )) {
+
+        if (errno == ECHILD) {
+            break;
+        } else {
+
+            if (WIFEXITED(state)) {
+                PR_Cleanup();
+                PR_ProcessExit(WEXITSTATUS(state));
+            }
+
+            if (WIFSIGNALED(state)) {
+                int idx_crash = m_PidIdxMapper[pid];
+                fprintf(stderr, "[Crash] Worker %d has crashed :'( (%d)\n",
+                        idx_crash, WTERMSIG(state));
+                if (this->initWorker(&idx_crash) == 0) {
+                    return;
+                }
+            }
+        }
+    }
+}
+#else
 void Server::daemonize(int pidfile)
 {
     if (0 != fork()) {
         PR_Cleanup();
         PR_ProcessExit(0);
     }
-#ifndef _MSC_VER
     if (-1 == setsid()) {
         PR_Cleanup();
         PR_ProcessExit(0);
     }
     signal(SIGHUP, SIG_IGN);
-#endif
     if (0 != fork()) {
         PR_Cleanup();
         PR_ProcessExit(0);
@@ -124,7 +165,6 @@ void Server::wait()
     if (m_HasREPL) {
         this->displayVersion();
     }
-
     while ((pid = waitpid(-1, &state, 0))) {
         if (errno == ECHILD) {
             break;
@@ -137,14 +177,8 @@ void Server::wait()
 
             if (WIFSIGNALED(state)) {
                 int idx_crash = m_PidIdxMapper[pid];
-#ifdef _MSC_VER
-                fprintf(stderr, "[Crash] Worker %d has crashed :'( (%d)\n",
-                        idx_crash, WTERMSIG(state));
-#else
                 fprintf(stderr, "[Crash] Worker %d has crashed :'( (%s)\n",
                         idx_crash, strsignal(WTERMSIG(state)));
-#endif
-
                 if (this->initWorker(&idx_crash) == 0) {
                     return;
                 }
@@ -152,6 +186,7 @@ void Server::wait()
         }
     }
 }
+#endif
 
 void Server::displayVersion()
 {
@@ -172,12 +207,10 @@ int Server::initWorker(int *idx)
     if ((pid = fork()) == 0) {
 #endif
         Worker worker(*idx, (m_HasREPL && *idx == 1));
-
 #ifdef USE_SETPROCTITLE
         setproctitle("Nidium-Server:<%s> (worker %d)",
                      m_InstanceName ? m_InstanceName : "noname", *idx);
 #endif
-
         worker.run(m_Args.argc, m_Args.argv, m_JSStrictMode);
 
         return 0;
@@ -234,8 +267,8 @@ int Server::init()
 #ifndef _MSC_VER
             "Run the interactive console (REPL)",
             "Set process name", 
-#endif
             "Run as daemon", 
+#endif
             "Start multiple workers",
              "This text" };
 
@@ -244,8 +277,8 @@ int Server::init()
 #ifndef _MSC_VER
             { "interactive", no_argument, 0, 'i' },
             { "name", required_argument, 0, 'n' },
-#endif
             { "daemon", no_argument, 0, 'd' },
+#endif
             { "workers", required_argument, 0, 'w' },
             { "help", no_argument, 0, 'h' },
             { 0, 0, 0, 0 } };
@@ -265,16 +298,12 @@ int Server::init()
 #endif
     int ch;
     while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dsiw:n:h?", long_options,
-                             NULL))
-           != -1) {
+                             NULL)) != -1) {
         switch (ch) {
+#ifndef _MSC_VER
             case 'd':
                 daemon = true;
                 break;
-            case 's':
-                m_JSStrictMode = true;
-                break;
-#ifndef _MSC_VER
             case 'i':
                 m_HasREPL = true;
                 break;
@@ -282,6 +311,9 @@ int Server::init()
                 m_InstanceName = strdup(optarg);
                 break;
 #endif
+            case 's':
+                m_JSStrictMode = true;
+                break;
             case ':':
             case 'h':
             case '?':
