@@ -6,6 +6,7 @@
 #ifndef server_repl_h__
 #define server_repl_h__
 
+#include <cstdint>
 #include <semaphore.h>
 
 #include <ape_buffer.h>
