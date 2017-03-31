@@ -12,7 +12,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
-#include <getopt.h>
 #include <signal.h>
 #include <list>
 
@@ -206,9 +205,9 @@ int Server::Start(int argc, char *argv[])
     return server->init();
 }
 
-void Server::Usage(struct option *long_options, const char **text_blocks)
+void Server::Usage(option_t *long_options, const char **text_blocks)
 {
-    struct option *opt;
+    option_t *opt;
     size_t i;
 
     opt = long_options;
@@ -240,7 +239,7 @@ int Server::init()
             "Start multiple workers",
              "This text" };
 
-    static struct option long_options[]
+    static option_t long_options[]
         = { { "strict", no_argument, 0, 's' },
 #ifndef _MSC_VER
             { "interactive", no_argument, 0, 'i' },

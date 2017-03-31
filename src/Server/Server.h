@@ -9,9 +9,13 @@
 
 #include <stdlib.h>
 #include <map>
+#include <getopt.h>
 
 #ifdef _MSC_VER
 typedef int pid_t;
+typedef GETOPT_LONG_OPTION_T option_t;
+#else
+typedef struct option option_t;
 #endif
 
 /* Check if we can use setproctitle().
@@ -46,7 +50,7 @@ public:
 private:
     Server(int argc, char **argv);
     int init();
-    void Usage(struct option *long_options, const char **text_blocks);
+    void Usage(option_t *long_options, const char **text_blocks);
 
     void daemonize(int pidfile = 0);
     int initWorker(int *idx);
