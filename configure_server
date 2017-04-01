@@ -29,7 +29,7 @@ Deps.set(
 )
 
 if Platform.system == "Windows":
-    Deps.set("ninja")
+   Deps.set("ninja")
 
 @Deps.register("jemalloc")
 def jemalloc():

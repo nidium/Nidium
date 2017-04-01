@@ -55,7 +55,7 @@ def leveldb():
         make_opt += " -j1"
         #tell make to ignore the shared libray, just create the static one
         make_opt += " libleveldb%s" % (ext)
-        cxxFlags += " -EHsc"
+        cxxFlags += " -EHsc -MD"
         Platform.setEnviron('TARGET_OS=NATIVE_WINDOWS')
         Platform.setEnviron('AR_FLAGS=-nologo -out:')
         Platform.setEnviron("CXXFLAGS=%s" % (cxxFlags))

@@ -71,6 +71,8 @@
                     ],
                 }],
                 ['OS=="win"', {
+                    'ldflags': [
+                    ],
                     'defines': [
                         'WIN32',
                     ],
@@ -82,6 +84,25 @@
         'type': 'none',
         'direct_dependent_settings': {
             'conditions': [
+                ['OS=="win"', {
+                    'ldflags': [
+                        '/NODEFAULTLIB:libcmt.lib',
+                        '/VERBOSE:LIBs',
+                    ],
+                    "link_settings": {
+                        'libraries': [
+                            'Psapi.lib',
+                            'Winmm.lib',
+
+                            'http_parser.lib',
+                            'js_static.lib',
+                            'libnspr4.lib',
+                            'mozglue.lib',
+                            'libleveldb.a',
+
+                        ]
+                    }
+                }],
                 ['OS=="mac"', {
                     "link_settings": {
                         'libraries': [
@@ -148,10 +169,10 @@
                     'NIDIUM_DISABLE_WINDOW_GLOBAL'
                 ],
             }]
-
         ],
         'sources': [
             '<(third_party_path)/jsoncpp/dist/jsoncpp.cpp',
+
             '../src/Net/HTTP.cpp',
             '../src/Net/HTTPParser.cpp',
             '../src/Net/HTTPServer.cpp',
