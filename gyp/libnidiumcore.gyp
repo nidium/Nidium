@@ -86,8 +86,6 @@
             'conditions': [
                 ['OS=="win"', {
                     'ldflags': [
-                        '/NODEFAULTLIB:libcmt.lib',
-                        '/VERBOSE:LIBs',
                     ],
                     "link_settings": {
                         'libraries': [

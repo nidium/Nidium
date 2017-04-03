@@ -57,7 +57,10 @@
                 'LinkTimeCodeGeneration': 1,
                 'SubSystem': '1',  # console app
                 "AdditionalLibraryDirectories": ["<(nidium_output_third_party_path)"]
-            }
+            },
+            'VCCLCompilerTool': {
+                'RuntimeLibrary': 2, #Multithreaded using DLL (msvcrt.lib)
+            },
         },
 
         'configurations': {

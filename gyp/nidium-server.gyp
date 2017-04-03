@@ -35,15 +35,12 @@
             }],
             ['OS=="win"', {
                 'ldflags': [
-                    '/NODEFAULTLIB:libcmt.lib',
-                    '/VERBOSE:LIB',
                 ],
                 'link_settings': {
                     'libraries': [
                         'Shell32.lib',
                         'Shlwapi.lib',
                         'Kernel32.lib',
-
                         ]
                 },
                 'include_dirs': [

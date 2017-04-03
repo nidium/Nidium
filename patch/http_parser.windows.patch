@@ -1,0 +1,20 @@
+--- http-parser.org/http_parser.gyp	2017-04-03 20:52:13 +0200
++++ http-parser/http_parser.gyp	2017-04-03 20:48:00 +0200
+@@ -15,7 +15,7 @@
+         'cflags': [ '-Wall', '-Wextra', '-O0', '-g', '-ftrapv' ],
+         'msvs_settings': {
+           'VCCLCompilerTool': {
+-            'RuntimeLibrary': 1, # static debug
++            'RuntimeLibrary': 2, # static debug
+           },
+         },
+       },
+@@ -24,7 +24,7 @@
+         'cflags': [ '-Wall', '-Wextra', '-O3' ],
+         'msvs_settings': {
+           'VCCLCompilerTool': {
+-            'RuntimeLibrary': 0, # static release
++            'RuntimeLibrary': 2, # static release
+           },
+         },
+       }

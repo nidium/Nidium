@@ -140,11 +140,14 @@ def httpParser():
         gyp += " -G Platform=%s" % (platform)
         build = [gyp, "MSBuild.exe /nologo http_parser.vcxproj /p:Configuration=Release /P:Platform=%s /maxcpucount:%i" % (platform, Platform.cpuCount)]
         output = "Release/lib/http_parser.lib"
+        patch = [os.path.join(CONFIGURE_PATH, "patch", "http_parser.windows.patch")]
     else:
         build = ["make package"]
         output = "libhttp_parser.a"
+        patch = []
     return {
         "location": Deps.GitRepo("https://github.com/nodejs/http-parser.git", tag="v2.6.2"),
+        "patchs": patch,
         "build": build,
         "outputs": [output]
     }
@@ -160,7 +163,7 @@ def jsoncpp():
 #We do need ninja for frontend on windows 32 bit
 @Deps.register("ninja")
 def ninja():
-    if Platform.system != "Windows" or Platform.wordSize != 32:
+    if Platform.system != "Windows":
         Log.error("The '%s' platform has a ninja binary in depot tools" % (Platform.system))
         sys.exit(1)
     return {
