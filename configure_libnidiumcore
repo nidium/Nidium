@@ -106,7 +106,8 @@ def mozilla():
         if Platform.wordSize == 64:
             configure += " --target=x86_64-pc-mingw32 --host=x86_64-pc-mingw32"
         nsprFlags += ''' --with-nspr-libs="'%s/dist/lib/libnspr4' '%s/dist/lib/libplds4' '%s/dist/lib/libplc4'"''' % (nsprDir, nsprDir, nsprDir)
-        outputs = ["mozglue/build/mozglue.lib$", "js/src/js_static.lib$"]
+        outputs = ["mozglue/build/mozglue.lib$", "js/src/js_static.lib$", 
+                    "intl/icu/target/lib/icuin.lib", "intl/icu/target/lib/icuuc.lib"]
     else:
         make = "make"
         configure = "../configure"

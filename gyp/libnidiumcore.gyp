@@ -96,6 +96,8 @@
 
                             'http_parser.lib',
                             'js_static.lib',
+                            'icuin.lib',
+                            'icuuc.lib',
                             'libnspr4.lib',
                             'mozglue.lib',
                             'libleveldb.a',
