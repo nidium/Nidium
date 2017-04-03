@@ -12,6 +12,9 @@
 #include "Interface/UIInterface.h"
 #include <ape_log.h>
 
+#define __FILENAME__ \
+    (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+
 #define NDM_LOG_ERROR    APE_LOG_ERROR
 #define NDM_LOG_WARN     APE_LOG_WARN
 #define NDM_LOG_INFO     APE_LOG_INFO
@@ -31,7 +34,6 @@
 
 #define nlogf ndm_printf
 #define nlog ndm_print
-#define NUI_LOG ndm_printf
 
 #endif
 

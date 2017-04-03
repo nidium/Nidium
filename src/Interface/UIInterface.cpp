@@ -18,7 +18,6 @@
 #include "Graphics/GLHeader.h"
 #include "Binding/JSWindow.h"
 #include "SDL_keycode_translate.h"
-#include "Macros.h"
 
 #define NIDIUM_TITLEBAR_HEIGHT 0
 #define NIDIUM_VSYNC 1
@@ -58,7 +57,7 @@ void UIInterface::setGLContextAttribute()
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE); 
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 }
@@ -67,7 +66,7 @@ bool UIInterface::createWindow(int width, int height)
 {
     if (!m_Initialized) {
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1) {
-            NUI_LOG("Can't init SDL:  %s\n", SDL_GetError());
+            ndm_logf(NDM_LOG_ERROR, "UIInterface", "Can't init SDL:  %s", SDL_GetError());
             return false;
         }
 
@@ -78,7 +77,7 @@ bool UIInterface::createWindow(int width, int height)
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /* | SDL_WINDOW_FULLSCREEN*/);
 
         if (m_Win == NULL) {
-            NUI_LOG("Cant create window (SDL)\n");
+            ndm_logf(NDM_LOG_ERROR, "UIInterface", "Can't create window (SDL)");
             return false;
         }
 
@@ -88,7 +87,7 @@ bool UIInterface::createWindow(int width, int height)
         m_Height = height;
 
         if ((m_MainGLCtx = SDL_GL_CreateContext(m_Win)) == NULL) {
-            NUI_LOG("Failed to create OpenGL context : %s", SDL_GetError());
+            ndm_logf(NDM_LOG_ERROR, "UIInterface", "Failed to create OpenGL context : %s", SDL_GetError());
             return false;
         }
 
@@ -99,11 +98,11 @@ bool UIInterface::createWindow(int width, int height)
             Enable vertical sync
         */
         if (SDL_GL_SetSwapInterval(NIDIUM_VSYNC) == -1) {
-            fprintf(stderr, "Cant vsync\n");
+            ndm_log(NDM_LOG_ERROR, "UIInterface", "Can't vsync");
         }
 
         // glViewport(0, 0, width*2, height*2);
-        NUI_LOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
+        ndm_logf(NDM_LOG_INFO, "UIInterface", "OpenGL version : %s", glGetString(GL_VERSION));
 
         this->onWindowCreated();
 
@@ -393,7 +392,7 @@ void UIInterface::setCursor(CURSOR_TYPE type)
     if (m_CurrentCursor != type) {
         m_CursorNeedsUpdate = true;
         m_CurrentCursor = type;
-        printf("set new cursor %d\n", type);
+        ndm_logf(NDM_LOG_DEBUG, "UIInterface", "Set new cursor %d", type);
     }
 }
 
@@ -533,14 +532,14 @@ uint8_t *UIInterface::readScreenPixel()
     uint8_t *ret = (uint8_t *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
     if (!ret) {
         uint32_t err = glGetError();
-        fprintf(stderr, "Failed to map buffer: Error %d\n", err);
+        ndm_logf(NDM_LOG_ERROR, "UIInterface", "Failed to map buffer: Error %d", err);
         return NULL;
     }
 
     /* Flip Y pixels (row by row) */
     for (uint32_t i = 0; i < height; i++) {
         memcpy(m_FrameBuffer + i * width * 4,
-                &ret[(height - i - 1) * width * 4], 
+                &ret[(height - i - 1) * width * 4],
                 width * 4);
     }
 

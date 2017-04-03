@@ -223,7 +223,7 @@ int AVStreamReader::_read(uint8_t *buffer, int size)
                     return copied > 0 ? copied : AVERROR_EOF;
                 default:
                     fprintf(stderr,
-                            "received unknown error (%d) and streamBuffer is "
+                            "Received unknown error (%d) and streamBuffer is "
                             "null. Returning EOF, "
                             "copied = %u\n",
                             m_StreamErr, copied);
@@ -389,7 +389,7 @@ void AVStreamReader::onAvailableData(size_t len)
         if (m_Pending) {
             m_NeedWakup = true;
             m_ReadCallback(m_CallbackPrivate);
-            SPAM(("%p / Lock is releaased\n", this));
+            SPAM(("%p / Lock is released\n", this));
             return;
         }
     }

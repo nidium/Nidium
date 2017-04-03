@@ -58,7 +58,7 @@ public:
                int iy,
                uint32_t *idata   = NULL,
                uint8_t idata_len = 0)
-        : m_x(ix), m_y(iy), m_Next(NULL), m_PassThroughEvent(NULL),
+        : m_x(ix), m_y(iy), m_Next(NULL), m_PassThroughCanvas(NULL),
           m_Handler(NULL), m_Origin(NULL), m_depthAffectedCanvas(0),
           m_Type(type)
     {
@@ -74,7 +74,7 @@ public:
         dup->m_Handler  = handler;
         dup->m_Origin   = this;
 
-        m_PassThroughEvent = dup;
+        m_PassThroughCanvas = handler;
 
         return dup;
     }
@@ -104,9 +104,9 @@ public:
         return InputEvent_Names[type];
     }
 
-    InputEvent *getEventForNextCanvas() const
+    Graphics::CanvasHandler *getUnderneathCanvas() const
     {
-        return m_PassThroughEvent;
+        return m_PassThroughCanvas;
     }
 
     void setData(int index, uint32_t data)
@@ -125,7 +125,7 @@ public:
     int m_x, m_y;
     uint32_t m_data[8];
     InputEvent *m_Next;
-    InputEvent *m_PassThroughEvent;
+    Graphics::CanvasHandler *m_PassThroughCanvas;
     Graphics::CanvasHandler *m_Handler;
     InputEvent *m_Origin;
     unsigned m_depthAffectedCanvas;

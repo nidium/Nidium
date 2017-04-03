@@ -17,7 +17,6 @@
 #include "Graphics/GLHeader.h"
 #include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas2DContext.h"
-#include "Macros.h"
 
 using Nidium::Interface::SystemInterface;
 using Nidium::Frontend::Context;
@@ -39,7 +38,7 @@ char *CanvasContext::ProcessShader(const char *content, shaderType type)
                                    frontendContext->getShaderResources());
 
     if (compiler == NULL) {
-        NUI_LOG("Shader : Compiler not supported");
+        ndm_logf(NDM_LOG_ERROR, "CanvasContext", "Shader : Compiler not supported");
         return NULL;
     }
 
@@ -49,7 +48,7 @@ char *CanvasContext::ProcessShader(const char *content, shaderType type)
                        | SH_LIMIT_CALL_STACK_DEPTH | SH_INIT_GL_POSITION)) {
 
         std::string log = ShGetInfoLog(compiler);
-        printf("Shader error : %s", log.c_str());
+        ndm_logf(NDM_LOG_ERROR, "CanvasContext", "Shader error : %s", log.c_str());
 
         return NULL;
     }
@@ -80,7 +79,7 @@ uint32_t CanvasContext::CompileShader(const char *data, int type)
         if (glGetError() != GL_NO_ERROR) {
             return 0;
         }
-        NUI_LOG("Shader error %d : %s\n%s", len, messages, data);
+        ndm_logf(NDM_LOG_ERROR, "CanvasContext", "Shader error %d : %s\n%s", len, messages, data);
         return 0;
     }
 
@@ -119,7 +118,7 @@ Vertices *CanvasContext::BuildVerticesStripe(int resolution)
             vert[t].Position[1] = 1. - (static_cast<float>(i) * ystep);
             vert[t].Position[2] = 0.;
 
-            // NUI_LOG("Create vertex: %f %f", vert[t].Position[0],
+            // ndm_printf("Create vertex: %f %f", vert[t].Position[0],
             // vert[t].Position[1]);
 
             vert[t].TexCoord[0] = (static_cast<float>(j) * txstep);
@@ -244,7 +243,7 @@ uint32_t CanvasContext::CreatePassThroughProgram(GLResources &resource)
     if (linkSuccess == GL_FALSE) {
         GLchar messages[256];
         glGetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]);
-        NUI_LOG("createProgram error : %s", messages);
+        ndm_logf(NDM_LOG_ERROR, "CanvasContext", "createProgram error : %s", messages);
         return 0;
     }
 
@@ -270,12 +269,12 @@ static void dump_Matrix(float *matrix)
 {
     int i = 4;
 
-    printf(" = = = = = \n");
+    ndm_log(NDM_LOG_DEBUG, "CanvasContext", " = = = = = ");
     for (i = 0; i < 4; i++) {
-        printf("%f, %f, %f, %f\n", matrix[i * 4], matrix[i * 4 + 1],
+        ndm_logf(NDM_LOG_DEBUG, "CanvasContext", "%f, %f, %f, %f", matrix[i * 4], matrix[i * 4 + 1],
                matrix[i * 4 + 2], matrix[i * 4 + 3]);
     }
-    printf(" = = = = = \n");
+    ndm_log(NDM_LOG_DEBUG, "CanvasContext", " = = = = =");
 }
 #endif
 
@@ -335,7 +334,7 @@ void CanvasContext::updateMatrix(
             UniformMatrix4fv(m_GLState->m_GLObjects.uniforms.u_projectionMatrix,
                              1, GL_FALSE, mat4));
     } else {
-        NUI_LOG("No uniform found");
+        ndm_logf(NDM_LOG_ERROR, "CanvasContext", "No uniform found");
     }
 }
 
@@ -444,16 +443,16 @@ bool CanvasContext::validateCurrentFBO()
 #ifndef NIDIUM_OPENGLES2
         // FIXME : GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE is not defined for OpenGLES2
         case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-            printf("fbo %x (incomplete multisample)\n", status);
+            ndm_logf(NDM_LOG_DEBUG, "CanvasContext", "fbo %x (incomplete multisample)", status);
             break;
 #endif
         case GR_GL_FRAMEBUFFER_COMPLETE:
             break;
         case GR_GL_FRAMEBUFFER_UNSUPPORTED:
-            printf("fbo unsupported\n");
+            ndm_log(NDM_LOG_WARN, "CanvasContext", "fbo unsupported");
             return false;
         default:
-            printf("fbo fatal error %x\n", status);
+            ndm_logf(NDM_LOG_ERROR, "CanvasContext", "fbo fatal error %x", status);
             exit(1);
             return false;
     }
@@ -472,7 +471,7 @@ CanvasContext *CanvasContext::Create(ContextType type)
         case ContextType_kSkia2D:
             return NULL;
         default:
-            NUI_LOG("[Error] Invalid CanvasContext requested");
+            ndm_logf(NDM_LOG_ERROR, "CanvasContext", "Invalid CanvasContext requested");
             return NULL;
     }
 }

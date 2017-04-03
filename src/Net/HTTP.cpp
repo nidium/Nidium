@@ -291,10 +291,10 @@ static void nidium_http_read(ape_socket *s,
     nhttp->parsing(false);
 
     if (nparsed != len && !nhttp->m_HTTP.m_Ended) {
-        fprintf(
-            stderr, "[HTTP] (socket %p) Parser returned %ld with error %s\n", s,
-            static_cast<unsigned long>(nparsed),
-            http_errno_description(HTTP_PARSER_ERRNO(&nhttp->m_HTTP.parser)));
+        ndm_logf(NDM_LOG_ERROR, "HTTP",
+                 "(socket %p) Parser returned %ld with error %s", s,
+                 static_cast<unsigned long>(nparsed),
+                 http_errno_description(HTTP_PARSER_ERRNO(&nhttp->m_HTTP.parser)));
 
         nhttp->setPendingError(HTTP::ERROR_RESPONSE);
 
@@ -543,7 +543,7 @@ bool HTTP::createConnection()
                                  0, m_Net))
         == NULL) {
 
-        printf("[Socket] Cant load socket (new)\n");
+        ndm_log(NDM_LOG_ERROR, "HTTP", "Can't load socket (new)");
         if (m_Delegate) {
             this->setPendingError(ERROR_SOCKET);
         }
@@ -553,7 +553,7 @@ bool HTTP::createConnection()
     if (APE_socket_connect(socket, m_Request->getPort(), m_Request->getHost(),
                            0)
         == -1) {
-        printf("[Socket] Cant connect (0)\n");
+        ndm_log(NDM_LOG_ERROR, "HTTP", "Can't connect (0)");
         if (m_Delegate) {
             this->setPendingError(ERROR_SOCKET);
         }

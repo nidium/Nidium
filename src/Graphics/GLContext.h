@@ -12,7 +12,6 @@
 #include "Interface/UIInterface.h"
 
 #include "Frontend/Context.h"
-#include "Macros.h"
 
 typedef void *SDL_GLContext;
 
@@ -55,7 +54,8 @@ namespace Graphics {
         (IFACE)->m_Interface->fFunctions.f##X;                           \
         if ((__err = (IFACE)->m_Interface->fFunctions.fGetError())       \
             != GR_GL_NO_ERROR) {                                         \
-            NUI_LOG("[Nidium GL Error : gl%s() returned %d", #X, __err); \
+            ndm_logf(NDM_LOG_ERROR, "GLError",                           \
+                     "gl%s() returned %d", #X, __err);                   \
         }                                                                \
     } while (false)
 
@@ -66,7 +66,8 @@ namespace Graphics {
         (RET) = (IFACE)->m_Interface->fFunctions.f##X;                   \
         if ((__err = (IFACE)->m_Interface->fFunctions.fGetError())       \
             != GR_GL_NO_ERROR) {                                         \
-            NUI_LOG("[Nidium GL Error : gl%s() returned %d", #X, __err); \
+            ndm_logf(NDM_LOG_ERROR, "GLError",                           \
+                     "gl%s() returned %d", #X, __err);                   \
         }                                                                \
     } while (false)
 #endif
@@ -114,19 +115,19 @@ public:
 
         /* The new context share with the "main" GL context */
         if (!m_UI->makeMainGLCurrent()) {
-            NUI_LOG("Cant make main current");
+            ndm_log(NDM_LOG_ERROR, "GLContext", "Can't make main current");
         }
 
         m_SDLGLCtx = m_UI->createSharedContext(webgl);
         if (m_SDLGLCtx == NULL) {
-            NUI_LOG("Cant create context");
+            ndm_log(NDM_LOG_ERROR, "GLContext", "Can't create context");
         }
 
         this->createInterface();
 
         /* Restore to the old GL Context */
         if (!m_UI->makeGLCurrent(oldctx)) {
-            NUI_LOG("Cant restore old ctx");
+            ndm_log(NDM_LOG_ERROR, "GLContext", "Can't restore old ctx");
         }
     }
 
@@ -183,9 +184,9 @@ private:
         m_Interface = GrGLCreateNativeInterface();
 
         if (!m_Interface) {
-            printf(
-                "[Fatal OpenGL Error] Failed to create GrGL "
-                "Interface...exiting\n");
+            ndm_log(NDM_LOG_ERROR, "GLContext",
+                "Fatal OpenGL Error: Failed to create GrGL "
+                "Interface...exiting");
             exit(1);
         }
         // TODO: new style cast

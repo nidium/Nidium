@@ -12,7 +12,6 @@
 #include <SkGradientShader.h>
 
 #include "Graphics/SkiaContext.h"
-#include "Macros.h"
 
 namespace Nidium {
 namespace Graphics {
@@ -87,7 +86,7 @@ sk_sp<SkShader> Gradient::build()
     if (m_ColorsStop.count < 2) {
         m_CurrentShader = nullptr;
         m_NeedUpdate = 0;
-        printf("Building gradient with invalid number of (addColorStop) : %d\n",
+        ndm_logf(NDM_LOG_WARN, "Gradient", "Building gradient with invalid number of (addColorStop) : %d",
                m_ColorsStop.count);
         return NULL;
     }
@@ -124,7 +123,7 @@ sk_sp<SkShader> Gradient::build()
 Gradient::~Gradient()
 {
     // if (currentShader)
-    // NUI_LOG("Free gradient %d for %p", (currentShader ?
+    // ndm_printf("Free gradient %d for %p", (currentShader ?
     // currentShader->getRefCnt() : 0),
     // currentShader);
     free(m_ColorsStop.items);

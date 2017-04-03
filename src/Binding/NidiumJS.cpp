@@ -105,7 +105,7 @@ JSObject *NidiumJS::readStructuredCloneOp(JSContext *cx,
 
             JS::AutoObjectVector scopeChain(cx);
 
-            bool cret = JS::CompileFunction(cx, scopeChain, options, 
+            bool cret = JS::CompileFunction(cx, scopeChain, options,
                             NULL, 0, NULL, pdata,
                             strlen(pdata), &cf);
 
@@ -260,7 +260,7 @@ void NidiumJS::SetJSRuntimeOptions(JSRuntime *rt, bool strictmode)
 #if 0
 static void _gc_callback(JSRuntime *rt, JSGCStatus status, void *data)
 {
-    printf("Got gcd\n");
+    ndm_log(NDM_LOG_DEBUG, "Nidium", "Got gcd");
 }
 #endif
 
@@ -465,7 +465,7 @@ NidiumJS::~NidiumJS()
 {
     JSRuntime *rt;
     rt         = JS_GetRuntime(m_Cx);
-    
+
     NidiumLocalContext *nlc = NidiumLocalContext::Get();
     nlc->shutdown();
 
@@ -576,13 +576,13 @@ int NidiumJS::LoadScriptReturn(JSContext *cx,
     free(func);
 
     if (!cret) {
-        printf("Cant load script %s\n", filename);
+        ndm_logf(NDM_LOG_ERROR, "Nidium", "Can't load script %s", filename);
         return 0;
     }
 
     if (JS_CallFunction(cx, gbl, cf, JS::HandleValueArray::empty(), ret)
         == false) {
-        printf("Got an error?\n"); /* or thread has ended */
+        ndm_log(NDM_LOG_ERROR, "Nidium", "Got an error?"); /* or thread has ended */
 
         return 0;
     }
@@ -673,7 +673,7 @@ char *NidiumJS::LoadScriptContentAndGetResult(const char *data,
     JS::RootedObject gbl(m_Cx, JS::CurrentGlobalOrNull(m_Cx));
 
     if (!gbl) {
-        fprintf(stderr, "Failed to load global object\n");
+        ndm_log(NDM_LOG_ERROR, "Nidium", "Failed to load global object");
         return NULL;
     }
 

@@ -76,7 +76,7 @@ int main(int argc, char **argv)
     }
 
     if ((hostaddr = gethostbyname(NIDIUM_CRASH_COLLECTOR_HOST)) == NULL) {
-        fprintf(stderr, "Unable to get host\n");
+        fprintf(stderr, "Unable to get ip of %s host\n", NIDIUM_CRASH_COLLECTOR_HOST);
         return -2;
     }
 
@@ -120,7 +120,7 @@ int main(int argc, char **argv)
     SEND("Host: "NIDIUM_CRASH_COLLECTOR_HOST"\r\n");
     SEND(cl_header);
     SEND("Content-Type: multipart/form-data; boundary="HTTP_BOUNDARY"\r\n\r\n");
-    //fprintf(stdout, "%s\n", data);
+    //fprintf(stderr, "CrashData=%s\n", data);
     SEND(data);
     send(sock, minidump, minidum_size, 0);
     SEND(HTTP_BOUNDARY_END)
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
     len = recv(sock, reply_buffer, MAX_RCV_LEN, 0);
     reply_buffer[len] = '\0';
 
-    fprintf(stdout, "reply=%d\n%s\n", len, reply_buffer);
+    fprintf(stderr, "reply (%d) %s\n", len, reply_buffer);
 
     close(sock);
     free(minidump);
