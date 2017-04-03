@@ -867,7 +867,7 @@ bool JSSocket::JS_connect(JSContext *cx, JS::CallArgs &args)
 
     return true;
 }
-
+#ifndef _MSC_VER
 bool JSSocketClientConnection::JS_sendFile(JSContext *cx, JS::CallArgs &args)
 {
     JS::RootedString file(cx);
@@ -888,6 +888,7 @@ bool JSSocketClientConnection::JS_sendFile(JSContext *cx, JS::CallArgs &args)
 
     return true;
 }
+#endif
 
 bool JSSocketClientConnection::JS_write(JSContext *cx, JS::CallArgs &args)
 {
@@ -994,7 +995,9 @@ void JSSocket::RegisterObject(JSContext *cx)
 JSFunctionSpec *JSSocketClientConnection::ListMethods()
 {
     static JSFunctionSpec funcs[] = {
+#ifndef _MSC_VER
         CLASSMAPPER_FN(JSSocketClientConnection, sendFile, 1),
+#endif
         CLASSMAPPER_FN(JSSocketClientConnection, write, 1),
         CLASSMAPPER_FN(JSSocketClientConnection, disconnect, 0),
         JS_FS_END

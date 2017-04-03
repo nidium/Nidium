@@ -235,6 +235,21 @@ Connect the socket to the tuple host and port that were specified in the constru
     ReturnDoc( "The socket, for chaining", "Socket" )
 )
 
+FunctionDoc( "Socket.sendFile", """Send a file to a client.
+
+Send a file via the 'sendfile' system call. This is not available on windows.""",
+    SeesDocs( "Socket.listen|Socket.connect|Socket.write|Socket.disconnect|Socket.SendTo|SocketClient.disconnect|HTTPServer" ),
+     [ExampleDoc("""var client = new Socket("nidium.com", 80).connect();
+socket.onconnect = function(clientSocket) {
+    clientSocket.sendFile("document.docx");
+    clientSocket.disconnect()
+}""", runCode=False) ],
+    IS_Dynamic, IS_Public, IS_Fast,
+    [ParamDoc( "mode", "Conncection mode. Allowed values are: 'tcp'|'udp'|'ssl'|'unix'|'tcp-lz4'", "string", 'tcp', IS_Optional ) ],
+    ReturnDoc( "The socket, for chaining", "Socket" )
+)
+
+
 FunctionDoc( "SocketClient.write", """Write data to a connected server/client socket.
 
 If 'Socket.write' returns 0, the data is internally saved and sent as soon as possible.

@@ -177,10 +177,11 @@ public:
 
     static JSFunctionSpec *ListMethods();
 protected:
-
+#ifndef _MSC_VER
+    NIDIUM_DECL_JSCALL(sendFile);
+#endif
     NIDIUM_DECL_JSCALL(write);
     NIDIUM_DECL_JSCALL(disconnect);
-    NIDIUM_DECL_JSCALL(sendFile);
 };
 
 } // namespace Binding
