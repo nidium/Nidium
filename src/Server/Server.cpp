@@ -46,7 +46,9 @@ typedef int pid_t;
 using Nidium::Binding::NidiumJS;
 using Nidium::Binding::JSProcess;
 
+extern "C" {
 unsigned long _ape_seed;
+}
 
 namespace Nidium {
 namespace Server {
