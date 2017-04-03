@@ -53,7 +53,6 @@ typedef struct pthread_mutex_t_ * pthread_mutex_t;
 char* strsep(char** stringp, const char* delim);
 //http://stackoverflow.com/questions/6062822/whats-wrong-with-strndup
 char *strndup(char *str, size_t chars);
-int vasprintf(char **strp, const char *fmt, va_list ap);
 int asprintf(char **strp, const char *fmt, ...);
 
 namespace Nidium {
