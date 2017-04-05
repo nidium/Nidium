@@ -1,0 +1,29 @@
+--- mozilla-central.org/js/src/jsmath.cpp	2017-04-05 22:56:41 +0200
++++ mozilla-central/js/src/jsmath.cpp	2017-04-05 22:57:30 +0200
+@@ -1060,12 +1060,14 @@
+     return math_function<math_log10_impl>(cx, argc, vp);
+ }
+ 
+-#if !HAVE_LOG2
++#if !HAVE_LOG2 
++#ifndef _MSC_VER
+ double log2(double x)
+ {
+     return log(x) / M_LN2;
+ }
+ #endif
++#endif
+ 
+ double
+ js::math_log2_impl(MathCache* cache, double x)
+--- mozilla-central.org/js/src/configure	2017-04-05 23:13:26 +0200
++++ mozilla-central/js/src/configure	2017-04-05 22:26:39 +0200
+@@ -15818,7 +15818,7 @@
+     MOZ_ICU_VERSION="$version"
+ 
+     if test "$OS_TARGET" = WINNT; then
+-        MOZ_SHARED_ICU=1
++        MOZ_SHARED_ICU=0
+     fi
+ 
+     if test -z "${JS_STANDALONE}" -a -n "${JS_SHARED_LIBRARY}${MOZ_NATIVE_ICU}"; then

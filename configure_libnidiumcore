@@ -81,7 +81,7 @@ def libnspr():
     ext = '.a'
     if Platform.system == "Windows":
         ext = '.lib'
-        make = "mozmake"
+        make = "mozmake -j1"
         configure = "bash ./configure --enable-static-rtl "
     else:
         make = "make"
@@ -104,6 +104,7 @@ def mozilla():
     nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/")).replace('\\', '/')
     nsprFlags = '--with-nspr-cflags="-I%s/dist/include/nspr/"' % (nsprDir)
     if Platform.system == "Windows":
+        patch = [os.path.join(CONFIGURE_PATH, "patch", "mozilla-central.windows.patch")]
         make = "mozmake"
         configure = "bash ../configure --enable-build-backend=VisualStudio"
         if Platform.wordSize == 64:
@@ -114,11 +115,13 @@ def mozilla():
                 + ["mfbt/staticruntime/%s.obj" % (l) for l in ["Compression", "Decimal", "Unified_cpp_mfbt_staticruntime0"] ]
     else:
         make = "make"
+        patch = []
         configure = "../configure"
         nsprFlags += ' --with-nspr-libs="-L%s/dist/lib/ -lnspr4 -lplds4 -lplc4"' % (nsprDir)
         outputs = ["mozglue/build/libmozglue.a$", "js/src/libjs_static.a$"]
     configure += " --disable-shared-js \
                    --disable-jemalloc \
+                   --disable-tests \
                    --enable-ctypes %s" % (nsprFlags)
     if Konstruct.config("debug", "valgrind"):
         configure += " --enable-debug --disable-optimize"
@@ -132,6 +135,7 @@ def mozilla():
         "chdir": "js/src/obj",
         "location": DEPEDENCY_REPO + "/mozjs-45.5.3.tar.bz2",
         "build": [configure, make],
+        "patchs": patch,
         "outputs": outputs + ["js/src/js-config.h$"]
     }
 
