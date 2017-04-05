@@ -154,8 +154,16 @@ void UIInterface::handleEvent(const SDL_Event *event)
             this->getScreenSize(&width, &height);
             float pixelRatio = Interface::SystemInterface::GetInstance()->backingStorePixelRatio();
 
-            int x = (event->tfinger.x * width) / pixelRatio;
-            int y = (event->tfinger.y * height) / pixelRatio;
+            /*
+                The positions returned by SDL are relative to the view. It's
+                possible for a touch start or end event to be received with
+                a position slightly outside the bounds of the view.
+            */
+            float normalizedX = nidium_min(nidium_max(event->tfinger.x, 1), 0);
+            float normalizedY = nidium_min(nidium_max(event->tfinger.y, 1), 0);
+
+            int x = (normalizedX * width) / pixelRatio;
+            int y = (normalizedY * height) / pixelRatio;
 
             InputEvent::Type eventType = InputEvent::kTouchMove_Type;
             if (event->type != SDL_FINGERMOTION) {
