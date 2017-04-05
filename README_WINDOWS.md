@@ -97,20 +97,6 @@ To build spidermonkey we well reuse parts of the mozilla buildprocess, this has 
 * Standard this comes with python 2.7.11 Which has a problem with urllib and https. And konstructor.py needs that.
 * Move the directory c:\mozilla-build\python to c:\mozilla-build\python-2.7.11 (or remove it)
 
-## svn
-
-Angle will start depot_tools to download svn.
-For some reason that fails, let's install it manually.
-
-* Download from https://storage.googleapis.com/chrome-infra/svn_bin.zip.
-* Install and put it in your path
-
-```
-cd c:\Data\ProgramFiles\
-c:\mozilla-build\7zip\7z.exe x c:\Data\Downloads\svn_bin.zip
-set PATH=%PATH;C:\Data\ProgramFiles\svn_bin
-```
-
 # python
 
 The konstruktor.py script is written in python.
@@ -118,6 +104,7 @@ The konstruktor.py script is written in python.
 * Download from https://www.python.org/downloads/release/python-2713/
   you can pick any version as long as it is higher the 2.7.11 and lower then 2.8 
 * Install this in 'c:\mozilla-build\python'
+* Install for "Current user only" otherwise you'll run into issues when installing pywin32 later
 * It is wise to update pip
 
 ```
@@ -141,7 +128,7 @@ We probably don't need mercurial.
 ```
 c:\mozilla-build\python\python.exe -m pip install virtualenv
 ```
-We might not need virtualbox, as mozilla-central provides an older version as well. 
+We might not need virtualenv, as mozilla-central provides an older version as well. 
 
 
 # pywin32
@@ -150,6 +137,22 @@ The 'konstruktor.py' script does a lot of filesystem operations, pywin32 makes t
  
 * Download from https://sourceforge.net/projects/pywin32/files/pywin32/, sorry about that...
 * Install and choose c:\mozilla-build\python 
+
+## svn
+
+Angle will start depot_tools to download svn.
+For some reason that fails, let's install it manually.
+
+* Download from https://storage.googleapis.com/chrome-infra/svn_bin.zip.
+* Install and put it in your path
+
+```
+cd c:\Data\ProgramFiles\
+c:\mozilla-build\7zip\7z.exe x c:\Data\Downloads\svn_bin.zip
+set PATH=%PATH;C:\Data\ProgramFiles\svn_bin
+// If you are using powershell
+$env:Path +=";c:\Users\efyx\Desktop\svn_bin\"
+```
 
 # cmake
 
