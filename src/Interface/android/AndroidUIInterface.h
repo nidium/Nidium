@@ -8,6 +8,7 @@
 
 #include "UIInterface.h"
 #include "Core/Messages.h"
+#include "Frontend/InputHandler.h"
 #include <jnipp.h>
 
 namespace Nidium {
@@ -71,6 +72,20 @@ private:
     {
         kAndroidMessage_scroll
     };
+
+    struct AndroidScrollMessage {
+        int x;
+        int y;
+        int velocityX;
+        int velocityY;
+        Frontend::InputEvent::ScrollState state;
+
+        AndroidScrollMessage(int x, int y,
+                             int velocityX, int velocityY,
+                             Frontend::InputEvent::ScrollState state)
+            : x(x), y(y), velocityX(velocityX), velocityY(velocityY), state(state) { };
+    };
+
     DummyConsole *m_Console;
     int toLogicalSize(int physicalSize);
 };

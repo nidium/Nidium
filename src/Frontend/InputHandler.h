@@ -54,6 +54,13 @@ public:
         kScroll_type
     };
 
+    enum ScrollState
+    {
+        kScrollState_start = 0,
+        kScrollState_move,
+        kScrollState_end
+    };
+
     InputEvent(Type type,
                int ix,
                int iy,
@@ -184,13 +191,16 @@ private:
 class InputHandler
 {
 public:
-    void pushEvent(InputEvent *ev);
+    void pushEvent(InputEvent &ev)
+    {
+        m_PendingInputEvents->push_back(std::move(ev));
+    }
 
     void clear();
 
-    InputEvent *getEvents() const
+    std::vector<InputEvent> *getEvents() const
     {
-        return m_InputEvents.head;
+        return m_InputEvents;
     }
 
     void setCurrentClickedHandler(Graphics::CanvasHandler *handler)
@@ -238,11 +248,9 @@ public:
     std::shared_ptr<InputTouch> getKnownTouch(InputTouch::TouchID touch);
 
 private:
-    struct
-    {
-        InputEvent *head = NULL;
-        InputEvent *queue = NULL;
-    } m_InputEvents;
+    std::vector<InputEvent> m_InputEventsBuffer[2];
+    std::vector<InputEvent> *m_InputEvents        = &m_InputEventsBuffer[0];
+    std::vector<InputEvent> *m_PendingInputEvents = &m_InputEventsBuffer[1];
 
     std::vector<std::shared_ptr<InputTouch>> m_Touches {};
     std::set<std::shared_ptr<InputTouch>> m_ChangedTouches {};

@@ -155,9 +155,9 @@ void JSWindow::mouseWheel(int xrel, int yrel, int x, int y)
     JSAutoRequest ar(m_Cx);
 
     Context *nctx  = Context::GetObject<Frontend::Context>(m_Cx);
-    InputEvent *ev = new InputEvent(InputEvent::kMouseWheel_Type, x, y);
-    ev->setData(0, xrel);
-    ev->setData(1, yrel);
+    InputEvent ev(InputEvent::kMouseWheel_Type, x, y);
+    ev.setData(0, xrel);
+    ev.setData(1, yrel);
 
     nctx->getInputHandler()->pushEvent(ev);
 
@@ -290,11 +290,11 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &MouseEvent_class));
 
     Context *nctx  = Context::GetObject<Frontend::Context>(m_Cx);
-    InputEvent *ev = new InputEvent(state ? InputEvent::kMouseClick_Type
-                                          : InputEvent::kMouseClickRelease_Type,
-                                    x, y);
+    InputEvent ev(state ? InputEvent::kMouseClick_Type
+                        : InputEvent::kMouseClickRelease_Type,
+                  x, y);
 
-    ev->setData(0, button);
+    ev.setData(0, button);
 
     nctx->getInputHandler()->pushEvent(ev);
 
@@ -304,10 +304,9 @@ void JSWindow::mouseClick(int x, int y, int state, int button, int clicks)
         Only trigger for even number on release.
     */
     if (clicks % 2 == 0 && !state) {
-        InputEvent *dcEv
-            = new InputEvent(InputEvent::kMouseDoubleClick_Type, x, y);
+        InputEvent dcEv(InputEvent::kMouseDoubleClick_Type, x, y);
 
-        dcEv->setData(0, button);
+        dcEv.setData(0, button);
         nctx->getInputHandler()->pushEvent(dcEv);
     }
     JS::RootedValue xv(m_Cx, JS::Int32Value(x));
@@ -462,10 +461,10 @@ void JSWindow::mouseMove(int x, int y, int xrel, int yrel)
     rootHandler->m_MousePosition.yrel += yrel;
     rootHandler->m_MousePosition.consumed = false;
 
-    InputEvent *ev = new InputEvent(InputEvent::kMouseMove_Type, x, y);
+    InputEvent ev(InputEvent::kMouseMove_Type, x, y);
 
-    ev->setData(0, xrel);
-    ev->setData(1, yrel);
+    ev.setData(0, xrel);
+    ev.setData(1, yrel);
 
     nctx->getInputHandler()->pushEvent(ev);
 

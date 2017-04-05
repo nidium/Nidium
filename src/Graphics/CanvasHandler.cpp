@@ -455,9 +455,9 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
 */
 void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
 {
-    InputEvent *ev = m_NidiumContext->getInputHandler()->getEvents();
+    std::vector<InputEvent> *eventList = m_NidiumContext->getInputHandler()->getEvents();
 
-    if (ev == NULL) {
+    if (eventList->size() == 0) {
         return;
     }
 
@@ -486,13 +486,13 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
     /*
         Loop through all new events
     */
-    for (; ev != NULL; ev = ev->m_Next) {
+    for (auto &ev : *eventList) {
         /* This event is happening in a zone inside |this| canvas  */
-        if (ev->isInRect(actualRect)) {
+        if (ev.isInRect(actualRect)) {
             /*
                 Increment depth (Nth canvas affected by this event)
             */
-            ev->inc();
+            ev.inc();
 
             if (!evlist) {
                 evlist = ape_new_pool_list(0, 4);
@@ -502,7 +502,7 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
                Dupplicate the event and set |this|
                as the handler of the new event 
             */
-            InputEvent *dup = ev->dupWithHandler(this);
+            InputEvent *dup = ev.dupWithHandler(this);
 
             ape_pool_push(evlist, dup);
         }

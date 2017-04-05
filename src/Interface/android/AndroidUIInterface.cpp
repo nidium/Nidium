@@ -118,30 +118,38 @@ void AndroidUIInterface::runLoop()
 void AndroidUIInterface::onMessage(const Core::SharedMessages::Message &msg)
 {
     InputHandler *inputHandler = m_NidiumCtx->getInputHandler();
+    System *sys      = static_cast<System *>(SystemInterface::GetInstance());
+    float pixelRatio = sys->backingStorePixelRatio();
 
     switch (msg.event()) {
         case kAndroidMessage_scroll:
         {
-            InputEvent *ev = static_cast<InputEvent *>(msg.dataPtr());
-            __android_log_print(ANDROID_LOG_INFO, "Nidium", "onMessage adding event=%p state=%d", ev, ev->m_data[2]);
+            AndroidScrollMessage *info = static_cast<AndroidScrollMessage *>(msg.dataPtr());
+            InputEvent ev(InputEvent::kScroll_type,
+                          info->x / pixelRatio,
+                          info->y / pixelRatio);
+
+            ev.m_data[0] = info->velocityY;
+            ev.m_data[1] = info->velocityY;
+            ev.m_data[2] = info->state;
+
             inputHandler->pushEvent(ev);
+
+            delete info;
         }
     }
 }
 
-void AndroidUIInterface::onScroll(float x, float y, float velocityX, float velocityY, int state)
+void AndroidUIInterface::onScroll(float x, float y,
+                                  float velocityX, float velocityY,
+                                  int state)
 {
-    System *sys      = static_cast<System *>(SystemInterface::GetInstance());
-    float pixelRatio = sys->backingStorePixelRatio();
-    InputEvent *ev   = new InputEvent(InputEvent::kScroll_type,
-                                      x / pixelRatio,
-                                      y / pixelRatio);
+    AndroidScrollMessage *msg
+        = new AndroidScrollMessage(x, y,
+                                   velocityX, velocityY,
+                                   static_cast<InputEvent::ScrollState>(state));
 
-    ev->m_data[0] = velocityY;
-    ev->m_data[1] = velocityY;
-    ev->m_data[2] = state;
-
-    this->postMessage(ev, kAndroidMessage_scroll);
+    this->postMessage(msg, kAndroidMessage_scroll);
 }
 
 } // namespace Interface

@@ -4,31 +4,17 @@
 namespace Nidium {
 namespace Frontend {
 
-void InputHandler::pushEvent(InputEvent *ev)
-{
-    if (m_InputEvents.head == NULL) {
-        m_InputEvents.head = ev;
-    }
-
-    if (m_InputEvents.queue) {
-        m_InputEvents.queue->m_Next = ev;
-    }
-
-    m_InputEvents.queue = ev;
-}
-
 void InputHandler::clear()
 {
-    InputEvent *tmp;
-    for (InputEvent *ev = m_InputEvents.head; ev != NULL; ev = tmp) {
-        tmp = ev->m_Next;
-
-        delete (ev);
-    }
-    m_InputEvents.head  = NULL;
-    m_InputEvents.queue = NULL;
-
+    m_InputEvents->clear();
     m_ChangedTouches.clear();
+
+    /*
+        Switch pending events & processed events
+    */
+    std::vector<InputEvent> *tmp = m_InputEvents;
+    m_InputEvents = m_PendingInputEvents;
+    m_PendingInputEvents = tmp;
 }
 
 void InputHandler::addTouch(std::shared_ptr<InputTouch> touch)

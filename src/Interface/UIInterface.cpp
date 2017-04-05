@@ -172,8 +172,8 @@ void UIInterface::handleEvent(const SDL_Event *event)
                 inputHandler->rmKnownTouch(touchID);
             }
 
-            InputEvent *ev = new InputEvent(eventType, x, y);
-            ev->setTouch(touch);
+            InputEvent ev(eventType, x, y);
+            ev.setTouch(touch);
 
             inputHandler->pushEvent(ev);
         } break;
