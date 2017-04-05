@@ -86,21 +86,26 @@
             'conditions': [
                 ['OS=="win"', {
                     'ldflags': [
+                        '-OPT:REF'
                     ],
                     "link_settings": {
                         'libraries': [
-                            'Psapi.lib',
-                            'Winmm.lib',
-
-                            'http_parser.lib',
+                            # workaround for mozglue's missing static_runtime
+                            'Compression.obj', 'Decimal.obj', 'Unified_cpp_mfbt_staticruntime0.obj',
+                            'mozglue.lib',
                             'js_static.lib',
                             'icuin.lib',
                             'icuuc.lib',
-                            'libnspr4.lib',
-                            'mozglue.lib',
-                            'libleveldb.a',
+                            'icudt.lib',
+                            #workaround for missing JS_INIT -> causes 616 link warnings
+                            'Initialization.obj',
 
-                        ]
+                            'libnspr4.lib',
+                            'libplds4.lib',
+                            'libplc4.lib',
+                            'http_parser.lib',
+                            'libleveldb.a',
+                       ]
                     }
                 }],
                 ['OS=="mac"', {

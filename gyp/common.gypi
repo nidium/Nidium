@@ -55,11 +55,17 @@
         'msvs_settings': {
             'VCLinkerTool': {
                 'LinkTimeCodeGeneration': 1,
+                'SuppressStartupBanner': 'true',
+                'LinkIncremental': 0,
                 'SubSystem': '1',  # console app
-                "AdditionalLibraryDirectories": ["<(nidium_output_third_party_path)"]
+                "AdditionalLibraryDirectories": ["<(nidium_output_third_party_path)"],
             },
             'VCCLCompilerTool': {
                 'RuntimeLibrary': 2, #Multithreaded using DLL (msvcrt.lib)
+                'ExceptionHandling': 0,
+                'AdditionalOptions': [
+                    "/EHsc"
+                 ],
             },
         },
 

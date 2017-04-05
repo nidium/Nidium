@@ -78,7 +78,9 @@ def leveldb():
 
 @Deps.register("libnspr4")
 def libnspr():
+    ext = '.a'
     if Platform.system == "Windows":
+        ext = '.lib'
         make = "mozmake"
         configure = "bash ./configure --enable-static-rtl "
     else:
@@ -89,10 +91,11 @@ def libnspr():
     configure += " --disable-debug \
                    --enable-optimize \
                    --enable-strip"
+    outputs = [ "dist/lib/lib%s4%s" % (l, ext) for l in ['nspr', 'plc', 'plds']]
     return {
         "chdir": "mozilla-central/nsprpub/",
         "build": [configure, make],
-        "outputs": ["dist/lib/lib(plc|plds|nspr)4(.a|.lib)"]
+        "outputs": outputs
     }
 
 @Deps.register("mozilla-central")
@@ -106,8 +109,9 @@ def mozilla():
         if Platform.wordSize == 64:
             configure += " --target=x86_64-pc-mingw32 --host=x86_64-pc-mingw32"
         nsprFlags += ''' --with-nspr-libs="'%s/dist/lib/libnspr4' '%s/dist/lib/libplds4' '%s/dist/lib/libplc4'"''' % (nsprDir, nsprDir, nsprDir)
-        outputs = ["mozglue/build/mozglue.lib$", "js/src/js_static.lib$", 
-                    "intl/icu/target/lib/icuin.lib", "intl/icu/target/lib/icuuc.lib"]
+        outputs = ["mozglue/build/mozglue.lib$", "js/src/js_static.lib$", "js/src/Initialization.obj"] \
+                + ["intl/icu/target/lib/%s.lib" % (l) for l in ["icuin", "icuuc", "icudt"] ] \
+                + ["mfbt/staticruntime/%s.obj" % (l) for l in ["Compression", "Decimal", "Unified_cpp_mfbt_staticruntime0"] ]
     else:
         make = "make"
         configure = "../configure"

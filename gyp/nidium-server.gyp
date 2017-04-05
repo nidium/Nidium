@@ -34,13 +34,22 @@
                 ]
             }],
             ['OS=="win"', {
-                'ldflags': [
-                ],
                 'link_settings': {
                     'libraries': [
-                        'Shell32.lib',
-                        'Shlwapi.lib',
-                        'Kernel32.lib',
+
+                            'kernel32.lib',
+                            'user32.lib',
+                            'gdi32.lib',
+                            'winmm.lib',
+                            'wsock32.lib',
+                            'advapi32.lib',
+                            'psapi.lib',
+
+                                'dbghelp.lib',
+                                'delayimp.lib',
+                            'shell32.lib',
+                            'shlwapi.lib',
+
                         ]
                 },
                 'include_dirs': [
