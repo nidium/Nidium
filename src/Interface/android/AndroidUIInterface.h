@@ -7,6 +7,7 @@
 #define interface_linux_x11uiinterface_h__
 
 #include "UIInterface.h"
+#include "Core/Messages.h"
 #include <jnipp.h>
 
 namespace Nidium {
@@ -33,7 +34,8 @@ public:
 // }}}
 
 // {{{ AndroidUIInterface
-class AndroidUIInterface : public UIInterface
+class AndroidUIInterface : public UIInterface,
+                           public Nidium::Core::Messages
 {
     friend class DummyConsole;
 
@@ -54,6 +56,10 @@ public:
         return m_Console;
     }
 
+    void onScroll(float x, float y, float velocityX, float velocityY, int state);
+
+    void onMessage(const Core::SharedMessages::Message &msg) override;
+
 protected:
     void renderSystemTray() {};
     void setSystemCursor(CURSOR_TYPE cursor) override {};
@@ -61,6 +67,10 @@ protected:
     void onWindowCreated() override;
 
 private:
+    enum AndroidMessage
+    {
+        kAndroidMessage_scroll
+    };
     DummyConsole *m_Console;
     int toLogicalSize(int physicalSize);
 };

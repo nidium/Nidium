@@ -1,8 +1,11 @@
 package com.nidium.android;
 
 import android.os.Bundle;
+import android.support.v4.view.GestureDetectorCompat;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 
@@ -15,6 +18,10 @@ import java.io.File;
  */
 
 public class NidiumActivity extends SDLActivity {
+
+    private final static String TAG = "NidiumActivity";
+    private String mNml;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         mNml = getIntent().getStringExtra("nml");
@@ -38,8 +45,6 @@ public class NidiumActivity extends SDLActivity {
     protected String[] getArguments() {
         return new String[] {mNml};
     }
-
-    private String mNml;
 
     static {
         System.loadLibrary("nidium_android");

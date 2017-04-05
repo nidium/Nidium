@@ -18,13 +18,20 @@
 
 #include "System.h"
 #include "Frontend/Context.h"
+#include "Frontend/InputHandler.h"
 #include "Binding/JSWindow.h"
 
+#include <android/log.h>
 
 using Nidium::Binding::JSWindow;
+using Nidium::Frontend::InputEvent;
+using Nidium::Frontend::InputHandler;
 
 namespace Nidium {
 namespace Interface {
+
+extern UIInterface *__NidiumUI;
+
 AndroidUIInterface::AndroidUIInterface()
     : UIInterface(), m_Console(NULL)
 {
@@ -107,5 +114,48 @@ void AndroidUIInterface::runLoop()
                      static_cast<void *>(this));
     APE_loop_run(m_Gnet);
 }
+
+void AndroidUIInterface::onMessage(const Core::SharedMessages::Message &msg)
+{
+    InputHandler *inputHandler = m_NidiumCtx->getInputHandler();
+
+    switch (msg.event()) {
+        case kAndroidMessage_scroll:
+        {
+            InputEvent *ev = static_cast<InputEvent *>(msg.dataPtr());
+            __android_log_print(ANDROID_LOG_INFO, "Nidium", "onMessage adding event=%p state=%d", ev, ev->m_data[2]);
+            inputHandler->pushEvent(ev);
+        }
+    }
+}
+
+void AndroidUIInterface::onScroll(float x, float y, float velocityX, float velocityY, int state)
+{
+    System *sys      = static_cast<System *>(SystemInterface::GetInstance());
+    float pixelRatio = sys->backingStorePixelRatio();
+    InputEvent *ev   = new InputEvent(InputEvent::kScroll_type,
+                                      x / pixelRatio,
+                                      y / pixelRatio);
+
+    ev->m_data[0] = velocityY;
+    ev->m_data[1] = velocityY;
+    ev->m_data[2] = state;
+
+    this->postMessage(ev, kAndroidMessage_scroll);
+}
+
 } // namespace Interface
 } // namespace Nidium
+
+#define NIDIUM_ANDROID_UI static_cast<Nidium::Interface::AndroidUIInterface *>(Nidium::Interface::__NidiumUI)
+// Called before SDL_main, used to setup System class for Nidium
+extern "C" void Java_com_nidium_android_Nidroid_nidiumInit(JNIEnv *env, jobject thiz, jobject nidroid)
+{
+    Nidium::Interface::SystemInterface::_interface = new Nidium::Interface::System(env, nidroid);
+}
+
+extern "C" void Java_com_nidium_android_Nidroid_onScroll(JNIEnv *env, jobject thiz, float x, float y, float velocityX, float velocityY, int state)
+{
+    NIDIUM_ANDROID_UI->onScroll(x, y, velocityX, velocityY, state);
+}
+#undef NIDIUM_ANDROID_UI

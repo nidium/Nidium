@@ -123,6 +123,7 @@ public:
         MOUSE_EVENT,
         TOUCH_EVENT,
         DRAG_EVENT,
+        SCROLL_EVENT,
         PAINT_EVENT,
         MOUNT_EVENT,
         UNMOUNT_EVENT

@@ -9,27 +9,91 @@ import android.content.res.Resources;
 import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.view.GestureDetectorCompat;
+import android.text.method.Touch;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.SurfaceView;
-
-import org.libsdl.app.SDLActivity;
+import android.view.View;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Locale;
 
 public class Nidroid {
+    private GestureDetectorCompat mDetector;
+    private boolean mIsScrolling = false;
     Context mCx = null;
     Activity mActivity = null;
     SurfaceView mSurface = null;
     Handler mMainHandler;
     static final String TAG = "Nidroid";
+    public class TouchState {
+        public static final int START = 0;
+        public static final int MOVE = 1;
+        public static final int END = 2;
+    };
 
-    public Nidroid(Activity a, SurfaceView v) {
+    public Nidroid(Activity a, SurfaceView v, final Method sdlOnTouch) {
         mCx = a.getApplicationContext();
         mActivity = a;
         mSurface = v;
+
         mMainHandler = new Handler(mCx.getMainLooper());
+
+        // Override SDL onTouch listener so we can process scroll/fling gesture
+        v.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                mDetector.onTouchEvent(event);
+
+                // Invoke original SDL onTouch method
+                try {
+                    sdlOnTouch.invoke(mSurface, v, event);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+
+                // XXX : This needs to be tested with multitouch
+                if ((event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) && mIsScrolling) {
+                    Nidroid.onScroll(event.getX(), event.getY(), 0, 0, TouchState.END);
+                    mIsScrolling = false;
+                }
+
+                return true;
+            }
+        });
+
+        mMainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mDetector = new GestureDetectorCompat(mCx, new GestureDetector.SimpleOnGestureListener() {
+                    @Override
+                    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+                        if (!mIsScrolling) {
+                            Nidroid.onScroll(e1.getX(), e1.getY(), 0, 0, TouchState.START);
+                        }
+
+                        Nidroid.onScroll(e2.getX(), e2.getY(), 0, 0, TouchState.MOVE);
+
+                        mIsScrolling = true;
+
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                        Nidroid.onScroll(e2.getX(), e2.getY(), velocityX, velocityY, TouchState.END);
+                        return true;
+                    }
+                });
+            }
+        });
     }
 
     static double getPixelRatio()
@@ -104,4 +168,5 @@ public class Nidroid {
     }
 
     public static native void nidiumInit(Nidroid n);
+    public static native void onScroll(float x, float y, float velocityX, float velocityY, int state);
 }

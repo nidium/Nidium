@@ -1433,6 +1433,15 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                 arg[6].set(ev->m_y - m_aTop);  // layerY
                 arg[7].set(this);              // target
                 break;
+            case InputEvent::kScroll_type:
+                canvasEvent = SCROLL_EVENT;
+                arg[0].set(ev->getType());
+                arg[1].set(ev->m_x);
+                arg[2].set(ev->m_y);
+                arg[3].set(ev->m_data[0]);     // velocityY
+                arg[4].set(ev->m_data[1]);     // velocityY
+                arg[5].set(ev->m_data[2]);     // state
+                break;
             case InputEvent::kTouchStart_Type:
             case InputEvent::kTouchEnd_Type:
             case InputEvent::kTouchMove_Type: {

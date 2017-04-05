@@ -1039,7 +1039,14 @@ class SDLMain implements Runnable {
     }
     @Override
     public void run() {
-        Nidroid n = new Nidroid(mActivity, mView);
+        Method onTouch;
+        try {
+            onTouch = mView.getClass().getDeclaredMethod("onTouch", View.class, MotionEvent.class);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+            return;
+        }
+        Nidroid n = new Nidroid(mActivity, mView, onTouch);
         Nidroid.nidiumInit(n);
 
         // Runs SDL_main()

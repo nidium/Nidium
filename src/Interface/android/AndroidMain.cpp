@@ -30,12 +30,6 @@ namespace Interface {
 
 using namespace Nidium::Interface;
 
-// Called before SDL_main, used to setup System class for Nidium
-extern "C" void Java_com_nidium_android_Nidroid_nidiumInit(JNIEnv *env, jobject thiz, jobject nidroid)
-{
-    SystemInterface::_interface = new System(env, nidroid);
-}
-
 // Entry point called by SDL
 int main(int argc, char **argv)
 {

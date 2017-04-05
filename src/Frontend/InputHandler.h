@@ -29,7 +29,7 @@ namespace Frontend {
 static const char *InputEvent_Names[]
     = { "mousemove", "mousedown", "mouseup", "dblclick", "dragstart",
         "dragend",   "dragover",  "drop",    "drag",     "mousewheel",
-        "touchstart", "touchend", "touchmove" };
+        "touchstart", "touchend", "touchmove", "scroll" };
 
 class InputTouch;
 
@@ -50,7 +50,8 @@ public:
         kMouseWheel_Type,
         kTouchStart_Type,
         kTouchEnd_Type,
-        kTouchMove_Type
+        kTouchMove_Type,
+        kScroll_type
     };
 
     InputEvent(Type type,
@@ -123,7 +124,7 @@ public:
     }
 
     int m_x, m_y;
-    uint32_t m_data[8];
+    int m_data[8];
     InputEvent *m_Next;
     Graphics::CanvasHandler *m_PassThroughCanvas;
     Graphics::CanvasHandler *m_Handler;
