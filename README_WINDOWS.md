@@ -288,12 +288,9 @@ cd src\libapenetwork
 git fetch origin windows-x86
 git checkout windows-x86
 cd ..\..
-./configure_server
-```
-
-At this point there will be +-12 complilation errors, when they are resolved it is time for some testing.
-
-```
+./configure_server 
+# currently: it compiles and links with 616 warnings
+# workaround: copy some icu and nspr .dll's to /c/windows/system32
 ./configure_server --unit-tests --auto-tests --asume-yes
 ```
 

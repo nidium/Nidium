@@ -82,9 +82,9 @@ $ ./bin/nidium
 
 ### Windows
 
-To get nidium compiled on a windows system, there are many dependencies and tricks needed.
+To compile nidium from scratch on a windows system, there are several dependencies and tricks needed.
 This is a work in progress and it is not our top priority.
-Some of the steps are documented in the file README_WINDOWS.md
+The current status and the needed steps are documented in the file README_WINDOWS.md
 
 ## Documentation
 
