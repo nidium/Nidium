@@ -572,6 +572,46 @@ canvas.overflow = false; """)],
     NO_Default
 )
 
+FieldDoc("Canvas.scrollable", "Enable or disable scrolling on a canvas.",
+    SeesDocs("Canvas.scrollableX|Canvas.scrollableY"),
+    [ExampleDoc("""var c = new Canvas(200, 400);
+c.overflow = false;
+c.scrollableY = true;
+
+var c2 = new Canvas(200, 1000);
+c2.scrollable = false;
+
+var ctx = c2.getContext("2d");
+var grd = ctx.createLinearGradient(0,0,0,1000);
+grd.addColorStop(0,"blue");
+grd.addColorStop(1,"red");
+
+ctx.fillStyle = grd;
+ctx.fillRect(0, 0, 200, 1000);
+
+c.add(c2);
+document.canvas.add(c);""")],
+    IS_Dynamic, IS_Public, IS_ReadWrite,
+    "boolean",
+    "false"
+)
+
+FieldDoc("Canvas.scrollableX", "Enable or disable scrolling on X axis for a canvas.",
+    SeesDocs("Canvas.scrollable|Canvas.scrollableY"),
+    NO_Examples,
+    IS_Dynamic, IS_Public, IS_ReadWrite,
+    "boolean",
+    "false"
+)
+
+FieldDoc("Canvas.scrollableY", "Enable or disable scrolling on Y axis for a canvas.",
+    SeesDocs("Canvas.scrollable|Canvas.scrollableX"),
+    NO_Examples,
+    IS_Dynamic, IS_Public, IS_ReadWrite,
+    "boolean",
+    "false"
+)
+
 FieldDoc( "Canvas.coating", """Get or set the coating of a canvas.
 
 Coating is always surrounding the canvas and does not change its size.

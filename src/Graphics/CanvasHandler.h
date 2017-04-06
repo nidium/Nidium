@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "Core/Events.h"
+#include "Frontend/InputHandler.h"
 #include "Graphics/Geometry.h"
 
 
@@ -209,6 +210,13 @@ public:
     } m_MousePosition;
 
     bool m_Overflow;
+    bool m_ScrollableX = false;
+    bool m_ScrollableY = false;
+    struct CurrentScroll {
+        int x;
+        int y;
+        bool active = false;
+    } m_CurrentScroll;
 
     CanvasContext *getContext() const
     {
@@ -559,6 +567,11 @@ public:
 
     void setCursor(int cursor);
     int getCursor();
+
+    void scroll(int x, int y);
+    void onScroll(int x, int y,
+                  int velocityX, int velocityY,
+                  Frontend::InputEvent::ScrollState state);
 
     void invalidate()
     {

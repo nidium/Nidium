@@ -1060,6 +1060,54 @@ int CanvasHandler::getCursor()
     /* Inherit from parent when default */
     return m_Parent ? m_Parent->getCursor() : UIInterface::ARROW;
 }
+
+void CanvasHandler::scroll(int x, int y)
+{
+    if (m_ScrollableY) {
+        int pos = m_Content.scrollTop + (y - m_CurrentScroll.y);
+        int max = this->getContentHeight(true) - this->getHeight();
+
+        if (pos > max) pos = max;
+
+        this->setScrollTop(pos);
+    }
+
+    if (m_ScrollableX) {
+        int pos = m_Content.scrollLeft + (x - m_CurrentScroll.x);
+        int max = this->getContentWidth(true) - this->getWidth();
+
+        if (pos > max) pos = max;
+
+        this->setScrollLeft(pos);
+    }
+
+    m_CurrentScroll.x = x;
+    m_CurrentScroll.y = y;
+}
+
+void CanvasHandler::onScroll(int x, int y,
+                             int velocityX, int velocityY,
+                             InputEvent::ScrollState state)
+{
+    if (state != InputEvent::kScrollState_start && !m_CurrentScroll.active) {
+        return;
+    }
+
+    switch (state) {
+        case InputEvent::kScrollState_start:
+            m_CurrentScroll.active = true;
+            m_CurrentScroll.x = x;
+            m_CurrentScroll.y = y;
+            break;
+        case InputEvent::kScrollState_move:
+            this->scroll(x, y);
+            break;
+        case InputEvent::kScrollState_end:
+            this->scroll(x, y);
+            m_CurrentScroll.active = false;
+            break;
+    }
+}
 // }}}
 
 // {{{ Setters
@@ -1434,6 +1482,8 @@ bool CanvasHandler::_handleEvent(InputEvent *ev)
                 arg[7].set(this);              // target
                 break;
             case InputEvent::kScroll_type:
+                if (!handler->m_ScrollableX && !handler->m_ScrollableY) continue;
+
                 canvasEvent = SCROLL_EVENT;
                 arg[0].set(ev->getType());
                 arg[1].set(ev->m_x);

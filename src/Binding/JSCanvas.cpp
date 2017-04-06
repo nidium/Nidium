@@ -1120,6 +1120,61 @@ bool JSCanvas::JSSetter_overflow(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
+bool JSCanvas::JSGetter_scrollable(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->m_ScrollableX && m_CanvasHandler->m_ScrollableY);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_scrollable(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+        return true;
+    }
+
+    m_CanvasHandler->m_ScrollableX = vp.toBoolean();
+    m_CanvasHandler->m_ScrollableY = vp.toBoolean();
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_scrollableX(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->m_ScrollableX);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_scrollableX(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+        return true;
+    }
+
+    m_CanvasHandler->m_ScrollableX = vp.toBoolean();
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_scrollableY(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->m_ScrollableY);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_scrollableY(JSContext *cx, JS::MutableHandleValue vp)
+{
+    if (!vp.isBoolean()) {
+        return true;
+    }
+
+    m_CanvasHandler->m_ScrollableY = vp.toBoolean();
+
+    return true;
+}
+
 bool JSCanvas::JSGetter_scrollLeft(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setInt32(m_CanvasHandler->m_Content.scrollLeft);
@@ -1430,6 +1485,9 @@ JSPropertySpec *JSCanvas::ListProperties()
     static JSPropertySpec props[] = {
         CLASSMAPPER_PROP_GS(JSCanvas, opacity),
         CLASSMAPPER_PROP_GS(JSCanvas, overflow),
+        CLASSMAPPER_PROP_GS(JSCanvas, scrollable),
+        CLASSMAPPER_PROP_GS(JSCanvas, scrollableX),
+        CLASSMAPPER_PROP_GS(JSCanvas, scrollableY),
         CLASSMAPPER_PROP_GS(JSCanvas, scrollLeft),
         CLASSMAPPER_PROP_GS(JSCanvas, scrollTop),
         CLASSMAPPER_PROP_GS(JSCanvas, allowNegativeScroll),
@@ -1684,17 +1742,26 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
         } break;
         case NIDIUM_EVENT(CanvasHandler, SCROLL_EVENT): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
-            CanvasHandler *target
-                = static_cast<CanvasHandler *>(msg.m_Args[6].toPtr());
+
+            int x         = msg.m_Args[2].toInt();
+            int y         = msg.m_Args[3].toInt();
+            int velocityX = msg.m_Args[4].toInt();
+            int velocityY = msg.m_Args[5].toInt();
+            InputEvent::ScrollState state
+                = static_cast<InputEvent::ScrollState>(msg.m_Args[6].toInt());
+
             JSObjectBuilder obj(m_Cx, eventObj);
-            obj.set("x", msg.m_Args[2].toInt());
-            obj.set("y", msg.m_Args[3].toInt());
-            obj.set("velocityX", msg.m_Args[4].toInt());
-            obj.set("velocityY", msg.m_Args[5].toInt());
-            obj.set("state", msg.m_Args[6].toInt());
+            obj.set("x", x);
+            obj.set("y", y);
+            obj.set("velocityX", velocityX);
+            obj.set("velocityY", velocityY);
+            obj.set("state", state);
+
             if (!this->fireInputEvent(msg.m_Args[1].toInt(), eventObj, msg)) {
                 break;
             }
+
+            m_CanvasHandler->onScroll(x, y, velocityX, velocityY, state);
         } break;
         case NIDIUM_EVENT(CanvasHandler, TOUCH_EVENT): {
             Frontend::InputHandler *inputHandler
