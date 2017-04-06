@@ -13,9 +13,6 @@
 typedef struct pthread_mutex_t_ * pthread_mutex_t;
 #endif
 
-#ifndef usleep
-#define usleep Sleep
-#endif
 
 #define ftruncate _chsize
 #define getppid GetCurrentProcessId
