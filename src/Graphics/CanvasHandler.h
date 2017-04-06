@@ -568,6 +568,11 @@ public:
     void setCursor(int cursor);
     int getCursor();
 
+    bool isScrollable() {
+        return (m_ScrollableX && this->getWidth() < this->getContentWidth(true))
+                || (m_ScrollableY && this->getHeight() < this->getContentHeight(true));
+    }
+
     void scroll(int x, int y);
     void onScroll(int x, int y,
                   int velocityX, int velocityY,

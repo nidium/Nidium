@@ -132,6 +132,7 @@ void AndroidUIInterface::onMessage(const Core::SharedMessages::Message &msg)
             ev.m_data[0] = info->velocityY;
             ev.m_data[1] = info->velocityY;
             ev.m_data[2] = info->state;
+            ev.m_data[3] = 0; // consumed
 
             inputHandler->pushEvent(ev);
 

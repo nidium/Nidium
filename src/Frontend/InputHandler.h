@@ -213,6 +213,15 @@ public:
         return m_CurrentClickedHandler;
     }
 
+    void setCurrentScrollHandler(Graphics::CanvasHandler *handler)
+    {
+        this->m_CurrentScrollHandler = handler;
+    }
+
+    Graphics::CanvasHandler *getCurrentScrollHandler() {
+        return this->m_CurrentScrollHandler;
+    }
+
     void setCurrentTouchedHandler(unsigned int id, Graphics::CanvasHandler *handler);
     Graphics::CanvasHandler *getCurrentTouchHandler(unsigned int id);
 
@@ -258,6 +267,7 @@ private:
 
     std::vector<Graphics::CanvasHandler *> m_CurrentTouchedHandler {};
     Graphics::CanvasHandler *m_CurrentClickedHandler = nullptr;
+    Graphics::CanvasHandler *m_CurrentScrollHandler  = nullptr;
 };
 
 }
