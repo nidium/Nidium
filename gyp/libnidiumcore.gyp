@@ -42,7 +42,9 @@
 
             'msvs_settings': {
                 'VCCLCompilerTool': {
-                    'ForcedIncludeFiles': ['../src/Macros.h']
+                    'ForcedIncludeFiles': [
+                        '../src/Macros.h'
+                    ],
                 }
             },
             'xcode_settings': {
@@ -83,6 +85,12 @@
         'target_name': 'libnidiumcore-link',
         'type': 'none',
         'direct_dependent_settings': {
+            'msvs_settings': {
+                'VCLinkerTool': {
+                    "AdditionalOptions": [
+                    ],
+                },
+            },
             'conditions': [
                 ['OS=="win"', {
                     'ldflags': [
@@ -90,19 +98,29 @@
                     ],
                     "link_settings": {
                         'libraries': [
-                            # workaround for mozglue's missing static_runtime
-                            'Compression.obj', 'Decimal.obj', 'Unified_cpp_mfbt_staticruntime0.obj',
                             'mozglue.lib',
                             'js_static.lib',
-                            'icuin.lib',
-                            'icuuc.lib',
-                            'icudt.lib',
-                            #workaround for missing JS_INIT -> causes 616 link warnings
-                            'Initialization.obj',
-
                             'libnspr4.lib',
                             'libplds4.lib',
                             'libplc4.lib',
+                            'icuin.lib',
+                            'icuuc.lib',
+                            'icudt.lib',
+
+                            'winmm.lib',
+                            'wsock32.lib',
+                            'psapi.lib',
+
+                            '-lkernel32',
+
+                            'dbghelp.lib',
+                            'delayimp.lib',
+
+
+                            # workaround for mozglue's missing static_runtime
+                            'Compression.obj', 'Decimal.obj', 'Unified_cpp_mfbt_staticruntime0.obj',
+                            #workaround for missing JS_INIT -> causes 616 link warnings
+                            'Initialization.obj',
                             'http_parser.lib',
                             'libleveldb.a',
                        ]

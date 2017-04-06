@@ -20,6 +20,12 @@
             '<(nidium_src_path)/Server/REPL.cpp',
             '<(nidium_src_path)/Server/Context.cpp',
         ],
+        'msvs_settings': {
+            'VCLinkerTool': {
+                "AdditionalOptions": [
+                ],
+            },
+        },
         'conditions': [
             ['OS!="win"', {
                 'include_dirs': [
@@ -36,20 +42,8 @@
             ['OS=="win"', {
                 'link_settings': {
                     'libraries': [
-
-                            'kernel32.lib',
-                            'user32.lib',
-                            'gdi32.lib',
-                            'winmm.lib',
-                            'wsock32.lib',
-                            'advapi32.lib',
-                            'psapi.lib',
-
-                                'dbghelp.lib',
-                                'delayimp.lib',
                             'shell32.lib',
                             'shlwapi.lib',
-
                         ]
                 },
                 'include_dirs': [
