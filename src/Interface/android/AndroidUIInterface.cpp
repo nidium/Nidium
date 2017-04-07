@@ -20,6 +20,7 @@
 #include "Frontend/Context.h"
 #include "Frontend/InputHandler.h"
 #include "Binding/JSWindow.h"
+#include "Graphics/CanvasHandler.h"
 
 #include <android/log.h>
 
@@ -118,13 +119,12 @@ void AndroidUIInterface::runLoop()
 void AndroidUIInterface::onMessage(const Core::SharedMessages::Message &msg)
 {
     InputHandler *inputHandler = m_NidiumCtx->getInputHandler();
+    AndroidScrollMessage *info = static_cast<AndroidScrollMessage *>(msg.dataPtr());
     System *sys      = static_cast<System *>(SystemInterface::GetInstance());
     float pixelRatio = sys->backingStorePixelRatio();
 
     switch (msg.event()) {
-        case kAndroidMessage_scroll:
-        {
-            AndroidScrollMessage *info = static_cast<AndroidScrollMessage *>(msg.dataPtr());
+        case kAndroidMessage_scroll: {
             InputEvent ev(InputEvent::kScroll_type,
                           info->x / pixelRatio,
                           info->y / pixelRatio);
@@ -136,9 +136,20 @@ void AndroidUIInterface::onMessage(const Core::SharedMessages::Message &msg)
 
             inputHandler->pushEvent(ev);
 
-            delete info;
-        }
+        } break;
+        case kAndroidMessage_fling: {
+            Graphics::CanvasHandler *handler = inputHandler->getCurrentScrollHandler();
+
+            if (!handler) return;
+
+            int x = info->x / pixelRatio;
+            int y = info->y / pixelRatio;
+
+            handler->onScroll(x, y, 0, 0, info->state);
+        } break;
     }
+
+    delete info;
 }
 
 void AndroidUIInterface::onScroll(float x, float y,
@@ -153,6 +164,19 @@ void AndroidUIInterface::onScroll(float x, float y,
     this->postMessage(msg, kAndroidMessage_scroll);
 }
 
+void AndroidUIInterface::onFlingUpdate(int scrollX, int scrollY, bool finished)
+{
+
+    AndroidScrollMessage *msg
+        = new AndroidScrollMessage(scrollX, scrollY,
+                                   0, 0,
+                                   finished
+                                        ? InputEvent::kScrollState_end
+                                        : InputEvent::kScrollState_move);
+
+    this->postMessage(msg, kAndroidMessage_fling);
+}
+
 } // namespace Interface
 } // namespace Nidium
 
@@ -163,8 +187,18 @@ extern "C" void Java_com_nidium_android_Nidroid_nidiumInit(JNIEnv *env, jobject 
     Nidium::Interface::SystemInterface::_interface = new Nidium::Interface::System(env, nidroid);
 }
 
-extern "C" void Java_com_nidium_android_Nidroid_onScroll(JNIEnv *env, jobject thiz, float x, float y, float velocityX, float velocityY, int state)
+extern "C" void Java_com_nidium_android_Nidroid_onScroll(JNIEnv *env, jobject thiz,
+                                                         float x, float y,
+                                                         float velocityX, float velocityY,
+                                                         int state)
 {
     NIDIUM_ANDROID_UI->onScroll(x, y, velocityX, velocityY, state);
+}
+
+extern "C" void Java_com_nidium_android_Nidroid_onFlingUpdate(JNIEnv *env, jobject thiz,
+                                                              int scrollX, int scrollY,
+                                                              bool finished)
+{
+    NIDIUM_ANDROID_UI->onFlingUpdate(scrollX, scrollY, finished);
 }
 #undef NIDIUM_ANDROID_UI

@@ -17,20 +17,24 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Scroller;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Locale;
 
-public class Nidroid {
+public class Nidroid implements Flinger.Listener {
     private GestureDetectorCompat mDetector;
     private boolean mIsScrolling = false;
+    private Flinger mFlinger = null;
     Context mCx = null;
     Activity mActivity = null;
     SurfaceView mSurface = null;
     Handler mMainHandler;
     static final String TAG = "Nidroid";
+
+
     public class TouchState {
         public static final int START = 0;
         public static final int MOVE = 1;
@@ -48,7 +52,12 @@ public class Nidroid {
         v.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                mDetector.onTouchEvent(event);
+                if (mFlinger != null) {
+                    mFlinger.forceFinished();
+                    mFlinger = null;
+                }
+
+                boolean consumed = mDetector.onTouchEvent(event);
 
                 // Invoke original SDL onTouch method
                 try {
@@ -59,8 +68,7 @@ public class Nidroid {
                     e.printStackTrace();
                 }
 
-                // XXX : This needs to be tested with multitouch
-                if ((event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) && mIsScrolling) {
+                if ((event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) && mIsScrolling && !consumed) {
                     Nidroid.onScroll(event.getX(), event.getY(), 0, 0, TouchState.END);
                     mIsScrolling = false;
                 }
@@ -88,12 +96,36 @@ public class Nidroid {
 
                     @Override
                     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                        Nidroid.onScroll(e2.getX(), e2.getY(), velocityX, velocityY, TouchState.END);
+                        int state = TouchState.END;
+
+                        if (velocityX != 0 || velocityY != 0) {
+                            if (mFlinger != null) mFlinger.forceFinished();
+
+                            state = TouchState.MOVE;
+
+                            mFlinger = new Flinger(mCx, mMainHandler);
+                            mFlinger.setListener(Nidroid.this);
+                            mFlinger.start((int)e2.getX(), (int)e2.getY(), (int)velocityX, (int)velocityY);
+                        }
+
+                        Nidroid.onScroll(e2.getX(), e2.getY(), velocityX, velocityY, state);
+
                         return true;
                     }
                 });
             }
         });
+    }
+
+
+    @Override
+    public void onFlingerUpdate(int x, int y, boolean finished) {
+        if (finished) {
+            mIsScrolling = false;
+            mFlinger = null;
+        }
+
+        Nidroid.onFlingUpdate(x, y, finished);
     }
 
     static double getPixelRatio()
@@ -169,4 +201,5 @@ public class Nidroid {
 
     public static native void nidiumInit(Nidroid n);
     public static native void onScroll(float x, float y, float velocityX, float velocityY, int state);
+    public static native void onFlingUpdate(int scrollX, int scrollY, boolean finished);
 }

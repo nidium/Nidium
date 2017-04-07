@@ -58,6 +58,7 @@ public:
     }
 
     void onScroll(float x, float y, float velocityX, float velocityY, int state);
+    void onFlingUpdate(int scrollX, int scrollY, bool finished);
 
     void onMessage(const Core::SharedMessages::Message &msg) override;
 
@@ -70,7 +71,8 @@ protected:
 private:
     enum AndroidMessage
     {
-        kAndroidMessage_scroll
+        kAndroidMessage_scroll,
+        kAndroidMessage_fling,
     };
 
     struct AndroidScrollMessage {
