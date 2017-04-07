@@ -57,19 +57,19 @@ void NidiumLocalContext::_jstraceMember(JSTracer *trc, T map)
 
         switch(thing.m_Type) {
             case nidiumRootedThing::Type::kHeapObj:
-                JS_CallObjectTracer(trc, thing.heapobj, "nidiumrootHeapObj");
+                JS::TraceEdge(trc, thing.heapobj, "nidiumrootHeapObj");
                 break;
             case nidiumRootedThing::Type::kHeapValue:
-                JS_CallValueTracer(trc, thing.heapvalue, "nidiumrootHeapValue");
+                JS::TraceEdge(trc, thing.heapvalue, "nidiumrootHeapValue");
                 break;
             case nidiumRootedThing::Type::kHeapStr:
-                JS_CallStringTracer(trc, thing.heapstr, "nidiumrootHeapString");
+                JS::TraceEdge(trc, thing.heapstr, "nidiumrootHeapString");
                 break;
             case nidiumRootedThing::Type::kTenuredObj:
-                JS_CallTenuredObjectTracer(trc, thing.tenuredobj, "nidiumrootTeanuredHeapObj");
+                JS::TraceEdge(trc, thing.tenuredobj, "nidiumrootTeanuredHeapObj");
                 break;
             default:
-            break;
+                break;
         }
     }
 }
