@@ -12,8 +12,20 @@
             '<(nidium_network_path)/gyp/network-unittests.gyp:unittests-settings',
             '<(nidium_network_path)gyp/network.gyp:*',
         ],
+        'conditions': [
+#                ['OS!="win"', {
+#                    'cflags_cc': [
+#                        '-include ../src/Macros.h'
+#                    ],
+#                }],
+                ['OS=="win"', {
+                    'defines': [
+                        'WIN32',
+                    ],
+                }],
+          ],
         'sources': [
-            '<(nidium_tests_path)unittest.cpp',
+            '<(nidium_tests_path)unittest_0.cpp',
             '<(nidium_tests_path)args.cpp',
             '<(nidium_tests_path)db.cpp',
             '<(nidium_tests_path)events.cpp',           #dummy

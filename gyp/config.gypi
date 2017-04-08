@@ -34,7 +34,6 @@
         # - Variables defined in the top scope, cannot be referenced by another one
         'variables': {
             'third_party%': 'third-party',
-
             'nidium_output_third_party_path': '<(nidium_output)/third-party/',
             'nidium_tests_output_path': '<(nidium_output)/tests/',
         },

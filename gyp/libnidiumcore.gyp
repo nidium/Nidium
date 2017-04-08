@@ -107,18 +107,17 @@
                             'icuuc.lib',
                             'icudt.lib',
 
-                            'winmm.lib',
-                            'wsock32.lib',
-                            'psapi.lib',
-
+                            '-lwinmm',
+                            '-lwsock32',
+                            '-lpsapi',
                             '-lkernel32',
 
-                            'dbghelp.lib',
-                            'delayimp.lib',
+                            '-ldbghelp',
+                            '-ldelayimp',
 
 
                             # workaround for mozglue's missing static_runtime
-                            'Compression.obj', 'Decimal.obj', 'Unified_cpp_mfbt_staticruntime0.obj',
+                            'Compression.obj', 'Decimal.obj', #'Unified_cpp_mfbt_staticruntime0.obj',
                             #workaround for missing JS_INIT -> causes 616 link warnings
                             'Initialization.obj',
                             'http_parser.lib',

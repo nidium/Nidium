@@ -187,7 +187,7 @@ def testCore(unitTests):
     cwd = os.path.dirname(os.path.realpath(__file__))
 
     Tests.register([
-        "build/tests/libnidiumcore-unittests"
+        "./build/tests/libnidiumcore-unittests"
         ], builders=[
             Gyp("gyp/libnidiumcore-tests.gyp",
                 defines={"nidium_js_disable_window_global": 1,

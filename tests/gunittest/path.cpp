@@ -5,8 +5,14 @@
 */
 #include <stdlib.h>
 #include <string.h>
-#include <libgen.h>
 #include <errno.h>
+
+#ifdef _MSC_VER
+#include <io.h>
+#include "Port/MSWindows.h"
+#else
+#include <libgen.h>
+#endif
 
 #include <gtest/gtest.h>
 
@@ -220,7 +226,11 @@ TEST(Path, InvalidAbsoluteFileNoChroot)
 
 TEST(Path, AbsoluteFileNoChroot)
 {
+#ifdef _MSC_VER
+    int fd = open(TEST_ABS_FILE, _O_RDWR | _O_CREAT, _S_IREAD);
+#else
     int fd = open(TEST_ABS_FILE, O_RDWR | O_CREAT, S_IRUSR | S_IRGRP | S_IROTH);
+#endif
     close(fd);
 
     Path path(TEST_ABS_FILE, false, false);
@@ -241,7 +251,11 @@ TEST(Path, InvalidRelativeFileNoChroot)
 
 TEST(Path, RelativeFileNoChroot)
 {
+#ifdef _MSC_VER
+    int fd = open(TEST_ABS_FILE, _O_RDWR | _O_CREAT, _S_IREAD);
+#else
     int fd = open(TEST_REL_FILE, O_RDWR | O_CREAT, S_IRUSR | S_IRGRP | S_IROTH);
+#endif
     char testFilePath [PATH_MAX];
     char *testDirPath = nullptr;
 
@@ -254,8 +268,15 @@ TEST(Path, RelativeFileNoChroot)
     }
 
     unlink(TEST_REL_FILE);
-
+#ifdef _MSC_VER
+    char drive[_MAX_DRIVE];
+    char fname[_MAX_FNAME];
+    char ext[_MAX_EXT];
+    char *tmp = static_cast<char*>(malloc(1 + strlen(testFilePath)));
+    _splitpath(testFilePath, &drive[0], tmp, &fname[0], &ext[0]);
+#else
     char *tmp = dirname(strdup(testFilePath));
+#endif
     int len = strlen(tmp);
 
     testDirPath = (char *)malloc((len + 2) * sizeof(char));

@@ -24,7 +24,26 @@
         'ldflags': [
             '-L<(nidium_output_third_party_path)',
         ],
-
+        'msvs_configuration_platform': '<(platform)',
+        'msvs_settings': {
+            'VCLinkerTool': {
+                'LinkTimeCodeGeneration': 0,
+                'SuppressStartupBanner': 'true',
+                'SubSystem': '1',  # console app
+                'LinkIncremental': 0,
+                "AdditionalLibraryDirectories": [
+                    "<(libapenetwork_output_third_party_path)",
+                    "<(nidium_output_third_party_path)"
+                ],
+            },
+            'VCCLCompilerTool': {
+                'RuntimeLibrary': 2, #Multithreaded using DLL (msvcrt.lib)
+                'ExceptionHandling': 0,
+                'AdditionalOptions': [
+                    "/EHsc"
+                 ],
+            },
+        },
         'xcode_settings': {
             "OTHER_LDFLAGS": [
                 '-stdlib=libc++',
@@ -50,25 +69,6 @@
                 'macosx<(mac_sdk_version)'
             ],
         },
-
-        'msvs_configuration_platform': '<(platform)',
-        'msvs_settings': {
-            'VCLinkerTool': {
-                'LinkTimeCodeGeneration': 1,
-                'SuppressStartupBanner': 'true',
-                'LinkIncremental': 0,
-                'SubSystem': '1',  # console app
-                "AdditionalLibraryDirectories": ["<(nidium_output_third_party_path)"],
-            },
-            'VCCLCompilerTool': {
-                'RuntimeLibrary': 2, #Multithreaded using DLL (msvcrt.lib)
-                'ExceptionHandling': 0,
-                'AdditionalOptions': [
-                    "/EHsc"
-                 ],
-            },
-        },
-
         'configurations': {
             'Debug': {
                 'defines': ['NIDIUM_DEBUG', 'DEBUG', '_DEBUG'],

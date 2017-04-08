@@ -3,13 +3,20 @@
    Use of this source code is governed by a MIT license
    that can be found in the LICENSE file.
 */
-#ifndef __TESTS_UNITTEST_H_
-#define __TESTS_UNITTEST_H_
+#ifndef __TESTS_LUNITTEST_H_
+#define __TESTS_LUNITTEST_H_
 
 #include <gtest/gtest.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern int ape_running;
 extern unsigned long _ape_seed;
+
+#ifdef __cplusplus
+}
+#endif
 
 #define NIDIUMJS_FIXTURE(name) \
 class  name: public ::testing::Test {\
@@ -28,6 +35,7 @@ protected:\
         APE_destroy(ape);\
     };\
 };
+
 
 #endif
 
