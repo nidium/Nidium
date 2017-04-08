@@ -35,7 +35,7 @@ namespace Nidium {
 namespace IO {
 
 // {{{ Preamble
-void NPR_Modes(const char *modes, PRIntn *mode, PRIntn *flags) {
+static void NPR_Modes(const char *modes, PRIntn *mode, PRIntn *flags) {
     *mode = 700;
     *flags = PR_CREATE_FILE;
     size_t i;
@@ -45,13 +45,13 @@ void NPR_Modes(const char *modes, PRIntn *mode, PRIntn *flags) {
             switch (modes[i]) {
 #if __cplusplus >= 201103L || defined(__GNUC__ )
             case 'x': *flags |= PR_EXCL;
-                break
+                break;
 #endif
 #if defined(__GNUC__ )
             case 'c': //
-                break
+                break;
             case 'm': //
-                break
+                break;
             case 'e': //
                 break;
 #endif
@@ -80,7 +80,7 @@ void NPR_Modes(const char *modes, PRIntn *mode, PRIntn *flags) {
     }
 }
 
-static PRUint32 NPR_ftell(PRFileDesc * fdesc, PRUint32 *size, int * err)
+static PRStatus NPR_ftell(PRFileDesc * fdesc, PRUint32 *size, int * err)
 {
     PRFileInfo info;
 

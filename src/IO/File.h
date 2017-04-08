@@ -95,7 +95,7 @@ public:
     {
         m_Delegate = listener;
     }
-    size_t getFileSize() const
+    PRUint32 getFileSize() const
     {
         return m_Filesize;
     }
@@ -162,7 +162,7 @@ private:
 
     Nidium::Core::Messages *m_Delegate;
     char *m_Path;
-    size_t m_Filesize;
+    PRUint32  m_Filesize;
     bool m_AutoClose;
     bool m_Eof;
     bool m_OpenSync;

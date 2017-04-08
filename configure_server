@@ -27,7 +27,6 @@ Variables.set('product', 'nidiumserver')
 Deps.set(
     Deps.Konstruct("libnidiumcore", "configure_libnidiumcore"),
 )
-
 if Platform.system == "Windows":
    Deps.set("ninja")
 
