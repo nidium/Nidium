@@ -335,3 +335,44 @@ cd Nidium
 * Take the time to read the "getting started guide and browse through the api documentation
 * Create an nml file and let your imagination go.
 * Have fun
+
+# ToDo list
+
+* libapenetwork
+  * Implement sendfile, also on libapenetwork
+  * sendev, libapenetwork
+  * unittest link settings for third-party libs
+  * check for regression on x64
+  * check for regression on linux
+  * check for regression on mac
+  * pull master
+
+* libnidiumcore
+  * unittest, repair the failing unittests
+  * jstest, repair the segfault on jstest
+  * autotests
+  * static link with nspr/icu
+  * solve JS_Init link problems
+  * check for regression on x64
+  * check for regression on linux
+  * check for regression on mac
+  * pull master
+
+* nidium-server
+  * replace fork with PR_CreateProcess
+  * stresstest
+  * check for regression on x64
+  * check for regression on linux
+  * check for regression on mac
+  * pull master
+
+* nidium-frontend 
+  * depottool
+  * skia
+  * angle
+  * check for regression on x64
+  * check for regression on linux
+  * check for regression on mac
+  * pull master
+  * jstest
+  * autotest
