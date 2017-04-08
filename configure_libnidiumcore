@@ -142,10 +142,9 @@ def mozilla():
 @Deps.register("http-parser")
 def httpParser():
     if Platform.system == "Windows":
+        platform = ["Win32", "x64"][Platform.wordSize == 64]
         gyp = "..\gyp\gyp.bat --depth . -DOS=win -f msvs"
-        #TODO: investigate how to force a x64 project
-        platform = "Win32"
-        gyp += " -G Platform=%s" % (platform)
+        gyp += " -G Platform=%s -Dplatform=%s" % (platform, platform)
         build = [gyp, "MSBuild.exe /nologo http_parser.vcxproj /p:Configuration=Release /P:Platform=%s /maxcpucount:%i" % (platform, Platform.cpuCount)]
         output = "Release/lib/http_parser.lib"
         patch = [os.path.join(CONFIGURE_PATH, "patch", "http_parser.windows.patch")]
