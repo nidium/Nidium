@@ -68,14 +68,14 @@ CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 @Deps.register("portaudio")
 def portaudio():
-    Platform.setCompiler("cl", 'cl')
     no_backend = ['jack', 'asihpi', 'winapi']
     do_backend = []
     if Platform.system == "Windows":
+        Platform.setCompiler("cl", 'cl')
         Platform.setEnviron('CMAKE_AR=lib')
         cmake, platform, toolset = Platform.CMake()
         build = [
-                cmake + " -DPA_UNICODE_BUILD=1 -DPA_USE_WASAPI=1 -DPA_USE_WDMKS=1 -DPA_USE_WMME=1", 
+                cmake + " -DPA_UNICODE_BUILD=1 -DPA_USE_WASAPI=1 -DPA_USE_WDMKS=1 -DPA_USE_WMME=1",
                 "MSBuild.exe /nologo portaudio_static.vcxproj /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" %(toolset, Platform.cpuCount)]
         output = "./Release/portaudio_static_x86.lib"
     else:
@@ -97,8 +97,10 @@ def portaudio():
 
 @Deps.register("zita-resampler")
 def zitaresampler():
-    Platform.setEnviron("CXXFLAGS=-I ../../pthreads4w " +
-                         "-D_POSIX_C_SOURCE=200112L -D_USE_MATH_DEFINES ")
+    cxx_flags = "CXXFLAGS=-D_USE_MATH_DEFINES"
+    if Platform.system == "Windows":
+        cxx_flags += " -I ../../pthreads4w -D_POSIX_C_SOURCE=200112L "
+    Platform.setEnviron(cxx_flags)
     return {
         "location": DEPEDENCY_REPO + "/zita-resampler-1.3.0.tar.bz2",
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "zita-resampler.patch")],
@@ -168,7 +170,7 @@ def skia():
     skiaArgs = ""
     for k, v in args.items():
         v = json.dumps(v)
-        skiaArgs += r" %s=%s" % (k, v) 
+        skiaArgs += r" %s=%s" % (k, v)
 
     if Platform.system == "Windows":
         chdir = "../%s/skia" % ([".default-%s" %(Builder.Gyp._config), ".default"][Builder.Gyp._config is None])
@@ -210,7 +212,7 @@ def libzip():
     Platform.setEnviron('CMAKE_AR=lib')
     if Platform.system == "Windows":
         output = "./lib/Release/zip.lib"
-        cmake, platform, toolset = Platform.CMake() 
+        cmake, platform, toolset = Platform.CMake()
         build = [cmake + " -DZLIB_LIBRARY=%s/zlib/zlib.lib -DZLIB_INCLUDE_DIR=%s/zlib" % (Deps.getDir(), Deps.getDir()),
                 "MSBuild.exe /nologo libzip.sln /p:Configuration=Release /p:PlatformToolset=%s /P:Platform=%s /maxcpucount:%i" % (toolset, platform, Platform.cpuCount)]
     else:
@@ -320,7 +322,7 @@ def basekit():
         Platform.setEnviron('SYS=Windows')
         Platform.setEnviron('INSTALL_PREFIX=%s' % (os.path.join(CONFIGURE_PATH,
         "third-party/basekit/install")))
-        build = ['mkdir "_build/objs" "_build/lib"||true', 
+        build = ['mkdir "_build/objs" "_build/lib"||true',
                  "make -j1  _build/lib/libbasekit.a PLATFORM=%s" % (["x86","x64"][Platform.wordSize == 64])]
     else:
         build = ["make"]
