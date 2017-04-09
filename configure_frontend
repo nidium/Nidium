@@ -185,7 +185,7 @@ def skia():
                 "ninja %s -C out/Static" % ("-v" if Variables.get("verbose") else ""),
             ]
     else:
-        chdir = None
+        chdir = "."
         build = ["python tools/git-sync-deps",
                 "bin/gn gen out/Static --args='%s'" % (skiaArgs),
                 "ninja %s -C out/Static" % ("-v" if Variables.get("verbose") else ""),
