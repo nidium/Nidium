@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #include <SkMatrix44.h>
 #include <jsapi.h>

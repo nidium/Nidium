@@ -43,7 +43,7 @@ elif Platform.system == "Darwin":
     Deps.set("libnotify")
     Platform.setEnviron("MACOSX_DEPLOYMENT_TARGET=10.7")
 elif Platform.system == "Windows":
-    Deps.set("pthreads4w")
+    Deps.set("pthreads4w", "opengl")
     if Platform.wordSize == 32:
         Deps.set("ninja")
     Platform.setEnviron("DEPOT_TOOLS_WIN_TOOLCHAIN=0")
@@ -304,6 +304,10 @@ def SDL2():
         "build": build,
         "outputs": outputs
     }
+
+@Deps.register("opengl")
+def opengl():
+        return {'location' : Deps.GitRepo("https://github.com/KhronosGroup/OpenGL-Registry.git", revision="f1ca0f3")}
 
 @Deps.register("depot_tools")
 def depotTools():
