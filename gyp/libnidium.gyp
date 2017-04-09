@@ -52,13 +52,22 @@
             'SK_SUPPORT_PDF',
             'TRACING',
         ],
+        'msvs_settings': {
+            'VCCLCompilerTool': {
+                'AdditionalOptions': [
+                ]
+            },
+        },
         'conditions': [
             ['OS=="win"', {
                 'include_dirs': [
                     '<(third_party_path)/opengl/api/',
                  ],
                 'defines': [
+                    '__MINGW32__',
                     'NOMINMAX', 
+                    'SK_USE_POSIX_THREADS'
+                    '__STDC_CONSTANT_MACROS',
                  ]
             }],
             ['OS=="mac"', {

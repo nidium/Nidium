@@ -11,6 +11,7 @@
 typedef unsigned int GLenum;
 typedef unsigned int GLuint;
 
+//@TODO: use Graphics/GLHeader.h
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
 #include <OpenGL/gl.h>

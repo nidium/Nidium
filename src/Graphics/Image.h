@@ -7,6 +7,7 @@
 #define graphics_image_h__
 
 #include <SkBitmap.h>
+#include <SkSurface.h>
 #include <SkImage.h>
 #include <SkRefCnt.h>
 

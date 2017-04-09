@@ -31,7 +31,14 @@
                     'NIDIUM_CRASH_COLLECTOR_ENDPOINT="<(nidium_crash_collector_endpoint)"',
                 ],
             }],
-            ['OS=="linux"', {
+            ['OS=="win"', {
+                'link_settings': {
+                    'libraries': [
+                       'opengl32.lib',
+                    ],
+                },
+             }],
+             ['OS=="linux"', {
                 'conditions': [
                     ['nidium_enable_breakpad==1', {
                         'dependencies': [
