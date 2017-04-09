@@ -58,7 +58,8 @@
                     '<(third_party_path)/opengl/api/',
                  ],
                 'defines': [
-                    ]
+                    'NOMINMAX', 
+                 ]
             }],
             ['OS=="mac"', {
                 'defines': [
