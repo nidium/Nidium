@@ -291,6 +291,7 @@ cd ..\..
 ./configure_server 
 # currently: it compiles and links with 616 warnings
 # workaround: copy some icu and nspr .dll's to /c/windows/system32
+ind third-party/mozilla-central/js/src/obj/dist/bin third-party/mozilla-central/nsprpu b/dist/lib -name '*.dll' -exec cp {} /c/windows/System32 \;0
 ./configure_server --unit-tests --auto-tests --asume-yes
 ```
 
@@ -342,8 +343,6 @@ cd Nidium
   * Implement sendfile, also on libapenetwork
   * sendev, libapenetwork
   * unittest link settings for third-party libs
-  * check for regression on x64
-  * check for regression on linux
   * check for regression on mac
   * pull master
 
@@ -353,16 +352,13 @@ cd Nidium
   * autotests
   * static link with nspr/icu
   * solve JS_Init link problems
-  * check for regression on x64
-  * check for regression on linux
+  * regression on linux PRFileDesc Private: unknown arch
   * check for regression on mac
   * pull master
 
 * nidium-server
   * replace fork with PR_CreateProcess
   * stresstest
-  * check for regression on x64
-  * check for regression on linux
   * check for regression on mac
   * pull master
 
