@@ -181,19 +181,20 @@ void HTTPStream::onStart(size_t packets, size_t seek)
 {
     if (m_Mapped.fdesc) {
         PR_Close(m_Mapped.fdesc);
-	}
+    }
 
-	char tmpfname[] = "/tmp/nidiumtmp.XXXXXXXX";
-	char *filename;
+    char *filename;
 #ifdef _MSC_VER
+    char tmpfname[] = "C:\\Temp\\nidiumtmp.XXXXXXXX";
     filename = _mktemp(tmpfname);
     if (filename == NULL) {
 #else
+    char tmpfname[] = "/tmp/nidiumtmp.XXXXXXXX";
     int fd = mkstemp(tmpfname);
     filename = tmpfname;
-    if (m_Mapped.fd == -1) {
+    if (fd == -1) {
 #endif
-		ndm_log(NDM_LOG_ERROR, "HTTPStream", "Failed to create temporary file");
+        ndm_log(NDM_LOG_ERROR, "HTTPStream", "Failed to create temporary file");
         return;
     }
     m_Mapped.fdesc = PR_Open(filename, PR_RDWR | O_CREAT, 0600);
