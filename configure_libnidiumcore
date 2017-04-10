@@ -38,6 +38,7 @@ elif Platform.system == "Windows":
    Platform.setEnviron("LD=Link")
    Platform.setEnviron("AR=lib")
    Deps.set('pthreads4w')
+   Deps.set('icu')
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
 CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -76,13 +77,30 @@ def leveldb():
         "outputs": ["libleveldb%s" % (ext)]
     }
 
+@Deps.register("icu")
+def icu():
+    msvs_version = Variables.get('msvs_version', 2015)
+    toolset = Platform.MSVC.toolset(msvs_version)
+    platform = ["Win32", "x64"][Platform.wordSize == 64]
+    return {
+        "chdir": "./mozilla-central/intl/icu",
+        "build": [  "MSBuild.exe /nologo source/common/common.vcxproj /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" %(toolset, Platform.cpuCount),
+                    "MSBuild.exe /nologo source/stubdata/stubdata.vcxproj /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" %(toolset, Platform.cpuCount),
+                    "MSBuild.exe /nologo source/i18n/i18n.vcxproj /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" %(toolset, Platform.cpuCount),
+                ], 
+        "outputs": ["lib/%s.lib" % (l) for l in ["icuin", "icuuc", "icudt"] ]
+        }
+
 @Deps.register("libnspr4")
 def libnspr():
     ext = '.a'
+    postfix= ''
     if Platform.system == "Windows":
         ext = '.lib'
+        postfix= '_s'
         make = "mozmake -j1"
         configure = "bash ./configure --enable-static-rtl "
+        #make static libs
     else:
         make = "make"
         configure = "./configure"
@@ -90,8 +108,9 @@ def libnspr():
         configure += " --enable-64bit"
     configure += " --disable-debug \
                    --enable-optimize \
-                   --enable-strip"
-    outputs = [ "dist/lib/lib%s4%s" % (l, ext) for l in ['nspr', 'plc', 'plds']]
+                   --enable-strip \
+                   --disable-nspr-threads"
+    outputs = [ "dist/lib/lib%s4%s%s" % (l, postfix, ext) for l in ['nspr', 'plc', 'plds']]
     return {
         "chdir": "mozilla-central/nsprpub/",
         "build": [configure, make],
@@ -111,7 +130,6 @@ def mozilla():
             configure += " --target=x86_64-pc-mingw32 --host=x86_64-pc-mingw32"
         nsprFlags += ''' --with-nspr-libs="'%s/dist/lib/libnspr4' '%s/dist/lib/libplds4' '%s/dist/lib/libplc4'"''' % (nsprDir, nsprDir, nsprDir)
         outputs = ["mozglue/build/mozglue.lib$", "js/src/js_static.lib$", "js/src/Initialization.obj"] \
-                + ["intl/icu/target/lib/%s.lib" % (l) for l in ["icuin", "icuuc", "icudt"] ] \
                 + ["mfbt/staticruntime/%s.obj" % (l) for l in ["Compression", "Decimal", "Unified_cpp_mfbt_staticruntime0"] ]
     else:
         make = "make"

@@ -142,6 +142,7 @@ The 'konstruktor.py' script does a lot of filesystem operations, pywin32 makes t
 
 Angle will start depot_tools to download svn.
 For some reason that fails, let's install it manually.
+Make sure ttah powershell is in you PATH.
 
 * Download from https://storage.googleapis.com/chrome-infra/svn_bin.zip.
 * Install and put it in your path
@@ -290,8 +291,8 @@ git checkout windows-x86
 cd ..\..
 ./configure_server 
 # currently: it compiles and links with 616 warnings
-# workaround: copy some icu and nspr .dll's to /c/windows/system32
-ind third-party/mozilla-central/js/src/obj/dist/bin third-party/mozilla-central/nsprpu b/dist/lib -name '*.dll' -exec cp {} /c/windows/System32 \;0
+# workaround: copy some icu and nspr .dll's next to nidium's executable files.
+ind third-party/mozilla-central/js/src/obj/dist/bin third-party/mozilla-central/nsprpu b/dist/lib -name '*.dll' -exec cp {} ./bin \;0
 ./configure_server --unit-tests --auto-tests --asume-yes
 ```
 
