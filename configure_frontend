@@ -326,14 +326,16 @@ def basekit():
         Platform.setEnviron('SYS=Windows')
         Platform.setEnviron('INSTALL_PREFIX=%s' % (os.path.join(CONFIGURE_PATH,
         "third-party/basekit/install")))
+        patch = [os.path.join(CONFIGURE_PATH, "patch", "basekit.windows.patch")]
         build = ['mkdir "_build/objs" "_build/lib"||true',
                  "make -j1  _build/lib/libbasekit.a PLATFORM=%s" % (["x86","x64"][Platform.wordSize == 64])]
     else:
+        patch = [os.path.join(CONFIGURE_PATH, "patch", "basekit.patch")]
         build = ["make"]
     return {
         "location": Deps.GitRepo("https://github.com/stevedekorte/basekit.git", revision="a3e54ba83b85f530dc9442a33d2779240ed96189"),
         "build": build,
-        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "basekit.patch")],
+        "patchs": patch,
         "outputs": ["_build/lib/libbasekit(.a|.lib)"]
     }
 
