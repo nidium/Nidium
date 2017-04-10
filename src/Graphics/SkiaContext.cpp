@@ -13,6 +13,7 @@
 #include <math.h>
 #include <vector>
 
+
 #ifdef _MSC_VER
 #include "Port/MSWindows.h"
 #include <Shlwapi.h>
@@ -20,6 +21,7 @@
 #include <unistd.h>
 #include <strings.h>
 #endif
+
 
 #define NIDIUM_SKIA_CACHE_MAX_RESOURCES 4096
 #define NIDIUM_SKIA_CACHE_MAX_BYTES (256 * 1024 * 1024)
@@ -412,10 +414,9 @@ bool SkiaContext::initWithSurface(sk_sp<SkSurface> surface)
 
     return true;
 }
-
 GrContext *SkiaContext::CreateGrContext(GLContext *glcontext)
 {
-    const GrGLInterface *interface = nullptr;
+    const struct GrGLInterface *interface = nullptr;
     GrContext *context             = nullptr;
 
     if ((interface = glcontext->iface()) == nullptr) {
@@ -513,7 +514,7 @@ bool SkiaContext::setSize(int width, int height, bool redraw)
 }
 
 
-void glcb(const GrGLInterface *)
+void glcb(const struct GrGLInterface *)
 {
     ndm_log(NDM_LOG_INFO, "Canvas", "Got a gl call");
 }

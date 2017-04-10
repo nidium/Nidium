@@ -14,6 +14,7 @@
 #include <ape_pool.h>
 #include <ape_netlib.h>
 
+#include <gl/GrGLInterface.h>
 #include <GLSLANG/ShaderLang.h>
 
 #include "Binding/NidiumJS.h"
@@ -76,8 +77,6 @@ public:
 private:
     GrContext *m_GrContext = nullptr;
 };
-
-struct GrGLInterface;
 
 // {{{ Context
 class Context : public Core::Context

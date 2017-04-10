@@ -123,7 +123,7 @@ public:
         return m_SDLGLCtx;
     }
 
-    inline const GrGLInterface *iface() const
+    inline const struct GrGLInterface *iface() const
     {
         return m_Interface;
     }
@@ -154,14 +154,13 @@ public:
         return m_UI;
     }
 
-    inline static void GLCallback(const GrGLInterface *interface)
+    inline static void GLCallback(const struct GrGLInterface *interface)
     {
-        //@TODO static_cast
         GLContext *_this = (GLContext *)interface->fCallbackData;
         _this->makeCurrent();
     }
 
-    const GrGLInterface *m_Interface;
+    const struct GrGLInterface *m_Interface;
 
 private:
     void createInterface()
@@ -177,8 +176,8 @@ private:
             exit(1);
         }
         // TODO: new style cast
-        ((GrGLInterface *)m_Interface)->fCallback = GLContext::GLCallback;
-        ((GrGLInterface *)m_Interface)->fCallbackData = (uintptr_t)(this);
+        ((struct GrGLInterface *)m_Interface)->fCallback = GLContext::GLCallback;
+        ((struct GrGLInterface *)m_Interface)->fCallbackData = (uintptr_t)(this);
     }
 
     SDL_GLContext m_SDLGLCtx;
