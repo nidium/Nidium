@@ -59,15 +59,11 @@ def heapProfiling(profiling):
 @CommandLine.option("--auto-tests", default=False)
 def testServer(unitTests, autoTests):
     tests = []
-    bindir = "../../bin"
+    cdir = ".."
     if Platform.system == "Windows":
-        bindir = "./bin"
+        cdir = "."
     if unitTests:
-        tests.append(("%s/nidium-server unittests.js" % (bindir), "tests/jsunittest/"))
-
-    # XXX : Nidium server needs only a subset of the auto tests. How to handle this ?
-    # if autoTests:
-    #     tests.append("dist/nidium-server nativejscore/var/js/tests/autotests/auto_suites.js")
+        tests.append(("%s/bin/nidium-server unittests.js" % (cdir), "%s/tests/jsunittest/" % (cdir)))
 
     Tests.register(tests)
 

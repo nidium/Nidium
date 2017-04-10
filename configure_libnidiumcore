@@ -182,12 +182,11 @@ def ninja():
 def testCore(unitTests):
     if not unitTests:
         return
-
-    cwd = os.path.dirname(os.path.realpath(__file__))
-
+    cdir = "../build/tests/"
+    if Platform.system == "Windows":
+        cdir = cdir[1:]
     Tests.register([
-        "./build/tests/libnidiumcore-unittests"
-        ], builders=[
+        ("libnidiumcore-unittests", cdir)], builders=[
             Gyp("gyp/libnidiumcore-tests.gyp",
                 defines={"nidium_js_disable_window_global": 1,
                          "nidium_product_define": "NIDIUM_UNIT_TESTS"})
