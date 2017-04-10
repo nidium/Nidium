@@ -159,8 +159,8 @@ void UIInterface::handleEvent(const SDL_Event *event)
                 possible for a touch start or end event to be received with
                 a position slightly outside the bounds of the view.
             */
-            float normalizedX = nidium_min(nidium_max(event->tfinger.x, 1), 0);
-            float normalizedY = nidium_min(nidium_max(event->tfinger.y, 1), 0);
+            float normalizedX = nidium_clamp(event->tfinger.x, 0.0, 1.0);
+            float normalizedY = nidium_clamp(event->tfinger.y, 0.0, 1.0);
 
             int x = (normalizedX * width) / pixelRatio;
             int y = (normalizedY * height) / pixelRatio;
