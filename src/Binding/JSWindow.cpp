@@ -240,12 +240,33 @@ void JSWindow::keyupdown(
 #undef EVENT_PROP
 }
 
-void JSWindow::textInput(const char *data)
-{
 #define EVENT_PROP(name, val)                 \
     JS_DefineProperty(m_Cx, event, name, val, \
                       JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+void JSWindow::textEdit(const char *data)
+{
+    JSAutoRequest ar(m_Cx);
 
+    JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &TextEvent_class));
+    JS::RootedString str(
+        m_Cx, JSUtils::NewStringWithEncoding(m_Cx, data, strlen(data), "utf8"));
+    EVENT_PROP("val", str);
+
+    JS::AutoValueArray<1> jevent(m_Cx);
+    jevent[0].setObjectOrNull(event);
+
+    JS::RootedValue ontextedit(m_Cx);
+    JS::RootedObject obj(m_Cx, m_Instance);
+    if (JS_GetProperty(m_Cx, obj, "_ontextedit", &ontextedit)
+        && ontextedit.isObject()
+        && JS::IsCallable(&ontextedit.toObject())) {
+        JS::RootedValue rval(m_Cx);
+        JS_CallFunctionValue(m_Cx, event, ontextedit, jevent, &rval);
+    }
+}
+
+void JSWindow::textInput(const char *data)
+{
     JSAutoRequest ar(m_Cx);
 
     JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, &TextEvent_class));
@@ -264,8 +285,8 @@ void JSWindow::textInput(const char *data)
         JS::RootedValue rval(m_Cx);
         JS_CallFunctionValue(m_Cx, event, ontextinput, jevent, &rval);
     }
-#undef EVENT_PROP
 }
+#undef EVENT_PROP
 
 void JSWindow::systemMenuClicked(const char *id)
 {

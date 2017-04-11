@@ -184,6 +184,12 @@ void UIInterface::handleEvent(const SDL_Event *event)
 
             inputHandler->pushEvent(ev);
         } break;
+        case SDL_TEXTEDITING:
+            if (window && &event->text.text[0]
+                && strlen(event->text.text) > 0) {
+                window->textEdit(event->text.text);
+            }
+           break;
         case SDL_TEXTINPUT:
             if (window && &event->text.text[0]
                 && strlen(event->text.text) > 0) {
