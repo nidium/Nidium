@@ -1,8 +1,12 @@
 package com.nidium.android;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -18,12 +22,22 @@ public class MainActivity extends Activity {
     private ListView mNMLListView;
     private TextView mNMLListTitle;
     private static final String nidiumDirName = "nidium";
+    private static final int PERMISSION_STORAGE = 0;
+    private boolean mHasStoragePermission = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    PERMISSION_STORAGE);
+        } else {
+            mHasStoragePermission = true;
+        }
 
         final Button b = (Button)findViewById(R.id.load_remote_nml);
         final EditText url = (EditText)findViewById(R.id.nml_url);
@@ -48,13 +62,28 @@ public class MainActivity extends Activity {
         updateNMLs();
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_STORAGE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mHasStoragePermission = true;
+                }
+            }
+        }
+    }
+
     private void updateNMLs()
     {
         final String dirName = Nidroid.getUserDirectory() + '/' + MainActivity.nidiumDirName + '/';
-        /*
-          If the permissions are not set, we get nothing.
-          TODO: guide the user to set them https://developer.android.com/training/permissions/requesting.html
-         */
+        if (!mHasStoragePermission) {
+            mNMLListTitle.setText("Application does not have permission to read " + dirName);
+            return;
+        }
+
         ArrayList<String> nmls = this.getNMLS(dirName);
         if (nmls == null) {
             nmls = new ArrayList<String>();
