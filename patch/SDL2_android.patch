@@ -1,4 +1,4 @@
-# Disable OpenGLES 1 and disable SDL blocking on application pause
+# Disable OpenGLES 1 (nidium only supports GLES2)
 --- SDL2/include/SDL_config_android.h   2017-01-04 17:50:21.856191167 +0100
 +++ SDL2/include/SDL_config_android.h   2017-01-04 17:51:50.426193084 +0100
 @@ -129,10 +129,8 @@
@@ -13,14 +13,29 @@
  
  /* Enable system power support */
 
+# Disable block on pause (so nidium can continue to run in background)
+# (disabled for now as we need to handle this correctly inside nidium)
 #--- SDL2/src/video/android/SDL_androidevents.c  2017-02-02 09:54:11.592606462 +0100
 #+++ SDL2/src/video/android/SDL_androidevents.c  2017-02-02 09:54:35.769272474 +0100
 #@@ -23,7 +23,7 @@
 # #if SDL_VIDEO_DRIVER_ANDROID
-# 
+#
 # /* We're going to do this by default */
 #-#define SDL_ANDROID_BLOCK_ON_PAUSE  1
 #+#define SDL_ANDROID_BLOCK_ON_PAUSE  0
-# 
+#
 # #include "SDL_androidevents.h"
 # #include "SDL_events.h"
+
+# Fix SDL not sending enter keycode
+--- SDL2/src/events/SDL_keyboard.c  2017-04-11 18:07:20.913354624 +0200
++++ SDL2/src/events/SDL_keyboard.c	2017-04-11 18:07:31.330021009 +0200
+@@ -777,7 +777,7 @@
+     int posted;
+
+     /* Don't post text events for unprintable characters */
+-    if ((unsigned char)*text < ' ' || *text == 127) {
++    if (((unsigned char)*text < ' ' || *text == 127) && (unsigned char)*text != '\n') {
+         return 0;
+     }
+
