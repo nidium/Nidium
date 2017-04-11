@@ -40,13 +40,13 @@ unsigned long _ape_seed;
 namespace Nidium {
 namespace Tools {
 
-void listdir(JSNFS *nfs, PRDir *dir, std::string fullpath, int strip)
+bool listdir(JSNFS *nfs, PRDir *dir, std::string fullpath, int strip)
 {
     PRDirEntry *cur;
 
     if (dir == NULL) {
         fprintf(stderr, "null dir given\n");
-        return;
+        return false;
     }
 
     while ((cur = PR_ReadDir(dir, PR_SKIP_BOTH)) != NULL) {
@@ -56,9 +56,8 @@ void listdir(JSNFS *nfs, PRDir *dir, std::string fullpath, int strip)
         if (cur->d_type & DT_DIR) {
             if (!nfs->mkdir(vpath, strlen(vpath))) {
                 fprintf(stderr, "Failed to create dir %s\n", vpath);
-                continue;
+                return false;
             }
-
             listdir(nfs, PR_OpenDir(newpath.c_str()), newpath, strip);
         } else if (cur->d_type & DT_REG) {
 
@@ -68,7 +67,7 @@ void listdir(JSNFS *nfs, PRDir *dir, std::string fullpath, int strip)
             if (stream == NULL) {
                 fprintf(stderr, "Could not create stream for file %s\n",
                         newpath.c_str());
-                continue;
+                return false;
             }
             char *content;
             size_t len;
@@ -76,12 +75,12 @@ void listdir(JSNFS *nfs, PRDir *dir, std::string fullpath, int strip)
             if (!stream->getContentSync(&content, &len, true)) {
                 fprintf(stderr, "Could not read stream for file %s\n",
                         newpath.c_str());
-                continue;
+                return false;
             }
 
             if (!nfs->writeFile(vpath, strlen(vpath), content, len)) {
                 fprintf(stderr, "Failed to write file %s\n", vpath);
-                continue;
+                return false;
             }
 
             fprintf(stderr, "Saved file : %s\n", vpath);
@@ -89,6 +88,8 @@ void listdir(JSNFS *nfs, PRDir *dir, std::string fullpath, int strip)
     }
 
     PR_CloseDir(dir);
+
+	return true;
 }
 
 static Core::Context *initNidiumJS()
@@ -117,6 +118,7 @@ static int Embed(int argc, char **argv)
 
     JSNFS *nfs = new JSNFS(cx);
 
+    bool ok;
     if (argc == 3) {
         std::string prefix = "/";
         prefix += argv[2];
@@ -125,9 +127,9 @@ static int Embed(int argc, char **argv)
 
         nfs->mkdir(prefix.c_str(), strlen(prefix.c_str()));
 
-        listdir(nfs, dir, argv[1], strlen(argv[1]));
+        ok = listdir(nfs, dir, argv[1], strlen(argv[1]));
     } else {
-        listdir(nfs, dir, argv[1], strlen(argv[1]));
+        ok = listdir(nfs, dir, argv[1], strlen(argv[1]));
     }
 
     nfs->save(DIR2NFS_OUTPUT);
@@ -136,7 +138,7 @@ static int Embed(int argc, char **argv)
 
     delete ncx;
 
-    return 0;
+    return ok ? 0 : 1;
 }
 
 } // namespace Tools

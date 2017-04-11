@@ -104,20 +104,22 @@ void JSWindow::assetReady(const NMLTag &tag)
 
     JS::RootedObject event(cx, JS_NewObject(cx, &NMLEvent_class));
     jevent[0].set(JS::ObjectValue(*event));
-    JS::RootedString tagStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.tag));
-    JS::RootedString idStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.id));
-    JS::RootedString dataStr(
-        cx, JSUtils::NewStringWithEncoding(cx, (const char *)tag.content.data,
-                                           tag.content.len, "utf8"));
-    EVENT_PROP("tag", tagStr);
-    EVENT_PROP("id", idStr);
-    EVENT_PROP("data", dataStr);
 
     JS::RootedValue onassetready(cx);
     JS::RootedObject obj(cx, m_Instance);
+
     if (JS_GetProperty(cx, obj, "_onassetready", &onassetready)
         && onassetready.isObject()
         && JS::IsCallable(&onassetready.toObject())) {
+
+        JS::RootedString tagStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.tag));
+        JS::RootedString idStr(cx, JS_NewStringCopyZ(cx, (const char *)tag.id));
+        JS::RootedString dataStr(
+            cx, JSUtils::NewStringWithEncoding(cx, (const char *)tag.content.data,
+                                               tag.content.len, "utf8"));
+        EVENT_PROP("tag", tagStr);
+        EVENT_PROP("id", idStr);
+        EVENT_PROP("data", dataStr);        
 
         JS::RootedValue rval(cx);
         JS_CallFunctionValue(cx, event, onassetready, jevent, &rval);

@@ -32,6 +32,7 @@
 #include "IO/Stream.h"
 
 #define NIDIUM_MODULES_PATHS_COUNT 2
+#define NIDIUM_MODULES_EXTENSION_COUNT 4
 
 using Nidium::IO::Stream;
 using Nidium::Core::Path;
@@ -41,6 +42,7 @@ namespace Nidium {
 namespace Binding {
 
 typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
+static const char *extensions[] = { NULL, ".js", DSO_EXTENSION, ".json" };
 // {{{ Preamble
 #if 0
 #define DPRINT(...) ndm_logf(NDM_LOG_DEBUG, "JSModule", __VA_ARGS__)
@@ -654,15 +656,13 @@ bool JSModules::GetFileContent(Path *p, char **content, size_t *size)
 std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
 {
 #define MAX_EXT_SIZE 13
-    const char *extensions[] = { NULL, ".js", DSO_EXTENSION, ".json" };
-
     std::string tmp
         = std::string(path) + std::string("/") + std::string(module->m_Name);
     size_t len = tmp.length();
 
     DPRINT("    tmp is %s", tmp.c_str());
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < NIDIUM_MODULES_EXTENSION_COUNT; i++) {
         if (extensions[i]) {
             tmp.erase(len);
             tmp += extensions[i];
@@ -777,18 +777,24 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
 
                 std::string main = root.get("main", "").asString();
                 std::string entrypoint = dir.substr(0, len) + std::string("/") + main;
-                PtrAutoDelete<Stream *> streamEntrypoint(Stream::Create(entrypoint.c_str()));
+                size_t entrypointLen = entrypoint.length();
 
-                if (streamEntrypoint.ptr()->exists()) {
-                    dir = entrypoint;
-                    return true;
-                } else {
-                    ndm_logf(NDM_LOG_ERROR, "Modules", "Failed to access file %s", entrypoint.c_str());
-                    return false;
+                for (int i = 0; i < NIDIUM_MODULES_EXTENSION_COUNT; i++) {
+                    if (extensions[i]) {
+                        entrypoint.erase(entrypointLen);
+                        entrypoint += extensions[i];
+                    }
+
+                    PtrAutoDelete<Stream *> streamEntrypoint(Stream::Create(entrypoint.c_str()));
+
+                    if (streamEntrypoint.ptr()->exists()) {
+                        dir = entrypoint;
+                        return true;
+                    }
                 }
 
-                return true;
-                break;
+                ndm_logf(NDM_LOG_ERROR, "Modules", "File not found %s", entrypoint.c_str());
+                return false;
         }
     }
 
