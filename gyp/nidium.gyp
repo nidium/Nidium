@@ -35,6 +35,7 @@
                 'link_settings': {
                     'libraries': [
                        'opengl32.lib',
+                       'gif.lib',
                     ],
                 },
              }],

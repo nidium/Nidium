@@ -24,16 +24,16 @@ from konstructor import ROOT
 Gyp = Builder.Gyp
 
 Deps.set(
-    "depot_tools",
-    "angle",
     "giflib",
-    "skia",
     "libzip",
     "breakpad",
     "basekit",
     "libcoroutine",
     "SDL2",
     "rapidxml",
+    "depot_tools",
+    "angle",
+    "skia",
     Deps.Konstruct("libnidiumcore", "configure_libnidiumcore")
 )
 
@@ -111,20 +111,25 @@ def zitaresampler():
 
 @Deps.register("giflib")
 def giflib():
-    location = "https://excellmedia.dl.sourceforge.net/project/giflib/giflib-5.1.4.tar.gz"
-    # skdiff is used during unit-tests and it needs libgif.so.4
-    Platform.setEnviron("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:%s/giflib/lib/.libs/" % os.getcwd())
+    #location = "https://excellmedia.dl.sourceforge.net/project/giflib/giflib-5.1.4.tar.gz"
+    location = "http://downloads.sourceforge.net/project/giflib/giflib-4.x/giflib-4.2.3.tar.gz"
     if Platform.system == "Windows":
+        Platform.setCompiler("cl", 'cl')
+        Platform.setEnviron("LD=link")
+        Platform.setEnviron("AR=lib")
         return {
             "location": location,
-            "build": ["bash ../configure",
+            "build": ["bash ../configure --disable-shared --enable-static",
+                      'sed -i.bak -e "s/AR_FLAGS /AR_FLAGS/" libtool',
                       "make -j1"],
             "chdir": "lib",
-            "patchs": [os.path.join(CONFIGURE_PATH, "patch", "giflib.windows.patch")],
+            "patchs": [],#os.path.join(CONFIGURE_PATH, "patch", "giflib.windows.patch")],
             "outputs": ["../lib/.libs/gif.lib"]
         }
 
     else:
+        # skdiff is used during unit-tests and it needs libgif.so.4
+        Platform.setEnviron("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:%s/giflib/lib/.libs/" % os.getcwd())
         return {
             "location": location,
             "build": ["./configure", "make"],
@@ -259,12 +264,13 @@ def angle():
         outPath = "out/Release/"
     elif Platform.system == "Linux":
         outPath = "out/Release/obj/src/"
+    Platform.setEnviron('GYP_GENERATORS=ninja LDFLAGS="%s" CXXFLAGS="%s"' % (os.environ.get("LDFLAGS", ""), cxxFlags))
 
     return {
         "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785"),
         "build": [
             "python scripts/bootstrap.py",
-            "GYP_GENERATORS=ninja LDFLAGS=\"%s\" CXXFLAGS=\"%s\" gclient sync" % (os.environ.get("LDFLAGS", ""), cxxFlags),
+            "gclient sync",
             fixAngleThinArchive,
             "ninja -C out/Release/"
         ],

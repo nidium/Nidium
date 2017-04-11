@@ -1,300 +1,48 @@
---- giflib.org/lib/dgif_lib.c	2016-04-02 08:34:00 -0700
-+++ giflib/lib/dgif_lib.c	2017-03-06 21:06:15 -0800
-@@ -12,12 +12,14 @@
+--- giflib.org/lib/dgif_lib.c	2017-04-11 10:30:01 +0200
++++ giflib/lib/dgif_lib.c	2017-04-11 10:33:34 +0200
+@@ -14,7 +14,9 @@
  #include <limits.h>
  #include <stdint.h>
  #include <fcntl.h>
--#include <unistd.h>
++#ifdef HAVE_UNISTD_H
+ #include <unistd.h>
++#endif
  #include <stdio.h>
  #include <string.h>
  
- #ifdef _WIN32
- #include <io.h>
-+#ifndef _MSC_VER
-+#include <unistd.h>
-+#endif
- #endif /* _WIN32 */
- 
- #include "gif_lib.h"
-@@ -261,7 +263,7 @@
-     SortFlag = (Buf[0] & 0x08) != 0;
-     BitsPerPixel = (Buf[0] & 0x07) + 1;
-     GifFile->SBackGroundColor = Buf[1];
--    GifFile->AspectByte = Buf[2]; 
-+    GifFile->AspectByte = Buf[2];
-     if (Buf[0] & 0x80) {    /* Do we have global color map? */
- 	int i;
- 
-@@ -1003,7 +1005,7 @@
-         GifFile->Error = D_GIF_ERR_IMAGE_DEFECT;
-         return GIF_ERROR;
-     }
--    
-+
-     while (Private->CrntShiftState < Private->RunningBits) {
-         /* Needs to get more bytes from input stream for next code: */
-         if (DGifBufferedInput(GifFile, Private->Buf, &NextByte) == GIF_ERROR) {
-@@ -1117,19 +1119,19 @@
- 
- 	      if (sp->ImageDesc.Interlace) {
- 		  int i, j;
--		   /* 
--		    * The way an interlaced image should be read - 
-+		   /*
-+		    * The way an interlaced image should be read -
- 		    * offsets and jumps...
- 		    */
- 		  int InterlacedOffset[] = { 0, 4, 2, 1 };
- 		  int InterlacedJumps[] = { 8, 8, 4, 2 };
- 		  /* Need to perform 4 passes on the image */
- 		  for (i = 0; i < 4; i++)
--		      for (j = InterlacedOffset[i]; 
-+		      for (j = InterlacedOffset[i];
- 			   j < sp->ImageDesc.Height;
- 			   j += InterlacedJumps[i]) {
--			  if (DGifGetLine(GifFile, 
--					  sp->RasterBits+j*sp->ImageDesc.Width, 
-+			  if (DGifGetLine(GifFile,
-+					  sp->RasterBits+j*sp->ImageDesc.Width,
- 					  sp->ImageDesc.Width) == GIF_ERROR)
- 			      return GIF_ERROR;
- 		      }
-@@ -1154,7 +1156,7 @@
- 	      /* Create an extension block with our data */
-               if (ExtData != NULL) {
- 		  if (GifAddExtensionBlock(&GifFile->ExtensionBlockCount,
--					   &GifFile->ExtensionBlocks, 
-+					   &GifFile->ExtensionBlocks,
- 					   ExtFunction, ExtData[0], &ExtData[1])
- 		      == GIF_ERROR)
- 		      return (GIF_ERROR);
-@@ -1166,7 +1168,7 @@
- 		  if (ExtData != NULL)
- 		      if (GifAddExtensionBlock(&GifFile->ExtensionBlockCount,
- 					       &GifFile->ExtensionBlocks,
--					       CONTINUE_EXT_FUNC_CODE, 
-+					       CONTINUE_EXT_FUNC_CODE,
- 					       ExtData[0], &ExtData[1]) == GIF_ERROR)
-                       return (GIF_ERROR);
-               }
---- giflib.org/lib/egif_lib.c	2016-01-22 02:36:36 -0800
-+++ giflib/lib/egif_lib.c	2017-03-06 21:06:20 -0800
-@@ -8,7 +8,6 @@
- 
- *****************************************************************************/
- 
--#include <unistd.h>
- #include <stdint.h>
- #include <stdlib.h>
- #include <stdio.h>
-@@ -17,6 +16,9 @@
- 
- #ifdef _WIN32
- #include <io.h>
-+#ifndef _MSC_VER
-+#include <unistd.h>
-+#endif
- #else
- #include <sys/types.h>
- #endif /* _WIN32 */
-@@ -58,10 +60,10 @@
-     GifFileType *GifFile;
- 
-     if (TestExistence)
--        FileHandle = open(FileName, O_WRONLY | O_CREAT | O_EXCL, 
-+        FileHandle = open(FileName, O_WRONLY | O_CREAT | O_EXCL,
- 			  S_IREAD | S_IWRITE);
-     else
--        FileHandle = open(FileName, O_WRONLY | O_CREAT | O_TRUNC, 
-+        FileHandle = open(FileName, O_WRONLY | O_CREAT | O_TRUNC,
- 			  S_IREAD | S_IWRITE);
- 
-     if (FileHandle == -1) {
-@@ -194,7 +196,7 @@
-     GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
-     int i, j;
- 
--    /* 
-+    /*
-      * Bulletproofing - always write GIF89 if we need to.
-      * Note, we don't clear the gif89 flag here because
-      * users of the sequential API might have called EGifSetGifVersion()
-@@ -221,7 +223,7 @@
- 	    || function == APPLICATION_EXT_FUNC_CODE)
- 	    Private->gif89 = true;
-     }
-- 
-+
-     if (Private->gif89)
- 	return GIF89_STAMP;
-     else
-@@ -230,7 +232,7 @@
- 
- /******************************************************************************
-  Set the GIF version. In the extremely unlikely event that there is ever
-- another version, replace the bool argument with an enum in which the 
-+ another version, replace the bool argument with an enum in which the
-  GIF87 value is 0 (numerically the same as bool false) and the GIF89 value
-  is 1 (numerically the same as bool true).  That way we'll even preserve
-  object-file compatibility!
-@@ -245,7 +247,7 @@
- /******************************************************************************
-  All writes to the GIF should go through this.
- ******************************************************************************/
--static int InternalWrite(GifFileType *GifFileOut, 
-+static int InternalWrite(GifFileType *GifFileOut,
- 		   const unsigned char *buf, size_t len)
- {
-     GifFilePrivateType *Private = (GifFilePrivateType*)GifFileOut->Private;
-@@ -565,7 +567,7 @@
-  Put extension block data (see GIF manual) into a GIF file.
- ******************************************************************************/
- int
--EGifPutExtensionBlock(GifFileType *GifFile, 
-+EGifPutExtensionBlock(GifFileType *GifFile,
- 		     const int ExtLen,
- 		     const void *Extension)
- {
-@@ -664,7 +666,7 @@
-  Replace the Graphics Control Block for a saved image, if it exists.
- ******************************************************************************/
- 
--int EGifGCBToSavedExtension(const GraphicsControlBlock *GCB, 
-+int EGifGCBToSavedExtension(const GraphicsControlBlock *GCB,
- 			    GifFileType *GifFile, int ImageIndex)
- {
-     int i;
-@@ -712,7 +714,7 @@
-     }
- 
-     /* No need to dump code size as Compression set up does any for us: */
--    /* 
-+    /*
-      * Buf = CodeSize;
-      * if (InternalWrite(GifFile, &Buf, 1) != 1) {
-      *      GifFile->Error = E_GIF_ERR_WRITE_FAILED;
-@@ -895,7 +897,7 @@
- 
-     while (i < LineLen) {   /* Decode LineLen items. */
-         Pixel = Line[i++];  /* Get next pixel from stream. */
--        /* Form a new unique key to search hash table for the code combines 
-+        /* Form a new unique key to search hash table for the code combines
-          * CrntCode as Prefix string with Pixel as postfix char.
-          */
-         NewKey = (((uint32_t) CrntCode) << 8) + Pixel;
-@@ -1051,9 +1053,9 @@
- ******************************************************************************/
- 
- static int
--EGifWriteExtensions(GifFileType *GifFileOut, 
--			       ExtensionBlock *ExtensionBlocks, 
--			       int ExtensionBlockCount) 
-+EGifWriteExtensions(GifFileType *GifFileOut,
-+			       ExtensionBlock *ExtensionBlocks,
-+			       int ExtensionBlockCount)
- {
-     if (ExtensionBlocks) {
-         ExtensionBlock *ep;
-@@ -1076,9 +1078,9 @@
- }
- 
- int
--EGifSpew(GifFileType *GifFileOut) 
-+EGifSpew(GifFileType *GifFileOut)
- {
--    int i, j; 
-+    int i, j;
- 
-     if (EGifPutScreenDesc(GifFileOut,
-                           GifFileOut->SWidth,
-@@ -1098,7 +1100,7 @@
-         if (sp->RasterBits == NULL)
-             continue;
- 
--	if (EGifWriteExtensions(GifFileOut, 
-+	if (EGifWriteExtensions(GifFileOut,
- 				sp->ExtensionBlocks,
- 				sp->ExtensionBlockCount) == GIF_ERROR)
- 	    return (GIF_ERROR);
-@@ -1113,8 +1115,8 @@
-             return (GIF_ERROR);
- 
- 	if (sp->ImageDesc.Interlace) {
--	     /* 
--	      * The way an interlaced image should be written - 
-+	     /*
-+	      * The way an interlaced image should be written -
- 	      * offsets and jumps...
- 	      */
- 	    int InterlacedOffset[] = { 0, 4, 2, 1 };
-@@ -1122,11 +1124,11 @@
- 	    int k;
- 	    /* Need to perform 4 passes on the images: */
- 	    for (k = 0; k < 4; k++)
--		for (j = InterlacedOffset[k]; 
-+		for (j = InterlacedOffset[k];
- 		     j < SavedHeight;
- 		     j += InterlacedJumps[k]) {
--		    if (EGifPutLine(GifFileOut, 
--				    sp->RasterBits + j * SavedWidth, 
-+		    if (EGifPutLine(GifFileOut,
-+				    sp->RasterBits + j * SavedWidth,
- 				    SavedWidth)	== GIF_ERROR)
- 			return (GIF_ERROR);
- 		}
---- giflib.org/lib/gif_hash.c	2014-05-16 03:46:53 -0700
-+++ giflib/lib/gif_hash.c	2017-03-06 21:05:52 -0800
-@@ -11,13 +11,16 @@
- 
- *****************************************************************************/
- 
--#include <unistd.h>
- #include <stdint.h>
- #include <stdlib.h>
- #include <fcntl.h>
- #include <stdio.h>
- #include <string.h>
- 
-+#ifndef _MSC_VER
-+#include <unistd.h>
-+#endif
-+
- #include "gif_lib.h"
- #include "gif_hash.h"
- #include "gif_lib_private.h"
---- giflib.org/lib/gif_hash.h	2014-05-16 03:46:53 -0700
-+++ giflib/lib/gif_hash.h	2017-03-06 21:06:48 -0800
-@@ -7,9 +7,12 @@
+--- giflib.org/lib/gif_hash.h	2017-04-11 10:30:01 +0200
++++ giflib/lib/gif_hash.h	2017-04-11 10:34:05 +0200
+@@ -10,7 +10,9 @@
  #ifndef _GIF_HASH_H_
  #define _GIF_HASH_H_
  
--#include <unistd.h>
++#ifdef HAVE_UNISTD_H
+ #include <unistd.h>
++#endif
  #include <stdint.h>
  
-+#ifndef _MSC_VER
-+#include <unistd.h>
-+#endif
-+
  #define HT_SIZE			8192	   /* 12bits = 4096 or twice as big! */
- #define HT_KEY_MASK		0x1FFF			      /* 13bits keys */
- #define HT_KEY_NUM_BITS		13			      /* 13bits keys */
---- giflib.org/util/gifinto.c	2016-03-17 09:26:04 -0700
-+++ giflib/util/gifinto.c	2017-03-06 21:17:54 -0800
-@@ -4,7 +4,6 @@
- 
+--- giflib.org/lib/gif_hash.c	2017-04-11 10:30:01 +0200
++++ giflib/lib/gif_hash.c	2017-04-11 10:33:53 +0200
+@@ -16,7 +16,9 @@
+ * 14 Jun 89 - Version 1.0 by Gershon Elber.
  *****************************************************************************/
  
--#include <unistd.h>
++#ifdef HAVE_UNISTD_H
+ #include <unistd.h>
++#endif
+ #include <stdint.h>
  #include <fcntl.h>
  #include <stdio.h>
- #include <stdlib.h>
-@@ -14,6 +13,9 @@
+--- giflib.org/lib/egif_lib.c	2017-04-11 10:30:01 +0200
++++ giflib/lib/egif_lib.c	2017-04-11 10:33:43 +0200
+@@ -11,7 +11,9 @@
+  * 26 Jun 96 - Version 3.0 by Eric S. Raymond (Full GIF89 support)
+  *****************************************************************************/
  
- #ifdef _WIN32
- #include <io.h>
-+#ifndef _MSC_VER
-+#include <unistd.h>
++#ifdef HAVE_UNISTD_H
+ #include <unistd.h>
 +#endif
- #endif /* _WIN32 */
- 
- #include "gif_lib.h"
+ #include <stdint.h>
+ #include <stdlib.h>
+ #include <stdio.h>
