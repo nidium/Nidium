@@ -85,7 +85,7 @@ Object.defineProperty(Canvas.prototype, "parentNode", {
 });
 
 (function(){
-    let styles = new WeakMap();
+    const styles = new WeakMap();
     const DEFAULTS = {
         "userSelect": "auto",
         "touchSelect": "auto",
@@ -110,7 +110,7 @@ Object.defineProperty(Canvas.prototype, "parentNode", {
                 break;
         }
     }
-    let styleHandler = {
+    const styleHandler = {
         has: function (target, name) {
             return getter(target, name) ? true : false;
         },
@@ -184,7 +184,7 @@ document.body = document.canvas;
 // }}}
 
 // {{{ XMLHTTPRequest
-let XMLHttpRequest = function() {
+var XMLHttpRequest = function() {
     this.mimeType = "text/plain";
     this.ev = {};
     this.status = -1;
@@ -215,7 +215,7 @@ XMLHttpRequest.prototype = {
         if (!this.url) return;
 
         if (this.responseType == "text" || this.responseType == "arraybuffer") {
-            let opt = {};
+            const opt = {};
             if (this.responseType == "text") opt.encoding = "utf8";
             File.read(this.url, opt, function(err, data) {
                 if (err) {
@@ -232,7 +232,7 @@ XMLHttpRequest.prototype = {
             // to quickly make three.js works inside Nidium.
             // For a more general approach we should wrap an
             // an ArrayBuffer inside a Blob.
-            let f = new File(this.url);
+            const f = new File(this.url);
             this.status = 200;
             this._fireEvent("load", {target: {response: f}});
         }
@@ -245,7 +245,7 @@ XMLHttpRequest.prototype = {
 // }}}
 
 // {{{ Blob
-let URL = {
+var URL = {
     _map: new Map(),
     createObjectURL: function(blob) {
         URL._map.set(blob, true);
