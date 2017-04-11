@@ -19,7 +19,22 @@ void JSKeyboard::RegisterObject(JSContext *cx)
 JSObject *JSKeyboard::RegisterModule(JSContext *cx)
 {
     JS::RootedObject exports(cx, JSKeyboard::ExposeObject(cx, "Keyboard"));
+
+    JS_DefineConstDoubles(cx, exports, JSKeyboard::ListConstDoubles());
+
     return exports;
+}
+
+JSConstDoubleSpec *JSKeyboard::ListConstDoubles()
+{
+    static JSConstDoubleSpec constDoubles[] = {
+        {"OPTION_NORMAL",      kOption_Normal},
+        {"OPTION_NUMERIC",     kOption_Numeric},
+        {"OPTION_TEXT_ONLY",   kOption_TextOnly},
+        { nullptr, 0}
+    };
+
+    return constDoubles;
 }
 
 JSFunctionSpec *JSKeyboard::ListStaticMethods()
@@ -36,7 +51,14 @@ JSFunctionSpec *JSKeyboard::ListStaticMethods()
 
 bool JSKeyboard::JSStatic_show(JSContext *cx, JS::CallArgs &args)
 {
-    Interface::SystemInterface::GetInstance()->showVirtualKeyboard(true);
+    Interface::SystemInterface *system = Interface::SystemInterface::GetInstance();
+    int flags = 0;
+
+    if (args.length() > 0 && args[0].isNumber()) {
+        flags = args[0].toNumber();
+    }
+
+    system->showVirtualKeyboard(flags);
 
     return true;
 }

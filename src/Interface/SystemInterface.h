@@ -46,7 +46,8 @@ public:
     virtual void sendNotification(const char *title,
                                   const char *content,
                                   bool sound = false) {};
-    virtual void showVirtualKeyboard(bool show) {}
+    virtual void showVirtualKeyboard(int flags) {}
+    virtual void hideVirtualKeyboard() {}
     static SystemInterface *GetInstance()
     {
         return SystemInterface::_interface;

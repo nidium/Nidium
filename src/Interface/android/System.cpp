@@ -131,13 +131,18 @@ void System::print(const char *buf)
     __android_log_print(ANDROID_LOG_INFO, "Nidium", "%s", buf);
 }
 
-void System::showVirtualKeyboard(bool show)
+void System::showVirtualKeyboard(int flags)
 {
-    if (show) {
-        SDL_StartTextInput();
-    } else {
-        SDL_StopTextInput();
-    }
+    static jnipp::StaticMethod<void, jint> SetKeyboardOptions(m_NidroidClass, "SetKeyboardOptions", "(I)V");
+
+    SetKeyboardOptions(flags);
+
+    SDL_StartTextInput();
+}
+
+void System::hideVirtualKeyboard()
+{
+    SDL_StopTextInput();
 }
 
 } // namespace Interface

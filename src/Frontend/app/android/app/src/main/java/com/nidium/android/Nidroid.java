@@ -10,6 +10,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.view.GestureDetectorCompat;
+import android.text.InputType;
 import android.text.method.Touch;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -19,9 +20,12 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Scroller;
 
+import org.libsdl.app.SDLActivity;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.Key;
 import java.util.Locale;
 
 public class Nidroid implements Flinger.Listener {
@@ -40,6 +44,13 @@ public class Nidroid implements Flinger.Listener {
         public static final int MOVE = 1;
         public static final int END = 2;
     };
+
+    // Always keep in sync with src/Binding/JSKeyboard.h KeyboradOptions enum
+    public class KeyboardOptions {
+        public static final int NORMAL      = 1 << 0;
+        public static final int NUMERIC     = 1 << 1;
+        public static final int TEXT_ONLY   = 1 << 2;
+    }
 
     public Nidroid(Activity a, SurfaceView v, final Method sdlOnTouch) {
         mCx = a.getApplicationContext();
@@ -68,6 +79,7 @@ public class Nidroid implements Flinger.Listener {
                     e.printStackTrace();
                 }
 
+                // Android does not send us an end motion when scrolling gesture end without a fling. Workaround that.
                 if ((event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) && mIsScrolling && !consumed) {
                     Nidroid.onScroll(event.getX(), event.getY(), 0, 0, TouchState.END);
                     mIsScrolling = false;
@@ -126,6 +138,21 @@ public class Nidroid implements Flinger.Listener {
         }
 
         Nidroid.onFlingUpdate(x, y, finished);
+    }
+
+    static void SetKeyboardOptions(int flags)
+    {
+        int outFlags = InputType.TYPE_CLASS_TEXT;
+
+        if ((flags & KeyboardOptions.NUMERIC) == KeyboardOptions.NUMERIC) {
+            outFlags = outFlags | InputType.TYPE_CLASS_NUMBER;
+        }
+
+        if ((flags & KeyboardOptions.TEXT_ONLY) == KeyboardOptions.TEXT_ONLY) {
+            outFlags = outFlags | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
+        }
+
+        SDLActivity.mKeyboardFlags = outFlags;
     }
 
     static double getPixelRatio()
