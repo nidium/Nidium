@@ -45,7 +45,8 @@ public:
     virtual const char *getLanguage() = 0;
     virtual void sendNotification(const char *title,
                                   const char *content,
-                                  bool sound = false){};
+                                  bool sound = false) {};
+    virtual void showVirtualKeyboard(bool show) {}
     static SystemInterface *GetInstance()
     {
         return SystemInterface::_interface;

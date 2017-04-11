@@ -57,6 +57,7 @@ public:
         return m_Console;
     }
 
+    void initControls() override {};
     void onScroll(float x, float y, float velocityX, float velocityY, int state);
     void onFlingUpdate(int scrollX, int scrollY, bool finished);
 

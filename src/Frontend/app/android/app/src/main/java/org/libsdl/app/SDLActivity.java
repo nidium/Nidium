@@ -57,7 +57,6 @@ public class SDLActivity extends Activity {
     protected static ViewGroup mLayout;
     protected static SDLJoystickHandler mJoystickHandler;
     public static Nidroid mNidroid;
-    private boolean mIgnoreShowTextInput = true;
 
     // This is what SDL runs in. It invokes SDL_main(), eventually
     protected static Thread mSDLThread;
@@ -538,10 +537,6 @@ public class SDLActivity extends Activity {
      * This method is called by SDL using JNI.
      */
     public static boolean showTextInput(int x, int y, int w, int h) {
-        if (mSingleton.mIgnoreShowTextInput) {
-            mSingleton.mIgnoreShowTextInput = false;
-            return true;
-        }
         // Transfer the task to the main thread as a Runnable
         return mSingleton.commandHandler.post(new ShowTextInputTask(x, y, w, h));
     }

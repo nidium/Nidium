@@ -19,6 +19,7 @@
         <activity
             android:name=".NidiumActivity"
             android:exported="true"
+            android:windowSoftInputMode="adjustResize"
             android:configChanges="keyboardHidden|orientation|screenSize" >
         </activity>
     </application>

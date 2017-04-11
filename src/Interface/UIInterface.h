@@ -369,7 +369,7 @@ public:
 protected:
     UIInterface();
     bool isContextReady();
-    virtual void initControls(){};
+    virtual void initControls();
     virtual void setupWindow(){};
     virtual void onWindowCreated(){};
     virtual void onNMLLoaded();

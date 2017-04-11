@@ -92,7 +92,6 @@ bool UIInterface::createWindow(int width, int height)
         }
 
         this->initControls();
-        SDL_StartTextInput();
 
         /*
             Enable vertical sync
@@ -329,6 +328,11 @@ int UIInterface::HandleEvents(void *arg)
 bool UIInterface::isContextReady()
 {
     return (this->m_NidiumCtx && m_NidiumCtx->getUI());
+}
+
+void UIInterface::initControls()
+{
+    SDL_StartTextInput();
 }
 
 void UIInterface::OnNMLLoaded(void *arg)

@@ -169,6 +169,7 @@
             '<(nidium_src_path)/Binding/JSCanvas.cpp',
             '<(nidium_src_path)/Binding/JSCanvas2DContext.cpp',
             '<(nidium_src_path)/Binding/JSNML.cpp',
+            '<(nidium_src_path)/Binding/JSKeyboard.cpp',
             '<(nidium_src_path)/IO/SystemStream.cpp'
         ],
     }],

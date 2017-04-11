@@ -26,7 +26,6 @@
 namespace Nidium {
 namespace Interface {
 
-// {{{ System
 System::System(JNIEnv *env, jobject nidroid) 
 {
     m_JNIScope = new jnipp::Env::Scope(env);
@@ -131,7 +130,15 @@ void System::print(const char *buf)
 {
     __android_log_print(ANDROID_LOG_INFO, "Nidium", "%s", buf);
 }
-// }}}
+
+void System::showVirtualKeyboard(bool show)
+{
+    if (show) {
+        SDL_StartTextInput();
+    } else {
+        SDL_StopTextInput();
+    }
+}
 
 } // namespace Interface
 } // namespace Nidium

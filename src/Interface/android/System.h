@@ -27,6 +27,7 @@ public:
     void sendNotification(const char *title, const char *content, bool sound) override;
     const char *execute(const char *cmd) override;
     void print(const char *buf) override;
+    void showVirtualKeyboard(bool show) override;
 
     int getSurfaceWidth();
     int getSurfaceHeight();
