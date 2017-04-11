@@ -17,15 +17,15 @@ class System : public SystemInterface
 public:
     System(JNIEnv *env, jobject cx);
     ~System();
-    float backingStorePixelRatio();
-    const char *getCacheDirectory();
-    const char *getEmbedDirectory();
-    const char *getUserDirectory();
-    void alert(const char *message, AlertType type = ALERT_INFO);
-    const char *cwd();
-    const char *getLanguage();
-    void sendNotification(const char *title, const char *content, bool sound);
-    const char *execute(const char *cmd);
+    float backingStorePixelRatio() override;
+    const char *getCacheDirectory() override;
+    const char *getEmbedDirectory() override;
+    const char *getUserDirectory() override;
+    void alert(const char *message, AlertType type = ALERT_INFO) override;
+    const char *cwd() override;
+    const char *getLanguage() override;
+    void sendNotification(const char *title, const char *content, bool sound) override;
+    const char *execute(const char *cmd) override;
     void print(const char *buf) override;
 
     int getSurfaceWidth();
