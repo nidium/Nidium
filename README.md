@@ -2,9 +2,9 @@
 
 ## Introduction
 
-nidium is an ongoing effort for a general purpose rendering engine to create apps, games that run on both desktop and on mobile. It also offers a way to create server-side applications through **nidium-server** which shares all the non gfx related code base.
+nidium is an ongoing effort for a general purpose rendering engine to create apps and games that run on both desktop and on mobile. It also offers a way to create server-side applications through **nidium-server** which shares all the non gfx related code base.
 
-nidium helps you create graphical softwares with Javascript. It's **not** a NodeJS, QT, Chromium, or WebKit derivate. It has been designed from scratch and has a small codebase written in C++.
+nidium helps you create graphical software with Javascript. It's **not** a NodeJS, QT, Chromium, or WebKit derivate. It has been designed from scratch and has a small codebase written in C++.
 
 It leverages the combination of **Skia** Graphics from Google, and Mozilla's JavaScript Engine (**SpiderMonkey**) together with many more awesome libraries.
 
