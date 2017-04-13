@@ -312,14 +312,22 @@ def rapidxml():
 @Deps.register("ffmpeg")
 def ffmpeg():
     env = Utils.Env()
+    configureArgs = ''
     if Konstruct.config("android"):
-        env.update(Variables.get("androidEnvClang"))
+        #env.update(Variables.get("androidEnvClang"))
+        env.update(Variables.get("androidEnvGcc"))
+        configureArgs += " --enable-cross-compile"
+        configureArgs += " --cross-prefix=%s" % ("arm-linux-androideabi-") #(Variables.get("targetTriplet"))
+        configureArgs += " --target-os=linux"
+        configureArgs += " --arch=arm"
+        configureArgs += " --sysroot=%s/sysroot" % (Variables.get("androidNdkPath"))
+        configureArgs += " --cpu=cortex-a8"
     return {
         "location": Deps.GitRepo("git://git.ffmpeg.org/ffmpeg.git", tag="n3.0.7"),
         "patch": [],
         "build":
         [
-            "./configure \
+            "./configure " + configureArgs + " --disable-shared \
             --disable-vaapi --disable-avdevice --disable-postproc --disable-avfilter --disable-ffserver --disable-lzma --disable-bzlib \
             --enable-decoder=ac3,aac,mp3,vorbis,pcm_s16be_planar,pcm_s16le,pcm_s16le_planar,pcm_s24be,pcm_s24daud,pcm_s24le,pcm_s24le_planar,pcm_s32be,pcm_s32le,pcm_s32le_planar,pcm_s8,pcm_s8_planar,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpeg4,mpeg2video,wmv1,wmv2,wmv3,wmv3_crystalhd,wmv3_vdpau,wmv3image,wmalossless,wmapro,wmav1,wmav2,wmavoice,vc1,vc1_crystalhd,vc1_vdpau,vc1image\
             --enable-parser=vorbis,mpegaudio,mpegvideo,mpeg4video,h264,vp8,aac,vc1\
