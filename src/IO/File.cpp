@@ -453,7 +453,7 @@ void File::listFilesTask(void *arg)
         return;
     }
 
-	PRDirEntry *cur;
+    PRDirEntry *cur;
     DirEntries *entries = static_cast<DirEntries *>(malloc(sizeof(*entries)));
     entries->allocated  = 64;
     entries->lst

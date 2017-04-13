@@ -89,7 +89,7 @@ bool listdir(JSNFS *nfs, PRDir *dir, std::string fullpath, int strip)
 
     PR_CloseDir(dir);
 
-	return true;
+    return true;
 }
 
 static Core::Context *initNidiumJS()
