@@ -5,41 +5,41 @@
  */
 
 {
-	const Elements = require("Elements");
+    const Elements = require("Elements");
 
-	Elements.img = class extends Elements.Element {
-		constructor(attributes) {
-			super(attributes);
-			this.src = attributes.src;
-			this._loaded = false;
-		}
+    Elements.img = class extends Elements.Element {
+        constructor(attributes) {
+            super(attributes);
+            this.src = attributes.src;
+            this._loaded = false;
+        }
 
-		set src(value) {
-			this._src = value;
-			this._img = new Image();
-			this._img.src = value;
+        set src(value) {
+            this._src = value;
+            this._img = new Image();
+            this._img.src = value;
 
-			this._img.onload = () => {
-				this._loaded = true;
+            this._img.onload = () => {
+                this._loaded = true;
 
-				if (this.attributes.onload) {
-					this.attributes.onload.call(this, this._img);
-				}
+                if (this.attributes.onload) {
+                    this.attributes.onload.call(this, this._img);
+                }
 
-				this.setSize(this._img.width, this._img.height);
-				this.requestPaint();
-			}
-		}
+                this.setSize(this._img.width, this._img.height);
+                this.requestPaint();
+            }
+        }
 
-		get src() {
-			return this._src;
-		}
+        get src() {
+            return this._src;
+        }
 
-		paint(ctx) {
-			if (this._loaded) {
-				ctx.drawImage(this._img, 0, 0);
-			}
-		}
+        paint(ctx) {
+            if (this._loaded) {
+                ctx.drawImage(this._img, 0, 0);
+            }
+        }
 
-	}
+    }
 }

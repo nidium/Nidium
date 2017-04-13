@@ -5,9 +5,9 @@
  */
 
 {
-	const Elements = require("Elements");
+    const Elements = require("Elements");
 
-	Elements.canvas = class extends Elements.Element {
-		onpaint() {}
-	}
+    Elements.canvas = class extends Elements.Element {
+        onpaint() {}
+    }
 }

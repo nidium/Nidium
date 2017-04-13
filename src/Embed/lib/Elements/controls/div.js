@@ -5,22 +5,22 @@
  */
 
 {
-	const Elements = require("Elements");
+    const Elements = require("Elements");
 
-	Elements.div = class extends Elements.Element {
-		constructor(attributes) {
-			super(attributes);
-			this.position = "inline";
-			this.staticRight = true;
-			this.right = 0;
-		}
+    Elements.div = class extends Elements.Element {
+        constructor(attributes) {
+            super(attributes);
+            this.position = "inline";
+            this.staticRight = true;
+            this.right = 0;
+        }
 
-		paint(ctx) {
-			super.paint(ctx)
-		}
+        paint(ctx) {
+            super.paint(ctx)
+        }
 
-		onmount() {
-			this.width = this.getParent().width;
-		}
-	}
+        onmount() {
+            this.width = this.getParent().width;
+        }
+    }
 }
