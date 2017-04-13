@@ -15,14 +15,11 @@
             this.position = "inline";
 
             this.on("mouseup", function(ev){
-                console.log("WIP")
+                console.log("WIP");
             });
         }
 
         paint(ctx) {
-            ctx.fillStyle = "#aaa";
-            ctx.stokeStyke = "#111";
-
             ctx.fillRect(0, 0, this.width, this.height, 15, 15);
             ctx.strokeRect(0, 0, this.width-0.5, this.height-0.5, 15, 15);
         }

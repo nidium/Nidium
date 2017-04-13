@@ -335,7 +335,7 @@
 
         set id(val) {
             this.__NodeID__ = val;
-            let shadow = this[s_ShadowRoot]
+            let shadow = this[s_ShadowRoot];
 
             shadow.addID(val, this);
         }

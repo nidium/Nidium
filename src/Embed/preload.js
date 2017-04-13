@@ -33,6 +33,9 @@ function __nidiumPreload(options, lst) {
      * Misc
      */
     load("embed://AnimationBlock.js");
+
+
+    // require("./components/button.nc");
 }
 
 if (0) {
