@@ -1,16 +1,16 @@
 const s_ShadowRoot = require("../Symbols").ElementShadowRoot;
 
-function proxyStyleSet(el, styles, name, value) {
+function styleProxy(el, key, value) {
     let p = Canvas.prototype.getParent.call(el);
 
-    switch (name) {
+    switch (key) {
         case "width":
         case "height":
             if (value && value[value.length -1] == "%") {
                 if (!p) break;
-                el[name] = p[name] * parseInt(value) / 100;
+                el[key] = p[key] * parseInt(value) / 100;
             } else {
-                el[name] = value;
+                el[key] = value;
             }
             break;
     
@@ -18,9 +18,9 @@ function proxyStyleSet(el, styles, name, value) {
         case "right":
             if (value && value[value.length -1] == "%") {
                 if (!p) break;
-                el[name] = p.width * parseInt(value) / 100;
+                el[key] = p.width * parseInt(value) / 100;
             } else {
-                el[name] = value;
+                el[key] = value;
             }
             break;
     
@@ -28,20 +28,21 @@ function proxyStyleSet(el, styles, name, value) {
         case "bottom":
             if (value && value[value.length -1] == "%") {
                 if (!p) break;
-                el[name] = p.height * parseInt(value) / 100;
+                el[key] = p.height * parseInt(value) / 100;
             } else {
-                el[name] = value;
+                el[key] = value;
             }
             break;
     }
-
-    styles[name] = value;
 }
 
 function refreshStyles(el, styles) {
-    for (k of ["width", "height", "left", "top", "bottom", "right"]) {
-        if (!styles[k]) continue;
-        proxyStyleSet(el, styles, k, styles[k]);
+    for (let key of ["width", "height", "left", "top", "bottom", "right"]) {
+        let value = styles[key];
+
+        if (value) {
+            styleProxy(el, key, value);
+        }
     }
 }
 
@@ -87,8 +88,9 @@ class ElementStyles {
         });
 
         return new Proxy(this, {
-            set: (object, key, value, proxy) => {
-                proxyStyleSet(el, object, key, value);
+            set: (styles, key, value, proxy) => {
+                styleProxy(el, key, value);
+                styles[key] = value;
                 return true;
             },
         });
