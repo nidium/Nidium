@@ -42,9 +42,7 @@ def portaudio():
         location =  Deps.GitRepo("https://github.com/Gundersanne/portaudio_opensles.git", revision="901176c")
         configureArgs = " --host=%s" % (Variables.get("targetTriplet"))
         patch = []
-        build = [ "aclocal",
-                    "libtoolize --force",
-                    "autoconf",
+        build = [ "aclocal", "libtoolize --force", "autoconf",
                 configure + "--with-opensles %s" % (configureArgs) ]
         env.update(Variables.get("androidEnvClang"))
     else:
@@ -54,7 +52,7 @@ def portaudio():
     return {
         "location": location,
         "patchs": patch,
-        "build": build + [ "make -j1 lib/libportaudio.la", "make  src/common/pa_ringbuffer.o"],
+        "build": build + [ "make -j1 lib/libportaudio.la src/common/pa_ringbuffer.o"],
         "outputs": ["lib/.libs/libportaudio.a"],
         "env": env
     }
