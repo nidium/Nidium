@@ -65,7 +65,7 @@ public:
 
 private:
     JSContext *m_Cx;
-
+    void * m_DLModule = nullptr;
     JS::Value load(JS::Value &scope);
 };
 // }}}

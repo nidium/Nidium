@@ -50,15 +50,16 @@ FieldDoc( "global.window", "The main window object.",
 
 FunctionDoc( "global.load", """Load the specified script in a synchronous way.
 
+The given JavaScript file will be loaded in the global scope. That is, every variables defined in it will be defined on the global scope.
+
 This function is only available if the nidium application is running a NML file that was loaded from a local source (e.g. file://)
 The 'path' is relative to the NML file that run the current application.""",
     [ SeeDoc( "global.require" )],
     [ExampleDoc( """try {
     load( '/nidium.js' );
 } catch(e) {
-    console.log("warning: "+ e.message);
-
-    }""" )],
+    console.log("Failed to load : "+ e.message);
+}""" )],
     IS_Static, IS_Public, IS_Fast,
     [ParamDoc( "path", "The javascript sourcefile that needs to be imported", "string", NO_Default, IS_Obligated ) ],
     NO_Returns

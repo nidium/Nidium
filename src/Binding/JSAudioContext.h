@@ -10,7 +10,6 @@
 #include "AV/Audio.h"
 #include "Binding/ClassMapper.h"
 #include "Binding/JSAV.h"
-#include "Macros.h"
 
 namespace Nidium {
 namespace Binding {

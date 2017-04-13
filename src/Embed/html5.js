@@ -1,11 +1,11 @@
 /*
- * Copyright 2017 Nidium Inc. All rights reserved.
- * Use of this source code is governed by a MIT license
- * that can be found in the LICENSE file.
- */
+   Copyright 2016 Nidium Inc. All rights reserved.
+   Use of this source code is governed by a MIT license
+   that can be found in the LICENSE file.
+*/
 
 {
-    const Elements = require("Elements");
+    const Elements = require("./lib/Elements.js");
 
     let reportUnsupported = function(message) {
         console.info("[HTML5Compat] " + message);
@@ -22,35 +22,29 @@
                 value: "Nidium",
                 writable: false
             },
-
             "appName": {
                 value: "Nidium",
                 writable: false
             },
-
             "appVersion": {
                 get: function() {
                     return __nidium__.version
                 },
             },
-
             "language": {
                 get: function() {
                     return (require("OS").language);
                 },
             },
-
             "platform": {
                 get: function() {
                     return (require("OS").platform);
                 },
             },
-
             "product": {
                 value: "Nidium",
                 writable: false
             },
-
             "userAgent": {
                 get: function() {
                     return this.appName + " / " + __nidium__.version +
@@ -63,7 +57,7 @@
             return true;
         };
 
-        var PrivateNavigator = function(){}
+        var PrivateNavigator = function() {}
         PrivateNavigator.prototype = PublicNavigator.prototype;
 
         window.navigator = new PrivateNavigator();
@@ -173,17 +167,14 @@
         overrideMimeType: function(type) {
             this.mimeType = type;
         },
-
         setResponseType: function(type) {
             this.responseType = type;
         },
-
         addEventListener: function(name, fn) {
             if (!this.ev[name]) this.ev[name] = [];
 
             this.ev[name].push(fn);
         },
-
         _fireEvent: function(name, ev) {
             if (!this.ev[name]) return;
 
@@ -191,7 +182,6 @@
                 fn.call(this, ev);
             }
         },
-
         send: function() {
             if (!this.url) return;
 
@@ -218,7 +208,6 @@
                 this._fireEvent("load", {target: {response: f}});
             }
         },
-
         open: function(method, url) {
             this.method = method;
             this.url = url;
@@ -229,15 +218,13 @@
     // {{{ Blob
     var URL = {
         _map: new Map(),
-        
         createObjectURL: function(blob) {
             URL._map.set(blob, true);
             return blob;
         },
-
         revokeObjectURL: function(obj) {
             URL._map.delete(obj);
         }
-    };
+    }
     // }}}
 }

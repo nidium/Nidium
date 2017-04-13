@@ -196,7 +196,7 @@ int Video::openInitInternal()
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
-        fprintf(stderr, "Couldn't find stream information");
+        fprintf(stderr, "Couldn't find stream information\n");
         return ERR_NO_INFORMATION;
     }
 
@@ -1214,7 +1214,7 @@ bool Video::processAudio()
 bool Video::processVideo()
 {
     if (PaUtil_GetRingBufferWriteAvailable(m_rBuff) < 1) {
-        DPRINT("processVideo not enought space to write data\n");
+        DPRINT("processVideo not enough space to write data\n");
         return false;
     }
 

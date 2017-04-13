@@ -1,6 +1,5 @@
 [Desktop Entry]
 Type=Application
 Name=Nidium
-Comment=Nidium
 Icon=x-application-nidium
-MimeType=application/nidium
+MimeType=application/nidium;

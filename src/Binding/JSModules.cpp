@@ -17,6 +17,7 @@
 
 #include <json/json.h>
 #include <jsfriendapi.h>
+#include <ape_timers_next.h>
 
 #include "Frontend/NML.h"
 #include "Binding/NidiumJS.h"
@@ -25,6 +26,7 @@
 #include "IO/Stream.h"
 
 #define NIDIUM_MODULES_PATHS_COUNT 2
+#define NIDIUM_MODULES_EXTENSION_COUNT 5
 
 using Nidium::IO::Stream;
 using Nidium::Core::Path;
@@ -34,9 +36,10 @@ namespace Nidium {
 namespace Binding {
 
 typedef bool (*register_module_t)(JSContext *cx, JS::HandleObject exports);
+static const char *extensions[] = { NULL, ".js", DSO_EXTENSION, ".json", ".nc" };
 // {{{ Preamble
 #if 0
-#define DPRINT(...) printf(__VA_ARGS__)
+#define DPRINT(...) ndm_logf(NDM_LOG_DEBUG, "JSModule", __VA_ARGS__)
 #else
 #define DPRINT(...) (void)0
 #endif
@@ -106,39 +109,42 @@ bool JSModule::initMain()
 bool JSModule::init()
 {
     if (!m_Name || !m_Parent || strlen(m_Name) == 0) return false;
-    DPRINT("JSModule init name = %s\n", m_Name);
+    DPRINT("JSModule init name = %s", m_Name);
 
     if (!this->findModulePath()) {
         // Module not found
         return false;
     }
 
-    DPRINT("filepath = %s\n", m_FilePath->path());
-    DPRINT("name = %s\n", m_Name);
+    DPRINT("filepath = %s", m_FilePath->path());
+    DPRINT("name = %s", m_Name);
 
-    DPRINT("absolute dir for %s\n", m_AbsoluteDir);
+    DPRINT("absolute dir for %s", m_AbsoluteDir);
 
     return true;
 }
 
 bool JSModule::initNative()
 {
-    JS::RootedObject exports(m_Cx, JS_NewPlainObject(m_Cx));
+    JS::RootedObject exports(m_Cx,
+        JS_NewObject(m_Cx, &nidium_modules_exports_class));
 
     if (!exports) {
         return false;
     }
 
-    void *module = dlopen(m_FilePath->path(), RTLD_LAZY);
-    if (!module) {
-        NLOG("Failed to open module : %s\n", dlerror());
+    JS_SetPrivate(exports, this);
+
+    m_DLModule = dlopen(m_FilePath->path(), RTLD_LAZY);
+    if (!m_DLModule) {
+        ndm_logf(NDM_LOG_ERROR, "JSModule", "Failed to open module : %s\n", dlerror());
         return false;
     }
 
     register_module_t registerModule = reinterpret_cast<register_module_t>(
-        dlsym(module, "__NidiumRegisterModule"));
+        dlsym(m_DLModule, "__NidiumRegisterModule"));
     if (registerModule && !registerModule(m_Cx, exports)) {
-        NLOG("Failed to register module\n");
+        ndm_logf(NDM_LOG_ERROR, "JSModule", "Failed to register module\n");
         return false;
     }
 
@@ -257,13 +263,13 @@ JS::Value JSModule::require(char *name)
             m_AbsoluteDir = strdup(m_FilePath->dir());
         } else {
             m_AbsoluteDir = strdup(Path::GetCwd());
-            DPRINT("Global scope loading\n");
+            DPRINT("Global scope loading");
         }
     } else {
-        DPRINT("Module scope loading\n");
+        DPRINT("Module scope loading");
     }
 
-    DPRINT("[JSModule] Module %s require(%s)\n", m_Name, name);
+    DPRINT("[JSModule] Module %s require(%s)", m_Name, name);
 
     JSModule *tmp = new JSModule(m_Cx, m_Modules, this, name);
     if (!tmp->init()) {
@@ -275,10 +281,10 @@ JS::Value JSModule::require(char *name)
     // Let's see if the module is in the cache
     JSModule *cached = m_Modules->find(tmp);
     if (!cached) {
-        DPRINT("Module is not cached\n");
+        DPRINT("Module is not cached");
         cmodule = tmp;
     } else {
-        DPRINT("Module is cached %s\n", cached->m_FilePath->path());
+        DPRINT("Module is cached %s", cached->m_FilePath->path());
         cmodule = cached;
         delete tmp;
     }
@@ -448,10 +454,21 @@ JS::Value JSModule::require(char *name)
     return ret;
 }
 
+static int close_module(void *arg)
+{
+    dlclose(arg);
+    return 0;
+}
+
 JSModule::~JSModule()
 {
     if (m_FilePath && m_Cached) {
         m_Modules->remove(this);
+    }
+
+    if (m_DLModule) {
+        ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
+        timer_dispatch_async(close_module, m_DLModule);
     }
 
     free(m_Name);
@@ -477,10 +494,10 @@ bool JSModules::init()
         }
 
         if (token != NULL && i == 63) {
-            fprintf(stderr,
+            ndm_logf(NDM_LOG_WARN, "Modules",
                     "Warning : require path ignored %s."
                     " A maximum of 63 search path is allowed. All subsequent "
-                    "paths will be ignored.\n",
+                    "paths will be ignored.",
                     token);
         }
 
@@ -564,7 +581,7 @@ bool JSModule::findModulePath()
     } else {
         std::string path = m_Parent->m_AbsoluteDir;
 
-        DPRINT("[FindModulePath] absolute topDir=%s dir=%s path=%s\n", topDir,
+        DPRINT("[FindModulePath] absolute topDir=%s dir=%s path=%s", topDir,
                m_Parent->m_AbsoluteDir, path.c_str());
 
         // Check if the module is not a JS embedded module
@@ -587,19 +604,19 @@ bool JSModule::findModulePath()
                 std::string currentPath = path;
                 currentPath += modules->m_Paths[i];
 
-                DPRINT("Looking for module %s in %s\n", m_Name,
+                DPRINT("Looking for module %s in %s", m_Name,
                        currentPath.c_str());
                 modulePath
                     = JSModules::FindModuleInPath(this, currentPath.c_str());
-                DPRINT("module path is %s\n", modulePath.c_str());
+                DPRINT("module path is %s", modulePath.c_str());
             }
 
             stop = (strcmp(topDir, path.c_str()) >= 0);
             // Try again with parent directory
             if (!stop) {
-                DPRINT("  Getting parent dir for %s\n", path.c_str());
+                DPRINT("  Getting parent dir for %s", path.c_str());
                 JSModules::DirName(path);
-                DPRINT("  Parent path is         %s\n", path.c_str());
+                DPRINT("  Parent path is         %s", path.c_str());
             }
         } while (modulePath.empty() && !stop);
 
@@ -608,9 +625,9 @@ bool JSModule::findModulePath()
             for (int i = 0;
                  modules->m_EnvPaths[i] != NULL && modulePath.empty(); i++) {
                 char *tmp = modules->m_EnvPaths[i];
-                DPRINT("Looking for module %s in %s\n", m_Name, tmp);
+                DPRINT("Looking for module %s in %s", m_Name, tmp);
                 modulePath = JSModules::FindModuleInPath(this, tmp);
-                DPRINT("module path is %s\n", modulePath.c_str());
+                DPRINT("module path is %s", modulePath.c_str());
             }
         }
     }
@@ -682,21 +699,19 @@ bool JSModules::GetFileContent(Path *p, char **content, size_t *size)
 std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
 {
 #define MAX_EXT_SIZE 13
-    const char *extensions[] = { NULL, ".js", DSO_EXTENSION, ".json", ".nc" };
-
     std::string tmp
         = std::string(path) + std::string("/") + std::string(module->m_Name);
     size_t len = tmp.length();
 
-    DPRINT("    tmp is %s\n", tmp.c_str());
+    DPRINT("    tmp is %s", tmp.c_str());
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < NIDIUM_MODULES_EXTENSION_COUNT; i++) {
         if (extensions[i]) {
             tmp.erase(len);
             tmp += extensions[i];
         }
 
-        DPRINT("    [JSModule] Looking for %s\n", tmp.c_str());
+        DPRINT("    [JSModule] Looking for %s", tmp.c_str());
 
         Path p(tmp.c_str(), true /* allowAll */);
         PtrAutoDelete<Stream *> stream(Stream::Create(p.path()));
@@ -713,18 +728,18 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
                     if (JSModules::LoadDirectoryModule(tmp)) {
                         return tmp;
                     }
-                    DPRINT("%s\n", tmp.c_str());
+                    DPRINT("%s", tmp.c_str());
                 } else {
                     // Exact filename, find the extension
                     size_t pos = tmp.find_last_of('.');
                     // No extension, assume it's a JS file
                     if (pos == std::string::npos) {
-                        DPRINT("      No extension found. Assuming JS file\n");
+                        DPRINT("      No extension found. Assuming JS file");
                         module->m_ModuleType = JSModule::kModuleType_JS;
                         return tmp;
                     }
 
-                    for (int j = 1; j < 5; j++) {
+                    for (int j = 1; j < NIDIUM_MODULES_EXTENSION_COUNT; j++) {
                         size_t tmpPos
                             = tmp.find(extensions[j], pos, len - 1 - pos);
                         if (tmpPos != std::string::npos) {
@@ -764,7 +779,7 @@ std::string JSModules::FindModuleInPath(JSModule *module, const char *path)
                 module->m_ModuleType = JSModule::kModuleType_NidiumComponent;
                 break;
         }
-        DPRINT("    [JSModule] FOUND IT\n");
+        DPRINT("    [JSModule] FOUND IT");
         return tmp;
     }
 
@@ -796,7 +811,7 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
 
                 if (!JSModules::GetFileContent(&p, &data, &size)
                     || data == NULL) {
-                    fprintf(stderr, "Failed to open %s\n", dir.c_str());
+                    ndm_logf(NDM_LOG_ERROR, "Modules", "Failed to open %s", dir.c_str());
                     return false;
                 }
 
@@ -807,25 +822,31 @@ bool JSModules::LoadDirectoryModule(std::string &dir)
                 bool parsingSuccessful = reader.parse(data, data + size, root);
 
                 if (!parsingSuccessful) {
-                    fprintf(stderr, "Failed to parse %s\n  %s\n", dir.c_str(),
+                    ndm_logf(NDM_LOG_ERROR, "Modules", "Failed to parse %s\n  %s", dir.c_str(),
                             reader.getFormatedErrorMessages().c_str());
                     return false;
                 }
 
                 std::string main = root.get("main", "").asString();
                 std::string entrypoint = dir.substr(0, len) + std::string("/") + main;
-                PtrAutoDelete<Stream *> streamEntrypoint(Stream::Create(entrypoint.c_str()));
+                size_t entrypointLen = entrypoint.length();
 
-                if (streamEntrypoint.ptr()->exists()) {
-                    dir = entrypoint;
-                    return true;
-                } else {
-                    fprintf(stderr, "Failed to access file %s\n", entrypoint.c_str());
-                    return false;
+                for (int i = 0; i < NIDIUM_MODULES_EXTENSION_COUNT; i++) {
+                    if (extensions[i]) {
+                        entrypoint.erase(entrypointLen);
+                        entrypoint += extensions[i];
+                    }
+
+                    PtrAutoDelete<Stream *> streamEntrypoint(Stream::Create(entrypoint.c_str()));
+
+                    if (streamEntrypoint.ptr()->exists()) {
+                        dir = entrypoint;
+                        return true;
+                    }
                 }
 
-                return true;
-                break;
+                ndm_logf(NDM_LOG_ERROR, "Modules", "File not found %s", entrypoint.c_str());
+                return false;
         }
     }
 

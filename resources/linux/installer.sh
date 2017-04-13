@@ -87,21 +87,15 @@ then
     if [ ! -d "/usr/share/applications/" ]
     then
         printf "Directory /usr/share/applications/ not found. Installing for user only\n"
-        mkdir -p ~/.local/share/applications/
-        cp resources/nidium.desktop ~/.local/share/applications/
-        update-desktop-database ~/.local/share/applications/
+        desktop-file-install resources/nidium.desktop --dir ~/.local/share/applications/ --rebuild-mime-info-cache
     else
-        cp resources/nidium.desktop /usr/share/applications/
-        chmod 644 /usr/share/applications/nidium.desktop
-        update-desktop-database
+        desktop-file-install resources/nidium.desktop --rebuild-mime-info-cache
     fi
     xdg-icon-resource install --mode system --novendor --context mimetypes --size 48 resources/nidium.png x-application-nidium
 else
     printf "(Current user only)\n"
     xdg-mime install --novendor resources/x-application-nidium.xml
-    mkdir -p ~/.local/share/applications/
-    cp resources/nidium.desktop ~/.local/share/applications/
-    update-desktop-database ~/.local/share/applications/
+    desktop-file-install resources/nidium.desktop --dir ~/.local/share/applications/ --rebuild-mime-info-cache
     xdg-icon-resource install --novendor --context mimetypes --size 48 resources/nidium.png x-application-nidium
 fi
 

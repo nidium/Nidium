@@ -182,15 +182,3 @@ TEST(Utils, filename)
     EXPECT_EQ(strcmp(__FILENAME__, "utils.cpp" ), 0);
 
 }
-
-TEST(Utils, NLOG)
-{
-    bool exists = true;
-#ifdef NLOG
-    NLOG("%s\n", "");
-#else
-    exists = false;
-#endif
-    EXPECT_EQ(exists, true);
-}
-

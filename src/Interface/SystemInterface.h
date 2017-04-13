@@ -7,6 +7,8 @@
 #define interface_systeminterface_h__
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 namespace Nidium {
 namespace Interface {
@@ -50,6 +52,11 @@ public:
     }
     static SystemInterface *_interface;
     virtual ~SystemInterface(){};
+
+    virtual void print(const char *buf)
+    {
+        fwrite(buf, 1, strlen(buf), stdout);
+    }
 
 private:
     void operator=(System const &);
