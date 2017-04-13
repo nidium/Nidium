@@ -36,21 +36,29 @@ CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 @Deps.register("portaudio")
 def portaudio():
+    env = Utils.Env()
+    if Konstruct.config("android"):
+        env.update(Variables.get("androidEnvClang"))
     return {
         "location": DEPEDENCY_REPO + "/portaudio.tgz",
         "build": ["./configure --without-jack --without-asihpi --without-winapi", "make -j1", "make  src/common/pa_ringbuffer.o"],
         "outputs": ["lib/.libs/libportaudio.a"],
-        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "portaudio.patch")]
+        "patchs": [os.path.join(CONFIGURE_PATH, "patch", "portaudio.patch")],
+        "env": env
     }
 
 @Deps.register("zita-resampler")
 def zitaresampler():
+    env = Utils.Env()
+    if Konstruct.config("android"):
+        env.update(Variables.get("androidEnvClang"))
     return {
         "location": DEPEDENCY_REPO + "/zita-resampler-1.3.0.tar.bz2",
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "zita.patch")],
         "chdir": "libs/",
         "build": ["make"],
-        "outputs": ["libzita-resampler(.a|.lib)"]
+        "outputs": ["libzita-resampler(.a|.lib)"],
+        "env": env
     }
 
 @Deps.register("giflib")
@@ -84,9 +92,9 @@ def skia():
     outputs = []
     args = {
         "extra_cflags_cc": [
-            "-Wno-unused-function", 
-            "-Wno-array-bounds", 
-            "-Wno-return-local-addr", 
+            "-Wno-unused-function",
+            "-Wno-array-bounds",
+            "-Wno-return-local-addr",
             "-DGR_GL_CUSTOM_SETUP_HEADER=<../../../../../patch/skia_gl_config.h>"
         ],
         "is_official_build": True,
@@ -127,6 +135,7 @@ def skia():
         "build": [
             "python tools/git-sync-deps",
             "bin/gn gen out/Static --args='%s'" % (skiaArgs),
+            "sed -i.bak '/simpleperf/d' out/Static/build.ninja",
             "ninja -C out/Static",
         ],
         "patchs": [
@@ -251,25 +260,34 @@ def depotTools():
 
 @Deps.register("basekit")
 def basekit():
+    env = Utils.Env()
+    if Konstruct.config("android"):
+        env.update(Variables.get("androidEnvClang"))
+        android_level = 19 #todo variable
+        env.append("CFLAGS", "-I %s/android-sdk/ndk-bundle/platforms/android-%d/arch-mips/usr/include/" % (os.getcwd(), android_level))
     return {
         "location": Deps.GitRepo("https://github.com/stevedekorte/basekit.git", revision="a3e54ba83b85f530dc9442a33d2779240ed96189"),
         "build": ["make"],
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "basekit.patch")],
-        "outputs": ["_build/lib/libbasekit(.a|.lib)"]
+        "outputs": ["_build/lib/libbasekit(.a|.lib)"],
+        "env": env
     }
 
 @Deps.register("libcoroutine")
 def libcoro():
+    env = Utils.Env()
     patchs = [os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.patch")]
 
     if Konstruct.config("valgrind"):
         patchs.append(os.path.join(CONFIGURE_PATH, "patch", "libcoroutine.debug.patch"))
-
+    if Konstruct.config("android"):
+        env.update(Variables.get("androidEnvClang"))
     return {
         "location": Deps.GitRepo("https://github.com/stevedekorte/coroutine.git", revision="b0bf11d8a0ec70bc0f1f5043513d334e1eff15fc"),
         "patchs": patchs,
         "build": ["make"],
-        "outputs": [["_build/lib/liblibcoroutine(.a|.lib)", "libcoroutine\\1"]]
+        "outputs": [["_build/lib/liblibcoroutine(.a|.lib)", "libcoroutine\\1"]],
+        "env": env
     }
 
 @Deps.register("rapidxml")
@@ -281,6 +299,9 @@ def rapidxml():
 
 @Deps.register("ffmpeg")
 def ffmpeg():
+    env = Utils.Env()
+    if Konstruct.config("android"):
+        env.update(Variables.get("androidEnvClang"))
     return {
         "location": Deps.GitRepo("git://git.ffmpeg.org/ffmpeg.git", tag="n3.0.7"),
         "patch": [],
@@ -300,7 +321,8 @@ def ffmpeg():
             "libavutil/libavutil(.a|.lib)",
             "libavformat/libavformat(.a|.lib)",
             "libswscale/libswscale(.a|.lib)"
-        ]
+        ],
+        "env": env
     }
 
 @Deps.register("libnotify")
@@ -381,7 +403,6 @@ def frontendAndroid(android):
         return
 
     Gyp.set("nidium_opengles2", 1)
-    Gyp.set("nidium_audio", 0)
 
     @Konstruct.hook("postBuild")
     def postBuildAndroid(success):
@@ -439,17 +460,18 @@ def setDependencies():
         "libzip",
         "lss",
         "SDL2",
-        "rapidxml"
+        "rapidxml",
+        "breakpad",
     )
 
     if Gyp.get("nidium_audio") == 1:
         Deps.append(
-            "portaudio",
             "zita-resampler",
-            "breakpad",
             "basekit",
             "libcoroutine",
-            "ffmpeg")
+            "portaudio",
+            "ffmpeg"
+            )
 
     if not Konstruct.config("android") and Platform.system == "Linux":
         Deps.append("libnotify")
