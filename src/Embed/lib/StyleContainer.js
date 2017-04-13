@@ -95,9 +95,16 @@ class ElementStyles {
     }
 
     paint(ctx) {
-        if (this.background) {
-            ctx.fillStyle = this.background;
+        let borderWidth = this.borderWidth || 1;
+        
+        if (this.backgroundColor) {
+            ctx.fillStyle = this.backgroundColor;
             ctx.fillRect(0, 0, this.el.width, this.el.height);
+        }
+
+        if (this.borderColor) {
+            ctx.strokeStyle = this.borderColor;
+            ctx.strokeRect(0.5, 0.5, this.el.width-1, this.el.height-1);
         }
     }
 }

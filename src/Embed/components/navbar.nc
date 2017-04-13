@@ -1,7 +1,7 @@
 <component name="navbar">
     <nss>
         clean: {
-            background: "white",
+            backgroundColor: "white",
             height: "46px",
             flex: ""
         },
