@@ -11,11 +11,8 @@
 		constructor(attributes) {
 			super(attributes);
 
-			var mr = (min=50, max=250) => min + Math.floor(Math.random()*(max-min));
-			this._color = `rgba(${mr(70, 100)}, ${mr(0, 200)}, ${mr(140, 210)}, 0.8)`;
-
-			this.style.width = "150";
-			this.style.height = "150";
+			this.width = attributes.width;
+			this.height = attributes.height;
 		}
 
 		paint(ctx) {
@@ -29,7 +26,7 @@
 				ctx.textAlign = "center";
 				ctx.fontSize = 20;
 				ctx.fillText(
-					this.computedAttributes.label, this.width / 2, this.height - 20
+					this.computedAttributes.label, this.width*0.5, this.height-20
 				);
 			}
 		}
