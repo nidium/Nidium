@@ -38,12 +38,23 @@ CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
 def portaudio():
     env = Utils.Env()
     if Konstruct.config("android"):
+        NdkPath = Variables.get("androidNdkPath")
+        NDKAPIVersion = Variables.get("androidNDKAPIVersion")
+        arch = "arm"
+        path = "%s/platforms/android-%s/arch-%s/usr/lib/" % (NdkPath, NDKAPIVersion, arch)
+        env.append("LDFLAGS", " -L%s" % (path))
+        configureArgs = " --host=%s" % (Variables.get("targetTriplet"))
+        build = ["rm -rf %s/libpthread.a" % (path),
+                "ln -s %s/libc.a %s/libpthread.a" % (path, path),
+                "./configure --disable-shared --enable-static --without-jack --without-asihpi --without-winapi %s" % (configureArgs) ]
         env.update(Variables.get("androidEnvClang"))
+    else:
+        build = ["./configure --disable-shared --enable-static --without-jack --without-asihpi --without-winapi" ]
     return {
         "location": DEPEDENCY_REPO + "/portaudio.tgz",
-        "build": ["./configure --without-jack --without-asihpi --without-winapi", "make -j1", "make  src/common/pa_ringbuffer.o"],
-        "outputs": ["lib/.libs/libportaudio.a"],
         "patchs": [os.path.join(CONFIGURE_PATH, "patch", "portaudio.patch")],
+        "build": build + [ "make -j1", "make  src/common/pa_ringbuffer.o"],
+        "outputs": ["lib/.libs/libportaudio.a"],
         "env": env
     }
 
@@ -263,8 +274,10 @@ def basekit():
     env = Utils.Env()
     if Konstruct.config("android"):
         env.update(Variables.get("androidEnvClang"))
-        android_level = 19 #todo variable
-        env.append("CFLAGS", "-I %s/android-sdk/ndk-bundle/platforms/android-%d/arch-mips/usr/include/" % (os.getcwd(), android_level))
+        NdkPath = Variables.get("androidNdkPath")
+        NDKAPIVersion = Variables.get("androidNDKAPIVersion")
+        arch = "arm"
+        env.append("CFLAGS", "-I %s/platforms/android-%d/arch-%s/usr/include/" % (NdkPath, NDKAPIVersion, arch))
     return {
         "location": Deps.GitRepo("https://github.com/stevedekorte/basekit.git", revision="a3e54ba83b85f530dc9442a33d2779240ed96189"),
         "build": ["make"],
