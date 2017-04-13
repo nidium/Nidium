@@ -60,7 +60,7 @@ def leveldb():
         Platform.setEnviron('TARGET_OS=NATIVE_WINDOWS')
         Platform.setEnviron('AR_FLAGS=-nologo -out:')
         Platform.setEnviron("CXXFLAGS=%s" % (cxxFlags))
-        patch = [os.path.join(CONFIGURE_PATH, "patch", "leveldb.windows.patch")]
+        patch = [os.path.join(CONFIGURE_PATH, "patch", "leveldb_windows.patch")]
         build = ["make clean", "make" + make_opt]
     else:
         patch = [os.path.join(CONFIGURE_PATH, "patch", "leveldb.patch")]
@@ -123,7 +123,7 @@ def mozilla():
     nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/")).replace('\\', '/')
     nsprFlags = '--with-nspr-cflags="-I%s/dist/include/nspr/"' % (nsprDir)
     if Platform.system == "Windows":
-        patch = [os.path.join(CONFIGURE_PATH, "patch", "mozilla-central.windows.patch")]
+        patch = [os.path.join(CONFIGURE_PATH, "patch", "mozilla-central_windows.patch")]
         make = "mozmake"
         configure = "bash ../configure --enable-build-backend=VisualStudio"
         if Platform.wordSize == 64:
@@ -165,7 +165,7 @@ def httpParser():
         gyp += " -G Platform=%s -Dplatform=%s" % (platform, platform)
         build = [gyp, "MSBuild.exe /nologo http_parser.vcxproj /p:Configuration=Release /P:Platform=%s /maxcpucount:%i" % (platform, Platform.cpuCount)]
         output = "Release/lib/http_parser.lib"
-        patch = [os.path.join(CONFIGURE_PATH, "patch", "http_parser.windows.patch")]
+        patch = [os.path.join(CONFIGURE_PATH, "patch", "http_parser_windows.patch")]
     else:
         build = ["make package"]
         output = "libhttp_parser.a"
