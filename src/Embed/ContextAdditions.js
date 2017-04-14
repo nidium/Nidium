@@ -16,12 +16,17 @@
         [WebGLRenderingContext.INT_VEC4, "uniform4iv"],
     ]);
 
-    CanvasRenderingContext2D.prototype.setShader = function(file) {
+    CanvasRenderingContext2D.prototype.setShaderFile = function(file) {
         var shader = File.readSync(file, {encoding: "utf8"});
 
         if (!shader) {
             return;
         }
+
+        return this.setShader(shader);
+    }
+
+    CanvasRenderingContext2D.prototype.setShader = function(shader) {
 
         var program = this.attachFragmentShader(shader);
         var uniforms = program.getActiveUniforms();
