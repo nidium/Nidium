@@ -72,10 +72,9 @@ def portaudio():
     do_backend = []
     if Platform.system == "Windows":
         Platform.setCompiler("cl", 'cl')
-        Platform.setEnviron('CMAKE_AR=lib')
+        Platform.setEnviron('LD=link')
         cmake, platform, toolset = Platform.CMake()
-        build = [
-                cmake + " -DPA_UNICODE_BUILD=1 -DPA_USE_WASAPI=1 -DPA_USE_WDMKS=1 -DPA_USE_WMME=1",
+        build = [cmake + " -DPA_UNICODE_BUILD=1 -DPA_USE_WASAPI=1 -DPA_USE_WDMKS=1 -DPA_USE_WMME=1",
                 "MSBuild.exe /nologo portaudio_static.vcxproj /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" %(toolset, Platform.cpuCount)]
         output = "./Release/portaudio_static_x86.lib"
     else:
@@ -88,7 +87,6 @@ def portaudio():
         build = [configure, "make -j1", "make  src/common/pa_ringbuffer.o"]
         output = "lib/.libs/libportaudio.a"
     return {
-        #"location": Deps.GitRepo("https://git.assembla.com/portaudio.git", revision="a1f61a9a2c"),
         "location": DEPEDENCY_REPO + "/portaudio.tgz",
         "build":  build,
         "outputs": [output],
@@ -122,7 +120,7 @@ def giflib():
                       'sed -i.bak -e "s/AR_FLAGS /AR_FLAGS/" libtool',
                       "make -j1"],
             "chdir": "lib",
-            "patchs": [],#os.path.join(CONFIGURE_PATH, "patch", "giflib_windows.patch")],
+            "patchs": [os.path.join(CONFIGURE_PATH, "patch", "giflib_windows.patch")],
             "outputs": ["../lib/.libs/gif.lib"]
         }
 
@@ -250,35 +248,29 @@ def fixAngleThinArchive():
 @Deps.register("angle")
 def angle():
     cxxFlags = os.environ.get("CXXFLAGS", "")
-
-    # Disable some errors for clang 3.5 & 3.7
     cxxFlags += " -Wno-c++11-narrowing -Wno-sign-compare -Wno-error"
-
+    location =  Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785")
     if Platform.wordSize == 32:
         cxxFlags += " -msse -msse2 -msse3"
-
     if Platform.system == "Darwin":
         outPath = "out/Release/"
     elif Platform.system == "Windows":
         outPath = "out/Release/"
+        #location =  Deps.GitRepo("https://github.com/Microsoft/angle.git", revision="f1706c4")
     elif Platform.system == "Linux":
         outPath = "out/Release/obj/src/"
     Platform.setEnviron('GYP_GENERATORS=ninja LDFLAGS="%s" CXXFLAGS="%s"' % (os.environ.get("LDFLAGS", ""), cxxFlags))
 
     return {
-        "location": Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785"),
+        "location": location,
         "build": [
             "python scripts/bootstrap.py",
             "gclient sync",
             fixAngleThinArchive,
             "ninja -C out/Release/"
         ],
-        "outputs": [
-            os.path.join(outPath, "libpreprocessor.a"),
-            os.path.join(outPath, "libtranslator.a"),
-            os.path.join(outPath, "libtranslator_lib.a"),
-            os.path.join(outPath, "libangle_common.a")
-        ]
+        "outputs": [os.path.join(outPath, i) for i in ["libpreprocessor.a", 
+                "libtranslator.a", "libtranslator_lib.a", "libangle_common.a"]]
     }
 
 @Deps.register("breakpad")
