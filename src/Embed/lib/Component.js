@@ -29,7 +29,7 @@ class Component extends Elements.Element {
         super(attributes);
 
         if (!attributes.width) {
-            this.width = "auto";
+            this.style.width = "100%";
         }
 
         this.attachShadow({

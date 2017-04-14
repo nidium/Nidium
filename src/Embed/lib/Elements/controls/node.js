@@ -50,6 +50,7 @@
             this.position = "inline";
             this.left     = attributes.left || 0;
             this.top      = attributes.top || 0;
+            this.coating  = attributes.coating || 20;
 
             // By default, node take the full width
             if (!attributes.width) {
@@ -162,6 +163,49 @@
             return super.maxHeight;
         }
         // }}}
+
+        shader(url, callback){
+            var self = this;
+
+            File.read(url, {encoding: "utf8"}, function(err, source){
+                var uniforms = {},
+                    ctx = self.getContext("2d"),
+                    program = ctx.attachFragmentShader(source);
+
+                var setUniformValue = function(location, value){
+                    program.uniform1i(location, value);
+                };
+
+                var createUniformBinding = function(uniform){
+                    var name = uniform.name,
+                        location = uniform.location,
+                        type = uniform.type;
+
+                    Object.defineProperty(uniforms, name, {
+                        configurable : false,
+                        get : function(){
+                            return uniform.value ? uniform.value : 0;
+                        },
+
+                        set : function(value){
+                            uniform.value = value;
+                            setUniformValue(location, value);
+                        }
+                    });
+                };
+
+                var uniformArray = program.getActiveUniforms();
+
+                for (var i=0; i<uniformArray.length; i++){
+                    createUniformBinding(uniformArray[i]);
+                }
+
+                if (typeof callback == "function") {
+                    callback.call(self, program, uniforms);
+                }
+            });
+
+        }
 
         getNMLContent(self = true) {
             var childContent = ''

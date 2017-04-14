@@ -66,6 +66,8 @@
 
         paint(ctx) {
             super.paint(ctx);
+            let p = Canvas.prototype.getParent.call(this);
+
             let maxWidth    = this[s_FnParentWidth]();
             let actualWidth = 1;
 

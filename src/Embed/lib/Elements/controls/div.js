@@ -10,17 +10,14 @@
     Elements.div = class extends Elements.Element {
         constructor(attributes) {
             super(attributes);
-            this.position = "inline";
-            this.staticRight = true;
-            this.right = 0;
+            this.style.position = "inline";
+            this.style.staticRight = true;
+            this.style.right = 0;
+            this.style.width = "100%";
         }
 
         paint(ctx) {
             super.paint(ctx)
-        }
-
-        onmount() {
-            this.width = this.getParent().width;
         }
     }
 }

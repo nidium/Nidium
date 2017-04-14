@@ -85,9 +85,10 @@ Elements.Loader = function(attributes) {
 load("embed://lib/Elements/controls/node.js");
 load("embed://lib/Elements/controls/element.js");
 load("embed://lib/Elements/controls/layout.js");
-load("embed://lib/Elements/controls/button.js");
+//load("embed://lib/Elements/controls/button.js");
 load("embed://lib/Elements/controls/canvas.js");
 load("embed://lib/Elements/controls/div.js");
+load("embed://lib/Elements/controls/span.js");
 load("embed://lib/Elements/controls/img.js");
 load("embed://lib/Elements/controls/section.js");
 load("embed://lib/Elements/controls/textnode.js");

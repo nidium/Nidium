@@ -2,7 +2,7 @@
     <nss>
         button: {
             color : "#ecedeb",
-            backgroundColor : "#262722",
+            backgroundColor : "#ffffff",
             overflow : false,
 
             radius : 2,
@@ -13,20 +13,24 @@
             textAlign : "center",
             textOffsetY : 0,
 
-            borderWidth : 1,
-            borderColor : "rgba(0, 0, 0, 0.03)",
+            borderWidth : 10,
+            borderColor : "rgba(0, 0, 0, 0.18)",
 
             shadowBlur : 4,
             shadowColor : "rgba(0, 0, 0, 0.2)",
             shadowOffsetX : 0,
             shadowOffsetY : 2
+        },
+
+        foo : {
+            backgroundColor: "red"
         }
     </nss>
-    <template>
+    <layout>
         <element id="button" class="button">
             <slot>Submit</slot>
         </element>
-    </template>
+    </layout>
     <script>
         module.exports = class extends Component {
             constructor(attr) {

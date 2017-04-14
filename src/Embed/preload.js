@@ -34,6 +34,10 @@ function __nidiumPreload(options, lst) {
      */
     load("embed://AnimationBlock.js");
 
-
-    // require("./components/button.nc");
+    /**
+     * Native Components
+     */
+    require("./lib/Navigator.js");
+    require("./components/statusbar.nc");
+    require("./components/button.nc");
 }
