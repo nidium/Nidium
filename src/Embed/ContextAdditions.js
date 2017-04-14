@@ -17,7 +17,7 @@
     ]);
 
     CanvasRenderingContext2D.prototype.setShader = function(file) {
-        var shader = File.readSync("./pass.frag", {encoding: "utf8"});
+        var shader = File.readSync(file, {encoding: "utf8"});
 
         if (!shader) {
             return;
