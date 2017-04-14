@@ -29,7 +29,7 @@ static void context_log(void *ctx, void *cb_args, ape_log_lvl_t lvl,
 Context::Context(ape_global *ape) : m_APECtx(ape)
 {
     m_JS = g_nidiumjs = new NidiumJS(ape, this);
-
+    
     Path::RegisterScheme(SCHEME_DEFINE("file://", FileStream, false), true);
     Path::RegisterScheme(SCHEME_DEFINE("http://", HTTPStream, true));
     Path::RegisterScheme(SCHEME_DEFINE("https://", HTTPStream, true));

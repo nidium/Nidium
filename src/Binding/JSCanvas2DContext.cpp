@@ -31,6 +31,7 @@ using Nidium::Interface::UIInterface;
 namespace Nidium {
 namespace Binding {
 
+static const char *getCoopFragmentShader();
 
 #if 0 && DEBUG
 #define NIDIUM_LOG_2D_CALL()                                              \
@@ -154,7 +155,7 @@ bool JSCanvasGLProgram::JS_uniform1i(JSContext *cx, JS::CallArgs &args)
     }
 
     AutoGLProgram autoProg(m_Program);
-
+    
     NIDIUM_GL_CALL_MAIN(Uniform1i(location, val));
 
     return true;
@@ -1114,7 +1115,7 @@ bool Canvas2DContext::JS_setVertexOffset(JSContext *cx, JS::CallArgs &args)
 
 bool Canvas2DContext::JS_attachFragmentShader(JSContext *cx, JS::CallArgs &args)
 {
-    size_t program;
+    uint32_t program;
 
     NIDIUM_LOG_2D_CALL();
     JS::RootedString glsl(cx);
@@ -1620,43 +1621,53 @@ void Canvas2DContext::clear(uint32_t color)
     m_Skia->getCanvas()->clear(color);
 }
 
-char *Canvas2DContext::genModifiedFragmentShader(const char *data)
+char *Canvas2DContext::genModifiedFragmentShader(const char *data, const char *glslversion)
 {
     const char *prologue =
-        //"#version 100\nprecision mediump float;\n"
-        //"precision mediump float;\n"
         "vec4 _nm_gl_FragCoord;\n"
         "#define main _nm_main\n"
         "#define gl_FragCoord _nm_gl_FragCoord\n";
 
     char *ret;
 
-    asprintf(&ret, "%s%s", prologue, data);
+    asprintf(&ret, "%s\n%s%s", glslversion, prologue, data);
 
     return ret;
 }
 
 uint32_t Canvas2DContext::createProgram(const char *data)
 {
-    char *pdata
-        = CanvasContext::ProcessShader(data, CanvasContext::SHADER_FRAGMENT);
+    char *pdata = CanvasContext::ProcessShader(data,
+        CanvasContext::SHADER_FRAGMENT, SH_GLSL_COMPATIBILITY_OUTPUT);
 
-    if (pdata == NULL) {
+    if (!pdata) {
         return 0;
     }
 
-    char *nshader = this->genModifiedFragmentShader(pdata);
+    std::string tshader = pdata;
+    free(pdata);
 
-    uint32_t fragment
-        = CanvasContext::CompileShader(nshader, GL_FRAGMENT_SHADER);
-    uint32_t coop   = this->compileCoopFragmentShader();
+    int fline = tshader.find("\n");
+    if (!fline) {
+        return 0;
+    }
+
+    std::string glslversion = tshader.substr(0, fline);
+
+    tshader.erase(0, fline + 1);
+
+    char *nshader = this->genModifiedFragmentShader(tshader.c_str(), glslversion.c_str());
+    uint32_t fragment = CanvasContext::CompileShader((const char **)&nshader, 1, GL_FRAGMENT_SHADER);
+
+    if (fragment == 0) {
+        free(nshader);
+        return 0;
+    }
+
+    uint32_t coop   = this->compileCoopFragmentShader(glslversion.c_str());
     uint32_t vertex = this->CreatePassThroughVertex();
 
     free(nshader);
-
-    if (fragment == 0) {
-        return 0;
-    }
 
     GLuint programHandle;
 
@@ -1683,7 +1694,7 @@ uint32_t Canvas2DContext::createProgram(const char *data)
     NIDIUM_GL_CALL(
         iface, GetProgramiv(programHandle, GR_GL_LINK_STATUS, &linkSuccess));
     if (linkSuccess == GL_FALSE) {
-        GLchar messages[256];
+        GLchar messages[1024];
         NIDIUM_GL_CALL(iface, GetProgramInfoLog(programHandle, sizeof(messages),
                                                 0, &messages[0]));
         ndm_logf(NDM_LOG_ERROR, "JSCanvas2DContext", "createProgram error : %s", messages);
@@ -1693,23 +1704,22 @@ uint32_t Canvas2DContext::createProgram(const char *data)
     return programHandle;
 }
 
-uint32_t Canvas2DContext::compileCoopFragmentShader()
+static const char *getCoopFragmentShader()
 {
-    const char *coop =
-        //"#version 100\nprecision mediump float;\n"
-        //"precision mediump float;\n"
-        "void _nm_main(void);\n"
+    return
         "uniform sampler2D Texture;\n"
         "uniform vec2 n_Position;\n"
         "uniform vec2 n_Resolution;\n"
         "uniform float u_opacity;\n"
         "uniform float n_Padding;\n"
         "varying vec2 TexCoordOut;\n"
-
-        "vec4 _nm_gl_FragCoord = vec4(gl_FragCoord.x-n_Position.x-n_Padding, "
-        "gl_FragCoord.y-n_Position.y-n_Padding, gl_FragCoord.wz);\n"
+        "vec4 _nm_gl_FragCoord;\n"
+        "void _nm_main(void);\n"
 
         "void main(void) {\n"
+        "_nm_gl_FragCoord = vec4(gl_FragCoord.x-n_Position.x-n_Padding, "
+        "gl_FragCoord.y-n_Position.y-n_Padding, gl_FragCoord.wz);\n"
+
         "if (_nm_gl_FragCoord.x+n_Padding < n_Padding ||\n"
         "    _nm_gl_FragCoord.x > n_Resolution.x ||\n"
         "    _nm_gl_FragCoord.y+n_Padding < n_Padding ||\n"
@@ -1720,8 +1730,13 @@ uint32_t Canvas2DContext::compileCoopFragmentShader()
         "}\n"
         "gl_FragColor = gl_FragColor * u_opacity;"
         "}\n";
+}
 
-    return this->CompileShader(coop, GL_FRAGMENT_SHADER);
+uint32_t Canvas2DContext::compileCoopFragmentShader(const char *glslversion)
+{
+    const char *shader = getCoopFragmentShader();
+
+    return this->CompileShader(&shader, 1, GL_FRAGMENT_SHADER);
 }
 
 void Canvas2DContext::drawTexture(uint32_t textureID)
