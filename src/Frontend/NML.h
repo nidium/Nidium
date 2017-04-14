@@ -12,6 +12,8 @@
 
 #include "Frontend/Assets.h"
 #include "Binding/JSStream.h"
+#include <vector>
+#include <utility>
 
 #define XML_VP_MAX_WIDTH 8000
 #define XML_VP_MAX_HEIGHT 8000
@@ -139,12 +141,12 @@ private:
     NMLLoadedCallback m_Loaded;
     void *m_LoadedArg;
 
-    rapidxml::xml_node<> *m_LST;
+    rapidxml::xml_node<> *m_LST = nullptr;
     JS::Heap<JSObject *> m_JSObjectLST;
 
+    std::vector<std::pair<std::string, std::string>> m_AppAttr;
+
     bool m_DefaultItemsLoaded;
-    bool m_LoadFramework;
-    bool m_LoadHTML5;
 };
 
 } // namespace Frontend

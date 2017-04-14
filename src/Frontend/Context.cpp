@@ -598,6 +598,7 @@ static ShShaderOutput GetShaderOutputVersion()
         return SH_ESSL_OUTPUT;
     } else {
         int version = GetGLSLVersion();
+
         switch (version) {
             case 100:
                 return SH_GLSL_COMPATIBILITY_OUTPUT;
@@ -627,6 +628,7 @@ static ShShaderOutput GetShaderOutputVersion()
                 ndm_logf(NDM_LOG_ERROR, "Context", "Unexpected GLSL version.");
                 exit(1);
         }
+
     }
 
     return SH_GLSL_COMPATIBILITY_OUTPUT;
@@ -663,6 +665,7 @@ bool Context::initShaderLang()
     maxVertexUniformVectors /= 4;
 
     m_ShShaderOutput = GetShaderOutputVersion();
+
 
 #if 0
     GLint maxVaryingVectors;
