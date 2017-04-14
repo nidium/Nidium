@@ -162,6 +162,12 @@
         get maxHeight() {
             return super.maxHeight;
         }
+
+        // Override setSize so width & height go through Element width & height setter
+        setSize(w, h) {
+            this.width = w;
+            this.height = h;
+        }
         // }}}
 
         shader(url, callback){
