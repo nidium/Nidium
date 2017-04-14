@@ -135,6 +135,8 @@ bool JSCanvasGLProgram::JS_getActiveUniforms(JSContext *cx, JS::CallArgs &args)
         JS::RootedValue inval(cx, JS::ObjectValue(*in));
         NIDIUM_JSOBJ_SET_PROP(in, "name", nameStr);
         NIDIUM_JSOBJ_SET_PROP(in, "location", locationVal);
+        NIDIUM_JSOBJ_SET_PROP_INT(in, "type", type);
+
         JS_SetElement(cx, arr, i, inval);
     }
 
@@ -320,17 +322,17 @@ bool JSCanvasGLProgram::JS_uniform1fv(JSContext *cx, JS::CallArgs &args)
 
 bool JSCanvasGLProgram::JS_uniform2fv(JSContext *cx, JS::CallArgs &args)
 {
-    return this->uniformXfv(cx, args, 1);
+    return this->uniformXfv(cx, args, 2);
 }
 
 bool JSCanvasGLProgram::JS_uniform3fv(JSContext *cx, JS::CallArgs &args)
 {
-    return this->uniformXfv(cx, args, 1);
+    return this->uniformXfv(cx, args, 3);
 }
 
 bool JSCanvasGLProgram::JS_uniform4fv(JSContext *cx, JS::CallArgs &args)
 {
-    return this->uniformXfv(cx, args, 1);
+    return this->uniformXfv(cx, args, 4);
 }
 // }}}
 
