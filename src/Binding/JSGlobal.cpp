@@ -137,13 +137,13 @@ bool JSGlobal::JS_load(JSContext *cx, JS::CallArgs &args)
     /* only embed are allowed in an http context */
     if (SCHEME_MATCH(schemeCwd, "http")
         && !URLSCHEME_MATCH(scriptstr.ptr(), "embed")) {
-        JS_ReportError(cx, "script access error : cannot load in this context");
+        JS_ReportError(cx, "script access error : Can't load in this context");
         return false;
     }
 
     if (!scriptpath.GetScheme()->AllowSyncStream()) {
         JS_ReportError(cx,
-                       "script error : \"%s\" scheme can't load in a sync way",
+                       "script error : \"%s\" scheme Can't load in a sync way",
                        schemeCwd->str);
         return false;
     }
@@ -401,6 +401,7 @@ JSFunctionSpec *JSGlobal::ListMethods()
         CLASSMAPPER_FN(JSGlobal, setInterval, 1),
         CLASSMAPPER_FN(JSGlobal, clearTimeout, 1),
         CLASSMAPPER_FN_ALIAS(JSGlobal, clearInterval, 1, clearTimeout),
+        CLASSMAPPER_FN_ALIAS(JSGlobal, clearImmediate, 1, clearTimeout),
         CLASSMAPPER_FN(JSGlobal, btoa, 1),
         JS_FS_END
     };

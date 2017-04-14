@@ -87,13 +87,13 @@ void Messages::cleanupMessages()
 void Messages::postMessage(void *dataptr, int event, bool forceAsync)
 {
     SharedMessages::Message *msg = new SharedMessages::Message(dataptr, event);
-    this->postMessage(msg, forceAsync);
+    postMessage(msg, forceAsync);
 }
 
 void Messages::postMessage(uint64_t dataint, int event, bool forceAsync)
 {
     SharedMessages::Message *msg = new SharedMessages::Message(dataint, event);
-    this->postMessage(msg, forceAsync);
+    postMessage(msg, forceAsync);
 }
 
 /*
@@ -105,6 +105,13 @@ void Messages::postMessageSync(SharedMessages::Message *msg)
     this->onMessage(*msg);
     delete msg;
 }
+
+void Messages::postMessageSync(void *dataptr, int event)
+{
+    SharedMessages::Message *msg = new SharedMessages::Message(dataptr, event);
+    postMessageSync(msg);
+}
+
 
 void Messages::postMessage(SharedMessages::Message *msg, bool forceAsync)
 {

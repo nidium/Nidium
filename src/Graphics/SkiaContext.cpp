@@ -36,7 +36,6 @@
 #include "Graphics/ShadowLooper.h"
 #include "Binding/JSDocument.h"
 #include "Binding/JSCanvas2DContext.h"
-#include "Macros.h"
 
 using Nidium::Core::PtrAutoDelete;
 using Nidium::Core::Path;
@@ -200,14 +199,12 @@ static inline bool isBreakable(const unsigned char c)
 }
 
 SkiaContext::SkiaContext()
-    : m_State(NULL), m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0),
+    : m_CanvasBindMode(SkiaContext::BIND_NO), m_State(NULL),
+      m_PaintSystem(NULL), m_CurrentPath(NULL), m_GlobalAlpha(0),
       m_AsComposite(0), m_Screen(NULL), m_CurrentShadow({ 0, 0, 0, 0 }),
-      m_Debug(false), m_FontSkew(-0.25),
-      m_CanvasBindMode(SkiaContext::BIND_NO)
+      m_Debug(false), m_FontSkew(-0.25)
 {
 }
-
-
 
 SkColor
 makeRGBAFromHSLA(double hue, double saturation, double lightness, double alpha)
@@ -266,9 +263,9 @@ uint32_t SkiaContext::ParseColor(const char *str)
         const char *end
             = SkParse::FindScalars(&str[(str[3] == 'a' ? 5 : 4)], array, count);
 
-        if (end == NULL)
-            printf("Not found\n");
-        else {
+        if (end == NULL) {
+            ndm_log(NDM_LOG_WARN, "Canvas", "Couldn't parse color");
+        } else {
             /* TODO: limits? */
             return makeRGBAFromHSLA(SkScalarToDouble(array[0]) / 360.,
                                     SkScalarToDouble(array[1]) / 100.,
@@ -340,7 +337,7 @@ SkiaContext *SkiaContext::CreateWithTextureBackend(Frontend::Context *fctx,
     float ratio = SystemInterface::GetInstance()->backingStorePixelRatio();
 
     GrContext *gr = GetGrContext(fctx);
-    
+
     sk_sp<SkSurface> surface = SkSurface::MakeRenderTarget(gr, SkBudgeted::kNo,
         SkImageInfo::MakeN32Premul(ceilf(width * ratio), ceilf(height * ratio)));
 
@@ -415,7 +412,7 @@ GrContext *SkiaContext::CreateGrContext(GLContext *glcontext)
     GrContext *context             = nullptr;
 
     if ((interface = glcontext->iface()) == nullptr) {
-        NUI_LOG("Cant get OpenGL interface");
+        ndm_logf(NDM_LOG_ERROR, "SkiaContext", "Can't get OpenGL interface");
         return nullptr;
     }
 
@@ -425,12 +422,11 @@ GrContext *SkiaContext::CreateGrContext(GLContext *glcontext)
         return nullptr;
     }
 
-    context->setResourceCacheLimits(NIDIUM_SKIA_CACHE_MAX_RESOURCES, 
+    context->setResourceCacheLimits(NIDIUM_SKIA_CACHE_MAX_RESOURCES,
         NIDIUM_SKIA_CACHE_MAX_BYTES);
 
     return context;
 }
-
 
 uint32_t SkiaContext::getOpenGLTextureId()
 {
@@ -492,7 +488,7 @@ bool SkiaContext::setSize(int width, int height, bool redraw)
     sk_sp<SkSurface> newSurface = m_Surface->makeSurface(info);
 
     if (!newSurface) {
-        printf("Can't create new surface\n");
+        ndm_log(NDM_LOG_ERROR, "Canvas", "Can't create new surface");
         return false;
     }
 
@@ -512,7 +508,7 @@ bool SkiaContext::setSize(int width, int height, bool redraw)
 
 void glcb(const GrGLInterface *)
 {
-    printf("Got a gl call\n");
+    ndm_log(NDM_LOG_INFO, "Canvas", "Got a gl call");
 }
 
 
@@ -945,7 +941,7 @@ void SkiaContext::restore()
 
         m_State = dstate;
     } else {
-        NUI_LOG("restore() without matching save()\n");
+        ndm_logf(NDM_LOG_ERROR, "SkiaContext", "restore() without matching save()");
     }
 
     getCanvas()->restore();
@@ -1036,10 +1032,10 @@ void SkiaContext::itransform(double scalex,
 
     SkMatrix im;
     if (m.invert(&im)) {
-        printf("transformed\n");
+        ndm_log(NDM_LOG_DEBUG, "Canvas", "transformed");
         getCanvas()->concat(im);
     } else {
-        printf("Cant revert Matrix\n");
+        ndm_log(NDM_LOG_ERROR, "Canvas", "Can't revert Matrix");
     }
 }
 
@@ -1085,7 +1081,7 @@ int SkiaContext::readPixels(
         width, height, kRGBA_8888_SkColorType, kUnpremul_SkAlphaType);
 
     if (!getCanvas()->readPixels(info, pixels, width * 4, left, top)) {
-        printf("Failed to read pixels\n");
+        ndm_log(NDM_LOG_DEBUG, "Canvas", "Failed to read pixels");
         return 0;
     }
 
@@ -1250,7 +1246,7 @@ void SkiaContext::drawImage(Image *image, double x, double y)
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->m_IsCanvas) {
-        printf("[Warning] Not implemented\n");
+        ndm_log(NDM_LOG_WARN, "Canvas", "Not implemented");
         #if 0
         getCanvas()->drawBitmap(
             image->m_CanvasRef->getDevice()->accessBitmap(false),
@@ -1279,7 +1275,7 @@ void SkiaContext::drawImage(
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->m_IsCanvas) {
-        printf("[Warning] Not implemented\n");
+        ndm_log(NDM_LOG_WARN, "Canvas", "Not implemented");
         #if 0
         getCanvas()->drawBitmapRect(
             image->m_CanvasRef->getDevice()->accessBitmap(false), NULL, r,
@@ -1317,7 +1313,7 @@ void SkiaContext::drawImage(Image *image,
                 SkDoubleToScalar(dwidth), SkDoubleToScalar(dheight));
 
     if (image->m_IsCanvas) {
-        printf("[Warning] Not implemented\n");
+        ndm_log(NDM_LOG_WARN, "Canvas", "Not implemented");
 #if 0
         SkBitmap bitmapImage;
 
@@ -1516,12 +1512,12 @@ void SkiaContext::setFillColor(Gradient *gradient)
     if ((shader = gradient->build()) == NULL) {
         /* Make paint invalid (no future draw) */
         // paint->setShader(NULL);
-        NUI_LOG("Invalid gradient");
+        ndm_logf(NDM_LOG_ERROR, "SkiaContext", "Invalid gradient");
         return;
     }
     PAINT->setColor(SK_ColorBLACK);
     PAINT->setShader(shader);
-    // NUI_LOG("Add gradient : %p (%d)", shader, shader->getRefCnt());
+    // ndm_printf("Add gradient : %p (%d)", shader, shader->getRefCnt());
 }
 
 void SkiaContext::setFillColor(const char *str)
@@ -1823,7 +1819,7 @@ SkiaContext::~SkiaContext()
     }
     while (nstate) {
         struct _State *tmp = nstate->next;
-        // NUI_LOG("Delete pain %p with shader : %p", nstate->paint,
+        // ndm_printf("Delete pain %p with shader : %p", nstate->paint,
         // nstate->paint->getShader());
         delete nstate->m_Paint;
         delete nstate->m_PaintStroke;

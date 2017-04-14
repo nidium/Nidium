@@ -7,7 +7,7 @@ from dokumentor import *
 NamespaceDoc( "Module", "Module that is exported.",
     SeesDocs( "global.modules" ),
     examples=[
-        ExampleDoc("Module.exports = {\"lorem\":\"ipsum\"}"),
+        ExampleDoc("module.exports = {\"lorem\":\"ipsum\"}"),
         ExampleDoc("""var foobar = require(\"foobar.js\");\n console.log(foobar.lorem); // Print \"ipsum\" """, run_code=False)
     ],
     products=["Frontend", "Server"]
@@ -30,7 +30,7 @@ FieldDoc( "Module.id", "The module name.",
 )
 
 FunctionDoc( "global.require", """`require` implementation similar to NodeJS `require()`""",
-    SeesDocs( "Module|Module.name|global.load" ),
+    SeesDocs( "Module|global.load" ),
     NO_Examples,
     IS_Static, IS_Public, IS_Fast,
     [ParamDoc( "path", "modulename", "string", NO_Default, IS_Obligated ) ],

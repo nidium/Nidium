@@ -137,6 +137,11 @@ void WebSocketClientConnection::onDisconnect(ape_global *ape)
         m_PingTimer = 0;
     }
 
+    // Don't propagate close event if the connection wasn't properly initiated in the first place
+    if (!m_Handshaked) {
+        return;
+    }
+
     m_HTTPServer->fireEventSync<WebSocketServer>(
         WebSocketServer::kEvents_ServerClose, args);
 }
