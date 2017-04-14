@@ -93,11 +93,15 @@ struct LayerizeContext
 };
 
 #define CANVAS_DEF_CLASS_PROPERTY(name, type, default_value, state) \
-    CanvasProperty<type> p_##name = {#name, default_value, CanvasProperty<type>::state, this};
+    CanvasProperty<type> p_##name = {#name, default_value, CanvasProperty<type>::state, this}; \
+    virtual void setProp##name(type value) { \
+        this->p_##name.set(value); \
+    } \
+    virtual type getProp##name() { \
+        return this->p_##name.get(); \
+    }
 
-
-// {{{ CanvasHandler
-class CanvasHandler : public Core::Events
+class CanvasHandlerBase
 {
 private:
     /*
@@ -106,12 +110,6 @@ private:
     std::vector<void *> m_PropertyList;
 
 public:
-    friend class SkiaContext;
-    friend class Nidium::Frontend::Context;
-    friend class Binding::JSCanvas;
-
-    static const uint8_t EventID = 1;
-    
     /*
      * This class holds two different value for the property
      * - The 'computed' value : the actual value used for the layout
@@ -129,24 +127,24 @@ public:
 
         static constexpr float kUndefined_Value  = NAN;
 
-        CanvasProperty(const char *name, T val, State state, CanvasHandler *h) :
+        CanvasProperty(const char *name, T val, State state, CanvasHandlerBase *h) :
             m_Name(name), m_Canvas(h), m_Value(val) {
                 
-
                 position = m_Canvas->m_PropertyList.size();
                 m_Canvas->m_PropertyList.push_back((void *)this);
             };
 
         inline T get() const {
             if (m_State == State::kInherit) {
-                if (m_Canvas->m_Parent) {
+                if (m_Canvas->getParentBase()) {
                     CanvasProperty<T> *ref =
                         static_cast<CanvasProperty<T> *>
-                            (m_Canvas->m_Parent->m_PropertyList.at(position));
+                            (m_Canvas->getParentBase()->m_PropertyList.at(position));
 
                     return ref->get();
                 }
             }
+
             return m_Value;
         }
 
@@ -185,7 +183,7 @@ public:
          * TODO: ifdef DEBUG */
         const char *m_Name;
 
-        CanvasHandler *m_Canvas;
+        CanvasHandlerBase *m_Canvas;
 
         /* Actual value used for computation */
         T m_Value;
@@ -198,6 +196,38 @@ public:
          * This is used in order to lookup for parent same property */
         int position;
     };
+
+    CANVAS_DEF_CLASS_PROPERTY(Top, double, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Left, double, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Width, int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Height, int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinWidth, int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinHeight, int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxWidth, int, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxHeight, int, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(FluidWidth, bool, false, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(FluidHeight, bool, false, State::kDefault);
+
+    virtual CanvasHandlerBase *getParentBase()=0;
+};
+
+
+// {{{ CanvasHandler
+class CanvasHandler : public CanvasHandlerBase, public Core::Events 
+{
+private:
+    /*
+        This need to be initialized before properties
+    */    
+    std::vector<void *> m_PropertyList;
+
+public:
+    friend class SkiaContext;
+    friend class Nidium::Frontend::Context;
+    friend class Binding::JSCanvas;
+
+    static const uint8_t EventID = 1;
+    
 
     enum COORD_MODE
     {
@@ -260,17 +290,6 @@ public:
         CANVAS_VISIBILITY_HIDDEN
     };
 
-
-    CANVAS_DEF_CLASS_PROPERTY(top, double, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(left, double, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(width, int, 1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(height, int, 1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(minWidth, int, 1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(minHeight, int, 1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(maxWidth, int, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(maxHeight, int, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(fluidWidth, bool, false, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(fluidHeight, bool, false, State::kDefault);
 
     CanvasContext *m_Context;
     JS::TenuredHeap<JSObject *> m_JsObj;
@@ -620,6 +639,8 @@ public:
 
     virtual ~CanvasHandler();
 
+    
+
     void unrootHierarchy();
 
     void setContext(CanvasContext *context);
@@ -682,6 +703,12 @@ public:
     {
         return m_Parent;
     }
+
+    CanvasHandlerBase *getParentBase() override
+    {
+        return m_Parent;
+    }    
+
     CanvasHandler *getFirstChild() const
     {
         return m_Children;
