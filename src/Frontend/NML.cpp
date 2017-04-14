@@ -237,7 +237,8 @@ JSObject *NML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 #define NODE_PROP(where, name, val)         \
     JS_DefineProperty(cx, where, name, val, \
                       JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
-#define NODE_STR(data, len)                         \
+
+#define NODE_STR(data, len)         \
     JSUtils::NewStringWithEncoding( \
         cx, static_cast<const char *>(data), len, "utf8")
 
