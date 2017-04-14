@@ -39,14 +39,47 @@ The 'konstruktor.py' build tools does a lot of symlink juggling. By default, (nt
 
 # Software
 
+## Microsoft Visual Studio Community edition 2015
+
+The community edition is free and has all the stuff that we need.
+
+* Download from http://www.microsoft.com/en-us/download/details.aspx?id=48146
+* Run
+  - choose custom;
+  - select 'Visual Studio 2015 Update 3'
+  - select 'Programming Languages|Visual C++|Common Tools for Visual C++ 2015
+  - select 'Visual C++
+  - unselect 'Windows and Web Development|Universal Windows App Development Tools|Windows 10 SDK (10.0.10240)"
+  - select 'Windows and Web Development|Universal Windows App Development Tools|Windows 10 SDK (10.0.10586)"
+  - unselect 'Microsoft Web Developer Tools'
+  - next, the installation takes longer then a coffe break, so you could continue with the steps below.
+
+When the installation is done, you can take another coffeebreak to start Visual Studio for the first time, but it is not needed: Our intention is that you can hack on nidium with just your favorite editor and the configure_* scripts.
+
+## Directx
+
+To get cool graphics on our nidium frontend we need directx
+
+* Download from https://support.microsoft.com/en-us/help/179113/how-to-install-the-latest-version-of-directx
+
+## Mozilla build
+
+To build spidermonkey we well reuse parts of the mozilla buildprocess, this has a lot of unixy tools, including bash, sed, awk, sort, grep, find, vim, which etc
+
+* Download from https://wiki.mozilla.org/MozillaBuild
+* Run and install it in 'c:\mozilla-build'. I don't like to place stuff in the root, but it appears to be an essential place.
+* Standard this comes with python 2.7.11 Which has a problem with urllib and https. And konstructor.py needs that.
+* Move the directory c:\mozilla-build\python to c:\mozilla-build\python-2.7.11 (or remove it)
+
 ## git
 
 Obviously,
 
 * Download from https://git-scm.com/download/win
-* Install, add git to your path and also add the binutils (pr.exe) for your convienienc.
+* Install, add git to your path
 * You might want to set your information
 
+ Please note that mozilla's binutils does not include 'pr' nor 'seq'. We need this to build ffmpeg.
 ```
 $ git config --global user.name "John Doe"
 $ git config --global user.email johndoe@example.com
@@ -70,32 +103,6 @@ git config --global --add diff.guitool kdiff3
 git config --global --add difftool.kdiff3.path "c:/mozilla-build/kdiff3/kdiff3.exe"
 git config --global --add difftool.kdiff3.trustExitCode false
 ```
-
-## Microsoft Visual Studio Community edition 2015
-
-The community edition is free and has all the stuff that we need.
-
-* Download from http://www.microsoft.com/en-us/download/details.aspx?id=48146
-* Run
-  - choose custom;
-  - select 'Visual Studio 2015 Update 3'
-  - select 'Programming Languages|Visual C++|Common Tools for Visual C++ 2015
-  - select 'Visual C++
-  - unselect select 'Windows and Web Development|Universal Windows App Development Tools|Windows 10 SDK (10.0.10586)"
-  - unselect 'Microsoft Web Developer Tools'
-  - next, the installation takes longer then a coffe break, so you could continue with the steps below.
-
-When the installation is done, you can take another coffeebreak to start Visual Studio for the first time, but it is not needed: Our intention is that you can hack on nidium with just your favorite editor and the configure_* scripts.
-
-## Mozilla build
-
-To build spidermonkey we well reuse parts of the mozilla buildprocess, this has a lot of unixy tools, including bash, sed, awk, sort, grep, find, vim, which etc
-
-* Download from https://wiki.mozilla.org/MozillaBuild
-* Run and install it in 'c:\mozilla-build'. I don't like to place stuff in the root, but it appears to be an essential place.
-  Please do not get annoyed about the stuff msys2 stuff that will be installed in c:\mozilla-build\msys although git did provide that as well.
-* Standard this comes with python 2.7.11 Which has a problem with urllib and https. And konstructor.py needs that.
-* Move the directory c:\mozilla-build\python to c:\mozilla-build\python-2.7.11 (or remove it)
 
 # python
 
@@ -142,8 +149,6 @@ The 'konstruktor.py' script does a lot of filesystem operations, pywin32 makes t
 
 Angle will start depot_tools to download svn.
 For some reason that fails, let's install it manually.
-Make sure ttah powershell is in you PATH.
-
 * Download from https://storage.googleapis.com/chrome-infra/svn_bin.zip.
 * Install and put it in your path
 
@@ -160,14 +165,20 @@ $env:Path +=";c:\Users\efyx\Desktop\svn_bin\"
 * Download from https://cmake.org/download/
 * Install
 
-## Finetune your bash experience
+## Finetune your shell experience
+
+```
+ln -s /c/Windows/system32/WindowsPowerShell/v1.0/powershell /bin/powershell
+```
+
+Set up the path (with mozilla's msys before git's)
 
 ~/.bashrc
 
 ```
 export PYTHONPATH=/c/Data/nidium/NidiumTools/src
 export VIRTUALENV_PYTHON=/c/mozilla-build/python/python.exe
-export PATH=$PATH:/c/Program\ files/Git/bin:/c/Data/ProgramFiles/svn_bin:/c/Program\ Files/Cmake/bin:/c/Data/ProgramFiles/binutils/bin:
+export PATH=$PATH:/c/Program\ files/Git/bin:/c/Data/ProgramFiles/svn_bin:/c/Program\ Files/Cmake/bin:/c/Data/ProgramFiles/binutils/bin:/c/Program\ Files/Git/usr/bin
 cd /c/Data/nidium/Nidium
 ```
 
