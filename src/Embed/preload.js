@@ -15,11 +15,11 @@ function __nidiumPreload(options, lst) {
     load("embed://AnimationBlock.js");
     load("embed://HTTPAdditions.js");
     
-    let rdebug = require("RemoteDebug.js");
+/*    let rdebug = require("RemoteDebug.js");
 
     rdebug.run(9223, (options.remotedebug == "true")
         ? "0.0.0.0"
-        : "127.0.0.1");
+        : "127.0.0.1");*/
 
     document.canvas.inject(lst);
 }
