@@ -39,31 +39,11 @@ class Component extends Elements.Element {
 
         // Share the NSS between the ShadowRoot of the Component and this Element
         this.shadowRoot.nss = this.constructor[s_ComponentShadow].getNSS();
+
+        this.createComponentTree();
     }
 
     createTree(children) {
-        const layout      = this.constructor[s_ComponentShadow].findNodesByTag("layout")
-        const templates   = this.constructor[s_ComponentShadow].findNodesByTag("template");
-        const scope       = this.shadowRoot.getJSScope();
-
-        // When rendering a component, |this| should be the instance of the component
-        const previousThis = scope["this"];
-        scope["this"] = this;
-
-        try  {
-            if (layout.length > 0) {
-                // Render layout
-                for (let child of layout[0].getChildren()) {
-                    this.add(child.cloneNode(true, this.shadowRoot));
-                }
-            } else if (templates.length == 1) {
-                // Render template
-                this.addMultiple(...templates[0].render(scope));
-            }
-        } finally {
-            scope["this"] = previousThis;
-        }
-
         if (!this.allowsChild()) {
             if (children.length) {
                 console.warn(`Component <${this.name()}> does not allow children. Ignoring children.`);
@@ -71,7 +51,7 @@ class Component extends Elements.Element {
             return;
         }
 
-        if (children.length == 0) {
+        if (typeof(children) == "undefined" || children.length == 0) {
             return;
         }
 
@@ -105,6 +85,30 @@ class Component extends Elements.Element {
                     }
                 }
             }
+        }
+    }
+
+    createComponentTree() {
+        const layout      = this.constructor[s_ComponentShadow].findNodesByTag("layout")
+        const templates   = this.constructor[s_ComponentShadow].findNodesByTag("template");
+        const scope       = this.shadowRoot.getJSScope();
+
+        // When rendering a component, |this| should be the instance of the component
+        const previousThis = scope["this"];
+        scope["this"] = this;
+
+        try  {
+            if (layout.length > 0) {
+                // Render layout
+                for (let child of layout[0].getChildren()) {
+                    this.add(child.cloneNode(true, this.shadowRoot));
+                }
+            } else if (templates.length == 1) {
+                // Render template
+                this.addMultiple(...templates[0].render(scope));
+            }
+        } finally {
+            scope["this"] = previousThis;
         }
     }
 }
