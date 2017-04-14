@@ -170,7 +170,6 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
         return false;
     }
 
-    printf("End of NML data\n");
     return true;
 }
 
