@@ -15,6 +15,8 @@
         }
 
         set src(value) {
+            if (!value) return;
+            console.log("set src", value)
             this._src = value;
             this._img = new Image();
             this._img.src = value;

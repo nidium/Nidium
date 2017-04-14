@@ -36,6 +36,24 @@
             this._ctx.restore();
         }
 
+        fadein(duration) {
+            if (!this.style.opacity) this.style.opacity = 0;
+            AnimationBlock(duration, Easing.Sinusoidal.Out, (style) => {
+                style.opacity = 1;
+            }, this.style);
+
+            return this;
+        }
+
+        fadeout(duration) {
+            if (!this.style.opacity) this.style.opacity = 1;
+            AnimationBlock(duration, Easing.Sinusoidal.In, (style) => {
+                style.opacity = 0;
+            }, this.style);
+
+            return this;
+        }
+
         ctx2d() {
             return this.getContext("2d");
         }
