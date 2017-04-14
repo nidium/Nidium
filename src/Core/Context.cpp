@@ -71,7 +71,7 @@ void Context::logFlush()
     m_LogBuffering = false;
 
     if (m_Logbuffer.length()) {
-        this->postMessage(strdup(m_Logbuffer.c_str()), kContextMessage_log);
+        this->postMessageSync(strdup(m_Logbuffer.c_str()), kContextMessage_log);
         m_Logbuffer.clear();
         m_Logbuffer.shrink_to_fit();
     }
@@ -84,7 +84,7 @@ void Context::log(const char *str)
 
         return;
     }
-    this->postMessage(strdup(str), kContextMessage_log);
+    this->postMessageSync(strdup(str), kContextMessage_log);
 }
 
 void Context::vlog(const char *format, ...)
