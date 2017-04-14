@@ -77,30 +77,31 @@
                     set: (object, key, value, proxy) => {
                         throw new Error(`Components are not allowed to set document.${key}`);
                     }
-                }),
-                "window": new Proxy(this, {
-                    get: (object, key, proxy) => {
-                        switch (key) {
-                            case "addEventListener":
-                            case "fireEvent":
-                                return window[key];
+                })
+            }
+
+            scope["window"] = new Proxy(scope, {
+                get: (object, key, proxy) => {
+                    switch (key) {
+                        case "addEventListener":
+                        case "fireEvent":
+                            return window[key];
                             /*
                             default:
                                 throw new Error(`Components does not have access to window.${key}`);
                             */
-                        }
-
-                        return object[key];
-                    },
-
-                    set: (object, key, value, proxy) => {
-                        throw new Error(`Components are not allowed to set window.${key}`);
                     }
-                })
-            }
+
+                    return object[key];
+                },
+
+                set: (object, key, value, proxy) => {
+                    throw new Error(`Components are not allowed to set window.${key}`);
+                }
+            })
 
             // Prevent access to the global object using |this|
-            scope["this"] = window;
+            scope["this"] = scope.window;
 
             // XXX : Components can still access variables/methods from
             // the global object, maybe using a sandbox is more suited ?

@@ -5,16 +5,44 @@
  */
 
 {
-    const Elements = require("Elements");
+    const Elements      = require("Elements");
     const ShadowRoot    = require("../../../ShadowRoot.js");
     const s_ShadowRoot  = require("../../../Symbols.js").ElementShadowRoot;
     const s_ShadowHost  = require("../../../Symbols.js").ElementShadowHost;
+    const VM            = require("VM");
 
     const s_FnFixStaticRight = Symbol("NodeFunctionFixStaticRight");
 
     Elements.Node = class extends Canvas {
         constructor(attributes = {}) {
             super(parseInt(attributes.width) || 10, parseInt(attributes.height) || 10);
+
+            const shadowRoot = Elements.currentShadow || document.canvas.shadowRoot;
+
+            for (let attr of Object.getOwnPropertyNames(attributes)) {
+                if (attr.length < 5 || attr[2] != ":") continue;
+
+                const isJS = attr[0] == "j" && attr[1] == "s";
+                const isOn = attr[0] == "o" && attr[1] == "n";
+
+                if (isJS || isOn) {
+                    const options = {};
+                    const value = attributes[attr];
+                    const clampedAttr = attr.substring(3);
+
+                    if (shadowRoot && shadowRoot.jsScope) {
+                        options.scope = shadowRoot.jsScope["this"];
+                    }
+
+                    const result = VM.run(value, options);
+
+                    if (isOn) {
+                        this["on" + clampedAttr] = result;
+                    } else {
+                        attributes[clampedAttr] = result;
+                    }
+                }
+            }
 
             this.attributes         = attributes;
             this.computedAttributes = {};
@@ -44,7 +72,7 @@
             this.height = attributes.height ? attributes.height : "auto";
             this.width = attributes.width ? attributes.width : "auto";
 
-            this[s_ShadowRoot] = Elements.currentShadow;
+            this[s_ShadowRoot] = shadowRoot;
             this[s_ShadowRoot].addTag(this.name(), this);
 
             if (attributes.id) {

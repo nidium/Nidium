@@ -25,40 +25,43 @@ function findUserSlots(children, ret) {
 }
 
 class Component extends Elements.Element {
-    constructor(attributes) {
+    constructor(attributes = {}) {
         super(attributes);
 
         if (!attributes.width) {
             this.width = "auto";
         }
 
-        this.attachShadow({"name": "ComponentInstance-" + this.name()});
+        this.attachShadow({
+            "name": "ComponentInstance-" + this.name(),
+            "scope": this.constructor[s_ComponentShadow].getJSScope()
+        });
 
         // Share the NSS between the ShadowRoot of the Component and this Element
         this.shadowRoot.nss = this.constructor[s_ComponentShadow].getNSS();
     }
 
     createTree(children) {
-        let layout      = this.constructor[s_ComponentShadow].findNodesByTag("layout")
-        let templates   = this.constructor[s_ComponentShadow].findNodesByTag("template");
+        const layout      = this.constructor[s_ComponentShadow].findNodesByTag("layout")
+        const templates   = this.constructor[s_ComponentShadow].findNodesByTag("template");
+        const scope       = this.shadowRoot.getJSScope();
 
-        // Generate default layout
-        if (layout.length > 0) {
-            for (let child of layout[0].getChildren()) {
-                this.add(child.cloneNode(true, this.shadowRoot));
-            }
-        } else if (templates.length == 1) {
-            // When rendering templates, |this| should be the instance of the component
-            let scope = this.constructor[s_ComponentShadow].getJSScope();
-            let previousThis = scope["this"];
+        // When rendering a component, |this| should be the instance of the component
+        const previousThis = scope["this"];
+        scope["this"] = this;
 
-            scope["this"] = this;
-
-            try {
+        try  {
+            if (layout.length > 0) {
+                // Render layout
+                for (let child of layout[0].getChildren()) {
+                    this.add(child.cloneNode(true, this.shadowRoot));
+                }
+            } else if (templates.length == 1) {
+                // Render template
                 this.addMultiple(...templates[0].render(scope));
-            } finally {
-                scope["this"] = previousThis;
             }
+        } finally {
+            scope["this"] = previousThis;
         }
 
         if (!this.allowsChild()) {

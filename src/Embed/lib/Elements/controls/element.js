@@ -10,7 +10,7 @@
     const Elements = require("Elements");
 
     Elements.Element = class extends Elements.Node {
-        constructor(attributes) {
+        constructor(attributes = {}) {
             super(attributes);
 
             if (attributes.opacity !== undefined) {

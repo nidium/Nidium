@@ -13,7 +13,7 @@
     Elements.textnode = class extends Elements.Element {
 
         constructor(textValue) {
-            super(1, 1);
+            super({"width": 1, "height": 1});
             this.nodeValue   = textValue;
             this.fluidHeight = false;
             this.fluidWidth  = false;
