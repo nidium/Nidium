@@ -1,0 +1,8 @@
+--- angle/src/copy_compiler_dll.bat.org	2017-04-14 20:11:45 +0200
++++ angle/src/copy_compiler_dll.bat	2017-04-14 20:10:56 +0200
+@@ -7,3 +7,5 @@
+ :: This avoids rerunning because this batch file is also copied to the gen dir,
+ :: so it's timestamp would otherwise be newer than the dll.
+ copy /b %3\d3dcompiler_47.dll+,, %3\d3dcompiler_47.dll > NUL
++exit 0
++

@@ -247,30 +247,39 @@ def fixAngleThinArchive():
 
 @Deps.register("angle")
 def angle():
-    cxxFlags = os.environ.get("CXXFLAGS", "")
-    cxxFlags += " -Wno-c++11-narrowing -Wno-sign-compare -Wno-error"
-    location =  Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785")
-    if Platform.wordSize == 32:
-        cxxFlags += " -msse -msse2 -msse3"
-    if Platform.system == "Darwin":
-        outPath = "out/Release/"
-    elif Platform.system == "Windows":
-        outPath = "out/Release/"
-        #location =  Deps.GitRepo("https://github.com/Microsoft/angle.git", revision="f1706c4")
-    elif Platform.system == "Linux":
-        outPath = "out/Release/obj/src/"
-    Platform.setEnviron('GYP_GENERATORS=ninja LDFLAGS="%s" CXXFLAGS="%s"' % (os.environ.get("LDFLAGS", ""), cxxFlags))
-
+    outputs = ["preprocessor", "translator", "angle_common"]
+    if Platform.system == "Windows":
+        ext = '.lib'
+        pref = ''
+        patch = [os.path.join(CONFIGURE_PATH, "patch", "angle_windows.patch")]
+        location =  Deps.GitRepo("https://github.com/Microsoft/angle.git", revision="f1706c4")
+        anglePath = os.path.join(CONFIGURE_PATH, "third-party/angle")
+        toolset = Platform.MSVC.toolset(Variables.get('msvs_version', 2015))
+        platform = ["Win32", "x64"][Platform.wordSize == 64]
+        outPath = "src/Release_%s/lib/" % (platform)
+        Platform.setEnviron('AngleRootPath=%s' % (anglePath))
+        build = ["MSBuild.exe /nologo %s/src/angle.sln /p:Configuration=Release /P:Platform=%s /p:PlatformToolset=%s /maxcpucount:%i" % (anglePath, platform, toolset, Platform.cpuCount)]
+    else:
+        ext = '.a'
+        pref = 'lib'
+        patch = []
+        location =  Deps.GitRepo("https://chromium.googlesource.com/angle/angle", branch="chromium/2785")
+        cxxFlags = os.environ.get("CXXFLAGS", "")
+        cxxFlags += " -Wno-c++11-narrowing -Wno-sign-compare -Wno-error"
+        if Platform.wordSize == 32:
+            cxxFlags += " -msse -msse2 -msse3"
+        if Platform.system == "Darwin":
+            outPath = "out/Release/"
+        elif Platform.system == "Linux":
+            outPath = "out/Release/obj/src/"
+        Platform.setEnviron('GYP_GENERATORS=ninja LDFLAGS="%s" CXXFLAGS="%s"' % (os.environ.get("LDFLAGS", ""), cxxFlags))
+        build = [ "python scripts/bootstrap.py", "gclient sync", fixAngleThinArchive, "ninja -C out/Release/"],
+        outputs.append("translator_lib")
     return {
         "location": location,
-        "build": [
-            "python scripts/bootstrap.py",
-            "gclient sync",
-            fixAngleThinArchive,
-            "ninja -C out/Release/"
-        ],
-        "outputs": [os.path.join(outPath, i) for i in ["libpreprocessor.a", 
-                "libtranslator.a", "libtranslator_lib.a", "libangle_common.a"]]
+        "build": build,
+        "patchs" : patch,
+        "outputs": [pref + os.path.join(outPath, i) + ext for i in outputs]
     }
 
 @Deps.register("breakpad")
