@@ -99,6 +99,18 @@ class Component extends Elements.Element {
 
         try  {
             if (layout.length > 0) {
+                // Apply style defined on <layout> to the component
+                const classes = layout[0].attributes.class;
+                const tmp = [];
+                const nss = this.shadowRoot.getNSS();
+
+                for (let c of classes.split(" ")) {
+                    tmp.push(nss[c]);
+                }
+
+                tmp.unshift(this.style);
+                Object.assign.apply(null, tmp);
+
                 // Render layout
                 for (let child of layout[0].getChildren()) {
                     this.add(child.cloneNode(true, this.shadowRoot));
