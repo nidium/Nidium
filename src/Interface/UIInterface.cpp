@@ -8,6 +8,13 @@
 #include <string.h>
 #include <stdbool.h>
 
+#ifdef NIDIUM_PRODUCT_FRONTEND
+#ifdef _MSC_VER
+#define SK_BUILD_FOR_WIN32
+#define __MINGW32__
+#endif
+#endif
+
 #include <SDL.h>
 
 #include "Core/TaskManager.h"

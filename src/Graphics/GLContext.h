@@ -154,9 +154,9 @@ public:
         return m_UI;
     }
 
-    inline static void GLCallback(const struct GrGLInterface *interface)
+    inline static void GLCallback(const struct GrGLInterface *iface)
     {
-        GLContext *_this = (GLContext *)interface->fCallbackData;
+        GLContext *_this = (GLContext *)iface->fCallbackData;
         _this->makeCurrent();
     }
 

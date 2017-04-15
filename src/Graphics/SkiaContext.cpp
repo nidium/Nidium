@@ -416,15 +416,15 @@ bool SkiaContext::initWithSurface(sk_sp<SkSurface> surface)
 }
 GrContext *SkiaContext::CreateGrContext(GLContext *glcontext)
 {
-    const struct GrGLInterface *interface = nullptr;
+    const struct GrGLInterface *iface = nullptr;
     GrContext *context             = nullptr;
 
-    if ((interface = glcontext->iface()) == nullptr) {
+    if ((iface = glcontext->iface()) == nullptr) {
         ndm_logf(NDM_LOG_ERROR, "SkiaContext", "Can't get OpenGL interface");
         return nullptr;
     }
 
-    context = GrContext::Create(kOpenGL_GrBackend, (GrBackendContext)interface);
+    context = GrContext::Create(kOpenGL_GrBackend, (GrBackendContext)iface);
 
     if (context == nullptr) {
         return nullptr;
