@@ -435,8 +435,8 @@ void CanvasContext::preComposeOn(Canvas2DContext *layer,
     this->getSize(&width, &height);
 
     this->setupShader(static_cast<float>(opacity), width, height, left, top,
-                      static_cast<int>(layer->getHandler()->getWidth()),
-                      static_cast<int>(layer->getHandler()->getHeight()));
+                      static_cast<int>(layer->getHandler()->getPropWidth()),
+                      static_cast<int>(layer->getHandler()->getPropHeight()));
 
     this->updateMatrix(left * ratio, top * ratio, layerSize.width(),
                        layerSize.height(), layer->m_GLState);

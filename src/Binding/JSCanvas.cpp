@@ -408,9 +408,9 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
             case CanvasContext::CONTEXT_2D: {
                 Canvas2DContext *ctx2d = new Canvas2DContext(
                     m_CanvasHandler, cx,
-                    m_CanvasHandler->getWidth()
+                    m_CanvasHandler->getPropWidth()
                         + (m_CanvasHandler->m_Padding.global * 2),
-                    m_CanvasHandler->getHeight()
+                    m_CanvasHandler->getPropHeight()
                         + (m_CanvasHandler->m_Padding.global * 2),
                     ui);
 
@@ -432,9 +432,9 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
             case CanvasContext::CONTEXT_WEBGL:
                 JSWebGLRenderingContext *ctxWebGL = new JSWebGLRenderingContext(
                     m_CanvasHandler, cx,
-                    m_CanvasHandler->getWidth()
+                    m_CanvasHandler->getPropWidth()
                         + (m_CanvasHandler->m_Padding.global * 2),
-                    m_CanvasHandler->getHeight()
+                    m_CanvasHandler->getPropHeight()
                         + (m_CanvasHandler->m_Padding.global * 2),
                     ui);
 
@@ -974,7 +974,7 @@ bool JSCanvas::JSGetter_cursor(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_clientWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getWidth() +
+    vp.setInt32(m_CanvasHandler->getPropWidth() +
         (m_CanvasHandler->m_Padding.global * 2));
 
     return true;
@@ -982,7 +982,7 @@ bool JSCanvas::JSGetter_clientWidth(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_clientHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getHeight() +
+    vp.setInt32(m_CanvasHandler->getPropHeight() +
         (m_CanvasHandler->m_Padding.global * 2));
 
     return true;
@@ -1143,14 +1143,14 @@ bool JSCanvas::JSGetter_allowNegativeScroll(JSContext *cx, JS::MutableHandleValu
 
 bool JSCanvas::JSGetter_width(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getWidth());
+    vp.setInt32(m_CanvasHandler->getPropWidth());
 
     return true;
 }
 
 bool JSCanvas::JSGetter_height(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getHeight());
+    vp.setInt32(m_CanvasHandler->getPropHeight());
 
     return true;
 }

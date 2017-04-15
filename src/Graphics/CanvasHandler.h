@@ -305,7 +305,7 @@ public:
     JS::TenuredHeap<JSObject *> m_JsObj;
     JSContext *m_JsCx;
 
-    int m_Width, m_Height, m_MinWidth, m_MinHeight, m_MaxWidth, m_MaxHeight;
+    int m_MinWidth, m_MinHeight, m_MaxWidth, m_MaxHeight;
     /*
         left and top are relative to parent
         a_left and a_top are relative to the root layer
@@ -370,7 +370,7 @@ public:
     double getPropLeft() override
     {
         if (!(m_CoordMode & kLeft_Coord) && m_Parent) {
-            return m_Parent->getWidth() - (m_Width + m_Right);
+            return m_Parent->getPropWidth() - (p_Width + m_Right);
         }
 
         return p_Left.get();
@@ -379,7 +379,7 @@ public:
     double getPropTop() override
     {
         if (!(m_CoordMode & kTop_Coord) && m_Parent) {
-            return m_Parent->getHeight() - (m_Height + m_Bottom);
+            return m_Parent->getPropHeight() - (p_Height + m_Bottom);
         }
 
         return p_Top.get();
@@ -421,7 +421,7 @@ public:
             return m_Right;
         }
 
-        return m_Parent->getWidth() - (getLeftScrolled() + getWidth());
+        return m_Parent->getPropWidth() - (getLeftScrolled() + getPropWidth());
     }
 
     double getBottom() 
@@ -430,22 +430,22 @@ public:
             return m_Bottom;
         }
 
-        return m_Parent->getHeight() - (getTopScrolled() + getHeight());
+        return m_Parent->getPropHeight() - (getTopScrolled() + getPropHeight());
     }
 
     /*
         Get the width in logical pixels
     */
-    double getWidth() 
+    int getPropWidth() override
     {
         if (hasFixedWidth() || m_FluidWidth) {
-            return m_Width;
+            return p_Width;
         }
-        if (m_Parent == NULL) return 0.;
+        if (m_Parent == NULL) return 0;
 
-        double pwidth = m_Parent->getWidth();
+        int pwidth = m_Parent->getPropWidth();
 
-        if (pwidth == 0) return 0.;
+        if (pwidth == 0) return 0;
 
         return nidium_max(pwidth - this->getPropLeft() - this->getRight(), 1);
     }
@@ -453,17 +453,17 @@ public:
     /*
         Get the height in logical pixels
     */
-    double getHeight()
+    int getPropHeight() override
     {
         if (hasFixedHeight() || m_FluidHeight) {
-            return m_Height;
+            return p_Height;
         }
 
-        if (m_Parent == NULL) return 0.;
+        if (m_Parent == NULL) return 0;
 
-        double pheight = m_Parent->getHeight();
+        int pheight = m_Parent->getPropHeight();
 
-        if (pheight == 0) return 0.;
+        if (pheight == 0) return 0;
 
         return nidium_max(pheight - this->getPropTop() - this->getBottom(), 1);
     }
@@ -563,7 +563,7 @@ public:
         m_CoordMode |= kLeft_Coord;
         p_Left.set(val);
         if (!hasFixedWidth()) {
-            setSize(this->getWidth(), m_Height);
+            setSize(this->getPropWidth(), p_Height);
         }
     }
 
@@ -572,7 +572,7 @@ public:
         m_CoordMode |= kRight_Coord;
         m_Right = val;
         if (!hasFixedWidth()) {
-            setSize(this->getWidth(), m_Height);
+            setSize(this->getPropWidth(), p_Height);
         }
     }
 
@@ -586,7 +586,7 @@ public:
         p_Top.set(val);
 
         if (!hasFixedHeight()) {
-            setSize(m_Width, this->getHeight());
+            setSize(p_Width, this->getPropHeight());
         }
 
     }
@@ -597,7 +597,7 @@ public:
         m_Bottom = val;
 
         if (!hasFixedHeight()) {
-            setSize(m_Width, this->getHeight());
+            setSize(p_Width, this->getPropHeight());
         }
     }
 

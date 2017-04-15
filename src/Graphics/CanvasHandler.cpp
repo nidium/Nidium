@@ -46,8 +46,8 @@ CanvasHandler::CanvasHandler(int width,
     m_NidiumContext->m_CanvasListIdx.insert({m_Identifier.idx, this});
     m_Identifier.str = nullptr;
 
-    m_Width     = nidium_max(width, 1);
-    m_Height    = nidium_max(height, 1);
+    p_Width     = nidium_max(width, 1);
+    p_Height    = nidium_max(height, 1);
     m_MaxHeight = 0;
     m_MaxWidth  = 0;
     m_MinWidth  = 1;
@@ -63,11 +63,11 @@ CanvasHandler::CanvasHandler(int width,
 
     m_MousePosition.consumed = true;
 
-    m_Content.width  = m_Width;
-    m_Content.height = m_Height;
+    m_Content.width  = p_Width;
+    m_Content.height = p_Height;
 
-    m_Content._width  = m_Width;
-    m_Content._height = m_Height;
+    m_Content._width  = p_Width;
+    m_Content._height = p_Height;
 
     m_Content.scrollLeft = 0;
     m_Content.scrollTop  = 0;
@@ -122,7 +122,7 @@ bool CanvasHandler::setMinWidth(int width)
 
     m_MinWidth = m_MaxWidth ? nidium_min(width, m_MaxWidth) : width;
 
-    if (m_Width < m_MinWidth) {
+    if (p_Width < m_MinWidth) {
         this->setWidth(m_MinWidth);
     }
 
@@ -135,7 +135,7 @@ bool CanvasHandler::setMinHeight(int height)
 
     m_MinHeight = m_MaxHeight ? nidium_min(height, m_MaxHeight) : height;
 
-    if (m_Height < m_MinHeight) {
+    if (p_Height < m_MinHeight) {
         this->setHeight(m_MinHeight);
     }
 
@@ -148,7 +148,7 @@ bool CanvasHandler::setMaxWidth(int width)
 
     m_MaxWidth = nidium_max(m_MinWidth, width);
 
-    if (m_Width > m_MaxWidth) {
+    if (p_Width > m_MaxWidth) {
         this->setWidth(m_MaxWidth);
     }
 
@@ -161,7 +161,7 @@ bool CanvasHandler::setMaxHeight(int height)
 
     m_MaxHeight = nidium_max(m_MinHeight, height);
 
-    if (m_Height > m_MaxHeight) {
+    if (p_Height > m_MaxHeight) {
         this->setHeight(m_MaxHeight);
     }
 
@@ -177,11 +177,11 @@ bool CanvasHandler::setWidth(int width, bool force)
         return false;
     }
 
-    if (m_Width == width) {
+    if (p_Width == width) {
         return true;
     }
 
-    m_Width = width;
+    p_Width = width;
 
     this->setPendingFlags(kPendingResizeWidth);
 
@@ -199,10 +199,10 @@ bool CanvasHandler::setHeight(int height, bool force)
     height = m_MaxHeight ? nidium_clamp(height, m_MinHeight, m_MaxHeight)
                          : nidium_max(height, m_MinHeight);
 
-    if (m_Height == height) {
+    if (p_Height == height) {
         return true;
     }
-    m_Height = height;
+    p_Height = height;
 
     this->setPendingFlags(kPendingResizeHeight);
 
@@ -220,12 +220,12 @@ void CanvasHandler::setSize(int width, int height, bool redraw)
     width = m_MaxWidth ? nidium_clamp(width, m_MinWidth, m_MaxWidth)
                        : nidium_max(width, m_MinWidth);
 
-    if (m_Height == height && m_Width == width) {
+    if (p_Height == height && p_Width == width) {
         return;
     }
 
-    m_Width  = width;
-    m_Height = height;
+    p_Width  = width;
+    p_Height = height;
 
     this->setPendingFlags(kPendingResizeWidth | kPendingResizeHeight);
 
@@ -265,8 +265,8 @@ void CanvasHandler::updateChildrenSize(bool width, bool height)
             continue;
         }
         // ndm_printf("Update size of %p through parent", cur);
-        cur->setSize(updateWidth ? cur->getWidth() : cur->m_Width,
-                     updateHeight ? cur->getHeight() : cur->m_Height);
+        cur->setSize(updateWidth ? cur->getPropWidth() : cur->p_Width,
+                     updateHeight ? cur->getPropHeight() : cur->p_Height);
     }
 }
 
@@ -285,8 +285,8 @@ void CanvasHandler::setPadding(int padding)
     if (m_Context) {
         m_Context->translate(-tmppadding, -tmppadding);
 
-        m_Context->setSize(m_Width + (m_Padding.global * 2),
-                           m_Height + (m_Padding.global * 2));
+        m_Context->setSize(p_Width + (m_Padding.global * 2),
+                           p_Height + (m_Padding.global * 2));
 
         m_Context->translate(m_Padding.global, m_Padding.global);
     }
@@ -460,8 +460,8 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
     Rect actualRect;
     actualRect.m_fLeft   = p_Left.getAlternativeValue() - m_Padding.global;
     actualRect.m_fTop    = p_Top.getAlternativeValue() - m_Padding.global;
-    actualRect.m_fRight  = m_Width + p_Left.getAlternativeValue();
-    actualRect.m_fBottom = m_Height + p_Top.getAlternativeValue();
+    actualRect.m_fRight  = p_Width + p_Left.getAlternativeValue();
+    actualRect.m_fBottom = p_Height + p_Top.getAlternativeValue();
 
     if (layerContext.m_Clip) {
 
@@ -523,8 +523,8 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
     if (m_Visibility == CANVAS_VISIBILITY_HIDDEN || m_Opacity == 0.0) {
         return;
     }
-    int maxChildrenHeight = this->getHeight(),
-        maxChildrenWidth  = this->getWidth();
+    int maxChildrenHeight = this->getPropHeight(),
+        maxChildrenWidth  = this->getPropWidth();
 
     // double pzoom = this->zoom * azoom;
     double popacity = m_Opacity * layerContext.m_aOpacity;
@@ -544,7 +544,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         } else {
             int prevWidth = prev->m_Visibility == CANVAS_VISIBILITY_HIDDEN
                                 ? 0
-                                : prev->getWidth();
+                                : prev->getPropWidth();
 
             p_Left = tmpLeft = (prev->p_Left + prevWidth + prev->m_Margin.right)
                                + m_Margin.left;
@@ -564,13 +564,13 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                 if ((m_FlowMode & kFlowBreakPreviousSibling)
                     || ((!m_Parent->isWidthFluid()
                          || (m_Parent->m_MaxWidth
-                             && tmpLeft + this->getWidth()
+                             && tmpLeft + this->getPropWidth()
                                     > m_Parent->m_MaxWidth))
-                        && tmpLeft + this->getWidth() > m_Parent->getWidth())) {
+                        && tmpLeft + this->getPropWidth() > m_Parent->getPropWidth())) {
 
                     sctx->m_MaxLineHeightPreviousLine = sctx->m_MaxLineHeight;
                     sctx->m_MaxLineHeight
-                        = this->getHeight() + m_Margin.bottom + m_Margin.top;
+                        = this->getPropHeight() + m_Margin.bottom + m_Margin.top;
 
                     tmpTop = p_Top = (prev->p_Top - prev->m_Margin.top)
                                      + sctx->m_MaxLineHeightPreviousLine
@@ -581,7 +581,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         }
 
         sctx->m_MaxLineHeight
-            = nidium_max(this->getHeight() + m_Margin.bottom + m_Margin.top,
+            = nidium_max(this->getPropHeight() + m_Margin.bottom + m_Margin.top,
                          sctx->m_MaxLineHeight);
 
     } else {
@@ -617,8 +617,8 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
             = (!layerContext.m_Clip || m_CoordPosition == COORD_ABSOLUTE
                || (layerContext.m_Clip->checkIntersect(
                       p_Left.getAlternativeValue() - m_Padding.global, p_Top.getAlternativeValue() - m_Padding.global,
-                      p_Left.getAlternativeValue() + m_Padding.global + this->getWidth(),
-                      p_Top.getAlternativeValue() + m_Padding.global + this->getHeight())));
+                      p_Left.getAlternativeValue() + m_Padding.global + this->getPropWidth(),
+                      p_Top.getAlternativeValue() + m_Padding.global + this->getPropHeight())));
 
         if (willDraw && !m_Loaded) {
             m_Loaded = true;
@@ -664,14 +664,14 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
             layerContext.m_Clip            = &nclip;
             layerContext.m_Clip->m_fLeft   = p_Left.getAlternativeValue();
             layerContext.m_Clip->m_fTop    = p_Top.getAlternativeValue();
-            layerContext.m_Clip->m_fRight  = m_Width + p_Left.getAlternativeValue();
-            layerContext.m_Clip->m_fBottom = m_Height + p_Top.getAlternativeValue();
+            layerContext.m_Clip->m_fRight  = p_Width + p_Left.getAlternativeValue();
+            layerContext.m_Clip->m_fBottom = p_Height + p_Top.getAlternativeValue();
             /*
                 if clip is not null, reduce it to intersect the current rect.
                 /!\ clip->intersect changes "clip"
             */
         } else if (!layerContext.m_Clip->intersect(
-                       p_Left.getAlternativeValue(), p_Top.getAlternativeValue(), m_Width + p_Left.getAlternativeValue(), m_Height + p_Top.getAlternativeValue())
+                       p_Left.getAlternativeValue(), p_Top.getAlternativeValue(), p_Width + p_Left.getAlternativeValue(), p_Height + p_Top.getAlternativeValue())
                    && (!m_FluidHeight || !m_FluidWidth)) {
             /* don't need to draw children (out of bounds) */
             return;
@@ -727,10 +727,10 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 
                 int actualChildrenHeightPlusTop
                     = cur->getPropTop() + (cur->m_Overflow ? cur->m_Content._height
-                                                       : cur->getHeight());
+                                                       : cur->getPropHeight());
                 int actualChildrenWidthPlusLeft
                     = cur->getPropLeft() + (cur->m_Overflow ? cur->m_Content._width
-                                                        : cur->getWidth());
+                                                        : cur->getPropWidth());
 
                 if (actualChildrenHeightPlusTop > maxChildrenHeight) {
                     maxChildrenHeight = actualChildrenHeightPlusTop;
@@ -767,7 +767,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                                                    m_MaxHeight)
                                     : nidium_max(contentHeight, m_MinHeight);
 
-        if (m_Height != newHeight) {
+        if (p_Height != newHeight) {
             this->setHeight(newHeight, true);
         }
     }
@@ -779,7 +779,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                            ? nidium_clamp(contentWidth, m_MinWidth, m_MaxWidth)
                            : nidium_max(contentWidth, m_MinWidth);
 
-        if (m_Width != newWidth) {
+        if (p_Width != newWidth) {
             this->setWidth(newWidth, true);
         }
     }
@@ -861,7 +861,7 @@ void CanvasHandler::computeAbsolutePosition()
             if (prev) {
                 int prevWidth = prev->m_Visibility == CANVAS_VISIBILITY_HIDDEN
                                     ? 0
-                                    : prev->getWidth();
+                                    : prev->getPropWidth();
 
                 elem->p_Left = (prev->p_Left + prevWidth + prev->m_Margin.right)
                                + elem->m_Margin.left;
@@ -871,13 +871,13 @@ void CanvasHandler::computeAbsolutePosition()
                 if ((elem->m_FlowMode & kFlowBreakPreviousSibling)
                     || ((!m_Parent->isWidthFluid()
                          || (m_Parent->m_MaxWidth
-                             && elem->p_Left + elem->getWidth()
+                             && elem->p_Left + elem->getPropWidth()
                                     > m_Parent->m_MaxWidth))
-                        && elem->p_Left + elem->getWidth()
-                               > m_Parent->getWidth())) {
+                        && elem->p_Left + elem->getPropWidth()
+                               > m_Parent->getPropWidth())) {
 
                     maxLineHeightPreviousLine = maxLineHeight;
-                    maxLineHeight             = elem->getHeight() + elem->m_Margin.bottom
+                    maxLineHeight             = elem->getPropHeight() + elem->m_Margin.bottom
                                     + elem->m_Margin.top;
 
                     elem->p_Top = (prev->p_Top - prev->m_Margin.top)
@@ -894,7 +894,7 @@ void CanvasHandler::computeAbsolutePosition()
             elem->p_Left.setAlternativeValue(elem->p_Left + offset_x);
             elem->p_Top.setAlternativeValue(elem->p_Top + offset_y);
 
-            maxLineHeight = nidium_max(elem->getHeight() + elem->m_Margin.bottom
+            maxLineHeight = nidium_max(elem->getPropHeight() + elem->m_Margin.bottom
                                            + elem->m_Margin.top,
                                        maxLineHeight);
 
@@ -943,10 +943,10 @@ bool CanvasHandler::isOutOfBound()
             this->computeAbsolutePosition();
 
             return (
-                this->getPropLeftAbsolute() + getWidth() <= cur->getPropLeftAbsolute()
-                || this->getPropTopAbsolute() + getHeight() <= cur->getPropTopAbsolute()
-                || this->getPropLeftAbsolute() >= cur->getPropLeftAbsolute() + cur->getWidth()
-                || this->getPropTopAbsolute() >= cur->getPropTopAbsolute() + cur->getHeight());
+                this->getPropLeftAbsolute() + getPropWidth() <= cur->getPropLeftAbsolute()
+                || this->getPropTopAbsolute() + getPropHeight() <= cur->getPropTopAbsolute()
+                || this->getPropLeftAbsolute() >= cur->getPropLeftAbsolute() + cur->getPropWidth()
+                || this->getPropTopAbsolute() >= cur->getPropTopAbsolute() + cur->getPropHeight());
         }
     }
 
@@ -965,8 +965,8 @@ Rect CanvasHandler::getViewport()
             cur->computeAbsolutePosition();
 
             Rect rect = { cur->getPropLeftAbsolute(), cur->getPropTopAbsolute(),
-                          cur->getPropTopAbsolute() + cur->getHeight(),
-                          cur->getPropLeftAbsolute() + cur->getWidth() };
+                          cur->getPropTopAbsolute() + cur->getPropHeight(),
+                          cur->getPropLeftAbsolute() + cur->getPropWidth() };
 
             Rect prect = m_Parent->getViewport();
 
@@ -979,8 +979,8 @@ Rect CanvasHandler::getViewport()
     if (!cur) cur = this;
 
     return { cur->getPropLeftAbsolute(), cur->getPropTopAbsolute(),
-             cur->getPropTopAbsolute() + cur->getHeight(),
-             cur->getPropLeftAbsolute() + cur->getWidth() };
+             cur->getPropTopAbsolute() + cur->getPropHeight(),
+             cur->getPropLeftAbsolute() + cur->getPropWidth() };
 }
 
 Rect CanvasHandler::getVisibleRect()
@@ -993,16 +993,16 @@ Rect CanvasHandler::getVisibleRect()
         = nidium_min(nidium_max(this->getPropLeftAbsolute(), vp.m_fLeft), vp.m_fRight),
         .m_fTop
         = nidium_min(nidium_max(this->getPropTopAbsolute(), vp.m_fTop), vp.m_fBottom),
-        .m_fBottom = nidium_min(this->getPropTopAbsolute() + getHeight(), vp.m_fBottom),
-        .m_fRight  = nidium_min(this->getPropLeftAbsolute() + getWidth(), vp.m_fRight)
+        .m_fBottom = nidium_min(this->getPropTopAbsolute() + getPropHeight(), vp.m_fBottom),
+        .m_fRight  = nidium_min(this->getPropLeftAbsolute() + getPropWidth(), vp.m_fRight)
     };
 }
 
 void CanvasHandler::computeContentSize(int *cWidth, int *cHeight, bool inner)
 {
     CanvasHandler *cur;
-    m_Content.width  = inner ? 0 : this->getWidth();
-    m_Content.height = inner ? 0 : this->getHeight();
+    m_Content.width  = inner ? 0 : this->getPropWidth();
+    m_Content.height = inner ? 0 : this->getPropHeight();
 
     /* don't go further if it doesn't overflow (and not the requested handler)
      */
@@ -1131,8 +1131,8 @@ int32_t CanvasHandler::countChildren() const
 
 bool CanvasHandler::containsPoint(double x, double y)
 {
-    return (x >= getPropLeftAbsolute() && x <= getPropLeftAbsolute() + m_Width
-            && y >= getPropTopAbsolute() && y <= getPropTopAbsolute() + m_Height);
+    return (x >= getPropLeftAbsolute() && x <= getPropLeftAbsolute() + p_Width
+            && y >= getPropTopAbsolute() && y <= getPropTopAbsolute() + p_Height);
 }
 
 void CanvasHandler::unrootHierarchy()
@@ -1191,7 +1191,7 @@ void CanvasHandler::execPending()
 {
     if ((m_Pending & kPendingResizeHeight)
         || (m_Pending & kPendingResizeWidth)) {
-        this->deviceSetSize(m_Width, m_Height);
+        this->deviceSetSize(p_Width, p_Height);
     }
 
     this->setPendingFlags(0, false);
