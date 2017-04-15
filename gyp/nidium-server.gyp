@@ -44,6 +44,8 @@
                     'libraries': [
                             'shell32.lib',
                             'shlwapi.lib',
+                            # workaround for mozglue's missing static_runtime
+                            'Compression.obj', 'Decimal.obj', #'Unified_cpp_mfbt_staticruntime0.obj',
                         ]
                 },
                 'include_dirs': [

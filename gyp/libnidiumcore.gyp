@@ -117,8 +117,6 @@
                             '-ldelayimp',
 
 
-                            # workaround for mozglue's missing static_runtime
-                            'Compression.obj', 'Decimal.obj', #'Unified_cpp_mfbt_staticruntime0.obj',
                             #workaround for missing JS_INIT -> causes 616 link warnings
                             'Initialization.obj',
                             'http_parser.lib',
