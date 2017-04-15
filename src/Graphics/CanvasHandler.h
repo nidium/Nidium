@@ -9,15 +9,20 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <vector>
 
 #include <jsapi.h>
-#include <vector>
 
 #include "Core/Events.h"
 #include "Graphics/Geometry.h"
 
-
 #include <Yoga.h>
+
+#ifndef NAN                                                                     
+static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};                 
+#define NAN (*(const float *) __nan)                                            
+#endif                                                                          
+
 
 /*
     - Handle a canvas layer.
@@ -89,14 +94,155 @@ struct LayerizeContext
     }
 };
 
-class CanvasHandler : public Core::Events
+#define CANVAS_DEF_CLASS_PROPERTY(name, type, default_value, state) \
+    CanvasProperty<type> p_##name = {#name, default_value, CanvasProperty<type>::state, this}; \
+    virtual void setProp##name(type value) { \
+        this->p_##name.set(value); \
+    } \
+    virtual type getProp##name() { \
+        return this->p_##name.get(); \
+    }
+
+class CanvasHandlerBase
 {
+private:
+    /*
+        This need to be initialized before properties
+    */    
+    std::vector<void *> m_PropertyList;
+
+public:
+    /*
+     * This class holds two different value for the property
+     * - The 'computed' value : the actual value used for the layout
+     * - the 'user' value : the value set by the user */
+    template <typename T>
+    class CanvasProperty
+    {
+    public:
+        enum class State {
+            kDefault,
+            kSet,
+            kInherit,
+            kUndefined
+        };
+
+        static constexpr float kUndefined_Value  = NAN;
+
+        CanvasProperty(const char *name, T val, State state, CanvasHandlerBase *h) :
+            m_Name(name), m_Canvas(h), m_Value(val), m_AlternativeValue(val) {
+                
+                position = m_Canvas->m_PropertyList.size();
+                m_Canvas->m_PropertyList.push_back((void *)this);
+            };
+
+        inline T get() const {
+            if (m_State == State::kInherit) {
+                if (m_Canvas->getParentBase()) {
+                    CanvasProperty<T> *ref =
+                        static_cast<CanvasProperty<T> *>
+                            (m_Canvas->getParentBase()->m_PropertyList.at(position));
+
+                    return ref->get();
+                }
+            }
+
+            return m_Value;
+        }
+
+        inline T getAlternativeValue() const {
+            return m_AlternativeValue;
+        }
+
+        inline operator T() const {
+            return get();
+        }
+        
+        /* Change the computed value */
+        inline void set(T val) {
+            m_Value = val;
+        }
+
+        inline void setAlternativeValue(T val) {
+            m_AlternativeValue = val;
+        }
+        
+        /* Change the user value */
+        inline void userSet(T val) {
+            m_UserValue = val;
+            m_State = State::kSet;
+        }
+
+        inline CanvasProperty<T> operator=(const T& val) {
+
+            set(val);
+
+            return *this;
+        }
+
+        void setInherit() {
+            m_State = State::kInherit;
+        }
+
+        void reset() {
+            m_State = State::kDefault;
+        }
+
+    private:
+        /* Used for debug purpose
+         * TODO: ifdef DEBUG */
+        const char *m_Name;
+
+        CanvasHandlerBase *m_Canvas;
+
+        /* Actual value used for computation */
+        T m_Value;
+        /* Value set by the user */
+        T m_UserValue;
+
+        T m_AlternativeValue;
+        
+        State m_State = State::kDefault;
+
+        /* Position of the property in the Canvas properyList
+         * This is used in order to lookup for parent same property */
+        int position;
+    };
+
+    CANVAS_DEF_CLASS_PROPERTY(Top,          double, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Left,         double, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Width,        int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Height,       int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     int, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    int, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Coating,      unsigned int, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(FluidWidth,   bool, false, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(FluidHeight,  bool, false, State::kDefault);
+
+    CANVAS_DEF_CLASS_PROPERTY(Opacity,      double, 1.0, State::kDefault);
+
+    virtual CanvasHandlerBase *getParentBase()=0;
+};
+
+
+// {{{ CanvasHandler
+class CanvasHandler : public CanvasHandlerBase, public Core::Events 
+{
+private:
+    /*
+        This need to be initialized before properties
+    */    
+    std::vector<void *> m_PropertyList;
+
 public:
     friend class SkiaContext;
     friend class Nidium::Frontend::Context;
     friend class Binding::JSCanvas;
 
     static const uint8_t EventID = 1;
+    
 
     enum COORD_MODE
     {
@@ -167,25 +313,16 @@ public:
         CANVAS_VISIBILITY_HIDDEN
     };
 
+
     CanvasContext *m_Context;
     JS::TenuredHeap<JSObject *> m_JsObj;
     JSContext *m_JsCx;
 
-    int m_Width, m_Height, m_MinWidth, m_MinHeight, m_MaxWidth, m_MaxHeight;
     /*
         left and top are relative to parent
         a_left and a_top are relative to the root layer
     */
-    double m_Left, m_Top, m_aLeft, m_aTop, m_Right, m_Bottom;
-
-    struct
-    {
-        double top;
-        double bottom;
-        double left;
-        double right;
-        int global;
-    } m_Padding;
+    double m_Right, m_Bottom;
 
     struct
     {
@@ -194,12 +331,6 @@ public:
         double bottom;
         double left;
     } m_Margin;
-
-    struct
-    {
-        double x;
-        double y;
-    } m_Translate_s;
 
     struct
     {
@@ -223,40 +354,43 @@ public:
         return m_Context;
     }
 
-    double getOpacity() const
-    {
-        return m_Opacity;
-    }
-
     double getZoom() const
     {
         return m_Zoom;
     }
 
-    double getLeft(bool absolute = false) const
+    double getPropLeft() override
     {
-        if (absolute) return m_aLeft;
-
         if (!(m_CoordMode & kLeft_Coord) && m_Parent) {
-            return m_Parent->getWidth() - (m_Width + m_Right);
+            return m_Parent->getPropWidth() - (p_Width + m_Right);
         }
 
-        return m_Left;
+        return p_Left.get();
     }
-    double getTop(bool absolute = false) const
-    {
-        if (absolute) return m_aTop;
 
+    double getPropTop() override
+    {
         if (!(m_CoordMode & kTop_Coord) && m_Parent) {
-            return m_Parent->getHeight() - (m_Height + m_Bottom);
+            return m_Parent->getPropHeight() - (p_Height + m_Bottom);
         }
 
-        return m_Top;
+        return p_Top.get();
     }
 
-    double getTopScrolled() const
+    inline double getPropLeftAbsolute()
     {
-        double top = getTop();
+        return p_Left.getAlternativeValue();
+    }
+
+    inline double getPropTopAbsolute()
+    {
+        return p_Top.getAlternativeValue();
+    }
+
+
+    double getTopScrolled() 
+    {
+        double top = getPropTop();
         if (m_CoordPosition == COORD_RELATIVE && m_Parent != NULL) {
             top -= m_Parent->m_Content.scrollTop;
         }
@@ -264,86 +398,66 @@ public:
         return top;
     }
 
-    double getLeftScrolled() const
+    double getLeftScrolled()
     {
-        double left = getLeft();
+        double left = getPropLeft();
         if (m_CoordPosition == COORD_RELATIVE && m_Parent != NULL) {
             left -= m_Parent->m_Content.scrollLeft;
         }
         return left;
     }
 
-    double getRight() const
+    double getRight() 
     {
         if (hasStaticRight() || !m_Parent) {
             return m_Right;
         }
 
-        return m_Parent->getWidth() - (getLeftScrolled() + getWidth());
+        return m_Parent->getPropWidth() - (getLeftScrolled() + getPropWidth());
     }
 
-    double getBottom() const
+    double getBottom() 
     {
         if (hasStaticBottom() || !m_Parent) {
             return m_Bottom;
         }
 
-        return m_Parent->getHeight() - (getTopScrolled() + getHeight());
+        return m_Parent->getPropHeight() - (getTopScrolled() + getPropHeight());
     }
 
     /*
         Get the width in logical pixels
     */
-    double getWidth() const
+    int getPropWidth() override
     {
         if (hasFixedWidth() || m_FluidWidth) {
-            return m_Width;
+            return p_Width;
         }
-        if (m_Parent == NULL) return 0.;
+        if (m_Parent == NULL) return 0;
 
-        double pwidth = m_Parent->getWidth();
+        int pwidth = m_Parent->getPropWidth();
 
-        if (pwidth == 0) return 0.;
+        if (pwidth == 0) return 0;
 
-        return nidium_max(pwidth - this->getLeft() - this->getRight(), 1);
+        return nidium_max(pwidth - this->getPropLeft() - this->getRight(), 1);
     }
 
     /*
         Get the height in logical pixels
     */
-    double getHeight() const
+    int getPropHeight() override
     {
         if (hasFixedHeight() || m_FluidHeight) {
-            return m_Height;
+            return p_Height;
         }
 
-        if (m_Parent == NULL) return 0.;
+        if (m_Parent == NULL) return 0;
 
-        double pheight = m_Parent->getHeight();
+        int pheight = m_Parent->getPropHeight();
 
-        if (pheight == 0) return 0.;
+        if (pheight == 0) return 0;
 
-        return nidium_max(pheight - this->getTop() - this->getBottom(), 1);
-    }
-
-    int getMinWidth() const
-    {
-        return m_MinWidth;
-    }
-
-    int getMaxWidth() const
-    {
-        return m_MaxWidth;
-    }
-
-    int getMinHeight() const
-    {
-        return m_MinHeight;
-    }
-
-    int getMaxHeight() const
-    {
-        return m_MaxHeight;
+        return nidium_max(pheight - this->getPropTop() - this->getBottom(), 1);
     }
 
     Frontend::Context *getNidiumContext() const
@@ -413,37 +527,43 @@ public:
         m_Margin.left   = left;
     }
 
-    void setLeft(double val)
+    void setPropLeft(double val) override
     {
         if (m_FlowMode & kFlowInlinePreviousSibling) {
             return;
         }
         m_CoordMode |= kLeft_Coord;
-        m_Left = val;
+        p_Left.set(val);
         if (!hasFixedWidth()) {
-            setSize(this->getWidth(), m_Height);
+            setSize(this->getPropWidth(), p_Height);
         }
     }
+
     void setRight(double val)
     {
         m_CoordMode |= kRight_Coord;
         m_Right = val;
         if (!hasFixedWidth()) {
-            setSize(this->getWidth(), m_Height);
+            setSize(this->getPropWidth(), p_Height);
         }
     }
 
-    void setTop(double val)
+    void setPropTop(double val) override
     {
         if (m_FlowMode & kFlowInlinePreviousSibling) {
             return;
         }
+
         m_CoordMode |= kTop_Coord;
-        m_Top = val;
+        p_Top.set(val);
+
         if (!hasFixedHeight()) {
-            setSize(m_Width, this->getHeight());
+            setSize(p_Width, this->getPropHeight());
         }
+
     }
+
+    void setPropCoating(unsigned int value) override;
 
     void setBottom(double val)
     {
@@ -451,7 +571,7 @@ public:
         m_Bottom = val;
 
         if (!hasFixedHeight()) {
-            setSize(m_Width, this->getHeight());
+            setSize(p_Width, this->getPropHeight());
         }
     }
 
@@ -515,6 +635,7 @@ public:
 
     virtual ~CanvasHandler();
 
+
     void unrootHierarchy();
 
     void setContext(CanvasContext *context);
@@ -522,24 +643,22 @@ public:
     bool setWidth(int width, bool force = false);
     bool setHeight(int height, bool force = false);
 
-    bool setMinWidth(int width);
-    bool setMinHeight(int height);
+    void setPropMinWidth(int width) override;
+    void setPropMinHeight(int height) override;
 
-    bool setMaxWidth(int width);
-    bool setMaxHeight(int height);
+    void setPropMaxWidth(int width) override;
+    void setPropMaxHeight(int height) override;
 
     bool setFluidHeight(bool val);
     bool setFluidWidth(bool val);
 
     void updateChildrenSize(bool width, bool height);
     void setSize(int width, int height, bool redraw = true);
-    void setPadding(int padding);
     void setPositioning(CanvasHandler::COORD_POSITION mode);
     void setScrollTop(int value);
     void setScrollLeft(int value);
     void computeAbsolutePosition();
     void computeContentSize(int *cWidth, int *cHeight, bool inner = false);
-    void translate(double x, double y);
     bool isOutOfBound();
     Rect getViewport();
     Rect getVisibleRect();
@@ -558,7 +677,7 @@ public:
     bool isDisplayed() const;
     bool isHidden() const;
     bool hasAFixedAncestor() const;
-    void setOpacity(double val);
+    void setPropOpacity(double val) override;
     void setZoom(double val);
     void removeFromParent(bool willBeAdopted = false);
     void getChildren(CanvasHandler **out) const;
@@ -577,6 +696,12 @@ public:
     {
         return m_Parent;
     }
+
+    CanvasHandlerBase *getParentBase() override
+    {
+        return m_Parent;
+    }    
+
     CanvasHandler *getFirstChild() const
     {
         return m_Children;
@@ -594,7 +719,7 @@ public:
         return m_Prev;
     }
     int32_t countChildren() const;
-    bool containsPoint(double x, double y) const;
+    bool containsPoint(double x, double y);
     void layerize(LayerizeContext &layerContext,
         std::vector<ComposeContext> &compList, bool draw);
 
@@ -642,7 +767,6 @@ private:
     Visibility m_Visibility;
     unsigned m_FlowMode;
     unsigned m_CoordMode : 16;
-    double m_Opacity;
     double m_Zoom;
 
     double m_ScaleX, m_ScaleY;
