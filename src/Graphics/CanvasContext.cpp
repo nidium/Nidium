@@ -47,8 +47,11 @@ char *CanvasContext::ProcessMultipleShader(const char *content[],
 
     if (!ShCompile(compiler, content, numcontent,
                    SH_VARIABLES | SH_ENFORCE_PACKING_RESTRICTIONS 
-                   | SH_OBJECT_CODE | SH_INIT_VARYINGS_WITHOUT_STATIC_USE
-                       | SH_LIMIT_CALL_STACK_DEPTH | SH_INIT_GL_POSITION)) {
+                   | SH_OBJECT_CODE
+#ifdef SH_INIT_VARYINGS_WITHOUT_STATIC_USE
+                   | SH_INIT_VARYINGS_WITHOUT_STATIC_USE
+#endif
+                   | SH_LIMIT_CALL_STACK_DEPTH | SH_INIT_GL_POSITION)) {
 
         std::string log = ShGetInfoLog(compiler);
         ndm_logf(NDM_LOG_ERROR, "CanvasContext", "Shader error : %s", log.c_str());
