@@ -49,7 +49,7 @@
         }
 
         [s_FnParentWidth](el=this) {
-            let p = Canvas.prototype.getParent.call(el);
+            let p = el.getParent();
             if (!p) {
                 return window.innerWidth;
             }
@@ -65,7 +65,7 @@
 
         paint(ctx) {
             super.paint(ctx);
-            let p = Canvas.prototype.getParent.call(this);
+            let p = this.getParent();
 
             let parentWidth = this[s_FnParentWidth]();
             let actualWidth = 1;
@@ -100,7 +100,7 @@
             }
 
             if (p.fluidWidth || p._fixStaticRight) {
-                this.width  = actualWidth ;
+                this.width  = actualWidth;
             } else {
                 this.width  = parentWidth;
             }

@@ -28,9 +28,11 @@ class Component extends Elements.Element {
     constructor(attributes = {}) {
         super(attributes);
 
+        /*
         if (!attributes.width) {
             this.style.width = "100%";
         }
+        */
 
         this.attachShadow({
             "name": "ComponentInstance-" + this.name(),
@@ -101,15 +103,20 @@ class Component extends Elements.Element {
             if (layout.length > 0) {
                 // Apply style defined on <layout> to the component
                 const classes = layout[0].attributes.class;
-                const tmp = [];
-                const nss = this.shadowRoot.getNSS();
+                if (classes) {
+                    const tmp = [];
+                    const nss = this.shadowRoot.getNSS();
 
-                for (let c of classes.split(" ")) {
-                    tmp.push(nss[c]);
+                    for (let c of classes.split(" ")) {
+                        tmp.push(nss[c]);
+                    }
+
+                    tmp.push(Object.assign({}, this.style));
+
+                    tmp.unshift(this.style);
+
+                    Object.assign.apply(null, tmp);
                 }
-
-                tmp.unshift(this.style);
-                Object.assign.apply(null, tmp);
 
                 // Render layout
                 for (let child of layout[0].getChildren()) {

@@ -50,7 +50,7 @@
             if (!this.__inheritProxy) {
                 this.__inheritProxy = new Proxy({}, {
                     get: (target, prop, rcv) => {
-                        if (prop in target) {
+                        if (prop in target && target[prop] != undefined) {
                             return target[prop];
                         }
 

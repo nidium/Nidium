@@ -6,7 +6,7 @@ const inheritedProperties = [
 ];
 
 function styleProxy(el, key, val) {
-    let p = Canvas.prototype.getParent.call(el),
+    let p = el.getParent(),
         value = parseFloat(val);
 
     /* inherited properties */
@@ -98,9 +98,10 @@ var drawer = {
 class ElementStyles {
     constructor(el) {
         this.el = el;
+        this.style = {};
 
         el.addEventListener("resize", () => {
-            refreshStyles(el, this);
+            refreshStyles(el, this.style);
         });
 
         var classes = el.attributes.class;
@@ -109,7 +110,7 @@ class ElementStyles {
             if (el.shadowRoot) {
                 // If element is a ShadowRoot, we need to get the styling
                 // information from the parent ShadowRoot
-                nss = Canvas.prototype.getParent.apply(el)[s_ShadowRoot].getNSS();
+                nss = el.getParent()[s_ShadowRoot].getNSS();
             } else {
                 nss = this.el[s_ShadowRoot].getNSS();
             }
@@ -120,30 +121,32 @@ class ElementStyles {
             }
 
             // Gives priority to variables already defined
-            tmp.push(Object.assign({}, this));
+            tmp.push(Object.assign({}, this.style));
 
             // Merge all style into |this|
-            tmp.unshift(this);
+            tmp.unshift(this.style);
             Object.assign.apply(null, tmp);
         }
 
         el.addEventListener("load", () => {
-            refreshStyles(el, this);
+            refreshStyles(el, this.style);
             // Needed to bypass the shadowroot
-            let p = Canvas.prototype.getParent.apply(el);
+            let p = el.getParent();
             p.addEventListener("resize", () => {
-                refreshStyles(el, this);
+                refreshStyles(el, this.style);
             });
         });
 
-        return new Proxy(this, {
+        this.style._paint = this.paint.bind(this);
+
+        return new Proxy(this.style, {
             set: (styles, key, value, proxy) => {
                 styleProxy(el, key, value);
                 styles[key] = value;
                 return true;
             },
             get: (styles, name) => {
-                return this[name];
+                return this.style[name];
             },
             has: function(styles, prop) {
                 if (prop in styles) { return true; }
@@ -153,7 +156,7 @@ class ElementStyles {
     }
 
     paint(ctx) {
-        let s = this,
+        let s = this.style,
             w = this.el.width,
             h = this.el.height;
 

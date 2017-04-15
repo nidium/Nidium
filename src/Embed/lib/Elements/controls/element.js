@@ -67,7 +67,7 @@
         }
 
         paint(ctx) {
-            this.style.paint(ctx);
+            this.style._paint(ctx);
         }
     }
 

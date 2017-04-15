@@ -26,12 +26,10 @@
             height: "100%",
         }
     </nss>
-    <layout>
-        <section class="clean">
-            <element id="a" class="left">Back 1</element>
-            <element id="b" class="center">Nidium Kitchen</element>
-            <element id="c" class="right">Back 3</element>
-        </section>
+    <layout class="clean">
+        <span id="a" class="left">Back 1</span>
+        <span id="b" class="center">Nidium Kitchen</span>
+        <span id="c" class="right">Back 3</span>
     </layout>
     <script>
         module.exports = class extends Component {

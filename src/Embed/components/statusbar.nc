@@ -5,7 +5,7 @@
             height: "20px",
             width: "100%",
             color: "#ffffff",
-            fontSize: 11,
+            fontSize: 10,
             lineHeight: 20
         },
 
@@ -24,12 +24,10 @@
             textAlign: "right"
         }
     </nss>
-    <layout>
-        <element class="clean">
-            <span class="left">.:</span>
-            <span id="time" class="center">{{ time }}</span>
-            <span class="right">:.</span>
-        </element>
+    <layout class="clean">
+        <span class="left">.:</span>
+        <span id="time" class="center"></span>
+        <span class="right">:.</span>
     </layout>
     <script>
         module.exports = class extends Component {

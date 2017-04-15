@@ -26,18 +26,24 @@
                 const isOn = attr[0] == "o" && attr[1] == "n";
 
                 if (isJS || isOn) {
+                    let value = attributes[attr];
                     const options = {};
-                    const value = attributes[attr];
                     const clampedAttr = attr.substring(3);
 
                     if (shadowRoot && shadowRoot.jsScope) {
                         options.scope = shadowRoot.jsScope["this"];
                     }
 
-                    const result = VM.run('(' + value + ')', options);
+                    if (isOn) {
+                        value = "function(){"+value+"}";
+                    }
+
+                    value = "(" + value + ")";
+
+                    const result = VM.run(value, options);
 
                     if (isOn) {
-                        this["on" + clampedAttr] = result;
+                        this["on" + clampedAttr] = function(){ result.apply(arguments[0]); };
                     } else {
                         attributes[clampedAttr] = result;
                     }
@@ -64,7 +70,7 @@
 
                 this.addEventListener("load", () => {
                     this[s_FnFixStaticRight]();
-                    var p = Canvas.prototype.getParent.call(this);
+                    var p = this.getParent();
                     p.addEventListener("resize", this[s_FnFixStaticRight].bind(this));
                 });
             }
@@ -86,7 +92,7 @@
         }
 
         [s_FnFixStaticRight]() {
-            var parent = Canvas.prototype.getParent.call(this);
+            var parent = this.getParent();
             if (!this._fixStaticRight) return;
 
             super.width = parent.width;
@@ -238,6 +244,7 @@
             return true;
         }
 
+        /*
         getParent() {
             let p = super.getParent();
             
@@ -247,6 +254,7 @@
                 return p;
             }
         }
+        */
 
         removeChild(child) {
             if (!child) {
@@ -394,14 +402,13 @@
         }
 
         getRootNode(options={}) {
-            let p = Canvas.prototype.getParent.call(this);
+            let p = this.getParent();
             
             while (p) {
                 if (!options.composed && p.shadowRoot) {
                     return p;
                 }
-
-                p = Canvas.prototype.getParent.call(p);
+                p = p.getParent();
             }
 
             return p;
