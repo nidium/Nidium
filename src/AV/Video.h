@@ -123,6 +123,7 @@ public:
     int m_FramesIdx;
     AVFrame *m_DecodedFrame;
     AVFrame *m_ConvertedFrame;
+    const char *m_Filename = nullptr;
 
     pthread_t m_ThreadDecode;
     NIDIUM_PTHREAD_VAR_DECL(m_BufferCond);
