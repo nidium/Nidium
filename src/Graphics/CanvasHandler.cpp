@@ -541,14 +541,12 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                 */
                 if ((m_FlowMode & kFlowBreakPreviousSibling)
                     || ((!m_Parent->isWidthFluid()
-                         || (m_Parent->p_MaxWidth
-                             && tmpLeft + this->getPropWidth()
-                                    > m_Parent->p_MaxWidth))
+                        || (m_Parent->p_MaxWidth
+                             && tmpLeft + this->getPropWidth() > m_Parent->p_MaxWidth))
                         && tmpLeft + this->getPropWidth() > m_Parent->getPropWidth())) {
 
                     sctx->m_MaxLineHeightPreviousLine = sctx->m_MaxLineHeight;
-                    sctx->m_MaxLineHeight
-                        = this->getPropHeight() + m_Margin.bottom + m_Margin.top;
+                    sctx->m_MaxLineHeight = this->getPropHeight() + m_Margin.bottom + m_Margin.top;
 
                     tmpTop = p_Top = (prev->p_Top - prev->m_Margin.top)
                                      + sctx->m_MaxLineHeightPreviousLine
@@ -558,9 +556,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
             }
         }
 
-        sctx->m_MaxLineHeight
-            = nidium_max(this->getPropHeight() + m_Margin.bottom + m_Margin.top,
-                         sctx->m_MaxLineHeight);
+        sctx->m_MaxLineHeight = nidium_max(this->getPropHeight() + m_Margin.bottom + m_Margin.top, sctx->m_MaxLineHeight);
 
     } else {
         tmpLeft = this->getPropLeft();
@@ -591,9 +587,8 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         /*
             draw current context on top of the root layer
         */
-        willDraw
-            = (!layerContext.m_Clip || m_CoordPosition == COORD_ABSOLUTE
-               || (layerContext.m_Clip->checkIntersect(
+        willDraw = (!layerContext.m_Clip || m_CoordPosition == COORD_ABSOLUTE
+                    || (layerContext.m_Clip->checkIntersect(
                       p_Left.getAlternativeValue() - p_Coating, p_Top.getAlternativeValue() - p_Coating,
                       p_Left.getAlternativeValue() + p_Coating + this->getPropWidth(),
                       p_Top.getAlternativeValue() + p_Coating + this->getPropHeight())));
@@ -649,7 +644,10 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                 /!\ clip->intersect changes "clip"
             */
         } else if (!layerContext.m_Clip->intersect(
-                       p_Left.getAlternativeValue(), p_Top.getAlternativeValue(), p_Width + p_Left.getAlternativeValue(), p_Height + p_Top.getAlternativeValue())
+                       p_Left.getAlternativeValue(),
+                       p_Top.getAlternativeValue(),
+                       p_Width + p_Left.getAlternativeValue(),
+                       p_Height + p_Top.getAlternativeValue())
                    && (!m_FluidHeight || !m_FluidWidth)) {
             /* don't need to draw children (out of bounds) */
             return;
