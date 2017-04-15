@@ -9,6 +9,13 @@
 #include <ape_netlib.h>
 #include <ape_array.h>
 
+#ifdef NIDIUM_PRODUCT_FRONTEND
+#ifdef _MSC_VER
+#define SK_BUILD_FOR_WIN32
+#define __MINGW32__
+#endif
+#endif
+
 #include "Binding/ClassMapper.h"
 #include "Net/HTTP.h"
 
