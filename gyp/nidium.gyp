@@ -19,6 +19,12 @@
         'include_dirs': [
             '<(third_party_path)/SDL2/include/',
         ],
+        'msvs_settings': {
+            'VCLinkerTool': {
+                "AdditionalOptions": [
+                ],
+            },
+        },
         'conditions': [
             ['nidium_enable_breakpad==1', {
                 'dependencies': [
@@ -36,6 +42,19 @@
                     'libraries': [
                        'opengl32.lib',
                        'gif.lib',
+
+                        '-lskia',
+                        '-langle_common',
+                        '-lSDL2',
+   #                     '-ltranslator',
+#                        '-ltranslator_lib',
+   #                     '-lpreprocessor',
+
+#                        '-lGL',
+#                        '-lfreetype',
+#                        '-lrt',
+#                        '-ldl',
+                        '-lzip',
                     ],
                 },
                 'defines': [

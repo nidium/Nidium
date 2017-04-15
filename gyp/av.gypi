@@ -23,6 +23,29 @@
     ],
     'direct_dependent_settings': {
         'conditions': [
+            ['OS=="win"', {
+                "link_settings": {
+                    'libraries': [
+#                        '$(SDKROOT)/System/Library/Frameworks/CoreAudio.framework',
+#                        '$(SDKROOT)/System/Library/Frameworks/CoreVideo.framework',
+#                        '$(SDKROOT)/System/Library/Frameworks/VideoDecodeAcceleration.framework',
+#                        '$(SDKROOT)/System/Library/Frameworks/CoreAudioKit.framework',
+#                        '$(SDKROOT)/System/Library/Frameworks/AudioToolbox.framework',
+#                        '$(SDKROOT)/System/Library/Frameworks/AudioUnit.framework',
+#                        '$(SDKROOT)/System/Library/Frameworks/CoreMedia.framework',
+#                        '$(SDKROOT)/System/Library/Frameworks/VideoToolbox.framework',
+#                        '$(SDKROOT)/System/Library/Frameworks/Security.framework',
+#                        '-lcoroutine',
+                        'portaudio_static_x86.lib', #fixme
+                        'libzita-resampler.a',
+   #                     'libswresample.a',
+#                        'libswscale.a',
+   #                     'libavformat.a',
+   #                     'libavcodec.a',
+   #                     'libavutil.a'
+                    ],
+                }
+            }],
             ['OS=="mac"', {
                 "link_settings": {
                     'libraries': [
