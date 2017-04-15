@@ -64,7 +64,6 @@ protected:
     NIDIUM_DECL_JSCALL(getChildren);
     NIDIUM_DECL_JSCALL(getVisibleRect);
     NIDIUM_DECL_JSCALL(setCoordinates);
-    NIDIUM_DECL_JSCALL(translate);
     NIDIUM_DECL_JSCALL(show);
     NIDIUM_DECL_JSCALL(hide);
     NIDIUM_DECL_JSCALL(setSize);

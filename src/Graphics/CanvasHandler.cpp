@@ -54,7 +54,6 @@ CanvasHandler::CanvasHandler(int width,
 
     memset(&m_Margin, 0, sizeof(m_Margin));
     memset(&m_Padding, 0, sizeof(m_Padding));
-    memset(&m_Translate_s, 0, sizeof(m_Translate_s));
     memset(&m_MousePosition, 0, sizeof(m_MousePosition));
 
     m_MousePosition.consumed = true;
@@ -104,12 +103,6 @@ void CanvasHandler::setId(const char *str)
     }
 
     m_Identifier.str = strdup(str);
-}
-
-void CanvasHandler::translate(double x, double y)
-{
-    m_Translate_s.x += x;
-    m_Translate_s.y += y;
 }
 
 void CanvasHandler::setPropMinWidth(int width)
@@ -595,8 +588,8 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         /*
             Set the absolute position
         */
-        p_Left.setAlternativeValue(cleft + tmpLeft + m_Translate_s.x);
-        p_Top.setAlternativeValue(ctop + tmpTop + m_Translate_s.y);
+        p_Left.setAlternativeValue(cleft + tmpLeft);
+        p_Top.setAlternativeValue(ctop + tmpTop);
 
         /*
             draw current context on top of the root layer
@@ -695,10 +688,10 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 
             struct LayerizeContext ctx
                 = {.m_Layer = layerContext.m_Layer,
-                   .m_pLeft = tmpLeft + m_Translate_s.x + layerContext.m_pLeft
+                   .m_pLeft = tmpLeft + layerContext.m_pLeft
                               + offsetLeft,
                    .m_pTop
-                   = tmpTop + m_Translate_s.y + layerContext.m_pTop + offsetTop,
+                   = tmpTop + layerContext.m_pTop + offsetTop,
                    .m_aOpacity   = popacity,
                    .m_aZoom      = m_Zoom,
                    .m_Clip       = layerContext.m_Clip,

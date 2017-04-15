@@ -258,19 +258,6 @@ bool JSCanvas::JS_setCoordinates(JSContext *cx, JS::CallArgs &args)
     return true;
 }
 
-bool JSCanvas::JS_translate(JSContext *cx, JS::CallArgs &args)
-{
-    double left, top;
-
-    if (!JS_ConvertArguments(cx, args, "dd", &left, &top)) {
-        return false;
-    }
-
-    m_CanvasHandler->translate(left, top);
-
-    return true;
-}
-
 bool JSCanvas::JS_addSubCanvas(JSContext *cx, JS::CallArgs &args)
 {
     CanvasHandler *handler = NULL;
@@ -1406,7 +1393,6 @@ JSFunctionSpec *JSCanvas::ListMethods()
         CLASSMAPPER_FN(JSCanvas, getPrevSibling, 0),
         CLASSMAPPER_FN(JSCanvas, getChildren, 0),
         CLASSMAPPER_FN(JSCanvas, setCoordinates, 2),
-        CLASSMAPPER_FN(JSCanvas, translate, 2),
         CLASSMAPPER_FN(JSCanvas, getVisibleRect, 0),
         CLASSMAPPER_FN(JSCanvas, setSize, 2),
         CLASSMAPPER_FN(JSCanvas, clear, 0),

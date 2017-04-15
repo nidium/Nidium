@@ -330,12 +330,6 @@ public:
 
     struct
     {
-        double x;
-        double y;
-    } m_Translate_s;
-
-    struct
-    {
         int width;
         int height;
         int scrollTop;
@@ -665,7 +659,6 @@ public:
     void setScrollLeft(int value);
     void computeAbsolutePosition();
     void computeContentSize(int *cWidth, int *cHeight, bool inner = false);
-    void translate(double x, double y);
     bool isOutOfBound();
     Rect getViewport();
     Rect getVisibleRect();
