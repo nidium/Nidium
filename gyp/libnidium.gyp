@@ -64,6 +64,21 @@
                     '<(third_party_path)/opengl/api/',
                  ],
                 'defines': [
+                    'WIN32',
+                    '_CONSOLE',
+                    '_LIB',
+                    'SK_INTERNAL',
+                    'SK_GAMMA_SRGB',
+                    'SK_GAMMA_APPLY_TO_A8',
+                    'SK_SCALAR_TO_FLOAT_EXCLUDED',
+                    'SK_ALLOW_STATIC_GLOBAL_INITIALIZERS=1',
+                    'SK_SUPPORT_GPU=1',
+                    'SK_SUPPORT_OPENCL=0',
+                    'SK_FORCE_DISTANCE_FIELD_TEXT=0',
+                    'SK_BUILD_FOR_WIN32',
+                    'GR_GL_FUNCTION_TYPE=__stdcall',
+                    'SK_DEVELOPER=1',
+
                     '__MINGW32__',
                     'NOMINMAX', 
                     'SK_USE_POSIX_THREADS'
