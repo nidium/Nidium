@@ -207,16 +207,16 @@ public:
         int position;
     };
 
-    CANVAS_DEF_CLASS_PROPERTY(Top, double, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(Left, double, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(Width, int, 1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(Height, int, 1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinWidth, int, 1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinHeight, int, 1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MaxWidth, int, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MaxHeight, int, 0, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(FluidWidth, bool, false, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(FluidHeight, bool, false, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Top,          double, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Left,         double, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Width,        int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Height,       int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     int, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    int, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(FluidWidth,   bool, false, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(FluidHeight,  bool, false, State::kDefault);
 
     virtual CanvasHandlerBase *getParentBase()=0;
 };
@@ -310,7 +310,7 @@ public:
         left and top are relative to parent
         a_left and a_top are relative to the root layer
     */
-    double m_Left, m_aLeft, m_Right, m_Bottom;
+    double m_Right, m_Bottom;
 
     struct
     {
@@ -367,15 +367,13 @@ public:
         return m_Zoom;
     }
 
-    double getLeft(bool absolute = false) const
+    double getPropLeft() override
     {
-        if (absolute) return m_aLeft;
-
         if (!(m_CoordMode & kLeft_Coord) && m_Parent) {
             return m_Parent->getWidth() - (m_Width + m_Right);
         }
 
-        return m_Left;
+        return p_Left.get();
     }
 
     double getPropTop() override
@@ -385,6 +383,11 @@ public:
         }
 
         return p_Top.get();
+    }
+
+    inline double getPropLeftAbsolute()
+    {
+        return p_Left.getAlternativeValue();
     }
 
     inline double getPropTopAbsolute()
@@ -403,9 +406,9 @@ public:
         return top;
     }
 
-    double getLeftScrolled() const
+    double getLeftScrolled()
     {
-        double left = getLeft();
+        double left = getPropLeft();
         if (m_CoordPosition == COORD_RELATIVE && m_Parent != NULL) {
             left -= m_Parent->m_Content.scrollLeft;
         }
@@ -444,7 +447,7 @@ public:
 
         if (pwidth == 0) return 0.;
 
-        return nidium_max(pwidth - this->getLeft() - this->getRight(), 1);
+        return nidium_max(pwidth - this->getPropLeft() - this->getRight(), 1);
     }
 
     /*
@@ -552,17 +555,18 @@ public:
         m_Margin.left   = left;
     }
 
-    void setLeft(double val)
+    void setPropLeft(double val) override
     {
         if (m_FlowMode & kFlowInlinePreviousSibling) {
             return;
         }
         m_CoordMode |= kLeft_Coord;
-        m_Left = val;
+        p_Left.set(val);
         if (!hasFixedWidth()) {
             setSize(this->getWidth(), m_Height);
         }
     }
+
     void setRight(double val)
     {
         m_CoordMode |= kRight_Coord;
