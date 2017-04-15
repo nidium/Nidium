@@ -396,9 +396,9 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
                 Canvas2DContext *ctx2d = new Canvas2DContext(
                     m_CanvasHandler, cx,
                     m_CanvasHandler->getPropWidth()
-                        + (m_CanvasHandler->m_Padding.global * 2),
+                        + (m_CanvasHandler->p_Coating * 2),
                     m_CanvasHandler->getPropHeight()
-                        + (m_CanvasHandler->m_Padding.global * 2),
+                        + (m_CanvasHandler->p_Coating * 2),
                     ui);
 
                 if (ctx2d->getSkiaContext() == NULL) {
@@ -420,9 +420,9 @@ bool JSCanvas::JS_getContext(JSContext *cx, JS::CallArgs &args)
                 JSWebGLRenderingContext *ctxWebGL = new JSWebGLRenderingContext(
                     m_CanvasHandler, cx,
                     m_CanvasHandler->getPropWidth()
-                        + (m_CanvasHandler->m_Padding.global * 2),
+                        + (m_CanvasHandler->p_Coating * 2),
                     m_CanvasHandler->getPropHeight()
-                        + (m_CanvasHandler->m_Padding.global * 2),
+                        + (m_CanvasHandler->p_Coating * 2),
                     ui);
 
                 m_CanvasHandler->setContext(static_cast<Canvas3DContext *>(ctxWebGL));
@@ -717,7 +717,7 @@ bool JSCanvas::JSSetter_coating(JSContext *cx, JS::MutableHandleValue vp)
         return true;
     }
 
-    m_CanvasHandler->setPadding(dval);
+    m_CanvasHandler->setPropCoating(dval);
 
     return true;
 }
@@ -954,7 +954,7 @@ bool JSCanvas::JSGetter_cursor(JSContext *cx, JS::MutableHandleValue vp)
 bool JSCanvas::JSGetter_clientWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setInt32(m_CanvasHandler->getPropWidth() +
-        (m_CanvasHandler->m_Padding.global * 2));
+        (m_CanvasHandler->p_Coating * 2));
 
     return true;
 }
@@ -962,21 +962,21 @@ bool JSCanvas::JSGetter_clientWidth(JSContext *cx, JS::MutableHandleValue vp)
 bool JSCanvas::JSGetter_clientHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setInt32(m_CanvasHandler->getPropHeight() +
-        (m_CanvasHandler->m_Padding.global * 2));
+        (m_CanvasHandler->p_Coating * 2));
 
     return true;
 }
 
 bool JSCanvas::JSGetter_clientTop(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getPropTop() - m_CanvasHandler->m_Padding.global);
+    vp.setInt32(m_CanvasHandler->getPropTop() - m_CanvasHandler->p_Coating);
 
     return true;
 }
 
 bool JSCanvas::JSGetter_clientLeft(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getPropLeft() - m_CanvasHandler->m_Padding.global);
+    vp.setInt32(m_CanvasHandler->getPropLeft() - m_CanvasHandler->p_Coating);
 
     return true;
 }
@@ -1309,7 +1309,7 @@ bool JSCanvas::JSGetter_marginBottom(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_coating(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->m_Padding.global);
+    vp.setInt32(m_CanvasHandler->p_Coating);
 
     return true;
 }

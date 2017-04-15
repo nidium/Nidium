@@ -724,8 +724,8 @@ bool Canvas2DContext::JS_setTransform(JSContext *cx, JS::CallArgs &args)
     }
 
     m_Skia->transform(scalex, skewx, skewy, scaley,
-                       translatex + m_Handler->m_Padding.global,
-                       translatey + m_Handler->m_Padding.global, 1);
+                       translatex + m_Handler->p_Coating,
+                       translatey + m_Handler->p_Coating, 1);
 
     return true;
 }

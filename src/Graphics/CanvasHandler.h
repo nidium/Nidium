@@ -215,6 +215,7 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(MinHeight,    int, 1, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     int, 0, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    int, 0, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(Coating,      unsigned int, 0, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(FluidWidth,   bool, false, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(FluidHeight,  bool, false, State::kDefault);
 
@@ -310,15 +311,6 @@ public:
         a_left and a_top are relative to the root layer
     */
     double m_Right, m_Bottom;
-
-    struct
-    {
-        double top;
-        double bottom;
-        double left;
-        double right;
-        int global;
-    } m_Padding;
 
     struct
     {
@@ -564,6 +556,8 @@ public:
 
     }
 
+    void setPropCoating(unsigned int value) override;
+
     void setBottom(double val)
     {
         m_CoordMode |= kBottom_Coord;
@@ -653,7 +647,6 @@ public:
 
     void updateChildrenSize(bool width, bool height);
     void setSize(int width, int height, bool redraw = true);
-    void setPadding(int padding);
     void setPositioning(CanvasHandler::COORD_POSITION mode);
     void setScrollTop(int value);
     void setScrollLeft(int value);

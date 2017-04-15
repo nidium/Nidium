@@ -373,7 +373,7 @@ void CanvasContext::setupShader(float opacity,
             NIDIUM_GL_CALL_MAIN(
                 Uniform1f(m_GLState->m_GLObjects.uniforms.u_opacity, opacity));
         }
-        float padding = this->getHandler()->m_Padding.global * ratio;
+        float padding = this->getHandler()->p_Coating * ratio;
 
         if (m_GLState->m_GLObjects.uniforms.u_resolution != -1)
             NIDIUM_GL_CALL_MAIN(

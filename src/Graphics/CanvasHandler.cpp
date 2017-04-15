@@ -53,7 +53,6 @@ CanvasHandler::CanvasHandler(int width,
     m_FluidWidth  = false;
 
     memset(&m_Margin, 0, sizeof(m_Margin));
-    memset(&m_Padding, 0, sizeof(m_Padding));
     memset(&m_MousePosition, 0, sizeof(m_MousePosition));
 
     m_MousePosition.consumed = true;
@@ -216,8 +215,8 @@ void CanvasHandler::setSize(int width, int height, bool redraw)
 void CanvasHandler::deviceSetSize(int width, int height)
 {
     if (m_Context) {
-        m_Context->setSize(width + (m_Padding.global * 2),
-                           height + (m_Padding.global * 2));
+        m_Context->setSize(width + (p_Coating * 2),
+                           height + (p_Coating * 2));
     }
 
     Args arg;
@@ -251,25 +250,23 @@ void CanvasHandler::updateChildrenSize(bool width, bool height)
     }
 }
 
-void CanvasHandler::setPadding(int padding)
+void CanvasHandler::setPropCoating(unsigned int coating)
 {
-    if (padding < 0) padding = 0;
-
-    if (padding == m_Padding.global) {
+    if (coating == p_Coating) {
         return;
     }
 
-    int tmppadding = m_Padding.global;
+    int tmppadding = p_Coating;
 
-    m_Padding.global = padding;
+    p_Coating = coating;
 
     if (m_Context) {
         m_Context->translate(-tmppadding, -tmppadding);
 
-        m_Context->setSize(p_Width + (m_Padding.global * 2),
-                           p_Height + (m_Padding.global * 2));
+        m_Context->setSize(p_Width + (p_Coating * 2),
+                           p_Height + (p_Coating * 2));
 
-        m_Context->translate(m_Padding.global, m_Padding.global);
+        m_Context->translate(p_Coating, p_Coating);
     }
 }
 
@@ -439,8 +436,8 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
     }
 
     Rect actualRect;
-    actualRect.m_fLeft   = p_Left.getAlternativeValue() - m_Padding.global;
-    actualRect.m_fTop    = p_Top.getAlternativeValue() - m_Padding.global;
+    actualRect.m_fLeft   = p_Left.getAlternativeValue() - p_Coating;
+    actualRect.m_fTop    = p_Top.getAlternativeValue() - p_Coating;
     actualRect.m_fRight  = p_Width + p_Left.getAlternativeValue();
     actualRect.m_fBottom = p_Height + p_Top.getAlternativeValue();
 
@@ -597,9 +594,9 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         willDraw
             = (!layerContext.m_Clip || m_CoordPosition == COORD_ABSOLUTE
                || (layerContext.m_Clip->checkIntersect(
-                      p_Left.getAlternativeValue() - m_Padding.global, p_Top.getAlternativeValue() - m_Padding.global,
-                      p_Left.getAlternativeValue() + m_Padding.global + this->getPropWidth(),
-                      p_Top.getAlternativeValue() + m_Padding.global + this->getPropHeight())));
+                      p_Left.getAlternativeValue() - p_Coating, p_Top.getAlternativeValue() - p_Coating,
+                      p_Left.getAlternativeValue() + p_Coating + this->getPropWidth(),
+                      p_Top.getAlternativeValue() + p_Coating + this->getPropHeight())));
 
         if (willDraw && !m_Loaded) {
             m_Loaded = true;
@@ -610,8 +607,8 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 
             ComposeContext compctx = {
                 .handler  = this,
-                .left     = p_Left.getAlternativeValue() - m_Padding.global,
-                .top      = p_Top.getAlternativeValue() - m_Padding.global,
+                .left     = p_Left.getAlternativeValue() - p_Coating,
+                .top      = p_Top.getAlternativeValue() - p_Coating,
                 .opacity  = popacity,
                 .zoom     = m_Zoom,
                 .needClip = (m_CoordPosition != COORD_ABSOLUTE && layerContext.m_Clip),
@@ -1076,7 +1073,7 @@ void CanvasHandler::setScale(double x, double y)
 void CanvasHandler::setContext(CanvasContext *context)
 {
     m_Context = context;
-    m_Context->translate(m_Padding.global, m_Padding.global);
+    m_Context->translate(p_Coating, p_Coating);
 }
 
 bool CanvasHandler::setFluidHeight(bool val)
