@@ -24,6 +24,7 @@
     'conditions': [
         ['OS=="win"', {
             'sources': [
+                '<(nidium_interface_path)/windows/System.cpp',
             ],
             'include_dirs': [
                 '<(third_party_path)/skia/include/gpu',
