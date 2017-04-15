@@ -104,13 +104,14 @@ int Video::open(void *buffer, int size)
     if (!m_Container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
-    if (this->openInit() == 0) {
-        if (pthread_create(&m_ThreadDecode, NULL, Video::decode, this) != 0) {
-            RETURN_WITH_ERROR(ERR_INTERNAL);
-        }
-        m_ThreadCreated = true;
-        NIDIUM_PTHREAD_SIGNAL(&m_BufferCond);
+
+    this->openInit();
+
+    if (pthread_create(&m_ThreadDecode, NULL, Video::decode, this) != 0) {
+        RETURN_WITH_ERROR(ERR_INTERNAL);
     }
+    m_ThreadCreated = true;
+    NIDIUM_PTHREAD_SIGNAL(&m_BufferCond);
 
     return 0;
 }
@@ -127,7 +128,8 @@ int Video::open(const char *src)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Filename = strdup(src);
+    Core::Path p = Core::Path(src);
+    m_Filename = strdup(p.path());
 
     this->openInit();
 
@@ -164,7 +166,7 @@ int Video::openInitInternal()
         char error[1024];
         av_strerror(ret, error, 1024);
         fprintf(stderr, "Couldn't open file : %s\n", error);
-        return ERR_INTERNAL;
+        return ERR_FAILED_OPEN;
     }
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);
@@ -173,7 +175,7 @@ int Video::openInitInternal()
         return ERR_NO_INFORMATION;
     }
 
-    av_dump_format(m_Container, 0, "Memory input", 0);
+    av_dump_format(m_Container, 0, m_Filename, 0);
 
     for (unsigned int i = 0; i < m_Container->nb_streams; i++) {
         if (m_Container->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO
@@ -345,17 +347,6 @@ void Video::seek(double time, uint32_t flags)
     NIDIUM_PTHREAD_SIGNAL(&m_BufferCond);
 
     this->scheduleDisplay(1, true);
-}
-
-void Video::seekCoro(void *arg)
-{
-    Video *v     = static_cast<Video *>(arg);
-    v->m_Seeking = true;
-    v->flushBuffers();
-    v->seekInternal(v->m_DoSeekTime);
-    v->m_DoSemek = false;
-    v->m_Seeking = false;
-    Coro_switchTo_(v->m_Coro, v->m_MainCoro);
 }
 
 bool Video::seekMethod(int64_t target, int flags)
@@ -1039,20 +1030,11 @@ void *Video::decode(void *args)
                 DPRINT("not buffering and seeking\n");
                 if (v->m_DoSemek == true) {
                     DPRINT("seeking\n");
-                    if (!v->m_Reader->m_Async) {
-                        v->seekInternal(v->m_DoSeekTime);
-                        v->m_DoSemek = false;
-                    } else {
-                        DPRINT("    running seek coro\n");
-                        Coro_startCoro_(v->m_MainCoro, v->m_Coro, v,
-                                        Video::seekCoro);
-                    }
+                    v->seekInternal(v->m_DoSeekTime);
+                    v->m_DoSemek = false;
                     DPRINT("done seeking\n");
                 } else {
                     DPRINT("buffering\n");
-                    // DPRINT("Coro space main = %d coro = %d\n",
-                    //    Coro_stackSpaceAlmostGone(v->mainCoro),
-                    //    Coro_stackSpaceAlmostGone(v->coro));
                     v->buffer();
                 }
             }
@@ -1073,7 +1055,11 @@ void *Video::decode(void *args)
             }
         } else if (v->m_SourceDoOpen) {
             v->m_SourceDoOpen = false;
-            v->openInitInternal();
+            int ret = v->openInitInternal();
+            if (ret != 0) {
+                v->sendEvent(SOURCE_EVENT_ERROR, ret, true /* threaded */);
+                v->postMessage(v, AVSource::MSG_CLOSE);
+            }
         }
 
         v->unlockDecodeThread();
@@ -1471,8 +1457,6 @@ void Video::closeInternal(bool reset)
         m_Reader = NULL;
     }
 
-    free(m_Filename);
-
     this->flushBuffers();
 
     for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
@@ -1499,6 +1483,7 @@ void Video::closeInternal(bool reset)
     sws_freeContext(m_SwsCtx);
 
     free(m_Buff);
+    free(m_Filename);
 
     m_rBuff          = NULL;
     m_CodecCtx       = NULL;
@@ -1509,6 +1494,7 @@ void Video::closeInternal(bool reset)
     m_Container      = NULL;
     m_Reader         = NULL;
     m_AvioBuffer     = NULL;
+    m_Filename       = NULL;
 
     if (m_AudioSource != NULL) {
         delete m_AudioSource;
