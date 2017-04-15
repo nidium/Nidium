@@ -19,16 +19,12 @@
             shadowBlur : 4,
             shadowColor : "rgba(0, 0, 0, 0.2)",
             shadowOffsetX : 0,
-            shadowOffsetY : 2
-        },
-
-        foo : {
-            backgroundColor: "red"
+            shadowOffsetY : 2,
         }
     </nss>
     <layout>
         <element id="button" class="button">
-            <slot>Submit</slot>
+            <slot>Button</slot>
         </element>
     </layout>
     <script>

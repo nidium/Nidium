@@ -214,7 +214,7 @@
         }
 
         getNMLContent(self = true) {
-            var childContent = ''
+            var childContent = '';
 
             for (let child of this.getChildren()) {
                 childContent += child.getNMLContent(true);
@@ -416,6 +416,10 @@
             let shadow = this[s_ShadowRoot];
 
             shadow.addID(val, this);
+        }
+
+        getElementById(id) {
+            return this.shadowRoot.getElementById(id);
         }
 
         createTree(children) {

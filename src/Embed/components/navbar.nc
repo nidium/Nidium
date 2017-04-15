@@ -1,44 +1,44 @@
 <component name="navbar">
     <nss>
         clean: {
-            backgroundColor: "white",
+            backgroundColor: "#3388EE",
             height: "46px",
-            flex: ""
+            width: "100%",
+
+            color: "#ffffff",
+            fontSize: 14,
+            lineHeight: 46,
+            textAlign: "center"
         },
 
         left: {
-            width: "25%"
+            width: "25%",
+            height: "100%",
+            backgroundColor: "red",
         },
 
         center: {
-            width: "50%"
+            width: "50%",
+            height: "100%",
         },
 
         right: {
-            width: "25%"
+            backgroundColor: "#564564",
+            width: "25%",
+            height: "100%",
         }
     </nss>
-    <template>
-        <section id="navbar" class="clean">
-            <div class="left">
-                <link onclick="backClick()"><i class="icon ion-back" /> <text>Back</text></link>
-            </div>
-            <div class="center">{{ title }}</div>
-
-            <div class="right">
-                
-            </div>
+    <layout>
+        <section class="clean">
+            <element id="a" class="left">Back 1</element>
+            <element id="b" class="center">Back 2</element>
+            <element id="c" class="right">Back 3</element>
         </section>
-    </template>
+    </layout>
     <script>
         module.exports = class extends Component {
             constructor(attr) {
                 super(attr);
-                this.title = attr.title || "";
-            }
-
-            backClick() {
-                console.log("clicked");
             }
         }
     </script>

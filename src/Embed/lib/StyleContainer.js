@@ -1,8 +1,21 @@
 const s_ShadowRoot = require("../Symbols").ElementShadowRoot;
 
+const inheritedProperties = [
+    "color", "textAlign", "lineHeight",
+    "fontFamily", "fontSize", "fontWeight"
+];
+
 function styleProxy(el, key, val) {
     let p = Canvas.prototype.getParent.call(el),
         value = parseFloat(val);
+
+    /* inherited properties */
+    if (inheritedProperties.includes(key)) {
+        value = val;
+        el.inherit[key] = val;
+        el[key] = val;
+        return;
+    }
 
     if (p && value && val[val.length -1] == "%") {
         let parsed = value*0.01;
@@ -38,7 +51,6 @@ function styleProxy(el, key, val) {
     } else {
         el[key] = val == "auto" ? val : value;
     }
-
 }
 
 function refreshStyles(el, styles) {
@@ -50,7 +62,10 @@ function refreshStyles(el, styles) {
         "marginLeft", "marginRight", "marginTop", "marginBottom",
         "staticLeft", "staticRight", "staticTop", "staticBottom",
 
-        "position", "coating"
+        "position", "coating",
+
+        "color", "textAlign", "lineHeight",
+        "fontFamily", "fontSize", "fontWeight"
     ];
 
     for (let key of list) {
@@ -129,6 +144,10 @@ class ElementStyles {
             },
             get: (styles, name) => {
                 return this[name];
+            },
+            has: function(styles, prop) {
+                if (prop in styles) { return true; }
+                return false;
             }
         });
     }

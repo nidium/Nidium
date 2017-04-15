@@ -11,7 +11,6 @@
     const s_FnParentWidth = Symbol("FunctionTextNodeParentWidth");
 
     Elements.textnode = class extends Elements.Element {
-
         constructor(textValue) {
             super({"width": 1, "height": 1});
             this.nodeValue   = textValue;
@@ -46,7 +45,7 @@
         }
 
         get nodeType() {
-            return Node.TEXT_NODE;
+            return Elements.NodeType.TEXT_NODE;
         }
 
         [s_FnParentWidth](el=this) {
@@ -68,29 +67,44 @@
             super.paint(ctx);
             let p = Canvas.prototype.getParent.call(this);
 
-            let maxWidth    = this[s_FnParentWidth]();
+            let parentWidth = this[s_FnParentWidth]();
             let actualWidth = 1;
 
-            // FIXME : Get these values from inherited styles
-            let fontSize    = 15;
-            let lineHeight  = 20;
-            let color       = "black";
+            let fontSize    = this.inherit.fontSize || 15;
+            let lineHeight  = this.inherit.lineHeight || 20;
+            let color       = this.inherit.color || "#000000";
+
             let offset      = Math.ceil(lineHeight/2);
 
             ctx.fontSize        = fontSize;
             ctx.fillStyle       = color;
             ctx.textBaseline    = "middle";
 
-            let data = ctx.breakText(this.nodeValue, maxWidth);
+            let data = ctx.breakText(this.nodeValue, parentWidth);
 
-            for (var i = 0; i < data.lines.length; i++) {
-                let tmp = ctx.measureText(data.lines[i])
-                if (tmp.width > actualWidth) actualWidth = tmp.width;
+            var ox = 0;
 
-                ctx.fillText(data.lines[i], 0, i * lineHeight + offset);
+            for (var i = 0; i<data.lines.length; i++) {
+                let w = ctx.measureText(data.lines[i]).width;
+
+                if (w > actualWidth) actualWidth = w;
+
+                if (this.inherit.textAlign == "center") {
+                    ox = (parentWidth-w)*0.5;
+                }
+                if (this.inherit.textAlign == "right") {
+                    ox = (parentWidth-w);
+                }
+
+                ctx.fillText(data.lines[i], ox, i*lineHeight + offset);
             }
 
-            this.width  = actualWidth;
+            if (p.fluidWidth || p._fixStaticRight) {
+                this.width  = actualWidth - this.coating;
+            } else {
+                this.width  = parentWidth;
+            }
+
             this.height = lineHeight * data.lines.length;
         }
     }

@@ -36,20 +36,24 @@
             this._ctx.restore();
         }
 
-        fadein(duration) {
+        fadein(duration, callback) {
+            var callback = callback || function(){};
+
             if (!this.style.opacity) this.style.opacity = 0;
             AnimationBlock(duration, Easing.Sinusoidal.Out, (style) => {
                 style.opacity = 1;
-            }, this.style);
+            }, this.style)(callback);
 
             return this;
         }
 
-        fadeout(duration) {
+        fadeout(duration, callback) {
+            var callback = callback || function(){};
+
             if (!this.style.opacity) this.style.opacity = 1;
             AnimationBlock(duration, Easing.Sinusoidal.In, (style) => {
                 style.opacity = 0;
-            }, this.style);
+            }, this.style)(callback);
 
             return this;
         }
