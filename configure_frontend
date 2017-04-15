@@ -144,6 +144,7 @@ def skia():
             "cc": Platform.getEnviron("CC"),
             "cxx": Platform.getEnviron("CXX")
         }
+        toolset = Platform.MSVC.toolset(Variables.get('msvs_version', 2015))
         skiaArgs = ['%s=%s' % (k, json.dumps(v)) for k, v in args.items()]
         #gn has a realy frustrating quoting argument policy
         gn_string = """gn gen out/Static --ide='vs' '--args=%s\'""" % (" ".join(skiaArgs))
@@ -267,7 +268,7 @@ def angle():
         if Platform.wordSize == 32:
             cxxFlags += " -msse -msse2 -msse3"
         if Platform.system == "Darwin":
-            outPath = "out/Release/"
+            outPath = "out/Release/"   
         elif Platform.system == "Linux":
             outPath = "out/Release/obj/src/"
         Platform.setEnviron('GYP_GENERATORS=ninja LDFLAGS="%s" CXXFLAGS="%s"' % (os.environ.get("LDFLAGS", ""), cxxFlags))
