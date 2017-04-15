@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <vector>
 
 #ifdef _MSC_VER
 #include "Port/MSWindows.h"
@@ -214,9 +215,9 @@ bool JSCanvas::JS_getChildren(JSContext *cx, JS::CallArgs &args)
         return true;
     }
 
-    CanvasHandler *list[count];
+    std::vector<CanvasHandler*> list(count);
 
-    m_CanvasHandler->getChildren(list);
+    m_CanvasHandler->getChildren(&list[0]);
     JS::RootedObject jlist(cx, JS_NewArrayObject(cx, count));
     for (i = 0; i < count; i++) {
         JS::RootedValue objVal(cx, JS::ObjectValue(*list[i]->m_JsObj));
