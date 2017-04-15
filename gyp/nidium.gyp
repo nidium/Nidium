@@ -38,6 +38,8 @@
                        'gif.lib',
                     ],
                 },
+                'defines': [
+                ],
              }],
              ['OS=="linux"', {
                 'conditions': [

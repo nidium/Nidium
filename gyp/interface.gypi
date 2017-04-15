@@ -17,7 +17,22 @@
     'sources': [
         '<(nidium_interface_path)/UIInterface.cpp',
     ],
+    'msvs_settings': {
+        'VCCLCompilerTool': {
+        }
+    },
     'conditions': [
+        ['OS=="win"', {
+            'sources': [
+            ],
+            'include_dirs': [
+                '<(third_party_path)/skia/include/gpu',
+                '<(third_party_path)/opengl/api',
+            ],
+            'defines': [
+                    'NOMINMAX', 
+            ],
+        }],
         ['OS=="mac"', {
             'sources': [
                 '<(nidium_interface_path)/osx/CocoaUIInterface.mm',
