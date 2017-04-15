@@ -45,6 +45,7 @@
                 "-lGLESv2",
                 "-llog",
                 "-landroid",
+                "-lOpenSLES"
             ],
         },
     }]

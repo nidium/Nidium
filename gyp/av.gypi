@@ -60,6 +60,13 @@
                         '-lavutil',
                     ],
                 }
+            }],
+            ['target_os=="android"', {
+                "link_settings": {
+                    'libraries!': [
+                        '-lasound',
+                    ],
+                }
             }]
         ]
     }
