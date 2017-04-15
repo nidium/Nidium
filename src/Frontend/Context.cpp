@@ -178,7 +178,7 @@ void Context::loadNativeObjects(int width, int height)
     JSContext *cx = m_JS->m_Cx;
 
     Canvas2DContext::RegisterObject(cx);
-    JSCanvas::RegisterObject(cx);
+    Nidium::Binding::JSCanvas::RegisterObject(cx);
     JSImage::RegisterObject(cx);
     JSImageData::RegisterObject(cx);
     JSNML::RegisterObject(cx);
