@@ -54,6 +54,7 @@
                 ],
                 'OTHER_CPLUSPLUSFLAGS': [ 
                     '$inherited',
+                    '-include ../src/Macros.h'
                 ],
             },
             'conditions': [

@@ -598,6 +598,7 @@ static ShShaderOutput GetShaderOutputVersion()
     return SH_ESSL_OUTPUT;
 #else
     int version = GetGLSLVersion();
+
     switch (version) {
         case 100:
             return SH_GLSL_COMPATIBILITY_OUTPUT;
@@ -667,6 +668,7 @@ bool Context::initShaderLang()
 #endif
 
     m_ShShaderOutput = GetShaderOutputVersion();
+
 
 #if 0
     GLint maxVaryingVectors;

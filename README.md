@@ -2,13 +2,13 @@
 
 ## Introduction
 
-nidium is an ongoing effort for a general purpose rendering engine to create apps, games that run on both desktop and on mobile. It also offers a way to create server-side applications through **nidium-server** which shares all the non gfx related code base.
+nidium is an ongoing effort for a general purpose rendering engine to create apps and games that run on both desktop and mobile. It also offers a way to create server-side applications through **nidium-server** which shares all the non graphics related code base.
 
-nidium helps you create graphical softwares with Javascript. It's **not** a NodeJS, QT, Chromium, or WebKit derivate. It has been designed from scratch and has a small codebase written in C++.
+nidium helps you create graphical software with Javascript. It's **not** a NodeJS, QT, Chromium, or WebKit derivative. It has been designed from scratch and has a small codebase written in C++.
 
 It leverages the combination of **Skia** Graphics from Google, and Mozilla's JavaScript Engine (**SpiderMonkey**) together with many more awesome libraries.
 
-It supports various common well known API such as:
+It supports various common and well known APIs such as:
 
 * **WebGL**
 * **Canvas 2D Context**
@@ -30,9 +30,9 @@ It can seamlessly run various JavaScript libraries like Three.JS, PixiJS, Phaser
 
 ## What problem(s) is nidium trying to solve
 
-To put it simply, nidium aims to expose something close to the web technology on an easily hackable environment.
+To put it simply, nidium aims to expose something close to web technology but in an easily hackable environment.
 
-We're not trying to copy the Web. Think of it as a sandbox where you can quickly experiment new things, without any dependency to blink/webkit (e.g. like Electron does). This allow us to add various optimization and non standard things. Moreover, nidium is small (nidium statically linked with all of its dependencies is about 20 MB).
+We're not trying to copy the Web. Think of it as a sandbox where you can quickly prototype new things, without any dependency to blink/webkit (e.g. like Electron does). This allows us to add various optimizations and non standard things. Moreover, nidium is small (nidium statically linked with all of its dependencies is about 20 MB).
 
 Also, nidium aims to target a large spectrum of devices and our short term goal is to run it on low-power devices (mobile, rpi, ...)
 
@@ -40,11 +40,11 @@ By the way, it uses SpiderMonkey as its JavaScript engine, and we believe that M
 
 ## Work in progress
 
-nidium is still **work in progress** and several key features are still missing:
+nidium is still a **work in progress** and several key features are missing:
 
 * App distribution (create actual app out of nidium)
 * Microsoft Windows support
-* A good documentation
+* Good documentation
 
 ## Layout engine
 
@@ -80,7 +80,7 @@ $ ./bin/nidium
 
 ## Documentation
 
-We strive to have an excellent documentation, both for our [getting started guide](http://www.nidium.com/docs/guide/get-started/hello-world.html) and for the [API Reference](http://www.nidium.com/docs/api/).
+We strive to have excellent documentation, both for our [getting started guide](http://www.nidium.com/docs/guide/get-started/hello-world.html) and for the [API Reference](http://www.nidium.com/docs/api/).
 
 ## Videos - nidium in action
 

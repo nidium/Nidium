@@ -126,8 +126,10 @@ public:
     */
     void resetGLContext();
 
-    static char *ProcessShader(const char *content, shaderType type);
-    static uint32_t CompileShader(const char *data, int type);
+    static char *ProcessShader(const char *content, shaderType type, int glslversion = 0);
+    static char *ProcessMultipleShader(const char *content[], int numcontent, shaderType type, int glslversion = 0);
+
+    static uint32_t CompileShader(const char *data[], int numdata, int type);
 
     virtual void translate(double x, double y) = 0;
     virtual void setSize(int width, int height, bool redraw = true) = 0;
@@ -179,6 +181,10 @@ protected:
                       int layerHeight,
                       GLState *glstate);
 
+    /*
+        Set various uniform values
+        to the attached canvas shader
+    */
     void setupShader(float opacity,
                      int width,
                      int height,

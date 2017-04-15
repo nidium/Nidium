@@ -9,7 +9,7 @@
     const OS = require("OS");
     const IS_MOBILE = OS.platform == "ios" || OS.platform == "android";
 
-    function reportUnsupported(message) {
+    let reportUnsupported = function(message) {
         console.info("[HTML5Compat] " + message);
     }
 
@@ -215,7 +215,7 @@
             if (!this.url) return;
 
             if (this.responseType == "text" || this.responseType == "arraybuffer") {
-                const opt = {};
+                let opt = {};
                 if (this.responseType == "text") opt.encoding = "utf8";
                 File.read(this.url, opt, function(err, data) {
                     if (err) {

@@ -266,8 +266,8 @@ private:
 
 
     void initCopyTex();
-    uint32_t compileCoopFragmentShader();
-    char *genModifiedFragmentShader(const char *data);
+    uint32_t compileCoopFragmentShader(const char *glslversion);
+    char *genModifiedFragmentShader(const char *data, const char *glslversion);
 };
 // }}}
 

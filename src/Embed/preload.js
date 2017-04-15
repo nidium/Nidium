@@ -5,38 +5,21 @@
 */
 
 function __nidiumPreload(options, lst) {
+
     if (options.html5) {
         load("embed://html5.js");
     }
     load("embed://CanvasAdditions.js");
+    load("embed://ContextAdditions.js");
     load("embed://NMLAdditions.js");
     load("embed://AnimationBlock.js");
     load("embed://HTTPAdditions.js");
+    
+/*    let rdebug = require("RemoteDebug.js");
+
+    rdebug.run(9223, (options.remotedebug == "true")
+        ? "0.0.0.0"
+        : "127.0.0.1");*/
 
     document.canvas.inject(lst);
-}
-
-if (0) {
-var CreateCatchAllProxy = function(base = {}) {
-    return new Proxy(Object.assign(base, {[Symbol.toPrimitive]: () => 'hey'}), {
-        get: (target, property, value, rcv) => {
-
-            if (!(property in target)) {
-                target[property] = CreateCatchAllProxy({__accessor: target.__accessor ? `${target.__accessor}.${property}` : property});
-            }
-
-            return target[property];
-        },
-
-        set: (target, property, rcv) => {
-            throw Error("Assignation is forbiden");
-        }
-    })
-}
-
-var dynamic = CreateCatchAllProxy();
-
-with(dynamic.foo) {
-    console.log("value", dynamic.foo.bar.yo.asd.asd.__accessor);
-}
 }
