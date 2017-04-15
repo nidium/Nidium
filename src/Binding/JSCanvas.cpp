@@ -666,9 +666,7 @@ bool JSCanvas::JSSetter_minWidth(JSContext *cx, JS::MutableHandleValue vp)
         return true;
     }
 
-    if (!m_CanvasHandler->setMinWidth(dval)) {
-        return true;
-    }
+    m_CanvasHandler->setPropMinWidth(dval);
 
     return true;
 }
@@ -681,9 +679,7 @@ bool JSCanvas::JSSetter_minHeight(JSContext *cx, JS::MutableHandleValue vp)
         return true;
     }
 
-    if (!m_CanvasHandler->setMinHeight(dval)) {
-        return true;
-    }
+    m_CanvasHandler->setPropMinHeight(dval);
 
     return true;
 }
@@ -696,9 +692,7 @@ bool JSCanvas::JSSetter_maxWidth(JSContext *cx, JS::MutableHandleValue vp)
         return true;
     }
 
-    if (!m_CanvasHandler->setMaxWidth(dval)) {
-        return true;
-    }
+    m_CanvasHandler->setPropMaxWidth(dval);
 
     return true;
 }
@@ -711,9 +705,7 @@ bool JSCanvas::JSSetter_maxHeight(JSContext *cx, JS::MutableHandleValue vp)
         return true;
     }
 
-    if (!m_CanvasHandler->setMaxHeight(dval)) {
-        return true;
-    }
+    m_CanvasHandler->setPropMaxHeight(dval);
 
     return true;
 }
@@ -1157,28 +1149,28 @@ bool JSCanvas::JSGetter_height(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_maxWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getMaxWidth());
+    vp.setInt32(m_CanvasHandler->getPropMaxWidth());
 
     return true;
 }
 
 bool JSCanvas::JSGetter_maxHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getMaxHeight());
+    vp.setInt32(m_CanvasHandler->getPropMaxHeight());
 
     return true;
 }
 
 bool JSCanvas::JSGetter_minWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getMinWidth());
+    vp.setInt32(m_CanvasHandler->getPropMinWidth());
 
     return true;
 }
 
 bool JSCanvas::JSGetter_minHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setInt32(m_CanvasHandler->getMinHeight());
+    vp.setInt32(m_CanvasHandler->getPropMinHeight());
 
     return true;
 }

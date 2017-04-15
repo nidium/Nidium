@@ -48,10 +48,6 @@ CanvasHandler::CanvasHandler(int width,
 
     p_Width     = nidium_max(width, 1);
     p_Height    = nidium_max(height, 1);
-    m_MaxHeight = 0;
-    m_MaxWidth  = 0;
-    m_MinWidth  = 1;
-    m_MinHeight = 1;
 
     m_FluidHeight = false;
     m_FluidWidth  = false;
@@ -116,62 +112,54 @@ void CanvasHandler::translate(double x, double y)
     m_Translate_s.y += y;
 }
 
-bool CanvasHandler::setMinWidth(int width)
+void CanvasHandler::setPropMinWidth(int width)
 {
     if (width < 1) width = 1;
 
-    m_MinWidth = m_MaxWidth ? nidium_min(width, m_MaxWidth) : width;
+    p_MinWidth = p_MaxWidth ? nidium_min(width, p_MaxWidth) : width;
 
-    if (p_Width < m_MinWidth) {
-        this->setWidth(m_MinWidth);
+    if (p_Width < p_MinWidth) {
+        this->setWidth(p_MinWidth);
     }
-
-    return true;
 }
 
-bool CanvasHandler::setMinHeight(int height)
+void CanvasHandler::setPropMinHeight(int height)
 {
     if (height < 1) height = 1;
 
-    m_MinHeight = m_MaxHeight ? nidium_min(height, m_MaxHeight) : height;
+    p_MinHeight = p_MaxHeight ? nidium_min(height, p_MaxHeight) : height;
 
-    if (p_Height < m_MinHeight) {
-        this->setHeight(m_MinHeight);
+    if (p_Height < p_MinHeight) {
+        this->setHeight(p_MinHeight);
     }
-
-    return true;
 }
 
-bool CanvasHandler::setMaxWidth(int width)
+void CanvasHandler::setPropMaxWidth(int width)
 {
     if (width < 1) width = 1;
 
-    m_MaxWidth = nidium_max(m_MinWidth, width);
+    p_MaxWidth = nidium_max(p_MinWidth, width);
 
-    if (p_Width > m_MaxWidth) {
-        this->setWidth(m_MaxWidth);
+    if (p_Width > p_MaxWidth) {
+        this->setWidth(p_MaxWidth);
     }
-
-    return true;
 }
 
-bool CanvasHandler::setMaxHeight(int height)
+void CanvasHandler::setPropMaxHeight(int height)
 {
     if (height < 1) height = 1;
 
-    m_MaxHeight = nidium_max(m_MinHeight, height);
+    p_MaxHeight = nidium_max(p_MinHeight, height);
 
-    if (p_Height > m_MaxHeight) {
-        this->setHeight(m_MaxHeight);
+    if (p_Height > p_MaxHeight) {
+        this->setHeight(p_MaxHeight);
     }
-
-    return true;
 }
 
 bool CanvasHandler::setWidth(int width, bool force)
 {
-    width = m_MaxWidth ? nidium_clamp(width, m_MinWidth, m_MaxWidth)
-                       : nidium_max(width, m_MinWidth);
+    width = p_MaxWidth ? nidium_clamp(width, p_MinWidth, p_MaxWidth)
+                       : nidium_max(width, p_MinWidth);
 
     if (!force && !this->hasFixedWidth()) {
         return false;
@@ -196,8 +184,8 @@ bool CanvasHandler::setHeight(int height, bool force)
         return false;
     }
 
-    height = m_MaxHeight ? nidium_clamp(height, m_MinHeight, m_MaxHeight)
-                         : nidium_max(height, m_MinHeight);
+    height = p_MaxHeight ? nidium_clamp(height, p_MinHeight, p_MaxHeight)
+                         : nidium_max(height, p_MinHeight);
 
     if (p_Height == height) {
         return true;
@@ -214,11 +202,11 @@ bool CanvasHandler::setHeight(int height, bool force)
 void CanvasHandler::setSize(int width, int height, bool redraw)
 {
 
-    height = m_MaxHeight ? nidium_clamp(height, m_MinHeight, m_MaxHeight)
-                         : nidium_max(height, m_MinHeight);
+    height = p_MaxHeight ? nidium_clamp(height, p_MinHeight, p_MaxHeight)
+                         : nidium_max(height, p_MinHeight);
 
-    width = m_MaxWidth ? nidium_clamp(width, m_MinWidth, m_MaxWidth)
-                       : nidium_max(width, m_MinWidth);
+    width = p_MaxWidth ? nidium_clamp(width, p_MinWidth, p_MaxWidth)
+                       : nidium_max(width, p_MinWidth);
 
     if (p_Height == height && p_Width == width) {
         return;
@@ -563,9 +551,9 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                 */
                 if ((m_FlowMode & kFlowBreakPreviousSibling)
                     || ((!m_Parent->isWidthFluid()
-                         || (m_Parent->m_MaxWidth
+                         || (m_Parent->p_MaxWidth
                              && tmpLeft + this->getPropWidth()
-                                    > m_Parent->m_MaxWidth))
+                                    > m_Parent->p_MaxWidth))
                         && tmpLeft + this->getPropWidth() > m_Parent->getPropWidth())) {
 
                     sctx->m_MaxLineHeightPreviousLine = sctx->m_MaxLineHeight;
@@ -763,9 +751,9 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
     if (m_FluidHeight) {
         int contentHeight = this->getContentHeight(true);
 
-        int newHeight = m_MaxHeight ? nidium_clamp(contentHeight, m_MinHeight,
-                                                   m_MaxHeight)
-                                    : nidium_max(contentHeight, m_MinHeight);
+        int newHeight = p_MaxHeight ? nidium_clamp(contentHeight, p_MinHeight,
+                                                   p_MaxHeight)
+                                    : nidium_max(contentHeight, p_MinHeight);
 
         if (p_Height != newHeight) {
             this->setHeight(newHeight, true);
@@ -775,9 +763,9 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
     if (m_FluidWidth) {
         int contentWidth = this->getContentWidth(true);
 
-        int newWidth = m_MaxWidth
-                           ? nidium_clamp(contentWidth, m_MinWidth, m_MaxWidth)
-                           : nidium_max(contentWidth, m_MinWidth);
+        int newWidth = p_MaxWidth
+                           ? nidium_clamp(contentWidth, p_MinWidth, p_MaxWidth)
+                           : nidium_max(contentWidth, p_MinWidth);
 
         if (p_Width != newWidth) {
             this->setWidth(newWidth, true);
@@ -870,9 +858,9 @@ void CanvasHandler::computeAbsolutePosition()
 
                 if ((elem->m_FlowMode & kFlowBreakPreviousSibling)
                     || ((!m_Parent->isWidthFluid()
-                         || (m_Parent->m_MaxWidth
+                         || (m_Parent->p_MaxWidth
                              && elem->p_Left + elem->getPropWidth()
-                                    > m_Parent->m_MaxWidth))
+                                    > m_Parent->p_MaxWidth))
                         && elem->p_Left + elem->getPropWidth()
                                > m_Parent->getPropWidth())) {
 

@@ -305,7 +305,6 @@ public:
     JS::TenuredHeap<JSObject *> m_JsObj;
     JSContext *m_JsCx;
 
-    int m_MinWidth, m_MinHeight, m_MaxWidth, m_MaxHeight;
     /*
         left and top are relative to parent
         a_left and a_top are relative to the root layer
@@ -466,26 +465,6 @@ public:
         if (pheight == 0) return 0;
 
         return nidium_max(pheight - this->getPropTop() - this->getBottom(), 1);
-    }
-
-    int getMinWidth() const
-    {
-        return m_MinWidth;
-    }
-
-    int getMaxWidth() const
-    {
-        return m_MaxWidth;
-    }
-
-    int getMinHeight() const
-    {
-        return m_MinHeight;
-    }
-
-    int getMaxHeight() const
-    {
-        return m_MaxHeight;
     }
 
     Frontend::Context *getNidiumContext() const
@@ -669,11 +648,11 @@ public:
     bool setWidth(int width, bool force = false);
     bool setHeight(int height, bool force = false);
 
-    bool setMinWidth(int width);
-    bool setMinHeight(int height);
+    void setPropMinWidth(int width) override;
+    void setPropMinHeight(int height) override;
 
-    bool setMaxWidth(int width);
-    bool setMaxHeight(int height);
+    void setPropMaxWidth(int width) override;
+    void setPropMaxHeight(int height) override;
 
     bool setFluidHeight(bool val);
     bool setFluidWidth(bool val);
