@@ -54,7 +54,7 @@ elif Platform.system == "Windows":
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 Gyp.set("nidium_product_define", "NIDIUM_PRODUCT_FRONTEND")
 Gyp.set("nidium_js_disable_window_global", 0)
-Gyp.set("nidium_audio", 1)
+Gyp.set("nidium_audio", 0)
 
 if Builder.Gyp.get("nidium_audio", True):
     Deps.set(
@@ -74,9 +74,10 @@ def portaudio():
         Platform.setCompiler("cl", 'cl')
         Platform.setEnviron('LD=link')
         cmake, platform, toolset = Platform.CMake()
-        build = [cmake + " -DPA_UNICODE_BUILD=1 -DPA_USE_WASAPI=1 -DPA_USE_WDMKS=1 -DPA_USE_WMME=1",
+        build = [cmake + " -DPA_UNICODE_BUILD=1 -DPA_USE_WASAPI=0 -DPA_USE_WDMKS=0 -DPA_USE_WMME=1",
                 Platform.MsBuild("portaudio_static.vcxproj")]
         output = "./Release/portaudio_static_x86.lib"
+        patch = []
     else:
         configure = "./configure"
         for backend in no_backend:
@@ -86,11 +87,12 @@ def portaudio():
         configure += " --disable-debug-output --enable-static --disable-shared"
         build = [configure, "make -j1", "make  src/common/pa_ringbuffer.o"]
         output = "lib/.libs/libportaudio.a"
+        patch = [os.path.join(CONFIGURE_PATH, "patch", "portaudio.patch")]
     return {
         "location": DEPEDENCY_REPO + "/portaudio.tgz",
         "build":  build,
         "outputs": [output],
-        "patchs" : [os.path.join(CONFIGURE_PATH, "patch", "portaudio.patch")]
+        "patchs" : patch
     }
 
 @Deps.register("zita-resampler")
@@ -251,13 +253,15 @@ def angle():
     if Platform.system == "Windows":
         ext = '.lib'
         pref = ''
+        Platform.setEnviron("CXXFLAGS=-MD")
+        Platform.setEnviron("CFLAGS=-MD")
         patch = [os.path.join(CONFIGURE_PATH, "patch", "angle_windows.patch")]
         location =  Deps.GitRepo("https://github.com/Microsoft/angle.git", revision="f1706c4")
         anglePath = os.path.join(CONFIGURE_PATH, "third-party/angle")
         platform = ["Win32", "x64"][Platform.wordSize == 64]
         outPath = "src/Release_%s/lib/" % (platform)
         Platform.setEnviron('AngleRootPath=%s' % (anglePath))
-        build = [Platform.MsBuild("%s/src/angle.sln" % anglePath)]
+        build = [Platform.MsBuild("%s/src/angle.sln" % anglePath, options="/p:NODEFAULTLIB=ucrt.lib /p:NODEFAULTLIB=libcpmt.lib")]
     else:
         ext = '.a'
         pref = 'lib'
@@ -380,7 +384,7 @@ def ffmpeg():
     make_opt = ''
     #ffmpeg 3.0.7 has a problem on windows where an pathname gets in the $(OBJ) list, lib.exe is more sensitive than ar
     if Platform.system == "Windows":
-        configure = "bash configure --toolchain=msvc --disable-swscale"
+        configure = "bash configure --toolchain=msvc --extra-cxxflags=\"-MD\" --extra-cflags=\"-MD\" --extra-ldflags=\"/nodefaultlib:libcmt.lib\" --disable-swscale"
         patchs = [  os.path.join(CONFIGURE_PATH, "patch", "ffmpeg_windows.patch")]
         patchs = []
         make_opt += " -j1"
