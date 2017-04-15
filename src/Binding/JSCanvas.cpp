@@ -1061,7 +1061,7 @@ bool JSCanvas::JSGetter_ctx(JSContext *cx, JS::MutableHandleValue vp)
 
 bool JSCanvas::JSGetter_opacity(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setDouble(m_CanvasHandler->getOpacity());
+    vp.setDouble(m_CanvasHandler->getPropOpacity());
 
     return true;
 }
@@ -1075,7 +1075,7 @@ bool JSCanvas::JSSetter_opacity(JSContext *cx, JS::MutableHandleValue vp)
         return true;
     }
 
-    m_CanvasHandler->setOpacity(dval);
+    m_CanvasHandler->setPropOpacity(dval);
 
     return true;
 }

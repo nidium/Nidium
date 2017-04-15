@@ -219,6 +219,8 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(FluidWidth,   bool, false, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(FluidHeight,  bool, false, State::kDefault);
 
+    CANVAS_DEF_CLASS_PROPERTY(Opacity,      double, 1.0, State::kDefault);
+
     virtual CanvasHandlerBase *getParentBase()=0;
 };
 
@@ -340,11 +342,6 @@ public:
     CanvasContext *getContext() const
     {
         return m_Context;
-    }
-
-    double getOpacity() const
-    {
-        return m_Opacity;
     }
 
     double getZoom() const
@@ -670,7 +667,7 @@ public:
     bool isDisplayed() const;
     bool isHidden() const;
     bool hasAFixedAncestor() const;
-    void setOpacity(double val);
+    void setPropOpacity(double val) override;
     void setZoom(double val);
     void removeFromParent(bool willBeAdopted = false);
     void getChildren(CanvasHandler **out) const;
@@ -758,7 +755,6 @@ private:
     Visibility m_Visibility;
     unsigned m_FlowMode;
     unsigned m_CoordMode : 16;
-    double m_Opacity;
     double m_Zoom;
 
     double m_ScaleX, m_ScaleY;

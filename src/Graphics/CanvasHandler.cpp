@@ -33,7 +33,7 @@ CanvasHandler::CanvasHandler(int width,
       m_Prev(NULL), m_Last(NULL), m_Flags(0), m_nChildren(0),
       m_CoordPosition(COORD_RELATIVE), m_Visibility(CANVAS_VISIBILITY_VISIBLE),
       m_FlowMode(kFlowDoesntInteract), m_CoordMode(kLeft_Coord | kTop_Coord),
-      m_Opacity(1.0), m_Zoom(1.0), m_ScaleX(1.0), m_ScaleY(1.0),
+      m_Zoom(1.0), m_ScaleX(1.0), m_ScaleY(1.0),
       m_AllowNegativeScroll(false), m_NidiumContext(nctx), m_Pending(0),
       m_Loaded(!lazyLoad), m_Cursor(UIInterface::ARROW)
 {
@@ -498,14 +498,14 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
     Rect nclip;
     LayerSiblingContext *sctx = layerContext.m_SiblingCtx;
 
-    if (m_Visibility == CANVAS_VISIBILITY_HIDDEN || m_Opacity == 0.0) {
+    if (m_Visibility == CANVAS_VISIBILITY_HIDDEN || p_Opacity == 0.0) {
         return;
     }
     int maxChildrenHeight = this->getPropHeight(),
         maxChildrenWidth  = this->getPropWidth();
 
     // double pzoom = this->zoom * azoom;
-    double popacity = m_Opacity * layerContext.m_aOpacity;
+    double popacity = p_Opacity * layerContext.m_aOpacity;
 
     int tmpLeft;
     int tmpTop;
@@ -1050,11 +1050,11 @@ void CanvasHandler::setHidden(bool val)
     m_Visibility = (val ? CANVAS_VISIBILITY_HIDDEN : CANVAS_VISIBILITY_VISIBLE);
 }
 
-void CanvasHandler::setOpacity(double val)
+void CanvasHandler::setPropOpacity(double val)
 {
     val = nidium_min(1, nidium_max(0, val));
 
-    m_Opacity = val;
+    p_Opacity = val;
 }
 
 void CanvasHandler::setZoom(double zoom)

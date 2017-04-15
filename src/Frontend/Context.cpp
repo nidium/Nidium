@@ -256,7 +256,7 @@ void Context::createDebugCanvas()
     m_RootHandler->addChild(m_DebugHandler);
 
     m_DebugHandler->setRight(0);
-    m_DebugHandler->setOpacity(0.6);
+    m_DebugHandler->setPropOpacity(0.6);
     ctx2d->getSkiaContext()->setFontType("monospace");
 }
 
