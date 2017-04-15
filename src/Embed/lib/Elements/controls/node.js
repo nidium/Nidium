@@ -34,7 +34,7 @@
                         options.scope = shadowRoot.jsScope["this"];
                     }
 
-                    const result = VM.run(value, options);
+                    const result = VM.run('(' + value + ')', options);
 
                     if (isOn) {
                         this["on" + clampedAttr] = result;

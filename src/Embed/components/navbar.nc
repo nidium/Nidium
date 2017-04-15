@@ -13,8 +13,7 @@
 
         left: {
             width: "25%",
-            height: "100%",
-            backgroundColor: "red",
+            height: "100%"
         },
 
         center: {
@@ -23,7 +22,6 @@
         },
 
         right: {
-            backgroundColor: "#564564",
             width: "25%",
             height: "100%",
         }
@@ -31,7 +29,7 @@
     <layout>
         <section class="clean">
             <element id="a" class="left">Back 1</element>
-            <element id="b" class="center">Back 2</element>
+            <element id="b" class="center">Nidium Kitchen</element>
             <element id="c" class="right">Back 3</element>
         </section>
     </layout>

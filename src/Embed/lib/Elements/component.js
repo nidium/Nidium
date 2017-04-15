@@ -69,7 +69,7 @@
                                     return this.shadowRoot.findNodeById(id);
                                 }
                             default:
-                                return object[key];
+                                return document[key].bind(document);
                                 //throw new Error(`Components does not have access to document.${key}`);
                         }
                     },
@@ -78,7 +78,7 @@
                         throw new Error(`Components are not allowed to set document.${key}`);
                     }
                 })
-            }
+            };
 
             scope["window"] = new Proxy(scope, {
                 get: (object, key, proxy) => {

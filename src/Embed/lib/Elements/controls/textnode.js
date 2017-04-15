@@ -100,7 +100,7 @@
             }
 
             if (p.fluidWidth || p._fixStaticRight) {
-                this.width  = actualWidth - this.coating;
+                this.width  = actualWidth ;
             } else {
                 this.width  = parentWidth;
             }
