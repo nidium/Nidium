@@ -128,7 +128,7 @@ public:
         static constexpr float kUndefined_Value  = NAN;
 
         CanvasProperty(const char *name, T val, State state, CanvasHandlerBase *h) :
-            m_Name(name), m_Canvas(h), m_Value(val) {
+            m_Name(name), m_Canvas(h), m_Value(val), m_AlternativeValue(val) {
                 
                 position = m_Canvas->m_PropertyList.size();
                 m_Canvas->m_PropertyList.push_back((void *)this);
@@ -148,6 +148,10 @@ public:
             return m_Value;
         }
 
+        inline T getAlternativeValue() const {
+            return m_AlternativeValue;
+        }
+
         inline operator T() const {
             return get();
         }
@@ -155,6 +159,10 @@ public:
         /* Change the computed value */
         inline void set(T val) {
             m_Value = val;
+        }
+
+        inline void setAlternativeValue(T val) {
+            m_AlternativeValue = val;
         }
         
         /* Change the user value */
@@ -189,6 +197,8 @@ public:
         T m_Value;
         /* Value set by the user */
         T m_UserValue;
+
+        T m_AlternativeValue;
         
         State m_State = State::kDefault;
 
@@ -300,7 +310,7 @@ public:
         left and top are relative to parent
         a_left and a_top are relative to the root layer
     */
-    double m_Left, m_Top, m_aLeft, m_aTop, m_Right, m_Bottom;
+    double m_Left, m_aLeft, m_Right, m_Bottom;
 
     struct
     {
@@ -367,20 +377,25 @@ public:
 
         return m_Left;
     }
-    double getTop(bool absolute = false) const
-    {
-        if (absolute) return m_aTop;
 
+    double getPropTop() override
+    {
         if (!(m_CoordMode & kTop_Coord) && m_Parent) {
             return m_Parent->getHeight() - (m_Height + m_Bottom);
         }
 
-        return m_Top;
+        return p_Top.get();
     }
 
-    double getTopScrolled() const
+    inline double getPropTopAbsolute()
     {
-        double top = getTop();
+        return p_Top.getAlternativeValue();
+    }
+
+
+    double getTopScrolled() 
+    {
+        double top = getPropTop();
         if (m_CoordPosition == COORD_RELATIVE && m_Parent != NULL) {
             top -= m_Parent->m_Content.scrollTop;
         }
@@ -397,7 +412,7 @@ public:
         return left;
     }
 
-    double getRight() const
+    double getRight() 
     {
         if (hasStaticRight() || !m_Parent) {
             return m_Right;
@@ -406,7 +421,7 @@ public:
         return m_Parent->getWidth() - (getLeftScrolled() + getWidth());
     }
 
-    double getBottom() const
+    double getBottom() 
     {
         if (hasStaticBottom() || !m_Parent) {
             return m_Bottom;
@@ -418,7 +433,7 @@ public:
     /*
         Get the width in logical pixels
     */
-    double getWidth() const
+    double getWidth() 
     {
         if (hasFixedWidth() || m_FluidWidth) {
             return m_Width;
@@ -435,7 +450,7 @@ public:
     /*
         Get the height in logical pixels
     */
-    double getHeight() const
+    double getHeight()
     {
         if (hasFixedHeight() || m_FluidHeight) {
             return m_Height;
@@ -447,7 +462,7 @@ public:
 
         if (pheight == 0) return 0.;
 
-        return nidium_max(pheight - this->getTop() - this->getBottom(), 1);
+        return nidium_max(pheight - this->getPropTop() - this->getBottom(), 1);
     }
 
     int getMinWidth() const
@@ -557,16 +572,19 @@ public:
         }
     }
 
-    void setTop(double val)
+    void setPropTop(double val) override
     {
         if (m_FlowMode & kFlowInlinePreviousSibling) {
             return;
         }
+
         m_CoordMode |= kTop_Coord;
-        m_Top = val;
+        p_Top.set(val);
+
         if (!hasFixedHeight()) {
             setSize(m_Width, this->getHeight());
         }
+
     }
 
     void setBottom(double val)
@@ -639,7 +657,6 @@ public:
 
     virtual ~CanvasHandler();
 
-    
 
     void unrootHierarchy();
 
@@ -726,7 +743,7 @@ public:
         return m_Prev;
     }
     int32_t countChildren() const;
-    bool containsPoint(double x, double y) const;
+    bool containsPoint(double x, double y);
     void layerize(LayerizeContext &layerContext,
         std::vector<ComposeContext> &compList, bool draw);
 
