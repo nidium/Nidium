@@ -155,7 +155,7 @@
     // }}}
 
     // {{{ XMLHTTPRequest
-    let XMLHttpRequest = function() {
+    var XMLHttpRequest = function() {
         this.mimeType = "text/plain";
         this.ev = {};
         this.status = -1;
@@ -216,7 +216,7 @@
     // }}}
 
     // {{{ Blob
-    let URL = {
+    var URL = {
         _map: new Map(),
         createObjectURL: function(blob) {
             URL._map.set(blob, true);

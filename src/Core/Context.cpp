@@ -30,7 +30,7 @@ static void context_log(void *ctx, void *cb_args, ape_log_lvl_t lvl,
 Context::Context(ape_global *ape) : m_APECtx(ape)
 {
     m_JS = g_nidiumjs = new NidiumJS(ape, this);
-
+    
     Path::RegisterScheme(SCHEME_DEFINE("file://", FileStream, false), true);
     Path::RegisterScheme(SCHEME_DEFINE("http://", HTTPStream, true));
     Path::RegisterScheme(SCHEME_DEFINE("https://", HTTPStream, true));
@@ -72,7 +72,7 @@ void Context::logFlush()
     m_LogBuffering = false;
 
     if (m_Logbuffer.length()) {
-        this->postMessage(strdup(m_Logbuffer.c_str()), kContextMessage_log);
+        this->postMessageSync(strdup(m_Logbuffer.c_str()), kContextMessage_log);
         m_Logbuffer.clear();
         m_Logbuffer.shrink_to_fit();
     }
@@ -85,7 +85,7 @@ void Context::log(const char *str)
 
         return;
     }
-    this->postMessage(strdup(str), kContextMessage_log);
+    this->postMessageSync(strdup(str), kContextMessage_log);
 }
 
 void Context::vlog(const char *format, ...)
