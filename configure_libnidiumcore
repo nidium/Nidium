@@ -37,8 +37,7 @@ elif Platform.system == "Windows":
    Platform.setCompiler("cl", "cl")
    Platform.setEnviron("LD=Link")
    Platform.setEnviron("AR=lib")
-   Deps.set('pthreads4w')
-   Deps.set('icu')
+   Deps.set('pthreads4w', "icu")
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
 CONFIGURE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -79,14 +78,11 @@ def leveldb():
 
 @Deps.register("icu")
 def icu():
-    msvs_version = Variables.get('msvs_version', 2015)
-    toolset = Platform.MSVC.toolset(msvs_version)
-    platform = ["Win32", "x64"][Platform.wordSize == 64]
     return {
         "chdir": "./mozilla-central/intl/icu",
-        "build": [  "MSBuild.exe /nologo source/common/common.vcxproj /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" %(toolset, Platform.cpuCount),
-                    "MSBuild.exe /nologo source/stubdata/stubdata.vcxproj /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" %(toolset, Platform.cpuCount),
-                    "MSBuild.exe /nologo source/i18n/i18n.vcxproj /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" %(toolset, Platform.cpuCount),
+        "build": [  Platform.MsBuild("source/common/common.vcxproj"),
+                    Platform.MsBuild("source/stubdata/stubdata.vcxproj"),
+                    Platform.MsBuild("source/i18n/i18n.vcxproj")
                 ], 
         "outputs": ["lib/%s.lib" % (l) for l in ["icuin", "icuuc", "icudt"] ]
         }
@@ -163,7 +159,7 @@ def httpParser():
         platform = ["Win32", "x64"][Platform.wordSize == 64]
         gyp = "..\gyp\gyp.bat --depth . -DOS=win -f msvs"
         gyp += " -G Platform=%s -Dplatform=%s" % (platform, platform)
-        build = [gyp, "MSBuild.exe /nologo http_parser.vcxproj /p:Configuration=Release /P:Platform=%s /maxcpucount:%i" % (platform, Platform.cpuCount)]
+        build = [gyp, Platform.MsBuild("http_parser.vcxproj")]
         output = "Release/lib/http_parser.lib"
         patch = [os.path.join(CONFIGURE_PATH, "patch", "http_parser_windows.patch")]
     else:
@@ -184,8 +180,7 @@ def jsoncpp():
         "build": ["python amalgamate.py"]
     }
 
-#We don't need it for server, but it has a drop in for args.h
-#We do need ninja for frontend on windows 32 bit
+#ninja has a drop in for args.h and depot_tools has only a 64 bit exectutabel
 @Deps.register("ninja")
 def ninja():
     if Platform.system != "Windows":
@@ -193,7 +188,7 @@ def ninja():
         sys.exit(1)
     return {
         "location": "https://github.com/ninja-build/ninja/archive/v1.7.2.tar.gz",
-        "build": ['pwd', "python configure.py --bootstrap"]
+        "build": ["python configure.py --bootstrap", "cp ninja.exe ../depot_tools/"] 
     }
 
 @CommandLine.option("--unit-tests")

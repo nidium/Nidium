@@ -75,7 +75,7 @@ def portaudio():
         Platform.setEnviron('LD=link')
         cmake, platform, toolset = Platform.CMake()
         build = [cmake + " -DPA_UNICODE_BUILD=1 -DPA_USE_WASAPI=1 -DPA_USE_WDMKS=1 -DPA_USE_WMME=1",
-                "MSBuild.exe /nologo portaudio_static.vcxproj /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" %(toolset, Platform.cpuCount)]
+                Platform.MsBuild("portaudio_static.vcxproj")]
         output = "./Release/portaudio_static_x86.lib"
     else:
         configure = "./configure"
@@ -144,11 +144,10 @@ def skia():
             "cc": Platform.getEnviron("CC"),
             "cxx": Platform.getEnviron("CXX")
         }
-        toolset = Platform.MSVC.toolset(Variables.get('msvs_version', 2015))
         skiaArgs = ['%s=%s' % (k, json.dumps(v)) for k, v in args.items()]
         #gn has a realy frustrating quoting argument policy
         gn_string = """gn gen out/Static --ide='vs' '--args=%s\'""" % (" ".join(skiaArgs))
-        gn_hack = "nidium_gn_quote.sh"
+        gn_hack = "../nidium_gn_quote.sh"
         file_h = open("skia/" + gn_hack, 'w')
         dir = "/c/data/nidium/Nidium/third-party/"
         file_h.write("#!/bin/bash\n\n" + 
@@ -161,7 +160,7 @@ def skia():
         build = [ "python tools/git-sync-deps", 
                   "bash ./%s||true" % (gn_hack),
                   "python gn/gn_meta_sln.py", 
-                  "MSBuild.exe /nologo out/sln/skia.sln"]
+                  Platform.MsBuild("out/sln/skia.sln", None, None, None)]
     else:
         args = {
             "extra_cflags_cc": [
@@ -216,7 +215,7 @@ def libzip():
         output = "./lib/Release/zip.lib"
         cmake, platform, toolset = Platform.CMake()
         build = [cmake + " -DZLIB_LIBRARY=%s/zlib/zlib.lib -DZLIB_INCLUDE_DIR=%s/zlib" % (Deps.getDir(), Deps.getDir()),
-                "MSBuild.exe /nologo libzip.sln /p:Configuration=Release /p:PlatformToolset=%s /P:Platform=%s /maxcpucount:%i" % (toolset, platform, Platform.cpuCount)]
+                Platform.MsBuild("libzip.sln")]
     else:
         output = "lib/.libs/libzip.a"
         build = ["autoreconf -fi",
@@ -254,11 +253,10 @@ def angle():
         patch = [os.path.join(CONFIGURE_PATH, "patch", "angle_windows.patch")]
         location =  Deps.GitRepo("https://github.com/Microsoft/angle.git", revision="f1706c4")
         anglePath = os.path.join(CONFIGURE_PATH, "third-party/angle")
-        toolset = Platform.MSVC.toolset(Variables.get('msvs_version', 2015))
         platform = ["Win32", "x64"][Platform.wordSize == 64]
         outPath = "src/Release_%s/lib/" % (platform)
         Platform.setEnviron('AngleRootPath=%s' % (anglePath))
-        build = ["MSBuild.exe /nologo %s/src/angle.sln /p:Configuration=Release /P:Platform=%s /p:PlatformToolset=%s /maxcpucount:%i" % (anglePath, platform, toolset, Platform.cpuCount)]
+        build = [Platform.MsBuild("%s/src/angle.sln" % anglePath)]
     else:
         ext = '.a'
         pref = 'lib'
@@ -294,8 +292,7 @@ def SDL2():
     #build: ["xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'"],
     #outputs["SDL2/Xcode/SDL/out/SDL2.framework"])
     if Platform.system == "Windows":
-        toolset = Platform.MSVC.toolset(Variables.get('msvs_version', 2015))
-        build = ["MSBuild.exe /nologo ../VisualC/SDL_VS2013.sln /p:Configuration=Release /p:PlatformToolset=%s /maxcpucount:%i" % (toolset, Platform.cpuCount)]
+        build = [Platform.MsBuild("../VisualC/SDL_VS2013.sln")]
         patchs = [os.path.join(CONFIGURE_PATH, "patch", "SDL2_windows.patch")]
         platform = ["Win32", "x64"][Platform.wordSize == 64]
         outputs = ["../VisualC/SDL/%s/Release/SDL2.lib" % (platform)]
