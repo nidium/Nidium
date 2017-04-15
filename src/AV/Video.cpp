@@ -427,8 +427,7 @@ int64_t Video::seekTarget(double time, int *flags)
 
     *flags = time > clock ? 0 : AVSEEK_FLAG_BACKWARD;
     target = time * AV_TIME_BASE;
-
-    return av_rescale_q(target, AV_TIME_BASE_Q,
+    return av_rescale_q(target, AV_TIME_BASE_QQ,
                         m_Container->streams[m_VideoStream]->time_base);
 }
 

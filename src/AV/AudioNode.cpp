@@ -1477,7 +1477,7 @@ void AudioSource::seekInternal(double time)
 
         target = time * AV_TIME_BASE;
 
-        target = av_rescale_q(target, AV_TIME_BASE_Q,
+        target = av_rescale_q(target, AV_TIME_BASE_QQ,
                               m_Container->streams[m_AudioStream]->time_base);
         int ret = av_seek_frame(m_Container, m_AudioStream, target, flags);
         if (ret >= 0) {

@@ -21,7 +21,7 @@
 extern "C" {
 #include <libavutil/time.h>
 }
-
+#define AV_TIME_BASE_QQ          {1, AV_TIME_BASE}
 struct Coro;
 struct AVFormatContext;
 struct AVDictionary;
