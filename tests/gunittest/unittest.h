@@ -19,6 +19,7 @@ protected:\
     ::Nidium::Core::Context *context;\
     name(){\
         ape = APE_init();\
+        EXPECT_TRUE(ape != NULL); \
         context = new ::Nidium::Core::Context(ape);\
         njs = context->getNJS();\
     };\

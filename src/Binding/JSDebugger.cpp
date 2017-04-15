@@ -39,14 +39,14 @@ JSDebuggerCompartment::JSDebuggerCompartment(JSContext *cx)
 {
     JS::RootedObject mainGbl(cx, JS::CurrentGlobalOrNull(cx));
     if (!mainGbl) {
-        JS_ReportError(cx, "Cannot get current global");
+        JS_ReportError(cx, "Can't get current global");
         return;
     }
 
     // New global object & compartment for the Debugger
     JS::RootedObject gbl(cx, NidiumJS::CreateJSGlobal(cx));
     if (!gbl) {
-        JS_ReportError(cx, "Cannot create global for Debugger compartment");
+        JS_ReportError(cx, "Can't create global for Debugger compartment");
         return;
     }
 
@@ -176,7 +176,7 @@ JSFunctionSpec *JSDebuggerCompartment::ListMethods()
 {
     static JSFunctionSpec funcs[] = {
         CLASSMAPPER_FN(JSDebuggerCompartment, run, 1),
-        JS_FS_END 
+        JS_FS_END
     };
 
     return funcs;

@@ -291,7 +291,7 @@ bool JSCanvas::JS_addSubCanvas(JSContext *cx, JS::CallArgs &args)
     }
 
     if (m_CanvasHandler == handler) {
-        JS_ReportError(cx, "Canvas: can't add to itself");
+        JS_ReportError(cx, "Canvas: Can't add to itself");
         return false;
     }
 
@@ -327,7 +327,7 @@ bool JSCanvas::JS_insertBefore(JSContext *cx, JS::CallArgs &args)
     }
 
     if (m_CanvasHandler == handler_insert) {
-        JS_ReportError(cx, "Canvas: can't add to itself");
+        JS_ReportError(cx, "Canvas: Can't add to itself");
         return false;
     }
 
@@ -363,7 +363,7 @@ bool JSCanvas::JS_insertAfter(JSContext *cx, JS::CallArgs &args)
     }
 
     if (m_CanvasHandler == handler_insert) {
-        JS_ReportError(cx, "Canvas: can't add to itself");
+        JS_ReportError(cx, "Canvas: Can't add to itself");
         return false;
     }
 
@@ -1095,7 +1095,7 @@ bool JSCanvas::JSSetter_opacity(JSContext *cx, JS::MutableHandleValue vp)
 
         return true;
     }
-    
+
     m_CanvasHandler->setOpacity(dval);
 
     return true;
@@ -1179,7 +1179,7 @@ bool JSCanvas::JSGetter_minWidth(JSContext *cx, JS::MutableHandleValue vp)
 bool JSCanvas::JSGetter_minHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setInt32(m_CanvasHandler->getMinHeight());
-    
+
     return true;
 }
 
@@ -1223,119 +1223,119 @@ bool JSCanvas::JSGetter_position(JSContext *cx, JS::MutableHandleValue vp)
             vp.setString(jstr);
             break;
     }
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_top(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setDouble(m_CanvasHandler->getTop());
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_left(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setDouble(m_CanvasHandler->getLeft());
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_right(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setDouble(m_CanvasHandler->getRight());
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setDouble(m_CanvasHandler->getBottom());
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_visible(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setBoolean(!m_CanvasHandler->isHidden());
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_staticLeft(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setBoolean(m_CanvasHandler->hasStaticLeft());
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_staticTop(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setBoolean(m_CanvasHandler->hasStaticTop());
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_staticRight(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setBoolean(m_CanvasHandler->hasStaticRight());
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_staticBottom(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setBoolean(m_CanvasHandler->hasStaticBottom());
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_fluidWidth(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setBoolean(m_CanvasHandler->isWidthFluid());
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_fluidHeight(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setBoolean(m_CanvasHandler->isHeightFluid());
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_marginLeft(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setDouble(m_CanvasHandler->m_Margin.left);
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_marginRight(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setDouble(m_CanvasHandler->m_Margin.right);
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_marginTop(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setDouble(m_CanvasHandler->m_Margin.top);
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_marginBottom(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setDouble(m_CanvasHandler->m_Margin.bottom);
-    
+
     return true;
 }
 
 bool JSCanvas::JSGetter_coating(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setInt32(m_CanvasHandler->m_Padding.global);
-    
+
     return true;
 }
 
@@ -1352,7 +1352,7 @@ bool JSCanvas::JSGetter_id(JSContext *cx, JS::MutableHandleValue vp)
 
     JS::RootedString jstr(cx, JS_NewStringCopyZ(cx, cid));
     vp.setString(jstr);
-    
+
     return true;
 }
 
@@ -1361,7 +1361,7 @@ bool JSCanvas::JSGetter_idx(JSContext *cx, JS::MutableHandleValue vp)
     uint64_t idx = m_CanvasHandler->getIdentifier();
 
     vp.setNumber((double)idx);
-    
+
     return true;
 }
 
@@ -1509,12 +1509,12 @@ JSObject *JSCanvas::GenerateJSObject(JSContext *cx,
     Context *nctx   = Context::GetObject<Frontend::Context>(cx);
     UIInterface *ui = nctx->getUI();
     handler = new CanvasHandler(width, height, nctx);
-    
+
     Canvas2DContext *ctx2d = new Canvas2DContext(handler, cx, width, height, ui);
 
     JS::RootedObject ctxjsobj(cx, Canvas2DContext::CreateObject(cx, ctx2d));
 
-    
+
     handler->setContext(ctx2d);
     handler->getContext()->setGLState(nctx->getGLState());
 
@@ -1563,7 +1563,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             eventValue.setObjectOrNull(eventObj);
             this->fireJSEvent("paint", &eventValue);
             break;
-        }        
+        }
         case NIDIUM_EVENT(CanvasHandler, LOADED_EVENT): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));
             JS::RootedValue eventValue(m_Cx);
@@ -1614,7 +1614,7 @@ void JSCanvas::onMessage(const SharedMessages::Message &msg)
             break;
         }
         case NIDIUM_EVENT(CanvasHandler, DRAG_EVENT): {
-            printf("Drag event detected\n");
+            ndm_log(NDM_LOG_DEBUG, "JSCanvas", "Drag event detected");
         }
         case NIDIUM_EVENT(CanvasHandler, MOUSE_EVENT): {
             JS::RootedObject eventObj(m_Cx, JSEvents::CreateEventObject(m_Cx));

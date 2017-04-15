@@ -124,7 +124,7 @@ public:
     virtual ~JSAudioNodeSourceVideo()
     {
         // First the video needs to release the audio node
-        // (as we cannot delete it while it's used by the video)
+        // (as we can't delete it while it's used by the video)
         m_Video->m_Video->releaseAudioNode(false /* do not delete the node */);
 
         // Then call releaseNode() which will take care of

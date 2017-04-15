@@ -17,6 +17,7 @@
 
 extern "C" {
 #include <libavformat/avformat.h>
+#include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
 }
 
@@ -195,7 +196,7 @@ int Video::openInitInternal()
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
-        fprintf(stderr, "Couldn't find stream information");
+        fprintf(stderr, "Couldn't find stream information\n");
         return ERR_NO_INFORMATION;
     }
 
@@ -507,7 +508,7 @@ void Video::seekInternal(double time)
                       * p->curr.pts;
                 DPRINT("[SEEK] Dropping audio packet @ %f\n", tmp);
 
-                av_free_packet(&p->curr);
+                av_packet_unref(&p->curr);
                 delete p;
 
                 if (tmp >= time) {
@@ -551,7 +552,7 @@ void Video::seekInternal(double time)
             while (count < SEEK_BUFFER_PACKET) {
                 int err = av_read_frame(m_Container, &packet);
                 if (err < 0) {
-                    av_free_packet(&packet);
+                    av_packet_unref(&packet);
                     err = this->readError(err);
                     if (err == AVERROR_EOF && m_VideoQueue->count > 0) {
                         break;
@@ -572,7 +573,7 @@ void Video::seekInternal(double time)
                         break;
                     }
                 } else {
-                    av_free_packet(&packet);
+                    av_packet_unref(&packet);
                 }
             }
             p = this->getPacket(m_VideoQueue);
@@ -640,7 +641,7 @@ void Video::seekInternal(double time)
             }
         }
 
-        av_free_packet(&packet);
+        av_packet_unref(&packet);
         if (p != NULL) {
             delete p;
             p = NULL;
@@ -902,7 +903,7 @@ int Video::setSizeInternal()
     }
 
     m_SwsCtx = sws_getContext(m_CodecCtx->width, m_CodecCtx->height,
-                              m_CodecCtx->pix_fmt, width, height, PIX_FMT_RGBA,
+                              m_CodecCtx->pix_fmt, width, height, AV_PIX_FMT_RGBA,
                               SWS_BICUBIC, NULL, NULL, NULL);
 
     if (!m_SwsCtx) {
@@ -911,9 +912,9 @@ int Video::setSizeInternal()
     }
 
     // Update the size of the frames in the frame pool
-    int frameSize
-        = avpicture_fill(reinterpret_cast<AVPicture *>(m_ConvertedFrame), NULL,
-                         PIX_FMT_RGBA, width, height);
+    AVPicture *picture = reinterpret_cast<AVPicture *>(m_ConvertedFrame);
+    int frameSize = av_image_fill_arrays(picture->data, picture->linesize,
+                    NULL, AV_PIX_FMT_RGBA, width, height, 1);
     for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
         free(m_Frames[i]);
         m_Frames[i] = static_cast<uint8_t *>(malloc(frameSize));
@@ -1038,13 +1039,13 @@ void Video::bufferInternal()
 
         // If a seek is asked while buffering. Return.
         if (m_DoSemek) {
-            av_free_packet(&packet);
+            av_packet_unref(&packet);
             break;
         }
 
         // Got a read error. Return.
         if (ret < 0) {
-            av_free_packet(&packet);
+            av_packet_unref(&packet);
             if (this->readError(ret) != 0) {
                 return;
             }
@@ -1060,7 +1061,7 @@ void Video::bufferInternal()
             this->addPacket(m_AudioQueue, &packet);
             needAudio--;
         } else {
-            av_free_packet(&packet);
+            av_packet_unref(&packet);
         }
 
         if ((needVideo <= 0 && needAudio <= 0) || m_Error != 0) {
@@ -1213,7 +1214,7 @@ bool Video::processAudio()
 bool Video::processVideo()
 {
     if (PaUtil_GetRingBufferWriteAvailable(m_rBuff) < 1) {
-        DPRINT("processVideo not enought space to write data\n");
+        DPRINT("processVideo not enough space to write data\n");
         return false;
     }
 
@@ -1246,7 +1247,7 @@ bool Video::processVideo()
     }
 
     delete p;
-    av_free_packet(&packet);
+    av_packet_unref(&packet);
 
     return true;
 }
@@ -1367,10 +1368,13 @@ int Video::addTimer(int delay)
 
 bool Video::addPacket(PacketQueue *queue, AVPacket *packet)
 {
-    av_dup_packet(packet);
-
     Packet *pkt = new Packet();
-    pkt->curr   = *packet;
+    if (packet->buf) {
+        pkt->curr = *packet;
+    } else {
+        AVPacket *dst = av_packet_clone(packet);
+        pkt->curr = *dst;
+    }
 
     if (!queue->tail) {
         queue->head = pkt;
@@ -1428,7 +1432,7 @@ void Video::clearAudioQueue()
         if (this->audioSource != NULL) {
             this->audioSource->packetConsumed = true;
         }
-        av_free_packet(&this->freePacket->curr);
+        av_packet_unref(&this->freePacket->curr);
         delete this->freePacket;
         this->freePacket = NULL;
     }
@@ -1438,7 +1442,7 @@ void Video::clearAudioQueue()
     Packet *next;
     while (pkt != NULL) {
         next = pkt->next;
-        av_free_packet(&pkt->curr);
+        av_packet_unref(&pkt->curr);
         delete pkt;
         pkt = next;
     }
@@ -1453,7 +1457,7 @@ void Video::clearVideoQueue()
     Packet *next;
     while (pkt != NULL) {
         next = pkt->next;
-        av_free_packet(&pkt->curr);
+        av_packet_unref(&pkt->curr);
         delete pkt;
         pkt = next;
     }
@@ -1604,7 +1608,7 @@ bool VideoAudioSource::buffer()
         if (m_FreePacket != NULL) {
             delete m_FreePacket;
             m_FreePacket = NULL;
-            // Note : av_free_packet is called by the audioSource
+            // Note : av_packet_unref is called by the audioSource
         }
 
         Video::Packet *p = m_Video->getPacket(m_Video->m_AudioQueue);

@@ -225,7 +225,7 @@ public:
             if (!m_PacketConsumed) {
                 // Free the packet here, otherwise the source destructor
                 // will do it after we delete it.
-                av_free_packet(m_TmpPacket);
+                av_packet_unref(m_TmpPacket);
                 m_PacketConsumed = true;
             }
             delete m_FreePacket;

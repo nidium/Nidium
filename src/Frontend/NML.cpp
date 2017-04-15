@@ -15,7 +15,6 @@
 #include "Binding/JSUtils.h"
 
 #include "Interface/SystemInterface.h"
-#include "Macros.h"
 
 #include "Binding/JSWindow.h"
 #include "Binding/JSDocument.h"
@@ -41,7 +40,7 @@ namespace Frontend {
 NML::NML(ape_global *net)
     : m_Net(net), m_Stream(NULL), m_nAssets(0), m_Njs(NULL), m_Loaded(NULL),
       m_LoadedArg(NULL), m_Layout(NULL), m_JSObjectLayout(NULL),
-      m_DefaultItemsLoaded(false), m_LoadFramework(true), m_LoadHTML5(false)
+      m_DefaultItemsLoaded(false)
 {
     m_AssetsList.size      = 0;
     m_AssetsList.allocated = 4;
@@ -78,9 +77,7 @@ void NML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
 
     Path path(file);
 
-#ifdef DEBUG
-    printf("NML path : %s\n", path.path());
-#endif
+    nlogf("NML path : %s", path.path());
 
     m_Stream = Stream::Create(path);
     if (m_Stream == NULL) {
@@ -142,21 +139,10 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
         return false;
     }
 
-    xml_attribute<char> *framework
-        = node->first_attribute(CONST_STR_LEN("framework"), false);
-    xml_attribute<char> *html5
-        = node->first_attribute(CONST_STR_LEN("html5"), false);
+    for (xml_attribute<> *attr = node->first_attribute();
+         attr != NULL; attr = attr->next_attribute()) {
 
-    if (framework) {
-        if (strncasecmp(framework->value(), CONST_STR_LEN("false")) == 0) {
-            m_LoadFramework = false;
-        }
-    }
-
-    if (html5) {
-        if (strncasecmp(html5->value(), CONST_STR_LEN("true")) == 0) {
-            m_LoadHTML5 = true;
-        }
+        m_AppAttr.push_back({attr->name(), attr->value()});
     }
 
     for (xml_node<> *child = node->first_node(); child != NULL;
@@ -168,7 +154,7 @@ bool NML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
                 nidium_xml_ret_t ret;
 
                 if ((ret = (this->*m_NmlTags[i].cb)(*child)) != NIDIUM_XML_OK) {
-                    printf("XML : Nidium error (%d)\n", ret);
+                    fprintf(stderr, "XML : Nidium error (%d)", ret);
                     SystemInterface::GetInstance()->alert(
                         "NML ERROR", SystemInterface::ALERT_CRITIC);
                     return false;
@@ -339,7 +325,7 @@ void NML::onGetContent(const char *data, size_t len)
         }
     } else {
         /*
-            TODO: dont close ! (load a default NML?)
+            TODO: Don't close ! (load a default NML?)
         */
         exit(1);
     }
@@ -409,8 +395,9 @@ void NML::onAssetsItemReady(Assets::Item *item)
 
                     args[0].setObjectOrNull(obj.obj());
 
-                    obj.set("framework", m_LoadFramework);
-                    obj.set("html5", m_LoadHTML5);
+                    for (auto &it : m_AppAttr) {
+                        obj.set(it.first.c_str(), it.second.c_str());
+                    }
 
                     args[1].setObjectOrNull(m_JSObjectLayout);
 
@@ -593,7 +580,7 @@ NML::nidium_xml_ret_t NML::loadAssets(rapidxml::xml_node<> &node)
         } else if (!strncasecmp(child->name(), CONST_STR_LEN("style"))) {
             item->m_FileType = Assets::Item::ITEM_NSS;
         }
-        // printf("Node : %s\n", child->name());
+        // ndm_logf(NDM_LOG_DEBUG, "NML", "Node : %s", child->name());
     }
 
     assets->endListUpdate(m_Net);

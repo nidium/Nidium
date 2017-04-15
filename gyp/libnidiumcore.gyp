@@ -38,6 +38,11 @@
                 # versioned for our build flavour
                 '-include <(nidium_output_third_party_path)/js-config.h'
             ],
+
+            'cflags_cc': [
+                '-include ../src/Macros.h'
+            ],
+
             'xcode_settings': {
                 'OTHER_CFLAGS': [
                     '-fno-rtti',
@@ -50,6 +55,7 @@
                 ],
                 'OTHER_CPLUSPLUSFLAGS': [ 
                     '$inherited',
+                    '-include ../src/Macros.h'
                 ],
             },
             'conditions': [

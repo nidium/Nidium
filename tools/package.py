@@ -179,7 +179,7 @@ def packageFrontend():
 
         shutil.copy(resources + "/nidium.desktop", tmpDir + "/resources/")
         shutil.copy(resources + "/x-application-nidium.xml", tmpDir + "/resources/")
-        shutil.copy(baseResources + "/icons/nidium_64x64.png", tmpDir + "/resources/nidium.png")
+        shutil.copy(baseResources + "/icons/nidium.iconset/nidium_32x32@2x.png", tmpDir + "/resources/nidium.png")
         shutil.copy(resources + "/installer.sh", tmpDir)
         shutil.copy(path + "nidium",  tmpDir + "/dist/")
 

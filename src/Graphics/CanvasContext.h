@@ -16,7 +16,6 @@
 #include "Graphics/GLResources.h"
 #include "Graphics/GLState.h"
 #include "Graphics/GLContext.h"
-#include "Macros.h"
 
 namespace Nidium {
 namespace Binding {
@@ -108,7 +107,7 @@ public:
     inline GLContext *getGLContext() const
     {
         if (!m_GLState) {
-            NUI_LOG("getGLContext() invalid glstate on %p", this);
+            ndm_logf(NDM_LOG_ERROR, "CanvasContext", "getGLContext() invalid glstate on %p", this);
             return NULL;
         }
 
@@ -127,8 +126,10 @@ public:
     */
     void resetGLContext();
 
-    static char *ProcessShader(const char *content, shaderType type);
-    static uint32_t CompileShader(const char *data, int type);
+    static char *ProcessShader(const char *content, shaderType type, int glslversion = 0);
+    static char *ProcessMultipleShader(const char *content[], int numcontent, shaderType type, int glslversion = 0);
+
+    static uint32_t CompileShader(const char *data[], int numdata, int type);
 
     virtual void translate(double x, double y) = 0;
     virtual void setSize(int width, int height, bool redraw = true) = 0;
@@ -180,6 +181,10 @@ protected:
                       int layerHeight,
                       GLState *glstate);
 
+    /*
+        Set various uniform values
+        to the attached canvas shader
+    */
     void setupShader(float opacity,
                      int width,
                      int height,

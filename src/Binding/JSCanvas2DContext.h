@@ -124,7 +124,7 @@ public:
     uint32_t getTextureID() const override;
     void flush() override;
     virtual void setSize(int width, int height, bool redraw = true) override;
-    
+
     void translate(double x, double y) override;
 
     void getSize(int *width, int *height) const override;
@@ -162,7 +162,7 @@ public:
     void popState()
     {
         /*
-            can't be stateless
+            Can't be stateless
         */
         if (!m_CurrentState->m_Next) {
             return;
@@ -266,8 +266,8 @@ private:
 
 
     void initCopyTex();
-    uint32_t compileCoopFragmentShader();
-    char *genModifiedFragmentShader(const char *data);
+    uint32_t compileCoopFragmentShader(const char *glslversion);
+    char *genModifiedFragmentShader(const char *data, const char *glslversion);
 };
 // }}}
 

@@ -17,7 +17,6 @@
 #include "Graphics/GLHeader.h"
 #include "Graphics/SkiaContext.h"
 #include "Binding/JSCanvas2DContext.h"
-#include "Macros.h"
 
 using Nidium::Interface::SystemInterface;
 using Nidium::Frontend::Context;
@@ -27,7 +26,8 @@ using Nidium::Binding::NidiumJS;
 namespace Nidium {
 namespace Graphics {
 
-char *CanvasContext::ProcessShader(const char *content, shaderType type)
+char *CanvasContext::ProcessMultipleShader(const char *content[],
+    int numcontent, shaderType type, int glslversion)
 {
     ShHandle compiler = NULL;
 
@@ -35,21 +35,23 @@ char *CanvasContext::ProcessShader(const char *content, shaderType type)
         = Context::GetObject<Frontend::Context>(NidiumJS::GetObject());
 
     compiler = ShConstructCompiler((sh::GLenum)type, SH_WEBGL_SPEC,
-                                   frontendContext->getShaderOutputVersion(),
+                                   (!glslversion)
+                                   ? frontendContext->getShaderOutputVersion()
+                                   : (ShShaderOutput)glslversion,
                                    frontendContext->getShaderResources());
 
     if (compiler == NULL) {
-        NUI_LOG("Shader : Compiler not supported");
+        ndm_logf(NDM_LOG_ERROR, "CanvasContext", "Shader : Compiler not supported");
         return NULL;
     }
 
-    if (!ShCompile(compiler, &content, 1,
-                   SH_VARIABLES | SH_ENFORCE_PACKING_RESTRICTIONS
-                       | SH_OBJECT_CODE | SH_INIT_VARYINGS_WITHOUT_STATIC_USE
+    if (!ShCompile(compiler, content, numcontent,
+                   SH_VARIABLES | SH_ENFORCE_PACKING_RESTRICTIONS 
+                   | SH_OBJECT_CODE | SH_INIT_VARYINGS_WITHOUT_STATIC_USE
                        | SH_LIMIT_CALL_STACK_DEPTH | SH_INIT_GL_POSITION)) {
 
         std::string log = ShGetInfoLog(compiler);
-        printf("Shader error : %s", log.c_str());
+        ndm_logf(NDM_LOG_ERROR, "CanvasContext", "Shader error : %s", log.c_str());
 
         return NULL;
     }
@@ -61,12 +63,24 @@ char *CanvasContext::ProcessShader(const char *content, shaderType type)
     return strdup(buffer.c_str());
 }
 
-uint32_t CanvasContext::CompileShader(const char *data, int type)
+char *CanvasContext::ProcessShader(const char *content, shaderType type, int glslversion)
+{
+    return ProcessMultipleShader(&content, 1, type, glslversion);
+}
+
+uint32_t CanvasContext::CompileShader(const char *data[], int numdata, int type)
 {
     GLuint shaderHandle = glCreateShader(type);
 
-    int len = strlen(data);
-    glShaderSource(shaderHandle, 1, &data, &len);
+    std::vector<int> lens;
+    lens.resize(numdata);
+
+    for (int i = 0; i < numdata; i++) {
+        lens[i] = strlen(data[i]);
+    }
+    
+
+    glShaderSource(shaderHandle, numdata, data, &lens[0]);
     glCompileShader(shaderHandle);
 
     GLint compileSuccess = GL_TRUE;
@@ -74,13 +88,15 @@ uint32_t CanvasContext::CompileShader(const char *data, int type)
     glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &compileSuccess);
 
     if (compileSuccess == GL_FALSE) {
-        GLchar messages[512];
+        GLchar messages[4096];
+        int elen;
 
-        glGetShaderInfoLog(shaderHandle, sizeof(messages), &len, messages);
+        glGetShaderInfoLog(shaderHandle, sizeof(messages), &elen, messages);
         if (glGetError() != GL_NO_ERROR) {
             return 0;
         }
-        NUI_LOG("Shader error %d : %s\n%s", len, messages, data);
+
+        ndm_logf(NDM_LOG_ERROR, "CanvasContext", "Shader error %d : %s\n%s", elen, messages, data[0]);
         return 0;
     }
 
@@ -119,7 +135,7 @@ Vertices *CanvasContext::BuildVerticesStripe(int resolution)
             vert[t].Position[1] = 1. - (static_cast<float>(i) * ystep);
             vert[t].Position[2] = 0.;
 
-            // NUI_LOG("Create vertex: %f %f", vert[t].Position[0],
+            // ndm_printf("Create vertex: %f %f", vert[t].Position[0],
             // vert[t].Position[1]);
 
             vert[t].TexCoord[0] = (static_cast<float>(j) * txstep);
@@ -184,7 +200,7 @@ uint32_t CanvasContext::CreatePassThroughVertex()
           "}";
 
     uint32_t vertexshader
-        = CanvasContext::CompileShader(vertex_s, GL_VERTEX_SHADER);
+        = CanvasContext::CompileShader(&vertex_s, 1, GL_VERTEX_SHADER);
 
     return vertexshader;
 }
@@ -200,8 +216,7 @@ uint32_t CanvasContext::CreatePassThroughFragment()
           "    gl_FragColor = texture2D(Texture, TexCoordOut.xy) * u_opacity;\n"
           "}";
 
-    uint32_t fragmentshader
-        = CanvasContext::CompileShader(fragment_s, GL_FRAGMENT_SHADER);
+    uint32_t fragmentshader = CanvasContext::CompileShader(&fragment_s, 1, GL_FRAGMENT_SHADER);
 
     return fragmentshader;
 }
@@ -244,7 +259,7 @@ uint32_t CanvasContext::CreatePassThroughProgram(GLResources &resource)
     if (linkSuccess == GL_FALSE) {
         GLchar messages[256];
         glGetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]);
-        NUI_LOG("createProgram error : %s", messages);
+        ndm_logf(NDM_LOG_ERROR, "CanvasContext", "createProgram error : %s", messages);
         return 0;
     }
 
@@ -270,12 +285,12 @@ static void dump_Matrix(float *matrix)
 {
     int i = 4;
 
-    printf(" = = = = = \n");
+    ndm_log(NDM_LOG_DEBUG, "CanvasContext", " = = = = = ");
     for (i = 0; i < 4; i++) {
-        printf("%f, %f, %f, %f\n", matrix[i * 4], matrix[i * 4 + 1],
+        ndm_logf(NDM_LOG_DEBUG, "CanvasContext", "%f, %f, %f, %f", matrix[i * 4], matrix[i * 4 + 1],
                matrix[i * 4 + 2], matrix[i * 4 + 3]);
     }
-    printf(" = = = = = \n");
+    ndm_log(NDM_LOG_DEBUG, "CanvasContext", " = = = = =");
 }
 #endif
 
@@ -335,7 +350,7 @@ void CanvasContext::updateMatrix(
             UniformMatrix4fv(m_GLState->m_GLObjects.uniforms.u_projectionMatrix,
                              1, GL_FALSE, mat4));
     } else {
-        NUI_LOG("No uniform found");
+        ndm_logf(NDM_LOG_ERROR, "CanvasContext", "No uniform found");
     }
 }
 
@@ -442,15 +457,15 @@ bool CanvasContext::validateCurrentFBO()
 
     switch (status) {
         case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-            printf("fbo %x (incomplete multisample)\n", status);
+            ndm_logf(NDM_LOG_DEBUG, "CanvasContext", "fbo %x (incomplete multisample)", status);
             break;
         case GR_GL_FRAMEBUFFER_COMPLETE:
             break;
         case GR_GL_FRAMEBUFFER_UNSUPPORTED:
-            printf("fbo unsupported\n");
+            ndm_log(NDM_LOG_WARN, "CanvasContext", "fbo unsupported");
             return false;
         default:
-            printf("fbo fatal error %x\n", status);
+            ndm_logf(NDM_LOG_ERROR, "CanvasContext", "fbo fatal error %x", status);
             exit(1);
             return false;
     }
@@ -469,7 +484,7 @@ CanvasContext *CanvasContext::Create(ContextType type)
         case ContextType_kSkia2D:
             return NULL;
         default:
-            NUI_LOG("[Error] Invalid CanvasContext requested");
+            ndm_logf(NDM_LOG_ERROR, "CanvasContext", "Invalid CanvasContext requested");
             return NULL;
     }
 }

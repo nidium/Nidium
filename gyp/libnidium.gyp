@@ -77,8 +77,7 @@
                     'ENABLE_JIT=1',
                     'EXPORT_JS_API',
                     'IMPL_MFBT',
-
-                    'NDEBUG',
+                    'SK_RELEASE',
                     'SK_SAMPLES_FOR_X',
                     'SK_GAMMA_APPLY_TO_A8',
                     'SK_INTERNAL',

@@ -4,7 +4,7 @@
    that can be found in the LICENSE file.
 */
 
-var cssParse = require("css-parse");
+const cssParse = require("css-parse");
 
 class RemoteDebug {
 
@@ -48,8 +48,8 @@ class RemoteDebug {
         this.currentObjectId = 1;        
     }
 
-    run(port = 9223) {
-        this.wsServer = new WebSocketServer("ws://127.0.0.1:" + port);
+    run(port = 9223, ip = "127.0.0.1") {
+        this.wsServer = new WebSocketServer(`ws://${ip}:${port}`);
 
         this.wsServer.onopen = (client) => {
             this.reset();
@@ -568,3 +568,4 @@ _remotedebug.onReady = function()
     //console.foo();
 }
 
+module.exports = _remotedebug;
