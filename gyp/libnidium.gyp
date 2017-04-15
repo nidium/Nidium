@@ -39,7 +39,8 @@
             '<(third_party_path)/ffmpeg/',
             '<(third_party_path)/libcoroutine/source/',
             '<(third_party_path)/basekit/source/',
-            '<(third_party_path)/angle/include/'
+            '<(third_party_path)/angle/include/',
+            '<(third_party_path)/yoga/',
         ],
 
         'conditions': [
@@ -147,6 +148,8 @@
             '<(nidium_src_path)/IO/SystemStream.cpp',
             '<(third_party_path)/yoga/Yoga.c',
             '<(third_party_path)/yoga/YGNodeList.c',
+            '<(third_party_path)/yoga/YGNodeList.c',
+            '<(third_party_path)/yoga/YGEnums.c'
         ],
     }],
 }

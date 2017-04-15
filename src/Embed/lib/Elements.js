@@ -398,7 +398,19 @@ Elements.img = class extends NidiumNode {
             ctx.drawImage(this._img, 0, 0);
         }
     }
+}
 
+Elements.flexcanvas = class extends NidiumNode {
+    constructor(attributes) {
+        super(attributes);
+
+        this._color = attributes.color || "red";
+    }
+
+    paint(ctx) {
+        ctx.fillStyle = this._color;
+        ctx.fillRect(0, 0, this.width, this.height);
+    }
 }
 
 window._onready = function(lst) {

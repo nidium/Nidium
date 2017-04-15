@@ -53,12 +53,12 @@ CanvasHandler::CanvasHandler(int width,
     m_FluidWidth  = false;
 
     YGNodeStyleSetPositionType(m_YogaRef, YGPositionTypeAbsolute);
-    YGNodeStyleSetWidth(m_YogaRef, m_Width);
-    YGNodeStyleSetHeight(m_YogaRef, m_Height);
-    YGNodeStyleSetMinWidth(m_YogaRef, m_MinWidth);
-    YGNodeStyleSetMinHeight(m_YogaRef, m_MinHeight);
-    YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, m_Left);
-    YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, m_Top);
+    YGNodeStyleSetWidth(m_YogaRef, p_Width);
+    YGNodeStyleSetHeight(m_YogaRef, p_Height);
+    YGNodeStyleSetMinWidth(m_YogaRef, p_MinWidth);
+    YGNodeStyleSetMinHeight(m_YogaRef, p_MinHeight);
+    YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, p_Left);
+    YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, p_Top);
 
     memset(&m_Margin, 0, sizeof(m_Margin));
     memset(&m_MousePosition, 0, sizeof(m_MousePosition));
@@ -79,7 +79,7 @@ CanvasHandler::CanvasHandler(int width,
 
 void CanvasHandler::computeLayoutPositions()
 {
-    YGNodeCalculateLayout(m_YogaRef, m_Width, m_Height, YGDirectionLTR);
+    YGNodeCalculateLayout(m_YogaRef, p_Width, p_Height, YGDirectionLTR);
 }
 
 void CanvasHandler::setPositioning(CanvasHandler::COORD_POSITION mode)
