@@ -46,19 +46,33 @@ CanvasHandler::CanvasHandler(int width,
     m_NidiumContext->m_CanvasListIdx.insert({m_Identifier.idx, this});
     m_Identifier.str = nullptr;
 
-    p_Width     = nidium_max(width, 1);
-    p_Height    = nidium_max(height, 1);
+    p_Width     = nidium_max(width, -1);
+    p_Height    = nidium_max(height, -1);
 
     m_FluidHeight = false;
     m_FluidWidth  = false;
 
-    YGNodeStyleSetPositionType(m_YogaRef, YGPositionTypeAbsolute);
-    YGNodeStyleSetWidth(m_YogaRef, p_Width);
-    YGNodeStyleSetHeight(m_YogaRef, p_Height);
-    YGNodeStyleSetMinWidth(m_YogaRef, p_MinWidth);
-    YGNodeStyleSetMinHeight(m_YogaRef, p_MinHeight);
+    YGNodeSetContext(m_YogaRef, this);
+
+    YGNodeStyleSetFlexDirection(m_YogaRef, YGFlexDirectionRow);
+    YGNodeStyleSetFlexWrap(m_YogaRef, YGWrapNoWrap);
+    YGNodeStyleSetAlignItems(m_YogaRef, YGAlignStretch);
+    YGNodeStyleSetAlignContent(m_YogaRef, YGAlignStretch);
+
+    YGNodeStyleSetPositionType(m_YogaRef, YGPositionTypeRelative);
     YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, p_Left);
     YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, p_Top);
+
+    if (p_Width >= 0) {
+        YGNodeStyleSetWidth(m_YogaRef, p_Width);
+    }
+
+    if (p_Height >= 0) {
+        YGNodeStyleSetHeight(m_YogaRef, p_Height);
+    }
+
+    YGNodeStyleSetMinWidth(m_YogaRef, p_MinWidth);
+    YGNodeStyleSetMinHeight(m_YogaRef, p_MinHeight);
 
     memset(&m_Margin, 0, sizeof(m_Margin));
     memset(&m_MousePosition, 0, sizeof(m_MousePosition));
@@ -75,6 +89,7 @@ CanvasHandler::CanvasHandler(int width,
     m_Content.scrollTop  = 0;
 
     m_CoordMode = kLeft_Coord | kTop_Coord;
+
 }
 
 void CanvasHandler::computeLayoutPositions()
@@ -123,6 +138,8 @@ void CanvasHandler::setPropMinWidth(int width)
 
     p_MinWidth = p_MaxWidth ? nidium_min(width, p_MaxWidth) : width;
 
+    YGNodeStyleSetMinWidth(m_YogaRef, p_MinWidth);
+
     if (p_Width < p_MinWidth) {
         this->setWidth(p_MinWidth);
     }
@@ -133,6 +150,8 @@ void CanvasHandler::setPropMinHeight(int height)
     if (height < 1) height = 1;
 
     p_MinHeight = p_MaxHeight ? nidium_min(height, p_MaxHeight) : height;
+
+    YGNodeStyleSetMinHeight(m_YogaRef, p_MinHeight);
 
     if (p_Height < p_MinHeight) {
         this->setHeight(p_MinHeight);
@@ -145,6 +164,8 @@ void CanvasHandler::setPropMaxWidth(int width)
 
     p_MaxWidth = nidium_max(p_MinWidth, width);
 
+    YGNodeStyleSetMaxWidth(m_YogaRef, p_MaxWidth);
+
     if (p_Width > p_MaxWidth) {
         this->setWidth(p_MaxWidth);
     }
@@ -156,6 +177,8 @@ void CanvasHandler::setPropMaxHeight(int height)
 
     p_MaxHeight = nidium_max(p_MinHeight, height);
 
+    YGNodeStyleSetMaxHeight(m_YogaRef, p_MaxHeight);
+
     if (p_Height > p_MaxHeight) {
         this->setHeight(p_MaxHeight);
     }
@@ -166,9 +189,6 @@ bool CanvasHandler::setWidth(int width, bool force)
     width = p_MaxWidth ? nidium_clamp(width, p_MinWidth, p_MaxWidth)
                        : nidium_max(width, p_MinWidth);
 
-    if (!force && !this->hasFixedWidth()) {
-        return false;
-    }
 
     if (p_Width == width) {
         return true;
@@ -178,16 +198,13 @@ bool CanvasHandler::setWidth(int width, bool force)
 
     this->setPendingFlags(kPendingResizeWidth);
 
-    updateChildrenSize(true, false);
+    YGNodeStyleSetWidth(m_YogaRef, width >= 0 ? width : YGUndefined);
 
     return true;
 }
 
 bool CanvasHandler::setHeight(int height, bool force)
 {
-    if (!force && !this->hasFixedHeight()) {
-        return false;
-    }
 
     height = p_MaxHeight ? nidium_clamp(height, p_MinHeight, p_MaxHeight)
                          : nidium_max(height, p_MinHeight);
@@ -199,7 +216,7 @@ bool CanvasHandler::setHeight(int height, bool force)
 
     this->setPendingFlags(kPendingResizeHeight);
 
-    updateChildrenSize(false, true);
+    YGNodeStyleSetHeight(m_YogaRef, height >= 0 ? height : YGUndefined);
 
     return true;
 }
@@ -220,9 +237,10 @@ void CanvasHandler::setSize(int width, int height, bool redraw)
     p_Width  = width;
     p_Height = height;
 
-    this->setPendingFlags(kPendingResizeWidth | kPendingResizeHeight);
+    YGNodeStyleSetWidth(m_YogaRef, width >= 0 ? width : YGUndefined);
+    YGNodeStyleSetHeight(m_YogaRef, height >= 0 ? height : YGUndefined);
 
-    updateChildrenSize(true, true);
+    this->setPendingFlags(kPendingResizeWidth | kPendingResizeHeight);
 }
 
 void CanvasHandler::deviceSetSize(int width, int height)
@@ -239,29 +257,6 @@ void CanvasHandler::deviceSetSize(int width, int height)
     this->fireEvent<CanvasHandler>(RESIZE_EVENT, arg);
 }
 
-
-void CanvasHandler::updateChildrenSize(bool width, bool height)
-{
-    CanvasHandler *cur;
-
-    for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
-        bool updateWidth = false, updateHeight = false;
-
-        if (width && !cur->hasFixedWidth()) {
-            updateWidth = true;
-        }
-        if (height && !cur->hasFixedHeight()) {
-            updateHeight = true;
-        }
-
-        if (!updateHeight && !updateWidth) {
-            continue;
-        }
-        // ndm_printf("Update size of %p through parent", cur);
-        cur->setSize(updateWidth ? cur->getPropWidth() : cur->p_Width,
-                     updateHeight ? cur->getPropHeight() : cur->p_Height);
-    }
-}
 
 void CanvasHandler::setPropCoating(unsigned int coating)
 {
@@ -431,11 +426,12 @@ void CanvasHandler::removeFromParent(bool willBeAdopted)
     }
 
     m_Parent->m_nChildren--;
+
+    YGNodeRemoveChild(m_Parent->m_YogaRef, m_YogaRef);
+
     m_Parent = NULL;
     m_Next   = NULL;
     m_Prev   = NULL;
-
-    YGNodeRemoveChild(m_Parent->m_YogaRef, m_YogaRef);
 #if 0
     Args arg;
     this->fireEventSync<CanvasHandler>(UNMOUNT_EVENT, arg);
@@ -578,12 +574,24 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         sctx->m_MaxLineHeight = nidium_max(this->getPropHeight() + m_Margin.bottom + m_Margin.top, sctx->m_MaxLineHeight);
 
     } else {
-        tmpLeft = this->getPropLeft();
-        tmpTop  = this->getPropTop();
+
+        if (m_Parent && m_Parent->p_Flex) {
+            printf("===== YOGA =====\n");
+            YGNodePrint(m_YogaRef, YGPrintOptionsLayout);
+            printf("\n");
+            printf("Element height %f\n", YGNodeLayoutGetHeight(m_YogaRef));
+            YGNodePrint(m_Parent->m_YogaRef, YGPrintOptionsLayout);
+            printf("\n");
+            tmpLeft = YGNodeLayoutGetLeft(m_YogaRef);
+            tmpTop = YGNodeLayoutGetTop(m_YogaRef);
+            printf("================\n\n");
+        } else {
+            tmpLeft = this->getPropLeft();
+            tmpTop  = this->getPropTop();
+        }
     }
 
     /*
-        Fill the root layer with white
         This is the base surface on top of the window frame buffer
     */
     if (layerContext.m_Layer == NULL && m_Context) {
@@ -1186,7 +1194,7 @@ void CanvasHandler::execPending()
 {
     if ((m_Pending & kPendingResizeHeight)
         || (m_Pending & kPendingResizeWidth)) {
-        this->deviceSetSize(p_Width, p_Height);
+        this->deviceSetSize(nidium_max(p_Width, 1), nidium_max(1, p_Height));
     }
 
     this->setPendingFlags(0, false);

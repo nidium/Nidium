@@ -557,16 +557,6 @@ bool JSCanvas::JSSetter_left(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
-    if (!m_CanvasHandler->hasStaticLeft()) {
-        return true;
-    }
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->unsetLeft();
-
-        return true;
-    }
-
     if (!JS::ToNumber(cx, vp, &dval)) {
         return true;
     }
@@ -579,16 +569,6 @@ bool JSCanvas::JSSetter_left(JSContext *cx, JS::MutableHandleValue vp)
 bool JSCanvas::JSSetter_right(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
-
-    if (!m_CanvasHandler->hasStaticRight()) {
-        return true;
-    }
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->unsetRight();
-
-        return true;
-    }
 
     if (!JS::ToNumber(cx, vp, &dval)) {
         return true;
@@ -603,16 +583,6 @@ bool JSCanvas::JSSetter_top(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
 
-    if (!m_CanvasHandler->hasStaticTop()) {
-        return true;
-    }
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->unsetTop();
-
-        return true;
-    }
-
     if (!JS::ToNumber(cx, vp, &dval)) {
         return true;
     }
@@ -625,16 +595,6 @@ bool JSCanvas::JSSetter_top(JSContext *cx, JS::MutableHandleValue vp)
 bool JSCanvas::JSSetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
 {
     double dval;
-
-    if (!m_CanvasHandler->hasStaticBottom()) {
-        return true;
-    }
-
-    if (vp.isNullOrUndefined()) {
-        m_CanvasHandler->unsetBottom();
-
-        return true;
-    }
 
     if (!JS::ToNumber(cx, vp, &dval)) {
         return true;
@@ -722,68 +682,6 @@ bool JSCanvas::JSSetter_coating(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
-bool JSCanvas::JSSetter_staticLeft(JSContext *cx, JS::MutableHandleValue vp)
-{
-    if (!vp.isBoolean()) {
-
-        return true;
-    }
-
-    if (vp.toBoolean()) {
-        m_CanvasHandler->setPropLeft(m_CanvasHandler->p_Left);
-    } else {
-        m_CanvasHandler->unsetLeft();
-    }
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_staticTop(JSContext *cx, JS::MutableHandleValue vp)
-{
-    if (!vp.isBoolean()) {
-
-        return true;
-    }
-
-    if (vp.toBoolean()) {
-        m_CanvasHandler->setPropTop(m_CanvasHandler->p_Top);
-    } else {
-        m_CanvasHandler->unsetTop();
-    }
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_staticRight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    if (!vp.isBoolean()) {
-
-        return true;
-    }
-
-    if (vp.toBoolean()) {
-        m_CanvasHandler->setRight(m_CanvasHandler->m_Right);
-    } else {
-        m_CanvasHandler->unsetRight();
-    }
-
-    return true;
-}
-
-bool JSCanvas::JSSetter_staticBottom(JSContext *cx, JS::MutableHandleValue vp)
-{
-    if (!vp.isBoolean()) {
-
-        return true;
-    }
-    if (vp.toBoolean()) {
-        m_CanvasHandler->setBottom(m_CanvasHandler->m_Bottom);
-    } else {
-        m_CanvasHandler->unsetBottom();
-    }
-
-    return true;
-}
 
 bool JSCanvas::JSSetter_marginLeft(JSContext *cx, JS::MutableHandleValue vp)
 {
@@ -876,6 +774,14 @@ bool JSCanvas::JSSetter_position(JSContext *cx, JS::MutableHandleValue vp)
 
     return true;
 }
+
+bool JSCanvas::JSSetter_flex(JSContext *cx, JS::MutableHandleValue vp)
+{
+    m_CanvasHandler->setPropFlex(JS::ToBoolean(vp));
+
+    return true;
+}
+
 
 bool JSCanvas::JSSetter_id(JSContext *cx, JS::MutableHandleValue vp)
 {
@@ -1162,6 +1068,13 @@ bool JSCanvas::JSGetter_minHeight(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
+bool JSCanvas::JSGetter_flex(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setBoolean(m_CanvasHandler->getPropFlex());
+
+    return true;
+}
+
 bool JSCanvas::JSGetter_position(JSContext *cx, JS::MutableHandleValue vp)
 {
     JS::RootedString jstr(cx);
@@ -1237,34 +1150,6 @@ bool JSCanvas::JSGetter_bottom(JSContext *cx, JS::MutableHandleValue vp)
 bool JSCanvas::JSGetter_visible(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setBoolean(!m_CanvasHandler->isHidden());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_staticLeft(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setBoolean(m_CanvasHandler->hasStaticLeft());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_staticTop(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setBoolean(m_CanvasHandler->hasStaticTop());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_staticRight(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setBoolean(m_CanvasHandler->hasStaticRight());
-
-    return true;
-}
-
-bool JSCanvas::JSGetter_staticBottom(JSContext *cx, JS::MutableHandleValue vp)
-{
-    vp.setBoolean(m_CanvasHandler->hasStaticBottom());
 
     return true;
 }
@@ -1347,22 +1232,13 @@ bool JSCanvas::JSGetter_idx(JSContext *cx, JS::MutableHandleValue vp)
 JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
     JS::HandleObject obj)
 {
-    int width, height;
-    bool lazyLoad;
+    int width = -1, height = -1;
     CanvasHandler *handler;
 
     JS::RootedObject opt(cx);
-    if (!JS_ConvertArguments(cx, args, "ii/o", &width, &height,
-                             opt.address())) {
+    if (!JS_ConvertArguments(cx, args, "/ii", &width, &height)) {
         return nullptr;
     }
-
-    NIDIUM_JS_INIT_OPT();
-    NIDIUM_JS_GET_OPT_TYPE(opt, "lazy", Boolean)
-    {
-        lazyLoad = __curopt.toBoolean();
-    }
-    lazyLoad = false; /* Always lazy load for now.  */
 
     handler = new CanvasHandler(width, height,
         Context::GetObject<Frontend::Context>(cx), true);
@@ -1424,15 +1300,12 @@ JSPropertySpec *JSCanvas::ListProperties()
         CLASSMAPPER_PROP_GS(JSCanvas, minWidth),
         CLASSMAPPER_PROP_GS(JSCanvas, minHeight),
         CLASSMAPPER_PROP_GS(JSCanvas, position),
+        CLASSMAPPER_PROP_GS(JSCanvas, flex),
         CLASSMAPPER_PROP_GS(JSCanvas, top),
         CLASSMAPPER_PROP_GS(JSCanvas, left),
         CLASSMAPPER_PROP_GS(JSCanvas, right),
         CLASSMAPPER_PROP_GS(JSCanvas, bottom),
         CLASSMAPPER_PROP_GS(JSCanvas, visible),
-        CLASSMAPPER_PROP_GS(JSCanvas, staticLeft),
-        CLASSMAPPER_PROP_GS(JSCanvas, staticRight),
-        CLASSMAPPER_PROP_GS(JSCanvas, staticTop),
-        CLASSMAPPER_PROP_GS(JSCanvas, staticBottom),
         CLASSMAPPER_PROP_GS(JSCanvas, fluidHeight),
         CLASSMAPPER_PROP_GS(JSCanvas, fluidWidth),
         CLASSMAPPER_PROP_GS(JSCanvas, id),

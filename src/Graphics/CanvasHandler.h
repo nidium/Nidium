@@ -213,13 +213,15 @@ public:
     CANVAS_DEF_CLASS_PROPERTY(Left,         double, 0, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Width,        int, 1, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Height,       int, 1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     int, 1, State::kDefault);
-    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    int, 1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinWidth,     int, -1, State::kDefault);
+    CANVAS_DEF_CLASS_PROPERTY(MinHeight,    int, -1, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(MaxWidth,     int, 0, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(MaxHeight,    int, 0, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(Coating,      unsigned int, 0, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(FluidWidth,   bool, false, State::kDefault);
     CANVAS_DEF_CLASS_PROPERTY(FluidHeight,  bool, false, State::kDefault);
+
+    CANVAS_DEF_CLASS_PROPERTY(Flex,         bool, false, State::kDefault);
 
     CANVAS_DEF_CLASS_PROPERTY(Opacity,      double, 1.0, State::kDefault);
 
@@ -303,6 +305,7 @@ public:
         kFlowDoesntInteract        = 0,
         kFlowInlinePreviousSibling = 1 << 0,
         kFlowBreakPreviousSibling  = 1 << 1,
+        kFlowFlex                  = 1 << 2,
         kFlowBreakAndInlinePreviousSibling
         = (kFlowInlinePreviousSibling | kFlowBreakPreviousSibling)
     };
@@ -409,7 +412,7 @@ public:
 
     double getRight() 
     {
-        if (hasStaticRight() || !m_Parent) {
+        if (!m_Parent) {
             return m_Right;
         }
 
@@ -418,7 +421,7 @@ public:
 
     double getBottom() 
     {
-        if (hasStaticBottom() || !m_Parent) {
+        if (!m_Parent) {
             return m_Bottom;
         }
 
@@ -430,7 +433,7 @@ public:
     */
     int getPropWidth() override
     {
-        if (hasFixedWidth() || m_FluidWidth) {
+        if (m_FluidWidth) {
             return p_Width;
         }
         if (m_Parent == NULL) return 0;
@@ -447,7 +450,7 @@ public:
     */
     int getPropHeight() override
     {
-        if (hasFixedHeight() || m_FluidHeight) {
+        if (m_FluidHeight) {
             return p_Height;
         }
 
@@ -465,59 +468,6 @@ public:
         return m_NidiumContext;
     }
 
-    bool hasFixedWidth() const
-    {
-        return !((m_CoordMode & (kLeft_Coord | kRight_Coord))
-                     == (kLeft_Coord | kRight_Coord)
-                 || m_FluidWidth);
-    }
-
-    bool hasFixedHeight() const
-    {
-        return !((m_CoordMode & (kTop_Coord | kBottom_Coord))
-                     == (kTop_Coord | kBottom_Coord)
-                 || m_FluidHeight);
-    }
-
-    bool hasStaticLeft() const
-    {
-        return m_CoordMode & kLeft_Coord;
-    }
-
-    bool hasStaticRight() const
-    {
-        return m_CoordMode & kRight_Coord;
-    }
-
-    bool hasStaticTop() const
-    {
-        return m_CoordMode & kTop_Coord;
-    }
-
-    bool hasStaticBottom() const
-    {
-        return m_CoordMode & kBottom_Coord;
-    }
-
-    void unsetLeft()
-    {
-        m_CoordMode &= ~kLeft_Coord;
-    }
-
-    void unsetRight()
-    {
-        m_CoordMode &= ~kRight_Coord;
-    }
-
-    void unsetTop()
-    {
-        m_CoordMode &= ~kTop_Coord;
-    }
-
-    void unsetBottom()
-    {
-        m_CoordMode &= ~kBottom_Coord;
-    }
 
     void setMargin(double top, double right, double bottom, double left)
     {
@@ -527,6 +477,17 @@ public:
         m_Margin.left   = left;
     }
 
+    void setPropFlex(bool val) override
+    {
+        p_Flex = val;
+
+        if (val) {
+            m_FlowMode |= kFlowFlex;
+        } else {
+            m_FlowMode &= ~kFlowFlex;
+        }
+    }
+
     void setPropLeft(double val) override
     {
         if (m_FlowMode & kFlowInlinePreviousSibling) {
@@ -534,18 +495,16 @@ public:
         }
         m_CoordMode |= kLeft_Coord;
         p_Left.set(val);
-        if (!hasFixedWidth()) {
-            setSize(this->getPropWidth(), p_Height);
-        }
+        YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, val);
+
+        setSize(this->getPropWidth(), p_Height);
     }
 
     void setRight(double val)
     {
         m_CoordMode |= kRight_Coord;
         m_Right = val;
-        if (!hasFixedWidth()) {
-            setSize(this->getPropWidth(), p_Height);
-        }
+        setSize(this->getPropWidth(), p_Height);
     }
 
     void setPropTop(double val) override
@@ -556,11 +515,9 @@ public:
 
         m_CoordMode |= kTop_Coord;
         p_Top.set(val);
+        YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, val);
 
-        if (!hasFixedHeight()) {
-            setSize(p_Width, this->getPropHeight());
-        }
-
+        setSize(p_Width, this->getPropHeight());
     }
 
     void setPropCoating(unsigned int value) override;
@@ -570,9 +527,7 @@ public:
         m_CoordMode |= kBottom_Coord;
         m_Bottom = val;
 
-        if (!hasFixedHeight()) {
-            setSize(p_Width, this->getPropHeight());
-        }
+        setSize(p_Width, this->getPropHeight());
     }
 
     void setScale(double x, double y);
@@ -652,7 +607,6 @@ public:
     bool setFluidHeight(bool val);
     bool setFluidWidth(bool val);
 
-    void updateChildrenSize(bool width, bool height);
     void setSize(int width, int height, bool redraw = true);
     void setPositioning(CanvasHandler::COORD_POSITION mode);
     void setScrollTop(int value);

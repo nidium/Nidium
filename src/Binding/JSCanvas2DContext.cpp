@@ -1863,6 +1863,9 @@ Canvas2DContext::Canvas2DContext(CanvasHandler *handler,
 
     this->pushNewState();
 
+    width = nidium_max(width, 1);
+    height = nidium_max(height, 1);
+
     m_Skia = SkiaContext::CreateWithTextureBackend(ui->getNidiumContext(), width, height);
 
     /* Vertex buffers were unbound by parent constructor */
@@ -1874,6 +1877,9 @@ Canvas2DContext::Canvas2DContext(
     : CanvasContext(handler), m_SetterDisabled(false)
 {
     m_Mode = CONTEXT_2D;
+
+    width = nidium_max(width, 1);
+    height = nidium_max(height, 1);
 
     if (isGL) {
         m_Skia = SkiaContext::CreateWithFBOBackend(ui->getNidiumContext(), width, height);

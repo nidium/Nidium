@@ -275,7 +275,6 @@ void Context::createDebug2Canvas()
     ctx2d->setGLState(this->getGLState());
 
     m_RootHandler->addChild(m_Debug2Handler);
-    m_Debug2Handler->unsetTop();
     m_Debug2Handler->setRight(0);
     m_Debug2Handler->setBottom(0);
 }
