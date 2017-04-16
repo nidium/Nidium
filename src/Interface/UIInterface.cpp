@@ -19,7 +19,7 @@
 #include "SDL_keycode_translate.h"
 
 #define NIDIUM_TITLEBAR_HEIGHT 0
-#define NIDIUM_VSYNC 1
+#define NIDIUM_VSYNC 0
 
 uint32_t ttfps = 0;
 
