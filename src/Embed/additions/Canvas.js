@@ -44,6 +44,18 @@
 
         return ret;
     }
+
+    Canvas.prototype.clear = function(){
+        var context = this.getContext("2d");
+        if (context) {
+            context.clearRect(
+                -this.coating,
+                -this.coating, 
+                this.clientWidth,
+                this.clientHeight
+            );
+        }
+    };
     
     Object.defineProperty(Canvas.prototype, "inherit", {
         get: function() {

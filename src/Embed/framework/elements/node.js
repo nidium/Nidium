@@ -244,18 +244,6 @@
             return true;
         }
 
-        /*
-        getParent() {
-            let p = super.getParent();
-            
-            if (!p || p[s_ShadowRoot] != this[s_ShadowRoot]) {
-                return null;
-            } else {
-                return p;
-            }
-        }
-        */
-
         removeChild(child) {
             if (!child) {
                 return;
@@ -321,42 +309,6 @@
             );
         }
 
-        get textContent() {
-            return this._textValue;
-        }
-
-        get text() {
-            throw Error("text property doesnt exist");
-        }
-
-        get firstChild() {
-            return this.getChildren()[0] || null;
-        }
-
-        get tagName() {
-            return this.name();
-        }
-
-        get nodeType() {
-            return Elements.NodeType.ELEMENT_NODE;
-        }
-
-        get parentNode() {
-            return this.getParent();
-        }
-
-        get nextSibling() {
-            return this.getNextSibling();
-        }
-
-        get childNodes() {
-            return this.getChildren();
-        }
-
-        get textContent() {
-            return this._textValue || "";
-        }
-
         cloneNode(deep = true, shadowRoot=this[s_ShadowRoot]) {
             var clone = Elements.Create(this.name(), this.attributes, shadowRoot);
 
@@ -397,10 +349,6 @@
             return ret;
         }
 
-        get shadowRoot() {
-            return this[s_ShadowHost];
-        }
-
         getRootNode(options={}) {
             let p = this.getParent();
             
@@ -439,6 +387,59 @@
         onpaint() {}
         ctx2d() { return null; }
         getContext() { return null; }
+
+        /* ----------------------------------------------- */
+        /* READ ONLY GETTERS                               */
+        /* ----------------------------------------------- */
+
+        get shadowRoot() {
+            return this[s_ShadowHost];
+        }
+
+        get textContent() {
+            return this._textValue;
+        }
+
+        get text() {
+            throw Error("text property doesnt exist");
+        }
+
+        get firstChild() {
+            return this.getFirstChild();
+        }
+
+        get lastChild() {
+            return this.getLastChild();
+        }
+
+        get tagName() {
+            return this.name();
+        }
+
+        get nodeType() {
+            return Elements.NodeType.ELEMENT_NODE;
+        }
+
+        get parentNode() {
+            return this.getParent();
+        }
+
+        get prevSibling() {
+            return this.getPrevSibling();
+        }
+
+        get nextSibling() {
+            return this.getNextSibling();
+        }
+
+        get childNodes() {
+            return this.getChildren();
+        }
+
+        get textContent() {
+            return this._textValue || "";
+        }
+
     }
 
 }

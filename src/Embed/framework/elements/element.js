@@ -58,6 +58,10 @@
             return this;
         }
 
+        isVisible() {
+            return this.__visible && !this.__outofbound;
+        },
+
         ctx2d() {
             return this.getContext("2d");
         }
@@ -66,8 +70,16 @@
             return Canvas.prototype.getContext.call(this, type);
         }
 
+        beforepaint(ctx){
+
+        }
+
         paint(ctx) {
             this.style._paint(ctx);
+        }
+
+        afterpaint(ctx){
+            
         }
     }
 

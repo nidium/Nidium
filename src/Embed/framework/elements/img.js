@@ -38,8 +38,10 @@
         }
 
         paint(ctx) {
+            ctx.imageSmoothingEnabled = true;
+
             if (this._loaded) {
-                ctx.drawImage(this._img, 0, 0);
+                ctx.drawImage(this._img, 0, 0, this.width, this.height);
             }
         }
 
