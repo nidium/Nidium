@@ -5,7 +5,6 @@
 */
 
 #include <jni.h>
-#include <android/log.h>
 #include <string>
 #include "Core/Context.h"
 #include "ape_netlib.h"
@@ -38,7 +37,6 @@ int main(int argc, char **argv)
 
     _ape_seed = time(NULL) ^ (getpid() << 16);
 
-    
     const char *nml = NULL;
     LOGD("argc=%d\n", argc);
     for (int i = 0; i < argc; i++) {

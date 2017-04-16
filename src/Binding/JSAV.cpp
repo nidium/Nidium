@@ -103,13 +103,14 @@ void JSAVSourceEventInterface::onMessage(const SharedMessages::Message &msg)
         evBuilder.set("bufferedBytes", cmsg->m_Args[2].toInt());
 
         ev = evBuilder.jsval();
+    } else {
+        JS::RootedObject evObj(cx, JSEvents::CreateEventObject(cx));
+        ev = JS::ObjectValue(*evObj);
     }
 
     delete cmsg;
 
-    if (!ev.isNull()) {
-        this->fireJSEvent(evName, &ev);
-    }
+    this->fireJSEvent(evName, &ev);
 }
 // }}}
 

@@ -22,8 +22,6 @@
 #include "Binding/JSWindow.h"
 #include "Graphics/CanvasHandler.h"
 
-#include <android/log.h>
-
 using Nidium::Binding::JSWindow;
 using Nidium::Frontend::InputEvent;
 using Nidium::Frontend::InputHandler;

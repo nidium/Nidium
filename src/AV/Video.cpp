@@ -13,13 +13,20 @@
 #include <pthread.h>
 
 #include <pa_ringbuffer.h>
-#include <Coro.h>
 
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
+#ifdef __ANDROID__
+#include <libavcodec/jni.h>
+#endif
 }
+
+#ifdef __ANDROID__
+#include <SDL.h>
+#include <jni.h>
+#endif
 
 using Nidium::Core::PthreadAutoLock;
 
@@ -27,11 +34,16 @@ namespace Nidium {
 namespace AV {
 
 #undef DPRINT
-#if 0
+#if 1
 #define DEBUG_PRINT
-#define DPRINT(...)                                   \
+#ifdef __ANDROID__
+#define DPRINT(...)\
+    __android_log_print(ANDROID_LOG_INFO, "Nidium", __VA_ARGS__)
+#else
+#define DPRINT(...)\
     fprintf(stdout, ">[%d]%lld / ", (unsigned int)pthread_self(), av_gettime() / 1000); \
     fprintf(stdout, __VA_ARGS__)
+#endif
 #else
 #define DPRINT(...) (void)0
 #endif
@@ -158,6 +170,12 @@ int Video::openInitInternal()
     AVCodec *codec;
 
     av_register_all();
+#ifdef __ANDROID__
+    JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();
+    JavaVM *vm;
+    env->GetJavaVM(&vm);
+    av_jni_set_java_vm(vm, nullptr);
+#endif
 
     int ret
         = avformat_open_input(&m_Container, m_Filename, NULL, NULL);
@@ -165,13 +183,13 @@ int Video::openInitInternal()
     if (ret != 0) {
         char error[1024];
         av_strerror(ret, error, 1024);
-        fprintf(stderr, "Couldn't open file : %s\n", error);
+        DPRINT("Couldn't open file : %s\n", error);
         return ERR_FAILED_OPEN;
     }
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);
     if (avformat_find_stream_info(m_Container, NULL) < 0) {
-        fprintf(stderr, "Couldn't find stream information\n");
+        DPRINT("Couldn't find stream information\n");
         return ERR_NO_INFORMATION;
     }
 
@@ -197,12 +215,14 @@ int Video::openInitInternal()
     // this->codecCtx->release_buffer = Video::releaseBuffer;
 
     codec = avcodec_find_decoder(m_CodecCtx->codec_id);
+    //codec = avcodec_find_decoder_by_name ("h264_mediacodec");
     if (!codec) {
+        DPRINT("Codec not found");
         return ERR_NO_CODEC;
     }
 
     if (avcodec_open2(m_CodecCtx, codec, NULL) < 0) {
-        fprintf(stderr, "Could not find or open the needed codec\n");
+        DPRINT("Could not find or open the needed codec\n");
         return ERR_NO_CODEC;
     }
 
@@ -215,13 +235,13 @@ int Video::openInitInternal()
         = (uint8_t *)malloc(sizeof(Video::Frame) * NIDIUM_VIDEO_BUFFER_SAMPLES);
 
     if (m_Buff == NULL) {
-        fprintf(stderr, "Failed to alloc buffer\n");
+        DPRINT("Failed to alloc buffer\n");
         return ERR_OOM;
     }
 
     if (0 > PaUtil_InitializeRingBuffer(m_rBuff, sizeof(Video::Frame),
                                         NIDIUM_VIDEO_BUFFER_SAMPLES, m_Buff)) {
-        fprintf(stderr, "Failed to init ringbuffer\n");
+        DPRINT("Failed to init ringbuffer\n");
         return ERR_OOM;
     }
 
@@ -801,7 +821,7 @@ int Video::display(void *custom)
     v->m_FrameTimer += delay * 1000;
     actualDelay = (v->m_FrameTimer - (av_gettime() / 1000.0)) / 1000;
 
-    DPRINT("Using delay %f diff=%d delay=%f\n", actualDelay, diff, delay);
+    DPRINT("Using delay %f diff=%f delay=%f\n", actualDelay, diff, delay);
 
     if (v->m_Playing) {
         if (actualDelay <= NIDIUM_VIDEO_SYNC_THRESHOLD && diff <= 0) {
@@ -847,7 +867,6 @@ int Video::setSizeInternal()
 
     // Flush buffers & timers to discard old frames
     this->flushBuffers();
-    // this->clearTimers(true);
 
     int width  = m_NewWidth == 0 ? m_CodecCtx->width : m_NewWidth;
     int height = m_NewHeight == 0 ? m_CodecCtx->height : m_NewHeight;
@@ -858,30 +877,29 @@ int Video::setSizeInternal()
         m_ConvertedFrame = av_frame_alloc();
 
         if (m_DecodedFrame == NULL || m_ConvertedFrame == NULL) {
-            fprintf(stderr, "Failed to alloc frame\n");
+            DPRINT("Failed to alloc frame\n");
             m_NoDisplay = false;
             return ERR_OOM;
         }
-    } else {
-        sws_freeContext(m_SwsCtx);
-    }
 
-    m_SwsCtx = sws_getContext(m_CodecCtx->width, m_CodecCtx->height,
-                              m_CodecCtx->pix_fmt, width, height, AV_PIX_FMT_RGBA,
-                              SWS_BICUBIC, NULL, NULL, NULL);
+        m_SwsCtx = sws_getContext(m_CodecCtx->width, m_CodecCtx->height,
+                                  m_CodecCtx->pix_fmt, m_CodecCtx->width, m_CodecCtx->height,
+                                  AV_PIX_FMT_RGBA,
+                                  SWS_BICUBIC, NULL, NULL, NULL);
 
-    if (!m_SwsCtx) {
-        m_NoDisplay = false;
-        return ERR_NO_VIDEO_CONVERTER;
-    }
+        if (!m_SwsCtx) {
+            m_NoDisplay = false;
+            return ERR_NO_VIDEO_CONVERTER;
+        }
 
-    // Update the size of the frames in the frame pool
-    AVPicture *picture = reinterpret_cast<AVPicture *>(m_ConvertedFrame);
-    int frameSize = av_image_fill_arrays(picture->data, picture->linesize,
-                    NULL, AV_PIX_FMT_RGBA, width, height, 1);
-    for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
-        free(m_Frames[i]);
-        m_Frames[i] = static_cast<uint8_t *>(malloc(frameSize));
+        AVPicture *picture = reinterpret_cast<AVPicture *>(m_ConvertedFrame);
+        int frameSize = av_image_fill_arrays(picture->data, picture->linesize,
+                        NULL, AV_PIX_FMT_RGBA, m_CodecCtx->width, m_CodecCtx->height, 1);
+
+        for (int i = 0; i < NIDIUM_VIDEO_BUFFER_SAMPLES; i++) {
+            free(m_Frames[i]);
+            m_Frames[i] = static_cast<uint8_t *>(malloc(frameSize));
+        }
     }
 
     m_Width  = width;
@@ -889,35 +907,6 @@ int Video::setSizeInternal()
 
     m_NoDisplay = false;
     return 0;
-#if 0
-    // XXX : Nop
-    // Determine required frameSize and allocate buffer frame pool
-    ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(m_rBuff);
-
-    int idx = m_FramesIdx;
-    uint8_t *data;
-    for (ring_buffer_size_t i = 0; i < avail; i++) {
-        Frame frame;
-
-        data = static_cast<uint8_t*>(malloc(frameSize));
-        PaUtil_ReadRingBuffer(m_rBuff, static_cast<void *>(&frame), 1);
-
-        this->convertFrame(&frame, data);
-
-        free(m_Frames[m_FramesIdx].data);
-        m_Frames[m_FramesIdx].data = data;
-
-        PaUtil_WriteRingBuffer(m_rBuff, &frame, 1);
-
-        if (idx == NIDIUM_VIDEO_BUFFER_SAMPLES - 1) {
-            idx = 0;
-        } else {
-            idx++;
-        }
-    }
-
-    m_FramesIdx = idx;
-#endif
 }
 
 void Video::setSize(int width, int height)

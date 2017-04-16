@@ -16,7 +16,6 @@
 #include <libgen.h>
 #include <string>
 
-#include <android/log.h>
 #include <SDL.h>
 
 #include "System.h"
