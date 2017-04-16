@@ -1627,6 +1627,7 @@ char *Canvas2DContext::genModifiedFragmentShader(const char *data, const char *g
 {
     const char *prologue =
         "vec4 _nm_gl_FragCoord;\n"
+        "void main(void);\n"
         "#define main _nm_main\n"
         "#define gl_FragCoord _nm_gl_FragCoord\n";
 

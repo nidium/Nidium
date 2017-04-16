@@ -398,12 +398,10 @@ void Context::rendered(uint8_t *pdata, int width, int height)
 void Context::frame(bool draw)
 {
     LayerizeContext ctx;
-    LayerSiblingContext sctx;
     Canvas2DContext *rootctx;
     std::vector<ComposeContext> compList;
 
     ctx.reset();
-    ctx.m_SiblingCtx = &sctx;
 
     rootctx = (Canvas2DContext *)m_RootHandler->m_Context;
 

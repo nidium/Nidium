@@ -48,19 +48,6 @@ class CanvasHandler;
 class SkiaContext;
 class CanvasContext;
 
-
-struct LayerSiblingContext
-{
-    double m_MaxLineHeight;
-    double m_MaxLineHeightPreviousLine;
-
-    LayerSiblingContext()
-        : m_MaxLineHeight(0.0), m_MaxLineHeightPreviousLine(0.0)
-    {
-    }
-};
-
-
 struct ComposeContext
 {
     CanvasHandler *handler;
@@ -81,8 +68,6 @@ struct LayerizeContext
     double m_aZoom;
     Rect *m_Clip;
 
-    struct LayerSiblingContext *m_SiblingCtx;
-
     void reset()
     {
         m_Layer      = NULL;
@@ -91,7 +76,6 @@ struct LayerizeContext
         m_aOpacity   = 1.0;
         m_aZoom      = 1.0;
         m_Clip       = NULL;
-        m_SiblingCtx = NULL;
     }
 };
 
@@ -289,26 +273,7 @@ public:
         COORD_RELATIVE,
         COORD_ABSOLUTE,
         COORD_FIXED,
-        COORD_INLINE,
-        COORD_INLINEBREAK,
         COORD_FLEX
-    };
-
-    enum DISPLAY_MODE
-    {
-        DISPLAY_RELATIVE,
-        DISPLAY_ABSOLUTE,
-        DISPLAY_FLEX
-    };
-
-    enum FLOW_MODE
-    {
-        kFlowDoesntInteract        = 0,
-        kFlowInlinePreviousSibling = 1 << 0,
-        kFlowBreakPreviousSibling  = 1 << 1,
-        kFlowFlex                  = 1 << 2,
-        kFlowBreakAndInlinePreviousSibling
-        = (kFlowInlinePreviousSibling | kFlowBreakPreviousSibling)
     };
 
     enum Visibility
@@ -459,12 +424,6 @@ public:
     void setPropFlex(bool val) override
     {
         p_Flex = val;
-
-        if (val) {
-            m_FlowMode |= kFlowFlex;
-        } else {
-            m_FlowMode &= ~kFlowFlex;
-        }
     }
 
     void setPropLeft(double val) override
@@ -535,11 +494,6 @@ public:
     COORD_POSITION getPositioning() const
     {
         return m_CoordPosition;
-    }
-
-    unsigned int getFlowMode() const
-    {
-        return m_FlowMode;
     }
 
     bool isHeightFluid() const
@@ -661,17 +615,6 @@ public:
     void computeLayoutPositions();
 
 protected:
-    CanvasHandler *getPrevInlineSibling() const
-    {
-        CanvasHandler *prev;
-        for (prev = m_Prev; prev != NULL; prev = prev->m_Prev) {
-            if (prev->m_FlowMode & kFlowInlinePreviousSibling) {
-                return prev;
-            }
-        }
-
-        return NULL;
-    }
 
     void paint();
     void propertyChanged(EventsChangedProperty property);
@@ -688,7 +631,7 @@ private:
     void dispatchMouseEvents(LayerizeContext &layerContext);
     COORD_POSITION m_CoordPosition;
     Visibility m_Visibility;
-    unsigned m_FlowMode;
+
     unsigned m_CoordMode : 16;
     double m_Zoom;
 

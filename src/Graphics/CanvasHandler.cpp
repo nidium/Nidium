@@ -32,7 +32,7 @@ CanvasHandler::CanvasHandler(int width,
       m_Overflow(true), m_Parent(NULL), m_Children(NULL), m_Next(NULL),
       m_Prev(NULL), m_Last(NULL), m_Flags(0), m_nChildren(0),
       m_CoordPosition(COORD_RELATIVE), m_Visibility(CANVAS_VISIBILITY_VISIBLE),
-      m_FlowMode(kFlowDoesntInteract), m_CoordMode(kLeft_Coord | kTop_Coord),
+      m_CoordMode(kLeft_Coord | kTop_Coord),
       m_Zoom(1.0), m_ScaleX(1.0), m_ScaleY(1.0),
       m_AllowNegativeScroll(false), m_NidiumContext(nctx), m_Pending(0),
       m_Loaded(!lazyLoad), m_Cursor(UIInterface::ARROW)
@@ -85,6 +85,7 @@ CanvasHandler::CanvasHandler(int width,
 
     m_CoordMode = kLeft_Coord | kTop_Coord;
 
+
 }
 
 void CanvasHandler::computeLayoutPositions()
@@ -94,16 +95,6 @@ void CanvasHandler::computeLayoutPositions()
 
 void CanvasHandler::setPositioning(CanvasHandler::COORD_POSITION mode)
 {
-    if (mode == COORD_INLINE) {
-        mode = COORD_RELATIVE;
-        m_FlowMode |= kFlowInlinePreviousSibling;
-    } else if (mode == COORD_INLINEBREAK) {
-        mode = COORD_RELATIVE;
-        m_FlowMode |= kFlowBreakAndInlinePreviousSibling;
-    } else {
-        m_FlowMode &= ~kFlowBreakAndInlinePreviousSibling;
-    }
-
     m_CoordPosition = mode;
     this->computeAbsolutePosition();
 }
@@ -506,7 +497,6 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 {
     CanvasHandler *cur;
     Rect nclip;
-    LayerSiblingContext *sctx = layerContext.m_SiblingCtx;
 
     if (m_Visibility == CANVAS_VISIBILITY_HIDDEN || p_Opacity == 0.0) {
         return;
@@ -520,82 +510,34 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
     int tmpLeft;
     int tmpTop;
 
-    if (m_CoordPosition == COORD_RELATIVE
-        && (m_FlowMode & kFlowBreakAndInlinePreviousSibling)) {
 
-        CanvasHandler *prev = getPrevInlineSibling();
 
-        if (!prev) {
-            p_Left = tmpLeft = m_Margin.left;
-            p_Top = tmpTop = m_Margin.top;
-
-        } else {
-            int prevWidth = prev->m_Visibility == CANVAS_VISIBILITY_HIDDEN
-                                ? 0
-                                : prev->getPropWidth();
-
-            p_Left = tmpLeft = (prev->p_Left + prevWidth + prev->m_Margin.right)
-                               + m_Margin.left;
-            p_Top = tmpTop = (prev->p_Top - prev->m_Margin.top) + m_Margin.top;
-
-            if (m_Parent) {
-                /*
-                    Line break if :
-                        - flow mode is kFlowBreakPreviousSibling (inline-break)
-                   or
-                        - Element would overflow-x its parent + parent doesn't
-                   have a fluid width
-                        - Element would overflow-x its parent + parent has a
-                   fluid height but a
-                   maxWidth
-                */
-                if ((m_FlowMode & kFlowBreakPreviousSibling)
-                    || ((!m_Parent->isWidthFluid()
-                        || (m_Parent->p_MaxWidth
-                             && tmpLeft + this->getPropWidth() > m_Parent->p_MaxWidth))
-                        && tmpLeft + this->getPropWidth() > m_Parent->getPropWidth())) {
-
-                    sctx->m_MaxLineHeightPreviousLine = sctx->m_MaxLineHeight;
-                    sctx->m_MaxLineHeight = this->getPropHeight() + m_Margin.bottom + m_Margin.top;
-
-                    tmpTop = p_Top = (prev->p_Top - prev->m_Margin.top)
-                                     + sctx->m_MaxLineHeightPreviousLine
-                                     + m_Margin.top;
-                    tmpLeft = p_Left = m_Margin.left;
-                }
-            }
-        }
-
-        sctx->m_MaxLineHeight = nidium_max(this->getPropHeight() + m_Margin.bottom + m_Margin.top, sctx->m_MaxLineHeight);
-
-    } else {
-
-        if (m_Parent && m_Parent->p_Flex) {
+    if (m_Parent && m_Parent->p_Flex) {
 #if 0
-            printf("===== YOGA =====\n");
-            YGNodePrint(m_YogaRef, YGPrintOptionsLayout);
-            printf("\n");
+        printf("===== YOGA =====\n");
+        YGNodePrint(m_YogaRef, YGPrintOptionsLayout);
+        printf("\n");
 #endif
-            tmpLeft = floorf(YGNodeLayoutGetLeft(m_YogaRef));
-            tmpTop = floorf(YGNodeLayoutGetTop(m_YogaRef));
+        tmpLeft = floorf(YGNodeLayoutGetLeft(m_YogaRef));
+        tmpTop = floorf(YGNodeLayoutGetTop(m_YogaRef));
 
-            int nwidth = ceilf(YGNodeLayoutGetWidth(m_YogaRef));
-            int nheight = ceilf(YGNodeLayoutGetHeight(m_YogaRef));
+        int nwidth = ceilf(YGNodeLayoutGetWidth(m_YogaRef));
+        int nheight = ceilf(YGNodeLayoutGetHeight(m_YogaRef));
 
-            if (nwidth != p_Width.getAlternativeValue()
-                || nheight != p_Height.getAlternativeValue()) {
+        if (nwidth != p_Width.getAlternativeValue()
+            || nheight != p_Height.getAlternativeValue()) {
 
-                p_Width.setAlternativeValue(nwidth);
-                p_Height.setAlternativeValue(nheight);
+            p_Width.setAlternativeValue(nwidth);
+            p_Height.setAlternativeValue(nheight);
 
-                deviceSetSize(nwidth, nheight);
-                
-            }
-        } else {
-            tmpLeft = this->getPropLeft();
-            tmpTop  = this->getPropTop();
+            deviceSetSize(nwidth, nheight);
+            
         }
+    } else {
+        tmpLeft = this->getPropLeft();
+        tmpTop  = this->getPropTop();
     }
+
 
     /*
         This is the base surface on top of the window frame buffer
@@ -704,8 +646,6 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
 
         }
 #endif
-        struct LayerSiblingContext siblingctx;
-
         for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
             int offsetLeft = 0, offsetTop = 0;
             if (cur->m_CoordPosition == COORD_RELATIVE) {
@@ -721,8 +661,7 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
                    = tmpTop + layerContext.m_pTop + offsetTop,
                    .m_aOpacity   = popacity,
                    .m_aZoom      = m_Zoom,
-                   .m_Clip       = layerContext.m_Clip,
-                   .m_SiblingCtx = &siblingctx };
+                   .m_Clip       = layerContext.m_Clip};
 
             cur->layerize(ctx, compList, draw);
 
@@ -838,81 +777,6 @@ void CanvasHandler::computeAbsolutePosition()
     if (m_CoordPosition == COORD_ABSOLUTE) {
         p_Top.setAlternativeValue(this->getPropTop());
         p_Left.setAlternativeValue(this->getPropLeft());
-        return;
-    }
-
-    if (m_CoordPosition == COORD_RELATIVE
-        && (m_FlowMode & kFlowBreakAndInlinePreviousSibling)) {
-
-        if (m_Parent == NULL) {
-            p_Top.setAlternativeValue(0);
-            p_Left.setAlternativeValue(0);
-            return;
-        }
-
-        CanvasHandler *elem, *prev = NULL;
-
-        m_Parent->computeAbsolutePosition();
-
-        double offset_x = m_Parent->p_Left.getAlternativeValue() - m_Parent->m_Content.scrollLeft,
-               offset_y = m_Parent->p_Top.getAlternativeValue() - m_Parent->m_Content.scrollTop;
-
-        double maxLineHeightPreviousLine = 0, maxLineHeight = 0;
-
-        for (elem = m_Parent->getFirstChild(); elem != NULL;
-             elem = elem->m_Next) {
-
-            if (!(elem->getFlowMode() & kFlowInlinePreviousSibling)) {
-                continue;
-            }
-
-            if (prev) {
-                int prevWidth = prev->m_Visibility == CANVAS_VISIBILITY_HIDDEN
-                                    ? 0
-                                    : prev->getPropWidth();
-
-                elem->p_Left = (prev->p_Left + prevWidth + prev->m_Margin.right)
-                               + elem->m_Margin.left;
-                elem->p_Top
-                    = (prev->p_Top - prev->m_Margin.top) + elem->m_Margin.top;
-
-                if ((elem->m_FlowMode & kFlowBreakPreviousSibling)
-                    || ((!m_Parent->isWidthFluid()
-                         || (m_Parent->p_MaxWidth
-                             && elem->p_Left + elem->getPropWidth()
-                                    > m_Parent->p_MaxWidth))
-                        && elem->p_Left + elem->getPropWidth()
-                               > m_Parent->getPropWidth())) {
-
-                    maxLineHeightPreviousLine = maxLineHeight;
-                    maxLineHeight             = elem->getPropHeight() + elem->m_Margin.bottom
-                                    + elem->m_Margin.top;
-
-                    elem->p_Top = (prev->p_Top - prev->m_Margin.top)
-                                  + maxLineHeightPreviousLine
-                                  + elem->m_Margin.top;
-                    elem->p_Left = elem->m_Margin.left;
-                }
-            } else {
-                /* The first element is aligned to the parent's top-left */
-                elem->p_Left = elem->m_Margin.left;
-                elem->p_Top  = elem->m_Margin.top;
-            }
-
-            elem->p_Left.setAlternativeValue(elem->p_Left + offset_x);
-            elem->p_Top.setAlternativeValue(elem->p_Top + offset_y);
-
-            maxLineHeight = nidium_max(elem->getPropHeight() + elem->m_Margin.bottom
-                                           + elem->m_Margin.top,
-                                       maxLineHeight);
-
-            if (elem == this) {
-                break;
-            }
-
-            prev = elem;
-        }
-
         return;
     }
 

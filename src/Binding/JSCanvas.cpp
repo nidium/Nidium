@@ -780,10 +780,6 @@ bool JSCanvas::JSSetter_position(JSContext *cx, JS::MutableHandleValue vp)
         m_CanvasHandler->setPositioning(CanvasHandler::COORD_ABSOLUTE);
     } else if (strcasecmp(mode.ptr(), "fixed") == 0) {
         m_CanvasHandler->setPositioning(CanvasHandler::COORD_FIXED);
-    } else if (strcasecmp(mode.ptr(), "inline") == 0) {
-        m_CanvasHandler->setPositioning(CanvasHandler::COORD_INLINE);
-    } else if (strcasecmp(mode.ptr(), "inline-break") == 0) {
-        m_CanvasHandler->setPositioning(CanvasHandler::COORD_INLINEBREAK);
     } else {
         m_CanvasHandler->setPositioning(CanvasHandler::COORD_RELATIVE);
     }
@@ -791,9 +787,22 @@ bool JSCanvas::JSSetter_position(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
-bool JSCanvas::JSSetter_flex(JSContext *cx, JS::MutableHandleValue vp)
+bool JSCanvas::JSSetter_display(JSContext *cx, JS::MutableHandleValue vp)
 {
-    m_CanvasHandler->setPropFlex(JS::ToBoolean(vp));
+    JS::RootedString sdisplay(cx, JS::ToString(cx, vp));
+
+    if (!sdisplay.get()) {
+        return true;
+    }
+    JSAutoByteString cdisplay(cx, sdisplay);
+
+    if (strcmp("flex", cdisplay.ptr()) == 0) {
+        m_CanvasHandler->setPropFlex(true);
+
+        return true;
+    }
+
+    m_CanvasHandler->setPropFlex(false);
 
     return true;
 }
@@ -1084,9 +1093,15 @@ bool JSCanvas::JSGetter_minHeight(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
-bool JSCanvas::JSGetter_flex(JSContext *cx, JS::MutableHandleValue vp)
+bool JSCanvas::JSGetter_display(JSContext *cx, JS::MutableHandleValue vp)
 {
-    vp.setBoolean(m_CanvasHandler->getPropFlex());
+    if (m_CanvasHandler->getPropFlex()) {
+        vp.setString(JS_NewStringCopyZ(cx, "flex"));
+
+        return true;
+    }
+
+    vp.setString(JS_NewStringCopyZ(cx, "default"));
 
     return true;
 }
@@ -1097,18 +1112,10 @@ bool JSCanvas::JSGetter_position(JSContext *cx, JS::MutableHandleValue vp)
 
     switch (m_CanvasHandler->getPositioning()) {
         case CanvasHandler::COORD_RELATIVE:
-            if (m_CanvasHandler->getFlowMode()
-                & CanvasHandler::kFlowBreakPreviousSibling) {
-                jstr = JS_NewStringCopyZ(cx, "inline-break");
-                vp.setString(jstr);
-            } else if (m_CanvasHandler->getFlowMode()
-                       & CanvasHandler::kFlowInlinePreviousSibling) {
-                jstr = JS_NewStringCopyZ(cx, "inline");
-                vp.setString(jstr);
-            } else {
-                jstr = JS_NewStringCopyZ(cx, "relative");
-                vp.setString(jstr);
-            }
+
+            jstr = JS_NewStringCopyZ(cx, "relative");
+            vp.setString(jstr);
+
             break;
         case CanvasHandler::COORD_ABSOLUTE:
             jstr = JS_NewStringCopyZ(cx, "absolute");
@@ -1116,14 +1123,6 @@ bool JSCanvas::JSGetter_position(JSContext *cx, JS::MutableHandleValue vp)
             break;
         case CanvasHandler::COORD_FIXED:
             jstr = JS_NewStringCopyZ(cx, "fixed");
-            vp.setString(jstr);
-            break;
-        case CanvasHandler::COORD_INLINE:
-            jstr = JS_NewStringCopyZ(cx, "inline");
-            vp.setString(jstr);
-            break;
-        case CanvasHandler::COORD_INLINEBREAK:
-            jstr = JS_NewStringCopyZ(cx, "inline-break");
             vp.setString(jstr);
             break;
         case CanvasHandler::COORD_FLEX:
@@ -1433,7 +1432,7 @@ bool JSCanvas::JSSetter_alignSelf(JSContext *cx, JS::MutableHandleValue vp)
     if (!vp.isString()) {
         return true;
     }
-    
+
     JS::RootedString vpStr(cx, JS::ToString(cx, vp));
     JSAutoByteString setstr(cx, vpStr);
 
@@ -1522,7 +1521,7 @@ JSPropertySpec *JSCanvas::ListProperties()
         CLASSMAPPER_PROP_GS(JSCanvas, minWidth),
         CLASSMAPPER_PROP_GS(JSCanvas, minHeight),
         CLASSMAPPER_PROP_GS(JSCanvas, position),
-        CLASSMAPPER_PROP_GS(JSCanvas, flex),
+        CLASSMAPPER_PROP_GS(JSCanvas, display),
         CLASSMAPPER_PROP_GS(JSCanvas, top),
         CLASSMAPPER_PROP_GS(JSCanvas, left),
         CLASSMAPPER_PROP_GS(JSCanvas, right),
