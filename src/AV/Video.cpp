@@ -104,13 +104,14 @@ int Video::open(void *buffer, int size)
     if (!m_Container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
-    if (this->openInit() == 0) {
-        if (pthread_create(&m_ThreadDecode, NULL, Video::decode, this) != 0) {
-            RETURN_WITH_ERROR(ERR_INTERNAL);
-        }
-        m_ThreadCreated = true;
-        NIDIUM_PTHREAD_SIGNAL(&m_BufferCond);
+
+    this->openInit();
+
+    if (pthread_create(&m_ThreadDecode, NULL, Video::decode, this) != 0) {
+        RETURN_WITH_ERROR(ERR_INTERNAL);
     }
+    m_ThreadCreated = true;
+    NIDIUM_PTHREAD_SIGNAL(&m_BufferCond);
 
     return 0;
 }
@@ -122,32 +123,20 @@ int Video::open(const char *src)
         this->closeInternal(true);
     }
 
-    m_MainCoro = Coro_new();
-    m_Coro = Coro_new();
-    Coro_initializeMainCoro(m_MainCoro);
-
-    if (!(m_AvioBuffer = static_cast<unsigned char *>(av_malloc(
-              NIDIUM_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE)))) {
-        RETURN_WITH_ERROR(ERR_OOM);
-    }
-
-    m_Reader
-        = new AVStreamReader(src, Video::sourceNeedWork, this, this, m_Net);
     m_Container = avformat_alloc_context();
     if (!m_Container) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    m_Container->pb
-        = avio_alloc_context(m_AvioBuffer, NIDIUM_AVIO_BUFFER_SIZE, 0, m_Reader,
-                             AVStreamReader::read, NULL, AVStreamReader::seek);
-    if (!m_Container->pb) {
-        RETURN_WITH_ERROR(ERR_OOM);
-    }
+    Core::Path p = Core::Path(src);
+    m_Filename = strdup(p.path());
+
+    this->openInit();
 
     if (pthread_create(&m_ThreadDecode, NULL, Video::decode, this) != 0) {
         RETURN_WITH_ERROR(ERR_INTERNAL);
     }
+
     m_ThreadCreated = true;
 
     return 0;
@@ -162,20 +151,6 @@ int Video::openInit()
     return 0;
 }
 
-void Video::openInitCoro(void *arg)
-{
-    DPRINT("openInitCoro()\n");
-    Video *thiz = (static_cast<Video *>(arg));
-    int ret = thiz->openInitInternal();
-    if (ret != 0) {
-        thiz->sendEvent(SOURCE_EVENT_ERROR, ret, false);
-        // Send a message to close the source from the main thread
-        // (As we can't close a source from a coroutine/thread)
-        thiz->postMessage(thiz, AVSource::MSG_CLOSE);
-    }
-    Coro_switchTo_(thiz->m_Coro, thiz->m_MainCoro);
-}
-
 int Video::openInitInternal()
 {
     DPRINT("openInitInternal");
@@ -185,13 +160,13 @@ int Video::openInitInternal()
     av_register_all();
 
     int ret
-        = avformat_open_input(&m_Container, "In memory video file", NULL, NULL);
+        = avformat_open_input(&m_Container, m_Filename, NULL, NULL);
 
     if (ret != 0) {
         char error[1024];
         av_strerror(ret, error, 1024);
         fprintf(stderr, "Couldn't open file : %s\n", error);
-        return ERR_INTERNAL;
+        return ERR_FAILED_OPEN;
     }
 
     PthreadAutoLock lock(&AVSource::m_FfmpegLock);
@@ -200,7 +175,7 @@ int Video::openInitInternal()
         return ERR_NO_INFORMATION;
     }
 
-    av_dump_format(m_Container, 0, "Memory input", 0);
+    av_dump_format(m_Container, 0, m_Filename, 0);
 
     for (unsigned int i = 0; i < m_Container->nb_streams; i++) {
         if (m_Container->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO
@@ -372,17 +347,6 @@ void Video::seek(double time, uint32_t flags)
     NIDIUM_PTHREAD_SIGNAL(&m_BufferCond);
 
     this->scheduleDisplay(1, true);
-}
-
-void Video::seekCoro(void *arg)
-{
-    Video *v     = static_cast<Video *>(arg);
-    v->m_Seeking = true;
-    v->flushBuffers();
-    v->seekInternal(v->m_DoSeekTime);
-    v->m_DoSemek = false;
-    v->m_Seeking = false;
-    Coro_switchTo_(v->m_Coro, v->m_MainCoro);
 }
 
 bool Video::seekMethod(int64_t target, int flags)
@@ -978,34 +942,9 @@ void Video::buffer()
         return;
     }
 
-    if (m_Reader->m_Async) {
-        if (m_Buffering) {
-            DPRINT("=> PENDING\n");
-            // Reader already trying to get data
-            return;
-        }
-        m_Buffering = true;
-        DPRINT("buffer coro start\n");
-        Coro_startCoro_(m_MainCoro, m_Coro, this, Video::bufferCoro);
-    } else {
-        this->bufferInternal();
-    }
+    this->bufferInternal();
 }
 
-
-void Video::bufferCoro(void *arg)
-{
-    Video *v = static_cast<Video *>(arg);
-    v->bufferInternal();
-
-    if (!v->m_Reader->m_Pending) {
-        v->m_Buffering = false;
-    }
-
-    Coro_switchTo_(v->m_Coro, v->m_MainCoro);
-
-    return;
-}
 
 void Video::bufferInternal()
 {
@@ -1091,20 +1030,11 @@ void *Video::decode(void *args)
                 DPRINT("not buffering and seeking\n");
                 if (v->m_DoSemek == true) {
                     DPRINT("seeking\n");
-                    if (!v->m_Reader->m_Async) {
-                        v->seekInternal(v->m_DoSeekTime);
-                        v->m_DoSemek = false;
-                    } else {
-                        DPRINT("    running seek coro\n");
-                        Coro_startCoro_(v->m_MainCoro, v->m_Coro, v,
-                                        Video::seekCoro);
-                    }
+                    v->seekInternal(v->m_DoSeekTime);
+                    v->m_DoSemek = false;
                     DPRINT("done seeking\n");
                 } else {
                     DPRINT("buffering\n");
-                    // DPRINT("Coro space main = %d coro = %d\n",
-                    //    Coro_stackSpaceAlmostGone(v->mainCoro),
-                    //    Coro_stackSpaceAlmostGone(v->coro));
                     v->buffer();
                 }
             }
@@ -1125,11 +1055,10 @@ void *Video::decode(void *args)
             }
         } else if (v->m_SourceDoOpen) {
             v->m_SourceDoOpen = false;
-            if (v->m_Reader->m_Async) {
-                Coro_startCoro_(v->m_MainCoro, v->m_Coro, v,
-                                Video::openInitCoro);
-            } else {
-                v->openInitInternal();
+            int ret = v->openInitInternal();
+            if (ret != 0) {
+                v->sendEvent(SOURCE_EVENT_ERROR, ret, true /* threaded */);
+                v->postMessage(v, AVSource::MSG_CLOSE);
             }
         }
 
@@ -1137,18 +1066,7 @@ void *Video::decode(void *args)
 
         if (v->m_Shutdown) break;
 
-        if (v->m_SourceNeedWork) {
-            DPRINT("readFlag, switching back to coro\n");
-            v->lockDecodeThread();
-            v->m_SourceNeedWork = false;
-            Coro_switchTo_(v->m_MainCoro, v->m_Coro);
-            DPRINT("Back to main coro after source work\n");
-            // Make sure another read call havn't been made
-            if (!v->m_Reader->m_Pending) {
-                v->m_Buffering = false;
-            }
-            v->unlockDecodeThread();
-        } else if (!v->m_DoSemek) {
+        if (!v->m_DoSemek) {
             DPRINT("wait bufferCond, no work needed\n");
             NIDIUM_PTHREAD_WAIT(&v->m_BufferCond);
             DPRINT("Waked up from bufferCond!");
@@ -1504,7 +1422,6 @@ void Video::closeFFMpeg()
     if (m_Opened) {
         PthreadAutoLock lock(&AVSource::m_FfmpegLock);
         avcodec_close(m_CodecCtx);
-        av_free(m_Container->pb);
         avformat_close_input(&m_Container);
     } else {
         if (m_Container) {
@@ -1519,10 +1436,6 @@ void Video::closeInternal(bool reset)
     this->clearTimers(reset);
 
     if (m_ThreadCreated) {
-        // Finish the reader first, any pending call
-        // will be finished (seek, read) so we can lock the thread
-        m_Reader->finish();
-
         this->lockDecodeThread();
 
         m_Shutdown = true;
@@ -1539,8 +1452,10 @@ void Video::closeInternal(bool reset)
         this->closeFFMpeg();
     }
 
-    delete m_Reader;
-    m_Reader = NULL;
+    if (m_Reader) {
+        delete m_Reader;
+        m_Reader = NULL;
+    }
 
     this->flushBuffers();
 
@@ -1560,13 +1475,6 @@ void Video::closeInternal(bool reset)
         m_VideoQueue = NULL;
     }
 
-    if (m_MainCoro != NULL) {
-        Coro_free(m_MainCoro);
-        Coro_free(m_Coro);
-        m_MainCoro = NULL;
-        m_Coro     = NULL;
-    }
-
     delete m_rBuff;
 
     av_free(m_ConvertedFrame);
@@ -1575,6 +1483,7 @@ void Video::closeInternal(bool reset)
     sws_freeContext(m_SwsCtx);
 
     free(m_Buff);
+    free(m_Filename);
 
     m_rBuff          = NULL;
     m_CodecCtx       = NULL;
@@ -1585,6 +1494,7 @@ void Video::closeInternal(bool reset)
     m_Container      = NULL;
     m_Reader         = NULL;
     m_AvioBuffer     = NULL;
+    m_Filename       = NULL;
 
     if (m_AudioSource != NULL) {
         delete m_AudioSource;

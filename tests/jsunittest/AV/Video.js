@@ -14,7 +14,7 @@ var video = new Video(c);
 Tests.registerAsync("Video.open(invalid file)", function(next) {
     video.addEventListener("error", function(ev) {
         video.removeEventListener("error");
-        Assert.strictEqual(ev.errorCode, 0, "Invalid error code returned")
+        Assert.strictEqual(ev.errorCode, 1, "Invalid error code returned")
         next();
     });
 
