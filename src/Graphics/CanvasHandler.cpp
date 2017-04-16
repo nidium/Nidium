@@ -66,6 +66,7 @@ CanvasHandler::CanvasHandler(int width,
     YGNodeStyleSetMinHeight(m_YogaRef, p_MinHeight);
 
     memset(&m_Margin, 0, sizeof(m_Margin));
+    memset(&m_Padding, 0, sizeof(m_Padding));
     memset(&m_MousePosition, 0, sizeof(m_MousePosition));
 
     m_MousePosition.consumed = true;
@@ -79,6 +80,8 @@ CanvasHandler::CanvasHandler(int width,
 
     m_Content.scrollLeft = 0;
     m_Content.scrollTop  = 0;
+
+    p_Flex = true;
 }
 
 void CanvasHandler::computeLayoutPositions()
@@ -444,8 +447,8 @@ void CanvasHandler::dispatchMouseEvents(LayerizeContext &layerContext)
     Rect actualRect;
     actualRect.m_fLeft   = p_Left.getAlternativeValue() - p_Coating;
     actualRect.m_fTop    = p_Top.getAlternativeValue() - p_Coating;
-    actualRect.m_fRight  = p_Width + p_Left.getAlternativeValue();
-    actualRect.m_fBottom = p_Height + p_Top.getAlternativeValue();
+    actualRect.m_fRight  = p_Width.getAlternativeValue() + p_Left.getAlternativeValue();
+    actualRect.m_fBottom = p_Height.getAlternativeValue() + p_Top.getAlternativeValue();
 
     if (layerContext.m_Clip) {
 

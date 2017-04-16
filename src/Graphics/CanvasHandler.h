@@ -299,6 +299,14 @@ public:
 
     struct
     {
+        double top;
+        double right;
+        double bottom;
+        double left;
+    } m_Padding;
+
+    struct
+    {
         int width;
         int height;
         int scrollTop;
@@ -378,6 +386,19 @@ public:
         m_Margin.right  = right;
         m_Margin.bottom = bottom;
         m_Margin.left   = left;
+    }
+
+    void setPadding(double top, double right, double bottom, double left)
+    {
+        YGNodeStyleSetPadding(m_YogaRef, YGEdgeTop, top);
+        YGNodeStyleSetPadding(m_YogaRef, YGEdgeRight, right);
+        YGNodeStyleSetPadding(m_YogaRef, YGEdgeBottom, bottom);
+        YGNodeStyleSetPadding(m_YogaRef, YGEdgeLeft, left);
+
+        m_Padding.top    = top;
+        m_Padding.right  = right;
+        m_Padding.bottom = bottom;
+        m_Padding.left   = left;
     }
 
     void setPropLeft(double val) override

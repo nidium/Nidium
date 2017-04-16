@@ -778,6 +778,77 @@ bool JSCanvas::JSSetter_marginBottom(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
+
+
+bool JSCanvas::JSSetter_paddingLeft(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    m_CanvasHandler->setPadding(
+                m_CanvasHandler->m_Padding.top,
+                m_CanvasHandler->m_Padding.right,
+                m_CanvasHandler->m_Padding.bottom,
+                dval);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_paddingTop(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    m_CanvasHandler->setPadding(
+                dval,
+                m_CanvasHandler->m_Padding.right,
+                m_CanvasHandler->m_Padding.bottom,
+                m_CanvasHandler->m_Padding.left);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_paddingRight(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    m_CanvasHandler->setPadding(
+                m_CanvasHandler->m_Padding.top,
+                dval,
+                m_CanvasHandler->m_Padding.bottom,
+                m_CanvasHandler->m_Padding.left);
+
+    return true;
+}
+
+bool JSCanvas::JSSetter_paddingBottom(JSContext *cx, JS::MutableHandleValue vp)
+{
+    double dval;
+
+    if (!JS::ToNumber(cx, vp, &dval)) {
+        return true;
+    }
+
+    m_CanvasHandler->setPadding(
+                m_CanvasHandler->m_Padding.top,
+                m_CanvasHandler->m_Padding.right,
+                dval,
+                m_CanvasHandler->m_Padding.left);
+
+    return true;
+}
+
+
 bool JSCanvas::JSSetter_position(JSContext *cx, JS::MutableHandleValue vp)
 {
     if (!vp.isString()) {
@@ -1222,6 +1293,34 @@ bool JSCanvas::JSGetter_marginBottom(JSContext *cx, JS::MutableHandleValue vp)
     return true;
 }
 
+bool JSCanvas::JSGetter_paddingLeft(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_CanvasHandler->m_Padding.left);
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_paddingRight(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_CanvasHandler->m_Padding.right);
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_paddingTop(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_CanvasHandler->m_Padding.top);
+
+    return true;
+}
+
+bool JSCanvas::JSGetter_paddingBottom(JSContext *cx, JS::MutableHandleValue vp)
+{
+    vp.setDouble(m_CanvasHandler->m_Padding.bottom);
+
+    return true;
+}
+
 bool JSCanvas::JSGetter_coating(JSContext *cx, JS::MutableHandleValue vp)
 {
     vp.setInt32(m_CanvasHandler->p_Coating);
@@ -1572,6 +1671,10 @@ JSPropertySpec *JSCanvas::ListProperties()
         CLASSMAPPER_PROP_GS(JSCanvas, marginRight),
         CLASSMAPPER_PROP_GS(JSCanvas, marginTop),
         CLASSMAPPER_PROP_GS(JSCanvas, marginBottom),
+        CLASSMAPPER_PROP_GS(JSCanvas, paddingLeft),
+        CLASSMAPPER_PROP_GS(JSCanvas, paddingRight),
+        CLASSMAPPER_PROP_GS(JSCanvas, paddingTop),
+        CLASSMAPPER_PROP_GS(JSCanvas, paddingBottom),
         CLASSMAPPER_PROP_GS(JSCanvas, cursor),
 
         /* Flexbox container */
