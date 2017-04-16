@@ -433,16 +433,7 @@ public:
     */
     int getPropWidth() override
     {
-        if (m_FluidWidth) {
-            return p_Width;
-        }
-        if (m_Parent == NULL) return 0;
-
-        int pwidth = m_Parent->getPropWidth();
-
-        if (pwidth == 0) return 0;
-
-        return nidium_max(pwidth - this->getPropLeft() - this->getRight(), 1);
+        return p_Width;
     }
 
     /*
@@ -450,17 +441,7 @@ public:
     */
     int getPropHeight() override
     {
-        if (m_FluidHeight) {
-            return p_Height;
-        }
-
-        if (m_Parent == NULL) return 0;
-
-        int pheight = m_Parent->getPropHeight();
-
-        if (pheight == 0) return 0;
-
-        return nidium_max(pheight - this->getPropTop() - this->getBottom(), 1);
+        return p_Height;
     }
 
     Frontend::Context *getNidiumContext() const
@@ -490,34 +471,24 @@ public:
 
     void setPropLeft(double val) override
     {
-        if (m_FlowMode & kFlowInlinePreviousSibling) {
-            return;
-        }
         m_CoordMode |= kLeft_Coord;
         p_Left.set(val);
+        
         YGNodeStyleSetPosition(m_YogaRef, YGEdgeLeft, val);
-
-        setSize(this->getPropWidth(), p_Height);
     }
 
     void setRight(double val)
     {
         m_CoordMode |= kRight_Coord;
         m_Right = val;
-        setSize(this->getPropWidth(), p_Height);
     }
 
     void setPropTop(double val) override
     {
-        if (m_FlowMode & kFlowInlinePreviousSibling) {
-            return;
-        }
-
         m_CoordMode |= kTop_Coord;
         p_Top.set(val);
-        YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, val);
 
-        setSize(p_Width, this->getPropHeight());
+        YGNodeStyleSetPosition(m_YogaRef, YGEdgeTop, val);
     }
 
     void setPropCoating(unsigned int value) override;

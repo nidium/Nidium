@@ -194,7 +194,7 @@ void Context::loadNativeObjects(int width, int height)
 
 
 #if DEBUG
-    createDebug2Canvas();
+    //createDebug2Canvas();
 #endif
 }
 

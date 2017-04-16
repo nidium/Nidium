@@ -189,10 +189,11 @@ bool CanvasHandler::setWidth(int width, bool force)
     width = p_MaxWidth ? nidium_clamp(width, p_MinWidth, p_MaxWidth)
                        : nidium_max(width, p_MinWidth);
 
-
     if (p_Width == width) {
         return true;
     }
+
+    nlogf("Set width of %d (old %d)", width, p_Width.get());
 
     p_Width = width;
 
@@ -234,8 +235,15 @@ void CanvasHandler::setSize(int width, int height, bool redraw)
         return;
     }
 
+    if (getIdentifier() == 11) {
+
+        nlogf("Set width2 of %d (old %d) on %lld", width, p_Width.get(), getIdentifier());        
+    }
+
+
     p_Width  = width;
     p_Height = height;
+
 
     YGNodeStyleSetWidth(m_YogaRef, width >= 0 ? width : YGUndefined);
     YGNodeStyleSetHeight(m_YogaRef, height >= 0 ? height : YGUndefined);
@@ -604,7 +612,6 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
             cleft = layerContext.m_pLeft;
             ctop  = layerContext.m_pTop;
         }
-
         /*
             Set the absolute position
         */
@@ -617,8 +624,8 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
         willDraw = (!layerContext.m_Clip || m_CoordPosition == COORD_ABSOLUTE
                     || (layerContext.m_Clip->checkIntersect(
                       p_Left.getAlternativeValue() - p_Coating, p_Top.getAlternativeValue() - p_Coating,
-                      p_Left.getAlternativeValue() + p_Coating + this->getPropWidth(),
-                      p_Top.getAlternativeValue() + p_Coating + this->getPropHeight())));
+                      p_Left.getAlternativeValue() + p_Coating + YGNodeLayoutGetWidth(m_YogaRef),
+                      p_Top.getAlternativeValue() + p_Coating + YGNodeLayoutGetHeight(m_YogaRef))));
 
         if (willDraw && !m_Loaded) {
             m_Loaded = true;
@@ -654,7 +661,10 @@ void CanvasHandler::layerize(LayerizeContext &layerContext,
             if (!m_Parent) {
                 return;
             }
+            if (getIdentifier() == 11) {
 
+                nlog("Draw element 11");
+            }
             compList.push_back(std::move(compctx));
         }
     }

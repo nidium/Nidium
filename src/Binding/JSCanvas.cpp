@@ -1235,11 +1235,17 @@ JSCanvas *JSCanvas::Constructor(JSContext *cx, JS::CallArgs &args,
     int width = -1, height = -1;
     CanvasHandler *handler;
 
-    JS::RootedObject opt(cx);
-    if (!JS_ConvertArguments(cx, args, "/ii", &width, &height)) {
-        return nullptr;
+    if (args.length() >= 1 && !args[0].isNullOrUndefined() && !JS::ToInt32(cx, args[0], &width)) {
+        width = -1;
     }
 
+    if (args.length() >= 2 && !args[1].isNullOrUndefined() && !JS::ToInt32(cx, args[1], &height)) {
+        height = -1;
+    }
+
+    width = nidium_max(-1, width);
+    height = nidium_max(-1, height);
+    
     handler = new CanvasHandler(width, height,
         Context::GetObject<Frontend::Context>(cx), true);
 
