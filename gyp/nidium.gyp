@@ -38,27 +38,63 @@
                 ],
             }],
             ['OS=="win"', {
+                'conditions': [
+                    ['nidium_enable_breakpad==1', {
+                        'dependencies': [
+                            'crashreporter.gyp:nidium-crash-reporter',
+                         ],
+                    }],
+                ],
                 'link_settings': {
                     'libraries': [
-                       'opengl32.lib',
+            
                        'gif.lib',
+                        '-lSDL2',
 
                         '-lskia',
                         '-langle_common',
-                        '-lSDL2',
-   #                     '-ltranslator',
+
+                        '-ltranslator',
 #                        '-ltranslator_lib',
-   #                     '-lpreprocessor',
+                        '-lpreprocessor',
 
 #                        '-lGL',
 #                        '-lfreetype',
 #                        '-lrt',
 #                        '-ldl',
                         '-lzip',
+
+                         'Compression.obj', 'Decimal.obj', #'Unified_cpp_mfbt_staticruntime0.obj',
+                        'opengl32.lib',
+                    #'usp10.lib',
+                    #'kernel32.lib',
+                    #'gdi32.lib',
+                    #'winspool.lib',
+                    #'comdlg32.lib',
+                    #'advapi32.lib',
+                    #'ole32.lib',
+                    #'oleaut32.lib',
+                    #'user32.lib',
+                    #'uuid.lib',
+                    #'odbc32.lib',
+                    #'odbccp32.lib',
+                    #'DelayImp.lib',
+                    #'windowscodecs.lib',
+                        'shell32.lib',
+                        'shlwapi.lib',
+#                        'ws2_32.lib',
+#                         'winmm.lib',
+#                         'imm32.lib',
+#                         'delayimp.lib',
+#                        'glu32.lib',
                     ],
                 },
                 'defines': [
                 ],
+                'sources': [
+                    '<(nidium_app_path)/windows/main.cpp',
+                ],
+
              }],
              ['OS=="linux"', {
                 'conditions': [

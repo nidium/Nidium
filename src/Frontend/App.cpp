@@ -21,6 +21,8 @@
 
 using Nidium::Core::SharedMessages;
 
+
+
 namespace Nidium {
 namespace Frontend {
 

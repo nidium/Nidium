@@ -27,6 +27,7 @@
                 '<(nidium_interface_path)/windows/System.cpp',
             ],
             'include_dirs': [
+                '<(nidium_interface_path)/windows/',
                 '<(third_party_path)/skia/include/gpu',
                 '<(third_party_path)/opengl/api',
             ],

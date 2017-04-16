@@ -137,7 +137,11 @@ def giflib():
 
 @Deps.register("skia")
 def skia():
+    pref = "lib"
+    ext = ".a"
     if Platform.system == "Windows":
+        pref = ""
+        ext = ".lib"
         import stat
         cpu = ["x86", "x64"][Platform.wordSize == 64]
         args = {
@@ -160,10 +164,11 @@ def skia():
         file_h.close()
         st = os.stat("skia/" + gn_hack)
         os.chmod("skia/" + gn_hack, st.st_mode | stat.S_IEXEC) 
-        build = [ "python tools/git-sync-deps", 
-                  "bash ./%s||true" % (gn_hack),
-                  "python gn/gn_meta_sln.py", 
-                  Platform.MsBuild("out/sln/skia.sln", None, None, None)]
+        build = [ #"python tools/git-sync-deps", 
+                  #"bash ./%s||true" % (gn_hack),
+                  #"python gn/gn_meta_sln.py", 
+                  #Platform.MsBuild("out/sln/skia.sln", None, None, None)]
+                ]
     else:
         args = {
             "extra_cflags_cc": [
@@ -194,7 +199,6 @@ def skia():
     # by using a custom python wrapper that will redirect to the correct python version
     Platform.setEnviron("PATH=" + os.path.join(ROOT, "tools") + ":" + os.environ.get("PATH", ""))
 
-
     return {
         "location": Deps.GitRepo("https://skia.googlesource.com/skia.git", revision="98829b9"),
         "build": build,
@@ -203,7 +207,7 @@ def skia():
             os.path.join(CONFIGURE_PATH, "patch", "skia_gr_gl_callback.patch")
         ],
         "outputs": [
-            "out/Static/libskia.a",
+            "out/Static/%sskia%s" % (pref, ext), 
             {
                 "src": "out/Static/skdiff",
                 "dst": os.path.join(ROOT, "tests", "jsunittest", "gr", "skdiff")
