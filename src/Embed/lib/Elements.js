@@ -25,13 +25,10 @@ const Elements = {
 
 class NidiumNode extends Canvas {
     constructor(attributes = {}) {
-        super(attributes.width || 10, attributes.height || 10);
+        super(attributes.width, attributes.height);
 
         this.attributes = attributes;
         this.computedAttributes = {};
-
-        this.left = attributes.left || 0;
-        this.top = attributes.top || 0;
 
         if (attributes.opacity !== undefined) {
             this.opacity = attributes.opacity;
