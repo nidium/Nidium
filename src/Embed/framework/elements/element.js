@@ -60,7 +60,7 @@
 
         isVisible() {
             return this.__visible && !this.__outofbound;
-        },
+        }
 
         ctx2d() {
             return this.getContext("2d");
@@ -75,7 +75,32 @@
         }
 
         paint(ctx) {
-            this.style._paint(ctx);
+            this.style.angle = 0;
+            this.style.originOffsetX = 0;
+            this.style.originOffsetY = 0;
+            this.style.alpha = 1;
+
+            var rad = this.style.angle * (Math.PI/180);
+
+            var origin = {
+                x : this.style.width/2 + this.style.originOffsetX,
+                y : this.style.height/2 + this.style.originOffsetY
+            };
+
+            this.clear();
+
+            this.beforepaint();
+
+            ctx.save();
+                ctx.globalAlpha = this.style.alpha;
+                ctx.translate(origin.x, origin.y);
+                ctx.rotate(rad);
+                ctx.translate(-origin.x, -origin.y);
+
+                this.style._paint(ctx);
+                this.afterpaint();
+            ctx.restore();
+
         }
 
         afterpaint(ctx){
