@@ -149,7 +149,8 @@
             '<(third_party_path)/yoga/Yoga.c',
             '<(third_party_path)/yoga/YGNodeList.c',
             '<(third_party_path)/yoga/YGNodeList.c',
-            '<(third_party_path)/yoga/YGEnums.c'
+            '<(third_party_path)/yoga/YGEnums.c',
+            '<(third_party_path)/yoga/YGStringEnums.c',
         ],
     }],
 }
